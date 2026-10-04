@@ -1,13 +1,13 @@
-// The car radio. In a car, bus, boat or police car N tunes to the next
-// station and B to the previous one: G-Music (the soundtrack), Radio
-// Nachtstreek (the same records through an old radio, with Rikus talking
-// between them), Radio Proat (talk: Geesje, the Kiekdoar news, the traffic,
-// the cows and Rikus's bits, all recordings the game already has) and off.
-// Every vehicle keeps its own station; a stolen one comes with whatever its
-// driver had on (a taxi or bus plays Radio Proat, a tractor Nachtstreek).
-// On foot or on a bike G-Music plays as always. audio.js does the music
-// side (setRadioStation); the talk goes through the speech channel's
-// 'radio' class, so any other voice cuts it off. `window.__radio` debug.
+// The radio: one station list for the whole game, the same on foot (Tammo's
+// earbuds) and in any vehicle. N tunes to the next station and B to the
+// previous one (LB in a vehicle on a controller, or Instellingen > Geluid):
+// G-Music (the hits), Radio Nachtstreek (Rikus's late-night records through an
+// old radio, with him talking between them), Radio Proat (talk: Geesje, the
+// Kiekdoar news, the traffic, the cows and Rikus's bits, all recordings the
+// game already has) and off. The station follows you from car to car and is
+// kept in the save. audio.js plays the music (setRadioStation); the talk goes
+// through the speech channel's 'radio' class, so any other voice (a "Bel
+// Rikus" call, banter, a card line) cuts it off. `window.__radio` debug.
 import { setRadioStation, playLineVoice } from './audio.js';
 import { lineVoiceFor, NARRATOR } from './linevoice.js';
 import { smsVoiceFor, SMS_SAY } from './smsvoice.js';
@@ -15,74 +15,71 @@ import { NACHTSTREEK, KROLBRUG_FAULTS, COW_FEED, PLANTSOEN_NEWS, EVENT_DAYS } fr
 import { RADIO_HOST, RADIO_GRUNN, KERMIS_NEWS } from './funlines.js';
 
 export const STATIONS = [
-  { id: 'gmusic', name: 'G-Music', sub: 'Hits uit Grunn' },
-  { id: 'nachtstreek', name: 'Radio Nachtstreek', sub: 'Rikus · streekmuziek tot de ochtend' },
-  { id: 'grunn', name: 'Radio Proat', sub: 'Praatradio · Kiekdoar-nieuws, verkeer en de koeien' },
-  { id: 'uit', name: 'Radio uit', sub: 'Even stilte' },
+  { id: 'gmusic', name: 'G-Music', sub: 'Hits uit Grunn', short: 'G-Music' },
+  { id: 'nachtstreek', name: 'Radio Nachtstreek', sub: 'Rikus draait streekmuziek en praat ertussendoor', short: 'Nachtstreek' },
+  { id: 'grunn', name: 'Radio Proat', sub: 'Praatradio: Kiekdoar-nieuws, verkeer en de koeien', short: 'Proat' },
+  { id: 'uit', name: 'Radio uit', sub: 'Even stilte', short: 'Uit' },
 ];
+const ids = new Set(STATIONS.map((s) => s.id));
 
 let world = null;
+// what you chose; `current` is what plays (a minigame or the heli overrides it)
+let chosen = 'gmusic';
 let current = 'gmusic';
-let lastVeh = null;
-let lastOwn = 'gmusic';
 const R = { queue: [], nextAt: 0, idx: 0, rikusAt: 0, rot: 0, played: 0 };
 
 const pick = (a) => a[Math.floor(Math.random() * a.length)];
 
-function hasRadio(v) {
-  return !!v && !v.isBike && !v.isScooter && !v.sinking && !v.wrecked;
+export function radioStation() {
+  return chosen;
 }
 
-function defaultStation(v) {
-  const name = String((v.model && (v.model.name || v.model.id)) || v.kind || '').toLowerCase();
-  if (v.isBus || /taxi/.test(name)) return 'grunn';
-  if (/trekker|tractor|limo/.test(name)) return 'nachtstreek';
-  if (v.isPolice) return 'grunn';
-  const r = Math.random();
-  return r < 0.6 ? 'gmusic' : r < 0.82 ? 'grunn' : 'nachtstreek';
+// The save (savegame.js): anything unknown or missing is G-Music.
+export function getRadioSave() {
+  return chosen;
+}
+export function applyRadioSave(id) {
+  chosen = ids.has(id) ? id : 'gmusic';
+}
+
+export function tuneRadio(id, { announce: show = true } = {}) {
+  if (!ids.has(id)) return false;
+  chosen = id;
+  const st = STATIONS.find((s) => s.id === id);
+  if (show && world) announce(world, st);
+  // a fresh start on the talk station: the ident first
+  if (id === 'grunn') { R.queue = []; R.nextAt = (world ? world.time : 0) + 0.6; R.rot = 0; }
+  if (id === 'nachtstreek') R.rikusAt = (world ? world.time : 0) + 4;
+  return true;
 }
 
 export function initRadio(w) {
   world = w;
   window.__radio = {
     station: () => current,
+    chosen: () => chosen,
     stations: () => STATIONS.map((s) => s.id),
-    tune: (id) => { const v = w.player.inVehicle; if (!hasRadio(v) || !STATIONS.some((s) => s.id === id)) return false; v.radioStation = id; return true; },
+    tune: (id) => tuneRadio(id),
     queue: () => R.queue.map((l) => l.speaker + ': ' + l.text),
     played: () => R.played,
   };
 }
 
 function announce(w, st) {
-  w.nowPlaying = { title: st.name, artist: st.sub, at: w.time };
+  w.nowPlaying = { title: st.name, artist: st.sub, station: st.name, at: w.time };
 }
 
-function tune(w, v, dir) {
-  const i = STATIONS.findIndex((s) => s.id === (v.radioStation || current));
-  const st = STATIONS[(i + dir + STATIONS.length) % STATIONS.length];
-  v.radioStation = st.id;
-  announce(w, st);
-  // a fresh start on the talk station: the ident first
-  if (st.id === 'grunn') { R.queue = []; R.nextAt = w.time + 0.6; R.rot = 0; }
-  if (st.id === 'nachtstreek') R.rikusAt = w.time + 4;
+function cycle(dir) {
+  const i = STATIONS.findIndex((s) => s.id === chosen);
+  tuneRadio(STATIONS[(i + dir + STATIONS.length) % STATIONS.length].id);
 }
 
 export function updateRadio(dt, w) {
-  const p = w.player;
-  const v = p.inVehicle;
   const input = w.input;
-  let want = 'gmusic';
-  if (hasRadio(v) && v.driver === 'player') {
-    // your own car plays what you last listened to; a stolen one its driver's station
-    if (!v.radioStation) v.radioStation = v.isHeroCar || v.playerOwned ? lastOwn : defaultStation(v);
-    if (v.isHeroCar || v.playerOwned) lastOwn = v.radioStation;
-    if (v !== lastVeh && v.radioStation !== 'gmusic') announce(w, STATIONS.find((s) => s.id === v.radioStation));
-    lastVeh = v;
-    const busy = w.paused || w.activityGame || w.padelGame;
-    if (!busy && input.wasPressed('n')) tune(w, v, 1);
-    else if (!busy && input.wasPressed('b')) tune(w, v, -1);
-    want = v.radioStation;
-  } else lastVeh = null;
+  const busy = w.paused || w.activityGame || w.padelGame || w.heliRun || w.pigeonMode;
+  if (!busy && input.wasPressed('n')) cycle(1);
+  else if (!busy && input.wasPressed('b')) cycle(-1);
+  let want = chosen;
   // story scenes, minigames with their own sound and the heli: the soundtrack
   if (w.activityGame || w.heliRun || w.pigeonMode) want = 'gmusic';
   if (want !== current) {
