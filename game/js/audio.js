@@ -1660,6 +1660,7 @@ const GMUSIC_ARTISTS = {
   'Geen stoplicht houdt ons tegen': 'Ringweg Drillers',
   'Goud in de Nacht': 'Nachtbus Nino',
   'Hatchback op de Ring': 'De Uitlaatjes',
+  'Zomerse droom in de Stad': 'DJ Dageraad feat. MC Zernike',
 };
 // file names can't carry every character of a title
 const GMUSIC_TITLES = {
