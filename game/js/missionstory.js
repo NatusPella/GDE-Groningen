@@ -553,6 +553,17 @@ const DUO_BY_STAGE = [
 // boats float at WATER_Y (scene3d.js); the deck is a little above that
 const DECK_H = WATER_Y + 0.45;
 const SKUTSJE_DECK = WATER_Y + 0.72;
+
+// Where two people can stand on board: the tour boat's open foredeck, in front
+// of its glass canopy (anywhere under it their heads go through the roof), on
+// its floor (0.14 above the water); other boats amidships.
+function boatStage(v) {
+  if (v.model && v.model.kind === 'rondvaart') {
+    const x = v.model.len / 2 - 1.0;
+    return { x: v.x + Math.cos(v.angle) * x, y: v.y + Math.sin(v.angle) * x, h: WATER_Y + 0.16 };
+  }
+  return { x: v.x, y: v.y, h: DECK_H };
+}
 const SWIM_H = WATER_Y - 1.25;
 const lerp = (a, b, t) => a + (b - a) * t;
 const clamp01 = (t) => (t < 0 ? 0 : t > 1 ? 1 : t);
@@ -1243,10 +1254,11 @@ export function playStoryIntro(w, i, { stage = i, short = false, kicker = '', ti
   if (!s || run) return false;
   const v = w.player.inVehicle;
   const onDeck = !!(v && v.isBoat);
-  const anchor = onDeck ? { x: v.x, y: v.y } : onFootAnchor(w);
+  const deck = onDeck ? boatStage(v) : null;
+  const anchor = onDeck ? { x: deck.x, y: deck.y } : onFootAnchor(w);
   const facing = onDeck ? v.angle + Math.PI / 2 : facingTowards(w, anchor, target);
   const full = !short && stage >= i && !onDeck;
-  const r = buildRun(w, { npcKey: onDeck || s.introNpc === false ? null : s.npc, anchor, facing, h: onDeck ? DECK_H : 0, extras: full ? s.introCast || [] : [], props: full ? s.introProps || [] : [] });
+  const r = buildRun(w, { npcKey: onDeck || s.introNpc === false ? null : s.npc, anchor, facing, h: onDeck ? deck.h : 0, extras: full ? s.introCast || [] : [], props: full ? s.introProps || [] : [] });
   if (!r) return false;
   // narration the opening montage (intromontage.js) already told is skipped
   const all = stageLines(i, stage, 'intro').filter((l) => !(l[0] === 'V' && w.introTold && w.introTold.includes(l[1])));
@@ -1281,7 +1293,8 @@ function outroNow(w, i, { stage = i, short = false, reward = 0, stats = [], reas
   const outroKey = s.outroNpcKey || s.npc;
   const wantNpc = short ? lines.some((l) => l[0] === 'N') : !!s.outroNpc && !kiss;
   if (v && v.isBoat) {
-    r = buildRun(w, { anchor: { x: v.x, y: v.y }, facing: v.angle + Math.PI / 2, kiss, h: DECK_H });
+    const deck = boatStage(v);
+    r = buildRun(w, { anchor: { x: deck.x, y: deck.y }, facing: v.angle + Math.PI / 2, kiss, h: deck.h });
   } else {
     const anchor = onFootAnchor(w);
     r = buildRun(w, { npcKey: wantNpc ? outroKey : null, anchor, facing: facingTowards(w, anchor, null), kiss, extras: full ? s.outroCast || [] : [], props: full ? s.outroProps || [] : [] });
@@ -1305,7 +1318,7 @@ export function playStoryFail(w, i, { reason = '', stats = [] } = {}) {
   if (!s || run) { showBanner(banner); return false; }
   const v = w.player.inVehicle;
   let r;
-  if (v && v.isBoat) r = buildRun(w, { anchor: { x: v.x, y: v.y }, facing: v.angle + Math.PI / 2, h: DECK_H });
+  if (v && v.isBoat) { const deck = boatStage(v); r = buildRun(w, { anchor: { x: deck.x, y: deck.y }, facing: v.angle + Math.PI / 2, h: deck.h }); }
   else {
     const anchor = onFootAnchor(w);
     r = buildRun(w, { anchor, facing: facingTowards(w, anchor, null) });
@@ -2012,15 +2025,18 @@ export function playEyeContact(w, { at, heading, onDone = null } = {}) {
 }
 
 // --- H13: a quiet moment on the tour boat's afterdeck ------------------------------------
-// Tammo comes back from the microphone to stand by Tessa at the helm; they lean
-// on the rail side by side, a hand's width apart. The camera starts low on
+// Tammo comes back from the microphone to stand by Tessa on the foredeck; they
+// lean on the rail side by side, a hand's width apart. The camera starts low on
 // their hands and ends on the two of them. Lines use T/A.
 
 export function playDeckMoment(w, { boat, lines = [], kicker = '' } = {}) {
   if (run || !boat || !lines.length) return false;
-  const a = boat.angle, len = boat.model.len;
-  const anchor = { x: boat.x - Math.cos(a) * len * 0.3, y: boat.y - Math.sin(a) * len * 0.3 };
-  const facing = a + Math.PI / 2;
+  const a = boat.angle;
+  // at the bow rail, looking out ahead over the water, side by side
+  const deck = boatStage(boat);
+  const DECK_H = deck.h;
+  const anchor = { x: deck.x, y: deck.y };
+  const facing = a;
   const r = buildRun(w, { anchor, facing, h: DECK_H });
   if (!r) return false;
   const f = r.f, n = r.n;

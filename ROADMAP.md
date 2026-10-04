@@ -174,6 +174,7 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
 - [x] H11: glas rechtop bij het klinken, aan de lippen bij het drinken (pose nagerekend op het skelet).
 - [x] H16: instappen in de Escapade of hem klemzetten stopt hem.
 - [x] H18: de limo blijft nooit wachten op een routepunt, duiven bij een derde van de meter, 25 s dichtbij of klemzetten; geen politie, meer tijd.
+- [x] H13: scènes aan boord van de rondvaartboot op het open voordek en de vloer, niet onder (door) de glazen kap (`missionstory.js` `boatStage`).
 - [ ] H6 en H18 met de hand naspelen op Windows met Ctrl als bukken; de verhaaltest speelt de stappen niet echt.
 
 ## Juridisch en publiceren (vóór 1.0)

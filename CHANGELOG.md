@@ -72,6 +72,10 @@ nieuwe functies, `y` voor alleen bugfixes.
   klemzet, en dat staat in de opdracht. Geen politie meer tijdens de
   achtervolging, meer tijd en ruimte om bij te blijven, en vier in plaats van
   tweeënhalve minuut terug naar de kraam.
+- **H13: de zoen op het voordek, niet op het dak.** Op de rondvaartboot
+  stonden Tammo en Tessa midden onder de glazen kap, met hun hoofd erdoorheen.
+  Nu staan ze in de open punt voor de kap, op de vloer van de boot, en daar
+  leunen ze ook samen over de reling.
 
 ## [0.26.1] - 2026-10-04
 
