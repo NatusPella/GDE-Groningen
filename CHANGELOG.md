@@ -7,6 +7,24 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Veranderd
+- **Natuurlijkere dialogen.** Maus vond dat sommige verhaalregels nergens
+  op sloegen. Daarom zijn ongeveer 120 regels herschreven, ingesproken met
+  dezelfde stemmen. Regels die vóór een missie klinken, verklappen niets
+  meer uit de scène erna. Niemand antwoordt nog op iets wat niet gezegd is.
+  Tammo houdt geen betogen meer. Het geforceerde Gronings is eruit, en
+  grappen komen niet meer drie keer achter elkaar terug. De feiten kloppen
+  weer: ze wonen in Paddepoel met een garage, het verhaal duurt twee weken,
+  en Rikus wil de eerste friet en krijgt de tweede. Wat er veranderde en
+  waarom staat in `docs/verhaal/DIALOOG-REVIEW.md`.
+- **Elke wijk klinkt anders.** Als je een wijk voor het eerst binnenkomt,
+  zegt Rikus een van twee à drie regels die bij die wijk passen. 38 wijken
+  en buurten hebben nu een eigen regel; de andere buurten krijgen de regels
+  van hun wijk. Een regel komt niet terug zolang je hem pas gehoord hebt.
+  Tammo en Tessa hebben acht nieuwe wijkgesprekken.
+- **De Koe van Ome Jan is te volgen.** Jelle legt aan de telefoon uit
+  waarom Durk en Douwe Geertje meenamen: ze wilden hem toch nog iets laten
+  winnen, op de keuring in Ljouwert. Het slot vertelt hoe het met de
+  tweeling afloopt.
 - **Onderduiken met de trein gaat echt het Ommeland in.** De kaartautomaat
   zet de dorpen bovenaan ("Onderduiken"), een ritje binnen Stad telt niet
   meer, en in het dorp lopen Tammo en Tessa eerst even naar het eerste
