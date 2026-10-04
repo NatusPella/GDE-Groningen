@@ -323,22 +323,37 @@ function keepShot(key, url) {
   try { localStorage.setItem(KEEP_KEY, JSON.stringify(k)); } catch (e) { /* ignore */ }
 }
 
-function pump() {
+// Shots render in idle time between frames, not inside one: the first shot
+// also creates the shared renderer and compiles its shaders (33-55 ms on a
+// slow CPU). A shot waits for an idle period long enough to hold it, or for
+// the timeout when the game never leaves one.
+const IDLE_TIMEOUT_MS = 500;
+const MIN_IDLE_MS = 8;
+function idle(fn) {
+  if (typeof requestIdleCallback === 'function') requestIdleCallback(fn, { timeout: IDLE_TIMEOUT_MS });
+  else setTimeout(() => fn(null), 16);
+}
+
+function pump(deadline) {
   const t0 = performance.now();
-  while (queue.length && performance.now() - t0 < SHOT_BUDGET_MS) {
+  let n = 0;
+  while (queue.length) {
+    const left = deadline && !deadline.didTimeout ? deadline.timeRemaining() : Infinity;
+    if (n ? performance.now() - t0 >= SHOT_BUDGET_MS || left < MIN_IDLE_MS : left < MIN_IDLE_MS) break;
     const job = queue.shift();
     if (!shots.has(job.key)) {
       shots.set(job.key, shoot(job.spec, job.w, job.h, job.angle));
       if (job.keep) keepShot(job.key, shots.get(job.key));
     }
     for (const cb of job.cbs) cb(shots.get(job.key));
+    n++;
   }
-  if (queue.length) requestAnimationFrame(pump);
+  if (queue.length) idle(pump);
   else pumping = false;
 }
 
 // A still image (data URL, '' when WebGL is unavailable) of `spec` at w x h
-// pixels, cached for the session. Rendered a few per frame: `cb` gets the URL
+// pixels, cached for the session. Rendered in idle time (see pump): `cb` gets the URL
 // (right away when cached); the return value is the cached URL or null.
 // keep: also across sessions (see keepShot).
 export function renderSnapshot(spec, w, h, cb = null, { angle = 0.6, keep = false } = {}) {
@@ -349,6 +364,6 @@ export function renderSnapshot(spec, w, h, cb = null, { angle = 0.6, keep = fals
   const job = queue.find((j) => j.key === key);
   if (job) { if (cb) job.cbs.push(cb); job.keep = job.keep || keep; return null; }
   queue.push({ key, spec, w, h, angle, keep, cbs: cb ? [cb] : [] });
-  if (!pumping) { pumping = true; requestAnimationFrame(pump); }
+  if (!pumping) { pumping = true; idle(pump); }
   return null;
 }

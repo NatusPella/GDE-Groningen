@@ -14,6 +14,7 @@ import { getPostgameSpotsForRender, drawPostgameMapIcon } from './postgame.js';
 import { getStationsForRender, drawStationMapIcon } from './stationtravel.js';
 import { getSideJobSpotsForRender, drawSideJobMapIcon, JOB_TARGET_COLOR } from './sidejobs.js';
 import { vehicleDisplayName } from './vehiclenames.js';
+import { findEnterableVehicle, HERO_CAR_MODEL } from './vehicle.js';
 import { cinematicAllowsDamageFx } from './cinematics.js';
 import { isMuted } from './audio.js';
 import { drawRailsOnMap, drawTrainsOnMap } from './railway.js';
@@ -280,6 +281,7 @@ export function updateHud(dt, world) {
   updateClock(world);
   updateDamage(dt, world);
   updateSpeedo(world);
+  updateSpeedoPrefetch(dt, world);
   updateMission(world);
   updateRaceHud(world);
   updateCards(dt, world);
@@ -576,30 +578,59 @@ const SPEEDO_PIC_W = 62;
 const SPEEDO_PIC_H = 34;
 const VEH_FLAGS = ['isPolice', 'isBus', 'isTaxi', 'isAmbulance', 'isHeroCar'];
 
-// A still of the vehicle you are in (vehiclepreview.js, cached per model and
-// colour), rendered once on getting in; its damage shows as a CSS filter.
-function setSpeedoPic(v) {
-  const img = els.speedoPic;
+function speedoSpec(v) {
   const m = v && v.model;
-  if (!m || !m.name) { els.speedoPicKey = ''; els.speedo.classList.add('no-pic'); img.classList.remove('on'); return; }
+  if (!m || !m.name) return null;
   const flags = {};
   for (const f of VEH_FLAGS) if (v[f]) flags[f] = true;
   const kind = v.isHeli ? 'heli' : v.isBoat ? 'boat' : v.isBike ? 'bike' : v.isScooter ? 'scooter' : 'car';
   const model = {};
   for (const [k, val] of Object.entries(m)) if (k !== 'rider' && (typeof val === 'string' || typeof val === 'number' || typeof val === 'boolean')) model[k] = val;
-  const spec = { kind, model, color: m.color, nameIdx: 0, flags };
+  return { kind, model, color: m.color, nameIdx: 0, flags };
+}
+const speedoPx = () => Math.min(3, Math.max(2, Math.ceil(hudPixelRatio())));
+
+// A still of the vehicle you are in (vehiclepreview.js, cached per model and
+// colour), rendered once on getting in; its damage shows as a CSS filter.
+function setSpeedoPic(v) {
+  const img = els.speedoPic;
+  const spec = speedoSpec(v);
+  if (!spec) { els.speedoPicKey = ''; els.speedo.classList.add('no-pic'); img.classList.remove('on'); return; }
   const key = JSON.stringify(spec);
   els.speedo.classList.remove('no-pic');
   if (els.speedoPicKey === key) return;
   els.speedoPicKey = key;
   img.classList.remove('on');
-  const px = Math.min(3, Math.max(2, Math.ceil(hudPixelRatio())));
+  const px = speedoPx();
   renderSnapshot(spec, SPEEDO_PIC_W * px, SPEEDO_PIC_H * px, (url) => {
     if (els.speedoPicKey !== key) return;
     if (!url) { els.speedo.classList.add('no-pic'); return; }
     img.src = url;
     img.classList.add('on');
   }, { angle: 0.75 });
+}
+
+// The still is made ahead, in idle time: the vehicle you walk up to, and
+// once at the start your own car (that first shot also warms up the
+// renderer), so getting in costs no long frame.
+const PREFETCH_REACH = 7;
+const PREFETCH_EVERY = 0.4;
+let prefetchIn = 0;
+let warmed = false;
+function prefetchSpeedoPic(v) {
+  const spec = speedoSpec(v);
+  if (!spec) return;
+  const px = speedoPx();
+  renderSnapshot(spec, SPEEDO_PIC_W * px, SPEEDO_PIC_H * px, null, { angle: 0.75 });
+}
+function updateSpeedoPrefetch(dt, world) {
+  if (!warmed) { warmed = true; prefetchSpeedoPic({ model: HERO_CAR_MODEL, isHeroCar: true }); }
+  if ((prefetchIn -= dt) > 0) return;
+  prefetchIn = PREFETCH_EVERY;
+  const p = world.player;
+  if (!p || p.inVehicle || world.trainCam || !world.vehicles) return;
+  const v = findEnterableVehicle(p.x, p.y, world.vehicles, PREFETCH_REACH);
+  if (v) prefetchSpeedoPic(v);
 }
 
 const WEAPON_LABELS = {
