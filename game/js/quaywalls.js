@@ -222,6 +222,10 @@ function shoreRuns(poly, map, index) {
         if (pond || inGreen(map, x + nx * 2.5, y + ny * 2.5)) cls = 'bank';
         else if (Math.hypot(x - CENTRE_X, y - CENTRE_Y) > 1100 && !nearBuilt(map, x + nx * 3, y + ny * 3, 7)) cls = 'bank';
         else cls = 'wall';
+      } else if (!index.inWater(x + nx * 0.15, y + ny * 0.15) && !nearBridge(map, x, y, 0.3, true)) {
+        // a strip of dry ground narrower than that between two waters: the
+        // banks either side meet in its middle
+        cls = 'bank';
       }
       if (!cls) { close(); continue; }
       let prev = null;
@@ -416,7 +420,7 @@ function addBankSeat(s) {
   list.push(s);
 }
 
-function buildBankRun(run, wy, B, rnd, map) {
+function buildBankRun(run, wy, B, rnd, map, index) {
   const { pts, N } = run;
   const mid = pts[pts.length >> 1];
   const acc = B('stone', mid[0], mid[1]);
@@ -433,7 +437,10 @@ function buildBankRun(run, wy, B, rnd, map) {
       [-1.9 + (h2 - 0.5) * 0.4, wy - 0.06, mixc(MUD, MUD_DARK, 0.5)],
       [-2.9, wy - 0.66, MUD_DARK],
     ];
+    const ml = Math.hypot(m[0], m[1]) || 1;
+    const across = index.rayDist(p[0], p[1], m[0] / ml, m[1] / ml, 1.3);
     for (const row of prof) {
+      if (across < 1.3 && row[0] > across / 2 / ml) row[0] = across / 2 / ml;
       if (row[1] > TERRAIN_Y + 0.003 && underStreet(map, p[0] + m[0] * row[0], p[1] + m[1] * row[0])) row[1] = TERRAIN_Y + 0.003;
     }
     if (i % 4 === 2 && h < 0.5) { const s = bankSeatAt(p, m, prof); if (s) sink.seats.push(s); }
@@ -788,7 +795,7 @@ export function shoreParts(poly, map, waterY, withApron) {
         buildWallRun(piece, waterY, B, index, false, map);
         wallProps(piece, waterY, B, rnd);
       } else {
-        buildBankRun(piece, waterY, B, rnd, map);
+        buildBankRun(piece, waterY, B, rnd, map, index);
       }
     }
   }
