@@ -42,7 +42,7 @@ const CONTROL_GROUPS = [
     [['WASD'], 'Lopen en draaien'],
     [['MOUSE'], 'Camera draaien; laag houden om omhoog te kijken'],
     [['SHIFT'], 'Rennen (vasthouden)'],
-    [['SPACE'], 'Springen'],
+    [['SPACE'], 'Springen, over hekjes en auto\'s'],
     [['CTRL'], 'Bukken'],
     [['E', 'F'], 'Instappen, winkel in, praten, bijbaantje beginnen'],
     [['E'], 'Bij een duivenbord: word een duif'],
@@ -297,7 +297,7 @@ function settingsHtml() {
       ${toggle('shadows', 'Schaduwen')}
       ${segmented('resolution', 'Resolutie', [['1', '100%'], ['0.85', '85%'], ['0.75', '75%'], ['0.6', '60%']])}
       ${toggle('autoResolution', 'Automatische resolutie', 'Resolutie en details gaan even omlaag als het beeld hapert')}
-      ${segmented('drawDistance', 'Zichtafstand', [['kort', 'Kort'], ['normaal', 'Normaal'], ['ver', 'Ver']])}
+      ${segmented('drawDistance', 'Zichtafstand', [['kort', 'Kort'], ['normaal', 'Normaal'], ['ver', 'Ver'], ['heelver', 'Heel ver']])}
       ${DESKTOP ? '<label class="pm-row"><span>Volledig scherm<small>F11 of Alt+Enter</small></span><input type="checkbox" data-desktop="fullscreen"></label>' : ''}
       <div class="pm-row"><span>Benchmark<small>Test hoe soepel Grunn draait op deze computer en welke stand past (±2 min)</small></span><button type="button" class="pm-secondary pm-small" data-action="bench">Benchmark draaien</button></div>
       <div class="pm-confirm pm-ok" data-bench-confirm hidden>
@@ -338,6 +338,7 @@ function settingsHtml() {
       ${toggle('showFog', 'Verkende gebieden op de kaart')}
       ${toggle('cinematicMoments', 'Filmische momenten', 'Korte filmpjes bij bezienswaardigheden, nieuwe wijken, crashes en vijf sterren. Intro’s, missies en de filmcamera (V) staan altijd aan.')}
       ${segmented('drunkFx', 'Dronken effecten', [['aan', 'Aan'], ['mild', 'Mild'], ['uit', 'Uit']])}
+      ${toggle('gore', 'Bloed en ledematen', 'Uit: aangereden en neergeschoten mensen vallen gewoon om, zonder bloed of rondvliegende ledematen.')}
     </div>
     <div data-of="settings" data-sub="fouten" class="pm-group" hidden>
       <p class="pm-note">Gaat er iets mis, dan schrijft het spel dat hier op. Alleen op dit apparaat: er wordt niets verstuurd. Wil je helpen? Kopieer het rapport en stuur het zelf mee met je melding. Er staat niets persoonlijks in: de melding, waar in de code, de versie, je verhaalstap, een paar instellingen en het soort videokaart.</p>

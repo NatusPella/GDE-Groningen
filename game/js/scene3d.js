@@ -11,6 +11,7 @@ import {
   sampleBusTrail, buildSplashMesh3D, updateSplashMesh3D, SPLASH_LIFETIME,
   spawnVehicleOnRoad, spawnBoatOnWater, spawnPoliceBoatOnWater, TRAFFIC_MODELS,
 } from './vehicle.js';
+import { DEAD_DURATION } from './pedestrians.js';
 import { buildPersonMesh, animatePersonWalk, applyAttackPose, applyHitReaction, setHeldWeapon, seatPose, seatedY, waveOverlay, carryOverlay, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { vehicleSeat, placeSeated, makeSeatTracker, trackSeat, drawTransition, syncBoatCrew } from './seating3d.js';
 import { updateSwimmers3D } from './swimmers3d.js';
@@ -45,6 +46,7 @@ import { pointInPolygon, polygonBounds, WATER_Y } from './util.js';
 import { preloadLandmarkModels, onLandmarkModelLoaded } from './landmarkmodels.js';
 import { onSettingsChange, getSettings, QUALITY_PRESETS } from './settings.js';
 import { dynamicScale, cpuLevel } from './gfxprofile.js';
+import { VIEW_DISTANCES, viewDistanceFor } from './viewdist.js';
 import { buildingBatcher, roadBatcher, facadeBatcher } from './staticbatch3d.js';
 import { simLevel } from './simload.js';
 import { beginWheels, addVehicleWheels, endWheels } from './wheelinstances3d.js';
@@ -66,7 +68,7 @@ import { createFarLOD } from './farlod.js';
 import { initRailway3D, updateRailway3D } from './railway3d.js';
 import { buildCanopies } from './canopies3d.js';
 import { initGrass, updateGrass, grassFarColor, grassFarRank } from './grass.js';
-import { updateCountryside } from './countryside.js';
+import { updateCountryside, setCountryPropLevel } from './countryside.js';
 import { setCountryNight, setCountryFacadeLevel } from './countrybuilding.js';
 import { updateCountryBake } from './countrybake.js';
 import { edgeDistance, setCountryBounds } from './countryfield.js';
@@ -104,7 +106,6 @@ const DRAW_DIST = 140;
 // read as "the canal sits below street level" from a close-up 3rd person
 // camera; pushed meaningfully lower instead (WATER_Y in util.js).
 const TREE_DIST = 130;
-const VIEW_DISTANCES = { kort: 150, normaal: 350, ver: 600 };
 let viewDist = VIEW_DISTANCES.normaal;
 let farLod = null;
 const landmarkBuildings = [];
@@ -674,7 +675,7 @@ function hasAiDriver(v) {
   if (v.wrecked || v.parked || v.driver === 'player' || v.castDriver) return false;
   if (v.driver) return true;
   if (v.isPolice) return !v.hijacked && !v.disabled && !v._roadblock;
-  return !!(v.road || v.racer);
+  return !!(v.road || v.racer || v.countryDrive);
 }
 
 function ensureDriverFigure(mesh, v, dist, deadline) {
@@ -929,19 +930,25 @@ function applyViewSettings(st) {
   resize3D();
   setNightLightQuality(level);
   setCountryFacadeLevel(level);
+  setCountryPropLevel(level);
   facadeQualityDist = FACADE_DETAIL_DIST[level] || Infinity;
   facadeDetailDist = Math.min(facadeQualityDist, CPU_FACADE_DIST[cpuLevel()]);
   if (postfx.level !== level) postfx.setLevel(level);
   const shadows = st.shadows && preset.shadows;
   if (sun.castShadow !== shadows) { sun.castShadow = shadows; renderer.shadowMap.needsUpdate = true; }
   applyShadowLevel(level);
-  viewDist = VIEW_DISTANCES[st.drawDistance] || VIEW_DISTANCES.normaal;
-  cam.far = Math.max(DRAW_DIST * 1.4, viewDist * 1.4, landmarkDist() * 1.1);
-  lightBase.fogNear = DRAW_DIST * 0.45 + (viewDist - 150) * 0.25;
-  lightBase.fogFar = viewDist * 1.02;
+  applyViewDistance(st);
   cam.fov = baseFov = st.fov;
   cam.updateProjectionMatrix();
   orbitRadius = ORBIT_RADIUS * st.cameraDistance;
+}
+
+// view distance, camera far plane and fog; 'heel ver' follows adaptive quality
+function applyViewDistance(st) {
+  viewDist = viewDistanceFor(st.drawDistance, dynamicScale(), cpuLevel());
+  cam.far = Math.max(DRAW_DIST * 1.4, viewDist * 1.4, landmarkDist() * 1.1);
+  lightBase.fogNear = DRAW_DIST * 0.45 + (viewDist - 150) * 0.25;
+  lightBase.fogFar = viewDist * 1.02;
 }
 
 function renderPixelRatio(st, preset) {
@@ -954,6 +961,9 @@ export function refreshRenderScale() {
   const st = getSettings();
   const ratio = renderPixelRatio(st, QUALITY_PRESETS[st.quality] || QUALITY_PRESETS.hoog);
   facadeDetailDist = Math.min(facadeQualityDist, CPU_FACADE_DIST[cpuLevel()]);
+  const wasView = viewDist;
+  applyViewDistance(st);
+  if (viewDist !== wasView) { cam.updateProjectionMatrix(); noteGfxEvent(`zichtafstand ${wasView}->${viewDist} m`); }
   if (ratio === wantRatio) return;
   noteGfxEvent(`renderschaal ${wantRatio.toFixed(2)}->${ratio.toFixed(2)}`);
   wantRatio = ratio;
@@ -1760,12 +1770,12 @@ function syncPedestrianMeshes(world, player, animDt) {
     ud.fade = Math.min(1, ud.fade + animDt / PED_FADE_TIME);
     const edge = (DRAW_DIST - Math.hypot(p.x - player.x, p.y - player.y)) / PED_EDGE_FADE;
     applyPedFade(mesh, warm ? (FADE_STEPS - 1) / FADE_STEPS : Math.min(ud.fade, edge));
+    if (p.gibbed) { mesh.visible = false; continue; }
     if (p.hideMesh) { mesh.visible = false; ud.fadeLevel = -1; continue; } // fierljep.js draws its own actor
     if (driveRagdoll(p, mesh, world, animDt)) continue;
     if (p.state === 'dead') {
-      // knocked out without a ragdoll: topple backwards over ~0.3s, then lie
-      // flat until the ped gets up (pedestrians.js)
-      const fall = Math.min(1, (world.time - (p.koAt ?? world.time - 1)) / 0.3);
+      // topple backwards over ~0.3s, then lie flat until the ped is removed
+      const fall = Math.min(1, (world.time - (p.deadUntil - DEAD_DURATION)) / 0.3);
       mesh.position.set(p.x, 0.14 * fall + (p.gz || 0), p.y);
       mesh.rotation.set(0, -p.angle, fall * fall * Math.PI / 2);
       ud.shadow.visible = false;
@@ -2239,6 +2249,7 @@ export function update3D(dt, world) {
       playerMesh.rotation.y = -player.angle;
       playerMesh.scale.y = 1;
       playerMesh.userData.crouch = !!player.crouching;
+      playerMesh.userData.air = player.vault ? player.airPose || 0 : !player.perch && !player.swimming && player.z > 0.25 ? 0.45 : 0;
       playerMesh.userData.shadow.position.y = 0.02 - (player.z || 0) / playerMesh.scale.y;
       animatePersonWalk(playerMesh, Math.hypot(player.vx, player.vy), animDt);
       if (player.sofaSeat != null) { seatPose(playerMesh); playerMesh.position.y = seatedY(playerMesh, (player.gz || 0) + player.sofaSeat); }
@@ -2353,9 +2364,10 @@ export function update3D(dt, world) {
   camWasInVehicle = !!camVeh;
 
   // vehicles get a longer, higher orbit scaled to their length, so the car
-  // doesn't fill the lower half of the screen
+  // doesn't fill the lower half of the screen; a bus further still, to see
+  // the road ahead over its roof and its tail through a corner
   const veh = camVeh;
-  const camScale = veh ? (veh.isHeli ? 4.4 : Math.min(3.2, Math.max(1.35, veh.model.len / 2.4))) : 1;
+  const camScale = veh ? (veh.isHeli ? 4.4 : veh.isBus ? Math.min(4.4, Math.max(3.2, veh.model.len / 2.5)) : Math.min(3.2, Math.max(1.35, veh.model.len / 2.4))) : 1;
   const radius = orbitRadius * camScale;
   // height of whatever the camera follows: on a viaduct, down in a cutting (elevation.js)
   const baseH = veh ? veh.z || 0 : (player.gz || 0) + Math.max(0, player.z || 0);

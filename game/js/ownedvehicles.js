@@ -33,6 +33,9 @@ import { buildingAt } from './countryreal.js';
 import { isSpawnHidden } from './pedestrians.js';
 import { slotFits, propBlocked, sleepingParkedCars } from './parkedcars.js';
 import { spawnHeroCarNear } from './vehicle.js';
+import { BLOCK, ROAD_IN, ROAD_W, edgeDistance, edgeRoad, realWater } from './countryfield.js';
+import { REAL, RTILE, roadsInTile, realStreetAt, inRealExtent } from './countryreal.js';
+import { pushOutOfPlan } from './countryplan.js';
 import { vehicleDisplayName } from './vehiclenames.js';
 import {
   getOwnedEntries, getHeroLook, spawnOwnedEntry, replacementFee, getShopsForRender,
@@ -156,7 +159,9 @@ export function findParkingSpot(world, x, y, model, opts = {}) {
   return searchRing(world, x, y, model, twoWheel, ring, opts.ignore || null)
     // nothing in the ring (dense centre, water all around): widen it once
     || searchRing(world, x, y, model, twoWheel, { ...ring, minDist: ring.minDist * 0.6, maxDist: ring.maxDist * 1.6 }, opts.ignore || null)
-    // out in the Ommeland the city has no streets: the verge of a country road
+    // out in the Ommelanden: the verge of a country road (real or polder
+    // roads), else beside the nearest real road
+    || (edgeDistance(x, y) > -30 ? countryKerbSpot(world, x, y, model, ring, opts.ignore || null) : null)
     || countrySpot(world, x, y, model, opts.ignore || null);
 }
 
@@ -183,6 +188,77 @@ function countrySpot(world, x, y, model, ignore) {
   }
   return null;
 }
+
+// A spot on the verge of an Ommeland road (the real roads, else the polder
+// roads), clear of buildings, farms, water and other cars. Open country
+// hides little, so a spot in view is taken when no hidden one is found.
+function countryKerbSpot(world, x, y, model, ring, ignore) {
+  const m = { len: model.len || 4, wid: model.wid || 1.7 };
+  // polder roads run a block (960 m) apart: look up to 700 m out, nearest first
+  const maxD = 700, target = ring.minDist + (Math.max(ring.maxDist, 120) - ring.minDist) * 0.25;
+  const cands = [];
+  const add = (px, py, angle, street) => {
+    const d = Math.hypot(px - x, py - y);
+    if (d > maxD || d < ring.minDist * 0.6) return;
+    cands.push({ x: px, y: py, angle, street, score: Math.abs(d - target) });
+  };
+  if (REAL.ready && inRealExtent(x, y)) {
+    const seen = new Set();
+    for (let ty = Math.floor((y - maxD) / RTILE); ty <= Math.floor((y + maxD) / RTILE); ty++) {
+      for (let tx = Math.floor((x - maxD) / RTILE); tx <= Math.floor((x + maxD) / RTILE); tx++) {
+        const L = roadsInTile(tx, ty);
+        if (!L) continue;
+        for (let k = 0; k < L.length; k += 2) {
+          const key = L[k] * 4096 + L[k + 1];
+          if (seen.has(key)) continue;
+          seen.add(key);
+          const r = REAL.roads[L[k]];
+          if (r.bridge || r.kind <= 2) continue;
+          const a = r.pts[L[k + 1]], b = r.pts[L[k + 1] + 1];
+          const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
+          if (len < m.len + 6) continue;
+          const tx2 = (b[0] - a[0]) / len, ty2 = (b[1] - a[1]) / len, off = r.w / 2 + m.wid / 2 + 0.5;
+          for (let t = 3 + m.len / 2; t <= len - 3 - m.len / 2; t += 6) {
+            for (const side of [1, -1]) add(a[0] + tx2 * t - ty2 * off * side, a[1] + ty2 * t + tx2 * off * side, Math.atan2(ty2, tx2) + (side < 0 ? Math.PI : 0), r.name || r.ref || '');
+          }
+        }
+      }
+    }
+  } else {
+    const off = ROAD_W / 2 + m.wid / 2 + 0.5, C = ROAD_IN + ROAD_W / 2;
+    for (let by = Math.floor((y - maxD) / BLOCK); by <= Math.floor((y + maxD) / BLOCK); by++) {
+      for (let bx = Math.floor((x - maxD) / BLOCK); bx <= Math.floor((x + maxD) / BLOCK); bx++) {
+        if (edgeRoad(bx, by, 0)) {
+          const t0 = Math.max(by * BLOCK + 12, y - maxD), t1 = Math.min((by + 1) * BLOCK - 12, y + maxD);
+          for (let t = t0; t <= t1; t += 6) for (const side of [1, -1]) add(bx * BLOCK + C + off * side, t, side > 0 ? Math.PI / 2 : -Math.PI / 2, '');
+        }
+        if (edgeRoad(bx, by, 1)) {
+          const t0 = Math.max(bx * BLOCK + 12, x - maxD), t1 = Math.min((bx + 1) * BLOCK - 12, x + maxD);
+          for (let t = t0; t <= t1; t += 6) for (const side of [1, -1]) add(t, by * BLOCK + C - off * side, side > 0 ? 0 : Math.PI, '');
+        }
+      }
+    }
+  }
+  cands.sort((p, q) => p.score - q.score);
+  const ok = (c) => {
+    if (edgeDistance(c.x, c.y) < 0 || realWater(c.x, c.y) > -1.5 || !clearOfVehicles(world, c.x, c.y, m.len / 2, ignore)) return false;
+    const fx = Math.cos(c.angle) * m.len / 2, fy = Math.sin(c.angle) * m.len / 2;
+    for (const [px, py] of [[c.x, c.y], [c.x + fx, c.y + fy], [c.x - fx, c.y - fy]]) {
+      const o = { x: px, y: py };
+      if (pushOutOfPlan(o, m.wid / 2 + 0.3)) return false;
+    }
+    return true;
+  };
+  let open = null, tests = 0;
+  for (const c of cands) {
+    if (++tests > MAX_TESTS) break;
+    if (!ok(c)) continue;
+    if (!ring.outOfView || hiddenFootprint(world, c.x, c.y, c.angle, m.len / 2)) return spotOut(c);
+    if (!open) open = c;
+  }
+  return open && spotOut(open);
+}
+const spotOut = (c) => ({ x: c.x, y: c.y, angle: c.angle, street: c.street || realStreetAt(c.x, c.y) || '' });
 
 function jettySpot(world, x, y, maxDist) {
   let best = null, bd = maxDist;
@@ -400,7 +476,8 @@ export function deliverOwnedVehicle(world, id) {
     if (old) spot = placeOwnedVehicleNear(world, old, px, py);
     else {
       spot = findParkingSpot(world, px, py, HERO_SPEC.model);
-      // (no street within 200 m out in the Ommeland: built in town, then parked at the spot)
+      // (from the city's nearest street when the spot is out in the country;
+      // parkAt moves it to the spot)
       const car = spot && (spawnHeroCarNear(world.map, spot.x, spot.y) || spawnHeroCarNear(world.map, 0, 0));
       if (car) {
         for (const w of world.vehicles) if (w.isHeroCar && w.wrecked) w.isHeroCar = false;

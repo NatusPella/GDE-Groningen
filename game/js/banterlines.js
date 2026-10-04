@@ -56,7 +56,7 @@ export const BANTER = [
     ['A', 'Hij telt al veertig jaar zijn nederlagen, Tammo. Hij telt heel goed.', 'exasperated, laughing']] },
 
   { id: 'h2-pass-moeder', trigger: 'after:H2:pass', lines: [
-    ['A', 'Een pinautomaat in de achterbak. Mijn moeder zou trots zijn.', 'giggling, proud'],
+    ['A', 'Een pinautomaat in de achterbak. Mijn moeder zou flauwvallen.', 'giggling, proud'],
     ['T', 'Je moeder werkte bij de bank.', 'dry'],
     ['A', 'Precies.', 'smug']] },
   { id: 'h2-pass-dopjes', trigger: 'after:H2:pass', lines: [
@@ -79,8 +79,8 @@ export const BANTER = [
     ['T', 'Het was een heel eerlijk alarm. Het deed wat het zei.', 'defensive, dry']] },
 
   { id: 'h3-pass-content', trigger: 'after:H3:pass', lines: [
-    ['T', 'Jelmer zei "content". Ik heb me nog nooit zo weinig content gevoeld.', 'grumpy, deadpan'],
-    ['A', 'Tienduizend kijkers. Je moeder keek ook.', 'teasing, laughing'],
+    ['T', 'Tienduizend kijkers. Voor een kliko in een fontein.', 'grumpy, deadpan'],
+    ['A', 'En je moeder keek ook.', 'teasing, laughing'],
     ['T', 'Die kijkt alles. Ook het weerbericht van gisteren.', 'resigned']] },
   { id: 'h3-pass-terras', trigger: 'after:H3:pass', lines: [
     ['T', 'Een terras dat applaudisseert. Terwijl het nat is.', 'amazed, dry'],
@@ -108,7 +108,7 @@ export const BANTER = [
     ['A', 'Jouw duif poept op het museum en jij noemt het verkenning.', 'laughing, incredulous'],
     ['T', 'Kunst is wat je ervan maakt.', 'pompous, deadpan']] },
   { id: 'h4-pass-duivenkoning', trigger: 'after:H4:pass', lines: [
-    ['A', 'Mijn vriend de duivenkoning.', 'teasing, delighted'],
+    ['A', 'Duivenkoning. Het staat je.', 'teasing, delighted'],
     ['T', 'Het was één duif. Die had toevallig zin.', 'deadpan'],
     ['A', 'Hij luisterde naar jou, Tammo. Niemand luistert naar jou.', 'laughing'],
     ['T', 'Nou ja. Jij soms.', 'dry, fond']] },
@@ -126,7 +126,7 @@ export const BANTER = [
     ['A', "As 't nait gait zoas 't mot, mot 't mor zoas 't gait.", 'wise, sing-song'],
     ['T', 'Dat is ook geen plan. Dat is een tegeltje.', 'deadpan']] },
   { id: 'h4-fail', trigger: 'after:H4:fail', lines: [
-    ['A', 'Je hebt een kwartier op een patatbakje gezeten.', 'mocking'],
+    ['A', 'Je duif heeft een kwartier op een patatbakje gezeten.', 'mocking'],
     ['T', 'Het was een heel groot patatbakje.', 'defensive, dreamy']] },
 
   { id: 'h5-pass-snits', trigger: 'after:H5:pass', arc: true, lines: [
@@ -151,11 +151,11 @@ export const BANTER = [
     ['A', 'Lucht. We hebben lucht gestolen.', 'bitter, sarcastic'],
     ['T', 'Dure lucht. Museumlucht.', 'deadpan']] },
   { id: 'h6-pass-w', trigger: 'after:H6:pass', lines: [
-    ['A', 'Een J onder je buit zetten. Wie doet dat nou?', 'angry, fuming'],
+    ['A', 'Een kaartje met een J erop. Wie doet dat nou?', 'angry, fuming'],
     ['T', 'Iemand met een trekker-limo.', 'deadpan']] },
   { id: 'h6-pass-aaibal', trigger: 'after:H6:pass', lines: [
-    ['T', 'Die man met die trekker was live. Jelle Terpstra.', 'stunned'],
-    ['A', 'Operaasje Aaibal. Hij kan niet eens eierbal zeggen.', 'outraged, mocking'],
+    ['T', 'Die man op de radio. Jelle Terpstra. Snackkoning.', 'stunned'],
+    ['A', '"Oant sjen op it Ontset." Hij kan niet eens Ontzet zeggen.', 'outraged, mocking'],
     ['T', 'Dat vind ik nog het ergste.', 'deeply offended']] },
   { id: 'h6-pass-hand', trigger: 'after:H6:pass', arc: true, lines: [
     ['T', 'Je hand.', 'quiet'],
@@ -171,7 +171,7 @@ export const BANTER = [
     ['T', 'Ik? Achter de frituur?', 'surprised, touched'],
     ['A', 'Laat maar. Rij nou maar.', 'embarrassed, brushing it off']] },
   { id: 'h6-fail', trigger: 'after:H6:fail', lines: [
-    ['A', '"Zaklamp aan", zei hij.', 'sarcastic, annoyed'],
+    ['A', '"Zaklamp aan", zei jij.', 'sarcastic, annoyed'],
     ['T', 'Achteraf niet mijn beste idee.', 'sheepish']] },
 
   { id: 'h7-pass-wind', trigger: 'after:H7:pass', lines: [
@@ -183,7 +183,7 @@ export const BANTER = [
   { id: 'h7-pass-hardop', trigger: 'after:H7:pass', arc: true, lines: [
     ['T', 'Dat van daarnet. Over naast mij zitten.', 'careful, quiet'],
     ['A', 'Dat was de wind.', 'quick, light'],
-    ['T', 'We stonden binnen.', 'dry'],
+    ['T', 'Er stond geen zuchtje wind.', 'dry'],
     ['A', 'Het was een stuk over wind, Tammo. Er was overal wind.', 'flustered, laughing']] },
   { id: 'h7-fail', trigger: 'after:H7:fail', lines: [
     ['A', 'Moderne dans dus.', 'resigned, amused'],
@@ -209,8 +209,8 @@ export const BANTER = [
 
   { id: 'h9-pass-traditie', trigger: 'after:H9:pass', lines: [
     ['T', 'Harm met pensioen. Nu is de ringweg echt klaar.', 'satisfied'],
-    ['A', 'Zeg dat niet te hard. Dit is nu echt de laatste fase.', 'mock solemn'],
-    ['T', 'Dat zeiden ze in de vorige laatste fase ook.', 'dry']] },
+    ['A', 'Zeg dat niet te hard. Dan begint er weer een laatste fase.', 'mock solemn'],
+    ['T', 'De allerlaatste.', 'dry']] },
   { id: 'h9-pass-grip', trigger: 'after:H9:pass', arc: true, lines: [
     ['A', 'Je pakte weer mijn hand, in die bocht.', 'teasing, warm'],
     ['T', 'Grip, Tessa. Dat heet grip.', 'embarrassed, dry']] },
@@ -226,7 +226,7 @@ export const BANTER = [
   { id: 'h10-pass-team', trigger: 'after:H10:pass', lines: [
     ['T', 'Heel Grunn klapte.', 'quietly proud'],
     ['A', 'Voor jou of voor de duif?', 'teasing'],
-    ['T', 'Voor ons. Ik fluit, hij pikt.', 'dry'],
+    ['T', 'Voor ons. Ik floot, hij deed de rest.', 'dry'],
     ['A', 'Dus de duif deed het werk.', 'smug'],
     ['T', 'Dat bedoelde ik ook.', 'deadpan']] },
   { id: 'h10-pass-foarmem', trigger: 'after:H10:pass', arc: true, lines: [
@@ -242,8 +242,8 @@ export const BANTER = [
     ['T', 'Dan floot ik per ongeluk Fries.', 'deadpan']] },
 
   { id: 'h11-pass-muur', trigger: 'after:H11:pass', lines: [
-    ['A', 'Aan de muur bij Geert. We hebben het gemaakt.', 'tipsy, proud'],
-    ['T', 'Naast de wc. Wel de schoonste muur van de kroeg.', 'dry']] },
+    ['A', 'Vier kroegen. En we staan nog.', 'tipsy, proud'],
+    ['T', 'Jij staat. Ik leun.', 'dry']] },
   { id: 'h11-pass-petten', trigger: 'after:H11:pass', arc: true, lines: [
     ['A', 'Petten dus. Geen snorren.', 'flirty'],
     ['T', 'Genoteerd. In mijn hoofd. Met pen.', 'flustered, dry']] },
@@ -272,9 +272,9 @@ export const BANTER = [
     ['A', 'Tammo.', 'insisting'],
     ['T', 'Rijden, niet praten. Dat zeg jij altijd.', 'deadpan']] },
   { id: 'q-h12-gerda', trigger: 'after:H12:pass', arc: true, lines: [
-    ['T', 'Die handjes om de bal. Die zijn van oma.', 'quiet, thoughtful'],
-    ['A', 'En de beste eierbal was van Gerda.', 'soft'],
-    ['T', 'Zeventig jaar. En ze zei het nooit.', 'serious, gentle'],
+    ['T', 'Oma won. Maar de beste eierbal was van Gerda.', 'quiet, thoughtful'],
+    ['A', 'En dat zei ze zeventig jaar niet.', 'soft'],
+    ['T', 'Zeventig jaar.', 'serious, gentle'],
     ['A', 'Klinkt bekend.', 'pointed, soft'],
     ['T', 'Wat?', 'caught'],
     ['A', 'Niks. Rij nou maar.', 'fond, brushing it off']] },
@@ -395,8 +395,8 @@ export const BANTER = [
     ['T', 'Met een alarm dat het doet, dit keer.', 'dry'],
     ['A', 'Weet ik. We hebben het getest. Per ongeluk.', 'sheepish, giggling']] },
   { id: 'q-h18-beste', trigger: 'after:H18:pass', arc: true, lines: [
-    ['A', 'Wij tweeën vóór Grunn. Klinkt beter dan tegen.', 'content, tired, happy'],
-    ['T', 'Alles klinkt beter met een eierbal erbij.', 'dry, happy'],
+    ['A', 'Wij tweeën vóór Grunn. Klinkt goed, hè.', 'content, tired, happy'],
+    ['T', 'Alles klinkt goed met een eierbal erbij.', 'dry, happy'],
     ['A', 'Die van ons is de beste. Jelle zei het zelf.', 'proud, laughing'],
     ['T', 'Net fertelle.', 'deadpan, fond']] },
   { id: 'h18-pass-vijf', trigger: 'after:H18:pass', arc: true, lines: [
@@ -482,19 +482,16 @@ export const BANTER = [
     ['A', 'Je vader was bang voor duiven.', 'dry'],
     ['T', 'Precies. Ik doorbreek het patroon.', 'solemn']] },
   { id: 'st-h4-ogen', trigger: 'story:H4', lines: [
-    ['A', 'Bert zegt dat een duif naar je luistert als je hem diep in de ogen kijkt.', 'skeptical'],
-    ['T', 'Werkt dat bij mensen ook?', 'curious, dry'],
-    ['A', 'Probeer maar.', 'daring, soft'],
-    ['T', 'Ik kijk liever naar de weg.', 'quick, deadpan'],
-    ['A', 'Laf.', 'teasing'],
-    ['T', 'Veilig.', 'dry']] },
+    ['A', 'Rikus zegt dat jij duiven spreekt.', 'skeptical, amused'],
+    ['T', 'Ik spreek nauwelijks mensen.', 'dry, deadpan'],
+    ['A', 'Daarom misschien.', 'teasing, soft']] },
   { id: 'st-fiets', trigger: 'story:k-fiets', lines: [
     ['A', 'Een fiets kopen. Er liggen er duizenden in het Reitdiep.', 'scheming'],
     ['T', 'Die zijn nat.', 'dry'],
     ['A', 'Die zijn gratis.', 'pragmatic']] },
   { id: 'st-h5', trigger: 'story:H5', lines: [
     ['T', 'KEI-week. Ik voel me weer negentien.', 'nostalgic'],
-    ['A', 'Je was drie weken student.', 'teasing'],
+    ['A', 'Jij was nauwelijks student.', 'teasing'],
     ['T', 'Drie intense weken.', 'solemn']] },
   { id: 'st-kraakspullen', trigger: 'story:k-kraakspullen', lines: [
     ['A', 'Zwart incognito of een huurboot. Wat past bij jou?', 'curious'],
@@ -523,7 +520,7 @@ export const BANTER = [
     ['A', 'Jij. In Friesland.', 'surprised, touched'],
     ['T', 'Met een paspoort. Voor de zekerheid.', 'dry']] },
   { id: 'st-trein', trigger: 'story:r-trein', lines: [
-    ['T', 'Een treinkaartje naar maakt niet uit waar.', 'dry'],
+    ['T', 'Even weg. Maar waarheen?', 'dry'],
     ['A', 'Assen. Daar zoekt niemand ons.', 'scheming'],
     ['T', 'Daar zoekt niemand iets.', 'deadpan']] },
   { id: 'st-h7', trigger: 'story:H7', lines: [
@@ -601,7 +598,7 @@ export const BANTER = [
     ['A', 'Van welk geld?', 'suspicious'],
     ['T', 'Uit een klomp.', 'deadpan'],
     ['A', 'Waar staat de Escapade eigenlijk?', 'sudden, worried'],
-    ['T', 'Voor de deur. Waar hij altijd staat.', 'confident']] },
+    ['T', 'In de garage. Waar hij altijd staat.', 'confident']] },
   { id: 'st-h17-dopjes', trigger: 'story:H17', lines: [
     ['A', 'Jelle wil bieden. Op de radio. Genoeg voor tien frietwagens.', 'tense'],
     ['T', 'Tien.', 'impressed'],
@@ -644,8 +641,8 @@ export const BANTER = [
   { id: 'pl-martinitoren-thuis', trigger: 'place:Martinitoren', lines: [
     ['A', "Daar is d'Olle Grieze.", 'warm'],
     ['T', 'Bijna thuis.', 'content'],
-    ['A', 'We wonen er vier straten vandaan, Tammo.', 'amused'],
-    ['T', 'Dus: bijna thuis.', 'stubborn, dry']] },
+    ['A', 'We wonen in Paddepoel, Tammo.', 'amused'],
+    ['T', 'Ik zie hem vanaf de elfde. Dus: bijna thuis.', 'stubborn, dry']] },
   { id: 'pl-martinitoren-steiger', trigger: 'place:Martinitoren', lines: [
     ['T', 'Waarom staat er altijd een steiger om die toren?', 'curious'],
     ['A', 'Anders waait hij om.', 'deadpan'],
@@ -738,7 +735,7 @@ export const BANTER = [
   { id: 'pl-euroborg', trigger: 'place:Euroborg', lines: [
     ['A', 'Het stadion. De trots van het noorden.', 'proud'],
     ['T', 'Jij bent er nooit geweest.', 'teasing'],
-    ['A', 'Ik hoor het thuis als ze scoren. De hele wijk trilt.', 'excited']] },
+    ['A', 'Vroeger hoorde ik het thuis als ze scoorden. De hele wijk trilde.', 'excited']] },
   { id: 'pl-eikea', trigger: 'place:EIKEA', lines: [
     ['T', 'EIKEA. Vier uur lopen tussen de bankstellen.', 'weary'],
     ['A', 'En dan buitenkomen met alleen waxinelichtjes.', 'laughing'],
@@ -758,16 +755,16 @@ export const BANTER = [
     ['A', 'Die rijden overal. Je bent gewoon getraumatiseerd.', 'teasing']] },
   { id: 'wk-selwerd', trigger: 'wijk:Selwerd', lines: [
     ['A', 'Selwerd. Hier heb ik leren fietsen.', 'nostalgic'],
-    ['T', 'Daarom rij je nu auto.', 'teasing'],
-    ['A', 'Daarom leef jij nog.', 'dry']] },
+    ['T', 'Dat zie je nog steeds.', 'teasing'],
+    ['A', 'Pas op, jij.', 'dry']] },
   { id: 'wk-korreweg', trigger: 'wijk:Korrewegwijk', lines: [
     ['T', 'De Korrewegwijk. Hier woonde ik op een zolder van vier vierkante meter.', 'nostalgic'],
     ['A', 'Met drie huisgenoten.', 'dry'],
     ['T', 'Het was heel gezellig. Noodgedwongen.', 'deadpan']] },
   { id: 'wk-oosterpark', trigger: 'wijk:Oosterparkwijk', lines: [
     ['A', 'De Oosterparkwijk. Hier stond vroeger het oude stadion.', 'nostalgic'],
-    ['T', 'Mijn opa zegt dat ze daar harder zongen.', 'proud'],
-    ['A', 'Je opa zegt dat alles vroeger harder was.', 'teasing'],
+    ['T', 'Mijn opa zei altijd dat ze daar harder zongen.', 'proud'],
+    ['A', 'Je opa zei dat alles vroeger harder was.', 'teasing'],
     ['T', 'Behalve de wind. Die is hetzelfde gebleven.', 'dry']] },
   { id: 'wk-oosterpark-zolder', trigger: 'wijk:Oosterparkwijk', lines: [
     ['A', 'De Korenbloemstraat. Mijn oude zolder.', 'nostalgic'],
@@ -825,6 +822,39 @@ export const BANTER = [
   { id: 'wk-hoogte', trigger: 'wijk:De Hoogte', lines: [
     ['T', 'De Hoogte. Het ligt geen centimeter hoger dan de rest.', 'indignant'],
     ['A', 'Het is een gevoel, Tammo. Een hoogtegevoel.', 'dreamy, laughing']] },
+  { id: 'wk-ebbinge', trigger: 'wijk:Ebbingekwartier', lines: [
+    ['A', 'Het Ebbingekwartier. Hier wilde ik vroeger wonen.', 'wistful'],
+    ['T', 'En nu?', 'curious'],
+    ['A', 'Nu kan ik de koffie hier niet eens betalen.', 'dry, laughing']] },
+  { id: 'wk-akwartier', trigger: 'wijk:A-kwartier', lines: [
+    ['T', 'Het A-kwartier. Hier fiets je alleen als je weet waar je heen moet.', 'dry'],
+    ['A', 'En als je het niet weet?', 'teasing'],
+    ['T', 'Dan kom je bij een kroeg uit.', 'deadpan']] },
+  { id: 'wk-station', trigger: 'wijk:Stationsgebied', lines: [
+    ['A', 'Moet je die fietsers zien. Die gaan harder dan wij.', 'amused'],
+    ['T', 'Ze moeten een trein halen.', 'dry'],
+    ['A', 'Ze moeten altijd een trein halen.', 'laughing']] },
+  { id: 'wk-zeehelden', trigger: 'wijk:Zeeheldenbuurt', lines: [
+    ['T', 'De Zeeheldenbuurt. Hier heeft iedereen een bakfiets.', 'dry'],
+    ['A', 'En een mening over de bakfiets van de buren.', 'teasing']] },
+  { id: 'wk-noorderplantsoen', trigger: 'wijk:Noorderplantsoenbuurt', lines: [
+    ['A', 'Hier woonde Rikus. Op een kamer zonder ramen.', 'nostalgic, amused'],
+    ['T', 'Voor de akoestiek, zei hij.', 'dry'],
+    ['A', 'Voor de huur.', 'deadpan']] },
+  { id: 'wk-paddepoel-noord', trigger: 'wijk:Paddepoel-Noord', needs: 'H5', lines: [
+    ['T', 'Daarachter ligt Zernike. Daar heb ik die drie weken gestudeerd.', 'proud, dry'],
+    ['A', 'Twee.', 'quick, teasing'],
+    ['T', 'De derde telt ook.', 'stubborn, deadpan']] },
+  { id: 'wk-professoren', trigger: 'wijk:Professorenbuurt', lines: [
+    ['T', 'Hier heb ik ooit kranten bezorgd.', 'nostalgic, dry'],
+    ['A', 'En?', 'curious'],
+    ['T', 'Ze hadden er al drie. Allemaal gelezen.', 'deadpan']] },
+  { id: 'wk-westerhaven', trigger: 'wijk:Westerhaven', lines: [
+    ['A', 'De Westerhaven. Hier parkeer ik nooit meer.', 'firm'],
+    ['T', 'Waarom niet?', 'curious'],
+    ['A', 'Ik ben mijn fiets hier eens drie uur kwijt geweest.', 'indignant, laughing'],
+    ['T', 'Hij stond er gewoon.', 'dry'],
+    ['A', 'Op een andere verdieping, Tammo.', 'exasperated']] },
 
   // --- situations ---------------------------------------------------------------
   { id: 'si-storm', trigger: 'situation:storm', lines: [
@@ -921,7 +951,7 @@ export const BANTER = [
     ['A', 'Hoeveel fietsen zijn er eigenlijk in Grunn?', 'curious'],
     ['T', 'Meer dan mensen.', 'confident'],
     ['A', 'Hoe kan dat nou?', 'skeptical'],
-    ['T', 'Iedereen heeft er één. En één die gestolen is.', 'matter-of-fact']] },
+    ['T', 'Kijk maar in de Diepenring. Daar liggen de reserves.', 'matter-of-fact']] },
   { id: 'id-radio', trigger: 'idle', lines: [
     ['T', 'Mag de radio aan?', 'hopeful'],
     ['A', 'Nee.', 'firm'],
@@ -934,7 +964,7 @@ export const BANTER = [
     ['A', 'Die zeggen niks. Die weten het gewoon.', 'knowing']] },
   { id: 'id-suikerfabriek', trigger: 'idle', lines: [
     ['A', 'Ruik je dat?', 'sniffing, suspicious'],
-    ['T', 'De suikerfabriek kan het niet zijn. Die is al jaren dicht.', 'thoughtful'],
+    ['T', 'Suiker uit Hoogkerk kan het niet zijn. Dat is pas in september.', 'thoughtful'],
     ['A', 'Dan ben jij het.', 'dry']] },
   { id: 'id-steigers', trigger: 'idle', lines: [
     ['T', 'Is Grunn eigenlijk ooit af?', 'philosophical'],
@@ -1086,17 +1116,15 @@ export const BANTER = [
     ['T', 'Ze hebben overlegd.', 'dry'],
     ['A', 'Eindelijk samenwerking in Stad.', 'laughing']] },
   { id: 'id-ladder', trigger: 'idle', needs: 'H8', until: 'H18', lines: [
-    ['A', 'Hoeveel treden heeft die complimentenladder van jullie eigenlijk?', 'curious'],
-    ['T', 'Ow. Goud. Valt mie nait of. Braid noar de zin. Kon minder.', 'counting, dry'],
-    ['A', 'Dat zijn er vijf.', 'dry'],
-    ['T', 'De zesde zeg je niet.', 'quiet'],
-    ['A', 'Wat doe je dan?', 'soft, curious'],
-    ['T', 'Dan slik je.', 'deadpan, soft']] },
+    ['T', 'De bovenste trede van de complimentenladder. Wat zeg je dan?', 'curious, dry'],
+    ['A', 'Niks. Dan slik je.', 'matter-of-fact'],
+    ['T', 'Dat doe ik al jaren.', 'quiet, deadpan'],
+    ['A', 'Bij een eierbal, Tammo.', 'soft, amused']] },
 
   // the Fjord Frituur (Tessa's dream) and the Eierbal
   { id: 'id-komtgoud', trigger: 'idle', needs: 'H6', lines: [
     ['T', 'Denk jij dat we die Eierbal ooit terugzien?', 'worried, quiet'],
-    ['A', 'Komt goud, mien jong.', 'warm, reassuring'],
+    ['A', 'Komt goud, jong.', 'warm, reassuring'],
     ['T', 'Zeg je dat omdat het waar is?', 'hopeful'],
     ['A', 'Ik zeg het omdat jij het nodig hebt.', 'soft']] },
   { id: 'id-pet', trigger: 'idle', needs: 'H3', lines: [

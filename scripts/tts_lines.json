@@ -1,1 +1,15 @@
-[]
+[
+ {
+  "key": "Ubbo|Alles gedaan. Echt alles. Grunn is van jou, de aftiteling staat in het pauzemenu bij Overzicht.",
+  "speaker": "Ubbo",
+  "text": "Alles gedaan. Echt alles. Grunn is van jou, de aftiteling staat in het pauzemenu bij Overzicht.",
+  "area": "Berichten (app)",
+  "out": "sms",
+  "say": "Alles gedaan. Echt alles. Grunn is van jou, de aftiteling staat in het pauzemenu bij Overzicht.",
+  "file": "ubbo/alles_gedaan_echt_alles_grunn_is_3b0ba50f.mp3",
+  "voice": "Laomedeia",
+  "who": "de vriendelijke stem van de telefoon-app Ubbo",
+  "tag": "behulpzame app-assistent, opgewekt",
+  "style": "spoken in standard Dutch, clear and friendly like a phone assistant; de vriendelijke stem van de telefoon-app Ubbo. Tone: behulpzame app-assistent, opgewekt."
+ }
+]
