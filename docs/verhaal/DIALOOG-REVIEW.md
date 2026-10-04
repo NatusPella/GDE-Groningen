@@ -145,7 +145,9 @@ Nu:
 - **Intro:** Ome Jan mist Geertje. Tessa herkent de fatbike, en Tammo vraagt "Wat moeten die nou met een koe?" Ome Jan: "Gain idee. Ze zitten in de olle schuur…"
 - **Telefoon, onderweg (het antwoord):** Jelle: "Moai, Grinzers. Durk en Douwe hebben een koe meegenomen. Zonder te vragen." Tessa: "Meegenomen? Gejat, bedoel je!" Jelle: "Ze wilden mij toch nog iets laten winnen. De keuring in Ljouwert, met een Grinzer koe. Ik skamje my dea." Zo spiegelt het Jelles eigen "foar mem": de tweeling doet het "foar Jelle".
 - **Slot:** Geertje: "Boe. Die schuur was niks. Te veel Friezen." Tessa: "Jelle appt. Durk en Douwe komen morgen sorry zeggen. Lopend." Tammo: "Graag gedaan, Jan. Kon minder."
-- De gameplay en de opdrachtteksten ("Rij naar de schuur van Durk en Douwe", "Stap uit en maak Geertje los", "Breng Geertje naar Ome Jan", met de hint over de trekker rammen) klopten al met wat je moet doen, dus die zijn niet veranderd.
+- **Ome Jan zegt het doel letterlijk:** "Maak heur lös en loop mit heur noar t erf. Blief wel dichtbie, aans lopt ze nait mit."
+- **Opdrachten in de HUD, stap voor stap** (pg_koe.js): "Rij naar de schuur van Durk en Douwe" (marker op de schuur), "Maak Geertje los (E)" (marker op Geertje), "Breng Geertje terug naar het erf van Ome Jan. Blijf dichtbij, anders loopt ze niet mee" (marker op het erf). Tijdens het terugbrengen staan in het paneel: Geertje "loopt mee · 12 m" of "blijft staan · 85 m", de afstand tot het erf, en "Ram de trekker-limo 0/3" (met "motor stil" na een ram). Komt de trekker dicht bij Geertje, dan zegt een melding "Pas op: de trekker zit vlak achter Geertje! Ram hem.". Ook als de trekker kapot gaat en als Geertje thuis is, krijg je een melding. De helptekst noemt de drie stappen.
+- De gameplay zelf is niet veranderd.
 
 ## Wat bewust zo blijft
 - "Dan rijdt hij nauwelijks voor jou." (opening): een vreemde zin, maar wel lief.
