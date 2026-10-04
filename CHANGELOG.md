@@ -14,6 +14,10 @@ nieuwe functies, `y` voor alleen bugfixes.
   Hapert het beeld, dan gaat de zichtafstand vanzelf even terug naar Ver.
 
 ### Opgelost
+- **De ringweg ziet er weer heel uit.** Waar de ring een tunnel of verdiepte
+  bak in duikt, flikkerde het gras en de grond door het asfalt heen; dat is
+  weg. De grasbermen van de dijken en viaducten liggen niet meer over een
+  weg ernaast, en hun voet knippert niet meer met het gras eromheen.
 - **Geen bomen, heggen, hekken en riet meer op de wegen in het Ommeland.**
   Alles in het buitengebied blijft nu van de weg, de berm, fietspaden en
   opritten af; ook de bomenrijen in de verte stoppen waar een weg ze kruist.
