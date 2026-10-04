@@ -140,7 +140,7 @@ GDE Groningen speelt in **één Groningse zomer**: de laatste twee weken van aug
 - **Tammo:** Dan rijdt hij nauwelijks voor jou. De Fjord Frituur, op een Fjord. Dan klopt de naam ook.
 - *Tessa kijkt hem aan. Hij kijkt naar zijn koffie.*
 - **Tessa:** …Dat is het liefste wat iemand ooit tegen mijn papieren heeft gezegd.
-- **Tammo:** Alleen: waar laat je hem? Op deze zolder kun je niet eens rechtop staan.
+- **Tammo:** En waar moet hij staan? Jij kunt hier niet eens rechtop staan.
 - **Tessa** *(schuift een papier over tafel)*: Daarom. Paddepoel, elfde verdieping. Twee kamers en een garage, voor de Fjord.
 - **Tammo:** Paddepoel? Dat is buitenland.
 - **Tessa:** Alleen kan ik de huur niet betalen. Jij ook niet. Samen net.
@@ -173,8 +173,8 @@ GDE Groningen speelt in **één Groningse zomer**: de laatste twee weken van aug
 - **Berend:** Goidag.
 - **Tessa:** Goidag, Berend.
 - **Berend:** Ik heb gisteren alle krassen geteld. Nul. Zo blijft het.
-- **Tammo:** Waarom noemt iedereen jou eigenlijk Bommen Berend?
-- **Berend:** Veertig jaar speel ik hem, op het Ontzet. Elk jaar val ik de stad aan, en elk jaar verlies ik. Dat doet wat met een mens.
+- **Tammo:** Jij bent toch Bommen Berend? Van het Ontzet?
+- **Berend:** Niet zo hard. Veertig jaar speel ik hem. Elk jaar val ik de stad aan, en elk jaar verlies ik. Dat doet wat met een mens.
 - **Tessa:** Ik rij.
 - **Tammo:** Jij rijdt als een fietser met een deadline.
 - **Tessa:** En jij als een fietser zonder fiets. Sleutels, Berend.
@@ -223,9 +223,9 @@ GDE Groningen speelt in **één Groningse zomer**: de laatste twee weken van aug
 - *Sjabbe wrikt de klep open en geeft Tessa haar pas.*
 - **Sjabbe:** Braid noar de zin *(helemaal tevreden)*. Vierhonderd, voor de onderdelen.
 - **Tessa:** Daar koop je nog geen halve frietwagen van.
-- **Sjabbe:** Jullie dromen klein. Die reuzen kwamen hier vorige week met een klomp vol geld. Ze kochten alles wat met frituren te maken heeft. En hun baas vroeg waar het museum alarmen heeft.
+- **Sjabbe:** Dan moet je groter denken. Die reuzen kwamen hier vorige week met een klomp vol geld. Ze kochten alles wat met frituren te maken heeft. En hun baas vroeg waar het museum alarmen heeft.
 - **Tessa:** Het museum. De Gouden Eierbal.
-- **Sjabbe:** Achttien karaat. Ik zeg niks. Ik zeg alleen: wie hem eerst heeft, heeft hem.
+- **Sjabbe:** Achttien karaat. Ik vraag niks. Ik zeg alleen: wie hem eerst heeft, heeft hem.
 
 **Bij een herhaling.** **Sjabbe:** Weer een automaat? Dit wordt een gewoonte. Een goede.
 
@@ -257,7 +257,7 @@ Wie mensen raakt, krijgt strafpunten en verliest zijn combo ("Chat vindt dat nie
 - **Jelmer:** Niemand raken! Alleen spullen. Spullen zijn content.
 
 **Intro (cutscène).** *Er staat een hijskraan, zoals altijd. Een terras vol mensen in de avondzon.*
-- **Jelmer:** Moi moi chat! Dik feest vandaag *(dik = geweldig)*! Zomeravond op de Grote Markt!
+- **Jelmer:** Moi moi chat! Zomeravond op de Grote Markt! En kijk: verse content!
 - **Tammo:** Ik ben geen content. Ik ben Tammo.
 - **Tessa:** Spreek voor jezelf. Ik ben heel veel content.
 - **Tammo:** En die terrassen?
@@ -299,7 +299,7 @@ Wie mensen raakt, krijgt strafpunten en verliest zijn combo ("Chat vindt dat nie
 - **Tammo:** Hoe stuur je een duif?
 - **Bert:** Diep in de ogen kieken. Fluiten. Ogen dicht.
 - *Tammo fluit. Een duif landt op zijn pet.*
-- **Bert:** Kiek. Een keudeldoemke *(een lieverdje)*. Hij luustert noar dij, jong.
+- **Bert:** Kiek. Hij luustert noar dij, jong.
 - **Tammo:** Duiven luisteren naar niemand.
 - **Tessa:** Mijn vriend de duivenkoning.
 - **Tammo:** "Vriend."
@@ -308,7 +308,7 @@ Wie mensen raakt, krijgt strafpunten en verliest zijn combo ("Chat vindt dat nie
 
 **Outro (cutscène).**
 - **Tessa:** Drie camera's, twee bewakers, en een stroomkast achter de fietsenstalling.
-- **Tammo:** En een zwarte trekker bij de achteringang, met een limousine erachter. Vlaggetjes met rode blaadjes. Een man in een blauw colbert die de alarmen telt.
+- **Tammo:** En die trekker-limo. Vlaggetjes met rode blaadjes. En een man in een blauw colbert die de alarmen telt.
 - **Tessa:** Pompeblêden. Een Fries. Hij gaat het echt doen.
 - **Tammo:** Hoe weet jij wat pompeblêden zijn?
 - **Tessa:** Dat weet je gewoon.
@@ -464,9 +464,9 @@ Alle drie staan op de kaart; de route gaat naar de dichtstbijzijnde. Elke keuze 
 - **Tammo:** In Grunn. Dat is geen kunst. Dat is het weerbericht.
 
 **Outro (cutscène, Noorderplantsoen).**
-- **Femke:** Heel! Bijna heel. En bij de groothandel: twee reuzen met een klomp vol geld. Ze kochten al het frituurvet van Stad. "Us Mem Vet" stond op de tankwagen.
+- **Femke:** Heel! Bijna heel. O, en de groothandel is leeg. Twee reuzen kochten al het frituurvet van Stad. "Us Mem Vet" stond op de tankwagen.
 - **Tessa:** Geen vet, geen eierballen op het Ontzet. Geen eierballen, geen Grunn in de Snackprijs.
-- **Tammo:** Hij hoeft niet te winnen. Wij moeten alleen niet kunnen meedoen.
+- **Tammo:** Dan hoeft hij niet eens te winnen.
 - **Femke:** Blijven jullie kijken?
 - **Tammo:** Ik kan heel goed tegen wind. Alleen niet tegen kunst.
 - **Tessa:** Hij kan wel tegen kunst. Als ik naast hem zit.
@@ -491,7 +491,7 @@ Alle drie staan op de kaart; de route gaat naar de dichtstbijzijnde. Elke keuze 
 
 **Outro (cutscène, Oosterpoort).** *Snackbarhouders met lege pannen juichen.*
 - **Snackbarhouder:** Vet! Valt mie nait of! *(Dat valt me niet tegen!)*
-- **Tessa:** Trede drie van de complimentenladder, Tammo.
+- **Tessa:** Trede drie, Tammo.
 - **Tammo:** Dit is het eerste wat ik ooit heb gedaan waar mensen voor klapten.
 - *Tessa's telefoon trilt: "Pas op dysels, famke. – M." (Pas op jezelf, meisje.) Ze stopt hem snel weg. Tammo ziet het.*
 
@@ -525,7 +525,7 @@ Alle drie staan op de kaart; de route gaat naar de dichtstbijzijnde. Elke keuze 
 - **Harm:** Vorig jaar was het de voorlaatste.
 
 **Intro (cutscène, Julianaplein).**
-- **Jelle (uit de trekker-limo):** Moai, Grinzer. Onze echte derby is tegen Cambuur. Jullie zijn een uitje. Wie wint, mag famke een eierbal geven.
+- **Jelle (uit de trekker-limo):** Moai, Grinzer. Eén rondje om jullie dorp. Wie wint, mag famke een eierbal geven.
 - **Tessa:** Famke koopt haar eigen eierbal.
 - **Tammo** *(heel kalm)*: Dat neem ik je kwalijk.
 - **Tessa:** Dat was een hele zin, Tammo.
@@ -536,7 +536,7 @@ Alle drie staan op de kaart; de route gaat naar de dichtstbijzijnde. Elke keuze 
 - **Tessa:** Je pakte mijn hand in de bocht.
 - **Tammo:** Voor de grip.
 - **Tessa:** We zaten in een auto, Tammo. Met stuur.
-- **Tammo:** Met veel bocht.
+- **Tammo:** Het was een lange bocht.
 - **Jelle (telefoon):** Dit is net klear, Grinzer. *(Dit is nog niet klaar.)*
 
 **Bij een herhaling.** **Harm:** De laatste fase. Weer. Ik kom elke keer kijken.
@@ -598,7 +598,7 @@ Alle drie staan op de kaart; de route gaat naar de dichtstbijzijnde. Elke keuze 
 - **Tammo:** Die barman heeft het druk.
 - **Tessa:** O ja? Sinds wanneer bepaal jij dat?
 - **Tammo:** Sinds nu.
-- **Tessa:** Jaloers én verantwoordelijk. Wat heb je met Tammo gedaan?
+- **Tessa:** Jaloers? Jij? Wat heb je met Tammo gedaan?
 
 **Outro (cutscène, de vierde kroeg).**
 - **Durk** *(zingend, half op de bar)*: De bal… leit op it skûtsje. *(De bal ligt op het skûtsje.)* Hik. En mem… mem wil hem niet eens.
@@ -630,16 +630,16 @@ Alle drie staan op de kaart; de route gaat naar de dichtstbijzijnde. Elke keuze 
 **Naamkaart:** **OMA TRIJNTJE**, met "Bakte in 1953 de beste eierbal van Stad. Zegt het zelf ook."
 
 **Intro (cutscène).**
-- **Oma Trijntje:** Loop jij daar heelhuids overheen, jong, dan vertel ik je iets over die bal.
+- **Oma Trijntje:** Loop jij daar heelhuids doorheen, jong, dan vertel ik je iets over die bal.
 - **Tammo:** Fatbikes tellen niet als fiets, oma.
-- **Oma Trijntje:** Daarom mag je ze ook ontwijken.
+- **Oma Trijntje:** Zeg dat maar tegen hen. Lopen, jong.
 
 **Outro (cutscène, oma's kamer, met een foto uit 1953 aan de muur).**
 - **Oma Trijntje:** Eet je krentjebrij. *(Bessensap met gort en krenten.)*
 - **Tammo:** Ik ben vierendertig, oma.
 - **Oma Trijntje:** Dan eet je hem al vierendertig jaar te weinig.
-- **Oma Trijntje:** 1953. Ik won met mijn eierbal. Die handjes om de bal op die foto zijn van mij. Tweede werd een Fries meisje: Gerda Terpstra. Haar eierbal was beter. Ik wist het, zij wist het. De jury wist het niet.
-- **Tessa:** Terpstra. Jelle Terpstra.
+- **Oma Trijntje:** 1953. Dat ik won, weet je. Wat je niet weet: tweede werd een Fries meisje. Gerda Terpstra. Haar eierbal was beter. Ik wist het, zij wist het. De jury wist het niet.
+- **Tessa:** Terpstra? Van Jelle?
 - **Oma Trijntje:** Haar zoon, zeker. Ik heb het nooit gezegd. Zeventig jaar trots. Dat is lang voor iets wat in één zin past.
 - **Oma Trijntje:** Die bal is gien geld, jong. Die bal is Grunn. *(Die bal is geen geld, jongen.)* En jij: één zin, hè. Niet zeventig jaar.
 - **Tammo:** Ik zeg wel wat.
@@ -663,7 +663,7 @@ Alle drie staan op de kaart; de route gaat naar de dichtstbijzijnde. Elke keuze 
 - **Kapitein Klaas:** Ik vis al dertig jaar fietsen uit de Diepenring. Ik mag alles.
 
 **Intro (cutscène, Spilsluizen).**
-- **Kapitein Klaas:** Jullie varen, ik kijk de andere kant op. Wie is niemand? Schipper Wiebe. Die zit tot vieren in de kroeg. Meestal.
+- **Kapitein Klaas:** Jullie varen, ik kijk de andere kant op. De boot is van Schipper Wiebe. Die zit tot vieren in de kroeg. Meestal.
 - **Tammo (als gids):** Links ziet u Grunn. Rechts ziet u ook Grunn. Onder u ziet u fietsen.
 - **Toerist:** Hoeveel?
 - **Tammo:** Meer dan mensen. Iedereen heeft er één, en één in het water.
@@ -672,9 +672,9 @@ Alle drie staan op de kaart; de route gaat naar de dichtstbijzijnde. Elke keuze 
 
 **Outro (cutscène, de boot ligt stil bij de Oosterhaven, de toeristen zijn weg, avondlicht).**
 - **Tessa:** Daar. Het skûtsje. Twee reuzen met hun voeten in het water.
-- **Tammo:** Weet je nog, Berends bakkie? Toen kreeg ik de sleutels niet eens.
-- **Tessa:** Die krijg je nog steeds niet.
-- **Tammo:** Maar de rest wel?
+- **Tammo:** Weet je nog, bij Berend? Toen mocht ik niet eens rijden.
+- **Tessa:** Mag je nog steeds niet.
+- **Tammo:** Nee. Maar ik zit wel naast je.
 - **Tessa:** Moi.
 - **Tammo:** …Moi.
 - *De camera blijft net te lang hangen. Dan kust ze hem. Kort. Daarna kijken ze allebei naar het water.*
@@ -696,11 +696,11 @@ Alle drie staan op de kaart; de route gaat naar de dichtstbijzijnde. Elke keuze 
 *De laatste week naar 28 augustus. De kermis staat op de Grote Markt.*
 
 ## Tussendoor: bootje huren
-- **Tessa:** Een sloep met een bel. Ik stuur.
-- **Tammo:** Ik spring.
-- **Tessa:** We springen allebei. Voortaan vallen we samen.
+- **Tessa:** Een sloep met een bel. Jij stuurt.
+- **Tammo:** En wie springt er?
+- **Tessa:** Allebei. Voortaan vallen we samen.
 - **Tammo:** En over gisteren…
-- **Tessa:** Gisteren was gisteren. Spring nou maar.
+- **Tessa:** Gisteren was gisteren. Varen nou maar.
 
 ---
 
@@ -718,10 +718,10 @@ Alle drie staan op de kaart; de route gaat naar de dichtstbijzijnde. Elke keuze 
 - **Tessa:** Een oefenbal. Hij oefent hoe hij hem aan zijn moeder geeft.
 - **Tammo:** Hij is romantischer dan ik.
 - **Tessa:** Iedereen is romantischer dan jij.
-- **Kapitein Klaas (telefoon):** Proeksel, jongens. *(Natte rommel.)* Ik heb net twee reuzen uit de haven gevist. Ze zwommen synchroon.
+- **Kapitein Klaas (telefoon):** Jongens. Ik heb net twee reuzen uit de haven gevist. Ze zwommen synchroon.
 
 **Radio.**
-- **Jelle:** Rikus. De echte gaat vanavond de lucht in, met een ballon. Ik wil dat mem hem van boven ziet aankomen. En een ballon kun je niet kapen.
+- **Jelle:** Rikus. Die twee mogen de chocola houden. De echte komt vanavond met een ballon, dan ziet mem hem van boven aankomen. En een ballon kun je niet kapen.
 - **Rikus:** Waarom vertel je dat, Jelle?
 - **Jelle:** Omdat het een gezellig programma is.
 
@@ -773,7 +773,7 @@ Alle drie staan op de kaart; de route gaat naar de dichtstbijzijnde. Elke keuze 
 - **Dokter Dijkstra:** Lier in. Terug naar het UMCG, en netjes op de H.
 
 **Outro (cutscène, het UMCG).** *Tammo houdt de bal vast. Hij is zwaar en echt.*
-- **Tammo:** Ik heb hem. De echte. Hij smelt niet.
+- **Tammo:** Hij is zwaar. Hij smelt niet.
 - **Tessa:** Je praatte de hele tijd, aan dat touw.
 - **Tammo:** Ik had hoogtevrees.
 - **Tessa:** Je zei "doe bist schier" *(jij bent mooi)*. Tegen de ballon.
@@ -785,8 +785,8 @@ Alle drie staan op de kaart; de route gaat naar de dichtstbijzijnde. Elke keuze 
 ## Tussendoor: carbid bij boer Roelf
 *De bal moet tot het Ontzet veilig staan. Boer Roelf helpt alleen wie carbid kan schieten.*
 - **Boer Roelf:** Stad wil altijd onze spullen. Vroeger graan, nu stilte en lucht.
-- **Tammo:** En jullie willen onze snackbars.
-- **Boer Roelf:** …Ja. Kon minder. In de melkbus. Doar zuukt gain Fries noar. *(Daar zoekt geen Fries naar.)*
+- **Tammo:** En nu een melkbus. Voor een paar dagen.
+- **Boer Roelf:** …Kon minder, dat schieten van jou. Goed. Doar zuukt gain Fries noar. *(Daar zoekt geen Fries naar.)*
 
 ## Tussendoor: padel *(onheil)*
 *Bij de baan wachten Durk en Douwe. Jelle heeft ze gestuurd.*
@@ -814,10 +814,10 @@ Alle drie staan op de kaart; de route gaat naar de dichtstbijzijnde. Elke keuze 
 - **Tammo:** "Tige tank foar de auto. – J." *(Bedankt voor de auto.)* De Fjord Frituur. Zonder Fjord.
 - **Tammo:** Wie heb je verteld waar we wonen?
 - **Tessa:** Niemand.
-- **Tammo:** Je appt al weken met Friesland.
+- **Tammo:** Je appt al de hele week met Friesland.
 - **Tessa:** …Ga je dit nu doen? Nu?
 - **Tammo:** Ik vraag het alleen.
-- **Tessa:** Nee, je vraagt het niet. Je vraagt nooit iets. Jij zegt nooit iets, Tammo, en dan word je stil en boos op mij. Ik haal jouw auto wel terug. Alleen.
+- **Tessa:** Nee. Jij vraagt nooit wat. Jij zegt nooit wat, Tammo. Je wordt alleen stil. En dan boos op mij. Ik haal jouw auto wel terug. Alleen.
 - *Ze loopt weg. Tammo blijft staan met de klomp in zijn handen.*
 
 *(Gameplay: je speelt als Tessa, alleen. Zoek de Escapade via het piepje van de zender die Henk erin zette, en haal hem van de trein naar Ljouwert.)*
@@ -832,7 +832,8 @@ Alle drie staan op de kaart; de route gaat naar de dichtstbijzijnde. Elke keuze 
 - **Tessa:** Hoe wist jij dat hij hier was?
 - **Tammo:** Ik luisterde naar Rikus. En ik ben de trein achterna gefietst. Wind tegen.
 - **Tessa:** Beide kanten op.
-- **Tessa:** "Iemand uit Friesland" is Mem Terpstra. Ze wil dat haar zoon ophoudt.
+- **Tammo:** "Iemand uit Friesland." Dat was zijn moeder.
+- **Tessa:** Ze wil dat hij ophoudt.
 - **Tammo:** …Een moeder. Ik was jaloers op een moeder.
 - **Tessa:** Een beetje, hè.
 - **Tammo:** Sorry. Dat ik nooit wat zeg.
@@ -859,7 +860,7 @@ Alle drie staan op de kaart; de route gaat naar de dichtstbijzijnde. Elke keuze 
 - **Jelle:** Tegen? Dit is meer dan…
 - **Tessa:** Je biedt geld voor iets wat geen geld is. En je moeder wil iets anders.
 - **Jelle:** Wat dan?
-- **Tessa:** Dat iemand één keer zegt dat ze de beste was. Dat kost niks. Daarom doe je het niet.
+- **Tessa:** Dat iemand één keer zegt dat ze de beste was. Dat koop je niet, Jelle.
 - *Jelle zwijgt. Dat is voor het eerst.*
 - **Jelle:** …We bakken op het Ontzet. Wie wint, krijgt de bal.
 
@@ -867,11 +868,11 @@ Alle drie staan op de kaart; de route gaat naar de dichtstbijzijnde. Elke keuze 
 
 **Outro (cutscène, oma's keuken, met deeg en mosterd).**
 - **Oma Trijntje:** Mosterd, eieren, stoetbrood. Grove mosterd, niet dat zoete spul.
-- **Tammo:** Oma, hoe zei opa het eigenlijk?
+- **Tammo:** Oma… hoe zei opa het eigenlijk? Tegen jou.
 - **Oma Trijntje:** Niet. Hij zei: "Woist ja wel." *(Je weet het toch.)*
 - **Tammo:** En wist je het?
 - **Oma Trijntje:** Al jaren. Maar ik wilde het één keer hóren, jong. Eén keer is genoeg.
-- **Oma Trijntje:** En bel Gerda Terpstra voor me.
+- **Oma Trijntje:** En bel Gerda even voor me.
 - **Tessa:** Nu?
 - **Oma Trijntje:** Ik ben tweeënnegentig. Alles is nu.
 
@@ -880,7 +881,7 @@ Alle drie staan op de kaart; de route gaat naar de dichtstbijzijnde. Elke keuze 
 ## Overgang (cutscène, Nachtstreek)
 - **Rikus:** Achtentwintig augustus. Gronings Ontzet. In 1672 hield Stad een bisschop buiten.
 - **Rikus:** Vandaag staat er weer een Berend op de Grote Markt, in kostuum, en hij verliest weer. Net als in 1672.
-- **Rikus:** De fietstunnel-update: 2031. Hij is bijna klaar. En ik sta morgen vooraan. Tweede friet is voor mij.
+- **Rikus:** De fietstunnel-update: 2031. Hij is bijna klaar. En ik sta straks vooraan. Eerste friet is voor mij.
 
 ---
 
@@ -892,7 +893,7 @@ Alle drie staan op de kaart; de route gaat naar de dichtstbijzijnde. Elke keuze 
 **Intro (cutscène, Grote Markt).** *Kramen, vlaggen, het naspel met kanonnen van karton. Berend in een bisschopsmantel op een houten paard. Op de markt staat de Escapade met een luik in de zijkant en een kartonnen bord: de eerste Fjord Frituur.*
 - **Berend (in de rol):** Grunn! Geef je over!
 - **Kind in het publiek:** Nee!
-- **Berend (uit de rol, tegen Tammo):** Elk jaar hetzelfde. Ik word er niet jonger op. Ik zit ook in de jury. Ik proef, ik tel, ik oordeel.
+- **Berend (uit de rol, tegen Tammo):** Elk jaar hetzelfde. Straks zit ik in de jury. Ik proef, ik tel, ik oordeel.
 - **Tessa:** Tammo bakt. Ik hou de kraam heel.
 - **Tammo:** Ik bak nooit onder druk.
 - **Tessa:** Je doet alles onder druk. Daarom werkt het.
@@ -916,10 +917,10 @@ Alle drie staan op de kaart; de route gaat naar de dichtstbijzijnde. Elke keuze 
 - **Tammo:** Hij praat Gronings.
 - **Tessa:** Dan is het ernstig.
 - **Jelle:** Better as ús. Net fertelle. *(Beter dan de onze. Niet doorvertellen.)*
-- **Berend:** De Noordelijke Snackprijs gaat naar Grunn. De bal blijft in Stad. En op het bordje in het museum komt een tweede naam: Gerda Terpstra, 1953. Ik schrijf de gemeente er wel een brief over.
+- **Berend:** De Snackprijs gaat naar Grunn. En op het bordje in het museum komt een tweede naam: Gerda Terpstra, 1953. Ik schrijf de gemeente er wel een brief over.
 
 **Achter de kraam (cutscène, Rikus live erbij).** *Het lawaai van de markt. Tammo en Tessa achter de frituur.*
-- **Rikus:** We schakelen over naar de kraam. Er is een peiling die al weken openstaat.
+- **Rikus:** We schakelen over naar de kraam. Er is een peiling die al twee weken openstaat.
 - **Tessa:** Tammo. Iedereen luistert.
 - **Tammo:** …Woist ja wel.
 - **Tessa:** Dat telt. Maar ik wil het één keer horen.
@@ -968,6 +969,7 @@ Alle drie staan op de kaart; de route gaat naar de dichtstbijzijnde. Elke keuze 
 - Een korte outro bij herhaling voor elke missie, als klus.
 - Rubrieken op Nachtstreek: de fietstunnel-update, het storingsbericht, de torenwachter en de peiling "Woist ja wel?".
 - Het "Sikkom."-scherm bij een missie die net mislukt.
+- De dialoogreview van oktober 2026 (`DIALOOG-REVIEW.md`) maakte de regels natuurlijker en logischer; dit script volgt die versie.
 - De banter wordt herschreven op de nieuwe beats. Ongeveer de helft van de huidige regels blijft goed: alles over Stad, het weer, de Friezen en de wijken.
 
 **Missies en stappen**
