@@ -173,7 +173,7 @@ let sirenAudible = 0;
 
 let seenBullets = new WeakSet();
 let seenParticles = new WeakSet();
-let seenDownPeds = new WeakSet();
+let seenDeadPeds = new WeakSet();
 let seenWrecks = new WeakSet();
 const lastCrashAt = new WeakMap();
 const hornWasOn = new WeakMap();
@@ -731,11 +731,22 @@ function playWeaponSfx(e, x, y) {
       playNoiseBurst({ duration: 0.16 / slow, freq: 900 * slow * r, freqEnd: 300, q: 0.9, gain: 0.08, type: 'bandpass', out });
       break;
     }
+    case 'shot': playGunshot(x, y, e.weapon, true); break;
+    case 'empty': {
+      const out = spatialOut(x, y, { ref: 2, rolloff: 1.4, range: 25, prio: 2 });
+      if (!out) return;
+      playTone({ freq: 2400 * r, freqEnd: 1900 * r, type: 'square', duration: 0.025, gain: 0.04, out, prio: 2 });
+      playNoiseBurst({ duration: 0.03, freq: 3800, q: 1.5, gain: 0.08, type: 'bandpass', delay: 0.06, out, prio: 2 });
+      break;
+    }
     case 'hit': {
       const out = spatialOut(x, y, { ref: 4, rolloff: 1.1, range: 60 });
       if (!out) return;
       const m = e.material;
-      if (m === 'metal') {
+      if (m === 'flesh') {
+        playBuf('punch', { out, gain: 0.35, rate: r });
+        playTone({ freq: 140 * r, freqEnd: 60, type: 'sine', duration: 0.08, gain: 0.12, out });
+      } else if (m === 'metal') {
         playTone({ freq: 1350 * r, freqEnd: 1250 * r, type: 'triangle', duration: 0.22, gain: 0.07, out });
         playTone({ freq: 2210 * r, freqEnd: 2100 * r, type: 'sine', duration: 0.16, gain: 0.04, out });
         playBuf('punch', { out, gain: 0.25, rate: 1.2 * r });
@@ -773,14 +784,25 @@ function playWeaponSfx(e, x, y) {
       break;
     }
     case 'launch': {
-      const out = spatialOut(x, y, { ref: 4, rolloff: 1, range: 90 });
+      // the fuse catches, a whoosh off the stick, then the rising whistle
+      const out = spatialOut(x, y, { ref: 5, rolloff: 0.9, range: 140, prio: 2 });
       if (!out) return;
-      playNoiseBurst({ duration: 0.25, freq: 900, freqEnd: 2500, q: 0.8, gain: 0.18, out });
-      playTone({ freq: 1400 * r, freqEnd: 3200 * r, type: 'sine', duration: 1.2, gain: 0.04, delay: 0.1, out });
+      playNoiseBurst({ duration: 0.12, freq: 5200, freqEnd: 4200, q: 0.7, gain: 0.08, type: 'highpass', out, prio: 2 });
+      playNoiseBurst({ duration: 0.4, freq: 700, freqEnd: 2600, q: 0.8, gain: 0.32, delay: 0.05, out, prio: 2 });
+      playTone({ freq: 1300 * r, freqEnd: 3400 * r, type: 'sine', duration: 1.1, gain: 0.11, delay: 0.12, out, prio: 2 });
+      playTone({ freq: 1310 * r, freqEnd: 3430 * r, type: 'triangle', duration: 1.1, gain: 0.04, delay: 0.12, out, prio: 2 });
+      break;
+    }
+    case 'incoming': {
+      // a rocket coming down (H18's misfired fireworks): a falling whistle
+      const out = spatialOut(x, y, { ref: 6, rolloff: 0.9, range: 140, h: 6, prio: 2 });
+      if (!out) return;
+      playTone({ freq: 3200 * r, freqEnd: 1100 * r, type: 'sine', duration: 1.0, gain: 0.1, out, prio: 2 });
+      playNoiseBurst({ duration: 0.9, freq: 2400, freqEnd: 900, q: 1.2, gain: 0.1, out, prio: 2 });
       break;
     }
     case 'burst': {
-      const out = spatialOut(x, y, { ref: 10, rolloff: 0.7, range: 250 });
+      const out = spatialOut(x, y, { ref: 10, rolloff: 0.7, range: 250, h: Number.isFinite(e.z) ? e.z : undefined, prio: 2 });
       if (!out) return;
       playNoiseBurst({ duration: 0.5, freq: 1800, freqEnd: 120, q: 0.6, gain: 0.55, type: 'lowpass', out });
       playTone({ freq: 110, freqEnd: 40, type: 'sine', duration: 0.4, gain: 0.3, out });
@@ -1033,8 +1055,8 @@ function playHorn(x, y, duration = 0.4, low = 1) {
   const out = spatialOut(x, y, { ref: 6, rolloff: 1, range: 90 });
   if (!out) return;
   const d = 1 + (Math.random() - 0.5) * 0.04;
-  playTone({ freq: 415 * low * d, type: 'horn', duration, gain: 0.16, filterFreq: 3200, out });
-  playTone({ freq: 498 * low * d * 1.004, type: 'horn', duration, gain: 0.13, filterFreq: 3200, out });
+  playTone({ freq: 415 * low * d, type: 'horn', duration, gain: 0.22, filterFreq: 3200, out });
+  playTone({ freq: 498 * low * d * 1.004, type: 'horn', duration, gain: 0.18, filterFreq: 3200, out });
 }
 
 function hornPitch(v) {
@@ -1635,6 +1657,9 @@ const GMUSIC_ARTISTS = {
   'Staal en suiker': 'Beton Bert & de Bietenbende',
   'Wie stoan nait stil': 'De Nait Soezen Crew',
   'Kleur in de Wind': 'Windkracht Wiebke',
+  'Geen stoplicht houdt ons tegen': 'Ringweg Drillers',
+  'Goud in de Nacht': 'Nachtbus Nino',
+  'Hatchback op de Ring': 'De Uitlaatjes',
 };
 // file names can't carry every character of a title
 const GMUSIC_TITLES = {
@@ -1991,13 +2016,13 @@ export function initAudio(world) {
 function primeWorld(world) {
   for (const b of world.bullets) seenBullets.add(b);
   for (const pt of world.particles) seenParticles.add(pt);
-  for (const ped of world.pedestrians) if (ped.state === 'dead') seenDownPeds.add(ped);
+  for (const ped of world.pedestrians) if (ped.state === 'dead') seenDeadPeds.add(ped);
   for (const v of world.vehicles) if (v.wrecked) seenWrecks.add(v);
 
   prev = {
-    knockouts: world.stats.knockouts,
-    copHarm: world.stats.copKnockouts + world.stats.copCarsWrecked,
-    pedKnockouts: world.stats.pedKnockouts,
+    kills: world.stats.kills,
+    copKills: world.stats.copKills,
+    pedKills: world.stats.pedKills,
     health: world.health,
     armor: world.armor,
     money: world.money,
@@ -2443,7 +2468,7 @@ function updatePlayerHorn(world) {
   }
   if (on !== hornVoice.on) {
     hornVoice.on = on;
-    hornVoice.gain.gain.setTargetAtTime(on ? (v && v.isScooter ? 0.07 : 0.24) : 0, t, on ? 0.006 : 0.025);
+    hornVoice.gain.gain.setTargetAtTime(on ? (v && v.isScooter ? 0.12 : 0.42) : 0, t, on ? 0.006 : 0.025);
   }
 }
 
@@ -2491,7 +2516,8 @@ function updateScrape(dt, world) {
 
 const MAX_EVENTS_PER_FRAME = 8;
 
-// world.audioEvents: [{kind, x, y, strength?}], drained every frame.
+// world.audioEvents: [{kind, x, y, strength?}], up to MAX_EVENTS_PER_FRAME a
+// frame; returns how many it took (the rest waits for the next frame).
 function playAudioEvents(world) {
   const q = world.audioEvents;
   const n = Math.min(q.length, MAX_EVENTS_PER_FRAME);
@@ -2523,7 +2549,7 @@ function playAudioEvents(world) {
       case 'coo': case 'flap': case 'bonk': case 'poop': case 'splat': case 'plop': playCritterEvent(e.kind, x, y, clamp(e.strength ?? 0.5, 0, 1)); break;
       case 'splash': playSplash(x, y); break;
       case 'whistle': playWhistle(); break;
-      case 'ko': case 'poof': playKnockEvent(e.kind, x, y, clamp(e.strength ?? 0.5, 0, 1)); break;
+      case 'gore': case 'gore_splat': case 'ko': case 'poof': playGoreEvent(e.kind, x, y, clamp(e.strength ?? 0.5, 0, 1)); break;
       case 'animal_hit': {
         const out = spatialOut(x, y, { ref: 6, rolloff: 1, range: 70 });
         const k = clamp(e.strength ?? 0.5, 0, 1);
@@ -2557,6 +2583,7 @@ function playAudioEvents(world) {
       default: break;
     }
   }
+  return n;
 }
 
 // Bullet impacts by surface; a share of the hard ones whine off as ricochets.
@@ -2583,16 +2610,21 @@ function playBulletHit(x, y, material, k) {
   if ((material === 'stone' || material === 'metal') && Math.random() < 0.18) playBuf('ric_whine', { out, gain: 0.08, rate: 0.9 + Math.random() * 0.3, delay: 0.01 });
 }
 
-// ko: a body hitting the ground plus the cartoon "seeing stars" twinkle;
-// poof: a bird flapping off in a fluster.
-function playKnockEvent(kind, x, y, k) {
-  const out = spatialOut(x, y, { ref: kind === 'ko' ? 6 : 4, rolloff: 1.1, range: kind === 'ko' ? 70 : 45 });
+function playGoreEvent(kind, x, y, k) {
+  const big = kind === 'gore' || kind === 'ko';
+  const out = spatialOut(x, y, { ref: big ? 7 : 4, rolloff: 1.1, range: big ? 80 : 45 });
   if (!out) return;
   const r = 0.9 + Math.random() * 0.2;
-  if (kind === 'ko') {
+  if (kind === 'gore') {
+    playBuf('squelch_' + Math.floor(Math.random() * 3), { out, gain: 0.3 + k * 0.22, rate: r, prio: 2 });
+    playBuf('body_hit', { out, gain: 0.22, rate: 0.7 * r });
+  } else if (kind === 'ko') {
+    // a non-lethal knockdown (knockfx3d.js): the body hitting the ground and
+    // the cartoon "seeing stars" twinkle
     playBuf('body_fall', { out, gain: 0.25 + k * 0.2, rate: r });
     playBuf('dizzy', { out, gain: 0.16, rate: r, delay: 0.25 });
-  } else {
+  } else if (kind === 'gore_splat') playBuf('gore_splat', { out, gain: 0.12 + k * 0.14, rate: r * (0.85 + Math.random() * 0.4) });
+  else {
     playBuf('poof', { out, gain: 0.22 + k * 0.1, rate: r });
     playBuf('flutter', { out, gain: 0.16, rate: r * 1.2 });
   }
@@ -2767,17 +2799,13 @@ function spatialAt(x, y, opts) {
 function updateWorldEvents(world) {
   const p = world.player;
 
-  let playerFired = false;
   for (const b of world.bullets) {
     if (seenBullets.has(b)) continue;
     seenBullets.add(b);
-    if (b.owner === 'player') { playerFired = true; continue; }
+    // the player's own shots come as 'weapon' events (combat.js fireGun)
+    if (b.owner === 'player') continue;
     const sp = Math.hypot(b.vx, b.vy) || 1;
     playGunshot(b.x - (b.vx / sp) * b.traveled, b.y - (b.vy / sp) * b.traveled, 'pistol');
-  }
-  if (playerFired) {
-    const src = p.inVehicle || p;
-    playGunshot(src.x, src.y, world.weapon, true);
   }
 
   let ricochets = 0;
@@ -2789,13 +2817,11 @@ function updateWorldEvents(world) {
     else if (pt.kind === 'splash') { splashes.push(pt); playSplash(pt.x, pt.y); }
   }
 
-  // knocked out this frame (the 'dead' state is a KO, pedestrians.js)
-  const newlyDown = [];
+  const newlyDead = [];
   for (const ped of world.pedestrians) {
-    if (ped.state !== 'dead') { seenDownPeds.delete(ped); continue; }
-    if (seenDownPeds.has(ped)) continue;
-    seenDownPeds.add(ped);
-    newlyDown.push(ped);
+    if (ped.state !== 'dead' || seenDeadPeds.has(ped)) continue;
+    seenDeadPeds.add(ped);
+    newlyDead.push(ped);
   }
 
   if (!world.paused) updateContactAudio(world);
@@ -2808,17 +2834,16 @@ function updateWorldEvents(world) {
   }
 
   const at = (src) => spatialAt((src || p).x, (src || p).y);
-  const copHarm = world.stats.copKnockouts + world.stats.copCarsWrecked;
-  if (world.stats.knockouts > prev.knockouts) {
-    const out = at(newlyDown[0] || newlyWrecked[0]);
+  if (world.stats.kills > prev.kills) {
+    const out = at(newlyDead[0] || newlyWrecked[0]);
     if (out) playHit(out);
   }
-  if (copHarm > prev.copHarm) {
-    const out = at(newlyDown.find((d) => d.isCop) || newlyWrecked.find((v) => v.isPolice));
+  if (world.stats.copKills > prev.copKills) {
+    const out = at(newlyDead.find((d) => d.isCop) || newlyWrecked.find((v) => v.isPolice));
     if (out) playCopSting(out);
   }
-  if (world.stats.pedKnockouts > prev.pedKnockouts) {
-    const out = at(newlyDown.find((d) => !d.isCop));
+  if (world.stats.pedKills > prev.pedKills) {
+    const out = at(newlyDead.find((d) => !d.isCop));
     if (out) playPedSting(out);
   }
 }
@@ -2951,8 +2976,12 @@ export function updateAudio(dt, world) {
   const events = world.audioEvents || (world.audioEvents = []);
   if (!ctx || !worldReady) { events.length = 0; return; }
   lastWorld = world;
-  if (!muted) guarded('events', () => playAudioEvents(world));
-  events.length = 0;
+  // a busy frame (shots, footsteps, birds) used to swallow everything past the
+  // first eight (rockets, the jachtgeweer): the rest now plays next frame
+  let played = events.length;
+  if (!muted) guarded('events', () => { played = playAudioEvents(world); });
+  events.splice(0, played);
+  if (events.length > MAX_EVENTS_PER_FRAME * 3) events.splice(0, events.length - MAX_EVENTS_PER_FRAME * 3);
   if (ctx.state !== 'running') resumeCtx('frame');
 
   if (!menuAudio && world.input.wasPressed('u')) {
@@ -3026,9 +3055,9 @@ function updateWorldAudio(dt, world) {
   }
   updateChaseBark(world);
   prev.wanted = world.wanted;
-  prev.knockouts = world.stats.knockouts;
-  prev.copHarm = world.stats.copKnockouts + world.stats.copCarsWrecked;
-  prev.pedKnockouts = world.stats.pedKnockouts;
+  prev.kills = world.stats.kills;
+  prev.copKills = world.stats.copKills;
+  prev.pedKills = world.stats.pedKills;
   prev.health = world.health;
   prev.armor = world.armor;
   prev.money = world.money;
@@ -3184,7 +3213,7 @@ if (typeof window !== 'undefined') {
 let lastWorld = null;
 
 const warmList = ['glass', 'crunch_0', 'crunch_1', 'crunch_2', 'bikebell', 'ric_whine', 'prop_metal', 'bell_big', 'bell_carillon', 'thunder_0', 'thunder_1', 'thunder_2', 'bird_0', 'bird_1', 'bird_2', 'bird_3', 'bird_4',
-  'gull_0', 'gull_1', 'clink', 'cow', 'sheep', 'duck', 'pigeon', 'flutter', 'dog', 'cat', 'step_gras_2', 'step_gras_3', 'step_wood_2', 'step_wood_3', 'step_wet_2', 'step_wet_3', 'poof', 'dizzy', 'body_fall',
+  'gull_0', 'gull_1', 'clink', 'cow', 'sheep', 'duck', 'pigeon', 'flutter', 'dog', 'cat', 'step_gras_2', 'step_gras_3', 'step_wood_2', 'step_wood_3', 'step_wet_2', 'step_wet_3', 'poof', 'dizzy', 'gore_splat', 'squelch_2', 'squelch_1', 'squelch_0',
   'imp_water', 'imp_wood', 'imp_dirt', 'imp_metal_2', 'imp_metal_1', 'imp_metal_0', 'imp_stone_2', 'imp_stone_1', 'imp_stone_0',
   'gun_echo', 'gun_shotgun_1', 'gun_shotgun_0', 'gun_uzi_2', 'gun_uzi_1', 'gun_uzi_0', 'gun_pistol_2', 'gun_pistol_1', 'gun_pistol_0'];
 

@@ -150,7 +150,7 @@ function explode(world, it, scale) {
   if (scale > 0.8) world.lastBlast = { x, y, z, time: world.time };
   const water = isInWater(map, x, y) && z < WATER_Y + 0.6;
   if (water) world.particles.push({ kind: 'splash', x, y, until: world.time + 1.1 });
-  audio(world, { sub: it.type === 'carbid' ? 'carbid' : 'burst', x, y, water });
+  audio(world, { sub: it.type === 'carbid' ? 'carbid' : 'burst', x, y, z, water });
   if (blasts.length < 8) blasts.push({ type: it.type, x, y, z, scale, hue: it.hue ?? 0, water });
 }
 
@@ -166,7 +166,7 @@ function stepItem(world, it, dt) {
     let hit = !!wallOnPath(map, x0, y0, it.x, it.y) || it.z <= g + 0.05 || it.t >= it.fuse;
     if (!hit) {
       for (const ped of world.pedestrians) {
-        if (!ped.isCop || ped.state === 'dead' || Math.abs(ped.x - it.x) > 0.7 || Math.abs(ped.y - it.y) > 0.7) continue;
+        if (ped.state === 'dead' || Math.abs(ped.x - it.x) > 0.7 || Math.abs(ped.y - it.y) > 0.7) continue;
         if (it.z < (ped.gz || 0) + 2 && Math.hypot(ped.x - it.x, ped.y - it.y) < ped.radius + 0.25) { hit = true; break; }
       }
     }

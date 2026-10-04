@@ -11,6 +11,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { migrateSave, migrateSettings, savedStoryStep, SAVE_VERSION, SETTINGS_VERSION } from '../game/js/savemigrate.js';
 import { STEP_BY_ID, RETIRED_STEPS } from '../game/js/storyarc.js';
+import { CHEAT_BY_ID } from '../game/js/cheatlist.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DIR = path.join(ROOT, 'scripts/fixtures/saves');
@@ -29,7 +30,7 @@ let n = 0, fails = 0;
 const ok = (cond, name, info = '') => { n++; if (!cond) { fails++; console.log(`FAIL ${name}${info ? ' (' + info + ')' : ''}`); } };
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 
-for (const sanity of [[VEHICLES, 'omafiets'], [OUTFIT_IDS, 'incognito'], [UPGRADES, 'turbo'], [STATS, 'knockouts']]) ok(sanity[0].has(sanity[1]), `id list from source has ${sanity[1]}`);
+for (const sanity of [[VEHICLES, 'omafiets'], [OUTFIT_IDS, 'incognito'], [UPGRADES, 'turbo'], [STATS, 'pedKills']]) ok(sanity[0].has(sanity[1]), `id list from source has ${sanity[1]}`);
 
 const files = fs.readdirSync(DIR).filter((f) => f.endsWith('.json')).sort();
 for (const file of files) {
@@ -76,12 +77,19 @@ for (const file of files) {
   if ('moneyBackup' in exp) ok(d.moneyBackup === exp.moneyBackup, `${tag}: moneyBackup intact for the money restore`);
   ok(Number.isFinite(d.money) ? d.money === exp.money : Number.isFinite(d.moneyBackup), `${tag}: money is a number or can be restored`);
 
-  // stats: the kill counters became knockouts, nothing lost
+  // stats: the kill counters became knockouts in 0.24 and kills again in
+  // 0.28 (a wrecked police car counts as a cop kill); nothing lost
   const old = before.stats || {};
+  const wrecked = old.copCarsWrecked || 0;
   for (const [o, k] of [['kills', 'knockouts'], ['pedKills', 'pedKnockouts'], ['copKills', 'copKnockouts']]) {
-    ok(!(o in d.stats), `${tag}: no ${o} left`);
-    if (o in old) ok(d.stats[k] === old[o], `${tag}: ${o} carried over to ${k}`);
+    ok(!(k in d.stats), `${tag}: no ${k} left`);
+    // (copCarsWrecked only ever sat next to the knockout counters; where a
+    // fixture has it beside kills it is added all the same)
+    const base = o in old ? old[o] : old[k];
+    const want = base === undefined ? undefined : base + (o === 'pedKills' ? 0 : wrecked);
+    if (want !== undefined) ok(d.stats[o] === want, `${tag}: ${o} is ${want}`, d.stats[o]);
   }
+  ok(!('copCarsWrecked' in d.stats), `${tag}: no copCarsWrecked left`);
   for (const k of Object.keys(d.stats)) ok(STATS.has(k) || k === 'spent', `${tag}: stat ${k} is one the game keeps`);
   ok(d.stats.missionsDone === old.missionsDone, `${tag}: missionsDone intact`);
   ok(same(d.missions, before.missions), `${tag}: mission progress intact`);
@@ -99,6 +107,16 @@ for (const file of files) {
   // the radio: a 0.27-dev station id is 'on' now, 'uit' is 'off', no field stays no field
   if ('radio' in exp) ok(d.radio === exp.radio, `${tag}: radio is ${exp.radio}`, d.radio);
   else if (!('radio' in before)) ok(!('radio' in d), `${tag}: no radio field added`);
+  // the streken: every save has them, with what its story earned; nothing switched on by a migration
+  const sk = d.streken;
+  ok(sk && Array.isArray(sk.unlocked) && Array.isArray(sk.on), `${tag}: streken section present`);
+  if (sk) {
+    for (const id of sk.unlocked) ok(CHEAT_BY_ID.has(id), `${tag}: streek ${id} exists`);
+    if (!before.streken) ok(sk.on.length === 0, `${tag}: no streek switched on`);
+    else ok(same(sk, before.streken), `${tag}: streken intact`);
+    for (const id of exp.streken || []) ok(sk.unlocked.includes(id), `${tag}: streek ${id} unlocked`);
+    for (const id of exp.strekenLocked || []) ok(!sk.unlocked.includes(id), `${tag}: streek ${id} still locked`);
+  }
   for (const k of ['visitedLandmarks', 'meubels', 'bijbaan', 'postgame', 'doel', 'duif', 'character', 'pos']) {
     if (k in before) ok(same(d[k], before[k]), `${tag}: ${k} intact`);
   }
@@ -108,6 +126,13 @@ for (const file of files) {
 for (const [id, want] of [['gmusic', 'on'], ['nachtstreek', 'on'], ['grunn', 'on'], ['uit', 'off'], ['on', 'on'], ['off', 'off'], [42, 'on']]) {
   const m = migrateSave({ v: 2, money: 1, radio: id });
   ok(m && m.data.radio === want, `radio ${JSON.stringify(id)} becomes ${want}`, m && m.data.radio);
+}
+
+// the blood-and-limbs switch is back, on by default (settings.js)
+ok(/\n\s+gore: true,/.test(src('settings.js')), 'settings.js has gore on by default');
+for (const [g, want] of [[true, true], [false, false], ['ja', undefined]]) {
+  const m = migrateSettings({ v: 7, gore: g });
+  ok(m && m.data.gore === want, `settings v7 gore ${JSON.stringify(g)} becomes ${want}`, m && m.data.gore);
 }
 
 console.log(`${n - fails}/${n} checks passed over ${files.length} fixtures`);

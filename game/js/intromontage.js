@@ -1101,7 +1101,7 @@ function buildShots(w) {
   const huur = {
     minDur: 6, clock: 5.93, focus: home, kitchen: true, lead: 0.5,
     lines: [
-      ['T', 'Alleen: waar laat je hem? Op deze zolder kun je niet eens rechtop staan.', 'droog, kijkt omhoog naar het schuine dak'],
+      ['T', 'En waar moet hij staan? Jij kunt hier niet eens rechtop staan.', 'droog, kijkt omhoog naar het schuine dak'],
       ['A', 'Daarom. Paddepoel, elfde verdieping. Twee kamers en een garage, voor de Fjord.', 'zakelijk, snel, stiekem trots, schuift een papier over tafel'],
       ['T', 'Paddepoel? Dat is buitenland.', 'geschrokken, droog'],
       ['A', 'Alleen kan ik de huur niet betalen. Jij ook niet. Samen net.', 'nuchter, ad rem'],

@@ -142,7 +142,7 @@ export const ACHIEVEMENTS = [
   { id: 'koop_10', cat: 'sociaal', title: 'Shopaholic', desc: 'Doe 10 aankopen', stat: 'purchases', goal: 10 },
   { id: 'ingericht', cat: 'sociaal', title: 'Helemaal ingericht', desc: 'Zet alle EIKEA-meubels in jullie flat' },
   { id: 'schroefje', cat: 'sociaal', title: 'Eén schroefje te weinig', desc: 'Zet de Buukenkaas zelf in elkaar', hidden: true },
-  { id: 'spaarkaart', cat: 'sociaal', title: 'Stempeltje erbij', desc: 'Lever een volle spaarkaart in bij Krant & Kauwgom', stat: 'stampCards', goal: 1 },
+  { id: 'spaarkaart', cat: 'sociaal', title: 'Stempeltje erbij', desc: 'Lever een volle spaarkaart in bij Rook & Geluk', stat: 'stampCards', goal: 1 },
   { id: 'uitgaven', cat: 'sociaal', title: 'Geld moet rollen', desc: 'Geef in winkels in totaal €2.500 uit', stat: 'spent', goal: 2500, unit: '€' },
 
   { id: 'eierbal_1', cat: 'verzamelen', title: 'Eerste eierbal', desc: 'Vind een verstopte eierbal', save: 'eierballen', goal: 1 },
@@ -273,6 +273,13 @@ export function initAchievements(w) {
   world = w;
 }
 
+// cheats.js: while it returns true nothing unlocks and no lifetime stat moves.
+let gate = null;
+export function setAchievementGate(fn) {
+  gate = fn;
+}
+const gated = () => !!(gate && gate());
+
 // --- progress --------------------------------------------------------------
 
 function derived(key) {
@@ -307,7 +314,7 @@ export function getStat(key) {
 }
 
 export function recordStat(w, key, n = 1) {
-  if (!Number.isFinite(n) || !n) return;
+  if (!Number.isFinite(n) || !n || gated()) return;
   if (w) world = w;
   life.stats[key] = (life.stats[key] || 0) + n;
   markDirty();
@@ -315,7 +322,7 @@ export function recordStat(w, key, n = 1) {
 }
 
 export function setStatMax(w, key, value) {
-  if (!Number.isFinite(value) || value <= (life.stats[key] || 0)) return;
+  if (!Number.isFinite(value) || value <= (life.stats[key] || 0) || gated()) return;
   if (w) world = w;
   life.stats[key] = value;
   markDirty();
@@ -323,13 +330,23 @@ export function setStatMax(w, key, value) {
 }
 
 export function recordUnique(w, key, value) {
-  if (typeof value !== 'string' || !value) return false;
+  if (typeof value !== 'string' || !value || gated()) return false;
   if (w) world = w;
   const list = life.sets[key] || (life.sets[key] = []);
   if (list.includes(value)) return false;
   list.push(value);
   markDirty();
   checkGoals((a) => a.set === key);
+  return true;
+}
+
+// A lifetime mark outside the prestaties (the streken a player has
+// unlocked, cheats.js): no goal checks, never gated.
+export function markLifetime(key, value) {
+  const list = life.sets[key] || (life.sets[key] = []);
+  if (list.includes(value)) return false;
+  list.push(value);
+  markDirty();
   return true;
 }
 
@@ -356,7 +373,7 @@ export function addToSaveSet(w, key, value) {
 
 export function unlockAchievement(w, id, { silent = false } = {}) {
   const a = BY_ID.get(id);
-  if (!a || life.unlocked[id]) return false;
+  if (!a || life.unlocked[id] || gated()) return false;
   if (w) world = w;
   life.unlocked[id] = Date.now();
   markDirty(true);

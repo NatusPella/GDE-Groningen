@@ -924,7 +924,7 @@ export function propAhead(x, y, dx, dy, reach, radius = 0.3) {
   const near = propsNear(x + dx * reach * 0.5, y + dy * reach * 0.5, reach * 0.5 + 1.5, _ahead);
   let best = null;
   for (const p of near) {
-    if (!p.cell || p.water || p.breakSpeed === Infinity) continue;
+    if (!p.cell || p.water || (p.breakSpeed === Infinity && p.top == null)) continue;
     for (let s = 0; s <= reach; s += 0.1) {
       const c = closestPointOnSegment(x + dx * s, y + dy * s, p.x - p.hx, p.y - p.hy, p.x + p.hx, p.y + p.hy);
       const rr = p.r + radius;
