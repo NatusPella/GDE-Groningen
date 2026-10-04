@@ -207,6 +207,7 @@ export const SKUTSJE = {
     const trimEff = clamp(1 - ((d.trim - ideal) / (35 * DEG)) ** 2, 0.3, 1);
     const strike = bridgeAhead(map, boat) ? 1 : 0;
     d.eff = sailPolar(theta) * trimEff;
+    boat.sailLuff = strike ? 1 : 1 - trimEff;
     boat.sailTop = d.go ? sailSpeed(d.eff, strike) : 0;
     animateSkutsjeRig(boat, boomSide(boat.angle, wf) * d.trim, strike, w.time);
     d.strike = strike;

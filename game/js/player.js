@@ -699,6 +699,8 @@ function pushVehicleAudio(world, v, first, second) {
   if (!world || v.isBike || v.isScooter) return;
   const q = world.audioEvents || (world.audioEvents = []);
   const door = !v.isBoat;
+  // a sailing boat has no engine to start
+  if (v.isBoat && v.model && v.model.sail) { first = first && first.startsWith('engine') ? null : first; second = second && second.startsWith('engine') ? null : second; }
   if (first && (door || !first.startsWith('door'))) q.push({ kind: first, x: v.x, y: v.y });
   if (second && (door || !second.startsWith('door'))) q.push({ kind: second, x: v.x, y: v.y });
 }
