@@ -1,15 +1,28 @@
 [
  {
-  "key": "Ome Jan|Maak heur lös en rij heur noar t erf. Ze rent wel mit. Ze is kampioen.",
-  "speaker": "Ome Jan",
-  "text": "Maak heur lös en rij heur noar t erf. Ze rent wel mit. Ze is kampioen.",
-  "area": "Na het verhaal (De Koe van Ome Jan)",
-  "out": "lines",
-  "say": "Maak heur lös en rij heur noar t erf. Ze rent wel mit. Ze is kampioen.",
-  "file": "ome_jan/maak_heur_lo_s_en_rij_heur_noar__5950529a.mp3",
-  "voice": "Charon",
-  "who": "oude Groningse melkveeboer bij Ten Boer, praat plat Gronings",
-  "tag": "stellig, duidelijk",
-  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; oude Groningse melkveeboer bij Ten Boer, praat plat Gronings. Tone: stellig, duidelijk."
+  "key": "Ubbo|Alles gedaan! Grunn is van jou. De bijbaantjes draaien gewoon door, en de Fjord Frituur ook.",
+  "speaker": "Ubbo",
+  "text": "Alles gedaan! Grunn is van jou. De bijbaantjes draaien gewoon door, en de Fjord Frituur ook.",
+  "area": "Berichten (app)",
+  "out": "sms",
+  "say": "Alles gedaan! Grunn is van jou. De bijbaantjes draaien gewoon door, en de Fjord Frituur ook.",
+  "file": "ubbo/alles_gedaan_grunn_is_van_jou_de_a07cab7b.mp3",
+  "voice": "Laomedeia",
+  "who": "de vriendelijke stem van de telefoon-app Ubbo",
+  "tag": "behulpzame app-assistent, opgewekt",
+  "style": "spoken in standard Dutch, clear and friendly like a phone assistant; de vriendelijke stem van de telefoon-app Ubbo. Tone: behulpzame app-assistent, opgewekt."
+ },
+ {
+  "key": "Ubbo|Op naar de volgende! Je GPS wijst naar de dichtstbijzijnde uitdaging zonder medaille.",
+  "speaker": "Ubbo",
+  "text": "Op naar de volgende! Je GPS wijst naar de dichtstbijzijnde uitdaging zonder medaille.",
+  "area": "Berichten (app)",
+  "out": "sms",
+  "say": "Op naar de volgende! Je GPS wijst naar de dichtstbijzijnde uitdaging zonder medaille.",
+  "file": "ubbo/op_naar_de_volgende_je_gps_wijst_2212c328.mp3",
+  "voice": "Laomedeia",
+  "who": "de vriendelijke stem van de telefoon-app Ubbo",
+  "tag": "vriendelijke, gladde app-stem, kalm",
+  "style": "spoken in standard Dutch, clear and friendly like a phone assistant; de vriendelijke stem van de telefoon-app Ubbo. Tone: vriendelijke, gladde app-stem, kalm."
  }
 ]

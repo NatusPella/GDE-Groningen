@@ -728,6 +728,15 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
 },
+"Ubbo|Alles gedaan! Grunn is van jou. De bijbaantjes draaien gewoon door, en de Fjord Frituur ook.": {
+"src": "ubbo/alles_gedaan_grunn_is_van_jou_de_a07cab7b.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Laomedeia",
+"input": "Alles gedaan! Grunn is van jou. De bijbaantjes draaien gewoon door, en de Fjord Frituur ook.",
+"style": "spoken in standard Dutch, clear and friendly like a phone assistant; de vriendelijke stem van de telefoon-app Ubbo. Tone: behulpzame app-assistent, opgewekt.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-04"
+},
 "Ubbo|Goeiemorgen! Gisteren lekker gedraaid. De dagomzet staat op je rekening.": {
 "src": "ubbo/goeiemorgen_gisteren_lekker_gedr_162743a6.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -763,6 +772,15 @@
 "style": "spoken in standard Dutch, clear and friendly like a phone assistant; de vriendelijke stem van de telefoon-app Ubbo. Tone: vriendelijke, gladde app-stem, kalm.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
+},
+"Ubbo|Op naar de volgende! Je GPS wijst naar de dichtstbijzijnde uitdaging zonder medaille.": {
+"src": "ubbo/op_naar_de_volgende_je_gps_wijst_2212c328.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Laomedeia",
+"input": "Op naar de volgende! Je GPS wijst naar de dichtstbijzijnde uitdaging zonder medaille.",
+"style": "spoken in standard Dutch, clear and friendly like a phone assistant; de vriendelijke stem van de telefoon-app Ubbo. Tone: vriendelijke, gladde app-stem, kalm.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-04"
 },
 "Ubbo|Voor deze missie mis je nog iets. Lees even mee op je telefoon.": {
 "src": "ubbo/voor_deze_missie_mis_je_nog_iets_c0278527.mp3",
