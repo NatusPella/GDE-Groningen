@@ -133,6 +133,20 @@ export function furnitureShopItems(w, { pay, broke, preview }) {
   });
 }
 
+// The story's EIKEA trip (storyeikea.js): pieces brought home on the roof,
+// free, set up on the next visit to the flat. Returns the ids that were new.
+const carried = new Set();
+export function grantFurniture(ids) {
+  const out = [];
+  for (const id of ids) {
+    if (!BY_ID.has(id) || state.owned.has(id) || state.pending.has(id)) continue;
+    state.pending.add(id);
+    carried.add(id);
+    out.push(id);
+  }
+  return out;
+}
+
 export function furnitureShopNote() {
   return state.pending.size ? `Besteld: ${[...state.pending].map((id) => BY_ID.get(id).short).join(', ')}. Wordt thuis bezorgd` : 'Alles wordt bezorgd in de Pleiadenlaan';
 }
@@ -145,6 +159,8 @@ export function deliverFurniture(w) {
   said.delete('sofa');
   if (!state.pending.size) { momentHint(w); return; }
   const names = [...state.pending].map((id) => BY_ID.get(id).short);
+  const selfCarried = [...state.pending].every((id) => carried.has(id));
+  carried.clear();
   for (const id of state.pending) state.owned.add(id);
   state.pending.clear();
   const list = names.length > 1 ? names.slice(0, -1).join(', ') + ' en ' + names[names.length - 1] : names[0];
@@ -152,7 +168,8 @@ export function deliverFurniture(w) {
   const next = [];
   if (state.owned.has('kast') && !state.built.has('kast')) next.push('De Buukenkaas staat nog in de doos: loop erheen en druk E.');
   if (momentDue()) next.push('Ga even zitten op de Zitmoi (E).');
-  w.addMessage(`EIKEA heeft bezorgd: ${list}. Tussen 8 en 18 uur, dus om 17:59. ${next.join(' ')}`.trim(), 6, { kind: next.length ? 'missie' : 'tip' });
+  const head = selfCarried ? `Naar boven gesjouwd: ${list}.` : `EIKEA heeft bezorgd: ${list}. Tussen 8 en 18 uur, dus om 17:59.`;
+  w.addMessage(`${head} ${next.join(' ')}`.trim(), 6, { kind: next.length ? 'missie' : 'tip' });
   checkComplete(w);
 }
 

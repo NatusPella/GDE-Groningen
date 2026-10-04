@@ -29,6 +29,17 @@ nieuwe functies, `y` voor alleen bugfixes.
   in de Escapade gezet (die heb je in H16 nodig), vraagt niet waarom jullie
   nog op zijn en gunt je één koekje. Een missie die het donker nodig heeft,
   stuurt je voortaan ook naar huis in plaats van naar een garage.
+- **Nieuw: de flat inrichten bij EIKEA.** Na Berend (H1) slapen Tammo en
+  Tessa nog op een luchtbed. Rij met de Escapade (of een andere auto) naar
+  EIKEA aan de Sontweg. Bij het laadperron volgt een scène: het lijstje, de
+  kast die niet in de lift past, en wie de kamer met uitzicht krijgt. Daarna
+  staan er drie dozen op je dak. Een flinke klap onderweg kost een doos:
+  eerst de lamp, dan de boekenkast, de bedden als laatste. Thuis gaan de
+  dozen met de lift naar boven en zet je alles in elkaar ("Er blijft één
+  schroefje over"). Wat heel aankomt, staat in de flat met zijn bonus:
+  Sloapstee, Buukenkaas en Lichtje Tjoek. Overslaan geeft ze ook. Een oude
+  save die al verder is, slaat deze stap over. Alle nieuwe zinnen zijn
+  ingesproken.
 - **Een avond thuis.** Tussen de fatbikes (H12) en de rondvaartboot (H13)
   zit een nieuwe, rustige stap: Tessa vraagt of Tammo naar huis komt, en op
   de bank overhoort ze haar gids voor morgen. Met nieuwe stemmen. Een oude
