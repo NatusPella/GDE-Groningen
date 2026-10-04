@@ -112,6 +112,6 @@ De regels:
   En kijk mee: hoe lang tot de eerste marker, en of ze de fiets kopen
   zonder te zoeken.
 - Een kortere opening voor wie de game al eens begon (nu: overslaan).
-- Controllerspelers: de kaartjes noemen toetsen. De HUD-kaarten zetten
-  toetsen tussen haken om in een toetskapje; een controllerknop in plaats
-  daarvan is nog niet gedaan.
+- ~~Controllerspelers: de kaartjes noemen toetsen.~~ Gedaan: de toetsen op
+  de kaartjes volgen je laatste invoer, de controllerknop of je eigen
+  toetsindeling (`claude/opruimen`).

@@ -294,7 +294,7 @@ function buildDefs(world) {
         },
         {
           kind: 'goto', watch: { guards: 1, cameras: 2 }, target: { landmark: 'Groninger Museum', off: [-29, -38], snap: 'walk' }, mode: 'foot', radius: 3.5,
-          label: 'Sluip naar de stroomkast', say: 'Eerst de stroomkast. Twee camera\'s en een bewaker: blijf uit de lichtbundels. Bukken (Ctrl) helpt.',
+          label: 'Sluip naar de stroomkast', say: 'Eerst de stroomkast. Twee camera\'s en een bewaker: blijf uit de lichtbundels. Bukken helpt.',
         },
         { kind: 'fuse', target: { landmark: 'Groninger Museum', off: [-29, -38], snap: 'walk' }, label: 'Camera\'s op herhaling', say: 'De stroomkast. Druk op Spatie als de naald in het groen staat. Drie zekeringen, dan hebben we drie minuten.' },
         { kind: 'goto', only: 'sluip', target: { heistSpot: 'achterdeur' }, mode: 'foot', radius: 1.6, label: 'Naar de achterdeur', say: 'Camera\'s op herhaling. Nu de achterdeur, in de fietspassage.' },
@@ -303,7 +303,7 @@ function buildDefs(world) {
         { kind: 'pickpocket', only: 'vermomd', post: 'rookplek', target: { heistSpot: 'rookplek' }, label: 'Rol het pasje van de bewaker', say: 'Overall aan, emmer mee. Die bewaker bij de glazen deur heeft het pasje. Sluip achter hem en blijf even staan.' },
         { kind: 'goto', only: 'vermomd', target: { heistSpot: 'glasdeur' }, opens: 'glasdeur', mode: 'foot', radius: 1.4, label: 'Door de glazen deur', say: 'Pasje erlangs en door de glazen deur. Gewoon doen alsof je hier werkt.' },
         { kind: 'goto', post: 'entreehal', distract: true, target: { heistSpot: 'deur3' }, mode: 'foot', radius: 1.3, label: 'Door de Entreehal', say: 'De Entreehal. Eén bewaker loopt, één slaapt achter de balie. Druk op E, dan tik ik op het raam.' },
-        { kind: 'laser', target: { heistSpot: 'stand' }, label: 'Door de lasers van zaal 3', say: 'Zaal 3. Bukken (Ctrl) onder de hoge lasers, springen (Spatie) over de lage, en wachten op de knipperende.' },
+        { kind: 'laser', target: { heistSpot: 'stand' }, label: 'Door de lasers van zaal 3', say: 'Zaal 3. Bukken onder de hoge lasers, springen over de lage, en wachten op de knipperende.' },
         { kind: 'crack', target: { heistSpot: 'stand' }, label: 'Kraak de vitrine', say: 'De vitrine. Draai met A en D, voel de klik en zet hem vast met Spatie.' },
         {
           kind: 'scene', reveal: true, label: 'De vitrine',
@@ -454,7 +454,7 @@ function buildDefs(world) {
       start: { x: 1599, y: 9914, road: null },
       startSpot: 'eelde',
       stages: [
-        { kind: 'heli', variant: 'traumaduif', target: { helipad: 'eelde', label: 'Rotor Roelf, Eelde' }, label: 'Vlieg naar het UMCG, dan achter de ballon aan', say: 'Instappen bij Roelf. Spatie omhoog, W vooruit, A/D draaien, Ctrl omlaag.', lost: 'de ballon is ontsnapt, richting de Ommelanden' },
+        { kind: 'heli', variant: 'traumaduif', target: { helipad: 'eelde', label: 'Rotor Roelf, Eelde' }, label: 'Vlieg naar het UMCG, dan achter de ballon aan', say: 'Instappen bij Roelf. Spatie omhoog, W vooruit, A/D draaien. De rest staat in beeld.', lost: 'de ballon is ontsnapt, richting de Ommelanden' },
       ],
     },
     {

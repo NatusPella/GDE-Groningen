@@ -76,5 +76,22 @@ for (const [ctx, keys] of Object.entries(need)) {
   }
 }
 
+// browser defaults: Ctrl+W closes the tab, so Ctrl's action starts on C
+ok(C.physicalKey({}, 'control') === 'control' && C.keyWord({}, 'control') === 'Ctrl', 'desktop keeps Ctrl');
+C.setKeyPlatform('browser');
+ok(C.physicalKey({}, 'control') === 'c' && C.physicalKey({}, 'c') === 'g', 'browser: crouch/down on C, coo on G');
+ok(C.keyWord({}, 'control') === 'C' && C.keyWord({}, ' ') === 'Spatie', 'keyWord for running text');
+t = C.keyTranslation({});
+ok(t.get('control') === null && t.get('c') === 'control' && t.get('g') === 'c', 'browser: Ctrl does nothing, C sends control, G sends c');
+r = C.bindKey({}, 'control', 'control');
+ok(r.binds.control === 'control' && C.physicalKey(r.binds, 'control') === 'control', 'browser: Ctrl can be chosen back', r.binds);
+ok(C.keyTranslation(r.binds).get('control') === undefined, 'and then Ctrl is not remapped');
+r = C.bindKey(r.binds, 'control', 'c');
+ok(!('control' in r.binds), 'binding back to the browser default clears it', r.binds);
+const bphys = C.KEY_ACTIONS.map(([k]) => C.physicalKey({}, k));
+ok(new Set(bphys).size === bphys.length, 'browser defaults: never two actions on one key');
+ok(JSON.stringify(C.normalizeKeyBinds({})) === '{}', 'browser: empty binds stay empty');
+C.setKeyPlatform('desktop');
+
 console.log(`${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

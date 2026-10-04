@@ -49,10 +49,21 @@ export function isBindableKey(k) {
   return k.length === 1 || CANON.has(k) || /^[a-z]+$/.test(k);
 }
 
-// binds: { canonical: physical } holding only the changed keys.
+// In a browser Ctrl+W closes the tab and Ctrl+W is how you crouch forward or
+// fly the heli down and ahead, so there Ctrl's action starts on C (and the
+// pigeon's coo moves from C to G). The desktop app keeps Ctrl.
+const BROWSER_KEYS = { control: 'c', c: 'g' };
+const inDesktopApp = () => !!(typeof window !== 'undefined' && window.gteDesktop && window.gteDesktop.isDesktop);
+let platformKeys = typeof window !== 'undefined' && !inDesktopApp() ? BROWSER_KEYS : {};
+// 'browser' or 'desktop'; the tests use it, the game detects it on load
+export function setKeyPlatform(kind) { platformKeys = kind === 'browser' ? BROWSER_KEYS : {}; }
+export function defaultKey(canon) { return platformKeys[canon] || canon; }
+
+// binds: { canonical: physical } holding only the keys changed from the
+// platform's defaults.
 export function physicalKey(binds, canon) {
   const p = binds && binds[canon];
-  return typeof p === 'string' && p ? p : canon;
+  return typeof p === 'string' && p ? p : defaultKey(canon);
 }
 
 // Binds `canon` to the physical key `phys`. A key already in use by another
@@ -79,7 +90,7 @@ export function normalizeKeyBinds(binds) {
   for (const [c] of KEY_ACTIONS) used.set(c, c);
   for (const [c] of KEY_ACTIONS) {
     const p = binds[c];
-    if (typeof p !== 'string' || !isBindableKey(p) || p === c) continue;
+    if (typeof p !== 'string' || !isBindableKey(p) || p === defaultKey(c)) continue;
     out[c] = p;
   }
   const seen = new Set();
@@ -106,6 +117,11 @@ export function keyTranslation(binds) {
 const KEY_NAMES = { ' ': 'SPATIE', shift: 'SHIFT', control: 'CTRL', tab: 'TAB', backspace: 'BACKSPACE', escape: 'ESC', enter: 'ENTER', arrowup: '↑', arrowdown: '↓', arrowleft: '←', arrowright: '→', delete: 'DEL' };
 export function keyName(k) {
   return KEY_NAMES[k] || String(k).toUpperCase();
+}
+// The key an action is on now, for running text: 'Ctrl', 'Spatie', 'C'.
+export function keyWord(binds, canon) {
+  const n = keyName(physicalKey(binds, canon));
+  return n.length > 1 && /^[A-Z]+$/.test(n) ? n[0] + n.slice(1).toLowerCase() : n;
 }
 
 // Glyph tokens (prompts.js glyphHtml, the Besturing table) to canonical keys.
