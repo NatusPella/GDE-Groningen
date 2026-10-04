@@ -63,5 +63,20 @@ ok(same === 0, 'never the same jingle twice in a row');
 ok(none > 100 && none < 300, 'a jingle about 60% of the time', none);
 ok(M.pickTrack([], [], {}) === null, 'no tracks, no record');
 
+// the schedule: a programme for every hour, Nachtstreek from 22:00
+const onAir = new Set();
+for (let h = 0; h < 24; h += 0.25) onAir.add(M.programmeAt(h).id);
+ok(onAir.size === M.PROGRAMMES.length, 'every programme is on air some time', [...onAir]);
+ok(M.programmeAt(22).id === 'nacht' && M.programmeAt(3).id === 'nacht' && M.programmeAt(5.99).id === 'nacht', 'Nachtstreek from 22:00 to 06:00');
+ok(M.programmeAt(7).id === 'ochtend' && M.programmeAt(12).id === 'dag' && M.programmeAt(20).id === 'avond', 'morning, day and evening');
+ok(M.programmeAt(NaN).id === 'dag' && M.programmeAt(-1).id === 'nacht' && M.programmeAt(30).id === 'ochtend', 'odd hours wrap');
+for (const p of M.PROGRAMMES) {
+  ok(M.MUSIC_STATIONS.includes(p.music) && p.every >= 1 && p.talk.length > 0, `${p.id}: a pool, a break rhythm and talk`);
+  ok(M.stationPool(tracks, p.music).length >= M.MIN_POOL, `${p.id}: enough records`);
+}
+ok(!M.programmeAt(23).jingles && M.programmeAt(13).jingles, 'no G-Music jingles during Nachtstreek');
+ok(['gmusic', 'nachtstreek', 'grunn', 'on', undefined, null, 5].every((v) => M.normalizeRadio(v) === 'on'), 'old stations and junk are on');
+ok(M.normalizeRadio('uit') === 'off' && M.normalizeRadio('off') === 'off', 'off stays off');
+
 console.log(`${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);
