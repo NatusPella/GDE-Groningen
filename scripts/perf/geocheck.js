@@ -3,7 +3,7 @@
 // prop cells around a few spots and the Ommeland water of a few hundred
 // tiles, each three ways: the old code (copied here, three.js on the main
 // thread), the kernel on the main thread (the fallback) and the kernel in a
-// fresh geometry worker; then every road and city shore (main thread vs the
+// fresh geometry worker; then every road (with its civil works) and city shore (main thread vs the
 // worker's own map) and the road batch cells (finish spread over frames vs
 // the old one-frame finish). Every buffer must match byte for byte.
 for (let i = 0; i < 40 && !document.body.classList.contains('game-started'); i++) {
@@ -38,7 +38,7 @@ function same(a, b) {
   for (let i = 0; i < x.length; i++) if (x[i] !== y[i]) return false;
   return true;
 }
-const report = { city: { cells: 0, buffers: 0, verts: 0, bad: [] }, water: { chunks: 0, buffers: 0, verts: 0, bad: [] }, roads: { roads: 0, buffers: 0, verts: 0, bad: [] }, terrain: {} };
+const report = { city: { cells: 0, buffers: 0, verts: 0, bad: [] }, water: { chunks: 0, buffers: 0, verts: 0, bad: [] }, roads: { roads: 0, buffers: 0, verts: 0, bad: [] }, structs: { roads: 0, parts: 0, verts: 0, breakable: 0, bad: [] }, terrain: {} };
 
 // ---- city props: the old mergeInstances
 function oldMerge(list) {
@@ -185,10 +185,26 @@ const cmpPlain = (geo, p) => {
   return Object.keys(p.attrs).length === Object.keys(geo.attributes).length && JSON.stringify(geo.groups) === JSON.stringify(p.groups)
     && [s.center.x, s.center.y, s.center.z, s.radius].every((x, i) => Object.is(x, p.sphere[i]));
 };
+// and their civil works (roadstructures3d.js), main-thread arrays vs the worker's
+const RST = await import('/js/roadstructures3d.js');
+const cmpStruct = (a, b) => {
+  if (!a || !b) return !a && !b;
+  if (a.parts.length !== b.parts.length || JSON.stringify(a.hide) !== JSON.stringify(b.hide)) return false;
+  return a.parts.every((p, i) => { const q = b.parts[i]; return p.m === q.m && same(p.pos, q.pos) && same(p.nor, q.nor) && p.sphere.every((x, j) => Object.is(x, q.sphere[j])); });
+};
 let t = performance.now();
 for (const r of map.roads) {
   const ref = RS.roadSurfaceGeometries(r, RS.roadDetail());
-  const work = await inWorker('roadGeo', { key: RS.roadKey(r), detail: RS.roadDetail() });
+  const work = await inWorker('roadGeo', { key: RS.roadKey(r), detail: RS.roadDetail(), struct: true });
+  if (map.elev.has && work) {
+    const S = r.z ? RST.structureArrays(r, map) : RST.overpassDeckArrays(r, map);
+    if (S || work.struct) {
+      report.structs.roads++;
+      if (S) for (const p of S.parts) { report.structs.parts++; report.structs.verts += p.pos.length / 3; }
+      if (S) report.structs.breakable += S.hide.length;
+      if (!cmpStruct(S, work.struct) || (work.struct && RST.structureGroup(map, work.struct) === undefined)) report.structs.bad.push(RS.roadKey(r).slice(0, 50));
+    }
+  }
   report.roads.roads++;
   let ok = !!work;
   for (const k of ['sidewalk', 'road', 'mark']) {
@@ -199,6 +215,7 @@ for (const r of map.roads) {
   if (!ok) report.roads.bad.push(RS.roadKey(r).slice(0, 50));
   if (performance.now() - t > 2000) { await sleep(0); t = performance.now(); }
 }
+report.structs.bad = report.structs.bad.slice(0, 20);
 report.roads.bad = report.roads.bad.slice(0, 20).concat(report.roads.bad.length > 20 ? ['... ' + report.roads.bad.length] : []);
 // ---- city shores: every water polygon, main thread vs the worker's (slimmed) map
 {
@@ -299,5 +316,5 @@ const TR = await import('/js/terrain3d.js');
   }
 }
 worker.terminate();
-report.ok = report.batch.cells > 0 && !report.batch.bad.length && report.shores.polys > 0 && !report.shores.bad.length && report.terrain.ok && !report.city.bad.length && !report.water.bad.length && !report.roads.bad.length && report.roads.roads > 0 && report.city.cells > 0 && report.water.chunks > 0;
+report.ok = report.batch.cells > 0 && !report.batch.bad.length && report.shores.polys > 0 && !report.shores.bad.length && report.terrain.ok && !report.city.bad.length && !report.water.bad.length && !report.roads.bad.length && report.roads.roads > 0 && report.structs.roads > 0 && !report.structs.bad.length && report.city.cells > 0 && report.water.chunks > 0;
 return JSON.stringify(report);

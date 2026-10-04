@@ -1,6 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { applyWetGround } from './terrain3d.js';
-import { buildRoadStructure, buildOverpassDeck, jointAway, jointMiter } from './roadstructures3d.js';
+import { buildRoadStructure, buildOverpassDeck, structureGroup, jointAway, jointMiter } from './roadstructures3d.js';
 import { onSettingsChange, QUALITY_PRESETS } from './settings.js';
 import { pointInPolygon, closestPointOnSegment } from './util.js';
 import { getWaterIndex } from './waterindex.js';
@@ -1362,9 +1362,18 @@ export function roadGeometryReady(r) {
   if (r._geoMain || !roadWorkerReady()) return true;
   if (r._geoPending === qualityVersion) return false;
   const q = r._geoPending = qualityVersion;
-  runGeo('roadGeo', { key: roadKey(r), detail }, (res) => {
+  const struct = (r.z ? r._geoStruct : r._geoOverDeck) === undefined;
+  runGeo('roadGeo', { key: roadKey(r), detail, struct }, (res) => {
     if (r._geoPending === q) r._geoPending = null;
     if (!res) { r._geoMain = true; return; }
+    // the civil works are kept for good; a mismatch builds them here
+    if (res.struct !== undefined && netMap && netMap.elev && netMap.elev.has) {
+      const k = r.z ? '_geoStruct' : '_geoOverDeck';
+      if (r[k] === undefined) {
+        const g = structureGroup(netMap, res.struct);
+        if (g !== undefined) r[k] = g;
+      }
+    }
     const parts = [geometryFromPlain(res.sidewalk), geometryFromPlain(res.road), geometryFromPlain(res.mark)];
     if (q !== qualityVersion) { for (const g of parts) if (g) g.dispose(); return; }
     const [sidewalk, road, mark] = parts;

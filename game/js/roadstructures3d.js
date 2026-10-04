@@ -57,23 +57,74 @@ class Buf {
   post(m, x, y, w, z0, z1) { this.wallBox(m, x - w / 2, y, x + w / 2, y, w, z0, z1, z0, z1); }
   // the vertex range piece() adds to material m, to hide it again later
   mark(m) { return (this.p[m] || (this.p[m] = [])).length; }
-  group() {
-    const g = new THREE.Group();
+  // plain arrays per material (the geometry worker sends them as they are)
+  arrays() {
+    const parts = [];
     for (const [m, arr] of Object.entries(this.p)) {
       if (!arr.length) continue;
       const geo = new THREE.BufferGeometry();
       geo.setAttribute('position', new THREE.Float32BufferAttribute(arr, 3));
       geo.computeVertexNormals();
       geo.computeBoundingSphere();
-      const mesh = new THREE.Mesh(geo, mat(m));
-      mesh.castShadow = m !== 'lamp' && m !== 'fence';
-      mesh.receiveShadow = true;
-      mesh.userData.roadStructure = true;
-      g.add(mesh);
-      for (const h of this.hide || []) if (h.m === m) h.mesh = mesh;
+      const c = geo.boundingSphere.center;
+      parts.push({ m, pos: geo.attributes.position.array, nor: geo.attributes.normal.array, sphere: [c.x, c.y, c.z, geo.boundingSphere.radius] });
     }
-    return g.children.length ? g : null;
+    return parts.length ? { parts, hide: this.hide || [] } : null;
   }
+}
+
+// The typed arrays of a structure (structureArrays), for postMessage.
+export function structureTransfer(S, transfer) {
+  if (S) for (const p of S.parts) transfer.push(p.pos.buffer, p.nor.buffer);
+  return S;
+}
+
+// The meshes of a structure from its arrays, on map's own elevation: a
+// breakable section (hide: its wall's place in elev.walls and its vertex
+// range) remembers its vertices, w.collapse() hides it when its prop is
+// knocked out (cityprops.js). Null when the walls do not match this map.
+export function structureGroup(map, S) {
+  if (!S) return null;
+  const walls = map.elev.walls;
+  for (const h of S.hide) {
+    const w = walls[h.wi];
+    if (!w || w.ax !== h.ax || w.ay !== h.ay) return undefined;
+  }
+  const g = new THREE.Group(), meshOf = {};
+  for (const p of S.parts) {
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(p.pos, 3));
+    geo.setAttribute('normal', new THREE.BufferAttribute(p.nor, 3));
+    geo.boundingSphere = new THREE.Sphere(new THREE.Vector3(p.sphere[0], p.sphere[1], p.sphere[2]), p.sphere[3]);
+    const mesh = new THREE.Mesh(geo, mat(p.m));
+    mesh.castShadow = p.m !== 'lamp' && p.m !== 'fence';
+    mesh.receiveShadow = true;
+    mesh.userData.roadStructure = true;
+    g.add(mesh);
+    meshOf[p.m] = mesh;
+  }
+  for (const h of S.hide) {
+    const w = walls[h.wi], mesh = meshOf[h.m];
+    let keep = null;
+    w.collapse = () => {
+      if (!mesh || keep) return;
+      const pos = mesh.geometry.attributes.position, a = pos.array;
+      keep = a.slice(h.a, h.b);
+      for (let i = h.a + 3; i < h.b; i += 3) { a[i] = a[h.a]; a[i + 1] = a[h.a + 1]; a[i + 2] = a[h.a + 2]; }
+      pos.needsUpdate = true;
+      mesh.geometry.userData.batchVer = (mesh.geometry.userData.batchVer || 0) + 1;
+    };
+    w.restore = () => {
+      if (!mesh || !keep) return;
+      const pos = mesh.geometry.attributes.position;
+      pos.array.set(keep, h.a);
+      keep = null;
+      pos.needsUpdate = true;
+      mesh.geometry.userData.batchVer = (mesh.geometry.userData.batchVer || 0) + 1;
+    };
+    if (isWallBroken(w)) w.collapse();
+  }
+  return g;
 }
 
 // How far (in miter units, like edge()) a tunnel roof reaches from (x, y)
@@ -220,7 +271,13 @@ function groundUnder(map, x, y) {
 // ------------------------------------------------------------------ elevated road
 
 export function buildRoadStructure(r, map) {
-  if (r._geoStruct !== undefined) return r._geoStruct;
+  if (r._geoStruct === undefined) r._geoStruct = structureGroup(map, structureArrays(r, map));
+  return r._geoStruct;
+}
+
+// The civil works of road r as plain arrays (no scene, no state on r): the
+// main thread and the geometry worker (geokernels.js roadGeo) run this.
+export function structureArrays(r, map) {
   const elev = map.elev;
   const B = new Buf();
   const P = r.pts, Z = r.z, n = P.length;
@@ -430,32 +487,14 @@ export function buildRoadStructure(r, map) {
     }
   }
 
-  // retaining walls, fences and crash barriers from elevation.js' wall pieces
-  // a breakable section (w.brk) remembers its vertices: w.collapse() hides it
-  // when its prop is knocked out (cityprops.js)
-  const brkBroken = (w) => w.brk && isWallBroken(w);
-  const breakable = (w, m, draw) => {
+  // retaining walls, fences and crash barriers from elevation.js' wall pieces;
+  // a breakable section's vertex range goes along (structureGroup)
+  const breakable = (w, wi, m, draw) => {
     if (!w.brk) { draw(); return; }
-    const h = { m, a: B.mark(m), b: 0, mesh: null };
+    const h = { m, a: B.mark(m), b: 0, wi, ax: w.ax, ay: w.ay };
     draw();
     h.b = B.mark(m);
     (B.hide || (B.hide = [])).push(h);
-    w.collapse = () => {
-      if (!h.mesh || h.keep) return;
-      const pos = h.mesh.geometry.attributes.position, a = pos.array;
-      h.keep = a.slice(h.a, h.b);
-      for (let i = h.a + 3; i < h.b; i += 3) { a[i] = a[h.a]; a[i + 1] = a[h.a + 1]; a[i + 2] = a[h.a + 2]; }
-      pos.needsUpdate = true;
-      h.mesh.geometry.userData.batchVer = (h.mesh.geometry.userData.batchVer || 0) + 1;
-    };
-    w.restore = () => {
-      if (!h.mesh || !h.keep) return;
-      const pos = h.mesh.geometry.attributes.position;
-      pos.array.set(h.keep, h.a);
-      h.keep = null;
-      pos.needsUpdate = true;
-      h.mesh.geometry.userData.batchVer = (h.mesh.geometry.userData.batchVer || 0) + 1;
-    };
   };
   // the ground is cut away (cutmask3d.js, ~1 m texels) a little past the
   // outer face of an open cutting's wall: a coping strip at street level
@@ -481,14 +520,15 @@ export function buildRoadStructure(r, map) {
     const ox = -f.nx, oy = -f.ny, i0 = -(WALL_T / 2 + 0.4), i1 = f.reach + 0.3;
     B.quad('concrete', [f.ax + ox * i0, f.za - 0.03, f.ay + oy * i0], [f.bx + ox * i0, f.zb - 0.03, f.by + oy * i0], [f.bx + ox * i1, (f.fb ?? f.zb) - 0.03, f.by + oy * i1], [f.ax + ox * i1, (f.fa ?? f.za) - 0.03, f.ay + oy * i1]);
   }
-  for (const w of elev.walls) {
+  for (let wi = 0; wi < elev.walls.length; wi++) {
+    const w = elev.walls[wi];
     if (w.seg.r !== r) continue;
     if (w.kind === 'cut') {
       const top = w.top;
       if (w.low) B.wallBox('wall', w.ax, w.ay, w.bx, w.by, WALL_T, w.za - 0.1, top + 0.05, w.zb - 0.1, top + 0.05);
       if (!w.parapet && Math.abs(top) < 0.05) coping(w);
       if (w.fence) {
-        breakable(w, 'fence', () => {
+        breakable(w, wi, 'fence', () => {
           B.wallBox('fence', w.ax, w.ay, w.bx, w.by, 0.06, top + FENCE_H - 0.08, top + FENCE_H, top + FENCE_H - 0.08, top + FENCE_H);
           B.wallBox('fence', w.ax, w.ay, w.bx, w.by, 0.04, top + 0.45, top + 0.5, top + 0.45, top + 0.5);
           B.post('fence', w.ax, w.ay, 0.07, top, top + FENCE_H);
@@ -497,7 +537,7 @@ export function buildRoadStructure(r, map) {
     } else if (w.low && w.kind === 'barrier') {
       if (deck) B.wallBox('concrete', w.ax, w.ay, w.bx, w.by, 0.32, w.za - 0.05, w.za + BARRIER_H, w.zb - 0.05, w.zb + BARRIER_H);
       else {
-        breakable(w, 'steel', () => {
+        breakable(w, wi, 'steel', () => {
           B.wallBox('steel', w.ax, w.ay, w.bx, w.by, 0.12, w.za + 0.5, w.za + 0.8, w.zb + 0.5, w.zb + 0.8);
           B.post('steel', w.ax, w.ay, 0.12, w.za, w.za + 0.75);
         });
@@ -516,9 +556,7 @@ export function buildRoadStructure(r, map) {
     B.quad('wall', at([mx, my], r0), at([mx, my], r1), at(b.n, r1), at(b.n, r0));
   }
 
-  r._geoStruct = B.group();
-  for (const w of elev.walls) if (w.seg.r === r && brkBroken(w)) w.collapse();
-  return r._geoStruct;
+  return B.arrays();
 }
 
 // Where two coping strips beside an open cutting meet at a bend (the end of
@@ -617,16 +655,17 @@ function deckSpans(B, elev, P, half) {
 
 // A street at street level crossing an open cutting gets a bridge deck.
 export function buildOverpassDeck(r, map) {
-  if (r._geoOverDeck !== undefined) return r._geoOverDeck;
-  r._geoOverDeck = null;
+  if (r._geoOverDeck === undefined) r._geoOverDeck = structureGroup(map, overpassDeckArrays(r, map));
+  return r._geoOverDeck;
+}
+export function overpassDeckArrays(r, map) {
   const elev = map.elev;
   if (!elev.has || !elev.cuts.length || r.z) return null;
   const b = r.bounds;
   if (b && !elev.cuts.some((s) => Math.max(s.ax, s.bx) + 20 > b[0] && Math.min(s.ax, s.bx) - 20 < b[2] && Math.max(s.ay, s.by) + 20 > b[1] && Math.min(s.ay, s.by) - 20 < b[3])) return null;
   const B = new Buf();
   deckSpans(B, elev, r.pts, surfaceHalfWidth(r));
-  r._geoOverDeck = B.group();
-  return r._geoOverDeck;
+  return B.arrays();
 }
 
 // Rails crossing an open cutting, built once.
@@ -635,5 +674,5 @@ export function buildRailDecks(map) {
   if (!elev.has || !elev.cuts.length) return null;
   const B = new Buf();
   for (const rail of map.rails || []) deckSpans(B, elev, rail.pts || rail, 2.6);
-  return B.group();
+  return structureGroup(map, B.arrays());
 }
