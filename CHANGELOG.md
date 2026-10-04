@@ -7,6 +7,14 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Veranderd
+- **De aftiteling komt pas aan het eind.** Na het verhaal zie je de epiloog,
+  "Wij tweeën vóór Grunn." en de Fjord Frituur. De aftiteling, het logo en
+  "Einde" wachten tot alle 18 missies gehaald zijn en alle uitdagingen na het
+  verhaal gedaan zijn. Een overgeslagen missie telt pas als je hem alsnog
+  haalt. Overzicht en Te doen tellen af ("Nog 3 uitdagingen van Jelle tot het
+  einde"). De aftiteling speelt één keer en staat daarna onder Overzicht
+  (Aftiteling bekijken). Wie het verhaal al uit had houdt alles en krijgt de
+  aftiteling bij de eerstvolgende kans als alles al gedaan is.
 - **Onderduiken met de trein gaat echt het Ommeland in.** De kaartautomaat
   zet de dorpen bovenaan ("Onderduiken"), een ritje binnen Stad telt niet
   meer, en in het dorp lopen Tammo en Tessa eerst even naar het eerste

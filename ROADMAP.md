@@ -199,6 +199,9 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
 - [ ] Naspelen: valt de dozenstapel op het dak van een busje goed uit? Hij is nu afgestemd op de Escapade.
 - [ ] Naluisteren: Henks telefoontje klinkt nu als een gewone stem, zonder telefoonfilter.
 
+**Aftiteling aan het eind** (`claude/aftiteling`)
+- [x] De aftiteling, het logo en "Einde" spelen pas als alle 18 missies gehaald zijn en alle uitdagingen na het verhaal gedaan zijn (`ending.js`, eenmalig via de verhaalvlag `credits`). Overzicht en Te doen tellen af, daarna staat "Aftiteling bekijken" onder Overzicht. `node scripts/ending_test.mjs` test de check.
+
 ## Juridisch en publiceren (vóór 1.0)
 
 - [x] **Nieuwe naam, besloten op 3 okt.** De titel is **GDE Groningen – Zomer vol misdaad**, met *Grootste Diefstal Ever* als betekenis van GDE (`claude/gde-naam`).
