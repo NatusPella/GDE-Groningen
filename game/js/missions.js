@@ -499,6 +499,9 @@ function buildDefs(world) {
           toTrain: true, loaded: 'Ze rijden de Escapade zo de goederentrein op! Die gaat naar Ljouwert.', late: 'Te laat: de Escapade staat al op de goederentrein naar Ljouwert!',
           meter: 'Escapade', clock: 'trein', half: 'Hij slingert! Durk krijgt de zenuwen.',
           stopped: 'De Escapade staat stil. Durk en Douwe springen eruit en fietsen weg, allebei op één fatbike.',
+          // Tessa in her own car (it stood still, or she yanked the door open): that stops it too
+          hijack: 'Tessa trekt het portier open. Durk en Douwe springen eruit en fietsen weg, allebei op één fatbike. De Escapade is terug!',
+          block: true,
           lost: 'de Escapade staat op de trein naar Ljouwert', gone: 'de Escapade is foetsie', burned: 'de Escapade staat in de fik. Tammo praat nooit meer tegen je',
         },
         {
@@ -2765,6 +2768,11 @@ function updateStages(dt, world, def) {
         t.planAt = 0;
         S.goAt = S.t;
         if (st.go) world.addMessage(st.go, 4);
+      }
+      // boxed in: it stands still with you right on it for a moment, and that is a stop as well
+      if (st.block) {
+        S.blockT = Math.abs(t.speed) < 1 && d < 10 ? (S.blockT || 0) + dt : 0;
+        if (S.blockT > 2.5) { stopChaseVehicle(world, def, st); break; }
       }
       if (st.route) updateChaseRoute(world, st, S, t);
       if (st.swarm && (S.hp0 - t.health >= st.hits / 2 || (S.routeDone && d < (st.swarm.near || 150)))) { startSwarm(world, def, st, S, t); break; }
