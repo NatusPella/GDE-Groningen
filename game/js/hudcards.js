@@ -285,8 +285,8 @@ function mount(c) {
   el.innerHTML = cardHtml(c);
   el.style.setProperty('--hc-dur', `${c.secs}s`);
   stackEl.appendChild(el);
-  void el.offsetWidth;
-  el.classList.add('on');
+  // on next frame, so the entry transition runs without a forced layout
+  requestAnimationFrame(() => { if (!c.leaving) el.classList.add('on'); });
   c.el = el;
   c.left = c.secs;
   visible.push(c);
@@ -301,8 +301,7 @@ function refresh(up, c) {
   up.el.innerHTML = cardHtml(up);
   up.el.style.setProperty('--hc-dur', `${c.secs}s`);
   up.el.classList.remove('bump');
-  void up.el.offsetWidth;
-  up.el.classList.add('bump');
+  requestAnimationFrame(() => up.el.classList.add('bump'));
 }
 
 function leave(c) {
