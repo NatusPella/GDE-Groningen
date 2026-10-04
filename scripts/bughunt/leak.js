@@ -14,7 +14,7 @@
     // UI open/close churn
     for (let k = 0; k < 3; k++) {
       PM4.openPauseMenu('map'); await sleep(250); PM4.openPauseMenu('garage'); await sleep(250); PM4.closePauseMenu(); await sleep(150);
-      await tap('t'); await sleep(250); await tap('t'); await sleep(150);
+      PM4.openPauseMenu('telefoon', { sub: 'berichten' }); await sleep(250); PM4.closePauseMenu(); await sleep(150);
     }
     teleport(100, 77); await sleep(3000);
     const m = memSnap('cycle' + cyc); m.dom = dom(); m.listeners = w.onRespawn.length; m.msgs = w.messages.length; m.particles = w.particles.length; m.bullets = w.bullets.length;

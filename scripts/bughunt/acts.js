@@ -11,7 +11,7 @@ w.devInvuln = true;
 teleport(100, 77); await sleep(2000);
 
 await act('pause-tabs', async () => {
-  for (const t of ['game', 'map', 'missions', 'garage', 'prestaties', 'settings', 'controls']) {
+  for (const t of ['game', 'telefoon', 'map', 'missions', 'spullen', 'garage', 'prestaties', 'settings', 'controls']) {
     PM.openPauseMenu(t); await sleep(500);
     if (!PM.isPauseMenuOpen()) issue('pause', `tab ${t} did not open`);
     const sel = document.querySelector(`#pause-menu [data-tab="${t}"][aria-selected="true"]`);
@@ -40,25 +40,32 @@ await act('map', async () => {
 });
 
 await act('phone', async () => {
-  const n = document.querySelectorAll('.phone .ph-app').length || 8;
-  for (let i = 0; i < 8; i++) {
-    await tap('t'); await sleep(400);
-    if (!PH.isPhoneOpen()) { issue('phone', `T did not open the phone (app ${i}) ${JSON.stringify(await pausedWhy())}`); continue; }
-    const b = document.querySelector(`.phone .ph-app[data-idx="${i}"]`);
-    if (!b) { issue('phone', `no app button ${i}`); await tap('t'); continue; }
+  // the phone is the pause menu's Telefoon section: call every contact, read every thread
+  PM.openPauseMenu('telefoon', { sub: 'contacten' }); await sleep(400);
+  if (!PH.isPhoneOpen()) issue('phone', `Telefoon did not open ${JSON.stringify(await pausedWhy())}`);
+  const n = document.querySelectorAll('#pause-menu [data-ph-contact]').length;
+  for (let i = 0; i < n; i++) {
+    PM.openPauseMenu('telefoon', { sub: 'contacten' }); await sleep(300);
+    const b = document.querySelector(`#pause-menu [data-ph-contact="${i}"]`);
+    if (!b) { issue('phone', `no contact ${i}`); continue; }
     const label = b.textContent.trim();
-    b.click(); await sleep(700);
-    // a list screen: open the first row too
-    const row = document.querySelector('.phone.open .ph-row');
-    if (row && i !== 0) { row.click(); await sleep(500); }
-    if (PH.isPhoneOpen()) { await tap('backspace'); await sleep(200); }
-    if (PH.isPhoneOpen()) { await tap('t'); await sleep(300); }
+    b.click(); await sleep(1400);
+    const acts = [...document.querySelectorAll('#pause-menu [data-ph-act]')];
+    if (!acts.length) issue('phone', `contact ${label}: no call actions after ringing`);
+    // the first action (map, mission, delivery); hang up when it is the only one
+    if (acts[0]) { acts[0].click(); await sleep(700); }
     if (PM.isPauseMenuOpen()) { PM.closePauseMenu(); await sleep(200); }
     if (MV.isMapOpen()) { MV.setMapActive(w, false); await sleep(200); }
-    if (PH.isPhoneOpen()) issue('phone', `app ${label}: phone did not close with T`);
     await quiet(4000);
-    await expectClear('phone app ' + label);
+    await expectClear('phone contact ' + label);
   }
+  PM.openPauseMenu('telefoon', { sub: 'berichten' }); await sleep(300);
+  const th = document.querySelector('#pause-menu [data-ph-thread]');
+  if (th) { th.click(); await sleep(300); if (!document.querySelector('#pause-menu .ph-thread')) issue('phone', 'thread did not open'); }
+  await tap('escape'); await sleep(200);
+  if (PM.isPauseMenuOpen()) await tap('escape');
+  await sleep(200);
+  if (PM.isPauseMenuOpen()) { issue('phone', 'Esc did not close the phone'); PM.closePauseMenu(); }
   await walkCheck('phone');
 });
 

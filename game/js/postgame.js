@@ -533,7 +533,7 @@ function dayWage(w) {
 // world.postgameGuide when there's no waypoint, mission or side job. It
 // points at the nearest challenge without a medal (then without gold); in
 // the Fjord Frituur its own spots come first. The map's route line has
-// "Volgende" (next activity) and "Uit"; Ubbo in the phone turns it back on.
+// "Volgende" (next activity) and "Uit"; "Aan" on the map turns it back on.
 
 const isTruckV = (v) => !!(v && FJORD.vehicle(v));
 let guideSkip = new Set();
@@ -591,7 +591,7 @@ function updateGuide(dt, w) {
   w.postgameGuide = g ? { x: g.x, y: g.y, name: g.name, id: g.id, pg: true } : null;
   if (g && !state.guideHinted && !isCinematicActive() && w.phoneNotifications) {
     state.guideHinted = true;
-    w.phoneNotifications.push({ from: 'GDE', text: 'Je GPS wijst nu naar de dichtstbijzijnde uitdaging zonder medaille. Je eigen bestemming gaat voor. Op de kaart (M): Volgende of Uit; via Ubbo zet je hem weer aan.', duration: 8 });
+    w.phoneNotifications.push({ from: 'GDE', text: 'Je GPS wijst nu naar de dichtstbijzijnde uitdaging zonder medaille. Je eigen bestemming gaat voor. Op de kaart kies je Volgende of Uit, en zet je hem weer aan.', duration: 8 });
   }
 }
 
@@ -607,7 +607,7 @@ function guideNext() {
 function guideOff() {
   state.guideOff = true;
   if (world) world.postgameGuide = null;
-  return 'Automatische route uit. Via Ubbo zet je hem weer aan';
+  return 'Automatische route uit. Op de kaart (M) zet je hem weer aan';
 }
 function guideOn() {
   state.guideOff = false;
@@ -781,7 +781,7 @@ export function initPostgame(w) {
   if (typeof window !== 'undefined') window.__postgame = debugApi;
 }
 
-// Ubbo (phone.js) lists the challenges and the Fjord Frituur spots.
+// Te doen (todo.js) lists the challenges and the Fjord Frituur upgrades.
 function postgameOffers(w = world) {
   if (!open || !spots) return [];
   const p = w.player;

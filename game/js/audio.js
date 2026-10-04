@@ -98,6 +98,7 @@ let ctx = null;
 let master = null;
 let sfxBus = null;
 let worldBus = null;
+let worldIn = null;
 let voiceBus = null;
 let engineBus = null;
 let sirenBus = null;
@@ -152,8 +153,8 @@ function buildReverb() {
   canyonGain.gain.value = 0.3;
   const openGain = ctx.createGain();
   openGain.gain.value = 0.15;
-  send.connect(canyon).connect(canyonGain).connect(worldBus);
-  send.connect(open).connect(openGain).connect(worldBus);
+  send.connect(canyon).connect(canyonGain).connect(worldIn);
+  send.connect(open).connect(openGain).connect(worldIn);
   return { send, canyonGain, openGain };
 }
 
@@ -463,7 +464,7 @@ async function loadEngineWorklet() {
   player.connect(engineEarly.input, 0);
   const roadGain = ctx.createGain();
   player.connect(roadGain, 1);
-  roadGain.connect(worldBus);
+  roadGain.connect(worldIn);
   rumbleVoice.gain.gain.cancelScheduledValues(ctx.currentTime);
   rumbleVoice.gain.gain.value = 0;
   engineVoices.forEach((voice, i) => {
@@ -1907,6 +1908,12 @@ function buildGraph() {
   worldBus = ctx.createGain();
   worldBus.gain.value = getSettings().sfxVolume;
   worldBus.connect(master);
+  // the city behind the unfolded phone (pause menu) sounds muffled; the menu's own clicks do not
+  worldIn = ctx.createBiquadFilter();
+  worldIn.type = 'lowpass';
+  worldIn.frequency.value = 20000;
+  worldIn.Q.value = 0.5;
+  worldIn.connect(worldBus);
 
   // spoken lines skip the effects slider but share the master soft-clip
   voiceBus = ctx.createGain();
@@ -1915,15 +1922,15 @@ function buildGraph() {
 
   sfxBus = ctx.createGain();
   sfxBus.gain.value = 0.9;
-  sfxBus.connect(worldBus);
+  sfxBus.connect(worldIn);
 
   engineBus = ctx.createGain();
   engineBus.gain.value = 0;
-  engineBus.connect(worldBus);
+  engineBus.connect(worldIn);
 
   sirenBus = ctx.createGain();
   sirenBus.gain.value = 0;
-  sirenBus.connect(worldBus);
+  sirenBus.connect(worldIn);
 
   // Music bypasses the SFX soft-clip so loud world sounds never squash it.
   musicOut = ctx.createGain();
@@ -1938,11 +1945,11 @@ function buildGraph() {
 
   trafficBus = ctx.createGain();
   trafficBus.gain.value = 1;
-  trafficBus.connect(worldBus);
+  trafficBus.connect(worldIn);
 
   ambBus = ctx.createGain();
   ambBus.gain.value = AMB_LEVEL;
-  ambBus.connect(worldBus);
+  ambBus.connect(worldIn);
 
   uiBus = ctx.createGain();
   uiBus.gain.value = 0.8;
@@ -1950,7 +1957,7 @@ function buildGraph() {
 
   stingBus = ctx.createGain();
   stingBus.gain.value = 0.8;
-  stingBus.connect(worldBus);
+  stingBus.connect(worldIn);
 
   reverb = buildReverb();
   sfxBus.connect(reverb.send);
@@ -2995,6 +3002,10 @@ export function updateAudio(dt, world) {
 
   speech.tick();
   guarded('watchdog', () => watchdog(world));
+  if (worldIn) {
+    const hz = world.menuMuffle ? MENU_MUFFLE_HZ : 20000;
+    if (Math.abs(worldIn.frequency.value - hz) > 50) worldIn.frequency.setTargetAtTime(hz, ctx.currentTime, 0.06);
+  }
   const lpHz = musicLowpassHz(world);
   if (musicLp && Math.abs(musicLp.frequency.value - lpHz) > 50) musicLp.frequency.setTargetAtTime(lpHz, ctx.currentTime, 0.4);
   // one failing subsystem (a NaN into an AudioParam throws) must not stop
@@ -3090,9 +3101,14 @@ function guarded(name, fn) {
 
 // drunk.js only updates its level while gameplay runs; tie the muffle to
 // world.drunk too so a sober (or respawned) player never keeps it
+const MENU_MUFFLE_HZ = 750;
+const MENU_MUSIC_HZ = 1400;
+
 function musicLowpassHz(world) {
   const lvl = world.drunk > 0 ? drunkLevel() : 0;
-  const hz = Number.isFinite(lvl) ? 20000 * Math.pow(0.045, clamp(lvl, 0, 1)) : 20000;
+  let hz = Number.isFinite(lvl) ? 20000 * Math.pow(0.045, clamp(lvl, 0, 1)) : 20000;
+  // G-Music keeps playing, softly, behind the unfolded phone
+  if (world.menuMuffle) hz = Math.min(hz, MENU_MUSIC_HZ);
   return radioProg.music === 'nachtstreek' ? Math.min(hz, 3400) : hz;
 }
 

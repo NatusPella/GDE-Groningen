@@ -1212,7 +1212,8 @@ export function prunePoseSources(alive) {
   for (const [seed, src] of poseSources) if (!alive.has(src)) poseSources.delete(seed);
 }
 
-const PHONE_GEO = markShared(new THREE.BoxGeometry(0.075, 0.13, 0.012));
+// the folded Pixie Vouw 11: narrow, tall and a bit thick
+const PHONE_GEO = markShared(new THREE.BoxGeometry(0.068, 0.145, 0.019));
 const PHONE_MAT = markShared(new THREE.MeshStandardMaterial({ color: 0x1a1a1c, roughness: 0.4, emissive: 0x33506a, emissiveIntensity: 0.6 }));
 const ROD_GEO = markShared((() => {
   const g = new THREE.CylinderGeometry(0.008, 0.016, 2.4, 4);
