@@ -2,7 +2,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import {
   BLOCK, ROAD_IN, ROAD_W, MAAR_HW, COUNTRY_UNIFORMS, EDGE_TEX_W, EDGE_SLOTS,
   chash, edgeDistance, countryWeight, edgeRoad, maarX, maarY, setEdgeQuery, setCountryMask, realWater,
-  SHORE_RW, rectOutside,
+  SHORE_RW, rectOutside, villageAt, VILLAGE_RING, VILLAGE_X,
 } from './countryfield.js';
 import { REAL, realBlocked, buildRealSigns } from './countryreal.js';
 
@@ -582,6 +582,39 @@ export function wideWaterAt(x, y) {
   if (!REAL.ready || rectOutside(x, y) <= 0 || openWater(x, y) <= SHORE_RW) return false;
   const h = edgeAt(x, y);
   return !(h && h.kind === 'road');
+}
+
+// Metres from (x, y) to the edge of the nearest paved way the ground
+// shader paints (negative on it): real roads, cycle paths and drives, the
+// roads on from the city, the polder roads and the village streets.
+// Looks only `reach` metres out (at most JS_GRID / 2) and returns reach
+// past that.
+export function roadGap(x, y, reach = 6) {
+  let best = reach;
+  if (EDGE.ready) {
+    for (const g of segsNear(x, y, reach)) {
+      if (g.kind) continue;
+      const b = g.box;
+      if (x < b[0] - reach || x > b[2] + reach || y < b[1] - reach || y > b[3] + reach) continue;
+      const [d, t] = segDist(x, y, g);
+      const gap = d - (g.ha + (g.hb - g.ha) * t);
+      if (gap < best) best = gap;
+    }
+  }
+  if (countryWeight(x, y) < 0.5) return best;
+  const bx = Math.floor(x / BLOCK), by = Math.floor(y / BLOCK);
+  const lx = x - bx * BLOCK, ly = y - by * BLOCK;
+  for (const k of [0, 1]) {
+    if (edgeRoad(bx + k, by, 0)) best = Math.min(best, Math.max(ROAD_IN - (lx - k * BLOCK), lx - k * BLOCK - ROAD_IN - ROAD_W));
+    if (edgeRoad(bx, by + k, 1)) best = Math.min(best, Math.max(ROAD_IN - (ly - k * BLOCK), ly - k * BLOCK - ROAD_IN - ROAD_W));
+  }
+  const vi = villageAt(x, y);
+  if (vi) {
+    const v = vi.v, d = Math.hypot(x - v.x, y - v.y);
+    best = Math.min(best, Math.abs(d - VILLAGE_RING) - 2.6);
+    if (x > v.x - VILLAGE_X + ROAD_IN && x < v.x - VILLAGE_RING) best = Math.min(best, Math.abs(y - v.y) - 2.3);
+  }
+  return best;
 }
 
 function surfaceQuery(x, y) {

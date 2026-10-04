@@ -17,7 +17,7 @@ import {
 import { updateSkyline, skylineStats } from './countryskyline.js';
 import { updateCountryLife, lifeStats } from './countrylife.js';
 import { buildSign, disposeSign } from './countrysigns.js';
-import { EDGE, edgeBlocked, edgeTileItems } from './countryedge.js';
+import { EDGE, edgeBlocked, edgeTileItems, roadGap } from './countryedge.js';
 import { ensureCountryEdge } from './countryplan.js';
 import { thinDitchOn, ditchRamp, urbanWeight, realBlock, realWater } from './countryfield.js';
 import { REAL, buildingsInTile, roadsInTile, buildingModel } from './countryreal.js';
@@ -231,7 +231,28 @@ const _m4 = new THREE.Matrix4(), _q = new THREE.Quaternion(), _p = new THREE.Vec
 
 // code: the facade code of a building piece (countrybuilding.js bldCode),
 // folded into the red channel on top of the tint
+// Clearance (m) each kind keeps from the edge of a road, cycle path or
+// drive (countryedge.js roadGap, what the ground shader paints): crowns
+// and hedges stay off the asphalt, posts and reeds may reach the verge.
+// Kinds not listed (bridges, paving, real buildings, glow) are not held back.
+const ROAD_CLEAR = {
+  tree: 1.2, poplar: 1.2, willow: 1.2, hedge: 1.0, post: 0.3, wire: 0.3, gate: 0.5, bale: 1.0, reed: 0.3,
+  barrack: 1.5, shed: 1.5, mestsilo: 1.5, towersilo: 1.5, feedsilo: 1.5, clamp: 1.5, plough: 1,
+  tractorBody: 1, tractorBase: 1, trailerBody: 1, trailerBase: 1, grave: 0.5, glass: 1.5, clubhouse: 1.5,
+  mast: 0.5, goal: 1, barrier: 0.3,
+};
+const clearOfRoad = (x, y, m) => roadGap(x, y, m + 0.5) >= m;
+
 function push(tile, type, x, y, rotY, sx, sy, sz, color = 0xffffff, jitter = 0.08, yOff = 0, code = 0) {
+  const clear = ROAD_CLEAR[type];
+  if (clear !== undefined) {
+    if (!clearOfRoad(x, y, clear)) return false;
+    if (type === 'wire') {
+      // the span's ends too: a wire may not cross a lane
+      const hx = Math.cos(rotY) * sx * 0.5, hy = -Math.sin(rotY) * sx * 0.5;
+      if (!clearOfRoad(x + hx, y + hy, clear) || !clearOfRoad(x - hx, y - hy, clear)) return false;
+    }
+  }
   const list = tile.items[type] || (tile.items[type] = { m: [], c: [] });
   _e.set(0, rotY, 0);
   _q.setFromEuler(_e);
@@ -240,13 +261,14 @@ function push(tile, type, x, y, rotY, sx, sy, sz, color = 0xffffff, jitter = 0.0
   _c.set(color);
   const j = 1 + (chash(Math.round(x * 10), Math.round(y * 10)) - 0.5) * jitter * 2;
   list.c.push(Math.min(1.99, _c.r * j) + code * 2, _c.g * j, _c.b * j);
+  return true;
 }
 
 function okSpot(x, y, clearDitch = 0) {
   if (!openLand(x, y) || farmAt(x, y, 1) || inVillage(x, y, 3) || edgeBlocked(x, y, 2)) return false;
   const p = parcelAt(x, y);
   if (p.road || p.dMain < MAIN_HW + 0.6 || p.dMaar < MAAR_HW + 0.8) return false;
-  return p.dDitch >= clearDitch;
+  return p.dDitch >= clearDitch && clearOfRoad(x, y, 1.5);
 }
 
 function inTile(tile, x, y) {
@@ -1065,6 +1087,21 @@ function unloadTile(t) {
 // Reed clumps along the ditch banks, only for tiles near the player.
 function addReeds(t) {
   t.reeds = true;
+  const it = reedItems(t);
+  if (!it || !it.c.length) return;
+  // the tile's own mesh, shown only while the tile is near
+  const n = it.c.length / 3;
+  const mesh = chunkMesh({ sphere: new THREE.Sphere(new THREE.Vector3(t.cx, 1, t.cy), TILE * 0.72) }, 'reed', n);
+  mesh.instanceMatrix.array.set(it.m);
+  mesh.instanceColor.array.set(it.c);
+  mesh.count = n;
+  markInstancesDirty(mesh.instanceMatrix, n);
+  markInstancesDirty(mesh.instanceColor, n);
+  t.reedMesh = mesh;
+  S.group.add(mesh);
+}
+
+function reedItems(t) {
   const x0 = t.tx * TILE, y0 = t.ty * TILE;
   const bx = Math.floor(x0 / BLOCK), by = Math.floor(y0 / BLOCK);
   const rot = chash(bx * 7 + 3, by * 13 + 1) < 0.5;
@@ -1119,18 +1156,19 @@ function addReeds(t) {
       }
     }
   }
-  const it = tmp.items.reed;
-  if (!it || !it.c.length) return;
-  // the tile's own mesh, shown only while the tile is near
-  const n = it.c.length / 3;
-  const mesh = chunkMesh({ sphere: new THREE.Sphere(new THREE.Vector3(t.cx, 1, t.cy), TILE * 0.72) }, 'reed', n);
-  mesh.instanceMatrix.array.set(it.m);
-  mesh.instanceColor.array.set(it.c);
-  mesh.count = n;
-  markInstancesDirty(mesh.instanceMatrix, n);
-  markInstancesDirty(mesh.instanceColor, n);
-  t.reedMesh = mesh;
-  S.group.add(mesh);
+  return tmp.items.reed || null;
+}
+
+// A tile's props as the streamer lays them out, reeds included, without
+// the scene (scripts/country_props_audit.mjs).
+export function countryTileItems(tx, ty) {
+  const g = genTileSteps(tx, ty);
+  let r = g.next();
+  while (!r.done) r = g.next();
+  const tile = r.value;
+  const reed = reedItems(tile);
+  if (reed) tile.items.reed = reed;
+  return tile;
 }
 
 // ------------------------------------------------------------------ animals

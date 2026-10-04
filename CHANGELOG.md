@@ -6,6 +6,11 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Opgelost
+- **Geen bomen, heggen, hekken en riet meer op de wegen in het Ommeland.**
+  Alles in het buitengebied blijft nu van de weg, de berm, fietspaden en
+  opritten af; ook de bomenrijen in de verte stoppen waar een weg ze kruist.
+
 ## [0.26.1] - 2026-10-04
 
 ### Opgelost
