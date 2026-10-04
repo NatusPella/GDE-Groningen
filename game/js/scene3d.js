@@ -703,7 +703,7 @@ function ensureDriverFigure(mesh, v, dist, deadline) {
 // (Tammo or Tessa) inside the bike mesh - the bike's built-in NPC rider is
 // hidden - so pedal IK and the bike's lean apply as for any cyclist.
 function syncPlayerRider(pv, pvMesh, hide) {
-  const want = pv && (pv.isBike || pv.isScooter) && pvMesh && !pv.riderOff && !pv.sinking;
+  const want = pv && (pv.isBike || pv.isScooter) && pv._mount !== 'horse' && pvMesh && !pv.riderOff && !pv.sinking;
   if (!want) {
     if (playerRider && playerRider.parent) playerRider.parent.remove(playerRider);
     return;
@@ -2232,7 +2232,8 @@ export function update3D(dt, world) {
     drawTransition(pAnim, playerMesh, vehicleMeshes.get(pAnim.v.id), player, vehicleSeat(pAnim.v, true), animDt, world.time);
     playerMesh.scale.y = 1;
   } else if (pv) {
-    const seated = !pv.isBike && !pv.isScooter;
+    // on a horse the player sits astride the saddle (seating3d horse seat)
+    const seated = (!pv.isBike && !pv.isScooter) || pv._mount === 'horse';
     playerMesh.visible = seated && !hidePlayers;
     if (seated) {
       playerMesh.scale.y = 1;
@@ -2366,11 +2367,11 @@ export function update3D(dt, world) {
   // vehicles get a longer, higher orbit scaled to their length, so the car
   // doesn't fill the lower half of the screen
   const veh = camVeh;
-  const camScale = veh ? (veh.isHeli ? 4.4 : Math.min(3.2, Math.max(1.35, veh.model.len / 2.4))) : 1;
+  const camScale = veh ? (veh.isHeli ? 4.4 : veh._mount === 'horse' ? 1.7 : Math.min(3.2, Math.max(1.35, veh.model.len / 2.4))) : 1;
   const radius = orbitRadius * camScale;
   // height of whatever the camera follows: on a viaduct, down in a cutting (elevation.js)
   const baseH = veh ? veh.z || 0 : (player.gz || 0) + Math.max(0, player.z || 0);
-  const eyeX = player.x, eyeY = baseH + (veh ? 1.3 + (camScale - 1) * 0.55 : 1.3), eyeZ = player.y;
+  const eyeX = player.x, eyeY = baseH + (veh ? (veh._mount === 'horse' ? 2.2 : 1.3 + (camScale - 1) * 0.55) : 1.3), eyeZ = player.y;
   const horizDist = Math.cos(followPitch) * radius;
   const orbitHeight = eyeY + Math.sin(followPitch) * radius;
   let desiredX = player.x - Math.cos(camAngle) * horizDist;
@@ -2445,7 +2446,7 @@ export function update3D(dt, world) {
     const c = Math.cos(v.angle), sn = Math.sin(v.angle);
     const lx = dx * c + dz * sn, lz = -dx * sn + dz * c;
     if (Math.abs(lx) < v.model.len / 2 + 0.6 && Math.abs(lz) < v.model.wid / 2 + 0.6) {
-      if (Math.abs((v.z || 0) - baseH) < 2.5) desiredY = Math.max(desiredY, (v.z || 0) + (v.isBus ? 3.3 : v.isBike || v.isScooter ? 1.3 : 1.6) + 0.7);
+      if (Math.abs((v.z || 0) - baseH) < 2.5) desiredY = Math.max(desiredY, (v.z || 0) + (v.isBus ? 3.3 : v._mount === 'horse' ? 2.4 : v.isBike || v.isScooter ? 1.3 : 1.6) + 0.7);
     }
   }
   // spaces outside the building raycast adjust the camera themselves (home.js: the flat, the garage)

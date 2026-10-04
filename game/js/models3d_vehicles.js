@@ -1034,6 +1034,8 @@ function buildPoliceHorseMesh(v) {
 export function syncPoliceMount(mesh, v, dt) {
   const ud = mesh.userData;
   if (ud.riderFig && !v.hijacked) ud.riderFig.visible = !v._riderAway && !v.wrecked;
+  // the player rides it in their own look (scene3d seats them on the saddle)
+  if (ud.riderFig && v.driver === 'player') ud.riderFig.visible = false;
   const legs = ud.horseLegs;
   if (!legs || v.wrecked) return;
   const s = Math.abs(v.speed);

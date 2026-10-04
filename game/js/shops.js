@@ -831,7 +831,7 @@ function workshopSections(world, shop, twoWheel) {
 function vehicleName(v) {
   const o = state.vehicles.find((x) => x.v === v);
   if (o) return o.spec.label;
-  return v.isScooter ? 'e-step' : v.isBike ? (v.model.fat ? 'fatbike' : 'fiets') : 'bak';
+  return v._mount === 'horse' ? 'paard' : v.isScooter ? 'e-step' : v.isBike ? (v.model.fat ? 'fatbike' : 'fiets') : 'bak';
 }
 
 // --- pawn shop ----------------------------------------------------------------------

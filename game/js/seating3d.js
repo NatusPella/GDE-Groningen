@@ -91,8 +91,15 @@ export function vehicleSeat(v, driver) {
   return seat;
 }
 
+// Astride a (police) horse: the saddle top of models3d_vehicles' horse,
+// thighs splayed round the barrel, lower legs hanging along its flanks.
+const HORSE_SADDLE_TOP = 1.72;
+const HORSE_POSE = { recline: -0.06, footX: 0.12, footY: -0.74, splay: 0.55, arms: 'helm' };
+const HORSE_BUDDY_POSE = { recline: -0.1, footX: 0.08, footY: -0.72, splay: 0.6, arms: 'hug' };
+
 // The rider's own figure: origin (feet) height, not a seat top.
 function bikeRiderSeat(v) {
+  if (v._mount === 'horse') return { x: -0.08, z: 0, y: HORSE_SADDLE_TOP, face: 0, pose: HORSE_POSE, horse: true };
   if (v.isScooter && v.model.moped) return { x: -0.22, z: 0, y: 0.8 - PERSON_RIG.HIP_Y, face: 0, stand: true, rider: true };
   if (v.isScooter) return { x: -0.08, z: 0, y: 0.155, face: 0, stand: true };
   const fat = !!v.model.fat;
@@ -102,6 +109,7 @@ function bikeRiderSeat(v) {
 // Tammo/Tessa riding along: side-saddle on the rack ("achterop"), astride
 // behind the rider on a fatbike's long saddle, or standing behind on a step.
 function bikeBuddySeat(v) {
+  if (v._mount === 'horse') return { x: -0.56, z: 0, y: HORSE_SADDLE_TOP - 0.02, face: 0, pose: HORSE_BUDDY_POSE, horse: true };
   if (v.isScooter && v.model.moped) return { x: -0.6, z: 0, y: 0.84, face: 0, pose: { recline: -0.1, footX: 0.2, footY: -0.5, splay: 0.25, arms: 'hug' } };
   if (v.isScooter) return { x: -0.34, z: 0, y: 0.155, face: 0, stand: true };
   if (v.model.fat) return { x: -0.62, z: 0, y: 0.95, face: 0, pose: { recline: -0.14, footX: 0.14, footY: -0.52, splay: 0.3, arms: 'hug' } };
@@ -148,6 +156,7 @@ const MAX_WALK = 6;
 
 function doorLocal(v, seat) {
   const hw = v.model.wid / 2;
+  if (v._mount === 'horse') return { x: -0.1, z: -(hw + 0.55) };
   if (v.isBike || v.isScooter) return { x: -0.15, z: -(hw + 0.35) };
   if (v.isBus) return { x: v.model.len / 2 - 0.9, z: hw + 0.45 };
   const side = seat.z < 0 ? -1 : 1;
@@ -254,7 +263,7 @@ export function drawTransition(a, mesh, vehMesh, actor, seat, dt, time) {
   }
   // door -> seat: slide in and sit down (or hop over the gunwale / swing a leg over the saddle)
   mesh.position.lerpVectors(_door, _seat, u);
-  if (hop) mesh.position.y += Math.sin(u * Math.PI) * (v.isBoat ? 0.28 : 0.12);
+  if (hop) mesh.position.y += Math.sin(u * Math.PI) * (v.isBoat ? 0.28 : v._mount === 'horse' ? 0.35 : 0.12);
   const startQ = _qa.setFromAxisAngle(_up, a.kind === 'enter' ? -Math.atan2(_seat.z - _door.z, _seat.x - _door.x) : -actor.angle);
   mesh.quaternion.slerpQuaternions(startQ, _qs, a.kind === 'enter' ? Math.min(1, u * 1.6) : u);
   animatePersonWalk(mesh, 0, dt);
