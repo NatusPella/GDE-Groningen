@@ -115,6 +115,13 @@ nieuwe functies, `y` voor alleen bugfixes.
   dezelfde achter elkaar.
 
 ### Opgelost
+- **Navigatie in het Ommeland volgt de wegen.** De route op de minikaart,
+  de kaart en de lijn op de weg loopt nu over de landwegen en sluit netjes
+  aan op de straten van Stad, ook naar boerderijen ver in de polder. Geen
+  rechte strepen meer dwars door de weilanden, geen routes die ineens
+  ophouden, en wie van de route afwijkt krijgt meteen een nieuwe. Sta je
+  midden in een weiland, dan wijst de lijn je eerst naar de dichtstbijzijnde
+  weg.
 - **Geen plotselinge noodstops meer in de wei.** Over gras rijd je wat
   langzamer, maar je remt niet meer ineens af; een smalle sloot is een hobbel
   in plaats van een muur. Alleen in een maar of kanaal kom je echt vast.
