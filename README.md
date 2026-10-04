@@ -389,8 +389,9 @@ files (`game/citymap.json`, `game/mapextras.json`, `game/ommeland.*`,
 `data/`) stay under the ODbL. Music and voices are generated with Google
 Gemini. Third-party software and fonts (three.js, Bebas Neue, Big Shoulders
 Display, Electron) and
-their licences: [NOTICE.md](NOTICE.md) and `licenses/`. The licence for the
-project's own code and content is not chosen yet; see
+their licences: [NOTICE.md](NOTICE.md) and `licenses/`. The project's own
+code and content: © 2026 NatusPella, all rights reserved (no licence is
+granted yet); see
 [docs/LICENTIES.md](docs/LICENTIES.md) for the inventory, the options and the
 open risks, and [docs/PUBLICEREN.md](docs/PUBLICEREN.md) for the checklist
 before the repo goes public.
