@@ -14,6 +14,13 @@ nieuwe functies, `y` voor alleen bugfixes.
   Hapert het beeld, dan gaat de zichtafstand vanzelf even terug naar Ver.
 
 ### Opgelost
+- **Navigatie in het Ommeland volgt de wegen.** De route op de minikaart,
+  de kaart en de lijn op de weg loopt nu over de landwegen en sluit netjes
+  aan op de straten van Stad, ook naar boerderijen ver in de polder. Geen
+  rechte strepen meer dwars door de weilanden, geen routes die ineens
+  ophouden, en wie van de route afwijkt krijgt meteen een nieuwe. Sta je
+  midden in een weiland, dan wijst de lijn je eerst naar de dichtstbijzijnde
+  weg.
 - **Laten afleveren werkt nu ook in het Ommeland.** De bezorger zet je auto
   in de berm van de dichtstbijzijnde landweg neer, in plaats van te melden
   dat hij nergens kan parkeren.
