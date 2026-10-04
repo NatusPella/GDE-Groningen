@@ -15,6 +15,7 @@
 import { skipCinematic, isCinematicActive, cinematicPoseIssues } from './cinematics.js';
 import { heistWatchers, PLAN_BOUNDS } from './heist.js';
 import { isInWater } from './util.js';
+import { deliverOwnedVehicle } from './ownedvehicles.js';
 import { skipStoryContact } from './storycontact.js';
 import { STEPS, STEP_BY_ID, PARTS, stepAvailable, computeMoneyTimeline, missionIndexOf } from './storyarc.js';
 import { getMissionDefs, isMissionActive } from './missions.js';
@@ -435,6 +436,12 @@ export async function runStoryTest(world) {
         const bell = vs.find((v) => v.name === 'Loppersum');
         const used = bell && om.use('Loppersum', 'special');
         check('a dorpsuitje can be done (Loppersum, de klok)', used && await waitFor(() => om.villages().find((v) => v.name === 'Loppersum').done, 4000));
+        // out in the Ommeland your own car can still be delivered (phone, Laten afleveren)
+        world.wanted = 0;
+        world.money = Math.max(world.money, 500);
+        const del = deliverOwnedVehicle(world, 'hero');
+        const hero = world.vehicles.find((v) => v.isHeroCar && !v.wrecked);
+        check('the Escapade is delivered in the Ommeland', del.ok && hero && Math.hypot(hero.x - world.player.x, hero.y - world.player.y) < 160, JSON.stringify({ del, at: hero && [Math.round(hero.x), Math.round(hero.y)], p: [Math.round(world.player.x), Math.round(world.player.y)] }));
         await sleep(500);
         capture('om-dorp');
         await drain(world, 700);

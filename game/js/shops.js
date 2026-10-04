@@ -1395,7 +1395,8 @@ function spawnOwned(world, o, x, y, angle = null, z = null) {
   if (sp.kind === 'boat') return spawnOwnedBoat(world, o, x, y, angle);
   if (sp.kind === 'heli') return spawnOwnedHeli(world, o, x, y, angle, z);
   const map = world.map;
-  const point = map.nearestRoadPoint(x, y, 150, sp.kind === 'car');
+  // out in the Ommeland (no city street near) a vehicle with a heading is still put right here
+  const point = map.nearestRoadPoint(x, y, 150, sp.kind === 'car') || (angle != null ? map.nearestRoadPoint(0, 0, 400, sp.kind === 'car') : null);
   if (!point) return null;
   const v = spawnVehicleOnRoad(map, point.road, false, Math.random, sp.kind === 'bike', false, angle == null ? point : { x, y }, sp.kind === 'scooter', { ...sp.model, color: o.color });
   v.model = { ...sp.model, color: o.color };
