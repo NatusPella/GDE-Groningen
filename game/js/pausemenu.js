@@ -18,7 +18,7 @@ import { renderGaragePanel, selectGarageVehicle, disposeGarageViewer } from './g
 import { deliverOwnedVehicle, locateOwnedVehicle } from './ownedvehicles.js';
 import { isShopOpen, closeShopMenu } from './shopui.js';
 import { benchmarkViaReload } from './trailer.js';
-import { STATIONS, radioStation, tuneRadio } from './radiostations.js';
+import { radioIsOn, setRadio } from './radio.js';
 import { glyphHtml } from './prompts.js';
 import { KEY_ACTIONS, KEY_GROUPS, PAD_REMAPPABLE, PAD_SLOT_NAMES, bindKey, bindButton, physicalKey, defaultKey, physicalButton, isBindableKey, keyName, slotUses } from './controls.js';
 import { capturePadButton, isPadActive, onPadChange } from './gamepad.js';
@@ -276,8 +276,8 @@ function settingsHtml() {
       ${slider('musicVolume', 'Muziek')}
       ${slider('sfxVolume', 'Effecten')}
       ${slider('voiceVolume', 'Stemmen')}
-      <div class="pm-row"><span id="pm-l-radio">Radio<small>Ook met N en B, overal</small></span><div class="pm-seg" role="radiogroup" aria-labelledby="pm-l-radio" data-radio>${STATIONS.map((s) => `<button type="button" role="radio" data-value="${s.id}" aria-checked="false" title="${esc(s.sub)}">${s.short}</button>`).join('')}</div></div>
-      <p class="pm-note">Muziek is de radio (G-Music en Nachtstreek) en de titelsong, stemmen zijn Tammo, Tessa, de politie, de mensen op straat en Radio Proat.</p>
+      <div class="pm-row"><span id="pm-l-radio">Radio G-Music<small>Ook met N, te voet en in elk voertuig</small></span><div class="pm-seg" role="radiogroup" aria-labelledby="pm-l-radio" data-radio>${[['on', 'Aan'], ['off', 'Uit']].map(([v, t]) => `<button type="button" role="radio" data-value="${v}" aria-checked="false">${t}</button>`).join('')}</div></div>
+      <p class="pm-note">Muziek is de radio (G-Music, 's nachts Nachtstreek) en de titelsong, stemmen zijn Tammo, Tessa, de politie, de mensen op straat en de praatjes op de radio.</p>
     </div>
     <div data-of="settings" data-sub="video" class="pm-group pm-video" hidden>
       <div class="pm-bench" data-bench-banner hidden></div>
@@ -439,7 +439,7 @@ export function initPauseMenu(w) {
     const st = e.target.closest('[data-subtab]');
     if (st) { showSubtab(st.dataset.of, st.dataset.subtab); if (st.dataset.of === 'todo') renderTodoPanel(); if (st.dataset.of === 'verhaal') renderVerhaalPanel(); if (st.dataset.of === 'controls') renderBinds(); return; }
     const seg = e.target.closest('.pm-seg [data-value]');
-    if (seg && 'radio' in seg.parentElement.dataset) { tuneRadio(seg.dataset.value, { announce: false }); syncControls(); return; }
+    if (seg && 'radio' in seg.parentElement.dataset) { setRadio(seg.dataset.value === 'on', { announce: false }); syncControls(); return; }
     if (seg) { setSetting(seg.parentElement.dataset.setting, seg.dataset.value); syncControls(); return; }
     const pre = e.target.closest('[data-preset]');
     if (pre) {
@@ -1007,7 +1007,7 @@ function syncDesktopControls() {
 function syncControls() {
   const st = getSettings();
   for (const b of root.querySelectorAll('[data-radio] [data-value]')) {
-    const on = b.dataset.value === radioStation();
+    const on = (b.dataset.value === 'on') === radioIsOn();
     b.setAttribute('aria-checked', String(on));
     b.tabIndex = on ? 0 : -1;
   }
