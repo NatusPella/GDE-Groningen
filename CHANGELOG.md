@@ -14,6 +14,9 @@ nieuwe functies, `y` voor alleen bugfixes.
   Hapert het beeld, dan gaat de zichtafstand vanzelf even terug naar Ver.
 
 ### Opgelost
+- **Geen huizen en schuren meer midden op de weg in het Ommeland.** Een
+  gebouw dat op een weg uitstak wordt aan die kant ingekort, en een aanbouw
+  of gebouw dat er echt op stond is weg.
 - **De ringweg ziet er weer heel uit.** Waar de ring een tunnel of verdiepte
   bak in duikt, flikkerde het gras en de grond door het asfalt heen; dat is
   weg. De grasbermen van de dijken en viaducten liggen niet meer over een

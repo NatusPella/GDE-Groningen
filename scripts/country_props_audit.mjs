@@ -6,7 +6,9 @@
 //   on road   the prop's foot is on the asphalt / klinkers
 //   shoulder  closer to the road edge than its own clearance (SHOULDER)
 //   node scripts/country_props_audit.mjs [--tiles=N] [--list] [--max=N]
-// Exits 1 when more than --max (default 0) props stand on a road.
+// Also counts the real building boxes standing on a road.
+// Exits 1 when more than --max (default 0) props or --max-buildings
+// (default 5) buildings stand on a road.
 import './node3d.mjs';
 import fs from 'node:fs';
 import zlib from 'node:zlib';
@@ -15,6 +17,7 @@ const args = process.argv.slice(2);
 const opt = (k, d) => { const a = args.find((x) => x.startsWith('--' + k + '=')); return a ? a.slice(k.length + 3) : d; };
 const N_TILES = +opt('tiles', 500);
 const MAX = +opt('max', 0);
+const BMAX = +opt('max-buildings', 5);
 const LIST = args.includes('--list');
 
 const root = new URL('../game/', import.meta.url);
@@ -24,7 +27,8 @@ applyMapExtras(data, JSON.parse(fs.readFileSync(new URL('mapextras.json', root))
 const map = new GameMap(data);
 const F = await import('../game/js/countryfield.js');
 const { initReal } = await import('../game/js/countryreal.js');
-const { roadGap } = await import('../game/js/countryedge.js');
+const { roadGap, realBuildingRoadHits, EDGE } = await import('../game/js/countryedge.js');
+const { REAL } = await import('../game/js/countryreal.js');
 const { ensureCountryEdge } = await import('../game/js/countryplan.js');
 const { countryTileItems } = await import('../game/js/countryside.js');
 
@@ -82,5 +86,18 @@ for (const [k, P] of Object.entries(per).sort((a, b) => b[1].road - a[1].road ||
   if (P.road || P.shoulder || LIST) console.log(k.padEnd(12), String(P.n).padStart(7), String(P.road).padStart(8), String(P.shoulder).padStart(9));
 }
 console.log(`TOTAL on road ${onRoad}, in shoulder ${shoulder}`);
+
+// the real building boxes (countryreal.js) left in the tiles after
+// countryedge.js clearRealBuildings: none may stand on a road
+let bOn = 0, bN = 0;
+for (const L of REAL.bTiles.values()) {
+  for (const i of L) {
+    if (F.edgeDistance(REAL.bx[i], REAL.by[i]) < -40) continue;
+    bN++;
+    if (realBuildingRoadHits(i)) { bOn++; if (LIST && bOn <= 20) console.log('   building', i, REAL.bx[i].toFixed(1), REAL.by[i].toFixed(1)); }
+  }
+}
+const fx = EDGE.buildingFix || {};
+console.log(`BUILDINGS ${bN} in the Ommeland, ${bOn} on a road (load-time fix: ${fx.clipped} shortened, ${fx.dropped} dropped of ${fx.checked}, in ${fx.ms} ms, ${fx.sampled} sampled)`);
 if (LIST) for (const b of bad.slice(0, 40)) console.log('  ', b[0], b[1].toFixed(1), b[2].toFixed(1), 'gap', b[3].toFixed(2));
-process.exit(onRoad > MAX ? 1 : 0);
+process.exit(onRoad > MAX || bOn > BMAX ? 1 : 0);
