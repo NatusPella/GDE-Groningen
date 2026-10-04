@@ -19,7 +19,7 @@ import { deliverOwnedVehicle, locateOwnedVehicle } from './ownedvehicles.js';
 import { isShopOpen, closeShopMenu } from './shopui.js';
 import { benchmarkViaReload } from './trailer.js';
 import { glyphHtml } from './prompts.js';
-import { KEY_ACTIONS, KEY_GROUPS, PAD_REMAPPABLE, PAD_SLOT_NAMES, bindKey, bindButton, physicalKey, physicalButton, isBindableKey, keyName, slotUses } from './controls.js';
+import { KEY_ACTIONS, KEY_GROUPS, PAD_REMAPPABLE, PAD_SLOT_NAMES, bindKey, bindButton, physicalKey, defaultKey, physicalButton, isBindableKey, keyName, slotUses } from './controls.js';
 import { capturePadButton, isPadActive, onPadChange } from './gamepad.js';
 import { padGlyphInner } from './glyphs.js';
 import { getUiScale } from './uiscale.js';
@@ -660,11 +660,11 @@ function bindRowsKeys() {
   const binds = getSettings().keyBinds;
   const groups = KEY_GROUPS.map(([g, title]) => `<h4 class="pm-subhead">${esc(title)}</h4>` + KEY_ACTIONS.filter(([, , gr]) => gr === g).map(([k, desc]) => {
     const phys = physicalKey(binds, k);
-    const changed = phys !== k;
-    return `<div class="pm-row pm-bind"><span>${esc(desc)}${changed ? `<small>Standaard: ${esc(keyName(k))}</small>` : ''}</span>` +
+    const changed = phys !== defaultKey(k);
+    return `<div class="pm-row pm-bind"><span>${esc(desc)}${changed ? `<small>Standaard: ${esc(keyName(defaultKey(k)))}</small>` : ''}</span>` +
       `<button type="button" class="pm-secondary pm-small pm-bindbtn${changed ? ' pm-changed' : ''}" data-rebind-key="${esc(k)}" aria-label="${esc(desc)}: ${esc(keyName(phys))}. Kies om te wijzigen"><span class="hud-key" data-g-raw>${esc(keyName(phys))}</span></button></div>`;
   }).join('')).join('');
-  return `<p class="pm-note">Kies een actie en druk de nieuwe toets. Zit die toets al op iets anders, dan ruilen ze. Esc, Enter, de pijltjes en de muis liggen vast.</p>
+  return `<p class="pm-note">Kies een actie en druk de nieuwe toets. Zit die toets al op iets anders, dan ruilen ze. Esc, Enter, de pijltjes en de muis liggen vast.${defaultKey('control') !== 'control' ? ' In de browser zit bukken en omlaag op C: Ctrl+W sluit daar het tabblad.' : ''}</p>
     <p class="pm-status pm-bindmsg" role="status">${esc(bindMsg)}</p>
     <div class="pm-group">${groups}</div>
     <div class="pm-reset"><button type="button" class="pm-secondary pm-small" data-action="binds-reset-keys">${icon('restart')}<span>Standaard herstellen</span></button></div>`;

@@ -14,7 +14,7 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
 - [~] Mesh ronde 3 (`claude/mesh-ronde3`): stoeptegels die flikkeren op kruispunten, water en markering die flikkeren, spoorbedden, de laatste kieren bij verhoogde en verdiepte wegen, 291 gaten, de Griffeweg, zwevende en zinkende gebouwen.
 - [~] Gevels die flikkeren (`claude/gevel-zfight`): een detector en fixes voor materialen die op elkaar liggen.
 - [x] Ommeland ronde 2: echte plattegronden voor L-vormige gebouwen, OSM-fietspaden, winkelpuien, kerkgevels, maren als echt water, gladdere oevers.
-- [ ] Stadsboten kunnen de stad uit varen, het Ommeland in.
+- [x] Stadsboten kunnen de stad uit varen, het Ommeland in (mesh ronde 4). Je eigen boot ook, uit alle zeven kanalen en terug: `scripts/boat_edge_sim.mjs` (`claude/open-bugs`).
 - [x] Kusjes geven kan pas na de eerste kus (H13).
 - [~] Stad visueel (`claude/stad-visueel`):
   - de garage en de aankleding bij de House of Groningen;
@@ -99,7 +99,8 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
 - [x] Een route naar carbid, Eelde en terug naar een padelbaan: routes over de wegen van het Ommeland (`countryroute.js`).
 - [x] Padel: de tegenstanders praten hoorbaar, en tijdens padel, carbid en de botsauto's staan er geen waypoints of missiebakens naar iets anders.
 - [x] Durk en Douwe dagen Tammo uit voor padel: Jelle wil dat ze de twee een uur bezighouden (en dat verklapt Douwe).
-- [ ] Nalopen in een speeltest: de hele H15-vlucht (de headless check kwam niet voorbij het openingsfilmpje), de koppeling naar de stad na de kruisvlucht, en het padelfilmpje bij de baan. Ctrl+W sluit in een browser op Windows het tabblad: daar Ctrl liever omleggen.
+- [ ] Nalopen in een speeltest: de hele H15-vlucht (de headless check kwam niet voorbij het openingsfilmpje), de koppeling naar de stad na de kruisvlucht, en het padelfilmpje bij de baan.
+- [x] Ctrl+W sloot in de browser het tabblad: in de webversie zitten bukken en heli omlaag nu op C, de desktopversie houdt Ctrl (`claude/open-bugs`).
 
 **Ring:** nog steeds zwarte lagen hier en daar. Dat valt onder mesh ronde 4 en 5, die gepauzeerd zijn.
 
@@ -122,6 +123,7 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
 - [x] De HUD-pieken op de ring na een sprong (`claude/opruimen`): de minimap bouwde een ontbrekende Ommeland-tegel midden in het frame (tot 8 ms, 15–27 ms bij 4× CPU-vertraging). Die tegels komen nu in de rusttijd tussen frames, en de HUD forceert geen layout meer om een animatie te herstarten (instappen kostte 11–15 ms bij 4× vertraging). `PERF_JUMP=<s>` in `scripts/perf/run.sh` springt op de ring.
 - [x] De kunstwerken van de wegen naar de worker (`claude/perf-rest`): viaducten, taluds, keermuren, vangrails, tunneldaken en vloeren van de verdiepte stukken komen uit de worker, byte voor byte gelijk (`geocheck.sh`, 463 wegen). Op de ring met sprongen halveert `3d:roads` (1.0 → 0.5 ms per frame) en zijn er geen frames meer met `3d:roads` ≥ 8 ms (was 11 tot 15). De botsingsdata blijven op de hoofdthread (`ring_probe` 0).
 - [x] De HUD-portretjes worden over sessies bewaard (localStorage, per versie): een start tekent ze niet opnieuw (10–15 ms per portret bij 4× CPU-vertraging, de eerste 47–54 ms met de opwarming van de renderer).
+- [x] De snapshot van je voertuig bij de snelheidsmeter en de opwarming van de renderer (33–55 ms bij het eerste instappen) gaan in de rusttijd en vooraf (`claude/open-bugs`). Nog meten in Electron.
 - [x] `BatchedMesh` is overgeslagen: in three r160 levert het geen winst op. Opnieuw bekijken na een upgrade van three.js.
 - [ ] Daarna pas: de simulatie (verkeer en voetgangers) in een worker, en WASM voor gemeten hotspots als dat dan nog nodig is.
 - [ ] Na 1.0: WebGPU (de WebGPURenderer van three.js) met WebGL als terugval. Dat vraagt een herschrijving van onze eigen shaders.
@@ -132,6 +134,7 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
   - Bloed en ledematen (`gore3d.js`) zijn helemaal uit de game, net als de instelling.
   - Burgers raken knock-out, staan op en schelden, maar gaan niet dood. Wapens raken ze niet.
   - Agenten worden uitgeschakeld en staan later weer op. De alcohol blijft, met een inhoudslabel.
+  - Kiekdoar zegt geen "gewond" meer bij een knock-out (`claude/open-bugs`).
 - [ ] De IARC-vragenlijst echt invullen.
 - [x] **Geen gesimuleerd gokken meer** (`claude/geen-gokken`). De kraskaarten en loten bij Rook & Geluk (PEGI: 18) zijn weg. De winkel heet nu Krant & Kauwgom en heeft een spaarkaart: elke aankoop een stempel, 10 stempels geven vast €10. Zie docs/LEEFTIJD.md.
 - [~] Onboarding: de eerste 10 minuten zonder uitleg te snappen (`claude/v025`). Audit en wijzigingen in [docs/ONBOARDING.md](docs/ONBOARDING.md).

@@ -30,6 +30,8 @@ import { pointInPolygon, normalizeAngle, clamp } from './util.js';
 import { inPassage } from './collision.js';
 import { REAL, buildingAt, buildingModel, inRealExtent } from './countryreal.js';
 import { getSettings } from './settings.js';
+import { keyWord } from './controls.js';
+const downKey = () => keyWord(getSettings().keyBinds, 'control');
 import { getVehicleMesh } from './models3d_vehicles.js';
 import { poseHeliRotors, updateHeliDust } from './heli3d.js';
 import { getScene } from './scene3d.js';
@@ -325,7 +327,7 @@ export function flyHeli(v, dt, w) {
         hurt(v, Math.max(0, impactV - LAND_VZ) * 7 + Math.max(0, hs - LAND_H) * 3, w);
         vz = impactV * 0.3;
         vx *= 0.4; vy *= 0.4;
-        say('hard', 'Harde landing! Eerst stilhangen (W los, S remt), dan rustig dalen met Ctrl', 3, 'tip', 5);
+        say('hard', `Harde landing! Eerst stilhangen (W los, S remt), dan rustig dalen met ${downKey()}`, 3, 'tip', 5);
       } else {
         v.onGround = true;
         v.landKind = surf.kind;
@@ -382,7 +384,7 @@ function outsideCity(map, x, y) {
 // '' when the player can climb out, else the reason.
 export function heliExitBlock(v) {
   if (!v || !v.isHeli || v.wrecked || v.sinking) return '';
-  if (!v.onGround) return 'Eerst landen: laag en langzaam boven een vlak stuk, dan Ctrl';
+  if (!v.onGround) return `Eerst landen: laag en langzaam boven een vlak stuk, dan ${downKey()}`;
   if (Math.hypot(v.vx || 0, v.vy || 0) > 2) return 'Eerst stilstaan';
   if (v.landKind === 'roof' || (v.landKind === 'pad' && v.landPad && v.landPad.exit === false)) return 'Hier kun je niet uitstappen: je staat op een dak';
   return '';
@@ -493,7 +495,7 @@ function landingStatus(v) {
   if (alt < 14) {
     if (hs > LAND_H || -(v.vz || 0) > LAND_VZ) return ['Te snel om te landen: W los, S remt', '#ff9a3c'];
     if (v.surfaceKind === 'roof') return ['Dak onder je', '#e8c93a'];
-    return ['Klaar om te landen: Ctrl', '#3fc97a'];
+    return [`Klaar om te landen: ${downKey()}`, '#3fc97a'];
   }
   if (v.z >= Z_SOFT) return ['Plafond: hoger mag niet', '#e8c93a'];
   return ['', ''];
