@@ -17,8 +17,12 @@ export const WALL_T = 0.45;          // retaining wall thickness
 export const FENCE_H = 1.1;
 export const BARRIER_H = 0.9;
 export const ROOF_T = 0.7;           // tunnel roof slab
-export const RAISED = 0.3;
-export const COPING = 1.1;           // street-level strip beside an open cutting's wall (roadstructures3d)           // |z| above which a road counts as off street level
+export const RAISED = 0.3;           // |z| above which a road counts as off street level
+export const COPING = 1.1;           // street-level strip beside an open cutting's wall (roadstructures3d)
+// a road deeper than this lies under the terrain (-0.05): the ground over it
+// is cut away (openCutMask) and a low wall face closes the side
+export const CUT_Z = 0.07;
+const SHALLOW_PAD = 0.35;
 const SHOULDER = 1.8;                // matches roadsurface SIDEWALK_EXTRA (the rendered verge)
 const CELL = 32;
 const WALL_CELL = 24;
@@ -226,12 +230,17 @@ function classifyFill(elev) {
       if (z > RAISED) {
         piece.over = z > 2 && (lowerSurfaceAt(elev, cx, cy, z) || lowerSurfaceAt(elev, cx - s.uy * s.hs * 0.7, cy + s.ux * s.hs * 0.7, z) || lowerSurfaceAt(elev, cx + s.uy * s.hs * 0.7, cy - s.ux * s.hs * 0.7, z));
         if (!piece.over) {
+          // the whole slope out to its foot, at both ends of the piece: a
+          // street along the foot or a lower carriageway alongside is buried
+          // by the outer metres of the slope too
           [1, -1].forEach((side, j) => {
             const nx = -s.uy * side, ny = s.ux * side;
-            const w = Math.max(0, z) / EMB_SLOPE;
-            for (const f of [0.3, 0.7, 1]) {
-              const d = s.hs + w * f;
-              if (lowerSurfaceAt(elev, cx + nx * d, cy + ny * d, z - (d - s.hs) * EMB_SLOPE + 1.5)) { piece.retain[j] = true; break; }
+            for (const t of [t0, tm, t1]) {
+              const zt = Math.max(0, s.za + (s.zb - s.za) * t), w = zt / EMB_SLOPE;
+              const px = s.ax + s.ux * s.len * t, py = s.ay + s.uy * s.len * t;
+              for (let d = s.hs + 0.25; d < s.hs + w - 0.05 && !piece.retain[j]; d += 0.5) {
+                if (lowerSurfaceAt(elev, px + nx * d, py + ny * d, zt - (d - s.hs) * EMB_SLOPE + 1.5)) piece.retain[j] = true;
+              }
             }
           });
         }
@@ -542,7 +551,7 @@ function buildWalls(elev, map) {
         // a dip of under a metre needs no retaining wall
         const cut = zr < -1.0;
         const raise = zr > 1.2;
-        if (!cut && !raise && !s.rail && !s.covered && Math.min(s.za + (s.zb - s.za) * t0, s.za + (s.zb - s.za) * t1) < -RAISED &&
+        if (!cut && !raise && !s.rail && !s.covered && Math.min(s.za + (s.zb - s.za) * t0, s.za + (s.zb - s.za) * t1) < -CUT_Z &&
           !surfaceOf(elev, mx, my, s.r, zr, 1.6) && !onFlatRoad(map, mx, my)) {
           // where a ramp starts down into a cutting the ground is already cut
           // away (openCutMask) before a retaining wall is needed: a low
@@ -562,7 +571,7 @@ function buildWalls(elev, map) {
           // (also up to a street-level ribbon overlapping the ramp's edge)
           const zs = surfaceZ(elev, mx, my, s.r, zr, 1.6);
           const zn = zs !== null ? zs : onFlatRoad(map, mx, my) ? 0 : null;
-          if (zn !== null && zn > zr + 0.25 && Math.min(s.za + (s.zb - s.za) * t0, s.za + (s.zb - s.za) * t1) < -RAISED) {
+          if (zn !== null && zn > zr + 0.25 && Math.min(s.za + (s.zb - s.za) * t0, s.za + (s.zb - s.za) * t1) < -CUT_Z) {
             elev.skirts.push({
               ax: s.ax + s.ux * s.len * t0 + nx * off, ay: s.ay + s.uy * s.len * t0 + ny * off,
               bx: s.ax + s.ux * s.len * t1 + nx * off, by: s.ay + s.uy * s.len * t1 + ny * off,
@@ -755,7 +764,7 @@ export function elevWallContact(elev, x, y, z, band = 1.4, props = false) {
 function buildCuts(elev) {
   // open (not covered) sunken segment runs: footprint quads out to the wall
   for (const s of elev.segs) {
-    if (s.covered || (s.za > -RAISED && s.zb > -RAISED)) continue;
+    if (s.covered || (s.za > -CUT_Z && s.zb > -CUT_Z)) continue;
     elev.cuts.push(s);
   }
 }
@@ -788,7 +797,8 @@ export function openCutMask(elev, maxTex = 4096) {
         const cp = closestPointOnSegment(px, py, s.ax, s.ay, s.bx, s.by);
         if (cp.dist2 > r * r) continue;
         const z = s.za + (s.zb - s.za) * cp.t;
-        if (z < -RAISED) data[j * w + i] = 255;
+        // (a shallow dip has no retaining wall to reach over: just the lanes)
+        if (z < -CUT_Z && (z < -RAISED || cp.dist2 <= (s.hs + SHALLOW_PAD) ** 2)) data[j * w + i] = 255;
       }
     }
   }

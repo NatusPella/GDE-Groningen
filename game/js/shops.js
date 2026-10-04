@@ -30,7 +30,7 @@ export const SHOP_TYPES = {
   pand: { color: '#7d6a3a', label: 'Pandjeshuis', chain: 'Pand & Poen', tagline: 'Wij kopen alles. Echt alles.', group: 'shopsWapens' },
   kleding: { color: '#7a4fb0', label: 'Kledingwinkel', chain: 'Stoer & Stads', tagline: 'Kleding voor de Stadjer met smaak', group: 'shops' },
   kapper: { color: '#23948a', label: 'Kapper', chain: 'Knip & Kuif', tagline: 'Kapsalon, ook zonder afspraak', group: 'shops' },
-  tabak: { color: '#c23f78', label: 'Krant & snoep', chain: 'Krant & Kauwgom', tagline: 'Kranten, snoep, een spaarkaart en een eierbal uit de muur', group: 'shops' },
+  tabak: { color: '#c23f78', label: 'Tabak & loterij', chain: 'Rook & Geluk', tagline: 'Kraskaarten, loten, een spaarkaart en een eierbal uit de muur', group: 'shops' },
   super: { color: '#3b8f3b', label: 'Avondwinkel', chain: 'Nait Duur', tagline: 'Open tot laat, goedkoop tot op de cent', group: 'shops' },
   snack: { color: '#d0652a', label: 'Snackbar', chain: 'Frituur Vet & Lekker', tagline: 'Vers uit het vet, met of zonder', group: 'shops' },
   fietsen: { color: '#2f6fb8', label: 'Fietsenwinkel', chain: 'Trap & Toeter', tagline: 'Fietsen, bakfietsen, e-steps en brommers', group: 'shopsVoertuigen' },
@@ -125,6 +125,7 @@ export const VEHICLE_STOCK = {
   stadsfiets: { kind: 'bike', type: 'Fiets', shop: 'fietsen', label: 'Stadsfiets', desc: 'Lichter en sneller, in Stadjersgroen', price: 110, nameIdx: 2, color: '#1e9e56', model: { name: 'bike', len: 1.75, wid: 0.5, maxSpeed: 7.0, accel: 3.6, brake: 6.2, turnRate: 4.8 } },
   fatbike: { kind: 'bike', type: 'Fatbike', shop: 'fietsen', label: 'Fatbike "Dikke Tinus"', desc: 'Dikke banden, dikke prijs', price: 350, nameIdx: 0, color: '#20221f', model: { name: 'bike', fat: true, len: 1.95, wid: 0.62, maxSpeed: 7.4, accel: 3.4, brake: 5, turnRate: 3.8 } },
   brommer: { kind: 'scooter', type: 'E-step', shop: 'fietsen', label: 'E-step Zoemzoem', desc: 'Elektrische step: staan, gas, zoemen', price: 600, nameIdx: 0, color: '#c94b3a', model: { name: 'scooter', len: 1.15, wid: 0.42, maxSpeed: 8.5, accel: 4.0, brake: 4.4, turnRate: 5.4 } },
+  quad: { kind: 'car', type: 'Quad', shop: 'auto', label: 'Wierde Quad', desc: 'Vierwieler voor het land: door de wei waar een auto vastloopt', price: 950, nameIdx: 0, color: '#b8322a', model: CAR_M('quad', 2.1, 1.2, 17, 9, 14, 3.2, { offroad: 1 }) },
   mug: { kind: 'car', type: 'Hatchback', shop: 'auto', label: 'Hunze Mug', desc: 'Kleine hatchback, parkeert overal', price: 800, nameIdx: 2, color: '#2e6b9e', model: CAR_M('hatch', 3.8, 1.7, 42, 9, 15, 3.0) },
   koopman: { kind: 'car', type: 'Stationwagen', shop: 'auto', label: 'Reitdiep Koopman', desc: 'Stationwagen voor de hele familie', price: 1150, nameIdx: 0, color: '#2e4a34', model: CAR_M('wagon', 4.5, 1.8, 47, 9, 15, 2.5) },
   klusbus: { kind: 'car', type: 'Bestelbus', shop: 'auto', label: 'Oldambt Klusbus', desc: 'Bestelbus: ramt alles opzij', price: 1300, nameIdx: 0, color: '#d9d9d9', model: CAR_M('van', 5.0, 2.0, 38, 7, 13, 2.0) },
@@ -253,7 +254,7 @@ const state = {
   heroUpgrades: [],
   rental: null,
   lastStealthAt: -Infinity,
-  stamps: 0, // spaarkaart at Krant & Kauwgom
+  stamps: 0, // spaarkaart at Rook & Geluk
 };
 let baseLook = null;
 let idSeq = 0;
@@ -1178,6 +1179,9 @@ function vehicleSections(world, type, shop) {
   return sections;
 }
 
+const SCRATCH = [[0.002, 500], [0.018, 50], [0.08, 15], [0.2, 5]];
+const LOTTERY = [[0.004, 2500], [0.05, 200]];
+const SCRATCH_SMALL = [[0.01, 150], [0.06, 10], [0.2, 2]];
 const HEADLINES = [
   'Martinitoren staat nog steeds scheef, zegt niemand',
   'Duif steelt eierbal op de Vismarkt, dader voortvoluchtig',
@@ -1189,8 +1193,17 @@ const HEADLINES = [
   'Eierbal uitgeroepen tot werelderfgoed, Drenthe protesteert',
 ];
 
-// Spaarkaart: every purchase at Krant & Kauwgom earns a stamp, a full card
-// is traded in for a fixed prize. No stake and no chance.
+function draw(table) {
+  let r = Math.random();
+  for (const [p, prize] of table) {
+    if (r < p) return prize;
+    r -= p;
+  }
+  return 0;
+}
+
+// Spaarkaart: every purchase at Rook & Geluk except the scratch cards and
+// lottery tickets earns a stamp, a full card is traded in for a fixed prize.
 const STAMP_CARD = 10;
 const STAMP_PRIZE = 10;
 
@@ -1227,6 +1240,17 @@ function stampCardItem(world) {
 }
 
 function tabakSections(world) {
+  const gamble = (id, label, desc, price, table, big, look) => ({
+    id, label, desc, price, disabled: broke(world, price), keepFocus: true,
+    preview: productPreview(id), effect: `Hoofdprijs €${big}`, reveal: look,
+    buy() {
+      if (!pay(world, price)) return null;
+      const prize = draw(table);
+      world.money += prize;
+      if (!prize) return { text: 'Niks. Volgende keer beter, jong', tone: 'lose', prize };
+      return { text: prize >= big ? `JACKPOT! €${prize} gewonnen!` : `Joa! €${prize} gewonnen`, tone: prize >= big ? 'jackpot' : 'win', prize };
+    },
+  });
   const snack = (id, label, desc, price, hp) => foodItem(world, id, label, desc, price, hp, id, () => `${label} naar binnen gewerkt`);
   const paper = {
     id: 'krant', preview: productPreview('krant'), label: 'Grunneger Kwebbelkrant', desc: 'De krant van vandaag, met de kop van de dag', price: 2, keepFocus: true,
@@ -1253,6 +1277,11 @@ function tabakSections(world) {
     },
   };
   return [
+    { title: 'Geluk', items: [
+      gamble('scratch', 'Kraskaart "Grunneger Gokje"', 'Krassen maar! Hoofdprijs €500', 5, SCRATCH, 500, { title: 'GRUNNEGER GOKJE', bg: '#c23f78' }),
+      gamble('lot', 'Stadsloterij-lot', 'Trekking meteen. Hoofdprijs €2500', 25, LOTTERY, 2500, { title: 'STADSLOTERIJ', bg: '#b8902a' }),
+      gamble('duif', 'Duivenkraslot', 'Kras de duif vrij. Hoofdprijs €150', 2, SCRATCH_SMALL, 150, { title: 'DUIVENKRASLOT', bg: '#4a6a8a' }),
+    ] },
     { title: 'Lezen & sturen', items: [paper, strip, card].map(stamped) },
     { title: 'Snoep & snacks', items: [
       snack('eierbal', 'Eierbal', 'Warm uit de automaat naast de deur', 6, 10),

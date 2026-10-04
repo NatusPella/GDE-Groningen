@@ -1,0 +1,5 @@
+{
+  "_era": "settings v6 (0.27, PEGI 16): no gore switch stored; 18+ brings it back with its default (on)",
+  "_expect": { "gore": null, "quality": "midden", "drawDistance": "ver" },
+  "settings": { "v": 6, "quality": "midden", "drawDistance": "ver", "sfxVolume": 0.75 }
+}

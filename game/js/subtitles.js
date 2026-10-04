@@ -15,7 +15,7 @@ export const FY = {
   'Ljouwert': 'Leeuwarden',
   'pompeblêden': 'pompeblêden (de Friese plompenbladeren)',
   'iets wat van mem is': 'iets wat van mijn moeder is',
-  'dat mem hem': 'dat mijn moeder hem',
+  'dan ziet mem hem': 'dan ziet mijn moeder hem',
   '…Tige tank.': '…Bedankt.',
   'Wat is dit?! Ik sjoch neat!': 'Wat is dit?! Ik zie niks!',
   'Moai foar in wykein': 'Mooi voor een weekendje',
@@ -182,16 +182,14 @@ export const FY = {
   'Niet aan de limo komen! Die is fan Jelle!': 'Niet aan de limo komen! Die is van Jelle!',
   'Hij doet het net mear. Wij lopen wel naar hûs.': 'Hij doet het niet meer. Wij lopen wel naar huis.',
   'Hebbe! Op nei Ljouwert!': 'Hebben! Op naar Leeuwarden!',
-  'Moai, Grinzers. Myn neven hebben een koe geleend. Zonder te vragen. Alwer.': 'Mooi, Groningers. Mijn neven hebben een koe geleend. Zonder te vragen. Alweer.',
-  'Ze wilden haar op de keuring in Ljouwert zetten. Als Friese koe. Ik skamje my dea.': 'Ze wilden haar op de keuring in Leeuwarden zetten. Als Friese koe. Ik schaam me dood.',
+  'Moai, Grinzers. Durk en Douwe hebben een koe meegenomen. Zonder te vragen.': 'Mooi, Groningers. Durk en Douwe hebben een koe meegenomen. Zonder te vragen.',
+  'Ze wilden mij toch nog iets laten winnen. De keuring in Ljouwert, met een Grinzer koe. Ik skamje my dea.': 'Ze wilden mij toch nog iets laten winnen. De keuring in Leeuwarden, met een Groninger koe. Ik schaam me dood.',
 };
 
 export const GRO = {
   // the definitive script (docs/verhaal/D-definitief.md)
-  'Dik feest vandaag': 'Geweldig feest vandaag',
   'Groot Loug': 'Een groot dorp',
   'Goidag': 'Goedendag',
-  'Een keudeldoemke': 'Een lieverdje',
   'Hij luustert noar dij, jong': 'Hij luistert naar jou, jongen',
   'Diep in de ogen kieken': 'Diep in de ogen kijken',
   'As \'t nait gait zoas \'t mot, mot \'t mor zoas \'t gait.': 'Als het niet gaat zoals het moet, moet het maar zoals het gaat.',
@@ -207,7 +205,6 @@ export const GRO = {
   'Ken ik ja nait roeken': 'Hoe moet ik dat nou weten',
   'Woist ja wel': 'Je weet het toch',
   'een kloet in de strotte': 'een brok in de keel',
-  'Proeksel, jongens': 'Natte rommel, jongens',
   'Dan komt het goud': 'Dan komt het goed',
   'twijduustern': 'de schemer',
   'Nait tegen d\'Olle Grieze aan': 'Niet tegen de Martinitoren aan',
@@ -244,7 +241,8 @@ export const GRO = {
   // Ome Jan (pg_koe.js)
   'Moi. Geertje is vot. Mien beste kou. Kampioen van t Ommeland, drij joar achter nkander.': 'Hoi. Geertje is weg. Mijn beste koe. Kampioen van het Ommeland, drie jaar achter elkaar.',
   'Twij grote kerels in rooie truien, op ain fiets. Ze proatten zo raar.': 'Twee grote kerels in rode truien, op één fiets. Ze praatten zo raar.',
-  'Ze zitten in de olle schuur, verderop in t laand. Hoal heur weer, den krigst wat van mie.': 'Ze zitten in de oude schuur, verderop in het land. Haal haar terug, dan krijg je wat van mij.',
+  'Gain idee. Ze zitten in de olle schuur, verderop in t laand. Hoal heur weer, den krigst wat van mie.': 'Geen idee. Ze zitten in de oude schuur, verderop in het land. Haal haar terug, dan krijg je wat van mij.',
+  'Maak heur lös en rij heur noar t erf. Ze rent wel mit. Ze is kampioen.': 'Maak haar los en rij haar naar het erf. Ze rent wel mee. Ze is kampioen.',
   'Geertje! Mien wicht! Doar bist weer.': 'Geertje! Mijn meisje! Daar ben je weer.',
   'Hier, veur de muite. En n stukje kees van t erf.': 'Hier, voor de moeite. En een stukje kaas van het erf.',
   'Moi! Hebben jim mien Geertje ook zain?': 'Hoi! Hebben jullie mijn Geertje ook gezien?',

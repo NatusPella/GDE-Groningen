@@ -501,8 +501,8 @@ export function initHome(w) {
   }
   home.dressing = dressingSpots(w.map);
   for (const d of home.dressing) {
-    if (d.kind === 'bench') addStaticCollider('post', d.x, d.y, 0.3, 0.9, d.angle);
-    else if (d.kind === 'hedge') addStaticCollider('post', d.x, d.y, 0.45, d.l / 2, d.angle);
+    if (d.kind === 'bench') addStaticCollider('post', d.x, d.y, 0.3, 0.9, d.angle, false, 0.9);
+    else if (d.kind === 'hedge') addStaticCollider('post', d.x, d.y, 0.45, d.l / 2, d.angle, false, 0.95);
     else addStaticCollider('post', d.x, d.y, d.kind === 'planter' ? 0.7 : d.kind === 'tree' ? 0.3 : 0.15);
   }
   for (const r of home.rack.rails) addStaticCollider('rail', (r.x1 + r.x2) / 2, (r.y1 + r.y2) / 2, 0.06, Math.hypot(r.x2 - r.x1, r.y2 - r.y1) / 2, Math.atan2(r.y2 - r.y1, r.x2 - r.x1));

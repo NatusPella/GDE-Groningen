@@ -500,7 +500,7 @@ function newsLines(w) {
   out.push(say(st.missionsDone ? `De mysterieuze klusjesmannen uit Paddepoel hebben al ${st.missionsDone} klussen op hun naam.` : 'Rustig in Stad. Verdacht rustig.'));
   out.push(say(st.playerWrecks ? `Garages juichen: al ${st.playerWrecks} auto's total loss in de stad.` : 'Opvallend: nog geen auto total loss. Garages maken zich zorgen.'));
   if (eggs.length) out.push(say(found ? `Eierbaljager gesignaleerd: ${found} van de ${eggs.length} verstopte eierballen zijn al weg.` : `Ergens in Stad liggen ${eggs.length} eierballen verstopt. Niemand weet waar.`));
-  if (st.copKnockouts) out.push(say('De politie zoekt nog altijd getuigen. Bellen kan, maar niemand doet het.'));
+  if (st.copKills) out.push(say('De politie zoekt nog altijd getuigen. Bellen kan, maar niemand doet het.'));
   out.push(say(`EIKEA meldt: ${state.owned.size} van de ${TOTAL} meubels bezorgd aan de Pleiadenlaan.`));
   out.push(say('Het weer: kans op regen. In Grunn is dat geen voorspelling maar een belofte.'));
   out.push(say('Dat was het nieuws. Moi!'));

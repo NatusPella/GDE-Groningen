@@ -1444,7 +1444,7 @@ const LEGEND = [
     { kind: 'own', label: 'Jouw voertuigen', note: 'auto, fiets, e-step, boot, heli', layers: ['car'] },
     { kind: 'garage', label: 'Garage en pomp', note: 'repareren, spuiten, opvoeren, wrakken', layers: ['garage'] },
     { kind: 'horeca', label: 'Horeca', layers: ['horeca'] },
-    { kind: 'shop-kleding', label: 'Winkels', note: 'kleding, kapper, krant, super, snacks', layers: ['shops'] },
+    { kind: 'shop-kleding', label: 'Winkels', note: 'kleding, kapper, loten, krant, super, snacks', layers: ['shops'] },
     { kind: 'shop-fietsen', label: 'Voertuigwinkels', note: 'fietsen, auto\'s, tuning, boten, heli\'s', layers: ['shopsVoertuigen'] },
     { kind: 'shop-wapens', label: 'Wapens & pandjeshuis', layers: ['shopsWapens'] },
     { kind: 'station', label: 'Treinstation', note: 'reizen met de trein', layers: ['trein'] },

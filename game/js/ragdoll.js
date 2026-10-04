@@ -166,9 +166,8 @@ export function driveRagdoll(actor, mesh, world, dt) {
     }
     if (!rd.dead && dt > 0) {
       if (rd.wet[HL] && actor === player && rd.simT > 0.6) { finish(actor, rd, mesh, true); return false; }
-      // in the water nobody stays down: they come up and swim (the companion)
-      // or scramble out onto the quay (pedestrians.js)
-      if (rd.wet[HL] && actor !== player && rd.simT > 0.6) { finish(actor, rd, mesh, true); return false; }
+      if (rd.wet[HL] && actor !== player && actor !== world.companion) rd.dead = true;
+      if (rd.wet[HL] && actor === world.companion && rd.simT > 0.6) { finish(actor, rd, mesh, true); return false; }
       if ((rd.sleeping || rd.downT > 4) && rd.downT >= rd.lieFor) beginGetUp(rd);
     }
   }
@@ -758,7 +757,7 @@ export function syncBikeRider(mesh, v, time) {
   if (v.driver === 'player' && v.riderOff) v.riderOff = false;
   const down = !!v.riderOff;
   // a bike standing parked (taken from the clutter, or left by the player) has nobody on it
-  if (ud.riderFig) ud.riderFig.visible = !down && (!!v.driver || !!v.road || !!v.sinking || (v.isPolice && !v.hijacked));
+  if (ud.riderFig) ud.riderFig.visible = !down && (!!v.driver || !!v.road || !!v.countryDrive || !!v.sinking || (v.isPolice && !v.hijacked));
   if (down) {
     const k = smooth(Math.min(1, (time - (v.riderOffAt || 0)) / 0.45));
     mesh.rotation.order = 'YXZ';
