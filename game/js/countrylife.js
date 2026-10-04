@@ -150,7 +150,7 @@ function roadPos(a, lateral = LANE) {
 
 function makeTraffic(type, R) {
   const g = new THREE.Group();
-  let vmax, radius;
+  let vmax;
   if (type === 'tractor') {
     const col = [0x3f7d3a, 0xb8322a, 0x2f5fa8, 0x3f7d3a][Math.floor(R() * 4)];
     g.add(new THREE.Mesh(cachedGeo('tb', tractorBodyGeometry), tinted(col)));
@@ -160,20 +160,23 @@ function makeTraffic(type, R) {
       const tbb = new THREE.Mesh(cachedGeo('trba', trailerBaseGeometry), MAT);
       for (const m of [tb, tbb]) { m.position.x = -6.4; g.add(m); }
     }
-    vmax = 6 + R() * 3; radius = 1.8;
+    vmax = 6 + R() * 3;
   } else if (type === 'car') {
     g.add(new THREE.Mesh(cachedGeo('car', carGeometry), tinted([0xd8d8d4, 0x2a2a2e, 0x8a1e1e, 0x2a4a7a, 0x9aa0a4][Math.floor(R() * 5)])));
-    vmax = 13 + R() * 5; radius = 1.6;
+    vmax = 13 + R() * 5;
   } else {
     g.add(new THREE.Mesh(cachedGeo('cyc', cyclistGeometry), tinted([0xd6b43a, 0xb8322a, 0x3a7a4a, 0x2a4a7a, 0xe8e6e0][Math.floor(R() * 5)])));
-    vmax = 4 + R() * 1.8; radius = 0.6;
+    vmax = 4 + R() * 1.8;
   }
   g.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+  // the body as a box in its own frame (+x ahead): back, front, half width
+  const bb = new THREE.Box3().setFromObject(g);
+  const body = [bb.min.x, bb.max.x, Math.max(-bb.min.z, bb.max.z)];
   // headlights (one additive mesh, hidden by day with the glow material)
   const hl = new THREE.Mesh(cachedGeo('hl' + type, () => (type === 'car' ? headlightGeometry(2.08, 0.66, 0.55, 18) : type === 'tractor' ? headlightGeometry(2.12, 1.15, 0.4, 12) : headlightGeometry(0.75, 0.85, 0, 7))), glowMaterial());
   hl.renderOrder = 2;
   g.add(hl);
-  return { g, vmax, radius };
+  return { g, vmax, body };
 }
 
 function spawnTraffic(px, py, dist) {
@@ -313,7 +316,7 @@ function stepRealTraffic(a, dt, world) {
   const rx = ox - wx, ry = oy - wy;
   const ahead = rx * hx + ry * hy, side = Math.abs(-rx * hy + ry * hx);
   let want = a.vmax;
-  if (ahead > 0 && ahead < 18 && side < 2.6) want = ahead < 6 ? 0 : a.vmax * (ahead - 6) / 12;
+  if (ahead > 0 && ahead < 18 && side < laneClear(a, v)) want = ahead < 6 ? 0 : a.vmax * (ahead - 6) / 12;
   a.speed += (want - a.speed) * Math.min(1, dt * (want < a.speed ? 3 : 0.8));
   let step = a.speed * dt;
   for (let guard = 0; guard < 8 && step > 0; guard++) {
@@ -329,14 +332,7 @@ function stepRealTraffic(a, dt, world) {
     break;
   }
   const [nx, ny] = realPos(a);
-  const d = Math.hypot(ox - nx, oy - ny);
-  const pr = v ? 1.8 : 0.4;
-  if (d < a.radius + pr && d > 1e-3 && !(v && v.isHeli && !v.onGround)) {
-    const push = (a.radius + pr - d) / d;
-    if (v) { v.x += (ox - nx) * push; v.y += (oy - ny) * push; v.speed *= 0.5; }
-    else if (!world.pigeonMode) { p.x += (ox - nx) * push; p.y += (oy - ny) * push; }
-    a.speed = 0;
-  }
+  bodyContact(a, nx, ny, world);
 }
 
 function stepTraffic(a, dt, world) {
@@ -350,7 +346,7 @@ function stepTraffic(a, dt, world) {
   const rx = ox - wx, ry = oy - wy;
   const ahead = rx * hx + ry * hy, side = Math.abs(-rx * hy + ry * hx);
   let want = a.vmax;
-  if (ahead > 0 && ahead < 16 && side < 2.6) want = ahead < 6 ? 0 : a.vmax * (ahead - 6) / 10;
+  if (ahead > 0 && ahead < 16 && side < laneClear(a, v)) want = ahead < 6 ? 0 : a.vmax * (ahead - 6) / 10;
   a.speed += (want - a.speed) * Math.min(1, dt * (want < a.speed ? 3 : 0.8));
   const step = a.dir * a.speed * dt;
   const look = a.c + a.dir * 7;
@@ -385,14 +381,43 @@ function stepTraffic(a, dt, world) {
   }
   // shove the player aside rather than drive through them
   const [nx, ny] = roadPos(a);
-  const d = Math.hypot(ox - nx, oy - ny);
-  const pr = v ? 1.8 : 0.4;
-  if (d < a.radius + pr && d > 1e-3 && !(v && v.isHeli && !v.onGround)) {
-    const push = (a.radius + pr - d) / d;
-    if (v) { v.x += (ox - nx) * push; v.y += (oy - ny) * push; v.speed *= 0.5; }
-    else if (!world.pigeonMode) { p.x += (ox - nx) * push; p.y += (oy - ny) * push; }
-    a.speed = 0;
+  bodyContact(a, nx, ny, world);
+}
+
+// How far to the side the player may be ahead of a before it brakes:
+// someone in the other lane is let past.
+const laneClear = (a, v) => a.body[2] + (v ? v.halfWid || 0.9 : 0.4) + 0.5;
+
+// Shoves the player (or the vehicle they are in) out of road user a's body
+// box at (x, y), heading a.yaw as drawn: box against box like city traffic,
+// so passing close by in the other lane is free.
+function bodyContact(a, x, y, world) {
+  const p = world.player, v = p.inVehicle;
+  if ((v && v.isHeli && !v.onGround) || (!v && world.pigeonMode)) return;
+  const ox = v ? v.x : p.x, oy = v ? v.y : p.y;
+  const c = Math.cos(a.yaw), s = Math.sin(a.yaw);
+  const dx = ox - x, dy = oy - y;
+  const lu = dx * c + dy * s, lv = -dx * s + dy * c;
+  const [back, front, hw] = a.body;
+  let eu = lu - Math.max(back, Math.min(front, lu)), ev = lv - Math.max(-hw, Math.min(hw, lv));
+  let d = Math.hypot(eu, ev);
+  if (d < 1e-3) {
+    // centre inside the box: out through the nearest side
+    const o = [[lu - back, -1, 0], [front - lu, 1, 0], [hw - lv, 0, 1], [lv + hw, 0, -1]].sort((m, n) => m[0] - n[0])[0];
+    eu = o[1]; ev = o[2]; d = -o[0];
+  } else { eu /= d; ev /= d; }
+  // the other body's reach along that direction
+  const wx = eu * c - ev * s, wy = eu * s + ev * c;
+  let reach = 0.4;
+  if (v) {
+    const vc = Math.cos(v.angle), vs = Math.sin(v.angle);
+    reach = Math.abs(wx * vc + wy * vs) * (v.halfLen || 2) + Math.abs(-wx * vs + wy * vc) * (v.halfWid || 0.9);
   }
+  const pen = reach + 0.05 - d;
+  if (pen <= 0) return;
+  if (v) { v.x += wx * pen; v.y += wy * pen; v.speed *= 0.5; }
+  else { p.x += wx * pen; p.y += wy * pen; }
+  a.speed = 0;
 }
 
 function placeTraffic(a, dt) {

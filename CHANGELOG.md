@@ -10,6 +10,9 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **Geen bomen, heggen, hekken en riet meer op de wegen in het Ommeland.**
   Alles in het buitengebied blijft nu van de weg, de berm, fietspaden en
   opritten af; ook de bomenrijen in de verte stoppen waar een weg ze kruist.
+- **Je kunt in het Ommeland weer rakelings langs tegenliggers rijden.** Auto's,
+  trekkers en fietsers daar botsten al op meer dan een meter naast hun
+  carrosserie; nu tellen ze, net als in de stad, alleen nog hun echte vorm.
 
 ## [0.26.1] - 2026-10-04
 
