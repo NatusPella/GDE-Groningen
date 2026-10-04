@@ -1,5 +1,5 @@
 // Sails the Skûtsje-sprint (game/js/pg_skutsje.js) headless: the player's
-// skûtsje on the real boat physics (as player.js drives it) against Jelle's
+// skûtsje on the real boat physics (drivePlayerBoat, as player.js drives it) against Jelle's
 // scripted boat, for several wind directions. A helmsman on the route line
 // with the ideal trim must beat Jelle clearly; a sloppy one (trim 25 degrees
 // off, weaving) must still lose. Also checks that a skûtsje and a sloep keep
@@ -9,8 +9,8 @@ import './node3d.mjs';
 import fs from 'node:fs';
 
 const { GameMap, applyMapExtras } = await import('../game/js/mapdata.js');
-const { Vehicle, resolveVehicleBuildingCollision } = await import('../game/js/vehicle.js');
-const { keepBoatOffShore, normalizeAngle, clamp } = await import('../game/js/util.js');
+const { Vehicle, drivePlayerBoat } = await import('../game/js/vehicle.js');
+const { normalizeAngle, clamp } = await import('../game/js/util.js');
 const { BOAT_KINDS } = await import('../game/js/boattypes.js');
 const { routeAt, prepareDiepenringRoute, diepenringProgress } = await import('../game/js/rondvaartchase.js');
 const { sailPolar, idealTrim, sailSpeed, jelleSpeed } = await import('../game/js/pg_skutsje.js');
@@ -70,10 +70,7 @@ function race(model, { wind = 0.4, trimErr = 0, weave = 0, sail = true } = {}) {
     const g = routeAt(ps + 16);
     const want = Math.atan2(g.y - v.y, g.x - v.x) + weave * Math.sin(t * 0.7);
     const steer = clamp(normalizeAngle(want - v.angle) * 2.2 * steerSign, -1, 1);
-    const px = v.x, py = v.y, pa = v.angle;
-    v.applyControls(DT, 1, steer, false);
-    resolveVehicleBuildingCollision(v, map, DT);
-    if (!keepBoatOffShore(map, v, px, py, pa)) { v.speed *= -0.25; v.driftX = 0; v.driftY = 0; bumps++; }
+    if (!drivePlayerBoat(v, map, DT, 1, steer, false)) bumps++;
     // Jelle, as placeJelle
     const q = routeAt(js);
     jv.x = q.x; jv.y = q.y; jv.angle = q.a;

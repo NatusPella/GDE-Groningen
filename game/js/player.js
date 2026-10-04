@@ -1,6 +1,6 @@
-import { closestPointOnSegment, normalizeAngle, pointInPolygon, isInWater, inWaterPoly, WATER_Y, clamp, keepBoatOffShore } from './util.js';
+import { closestPointOnSegment, normalizeAngle, pointInPolygon, isInWater, inWaterPoly, WATER_Y, clamp } from './util.js';
 import { waterClearance, pushOutOfWaterObstacles, insideWaterObstacle } from './waterindex.js';
-import { findEnterableVehicle, distToVehicleBody, resolveBoomCollisions, resolveVehicleBuildingCollision, pushCircleOutOfVehicle, reportImpact, tickSinkingVehicles } from './vehicle.js';
+import { findEnterableVehicle, distToVehicleBody, resolveBoomCollisions, resolveVehicleBuildingCollision, drivePlayerBoat, pushCircleOutOfVehicle, reportImpact, tickSinkingVehicles } from './vehicle.js';
 import { findRideableProp, rideProp } from './rideprops.js';
 import { playAutoGejatLine } from './audio.js';
 import { requestRespawn } from './world.js';
@@ -646,7 +646,6 @@ export class Player {
     v.handbrake = brake;
     v.throttle = throttle;
     v.horn = input.isDown('h') && !v.disabled;
-    const px = v.x, py = v.y, pa = v.angle;
     v.gripK = world && !v.isBoat ? roadGrip(world, v.x, v.y, v.surface) * MODS.grip : 1;
     // bikes: Shift gives a short sprint, then a breather before the next one
     if (v.isBike) {
@@ -657,22 +656,16 @@ export class Player {
         v.sprintRest = BIKE_SPRINT_S + BIKE_SPRINT_REST_S;
       }
     }
-    const n = Math.min(4, Math.max(1, Math.ceil(Math.abs(v.speed) * dt / SUBSTEP)));
-    for (let i = 0; i < n; i++) {
-      v.applyControls(dt / n, throttle, world ? Math.max(-1, Math.min(1, ax + drunkSteer(world, v))) : ax, brake && v.speed !== 0);
-      resolveVehicleBuildingCollision(v, map, dt / n);
-    }
-    if (world) resolveBoomCollisions(v, world);
-    if (v.isBoat) {
-      // boats stay on the water: bow, stern, both beams and the centre. A move
-      // is only refused when it puts MORE of the hull on land - a boat that
-      // already touches a quay (or spawned against one) can still turn and
-      // sail off instead of being frozen in place.
-      if (!keepBoatOffShore(map, v, px, py, pa)) {
-        v.speed *= -0.25;
-        v.driftX = 0; v.driftY = 0;
+    const steerIn = world ? Math.max(-1, Math.min(1, ax + drunkSteer(world, v))) : ax;
+    if (v.isBoat) drivePlayerBoat(v, map, dt, throttle, steerIn, brake && v.speed !== 0);
+    else {
+      const n = Math.min(4, Math.max(1, Math.ceil(Math.abs(v.speed) * dt / SUBSTEP)));
+      for (let i = 0; i < n; i++) {
+        v.applyControls(dt / n, throttle, steerIn, brake && v.speed !== 0);
+        resolveVehicleBuildingCollision(v, map, dt / n);
       }
     }
+    if (world) resolveBoomCollisions(v, world);
     this.x = v.x;
     this.y = v.y;
     this.angle = v.angle;
