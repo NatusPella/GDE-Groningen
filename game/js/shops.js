@@ -30,7 +30,7 @@ export const SHOP_TYPES = {
   pand: { color: '#7d6a3a', label: 'Pandjeshuis', chain: 'Pand & Poen', tagline: 'Wij kopen alles. Echt alles.', group: 'shopsWapens' },
   kleding: { color: '#7a4fb0', label: 'Kledingwinkel', chain: 'Stoer & Stads', tagline: 'Kleding voor de Stadjer met smaak', group: 'shops' },
   kapper: { color: '#23948a', label: 'Kapper', chain: 'Knip & Kuif', tagline: 'Kapsalon, ook zonder afspraak', group: 'shops' },
-  tabak: { color: '#c23f78', label: 'Krant & snoep', chain: 'Krant & Kauwgom', tagline: 'Kranten, snoep, een spaarkaart en een eierbal uit de muur', group: 'shops' },
+  tabak: { color: '#c23f78', label: 'Tabak & loterij', chain: 'Rook & Geluk', tagline: 'Kraskaarten, loten, een spaarkaart en een eierbal uit de muur', group: 'shops' },
   super: { color: '#3b8f3b', label: 'Avondwinkel', chain: 'Nait Duur', tagline: 'Open tot laat, goedkoop tot op de cent', group: 'shops' },
   snack: { color: '#d0652a', label: 'Snackbar', chain: 'Frituur Vet & Lekker', tagline: 'Vers uit het vet, met of zonder', group: 'shops' },
   fietsen: { color: '#2f6fb8', label: 'Fietsenwinkel', chain: 'Trap & Toeter', tagline: 'Fietsen, bakfietsen, e-steps en brommers', group: 'shopsVoertuigen' },
@@ -253,7 +253,7 @@ const state = {
   heroUpgrades: [],
   rental: null,
   lastStealthAt: -Infinity,
-  stamps: 0, // spaarkaart at Krant & Kauwgom
+  stamps: 0, // spaarkaart at Rook & Geluk
 };
 let baseLook = null;
 let idSeq = 0;
@@ -1159,6 +1159,9 @@ function vehicleSections(world, type, shop) {
   return sections;
 }
 
+const SCRATCH = [[0.002, 500], [0.018, 50], [0.08, 15], [0.2, 5]];
+const LOTTERY = [[0.004, 2500], [0.05, 200]];
+const SCRATCH_SMALL = [[0.01, 150], [0.06, 10], [0.2, 2]];
 const HEADLINES = [
   'Martinitoren staat nog steeds scheef, zegt niemand',
   'Duif steelt eierbal op de Vismarkt, dader voortvoluchtig',
@@ -1170,8 +1173,17 @@ const HEADLINES = [
   'Eierbal uitgeroepen tot werelderfgoed, Drenthe protesteert',
 ];
 
-// Spaarkaart: every purchase at Krant & Kauwgom earns a stamp, a full card
-// is traded in for a fixed prize. No stake and no chance.
+function draw(table) {
+  let r = Math.random();
+  for (const [p, prize] of table) {
+    if (r < p) return prize;
+    r -= p;
+  }
+  return 0;
+}
+
+// Spaarkaart: every purchase at Rook & Geluk except the scratch cards and
+// lottery tickets earns a stamp, a full card is traded in for a fixed prize.
 const STAMP_CARD = 10;
 const STAMP_PRIZE = 10;
 
@@ -1208,6 +1220,17 @@ function stampCardItem(world) {
 }
 
 function tabakSections(world) {
+  const gamble = (id, label, desc, price, table, big, look) => ({
+    id, label, desc, price, disabled: broke(world, price), keepFocus: true,
+    preview: productPreview(id), effect: `Hoofdprijs €${big}`, reveal: look,
+    buy() {
+      if (!pay(world, price)) return null;
+      const prize = draw(table);
+      world.money += prize;
+      if (!prize) return { text: 'Niks. Volgende keer beter, jong', tone: 'lose', prize };
+      return { text: prize >= big ? `JACKPOT! €${prize} gewonnen!` : `Joa! €${prize} gewonnen`, tone: prize >= big ? 'jackpot' : 'win', prize };
+    },
+  });
   const snack = (id, label, desc, price, hp) => foodItem(world, id, label, desc, price, hp, id, () => `${label} naar binnen gewerkt`);
   const paper = {
     id: 'krant', preview: productPreview('krant'), label: 'Grunneger Kwebbelkrant', desc: 'De krant van vandaag, met de kop van de dag', price: 2, keepFocus: true,
@@ -1234,6 +1257,11 @@ function tabakSections(world) {
     },
   };
   return [
+    { title: 'Geluk', items: [
+      gamble('scratch', 'Kraskaart "Grunneger Gokje"', 'Krassen maar! Hoofdprijs €500', 5, SCRATCH, 500, { title: 'GRUNNEGER GOKJE', bg: '#c23f78' }),
+      gamble('lot', 'Stadsloterij-lot', 'Trekking meteen. Hoofdprijs €2500', 25, LOTTERY, 2500, { title: 'STADSLOTERIJ', bg: '#b8902a' }),
+      gamble('duif', 'Duivenkraslot', 'Kras de duif vrij. Hoofdprijs €150', 2, SCRATCH_SMALL, 150, { title: 'DUIVENKRASLOT', bg: '#4a6a8a' }),
+    ] },
     { title: 'Lezen & sturen', items: [paper, strip, card].map(stamped) },
     { title: 'Snoep & snacks', items: [
       snack('eierbal', 'Eierbal', 'Warm uit de automaat naast de deur', 6, 10),
