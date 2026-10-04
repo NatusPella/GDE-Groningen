@@ -22,6 +22,7 @@ import { buildWildlifeMesh3D, wildlifeShadowSize, animateWildlifeMesh3D } from '
 import { buildMissionMarker3D, updateMissionMarker3D, buildWaypointDotMesh3D } from './missions.js';
 import { syncTrafficLights3D, setTrafficLightGlow } from './trafficlights.js';
 import { getCombatEffect, isRangedWeapon } from './combat.js';
+import { scopeEye } from './scopeaim.js';
 import { alignPlayerFlash } from './gunfx3d.js';
 import { sharedWaterMaterial, updateWaterMaterial, buildWaterGeometry, waterSwellAt, waterSwellAmp } from './water3d.js';
 import { cityShoreFix } from './countrywater.js';
@@ -73,6 +74,7 @@ import { probe } from './hitchprobe.js';
 import { speakBubble } from './linevoice.js';
 import { applyDrunkCamera } from './drunk.js';
 import { GROUND_LAYER, SIDEWALK_EXTRA, PAVED_MATS, buildRoadGroup, setRoadNetwork, getRoadQualityVersion, roadFarColor, roadGeometryReady } from './roadsurface.js';
+import { lookBackActive, chaseFollowLerp } from './controls.js';
 
 // A genuine WebGL 3D view of the exact same world state the 2D canvas game
 // draws - same x/y meters, same b.h building heights, same vehicle/pedestrian
@@ -2327,7 +2329,7 @@ export function update3D(dt, world) {
   let camAngle;
   // hold Q / middle mouse in a vehicle: GTA-style look back, a hard cut
   // (world.noLookBack: a minigame has Q for itself, the skûtsje's sail trim)
-  const lookBack = !!camVeh && !world.cameraOverride && ((world.input.isDown('q') && !world.noLookBack) || !!mouse.middleDown);
+  const lookBack = lookBackActive({ inVehicle: !!camVeh, override: !!world.cameraOverride, noLookBack: world.noLookBack, qDown: world.input.isDown('q'), middleDown: mouse.middleDown });
   const lookBackCut = lookBack !== lookBackWas;
   lookBackWas = lookBack;
   if (camVeh) {
@@ -2446,7 +2448,7 @@ export function update3D(dt, world) {
   const teleported = lastPx !== null && Math.hypot(player.x - lastPx, player.y - lastPy) > 15;
   if (teleported) camPullReset = true;
   if (lookBackCut) camPullReset = true;
-  const lerpT = teleported || lookBackCut ? 1 : Math.min(1, dt * 6);
+  const lerpT = chaseFollowLerp(dt, { cut: teleported || lookBackCut, lookBack });
   if (!camBaseInit) { camBase.copy(cam.position); camBaseInit = true; }
   camBase.x += (desiredX - camBase.x) * lerpT;
   camBase.y += (desiredY - camBase.y) * lerpT;
@@ -2470,12 +2472,14 @@ export function update3D(dt, world) {
   scopeBlend += ((world.scoped && !veh ? 1 : 0) - scopeBlend) * Math.min(1, dt * 14);
   if (scopeBlend < 0.01) scopeBlend = 0;
   if (scopeBlend > 0) {
-    // eye just in front of the face, looking level (the bullets fly level too)
+    // eye just in front of the face, looking level: the scoped bullet starts
+    // here and flies level along the same heading (scopeaim.js)
     const yaw = world.camYaw ?? player.angle, cy = Math.cos(yaw), sy = Math.sin(yaw);
-    const ex = player.x + cy * 0.35, ey = baseH + 1.5, ez = player.y + sy * 0.35;
+    const eye = scopeEye(player, yaw, baseH);
+    const ex = eye.x, ey = eye.z, ez = eye.y;
     cam.position.set(cam.position.x + (ex - cam.position.x) * scopeBlend, cam.position.y + (ey - cam.position.y) * scopeBlend, cam.position.z + (ez - cam.position.z) * scopeBlend);
     const k = scopeBlend;
-    lookX += (ex + cy * 40 - lookX) * k; lookY += (ey - 0.15 - lookY) * k; lookZ += (ez + sy * 40 - lookZ) * k;
+    lookX += (ex + cy * 40 - lookX) * k; lookY += (ey - lookY) * k; lookZ += (ez + sy * 40 - lookZ) * k;
   }
   applyCameraOverride(dt, world, lookX, lookY, lookZ);
 

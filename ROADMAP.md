@@ -199,6 +199,27 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
 - [ ] Naspelen: valt de dozenstapel op het dak van een busje goed uit? Hij is nu afgestemd op de Escapade.
 - [ ] Naluisteren: Henks telefoontje klinkt nu als een gewone stem, zonder telefoonfilter.
 
+**Aftiteling aan het eind** (`claude/aftiteling`)
+- [x] De aftiteling, het logo en "Einde" spelen pas als alle 18 missies gehaald zijn en alle uitdagingen na het verhaal gedaan zijn (`ending.js`, eenmalig via de verhaalvlag `credits`). Overzicht en Te doen tellen af, daarna staat "Aftiteling bekijken" onder Overzicht. `node scripts/ending_test.mjs` test de check.
+
+**Missies en voertuigen** (`claude/missie-voertuigen`)
+- [x] H9 alleen in een snelle auto (sportwagen of 200 km/u, de Escapade na tuning); r-tuning wijst naar Knal & Kolder of een sportwagen; een zin van de ander bij het verkeerde voertuig.
+- [x] H5 op een gewone fiets, H13 in de rondvaartboot. De duivenmissies en het skûtsje hadden hun voertuigcheck al.
+- [x] Geleende voertuigen terug: Berend rijdt weg (H1), de decorauto (H7) en de tankwagen (H8) blijven staan, de rondvaartboot blijft aan de kade (H13). Daarna wijst de route eerst naar je eigen vervoer.
+- [x] Vuurwerk, de jachtgeweer en vuisten weer hoorbaar; het jachtgeweer raakt onder het kruisje (`scripts/weapon_audio_test.mjs`).
+- [ ] Nalopen in een speeltest: H9 met de opgevoerde Escapade winnen, Berend die wegrijdt, het geluid van vuurwerk in H18.
+
+## Streken (cheats), `claude/cheats`
+
+- [x] Pauzemenu › Streken: acties (teleport via de kaart, Voertuig hier met een keuzelijst, Geld uit de muur) en schakelaars in de stijl van Instellingen; ??? met een hint voor wat op slot zit; een kaartje bij een nieuwe streek.
+- [x] 21 streken: 8 vanaf het begin, 8 uit het verhaal (k-fiets, H3 t/m H8, r-tuning), 3 uit prestaties, 2 na het verhaal (`cheatlist.js`).
+- [x] Gameplay-streken wachten tijdens missies, filmpjes, uitdagingen, bijbaantjes en minigames; de uiterlijk-streken blijven aan.
+- [x] Prestaties en totalen staan stil zolang een gameplay-streek aan staat, en na Geld uit de muur tot een save geladen wordt. Teleport en Voertuig hier tellen niet.
+- [x] Per save (`streken`, save v4 geeft een oude save wat het verhaal al vrijspeelde) en voor altijd (lifetime set `streken`).
+- [x] Kaart: zoomen zonder flikkeren (laatste complete beeld eronder, zichtbare tegels nooit weggegooid).
+- [ ] Meer streken die een eigen 3D-aanpassing nodig hebben: Mini-me, Kleine mensjes, Reuzenduif, Disco-zwaailicht, Alles is een kliko, Alleen trekkers, Altijd groen, Spiegelstad, Jelle's trekker-limo spawnen.
+- [ ] Fietsenstad en Zondagochtend laten het verkeer dat er al rijdt uitsterven in plaats van het meteen weg te halen. Naspelen of dat snel genoeg voelt.
+
 ## Juridisch en publiceren (vóór 1.0)
 
 - [x] **Nieuwe naam, besloten op 3 okt.** De titel is **GDE Groningen – Zomer vol misdaad**, met *Grootste Diefstal Ever* als betekenis van GDE (`claude/gde-naam`).
