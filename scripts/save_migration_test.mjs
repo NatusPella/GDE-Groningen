@@ -131,8 +131,8 @@ for (const [id, want] of [['gmusic', 'on'], ['nachtstreek', 'on'], ['grunn', 'on
 // the blood-and-limbs switch is back, on by default (settings.js)
 ok(/\n\s+gore: true,/.test(src('settings.js')), 'settings.js has gore on by default');
 for (const [g, want] of [[true, true], [false, false], ['ja', undefined]]) {
-  const m = migrateSettings({ v: 6, gore: g });
-  ok(m && m.data.gore === want, `settings v6 gore ${JSON.stringify(g)} becomes ${want}`, m && m.data.gore);
+  const m = migrateSettings({ v: 7, gore: g });
+  ok(m && m.data.gore === want, `settings v7 gore ${JSON.stringify(g)} becomes ${want}`, m && m.data.gore);
 }
 
 console.log(`${n - fails}/${n} checks passed over ${files.length} fixtures`);

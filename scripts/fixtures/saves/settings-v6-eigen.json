@@ -1,0 +1,5 @@
+{
+  "_era": "settings v6 (0.26): Hoog with 85% resolution (Eigen), view distance 'ver' kept",
+  "_expect": { "drawDistance": "ver", "quality": "hoog", "resolution": 0.85 },
+  "settings": { "v": 6, "quality": "hoog", "shadows": true, "drawDistance": "ver", "resolution": 0.85, "autoResolution": true }
+}

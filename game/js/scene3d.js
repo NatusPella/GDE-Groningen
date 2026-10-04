@@ -46,6 +46,7 @@ import { pointInPolygon, polygonBounds, WATER_Y } from './util.js';
 import { preloadLandmarkModels, onLandmarkModelLoaded } from './landmarkmodels.js';
 import { onSettingsChange, getSettings, QUALITY_PRESETS } from './settings.js';
 import { dynamicScale, cpuLevel } from './gfxprofile.js';
+import { VIEW_DISTANCES, viewDistanceFor } from './viewdist.js';
 import { buildingBatcher, roadBatcher, facadeBatcher } from './staticbatch3d.js';
 import { simLevel } from './simload.js';
 import { beginWheels, addVehicleWheels, endWheels } from './wheelinstances3d.js';
@@ -67,7 +68,7 @@ import { createFarLOD } from './farlod.js';
 import { initRailway3D, updateRailway3D } from './railway3d.js';
 import { buildCanopies } from './canopies3d.js';
 import { initGrass, updateGrass, grassFarColor, grassFarRank } from './grass.js';
-import { updateCountryside } from './countryside.js';
+import { updateCountryside, setCountryPropLevel } from './countryside.js';
 import { setCountryNight, setCountryFacadeLevel } from './countrybuilding.js';
 import { updateCountryBake } from './countrybake.js';
 import { edgeDistance, setCountryBounds } from './countryfield.js';
@@ -105,7 +106,6 @@ const DRAW_DIST = 140;
 // read as "the canal sits below street level" from a close-up 3rd person
 // camera; pushed meaningfully lower instead (WATER_Y in util.js).
 const TREE_DIST = 130;
-const VIEW_DISTANCES = { kort: 150, normaal: 350, ver: 600 };
 let viewDist = VIEW_DISTANCES.normaal;
 let farLod = null;
 const landmarkBuildings = [];
@@ -675,7 +675,7 @@ function hasAiDriver(v) {
   if (v.wrecked || v.parked || v.driver === 'player' || v.castDriver) return false;
   if (v.driver) return true;
   if (v.isPolice) return !v.hijacked && !v.disabled && !v._roadblock;
-  return !!(v.road || v.racer);
+  return !!(v.road || v.racer || v.countryDrive);
 }
 
 function ensureDriverFigure(mesh, v, dist, deadline) {
@@ -930,19 +930,25 @@ function applyViewSettings(st) {
   resize3D();
   setNightLightQuality(level);
   setCountryFacadeLevel(level);
+  setCountryPropLevel(level);
   facadeQualityDist = FACADE_DETAIL_DIST[level] || Infinity;
   facadeDetailDist = Math.min(facadeQualityDist, CPU_FACADE_DIST[cpuLevel()]);
   if (postfx.level !== level) postfx.setLevel(level);
   const shadows = st.shadows && preset.shadows;
   if (sun.castShadow !== shadows) { sun.castShadow = shadows; renderer.shadowMap.needsUpdate = true; }
   applyShadowLevel(level);
-  viewDist = VIEW_DISTANCES[st.drawDistance] || VIEW_DISTANCES.normaal;
-  cam.far = Math.max(DRAW_DIST * 1.4, viewDist * 1.4, landmarkDist() * 1.1);
-  lightBase.fogNear = DRAW_DIST * 0.45 + (viewDist - 150) * 0.25;
-  lightBase.fogFar = viewDist * 1.02;
+  applyViewDistance(st);
   cam.fov = baseFov = st.fov;
   cam.updateProjectionMatrix();
   orbitRadius = ORBIT_RADIUS * st.cameraDistance;
+}
+
+// view distance, camera far plane and fog; 'heel ver' follows adaptive quality
+function applyViewDistance(st) {
+  viewDist = viewDistanceFor(st.drawDistance, dynamicScale(), cpuLevel());
+  cam.far = Math.max(DRAW_DIST * 1.4, viewDist * 1.4, landmarkDist() * 1.1);
+  lightBase.fogNear = DRAW_DIST * 0.45 + (viewDist - 150) * 0.25;
+  lightBase.fogFar = viewDist * 1.02;
 }
 
 function renderPixelRatio(st, preset) {
@@ -955,6 +961,9 @@ export function refreshRenderScale() {
   const st = getSettings();
   const ratio = renderPixelRatio(st, QUALITY_PRESETS[st.quality] || QUALITY_PRESETS.hoog);
   facadeDetailDist = Math.min(facadeQualityDist, CPU_FACADE_DIST[cpuLevel()]);
+  const wasView = viewDist;
+  applyViewDistance(st);
+  if (viewDist !== wasView) { cam.updateProjectionMatrix(); noteGfxEvent(`zichtafstand ${wasView}->${viewDist} m`); }
   if (ratio === wantRatio) return;
   noteGfxEvent(`renderschaal ${wantRatio.toFixed(2)}->${ratio.toFixed(2)}`);
   wantRatio = ratio;

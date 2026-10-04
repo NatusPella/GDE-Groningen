@@ -15,7 +15,7 @@ import { normalizeRadio } from './musicpick.js';
 import { cheatUnlocksFromSave } from './cheatlist.js';
 
 export const SAVE_VERSION = 5;
-export const SETTINGS_VERSION = 7;
+export const SETTINGS_VERSION = 8;
 
 const isObj = (o) => !!o && typeof o === 'object' && !Array.isArray(o);
 
@@ -118,9 +118,12 @@ export const SETTINGS_MIGRATIONS = {
   4(s) { delete s.gore; return s; },
   // 6: rebindable keys and buttons; settings.js checks the tables themselves
   5(s) { return s; },
-  // 7: the blood-and-limbs switch is back (18+); a file without it gets the
+  // 7: 'heelver' (Hoog). The old Hoog preset is also the default, so a file
+  // matching it keeps 'ver': it cannot tell a chosen Hoog from untouched
+  6(s) { return s; },
+  // 8: the blood-and-limbs switch is back (18+); a file without it gets the
   // default (on), anything that is not a boolean is dropped
-  6(s) { if ('gore' in s && typeof s.gore !== 'boolean') delete s.gore; return s; },
+  7(s) { if ('gore' in s && typeof s.gore !== 'boolean') delete s.gore; return s; },
 };
 
 // Settings files before v2 had no `v`.
