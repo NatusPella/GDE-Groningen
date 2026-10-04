@@ -1659,6 +1659,7 @@ const GMUSIC_ARTISTS = {
   'Kleur in de Wind': 'Windkracht Wiebke',
   'Geen stoplicht houdt ons tegen': 'Ringweg Drillers',
   'Goud in de Nacht': 'Nachtbus Nino',
+  'Hatchback op de Ring': 'De Uitlaatjes',
 };
 // file names can't carry every character of a title
 const GMUSIC_TITLES = {
