@@ -1,6 +1,6 @@
-**Eigen code en content:** © 2026 NatusPella. Alle rechten voorbehouden; er is (nog) geen licentie verleend. Hieronder staan alleen de verplichte vermeldingen voor gebruikt werk van anderen.
-
 # NOTICE — GDE Groningen – Zomer vol misdaad
+
+**Eigen code en content:** © 2026 NatusPella. Alle rechten voorbehouden; er is (nog) geen licentie verleend. Hieronder staan alleen de verplichte vermeldingen voor gebruikt werk van anderen.
 
 GDE Groningen (tot 0.24: GTE VI) is een gratis, niet-commercieel
 fanproject. **GDE is een fanparodie op GTA, niet gelieerd aan of
