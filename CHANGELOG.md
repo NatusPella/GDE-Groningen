@@ -29,6 +29,12 @@ nieuwe functies, `y` voor alleen bugfixes.
   zet hij je auto in de berm van de dichtstbijzijnde landweg. Een auto die
   je in het Ommeland hebt geparkeerd staat er na het laden ook nog.
 
+### Veranderd
+- **Onderduiken met de trein gaat echt het Ommeland in.** De kaartautomaat
+  zet de dorpen bovenaan ("Onderduiken"), een ritje binnen Stad telt niet
+  meer, en in het dorp lopen Tammo en Tessa eerst even naar het eerste
+  dorpsuitje. Daar, tussen de koeien, speelt hun scène.
+
 ## [0.26.1] - 2026-10-04
 
 ### Opgelost

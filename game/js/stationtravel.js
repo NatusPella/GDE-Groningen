@@ -39,6 +39,7 @@ let stations = [];
 let fadeEl = null;
 let trip = null;
 let tripsDone = 0;
+let lastArrival = null;
 let iconUrl = null;
 
 const shortName = (n) => n.replace(/^Groningen\s+/, '');
@@ -388,6 +389,13 @@ function menuFor(w, here) {
           },
         });
       }
+      // onderduiken (r-trein): the villages out in the Ommeland first
+      if (w.storyActivity === 'hideout') {
+        const isVillage = (it) => !!VILLAGES[it.label];
+        for (const it of trips) if (isVillage(it)) it.tag = 'Onderduiken';
+        trips.sort((a, b) => isVillage(b) - isVillage(a));
+        return [{ title: 'Vertrekken', note: 'Onderduiken: kies een dorp in het Ommeland, daar zoekt niemand jullie', items: trips }];
+      }
       // only stations inside the map: the off-map ends of the lines aren't offered
       return [{ title: 'Vertrekken', note: board, items: trips }];
     },
@@ -542,6 +550,7 @@ function arrive(w) {
   Object.assign(t, { c: last.to.s, v: 0, state: 'dwell', target: idx, timer: 14, dir: idx === 0 ? 1 : idx === stops.length - 1 ? -1 : dir });
   placeTrain(t);
   trip = null;
+  lastArrival = { name: to.name, village: !!VILLAGES[to.name] };
   tripsDone++;
   if (fadeEl) fadeEl.style.opacity = '0';
 
@@ -585,6 +594,11 @@ function arrive(w) {
 // Train trips finished this session (story.js: the "onderduiken" step).
 export function getTrainTripCount() {
   return tripsDone;
+}
+
+// The station the last trip ended at (storyfun.js: onderduiken counts out in the Ommeland).
+export function lastTrainArrival() {
+  return lastArrival;
 }
 
 export function isTrainTripActive() {
