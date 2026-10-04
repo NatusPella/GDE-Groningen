@@ -116,6 +116,15 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
 },
+"Anita|Jelle daagt je uit op de ringweg. Daar win je alleen in een snelle auto. Haal de Escapade en laat hem opvoeren bij Knal & Kolder, of koop een sportwagen.": {
+"src": "anita/jelle_daagt_je_uit_op_de_ringweg_0642e5e0.mp3",
+"model": "google/gemini-3.8-flash-tts",
+"voice": "Callirrhoe",
+"input": "Jelle daagt je uit op de ringweg. Daar win je alleen in een snelle auto. Haal de Escapade en laat hem opvoeren bij Knal & Kolder, of koop een sportwagen.",
+"style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: lacherig, ad rem.",
+"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
+"date": "2026-10-04"
+},
 "Anita|Jelle daagt je uit op de ringweg. Rij de Escapade naar Knal & Kolder en druk R, voor wat extra paardjes.": {
 "src": "anita/jelle_daagt_je_uit_op_de_ringweg_47da211e.mp3",
 "model": "google/gemini-3.8-flash-tts",

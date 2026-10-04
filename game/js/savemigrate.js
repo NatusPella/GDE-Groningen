@@ -12,8 +12,9 @@
 //   fixtures in scripts/fixtures/saves/ through it.
 import { RETIRED_STEPS, STEP_BY_ID, MISSION_IDS, nextStoryStep } from './storyarc.js';
 import { normalizeRadio } from './musicpick.js';
+import { cheatUnlocksFromSave } from './cheatlist.js';
 
-export const SAVE_VERSION = 3;
+export const SAVE_VERSION = 4;
 export const SETTINGS_VERSION = 7;
 
 const isObj = (o) => !!o && typeof o === 'object' && !Array.isArray(o);
@@ -65,6 +66,12 @@ export const SAVE_MIGRATIONS = {
   // 'nachtstreek', 'grunn', 'uit') and is now 'on' or 'off'
   2(d) {
     if ('radio' in d) d.radio = normalizeRadio(d.radio);
+    return d;
+  },
+  // 0.28: the streken (cheats.js); an older save gets the ones its story
+  // has already earned, none switched on
+  3(d) {
+    if (!isObj(d.streken)) d.streken = { v: 1, unlocked: cheatUnlocksFromSave(d), on: [], used: [] };
     return d;
   },
 };

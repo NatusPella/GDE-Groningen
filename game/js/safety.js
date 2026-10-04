@@ -62,7 +62,7 @@ function safeSpot(map, x, y) {
   return spot;
 }
 
-function resetWalker(a, x, y, gz) {
+export function resetWalker(a, x, y, gz) {
   a.x = x; a.y = y;
   a.vx = 0; a.vy = 0;
   a.z = 0; a.vz = 0;
@@ -73,7 +73,7 @@ function resetWalker(a, x, y, gz) {
   if ('shoveX' in a) { a.shoveX = 0; a.shoveY = 0; }
 }
 
-function placeCompanion(w, x, y, angle) {
+export function placeCompanion(w, x, y, angle) {
   const c = w.companion;
   if (!c) return;
   if (c.inVehicle && c.inVehicle !== w.player.inVehicle) { c.inVehicle.passenger = null; c.inVehicle = null; }
@@ -93,7 +93,7 @@ function placeCompanion(w, x, y, angle) {
   c.angle = angle;
 }
 
-function resetVehicle(v, x, y, angle, gz) {
+export function resetVehicle(v, x, y, angle, gz) {
   v.x = x; v.y = y; v.angle = angle;
   v.speed = 0; v.driftX = 0; v.driftY = 0; v.yawVel = 0; v.steer = 0;
   v.z = gz; v.vz = 0; v.pitch = 0; v.roll = 0; v.airborne = false;

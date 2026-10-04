@@ -11,9 +11,11 @@ import { resolveBuildingCollisions, resolveWalker } from './collision.js';
 import { resolveWalkerProps, propAhead } from './breakables.js';
 import { railingAhead } from './bridgerails.js';
 import { drunkMove, drunkSteer } from './drunk.js';
+import { vaultDecision, vehicleHeight, roofSpot, onRoof, localToWorld, worldToLocal as worldToLocalV, standable, PERCH_SLIP_SPEED } from './vaultkit.js';
 
 import { inHomeFlat } from './home.js';
 import { flyHeli, heliExitBlock } from './heliflight.js';
+import { MODS } from './cheatmods.js';
 export { resolveBuildingCollisions };
 
 const BIKE_SPRINT_S = 2.5;
@@ -47,12 +49,15 @@ const WALK_OPTS = { byPlayer: true };
 const SWIM_OPTS = { kick: false };
 const SWIM_EDGE_CLEAR = 0.7;
 
-// Vaulting: SPACE right in front of a railing, bench or fence up to
-// VAULT_MAX_H swings you over it (lower ones a normal jump already clears).
-const VAULT_MIN_H = 0.6;
-const VAULT_MAX_H = 1.3;
+// Vaulting: SPACE right in front of a railing, hedge, fence or parked bike
+// swings you over it, in front of a car you climb onto its roof (the rules:
+// vaultkit.js). A jump that runs into one turns into the vault too.
 const VAULT_REACH = 1.05;
+const VAULT_RUN_REACH = 0.45; // extra reach when sprinting at it
 const VAULT_TIME = 0.5;
+const CLIMB_UP_TIME = 0.55;
+const JUMP_VAULT_WINDOW = 0.45; // s after take-off a jump can still become a vault
+const ROOF_WALK = 2.2;
 
 const FALL_HURT_SPEED = 8.5; // m/s landing speed (~3.7 m drop) above which a fall hurts
 const BAIL_SPEED = 7; // m/s (25 km/h): getting out faster than this is a dive with a tumble
@@ -100,6 +105,7 @@ export class Player {
     tickSinkingVehicles(world);
     if (this.ragdoll) {
       this.vault = null;
+      this.perch = null;
       this.vx = 0; this.vy = 0;
       this.moving = false;
       this.crouching = false;
@@ -140,6 +146,7 @@ export class Player {
     if (this.inVehicle) {
       const v = this.inVehicle;
       this.vault = null;
+      this.perch = null;
       if (v.sinking) { this.x = v.x; this.y = v.y; this.angle = v.angle; return; }
       if (v.wrecked) { this.exitVehicle(map, world); if (v.blewUp && !v.isBike && !v.isScooter) this.blownOut(world, v); }
       else { this.driveVehicle(dt, input, map, world); this.gz = v.z || 0; return; }
@@ -152,16 +159,24 @@ export class Player {
     }
 
     if (this.vault) { this.updateVault(dt, world); return; }
+    if (this.perch && this.updatePerch(dt, world)) return;
     // jump/crouch - on foot only; SPACE is also "remmen" while driving
     // (handled in driveVehicle, never reached here). Crouching slows you
     // down and plays the crouch pose; collision stays 2D (x/y) anyway
     // a minigame (fuse box, padel…) can claim Space for itself
-    if (input.wasPressed(' ') && this.z <= 0 && !(world.minigameUntil > world.time)) {
-      if (this.tryVault(world)) return;
+    const spaceFree = !(world.minigameUntil > world.time);
+    if (input.wasPressed(' ') && this.z <= 0 && spaceFree) {
+      if (this.tryVault(world, true)) return;
       this.vz = JUMP_SPEED;
+      this.jumpAt = world.time;
+    } else if (this.z > 0.1 && this.vz > -2 && world.time - (this.jumpAt ?? -9) < JUMP_VAULT_WINDOW && spaceFree) {
+      // a jump taken a step too early still goes over the fence it meets
+      if (this.tryVault(world, false)) return;
     }
-    this.vz -= GRAVITY * dt;
+    const z0 = this.z;
+    this.vz -= GRAVITY * MODS.grav * dt;
     this.z = Math.max(0, this.z + this.vz * dt);
+    if (this.vz < 0 && z0 > 0.2 && this.landOnVehicle(world, z0)) return;
     if (this.z <= 0) {
       // landing after a drop off a viaduct / into a cutting
       if (this.vz < -FALL_HURT_SPEED && world) this.hurtByFall(world, -this.vz);
@@ -201,41 +216,107 @@ export class Player {
     this.resolveBodyContacts(dt, world);
   }
 
-  tryVault(world) {
+  // deliberate: a fresh SPACE press on the ground (not a jump that met the
+  // obstacle mid-air) - only that may take you over into the water
+  tryVault(world, deliberate) {
     // upstairs in the flat every prop and railing is down on the street
     if (inHomeFlat()) return false;
     const { map, input } = world;
     const dir = cameraRelativeMove(input, world.camYaw);
     const a = dir ? dir.angle : this.angle;
     const dx = Math.cos(a), dy = Math.sin(a);
-    let ob = propAhead(this.x, this.y, dx, dy, VAULT_REACH, this.radius * 0.6);
-    const rail = railingAhead(map, this.x, this.y, dx, dy, VAULT_REACH);
+    const sprint = !!dir && input.isDown('shift');
+    const reach = VAULT_REACH + (sprint ? VAULT_RUN_REACH : 0);
+    let ob = propAhead(this.x, this.y, dx, dy, reach, this.radius * 0.6);
+    if (ob && ob.prop && ob.prop.top != null && this.gz + this.z > ob.prop.top - 0.3) ob = null;
+    const rail = railingAhead(map, this.x, this.y, dx, dy, reach);
     if (rail && (!ob || rail.dist < ob.dist)) ob = rail;
-    if (!ob || ob.h < VAULT_MIN_H || ob.h > VAULT_MAX_H) return false;
+    const car = this.vehicleAhead(world, dx, dy, reach);
+    if (car && (!ob || car.dist < ob.dist)) ob = car;
+    // already above it (hopping off a car roof): nothing to vault
+    if (!ob || this.z >= ob.h - 0.1) return false;
     const over = ob.dist + ob.depth + this.radius + 0.3;
     const tx = this.x + dx * over, ty = this.y + dy * over;
-    const [rx, ry] = resolveBuildingCollisions(tx, ty, this.radius, map);
-    if (Math.hypot(rx - tx, ry - ty) > 0.2) return false;
-    this.vault = { t: 0, fx: this.x, fy: this.y, tx, ty, h: ob.h };
+    const kind = vaultDecision(ob.h, { top: !!(car && ob === car && car.roof), landing: this.landingAt(world, tx, ty), deliberate, sprint });
+    if (kind === 'vault') this.vault = { t: 0, time: VAULT_TIME, fx: this.x, fy: this.y, tx, ty, h: ob.h, z0: this.z };
+    else if (kind === 'climb') {
+      const v = car.vehicle, spot = roofSpot(v, this.x + dx * car.dist, this.y + dy * car.dist);
+      this.vault = { t: 0, time: CLIMB_UP_TIME, climb: v, fx: this.x, fy: this.y, z0: this.z, gz0: this.gz, lx: spot.lx, ly: spot.ly };
+    } else return false;
     this.angle = a;
     this.crouching = false;
+    this.vz = 0;
     if (world.audioEvents) world.audioEvents.push({ kind: 'whoosh', x: this.x, y: this.y, strength: 0.25 });
     return true;
+  }
+
+  // Nearest standing vehicle along (dx, dy) within reach: { dist, h, depth, vehicle, roof }.
+  vehicleAhead(world, dx, dy, reach) {
+    let best = null;
+    for (const v of world.vehicles || []) {
+      if (v.isBoat || v.driver === 'player' || v.wrecked || v.sinking || Math.abs(v.speed) > 3) continue;
+      if (Math.abs(v.x - this.x) > v.halfLen + reach + 1 || Math.abs(v.y - this.y) > v.halfLen + reach + 1) continue;
+      if (Math.abs((v.z || 0) - this.gz) > 1) continue;
+      for (let s = 0; s <= reach; s += 0.1) {
+        if (!pushCircleOutOfVehicle(this.x + dx * s, this.y + dy * s, this.radius * 0.6, v)) continue;
+        if (best && s >= best.dist) break;
+        let e = s;
+        while (e < s + v.halfLen * 2 + 1 && pushCircleOutOfVehicle(this.x + dx * e, this.y + dy * e, 0.05, v)) e += 0.1;
+        best = { dist: s, h: vehicleHeight(v), depth: Math.max(0.2, e - s), vehicle: v, roof: standable(v) };
+        break;
+      }
+    }
+    return best;
+  }
+
+  // Where a vault over something would come down: { blocked, water, drop }.
+  landingAt(world, tx, ty) {
+    const { map } = world;
+    const [rx, ry] = resolveWalker(tx, ty, this.radius, map, 0, 0, WALK_OPTS, this.gz, 0);
+    let blocked = Math.hypot(rx - tx, ry - ty) > 0.2;
+    for (const v of world.vehicles || []) {
+      if (blocked) break;
+      if (!v.isBoat && Math.abs(v.x - tx) < v.halfLen + 1 && Math.abs(v.y - ty) < v.halfLen + 1 && Math.abs((v.z || 0) - this.gz) < 2 && pushCircleOutOfVehicle(tx, ty, this.radius, v)) blocked = true;
+    }
+    const drop = map.elev && map.elev.has ? this.gz - map.groundHeightAt(tx, ty, this.gz) : 0;
+    return { blocked, water: isInWater(map, tx, ty, this.gz) || isInWater(map, (this.x + tx) / 2, (this.y + ty) / 2, this.gz), drop };
   }
 
   updateVault(dt, world) {
     const V = this.vault;
     V.t += dt;
-    const u = Math.min(1, V.t / VAULT_TIME);
+    const u = Math.min(1, V.t / V.time);
     const e = u * u * (3 - 2 * u);
+    this.moving = true;
+    this.airPose = Math.sin(Math.PI * u);
+    if (V.climb) {
+      const v = V.climb;
+      if (v.wrecked || v.sinking || v.driver === 'player' || Math.abs(v.speed) > PERCH_SLIP_SPEED || !world.vehicles.includes(v)) {
+        this.vault = null;
+        this.airPose = 0;
+        return;
+      }
+      const [tx, ty] = localToWorld(v, V.lx, V.ly);
+      const top = (v.z || 0) + vehicleHeight(v) - V.gz0;
+      const up = Math.sin(Math.min(1, u * 1.4) * Math.PI / 2);
+      this.x = V.fx + (tx - V.fx) * e;
+      this.y = V.fy + (ty - V.fy) * e;
+      this.z = V.z0 + (top - V.z0) * up;
+      this.vx = (tx - V.fx) / V.time;
+      this.vy = (ty - V.fy) / V.time;
+      if (u < 1) return;
+      this.vault = null;
+      this.startPerch(world, v, V.lx, V.ly);
+      return;
+    }
     this.x = V.fx + (V.tx - V.fx) * e;
     this.y = V.fy + (V.ty - V.fy) * e;
-    this.z = Math.sin(Math.PI * u) * (V.h + 0.2);
-    this.vx = (V.tx - V.fx) / VAULT_TIME;
-    this.vy = (V.ty - V.fy) / VAULT_TIME;
-    this.moving = true;
+    this.z = V.z0 * (1 - e) + Math.sin(Math.PI * u) * (V.h + 0.2);
+    this.vx = (V.tx - V.fx) / V.time;
+    this.vy = (V.ty - V.fy) / V.time;
     if (u < 1) return;
     this.vault = null;
+    this.airPose = 0;
     this.z = 0;
     this.vz = 0;
     this.vx = 0;
@@ -243,6 +324,80 @@ export class Player {
     if (!inHomeFlat()) [this.x, this.y] = resolveWalker(this.x, this.y, this.radius, world.map, 0, 0, WALK_OPTS, this.gz);
     this.followGround(world.map);
     if (isInWater(world.map, this.x, this.y, this.gz + this.z)) this.startWaterFall();
+  }
+
+  // Falling feet-first onto a car roof: stand on it.
+  landOnVehicle(world, z0) {
+    const feet0 = this.gz + z0, feet = this.gz + this.z;
+    for (const v of world.vehicles || []) {
+      if (!standable(v) || v.driver === 'player' || v.wrecked || v.sinking || Math.abs(v.speed) > PERCH_SLIP_SPEED) continue;
+      if (Math.abs(v.x - this.x) > v.halfLen + 0.5 || Math.abs(v.y - this.y) > v.halfLen + 0.5) continue;
+      const top = (v.z || 0) + vehicleHeight(v);
+      if (feet0 < top - 0.05 || feet > top + 0.02) continue;
+      const [lx, ly] = worldToLocalV(v, this.x, this.y);
+      if (!onRoof(v, lx, ly)) continue;
+      this.startPerch(world, v, lx, ly);
+      return true;
+    }
+    return false;
+  }
+
+  startPerch(world, v, lx, ly) {
+    this.perch = { v, lx, ly, ang: v.angle };
+    this.gz = v.z || 0;
+    this.z = vehicleHeight(v);
+    this.vz = 0;
+    this.airPose = 0;
+    this.jumpAt = -9;
+  }
+
+  // Standing on a car roof: walk around on it (the car carries you along),
+  // SPACE jumps off, walking past the edge steps down. Returns false once
+  // you are off it, so the normal on-foot update takes over this frame.
+  updatePerch(dt, world) {
+    const P = this.perch, v = P.v, { input } = world;
+    const [ex, ey] = localToWorld(v, P.lx, P.ly);
+    // teleported (respawn, cutscene, mission start) or the car is gone
+    if (v.wrecked || v.sinking || v.driver === 'player' || !world.vehicles.includes(v) || Math.hypot(ex - this.x, ey - this.y) > 1.5 || this.z < 0.5) { this.perch = null; return false; }
+    if (Math.abs(v.speed) > PERCH_SLIP_SPEED) {
+      // thrown off sideways by a car pulling away
+      const side = P.ly >= 0 ? 1 : -1;
+      const [ox, oy] = localToWorld(v, Math.max(-v.halfLen, Math.min(v.halfLen, P.lx)), side * (v.halfWid + this.radius + 0.15));
+      this.perch = null;
+      [this.x, this.y] = resolveWalker(ox, oy, this.radius, world.map, 0, 0, null, this.gz);
+      this.shoveX = Math.cos(v.angle) * v.speed * 0.4 - Math.sin(v.angle) * side * 2;
+      this.shoveY = Math.sin(v.angle) * v.speed * 0.4 + Math.cos(v.angle) * side * 2;
+      return false;
+    }
+    if (input.wasPressed(' ') && !(world.minigameUntil > world.time)) {
+      this.perch = null;
+      this.vz = JUMP_SPEED;
+      this.jumpAt = world.time;
+      return false;
+    }
+    this.angle = normalizeAngle(this.angle + v.angle - P.ang);
+    P.ang = v.angle;
+    const dir = cameraRelativeMove(input, world.camYaw);
+    this.moving = !!dir;
+    this.crouching = false;
+    this.airPose = 0;
+    let wx = 0, wy = 0;
+    if (dir) {
+      this.angle = turnToward(this.angle, dir.angle, FACE_TURN_RATE * dt);
+      wx = Math.cos(dir.angle) * ROOF_WALK;
+      wy = Math.sin(dir.angle) * ROOF_WALK;
+      const c = Math.cos(v.angle), s = Math.sin(v.angle);
+      P.lx += (wx * c + wy * s) * dt;
+      P.ly += (-wx * s + wy * c) * dt;
+    }
+    this.vx = wx;
+    this.vy = wy;
+    [this.x, this.y] = localToWorld(v, P.lx, P.ly);
+    this.gz = v.z || 0;
+    this.z = vehicleHeight(v);
+    this.vz = 0;
+    if (!onRoof(v, P.lx, P.ly)) { this.perch = null; return false; }
+    return true;
   }
 
   // Keep gz on the surface underfoot; walking off an edge turns the drop
@@ -438,7 +593,8 @@ export class Player {
     const { map } = world;
     for (const v of world.vehicles) {
       if (v.isBoat || Math.abs(v.x - this.x) > v.halfLen + 1 || Math.abs(v.y - this.y) > v.halfLen + 1) continue;
-      if (Math.abs((v.z || 0) - this.gz - this.z) > 2) continue;
+      const feet = this.gz + this.z;
+      if ((v.z || 0) - feet > 2 || feet >= (v.z || 0) + vehicleHeight(v) - 0.1) continue;
       const push = pushCircleOutOfVehicle(this.x, this.y, this.radius, v);
       if (!push) continue;
       [this.x, this.y] = resolveWalker(push.x, push.y, this.radius, map, 0, 0, null, this.gz + this.z);
@@ -649,7 +805,7 @@ export class Player {
     v.throttle = throttle;
     v.horn = input.isDown('h') && !v.disabled;
     const px = v.x, py = v.y, pa = v.angle;
-    v.gripK = world && !v.isBoat ? roadGrip(world, v.x, v.y, v.surface) : 1;
+    v.gripK = world && !v.isBoat ? roadGrip(world, v.x, v.y, v.surface) * MODS.grip : 1;
     // bikes: Shift gives a short sprint, then a breather before the next one
     if (v.isBike) {
       v.sprintT = Math.max(0, (v.sprintT || 0) - dt);

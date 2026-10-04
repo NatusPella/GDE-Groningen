@@ -2,6 +2,7 @@ import { clamp } from '../util.js';
 import { getCombatEffect, isGunWeapon, isRangedWeapon } from '../combat.js';
 import { surfaceUnder } from '../vehicle.js';
 import { getPlace } from './ambience.js';
+import { stepNames, stepSurface, tickFoot, STEP_SURFACES, STEP_VARIANTS } from './steps.js';
 
 // Footsteps, close-combat/weapon handling, vehicle detail sounds and police
 // radio. Everything is derived from world state each frame.
@@ -10,7 +11,8 @@ let K = null;
 const queue = [];
 let frame = 0;
 
-const foot = { phase: 0, prevZ: 0, maxZ: 0 };
+const foot = { phase: 0, air: false, maxRise: 0, baseZ: 0 };
+const footOut = [];
 const comp = { phase: 0, x: 0, y: 0, init: false };
 let pedList = [];
 let pedTimer = 0;
@@ -61,8 +63,8 @@ function at(buf, x, y, o = {}) {
 
 export function initFoley(kit, world) {
   K = kit;
-  K.bank.warm(['step_klinkers_0', 'step_klinkers_1', 'step_klinkers_2', 'step_klinkers_3', 'step_asfalt_0', 'step_asfalt_1', 'step_asfalt_2', 'step_asfalt_3',
-    'step_gras_0', 'step_gras_1', 'step_wood_0', 'step_wood_1', 'step_wet_0', 'step_wet_1', 'land', 'whoosh', 'punch', 'body_hit', 'body_fall',
+  // every step variant up front: a variant still rendering used to be a silent step
+  K.bank.warm([...STEP_SURFACES.flatMap((f) => Array.from({ length: STEP_VARIANTS }, (_, v) => `step_${f}_${v}`)), 'land', 'whoosh', 'punch', 'body_hit', 'body_fall',
     'dry_click', 'slide', 'pump', 'mag_out', 'mag_in', 'casing_0', 'casing_1', 'casing_2', 'glass', 'metal_ping', 'whizz', 'ric_whine',
     'airbrake', 'door_hiss', 'ratchet', 'chain', 'creak', 'hull_slap', 'thump', 'radio_0', 'radio_1', 'radio_2', 'radio_3', 'prop_wood', 'prop_metal', 'prop_plastic', 'prop_foliage', 'tree_fall']);
   weap.weapon = world.weapon;
@@ -76,50 +78,43 @@ function surfaceAt(map, x, y) {
   const pl = getPlace();
   if (pl.waterD < 1.6) return 'wet';
   if (map.isOnBridge(x, y)) return 'wood';
-  const s = surfaceUnder(map, x, y);
-  return s === 'fietspad' ? 'asfalt' : s;
+  return stepSurface(surfaceUnder(map, x, y));
 }
 
+function playerSurface(world, p) {
+  if (p.water || p.swimming) return 'wet';
+  // a car roof: a hollow metal thud, closest to the boards
+  if (p.perch) return 'wood';
+  return surfaceAt(world.map, p.x, p.y);
+}
+
+// Tries the other variants (and then klinkers) when one is still rendering.
 function playStep(surface, x, y, gain, rate, prio, rain) {
   const out = K.spatial(x, y, { h: 0.05, ref: 3, rolloff: 1.5, range: 30, model: 'equalpower', prio });
   if (!out) return;
-  K.buf(`step_${surface}_${Math.floor(Math.random() * 4)}`, { out, gain, rate: rate * rnd(0.95, 1.05), prio });
+  const r = rate * rnd(0.95, 1.05);
+  for (const name of stepNames(surface)) if (K.buf(name, { out, gain, rate: r, prio })) break;
   if (rain > 0.35 && surface !== 'gras' && surface !== 'wet') {
-    K.buf(`step_wet_${Math.floor(Math.random() * 4)}`, { out, gain: gain * rain * 0.5, rate, prio });
+    for (const name of stepNames('wet')) if (K.buf(name, { out, gain: gain * rain * 0.5, rate, prio })) break;
   }
 }
 
 function footsteps(dt, world) {
   const p = world.player;
   const rain = world.weather ? world.weather.intensity : 0;
-  if (!p.inVehicle && !world.paused) {
-    const speed = Math.hypot(p.vx || 0, p.vy || 0);
-    const z = p.z || 0;
-    if (z > 0) foot.maxZ = Math.max(foot.maxZ, z);
-    if (foot.prevZ <= 0 && z > 0) playStep(surfaceAt(world.map, p.x, p.y), p.x, p.y, 0.16, 1.1, 0, rain);
-    if (foot.prevZ > 0 && z <= 0) {
-      const s = surfaceAt(world.map, p.x, p.y);
-      const k = clamp(foot.maxZ / 0.8, 0.3, 1);
-      at('land', p.x, p.y, { h: 0.05, gain: 0.22 * k, rate: rnd(0.95, 1.05), prio: 0 });
-      playStep(s, p.x, p.y, 0.2 * k, 0.9, 0, rain);
-      foot.maxZ = 0;
-      foot.phase = 0;
+  // the player's own feet are never dropped for ambience (prio 1, not 0)
+  if (!p.inVehicle && !world.paused && !p.ragdoll) {
+    for (const e of tickFoot(foot, p, dt, footOut)) {
+      const s = playerSurface(world, p);
+      if (e.kind === 'land') {
+        at('land', p.x, p.y, { h: 0.05, gain: e.gain, rate: rnd(0.95, 1.05), prio: 1 });
+        playStep(s, p.x, p.y, 0.2 * e.k, 0.9, 1, rain);
+      } else playStep(s, p.x, p.y, e.gain, e.rate, 1, rain);
     }
-    foot.prevZ = z;
-    if (speed > 0.3 && z <= 0) {
-      const run = speed > 6, crouch = !!p.crouching;
-      const stride = crouch ? 0.55 : run ? 1.05 : 0.75;
-      foot.phase += speed * dt;
-      if (foot.phase >= stride) {
-        foot.phase -= stride;
-        const gain = crouch ? 0.08 : run ? 0.3 : 0.2;
-        playStep(surfaceAt(world.map, p.x, p.y), p.x, p.y, gain, run ? 0.88 : crouch ? 1.12 : 1, 0, rain);
-      }
-    } else foot.phase = Math.min(foot.phase, 0.5);
-  } else foot.prevZ = 0;
+  } else { foot.air = false; foot.maxRise = 0; }
 
   const c = world.companion;
-  if (c && !c.inVehicle && c.state !== 'dead' && !world.paused) {
+  if (c && !c.inVehicle && c.state !== 'dead' && !c.ragdoll && !world.paused) {
     if (!comp.init) { comp.x = c.x; comp.y = c.y; comp.init = true; }
     const sp = dt > 0 ? Math.min(9, Math.hypot(c.x - comp.x, c.y - comp.y) / dt) : 0;
     comp.x = c.x; comp.y = c.y;
@@ -128,7 +123,7 @@ function footsteps(dt, world) {
       comp.phase += sp * dt;
       if (comp.phase >= stride) {
         comp.phase -= stride;
-        playStep(surfaceAt(world.map, c.x, c.y), c.x, c.y, sp > 6 ? 0.24 : 0.16, sp > 6 ? 0.9 : 1.02, 0, rain);
+        playStep(c.water || c.swimming ? 'wet' : surfaceAt(world.map, c.x, c.y), c.x, c.y, sp > 6 ? 0.24 : 0.16, sp > 6 ? 0.9 : 1.02, 1, rain);
       }
     }
   } else if (c) { comp.x = c.x; comp.y = c.y; }
