@@ -33,8 +33,7 @@ export const KEY_ACTIONS = [
   ['t', 'Telefoon', 'menu'],
   ['m', 'Kaart', 'menu'],
   ['o', 'Verhaalstap overslaan', 'menu'],
-  ['b', 'Radio: vorige zender (ook te voet)', 'menu'],
-  ['n', 'Radio: volgende zender (ook te voet)', 'menu'],
+  ['n', 'Radio aan of uit (ook te voet)', 'menu'],
   ['u', 'Geluid aan of uit', 'menu'],
   ['backspace', 'Minigame stoppen', 'menu'],
 ];

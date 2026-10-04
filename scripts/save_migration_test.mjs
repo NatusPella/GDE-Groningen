@@ -96,9 +96,18 @@ for (const file of files) {
     for (const id of [...sh.ownedOutfits, ...Object.values(sh.outfit)]) ok(OUTFIT_IDS.has(id), `${tag}: outfit ${id} still exists`);
   }
   if (before.prestaties) ok(same(d.prestaties, before.prestaties), `${tag}: prestaties intact`);
+  // the radio: a 0.27-dev station id is 'on' now, 'uit' is 'off', no field stays no field
+  if ('radio' in exp) ok(d.radio === exp.radio, `${tag}: radio is ${exp.radio}`, d.radio);
+  else if (!('radio' in before)) ok(!('radio' in d), `${tag}: no radio field added`);
   for (const k of ['visitedLandmarks', 'meubels', 'bijbaan', 'postgame', 'doel', 'duif', 'character', 'pos']) {
     if (k in before) ok(same(d[k], before[k]), `${tag}: ${k} intact`);
   }
+}
+
+// every station id the radio list ever saved
+for (const [id, want] of [['gmusic', 'on'], ['nachtstreek', 'on'], ['grunn', 'on'], ['uit', 'off'], ['on', 'on'], ['off', 'off'], [42, 'on']]) {
+  const m = migrateSave({ v: 2, money: 1, radio: id });
+  ok(m && m.data.radio === want, `radio ${JSON.stringify(id)} becomes ${want}`, m && m.data.radio);
 }
 
 console.log(`${n - fails}/${n} checks passed over ${files.length} fixtures`);
