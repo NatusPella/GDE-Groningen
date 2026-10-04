@@ -285,6 +285,7 @@ export async function runStoryTest(world) {
               check(`${cur.id}: the boxes come off at home`, await waitFor(() => (se.state() || {}).phase === 'home', 10000) && !car.roofBoxes, JSON.stringify({ st: se.state(), d: Math.round(Math.hypot(car.x - se.home().x, car.y - se.home().y)) }));
               p.exitVehicle(world.map, world);
               await sleep(400);
+              world.wanted = 0;
               hm.enter();
               const built = await waitFor(() => { if (isCinematicActive()) skipCinematic(); const c = S().current(); return !c || c.id !== cur.id; }, 20000);
               check(`${cur.id}: the assembly scene upstairs completes the step`, built, JSON.stringify({ st: se.state(), home: hm.state() }));
@@ -299,6 +300,7 @@ export async function runStoryTest(world) {
             if (world.player.inVehicle) world.player.exitVehicle(world.map, world);
             hm.goHome();
             await sleep(1500);
+            world.wanted = 0;
             hm.enter();
             const sceneDone = await waitFor(() => { if (isCinematicActive()) skipCinematic(); const c = S().current(); return !c || c.id !== cur.id; }, 20000);
             check(`${cur.id}: the scene at home completes the step`, sceneDone, JSON.stringify({ cur: S().current(), home: hm.state() }));
