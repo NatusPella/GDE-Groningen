@@ -36,7 +36,7 @@ import { spawnHeroCarNear } from './vehicle.js';
 import { vehicleDisplayName } from './vehiclenames.js';
 import {
   getOwnedEntries, getHeroLook, spawnOwnedEntry, replacementFee, getShopsForRender,
-  VEHICLE_STOCK, VEHICLE_UNLOCKS, unlockMet, PAINTS, CAR_UPGRADES, BIKE_UPGRADES, REDELIVERY_FEE,
+  VEHICLE_STOCK, VEHICLE_UNLOCKS, unlockMet, PAINTS, upgradeListForStock, REDELIVERY_FEE,
 } from './shops.js';
 
 import { HERO_REPLACE_FEE } from './economy.js';
@@ -255,8 +255,7 @@ export function streetPhrase(name) {
 
 const kmh = (ms) => Math.round(ms * 3.6);
 
-function perfModel(base, upgradeIds, twoWheel) {
-  const list = twoWheel ? BIKE_UPGRADES : CAR_UPGRADES;
+function perfModel(base, upgradeIds, list) {
   const m = { ...base };
   for (const id of upgradeIds) {
     const u = list.find((x) => x.id === id);
@@ -284,9 +283,10 @@ function statusOf(world, v, lost, kind, key) {
 }
 
 function view(world, { id, hero, spec, color, upgrades, v, lost, key }) {
-  const twoWheel = spec.kind === 'bike' || spec.kind === 'scooter';
-  const list = twoWheel ? BIKE_UPGRADES : CAR_UPGRADES;
-  const perf = perfModel(spec.model, upgrades, twoWheel);
+  const list = upgradeListForStock(spec);
+  const perf = perfModel(spec.model, upgrades, list);
+  // a boat's top for the player (vehicle.js playerTune), scaled by its upgrades
+  const top = spec.kind === 'boat' && spec.model.playerTop ? spec.model.playerTop * perf.maxSpeed / spec.model.maxSpeed : perf.maxSpeed;
   const status = statusOf(world, v, lost, spec.kind, hero ? 'hero' : key);
   const where = v && status.key !== 'garage' && status.key !== 'lost'
     ? { street: streetAt(world.map, v.x, v.y), wijk: wijkAt(world.map, v.x, v.y) } : null;
@@ -297,7 +297,7 @@ function view(world, { id, hero, spec, color, upgrades, v, lost, key }) {
     kind: glyphKind(spec), kindLabel: spec.type || KIND_LABEL[spec.kind], color,
     paint: paintLabel(color, hero ? 'Fjordrood' : 'Fabriekskleur'),
     upgrades: upgrades.map((u) => (list.find((x) => x.id === u) || {}).label).filter(Boolean),
-    topSpeed: kmh(perf.maxSpeed), accel: perf.accel, accelScore: Math.max(1, Math.min(10, Math.round(perf.accel / 1.2))),
+    topSpeed: kmh(top), accel: perf.accel, accelScore: Math.max(1, Math.min(10, Math.round(perf.accel / 1.2))),
     meme: MEMES[hero ? 'hero' : key] || spec.desc || '',
     price: hero ? 0 : spec.price,
     status: status.key, statusLabel: status.label, dist: status.dist ?? null, where,
@@ -338,14 +338,13 @@ export function getGarageCatalog(world) {
   const owned = getGarageList(world);
   const have = new Set(owned.map((e) => e.key));
   const rest = Object.entries(VEHICLE_STOCK).filter(([key]) => !have.has(key)).map(([key, spec]) => {
-    const twoWheel = spec.kind !== 'car';
     const locked = !!spec.unlock && !unlockMet(spec);
     const shop = SHOP_NAME[spec.shop] || '';
     return {
       id: key, key, hero: false, owned: false, locked, v: null, spec, ...nameOf(spec, null),
       kind: glyphKind(spec), kindLabel: spec.type || KIND_LABEL[spec.kind], color: spec.color, paint: paintLabel(spec.color, 'Fabriekskleur'),
-      upgrades: [], topSpeed: kmh(spec.model.maxSpeed), accel: spec.model.accel,
-      accelScore: Math.max(1, Math.min(10, Math.round(perfModel(spec.model, [], twoWheel).accel / 1.2))),
+      upgrades: [], topSpeed: kmh(spec.kind === 'boat' && spec.model.playerTop ? spec.model.playerTop : spec.model.maxSpeed), accel: spec.model.accel,
+      accelScore: Math.max(1, Math.min(10, Math.round(spec.model.accel / 1.2))),
       meme: MEMES[key] || spec.desc, price: spec.price || 0, shop,
       unlockText: spec.unlock ? VEHICLE_UNLOCKS[spec.unlock].text : '',
       status: locked ? 'locked' : 'forsale',
