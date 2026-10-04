@@ -77,7 +77,7 @@ for (const file of files) {
   ok(Number.isFinite(d.money) ? d.money === exp.money : Number.isFinite(d.moneyBackup), `${tag}: money is a number or can be restored`);
 
   // stats: the kill counters became knockouts in 0.24 and kills again in
-  // 0.28 (a wrecked police car counts as a cop kill); nothing lost
+  // 0.27 (a wrecked police car counts as a cop kill); nothing lost
   const old = before.stats || {};
   const wrecked = old.copCarsWrecked || 0;
   for (const [o, k] of [['kills', 'knockouts'], ['pedKills', 'pedKnockouts'], ['copKills', 'copKnockouts']]) {

@@ -1,5 +1,5 @@
 {
-  "_era": "0.27 (PEGI 16, save v3): knockout counters and police cars wrecked, the last save before 18+ brought the kills back",
+  "_era": "0.27-dev (PEGI 16, save v3): knockout counters and police cars wrecked, the last save before 18+ brought the kills back",
   "_expect": { "step": "H12", "money": 12500, "radio": "on" },
   "save": {
     "v": 3, "savedAt": 1759560000000, "money": 12500, "moneyBackup": 12500, "health": 100, "armor": 50, "weapon": "uzi",

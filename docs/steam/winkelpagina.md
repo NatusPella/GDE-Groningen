@@ -257,29 +257,30 @@ integrated graphics; the in-game benchmark suggests a preset."*
 
 ## Inhoud en leeftijd (content survey)
 
-Uit [`docs/LEEFTIJD.md`](../LEEFTIJD.md). Doel: **PEGI 16 / USK 16**.
+Uit [`docs/LEEFTIJD.md`](../LEEFTIJD.md). De game is **18+**: verwacht
+**PEGI 18 / USK 18**.
 
 **Content descriptors (Steam)** — wat aan te vinken:
 
 - Some Nudity or Sexual Content: **nee** (alleen een kusje)
-- Frequent Violence or Gore: **ja**, voor het geweld (er is geen gore)
+- Frequent Violence or Gore: **ja** (bloed, rondvliegende ledematen, burgers en agenten die doodgaan)
 - Adult Only Sexual Content: nee
 - Frequent Nudity or Sexual Content: nee
-- General Mature Content: **ja** (misdaad als kern van de game, alcohol)
+- General Mature Content: **ja** (misdaad als kern van de game, gesimuleerd gokken, alcohol)
 
 **Beschrijving van de inhoud** (verschijnt op de winkelpagina):
 
 NL:
 
-> Geweld zonder bloed: vuurwapens tegen de politie, die terugvecht, en vechtpartijen. Niemand gaat dood: agenten en voorbijgangers raken even knock-out (sterretjes) en staan weer op. Auto's stelen en mensen aanrijden (slapstick, levert altijd politie op). Alcohol in kroegen, met een dronken effect. Licht grof taalgebruik in het Gronings en wat grove humor. Geen gokken, geen tabak, geen drugs, geen aankopen.
+> Grof geweld met bloed en rondvliegende ledematen (Carmageddon-stijl, uit te zetten in de instellingen): vuurwapens, vechtpartijen en explosies tegen politie en voorbijgangers, die daarbij doodgaan. Auto's stelen en mensen aanrijden. Gesimuleerd gokken met kraskaarten en loten, alleen met geld uit de game. Alcohol in kroegen, met een dronken effect. Licht grof taalgebruik in het Gronings en wat grove humor. Geen tabak, geen drugs, geen aankopen met echt geld.
 
 EN:
 
-> Bloodless violence: firearms against the police, who fight back, and fist fights. Nobody dies: police officers and bystanders are knocked out for a moment (cartoon stars) and get back up. Car theft and knocking people over with vehicles (slapstick, always brings the police). Alcohol in pubs, with a drunk effect. Mild language in Gronings dialect and some crude humour. No gambling, no tobacco, no drugs, no purchases.
+> Intense violence with blood and flying body parts (Carmageddon-style, can be turned off in the settings): firearms, fist fights and explosions against police and bystanders, who can be killed. Car theft and running people over. Simulated gambling with scratch cards and lottery tickets, using in-game money only. Alcohol in pubs, with a drunk effect. Mild language in Gronings dialect and some crude humour. No tobacco, no drugs, no real-money purchases.
 
-**Verwachte labels:** PEGI 16 (Geweld, Alcohol), IARC/ESRB-stijl
-Violence, Use of Alcohol, Crude Humor, Mild Language; USK 16 (Gewalt,
-Alkohol). Geen Simulated Gambling.
+**Verwachte labels:** PEGI 18 (Geweld, Gokken, Alcohol), USK 18 (Gewalt,
+Glücksspielelemente, Alkohol), IARC/ESRB-stijl Blood and Gore, Intense
+Violence, Simulated Gambling, Use of Alcohol, Crude Humor, Mild Language.
 
 Let op voor de screenshots: Steam wil dat **minstens vier** screenshots
 geschikt zijn voor alle leeftijden. Dat geldt voor alle screenshots in

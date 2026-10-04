@@ -141,13 +141,14 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
 
 ## 0.25: afwerking voor nieuwe spelers
 
-- [x] **Leeftijdsclassificatie: mik op PEGI 16** (`claude/pegi16`). De verwachte antwoorden voor de vragenlijst staan in [docs/LEEFTIJD.md](docs/LEEFTIJD.md).
+- [x] ~~**Leeftijdsclassificatie: mik op PEGI 16** (`claude/pegi16`).~~ Teruggedraaid: de game is 18+ (`claude/pegi18`, zie hieronder). De verwachte antwoorden voor de vragenlijst staan in [docs/LEEFTIJD.md](docs/LEEFTIJD.md).
   - Bloed en ledematen (`gore3d.js`) zijn helemaal uit de game, net als de instelling.
   - Burgers raken knock-out, staan op en schelden, maar gaan niet dood. Wapens raken ze niet.
   - Agenten worden uitgeschakeld en staan later weer op. De alcohol blijft, met een inhoudslabel.
   - Kiekdoar zegt geen "gewond" meer bij een knock-out (`claude/open-bugs`).
 - [ ] De IARC-vragenlijst echt invullen.
-- [x] **Geen gesimuleerd gokken meer** (`claude/geen-gokken`). De kraskaarten en loten bij Rook & Geluk (PEGI: 18) zijn weg. De winkel heet nu Krant & Kauwgom en heeft een spaarkaart: elke aankoop een stempel, 10 stempels geven vast €10. Zie docs/LEEFTIJD.md.
+- [x] **De game is 18+** (`claude/pegi18`): verwacht PEGI 18 / USK 18, zie [docs/LEEFTIJD.md](docs/LEEFTIJD.md). Alles van PEGI 16 is terug: bloed en ledematen (`gore3d.js`, met de instelling, standaard aan), burgers en agenten die doodgaan, wapens en richthulp voor iedereen, de tellers `kills`/`pedKills`/`copKills` (oude saves worden omgezet), de kraskaarten en loten bij Rook & Geluk (de spaarkaart blijft) en de oorspronkelijke Kiekdoar-berichten. De stuntavond van H3 blijft non-letaal (`knockfx3d.js`).
+- [x] ~~**Geen gesimuleerd gokken meer** (`claude/geen-gokken`).~~ Teruggedraaid in `claude/pegi18`. De kraskaarten en loten bij Rook & Geluk (PEGI: 18) zijn weg. De winkel heet nu Krant & Kauwgom en heeft een spaarkaart: elke aankoop een stempel, 10 stempels geven vast €10. Zie docs/LEEFTIJD.md.
 - [~] Onboarding: de eerste 10 minuten zonder uitleg te snappen (`claude/v025`). Audit en wijzigingen in [docs/ONBOARDING.md](docs/ONBOARDING.md).
   - [x] uitleg over doelen, niet over toetsen: op het moment zelf, één kaartje tegelijk via de narrative-planner en elk één keer: de eerste klus, geld en winkels, zelf kiezen op de kaart en Te doen (`onboarding.js`);
   - [x] geen toetshints meer voor lopen, kijken, rennen, springen en rijden; alleen E, T, M, Esc, kusjes, wapens, heli en trein;
@@ -245,7 +246,7 @@ Steam kost eenmalig $100 per game (Steam Direct). Dat bedrag komt terug na $1.00
   - een eigen naam en logo, zonder "VI" in GTA-stijl en zonder het GTA-lettertype;
   - geen verwijzing naar GTA in de titel;
   - een duidelijke disclaimer.
-- [ ] Leeftijdsclassificatie (IARC): de vragenlijst invullen volgens [docs/LEEFTIJD.md](docs/LEEFTIJD.md). Het doel is 16.
+- [ ] Leeftijdsclassificatie (IARC): de vragenlijst invullen volgens [docs/LEEFTIJD.md](docs/LEEFTIJD.md). Het doel is 18 (PEGI 18 / USK 18).
 - [~] Winkelpagina (`claude/steam-pagina`, alles in `docs/steam/`; er is niets naar Steam gestuurd):
   - [x] een Nederlandse en een Engelse beschrijving, korte beschrijving, kenmerken, 20 tags, talen, inhoudslabels, AI-melding, disclaimer en privacy: `docs/steam/winkelpagina.md`;
   - [x] capsule-afbeeldingen in alle Steam-formaten (header, small, main, vertical, page background, library capsule/header/hero/logo, community-icoon) in `docs/steam/beelden/`, opnieuw te maken met `nice -n 10 node scripts/steam_images.mjs` (één headless Chrome en één devserver);
