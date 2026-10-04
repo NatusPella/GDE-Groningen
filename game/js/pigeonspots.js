@@ -9,7 +9,8 @@ import { isInWater } from './util.js';
 
 // Places in the city where Tammo, the duivenfluisteraar, can steer a pigeon:
 // a badge + a few pecking pigeons at each; E and he whistles one up (eyes
-// closed, the camera jumps into the bird). The pigeons don't listen to Tessa.
+// closed, the camera jumps into the bird). The pigeons don't listen to Tessa:
+// playing as her, E hands over to Tammo when he's around, and he whistles.
 
 // What Tessa says at a pigeon spot (a bubble in her own voice, "~f|" lines)
 export const ANITA_NO_PIGEON = [
@@ -195,7 +196,10 @@ export function pigeonSpotPrompt(w) {
   const s = nearestSpot(w);
   if (!s) return null;
   const why = blockReason(w);
-  if (w.player.character === 'anita') return { id: 'duif-' + s.id, x: s.x, y: s.y, h: 2.75, key: 'E', label: 'Duiven', sub: 'Die luisteren alleen naar Tammo', ring: true, dim: true };
+  if (w.player.character === 'anita') {
+    if (tammoNearby(w)) return { id: 'duif-' + s.id, x: s.x, y: s.y, h: 2.75, key: 'E', label: 'Laat Tammo fluiten', sub: why || 'De duiven luisteren alleen naar hem', ring: true, dim: !!why };
+    return { id: 'duif-' + s.id, x: s.x, y: s.y, h: 2.75, key: 'E', label: 'Duiven', sub: 'Die luisteren alleen naar Tammo', ring: true, dim: true };
+  }
   return { id: 'duif-' + s.id, x: s.x, y: s.y, h: 2.75, key: 'E', label: 'Fluit een duif', sub: why || s.host, ring: true, dim: !!why };
 }
 
@@ -222,7 +226,13 @@ export function tryPigeonSpotInteract(w) {
   const why = blockReason(w);
   if (why) { w.addMessage(why, 2.5); return true; }
   const p = w.player;
-  if (p.character === 'anita') { anitaSays(w); return true; }
+  if (p.character === 'anita') {
+    if (!tammoNearby(w)) { anitaSays(w); return true; }
+    // Tammo takes over where Tessa stood (scene3d.js rebuilds both meshes)
+    w.companion.character = 'anita';
+    p.character = 'tammo';
+    w.addMessage('Tessa: "Tammo, fluiten jij."', 2.2);
+  }
   let bird = null, bd = Infinity;
   for (const b of s.birds) {
     const d = Math.hypot(b.x - p.x, b.y - p.y);
@@ -239,6 +249,12 @@ export function tryPigeonSpotInteract(w) {
   if (bird) bird.mesh.visible = false;
   s.marker.visible = false;
   return true;
+}
+
+// Tammo walks with Tessa as the companion; he has to be close to take over.
+function tammoNearby(w) {
+  const c = w.companion, p = w.player;
+  return !!(c && c.character === 'tammo' && c.state !== 'dead' && !c.inVehicle && Math.hypot(c.x - p.x, c.y - p.y) < 30);
 }
 
 let anitaIdx = 0;
