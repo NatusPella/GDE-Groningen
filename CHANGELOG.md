@@ -17,6 +17,9 @@ nieuwe functies, `y` voor alleen bugfixes.
   Hapert het beeld, dan gaat de zichtafstand vanzelf even terug naar Ver.
 
 ### Opgelost
+- **Geen plotselinge noodstops meer in de wei.** Over gras rijd je wat
+  langzamer, maar je remt niet meer ineens af; een smalle sloot is een hobbel
+  in plaats van een muur. Alleen in een maar of kanaal kom je echt vast.
 - **Echte voertuigen in het Ommeland.** Auto's, bestelbussen, trekkers en
   fietsers op de landwegen zijn dichtbij echte voertuigen: je kunt ze kapen,
   van de fiets duwen, rammen en in elkaar rijden, net als in de stad. In de
