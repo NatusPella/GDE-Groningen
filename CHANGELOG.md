@@ -6,6 +6,32 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Veranderd
+- **Onderduiken met de trein gaat echt het Ommeland in.** De kaartautomaat
+  zet de dorpen bovenaan ("Onderduiken"), een ritje binnen Stad telt niet
+  meer, en in het dorp lopen Tammo en Tessa eerst even naar het eerste
+  dorpsuitje. Daar, tussen de koeien, speelt hun scène.
+- **Eén radio.** Muziek en praatradio zitten nu in één lijst: G-Music,
+  Radio Nachtstreek, Radio Proat en uit. N en B wisselen van zender, te voet
+  en in elk voertuig. Op de controller doet LB dat in een voertuig, en
+  Instellingen › Geluid heeft dezelfde lijst. Je zender gaat mee van auto
+  naar auto en blijft in je save. Een oudere save begint op G-Music. Rikus'
+  telefoontjes onderbreken de praatradio net als eerst. De melding bij een
+  nieuw nummer noemt nu de zender die echt speelt.
+- **Grotere knoppen onderin het pauzemenu.** Hoofdmenu, Afsluiten en
+  Opnieuw beginnen zijn nu echte knoppen in plaats van kleine linkjes.
+  Opnieuw beginnen staat apart onder een rode lijn en vraagt nog steeds
+  eerst om bevestiging. Op een Steam Deck (1280×800) past het hele menu
+  zonder scrollen.
+
+### Verbeterd
+- **Minder herhaling op de radio.** Een nummer dat je net hoorde, komt pas
+  terug als ruim de helft van de andere nummers is geweest, ook in een
+  nieuwe sessie. Nummers die lang niet speelden, komen eerder. 's Nachts
+  draaien de nachtnummers vaker. Nachtstreek heeft een eigen, rustigere
+  lijst. Er zit niet meer tussen elk nummer een jingle, en nooit twee keer
+  dezelfde achter elkaar.
+
 ### Opgelost
 - **H6: allebei in het zwart.** Koop je zwart incognito, dan trekken Tammo
   en Tessa het meteen allebei aan (ook na het laden van een spel), niet pas
@@ -46,12 +72,6 @@ nieuwe functies, `y` voor alleen bugfixes.
   klemzet, en dat staat in de opdracht. Geen politie meer tijdens de
   achtervolging, meer tijd en ruimte om bij te blijven, en vier in plaats van
   tweeënhalve minuut terug naar de kraam.
-
-### Veranderd
-- **Onderduiken met de trein gaat echt het Ommeland in.** De kaartautomaat
-  zet de dorpen bovenaan ("Onderduiken"), een ritje binnen Stad telt niet
-  meer, en in het dorp lopen Tammo en Tessa eerst even naar het eerste
-  dorpsuitje. Daar, tussen de koeien, speelt hun scène.
 
 ## [0.26.1] - 2026-10-04
 
