@@ -6,6 +6,10 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Veranderd
+- De kaartautomaat op het station toont alleen nog stations waar je echt
+  heen kunt; de grijze "Verder weg"-lijst buiten het speelgebied is weg.
+
 ### Verbeterd
 - De uitlegkaartjes voor nieuwe spelers tonen de knop van je controller als
   je die het laatst gebruikte, en anders je eigen toetsindeling, net als de
