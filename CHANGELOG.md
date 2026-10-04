@@ -6,6 +6,9 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Toegevoegd
+- **Twee drillnummers op G-Music:** "Geen stoplicht houdt ons tegen" (Ringweg Drillers) en "Goud in de Nacht" (Nachtbus Nino, 's nachts ook op Nachtstreek).
+
 ### Veranderd
 - **De aftiteling komt pas aan het eind.** Na het verhaal zie je de epiloog,
   "Wij tweeën vóór Grunn." en de Fjord Frituur. De aftiteling, het logo en
