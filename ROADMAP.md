@@ -190,6 +190,18 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
 - [x] Fierljeppen: het mik-camerashot (`pg-aim`) slikte Spatie in als "overslaan"; nu `passKeys`, en gefocuste UI-knoppen verliezen hun focus bij Spatie/Enter tijdens het spelen (`spacegate.js`, `node scripts/space_gate_test.mjs`).
 - [ ] H6 en H18 met de hand naspelen op Windows met Ctrl als bukken; de verhaaltest speelt de stappen niet echt.
 
+**Thuis in het verhaal** (`claude/thuis-verhaal`)
+- [x] De garage toont elk eigen voertuig: 18 vakken, de rest in de parkeerlift. Het paneel bij de deur ("Kies welke auto's in de garage staan") haalt er een naar voren, en die keuze staat in de save (`thuis.front`). Het Garage-menu zegt waar elk voertuig thuis staat. "Te koop" en "Vrijgespeeld" zijn duidelijk iets anders dan "van jou".
+- [x] De flat heeft twee kleine slaapkamers, een voor elk. Je slaapt in je eigen bed, en de Sloapstee is een setje van twee eenpersoonsbedden.
+- [x] k-nacht wacht thuis in de flat in plaats van bij Henk. Henk belt tijdens het wachten (koekje en zender). Missies die het donker nodig hebben, sturen je ook naar huis.
+- [x] Nieuwe stap r-avond, "Een avond thuis", tussen H12 en H13.
+- [x] Nieuwe stap k-eikea, "De flat inrichten bij EIKEA", na H1: dozen op het dak, een klap kost een doos, thuis in elkaar zetten. Je krijgt de bedden, de Buukenkaas en Lichtje Tjoek. Een oude save die al verder is, slaat hem over. De Electron-storytest speelt hem echt.
+- [ ] Naspelen: valt de dozenstapel op het dak van een busje goed uit? Hij is nu afgestemd op de Escapade.
+- [ ] Naluisteren: Henks telefoontje klinkt nu als een gewone stem, zonder telefoonfilter.
+
+**Aftiteling aan het eind** (`claude/aftiteling`)
+- [x] De aftiteling, het logo en "Einde" spelen pas als alle 18 missies gehaald zijn en alle uitdagingen na het verhaal gedaan zijn (`ending.js`, eenmalig via de verhaalvlag `credits`). Overzicht en Te doen tellen af, daarna staat "Aftiteling bekijken" onder Overzicht. `node scripts/ending_test.mjs` test de check.
+
 ## Juridisch en publiceren (vóór 1.0)
 
 - [x] **Nieuwe naam, besloten op 3 okt.** De titel is **GDE Groningen – Zomer vol misdaad**, met *Grootste Diefstal Ever* als betekenis van GDE (`claude/gde-naam`).

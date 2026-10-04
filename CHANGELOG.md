@@ -7,6 +7,14 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Veranderd
+- **De aftiteling komt pas aan het eind.** Na het verhaal zie je de epiloog,
+  "Wij tweeën vóór Grunn." en de Fjord Frituur. De aftiteling, het logo en
+  "Einde" wachten tot alle 18 missies gehaald zijn en alle uitdagingen na het
+  verhaal gedaan zijn. Een overgeslagen missie telt pas als je hem alsnog
+  haalt. Overzicht en Te doen tellen af ("Nog 3 uitdagingen van Jelle tot het
+  einde"). De aftiteling speelt één keer en staat daarna onder Overzicht
+  (Aftiteling bekijken). Wie het verhaal al uit had houdt alles en krijgt de
+  aftiteling bij de eerstvolgende kans als alles al gedaan is.
 - **Onderduiken met de trein gaat echt het Ommeland in.** De kaartautomaat
   zet de dorpen bovenaan ("Onderduiken"), een ritje binnen Stad telt niet
   meer, en in het dorp lopen Tammo en Tessa eerst even naar het eerste
@@ -30,7 +38,53 @@ nieuwe functies, `y` voor alleen bugfixes.
   eerst om bevestiging. Op een Steam Deck (1280×800) past het hele menu
   zonder scrollen.
 
+### Verhaal
+- **Het verhaal brengt je weer thuis.** Wachten tot middernacht voor de
+  museumkraak doe je nu in de flat in Paddepoel, niet meer bij Henk in de
+  garage. Ga naar huis, met de lift naar boven, en even later volgt een
+  kort scènetje op de bank. Even slapen tot de avond mag ook: de scène komt
+  als je wakker wordt. Henk belt tijdens het wachten: hij heeft een zender
+  in de Escapade gezet (die heb je in H16 nodig), vraagt niet waarom jullie
+  nog op zijn en gunt je één koekje. Een missie die het donker nodig heeft,
+  stuurt je voortaan ook naar huis in plaats van naar een garage.
+- **Nieuw: de flat inrichten bij EIKEA.** Na Berend (H1) slapen Tammo en
+  Tessa nog op een luchtbed. Rij met de Escapade (of een andere auto) naar
+  EIKEA aan de Sontweg. Bij het laadperron volgt een scène: het lijstje, de
+  kast die niet in de lift past, en wie de kamer met uitzicht krijgt. Daarna
+  staan er drie dozen op je dak. Een flinke klap onderweg kost een doos:
+  eerst de lamp, dan de boekenkast, de bedden als laatste. Thuis gaan de
+  dozen met de lift naar boven en zet je alles in elkaar ("Er blijft één
+  schroefje over"). Wat heel aankomt, staat in de flat met zijn bonus:
+  Sloapstee, Buukenkaas en Lichtje Tjoek. Overslaan geeft ze ook. Een oude
+  save die al verder is, slaat deze stap over. Alle nieuwe zinnen zijn
+  ingesproken.
+- **Een avond thuis.** Tussen de fatbikes (H12) en de rondvaartboot (H13)
+  zit een nieuwe, rustige stap: Tessa vraagt of Tammo naar huis komt, en op
+  de bank overhoort ze haar gids voor morgen. Met nieuwe stemmen. Een oude
+  save die al verder is, slaat hem over.
+- **Een klein lampje in september.** In het slot van het verhaal heeft
+  Rikus één zin meer over de elfde verdieping in Paddepoel.
+
 ### Verbeterd
+- **Twee kamers in de flat.** Tammo en Tessa huren de flat als huisgenoten,
+  dus nu heeft elk een eigen kleine slaapkamer met een eenpersoonsbed:
+  Tammo's kamer naast de gang, die van Tessa achter de keuken. Lift, gang,
+  woonkamer en de glazen gevel zitten waar ze zaten. Je slaapt in je eigen
+  bed, als Tammo of als Tessa; het andere bed zegt beleefd dat het niet jouw
+  kamer is. Elke kamer heeft een kledingkast. EIKEA's Sloapstee is nu een
+  setje van twee eenpersoonsbedden, met dezelfde bonus.
+- **Je garage laat zien wat je hebt.** De garage onder de flat heeft 18
+  vakken voor auto's (plus het eigen vak van de Escapade). Heb je er meer,
+  dan wachten de rest in de parkeerlift. Het paneel bij de deur heet nu
+  "Kies welke auto's in de garage staan": je ziet welke auto in welk vak
+  staat en welke in de lift wachten, en je haalt er een naar voren. Die
+  keuze blijft in je save. Een vreemde auto in een vak blokkeert dat vak
+  niet meer voor de rest: de volgende auto krijgt een vrij vak. In het
+  Garage-menu staat bij elk eigen voertuig waar het thuis staat: "vak 7",
+  "in de parkeerlift", "langs de stoep", "in het fietsenrek", "aan jullie
+  steiger" of "op het helidek". Voertuigen die nog niet van jou zijn, heten
+  nu duidelijk "Te koop · €…", vrijgespeelde specials "Vrijgespeeld", en de
+  kop telt van jou, te koop en op slot apart.
 - **Minder herhaling op de radio.** Een nummer dat je net hoorde, komt pas
   terug als ruim de helft van de andere nummers is geweest, ook in een
   nieuwe sessie. Nummers die lang niet speelden, komen eerder. 's Nachts
