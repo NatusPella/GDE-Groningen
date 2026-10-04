@@ -66,7 +66,7 @@ import { createFarLOD } from './farlod.js';
 import { initRailway3D, updateRailway3D } from './railway3d.js';
 import { buildCanopies } from './canopies3d.js';
 import { initGrass, updateGrass, grassFarColor, grassFarRank } from './grass.js';
-import { updateCountryside } from './countryside.js';
+import { updateCountryside, setCountryPropLevel } from './countryside.js';
 import { setCountryNight, setCountryFacadeLevel } from './countrybuilding.js';
 import { updateCountryBake } from './countrybake.js';
 import { edgeDistance, setCountryBounds } from './countryfield.js';
@@ -898,6 +898,7 @@ function applyViewSettings(st) {
   resize3D();
   setNightLightQuality(level);
   setCountryFacadeLevel(level);
+  setCountryPropLevel(level);
   facadeQualityDist = FACADE_DETAIL_DIST[level] || Infinity;
   facadeDetailDist = Math.min(facadeQualityDist, CPU_FACADE_DIST[cpuLevel()]);
   if (postfx.level !== level) postfx.setLevel(level);
