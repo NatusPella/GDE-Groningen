@@ -27,7 +27,9 @@
 //     "Waar staat hij?": where it is; a route only via an explicit "Zet route".
 //   getOwnedVehiclesForMap(world) -> [{ x, y, angle, kind, label, hero, color }]
 
-import { closestPointOnSegment } from './util.js';
+import { closestPointOnSegment, isInWater } from './util.js';
+import { realRoadNear } from './ommelandplace.js';
+import { buildingAt } from './countryreal.js';
 import { isSpawnHidden } from './pedestrians.js';
 import { slotFits, propBlocked, sleepingParkedCars } from './parkedcars.js';
 import { spawnHeroCarNear } from './vehicle.js';
@@ -153,7 +155,33 @@ export function findParkingSpot(world, x, y, model, opts = {}) {
   const ring = ringFor(opts);
   return searchRing(world, x, y, model, twoWheel, ring, opts.ignore || null)
     // nothing in the ring (dense centre, water all around): widen it once
-    || searchRing(world, x, y, model, twoWheel, { ...ring, minDist: ring.minDist * 0.6, maxDist: ring.maxDist * 1.6 }, opts.ignore || null);
+    || searchRing(world, x, y, model, twoWheel, { ...ring, minDist: ring.minDist * 0.6, maxDist: ring.maxDist * 1.6 }, opts.ignore || null)
+    // out in the Ommeland the city has no streets: the verge of a country road
+    || countrySpot(world, x, y, model, opts.ignore || null);
+}
+
+// Beside the nearest Ommeland road, 25-120 m out, on dry open ground.
+function countrySpot(world, x, y, model, ignore) {
+  const m = { len: model.len || 4, wid: model.wid || 1.7 };
+  for (const r of [45, 70, 30, 100, 120]) {
+    for (let k = 0; k < 12; k++) {
+      const a = (k / 12) * Math.PI * 2;
+      const rr = realRoadNear(x + Math.cos(a) * r, y + Math.sin(a) * r, 30);
+      if (!rr) continue;
+      for (const side of [1, -1]) {
+        const off = (rr.road.w || 5) / 2 + m.wid / 2 + 0.4;
+        const px = rr.x - rr.uy * off * side, py = rr.y + rr.ux * off * side;
+        const d = Math.hypot(px - x, py - y);
+        if (d < 20 || d > 140) continue;
+        if (isInWater(world.map, px, py) || buildingAt(px, py, m.len / 2 + 0.5) >= 0) continue;
+        if (!clearOfVehicles(world, px, py, m.len / 2, ignore)) continue;
+        const angle = Math.atan2(rr.uy, rr.ux) + (side < 0 ? Math.PI : 0);
+        if (propBlocked(px, py, angle, m)) continue;
+        return { x: px, y: py, angle, street: rr.road.name || '' };
+      }
+    }
+  }
+  return null;
 }
 
 function jettySpot(world, x, y, maxDist) {
@@ -373,7 +401,8 @@ export function deliverOwnedVehicle(world, id) {
     if (old) spot = placeOwnedVehicleNear(world, old, px, py);
     else {
       spot = findParkingSpot(world, px, py, HERO_SPEC.model);
-      const car = spot && spawnHeroCarNear(world.map, spot.x, spot.y);
+      // (no street within 200 m out in the Ommeland: built in town, then parked at the spot)
+      const car = spot && (spawnHeroCarNear(world.map, spot.x, spot.y) || spawnHeroCarNear(world.map, 0, 0));
       if (car) {
         for (const w of world.vehicles) if (w.isHeroCar && w.wrecked) w.isHeroCar = false;
         parkAt(world, car, spot);
