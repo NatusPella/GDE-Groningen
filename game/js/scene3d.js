@@ -73,6 +73,7 @@ import { probe } from './hitchprobe.js';
 import { speakBubble } from './linevoice.js';
 import { applyDrunkCamera } from './drunk.js';
 import { GROUND_LAYER, SIDEWALK_EXTRA, PAVED_MATS, buildRoadGroup, setRoadNetwork, getRoadQualityVersion, roadFarColor, roadGeometryReady } from './roadsurface.js';
+import { lookBackActive, chaseFollowLerp } from './controls.js';
 
 // A genuine WebGL 3D view of the exact same world state the 2D canvas game
 // draws - same x/y meters, same b.h building heights, same vehicle/pedestrian
@@ -2299,7 +2300,7 @@ export function update3D(dt, world) {
   let camAngle;
   // hold Q / middle mouse in a vehicle: GTA-style look back, a hard cut
   // (world.noLookBack: a minigame has Q for itself, the skûtsje's sail trim)
-  const lookBack = !!camVeh && !world.cameraOverride && ((world.input.isDown('q') && !world.noLookBack) || !!mouse.middleDown);
+  const lookBack = lookBackActive({ inVehicle: !!camVeh, override: !!world.cameraOverride, noLookBack: world.noLookBack, qDown: world.input.isDown('q'), middleDown: mouse.middleDown });
   const lookBackCut = lookBack !== lookBackWas;
   lookBackWas = lookBack;
   if (camVeh) {
@@ -2418,7 +2419,7 @@ export function update3D(dt, world) {
   const teleported = lastPx !== null && Math.hypot(player.x - lastPx, player.y - lastPy) > 15;
   if (teleported) camPullReset = true;
   if (lookBackCut) camPullReset = true;
-  const lerpT = teleported || lookBackCut ? 1 : Math.min(1, dt * 6);
+  const lerpT = chaseFollowLerp(dt, { cut: teleported || lookBackCut, lookBack });
   if (!camBaseInit) { camBase.copy(cam.position); camBaseInit = true; }
   camBase.x += (desiredX - camBase.x) * lerpT;
   camBase.y += (desiredY - camBase.y) * lerpT;
