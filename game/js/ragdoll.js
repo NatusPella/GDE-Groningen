@@ -757,7 +757,7 @@ export function syncBikeRider(mesh, v, time) {
   if (v.driver === 'player' && v.riderOff) v.riderOff = false;
   const down = !!v.riderOff;
   // a bike standing parked (taken from the clutter, or left by the player) has nobody on it
-  if (ud.riderFig) ud.riderFig.visible = !down && (!!v.driver || !!v.road || !!v.sinking || (v.isPolice && !v.hijacked));
+  if (ud.riderFig) ud.riderFig.visible = !down && (!!v.driver || !!v.road || !!v.countryDrive || !!v.sinking || (v.isPolice && !v.hijacked));
   if (down) {
     const k = smooth(Math.min(1, (time - (v.riderOffAt || 0)) / 0.45));
     mesh.rotation.order = 'YXZ';
