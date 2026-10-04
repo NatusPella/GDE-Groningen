@@ -6,6 +6,17 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Verbeterd
+- De uitlegkaartjes voor nieuwe spelers tonen de knop van je controller als
+  je die het laatst gebruikte, en anders je eigen toetsindeling, net als de
+  andere toetshints.
+- Geen haperingen meer in de HUD na een sprong of bij snel rijden over de
+  ring: de minimap tekent nieuwe stukken Ommeland in de rusttijd tussen
+  frames, en instappen, een nieuwe melding, een ander wapen of doel en een
+  nieuw nummer op de radio dwingen geen extra opmaakberekening meer af.
+- Het spel is 17 MB kleiner: 746 stemopnames die nergens meer werden
+  gebruikt zijn weg (`scripts/audio_unused.mjs`).
+
 ## [0.25.0] - 2026-10-04
 
 ### Nieuw
