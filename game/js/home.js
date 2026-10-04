@@ -16,8 +16,8 @@
 //   garage (or rack, kerb, mooring) again. The helicopter (heliflight.js)
 //   has the helidek on the tower's roof: "Trap naar het dak" in the flat's
 //   hall puts you in its seat, landing on the deck and E parks it there and
-//   takes the lift down to the flat. More cars than bays: the panel
-//   inside the door shows the next ones. Farther than FAR_M the stored
+//   takes the lift down to the flat. More cars than bays (18): the rest
+//   wait in the parking lift; the panel inside the door ("Kies welke auto's in de garage staan") swaps one in, and the Garage menu says where each one stands (homeWhereLabel). Farther than FAR_M the stored
 //   instances are packed away again (their damage stays on the entry).
 // - The lobby door (E), on the garage side of the tower next to the roller
 //   door, is the one way in: the lift up to the flat on the 11th floor. The
@@ -44,7 +44,7 @@ import { openShopMenu, isShopOpen } from './shopui.js';
 import { isCinematicActive } from './cinematics.js';
 import { respawnFade } from './respawn.js';
 import { saveGame } from './savegame.js';
-import { isMissionActive, isNight, getMissionDefs } from './missions.js';
+import { isMissionActive, isNight, getMissionDefs, setHomePlace } from './missions.js';
 import { refreshDayNight } from './daynight.js';
 import { recordStat, unlockAchievement } from './achievements.js';
 import { clearDrunk } from './drunk.js';
@@ -100,7 +100,7 @@ const unit = (v) => { const l = len(v) || 1; return [v[0] / l, v[1] / l]; };
 let world = null;
 let home = null;
 let tickT = 0;
-let page = 0;
+let front = []; // car keys picked at the garage panel, first = most recent (saved as thuis.front)
 let exterior = null;
 let garageShell = null;
 let inside = null; // { flatMesh, lowerMesh, facade } while upstairs
@@ -175,7 +175,9 @@ function buildLayout() {
   // kitchen behind the glass facade (z = 0) that looks out on the shopping
   // centre. Its frame is square (the tower's corners are not quite right
   // angles): toFlat has to undo fl exactly, or everyone upstairs drifts.
-  const W = 11, Dd = 9, HALL = 3.4, MID = 5.2;
+  // Two small bedrooms at the back, one each ("als huisgenoten"): Tammo's off
+  // the hall, Tessa's off the kitchen.
+  const W = 11, Dd = 9, HALL = 3.4, MID = 5.2, SPLIT = 7.2;
   const FY = [-X[1], X[0]];
   const flat = {
     ox: B[0], oy: B[1], angle: Math.atan2(X[1], X[0]), floorY: FLOOR_Y, w: W, d: Dd, X, Y: FY,
@@ -184,20 +186,26 @@ function buildLayout() {
       { name: 'woonkamer', x0: 0, x1: 6.8, z0: 0, z1: MID, floor: 'laminate' },
       { name: 'keuken', x0: 6.8, x1: W, z0: 0, z1: MID, floor: 'tiles' },
       { name: 'gang', x0: 0, x1: HALL, z0: MID, z1: Dd, floor: 'tiles' },
-      { name: 'slaapkamer', x0: HALL, x1: W, z0: MID, z1: Dd, floor: 'carpet' },
+      { name: 'kamer Tammo', x0: HALL, x1: SPLIT, z0: MID, z1: Dd, floor: 'carpet' },
+      { name: 'kamer Tessa', x0: SPLIT, x1: W, z0: MID, z1: Dd, floor: 'carpet' },
     ],
     // cutaway walls [x1, z1, x2, z2]: outer walls, hall | living room (doorway in line
-    // with the lift), hall | bedroom (doorway), bedroom | living room and kitchen
+    // with the lift), hall | Tammo's room (doorway), the bedrooms | living room and
+    // kitchen (a doorway from the kitchen into Tessa's room), Tammo's | Tessa's room
     walls: [
       [0, 0, 0, Dd], [W, 0, W, Dd], [0, Dd, W, Dd],
       [0, MID, 1.0, MID], [2.4, MID, HALL, MID],
       [HALL, MID, HALL, 6.2], [HALL, 7.4, HALL, Dd],
-      [HALL, MID, W, MID],
+      [HALL, MID, 9.0, MID], [10.2, MID, W, MID],
+      [SPLIT, MID, SPLIT, Dd],
     ],
     spots: {
       sofa: { x: 3.7, z: 3.9 }, tv: { x: 3.7, z: 1.0 }, table: { x: 8.2, z: 3.4 },
       counter: { x: 9.0, z: 0.55, w: 3.6 }, fryer: { x: 8.4, z: 0.55 }, fridge: { x: 10.5, z: 1.6 },
-      bed: { x: 8.6, z: 7.6 }, wardrobe: { x: 4.7, z: 8.6 }, door: { x: 1.7, z: Dd - 0.05 }, roof: { x: 0.08, z: 6.6 },
+      // single beds, head to the back wall: bed is Tammo's, bed2 Tessa's
+      bed: { x: 6.6, z: 7.95 }, bed2: { x: 7.8, z: 7.95 },
+      wardrobe: { x: 4.7, z: 8.6 }, wardrobe2: { x: 10.65, z: 6.2, rot: true },
+      door: { x: 1.7, z: Dd - 0.05 }, roof: { x: 0.08, z: 6.6 },
       companion: { x: 3.15, z: 3.98, seat: 0.46 },
     },
   };
@@ -205,12 +213,13 @@ function buildLayout() {
   flat.solids = [
     [2.4, 3.35, 5.0, 4.55], [3.0, 2.1, 4.4, 2.9], [2.8, 0.2, 4.6, 1.35], [0.2, 0.2, 0.9, 0.9],
     [7.1, 0.2, 10.9, 0.9], [10.1, 1.2, 10.9, 2.0], [7.6, 2.9, 8.8, 3.9],
-    [7.7, 6.5, 9.5, 8.7], [3.85, 8.25, 5.55, 8.95],
+    [6.1, 6.9, 7.1, 8.95], [7.3, 6.9, 8.3, 8.95], [3.85, 8.25, 5.55, 8.95], [10.3, 5.35, 10.95, 7.05],
   ];
   const fl = (x, z) => [B[0] + X[0] * x + FY[0] * z, B[1] + X[1] * x + FY[1] * z];
   const spot = (s, face) => { const [x, y] = fl(s.x, s.z); return { x, y, lx: s.x, lz: s.z, face }; };
   flat.use = {
-    bed: spot({ x: 7.2, z: 7.3 }), wardrobe: spot({ x: 4.7, z: 7.8 }), fridge: spot({ x: 9.7, z: 1.9 }),
+    bed: spot({ x: 5.65, z: 7.3 }), bed2: spot({ x: 8.75, z: 7.3 }),
+    wardrobe: spot({ x: 4.7, z: 7.8 }), wardrobe2: spot({ x: 9.85, z: 6.2 }), fridge: spot({ x: 9.7, z: 1.9 }),
     fryer: spot({ x: 8.4, z: 1.4 }), door: spot({ x: 1.7, z: 8.4 }), dak: spot({ x: 0.75, z: 6.6 }),
   };
   flat.entry = fl(1.7, 7.9);
@@ -498,10 +507,11 @@ export function initHome(w) {
   }
   for (const r of home.rack.rails) addStaticCollider('rail', (r.x1 + r.x2) / 2, (r.y1 + r.y2) / 2, 0.06, Math.hypot(r.x2 - r.x1, r.y2 - r.y1) / 2, Math.atan2(r.y2 - r.y1, r.x2 - r.x1));
   w.homeActions = { goHome: () => goHome(w), canGoHome: () => canGoHome(w) === '' };
+  setHomePlace(() => ({ x: home.icon.x, y: home.icon.y, name: 'Thuis' }));
   // a respawn (or anything else that moves the player off the flat) takes the flat down
   w.onRespawn.push(() => { if (inside) dropFlat(w); });
   w.camAdjust = homeCamera;
-  window.__home = { home, goHome: () => goHome(w), enter: () => enterFlat(w), leave: () => leaveFlat(w), stockNow: () => stockNow(w), state: homeDebug, nextPage: () => nextPage(w), toFlat, onSlab };
+  window.__home = { home, goHome: () => goHome(w), enter: () => enterFlat(w), leave: () => leaveFlat(w), stockNow: () => stockNow(w), state: homeDebug, liftMenu: () => liftMenu(w), toFlat, onSlab };
 }
 
 // New game: start outside the lobby looking at the garage door, the Escapade in its bay.
@@ -554,7 +564,7 @@ function occupied(w, x, y, r, ignore) {
   return false;
 }
 
-// Stored entries in a fixed order, cars paged over the bays.
+// Stored entries in a fixed order.
 function storedEntries() {
   const out = { car: [], long: [], bike: [], boat: [], heli: [] };
   for (const o of getOwnedEntries()) {
@@ -570,8 +580,24 @@ function carBays() {
   return home.garage.bays.filter((b) => !b.hero);
 }
 
-function pageCount(n) {
-  return Math.max(1, Math.ceil(n / carBays().length));
+// Cars in bay order: the ones picked at the panel first, then the ones that
+// already stand in the garage, then the rest in the order they were bought.
+function carOrder(cars) {
+  const rank = (o) => {
+    const i = front.indexOf(o.key);
+    return i >= 0 ? i : front.length + (o.v ? 0 : 1000);
+  };
+  return cars.map((o, i) => [o, rank(o) * 10000 + i]).sort((a, b) => a[1] - b[1]).map(([o]) => o);
+}
+
+// Something else stands in this bay: a stranger's car, or one of ours left there by hand.
+function bayBlocked(w, b) {
+  for (const v of w.vehicles) {
+    if (v.wrecked || v.homeSlot === b.id) continue;
+    if (Math.abs(v.x - b.x) > 3 || Math.abs(v.y - b.y) > 3) continue;
+    if (Math.hypot(v.x - b.x, v.y - b.y) < 1.6) return true;
+  }
+  return false;
 }
 
 // Slots for the long vehicles and boats: laid out one after another.
@@ -597,27 +623,105 @@ function bankSide(w) {
   return home._bankSide;
 }
 
-function wantedSlots(w, stored) {
-  const want = new Map();
+// Where every stored entry belongs: want (entry -> the slot to spawn it at)
+// and where (key -> { at, bay }) for the Garage menu. at: 'bay', 'garage'
+// (driven in and left anywhere inside), 'lift' (more cars than bays: in the
+// parking lift behind the panel), 'kerb', 'rack', 'mooring' or 'pad'.
+// Cars already in a bay keep it; a pick at the panel frees one.
+function homeLayout(w, stored) {
+  const want = new Map(), where = new Map();
   const bays = carBays();
-  const pages = pageCount(stored.car.length);
-  page = ((page % pages) + pages) % pages;
-  stored.car.slice(page * bays.length, (page + 1) * bays.length).forEach((o, i) => { const b = bays[i]; want.set(o, { x: b.x, y: b.y, angle: b.angle, id: b.id }); });
+  const cars = carOrder(stored.car);
+  const loose = cars.filter((o) => o.v && !o.v.homeSlot);
+  for (const o of loose) where.set(o.key, { at: 'garage' });
+  const shown = cars.filter((o) => !loose.includes(o)).slice(0, Math.max(0, bays.length - loose.length));
+  const taken = new Set();
+  for (const o of shown) {
+    const k = o.v && o.v.homeSlot ? bays.findIndex((b) => b.id === o.v.homeSlot) : -1;
+    if (k >= 0) { taken.add(bays[k].id); where.set(o.key, { at: 'bay', bay: k + 1 }); }
+  }
+  const free = bays.filter((b) => !taken.has(b.id) && !bayBlocked(w, b));
+  for (const o of shown) {
+    if (where.has(o.key)) continue;
+    const b = free.shift();
+    if (!b) break;
+    want.set(o, { x: b.x, y: b.y, angle: b.angle, id: b.id });
+    where.set(o.key, { at: 'bay', bay: bays.indexOf(b) + 1 });
+  }
+  for (const o of cars) if (!where.has(o.key)) where.set(o.key, { at: 'lift' });
   const court = lineSlots(stored.long, home.court, (sp) => ({ side: 1, d: 4.5 + sp.model.wid / 2 + 0.5 }), 24, home.court.total - 2);
   for (const [o, s] of court) want.set(o, { ...s, id: 'k-' + o.key });
+  for (const o of stored.long) where.set(o.key, { at: 'kerb' });
   const side = bankSide(w);
   const boats = lineSlots(stored.boat, home.bank, (sp) => ({ side, d: sp.model.wid / 2 + 1.1 }), 30, home.bank.total - 8);
   for (const [o, s] of boats) want.set(o, { ...s, id: 'b-' + o.key });
+  for (const o of stored.boat) where.set(o.key, { at: 'mooring' });
   home.rack.slots.forEach((r, i) => {
     const o = stored.bike[i];
     if (!o) return;
     const [x, y] = r.at(lenOf(o.spec));
     want.set(o, { x, y, angle: r.angle, id: r.id });
   });
+  for (const o of stored.bike) where.set(o.key, { at: 'rack' });
   // one helicopter on the roof (not while the flat below it is open)
   const pad = home.pad;
   if (pad && stored.heli[0] && !inside) want.set(stored.heli[0], { x: pad.x, y: pad.y, angle: pad.angle, id: 'pad', z: pad.z });
-  return want;
+  for (const o of stored.heli) where.set(o.key, { at: 'pad' });
+  return { want, where };
+}
+
+const WHERE_LABEL = {
+  bay: (s) => `Thuis in de garage, vak ${s.bay}`,
+  garage: () => 'Thuis in de garage',
+  lift: () => 'Thuis in de parkeerlift: haal hem naar voren bij het paneel in de garage',
+  kerb: () => 'Thuis langs de stoep voor de garage',
+  rack: () => 'Thuis in het fietsenrek bij de voordeur',
+  mooring: () => 'Thuis aan jullie steiger achter de flat',
+  pad: () => 'Thuis op het helidek',
+};
+
+// Where an owned vehicle that is home stands (ownedvehicles.js, the Garage menu).
+export function homeWhereLabel(key) {
+  if (!home || !world) return '';
+  if (key === 'hero') return 'Thuis in de garage, in zijn eigen vak achterin';
+  const s = homeLayout(world, storedEntries()).where.get(key);
+  return s ? WHERE_LABEL[s.at](s) : '';
+}
+
+export function getHomeSave() {
+  return { front: front.slice(0, 40) };
+}
+
+// The panel by the garage door: every car at home, and which ones stand in the bays.
+function liftMenu(w) {
+  const label = (o) => o.spec.label;
+  const preview = (o) => ({ kind: o.spec.kind, model: o.spec.model, color: o.color, nameIdx: o.spec.nameIdx, flags: o.spec.flags || null });
+  const pick = (o) => {
+    front = [o.key, ...front.filter((k) => k !== o.key)];
+    const { where } = homeLayout(w, storedEntries());
+    const s = where.get(o.key);
+    tickT = 0;
+    return s && s.at === 'bay' ? `${label(o)} komt naar vak ${s.bay}` : `${label(o)} staat vooraan in de rij`;
+  };
+  return {
+    name: 'Parkeerlift', type: 'auto', color: '#1e9e56', tagline: 'Achttien vakken, en een lift voor de rest',
+    sections: () => {
+      const stored = storedEntries();
+      const { where } = homeLayout(w, stored);
+      const cars = carOrder(stored.car);
+      const inBay = cars.filter((o) => where.get(o.key).at !== 'lift');
+      const inLift = cars.filter((o) => where.get(o.key).at === 'lift');
+      const out = [{
+        title: `In de garage (${inBay.length} van ${carBays().length} vakken)`,
+        note: inLift.length ? 'Kies er een uit de lift: die ruilt met de achterste auto in de rij' : 'Alles past. Meer auto\'s dan vakken? Die wachten in de lift',
+        items: inBay.map((o) => ({ id: 'bay-' + o.key, label: label(o), desc: WHERE_LABEL[where.get(o.key).at](where.get(o.key)), price: 0, verb: 'Vooraan houden', keepFocus: true, preview: preview(o), tag: front.includes(o.key) ? 'Gekozen' : '', buy: () => pick(o) })),
+      }];
+      if (inLift.length) out.push({ title: `In de parkeerlift (${inLift.length})`, items: inLift.map((o) => ({ id: 'lift-' + o.key, label: label(o), desc: 'Wacht in de lift', price: 0, verb: 'Naar een vak', keepFocus: true, preview: preview(o), buy: () => pick(o) })) });
+      const other = [...stored.long, ...stored.bike, ...stored.boat, ...stored.heli];
+      if (other.length) out.push({ title: 'Verder thuis', items: other.map((o) => ({ id: 'home-' + o.key, label: label(o), desc: WHERE_LABEL[where.get(o.key).at](where.get(o.key)), price: 0, disabled: 'Staat al klaar', preview: preview(o) })) });
+      return out;
+    },
+  };
 }
 
 function near(w, r) {
@@ -680,9 +784,9 @@ function updateVehicles(w) {
     return;
   }
   if (!isNear) return;
-  const want = wantedSlots(w, stored);
-  // the other page's cars go back behind the panel
-  for (const o of stored.car) if (o.v && o.v.homeSlot && !want.has(o)) stash(w, o);
+  const { want, where } = homeLayout(w, stored);
+  // a car that lost its bay to a pick at the panel goes into the parking lift
+  for (const o of stored.car) if (o.v && o.v.homeSlot && where.get(o.key).at === 'lift') stash(w, o);
   let n = 0;
   for (const [o, s] of want) {
     if (o.v || n >= SPAWNS_PER_TICK) continue;
@@ -699,20 +803,9 @@ function updateVehicles(w) {
   for (const v of w.vehicles) if (v.homeStored && v._homeX === undefined) { v._homeX = v.x; v._homeY = v.y; }
 }
 
-function nextPage(w) {
-  const stored = storedEntries();
-  const pages = pageCount(stored.car.length);
-  if (pages <= 1) return false;
-  page = (page + 1) % pages;
-  for (const o of stored.car) if (o.v && o.v.homeSlot) stash(w, o);
-  tickT = 0;
-  return true;
-}
-
 // Loading a save / "Naar huis": everything that isn't lost is home again.
 function stockNow(w) {
   for (const o of getOwnedEntries()) if (o.v && !o.lost) stash(w, o);
-  page = 0;
   parkHeroAtHome(w);
   tickT = 0;
 }
@@ -938,6 +1031,8 @@ function goHome(w) {
 // Called by savegame.js after a save is applied.
 export function applyHomeOnLoad(w, d) {
   if (!home) return;
+  const t = d && d.thuis;
+  front = t && Array.isArray(t.front) ? t.front.filter((k) => typeof k === 'string').slice(0, 40) : [];
   fadeGen++;
   exitFlatNow(w);
   const busySave = d && d.ctx === 'busy';
@@ -970,8 +1065,12 @@ function flatUse(w) {
   return best;
 }
 
+// Whose bed is whose: you only sleep in your own room.
+const BED_OF = { bed: 'Tammo', bed2: 'Tessa' };
+const ownBed = (w) => (w.player.character === 'anita' ? 'bed2' : 'bed');
+
 const FLAT_PROMPTS = {
-  bed: ['Slapen', 'Tot de ochtend, en het spel wordt opgeslagen'],
+  bed: ['Slapen', 'In je eigen bed tot de ochtend, en het spel wordt opgeslagen'],
   wardrobe: ['Kledingkast', 'Trek iets anders aan'],
   fridge: ['Eierbal pakken', 'Uit de vriezer, even door de frituur: gezondheid vol'],
   fryer: ['Eierbal pakken', 'De frituurpan staat al warm'],
@@ -1013,8 +1112,12 @@ export function homePrompt(w) {
       const why = roofBlock();
       return { id: 'home-dak', x: u.s.x, y: u.s.y, h: FLOOR_TOP + 1.3, key: 'E', label: FLAT_PROMPTS.dak[0], sub: why || FLAT_PROMPTS.dak[1], ring: true, dim: !!why };
     }
-    const [label, sub] = furniturePrompt(u.k, w) || FLAT_PROMPTS[u.k];
-    return { id: 'home-' + u.k, x: u.s.x, y: u.s.y, h: FLOOR_TOP + 1.3, key: 'E', label, sub, ring: true };
+    if (BED_OF[u.k] && u.k !== ownBed(w)) {
+      return { id: 'home-otherbed', x: u.s.x, y: u.s.y, h: FLOOR_TOP + 1.3, key: 'E', label: `Bed van ${BED_OF[u.k]}`, sub: `Niet jouw kamer. Jouw bed staat ${u.k === 'bed' ? 'achter de keuken' : 'naast de gang'}`, ring: true, dim: true };
+    }
+    const k = BED_OF[u.k] ? 'bed' : u.k === 'wardrobe2' ? 'wardrobe' : u.k;
+    const [label, sub] = furniturePrompt(k, w) || FLAT_PROMPTS[k];
+    return { id: 'home-' + k, x: u.s.x, y: u.s.y, h: FLOOR_TOP + 1.3, key: 'E', label, sub, ring: true };
   }
   const L = home.lobby;
   if (Math.hypot(p.x - L.use[0], p.y - L.use[1]) < 1.8) {
@@ -1023,8 +1126,8 @@ export function homePrompt(w) {
   }
   const pn = home.garage.panel;
   if (Math.hypot(p.x - pn.x, p.y - pn.y) < 1.6) {
-    const pages = pageCount(storedEntries().car.length);
-    return { id: 'home-panel', x: pn.x, y: pn.y, h: 1.9, key: 'E', label: 'Volgende voertuigen', sub: pages > 1 ? `Rij ${page + 1} van ${pages}` : 'Alle auto\'s staan er al', ring: true, dim: pages <= 1 };
+    const lift = [...homeLayout(w, storedEntries()).where.values()].filter((s) => s.at === 'lift').length;
+    return { id: 'home-panel', x: pn.x, y: pn.y, h: 1.9, key: 'E', label: 'Kies welke auto\'s in de garage staan', sub: lift ? `${lift} in de parkeerlift` : 'Alle auto\'s staan er al', ring: true };
   }
   return null;
 }
@@ -1052,10 +1155,9 @@ export function tryHomeInteract(w) {
     const why = canEnter(w);
     if (why) { w.addMessage(why, 3); return true; }
     enterFlat(w);
-  } else if (pr.id === 'home-panel') {
-    if (!nextPage(w)) w.addMessage('Alle auto\'s staan er al', 2.5);
-    else w.addMessage('De parkeerlift draait: de volgende rij staat klaar', 3, { kind: 'tip' });
-  } else if (useFurniture(w, pr.id.slice(5), { sleep: (hour, msg) => sleep(w, hour, msg) })) {
+  } else if (pr.id === 'home-panel') openShopMenu(w, liftMenu(w));
+  else if (pr.id === 'home-otherbed') w.addMessage(w.player.character === 'anita' ? 'Dat is het bed van Tammo. Daar slaap jij niet' : 'Dat is het bed van Tessa. Daar slaap jij niet', 3);
+  else if (useFurniture(w, pr.id.slice(5), { sleep: (hour, msg) => sleep(w, hour, msg) })) {
     // an EIKEA piece (furniture.js)
   } else if (pr.id === 'home-bed') sleep(w);
   else if (pr.id === 'home-wardrobe') openShopMenu(w, wardrobeMenu(w));
@@ -1284,7 +1386,7 @@ export function updateHome(dt, w) {
 function homeDebug() {
   const st = storedEntries();
   return {
-    inside: !!inside, page, pages: pageCount(st.car.length),
+    inside: !!inside, front: [...front], where: Object.fromEntries(homeLayout(world, st).where),
     stored: Object.fromEntries(Object.entries(st).map(([k, l]) => [k, l.map((o) => o.key + (o.v ? '@' + (o.v.homeSlot || 'free') : ''))])),
     heroStored: !!(world && world.vehicles.find((v) => v.isHeroCar && v.homeStored)),
   };

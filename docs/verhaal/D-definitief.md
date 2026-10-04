@@ -80,13 +80,14 @@ GDE Groningen speelt in **één Groningse zomer**: de laatste twee weken van aug
 |---|---|---|---|---|
 | | **Trailer en opening** | Gewone wereld | Wie ze zijn, de Fjord-droom, de Escapade | Wie Tammo en Tessa zijn |
 | 1 | **H1** Berend telt de krassen | Gewone wereld | De eerste klus. Er zijn Friese kopers met een klomp | Rijden zonder schade |
+| | *EIKEA* | Gewone wereld | De flat inrichten: twee bedden, een kast die niet in de lift past, dozen op het dak | Lading heel thuisbrengen, de flat |
 | 2 | **H2** Even pinnen | De roep | Reuzen trekken een automaat met Tessa's pas eruit. Sjabbe noemt het museum | De pliesie kwijtraken, spuiten |
 | | *De weigering* | Weigering | Tammo: "Dat is de bal van Grunn." | |
 | 3 | **H3** Iets met de Grote Markt | Een eerste stap | Geld en inschrijving voor de Snackprijs. Jelle komt in de chat | Stuntavond zonder slachtoffers: punten voor spullen en stunts, strafpunten voor mensen |
 | 4 | **H4** Kieken van boven | De mentor (Bert) | De duivenkoning ziet de trekker bij het museum | Duivenmodus |
 | | *De fiets* | | Een eigen fiets met bonnetje | Winkels |
 | 5 | **H5** Wind tegen, beide kanten op | Voorbereiding | Sjoerd vertelt over de drie minuten zonder camera's | Fietsrace, groen in alle richtingen |
-| | *Kraakspullen en het donker* | | Zwart of een bootje, en wachten bij Henk | |
+| | *Kraakspullen en het donker* | | Zwart of een bootje, en thuis wachten tot middernacht. Henk belt | Thuis, slapen |
 | 6 | **H6** Het museum stond er al zo | **De drempel** | Een lege vitrine en Jelles plan | Sluipen op een timer |
 | | *Even onderduiken* | Onderduiken | Stad in rouw. Kies: de trein, een ijsje in het Noorderplantsoen of de zonsondergang aan de Hoge der A | Treinreizen, de stad verkennen |
 | 7 | **H7** Heel aankomen is ook een kunst | Beproeving | Een alibi. Al het vet is opgekocht | Breekbare lading |
@@ -97,6 +98,7 @@ GDE Groningen speelt in **één Groningse zomer**: de laatste twee weken van aug
 | | *Botsauto's* | | Durk verklapt de kroeg | Kermis |
 | 11 | **H11** Nog eentje dan | Onthulling 1 | "De bal ligt op het skûtsje. Mem wil hem niet eens." | Te voet |
 | 12 | **H12** Fatbikes tellen niet als fiets | **De tweede mentor** | Oma vertelt over 1953 en Gerda Terpstra | Te voet tussen de fatbikes |
+| | *Een avond thuis* | | Tessa overhoort haar gids voor morgen | |
 | 13 | **H13** Alles klopt, behalve de papieren | Liefde, het middenpunt | De kus. Ze zien het skûtsje | Rondvaart |
 | | *Bootje huren* | | | |
 | 14 | **H14** Geleend van de Friezen | Valse overwinning | Een chocoladebal, "foar mem" | Boot achtervolgen en aan boord springen |
@@ -196,6 +198,33 @@ GDE Groningen speelt in **één Groningse zomer**: de laatste twee weken van aug
 **Autogesprek**
 - **Tessa:** Vijftig euro. Dat is een ventieldopje van de Fjord.
 - **Tammo:** Dan hebben we er één. Dat is een begin.
+
+---
+
+## Tussendoor: EIKEA *(de flat inrichten)*
+*Ze slapen nog op een luchtbed. De flat heeft twee kleine slaapkamers: die van Tammo naast de gang, die van Tessa achter de keuken. Rij naar EIKEA aan de Sontweg, met de Escapade. Bij het laadperron:*
+- **Tessa:** Lijstje. Twee bedden, één boekenkast, één lamp. Verder niks.
+- **Tammo:** En die kast met de glazen deurtjes.
+- **Tessa:** Die past niet in de lift.
+- **Tammo:** Alles past in een lift. Als je hem schuin houdt.
+- **Tessa:** Elf verdiepingen schuin, Tammo.
+- **Tammo:** Hij past niet.
+- **Tessa:** Wie krijgt de kamer met uitzicht?
+- **Tammo:** Ze kijken allebei op de lift.
+- **Tessa:** Dan neem ik die bij de koelkast.
+- **Tammo:** Daar was ik al bang voor.
+
+*Drie dozen op het dak. Een flinke klap kost er een: eerst de lamp, dan de kast, de bedden als laatste. Thuis met de lift naar boven.*
+- **Tessa:** Stap één: niet in paniek raken.
+- **Tammo:** Er staan alleen plaatjes in.
+- **Tessa:** Dan kijk jij naar de plaatjes. Ik draai.
+- **Tammo:** Klaar. Twee bedden.
+- **Tessa:** Er blijft één schroefje over.
+- **Tammo:** Reserve. Die Zweden denken overal aan.
+- **Tessa:** Het is een Gronings bedrijf.
+- **Tammo:** Dan is hij van de vorige klant.
+
+*Wat heel aankomt, staat in de flat: de Sloapstee-bedden, de Buukenkaas (nog in de doos) en Lichtje Tjoek.*
 
 ---
 
@@ -363,13 +392,16 @@ Wie mensen raakt, krijgt strafpunten en verliest zijn combo ("Chat vindt dat nie
 - **Rikus:** Peiling, Woist ja wel: ze remden allebei voor elkaar, op een kruispunt waar alles groen was. Ja: 74 procent.
 
 ## Tussendoor: kraakspullen en het donker
-*Eén stap: zwart incognito bij Stoer & Stads, of een huurbootje bij Bootje Huren. Daarna wachten bij Henk tot middernacht.*
-- **Henk:** Kovvie mit kouke? *(Koffie met koek?)* *(De trommel gaat open, er gaat één koekje uit, de trommel gaat weer dicht.)*
-- **Tammo:** Graag.
-- **Henk:** Eén. Het is geen Ontzet. En ik vraag niet waarom jullie in het zwart zijn.
+*Eén stap: zwart incognito bij Stoer & Stads, of een huurbootje bij Bootje Huren. Daarna thuis wachten tot middernacht: met de lift naar de flat, op de bank of even slapen. Henk belt op de luidspreker. Zo komt hij in het verhaal, met zijn koekje en de zender die H16 nodig heeft.*
+- **Tessa:** Wachten is het ergste deel van een kraak.
+- **Tammo:** We hebben nog nooit een kraak gedaan.
+- **Tessa:** Daarom weet ik het niet zeker.
+- **Henk (telefoon):** Henk. Garage Knalpot. Ik bel even of die bak van jullie nog rijdt. Er zit nou een zender in. Voor als hij ooit gejat wordt.
+- **Henk:** En ik vraag niet waarom jullie nog op zijn.
 - **Tammo:** Een begrafenis.
 - **Henk:** Om twaalf uur 's nachts.
 - **Tessa:** Een hele late.
+- **Henk:** Neem er een koekje bij. Eén. Het is geen Ontzet.
 
 ---
 
@@ -652,6 +684,22 @@ Alle drie staan op de kaart; de route gaat naar de dichtstbijzijnde. Elke keuze 
 - **Tammo:** Oma's zeggen dingen.
 - **Tessa:** Tammo.
 - **Tammo:** Rijden, niet praten. Dat zeg jij altijd.
+
+---
+
+## Tussendoor: een avond thuis
+*Tessa appt: kom je naar huis? In de flat, negen uur 's avonds, op de bank. Morgen is Tammo de gids op de rondvaartboot.*
+- **Tessa:** Morgen ben jij de gids op die boot. Wat weet je eigenlijk van Grunn?
+- **Tammo:** Alles. Ik woon hier mijn hele leven.
+- **Tessa:** Hoe hoog is de Martinitoren?
+- **Tammo:** Hoog.
+- **Tessa:** Zevenennegentig meter.
+- **Tammo:** Dat zei ik. Hoog.
+- **Tessa:** Welterusten, gids.
+- **Tammo:** Het is negen uur.
+- **Tessa:** Dan heb je lang de tijd om het op te zoeken.
+
+*Ze gaat naar haar kamer. Hij blijft nog even zitten.*
 
 ---
 
@@ -953,6 +1001,7 @@ Alle drie staan op de kaart; de route gaat naar de dichtstbijzijnde. Elke keuze 
 - **Rikus:** De Gouden Eierbal staat weer in het museum, met een alarm dat het doet en met twee namen op het bordje.
 - **Rikus:** Bij de Vismarkt staat een blauwe frietwagen op een rode Escapade. De rij loopt tot de Korenbeurs.
 - **Rikus:** De torenwachter belde: "Lange rij bij de Vismarkt. Ik meld alleen."
+- **Rikus:** In Paddepoel, op de elfde verdieping, brandt 's avonds nog maar in één slaapkamer licht. Ik zeg niks.
 - **Rikus:** Berend stuurde een brief: hij wil volgend jaar weer de bisschop zijn. Omdat hij zo goed kan verliezen.
 - **Rikus:** En ik heb de tweede friet. Hij heeft betaald, zegt hij. Hij heeft niet betaald.
 - **Rikus:** Dit is voor twee Stadjers. Ze zeggen nooit wat. Vandaag wel. Moi.
