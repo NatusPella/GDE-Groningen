@@ -1635,6 +1635,8 @@ const GMUSIC_ARTISTS = {
   'Staal en suiker': 'Beton Bert & de Bietenbende',
   'Wie stoan nait stil': 'De Nait Soezen Crew',
   'Kleur in de Wind': 'Windkracht Wiebke',
+  'Geen stoplicht houdt ons tegen': 'Ringweg Drillers',
+  'Goud in de Nacht': 'Nachtbus Nino',
 };
 // file names can't carry every character of a title
 const GMUSIC_TITLES = {
