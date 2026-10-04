@@ -99,5 +99,22 @@ ok(new Set(bphys).size === bphys.length, 'browser defaults: never two actions on
 ok(JSON.stringify(C.normalizeKeyBinds({})) === '{}', 'browser: empty binds stay empty');
 C.setKeyPlatform('desktop');
 
+// look back in a vehicle: Q / right stick / middle mouse, any speed
+ok(C.lookBackActive({ inVehicle: true, qDown: true }), 'Q looks back in a vehicle');
+ok(C.lookBackActive({ inVehicle: true, middleDown: true, noLookBack: true }), 'middle mouse looks back even when a minigame owns Q');
+ok(!C.lookBackActive({ inVehicle: true, qDown: true, noLookBack: true }), 'skutsje: Q trims the sail');
+ok(!C.lookBackActive({ inVehicle: false, qDown: true }) && !C.lookBackActive({ inVehicle: true, qDown: true, override: true }), 'not on foot or in a cutscene');
+for (const speed of [5, 20, 40, 60]) {
+  // car drives +x; looking back the camera wants to sit 5 m ahead of it
+  let carX = 0, camX = -5;
+  const dt = 1 / 60;
+  for (let i = 0; i < 120; i++) {
+    carX += speed * dt;
+    camX += (carX + 5 - camX) * C.chaseFollowLerp(dt, { lookBack: true, cut: i === 0 });
+  }
+  ok(camX - carX > 4.9, `looking back at ${speed} m/s the camera stays ahead of the car`, camX - carX);
+}
+ok(C.chaseFollowLerp(1 / 60) < 1, 'normal chase camera still eases');
+
 console.log(`${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);
