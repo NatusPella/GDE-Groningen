@@ -23,10 +23,6 @@
 "src": "h1-fail-tellen_0_t_5c75f5.mp3",
 "dur": 1.71
 },
-"Anita|Een pinautomaat in de achterbak. Mijn moeder zou trots zijn.": {
-"src": "h2-pass-moeder_0_a_2926bd.mp3",
-"dur": 4.49
-},
 "Tammo|Je moeder werkte bij de bank.": {
 "src": "h2-pass-moeder_1_t_9145ba.mp3",
 "dur": 1.42
@@ -45,14 +41,6 @@
 },
 "Tammo|Het was een heel eerlijk alarm. Het deed wat het zei.": {
 "src": "h2-fail_1_t_767b3f.mp3",
-"dur": 2.94
-},
-"Tammo|Jelmer zei \"content\". Ik heb me nog nooit zo weinig content gevoeld.": {
-"src": "h3-pass-content_0_t_1254d0.mp3",
-"dur": 4.14
-},
-"Anita|Tienduizend kijkers. Je moeder keek ook.": {
-"src": "h3-pass-content_1_a_632b7e.mp3",
 "dur": 2.94
 },
 "Tammo|Die kijkt alles. Ook het weerbericht van gisteren.": {
@@ -74,10 +62,6 @@
 "Tammo|Kunst is wat je ervan maakt.": {
 "src": "h4-pass-kunst_1_t_4685c1.mp3",
 "dur": 2.23
-},
-"Anita|Je hebt een kwartier op een patatbakje gezeten.": {
-"src": "h4-fail_0_a_30ddad.mp3",
-"dur": 4.83
 },
 "Tammo|Het was een heel groot patatbakje.": {
 "src": "h4-fail_1_t_f6d988.mp3",
@@ -127,21 +111,9 @@
 "src": "h6-pass-lucht_2_t_366124.mp3",
 "dur": 2.38
 },
-"Tammo|Die man met die trekker was live. Jelle Terpstra.": {
-"src": "h6-pass-aaibal_0_t_60cf31.mp3",
-"dur": 2.76
-},
-"Anita|Operaasje Aaibal. Hij kan niet eens eierbal zeggen.": {
-"src": "h6-pass-aaibal_1_a_4d95f0.mp3",
-"dur": 4.03
-},
 "Tammo|Dat vind ik nog het ergste.": {
 "src": "h6-pass-aaibal_2_t_7b1231.mp3",
 "dur": 1.39
-},
-"Anita|\"Zaklamp aan\", zei hij.": {
-"src": "h6-fail_0_a_6d8d67.mp3",
-"dur": 2.02
 },
 "Tammo|Achteraf niet mijn beste idee.": {
 "src": "h6-fail_1_t_1a513a.mp3",
@@ -186,14 +158,6 @@
 "Anita|Die weg heeft twintig jaar geoefend.": {
 "src": "h9-fail_1_a_d9a07d.mp3",
 "dur": 1.84
-},
-"Anita|Aan de muur bij Geert. We hebben het gemaakt.": {
-"src": "h11-pass-muur_0_a_5346bb.mp3",
-"dur": 4.15
-},
-"Tammo|Naast de wc. Wel de schoonste muur van de kroeg.": {
-"src": "h11-pass-muur_1_t_ad2840.mp3",
-"dur": 3.07
 },
 "Anita|Petten dus. Geen snorren.": {
 "src": "h11-pass-petten_0_a_27b4da.mp3",
@@ -418,10 +382,6 @@
 "Tammo|KEI-week. Ik voel me weer negentien.": {
 "src": "st-h5_0_t_84613b.mp3",
 "dur": 2.3
-},
-"Anita|Je was drie weken student.": {
-"src": "st-h5_1_a_de4d66.mp3",
-"dur": 1.69
 },
 "Tammo|Drie intense weken.": {
 "src": "st-h5_2_t_39cfa0.mp3",
@@ -674,10 +634,6 @@
 "Tammo|Jij bent er nooit geweest.": {
 "src": "pl-euroborg_1_t_1a40dd.mp3",
 "dur": 2.43
-},
-"Anita|Ik hoor het thuis als ze scoren. De hele wijk trilt.": {
-"src": "pl-euroborg_2_a_bd5ecf.mp3",
-"dur": 3.33
 },
 "Tammo|EIKEA. Vier uur lopen tussen de bankstellen.": {
 "src": "pl-eikea_0_t_8d551c.mp3",
@@ -956,8 +912,8 @@
 "dur": 1.82
 },
 "Anita|En?": {
-"src": "id-drachten_2_a_d8ba48.mp3",
-"dur": 0.68
+"src": "wk-professoren_1_a_d8ba48.mp3",
+"dur": 0.54
 },
 "Tammo|Het was heel rustig. Ik heb er goed geslapen.": {
 "src": "id-drachten_3_t_d0425b.mp3",
@@ -986,10 +942,6 @@
 "Anita|Hoe kan dat nou?": {
 "src": "id-fietsen_2_a_bd3697.mp3",
 "dur": 1.32
-},
-"Tammo|Iedereen heeft er één. En één die gestolen is.": {
-"src": "id-fietsen_3_t_8b712d.mp3",
-"dur": 2.67
 },
 "Tammo|Mag de radio aan?": {
 "src": "id-radio_0_t_89b94c.mp3",
@@ -1026,10 +978,6 @@
 "Anita|Ruik je dat?": {
 "src": "id-suikerfabriek_0_a_76b2b7.mp3",
 "dur": 1.21
-},
-"Tammo|De suikerfabriek kan het niet zijn. Die is al jaren dicht.": {
-"src": "id-suikerfabriek_1_t_1ed65b.mp3",
-"dur": 3.09
 },
 "Anita|Dan ben jij het.": {
 "src": "id-suikerfabriek_2_a_39eebf.mp3",
@@ -1311,14 +1259,6 @@
 "src": "h1-pass-konminder_1_t_1bfd92.mp3",
 "dur": 0.9
 },
-"Anita|Zeg dat niet te hard. Dit is nu echt de laatste fase.": {
-"src": "h9-pass-traditie_1_a_4e9037.mp3",
-"dur": 6.89
-},
-"Tammo|Dat zeiden ze in de vorige laatste fase ook.": {
-"src": "h9-pass-traditie_2_t_0f6234.mp3",
-"dur": 2.68
-},
 "Anita|Daar is d'Olle Grieze.": {
 "src": "pl-martinitoren-thuis_0_a_70298f.mp3",
 "dur": 1.39
@@ -1326,14 +1266,6 @@
 "Tammo|Bijna thuis.": {
 "src": "pl-martinitoren-thuis_1_t_518dd4.mp3",
 "dur": 0.76
-},
-"Anita|We wonen er vier straten vandaan, Tammo.": {
-"src": "pl-martinitoren-thuis_2_a_d70baf.mp3",
-"dur": 5.55
-},
-"Tammo|Dus: bijna thuis.": {
-"src": "pl-martinitoren-thuis_3_t_6b1d35.mp3",
-"dur": 1.79
 },
 "Anita|Koppig, hè.": {
 "src": "pl-aakerk_2_a_459601.mp3",
@@ -1375,14 +1307,6 @@
 "src": "wk-selwerd_0_a_b3d495.mp3",
 "dur": 2.43
 },
-"Tammo|Daarom rij je nu auto.": {
-"src": "wk-selwerd_1_t_3e6df6.mp3",
-"dur": 1.41
-},
-"Anita|Daarom leef jij nog.": {
-"src": "wk-selwerd_2_a_b53eda.mp3",
-"dur": 1.13
-},
 "Tammo|De Korrewegwijk. Hier woonde ik op een zolder van vier vierkante meter.": {
 "src": "wk-korreweg_0_t_8251ed.mp3",
 "dur": 4.61
@@ -1398,14 +1322,6 @@
 "Anita|De Oosterparkwijk. Hier stond vroeger het oude stadion.": {
 "src": "wk-oosterpark_0_a_64ef9f.mp3",
 "dur": 3.41
-},
-"Tammo|Mijn opa zegt dat ze daar harder zongen.": {
-"src": "wk-oosterpark_1_t_9ccb39.mp3",
-"dur": 2.44
-},
-"Anita|Je opa zegt dat alles vroeger harder was.": {
-"src": "wk-oosterpark_2_a_36a912.mp3",
-"dur": 3.61
 },
 "Tammo|Behalve de wind. Die is hetzelfde gebleven.": {
 "src": "wk-oosterpark_3_t_94c32f.mp3",
@@ -1510,10 +1426,6 @@
 "Tammo|Denk jij dat we die Eierbal ooit terugzien?": {
 "src": "id-komtgoud_0_t_92d076.mp3",
 "dur": 2.12
-},
-"Anita|Komt goud, mien jong.": {
-"src": "id-komtgoud_1_a_3d711c.mp3",
-"dur": 1.83
 },
 "Tammo|Zeg je dat omdat het waar is?": {
 "src": "id-komtgoud_2_t_eedfc5.mp3",
@@ -1899,14 +1811,6 @@
 "src": "q-h17-ons_3_a_cf3a28.mp3",
 "dur": 2.78
 },
-"Anita|Wij tweeën vóór Grunn. Klinkt beter dan tegen.": {
-"src": "q-h18-beste_0_a_84580f.mp3",
-"dur": 3.4
-},
-"Tammo|Alles klinkt beter met een eierbal erbij.": {
-"src": "q-h18-beste_1_t_14f8aa.mp3",
-"dur": 2.01
-},
 "Anita|Die van ons is de beste. Jelle zei het zelf.": {
 "src": "q-h18-beste_2_a_1711d5.mp3",
 "dur": 2.76
@@ -1935,10 +1839,6 @@
 "src": "st-duif_0_t_c0aa46.mp3",
 "dur": 3.05
 },
-"Anita|Bert zegt dat een duif naar je luistert als je hem diep in de ogen kijkt.": {
-"src": "st-h4-ogen_0_a_e5c131.mp3",
-"dur": 4.4
-},
 "Tammo|Wij tweeën vóór Grunn. Kon minder.": {
 "src": "end-staart-konminder_0_t_40f67a.mp3",
 "dur": 1.98
@@ -1966,10 +1866,6 @@
 "Anita|Voor jou of voor de duif?": {
 "src": "h10-pass-team_1_a_b5a2da.mp3",
 "dur": 2.38
-},
-"Tammo|Voor ons. Ik fluit, hij pikt.": {
-"src": "h10-pass-team_2_t_f5ce6f.mp3",
-"dur": 2.11
 },
 "Anita|Dus de duif deed het werk.": {
 "src": "h10-pass-team_3_a_eb09ab.mp3",
@@ -2419,10 +2315,6 @@
 "src": "h7-pass-hardop_1_a_c8972c.mp3",
 "dur": 0.9
 },
-"Tammo|We stonden binnen.": {
-"src": "h7-pass-hardop_2_t_3cd449.mp3",
-"dur": 0.93
-},
 "Anita|Het was een stuk over wind, Tammo. Er was overal wind.": {
 "src": "h7-pass-hardop_3_a_36c20f.mp3",
 "dur": 4.67
@@ -2546,18 +2438,6 @@
 "Tammo|Rijden, niet praten. Dat zeg jij altijd.": {
 "src": "h12-pass-niettegenhaar_3_t_82da54.mp3",
 "dur": 3.0
-},
-"Tammo|Die handjes om de bal. Die zijn van oma.": {
-"src": "q-h12-gerda_0_t_0df220.mp3",
-"dur": 2.52
-},
-"Anita|En de beste eierbal was van Gerda.": {
-"src": "q-h12-gerda_1_a_ed832b.mp3",
-"dur": 2.56
-},
-"Tammo|Zeventig jaar. En ze zei het nooit.": {
-"src": "q-h12-gerda_2_t_0f6367.mp3",
-"dur": 2.74
 },
 "Anita|Klinkt bekend.": {
 "src": "q-h12-gerda_3_a_910a4b.mp3",
@@ -2855,33 +2735,9 @@
 "src": "st-h3-stunt_2_a_ba8ce1.mp3",
 "dur": 3.94
 },
-"Tammo|Werkt dat bij mensen ook?": {
-"src": "st-h4-ogen_1_t_fcdb1a.mp3",
-"dur": 1.06
-},
-"Anita|Probeer maar.": {
-"src": "st-h4-ogen_2_a_4180df.mp3",
-"dur": 0.78
-},
-"Tammo|Ik kijk liever naar de weg.": {
-"src": "st-h4-ogen_3_t_654387.mp3",
-"dur": 1.5
-},
-"Anita|Laf.": {
-"src": "st-h4-ogen_4_a_63945c.mp3",
-"dur": 1.48
-},
-"Tammo|Veilig.": {
-"src": "st-h4-ogen_5_t_314459.mp3",
-"dur": 0.69
-},
 "Tammo|\"Oant sjen op it Ontset.\" Wat bedoelt hij daarmee?": {
 "src": "st-end-kop-ontzet_0_t_1b9a2c.mp3",
 "dur": 3.55
-},
-"Tammo|Een treinkaartje naar maakt niet uit waar.": {
-"src": "st-trein_0_t_2ec4a2.mp3",
-"dur": 2.26
 },
 "Anita|Assen. Daar zoekt niemand ons.": {
 "src": "st-trein_1_a_89c04b.mp3",
@@ -3082,10 +2938,6 @@
 "Anita|Waar staat de Escapade eigenlijk?": {
 "src": "st-h16-sleutel_4_a_49d039.mp3",
 "dur": 2.04
-},
-"Tammo|Voor de deur. Waar hij altijd staat.": {
-"src": "st-h16-sleutel_5_t_1a51a3.mp3",
-"dur": 1.81
 },
 "Anita|Jelle wil bieden. Op de radio. Genoeg voor tien frietwagens.": {
 "src": "st-h17-dopjes_0_a_8610c3.mp3",
@@ -3455,26 +3307,6 @@
 "src": "id-storing_3_a_7b115b.mp3",
 "dur": 2.25
 },
-"Tammo|Ow. Goud. Valt mie nait of. Braid noar de zin. Kon minder.": {
-"src": "id-ladder_1_t_bfe0ad.mp3",
-"dur": 4.08
-},
-"Anita|Dat zijn er vijf.": {
-"src": "id-ladder_2_a_96ad23.mp3",
-"dur": 0.9
-},
-"Tammo|De zesde zeg je niet.": {
-"src": "id-ladder_3_t_803673.mp3",
-"dur": 1.15
-},
-"Anita|Wat doe je dan?": {
-"src": "id-ladder_4_a_305d4b.mp3",
-"dur": 0.89
-},
-"Tammo|Dan slik je.": {
-"src": "id-ladder_5_t_8c355d.mp3",
-"dur": 0.77
-},
 "Anita|Gisteren, bij de deur. Zei jij moi?": {
 "src": "id-moi-zacht_0_a_1afe28.mp3",
 "dur": 2.83
@@ -3639,10 +3471,6 @@
 "src": "id-huisgenoten_2_t_af120c.mp3",
 "dur": 0.84
 },
-"Anita|Hoeveel treden heeft die complimentenladder van jullie eigenlijk?": {
-"src": "id-ladder_0_a_960e76.mp3",
-"dur": 3.61
-},
 "Anita|Rotor Roelf laat ons echt vliegen. Gratis.": {
 "src": "st-h15_0_a_3a2908.mp3",
 "dur": 3.89
@@ -3650,10 +3478,6 @@
 "Tammo|Gratis bestaat niet in Eelde. Hij telt de krassen.": {
 "src": "st-h15_1_t_06f477.mp3",
 "dur": 3.22
-},
-"Anita|Een J onder je buit zetten. Wie doet dat nou?": {
-"src": "h6-pass-w_0_a_e1591d.mp3",
-"dur": 3.24
 },
 "Tammo|Iemand met een trekker-limo.": {
 "src": "h6-pass-w_1_t_4632a2.mp3",
@@ -3678,5 +3502,249 @@
 "Tammo|Tessa! Echt?": {
 "src": "id-tigetank_2_t_aa2eda.mp3",
 "dur": 1.29
+},
+"Anita|Een pinautomaat in de achterbak. Mijn moeder zou flauwvallen.": {
+"src": "h2-pass-moeder_0_a_d5e29d.mp3",
+"dur": 5.51
+},
+"Tammo|Tienduizend kijkers. Voor een kliko in een fontein.": {
+"src": "h3-pass-content_0_t_7e84ba.mp3",
+"dur": 3.04
+},
+"Anita|En je moeder keek ook.": {
+"src": "h3-pass-content_1_a_6267cd.mp3",
+"dur": 2.74
+},
+"Anita|Duivenkoning. Het staat je.": {
+"src": "h4-pass-duivenkoning_0_a_addf3d.mp3",
+"dur": 2.27
+},
+"Anita|Je duif heeft een kwartier op een patatbakje gezeten.": {
+"src": "h4-fail_0_a_d4d7ec.mp3",
+"dur": 3.07
+},
+"Anita|Een kaartje met een J erop. Wie doet dat nou?": {
+"src": "h6-pass-w_0_a_7befd8.mp3",
+"dur": 3.31
+},
+"Tammo|Die man op de radio. Jelle Terpstra. Snackkoning.": {
+"src": "h6-pass-aaibal_0_t_a0d465.mp3",
+"dur": 3.96
+},
+"Anita|\"Oant sjen op it Ontset.\" Hij kan niet eens Ontzet zeggen.": {
+"src": "h6-pass-aaibal_1_a_c305eb.mp3",
+"dur": 4.05
+},
+"Anita|\"Zaklamp aan\", zei jij.": {
+"src": "h6-fail_0_a_dc90dc.mp3",
+"dur": 2.26
+},
+"Tammo|Er stond geen zuchtje wind.": {
+"src": "h7-pass-hardop_2_t_a168d9.mp3",
+"dur": 1.48
+},
+"Anita|Zeg dat niet te hard. Dan begint er weer een laatste fase.": {
+"src": "h9-pass-traditie_1_a_f558bc.mp3",
+"dur": 3.29
+},
+"Tammo|De allerlaatste.": {
+"src": "h9-pass-traditie_2_t_a8742e.mp3",
+"dur": 1.3
+},
+"Tammo|Voor ons. Ik floot, hij deed de rest.": {
+"src": "h10-pass-team_2_t_26b77f.mp3",
+"dur": 2.49
+},
+"Anita|Vier kroegen. En we staan nog.": {
+"src": "h11-pass-muur_0_a_65e4b0.mp3",
+"dur": 2.67
+},
+"Tammo|Jij staat. Ik leun.": {
+"src": "h11-pass-muur_1_t_4dabd2.mp3",
+"dur": 1.67
+},
+"Tammo|Oma won. Maar de beste eierbal was van Gerda.": {
+"src": "q-h12-gerda_0_t_2addd9.mp3",
+"dur": 3.79
+},
+"Anita|En dat zei ze zeventig jaar niet.": {
+"src": "q-h12-gerda_1_a_93444c.mp3",
+"dur": 1.79
+},
+"Tammo|Zeventig jaar.": {
+"src": "q-h12-gerda_2_t_9236c4.mp3",
+"dur": 1.17
+},
+"Anita|Wij tweeën vóór Grunn. Klinkt goed, hè.": {
+"src": "q-h18-beste_0_a_70e69d.mp3",
+"dur": 2.95
+},
+"Tammo|Alles klinkt goed met een eierbal erbij.": {
+"src": "q-h18-beste_1_t_f180c9.mp3",
+"dur": 2.03
+},
+"Anita|Rikus zegt dat jij duiven spreekt.": {
+"src": "st-h4-ogen_0_a_82fc3c.mp3",
+"dur": 3.84
+},
+"Tammo|Ik spreek nauwelijks mensen.": {
+"src": "st-h4-ogen_1_t_00f0cc.mp3",
+"dur": 1.26
+},
+"Anita|Daarom misschien.": {
+"src": "st-h4-ogen_2_a_04af74.mp3",
+"dur": 1.15
+},
+"Anita|Jij was nauwelijks student.": {
+"src": "st-h5_1_a_a75aed.mp3",
+"dur": 3.08
+},
+"Tammo|Even weg. Maar waarheen?": {
+"src": "st-trein_0_t_9d7788.mp3",
+"dur": 1.59
+},
+"Tammo|In de garage. Waar hij altijd staat.": {
+"src": "st-h16-sleutel_5_t_146c85.mp3",
+"dur": 1.84
+},
+"Anita|We wonen in Paddepoel, Tammo.": {
+"src": "pl-martinitoren-thuis_2_a_9287c6.mp3",
+"dur": 2.45
+},
+"Tammo|Ik zie hem vanaf de elfde. Dus: bijna thuis.": {
+"src": "pl-martinitoren-thuis_3_t_56caa2.mp3",
+"dur": 2.91
+},
+"Anita|Vroeger hoorde ik het thuis als ze scoorden. De hele wijk trilde.": {
+"src": "pl-euroborg_2_a_f8cc16.mp3",
+"dur": 4.45
+},
+"Tammo|Dat zie je nog steeds.": {
+"src": "wk-selwerd_1_t_11f07f.mp3",
+"dur": 1.84
+},
+"Anita|Pas op, jij.": {
+"src": "wk-selwerd_2_a_f65e45.mp3",
+"dur": 1.29
+},
+"Tammo|Mijn opa zei altijd dat ze daar harder zongen.": {
+"src": "wk-oosterpark_1_t_d31157.mp3",
+"dur": 2.49
+},
+"Anita|Je opa zei dat alles vroeger harder was.": {
+"src": "wk-oosterpark_2_a_83f2e3.mp3",
+"dur": 2.38
+},
+"Anita|Het Ebbingekwartier. Hier wilde ik vroeger wonen.": {
+"src": "wk-ebbinge_0_a_05cb52.mp3",
+"dur": 3.01
+},
+"Anita|Nu kan ik de koffie hier niet eens betalen.": {
+"src": "wk-ebbinge_2_a_09786c.mp3",
+"dur": 3.51
+},
+"Tammo|Het A-kwartier. Hier fiets je alleen als je weet waar je heen moet.": {
+"src": "wk-akwartier_0_t_03fc90.mp3",
+"dur": 3.45
+},
+"Anita|En als je het niet weet?": {
+"src": "wk-akwartier_1_a_6b5e7c.mp3",
+"dur": 1.64
+},
+"Tammo|Dan kom je bij een kroeg uit.": {
+"src": "wk-akwartier_2_t_b6be0f.mp3",
+"dur": 1.42
+},
+"Anita|Moet je die fietsers zien. Die gaan harder dan wij.": {
+"src": "wk-station_0_a_e0ea9e.mp3",
+"dur": 2.96
+},
+"Tammo|Ze moeten een trein halen.": {
+"src": "wk-station_1_t_c87ce3.mp3",
+"dur": 1.15
+},
+"Anita|Ze moeten altijd een trein halen.": {
+"src": "wk-station_2_a_aa7262.mp3",
+"dur": 2.82
+},
+"Tammo|De Zeeheldenbuurt. Hier heeft iedereen een bakfiets.": {
+"src": "wk-zeehelden_0_t_47c222.mp3",
+"dur": 3.0
+},
+"Anita|En een mening over de bakfiets van de buren.": {
+"src": "wk-zeehelden_1_a_ef8a00.mp3",
+"dur": 2.03
+},
+"Anita|Hier woonde Rikus. Op een kamer zonder ramen.": {
+"src": "wk-noorderplantsoen_0_a_7bc523.mp3",
+"dur": 3.31
+},
+"Tammo|Voor de akoestiek, zei hij.": {
+"src": "wk-noorderplantsoen_1_t_d29e32.mp3",
+"dur": 1.43
+},
+"Anita|Voor de huur.": {
+"src": "wk-noorderplantsoen_2_a_40cb2d.mp3",
+"dur": 0.8
+},
+"Tammo|Daarachter ligt Zernike. Daar heb ik die drie weken gestudeerd.": {
+"src": "wk-paddepoel-noord_0_t_b609f9.mp3",
+"dur": 3.85
+},
+"Tammo|De derde telt ook.": {
+"src": "wk-paddepoel-noord_2_t_a82ac6.mp3",
+"dur": 1.26
+},
+"Tammo|Hier heb ik ooit kranten bezorgd.": {
+"src": "wk-professoren_0_t_3ded2e.mp3",
+"dur": 1.65
+},
+"Tammo|Ze hadden er al drie. Allemaal gelezen.": {
+"src": "wk-professoren_2_t_7a471a.mp3",
+"dur": 2.14
+},
+"Anita|De Westerhaven. Hier parkeer ik nooit meer.": {
+"src": "wk-westerhaven_0_a_4563f5.mp3",
+"dur": 3.62
+},
+"Anita|Ik ben mijn fiets hier eens drie uur kwijt geweest.": {
+"src": "wk-westerhaven_2_a_87f029.mp3",
+"dur": 2.86
+},
+"Tammo|Hij stond er gewoon.": {
+"src": "wk-westerhaven_3_t_6f3d30.mp3",
+"dur": 0.88
+},
+"Anita|Op een andere verdieping, Tammo.": {
+"src": "wk-westerhaven_4_a_9535e6.mp3",
+"dur": 2.45
+},
+"Tammo|Kijk maar in de Diepenring. Daar liggen de reserves.": {
+"src": "id-fietsen_3_t_56e74f.mp3",
+"dur": 2.71
+},
+"Tammo|Suiker uit Hoogkerk kan het niet zijn. Dat is pas in september.": {
+"src": "id-suikerfabriek_1_t_ae022e.mp3",
+"dur": 3.72
+},
+"Tammo|De bovenste trede van de complimentenladder. Wat zeg je dan?": {
+"src": "id-ladder_0_t_83f171.mp3",
+"dur": 3.58
+},
+"Anita|Niks. Dan slik je.": {
+"src": "id-ladder_1_a_c81721.mp3",
+"dur": 1.39
+},
+"Tammo|Dat doe ik al jaren.": {
+"src": "id-ladder_2_t_846ce0.mp3",
+"dur": 0.99
+},
+"Anita|Bij een eierbal, Tammo.": {
+"src": "id-ladder_3_a_b98ca7.mp3",
+"dur": 2.81
+},
+"Anita|Komt goud, jong.": {
+"src": "id-komtgoud_1_a_148f36.mp3",
+"dur": 1.12
 }
 }

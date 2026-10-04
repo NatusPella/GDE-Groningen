@@ -99,10 +99,6 @@
 "src": "m5/intro_3_anita.mp3",
 "dur": 2.75
 },
-"Anita|Jaloers én verantwoordelijk. Wat heb je met Tammo gedaan?": {
-"src": "m5/intro_5_anita.mp3",
-"dur": 5.08
-},
 "Anita|Ik hou niet van snorren. Ik hou van petten.": {
 "src": "m5/outro_3_anita.mp3",
 "dur": 2.42
@@ -126,18 +122,6 @@
 "Tammo|Links ziet u Grunn. Rechts ziet u ook Grunn.": {
 "src": "m7/intro_3_tammo.mp3",
 "dur": 3.48
-},
-"Tammo|Weet je nog, Berends bakkie? Toen kreeg ik de sleutels niet eens.": {
-"src": "m7/outro_0_tammo.mp3",
-"dur": 3.08
-},
-"Anita|Die krijg je nog steeds niet.": {
-"src": "m7/outro_1_anita.mp3",
-"dur": 1.44
-},
-"Tammo|Maar de rest wel?": {
-"src": "m7/outro_2_tammo.mp3",
-"dur": 1.07
 },
 "Anita|Gids zijn is moeilijker dan het lijkt.": {
 "src": "m7/fail_0_anita.mp3",
@@ -231,10 +215,6 @@
 "src": "duo/s5/intro_0_tammo.mp3",
 "dur": 1.71
 },
-"Anita|Moi. Dat klinkt bijna lief.": {
-"src": "duo/s5/intro_1_anita.mp3",
-"dur": 2.8
-},
 "Anita|Zeg het maar gewoon, Tammo.": {
 "src": "duo/s5/outro_0_anita.mp3",
 "dur": 2.1
@@ -270,14 +250,6 @@
 "Anita|Voor vandaag.": {
 "src": "duo/s7/intro_1_anita.mp3",
 "dur": 1.78
-},
-"Anita|Wij tweeën tegen Grunn?": {
-"src": "duo/s7/outro_0_anita.mp3",
-"dur": 1.95
-},
-"Tammo|Wij tweeën tegen Grunn.": {
-"src": "duo/s7/outro_1_tammo.mp3",
-"dur": 1.61
 },
 "Kapitein Klaas|Schipper Wiebe. Die zit tot vieren in de kroeg. Meestal.": {
 "src": "m7/intro_5_klaas_b.mp3",
