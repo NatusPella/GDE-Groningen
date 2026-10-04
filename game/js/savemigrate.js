@@ -14,8 +14,8 @@ import { RETIRED_STEPS, STEP_BY_ID, MISSION_IDS, nextStoryStep } from './storyar
 import { normalizeRadio } from './musicpick.js';
 import { cheatUnlocksFromSave } from './cheatlist.js';
 
-export const SAVE_VERSION = 4;
-export const SETTINGS_VERSION = 7;
+export const SAVE_VERSION = 5;
+export const SETTINGS_VERSION = 8;
 
 const isObj = (o) => !!o && typeof o === 'object' && !Array.isArray(o);
 
@@ -74,6 +74,19 @@ export const SAVE_MIGRATIONS = {
     if (!isObj(d.streken)) d.streken = { v: 1, unlocked: cheatUnlocksFromSave(d), on: [], used: [] };
     return d;
   },
+  // 0.28: the game is 18+ and people die again; the knockout counters go
+  // back to kills. A wrecked police car counted as a cop kill before 0.24.
+  4(d) {
+    const s = d.stats;
+    const KO = ['knockouts', 'pedKnockouts', 'copKnockouts', 'copCarsWrecked'];
+    if (!isObj(s) || !KO.some((k) => k in s)) return d;
+    const n = (k) => (Number.isFinite(s[k]) ? s[k] : 0);
+    const wrecked = n('copCarsWrecked');
+    const back = { kills: n('knockouts') + wrecked, pedKills: n('pedKnockouts'), copKills: n('copKnockouts') + wrecked };
+    for (const [k, v] of Object.entries(back)) if (!Number.isFinite(s[k])) s[k] = v;
+    for (const k of KO) delete s[k];
+    return d;
+  },
 };
 
 // A save with no `v` never existed (every save since 0.2 had v: 1).
@@ -108,6 +121,9 @@ export const SETTINGS_MIGRATIONS = {
   // 7: 'heelver' (Hoog). The old Hoog preset is also the default, so a file
   // matching it keeps 'ver': it cannot tell a chosen Hoog from untouched
   6(s) { return s; },
+  // 8: the blood-and-limbs switch is back (18+); a file without it gets the
+  // default (on), anything that is not a boolean is dropped
+  7(s) { if ('gore' in s && typeof s.gore !== 'boolean') delete s.gore; return s; },
 };
 
 // Settings files before v2 had no `v`.

@@ -31,6 +31,7 @@ const DEFAULTS = {
   reduceMotion: false,
   showFog: true,
   cinematicMoments: true,
+  gore: true,
   // Zichtafstand (viewdist.js): 'ver', not Hoog's 'heelver', so a first
   // launch on an iGPU laptop stays at 600 m
   drawDistance: 'ver',

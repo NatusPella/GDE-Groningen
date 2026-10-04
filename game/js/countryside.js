@@ -7,7 +7,7 @@ import {
 } from './countryfield.js';
 import { SkinBuilder, vcMaterial, tubeGeometry, loftGeometry, markShared, composeMatrix } from './pixelart3d.js';
 import { surfaceUnder } from './vehicle.js';
-import { buildCowMesh3D, buildSheepMesh3D, buildDuckMesh3D, animateWildlifeMesh3D, runOverAnimal, poseDeadAnimal, STUN_S } from './wildlife.js';
+import { buildCowMesh3D, buildSheepMesh3D, buildDuckMesh3D, animateWildlifeMesh3D, runOverAnimal, poseDeadAnimal } from './wildlife.js';
 import { distToVehicleBody } from './vehicle.js';
 import * as M3 from './countrymodels.js';
 import {
@@ -1517,16 +1517,7 @@ function updateAnimals(dt, world, time, simulate) {
   const cands = [];
   for (const a of S.animals) {
     if (a.gone) continue;
-    // bowled over (runOverAnimal): up again after a few seconds and off it goes
-    if (a.dead && time - a.deadAt > STUN_S) {
-      a.dead = false;
-      S.animalDirty = true;
-      const from = a.hitFrom || p;
-      const fx = a.x - from.x, fy = a.y - from.y, fl = Math.hypot(fx, fy) || 1;
-      a.flee = 3;
-      a.fx = fx / fl; a.fy = fy / fl;
-      a.hitFrom = null;
-    }
+    if (a.dead && time - a.deadAt > 60) { a.gone = true; S.animalDirty = true; continue; }
     const d2 = (a.x - p.x) ** 2 + (a.y - p.y) ** 2;
     if (d2 > SIM_R * SIM_R) continue;
     if (simulate) simAnimal(a, dt, th, time, world);

@@ -48,6 +48,16 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **Twee drillnummers op G-Music:** "Geen stoplicht houdt ons tegen" (Ringweg Drillers) en "Goud in de Nacht" (Nachtbus Nino, 's nachts ook op Nachtstreek).
 
 ### Veranderd
+- **De game is 18+: alles wat voor PEGI 16 weg moest, is terug.** Bloed en
+  rondvliegende ledematen in Carmageddon-stijl, met de instelling "Bloed en
+  ledematen" (standaard aan). Burgers gaan weer dood door auto's, treinen,
+  wapens en explosies, kogels en de richthulp raken iedereen, en agenten
+  gaan dood in plaats van "uitgeschakeld". De uitslag van een missie toont
+  weer de kills; een save met knock-outtellers wordt omgezet naar kills.
+  Rook & Geluk verkoopt weer kraskaarten en loten met de kras-animatie; de
+  spaarkaart blijft. Kiekdoar zegt weer "gewond". De stuntavond van H3
+  blijft non-letaal, met sterretjes. Verwachte leeftijd: PEGI 18 / USK 18
+  (docs/LEEFTIJD.md).
 - **De aftiteling komt pas aan het eind.** Na het verhaal zie je de epiloog,
   "Wij tweeën vóór Grunn." en de Fjord Frituur. De aftiteling, het logo en
   "Einde" wachten tot alle 18 missies gehaald zijn en alle uitdagingen na het
