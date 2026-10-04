@@ -7,7 +7,7 @@
 // Tammo and Tessa trade places at its start, behind a short fade. After the
 // built story the last step's character stays.
 
-import { STEPS, STEP_BY_ID, PARTS, CLUES, WHY, CHARACTERS, stepAvailable, missionIndexOf, computeMoneyTimeline, partNumber, stepDone, nextStoryStep } from './storyarc.js';
+import { STEPS, STEP_BY_ID, PARTS, CLUES, WHY, CHARACTERS, SPEAKERS, stepAvailable, missionIndexOf, computeMoneyTimeline, partNumber, stepDone, nextStoryStep } from './storyarc.js';
 import { setMeetHook } from './namecard.js';
 import { displayName } from './speakers.js';
 import { queueStoryContact } from './storycontact.js';
@@ -26,6 +26,8 @@ import { purchaseCount, storyBuyLabel } from './storyshop.js';
 import { getPigeonSpotsForRender } from './pigeonspots.js';
 import { getSideJobList } from './sidejobs.js';
 import { getGaragesForRender } from './garages.js';
+import { inHomeFlat, getHomeForRender } from './home.js';
+import { isShopOpen } from './shopui.js';
 import { playCinematic, isCinematicActive, sinceCinematic, isBannerUp } from './cinematics.js';
 import { refreshDayNight } from './daynight.js';
 import { getTrainTripCount, getStationsForRender } from './stationtravel.js';
@@ -33,6 +35,7 @@ import { getEierballen } from './achievementtracker.js';
 import { queueFjordReveal } from './postgame.js';
 import { getPadelMatchCount, getPadelSpotsForRender } from './padel.js';
 import { FUN_GOALS, initStoryFun, updateStoryFun, storyFunDone, storyFunBusy, hideoutStep, hideoutChoices } from './storyfun.js';
+import { EIKEA_GOALS, updateStoryEikea, waiveEikea, initStoryEikea } from './storyeikea.js';
 import { THIRD_PARTY_CARDS } from './credits.js';
 import { SERIES, GAME_TITLE } from './logo.js';
 import { registerNarrative, mayStart, narrativeBusy, narrativeState } from './narrative.js';
@@ -60,7 +63,7 @@ const SKIP_OFFER_S = 30;
 const SKIP_SHARE = 0.5;
 const GATED_SKIP_S = 90;
 const STUCK_SKIP_S = 360;
-const NIGHT_GARAGE_M = 16;
+const HOME_SCENE_AFTER = 2.5;
 const NIGHT_HOUR = 23.9;
 const SWAP_FADE = 0.45;
 const SWAP_CALM = 1.2;
@@ -77,7 +80,7 @@ function freshState() {
 }
 
 function freshRuntime() {
-  return { gifts: {}, cur: undefined, enteredAt: 0, leadAt: -1, sayAt: -1, reminded: false, base: {}, guideT: 0, skipUntil: -1, cardPending: null, nightWait: false, voorschotT: 0, lastPlayer: null, recapPending: null, newClues: new Set(), clueToasts: [] };
+  return { gifts: {}, cur: undefined, enteredAt: 0, leadAt: -1, sayAt: -1, reminded: false, base: {}, guideT: 0, skipUntil: -1, cardPending: null, nightWait: false, flatSince: -1, voorschotT: 0, lastPlayer: null, recapPending: null, newClues: new Set(), clueToasts: [] };
 }
 
 const who = (k) => (k === 'T' ? 'Tammo' : k === 'A' ? 'Anita' : k);
@@ -143,9 +146,15 @@ const GOALS = {
     met: (st, b) => jobRounds(st) > (b.rounds ?? Infinity),
     place: (st) => { const j = nearest(getSideJobList().filter((x) => jobIds(st).includes(x.id)), world.player); return j ? { x: j.x, y: j.y, name: j.name } : null; },
   },
+  // waiting for the dark happens at home; a step with a homeScene (k-nacht) plays it first
   night: {
-    met: () => isNight(world),
-    place: () => nearest(getGaragesForRender(), world.player),
+    met: (st, b) => isNight(world) && (!st.homeScene || !!b.homeScene),
+    place: () => homePlace() || nearest(getGaragesForRender(), world.player),
+  },
+  // a quiet evening in the flat: go home, go up, the step's homeScene plays
+  home: {
+    met: (st, b) => !!b.homeScene,
+    place: () => homePlace(),
   },
   train: {
     begin: (st, b) => { b.trips = getTrainTripCount(); },
@@ -173,6 +182,7 @@ function enter(step) {
   rt.base = {};
   rt.guideT = 0;
   rt.nightWait = false;
+  rt.flatSince = -1;
   rt.gate = null;
   rt.gateCard = false;
   rt.gatedSince = -1;
@@ -270,8 +280,8 @@ function refreshGuide() {
     if (!gate && def && !goalIsMission() && Math.hypot(def.start.x - world.player.x, def.start.y - world.player.y) < 40) setNextMission(world, missionIdx(step));
   } else {
     const g = GOALS[step.goal.type];
-    place = g && g.place(step);
-    why = storyBuyLabel(world, place) || why;
+    place = g && g.place(step, rt.base);
+    why = storyBuyLabel(world, place) || (step.goal.type === 'eikea' && place ? place.name : why);
   }
   const shopId = place && place.type && place.id ? place.id : null;
   // a choice (r-trein): the route goes to the nearest option, the others are named
@@ -319,32 +329,52 @@ export function prepareStoryShop() {
   if (step && !step.end) checkVoorschot(step);
 }
 
-// Waiting at Henk's garage for midnight (k-nacht): one koekje, then the clock jumps.
-const HENK_WAIT = [
-  { speaker: 'Henk', text: 'Kovvie mit kouke?', at: 0.5, dur: 2.2 },
-  { speaker: 'Tammo', text: 'Graag.', at: 2.8, dur: 1.4 },
-  { speaker: 'Henk', text: 'Eén. Het is geen Ontzet. En ik vraag niet waarom jullie in het zwart zijn.', at: 4.3, dur: 3.6 },
-  { speaker: 'Tammo', text: 'Een begrafenis.', at: 8.0, dur: 1.8 },
-  { speaker: 'Henk', text: 'Om twaalf uur \'s nachts.', at: 9.9, dur: 2.0 },
-  { speaker: 'Anita', text: 'Een hele late.', at: 12.0, dur: 1.9 },
-];
+function homePlace() {
+  const h = getHomeForRender()[0];
+  return h ? { x: h.x, y: h.y, name: 'Thuis' } : null;
+}
 
-function updateNightWait(step) {
-  if (rt.nightWait || isNight(world) || world.pigeonMode || isCinematicActive()) return;
-  const g = GOALS.night.place();
-  if (!g || Math.hypot(g.x - world.player.x, g.y - world.player.y) > NIGHT_GARAGE_M) return;
+// Waiting for the dark (k-nacht, or a mission that needs it) and the quiet
+// evenings (a step's homeScene) happen at home: a moment upstairs in the
+// flat, then the scene (lines [who, text, { tag }]), then the clock moves on.
+// Sleeping first works too: the scene follows when you wake up.
+function updateHomeWait(step) {
+  const scene = step.homeScene || null;
+  const night = step.kind === 'mission' || step.goal.type === 'night';
+  if (rt.nightWait || world.pigeonMode || isCinematicActive() || isShopOpen()) return;
+  if (night && !scene && isNight(world)) return;
+  if (!inHomeFlat()) { rt.flatSince = -1; return; }
+  if (rt.flatSince < 0) rt.flatSince = world.time;
+  if (world.time - rt.flatSince < HOME_SCENE_AFTER) return;
   rt.nightWait = true;
-  const ok = playCinematic({
-    id: 'story-wait', priority: 2, duration: 14.4, pause: true, letterbox: true, skippable: true, hideHud: true,
-    big: 'Wachten tot middernacht…',
-    lines: HENK_WAIT,
-    onEnd: () => setNight(),
+  const base = rt.base;
+  const done = () => { if (night) setNight(); base.homeScene = true; };
+  let at = 2.2;
+  const lines = ((scene && scene.lines) || []).map(([k, text]) => {
+    const speaker = SPEAKERS[k] || who(k);
+    const v = lineVoiceFor(speaker, text);
+    const dur = Math.max(v ? v.dur + 0.3 : 0, 1.6, Math.min(5, 0.8 + text.length * 0.055));
+    const l = { speaker, text, at, dur };
+    at += dur + 0.25;
+    return l;
   });
-  if (!ok) setNight();
+  const ok = playCinematic({
+    id: 'story-wait', priority: 2, duration: lines.length ? at + 0.4 : 3.6, pause: true, letterbox: true, skippable: true, hideHud: true,
+    big: (scene && scene.big) || (night ? 'Wachten tot het donker is…' : ''),
+    lines,
+    onStart: () => { if (scene && scene.clock != null) setClock(scene.clock); },
+    onEnd: done,
+  });
+  if (!ok) done();
 }
 
 function setNight() {
-  if (!isNight(world)) { world.clock = NIGHT_HOUR; refreshDayNight(world); }
+  if (!isNight(world)) setClock(NIGHT_HOUR);
+}
+
+function setClock(h) {
+  world.clock = h;
+  refreshDayNight(world);
 }
 
 // Credits after the epilogue: name cards over the city, no voices.
@@ -663,6 +693,7 @@ export function skipCurrent({ force = false } = {}) {
 function applyWaive(step) {
   if (!step.waive) return;
   if (step.waive === 'night') { setNight(); return; }
+  if (step.waive === 'eikea') { waiveEikea(); return; }
   if (!grantStoryItem(world, step.waive) && step.goal && step.goal.req) state.waived.add(step.goal.req);
 }
 
@@ -736,9 +767,10 @@ function onGated() {
 export function initStory(w) {
   world = w;
   setMissionHooks({ waived: (key) => state.waived.has(key), passed: onPassed, failed: onFailed, gated: onGated, canStart: swapDone });
-  Object.assign(GOALS, FUN_GOALS);
+  Object.assign(GOALS, FUN_GOALS, EIKEA_GOALS);
   setMeetHook(meet);
   initStoryFun(w);
+  initStoryEikea(w, () => (rt.cur && !rt.cur.end && rt.cur.goal && rt.cur.goal.type === 'eikea' ? rt.base : null));
   initSkipUi();
   registerNarrative('say', { active: () => !!world && (rt.sayUntil || 0) > world.time });
   ready = true;
@@ -783,6 +815,7 @@ export function updateStory(dt, w) {
   updateSkipUi();
   updateCharacter(w);
   updateStoryFun(dt, w, step, rt.base);
+  updateStoryEikea(dt, w, step, rt.base);
   if (!step) return;
   if (step.end) {
     if (rt.cardPending && !isMissionActive() && !isCinematicActive() && !narrativeBusy() && !w.pigeonMode && playEndCard(rt.cardPending)) rt.cardPending = null;
@@ -818,9 +851,9 @@ export function updateStory(dt, w) {
   if (rt.leadAt < 0 && (rt.voorschotT -= dt) <= 0) { rt.voorschotT = 2; checkVoorschot(step); }
   if (step.kind === 'activity') {
     const g = GOALS[step.goal.type];
-    if (step.goal.type === 'night') updateNightWait(step);
+    if (step.goal.type === 'night' || step.goal.type === 'home') updateHomeWait(step);
     if (g && g.met(step, rt.base)) { markDone(step); rt.cur = undefined; return; }
-  } else if (rt.gate === 'night' && !isMissionActive()) updateNightWait(step);
+  } else if (rt.gate === 'night' && !isMissionActive()) updateHomeWait(step);
   if ((rt.guideT -= dt) <= 0) { rt.guideT = GUIDE_EVERY; refreshGuide(); }
   if (!rt.reminded && w.time - rt.enteredAt > REMIND_AFTER && !isMissionActive()) {
     rt.reminded = true;
@@ -959,7 +992,7 @@ export function devJumpTo(id) {
   setMissionProgress(world, { index: prog.index, completed, seen: completed });
   world.money = computeMoneyTimeline().rows[k].before;
   world.wanted = 0;
-  for (const s of prior) if (s.waive && s.waive !== 'night') grantStoryItem(world, s.waive);
+  for (const s of prior) if (s.waive === 'eikea') waiveEikea(); else if (s.waive && s.waive !== 'night') grantStoryItem(world, s.waive);
   const target = STEPS[k];
   const needsNight = target.id === 'H6';
   world.clock = needsNight ? NIGHT_HOUR : target.id === 'k-nacht' ? 14 : 12;
