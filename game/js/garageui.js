@@ -175,7 +175,8 @@ function previewSpec(e) {
 // The short chip on a card: where it is, its price, or the lock.
 function chipHtml(e) {
   if (e.locked) return `<span class="gar-chip" data-k="locked">${LOCK}Op slot</span>`;
-  if (!e.owned) return `<span class="gar-chip">${euro(priceOf(e))}</span>`;
+  if (!e.owned && e.spec && e.spec.unlock) return '<span class="gar-chip" data-k="mine">Vrijgespeeld</span>';
+  if (!e.owned) return `<span class="gar-chip">Te koop · ${euro(priceOf(e))}</span>`;
   if (e.status === 'lost') return '<span class="gar-chip" data-k="lost">Total loss</span>';
   const label = e.status === 'garage' ? 'Thuis' : e.status === 'driving' ? 'Je zit erin' : 'Van jou';
   return `<span class="gar-chip" data-k="mine">${label}</span>`;
@@ -198,7 +199,8 @@ function viewerHtml(e, msg) {
   const rows = [];
   if (e.owned) rows.push(['Waar', esc([e.statusLabel, whereText(e)].filter(Boolean).join(' · '))]);
   else if (e.locked) rows.push(['Vrijspelen', esc(e.unlockText || 'Via het verhaal of een prestatie')]);
-  else rows.push(['Prijs', `${euro(priceOf(e))}${e.shop ? ` bij ${esc(e.shop)}` : ''}`]);
+  else if (e.spec && e.spec.unlock) rows.push(['Vrijgespeeld', esc(e.statusLabel)]);
+  else rows.push(['Te koop', `${euro(priceOf(e))}${e.shop ? ` bij ${esc(e.shop)}` : ''}. Nog niet van jou: na het kopen staat hij thuis`]);
   rows.push(['Topsnelheid', `${e.topSpeed} km/u`], ['Trekkracht', `${e.accelScore} van 10`]);
   rows.push(['Lak', `<span class="gar-dot" style="background:${esc(e.color)}"></span>${esc(e.paint)}`]);
   if (e.owned && e.kind !== 'boat' && e.kind !== 'heli') rows.push(['Upgrades', e.upgrades.length ? esc(e.upgrades.join(', ')) : `Nog niks: ${e.kind === 'bike' || e.kind === 'scooter' ? 'Spaak & Band' : 'Knal & Kolder Tuning'} helpt je graag`]);
@@ -319,7 +321,7 @@ export function renderGaragePanel(el, world, msg = '') {
   topSpeedMax = Math.max(1, ...list.map((e) => e.topSpeed || 0));
   const owned = list.filter((e) => e.owned);
   el.innerHTML =
-    `<h2>Garage <small>${owned.length} van ${list.length} voertuigen van jou</small></h2>` +
+    `<h2>Garage <small>${owned.length} van jou · ${list.filter((e) => !e.owned && !e.locked).length} te koop · ${list.filter((e) => e.locked).length} op slot</small></h2>` +
     `<div class="gar-toolbar">${toolbarHtml(list)}</div>` +
     '<div class="gar-layout"><div class="gar-list"></div><aside class="gar-viewer" aria-live="polite" aria-label="Details"></aside></div>';
   disposeGarageViewer();
