@@ -543,7 +543,7 @@ function buildDefs(world) {
           kind: 'hold', target: { landmark: 'Grote Markt', off: [20, -5], snap: 'walk' }, radius: 9, time: 30, mode: 'foot',
           label: 'Hou de kraam heel tegen het vuurwerk', say: 'Durk en Douwe steken per ongeluk hun vuurwerk aan! Blijf bij de kraam en stap opzij als er een pijl aankomt.',
           ticks: ['De eerste eierballen gaan het vet in.', 'Berend ruikt al iets. Hij knikt bijna.', 'Nog even! De jury pakt de vorken.'],
-          fireworks: { every: [0.9, 1.7], hit: 2.2, cost: 3, hitText: 'Pang! Vol raak. Even liggen, dan weer naar de kraam.' },
+          fireworks: { every: [1.0, 1.8], hit: 1.9, cost: 2, hitText: 'Pang! Vol raak. Even liggen, dan weer naar de kraam.' },
         },
         {
           kind: 'scene', label: 'Het naspel', target: { landmark: 'Grote Markt', off: [20, -5], snap: 'walk' },
@@ -557,10 +557,10 @@ function buildDefs(world) {
           // D-definitief H18: from the corner of the Grote Markt up the Oude Boteringestraat,
           // over the Boteringebrug, along the Spilsluizen and back down the Oude Ebbingestraat
           // into the fireworks; the torenwachter reports every street, then Tammo whistles
-          kind: 'chase', label: 'Haal de trekker-limo van Jelle in', stars: 1, say: 'Achter die trekker aan! Blijf erbij, ram hem als het kan. Niet schieten, er is kermis.',
+          kind: 'chase', label: 'Haal de trekker-limo van Jelle in: blijf erbij, dan fluit Tammo de duiven', say: 'Achter die trekker aan! Blijf erbij, ram hem als het kan. Niet schieten, er is kermis.',
           vehicle: { name: 'trekkerlimo', len: 5.6, wid: 2.0, maxSpeed: 40, accel: 7, brake: 14, turnRate: 2.1, color: '#1b1c1f' },
-          name: 'Trekker-limo van Jelle', from: [19, 97], lead: 6, hits: 90, flee: [-1900, -900], cruise: 15, escape: 400, time: 220,
-          meter: 'trekker',
+          name: 'Trekker-limo van Jelle', from: [19, 97], lead: 6, hits: 90, flee: [-1900, -900], cruise: 14, escape: 500, time: 300,
+          meter: 'trekker', block: true,
           route: [
             { at: [-60, -40], radio: { caller: 'De torenwachter, d\'Olle Grieze', lines: [['torenwachter', 'Trekker, Oude Boteringestraat. Ik meld alleen.']] } },
             { at: [-140, -188], radio: { caller: 'De torenwachter, d\'Olle Grieze', lines: [['torenwachter', 'Trekker, Boteringebrug. Over het water, de bocht te ruim. Ik meld alleen.']] } },
@@ -568,9 +568,9 @@ function buildDefs(world) {
             { at: [70, -150], radio: { caller: 'De torenwachter, d\'Olle Grieze', lines: [['torenwachter', 'Trekker, Oude Ebbingestraat. Terug naar de markt, recht onder het vuurwerk door.']] } },
             { at: [112, -29] },
           ],
-          // halfway on the meter, or back at the market with you close: the pigeons
+          // a third on the meter, 25 s close behind it, boxed in, or back at the market with you near: the pigeons
           swarm: {
-            stall: { landmark: 'Grote Markt', off: [20, -5], snap: 'walk' }, near: 170,
+            stall: { landmark: 'Grote Markt', off: [20, -5], snap: 'walk' }, near: 260, close: 45, closeFor: 25,
             lines: [
               ['T', 'Kom op, jongens. Eén keer luisteren.'],
               ['torenwachter', 'Duiven. Boven het vuurwerk. Allemaal tegelijk. Ik meld alleen.'],
@@ -589,7 +589,7 @@ function buildDefs(world) {
           lines: [['jelle', 'Ik woe him allinnich oan mem jaan. Foar de útslach.'], ['A', 'Ze staat op de Grote Markt, Jelle. Bij de jury. Geef maar.'], ['jelle', '…Tige tank.']],
         },
         {
-          kind: 'goto', target: { landmark: 'Grote Markt', off: [20, -5], snap: 'walk' }, mode: 'any', radius: 9, limit: 150, calm: true,
+          kind: 'goto', target: { landmark: 'Grote Markt', off: [20, -5], snap: 'walk' }, mode: 'any', radius: 12, limit: 240, calm: true,
           label: 'Terug naar de kraam, voordat de eierballen koud zijn', late: 'de eierballen zijn koud. Berend proeft niks wat koud is',
           say: 'Terug naar de kraam, met de bal! Voordat de eierballen koud zijn.',
         },
@@ -2158,10 +2158,15 @@ function spawnChaseVehicle(world, def, st) {
 
 // A chase `route` ({ at, radio }): the fleeing vehicle drives from point to point;
 // reaching one puts its radio report on air, after the last it heads for `flee`.
-function updateChaseRoute(world, st, S, t) {
+function updateChaseRoute(world, st, S, t, dt = 0) {
   const leg = S.leg || 0;
   const wp = st.route[leg];
-  if (!wp || dist(t.x, t.y, wp.at[0], wp.at[1]) > (wp.r || 22)) return;
+  if (!wp) return;
+  // there, or as close as its road gets it (it waits at the end of its plan)
+  const dw = dist(t.x, t.y, wp.at[0], wp.at[1]);
+  S.wpWait = dw < 50 && Math.abs(t.speed) < 1 ? (S.wpWait || 0) + dt : 0;
+  if (dw > (wp.r || 22) && S.wpWait < 2) return;
+  S.wpWait = 0;
   if (wp.radio && contactMod) contactMod.queueStoryContact({ via: 'radio', from: 'rikus', mood: 'night', ...wp.radio });
   if (wp.say) world.addMessage(wp.say, 3);
   S.leg = leg + 1;
@@ -2772,10 +2777,11 @@ function updateStages(dt, world, def) {
       // boxed in: it stands still with you right on it for a moment, and that is a stop as well
       if (st.block) {
         S.blockT = Math.abs(t.speed) < 1 && d < 10 ? (S.blockT || 0) + dt : 0;
-        if (S.blockT > 2.5) { stopChaseVehicle(world, def, st); break; }
+        if (S.blockT > 2.5) { if (st.swarm) startSwarm(world, def, st, S, t); else stopChaseVehicle(world, def, st); break; }
       }
-      if (st.route) updateChaseRoute(world, st, S, t);
-      if (st.swarm && (S.hp0 - t.health >= st.hits / 2 || (S.routeDone && d < (st.swarm.near || 150)))) { startSwarm(world, def, st, S, t); break; }
+      if (st.swarm && st.swarm.close && d < st.swarm.close) S.closeT = (S.closeT || 0) + dt;
+      if (st.route) updateChaseRoute(world, st, S, t, dt);
+      if (st.swarm && (S.hp0 - t.health >= st.hits / 3 || (S.closeT || 0) >= (st.swarm.closeFor || Infinity) || (S.routeDone && d < (st.swarm.near || 150)))) { startSwarm(world, def, st, S, t); break; }
       if (S.hp0 - t.health >= st.hits) { stopChaseVehicle(world, def, st); break; }
       if (st.toTrain && chaseReachedTrain(world, def, st, S, t, dt)) break;
       if (d > (st.escape || 380) || S.t - (S.goAt || 0) > (st.time || 180)) { fail(world, def, st.lost || 'de tankwagen is ontsnapt, richting Friesland'); break; }
