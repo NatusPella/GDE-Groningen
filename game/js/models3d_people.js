@@ -1708,7 +1708,24 @@ export function animatePersonWalk(mesh, speed, dt) {
     elbow.rotation.z = elbowBase + 0.35 * w * Math.max(0, Math.sin(-ph)) * (1 - r) + 0.06 * idle;
   }
   if (crouch > 0) applyCrouch(ud, crouch, phase, w, s, cadence);
+  const air = ud.airBlend = approach(ud.airBlend || 0, Math.max(0, Math.min(1, ud.air || 0)), step / 0.08);
+  if (air > 0) applyAirPose(ud, air);
   updatePose(mesh);
+}
+
+// Jump / vault tuck: knees pulled up, arms reaching forward and down onto
+// whatever is being vaulted.
+function applyAirPose(ud, a) {
+  for (const [leg, knee, k] of [[ud.legL, ud.kneeL, 1], [ud.legR, ud.kneeR, 0.7]]) {
+    leg.rotation.z += (0.95 * k - leg.rotation.z) * a;
+    knee.rotation.z += (-1.5 * k - knee.rotation.z) * a;
+  }
+  for (const [arm, elbow] of [[ud.armL, ud.elbowL], [ud.armR, ud.elbowR]]) {
+    if (arm === ud.armL && ud.umbrella && !ud.posed) continue;
+    arm.rotation.z += (0.9 - arm.rotation.z) * a;
+    elbow.rotation.z += (0.25 - elbow.rotation.z) * a;
+  }
+  ud.chest.rotation.z -= 0.25 * a;
 }
 
 const CROUCH_BLEND_TIME = 0.2;
