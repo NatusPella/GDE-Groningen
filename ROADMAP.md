@@ -164,6 +164,9 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
 - [ ] Nieuwe muziek maken volgens [docs/MUZIEK.md](docs/MUZIEK.md). Het doel: 40 nummers op G-Music, 20 of meer op Nachtstreek en jingles per zender. Nu zijn het er 14 en 6.
 - [?] Een knop voor de radio te voet op de controller. Alle knoppen zijn daar al bezet, dus het gaat nu via het pauzemenu.
 
+**Aftiteling aan het eind** (`claude/aftiteling`)
+- [x] De aftiteling, het logo en "Einde" spelen pas als alle 18 missies gehaald zijn en alle uitdagingen na het verhaal gedaan zijn (`ending.js`, eenmalig via de verhaalvlag `credits`). Overzicht en Te doen tellen af, daarna staat "Aftiteling bekijken" onder Overzicht. `node scripts/ending_test.mjs` test de check.
+
 ## Juridisch en publiceren (vóór 1.0)
 
 - [x] **Nieuwe naam, besloten op 3 okt.** De titel is **GDE Groningen – Zomer vol misdaad**, met *Grootste Diefstal Ever* als betekenis van GDE (`claude/gde-naam`).

@@ -405,6 +405,11 @@ export async function runStoryTest(world) {
           await drain(world, 700);
         }
         check('Fjord Frituur unlocked in the garage', await waitFor(() => getOwnedEntries().some((o) => o.key === 'fjordfrituur'), 5000));
+        // the credits wait for every mission: the skipped H3, H15 and H17 keep them back
+        const ending = S().ending();
+        check('ending: all challenges count as done', ending.finale && ending.challenges.length === 0, JSON.stringify(ending.challenges));
+        check('ending: skipped missions keep the credits back', !ending.done && !ending.credits && ending.missions.map((m) => m.code).join() === 'H3,H15,H17', JSON.stringify(ending.missions));
+        check('ending: Overzicht counts down to the end', /^Nog .* tot het einde$/.test(S().view().title), S().view().title);
         if (world.player.inVehicle) world.player.exitVehicle(world.map, world);
       }
 
