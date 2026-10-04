@@ -13,6 +13,14 @@ nieuwe functies, `y` voor alleen bugfixes.
   hem meteen; standaard blijft de zichtafstand Ver.
   Hapert het beeld, dan gaat de zichtafstand vanzelf even terug naar Ver.
 
+### Verbeterd
+- **De weilanden in het Ommeland hebben echte randen.** Langs de sloten
+  ligt een lage, donkere grasrand met hier en daar een pol pitrus, de
+  weiden staan achter prikkeldraad op houten palen, langs de polderwegen
+  loopt een afrastering achter de berm met af en toe een hek naar het
+  land, en soms staat er een heg of een houtwal tussen twee percelen.
+  Op Laag is het wat kaler, zodat het spel net zo soepel blijft lopen.
+
 ### Opgelost
 - **Geen huizen en schuren meer midden op de weg in het Ommeland.** Een
   gebouw dat op een weg uitstak wordt aan die kant ingekort, en een aanbouw
