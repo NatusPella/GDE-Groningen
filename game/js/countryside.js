@@ -25,6 +25,7 @@ import { updateVillages, villageStats, villageWarmMeshes } from './countryvillag
 import { buildingMaterial, bldCode, STYLE } from './countrybuilding.js';
 import { glowMaterial, poolGeometry } from './countryglow.js';
 import { rebuildChunkWater, dropChunkWater, updateCountryWater, countryWaterStats } from './countrywater.js';
+import { propRadius } from './viewdist.js';
 
 // Endless Ommelanden past the real map: a ground ring that follows the
 // player (same terrain shader, so the feathered edge in terrain3d continues
@@ -975,9 +976,6 @@ function updateGround(px, py) {
 
 // ------------------------------------------------------------------ streaming
 
-function propRadius(viewDist) {
-  return Math.min(620, Math.max(260, viewDist + 60));
-}
 
 function syncTiles(px, py, viewDist, budgetEnd) {
   const R = propRadius(viewDist);

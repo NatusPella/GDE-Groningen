@@ -1,0 +1,5 @@
+{
+  "_era": "settings v6 (0.26): exactly the old Hoog preset, which is also the untouched default: keeps 'ver'",
+  "_expect": { "drawDistance": "ver", "quality": "hoog", "shadows": true, "resolution": 1, "autoResolution": true },
+  "settings": { "v": 6, "quality": "hoog", "shadows": true, "drawDistance": "ver", "resolution": 1, "autoResolution": true, "sfxVolume": 0.75 }
+}

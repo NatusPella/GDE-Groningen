@@ -289,7 +289,7 @@ function settingsHtml() {
       ${toggle('shadows', 'Schaduwen')}
       ${segmented('resolution', 'Resolutie', [['1', '100%'], ['0.85', '85%'], ['0.75', '75%'], ['0.6', '60%']])}
       ${toggle('autoResolution', 'Automatische resolutie', 'Resolutie en details gaan even omlaag als het beeld hapert')}
-      ${segmented('drawDistance', 'Zichtafstand', [['kort', 'Kort'], ['normaal', 'Normaal'], ['ver', 'Ver']])}
+      ${segmented('drawDistance', 'Zichtafstand', [['kort', 'Kort'], ['normaal', 'Normaal'], ['ver', 'Ver'], ['heelver', 'Heel ver']])}
       ${DESKTOP ? '<label class="pm-row"><span>Volledig scherm<small>F11 of Alt+Enter</small></span><input type="checkbox" data-desktop="fullscreen"></label>' : ''}
       <div class="pm-row"><span>Benchmark<small>Test hoe soepel Grunn draait op deze computer en welke stand past (±2 min)</small></span><button type="button" class="pm-secondary pm-small" data-action="bench">Benchmark draaien</button></div>
       <div class="pm-confirm pm-ok" data-bench-confirm hidden>

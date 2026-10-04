@@ -6,6 +6,13 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Nieuw
+- **Zichtafstand "Heel ver"** (Instellingen › Beeld): op een sterke
+  videokaart kijk je nu anderhalf keer zo ver over de stad en het Ommeland:
+  900 meter in plaats van 600. Kies je de voorinstelling Hoog, dan krijg je
+  hem meteen; standaard blijft de zichtafstand Ver.
+  Hapert het beeld, dan gaat de zichtafstand vanzelf even terug naar Ver.
+
 ### Opgelost
 - **Geen bomen, heggen, hekken en riet meer op de wegen in het Ommeland.**
   Alles in het buitengebied blijft nu van de weg, de berm, fietspaden en
