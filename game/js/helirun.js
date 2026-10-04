@@ -18,6 +18,9 @@ import * as P from './heliplan.js';
 import { getSettings } from './settings.js';
 import { keyWord, keyName, physicalKey } from './controls.js';
 const downKey = () => keyWord(getSettings().keyBinds, 'control');
+// the key help under the heli HUD, in the player's own key bindings
+const kbd = (k) => `<kbd>${k === 'backspace' ? '⌫' : keyName(physicalKey(getSettings().keyBinds, k))}</kbd>`;
+const helpHtml = () => `${kbd('w')}${kbd('s')} vooruit en remmen · ${kbd('a')}${kbd('d')} draaien · ${kbd('shift')} sneller · ${kbd(' ')} omhoog · ${kbd('control')} omlaag · ${kbd('backspace')} stoppen`;
 
 // A heli run: one flight in Rotor Roelf's demo heli (the Wieken Wubbo,
 // heliflight.js, flown with the normal heli keys) with a plan on top
@@ -302,7 +305,7 @@ function initHudDom() {
     <div class="hh-catch" hidden><div class="lbl"></div><div class="bar"><i></i></div><div class="tips"></div></div>
     <div class="hh-msg"></div>
     <div class="hh-say" role="status"></div>
-    <div class="hh-help"><kbd>W</kbd><kbd>S</kbd> vooruit en remmen · <kbd>A</kbd><kbd>D</kbd> draaien · <kbd>SHIFT</kbd> sneller · <kbd>SPATIE</kbd> omhoog · <kbd>${keyName(physicalKey(getSettings().keyBinds, 'control'))}</kbd> omlaag · <kbd>⌫</kbd> stoppen</div>
+    <div class="hh-help"></div>
     <div class="hh-fade"><span></span></div>
     <div class="hh-card"><h2></h2><p class="sub"></p><div class="medal"></div><p class="rows"></p></div>`;
   document.body.appendChild(root);
@@ -484,6 +487,7 @@ export function startHeliRun(opts = {}) {
   w.cinematicHidePlayers = true;
   document.body.classList.add('heli-run');
   hud.root.hidden = false;
+  hud.help.innerHTML = helpHtml();
   hud.cache = {};
   hud.title.textContent = V.title.toUpperCase();
   hud.rows.time.hidden = !V.timeLimit;
