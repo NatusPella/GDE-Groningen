@@ -2,6 +2,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { buildVehicleMesh } from './models3d_vehicles.js';
 import { buildWeaponMesh, buildPersonMesh, animatePersonWalk } from './models3d_people.js';
 import { buildProductMesh } from './shopmodels3d.js';
+import { VERSION } from './version.js';
 
 const OBJECT_KINDS = new Set(['weapon', 'person', 'product']);
 // a person seen from the front, the face turned a little into the screen
@@ -295,11 +296,41 @@ function shoot(spec, w, h, angle) {
   return url;
 }
 
+// Snapshots asked for with { keep: true } (the HUD portraits) are also kept
+// in localStorage for this game version, so a new session shows them
+// without a render (one shot costs 10 to 50 ms on a slow CPU). A model
+// change ships with a new version; source runs ('dev') keep nothing.
+const KEEP_KEY = 'gte-snapshots';
+const KEEP_MAX = 8;
+let kept = null;
+function keptShots() {
+  if (kept) return kept;
+  kept = { v: VERSION, shots: {} };
+  if (VERSION === 'dev') return kept;
+  try {
+    const d = JSON.parse(localStorage.getItem(KEEP_KEY) || 'null');
+    if (d && d.v === VERSION && d.shots && typeof d.shots === 'object') kept.shots = d.shots;
+  } catch (e) { /* ignore */ }
+  return kept;
+}
+function keepShot(key, url) {
+  const k = keptShots();
+  if (VERSION === 'dev' || !url || k.shots[key] === url) return;
+  delete k.shots[key];
+  k.shots[key] = url;
+  const keys = Object.keys(k.shots);
+  for (let i = 0; i < keys.length - KEEP_MAX; i++) delete k.shots[keys[i]];
+  try { localStorage.setItem(KEEP_KEY, JSON.stringify(k)); } catch (e) { /* ignore */ }
+}
+
 function pump() {
   const t0 = performance.now();
   while (queue.length && performance.now() - t0 < SHOT_BUDGET_MS) {
     const job = queue.shift();
-    if (!shots.has(job.key)) shots.set(job.key, shoot(job.spec, job.w, job.h, job.angle));
+    if (!shots.has(job.key)) {
+      shots.set(job.key, shoot(job.spec, job.w, job.h, job.angle));
+      if (job.keep) keepShot(job.key, shots.get(job.key));
+    }
     for (const cb of job.cbs) cb(shots.get(job.key));
   }
   if (queue.length) requestAnimationFrame(pump);
@@ -309,13 +340,15 @@ function pump() {
 // A still image (data URL, '' when WebGL is unavailable) of `spec` at w x h
 // pixels, cached for the session. Rendered a few per frame: `cb` gets the URL
 // (right away when cached); the return value is the cached URL or null.
-export function renderSnapshot(spec, w, h, cb = null, { angle = 0.6 } = {}) {
+// keep: also across sessions (see keepShot).
+export function renderSnapshot(spec, w, h, cb = null, { angle = 0.6, keep = false } = {}) {
   if (!spec) return null;
   const key = `${w}x${h}@${angle}|${JSON.stringify(spec)}`;
+  if (!shots.has(key) && keep && keptShots().shots[key]) shots.set(key, keptShots().shots[key]);
   if (shots.has(key)) { if (cb) cb(shots.get(key)); return shots.get(key); }
   const job = queue.find((j) => j.key === key);
-  if (job) { if (cb) job.cbs.push(cb); return null; }
-  queue.push({ key, spec, w, h, angle, cbs: cb ? [cb] : [] });
+  if (job) { if (cb) job.cbs.push(cb); job.keep = job.keep || keep; return null; }
+  queue.push({ key, spec, w, h, angle, keep, cbs: cb ? [cb] : [] });
   if (!pumping) { pumping = true; requestAnimationFrame(pump); }
   return null;
 }
