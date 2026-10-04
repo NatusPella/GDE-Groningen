@@ -6,6 +6,19 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+## [0.26.1] - 2026-10-04
+
+### Opgelost
+- **Geen zwarte flitsen meer.** Als de automatische resolutie een stap
+  zette, was het scherm één frame helemaal zwart. Dat gebeurt niet meer.
+- **De automatische resolutie blijft rustig** op een snelle videokaart: hij
+  schakelt alleen nog terug als de videokaart echt een paar seconden achter
+  elkaar te druk is, en springt niet meer heen en weer.
+- **Geen grote hapering meer bij de eerste luchtballon**: die wordt nu al
+  tijdens het laden voorbereid.
+- **De minimap draait weer vloeiend mee** in plaats van te stotteren.
+- Een verloren grafische context komt nu in het foutrapport.
+
 ## [0.26.0] - 2026-10-04
 
 ### Veranderd
