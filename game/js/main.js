@@ -123,7 +123,14 @@ function waitForStart(world) {
   // the effect pools exist from the title screen on, so their shaders are
   // compiled there and not on the first explosion, shot or splash; the
   // trailer (trailer.js) passes fxDt to play its explosions
+  // the street dressing the game streams in around the player (the home's
+  // garage and plinth, street furniture, name signs, billboards) also on the
+  // title screen, so the menu shows the street as it is in play
   const render = (dt, fxDt = 0) => {
+    updateHomeExterior(dt, world);
+    updateStreetSigns(dt, world, getScene());
+    updateCityProps(dt, world, getScene());
+    updateFlavour3D(dt, world);
     updateFx3D(fxDt, world, getScene());
     updateKnockFx3D(fxDt, world, getScene());
     updateGunFx3D(fxDt, world, getScene());
