@@ -1,0 +1,86 @@
+// Ommeland props on the roads: lays out a sample of countryside tiles the
+// way the streamer does (countryside.js countryTileItems, reeds included)
+// and measures every tree, hedge, fence, reed clump, bale and farm prop
+// against the paved ways the ground shader paints (countryedge.js roadGap:
+// real roads, cycle paths, drives, polder roads, village streets).
+//   on road   the prop's foot is on the asphalt / klinkers
+//   shoulder  closer to the road edge than its own clearance (SHOULDER)
+//   node scripts/country_props_audit.mjs [--tiles=N] [--list] [--max=N]
+// Exits 1 when more than --max (default 0) props stand on a road.
+import './node3d.mjs';
+import fs from 'node:fs';
+import zlib from 'node:zlib';
+
+const args = process.argv.slice(2);
+const opt = (k, d) => { const a = args.find((x) => x.startsWith('--' + k + '=')); return a ? a.slice(k.length + 3) : d; };
+const N_TILES = +opt('tiles', 500);
+const MAX = +opt('max', 0);
+const LIST = args.includes('--list');
+
+const root = new URL('../game/', import.meta.url);
+const { GameMap, applyMapExtras } = await import('../game/js/mapdata.js');
+const data = JSON.parse(fs.readFileSync(new URL('citymap.json', root)));
+applyMapExtras(data, JSON.parse(fs.readFileSync(new URL('mapextras.json', root))));
+const map = new GameMap(data);
+const F = await import('../game/js/countryfield.js');
+const { initReal } = await import('../game/js/countryreal.js');
+const { roadGap } = await import('../game/js/countryedge.js');
+const { ensureCountryEdge } = await import('../game/js/countryplan.js');
+const { countryTileItems } = await import('../game/js/countryside.js');
+
+F.setCountryBounds(map.meta.bounds);
+const om = JSON.parse(fs.readFileSync(new URL('ommeland.json', root)));
+const bin = zlib.gunzipSync(fs.readFileSync(new URL('ommeland.bin', root)));
+initReal(map, { ...om, bin: bin.buffer.slice(bin.byteOffset, bin.byteOffset + bin.byteLength) });
+ensureCountryEdge(map);
+
+// clearance from the road edge each kind needs (m): canopies and hedges
+// keep their crown off the asphalt, posts and reeds may stand at the edge
+const SHOULDER = {
+  tree: 1.2, poplar: 1.2, willow: 1.2, hedge: 1.0, post: 0.3, wire: 0.3, gate: 0.5, bale: 1.0, reed: 0.3,
+  barrack: 1.5, shed: 1.5, mestsilo: 1.5, towersilo: 1.5, feedsilo: 1.5, clamp: 1.5, plough: 1,
+  tractorBody: 1, tractorBase: 1, trailerBody: 1, trailerBase: 1, grave: 0.5, glass: 1.5, clubhouse: 1.5,
+  mast: 0.5, goal: 1, barrier: 0.3,
+};
+const kindOf = (k) => (k in SHOULDER ? k : /^(house|fkhr|folda|fsmall|fdairy)/.test(k) ? 'building' : null);
+SHOULDER.building = 1.5;
+
+const [x0, y0, x1, y1] = om.extent;
+let seed = 12345;
+const rnd = () => ((seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0) / 4294967296);
+const T = 160;
+const tiles = [];
+for (let tries = 0; tiles.length < N_TILES && tries < N_TILES * 20; tries++) {
+  const x = x0 - 3000 + rnd() * (x1 - x0 + 6000), y = y0 - 3000 + rnd() * (y1 - y0 + 6000);
+  if (F.edgeDistance(x, y) < -60) continue;
+  tiles.push([Math.floor(x / T), Math.floor(y / T)]);
+}
+
+const per = {};
+const bad = [];
+let total = 0, onRoad = 0, shoulder = 0;
+const t0 = Date.now();
+for (const [tx, ty] of tiles) {
+  const tile = countryTileItems(tx, ty);
+  for (const k in tile.items) {
+    const kind = kindOf(k);
+    if (!kind) continue;
+    const m = tile.items[k].m;
+    for (let i = 0; i < m.length; i += 16) {
+      const x = m[i + 12], y = m[i + 14];
+      const g = roadGap(x, y, 6);
+      const P = per[kind] || (per[kind] = { n: 0, road: 0, shoulder: 0 });
+      P.n++; total++;
+      if (g < 0) { P.road++; onRoad++; bad.push([kind, x, y, g]); }
+      else if (g < SHOULDER[kind]) { P.shoulder++; shoulder++; }
+    }
+  }
+}
+console.log(`${tiles.length} tiles, ${total} props in ${((Date.now() - t0) / 1000).toFixed(1)} s`);
+console.log('kind'.padEnd(12), 'props'.padStart(7), 'on road'.padStart(8), 'shoulder'.padStart(9));
+for (const [k, P] of Object.entries(per).sort((a, b) => b[1].road - a[1].road || b[1].shoulder - a[1].shoulder)) {
+  if (P.road || P.shoulder || LIST) console.log(k.padEnd(12), String(P.n).padStart(7), String(P.road).padStart(8), String(P.shoulder).padStart(9));
+}
+console.log(`TOTAL on road ${onRoad}, in shoulder ${shoulder}`);
+if (LIST) for (const b of bad.slice(0, 40)) console.log('  ', b[0], b[1].toFixed(1), b[2].toFixed(1), 'gap', b[3].toFixed(2));
+process.exit(onRoad > MAX ? 1 : 0);
