@@ -1,28 +1,41 @@
-G-Music - radiozender in de stad
+De radio - muziek voor G-Music en Radio Nachtstreek
 
-Zet hier de nummers neer (.mp3 of .ogg), en noem hun bestandsnamen in
-manifest.json onder "tracks", bijvoorbeeld:
+Zet hier de nummers neer (.mp3 of .ogg) en noem ze in manifest.json onder
+"tracks". Een regel is een bestandsnaam of een object:
 
 {
-  "tracks": ["nummer1.mp3", "nummer2.mp3"]
+  "tracks": [
+    "nummer1.mp3",
+    { "file": "nummer2.mp3", "stations": ["gmusic", "nachtstreek"], "time": "night", "weight": 1.5 }
+  ]
 }
 
-Afspelen (js/audio.js):
-- G-Music speelt altijd, te voet en in een voertuig. Bij de start "stem je
-  in" halverwege een willekeurig nummer (of soms een jingle), met een fade-in.
-- Daarna steeds: jingle, nummer, jingle, nummer, ...
-- Nummers worden geshuffeld (shuffle-bag): elk nummer komt één keer langs
-  voordat de lijst opnieuw wordt geschud, en nooit twee keer direct achter
-  elkaar. De volgorde in manifest.json maakt dus niet uit.
+- stations: op welke zenders het nummer draait: "gmusic" (de hits) en/of
+  "nachtstreek" (Rikus' late-night streekmuziek, door een oude radio).
+  Weglaten = alleen G-Music. Een zender met minder dan 6 eigen nummers
+  leent de rest van de andere, maar draait die minder vaak.
+- time: "night" (vaker van 22:00 tot 06:00 in het spel, minder overdag),
+  "day" (andersom) of weglaten.
+- weight: hoe vaak, 1 is normaal, 2 is twee keer zo vaak.
+Ideeën voor nieuwe nummers en genres: docs/MUZIEK.md.
+
+Afspelen (js/audio.js, keuze in js/musicpick.js):
+- De radio speelt altijd, te voet en in een voertuig; N en B kiezen de
+  zender (G-Music, Nachtstreek, Radio Proat, uit). Bij de start "stem je
+  in" halverwege een nummer (of soms een jingle), met een fade-in.
+- Er is één geschiedenis voor alle zenders, die ook bewaard blijft tussen
+  sessies. Een nummer dat bij de laatste ~60% van de pool zat komt niet
+  terug; van de rest weegt een nummer dat langer niet speelde zwaarder, en
+  een nummer van dezelfde act als het vorige lichter.
+- Tussen twee nummers op G-Music zit meestal (60%) een jingle, nooit twee
+  keer dezelfde achter elkaar; hoge_wanted vervangt de eerstvolgende
+  jingle zodra je gezocht wordt. Nachtstreek heeft geen jingles.
 - Er speelt altijd maar één ding tegelijk; een volgend item start pas als
   het vorige is afgelopen.
-- Zodra een nieuw nummer echt begint te spelen verschijnt de melding
-  "🎵 Nu op G-Music: <titel>" (titel = bestandsnaam zonder extensie, met _
-  als spatie). Bij jingles komt er geen melding.
-- Jingles staan in jingles/. station_id, nummerovergang en rij_knipoog
-  worden willekeurig tussen de nummers gezet; hoge_wanted vervangt de
-  eerstvolgende jingle zodra je gezocht wordt.
+- Zodra een nieuw nummer echt begint te spelen verschijnt "Nu op G-Music"
+  (of "Nu op Radio Nachtstreek") met titel en act (titel = bestandsnaam
+  zonder extensie, met _ als spatie). Bij jingles komt er geen melding.
 - Muziek pauzeert als het tabblad verborgen is en gaat daarna verder.
 
-Leeg laten ("tracks": []) betekent: G-Music blijft stil tot er nummers zijn
+Leeg laten ("tracks": []) betekent: de radio blijft stil tot er nummers zijn
 toegevoegd.

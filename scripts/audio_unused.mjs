@@ -63,7 +63,7 @@ for (const k of arr('POLICE_BARK_KEYS')) for (const v of [0, 1]) fixed.add(`poli
 for (const k of arr('SIKKOM_AUDIO_KEYS')) for (const v of [0, 1]) fixed.add(`nieuws/${k}_v${v}.wav`);
 const npcN = +audioJs.match(/NPC_PHRASE_AUDIO = Array\.from\(\{ length: (\d+) \}/)[1];
 for (let i = 0; i < npcN; i++) for (const v of [0, 1, 2]) fixed.add(`npc/phrase_${i}_v${v}.wav`);
-for (const t of JSON.parse(fs.readFileSync(path.join(AUDIO, 'gmusic', 'manifest.json'), 'utf8')).tracks) fixed.add('gmusic/' + t);
+for (const t of JSON.parse(fs.readFileSync(path.join(AUDIO, 'gmusic', 'manifest.json'), 'utf8')).tracks) fixed.add('gmusic/' + (typeof t === 'string' ? t : t.file));
 
 const walk = (d) => fs.readdirSync(d, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? walk(path.join(d, e.name)) : [path.join(d, e.name)]));
 const unusedFiles = [];

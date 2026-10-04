@@ -18,6 +18,7 @@ import { renderGaragePanel, selectGarageVehicle, disposeGarageViewer } from './g
 import { deliverOwnedVehicle, locateOwnedVehicle } from './ownedvehicles.js';
 import { isShopOpen, closeShopMenu } from './shopui.js';
 import { benchmarkViaReload } from './trailer.js';
+import { STATIONS, radioStation, tuneRadio } from './radiostations.js';
 import { glyphHtml } from './prompts.js';
 import { KEY_ACTIONS, KEY_GROUPS, PAD_REMAPPABLE, PAD_SLOT_NAMES, bindKey, bindButton, physicalKey, defaultKey, physicalButton, isBindableKey, keyName, slotUses } from './controls.js';
 import { capturePadButton, isPadActive, onPadChange } from './gamepad.js';
@@ -275,7 +276,8 @@ function settingsHtml() {
       ${slider('musicVolume', 'Muziek')}
       ${slider('sfxVolume', 'Effecten')}
       ${slider('voiceVolume', 'Stemmen')}
-      <p class="pm-note">Muziek is G-Music en de titelsong, stemmen zijn Tammo, Tessa, de politie en de mensen op straat.</p>
+      <div class="pm-row"><span id="pm-l-radio">Radio<small>Ook met N en B, overal</small></span><div class="pm-seg" role="radiogroup" aria-labelledby="pm-l-radio" data-radio>${STATIONS.map((s) => `<button type="button" role="radio" data-value="${s.id}" aria-checked="false" title="${esc(s.sub)}">${s.short}</button>`).join('')}</div></div>
+      <p class="pm-note">Muziek is de radio (G-Music en Nachtstreek) en de titelsong, stemmen zijn Tammo, Tessa, de politie, de mensen op straat en Radio Proat.</p>
     </div>
     <div data-of="settings" data-sub="video" class="pm-group pm-video" hidden>
       <div class="pm-bench" data-bench-banner hidden></div>
@@ -363,13 +365,16 @@ export function initPauseMenu(w) {
           <span class="pm-rail-gap"></span>
           <div class="pm-rail-row pm-ingame">${qBtn('save', 'save', 'Opslaan', 'pm-secondary pm-small')}${qBtn('load', 'load', 'Laden', 'pm-secondary pm-small', ' title="Laatste save laden"')}</div>
           <p class="pm-status pm-ingame" role="status"></p>
-          <div class="pm-confirm pm-ingame" hidden>
-            <p>Opnieuw beginnen? Alles sinds je laatste save gaat verloren.</p>
-            <button type="button" class="pm-secondary pm-small" data-action="load">Laatste save laden</button>
-            <button type="button" class="pm-danger pm-small" data-action="new">Nieuw spel (save wissen)</button>
-            <button type="button" class="pm-secondary pm-small" data-action="cancel">Annuleren</button>
+          <div class="pm-rail-row pm-ingame">${qBtn('menu', 'menu', 'Hoofdmenu', 'pm-secondary pm-small', ' title="Opslaan en terug naar het titelscherm"')}${DESKTOP ? qBtn('exit', 'exit', 'Afsluiten', 'pm-secondary pm-small', ' title="Opslaan en het spel sluiten"') : ''}</div>
+          <div class="pm-rail-danger pm-ingame">
+            ${qBtn('restart', 'restart', 'Opnieuw beginnen', 'pm-danger pm-small')}
+            <div class="pm-confirm" hidden>
+              <p>Opnieuw beginnen? Alles sinds je laatste save gaat verloren.</p>
+              <button type="button" class="pm-secondary pm-small" data-action="load">Laatste save laden</button>
+              <button type="button" class="pm-danger pm-small" data-action="new">Nieuw spel (save wissen)</button>
+              <button type="button" class="pm-secondary pm-small" data-action="cancel">Annuleren</button>
+            </div>
           </div>
-          <div class="pm-links pm-ingame"><button type="button" data-action="menu">Hoofdmenu</button><button type="button" data-action="restart">Opnieuw beginnen</button>${DESKTOP ? '<button type="button" data-action="exit">Afsluiten</button>' : ''}</div>
         </div>
       </nav>
       <section class="pm-sheet" aria-labelledby="pm-sheet-title">
@@ -434,6 +439,7 @@ export function initPauseMenu(w) {
     const st = e.target.closest('[data-subtab]');
     if (st) { showSubtab(st.dataset.of, st.dataset.subtab); if (st.dataset.of === 'todo') renderTodoPanel(); if (st.dataset.of === 'verhaal') renderVerhaalPanel(); if (st.dataset.of === 'controls') renderBinds(); return; }
     const seg = e.target.closest('.pm-seg [data-value]');
+    if (seg && 'radio' in seg.parentElement.dataset) { tuneRadio(seg.dataset.value, { announce: false }); syncControls(); return; }
     if (seg) { setSetting(seg.parentElement.dataset.setting, seg.dataset.value); syncControls(); return; }
     const pre = e.target.closest('[data-preset]');
     if (pre) {
@@ -999,6 +1005,11 @@ function syncDesktopControls() {
 
 function syncControls() {
   const st = getSettings();
+  for (const b of root.querySelectorAll('[data-radio] [data-value]')) {
+    const on = b.dataset.value === radioStation();
+    b.setAttribute('aria-checked', String(on));
+    b.tabIndex = on ? 0 : -1;
+  }
   const shadowsAllowed = QUALITY_PRESETS[st.quality].shadows;
   syncPresets(st);
   for (const el of root.querySelectorAll('[data-setting]')) {

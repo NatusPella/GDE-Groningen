@@ -584,7 +584,7 @@ const PAD_DESC = {
   swim: () => 'Linkerstick: zwem de kant op die je kijkt',
   drive: (L) => `${L.rt} gas, ${L.lt} remmen en achteruit, linkerstick sturen`,
   handbrake: (L) => `${L.a === 'cross' ? 'Kruisje' : L.a} in een bocht = driften`,
-  radio: (L) => `${L.lb}: volgende zender (G-Music, Nachtstreek, Radio Grunn, uit)`,
+  radio: (L) => `${L.lb} in een voertuig: volgende zender (G-Music, Nachtstreek, Radio Proat, uit)`,
   cinecam: () => 'D-pad omlaag: filmische shots',
   lookback: () => 'Druk de rechterstick in',
   heliUp: (L) => `${L.rt} omhoog, ${L.lt} omlaag: landen doe je laag en langzaam`,
