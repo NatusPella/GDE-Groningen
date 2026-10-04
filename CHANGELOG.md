@@ -16,6 +16,13 @@ nieuwe functies, `y` voor alleen bugfixes.
   nieuw nummer op de radio dwingen geen extra opmaakberekening meer af.
 - Het spel is 17 MB kleiner: 746 stemopnames die nergens meer werden
   gebruikt zijn weg (`scripts/audio_unused.mjs`).
+- Minder haperingen op de ring: viaducten, taluds, keermuren, vangrails en
+  tunneldaken worden nu in de achtergrond opgebouwd. Na een sprong over de
+  ring kost het wegennet de helft minder tijd per frame en geen frames
+  meer van 8 ms of langer.
+- De portretjes van Tammo en Tessa in de HUD worden bewaard, zodat het spel
+  ze bij een volgende start niet opnieuw tekent (alleen na een nieuwe outfit
+  of een nieuwe versie).
 
 ## [0.25.0] - 2026-10-04
 

@@ -243,11 +243,52 @@ afgeslankte kaart van de worker; 60 cellen van de wegbatcher (232 meshes)
 tegen de oude afronding in één frame; wegen, terrein, straatmeubels en
 Ommeland-water nog steeds gelijk.
 
+## Ronde 4: kunstwerken in de worker, HUD-portretjes
+
+A/B (main tegen `claude/perf-rest`), alleen de ring met elke 4 s een sprong
+van 600 m (`PERF_JUMP=4`), Laag + CPU×4 + `--hitch`, drie paren om en om,
+één Electron tegelijk onder `nice`, load 7 tot 11. `hitchprobe.js` houdt nu
+per sectie ook de piek bij (`summary().peaks`: hoogste ms in één frame en
+het aantal frames ≥ 8 ms).
+
+**Kunstwerken.** De eerste `roadGeo`-aanvraag van een weg brengt ook zijn
+kunstwerken mee (`structureArrays` / `overpassDeckArrays` op de kaart van
+de worker); de hoofdthread maakt er alleen meshes van en koppelt de
+breekbare hekken en vangrails aan zijn eigen muren (`structureGroup`).
+
+| | A | B |
+|---|--:|--:|
+| `3d:roads` (ms per frame) | 1.06 / 0.99 / 1.07 | 0.53 / 0.54 / 0.50 |
+| hoogste `3d:roads` (ms) | 12.6 / 11.6 / 11.2 | 5.4 / 4.5 / 4.6 |
+| frames met `3d:roads` ≥ 8 ms | 11 / 13 / 15 | 0 / 0 / 0 |
+| long tasks | 63 / 57 / 57 | 44 / 47 / 46 |
+| langste long task (ms) | 129 / 171 / 127 | 121 / 138 / 153 |
+| p99 (ms) | 117 / 101 / 101 | 101 / 102 / 102 |
+
+De hele frametijd verschilt nauwelijks (CPU 33.0–34.3 tegen 32.8–33.2 ms);
+draw calls gelijk (235–241 tegen 242–243). Bit-gelijk (`geocheck.sh`): 463
+wegen met kunstwerken, 1.237 meshes, 866k vertices en 7.149 breekbare
+stukken, hoofdthread tegen worker; in Node ook tegen de oude
+`buildRoadStructure` van main. `ring_probe.mjs`: 0.
+
+**HUD-portretjes.** Een portret (`renderSnapshot`, 96×96) werd per sessie
+al maar één keer getekend, maar wel bij elke start: het eerste 47–54 ms
+(met de opwarming van de gedeelde renderer), het tweede 9.5–14.7 ms, als
+losse long tasks buiten het frame (dus niet in `hud`). Ze gaan nu naar
+localStorage (`gte-snapshots`, per versie, hooguit 8). Twee starts met
+hetzelfde profiel: main tekent ze beide keren, de branch alleen de eerste
+keer. De opwarming schuift dan naar de eerstvolgende andere snapshot (de
+auto bij de snelheidsmeter: 33–35 → 55 ms); per start gaat het
+snapshotwerk van ~92 ms in drie long tasks naar 55 ms in één.
+
 ## Wat nog kan
 
 - Op de ring geeft de HUD bij een sprong nog frames van 30 tot 50 ms
-  (`hud`, in A en B gelijk); dat is niet de minimap.
-- De kunstwerken van de wegen (`roadstructures3d.js`) naar de worker.
+  (`hud`, in A en B gelijk); dat is niet de minimap. In ronde 4 bleef de
+  piek van `hud` onder 10 ms (hoogstens één frame ≥ 8 ms per run).
+- De snapshot van de auto bij de snelheidsmeter (33–55 ms, per model en
+  kleur) en de opwarming van de gedeelde renderer: in de rusttijd tussen
+  frames, of vooraf.
 - Het gebouwraster in de worker compacter (6 MB), en de hoogtes (11 MB)
   alleen voor de ringwegen.
 - De Ommeland-tegels (`genTileSteps`), na een splitsing van `countryplan`
