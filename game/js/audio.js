@@ -2095,6 +2095,68 @@ function humanPowered(v) {
   return !!(v && v.isBoat && v.model && HUMAN_BOATS.has(v.model.kind));
 }
 
+// Sailing boats (model.sail: the skûtsje) have no engine either: wind in the
+// rig, wood and rigging creaking, the bow wash, a luffing sail (updateSailing).
+function sailPowered(v) {
+  return !!(v && v.isBoat && v.model && v.model.sail);
+}
+const noMotor = (v) => humanPowered(v) || sailPowered(v);
+
+const sailState = new WeakMap();
+const SAIL_RANGE = 60;
+
+function updateSailing(dt, world) {
+  if (!ctx || muted || world.paused) return;
+  const pv = world.player.inVehicle;
+  for (const v of world.vehicles) {
+    if (!sailPowered(v) || v.wrecked || v.sinking) continue;
+    const mine = v === pv;
+    if (!mine && distToListener(v.x, v.y, 1) > SAIL_RANGE) continue;
+    let st = sailState.get(v);
+    if (!st) { st = { creak: Math.random() * 2, wash: 0, luff: 0, angle: v.angle, yaw: 0 }; sailState.set(v, st); }
+    let da = v.angle - st.angle;
+    da = Math.atan2(Math.sin(da), Math.cos(da));
+    st.angle = v.angle;
+    st.yaw += ((dt > 0 ? Math.abs(da) / dt : 0) - st.yaw) * Math.min(1, dt * 3);
+    const speed = Math.abs(v.speed || 0);
+    const frac = clamp(speed / 8, 0, 1);
+    const k = mine ? 1 : 0.7;
+    const out = () => spatialOut(v.x, v.y, { ref: 5, rolloff: 1.1, range: SAIL_RANGE, h: 1.2 });
+    // the hull and the rigging work in the swell, more so under way and turning
+    st.creak -= dt * (0.5 + frac + st.yaw * 2);
+    if (st.creak <= 0) {
+      st.creak = 1.4 + Math.random() * 2.2;
+      const o = out();
+      if (o) playBuf('creak', { out: o, gain: (0.05 + 0.05 * frac) * k, rate: 0.6 + Math.random() * 0.35, prio: 0 });
+    }
+    // the bow wash: slaps come quicker and louder with speed
+    if (speed > 0.6) {
+      st.wash -= dt;
+      if (st.wash <= 0) {
+        st.wash = (1.1 - 0.7 * frac) * (0.8 + Math.random() * 0.4);
+        const o = spatialOut(v.x, v.y, { ref: 5, rolloff: 1.1, range: SAIL_RANGE, h: 0.2 });
+        if (o) {
+          playBuf('hull_slap', { out: o, gain: (0.08 + 0.12 * frac) * k, rate: 0.8 + Math.random() * 0.3, prio: 0 });
+          playNoiseBurst({ duration: 0.5 + frac * 0.4, freq: 900 + frac * 900, freqEnd: 500, q: 0.5, gain: (0.03 + 0.06 * frac) * k, type: 'bandpass', out: o, prio: 0 });
+        }
+      }
+    }
+    // a sail that spills its wind (slow, turning, or the mast struck) flaps
+    const luffing = (v.sailLuff ?? 0) > 0.35 || st.yaw > 0.25 || speed < 1.5;
+    if (luffing) {
+      st.luff -= dt;
+      if (st.luff <= 0) {
+        st.luff = 0.9 + Math.random() * 1.4;
+        const o = out();
+        if (o) {
+          const n = 2 + Math.floor(Math.random() * 3);
+          for (let i = 0; i < n; i++) playNoiseBurst({ duration: 0.05 + Math.random() * 0.03, freq: 320 + Math.random() * 260, q: 0.9, gain: 0.07 * k, type: 'bandpass', delay: i * (0.07 + Math.random() * 0.04), out: o, prio: 0 });
+        }
+      }
+    }
+  }
+}
+
 const paddleState = new WeakMap();
 const PADDLE_RANGE = 45;
 
@@ -2177,7 +2239,7 @@ function updateEngineSynth(dt, world) {
   const v = world.player.inVehicle;
   const t = ctx.currentTime;
   // a helicopter's rotor is sfx/sky.js, not a car engine
-  const motor = !!(v && !v.isBike && !v.isHeli && !v.wrecked && !v.shiftParked && !humanPowered(v));
+  const motor = !!(v && !v.isBike && !v.isHeli && !v.wrecked && !v.shiftParked && !noMotor(v));
   if (motor && v !== S.vehicle) {
     S.vehicle = v;
     S.kind = engineKind(v);
@@ -2203,7 +2265,7 @@ function updateEngineSynth(dt, world) {
       speed, surface, small: small ? 1 : 0,
       wet: surface === 2 || v.isBoat ? 0 : rain,
       water: v.isBoat ? 1 : 0,
-      wind: small ? 1 : v.isBoat ? 0.8 : v.isBus ? 0.25 : 0.4,
+      wind: small ? 1 : sailPowered(v) ? 1 : v.isBoat ? 0.8 : v.isBus ? 0.25 : 0.4,
       free: coasting ? speed * 9 : 0,
       gain: clamp(speed / 1.2, v.isBoat ? 1 : 0, 1) * (v.isBus ? 0.36 : small ? 0.3 : 0.32),
     };
@@ -2258,7 +2320,7 @@ function trafficEngineParams(v, dt, fresh) {
 function updateEngine(dt, world) {
   if (synth.player) { updateEngineSynth(dt, world); return; }
   const v = world.player.inVehicle;
-  const motor = v && !v.isBike && !v.isHeli && !humanPowered(v);
+  const motor = v && !v.isBike && !v.isHeli && !noMotor(v);
   const speed = motor ? Math.abs(v.speed) : 0;
   const t = ctx.currentTime;
   let targetGain = 0, targetFreq = 42, cutoff = 300;
@@ -2746,7 +2808,7 @@ function vehicleVoiceParams(v) {
 }
 
 function isEngineRunning(v) {
-  if (v.wrecked || v.isBike || v.isHeli || v.parked || v.driver === 'player' || humanPowered(v)) return false;
+  if (v.wrecked || v.isBike || v.isHeli || v.parked || v.driver === 'player' || noMotor(v)) return false;
   if (Math.abs(v.speed) > 0.2) return true;
   return v.isBoat || v.racer || (!!v.road && !v.isHeroCar);
 }
@@ -3079,6 +3141,7 @@ function updateWorldAudio(dt, world) {
 
   updateEngine(dt, world);
   updatePaddling(dt, world);
+  updateSailing(dt, world);
   updateSqueal(dt, world);
   updateRumble(dt, world);
   updateScrape(dt, world);

@@ -217,7 +217,7 @@ export function updateUiSfx(dt, world) {
   if (wp !== st.waypoint) { if (!muted) (wp ? ping() : back()); st.waypoint = wp; }
 
   const n = world.phoneHistory && world.phoneHistory[0];
-  if (n && n !== st.notif && !muted) buzz();
+  if (n && n !== st.notif && !muted && !n.quiet) buzz();
   st.notif = n;
 
   if (!savedEl) savedEl = document.querySelector('.hud-saved');

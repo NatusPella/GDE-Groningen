@@ -37,7 +37,7 @@ export const SHOP_TYPES = {
   fietsenmaker: { color: '#4f86a8', label: 'Fietsenmaker', chain: 'Spaak & Band', tagline: 'Plakken, poetsen en opvoeren', group: 'shopsVoertuigen' },
   auto: { color: '#c98a16', label: 'Autodealer', chain: 'Ome Harm Occasions', tagline: 'Nait zeuren, gewoon rijden', group: 'shopsVoertuigen' },
   tuning: { color: '#8c3fa8', label: 'Tuning', chain: 'Knal & Kolder Tuning', tagline: 'Meer vermogen, meer herrie', group: 'shopsVoertuigen' },
-  boot: { color: '#2a8fb0', label: 'Botenverhuur', chain: 'Bootje Huren', tagline: 'De stad vanaf het water', group: 'shopsVoertuigen' },
+  boot: { color: '#2a8fb0', label: 'Botenverhuur & werf', chain: 'Bootje Huren', tagline: 'De stad vanaf het water. Aan de steiger je boot tunen (R)', group: 'shopsVoertuigen' },
   spuit: { color: '#1e9e56', label: 'Spuiterij', chain: 'Spuit & Klaar', tagline: 'Nieuwe kleur, nieuwe kans', group: null },
   eikea: { color: '#1d4fa3', label: 'Woonwarenhuis', chain: 'EIKEA', tagline: 'Zweeds? Nee, Gronings. Zelf in elkaar zetten', group: 'shops' },
   heli: { color: '#b8322a', label: 'Helikopterdealer', chain: 'Rotor Roelf', tagline: 'Helikopters. Vliegbrevet? Daar doen we op Eelde niet moeilijk over', group: 'shopsVoertuigen' },
@@ -55,6 +55,7 @@ const STREAM_IN = 170;
 const STREAM_OUT = 220;
 const BUILDS_PER_TICK = 2;
 const WORKSHOP_RADIUS = 9;
+const WERF_RADIUS = 30;
 const SELL_RADIUS = 25;
 
 // --- stock ------------------------------------------------------------------
@@ -170,7 +171,7 @@ export const VEHICLE_STOCK = {
   bijboot: { kind: 'boat', type: 'Bijbootje', shop: 'boot', label: 'Bijbootje Woonbootje', desc: 'Klein motortje, groot ego', price: 300, nameIdx: 0, color: '#2f4a3a', model: { ...BOAT_KINDS.dinghy } },
   rubberboot: { kind: 'boat', type: 'Rubberboot', shop: 'boot', label: 'Rubberboot Stuiterbal', desc: 'Stuitert over de golven van elke rondvaartboot', price: 700, nameIdx: 0, color: '#3c4044', model: { ...BOAT_KINDS.rubberboot } },
   sloep: { kind: 'boat', type: 'Sloep', shop: 'boot', label: 'Sloep Nait Soezen', desc: 'Rosé aan boord, pet op, rustig tuffen', price: 900, nameIdx: 0, color: '#e8e6e0', model: { ...BOAT_KINDS.sloep } },
-  speedboot: { kind: 'boat', type: 'Speedboot', shop: 'boot', label: 'Speedboot Grachtengast', desc: 'Harder dan mag. De kade vindt je niet leuk', price: 1800, nameIdx: 1, color: '#c9a227', model: { name: 'boat', kind: 'sloep', len: 4.2, wid: 1.6, maxSpeed: 7.5, accel: 2.8, brake: 2.8, turnRate: 1.7, color: '#c9a227', cabin: '#1c1c1c' } },
+  speedboot: { kind: 'boat', type: 'Speedboot', shop: 'boot', label: 'Speedboot Grachtengast', desc: 'Harder dan mag. De kade vindt je niet leuk', price: 1800, nameIdx: 1, color: '#c9a227', model: { name: 'boat', kind: 'sloep', len: 4.2, wid: 1.6, playerTop: 25, playerAccel: 7, maxSpeed: 7.5, accel: 2.8, brake: 2.8, turnRate: 1.7, color: '#c9a227', cabin: '#1c1c1c' } },
   rondvaartboot: { kind: 'boat', type: 'Rondvaartboot', shop: 'boot', label: 'Rondvaartboot Stadjer', desc: 'Glazen dak, veertig stoelen, nul passagiers', price: 3500, nameIdx: 1, color: '#1d3350', model: { ...BOAT_KINDS.rondvaart } },
   // --- the air ---
   wiekenwubbo: { kind: 'heli', type: 'Helikopter', shop: 'heli', label: 'Wieken Wubbo', desc: 'Tweezits helikopter. Landt op elk plat stuk: het weiland, een plat dak of je eigen helidek', price: 5500, nameIdx: 0, color: '#b8322a', flags: { isHeli: true }, model: { name: 'heli', len: 8.8, wid: 2.1, maxSpeed: 40, accel: 7, brake: 9, turnRate: 1.5 } },
@@ -215,6 +216,28 @@ export const BIKE_UPGRADES = [
   { id: 'versnelling', label: 'Zeven versnellingen', desc: 'Sneller op gang bij het stoplicht', price: 30, mult: { accel: 1.3 } },
   { id: 'motor', label: 'Opgevoerde accu', desc: 'Stiekem e-motortje erin: hard en stil', price: 150, mult: { maxSpeed: 1.35, accel: 1.4 } },
 ];
+// Boats at the Bootje Huren werf (stop beside the jetty and press R). Paddled
+// boats get lighter paddles; a sailing boat has no motor to tune.
+export const BOAT_UPGRADES = [
+  { id: 'motor', label: 'Opgevoerde buitenboordmotor', desc: 'Meer pk achterop: +15% top, +20% trekkracht', price: 350, mult: { maxSpeed: 1.15, accel: 1.2 } },
+  { id: 'schroef', label: 'Raceschroef "Kolkje"', desc: 'De kade trilt mee: +25% top, +30% trekkracht', price: 850, mult: { maxSpeed: 1.25, accel: 1.3 } },
+  { id: 'roer', label: 'Groot roer', desc: 'Scherper om de bocht, ook in de smalle grachten', price: 180, mult: { turnRate: 1.2 } },
+  { id: 'keerkoppeling', label: 'Snelle keerkoppeling', desc: 'Volle kracht achteruit: veel eerder stil', price: 140, mult: { brake: 1.4 } },
+];
+export const PADDLE_UPGRADES = [
+  { id: 'peddels', label: 'Carbon peddels', desc: 'Licht als een veertje: +20% top, +25% trekkracht', price: 60, mult: { maxSpeed: 1.2, accel: 1.25 } },
+];
+const PADDLED = new Set(['kano', 'kajak', 'waterfiets', 'sup']);
+const isSailBoat = (v) => !!(v && v.isBoat && v.model && v.model.sail);
+function upgradeListFor(v) {
+  if (v && v.isBoat) return isSailBoat(v) ? [] : PADDLED.has(v.model.kind) ? PADDLE_UPGRADES : BOAT_UPGRADES;
+  return isTwoWheeler(v) ? BIKE_UPGRADES : CAR_UPGRADES;
+}
+export function upgradeListForStock(spec) {
+  if (spec.kind === 'boat') return spec.model && spec.model.sail ? [] : PADDLED.has(spec.model && spec.model.kind) ? PADDLE_UPGRADES : BOAT_UPGRADES;
+  return spec.kind === 'car' ? CAR_UPGRADES : BIKE_UPGRADES;
+}
+
 export const CAR_UPGRADES = [
   { id: 'motor', label: 'Opgevoerde motor', desc: 'Chip erin, filter eruit: +12% top, +20% trekkracht', price: 300, mult: { maxSpeed: 1.12, accel: 1.2 } },
   { id: 'remmen', label: 'Sportremmen', desc: 'Staat stil voor je het weet', price: 150, mult: { brake: 1.35 } },
@@ -538,10 +561,12 @@ const isCar = (v) => paintableVehicle(v) && !v.isBike && !v.isScooter;
 function workshopFor(world) {
   const v = world.player.inVehicle;
   if (!v || Math.abs(v.speed) > 2) return null;
-  const type = isTwoWheeler(v) ? 'fietsenmaker' : isCar(v) ? 'tuning' : null;
+  const type = isTwoWheeler(v) ? 'fietsenmaker' : isCar(v) ? 'tuning' : v.isBoat && !v.wrecked && !isSailBoat(v) ? 'boot' : null;
   if (!type) return null;
   for (const s of shops) {
-    if (s.type === type && dist(v.x, v.y, s.x, s.y) < WORKSHOP_RADIUS) return s;
+    if (s.type !== type) continue;
+    // the werf works on boats at the rental jetty
+    if (type === 'boot' ? s.water && dist(v.x, v.y, s.water.x, s.water.y) < WERF_RADIUS : dist(v.x, v.y, s.x, s.y) < WORKSHOP_RADIUS) return s;
   }
   return null;
 }
@@ -562,7 +587,7 @@ export function shopPrimaryPrompt(world) {
   const g = garageForPaint(world);
   if (g) return { id: 'paint-' + g.x, x: g.x, y: g.y, h: 2.6, key: 'R', label: 'Nieuwe lak', sub: `Spuit & Klaar: kies een kleur, €${PAINT_PRICE}`, ring: true };
   const ws = workshopFor(world);
-  if (ws) return { id: 'ws-' + ws.id, x: ws.x, y: ws.y, h: 2.75, key: 'R', label: ws.type === 'tuning' ? 'Laten tunen' : 'Laten sleutelen', sub: storyHere(world, ws) || ws.name, ring: true };
+  if (ws) return { id: 'ws-' + ws.id, x: ws.x, y: ws.y, h: 2.75, key: 'R', label: ws.type === 'tuning' ? 'Laten tunen' : ws.type === 'boot' ? 'Boot tunen' : 'Laten sleutelen', sub: storyHere(world, ws) || (ws.type === 'boot' ? `${ws.name}: de werf` : ws.name), ring: true };
   const s = nearestShop(world);
   if (!s) return null;
   if (policeWatching(world)) return { id: 'shop-' + s.id, x: s.x, y: s.y, h: 2.75, key: 'E', label: 'Binnenlopen', sub: `${s.name}: deur op slot, politie op je hielen`, ring: true, dim: true };
@@ -592,7 +617,7 @@ export function tryShopInteract(world) {
     if (g || ws) {
       input.consume('r');
       if (ws) { shopVisits[ws.type] = (shopVisits[ws.type] || 0) + 1; prepareStoryShop(); }
-      openShopMenu(world, g ? paintShop(world) : shopMenu(world, ws));
+      openShopMenu(world, g ? paintShop(world) : shopMenu(world, ws, ws.type === 'boot'));
       return true;
     }
   }
@@ -687,17 +712,17 @@ function lookWith(world, over, look = null) {
   return { kind: 'person', look: { ...app, ...over, look }, frame: look ? 'head' : null };
 }
 
-function shopMenu(world, s) {
+function shopMenu(world, s, werf = false) {
   const build = {
     wapens: weaponSections, kleding: outfitSections, kapper: hairSections, tabak: tabakSections,
     fietsen: (w) => vehicleSections(w, 'fietsen', s), auto: (w) => vehicleSections(w, 'auto', s),
     super: (w) => foodSections(w, 'Uit de schappen', SUPER_ITEMS), snack: (w) => foodSections(w, 'Uit het vet', SNACK_ITEMS),
     fietsenmaker: (w) => workshopSections(w, s, true), tuning: (w) => workshopSections(w, s, false),
-    pand: (w) => pandSections(w, s), boot: (w) => bootSections(w, s), eikea: eikeaSections,
+    pand: (w) => pandSections(w, s), boot: (w) => (werf ? workshopSections(w, s, 'boat') : bootSections(w, s)), eikea: eikeaSections,
     heli: (w) => vehicleSections(w, 'heli', s),
   }[s.type];
   const view = () => markStoryItems(world, s.type, build(world));
-  return { name: s.name, type: s.type, tagline: s.tagline, color: SHOP_TYPES[s.type].color, view, sections: () => view().sections, onBought: (it) => noteStoryPurchase(it.id) };
+  return { name: werf ? `${s.name} · werf` : s.name, type: s.type, tagline: werf ? 'Sneller over het water' : s.tagline, color: SHOP_TYPES[s.type].color, view, sections: () => view().sections, onBought: (it) => noteStoryPurchase(it.id) };
 }
 
 // Food heals; at full health it is still for sale, to take away.
@@ -728,7 +753,7 @@ const PERF_KEYS = ['maxSpeed', 'accel', 'brake', 'turnRate'];
 function applyUpgrades(v) {
   if (!v.upgrades || !v.upgrades.length) return;
   if (!v._baseModel) v._baseModel = { ...v.model };
-  const list = isTwoWheeler(v) ? BIKE_UPGRADES : CAR_UPGRADES;
+  const list = upgradeListFor(v);
   const m = { ...v.model };
   for (const k of PERF_KEYS) m[k] = v._baseModel[k];
   for (const id of v.upgrades) {
@@ -740,7 +765,8 @@ function applyUpgrades(v) {
 
 // The ride being worked on: the one you sit on, else your own parked by the door.
 function upgradeTarget(world, shop, twoWheel) {
-  const fits = (x) => x && !x.wrecked && !x.isBoat && (twoWheel ? isTwoWheeler(x) : isCar(x));
+  const fits = (x) => x && !x.wrecked && (twoWheel === 'boat' ? x.isBoat && upgradeListFor(x).length > 0 : !x.isBoat && (twoWheel ? isTwoWheeler(x) : isCar(x)));
+  if (twoWheel === 'boat') shop = shop.water || shop;
   const pv = world.player.inVehicle;
   if (fits(pv)) return pv;
   let best = null, bd = 15;
@@ -760,8 +786,8 @@ function rememberUpgrades(v) {
 
 // Upgrade items for vehicle v (tuning shops, fietsenmakers and garages).
 export function vehicleUpgradeItems(world, v) {
-  if (!v || v.isBoat || v.isHeli || v.isBus || v.isPolice || v.wrecked) return [];
-  const list = isTwoWheeler(v) ? BIKE_UPGRADES : CAR_UPGRADES;
+  if (!v || v.isHeli || v.isBus || v.isPolice || v.wrecked || (v.isBoat && !upgradeListFor(v).length)) return [];
+  const list = upgradeListFor(v);
   const have = new Set(v.upgrades || []);
   const name = v.isHeroCar ? 'Escapade' : vehicleName(v);
   return list.map((u) => ({
@@ -793,9 +819,10 @@ export function paintItems(world, v) {
 
 function workshopSections(world, shop, twoWheel) {
   const v = upgradeTarget(world, shop, twoWheel);
-  const what = twoWheel ? 'fiets of e-step' : 'auto';
-  if (!v) return [{ title: 'Werkplaats', note: `Kom erop of erin aanrijden en druk R, of zet je eigen ${what} voor de deur`, items: [] }];
-  const list = twoWheel ? BIKE_UPGRADES : CAR_UPGRADES;
+  const boat = twoWheel === 'boat';
+  const what = boat ? 'boot' : twoWheel ? 'fiets of e-step' : 'auto';
+  if (!v) return [{ title: boat ? 'Werf' : 'Werkplaats', note: boat ? 'Vaar je eigen boot naar de steiger en druk R' : `Kom erop of erin aanrijden en druk R, of zet je eigen ${what} voor de deur`, items: [] }];
+  const list = upgradeListFor(v);
   const have = new Set(v.upgrades || []);
   const name = v.isHeroCar ? 'Escapade' : vehicleName(v);
   const items = list.map((u) => ({
@@ -810,9 +837,9 @@ function workshopSections(world, shop, twoWheel) {
       return `${u.label} erop. Je ${name} gaat als een speer!`;
     },
   }));
-  const fixPrice = twoWheel ? 5 : 35;
+  const fixPrice = boat ? 25 : twoWheel ? 5 : 35;
   items.push({
-    id: 'u-fix', label: twoWheel ? 'Band plakken & rechtzetten' : 'Deuken eruit', desc: 'Weer helemaal heel', price: fixPrice,
+    id: 'u-fix', label: boat ? 'Romp plamuren & lakken' : twoWheel ? 'Band plakken & rechtzetten' : 'Deuken eruit', desc: 'Weer helemaal heel', price: fixPrice,
     preview: vehiclePreviewOf(v), stats: [barStat('Staat', v.health ?? 100, 100, 100, '%')],
     disabled: (v.health ?? 100) >= 100 && !v.riderOff ? 'Mankeert niks' : broke(world, fixPrice),
     buy() {
@@ -898,7 +925,7 @@ function pandSections(world, shop) {
 
 const RENTALS = [
   { id: 'sloep', label: 'Sloep "Nait Soezen"', desc: 'Rustig tuffen door de grachten', price: 40, nameIdx: 0, model: { ...BOAT_KINDS.sloep } },
-  { id: 'speed', label: 'Speedbootje "Grachtengast"', desc: 'Harder dan mag. Niet tegen de wal!', price: 90, nameIdx: 1, model: { name: 'boat', kind: 'sloep', len: 4.2, wid: 1.6, maxSpeed: 7.5, accel: 2.8, brake: 2.8, turnRate: 1.7, color: '#c9a227', cabin: '#1c1c1c' } },
+  { id: 'speed', label: 'Speedbootje "Grachtengast"', desc: 'Harder dan mag. Niet tegen de wal!', price: 90, nameIdx: 1, model: { name: 'boat', kind: 'sloep', len: 4.2, wid: 1.6, playerTop: 25, playerAccel: 7, maxSpeed: 7.5, accel: 2.8, brake: 2.8, turnRate: 1.7, color: '#c9a227', cabin: '#1c1c1c' } },
   { id: 'kano', label: 'Kano', desc: 'Zelf peddelen, met z\'n tweeën in één kano', price: 15, nameIdx: 0, model: { ...BOAT_KINDS.kano } },
   { id: 'kajak', label: 'Kajak', desc: 'Voor één, laag bij het water', price: 12, nameIdx: 0, model: { ...BOAT_KINDS.kajak } },
   { id: 'waterfiets', label: 'Waterfiets', desc: 'Samen trappen, geen haast', price: 20, nameIdx: 1, model: { ...BOAT_KINDS.waterfiets } },
@@ -1763,7 +1790,7 @@ export function applyShopSave(world, d) {
   for (const sv of Array.isArray(d.vehicles) ? d.vehicles : []) if (sv && VEHICLE_STOCK[sv.key]) byKey.set(sv.key, sv);
   for (const sv of byKey.values()) {
     const spec = VEHICLE_STOCK[sv.key];
-    const valid = spec.kind === 'car' ? CAR_UPGRADES : BIKE_UPGRADES;
+    const valid = upgradeListForStock(spec);
     const upgrades = Array.isArray(sv.upgrades) ? sv.upgrades.filter((id) => valid.some((u) => u.id === id)) : [];
     const o = { key: sv.key, spec, color: isColor(sv.color) ? sv.color : spec.color, upgrades, v: null, lost: !!sv.lost, health: sv.health, dents: validDents(sv.dents) };
     const has = Number.isFinite(sv.x) && Number.isFinite(sv.y);
