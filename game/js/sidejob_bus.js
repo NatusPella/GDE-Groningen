@@ -3,8 +3,9 @@
 // te vroeg vertrekken en niemand door het gangpad laten rollen.
 
 import { unlockAchievement } from './achievements.js';
+import { closestPointOnSegment, isInWater } from './util.js';
 import {
-  pick, nearestOnStreet, kerbSide, spawnJobVehicle, pointAlongRoad, spawnPed, pedAlive,
+  pick, spawnJobVehicle, spawnPed, pedAlive,
   holdPed, freePed, walkPed, removePed, say, vehicleSpeed, fmtClock,
 } from './sidejobkit.js';
 
@@ -16,14 +17,22 @@ const EARLY_OK = 12;
 const LATE_OK = 10;
 const LATE_FAIL = 75;
 const SHOW_R = 95;
+// timetable: route metres at this pace plus pulling away and braking
+export const CRUISE = 8.5;
+export const LEG_EXTRA = 12;
 
-const STOPS = [
-  { name: 'Trompsingel', street: 'Trompsingel', at: [694, 575], line: 'Trompsingel, bij De Oosterpoort. Vanavond: een band die je over tien jaar pas kent.' },
-  { name: 'Oosterweg', street: 'Oosterweg', at: [649, 771], line: 'Oosterweg. Uitstappen voor de Oosterpoort-wijk en de lekkerste bakker van de stad. Zegt de bakker.' },
-  { name: 'Herebrug', street: 'Herebrug', at: [352, 778], line: 'Herebrug. Staat de brug open? Dan staat de bus stil. Zo gaat dat in Grunn.' },
-  { name: 'Hoofdstation', street: 'Stationsweg', at: [99, 856], line: 'Hoofdstation. Overstappen op de trein, of op één van de tienduizend fietsen.' },
-  { name: 'Hereplein', street: 'Hereplein', at: [307, 682], line: 'Hereplein. Let op: fietsers hebben hier voorrang. Ook als ze er nog niet zijn.' },
-  { name: 'Verlengde Oosterstraat', street: 'Verlengde Oosterstraat', at: [560, 606], line: 'Verlengde Oosterstraat. Voor de Oosterstraat: uitstappen en nog vijf minuten lopen, net als altijd.' },
+// One loop, clockwise round the centre with the traffic: from the station
+// over the Herebrug, out to the Oosterpoort, back west along the Zuiderpark,
+// round the Emmaplein roundabout and on to the station again. dir: the way
+// the bus drives at the halte (picks the carriageway and the kerb), leg: the
+// route metres to the next halte (scripts/bus_route_test.mjs checks both).
+export const STOPS = [
+  { name: 'Hoofdstation', street: 'Stationsweg', at: [99, 878], dir: [1, 0], leg: 235, line: 'Hoofdstation. Overstappen op de trein, of op één van de tienduizend fietsen.' },
+  { name: 'Herebrug', street: 'Stationsweg', at: [325, 822], dir: [1, -0.4], leg: 175, line: 'Herebrug. Staat de brug open? Dan staat de bus stil. Zo gaat dat in Grunn.' },
+  { name: 'Hereplein', street: 'Hereplein', at: [348, 695], dir: [0, -1], leg: 555, line: 'Hereplein. Let op: fietsers hebben hier voorrang. Ook als ze er nog niet zijn.' },
+  { name: 'Oosterpoort', street: 'Verlengde Oosterstraat', at: [584, 641], dir: [1, 1.4], leg: 240, line: 'Oosterpoort, aan de Trompsingel. Vanavond: een band die je over tien jaar pas kent.' },
+  { name: 'Zuiderpark', street: 'Zuiderpark', at: [415, 778], dir: [-1, 0.4], leg: 970, line: 'Zuiderpark. Uitstappen voor het park. Picknickkleed niet inbegrepen.' },
+  { name: 'Emmaplein', street: 'Emmaplein', at: [-218, 705], dir: [0, 1], leg: 470, line: 'Emmaplein. Eén keer rond de rotonde en dan terug naar het station. Rondjes draaien kan lijn 3 als de beste.' },
 ];
 
 const BUMP_LINES = [
@@ -33,6 +42,55 @@ const BUMP_LINES = [
   'Achterin rolt een krat bier door het gangpad.',
 ];
 const EARLY_LINES = ['Te vroeg! Lekker rap, maar de dienstregeling vindt je eng.', 'Voor op schema. De passagiers klappen, de planner huilt.'];
+
+// The halte on its street: the carriageway (and the way along it) that runs
+// with the line's direction of travel (dir), the waiting spot on the kerb to
+// the right of the bus.
+function placeStop(map, s) {
+  const [hx, hy] = s.dir;
+  let best = null;
+  for (const r of map.roadsNear(s.at[0], s.at[1], 160)) {
+    if (r.name !== s.street) continue;
+    for (let i = 0; i < r.pts.length - 1; i++) {
+      const [ax, ay] = r.pts[i], [bx, by] = r.pts[i + 1];
+      let dx = bx - ax, dy = by - ay;
+      const l = Math.hypot(dx, dy);
+      if (l < 1) continue;
+      dx /= l; dy /= l;
+      const along = dx * hx + dy * hy;
+      if (r.oneway && along < 0.3) continue;
+      if (Math.abs(along) < 0.3) continue;
+      const cp = closestPointOnSegment(s.at[0], s.at[1], ax, ay, bx, by);
+      if (!best || cp.dist2 < best.d2) best = { d2: cp.dist2, x: cp.x, y: cp.y, road: r, heading: along > 0 ? Math.atan2(dy, dx) : Math.atan2(-dy, -dx) };
+    }
+  }
+  if (!best) return null;
+  const off = (best.road.width || 6) / 2 + 1.6;
+  let kerb = null;
+  for (const side of [1, -1]) {
+    const x = best.x - Math.sin(best.heading) * off * side, y = best.y + Math.cos(best.heading) * off * side;
+    if (isInWater(map, x, y)) continue;
+    const [ex, ey] = map.escapeBuilding(x, y, 0.5);
+    if (Math.hypot(ex - x, ey - y) < 0.3 || side < 0) { kerb = { x: ex, y: ey }; break; }
+  }
+  if (!kerb) return null;
+  return { ...s, x: best.x, y: best.y, heading: best.heading, kerb };
+}
+
+export function placeStops(map, stops = STOPS) {
+  return stops.map((s) => placeStop(map, s)).filter(Boolean);
+}
+
+// the bus waits at the first halte, ready to go, facing the line's direction
+export function busStart(map, stops) {
+  const s = stops[0];
+  return { x: s.x, y: s.y, angle: s.heading };
+}
+
+// planned driving time from halte a to the next one (a.leg: route metres)
+export function legSeconds(map, a) {
+  return a.leg / CRUISE + LEG_EXTRA;
+}
 
 export default {
   id: 'bus',
@@ -52,21 +110,15 @@ export default {
   sikkom: (c) => `Buslijn 3 rijdt voor de ${c.streak}e keer op rij volgens de dienstregeling, reizigers in verwarring`,
 
   anchor(map) {
-    const s = nearestOnStreet(map, STOPS[0].street, STOPS[0].at[0], STOPS[0].at[1]);
-    return s ? kerbSide(map, s, 1.8) : null;
+    const s = placeStops(map, STOPS.slice(0, 1))[0];
+    return s ? s.kerb : null;
   },
 
   start(c) {
     const map = c.world.map;
-    c.data.stops = STOPS.map((s) => {
-      const hit = nearestOnStreet(map, s.street, s.at[0], s.at[1]);
-      if (!hit) return null;
-      return { ...s, x: hit.x, y: hit.y, kerb: kerbSide(map, hit, 1.6) };
-    }).filter(Boolean);
+    c.data.stops = placeStops(map, STOPS);
     if (c.data.stops.length < 4) return 'De dienstregeling is zoek';
-    const rp = map.nearestRoadPoint(c.spot.x, c.spot.y, 80, true);
-    if (!rp) return 'Geen plek voor de bus';
-    const at = pointAlongRoad(rp.road, rp, 14);
+    const at = busStart(map, c.data.stops);
     const v = spawnJobVehicle(c.world, at.x, at.y, { kind: 'bus', angle: at.angle });
     if (!v) return 'Geen bus beschikbaar';
     c.vehicle = v;
