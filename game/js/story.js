@@ -18,7 +18,7 @@ import { lineVoiceFor, NARRATOR } from './linevoice.js';
 import {
   setMissionHooks, setNextMission, isMissionActive, isMissionCompleted, markMissionCompleted, getMissionDefs,
   unmetRequirement, requirementMet, requirementPlace, isNight, setMissionProgress, getMissionProgress, missionDebug,
-  activeMissionIndex, failActiveMission,
+  activeMissionIndex, failActiveMission, rideFirst,
 } from './missions.js';
 import { getShopVisits, getShopsForRender, grantStoryItem } from './shops.js';
 import { getPigeonFlight } from './pigeonmode.js';
@@ -32,7 +32,9 @@ import { playCinematic, isCinematicActive, sinceCinematic, isBannerUp } from './
 import { refreshDayNight } from './daynight.js';
 import { getTrainTripCount, getStationsForRender } from './stationtravel.js';
 import { getEierballen } from './achievementtracker.js';
-import { queueFjordReveal } from './postgame.js';
+import { queueFjordReveal, getChallengeProgress, isChallengeActive } from './postgame.js';
+import { isUnlocked } from './achievements.js';
+import { endingProgress, creditsDue, endingLeftText } from './ending.js';
 import { getPadelMatchCount, getPadelSpotsForRender } from './padel.js';
 import { FUN_GOALS, initStoryFun, updateStoryFun, storyFunDone, storyFunBusy, hideoutStep, hideoutChoices } from './storyfun.js';
 import { EIKEA_GOALS, updateStoryEikea, waiveEikea, initStoryEikea } from './storyeikea.js';
@@ -257,6 +259,9 @@ function queueContacts(step, on) {
 // a mission the player chose as their goal (goal.js) keeps the marker
 const goalIsMission = () => !!(world.goal && world.goal.kind === 'mission');
 
+// on foot further than this from the next place: the route goes past your own ride
+const RIDE_FIRST_M = 300;
+
 function refreshGuide() {
   const step = rt.cur;
   if (!step || step.end || isMissionActive()) { world.storyGuide = null; return; }
@@ -283,6 +288,17 @@ function refreshGuide() {
     place = g && g.place(step, rt.base);
     why = storyBuyLabel(world, place) || (step.goal.type === 'eikea' && place ? place.name : why);
   }
+  // on foot after a hand-back, or the step needs your car: fetch it first
+  let need = null;
+  if (step.kind === 'mission') {
+    const def = getMissionDefs()[missionIdx(step)];
+    if (def && def.ride === 'racecar') need = rt.gate ? 'car' : 'racecar';
+  } else if (step.goal && step.goal.req === 'racecar') need = 'car';
+  const ride = place ? rideFirst(world, need) : null;
+  if (ride) {
+    const p = world.player, far = Math.hypot(place.x - p.x, place.y - p.y);
+    if ((need || far > RIDE_FIRST_M) && Math.hypot(ride.x - p.x, ride.y - p.y) < far + 40) { why = `Eerst naar ${ride.name}, dan: ${why}`; place = ride; }
+  }
   const shopId = place && place.type && place.id ? place.id : null;
   // a choice (r-trein): the route goes to the nearest option, the others are named
   let alt = '';
@@ -299,7 +315,7 @@ function isPurchase(step, gate) {
 }
 
 function gateLabel(key) {
-  return { weapon: 'koop een wapen', bike: 'koop een fiets', car: 'koop een auto', heist: 'koop zwart incognito of huur een boot', night: 'wachten tot het donker is', boat: 'huur een boot' }[key] || key;
+  return { weapon: 'koop een wapen', bike: 'koop een fiets', car: 'koop een auto', racecar: 'voer de Escapade op of koop een sportwagen', heist: 'koop zwart incognito of huur een boot', night: 'wachten tot het donker is', boat: 'huur een boot' }[key] || key;
 }
 
 // Tops up the money for a purchase the step needs, once per step.
@@ -450,8 +466,8 @@ function playRecap(part) {
   });
 }
 
-// The end of the story: the epilogue (the last part's card lines), a big
-// "Einde" and the credits; afterwards the world stays open.
+// The end of the story: the epilogue (the last part's card lines) and the
+// Fjord Frituur. The credits wait until everything is done (playCredits).
 function playFinale(part) {
   const P = PARTS[part];
   // the ending plays over the Grote Markt: the world streams around the player
@@ -493,14 +509,66 @@ function playFinale(part) {
   const q = (spec) => playCinematic({ id: 'story-card', priority: 2, pause: true, letterbox: true, skippable: true, hideHud: true, queue: true, ...spec });
   const fromStudio = finaleShot(40);
   q({ duration: 5, big: 'Wij tweeën vóór Grunn.', kicker: GAME_TITLE, shot: (u, t) => ({ ...fromStudio(u, t), cut: t < 0.1 }) });
-  CREDITS.forEach(([name, role], k) => q({ duration: 3.2, kicker: role, title: name, cardFor: 3.2, shot: finaleShot(45 + k * 3.2) }));
-  q({ duration: 4.5, logo: true, shot: finaleShot(46 + CREDITS.length * 3.2) });
-  q({ duration: 4, big: 'Einde', kicker: 'Grunn is van jou', shot: finaleShot(50.5 + CREDITS.length * 3.2) });
   // then the Fjord Frituur comes out from under its sheet and Tessa drives off in it
   queueFjordReveal(world);
   state.cards.add(part);
-  phone(SERIES, 'Het verhaal is uit. Grunn blijft van jou: alle missies staan in je telefoon en in het pauzemenu, de bijbaantjes draaien door en Jelle daagt je vast nog eens uit.', 9);
+  const left = endingLeftText(getEnding());
+  phone(SERIES, left
+    ? `Het verhaal is uit, Grunn nog niet. Nog ${left} te gaan, dan pas mag de aftiteling. Alles staat in je telefoon en in het pauzemenu.`
+    : 'Het verhaal is uit. Grunn blijft van jou: alle missies staan in je telefoon en in het pauzemenu.', 9);
   return true;
+}
+
+// --- the real end: credits once every mission and challenge is done ----------------
+
+// A skipped mission counts as passed once it has been won after all (replayed).
+function getEnding() {
+  const missions = [];
+  STEPS.forEach((s, k) => {
+    const i = missionIdx(s);
+    if (i < 0 || !stepAvailable(s)) return;
+    const passed = isMissionCompleted(i) && isDone(s, k) && (!state.skipped.has(s.id) || isUnlocked(`m${i + 1}_klaar`));
+    missions.push({ code: s.id, title: s.title, passed });
+  });
+  const c = currentStep();
+  const finale = !!(c && c.finale && state.cards.has(c.end));
+  return endingProgress({ finale, missions }, getChallengeProgress());
+}
+
+export function getStoryEnding() {
+  return { ...getEnding(), credits: state.flags.has('credits') };
+}
+
+// "Aftiteling bekijken" in the pause menu: plays once the menu has closed.
+export function requestCredits() {
+  if (!state.flags.has('credits')) return false;
+  rt.creditsPending = true;
+  return true;
+}
+
+function playCredits() {
+  const q = (spec) => playCinematic({ id: 'story-credits', priority: 2, pause: true, letterbox: true, skippable: true, hideHud: true, queue: true, ...spec });
+  const ok = q({ duration: 5, big: 'Alles voor één eierbal', kicker: GAME_TITLE, shot: finaleShot(40) });
+  if (!ok) return false;
+  CREDITS.forEach(([name, role], k) => q({ duration: 3.2, kicker: role, title: name, cardFor: 3.2, shot: finaleShot(45 + k * 3.2) }));
+  q({ duration: 4.5, logo: true, shot: finaleShot(46 + CREDITS.length * 3.2) });
+  q({ duration: 4, big: 'Einde', kicker: 'Grunn is van jou', shot: finaleShot(50.5 + CREDITS.length * 3.2) });
+  return true;
+}
+
+function updateCredits(dt, w) {
+  const busy = isMissionActive() || isChallengeActive() || isCinematicActive() || narrativeBusy() || w.pigeonMode || w.pendingRespawn || isBannerUp();
+  if (busy) return;
+  if (rt.creditsPending) {
+    if (playCredits()) rt.creditsPending = false;
+    return;
+  }
+  if ((rt.endingT = (rt.endingT || 0) - dt) > 0) return;
+  rt.endingT = 1;
+  if (!creditsDue(getEnding(), { seen: state.flags.has('credits') })) return;
+  if (!playCredits()) return;
+  state.flags.add('credits');
+  phone(SERIES, 'Alles gedaan. Echt alles. Grunn is van jou, de aftiteling staat in het pauzemenu bij Overzicht.', 8);
 }
 
 function playEndCard(part) {
@@ -819,6 +887,7 @@ export function updateStory(dt, w) {
   if (!step) return;
   if (step.end) {
     if (rt.cardPending && !isMissionActive() && !isCinematicActive() && !narrativeBusy() && !w.pigeonMode && playEndCard(rt.cardPending)) rt.cardPending = null;
+    else if (!rt.cardPending && step.finale && state.cards.has(step.end)) updateCredits(dt, w);
     return;
   }
   if (rt.recapPending && !isMissionActive() && !isCinematicActive() && !narrativeBusy() && !w.pigeonMode && !w.pendingRespawn) {
@@ -966,7 +1035,12 @@ export function getStoryView() {
   const step = rt.cur || currentStep();
   const avail = STEPS.filter(stepAvailable);
   const done = avail.filter((s) => isDone(s, STEPS.indexOf(s))).length;
-  if (!step || step.end) return { end: true, part: step ? step.end : 'kop', title: step && step.finale ? 'Einde. Grunn is van jou.' : 'Wordt vervolgd…', done, total: avail.length };
+  if (!step || step.end) {
+    const ending = step && step.finale ? getStoryEnding() : null;
+    const left = ending && !ending.done ? endingLeftText(ending) : '';
+    const title = !ending ? 'Wordt vervolgd…' : left ? `Nog ${left} tot het einde` : 'Einde. Grunn is van jou.';
+    return { end: true, part: step ? step.end : 'kop', title, ending, done, total: avail.length };
+  }
   return {
     end: false, id: step.id, part: step.part, partTitle: PARTS[step.part].title, kind: step.kind, title: step.title,
     lead: step.lead ? `${who(step.lead[0])}: ${step.lead[1]}` : '', canSkip: canSkipCurrent(), fails: state.fails[step.id] || 0,
@@ -1057,6 +1131,8 @@ export const storyApi = {
   },
   mission: () => missionDebug.state(),
   cardShown: (part = 'kop') => state.cards.has(part),
+  ending: getStoryEnding,
+  credits: requestCredits,
   character: () => world.player.character,
   swapInfo: () => ({ want: rt.cur && rt.cur.player, me: world.player.character, comp: world.companion && world.companion.character, paused: !!world.paused, cine: isCinematicActive(), pigeon: !!world.pigeonMode, mission: isMissionActive(), ragdoll: !!world.player.ragdoll, respawn: !!world.pendingRespawn, banner: isBannerUp(), card: document.body.classList.contains('hud-card-on'), narrative: narrativeState() }),
 };

@@ -3,11 +3,13 @@
 // Hoofdmenu) never changes shape; the sheet beside it shows one section.
 // Esc opens on Overzicht; from another section Esc/Backspace go back to it,
 // then close. Sections: Overzicht, Te doen (todoui.js), Verhaal
-// (verhaalui.js), Kaart, Garage, Prestaties, Instellingen, Besturing.
+// (verhaalui.js), Kaart, Garage, Prestaties, Streken (cheatsui.js),
+// Instellingen, Besturing.
 import { getSettings, setSetting, resetSettings, QUALITY_PRESETS } from './settings.js';
 import { logoHtml } from './logo.js';
 import { PRESET_ORDER, presetLabel, describePreset, describeChanges, currentPreset, applyPreset, getBenchResult, dismissBenchBanner, GEAR_SVG } from './gfxprofile.js';
-import { mountMapView, setMapActive, setMapCloseHandler, setMapView, getDiscoveredRatio } from './mapview.js';
+import { mountMapView, setMapActive, setMapCloseHandler, setMapView, getDiscoveredRatio, setMapTeleport } from './mapview.js';
+import { renderCheatsPanel, cheatsClick, cheatsInput, resetCheatsPanel } from './cheatsui.js';
 import { skipCurrent, getStoryJournal, markCluesSeen } from './story.js';
 import { saveGame, hasSave, loadLatestSave, clearSave, getSaveSummary } from './savegame.js';
 import { getClockText } from './hud_panel.js';
@@ -40,7 +42,7 @@ const CONTROL_GROUPS = [
     [['WASD'], 'Lopen en draaien'],
     [['MOUSE'], 'Camera draaien; laag houden om omhoog te kijken'],
     [['SHIFT'], 'Rennen (vasthouden)'],
-    [['SPACE'], 'Springen'],
+    [['SPACE'], 'Springen, over hekjes en auto\'s'],
     [['CTRL'], 'Bukken'],
     [['E', 'F'], 'Instappen, winkel in, praten, bijbaantje beginnen'],
     [['E'], 'Bij een duivenbord: word een duif'],
@@ -160,6 +162,7 @@ const ICONS = {
   verhaal: '<path d="M4 5.5C6.5 4 9.5 4 12 6c2.5-2 5.5-2 8-.5V19c-2.5-1.5-5.5-1.5-8 .5-2.5-2-5.5-2-8-.5zM12 6v13.5"/>',
   garage: '<path d="M3 10l9-6 9 6v10H3z"/><path d="M7 20v-6h10v6M7 17h10"/>',
   prestaties: '<path d="M7 3h10v3a5 5 0 0 1-10 0zM7 5H4v1a3 3 0 0 0 3 3M17 5h3v1a3 3 0 0 1-3 3M12 11v5M8 20h8l-1-4H9z"/>',
+  streken: '<rect x="4" y="4" width="16" height="16" rx="3.5"/><circle cx="9" cy="9" r="1.1"/><circle cx="15" cy="9" r="1.1"/><circle cx="12" cy="12" r="1.1"/><circle cx="9" cy="15" r="1.1"/><circle cx="15" cy="15" r="1.1"/>',
   settings: '<path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/>',
   controls: '<rect x="2.5" y="6" width="19" height="12" rx="2"/><path d="M6 10h1M9.5 10h1M13 10h1M16.5 10h1M7 14h10"/>',
 };
@@ -175,6 +178,7 @@ const SECTIONS = [
   ['map', 'Kaart', 'Kies een doel of zoek een plek'],
   ['garage', 'Garage', 'Jouw voertuigen'],
   ['prestaties', 'Prestaties', 'Blijven bewaard, ook bij een nieuw spel'],
+  ['streken', 'Streken', 'Een beetje vals spelen, op z\'n Gronings'],
   ['settings', 'Instellingen', 'Wijzigingen worden meteen bewaard'],
   ['controls', 'Besturing', 'Alle toetsen, per situatie'],
 ];
@@ -192,6 +196,7 @@ const FOOTERS = {
   map: `<b>Klik</b> doel kiezen · <b>Rechtsklik / Del</b> doel wissen · ${DEV ? '<b>Shift+klik</b> teleporteren · ' : ''}<b>Scroll / + −</b> zoomen · <b>WASD</b> schuiven · <b>Spatie</b> naar jezelf`,
   garage: '<b>Laten afleveren</b> zet je voertuig om de hoek, buiten beeld · gekochte voertuigen blijven voorgoed van jou',
   prestaties: 'Prestaties blijven bewaard, ook als je een nieuw spel begint',
+  streken: '<b>Enter</b> aan of uit · gameplay-streken wachten tijdens missies en filmpjes · zolang er een aan staat, staan prestaties uit',
   verhaal: 'Wie je spreekt, komt erbij · <b>Slepen</b> draait het model · niemand verklapt wat nog komt',
   settings: 'Instellingen worden automatisch bewaard',
   controls: '<b>/</b> zoeken · <b>Toetshints</b> aan of uit onder Instellingen › Weergave · indelen: kies een actie en druk de nieuwe toets',
@@ -204,6 +209,7 @@ const PAD_FOOTERS = {
   todo: () => `${pg('a')} zet als doel · ${pg('lt')}${pg('rt')} weergave · geklaarde missies kun je opnieuw spelen`,
   verhaal: () => `${pg('lt')}${pg('rt')} personages of aanwijzingen`,
   map: () => `${pg('a')} doel onder het kruis · ${pg('x')} doel wissen · ${pg('lt')}${pg('rt')} zoomen · ${pg('lstick')} schuiven · ${pg('y')} naar jezelf`,
+  streken: () => `${pg('a')} aan of uit · gameplay-streken wachten tijdens missies · prestaties staan dan uit`,
   settings: () => `${pg('lt')}${pg('rt')} tabblad · ${pg('dpad')} kiezen en schuiven · wordt meteen bewaard`,
   controls: () => `${pg('lt')}${pg('rt')} tabblad · ${pg('a')} een knop of toets indelen`,
 };
@@ -401,6 +407,7 @@ export function initPauseMenu(w) {
             <div data-of="verhaal" data-sub="personages"></div><div data-of="verhaal" data-sub="aanwijzingen" hidden></div>
           </div></section>
           <section data-panel="prestaties" class="pm-panel pm-col" hidden><div class="pm-inner pm-wide pm-ach"></div></section>
+          <section data-panel="streken" class="pm-panel pm-col" hidden><div class="pm-inner pm-narrow pm-streken"></div></section>
           <section data-panel="settings" class="pm-panel pm-col" hidden><div class="pm-inner pm-narrow">${settingsHtml()}</div></section>
           <section data-panel="controls" class="pm-panel pm-col" hidden><div class="pm-inner pm-wide pm-cinner">
             ${subtabsHtml('controls', 'Besturing')}
@@ -461,12 +468,18 @@ export function initPauseMenu(w) {
     const gs = e.target.closest('[data-garage-select]');
     if (gs) return selectGarageVehicle(garageEl(), gs.dataset.garageSelect);
     if (tab === 'verhaal' && verhaalClick(e, activePanel())) return;
+    if (tab === 'streken' && cheatsClick(e, world, cheatsApi)) return;
     const action = e.target.closest('[data-action]');
     if (action) runAction(action.dataset.action);
   });
   root.addEventListener('input', (e) => {
     if (DESKTOP && e.target.dataset && e.target.dataset.desktop === 'fullscreen') {
       DESKTOP.setFullscreen(e.target.checked);
+      return;
+    }
+    if (e.target.dataset && e.target.dataset.cheat) {
+      cheatsInput(e.target);
+      renderCheats(`[data-cheat="${e.target.dataset.cheat}"]`);
       return;
     }
     const k = e.target.dataset && e.target.dataset.setting;
@@ -519,7 +532,22 @@ const todoApi = {
   rerender: (keep) => rerenderTodo(keep),
   showView: (view) => { pref.sub.todo = view; enterSection('todo'); },
   showOnMap: (x, y) => { enterSection('map'); setMapView(x, y, 3); },
+  close: () => setOpen(false),
 };
+
+const cheatsApi = {
+  teleport: () => { enterSection('map'); setMapTeleport(true); },
+  close: () => setOpen(false),
+  rerender: (sel) => renderCheats(sel),
+};
+
+function renderCheats(focusSel) {
+  const panel = root.querySelector('[data-panel="streken"]');
+  const sub = renderCheatsPanel(panel.querySelector('.pm-inner'), world);
+  if (tab === 'streken') sheet.querySelector('.pm-sheet-sub').textContent = sub;
+  const back = focusSel && panel.querySelector(focusSel);
+  if (back) back.focus({ preventScroll: true });
+}
 
 const ARROWS = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right' };
 
@@ -1234,6 +1262,7 @@ function showTab(name, how) {
   if (name === 'todo') { showSubtab('todo', pref.sub.todo || 'verhaal'); renderTodoPanel(); }
   if (name === 'garage') { renderGaragePanel(garageEl(), world); syncSheetSub(); }
   if (name === 'verhaal') { showSubtab('verhaal', pref.sub.verhaal || 'personages'); renderVerhaalPanel(); }
+  if (name === 'streken') { if (prev !== 'streken') resetCheatsPanel(); renderCheats(); }
   if (name === 'prestaties') { renderAchievementsPanel(root.querySelector('[data-panel="prestaties"] .pm-inner')); syncSheetSub(); }
   if (name === 'controls') { const q = root.querySelector('[data-controls-search]'); q.value = ''; filterControls(''); showSubtab('controls', pref.sub.controls || 'overzicht'); bindMsg = ''; renderBinds(); }
   if (prev === 'controls' && name !== 'controls') cancelRebind();
