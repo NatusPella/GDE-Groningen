@@ -20,7 +20,7 @@ export class World {
     this.weapon = 'fists';
     this.ammo = {};
     this.mission = null; // {type, label, timeLeft, ...} for hud.js to render
-    this.stats = { knockouts: 0, pedKnockouts: 0, copKnockouts: 0, copCarsWrecked: 0, missionsDone: 0, playerWrecks: 0 };
+    this.stats = { kills: 0, pedKills: 0, copKills: 0, missionsDone: 0, playerWrecks: 0 };
     this.onRespawn = []; // (world, {busted}) callbacks, run at the end of respawnPlayer
 
     this.spawnPoint = { x: player.x, y: player.y };

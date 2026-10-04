@@ -3,7 +3,7 @@ import { getHorecaForRender } from './horeca.js';
 import { getShopsForRender } from './shops.js';
 import { nearestRepairSite } from './garages.js';
 import { getGoal, setGoal, clearGoal, goalTarget, missionOnMap } from './goal.js';
-import { countryReady, snapCountry, countryCosts, countryPath, nodeXY, gatewayCandidates } from './countryroute.js';
+import { countryReady, countryCover, countryVersion, snapCountry, countryCosts, countryPath, countryPathToNode, nodeXY, gatewayCandidates } from './countryroute.js';
 
 const STRAY_M = 25;
 const TELEPORT_M = 150;
@@ -14,6 +14,9 @@ const SNAP_MAX_M = 480;
 const CITY_SNAP_OK_M = 150;
 const GATEWAY_BAND_M = 700;
 const GATEWAY_CELL_M = 60;
+const GATEWAY_TRIES = 6;
+// out in a field the route starts (or ends) at the nearest country road
+const COUNTRY_SNAP_M = 3000;
 
 let graph = null;
 // Up to three routes at once, each its own colour (hud_panel ROUTE_COLORS):
@@ -411,10 +414,12 @@ export function dismissCareRoute() {
 }
 
 // City streets meet the Ommeland roads here: points of the country network
-// near the city's edge that lie on a drivable city street (built once).
-let gateways = null;
+// near the city's edge that lie on a drivable city street (rebuilt with the
+// country graph).
+let gateways = null, gatewaysFor = -1;
 function cityGateways(map) {
-  if (gateways) return gateways;
+  if (gateways && gatewaysFor === countryVersion()) return gateways;
+  gatewaysFor = countryVersion();
   gateways = [];
   const B = map.meta && map.meta.bounds;
   if (!B) return gateways;
@@ -432,7 +437,8 @@ function cityGateways(map) {
 }
 
 // A route with an end outside the city graph: over the Ommeland roads, joined
-// to the city streets at the best gateway. null: the city graph handles it
+// to the city streets at the best gateway. An end out in a field gets one
+// straight leg to the nearest country road. null: the city graph handles it
 // (both ends in town) or there is no way.
 function countryRoute(world, target, from, to, graphMode, driveOnly) {
   const map = world.map, p = world.player;
@@ -440,34 +446,38 @@ function countryRoute(world, target, from, to, graphMode, driveOnly) {
   const tIn = !!to && Math.hypot(to.x - target.x, to.y - target.y) < CITY_SNAP_OK_M;
   if (pIn && tIn) return null;
   if (!countryReady(map.ommeland)) return null;
-  const pn = pIn ? -1 : snapCountry(p.x, p.y, 900);
-  const tn = tIn ? -1 : snapCountry(target.x, target.y, 900);
-  if ((!pIn && pn < 0) || (!tIn && tn < 0)) return null;
+  countryCover([[p.x, p.y], [target.x, target.y]]);
+  const ps = pIn ? null : snapCountry(p.x, p.y, COUNTRY_SNAP_M);
+  const ts = tIn ? null : snapCountry(target.x, target.y, COUNTRY_SNAP_M);
+  if ((!pIn && !ps) || (!tIn && !ts)) return null;
+  const lead = (s, x, y) => (s && s.d > 0.5 ? [[x, y]] : []);
   if (!pIn && !tIn) {
-    const cp = countryPath(pn, tn);
-    return cp ? [[p.x, p.y], ...cp, [target.x, target.y]] : null;
+    const cp = countryPath(ps, ts);
+    return cp ? [...lead(ps, p.x, p.y), ...cp, ...lead(ts, target.x, target.y)] : null;
   }
   const gws = cityGateways(map);
-  const outer = pIn ? tn : pn;
+  const outer = pIn ? ts : ps;
   const cityEnd = pIn ? p : target;
   const { dist } = countryCosts(outer);
-  let best = null, bc = Infinity;
+  // the best gateways first; a one-way or a dead end at the map's edge can
+  // leave the city part without a way, then the next one
+  const ranked = [];
   for (const g of gws) {
     const c = dist[g.n] + Math.hypot(g.x - cityEnd.x, g.y - cityEnd.y) * 1.3;
-    if (c < bc) { bc = c; best = g; }
+    if (Number.isFinite(c)) ranked.push([c, g]);
   }
-  if (!best || !Number.isFinite(bc)) return null;
-  const gs = snapToRoad(map, best.x, best.y, driveOnly);
-  if (!gs) return null;
+  ranked.sort((a, b) => a[0] - b[0]);
   const cityPart = (a, b) => astar(a, b, graphMode) || (driveOnly ? astar(a, b, 'mixed') : null);
-  const country = countryPath(outer, best.n);
-  if (!country) return null;
-  if (pIn) {
-    const city = cityPart(from, gs);
-    return city ? [...city, ...country.reverse(), [target.x, target.y]] : null;
+  for (const [, g] of ranked.slice(0, GATEWAY_TRIES)) {
+    const gs = snapToRoad(map, g.x, g.y, driveOnly);
+    if (!gs) continue;
+    const city = pIn ? cityPart(from, gs) : cityPart(gs, to);
+    if (!city) continue;
+    const country = countryPathToNode(outer, g.n);
+    if (!country) continue;
+    return pIn ? [...city, ...country.reverse(), ...lead(ts, target.x, target.y)] : [...lead(ps, p.x, p.y), ...country, ...city];
   }
-  const city = cityPart(gs, to);
-  return city ? [[p.x, p.y], ...country, ...city] : null;
+  return null;
 }
 
 function computeRoute(world, target, mode) {

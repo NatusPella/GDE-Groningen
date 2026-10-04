@@ -1,6 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { BLOCK, PW, chash, edgeDistance, edgeRoad, villageOf, urbanWeight, realWater } from './countryfield.js';
 import { REAL, RTILE, buildingsInTile, buildingModel } from './countryreal.js';
+import { roadGap } from './countryedge.js';
 import {
   ROAD_C, FARM_TYPES, openLand, blockPlan, blockPlanCached, villagePlan, turbineRow, turbineValid, pylonsAround, isPlanned, farmWorld,
   TREE_ROW_P, WILLOW_ROW_P, ROAD_ROW, planVersion,
@@ -297,16 +298,33 @@ function rot2(lx, lz, angle) {
 function gatherBelts(L, P, bx, by) {
   const X = bx * BLOCK, Y = by * BLOCK;
   const rot = chash(bx * 7 + 3, by * 13 + 1) < 0.5;
-  const piece = (x0, y0, x1, y1, h, w, pieces = 4) => {
+  const piece = (x0, y0, x1, y1, h, w, pieces = 4, roads = false) => {
     for (let i = 0; i < pieces; i++) {
       const ta = i / pieces, tb = (i + 1) / pieces, tm = (ta + tb) / 2;
       const ax = x0 + (x1 - x0) * ta, ay = y0 + (y1 - y0) * ta, bx2 = x0 + (x1 - x0) * tb, by2 = y0 + (y1 - y0) * tb;
       const mx = x0 + (x1 - x0) * tm, my = y0 + (y1 - y0) * tm;
       if (!openLand(ax, ay) || !openLand(bx2, by2) || inVillageDisc(mx, my)) continue;
       if (REAL.ready && (urbanWeight(mx, my) > 0.2 || realWater(mx, my) > -3)) continue;
-      const len = Math.hypot(bx2 - ax, by2 - ay);
       const hh = h * (0.9 + chash(Math.round(mx), Math.round(my)) * 0.25);
-      put(L, 'belt', mx, 0, my, -Math.atan2(by2 - ay, bx2 - ax), len, hh, w);
+      const ang = -Math.atan2(by2 - ay, bx2 - ax);
+      if (!roads) {
+        put(L, 'belt', mx, 0, my, ang, Math.hypot(bx2 - ax, by2 - ay), hh, w);
+        continue;
+      }
+      // a strip belt breaks where a road crosses it, like the near rows
+      const n = Math.ceil(Math.hypot(bx2 - ax, by2 - ay) / 6);
+      let run = -1;
+      for (let k = 0; k <= n + 1; k++) {
+        const clear = k <= n && roadGap(ax + ((bx2 - ax) * k) / n, ay + ((by2 - ay) * k) / n, w / 2) >= w / 2;
+        if (clear && run < 0) run = k;
+        if (clear || run < 0) continue;
+        const k1 = k - 1;
+        if (k1 > run) {
+          const u = (run + k1) / 2 / n, len = (Math.hypot(bx2 - ax, by2 - ay) * (k1 - run)) / n;
+          put(L, 'belt', ax + (bx2 - ax) * u, 0, ay + (by2 - ay) * u, ang, len, hh, w);
+        }
+        run = -1;
+      }
     }
   };
   for (const s of [0, 1]) {
@@ -322,8 +340,8 @@ function gatherBelts(L, P, bx, by) {
     if (lh >= TREE_ROW_P) continue;
     const a = col * PW;
     const h = lh < WILLOW_ROW_P ? 5.5 : 10;
-    if (rot) piece(X, Y + a, X + BLOCK, Y + a, h, 6);
-    else piece(X + a, Y, X + a, Y + BLOCK, h, 6);
+    if (rot) piece(X, Y + a, X + BLOCK, Y + a, h, 6, 4, true);
+    else piece(X + a, Y, X + a, Y + BLOCK, h, 6, 4, true);
   }
   for (const f of P.farms) {
     const T = FARM_TYPES[f.type], sc = SIL_SCALE[f.type];

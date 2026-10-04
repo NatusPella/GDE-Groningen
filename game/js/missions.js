@@ -366,7 +366,7 @@ function buildDefs(world) {
         { kind: 'goto', target: { at: [610, 668], snap: 'drive', label: 'De Oosterpoort' }, mode: 'vehicle', stop: 1, label: 'Breng de tankwagen naar de Oosterpoort', say: 'Rustig rijden, met platte banden. Naar de Oosterpoort, daar wachten de frituurpannen.', sayHijacked: 'Naar de Oosterpoort, daar wachten de frituurpannen. En rustig, hè: het is een tankwagen.' },
         {
           kind: 'vault', label: 'Jelle',
-          lines: [['jelle', 'Moai, Grinzers. Mijn vet. Mijn tankwagen. Mijn dag.'], ['A', 'Jouw dag is voorbij, Jelle. Het vet blijft in Grunn.'],
+          lines: [['jelle', 'Moai, Grinzers. Mijn vet. Mijn tankwagen. Mijn dag.'], ['A', 'Was, Jelle. Het vet blijft in Grunn.'],
             ['jelle', 'Dan koop ik nieuw vet. Jild genôch. En een polsstok.'], ['T', 'Een wat?'], ['durk', 'Baas… en wij?'], ['jelle', 'Jim fytse mar, jonges.']],
           landing: 'Moai! Oant sjen op Gronings Ontzet!',
         },
@@ -392,7 +392,7 @@ function buildDefs(world) {
             ['V', 'Dertig meter Fries doek, aan de trots van Grunn. Onderaan, in grote letters: foar mem.'],
             ['jelle', 'Moai, Grinzers! Kijk eens omhoog. Foar mem.'],
             ['A', 'Zie je die vijf gele knopen, Tammo? Die houden hem vast.', { clue: true, look: 'knots' }],
-            ['T', 'Ik fluit. Hij pikt.'],
+            ['T', 'Vijf knopen. Vijf keer fluiten.'],
           ],
         },
         {
@@ -411,7 +411,7 @@ function buildDefs(world) {
           kind: 'scene', label: 'De vlag valt', target: { landmark: 'Martinitoren', off: [0, 70], snap: 'walk' }, dropFlag: true, shotLines: 2,
           cam: { r: 34, h: 9, lookZ: 34, at: { landmark: 'Martinitoren', off: [0, 14] } },
           kicker: "d'Olle Grieze", big: 'Hij valt!',
-          lines: [['A', 'Daar gaat hij. Kopje onder, Jelle.'], ['T', 'Dertig meter vlag. Losgepikt. Door mijn duif.'], ['A', 'Hoor je dat? Heel de Grote Markt klapt. Ze zagen het zelfs vanaf de Kiekdeuse.']],
+          lines: [['A', 'Daar gaat hij. Kopje onder, Jelle.'], ['T', 'Dertig meter vlag. Losgepikt. Door mijn duif.'], ['A', 'Ja, ja. Jouw duif.']],
         },
       ],
     },
@@ -998,10 +998,14 @@ function fmtTime(s) {
   return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`;
 }
 
+const killCount = (world) => world.stats.pedKills + world.stats.copKills;
+
 function runStats(world, def) {
   const r = chain.run;
   if (!r) return [];
   const stats = [['Tijd', fmtTime(r.elapsed)]];
+  const kills = killCount(world) - r.kills;
+  if (kills > 0 && def.type !== 'stunt') stats.push(['Kills', String(Math.max(0, kills))]);
   const rv = def.type === 'boat' ? rondvaartStatus() : null;
   if (rv) stats.push(['Toeristen', `${rv.joy}%`], ['Verhalen verteld', `${rv.told}/${rv.stops}`], ['Botsingen', String(rv.bumps)]);
   if (r.vehicleUsed && !rv) stats.push([def.fragile ? def.fragile.label : 'Schade voertuig', def.fragile ? `${Math.round(cargoLeft(def))}%` : `${Math.round(r.vehDamage)}%`]);
@@ -1784,7 +1788,7 @@ function startMission(world, def) {
   chain.cargoWarn = 100;
   chain.boarded = false;
   chain.hintAt = -Infinity;
-  chain.run = { elapsed: 0, hp: world.health + world.armor, hurt: 0, damage: 0, veh: null, vehHp: 100, vehDamage: 0, vehicleUsed: false };
+  chain.run = { elapsed: 0, kills: killCount(world), hp: world.health + world.armor, hurt: 0, damage: 0, veh: null, vehHp: 100, vehDamage: 0, vehicleUsed: false };
   chain.windowT = 0;
   chain.windowExtended = false;
   chain.momentDone = false;
