@@ -177,7 +177,7 @@ export class Vehicle {
     let decel = brake * brakeMax * (handbrakeDrift ? 0.32 : 1);
     if (against) {
       // player pedal bites at 60% and builds to full within ~0.25 s (a bus's air brakes take longer)
-      const pedal = isPlayer ? Math.min(1, 0.6 + this.pedalT * (this.isBus ? 0.7 : 1.6)) : 0.85;
+      const pedal = isPlayer ? Math.min(1, 0.6 + this.pedalT * (this.isBus ? 1.3 : 1.6)) : 0.85;
       decel = Math.max(decel, brakeMax * pedal * Math.abs(throttle));
     }
     if (decel > 0) {
@@ -200,7 +200,7 @@ export class Vehicle {
     const target = clamp(steerInput, -1, 1);
     if (isPlayer) {
       const returning = Math.abs(target) < Math.abs(this.steer) || target * this.steer < 0;
-      const rate = (returning ? PLAYER_STEER_RETURN : PLAYER_STEER_RATE) * (this.isBus ? 0.45 : 1) * dt;
+      const rate = (returning ? PLAYER_STEER_RETURN : PLAYER_STEER_RATE) * (this.isBus ? 0.7 : 1) * dt;
       this.steer += clamp(target - this.steer, -rate, rate);
     } else {
       this.steer = target;
@@ -287,7 +287,7 @@ const PLAYER_STEER_RETURN = 9;
 // Two-wheelers and boats are tuned for the player separately from the AI
 // fleet's realistic cruising speeds (m/s): a bike is clearly quicker than
 // running (7.5), an e-fatbike quicker still, a scooter quickest.
-// The city bus is heavy for the player: slow to pull away, long to stop.
+// The city bus is heavy for the player but keeps up with town traffic.
 const BIKE_SPRINT_TOP = 1.35;
 const BIKE_SPRINT_ACCEL = 1.8;
 
@@ -298,7 +298,7 @@ function playerTune(v) {
   // a long, heavy rondvaartboot: slower to get going and to stop than a sloep
   if (v.isBoat && m.kind === 'rondvaart') return { top: Math.max(m.maxSpeed, 7.4), accel: Math.max(m.accel, 1.7), brake: Math.max(m.brake, 2.3) };
   if (v.isBoat) return { top: Math.max(m.maxSpeed, 9.5), accel: Math.max(m.accel, 3.2), brake: Math.max(m.brake, 3.8) };
-  if (v.isBus) return { top: 21, accel: 2.4, brake: 5 };
+  if (v.isBus) return { top: 21, accel: 2.9, brake: 7 };
   // shop upgrades scale the two-wheelers' player tuning too
   const b = v._baseModel;
   const up = b ? m.maxSpeed / b.maxSpeed : 1, upA = b ? m.accel / b.accel : 1;
@@ -325,13 +325,15 @@ function coastDrag(v, isPlayer, s) {
   if (!isPlayer) return v.rollingFree || v.disabled ? 0.9 + 0.05 * s : 3.2;
   if (v.isBoat) return 0.45 + 0.05 * s;
   if (v.isBike || v.isScooter) return 0.8 + 0.06 * s;
-  if (v.isBus) return 0.7 + 0.04 * s;
+  if (v.isBus) return 1.1 + 0.05 * s;
   if (v.disabled) return 0.8 + 0.04 * s;
   return 1.6 + 0.09 * s;
 }
 
 function minTurnRadius(m, player = false) {
-  if (m.name === 'bus') return player ? 12 : 9;
+  // a 12 m bus turns on about a 21 m circle kerb to kerb, a midibus tighter
+  if (m.name === 'bus') return player ? 10.5 : 9;
+  if (m.name === 'midibus' && player) return 8.5;
   if (m.name === 'bike' || m.name === 'scooter') return 1.8;
   return m.len * 1.25;
 }
@@ -340,7 +342,9 @@ function minTurnRadius(m, player = false) {
 // this is what makes steering speed-dependent (tight at walking pace, wide
 // arcs at speed) instead of a constant rad/s at every speed.
 function lateralGrip(m, player = false) {
-  if (m.name === 'bus') return player ? 3.6 : 4.5;
+  // a bus tips past about 0.4 g; the player's stays just under it
+  if (m.name === 'bus') return player ? 3.9 : 4.5;
+  if (m.name === 'midibus' && player) return 3.9;
   if (m.name === 'bike' || m.name === 'scooter') return player ? 11 : 5;
   if (m.name === 'boat') return player ? 5.5 : 2.5;
   return player ? 23 : 16;
