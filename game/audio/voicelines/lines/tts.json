@@ -2546,15 +2546,6 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
 },
-"Anita|Ze houdt ons bij. Niet te hard, hè!": {
-"src": "anita/ze_houdt_ons_bij_niet_te_hard_he_bd8354a1.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"voice": "Callirrhoe",
-"input": "Ze houdt ons bij. Niet te hard, hè!",
-"style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: opgewonden, roepend.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
-},
 "Anita|Ze staat op de Grote Markt, Jelle. Bij de jury. Geef maar.": {
 "src": "anita/ze_staat_op_de_grote_markt_jelle_9332559c.mp3",
 "model": "google/gemini-3.8-flash-tts",
@@ -5210,11 +5201,11 @@
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-02"
 },
-"Ome Jan|Maak heur lös en loop mit heur noar t erf. Blief wel dichtbie, aans lopt ze nait mit.": {
-"src": "ome_jan/maak_heur_lo_s_en_loop_mit_heur__8fdb5678.mp3",
+"Ome Jan|Maak heur lös en rij heur noar t erf. Ze rent wel mit. Ze is kampioen.": {
+"src": "ome_jan/maak_heur_lo_s_en_rij_heur_noar__5950529a.mp3",
 "model": "google/gemini-3.8-flash-tts",
 "voice": "Charon",
-"input": "Maak heur lös en loop mit heur noar t erf. Blief wel dichtbie, aans lopt ze nait mit.",
+"input": "Maak heur lös en rij heur noar t erf. Ze rent wel mit. Ze is kampioen.",
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; oude Groningse melkveeboer bij Ten Boer, praat plat Gronings. Tone: stellig, duidelijk.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-04"
@@ -9358,15 +9349,6 @@
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, laconiek.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
 "date": "2026-10-04"
-},
-"Tammo|Ze houdt ons bij. Niet te hard, hè!": {
-"src": "tammo/ze_houdt_ons_bij_niet_te_hard_he_318931a8.mp3",
-"model": "google/gemini-3.8-flash-tts",
-"voice": "Orus",
-"input": "Ze houdt ons bij. Niet te hard, hè!",
-"style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: gehaast, aansporend.",
-"post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass),asetnsamples=n=1152 -ac 1 -ar 24000 -b:a 48k mp3",
-"date": "2026-10-02"
 },
 "Tammo|Zevenennegentig meter. De langste Stadjer die nooit verhuist.": {
 "src": "tammo/zevenennegentig_meter_de_langste_0b75afcc.mp3",

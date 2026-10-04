@@ -145,9 +145,17 @@ Nu:
 - **Intro:** Ome Jan mist Geertje. Tessa herkent de fatbike, en Tammo vraagt "Wat moeten die nou met een koe?" Ome Jan: "Gain idee. Ze zitten in de olle schuur…"
 - **Telefoon, onderweg (het antwoord):** Jelle: "Moai, Grinzers. Durk en Douwe hebben een koe meegenomen. Zonder te vragen." Tessa: "Meegenomen? Gejat, bedoel je!" Jelle: "Ze wilden mij toch nog iets laten winnen. De keuring in Ljouwert, met een Grinzer koe. Ik skamje my dea." Zo spiegelt het Jelles eigen "foar mem": de tweeling doet het "foar Jelle".
 - **Slot:** Geertje: "Boe. Die schuur was niks. Te veel Friezen." Tessa: "Jelle appt. Durk en Douwe komen morgen sorry zeggen. Lopend." Tammo: "Graag gedaan, Jan. Kon minder."
-- **Ome Jan zegt het doel letterlijk:** "Maak heur lös en loop mit heur noar t erf. Blief wel dichtbie, aans lopt ze nait mit."
-- **Opdrachten in de HUD, stap voor stap** (pg_koe.js): "Rij naar de schuur van Durk en Douwe" (marker op de schuur), "Maak Geertje los (E)" (marker op Geertje), "Breng Geertje terug naar het erf van Ome Jan. Blijf dichtbij, anders loopt ze niet mee" (marker op het erf). Tijdens het terugbrengen staan in het paneel: Geertje "loopt mee · 12 m" of "blijft staan · 85 m", de afstand tot het erf, en "Ram de trekker-limo 0/3" (met "motor stil" na een ram). Komt de trekker dicht bij Geertje, dan zegt een melding "Pas op: de trekker zit vlak achter Geertje! Ram hem.". Ook als de trekker kapot gaat en als Geertje thuis is, krijg je een melding. De helptekst noemt de drie stappen.
-- De gameplay zelf is niet veranderd.
+- **Ome Jan zegt het doel letterlijk:** "Maak heur lös en rij heur noar t erf. Ze rent wel mit. Ze is kampioen."
+- **Eenvoudiger en korter** (na de speeltest: "de missie met de koe is kut", "ook veel te ver"):
+  - De schuur van Durk en Douwe ligt nu 350 tot 900 meter van het erf (eerst 1,1 tot 1,9 km): ongeveer een minuut rijden. Het hele rondje duurt zo'n drie minuten.
+  - Eén lus: rij naar de schuur, maak Geertje los met E (dat kan nu ook vanuit de auto), en rij haar naar huis. Geertje rent mee met wat je ook rijdt. Een kampioen, zegt Ome Jan.
+  - Er is geen afstandsregel meer waarop je zakt. Stap je uit of rij je weg, dan wacht ze tot je terugkomt, en de HUD zegt dat ook.
+  - Rammen mag maar hoeft niet: na drie rammen staat de trekker-limo stil. Na 55 seconden achtervolgen rijden Durk en Douwe sowieso de sloot in, met een melding.
+  - Je verliest alleen als de trekker lang vlak achter Geertje blijft. Daarvoor krijg je eerst een waarschuwing, en het meter loopt half zo snel vol als eerst. De tijdslimiet is 7 minuten.
+  - De medaille gaat nog steeds op tijd.
+- **HUD per stap** (pg_koe.js): "Rij naar de schuur van Durk en Douwe" (marker op de schuur), "Maak Geertje los (E)" (marker op Geertje), "Rij Geertje naar het erf van Ome Jan. Ze rent mee" (marker op het erf). In het paneel: of Geertje meeloopt en hoe ver weg ze is, hoe ver het erf nog is, "Ram de trekker (mag) 0/3", en hoe ver Durk en Douwe al zijn met grijpen. Er komt een melding als de trekker dichtbij is, als hij stilvalt en als Geertje thuis is.
+- **Slot:** Geertje: "Boe. Die schuur was niks. Te veel Friezen.", de app van Jelle, en de kaas van Ome Jan.
+- De verhaaltest (storytest.js) start de uitdaging en rondt hem af via `debugWin`. Een aparte headless simulatie van de rit is er niet: de missie hangt aan de 3D-scène.
 
 ## Wat bewust zo blijft
 - "Dan rijdt hij nauwelijks voor jou." (opening): een vreemde zin, maar wel lief.
