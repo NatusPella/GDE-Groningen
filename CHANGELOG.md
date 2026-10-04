@@ -15,6 +15,11 @@ nieuwe functies, `y` voor alleen bugfixes.
   900 meter in plaats van 600. Kies je de voorinstelling Hoog, dan krijg je
   hem meteen; standaard blijft de zichtafstand Ver.
   Hapert het beeld, dan gaat de zichtafstand vanzelf even terug naar Ver.
+- **Wegen in het Ommeland zien eruit als in de stad**: hetzelfde asfalt met
+  steentjes, slijtsporen en vlekken, dezelfde witte strepen (de
+  middenstreep van een provinciale weg doorgetrokken, kleinere wegen 3 m
+  streep en 6 m gat) en een grindberm langs de weg; in de dorpen een
+  stoeprand met tegels.
 
 ### Verbeterd
 - **De weilanden in het Ommeland hebben echte randen.** Langs de sloten
