@@ -1,5 +1,5 @@
 // "Te doen": one catalogue of everything there is to do, for the pause menu
-// (Overzicht, Te doen), the map's marker card and search, and Ubbo. Read only
+// (Overzicht, Te doen), the map's marker card and search. Read only
 // from the systems that own the things; choosing one makes it the player's
 // goal (goal.js). A story mission later than the current step asks first
 // (confirmPlayAhead): playing ahead mixes up the story.
@@ -193,7 +193,7 @@ function jobItems() {
       key: 'job:' + o.id, group: 'bijbaantjes', icon: 'sj-' + o.id, title: o.name, status: o.active ? 'nu' : '',
       meta: `Niveau ${o.level} · ${o.title} · ${euro(o.pay[0])}–${euro(o.pay[1])} per ronde`, medal: null,
       record: j.bestStreak ? `Record ${j.bestStreak} op rij` : j.rounds ? `${j.rounds} rondes gedaan` : 'Nog niet gedaan',
-      x: o.x, y: o.y, goal: { kind: 'job', id: o.id, name: o.name, sub: 'Bijbaantje', x: o.x, y: o.y },
+      x: o.x, y: o.y, goal: { kind: 'job', id: o.id, name: o.name, sub: 'Bijbaantje', x: o.x, y: o.y }, stopJob: !!o.active,
       detail: { kicker: 'Bijbaantje', text: o.blurb, rows: [['Niveau', `${o.level} · ${o.title}`], ['Verdienen', `${euro(o.pay[0])}–${euro(o.pay[1])} per ronde`], ...(o.blocked ? [['Nu', o.blocked]] : [])] },
     };
   });
@@ -230,10 +230,29 @@ function collectItems() {
   ];
 }
 
+// The Fjord Frituur upgrades (pg_foodtruck.js), bought from Te doen.
+function fjordUpgradeItems(world) {
+  const pa = world.postgameActions;
+  if (!isPostgameOpen() || !pa || !pa.upgrades) return [];
+  const fj = CHALLENGES.find((d) => d.id === 'fjord');
+  return pa.upgrades().map((u) => ({
+    key: 'fu:' + u.id, group: 'nahetverhaal', icon: 'pg-' + (fj ? fj.icon : 'fjord'), title: `Fjord Frituur: ${u.name}`, status: u.owned ? 'klaar' : '',
+    meta: u.blurb, medal: null, record: u.owned ? 'Gekocht' : euro(u.price), goal: null, upgrade: u.id,
+    detail: { kicker: 'Fjord Frituur · opknappen', text: u.blurb, rows: [['Prijs', euro(u.price)]] },
+  }));
+}
+
+// Buys upgrade `id`; returns the message for the player.
+export function buyFjordUpgrade(world, id) {
+  const pa = world.postgameActions;
+  const u = pa && pa.upgrades ? pa.upgrades().find((x) => x.id === id) : null;
+  return u ? u.buy() : 'Niet te koop';
+}
+
 function postgameItems(world) {
   const open = isPostgameOpen();
   const offers = open && world.postgameActions ? world.postgameActions.offers() : [];
-  return CHALLENGES.map((d) => {
+  return [...CHALLENGES.map((d) => {
     const o = offers.find((q) => q.id === d.id);
     const rec = getChallengeRecord(d.id);
     return {
@@ -243,7 +262,7 @@ function postgameItems(world) {
       goal: o ? { kind: 'challenge', id: d.id, name: d.name, sub: o.where, x: o.x, y: o.y } : null,
       detail: { kicker: open ? 'Na het verhaal · Jelle wil revanche' : 'Op slot', text: open ? d.blurb : 'Gaat open als het verhaal uit is.', rows: o ? [['Waar', o.where]] : [] },
     };
-  });
+  }), ...fjordUpgradeItems(world)];
 }
 
 // The current story step when it is an activity (a mission step is in the missions).

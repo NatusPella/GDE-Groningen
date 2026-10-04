@@ -1,6 +1,5 @@
 import { clamp } from '../util.js';
 import { isPauseMenuOpen } from '../pausemenu.js';
-import { isPhoneOpen } from '../phone.js';
 import { isMapOpen, getMapViewStats } from '../mapview.js';
 import { getUserWaypoint } from '../routing.js';
 
@@ -13,7 +12,7 @@ let navAt = -1;
 let sliderAt = -1;
 let openedAt = -1;
 const st = {
-  pause: false, phone: false, zoom: null, zoomAt: 0, waypoint: null, notif: null, saved: false,
+  pause: false, zoom: null, zoomAt: 0, waypoint: null, notif: null, saved: false,
   money: null, wanted: 0, stingAt: -10, busyAt: -10, roadblocks: new WeakSet(), messages: new WeakSet(),
 };
 let savedEl = null;
@@ -72,7 +71,6 @@ export function uiWorldInit(world) {
   st.money = world.money;
   st.wanted = world.wanted;
   st.pause = isPauseMenuOpen();
-  st.phone = isPhoneOpen();
   st.waypoint = getUserWaypoint();
   st.notif = world.phoneHistory && world.phoneHistory[0];
   for (const m of world.messages) st.messages.add(m);
@@ -125,11 +123,7 @@ export function uiDomEvent(kind, e) {
   }
   if (kind === 'key') {
     const k = e.key;
-    if (isPhoneOpen()) {
-      if (k && k.startsWith('Arrow')) tick(2000, 0.03);
-      else if (k === 'Enter' || k === ' ') select();
-      else if (k === 'Backspace') back();
-    } else if (startVisible() && !isPauseMenuOpen() && !e.repeat) {
+    if (startVisible() && !isPauseMenuOpen() && !e.repeat) {
       if (k === 'Enter' || k === ' ') select();
       else if (k === 'Escape') back();
     }
@@ -206,9 +200,8 @@ export function updateUiSfx(dt, world) {
   const muted = K.muted();
 
   const pause = isPauseMenuOpen();
-  if (pause !== st.pause) { st.pause = pause; openedAt = now; if (!muted) whoosh(pause); }
-  const phone = isPhoneOpen();
-  if (phone !== st.phone) { st.phone = phone; if (!muted) phoneSnd(phone); }
+  // the pause menu is the phone: unfolding it in play sounds like one, on the title screen a whoosh
+  if (pause !== st.pause) { st.pause = pause; openedAt = now; if (!muted) (document.body.classList.contains('game-started') ? phoneSnd(pause) : whoosh(pause)); }
 
   if (isMapOpen()) {
     const s = getMapViewStats();
@@ -224,7 +217,7 @@ export function updateUiSfx(dt, world) {
   if (wp !== st.waypoint) { if (!muted) (wp ? ping() : back()); st.waypoint = wp; }
 
   const n = world.phoneHistory && world.phoneHistory[0];
-  if (n && n !== st.notif && !muted) buzz();
+  if (n && n !== st.notif && !muted && !n.quiet) buzz();
   st.notif = n;
 
   if (!savedEl) savedEl = document.querySelector('.hud-saved');

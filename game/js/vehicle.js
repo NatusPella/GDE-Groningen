@@ -96,7 +96,7 @@ export function makeTwoWheeler(kind, x, y, angle, tint = null, rng = Math.random
 // as the regular fleet, dark-navy cabin matching the rest of the police
 // fleet's accent tone, with enough extra accel/turn to actually run down a
 // fleeing player instead of just keeping pace.
-const POLICE_BOAT_MODEL = { name: 'boat', len: 4.1, wid: 1.65, maxSpeed: 9.8, accel: 3.2, brake: 3.4, turnRate: 1.8, color: '#e8e6e0', cabin: '#12294f' };
+const POLICE_BOAT_MODEL = { name: 'boat', len: 4.1, wid: 1.65, playerTop: 15, playerAccel: 4.5, maxSpeed: 9.8, accel: 3.2, brake: 3.4, turnRate: 1.8, color: '#e8e6e0', cabin: '#12294f' };
 
 // Regional OV city bus - teal/blue livery, roomier turning circle, only
 // spawned on the bigger through-roads (see manageBusPopulation).
@@ -177,7 +177,7 @@ export class Vehicle {
     let decel = brake * brakeMax * (handbrakeDrift ? 0.32 : 1);
     if (against) {
       // player pedal bites at 60% and builds to full within ~0.25 s (a bus's air brakes take longer)
-      const pedal = isPlayer ? Math.min(1, 0.6 + this.pedalT * (this.isBus ? 0.7 : 1.6)) : 0.85;
+      const pedal = isPlayer ? Math.min(1, 0.6 + this.pedalT * (this.isBus ? 1.3 : 1.6)) : 0.85;
       decel = Math.max(decel, brakeMax * pedal * Math.abs(throttle));
     }
     if (decel > 0) {
@@ -188,19 +188,21 @@ export class Vehicle {
       const lim = throttle > 0 ? top : top * REVERSE_FACTOR;
       const headroom = clamp(1 - absSpeed / lim, 0, 1);
       // player cars pull hard off the line and run out of breath towards top speed
-      const floor = isPlayer && !this.isBike && !this.isScooter && !this.isBoat ? 0.12 : 0.3;
+      const floor = isPlayer && !this.isBike && !this.isScooter && !this.isBoat ? 0.12 : isPlayer && this.sailTop != null ? 0.6 : 0.3;
       this.speed += throttle * (tune ? tune.accel : m.accel) * (floor + (1 - floor) * headroom) * dt;
     } else {
       const drag = coastDrag(this, isPlayer, absSpeed) * dt;
       if (this.speed > 0) this.speed = Math.max(0, this.speed - drag);
       else this.speed = Math.min(0, this.speed + drag);
     }
-    this.speed = clamp(this.speed, -top * REVERSE_FACTOR, top);
+    // a sail that loses the wind lets the hull glide on rather than stop dead
+    const sailing = isPlayer && this.isBoat && this.sailTop != null;
+    this.speed = clamp(this.speed, -top * REVERSE_FACTOR, sailing ? Math.max(top, absSpeed - SAIL_GLIDE_DECEL * dt) : top);
 
     const target = clamp(steerInput, -1, 1);
     if (isPlayer) {
       const returning = Math.abs(target) < Math.abs(this.steer) || target * this.steer < 0;
-      const rate = (returning ? PLAYER_STEER_RETURN : PLAYER_STEER_RATE) * (this.isBus ? 0.45 : 1) * dt;
+      const rate = (returning ? PLAYER_STEER_RETURN : PLAYER_STEER_RATE) * (this.isBus ? 0.7 : 1) * dt;
       this.steer += clamp(target - this.steer, -rate, rate);
     } else {
       this.steer = target;
@@ -280,14 +282,53 @@ const MAX_DRIFT_SPEED = 8; // m/s, safety clamp against pathological multi-hit s
 const MAX_SPIN = 3.5; // rad/s
 
 const BOAT_SLIDE_DECAY_RATE = 1.3; // a player boat carries its sideways momentum on the water
-const REVERSE_FACTOR = 0.25; // top speed in reverse, as a fraction of maxSpeed
+const REVERSE_FACTOR = 0.25;
+const BOAT_CANAL_TOP = 14; // m/s: what a fast boat may do in a narrow canal
+const SAIL_GLIDE_DECEL = 0.7; // m/s2: a sailing boat above its wind speed slows this gently // top speed in reverse, as a fraction of maxSpeed
 const PLAYER_STEER_RATE = 5; // 1/s: how fast the wheel follows a digital key
 const PLAYER_STEER_RETURN = 9;
+
+// The player's boat for one frame (player.js; the boat sims drive it the same
+// way): substeps short enough that a fast boat can't skip a bank, each one
+// kept off the shore. Bow, stern, both beams and the centre stay on the water;
+// a move is only refused when it puts MORE of the hull on land, so a boat that
+// already touches a quay can still turn and sail off.
+const BOAT_SUBSTEP = 0.6;
+export function drivePlayerBoat(v, map, dt, throttle, steer, brake) {
+  updateOpenWater(v, map, dt);
+  const n = Math.min(8, Math.max(1, Math.ceil(Math.abs(v.speed) * dt / BOAT_SUBSTEP)));
+  for (let i = 0; i < n; i++) {
+    const sx = v.x, sy = v.y, sa = v.angle;
+    v.applyControls(dt / n, throttle, steer, brake);
+    resolveVehicleBuildingCollision(v, map, dt / n);
+    if (!keepBoatOffShore(map, v, sx, sy, sa)) {
+      v.speed *= -0.25;
+      v.driftX = 0; v.driftY = 0;
+      return false;
+    }
+  }
+  return true;
+}
+
+// 0 in a narrow canal .. 1 on wide water: how far a fast boat may open up
+// (playerTune). Sampled a few times a second, looking ahead too, eased.
+function updateOpenWater(v, map, dt) {
+  v._owT = (v._owT || 0) - dt;
+  if (v._owT <= 0) {
+    v._owT = 0.25;
+    const c = Math.cos(v.angle), s = Math.sin(v.angle);
+    let room = waterClearance(map, v.x, v.y, 12);
+    for (const d of [10, 20]) room = Math.min(room, waterClearance(map, v.x + c * d, v.y + s * d, 12) + 1);
+    v._owWant = clamp((room - 4) / 7, 0, 1);
+  }
+  const want = v._owWant ?? 1;
+  v.openWater = v.openWater == null ? want : v.openWater + (want - v.openWater) * Math.min(1, dt * (want < v.openWater ? 3 : 0.8));
+}
 
 // Two-wheelers and boats are tuned for the player separately from the AI
 // fleet's realistic cruising speeds (m/s): a bike is clearly quicker than
 // running (7.5), an e-fatbike quicker still, a scooter quickest.
-// The city bus is heavy for the player: slow to pull away, long to stop.
+// The city bus is heavy for the player but keeps up with town traffic.
 const BIKE_SPRINT_TOP = 1.35;
 const BIKE_SPRINT_ACCEL = 1.8;
 
@@ -295,10 +336,17 @@ function playerTune(v) {
   const m = v.model;
   // v.sailTop: a sailing boat's top speed from the wind (postgame skûtsje-sprint)
   if (v.isBoat && v.sailTop != null) return { top: v.sailTop, accel: m.accel, brake: m.brake };
-  // a long, heavy rondvaartboot: slower to get going and to stop than a sloep
-  if (v.isBoat && m.kind === 'rondvaart') return { top: Math.max(m.maxSpeed, 7.4), accel: Math.max(m.accel, 1.7), brake: Math.max(m.brake, 2.3) };
-  if (v.isBoat) return { top: Math.max(m.maxSpeed, 9.5), accel: Math.max(m.accel, 3.2), brake: Math.max(m.brake, 3.8) };
-  if (v.isBus) return { top: 21, accel: 2.4, brake: 5 };
+  // boats: model.playerTop/playerAccel (boattypes.js), scaled by the werf's
+  // upgrades; the fast ones only open up where the water is wide (v.openWater)
+  if (v.isBoat) {
+    const b = v._baseModel || m;
+    const up = m.maxSpeed / (b.maxSpeed || m.maxSpeed), upA = m.accel / (b.accel || m.accel);
+    let top = (b.playerTop ?? Math.max(b.maxSpeed, 9.5)) * up;
+    if (top > BOAT_CANAL_TOP) top = BOAT_CANAL_TOP + (top - BOAT_CANAL_TOP) * (v.openWater ?? 1);
+    const rondvaart = m.kind === 'rondvaart';
+    return { top, accel: (b.playerAccel ?? Math.max(b.accel, 3.2)) * upA, brake: Math.max(m.brake, rondvaart ? 2.3 : 3.8) * Math.max(1, top / 14) };
+  }
+  if (v.isBus) return { top: 21, accel: 2.9, brake: 7 };
   // shop upgrades scale the two-wheelers' player tuning too
   const b = v._baseModel;
   const up = b ? m.maxSpeed / b.maxSpeed : 1, upA = b ? m.accel / b.accel : 1;
@@ -326,13 +374,15 @@ function coastDrag(v, isPlayer, s) {
   if (!isPlayer) return v.rollingFree || v.disabled ? 0.9 + 0.05 * s : 3.2;
   if (v.isBoat) return 0.45 + 0.05 * s;
   if (v.isBike || v.isScooter) return 0.8 + 0.06 * s;
-  if (v.isBus) return 0.7 + 0.04 * s;
+  if (v.isBus) return 1.1 + 0.05 * s;
   if (v.disabled) return 0.8 + 0.04 * s;
   return 1.6 + 0.09 * s;
 }
 
 function minTurnRadius(m, player = false) {
-  if (m.name === 'bus') return player ? 12 : 9;
+  // a 12 m bus turns on about a 21 m circle kerb to kerb, a midibus tighter
+  if (m.name === 'bus') return player ? 10.5 : 9;
+  if (m.name === 'midibus' && player) return 8.5;
   if (m.name === 'bike' || m.name === 'scooter') return 1.8;
   return m.len * 1.25;
 }
@@ -341,7 +391,9 @@ function minTurnRadius(m, player = false) {
 // this is what makes steering speed-dependent (tight at walking pace, wide
 // arcs at speed) instead of a constant rad/s at every speed.
 function lateralGrip(m, player = false) {
-  if (m.name === 'bus') return player ? 3.6 : 4.5;
+  // a bus tips past about 0.4 g; the player's stays just under it
+  if (m.name === 'bus') return player ? 3.9 : 4.5;
+  if (m.name === 'midibus' && player) return 3.9;
   if (m.name === 'bike' || m.name === 'scooter') return player ? 11 : 5;
   if (m.name === 'boat') return player ? 5.5 : 2.5;
   return player ? 23 : 16;
