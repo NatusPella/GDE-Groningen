@@ -902,7 +902,7 @@ function applyViewSettings(st) {
   facadeDetailDist = Math.min(facadeQualityDist, CPU_FACADE_DIST[cpuLevel()]);
   if (postfx.level !== level) postfx.setLevel(level);
   const shadows = st.shadows && preset.shadows;
-  if (sun.castShadow !== shadows) sun.castShadow = shadows;
+  if (sun.castShadow !== shadows) { sun.castShadow = shadows; renderer.shadowMap.needsUpdate = true; }
   applyShadowLevel(level);
   viewDist = VIEW_DISTANCES[st.drawDistance] || VIEW_DISTANCES.normaal;
   cam.far = Math.max(DRAW_DIST * 1.4, viewDist * 1.4, landmarkDist() * 1.1);
@@ -942,6 +942,9 @@ function applyShadowLevel(level) {
   if (sun.shadow.mapSize.x !== s.size) {
     sun.shadow.mapSize.set(s.size, s.size);
     if (sun.shadow.map) { sun.shadow.map.dispose(); sun.shadow.map = null; noteGfxEvent('schaduwkaart opnieuw'); }
+    // a frame that skips the shadow pass (behind a menu, cpuLevel) would
+    // sample no map at all: everything in shadow
+    renderer.shadowMap.needsUpdate = true;
   }
 }
 
