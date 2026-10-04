@@ -5,7 +5,8 @@
 // real roads, cycle paths, drives, polder roads, village streets).
 //   on road   the prop's foot is on the asphalt / klinkers
 //   shoulder  closer to the road edge than its own clearance (SHOULDER)
-//   node scripts/country_props_audit.mjs [--tiles=N] [--list] [--max=N]
+//   node scripts/country_props_audit.mjs [--tiles=N] [--list] [--max=N] [--low]
+// --low lays the tiles out as on the Laag graphics preset.
 // Also counts the real building boxes standing on a road.
 // Exits 1 when more than --max (default 0) props or --max-buildings
 // (default 5) buildings stand on a road.
@@ -30,7 +31,8 @@ const { initReal } = await import('../game/js/countryreal.js');
 const { roadGap, realBuildingRoadHits, EDGE } = await import('../game/js/countryedge.js');
 const { REAL } = await import('../game/js/countryreal.js');
 const { ensureCountryEdge } = await import('../game/js/countryplan.js');
-const { countryTileItems } = await import('../game/js/countryside.js');
+const { countryTileItems, setCountryPropLevel } = await import('../game/js/countryside.js');
+if (args.includes('--low')) setCountryPropLevel('laag');
 
 F.setCountryBounds(map.meta.bounds);
 const om = JSON.parse(fs.readFileSync(new URL('ommeland.json', root)));
@@ -44,7 +46,7 @@ const SHOULDER = {
   tree: 1.2, poplar: 1.2, willow: 1.2, hedge: 1.0, post: 0.3, wire: 0.3, gate: 0.5, bale: 1.0, reed: 0.3,
   barrack: 1.5, shed: 1.5, mestsilo: 1.5, towersilo: 1.5, feedsilo: 1.5, clamp: 1.5, plough: 1,
   tractorBody: 1, tractorBase: 1, trailerBody: 1, trailerBase: 1, grave: 0.5, glass: 1.5, clubhouse: 1.5,
-  mast: 0.5, goal: 1, barrier: 0.3,
+  mast: 0.5, goal: 1, barrier: 0.3, bank: 0.5, rush: 0.3,
 };
 const kindOf = (k) => (k in SHOULDER ? k : /^(house|fkhr|folda|fsmall|fdairy)/.test(k) ? 'building' : null);
 SHOULDER.building = 1.5;
