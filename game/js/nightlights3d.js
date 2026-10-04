@@ -58,6 +58,7 @@ const _q = new THREE.Quaternion();
 const _p = new THREE.Vector3();
 const _s = new THREE.Vector3(1, 1, 1);
 const _up = new THREE.Vector3(0, 1, 0);
+const _e = new THREE.Euler(0, 0, 0, 'YZX');
 const _c = new THREE.Color();
 
 function radialTexture(stops) {
@@ -267,7 +268,7 @@ function updatePoliceLights(world, vehicleMeshes, px, py, night) {
     const small = v.isScooter || v.isBike;
     const side = f * ((v.model.wid || 1.8) * 0.5 + (small ? 0.25 : 0.55));
     const ca = Math.cos(v.angle), sa = Math.sin(v.angle);
-    const y = v.isBoat ? WATER_Y + 1.6 : small ? 1.3 : v.isBus ? 3.4 : 2.05;
+    const y = v.isBoat ? WATER_Y + 1.6 : (v.z || 0) + (small ? 1.3 : v.isBus ? 3.4 : 2.05);
     l.position.set(v.x - sa * side, y, v.y + ca * side);
     const d = Math.hypot(v.x - px, v.y - py);
     l.intensity = POLICE_I * bright * (small ? 0.45 : 1) * (1 - smoothstep(POLICE_VIEW * 0.7, POLICE_VIEW, d));
@@ -503,13 +504,15 @@ function updateVehicleLights(world, vehicleMeshes, px, py, lightsOn) {
     if (d > VEH_LIGHT_DIST) continue;
     const two = v.isBike || v.isScooter;
     const len = v.model.len, wid = v.model.wid;
-    const ca = Math.cos(v.angle), sa = Math.sin(v.angle);
-    _q.setFromAxisAngle(_up, -v.angle);
+    // on the car's own road height and slope (viaducts, cuttings, ramps)
+    const pitch = v.pitch || 0, cp = Math.cos(pitch), sp = Math.sin(pitch), z = v.z || 0;
+    const ca = Math.cos(v.angle) * cp, sa = Math.sin(v.angle) * cp;
+    _q.setFromEuler(_e.set(0, -v.angle, pitch));
     const coneLen = two ? 6 : v.isBus ? 13 : 11;
     const coneWid = two ? 2.2 : Math.max(4.2, wid * 2.6);
-    _m.compose(_p.set(v.x + ca * len * 0.5, 0.06, v.y + sa * len * 0.5), _q, _s.set(coneLen, 1, coneWid));
+    _m.compose(_p.set(v.x + ca * len * 0.5, z + sp * len * 0.5 + 0.06, v.y + sa * len * 0.5), _q, _s.set(coneLen, 1, coneWid));
     coneMesh.setMatrixAt(n, _m);
-    _m.compose(_p.set(v.x - ca * (len * 0.5 + 0.5), 0.06, v.y - sa * (len * 0.5 + 0.5)), _q, _s.set(two ? 1 : 1.8, 1, two ? 0.8 : wid * 1.3));
+    _m.compose(_p.set(v.x - ca * (len * 0.5 + 0.5), z - sp * (len * 0.5 + 0.5) + 0.06, v.y - sa * (len * 0.5 + 0.5)), _q, _s.set(two ? 1 : 1.8, 1, two ? 0.8 : wid * 1.3));
     tailMesh.setMatrixAt(n, _m);
     n++;
     if (!two || v.driver === 'player') cand.push({ v, d: v.driver === 'player' ? -1 : d });
@@ -524,10 +527,11 @@ function updateVehicleLights(world, vehicleMeshes, px, py, lightsOn) {
     const c = cand[i];
     if (!c || lightsOn < 0.02) { s.intensity = 0; return; }
     const v = c.v;
-    const ca = Math.cos(v.angle), sa = Math.sin(v.angle);
+    const pitch = v.pitch || 0, z = v.z || 0;
+    const ca = Math.cos(v.angle) * Math.cos(pitch), sa = Math.sin(v.angle) * Math.cos(pitch), sp = Math.sin(pitch);
     const front = v.model.len * 0.5;
-    s.position.set(v.x + ca * front, 0.75, v.y + sa * front);
-    s.target.position.set(v.x + ca * (front + 14), 0, v.y + sa * (front + 14));
+    s.position.set(v.x + ca * front, z + sp * front + 0.75, v.y + sa * front);
+    s.target.position.set(v.x + ca * (front + 14), z + sp * (front + 14), v.y + sa * (front + 14));
     s.intensity = SPOT_I * lightsOn * (v.isBike || v.isScooter ? 0.4 : 1);
   });
 }
