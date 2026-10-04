@@ -558,10 +558,13 @@ function ensureLevel0() {
   }
 }
 
-function evictTiles() {
-  if (state.tiles.size <= MAX_TILES) return;
-  const list = [...state.tiles.entries()].filter(([, t]) => t.L !== 0).sort((a, b) => a[1].used - b[1].used);
-  for (let i = 0; i < list.length && state.tiles.size > MAX_TILES; i++) {
+// Keeps level 0 and the tiles of the current view; on a large high-DPI
+// canvas one view alone can need more than MAX_TILES.
+function evictTiles(keep) {
+  const limit = Math.max(MAX_TILES, keep.size + 16);
+  if (state.tiles.size <= limit) return;
+  const list = [...state.tiles.entries()].filter(([k, t]) => t.L !== 0 && !keep.has(k)).sort((a, b) => a[1].used - b[1].used);
+  for (let i = 0; i < list.length && state.tiles.size > limit; i++) {
     state.tiles.delete(list[i][0]);
     if (state.pool.length < 8) state.pool.push(list[i][1].canvas);
   }
@@ -596,6 +599,8 @@ function fillTiles(L) {
   });
   const t0 = performance.now();
   let done = 0;
+  const keep = new Set(out.map(([tx, ty]) => tileKey(L, tx, ty)));
+  for (const k of state.tiles.keys()) if (state.tiles.get(k).L === 0) keep.add(k);
   for (const [tx, ty] of missing) {
     if (done > 0 && performance.now() - t0 > TILE_BUDGET_MS) break;
     const r0 = performance.now();
@@ -603,8 +608,37 @@ function fillTiles(L) {
     state.perf.tileRenderMs = performance.now() - r0;
     done++;
   }
-  evictTiles();
+  evictTiles(keep);
   return done === missing.length;
+}
+
+// The last complete tile layer and the view it was drawn for. While the
+// tiles of a new zoom step or view are still being rendered it is drawn
+// underneath, moved and scaled to the current view, so zooming never shows
+// bare meadow or a coarse overview where detail was a moment ago.
+function keepLastGood() {
+  let g = state.lastGood;
+  if (!g) g = state.lastGood = { canvas: document.createElement('canvas') };
+  const src = state.compose;
+  if (g.canvas.width !== src.width || g.canvas.height !== src.height) {
+    g.canvas.width = src.width;
+    g.canvas.height = src.height;
+  }
+  const gc = g.canvas.getContext('2d');
+  gc.clearRect(0, 0, src.width, src.height);
+  gc.drawImage(src, 0, 0);
+  g.scale = state.scale; g.ox = state.ox; g.oy = state.oy; g.dpr = state.dpr;
+  g.base = state.baseScale;
+}
+
+function drawLastGood(c) {
+  const g = state.lastGood;
+  if (!g || g.base !== state.baseScale) return;
+  // old device pixel q -> world (q / g.dpr - g.ox) / g.scale -> new device pixel
+  const k = (state.scale * state.dpr) / (g.scale * g.dpr);
+  const dx = (state.ox - (g.ox * state.scale) / g.scale) * state.dpr;
+  const dy = (state.oy - (g.oy * state.scale) / g.scale) * state.dpr;
+  c.drawImage(g.canvas, dx, dy, g.canvas.width * k, g.canvas.height * k);
 }
 
 // --- static overlay (labels + static icons), rebuilt with the view ---------
@@ -811,8 +845,10 @@ function compose() {
   if (!ready) {
     const v0 = visibleTiles(0);
     drawTiles(c, 0, v0.out, v0.tws);
+    drawLastGood(c);
   }
   drawTiles(c, L, out, tws);
+  if (ready) keepLastGood();
 
   if (getSettings().showFog) {
     const f = state.fog;
