@@ -31,6 +31,7 @@ import { renderOverview, renderTodo, todoClick, todoFocus, todoEnter, todoSummar
 import { isPlayAheadOpen } from './todo.js';
 import { renderVerhaal, verhaalClick, verhaalSummary, disposeVerhaalViewer } from './verhaalui.js';
 import { anyFresh } from './characters.js';
+import { renderSpullen, spullenClick, spullenFocus } from './spullen.js';
 import { renderPhonePanel, phoneClick, phoneUnread, selectPhoneThread, PHONE_NAME } from './phone.js';
 import { recentNotice } from './phonefeed.js';
 import { getErrorLog, errorReport, clearErrorLog, onErrorLogChange } from './errorlog.js';
@@ -166,6 +167,7 @@ const ICONS = {
   streken: '<rect x="4" y="4" width="16" height="16" rx="3.5"/><circle cx="9" cy="9" r="1.1"/><circle cx="15" cy="9" r="1.1"/><circle cx="12" cy="12" r="1.1"/><circle cx="9" cy="15" r="1.1"/><circle cx="15" cy="15" r="1.1"/>',
   settings: '<path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/>',
   controls: '<rect x="2.5" y="6" width="19" height="12" rx="2"/><path d="M6 10h1M9.5 10h1M13 10h1M16.5 10h1M7 14h10"/>',
+  spullen: '<path d="M7 8V6a5 5 0 0 1 10 0v2"/><rect x="4" y="8" width="16" height="13" rx="3"/><path d="M4 13h16M10 13v2h4v-2"/>',
   // the Pixie Vouw 11, unfolded: two halves and the hinge
   telefoon: '<rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M12 5v14" stroke-dasharray="1.6 1.6"/><circle cx="16.8" cy="7.6" r="0.5"/>',
 };
@@ -179,6 +181,7 @@ const SECTIONS = [
   ['telefoon', 'Telefoon', 'Bellen en berichten'],
   ['todo', 'Te doen', 'Verhaal, missies, minigames en meer'],
   ['verhaal', 'Verhaal', 'Personages en aanwijzingen'],
+  ['spullen', 'Spullen', 'Alles wat je hebt'],
   ['map', 'Kaart', 'Kies een doel of zoek een plek'],
   ['garage', 'Garage', 'Jouw voertuigen'],
   ['prestaties', 'Prestaties', 'Blijven bewaard, ook bij een nieuw spel'],
@@ -201,6 +204,7 @@ const FOOTERS = {
   map: `<b>Klik</b> doel kiezen · <b>Rechtsklik / Del</b> doel wissen · ${DEV ? '<b>Shift+klik</b> teleporteren · ' : ''}<b>Scroll / + −</b> zoomen · <b>WASD</b> schuiven · <b>Spatie</b> naar jezelf`,
   garage: '<b>Laten afleveren</b> zet je voertuig om de hoek, buiten beeld · gekochte voertuigen blijven voorgoed van jou',
   prestaties: 'Prestaties blijven bewaard, ook als je een nieuw spel begint',
+  spullen: '<b>Enter</b> details en gebruiken · voertuigen staan in <b>Garage</b>, aanwijzingen in <b>Verhaal</b>',
   telefoon: '<b>Enter</b> bellen of lezen · Henk brengt je auto, Berend heeft klussen · een binnenkomend bericht of gesprek opent hier met <b>Esc</b>',
   streken: '<b>Enter</b> aan of uit · gameplay-streken wachten tijdens missies en filmpjes · zolang er een aan staat, staan prestaties uit',
   verhaal: 'Wie je spreekt, komt erbij · <b>Slepen</b> draait het model · niemand verklapt wat nog komt',
@@ -424,6 +428,7 @@ export function initPauseMenu(w) {
             </div><aside class="td-detail" aria-label="Details"></aside></div>
           </div></section>
           <section data-panel="map" class="pm-panel pm-map" hidden></section>
+          <section data-panel="spullen" class="pm-panel pm-col" hidden><div class="pm-inner pm-wide pm-spullen"><div class="td-layout"><div class="td-list"></div><aside class="td-detail" aria-label="Details"></aside></div></div></section>
           <section data-panel="garage" class="pm-panel pm-col" hidden><div class="pm-inner pm-wide pm-garage"></div></section>
           <section data-panel="verhaal" class="pm-panel pm-col" hidden><div class="pm-inner pm-wide pm-verhaal">${subtabsHtml('verhaal', 'Verhaal')}
             <div data-of="verhaal" data-sub="personages"></div><div data-of="verhaal" data-sub="aanwijzingen" hidden></div>
@@ -484,6 +489,7 @@ export function initPauseMenu(w) {
       return;
     }
     const panel = activePanel();
+    if (panel && tab === 'spullen' && spullenClick(e, world, panel, spullenApi)) return;
     if (panel && tab === 'telefoon' && phoneClick(e, world, panel, phoneApi)) return;
     if (panel && (tab === 'overzicht' || tab === 'todo') && todoClick(e, world, panel, todoApi)) return;
     const gd = e.target.closest('[data-garage-deliver]');
@@ -521,6 +527,7 @@ export function initPauseMenu(w) {
     const p = activePanel();
     if (p && p.contains(e.target)) lastFocus[tab] = e.target;
     if (tab === 'todo' && p) todoFocus(p, world, e.target);
+    if (tab === 'spullen' && p) spullenFocus(p, e.target);
   });
 
   const search = root.querySelector('[data-controls-search]');
@@ -551,6 +558,19 @@ export function initPauseMenu(w) {
   if (!new URLSearchParams(location.search).has('stil')) {
     document.addEventListener('visibilitychange', () => { if (document.hidden && started()) setOpen(true, HOME); });
   }
+}
+
+const spullenApi = {
+  rerender: (keep) => {
+    const sel = keep && keep.dataset && keep.dataset.spul ? `[data-spul="${CSS.escape(keep.dataset.spul)}"]` : '';
+    renderSpullenPanel();
+    const back = sel && activePanel().querySelector(sel);
+    if (back) back.focus({ preventScroll: true });
+  },
+};
+
+function renderSpullenPanel() {
+  try { sheet.querySelector('.pm-sheet-sub').textContent = renderSpullen(root.querySelector('[data-panel="spullen"]'), world); } catch (err) { console.error('spullen', err); }
 }
 
 const phoneApi = {
@@ -1326,6 +1346,7 @@ function showTab(name, how) {
   }
   if (name === HOME) renderOverviewPanel();
   if (name === 'todo') { showSubtab('todo', pref.sub.todo || 'verhaal'); renderTodoPanel(); }
+  if (name === 'spullen') renderSpullenPanel();
   if (name === 'telefoon') { showSubtab('telefoon', pref.sub.telefoon || 'contacten'); renderPhone(); }
   if (name === 'garage') { renderGaragePanel(garageEl(), world); syncSheetSub(); }
   if (name === 'verhaal') { showSubtab('verhaal', pref.sub.verhaal || 'personages'); renderVerhaalPanel(); }
