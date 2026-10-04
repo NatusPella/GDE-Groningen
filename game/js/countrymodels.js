@@ -112,6 +112,32 @@ export function reedGeometry() {
   return B.build();
 }
 
+// Ditch bank: a low grassy berm one metre long, scaled along the ditch.
+export function bankGeometry() {
+  const B = new GeoBuilder();
+  const h = 0.16, w = 0.45, t = 0.15, top = 0x5a7432, side = 0x465e27;
+  B.quad([-0.5, h, t], [0.5, h, t], [0.5, h, -t], [-0.5, h, -t], top);
+  B.quad([-0.5, 0, w], [0.5, 0, w], [0.5, h, t], [-0.5, h, t], side);
+  B.quad([0.5, 0, -w], [-0.5, 0, -w], [-0.5, h, -t], [0.5, h, -t], side);
+  B.quad([0.5, 0, w], [0.5, 0, -w], [0.5, h, -t], [0.5, h, t], side);
+  B.quad([-0.5, 0, -w], [-0.5, 0, w], [-0.5, h, t], [-0.5, h, -t], side);
+  return B.build();
+}
+
+// Pitrus: a tuft of stiff dark rush blades on a wet ditch edge.
+export function rushGeometry() {
+  const B = new GeoBuilder();
+  for (let i = 0; i < 6; i++) {
+    const a = (i / 6) * Math.PI * 2 + chash(i, 11) * 0.9;
+    const s = Math.sin(a) * 0.05, c = Math.cos(a) * 0.05;
+    const top = [Math.cos(a) * 0.22, 0.45 + chash(i, 13) * 0.3, Math.sin(a) * 0.22];
+    const col = i % 2 ? 0x3e5a2a : 0x56702f;
+    B.tri([-s, 0, c], [s, 0, -c], top, col);
+    B.tri([s, 0, -c], [-s, 0, c], top, col);
+  }
+  return B.build();
+}
+
 // Paving: a unit tile, scaled per yard / drive / lane.
 export function slabGeometry() {
   const B = new GeoBuilder();
