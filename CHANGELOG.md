@@ -6,6 +6,11 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Opgelost
+- **H6: allebei in het zwart.** Koop je zwart incognito, dan trekken Tammo
+  en Tessa het meteen allebei aan (ook na het laden van een spel), niet pas
+  als je in een voertuig stapt.
+
 ## [0.26.1] - 2026-10-04
 
 ### Opgelost
