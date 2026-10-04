@@ -1055,8 +1055,8 @@ function playHorn(x, y, duration = 0.4, low = 1) {
   const out = spatialOut(x, y, { ref: 6, rolloff: 1, range: 90 });
   if (!out) return;
   const d = 1 + (Math.random() - 0.5) * 0.04;
-  playTone({ freq: 415 * low * d, type: 'horn', duration, gain: 0.16, filterFreq: 3200, out });
-  playTone({ freq: 498 * low * d * 1.004, type: 'horn', duration, gain: 0.13, filterFreq: 3200, out });
+  playTone({ freq: 415 * low * d, type: 'horn', duration, gain: 0.22, filterFreq: 3200, out });
+  playTone({ freq: 498 * low * d * 1.004, type: 'horn', duration, gain: 0.18, filterFreq: 3200, out });
 }
 
 function hornPitch(v) {
@@ -2467,7 +2467,7 @@ function updatePlayerHorn(world) {
   }
   if (on !== hornVoice.on) {
     hornVoice.on = on;
-    hornVoice.gain.gain.setTargetAtTime(on ? (v && v.isScooter ? 0.07 : 0.24) : 0, t, on ? 0.006 : 0.025);
+    hornVoice.gain.gain.setTargetAtTime(on ? (v && v.isScooter ? 0.12 : 0.42) : 0, t, on ? 0.006 : 0.025);
   }
 }
 
