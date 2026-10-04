@@ -9,7 +9,7 @@ import { getPigeonSaveData, applyPigeonSaveData } from './pigeonmode.js';
 import { getSideJobSave, applySideJobSave } from './sidejobs.js';
 import { getStorySave, applyStorySave } from './story.js';
 import { getPostgameSave, applyPostgameSave } from './postgame.js';
-import { applyHomeOnLoad, homeSaveContext } from './home.js';
+import { applyHomeOnLoad, homeSaveContext, getHomeSave } from './home.js';
 import { getFurnitureSave, applyFurnitureSave } from './furniture.js';
 import { abortHeliRun } from './helirun.js';
 import { quitPadel } from './padel.js';
@@ -17,6 +17,7 @@ import { stopVillageMini } from './dorpsuitjes.js';
 import { quitActivity } from './activities.js';
 import { getGoalSave, applyGoalSave } from './goal.js';
 import { migrateSave, SAVE_VERSION } from './savemigrate.js';
+import { getCheatSave, applyCheatSave } from './cheats.js';
 import { getRadioSave, applyRadioSave } from './radio.js';
 
 // the key keeps its old name; the version inside the save is what counts (savemigrate.js)
@@ -148,9 +149,12 @@ function serialize(w) {
     bijbaan: getSideJobSave(),
     postgame: getPostgameSave(),
     meubels: getFurnitureSave(),
+    thuis: getHomeSave(),
     doel: getGoalSave(),
     // the radio, 'on' or 'off'; a save without it starts with the radio on
     radio: getRadioSave(),
+    // the streken: unlocked, switched on, used once (cheats.js)
+    streken: getCheatSave(),
   };
 }
 
@@ -271,6 +275,7 @@ export function applySave(w, d) {
     applyFurnitureSave(d.meubels);
     applyGoalSave(d.doel);
     applyRadioSave(d.radio);
+    applyCheatSave(d.streken, d);
     applyHomeOnLoad(w, d);
     w.loadedFromSave = true;
     w.loadCount = (w.loadCount || 0) + 1;

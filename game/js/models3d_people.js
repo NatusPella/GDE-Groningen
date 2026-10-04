@@ -835,6 +835,25 @@ function buildRig(L, shZ) {
 }
 
 // Main colours of the look buildPersonMesh(shirt, skin, { seed }) produces.
+// Grote koppen (cheats.js): every head bone, held weakly, so a switch
+// reaches the people already in the city.
+let headScale = 1;
+const heads = new Set();
+function trackHead(bone) {
+  if (typeof WeakRef === 'undefined') return;
+  if (heads.size > 1500) for (const r of heads) if (!r.deref()) heads.delete(r);
+  heads.add(new WeakRef(bone));
+}
+export function setHeadScale(k) {
+  if (k === headScale) return;
+  headScale = k;
+  for (const r of heads) {
+    const b = r.deref();
+    if (b) b.scale.setScalar(k);
+    else heads.delete(r);
+  }
+}
+
 export function personPalette(shirt, skin, seed) {
   const L = resolveLook(shirt, skin, { seed });
   return {
@@ -881,6 +900,8 @@ export function buildPersonMesh(shirt, skin, opts = {}) {
   group.updateMatrixWorld(true);
   mesh.bind(new THREE.Skeleton(rig.bones));
 
+  if (headScale !== 1) rig.head.scale.setScalar(headScale);
+  trackHead(rig.head);
   const ud = group.userData;
   ud.pelvis = rig.pelvis;
   ud.chest = rig.chest;
@@ -1687,7 +1708,24 @@ export function animatePersonWalk(mesh, speed, dt) {
     elbow.rotation.z = elbowBase + 0.35 * w * Math.max(0, Math.sin(-ph)) * (1 - r) + 0.06 * idle;
   }
   if (crouch > 0) applyCrouch(ud, crouch, phase, w, s, cadence);
+  const air = ud.airBlend = approach(ud.airBlend || 0, Math.max(0, Math.min(1, ud.air || 0)), step / 0.08);
+  if (air > 0) applyAirPose(ud, air);
   updatePose(mesh);
+}
+
+// Jump / vault tuck: knees pulled up, arms reaching forward and down onto
+// whatever is being vaulted.
+function applyAirPose(ud, a) {
+  for (const [leg, knee, k] of [[ud.legL, ud.kneeL, 1], [ud.legR, ud.kneeR, 0.7]]) {
+    leg.rotation.z += (0.95 * k - leg.rotation.z) * a;
+    knee.rotation.z += (-1.5 * k - knee.rotation.z) * a;
+  }
+  for (const [arm, elbow] of [[ud.armL, ud.elbowL], [ud.armR, ud.elbowR]]) {
+    if (arm === ud.armL && ud.umbrella && !ud.posed) continue;
+    arm.rotation.z += (0.9 - arm.rotation.z) * a;
+    elbow.rotation.z += (0.25 - elbow.rotation.z) * a;
+  }
+  ud.chest.rotation.z -= 0.25 * a;
 }
 
 const CROUCH_BLEND_TIME = 0.2;

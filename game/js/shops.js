@@ -2,7 +2,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { dist, closestPointOnSegment, isInWater, pointInPolygon, boatDryPoints } from './util.js';
 import { clearOfReal } from './countryreal.js';
 import { getScene, refreshCharacterMeshes } from './scene3d.js';
-import { spawnVehicleOnRoad, spawnBoatOnWater } from './vehicle.js';
+import { spawnVehicleOnRoad, spawnBoatOnWater, HERO_CAR_MODEL } from './vehicle.js';
 import { BOAT_KINDS } from './boattypes.js';
 import { TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { getHorecaForRender } from './horeca.js';
@@ -125,6 +125,7 @@ export const VEHICLE_STOCK = {
   stadsfiets: { kind: 'bike', type: 'Fiets', shop: 'fietsen', label: 'Stadsfiets', desc: 'Lichter en sneller, in Stadjersgroen', price: 110, nameIdx: 2, color: '#1e9e56', model: { name: 'bike', len: 1.75, wid: 0.5, maxSpeed: 7.0, accel: 3.6, brake: 6.2, turnRate: 4.8 } },
   fatbike: { kind: 'bike', type: 'Fatbike', shop: 'fietsen', label: 'Fatbike "Dikke Tinus"', desc: 'Dikke banden, dikke prijs', price: 350, nameIdx: 0, color: '#20221f', model: { name: 'bike', fat: true, len: 1.95, wid: 0.62, maxSpeed: 7.4, accel: 3.4, brake: 5, turnRate: 3.8 } },
   brommer: { kind: 'scooter', type: 'E-step', shop: 'fietsen', label: 'E-step Zoemzoem', desc: 'Elektrische step: staan, gas, zoemen', price: 600, nameIdx: 0, color: '#c94b3a', model: { name: 'scooter', len: 1.15, wid: 0.42, maxSpeed: 8.5, accel: 4.0, brake: 4.4, turnRate: 5.4 } },
+  quad: { kind: 'car', type: 'Quad', shop: 'auto', label: 'Wierde Quad', desc: 'Vierwieler voor het land: door de wei waar een auto vastloopt', price: 950, nameIdx: 0, color: '#b8322a', model: CAR_M('quad', 2.1, 1.2, 17, 9, 14, 3.2, { offroad: 1 }) },
   mug: { kind: 'car', type: 'Hatchback', shop: 'auto', label: 'Hunze Mug', desc: 'Kleine hatchback, parkeert overal', price: 800, nameIdx: 2, color: '#2e6b9e', model: CAR_M('hatch', 3.8, 1.7, 42, 9, 15, 3.0) },
   koopman: { kind: 'car', type: 'Stationwagen', shop: 'auto', label: 'Reitdiep Koopman', desc: 'Stationwagen voor de hele familie', price: 1150, nameIdx: 0, color: '#2e4a34', model: CAR_M('wagon', 4.5, 1.8, 47, 9, 15, 2.5) },
   klusbus: { kind: 'car', type: 'Bestelbus', shop: 'auto', label: 'Oldambt Klusbus', desc: 'Bestelbus: ramt alles opzij', price: 1300, nameIdx: 0, color: '#d9d9d9', model: CAR_M('van', 5.0, 2.0, 38, 7, 13, 2.0) },
@@ -468,6 +469,14 @@ export function getOwnedEntries() {
   return state.vehicles;
 }
 
+// Every car you own, with its top speed (m/s) after upgrades: the Escapade first.
+export function ownedCarTops() {
+  const top = (m, ups) => (ups || []).reduce((t, id) => t * ((CAR_UPGRADES.find((u) => u.id === id) || { mult: {} }).mult.maxSpeed || 1), m.maxSpeed);
+  const out = [{ hero: true, label: 'Escapade', name: HERO_CAR_MODEL.name, top: top(HERO_CAR_MODEL, state.heroUpgrades) }];
+  for (const o of state.vehicles) if (o.spec.kind === 'car') out.push({ label: o.spec.label, name: o.spec.model.name, top: top(o.spec.model, o.upgrades) });
+  return out;
+}
+
 export function getHeroLook() {
   return { color: state.heroColor, upgrades: [...state.heroUpgrades] };
 }
@@ -482,6 +491,17 @@ export function spawnOwnedEntry(world, o, x, y, angle) {
   if (!v.isHeli) v.z = world.map.spawnZ ? world.map.spawnZ(x, y) : 0;
   o.v = v;
   o.lost = false;
+  return v;
+}
+
+// A vehicle from the stock that is not in the collection (cheats.js
+// Showroom): not saved, never theft. Same placement rules as spawnOwnedEntry.
+export function spawnStockVehicle(world, key, x, y, angle) {
+  const spec = VEHICLE_STOCK[key];
+  if (!spec) return null;
+  const v = spawnOwned(world, { key, spec, color: spec.color, upgrades: [] }, x, y, angle);
+  if (!v) return null;
+  if (!v.isHeli) v.z = world.map.spawnZ ? world.map.spawnZ(x, y) : 0;
   return v;
 }
 
@@ -1529,6 +1549,11 @@ export function grantStoryItem(world, what) {
     if (state.vehicles.some((o) => o.spec.kind === 'car')) return true;
     const shop = nearestOfType(world, 'auto');
     return !!(shop && deliver(world, 'mug', VEHICLE_STOCK.mug.color, shop));
+  }
+  if (what === 'racecar') {
+    // the Escapade gets the motor upgrade (r-tuning)
+    if (!state.heroUpgrades.includes('motor')) state.heroUpgrades = [...state.heroUpgrades, 'motor'];
+    return true;
   }
   if (what === 'incognito') {
     state.ownedOutfits.add('tammo:incognito');

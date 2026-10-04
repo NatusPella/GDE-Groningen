@@ -22,6 +22,7 @@ import { buildWildlifeMesh3D, wildlifeShadowSize, animateWildlifeMesh3D } from '
 import { buildMissionMarker3D, updateMissionMarker3D, buildWaypointDotMesh3D } from './missions.js';
 import { syncTrafficLights3D, setTrafficLightGlow } from './trafficlights.js';
 import { getCombatEffect, isRangedWeapon } from './combat.js';
+import { scopeEye } from './scopeaim.js';
 import { alignPlayerFlash } from './gunfx3d.js';
 import { sharedWaterMaterial, updateWaterMaterial, buildWaterGeometry, waterSwellAt, waterSwellAmp } from './water3d.js';
 import { cityShoreFix } from './countrywater.js';
@@ -44,6 +45,7 @@ import { pointInPolygon, polygonBounds, WATER_Y } from './util.js';
 import { preloadLandmarkModels, onLandmarkModelLoaded } from './landmarkmodels.js';
 import { onSettingsChange, getSettings, QUALITY_PRESETS } from './settings.js';
 import { dynamicScale, cpuLevel } from './gfxprofile.js';
+import { VIEW_DISTANCES, viewDistanceFor } from './viewdist.js';
 import { buildingBatcher, roadBatcher, facadeBatcher } from './staticbatch3d.js';
 import { simLevel } from './simload.js';
 import { beginWheels, addVehicleWheels, endWheels } from './wheelinstances3d.js';
@@ -65,7 +67,7 @@ import { createFarLOD } from './farlod.js';
 import { initRailway3D, updateRailway3D } from './railway3d.js';
 import { buildCanopies } from './canopies3d.js';
 import { initGrass, updateGrass, grassFarColor, grassFarRank } from './grass.js';
-import { updateCountryside } from './countryside.js';
+import { updateCountryside, setCountryPropLevel } from './countryside.js';
 import { setCountryNight, setCountryFacadeLevel } from './countrybuilding.js';
 import { updateCountryBake } from './countrybake.js';
 import { edgeDistance, setCountryBounds } from './countryfield.js';
@@ -73,6 +75,7 @@ import { probe } from './hitchprobe.js';
 import { speakBubble } from './linevoice.js';
 import { applyDrunkCamera } from './drunk.js';
 import { GROUND_LAYER, SIDEWALK_EXTRA, PAVED_MATS, buildRoadGroup, setRoadNetwork, getRoadQualityVersion, roadFarColor, roadGeometryReady } from './roadsurface.js';
+import { lookBackActive, chaseFollowLerp } from './controls.js';
 
 // A genuine WebGL 3D view of the exact same world state the 2D canvas game
 // draws - same x/y meters, same b.h building heights, same vehicle/pedestrian
@@ -102,7 +105,6 @@ const DRAW_DIST = 140;
 // read as "the canal sits below street level" from a close-up 3rd person
 // camera; pushed meaningfully lower instead (WATER_Y in util.js).
 const TREE_DIST = 130;
-const VIEW_DISTANCES = { kort: 150, normaal: 350, ver: 600 };
 let viewDist = VIEW_DISTANCES.normaal;
 let farLod = null;
 const landmarkBuildings = [];
@@ -521,6 +523,33 @@ function camNearestHit(targets) {
 const SHARED_MATERIALS = new Set([OUTLINE_MAT]);
 const SHARED_GEOMETRIES = new Set();
 
+// Flat-pack boxes strapped to a car's roof (v.roofBoxes, the story's EIKEA trip).
+const ROOF_BOX_MAT = new THREE.MeshLambertMaterial({ color: 0xb98d5a });
+ROOF_BOX_MAT.userData.shared = true;
+const ROOF_STRAP_MAT = new THREE.MeshLambertMaterial({ color: 0x1d4fa3 });
+ROOF_STRAP_MAT.userData.shared = true;
+function setRoofBoxes(mesh, v) {
+  const ud = mesh.userData;
+  if (ud.roofLoad) { ud.roofLoad.parent.remove(ud.roofLoad); disposeObject(ud.roofLoad); ud.roofLoad = null; }
+  const n = Math.max(0, Math.min(3, v.roofBoxes || 0));
+  ud.roofN = n;
+  if (!n) return;
+  const box = new THREE.Box3().setFromObject(mesh);
+  const top = box.max.y - mesh.position.y;
+  const g = new THREE.Group();
+  const len = Math.min(2.2, (v.model && v.model.len ? v.model.len : 4) * 0.5);
+  for (let i = 0; i < n; i++) {
+    const b = new THREE.Mesh(new THREE.BoxGeometry(len - i * 0.25, 0.22, 1.1 - i * 0.12), ROOF_BOX_MAT);
+    b.position.set(-0.15 + i * 0.05, top + 0.11 + i * 0.22, 0);
+    g.add(b);
+  }
+  const strap = new THREE.Mesh(new THREE.BoxGeometry(0.08, n * 0.22 + 0.03, 1.16), ROOF_STRAP_MAT);
+  strap.position.set(-0.15, top + n * 0.11, 0);
+  g.add(strap);
+  (ud.body || mesh).add(g);
+  ud.roofLoad = g;
+}
+
 // Actors/effects build their own geometries per instance, so on despawn both
 // geometry and material must be freed or GPU memory grows all session.
 function disposeObject(root) {
@@ -645,7 +674,7 @@ function hasAiDriver(v) {
   if (v.wrecked || v.parked || v.driver === 'player' || v.castDriver) return false;
   if (v.driver) return true;
   if (v.isPolice) return !v.hijacked && !v.disabled && !v._roadblock;
-  return !!(v.road || v.racer);
+  return !!(v.road || v.racer || v.countryDrive);
 }
 
 function ensureDriverFigure(mesh, v, dist, deadline) {
@@ -900,19 +929,25 @@ function applyViewSettings(st) {
   resize3D();
   setNightLightQuality(level);
   setCountryFacadeLevel(level);
+  setCountryPropLevel(level);
   facadeQualityDist = FACADE_DETAIL_DIST[level] || Infinity;
   facadeDetailDist = Math.min(facadeQualityDist, CPU_FACADE_DIST[cpuLevel()]);
   if (postfx.level !== level) postfx.setLevel(level);
   const shadows = st.shadows && preset.shadows;
   if (sun.castShadow !== shadows) { sun.castShadow = shadows; renderer.shadowMap.needsUpdate = true; }
   applyShadowLevel(level);
-  viewDist = VIEW_DISTANCES[st.drawDistance] || VIEW_DISTANCES.normaal;
-  cam.far = Math.max(DRAW_DIST * 1.4, viewDist * 1.4, landmarkDist() * 1.1);
-  lightBase.fogNear = DRAW_DIST * 0.45 + (viewDist - 150) * 0.25;
-  lightBase.fogFar = viewDist * 1.02;
+  applyViewDistance(st);
   cam.fov = baseFov = st.fov;
   cam.updateProjectionMatrix();
   orbitRadius = ORBIT_RADIUS * st.cameraDistance;
+}
+
+// view distance, camera far plane and fog; 'heel ver' follows adaptive quality
+function applyViewDistance(st) {
+  viewDist = viewDistanceFor(st.drawDistance, dynamicScale(), cpuLevel());
+  cam.far = Math.max(DRAW_DIST * 1.4, viewDist * 1.4, landmarkDist() * 1.1);
+  lightBase.fogNear = DRAW_DIST * 0.45 + (viewDist - 150) * 0.25;
+  lightBase.fogFar = viewDist * 1.02;
 }
 
 function renderPixelRatio(st, preset) {
@@ -925,6 +960,9 @@ export function refreshRenderScale() {
   const st = getSettings();
   const ratio = renderPixelRatio(st, QUALITY_PRESETS[st.quality] || QUALITY_PRESETS.hoog);
   facadeDetailDist = Math.min(facadeQualityDist, CPU_FACADE_DIST[cpuLevel()]);
+  const wasView = viewDist;
+  applyViewDistance(st);
+  if (viewDist !== wasView) { cam.updateProjectionMatrix(); noteGfxEvent(`zichtafstand ${wasView}->${viewDist} m`); }
   if (ratio === wantRatio) return;
   noteGfxEvent(`renderschaal ${wantRatio.toFixed(2)}->${ratio.toFixed(2)}`);
   wantRatio = ratio;
@@ -1930,6 +1968,7 @@ export function update3D(dt, world) {
         syncBoatCrew(mesh, v, crewCtx);
       } else if (v.isBus) setBusRearAngle(mesh, v.angle, sampleBusTrail(v, v.model.len * 0.3).angle);
       if (v.sinking) { mesh.rotation.order = 'YZX'; mesh.position.y = v.sinking.z; mesh.rotation.z = v.sinking.pitch; mesh.rotation.x = v.sinking.roll; }
+      if ((mesh.userData.roofN || 0) !== (v.roofBoxes || 0)) setRoofBoxes(mesh, v);
       if (v.isPolice || v.sirenOn || v.isAmbulance) updatePoliceLamps(mesh, world.time, v.sirenOn ? !v.wrecked : policeChasing && !v.hijacked && !v.wrecked && v.driver !== 'player', v.id);
       const driverDist = Math.abs(v.x - player.x) + Math.abs(v.y - player.y);
       ensureDriverFigure(mesh, v, driverDist, driverDeadline);
@@ -2209,6 +2248,7 @@ export function update3D(dt, world) {
       playerMesh.rotation.y = -player.angle;
       playerMesh.scale.y = 1;
       playerMesh.userData.crouch = !!player.crouching;
+      playerMesh.userData.air = player.vault ? player.airPose || 0 : !player.perch && !player.swimming && player.z > 0.25 ? 0.45 : 0;
       playerMesh.userData.shadow.position.y = 0.02 - (player.z || 0) / playerMesh.scale.y;
       animatePersonWalk(playerMesh, Math.hypot(player.vx, player.vy), animDt);
       if (player.sofaSeat != null) { seatPose(playerMesh); playerMesh.position.y = seatedY(playerMesh, (player.gz || 0) + player.sofaSeat); }
@@ -2299,7 +2339,7 @@ export function update3D(dt, world) {
   let camAngle;
   // hold Q / middle mouse in a vehicle: GTA-style look back, a hard cut
   // (world.noLookBack: a minigame has Q for itself, the skûtsje's sail trim)
-  const lookBack = !!camVeh && !world.cameraOverride && ((world.input.isDown('q') && !world.noLookBack) || !!mouse.middleDown);
+  const lookBack = lookBackActive({ inVehicle: !!camVeh, override: !!world.cameraOverride, noLookBack: world.noLookBack, qDown: world.input.isDown('q'), middleDown: mouse.middleDown });
   const lookBackCut = lookBack !== lookBackWas;
   lookBackWas = lookBack;
   if (camVeh) {
@@ -2418,7 +2458,7 @@ export function update3D(dt, world) {
   const teleported = lastPx !== null && Math.hypot(player.x - lastPx, player.y - lastPy) > 15;
   if (teleported) camPullReset = true;
   if (lookBackCut) camPullReset = true;
-  const lerpT = teleported || lookBackCut ? 1 : Math.min(1, dt * 6);
+  const lerpT = chaseFollowLerp(dt, { cut: teleported || lookBackCut, lookBack });
   if (!camBaseInit) { camBase.copy(cam.position); camBaseInit = true; }
   camBase.x += (desiredX - camBase.x) * lerpT;
   camBase.y += (desiredY - camBase.y) * lerpT;
@@ -2442,12 +2482,14 @@ export function update3D(dt, world) {
   scopeBlend += ((world.scoped && !veh ? 1 : 0) - scopeBlend) * Math.min(1, dt * 14);
   if (scopeBlend < 0.01) scopeBlend = 0;
   if (scopeBlend > 0) {
-    // eye just in front of the face, looking level (the bullets fly level too)
+    // eye just in front of the face, looking level: the scoped bullet starts
+    // here and flies level along the same heading (scopeaim.js)
     const yaw = world.camYaw ?? player.angle, cy = Math.cos(yaw), sy = Math.sin(yaw);
-    const ex = player.x + cy * 0.35, ey = baseH + 1.5, ez = player.y + sy * 0.35;
+    const eye = scopeEye(player, yaw, baseH);
+    const ex = eye.x, ey = eye.z, ez = eye.y;
     cam.position.set(cam.position.x + (ex - cam.position.x) * scopeBlend, cam.position.y + (ey - cam.position.y) * scopeBlend, cam.position.z + (ez - cam.position.z) * scopeBlend);
     const k = scopeBlend;
-    lookX += (ex + cy * 40 - lookX) * k; lookY += (ey - 0.15 - lookY) * k; lookZ += (ez + sy * 40 - lookZ) * k;
+    lookX += (ex + cy * 40 - lookX) * k; lookY += (ey - lookY) * k; lookZ += (ez + sy * 40 - lookZ) * k;
   }
   applyCameraOverride(dt, world, lookX, lookY, lookZ);
 

@@ -11,7 +11,7 @@ import { isCinematicActive, playCinematic, showBanner } from './cinematics.js';
 import { isShopOpen } from './shopui.js';
 import { lineVoiceFor } from './linevoice.js';
 import { playLineVoice } from './audio.js';
-import { unlockAchievement, recordChallengeResult, getChallengeRecord, recordStat, MEDALS } from './achievements.js';
+import { unlockAchievement, recordChallengeResult, getChallengeRecord, recordStat, isUnlocked, MEDALS } from './achievements.js';
 import { banterAfter } from './banter.js';
 import { startCall } from './phonefeed.js';
 import { SMS_SAY } from './smsvoice.js';
@@ -64,7 +64,7 @@ let sub = null;
 let beam = null;
 
 function freshState() {
-  return { v: 1, invited: false, seen: [], fjord: null, revealed: false, guideOff: false, guideHinted: false };
+  return { v: 1, invited: false, seen: [], cleared: [], fjord: null, revealed: false, guideOff: false, guideHinted: false };
 }
 
 export function isPostgameOpen() {
@@ -332,7 +332,10 @@ export function finish(r, res) {
   const prize = res.reward != null ? res.reward : PRIZE[medal];
   if (prize > 0) w.money += prize;
   if (!res.aborted) {
-    if (res.success || medal > 0) unlockAchievement(w, `${def.id}_klaar`);
+    if (res.success || medal > 0) {
+      unlockAchievement(w, `${def.id}_klaar`);
+      if (!state.cleared.includes(def.id)) state.cleared.push(def.id);
+    }
     if (medal >= 3) unlockAchievement(w, `${def.id}_goud`);
     if (def.jelle && res.success) checkJelleAll();
     const stats = [...(res.stats || [])];
@@ -408,6 +411,12 @@ export function setTarget(t) {
 
 export function isChallengeActive(id) {
   return !!run && (!id || run.def.id === id);
+}
+
+// Every challenge with whether this save has won (or worked) it once, for
+// the ending (ending.js, story.js).
+export function getChallengeProgress() {
+  return CHALLENGES.map((d) => ({ id: d.id, name: d.name, jelle: !!d.jelle, cleared: state.cleared.includes(d.id) }));
 }
 
 // --- HUD: a small panel for the minigames and the subtitles -------------------------
@@ -678,7 +687,7 @@ export function queueFjordReveal(w = world) {
   };
   return playCinematic({
     id: 'pg-reveal', priority: 2, duration: at + 0.6, pause: true, letterbox: true, skippable: true, hideHud: true, queue: true,
-    kicker: 'Na de aftiteling', title: 'De Fjord Frituur', cardFor: 2.4, lines,
+    kicker: 'Na het verhaal', title: 'De Fjord Frituur', cardFor: 2.4, lines,
     onStart: () => {
       try {
         v = revealTruck(w);
@@ -807,6 +816,8 @@ export function applyPostgameSave(d) {
     state.revealed = !!d.revealed;
     state.guideOff = !!d.guideOff;
     state.guideHinted = !!d.guideHinted;
+    // older saves kept no list: the prestaties (all saves) stand in
+    state.cleared = Array.isArray(d.cleared) ? d.cleared.filter((id) => BY_ID.has(id)) : CHALLENGES.filter((c) => isUnlocked(`${c.id}_klaar`)).map((c) => c.id);
   }
   applyFjordSave(d && d.fjord);
   if (run) stopRun();
@@ -834,6 +845,7 @@ const debugApi = {
   record: (id) => getChallengeRecord(id),
   stat: (k, n) => recordStat(world, k, n),
   save: getPostgameSave,
+  progress: getChallengeProgress,
   guide: () => (world ? world.postgameGuide : null),
   guideNext: () => guideNext(),
   guideOff: () => guideOff(),

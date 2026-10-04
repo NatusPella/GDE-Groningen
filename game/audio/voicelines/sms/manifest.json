@@ -47,6 +47,10 @@
 "src": "anita/hij_klinkt_als_een_boze_koelkast_bf54ab37.mp3",
 "dur": 4.24
 },
+"Anita|Jelle daagt je uit op de ringweg. Daar win je alleen in een snelle auto. Haal de Escapade en laat hem opvoeren bij Knal & Kolder, of koop een sportwagen.": {
+"src": "anita/jelle_daagt_je_uit_op_de_ringweg_0642e5e0.mp3",
+"dur": 9.86
+},
 "Anita|Jelle daagt je uit op de ringweg. Rij de Escapade naar Knal & Kolder en druk R, voor wat extra paardjes.": {
 "src": "anita/jelle_daagt_je_uit_op_de_ringweg_47da211e.mp3",
 "dur": 6.31
@@ -54,6 +58,14 @@
 "Anita|Jelle wil een bod doen. Op het Stadsbalkon. En oma wil boodschappen, dus neem geld mee.": {
 "src": "anita/jelle_wil_een_bod_doen_op_het_st_aa0638c0.mp3",
 "dur": 7.21
+},
+"Anita|Morgen bij de Spilsluizen. Klaas wacht. Jij bent de gids.": {
+"src": "anita/morgen_bij_de_spilsluizen_klaas__837a4158.mp3",
+"dur": 3.99
+},
+"Anita|Morgen de rondvaartboot. Vanavond niks. Kom je naar huis? Ik heb eierballen in de vriezer.": {
+"src": "anita/morgen_de_rondvaartboot_vanavond_9a9a582c.mp3",
+"dur": 6.03
 },
 "Anita|Nog even dit. Het staat op je kaart, als je zin hebt.": {
 "src": "anita/nog_even_dit_het_staat_op_je_kaa_a5161004.mp3",
@@ -299,9 +311,17 @@
 "src": "tammo/nou_zijn_we_echte_boeven_met_bon_48642c21.mp3",
 "dur": 4.74
 },
+"Tammo|Nou zijn we echte boeven. Met bonnetje. Nu nog wachten tot middernacht, thuis.": {
+"src": "tammo/nou_zijn_we_echte_boeven_met_bon_e8c2e270.mp3",
+"dur": 4.82
+},
 "Tammo|Om twaalf uur gaan de camera's uit. Tot die tijd wachten we bij Henk, in de garage.": {
 "src": "tammo/om_twaalf_uur_gaan_de_camera_s_u_61a6107c.mp3",
 "dur": 4.39
+},
+"Tammo|Om twaalf uur gaan de camera's uit. Tot die tijd wachten we thuis. Op de bank, of even slapen.": {
+"src": "tammo/om_twaalf_uur_gaan_de_camera_s_u_0de8b045.mp3",
+"dur": 5.91
 },
 "Tammo|Roelf zegt: gratis, als hij heel terugkomt. Jij vliegt.": {
 "src": "tammo/roelf_zegt_gratis_als_hij_heel_t_f0bccd76.mp3",
@@ -315,9 +335,17 @@
 "src": "tammo/tessa_de_escapade_is_weg_op_zijn_1eb3810a.mp3",
 "dur": 3.53
 },
+"Tammo|Twee bedden en één schroefje over. Ik noem dat een thuis.": {
+"src": "tammo/twee_bedden_en_e_e_n_schroefje_o_55f53cc6.mp3",
+"dur": 3.36
+},
 "Tammo|Twijduustern. Niemand zoekt ons in het donker.": {
 "src": "tammo/twijduustern_niemand_zoekt_ons_i_5d961aec.mp3",
 "dur": 2.46
+},
+"Tammo|We slapen op een luchtbed en eten van een verhuisdoos. EIKEA, aan de Sontweg. Met de Escapade: de dozen gaan op het dak.": {
+"src": "tammo/we_slapen_op_een_luchtbed_en_ete_8f5b519c.mp3",
+"dur": 8.73
 },
 "Tammo|Wij tweeën vóór Grunn. Kon minder, hè?": {
 "src": "tammo/wij_tweee_n_vo_o_r_grunn_kon_min_4d8627db.mp3",
