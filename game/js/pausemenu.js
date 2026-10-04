@@ -363,13 +363,16 @@ export function initPauseMenu(w) {
           <span class="pm-rail-gap"></span>
           <div class="pm-rail-row pm-ingame">${qBtn('save', 'save', 'Opslaan', 'pm-secondary pm-small')}${qBtn('load', 'load', 'Laden', 'pm-secondary pm-small', ' title="Laatste save laden"')}</div>
           <p class="pm-status pm-ingame" role="status"></p>
-          <div class="pm-confirm pm-ingame" hidden>
-            <p>Opnieuw beginnen? Alles sinds je laatste save gaat verloren.</p>
-            <button type="button" class="pm-secondary pm-small" data-action="load">Laatste save laden</button>
-            <button type="button" class="pm-danger pm-small" data-action="new">Nieuw spel (save wissen)</button>
-            <button type="button" class="pm-secondary pm-small" data-action="cancel">Annuleren</button>
+          <div class="pm-rail-row pm-ingame">${qBtn('menu', 'menu', 'Hoofdmenu', 'pm-secondary pm-small', ' title="Opslaan en terug naar het titelscherm"')}${DESKTOP ? qBtn('exit', 'exit', 'Afsluiten', 'pm-secondary pm-small', ' title="Opslaan en het spel sluiten"') : ''}</div>
+          <div class="pm-rail-danger pm-ingame">
+            ${qBtn('restart', 'restart', 'Opnieuw beginnen', 'pm-danger pm-small')}
+            <div class="pm-confirm" hidden>
+              <p>Opnieuw beginnen? Alles sinds je laatste save gaat verloren.</p>
+              <button type="button" class="pm-secondary pm-small" data-action="load">Laatste save laden</button>
+              <button type="button" class="pm-danger pm-small" data-action="new">Nieuw spel (save wissen)</button>
+              <button type="button" class="pm-secondary pm-small" data-action="cancel">Annuleren</button>
+            </div>
           </div>
-          <div class="pm-links pm-ingame"><button type="button" data-action="menu">Hoofdmenu</button><button type="button" data-action="restart">Opnieuw beginnen</button>${DESKTOP ? '<button type="button" data-action="exit">Afsluiten</button>' : ''}</div>
         </div>
       </nav>
       <section class="pm-sheet" aria-labelledby="pm-sheet-title">
