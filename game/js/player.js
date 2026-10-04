@@ -14,6 +14,7 @@ import { drunkMove, drunkSteer } from './drunk.js';
 
 import { inHomeFlat } from './home.js';
 import { flyHeli, heliExitBlock } from './heliflight.js';
+import { MODS } from './cheatmods.js';
 export { resolveBuildingCollisions };
 
 const BIKE_SPRINT_S = 2.5;
@@ -158,7 +159,7 @@ export class Player {
       if (this.tryVault(world)) return;
       this.vz = JUMP_SPEED;
     }
-    this.vz -= GRAVITY * dt;
+    this.vz -= GRAVITY * MODS.grav * dt;
     this.z = Math.max(0, this.z + this.vz * dt);
     if (this.z <= 0) {
       // landing after a drop off a viaduct / into a cutting
@@ -646,7 +647,7 @@ export class Player {
     v.throttle = throttle;
     v.horn = input.isDown('h') && !v.disabled;
     const px = v.x, py = v.y, pa = v.angle;
-    v.gripK = world && !v.isBoat ? roadGrip(world, v.x, v.y, v.surface) : 1;
+    v.gripK = world && !v.isBoat ? roadGrip(world, v.x, v.y, v.surface) * MODS.grip : 1;
     // bikes: Shift gives a short sprint, then a breather before the next one
     if (v.isBike) {
       v.sprintT = Math.max(0, (v.sprintT || 0) - dt);

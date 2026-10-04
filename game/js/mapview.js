@@ -197,6 +197,13 @@ function injectStyles() {
       padding: 2px 8px; border-radius: 3px; background: rgba(12, 20, 14, 0.7);
       font: 12px 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.2px; color: rgba(240, 237, 228, 0.7);
     }
+    .mapview-tp {
+      position: absolute; top: 12px; left: 50%; transform: translateX(-50%); z-index: 3; pointer-events: none;
+      padding: 7px 16px 5px; border-radius: 999px; background: linear-gradient(180deg, #3fc97a, #1e9e56); color: #0c140e;
+      font: 19px 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; letter-spacing: 1px; box-shadow: 0 4px 14px rgba(0,0,0,0.45);
+    }
+    .mapview-tp[hidden] { display: none; }
+    .mapview-overlay.teleporting .mapview-canvas { cursor: crosshair; }
     .mapview-tooltip {
       position: absolute; pointer-events: none;
       background: rgba(12, 20, 14, 0.92);
@@ -558,10 +565,13 @@ function ensureLevel0() {
   }
 }
 
-function evictTiles() {
-  if (state.tiles.size <= MAX_TILES) return;
-  const list = [...state.tiles.entries()].filter(([, t]) => t.L !== 0).sort((a, b) => a[1].used - b[1].used);
-  for (let i = 0; i < list.length && state.tiles.size > MAX_TILES; i++) {
+// Keeps level 0 and the tiles of the current view; on a large high-DPI
+// canvas one view alone can need more than MAX_TILES.
+function evictTiles(keep) {
+  const limit = Math.max(MAX_TILES, keep.size + 16);
+  if (state.tiles.size <= limit) return;
+  const list = [...state.tiles.entries()].filter(([k, t]) => t.L !== 0 && !keep.has(k)).sort((a, b) => a[1].used - b[1].used);
+  for (let i = 0; i < list.length && state.tiles.size > limit; i++) {
     state.tiles.delete(list[i][0]);
     if (state.pool.length < 8) state.pool.push(list[i][1].canvas);
   }
@@ -596,6 +606,8 @@ function fillTiles(L) {
   });
   const t0 = performance.now();
   let done = 0;
+  const keep = new Set(out.map(([tx, ty]) => tileKey(L, tx, ty)));
+  for (const k of state.tiles.keys()) if (state.tiles.get(k).L === 0) keep.add(k);
   for (const [tx, ty] of missing) {
     if (done > 0 && performance.now() - t0 > TILE_BUDGET_MS) break;
     const r0 = performance.now();
@@ -603,8 +615,37 @@ function fillTiles(L) {
     state.perf.tileRenderMs = performance.now() - r0;
     done++;
   }
-  evictTiles();
+  evictTiles(keep);
   return done === missing.length;
+}
+
+// The last complete tile layer and the view it was drawn for. While the
+// tiles of a new zoom step or view are still being rendered it is drawn
+// underneath, moved and scaled to the current view, so zooming never shows
+// bare meadow or a coarse overview where detail was a moment ago.
+function keepLastGood() {
+  let g = state.lastGood;
+  if (!g) g = state.lastGood = { canvas: document.createElement('canvas') };
+  const src = state.compose;
+  if (g.canvas.width !== src.width || g.canvas.height !== src.height) {
+    g.canvas.width = src.width;
+    g.canvas.height = src.height;
+  }
+  const gc = g.canvas.getContext('2d');
+  gc.clearRect(0, 0, src.width, src.height);
+  gc.drawImage(src, 0, 0);
+  g.scale = state.scale; g.ox = state.ox; g.oy = state.oy; g.dpr = state.dpr;
+  g.base = state.baseScale;
+}
+
+function drawLastGood(c) {
+  const g = state.lastGood;
+  if (!g || g.base !== state.baseScale) return;
+  // old device pixel q -> world (q / g.dpr - g.ox) / g.scale -> new device pixel
+  const k = (state.scale * state.dpr) / (g.scale * g.dpr);
+  const dx = (state.ox - (g.ox * state.scale) / g.scale) * state.dpr;
+  const dy = (state.oy - (g.oy * state.scale) / g.scale) * state.dpr;
+  c.drawImage(g.canvas, dx, dy, g.canvas.width * k, g.canvas.height * k);
 }
 
 // --- static overlay (labels + static icons), rebuilt with the view ---------
@@ -811,8 +852,10 @@ function compose() {
   if (!ready) {
     const v0 = visibleTiles(0);
     drawTiles(c, 0, v0.out, v0.tws);
+    drawLastGood(c);
   }
   drawTiles(c, L, out, tws);
+  if (ready) keepLastGood();
 
   if (getSettings().showFog) {
     const f = state.fog;
@@ -1257,6 +1300,14 @@ function updateTooltip(sx, sy) {
 }
 
 function teleportTo(world, target) {
+  // the Streken teleport (cheats.js): nearest road, city or Ommeland, car and all
+  if (world.cheatActions && state.teleport) {
+    if (!world.cheatActions.teleport(target.x, target.y, target.name)) return;
+    setMapTeleport(false);
+    if (closeHandler) closeHandler();
+    else closeMap();
+    return;
+  }
   const vehicle = world.player.inVehicle;
   if (vehicle && vehicle.isBoat) {
     world.addMessage('Met een boot kun je niet teleporteren', 2.5);
@@ -1279,7 +1330,7 @@ function teleportTo(world, target) {
 function handleClick(world, sx, sy, shift) {
   const h = nearestHover(sx, sy);
   const [wx, wy] = toWorld(sx, sy);
-  if (shift) {
+  if (shift || state.teleport) {
     if (h && h.teleport) teleportTo(world, h.teleport);
     else teleportTo(world, { x: wx, y: wy, name: streetAt(wx, wy, 60) || wijkAt(wx, wy) || 'deze plek' });
     return;
@@ -1527,7 +1578,17 @@ function openMap(world) {
   refreshLegend(world);
 }
 
+// Streken > Overal en nergens: the next click (or A under the crosshair)
+// teleports instead of setting a goal; closing the map ends it.
+export function setMapTeleport(on) {
+  if (!state) return;
+  state.teleport = !!on;
+  state.overlay.classList.toggle('teleporting', state.teleport);
+  state.tpEl.hidden = !state.teleport;
+}
+
 function closeMap() {
+  setMapTeleport(false);
   hideCard();
   state.open = false;
   state.overlay.classList.remove('open');
@@ -1596,7 +1657,7 @@ export function initMapView(world) {
     '<div class="mapview-body"><canvas class="mapview-canvas"></canvas>' +
     '<div class="mapview-zoom"><button type="button" data-act="in" aria-label="Inzoomen">+</button><button type="button" data-act="out" aria-label="Uitzoomen">−</button></div>' +
     '<div class="mapview-osm">© OpenStreetMap-bijdragers · openstreetmap.org/copyright</div>' +
-    '<div class="mapview-tooltip"></div><div class="mapview-card" hidden></div><aside class="mapview-legend"></aside></div>' +
+    '<div class="mapview-tp" hidden>Kies een plek: daar sta je meteen · <b>Esc</b> stopt</div><div class="mapview-tooltip"></div><div class="mapview-card" hidden></div><aside class="mapview-legend"></aside></div>' +
     `<div class="mapview-footer"><b>Klik</b> doel kiezen · <b>Rechtsklik</b> doel wissen · ${DEV ? '<b>Shift+klik</b> teleporteren · ' : ''}` +
     '<b>Scroll / + −</b> zoomen · <b>Slepen / WASD</b> verschuiven · <b>Spatie</b> centreren · <b>Del</b> doel wissen · <b>Q / E</b> tabblad · <b>M / Esc</b> sluiten</div>';
   document.body.appendChild(overlay);
@@ -1647,6 +1708,7 @@ export function initMapView(world) {
     perf: { composeMs: 0, frameMs: 0, avgMs: 0, maxMs: 0 },
   };
   state.ctx = state.canvas.getContext('2d');
+  state.tpEl = overlay.querySelector('.mapview-tp');
   state.cardEl = overlay.querySelector('.mapview-card');
   state.cardEl.addEventListener('mousedown', (e) => e.stopPropagation());
   state.cardEl.addEventListener('click', (e) => {
