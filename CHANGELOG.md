@@ -28,6 +28,8 @@ nieuwe functies, `y` voor alleen bugfixes.
   zocht alleen een parkeerplek in de stad en gaf het buiten de stad op; nu
   zet hij je auto in de berm van de dichtstbijzijnde landweg. Een auto die
   je in het Ommeland hebt geparkeerd staat er na het laden ook nog.
+- **"US MEM VET" zit vast op de tankwagen.** De letters op de tank deinden
+  niet mee met de vering; nu kantelen en veren ze mee met de wagen.
 
 ### Veranderd
 - **Onderduiken met de trein gaat echt het Ommeland in.** De kaartautomaat

@@ -452,7 +452,8 @@ function buildTruckMesh(v) {
   group.userData.wheels = wheels;
   group.userData.wheelRadius = r;
   if (tank && v.model.livery === 'usmemvet' && !v.wrecked) {
-    // H8: the lettering on both flanks of the tank
+    // H8: the lettering on both flanks of the tank, on the body so it pitches,
+    // rolls and bounces with the suspension
     const bl = L - 2.0;
     const geoL = cached('usmemvet-panel', () => new THREE.PlaneGeometry(4.1, 0.76));
     const mat = new THREE.MeshLambertMaterial({ map: usMemVetTexture() });
@@ -460,7 +461,7 @@ function buildTruckMesh(v) {
       const panel = new THREE.Mesh(geoL, mat);
       panel.position.set(-hl + bl / 2, 2.29, s * (hw + 0.012));
       if (s < 0) panel.rotation.y = Math.PI;
-      group.add(panel);
+      body.add(panel);
     }
   }
   return group;
