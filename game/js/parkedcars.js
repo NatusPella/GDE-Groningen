@@ -1,10 +1,10 @@
-import { Vehicle, MODELS, TRACTOR_MODEL } from './vehicle.js';
+import { Vehicle, MODELS, TRACTOR_MODEL, QUAD_MODEL } from './vehicle.js';
 import { pointInPolygon, closestPointOnSegment, inWaterPoly } from './util.js';
 import { propsInRadius } from './breakables.js';
 import { villageKerbs, villageSlotFree } from './countryvillage.js';
 import { BLOCK, chash, edgeDistance, urbanWeight, realWater } from './countryfield.js';
 import { REAL, RTILE, buildingsInTile, roadsInTile, buildingModel, buildingAt } from './countryreal.js';
-import { blockPlan, farmDetail, pushOutOfPlan } from './countryplan.js';
+import { blockPlan, farmDetail, farmWorld, pushOutOfPlan, FARM_TYPES } from './countryplan.js';
 import { roadGap } from './countryedge.js';
 
 // Kerbside parking along residential streets: half a car length up on the
@@ -152,7 +152,7 @@ function* genCell(world, st, gx, gy) {
 }
 
 // Out in the Ommelanden: the farm tractors (the countryplan farmsteads and
-// the barns of the real data, drawn nowhere else) and
+// the barns of the real data, drawn nowhere else), a quad at some farms and
 // cars at the kerb of the village streets. All real, stealable vehicles.
 let countryCars = null;
 const COUNTRY_CARS = () => countryCars || (countryCars = MODELS.filter((m) => m.name !== 'sport'));
@@ -167,7 +167,7 @@ function countryFree(x, y, angle, m) {
   }
   return true;
 }
-// Farm tractors, as countryside.js draws no tractor props any more.
+// Farm tractors and quads, as countryside.js draws no tractor props any more.
 export function farmVehicleSpots(bx, by) {
   const out = [];
   for (const f of blockPlan(bx, by).farms) {
@@ -175,6 +175,15 @@ export function farmVehicleSpots(bx, by) {
     for (const it of fd.items) {
       if (it.kind !== 'tractor') continue;
       out.push({ x: it.x, y: it.y, angle: f.angle - it.rot, model: { ...TRACTOR_MODEL, color: hexColor(it.color) } });
+    }
+    if (chash(Math.round(f.x) + 11, Math.round(f.y) - 7) < 0.4) {
+      const T = FARM_TYPES[f.type], lz = (T.drive[0] + T.drive[1]) / 2;
+      for (const lx of [T.depth * 0.45, T.depth * 0.3, -3]) {
+        const [qx, qy] = farmWorld(f, lx, lz);
+        if (!countryFree(qx, qy, f.angle, QUAD_MODEL)) continue;
+        out.push({ x: qx, y: qy, angle: f.angle + Math.PI / 2, model: { ...QUAD_MODEL, color: ['#b8322a', '#2f5fa8', '#3f7d3a', '#c9a227'][Math.floor(chash(f.x | 0, 5) * 4)] } });
+        break;
+      }
     }
   }
   return out;

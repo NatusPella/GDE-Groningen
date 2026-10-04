@@ -394,6 +394,7 @@ function buildCarMesh(v) {
   if (v.model.name === 'truck') return buildTruckMesh(v);
   if (v.model.name === 'trekkerlimo') return buildTrekkerLimoMesh(v);
   if (v.model.name === 'tractor') return buildTractorMesh(v);
+  if (v.model.name === 'quad') return buildQuadMesh(v);
   if (v.model.name === 'foodtruck') return buildFoodtruckMesh(v);
   const police = !!v.isPolice && !v._commandeered;
   const paint = police ? 0xeceae4 : toHex(v.model.color, HABBO_PALETTE.metalGrey);
@@ -617,6 +618,44 @@ function buildTractorMesh(v) {
   }
   group.userData.wheels = wheels;
   group.userData.wheelRadius = 0.46;
+  return group;
+}
+
+// A farm quad: low frame, fat tyres, racks front and back, straddle seat.
+function buildQuadMesh(v) {
+  const L = v.model.len, W = v.model.wid, hl = L / 2, hw = W / 2;
+  const paint = v.wrecked ? WRECKED_COLOR : toHex(v.model.color, 0xb8322a);
+  const geo = cached(`quad|${L}|${W}|${paint}`, () => {
+    const B = new GeoBuilder(3);
+    B.box(0, 0.45, 0, L * 0.7, 0.2, W * 0.42, 0x2a2a2a);
+    B.box(hl - 0.42, 0.68, 0, 0.62, 0.22, W * 0.8, paint);
+    B.box(-hl + 0.42, 0.68, 0, 0.62, 0.22, W * 0.8, paint);
+    B.box(0.12, 0.7, 0, 0.7, 0.3, W * 0.42, paint);
+    B.box(-0.22, 0.86, 0, 0.62, 0.1, 0.36, 0x1c1c1c);
+    B.box(hl - 0.42, 0.84, 0, 0.5, 0.04, W * 0.7, 0x3a3a3a);
+    B.box(-hl + 0.42, 0.84, 0, 0.5, 0.04, W * 0.7, 0x3a3a3a);
+    B.box(0.42, 0.98, 0, 0.06, 0.36, 0.06, 0x2a2a2a);
+    B.box(0.44, 1.16, 0, 0.06, 0.04, W * 0.72, 0x2a2a2a);
+    for (const s of [1, -1]) {
+      B.box(hl - 0.08, 0.74, s * 0.2, 0.02, 0.1, 0.16, HEADLAMP, G_LAMP);
+      B.box(-hl + 0.12, 0.72, s * 0.24, 0.02, 0.08, 0.1, TAIL, G_LAMP);
+      B.box(-0.05, 0.42, s * (W * 0.26), 0.4, 0.04, 0.22, 0x2a2a2a);
+    }
+    return B.build();
+  });
+  const mats = vehicleMaterials(v.wrecked);
+  const group = new THREE.Group();
+  const body = new THREE.Mesh(geo, mats);
+  group.add(body);
+  group.userData.body = body;
+  const wheels = [];
+  const wheel = carWheelGeometry(0.3, 0.26);
+  for (const s of [1, -1]) {
+    addWheel(group, wheel, mats[0], hl - 0.42, 0.3, s * (hw - 0.13), wheels);
+    addWheel(group, wheel, mats[0], -hl + 0.42, 0.3, s * (hw - 0.13), wheels);
+  }
+  group.userData.wheels = wheels;
+  group.userData.wheelRadius = 0.3;
   return group;
 }
 

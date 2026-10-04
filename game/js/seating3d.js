@@ -22,6 +22,7 @@ function carKind(v) {
   const n = v.model.name;
   if (n === 'truck') return 'truck';
   if (n === 'trekkerlimo' || n === 'tractor') return 'trekker';
+  if (n === 'quad') return 'quad';
   if (v.isAmbulance || n === 'foodtruck' || n === 'cashvan') return 'van';
   if (v.isHeroCar) return 'escort';
   if (v.isPolice) return 'wagon';
@@ -40,6 +41,7 @@ const CAR_SEATS = {
   van: { y: 0.72, pose: VAN_POSE },
   truck: { y: 1.22, pose: VAN_POSE },
   trekker: { y: 1.36, pose: { recline: 0.06, footX: 0.46, footY: -0.4, arms: 'lap' } },
+  quad: { y: 0.92, pose: { recline: -0.08, footX: 0.3, footY: -0.5, splay: 0.3, arms: 'lap' } },
   bus: { y: 1.5, pose: { recline: 0.08, footX: 0.45, footY: -0.33, arms: 'lap' } },
 };
 
@@ -77,6 +79,11 @@ export function vehicleSeat(v, driver) {
       x = driver ? hl - 1.78 : hl - 1.55;
       z = driver ? -0.1 : 0.5;
       if (!driver) y -= 0.12;
+    } else if (k === 'quad') {
+      // astride the saddle; a passenger on the rear rack behind
+      x = driver ? -0.2 : -0.62;
+      z = 0;
+      if (!driver) y += 0.02;
     }
     seat = { x, z, y, face: 0, pose: driver ? { ...spec.pose, arms: 'wheel' } : spec.pose };
   }
