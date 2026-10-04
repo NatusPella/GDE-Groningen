@@ -230,8 +230,8 @@ function crewTractor(d) {
 function stageText(run) {
   const d = run.data;
   if (d.stage === 'drive') return 'Rij naar de schuur van Durk en Douwe';
-  if (d.stage === 'untie') return run.world.player.inVehicle ? 'Stap uit en maak Geertje los' : 'Loop naar Geertje en druk E';
-  if (d.stage === 'escort') return d.cowWait ? 'Terug naar Geertje: ze wacht op je' : 'Breng Geertje naar Ome Jan';
+  if (d.stage === 'untie') return run.world.player.inVehicle ? 'Stap uit en maak Geertje los (E)' : 'Maak Geertje los (E)';
+  if (d.stage === 'escort') return d.cowWait ? 'Geertje loopt niet meer mee: terug naar haar!' : 'Breng Geertje terug naar het erf van Ome Jan. Blijf dichtbij, anders loopt ze niet mee';
   return '';
 }
 
@@ -354,6 +354,7 @@ function breakDown(run) {
   if (d.broken) return;
   d.broken = true;
   sayKey(run, KOE_LINES.broken[0]);
+  run.world.addMessage('De trekker-limo is kapot. Breng Geertje rustig naar huis.', 3);
 }
 
 function deliver(run) {
@@ -368,6 +369,7 @@ function deliver(run) {
     stats: [['Tijd', fmt(el)], ['Trekker gerammd', `${d.rams}x`]],
   };
   d.cow.v = 0;
+  run.world.addMessage('Geertje is thuis! Ome Jan staat al bij het hek.', 3.5);
   const done = () => finish(run, res);
   if (!playScene(run, 'koe-outro', KOE_LINES.outro, { x: S.farm.x, y: S.farm.y, a: S.farm.a }, done)) done();
 }
@@ -397,7 +399,7 @@ export const KOE = {
     Object.assign(run.data, { stage: 'intro', tv: 0, elapsed: 0, rams: 0, ramCool: 0, stallUntil: 0, grab: 0, maxGrab: 0, lostT: 0, broken: false, queue: [], called: false, lastDuo: 0 });
     setupHideout(run);
     current = run;
-    run.ui.setSlot('<div class="pg-help">Geertje loopt achter je aan, te voet of met een voertuig, zolang je in de buurt blijft. Ram de trekker om hem stil te zetten.</div>');
+    run.ui.setSlot('<div class="pg-help">1. Rij naar de schuur van Durk en Douwe. 2. Maak Geertje los (E). 3. Breng haar naar het erf van Ome Jan: ze loopt achter je aan, te voet of met een voertuig, zolang je dichtbij blijft. Ram de trekker-limo drie keer om hem stil te zetten.</div>');
     const go = () => {
       if (run.data.stage !== 'intro') return;
       run.data.stage = 'drive';
@@ -459,6 +461,11 @@ export const KOE = {
         if (run.t - d.lastDuo > 14) { d.lastDuo = run.t; sayDuo(run, KOE_LINES.duo.wait, true); }
         if (d.lostT > LOST_FAIL) { finish(run, { success: false, medal: 0, title: 'GEERTJE IS WEG', reason: 'Je bent Geertje kwijtgeraakt. Ome Jan is in alle staten.', stats: [] }); return; }
       } else d.lostT = 0;
+      // warn once the trekker closes in on her, at most every 8 s
+      if (td < GRAB_R * 2.2 && run.t >= d.stallUntil && run.t - (d.warnAt || -99) > 8) {
+        d.warnAt = run.t;
+        w.addMessage('Pas op: de trekker zit vlak achter Geertje! Ram hem.', 2.5);
+      }
       if (td < GRAB_R) {
         d.grab = Math.min(100, d.grab + GRAB_UP * dt * (1.4 - td / GRAB_R));
         if (d.grab > 50 && !d.saidClose) { d.saidClose = true; sayKey(run, KOE_LINES.close[0]); }
@@ -482,8 +489,11 @@ export const KOE = {
     }
     const rows = [['Doel', stageText(run)], ['Tijd', fmt(d.elapsed)]];
     if (d.stage === 'escort') {
-      rows.push(['Durk & Douwe', d.broken ? 'trekker kapot' : run.t < d.stallUntil ? 'motor stil' : `grijpen ${Math.round(d.grab)}%`]);
-      rows.push(['Trekker gerammd', `${d.rams}/${RAMS_TO_BREAK}`]);
+      const cd = Math.round(Math.hypot(d.cow.x - lx, d.cow.y - ly));
+      rows.push(['Geertje', d.cowWait ? `blijft staan · ${cd} m` : `loopt mee · ${cd} m`]);
+      rows.push(['Erf', `nog ${Math.round(Math.hypot(d.cow.x - sites.farm.x, d.cow.y - sites.farm.y))} m`]);
+      rows.push(['Ram de trekker-limo', d.broken ? 'kapot, ze lopen naar huis' : `${d.rams}/${RAMS_TO_BREAK}${run.t < d.stallUntil ? ' · motor stil' : ''}`]);
+      if (!d.broken) rows.push(['Durk & Douwe', `grijpen ${Math.round(d.grab)}%`]);
     }
     run.ui.setRows(rows);
   },

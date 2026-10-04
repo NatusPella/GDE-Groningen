@@ -115,6 +115,7 @@ export const KOE_LINES = {
     ['A', 'Durk en Douwe. Die fatbike kennen we.', 'zuchtend, ad rem'],
     ['T', 'Wat moeten die nou met een koe?', 'droog, verbaasd'],
     ['J', 'Gain idee. Ze zitten in de olle schuur, verderop in t laand. Hoal heur weer, den krigst wat van mie.', 'smekend, gemoedelijk'],
+    ['J', 'Maak heur lös en loop mit heur noar t erf. Blief wel dichtbie, aans lopt ze nait mit.', 'stellig, duidelijk'],
   ],
   outro: [
     ['J', 'Geertje! Mien wicht! Doar bist weer.', 'ontroerd, opgelucht'],
