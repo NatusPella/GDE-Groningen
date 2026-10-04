@@ -532,6 +532,7 @@ const todoApi = {
   rerender: (keep) => rerenderTodo(keep),
   showView: (view) => { pref.sub.todo = view; enterSection('todo'); },
   showOnMap: (x, y) => { enterSection('map'); setMapView(x, y, 3); },
+  close: () => setOpen(false),
 };
 
 const cheatsApi = {
