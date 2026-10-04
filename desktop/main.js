@@ -172,13 +172,14 @@ function createWindow() {
   const silent = process.argv.includes('--stil');
   const smoke = process.argv.find((a) => a.startsWith('--smoke-test='));
   // --hitch turns on the in-game frame-time probe (js/hitchprobe.js)
+  // --zwartcheck logs black frames into the error log (js/blackframe.js)
   // --dev opens the hidden story dev panel (F9), --story-test[=<dir>] runs
   // the automated story test: screenshots per step and report.json in <dir>
   // --validate-spots[=<dir>]: the story test's spot check only (js/spotcheck.js)
   const spotsOnly = process.argv.find((a) => a === '--validate-spots' || a.startsWith('--validate-spots='));
   const storyTest = process.argv.find((a) => a === '--story-test' || a.startsWith('--story-test=')) || spotsOnly;
   const trailerShot = argValue('--trailer-shot'), trailerCut = argValue('--trailer-cut'), trailerFrames = argValue('--trailer-frames');
-  const query = [(silent || storyTest) && 'stil', process.argv.includes('--audio-graph') && 'audiograf', process.argv.includes('--hitch') && 'hitch', process.argv.includes('--dev') && 'dev', storyTest && 'storytest', spotsOnly && 'spotsonly',
+  const query = [(silent || storyTest) && 'stil', process.argv.includes('--audio-graph') && 'audiograf', process.argv.includes('--hitch') && 'hitch', process.argv.includes('--zwartcheck') && 'zwartcheck', process.argv.includes('--dev') && 'dev', storyTest && 'storytest', spotsOnly && 'spotsonly',
     // automated runs never get the first-launch attract intro
     (smoke || storyTest || process.argv.includes('--perf-test')) && !TRAILER && 'noattract',
     TRAILER && 'trailer', TRAILER && trailerShot && `shot=${encodeURIComponent(trailerShot)}`, TRAILER && trailerCut && `cut=${encodeURIComponent(trailerCut)}`,

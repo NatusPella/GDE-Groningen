@@ -39,7 +39,7 @@ import { updatePortals } from './portalcut3d.js';
 import { inPassage } from './passages.js';
 import { buildRailDecks } from './roadstructures3d.js';
 import { buildPoliceHeliMesh3D, updatePoliceHeliMesh3D } from './police.js';
-import { updateSkyProps3D } from './skyprops3d.js';
+import { updateSkyProps3D, buildBalloonWarmup } from './skyprops3d.js';
 import { pointInPolygon, polygonBounds, WATER_Y } from './util.js';
 import { preloadLandmarkModels, onLandmarkModelLoaded } from './landmarkmodels.js';
 import { onSettingsChange, getSettings, QUALITY_PRESETS } from './settings.js';
@@ -58,6 +58,7 @@ import { OUTLINE_MAT } from './pixelart3d.js';
 import { createSkyUniforms, buildSkyDome, createEnvironmentUpdater, setStarOpacity, SKY_HORIZON } from './sky3d.js';
 import { computeLighting } from './daynight.js';
 import { createPostFX } from './postfx3d.js';
+import { noteGfxEvent, watchContext } from './blackframe.js';
 import { spawnExplosionFx } from './fx3d.js';
 import { initNightLights, setNightLightQuality, updateNightLights, isLightRigOn, setLightRigVisible } from './nightlights3d.js';
 import { createFarLOD } from './farlod.js';
@@ -740,7 +741,9 @@ export function init3D(map) {
   canvas3 = document.getElementById('game3d');
   // laptops with two GPUs: the fast one
   renderer = new THREE.WebGLRenderer({ canvas: canvas3, antialias: getSettings().quality === 'laag', powerPreference: 'high-performance' });
-  renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+  wantRatio = Math.min(2, window.devicePixelRatio || 1);
+  renderer.setPixelRatio(wantRatio);
+  watchContext(canvas3, 'spel');
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.05;
   renderer.shadowMap.enabled = true;
@@ -852,6 +855,10 @@ export function init3D(map) {
   window.__scene3d = { scene, cam, renderer, postfx, farLod, batches: () => ({ buildings: buildingBatcher.info(), facades: facadeBatcher.info(), roads: roadBatcher.info() }) };
 }
 
+// increments each time the scene is drawn to the canvas (blackframe.js)
+let canvasFrames = 0;
+export const canvasFrameCount = () => canvasFrames;
+
 // seconds between renders behind a menu that covers part / most of the view
 export const MENU_FRAME_S = [0, 1 / 30, 1 / 20];
 let menuCover = 0, menuShadowDone = false;
@@ -887,17 +894,15 @@ function applyViewSettings(st) {
   if (!renderer) return;
   const level = QUALITY_PRESETS[st.quality] ? st.quality : 'hoog';
   const preset = QUALITY_PRESETS[level];
-  const prevRatio = renderer.getPixelRatio();
-  renderer.setPixelRatio(renderPixelRatio(st, preset));
+  wantRatio = renderPixelRatio(st, preset);
   resize3D();
   setNightLightQuality(level);
   setCountryFacadeLevel(level);
   facadeQualityDist = FACADE_DETAIL_DIST[level] || Infinity;
   facadeDetailDist = Math.min(facadeQualityDist, CPU_FACADE_DIST[cpuLevel()]);
   if (postfx.level !== level) postfx.setLevel(level);
-  else if (prevRatio !== renderer.getPixelRatio()) postfx.rebuild();
   const shadows = st.shadows && preset.shadows;
-  if (sun.castShadow !== shadows) sun.castShadow = shadows;
+  if (sun.castShadow !== shadows) { sun.castShadow = shadows; renderer.shadowMap.needsUpdate = true; }
   applyShadowLevel(level);
   viewDist = VIEW_DISTANCES[st.drawDistance] || VIEW_DISTANCES.normaal;
   cam.far = Math.max(DRAW_DIST * 1.4, viewDist * 1.4, landmarkDist() * 1.1);
@@ -918,10 +923,10 @@ export function refreshRenderScale() {
   const st = getSettings();
   const ratio = renderPixelRatio(st, QUALITY_PRESETS[st.quality] || QUALITY_PRESETS.hoog);
   facadeDetailDist = Math.min(facadeQualityDist, CPU_FACADE_DIST[cpuLevel()]);
-  if (ratio === renderer.getPixelRatio()) return;
-  renderer.setPixelRatio(ratio);
-  resize3D();
-  postfx.rebuild();
+  if (ratio === wantRatio) return;
+  noteGfxEvent(`renderschaal ${wantRatio.toFixed(2)}->${ratio.toFixed(2)}`);
+  wantRatio = ratio;
+  sizeDirty = true;
 }
 
 function applyShadowLevel(level) {
@@ -936,17 +941,32 @@ function applyShadowLevel(level) {
   sun.shadow.normalBias = s.normalBias;
   if (sun.shadow.mapSize.x !== s.size) {
     sun.shadow.mapSize.set(s.size, s.size);
-    if (sun.shadow.map) { sun.shadow.map.dispose(); sun.shadow.map = null; }
+    if (sun.shadow.map) { sun.shadow.map.dispose(); sun.shadow.map = null; noteGfxEvent('schaduwkaart opnieuw'); }
+    // a frame that skips the shadow pass (behind a menu, cpuLevel) would
+    // sample no map at all: everything in shadow
+    renderer.shadowMap.needsUpdate = true;
   }
 }
 
 export function resize3D() {
   if (!renderer) return;
-  const w = innerWidth, h = innerHeight;
-  renderer.setSize(w, h, false);
-  if (postfx) postfx.setSize(w, h);
-  cam.aspect = w / h;
+  cam.aspect = innerWidth / innerHeight;
   cam.updateProjectionMatrix();
+  sizeDirty = true;
+}
+
+// Resizing the canvas clears it, and a cleared canvas left until the next
+// rAF is shown as a black frame: the size and render scale are only applied
+// here, right before the frame's render.
+let wantRatio = 1, sizeDirty = true;
+function applyRenderSize() {
+  sizeDirty = false;
+  const w = innerWidth, h = innerHeight;
+  const c = renderer.domElement;
+  if (wantRatio === renderer.getPixelRatio() && c.width === Math.floor(w * wantRatio) && c.height === Math.floor(h * wantRatio)) return;
+  noteGfxEvent(`setSize ${w}x${h}@${wantRatio.toFixed(2)}`);
+  renderer.setDrawingBufferSize(w, h, wantRatio);
+  postfx.setSize(w, h, wantRatio);
 }
 
 
@@ -2452,7 +2472,9 @@ export function update3D(dt, world) {
   // a busy CPU (cpuLevel 1+) renders the shadow map every other frame
   renderer.shadowMap.autoUpdate = !(menuCover && menuShadowDone) && !(cpuLevel() > 0 && (shadowFrame++ & 1));
   if (menuCover) menuShadowDone = true;
+  if (sizeDirty) applyRenderSize();
   postfx.render();
+  canvasFrames++;
   renderer.shadowMap.autoUpdate = true;
   probe.mark('3d:render');
   probe.identify(scene);
@@ -2741,7 +2763,7 @@ function queueWarmup(world) {
     ped, () => buildPersonActor(0x1f3f8f, 0xd9aa82, { seed: 5 }),
     critter('seagull'), critter('duck', { variant: 'drake' }), critter('pigeon'), critter('cat'), critter('dog'), critter('cow'), critter('sheep'),
     buildVehicleImpactSparkMesh3D, buildVehicleFireMesh3D, buildVehicleExplosionMesh3D, buildSplashMesh3D, buildKissHeartMesh,
-    buildPoliceHeliMesh3D, buildMissionMarker3D, buildWaypointDotMesh3D,
+    buildPoliceHeliMesh3D, buildMissionMarker3D, buildWaypointDotMesh3D, buildBalloonWarmup,
   ];
 }
 

@@ -465,10 +465,15 @@ don't collide, and actors are drawn at their height.
   never when the settings are no longer the default preset). `?gfxadvies`
   and `?gpu=<string>` (desktop `--gfx-advice[=<string>]`) force it in tests.
 - Adaptive quality (`autoResolution`, on by default): main.js feeds every
-  in-game frame's interval and main-thread time to `noteFrame`; slow
-  GPU-bound frames lower the render scale (down to 60%), slow CPU-bound
-  frames raise `cpuLevel` (fewer facade details, the shadow map every
-  other frame); one step per second down, back up after four good seconds.
+  in-game frame's interval and main-thread time to `noteFrame`, judged per
+  second by the medians (hitches do not count). Sustained GPU-bound frames
+  (2 s, 3 s on Hoog) lower the render scale (down to 60%), sustained slow
+  CPU-bound frames raise `cpuLevel` (fewer facade details, the shadow map
+  every other frame); a step back up needs five good seconds and waits 15 s
+  after the last change, doubled (up to 2 min) when a step up had to be
+  undone. The canvas size and pixel ratio are only applied in `update3D`
+  right before the render (`applyRenderSize`): resizing clears the canvas,
+  and a cleared canvas left until the next frame shows as a black frame.
 - Behind a menu the city keeps rendering at 30 fps (20 fps behind a sheet
   or the map, `MENU_FRAME_S`); in a game the shadow map is reused while
   paused.
@@ -506,8 +511,8 @@ don't collide, and actors are drawn at their height.
   `FACADE_LOW`) skips the brick and roof-tile textures and window frames.
 - The minimap's Ommeland layer (`drawCountryMinimap`) is static: drawn into
   world-aligned 256 px tiles per half-octave zoom step (at most one new tile
-  a frame, LRU of 40) and blitted. While the CPU is the bottleneck
-  (simload.js level 1-2) the minimap redraws every second or third frame.
+  a frame, LRU of 40) and blitted. When the CPU is the bottleneck
+  (simload.js level 2) the minimap redraws every second frame.
   Its water and meadow images (the 10 m water field is ~6 M pixels) are
   filled in row bands a few ms a frame from the title screen on
   (`warmCountryMaps`), not on the first tile.
@@ -698,6 +703,14 @@ entries with "Kopieer naar klembord", "Wissen" and, in the desktop app,
 "Opslaan als bestand" (`gteDesktop.saveTextFile`, `gte:save-text`: a save
 dialog in main.js). Nothing is ever sent and there are no network calls;
 the privacy line in Over, the README and docs/LICENTIES.md §5 say so.
+
+Lost, restored and failed WebGL contexts (the game canvas and the shared
+preview renderer) always get an entry (`blackframe.js` `watchContext`).
+`?zwartcheck` (desktop `--zwartcheck`, or `window.__blackCheck`) also reads
+back the centre and corners of the canvas at the end of drawn frames (right
+after a renderer event, otherwise every 120 frames: a readback waits for the
+GPU) and logs a black frame, or a dark full-screen overlay, with the
+renderer state and the events just before it.
 
 ## Name and logo
 

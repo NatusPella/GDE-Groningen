@@ -216,16 +216,30 @@ export function startGfxAdvisor(gl) {
 
 // --- adaptive quality ---------------------------------------------------
 
-// With autoResolution on, slow frames step the view down quickly and good
-// frames step it back up slowly. GPU-bound (frame much longer than the main
-// thread's work): render scale, down to 60%. CPU-bound (a busy machine, many
-// draws): cpuLevel 1-2, fewer facade details and a shadow map every other
-// frame (scene3d.js).
+// With autoResolution on, sustained slow frames step the view down and a
+// long run of good ones steps it back up. Each second is judged by its
+// median frame time and median main-thread time, so hitches (streaming, GC,
+// a worker burst) never count. GPU-bound (the frame much longer than the
+// main thread's work, for at least two seconds; three on Hoog): render scale,
+// down to 60%. CPU-bound: cpuLevel 1-2, fewer facade details and a shadow
+// map every other frame (scene3d.js). A step back up that has to be undone
+// again soon makes the next step up wait twice as long (15 s up to 2 min).
 const DYN_MIN = 0.6;
 const SLOW_MS = 27, GOOD_MS = 19;
-const dyn = { scale: 1, cpuLevel: 0, n: 0, sum: 0, cpu: 0, good: 0, cool: 0 };
+const COOL_MS = 2500, UP_WAIT_MS = 15000, UP_WAIT_MAX = 120000;
+const dyn = { scale: 1, cpuLevel: 0, ms: [], cpu: [], sum: 0, slowGpu: 0, slowCpu: 0, good: 0, cool: 0, upWait: UP_WAIT_MS, upAt: 0, lastUp: -1e9, now: 0 };
 export const dynamicScale = () => dyn.scale;
 export const cpuLevel = () => dyn.cpuLevel;
+
+// back to full scale (a new run in scripts/gfx_profile_test.mjs)
+export function resetDynamic() {
+  Object.assign(dyn, { scale: 1, cpuLevel: 0, ms: [], cpu: [], sum: 0, slowGpu: 0, slowCpu: 0, good: 0, cool: 0, upWait: UP_WAIT_MS, upAt: 0, lastUp: -1e9, now: 0 });
+}
+
+function median(a) {
+  a.sort((x, y) => x - y);
+  return a[a.length >> 1];
+}
 
 // One rendered in-game frame: interval and main-thread ms. True when
 // something changed.
@@ -236,25 +250,41 @@ export function noteFrame(ms, cpuMs) {
     return true;
   }
   if (!(ms > 0) || ms > 250) return false;
+  dyn.now += ms;
   if (dyn.cool > 0) { dyn.cool -= ms; return false; }
-  dyn.n++; dyn.sum += ms; dyn.cpu += cpuMs;
+  dyn.ms.push(ms); dyn.cpu.push(cpuMs); dyn.sum += ms;
   if (dyn.sum < 1000) return false;
-  const avg = dyn.sum / dyn.n, cpu = dyn.cpu / dyn.n;
-  dyn.n = dyn.sum = dyn.cpu = 0;
+  const med = median(dyn.ms), cpu = median(dyn.cpu);
+  dyn.ms = []; dyn.cpu = []; dyn.sum = 0;
   const was = dyn.scale + dyn.cpuLevel * 10;
-  if (avg > SLOW_MS) {
+  const gpuBound = med - cpu > Math.max(6, med * 0.35);
+  const hoog = getSettings().quality === 'hoog';
+  if (med > SLOW_MS) {
     dyn.good = 0;
-    if (avg - cpu > 6 && dyn.scale > DYN_MIN) dyn.scale = Math.max(DYN_MIN, dyn.scale - 0.1);
-    else if (dyn.cpuLevel < 2) dyn.cpuLevel++;
-    else if (dyn.scale > DYN_MIN) dyn.scale = Math.max(DYN_MIN, dyn.scale - 0.1);
-  } else if (avg < GOOD_MS && ++dyn.good >= 4) {
-    dyn.good = 0;
-    if (dyn.scale < 1) dyn.scale = Math.min(1, dyn.scale + 0.05);
-    else if (dyn.cpuLevel > 0) dyn.cpuLevel--;
+    if (gpuBound) { dyn.slowGpu++; dyn.slowCpu = 0; } else { dyn.slowCpu++; dyn.slowGpu = 0; }
+    if (dyn.slowGpu >= (hoog ? 3 : 2) && dyn.scale > DYN_MIN) {
+      dyn.scale = Math.max(DYN_MIN, dyn.scale - 0.1);
+      dyn.slowGpu = 0;
+    } else if (dyn.slowCpu >= 2 && dyn.cpuLevel < 2) {
+      dyn.cpuLevel++;
+      dyn.slowCpu = 0;
+    }
+  } else {
+    dyn.slowGpu = dyn.slowCpu = 0;
+    if (med < GOOD_MS && ++dyn.good >= 5 && dyn.now >= dyn.upAt) {
+      dyn.good = 0;
+      if (dyn.scale < 1) { dyn.scale = Math.min(1, dyn.scale + 0.05); dyn.lastUp = dyn.now; }
+      else if (dyn.cpuLevel > 0) dyn.cpuLevel--;
+    }
   }
   dyn.scale = Math.round(dyn.scale * 20) / 20;
-  if (dyn.scale + dyn.cpuLevel * 10 === was) return false;
-  dyn.cool = 600;
-  if (typeof window !== 'undefined') window.__gfxDyn = { scale: dyn.scale, cpuLevel: dyn.cpuLevel, avg: +avg.toFixed(1), cpu: +cpu.toFixed(1) };
+  const now = dyn.scale + dyn.cpuLevel * 10;
+  if (now === was) return false;
+  // every step up waits upWait after the last change; undoing a recent step
+  // up doubles that wait
+  if (now < was) dyn.upWait = dyn.now - dyn.lastUp < 30000 ? Math.min(UP_WAIT_MAX, dyn.upWait * 2) : UP_WAIT_MS;
+  dyn.upAt = dyn.now + dyn.upWait;
+  dyn.cool = COOL_MS;
+  if (typeof window !== 'undefined') window.__gfxDyn = { scale: dyn.scale, cpuLevel: dyn.cpuLevel, median: +med.toFixed(1), cpu: +cpu.toFixed(1) };
   return true;
 }
