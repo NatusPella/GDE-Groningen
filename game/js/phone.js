@@ -1,65 +1,46 @@
+// The phone: Tammo and Tessa's foldable, the Pixie Vouw 11. Unfolded it IS
+// the pause menu (pausemenu.js draws the frame); this module fills its
+// Telefoon section: Contacten (calls with an action or two) and Berichten
+// (texts, calls and Kiekdoar news from world.phoneHistory, per sender, with
+// unread counts). Incoming calls and texts are phonefeed.js (the folded cover
+// screen); Esc while one is up opens its thread here.
 import { dualHtml } from './subtitles.js';
 import { speakerHtml } from './speakers.js';
 import { noteSpoken } from './characters.js';
-import { initCinematics, updateCinematics, cinematicPausesGameplay, isCinematicActive } from './cinematics.js';
+import { initCinematics, updateCinematics, cinematicPausesGameplay } from './cinematics.js';
 import { getMissionList, getNextMission } from './missions.js';
-import { missionIconSvg } from './missionicons.js';
-import { playMission, isPlayAheadOpen, getTodoItems, chooseTodo, placeName } from './todo.js';
-import { setGoal } from './goal.js';
-import { openPauseMenu, isPauseMenuOpen } from './pausemenu.js';
-import { saveGame } from './savegame.js';
+import { playMission, isPlayAheadOpen } from './todo.js';
+import { openPauseMenu, closePauseMenu, isPauseMenuOpen, pauseMenuTab } from './pausemenu.js';
 import { setUserWaypoint } from './routing.js';
 import { storyFlag } from './story.js';
-import { getHeroCar, getClockText } from './hud_panel.js';
-import { storyDate } from './calendar.js';
-import { getGarageList, deliverOwnedVehicle, locateOwnedVehicle, whereText } from './ownedvehicles.js';
+import { getHeroCar } from './hud_panel.js';
+import { getGarageList, deliverOwnedVehicle } from './ownedvehicles.js';
 import { initGarageStyles } from './garageui.js';
-import { getSideJobOffers, quitSideJob } from './sidejobs.js';
 import { lineVoiceFor } from './linevoice.js';
 // phone talk is a call on the speech.js channel
 import { playContactVoice as playBanterVoice, stopContactVoice as stopBanterVoice } from './audio.js';
-
-const RING_TIME = 0.9;
 import { HERO_REPLACE_FEE as GARAGE_PRICE } from './economy.js';
-import { getPadelSpotsForRender } from './padel.js';
-import { activityUbboRows } from './activities.js';
 
-const ICONS = {
-  contacten: '<path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm-7 8c0-3.3 3.1-6 7-6s7 2.7 7 6v1H5z"/>',
-  missies: '<path d="M6 3h2v18H6zM8 4h11l-2.5 4L19 12H8z"/>',
-  sikkom: '<path d="M12 3a6 6 0 0 0-6 6v4l-2 3v1h16v-1l-2-3V9a6 6 0 0 0-6-6zm-2 16a2 2 0 0 0 4 0z"/>',
-  kaart: '<path d="M3 5l6-2 6 2 6-2v16l-6 2-6-2-6 2zm6 0v12l6 2V7z"/>',
-  instellingen: '<path d="M4 6h9v2H4zm13 0h3v2h-3zM4 16h3v2H4zm7 0h9v2h-9zM13 4h4v6h-4zM7 14h4v6H7zM4 11h5v2H4zm9 0h7v2h-7zM9 9h4v6H9z"/>',
-  opslaan: '<path d="M4 3h13l4 4v14H3V3h1zm2 2v5h10V5H6zm1 9v5h10v-5H7zm7-8h2v3h-2V6z"/>',
-  ubbo: '<path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zM9 6h2v4a1 1 0 0 0 2 0V6h2v4a3 3 0 0 1-6 0z"/>',
-  voertuigen: '<path d="M5 11l1.6-4.3A2 2 0 0 1 8.5 5.4h7a2 2 0 0 1 1.9 1.3L19 11h1a1 1 0 0 1 1 1v5h-2v1.5a1.5 1.5 0 0 1-3 0V17H8v1.5a1.5 1.5 0 0 1-3 0V17H3v-5a1 1 0 0 1 1-1zm2.2 0h9.6l-1.1-3.2a.6.6 0 0 0-.6-.4H8.9a.6.6 0 0 0-.6.4zM6.5 12.6a1.3 1.3 0 1 0 0 2.6 1.3 1.3 0 0 0 0-2.6zm11 0a1.3 1.3 0 1 0 0 2.6 1.3 1.3 0 0 0 0-2.6z"/>',
-};
-const APPS = [
-  { id: 'contacten', label: 'Contacten' },
-  { id: 'missies', label: 'Missies' },
-  { id: 'sikkom', label: 'Kiekdoar' },
-  { id: 'kaart', label: 'Kaart' },
-  { id: 'voertuigen', label: 'Voertuigen' },
-  { id: 'ubbo', label: 'Ubbo' },
-  { id: 'instellingen', label: 'Instellingen' },
-  { id: 'opslaan', label: 'Opslaan' },
-];
-const COLS = 3;
+export const PHONE_NAME = 'Pixie Vouw 11';
+const RING_TIME = 0.9;
+const MAX_DELIVER = 3;
 
 let world = null;
-let root = null;
-let screenEl = null;
-let clockEl = null;
-let open = false;
-let st = { screen: 'home', sel: 0, flash: '', call: null };
-let clockText = '';
+// the call in progress: { contact, phase: 'ringing' | 'talk', t, line, actions, offer }
+let call = null;
+let callIdx = -1;
+let thread = null;
+let note = '';
+let panelRef = null;
+let api = null;
 
 const pick = (list) => list[Math.floor(Math.random() * list.length)];
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const icon = (id) => `<svg viewBox="0 0 24 24" aria-hidden="true"><g fill="currentColor">${ICONS[id]}</g></svg>`;
+const initials = (name) => String(name).replace(/\(.*\)/, '').trim().split(/\s+/).map((s) => s[0]).slice(0, 2).join('').toUpperCase();
 
+// The unfolded phone is the pause menu on its Telefoon section.
 export function isPhoneOpen() {
-  return open;
+  return isPauseMenuOpen() && pauseMenuTab() === 'telefoon';
 }
 
 function buddyName(w) {
@@ -86,50 +67,60 @@ function buddyTalk(w) {
       'Moi! Kun je niet gewoon appen, net als ieder normaal mens?',
       'Sinds ik jou ken heb ik geen rustige dag meer gehad in Grunn.',
     ]),
-    actions: c ? [{ label: 'Waar ben je?', run: () => { setUserWaypoint(c.x, c.y, buddyName(w)); flashAndClose(`${buddyName(w)} staat op je kaart`); } }] : [],
+    actions: c ? [{ label: 'Waar ben je?', primary: true, run: () => { setUserWaypoint(c.x, c.y, buddyName(w)); flashAndClose(`${buddyName(w)} staat op je kaart`); } }] : [],
   };
 }
 
-function berendTalk(w, call) {
+function berendTalk(w, c) {
   const next = getNextMission();
   if (!next) return { line: 'Niks. Kom mor later.' };
   if (next.active) return { line: 'Je bent al bezig. Eerst afmaken.' };
   const list = getMissionList();
-  const idx = call.offer != null ? call.offer : next.index;
+  const idx = c.offer != null ? c.offer : next.index;
   const m = list[idx];
   const done = m.done ? ' Al eens gedaan, dus klusloon. Geld is geld.' : '';
   const needs = m.needs ? ` Maar eerst: ${m.needs}` : '';
   return {
     line: `Kom mor. Klusje: "${m.label}". €${m.pay}, contant.${done}${needs}`,
     actions: [
-      // a later story mission asks first (todo.js); the phone closes for that question
-      { label: 'Klus aannemen', run: () => { setOpen(false); playMission(w, idx, () => flashAndClose(`Route naar ${m.label}`)); } },
-      { label: 'Iets anders?', run: () => { call.offer = (idx + 1) % list.length; talk(call); } },
+      // a later story mission asks first (todo.js); the menu closes for that question
+      { label: 'Klus aannemen', primary: true, run: () => { closePauseMenu(); playMission(w, idx, () => w.addMessage(`Route naar ${m.label}`, 3)); } },
+      { label: 'Iets anders?', run: () => { c.offer = (idx + 1) % list.length; talk(c); } },
     ],
   };
 }
 
+// Henk: the hero car on the map or a new one, and any owned vehicle brought round.
 function garageTalk(w) {
   const hero = getHeroCar(w);
-  if (hero && w.player.inVehicle === hero) return { line: 'Je zit er nu in, slimmerik. Hoor ik ’m nou rammelen?' };
-  if (hero) {
-    return {
-      line: 'Je Escapade staat nog netjes waar je ’m liet. Zal ik ’m op je kaart zetten?',
-      actions: [{ label: 'Op kaart zetten', run: () => { setUserWaypoint(hero.x, hero.y, 'Jouw auto'); flashAndClose('Je auto staat op de kaart'); } }],
-    };
-  }
-  return {
-    line: `Total loss? Wéér? Voor €${GARAGE_PRICE} zet ik een nieuwe bij je neer.`,
-    actions: [{
-      label: `Bezorgen (€${GARAGE_PRICE})`,
+  const actions = [];
+  let line;
+  if (hero && w.player.inVehicle === hero) line = 'Je zit er nu in, slimmerik. Hoor ik ’m nou rammelen?';
+  else if (hero) {
+    line = 'Je Escapade staat nog netjes waar je ’m liet. Zal ik ’m op je kaart zetten?';
+    actions.push({ label: 'Op kaart zetten', primary: true, run: () => { setUserWaypoint(hero.x, hero.y, 'Jouw auto'); flashAndClose('Je auto staat op de kaart'); } });
+  } else {
+    line = `Total loss? Wéér? Voor €${GARAGE_PRICE} zet ik een nieuwe bij je neer.`;
+    actions.push({
+      label: `Bezorgen (€${GARAGE_PRICE})`, primary: true,
       run: () => {
-        if (w.money < GARAGE_PRICE) { st.call.line = 'Geen geld, geen Escapade. Zo werkt dat hier.'; st.call.actions = []; render(); return; }
+        if (w.money < GARAGE_PRICE) return say('Geen geld, geen Escapade. Zo werkt dat hier.');
         const res = deliverOwnedVehicle(w, 'hero');
-        if (!res.ok) { st.call.line = res.text; st.call.actions = []; render(); return; }
-        setOpen(false);
+        if (!res.ok) return say(res.text);
+        closePauseMenu();
       },
-    }],
-  };
+    });
+  }
+  let n = 0;
+  for (const e of getGarageList(w)) {
+    if (e.hero || n >= MAX_DELIVER || ['driving', 'locked', 'forsale'].includes(e.status)) continue;
+    n++;
+    actions.push({
+      label: `Breng de ${e.model || e.label} (${e.feeLabel})`,
+      run: () => { const res = deliverOwnedVehicle(w, e.id); if (res.ok) closePauseMenu(); else say(res.text); },
+    });
+  }
+  return { line, actions };
 }
 
 function jelleTalk() {
@@ -144,7 +135,7 @@ function jelleTalk() {
         'Ik heb geoefend, hear. Deze keer win ik. Wis en wrachtich.',
         'Mijn mem zegt: Jelle, laat die Grinzers maar winnen. Maar mijn mem is er niet.',
       ]),
-      actions: o ? [{ label: `${o.name} op kaart`, run: () => { setUserWaypoint(o.x, o.y, o.where); flashAndClose(`${o.name} staat op je kaart`); } }] : [],
+      actions: o ? [{ label: `${o.name} op kaart`, primary: true, run: () => { setUserWaypoint(o.x, o.y, o.where); flashAndClose(`${o.name} staat op je kaart`); } }] : [],
     };
   }
   return {
@@ -168,400 +159,209 @@ function mamTalk() {
 
 function flashAndClose(msg) {
   if (world) world.addMessage(msg, 3);
-  setOpen(false);
+  hangUp();
+  closePauseMenu();
+}
+
+function say(text) {
+  if (!call) return;
+  call.line = text;
+  call.actions = call.actions.filter((a) => a.hangup);
+  renderDetail(true);
+}
+
+function talk(c) {
+  const res = c.contact.talk(world, c) || {};
+  c.phase = 'talk';
+  c.line = res.line || '';
+  c.actions = [...(res.actions || []), { label: 'Ophangen', hangup: true, run: () => { hangUp(); renderDetail(true); } }];
+  if (c.line) noteSpoken(world, c.contact.speaker || c.contact.name);
+  // Jelle answers in his own voice (the lines manifest)
+  const v = c.contact.id === 'jelle' && lineVoiceFor('Jelle Terpstra', c.line);
+  if (v) playBanterVoice(v.src);
+  renderDetail(true);
+}
+
+function hangUp() {
+  if (call) stopBanterVoice();
+  call = null;
+}
+
+// --- Berichten: world.phoneHistory per sender ----------------------------------------------
+
+// An entry: { text, at, from?, body?, read? }. Older entries (before `from`)
+// carry the sender in the text: "Henk: ...", "Gesprek · Henk: ...".
+function senderOf(e) {
+  if (e.from) return e.from;
+  const m = /^(?:(?:Gesprek|Live) · )?([^:]{2,32}?)(?: (?:belde|sprak in|was live|op Kiekdoar|liet een kaartje achter|op Nachtstreek))?: /.exec(e.text || '');
+  return m ? m[1] : 'Kiekdoar';
+}
+function bodyOf(e) {
+  if (e.body) return e.body;
+  const m = /^(?:(?:Gesprek|Live) · )?[^:]{2,32}: (.*)$/s.exec(e.text || '');
+  return m ? m[1] : String(e.text || '');
+}
+
+export function phoneThreads(w = world) {
+  const by = new Map();
+  for (const e of (w && w.phoneHistory) || []) {
+    const from = senderOf(e);
+    let t = by.get(from);
+    if (!t) { t = { from, items: [], unread: 0 }; by.set(from, t); }
+    t.items.push(e);
+    if (!e.read) t.unread++;
+  }
+  return [...by.values()];
+}
+
+export function phoneUnread(w = world) {
+  return ((w && w.phoneHistory) || []).filter((e) => !e.read).length;
+}
+
+function markRead(from) {
+  for (const e of (world && world.phoneHistory) || []) if (senderOf(e) === from) e.read = true;
+}
+
+// --- the Telefoon section (pausemenu.js) ---------------------------------------------------
+
+function contactCard(c, i) {
+  const cur = callIdx === i && call;
+  return `<button type="button" class="td-card ph-card" data-ph-contact="${i}"${cur ? ' aria-current="true"' : ''}>` +
+    `<span class="td-ico ph-av">${esc(initials(c.name))}</span>` +
+    `<span class="td-txt"><b>${esc(c.name)}</b><small>${dualHtml(c.sub)}</small></span>` +
+    `<span class="td-side">${cur ? `<span class="td-pill" data-st="nu">${call.phase === 'ringing' ? 'Bellen…' : 'In gesprek'}</span>` : ''}</span></button>`;
+}
+
+function threadCard(t) {
+  const last = t.items[0];
+  return `<button type="button" class="td-card ph-card" data-ph-thread="${esc(t.from)}"${thread === t.from ? ' aria-current="true"' : ''}>` +
+    `<span class="td-ico ph-av${t.from === 'Kiekdoar' ? ' news' : ''}">${esc(initials(t.from))}</span>` +
+    `<span class="td-txt"><b>${esc(t.from)}</b><small class="ph-snip">${dualHtml(bodyOf(last))}</small></span>` +
+    `<span class="td-side">${t.unread ? `<span class="td-pill ph-unread" data-st="nu">${t.unread} nieuw</span>` : ''}<span class="td-dist">${esc(last.at || '')}</span></span></button>`;
+}
+
+function callHtml() {
+  const c = call;
+  const name = c.contact.name;
+  return `<div class="ph-call"><span class="ph-av lg">${esc(initials(name))}</span><h3>${esc(name)}</h3>` +
+    `<span class="td-kicker">${c.phase === 'ringing' ? 'Bellen…' : 'Verbonden'}</span>` +
+    (c.phase === 'talk' && c.line ? `<p class="ph-bubble">${speakerHtml(c.contact.speaker || name)}${dualHtml(c.line)}</p>` : '') +
+    (c.phase === 'talk' ? `<div class="ov-btns ph-acts">${c.actions.map((a, i) => `<button type="button" class="${a.hangup ? 'pm-danger' : a.primary ? 'pm-primary' : 'pm-secondary'} pm-small" data-ph-act="${i}">${esc(a.label)}</button>`).join('')}</div>` : '') +
+    '</div>';
+}
+
+function threadHtml(from) {
+  const t = phoneThreads().find((x) => x.from === from);
+  if (!t) return '<p class="pm-note">Kies een gesprek.</p>';
+  return `<span class="td-kicker">${t.from === 'Kiekdoar' ? 'Nieuws' : 'Berichten'}</span><h3>${esc(t.from)}</h3>` +
+    `<div class="ph-thread">${[...t.items].reverse().map((e) => `<p class="ph-msg"><small>${esc(e.at || '')}</small>${dualHtml(bodyOf(e))}</p>`).join('')}</div>`;
+}
+
+function renderDetail(focusActs = false) {
+  const panel = panelRef;
+  if (!panel || !panel.isConnected) return;
+  const aside = panel.querySelector('.td-detail');
+  const sub = panel.dataset.phSub;
+  if (sub === 'berichten') aside.innerHTML = thread ? threadHtml(thread) : '<p class="pm-note">Kies een gesprek om het te lezen.</p>';
+  else if (call) aside.innerHTML = callHtml();
+  else aside.innerHTML = `<p class="pm-note">${note ? esc(note) : 'Kies iemand om te bellen.'}</p>`;
+  for (const b of panel.querySelectorAll('[data-ph-contact]')) {
+    const on = !!call && Number(b.dataset.phContact) === callIdx;
+    b.toggleAttribute('aria-current', on);
+  }
+  if (focusActs && call && call.phase === 'talk') {
+    const active = document.activeElement;
+    const keep = active && panel.contains(active) && !active.closest('.td-detail') && !active.dataset.phContact;
+    const first = aside.querySelector('[data-ph-act]');
+    if (first && !keep) first.focus({ preventScroll: true });
+  }
+}
+
+// Draws the section's list for `sub` ('contacten' | 'berichten').
+export function renderPhonePanel(panel, w, sub) {
+  world = w;
+  panelRef = panel;
+  panel.dataset.phSub = sub;
+  const list = panel.querySelector(`[data-of="telefoon"][data-sub="${sub}"]`);
+  if (sub === 'berichten') {
+    const ts = phoneThreads(w);
+    if (thread && !ts.some((t) => t.from === thread)) thread = null;
+    list.innerHTML = ts.length
+      ? `<h2>Berichten <small>nieuwste eerst</small></h2><div class="td-grid ph-grid">${ts.map(threadCard).join('')}</div>`
+      : '<p class="pm-note">Nog geen berichten. Grunn is rustig… nog wel.</p>';
+    if (thread) markRead(thread);
+  } else {
+    list.innerHTML = `<h2>Contacten <small>bel voor een rit, een klus of een praatje</small></h2><div class="td-grid ph-grid">${contacts(w).map(contactCard).join('')}</div>`;
+  }
+  for (const el of panel.querySelectorAll('[data-of="telefoon"][data-sub]')) if (el.dataset.sub !== sub) el.innerHTML = '';
+  renderDetail();
+}
+
+// Clicks in the section; a: { rerender(keep) }.
+export function phoneClick(e, w, panel, a) {
+  world = w;
+  api = a;
+  const t = e.target;
+  const ct = t.closest('[data-ph-contact]');
+  if (ct) {
+    const i = Number(ct.dataset.phContact);
+    const c = contacts(w)[i];
+    if (!c) return true;
+    if (call && callIdx === i) { renderDetail(true); return true; }
+    hangUp();
+    note = '';
+    callIdx = i;
+    call = { contact: c, phase: 'ringing', t: 0, line: '', actions: [] };
+    renderDetail();
+    for (const b of panel.querySelectorAll('[data-ph-contact]')) b.toggleAttribute('aria-current', b === ct);
+    return true;
+  }
+  const act = t.closest('[data-ph-act]');
+  if (act) {
+    const x = call && call.actions[Number(act.dataset.phAct)];
+    if (x) x.run();
+    if (!call && isPauseMenuOpen()) { const b = panel.querySelector(`[data-ph-contact="${callIdx}"]`); if (b) b.focus({ preventScroll: true }); }
+    return true;
+  }
+  const th = t.closest('[data-ph-thread]');
+  if (th) {
+    thread = th.dataset.phThread;
+    markRead(thread);
+    a.rerender(th);
+    return true;
+  }
+  return false;
+}
+
+// Esc on a call or text card (pausemenu.js), or the trailer: the thread of `from`.
+export function selectPhoneThread(from) {
+  thread = from || null;
+}
+
+// The Steam trailer (trailer.js) showed the phone over a gameplay shot: now
+// the unfolded phone on Te doen's nearby list (null closes it again).
+export function trailerPhone(app) {
+  if (!app) { closePauseMenu(); return; }
+  openPauseMenu(app === 'berichten' ? 'telefoon' : 'todo', app === 'berichten' ? { sub: 'berichten' } : { view: 'dichtbij' });
 }
 
 export function initPhone(w) {
   world = w;
   initCinematics(w);
   initGarageStyles();
-  if (root) return;
-  root = document.createElement('div');
-  root.className = 'phone';
-  root.setAttribute('role', 'dialog');
-  root.setAttribute('aria-label', 'Telefoon');
-  root.setAttribute('aria-hidden', 'true');
-  root.innerHTML =
-    '<div class="phone-frame">' +
-    '<div class="phone-status"><span class="ph-clock"></span><span class="ph-carrier">Grunn Mobiel</span><span class="ph-batt" aria-hidden="true"></span></div>' +
-    '<div class="phone-screen"></div>' +
-    '<div class="phone-hints"><span class="hud-key">↑↓←→</span>kiezen <span class="hud-key">ENTER</span>ok <span class="hud-key">⌫</span>terug <span class="hud-key">T</span>weg</div>' +
-    '</div>';
-  (document.getElementById('hud') || document.body).appendChild(root);
-  screenEl = root.querySelector('.phone-screen');
-  clockEl = root.querySelector('.ph-clock');
-
-  for (const type of ['mousedown', 'mouseup', 'wheel']) root.addEventListener(type, (e) => e.stopPropagation());
-  root.addEventListener('click', (e) => {
-    const item = e.target.closest('[data-idx]');
-    if (item) { st.sel = Number(item.dataset.idx); activate(); return; }
-    if (e.target.closest('[data-back]')) back();
-  });
-
-  window.addEventListener('keydown', onKey, true);
-}
-
-function canOpen() {
-  return document.body.classList.contains('game-started') && !isPauseMenuOpen() && !isCinematicActive()
-    && !(world && (world.pendingRespawn || world.pigeonMode)) && !(document.activeElement && /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName));
-}
-
-function onKey(e) {
-  const k = e.key;
-  if (!open) {
-    if ((k === 't' || k === 'T') && !e.repeat && !e.metaKey && !e.ctrlKey && canOpen()) {
-      e.preventDefault();
-      e.stopPropagation();
-      setOpen(true);
-    }
-    return;
-  }
-  if (e.metaKey || e.ctrlKey) return;
-  e.stopPropagation();
-  if (k.length === 1 || k.startsWith('Arrow') || ['Enter', 'Backspace', 'Escape', 'Tab'].includes(k)) e.preventDefault();
-  if (e.repeat && !k.startsWith('Arrow')) return;
-  if (k === 'Escape' || k === 't' || k === 'T') setOpen(false);
-  else if (k === 'Backspace') back();
-  else if (k === 'Enter' || k === ' ') activate();
-  else if (k.startsWith('Arrow')) move(k);
-}
-
-function setOpen(v) {
-  if (!root || open === v) return;
-  open = v;
-  if (world) world.input.reset();
-  root.classList.toggle('open', open);
-  root.setAttribute('aria-hidden', String(!open));
-  if (open) {
-    st = { screen: 'home', sel: 0, flash: '', call: null };
-    render();
-  }
-  refreshPause();
-}
-
-// The Steam trailer (trailer.js) opens the phone on an app over a gameplay
-// shot (null closes it again).
-export function trailerPhone(app) {
-  setOpen(!!app);
-  if (app) openApp(app);
 }
 
 function refreshPause() {
-  if (world) world.uiPaused = open || cinematicPausesGameplay() || isPlayAheadOpen();
-}
-
-function itemCount() {
-  if (st.screen === 'home') return APPS.length;
-  if (st.screen === 'contacten') return contacts(world).length;
-  if (st.screen === 'missies') return getMissionList().length;
-  if (st.screen === 'call') return st.call && st.call.phase === 'talk' ? st.call.actions.length : 0;
-  if (st.screen === 'voertuigen') return getGarageList(world).length;
-  if (st.screen === 'voertuig') return vehicleActions().length;
-  if (st.screen === 'ubbo') return ubboRows().length;
-  return 0;
-}
-
-function move(k) {
-  const n = itemCount();
-  if (!n) return;
-  let s = st.sel;
-  if (st.screen === 'home') {
-    if (k === 'ArrowLeft') s -= 1;
-    else if (k === 'ArrowRight') s += 1;
-    else if (k === 'ArrowUp') s -= COLS;
-    else s += COLS;
-  } else {
-    if (k === 'ArrowLeft' || k === 'ArrowRight') return;
-    s += k === 'ArrowUp' ? -1 : 1;
-  }
-  st.sel = (s + n) % n;
-  render();
-  const el = screenEl.querySelector('.sel');
-  if (el && el.scrollIntoView) el.scrollIntoView({ block: 'nearest' });
-}
-
-function back() {
-  if (st.screen === 'home') setOpen(false);
-  else if (st.screen === 'voertuig') { st.screen = 'voertuigen'; st.sel = Math.max(0, st.vehIdx || 0); st.vehMsg = ''; render(); }
-  else goHome(APPS.findIndex((a) => a.id === (st.screen === 'call' ? 'contacten' : st.screen)));
-}
-
-function goHome(sel = 0) {
-  if (st.screen === 'call') { st.screen = 'contacten'; st.sel = Math.max(0, st.callIdx || 0); st.call = null; render(); return; }
-  st.screen = 'home';
-  st.sel = Math.max(0, sel);
-  render();
-}
-
-function openApp(id) {
-  const w = world;
-  if (id === 'kaart') { setOpen(false); openPauseMenu('map'); return; }
-  if (id === 'instellingen') { setOpen(false); openPauseMenu('settings'); return; }
-  if (id === 'opslaan') {
-    st.flash = saveGame(w) ? 'Opgeslagen' : 'Opslaan mislukt';
-    st.flashT = 2;
-    render();
-    return;
-  }
-  st.screen = id;
-  st.sel = 0;
-  if (id === 'missies') {
-    const i = getMissionList().findIndex((m) => m.status === 'actief' || m.status === 'volgende');
-    st.sel = Math.max(0, i);
-  }
-  render();
-}
-
-function activate() {
-  const w = world;
-  if (st.screen === 'home') return openApp(APPS[st.sel].id);
-  if (st.screen === 'contacten') {
-    const c = contacts(w)[st.sel];
-    st.callIdx = st.sel;
-    st.screen = 'call';
-    st.sel = 0;
-    st.call = { contact: c, phase: 'ringing', t: 0, line: '', actions: [] };
-    render();
-    return;
-  }
-  if (st.screen === 'missies') {
-    const m = getMissionList()[st.sel];
-    if (!m) return;
-    if (m.status === 'actief') { flashAndClose('Deze missie loopt al'); return; }
-    if (getMissionList().some((x) => x.status === 'actief')) { flashAndClose('Maak eerst je huidige missie af'); return; }
-    setOpen(false);
-    playMission(w, m.index, () => flashAndClose(m.needs ? 'Eerst naar de winkel: staat op je kaart' : `Route naar ${m.label}`));
-    return;
-  }
-  if (st.screen === 'call' && st.call && st.call.phase === 'talk') {
-    const a = st.call.actions[st.sel];
-    if (a) a.run();
-  }
-  if (st.screen === 'voertuigen') {
-    const e = getGarageList(w)[st.sel];
-    if (!e) return;
-    st.vehIdx = st.sel;
-    st.vehId = e.id;
-    st.vehMsg = '';
-    st.screen = 'voertuig';
-    st.sel = 0;
-    render();
-    return;
-  }
-  if (st.screen === 'voertuig') {
-    const a = vehicleActions()[st.sel];
-    if (a) a.run();
-  }
-  if (st.screen === 'ubbo') {
-    const r = ubboRows()[st.sel];
-    if (r) r.run();
-  }
-}
-
-// Ubbo: klusjes op afroep. One list in sections (what runs now, the story,
-// things to do nearby, the side jobs), nearest first; Enter makes a row the
-// goal. Rows: { section, icon, name, sub, side, stop, dim, run }.
-const fmtDist = (m) => (m < 1000 ? `${Math.round(m / 10) * 10} m` : `${(m / 1000).toFixed(1).replace('.', ',')} km`);
-const UBBO_SECTIONS = { nu: 'Nu bezig', verhaal: 'Verhaal', uitdaging: 'Uitdagingen', dichtbij: 'Dichtbij te doen', baan: 'Bijbaantjes' };
-const UBBO_ICONS = {
-  stop: '<rect x="7" y="7" width="10" height="10" rx="1.5"/>',
-  story: '<path d="M7 4v16M7 5h10l-2 3.5L17 12H7"/>',
-  play: '<circle cx="11" cy="11" r="6"/><path d="M15.5 15.5L20 20"/>',
-  cup: '<path d="M8 4h8v3a4 4 0 0 1-8 0zM8 6H5v1a3 3 0 0 0 3 3M16 6h3v1a3 3 0 0 1-3 3M12 11v4M9 19h6l-.8-4h-4.4z"/>',
-  job: '<rect x="4" y="8" width="16" height="11" rx="2"/><path d="M9 8V6a1.5 1.5 0 0 1 1.5-1.5h3A1.5 1.5 0 0 1 15 6v2M4 13h16"/>',
-  route: '<path d="M12 21s-6-5.5-6-10a6 6 0 0 1 12 0c0 4.5-6 10-6 10zM12 9a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/>',
-};
-const ubboIcon = (id) => `<svg viewBox="0 0 24 24" aria-hidden="true">${UBBO_ICONS[id] || UBBO_ICONS.play}</svg>`;
-
-function ubboRows() {
-  const rows = [];
-  const w = world;
-  const offers = getSideJobOffers(w);
-  const active = offers.find((o) => o.active);
-  if (active) {
-    const job = w.sideJob && w.sideJob.active ? w.sideJob : null;
-    rows.push({ section: 'nu', icon: 'stop', stop: true, name: active.name, sub: `Dienst loopt${job && job.progress ? ` · ${job.progress}` : ''}`, side: 'Stoppen', run: () => { quitSideJob(); flashAndClose('Dienst gestopt. Ubbo geeft je een sterretje minder'); } });
-  }
-  let todo = [];
-  try { todo = getTodoItems(w); } catch (e) { /* story not ready yet */ }
-  const story = todo.find((it) => it.status === 'nu' && (it.goal === 'story' || it.group === 'missies'));
-  if (story && story.goal) {
-    rows.push({
-      section: 'verhaal', icon: 'story', name: `${story.code ? story.code + ' · ' : ''}${story.title}`,
-      sub: (story.x != null && placeName(w, story.x, story.y)) || story.meta || '', side: story.dist != null ? fmtDist(story.dist) : '',
-      run: () => { setOpen(false); chooseTodo(w, story); },
-    });
-  }
-  const pg = w.postgameActions;
-  if (pg && w.postgame) {
-    for (const o of [...pg.offers()].sort((a, b) => a.dist - b.dist)) {
-      rows.push({ section: 'uitdaging', icon: 'cup', name: o.name, sub: `${o.blurb}${o.medal ? ` · ${o.medal.toLowerCase()}` : ''}`, side: fmtDist(o.dist), run: () => { setGoal({ kind: 'challenge', id: o.id, name: o.name, sub: o.where, x: o.x, y: o.y }, { quiet: true }); flashAndClose(`Doel: ${o.name}`); } });
-    }
-    if (pg.guide) {
-      const off = pg.guide.isOff();
-      rows.push({ section: 'uitdaging', icon: 'route', name: off ? 'Automatische route aan' : 'Route: volgende uitdaging', sub: off ? 'De GPS wijst weer de dichtstbijzijnde aan' : 'Sla deze over, de GPS wijst de volgende aan', side: '', run: () => flashAndClose(off ? pg.guide.on() : pg.guide.next()) });
-    }
-    for (const u of pg.upgrades()) {
-      rows.push({ section: 'uitdaging', icon: 'job', name: `Fjord Frituur: ${u.name}`, sub: u.blurb, side: u.owned ? 'gekocht' : `€${u.price}`, run: () => flashAndClose(u.buy()) });
-    }
-  }
-  const near = [];
-  const pad = getPadelSpotsForRender().map((q) => ({ q, d: Math.hypot(q.x - w.player.x, q.y - w.player.y) })).sort((a, b) => a.d - b.d)[0];
-  if (pad) {
-    const busy = w.time < pad.q.nextAt;
-    near.push({ section: 'dichtbij', icon: 'play', name: 'Padel', sub: `${pad.q.name}${busy ? ' · baan even bezet' : ''}`, dist: pad.d, run: () => { setGoal({ kind: 'play', id: 'padel', name: 'Padel', sub: pad.q.name, x: pad.q.x, y: pad.q.y }, { quiet: true }); flashAndClose('Doel: padel. Loop naar de deur en druk E'); } });
-  }
-  for (const a of activityUbboRows(w)) {
-    near.push({ section: 'dichtbij', icon: 'play', name: a.name, sub: a.sub, dist: a.dist, run: () => { setGoal(a.play ? { kind: 'play', id: a.play, name: a.name, sub: a.where, x: a.x, y: a.y } : { kind: 'place', name: a.name, x: a.x, y: a.y }, { quiet: true }); flashAndClose(`Doel: ${a.name}. ${a.hint}`); } });
-  }
-  for (const r of near.sort((a, b) => a.dist - b.dist)) rows.push({ ...r, side: fmtDist(r.dist) });
-  for (const o of offers) {
-    if (o.active) continue;
-    rows.push({
-      section: 'baan', icon: 'job', name: o.name, sub: [`€${o.pay[0]}–${o.pay[1]} per rit`, o.level ? `niv. ${o.level}` : '', o.blocked ? o.blocked.toLowerCase() : ''].filter(Boolean).join(' · '),
-      side: fmtDist(o.dist), dim: !!o.blocked,
-      run: () => {
-        setGoal({ kind: 'job', id: o.id, name: o.name, sub: 'Bijbaantje', x: o.x, y: o.y }, { quiet: true });
-        flashAndClose(o.blocked ? `Doel: ${o.name}. Let op: ${o.blocked.toLowerCase()}` : `Doel: ${o.name}. Loop erheen en druk E`);
-      },
-    });
-  }
-  return rows;
-}
-
-function ubboHtml() {
-  let last = '';
-  const body = ubboRows().map((r, i) => {
-    const head = r.section !== last ? `<div class="ub-head">${UBBO_SECTIONS[r.section]}</div>` : '';
-    last = r.section;
-    return head + `<button type="button" class="ub-row${i === st.sel ? ' sel' : ''}${r.stop ? ' stop' : ''}${r.dim ? ' dim' : ''}" data-idx="${i}">` +
-      `<span class="ub-ic">${ubboIcon(r.icon)}</span><span class="ub-txt"><b>${esc(r.name)}</b><small>${esc(r.sub)}</small></span>` +
-      (r.side ? `<span class="ub-side">${esc(r.side)}</span>` : '') + '</button>';
-  }).join('');
-  return '<div class="ph-head ub-top"><button type="button" class="ph-back" data-back aria-label="Terug">‹</button><span>Ubbo</span><small>dichtbij eerst</small></div>' +
-    `<div class="ph-list ub-list">${body || '<p class="ph-empty">Niks te doen. Dat gebeurt nooit in Grunn.</p>'}</div>` +
-    '<div class="ph-foot">Enter: zet als doel</div>';
-}
-
-function currentVehicle() {
-  return getGarageList(world).find((e) => e.id === st.vehId) || null;
-}
-
-function vehicleActions() {
-  const e = currentVehicle();
-  if (!e) return [];
-  const out = [];
-  if (e.status !== 'driving') {
-    out.push({ label: `Laten afleveren (${e.feeLabel})`, run: () => {
-      const res = deliverOwnedVehicle(world, e.id);
-      if (res.ok) setOpen(false);
-      else { st.vehMsg = res.text; render(); }
-    } });
-  }
-  if (e.status === 'near' || e.status === 'far') {
-    out.push({ label: 'Waar staat hij?', run: () => {
-      const res = locateOwnedVehicle(world, e.id);
-      if (res.ok) flashAndClose(res.text);
-      else { st.vehMsg = res.text; render(); }
-    } });
-    out.push({ label: 'Zet route', run: () => {
-      const res = locateOwnedVehicle(world, e.id);
-      if (!res.ok) { st.vehMsg = res.text; render(); return; }
-      setUserWaypoint(res.x, res.y, `Jouw ${e.hero ? 'Escapade' : e.model}`);
-      flashAndClose('Route staat op je kaart');
-    } });
-  }
-  return out;
-}
-
-function talk(call) {
-  const res = call.contact.talk(world, call) || {};
-  call.phase = 'talk';
-  call.line = res.line || '';
-  call.actions = [...(res.actions || []), { label: 'Ophangen', run: () => { stopBanterVoice(); goHome(); } }];
-  if (call.line) noteSpoken(world, call.contact.speaker || call.contact.name);
-  // Jelle answers in his own voice (the lines manifest)
-  const v = call.contact.id === 'jelle' && lineVoiceFor('Jelle Terpstra', call.line);
-  if (v) playBanterVoice(v.src);
-  st.sel = 0;
-  render();
-}
-
-const STATUS_LABEL = { actief: 'Actief', volgende: 'Volgende', geklaard: 'Geklaard', open: 'Open' };
-
-function render() {
-  if (!screenEl) return;
-  const w = world;
-  let html = '';
-  if (st.screen === 'home') {
-    html = `<div class="ph-home"><div class="ph-bigclock">${esc(clockText)}</div><div class="ph-date">${esc(storyDate(w).long)} · Grunn</div>` +
-      `<div class="ph-grid">${APPS.map((a, i) => `<button type="button" class="ph-app${i === st.sel ? ' sel' : ''}" data-idx="${i}">` +
-        `<span class="ph-icon">${icon(a.id)}</span><span>${a.label}</span></button>`).join('')}</div>` +
-      `<div class="ph-flash">${esc(st.flash || '')}</div></div>`;
-  } else if (st.screen === 'call') {
-    const c = st.call;
-    const initials = c.contact.name.split(' ').map((s) => s[0]).slice(0, 2).join('');
-    html = header(c.contact.name) + `<div class="ph-call"><div class="ph-avatar">${esc(initials)}</div>` +
-      `<div class="ph-callname">${esc(c.contact.name)}</div>` +
-      `<div class="ph-callstate">${c.phase === 'ringing' ? 'Bellen…' : 'Verbonden'}</div>` +
-      (c.phase === 'talk' ? `<div class="ph-bubble">${speakerHtml(c.contact.speaker || c.contact.name)}${dualHtml(c.line)}</div>` : '') +
-      `<div class="ph-actions">${c.phase === 'talk' ? c.actions.map((a, i) => `<button type="button" class="ph-row ph-action${i === st.sel ? ' sel' : ''}${a.label === 'Ophangen' ? ' hangup' : ''}" data-idx="${i}">${esc(a.label)}</button>`).join('') : ''}</div></div>`;
-  } else if (st.screen === 'contacten') {
-    html = header('Contacten') + `<div class="ph-list">${contacts(w).map((c, i) =>
-      `<button type="button" class="ph-row${i === st.sel ? ' sel' : ''}" data-idx="${i}"><span class="ph-avatar sm">${esc(c.name[0])}</span>` +
-      `<span class="ph-rowtext"><b>${esc(c.name)}</b><small>${dualHtml(c.sub)}</small></span></button>`).join('')}</div>`;
-  } else if (st.screen === 'missies') {
-    html = header('Missies') + `<div class="ph-list">${getMissionList().map((m, i) =>
-      `<button type="button" class="ph-row${i === st.sel ? ' sel' : ''}" data-idx="${i}"><span class="ph-mic">${missionIconSvg(m.index)}</span><span class="ph-rowtext"><b>${m.code ? esc(m.code) + ' · ' : ''}${esc(m.label)}</b>` +
-      `<small>${m.done ? `klus · €${m.pay} klusloon` : `€${m.reward}`}</small></span><span class="ph-chip" data-status="${m.status}">${STATUS_LABEL[m.status]}</span></button>`).join('')}</div>` +
-      '<div class="ph-foot">Enter: route erheen</div>';
-  } else if (st.screen === 'voertuigen') {
-    html = header('Mijn voertuigen') + `<div class="ph-list">${getGarageList(w).map((e, i) =>
-      `<button type="button" class="ph-row${i === st.sel ? ' sel' : ''}" data-idx="${i}"><span class="ph-swatch" style="background:${esc(e.color)}"></span>` +
-      `<span class="ph-rowtext"><b>${esc(e.label)}</b><small>${esc(whereText(e) || e.kindLabel)}</small></span>` +
-      `<span class="ph-chip" data-status="${e.status === 'lost' ? 'lost' : e.status === 'near' || e.status === 'driving' ? 'geklaard' : 'open'}">${esc(e.statusLabel)}</span></button>`).join('')}</div>` +
-      '<div class="ph-foot">Koop er meer bij Ome Harm of Trap & Toeter</div>';
-  } else if (st.screen === 'voertuig') {
-    const e = currentVehicle();
-    if (!e) { st.screen = 'voertuigen'; render(); return; }
-    const facts = [e.kindLabel, `${e.topSpeed} km/u`, e.paint, ...(e.upgrades.length ? e.upgrades : [])].join(' · ');
-    html = header(e.hero ? 'Escapade' : e.model) + `<div class="ph-list"><div class="ph-veh">` +
-      `<div class="ph-veh-top"><span class="ph-swatch lg" style="background:${esc(e.color)}"></span><span class="ph-rowtext"><b>${esc(e.label)}</b><small>${esc(e.statusLabel)}${whereText(e) ? ' · ' + esc(whereText(e)) : ''}</small></span></div>` +
-      `<p class="ph-veh-meme">${esc(e.meme)}</p><p class="ph-veh-facts">${esc(facts)}</p>` +
-      (st.vehMsg ? `<p class="ph-veh-msg">${esc(st.vehMsg)}</p>` : '') + '</div>' +
-      vehicleActions().map((a, i) => `<button type="button" class="ph-row ph-action${i === st.sel ? ' sel' : ''}" data-idx="${i}">${esc(a.label)}</button>`).join('') +
-      '</div><div class="ph-foot">Afgeleverd buiten beeld, om de hoek</div>';
-  } else if (st.screen === 'ubbo') {
-    html = ubboHtml();
-  } else if (st.screen === 'sikkom') {
-    const items = w.phoneHistory || [];
-    html = header('Kiekdoar') + `<div class="ph-list ph-feed">${items.length ? items.map((n) =>
-      `<div class="ph-news"><small>${esc(n.at || '')}</small><p>${dualHtml(n.text)}</p></div>`).join('')
-      : '<p class="ph-empty">Nog geen nieuws. Grunn is rustig… nog wel.</p>'}</div>`;
-  }
-  screenEl.innerHTML = html;
-}
-
-function header(title) {
-  return `<div class="ph-head"><button type="button" class="ph-back" data-back aria-label="Terug">‹</button><span>${esc(title)}</span></div>`;
+  if (world) world.uiPaused = cinematicPausesGameplay() || isPlayAheadOpen();
 }
 
 export function updatePhone(dt, w) {
   world = w;
   updateCinematics(dt, w);
-  if (open && (!document.body.classList.contains('game-started') || isPauseMenuOpen() || w.pendingRespawn)) setOpen(false);
   refreshPause();
-  const text = getClockText(w) || new Date().toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
-  if (text !== clockText) {
-    clockText = text;
-    if (clockEl) clockEl.textContent = text;
-    if (open && st.screen === 'home') render();
-  }
-  if (!open) return;
-  if (st.flashT > 0 && (st.flashT -= dt) <= 0) { st.flash = ''; if (st.screen === 'home') render(); }
-  const c = st.call;
-  if (st.screen === 'call' && c && c.phase === 'ringing') {
-    c.t += dt;
-    if (c.t >= RING_TIME) talk(c);
+  if (call && !isPauseMenuOpen()) hangUp();
+  if (call && call.phase === 'ringing') {
+    call.t += dt;
+    if (call.t >= RING_TIME) talk(call);
   }
 }

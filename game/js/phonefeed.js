@@ -128,9 +128,10 @@ export function notifyPhone(w, spec) {
   w.phoneNotifications.push(spec);
 }
 
-function remember(w, text) {
+// History entries: { text, at, from, body, read } (phone.js Berichten groups them by `from`).
+function remember(w, text, from = '', body = '') {
   if (!w.phoneHistory) w.phoneHistory = [];
-  w.phoneHistory.unshift({ text, at: clockNow(w) });
+  w.phoneHistory.unshift({ text, at: clockNow(w), ...(from ? { from, body: body || text } : {}) });
   if (w.phoneHistory.length > 30) w.phoneHistory.length = 30;
 }
 
@@ -142,7 +143,8 @@ function alreadyShown(w, text) {
 function showNote(w, n) {
   const p = parse(n);
   const full = [p.title, p.body].filter(Boolean).join(': ');
-  remember(w, p.from && p.from !== 'Kiekdoar' ? `${p.from}: ${n.text}` : n.text);
+  remember(w, p.from && p.from !== 'Kiekdoar' ? `${p.from}: ${n.text}` : n.text, p.from || 'Kiekdoar', p.from === 'Kiekdoar' ? [p.title, p.body].filter(Boolean).join(': ') : n.text);
+  noticeFrom(p.from || 'Kiekdoar');
   if (alreadyShown(w, n.text)) return;
   const el = document.createElement('div');
   el.className = 'pf-card';
@@ -195,6 +197,7 @@ function dropCard(c) {
   if (c.leaving) return;
   c.leaving = true;
   c.left = 0.5;
+  notice.until = performance.now() + NOTICE_HOLD_MS;
   c.el.classList.remove('on');
   c.el.classList.add('out');
 }
@@ -209,6 +212,19 @@ export function startCall(w, spec) {
 }
 
 export const isCallActive = () => !!call;
+
+// The sender of the call or card on screen (a few seconds after it went):
+// Esc then opens the unfolded phone on that thread (pausemenu.js).
+const NOTICE_HOLD_MS = 2500;
+let notice = { from: '', until: 0 };
+function noticeFrom(from) {
+  notice = { from, until: performance.now() + NOTICE_HOLD_MS + 1500 };
+}
+export function recentNotice() {
+  if (call) return call.from;
+  if (cards.some((c) => !c.leaving)) return notice.from || null;
+  return notice.from && performance.now() < notice.until ? notice.from : null;
+}
 
 export function hangUp() {
   if (!call) return;
@@ -273,7 +289,8 @@ function finishCall(cut) {
   const c = call;
   if (!c) return;
   const said = c.lines.slice(0, cut ? Math.max(0, c.i + 1) : c.lines.length);
-  remember(world, `${c.live ? 'Live' : 'Gesprek'} · ${c.from}: ${said.map((l) => l.text).join(' ')}`);
+  remember(world, `${c.live ? 'Live' : 'Gesprek'} · ${c.from}: ${said.map((l) => l.text).join(' ')}`, c.from, `${c.live ? 'Live' : 'Gesprek'}: ${said.map((l) => l.text).join(' ')}`);
+  noticeFrom(c.from);
   c.phase = 'end';
   c.t = 0;
   const st = callEl.querySelector('.pf-state');
