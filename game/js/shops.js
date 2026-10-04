@@ -678,7 +678,8 @@ const vehicleKind = (v) => v.isBoat ? 'boat' : v.isBike ? 'bike' : v.isScooter ?
 
 // Your own vehicle as the preview shows it (optionally in another colour).
 export function vehiclePreviewOf(v, color) {
-  return { kind: vehicleKind(v), model: v.model, color: color || (v.model && v.model.color), nameIdx: v.id % 6, flags: v.isHeroCar ? { isHeroCar: true } : v.isPolice ? { isPolice: true } : v.isTaxi ? { isTaxi: true } : null };
+  const model = color && v.isPolice ? { ...v.model, resprayed: true } : v.model;
+  return { kind: vehicleKind(v), model, color: color || (v.model && v.model.color), nameIdx: v.id % 6, flags: v.isHeroCar ? { isHeroCar: true } : v.isPolice ? { isPolice: true } : v.isTaxi ? { isTaxi: true } : null };
 }
 
 // The current character with outfit/hair overrides, for the clothing previews.
@@ -1498,7 +1499,7 @@ function deliver(world, key, color, shop) {
 }
 
 function repaint(world, v, color) {
-  v.model = { ...v.model, color };
+  v.model = { ...v.model, color, ...(v.isPolice ? { resprayed: true } : {}) };
   // scene3d keys vehicle meshes by id: a fresh id makes it rebuild the mesh
   // in the new colour; +600000 keeps id % 6 and with it the display name
   v.id += 600000;
