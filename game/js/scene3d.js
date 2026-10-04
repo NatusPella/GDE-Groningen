@@ -58,6 +58,7 @@ import { OUTLINE_MAT } from './pixelart3d.js';
 import { createSkyUniforms, buildSkyDome, createEnvironmentUpdater, setStarOpacity, SKY_HORIZON } from './sky3d.js';
 import { computeLighting } from './daynight.js';
 import { createPostFX } from './postfx3d.js';
+import { noteGfxEvent, watchContext } from './blackframe.js';
 import { spawnExplosionFx } from './fx3d.js';
 import { initNightLights, setNightLightQuality, updateNightLights, isLightRigOn, setLightRigVisible } from './nightlights3d.js';
 import { createFarLOD } from './farlod.js';
@@ -741,6 +742,7 @@ export function init3D(map) {
   // laptops with two GPUs: the fast one
   renderer = new THREE.WebGLRenderer({ canvas: canvas3, antialias: getSettings().quality === 'laag', powerPreference: 'high-performance' });
   renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+  watchContext(canvas3, 'spel');
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.05;
   renderer.shadowMap.enabled = true;
@@ -852,6 +854,10 @@ export function init3D(map) {
   window.__scene3d = { scene, cam, renderer, postfx, farLod, batches: () => ({ buildings: buildingBatcher.info(), facades: facadeBatcher.info(), roads: roadBatcher.info() }) };
 }
 
+// increments each time the scene is drawn to the canvas (blackframe.js)
+let canvasFrames = 0;
+export const canvasFrameCount = () => canvasFrames;
+
 // seconds between renders behind a menu that covers part / most of the view
 export const MENU_FRAME_S = [0, 1 / 30, 1 / 20];
 let menuCover = 0, menuShadowDone = false;
@@ -888,6 +894,7 @@ function applyViewSettings(st) {
   const level = QUALITY_PRESETS[st.quality] ? st.quality : 'hoog';
   const preset = QUALITY_PRESETS[level];
   const prevRatio = renderer.getPixelRatio();
+  noteGfxEvent('instellingen');
   renderer.setPixelRatio(renderPixelRatio(st, preset));
   resize3D();
   setNightLightQuality(level);
@@ -919,6 +926,7 @@ export function refreshRenderScale() {
   const ratio = renderPixelRatio(st, QUALITY_PRESETS[st.quality] || QUALITY_PRESETS.hoog);
   facadeDetailDist = Math.min(facadeQualityDist, CPU_FACADE_DIST[cpuLevel()]);
   if (ratio === renderer.getPixelRatio()) return;
+  noteGfxEvent(`renderschaal ${renderer.getPixelRatio().toFixed(2)}->${ratio.toFixed(2)}`);
   renderer.setPixelRatio(ratio);
   resize3D();
   postfx.rebuild();
@@ -936,13 +944,14 @@ function applyShadowLevel(level) {
   sun.shadow.normalBias = s.normalBias;
   if (sun.shadow.mapSize.x !== s.size) {
     sun.shadow.mapSize.set(s.size, s.size);
-    if (sun.shadow.map) { sun.shadow.map.dispose(); sun.shadow.map = null; }
+    if (sun.shadow.map) { sun.shadow.map.dispose(); sun.shadow.map = null; noteGfxEvent('schaduwkaart opnieuw'); }
   }
 }
 
 export function resize3D() {
   if (!renderer) return;
   const w = innerWidth, h = innerHeight;
+  noteGfxEvent(`setSize ${w}x${h}@${renderer.getPixelRatio().toFixed(2)}`);
   renderer.setSize(w, h, false);
   if (postfx) postfx.setSize(w, h);
   cam.aspect = w / h;
@@ -2453,6 +2462,7 @@ export function update3D(dt, world) {
   renderer.shadowMap.autoUpdate = !(menuCover && menuShadowDone) && !(cpuLevel() > 0 && (shadowFrame++ & 1));
   if (menuCover) menuShadowDone = true;
   postfx.render();
+  canvasFrames++;
   renderer.shadowMap.autoUpdate = true;
   probe.mark('3d:render');
   probe.identify(scene);

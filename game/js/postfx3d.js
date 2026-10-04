@@ -5,6 +5,7 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { getSettings } from './settings.js';
 import { drunkVisual } from './drunk.js';
+import { noteGfxEvent } from './blackframe.js';
 
 // Post chain per quality preset: 'laag' renders straight to the screen
 // (through an MSAA target + output pass when the canvas has no native AA),
@@ -218,6 +219,7 @@ export function createPostFX(renderer, scene, cam) {
   }
 
   function build() {
+    noteGfxEvent(`postfx ${level} opnieuw`);
     dispose();
     document.body.classList.toggle('gpu-screenfx', !(level === 'laag' && nativeAA));
     if (level === 'laag' && nativeAA) return;

@@ -35,8 +35,9 @@ import { initTheme } from './theme.js';
 import { initTrafficLights, updateTrafficLights } from './trafficlights.js';
 import { initRailway, updateRailway } from './railway.js';
 import { geoWorkerActive } from './geojobs.js';
-import { init3D, update3D, resize3D, getScene, getRenderer, setMenuCover, MENU_FRAME_S, refreshRenderScale, terrainReady } from './scene3d.js';
-import { noteFrame, hideAdvice, classifyGpu, readGpu } from './gfxprofile.js';
+import { init3D, update3D, resize3D, getScene, getRenderer, setMenuCover, MENU_FRAME_S, refreshRenderScale, terrainReady, canvasFrameCount } from './scene3d.js';
+import { checkFrame } from './blackframe.js';
+import { noteFrame, hideAdvice, classifyGpu, readGpu, dynamicScale, cpuLevel } from './gfxprofile.js';
 import { updateStreetSigns } from './streetsigns.js';
 import { initPauseMenu, isPauseMenuOpen, openPauseMenu, pauseMenuCover } from './pausemenu.js';
 import { initDayNight, updateDayNight } from './daynight.js';
@@ -327,15 +328,22 @@ async function boot() {
     last = now;
     probe.begin(now);
     const t0 = performance.now();
+    const drawnBefore = canvasFrameCount();
     try {
       frameBody(dt);
     } catch (err) {
       showFrameError(err);
     }
     if (!world.paused && noteFrame(frameMs, performance.now() - t0)) refreshRenderScale();
+    checkFrame(getRenderer(), canvasFrameCount() !== drawnBefore, blackFrameState);
     input.endFrame();
     probe.end();
     requestAnimationFrame(frame);
+  }
+
+  function blackFrameState() {
+    const st = getSettings(), r = getRenderer(), c = r.domElement;
+    return `${st.quality}, schaal ${dynamicScale()}, cpu ${cpuLevel()}, ${c.width}x${c.height}@${r.getPixelRatio().toFixed(2)}${world.paused ? ', pauze' : ''}${world.cameraOverride ? ', camera-override' : ''}`;
   }
 
   function frameBody(dt) {
