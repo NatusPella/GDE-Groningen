@@ -35,8 +35,7 @@ export function aimedTargetDistance(world) {
   return Math.hypot(state.x - world.player.x, state.y - world.player.y);
 }
 
-// civilians are never a target (combat.js); officers are, while up
-const alive = (t, kind) => kind === 'ped' ? t.isCop && t.state !== 'dead' && !t.hidden && !t.inVehicle
+const alive = (t, kind) => kind === 'ped' ? t.state !== 'dead' && !t.hidden && !t.inVehicle
   : kind === 'veh' ? !t.wrecked && !t.sinking : !!t.cell && !t.water;
 
 function targetPoint(t, kind) {

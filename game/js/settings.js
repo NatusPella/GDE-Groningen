@@ -30,6 +30,7 @@ const DEFAULTS = {
   reduceMotion: false,
   showFog: true,
   cinematicMoments: true,
+  gore: true,
   drawDistance: 'ver',
   // render scale (1 = full); autoResolution lowers it and some detail while
   // frames are slow (gfxprofile.js)
