@@ -3,6 +3,7 @@ import { buildVehicleMesh } from './models3d_vehicles.js';
 import { buildWeaponMesh, buildPersonMesh, animatePersonWalk } from './models3d_people.js';
 import { buildProductMesh } from './shopmodels3d.js';
 import { VERSION } from './version.js';
+import { watchContext } from './blackframe.js';
 
 const OBJECT_KINDS = new Set(['weapon', 'person', 'product']);
 // a person seen from the front, the face turned a little into the screen
@@ -190,6 +191,7 @@ function sharedGl() {
   if (gl || glFailed) return gl;
   try {
     const canvas = document.createElement('canvas');
+    watchContext(canvas, 'voorbeelden');
     const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.setClearColor(0x000000, 0);

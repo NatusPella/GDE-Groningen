@@ -355,6 +355,15 @@ function buildBalloon(b) {
   return g;
 }
 
+// A balloon for the load-time warm-up (scene3d.js queueWarmup): its programs
+// otherwise link on the frame the first balloon appears (0.4 s on an M1).
+// The materials are kept, so the programs stay alive between balloons.
+export function buildBalloonWarmup() {
+  const g = buildBalloon({ seed: 7 });
+  g.traverse((o) => { if (o.material) o.material.userData.shared = true; });
+  return g;
+}
+
 // --- per-frame sync -------------------------------------------------------
 
 let root = null, padMesh = null, heliMesh = null, beam = null, dust = null;
