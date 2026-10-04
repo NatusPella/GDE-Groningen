@@ -138,7 +138,7 @@ function groupRows() {
   const cellOf = new Int32Array(n).fill(-1), start = new Int32Array(gw * gh + 1);
   for (let i = 0; i < n; i++) {
     const c = REAL.code[i];
-    if ((c !== 0 && c !== 1 && c !== 2) || REAL.fill[i] < 0.6 || W[i] * L[i] < 30 || REAL.grp[i] !== i || (i + 1 < n && REAL.grp[i + 1] === i)) continue;
+    if ((c !== 0 && c !== 1 && c !== 2) || (REAL.dropped && REAL.dropped.has(i)) || REAL.fill[i] < 0.6 || W[i] * L[i] < 30 || REAL.grp[i] !== i || (i + 1 < n && REAL.grp[i + 1] === i)) continue;
     const gx = Math.floor((X[i] - ex0) / CELL) + 1, gy = Math.floor((Y[i] - ey0) / CELL) + 1;
     if (gx < 1 || gy < 1 || gx >= gw - 1 || gy >= gh - 1) continue;
     cls[i] = c === 2 || REAL.lv[i] >= 3 ? 2 : 1;

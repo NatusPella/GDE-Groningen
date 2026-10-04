@@ -29,7 +29,10 @@ function mat(name) {
     fence: { color: 0x2f3336, roughness: 0.7, metalness: 0.3 },
     lamp: { color: 0xfff2d0, emissive: 0xffe2a8, emissiveIntensity: 1.6, roughness: 0.4 },
   }[name];
-  mats[name] = new THREE.MeshStandardMaterial({ ...spec, flatShading: true, side: THREE.DoubleSide });
+  // the slope's foot runs out flat into the terrain (-0.05) and the green
+  // fills (grass.js, up to -1.31 / -7.3): it wins there, under the sidewalks (-2 / -8)
+  const off = name === 'grass' ? { polygonOffset: true, polygonOffsetFactor: -1.75, polygonOffsetUnits: -7.9 } : {};
+  mats[name] = new THREE.MeshStandardMaterial({ ...spec, ...off, flatShading: true, side: THREE.DoubleSide });
   return mats[name];
 }
 

@@ -7,6 +7,19 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Nieuw
+- **Quad.** Bij boerderijen in het Ommeland staan quads die je kunt
+  meenemen, en boeren rijden er soms op over de landwegen. Hij rijdt
+  makkelijk door de wei. Te koop bij de autodealer als Wierde Quad.
+- **Zichtafstand "Heel ver"** (Instellingen › Beeld): op een sterke
+  videokaart kijk je nu anderhalf keer zo ver over de stad en het Ommeland:
+  900 meter in plaats van 600. Kies je de voorinstelling Hoog, dan krijg je
+  hem meteen; standaard blijft de zichtafstand Ver.
+  Hapert het beeld, dan gaat de zichtafstand vanzelf even terug naar Ver.
+- **Wegen in het Ommeland zien eruit als in de stad**: hetzelfde asfalt met
+  steentjes, slijtsporen en vlekken, dezelfde witte strepen (de
+  middenstreep van een provinciale weg doorgetrokken, kleinere wegen 3 m
+  streep en 6 m gat) en een grindberm langs de weg; in de dorpen een
+  stoeprand met tegels.
 - **Streken: een beetje vals spelen.** Een nieuw onderdeel in het
   pauzemenu, tussen Prestaties en Instellingen, met 21 streken. Vanaf het
   begin: *Overal en nergens* (kies een plek op de kaart en je staat er, op de
@@ -65,34 +78,16 @@ nieuwe functies, `y` voor alleen bugfixes.
   eerst om bevestiging. Op een Steam Deck (1280×800) past het hele menu
   zonder scrollen.
 
-### Verhaal
-- **Het verhaal brengt je weer thuis.** Wachten tot middernacht voor de
-  museumkraak doe je nu in de flat in Paddepoel, niet meer bij Henk in de
-  garage. Ga naar huis, met de lift naar boven, en even later volgt een
-  kort scènetje op de bank. Even slapen tot de avond mag ook: de scène komt
-  als je wakker wordt. Henk belt tijdens het wachten: hij heeft een zender
-  in de Escapade gezet (die heb je in H16 nodig), vraagt niet waarom jullie
-  nog op zijn en gunt je één koekje. Een missie die het donker nodig heeft,
-  stuurt je voortaan ook naar huis in plaats van naar een garage.
-- **Nieuw: de flat inrichten bij EIKEA.** Na Berend (H1) slapen Tammo en
-  Tessa nog op een luchtbed. Rij met de Escapade (of een andere auto) naar
-  EIKEA aan de Sontweg. Bij het laadperron volgt een scène: het lijstje, de
-  kast die niet in de lift past, en wie de kamer met uitzicht krijgt. Daarna
-  staan er drie dozen op je dak. Een flinke klap onderweg kost een doos:
-  eerst de lamp, dan de boekenkast, de bedden als laatste. Thuis gaan de
-  dozen met de lift naar boven en zet je alles in elkaar ("Er blijft één
-  schroefje over"). Wat heel aankomt, staat in de flat met zijn bonus:
-  Sloapstee, Buukenkaas en Lichtje Tjoek. Overslaan geeft ze ook. Een oude
-  save die al verder is, slaat deze stap over. Alle nieuwe zinnen zijn
-  ingesproken.
-- **Een avond thuis.** Tussen de fatbikes (H12) en de rondvaartboot (H13)
-  zit een nieuwe, rustige stap: Tessa vraagt of Tammo naar huis komt, en op
-  de bank overhoort ze haar gids voor morgen. Met nieuwe stemmen. Een oude
-  save die al verder is, slaat hem over.
-- **Een klein lampje in september.** In het slot van het verhaal heeft
-  Rikus één zin meer over de elfde verdieping in Paddepoel.
-
 ### Verbeterd
+- **Heggen en hekken in het Ommeland houden je tegen.** Je loopt er niet
+  meer dwars doorheen; met Spatie spring je eroverheen, net als over de
+  hekjes in de stad. Door een hek op de dam loop je gewoon het land op.
+- **De weilanden in het Ommeland hebben echte randen.** Langs de sloten
+  ligt een lage, donkere grasrand met hier en daar een pol pitrus, de
+  weiden staan achter prikkeldraad op houten palen, langs de polderwegen
+  loopt een afrastering achter de berm met af en toe een hek naar het
+  land, en soms staat er een heg of een houtwal tussen twee percelen.
+  Op Laag is het wat kaler, zodat het spel net zo soepel blijft lopen.
 - **Twee kamers in de flat.** Tammo en Tessa huren de flat als huisgenoten,
   dus nu heeft elk een eigen kleine slaapkamer met een eenpersoonsbed:
   Tammo's kamer naast de gang, die van Tessa achter de keuken. Lift, gang,
@@ -120,6 +115,44 @@ nieuwe functies, `y` voor alleen bugfixes.
   dezelfde achter elkaar.
 
 ### Opgelost
+- **Navigatie in het Ommeland volgt de wegen.** De route op de minikaart,
+  de kaart en de lijn op de weg loopt nu over de landwegen en sluit netjes
+  aan op de straten van Stad, ook naar boerderijen ver in de polder. Geen
+  rechte strepen meer dwars door de weilanden, geen routes die ineens
+  ophouden, en wie van de route afwijkt krijgt meteen een nieuwe. Sta je
+  midden in een weiland, dan wijst de lijn je eerst naar de dichtstbijzijnde
+  weg.
+- **Geen plotselinge noodstops meer in de wei.** Over gras rijd je wat
+  langzamer, maar je remt niet meer ineens af; een smalle sloot is een hobbel
+  in plaats van een muur. Alleen in een maar of kanaal kom je echt vast.
+- **Echte voertuigen in het Ommeland.** Auto's, bestelbussen, trekkers en
+  fietsers op de landwegen zijn dichtbij echte voertuigen: je kunt ze kapen,
+  van de fiets duwen, rammen en in elkaar rijden, net als in de stad. In de
+  dorpen staan auto's langs de stoep en bij de boerderijen staan trekkers
+  die je kunt meenemen.
+- **Laten afleveren werkt nu ook in het Ommeland.** De bezorger zet je auto
+  in de berm van de dichtstbijzijnde landweg neer, in plaats van te melden
+  dat hij nergens kan parkeren.
+- **Geen huizen en schuren meer midden op de weg in het Ommeland.** Een
+  gebouw dat op een weg uitstak wordt aan die kant ingekort, en een aanbouw
+  of gebouw dat er echt op stond is weg.
+- **De ringweg ziet er weer heel uit.** Waar de ring een tunnel of verdiepte
+  bak in duikt, flikkerde het gras en de grond door het asfalt heen; dat is
+  weg. De grasbermen van de dijken en viaducten liggen niet meer over een
+  weg ernaast, en hun voet knippert niet meer met het gras eromheen.
+- **Geen bomen, heggen, hekken en riet meer op de wegen in het Ommeland.**
+  Alles in het buitengebied blijft nu van de weg, de berm, fietspaden en
+  opritten af; ook de bomenrijen in de verte stoppen waar een weg ze kruist.
+- **Je kunt in het Ommeland weer rakelings langs tegenliggers rijden.** Auto's,
+  trekkers en fietsers daar botsten al op meer dan een meter naast hun
+  carrosserie; nu tellen ze, net als in de stad, alleen nog hun echte vorm.
+- **Koplampen en achterlichten blijven aan de auto vast.** In verdiepte en
+  verhoogde stukken van de ring en op hellingen hing de lichtbundel niet meer
+  op straatniveau of in de lucht, maar volgt hij de hoogte en helling van de
+  auto. Verkeer uit het Ommeland keert nu om voor het de stad in rijdt.
+- **Uit het water klimmen doe je nu met Spatie** (A op de controller). E is
+  voor instappen: zwem je naast een boot langs de kade, dan klim je met Spatie
+  de kade op en met E aan boord, in plaats van per ongeluk in de boot.
 - **H6: allebei in het zwart.** Koop je zwart incognito, dan trekken Tammo
   en Tessa het meteen allebei aan (ook na het laden van een spel), niet pas
   als je in een voertuig stapt.
@@ -192,6 +225,33 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **Het jachtgeweer schiet waar het vizier staat.** Door de scope vliegt
   de kogel vanaf het oog, recht langs het kruisje: zonder hand-afwijking,
   spreiding of aim assist, en het vizier kijkt waterpas.
+
+### Verhaal
+- **Het verhaal brengt je weer thuis.** Wachten tot middernacht voor de
+  museumkraak doe je nu in de flat in Paddepoel, niet meer bij Henk in de
+  garage. Ga naar huis, met de lift naar boven, en even later volgt een
+  kort scènetje op de bank. Even slapen tot de avond mag ook: de scène komt
+  als je wakker wordt. Henk belt tijdens het wachten: hij heeft een zender
+  in de Escapade gezet (die heb je in H16 nodig), vraagt niet waarom jullie
+  nog op zijn en gunt je één koekje. Een missie die het donker nodig heeft,
+  stuurt je voortaan ook naar huis in plaats van naar een garage.
+- **Nieuw: de flat inrichten bij EIKEA.** Na Berend (H1) slapen Tammo en
+  Tessa nog op een luchtbed. Rij met de Escapade (of een andere auto) naar
+  EIKEA aan de Sontweg. Bij het laadperron volgt een scène: het lijstje, de
+  kast die niet in de lift past, en wie de kamer met uitzicht krijgt. Daarna
+  staan er drie dozen op je dak. Een flinke klap onderweg kost een doos:
+  eerst de lamp, dan de boekenkast, de bedden als laatste. Thuis gaan de
+  dozen met de lift naar boven en zet je alles in elkaar ("Er blijft één
+  schroefje over"). Wat heel aankomt, staat in de flat met zijn bonus:
+  Sloapstee, Buukenkaas en Lichtje Tjoek. Overslaan geeft ze ook. Een oude
+  save die al verder is, slaat deze stap over. Alle nieuwe zinnen zijn
+  ingesproken.
+- **Een avond thuis.** Tussen de fatbikes (H12) en de rondvaartboot (H13)
+  zit een nieuwe, rustige stap: Tessa vraagt of Tammo naar huis komt, en op
+  de bank overhoort ze haar gids voor morgen. Met nieuwe stemmen. Een oude
+  save die al verder is, slaat hem over.
+- **Een klein lampje in september.** In het slot van het verhaal heeft
+  Rikus één zin meer over de elfde verdieping in Paddepoel.
 
 ## [0.26.1] - 2026-10-04
 
