@@ -180,11 +180,15 @@
   #pause-menu .pm-q-nav[data-new]::before, #pause-menu .pm-subtabs button[data-new]::before { content: ''; position: absolute; top: 7px; left: 24px; width: 8px; height: 8px; border-radius: 50%; background: #3fc97a; box-shadow: 0 0 0 2px #0c140e, 0 0 8px rgba(63,201,122,0.8); }
   #pause-menu .pm-subtabs button[data-new]::before { top: 3px; left: auto; right: 3px; }
   #pause-menu .pm-rail-gap { flex: 1; min-height: 12px; }
-  #pause-menu .pm-rail-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-  #pause-menu .pm-rail-row .pm-small { justify-content: center; font-size: 17px; padding: 7px 8px 5px; }
-  #pause-menu .pm-links { display: flex; flex-wrap: wrap; gap: 4px 14px; padding: 6px 6px 0; }
-  #pause-menu .pm-links button { background: none; border: 0; padding: 2px 0; cursor: pointer; font: 14px 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.3px; color: var(--pm-dim); }
-  #pause-menu .pm-links button:hover, #pause-menu .pm-links button:focus-visible { color: var(--pm-ink); text-decoration: underline; }
+  #pause-menu .pm-rail-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+  #pause-menu .pm-rail-row .pm-small { justify-content: center; font-size: 17px; padding: 7px 6px 5px; gap: 6px; min-width: 0; white-space: nowrap; }
+  #pause-menu .pm-rail-row .pm-small { min-height: 44px; }
+  #pause-menu .pm-rail-row .pm-small:only-child { grid-column: 1 / -1; }
+  /* the destructive one sits apart, under a rule, with its confirm right below it */
+  #pause-menu .pm-rail-danger { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; padding-top: 10px; border-top: 1px solid rgba(217,63,63,0.3); }
+  #pause-menu .pm-rail-danger > .pm-danger { justify-content: center; min-height: 44px; font-size: 17px; }
+  /* short screens (Steam Deck 1280x800): the logo gives way so the whole rail fits without scrolling */
+  @media (max-height: 860px) { #pause-menu .pm-logo { display: none; } }
   #pause-menu .pm-game .pm-confirm .pm-small { justify-content: center; }
 
   /* buttons, icons and the one focus ring */

@@ -74,6 +74,7 @@ import { probe } from './hitchprobe.js';
 import { speakBubble } from './linevoice.js';
 import { applyDrunkCamera } from './drunk.js';
 import { GROUND_LAYER, SIDEWALK_EXTRA, PAVED_MATS, buildRoadGroup, setRoadNetwork, getRoadQualityVersion, roadFarColor, roadGeometryReady } from './roadsurface.js';
+import { lookBackActive, chaseFollowLerp } from './controls.js';
 
 // A genuine WebGL 3D view of the exact same world state the 2D canvas game
 // draws - same x/y meters, same b.h building heights, same vehicle/pedestrian
@@ -521,6 +522,33 @@ function camNearestHit(targets) {
 const SHARED_MATERIALS = new Set([OUTLINE_MAT]);
 const SHARED_GEOMETRIES = new Set();
 
+// Flat-pack boxes strapped to a car's roof (v.roofBoxes, the story's EIKEA trip).
+const ROOF_BOX_MAT = new THREE.MeshLambertMaterial({ color: 0xb98d5a });
+ROOF_BOX_MAT.userData.shared = true;
+const ROOF_STRAP_MAT = new THREE.MeshLambertMaterial({ color: 0x1d4fa3 });
+ROOF_STRAP_MAT.userData.shared = true;
+function setRoofBoxes(mesh, v) {
+  const ud = mesh.userData;
+  if (ud.roofLoad) { ud.roofLoad.parent.remove(ud.roofLoad); disposeObject(ud.roofLoad); ud.roofLoad = null; }
+  const n = Math.max(0, Math.min(3, v.roofBoxes || 0));
+  ud.roofN = n;
+  if (!n) return;
+  const box = new THREE.Box3().setFromObject(mesh);
+  const top = box.max.y - mesh.position.y;
+  const g = new THREE.Group();
+  const len = Math.min(2.2, (v.model && v.model.len ? v.model.len : 4) * 0.5);
+  for (let i = 0; i < n; i++) {
+    const b = new THREE.Mesh(new THREE.BoxGeometry(len - i * 0.25, 0.22, 1.1 - i * 0.12), ROOF_BOX_MAT);
+    b.position.set(-0.15 + i * 0.05, top + 0.11 + i * 0.22, 0);
+    g.add(b);
+  }
+  const strap = new THREE.Mesh(new THREE.BoxGeometry(0.08, n * 0.22 + 0.03, 1.16), ROOF_STRAP_MAT);
+  strap.position.set(-0.15, top + n * 0.11, 0);
+  g.add(strap);
+  (ud.body || mesh).add(g);
+  ud.roofLoad = g;
+}
+
 // Actors/effects build their own geometries per instance, so on despawn both
 // geometry and material must be freed or GPU memory grows all session.
 function disposeObject(root) {
@@ -885,6 +913,8 @@ export function getRenderer() {
 export function refreshCharacterMeshes() {
   playerCharacter = null;
   companionCharacter = null;
+  // the bike/scooter rider is built from the same look
+  playerRiderChar = null;
 }
 
 let orbitRadius = ORBIT_RADIUS;
@@ -1937,6 +1967,7 @@ export function update3D(dt, world) {
         syncBoatCrew(mesh, v, crewCtx);
       } else if (v.isBus) setBusRearAngle(mesh, v.angle, sampleBusTrail(v, v.model.len * 0.3).angle);
       if (v.sinking) { mesh.rotation.order = 'YZX'; mesh.position.y = v.sinking.z; mesh.rotation.z = v.sinking.pitch; mesh.rotation.x = v.sinking.roll; }
+      if ((mesh.userData.roofN || 0) !== (v.roofBoxes || 0)) setRoofBoxes(mesh, v);
       if (v.isPolice || v.sirenOn || v.isAmbulance) updatePoliceLamps(mesh, world.time, v.sirenOn ? !v.wrecked : policeChasing && !v.hijacked && !v.wrecked && v.driver !== 'player', v.id);
       const driverDist = Math.abs(v.x - player.x) + Math.abs(v.y - player.y);
       ensureDriverFigure(mesh, v, driverDist, driverDeadline);
@@ -2306,7 +2337,7 @@ export function update3D(dt, world) {
   let camAngle;
   // hold Q / middle mouse in a vehicle: GTA-style look back, a hard cut
   // (world.noLookBack: a minigame has Q for itself, the skûtsje's sail trim)
-  const lookBack = !!camVeh && !world.cameraOverride && ((world.input.isDown('q') && !world.noLookBack) || !!mouse.middleDown);
+  const lookBack = lookBackActive({ inVehicle: !!camVeh, override: !!world.cameraOverride, noLookBack: world.noLookBack, qDown: world.input.isDown('q'), middleDown: mouse.middleDown });
   const lookBackCut = lookBack !== lookBackWas;
   lookBackWas = lookBack;
   if (camVeh) {
@@ -2425,7 +2456,7 @@ export function update3D(dt, world) {
   const teleported = lastPx !== null && Math.hypot(player.x - lastPx, player.y - lastPy) > 15;
   if (teleported) camPullReset = true;
   if (lookBackCut) camPullReset = true;
-  const lerpT = teleported || lookBackCut ? 1 : Math.min(1, dt * 6);
+  const lerpT = chaseFollowLerp(dt, { cut: teleported || lookBackCut, lookBack });
   if (!camBaseInit) { camBase.copy(cam.position); camBaseInit = true; }
   camBase.x += (desiredX - camBase.x) * lerpT;
   camBase.y += (desiredY - camBase.y) * lerpT;

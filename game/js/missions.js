@@ -30,7 +30,7 @@ import { animateSkutsjeRig } from './models3d_vehicles.js';
 import { setMuseumCaseStolen } from './museum3d.js';
 import {
   startHeist, guardRoute, placeHeistProps, updateHeist, updateFuse, closeFuse, camerasOff, vitrineSpot, vitrineStand, disposeHeist, heistEnterStage, heistLeaveStage,
-  heistApproach, heistSpotAt, updatePlanStage, updateLock, updatePickpocket, updateLasers, updateCrack, updateGetaway, heistSkipGetaway, heistBoat, playEndingShot, heistRevealUpdate, REVEAL,
+  heistApproach, heistSpotAt, heistSendingBack, updatePlanStage, updateLock, updatePickpocket, updateLasers, updateCrack, updateGetaway, heistSkipGetaway, heistBoat, playEndingShot, heistRevealUpdate, REVEAL,
 } from './heist.js';
 import { spawnFjordTrain, fjordLoadPoint, fjordCrossing, loadFjord, loadFjordNow, updateFjordTrain, sendFjordTrainAway, catchFjordTrainNow, disposeFjordTrain, fjordTrainState } from './fjordtrain.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
@@ -270,7 +270,8 @@ function buildDefs(world) {
       reward: 400,
       requires: ['heist', 'night'],
       // midnight: three minutes without cameras, from the fuse box until the case is open
-      window: { after: 'fuse', until: 'crack', secs: 180, label: 'camera\'s uit', late: 'de drie minuten zijn om. De camera\'s staan weer aan' },
+      // once over time: 90 s more (the companion resets the fuse box), then it fails
+      window: { after: 'fuse', until: 'crack', secs: 180, extra: 90, label: 'camera\'s uit', extend: 'De camera\'s gaan weer aan! Ik zet ze nog één keer op herhaling: anderhalve minuut. Opschieten!', late: 'de tijd is om. De camera\'s staan weer aan' },
       start: walk(18, 736),
       heist: { fuse: { landmark: 'Groninger Museum', off: [-29, -38], snap: 'walk' }, vitrine: { landmark: 'Groninger Museum', off: [3, 17] } },
       // heist.js: the plan picks the approach; stages with `only` belong to one of them
@@ -315,7 +316,7 @@ function buildDefs(world) {
           lines: [['T', 'Instappen! De motor draait al!'], ['A', 'Tammo, sinds wanneer kun jij varen?'], ['T', 'Sinds nu. Vol gas!']],
         },
         {
-          kind: 'escape', stars: 3, label: 'Naar de kade bij het Hoofdstation', say: 'Jij stuurt, ik kijk achterom. Schud die pliesie af en leg aan bij het station. Daar zijn we gewoon reizigers.',
+          kind: 'escape', stars: 2, label: 'Naar de kade bij het Hoofdstation', say: 'Jij stuurt, ik kijk achterom. Schud die pliesie af en leg aan bij het station. Daar zijn we gewoon reizigers.',
           // a mooring on the Verbindingskanaal in front of the station: the run ends there, once the police are gone
           target: { x: -40, y: 849, label: 'Kade bij het Hoofdstation' }, dock: 14, mode: 'boat',
           // Nachtstreek, live, while they flee: Jelle calls in
@@ -498,6 +499,9 @@ function buildDefs(world) {
           toTrain: true, loaded: 'Ze rijden de Escapade zo de goederentrein op! Die gaat naar Ljouwert.', late: 'Te laat: de Escapade staat al op de goederentrein naar Ljouwert!',
           meter: 'Escapade', clock: 'trein', half: 'Hij slingert! Durk krijgt de zenuwen.',
           stopped: 'De Escapade staat stil. Durk en Douwe springen eruit en fietsen weg, allebei op één fatbike.',
+          // Tessa in her own car (it stood still, or she yanked the door open): that stops it too
+          hijack: 'Tessa trekt het portier open. Durk en Douwe springen eruit en fietsen weg, allebei op één fatbike. De Escapade is terug!',
+          block: true,
           lost: 'de Escapade staat op de trein naar Ljouwert', gone: 'de Escapade is foetsie', burned: 'de Escapade staat in de fik. Tammo praat nooit meer tegen je',
         },
         {
@@ -539,7 +543,7 @@ function buildDefs(world) {
           kind: 'hold', target: { landmark: 'Grote Markt', off: [20, -5], snap: 'walk' }, radius: 9, time: 30, mode: 'foot',
           label: 'Hou de kraam heel tegen het vuurwerk', say: 'Durk en Douwe steken per ongeluk hun vuurwerk aan! Blijf bij de kraam en stap opzij als er een pijl aankomt.',
           ticks: ['De eerste eierballen gaan het vet in.', 'Berend ruikt al iets. Hij knikt bijna.', 'Nog even! De jury pakt de vorken.'],
-          fireworks: { every: [0.9, 1.7], hit: 2.2, cost: 3, hitText: 'Pang! Vol raak. Even liggen, dan weer naar de kraam.' },
+          fireworks: { every: [1.0, 1.8], hit: 1.9, cost: 2, hitText: 'Pang! Vol raak. Even liggen, dan weer naar de kraam.' },
         },
         {
           kind: 'scene', label: 'Het naspel', target: { landmark: 'Grote Markt', off: [20, -5], snap: 'walk' },
@@ -553,10 +557,10 @@ function buildDefs(world) {
           // D-definitief H18: from the corner of the Grote Markt up the Oude Boteringestraat,
           // over the Boteringebrug, along the Spilsluizen and back down the Oude Ebbingestraat
           // into the fireworks; the torenwachter reports every street, then Tammo whistles
-          kind: 'chase', label: 'Haal de trekker-limo van Jelle in', stars: 1, say: 'Achter die trekker aan! Blijf erbij, ram hem als het kan. Niet schieten, er is kermis.',
+          kind: 'chase', label: 'Haal de trekker-limo van Jelle in: blijf erbij, dan fluit Tammo de duiven', say: 'Achter die trekker aan! Blijf erbij, ram hem als het kan. Niet schieten, er is kermis.',
           vehicle: { name: 'trekkerlimo', len: 5.6, wid: 2.0, maxSpeed: 40, accel: 7, brake: 14, turnRate: 2.1, color: '#1b1c1f' },
-          name: 'Trekker-limo van Jelle', from: [19, 97], lead: 6, hits: 90, flee: [-1900, -900], cruise: 15, escape: 400, time: 220,
-          meter: 'trekker',
+          name: 'Trekker-limo van Jelle', from: [19, 97], lead: 6, hits: 90, flee: [-1900, -900], cruise: 14, escape: 500, time: 300,
+          meter: 'trekker', block: true,
           route: [
             { at: [-60, -40], radio: { caller: 'De torenwachter, d\'Olle Grieze', lines: [['torenwachter', 'Trekker, Oude Boteringestraat. Ik meld alleen.']] } },
             { at: [-140, -188], radio: { caller: 'De torenwachter, d\'Olle Grieze', lines: [['torenwachter', 'Trekker, Boteringebrug. Over het water, de bocht te ruim. Ik meld alleen.']] } },
@@ -564,9 +568,9 @@ function buildDefs(world) {
             { at: [70, -150], radio: { caller: 'De torenwachter, d\'Olle Grieze', lines: [['torenwachter', 'Trekker, Oude Ebbingestraat. Terug naar de markt, recht onder het vuurwerk door.']] } },
             { at: [112, -29] },
           ],
-          // halfway on the meter, or back at the market with you close: the pigeons
+          // a third on the meter, 25 s close behind it, boxed in, or back at the market with you near: the pigeons
           swarm: {
-            stall: { landmark: 'Grote Markt', off: [20, -5], snap: 'walk' }, near: 170,
+            stall: { landmark: 'Grote Markt', off: [20, -5], snap: 'walk' }, near: 260, close: 45, closeFor: 25,
             lines: [
               ['T', 'Kom op, jongens. Eén keer luisteren.'],
               ['torenwachter', 'Duiven. Boven het vuurwerk. Allemaal tegelijk. Ik meld alleen.'],
@@ -585,7 +589,7 @@ function buildDefs(world) {
           lines: [['jelle', 'Ik woe him allinnich oan mem jaan. Foar de útslach.'], ['A', 'Ze staat op de Grote Markt, Jelle. Bij de jury. Geef maar.'], ['jelle', '…Tige tank.']],
         },
         {
-          kind: 'goto', target: { landmark: 'Grote Markt', off: [20, -5], snap: 'walk' }, mode: 'any', radius: 9, limit: 150, calm: true,
+          kind: 'goto', target: { landmark: 'Grote Markt', off: [20, -5], snap: 'walk' }, mode: 'any', radius: 12, limit: 240, calm: true,
           label: 'Terug naar de kraam, voordat de eierballen koud zijn', late: 'de eierballen zijn koud. Berend proeft niks wat koud is',
           say: 'Terug naar de kraam, met de bal! Voordat de eierballen koud zijn.',
         },
@@ -694,8 +698,8 @@ const REQUIREMENTS = {
   },
   night: {
     met: (w) => isNight(w),
-    garage: true,
-    text: () => 'Kraken doe je in het donker. Wacht bij een garage tot het avond is (na 21:00).',
+    garage: true, home: true,
+    text: () => 'Kraken doe je in het donker. Wacht thuis in de flat tot het avond is (na 21:00), of slaap tot de avond.',
   },
   boat: {
     met: () => storyShopState().rental,
@@ -753,9 +757,17 @@ export function requirementMet(w, key) {
 }
 
 // Where to get requirement key: nearest shop of its type(s), or a garage.
+// home.js registers where home is: waiting for the dark happens there.
+let homePlace = null;
+export function setHomePlace(fn) {
+  homePlace = fn;
+}
+
 export function requirementPlace(w, key) {
   const req = REQUIREMENTS[key];
   if (!req) return null;
+  const h = req.home && homePlace && homePlace();
+  if (h) return h;
   if (req.garage) {
     let best = null, bd = Infinity;
     for (const g of getGaragesForRender()) {
@@ -1631,6 +1643,7 @@ function startMission(world, def) {
   chain.hintAt = -Infinity;
   chain.run = { elapsed: 0, hp: world.health + world.armor, hurt: 0, damage: 0, veh: null, vehHp: 100, vehDamage: 0, vehicleUsed: false };
   chain.windowT = 0;
+  chain.windowExtended = false;
   chain.momentDone = false;
   chain.hijacked = false;
   chain.finishPending = false;
@@ -2153,10 +2166,15 @@ function spawnChaseVehicle(world, def, st) {
 
 // A chase `route` ({ at, radio }): the fleeing vehicle drives from point to point;
 // reaching one puts its radio report on air, after the last it heads for `flee`.
-function updateChaseRoute(world, st, S, t) {
+function updateChaseRoute(world, st, S, t, dt = 0) {
   const leg = S.leg || 0;
   const wp = st.route[leg];
-  if (!wp || dist(t.x, t.y, wp.at[0], wp.at[1]) > (wp.r || 22)) return;
+  if (!wp) return;
+  // there, or as close as its road gets it (it waits at the end of its plan)
+  const dw = dist(t.x, t.y, wp.at[0], wp.at[1]);
+  S.wpWait = dw < 50 && Math.abs(t.speed) < 1 ? (S.wpWait || 0) + dt : 0;
+  if (dw > (wp.r || 22) && S.wpWait < 2) return;
+  S.wpWait = 0;
   if (wp.radio && contactMod) contactMod.queueStoryContact({ via: 'radio', from: 'rikus', mood: 'night', ...wp.radio });
   if (wp.say) world.addMessage(wp.say, 3);
   S.leg = leg + 1;
@@ -2326,7 +2344,9 @@ function enterStage(world, def, k) {
     if (k === 0 && startHeist(world)) {
       placeHeistProps(world, resolveTarget(world, def.heist.fuse, from), resolveTarget(world, def.heist.vitrine, from));
       // the cameras and the guard outside stand from the start (the plan shows them)
-      def.stages.forEach((q, j) => { if (q.watch) guardRoute(world, from, resolveTarget(world, q.target, from), q.watch, j); });
+      // along the walk from the mission's own start, wherever the player happened to trigger it
+      const origin = def.start && dist(from.x, from.y, def.start.x, def.start.y) > 12 ? def.start : from;
+      def.stages.forEach((q, j) => { if (q.watch) guardRoute(world, origin, resolveTarget(world, q.target, origin), q.watch, j); });
     }
     if (st.only && st.only !== heistApproach()) { enterStage(world, def, k + 1); return; }
     if (st.vitrine && vitrineStand()) S.target = { ...vitrineStand(), label: st.label };
@@ -2638,9 +2658,15 @@ function updateStages(dt, world, def) {
   const S = chain.stage;
   if (!st || !S) return;
   S.t += dt;
-  if (inWindow(def) && !isCinematicActive()) {
+  if (inWindow(def) && !isCinematicActive() && !(def.heist && heistSendingBack())) {
     chain.windowT += dt;
-    if (chain.windowT > def.window.secs) { fail(world, def, def.window.late); return; }
+    const W = def.window;
+    // the first time it runs out the companion puts the cameras on repeat once more
+    if (chain.windowT > W.secs && W.extra && !chain.windowExtended) {
+      chain.windowExtended = true;
+      chain.windowT = W.secs - W.extra;
+      world.addMessage(W.extend, 4.5);
+    } else if (chain.windowT > W.secs) { fail(world, def, W.late); return; }
   }
   if (def.eggs && chain.stageIndex >= def.eggs.from) {
     updateEggs(dt, world, def);
@@ -2756,8 +2782,14 @@ function updateStages(dt, world, def) {
         S.goAt = S.t;
         if (st.go) world.addMessage(st.go, 4);
       }
-      if (st.route) updateChaseRoute(world, st, S, t);
-      if (st.swarm && (S.hp0 - t.health >= st.hits / 2 || (S.routeDone && d < (st.swarm.near || 150)))) { startSwarm(world, def, st, S, t); break; }
+      // boxed in: it stands still with you right on it for a moment, and that is a stop as well
+      if (st.block) {
+        S.blockT = Math.abs(t.speed) < 1 && d < 10 ? (S.blockT || 0) + dt : 0;
+        if (S.blockT > 2.5) { if (st.swarm) startSwarm(world, def, st, S, t); else stopChaseVehicle(world, def, st); break; }
+      }
+      if (st.swarm && st.swarm.close && d < st.swarm.close) S.closeT = (S.closeT || 0) + dt;
+      if (st.route) updateChaseRoute(world, st, S, t, dt);
+      if (st.swarm && (S.hp0 - t.health >= st.hits / 3 || (S.closeT || 0) >= (st.swarm.closeFor || Infinity) || (S.routeDone && d < (st.swarm.near || 150)))) { startSwarm(world, def, st, S, t); break; }
       if (S.hp0 - t.health >= st.hits) { stopChaseVehicle(world, def, st); break; }
       if (st.toTrain && chaseReachedTrain(world, def, st, S, t, dt)) break;
       if (d > (st.escape || 380) || S.t - (S.goAt || 0) > (st.time || 180)) { fail(world, def, st.lost || 'de tankwagen is ontsnapt, richting Friesland'); break; }

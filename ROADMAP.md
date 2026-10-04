@@ -104,6 +104,17 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
 
 **Ring:** nog steeds zwarte lagen hier en daar. Dat valt onder mesh ronde 4 en 5, die gepauzeerd zijn.
 
+## Content die je nooit ziet (feedback 4 okt)
+
+- [ ] Inventaris: van elk wapen, voertuig, winkelartikel, minigame en bijbaantje vastleggen waar het in de game voorkomt (`scripts/content_audit.mjs`), en wat nergens of alleen per toeval te vinden is.
+- [ ] Alles wat bestaat een logische plek geven:
+  - een verhaalstap of klus die het voorstelt;
+  - een winkel of verkoper;
+  - een tip van Ubbo;
+  - een plek op de kaart.
+- [ ] Verzamelprestaties (bijvoorbeeld "alle fietsen gereden") met een teller in Garage en Prestaties, zodat je ziet wat er nog is.
+- [ ] Wat geen functie heeft, schrappen of samenvoegen.
+
 ## 0.24: echte zwakke hardware en de webversie
 
 - [ ] Meten op een echte Intel-laptop (Iris Xe of UHD 620) en een Chromebook of vergelijkbaar toestel. Daarvoor is hardware van Alexander of een kennis nodig.
@@ -153,6 +164,40 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
 - [x] **Save-garantie** (`claude/v025`): saves en instellingen hebben een versie en worden stap voor stap gemigreerd (`savemigrate.js`); `node scripts/save_migration_test.mjs` laadt saves zoals 0.4, 0.21, 0.22, 0.23 en 0.24 ze schreven. Bij elke release die de save verandert: een migratiestap en een fixture erbij.
 - [x] **Ongebruikte stemopnames weg** (`claude/opruimen`): `node scripts/audio_unused.mjs` vindt opnames en manifestregels die geen regel, lookup of codepad meer gebruikt; `--delete` haalt ze weg. 746 bestanden, 17,3 MB; de stemdekking blijft 1608/1608.
 - [ ] Feature freeze.
+
+## Speeltest Maus 4 okt (0.26.1)
+
+**UI en geluid** (`claude/maus-ui`)
+- [x] Hoofdmenu, Afsluiten en Opnieuw beginnen in het pauzemenu zijn echte knoppen van 44 px. Opnieuw beginnen staat apart en vraagt om bevestiging. Gecontroleerd op 1920×1080 en 1280×800.
+- [x] Eén radio voor het hele spel, te voet en in elk voertuig. De keuze blijft in je save (`radio`).
+- [x] Eén zender (G-Music) met programma's in plaats van vier zenders: Proat in de ochtend, De hits, Avondproat en vanaf 22:00 Nachtstreek (`PROGRAMMES` in `musicpick.js`). Om de 2 of 3 nummers een praatje van bestaande opnames (Geesje, Kiekdoar-nieuws en `audio/nieuws`, verkeer, weer, de koeien, Rikus). N zet hem aan of uit; `radio` in de save is `on`/`off` (save v3 zet oude zenders op `on`).
+- [x] Muziekkeuze met een geschiedenis (`musicpick.js`): geen herhaling binnen ~60% van de pool, nummers die lang niet speelden wegen zwaarder, nachtnummers 's nachts, een eigen pool per zender en minder jingles. `node scripts/music_pick_test.mjs` test het.
+- [ ] De indeling van Nachtstreek en dag/nacht in `audio/gmusic/manifest.json` naluisteren. Die is nu gekozen op de titels.
+- [ ] Nieuwe muziek maken volgens [docs/MUZIEK.md](docs/MUZIEK.md). Het doel per programmablok: 40 nummers in de dagpool (waarvan 10 voor de ochtend en 8 voor de avond), 20 of meer voor Nachtstreek, en jingles per blok. Nu zijn het er 14 en 6.
+- [x] De radio op de controller: er is niets meer om tussen te wisselen, alleen aan/uit. Dat doet LB in een voertuig; te voet zijn alle knoppen bezet, dus daar gaat het via Instellingen › Geluid. Geen eigen knop te voet nodig.
+
+**Missies** (`claude/maus-missies`)
+- [x] H6: zwart incognito meteen op allebei (kopen, start van de kraak, laden); de fietsrijder volgt de outfit ook.
+- [x] H6: toetschip boven je hoofd per laserrij, mildere lasers, de drie minuten pauzeren bij terugsturen en krijgen één keer 90 s extra, een tweede poging slaat het plangesprek over, ontsnapping met twee sterren.
+- [x] H6: camera's langs de route vanaf het startpunt, op droge grond binnen de bouwtekening. De verhaaltest checkt de bewakers en camera's, en dat geen filmcamera buiten de wereld staat (`cinematics.js` `cinematicPoseIssues`).
+- [x] Je auto laten afleveren in het Ommeland (berm van een landweg); een eigen voertuig daar overleeft het laden. De verhaaltest checkt het in Loppersum.
+- [x] Onderduiken met de trein: dorpen bovenaan, alleen een rit naar het Ommeland telt, een korte wandeling naar het eerste dorpsuitje, daar de scène.
+- [x] "US MEM VET" hangt aan de geveerde body van de tankwagen.
+- [x] H11: glas rechtop bij het klinken, aan de lippen bij het drinken (pose nagerekend op het skelet).
+- [x] H16: instappen in de Escapade of hem klemzetten stopt hem.
+- [x] H18: de limo blijft nooit wachten op een routepunt, duiven bij een derde van de meter, 25 s dichtbij of klemzetten; geen politie, meer tijd.
+- [x] H13: scènes aan boord van de rondvaartboot op het open voordek en de vloer, niet onder (door) de glazen kap (`missionstory.js` `boatStage`).
+- [x] Fierljeppen: het mik-camerashot (`pg-aim`) slikte Spatie in als "overslaan"; nu `passKeys`, en gefocuste UI-knoppen verliezen hun focus bij Spatie/Enter tijdens het spelen (`spacegate.js`, `node scripts/space_gate_test.mjs`).
+- [ ] H6 en H18 met de hand naspelen op Windows met Ctrl als bukken; de verhaaltest speelt de stappen niet echt.
+
+**Thuis in het verhaal** (`claude/thuis-verhaal`)
+- [x] De garage toont elk eigen voertuig: 18 vakken, de rest in de parkeerlift. Het paneel bij de deur ("Kies welke auto's in de garage staan") haalt er een naar voren, en die keuze staat in de save (`thuis.front`). Het Garage-menu zegt waar elk voertuig thuis staat. "Te koop" en "Vrijgespeeld" zijn duidelijk iets anders dan "van jou".
+- [x] De flat heeft twee kleine slaapkamers, een voor elk. Je slaapt in je eigen bed, en de Sloapstee is een setje van twee eenpersoonsbedden.
+- [x] k-nacht wacht thuis in de flat in plaats van bij Henk. Henk belt tijdens het wachten (koekje en zender). Missies die het donker nodig hebben, sturen je ook naar huis.
+- [x] Nieuwe stap r-avond, "Een avond thuis", tussen H12 en H13.
+- [x] Nieuwe stap k-eikea, "De flat inrichten bij EIKEA", na H1: dozen op het dak, een klap kost een doos, thuis in elkaar zetten. Je krijgt de bedden, de Buukenkaas en Lichtje Tjoek. Een oude save die al verder is, slaat hem over. De Electron-storytest speelt hem echt.
+- [ ] Naspelen: valt de dozenstapel op het dak van een busje goed uit? Hij is nu afgestemd op de Escapade.
+- [ ] Naluisteren: Henks telefoontje klinkt nu als een gewone stem, zonder telefoonfilter.
 
 ## Juridisch en publiceren (vóór 1.0)
 
