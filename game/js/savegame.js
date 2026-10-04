@@ -17,6 +17,7 @@ import { stopVillageMini } from './dorpsuitjes.js';
 import { quitActivity } from './activities.js';
 import { getGoalSave, applyGoalSave } from './goal.js';
 import { migrateSave, SAVE_VERSION } from './savemigrate.js';
+import { getCheatSave, applyCheatSave } from './cheats.js';
 import { getRadioSave, applyRadioSave } from './radio.js';
 
 // the key keeps its old name; the version inside the save is what counts (savemigrate.js)
@@ -151,6 +152,8 @@ function serialize(w) {
     doel: getGoalSave(),
     // the radio, 'on' or 'off'; a save without it starts with the radio on
     radio: getRadioSave(),
+    // the streken: unlocked, switched on, used once (cheats.js)
+    streken: getCheatSave(),
   };
 }
 
@@ -271,6 +274,7 @@ export function applySave(w, d) {
     applyFurnitureSave(d.meubels);
     applyGoalSave(d.doel);
     applyRadioSave(d.radio);
+    applyCheatSave(d.streken, d);
     applyHomeOnLoad(w, d);
     w.loadedFromSave = true;
     w.loadCount = (w.loadCount || 0) + 1;
