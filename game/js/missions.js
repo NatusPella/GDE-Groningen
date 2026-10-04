@@ -366,7 +366,7 @@ function buildDefs(world) {
         { kind: 'goto', target: { at: [610, 668], snap: 'drive', label: 'De Oosterpoort' }, mode: 'vehicle', stop: 1, label: 'Breng de tankwagen naar de Oosterpoort', say: 'Rustig rijden, met platte banden. Naar de Oosterpoort, daar wachten de frituurpannen.', sayHijacked: 'Naar de Oosterpoort, daar wachten de frituurpannen. En rustig, hè: het is een tankwagen.' },
         {
           kind: 'vault', label: 'Jelle',
-          lines: [['jelle', 'Moai, Grinzers. Mijn vet. Mijn tankwagen. Mijn dag.'], ['A', 'Jouw dag is voorbij, Jelle. Het vet blijft in Grunn.'],
+          lines: [['jelle', 'Moai, Grinzers. Mijn vet. Mijn tankwagen. Mijn dag.'], ['A', 'Was, Jelle. Het vet blijft in Grunn.'],
             ['jelle', 'Dan koop ik nieuw vet. Jild genôch. En een polsstok.'], ['T', 'Een wat?'], ['durk', 'Baas… en wij?'], ['jelle', 'Jim fytse mar, jonges.']],
           landing: 'Moai! Oant sjen op Gronings Ontzet!',
         },
@@ -392,7 +392,7 @@ function buildDefs(world) {
             ['V', 'Dertig meter Fries doek, aan de trots van Grunn. Onderaan, in grote letters: foar mem.'],
             ['jelle', 'Moai, Grinzers! Kijk eens omhoog. Foar mem.'],
             ['A', 'Zie je die vijf gele knopen, Tammo? Die houden hem vast.', { clue: true, look: 'knots' }],
-            ['T', 'Ik fluit. Hij pikt.'],
+            ['T', 'Vijf knopen. Vijf keer fluiten.'],
           ],
         },
         {
@@ -411,7 +411,7 @@ function buildDefs(world) {
           kind: 'scene', label: 'De vlag valt', target: { landmark: 'Martinitoren', off: [0, 70], snap: 'walk' }, dropFlag: true, shotLines: 2,
           cam: { r: 34, h: 9, lookZ: 34, at: { landmark: 'Martinitoren', off: [0, 14] } },
           kicker: "d'Olle Grieze", big: 'Hij valt!',
-          lines: [['A', 'Daar gaat hij. Kopje onder, Jelle.'], ['T', 'Dertig meter vlag. Losgepikt. Door mijn duif.'], ['A', 'Hoor je dat? Heel de Grote Markt klapt. Ze zagen het zelfs vanaf de Kiekdeuse.']],
+          lines: [['A', 'Daar gaat hij. Kopje onder, Jelle.'], ['T', 'Dertig meter vlag. Losgepikt. Door mijn duif.'], ['A', 'Ja, ja. Jouw duif.']],
         },
       ],
     },

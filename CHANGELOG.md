@@ -58,6 +58,35 @@ nieuwe functies, `y` voor alleen bugfixes.
   spaarkaart blijft. Kiekdoar zegt weer "gewond". De stuntavond van H3
   blijft non-letaal, met sterretjes. Verwachte leeftijd: PEGI 18 / USK 18
   (docs/LEEFTIJD.md).
+- **Natuurlijkere dialogen.** Maus vond dat sommige verhaalregels nergens
+  op sloegen. Daarom zijn ongeveer 120 regels herschreven, ingesproken met
+  dezelfde stemmen. Regels die vóór een missie klinken, verklappen niets
+  meer uit de scène erna. Niemand antwoordt nog op iets wat niet gezegd is.
+  Tammo houdt geen betogen meer. Het geforceerde Gronings is eruit, en
+  grappen komen niet meer drie keer achter elkaar terug. De feiten kloppen
+  weer: ze wonen in Paddepoel met een garage, het verhaal duurt twee weken,
+  en Rikus wil de eerste friet en krijgt de tweede. Wat er veranderde en
+  waarom staat in `docs/verhaal/DIALOOG-REVIEW.md`.
+- **Elke wijk klinkt anders.** Als je een wijk voor het eerst binnenkomt,
+  zegt Rikus een van twee à drie regels die bij die wijk passen. 38 wijken
+  en buurten hebben nu een eigen regel; de andere buurten krijgen de regels
+  van hun wijk. Een regel komt niet terug zolang je hem pas gehoord hebt.
+  Tammo en Tessa hebben acht nieuwe wijkgesprekken.
+- **De Koe van Ome Jan is te volgen.** Jelle legt aan de telefoon uit
+  waarom Durk en Douwe Geertje meenamen: ze wilden hem toch nog iets laten
+  winnen, op de keuring in Ljouwert. Het slot vertelt hoe het met de
+  tweeling afloopt. De missie is ook eenvoudiger en
+  korter: de schuur ligt op een minuut rijden van het erf, je maakt Geertje
+  los met E (ook vanuit de auto) en rijdt haar naar huis. Ze rent mee met
+  wat je ook rijdt, en als je wegloopt wacht ze op je. Rammen hoeft niet:
+  na een minuut rijden Durk en Douwe vanzelf de sloot in. De HUD geeft elke
+  stap met een marker, laat zien of Geertje meeloopt, telt de rammen (0/3)
+  en waarschuwt als de trekker vlak achter haar zit.
+- **Na een gewonnen uitdaging weet je wat je nu moet doen.** Je krijgt
+  een bericht, en de GPS wijst meteen naar de dichtstbijzijnde uitdaging
+  zonder medaille (niet naar de uitdaging die je net deed). Zijn ze allemaal
+  gedaan, dan zegt het bericht dat ook. Dit geldt voor alle uitdagingen na
+  het verhaal.
 - **De aftiteling komt pas aan het eind.** Na het verhaal zie je de epiloog,
   "Wij tweeën vóór Grunn." en de Fjord Frituur. De aftiteling, het logo en
   "Einde" wachten tot alle 18 missies gehaald zijn en alle uitdagingen na het
