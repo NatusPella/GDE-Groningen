@@ -481,7 +481,7 @@ function vehicleLightsOn(v) {
   // boats: nav lights on everything afloat except the parked hero boat
   if (v.isBoat) return v.driver === 'player' || !v.isHeroCar;
   if (v.parked) return false;
-  return v.driver === 'player' || !!v.road || !!v.racer || (v.isPolice && !v.hijacked);
+  return v.driver === 'player' || !!v.road || !!v.countryDrive || !!v.racer || (v.isPolice && !v.hijacked);
 }
 
 export const UNLIT_LAMP = 0.32;

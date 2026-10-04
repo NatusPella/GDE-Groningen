@@ -21,7 +21,7 @@ function carKind(v) {
   if (v.isBus) return 'bus';
   const n = v.model.name;
   if (n === 'truck') return 'truck';
-  if (n === 'trekkerlimo') return 'trekker';
+  if (n === 'trekkerlimo' || n === 'tractor') return 'trekker';
   if (v.isAmbulance || n === 'foodtruck' || n === 'cashvan') return 'van';
   if (v.isHeroCar) return 'escort';
   if (v.isPolice) return 'wagon';

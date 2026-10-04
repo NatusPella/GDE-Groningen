@@ -14,6 +14,11 @@ nieuwe functies, `y` voor alleen bugfixes.
   Hapert het beeld, dan gaat de zichtafstand vanzelf even terug naar Ver.
 
 ### Opgelost
+- **Echte voertuigen in het Ommeland.** Auto's, bestelbussen, trekkers en
+  fietsers op de landwegen zijn dichtbij echte voertuigen: je kunt ze kapen,
+  van de fiets duwen, rammen en in elkaar rijden, net als in de stad. In de
+  dorpen staan auto's langs de stoep en bij de boerderijen staan trekkers
+  die je kunt meenemen.
 - **Laten afleveren werkt nu ook in het Ommeland.** De bezorger zet je auto
   in de berm van de dichtstbijzijnde landweg neer, in plaats van te melden
   dat hij nergens kan parkeren.

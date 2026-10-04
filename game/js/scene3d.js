@@ -645,7 +645,7 @@ function hasAiDriver(v) {
   if (v.wrecked || v.parked || v.driver === 'player' || v.castDriver) return false;
   if (v.driver) return true;
   if (v.isPolice) return !v.hijacked && !v.disabled && !v._roadblock;
-  return !!(v.road || v.racer);
+  return !!(v.road || v.racer || v.countryDrive);
 }
 
 function ensureDriverFigure(mesh, v, dist, deadline) {

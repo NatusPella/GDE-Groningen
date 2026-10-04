@@ -37,6 +37,7 @@ const CASES = [
   ['truck (H8 vet-tanker)', car('truck', 7.2, 2.35, { model: { tank: true } })],
   ['truck (stunt tanker)', car('truck', 6.2, 2.3, { model: { tank: true } })],
   ['trekkerlimo', car('trekkerlimo', 5.6, 2.0)],
+  ['tractor', car('tractor', 3.6, 2.0)],
   ['bus (gelede)', car('bus', 11, 2.35, { v: { isBus: true } })],
   ['midibus', car('midibus', 8.4, 2.3, { v: { isBus: true } })],
   ['heli', car('heli', 9, 2.4, { v: { isHeli: true } })],

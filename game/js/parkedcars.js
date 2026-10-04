@@ -1,7 +1,11 @@
-import { Vehicle, MODELS } from './vehicle.js';
+import { Vehicle, MODELS, TRACTOR_MODEL } from './vehicle.js';
 import { pointInPolygon, closestPointOnSegment, inWaterPoly } from './util.js';
 import { propsInRadius } from './breakables.js';
 import { villageKerbs, villageSlotFree } from './countryvillage.js';
+import { BLOCK, chash, edgeDistance, urbanWeight, realWater } from './countryfield.js';
+import { REAL, RTILE, buildingsInTile, roadsInTile, buildingModel, buildingAt } from './countryreal.js';
+import { blockPlan, farmDetail, pushOutOfPlan } from './countryplan.js';
+import { roadGap } from './countryedge.js';
 
 // Kerbside parking along residential streets: half a car length up on the
 // stoep, clear of the traffic lane. Slots are deterministic per road segment
@@ -125,6 +129,7 @@ function* genCell(world, st, gx, gy) {
       }
     }
   }
+  if (edgeDistance(x0 + CELL / 2, y0 + CELL / 2) > -CELL) yield* countrySlots(x0, y0, slots);
   // the streets round an Ommelanden village centre (countryvillage.js)
   for (const k of villageKerbs(x0, y0, CELL)) {
     for (const side of [1, -1]) {
@@ -144,6 +149,92 @@ function* genCell(world, st, gx, gy) {
     }
   }
   return slots;
+}
+
+// Out in the Ommelanden: the farm tractors (the countryplan farmsteads and
+// the barns of the real data, drawn nowhere else) and
+// cars at the kerb of the village streets. All real, stealable vehicles.
+let countryCars = null;
+const COUNTRY_CARS = () => countryCars || (countryCars = MODELS.filter((m) => m.name !== 'sport'));
+const hexColor = (c) => (typeof c === 'number' ? '#' + c.toString(16).padStart(6, '0') : c);
+function countryFree(x, y, angle, m) {
+  const c = Math.cos(angle), s = Math.sin(angle);
+  for (const k of [-0.5, 0, 0.5]) {
+    const px = x + c * m.len * k, py = y + s * m.len * k;
+    if (edgeDistance(px, py) < 0 || realWater(px, py) > -1.5 || buildingAt(px, py, m.wid / 2 + 0.2) >= 0) return false;
+    if (roadGap(px, py, 2) < m.wid / 2 + 0.2) return false;
+    if (pushOutOfPlan({ x: px, y: py }, m.wid / 2 + 0.2)) return false;
+  }
+  return true;
+}
+// Farm tractors, as countryside.js draws no tractor props any more.
+export function farmVehicleSpots(bx, by) {
+  const out = [];
+  for (const f of blockPlan(bx, by).farms) {
+    const fd = farmDetail(f);
+    for (const it of fd.items) {
+      if (it.kind !== 'tractor') continue;
+      out.push({ x: it.x, y: it.y, angle: f.angle - it.rot, model: { ...TRACTOR_MODEL, color: hexColor(it.color) } });
+    }
+  }
+  return out;
+}
+// The yard tractor by a real barn (as countryside.js genReal placed it).
+export function barnTractorSpot(i) {
+  const x = REAL.bx[i], y = REAL.by[i];
+  const m = buildingModel(i);
+  if (m.kind !== 'barn' || urbanWeight(x, y) >= 0.3) return null;
+  const h = chash(Math.round(x) + 3, Math.round(y) - 5);
+  if (h <= 0.6) return null;
+  const ca = Math.cos(m.angle), sa = Math.sin(m.angle);
+  const col = [0x3f7d3a, 0xb8322a, 0x2f5fa8, 0x3f7d3a][Math.floor(h * 40) % 4];
+  return { x: x - sa * (m.short / 2 + 4), y: y + ca * (m.short / 2 + 4), angle: m.angle, model: { ...TRACTOR_MODEL, color: hexColor(col) } };
+}
+function* countrySlots(x0, y0, slots) {
+  const inCell = (x, y) => x >= x0 && x < x0 + CELL && y >= y0 && y < y0 + CELL;
+  const take = (q) => { if (q && inCell(q.x, q.y)) slots.push({ x: q.x, y: q.y, angle: q.angle, model: q.model, v: null, taken: false }); };
+  const seen = new Set();
+  for (const [cx, cy] of [[x0, y0], [x0 + CELL - 1, y0], [x0, y0 + CELL - 1], [x0 + CELL - 1, y0 + CELL - 1]]) {
+    const bx = Math.floor(cx / BLOCK), by = Math.floor(cy / BLOCK);
+    if (seen.has(bx * 100003 + by)) continue;
+    seen.add(bx * 100003 + by);
+    for (const q of farmVehicleSpots(bx, by)) take(q);
+  }
+  if (!REAL.ready) return;
+  const tx = Math.floor(x0 / RTILE), ty = Math.floor(y0 / RTILE);
+  for (const i of buildingsInTile(tx, ty) || []) {
+    if (REAL.code[i] !== 4 && REAL.code[i] !== 0) continue;
+    const q = barnTractorSpot(i);
+    if (q && inCell(q.x, q.y) && countryFree(q.x, q.y, q.angle, q.model)) take(q);
+  }
+  yield;
+  // kerbside on the village streets (residential / living / unclassified)
+  const R = roadsInTile(tx, ty);
+  if (!R) return;
+  for (let k = 0; k < R.length; k += 2) {
+    const ri = R[k], si = R[k + 1], r = REAL.roads[ri];
+    if ((r.kind !== 7 && r.kind !== 6) || r.bridge) continue;
+    const a = r.pts[si], b = r.pts[si + 1];
+    const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    if (len < END_CLEAR * 2 + 4) continue;
+    if (urbanWeight((a[0] + b[0]) / 2, (a[1] + b[1]) / 2) < 0.12) continue;
+    const ux = (b[0] - a[0]) / len, uy = (b[1] - a[1]) / len;
+    for (const side of [1, -1]) {
+      if (hash(ri, si, side + 20) > 0.45) continue;
+      const nx = -uy * side, ny = ux * side;
+      const angle = Math.atan2(uy, ux) + (side < 0 ? Math.PI : 0);
+      for (let n = 0, t = END_CLEAR + hash(ri, si, side + 30) * 4; t < len - END_CLEAR; n++, t += SLOT_GAP * 1.4) {
+        if (hash(ri, si * 131 + n, side + 40) > 0.35) continue;
+        const m = COUNTRY_CARS()[Math.floor(hash(ri, n, si + side) * COUNTRY_CARS().length)];
+        const off = r.w / 2 + m.wid / 2 + 0.45;
+        const x = a[0] + ux * t + nx * off, y = a[1] + uy * t + ny * off;
+        if (!inCell(x, y)) continue;
+        const ok = countryFree(x, y, angle, m) && villageSlotFree(x, y, angle, m.len + 0.6, m.wid + 0.4);
+        yield;
+        if (ok) slots.push({ x, y, angle, model: m, v: null, taken: false });
+      }
+    }
+  }
 }
 
 // Street clutter (bike racks, lamp posts, bins...) streams in with its own
