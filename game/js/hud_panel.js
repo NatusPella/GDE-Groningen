@@ -402,7 +402,9 @@ const LOOKS = { tammo: TAMMO_APPEARANCE, anita: ANITA_APPEARANCE };
 const PORTRAIT_PX = 96;
 
 // A head-and-shoulders render of the real character model (vehiclepreview.js
-// shared renderer, cached per look); the drawn silhouette shows until then.
+// shared renderer, cached per look and kept across sessions, so it only
+// renders again for a new outfit or character); the drawn silhouette shows
+// until then.
 function setPortrait(img, ch, keyField) {
   const look = LOOKS[ch];
   const key = ch + JSON.stringify(look);
@@ -412,7 +414,7 @@ function setPortrait(img, ch, keyField) {
     if (els[keyField] !== key || !url) return;
     img.src = url;
     img.classList.add('on');
-  }, { angle: PORTRAIT_ANGLE });
+  }, { angle: PORTRAIT_ANGLE, keep: true });
 }
 
 // "Tessa rijdt mee": the companion's own small portrait while they are with you.
