@@ -8,7 +8,8 @@ import { vehicleDisplayLabel } from './vehiclenames.js';
 import { findEnterableVehicle, distToVehicleBody } from './vehicle.js';
 import { findRideableProp } from './rideprops.js';
 import { getSettings } from './settings.js';
-import { physicalKey, tokenKey, keyName, PAD_LAYOUTS } from './controls.js';
+import { physicalKey, tokenKey, keyName, keyWord, PAD_LAYOUTS } from './controls.js';
+const downKey = () => keyWord(getSettings().keyBinds, 'control');
 import { isPadActive, padState } from './gamepad.js';
 import { getUiScale } from './uiscale.js';
 import { isPhoneOpen } from './phone.js';
@@ -608,7 +609,7 @@ function contextRows(world, primary) {
     rows.push(tut('handbrake', [' '], 'Noodrem', 'Stopt sneller, maar niet meteen', true));
     rows.push(tut('horn', ['H'], 'Toeter', 'Van het spoor af!'));
   } else if (p.inVehicle && p.inVehicle.isHeli) {
-    rows.push(tut('heliUp', [' ', 'CTRL'], 'Omhoog & omlaag', 'Spatie omhoog, Ctrl omlaag: landen doe je laag en langzaam'));
+    rows.push(tut('heliUp', [' ', 'CTRL'], 'Omhoog & omlaag', `Spatie omhoog, ${downKey()} omlaag: landen doe je laag en langzaam`));
     rows.push(tut('heliFly', ['W', 'S'], 'Vooruit & remmen', 'W vooruit, S remt af tot je stilhangt, dan achteruit'));
     rows.push(tut('heliYaw', ['A', 'D'], 'Draaien', 'A/D of de muis draait de neus'));
     rows.push(tut('heliBoost', ['SHIFT'], 'Sneller', 'Vol gas vooruit'));
@@ -622,7 +623,7 @@ function contextRows(world, primary) {
     const w = WEAPONS[world.weapon];
     if (w.scope) rows.push(tut('scope', ['RMB'], 'Kijker', 'Houd vast om in te zoomen, klik om te schieten'));
     else rows.push(tut('aim', ['RMB'], 'Richten', getSettings().autoAim !== false ? 'Houd vast: richt vanzelf op een doelwit, Tab wisselt' : 'Houd vast om te richten'));
-    if (world.weapon === 'carbidbus') rows.push(tut('throw', ['LMB'], 'Gooien', 'Bukken (Ctrl) en klikken zet de bus neer. Wegwezen!'));
+    if (world.weapon === 'carbidbus') rows.push(tut('throw', ['LMB'], 'Gooien', `Bukken (${downKey()}) en klikken zet de bus neer. Wegwezen!`));
     else rows.push(tut('shoot', ['LMB'], 'Schieten', 'Je schiet waar de camera kijkt'));
     rows.push(tut('weapon', ['1-4'], 'Wapen', '1 slaan, 2 pistolen, 3 geweren, 4 knallers; nog eens drukken wisselt, of scrollen'));
   }
