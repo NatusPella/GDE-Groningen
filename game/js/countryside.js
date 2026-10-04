@@ -1436,6 +1436,13 @@ function updateAnimals(dt, world, time, simulate) {
 
 // Countryside ground under (x, y), or null where a real mapped road or
 // plot takes precedence (the meadow feathers a little into the map).
+// Deep water under (x, y): a maar, a real canal or open water, not a ditch.
+function wideDitch(x, y) {
+  if (REAL.ready && realWater(x, y) > 0.8) return true;
+  const p = parcelAt(x, y);
+  return p.dMaar < MAAR_WATER;
+}
+
 function groundAt(map, x, y) {
   const cs = countrySurface(x, y);
   if (!cs || cs === 'weg') return cs;
@@ -1456,15 +1463,32 @@ function gameplay(dt, world) {
   if (v && !v.isBoat && !v.isHeli && !v.sinking && !v.wrecked) {
     const surf = groundAt(world.map, v.x, v.y);
     const sp = Math.abs(v.speed);
-    if (surf === 'gras' || surf === 'sloot') {
-      const cap = surf === 'sloot' ? 2.5 : Math.min(15, (v.model.maxSpeed || 30) * 0.45);
-      if (sp > cap) v.speed -= Math.sign(v.speed) * (sp - cap) * Math.min(1, dt * (surf === 'sloot' ? 4 : 1.2));
+    // a strip or main ditch (1.5-2 m) is a dip you bump through; only a
+    // maar, a canal or open water is deep enough to wade
+    const deep = surf === 'sloot' && wideDitch(v.x, v.y);
+    if (surf === 'sloot' && !deep && S.surf !== 'sloot') v.speed *= 0.88;
+    if (surf === 'gras' || deep) {
+      // grass rolls slower, gradually (at most 4 m/s2 of drag): off-road
+      // vehicles (quad, tractor) hardly notice it
+      const off = v.model.offroad || 0;
+      const cap = deep ? 2.5 : Math.min((v.model.maxSpeed || 30), Math.max(14, (v.model.maxSpeed || 30) * (0.5 + 0.5 * off)));
+      if (sp > cap) v.speed -= Math.sign(v.speed) * Math.min(sp - cap, (deep ? 9 : 4) * dt);
       // bumpy meadow: a little random yaw wobble that grows with speed
       const k = Math.min(1, sp / 12);
       v.angle += Math.sin(world.time * 13.7 + v.x * 0.9) * Math.sin(world.time * 5.3 + v.y) * dt * 0.35 * k;
     }
     if (surf === 'sloot' && S.surf !== 'sloot' && sp > 1.5) splash(world, v.x, v.y);
-    if (countryWeight(v.x, v.y) > 0.5 && pushOutOfPlan(v, 1.2)) v.speed *= -0.25;
+    // farm buildings and silos: a solid stop, but only when driving into them
+    // (a push sideways along a wall keeps its speed)
+    if (countryWeight(v.x, v.y) > 0.5) {
+      const ox = v.x, oy = v.y;
+      if (pushOutOfPlan(v, 1.2)) {
+        const nx = v.x - ox, ny = v.y - oy, l = Math.hypot(nx, ny) || 1;
+        const into = -(Math.cos(v.angle) * nx + Math.sin(v.angle) * ny) / l * Math.sign(v.speed || 1);
+        if (into > 0.5) v.speed *= -0.25;
+        else v.speed *= 1 - 0.5 * Math.max(0, into);
+      }
+    }
     S.surf = surf;
     S.prev = null;
     return;
