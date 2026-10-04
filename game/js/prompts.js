@@ -337,8 +337,12 @@ function findPrimary(world) {
   if (thuis) return thuis;
   if (p.inVehicle) return null;
   if (p.swimming) {
+    // E boards a boat alongside, Space climbs out: a quay next to a boat
+    // never puts you aboard by accident
+    const boat = findEnterableVehicle(p.x, p.y, world.vehicles, 1.4);
+    if (boat && boat.isBoat) return { id: 'board-' + boat.id, x: boat.x, y: boat.y, h: 1.6, key: 'E', label: 'Aan boord klimmen', sub: p.canClimbOut && !isPadActive() ? `${keyWord(getSettings().keyBinds, ' ')}: de kade op` : '', ring: true };
     if (!p.canClimbOut) return null;
-    return { id: 'climb', x: p.x, y: p.y, h: 0.6, key: 'E', label: 'Eruit klimmen', sub: learning('climb') ? 'Klim de kade weer op' : '', learn: learning('climb'), ring: true };
+    return { id: 'climb', x: p.x, y: p.y, h: 0.6, key: 'SPATIE', label: 'Eruit klimmen', sub: learning('climb') ? 'Klim de kade weer op' : '', learn: learning('climb'), ring: true };
   }
   const duif = pigeonSpotPrompt(world);
   if (duif) return duif;
@@ -582,6 +586,7 @@ const PAD_DESC = {
   move: () => 'Linkerstick: lopen, indrukken: rennen',
   look: () => 'De rechterstick draait de camera om je heen',
   swim: () => 'Linkerstick: zwem de kant op die je kijkt',
+  climb: (L) => `${L.a === 'cross' ? 'Kruisje' : L.a}: de kade op, ${L.y === 'triangle' ? 'driehoek' : L.y}: in een boot`,
   drive: (L) => `${L.rt} gas, ${L.lt} remmen en achteruit, linkerstick sturen`,
   handbrake: (L) => `${L.a === 'cross' ? 'Kruisje' : L.a} in een bocht = driften`,
   radio: (L) => `${L.lb} in een voertuig: G-Music aan of uit (te voet via Instellingen)`,
@@ -619,7 +624,7 @@ function contextRows(world, primary) {
     rows.push(tut('radio', ['N'], 'Radio', 'G-Music aan of uit', true));
     if (armed) rows.push(tut('shoot', ['LMB'], 'Schieten', getSettings().autoAim !== false ? 'Vuren vanuit de auto, houd RMB vast om te richten' : 'Vuren vanuit de auto'));
   } else if (p.swimming) {
-    if (p.canClimbOut) rows.push(tut('climb', ['E'], 'Eruit klimmen', 'Klim de kade op'));
+    if (p.canClimbOut) rows.push(tut('climb', ['SPATIE'], 'Eruit klimmen', 'Klim de kade op (E stapt in een boot)'));
   } else if (armed) {
     const w = WEAPONS[world.weapon];
     if (w.scope) rows.push(tut('scope', ['RMB'], 'Kijker', 'Houd vast om in te zoomen, klik om te schieten'));

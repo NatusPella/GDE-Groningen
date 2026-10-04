@@ -7,10 +7,6 @@
 "src": "anita/de_bal_moet_tot_het_ontzet_veili_bbc4aeb4.mp3",
 "dur": 6.27
 },
-"Anita|De inschrijving voor de Snackprijs kost honderdvijftig euro. Jelmer betaalt dat, voor content. Grote Markt, met de Escapade.": {
-"src": "anita/de_inschrijving_voor_de_snackpri_ca14e017.mp3",
-"dur": 7.9
-},
 "Anita|De kermis wordt opgebouwd voor het Ontzet. Durk en Douwe zitten in de botsauto's op de Grote Markt. Kermisbaas Jan laat je gratis instappen.": {
 "src": "anita/de_kermis_wordt_opgebouwd_voor_h_66e62cf6.mp3",
 "dur": 8.53
@@ -19,9 +15,9 @@
 "src": "anita/duivenmelker_bert_zit_bij_het_st_860c7a90.mp3",
 "dur": 5.22
 },
-"Anita|Durk en Douwe dagen je uit. Padel, nu meteen. Ze zeggen dat het van Jelle moet.": {
-"src": "anita/durk_en_douwe_dagen_je_uit_padel_a692967b.mp3",
-"dur": 5.62
+"Anita|Durk en Douwe dagen je uit voor padel. Nu meteen. Raar, hè?": {
+"src": "anita/durk_en_douwe_dagen_je_uit_voor__3179d2c1.mp3",
+"dur": 4.9
 },
 "Anita|Durk en Douwe fietsen weg. Met een autosleutel. Waarom hebben die twee een autosleutel?": {
 "src": "anita/durk_en_douwe_fietsen_weg_met_ee_cea27952.mp3",
@@ -59,9 +55,9 @@
 "src": "anita/jelle_daagt_je_uit_op_de_ringweg_47da211e.mp3",
 "dur": 6.31
 },
-"Anita|Jelle doet een bod, op de radio. Stadsbalkon. Neem geld mee voor boodschappen.": {
-"src": "anita/jelle_doet_een_bod_op_de_radio_s_79b49263.mp3",
-"dur": 7.18
+"Anita|Jelle wil een bod doen. Op het Stadsbalkon. En oma wil boodschappen, dus neem geld mee.": {
+"src": "anita/jelle_wil_een_bod_doen_op_het_st_aa0638c0.mp3",
+"dur": 7.21
 },
 "Anita|Morgen bij de Spilsluizen. Klaas wacht. Jij bent de gids.": {
 "src": "anita/morgen_bij_de_spilsluizen_klaas__837a4158.mp3",
@@ -79,17 +75,21 @@
 "src": "anita/oma_trijntje_wil_ons_iets_vertel_aeab583e.mp3",
 "dur": 5.99
 },
-"Anita|Onze huurboot ligt klaar. Jij stuurt, ik zeg wanneer. Het skûtsje wacht niet.": {
-"src": "anita/onze_huurboot_ligt_klaar_jij_stu_aaf4f6e8.mp3",
-"dur": 4.93
+"Anita|Onze huurboot ligt klaar. Het skûtsje wacht niet.": {
+"src": "anita/onze_huurboot_ligt_klaar_het_sku_6a760807.mp3",
+"dur": 3.33
 },
-"Anita|Sjoerd van de KEI-commissie heeft een neef bij de museumbeveiliging. Hij praat alleen met wie de KEI-race rijdt. Op een eigen fiets, met bonnetje.": {
-"src": "anita/sjoerd_van_de_kei_commissie_heef_3e859ecb.mp3",
-"dur": 8.19
+"Anita|Sjoerd van de KEI-commissie heeft een neef bij de beveiliging van het museum. Maar hij praat alleen met wie zijn KEI-race rijdt. Op een eigen fiets, met bonnetje.": {
+"src": "anita/sjoerd_van_de_kei_commissie_heef_81658b99.mp3",
+"dur": 8.27
 },
 "Anita|Sjoerd wacht bij het Academiegebouw. Eerstejaars inhalen, dat kun jij.": {
 "src": "anita/sjoerd_wacht_bij_het_academiegeb_3173db64.mp3",
 "dur": 3.95
+},
+"Anita|Wil je die bal eerlijk? Dan doen we mee met de Snackprijs. Inschrijven kost honderdvijftig euro. Jelmer betaalt, voor content. Grote Markt, met de Escapade.": {
+"src": "anita/wil_je_die_bal_eerlijk_dan_doen__51f9312a.mp3",
+"dur": 9.74
 },
 "Henk|Je bakkie staat om de hoek, jong. Gratis gebracht. Voor Grunn doe ik dat.": {
 "src": "henk/je_bakkie_staat_om_de_hoek_jong__f1a6a053.mp3",
@@ -263,10 +263,6 @@
 "src": "tammo/een_boot_op_onze_naam_voor_een_m_c1f7681b.mp3",
 "dur": 2.62
 },
-"Tammo|Even pinnen in de Herestraat? Ik kom eraan.": {
-"src": "tammo/even_pinnen_in_de_herestraat_ik__91b914fc.mp3",
-"dur": 3.04
-},
 "Tammo|Geert zegt dat Durk en Douwe aan zijn bar zingen. Poelestraat. Een kroegentocht dus. Voor het onderzoek.": {
 "src": "tammo/geert_zegt_dat_durk_en_douwe_aan_cf245d5f.mp3",
 "dur": 6.33
@@ -286,6 +282,10 @@
 "Tammo|Iedereen kijkt naar Kiekdoar. Niemand naar ons.": {
 "src": "tammo/iedereen_kijkt_naar_kiekdoar_nie_6339b767.mp3",
 "dur": 3.23
+},
+"Tammo|Jij moest nog pinnen, toch? Herestraat. Ik kom eraan.": {
+"src": "tammo/jij_moest_nog_pinnen_toch_herest_8643a8b0.mp3",
+"dur": 3.2
 },
 "Tammo|Kapitein Klaas heeft een rondvaartboot die even van niemand is. Bij de Spilsluizen.": {
 "src": "tammo/kapitein_klaas_heeft_een_rondvaa_72b26516.mp3",
@@ -355,6 +355,10 @@
 "src": "ubbo/alles_gedaan_echt_alles_grunn_is_6b016f6b.mp3",
 "dur": 7.52
 },
+"Ubbo|Alles gedaan! Grunn is van jou. De bijbaantjes draaien gewoon door, en de Fjord Frituur ook.": {
+"src": "ubbo/alles_gedaan_grunn_is_van_jou_de_a07cab7b.mp3",
+"dur": 5.94
+},
 "Ubbo|Goeiemorgen! Gisteren lekker gedraaid. De dagomzet staat op je rekening.": {
 "src": "ubbo/goeiemorgen_gisteren_lekker_gedr_162743a6.mp3",
 "dur": 4.85
@@ -378,6 +382,10 @@
 "Ubbo|Je GPS wijst nu naar de dichtstbijzijnde uitdaging zonder medaille. Je eigen bestemming gaat voor. Op de kaart kies je Volgende of Uit, en zet je hem weer aan.": {
 "src": "ubbo/je_gps_wijst_nu_naar_de_dichtstb_4a6ac28c.mp3",
 "dur": 10.0
+},
+"Ubbo|Op naar de volgende! Je GPS wijst naar de dichtstbijzijnde uitdaging zonder medaille.": {
+"src": "ubbo/op_naar_de_volgende_je_gps_wijst_2212c328.mp3",
+"dur": 5.02
 },
 "Ubbo|Voor deze missie mis je nog iets. Lees even mee op je telefoon.": {
 "src": "ubbo/voor_deze_missie_mis_je_nog_iets_c0278527.mp3",

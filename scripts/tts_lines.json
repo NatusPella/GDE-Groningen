@@ -1,41 +1,15 @@
 [
  {
-  "key": "Ubbo|Alles gedaan. Echt alles. Grunn is van jou. Klap je telefoon open: de aftiteling staat bij Overzicht.",
+  "key": "Ubbo|Alles gedaan. Echt alles. Grunn is van jou, de aftiteling staat in het pauzemenu bij Overzicht.",
   "speaker": "Ubbo",
-  "text": "Alles gedaan. Echt alles. Grunn is van jou. Klap je telefoon open: de aftiteling staat bij Overzicht.",
+  "text": "Alles gedaan. Echt alles. Grunn is van jou, de aftiteling staat in het pauzemenu bij Overzicht.",
   "area": "Berichten (app)",
   "out": "sms",
-  "say": "Alles gedaan. Echt alles. Grunn is van jou. Klap je telefoon open: de aftiteling staat bij Overzicht.",
-  "file": "ubbo/alles_gedaan_echt_alles_grunn_is_6b016f6b.mp3",
+  "say": "Alles gedaan. Echt alles. Grunn is van jou, de aftiteling staat in het pauzemenu bij Overzicht.",
+  "file": "ubbo/alles_gedaan_echt_alles_grunn_is_3b0ba50f.mp3",
   "voice": "Laomedeia",
   "who": "de vriendelijke stem van de telefoon-app Ubbo",
   "tag": "behulpzame app-assistent, opgewekt",
   "style": "spoken in standard Dutch, clear and friendly like a phone assistant; de vriendelijke stem van de telefoon-app Ubbo. Tone: behulpzame app-assistent, opgewekt."
- },
- {
-  "key": "Ubbo|Het verhaal gaat verder in een volgende versie. Tot die tijd is Grunn van jou: alle missies staan in je telefoon, onder Te doen.",
-  "speaker": "Ubbo",
-  "text": "Het verhaal gaat verder in een volgende versie. Tot die tijd is Grunn van jou: alle missies staan in je telefoon, onder Te doen.",
-  "area": "Berichten (app)",
-  "out": "sms",
-  "say": "Het verhaal gaat verder in een volgende versie. Tot die tijd is Grunn van jou: alle missies staan in je telefoon, onder Te doen.",
-  "file": "ubbo/het_verhaal_gaat_verder_in_een_v_6073138c.mp3",
-  "voice": "Laomedeia",
-  "who": "de vriendelijke stem van de telefoon-app Ubbo",
-  "tag": "vriendelijke, gladde app-stem, kalm",
-  "style": "spoken in standard Dutch, clear and friendly like a phone assistant; de vriendelijke stem van de telefoon-app Ubbo. Tone: vriendelijke, gladde app-stem, kalm."
- },
- {
-  "key": "Ubbo|Je GPS wijst nu naar de dichtstbijzijnde uitdaging zonder medaille. Je eigen bestemming gaat voor. Op de kaart kies je Volgende of Uit, en zet je hem weer aan.",
-  "speaker": "Ubbo",
-  "text": "Je GPS wijst nu naar de dichtstbijzijnde uitdaging zonder medaille. Je eigen bestemming gaat voor. Op de kaart kies je Volgende of Uit, en zet je hem weer aan.",
-  "area": "Berichten (app)",
-  "out": "sms",
-  "say": "Je GPS wijst nu naar de dichtstbijzijnde uitdaging zonder medaille. Je eigen bestemming gaat voor. Op de kaart kies je Volgende of Uit, en zet je hem weer aan.",
-  "file": "ubbo/je_gps_wijst_nu_naar_de_dichtstb_4a6ac28c.mp3",
-  "voice": "Laomedeia",
-  "who": "de vriendelijke stem van de telefoon-app Ubbo",
-  "tag": "vriendelijke, gladde app-stem, kalm",
-  "style": "spoken in standard Dutch, clear and friendly like a phone assistant; de vriendelijke stem van de telefoon-app Ubbo. Tone: vriendelijke, gladde app-stem, kalm."
  }
 ]

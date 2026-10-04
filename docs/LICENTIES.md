@@ -203,7 +203,8 @@ en DMCA-takedowns tegen GTA-mods en -fanprojecten.
 | EIKEA | woonwarenhuis, blauw | parodie op IKEA | laag. IKEA treedt soms op tegen parodieën; geel-blauw niet combineren. |
 | Fjord Escapade / Fjord Frituur | auto en foodtruck | parodie op Ford Escort | laag; geen Ford-ovaallogo gebruiken |
 | Voertuigmerken (`vehiclenames.js`) | HUD | verzonnen (Dollard, Hunze, Wadden…) | ok |
-| Winkelketens (`shops.js`): Pang & Zo, Nait Duur, Krant & Kauwgom… | | verzonnen | ok |
+| Winkelketens (`shops.js`): Pang & Zo, Nait Duur, Rook & Geluk… | | verzonnen | ok |
+| Kraskaarten en loten bij Rook & Geluk (`shops.js`, `shopmodels3d.js`): Stadsloterij-lot, "Grunneger Gokje", Duivenkraslot | winkelmenu, productkaartjes | parodie op de Staatsloterij en de kraslotenserie van de Nederlandse Loterij | **parodie houden**: verzonnen namen, eigen kleuren (crème/rood, roze, blauwgrijs, niet Staatsloterij-oranje), geen logo, geen echte trekkingsdata of slogans. Nooit "Staatsloterij", "Lotto", "Nederlandse Loterij" of "Postcode Loterij" gebruiken. |
 | Nachtstreek | radiozender | niet gevonden als echte zender | ok |
 | Euroborg, Gasuniegebouw, Martinitoren, UMCG, Forum | landmarks | echte gebouwen | ok (openbare gebouwen als decor) |
 | Gronings Ontzet, KEI-week, Noorderzon | evenementen | echte evenementen | ok (feitelijk decor). Noorderzon is een festivalnaam; geen logo gebruiken. |
@@ -402,26 +403,27 @@ voor o.a. Duitsland (USK-zelfclassificatie via Valve). Antwoorden die
 voor dit spel waarschijnlijk "ja" zijn (controleren met de eigenaar):
 
 - **Geweld**: realistisch ogende mensen; vuurwapens (wapenwinkel "Pang &
-  Zo", `combat.js`), alleen tegen de politie, die terugvecht; geen bloed,
-  en niemand gaat dood (knock-out, sinds 0.24); explosies; auto's stelen
-  en aanrijden. De volledige antwoorden staan in `docs/LEEFTIJD.md`.
+  Zo", `combat.js`) tegen iedereen, ook voorbijgangers; bloed en
+  rondvliegende ledematen (`gore3d.js`, standaard aan, uit te zetten);
+  burgers en agenten gaan dood; explosies; auto's stelen en aanrijden. De
+  volledige antwoorden staan in `docs/LEEFTIJD.md`.
 - **Misdaad** als kern van de gameplay (overvallen, heist, politie-
   achtervolging).
 - **Alcohol/drugs**: biertjes in de kroeg, dronken effect (`drunk.js`).
-  Geen tabak: de vroegere tabakswinkel "Rook & Geluk" heet nu "Krant &
-  Kauwgom" en verkoopt kranten en snoep.
-- **Gokken**: nee, ook niet gesimuleerd. De kraskaarten en loten zijn weg
-  (`claude/geen-gokken`); Krant & Kauwgom heeft een spaarkaart met een vaste
-  prijs, zonder inzet en zonder kans.
+  Geen roken: "Rook & Geluk" (Tabak & loterij) verkoopt kranten, snoep,
+  kraskaarten en loten, geen tabak.
+- **Gokken**: gesimuleerd, ja. Kraskaarten en loten bij Rook & Geluk, met
+  geld uit de game; geen echt geld, geen lootboxes. De namen blijven
+  parodieën (zie de merkentabel hierboven).
 - **Taal**: grof taalgebruik? (nagaan in de dialogen).
 - **Seksuele content**: kus in het verhaal; geen naaktheid (nagaan).
 - **Interactie/aankopen**: geen online, geen chat, geen in-app aankopen,
   geen gebruikersdata.
 
-Verwachte uitkomst: **PEGI 16 / USK 16** (zie `docs/LEEFTIJD.md`). Het
-gesimuleerde gokken, het grootste risico op 18, is weg. Wat overblijft is
-het aanrijden van burgers (knock-out, slapstick). De Gemini-API-regel over minderjarigen
-(§4) is extra reden om een 16+/18+-advies te geven.
+Verwachte uitkomst: **PEGI 18 / USK 18** (zie `docs/LEEFTIJD.md`): de
+eigenaar heeft gekozen voor 18+. Bloed en ledematen, het doden van
+burgers en het gesimuleerde gokken geven elk al 18. De Gemini-API-regel
+over minderjarigen (§4) past daar goed bij.
 
 ### 8.5 Overeenkomsten, belasting en identiteit (hoog niveau)
 
@@ -457,4 +459,4 @@ het aanrijden van burgers (knock-out, slapstick). De Gemini-API-regel over minde
 8. **Muziekbron** vastleggen: Gemini-app of API, welk abonnement (§4.3).
 9. **Steam**: wel of niet ($100), en dan BOIP-registratie wel of niet
    (ca. €271 voor klassen 9 en 41).
-10. Leeftijdsadvies (16+ of 18+) in README en storepagina.
+10. Leeftijdsadvies (18+) in README en storepagina.

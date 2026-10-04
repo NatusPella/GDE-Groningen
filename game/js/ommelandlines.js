@@ -113,12 +113,15 @@ export const KOE_LINES = {
     ['T', 'Wie steelt er nou een koe?', 'verbaasd, droog'],
     ['J', 'Twij grote kerels in rooie truien, op ain fiets. Ze proatten zo raar.', 'verontwaardigd, vertellend'],
     ['A', 'Durk en Douwe. Die fatbike kennen we.', 'zuchtend, ad rem'],
-    ['J', 'Ze zitten in de olle schuur, verderop in t laand. Hoal heur weer, den krigst wat van mie.', 'smekend, gemoedelijk'],
+    ['T', 'Wat moeten die nou met een koe?', 'droog, verbaasd'],
+    ['J', 'Gain idee. Ze zitten in de olle schuur, verderop in t laand. Hoal heur weer, den krigst wat van mie.', 'smekend, gemoedelijk'],
+    ['J', 'Maak heur lös en rij heur noar t erf. Ze rent wel mit. Ze is kampioen.', 'stellig, duidelijk'],
   ],
   outro: [
     ['J', 'Geertje! Mien wicht! Doar bist weer.', 'ontroerd, opgelucht'],
-    ['G', 'Boe. Friesland was niks. Te veel water.', 'deadpan, droog'],
-    ['T', 'Graag gedaan. Kon minder.', 'droog, stiekem trots'],
+    ['G', 'Boe. Die schuur was niks. Te veel Friezen.', 'deadpan, droog'],
+    ['A', 'Jelle appt. Durk en Douwe komen morgen sorry zeggen. Lopend.', 'grinnikend, ad rem'],
+    ['T', 'Graag gedaan, Jan. Kon minder.', 'droog, stiekem trots'],
     ['J', 'Hier, veur de muite. En n stukje kees van t erf.', 'dankbaar, hartelijk'],
   ],
   // Ome Jan at his gate (a bubble): before and after
@@ -136,14 +139,13 @@ export const KOE_LINES = {
   // the companion during the escort
   duo: {
     go: ['Kom op, Geertje! Naar huis!'],
-    slow: ['Ze houdt ons bij. Niet te hard, hè!'],
     wait: ['Geertje blijft staan. Terug, ze wacht op ons!'],
     near: ['Die trekker zit vlak achter haar!', 'Ram die trekker! Dan zijn ze even stil.'],
   },
 };
 // Jelle rings once you're on your way to the barn (phonefeed.js startCall).
 export const KOE_CALL = [
-  { speaker: 'Jelle Terpstra', text: 'Moai, Grinzers. Myn neven hebben een koe geleend. Zonder te vragen. Alwer.' },
-  { speaker: 'Anita', text: 'Geleend? Ze hebben haar gewoon gejat!' },
-  { speaker: 'Jelle Terpstra', text: 'Ze wilden haar op de keuring in Ljouwert zetten. Als Friese koe. Ik skamje my dea.' },
+  { speaker: 'Jelle Terpstra', text: 'Moai, Grinzers. Durk en Douwe hebben een koe meegenomen. Zonder te vragen.' },
+  { speaker: 'Anita', text: 'Meegenomen? Gejat, bedoel je!' },
+  { speaker: 'Jelle Terpstra', text: 'Ze wilden mij toch nog iets laten winnen. De keuring in Ljouwert, met een Grinzer koe. Ik skamje my dea.' },
 ];
