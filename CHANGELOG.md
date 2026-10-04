@@ -21,6 +21,18 @@ nieuwe functies, `y` voor alleen bugfixes.
   zonder scrollen.
 
 ### Verbeterd
+- **Je garage laat zien wat je hebt.** De garage onder de flat heeft 18
+  vakken voor auto's (plus het eigen vak van de Escapade). Heb je er meer,
+  dan wachten de rest in de parkeerlift. Het paneel bij de deur heet nu
+  "Kies welke auto's in de garage staan": je ziet welke auto in welk vak
+  staat en welke in de lift wachten, en je haalt er een naar voren. Die
+  keuze blijft in je save. Een vreemde auto in een vak blokkeert dat vak
+  niet meer voor de rest: de volgende auto krijgt een vrij vak. In het
+  Garage-menu staat bij elk eigen voertuig waar het thuis staat: "vak 7",
+  "in de parkeerlift", "langs de stoep", "in het fietsenrek", "aan jullie
+  steiger" of "op het helidek". Voertuigen die nog niet van jou zijn, heten
+  nu duidelijk "Te koop · €…", vrijgespeelde specials "Vrijgespeeld", en de
+  kop telt van jou, te koop en op slot apart.
 - **Minder herhaling op de radio.** Een nummer dat je net hoorde, komt pas
   terug als ruim de helft van de andere nummers is geweest, ook in een
   nieuwe sessie. Nummers die lang niet speelden, komen eerder. 's Nachts
