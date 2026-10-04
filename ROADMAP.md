@@ -165,6 +165,20 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
 - [ ] Nieuwe muziek maken volgens [docs/MUZIEK.md](docs/MUZIEK.md). Het doel per programmablok: 40 nummers in de dagpool (waarvan 10 voor de ochtend en 8 voor de avond), 20 of meer voor Nachtstreek, en jingles per blok. Nu zijn het er 14 en 6.
 - [x] De radio op de controller: er is niets meer om tussen te wisselen, alleen aan/uit. Dat doet LB in een voertuig; te voet zijn alle knoppen bezet, dus daar gaat het via Instellingen › Geluid. Geen eigen knop te voet nodig.
 
+**Missies** (`claude/maus-missies`)
+- [x] H6: zwart incognito meteen op allebei (kopen, start van de kraak, laden); de fietsrijder volgt de outfit ook.
+- [x] H6: toetschip boven je hoofd per laserrij, mildere lasers, de drie minuten pauzeren bij terugsturen en krijgen één keer 90 s extra, een tweede poging slaat het plangesprek over, ontsnapping met twee sterren.
+- [x] H6: camera's langs de route vanaf het startpunt, op droge grond binnen de bouwtekening. De verhaaltest checkt de bewakers en camera's, en dat geen filmcamera buiten de wereld staat (`cinematics.js` `cinematicPoseIssues`).
+- [x] Je auto laten afleveren in het Ommeland (berm van een landweg); een eigen voertuig daar overleeft het laden. De verhaaltest checkt het in Loppersum.
+- [x] Onderduiken met de trein: dorpen bovenaan, alleen een rit naar het Ommeland telt, een korte wandeling naar het eerste dorpsuitje, daar de scène.
+- [x] "US MEM VET" hangt aan de geveerde body van de tankwagen.
+- [x] H11: glas rechtop bij het klinken, aan de lippen bij het drinken (pose nagerekend op het skelet).
+- [x] H16: instappen in de Escapade of hem klemzetten stopt hem.
+- [x] H18: de limo blijft nooit wachten op een routepunt, duiven bij een derde van de meter, 25 s dichtbij of klemzetten; geen politie, meer tijd.
+- [x] H13: scènes aan boord van de rondvaartboot op het open voordek en de vloer, niet onder (door) de glazen kap (`missionstory.js` `boatStage`).
+- [x] Fierljeppen: het mik-camerashot (`pg-aim`) slikte Spatie in als "overslaan"; nu `passKeys`, en gefocuste UI-knoppen verliezen hun focus bij Spatie/Enter tijdens het spelen (`spacegate.js`, `node scripts/space_gate_test.mjs`).
+- [ ] H6 en H18 met de hand naspelen op Windows met Ctrl als bukken; de verhaaltest speelt de stappen niet echt.
+
 ## Juridisch en publiceren (vóór 1.0)
 
 - [x] **Nieuwe naam, besloten op 3 okt.** De titel is **GDE Groningen – Zomer vol misdaad**, met *Grootste Diefstal Ever* als betekenis van GDE (`claude/gde-naam`).

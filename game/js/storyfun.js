@@ -33,7 +33,8 @@ import { getScene } from './scene3d.js';
 import { DURK_LOOK, DOUWE_LOOK, ROTOR_LOOK } from './storycast.js';
 import { STEP_BY_ID } from './storyarc.js';
 import { getPadelSpotsForRender } from './padel.js';
-import { getTrainTripCount, getStationsForRender } from './stationtravel.js';
+import { getTrainTripCount, getStationsForRender, lastTrainArrival } from './stationtravel.js';
+import { villageStroll } from './dorpsuitjes.js';
 import { refreshDayNight } from './daynight.js';
 
 const MEET_R = 9;
@@ -369,14 +370,37 @@ export function hideoutStep(st, base) {
   return { ...st, done: o.done || st.done, scene: o.scene ? { ...o.scene, clock: o.clock, look: o.look } : null, choice: o.id };
 }
 
+// The train only counts out in the Ommeland: off at a village, a short walk
+// to its first uitje, and the scene plays there. A trip within Stad doesn't.
+let stroll = null;
+function trainHideout(b) {
+  const arr = lastTrainArrival();
+  if (!arr || !arr.village) {
+    b.trips = getTrainTripCount();
+    world.addMessage('Dat is nog gewoon Stad. Verder weg, een dorp in het Ommeland: die staan bovenaan op de kaartautomaat.', 5);
+    return false;
+  }
+  if (!stroll || stroll.village !== arr.name) {
+    const s = villageStroll(world, arr.name);
+    if (!s) return true;
+    stroll = { ...s, village: arr.name };
+    world.addMessage(`${arr.name}. Even het dorp in, naar ${s.label}. Hier zoekt niemand ons.`, 5);
+  }
+  const p = world.player;
+  const v = p.inVehicle;
+  if (isCinematicActive() || (v && Math.abs(v.speed || 0) > HIDEOUT_STILL) || Math.hypot((v || p).x - stroll.x, (v || p).y - stroll.y) > HIDEOUT_R) return false;
+  stroll = null;
+  return true;
+}
+
 // --- story.js hooks -----------------------------------------------------------------
 
 export const FUN_GOALS = {
   hideout: {
-    begin: (st, b) => { b.trips = getTrainTripCount(); b.choice = null; },
+    begin: (st, b) => { b.trips = getTrainTripCount(); b.choice = null; stroll = null; },
     met: (st, b) => {
       if (b.choice) return true;
-      if (getTrainTripCount() > (b.trips ?? Infinity)) { b.choice = 'trein'; return true; }
+      if (getTrainTripCount() > (b.trips ?? Infinity) && trainHideout(b)) { b.choice = 'trein'; return true; }
       const p = world && world.player;
       if (!p || isMissionActive() || world.pigeonMode || isCinematicActive()) return false;
       const v = p.inVehicle;
@@ -390,6 +414,7 @@ export const FUN_GOALS = {
       return false;
     },
     place: (st) => {
+      if (stroll) return { x: stroll.x, y: stroll.y, name: stroll.label };
       const p = world.player;
       let best = null, bd = Infinity;
       for (const c of hideoutChoices(st)) {

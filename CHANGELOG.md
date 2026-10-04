@@ -7,6 +7,10 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Veranderd
+- **Onderduiken met de trein gaat echt het Ommeland in.** De kaartautomaat
+  zet de dorpen bovenaan ("Onderduiken"), een ritje binnen Stad telt niet
+  meer, en in het dorp lopen Tammo en Tessa eerst even naar het eerste
+  dorpsuitje. Daar, tussen de koeien, speelt hun scène.
 - **Eén radiozender: G-Music.** Geen lijst met zenders meer, maar één
   station met korte programma's die de klok in het spel volgen: *Proat in
   de ochtend* (06:00-10:00, vlot, elke twee nummers Geesje met het nieuws,
@@ -33,6 +37,56 @@ nieuwe functies, `y` voor alleen bugfixes.
   draaien de nachtnummers vaker, en Nachtstreek heeft een eigen, rustigere
   lijst. Er zit niet meer tussen elk nummer een jingle, en nooit twee keer
   dezelfde achter elkaar.
+
+### Opgelost
+- **H6: allebei in het zwart.** Koop je zwart incognito, dan trekken Tammo
+  en Tessa het meteen allebei aan (ook na het laden van een spel), niet pas
+  als je in een voertuig stapt.
+- **H6, de kraak, is eerlijker en duidelijker.** In zaal 3 staat boven je
+  hoofd wat de volgende laser vraagt (bukken met Ctrl, springen met Spatie,
+  wachten of met het gat meelopen), de lasers zijn iets minder streng en na
+  twee keer piepen zet Tessa er al één uit. De drie minuten lopen niet door
+  terwijl je teruggestuurd wordt, en zijn ze toch om, dan zet Tammo de
+  camera's nog één keer anderhalve minuut op herhaling. Een tweede poging
+  slaat het hele plan-gesprek over en gaat meteen naar de keuze. Op de
+  vlucht over het water zit er twee sterren politie achter je in plaats van
+  drie.
+- **De camera's bij het museum staan weer op de kaart.** Ze werden
+  geplaatst langs de route vanaf waar je de missie toevallig startte, en
+  konden zo buiten de bouwtekening of in het kanaal belanden. Nu staan ze
+  altijd op droge grond langs de route vanaf het startpunt. De verhaaltest
+  controleert dat, en ook dat geen enkele filmcamera buiten de wereld staat.
+- **Je auto laten afleveren werkt nu ook in het Ommeland.** De bezorger
+  zocht alleen een parkeerplek in de stad en gaf het buiten de stad op; nu
+  zet hij je auto in de berm van de dichtstbijzijnde landweg. Een auto die
+  je in het Ommeland hebt geparkeerd staat er na het laden ook nog.
+- **"US MEM VET" zit vast op de tankwagen.** De letters op de tank deinden
+  niet mee met de vering; nu kantelen en veren ze mee met de wagen.
+- **H11: ze drinken echt.** Bij het proosten houden Tammo en Tessa hun glas
+  rechtop bij het klinken, brengen het daarna naar hun mond en nemen een
+  flinke slok met het hoofd achterover, in plaats van het glas naast hun
+  wang te houden.
+- **H16: de Escapade terugpakken telt.** Stap je zelf in de gestolen
+  Escapade, of zet je hem klem zodat hij een paar tellen stilstaat met jou
+  ernaast, dan is hij gestopt: Durk en Douwe vluchten en de trein gaat
+  zonder hem. Klem zetten vlak bij de trein laadt hem niet meer alsnog in.
+- **H18, de finale, is te winnen.** Het vuurwerk bij de kraam raakt minder
+  vaak en kost minder tijd. De trekker-limo van Jelle bleef soms eindeloos
+  staan aan het eind van een straat waar zijn route niet verder kwam; nu rijdt
+  hij door. Tammo fluit de duiven al als je een derde van de meter hebt
+  geramd, als je 25 seconden vlak achter de trekker blijft of als je hem
+  klemzet, en dat staat in de opdracht. Geen politie meer tijdens de
+  achtervolging, meer tijd en ruimte om bij te blijven, en vier in plaats van
+  tweeënhalve minuut terug naar de kraam.
+- **H13: de zoen op het voordek, niet op het dak.** Op de rondvaartboot
+  stonden Tammo en Tessa midden onder de glazen kap, met hun hoofd erdoorheen.
+  Nu staan ze in de open punt voor de kap, op de vloer van de boot, en daar
+  leunen ze ook samen over de reling.
+- **Fierljeppen reageert weer op Spatie.** Tijdens het mikken liep er een
+  camerashot, en dat slikte elke Spatie in alsof je een filmpje wilde
+  overslaan (daarom werkte het pas weer na "Zet me vrij"). Dat shot laat
+  Spatie nu door. En een knop die nog focus had van een kaartje of menu
+  maakt van Spatie of Enter geen klik meer zolang je speelt.
 
 ## [0.26.1] - 2026-10-04
 
