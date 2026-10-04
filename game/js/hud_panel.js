@@ -289,11 +289,12 @@ export function updateHud(dt, world) {
   updateLocation(dt, world);
   updatePrompts(dt, world);
   updateRouteChip(world);
-  // CPU-bound (simload.js level 1-2): the minimap redraws every second or
-  // third frame, its zoom easing over the time in between
+  // very CPU-bound (simload.js level 2): the minimap redraws every second
+  // frame, its zoom easing over the time in between. It turns with the
+  // player, so a lower rate shows as stutter; the whole HUD costs ~1 ms.
   mmDt += dt;
   if (mmSkip-- > 0) return;
-  mmSkip = simLevel();
+  mmSkip = simLevel() >= 2 ? 1 : 0;
   drawMinimap(mmDt, world);
   mmDt = 0;
 }
