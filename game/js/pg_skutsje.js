@@ -13,8 +13,9 @@ import { finish, jelle, setTarget } from './postgame.js';
 // (world.weather.windAngle) and the point of sail: close to the wind a
 // skûtsje barely moves, a beam reach is fastest. The player trims the sail
 // (Q in, Z out) to the ideal angle for the current course; Jelle sails the
-// line with a good but not perfect trim. Under a bridge both strike their
-// mast and glide through on their way. Finish = brons, beat Jelle = zilver, by 12 s = goud.
+// line with a good but not perfect trim and eases off when he is well ahead.
+// Under a bridge both strike their mast and glide through on their way.
+// Finish = brons, beat Jelle = zilver, by 12 s = goud.
 
 const FROM = [744, 390];
 const TO = [-376, 280];
@@ -22,18 +23,19 @@ const GATE_EVERY = 160;
 const LIMIT = 600;
 const DEG = Math.PI / 180;
 const TRIM_RATE = 45 * DEG;
-const JELLE_TRIM = 0.9;
+const JELLE_TRIM = 0.85;
 const STRIKE_SPEED = 0.9;
 const GOLD_MARGIN = 12;
 
 let leftover = null;
 
 // Share of full speed per angle off the wind (0 = head to wind, PI = running).
+// The canal leaves no room to tack, so even close to the wind it keeps way.
 export function sailPolar(theta) {
   const t = theta / DEG;
-  if (t < 30) return 0.12;
-  if (t < 50) return 0.12 + (t - 30) / 20 * 0.58;
-  if (t < 100) return 0.7 + (t - 50) / 50 * 0.3;
+  if (t < 30) return 0.45;
+  if (t < 50) return 0.45 + (t - 30) / 20 * 0.3;
+  if (t < 100) return 0.75 + (t - 50) / 50 * 0.25;
   if (t < 150) return 1 - (t - 100) / 50 * 0.08;
   return 0.92 - (t - 150) / 30 * 0.14;
 }
@@ -41,6 +43,17 @@ export function sailPolar(theta) {
 // Boom angle off the centre line that suits this angle off the wind.
 export function idealTrim(theta) {
   return clamp(theta / 2 - 10 * DEG, 8 * DEG, 80 * DEG);
+}
+
+// top speed (m/s) for a sail efficiency 0..1, mast struck or not
+export function sailSpeed(eff, strike) {
+  return (2.4 + 7 * eff) * (strike ? STRIKE_SPEED : 1);
+}
+
+// Jelle's target speed: his trim, and a rubber band that lets you close a gap
+export function jelleSpeed(theta, strike, gap) {
+  const band = gap > 40 ? 0.8 : gap > 15 ? 0.9 : gap < -25 ? 1.04 : 1;
+  return sailSpeed(sailPolar(theta) * JELLE_TRIM, strike) * band;
 }
 
 function windFrom(w) {
@@ -194,7 +207,7 @@ export const SKUTSJE = {
     const trimEff = clamp(1 - ((d.trim - ideal) / (35 * DEG)) ** 2, 0.3, 1);
     const strike = bridgeAhead(map, boat) ? 1 : 0;
     d.eff = sailPolar(theta) * trimEff;
-    boat.sailTop = d.go ? (1.4 + 7.4 * d.eff) * (strike ? STRIKE_SPEED : 1) : 0;
+    boat.sailTop = d.go ? sailSpeed(d.eff, strike) : 0;
     animateSkutsjeRig(boat, boomSide(boat.angle, wf) * d.trim, strike, w.time);
     d.strike = strike;
     if (!d.go) {
@@ -271,8 +284,7 @@ function placeJelle(run, dt, wf) {
   const theta = offWind(q.a, wf);
   const strike = bridgeAhead(w.map, v) ? 1 : 0;
   const gap = d.js - d.ps;
-  const band = gap > 80 ? 0.88 : gap < -20 ? 1.06 : 1;
-  const want = d.jfin != null ? 0 : (1.4 + 7.4 * sailPolar(theta) * JELLE_TRIM) * (strike ? STRIKE_SPEED : 1) * band;
+  const want = d.jfin != null ? 0 : jelleSpeed(theta, strike, gap);
   d.jspeed += clamp(want - d.jspeed, -2 * dt, 0.9 * dt);
   d.js += d.jspeed * dt;
   // ease from the berth beside you onto the line
