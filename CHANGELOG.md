@@ -6,6 +6,12 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Opgelost
+- **De ringweg ziet er weer heel uit.** Waar de ring een tunnel of verdiepte
+  bak in duikt, flikkerde het gras en de grond door het asfalt heen; dat is
+  weg. De grasbermen van de dijken en viaducten liggen niet meer over een
+  weg ernaast, en hun voet knippert niet meer met het gras eromheen.
+
 ## [0.26.1] - 2026-10-04
 
 ### Opgelost
