@@ -2070,6 +2070,36 @@ function glassMesh(kind) {
 }
 
 const TOAST_SHOTS = 4;
+// the drinking arm (armR z/x, elbow) puts the hand just in front of the mouth, elbow forward and out
+const DRINK = { z: 1.55, e: 1.9, x: 0.95, head: 0.3 };
+const CLINK_ARM = { z: 1.3, e: 0.5, x: -0.05 };
+// the mouth in the head bone's frame (x forward)
+const MOUTH = new THREE.Vector3(0.1, 0.085, 0);
+
+// The glass's transform in the forearm (elbowR) for a pose: upright in the
+// hand (tilt 0), or tilted back by `tilt` with its rim on the lips.
+function glassHold(m, kind, arm, head, tilt) {
+  const ud = m.userData, g = GLASS[kind] || GLASS.beer;
+  const keep = [ud.armR.rotation.clone(), ud.elbowR.rotation.z, ud.head.rotation.z];
+  ud.armR.rotation.set(arm.x, 0, arm.z);
+  ud.elbowR.rotation.z = arm.e;
+  ud.head.rotation.z = head;
+  m.updateMatrixWorld(true);
+  const fwd = new THREE.Vector3(1, 0, 0).transformDirection(m.matrixWorld);
+  const up = new THREE.Vector3(0, 1, 0).transformDirection(m.matrixWorld);
+  const axis = up.clone().multiplyScalar(Math.cos(tilt)).addScaledVector(fwd, -Math.sin(tilt));
+  const center = tilt > 0
+    ? ud.head.localToWorld(MOUTH.clone()).addScaledVector(fwd, 0.012).addScaledVector(axis, -g.h * 0.59)
+    : ud.elbowR.localToWorld(new THREE.Vector3(0.03, -0.3, 0));
+  const pos = ud.elbowR.worldToLocal(center.clone());
+  const dir = ud.elbowR.worldToLocal(center.clone().add(axis)).sub(pos).normalize();
+  const quat = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir);
+  ud.armR.rotation.copy(keep[0]);
+  ud.elbowR.rotation.z = keep[1];
+  ud.head.rotation.z = keep[2];
+  m.updateMatrixWorld(true);
+  return { pos, quat };
+}
 
 export function playToast(w, { at, facing = 0, lines = [], variant = 0, glass = 'beer', kicker = '', onDone = null } = {}) {
   if (run || !at) return false;
@@ -2084,14 +2114,19 @@ export function playToast(w, { at, facing = 0, lines = [], variant = 0, glass = 
   standActor(r.anita, c.x + f.x * 0.42 + R.x * 0.2, c.y + f.y * 0.42 + R.y * 0.2, a + Math.PI);
   const glasses = [r.tammo, r.anita].map((m) => {
     const gm = glassMesh(glass);
-    gm.position.set(0.03, -0.3, 0);
+    // upright at the clink, then rim to the lips and tipped further while they drink
+    gm.userData.holds = [glassHold(m, glass, CLINK_ARM, 0, 0), glassHold(m, glass, DRINK, DRINK.head, 1.0), glassHold(m, glass, DRINK, DRINK.head + 0.12, 1.4)];
+    gm.position.copy(gm.userData.holds[0].pos);
+    gm.quaternion.copy(gm.userData.holds[0].quat);
     m.userData.elbowR.add(gm);
     r.props.push({ kind: 'glass', mesh: gm, attached: true, own: true });
     return gm;
   });
   const tl = timeline(lines, null, 0.15);
   const CLINK = Math.max(1.0, tl.lines.length ? tl.lines[0].at + Math.min(tl.lines[0].dur, 1.1) : 1.0);
-  tl.total = Math.max(tl.total, CLINK + 1.9);
+  // to the mouth in half a second, a good long swig, then down
+  const D0 = CLINK + 0.3, D1 = D0 + 0.5, D2 = D1 + 0.9;
+  tl.total = Math.max(tl.total, D2 + 0.7);
   let clinked = false;
   const v = ((variant % TOAST_SHOTS) + TOAST_SHOTS) % TOAST_SHOTS;
   const n = { x: -f.y, y: f.x };
@@ -2100,21 +2135,27 @@ export function playToast(w, { at, facing = 0, lines = [], variant = 0, glass = 
   return runScene(r, tl, {
     id: 'mission-scene', kicker, title: '', cardFor: 1.6,
     update: (t) => {
-      // raise, touch, drink, lower: arm lift (z), elbow bend and a head tilt back
-      const up = smooth(t / CLINK), drink = smooth((t - CLINK - 0.25) / 0.6), down = smooth((t - CLINK - 1.3) / 0.5);
+      // raise, touch, drink, lower: arm lift (z), elbow bend, the arm in (x) and a head tilt back
+      const up = smooth(t / CLINK), drink = smooth((t - D0) / (D1 - D0)), gulp = smooth((t - D1) / (D2 - D1)), down = smooth((t - D2) / 0.55);
       for (const m of [r.tammo, r.anita]) {
         const ud = m.userData;
-        ud.toastZ = lerp(lerp(lerp(0.9, 1.3, up), 1.25, drink), 0.95, down);
-        ud.toastE = lerp(lerp(lerp(1.1, 0.5, up), 2.05, drink), 1.2, down);
-        ud.toastX = lerp(-0.05, -0.18, drink) * (1 - down);
-        ud.toastHead = 0.32 * drink * (1 - down);
+        ud.toastZ = lerp(lerp(lerp(0.9, CLINK_ARM.z, up), DRINK.z, drink), 0.95, down);
+        ud.toastE = lerp(lerp(lerp(1.1, CLINK_ARM.e, up), DRINK.e, drink), 1.2, down);
+        ud.toastX = lerp(lerp(-0.05, DRINK.x, drink), -0.05, down);
+        ud.toastHead = (DRINK.head + 0.12 * gulp) * drink * (1 - down);
+      }
+      const w = drink * (1 - down);
+      for (const gm of glasses) {
+        const [h0, h1, h2] = gm.userData.holds;
+        const pos = h1.pos.clone().lerp(h2.pos, gulp), quat = h1.quat.clone().slerp(h2.quat, gulp);
+        gm.position.copy(h0.pos).lerp(pos, w);
+        gm.quaternion.copy(h0.quat).slerp(quat, w);
       }
       if (!clinked && t >= CLINK) {
         clinked = true;
         playGlassClink(GLASS[glass] ? GLASS[glass].small : false);
         const q = hands();
         for (let k = 0; k < 6; k++) spawnFxSpark(q.x, q.z, q.y, (Math.random() - 0.5) * 1.2, 0.6 + Math.random() * 0.8, (Math.random() - 0.5) * 1.2, 0.3);
-        for (const gm of glasses) gm.rotation.z = 0.12;
       }
     },
     poses: () => ({ T: 'toast', A: 'toast' }),

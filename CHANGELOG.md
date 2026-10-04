@@ -30,6 +30,10 @@ nieuwe functies, `y` voor alleen bugfixes.
   je in het Ommeland hebt geparkeerd staat er na het laden ook nog.
 - **"US MEM VET" zit vast op de tankwagen.** De letters op de tank deinden
   niet mee met de vering; nu kantelen en veren ze mee met de wagen.
+- **H11: ze drinken echt.** Bij het proosten houden Tammo en Tessa hun glas
+  rechtop bij het klinken, brengen het daarna naar hun mond en nemen een
+  flinke slok met het hoofd achterover, in plaats van het glas naast hun
+  wang te houden.
 
 ### Veranderd
 - **Onderduiken met de trein gaat echt het Ommeland in.** De kaartautomaat
