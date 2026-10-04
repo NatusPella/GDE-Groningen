@@ -119,7 +119,8 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
 - [ ] `BatchedMesh` voor objecten met verschillende vormen maar hetzelfde materiaal.
 - [x] Worker ronde 1 en 2: straatobjecten, Ommeland-water, stadswegen en terrein worden in een worker opgebouwd, byte voor byte gelijk aan de oude code (`scripts/perf/geocheck.sh`).
 - [x] Worker ronde 3 (`claude/workers3`, zie docs/PERF-PROFIEL.md): de kaart van de worker is afgeslankt (64 → 33 MB heap); het samenvoegen van wegcellen is over frames verdeeld en de kunstwerken van de ring komen niet meer in één frame binnen (geen frames meer met `3d:roads` ≥ 10 ms op de ring); oevers en kades worden in de worker gebouwd (stadswater −71%); de minimap tekent minder vaak als de CPU het niet bijhoudt (HUD −40 tot −50% op heli en dorp).
-- [ ] De HUD-pieken van 30–50 ms op de ring na een sprong, en de kunstwerken van de wegen naar de worker.
+- [x] De HUD-pieken op de ring na een sprong (`claude/opruimen`): de minimap bouwde een ontbrekende Ommeland-tegel midden in het frame (tot 8 ms, 15–27 ms bij 4× CPU-vertraging). Die tegels komen nu in de rusttijd tussen frames, en de HUD forceert geen layout meer om een animatie te herstarten (instappen kostte 11–15 ms bij 4× vertraging). `PERF_JUMP=<s>` in `scripts/perf/run.sh` springt op de ring.
+- [ ] De kunstwerken van de wegen naar de worker.
 - [x] `BatchedMesh` is overgeslagen: in three r160 levert het geen winst op. Opnieuw bekijken na een upgrade van three.js.
 - [ ] Daarna pas: de simulatie (verkeer en voetgangers) in een worker, en WASM voor gemeten hotspots als dat dan nog nodig is.
 - [ ] Na 1.0: WebGPU (de WebGPURenderer van three.js) met WebGL als terugval. Dat vraagt een herschrijving van onze eigen shaders.
@@ -136,6 +137,7 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
   - [x] uitleg over doelen, niet over toetsen: op het moment zelf, één kaartje tegelijk via de narrative-planner en elk één keer: de eerste klus, geld en winkels, zelf kiezen op de kaart en Te doen (`onboarding.js`);
   - [x] geen toetshints meer voor lopen, kijken, rennen, springen en rijden; alleen E, T, M, Esc, kusjes, wapens, heli en trein;
   - [x] uit te zetten voor ervaren spelers (Instellingen › Weergave), en het eerste kaartje zegt dat;
+  - [x] de toetsen op de uitlegkaartjes volgen je laatste invoer: de controllerknop of je eigen toetsindeling (`claude/opruimen`);
   - [ ] toetsen met spelers die de game niet kennen (de vragen staan in docs/ONBOARDING.md).
 - [~] Toegankelijkheid (`claude/toegankelijk`, in headless Chrome getest met een nagebootste controller; nog niet op echte hardware):
   - [x] toetsen en controllerknoppen opnieuw toewijzen, met ruilen bij een conflict en "Standaard herstellen";
@@ -145,6 +147,7 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
   - [ ] testen met een echte Xbox-, PlayStation- en Steam Deck-controller (zie de lijst in de PR).
 - [x] **Foutrapport** (`claude/v025`): fouten en waarschuwingen in een lokaal logboek (`errorlog.js`) met versie, verhaalstap, instellingen en GPU-klasse, zonder persoonlijke gegevens. Onder Instellingen › Foutrapport: kopiëren of (desktop) opslaan als bestand. Er wordt niets verstuurd.
 - [x] **Save-garantie** (`claude/v025`): saves en instellingen hebben een versie en worden stap voor stap gemigreerd (`savemigrate.js`); `node scripts/save_migration_test.mjs` laadt saves zoals 0.4, 0.21, 0.22, 0.23 en 0.24 ze schreven. Bij elke release die de save verandert: een migratiestap en een fixture erbij.
+- [x] **Ongebruikte stemopnames weg** (`claude/opruimen`): `node scripts/audio_unused.mjs` vindt opnames en manifestregels die geen regel, lookup of codepad meer gebruikt; `--delete` haalt ze weg. 746 bestanden, 17,3 MB; de stemdekking blijft 1608/1608.
 - [ ] Feature freeze.
 
 ## Juridisch en publiceren (vóór 1.0)

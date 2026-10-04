@@ -223,7 +223,8 @@ function fromMessage(text, dur, opts = {}) {
   showCard(world, { ...c, text, duration: dur, key: opts.key || text, say: opts.say, kicker: opts.kicker, important: opts.important });
 }
 
-// spec: { kind, title, body | text, duration, key, icon, kicker, voice: false }
+// spec: { kind, title, body | text, bodyHtml, duration, key, icon, kicker, voice: false }
+// bodyHtml (optional) is shown in place of body, which still sets timing and text.
 export function showCard(w, spec) {
   if (!stackEl) return;
   world = w || world;
@@ -273,7 +274,7 @@ function cardHtml(c) {
   const s = c.spec;
   const kicker = s.kicker || CARD_KINDS[s.kind].label;
   return `<div class="hc-icon">${svg(s.icon || s.kind)}</div>` +
-    `<div class="hc-text"><small>${esc(kicker)}</small>${s.title ? `<b>${keycaps(dualHtml(s.title))}</b>` : ''}${s.body ? `<span${s.title ? '' : ' class="solo"'}>${keycaps(dualHtml(s.body))}</span>` : ''}</div>` +
+    `<div class="hc-text"><small>${esc(kicker)}</small>${s.title ? `<b>${keycaps(dualHtml(s.title))}</b>` : ''}${s.body ? `<span${s.title ? '' : ' class="solo"'}>${s.bodyHtml || keycaps(dualHtml(s.body))}</span>` : ''}</div>` +
     '<i class="hc-timer"></i>';
 }
 
@@ -284,8 +285,8 @@ function mount(c) {
   el.innerHTML = cardHtml(c);
   el.style.setProperty('--hc-dur', `${c.secs}s`);
   stackEl.appendChild(el);
-  void el.offsetWidth;
-  el.classList.add('on');
+  // on next frame, so the entry transition runs without a forced layout
+  requestAnimationFrame(() => { if (!c.leaving) el.classList.add('on'); });
   c.el = el;
   c.left = c.secs;
   visible.push(c);
@@ -300,8 +301,7 @@ function refresh(up, c) {
   up.el.innerHTML = cardHtml(up);
   up.el.style.setProperty('--hc-dur', `${c.secs}s`);
   up.el.classList.remove('bump');
-  void up.el.offsetWidth;
-  up.el.classList.add('bump');
+  requestAnimationFrame(() => up.el.classList.add('bump'));
 }
 
 function leave(c) {
