@@ -1,3 +1,4 @@
+import { blurForGameKey } from './spacegate.js';
 import { keyTranslation } from './controls.js';
 import { onSettingsChange } from './settings.js';
 
@@ -134,6 +135,8 @@ export class Input {
     if (e.__gte) return;
     // a real key hands the hints back to the keyboard (gamepad.js)
     if (e.isTrusted && e.type === 'keydown' && this.onRealKey) this.onRealKey();
+    // a button still focused from a card or menu would take Space/Enter as a click
+    if (e.type === 'keydown' && typeof document !== 'undefined' && blurForGameKey(e.key, document.activeElement, !!(this.canLock && this.canLock()))) document.activeElement.blur();
     const raw = (e.key || '').toLowerCase();
     if (e.type === 'keydown' && this.captureKey) {
       if (e.repeat) return;
