@@ -46,9 +46,9 @@ export const FURNITURE = [
   { id: 'lamp', short: 'Lichtje Tjoek', label: 'Lamp "Lichtje Tjoek"', price: 15, desc: 'Voor lange winteravonden in Stad',
     perk: "'s Avonds echt licht in de flat", stat: ['Gezelligheid', 'Warm licht, elke avond'],
     at: { x: 0.6, z: 4.7, rot: 0, fit: 'h', size: 1.6 }, solid: [0.38, 4.48, 0.82, 4.92] },
-  { id: 'bed', short: 'Sloapstee', label: 'Bed "Sloapstee"', price: 349, desc: 'Tweepersoons, met een dekbed zo dik als pap',
+  { id: 'bed', short: 'Sloapstee', label: 'Bedden "Sloapstee" (twee)', price: 349, desc: 'Twee eenpersoons, dekbedden zo dik als pap. Huisgenoten, hè',
     perk: 'Slapen: +50 pantser, kies zelf hoe laat', stat: ['Uitgerust', 'Pantser 50 en je eigen wekker'], replaces: true,
-    at: { x: 8.6, z: 7.6, rot: Math.PI, fit: 'w', size: 1.75 } },
+    at: { x: 6.6, z: 7.95, rot: Math.PI, fit: 'w', size: 0.95, d: 2.0 }, at2: { x: 7.8, z: 7.95, rot: Math.PI, fit: 'w', size: 0.95, d: 2.0 } },
   { id: 'tv', short: 'Kiekkast', label: 'Tv "Kiekkast"', price: 229, desc: 'Groot scherm, Kiekdoar TV zit er standaard op',
     perk: 'Terugkijken en het Kiekdoar Journaal', stat: ['Kiekdoar TV', 'Gespeelde verhaalscènes terugkijken'], replaces: true,
     at: { x: 3.7, z: 1.0, rot: 0, fit: 'w', size: 1.7 }, use: { x: 5.25, z: 1.35 } },
@@ -133,6 +133,20 @@ export function furnitureShopItems(w, { pay, broke, preview }) {
   });
 }
 
+// The story's EIKEA trip (storyeikea.js): pieces brought home on the roof,
+// free, set up on the next visit to the flat. Returns the ids that were new.
+const carried = new Set();
+export function grantFurniture(ids) {
+  const out = [];
+  for (const id of ids) {
+    if (!BY_ID.has(id) || state.owned.has(id) || state.pending.has(id)) continue;
+    state.pending.add(id);
+    carried.add(id);
+    out.push(id);
+  }
+  return out;
+}
+
 export function furnitureShopNote() {
   return state.pending.size ? `Besteld: ${[...state.pending].map((id) => BY_ID.get(id).short).join(', ')}. Wordt thuis bezorgd` : 'Alles wordt bezorgd in de Pleiadenlaan';
 }
@@ -145,6 +159,8 @@ export function deliverFurniture(w) {
   said.delete('sofa');
   if (!state.pending.size) { momentHint(w); return; }
   const names = [...state.pending].map((id) => BY_ID.get(id).short);
+  const selfCarried = [...state.pending].every((id) => carried.has(id));
+  carried.clear();
   for (const id of state.pending) state.owned.add(id);
   state.pending.clear();
   const list = names.length > 1 ? names.slice(0, -1).join(', ') + ' en ' + names[names.length - 1] : names[0];
@@ -152,7 +168,8 @@ export function deliverFurniture(w) {
   const next = [];
   if (state.owned.has('kast') && !state.built.has('kast')) next.push('De Buukenkaas staat nog in de doos: loop erheen en druk E.');
   if (momentDue()) next.push('Ga even zitten op de Zitmoi (E).');
-  w.addMessage(`EIKEA heeft bezorgd: ${list}. Tussen 8 en 18 uur, dus om 17:59. ${next.join(' ')}`.trim(), 6, { kind: next.length ? 'missie' : 'tip' });
+  const head = selfCarried ? `Naar boven gesjouwd: ${list}.` : `EIKEA heeft bezorgd: ${list}. Tussen 8 en 18 uur, dus om 17:59.`;
+  w.addMessage(`${head} ${next.join(' ')}`.trim(), 6, { kind: next.length ? 'missie' : 'tip' });
   checkComplete(w);
 }
 
@@ -194,9 +211,10 @@ function pieceMesh(key, at) {
   const b = new THREE.Box3().setFromObject(m);
   const size = b.getSize(new THREE.Vector3());
   const k = at.size / Math.max(1e-3, at.fit === 'h' ? size.y : at.fit === 'd' ? size.z : size.x);
-  m.scale.setScalar(k);
+  const kz = at.d ? at.d / Math.max(1e-3, size.z) : k;
+  m.scale.set(k, k, kz);
   const c = b.getCenter(new THREE.Vector3());
-  m.position.set(-c.x * k, -b.min.y * k, -c.z * k);
+  m.position.set(-c.x * k, -b.min.y * k, -c.z * kz);
   m.traverse((o) => {
     if (!o.isMesh) return;
     o.material = Array.isArray(o.material) ? o.material.map(flatMaterial) : flatMaterial(o.material);
@@ -216,6 +234,8 @@ function buildGroup(flat) {
     const packed = f.flatpack && !state.built.has(f.id);
     const mesh = packed ? pieceMesh('pakket', { x: f.use.x + 0.1, z: f.at.z, rot: Math.PI / 2 + 0.15, fit: 'w', size: 1.3 }) : pieceMesh(f.id, f.at);
     if (mesh) g.add(mesh);
+    const twin = !packed && f.at2 && pieceMesh(f.id, f.at2);
+    if (twin) g.add(twin);
   }
   uses = FURNITURE.filter((f) => f.use && state.owned.has(f.id)).map((f) => {
     const [x, y] = flat.fl(f.use.x, f.use.z);

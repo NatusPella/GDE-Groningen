@@ -187,7 +187,7 @@ export function collect() {
   for (const P of Object.values(PARTS)) for (const [, t] of P.recap || []) add('Verhaal-kaarten', 'lines', [NARRATOR], t, { tag: ['warm, vertellend, als een terugblik', 'droog, met een knipoog, samenvattend'] });
   for (const st of STEPS) if (st.why) add('Verhaal-stappen', 'lines', [st.player === 'anita' ? 'Anita' : 'Tammo'], st.why);
   // the scenes of activity steps (storyfun.js): where one is done, and Rotor Roelf at his demo heli
-  for (const st of STEPS) for (const sc of [st.scene, st.meet]) for (const [k, t, o] of (sc && sc.lines) || []) add('Verhaal-scènes', 'lines', [who(k)], t, o && o.tag ? { tag: o.tag } : {});
+  for (const st of STEPS) for (const sc of [st.scene, st.meet, st.homeScene, st.dock]) for (const [k, t, o] of (sc && sc.lines) || []) add('Verhaal-scènes', 'lines', [who(k)], t, o && o.tag ? { tag: o.tag } : {});
   // r-trein's choice (storyarc.js HIDEOUTS): each option's scene
   for (const st of STEPS) for (const o of (st.goal && st.goal.options) || []) for (const [k, t, op] of (o.scene && o.scene.lines) || []) add('Verhaal-scènes', 'lines', [who(k)], t, op && op.tag ? { tag: op.tag } : {});
   // the trekker-limo pulling up at the museum (missionstory.js playLimoReveal)

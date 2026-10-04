@@ -1,5 +1,6 @@
 import { normalizeKeyBinds, normalizePadBinds } from './controls.js';
 import { migrateSettings, SETTINGS_VERSION } from './savemigrate.js';
+import { VIEW_DISTANCES } from './viewdist.js';
 
 // Player settings, persisted per browser. Modules read getSettings() and
 // subscribe with onSettingsChange() to apply changes live.
@@ -30,6 +31,8 @@ const DEFAULTS = {
   reduceMotion: false,
   showFog: true,
   cinematicMoments: true,
+  // Zichtafstand (viewdist.js): 'ver', not Hoog's 'heelver', so a first
+  // launch on an iGPU laptop stays at 600 m
   drawDistance: 'ver',
   // render scale (1 = full); autoResolution lowers it and some detail while
   // frames are slow (gfxprofile.js)
@@ -72,6 +75,7 @@ function load() {
       if (typeof raw[k] === typeof DEFAULTS[k]) out[k] = raw[k];
     }
     if (!QUALITY_PRESETS[out.quality]) out.quality = DEFAULTS.quality;
+    if (!(out.drawDistance in VIEW_DISTANCES)) out.drawDistance = DEFAULTS.drawDistance;
     if (!(out.resolution >= 0.5 && out.resolution <= 1)) out.resolution = DEFAULTS.resolution;
     out.keyBinds = normalizeKeyBinds(out.keyBinds);
     out.padBinds = normalizePadBinds(out.padBinds);

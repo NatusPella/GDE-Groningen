@@ -11,6 +11,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { migrateSave, migrateSettings, savedStoryStep, SAVE_VERSION, SETTINGS_VERSION } from '../game/js/savemigrate.js';
 import { STEP_BY_ID, RETIRED_STEPS } from '../game/js/storyarc.js';
+import { CHEAT_BY_ID } from '../game/js/cheatlist.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DIR = path.join(ROOT, 'scripts/fixtures/saves');
@@ -99,6 +100,16 @@ for (const file of files) {
   // the radio: a 0.27-dev station id is 'on' now, 'uit' is 'off', no field stays no field
   if ('radio' in exp) ok(d.radio === exp.radio, `${tag}: radio is ${exp.radio}`, d.radio);
   else if (!('radio' in before)) ok(!('radio' in d), `${tag}: no radio field added`);
+  // the streken: every save has them, with what its story earned; nothing switched on by a migration
+  const sk = d.streken;
+  ok(sk && Array.isArray(sk.unlocked) && Array.isArray(sk.on), `${tag}: streken section present`);
+  if (sk) {
+    for (const id of sk.unlocked) ok(CHEAT_BY_ID.has(id), `${tag}: streek ${id} exists`);
+    if (!before.streken) ok(sk.on.length === 0, `${tag}: no streek switched on`);
+    else ok(same(sk, before.streken), `${tag}: streken intact`);
+    for (const id of exp.streken || []) ok(sk.unlocked.includes(id), `${tag}: streek ${id} unlocked`);
+    for (const id of exp.strekenLocked || []) ok(!sk.unlocked.includes(id), `${tag}: streek ${id} still locked`);
+  }
   for (const k of ['visitedLandmarks', 'meubels', 'bijbaan', 'postgame', 'doel', 'duif', 'character', 'pos']) {
     if (k in before) ok(same(d[k], before[k]), `${tag}: ${k} intact`);
   }

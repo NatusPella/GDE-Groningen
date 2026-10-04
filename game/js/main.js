@@ -79,6 +79,8 @@ import { updateDrunk } from './drunk.js';
 import { updateHelis } from './heliflight.js';
 import { scaledTarget, simLevel, nextSimFrame, farAIDist, skipFar, takeDt, keepVehicle } from './simload.js';
 import { getSettings } from './settings.js';
+import { MODS } from './cheatmods.js';
+import { initCheats, updateCheats } from './cheats.js';
 
 // More life on the water: small paddle and pedal craft make up most of the
 // mix (boattypes.js), cheap meshes; Laag keeps a smaller fleet.
@@ -123,7 +125,14 @@ function waitForStart(world) {
   // the effect pools exist from the title screen on, so their shaders are
   // compiled there and not on the first explosion, shot or splash; the
   // trailer (trailer.js) passes fxDt to play its explosions
+  // the street dressing the game streams in around the player (the home's
+  // garage and plinth, street furniture, name signs, billboards) also on the
+  // title screen, so the menu shows the street as it is in play
   const render = (dt, fxDt = 0) => {
+    updateHomeExterior(dt, world);
+    updateStreetSigns(dt, world, getScene());
+    updateCityProps(dt, world, getScene());
+    updateFlavour3D(dt, world);
     updateFx3D(fxDt, world, getScene());
     updateKnockFx3D(fxDt, world, getScene());
     updateGunFx3D(fxDt, world, getScene());
@@ -297,6 +306,7 @@ async function boot() {
   window.__debug = { player, map, input, world };
   initAchievementTracker(world);
   initSafety(world);
+  initCheats(world);
   if (DEV) import('./storydev.js').then((m) => m.initStoryDev(world)).catch((e) => console.error('storydev', e));
   if (STORY_TEST) import('./storytest.js').then((m) => m.runStoryTest(world)).catch((e) => console.error('storytest', e));
   markLoad('systems');
@@ -351,7 +361,7 @@ async function boot() {
     world.paused = isMapOpen() || isPauseMenuOpen() || isShopOpen() || !!world.uiPaused;
     if (document.pointerLockElement && (isMapOpen() || isPauseMenuOpen() || isPhoneOpen())) document.exitPointerLock();
     // world.timeScale: slow-motion for cinematic moments (1 = normal)
-    const gameDt = dt * Math.max(0, Math.min(1, world.timeScale ?? 1));
+    const gameDt = dt * Math.max(0, Math.min(1, world.timeScale ?? 1)) * MODS.slow;
     // dev mode time scale (storydev.js): whole extra gameplay steps per frame
     const reps = world.devTimeScale > 1 ? Math.min(8, Math.round(world.devTimeScale)) : 1;
     if (!world.paused) for (let r = 0; r < reps; r++) updateGameplay(gameDt);
@@ -405,8 +415,8 @@ async function boot() {
     trafficTimer -= dt;
     if (trafficTimer <= 0) {
       trafficTimer = 1.5;
-      manageTrafficPopulation(world, { target: scaledTarget(30) });
-      manageBikePopulation(world, { target: scaledTarget(16) });
+      manageTrafficPopulation(world, { target: Math.round(scaledTarget(30) * MODS.cars) });
+      manageBikePopulation(world, { target: Math.round(scaledTarget(16) * MODS.bikes) });
       manageBusPopulation(world);
       manageScooterPopulation(world, { target: scaledTarget(10) });
       manageBoatPopulation(world, { target: boatTarget() });
@@ -509,6 +519,7 @@ async function boot() {
     updateOmmelandFun(dt, world);
     updateWeather(dt, world);
     updateDayNight(dt, world);
+    updateCheats(dt, world);
     updateAchievementTracker(dt, world);
     updateRadio(dt, world);
     probe.mark('systems');
