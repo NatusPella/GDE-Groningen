@@ -846,7 +846,9 @@ function ribbonClip(r, rs, kind) {
   const half = r.width / 2 + (sidewalk ? SIDEWALK_EXTRA : 0);
   const [x0, y0, x1, y1] = r.bounds || boundsOf(r.pts);
   const pad = half * 2.5 + 1;
-  const wet = !r.bridge && !r.z && netMap.water.some((w) => w.bounds && w.bounds[0] < x1 + pad && w.bounds[2] > x0 - pad && w.bounds[1] < y1 + pad && w.bounds[3] > y0 - pad);
+  // (a way with a height profile only where it lies at street level)
+  const lv = r.z ? boundsOf(r.pts.filter((p, k) => Math.abs(r.z[k]) < 0.3)) : [x0, y0, x1, y1];
+  const wet = !r.bridge && lv[0] <= lv[2] && netMap.water.some((w) => w.bounds && w.bounds[0] < lv[2] + pad && w.bounds[2] > lv[0] - pad && w.bounds[1] < lv[3] + pad && w.bounds[3] > lv[1] - pad);
   const index = wet ? getWaterIndex(netMap) : null;
   // (a way with a height profile clips one without where they lie level side by side)
   const partners = netMap.roadGrid.query(x0 - pad - 8, y0 - pad - 8, x1 + pad + 8, y1 + pad + 8).filter((o) => o !== r && o.pts.length >= 2
@@ -906,9 +908,11 @@ function ribbonClip(r, rs, kind) {
     const d = t === 0 && (k === 0 || k === n - 1) ? [my / ml, -mx / ml] : dirAt(P, Math.min(k, n - 2), 1);
     const sn = rs.segN[Math.min(k, n - 2)];
     const res = [half, half];
+    const zr = r.z ? r.z[k] + (k + 1 < n ? r.z[k + 1] - r.z[k] : 0) * t : 0;
+    const level = index && Math.abs(zr) < 0.3;
     // (a path drawn out over the water without a bridge: nothing there)
-    if (index && index.inWater(x, y)) return [0, 0];
-    if (index) {
+    if (level && index.inWater(x, y)) return [0, 0];
+    if (level) {
       for (let j = 0; j < 2; j++) {
         const sg = j ? -1 : 1, ux = mx / ml * sg, uy = my / ml * sg, probe = reach + SHORE_INSET + 0.1;
         if (!index.inWater(x + ux * probe, y + uy * probe)) continue;
@@ -918,7 +922,6 @@ function ribbonClip(r, rs, kind) {
         if (w < reach) res[j] = Math.min(res[j], Math.max(0, w / ml));
       }
     }
-    const zr = r.z ? r.z[k] + (k + 1 < n ? r.z[k + 1] - r.z[k] : 0) * t : 0;
     for (const o of partners) {
       const oh = o.width / 2 + (sidewalk ? SIDEWALK_EXTRA : 0);
       const [ox0, oy0, ox1, oy1] = o.bounds;
