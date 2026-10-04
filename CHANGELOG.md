@@ -7,6 +7,16 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Veranderd
+- **De game is 18+: alles wat voor PEGI 16 weg moest, is terug.** Bloed en
+  rondvliegende ledematen in Carmageddon-stijl, met de instelling "Bloed en
+  ledematen" (standaard aan). Burgers gaan weer dood door auto's, treinen,
+  wapens en explosies, kogels en de richthulp raken iedereen, en agenten
+  gaan dood in plaats van "uitgeschakeld". De uitslag van een missie toont
+  weer de kills; een save met knock-outtellers wordt omgezet naar kills.
+  Rook & Geluk verkoopt weer kraskaarten en loten met de kras-animatie; de
+  spaarkaart blijft. Kiekdoar zegt weer "gewond". De stuntavond van H3
+  blijft non-letaal, met sterretjes. Verwachte leeftijd: PEGI 18 / USK 18
+  (docs/LEEFTIJD.md).
 - **Onderduiken met de trein gaat echt het Ommeland in.** De kaartautomaat
   zet de dorpen bovenaan ("Onderduiken"), een ritje binnen Stad telt niet
   meer, en in het dorp lopen Tammo en Tessa eerst even naar het eerste

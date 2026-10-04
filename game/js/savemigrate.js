@@ -67,7 +67,7 @@ export const SAVE_MIGRATIONS = {
     if ('radio' in d) d.radio = normalizeRadio(d.radio);
     return d;
   },
-  // 0.28: the game is 18+ and people die again; the knockout counters go
+  // 0.27: the game is 18+ and people die again; the knockout counters go
   // back to kills. A wrecked police car counted as a cop kill before 0.24.
   3(d) {
     const s = d.stats;
