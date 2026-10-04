@@ -707,8 +707,8 @@ const REQUIREMENTS = {
   },
   night: {
     met: (w) => isNight(w),
-    garage: true,
-    text: () => 'Kraken doe je in het donker. Wacht bij een garage tot het avond is (na 21:00).',
+    garage: true, home: true,
+    text: () => 'Kraken doe je in het donker. Wacht thuis in de flat tot het avond is (na 21:00), of slaap tot de avond.',
   },
   boat: {
     met: () => storyShopState().rental,
@@ -821,9 +821,17 @@ export function requirementMet(w, key) {
 }
 
 // Where to get requirement key: nearest shop of its type(s), or a garage.
+// home.js registers where home is: waiting for the dark happens there.
+let homePlace = null;
+export function setHomePlace(fn) {
+  homePlace = fn;
+}
+
 export function requirementPlace(w, key) {
   const req = REQUIREMENTS[key];
   if (!req) return null;
+  const h = req.home && homePlace && homePlace();
+  if (h) return h;
   if (req.garage) {
     let best = null, bd = Infinity;
     for (const g of getGaragesForRender()) {
