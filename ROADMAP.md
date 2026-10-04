@@ -165,6 +165,13 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
 - [ ] Nieuwe muziek maken volgens [docs/MUZIEK.md](docs/MUZIEK.md). Het doel per programmablok: 40 nummers in de dagpool (waarvan 10 voor de ochtend en 8 voor de avond), 20 of meer voor Nachtstreek, en jingles per blok. Nu zijn het er 14 en 6.
 - [x] De radio op de controller: er is niets meer om tussen te wisselen, alleen aan/uit. Dat doet LB in een voertuig; te voet zijn alle knoppen bezet, dus daar gaat het via Instellingen › Geluid. Geen eigen knop te voet nodig.
 
+**Missies en voertuigen** (`claude/missie-voertuigen`)
+- [x] H9 alleen in een snelle auto (sportwagen of 200 km/u, de Escapade na tuning); r-tuning wijst naar Knal & Kolder of een sportwagen; een zin van de ander bij het verkeerde voertuig.
+- [x] H5 op een gewone fiets, H13 in de rondvaartboot. De duivenmissies en het skûtsje hadden hun voertuigcheck al.
+- [x] Geleende voertuigen terug: Berend rijdt weg (H1), de decorauto (H7) en de tankwagen (H8) blijven staan, de rondvaartboot blijft aan de kade (H13). Daarna wijst de route eerst naar je eigen vervoer.
+- [x] Vuurwerk, de jachtgeweer en vuisten weer hoorbaar; het jachtgeweer raakt onder het kruisje (`scripts/weapon_audio_test.mjs`).
+- [ ] Nalopen in een speeltest: H9 met de opgevoerde Escapade winnen, Berend die wegrijdt, het geluid van vuurwerk in H18.
+
 ## Juridisch en publiceren (vóór 1.0)
 
 - [x] **Nieuwe naam, besloten op 3 okt.** De titel is **GDE Groningen – Zomer vol misdaad**, met *Grootste Diefstal Ever* als betekenis van GDE (`claude/gde-naam`).

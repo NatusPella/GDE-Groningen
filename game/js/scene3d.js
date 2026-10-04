@@ -22,6 +22,7 @@ import { buildWildlifeMesh3D, wildlifeShadowSize, animateWildlifeMesh3D } from '
 import { buildMissionMarker3D, updateMissionMarker3D, buildWaypointDotMesh3D } from './missions.js';
 import { syncTrafficLights3D, setTrafficLightGlow } from './trafficlights.js';
 import { getCombatEffect, isRangedWeapon } from './combat.js';
+import { scopeEye } from './scopeaim.js';
 import { alignPlayerFlash } from './gunfx3d.js';
 import { sharedWaterMaterial, updateWaterMaterial, buildWaterGeometry, waterSwellAt, waterSwellAmp } from './water3d.js';
 import { cityShoreFix } from './countrywater.js';
@@ -2440,12 +2441,14 @@ export function update3D(dt, world) {
   scopeBlend += ((world.scoped && !veh ? 1 : 0) - scopeBlend) * Math.min(1, dt * 14);
   if (scopeBlend < 0.01) scopeBlend = 0;
   if (scopeBlend > 0) {
-    // eye just in front of the face, looking level (the bullets fly level too)
+    // eye just in front of the face, looking level: the scoped bullet starts
+    // here and flies level along the same heading (scopeaim.js)
     const yaw = world.camYaw ?? player.angle, cy = Math.cos(yaw), sy = Math.sin(yaw);
-    const ex = player.x + cy * 0.35, ey = baseH + 1.5, ez = player.y + sy * 0.35;
+    const eye = scopeEye(player, yaw, baseH);
+    const ex = eye.x, ey = eye.z, ez = eye.y;
     cam.position.set(cam.position.x + (ex - cam.position.x) * scopeBlend, cam.position.y + (ey - cam.position.y) * scopeBlend, cam.position.z + (ez - cam.position.z) * scopeBlend);
     const k = scopeBlend;
-    lookX += (ex + cy * 40 - lookX) * k; lookY += (ey - 0.15 - lookY) * k; lookZ += (ez + sy * 40 - lookZ) * k;
+    lookX += (ex + cy * 40 - lookX) * k; lookY += (ey - lookY) * k; lookZ += (ez + sy * 40 - lookZ) * k;
   }
   applyCameraOverride(dt, world, lookX, lookY, lookZ);
 
