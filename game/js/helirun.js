@@ -15,6 +15,12 @@ import { speakerHtml } from './speakers.js';
 import { dualHtml } from './subtitles.js';
 import { clamp } from './util.js';
 import * as P from './heliplan.js';
+import { getSettings } from './settings.js';
+import { keyWord, keyName, physicalKey } from './controls.js';
+const downKey = () => keyWord(getSettings().keyBinds, 'control');
+// the key help under the heli HUD, in the player's own key bindings
+const kbd = (k) => `<kbd>${k === 'backspace' ? '⌫' : keyName(physicalKey(getSettings().keyBinds, k))}</kbd>`;
+const helpHtml = () => `${kbd('w')}${kbd('s')} vooruit en remmen · ${kbd('a')}${kbd('d')} draaien · ${kbd('shift')} sneller · ${kbd(' ')} omhoog · ${kbd('control')} omlaag · ${kbd('backspace')} stoppen`;
 
 // A heli run: one flight in Rotor Roelf's demo heli (the Wieken Wubbo,
 // heliflight.js, flown with the normal heli keys) with a plan on top
@@ -299,7 +305,7 @@ function initHudDom() {
     <div class="hh-catch" hidden><div class="lbl"></div><div class="bar"><i></i></div><div class="tips"></div></div>
     <div class="hh-msg"></div>
     <div class="hh-say" role="status"></div>
-    <div class="hh-help"><kbd>W</kbd><kbd>S</kbd> vooruit en remmen · <kbd>A</kbd><kbd>D</kbd> draaien · <kbd>SHIFT</kbd> sneller · <kbd>SPATIE</kbd> omhoog · <kbd>CTRL</kbd> omlaag · <kbd>⌫</kbd> stoppen</div>
+    <div class="hh-help"></div>
     <div class="hh-fade"><span></span></div>
     <div class="hh-card"><h2></h2><p class="sub"></p><div class="medal"></div><p class="rows"></p></div>`;
   document.body.appendChild(root);
@@ -359,7 +365,7 @@ function updateHud(dt) {
     hud.arrow.style.transform = `rotate(${(rel * 180 / Math.PI + 90).toFixed(1)}deg)`;
     const d = Math.hypot(tgt.x - v.x, tgt.y - v.y);
     const dz = tgt.z - v.z;
-    const hint = tgt.kind === 'pad' ? (d < 20 && !v.onGround ? '<span class="down">▼ Ctrl: landen</span>' : '') :
+    const hint = tgt.kind === 'pad' ? (d < 20 && !v.onGround ? `<span class="down">▼ ${downKey()}: landen</span>` : '') :
       dz > 4 ? '<span class="up">▲ hoger</span>' : dz < -4 ? '<span class="down">▼ lager</span>' : 'hoogte goed';
     const html = `${r.legLabel}<small>${tgt.label ? tgt.label + ' · ' : ''}${fmtDist(d)}${hint ? ' · ' + hint : ''}</small>`;
     if (hud.cache.goal !== html) { hud.cache.goal = html; hud.goal.innerHTML = html; }
@@ -481,6 +487,7 @@ export function startHeliRun(opts = {}) {
   w.cinematicHidePlayers = true;
   document.body.classList.add('heli-run');
   hud.root.hidden = false;
+  hud.help.innerHTML = helpHtml();
   hud.cache = {};
   hud.title.textContent = V.title.toUpperCase();
   hud.rows.time.hidden = !V.timeLimit;
@@ -840,7 +847,7 @@ function updateCatchHud() {
   hud.catchBar.style.width = `${(r.st.catchP / P.CATCH.need) * 100}%`;
   const tip = (ok, good, bad) => `<span class="${ok ? 'ok' : ''}">${ok ? good : bad}</span>`;
   const tips = [
-    tip(c.okZ, 'hoogte goed', c.dz > 0 ? 'lager (Ctrl)' : 'hoger (Spatie)'),
+    tip(c.okZ, 'hoogte goed', c.dz > 0 ? `lager (${downKey()})` : 'hoger (Spatie)'),
     tip(c.okLat, 'afstand goed', c.lat <= P.CATCH.near ? 'verder weg' : 'dichterbij'),
     tip(c.okV, 'snelheid goed', 'rustiger: laat W los'),
   ].join(' · ');
