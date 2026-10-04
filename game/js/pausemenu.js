@@ -31,6 +31,10 @@ import { renderOverview, renderTodo, todoClick, todoFocus, todoEnter, todoSummar
 import { isPlayAheadOpen } from './todo.js';
 import { renderVerhaal, verhaalClick, verhaalSummary, disposeVerhaalViewer } from './verhaalui.js';
 import { anyFresh } from './characters.js';
+import { renderSpullen, spullenClick, spullenFocus } from './spullen.js';
+import { renderPhonePanel, phoneClick, phoneUnread, selectPhoneThread, PHONE_NAME } from './phone.js';
+import { recentNotice } from './phonefeed.js';
+import { storyContactCaller } from './storycontact.js';
 import { getErrorLog, errorReport, clearErrorLog, onErrorLogChange } from './errorlog.js';
 // Running inside the desktop app (desktop/preload.js): window mode + quit.
 const DESKTOP = typeof window !== 'undefined' && window.gteDesktop && window.gteDesktop.isDesktop ? window.gteDesktop : null;
@@ -90,9 +94,8 @@ const CONTROL_GROUPS = [
     [['X'], 'Weer mens worden'],
   ]],
   ['menu', 'Telefoon & menu', [
-    [['T'], 'Telefoon'],
+    [['ESC'], 'Telefoon openvouwen (pauzemenu); in het menu: terug. Bij een binnenkomend bericht of gesprek: dat gesprek'],
     [['M'], 'Kaart'],
-    [['ESC'], 'Pauzemenu; in het menu: terug'],
     [['ARROWS'], 'In het menu: kiezen, Enter: ok'],
     [['Q', 'E'], 'In het menu: vorige of volgende sectie'],
     [['[', ']'], 'In het menu: vorig of volgend tabblad'],
@@ -165,6 +168,9 @@ const ICONS = {
   streken: '<rect x="4" y="4" width="16" height="16" rx="3.5"/><circle cx="9" cy="9" r="1.1"/><circle cx="15" cy="9" r="1.1"/><circle cx="12" cy="12" r="1.1"/><circle cx="9" cy="15" r="1.1"/><circle cx="15" cy="15" r="1.1"/>',
   settings: '<path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/>',
   controls: '<rect x="2.5" y="6" width="19" height="12" rx="2"/><path d="M6 10h1M9.5 10h1M13 10h1M16.5 10h1M7 14h10"/>',
+  spullen: '<path d="M7 8V6a5 5 0 0 1 10 0v2"/><rect x="4" y="8" width="16" height="13" rx="3"/><path d="M4 13h16M10 13v2h4v-2"/>',
+  // the Pixie Vouw 11, unfolded: two halves and the hinge
+  telefoon: '<rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M12 5v14" stroke-dasharray="1.6 1.6"/><circle cx="16.8" cy="7.6" r="0.5"/>',
 };
 const icon = (id, cls = 'pm-ic') => `<svg class="${cls}" viewBox="0 0 24 24" aria-hidden="true">${ICONS[id] || ''}</svg>`;
 const qBtn = (action, ic, label, cls = 'pm-secondary', extra = '') =>
@@ -173,8 +179,10 @@ const qBtn = (action, ic, label, cls = 'pm-secondary', extra = '') =>
 // [id, label, hint under the title in the sheet]
 const SECTIONS = [
   ['overzicht', 'Overzicht', ''],
+  ['telefoon', 'Telefoon', 'Bellen en berichten'],
   ['todo', 'Te doen', 'Verhaal, missies, minigames en meer'],
   ['verhaal', 'Verhaal', 'Personages en aanwijzingen'],
+  ['spullen', 'Spullen', 'Alles wat je hebt'],
   ['map', 'Kaart', 'Kies een doel of zoek een plek'],
   ['garage', 'Garage', 'Jouw voertuigen'],
   ['prestaties', 'Prestaties', 'Blijven bewaard, ook bij een nieuw spel'],
@@ -185,6 +193,7 @@ const SECTIONS = [
 const PRESTART_SECTIONS = ['settings', 'controls'];
 const SUBTABS = {
   todo: [['verhaal', 'Verhaal'], ['alles', 'Alles'], ['dichtbij', 'Dichtbij']],
+  telefoon: [['contacten', 'Contacten'], ['berichten', 'Berichten']],
   verhaal: [['personages', 'Personages'], ['aanwijzingen', 'Aanwijzingen']],
   settings: [['sound', 'Geluid'], ['video', 'Beeld'], ['camera', 'Camera & muis'], ['controller', 'Controller'], ['display', 'Weergave'], ['a11y', 'Toegankelijk'], ['fouten', 'Foutrapport']],
   controls: [['overzicht', 'Overzicht'], ['toetsen', 'Toetsenbord'], ['knoppen', 'Controller']],
@@ -196,6 +205,8 @@ const FOOTERS = {
   map: `<b>Klik</b> doel kiezen · <b>Rechtsklik / Del</b> doel wissen · ${DEV ? '<b>Shift+klik</b> teleporteren · ' : ''}<b>Scroll / + −</b> zoomen · <b>WASD</b> schuiven · <b>Spatie</b> naar jezelf`,
   garage: '<b>Laten afleveren</b> zet je voertuig om de hoek, buiten beeld · gekochte voertuigen blijven voorgoed van jou',
   prestaties: 'Prestaties blijven bewaard, ook als je een nieuw spel begint',
+  spullen: '<b>Enter</b> details en gebruiken · voertuigen staan in <b>Garage</b>, aanwijzingen in <b>Verhaal</b>',
+  telefoon: '<b>Enter</b> bellen of lezen · Henk brengt je auto, Berend heeft klussen · een binnenkomend bericht of gesprek opent hier met <b>Esc</b>',
   streken: '<b>Enter</b> aan of uit · gameplay-streken wachten tijdens missies en filmpjes · zolang er een aan staat, staan prestaties uit',
   verhaal: 'Wie je spreekt, komt erbij · <b>Slepen</b> draait het model · niemand verklapt wat nog komt',
   settings: 'Instellingen worden automatisch bewaard',
@@ -206,6 +217,7 @@ const pg = (slot) => `<span class="pm-pad-g" data-g-raw>${padGlyphInner(slot)}</
 // with a controller: the footers in its buttons
 const PAD_FOOTERS = {
   overzicht: () => `${pg('a')} kiezen · zet iets als <b>doel</b> en de route gaat erheen`,
+  telefoon: () => `${pg('a')} bellen of lezen · ${pg('lt')}${pg('rt')} contacten of berichten`,
   todo: () => `${pg('a')} zet als doel · ${pg('lt')}${pg('rt')} weergave · geklaarde missies kun je opnieuw spelen`,
   verhaal: () => `${pg('lt')}${pg('rt')} personages of aanwijzingen`,
   map: () => `${pg('a')} doel onder het kruis · ${pg('x')} doel wissen · ${pg('lt')}${pg('rt')} zoomen · ${pg('lstick')} schuiven · ${pg('y')} naar jezelf`,
@@ -356,6 +368,13 @@ function settingsHtml() {
 export function initPauseMenu(w) {
   world = w;
   input = w.input;
+  if (!document.getElementById('fold-style')) {
+    const link = document.createElement('link');
+    link.id = 'fold-style';
+    link.rel = 'stylesheet';
+    link.href = new URL('./fold.css', import.meta.url).href;
+    document.head.appendChild(link);
+  }
   root = document.createElement('div');
   root.id = 'pause-menu';
   root.setAttribute('role', 'dialog');
@@ -363,6 +382,8 @@ export function initPauseMenu(w) {
   root.setAttribute('aria-labelledby', 'pm-title');
   root.dataset.level = 'section';
   root.innerHTML = `
+    <div class="pm-fold" aria-label="${PHONE_NAME}">
+    <div class="pm-statusbar" aria-hidden="true"><span class="pm-sb-l"><b data-sb="clock"></b><span data-sb="day"></span></span><span class="pm-sb-c"><span class="pm-sb-cam"></span></span><span class="pm-sb-r"><span data-sb="music"></span><span data-sb="who"></span><span class="pm-sb-sig"><i></i><i></i><i></i><i></i></span><span class="pm-sb-batt"><i></i></span></span></div>
     <div class="pm-stage">
       <nav class="pm-rail" aria-label="Pauzemenu">
         <div class="pm-inner pm-game">
@@ -396,6 +417,12 @@ export function initPauseMenu(w) {
         </header>
         <div class="pm-sheet-body">
           <section data-panel="overzicht" class="pm-panel pm-col" hidden><div class="pm-inner pm-wide pm-ov"></div></section>
+          <section data-panel="telefoon" class="pm-panel pm-col" hidden><div class="pm-inner pm-wide pm-phone">
+            ${subtabsHtml('telefoon', 'Telefoon')}
+            <div class="td-layout"><div class="td-list">
+              <div data-of="telefoon" data-sub="contacten"></div><div data-of="telefoon" data-sub="berichten" hidden></div>
+            </div><aside class="td-detail ph-detail" aria-label="Gesprek" aria-live="polite"></aside></div>
+          </div></section>
           <section data-panel="todo" class="pm-panel pm-col" hidden><div class="pm-inner pm-wide pm-todo">
             ${subtabsHtml('todo', 'Weergave')}
             <div class="td-layout"><div class="td-list">
@@ -403,6 +430,7 @@ export function initPauseMenu(w) {
             </div><aside class="td-detail" aria-label="Details"></aside></div>
           </div></section>
           <section data-panel="map" class="pm-panel pm-map" hidden></section>
+          <section data-panel="spullen" class="pm-panel pm-col" hidden><div class="pm-inner pm-wide pm-spullen"><div class="td-layout"><div class="td-list"></div><aside class="td-detail" aria-label="Details"></aside></div></div></section>
           <section data-panel="garage" class="pm-panel pm-col" hidden><div class="pm-inner pm-wide pm-garage"></div></section>
           <section data-panel="verhaal" class="pm-panel pm-col" hidden><div class="pm-inner pm-wide pm-verhaal">${subtabsHtml('verhaal', 'Verhaal')}
             <div data-of="verhaal" data-sub="personages"></div><div data-of="verhaal" data-sub="aanwijzingen" hidden></div>
@@ -424,7 +452,9 @@ export function initPauseMenu(w) {
         </div>
       </section>
     </div>
-    <footer class="pm-footer"><span class="pm-foot-tab"></span><span class="pm-foot-keys"></span></footer>`;
+    <footer class="pm-footer"><span class="pm-foot-tab"></span><span class="pm-foot-keys"></span></footer>
+    <span class="pm-hinge" aria-hidden="true"></span>
+    </div>`;
   document.body.appendChild(root);
   sheet = root.querySelector('.pm-sheet');
 
@@ -445,7 +475,7 @@ export function initPauseMenu(w) {
     const rp = e.target.closest('[data-rebind-pad]');
     if (rp) return startPadRebind(rp);
     const st = e.target.closest('[data-subtab]');
-    if (st) { showSubtab(st.dataset.of, st.dataset.subtab); if (st.dataset.of === 'todo') renderTodoPanel(); if (st.dataset.of === 'verhaal') renderVerhaalPanel(); if (st.dataset.of === 'controls') renderBinds(); return; }
+    if (st) { showSubtab(st.dataset.of, st.dataset.subtab); if (st.dataset.of === 'todo') renderTodoPanel(); if (st.dataset.of === 'verhaal') renderVerhaalPanel(); if (st.dataset.of === 'controls') renderBinds(); if (st.dataset.of === 'telefoon') renderPhone(); return; }
     const seg = e.target.closest('.pm-seg [data-value]');
     if (seg && 'radio' in seg.parentElement.dataset) { setRadio(seg.dataset.value === 'on', { announce: false }); syncControls(); return; }
     if (seg) { setSetting(seg.parentElement.dataset.setting, seg.dataset.value); syncControls(); return; }
@@ -461,6 +491,8 @@ export function initPauseMenu(w) {
       return;
     }
     const panel = activePanel();
+    if (panel && tab === 'spullen' && spullenClick(e, world, panel, spullenApi)) return;
+    if (panel && tab === 'telefoon' && phoneClick(e, world, panel, phoneApi)) return;
     if (panel && (tab === 'overzicht' || tab === 'todo') && todoClick(e, world, panel, todoApi)) return;
     const gd = e.target.closest('[data-garage-deliver]');
     if (gd) return garageDeliver(gd.dataset.garageDeliver);
@@ -497,6 +529,7 @@ export function initPauseMenu(w) {
     const p = activePanel();
     if (p && p.contains(e.target)) lastFocus[tab] = e.target;
     if (tab === 'todo' && p) todoFocus(p, world, e.target);
+    if (tab === 'spullen' && p) spullenFocus(p, e.target);
   });
 
   const search = root.querySelector('[data-controls-search]');
@@ -528,6 +561,28 @@ export function initPauseMenu(w) {
     document.addEventListener('visibilitychange', () => { if (document.hidden && started()) setOpen(true, HOME); });
   }
 }
+
+const spullenApi = {
+  rerender: (keep) => {
+    const sel = keep && keep.dataset && keep.dataset.spul ? `[data-spul="${CSS.escape(keep.dataset.spul)}"]` : '';
+    renderSpullenPanel();
+    const back = sel && activePanel().querySelector(sel);
+    if (back) back.focus({ preventScroll: true });
+  },
+};
+
+function renderSpullenPanel() {
+  try { sheet.querySelector('.pm-sheet-sub').textContent = renderSpullen(root.querySelector('[data-panel="spullen"]'), world); } catch (err) { console.error('spullen', err); }
+}
+
+const phoneApi = {
+  rerender: (keep) => {
+    const sel = keep && keep.dataset && keep.dataset.phThread ? `[data-ph-thread="${CSS.escape(keep.dataset.phThread)}"]` : '';
+    renderPhone();
+    const back = sel && activePanel().querySelector(sel);
+    if (back) back.focus({ preventScroll: true });
+  },
+};
 
 const todoApi = {
   rerender: (keep) => rerenderTodo(keep),
@@ -567,7 +622,10 @@ function onKey(e) {
     if (e.repeat || !started()) return;
     if (k === 'Escape' || (lower === 'm' && !isCinematicActive())) {
       e.preventDefault();
-      setOpen(true, k === 'Escape' ? HOME : 'map', 'direct');
+      // a call, a story contact or a text on screen: Esc opens its thread
+      const from = k === 'Escape' ? storyContactCaller() || (!isCinematicActive() ? recentNotice() : null) : null;
+      if (from) { selectPhoneThread(from); pref.sub.telefoon = 'berichten'; }
+      setOpen(true, k === 'Escape' ? (from ? 'telefoon' : HOME) : 'map', 'direct');
     }
     return;
   }
@@ -682,6 +740,7 @@ function cycleSubtab(dir) {
   showSubtab(tab, next);
   if (tab === 'todo') renderTodoPanel();
   if (tab === 'verhaal') renderVerhaalPanel();
+  if (tab === 'telefoon') renderPhone();
   if (tab === 'settings') syncControls();
   if (tab === 'controls') renderBinds();
   focusEl(root.querySelector(`[data-subtab="${next}"][data-of="${tab}"]`));
@@ -879,6 +938,7 @@ function moveFocus(dir) {
     showSubtab(best.dataset.of, best.dataset.subtab);
     if (prevSub === 'todo') renderTodoPanel();
     if (prevSub === 'verhaal') renderVerhaalPanel();
+    if (prevSub === 'telefoon') renderPhone();
   }
 }
 
@@ -1156,6 +1216,23 @@ function syncNavBadges() {
   if (vPeople) vPeople.toggleAttribute('data-new', met);
   const vClues = root.querySelector('[data-of="verhaal"][data-subtab="aanwijzingen"]');
   if (vClues) vClues.toggleAttribute('data-new', fresh);
+  const unread = !!world && phoneUnread(world) > 0;
+  const pNav = root.querySelector('[data-goto="telefoon"]');
+  if (pNav) pNav.toggleAttribute('data-new', unread);
+  const pSub = root.querySelector('[data-of="telefoon"][data-subtab="berichten"]');
+  if (pSub) pSub.toggleAttribute('data-new', unread);
+}
+
+function renderPhone() {
+  const panel = root.querySelector('[data-panel="telefoon"]');
+  try {
+    renderPhonePanel(panel, world, pref.sub.telefoon || 'contacten');
+    const n = phoneUnread(world);
+    const c = panel.querySelector('[data-count="berichten"]');
+    if (c) c.textContent = n ? String(n) : '';
+    if (tab === 'telefoon') sheet.querySelector('.pm-sheet-sub').textContent = `${PHONE_NAME} · ${n ? `${n} ongelezen` : 'geen nieuwe berichten'}`;
+  } catch (err) { console.error('telefoon', err); }
+  syncNavBadges();
 }
 
 function renderVerhaalPanel() {
@@ -1193,6 +1270,17 @@ function refreshInfo() {
   set('char', c);
   set('clock', getClockText(world));
   set('money', '€' + Math.max(0, Math.floor(world.money)).toLocaleString('nl-NL'));
+  // the phone's status bar
+  const sb = (k, text) => { const el = root.querySelector(`[data-sb="${k}"]`); if (el) el.textContent = text; };
+  sb('clock', getClockText(world));
+  sb('day', storyDate(world).long);
+  sb('who', c);
+  const np = world.nowPlaying;
+  sb('music', radioIsOn() && np ? `♪ ${np.title}${np.artist ? ' · ' + np.artist : ''}` : '');
+}
+
+export function pauseMenuTab() {
+  return open ? tab : null;
 }
 
 // The sheet's subtitle for the garage and prestaties comes from their own
@@ -1261,6 +1349,8 @@ function showTab(name, how) {
   }
   if (name === HOME) renderOverviewPanel();
   if (name === 'todo') { showSubtab('todo', pref.sub.todo || 'verhaal'); renderTodoPanel(); }
+  if (name === 'spullen') renderSpullenPanel();
+  if (name === 'telefoon') { showSubtab('telefoon', pref.sub.telefoon || 'contacten'); renderPhone(); }
   if (name === 'garage') { renderGaragePanel(garageEl(), world); syncSheetSub(); }
   if (name === 'verhaal') { showSubtab('verhaal', pref.sub.verhaal || 'personages'); renderVerhaalPanel(); }
   if (name === 'streken') { if (prev !== 'streken') resetCheatsPanel(); renderCheats(); }
@@ -1279,6 +1369,7 @@ export function openPauseMenu(name = HOME, opts = {}) {
   if (opts.sub && SUBTABS[name]) pref.sub[name] = opts.sub;
   if (opts.select) selectTodo(opts.select);
   if (opts.view) pref.sub.todo = opts.view;
+  if (opts.thread) { selectPhoneThread(opts.thread); pref.sub.telefoon = 'berichten'; }
   setOpen(true, name, 'direct');
 }
 
@@ -1295,6 +1386,8 @@ function setOpen(value, name = HOME, how = 'direct') {
   }
   open = value;
   if (open && isShopOpen()) closeShopMenu();
+  // audio.js muffles the world and the radio behind the unfolded phone
+  if (world) world.menuMuffle = open && !prestart;
   root.classList.toggle('visible', open);
   root.classList.toggle('prestart', !!prestart);
   if (input) input.reset();

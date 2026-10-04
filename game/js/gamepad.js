@@ -166,7 +166,7 @@ function release(slot) {
   sendKey('keyup', a, 'pad');
 }
 
-// The menus differ a little: B goes back a level in the phone, A is Space
+// The menus differ a little: B goes back a level in the phone section, A is Space
 // on the title screen (the attract intro skips on a held Space), and the
 // triggers zoom the map.
 function menuKey(slot, a) {

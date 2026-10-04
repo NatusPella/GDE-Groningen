@@ -66,6 +66,8 @@ function injectStyle() {
   background: #0c140e; border: 2px solid #1e9e56; box-shadow: 0 14px 34px rgba(0,0,0,.6), 0 0 0 3px rgba(12,20,14,.85);
   color: #f2f2f2; font-family: 'Arial Narrow', Arial, sans-serif; transform: translateY(40px) rotate(3deg); opacity: 0;
   transition: transform var(--dur-slow, 320ms) var(--ease-out, ease-out), opacity var(--dur-base, 200ms) var(--ease-out, ease-out); pointer-events: none; }
+#hud .sc-phone { border: 5px solid #111613; border-left: 9px solid #1a201c; border-radius: 24px 22px 22px 24px; box-shadow: inset 0 0 0 1px rgba(63,201,122,.35), -2px 0 0 #070a08, 0 0 0 1px #2b332d, 0 14px 34px rgba(0,0,0,.6); }
+#hud .sc-phone::before { content: ''; position: absolute; top: 5px; left: 50%; width: 7px; height: 7px; margin-left: -3.5px; border-radius: 50%; background: #050806; box-shadow: 0 0 0 1.5px #1f2622; z-index: 2; }
 body.hide-minimap #hud .sc-phone { max-height: calc(100vh / var(--ui, 1) - var(--hud-stack-top, 210px) - 60px); }
 #hud .sc-phone.aside { top: calc(var(--hud-tr-bottom, 200px) + 8px); right: 258px; max-height: calc(100vh / var(--ui, 1) - var(--hud-tr-bottom, 200px) - 200px); }
 #hud .sc-phone.compact .sc-portrait, #hud .sc-phone.compact .sc-wave { display: none; }
@@ -257,6 +259,12 @@ export function isStoryContactActive() {
   return !!cur;
 }
 
+// Who is on the story phone right now (the Berichten thread it lands in), or null.
+export function storyContactCaller() {
+  return cur ? callerOf(cur.c) : null;
+}
+const callerOf = (c) => (c.via === 'radio' ? 'Rikus' : c.caller || nameOf(c.from || 'jelle'));
+
 function lineTime(line) {
   const v = lineVoiceFor(nameOf(line[0]), line[1]);
   return { v, dur: v ? v.dur + 0.45 : Math.max(2.4, readingSeconds(line[1]) * 0.8) };
@@ -267,8 +275,8 @@ function logHistory(c) {
   const kind = { call: 'belde', voicemail: 'sprak in', live: 'was live', post: 'op Kiekdoar', card: 'liet een kaartje achter', scene: 'was live', radio: 'op Nachtstreek' }[c.via] || '';
   const text = c.lines.map((l) => dutchFor(l[1]) || l[1]).join(' ');
   const h = world.phoneHistory || (world.phoneHistory = []);
-  const by = c.via === 'radio' ? 'Rikus' : c.caller || nameOf(c.from || 'jelle');
-  h.unshift({ text: `${by} ${kind}: ${text}`, at: getClockText(world) || '' });
+  const by = callerOf(c);
+  h.unshift({ text: `${by} ${kind}: ${text}`, at: getClockText(world) || '', from: by, body: kind ? `${kind[0].toUpperCase()}${kind.slice(1)}: ${text}` : text });
   if (h.length > 30) h.length = 30;
 }
 

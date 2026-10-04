@@ -351,6 +351,10 @@
 "src": "tammo/wij_tweee_n_vo_o_r_grunn_kon_min_4d8627db.mp3",
 "dur": 2.82
 },
+"Ubbo|Alles gedaan. Echt alles. Grunn is van jou. Klap je telefoon open: de aftiteling staat bij Overzicht.": {
+"src": "ubbo/alles_gedaan_echt_alles_grunn_is_6b016f6b.mp3",
+"dur": 7.52
+},
 "Ubbo|Alles gedaan! Grunn is van jou. De bijbaantjes draaien gewoon door, en de Fjord Frituur ook.": {
 "src": "ubbo/alles_gedaan_grunn_is_van_jou_de_a07cab7b.mp3",
 "dur": 5.94
@@ -363,6 +367,10 @@
 "src": "ubbo/het_verhaal_gaat_verder_in_een_v_7ef4bf2f.mp3",
 "dur": 7.26
 },
+"Ubbo|Het verhaal gaat verder in een volgende versie. Tot die tijd is Grunn van jou: alle missies staan in je telefoon, onder Te doen.": {
+"src": "ubbo/het_verhaal_gaat_verder_in_een_v_6073138c.mp3",
+"dur": 7.52
+},
 "Ubbo|Het verhaal is uit. Grunn blijft van jou: alle missies staan in je telefoon en in het pauzemenu, de bijbaantjes draaien door en Jelle daagt je vast nog eens uit.": {
 "src": "ubbo/het_verhaal_is_uit_grunn_blijft__f59d3890.mp3",
 "dur": 9.75
@@ -370,6 +378,10 @@
 "Ubbo|Je GPS wijst nu naar de dichtstbijzijnde uitdaging zonder medaille. Je eigen bestemming gaat voor. Op de kaart (M): Volgende of Uit; via Ubbo zet je hem weer aan.": {
 "src": "ubbo/je_gps_wijst_nu_naar_de_dichtstb_7385f298.mp3",
 "dur": 9.12
+},
+"Ubbo|Je GPS wijst nu naar de dichtstbijzijnde uitdaging zonder medaille. Je eigen bestemming gaat voor. Op de kaart kies je Volgende of Uit, en zet je hem weer aan.": {
+"src": "ubbo/je_gps_wijst_nu_naar_de_dichtstb_4a6ac28c.mp3",
+"dur": 10.0
 },
 "Ubbo|Op naar de volgende! Je GPS wijst naar de dichtstbijzijnde uitdaging zonder medaille.": {
 "src": "ubbo/op_naar_de_volgende_je_gps_wijst_2212c328.mp3",

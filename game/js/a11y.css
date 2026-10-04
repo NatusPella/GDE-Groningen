@@ -45,7 +45,7 @@ html:is(.sub-klein, .sub-groot, .sub-extragroot) #hud .pf-say { font-size: calc(
 html:is(.sub-klein, .sub-groot, .sub-extragroot) #hud .pf-sub { font-size: calc(15px * var(--sub-scale, 1)); }
 html:is(.sub-klein, .sub-groot, .sub-extragroot) #hud .pf-speaker { font-size: calc(14px * var(--sub-scale, 1)); }
 /* the phone card is narrow: its bubbles grow less */
-html:is(.sub-klein, .sub-groot, .sub-extragroot) #hud :is(.ph-bubble, .sc-bubble) { font-size: calc(14px * min(var(--sub-scale, 1), 1.25)); }
+html:is(.sub-klein, .sub-groot, .sub-extragroot) #hud .sc-bubble { font-size: calc(14px * min(var(--sub-scale, 1), 1.25)); }
 html:is(.sub-klein, .sub-groot, .sub-extragroot) #hud .sc-bubble .nl-sub { font-size: calc(12px * min(var(--sub-scale, 1), 1.25)); }
 html:is(.sub-klein, .sub-groot, .sub-extragroot) #name-card .nc-name { font-size: calc(clamp(44px, 7vw, 96px) * min(var(--sub-scale, 1), 1.25)); }
 html:is(.sub-klein, .sub-groot, .sub-extragroot) #name-card .nc-line { font-size: calc(clamp(16px, 1.6vw, 22px) * var(--sub-scale, 1)); max-width: calc(36ch * 1); }
@@ -61,7 +61,7 @@ html.sub-box :is(#cine .cine-sub, #banter-sub, #rv-sub, #pg-sub, #intro-montage 
   padding: 0.3em 0.75em 0.35em; border-radius: 6px; box-sizing: border-box;
   background: rgba(12, 20, 14, 0.84); text-shadow: none;
 }
-html.sub-box #hud :is(.ph-bubble, .sc-bubble) { background: rgba(12, 20, 14, 0.92); }
+html.sub-box #hud .sc-bubble { background: rgba(12, 20, 14, 0.92); }
 html.sub-box #hud .pf-callcard { background: rgba(12, 20, 14, 0.96); }
 html.sub-box #name-card { padding: 10px 18px 12px; border-radius: 8px; background: rgba(12, 20, 14, 0.84); }
 

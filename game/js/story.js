@@ -514,8 +514,8 @@ function playFinale(part) {
   state.cards.add(part);
   const left = endingLeftText(getEnding());
   phone(SERIES, left
-    ? `Het verhaal is uit, Grunn nog niet. Nog ${left} te gaan, dan pas mag de aftiteling. Alles staat in je telefoon en in het pauzemenu.`
-    : 'Het verhaal is uit. Grunn blijft van jou: alle missies staan in je telefoon en in het pauzemenu.', 9);
+    ? `Het verhaal is uit, Grunn nog niet. Nog ${left} te gaan, dan pas mag de aftiteling. Alles staat in je telefoon, onder Te doen.`
+    : 'Het verhaal is uit. Grunn blijft van jou: alle missies staan in je telefoon, onder Te doen.', 9);
   return true;
 }
 
@@ -568,7 +568,7 @@ function updateCredits(dt, w) {
   if (!creditsDue(getEnding(), { seen: state.flags.has('credits') })) return;
   if (!playCredits()) return;
   state.flags.add('credits');
-  phone(SERIES, 'Alles gedaan. Echt alles. Grunn is van jou, de aftiteling staat in het pauzemenu bij Overzicht.', 8);
+  phone(SERIES, 'Alles gedaan. Echt alles. Grunn is van jou. Klap je telefoon open: de aftiteling staat bij Overzicht.', 8);
 }
 
 function playEndCard(part) {
@@ -580,7 +580,7 @@ function playEndCard(part) {
   });
   if (!ok) return false;
   state.cards.add(part);
-  phone(SERIES, 'Het verhaal gaat verder in een volgende versie. Tot die tijd is Grunn van jou: alle missies staan in je telefoon en in het pauzemenu.', 8);
+  phone(SERIES, 'Het verhaal gaat verder in een volgende versie. Tot die tijd is Grunn van jou: alle missies staan in je telefoon, onder Te doen.', 8);
   return true;
 }
 

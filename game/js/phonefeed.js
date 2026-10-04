@@ -10,9 +10,9 @@ import { mayVoiceText, noteVoiceText } from './attention.js';
 import { hold as holdChannel, release as releaseChannel } from './speech.js';
 import { registerNarrative, mayStart, noteToast, heldBack } from './narrative.js';
 
-// The phone on the HUD (bottom left, above the street name): notification
-// cards and incoming calls. Both slide up out of the bottom like a phone
-// being raised; the Kiekdoar app (phone.js) keeps the history.
+// The folded phone (the Pixie Vouw 11's cover screen) on the HUD, bottom
+// left above the street name: notification cards and incoming calls. Both slide up out of the bottom like a phone
+// being raised; Telefoon › Berichten in the pause menu (phone.js) keeps the history.
 //
 // Notifications: notifyPhone(world, { from, app, title, text, duration }),
 // or push { from, text, duration } onto world.phoneNotifications (the old
@@ -45,6 +45,8 @@ const HANGUP_TIME = 1.1;
 const CALL_WAIT_MAX = 90;
 const VOICE_DELAY = 0.45;
 const VOICE_TAIL = 1.2;
+// Esc opens the phone (pausemenu.js) on this card's thread
+const ESC_HINT = '<span class="pf-esc"><span class="hud-key">Esc</span>openvouwen</span>';
 const APP_ICON = {
   sikkom: '<path d="M12 3a6 6 0 0 0-6 6v4l-2 3v1h16v-1l-2-3V9a6 6 0 0 0-6-6zm-2 16a2 2 0 0 0 4 0z"/>',
   bericht: '<path d="M4 4h16a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H9l-5 4v-4H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z"/>',
@@ -128,9 +130,10 @@ export function notifyPhone(w, spec) {
   w.phoneNotifications.push(spec);
 }
 
-function remember(w, text) {
+// History entries: { text, at, from, body, read } (phone.js Berichten groups them by `from`).
+function remember(w, text, from = '', body = '') {
   if (!w.phoneHistory) w.phoneHistory = [];
-  w.phoneHistory.unshift({ text, at: clockNow(w) });
+  w.phoneHistory.unshift({ text, at: clockNow(w), ...(from ? { from, body: body || text } : {}) });
   if (w.phoneHistory.length > 30) w.phoneHistory.length = 30;
 }
 
@@ -142,7 +145,8 @@ function alreadyShown(w, text) {
 function showNote(w, n) {
   const p = parse(n);
   const full = [p.title, p.body].filter(Boolean).join(': ');
-  remember(w, p.from && p.from !== 'Kiekdoar' ? `${p.from}: ${n.text}` : n.text);
+  remember(w, p.from && p.from !== 'Kiekdoar' ? `${p.from}: ${n.text}` : n.text, p.from || 'Kiekdoar', p.from === 'Kiekdoar' ? [p.title, p.body].filter(Boolean).join(': ') : n.text);
+  noticeFrom(p.from || 'Kiekdoar');
   if (alreadyShown(w, n.text)) return;
   const el = document.createElement('div');
   el.className = 'pf-card';
@@ -150,7 +154,7 @@ function showNote(w, n) {
   el.innerHTML =
     `<div class="pf-head"><span class="pf-app">${icon(p.app)}</span><span class="pf-from">${esc(p.from)}</span><span class="pf-more" hidden></span><span class="pf-time">${esc(clockNow(w))}</span></div>` +
     (p.title ? `<div class="pf-title">${dualHtml(p.title)}</div>` : '') +
-    (p.body ? `<div class="pf-body">${dualHtml(p.body)}</div>` : '');
+    (p.body ? `<div class="pf-body">${dualHtml(p.body)}</div>` : '') + ESC_HINT;
   stack.appendChild(el);
   void el.offsetWidth;
   el.classList.add('on');
@@ -195,6 +199,7 @@ function dropCard(c) {
   if (c.leaving) return;
   c.leaving = true;
   c.left = 0.5;
+  notice.until = performance.now() + NOTICE_HOLD_MS;
   c.el.classList.remove('on');
   c.el.classList.add('out');
 }
@@ -210,6 +215,19 @@ export function startCall(w, spec) {
 
 export const isCallActive = () => !!call;
 
+// The sender of the call or card on screen (a few seconds after it went):
+// Esc then opens the unfolded phone on that thread (pausemenu.js).
+const NOTICE_HOLD_MS = 2500;
+let notice = { from: '', until: 0 };
+function noticeFrom(from) {
+  notice = { from, until: performance.now() + NOTICE_HOLD_MS + 1500 };
+}
+export function recentNotice() {
+  if (call) return call.from;
+  if (cards.some((c) => !c.leaving)) return notice.from || null;
+  return notice.from && performance.now() < notice.until ? notice.from : null;
+}
+
 export function hangUp() {
   if (!call) return;
   finishCall(true);
@@ -219,7 +237,7 @@ function callHtml(c) {
   const state = c.live ? '<span class="pf-live">LIVE</span>' : `<span class="pf-state">${c.phase === 'ring' ? 'Inkomend gesprek' : c.phase === 'end' ? 'Opgehangen' : '<i class="pf-dot"></i><b class="pf-clock">0:00</b>'}</span>`;
   return `<div class="pf-call-head"><span class="pf-avatar">${esc(initials(c.from))}</span>` +
     `<span class="pf-callwho"><small>${c.live ? 'Kiekdoar Live' : 'Telefoon'}</small><b>${esc(c.from)}</b></span>${state}</div>` +
-    '<div class="pf-line"><span class="pf-speaker"></span><span class="pf-say"></span><span class="pf-sub"></span></div>';
+    '<div class="pf-line"><span class="pf-speaker"></span><span class="pf-say"></span><span class="pf-sub"></span></div>' + (c.live ? '' : ESC_HINT);
 }
 
 function beginCall(w, c) {
@@ -273,7 +291,8 @@ function finishCall(cut) {
   const c = call;
   if (!c) return;
   const said = c.lines.slice(0, cut ? Math.max(0, c.i + 1) : c.lines.length);
-  remember(world, `${c.live ? 'Live' : 'Gesprek'} · ${c.from}: ${said.map((l) => l.text).join(' ')}`);
+  remember(world, `${c.live ? 'Live' : 'Gesprek'} · ${c.from}: ${said.map((l) => l.text).join(' ')}`, c.from, `${c.live ? 'Live' : 'Gesprek'}: ${said.map((l) => l.text).join(' ')}`);
+  noticeFrom(c.from);
   c.phase = 'end';
   c.t = 0;
   const st = callEl.querySelector('.pf-state');

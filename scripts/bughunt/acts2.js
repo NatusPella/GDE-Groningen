@@ -122,15 +122,17 @@
   });
 
   await step('phone-vehicles', async () => {
+    // Henk (Telefoon › Contacten) brings a vehicle round
     teleport(100, 77); await sleep(1200);
-    await tap('t'); await sleep(400);
-    const app = [...document.querySelectorAll('.phone .ph-app')].find((b) => /Voertuig/i.test(b.textContent));
-    if (!app) { issue('phone', 'no Voertuigen app'); await tap('t'); return; }
-    app.click(); await sleep(500);
-    const rows = document.querySelectorAll('.phone.open .ph-row');
-    log('vehicle rows', rows.length);
-    if (rows[0]) { rows[0].click(); await sleep(400); const acts = document.querySelectorAll('.phone.open .ph-row, .phone.open .ph-action'); log('vehicle actions', [...acts].map((a) => a.textContent.trim()).join(' | ').slice(0, 200)); if (acts[0]) { acts[0].click(); await sleep(800); } }
-    if (PH.isPhoneOpen && PH.isPhoneOpen()) await tap('t');
+    PM.openPauseMenu('telefoon', { sub: 'contacten' }); await sleep(400);
+    const henk = [...document.querySelectorAll('#pause-menu [data-ph-contact]')].find((b) => /Knalpot/i.test(b.textContent));
+    if (!henk) { issue('phone', 'no Garage Knalpot contact'); PM.closePauseMenu(); return; }
+    henk.click(); await sleep(1400);
+    const acts = [...document.querySelectorAll('#pause-menu [data-ph-act]')];
+    log('henk actions', acts.map((a) => a.textContent.trim()).join(' | ').slice(0, 200));
+    const bring = acts.find((a) => /^Breng|Bezorgen/.test(a.textContent.trim())) || acts[0];
+    if (bring) { bring.click(); await sleep(800); }
+    if (PM.isPauseMenuOpen()) PM.closePauseMenu();
     await sleep(3000); await quiet();
     await expectClear('phone vehicles');
   });
