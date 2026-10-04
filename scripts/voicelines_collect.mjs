@@ -201,7 +201,7 @@ export function collect() {
   for (const m of src('story.js').matchAll(/\{ speaker: '([^']+)', text: ('(?:[^'\\]|\\.)*')/g)) add('Verhaal-kaarten', 'lines', [m[1]], evalLit(m[2]));
   const ci = src('cinematics.js');
   for (const m of ci.matchAll(/lines: \[\{ speaker: '', text: ('(?:[^'\\]|\\.)*')/g)) add('Wijken & landschap (verteller)', 'lines', [NARRATOR], evalLit(m[1]));
-  for (const t of Object.values(lit(ci, 'const WIJK_LINES = '))) add('Wijken & landschap (verteller)', 'lines', [NARRATOR], t);
+  for (const t of Object.values(lit(ci, 'const WIJK_LINES = ')).flat()) add('Wijken & landschap (verteller)', 'lines', [NARRATOR], t);
   for (const t of lit(ci, 'const WIJK_GENERIC = ')) add('Wijken & landschap (verteller)', 'lines', [NARRATOR], t);
 
   // --- speech bubbles -> lines manifest (~m / ~f), npc phrases have their own audio

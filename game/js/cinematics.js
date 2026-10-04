@@ -601,17 +601,54 @@ function playGameStart(w) {
 
 // --- first visit to a wijk ------------------------------------------------------
 
+// Rikus's line on the first visit to a wijk: a few per wijk, so neighbours
+// don't sound alike. WIJK_ALIAS points a buurt without its own lines at the
+// wijk it belongs to; the rest gets WIJK_GENERIC. wijkLine never repeats one
+// of the last WIJK_RECENT lines (kept across sessions).
 const WIJK_LINES = {
-  Binnenstad: 'Het hart van Grunn. Klopt het hardst na middernacht.',
-  Stationsgebied: 'Iedereen komt hier aan. Niet iedereen gaat weer weg.',
-  Ebbingekwartier: 'Hip, nieuw en duur. Hou je portemonnee vast.',
-  Oosterpoort: 'Muziek, kroegen en altijd wel ergens herrie.',
-  Paddepoel: 'Winkelen, wonen en de ringweg om de hoek.',
-  Europapark: 'Voetbal, kantoren en een hoop glas.',
-  'A-kwartier': 'Smalle straatjes, oude grachten, niks zien en niks zeggen.',
-  Schildersbuurt: 'Elke straat een schilder. Elke buur een mening.',
-  Zeeheldenbuurt: 'Genoemd naar helden. De bewoners doen hun best.',
-  Korrewegwijk: 'Stoer, eerlijk en met de fiets tot aan de voordeur.',
+  Binnenstad: ['Het hart van Grunn. Klopt het hardst na middernacht.', 'Twee pleinen, één toren, en overal een fiets in de weg.', 'De binnenstad. Met de auto mag je er niet door. Sinds 1977.'],
+  'Binnenstad-Oost': ['De oostkant van de binnenstad. Kroegen, kerken en een terras op elke stoep.', 'Hier staan de oude huizen schever dan de mensen na sluitingstijd.'],
+  Stationsgebied: ['Iedereen komt hier aan. Niet iedereen gaat weer weg.', 'Het Hoofdstation. Het mooiste van het land, zeggen ze. Wij zeggen het in elk geval.', 'Onder het plein een fietsenkelder. Je fiets vind je er nooit meer terug.'],
+  Westerhaven: ['De Westerhaven. Vroeger schepen, nu een winkelcentrum met uitzicht op het water.', 'Hier legden de turfschippers aan. Nu zoekt iedereen een parkeerplek.'],
+  Ebbingekwartier: ['Hip, nieuw en duur. Hou je portemonnee vast.', 'Vroeger de gasfabriek. Nu koffie met havermelk.', 'Hier wonen ze in een loods en noemen ze het een loft.'],
+  Hortusbuurt: ['De Hortusbuurt. De hortus is allang naar Haren. De naam is gebleven.', 'Stille straatjes achter de Ebbingestraat. Hier fluisteren zelfs de fietsers.'],
+  'A-kwartier': ['Smalle straatjes, oude grachten, niks zien en niks zeggen.', 'De Hoge en de Lage der A. Pakhuizen, bruggetjes en een terras aan het water.'],
+  Damsterkwartier: ['Het Damsterdiep. Hier begon de trekvaart naar Delfzijl. Nu varen er eenden.'],
+  Oosterpoort: ['Muziek, kroegen en altijd wel ergens herrie.', 'De Oosterpoort. Achter elke deur een fiets en een bandje dat oefent.', 'Hier staat de concertzaal. De buren luisteren gratis mee, door de muur heen.'],
+  Herewegbuurt: ['De Herewegbuurt. Grote huizen, grote bomen, en de bus dendert er dwars doorheen.', 'Villa\'s aan de Hereweg. Hier heeft de heg een eigen tuinman.'],
+  Zeeheldenbuurt: ['Genoemd naar helden. De bewoners doen hun best.', 'De Zeeheldenbuurt. Zeehelden, in Grunn. Het dichtstbijzijnde zeegat is Delfzijl.'],
+  Rivierenbuurt: ['De Rivierenbuurt. Elke straat een rivier. Water zie je hier alleen als het regent.', 'Rijtjeshuizen met een voortuintje. Op zaterdag wordt hier de auto gewassen. Met de hand.'],
+  Grunobuurt: ['De Grunobuurt. Genoemd naar Gruno, die Stad gesticht zou hebben. Zou.', 'Rustig, groen, en vlak bij de Euroborg. Behalve op wedstrijddagen.'],
+  Laanhuizen: ['Laanhuizen. Rijtjes, hofjes, en het Stadspark om de hoek.'],
+  Europapark: ['Voetbal, kantoren en een hoop glas.', 'De Euroborg. Als de club scoort, hoor je het tot in Haren.', 'Europapark. Een station waar je alleen uitstapt als er gevoetbald wordt.'],
+  Zuiderpark: ['Het Zuiderpark. Vijver, kinderboerderij, en een fietspad dat je nooit twee keer vindt.'],
+  Schildersbuurt: ['Elke straat een schilder. Elke buur een mening.', 'De Schildersbuurt. Hier woont Berend. Hij heeft er vast al een brief over geschreven.', 'Smalle stoepen, lage huizen en een buurman die altijd net buiten staat.'],
+  Korrewegwijk: ['Stoer, eerlijk en met de fiets tot aan de voordeur.', 'De Korrewegwijk. Studenten op zolder, oma beneden, en ze groeten elkaar.', 'Hier hangt de was buiten. Ook als het regent. Vooral als het regent.'],
+  Oosterparkwijk: ['Het Oosterpark. Mijn oude stoep. Doe er voorzichtig mee.', 'Hier stond het oude stadion. Op zondag hoorde je het tot in de binnenstad.', 'Rode baksteen, smalle straatjes, en een hart van goud. Zeg dat maar niet hardop.'],
+  'Het Blauwe Dorp': ['Het Blauwe Dorp. Eerst een volksbuurtje, toen gesloopt, nu nieuw. De naam mocht blijven.', 'Nieuwe huizen, oude naam. En niks is hier blauw.'],
+  'De Hoogte': ['De Hoogte. Volkswijk met een eigen park en een eigen mening.', 'Hier zeggen ze nog moi als je langsloopt. Zeg maar terug.'],
+  Paddepoel: ['Winkelen, wonen en de ringweg om de hoek.', 'Paddepoel. Voor een Stadjer uit het Oosterpark is dit buitenland. Tammo woont er nu.', 'Flats, een winkelcentrum, en de wind krijg je er gratis bij.'],
+  'Paddepoel-Noord': ['Paddepoel-Noord. Flats op een rij, en daarachter de universiteit op Zernike.', 'Hier fietst om half negen heel Stad langs. Naar Zernike, met tegenwind.'],
+  'Paddepoel-Zuid': ['Paddepoel-Zuid. Flats, gras ertussen, en de Pleiadenlaan als ruggengraat.', 'De sterrenbuurt. Elke straat een sterrenbeeld. Je ziet ze alleen niet, door de lantaarnpalen.'],
+  Selwerd: ['Selwerd. Vroeger een klooster, nu flats en een busbaan.', 'Studenten, gezinnen en een winkelcentrum dat net groot genoeg is.'],
+  Selwerderwijk: ['De Selwerderwijk. Rijtjeshuizen tussen het kanaal en de ringweg. Hier staat niemand stil.'],
+  Reitdiepswaard: ['Het Reitdiep. Nieuwe huizen aan oud water. De schippers kijken toe.', 'Aan het Reitdiep. Hier vaar je zo naar Zoutkamp. Als de brug opengaat.'],
+  Hoendiep: ['Het Hoendiep. Een kanaal naar het westen. Daar begint het Westerkwartier.'],
+  Noorderplantsoenbuurt: ['Bij het Noorderplantsoen. Bij de eerste zon ligt hier half Stad in het gras.', 'Hier woont iedereen vlak bij het park. Dat zeggen ze ook op elk feestje.'],
+  Professorenbuurt: ['De Professorenbuurt. Statige huizen, en achter elk raam iemand die het beter weet.'],
+  Oranjewijk: ['De Oranjewijk. Herenhuizen, bomen, en een stoep vol bakfietsen.'],
+  'Kop van Oost': ['Kop van Oost. Oude pakhuizen aan het water. Het wordt hier hip, zeggen ze. Al jaren.'],
+  Eemskanaal: ['Het Eemskanaal. Een rechte streep water naar Delfzijl, en de wind komt er gratis mee.'],
+  Suikerfabriekterrein: ['De oude suikerfabriek. Nu festivals en moestuinen. Het ruikt er niet meer naar suiker.'],
+  'De Meeuwen': ['De Meeuwen. Een buurt genoemd naar de vogel die je patat jat.'],
+  Badstratenbuurt: ['De Badstratenbuurt. Kleine straatjes, kleine huizen, en in elk huis vijf studenten.'],
+  Schuitenschuiverskwartier: ['Het Schuitenschuiverskwartier. Zeg dat maar eens na vier kroegen.'],
+  'Nieuw-Indische buurt': ['De Indische buurt. Straatnamen van ver weg, huizen van hier.'],
+};
+const WIJK_ALIAS = {
+  Damsterdiep: 'Damsterkwartier', Damsterbuurt: 'Damsterkwartier', Oranjebuurt: 'Oranjewijk', Tuinwijk: 'Oranjewijk',
+  'Oud-Indische buurt': 'Nieuw-Indische buurt', 'Kop Indische buurt': 'Nieuw-Indische buurt', 'West-Indische buurt': 'Nieuw-Indische buurt',
+  Studentenbuurt: 'Badstratenbuurt', Florabuurt: 'De Hoogte', Vogelbuurt: 'De Hoogte',
 };
 const WIJK_GENERIC = [
   'Moi. Hier kent iedereen elkaar, dus doe een beetje normaal.',
@@ -623,12 +660,20 @@ const WIJK_GENERIC = [
   'De buren hebben je al gezien. Zwaai maar even.',
   'Het is hier stil. Dat verandert zo.',
 ];
+const WIJK_RECENT_KEY = 'gde-wijk-lines-recent';
+const WIJK_RECENT = 12;
 
 function wijkLine(name) {
-  if (WIJK_LINES[name]) return WIJK_LINES[name];
-  let h = 0;
-  for (const c of name) h = (h * 31 + c.charCodeAt(0)) >>> 0;
-  return WIJK_GENERIC[h % WIJK_GENERIC.length];
+  const pool = WIJK_LINES[name] || WIJK_LINES[WIJK_ALIAS[name]] || WIJK_GENERIC;
+  let recent = [];
+  try { recent = JSON.parse(localStorage.getItem(WIJK_RECENT_KEY) || '[]'); } catch (e) { /* ignore */ }
+  if (!Array.isArray(recent)) recent = [];
+  const fresh = pool.filter((t) => !recent.includes(t));
+  // all heard lately: the one heard longest ago
+  const line = fresh.length ? fresh[Math.floor(Math.random() * fresh.length)] : pool.slice().sort((a, b) => recent.indexOf(a) - recent.indexOf(b))[0];
+  recent = [...recent.filter((t) => t !== line), line].slice(-WIJK_RECENT);
+  try { localStorage.setItem(WIJK_RECENT_KEY, JSON.stringify(recent)); } catch (e) { /* ignore */ }
+  return line;
 }
 
 function currentWijk(w) {
