@@ -157,6 +157,8 @@ Nu:
 - **Slot:** Geertje: "Boe. Die schuur was niks. Te veel Friezen.", de app van Jelle, en de kaas van Ome Jan.
 - De verhaaltest (storytest.js) start de uitdaging en rondt hem af via `debugWin`. Een aparte headless simulatie van de rit is er niet: de missie hangt aan de 3D-scène.
 
+- **Wat nu?** Na elke gewonnen uitdaging na het verhaal (postgame.js `handOff`, voor alle pg_*) stuurt Ubbo een bericht: "Op naar de volgende! Je GPS wijst naar de dichtstbijzijnde uitdaging zonder medaille." De GPS slaat de uitdaging die je net deed over, en de naam van de volgende verschijnt in beeld. Is alles gedaan, dan zegt het bericht dat.
+
 ## Wat bewust zo blijft
 - "Dan rijdt hij nauwelijks voor jou." (opening): een vreemde zin, maar wel lief.
 - De "Wieken Wubbo"-roepnaam van Dijkstra.

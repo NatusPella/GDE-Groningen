@@ -323,6 +323,10 @@
 "src": "tammo/wij_tweee_n_vo_o_r_grunn_kon_min_4d8627db.mp3",
 "dur": 2.82
 },
+"Ubbo|Alles gedaan! Grunn is van jou. De bijbaantjes draaien gewoon door, en de Fjord Frituur ook.": {
+"src": "ubbo/alles_gedaan_grunn_is_van_jou_de_a07cab7b.mp3",
+"dur": 5.94
+},
 "Ubbo|Goeiemorgen! Gisteren lekker gedraaid. De dagomzet staat op je rekening.": {
 "src": "ubbo/goeiemorgen_gisteren_lekker_gedr_162743a6.mp3",
 "dur": 4.85
@@ -338,6 +342,10 @@
 "Ubbo|Je GPS wijst nu naar de dichtstbijzijnde uitdaging zonder medaille. Je eigen bestemming gaat voor. Op de kaart (M): Volgende of Uit; via Ubbo zet je hem weer aan.": {
 "src": "ubbo/je_gps_wijst_nu_naar_de_dichtstb_7385f298.mp3",
 "dur": 9.12
+},
+"Ubbo|Op naar de volgende! Je GPS wijst naar de dichtstbijzijnde uitdaging zonder medaille.": {
+"src": "ubbo/op_naar_de_volgende_je_gps_wijst_2212c328.mp3",
+"dur": 5.02
 },
 "Ubbo|Voor deze missie mis je nog iets. Lees even mee op je telefoon.": {
 "src": "ubbo/voor_deze_missie_mis_je_nog_iets_c0278527.mp3",

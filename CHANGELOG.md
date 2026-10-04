@@ -31,6 +31,11 @@ nieuwe functies, `y` voor alleen bugfixes.
   na een minuut rijden Durk en Douwe vanzelf de sloot in. De HUD geeft elke
   stap met een marker, laat zien of Geertje meeloopt, telt de rammen (0/3)
   en waarschuwt als de trekker vlak achter haar zit.
+- **Na een gewonnen uitdaging weet je wat je nu moet doen.** Je krijgt
+  een bericht, en de GPS wijst meteen naar de dichtstbijzijnde uitdaging
+  zonder medaille (niet naar de uitdaging die je net deed). Zijn ze allemaal
+  gedaan, dan zegt het bericht dat ook. Dit geldt voor alle uitdagingen na
+  het verhaal.
 - **Onderduiken met de trein gaat echt het Ommeland in.** De kaartautomaat
   zet de dorpen bovenaan ("Onderduiken"), een ritje binnen Stad telt niet
   meer, en in het dorp lopen Tammo en Tessa eerst even naar het eerste
