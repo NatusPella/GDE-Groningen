@@ -2,7 +2,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { dist, closestPointOnSegment, isInWater, pointInPolygon, boatDryPoints } from './util.js';
 import { clearOfReal } from './countryreal.js';
 import { getScene, refreshCharacterMeshes } from './scene3d.js';
-import { spawnVehicleOnRoad, spawnBoatOnWater } from './vehicle.js';
+import { spawnVehicleOnRoad, spawnBoatOnWater, HERO_CAR_MODEL } from './vehicle.js';
 import { BOAT_KINDS } from './boattypes.js';
 import { TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { getHorecaForRender } from './horeca.js';
@@ -468,6 +468,14 @@ export function getOwnedEntries() {
   return state.vehicles;
 }
 
+// Every car you own, with its top speed (m/s) after upgrades: the Escapade first.
+export function ownedCarTops() {
+  const top = (m, ups) => (ups || []).reduce((t, id) => t * ((CAR_UPGRADES.find((u) => u.id === id) || { mult: {} }).mult.maxSpeed || 1), m.maxSpeed);
+  const out = [{ hero: true, label: 'Escapade', name: HERO_CAR_MODEL.name, top: top(HERO_CAR_MODEL, state.heroUpgrades) }];
+  for (const o of state.vehicles) if (o.spec.kind === 'car') out.push({ label: o.spec.label, name: o.spec.model.name, top: top(o.spec.model, o.upgrades) });
+  return out;
+}
+
 export function getHeroLook() {
   return { color: state.heroColor, upgrades: [...state.heroUpgrades] };
 }
@@ -482,6 +490,17 @@ export function spawnOwnedEntry(world, o, x, y, angle) {
   if (!v.isHeli) v.z = world.map.spawnZ ? world.map.spawnZ(x, y) : 0;
   o.v = v;
   o.lost = false;
+  return v;
+}
+
+// A vehicle from the stock that is not in the collection (cheats.js
+// Showroom): not saved, never theft. Same placement rules as spawnOwnedEntry.
+export function spawnStockVehicle(world, key, x, y, angle) {
+  const spec = VEHICLE_STOCK[key];
+  if (!spec) return null;
+  const v = spawnOwned(world, { key, spec, color: spec.color, upgrades: [] }, x, y, angle);
+  if (!v) return null;
+  if (!v.isHeli) v.z = world.map.spawnZ ? world.map.spawnZ(x, y) : 0;
   return v;
 }
 
@@ -1557,6 +1576,11 @@ export function grantStoryItem(world, what) {
     if (state.vehicles.some((o) => o.spec.kind === 'car')) return true;
     const shop = nearestOfType(world, 'auto');
     return !!(shop && deliver(world, 'mug', VEHICLE_STOCK.mug.color, shop));
+  }
+  if (what === 'racecar') {
+    // the Escapade gets the motor upgrade (r-tuning)
+    if (!state.heroUpgrades.includes('motor')) state.heroUpgrades = [...state.heroUpgrades, 'motor'];
+    return true;
   }
   if (what === 'incognito') {
     state.ownedOutfits.add('tammo:incognito');

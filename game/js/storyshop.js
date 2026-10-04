@@ -18,6 +18,7 @@ const stockOf = (id) => (id && id.startsWith('v-') ? VEHICLE_STOCK[id.slice(2)] 
 export const REQ_BUY = {
   weapon: { shops: ['wapens', 'pand'], what: 'een wapen', prefer: 'w-pistol', ok: (id) => id === 'b-pistol' || (id.startsWith('w-') && GUNS.has(id.slice(2))) },
   bike: { shops: ['fietsen'], what: 'een fiets', prefer: 'v-omafiets', ok: (id) => { const sp = stockOf(id); return !!sp && sp.kind === 'bike' && !sp.unlock; } },
+  racecar: { shops: ['tuning', 'auto'], what: 'een snelle auto', act: 'voer de Escapade op of koop een sportwagen', prefer: 'u-motor', ok: (id) => id === 'u-motor' || id === 'u-turbo' || (() => { const sp = stockOf(id); return !!sp && sp.kind === 'car' && (sp.model.name === 'sport' || sp.model.maxSpeed >= 200 / 3.6); })() },
   car: { shops: ['auto'], what: 'een auto', prefer: 'v-mug', ok: (id) => { const sp = stockOf(id); return !!sp && sp.kind === 'car' && !sp.unlock; } },
   boat: { shops: ['boot'], what: 'een huurboot', act: 'huur een boot', prefer: 'r-sloep', ok: (id) => id.startsWith('r-') },
   heist: { shops: ['kleding', 'boot'], what: 'zwart incognito of een huurboot', act: 'koop zwart incognito of huur een boot', prefer: 'r-sloep', ok: (id) => id === 'o-incognito' || id.startsWith('r-') },
@@ -26,6 +27,7 @@ export const REQ_BUY = {
 const WHY_NOT = {
   weapon: 'alleen een echt wapen telt',
   bike: 'alleen een gewone fiets telt, geen e-step of scooter',
+  racecar: 'alleen meer topsnelheid telt: 200 km/u of harder',
   car: 'alleen een gekochte auto telt',
   boat: 'alleen een huurboot van de steiger telt',
   heist: 'alleen zwart incognito of een huurboot telt',

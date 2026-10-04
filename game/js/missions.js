@@ -2,7 +2,7 @@ import { SMS_SAY } from './smsvoice.js';
 import { markerColors } from './a11y.js';
 import { dist, pointInPolygon, closestPointOnSegment, boatDryPoints, clamp, isInWater } from './util.js';
 import { PERFECT_VERDICT } from './flavourlines.js';
-import { spawnVehicleOnRoad, Vehicle, makeTwoWheeler, spawnHeroCarNear } from './vehicle.js';
+import { spawnVehicleOnRoad, Vehicle, makeTwoWheeler, spawnHeroCarNear, attachToNearestRoad } from './vehicle.js';
 import { placeOwnedVehicleNear } from './ownedvehicles.js';
 import { findWalkPath } from './routing.js';
 import { setGoal } from './goal.js';
@@ -18,8 +18,9 @@ import { helipadById } from './heliflight.js';
 import { spawnFxPuff, spawnFxSpark } from './fx3d.js';
 import { Pedestrian, isInsideBuilding, setPedPose } from './pedestrians.js';
 import { knockDown, isKnockedDown } from './ragdoll.js';
-import { getShopsForRender, getOwnedEntries, SHOP_TYPES, repaintVehicle, storyShopState, setStoryOutfit } from './shops.js';
+import { getShopsForRender, getOwnedEntries, SHOP_TYPES, repaintVehicle, storyShopState, setStoryOutfit, ownedCarTops } from './shops.js';
 import { getGaragesForRender, garageInside } from './garages.js';
+import { getHomeGarageForRender } from './home.js';
 import { startPigeonMode, stopPigeonMode, getPigeonFlight, summonDiveGull } from './pigeonmode.js';
 import { getPigeonSpotsForRender } from './pigeonspots.js';
 import { MISSION_IDS, MISSION_STORY_ORDER, missionCode } from './storyarc.js';
@@ -113,6 +114,7 @@ function buildDefs(world) {
       scratchFine: 0.5,
       vehicleName: 'Berends bakkie',
       destName: 'het Boterdiep',
+      handBack: { how: 'drive', say: 'Berend pakt zijn sleutels terug en rijdt weg. Wij lopen, Tessa.' },
       start: drive(224, -27),
       dest: drive(-14, -489),
       say: 'De navigatie stuurt je om, via de Diepenring. Sectoren, sinds 1977. Berend heeft er een brief over gestuurd.',
@@ -135,6 +137,7 @@ function buildDefs(world) {
       outro: 'De eerstejaars bellen hun ouders. Die snappen het ook niet.',
       race: 'kei',
       requires: 'bike',
+      ride: 'bike',
       // the all-green crossing: Tessa comes the other way on her own bike
       moment: { at: 3, text: 'Alles groen. Tessa komt van de andere kant, op haar eigen fiets. Oogcontact. Jullie remmen allebei.' },
       // each on their own bike (D: she comes the other way at the all-green crossing), so she gets off his
@@ -157,6 +160,7 @@ function buildDefs(world) {
       stops: [{ ...drive(96, -318), name: 'de Stadsschouwburg', bonus: 25, arrive: 'De acteurs springen achterin, tussen het decor. "Rustig rijden, hè!"' }],
       vehicleName: 'de decorauto',
       destName: 'het Noorderplantsoen',
+      handBack: { how: 'park', say: 'De decorauto blijft hier, Femke laadt hem uit. Wij gaan te voet verder.' },
       start: drive(787, -95),
       dest: drive(189, -590),
     },
@@ -166,6 +170,8 @@ function buildDefs(world) {
       intro: ['De Zuidelijke Ringweg is af. Echt. Er staat zelfs een bordje.', 'Eén rondje om de stad over de ringweg, tegen vier gekken. Alleen het podium telt.'],
       outro: 'Podium op de ringweg! Hij ligt er nog. Op een paar pionnen na.',
       race: 'ring',
+      requires: 'racecar',
+      ride: 'racecar',
       timeLimit: 60,
       checkpointBonus: 16,
       reward: 1200,
@@ -219,6 +225,8 @@ function buildDefs(world) {
       reward: 750,
       start: berth.start,
       boatAt: berth.boat,
+      ride: 'quay',
+      handBack: { how: 'moor', say: 'De rondvaartboot blijft aan de kade. Wiebe haalt hem zelf wel op.' },
       waypoints: rondvaartWaypoints(),
     },
     // --- Kop story missions (storyarc.js H2, H4, H6): 'stages' missions,
@@ -341,6 +349,7 @@ function buildDefs(world) {
       reward: 950,
       vehicle: 'car',
       start: drive(1149, 422),
+      handBack: { how: 'park', say: 'De tankwagen blijft bij de Oosterpoort, voor de frituurpannen. Wij lopen verder.' },
       stages: [
         { kind: 'board', label: 'Stap in de auto', say: 'Instappen, Femke heeft hem voor ons klaargezet. De tankwagen staat bij de groothandel.' },
         {
@@ -711,12 +720,67 @@ const REQUIREMENTS = {
     shop: 'wapens',
     text: (shop) => `Jelmer leent geen wapens meer uit. Koop eerst een wapen bij ${shop}.`,
   },
+  // H9: a car of your own that can keep up on the ringweg (the Escapade once tuned)
+  racecar: {
+    met: (w) => ownedCarTops().some((c) => isRaceCar(c.name, c.top)) || rideOk(w, 'racecar'),
+    shop: 'tuning',
+    text: (shop) => `De ringweg-race win je alleen in een snelle auto, 200 km/u of meer. Voer de Escapade op bij ${shop}, of koop een sportwagen bij ${SHOP_TYPES.auto.chain}.`,
+  },
   car: {
     met: () => getOwnedEntries().some((o) => o.spec && o.spec.kind === 'car' && !o.spec.unlock), // bought, not a story unlock
     shop: 'auto',
     text: (shop) => `De ringweg-race wordt gesponsord door ${SHOP_TYPES.auto.chain}: alleen wie een eigen auto heeft mag starten. Koop er eerst een bij ${shop}.`,
   },
 };
+
+// --- the right ride at the start ----------------------------------------------
+// def.ride: what you have to arrive in for the mission to start (the start
+// marker waits, with a line from the companion, until you do).
+//   racecar  H9: a sports car, or any car tuned to 200 km/u (RACE_MIN_TOP)
+//   bike     H5: an ordinary bike (a fatbike is no bike, H12 says so)
+//   quay     H13: on the quay, not in a boat of your own: the tour boat waits
+
+export const RACE_MIN_TOP = 200 / 3.6;
+// the rivals top out at ~55 m/s (racers.js RACE_TOP x topScale) and the
+// rubber band holds the leaders back: from 200 km/u the podium is a fair fight
+const isRaceCar = (name, top) => name === 'sport' || top >= RACE_MIN_TOP - 0.01;
+const isCarRide = (v) => !!v && !v.isBoat && !v.isBike && !v.isScooter && !v.isHeli;
+
+function rideOk(w, ride, v = w.player.inVehicle) {
+  if (ride === 'racecar') return isCarRide(v) && !v.wrecked && isRaceCar(v.model.name, v.model.maxSpeed);
+  if (ride === 'bike') return !!v && v.isBike && !v.model.fat;
+  if (ride === 'quay') return !v || !v.isBoat;
+  return true;
+}
+
+// What the companion says when you turn up in the wrong thing.
+const WRONG_RIDE = {
+  racecar: [
+    { when: (v) => !v, say: 'Lopend win je geen race. Haal je snelste auto.' },
+    { when: (v) => v.model.tank, say: 'Met die vetwagen win je geen race. Haal je snelste auto.' },
+    { when: (v) => v.isBike || v.isScooter, say: 'Op de ringweg win je niks op twee wielen. Haal je snelste auto.' },
+    { when: (v) => v.isHeroCar, say: 'De Escapade is nog te traag voor de ringweg. Eerst langs Knal & Kolder.' },
+    { when: () => true, say: 'Daarmee win je geen race. Haal je snelste auto, of laat hem opvoeren bij Knal & Kolder.' },
+  ],
+  bike: [
+    { when: (v) => v && v.isBike, say: 'Fatbikes tellen niet als fiets. Kom op een gewone fiets.' },
+    { when: () => true, say: 'Het is een fietsrace. Kom op je eigen fiets.' },
+  ],
+  quay: [{ when: () => true, say: 'Eerst aanmeren en uitstappen. De rondvaartboot ligt al klaar aan de kade.' }],
+};
+
+// False (with the companion's line, now and then) while the player is not in
+// the ride def needs.
+function checkRide(w, def) {
+  if (!def.ride || rideOk(w, def.ride)) return true;
+  if (w.time - chain.reqHintAt >= 3) {
+    chain.reqHintAt = w.time;
+    const v = w.player.inVehicle;
+    const line = WRONG_RIDE[def.ride].find((r) => r.when(v));
+    w.addMessage(line.say, 4, { kind: 'missie' });
+  }
+  return false;
+}
 
 let worldRef = null;
 
@@ -909,6 +973,8 @@ export function setMissionProgress(world, prog) {
   if (!chain || !prog) return;
   const n = chain.defs.length;
   releaseMissionVehicle(world);
+  chain.afoot = false;
+  chain.handBack = null;
   chain.index = Number.isInteger(prog.index) && prog.index >= 0 && prog.index < n ? prog.index : 0;
   const valid = (list) => (Array.isArray(list) ? list : []).filter((i) => Number.isInteger(i) && i >= 0 && i < n);
   chain.completed = new Set(valid(prog.completed));
@@ -994,7 +1060,8 @@ function vehicleToBoard(world, def) {
   const v = chain.vehicle;
   const p = world.player;
   if (!v || v.wrecked || v.disabled) return null;
-  if (def.type === 'deliver' ? p.inVehicle === v : p.inVehicle && p.inVehicle.isBoat) return null;
+  // the rondvaart is in the tour boat (the tourists are aboard), not your own
+  if (p.inVehicle === v) return null;
   return v;
 }
 
@@ -1051,7 +1118,7 @@ function syncPub(world) {
   pub.damage = r ? Math.round(r.damage) : null;
   pub.vehicleDamage = r && r.vehicleUsed ? Math.round(r.vehDamage) : null;
   pub.cargo = r && def.fragile ? Math.round(cargoLeft(def)) : null;
-  pub.progressText = rv ? boatProgressText(rv) : active ? progressText(world, def, pub) : null;
+  pub.progressText = rv ? (board ? 'Stap in de rondvaartboot' : boatProgressText(rv)) : active ? progressText(world, def, pub) : null;
   const race = st.race && active ? raceStandings(st.race) : null;
   world.race = race ? {
     pos: race.position, total: race.total, finished: race.finished,
@@ -1164,6 +1231,79 @@ function releaseMissionVehicle(world) {
   chain.vehicle = null;
 }
 
+// def.handBack: a borrowed car or boat goes back to its owner once the
+// mission is passed, and you go on on foot (rideFirst points at your own).
+//   drive  the owner gets in and drives off as traffic (H1: Berend)
+//   park   it stays put, locked, and goes once you are out of sight (H7, H8)
+//   moor   the tour boat stays at the quay, locked; you step ashore at the start (H13)
+const HANDBACK_GONE_M = 120;
+
+function handBack(world, def, v) {
+  const p = world.player;
+  const how = def.handBack.how;
+  if (!world.vehicles.includes(v) || v.wrecked || v.sinking) return;
+  if (p.inVehicle === v) {
+    if (how === 'moor') {
+      v.driver = null; v.speed = 0; v.throttle = 0;
+      p.inVehicle = null; p.water = null; p.swimming = false; p.climb = null;
+      p.x = def.start.x; p.y = def.start.y; p.vx = 0; p.vy = 0; p.z = 0; p.vz = 0; p.gz = 0;
+      const c = world.companion;
+      if (c && c.inVehicle === v) { v.passenger = null; c.inVehicle = null; c.x = p.x + 1; c.y = p.y; c.water = null; c.swimming = false; }
+    } else p.exitVehicle(world.map, world);
+  }
+  v.missionCar = false;
+  v.speed = 0;
+  // somebody else's: locked until it drives off or goes
+  v.driver = 'owner';
+  chain.handBack = { v, how, say: def.handBack.say, t: 0 };
+  chain.afoot = true;
+}
+
+function updateHandBack(dt, world) {
+  const hb = chain.handBack;
+  if (!hb) return;
+  const v = hb.v;
+  if (!world.vehicles.includes(v) || v.wrecked) { chain.handBack = null; return; }
+  if (hb.t < 1.2) {
+    if (isCinematicActive()) return;
+    hb.t += dt;
+    if (hb.t < 1.2) return;
+    world.addMessage(hb.say, 4.5, { kind: 'missie' });
+    if (hb.how === 'drive') {
+      v.driver = null;
+      if (attachToNearestRoad(v, world.map)) { chain.handBack = null; return; }
+      v.driver = 'owner';
+    }
+  }
+  if (dist(v.x, v.y, world.player.x, world.player.y) > HANDBACK_GONE_M) {
+    const i = world.vehicles.indexOf(v);
+    if (i >= 0) world.vehicles.splice(i, 1);
+    if (chain.leftover === v) chain.leftover = null;
+    chain.handBack = null;
+  }
+}
+
+// Where to fetch your own transport before the story's next place: after a
+// hand-back (you are on foot), or for a step that needs a car of yours
+// (need 'car': r-tuning; 'racecar': H9). { x, y, name } or null.
+export function rideFirst(world, need = null) {
+  if (!chain) return null;
+  const p = world.player;
+  const fits = need === 'racecar' ? (v) => rideOk(world, 'racecar', v) : need === 'car' ? isCarRide : (v) => !v.isBoat && !v.isHeli;
+  if (p.inVehicle && fits(p.inVehicle)) { chain.afoot = false; return null; }
+  if (!need && (!chain.afoot || p.inVehicle)) return null;
+  let best = null, bd = Infinity;
+  for (const v of world.vehicles) {
+    if (!(v.isHeroCar || v.playerOwned) || v.missionCar || v.wrecked || v.sinking || v.driver || !fits(v)) continue;
+    const d = dist(v.x, v.y, p.x, p.y);
+    if (d < bd) { bd = d; best = v; }
+  }
+  if (best && !best.homeStored) return { x: best.x, y: best.y, name: best.isHeroCar ? 'de Escapade' : 'je eigen vervoer' };
+  const atHome = best || (need === 'racecar' ? ownedCarTops().some((c) => isRaceCar(c.name, c.top)) : true);
+  const g = atHome ? getHomeGarageForRender()[0] : null;
+  return g ? { x: g.x, y: g.y, name: 'je garage thuis' } : null;
+}
+
 function removeLeftover(world) {
   const v = chain.leftover;
   chain.leftover = null;
@@ -1216,9 +1356,11 @@ function succeed(world, def) {
     world.lastPerfectRun = world.time;
   }
   playStoryOutro(world, i, { stage: storyStage(i), short: chain.completed.has(i), reward, stats, reason });
+  const borrowed = def.handBack ? chain.vehicle : null;
   // a replayed kraak has no train trip after it: their own clothes straight away
   if (def.heist && replay) setStoryOutfit(null);
   releaseMissionVehicle(world);
+  if (borrowed) handBack(world, def, borrowed);
   chain.completed.add(chain.index);
   chain.run = null;
   chain.index = nextOpenMission(i);
@@ -1637,6 +1779,7 @@ function releaseCrowd() {
 
 function startMission(world, def) {
   removeLeftover(world);
+  chain.afoot = false;
   chain.phase = 'active';
   chain.timeLeft = def.timeLimit ?? Infinity;
   chain.wpIndex = 0;
@@ -1749,7 +1892,6 @@ function vehicleProblem(world, def) {
   if (!v || !world.vehicles.includes(v)) return def.type === 'boat' ? 'de boot is foetsie' : 'de auto is foetsie';
   if (v.wrecked || v.disabled) return def.type === 'boat' ? 'de boot ligt nu tussen de fietsen op de bodem' : 'de auto is total loss, Kiekdoar heeft al foto\'s';
   if (p.inVehicle === v) { chain.boarded = true; return null; }
-  if (def.type === 'boat' && p.inVehicle && p.inVehicle.isBoat) return null;
   if (dist(p.x, p.y, v.x, v.y) > ABANDON_DIST) {
     const what = def.type === 'boat' ? 'de boot' : 'de auto';
     return chain.boarded ? `je liet ${what} gewoon achter` : `je liet ${what} staan. Parkeren kost hier meer dan de auto`;
@@ -1841,6 +1983,7 @@ export function updateMissions(dt, world) {
   if (!chain) return;
   resolveSpotStarts(world);
   updateStoryProps(dt);
+  updateHandBack(dt, world);
   const def = chain.defs[chain.index];
   const p = world.player;
   // a pigeon flight only runs the stages mission that started it
@@ -1869,6 +2012,7 @@ export function updateMissions(dt, world) {
         chain.armed = false;
         world.addMessage('Eerst je bijbaantje afmaken of stoppen (Esc > Spel)', 3);
       } else if (world.challenge) chain.armed = false; else if (!checkRequirement(world, def, true)) chain.armed = false;
+      else if (!checkRide(world, def)) chain.armed = false;
       else if (hooks.canStart(world, chain.index)) startMission(world, def);
     }
     syncPub(world);
@@ -1955,6 +2099,7 @@ export function updateMissions(dt, world) {
     if (k >= 0) {
       if (def.onFoot && p.inVehicle) hint(world, 'Uitstappen, jong. Het heet kroegentocht, niet kroegenrit.');
       else if (chain.race && chain.race.bikes && !(p.inVehicle && p.inVehicle.isBike)) hint(world, 'Op de fiets, hè. Het is een fietsrace.');
+      else if (chain.race && chain.race.bikes && p.inVehicle.model.fat) hint(world, 'Fatbikes tellen niet als fiets. Kom op een gewone fiets.');
       else reachCheckpoint(world, def, k);
     }
   } else if (def.type === 'fatbike') {
@@ -2478,6 +2623,8 @@ function updateFireworks(dt, world, def, st, S) {
     const aim = close && Math.random() < 0.6 ? p : c;
     const a = Math.random() * Math.PI * 2, r = Math.random() * 5;
     S.fw.push({ x: aim.x + Math.cos(a) * r, y: aim.y + Math.sin(a) * r, t: 1.1 });
+    const f = S.fw[S.fw.length - 1];
+    (world.audioEvents || (world.audioEvents = [])).push({ kind: 'weapon', sub: 'incoming', x: f.x, y: f.y });
   }
   for (let i = S.fw.length - 1; i >= 0; i--) {
     const f = S.fw[i];
@@ -2488,6 +2635,7 @@ function updateFireworks(dt, world, def, st, S) {
       continue;
     }
     S.fw.splice(i, 1);
+    (world.audioEvents || (world.audioEvents = [])).push({ kind: 'weapon', sub: 'burst', x: f.x, y: f.y, z: 1.5 });
     const [r0, g0, b0] = FW_COLORS[Math.floor(Math.random() * FW_COLORS.length)];
     for (let k = 0; k < 16; k++) {
       const a = (k / 16) * Math.PI * 2;

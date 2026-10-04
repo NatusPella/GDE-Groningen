@@ -13,6 +13,8 @@
     { "file": "Oosterpark_is_m_n_droom.mp3", "stations": ["gmusic", "nachtstreek"] },
     { "file": "Staal_en_suiker.mp3", "stations": ["gmusic"] },
     { "file": "Wie_stoan_nait_stil.mp3", "stations": ["gmusic", "nachtstreek"] },
-    { "file": "Kleur_in_de_Wind.mp3", "stations": ["gmusic", "nachtstreek"] }
+    { "file": "Kleur_in_de_Wind.mp3", "stations": ["gmusic", "nachtstreek"] },
+    { "file": "Geen_stoplicht_houdt_ons_tegen.mp3", "stations": ["gmusic"] },
+    { "file": "Goud_in_de_Nacht.mp3", "stations": ["gmusic", "nachtstreek"], "time": "night" }
   ]
 }
