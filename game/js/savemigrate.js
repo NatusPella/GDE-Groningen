@@ -11,8 +11,9 @@
 // - Pure (no DOM, no three.js): node scripts/save_migration_test.mjs runs the
 //   fixtures in scripts/fixtures/saves/ through it.
 import { RETIRED_STEPS, STEP_BY_ID, MISSION_IDS, nextStoryStep } from './storyarc.js';
+import { normalizeRadio } from './musicpick.js';
 
-export const SAVE_VERSION = 2;
+export const SAVE_VERSION = 3;
 export const SETTINGS_VERSION = 7;
 
 const isObj = (o) => !!o && typeof o === 'object' && !Array.isArray(o);
@@ -58,6 +59,12 @@ export const SAVE_MIGRATIONS = {
       st.voorschot = keep(st.voorschot);
       if (isObj(st.fails)) for (const id of RETIRED_STEPS) delete st.fails[id];
     }
+    return d;
+  },
+  // 0.27: one radio station; `radio` was a station id ('gmusic',
+  // 'nachtstreek', 'grunn', 'uit') and is now 'on' or 'off'
+  2(d) {
+    if ('radio' in d) d.radio = normalizeRadio(d.radio);
     return d;
   },
 };

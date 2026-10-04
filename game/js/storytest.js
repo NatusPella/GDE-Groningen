@@ -12,7 +12,10 @@
 // migrates, and logs a report. `console.log('[storytest-capture] name')`
 // makes the desktop app save a screenshot per step.
 
-import { skipCinematic, isCinematicActive } from './cinematics.js';
+import { skipCinematic, isCinematicActive, cinematicPoseIssues } from './cinematics.js';
+import { heistWatchers, PLAN_BOUNDS } from './heist.js';
+import { isInWater } from './util.js';
+import { deliverOwnedVehicle } from './ownedvehicles.js';
 import { skipStoryContact } from './storycontact.js';
 import { STEPS, STEP_BY_ID, PARTS, stepAvailable, computeMoneyTimeline, missionIndexOf } from './storyarc.js';
 import { getMissionDefs, isMissionActive } from './missions.js';
@@ -21,6 +24,7 @@ import { isVillageMiniActive } from './dorpsuitjes.js';
 import { isActivityActive } from './activities.js';
 import { getOwnedEntries, WEAPON_STOCK, VEHICLE_STOCK, CAR_UPGRADES, OUTFITS, replacementFee } from './shops.js';
 import { repairCost, bustFine, HERO_REPLACE_FEE, SIDEJOB_PAY_MULT } from './economy.js';
+import { getFurnitureSave } from './furniture.js';
 import { validateSpots } from './spotcheck.js';
 import { auditPassages } from './passagecheck.js';
 import { probeRingSolids, driveRingLap, probeRailLifts, driveWaterCrossings } from './ringcheck.js';
@@ -255,6 +259,54 @@ export async function runStoryTest(world) {
             capture(`${String(n).padStart(2, '0')}-${cur.id}-scene`);
             await sleep(800);
             check(`${cur.id}: done text follows the scene`, await waitFor(() => { if (isCinematicActive()) skipCinematic(); return !sf.state().pending; }, 20000, 200), JSON.stringify(sf.state()));
+          } else if (step.goal && step.goal.type === 'eikea' && window.__storyEikea && window.__home) {
+            // EIKEA: the Escapade at the loading dock, three boxes on the roof, one knock costs one, home, upstairs
+            const se = window.__storyEikea, hm = window.__home, p = world.player;
+            const shop = se.shop();
+            const g0 = world.storyGuide;
+            check(`${cur.id}: the guide points to EIKEA`, !!shop && !!g0 && Math.hypot(g0.x - shop.x, g0.y - shop.y) < 5, JSON.stringify(g0));
+            const car = world.vehicles.find((v) => v.isHeroCar && !v.wrecked);
+            if (shop && car) {
+              if (p.inVehicle) p.exitVehicle(world.map, world);
+              car.x = shop.x; car.y = shop.y; car.speed = 0; car.homeStored = false;
+              p.x = car.x; p.y = car.y;
+              world.teleported = world.time;
+              p.enterVehicle(car, world);
+              const loaded = await waitFor(() => (se.state() || {}).phase === 'carry', 10000);
+              check(`${cur.id}: the dock scene loads three boxes on the roof`, loaded && se.state().boxes.length === 3 && car.roofBoxes === 3, JSON.stringify(se.state()));
+              await waitFor(() => { if (isCinematicActive()) skipCinematic(); return !isCinematicActive(); }, 20000);
+              capture(`${String(n).padStart(2, '0')}-${cur.id}-dak`);
+              world.lastImpact = { strength: 1, time: world.time + 0.01, x: car.x, y: car.y };
+              check(`${cur.id}: a hard knock costs one box`, await waitFor(() => se.state().boxes.length === 2 && car.roofBoxes === 2, 4000), JSON.stringify(se.state()));
+              const d = hm.home.garage.door;
+              car.x = d.cx + d.nx * 6; car.y = d.cy + d.ny * 6; car.speed = 0;
+              p.x = car.x; p.y = car.y;
+              world.teleported = world.time;
+              check(`${cur.id}: the boxes come off at home`, await waitFor(() => (se.state() || {}).phase === 'home', 10000) && !car.roofBoxes, JSON.stringify({ st: se.state(), d: Math.round(Math.hypot(car.x - se.home().x, car.y - se.home().y)) }));
+              p.exitVehicle(world.map, world);
+              await sleep(400);
+              world.wanted = 0;
+              hm.enter();
+              const built = await waitFor(() => { if (isCinematicActive()) skipCinematic(); const c = S().current(); return !c || c.id !== cur.id; }, 20000);
+              check(`${cur.id}: the assembly scene upstairs completes the step`, built, JSON.stringify({ st: se.state(), home: hm.state() }));
+              const own = getFurnitureSave().owned;
+              check(`${cur.id}: the carried pieces are in the flat, the lost one is not`, own.includes('bed') && own.includes('kast') && !own.includes('lamp'), JSON.stringify(own));
+              hm.leave();
+              await sleep(1500);
+            } else S().complete();
+          } else if (step.goal && (step.goal.type === 'night' || step.goal.type === 'home') && step.homeScene && window.__home) {
+            // waiting at home: go home, up in the lift, the scene plays and the step is done
+            const hm = window.__home;
+            if (world.player.inVehicle) world.player.exitVehicle(world.map, world);
+            hm.goHome();
+            await sleep(1500);
+            world.wanted = 0;
+            hm.enter();
+            const sceneDone = await waitFor(() => { if (isCinematicActive()) skipCinematic(); const c = S().current(); return !c || c.id !== cur.id; }, 20000);
+            check(`${cur.id}: the scene at home completes the step`, sceneDone, JSON.stringify({ cur: S().current(), home: hm.state() }));
+            if (step.goal.type === 'night') check(`${cur.id}: it is night after the wait`, (world.clock % 24) >= 21 || (world.clock % 24) < 5, String(world.clock));
+            hm.leave();
+            await sleep(1500);
           } else if (step.goal && step.goal.type === 'flight' && window.__storyFun) {
             // Rotor Roelf with his demo heli on Eelde: walking up plays his scene and completes the step (H15 flies it)
             const sf = window.__storyFun, p = world.player;
@@ -337,6 +389,13 @@ export async function runStoryTest(world) {
           } else {
             for (let k = 0; k < 150 && isMissionActive(); k++) {
               await drain(world, 300);
+              if (cur.id === 'H6' && !entry.watchersChecked && heistWatchers().length) {
+                // the cameras and guards outside: on dry ground, inside the blueprint's frame
+                entry.watchersChecked = true;
+                const [x0, y0, x1, y1] = PLAN_BOUNDS;
+                const bad = heistWatchers().filter((w) => !(w.x > x0 && w.x < x1 && w.y > y0 && w.y < y1) || (w.kind === 'camera' && isInWater(world.map, w.x, w.y)));
+                check('H6: every camera and guard stands on the map', !bad.length, JSON.stringify(bad));
+              }
               if (!isMissionActive()) break;
               const ms = S().mission();
               const def = ms && getMissionDefs()[ms.index];
@@ -383,6 +442,7 @@ export async function runStoryTest(world) {
       check('"Wordt vervolgd" card shown', S().cardShown(lastPart));
       check('all available steps passed', report.steps.length === STEPS.filter(stepAvailable).length, `${report.steps.length} stappen`);
       check('Tammo and Tessa take turns', swaps >= 4, `${swaps} wissels`);
+      check('no cutscene camera off the map', !cinematicPoseIssues().length, JSON.stringify(cinematicPoseIssues().slice(0, 4)));
       check('Rotor Roelf took his demo heli back', !window.__storyFun || !window.__storyFun.state().demo, JSON.stringify(window.__storyFun && window.__storyFun.state()));
 
       // after the ending (postgame.js): Jelle's challenges and the Fjord Frituur
@@ -425,6 +485,12 @@ export async function runStoryTest(world) {
         const bell = vs.find((v) => v.name === 'Loppersum');
         const used = bell && om.use('Loppersum', 'special');
         check('a dorpsuitje can be done (Loppersum, de klok)', used && await waitFor(() => om.villages().find((v) => v.name === 'Loppersum').done, 4000));
+        // out in the Ommeland your own car can still be delivered (phone, Laten afleveren)
+        world.wanted = 0;
+        world.money = Math.max(world.money, 500);
+        const del = deliverOwnedVehicle(world, 'hero');
+        const hero = world.vehicles.find((v) => v.isHeroCar && !v.wrecked);
+        check('the Escapade is delivered in the Ommeland', del.ok && hero && Math.hypot(hero.x - world.player.x, hero.y - world.player.y) < 160, JSON.stringify({ del, at: hero && [Math.round(hero.x), Math.round(hero.y)], p: [Math.round(world.player.x), Math.round(world.player.y)] }));
         await sleep(500);
         capture('om-dorp');
         await drain(world, 700);

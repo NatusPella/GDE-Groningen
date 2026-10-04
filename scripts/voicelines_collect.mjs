@@ -187,7 +187,7 @@ export function collect() {
   for (const P of Object.values(PARTS)) for (const [, t] of P.recap || []) add('Verhaal-kaarten', 'lines', [NARRATOR], t, { tag: ['warm, vertellend, als een terugblik', 'droog, met een knipoog, samenvattend'] });
   for (const st of STEPS) if (st.why) add('Verhaal-stappen', 'lines', [st.player === 'anita' ? 'Anita' : 'Tammo'], st.why);
   // the scenes of activity steps (storyfun.js): where one is done, and Rotor Roelf at his demo heli
-  for (const st of STEPS) for (const sc of [st.scene, st.meet]) for (const [k, t, o] of (sc && sc.lines) || []) add('Verhaal-scènes', 'lines', [who(k)], t, o && o.tag ? { tag: o.tag } : {});
+  for (const st of STEPS) for (const sc of [st.scene, st.meet, st.homeScene, st.dock]) for (const [k, t, o] of (sc && sc.lines) || []) add('Verhaal-scènes', 'lines', [who(k)], t, o && o.tag ? { tag: o.tag } : {});
   // r-trein's choice (storyarc.js HIDEOUTS): each option's scene
   for (const st of STEPS) for (const o of (st.goal && st.goal.options) || []) for (const [k, t, op] of (o.scene && o.scene.lines) || []) add('Verhaal-scènes', 'lines', [who(k)], t, op && op.tag ? { tag: op.tag } : {});
   // the trekker-limo pulling up at the museum (missionstory.js playLimoReveal)
@@ -298,7 +298,7 @@ export function collect() {
   const TWIN_ACCENT = 'spoken in Dutch with a heavy Frisian accent, slow';
   const TWIN_VOICE = { durk: { voice: 'Algieba', who: 'grote, trage Friese handlanger Durk, spreekt Nederlands met een zwaar Fries accent' }, douwe: { voice: 'Algenib', who: 'grote, trage Friese handlanger Douwe, tweelingbroer van Durk, spreekt Nederlands met een zwaar Fries accent' } };
   for (const [k, kinds] of Object.entries(lit(fun, 'export const KERMIS_TWINS = '))) for (const list of Object.values(kinds)) for (const t of list) add('Kermis', 'lines', [BUBBLE.m], t, { persona: { ...TWIN_VOICE[k], accent: TWIN_ACCENT }, tag: ['traag, verontwaardigd, in een botsauto', 'sloom, duizelig, in een botsauto'] });
-  // the talk station on the car radio (radiostations.js): Geesje; the rest it plays is recorded already
+  // Radio Proat, the talk on the radio (radio.js): Geesje; the rest it plays is recorded already
   const RADIO_HOST = fun.match(/export const RADIO_HOST = '([^']+)'/)[1];
   for (const list of Object.values(lit(fun, 'export const RADIO_GRUNN = '))) for (const t of list) add('Radio Proat', 'lines', [RADIO_HOST], t, { tag: ['warm, ontspannen, als radiopresentatrice', 'droog, met een knipoog, als radiopresentatrice', 'vlot en opgewekt, als radiopresentatrice'] });
   for (const t of lit(fl, 'export const KROLBRUG_FAULTS = ')) add('Wereld (radio & navigatie)', 'lines', ['Verkeersinformatie'], t);

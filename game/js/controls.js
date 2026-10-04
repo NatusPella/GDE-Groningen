@@ -33,8 +33,7 @@ export const KEY_ACTIONS = [
   ['t', 'Telefoon', 'menu'],
   ['m', 'Kaart', 'menu'],
   ['o', 'Verhaalstap overslaan', 'menu'],
-  ['b', 'Vorige radiozender', 'menu'],
-  ['n', 'Volgende radiozender', 'menu'],
+  ['n', 'Radio aan of uit (ook te voet)', 'menu'],
   ['u', 'Geluid aan of uit', 'menu'],
   ['backspace', 'Minigame stoppen', 'menu'],
 ];
@@ -274,4 +273,18 @@ Object.assign(ACTION_WORDS, {
 const MENU_WORDS = { enter: 'kiezen', escape: 'terug', delete: 'doel wissen', ' ': 'naar jezelf op de kaart', q: 'vorig onderdeel', e: 'volgend onderdeel', '[': 'vorig tabblad, uitzoomen', ']': 'volgend tabblad, inzoomen', m: 'kaart' };
 export function describe(v) {
   return ACTION_WORDS[v] || '';
+}
+
+// Look back in a vehicle (hold Q, the right stick or the middle mouse
+// button): off during a camera override and while a minigame owns Q.
+export function lookBackActive({ inVehicle, override, noLookBack, qDown, middleDown }) {
+  return !!inVehicle && !override && ((!!qDown && !noLookBack) || !!middleDown);
+}
+
+// How far the chase camera closes on its target this frame. Looking back it
+// is rigid: a lagging camera trails the car by speed/rate metres, which at
+// speed puts it behind the car again, looking forward.
+export const CHASE_FOLLOW_RATE = 6;
+export function chaseFollowLerp(dt, { cut = false, lookBack = false } = {}) {
+  return cut || lookBack ? 1 : Math.min(1, dt * CHASE_FOLLOW_RATE);
 }

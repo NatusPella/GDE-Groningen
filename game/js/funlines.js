@@ -1,6 +1,6 @@
 // What is said at the free-roam activities and on the car radio: carbid
 // schieten (carbid.js), the botsautootjes on the kermis (kermis.js) and the
-// talk station Radio Proat (radiostations.js). Pure data:
+// Radio Proat talk on the radio (radio.js). Pure data:
 // scripts/voicelines_collect.mjs reads these tables in Node. Gronings lines
 // get their Dutch subtitle from subtitles.js GRO.
 
@@ -65,8 +65,8 @@ export const KERMIS_TWINS = {
   douwe: { bumped: ['Durk, ik word misselijk.', 'Baas zei niks over botsen.'], hit: ['Sorry. …Hè.'] },
 };
 
-// Radio Proat: the talk station on the car radio. Geesje presents; between
-// her bits run the Kiekdoar news, the traffic, the cows and Rikus's
+// Radio Proat: Geesje's talk breaks on G-Music (radio.js; the speaker name
+// stays, the recordings are filed under it). Between her bits run the Kiekdoar news, the traffic, the cows and Rikus's
 // Nachtstreek lines that already have a recording.
 export const RADIO_HOST = 'Geesje (Radio Proat)';
 export const RADIO_GRUNN = {

@@ -166,6 +166,15 @@ export function ensureVillages(w = world) {
   return list;
 }
 
+// The onderduik stroll (storyfun.js): from the station to the village's first uitje.
+export function villageStroll(w, name) {
+  const v = (villageList(w) || []).find((q) => q.name === name);
+  if (!v) return null;
+  if (!v.placed) placeVillage(w.map, v);
+  const a = v.acts[0];
+  return a && Number.isFinite(a.ux) ? { x: a.ux, y: a.uy, label: a.def.name } : null;
+}
+
 // For spotcheck.js and the story test.
 export function getVillageSpots() {
   const out = [];

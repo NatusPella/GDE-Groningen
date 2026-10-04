@@ -262,7 +262,7 @@ the next key press or click.
 | B | crouch (in a minigame: stop) | lights and siren | back |
 | X | F (second use key) | horn | clear the map goal |
 | Y | enter, use, talk | exit | to yourself on the map |
-| LB / RB | previous / next weapon | next radio station / shoot from the window | previous / next section |
+| LB / RB | previous / next weapon | radio on/off / shoot from the window | previous / next section |
 | D-pad | ↑ phone, ↓ kiss, ← skip story step, → paint/garage menu | ↑ phone, ↓ film camera | choose |
 | View / Menu | map / pause menu | map / pause menu | map / close |
 

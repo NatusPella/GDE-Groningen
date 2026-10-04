@@ -589,7 +589,7 @@ const PAD_DESC = {
   climb: (L) => `${L.a === 'cross' ? 'Kruisje' : L.a}: de kade op, ${L.y === 'triangle' ? 'driehoek' : L.y}: in een boot`,
   drive: (L) => `${L.rt} gas, ${L.lt} remmen en achteruit, linkerstick sturen`,
   handbrake: (L) => `${L.a === 'cross' ? 'Kruisje' : L.a} in een bocht = driften`,
-  radio: (L) => `${L.lb}: volgende zender (G-Music, Nachtstreek, Radio Grunn, uit)`,
+  radio: (L) => `${L.lb} in een voertuig: G-Music aan of uit (te voet via Instellingen)`,
   cinecam: () => 'D-pad omlaag: filmische shots',
   lookback: () => 'Druk de rechterstick in',
   heliUp: (L) => `${L.rt} omhoog, ${L.lt} omlaag: landen doe je laag en langzaam`,
@@ -621,6 +621,7 @@ function contextRows(world, primary) {
     rows.push(tut('exit', ['E'], 'Uitstappen', 'Alleen als je geland bent'));
   } else if (p.inVehicle) {
     rows.push(tut('exit', ['E'], 'Uitstappen', 'Laat de bak gewoon staan'));
+    rows.push(tut('radio', ['N'], 'Radio', 'G-Music aan of uit', true));
     if (armed) rows.push(tut('shoot', ['LMB'], 'Schieten', getSettings().autoAim !== false ? 'Vuren vanuit de auto, houd RMB vast om te richten' : 'Vuren vanuit de auto'));
   } else if (p.swimming) {
     if (p.canClimbOut) rows.push(tut('climb', ['SPATIE'], 'Eruit klimmen', 'Klim de kade op (E stapt in een boot)'));

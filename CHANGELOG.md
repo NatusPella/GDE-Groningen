@@ -21,6 +21,30 @@ nieuwe functies, `y` voor alleen bugfixes.
   streep en 6 m gat) en een grindberm langs de weg; in de dorpen een
   stoeprand met tegels.
 
+### Veranderd
+- **Onderduiken met de trein gaat echt het Ommeland in.** De kaartautomaat
+  zet de dorpen bovenaan ("Onderduiken"), een ritje binnen Stad telt niet
+  meer, en in het dorp lopen Tammo en Tessa eerst even naar het eerste
+  dorpsuitje. Daar, tussen de koeien, speelt hun scène.
+- **Eén radiozender: G-Music.** Geen lijst met zenders meer, maar één
+  station met korte programma's die de klok in het spel volgen: *Proat in
+  de ochtend* (06:00-10:00, vlot, elke twee nummers Geesje met het nieuws,
+  het verkeer of het weer), *De hits* (10:00-18:00, vooral muziek met af en
+  toe Kiekdoar-nieuws), *Avondproat* (18:00-22:00) en vanaf 22:00
+  *Nachtstreek*, met Rikus en zijn rustigere streekmuziek door een oude
+  radio. Alle praatjes zijn bestaande opnames. N zet de radio aan of uit, te
+  voet en in elk voertuig; op de controller is dat LB in een voertuig, en
+  Instellingen › Geluid heeft een knop Aan/Uit naast het volume. B doet
+  niets meer. De melding bij een nieuw nummer noemt de zender en het
+  programma. Rikus' telefoontjes onderbreken een praatje net als eerst. Een
+  save met een oude zender zet de radio aan; stond hij op uit, dan blijft
+  hij uit.
+- **Grotere knoppen onderin het pauzemenu.** Hoofdmenu, Afsluiten en
+  Opnieuw beginnen zijn nu echte knoppen in plaats van kleine linkjes.
+  Opnieuw beginnen staat apart onder een rode lijn en vraagt nog steeds
+  eerst om bevestiging. Op een Steam Deck (1280×800) past het hele menu
+  zonder scrollen.
+
 ### Verbeterd
 - **De weilanden in het Ommeland hebben echte randen.** Langs de sloten
   ligt een lage, donkere grasrand met hier en daar een pol pitrus, de
@@ -28,6 +52,31 @@ nieuwe functies, `y` voor alleen bugfixes.
   loopt een afrastering achter de berm met af en toe een hek naar het
   land, en soms staat er een heg of een houtwal tussen twee percelen.
   Op Laag is het wat kaler, zodat het spel net zo soepel blijft lopen.
+- **Twee kamers in de flat.** Tammo en Tessa huren de flat als huisgenoten,
+  dus nu heeft elk een eigen kleine slaapkamer met een eenpersoonsbed:
+  Tammo's kamer naast de gang, die van Tessa achter de keuken. Lift, gang,
+  woonkamer en de glazen gevel zitten waar ze zaten. Je slaapt in je eigen
+  bed, als Tammo of als Tessa; het andere bed zegt beleefd dat het niet jouw
+  kamer is. Elke kamer heeft een kledingkast. EIKEA's Sloapstee is nu een
+  setje van twee eenpersoonsbedden, met dezelfde bonus.
+- **Je garage laat zien wat je hebt.** De garage onder de flat heeft 18
+  vakken voor auto's (plus het eigen vak van de Escapade). Heb je er meer,
+  dan wachten de rest in de parkeerlift. Het paneel bij de deur heet nu
+  "Kies welke auto's in de garage staan": je ziet welke auto in welk vak
+  staat en welke in de lift wachten, en je haalt er een naar voren. Die
+  keuze blijft in je save. Een vreemde auto in een vak blokkeert dat vak
+  niet meer voor de rest: de volgende auto krijgt een vrij vak. In het
+  Garage-menu staat bij elk eigen voertuig waar het thuis staat: "vak 7",
+  "in de parkeerlift", "langs de stoep", "in het fietsenrek", "aan jullie
+  steiger" of "op het helidek". Voertuigen die nog niet van jou zijn, heten
+  nu duidelijk "Te koop · €…", vrijgespeelde specials "Vrijgespeeld", en de
+  kop telt van jou, te koop en op slot apart.
+- **Minder herhaling op de radio.** Een nummer dat je net hoorde, komt pas
+  terug als ruim de helft van de andere nummers is geweest, ook in een
+  nieuwe sessie. Nummers die lang niet speelden, komen eerder. 's Nachts
+  draaien de nachtnummers vaker, en Nachtstreek heeft een eigen, rustigere
+  lijst. Er zit niet meer tussen elk nummer een jingle, en nooit twee keer
+  dezelfde achter elkaar.
 
 ### Opgelost
 - **Geen plotselinge noodstops meer in de wei.** Over gras rijd je wat
@@ -61,6 +110,81 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **Uit het water klimmen doe je nu met Spatie** (A op de controller). E is
   voor instappen: zwem je naast een boot langs de kade, dan klim je met Spatie
   de kade op en met E aan boord, in plaats van per ongeluk in de boot.
+- **H6: allebei in het zwart.** Koop je zwart incognito, dan trekken Tammo
+  en Tessa het meteen allebei aan (ook na het laden van een spel), niet pas
+  als je in een voertuig stapt.
+- **H6, de kraak, is eerlijker en duidelijker.** In zaal 3 staat boven je
+  hoofd wat de volgende laser vraagt (bukken met Ctrl, springen met Spatie,
+  wachten of met het gat meelopen), de lasers zijn iets minder streng en na
+  twee keer piepen zet Tessa er al één uit. De drie minuten lopen niet door
+  terwijl je teruggestuurd wordt, en zijn ze toch om, dan zet Tammo de
+  camera's nog één keer anderhalve minuut op herhaling. Een tweede poging
+  slaat het hele plan-gesprek over en gaat meteen naar de keuze. Op de
+  vlucht over het water zit er twee sterren politie achter je in plaats van
+  drie.
+- **De camera's bij het museum staan weer op de kaart.** Ze werden
+  geplaatst langs de route vanaf waar je de missie toevallig startte, en
+  konden zo buiten de bouwtekening of in het kanaal belanden. Nu staan ze
+  altijd op droge grond langs de route vanaf het startpunt. De verhaaltest
+  controleert dat, en ook dat geen enkele filmcamera buiten de wereld staat.
+- **Je auto laten afleveren werkt nu ook in het Ommeland.** De bezorger
+  zocht alleen een parkeerplek in de stad en gaf het buiten de stad op; nu
+  zet hij je auto in de berm van de dichtstbijzijnde landweg. Een auto die
+  je in het Ommeland hebt geparkeerd staat er na het laden ook nog.
+- **"US MEM VET" zit vast op de tankwagen.** De letters op de tank deinden
+  niet mee met de vering; nu kantelen en veren ze mee met de wagen.
+- **H11: ze drinken echt.** Bij het proosten houden Tammo en Tessa hun glas
+  rechtop bij het klinken, brengen het daarna naar hun mond en nemen een
+  flinke slok met het hoofd achterover, in plaats van het glas naast hun
+  wang te houden.
+- **H16: de Escapade terugpakken telt.** Stap je zelf in de gestolen
+  Escapade, of zet je hem klem zodat hij een paar tellen stilstaat met jou
+  ernaast, dan is hij gestopt: Durk en Douwe vluchten en de trein gaat
+  zonder hem. Klem zetten vlak bij de trein laadt hem niet meer alsnog in.
+- **H18, de finale, is te winnen.** Het vuurwerk bij de kraam raakt minder
+  vaak en kost minder tijd. De trekker-limo van Jelle bleef soms eindeloos
+  staan aan het eind van een straat waar zijn route niet verder kwam; nu rijdt
+  hij door. Tammo fluit de duiven al als je een derde van de meter hebt
+  geramd, als je 25 seconden vlak achter de trekker blijft of als je hem
+  klemzet, en dat staat in de opdracht. Geen politie meer tijdens de
+  achtervolging, meer tijd en ruimte om bij te blijven, en vier in plaats van
+  tweeënhalve minuut terug naar de kraam.
+- **H13: de zoen op het voordek, niet op het dak.** Op de rondvaartboot
+  stonden Tammo en Tessa midden onder de glazen kap, met hun hoofd erdoorheen.
+  Nu staan ze in de open punt voor de kap, op de vloer van de boot, en daar
+  leunen ze ook samen over de reling.
+- **Fierljeppen reageert weer op Spatie.** Tijdens het mikken liep er een
+  camerashot, en dat slikte elke Spatie in alsof je een filmpje wilde
+  overslaan (daarom werkte het pas weer na "Zet me vrij"). Dat shot laat
+  Spatie nu door. En een knop die nog focus had van een kaartje of menu
+  maakt van Spatie of Enter geen klik meer zolang je speelt.
+
+### Verhaal
+- **Het verhaal brengt je weer thuis.** Wachten tot middernacht voor de
+  museumkraak doe je nu in de flat in Paddepoel, niet meer bij Henk in de
+  garage. Ga naar huis, met de lift naar boven, en even later volgt een
+  kort scènetje op de bank. Even slapen tot de avond mag ook: de scène komt
+  als je wakker wordt. Henk belt tijdens het wachten: hij heeft een zender
+  in de Escapade gezet (die heb je in H16 nodig), vraagt niet waarom jullie
+  nog op zijn en gunt je één koekje. Een missie die het donker nodig heeft,
+  stuurt je voortaan ook naar huis in plaats van naar een garage.
+- **Nieuw: de flat inrichten bij EIKEA.** Na Berend (H1) slapen Tammo en
+  Tessa nog op een luchtbed. Rij met de Escapade (of een andere auto) naar
+  EIKEA aan de Sontweg. Bij het laadperron volgt een scène: het lijstje, de
+  kast die niet in de lift past, en wie de kamer met uitzicht krijgt. Daarna
+  staan er drie dozen op je dak. Een flinke klap onderweg kost een doos:
+  eerst de lamp, dan de boekenkast, de bedden als laatste. Thuis gaan de
+  dozen met de lift naar boven en zet je alles in elkaar ("Er blijft één
+  schroefje over"). Wat heel aankomt, staat in de flat met zijn bonus:
+  Sloapstee, Buukenkaas en Lichtje Tjoek. Overslaan geeft ze ook. Een oude
+  save die al verder is, slaat deze stap over. Alle nieuwe zinnen zijn
+  ingesproken.
+- **Een avond thuis.** Tussen de fatbikes (H12) en de rondvaartboot (H13)
+  zit een nieuwe, rustige stap: Tessa vraagt of Tammo naar huis komt, en op
+  de bank overhoort ze haar gids voor morgen. Met nieuwe stemmen. Een oude
+  save die al verder is, slaat hem over.
+- **Een klein lampje in september.** In het slot van het verhaal heeft
+  Rikus één zin meer over de elfde verdieping in Paddepoel.
 
 ## [0.26.1] - 2026-10-04
 
