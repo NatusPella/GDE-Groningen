@@ -218,6 +218,8 @@ export function createPostFX(renderer, scene, cam) {
     composer = bloom = grade = null;
   }
 
+  const samplesFor = (pr) => (level === 'laag' ? 4 : pr >= 1.75 ? 2 : 4);
+
   function build() {
     noteGfxEvent(`postfx ${level} opnieuw`);
     dispose();
@@ -234,13 +236,13 @@ export function createPostFX(renderer, scene, cam) {
     // One NaN/Inf pixel from any shader would otherwise be smeared by the
     // bloom blur into large black blocks over the whole screen: the scene
     // pass resolves through SanitizeShader.
-    composer.addPass(new SceneMSAAPass(scene, cam, pr >= 1.75 ? 2 : 4));
+    composer.addPass(new SceneMSAAPass(scene, cam, samplesFor(pr)));
     if (level === 'hoog') {
       bloom = new UnrealBloomPass(new THREE.Vector2(width, height), 0.2, 0.35, 2.5);
       // Bloom at CSS-pixel resolution regardless of devicePixelRatio: it is
       // blurred anyway and this keeps retina cost flat.
-      const setBloomSize = bloom.setSize.bind(bloom), k = Math.max(1, pr);
-      bloom.setSize = (w, h) => setBloomSize(w / k, h / k);
+      const setBloomSize = bloom.setSize.bind(bloom);
+      bloom.setSize = (w, h) => { const k = Math.max(1, renderer.getPixelRatio()); setBloomSize(w / k, h / k); };
       // the grade pass adds the bloom itself instead of the pass blending
       // it over the full-resolution buffer (one full-screen pass less)
       const quad = bloom.fsQuad, draw = quad.render.bind(quad);
@@ -266,11 +268,14 @@ export function createPostFX(renderer, scene, cam) {
       level = next;
       build();
     },
-    setSize(w, h) {
+    // after the renderer's drawing buffer changed (scene3d.js applyRenderSize)
+    setSize(w, h, pr = renderer.getPixelRatio()) {
       width = w; height = h;
-      if (composer) composer.setSize(w, h);
+      if (!composer) return;
+      if (composer.passes[0].target.samples !== samplesFor(pr)) { build(); return; }
+      composer.setPixelRatio(pr);
+      composer.setSize(w, h);
     },
-    rebuild() { build(); },
     // 0..1: the trailer's colour look in the grade pass (no pass on 'laag')
     look: 0,
     get hasGrade() { return !!grade; },

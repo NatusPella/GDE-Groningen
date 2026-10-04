@@ -741,7 +741,8 @@ export function init3D(map) {
   canvas3 = document.getElementById('game3d');
   // laptops with two GPUs: the fast one
   renderer = new THREE.WebGLRenderer({ canvas: canvas3, antialias: getSettings().quality === 'laag', powerPreference: 'high-performance' });
-  renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+  wantRatio = Math.min(2, window.devicePixelRatio || 1);
+  renderer.setPixelRatio(wantRatio);
   watchContext(canvas3, 'spel');
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.05;
@@ -893,16 +894,13 @@ function applyViewSettings(st) {
   if (!renderer) return;
   const level = QUALITY_PRESETS[st.quality] ? st.quality : 'hoog';
   const preset = QUALITY_PRESETS[level];
-  const prevRatio = renderer.getPixelRatio();
-  noteGfxEvent('instellingen');
-  renderer.setPixelRatio(renderPixelRatio(st, preset));
+  wantRatio = renderPixelRatio(st, preset);
   resize3D();
   setNightLightQuality(level);
   setCountryFacadeLevel(level);
   facadeQualityDist = FACADE_DETAIL_DIST[level] || Infinity;
   facadeDetailDist = Math.min(facadeQualityDist, CPU_FACADE_DIST[cpuLevel()]);
   if (postfx.level !== level) postfx.setLevel(level);
-  else if (prevRatio !== renderer.getPixelRatio()) postfx.rebuild();
   const shadows = st.shadows && preset.shadows;
   if (sun.castShadow !== shadows) sun.castShadow = shadows;
   applyShadowLevel(level);
@@ -925,11 +923,10 @@ export function refreshRenderScale() {
   const st = getSettings();
   const ratio = renderPixelRatio(st, QUALITY_PRESETS[st.quality] || QUALITY_PRESETS.hoog);
   facadeDetailDist = Math.min(facadeQualityDist, CPU_FACADE_DIST[cpuLevel()]);
-  if (ratio === renderer.getPixelRatio()) return;
-  noteGfxEvent(`renderschaal ${renderer.getPixelRatio().toFixed(2)}->${ratio.toFixed(2)}`);
-  renderer.setPixelRatio(ratio);
-  resize3D();
-  postfx.rebuild();
+  if (ratio === wantRatio) return;
+  noteGfxEvent(`renderschaal ${wantRatio.toFixed(2)}->${ratio.toFixed(2)}`);
+  wantRatio = ratio;
+  sizeDirty = true;
 }
 
 function applyShadowLevel(level) {
@@ -950,12 +947,23 @@ function applyShadowLevel(level) {
 
 export function resize3D() {
   if (!renderer) return;
-  const w = innerWidth, h = innerHeight;
-  noteGfxEvent(`setSize ${w}x${h}@${renderer.getPixelRatio().toFixed(2)}`);
-  renderer.setSize(w, h, false);
-  if (postfx) postfx.setSize(w, h);
-  cam.aspect = w / h;
+  cam.aspect = innerWidth / innerHeight;
   cam.updateProjectionMatrix();
+  sizeDirty = true;
+}
+
+// Resizing the canvas clears it, and a cleared canvas left until the next
+// rAF is shown as a black frame: the size and render scale are only applied
+// here, right before the frame's render.
+let wantRatio = 1, sizeDirty = true;
+function applyRenderSize() {
+  sizeDirty = false;
+  const w = innerWidth, h = innerHeight;
+  const c = renderer.domElement;
+  if (wantRatio === renderer.getPixelRatio() && c.width === Math.floor(w * wantRatio) && c.height === Math.floor(h * wantRatio)) return;
+  noteGfxEvent(`setSize ${w}x${h}@${wantRatio.toFixed(2)}`);
+  renderer.setDrawingBufferSize(w, h, wantRatio);
+  postfx.setSize(w, h, wantRatio);
 }
 
 
@@ -2461,6 +2469,7 @@ export function update3D(dt, world) {
   // a busy CPU (cpuLevel 1+) renders the shadow map every other frame
   renderer.shadowMap.autoUpdate = !(menuCover && menuShadowDone) && !(cpuLevel() > 0 && (shadowFrame++ & 1));
   if (menuCover) menuShadowDone = true;
+  if (sizeDirty) applyRenderSize();
   postfx.render();
   canvasFrames++;
   renderer.shadowMap.autoUpdate = true;
