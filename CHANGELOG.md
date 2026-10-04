@@ -21,6 +21,13 @@ nieuwe functies, `y` voor alleen bugfixes.
   zonder scrollen.
 
 ### Verbeterd
+- **Twee kamers in de flat.** Tammo en Tessa huren de flat als huisgenoten,
+  dus nu heeft elk een eigen kleine slaapkamer met een eenpersoonsbed:
+  Tammo's kamer naast de gang, die van Tessa achter de keuken. Lift, gang,
+  woonkamer en de glazen gevel zitten waar ze zaten. Je slaapt in je eigen
+  bed, als Tammo of als Tessa; het andere bed zegt beleefd dat het niet jouw
+  kamer is. Elke kamer heeft een kledingkast. EIKEA's Sloapstee is nu een
+  setje van twee eenpersoonsbedden, met dezelfde bonus.
 - **Je garage laat zien wat je hebt.** De garage onder de flat heeft 18
   vakken voor auto's (plus het eigen vak van de Escapade). Heb je er meer,
   dan wachten de rest in de parkeerlift. Het paneel bij de deur heet nu

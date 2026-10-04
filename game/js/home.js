@@ -175,7 +175,9 @@ function buildLayout() {
   // kitchen behind the glass facade (z = 0) that looks out on the shopping
   // centre. Its frame is square (the tower's corners are not quite right
   // angles): toFlat has to undo fl exactly, or everyone upstairs drifts.
-  const W = 11, Dd = 9, HALL = 3.4, MID = 5.2;
+  // Two small bedrooms at the back, one each ("als huisgenoten"): Tammo's off
+  // the hall, Tessa's off the kitchen.
+  const W = 11, Dd = 9, HALL = 3.4, MID = 5.2, SPLIT = 7.2;
   const FY = [-X[1], X[0]];
   const flat = {
     ox: B[0], oy: B[1], angle: Math.atan2(X[1], X[0]), floorY: FLOOR_Y, w: W, d: Dd, X, Y: FY,
@@ -184,20 +186,26 @@ function buildLayout() {
       { name: 'woonkamer', x0: 0, x1: 6.8, z0: 0, z1: MID, floor: 'laminate' },
       { name: 'keuken', x0: 6.8, x1: W, z0: 0, z1: MID, floor: 'tiles' },
       { name: 'gang', x0: 0, x1: HALL, z0: MID, z1: Dd, floor: 'tiles' },
-      { name: 'slaapkamer', x0: HALL, x1: W, z0: MID, z1: Dd, floor: 'carpet' },
+      { name: 'kamer Tammo', x0: HALL, x1: SPLIT, z0: MID, z1: Dd, floor: 'carpet' },
+      { name: 'kamer Tessa', x0: SPLIT, x1: W, z0: MID, z1: Dd, floor: 'carpet' },
     ],
     // cutaway walls [x1, z1, x2, z2]: outer walls, hall | living room (doorway in line
-    // with the lift), hall | bedroom (doorway), bedroom | living room and kitchen
+    // with the lift), hall | Tammo's room (doorway), the bedrooms | living room and
+    // kitchen (a doorway from the kitchen into Tessa's room), Tammo's | Tessa's room
     walls: [
       [0, 0, 0, Dd], [W, 0, W, Dd], [0, Dd, W, Dd],
       [0, MID, 1.0, MID], [2.4, MID, HALL, MID],
       [HALL, MID, HALL, 6.2], [HALL, 7.4, HALL, Dd],
-      [HALL, MID, W, MID],
+      [HALL, MID, 9.0, MID], [10.2, MID, W, MID],
+      [SPLIT, MID, SPLIT, Dd],
     ],
     spots: {
       sofa: { x: 3.7, z: 3.9 }, tv: { x: 3.7, z: 1.0 }, table: { x: 8.2, z: 3.4 },
       counter: { x: 9.0, z: 0.55, w: 3.6 }, fryer: { x: 8.4, z: 0.55 }, fridge: { x: 10.5, z: 1.6 },
-      bed: { x: 8.6, z: 7.6 }, wardrobe: { x: 4.7, z: 8.6 }, door: { x: 1.7, z: Dd - 0.05 }, roof: { x: 0.08, z: 6.6 },
+      // single beds, head to the back wall: bed is Tammo's, bed2 Tessa's
+      bed: { x: 6.6, z: 7.95 }, bed2: { x: 7.8, z: 7.95 },
+      wardrobe: { x: 4.7, z: 8.6 }, wardrobe2: { x: 10.65, z: 6.2, rot: true },
+      door: { x: 1.7, z: Dd - 0.05 }, roof: { x: 0.08, z: 6.6 },
       companion: { x: 3.15, z: 3.98, seat: 0.46 },
     },
   };
@@ -205,12 +213,13 @@ function buildLayout() {
   flat.solids = [
     [2.4, 3.35, 5.0, 4.55], [3.0, 2.1, 4.4, 2.9], [2.8, 0.2, 4.6, 1.35], [0.2, 0.2, 0.9, 0.9],
     [7.1, 0.2, 10.9, 0.9], [10.1, 1.2, 10.9, 2.0], [7.6, 2.9, 8.8, 3.9],
-    [7.7, 6.5, 9.5, 8.7], [3.85, 8.25, 5.55, 8.95],
+    [6.1, 6.9, 7.1, 8.95], [7.3, 6.9, 8.3, 8.95], [3.85, 8.25, 5.55, 8.95], [10.3, 5.35, 10.95, 7.05],
   ];
   const fl = (x, z) => [B[0] + X[0] * x + FY[0] * z, B[1] + X[1] * x + FY[1] * z];
   const spot = (s, face) => { const [x, y] = fl(s.x, s.z); return { x, y, lx: s.x, lz: s.z, face }; };
   flat.use = {
-    bed: spot({ x: 7.2, z: 7.3 }), wardrobe: spot({ x: 4.7, z: 7.8 }), fridge: spot({ x: 9.7, z: 1.9 }),
+    bed: spot({ x: 5.65, z: 7.3 }), bed2: spot({ x: 8.75, z: 7.3 }),
+    wardrobe: spot({ x: 4.7, z: 7.8 }), wardrobe2: spot({ x: 9.85, z: 6.2 }), fridge: spot({ x: 9.7, z: 1.9 }),
     fryer: spot({ x: 8.4, z: 1.4 }), door: spot({ x: 1.7, z: 8.4 }), dak: spot({ x: 0.75, z: 6.6 }),
   };
   flat.entry = fl(1.7, 7.9);
@@ -1055,8 +1064,12 @@ function flatUse(w) {
   return best;
 }
 
+// Whose bed is whose: you only sleep in your own room.
+const BED_OF = { bed: 'Tammo', bed2: 'Tessa' };
+const ownBed = (w) => (w.player.character === 'anita' ? 'bed2' : 'bed');
+
 const FLAT_PROMPTS = {
-  bed: ['Slapen', 'Tot de ochtend, en het spel wordt opgeslagen'],
+  bed: ['Slapen', 'In je eigen bed tot de ochtend, en het spel wordt opgeslagen'],
   wardrobe: ['Kledingkast', 'Trek iets anders aan'],
   fridge: ['Eierbal pakken', 'Uit de vriezer, even door de frituur: gezondheid vol'],
   fryer: ['Eierbal pakken', 'De frituurpan staat al warm'],
@@ -1098,8 +1111,12 @@ export function homePrompt(w) {
       const why = roofBlock();
       return { id: 'home-dak', x: u.s.x, y: u.s.y, h: FLOOR_TOP + 1.3, key: 'E', label: FLAT_PROMPTS.dak[0], sub: why || FLAT_PROMPTS.dak[1], ring: true, dim: !!why };
     }
-    const [label, sub] = furniturePrompt(u.k, w) || FLAT_PROMPTS[u.k];
-    return { id: 'home-' + u.k, x: u.s.x, y: u.s.y, h: FLOOR_TOP + 1.3, key: 'E', label, sub, ring: true };
+    if (BED_OF[u.k] && u.k !== ownBed(w)) {
+      return { id: 'home-otherbed', x: u.s.x, y: u.s.y, h: FLOOR_TOP + 1.3, key: 'E', label: `Bed van ${BED_OF[u.k]}`, sub: `Niet jouw kamer. Jouw bed staat ${u.k === 'bed' ? 'achter de keuken' : 'naast de gang'}`, ring: true, dim: true };
+    }
+    const k = BED_OF[u.k] ? 'bed' : u.k === 'wardrobe2' ? 'wardrobe' : u.k;
+    const [label, sub] = furniturePrompt(k, w) || FLAT_PROMPTS[k];
+    return { id: 'home-' + k, x: u.s.x, y: u.s.y, h: FLOOR_TOP + 1.3, key: 'E', label, sub, ring: true };
   }
   const L = home.lobby;
   if (Math.hypot(p.x - L.use[0], p.y - L.use[1]) < 1.8) {
@@ -1138,6 +1155,7 @@ export function tryHomeInteract(w) {
     if (why) { w.addMessage(why, 3); return true; }
     enterFlat(w);
   } else if (pr.id === 'home-panel') openShopMenu(w, liftMenu(w));
+  else if (pr.id === 'home-otherbed') w.addMessage(w.player.character === 'anita' ? 'Dat is het bed van Tammo. Daar slaap jij niet' : 'Dat is het bed van Tessa. Daar slaap jij niet', 3);
   else if (useFurniture(w, pr.id.slice(5), { sleep: (hour, msg) => sleep(w, hour, msg) })) {
     // an EIKEA piece (furniture.js)
   } else if (pr.id === 'home-bed') sleep(w);
