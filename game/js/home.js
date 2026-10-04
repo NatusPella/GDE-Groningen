@@ -44,7 +44,7 @@ import { openShopMenu, isShopOpen } from './shopui.js';
 import { isCinematicActive } from './cinematics.js';
 import { respawnFade } from './respawn.js';
 import { saveGame } from './savegame.js';
-import { isMissionActive, isNight, getMissionDefs } from './missions.js';
+import { isMissionActive, isNight, getMissionDefs, setHomePlace } from './missions.js';
 import { refreshDayNight } from './daynight.js';
 import { recordStat, unlockAchievement } from './achievements.js';
 import { clearDrunk } from './drunk.js';
@@ -507,6 +507,7 @@ export function initHome(w) {
   }
   for (const r of home.rack.rails) addStaticCollider('rail', (r.x1 + r.x2) / 2, (r.y1 + r.y2) / 2, 0.06, Math.hypot(r.x2 - r.x1, r.y2 - r.y1) / 2, Math.atan2(r.y2 - r.y1, r.x2 - r.x1));
   w.homeActions = { goHome: () => goHome(w), canGoHome: () => canGoHome(w) === '' };
+  setHomePlace(() => ({ x: home.icon.x, y: home.icon.y, name: 'Thuis' }));
   // a respawn (or anything else that moves the player off the flat) takes the flat down
   w.onRespawn.push(() => { if (inside) dropFlat(w); });
   w.camAdjust = homeCamera;
