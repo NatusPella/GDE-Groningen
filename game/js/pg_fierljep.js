@@ -161,7 +161,7 @@ function aimCamera(run) {
   // behind the runner's shoulder, looking down the run-up over the canal
   const cx = s.runup.x - s.dir.x * 5 + n.x * 1.8, cy = s.runup.y - s.dir.y * 5 + n.y * 1.8;
   const shot = { position: { x: cx, y: cy, z: 2.5 }, lookAt: { x: s.from.x + s.dir.x * 4, y: s.from.y + s.dir.y * 4, z: 0.6 }, fov: 58 };
-  playCinematic({ id: 'pg-aim', priority: 1, duration: 600, pause: false, letterbox: false, skippable: false, hideHud: false, shot: () => shot });
+  playCinematic({ id: 'pg-aim', priority: 1, duration: 600, pause: false, letterbox: false, skippable: false, hideHud: false, passKeys: true, shot: () => shot });
 }
 
 function jelleJump(run, bonus) {

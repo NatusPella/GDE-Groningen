@@ -886,6 +886,8 @@ export function getRenderer() {
 export function refreshCharacterMeshes() {
   playerCharacter = null;
   companionCharacter = null;
+  // the bike/scooter rider is built from the same look
+  playerRiderChar = null;
 }
 
 let orbitRadius = ORBIT_RADIUS;

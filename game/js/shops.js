@@ -10,7 +10,7 @@ import { initShopUi, openShopMenu, isShopOpen } from './shopui.js';
 import { isCinematicActive } from './cinematics.js';
 import { recordStat, isUnlocked } from './achievements.js';
 import { isMissionCompleted, missionIndexById } from './missions.js';
-import { prepareStoryShop } from './story.js';
+import { prepareStoryShop, currentStep } from './story.js';
 import { markStoryItems, noteStoryPurchase } from './storyshop.js';
 import { jobLevel } from './sidejobs.js';
 import { WEAPONS } from './combat.js';
@@ -1033,7 +1033,9 @@ function outfitSections(world) {
         state.ownedOutfits.add(key);
         state.outfit[ch] = o.id;
         state.storyOutfit = null;
-        applyLooks();
+        // the kraak's black is bought for both of them, and both wear it at once
+        if (o.id === 'incognito') for (const c of ['tammo', 'anita']) state.ownedOutfits.add(c + ':incognito');
+        if (!syncHeistOutfit()) applyLooks();
         const lost = shakeWanted(world, o.stealth || 1);
         return (owned ? `${o.label} weer aangetrokken` : `${o.label} gekocht en meteen aan`) + (lost ? '. De politie herkent je niet meer zo goed!' : '');
       },
@@ -1401,7 +1403,8 @@ function spawnOwned(world, o, x, y, angle = null, z = null) {
   if (sp.kind === 'boat') return spawnOwnedBoat(world, o, x, y, angle);
   if (sp.kind === 'heli') return spawnOwnedHeli(world, o, x, y, angle, z);
   const map = world.map;
-  const point = map.nearestRoadPoint(x, y, 150, sp.kind === 'car');
+  // out in the Ommeland (no city street near) a vehicle with a heading is still put right here
+  const point = map.nearestRoadPoint(x, y, 150, sp.kind === 'car') || (angle != null ? map.nearestRoadPoint(0, 0, 400, sp.kind === 'car') : null);
   if (!point) return null;
   const v = spawnVehicleOnRoad(map, point.road, false, Math.random, sp.kind === 'bike', false, angle == null ? point : { x, y }, sp.kind === 'scooter', { ...sp.model, color: o.color });
   v.model = { ...sp.model, color: o.color };
@@ -1493,6 +1496,16 @@ export function setStoryOutfit(id) {
   return true;
 }
 
+// From buying the black until the kraak starts (and on a load in between)
+// both of them wear it, not just whoever was in the shop. True when it changed.
+const HEIST_STEPS = new Set(['k-kraakspullen', 'k-nacht', 'H6']);
+export function syncHeistOutfit() {
+  if (state.storyOutfit || !storyShopState().incognito) return false;
+  let step = null;
+  try { step = currentStep(); } catch (e) { return false; }
+  return !!step && HEIST_STEPS.has(step.id) && setStoryOutfit('incognito');
+}
+
 export function storyOutfit() {
   return state.storyOutfit;
 }
@@ -1533,6 +1546,7 @@ export function grantStoryItem(world, what) {
   if (what === 'incognito') {
     state.ownedOutfits.add('tammo:incognito');
     state.ownedOutfits.add('anita:incognito');
+    syncHeistOutfit();
     return true;
   }
   if (what === 'boat') {
@@ -1711,7 +1725,7 @@ export function applyShopSave(world, d) {
     state.vehicles.push(o);
   }
   pendingHeroDamage = d.hero && typeof d.hero === 'object' ? { health: d.hero.health, dents: validDents(d.hero.dents) } : null;
-  applyLooks();
+  if (!syncHeistOutfit()) applyLooks();
   upkeepTimer = 0;
 }
 
