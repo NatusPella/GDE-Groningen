@@ -276,7 +276,9 @@ function logHistory(c) {
   const text = c.lines.map((l) => dutchFor(l[1]) || l[1]).join(' ');
   const h = world.phoneHistory || (world.phoneHistory = []);
   const by = callerOf(c);
-  h.unshift({ text: `${by} ${kind}: ${text}`, at: getClockText(world) || '', from: by, body: kind ? `${kind[0].toUpperCase()}${kind.slice(1)}: ${text}` : text });
+  // quiet: the contact makes its own sound (ring, radio sting, card); the
+  // phone's buzz on top of it was a stray beep
+  h.unshift({ text: `${by} ${kind}: ${text}`, at: getClockText(world) || '', from: by, body: kind ? `${kind[0].toUpperCase()}${kind.slice(1)}: ${text}` : text, quiet: true });
   if (h.length > 30) h.length = 30;
 }
 

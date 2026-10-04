@@ -1,7 +1,6 @@
 // Sails the player's boats out of every city canal that leaves the map, into
-// the Ommeland water, and back in: the real boat physics (Vehicle.applyControls
-// with the player's tuning, resolveVehicleBuildingCollision, keepBoatOffShore,
-// as player.js drives a boat) and the Ommeland water as the game loads it
+// the Ommeland water, and back in: the real boat physics (drivePlayerBoat, as
+// player.js drives a boat: the player's tuning, substeps kept off the shore) and the Ommeland water as the game loads it
 // (countryreal + countryedge + the clearance hook countrywater.js registers).
 // A scripted helmsman steers like a player: throttle on, the stick toward the
 // goal, and away from the bank it sees ahead; back in, by way of the exit.
@@ -13,8 +12,8 @@ import fs from 'node:fs';
 import zlib from 'node:zlib';
 
 const { GameMap, applyMapExtras } = await import('../game/js/mapdata.js');
-const { Vehicle, resolveVehicleBuildingCollision } = await import('../game/js/vehicle.js');
-const { keepBoatOffShore, setExtraWater, normalizeAngle, clamp, pointInPolygon } = await import('../game/js/util.js');
+const { Vehicle, drivePlayerBoat } = await import('../game/js/vehicle.js');
+const { setExtraWater, normalizeAngle, clamp, pointInPolygon } = await import('../game/js/util.js');
 const { initReal } = await import('../game/js/countryreal.js');
 const { setCountryBounds, rectOutside, SHORE_RW } = await import('../game/js/countryfield.js');
 const { initCountryEdge, wideWaterAt, openWater } = await import('../game/js/countryedge.js');
@@ -79,10 +78,10 @@ function steerFor(v, gx, gy) {
 
 let steerSign = 0;
 function sail(v, goal, limitS) {
-  let t = 0, slowT = 0, backUntil = -9, bumps = 0, progressAt = 0, bestD = Infinity;
+  let t = 0, slowT = 0, backUntil = -9, bumps = 0, progressAt = 0, bestD = Infinity, top = 0;
   while (t < limitS) {
     const d = Math.hypot(goal[0] - v.x, goal[1] - v.y);
-    if (d < 10) return { ok: true, t, bumps };
+    if (d < 10) return { ok: true, t, bumps, top };
     if (d < bestD - 2) { bestD = d; progressAt = t; }
     if (t - progressAt > 25) return { ok: false, t, bumps, why: 'no progress for 25 s', at: [v.x, v.y] };
     const want = steerFor(v, goal[0], goal[1]);
@@ -91,14 +90,12 @@ function sail(v, goal, limitS) {
     if (slowT > 1.2 && t > backUntil + 1) backUntil = t + 1.8;
     const backing = t < backUntil;
     const steer = clamp(err * 2.2 * steerSign, -1, 1) * (backing ? -1 : 1);
-    const throttle = backing ? -1 : 1;
-    const px = v.x, py = v.y, pa = v.angle;
-    const n = Math.min(4, Math.max(1, Math.ceil(Math.abs(v.speed) * DT / 0.25)));
-    for (let i = 0; i < n; i++) {
-      v.applyControls(DT / n, throttle, steer, false);
-      resolveVehicleBuildingCollision(v, map, DT / n);
-    }
-    if (!keepBoatOffShore(map, v, px, py, pa)) { v.speed *= -0.25; v.driftX = 0; v.driftY = 0; bumps++; }
+    // braking near the goal and off the gas into a sharp turn, as a player
+    // would: a fast boat would otherwise circle a 10 m goal for ever
+    const throttle = backing ? -1 : d < 30 && v.speed > 5 ? -1 : Math.abs(err) > 0.8 && v.speed > 6 ? 0 : 1;
+    if (!drivePlayerBoat(v, map, DT, throttle, steer, false)) bumps++;
+    if (clear(v.x, v.y) < 0) return { ok: false, t, bumps, why: 'on land', at: [v.x, v.y] };
+    top = Math.max(top, Math.abs(v.speed));
     t += DT;
     slowT = Math.abs(v.speed) < 0.6 ? slowT + DT : 0;
   }
@@ -154,8 +151,10 @@ function goalFor(ex) {
   return best && best.p;
 }
 
-const HULLS = [['sloep', BOAT_KINDS.sloep], ['rubberboot', BOAT_KINDS.rubberboot], ['rondvaart', BOAT_KINDS.rondvaart]];
+const { VEHICLE_STOCK } = await import('../game/js/shops.js');
+const HULLS = [['sloep', BOAT_KINDS.sloep], ['rubberboot', BOAT_KINDS.rubberboot], ['speedboot', VEHICLE_STOCK.speedboot.model], ['rondvaart', BOAT_KINDS.rondvaart]];
 let outOk = 0, backOk = 0, tried = 0;
+const tops = {};
 const rows = [];
 for (const ex of exits) {
   const st = startFor(ex);
@@ -170,6 +169,7 @@ for (const ex of exits) {
     if (!g) { rows.push(`${ex.name || '?'} side ${ex.s}: no open water past the edge`); tried--; break; }
     const out = sail(v, g, 150);
     const reached = rectOutside(v.x, v.y);
+    tops[hn] = Math.max(tops[hn] || 0, out.top || 0);
     let back = null;
     if (out.ok) { outOk++; back = sail(v, ex.e, 150);
       if (back.ok) { const b2 = sail(v, [st.x, st.y], 150); back = { ...b2, t: back.t + b2.t, bumps: back.bumps + b2.bumps }; } if (back.ok) backOk++; }
@@ -189,3 +189,8 @@ if (process.env.BOAT_AT) {
 console.log(`${exits.length} canal exits at the map edge, steer sign ${steerSign}`);
 for (const r of rows) console.log('  ' + r);
 console.log(`out ${outOk}/${tried}, back in ${backOk}/${outOk}`);
+console.log('top speed out to open water (km/h): ' + Object.entries(tops).map(([k, t]) => `${k} ${Math.round(t * 3.6)}`).join(', '));
+// the speedboat is the fastest by far: 80-100 km/h on open water
+const fastOk = tops.speedboot * 3.6 >= 75 && tops.speedboot > tops.rubberboot * 1.25 && tops.rubberboot > tops.sloep;
+if (!fastOk) console.log('FAIL speedboat not clearly the fastest');
+if (outOk < tried || backOk < outOk || !fastOk) process.exit(1);
