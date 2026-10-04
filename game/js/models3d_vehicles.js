@@ -393,6 +393,7 @@ function buildCarMesh(v) {
   if (v.isAmbulance) return assembleCar('van', v.model.len, v.model.wid, 0xf1d21c, { ambulance: true, wrecked: v.wrecked, wheelR: 0.34 });
   if (v.model.name === 'truck') return buildTruckMesh(v);
   if (v.model.name === 'trekkerlimo') return buildTrekkerLimoMesh(v);
+  if (v.model.name === 'tractor') return buildTractorMesh(v);
   if (v.model.name === 'foodtruck') return buildFoodtruckMesh(v);
   const police = !!v.isPolice && !v._commandeered;
   const paint = police ? 0xeceae4 : toHex(v.model.color, HABBO_PALETTE.metalGrey);
@@ -573,6 +574,49 @@ function buildTrekkerLimoMesh(v) {
   }
   group.userData.wheels = wheels;
   group.userData.wheelRadius = 0.42;
+  return group;
+}
+
+// An Ommeland farm tractor: the trekker-limo's tractor (hood, glass cab,
+// big rear wheels, exhaust) on its own, with a three-point hitch behind.
+function buildTractorMesh(v) {
+  const L = v.model.len, W = v.model.wid, hl = L / 2, hw = W / 2;
+  const paint = v.wrecked ? WRECKED_COLOR : toHex(v.model.color, 0x3f7d3a);
+  const geo = cached(`tractor|${L}|${W}|${paint}`, () => {
+    const B = new GeoBuilder(3);
+    const tx0 = hl - 2.3, cz = W * 0.43;
+    B.box(hl - 0.55, 1.05, 0, 1.1, 0.8, W * 0.62, paint);
+    B.box(hl - 1.6, 0.75, 0, 1.6, 0.5, W * 0.5, 0x2a2a2a);
+    B.box(tx0 + 0.6, 1.075, 0, 1.2, 0.85, W * 0.86, paint);
+    B.box(tx0 + 0.6, 2.38, 0, 1.2, 0.16, W * 0.86, paint);
+    B.box(tx0 + 0.6, 2.5, 0, 1.3, 0.08, W * 0.9, shadeHex(paint, 0.8));
+    B.box(tx0 + 1.19, 1.9, 0, 0.02, 0.8, W * 0.8, GLASS, G_GLASS);
+    B.box(tx0 + 0.01, 1.9, 0, 0.02, 0.8, W * 0.8, GLASS, G_GLASS);
+    for (const s of [1, -1]) {
+      for (const px of [tx0 + 0.03, tx0 + 1.17]) B.box(px, 1.9, s * (cz - 0.03), 0.06, 0.8, 0.06, paint);
+      B.box(tx0 + 0.6, 1.9, s * cz, 1.1, 0.8, 0.02, GLASS, G_GLASS);
+      B.box(tx0 + 0.55, 1.62, s * (hw - 0.12), 1.4, 0.1, 0.4, shadeHex(paint, 0.75));
+      B.box(hl + 0.01, 0.95, s * (W * 0.2), 0.02, 0.14, 0.2, HEADLAMP, G_LAMP);
+      B.box(tx0 - 0.05, 1.5, s * (cz - 0.1), 0.04, 0.12, 0.1, TAIL, G_LAMP);
+      B.box(-hl + 0.3, 0.7, s * 0.35, 0.6, 0.08, 0.08, 0x2a2a2a);
+    }
+    B.box(hl - 0.95, 2.0, W * 0.2, 0.1, 1.0, 0.1, TRIM);
+    B.box(-hl + 0.12, 0.65, 0, 0.24, 0.3, W * 0.5, 0x2a2a2a);
+    return B.build();
+  });
+  const mats = vehicleMaterials(v.wrecked);
+  const group = new THREE.Group();
+  const body = new THREE.Mesh(geo, mats);
+  group.add(body);
+  group.userData.body = body;
+  const wheels = [];
+  const small = carWheelGeometry(0.46, 0.32), big = carWheelGeometry(0.8, 0.5);
+  for (const s of [1, -1]) {
+    addWheel(group, small, mats[0], hl - 0.6, 0.46, s * (hw - 0.3), wheels);
+    addWheel(group, big, mats[0], hl - 1.85, 0.8, s * (hw - 0.05), wheels);
+  }
+  group.userData.wheels = wheels;
+  group.userData.wheelRadius = 0.46;
   return group;
 }
 

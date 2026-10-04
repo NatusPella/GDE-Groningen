@@ -6,6 +6,7 @@ import { ROAD_C, openLand } from './countryplan.js';
 import { GeoBuilder, vcMaterial, markShared, composeMatrix, tubeGeometry } from './pixelart3d.js';
 import { tractorBodyGeometry, tractorBaseGeometry, trailerBodyGeometry, trailerBaseGeometry } from './countrymodels.js';
 import { glowMaterial, headlightGeometry } from './countryglow.js';
+import { Vehicle, MODELS, TRACTOR_MODEL, makeTwoWheeler } from './vehicle.js';
 
 // Life in the Ommelanden: a few slow road users on the polder roads (a
 // tractor, a cyclist, the odd car), boats puttering along the maaren, and
@@ -17,6 +18,10 @@ const MAX_TRAFFIC = 5;
 const MAX_BOATS = 3;
 const LANE = 1.25;
 const FLOCK_R = 230;
+// within this range a car, tractor or bike is a real vehicle (world.vehicles:
+// enter, steal, crash, damage), handed back to the light mesh past RELEASE_R
+const CONVERT_R = 70;
+const RELEASE_R = 110;
 
 let L = null;
 
@@ -158,7 +163,7 @@ function makeTraffic(type, R) {
     if (R() < 0.55) {
       const tb = new THREE.Mesh(cachedGeo('trb', trailerBodyGeometry), tinted(R() < 0.5 ? 0x8a3a2a : 0x3a6a3a));
       const tbb = new THREE.Mesh(cachedGeo('trba', trailerBaseGeometry), MAT);
-      for (const m of [tb, tbb]) { m.position.x = -6.4; g.add(m); }
+      for (const m of [tb, tbb]) { m.position.x = -6.4; m.userData.trailer = true; g.add(m); }
     }
     vmax = 6 + R() * 3;
   } else if (type === 'car') {
@@ -172,11 +177,19 @@ function makeTraffic(type, R) {
   // the body as a box in its own frame (+x ahead): back, front, half width
   const bb = new THREE.Box3().setFromObject(g);
   const body = [bb.min.x, bb.max.x, Math.max(-bb.min.z, bb.max.z)];
+  // what is left drawn (and solid) of a tractor whose tractor is a real vehicle
+  let trailer = null;
+  const tm = g.children.filter((o) => o.userData.trailer);
+  if (tm.length) {
+    const tb = new THREE.Box3();
+    for (const m of tm) tb.expandByObject(m);
+    trailer = [tb.min.x, tb.max.x, Math.max(-tb.min.z, tb.max.z)];
+  }
   // headlights (one additive mesh, hidden by day with the glow material)
   const hl = new THREE.Mesh(cachedGeo('hl' + type, () => (type === 'car' ? headlightGeometry(2.08, 0.66, 0.55, 18) : type === 'tractor' ? headlightGeometry(2.12, 1.15, 0.4, 12) : headlightGeometry(0.75, 0.85, 0, 7))), glowMaterial());
   hl.renderOrder = 2;
   g.add(hl);
-  return { g, vmax, body };
+  return { g, vmax, body, trailer, color: R() };
 }
 
 function spawnTraffic(px, py, dist) {
@@ -399,13 +412,16 @@ const laneClear = (a, v) => a.body[2] + (v ? v.halfWid || 0.9 : 0.4) + 0.5;
 // box at (x, y), heading a.yaw as drawn: box against box like city traffic,
 // so passing close by in the other lane is free.
 function bodyContact(a, x, y, world) {
+  // a real vehicle collides by itself; only a tractor's trailer is left here
+  const box = a.veh ? a.trailer : a.body;
+  if (!box) return;
   const p = world.player, v = p.inVehicle;
   if ((v && v.isHeli && !v.onGround) || (!v && world.pigeonMode)) return;
   const ox = v ? v.x : p.x, oy = v ? v.y : p.y;
   const c = Math.cos(a.yaw), s = Math.sin(a.yaw);
   const dx = ox - x, dy = oy - y;
   const lu = dx * c + dy * s, lv = -dx * s + dy * c;
-  const [back, front, hw] = a.body;
+  const [back, front, hw] = box;
   let eu = lu - Math.max(back, Math.min(front, lu)), ev = lv - Math.max(-hw, Math.min(hw, lv));
   let d = Math.hypot(eu, ev);
   if (d < 1e-3) {
@@ -425,6 +441,52 @@ function bodyContact(a, x, y, world) {
   if (v) { v.x += wx * pen; v.y += wy * pen; v.speed *= 0.5; }
   else { p.x += wx * pen; p.y += wy * pen; }
   a.speed = 0;
+}
+
+// Near the player a car, tractor or bike is a real vehicle: placed on the
+// road user's pose every frame while it drives, and let go as an ordinary
+// vehicle (rolling out) the moment someone takes it, hits it or shoves it.
+function trafficModel(a) {
+  if (a.type === 'tractor') return { ...TRACTOR_MODEL, color: ['#3f7d3a', '#b8322a', '#2f5fa8', '#3f7d3a'][Math.floor(a.color * 4)] };
+  const cars = MODELS.filter((m) => m.name !== 'sport');
+  return cars[Math.floor(a.color * cars.length)];
+}
+function showLight(a, on) {
+  for (const o of a.g.children) if (!o.userData.trailer) o.visible = on;
+}
+function dropVehicle(a, world) {
+  const v = a.veh;
+  if (!v || !v.countryDrive) return;
+  const i = world.vehicles.indexOf(v);
+  if (i >= 0) world.vehicles.splice(i, 1);
+  a.veh = null;
+}
+function syncVehicle(a, world) {
+  if (a.left) return;
+  const [x, y] = roadPos(a);
+  const p = world.player;
+  const d = Math.hypot(x - p.x, y - p.y);
+  const v = a.veh;
+  if (!v) {
+    if (d > CONVERT_R || world.cinematicActive || !world.vehicles) return;
+    const nv = a.type === 'cyclist' ? makeTwoWheeler('bike', x, y, a.yaw, null, () => a.color) : new Vehicle(x, y, a.yaw, trafficModel(a));
+    nv.countryDrive = true;
+    nv.speed = a.speed;
+    world.vehicles.push(nv);
+    a.veh = nv; a.vx = x; a.vy = y;
+    showLight(a, false);
+    return;
+  }
+  if (v.driver || v.wrecked || v.health < 100 || !world.vehicles.includes(v) || Math.hypot(v.x - a.vx, v.y - a.vy) > 0.4) {
+    // taken over: an ordinary vehicle from here on; a trailer stays put
+    v.countryDrive = false;
+    a.veh = null;
+    if (a.trailer) { a.left = true; a.speed = 0; } else a.gone = true;
+    return;
+  }
+  if (d > RELEASE_R) { dropVehicle(a, world); showLight(a, true); return; }
+  v.x = x; v.y = y; v.angle = a.yaw; v.speed = a.speed;
+  a.vx = x; a.vy = y;
 }
 
 function placeTraffic(a, dt) {
@@ -673,9 +735,10 @@ export function updateCountryLife(dt, world, scene, flocks, fogFar) {
   }
   L.traffic = L.traffic.filter((a) => {
     const [x, y] = roadPos(a);
-    if (Math.hypot(x - p.x, y - p.y) > keepD || !active || a.gone) { L.group.remove(a.g); return false; }
-    if (!paused) stepTraffic(a, dt, world);
-    placeTraffic(a, paused ? 0 : dt);
+    if (Math.hypot(x - p.x, y - p.y) > keepD || !active || a.gone) { L.group.remove(a.g); dropVehicle(a, world); return false; }
+    if (!paused && !a.left) stepTraffic(a, dt, world);
+    placeTraffic(a, paused || a.left ? 0 : dt);
+    if (!paused) syncVehicle(a, world);
     return true;
   });
   L.boats = L.boats.filter((b) => {
@@ -703,5 +766,10 @@ export function lifeStats() {
   if (!L) return null;
   let birds = 0;
   for (const sp in counts) birds += counts[sp].reduce((a, b) => a + b, 0);
-  return { ms: +L.ms.toFixed(3), traffic: L.traffic.map((a) => a.type), boats: L.boats.length, birds, skeins: L.skeins.length };
+  return { ms: +L.ms.toFixed(3), traffic: L.traffic.map((a) => a.type), real: L.traffic.filter((a) => a.veh).length, boats: L.boats.length, birds, skeins: L.skeins.length };
+}
+
+// The road users (scripts/country_vehicles_test.mjs).
+export function countryTraffic() {
+  return L ? L.traffic : [];
 }

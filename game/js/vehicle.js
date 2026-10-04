@@ -35,6 +35,9 @@ const MODELS = [
 
 // Signature red Ford Escort - the game's hero car, spawned once via
 // spawnHeroCarNear rather than picked from MODELS by the regular traffic RNG.
+// Ommeland farm vehicles (parkedcars.js farm yards, countrylife.js):
+// a tractor (slow, pulls hard off the line)
+export const TRACTOR_MODEL = { name: 'tractor', len: 3.6, wid: 2.0, maxSpeed: 11, accel: 6.5, brake: 11, turnRate: 1.9, color: '#3f7d3a', offroad: 0.9 };
 export const HERO_CAR_MODEL = { name: 'escort', len: 4.0, wid: 1.65, maxSpeed: 50, accel: 11, brake: 25, turnRate: 3.4, color: '#a11f1f' };
 
 const BIKE_MODELS = [
@@ -1641,7 +1644,8 @@ function resolveDeadlocks(v, dt, world, follow, lightV) {
 // opts.goal ({x, y}) steers junction choices toward a target; opts.chase
 // drives faster, tighter and ignores traffic lights (police pursuit).
 export function updateTrafficAI(v, dt, map, world, rng = Math.random, opts = null) {
-  if (v.wrecked) return;
+  // Ommeland traffic placed by countrylife.js until someone takes it over
+  if (v.wrecked || v.countryDrive) return;
   if (!v.road) {
     // parked or abandoned: a shove from a collision rolls out against the
     // handbrake; a car bailed out of (or burning) rolls on freely

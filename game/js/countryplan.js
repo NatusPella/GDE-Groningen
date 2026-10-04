@@ -185,7 +185,8 @@ export function farmDetail(f) {
   for (const it of f.items) {
     const [wx, wy] = farmWorld(f, it.lx, it.lz);
     it.x = wx; it.y = wy;
-    if (!it.hit) continue;
+    // tractors are real vehicles with their own bodies (parkedcars.js)
+    if (!it.hit || it.kind === 'tractor') continue;
     // round silos collide as circles of their real radius, not boxes
     const round = ROUND_ITEMS[it.kind];
     if (round) { f.circles.push({ x: wx, y: wy, r: round(it) }); continue; }

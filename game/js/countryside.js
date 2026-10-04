@@ -406,6 +406,8 @@ function genFarm(tile, f) {
   push(tile, 'glowPool', f.x + fc * 22 - fs * 14, f.y + fs * 22 + fc * 14, -f.angle, 1.3, 1, 1.3, 0xffffff, 0);
   for (const it of f.items) {
     const rotY = -f.angle + it.rot;
+    // the tractors are real vehicles (parkedcars.js farmVehicleSpots)
+    if (it.kind === 'tractor') continue;
     const pair = PAIRED[it.kind];
     if (pair) {
       push(tile, pair[0], it.x, it.y, rotY, it.sx, it.sy, it.sz, it.color, 0.06);
@@ -507,14 +509,9 @@ function* genReal(tile) {
           const wrap = h < 0.2 ? 0xe8e8e2 : h < 0.4 ? 0x2a2a2a : 0x9fb58a;
           for (let k = 0; k < 4; k++) push(tile, 'bale', ex - sa * (k - 1.5) * 1.3, ey + ca * (k - 1.5) * 1.3, -m.angle, 0.86, 0.86, 0.86, wrap, 0.05);
         }
-        const sx = x - sa * (m.short / 2 + 4), sy = y + ca * (m.short / 2 + 4);
         // the yard light over the barn door
         if (h < 0.75) push(tile, 'glowPool', x - sa * (m.short / 2 + 3), y + ca * (m.short / 2 + 3), rotY, 1.3, 1, 1.3, 0xffffff, 0);
-        if (h > 0.6 && okSpot(sx, sy, 1)) {
-          const col = [0x3f7d3a, 0xb8322a, 0x2f5fa8, 0x3f7d3a][Math.floor(h * 40) % 4];
-          push(tile, 'tractorBody', sx, sy, rotY, 1, 1, 1, col, 0.06);
-          push(tile, 'tractorBase', sx, sy, rotY, 1, 1, 1, 0xffffff, 0);
-        }
+        // (the yard tractor is a real vehicle: parkedcars.js barnTractorSpot)
       }
     }
   }
@@ -1453,7 +1450,7 @@ function gameplay(dt, world) {
   const v = p.inVehicle;
   // AI vehicles out here (police giving chase, parked cars) stay out of barns too
   for (const o of world.vehicles || []) {
-    if (o === v || o.isBoat || o.wrecked || Math.abs(o.x - p.x) > 250 || Math.abs(o.y - p.y) > 250) continue;
+    if (o === v || o.isBoat || o.wrecked || o.countryDrive || Math.abs(o.x - p.x) > 250 || Math.abs(o.y - p.y) > 250) continue;
     if (countryWeight(o.x, o.y) > 0.5 && pushOutOfPlan(o, 1.2)) o.speed *= 0.3;
   }
   if (v && !v.isBoat && !v.isHeli && !v.sinking && !v.wrecked) {
