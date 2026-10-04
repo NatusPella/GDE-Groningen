@@ -245,6 +245,7 @@ const VEH_ICONS = {
   bike: '<circle cx="6" cy="15.5" r="3.6" class="ln"/><circle cx="18" cy="15.5" r="3.6" class="ln"/><path d="M6 15.5l4-6.5h5.5L18 15.5M10 9l2.8 6.5h2.2M13.5 6.5h2.5" class="ln"/>',
   scooter: '<circle cx="6" cy="16.5" r="2.6" class="ln"/><circle cx="18" cy="16.5" r="2.6" class="ln"/><path d="M6 16.5h7.5l2-9.5h2.5M9 13h6" class="ln"/>',
   boat: '<path d="M2.5 14.5h19l-3 5h-13z"/><path d="M11.5 3v10M11.5 4.5l6 8h-6" class="ln"/>',
+  horse: '<path d="M5 19v-5.5l1.5-3.5h7l2.5-4 1.5-1.5 1 1.5 1.5 2.5-1 1.2-2-.7-1.5 2.5V19M8 14v5M14 14v5" class="ln"/><path d="M6.5 10l-2.5 2.5" class="ln"/>',
   heli: '<path d="M3 6h16M11 6v3" class="ln"/><path d="M5.5 13a4.5 3.5 0 0 1 9 0v1.5h-9z"/><path d="M14.5 12.5h6.5M20 10v4.5M6 19h8M8 16v3M12 16v3" class="ln"/>',
 };
 
@@ -259,7 +260,7 @@ function updateVehicleName(dt, world) {
       const { make, model } = vehicleDisplayName(v);
       els.vehName.querySelector('small').textContent = make;
       els.vehName.querySelector('b').textContent = model;
-      els.vehName.querySelector('.vn-ic').innerHTML = VEH_ICONS[v.isHeli ? 'heli' : v.isBoat ? 'boat' : v.isBike ? 'bike' : v.isScooter ? 'scooter' : v.isBus ? 'bus' : 'car'];
+      els.vehName.querySelector('.vn-ic').innerHTML = VEH_ICONS[v.isHeli ? 'heli' : v.isBoat ? 'boat' : v._mount === 'horse' ? 'horse' : v.isBike ? 'bike' : v.isScooter ? 'scooter' : v.isBus ? 'bus' : 'car'];
       vehNameTimer = 4.5;
       restartClass(els.vehName, 'on', () => vehNameFor === v);
     } else {
@@ -428,7 +429,7 @@ function updateMate(world) {
   let text = '';
   if (c && !world.pigeonMode && !c.hidden) {
     const name = c.character === 'anita' ? 'Tessa' : 'Tammo';
-    if (p.inVehicle && c.inVehicle === p.inVehicle) text = `${name} ${p.inVehicle.isBike ? 'fietst' : p.inVehicle.isBoat ? 'vaart' : p.inVehicle.isHeli ? 'vliegt' : 'rijdt'} mee`;
+    if (p.inVehicle && c.inVehicle === p.inVehicle) text = `${name} ${p.inVehicle._mount === 'horse' ? 'rijdt' : p.inVehicle.isBike ? 'fietst' : p.inVehicle.isBoat ? 'vaart' : p.inVehicle.isHeli ? 'vliegt' : 'rijdt'} mee`;
     else if (!c.inVehicle && Math.hypot(c.x - p.x, c.y - p.y) < 30) text = `${name} loopt mee`;
   }
   const key = text && c.character + text;
@@ -585,6 +586,7 @@ function speedoSpec(v) {
   if (!m || !m.name) return null;
   const flags = {};
   for (const f of VEH_FLAGS) if (v[f]) flags[f] = true;
+  if (v._mount) flags._mount = v._mount;
   const kind = v.isHeli ? 'heli' : v.isBoat ? 'boat' : v.isBike ? 'bike' : v.isScooter ? 'scooter' : 'car';
   const model = {};
   for (const [k, val] of Object.entries(m)) if (k !== 'rider' && (typeof val === 'string' || typeof val === 'number' || typeof val === 'boolean')) model[k] = val;

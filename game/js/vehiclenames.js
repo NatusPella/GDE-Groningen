@@ -30,6 +30,7 @@ const BOATS = {
   dinghy: [['Bijbootje', 'Woonbootje'], ['Roeiboot', 'Kleine Jan']],
   skutsje: [['Skûtsje', 'Us Heit'], ['Skûtsje', 'Snackkening']],
 };
+const HORSES = ['Bles', 'Dappere Dodo', 'Ome Willem', 'Bolle Berend'];
 const BIKES = [['Fiets', 'Omafiets'], ['Fiets', 'Transportfiets'], ['Fiets', 'Stadsfiets']];
 
 function pick(list, id) {
@@ -42,6 +43,7 @@ export function vehicleDisplayName(v) {
   if (!v) return { make: '', model: 'Voertuig' };
   if (v.isHeroCar) return { make: 'Fjord', model: 'Escapade' };
   if (v.isPolice && v.isBoat) return { make: 'Politie', model: 'Boot' };
+  if (v._mount === 'horse') return { make: 'Politiepaard', model: pick(HORSES, v.id) };
   if (v.isPolice) return { make: 'Politie', model: 'Achtervolger' };
   const name = v.model && v.model.name;
   if (v.isBoat && BOATS[v.model.kind]) {

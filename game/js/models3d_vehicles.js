@@ -396,7 +396,8 @@ function buildCarMesh(v) {
   if (v.model.name === 'tractor') return buildTractorMesh(v);
   if (v.model.name === 'quad') return buildQuadMesh(v);
   if (v.model.name === 'foodtruck') return buildFoodtruckMesh(v);
-  const police = !!v.isPolice && !v._commandeered;
+  // a stolen police car that went through the spray shop wears its new paint
+  const police = !!v.isPolice && !v._commandeered && !v.model.resprayed;
   const paint = police ? 0xeceae4 : toHex(v.model.color, HABBO_PALETTE.metalGrey);
   const type = carType(v);
   const wheelR = type === 'van' ? 0.34 : type === 'suv' ? 0.38 : WHEEL_R;
@@ -1034,6 +1035,8 @@ function buildPoliceHorseMesh(v) {
 export function syncPoliceMount(mesh, v, dt) {
   const ud = mesh.userData;
   if (ud.riderFig && !v.hijacked) ud.riderFig.visible = !v._riderAway && !v.wrecked;
+  // the player rides it in their own look (scene3d seats them on the saddle)
+  if (ud.riderFig && v.driver === 'player') ud.riderFig.visible = false;
   const legs = ud.horseLegs;
   if (!legs || v.wrecked) return;
   const s = Math.abs(v.speed);
