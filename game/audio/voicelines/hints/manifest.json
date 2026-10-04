@@ -3,29 +3,13 @@
 "src": "anita/aangekomen_sjouw_alles_uit_het_b_bb2a1015.mp3",
 "dur": 3.79
 },
-"Anita|Achter die tankwagen aan! Schieten mag, rammen mag. Maak zijn banden plat.": {
-"src": "anita/achter_die_tankwagen_aan_schiete_1edc6d3f.mp3",
-"dur": 4.37
-},
 "Anita|Achter die trekker aan! Blijf erbij, ram hem als het kan. Niet schieten, er is kermis.": {
 "src": "anita/achter_die_trekker_aan_blijf_erb_5f3ed1c4.mp3",
 "dur": 4.45
 },
-"Anita|Achter die trekker aan! De pliesie rijdt ook mee. Ram of schiet zijn banden stuk.": {
-"src": "anita/achter_die_trekker_aan_de_pliesi_49a839f9.mp3",
-"dur": 4.9
-},
 "Anita|Achter ze aan! Ram hem tot hij stilstaat, voordat hij op de trein staat. Niet op Tammo's auto schieten, hè!": {
 "src": "anita/achter_ze_aan_ram_hem_tot_hij_st_c0f23884.mp3",
 "dur": 5.27
-},
-"Anita|Achter ze aan! Ram hem tot hij stilstaat, voordat hij op de trein staat. Niet op mijn Fjord schieten, hè!": {
-"src": "anita/achter_ze_aan_ram_hem_tot_hij_st_4346babc.mp3",
-"dur": 5.68
-},
-"Anita|Alarm! Drie sterren. Wegwezen, over het water als het kan.": {
-"src": "anita/alarm_drie_sterren_wegwezen_over_038e4fcb.mp3",
-"dur": 4.36
 },
 "Anita|Alarm! Het kussen was een drukplaat. Rennen, ik haal de boot!": {
 "src": "anita/alarm_het_kussen_was_een_drukpla_e320454d.mp3",
@@ -47,10 +31,6 @@
 "src": "anita/au_vonken_nog_een_keer_rustig_a93c9c3c.mp3",
 "dur": 4.49
 },
-"Anita|Bewakers met zaklampen en draaiende camera's. Blijf uit de lichtbundels. Bukken (Ctrl) helpt bij de bewakers.": {
-"src": "anita/bewakers_met_zaklampen_en_draaie_700da548.mp3",
-"dur": 9.21
-},
 "Anita|Boink! Die meeuw spreekt Fries.": {
 "src": "anita/boink_die_meeuw_spreekt_fries_e945c616.mp3",
 "dur": 2.89
@@ -63,10 +43,6 @@
 "src": "anita/camera_s_op_herhaling_nu_de_acht_5c076a9e.mp3",
 "dur": 4.63
 },
-"Anita|Camera's uit. Naar binnen, naar de vitrine. Er loopt nog één bewaker.": {
-"src": "anita/camera_s_uit_naar_binnen_naar_de_f0a2f406.mp3",
-"dur": 5.3
-},
 "Anita|Chocola?!": {
 "src": "anita/chocola_80a1c619.mp3",
 "dur": 1.42
@@ -74,10 +50,6 @@
 "Anita|Daar vaart hij! Zwart skûtsje, rood zeil. Ga er vlak naast varen, dan spring je aan boord.": {
 "src": "anita/daar_vaart_hij_zwart_sku_tsje_ro_7bfa4263.mp3",
 "dur": 4.99
-},
-"Anita|De Eierbal is terug!": {
-"src": "anita/de_eierbal_is_terug_54c4f322.mp3",
-"dur": 1.7
 },
 "Anita|De Entreehal. Eén bewaker loopt, één slaapt achter de balie. Druk op E, dan tik ik op het raam.": {
 "src": "anita/de_entreehal_ee_n_bewaker_loopt__60a24607.mp3",
@@ -87,17 +59,9 @@
 "src": "anita/de_navigatie_stuurt_je_om_via_de_db7edfb2.mp3",
 "dur": 7.81
 },
-"Anita|De stroomkast. Druk op Spatie als de naald in het groen staat. Drie zekeringen, dan draaien de camera's op herhaling.": {
-"src": "anita/de_stroomkast_druk_op_spatie_als_6b7171e1.mp3",
-"dur": 7.24
-},
 "Anita|De stroomkast. Druk op Spatie als de naald in het groen staat. Drie zekeringen, dan hebben we drie minuten.": {
 "src": "anita/de_stroomkast_druk_op_spatie_als_bc378149.mp3",
 "dur": 5.98
-},
-"Anita|De stroomkast. Druk op Spatie als de naald in het groen staat: drie zekeringen, drie camera's.": {
-"src": "anita/de_stroomkast_druk_op_spatie_als_19e9767c.mp3",
-"dur": 7.14
 },
 "Anita|De vitrine. Draai met A en D, voel de klik en zet hem vast met Spatie.": {
 "src": "anita/de_vitrine_draai_met_a_en_d_voel_2c510bb4.mp3",
@@ -110,10 +74,6 @@
 "Anita|Durk en Douwe steken per ongeluk hun vuurwerk aan! Blijf bij de kraam en stap opzij als er een pijl aankomt.": {
 "src": "anita/durk_en_douwe_steken_per_ongeluk_95319b7c.mp3",
 "dur": 5.81
-},
-"Anita|Durk en Douwe steken vuurwerk af! Blijf bij de kraam en stap opzij als er een pijl aankomt.": {
-"src": "anita/durk_en_douwe_steken_vuurwerk_af_f17887d1.mp3",
-"dur": 5.18
 },
 "Anita|Een meeuw! Hij wil je patat!": {
 "src": "anita/een_meeuw_hij_wil_je_patat_19185921.mp3",
@@ -183,14 +143,6 @@
 "src": "anita/henk_heeft_de_auto_klaargezet_in_6f438d54.mp3",
 "dur": 2.91
 },
-"Anita|Henk heeft de auto klaargezet. Instappen, hij gaat richting het Reitdiep!": {
-"src": "anita/henk_heeft_de_auto_klaargezet_in_d58cce47.mp3",
-"dur": 3.74
-},
-"Anita|Het piepje wordt sneller. Achter het station, bij de goederentrein!": {
-"src": "anita/het_piepje_wordt_sneller_achter__ab752fc0.mp3",
-"dur": 3.81
-},
 "Anita|Het piepje wordt sneller. Achter het station, bij de goederentrein. Perron 3.": {
 "src": "anita/het_piepje_wordt_sneller_achter__fe9a4987.mp3",
 "dur": 3.82
@@ -198,14 +150,6 @@
 "Anita|Hij grist de Eierbal!": {
 "src": "anita/hij_grist_de_eierbal_0e0d3417.mp3",
 "dur": 2.94
-},
-"Anita|Hij rent naar het Reitdiep, met zijn polsstok. Erachteraan!": {
-"src": "anita/hij_rent_naar_het_reitdiep_met_z_428dd9f2.mp3",
-"dur": 3.25
-},
-"Anita|Hij slingert! De vlaggetjes vliegen eraf.": {
-"src": "anita/hij_slingert_de_vlaggetjes_vlieg_10bf4aad.mp3",
-"dur": 3.14
 },
 "Anita|Hij slingert! Durk krijgt de zenuwen.": {
 "src": "anita/hij_slingert_durk_krijgt_de_zenu_2eb83310.mp3",
@@ -251,14 +195,6 @@
 "src": "anita/instappen_bij_roelf_spatie_omhoo_210daad1.mp3",
 "dur": 6.41
 },
-"Anita|Instappen! W/S hoogte, A/D opzij, Shift sneller. Achter die ballon aan.": {
-"src": "anita/instappen_w_s_hoogte_a_d_opzij_s_ecbe0dcd.mp3",
-"dur": 6.45
-},
-"Anita|Instappen, Femke heeft hem voor ons klaargezet. Daar gaat de tankwagen!": {
-"src": "anita/instappen_femke_heeft_hem_voor_o_90e18b04.mp3",
-"dur": 4.07
-},
 "Anita|Instappen, Femke heeft hem voor ons klaargezet. De tankwagen staat bij de groothandel.": {
 "src": "anita/instappen_femke_heeft_hem_voor_o_236f3cf4.mp3",
 "dur": 4.03
@@ -266,10 +202,6 @@
 "Anita|Instappen: de automaat ligt achterin, met mijn pas erin. Hij piept een beetje.": {
 "src": "anita/instappen_de_automaat_ligt_achte_0dda1f21.mp3",
 "dur": 4.33
-},
-"Anita|Instappen: de automaat ligt achterin. Hij piept een beetje.": {
-"src": "anita/instappen_de_automaat_ligt_achte_8c072a36.mp3",
-"dur": 3.41
 },
 "Anita|Jelle springt van boord! Aan wal, achter hem aan.": {
 "src": "anita/jelle_springt_van_boord_aan_wal__7c4de38f.mp3",
@@ -286,10 +218,6 @@
 "Anita|Jij stuurt, ik kijk achterom. Schud die pliesie af en leg aan bij het station. Daar zijn we gewoon reizigers.": {
 "src": "anita/jij_stuurt_ik_kijk_achterom_schu_d355fddb.mp3",
 "dur": 6.0
-},
-"Anita|Jij stuurt, ik kijk achterom. Schud die pliesie af, over het water.": {
-"src": "anita/jij_stuurt_ik_kijk_achterom_schu_9b927c94.mp3",
-"dur": 3.78
 },
 "Anita|Laat mij maar. Alle zekeringen tegelijk eruit.": {
 "src": "anita/laat_mij_maar_alle_zekeringen_te_eb1f8867.mp3",
@@ -311,14 +239,6 @@
 "src": "anita/met_drank_op_achter_het_stuur_de_c68d6051.mp3",
 "dur": 3.71
 },
-"Anita|Naar de brug naar het museumeiland. Rustig aan, blijf uit het licht.": {
-"src": "anita/naar_de_brug_naar_het_museumeila_6f4f2a7e.mp3",
-"dur": 5.75
-},
-"Anita|Naar de garage. Henk kijkt hem even na, daar staat hij veilig.": {
-"src": "anita/naar_de_garage_henk_kijkt_hem_ev_ffc34d22.mp3",
-"dur": 3.37
-},
 "Anita|Naar de groothandel aan de Bornholmstraat. Daar laden Durk en Douwe de tankwagen vol.": {
 "src": "anita/naar_de_groothandel_aan_de_bornh_b2e83b9b.mp3",
 "dur": 4.38
@@ -330,10 +250,6 @@
 "Anita|Naar het helidek van Rotor Roelf, op Eelde.": {
 "src": "anita/naar_het_helidek_van_rotor_roelf_6bfee9fd.mp3",
 "dur": 2.79
-},
-"Anita|Naar het helidek van het UMCG.": {
-"src": "anita/naar_het_helidek_van_het_umcg_b75b6fb5.mp3",
-"dur": 2.0
 },
 "Anita|Nait nou, die meeuw kiekt mit!": {
 "src": "anita/nait_nou_die_meeuw_kiekt_mit_3b702270.mp3",
@@ -423,10 +339,6 @@
 "src": "anita/te_laat_de_escapade_staat_al_op__4ca85458.mp3",
 "dur": 3.62
 },
-"Anita|Te laat: de Fjord staat al op de goederentrein naar Leeuwarden!": {
-"src": "anita/te_laat_de_fjord_staat_al_op_de__b849d0b2.mp3",
-"dur": 3.3
-},
 "Anita|Te vroeg! Lekker rap, maar de dienstregeling vindt je eng.": {
 "src": "anita/te_vroeg_lekker_rap_maar_de_dien_05b9aa3c.mp3",
 "dur": 2.89
@@ -450,10 +362,6 @@
 "Anita|Uitstappen. Dit doe je te voet.": {
 "src": "anita/uitstappen_dit_doe_je_te_voet_9d6dc4a4.mp3",
 "dur": 1.95
-},
-"Anita|Uitstappen: Dokter Dijkstra wacht bij de heli.": {
-"src": "anita/uitstappen_dokter_dijkstra_wacht_a87bb6bf.mp3",
-"dur": 2.19
 },
 "Anita|Uitstappen: Rotor Roelf wacht bij zijn heli.": {
 "src": "anita/uitstappen_rotor_roelf_wacht_bij_cfda0789.mp3",
@@ -491,10 +399,6 @@
 "src": "anita/ze_rijden_de_escapade_zo_de_goed_5001f153.mp3",
 "dur": 3.63
 },
-"Anita|Ze rijden de Fjord zo de goederentrein op! Die gaat naar Leeuwarden.": {
-"src": "anita/ze_rijden_de_fjord_zo_de_goedere_5cf4ce50.mp3",
-"dur": 3.37
-},
 "Anita|Zitmoi. Nu snap ik waarom ze hem zo noemen.": {
 "src": "anita/zitmoi_nu_snap_ik_waarom_ze_hem__e2e3fc9b.mp3",
 "dur": 2.74
@@ -503,21 +407,9 @@
 "src": "tammo/aangekomen_sjouw_alles_uit_het_b_5fb1e016.mp3",
 "dur": 2.97
 },
-"Tammo|Achter die tankwagen aan! Schieten mag, rammen mag. Maak zijn banden plat.": {
-"src": "tammo/achter_die_tankwagen_aan_schiete_24c61cc6.mp3",
-"dur": 3.91
-},
 "Tammo|Achter die trekker aan! Blijf erbij, ram hem als het kan. Niet schieten, er is kermis.": {
 "src": "tammo/achter_die_trekker_aan_blijf_erb_fd5b112c.mp3",
 "dur": 5.01
-},
-"Tammo|Achter die trekker aan! De pliesie rijdt ook mee. Ram of schiet zijn banden stuk.": {
-"src": "tammo/achter_die_trekker_aan_de_pliesi_743e132d.mp3",
-"dur": 4.38
-},
-"Tammo|Alarm! Drie sterren. Wegwezen, over het water als het kan.": {
-"src": "tammo/alarm_drie_sterren_wegwezen_over_04bf74c4.mp3",
-"dur": 4.3
 },
 "Tammo|Alarm! Het kussen was een drukplaat. Rennen, ik haal de boot!": {
 "src": "tammo/alarm_het_kussen_was_een_drukpla_09dabe32.mp3",
@@ -539,10 +431,6 @@
 "src": "tammo/au_vonken_nog_een_keer_rustig_23abfb3c.mp3",
 "dur": 2.91
 },
-"Tammo|Bewakers met zaklampen en draaiende camera's. Blijf uit de lichtbundels. Bukken (Ctrl) helpt bij de bewakers.": {
-"src": "tammo/bewakers_met_zaklampen_en_draaie_7448ff2d.mp3",
-"dur": 8.96
-},
 "Tammo|Boink! Die meeuw spreekt Fries.": {
 "src": "tammo/boink_die_meeuw_spreekt_fries_2abb9bb3.mp3",
 "dur": 2.19
@@ -555,10 +443,6 @@
 "src": "tammo/camera_s_op_herhaling_nu_de_acht_be674738.mp3",
 "dur": 3.25
 },
-"Tammo|Camera's uit. Naar binnen, naar de vitrine. Er loopt nog één bewaker.": {
-"src": "tammo/camera_s_uit_naar_binnen_naar_de_3b592670.mp3",
-"dur": 4.31
-},
 "Tammo|Chocola?!": {
 "src": "tammo/chocola_9cdab153.mp3",
 "dur": 0.76
@@ -566,10 +450,6 @@
 "Tammo|Daar vaart hij! Zwart skûtsje, rood zeil. Ga er vlak naast varen, dan spring je aan boord.": {
 "src": "tammo/daar_vaart_hij_zwart_sku_tsje_ro_e41cbb0f.mp3",
 "dur": 5.51
-},
-"Tammo|De Eierbal is terug!": {
-"src": "tammo/de_eierbal_is_terug_0a74d9c8.mp3",
-"dur": 1.28
 },
 "Tammo|De Entreehal. Eén bewaker loopt, één slaapt achter de balie. Druk op E, dan tik ik op het raam.": {
 "src": "tammo/de_entreehal_ee_n_bewaker_loopt__16b635cf.mp3",
@@ -579,17 +459,9 @@
 "src": "tammo/de_navigatie_stuurt_je_om_via_de_205a960a.mp3",
 "dur": 6.99
 },
-"Tammo|De stroomkast. Druk op Spatie als de naald in het groen staat. Drie zekeringen, dan draaien de camera's op herhaling.": {
-"src": "tammo/de_stroomkast_druk_op_spatie_als_53d1c090.mp3",
-"dur": 6.44
-},
 "Tammo|De stroomkast. Druk op Spatie als de naald in het groen staat. Drie zekeringen, dan hebben we drie minuten.": {
 "src": "tammo/de_stroomkast_druk_op_spatie_als_51c4169c.mp3",
 "dur": 5.8
-},
-"Tammo|De stroomkast. Druk op Spatie als de naald in het groen staat: drie zekeringen, drie camera's.": {
-"src": "tammo/de_stroomkast_druk_op_spatie_als_050eaae5.mp3",
-"dur": 5.94
 },
 "Tammo|De vitrine. Draai met A en D, voel de klik en zet hem vast met Spatie.": {
 "src": "tammo/de_vitrine_draai_met_a_en_d_voel_53067312.mp3",
@@ -602,10 +474,6 @@
 "Tammo|Durk en Douwe steken per ongeluk hun vuurwerk aan! Blijf bij de kraam en stap opzij als er een pijl aankomt.": {
 "src": "tammo/durk_en_douwe_steken_per_ongeluk_d25a3f74.mp3",
 "dur": 6.3
-},
-"Tammo|Durk en Douwe steken vuurwerk af! Blijf bij de kraam en stap opzij als er een pijl aankomt.": {
-"src": "tammo/durk_en_douwe_steken_vuurwerk_af_e45573ad.mp3",
-"dur": 4.74
 },
 "Tammo|Een meeuw! Hij wil je patat!": {
 "src": "tammo/een_meeuw_hij_wil_je_patat_3193d48a.mp3",
@@ -675,14 +543,6 @@
 "src": "tammo/henk_heeft_de_auto_klaargezet_in_d7a94fbf.mp3",
 "dur": 3.28
 },
-"Tammo|Henk heeft de auto klaargezet. Instappen, hij gaat richting het Reitdiep!": {
-"src": "tammo/henk_heeft_de_auto_klaargezet_in_ed669858.mp3",
-"dur": 3.37
-},
-"Tammo|Het piepje wordt sneller. Achter het station, bij de goederentrein!": {
-"src": "tammo/het_piepje_wordt_sneller_achter__5d96918a.mp3",
-"dur": 3.1
-},
 "Tammo|Het piepje wordt sneller. Achter het station, bij de goederentrein. Perron 3.": {
 "src": "tammo/het_piepje_wordt_sneller_achter__783e2e79.mp3",
 "dur": 3.57
@@ -694,18 +554,6 @@
 "Tammo|Hij is terug. Instappen, Tessa. Hij rijdt nog. Nauwelijks.": {
 "src": "tammo/hij_is_terug_instappen_tessa_hij_d728dcf8.mp3",
 "dur": 3.06
-},
-"Tammo|Hij is van ons. Instappen, Anita.": {
-"src": "tammo/hij_is_van_ons_instappen_anita_c323b87d.mp3",
-"dur": 2.16
-},
-"Tammo|Hij rent naar het Reitdiep, met zijn polsstok. Erachteraan!": {
-"src": "tammo/hij_rent_naar_het_reitdiep_met_z_d7da0aa9.mp3",
-"dur": 2.86
-},
-"Tammo|Hij slingert! De vlaggetjes vliegen eraf.": {
-"src": "tammo/hij_slingert_de_vlaggetjes_vlieg_43146420.mp3",
-"dur": 2.48
 },
 "Tammo|Hij slingert! Durk krijgt de zenuwen.": {
 "src": "tammo/hij_slingert_durk_krijgt_de_zenu_b2a528ef.mp3",
@@ -751,14 +599,6 @@
 "src": "tammo/instappen_bij_roelf_spatie_omhoo_a5b3da26.mp3",
 "dur": 5.61
 },
-"Tammo|Instappen! W/S hoogte, A/D opzij, Shift sneller. Achter die ballon aan.": {
-"src": "tammo/instappen_w_s_hoogte_a_d_opzij_s_5e40154c.mp3",
-"dur": 4.97
-},
-"Tammo|Instappen, Femke heeft hem voor ons klaargezet. Daar gaat de tankwagen!": {
-"src": "tammo/instappen_femke_heeft_hem_voor_o_d9d16dce.mp3",
-"dur": 3.72
-},
 "Tammo|Instappen, Femke heeft hem voor ons klaargezet. De tankwagen staat bij de groothandel.": {
 "src": "tammo/instappen_femke_heeft_hem_voor_o_918d41d0.mp3",
 "dur": 4.11
@@ -766,10 +606,6 @@
 "Tammo|Instappen: de automaat ligt achterin, met mijn pas erin. Hij piept een beetje.": {
 "src": "tammo/instappen_de_automaat_ligt_achte_3bae4d1b.mp3",
 "dur": 4.2
-},
-"Tammo|Instappen: de automaat ligt achterin. Hij piept een beetje.": {
-"src": "tammo/instappen_de_automaat_ligt_achte_8166055a.mp3",
-"dur": 3.56
 },
 "Tammo|Jelle springt van boord! Aan wal, achter hem aan.": {
 "src": "tammo/jelle_springt_van_boord_aan_wal__e6b33625.mp3",
@@ -786,10 +622,6 @@
 "Tammo|Jij stuurt, ik kijk achterom. Schud die pliesie af en leg aan bij het station. Daar zijn we gewoon reizigers.": {
 "src": "tammo/jij_stuurt_ik_kijk_achterom_schu_bf684798.mp3",
 "dur": 5.77
-},
-"Tammo|Jij stuurt, ik kijk achterom. Schud die pliesie af, over het water.": {
-"src": "tammo/jij_stuurt_ik_kijk_achterom_schu_eff245a5.mp3",
-"dur": 3.71
 },
 "Tammo|Laat mij maar. Alle zekeringen tegelijk eruit.": {
 "src": "tammo/laat_mij_maar_alle_zekeringen_te_582b0025.mp3",
@@ -811,14 +643,6 @@
 "src": "tammo/met_drank_op_achter_het_stuur_de_e881428d.mp3",
 "dur": 2.66
 },
-"Tammo|Naar de brug naar het museumeiland. Rustig aan, blijf uit het licht.": {
-"src": "tammo/naar_de_brug_naar_het_museumeila_27c786a4.mp3",
-"dur": 5.17
-},
-"Tammo|Naar de garage. Henk kijkt hem even na, daar staat hij veilig.": {
-"src": "tammo/naar_de_garage_henk_kijkt_hem_ev_f13ba404.mp3",
-"dur": 3.34
-},
 "Tammo|Naar de groothandel aan de Bornholmstraat. Daar laden Durk en Douwe de tankwagen vol.": {
 "src": "tammo/naar_de_groothandel_aan_de_bornh_c42fecbb.mp3",
 "dur": 4.24
@@ -830,10 +654,6 @@
 "Tammo|Naar het helidek van Rotor Roelf, op Eelde.": {
 "src": "tammo/naar_het_helidek_van_rotor_roelf_0fa8011d.mp3",
 "dur": 3.03
-},
-"Tammo|Naar het helidek van het UMCG.": {
-"src": "tammo/naar_het_helidek_van_het_umcg_61a06ded.mp3",
-"dur": 1.61
 },
 "Tammo|Nait nou, die meeuw kiekt mit!": {
 "src": "tammo/nait_nou_die_meeuw_kiekt_mit_7647bcda.mp3",
@@ -919,10 +739,6 @@
 "src": "tammo/te_laat_de_escapade_staat_al_op__8dce568b.mp3",
 "dur": 3.58
 },
-"Tammo|Te laat: de Fjord staat al op de goederentrein naar Leeuwarden!": {
-"src": "tammo/te_laat_de_fjord_staat_al_op_de__fa011930.mp3",
-"dur": 3.07
-},
 "Tammo|Te vroeg! Lekker rap, maar de dienstregeling vindt je eng.": {
 "src": "tammo/te_vroeg_lekker_rap_maar_de_dien_450aff67.mp3",
 "dur": 3.31
@@ -946,10 +762,6 @@
 "Tammo|Uitstappen. Dit doe je te voet.": {
 "src": "tammo/uitstappen_dit_doe_je_te_voet_3bdc2de9.mp3",
 "dur": 1.88
-},
-"Tammo|Uitstappen: Dokter Dijkstra wacht bij de heli.": {
-"src": "tammo/uitstappen_dokter_dijkstra_wacht_4614ed02.mp3",
-"dur": 2.38
 },
 "Tammo|Uitstappen: Rotor Roelf wacht bij zijn heli.": {
 "src": "tammo/uitstappen_rotor_roelf_wacht_bij_682e2734.mp3",
@@ -986,10 +798,6 @@
 "Tammo|Ze rijden de Escapade zo de goederentrein op! Die gaat naar Ljouwert.": {
 "src": "tammo/ze_rijden_de_escapade_zo_de_goed_65c1f5eb.mp3",
 "dur": 4.02
-},
-"Tammo|Ze rijden de Fjord zo de goederentrein op! Die gaat naar Leeuwarden.": {
-"src": "tammo/ze_rijden_de_fjord_zo_de_goedere_1679eb24.mp3",
-"dur": 3.09
 },
 "Tammo|Zitmoi. Nu snap ik waarom ze hem zo noemen.": {
 "src": "tammo/zitmoi_nu_snap_ik_waarom_ze_hem__91f00cbf.mp3",

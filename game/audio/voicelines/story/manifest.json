@@ -1,12 +1,4 @@
 {
-"Bommen Berend|Zo. Jullie zijn dat stel waar heel Grunn over kletst? Ik had er meer van verwacht.": {
-"src": "m0/intro_0_berend.mp3",
-"dur": 5.44
-},
-"Bommen Berend|Mien bakkie staat hier. Naar het Boterdiep ermee, en geen kras. Ik tel ze.": {
-"src": "m0/intro_1_berend.mp3",
-"dur": 4.52
-},
 "Anita|Ik rij.": {
 "src": "m0/intro_2_anita.mp3",
 "dur": 1.37
@@ -19,45 +11,9 @@
 "src": "m0/intro_4_anita.mp3",
 "dur": 4.18
 },
-"Bommen Berend|Vóór mijn koffie koud is. En hij daar blijft van de radio af.": {
-"src": "m0/intro_5_berend.mp3",
-"dur": 4.66
-},
-"Tammo|Ik blijf overal van af.": {
-"src": "m0/intro_6_tammo.mp3",
-"dur": 1.57
-},
-"Anita|Dat is nou precies je probleem, Tammo.": {
-"src": "m0/intro_7_anita.mp3",
-"dur": 2.51
-},
-"Bommen Berend|Hij staat er nog. Geen kras. Ik weet even niet wat ik moet zeggen.": {
-"src": "m0/outro_0_berend.mp3",
-"dur": 4.42
-},
-"Anita|Probeer eens: dank je, Berend.": {
-"src": "m0/outro_1_anita.mp3",
-"dur": 2.82
-},
-"Bommen Berend|…Dank je. Niet tegen de buren zeggen. Ik heb al sinds 1672 een reputatie.": {
-"src": "m0/outro_2_berend.mp3",
-"dur": 6.98
-},
-"Tammo|Wij zeggen nooit wat. Tegen elkaar al helemaal niet.": {
-"src": "m0/outro_3_tammo.mp3",
-"dur": 2.89
-},
 "Anita|Dit vertellen we Berend dus niet.": {
 "src": "m0/fail_0_anita.mp3",
 "dur": 1.96
-},
-"Tammo|Welke Berend? Welk bakkie?": {
-"src": "m0/fail_1_tammo.mp3",
-"dur": 1.95
-},
-"Jelmer|Jullie doen mee, toch? Content, jongens. Content!": {
-"src": "m1/intro_1_jelmer.mp3",
-"dur": 2.89
 },
 "Tammo|Ik ben geen content. Ik ben Tammo.": {
 "src": "m1/intro_2_tammo.mp3",
@@ -67,37 +23,9 @@
 "src": "m1/intro_3_anita.mp3",
 "dur": 3.21
 },
-"Tammo|Na Berends bakkie wilde ik eigenlijk een eierbal op de bank.": {
-"src": "m1/intro_4_tammo.mp3",
-"dur": 3.46
-},
-"Anita|Die eierbal moet je eerst verdienen. Hup.": {
-"src": "m1/intro_5_anita.mp3",
-"dur": 2.32
-},
-"Jelmer|Chat, zeg allemaal moi tegen Tammo!": {
-"src": "m1/intro_6_jelmer.mp3",
-"dur": 2.42
-},
 "Tammo|Nee.": {
 "src": "m1/intro_7_tammo.mp3",
 "dur": 0.61
-},
-"Jelmer|Tienduizend kijkers! De Martinitoren is trending!": {
-"src": "m1/outro_0_jelmer.mp3",
-"dur": 3.5
-},
-"Tammo|Zeg tegen de chat dat ik niet op de foto wil.": {
-"src": "m1/outro_1_tammo.mp3",
-"dur": 2.51
-},
-"Anita|Te laat. Je pet heeft al meer volgers dan jij.": {
-"src": "m1/outro_2_anita.mp3",
-"dur": 4.05
-},
-"Tammo|De pet blijft.": {
-"src": "m1/outro_3_tammo.mp3",
-"dur": 0.99
 },
 "Anita|Saai. Zelfs de duiven gaan weg.": {
 "src": "m1/fail_0_anita.mp3",
@@ -106,14 +34,6 @@
 "Tammo|Die zijn gewoon naar de Vismarkt.": {
 "src": "m1/fail_1_tammo.mp3",
 "dur": 1.57
-},
-"Sjoerd|KEI-week, man! De eerstejaars zeggen dat niemand hun rondje door de stad sneller rijdt.": {
-"src": "m2/intro_0_sjoerd.mp3",
-"dur": 4.64
-},
-"Sjoerd|Rondje vanaf het Academiegebouw. Winnaar krijgt eeuwige roem. En een bierviltje.": {
-"src": "m2/intro_1_sjoerd.mp3",
-"dur": 5.32
 },
 "Anita|Tammo heeft hier nog gestudeerd. Twee weken.": {
 "src": "m2/intro_2_anita.mp3",
@@ -131,26 +51,6 @@
 "src": "m2/intro_5_tammo.mp3",
 "dur": 1.37
 },
-"Sjoerd|Record! Jullie komen op het bierviltje! Achterkant, maar toch.": {
-"src": "m2/outro_0_sjoerd.mp3",
-"dur": 4.69
-},
-"Anita|Niet slecht voor drie weken studie.": {
-"src": "m2/outro_1_anita.mp3",
-"dur": 2.81
-},
-"Tammo|Ik heb veel geleerd, toen.": {
-"src": "m2/outro_2_tammo.mp3",
-"dur": 1.96
-},
-"Anita|Zoals?": {
-"src": "m2/outro_3_anita.mp3",
-"dur": 0.81
-},
-"Tammo|Dat ik bij jou in de buurt moet blijven.": {
-"src": "m2/outro_4_tammo.mp3",
-"dur": 1.8
-},
 "Tammo|Eerstejaars. Die hebben nog energie.": {
 "src": "m2/fail_0_tammo.mp3",
 "dur": 2.62
@@ -158,42 +58,6 @@
 "Anita|En ouders die de huur betalen.": {
 "src": "m2/fail_1_anita.mp3",
 "dur": 1.98
-},
-"Femke|Gelukkig, jullie zijn er! Het hele decor ligt nog hier in de auto.": {
-"src": "m3/intro_0_femke.mp3",
-"dur": 3.81
-},
-"Femke|Zo begint het in het Noorderplantsoen. Zonder decor is het gewoon picknicken.": {
-"src": "m3/intro_1_femke.mp3",
-"dur": 4.04
-},
-"Tammo|Wij hebben geen rijbewijs voor theater.": {
-"src": "m3/intro_2_tammo.mp3",
-"dur": 1.89
-},
-"Anita|Hij bedoelt: komt goed. Hij wordt altijd een beetje nerveus van kunst.": {
-"src": "m3/intro_3_anita.mp3",
-"dur": 4.36
-},
-"Tammo|Ik ben niet nerveus. Ik ben… aandachtig.": {
-"src": "m3/intro_4_tammo.mp3",
-"dur": 3.29
-},
-"Femke|Rijden! Het publiek zit al op z'n meegebrachte kussentje!": {
-"src": "m3/intro_5_femke.mp3",
-"dur": 3.38
-},
-"Femke|Het decor staat! Komen jullie vanavond kijken? Het is een stuk over wind.": {
-"src": "m3/outro_0_femke.mp3",
-"dur": 4.38
-},
-"Anita|Tammo houdt niet van theater.": {
-"src": "m3/outro_1_anita.mp3",
-"dur": 2.21
-},
-"Tammo|Wel als jij naast me zit.": {
-"src": "m3/outro_2_tammo.mp3",
-"dur": 1.34
 },
 "Anita|…Zei je dat nou hardop?": {
 "src": "m3/outro_3_anita.mp3",
@@ -211,49 +75,13 @@
 "src": "m3/fail_1_tammo.mp3",
 "dur": 2.73
 },
-"Harm|Twintig jaar heb ik aan die ringweg gewerkt. Mijn kleinzoon denkt dat ik een pion ben.": {
-"src": "m4/intro_0_harm.mp3",
-"dur": 4.93
-},
 "Harm|Eén rondje om de stad, vol gas. Als de weg het houdt, mag ik eindelijk met pensioen.": {
 "src": "m4/intro_1_harm.mp3",
 "dur": 5.33
 },
-"Anita|Een rondje? Is dat alles?": {
-"src": "m4/intro_2_anita.mp3",
-"dur": 2.19
-},
-"Tammo|Bij het Noorderplantsoen trok jij me nog net voor die bus weg.": {
-"src": "m4/intro_3_tammo.mp3",
-"dur": 2.76
-},
-"Anita|Anders was je nu een bushaltebordje. Gordel om.": {
-"src": "m4/intro_4_anita.mp3",
-"dur": 3.05
-},
-"Tammo|Ik had hem heus wel gezien. Ik liet hem gewoon voorgaan.": {
-"src": "m4/intro_5_tammo.mp3",
-"dur": 2.74
-},
-"Harm|Hij ligt er nog! Ik ga met pensioen! Eindelijk mag ik er zelf overheen!": {
-"src": "m4/outro_0_harm.mp3",
-"dur": 5.83
-},
-"Tammo|Die laatste bocht was spannend.": {
-"src": "m4/outro_1_tammo.mp3",
-"dur": 1.82
-},
-"Anita|Je pakte mijn hand.": {
-"src": "m4/outro_2_anita.mp3",
-"dur": 1.49
-},
 "Tammo|Voor de grip.": {
 "src": "m4/outro_3_tammo.mp3",
 "dur": 0.86
-},
-"Anita|Natuurlijk, Tammo. Voor de grip.": {
-"src": "m4/outro_4_anita.mp3",
-"dur": 2.29
 },
 "Tammo|De weg is klaar. Wij nog niet.": {
 "src": "m4/fail_0_tammo.mp3",
@@ -263,14 +91,6 @@
 "src": "m4/fail_1_anita.mp3",
 "dur": 2.6
 },
-"Geert|Vier kroegen, één avond, alles te voet. Wie het haalt, komt bij mij aan de muur.": {
-"src": "m5/intro_0_geert.mp3",
-"dur": 5.51
-},
-"Geert|En Anita: mijn nieuwe barman wil heel graag je nummer.": {
-"src": "m5/intro_1_geert.mp3",
-"dur": 3.7
-},
 "Tammo|Die barman heeft het druk.": {
 "src": "m5/intro_2_tammo.mp3",
 "dur": 1.4
@@ -279,33 +99,13 @@
 "src": "m5/intro_3_anita.mp3",
 "dur": 2.75
 },
-"Tammo|Sinds nu. En we lopen, hè. Niemand rijdt vanavond.": {
-"src": "m5/intro_4_tammo.mp3",
-"dur": 2.86
-},
 "Anita|Jaloers én verantwoordelijk. Wat heb je met Tammo gedaan?": {
 "src": "m5/intro_5_anita.mp3",
 "dur": 5.08
 },
-"Geert|Alle vier! Morgen hangen jullie aan de muur. Naast de wc, maar toch.": {
-"src": "m5/outro_0_geert.mp3",
-"dur": 4.86
-},
-"Anita|Die barman was best leuk.": {
-"src": "m5/outro_1_anita.mp3",
-"dur": 4.26
-},
-"Tammo|Hij had een snor.": {
-"src": "m5/outro_2_tammo.mp3",
-"dur": 1.15
-},
 "Anita|Ik hou niet van snorren. Ik hou van petten.": {
 "src": "m5/outro_3_anita.mp3",
 "dur": 2.42
-},
-"Tammo|…Goed om te weten. Eierbal?": {
-"src": "m5/outro_4_tammo.mp3",
-"dur": 2.11
 },
 "Anita|Drie kroegen is ook een tocht.": {
 "src": "m5/fail_0_anita.mp3",
@@ -315,54 +115,6 @@
 "src": "m5/fail_1_tammo.mp3",
 "dur": 1.76
 },
-"Oma Trijntje|Die fatbikes! Ze scheuren over het fietspad alsof heel Grunn van hen is.": {
-"src": "m6/intro_0_trijntje.mp3",
-"dur": 5.02
-},
-"Oma Trijntje|Loop jij daar heelhuids overheen, dan laat ik de gemeente een filmpje zien.": {
-"src": "m6/intro_1_trijntje.mp3",
-"dur": 4.63
-},
-"Anita|Ik loop wel.": {
-"src": "m6/intro_2_anita.mp3",
-"dur": 1.71
-},
-"Tammo|Nee, ik loop. Jij hebt al eens een bus voor me tegengehouden.": {
-"src": "m6/intro_3_tammo.mp3",
-"dur": 3.21
-},
-"Anita|Dat was een bus, Tammo. Dit zijn pubers op dikke banden.": {
-"src": "m6/intro_4_anita.mp3",
-"dur": 4.12
-},
-"Tammo|Juist daarom.": {
-"src": "m6/intro_5_tammo.mp3",
-"dur": 0.88
-},
-"Oma Trijntje|Ach, wat een lieverd. Hou dij goud, jong.": {
-"src": "m6/intro_6_trijntje.mp3",
-"dur": 3.03
-},
-"Oma Trijntje|Heelhuids! Dat filmpje gaat naar de gemeenteraad. En naar mijn bridgeclub.": {
-"src": "m6/outro_0_trijntje.mp3",
-"dur": 5.22
-},
-"Anita|Je had kunnen vallen, sukkel.": {
-"src": "m6/outro_1_anita.mp3",
-"dur": 1.76
-},
-"Tammo|Maar ik viel niet.": {
-"src": "m6/outro_2_tammo.mp3",
-"dur": 0.82
-},
-"Anita|Nooit meer zonder mij.": {
-"src": "m6/outro_3_anita.mp3",
-"dur": 3.11
-},
-"Tammo|Afgesproken. Voortaan vallen we samen.": {
-"src": "m6/outro_4_tammo.mp3",
-"dur": 2.52
-},
 "Tammo|Au. Ik heb nu profiel op mijn rug.": {
 "src": "m6/fail_0_tammo.mp3",
 "dur": 2.49
@@ -371,29 +123,9 @@
 "src": "m6/fail_1_anita.mp3",
 "dur": 2.89
 },
-"Kapitein Klaas|Die rondvaartboot is… tijdelijk van niemand. Jullie varen, ik kijk de andere kant op.": {
-"src": "m7/intro_0_klaas.mp3",
-"dur": 5.37
-},
-"Kapitein Klaas|Eén rondje over de Diepenring. Doe alsof je gids bent, dan vraagt niemand iets.": {
-"src": "m7/intro_1_klaas.mp3",
-"dur": 4.81
-},
-"Anita|Tammo als gids. Dit wil ik zien.": {
-"src": "m7/intro_2_anita.mp3",
-"dur": 3.22
-},
 "Tammo|Links ziet u Grunn. Rechts ziet u ook Grunn.": {
 "src": "m7/intro_3_tammo.mp3",
 "dur": 3.48
-},
-"Anita|En onder ons?": {
-"src": "m7/intro_4_anita.mp3",
-"dur": 0.89
-},
-"Tammo|Vierduizend fietsen. Eentje is van mij.": {
-"src": "m7/intro_5_tammo.mp3",
-"dur": 2.43
 },
 "Tammo|Weet je nog, Berends bakkie? Toen kreeg ik de sleutels niet eens.": {
 "src": "m7/outro_0_tammo.mp3",
@@ -406,14 +138,6 @@
 "Tammo|Maar de rest wel?": {
 "src": "m7/outro_2_tammo.mp3",
 "dur": 1.07
-},
-"Anita|De rest wel. Wij tweeën tegen Grunn.": {
-"src": "m7/outro_3_anita.mp3",
-"dur": 4.05
-},
-"Tammo|Wij tweeën tegen Grunn. En daarna een eierbal.": {
-"src": "m7/outro_4_tammo.mp3",
-"dur": 2.52
 },
 "Anita|Gids zijn is moeilijker dan het lijkt.": {
 "src": "m7/fail_0_anita.mp3",
@@ -555,85 +279,9 @@
 "src": "duo/s7/outro_1_tammo.mp3",
 "dur": 1.61
 },
-"Anita|Zeg eens eerlijk, Tammo…": {
-"src": "intro/00_anita.mp3",
-"dur": 1.67
-},
-"Anita|…wil je later zeggen dat je het nooit geprobeerd hebt?": {
-"src": "intro/01_anita.mp3",
-"dur": 2.76
-},
-"Anita|Rennen, Tammo!": {
-"src": "intro/02_anita.mp3",
-"dur": 1.2
-},
-"Tammo|Ik rén. Zo ren ik nou eenmaal.": {
-"src": "intro/03_tammo.mp3",
-"dur": 1.96
-},
-"Tammo|Als dit misgaat…": {
-"src": "intro/04_tammo.mp3",
-"dur": 1.53
-},
-"Anita|Dan gaat het tenminste mis met stijl.": {
-"src": "intro/05_anita.mp3",
-"dur": 2.42
-},
-"Tammo|Moi. Stijl.": {
-"src": "intro/06_tammo.mp3",
-"dur": 1.54
-},
-"Anita|Iedereen in Grunn heeft een droom.": {
-"src": "intro/07_anita.mp3",
-"dur": 1.98
-},
-"Anita|De mijne heeft vier wielen en geen kenteken.": {
-"src": "intro/08_anita.mp3",
-"dur": 3.59
-},
-"Tammo|Moi. Wij kwamen alleen even pinnen.": {
-"src": "intro/09_tammo.mp3",
-"dur": 2.01
-},
-"Anita|Pinnen, ja. Met de hele automaat.": {
-"src": "intro/10_anita.mp3",
-"dur": 2.6
-},
-"Anita|Gas d’r op, schat!": {
-"src": "intro/11_anita.mp3",
-"dur": 1.3
-},
-"Tammo|Dit ís gas d’r op.": {
-"src": "intro/12_tammo.mp3",
-"dur": 1.53
-},
-"Anita|Kijk dan. Heel Grunn.": {
-"src": "intro/13_anita.mp3",
-"dur": 2.27
-},
-"Tammo|Ziet er van hier best rustig uit.": {
-"src": "intro/14_tammo.mp3",
-"dur": 1.66
-},
-"Anita|Nog wel.": {
-"src": "intro/15_anita.mp3",
-"dur": 0.81
-},
-"Anita|Tijdelijk van niemand. En wie is niemand?": {
-"src": "m7/intro_4_anita_b.mp3",
-"dur": 2.77
-},
 "Kapitein Klaas|Schipper Wiebe. Die zit tot vieren in de kroeg. Meestal.": {
 "src": "m7/intro_5_klaas_b.mp3",
 "dur": 4.23
-},
-"Kapitein Klaas|Komt hij toch: Wiebe kent elke brug blind. Behalve die bij het museum. Die is nieuw, pas dertig jaar.": {
-"src": "m7/intro_6_klaas_b.mp3",
-"dur": 7.12
-},
-"Tammo|Dus als het misgaat, varen we heel hard naar het museum.": {
-"src": "m7/intro_7_tammo_b.mp3",
-"dur": 3.15
 },
 "Schipper Wiebe (megafoon)|HÉ! DAT IS MIEN BOOT! KLAAS, IK WEET DAT JIJ DIT BENT!": {
 "src": "m7/wiebe_00.mp3",
