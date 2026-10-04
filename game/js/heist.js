@@ -39,7 +39,8 @@ const PICK_MISSES = 6;
 const FUSES = 3;
 const SEEN_DELAY = 0.9;
 const ZAP_DELAY = 0.7;
-const LASER_HELP = 3;
+const LASER_HELP = 2;
+const LASER_BAND = 0.22;
 const LASER_ALL_OFF = 6;
 const PICK_TIME = 1.6;
 const PICK_REACH = 1.5;
@@ -69,6 +70,8 @@ export const GUARD_LINES = {
 };
 
 let H = null;
+// the plan's talk was heard this session: a retry skips it
+let planHeard = false;
 
 // --- the museum in room coordinates (museumplan.js) --------------------------------
 
@@ -199,6 +202,9 @@ export function startHeist(world) {
   setMuseumLights(true, 0);
   return H;
 }
+
+// sent back by a guard, a camera or a laser: H6's three minutes wait meanwhile
+export function heistSendingBack() { return !!(H && (H.seen || H.zap)); }
 
 export function heistApproach() { return H ? H.approach : 'sluip'; }
 
@@ -763,6 +769,8 @@ export function updatePlanStage(dt, world, st, S, def) {
     if (isCinematicActive()) return false;
     S.phase = 'talk';
     UI.showPlan(planData(world, def));
+    // a retry: the blueprint again, straight to the choice
+    if (planHeard) { S.phase = 'choose'; return false; }
     const focus = new Map((st.lines || []).map(([, text, o]) => [text, o && o.focus]));
     // the two of them on the left of the frame, the blueprint on the right
     const p = world.player;
@@ -785,6 +793,7 @@ export function updatePlanStage(dt, world, st, S, def) {
     S.phase = 'choose';
   }
   if (S.phase === 'choose') {
+    planHeard = true;
     if (!S.choosing) {
       S.choosing = true;
       holdPlayer(world, true);
@@ -994,20 +1003,32 @@ function lasersOff() {
   H.lasers.dying = true;
 }
 
+// What the next live row ahead asks of you, as a key chip over your head.
+function laserPrompt(L, p, q, t) {
+  const row = L.rows.filter((r) => !r.dead && r.c > q.c - LASER_BAND && r.c - q.c < 2.6).sort((a, b) => a.c - b.c)[0];
+  if (!row) return null;
+  const base = { id: 'heist-laser-' + row.kind, x: p.x, y: p.y, h: 2.3, ring: true };
+  if (row.kind === 'high') return { ...base, key: 'CTRL', label: 'Bukken', sub: 'Ingedrukt houden onder de hoge lasers' };
+  if (row.kind === 'low') return { ...base, key: 'SPATIE', label: 'Springen', sub: 'Over de lage laser' };
+  if (row.kind === 'blink') return { ...base, label: rowActive(row, t) ? 'Wachten…' : 'Nu door!', sub: 'Loop als hij uit is' };
+  return { ...base, label: 'Door het gat', sub: 'Loop mee met het gat in de lasers' };
+}
+
 // Returns true once the player stands by the case.
 export function updateLasers(dt, world, target) {
   if (!H) return true;
   if (!H.lasers) buildLasers();
   const p = world.player;
   const L = H.lasers;
-  if (target && dist(p.x, p.y, target.x, target.y) < 1.0) return true;
-  if (p.inVehicle || H.zap) return false;
+  if (target && dist(p.x, p.y, target.x, target.y) < 1.2) { world.missionPrompt = null; return true; }
+  if (p.inVehicle || H.zap) { world.missionPrompt = null; return false; }
   const q = toLocal('zaal3', p.x, p.y);
-  if (Math.abs(q.a) > ROOM('zaal3').hl + 0.5 || Math.abs(q.c) > ROOM('zaal3').hw + 0.5) return false;
+  if (Math.abs(q.a) > ROOM('zaal3').hl + 0.5 || Math.abs(q.c) > ROOM('zaal3').hw + 0.5) { world.missionPrompt = null; return false; }
+  world.missionPrompt = laserPrompt(L, p, q, world.time);
   const bottom = p.z || 0, top = bottom + (p.crouching ? 1.0 : 1.72);
   for (const row of L.rows) {
-    if (Math.abs(q.c - row.c) > 0.3 || !rowActive(row, world.time)) continue;
-    const inGap = row.kind === 'sweep' && Math.abs(q.a - row.gapA) < row.gap / 2 - 0.28;
+    if (Math.abs(q.c - row.c) > LASER_BAND || !rowActive(row, world.time)) continue;
+    const inGap = row.kind === 'sweep' && Math.abs(q.a - row.gapA) < row.gap / 2 - 0.2;
     if (inGap) continue;
     if (!row.hs.some((h) => bottom < h + 0.05 && top > h - 0.05)) continue;
     row.hits++;
@@ -1024,7 +1045,7 @@ export function updateLasers(dt, world, target) {
       worst.dead = true;
       for (const b of worst.beams) for (const s of b.segs) s.visible = false;
       world.addMessage('Ik zie een kastje met LASER erop. Ik druk gewoon op alles.', 3.5);
-    } else world.addMessage('Piep! Die laser zag je. Terug naar het begin.', 2.5);
+    } else world.addMessage('Piep! Die laser zag je. Terug naar het begin. Kijk boven je hoofd wat de volgende laser vraagt.', 3);
     return false;
   }
   return false;
