@@ -17,6 +17,9 @@ nieuwe functies, `y` voor alleen bugfixes.
   verhoogde stukken van de ring en op hellingen hing de lichtbundel niet meer
   op straatniveau of in de lucht, maar volgt hij de hoogte en helling van de
   auto. Verkeer uit het Ommeland keert nu om voor het de stad in rijdt.
+- **Uit het water klimmen doe je nu met Spatie** (A op de controller). E is
+  voor instappen: zwem je naast een boot langs de kade, dan klim je met Spatie
+  de kade op en met E aan boord, in plaats van per ongeluk in de boot.
 
 ## [0.26.1] - 2026-10-04
 

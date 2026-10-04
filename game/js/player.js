@@ -114,6 +114,8 @@ export class Player {
       } else if (this.inVehicle) this.tryEnterExit(map, vehicles, world);
       else if (!inHomeFlat()) this.interact(world);
     }
+    // Space (A) climbs out of the water; E stays for boarding a boat
+    if (input.wasPressed(' ') && this.water === 'swim' && !this.inVehicle && this.climbSpot) this.startClimb(this.climbSpot);
     // kissing has its own key (K): E next to a car used to kiss instead of
     // getting in whenever the companion stood close
     if (input.wasPressed('k') && !this.inVehicle && !this.water) this.tryKiss(world);
@@ -419,6 +421,7 @@ export class Player {
       this.enterVehicle(boat, world);
       return;
     }
+    // no boat in reach: E still climbs out, as it used to
     if (this.climbSpot) this.startClimb(this.climbSpot);
   }
 
