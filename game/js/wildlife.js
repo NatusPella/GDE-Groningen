@@ -5,6 +5,7 @@ import { setLeashHolder, setPeopleWeather } from './models3d_people.js';
 import { resolveWalker } from './collision.js';
 import { pushCircleOutOfVehicle, vehicleHitBody } from './vehicle.js';
 import { splatterAnimal, GIB_SPEED } from './gore3d.js';
+import { MODS } from './cheatmods.js';
 
 // Ambient GTA6-marketing-parody wildlife: seagulls over the Diepenring,
 // ducks and geese on the canals, pigeon flocks on the squares, the odd
@@ -269,7 +270,7 @@ function maintain(world) {
     for (let k = 0; k < herd && count.grazer + k < LIMITS.grazer; k++) list.push(newGrazer(kind, hx + k * 1.5, hy + k * 0.8, rng));
   }
   if (count.duck < LIMITS.duck - 1 && waterPolys.length) list.push(...spawnDucks(map, player.x, player.y, rng));
-  if (count.pigeon < LIMITS.pigeon - 5) list.push(...spawnPigeonFlock(map, player.x, player.y, rng));
+  if (count.pigeon < LIMITS.pigeon * MODS.pigeons - 5) list.push(...spawnPigeonFlock(map, player.x, player.y, rng));
   if (count.cat < LIMITS.cat && rng() < 0.35) list.push(...spawnCat(map, player.x, player.y, rng));
   if (count.dog < LIMITS.dog && rng() < 0.5) list.push(...spawnDog(world, rng));
 }

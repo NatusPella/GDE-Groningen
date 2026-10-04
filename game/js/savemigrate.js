@@ -12,8 +12,9 @@
 //   fixtures in scripts/fixtures/saves/ through it.
 import { RETIRED_STEPS, STEP_BY_ID, MISSION_IDS, nextStoryStep } from './storyarc.js';
 import { normalizeRadio } from './musicpick.js';
+import { cheatUnlocksFromSave } from './cheatlist.js';
 
-export const SAVE_VERSION = 4;
+export const SAVE_VERSION = 5;
 export const SETTINGS_VERSION = 7;
 
 const isObj = (o) => !!o && typeof o === 'object' && !Array.isArray(o);
@@ -67,9 +68,15 @@ export const SAVE_MIGRATIONS = {
     if ('radio' in d) d.radio = normalizeRadio(d.radio);
     return d;
   },
-  // 0.27: the game is 18+ and people die again; the knockout counters go
-  // back to kills. A wrecked police car counted as a cop kill before 0.24.
+  // 0.28: the streken (cheats.js); an older save gets the ones its story
+  // has already earned, none switched on
   3(d) {
+    if (!isObj(d.streken)) d.streken = { v: 1, unlocked: cheatUnlocksFromSave(d), on: [], used: [] };
+    return d;
+  },
+  // 0.28: the game is 18+ and people die again; the knockout counters go
+  // back to kills. A wrecked police car counted as a cop kill before 0.24.
+  4(d) {
     const s = d.stats;
     const KO = ['knockouts', 'pedKnockouts', 'copKnockouts', 'copCarsWrecked'];
     if (!isObj(s) || !KO.some((k) => k in s)) return d;
