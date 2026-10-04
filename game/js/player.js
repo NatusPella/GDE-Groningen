@@ -1,4 +1,5 @@
 import { closestPointOnSegment, normalizeAngle, pointInPolygon, isInWater, inWaterPoly, WATER_Y, clamp, keepBoatOffShore } from './util.js';
+import { wallAhead } from './countrywalls.js';
 import { waterClearance, pushOutOfWaterObstacles, insideWaterObstacle } from './waterindex.js';
 import { findEnterableVehicle, distToVehicleBody, resolveBoomCollisions, resolveVehicleBuildingCollision, pushCircleOutOfVehicle, reportImpact, tickSinkingVehicles } from './vehicle.js';
 import { findRideableProp, rideProp } from './rideprops.js';
@@ -231,6 +232,9 @@ export class Player {
     if (ob && ob.prop && ob.prop.top != null && this.gz + this.z > ob.prop.top - 0.3) ob = null;
     const rail = railingAhead(map, this.x, this.y, dx, dy, reach);
     if (rail && (!ob || rail.dist < ob.dist)) ob = rail;
+    // the hedges and wire fences of the Ommeland fields
+    const fence = this.gz < 0.5 ? wallAhead(this.x, this.y, dx, dy, reach, this.radius * 0.6) : null;
+    if (fence && (!ob || fence.dist < ob.dist)) ob = fence;
     const car = this.vehicleAhead(world, dx, dy, reach);
     if (car && (!ob || car.dist < ob.dist)) ob = car;
     // already above it (hopping off a car roof): nothing to vault

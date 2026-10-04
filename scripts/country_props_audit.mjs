@@ -89,6 +89,32 @@ for (const [k, P] of Object.entries(per).sort((a, b) => b[1].road - a[1].road ||
 }
 console.log(`TOTAL on road ${onRoad}, in shoulder ${shoulder}`);
 
+// the hedges and fences as walls (countrywalls.js): vaultable, off the
+// roads, and a walker is held back by them
+const CW = await import('../game/js/countrywalls.js');
+const { vaultDecision } = await import('../game/js/vaultkit.js');
+let walls = 0, wallRoad = 0, notVault = 0, held = 0, tested = 0;
+for (const [tx, ty] of tiles.slice(0, 200)) {
+  const W = countryTileItems(tx, ty).walls || [];
+  CW.setTileWalls(tx, ty, W);
+  for (let k = 0; k < W.length; k += 6) {
+    walls++;
+    if (roadGap((W[k] + W[k + 2]) / 2, (W[k + 1] + W[k + 3]) / 2, 2) < 0) wallRoad++;
+    if (vaultDecision(W[k + 4], { landing: {} }) !== 'vault') notVault++;
+    if (k % 60 === 0) {
+      // walk straight at the middle of the wall: stopped short of it
+      const mx = (W[k] + W[k + 2]) / 2, my = (W[k + 1] + W[k + 3]) / 2, l = Math.hypot(W[k + 2] - W[k], W[k + 3] - W[k + 1]) || 1;
+      const nx = -(W[k + 3] - W[k + 1]) / l, ny = (W[k + 2] - W[k]) / l;
+      const o = { x: mx + nx * 0.05, y: my + ny * 0.05 };
+      tested++;
+      if (CW.pushOutOfWalls(o, 0.35) && CW.wallAhead(mx + nx * 1.2, my + ny * 1.2, -nx, -ny, 1.3, 0.2)) held++;
+    }
+  }
+  CW.clearTileWalls(tx, ty);
+}
+console.log(`WALLS ${walls} hedge/fence pieces in 200 tiles, ${wallRoad} on a road, ${notVault} not vaultable, ${held}/${tested} block a walker and are found ahead`);
+if (wallRoad || notVault || held < tested) process.exitCode = 1;
+
 // the real building boxes (countryreal.js) left in the tiles after
 // countryedge.js clearRealBuildings: none may stand on a road
 let bOn = 0, bN = 0;
@@ -102,4 +128,4 @@ for (const L of REAL.bTiles.values()) {
 const fx = EDGE.buildingFix || {};
 console.log(`BUILDINGS ${bN} in the Ommeland, ${bOn} on a road (load-time fix: ${fx.clipped} shortened, ${fx.dropped} dropped of ${fx.checked}, in ${fx.ms} ms, ${fx.sampled} sampled)`);
 if (LIST) for (const b of bad.slice(0, 40)) console.log('  ', b[0], b[1].toFixed(1), b[2].toFixed(1), 'gap', b[3].toFixed(2));
-process.exit(onRoad > MAX || bOn > BMAX ? 1 : 0);
+process.exit(onRoad > MAX || bOn > BMAX || process.exitCode ? 1 : 0);
