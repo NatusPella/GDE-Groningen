@@ -1,0 +1,68 @@
+/* The pause menu is the unfolded Pixie Vouw 11 (pausemenu.js): a wide
+   foldable with slim bezels, a crease down the middle, a punch-hole camera
+   and a phone status bar. The city stays visible behind it, blurred. */
+#pause-menu.visible:not(.prestart) { -webkit-backdrop-filter: blur(7px) saturate(0.85) brightness(0.82); backdrop-filter: blur(7px) saturate(0.85) brightness(0.82); }
+
+#pause-menu .pm-fold {
+  flex: 1; min-height: 0; display: flex; flex-direction: column; position: relative;
+  margin: clamp(6px, 2.2vh, 24px) clamp(6px, 2vw, 30px);
+  border-radius: 30px; overflow: hidden;
+  border: 8px solid #0e1310;
+  background: linear-gradient(180deg, rgba(6, 11, 8, 0.34), rgba(6, 11, 8, 0.2));
+  box-shadow: 0 0 0 1.5px #2b332d, 0 0 0 3.5px #070a08, 0 28px 80px rgba(0, 0, 0, 0.55), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+  transform-origin: 50% 55%;
+}
+#pause-menu.visible .pm-fold { animation: pm-unfold 220ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+@keyframes pm-unfold {
+  from { transform: perspective(2400px) scaleX(0.5) scaleY(0.97); opacity: 0.4; filter: brightness(0.55); }
+}
+html.reduce-motion #pause-menu.visible .pm-fold { animation: none; }
+/* the title screen's settings: just the screen, no phone */
+#pause-menu.prestart .pm-fold { margin: 0; border: 0; border-radius: 0; box-shadow: none; background: none; }
+#pause-menu.prestart .pm-statusbar, #pause-menu.prestart .pm-hinge { display: none; }
+
+/* the crease: barely there, a little light on either side */
+#pause-menu .pm-hinge {
+  position: absolute; top: 0; bottom: 0; left: 50%; width: 18px; margin-left: -9px; pointer-events: none; z-index: 5;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.025) 35%, rgba(0, 0, 0, 0.2) 50%, rgba(255, 255, 255, 0.025) 65%, transparent);
+}
+#pause-menu .pm-fold::before, #pause-menu .pm-fold::after {
+  content: ''; position: absolute; left: 50%; width: 22px; height: 4px; margin-left: -11px; background: #070a08; border-radius: 2px; z-index: 6; pointer-events: none;
+}
+#pause-menu .pm-fold::before { top: -2px; }
+#pause-menu .pm-fold::after { bottom: -2px; }
+
+/* status bar: time and day left, the camera on the right half, then the radio, who you are, signal and battery */
+#pause-menu .pm-statusbar {
+  zoom: var(--ui, 1); flex: none; position: relative; display: flex; align-items: center; gap: 12px; height: 26px; padding: 0 18px;
+  font: 13px 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.3px; color: rgba(240, 237, 228, 0.72);
+}
+#pause-menu .pm-sb-l { display: flex; gap: 8px; align-items: baseline; flex: 1; min-width: 0; white-space: nowrap; }
+#pause-menu .pm-sb-l b { font-weight: bold; color: var(--pm-ink); font-variant-numeric: tabular-nums; }
+#pause-menu .pm-sb-r { display: flex; gap: 10px; align-items: center; flex: 1; min-width: 0; justify-content: flex-end; white-space: nowrap; }
+#pause-menu .pm-sb-r [data-sb="music"] { overflow: hidden; text-overflow: ellipsis; max-width: 34vw; color: var(--pm-acc); }
+#pause-menu .pm-sb-r [data-sb="music"]:empty { display: none; }
+#pause-menu .pm-sb-c { position: absolute; left: 75%; top: 50%; transform: translate(-50%, -50%); }
+#pause-menu .pm-sb-cam { display: block; width: 9px; height: 9px; border-radius: 50%; background: #030504; box-shadow: 0 0 0 2px #151b17, inset 1px 1px 2px rgba(120, 160, 200, 0.35); }
+#pause-menu .pm-sb-sig { display: inline-flex; align-items: flex-end; gap: 1.5px; height: 10px; }
+#pause-menu .pm-sb-sig i { width: 2.5px; background: currentColor; border-radius: 1px; }
+#pause-menu .pm-sb-sig i:nth-child(1) { height: 3px; } #pause-menu .pm-sb-sig i:nth-child(2) { height: 5px; }
+#pause-menu .pm-sb-sig i:nth-child(3) { height: 7.5px; } #pause-menu .pm-sb-sig i:nth-child(4) { height: 10px; opacity: 0.35; }
+#pause-menu .pm-sb-batt { position: relative; width: 19px; height: 9px; border: 1.2px solid currentColor; border-radius: 2.5px; box-sizing: border-box; }
+#pause-menu .pm-sb-batt::after { content: ''; position: absolute; right: -3.5px; top: 2px; width: 2px; height: 3px; background: currentColor; border-radius: 0 1px 1px 0; }
+#pause-menu .pm-sb-batt i { position: absolute; inset: 1px 5px 1px 1px; background: var(--pm-acc); border-radius: 1px; }
+
+/* Telefoon: contacts and threads in Te doen's cards, the call or thread beside them */
+#pause-menu .ph-av { border-radius: 50%; font-size: 22px; letter-spacing: 1px; color: var(--pm-acc); background: radial-gradient(circle at 30% 25%, rgba(63, 201, 122, 0.3), #10261a); border-color: rgba(63, 201, 122, 0.4); }
+#pause-menu .ph-av.news { color: #ffd166; border-color: rgba(255, 209, 102, 0.45); background: radial-gradient(circle at 30% 25%, rgba(255, 209, 102, 0.22), #262010); }
+#pause-menu .ph-av.lg { display: grid; place-items: center; width: 92px; height: 92px; font-size: 38px; border: 1.5px solid rgba(63, 201, 122, 0.5); box-sizing: border-box; }
+#pause-menu .ph-snip { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+#pause-menu .ph-call { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; }
+#pause-menu .ph-call h3 { margin: 4px 0 0; }
+#pause-menu .td-detail .ph-call .td-kicker { color: var(--pm-acc); }
+#pause-menu .ph-bubble { align-self: stretch; margin: 8px 0 2px; padding: 10px 12px; border-radius: 12px 12px 12px 4px; text-align: left; background: rgba(255, 255, 255, 0.06); font: 16px/1.35 'Arial Narrow', Arial, sans-serif; }
+#pause-menu .ph-acts { align-self: stretch; flex-direction: column; }
+#pause-menu .ph-acts > button { width: 100%; justify-content: center; }
+#pause-menu .ph-thread { display: flex; flex-direction: column; gap: 8px; max-height: 52vh; overflow-y: auto; scrollbar-width: thin; }
+#pause-menu .ph-msg { margin: 0; padding: 8px 11px; border-radius: 12px 12px 12px 4px; background: rgba(255, 255, 255, 0.05); font: 15px/1.35 'Arial Narrow', Arial, sans-serif; }
+#pause-menu .ph-msg small { display: block; font-size: 12px; color: var(--pm-dim); margin-bottom: 2px; }
