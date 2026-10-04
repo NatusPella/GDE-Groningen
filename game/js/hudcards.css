@@ -117,7 +117,7 @@ body.hud-call-on #hud .hud-nowplaying, body.hud-call-on #hud .hud-vehname, body.
   #hud .hud-count.on { opacity: 1; }
 }
 body.pigeon-mode #hud .hud-cards { top: 300px; }
-#hud .hc-text kbd.hud-key { height: 1.15em; min-width: 1.15em; margin: 0 2px; padding: 0 4px; font: bold 0.72em/1 system-ui, sans-serif; vertical-align: 0.08em; }
+#hud .hc-text kbd.hud-key, #hud .hc-text .hud-key { height: 1.15em; min-width: 1.15em; margin: 0 2px; padding: 0 4px; font: bold 0.72em/1 system-ui, sans-serif; vertical-align: 0.08em; }
 
 /* "2 meldingen wachten" / "1 prestatie wacht": brief notices under the cards (hudcards.js tickChips) */
 #hud .hc-chips { order: 99; display: flex; gap: 6px; }
