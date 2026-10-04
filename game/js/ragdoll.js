@@ -166,9 +166,8 @@ export function driveRagdoll(actor, mesh, world, dt) {
     }
     if (!rd.dead && dt > 0) {
       if (rd.wet[HL] && actor === player && rd.simT > 0.6) { finish(actor, rd, mesh, true); return false; }
-      // in the water nobody stays down: they come up and swim (the companion)
-      // or scramble out onto the quay (pedestrians.js)
-      if (rd.wet[HL] && actor !== player && rd.simT > 0.6) { finish(actor, rd, mesh, true); return false; }
+      if (rd.wet[HL] && actor !== player && actor !== world.companion) rd.dead = true;
+      if (rd.wet[HL] && actor === world.companion && rd.simT > 0.6) { finish(actor, rd, mesh, true); return false; }
       if ((rd.sleeping || rd.downT > 4) && rd.downT >= rd.lieFor) beginGetUp(rd);
     }
   }

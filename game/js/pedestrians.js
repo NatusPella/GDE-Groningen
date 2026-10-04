@@ -9,6 +9,7 @@ import { pushCircleOutOfVehicle, reportImpact, distToVehicleBody } from './vehic
 import { getCombatEffect, isRangedWeapon } from './combat.js';
 import { registerPoseSource, unregisterPoseSource, prunePoseSources } from './models3d_people.js';
 import { knockDown, isKnockedDown } from './ragdoll.js';
+import { splatterPed, bleedPed, GIB_SPEED } from './gore3d.js';
 import { knockFx } from './knockfx3d.js';
 import { walkRoute, processPedPlanQueue, buildPedAvoidGrid, separatePeds, makeCompanion } from './pedroutes.js';
 import { reportCrime } from './crime.js';
@@ -17,16 +18,10 @@ const WANDER_SPEED = 1.3;
 const FLEE_SPEED = 3.6;
 const FLEE_TRIGGER_RADIUS = 9;
 const FLEE_SAFE_RADIUS = 34;
-// Nobody dies in Grunn. Hit by a car, a train or a blast, a person is
-// knocked out: the 'dead' state (the name every module checks for "out of
-// action") with the body on the floor for KO_DURATION and comic stars over
-// the head (knockfx3d.js); then they get up groggy and complain or run.
-// Officers stay down longer ("uitgeschakeld") and then rejoin.
-export const KO_DURATION = 4.5;
-const COP_KO_DURATION = 9;
-const GROGGY_S = 2.5;
+export const DEAD_DURATION = 20;
 const WAYPOINT_RADIUS = 15;
 const VEHICLE_HIT_SPEED = 4;
+const KNOCK_DECAY = 3.5;
 const SPEECH_DURATION = 3;
 const SPEECH_MIN_INTERVAL = 15;
 const SPEECH_MAX_INTERVAL = 30;
@@ -92,7 +87,7 @@ export class Pedestrian {
     this.state = 'wander';
     this.health = 30;
     this.isCop = false;
-    this.koUntil = 0;
+    this.deadUntil = 0;
     this.waypoint = null;
     this.waypointTimer = 0;
     this.clothing = CLOTHING[Math.floor(Math.random() * CLOTHING.length)];
@@ -447,62 +442,28 @@ function ejectDriver(world, ev) {
 
 const stuntSafeAt = (world, ped) => { const z = world.stuntSafe; return !!z && Math.hypot(ped.x - z.x, ped.y - z.y) < z.r; };
 
-// o: knockDown options (kind, vx, vy, vz, startPose) plus k (0..1) for the dust.
-export function knockOutPed(ped, world, o = {}) {
-  if (ped.state === 'dead') return false;
+// H3's stunt evening keeps hitting people non-lethal (stuntavond.js): a puff
+// of dust and comic stars (knockfx3d.js) while they lie there and get up groggy.
+function stuntKnock(ped, world, vx, vy) {
+  ped.koUntil = world.time + 2.5;
+  ped.groggyUntil = world.time + 5;
+  knockFx(world, ped.x, ped.y, { k: 0.6, gz: ped.gz, vx, vy });
+}
+
+function killPed(ped, world) {
   releaseFromScene(ped);
   setPedPose(ped, null);
   ped.state = 'dead';
   ped.health = 0;
   ped._hp = 0;
   ped.speed = 0;
-  ped.knockVX = 0;
-  ped.knockVY = 0;
-  ped.gotUpAt = 0;
-  const lie = (ped.isCop ? COP_KO_DURATION : KO_DURATION) + Math.random() * 1.5;
-  ped.koAt = world.time;
-  ped.koUntil = world.time + lie;
-  knockDown(ped, world, { kind: o.kind || 'hit', startPose: o.startPose, vx: o.vx || 0, vy: o.vy || 0, vz: o.vz ?? 1.5, lieFor: lie });
-  knockFx(world, ped.x, ped.y, { k: o.k ?? 0.6, gz: ped.gz, vx: o.vx, vy: o.vy });
-  return true;
-}
-
-// Nearest open, dry ground within reach, or null.
-function dryLandNear(map, x, y) {
-  for (let r = 1.5; r <= 18; r += 1.5) {
-    for (let k = 0; k < 12; k++) {
-      const a = (k / 12) * Math.PI * 2;
-      const qx = x + Math.cos(a) * r, qy = y + Math.sin(a) * r;
-      if (!isInWater(map, qx, qy) && !isInsideBuilding(map, qx, qy)) return [qx, qy];
-    }
-  }
-  return null;
-}
-
-function recoverPed(ped, world, index) {
-  const { map, player } = world;
-  ped.koUntil = 0;
-  ped.gotUpAt = 0;
-  ped.health = ped.isCop ? 40 : 30;
-  ped._hp = undefined;
-  ped.groggyUntil = world.time + GROGGY_S;
-  if (isInWater(map, ped.x, ped.y)) {
-    // knocked into the canal: scrambles out onto the quay, soaked
-    const dry = dryLandNear(map, ped.x, ped.y);
-    world.particles.push({ kind: 'splash', x: ped.x, y: ped.y, until: world.time + 1.1 });
-    if (!dry) { world.pedestrians.splice(index, 1); return; }
-    [ped.x, ped.y] = dry;
-  }
-  if (ped.isCop) { setState(ped, 'wander'); return; }
-  say(ped, world, pick(HURT_LINES), 2.6, 'shout', 0.7);
-  if (Math.random() < 0.35) setState(ped, 'angry', world.time + 2, 'angry');
-  else startFlee(ped, world, player.x, player.y, true);
+  ped.deadUntil = world.time + DEAD_DURATION;
 }
 
 // --- explosions and cyclists knocked off their bikes ------------------------
 
 const BLAST_RADIUS = 7;
-const BLAST_KO = 3;
+const BLAST_KILL = 3;
 const PLAYER_BLAST_RADIUS = 5.5;
 
 function blastAt(world, v, scale = 1) {
@@ -517,36 +478,25 @@ function blastAt(world, v, scale = 1) {
   };
   for (const ped of world.pedestrians) {
     const b = push(ped.x, ped.y, BLAST_RADIUS);
-    if (!b) continue;
-    // already down: the blast only shoves the body along
-    if (ped.state === 'dead') {
-      if (ped.ragdoll) knockDown(ped, world, { kind: 'blast', vx: b.vx, vy: b.vy, vz: b.vz, lieFor: ped.ragdoll.lieFor });
-      continue;
-    }
-    hurt++;
-    // the player's own carbidbus or rocket: a civilian is blown off their
-    // feet and gets up again, never knocked out (weapons are not for them)
-    if (v.thrown && !ped.isCop) {
-      releaseFromScene(ped);
-      setPedPose(ped, null);
-      knockDown(ped, world, { kind: 'blast', vx: b.vx * 0.6, vy: b.vy * 0.6, vz: b.vz * 0.6, lieFor: 1.2 + Math.random() });
-      continue;
-    }
-    ped.health -= b.d < BLAST_KO * scale ? 999 : 25 * b.k;
-    if (ped.health > 0) {
-      releaseFromScene(ped);
-      setPedPose(ped, null);
-      knockDown(ped, world, { kind: 'blast', vx: b.vx, vy: b.vy, vz: b.vz });
-      continue;
-    }
-    knockOutPed(ped, world, { kind: 'blast', vx: b.vx, vy: b.vy, vz: b.vz, k: 1 });
+    if (!b || (ped.state === 'dead' && !ped.ragdoll)) continue;
+    const wasDead = ped.state === 'dead';
+    if (!wasDead) { ped.health -= b.d < BLAST_KILL * scale ? 999 : 25 * b.k; hurt++; }
+    const dead = ped.health <= 0;
+    releaseFromScene(ped);
+    setPedPose(ped, null);
+    const gib = dead && b.d < BLAST_KILL && splatterPed(ped, world, { vx: b.vx, vy: b.vy, vz: b.vz + 2, blast: true });
+    if (!gib) knockDown(ped, world, { kind: 'blast', dead, vx: b.vx, vy: b.vy, vz: b.vz });
+    if (!dead || wasDead) continue;
+    killPed(ped, world);
+    if (gib) ped.deadUntil = world.time + 1.5;
+    else bleedPed(ped, world);
     if (byPlayer) {
-      world.stats.knockouts++;
-      if (ped.isCop) world.stats.copKnockouts++;
-      else world.stats.pedKnockouts++;
-      if (v.reportHarm) {
+      world.stats.kills++;
+      if (ped.isCop) world.stats.copKills++;
+      else world.stats.pedKills++;
+      if (v.reportKills) {
         if (ped.isCop) world.wanted = Math.min(5, world.wanted + 2);
-        else reportCrime(world, 'pedKO');
+        else reportCrime(world, 'pedKill');
       }
     }
   }
@@ -573,22 +523,9 @@ function blastAt(world, v, scale = 1) {
 // thrown about like by a car blast, everyone around startled. The bang alone
 // is Groningen tradition, not a crime; hurting someone is.
 export function blastPeople(world, x, y, scale = 1, byPlayer = true) {
-  const hurt = blastAt(world, { x, y, wreckedByPlayer: byPlayer, driver: null, reportHarm: true, thrown: true }, scale);
+  const hurt = blastAt(world, { x, y, wreckedByPlayer: byPlayer, driver: null, reportKills: true }, scale);
   pendingEvents.push({ kind: 'boom', x, y, r: 20 + 35 * scale, crime: byPlayer && hurt > 0 });
   return hurt;
-}
-
-// A swing at a civilian (combat.js): no damage and nobody goes down, just a
-// shove, a stumble, a complaint and a run for it. Still assault.
-export function shovePed(ped, world, dx, dy, push) {
-  if (ped.state === 'dead' || ped.scripted || world.time - (ped._shovedAt ?? -9) < 0.4) return;
-  ped._shovedAt = world.time;
-  ped.hitReact = { t: world.time, dx, dy, k: 0.9 };
-  if (!ped.scene && !ped.ragdoll) {
-    [ped.x, ped.y] = resolveWalker(ped.x + dx * Math.min(0.5, push * 0.12), ped.y + dy * Math.min(0.5, push * 0.12), ped.radius, world.map, 0, 0, PED_OPTS, ped.gz || 0);
-  }
-  // the victim complains and runs (reactToEvent), a witness may phone it in
-  pendingEvents.push({ kind: 'hit', x: ped.x, y: ped.y, r: 25, crime: true, victim: ped });
 }
 
 const SOAK_LINES = ['Hé! Kletsnat!', 'Mien jas!', 'Bist mal?', 'Hou op, joh!', 'Het regent al genoeg in Grunn!', 'Nait spuiten!'];
@@ -680,15 +617,15 @@ function throwRider(world, b, u, vx, vy, closing, push) {
     b._thrownCop = ped;
   }
   ped.health -= 6 + closing * 2.5;
-  if (stuntSafeAt(world, ped)) ped.health = Math.max(1, ped.health);
-  const ko = ped.health <= 0;
+  if (stuntSafeAt(world, ped)) { ped.health = Math.max(1, ped.health); stuntKnock(ped, world, vx, vy); }
+  const dead = ped.health <= 0;
   world.pedestrians.push(ped);
-  if (ko) knockOutPed(ped, world, { kind: 'hit', startPose: 'ride', vx, vy, vz, k: 0.7 });
-  else knockDown(ped, world, { kind: 'hit', startPose: 'ride', vx, vy, vz });
+  knockDown(ped, world, { kind: 'hit', startPose: 'ride', dead, vx, vy, vz });
+  if (dead) { killPed(ped, world); bleedPed(ped, world, { vehicle: u }); }
   if (u.driver === 'player') {
     world.lastPedHitAt = world.time;
-    const serious = reportCrime(world, ko ? 'pedKO' : 'pedHit');
-    if (ko) { world.stats.knockouts++; world.stats[ped.isCop ? 'copKnockouts' : 'pedKnockouts']++; }
+    const serious = reportCrime(world, dead ? 'pedKill' : 'pedHit');
+    if (dead) { world.stats.kills++; world.stats[ped.isCop ? 'copKills' : 'pedKills']++; }
     pendingEvents.push({ kind: 'hit', x: bx, y: by, r: 30, crime: serious });
   }
 }
@@ -972,23 +909,25 @@ function checkVehicleImpact(ped, world) {
     reportImpact(world, ped.x, ped.y, Math.abs(v.speed) * 0.5, v.driver === 'player');
     releaseFromScene(ped);
     setPedPose(ped, null);
-    // slow cars and bikes floor you, fast cars knock you out cold
+    // slow cars and bikes floor you, fast cars kill
     ped.health -= light ? 8 + speed * 2 : speed < 7 ? 10 + speed * 2.5 : 999;
-    // H3's stunt evening (stuntavond.js): a tumble, never a knockout
-    if (stuntSafeAt(world, ped)) ped.health = Math.max(1, ped.health);
-    const ko = ped.health <= 0;
-    const vz = (light ? 0.8 : 1.2) + Math.min(speed, 14) * 0.22;
-    if (ko) knockOutPed(ped, world, { kind: 'hit', vx: ped.knockVX, vy: ped.knockVY, vz, k: Math.min(1, speed / 12) });
-    else {
-      knockDown(ped, world, { kind: 'hit', vx: ped.knockVX, vy: ped.knockVY, vz });
-      ped.speed = 0;
-    }
+    // H3's stunt evening (stuntavond.js): a knock, never a casualty
+    if (stuntSafeAt(world, ped)) { ped.health = Math.max(1, ped.health); stuntKnock(ped, world, ped.knockVX, ped.knockVY); }
+    const dead = ped.health <= 0;
+    // fast enough to kill outright: Carmageddon-style burst (falls back to the ragdoll with gore off)
+    const gib = dead && !light && speed >= GIB_SPEED && splatterPed(ped, world, { vx: ped.knockVX, vy: ped.knockVY, vz: 3 + speed * 0.15, vehicle: v });
+    if (!gib) knockDown(ped, world, { kind: 'hit', dead, vx: ped.knockVX, vy: ped.knockVY, vz: (light ? 0.8 : 1.2) + speed * 0.22 });
+    if (dead) {
+      killPed(ped, world);
+      if (gib) ped.deadUntil = world.time + 1.5;
+      else bleedPed(ped, world, { vehicle: light ? null : v, spray: { dx: ped.knockVX, dy: ped.knockVY, k: Math.min(1, speed / GIB_SPEED) } });
+    } else ped.speed = 0;
     if (v.driver === 'player') {
       // knocking someone over on a bike or scooter is a scene, not a crime
-      const crime = ko || !light;
+      const crime = dead || !light;
       world.lastPedHitAt = world.time;
-      const serious = crime && reportCrime(world, ko ? 'pedKO' : 'pedHit');
-      if (ko) { world.stats.knockouts++; world.stats[ped.isCop ? 'copKnockouts' : 'pedKnockouts']++; }
+      const serious = crime && reportCrime(world, dead ? 'pedKill' : 'pedHit');
+      if (dead) { world.stats.kills++; world.stats[ped.isCop ? 'copKills' : 'pedKills']++; }
       pendingEvents.push({ kind: 'hit', x: ped.x, y: ped.y, r: 30, crime: serious });
     }
     return;
@@ -1109,12 +1048,23 @@ export function updatePedestrians(dt, world) {
 
     if (ped.state === 'dead') {
       if (ped.pose) setPedPose(ped, null);
-      // the ragdoll gets up by itself after koUntil; one that never showed
-      // (out of view) or came up in the water is done once the time is up
-      const down = isKnockedDown(ped, world);
-      if (!down && (ped.gotUpAt || world.time >= (ped.koUntil || 0))) recoverPed(ped, world, i);
+      ped.speechUntil = 0;
+      if (ped.knockVX || ped.knockVY) {
+        [ped.x, ped.y] = resolveBuildingCollisions(ped.x + ped.knockVX * dt, ped.y + ped.knockVY * dt, ped.radius, map);
+        const decay = Math.exp(-KNOCK_DECAY * dt);
+        ped.knockVX *= decay;
+        ped.knockVY *= decay;
+        if (Math.hypot(ped.knockVX, ped.knockVY) < 0.1) { ped.knockVX = 0; ped.knockVY = 0; }
+        if (isInWater(map, ped.x, ped.y)) {
+          world.particles.push({ kind: 'splash', x: ped.x, y: ped.y, until: world.time + 1.1 });
+          peds.splice(i, 1);
+          continue;
+        }
+      }
+      if (world.time >= ped.deadUntil) peds.splice(i, 1);
       continue;
     }
+    if (ped.ragdoll && ped.ragdoll.dead) { killPed(ped, world); continue; }
     if (isKnockedDown(ped, world)) {
       ped.speed = 0;
       if (ped.pose) setPedPose(ped, null);
@@ -1123,15 +1073,8 @@ export function updatePedestrians(dt, world) {
     }
     if (ped.gotUpAt) {
       ped.gotUpAt = 0;
-      if (isInWater(map, ped.x, ped.y)) {
-        const dry = dryLandNear(map, ped.x, ped.y);
-        world.particles.push({ kind: 'splash', x: ped.x, y: ped.y, until: world.time + 1.1 });
-        if (!dry) { peds.splice(i, 1); continue; }
-        [ped.x, ped.y] = dry;
-      }
       if (!ped.isCop) startFlee(ped, world, player.x, player.y, true);
     }
-    const groggy = ped.groggyUntil > world.time;
 
     const dPlayer = dist(ped.x, ped.y, player.x, player.y);
     if (ped.isCop) updateCop(ped, world, dPlayer, dt);
@@ -1262,11 +1205,6 @@ export function updatePedestrians(dt, world) {
     if (!moving) {
       ped.speed = 0;
     } else {
-      // still seeing stars: slow, and not quite walking a straight line
-      if (groggy) {
-        ped.speed *= 0.5;
-        ped.angle += Math.sin(world.time * 6 + (ped._lookSeed || 0)) * 1.6 * dt;
-      }
       const vx = Math.cos(ped.angle) * ped.speed, vy = Math.sin(ped.angle) * ped.speed;
       let nx = ped.x + vx * dt;
       let ny = ped.y + vy * dt;

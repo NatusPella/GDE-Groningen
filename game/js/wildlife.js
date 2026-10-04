@@ -4,7 +4,7 @@ import { SkinBuilder, vcMaterial, composeMatrix, tubeGeometry, loftGeometry, mar
 import { setLeashHolder, setPeopleWeather } from './models3d_people.js';
 import { resolveWalker } from './collision.js';
 import { pushCircleOutOfVehicle, vehicleHitBody } from './vehicle.js';
-import { knockFx } from './knockfx3d.js';
+import { splatterAnimal, GIB_SPEED } from './gore3d.js';
 
 // Ambient GTA6-marketing-parody wildlife: seagulls over the Diepenring,
 // ducks and geese on the canals, pigeon flocks on the squares, the odd
@@ -527,8 +527,8 @@ export function updateWildlife(dt, world) {
   }
   for (const a of list) {
     if (a.dead) {
-      if (world.time - a.deadAt < STUN_S) continue;
-      wakeAnimal(a, world);
+      if (world.time - a.deadAt > CARCASS_S) a.gone = true;
+      continue;
     }
     switch (a.kind) {
       case 'seagull': updateSeagull(a, dt, world); break;
@@ -554,7 +554,7 @@ function groundContacts(a, world) {
     if (v.isBoat || v.sinking || Math.abs(v.x - a.x) > v.halfLen + 1 || Math.abs(v.y - a.y) > v.halfLen + 1) continue;
     const push = pushCircleOutOfVehicle(a.x, a.y, r, v);
     if (!push) continue;
-    // birds flap off (knockfx3d.js); everything else on four legs gets bowled over
+    // birds are gore3d's poofBirds; everything else on four legs goes under
     if (a.kind !== 'pigeon' && a.kind !== 'seagull' && runOverAnimal(world, a, v)) return;
     a.x = push.x; a.y = push.y;
     moved = true;
@@ -573,39 +573,46 @@ function groundContacts(a, world) {
 }
 const NO_KICK = { kick: false };
 
-// --- bowled over ----------------------------------------------------------------
+// --- run over -------------------------------------------------------------------
 // keep: fraction of the car's speed left after the hit (a cow stops you, a
-// cat barely registers), dmg: damage to the car, size: body length.
+// cat barely registers), dmg: damage to the car, size: body length for the
+// gore, burst: small enough to come apart (at GIB_SPEED sheep and dogs too).
 const RUN_OVER_SPEED = 4.5;
-export const STUN_S = 5;
+const CARCASS_S = 45;
 const RUN_OVER = {
-  cow: { keep: 0.42, dmg: 22, size: 1.5 },
-  horse: { keep: 0.4, dmg: 24, size: 1.5 },
-  sheep: { keep: 0.72, dmg: 6, size: 0.9 },
-  goose: { keep: 0.94, dmg: 0, size: 0.4 },
-  duck: { keep: 0.97, dmg: 0, size: 0.3 },
-  dog: { keep: 0.86, dmg: 2, size: 0.7 },
-  cat: { keep: 0.93, dmg: 0, size: 0.4 },
+  cow: { keep: 0.42, dmg: 22, size: 1.5, burst: false },
+  horse: { keep: 0.4, dmg: 24, size: 1.5, burst: false },
+  sheep: { keep: 0.72, dmg: 6, size: 0.9, burst: false, gibFast: true },
+  goose: { keep: 0.94, dmg: 0, size: 0.4, burst: true },
+  duck: { keep: 0.97, dmg: 0, size: 0.3, burst: true },
+  dog: { keep: 0.86, dmg: 2, size: 0.7, burst: false, gibFast: true },
+  cat: { keep: 0.93, dmg: 0, size: 0.4, burst: true },
+};
+const FUR = {
+  cow: [0x1c1c1c, 0xf2f0ea], cowred: [0x7a3a22, 0xf2f0ea], sheep: [0xe8e2d4, 0xd8d0c0], horse: [0x6b3f22, 0x1f1a17],
+  goose: [0xd8d4ca, 0x8a8a86], duck: [0x7a5b3c, 0x2f6b3a], dog: [0x6b4a2a, 0x2a2a2a], cat: [0x6b5a48, 0xd08a3a],
 };
 
-// A car going faster than walking pace through an animal bowls it over: a
-// puff of dust, the animal on its side seeing stars for STUN_S (a.dead is
-// that stunned state), then it gets up and makes off. Heavy animals take a
-// lot of speed out of the car. Shared with countryside.js. Returns true when
-// the animal went down.
+// A car going faster than walking pace through an animal kills it: blood
+// (gore setting permitting), a carcass lying on its side or nothing left of
+// the small ones, and heavy animals take a lot of speed out of the car.
+// Shared with countryside.js. Returns true when the animal died.
 export function runOverAnimal(world, a, v) {
   const spec = RUN_OVER[a.kind];
   if (!spec || a.dead || a.gone || v.isBike || v.isScooter || v.isBoat) return false;
   const sp = v.speed, abs = Math.abs(sp);
   if (abs < RUN_OVER_SPEED) return false;
+  const vx = Math.cos(v.angle) * sp, vy = Math.sin(v.angle) * sp;
   const size = spec.size * (a.size || 1);
+  const burst = spec.burst || (spec.gibFast && abs > GIB_SPEED);
   vehicleHitBody(v, a.x, a.y, spec.keep + (1 - spec.keep) * (1 - Math.min(1, (a.size || 1))) * 0.5, spec.dmg * (a.size || 1), world);
-  knockFx(world, a.x, a.y, { k: Math.min(1, size * 0.6), sound: false });
+  const cols = FUR[a.kind === 'cow' && a.variant === 'red' ? 'cowred' : a.kind];
+  const gibbed = splatterAnimal(world, a.x, a.y, { vx: vx * 0.6, vy: vy * 0.6, size, cols, vehicle: v, burst }) && burst;
   const q = world.audioEvents || (world.audioEvents = []);
   if (q.length < 64) q.push({ kind: 'animal_hit', x: a.x, y: a.y, strength: Math.min(1, size * 0.6) });
   releaseAnimal(a);
   a.owner = null;
-  a.hitFrom = { x: v.x, y: v.y };
+  if (gibbed) { a.gone = true; return true; }
   a.dead = true;
   a.deadAt = world.time;
   a.speed = 0;
@@ -619,20 +626,11 @@ export function runOverAnimal(world, a, v) {
   return true;
 }
 
-// Back on its feet after being bowled over: off it goes, away from the car.
-export function wakeAnimal(a, world) {
-  a.dead = false;
-  a.deadAt = 0;
-  const from = a.hitFrom || world.player;
-  a.hitFrom = null;
-  scareOff(a, world, from.x, from.y);
-}
-
 export function scareAnimal(a, world, fromX, fromY) {
   scareOff(a, world, fromX, fromY);
 }
 
-// Lying on its side, legs out (stunned). Called instead of the live animation.
+// Lying on its side, legs out. Called instead of the live animation.
 export function poseDeadAnimal(mesh, a) {
   mesh.rotation.order = 'YXZ';
   mesh.rotation.x = a.deadSide * 1.42;
