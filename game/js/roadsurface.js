@@ -855,6 +855,50 @@ function ribbonClip(r, rs, kind) {
   const P = r.pts, n = P.length;
   // the sidewalk is never narrower than the carriageway on top of it
   const road = sidewalk ? roadClip(r, rs) : null;
+  // a ramp's sidewalk stops at the lanes of a lower ramp or road beside it
+  // instead of hanging over them (the drop face closes the gap)
+  const zRange = (w) => (w.z ? [Math.min(...w.z), Math.max(...w.z)] : [0, 0]);
+  const rz = zRange(r);
+  const lower = sidewalk && !r.bridge ? partners.filter((o) => {
+    if (!(r.z || o.z) || o.tunnel) return false;
+    const oz = zRange(o);
+    return rz[1] - oz[0] > 0.3 && rz[0] - oz[1] < 4;
+  }) : [];
+  // the segments of those near segment k of r, then within reach of a station: [o, i, ho]
+  const nearSegs = new Map();
+  const laneSegs = (x, y, reach, k) => {
+    let near = nearSegs.get(k);
+    if (!near) {
+      nearSegs.set(k, near = []);
+      const a = P[k], b = P[Math.min(k + 1, n - 1)], pad = half * 3;
+      const bx0 = Math.min(a[0], b[0]) - pad, by0 = Math.min(a[1], b[1]) - pad, bx1 = Math.max(a[0], b[0]) + pad, by1 = Math.max(a[1], b[1]) + pad;
+      for (const o of lower) {
+        const Q = o.pts, ho = o.width / 2, [ox0, oy0, ox1, oy1] = o.bounds;
+        if (ox0 - ho > bx1 || ox1 + ho < bx0 || oy0 - ho > by1 || oy1 + ho < by0) continue;
+        for (let i = 0; i < Q.length - 1; i++) {
+          const p = Q[i], q = Q[i + 1];
+          if (Math.min(p[0], q[0]) - ho > bx1 || Math.max(p[0], q[0]) + ho < bx0 || Math.min(p[1], q[1]) - ho > by1 || Math.max(p[1], q[1]) + ho < by0) continue;
+          near.push(o, i, ho);
+        }
+      }
+    }
+    const out = [];
+    for (let m = 0; m < near.length; m += 3) {
+      const Q = near[m].pts, i = near[m + 1], d = reach + near[m + 2];
+      if (closestPointOnSegment(x, y, Q[i][0], Q[i][1], Q[i + 1][0], Q[i + 1][1]).dist2 < d * d) out.push(near[m], i, near[m + 2]);
+    }
+    return out;
+  };
+  const lanesBelow = (segs, px, py, h) => {
+    for (let m = 0; m < segs.length; m += 3) {
+      const o = segs[m], i = segs[m + 1], ho = segs[m + 2], Q = o.pts;
+      const cp = closestPointOnSegment(px, py, Q[i][0], Q[i][1], Q[i + 1][0], Q[i + 1][1]);
+      if (cp.dist2 >= ho * ho) continue;
+      const d = h - (o.z ? o.z[i] + (o.z[i + 1] - o.z[i]) * cp.t : 0);
+      if (d > 0.3 && d < 4) return true;
+    }
+    return false;
+  };
   const at = (x, y, mx, my, k, t) => {
     const ml = Math.hypot(mx, my) || 1, reach = half * ml;
     // (at an end along its miter: a way carrying on from there shares it, so
@@ -911,6 +955,15 @@ function ribbonClip(r, rs, kind) {
         continue;
       }
       res[j] = Math.min(res[j], Math.max(0.5, off * mr / (mr + oh) / mo));
+    }
+    const segs = lower.length ? laneSegs(x, y, reach, k) : null;
+    if (segs && segs.length) {
+      for (let j = 0; j < 2; j++) {
+        const sg = j ? -1 : 1;
+        for (let h = rs.hw; h < res[j]; h += 0.1) {
+          if (lanesBelow(segs, x + mx * h * sg, y + my * h * sg, zr)) { res[j] = h; break; }
+        }
+      }
     }
     const lo = road ? (t === 0 ? road.pts[k] : road.at(x, y, mx, my, k, t)) : null;
     for (let j = 0; j < 2; j++) res[j] = Math.max(res[j], lo ? lo[j] : sidewalk ? rs.hw : 0);
