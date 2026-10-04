@@ -31,8 +31,9 @@ const DEFAULTS = {
   reduceMotion: false,
   showFog: true,
   cinematicMoments: true,
-  // Zichtafstand (viewdist.js); the default matches the Hoog preset
-  drawDistance: 'heelver',
+  // Zichtafstand (viewdist.js): 'ver', not Hoog's 'heelver', so a first
+  // launch on an iGPU laptop stays at 600 m
+  drawDistance: 'ver',
   // render scale (1 = full); autoResolution lowers it and some detail while
   // frames are slow (gfxprofile.js)
   resolution: 1,

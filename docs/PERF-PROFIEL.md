@@ -299,8 +299,9 @@ snapshotwerk van ~92 ms in drie long tasks naar 55 ms in één.
 
 ## Zichtafstand "heel ver" (Hoog, 0.27)
 
-Hoog staat sinds 0.27 op `drawDistance:heelver` (900 m in plaats van 600).
-Een perf-run op Hoog vergelijkt dus niet meer één-op-één met eerdere runs;
+De preset Hoog staat sinds 0.27 op `drawDistance:heelver` (900 m in plaats
+van 600); de standaardinstellingen blijven op `ver`. Een perf-run met de
+Hoog-preset vergelijkt dus niet meer één-op-één met eerdere runs;
 `--preset=drawDistance:ver` geeft de oude stand. Wat er extra in beeld komt
 telt `node scripts/viewdist_estimate.mjs` (centrum: far-LOD-tegels 22 -> 40,
 ~185k -> 324k driehoeken; Ommeland: proptegels 63 -> 111). Nog niet in

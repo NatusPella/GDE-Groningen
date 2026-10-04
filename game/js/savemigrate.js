@@ -91,12 +91,9 @@ export const SETTINGS_MIGRATIONS = {
   4(s) { delete s.gore; return s; },
   // 6: rebindable keys and buttons; settings.js checks the tables themselves
   5(s) { return s; },
-  // 7: Hoog got the new 'heel ver' view distance; a file that was exactly the
-  // old Hoog preset stays on Hoog, a hand-picked mix keeps 'ver'
-  6(s) {
-    if (s.quality === 'hoog' && s.shadows === true && s.drawDistance === 'ver' && s.resolution === 1 && s.autoResolution === true) s.drawDistance = 'heelver';
-    return s;
-  },
+  // 7: 'heelver' (Hoog). The old Hoog preset is also the default, so a file
+  // matching it keeps 'ver': it cannot tell a chosen Hoog from untouched
+  6(s) { return s; },
 };
 
 // Settings files before v2 had no `v`.
