@@ -9,6 +9,7 @@ import { initFoley, updateFoley, propHit, foleyStats } from './sfx/foley.js';
 import { initUiSfx, uiWorldInit, updateUiSfx, uiDomEvent, isUiGestureTarget } from './sfx/ui.js';
 import { updateSkySfx } from './sfx/sky.js';
 import { createScenarioDirector, loopPoints } from './scenariomusic.js';
+import { normalizeTrack, pickTrack, pushHistory, pickJingle } from './musicpick.js';
 import * as speech from './speech.js';
 import { drunkLevel } from './drunk.js';
 
@@ -1536,8 +1537,14 @@ const radioHolds = () => radioStation === 'grunn' || radioStation === 'uit';
 export function setRadioStation(id) {
   const prev = radioStation;
   radioStation = id;
-  // tuning in to Nachtstreek lands in another record than G-Music had on
-  if (id === 'nachtstreek' && prev !== id && gmusicStarted && gmusicTracks.length && !gmusicHeld) advanceGmusicQueue();
+  if (prev === id || !gmusicStarted || !gmusicTracks.length || radioHolds()) return;
+  // tuning in to Nachtstreek lands in another record; any music station
+  // leaves a record that isn't in its own pool
+  const cur = gmusicCurrentEl && gmusicCurrentEl.gmusicTrack;
+  if (id === 'nachtstreek' || !cur || !cur.stations.includes(id)) {
+    gmusicQueue = [];
+    advanceGmusicQueue();
+  }
 }
 
 // A steady source for another module (kermis.js's barrel organ): it
@@ -1554,12 +1561,14 @@ async function loadGMusicManifest() {
     const res = await fetch(GMUSIC_MANIFEST_URL);
     if (!res.ok) return;
     const data = await res.json();
-    const tracks = Array.isArray(data.tracks) ? data.tracks : [];
-    gmusicTracks = tracks.map((filename) => {
-      const el = wireGmusicEl(new Audio('./audio/gmusic/' + filename));
+    const tracks = (Array.isArray(data.tracks) ? data.tracks : []).map(normalizeTrack).filter(Boolean);
+    gmusicTracks = tracks.map((t) => {
+      const el = wireGmusicEl(new Audio('./audio/gmusic/' + t.file));
       el.preload = 'auto';
-      const raw = filename.replace(/\.[^.]+$/, '').replace(/_/g, ' ');
+      const raw = t.id.replace(/_/g, ' ');
       el.gmusicTitle = GMUSIC_TITLES[raw] || raw;
+      if (!t.artist) t.artist = trackArtist(el.gmusicTitle);
+      el.gmusicTrack = t;
       return el;
     });
   } catch (e) {
@@ -1577,8 +1586,13 @@ const GMUSIC_RETRY_MAX = 8;
 const GMUSIC_PENDING_TIMEOUT = 5;
 
 let gmusicTracks = [];
-let gmusicBag = [];
-let gmusicLastTrack = null;
+// what played lately, every music station together (musicpick.js); kept
+// between sessions so a new one doesn't open with the record you just heard
+const GMUSIC_HISTORY_KEY = 'gte-radio-history';
+const gmusicHistory = loadMusicHistory();
+let lastJingleKey = null;
+// the in-game hour (world.clock), for the night records
+let musicHour = NaN;
 let gmusicQueue = [];
 let gmusicCurrentEl = null;
 let gmusicStarted = false;
@@ -1645,26 +1659,37 @@ function makeJingleEl(key) {
   return el;
 }
 
-function randomAmbientJingleEl() {
-  return makeJingleEl(AMBIENT_JINGLE_KEYS[Math.floor(Math.random() * AMBIENT_JINGLE_KEYS.length)]);
-}
-
-function nextTrackEl() {
-  if (!gmusicBag.length) {
-    gmusicBag = gmusicTracks.slice();
-    for (let i = gmusicBag.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [gmusicBag[i], gmusicBag[j]] = [gmusicBag[j], gmusicBag[i]];
-    }
-    const last = gmusicBag.length - 1;
-    if (last > 0 && gmusicBag[last] === gmusicLastTrack) [gmusicBag[0], gmusicBag[last]] = [gmusicBag[last], gmusicBag[0]];
+function loadMusicHistory() {
+  try {
+    const h = JSON.parse(localStorage.getItem(GMUSIC_HISTORY_KEY) || '[]');
+    return Array.isArray(h) ? h.filter((x) => typeof x === 'string') : [];
+  } catch (e) {
+    return [];
   }
-  gmusicLastTrack = gmusicBag.pop();
-  return gmusicLastTrack;
 }
 
+function randomAmbientJingleEl(chance = 1) {
+  const key = pickJingle(AMBIENT_JINGLE_KEYS, lastJingleKey, { chance });
+  if (!key) return null;
+  lastJingleKey = key;
+  return makeJingleEl(key);
+}
+
+// the next record for the station that plays (Radio Proat and off hold the
+// music, so they pick for G-Music)
+function nextTrackEl() {
+  const station = radioStation === 'nachtstreek' ? 'nachtstreek' : 'gmusic';
+  const t = pickTrack(gmusicTracks.map((el) => el.gmusicTrack), gmusicHistory, { station, hour: musicHour });
+  const el = gmusicTracks.find((x) => x.gmusicTrack === t) || gmusicTracks[0];
+  pushHistory(gmusicHistory, el.gmusicTrack.id);
+  try { localStorage.setItem(GMUSIC_HISTORY_KEY, JSON.stringify(gmusicHistory)); } catch (e) { /* private mode */ }
+  return el;
+}
+
+// a jingle between records most of the time, then the record
 function buildGmusicCycle() {
-  return [randomAmbientJingleEl(), nextTrackEl()];
+  const j = randomAmbientJingleEl(0.6);
+  return j ? [j, nextTrackEl()] : [nextTrackEl()];
 }
 
 function onGmusicEnded(e) {
@@ -1706,8 +1731,7 @@ function startGmusicRandomly() {
 
   const startAsJingle = Math.random() < 0.25 && speech.radioMayTalk();
   const el = startAsJingle ? randomAmbientJingleEl() : nextTrackEl();
-  gmusicQueue = buildGmusicCycle();
-  if (startAsJingle) gmusicQueue.shift();
+  gmusicQueue = startAsJingle ? [nextTrackEl()] : buildGmusicCycle();
   gmusicCurrentEl = el;
   gmusicAnnounceOnPlay = true;
 
@@ -2780,6 +2804,7 @@ function updateWorldEvents(world) {
 }
 
 function updateGMusic(dt, world) {
+  musicHour = world.clock;
   if (!gmusicStarted) {
     // the theme song owns the music until it ends, then G-Music takes over
     if (isThemeActive()) return;
@@ -3079,9 +3104,9 @@ function reviveGmusicEl(el) {
   fresh.preload = 'auto';
   fresh.gmusicTitle = el.gmusicTitle;
   fresh.gmusicJingleKey = el.gmusicJingleKey;
+  fresh.gmusicTrack = el.gmusicTrack;
   const i = gmusicTracks.indexOf(el);
   if (i >= 0) gmusicTracks[i] = fresh;
-  gmusicBag = gmusicBag.map((x) => (x === el ? fresh : x));
   if (el.gmusicJingleKey && jingleEls[el.gmusicJingleKey] === el) jingleEls[el.gmusicJingleKey] = fresh;
   try { el.removeAttribute('src'); el.load(); } catch (e) { /* ignore */ }
   gmusicCurrentEl = fresh;
@@ -3112,7 +3137,7 @@ function audioState() {
       started: gmusicStarted, held: gmusicHeld, suspended: gmusicSuspended, pending: gmusicPendingSince !== null,
       current: gmusicCurrentEl ? (gmusicCurrentEl.gmusicTitle || gmusicCurrentEl.gmusicJingleKey || '?') : null,
       paused: gmusicCurrentEl ? gmusicCurrentEl.paused : null, error: !!(gmusicCurrentEl && gmusicCurrentEl.error),
-      tracks: gmusicTracks.length, queue: gmusicQueue.length,
+      tracks: gmusicTracks.length, queue: gmusicQueue.length, history: gmusicHistory.slice(-8),
     },
     scenario: scenarioNow ? scenarioNow.key : null, storyScene, sceneLive: storyProbe ? !!storyProbe() : null, voiceEls: liveVoiceEls, activeVoices,
     synth: !!synth.player, speech: speech.speechState(), watchdog: { ...watch }, log: audioLog.slice(-12),
