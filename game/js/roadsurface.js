@@ -846,7 +846,9 @@ function ribbonClip(r, rs, kind) {
   const half = r.width / 2 + (sidewalk ? SIDEWALK_EXTRA : 0);
   const [x0, y0, x1, y1] = r.bounds || boundsOf(r.pts);
   const pad = half * 2.5 + 1;
-  const wet = !r.bridge && !r.z && netMap.water.some((w) => w.bounds && w.bounds[0] < x1 + pad && w.bounds[2] > x0 - pad && w.bounds[1] < y1 + pad && w.bounds[3] > y0 - pad);
+  // (a way with a height profile only where it lies at street level)
+  const lv = r.z ? boundsOf(r.pts.filter((p, k) => Math.abs(r.z[k]) < 0.3)) : [x0, y0, x1, y1];
+  const wet = !r.bridge && lv[0] <= lv[2] && netMap.water.some((w) => w.bounds && w.bounds[0] < lv[2] + pad && w.bounds[2] > lv[0] - pad && w.bounds[1] < lv[3] + pad && w.bounds[3] > lv[1] - pad);
   const index = wet ? getWaterIndex(netMap) : null;
   // (a way with a height profile clips one without where they lie level side by side)
   const partners = netMap.roadGrid.query(x0 - pad - 8, y0 - pad - 8, x1 + pad + 8, y1 + pad + 8).filter((o) => o !== r && o.pts.length >= 2
@@ -855,6 +857,50 @@ function ribbonClip(r, rs, kind) {
   const P = r.pts, n = P.length;
   // the sidewalk is never narrower than the carriageway on top of it
   const road = sidewalk ? roadClip(r, rs) : null;
+  // a ramp's sidewalk stops at the lanes of a lower ramp or road beside it
+  // instead of hanging over them (the drop face closes the gap)
+  const zRange = (w) => (w.z ? [Math.min(...w.z), Math.max(...w.z)] : [0, 0]);
+  const rz = zRange(r);
+  const lower = sidewalk && !r.bridge ? partners.filter((o) => {
+    if (!(r.z || o.z) || o.tunnel) return false;
+    const oz = zRange(o);
+    return rz[1] - oz[0] > 0.3 && rz[0] - oz[1] < 4;
+  }) : [];
+  // the segments of those near segment k of r, then within reach of a station: [o, i, ho]
+  const nearSegs = new Map();
+  const laneSegs = (x, y, reach, k) => {
+    let near = nearSegs.get(k);
+    if (!near) {
+      nearSegs.set(k, near = []);
+      const a = P[k], b = P[Math.min(k + 1, n - 1)], pad = half * 3;
+      const bx0 = Math.min(a[0], b[0]) - pad, by0 = Math.min(a[1], b[1]) - pad, bx1 = Math.max(a[0], b[0]) + pad, by1 = Math.max(a[1], b[1]) + pad;
+      for (const o of lower) {
+        const Q = o.pts, ho = o.width / 2, [ox0, oy0, ox1, oy1] = o.bounds;
+        if (ox0 - ho > bx1 || ox1 + ho < bx0 || oy0 - ho > by1 || oy1 + ho < by0) continue;
+        for (let i = 0; i < Q.length - 1; i++) {
+          const p = Q[i], q = Q[i + 1];
+          if (Math.min(p[0], q[0]) - ho > bx1 || Math.max(p[0], q[0]) + ho < bx0 || Math.min(p[1], q[1]) - ho > by1 || Math.max(p[1], q[1]) + ho < by0) continue;
+          near.push(o, i, ho);
+        }
+      }
+    }
+    const out = [];
+    for (let m = 0; m < near.length; m += 3) {
+      const Q = near[m].pts, i = near[m + 1], d = reach + near[m + 2];
+      if (closestPointOnSegment(x, y, Q[i][0], Q[i][1], Q[i + 1][0], Q[i + 1][1]).dist2 < d * d) out.push(near[m], i, near[m + 2]);
+    }
+    return out;
+  };
+  const lanesBelow = (segs, px, py, h) => {
+    for (let m = 0; m < segs.length; m += 3) {
+      const o = segs[m], i = segs[m + 1], ho = segs[m + 2], Q = o.pts;
+      const cp = closestPointOnSegment(px, py, Q[i][0], Q[i][1], Q[i + 1][0], Q[i + 1][1]);
+      if (cp.dist2 >= ho * ho) continue;
+      const d = h - (o.z ? o.z[i] + (o.z[i + 1] - o.z[i]) * cp.t : 0);
+      if (d > 0.3 && d < 4) return true;
+    }
+    return false;
+  };
   const at = (x, y, mx, my, k, t) => {
     const ml = Math.hypot(mx, my) || 1, reach = half * ml;
     // (at an end along its miter: a way carrying on from there shares it, so
@@ -862,9 +908,11 @@ function ribbonClip(r, rs, kind) {
     const d = t === 0 && (k === 0 || k === n - 1) ? [my / ml, -mx / ml] : dirAt(P, Math.min(k, n - 2), 1);
     const sn = rs.segN[Math.min(k, n - 2)];
     const res = [half, half];
+    const zr = r.z ? r.z[k] + (k + 1 < n ? r.z[k + 1] - r.z[k] : 0) * t : 0;
+    const level = index && Math.abs(zr) < 0.3;
     // (a path drawn out over the water without a bridge: nothing there)
-    if (index && index.inWater(x, y)) return [0, 0];
-    if (index) {
+    if (level && index.inWater(x, y)) return [0, 0];
+    if (level) {
       for (let j = 0; j < 2; j++) {
         const sg = j ? -1 : 1, ux = mx / ml * sg, uy = my / ml * sg, probe = reach + SHORE_INSET + 0.1;
         if (!index.inWater(x + ux * probe, y + uy * probe)) continue;
@@ -874,7 +922,6 @@ function ribbonClip(r, rs, kind) {
         if (w < reach) res[j] = Math.min(res[j], Math.max(0, w / ml));
       }
     }
-    const zr = r.z ? r.z[k] + (k + 1 < n ? r.z[k + 1] - r.z[k] : 0) * t : 0;
     for (const o of partners) {
       const oh = o.width / 2 + (sidewalk ? SIDEWALK_EXTRA : 0);
       const [ox0, oy0, ox1, oy1] = o.bounds;
@@ -911,6 +958,15 @@ function ribbonClip(r, rs, kind) {
         continue;
       }
       res[j] = Math.min(res[j], Math.max(0.5, off * mr / (mr + oh) / mo));
+    }
+    const segs = lower.length ? laneSegs(x, y, reach, k) : null;
+    if (segs && segs.length) {
+      for (let j = 0; j < 2; j++) {
+        const sg = j ? -1 : 1;
+        for (let h = rs.hw; h < res[j]; h += 0.1) {
+          if (lanesBelow(segs, x + mx * h * sg, y + my * h * sg, zr)) { res[j] = h; break; }
+        }
+      }
     }
     const lo = road ? (t === 0 ? road.pts[k] : road.at(x, y, mx, my, k, t)) : null;
     for (let j = 0; j < 2; j++) res[j] = Math.max(res[j], lo ? lo[j] : sidewalk ? rs.hw : 0);
