@@ -23,6 +23,23 @@ nieuwe functies, `y` voor alleen bugfixes.
 - De portretjes van Tammo en Tessa in de HUD worden bewaard, zodat het spel
   ze bij een volgende start niet opnieuw tekent (alleen na een nieuwe outfit
   of een nieuwe versie).
+- Geen hapering meer als je voor het eerst instapt: het plaatje van je
+  voertuig bij de snelheidsmeter wordt vooraf en in de rusttijd tussen
+  frames gemaakt (je eigen Escapade bij de start, en elk voertuig waar je
+  naartoe loopt).
+- De toetsen onder de heli-HUD volgen je eigen toetsindeling.
+
+### Opgelost
+- In de browser sloot Ctrl+W het tabblad als je bukte of met de heli
+  omlaag ging terwijl je W vasthield. In de webversie zitten bukken, heli
+  omlaag en pikken nu standaard op C (koeren op G); de desktopversie houdt
+  Ctrl. Besturing en alle toetshints tonen de toets van jouw versie, en de
+  drie ingesproken tips die "Ctrl" zeiden noemen geen toets meer.
+- Kiekdoar meldt niet meer dat een agent of voetganger "gewond" is: ze gaan
+  tegen de vlakte of van de sokken, en staan weer op (opnieuw ingesproken).
+- Je eigen boot liep vast net buiten de stad in het smalle kanaal aan de
+  noordkant; nu vaar je uit alle zeven kanalen het Ommeland in en weer
+  terug (`node scripts/boat_edge_sim.mjs`).
 
 ## [0.25.0] - 2026-10-04
 
