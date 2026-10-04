@@ -456,6 +456,20 @@ don't collide, and actors are drawn at their height.
   night lights and bump detail; `resolution` scales the pixel ratio
   (render scale); 'laag' draws facade details (window frames, trims,
   shopfronts) only within 80 m.
+- Zichtafstand (`viewdist.js`, pure): kort 150 m, normaal 350, ver 600,
+  heel ver 900 (Hoog; the default). The view distance sets the fog (far =
+  1.02x, near rises with it), the far LOD's tile range, the Ommeland prop
+  radius (`propRadius`: up to 620 m, beyond 'ver' 95% of the view distance,
+  where the fog has nearly hidden the props and the skyline belts take
+  over) and with it the country water, skyline near edge and country life;
+  the camera far plane is set by the landmarks (1500 m) for both long
+  settings. 'heel ver' acts as 'ver' while adaptive quality has stepped
+  down (render scale under 90% or cpuLevel > 0; `refreshRenderScale`
+  re-applies it). Settings v7 moves a file that was exactly the old Hoog
+  preset to 'heel ver'; a hand-picked 'ver' stays. `scripts/viewdist_estimate.mjs`
+  counts what each setting puts in range (centre: far-LOD tiles 22 -> 40,
+  far buildings 8.5k -> 15.4k, ~185k -> 324k triangles; Ommeland: prop
+  tiles 63 -> 111).
 - First run: `startGfxAdvisor` (title screen, also during the attract
   intro) classifies the GPU string (`classifyGpu`: Intel iGPU, software
   renderers and mobile GPUs -> laag; Radeon iGPU, Intel Arc iGPU, GeForce

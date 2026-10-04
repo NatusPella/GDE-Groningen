@@ -1,0 +1,5 @@
+{
+  "_era": "settings v6 (0.26): exactly the old Hoog preset, view distance 'ver'",
+  "_expect": { "drawDistance": "heelver", "quality": "hoog", "shadows": true, "resolution": 1, "autoResolution": true },
+  "settings": { "v": 6, "quality": "hoog", "shadows": true, "drawDistance": "ver", "resolution": 1, "autoResolution": true, "sfxVolume": 0.75 }
+}
