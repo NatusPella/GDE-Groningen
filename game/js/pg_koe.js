@@ -514,7 +514,7 @@ export const KOE = {
     if (d.moped && w.player.inVehicle !== d.moped) {
       const i = w.vehicles.indexOf(d.moped);
       if (i >= 0) w.vehicles.splice(i, 1);
-    }
+    } else if (d.moped) d.moped.missionCar = false;
   },
   idle(world, dt) {
     if (sites) idleYard(world, dt);
