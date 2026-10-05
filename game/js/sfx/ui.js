@@ -13,9 +13,11 @@ let sliderAt = -1;
 let openedAt = -1;
 const st = {
   pause: false, zoom: null, zoomAt: 0, waypoint: null, notif: null, saved: false,
-  money: null, wanted: 0, stingAt: -10, busyAt: -10, roadblocks: new WeakSet(), messages: new WeakSet(),
+  money: null, wanted: 0, stingAt: -10, pingAt: -10, buzzAt: -10, busyAt: -10, roadblocks: new WeakSet(), messages: new WeakSet(),
 };
 let savedEl = null;
+
+const wpKey = (w) => (w ? `${Math.round(w.x / 40)},${Math.round(w.y / 40)}` : null);
 
 function t() { return K.ctx.currentTime; }
 const ui = () => K.buses.ui;
@@ -52,14 +54,13 @@ function phoneSnd(open) {
 }
 
 function buzz() {
-  for (const d of [0, 0.2]) K.tone({ freq: 150, type: 'square', duration: 0.12, gain: 0.16, filterFreq: 420, delay: d, bus: ui(), prio: 2 });
-  K.tone({ freq: 1760, type: 'sine', duration: 0.25, gain: 0.1, delay: 0.42, bus: ui(), prio: 2 });
-  K.tone({ freq: 2637, type: 'sine', duration: 0.2, gain: 0.05, delay: 0.42, bus: ui(), prio: 2 });
+  for (const d of [0, 0.2]) K.tone({ freq: 150, type: 'square', duration: 0.12, gain: 0.09, filterFreq: 420, delay: d, bus: ui(), prio: 2 });
+  K.tone({ freq: 1175, type: 'sine', duration: 0.14, gain: 0.04, delay: 0.42, bus: ui(), prio: 2 });
 }
 
 function ping() {
-  K.tone({ freq: 1568, type: 'sine', duration: 0.45, gain: 0.08, bus: ui(), prio: 2 });
-  K.tone({ freq: 2349, type: 'sine', duration: 0.35, gain: 0.05, delay: 0.07, bus: ui(), prio: 2 });
+  K.tone({ freq: 1047, type: 'sine', duration: 0.18, gain: 0.04, bus: ui(), prio: 2 });
+  K.tone({ freq: 1568, type: 'sine', duration: 0.16, gain: 0.025, delay: 0.06, bus: ui(), prio: 2 });
 }
 
 export function initUiSfx(kit) {
@@ -71,7 +72,7 @@ export function uiWorldInit(world) {
   st.money = world.money;
   st.wanted = world.wanted;
   st.pause = isPauseMenuOpen();
-  st.waypoint = getUserWaypoint();
+  st.waypoint = wpKey(getUserWaypoint());
   st.notif = world.phoneHistory && world.phoneHistory[0];
   for (const m of world.messages) st.messages.add(m);
   for (const v of world.vehicles) if (v._roadblock) st.roadblocks.add(v._roadblock);
@@ -169,11 +170,11 @@ function roadblockSting() {
 }
 
 function missionFail() {
-  [[440, 0], [370, 0.16], [311, 0.32], [233, 0.5]].forEach(([f, d]) => K.tone({ freq: f, freqEnd: f * 0.98, type: 'sawtooth', duration: d === 0.5 ? 0.7 : 0.18, gain: 0.12, filterFreq: 1400, delay: d, bus: sting(), prio: 2 }));
+  [[440, 0], [370, 0.16], [311, 0.32], [233, 0.5]].forEach(([f, d]) => K.tone({ freq: f, freqEnd: f * 0.98, type: 'sawtooth', duration: d === 0.5 ? 0.7 : 0.18, gain: 0.09, filterFreq: 1400, delay: d, bus: sting(), prio: 2 }));
 }
 
 function healthChime() {
-  [523.3, 659.3, 784, 1046.5].forEach((f, i) => K.tone({ freq: f, type: 'sine', duration: 0.3, gain: 0.12, delay: i * 0.06, bus: ui(), prio: 2 }));
+  [523.3, 659.3, 784, 1046.5].forEach((f, i) => K.tone({ freq: f, type: 'sine', duration: 0.3, gain: 0.07, delay: i * 0.06, bus: ui(), prio: 2 }));
   K.noise({ duration: 0.4, freq: 7000, freqEnd: 4000, q: 1, gain: 0.04, type: 'highpass', delay: 0.1, bus: ui(), prio: 2 });
 }
 
@@ -213,11 +214,15 @@ export function updateUiSfx(dt, world) {
     } else if (st.zoom === null) st.zoom = z;
   } else st.zoom = null;
 
-  const wp = getUserWaypoint();
-  if (wp !== st.waypoint) { if (!muted) (wp ? ping() : back()); st.waypoint = wp; }
+  // getUserWaypoint() builds a fresh object per call, so compare by value
+  const wp = wpKey(getUserWaypoint());
+  if (wp !== st.waypoint) {
+    if (!muted && now - st.pingAt > 2) { st.pingAt = now; (wp ? ping() : back()); }
+    st.waypoint = wp;
+  }
 
   const n = world.phoneHistory && world.phoneHistory[0];
-  if (n && n !== st.notif && !muted && !n.quiet) buzz();
+  if (n && n !== st.notif && !muted && !n.quiet && now - st.buzzAt > 1) { st.buzzAt = now; buzz(); }
   st.notif = n;
 
   if (!savedEl) savedEl = document.querySelector('.hud-saved');
