@@ -8,6 +8,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ### Veranderd
 - **De stemmen praten nu Gronings.** Tammo, Tessa, Rikus, de Stadjers op straat, de agenten, het nieuws, de radio en alle bijbaantjes zeggen hun regels in het Gronings (de Friezen en de toeristen blijven zoals ze waren). De ondertitels veranderen niet: die blijven Nederlands tot je de streek *Gronings ondertiteld* aanzet. Alle opnames zijn opnieuw gemaakt; de gesproken spelling staat in `scripts/gronings_spoken.json`.
+- **Cheats kritisch bekeken.** *Voertuig hier* heeft geen eigen plaatsing meer: het is dezelfde bezorging als "Laten afleveren" (garage en telefoon), alleen gratis, meteen en pal naast je (nooit in een gebouw, boten alleen op water, de heli met ruimte voor de rotor). Je stapt er niet meer automatisch in. *Geld uit de muur* is weg (verdienen kan genoeg, en het zette je prestaties voor de hele sessie uit); oude saves worden bijgewerkt. Teleporteren en Voertuig hier werken niet meer met de politie op je hielen. Slow-mo en Zomer? Ja. lekken niet meer door na uitzetten of laden. Hints bij op-slot-cheats noemen nu de verhaalstap bij naam.
 - **Het Escape-menu is weer gewoon een menu.** De vouwtelefoon-rand eromheen (rand, scharnier, cameragaatje, statusbalk en de uitvouw-animatie) is weg. Telefoon en Spullen blijven als onderdelen van het menu; oproepen en berichten verschijnen nog steeds op de dichtgevouwen telefoon.
 
 ## [0.27.1] - 2026-10-05

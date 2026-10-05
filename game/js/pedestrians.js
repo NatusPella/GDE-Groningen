@@ -370,7 +370,7 @@ function gatherEvents(world) {
       if (!v.sinking && !v.isBike && !v.isScooter) blastAt(world, v);
       if (dist(v.x, v.y, player.x, player.y) < 150) events.push({ kind: 'boom', x: v.x, y: v.y, r: 50, crime: !!v.wreckedByPlayer });
     }
-    if (!v.wrecked && v.driver !== 'player' && v.road && Math.abs(v.x - player.x) < v.halfLen + 6 && Math.abs(v.y - player.y) < v.halfLen + 6) aiDrivenAt.set(v, world.time);
+    if (!v.wrecked && v.driver !== 'player' && (v.road || v.countryDrive) && Math.abs(v.x - player.x) < v.halfLen + 6 && Math.abs(v.y - player.y) < v.halfLen + 6) aiDrivenAt.set(v, world.time);
   }
   for (const pt of world.particles) {
     if (pt.kind !== 'impact' || seenParticles.has(pt)) continue;
