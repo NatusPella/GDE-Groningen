@@ -315,6 +315,9 @@ for (const road of ROADS) {
   for (let k = 0; k < oneways.length && n < 60; k += Math.ceil(oneways.length / 60)) {
     const r = oneways[k], L = polyLen(r.pts);
     const [x0, y0] = along(r.pts, L * 0.6), [x1, y1] = along(r.pts, L * 0.2);
+    // a one-way that ends in a dead end has no legal way: the router then ignores one-ways
+    const sa = C2.snapCountry(x0, y0, 50), sb = C2.snapCountry(x1, y1, 50);
+    if (!sa || !sb || !C2.countryPath(sa, sb)) continue;
     const w = worldAt(x0, y0, x1, y1, 'oneway ' + r.id, DRIVE);
     R.updateRouting(0.1, { ...w, storyGuide: null });
     clockStep(10);

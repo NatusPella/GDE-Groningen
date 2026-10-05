@@ -470,34 +470,39 @@ function countryRoute(world, target, from, to, graphMode, driveOnly) {
   const ts = tIn ? null : snapCountry(target.x, target.y, COUNTRY_SNAP_M);
   if ((!pIn && !ps) || (!tIn && !ts)) return null;
   const lead = (s, x, y) => (s && s.d > 0.5 ? [[x, y]] : []);
-  if (!pIn && !tIn) {
-    const cp = countryPath(ps, ts);
-    return cp ? [...lead(ps, p.x, p.y), ...cp, ...lead(ts, target.x, target.y)] : null;
-  }
-  const gws = cityGateways(map);
+  const gws = pIn || tIn ? cityGateways(map) : null;
   const outer = pIn ? ts : ps;
   const cityEnd = pIn ? p : target;
-  // towards the outer end for a trip into the country, from it for a trip back (one-ways)
-  const { dist } = countryCosts(outer, pIn);
-  // the best gateways first; a one-way or a dead end at the map's edge can
-  // leave the city part without a way, then the next one
-  const ranked = [];
-  for (const g of gws) {
-    const c = dist[g.n] + Math.hypot(g.x - cityEnd.x, g.y - cityEnd.y) * 1.3;
-    if (Number.isFinite(c)) ranked.push([c, g]);
-  }
-  ranked.sort((a, b) => a[0] - b[0]);
-  const cityPart = (a, b) => astar(a, b, graphMode) || (driveOnly ? astar(a, b, 'mixed') || astar(a, b, 'free') : null);
-  for (const [, g] of ranked.slice(0, GATEWAY_TRIES)) {
-    const gs = snapToRoad(map, g.x, g.y, driveOnly);
-    if (!gs) continue;
-    const city = pIn ? cityPart(from, gs) : cityPart(gs, to);
-    if (!city) continue;
-    const country = pIn ? countryPathFromNode(g.n, outer) : countryPathToNode(outer, g.n);
-    if (!country) continue;
-    return pIn ? [...city, ...country, ...lead(ts, target.x, target.y)] : [...lead(ps, p.x, p.y), ...country, ...city];
-  }
-  return null;
+  // free: the one-ways ignored; on foot or by bike always, by car as the last resort
+  // when a one-way dead end (a ramp cut at the data's edge) leaves no way
+  const attempt = (free) => {
+    if (!pIn && !tIn) {
+      const cp = countryPath(ps, ts, free);
+      return cp ? [...lead(ps, p.x, p.y), ...cp, ...lead(ts, target.x, target.y)] : null;
+    }
+    // towards the outer end for a trip into the country, from it for a trip back (one-ways)
+    const { dist } = countryCosts(outer, pIn, free);
+    // the best gateways first; a one-way or a dead end at the map's edge can
+    // leave the city part without a way, then the next one
+    const ranked = [];
+    for (const g of gws) {
+      const c = dist[g.n] + Math.hypot(g.x - cityEnd.x, g.y - cityEnd.y) * 1.3;
+      if (Number.isFinite(c)) ranked.push([c, g]);
+    }
+    ranked.sort((u, v) => u[0] - v[0]);
+    const cityPart = (u, v) => astar(u, v, graphMode) || (driveOnly ? astar(u, v, 'mixed') || astar(u, v, 'free') : null);
+    for (const [, g] of ranked.slice(0, GATEWAY_TRIES)) {
+      const gs = snapToRoad(map, g.x, g.y, driveOnly);
+      if (!gs) continue;
+      const city = pIn ? cityPart(from, gs) : cityPart(gs, to);
+      if (!city) continue;
+      const country = pIn ? countryPathFromNode(g.n, outer, free) : countryPathToNode(outer, g.n, free);
+      if (!country) continue;
+      return pIn ? [...city, ...country, ...lead(ts, target.x, target.y)] : [...lead(ps, p.x, p.y), ...country, ...city];
+    }
+    return null;
+  };
+  return attempt(!driveOnly) || (driveOnly ? attempt(true) : null);
 }
 
 function computeRoute(world, target, mode) {

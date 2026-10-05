@@ -221,7 +221,7 @@ function build(real, need = null) {
     }
   }
   G = {
-    N, x: Float64Array.from(xs), y: Float64Array.from(ys), fwd, rev, comp, main, mainSize, egrid, win,
+    N, x: Float64Array.from(xs), y: Float64Array.from(ys), fwd, rev, und, comp, main, mainSize, egrid, win,
     version: (G ? G.version : 0) + 1, cache: new Map(), ms: performance.now() - t0,
   };
 }
@@ -340,16 +340,19 @@ export function snapCountry(x, y, maxD = 600) {
   }
 }
 
-const snapKey = (s, rev) => `${rev ? 'r' : 'f'}${s.a}:${s.b}:${Math.round(s.da)}:${s.one}`;
+const snapKey = (s, rev, free) => `${free ? 'u' : rev ? 'r' : 'f'}${s.a}:${s.b}:${Math.round(s.da)}:${s.one}`;
 
 // Costs and predecessors over the whole network. Forward: the cheapest way
 // from the snap to every node. Reverse (`toward`): from every node to the
-// snap, and a node's predecessor is the next node on its way there.
-export function countryCosts(from, toward = false) {
-  const key = snapKey(from, toward);
+// snap, and a node's predecessor is the next node on its way there. `free`:
+// the one-ways ignored, the last resort when a one-way dead end (a ramp cut at
+// the data's edge) leaves no way.
+export function countryCosts(from, toward = false, free = false) {
+  const key = snapKey(from, toward, free);
   let c = G.cache.get(key);
   if (c) return c;
-  const adj = toward ? G.rev : G.fwd;
+  const adj = free ? G.und : toward ? G.rev : G.fwd;
+  const one = free ? 0 : from.one;
   const dist = new Float64Array(G.N).fill(Infinity), prev = new Int32Array(G.N).fill(-1);
   const heap = [];
   const push = (d, v) => {
@@ -364,11 +367,11 @@ export function countryCosts(from, toward = false) {
   // on a one-way edge a to b only: leaving the snap runs on to b; arriving at it comes in from a
   const seed = (n, d) => { if (d < dist[n]) { dist[n] = d; push(d, n); } };
   if (toward) {
-    if (from.one >= 0) seed(from.a, from.da);
-    if (!from.one) seed(from.b, from.db);
+    seed(from.a, from.da);
+    if (!one) seed(from.b, from.db);
   } else {
     seed(from.b, from.db);
-    if (!from.one) seed(from.a, from.da);
+    if (!one) seed(from.a, from.da);
   }
   while (heap.length) {
     const top = heap[0], last = heap.pop();
@@ -406,16 +409,16 @@ function chain(n, prev, pts) {
 
 // From snap `from` to snap `to`, along the costs towards `to` (cached per
 // target, so rerouting to the same place is cheap).
-export function countryPath(from, to) {
+export function countryPath(from, to, free = false) {
   if (!from || !to) return null;
   if (from.a === to.a && from.b === to.b) {
     // on the same piece of road: straight there unless it is a one-way the wrong way
     const dir = to.da - from.da;
-    if (!from.one || dir >= 0) return [[from.x, from.y], [to.x, to.y]];
+    if (free || !from.one || dir >= 0) return [[from.x, from.y], [to.x, to.y]];
   }
-  const { dist, prev } = countryCosts(to, true);
+  const { dist, prev } = countryCosts(to, true, free);
   // out of from along its edge: on to b, or back to a unless it is a one-way
-  const cb = dist[from.b] + from.db, ca = from.one ? Infinity : dist[from.a] + from.da;
+  const cb = dist[from.b] + from.db, ca = from.one && !free ? Infinity : dist[from.a] + from.da;
   if (!Number.isFinite(Math.min(ca, cb))) return null;
   const pts = chain(ca < cb ? from.a : from.b, prev, [[from.x, from.y]]);
   pts.push([to.x, to.y]);
@@ -423,8 +426,8 @@ export function countryPath(from, to) {
 }
 
 // From snap `from` to node n.
-export function countryPathToNode(from, n) {
-  const { dist, prev } = countryCosts(from);
+export function countryPathToNode(from, n, free = false) {
+  const { dist, prev } = countryCosts(from, false, free);
   if (!Number.isFinite(dist[n])) return null;
   const pts = chain(n, prev, []).reverse();
   pts.unshift([from.x, from.y]);
@@ -432,8 +435,8 @@ export function countryPathToNode(from, n) {
 }
 
 // From node n to snap `to`.
-export function countryPathFromNode(n, to) {
-  const { dist, prev } = countryCosts(to, true);
+export function countryPathFromNode(n, to, free = false) {
+  const { dist, prev } = countryCosts(to, true, free);
   if (!Number.isFinite(dist[n])) return null;
   const pts = chain(n, prev, []);
   pts.push([to.x, to.y]);
