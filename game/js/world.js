@@ -68,6 +68,7 @@ export function requestRespawn(world, opts = {}) {
 // station); without it the player comes back at a random landmark.
 export function respawnPlayer(world, { busted = false, moneyPenalty = 0, announced = false, spot: at = null } = {}) {
   const p = world.player;
+  if (world.pigeonMode && world.pigeonActions) world.pigeonActions.stop();
   if (p.inVehicle) {
     const v = p.inVehicle;
     v.driver = null;

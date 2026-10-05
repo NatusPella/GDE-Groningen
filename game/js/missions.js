@@ -684,7 +684,7 @@ export function getMissionList() {
   if (!chain) return [];
   const w = worldRef;
   return chain.defs.map((d, i) => ({
-    index: i, id: d.id, code: missionCode(i), order: storyOrder(i), label: d.label, type: d.type, reward: d.reward, status: statusOf(i), start: { x: d.start.x, y: d.start.y },
+    index: i, id: d.id, code: missionCode(i), order: storyOrder(i), label: d.label, type: d.type, reward: d.reward, status: statusOf(i), skipped: !!hooks.skipped(i), start: { x: d.start.x, y: d.start.y },
     needs: w ? requirementText(w, d) : null, done: chain.completed.has(i), klusloon: klusloon(d.reward), medalPaid: chain.medalPaid[i] || 0,
     pay: chain.completed.has(i) ? klusloon(d.reward) : d.reward,
   }));
@@ -788,6 +788,7 @@ let worldRef = null;
 // happens after a mission passes, fails or hits a gate.
 const hooks = {
   waived: () => false,
+  skipped: () => false,
   passed: () => {},
   failed: () => {},
   gated: () => {},
@@ -2016,7 +2017,7 @@ export function updateMissions(dt, world) {
       if (world.sideJob && world.sideJob.active) {
         chain.armed = false;
         world.addMessage('Eerst je bijbaantje afmaken of stoppen (Esc > Spel)', 3);
-      } else if (world.challenge) chain.armed = false; else if (!checkRequirement(world, def, true)) chain.armed = false;
+      } else if (world.challenge || world.padelGame || world.activityGame) chain.armed = false; else if (!checkRequirement(world, def, true)) chain.armed = false;
       else if (!checkRide(world, def)) chain.armed = false;
       else if (hooks.canStart(world, chain.index)) startMission(world, def);
     }

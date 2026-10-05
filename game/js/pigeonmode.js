@@ -1798,9 +1798,10 @@ export function startPigeonMode(w, spot = null) {
     P.speed = 0; P.pitch = 0; P.flapBoost = 0; P.fold = 1; P.flapAmp = 0; P.walkPhase = 0;
     intro = { t: 0 };
     placePigeonMesh(0);
-    // Tammo whistles, closes his eyes and the camera jumps into the bird
+    // Tammo/Tessa whistle, close their eyes and the camera jumps into the bird
     sfx('whistle', pl.x, pl.y, 0.8);
-    if (!inMission(w)) w.addMessage(pick(['Tammo fluit zachtjes en doet zijn ogen dicht…', 'Tammo klikt met zijn tong. De duif kijkt op…', 'Ogen dicht, fluiten. Tammo zit ineens in de duif…']), 2.5);
+    const tessa = pl.character === 'anita', who = tessa ? 'Tessa' : 'Tammo';
+    if (!inMission(w)) w.addMessage(pick([`${who} fluit zachtjes en doet ${tessa ? 'haar' : 'zijn'} ogen dicht…`, `${who} klikt met ${tessa ? 'haar' : 'zijn'} tong. De duif kijkt op…`, `Ogen dicht, fluiten. ${who} zit ineens in de duif…`]), 2.5);
   } else {
     intro = null;
     P.x = pl.x; P.y = pl.y;
