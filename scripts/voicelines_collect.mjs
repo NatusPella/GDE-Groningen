@@ -223,7 +223,7 @@ export function collect() {
   bubble('Missie-figuranten', lit(mm, 'const DRUNK_LINES = '), { tag: ['dronken, lallend en vrolijk', 'aangeschoten, zingerig', 'dronken, sentimenteel'] });
   bubble('Missie-figuranten', lit(mm, 'const CHARGE_LINES = '), { tag: ['dronken, overenthousiast, schreeuwend', 'lallend, uitgelaten'] });
   // the night guards in the museum (heist.js, H6): one voice for the night shift
-  const GUARD = { voice: 'Umbriel', who: 'Groningse nachtwaker in het museum, slaperig en nors', accent: 'spoken in Dutch with a Groningen accent' };
+  const GUARD = { voice: 'Umbriel', who: 'Groningse nachtwaker in het museum, slaperig en nors', accent: 'spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent' };
   bubble('Museumkraak (bewakers)', Object.values(lit(src('heist.js'), 'export const GUARD_LINES = ')).flat(), { persona: GUARD, tag: ['argwanend, fel', 'slaperig, verbaasd', 'streng, roepend'] }, [BUBBLE.m]);
   const cp = src('cityprops.js');
   bubble('Straatfiguren', lit(cp, 'const VENDOR_LINES = '), { who: 'marktkoopman', tag: ['luid roepend, joviaal', 'opgewekt, aanprijzend'] });

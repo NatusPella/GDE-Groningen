@@ -2,190 +2,211 @@
 "Anita|Alweer iets te doen.": {
 "src": "missie_gestart_v2.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Callirrhoe",
-"input": "Alweer iets te doen.",
-"style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: enthousiast, plagend.",
+"input": "Alweer wat te doun.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: enthousiast, plagend.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-02"
+"date": "2026-10-05"
 },
 "Anita|Alweer, Tammo!": {
 "src": "opgepakt_v1.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Callirrhoe",
 "input": "Alweer, Tammo!",
-"style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: ongelovig, verwijtend.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: ongelovig, verwijtend.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-02"
+"date": "2026-10-05"
 },
 "Anita|Dat liep niet zoals gepland.": {
 "src": "missie_mislukt_v1.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Callirrhoe",
-"input": "Dat liep niet zoals gepland.",
-"style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: geërgerd, ad rem.",
+"input": "Dat liep nait zo as plend.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: geërgerd, ad rem.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-02"
+"date": "2026-10-05"
 },
 "Anita|Die is weer af!": {
 "src": "missie_gelukt_v2.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Callirrhoe",
-"input": "Die is weer af!",
-"style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: triomfantelijk, lacherig.",
+"input": "Dij is weer af!",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: triomfantelijk, lacherig.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-02"
+"date": "2026-10-05"
 },
 "Anita|Die ziet er gevaarlijk uit. Mooi!": {
 "src": "wapen_opgepakt_v2.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Callirrhoe",
-"input": "Die ziet er gevaarlijk uit. Mooi!",
-"style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: zelfverzekerd, tevreden.",
+"input": "Dij ziet der gevaarlijk oet. Mooi!",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: zelfverzekerd, tevreden.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-02"
+"date": "2026-10-05"
 },
 "Anita|Dit wordt een gewoonte!": {
 "src": "opgepakt_v2.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Callirrhoe",
-"input": "Dit wordt een gewoonte!",
-"style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: ongelovig, verwijtend.",
+"input": "Dit wordt n gewoonte!",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: ongelovig, verwijtend.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-02"
+"date": "2026-10-05"
 },
 "Anita|Doe rustig aan, mien jong!": {
 "src": "kus_v2.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Callirrhoe",
 "input": "Doe rustig aan, mien jong!",
-"style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: warm, plagend, zacht.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: warm, plagend, zacht.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-02"
+"date": "2026-10-05"
 },
 "Anita|Doe voorzichtig, ja!": {
 "src": "kus.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Callirrhoe",
-"input": "Doe voorzichtig, ja!",
-"style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: warm, plagend, zacht.",
+"input": "Doe veurzichtig, jo!",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: warm, plagend, zacht.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-02"
+"date": "2026-10-05"
 },
 "Anita|En daar gaan we dan weer.": {
 "src": "missie_gestart_v1.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Callirrhoe",
-"input": "En daar gaan we dan weer.",
-"style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: enthousiast, plagend.",
+"input": "En doar goan wie dan weer.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: enthousiast, plagend.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-02"
+"date": "2026-10-05"
 },
 "Anita|Had beter gekund.": {
 "src": "missie_mislukt.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Callirrhoe",
-"input": "Had beter gekund.",
-"style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: geërgerd, ad rem.",
+"input": "Har beter kinnen.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: geërgerd, ad rem.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-02"
+"date": "2026-10-05"
 },
 "Anita|Handig, dat kan ik gebruiken.": {
 "src": "wapen_opgepakt_v1.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Callirrhoe",
-"input": "Handig, dat kan ik gebruiken.",
-"style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: zelfverzekerd, tevreden.",
+"input": "Handig, dat kin ik bruken.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: zelfverzekerd, tevreden.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-02"
+"date": "2026-10-05"
 },
 "Anita|Here we go again.": {
 "src": "missie_gestart.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Callirrhoe",
 "input": "Here we go again.",
-"style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: enthousiast, plagend.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: enthousiast, plagend.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-02"
+"date": "2026-10-05"
 },
 "Anita|Kassa, zullen we maar zeggen.": {
 "src": "geld_opgepakt_v2.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Callirrhoe",
-"input": "Kassa, zullen we maar zeggen.",
-"style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: enthousiast, snel.",
+"input": "Kassa, zullen wie mor zeggen.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: enthousiast, snel.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-02"
+"date": "2026-10-05"
 },
 "Anita|Let een beetje op jezelf.": {
 "src": "kus_v1.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Callirrhoe",
-"input": "Let een beetje op jezelf.",
-"style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: warm, plagend, zacht.",
+"input": "Let n betje op dissels.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: warm, plagend, zacht.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-02"
+"date": "2026-10-05"
 },
 "Anita|Mooi! Komt goed van pas!": {
 "src": "geld_opgepakt.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Callirrhoe",
-"input": "Mooi! Komt goed van pas!",
-"style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: enthousiast, snel.",
+"input": "Mooi! Komt goud van pas!",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: enthousiast, snel.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-02"
+"date": "2026-10-05"
 },
 "Anita|Mooi! Weer wat extra!": {
 "src": "geld_opgepakt_v1.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Callirrhoe",
 "input": "Mooi! Weer wat extra!",
-"style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: enthousiast, snel.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: enthousiast, snel.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-02"
+"date": "2026-10-05"
 },
 "Anita|Nou, dat is geregeld!": {
 "src": "missie_gelukt_v1.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Callirrhoe",
-"input": "Nou, dat is geregeld!",
-"style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: triomfantelijk, lacherig.",
+"input": "Nou, dat is regeld!",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: triomfantelijk, lacherig.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-02"
+"date": "2026-10-05"
 },
 "Anita|Nou, dat werd niks.": {
 "src": "missie_mislukt_v2.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Callirrhoe",
-"input": "Nou, dat werd niks.",
-"style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: geërgerd, ad rem.",
+"input": "Nou, dat wer niks.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: geërgerd, ad rem.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-02"
+"date": "2026-10-05"
 },
 "Anita|Precies wat ik nodig had.": {
 "src": "wapen_opgepakt.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Callirrhoe",
-"input": "Precies wat ik nodig had.",
-"style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: zelfverzekerd, tevreden.",
+"input": "Precies wat ik neudig har.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: zelfverzekerd, tevreden.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-02"
+"date": "2026-10-05"
 },
 "Anita|Serieus, Tammo.": {
 "src": "opgepakt.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Callirrhoe",
 "input": "Serieus, Tammo.",
-"style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: ongelovig, verwijtend.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: ongelovig, verwijtend.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-02"
+"date": "2026-10-05"
 },
 "Anita|Zo moet het!": {
 "src": "missie_gelukt.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Callirrhoe",
-"input": "Zo moet het!",
-"style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: triomfantelijk, lacherig.",
+"input": "Zo mout t!",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: triomfantelijk, lacherig.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-02"
+"date": "2026-10-05"
 }
 }

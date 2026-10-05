@@ -2,181 +2,201 @@
 "Kiekdoar-redactie (2)|KIEKDOAR MELDT: onrust in Grunn, politie massaal op pad": {
 "src": "wanted_up_1_v1.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Umbriel",
 "input": "Onrust in Grunn, politie massaal op pad.",
-"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezer van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse nieuwslezer van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-03"
+"date": "2026-10-05"
 },
 "Kiekdoar-redactie (2)|KIEKDOAR: agent gewond geraakt tijdens dienst, korps in rep en roer": {
 "src": "copkill_up_v1.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Umbriel",
-"input": "Agent gewond geraakt tijdens dienst, korps in rep en roer.",
-"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezer van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
+"input": "Agent gewond raakt tiedens dienst, korps in rep en roer.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse nieuwslezer van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-03"
+"date": "2026-10-05"
 },
 "Kiekdoar-redactie (2)|KIEKDOAR: auto total loss in het centrum, buurtbewoners verbijsterd": {
 "src": "wrecked_up_1_v1.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Umbriel",
-"input": "Auto total loss in het centrum, buurtbewoners verbijsterd.",
-"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezer van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
+"input": "Auto total loss in t centrum, buurtbewoners verbieusterd.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse nieuwslezer van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-03"
+"date": "2026-10-05"
 },
 "Kiekdoar-redactie (2)|KIEKDOAR: code rood, storm raast over Grunn": {
 "src": "weather_storm_start_v1.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Umbriel",
 "input": "Code rood, storm raast over Grunn.",
-"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezer van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse nieuwslezer van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-03"
+"date": "2026-10-05"
 },
 "Kiekdoar-redactie (2)|KIEKDOAR: gierende sirenes in het centrum, politie zit iemand op de hielen": {
 "src": "wanted_up_2_v1.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Umbriel",
-"input": "Gierende sirenes in het centrum, politie zit iemand op de hielen.",
-"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezer van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
+"input": "Gierende sirenes in t centrum, politie zit ain op de hakken.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse nieuwslezer van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-03"
+"date": "2026-10-05"
 },
 "Kiekdoar-redactie (2)|KIEKDOAR: mysterieuze klusjesman weer aan het werk in Groningen": {
 "src": "mission_up_v1.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Umbriel",
-"input": "Mysterieuze klusjesman weer aan het werk in Groningen.",
-"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezer van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
+"input": "Mysterieuze klusjesman weer aan t wark in Grunn.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse nieuwslezer van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-03"
+"date": "2026-10-05"
 },
 "Kiekdoar-redactie (2)|KIEKDOAR: opnieuw onrust in de straten, politie tast in het duister": {
 "src": "kill_up_v1.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Umbriel",
-"input": "Opnieuw onrust in de straten, politie tast in het duister.",
-"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezer van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
+"input": "Opnij onrust in de stroaten, politie tast in t duuster.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse nieuwslezer van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-03"
+"date": "2026-10-05"
 },
 "Kiekdoar-redactie (2)|KIEKDOAR: storm trekt weg, Groningen droogt weer op": {
 "src": "weather_storm_end_v1.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Umbriel",
-"input": "Storm trekt weg, Groningen droogt weer op.",
-"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezer van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
+"input": "Storm trekt weg, Grunn dreugt weer op.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse nieuwslezer van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-03"
+"date": "2026-10-05"
 },
 "Kiekdoar-redactie (2)|KIEKDOAR: voetganger gewond, buurtapp ontploft van de reacties": {
 "src": "pedkill_up_v1.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Umbriel",
 "input": "Voetganger gewond, buurtapp ontploft van de reacties.",
-"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezer van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse nieuwslezer van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-03"
+"date": "2026-10-05"
 },
 "Kiekdoar-redactie (2)|KIEKDOAR: wéér total loss in Groningen, garages wrijven in hun handen": {
 "src": "wrecked_up_2_v1.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Umbriel",
-"input": "Wéér total loss in Groningen, garages wrijven in hun handen.",
-"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezer van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
+"input": "Wéér total loss in Grunn, garages wrieven in heur hanen.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse nieuwslezer van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-03"
+"date": "2026-10-05"
 },
 "Kiekdoar-redactie|KIEKDOAR MELDT: onrust in Grunn, politie massaal op pad": {
 "src": "wanted_up_1_v0.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Achernar",
 "input": "Onrust in Grunn, politie massaal op pad.",
-"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse nieuwslezeres van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-03"
+"date": "2026-10-05"
 },
 "Kiekdoar-redactie|KIEKDOAR: agent gewond geraakt tijdens dienst, korps in rep en roer": {
 "src": "copkill_up_v0.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Achernar",
-"input": "Agent gewond geraakt tijdens dienst, korps in rep en roer.",
-"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
+"input": "Agent gewond raakt tiedens dienst, korps in rep en roer.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse nieuwslezeres van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-03"
+"date": "2026-10-05"
 },
 "Kiekdoar-redactie|KIEKDOAR: auto total loss in het centrum, buurtbewoners verbijsterd": {
 "src": "wrecked_up_1_v0.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Achernar",
-"input": "Auto total loss in het centrum, buurtbewoners verbijsterd.",
-"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
+"input": "Auto total loss in t centrum, buurtbewoners verbieusterd.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse nieuwslezeres van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-03"
+"date": "2026-10-05"
 },
 "Kiekdoar-redactie|KIEKDOAR: code rood, storm raast over Grunn": {
 "src": "weather_storm_start_v0.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Achernar",
 "input": "Code rood, storm raast over Grunn.",
-"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse nieuwslezeres van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-03"
+"date": "2026-10-05"
 },
 "Kiekdoar-redactie|KIEKDOAR: gierende sirenes in het centrum, politie zit iemand op de hielen": {
 "src": "wanted_up_2_v0.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Achernar",
-"input": "Gierende sirenes in het centrum, politie zit iemand op de hielen.",
-"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
+"input": "Gierende sirenes in t centrum, politie zit ain op de hakken.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse nieuwslezeres van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-03"
+"date": "2026-10-05"
 },
 "Kiekdoar-redactie|KIEKDOAR: mysterieuze klusjesman weer aan het werk in Groningen": {
 "src": "mission_up_v0.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Achernar",
-"input": "Mysterieuze klusjesman weer aan het werk in Groningen.",
-"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
+"input": "Mysterieuze klusjesman weer aan t wark in Grunn.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse nieuwslezeres van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-03"
+"date": "2026-10-05"
 },
 "Kiekdoar-redactie|KIEKDOAR: opnieuw onrust in de straten, politie tast in het duister": {
 "src": "kill_up_v0.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Achernar",
-"input": "Opnieuw onrust in de straten, politie tast in het duister.",
-"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
+"input": "Opnij onrust in de stroaten, politie tast in t duuster.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse nieuwslezeres van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-03"
+"date": "2026-10-05"
 },
 "Kiekdoar-redactie|KIEKDOAR: storm trekt weg, Groningen droogt weer op": {
 "src": "weather_storm_end_v0.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Achernar",
-"input": "Storm trekt weg, Groningen droogt weer op.",
-"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
+"input": "Storm trekt weg, Grunn dreugt weer op.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse nieuwslezeres van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-03"
+"date": "2026-10-05"
 },
 "Kiekdoar-redactie|KIEKDOAR: voetganger gewond, buurtapp ontploft van de reacties": {
 "src": "pedkill_up_v0.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Achernar",
 "input": "Voetganger gewond, buurtapp ontploft van de reacties.",
-"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse nieuwslezeres van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-03"
+"date": "2026-10-05"
 },
 "Kiekdoar-redactie|KIEKDOAR: wéér total loss in Groningen, garages wrijven in hun handen": {
 "src": "wrecked_up_2_v0.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Achernar",
-"input": "Wéér total loss in Groningen, garages wrijven in hun handen.",
-"style": "spoken in Dutch with a Groningen accent; Groningse nieuwslezeres van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
+"input": "Wéér total loss in Grunn, garages wrieven in heur hanen.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse nieuwslezeres van nieuwssite Kiekdoar, leest een pushbericht voor. Tone: als een regionale nieuwslezer, droog, licht ironisch.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-03"
+"date": "2026-10-05"
 }
 }

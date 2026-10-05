@@ -2,271 +2,301 @@
 "Stadjer (man)|Doe mor gewoon.": {
 "src": "phrase_5_v0.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Sadaltager",
 "input": "Doe mor gewoon.",
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; gemoedelijke Groningse man op straat. Tone: vriendelijk, terloops, in het voorbijgaan.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-03"
+"date": "2026-10-05"
 },
 "Stadjer (man)|Hoi, alles goud?": {
 "src": "phrase_1_v0.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Sadaltager",
-"input": "Hoi, alles goud?",
+"input": "Hoi, aals goud?",
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; gemoedelijke Groningse man op straat. Tone: vriendelijk, terloops, in het voorbijgaan.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-03"
+"date": "2026-10-05"
 },
 "Stadjer (man)|Kom, we goan derhen.": {
 "src": "phrase_3_v0.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Sadaltager",
-"input": "Kom, we goan derhen.",
+"input": "Kom, wie goan derhen.",
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; gemoedelijke Groningse man op straat. Tone: vriendelijk, terloops, in het voorbijgaan.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-03"
+"date": "2026-10-05"
 },
 "Stadjer (man)|Lekker bakkie doen?": {
 "src": "phrase_6_v0.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Sadaltager",
-"input": "Lekker bakkie doen?",
+"input": "Lekker bakkie doun?",
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; gemoedelijke Groningse man op straat. Tone: vriendelijk, terloops, in het voorbijgaan.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-03"
+"date": "2026-10-05"
 },
 "Stadjer (man)|Ligt aan die kolde wind, geleuf ik.": {
 "src": "phrase_8_v0.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Sadaltager",
 "input": "Ligt aan die kolde wind, geleuf ik.",
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; gemoedelijke Groningse man op straat. Tone: vriendelijk, terloops, in het voorbijgaan.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-03"
+"date": "2026-10-05"
 },
 "Stadjer (man)|Moi!": {
 "src": "phrase_0_v0.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Sadaltager",
 "input": "Moi!",
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; gemoedelijke Groningse man op straat. Tone: vriendelijk, terloops, in het voorbijgaan.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-03"
+"date": "2026-10-05"
 },
 "Stadjer (man)|Nou, mag nait klagen, hoor.": {
 "src": "phrase_7_v0.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Sadaltager",
 "input": "Nou, mag nait klagen, hoor.",
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; gemoedelijke Groningse man op straat. Tone: vriendelijk, terloops, in het voorbijgaan.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-03"
+"date": "2026-10-05"
 },
 "Stadjer (man)|Tot straks, moi!": {
 "src": "phrase_9_v0.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Sadaltager",
 "input": "Tot straks, moi!",
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; gemoedelijke Groningse man op straat. Tone: vriendelijk, terloops, in het voorbijgaan.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-03"
+"date": "2026-10-05"
 },
 "Stadjer (man)|Wat bin je aan het doun?": {
 "src": "phrase_4_v0.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Sadaltager",
-"input": "Wat bin je aan het doun?",
+"input": "Wat bist doe an t doun?",
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; gemoedelijke Groningse man op straat. Tone: vriendelijk, terloops, in het voorbijgaan.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-03"
+"date": "2026-10-05"
 },
 "Stadjer (man)|t Is mooi weer vandoag, net?": {
 "src": "phrase_2_v0.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Sadaltager",
 "input": "t Is mooi weer vandoag, net?",
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; gemoedelijke Groningse man op straat. Tone: vriendelijk, terloops, in het voorbijgaan.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-03"
+"date": "2026-10-05"
 },
 "Stadjer (oud)|Doe mor gewoon.": {
 "src": "phrase_5_v2.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Enceladus",
 "input": "Doe mor gewoon.",
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; oude Groningse man op straat, een beetje schor. Tone: vriendelijk, terloops, in het voorbijgaan.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-03"
+"date": "2026-10-05"
 },
 "Stadjer (oud)|Hoi, alles goud?": {
 "src": "phrase_1_v2.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Enceladus",
-"input": "Hoi, alles goud?",
+"input": "Hoi, aals goud?",
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; oude Groningse man op straat, een beetje schor. Tone: vriendelijk, terloops, in het voorbijgaan.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-03"
+"date": "2026-10-05"
 },
 "Stadjer (oud)|Kom, we goan derhen.": {
 "src": "phrase_3_v2.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Enceladus",
-"input": "Kom, we goan derhen.",
+"input": "Kom, wie goan derhen.",
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; oude Groningse man op straat, een beetje schor. Tone: vriendelijk, terloops, in het voorbijgaan.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-03"
+"date": "2026-10-05"
 },
 "Stadjer (oud)|Lekker bakkie doen?": {
 "src": "phrase_6_v2.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Enceladus",
-"input": "Lekker bakkie doen?",
+"input": "Lekker bakkie doun?",
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; oude Groningse man op straat, een beetje schor. Tone: vriendelijk, terloops, in het voorbijgaan.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-03"
+"date": "2026-10-05"
 },
 "Stadjer (oud)|Ligt aan die kolde wind, geleuf ik.": {
 "src": "phrase_8_v2.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Enceladus",
 "input": "Ligt aan die kolde wind, geleuf ik.",
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; oude Groningse man op straat, een beetje schor. Tone: vriendelijk, terloops, in het voorbijgaan.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-03"
+"date": "2026-10-05"
 },
 "Stadjer (oud)|Moi!": {
 "src": "phrase_0_v2.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Enceladus",
 "input": "Moi!",
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; oude Groningse man op straat, een beetje schor. Tone: vriendelijk, terloops, in het voorbijgaan.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-03"
+"date": "2026-10-05"
 },
 "Stadjer (oud)|Nou, mag nait klagen, hoor.": {
 "src": "phrase_7_v2.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Enceladus",
 "input": "Nou, mag nait klagen, hoor.",
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; oude Groningse man op straat, een beetje schor. Tone: vriendelijk, terloops, in het voorbijgaan.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-03"
+"date": "2026-10-05"
 },
 "Stadjer (oud)|Tot straks, moi!": {
 "src": "phrase_9_v2.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Enceladus",
 "input": "Tot straks, moi!",
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; oude Groningse man op straat, een beetje schor. Tone: vriendelijk, terloops, in het voorbijgaan.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-03"
+"date": "2026-10-05"
 },
 "Stadjer (oud)|Wat bin je aan het doun?": {
 "src": "phrase_4_v2.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Enceladus",
-"input": "Wat bin je aan het doun?",
+"input": "Wat bist doe an t doun?",
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; oude Groningse man op straat, een beetje schor. Tone: vriendelijk, terloops, in het voorbijgaan.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-03"
+"date": "2026-10-05"
 },
 "Stadjer (oud)|t Is mooi weer vandoag, net?": {
 "src": "phrase_2_v2.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Enceladus",
 "input": "t Is mooi weer vandoag, net?",
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; oude Groningse man op straat, een beetje schor. Tone: vriendelijk, terloops, in het voorbijgaan.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-03"
+"date": "2026-10-05"
 },
 "Stadjer (vrouw)|Doe mor gewoon.": {
 "src": "phrase_5_v1.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Despina",
 "input": "Doe mor gewoon.",
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; kletserige Groningse vrouw op straat. Tone: vriendelijk, terloops, in het voorbijgaan.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-03"
+"date": "2026-10-05"
 },
 "Stadjer (vrouw)|Hoi, alles goud?": {
 "src": "phrase_1_v1.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Despina",
-"input": "Hoi, alles goud?",
+"input": "Hoi, aals goud?",
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; kletserige Groningse vrouw op straat. Tone: vriendelijk, terloops, in het voorbijgaan.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-03"
+"date": "2026-10-05"
 },
 "Stadjer (vrouw)|Kom, we goan derhen.": {
 "src": "phrase_3_v1.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Despina",
-"input": "Kom, we goan derhen.",
+"input": "Kom, wie goan derhen.",
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; kletserige Groningse vrouw op straat. Tone: vriendelijk, terloops, in het voorbijgaan.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-03"
+"date": "2026-10-05"
 },
 "Stadjer (vrouw)|Lekker bakkie doen?": {
 "src": "phrase_6_v1.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Despina",
-"input": "Lekker bakkie doen?",
+"input": "Lekker bakkie doun?",
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; kletserige Groningse vrouw op straat. Tone: vriendelijk, terloops, in het voorbijgaan.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-03"
+"date": "2026-10-05"
 },
 "Stadjer (vrouw)|Ligt aan die kolde wind, geleuf ik.": {
 "src": "phrase_8_v1.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Despina",
 "input": "Ligt aan die kolde wind, geleuf ik.",
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; kletserige Groningse vrouw op straat. Tone: vriendelijk, terloops, in het voorbijgaan.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-03"
+"date": "2026-10-05"
 },
 "Stadjer (vrouw)|Moi!": {
 "src": "phrase_0_v1.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Despina",
 "input": "Moi!",
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; kletserige Groningse vrouw op straat. Tone: vriendelijk, terloops, in het voorbijgaan.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-03"
+"date": "2026-10-05"
 },
 "Stadjer (vrouw)|Nou, mag nait klagen, hoor.": {
 "src": "phrase_7_v1.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Despina",
 "input": "Nou, mag nait klagen, hoor.",
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; kletserige Groningse vrouw op straat. Tone: vriendelijk, terloops, in het voorbijgaan.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-03"
+"date": "2026-10-05"
 },
 "Stadjer (vrouw)|Tot straks, moi!": {
 "src": "phrase_9_v1.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Despina",
 "input": "Tot straks, moi!",
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; kletserige Groningse vrouw op straat. Tone: vriendelijk, terloops, in het voorbijgaan.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-03"
+"date": "2026-10-05"
 },
 "Stadjer (vrouw)|Wat bin je aan het doun?": {
 "src": "phrase_4_v1.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Despina",
-"input": "Wat bin je aan het doun?",
+"input": "Wat bist doe an t doun?",
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; kletserige Groningse vrouw op straat. Tone: vriendelijk, terloops, in het voorbijgaan.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-03"
+"date": "2026-10-05"
 },
 "Stadjer (vrouw)|t Is mooi weer vandoag, net?": {
 "src": "phrase_2_v1.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Despina",
 "input": "t Is mooi weer vandoag, net?",
 "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; kletserige Groningse vrouw op straat. Tone: vriendelijk, terloops, in het voorbijgaan.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-03"
+"date": "2026-10-05"
 }
 }
