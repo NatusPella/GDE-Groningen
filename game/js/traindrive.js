@@ -109,6 +109,11 @@ function board(world, { t, cab }) {
   } else world.addMessage('Weer aan de knoppen', 2);
 }
 
+// A loaded save ends a train drive where it is (savegame.js).
+export function quitTrainDrive(world) {
+  if (world.trainDriving) stopDriving(world, false);
+}
+
 function stopDriving(world, placeOutside) {
   const t = world.trainDriving;
   world.trainDriving = null;

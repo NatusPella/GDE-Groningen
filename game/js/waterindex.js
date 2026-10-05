@@ -331,3 +331,10 @@ export function waterChannelPoints(map, poly, budgetMs = Infinity) {
   if (budgetMs !== Infinity) budgetSpent += performance.now() - t0;
   return ch;
 }
+
+// Whether some heading lets a swimmer in the quay band move at all (see updateWater).
+export function swimmerCanLeave(free, x, y, step) {
+  const r = Math.max(step, 0.05);
+  for (let a = 0; a < 8; a++) if (free(x + Math.cos(a * Math.PI / 4) * r, y + Math.sin(a * Math.PI / 4) * r)) return true;
+  return false;
+}

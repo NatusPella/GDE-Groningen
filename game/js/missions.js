@@ -971,7 +971,9 @@ export function getMissionProgress() {
 }
 
 export function setMissionProgress(world, prog) {
-  if (!chain || !prog) return;
+  if (!chain) return;
+  // a save without mission progress is a fresh start: a mission running now still has to end
+  if (!prog || typeof prog !== 'object') prog = {};
   const n = chain.defs.length;
   if (chain.phase === 'active') {
     // a save loaded mid-mission: what the mission put in the world goes with it

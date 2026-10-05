@@ -1,6 +1,6 @@
 import { closestPointOnSegment, normalizeAngle, pointInPolygon, isInWater, inWaterPoly, WATER_Y, clamp } from './util.js';
 import { wallAhead } from './countrywalls.js';
-import { waterClearance, pushOutOfWaterObstacles, insideWaterObstacle } from './waterindex.js';
+import { waterClearance, pushOutOfWaterObstacles, insideWaterObstacle, swimmerCanLeave } from './waterindex.js';
 import { findEnterableVehicle, distToVehicleBody, resolveBoomCollisions, resolveVehicleBuildingCollision, drivePlayerBoat, pushCircleOutOfVehicle, reportImpact, tickSinkingVehicles } from './vehicle.js';
 import { findRideableProp, rideProp } from './rideprops.js';
 import { playAutoGejatLine } from './audio.js';
@@ -539,6 +539,11 @@ export class Player {
       blocked = true;
       if (free(nx, this.y)) this.x = nx;
       else if (free(this.x, ny)) this.y = ny;
+      else if (here < SWIM_EDGE_CLEAR && !swimmerCanLeave(free, this.x, this.y, Math.hypot(this.vx, this.vy) * dt)) {
+        // a ditch narrower than the band: nowhere is 'away from the wall', so just swim on
+        const d = waterClearance(map, nx, ny, SWIM_EDGE_CLEAR + 1);
+        if (d > 0.05) { this.x = nx; this.y = ny; }
+      }
     }
     this.resolveSwimContacts(world);
 

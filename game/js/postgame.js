@@ -776,6 +776,7 @@ export function initPostgame(w) {
     guide: { next: guideNext, off: guideOff, on: guideOn, isOff: () => state.guideOff },
   };
   w.onRespawn.push((ww, { busted }) => {
+    if (run && run.def.onRespawn) { try { run.def.onRespawn(run, { busted }); } catch (e) { console.error('postgame onRespawn', e); finish(run, { aborted: true }); } return; }
     if (run) finish(run, { success: false, medal: 0, reason: busted ? 'Opgepakt: de uitdaging is voorbij' : 'Je bent dood: de uitdaging is voorbij', stats: [] });
   });
   if (typeof window !== 'undefined') window.__postgame = debugApi;
