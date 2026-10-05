@@ -6,6 +6,9 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Veranderd
+- **Het Escape-menu is weer gewoon een menu.** De vouwtelefoon-rand eromheen (rand, scharnier, cameragaatje, statusbalk en de uitvouw-animatie) is weg. Telefoon en Spullen blijven als onderdelen van het menu; oproepen en berichten verschijnen nog steeds op de dichtgevouwen telefoon.
+
 ## [0.27.1] - 2026-10-05
 
 ### Nieuw
