@@ -20,7 +20,8 @@
 //   getGarageList(world) / getGarageCatalog(world)
 //     Owned vehicles (hero first) / the whole collection incl. not yet bought,
 //     as plain view objects for the phone app and the pause-menu garage.
-//   deliverOwnedVehicle(world, id) -> { ok, text }
+//   deliverOwnedVehicle(world, id, opts?) -> { ok, text }
+//     opts.here (the Streken cheat): any catalog vehicle, free and at once, right beside you.
 //     "Laten afleveren": fee, cooldown, out-of-view placement, message (no route: the car shows on the map).
 //     Boats go home to "Jouw steiger" behind the tower, the helicopter to the helidek on its roof (home.js).
 //   locateOwnedVehicle(world, id) -> { ok, text, x, y }
@@ -33,12 +34,13 @@ import { buildingAt } from './countryreal.js';
 import { isSpawnHidden } from './pedestrians.js';
 import { slotFits, propBlocked, sleepingParkedCars } from './parkedcars.js';
 import { spawnHeroCarNear } from './vehicle.js';
+import { inHomeFlat } from './home.js';
 import { BLOCK, ROAD_IN, ROAD_W, edgeDistance, edgeRoad, realWater } from './countryfield.js';
 import { REAL, RTILE, roadsInTile, realStreetAt, inRealExtent } from './countryreal.js';
 import { pushOutOfPlan } from './countryplan.js';
 import { vehicleDisplayName } from './vehiclenames.js';
 import {
-  getOwnedEntries, getHeroLook, spawnOwnedEntry, replacementFee, getShopsForRender,
+  getOwnedEntries, getHeroLook, spawnOwnedEntry, spawnStockVehicle, replacementFee, getShopsForRender,
   VEHICLE_STOCK, VEHICLE_UNLOCKS, unlockMet, PAINTS, upgradeListForStock, REDELIVERY_FEE,
 } from './shops.js';
 
@@ -284,7 +286,9 @@ function parkAt(world, v, spot) {
   v.road = null;
   v.parked = false;
   v.driver = null;
-  if (!v.isBoat) v.z = world.map.spawnZ ? world.map.spawnZ(spot.x, spot.y) : 0;
+  v.homeStored = false;
+  v.homeSlot = null;
+  if (!v.isBoat && !v.isHeli) { v.z = world.map.spawnZ ? world.map.spawnZ(spot.x, spot.y) : 0; v.vz = 0; v.airborne = false; }
   if (!world.vehicles.includes(v)) world.vehicles.push(v);
 }
 
@@ -452,7 +456,124 @@ function describeSpot(world, spot, name) {
   return `Je ${name} staat ${streetPhrase(street)}. Je ziet hem op je kaart`;
 }
 
-export function deliverOwnedVehicle(world, id) {
+// Puts the owned vehicle `id` ('hero' or a collection key) in the world on
+// the spot pick(kind, model, ignoreVehicle) finds: the standing instance
+// moves, a missing or wrecked one is built anew. Returns the spot or null.
+function placeEntry(world, id, pick) {
+  if (id === 'hero') {
+    const old = heroCar(world);
+    if (old) {
+      const spot = pick('car', old.model, old);
+      if (spot) parkAt(world, old, spot);
+      return spot;
+    }
+    const spot = pick('car', HERO_SPEC.model, null);
+    // (from the city's nearest street when the spot is out in the country;
+    // parkAt moves it to the spot)
+    const car = spot && (spawnHeroCarNear(world.map, spot.x, spot.y) || spawnHeroCarNear(world.map, 0, 0));
+    if (!car) return null;
+    for (const w of world.vehicles) if (w.isHeroCar && w.wrecked) w.isHeroCar = false;
+    parkAt(world, car, spot);
+    return spot;
+  }
+  const o = getOwnedEntries().find((x) => x.key === id);
+  if (!o) return null;
+  if (o.v && world.vehicles.includes(o.v) && !o.lost) {
+    const spot = pick(o.spec.kind, o.v.model, o.v);
+    if (spot) parkAt(world, o.v, spot);
+    return spot;
+  }
+  const spot = pick(o.spec.kind, o.spec.model, null);
+  return spot && spawnOwnedEntry(world, o, spot.x, spot.y, spot.angle) ? spot : null;
+}
+
+// --- delivery right beside you (Streken > Voertuig hier) ---------------------
+
+const solidAt = (map, x, y, m) => {
+  const [ex, ey] = map.escapeBuilding(x, y, m);
+  return Math.hypot(ex - x, ey - y) > 0.05 || buildingAt(x, y, m) >= 0;
+};
+
+// Beside you (3 m and out, the first try to your side), facing as you do: dry and
+// level for a car or bike, open water for a boat, room for the rotor for the
+// heli; never in a building, farm, prop or other vehicle. Else the kerb
+// spot nearby (cars, bikes), visible this time.
+function besideSpot(world, kind, model, ignore) {
+  const map = world.map, p = world.player;
+  const len = model.len || 4, wid = model.wid || 1.7, half = len / 2;
+  const gz = p.gz || 0;
+  const radii = kind === 'boat' ? [3, 6, 10, 15, 20, 28, 36, 45] : kind === 'heli' ? [7, 10, 14, 19, 25, 32] : [3, 4.5, 6, 8, 11, 15, 20];
+  const angle = p.angle;
+  const fx = Math.cos(angle) * half, fy = Math.sin(angle) * half;
+  const wet = (px, py) => isInWater(map, px, py);
+  for (const r of radii) {
+    const n = 12;
+    for (let i = 0; i < n; i++) {
+      const a = angle + Math.PI / 2 + (i % 2 ? -1 : 1) * Math.ceil(i / 2) * (Math.PI * 2 / n);
+      const x = p.x + Math.cos(a) * r, y = p.y + Math.sin(a) * r;
+      if (kind === 'boat') {
+        if (wet(x, y) && wet(x + fx, y + fy) && wet(x - fx, y - fy) && clearOfVehicles(world, x, y, half, ignore)) return { x, y, angle, street: '' };
+        continue;
+      }
+      if (wet(x, y) || wet(x + fx, y + fy) || wet(x - fx, y - fy)) continue;
+      if (map.groundHeightAt && Math.abs((map.groundHeightAt(x, y, gz) || 0) - gz) > 0.8) continue;
+      if (kind === 'heli') {
+        if (solidAt(map, x, y, 8) || !clearOfVehicles(world, x, y, 7, ignore)) continue;
+        if (map.treesNear && map.treesNear(x, y, 7).some((t) => Math.hypot((t.x ?? t[0]) - x, (t.y ?? t[1]) - y) < 7)) continue;
+        return { x, y, angle, street: '' };
+      }
+      const e = wid / 2 + 0.3;
+      if (solidAt(map, x, y, e) || solidAt(map, x + fx, y + fy, e) || solidAt(map, x - fx, y - fy, e)) continue;
+      if (!clearOfVehicles(world, x, y, half, ignore) || propBlocked(x, y, angle, { len, wid })) continue;
+      return { x, y, angle, street: '' };
+    }
+  }
+  if (kind === 'boat' || kind === 'heli') return null;
+  return findParkingSpot(world, p.x, p.y, model, { outOfView: false, ignore });
+}
+
+let tempStock = null;
+
+const HERE_FAIL = {
+  boat: 'Een boot kan alleen op het water. Ga aan de kant staan',
+  heli: 'Te weinig ruimte voor de rotor. Zoek een open plek',
+};
+
+// The cheat's delivery: any vehicle of the garage catalog (own or showroom),
+// free, at once and right next to you. The same placement as "Laten
+// afleveren" (placeEntry), only the spot differs.
+function deliverHere(world, id) {
+  if (world.pigeonMode) return { ok: false, text: 'Eerst weer mens worden' };
+  if (inHomeFlat()) return { ok: false, text: 'Eerst de flat uit' };
+  if (world.player.swimming) return { ok: false, text: 'Eerst even uit het water klimmen' };
+  const e = getGarageCatalog(world).find((x) => x.id === id);
+  if (!e) return { ok: false, text: 'Dat voertuig bestaat niet' };
+  const short = e.hero ? 'Escapade' : e.model || e.spec.label;
+  if (e.status === 'driving') return { ok: false, text: `Je zit al in je ${short}` };
+  const kind = e.spec.kind;
+  const pick = (k, model, ignore) => besideSpot(world, k, model, ignore);
+  let spot;
+  if (e.owned) spot = placeEntry(world, id, pick);
+  else {
+    spot = pick(kind, e.spec.model, tempStock);
+    if (spot) {
+      if (tempStock && tempStock.driver !== 'player') {
+        const i = world.vehicles.indexOf(tempStock);
+        if (i >= 0) world.vehicles.splice(i, 1);
+      }
+      tempStock = spawnStockVehicle(world, id, spot.x, spot.y, spot.angle);
+      if (!tempStock) spot = null;
+      else parkAt(world, tempStock, spot);
+    }
+  }
+  if (!spot) return { ok: false, text: HERE_FAIL[kind] || 'Hier past hij niet. Ga op een open plek staan' };
+  const text = `${short} staat klaar`;
+  return { ok: true, text, x: spot.x, y: spot.y };
+}
+
+
+export function deliverOwnedVehicle(world, id, opts = {}) {
+  if (opts.here) return deliverHere(world, id);
   const e = getGarageList(world).find((x) => x.id === id);
   if (!e) return { ok: false, text: 'Dat voertuig heb je niet' };
   const short = e.hero ? 'Escapade' : e.model;
@@ -470,28 +591,8 @@ export function deliverOwnedVehicle(world, id) {
   const home = homeDelivery(world, e);
   if (home) return home;
   const px = world.player.x, py = world.player.y;
-  let spot = null;
-  if (e.hero) {
-    const old = heroCar(world);
-    if (old) spot = placeOwnedVehicleNear(world, old, px, py);
-    else {
-      spot = findParkingSpot(world, px, py, HERO_SPEC.model);
-      // (from the city's nearest street when the spot is out in the country;
-      // parkAt moves it to the spot)
-      const car = spot && (spawnHeroCarNear(world.map, spot.x, spot.y) || spawnHeroCarNear(world.map, 0, 0));
-      if (car) {
-        for (const w of world.vehicles) if (w.isHeroCar && w.wrecked) w.isHeroCar = false;
-        parkAt(world, car, spot);
-      } else spot = null;
-    }
-  } else {
-    const o = getOwnedEntries().find((x) => x.key === id);
-    if (o && o.v && world.vehicles.includes(o.v) && !o.lost) spot = placeOwnedVehicleNear(world, o.v, px, py);
-    else if (o) {
-      spot = o.spec.kind === 'boat' ? jettySpot(world, px, py, 5000) : findParkingSpot(world, px, py, o.spec.model);
-      if (spot && !spawnOwnedEntry(world, o, spot.x, spot.y, spot.angle)) spot = null;
-    }
-  }
+  const pick = (kind, model, ignore) => (kind === 'boat' ? jettySpot(world, px, py, ignore ? 450 : 5000) : findParkingSpot(world, px, py, model, { ignore }));
+  const spot = placeEntry(world, id, pick);
   if (!spot) return { ok: false, text: 'De bezorger kan hier nergens parkeren. Loop eens naar een gewone straat' };
   if (e.fee) world.money -= e.fee;
   lastDeliveryAt = world.time;
