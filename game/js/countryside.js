@@ -21,7 +21,7 @@ import { EDGE, edgeBlocked, edgeTileItems, roadGap } from './countryedge.js';
 import { ensureCountryEdge } from './countryplan.js';
 import { thinDitchOn, ditchRamp, urbanWeight, realBlock, realWater } from './countryfield.js';
 import { REAL, buildingsInTile, roadsInTile, buildingModel } from './countryreal.js';
-import { setTileWalls, clearTileWalls, pushOutOfWalls } from './countrywalls.js';
+import { setTileWalls, clearTileWalls, pushOutOfWalls, setTileTrunks, clearTileTrunks, pushOutOfTrunks } from './countrywalls.js';
 import { updateVillages, villageStats, villageWarmMeshes } from './countryvillage.js';
 import { buildingMaterial, bldCode, STYLE } from './countrybuilding.js';
 import { glowMaterial, poolGeometry } from './countryglow.js';
@@ -262,6 +262,10 @@ function push(tile, type, x, y, rotY, sx, sy, sz, color = 0xffffff, jitter = 0.0
     const hl = type === 'hedge' ? 0.5 * sx : sx / 2;
     const hx = Math.cos(rotY) * hl, hy = -Math.sin(rotY) * hl;
     (tile.walls || (tile.walls = [])).push(x - hx, y - hy, x + hx, y + hy, wall[0], wall[1]);
+  }
+  // a trunk is solid like the city's trees (0.22 m radius there, scaled with the crown)
+  if ((type === 'tree' || type === 'poplar' || type === 'willow') && tile.tx !== undefined) {
+    (tile.trunks || (tile.trunks = [])).push(x, y, x, y, 99, 0.22 * Math.max(0.8, Math.min(sx, sz)));
   }
   const list = tile.items[type] || (tile.items[type] = { m: [], c: [] });
   _e.set(0, rotY, 0);
@@ -1235,6 +1239,7 @@ function onShop(i) {
 
 function loadTile(t) {
   setTileWalls(t.tx, t.ty, t.walls);
+  setTileTrunks(t.tx, t.ty, t.trunks);
   t.mid = Math.hypot(t.cx - S.px, t.cy - S.py) > MID_R;
   if (t.bodies && REAL.shopFace.size) for (const i of t.bodies.keys()) shopFront(t, i);
   const ch = chunkFor(t);
@@ -1255,6 +1260,7 @@ function loadTile(t) {
 
 function unloadTile(t) {
   clearTileWalls(t.tx, t.ty);
+  clearTileTrunks(t.tx, t.ty);
   const ch = chunkFor(t);
   ch.tiles.delete(t);
   ch.dirty = true;
@@ -1666,17 +1672,7 @@ function gameplay(dt, world) {
       v.angle += Math.sin(world.time * 13.7 + v.x * 0.9) * Math.sin(world.time * 5.3 + v.y) * dt * 0.35 * k;
     }
     if (surf === 'sloot' && S.surf !== 'sloot' && sp > 1.5) splash(world, v.x, v.y);
-    // farm buildings and silos: a solid stop, but only when driving into them
-    // (a push sideways along a wall keeps its speed)
-    if (countryWeight(v.x, v.y) > 0.5) {
-      const ox = v.x, oy = v.y;
-      if (pushOutOfPlan(v, 1.2)) {
-        const nx = v.x - ox, ny = v.y - oy, l = Math.hypot(nx, ny) || 1;
-        const into = -(Math.cos(v.angle) * nx + Math.sin(v.angle) * ny) / l * Math.sign(v.speed || 1);
-        if (into > 0.5) v.speed *= -0.25;
-        else v.speed *= 1 - 0.5 * Math.max(0, into);
-      }
-    }
+    // farm buildings, silos and trunks stop the vehicle in vehicle.js resolveVehicleBuildingCollision, like the city's walls
     S.surf = surf;
     S.prev = null;
     return;
@@ -1693,6 +1689,7 @@ function gameplay(dt, world) {
   if (wading && S.surf !== 'sloot') splash(world, p.x, p.y);
   if (countryWeight(p.x, p.y) > 0.5) {
     pushOutOfPlan(p, p.radius || 0.35);
+    pushOutOfTrunks(p, p.radius || 0.35);
     // field hedges and fences: over them only with a vault (player.js)
     if (!p.vault && (p.gz || 0) < 0.5 && (p.z || 0) < 1) pushOutOfWalls(p, p.radius || 0.35);
   }
