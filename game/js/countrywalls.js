@@ -7,7 +7,8 @@
 
 const TILE = 160;
 const STRIDE = 6;
-const tiles = new Map();
+const wallTiles = new Map();
+const tiles = wallTiles;
 const tkey = (tx, ty) => tx * 100003 + ty;
 
 export function setTileWalls(tx, ty, walls) {
@@ -21,7 +22,22 @@ export function wallTileCount() {
   return tiles.size;
 }
 
-function eachNear(x, y, fn) {
+// Tree trunks of the loaded tiles (poplar lanes, road oaks, willows) as
+// zero-length walls [x, y, x, y, h, radius, ...]: solid for everything that
+// moves, like the city's trees (breakables.js), never vaulted.
+const trunkTiles = new Map();
+export function setTileTrunks(tx, ty, trunks) {
+  if (trunks && trunks.length) trunkTiles.set(tkey(tx, ty), trunks);
+  else trunkTiles.delete(tkey(tx, ty));
+}
+export function clearTileTrunks(tx, ty) {
+  trunkTiles.delete(tkey(tx, ty));
+}
+export function trunkTileCount() {
+  return trunkTiles.size;
+}
+
+function eachNear(x, y, fn, tiles = wallTiles) {
   if (!tiles.size) return;
   const tx = Math.floor(x / TILE), ty = Math.floor(y / TILE);
   for (let oy = -1; oy <= 1; oy++) {
@@ -41,7 +57,7 @@ function seg(W, k, x, y) {
 }
 
 // Pushes obj ({x, y}) radius r out of every wall; true when it moved.
-export function pushOutOfWalls(obj, r) {
+export function pushOutOfWalls(obj, r, src = wallTiles) {
   let hit = false;
   eachNear(obj.x, obj.y, (W) => {
     for (let k = 0; k < W.length; k += STRIDE) {
@@ -56,8 +72,13 @@ export function pushOutOfWalls(obj, r) {
       }
       hit = true;
     }
-  });
+  }, src);
   return hit;
+}
+
+// Pushes obj ({x, y}) radius r out of every tree trunk; true when it moved.
+export function pushOutOfTrunks(obj, r) {
+  return pushOutOfWalls(obj, r, trunkTiles);
 }
 
 // Nearest wall along (dx, dy) from (x, y) within reach, for a body of
