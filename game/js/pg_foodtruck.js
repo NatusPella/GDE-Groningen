@@ -359,6 +359,10 @@ export const FJORD = {
     p.x = s.x; p.y = s.y;
     p.enterVehicle(v, world);
   },
+  // dying or being arrested mid-shift: what was earned so far is still paid out
+  onRespawn(run, { busted }) {
+    end(run, busted ? 'Opgepakt: de dienst is voorbij.' : 'Je bent dood: de dienst is voorbij.', true);
+  },
   debugWin(run) {
     const d = run.data;
     d.served = Math.max(d.served, 9);
@@ -388,7 +392,7 @@ function render(run) {
   run.ui.setSlot(html);
 }
 
-function end(run, why) {
+function end(run, why, cut = false) {
   const w = run.world, d = run.data;
   const earned = d.earned;
   const clean = d.wrong === 0 && d.lost === 0;
@@ -399,9 +403,9 @@ function end(run, why) {
   if (earned > 0) recordStat(w, 'fjordEarned', earned);
   if (d.served >= 1) unlockAchievement(w, 'fjord_klaar');
   run.data.ended = true;
-  const good = d.served >= 3 && d.served >= d.wrong + d.lost;
+  const good = !cut && d.served >= 3 && d.served >= d.wrong + d.lost;
   const bonus = good ? FJORD_SHIFT_BONUS[medal] : 0;
-  duo(run, good ? 'good' : 'bad');
+  if (!cut) duo(run, good ? 'good' : 'bad');
   finish(run, {
     success: good, medal, value: earned, lower: false, reward: earned + bonus,
     title: good ? 'DIENST GESLAAGD' : 'DIENST VOORBIJ',
