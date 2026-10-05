@@ -42,4 +42,18 @@ for (const [name, x, y] of CASES) {
   if (!ok) fails++;
   console.log(`${ok ? 'ok  ' : 'FAIL'} ${name}: ${s ? `${Math.round(Math.hypot(s.x - x, s.y - y))} m away, '${s.street}', road gap ${roadGap(s.x, s.y, 6).toFixed(1)} m` : 'no spot'} in ${ms} ms`);
 }
+
+// the cheat's delivery (Voertuig hier) shares the placement: right beside you, off buildings and water
+{
+  const { deliverOwnedVehicle } = await import('../game/js/ownedvehicles.js');
+  const HERE = [['Eelde', 1606, 9909, 'hero'], ['open polder NE', 5700, -11600, 'stadsfiets'], ['west, Ommeland', -9000, -2000, 'wervelwind']];
+  for (const [name, x, y, id] of HERE) {
+    const w = { map, vehicles: [], time: 0, money: 0, wanted: 0, messages: [], addMessage() {}, player: { x, y, angle: 0.7, gz: 0, swimming: false, inVehicle: null } };
+    const res = deliverOwnedVehicle(w, id, { here: true });
+    const v = w.vehicles[0];
+    const ok = res.ok && !!v && Math.hypot(v.x - x, v.y - y) < 80 && buildingAt(v.x, v.y, 1) < 0 && !map.isInWater?.(v.x, v.y);
+    if (!ok) fails++;
+    console.log(`${ok ? 'ok  ' : 'FAIL'} here ${id} at ${name}: ${res.ok && v ? Math.round(Math.hypot(v.x - x, v.y - y)) + ' m away' : res.text}`);
+  }
+}
 process.exit(fails ? 1 : 0);
