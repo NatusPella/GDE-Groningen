@@ -103,7 +103,7 @@ export function updateAchievementTracker(dt, w) {
     retroT = 2;
     setStatMax(w, 'maxMoney', Math.floor(w.money || 0));
     // missions finished in a save from before prestaties existed
-    for (const m of getMissionList()) if (m.status === 'geklaard' && !isUnlocked(`m${m.index + 1}_klaar`)) unlockAchievement(w, `m${m.index + 1}_klaar`, { silent: true });
+    for (const m of getMissionList()) if (m.status === 'geklaard' && !m.skipped && !isUnlocked(`m${m.index + 1}_klaar`)) unlockAchievement(w, `m${m.index + 1}_klaar`, { silent: true });
   }
 }
 
