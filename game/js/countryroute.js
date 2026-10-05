@@ -34,16 +34,15 @@ const PC = ROAD_IN + ROAD_W / 2;
 function build(real, need = null) {
   const t0 = performance.now();
   // ---- segments: the real roads, then the polder grid
-  const sx0 = [], sy0 = [], sx1 = [], sy1 = [], sroad = [], sbridge = [];
+  const sx0 = [], sy0 = [], sx1 = [], sy1 = [], sroad = [], sbridge = [], sone = [];
   const ends = [];
   let rid = 0;
   let wx0 = Infinity, wy0 = Infinity, wx1 = -Infinity, wy1 = -Infinity;
   for (const r of real.roads) {
-    if (r.cycle) continue;
     const p = r.pts;
     for (let i = 0; i < p.length - 1; i++) {
       if (p[i][0] === p[i + 1][0] && p[i][1] === p[i + 1][1]) continue;
-      sx0.push(p[i][0]); sy0.push(p[i][1]); sx1.push(p[i + 1][0]); sy1.push(p[i + 1][1]); sroad.push(rid); sbridge.push(!!r.bridge);
+      sx0.push(p[i][0]); sy0.push(p[i][1]); sx1.push(p[i + 1][0]); sy1.push(p[i + 1][1]); sroad.push(rid); sbridge.push(!!r.bridge); sone.push(!!r.oneway);
     }
     for (const q of p) { wx0 = Math.min(wx0, q[0]); wy0 = Math.min(wy0, q[1]); wx1 = Math.max(wx1, q[0]); wy1 = Math.max(wy1, q[1]); }
     ends.push(p[0][0], p[0][1], rid, p.at(-1)[0], p.at(-1)[1], rid);
@@ -62,7 +61,7 @@ function build(real, need = null) {
         const x = i * BLOCK + PC, y = j * BLOCK + PC;
         for (const s of [0, 1]) {
           if (!edgeRoad(i, j, s)) continue;
-          sx0.push(x); sy0.push(y); sx1.push(s ? x + BLOCK : x); sy1.push(s ? y : y + BLOCK); sroad.push(rid); sbridge.push(false);
+          sx0.push(x); sy0.push(y); sx1.push(s ? x + BLOCK : x); sy1.push(s ? y : y + BLOCK); sroad.push(rid); sbridge.push(false); sone.push(false);
           ends.push(x, y, rid, s ? x + BLOCK : x, s ? y : y + BLOCK, rid);
           rid++;
         }
@@ -148,10 +147,11 @@ function build(real, need = null) {
     if (id === undefined) { id = xs.length; ids.set(key, id); xs.push(x); ys.push(y); }
     return id;
   };
-  const edge = (a, b) => {
+  // flat: a, b, length, one-way (1: a to b only, the way's own direction)
+  const edge = (a, b, one = 0) => {
     if (a === b) return;
     const L = Math.hypot(xs[b] - xs[a], ys[b] - ys[a]);
-    flat.push(a, b, L, b, a, L);
+    flat.push(a, b, L, one);
   };
   for (let s = 0; s < S; s++) {
     const ts = splits[s] ? splits[s].sort((p, q) => p - q) : [0, 1];
@@ -160,19 +160,34 @@ function build(real, need = null) {
     for (let i = 1; i < ts.length; i++) {
       if (ts[i] - ts[i - 1] < 1e-6) continue;
       const b = i === ts.length - 1 ? nodeOf(sx1[s], sy1[s]) : nodeOf(sx0[s] + dx * ts[i], sy0[s] + dy * ts[i]);
-      edge(a, b);
+      edge(a, b, sone[s] ? 1 : 0);
       a = b;
     }
   }
   for (let e = 0; e < extra.length; e += 4) edge(nodeOf(extra[e], extra[e + 1]), nodeOf(extra[e + 2], extra[e + 3]));
   stitch(xs, ys, flat);
-  const N = xs.length, m = flat.length / 3;
-  const start = new Int32Array(N + 1);
-  for (let e = 0; e < m; e++) start[flat[e * 3] + 1]++;
-  for (let i = 0; i < N; i++) start[i + 1] += start[i];
-  const fill = start.slice(0, N);
-  const to = new Int32Array(m), len = new Float32Array(m);
-  for (let e = 0; e < m; e++) { const k = fill[flat[e * 3]]++; to[k] = flat[e * 3 + 1]; len[k] = flat[e * 3 + 2]; }
+  const N = xs.length, m = flat.length / 4;
+  // forward: the way a car may drive; reverse: the same turned round, for costs
+  // towards a target; undirected: connected parts and snapping
+  const adjacency = (dir) => {
+    const pairs = [];
+    for (let e = 0; e < m; e++) {
+      const a = flat[e * 4], b = flat[e * 4 + 1], L = flat[e * 4 + 2], one = flat[e * 4 + 3];
+      if (dir === 'und' || !one) pairs.push(a, b, L, b, a, L);
+      else if (dir === 'fwd') pairs.push(a, b, L);
+      else pairs.push(b, a, L);
+    }
+    const k = pairs.length / 3;
+    const start = new Int32Array(N + 1);
+    for (let e = 0; e < k; e++) start[pairs[e * 3] + 1]++;
+    for (let i = 0; i < N; i++) start[i + 1] += start[i];
+    const fill = start.slice(0, N);
+    const to = new Int32Array(k), len = new Float32Array(k);
+    for (let e = 0; e < k; e++) { const q = fill[pairs[e * 3]]++; to[q] = pairs[e * 3 + 1]; len[q] = pairs[e * 3 + 2]; }
+    return { start, to, len };
+  };
+  const fwd = adjacency('fwd'), rev = adjacency('rev'), und = adjacency('und');
+  const start = und.start, to = und.to;
   // the main network: the biggest connected part (stray farm tracks stay out)
   const comp = new Int32Array(N).fill(-1);
   let main = -1, mainSize = 0;
@@ -189,27 +204,24 @@ function build(real, need = null) {
     if (size > mainSize) { mainSize = size; main = id; }
     id++;
   }
-  // edges of the main network in a grid, for snapping onto the nearest road
+  // edges of the main network in a grid, for snapping onto the nearest road: a, b, one-way
   const egrid = new Map();
-  for (let u = 0; u < N; u++) {
+  for (let e = 0; e < m; e++) {
+    const u = flat[e * 4], v = flat[e * 4 + 1], one = flat[e * 4 + 3];
     if (comp[u] !== main) continue;
-    for (let e = start[u]; e < start[u + 1]; e++) {
-      const v = to[e];
-      if (v < u) continue;
-      const cx0 = Math.floor(Math.min(xs[u], xs[v]) / CELL), cx1 = Math.floor(Math.max(xs[u], xs[v]) / CELL);
-      const cy0 = Math.floor(Math.min(ys[u], ys[v]) / CELL), cy1 = Math.floor(Math.max(ys[u], ys[v]) / CELL);
-      for (let cx = cx0; cx <= cx1; cx++) {
-        for (let cy = cy0; cy <= cy1; cy++) {
-          const k = cx * 100003 + cy;
-          let c = egrid.get(k);
-          if (!c) egrid.set(k, (c = []));
-          c.push(u, v);
-        }
+    const cx0 = Math.floor(Math.min(xs[u], xs[v]) / CELL), cx1 = Math.floor(Math.max(xs[u], xs[v]) / CELL);
+    const cy0 = Math.floor(Math.min(ys[u], ys[v]) / CELL), cy1 = Math.floor(Math.max(ys[u], ys[v]) / CELL);
+    for (let cx = cx0; cx <= cx1; cx++) {
+      for (let cy = cy0; cy <= cy1; cy++) {
+        const k = cx * 100003 + cy;
+        let c = egrid.get(k);
+        if (!c) egrid.set(k, (c = []));
+        c.push(u, v, one);
       }
     }
   }
   G = {
-    N, x: Float64Array.from(xs), y: Float64Array.from(ys), start, to, len, comp, main, mainSize, egrid, win,
+    N, x: Float64Array.from(xs), y: Float64Array.from(ys), fwd, rev, comp, main, mainSize, egrid, win,
     version: (G ? G.version : 0) + 1, cache: new Map(), ms: performance.now() - t0,
   };
 }
@@ -228,7 +240,7 @@ function stitchPass(xs, ys, flat) {
   const root = new Int32Array(N);
   for (let i = 0; i < N; i++) root[i] = i;
   const find = (i) => { while (root[i] !== i) i = root[i] = root[root[i]]; return i; };
-  for (let e = 0; e < flat.length; e += 6) { const a = find(flat[e]), b = find(flat[e + 1]); if (a !== b) root[a] = b; }
+  for (let e = 0; e < flat.length; e += 4) { const a = find(flat[e]), b = find(flat[e + 1]); if (a !== b) root[a] = b; }
   const size = new Int32Array(N);
   for (let i = 0; i < N; i++) size[find(i)]++;
   let main = 0;
@@ -261,7 +273,7 @@ function stitchPass(xs, ys, flat) {
     }
   }
   let added = 0;
-  for (const b of best.values()) if (b.a >= 0) { flat.push(b.a, b.n, b.d * STITCH_COST, b.n, b.a, b.d * STITCH_COST); added++; }
+  for (const b of best.values()) if (b.a >= 0) { flat.push(b.a, b.n, b.d * STITCH_COST, 0); added++; }
   return added;
 }
 
@@ -300,8 +312,9 @@ export function nodeXY(n) {
   return [G.x[n], G.y[n]];
 }
 
-// The nearest point on the main network: { x, y, a, b, da, db, d } (on the
-// edge a-b, da/db metres from its ends, d from the query point), or null.
+// The nearest point on the main network: { x, y, a, b, da, db, d, one } (on the
+// edge a-b, da/db metres from its ends, d from the query point, one: 1 when the
+// edge may only be driven from a to b), or null.
 export function snapCountry(x, y, maxD = 600) {
   if (!G) return null;
   let best = null;
@@ -313,13 +326,13 @@ export function snapCountry(x, y, maxD = 600) {
       for (let j = -n; j <= n; j++) {
         const c = G.egrid.get((cx + i) * 100003 + (cy + j));
         if (!c) continue;
-        for (let k = 0; k < c.length; k += 2) {
+        for (let k = 0; k < c.length; k += 3) {
           const a = c[k], b = c[k + 1];
           const ax = G.x[a], ay = G.y[a], dx = G.x[b] - ax, dy = G.y[b] - ay, l2 = dx * dx + dy * dy;
           let t = l2 > 1e-9 ? ((x - ax) * dx + (y - ay) * dy) / l2 : 0;
           t = t < 0 ? 0 : t > 1 ? 1 : t;
           const px = ax + dx * t, py = ay + dy * t, d = Math.hypot(px - x, py - y);
-          if (d < bd) { bd = d; const L = Math.sqrt(l2); best = { x: px, y: py, a, b, da: t * L, db: (1 - t) * L, d }; }
+          if (d < bd) { bd = d; const L = Math.sqrt(l2); best = { x: px, y: py, a, b, da: t * L, db: (1 - t) * L, d, one: c[k + 2] }; }
         }
       }
     }
@@ -327,15 +340,16 @@ export function snapCountry(x, y, maxD = 600) {
   }
 }
 
-const snapKey = (s) => `${s.a}:${s.b}:${Math.round(s.da)}`;
+const snapKey = (s, rev) => `${rev ? 'r' : 'f'}${s.a}:${s.b}:${Math.round(s.da)}:${s.one}`;
 
-// Costs and predecessors from a snap over the whole network (both ways are
-// the same length, so the path from any node to the snap is its predecessor
-// chain).
-export function countryCosts(from) {
-  const key = snapKey(from);
+// Costs and predecessors over the whole network. Forward: the cheapest way
+// from the snap to every node. Reverse (`toward`): from every node to the
+// snap, and a node's predecessor is the next node on its way there.
+export function countryCosts(from, toward = false) {
+  const key = snapKey(from, toward);
   let c = G.cache.get(key);
   if (c) return c;
+  const adj = toward ? G.rev : G.fwd;
   const dist = new Float64Array(G.N).fill(Infinity), prev = new Int32Array(G.N).fill(-1);
   const heap = [];
   const push = (d, v) => {
@@ -347,8 +361,15 @@ export function countryCosts(from) {
       i = p;
     }
   };
-  dist[from.a] = from.da; push(from.da, from.a);
-  if (from.db < dist[from.b]) { dist[from.b] = from.db; push(from.db, from.b); }
+  // on a one-way edge a to b only: leaving the snap runs on to b; arriving at it comes in from a
+  const seed = (n, d) => { if (d < dist[n]) { dist[n] = d; push(d, n); } };
+  if (toward) {
+    if (from.one >= 0) seed(from.a, from.da);
+    if (!from.one) seed(from.b, from.db);
+  } else {
+    seed(from.b, from.db);
+    if (!from.one) seed(from.a, from.da);
+  }
   while (heap.length) {
     const top = heap[0], last = heap.pop();
     if (heap.length) {
@@ -364,8 +385,8 @@ export function countryCosts(from) {
     }
     const [d, u] = top;
     if (d > dist[u]) continue;
-    for (let e = G.start[u]; e < G.start[u + 1]; e++) {
-      const v = G.to[e], nd = d + G.len[e];
+    for (let e = adj.start[u]; e < adj.start[u + 1]; e++) {
+      const v = adj.to[e], nd = d + adj.len[e];
       if (nd >= dist[v]) continue;
       dist[v] = nd;
       prev[v] = u;
@@ -383,15 +404,20 @@ function chain(n, prev, pts) {
   return pts;
 }
 
-// From snap `from` to snap `to`, walking from's predecessor chain in the
-// costs from `to` (cached per target, so rerouting to the same place is cheap).
+// From snap `from` to snap `to`, along the costs towards `to` (cached per
+// target, so rerouting to the same place is cheap).
 export function countryPath(from, to) {
   if (!from || !to) return null;
-  if (from.a === to.a && from.b === to.b || from.a === to.b && from.b === to.a) return [[from.x, from.y], [to.x, to.y]];
-  const { dist, prev } = countryCosts(to);
-  const ca = dist[from.a] + from.da, cb = dist[from.b] + from.db;
+  if (from.a === to.a && from.b === to.b) {
+    // on the same piece of road: straight there unless it is a one-way the wrong way
+    const dir = to.da - from.da;
+    if (!from.one || dir >= 0) return [[from.x, from.y], [to.x, to.y]];
+  }
+  const { dist, prev } = countryCosts(to, true);
+  // out of from along its edge: on to b, or back to a unless it is a one-way
+  const cb = dist[from.b] + from.db, ca = from.one ? Infinity : dist[from.a] + from.da;
   if (!Number.isFinite(Math.min(ca, cb))) return null;
-  const pts = chain(ca <= cb ? from.a : from.b, prev, [[from.x, from.y]]);
+  const pts = chain(ca < cb ? from.a : from.b, prev, [[from.x, from.y]]);
   pts.push([to.x, to.y]);
   return pts;
 }
@@ -402,6 +428,15 @@ export function countryPathToNode(from, n) {
   if (!Number.isFinite(dist[n])) return null;
   const pts = chain(n, prev, []).reverse();
   pts.unshift([from.x, from.y]);
+  return pts;
+}
+
+// From node n to snap `to`.
+export function countryPathFromNode(n, to) {
+  const { dist, prev } = countryCosts(to, true);
+  if (!Number.isFinite(dist[n])) return null;
+  const pts = chain(n, prev, []);
+  pts.push([to.x, to.y]);
   return pts;
 }
 
