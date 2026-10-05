@@ -100,7 +100,7 @@ function pollUnlocks(w) {
     const fresh = markLifetime('streken', id);
     const c = CHEAT_BY_ID.get(id);
     if (primed && fresh && (c.step || c.ach)) {
-      showCard(w, { kind: 'prestatie', kicker: 'Streek vrijgespeeld', title: c.name, body: 'Pauzemenu › Streken', duration: 5, key: 'streek-' + id, voice: false });
+      showCard(w, { kind: 'prestatie', kicker: 'Cheat vrijgespeeld', title: c.name, body: 'Pauzemenu › Cheats', duration: 5, key: 'streek-' + id, voice: false });
     }
   }
   primed = true;
