@@ -1779,6 +1779,7 @@ export function applyShopSave(world, d) {
     if (h && HAIR_COLORS.some((c) => c.id === h.color)) state.hair[ch].color = h.color;
     if (h && HAIR_STYLES[ch].some(([id]) => id === h.style)) state.hair[ch].style = h.style;
   }
+  state.ownedOutfits = new Set(['tammo:stadjer', 'anita:classic']);
   if (Array.isArray(d.ownedOutfits)) for (const k of d.ownedOutfits) if (typeof k === 'string') state.ownedOutfits.add(k);
   state.storyOutfit = OUTFITS.tammo.some((o) => o.id === d.storyOutfit) && OUTFITS.anita.some((o) => o.id === d.storyOutfit) ? d.storyOutfit : null;
   state.heroColor = isColor(d.heroColor) ? d.heroColor : null;
