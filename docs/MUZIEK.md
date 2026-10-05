@@ -22,7 +22,7 @@ nachtpool (`"nachtstreek"`) voor Nachtstreek.
 
 De dagpool duurt ongeveer 37 minuten, de nachtpool ongeveer 16 minuten
 (De Geest van Oosterpark, Suikerbuiken in de nacht, Onder de Martinitoren,
-Oosterpark is m'n droom, Wie stoan nait stil, Kleur in de Wind, en de drillnummers Geen stoplicht houdt ons tegen en Goud in de Nacht, en de punk van Hatchback op de Ring en de eurodance van Zomerse droom in de Stad en de Grunneger boerenrock van Trots op mien grond). Daarnaast:
+Oosterpark is m'n droom, Wie stoan nait stil, Kleur in de Wind, en de drillnummers Geen stoplicht houdt ons tegen en Goud in de Nacht, en de punk van Hatchback op de Ring en de eurodance van Zomerse droom in de Stad en de Grunneger boerenrock van Trots op mien grond en de dark trap van Koplampen in de Mist). Daarnaast:
 4 jingles (station_id, nummerovergang, rij_knipoog, hoge_wanted, 2 tot 4 s)
 en 2 scenario-loops voor race en achtervolging (`audio/scenario/`). De
 praatjes zijn bestaande opnames: Geesje van Radio Proat, de Kiekdoar-clips
