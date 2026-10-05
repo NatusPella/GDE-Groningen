@@ -753,8 +753,9 @@ export class Player {
   enterVehicle(v, world) {
     if (!v || v.driver || v.wrecked || v.sinking) return;
     const own = v.isHeroCar || v.playerOwned || v.missionCar;
-    const stolen = !own && (!!v.road || v.parked || (v.isPolice && !v.hijacked));
-    v.carjacked = !own && !!v.road; // its AI driver gets pulled out (pedestrians.js)
+    const driven = !!v.road || !!v.countryDrive; // an AI driver: city traffic or an Ommeland road user
+    const stolen = !own && (driven || v.parked || (v.isPolice && !v.hijacked));
+    v.carjacked = !own && driven; // its AI driver gets pulled out (pedestrians.js)
     v.driver = 'player';
     v.road = null; // player takes manual control
     v.parked = false;

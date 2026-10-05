@@ -7,7 +7,7 @@ import { elevWallContact } from './elevation.js';
 import { crossingSpeedLimit, loweredBoomsNear, snapBoom } from './railway.js';
 import { zebraSpeedLimit } from './pedroutes.js';
 import { countrySurface, countryRect, rectOutside, countryWeight } from './countryfield.js';
-import { pushOutOfPlan } from './countryplan.js';
+import { pushOutOfPlan, onFarmPaving } from './countryplan.js';
 import { pushOutOfTrunks } from './countrywalls.js';
 import { roadPriority } from './junctions.js';
 import { pickTrafficCar, carModel, applyFleetFlags, pickBikeVariant, MIDIBUS_MODEL } from './trafficfleet.js';
@@ -1037,7 +1037,8 @@ export function surfaceUnder(map, x, y) {
     if (x >= minx && x <= maxx && y >= miny && y <= maxy && pointInPolygon(x, y, g.pts)) return 'gras';
   }
   const country = countrySurface(x, y);
-  if (country) return country === 'weg' ? 'asfalt' : 'gras';
+  // a farm yard's paving is hard ground for the drag in countryside.js too
+  if (country) return country === 'weg' || (countryWeight(x, y) > 0.99 && onFarmPaving(x, y)) ? 'asfalt' : 'gras';
   return 'klinkers';
 }
 
@@ -1975,7 +1976,7 @@ export function disableVehicle(v, byPlayer, world = null) {
   v.burnLeft = BURN_MIN + Math.random() * (BURN_MAX - BURN_MIN);
   v.horn = false;
   // an AI driver bails out (pedestrians.js) and the car rolls on unmanned
-  if (v.road && v.driver !== 'player') v.bailPending = true;
+  if ((v.road || v.countryDrive) && v.driver !== 'player') v.bailPending = true;
   if (v.driver !== 'player' && !v.racer) v.road = null;
 }
 
