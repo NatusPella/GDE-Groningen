@@ -113,6 +113,7 @@ for (const file of files) {
   if (sk) {
     for (const id of sk.unlocked) ok(CHEAT_BY_ID.has(id), `${tag}: streek ${id} exists`);
     if (!before.streken) ok(sk.on.length === 0, `${tag}: no streek switched on`);
+    else if (exp.strekenAfter) ok(same(sk, exp.strekenAfter), `${tag}: retired streken dropped, the rest intact`, JSON.stringify(sk));
     else ok(same(sk, before.streken), `${tag}: streken intact`);
     for (const id of exp.streken || []) ok(sk.unlocked.includes(id), `${tag}: streek ${id} unlocked`);
     for (const id of exp.strekenLocked || []) ok(!sk.unlocked.includes(id), `${tag}: streek ${id} still locked`);
