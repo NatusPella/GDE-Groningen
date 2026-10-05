@@ -57,14 +57,15 @@
     }
     log('geheimen found', JSON.stringify(gh.found()));
   }
-  // car radio: tune through every station while driving
+  // car radio (single station, G-Music): switch off and on while driving
   tag('radio');
   teleport(100, 77); await sleep(1200);
   const car = spawnCar();
   if (car && window.__radio) {
     p.enterVehicle(car, w);
-    for (const st of window.__radio.stations()) { window.__radio.tune(st); await hold(['w'], 700); }
-    log('radio', window.__radio.station(), JSON.stringify(window.__radio.queue()).slice(0, 120));
+    const r = window.__radio;
+    for (let i = 0; i < 2; i++) { r.toggle(); await hold(['w'], 700); }
+    log('radio', 'on=' + r.on(), r.programme(), JSON.stringify(r.queue()).slice(0, 120));
     removeVeh(car);
   }
   w.devInvuln = false;

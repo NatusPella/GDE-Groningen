@@ -1,6 +1,19 @@
 // Shared mutable game state. Every system (vehicles, pedestrians, combat,
 // police, missions, hud) receives this same object and reads/writes the
 // arrays and fields it owns. See ARCHITECTURE.md for the full contract.
+export const STAT_DEFAULTS = { kills: 0, pedKills: 0, copKills: 0, missionsDone: 0, playerWrecks: 0 };
+
+// The counters a loaded save gives: the defaults, then the save's own values; a
+// counter the save lacks is 0, not whatever this session had reached.
+export function statsFromSave(saved) {
+  const out = { ...STAT_DEFAULTS };
+  for (const k of Object.keys(out)) {
+    const v = saved && saved[k];
+    out[k] = typeof v === 'number' && Number.isFinite(v) ? Math.max(0, v) : STAT_DEFAULTS[k];
+  }
+  return out;
+}
+
 export class World {
   constructor(map, input, player) {
     this.map = map;
@@ -20,7 +33,7 @@ export class World {
     this.weapon = 'fists';
     this.ammo = {};
     this.mission = null; // {type, label, timeLeft, ...} for hud.js to render
-    this.stats = { kills: 0, pedKills: 0, copKills: 0, missionsDone: 0, playerWrecks: 0 };
+    this.stats = { ...STAT_DEFAULTS };
     this.onRespawn = []; // (world, {busted}) callbacks, run at the end of respawnPlayer
 
     this.spawnPoint = { x: player.x, y: player.y };
