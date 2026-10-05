@@ -8,7 +8,7 @@
 #   python3 scripts/tts_lines.py [max_jobs] [--budget 2.5]
 import json, os, sys, subprocess, urllib.error, wave, time
 from concurrent.futures import ThreadPoolExecutor
-from gemini_tts import usage, speak, tries, check, current, load_log, save_log, logged
+from gemini_tts import usage, speak, tries, check, current, load_log, save_log, logged, say_of, LANG
 REPO = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
 VL = os.path.join(REPO, 'game', 'audio', 'voicelines')
 TRIM = 'silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=stop_periods=-1:stop_duration=0.28:stop_threshold=-45dB,adelay=40,apad=pad_dur=0.12'
@@ -40,16 +40,16 @@ def encode(wav, dst):
 
 def job(l):
     dst = f"{VL}/{l['out']}/{l['file']}"
-    if current(logs[l['out']], l['key'], dst):
+    if current(logs[l['out']], l['key'], dst, l.get('lang', LANG)):
         return l, 'skip', probe(dst), None
     os.makedirs(os.path.dirname(dst), exist_ok=True)
-    say = l.get('say', l['text'])
+    say = say_of(l)
     err = None
     for attempt, style in enumerate(tries(l)):
         try:
             wav = dst[:-4] + '.tmp.wav'
             pcm = speak(l['voice'], say, style)
-            check(pcm, l['text'])
+            check(pcm, say)
             with wave.open(wav, 'wb') as w:
                 w.setnchannels(1); w.setsampwidth(2); w.setframerate(24000); w.writeframes(pcm)
             encode(wav, dst)
