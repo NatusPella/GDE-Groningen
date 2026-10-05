@@ -11,6 +11,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { migrateSave, migrateSettings, savedStoryStep, SAVE_VERSION, SETTINGS_VERSION } from '../game/js/savemigrate.js';
 import { STEP_BY_ID, RETIRED_STEPS } from '../game/js/storyarc.js';
+import { STAT_DEFAULTS, statsFromSave } from '../game/js/world.js';
 import { CHEAT_BY_ID } from '../game/js/cheatlist.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -23,8 +24,7 @@ const block = (text, start) => text.slice(text.indexOf(start), text.indexOf('\n}
 const VEHICLES = new Set([...block(shops, 'export const VEHICLE_STOCK').matchAll(/^ {2}(\w+): \{ kind:/gm)].map((m) => m[1]));
 const OUTFIT_IDS = new Set([...block(shops, 'export const OUTFITS').matchAll(/id: '([\w-]+)'/g)].map((m) => m[1]));
 const UPGRADES = new Set([...shops.slice(shops.indexOf('export const CAR_UPGRADES'), shops.indexOf('];', shops.indexOf('export const CAR_UPGRADES'))).matchAll(/id: '([\w-]+)'/g)].map((m) => m[1]));
-const statsLine = /this\.stats = \{([^}]*)\}/.exec(src('world.js'))[1];
-const STATS = new Set([...statsLine.matchAll(/(\w+):/g)].map((m) => m[1]));
+const STATS = new Set(Object.keys(STAT_DEFAULTS));
 
 let n = 0, fails = 0;
 const ok = (cond, name, info = '') => { n++; if (!cond) { fails++; console.log(`FAIL ${name}${info ? ' (' + info + ')' : ''}`); } };
@@ -133,6 +133,15 @@ ok(/\n\s+gore: true,/.test(src('settings.js')), 'settings.js has gore on by defa
 for (const [g, want] of [[true, true], [false, false], ['ja', undefined]]) {
   const m = migrateSettings({ v: 7, gore: g });
   ok(m && m.data.gore === want, `settings v7 gore ${JSON.stringify(g)} becomes ${want}`, m && m.data.gore);
+}
+
+// loading resets the counters first: a counter the save lacks is 0, not this session's value
+{
+  const st = statsFromSave({ kills: 7, missionsDone: 'x', bogus: 9 });
+  ok(st.kills === 7 && st.pedKills === 0 && st.copKills === 0 && st.missionsDone === 0 && st.playerWrecks === 0, 'statsFromSave: save values, defaults for the rest');
+  ok(!('bogus' in st), 'statsFromSave: unknown keys dropped');
+  ok(Object.keys(statsFromSave(null)).length === STATS.size && statsFromSave(undefined).kills === 0, 'statsFromSave: no stats at all gives the defaults');
+  ok(statsFromSave({ kills: -3 }).kills === 0, 'statsFromSave: negative counter clamps to 0');
 }
 
 console.log(`${n - fails}/${n} checks passed over ${files.length} fixtures`);
