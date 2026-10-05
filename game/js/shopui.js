@@ -206,7 +206,8 @@ export function openShopMenu(w, s) {
   else renderDetail();
 }
 
-export function closeShopMenu() {
+// save: false when a loaded save replaces the state this menu bought into
+export function closeShopMenu({ save = true } = {}) {
   if (!open) return;
   open = false;
   finishScratch(false);
@@ -214,7 +215,7 @@ export function closeShopMenu() {
   root.classList.remove('visible');
   document.body.classList.remove('shop-open');
   if (world && world.input) world.input.reset();
-  if (bought && world) saveGame(world);
+  if (save && bought && world) saveGame(world);
   if (document.activeElement && root.contains(document.activeElement)) document.activeElement.blur();
 }
 
