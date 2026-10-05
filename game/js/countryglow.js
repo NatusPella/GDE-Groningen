@@ -29,7 +29,7 @@ export function glowMaterial() {
     mat = markShared(new THREE.MeshBasicMaterial({
       map: typeof document === 'undefined' ? null : glowTexture(), color: POOL_COLOR.clone(), vertexColors: true,
       transparent: true, blending: THREE.AdditiveBlending, depthWrite: false,
-      polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -8,
+      polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -8, fog: false,
     }));
     mat.visible = false;
   }

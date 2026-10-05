@@ -72,6 +72,7 @@ import { updateCountryside, setCountryPropLevel } from './countryside.js';
 import { setCountryNight, setCountryFacadeLevel } from './countrybuilding.js';
 import { updateCountryBake } from './countrybake.js';
 import { edgeDistance, setCountryBounds } from './countryfield.js';
+import { countryRayHit } from './countrycam.js';
 import { probe } from './hitchprobe.js';
 import { speakBubble } from './linevoice.js';
 import { applyDrunkCamera } from './drunk.js';
@@ -337,6 +338,7 @@ function propRayHit(map, ox, oy, oz, dx, dy, dz, len) {
       best = Math.min(best, rayCylinder(ox, oy, oz, ux, uy, uz, len, p.x - p.hx, p.y - p.hy, r, yb, yt));
     }
   }
+  best = Math.min(best, countryRayHit(ox, oy, oz, ux, uy, uz, len));
   return best === Infinity ? null : best;
 }
 
