@@ -1,10 +1,11 @@
-// Pauzemenu › Streken: the cheats as rows in the menu's own style (switches,
+// Pauzemenu › Cheats: the cheats as rows in the menu's own style (switches,
 // buttons, ??? for the locked ones). State and effects live in cheats.js.
 import { CHEATS } from './cheatlist.js';
 import { ACHIEVEMENTS } from './achievements.js';
+import { STEPS } from './storyarc.js';
 import {
   isAvailable, isCheatOn, setCheat, achievementsBlocked, cheatsBusy, blockedReason,
-  spawnChoices, spawnVehicleHere, takeMoney, wasUsed,
+  spawnChoices, spawnVehicleHere,
 } from './cheats.js';
 
 const KIND = { car: 'Auto', bike: 'Fiets', scooter: 'E-step', boat: 'Boot', heli: 'Heli' };
@@ -32,6 +33,8 @@ const CSS = `
 
 function hintOf(c) {
   if (c.hint) return c.hint;
+  const st = c.step && STEPS.find((x) => x.id === c.step);
+  if (st) return `Speel het verhaal tot en met "${st.title}"`;
   if (c.ach) {
     const a = ACHIEVEMENTS.find((x) => x.id === c.ach);
     return a ? `Haal de prestatie "${a.title}"` : 'Haal een prestatie';
@@ -49,13 +52,12 @@ function lockedRow(c) {
 
 function actionRow(c, w) {
   if (!isAvailable(c.id)) return lockedRow(c);
-  const busy = blockedReason(w, { vehicleOk: c.id === 'teleport' });
+  const busy = blockedReason(w);
   let ctrl = '';
   if (c.id === 'teleport') ctrl = `<button type="button" class="pm-secondary" data-cheat-act="teleport"${busy ? ' disabled' : ''}><span>Kies op de kaart</span></button>`;
   else if (c.id === 'voertuig') ctrl = `<button type="button" class="pm-secondary" data-cheat-act="picker" aria-expanded="${picker}"${busy ? ' disabled' : ''}><span>${picker ? 'Lijst dicht' : 'Kies voertuig'}</span></button>`;
-  else if (c.id === 'geld') ctrl = wasUsed('geld') ? '<span class="st-tag">Al gepind in dit spel</span>' : '<button type="button" class="pm-secondary" data-cheat-act="geld"><span>Pinnen</span></button>';
   else ctrl = '<span class="st-tag st-yes">Vrijgespeeld</span>';
-  const extra = c.id === 'teleport' || c.id === 'voertuig' ? '<em>prestaties blijven aan</em>' : c.id === 'geld' ? '<i>prestaties uit tot je een save laadt</i>' : '';
+  const extra = c.id === 'teleport' || c.id === 'voertuig' ? '<em>prestaties blijven aan</em>' : '';
   let row = `<div class="pm-row"><span>${esc(c.name)}<small>${esc(c.desc)}${extra ? ' · ' + extra : ''}${busy && (c.id === 'teleport' || c.id === 'voertuig') ? ' · <i>' + esc(busy) + '</i>' : ''}</small></span>${ctrl}</div>`;
   if (c.id === 'voertuig' && picker && !busy) {
     row += '<div class="st-pick">' + spawnChoices(w).map((v) => `<button type="button" class="pm-secondary" data-cheat-spawn="${esc(v.id)}">${esc(v.label)}<small>${KIND[v.kind] || ''}${v.own ? '' : ' · showroom'}</small></button>`).join('') + '</div>';
@@ -81,12 +83,12 @@ export function renderCheatsPanel(el, w) {
   const actions = CHEATS.filter((c) => c.kind === 'action' || c.kind === 'perk');
   const toggles = CHEATS.filter((c) => !c.kind || c.kind === 'toggle');
   const intro = blocked
-    ? '<b>Prestaties staan uit</b> zolang er een streek aan staat (de uiterlijk-streken en teleporteren tellen niet mee).'
-    : 'Teleporteren, Voertuig hier en de uiterlijk-streken laten je prestaties aan. Zet je een andere streek aan, dan staan prestaties uit tot je hem weer uitzet.';
-  el.innerHTML = `<p class="st-intro${blocked ? ' st-off' : ''}">${intro}${busy ? '<br>Je bent nu bezig (missie, filmpje of uitdaging): alleen de uiterlijk-streken doen nu mee.' : ''}</p>` +
+    ? '<b>Prestaties staan uit</b> zolang er een cheat aan staat (de uiterlijk-cheats en teleporteren tellen niet mee).'
+    : 'Teleporteren, Voertuig hier en de uiterlijk-cheats laten je prestaties aan. Zet je een andere cheat aan, dan staan prestaties uit tot je hem weer uitzet.';
+  el.innerHTML = `<p class="st-intro${blocked ? ' st-off' : ''}">${intro}${busy ? '<br>Je bent nu bezig (missie, filmpje of uitdaging): alleen de uiterlijk-cheats doen nu mee.' : ''}</p>` +
     `<p class="pm-note st-msg" role="status">${esc(msg)}</p>` +
     '<h3 class="pm-subhead">Acties</h3><div class="pm-group">' + actions.map((c) => actionRow(c, w)).join('') + '</div>' +
-    '<h3 class="pm-subhead">Streken</h3><div class="pm-group">' + toggles.map(toggleRow).join('') + '</div>';
+    '<h3 class="pm-subhead">Cheats</h3><div class="pm-group">' + toggles.map(toggleRow).join('') + '</div>';
   const n = CHEATS.filter((c) => isAvailable(c.id)).length;
   const lit = toggles.filter((c) => isCheatOn(c.id)).length;
   return `${n} van ${CHEATS.length} vrijgespeeld${lit ? ` · ${lit} aan` : ''}`;
@@ -105,7 +107,6 @@ export function cheatsClick(e, w, api) {
     const a = act.dataset.cheatAct;
     if (a === 'teleport') { msg = ''; picker = false; api.teleport(); return true; }
     if (a === 'picker') { picker = !picker; msg = ''; api.rerender('[data-cheat-act="picker"]'); return true; }
-    if (a === 'geld') { msg = takeMoney(w).text; api.rerender('[data-cheat-act="geld"], [data-cheat]'); return true; }
   }
   const sp = e.target.closest('[data-cheat-spawn]');
   if (sp) {
