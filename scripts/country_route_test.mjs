@@ -21,7 +21,7 @@ const map = new GameMap(data);
 const om = JSON.parse(fs.readFileSync(new URL('ommeland.json', root)));
 const pairs = (p) => { const o = []; for (let i = 0; i < p.length; i += 2) o.push([p[i], p[i + 1]]); return o; };
 // the bits of countryreal.js REAL that routing reads, and its real-data zone
-map.ommeland = { ready: true, ext: om.extent, roads: om.roads.map((r) => ({ pts: pairs(r.p), cycle: !!r.c, oneway: !!r.o })) };
+map.ommeland = { ready: true, ext: om.extent, roads: om.roads.map((r, id) => ({ id, pts: pairs(r.p), cycle: !!r.c, oneway: !!r.o, bridge: !!r.b, kind: r.k, name: r.n || '' })) };
 {
   const [x0, y0, x1, y1] = om.extent, B = F.BLOCK, g = { x0: 0, y0: 0, cell: 1, w: 1, h: 1, data: new Uint8Array(1) };
   F.setRealZone({ bx0: Math.ceil(x0 / B - 0.5), by0: Math.ceil(y0 / B - 0.5), bx1: Math.floor(x1 / B - 0.5), by1: Math.floor(y1 / B - 0.5), water: g, urban: g });
@@ -208,4 +208,97 @@ console.log(`real-data routes: ${(100 * realExcess).toFixed(2)}% off road beyond
 const okSweep = tot.dead === 0 && realExcess < 0.002 && tot.excess / tot.len < 0.015 && tot.rerouteBad === 0;
 if (!okSweep) fails++;
 console.log(okSweep ? 'sweep ok' : 'sweep FAIL');
+
+// ---- drive every Ommeland road: the GPS must keep its route
+// Each real road is driven from its start in the direction the route takes
+// (both directions when it leaves the road at once), 20 m/s in 0.5 s steps,
+// for up to 300 m. The route has to start at the car (not at some city street
+// 100 m away), exist, stay within STRAY_M of the car and never be recomputed
+// while the car follows it. Roads the graph doesn't contain at all (a piece
+// the router stitched on across a field) are listed as such.
+const ROADS = process.argv.includes('--no-roads') ? [] : realRoads;
+const FAR = [[1606, 9909], [0, 0], [-9000, -7000]];
+const roadFails = [];
+let driven = 0, notInGraph = 0;
+const clockStep = (s) => { clock += s; };
+const nearestEdgeD = (x, y) => { const s = C2.snapCountry(x, y, 60); return s ? s.d : Infinity; };
+const C2 = await import('../game/js/countryroute.js');
+function along(pts, d) {
+  for (let i = 0; i < pts.length - 1; i++) {
+    const L = Math.hypot(pts[i + 1][0] - pts[i][0], pts[i + 1][1] - pts[i][1]);
+    if (d <= L || i === pts.length - 2) { const t = L > 1e-9 ? Math.min(1, d / L) : 0; return [pts[i][0] + (pts[i + 1][0] - pts[i][0]) * t, pts[i][1] + (pts[i + 1][1] - pts[i][1]) * t, Math.atan2(pts[i + 1][1] - pts[i][1], pts[i + 1][0] - pts[i][0])]; }
+    d -= L;
+  }
+  return [pts[0][0], pts[0][1], 0];
+}
+function routeAhead(r, m) {
+  let [x, y] = [r.px, r.py];
+  for (let i = r.idx + 1; i < r.pts.length && m > 0; i++) {
+    const q = r.pts[i], l = Math.hypot(q[0] - x, q[1] - y);
+    if (l >= m) return [x + (q[0] - x) * m / l, y + (q[1] - y) * m / l];
+    m -= l; x = q[0]; y = q[1];
+  }
+  return [x, y];
+}
+const polyLen = (pts) => { let l = 0; for (let i = 0; i < pts.length - 1; i++) l += Math.hypot(pts[i + 1][0] - pts[i][0], pts[i + 1][1] - pts[i][1]); return l; };
+for (const road of ROADS) {
+  const L = polyLen(road.pts);
+  if (L < 40) continue;
+  const [tx, ty] = FAR[road.id % FAR.length];
+  const inGraph = (() => { for (const f of [0.1, 0.5, 0.9]) { const [x, y] = along(road.pts, L * f); if (nearestEdgeD(x, y) > 3) return false; } return true; })();
+  const dirs = [road.pts, road.pts.slice().reverse()];
+  for (let di = 0; di < 2; di++) {
+    const pts = dirs[di];
+    const [x0, y0] = along(pts, 0);
+    const w = worldAt(x0, y0, tx, ty, 'road ' + road.id, DRIVE);
+    R.updateRouting(0.1, { ...w, storyGuide: null });
+    clockStep(10);
+    R.updateRouting(0.1, w);
+    clockStep(2.5);
+    R.updateRouting(0.1, w);
+    let r = R.getActiveRoute();
+    if (!r) { roadFails.push([road, di, 'no route', inGraph]); continue; }
+    if (r.pts.length < 2) { roadFails.push([road, di, 'empty route', inGraph]); continue; }
+    // does the route take this direction? (its first leg ahead of the car)
+    const [ax, ay, ah] = along(pts, 25);
+    const ahead = r.pts.findIndex((q) => Math.hypot(q[0] - x0, q[1] - y0) > 12);
+    const goes = ahead > 0 && Math.hypot(r.pts[ahead][0] - ax, r.pts[ahead][1] - ay) < 14;
+    if (di === 1 && !goes && roadFails.length && roadFails.at(-1)[0] === road) { /* already reported */ }
+    const maxD = Math.min(L, 300);
+    let reroutes = 0, worst = 0, startGap = Math.hypot(r.pts[0][0] - x0, r.pts[0][1] - y0), why = '';
+    if (startGap > 20) why = `route starts ${Math.round(startGap)} m from the car`;
+    driven++;
+    const r0 = r;
+    for (let d = 10; d <= maxD && !why; d += 10) {
+      const [x, y] = along(pts, d);
+      w.player.x = x; w.player.y = y;
+      clockStep(0.5);
+      R.updateRouting(0.5, w);
+      const rr = R.getActiveRoute();
+      if (!rr || rr.pts.length < 2) { why = `route lost after ${Math.round(d)} m`; break; }
+      if (rr !== r) {
+        // a new route while following the road: fine only when the old one left it (a junction ahead)
+        const [ox, oy] = routeAhead(r, 25), [wx, wy] = along(pts, Math.min(L, d + 25));
+        if (Math.hypot(ox - wx, oy - wy) < 8) reroutes++;
+        r = rr;
+        const gap = Math.hypot(rr.pts[0][0] - x, rr.pts[0][1] - y);
+        if (gap > 20) { why = `new route starts ${Math.round(gap)} m from the car at ${Math.round(d)} m`; break; }
+      }
+      worst = Math.max(worst, rr.off);
+      if (rr.off > 25) { why = `${Math.round(rr.off)} m off the route at ${Math.round(d)} m`; break; }
+    }
+    if (!why && goes && reroutes > 0) why = `${reroutes} reroute(s) while following the route's own road`;
+    if (why) roadFails.push([road, di, why, inGraph]);
+    if (goes) break;
+  }
+  if (!inGraph) notInGraph++;
+}
+const failIds = new Map();
+for (const [road, di, why, inGraph] of roadFails) { if (!failIds.has(road.id)) failIds.set(road.id, { road, whys: [], inGraph }); failIds.get(road.id).whys.push(`dir ${di}: ${why}`); }
+console.log(`\nroad drive: ${driven} drives over ${ROADS.length} roads, ${failIds.size} roads fail, ${notInGraph} roads not in the route graph`);
+let shown = 0;
+for (const { road, whys, inGraph } of failIds.values()) {
+  if (shown++ < (VERBOSE ? 400 : 25)) console.log(`  road ${road.id} kind ${road.kind} "${road.name}" [${road.pts[0].map(Math.round)}] ${inGraph ? '' : '(not in graph) '}${whys.join('; ')}`);
+}
+if (failIds.size) fails++;
 process.exit(fails ? 1 : 0);
