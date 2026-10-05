@@ -839,7 +839,7 @@ function onGated() {
 
 export function initStory(w) {
   world = w;
-  setMissionHooks({ waived: (key) => state.waived.has(key), passed: onPassed, failed: onFailed, gated: onGated, canStart: swapDone });
+  setMissionHooks({ waived: (key) => state.waived.has(key), skipped: (i) => STEPS.some((s) => s.kind === 'mission' && missionIdx(s) === i && state.skipped.has(s.id)), passed: onPassed, failed: onFailed, gated: onGated, canStart: swapDone });
   Object.assign(GOALS, FUN_GOALS, EIKEA_GOALS);
   setMeetHook(meet);
   initStoryFun(w);
