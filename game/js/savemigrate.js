@@ -12,9 +12,9 @@
 //   fixtures in scripts/fixtures/saves/ through it.
 import { RETIRED_STEPS, STEP_BY_ID, MISSION_IDS, nextStoryStep } from './storyarc.js';
 import { normalizeRadio } from './musicpick.js';
-import { cheatUnlocksFromSave } from './cheatlist.js';
+import { cheatUnlocksFromSave, RETIRED_CHEATS } from './cheatlist.js';
 
-export const SAVE_VERSION = 5;
+export const SAVE_VERSION = 6;
 export const SETTINGS_VERSION = 8;
 
 const isObj = (o) => !!o && typeof o === 'object' && !Array.isArray(o);
@@ -85,6 +85,17 @@ export const SAVE_MIGRATIONS = {
     const back = { kills: n('knockouts') + wrecked, pedKills: n('pedKnockouts'), copKills: n('copKnockouts') + wrecked };
     for (const [k, v] of Object.entries(back)) if (!Number.isFinite(s[k])) s[k] = v;
     for (const k of KO) delete s[k];
+    return d;
+  },
+  // 0.28: "Geld uit de muur" is gone (pay-out and its once-per-game mark);
+  // the other streken stay as they were
+  5(d) {
+    const sk = d.streken;
+    if (!isObj(sk)) return d;
+    const keep = (list) => (Array.isArray(list) ? list.filter((id) => !RETIRED_CHEATS.includes(id)) : []);
+    sk.unlocked = keep(sk.unlocked);
+    sk.on = keep(sk.on);
+    sk.used = keep(sk.used);
     return d;
   },
 };
