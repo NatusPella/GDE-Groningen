@@ -318,6 +318,9 @@ minimap's edge arrows carry a ring, a dot or a square.
   voicelines, police barks and synthesised effects. Every speech bubble and
   subtitle is voiced; `node scripts/voice_coverage.mjs` checks that (exit
   code 1 lists the lines still without a recording, see ARCHITECTURE.md).
+  The voices speak Gronings (the spoken spelling lives in
+  `scripts/gronings_spoken.json`); the subtitles stay Dutch until the
+  streek *Gronings ondertiteld* is on.
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for how the modules fit together,
 [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md) for the UI and world style, and

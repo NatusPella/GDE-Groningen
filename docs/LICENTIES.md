@@ -48,7 +48,7 @@ geen `node_modules` in git.
 | `data/satellite_reference.jpg` (6,4 MB) | **Esri World Imagery**-export (`scripts/extract_palette.py`) | Esri-beelden mogen niet als los bestand herverspreid worden ([Esri-voorwaarden](https://www.esri.com/en-us/legal/terms/full-master-agreement)); alleen de afgeleide kleurwaarden zitten in het spel | **RISICO**: weghalen uit repo en historie vóór publicatie (zie `docs/PUBLICEREN.md`) |
 | Geluidseffecten (motor, foley, ambience, UI) | gesynthetiseerd in `game/js/sfx/*.js` | eigen werk | ok |
 | Muziek: 14 G-Music-nummers, 2 scenario-loops, titelnummer `miles_past_the_city_square.mp3` | Google Gemini (volgens de eigenaar) | zie §4 | ok, met kanttekeningen |
-| Stemmen: ~3.400 clips in `game/audio/voicelines` (gelogd in `tts.json`, allemaal `google/gemini-3.8-flash-tts`, prebuilt stemmen zoals Orus en Callirrhoe) | Gemini TTS via OpenRouter | zie §4 | ok |
+| Stemmen: ~3.400 clips in `game/audio/voicelines` (gelogd in `tts.json`, allemaal `google/gemini-3.8-flash-tts`, prebuilt stemmen zoals Orus en Callirrhoe; sinds 5 okt spreken ze Gronings, uit `scripts/gronings_spoken.json`, geschreven met Claude, de Friese personages en toeristen daargelaten) | Gemini TTS via OpenRouter | zie §4 | ok |
 | Vaste clips: `audio/npc`, `audio/police`, `audio/nieuws`, `audio/gmusic/jingles` | Gemini TTS via OpenRouter, `google/gemini-3.8-flash-tts` (`scripts/tts_barks_lines.mjs`, stemmen in `tts_cast.mjs` `CLIP_CAST`) | zie §4 | **opgelost** (3 okt): waren gemaakt met een previewmodel zonder log; nu opnieuw ingesproken en per map gelogd in `tts.json` |
 | App-icoon `desktop/resources/icon.svg/png` | eigen ontwerp (GDE-logo) met ingebedde subset van Big Shoulders Display | OFL staat inbedden toe | ok |
 

@@ -11,7 +11,7 @@ import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
 import { collect, isVoiced, missingKeys, manifest, BUBBLE, NARRATOR, REPO } from './voicelines_collect.mjs';
-import { ACCENT, GRO_ACCENT, DUO, TTS_MODEL, styleOf } from './tts_cast.mjs';
+import { ACCENT, GRO_ACCENT, DUO, TTS_MODEL, TTS_LANG, styleOf } from './tts_cast.mjs';
 import { GRO } from '../game/js/subtitles.js';
 
 const GRO_WORDS = /\b(mien|nait|moar|mor|goud|kiek|joe|doar|noar|hoes|ain|hail|mout|stoet|wicht|oet|veur|zain|laven|dij|wies|lopst|rieden)\b/i;
@@ -49,7 +49,7 @@ const CAST = {
   // the rondvaart chase (rondvaartchase.js SHOUT); the megaphone sound is added in the game
   'Schipper Wiebe': { voice: 'Alnilam', who: 'woedende Groningse rondvaartschipper die zijn boot achterna zit, roept door een megafoon', pool: ['woedend, schreeuwend', 'buiten adem, verontwaardigd roepend'], accent: GRO_ACCENT },
   Verkeersinformatie: { voice: 'Achird', who: 'Groningse radiopresentator van de verkeersinformatie, zakelijk', pool: ['zakelijk, voorlezend, heel licht geamuseerd', 'droog, als een nieuwslezer', 'berustend, professioneel'] },
-  Navigatie: { voice: 'Kore', who: 'kalme navigatiestem in een auto', pool: ['kalm, monotoon, heel licht vermoeid', 'vriendelijk, mechanisch, droog'], accent: 'spoken in standard Dutch, calm and clear like a car navigation voice' },
+  Navigatie: { voice: 'Kore', who: 'kalme navigatiestem in een auto', pool: ['kalm, monotoon, heel licht vermoeid', 'vriendelijk, mechanisch, droog'], accent: 'spoken in Gronings dialect (Grunnegs) exactly as written, calm and clear like a car navigation voice' },
   'Koe Aaltje': { voice: 'Zephyr', who: 'een sceptische, droge koe uit het Ommeland', pool: ['droog, laconiek, onder de indruk maar laat het niet merken', 'deadpan, zuchtend'] },
   'Koe Grietje': { voice: 'Autonoe', who: 'een wijze, droge koe uit het Ommeland die alles ziet', pool: ['droog, bedachtzaam', 'deadpan, licht spottend'] },
   // the Ommeland extras (ommelandlines.js): the ends of the world, the villages, Ome Jan
@@ -78,7 +78,7 @@ const CAST = {
   'Kiekdoar-redactie': { voice: 'Achernar', who: 'Groningse nieuwslezeres van nieuwssite Kiekdoar, leest een pushbericht voor', pool: ['als een nieuwslezer, droog, licht ironisch', 'zakelijk voorlezend, met een knipoog'] },
   // Geesje presents Radio Proat, the talk programmes on G-Music (radio.js)
   Geesje: { voice: 'Pulcherrima', who: 'Groningse radiopresentatrice van praatzender Radio Proat, warm en droog', pool: ['warm, ontspannen, als radiopresentatrice', 'droog, met een knipoog, als radiopresentatrice'] },
-  Ubbo: { voice: 'Laomedeia', who: 'de vriendelijke stem van de telefoon-app Ubbo', pool: ['vriendelijke, gladde app-stem, kalm', 'behulpzame app-assistent, opgewekt'], accent: 'spoken in standard Dutch, clear and friendly like a phone assistant' },
+  Ubbo: { voice: 'Laomedeia', who: 'de vriendelijke stem van de telefoon-app Ubbo', pool: ['vriendelijke, gladde app-stem, kalm', 'behulpzame app-assistent, opgewekt'], accent: 'spoken in Gronings dialect (Grunnegs) exactly as written, clear and friendly like a phone assistant' },
 };
 const MALE = ['Charon', 'Puck', 'Iapetus', 'Umbriel', 'Alnilam', 'Rasalgethi', 'Enceladus', 'Schedar', 'Sadaltager', 'Zubenelgenubi'];
 const FEMALE = ['Aoede', 'Leda', 'Autonoe', 'Despina', 'Erinome', 'Laomedeia', 'Pulcherrima', 'Vindemiatrix', 'Sulafat', 'Achernar'];
@@ -115,7 +115,9 @@ function makeJob(e, sp, out, file) {
   const dir = sp.startsWith('~') ? `bubbles/${sp === BUBBLE.f ? 'f' : 'm'}` : slug(sp);
   const accent = job.accent || (isGronings(e.text) ? GRO_ACCENT : ACCENT);
   delete job.accent;
-  return { key, speaker: sp, text: e.text, area: e.area, out, say: e.cast.speak || e.text, file: file || `${dir}/${slug(e.text).slice(0, 32)}_${hash(key).slice(0, 8)}.mp3`, ...job, style: styleOf(job.who, job.tag, accent) };
+  // Frisian characters and foreign tourists keep their own language (lang 'own'); everyone else speaks Gronings
+  const lang = /Gronings/.test(accent) ? TTS_LANG : 'own';
+  return { key, speaker: sp, text: e.text, area: e.area, out, lang, say: e.cast.speak || e.text, file: file || `${dir}/${slug(e.text).slice(0, 32)}_${hash(key).slice(0, 8)}.mp3`, ...job, style: styleOf(job.who, job.tag, accent) };
 }
 
 // how each recording in a voicelines folder was made (gemini_tts.py writes it)
@@ -140,7 +142,10 @@ for (const e of collect()) {
   if (!isVoiced(e)) for (const sp of missingKeys(e)) push(makeJob(e, sp, e.manifest === 'sms' || e.manifest === 'hints' ? e.manifest : 'lines'));
   for (const sp of e.speakers) {
     const r = recording(e, sp);
-    if (r && r.out !== 'jobs' && r.log?.model !== TTS_MODEL) push(makeJob(e, sp, r.out, r.entry.src));
+    if (r && r.out !== 'jobs') {
+      const j = makeJob(e, sp, r.out, r.entry.src);
+      if (r.log?.model !== TTS_MODEL || (j.lang === TTS_LANG && r.log?.lang !== TTS_LANG)) push(j);
+    }
   }
 }
 fs.writeFileSync(path.join(REPO, 'scripts', 'tts_lines.json'), JSON.stringify(jobs, null, 1));

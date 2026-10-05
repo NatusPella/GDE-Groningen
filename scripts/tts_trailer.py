@@ -6,11 +6,11 @@
 # so the game and the MP4 export (desktop --trailer-video) play the same file.
 #   python3 scripts/tts_trailer.py [--force]
 import json, os, subprocess, sys, wave
-from gemini_tts import usage, speak, check, current, load_log, save_log, logged
+from gemini_tts import usage, speak, check, current, load_log, save_log, logged, say_of
 
 REPO = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
 OUT = os.path.join(REPO, 'game', 'audio', 'voicelines', 'trailer')
-ACCENT = 'spoken in Dutch with a Groningen accent'
+ACCENT = 'spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent'
 TRIM = 'silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse'
 LUFS, TP = -18, -1.5
 # 0.9 s of static before Rikus and 0.6 s after, AM-radio band, a little presence
@@ -63,11 +63,11 @@ for j in JOBS:
     if not force and current(log, j['key'], dst):
         print('skip', j['file'])
         continue
-    say = j.get('say', j['text'])
+    say = say_of(j)
     for style in [j['style'], '']:
         try:
             pcm = speak(j['voice'], say, style)
-            check(pcm, j['text'])
+            check(pcm, say)
             wav = dst[:-4] + '.tmp.wav'
             with wave.open(wav, 'wb') as w:
                 w.setnchannels(1); w.setsampwidth(2); w.setframerate(24000); w.writeframes(pcm)
