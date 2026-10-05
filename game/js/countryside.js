@@ -974,7 +974,9 @@ function typeGeo(k) {
 
 function chunkMesh(ch, k, n) {
   const T = PROP_TYPES[k];
-  const cap = Math.ceil(n / 64) * 64;
+  // headroom: every tile that streams into the chunk grows it, and a full
+  // reallocation (new mesh and GPU buffers) per tile is a hitch at long view distance
+  const cap = Math.ceil((n * 1.4) / 64) * 64;
   const mesh = new THREE.InstancedMesh(typeGeo(k), T.bld ? buildingMaterial() : T.glow ? glowMaterial() : T.double ? S.reedMat : T.paving ? S.pavingMat : S.propMat, cap);
   mesh.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(cap * 3), 3);
   mesh.count = 0;
