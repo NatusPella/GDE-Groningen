@@ -159,13 +159,28 @@ All TTS scripts call Gemini 3.8 Flash TTS through `scripts/gemini_tts.py`
 (OpenRouter, paid from its balance; key in `.env`). 3.8 reads the input
 verbatim, so the delivery goes in `speech_metadata.style`, built by
 `styleOf(who, tag, accent)` in `scripts/tts_cast.mjs`; that file also holds
-Tammo's and Tessa's voices for every pipeline. Tammo's style asks for
-Gronings dialect, so his clips may say a Gronings word where the subtitle
-has the Dutch one ("Mien droom").
+Tammo's and Tessa's voices for every pipeline.
+
+**The voices speak Gronings, the subtitles stay Dutch.** What a voice says
+is not the shown line but its spoken Gronings spelling from
+`scripts/gronings_spoken.json` (key: the line exactly as the game shows it,
+or the `say` text a job overrides it with; value: the spelling sent to the
+TTS, written so Gemini reads it right: `oe`, `ai`, `n`/`t` for the articles,
+no apostrophes inside words). The manifests, file names and `tts.json` keys
+still use the shown text, so the game needs no change; the subtitle only
+turns Gronings through the *Gronings ondertiteld* streek (`grunnify`,
+`cheatmods.js`). `gemini_tts.say_of(job)` does the lookup and raises when a
+line has no entry, so a new line must get one before it can be recorded.
+Frisian characters (Jelle, Mem, Durk, Douwe, the Verdwaalde Fries) and the
+foreign tourists keep their own language (`lang: 'own'`, a non-Gronings
+accent in `tts_lines_list.mjs`). Edit a Gronings spelling, delete that clip's
+`tts.json` entry (or bump `TTS_LANG` in `tts_cast.mjs`) and rerun the
+pipeline to record it again; `node scripts/gronings_spoken_test.mjs` checks
+the table and that every logged clip says which language it was made in.
 
 Every voicelines folder has a `tts.json` next to its `manifest.json`, keyed
 the same, that says exactly how each clip was made: `src`, `model`,
-`voice`, `input` (the text sent, with any inline tags), `style`, `post`
+`lang` (`gro` or `own`), `voice`, `input` (the spoken Gronings text sent, with any inline tags), `style`, `post`
 (the ffmpeg chain) and `date`. Every pipeline writes it as it records, and
 the game never loads it. A clip whose entry is missing or names another
 model counts as outdated, and the next run of its pipeline re-records it in

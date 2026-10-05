@@ -3,9 +3,12 @@
 // style every job is voiced with (scripts/gemini_tts.py).
 // same as gemini_tts.MODEL: a clip whose tts.json entry has another model is re-recorded
 export const TTS_MODEL = 'google/gemini-3.8-flash-tts';
-export const ACCENT = 'spoken in Dutch with a Groningen accent';
-// Gronings dialect lines (Grunnegs): said as written, not turned into Dutch
+// every clip is recorded from its Gronings spoken text (scripts/gronings_spoken.json); a clip
+// whose tts.json entry has another lang is re-recorded
+export const TTS_LANG = 'gro';
+// the default for every voice: the spoken text is Gronings (scripts/gronings_spoken.json), said as written
 export const GRO_ACCENT = 'spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent';
+export const ACCENT = GRO_ACCENT;
 
 // Tammo's dialect style may swap a Dutch word for its Gronings one ("Mien droom"); that is wanted.
 export const DUO = {

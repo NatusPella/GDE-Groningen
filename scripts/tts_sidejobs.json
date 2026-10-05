@@ -7,7 +7,7 @@
   "tag": "cheerful, welcoming",
   "voice": "Zephyr",
   "who": "jonge Stadjer, vrouw, opgewekt en snel",
-  "style": "spoken in Dutch with a Groningen accent; jonge Stadjer, vrouw, opgewekt en snel. Tone: cheerful, welcoming."
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; jonge Stadjer, vrouw, opgewekt en snel. Tone: cheerful, welcoming."
  },
  {
   "file": "bezorger/intro_1.mp3",
@@ -17,7 +17,7 @@
   "tag": "businesslike, fast",
   "voice": "Zephyr",
   "who": "jonge Stadjer, vrouw, opgewekt en snel",
-  "style": "spoken in Dutch with a Groningen accent; jonge Stadjer, vrouw, opgewekt en snel. Tone: businesslike, fast."
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; jonge Stadjer, vrouw, opgewekt en snel. Tone: businesslike, fast."
  },
  {
   "file": "bezorger/intro_2.mp3",
@@ -27,7 +27,7 @@
   "tag": "laughing, teasing",
   "voice": "Zephyr",
   "who": "jonge Stadjer, vrouw, opgewekt en snel",
-  "style": "spoken in Dutch with a Groningen accent; jonge Stadjer, vrouw, opgewekt en snel. Tone: laughing, teasing."
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; jonge Stadjer, vrouw, opgewekt en snel. Tone: laughing, teasing."
  },
  {
   "file": "taxi/intro_0.mp3",
@@ -38,7 +38,7 @@
   "voice": "Algenib",
   "who": "Groningse centralist over de portofoon, laconiek",
   "radio": true,
-  "style": "spoken in Dutch with a Groningen accent; Groningse centralist over de portofoon, laconiek. Tone: bored, matter-of-fact."
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse centralist over de portofoon, laconiek. Tone: bored, matter-of-fact."
  },
  {
   "file": "taxi/intro_1.mp3",
@@ -49,7 +49,7 @@
   "voice": "Algenib",
   "who": "Groningse centralist over de portofoon, laconiek",
   "radio": true,
-  "style": "spoken in Dutch with a Groningen accent; Groningse centralist over de portofoon, laconiek. Tone: instructive, calm."
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse centralist over de portofoon, laconiek. Tone: instructive, calm."
  },
  {
   "file": "taxi/intro_2.mp3",
@@ -60,7 +60,7 @@
   "voice": "Algenib",
   "who": "Groningse centralist over de portofoon, laconiek",
   "radio": true,
-  "style": "spoken in Dutch with a Groningen accent; Groningse centralist over de portofoon, laconiek. Tone: amused, gossiping."
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse centralist over de portofoon, laconiek. Tone: amused, gossiping."
  },
  {
   "file": "bus/intro_0.mp3",
@@ -70,7 +70,7 @@
   "tag": "enthusiastic, a bit nervous",
   "voice": "Achird",
   "who": "Groningse man, stipt en een beetje pedant",
-  "style": "spoken in Dutch with a Groningen accent; Groningse man, stipt en een beetje pedant. Tone: enthusiastic, a bit nervous."
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse man, stipt en een beetje pedant. Tone: enthusiastic, a bit nervous."
  },
  {
   "file": "bus/intro_1.mp3",
@@ -80,7 +80,7 @@
   "tag": "stern, pedantic",
   "voice": "Achird",
   "who": "Groningse man, stipt en een beetje pedant",
-  "style": "spoken in Dutch with a Groningen accent; Groningse man, stipt en een beetje pedant. Tone: stern, pedantic."
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse man, stipt en een beetje pedant. Tone: stern, pedantic."
  },
  {
   "file": "bus/intro_2.mp3",
@@ -90,7 +90,7 @@
   "tag": "worried, warning",
   "voice": "Achird",
   "who": "Groningse man, stipt en een beetje pedant",
-  "style": "spoken in Dutch with a Groningen accent; Groningse man, stipt en een beetje pedant. Tone: worried, warning."
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse man, stipt en een beetje pedant. Tone: worried, warning."
  },
  {
   "file": "rondvaart/intro_0.mp3",
@@ -100,7 +100,7 @@
   "tag": "groaning, apologetic",
   "voice": "Algieba",
   "who": "oude Groningse schipper met rugpijn, bromstem",
-  "style": "spoken in Dutch with a Groningen accent; oude Groningse schipper met rugpijn, bromstem. Tone: groaning, apologetic."
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; oude Groningse schipper met rugpijn, bromstem. Tone: groaning, apologetic."
  },
  {
   "file": "rondvaart/intro_1.mp3",
@@ -110,7 +110,7 @@
   "tag": "explaining, warm",
   "voice": "Algieba",
   "who": "oude Groningse schipper met rugpijn, bromstem",
-  "style": "spoken in Dutch with a Groningen accent; oude Groningse schipper met rugpijn, bromstem. Tone: explaining, warm."
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; oude Groningse schipper met rugpijn, bromstem. Tone: explaining, warm."
  },
  {
   "file": "rondvaart/intro_2.mp3",
@@ -120,7 +120,7 @@
   "tag": "grumpy, warning",
   "voice": "Algieba",
   "who": "oude Groningse schipper met rugpijn, bromstem",
-  "style": "spoken in Dutch with a Groningen accent; oude Groningse schipper met rugpijn, bromstem. Tone: grumpy, warning."
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; oude Groningse schipper met rugpijn, bromstem. Tone: grumpy, warning."
  },
  {
   "file": "fietsdepot/intro_0.mp3",
@@ -130,7 +130,7 @@
   "tag": "stern, businesslike",
   "voice": "Kore",
   "who": "Groningse handhaafster, streng en droog",
-  "style": "spoken in Dutch with a Groningen accent; Groningse handhaafster, streng en droog. Tone: stern, businesslike."
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse handhaafster, streng en droog. Tone: stern, businesslike."
  },
  {
   "file": "fietsdepot/intro_1.mp3",
@@ -140,7 +140,7 @@
   "tag": "strict, instructive",
   "voice": "Kore",
   "who": "Groningse handhaafster, streng en droog",
-  "style": "spoken in Dutch with a Groningen accent; Groningse handhaafster, streng en droog. Tone: strict, instructive."
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse handhaafster, streng en droog. Tone: strict, instructive."
  },
  {
   "file": "fietsdepot/intro_2.mp3",
@@ -150,7 +150,7 @@
   "tag": "dry, warning",
   "voice": "Kore",
   "who": "Groningse handhaafster, streng en droog",
-  "style": "spoken in Dutch with a Groningen accent; Groningse handhaafster, streng en droog. Tone: dry, warning."
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse handhaafster, streng en droog. Tone: dry, warning."
  },
  {
   "file": "verhuizing/intro_0.mp3",
@@ -160,7 +160,7 @@
   "tag": "harried, dramatic",
   "voice": "Sadachbia",
   "who": "gehaaste Groningse verhuizer, joviaal",
-  "style": "spoken in Dutch with a Groningen accent; gehaaste Groningse verhuizer, joviaal. Tone: harried, dramatic."
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; gehaaste Groningse verhuizer, joviaal. Tone: harried, dramatic."
  },
  {
   "file": "verhuizing/intro_1.mp3",
@@ -170,7 +170,7 @@
   "tag": "fast, instructive",
   "voice": "Sadachbia",
   "who": "gehaaste Groningse verhuizer, joviaal",
-  "style": "spoken in Dutch with a Groningen accent; gehaaste Groningse verhuizer, joviaal. Tone: fast, instructive."
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; gehaaste Groningse verhuizer, joviaal. Tone: fast, instructive."
  },
  {
   "file": "verhuizing/intro_2.mp3",
@@ -180,7 +180,7 @@
   "tag": "sighing, joking",
   "voice": "Sadachbia",
   "who": "gehaaste Groningse verhuizer, joviaal",
-  "style": "spoken in Dutch with a Groningen accent; gehaaste Groningse verhuizer, joviaal. Tone: sighing, joking."
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; gehaaste Groningse verhuizer, joviaal. Tone: sighing, joking."
  },
  {
   "file": "bezorger/greet_0.mp3",
@@ -190,7 +190,7 @@
   "tag": "cheerful, fast",
   "voice": "Zephyr",
   "who": "jonge Stadjer, vrouw, opgewekt en snel",
-  "style": "spoken in Dutch with a Groningen accent; jonge Stadjer, vrouw, opgewekt en snel. Tone: cheerful, fast."
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; jonge Stadjer, vrouw, opgewekt en snel. Tone: cheerful, fast."
  },
  {
   "file": "bezorger/done_0.mp3",
@@ -200,7 +200,7 @@
   "tag": "delighted",
   "voice": "Zephyr",
   "who": "jonge Stadjer, vrouw, opgewekt en snel",
-  "style": "spoken in Dutch with a Groningen accent; jonge Stadjer, vrouw, opgewekt en snel. Tone: delighted."
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; jonge Stadjer, vrouw, opgewekt en snel. Tone: delighted."
  },
  {
   "file": "bezorger/done_1.mp3",
@@ -210,7 +210,7 @@
   "tag": "amused, playful",
   "voice": "Zephyr",
   "who": "jonge Stadjer, vrouw, opgewekt en snel",
-  "style": "spoken in Dutch with a Groningen accent; jonge Stadjer, vrouw, opgewekt en snel. Tone: amused, playful."
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; jonge Stadjer, vrouw, opgewekt en snel. Tone: amused, playful."
  },
  {
   "file": "bezorger/fail_0.mp3",
@@ -220,7 +220,7 @@
   "tag": "disappointed sigh",
   "voice": "Zephyr",
   "who": "jonge Stadjer, vrouw, opgewekt en snel",
-  "style": "spoken in Dutch with a Groningen accent; jonge Stadjer, vrouw, opgewekt en snel. Tone: disappointed sigh."
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; jonge Stadjer, vrouw, opgewekt en snel. Tone: disappointed sigh."
  },
  {
   "file": "bezorger/level_0.mp3",
@@ -230,7 +230,7 @@
   "tag": "conspiratorial whisper, proud",
   "voice": "Zephyr",
   "who": "jonge Stadjer, vrouw, opgewekt en snel",
-  "style": "spoken in Dutch with a Groningen accent; jonge Stadjer, vrouw, opgewekt en snel. Tone: conspiratorial whisper, proud."
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; jonge Stadjer, vrouw, opgewekt en snel. Tone: conspiratorial whisper, proud."
  },
  {
   "file": "taxi/greet_0.mp3",
@@ -241,7 +241,7 @@
   "voice": "Algenib",
   "who": "Groningse centralist over de portofoon, laconiek",
   "radio": true,
-  "style": "spoken in Dutch with a Groningen accent; Groningse centralist over de portofoon, laconiek. Tone: bored radio dispatcher."
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse centralist over de portofoon, laconiek. Tone: bored radio dispatcher."
  },
  {
   "file": "taxi/done_0.mp3",
@@ -252,7 +252,7 @@
   "voice": "Algenib",
   "who": "Groningse centralist over de portofoon, laconiek",
   "radio": true,
-  "style": "spoken in Dutch with a Groningen accent; Groningse centralist over de portofoon, laconiek. Tone: dry, approving."
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse centralist over de portofoon, laconiek. Tone: dry, approving."
  },
  {
   "file": "taxi/done_1.mp3",
@@ -263,7 +263,7 @@
   "voice": "Algenib",
   "who": "Groningse centralist over de portofoon, laconiek",
   "radio": true,
-  "style": "spoken in Dutch with a Groningen accent; Groningse centralist over de portofoon, laconiek. Tone: suspicious, surprised."
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse centralist over de portofoon, laconiek. Tone: suspicious, surprised."
  },
  {
   "file": "taxi/fail_0.mp3",
@@ -274,7 +274,7 @@
   "voice": "Algenib",
   "who": "Groningse centralist over de portofoon, laconiek",
   "radio": true,
-  "style": "spoken in Dutch with a Groningen accent; Groningse centralist over de portofoon, laconiek. Tone: annoyed, weary."
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse centralist over de portofoon, laconiek. Tone: annoyed, weary."
  },
  {
   "file": "taxi/level_0.mp3",
@@ -285,7 +285,7 @@
   "voice": "Algenib",
   "who": "Groningse centralist over de portofoon, laconiek",
   "radio": true,
-  "style": "spoken in Dutch with a Groningen accent; Groningse centralist over de portofoon, laconiek. Tone: grudging respect."
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse centralist over de portofoon, laconiek. Tone: grudging respect."
  },
  {
   "file": "bus/greet_0.mp3",
@@ -295,7 +295,7 @@
   "tag": "pedantic, strict",
   "voice": "Achird",
   "who": "Groningse man, stipt en een beetje pedant",
-  "style": "spoken in Dutch with a Groningen accent; Groningse man, stipt en een beetje pedant. Tone: pedantic, strict."
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse man, stipt en een beetje pedant. Tone: pedantic, strict."
  },
  {
   "file": "bus/done_0.mp3",
@@ -305,7 +305,7 @@
   "tag": "moved, satisfied",
   "voice": "Achird",
   "who": "Groningse man, stipt en een beetje pedant",
-  "style": "spoken in Dutch with a Groningen accent; Groningse man, stipt en een beetje pedant. Tone: moved, satisfied."
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse man, stipt en een beetje pedant. Tone: moved, satisfied."
  },
  {
   "file": "bus/done_1.mp3",
@@ -315,7 +315,7 @@
   "tag": "dry, amused",
   "voice": "Achird",
   "who": "Groningse man, stipt en een beetje pedant",
-  "style": "spoken in Dutch with a Groningen accent; Groningse man, stipt en een beetje pedant. Tone: dry, amused."
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse man, stipt en een beetje pedant. Tone: dry, amused."
  },
  {
   "file": "bus/fail_0.mp3",
@@ -325,7 +325,7 @@
   "tag": "cold anger",
   "voice": "Achird",
   "who": "Groningse man, stipt en een beetje pedant",
-  "style": "spoken in Dutch with a Groningen accent; Groningse man, stipt en een beetje pedant. Tone: cold anger."
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse man, stipt en een beetje pedant. Tone: cold anger."
  },
  {
   "file": "bus/level_0.mp3",
@@ -335,7 +335,7 @@
   "tag": "emotional, voice cracking",
   "voice": "Achird",
   "who": "Groningse man, stipt en een beetje pedant",
-  "style": "spoken in Dutch with a Groningen accent; Groningse man, stipt en een beetje pedant. Tone: emotional, voice cracking."
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse man, stipt en een beetje pedant. Tone: emotional, voice cracking."
  },
  {
   "file": "rondvaart/greet_0.mp3",
@@ -345,7 +345,7 @@
   "tag": "groaning, weary",
   "voice": "Algieba",
   "who": "oude Groningse schipper met rugpijn, bromstem",
-  "style": "spoken in Dutch with a Groningen accent; oude Groningse schipper met rugpijn, bromstem. Tone: groaning, weary."
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; oude Groningse schipper met rugpijn, bromstem. Tone: groaning, weary."
  },
  {
   "file": "rondvaart/done_0.mp3",
@@ -355,7 +355,7 @@
   "tag": "warm, proud",
   "voice": "Algieba",
   "who": "oude Groningse schipper met rugpijn, bromstem",
-  "style": "spoken in Dutch with a Groningen accent; oude Groningse schipper met rugpijn, bromstem. Tone: warm, proud."
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; oude Groningse schipper met rugpijn, bromstem. Tone: warm, proud."
  },
  {
   "file": "rondvaart/done_1.mp3",
@@ -365,7 +365,7 @@
   "tag": "chuckling",
   "voice": "Algieba",
   "who": "oude Groningse schipper met rugpijn, bromstem",
-  "style": "spoken in Dutch with a Groningen accent; oude Groningse schipper met rugpijn, bromstem. Tone: chuckling."
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; oude Groningse schipper met rugpijn, bromstem. Tone: chuckling."
  },
  {
   "file": "rondvaart/fail_0.mp3",
@@ -375,7 +375,7 @@
   "tag": "pained, then shocked",
   "voice": "Algieba",
   "who": "oude Groningse schipper met rugpijn, bromstem",
-  "style": "spoken in Dutch with a Groningen accent; oude Groningse schipper met rugpijn, bromstem. Tone: pained, then shocked."
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; oude Groningse schipper met rugpijn, bromstem. Tone: pained, then shocked."
  },
  {
   "file": "rondvaart/level_0.mp3",
@@ -385,7 +385,7 @@
   "tag": "impressed, nostalgic",
   "voice": "Algieba",
   "who": "oude Groningse schipper met rugpijn, bromstem",
-  "style": "spoken in Dutch with a Groningen accent; oude Groningse schipper met rugpijn, bromstem. Tone: impressed, nostalgic."
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; oude Groningse schipper met rugpijn, bromstem. Tone: impressed, nostalgic."
  },
  {
   "file": "fietsdepot/greet_0.mp3",
@@ -395,7 +395,7 @@
   "tag": "stern, businesslike",
   "voice": "Kore",
   "who": "Groningse handhaafster, streng en droog",
-  "style": "spoken in Dutch with a Groningen accent; Groningse handhaafster, streng en droog. Tone: stern, businesslike."
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse handhaafster, streng en droog. Tone: stern, businesslike."
  },
  {
   "file": "fietsdepot/done_0.mp3",
@@ -405,7 +405,7 @@
   "tag": "deadpan",
   "voice": "Kore",
   "who": "Groningse handhaafster, streng en droog",
-  "style": "spoken in Dutch with a Groningen accent; Groningse handhaafster, streng en droog. Tone: deadpan."
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse handhaafster, streng en droog. Tone: deadpan."
  },
  {
   "file": "fietsdepot/done_1.mp3",
@@ -415,7 +415,7 @@
   "tag": "smug, satisfied",
   "voice": "Kore",
   "who": "Groningse handhaafster, streng en droog",
-  "style": "spoken in Dutch with a Groningen accent; Groningse handhaafster, streng en droog. Tone: smug, satisfied."
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse handhaafster, streng en droog. Tone: smug, satisfied."
  },
  {
   "file": "fietsdepot/fail_0.mp3",
@@ -425,7 +425,7 @@
   "tag": "strict, disapproving",
   "voice": "Kore",
   "who": "Groningse handhaafster, streng en droog",
-  "style": "spoken in Dutch with a Groningen accent; Groningse handhaafster, streng en droog. Tone: strict, disapproving."
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse handhaafster, streng en droog. Tone: strict, disapproving."
  },
  {
   "file": "fietsdepot/level_0.mp3",
@@ -435,7 +435,7 @@
   "tag": "impressed, almost smiling",
   "voice": "Kore",
   "who": "Groningse handhaafster, streng en droog",
-  "style": "spoken in Dutch with a Groningen accent; Groningse handhaafster, streng en droog. Tone: impressed, almost smiling."
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse handhaafster, streng en droog. Tone: impressed, almost smiling."
  },
  {
   "file": "verhuizing/greet_0.mp3",
@@ -445,7 +445,7 @@
   "tag": "harried, jovial",
   "voice": "Sadachbia",
   "who": "gehaaste Groningse verhuizer, joviaal",
-  "style": "spoken in Dutch with a Groningen accent; gehaaste Groningse verhuizer, joviaal. Tone: harried, jovial."
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; gehaaste Groningse verhuizer, joviaal. Tone: harried, jovial."
  },
  {
   "file": "verhuizing/done_0.mp3",
@@ -455,7 +455,7 @@
   "tag": "relieved, laughing",
   "voice": "Sadachbia",
   "who": "gehaaste Groningse verhuizer, joviaal",
-  "style": "spoken in Dutch with a Groningen accent; gehaaste Groningse verhuizer, joviaal. Tone: relieved, laughing."
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; gehaaste Groningse verhuizer, joviaal. Tone: relieved, laughing."
  },
  {
   "file": "verhuizing/done_1.mp3",
@@ -465,7 +465,7 @@
   "tag": "sarcastic",
   "voice": "Sadachbia",
   "who": "gehaaste Groningse verhuizer, joviaal",
-  "style": "spoken in Dutch with a Groningen accent; gehaaste Groningse verhuizer, joviaal. Tone: sarcastic."
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; gehaaste Groningse verhuizer, joviaal. Tone: sarcastic."
  },
  {
   "file": "verhuizing/fail_0.mp3",
@@ -475,7 +475,7 @@
   "tag": "exasperated",
   "voice": "Sadachbia",
   "who": "gehaaste Groningse verhuizer, joviaal",
-  "style": "spoken in Dutch with a Groningen accent; gehaaste Groningse verhuizer, joviaal. Tone: exasperated."
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; gehaaste Groningse verhuizer, joviaal. Tone: exasperated."
  },
  {
   "file": "verhuizing/level_0.mp3",
@@ -485,7 +485,7 @@
   "tag": "hearty laugh",
   "voice": "Sadachbia",
   "who": "gehaaste Groningse verhuizer, joviaal",
-  "style": "spoken in Dutch with a Groningen accent; gehaaste Groningse verhuizer, joviaal. Tone: hearty laugh."
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; gehaaste Groningse verhuizer, joviaal. Tone: hearty laugh."
  },
  {
   "file": "duo/tammo_start_0.mp3",
@@ -515,7 +515,7 @@
   "tag": "enthusiastic, teasing",
   "voice": "Callirrhoe",
   "who": "Groningse vrouw, lacherig en ad rem",
-  "style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: enthusiastic, teasing."
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: enthusiastic, teasing."
  },
  {
   "file": "duo/anita_end_0.mp3",
@@ -525,6 +525,6 @@
   "tag": "proud, laughing",
   "voice": "Callirrhoe",
   "who": "Groningse vrouw, lacherig en ad rem",
-  "style": "spoken in Dutch with a Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: proud, laughing."
+  "style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse vrouw, lacherig en ad rem. Tone: proud, laughing."
  }
 ]
