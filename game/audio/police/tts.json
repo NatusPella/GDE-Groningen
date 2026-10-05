@@ -2,109 +2,121 @@
 "Agente|Achtervolging gaande, richting centrum.": {
 "src": "achtervolging_v1.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Kore",
-"input": "Achtervolging gaande, richting centrum.",
-"style": "spoken in Dutch with a Groningen accent; Groningse politieagente, kordaat en zakelijk. Tone: gehaast, over de portofoon.",
+"input": "Achtervolging bezig, richting centrum.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse politieagente, kordaat en zakelijk. Tone: gehaast, over de portofoon.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-03"
+"date": "2026-10-05"
 },
 "Agente|Sta stil! Handen omhoog!": {
 "src": "handen_omhoog_v1.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Kore",
-"input": "Sta stil! Handen omhoog!",
-"style": "spoken in Dutch with a Groningen accent; Groningse politieagente, kordaat en zakelijk. Tone: schreeuwend, bevelend.",
+"input": "Blief stoan! Handen omhoog!",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse politieagente, kordaat en zakelijk. Tone: schreeuwend, bevelend.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-03"
+"date": "2026-10-05"
 },
 "Agente|Stop! Politie!": {
 "src": "stop_politie_v1.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Kore",
 "input": "Stop! Politie!",
-"style": "spoken in Dutch with a Groningen accent; Groningse politieagente, kordaat en zakelijk. Tone: luid roepend, streng.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse politieagente, kordaat en zakelijk. Tone: luid roepend, streng.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-03"
+"date": "2026-10-05"
 },
 "Agente|Verdacht voertuig, alle eenheden.": {
 "src": "verdachte_voertuig_v1.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Kore",
-"input": "Verdacht voertuig, alle eenheden.",
-"style": "spoken in Dutch with a Groningen accent; Groningse politieagente, kordaat en zakelijk. Tone: zakelijk, over de portofoon.",
+"input": "Verdacht veurtuug, aal aindheden.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse politieagente, kordaat en zakelijk. Tone: zakelijk, over de portofoon.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-03"
+"date": "2026-10-05"
 },
 "Agente|Verdachte aangehouden.": {
 "src": "aangehouden_v1.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Kore",
-"input": "Verdachte aangehouden.",
-"style": "spoken in Dutch with a Groningen accent; Groningse politieagente, kordaat en zakelijk. Tone: zakelijk, opgelucht, over de portofoon.",
+"input": "Verdachte aanhollen.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse politieagente, kordaat en zakelijk. Tone: zakelijk, opgelucht, over de portofoon.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-03"
+"date": "2026-10-05"
 },
 "Agente|Zet de auto aan de kant!": {
 "src": "zet_kant_v1.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Kore",
-"input": "Zet de auto aan de kant!",
-"style": "spoken in Dutch with a Groningen accent; Groningse politieagente, kordaat en zakelijk. Tone: bevelend, door een megafoon.",
+"input": "Zet de auto aan de kaant!",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse politieagente, kordaat en zakelijk. Tone: bevelend, door een megafoon.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-03"
+"date": "2026-10-05"
 },
 "Agent|Achtervolging gaande, richting centrum.": {
 "src": "achtervolging_v0.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Alnilam",
-"input": "Achtervolging gaande, richting centrum.",
-"style": "spoken in Dutch with a Groningen accent; Groningse politieagent, streng en kortaf. Tone: gehaast, over de portofoon.",
+"input": "Achtervolging bezig, richting centrum.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse politieagent, streng en kortaf. Tone: gehaast, over de portofoon.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-03"
+"date": "2026-10-05"
 },
 "Agent|Sta stil! Handen omhoog!": {
 "src": "handen_omhoog_v0.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Alnilam",
-"input": "Sta stil! Handen omhoog!",
-"style": "spoken in Dutch with a Groningen accent; Groningse politieagent, streng en kortaf. Tone: schreeuwend, bevelend.",
+"input": "Blief stoan! Handen omhoog!",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse politieagent, streng en kortaf. Tone: schreeuwend, bevelend.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-03"
+"date": "2026-10-05"
 },
 "Agent|Stop! Politie!": {
 "src": "stop_politie_v0.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Alnilam",
 "input": "Stop! Politie!",
-"style": "spoken in Dutch with a Groningen accent; Groningse politieagent, streng en kortaf. Tone: luid roepend, streng.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse politieagent, streng en kortaf. Tone: luid roepend, streng.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-03"
+"date": "2026-10-05"
 },
 "Agent|Verdacht voertuig, alle eenheden.": {
 "src": "verdachte_voertuig_v0.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Alnilam",
-"input": "Verdacht voertuig, alle eenheden.",
-"style": "spoken in Dutch with a Groningen accent; Groningse politieagent, streng en kortaf. Tone: zakelijk, over de portofoon.",
+"input": "Verdacht veurtuug, aal aindheden.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse politieagent, streng en kortaf. Tone: zakelijk, over de portofoon.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-03"
+"date": "2026-10-05"
 },
 "Agent|Verdachte aangehouden.": {
 "src": "aangehouden_v0.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Alnilam",
-"input": "Verdachte aangehouden.",
-"style": "spoken in Dutch with a Groningen accent; Groningse politieagent, streng en kortaf. Tone: zakelijk, opgelucht, over de portofoon.",
+"input": "Verdachte aanhollen.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse politieagent, streng en kortaf. Tone: zakelijk, opgelucht, over de portofoon.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-03"
+"date": "2026-10-05"
 },
 "Agent|Zet de auto aan de kant!": {
 "src": "zet_kant_v0.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Alnilam",
-"input": "Zet de auto aan de kant!",
-"style": "spoken in Dutch with a Groningen accent; Groningse politieagent, streng en kortaf. Tone: bevelend, door een megafoon.",
+"input": "Zet de auto aan de kaant!",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Groningse politieagent, streng en kortaf. Tone: bevelend, door een megafoon.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-03"
+"date": "2026-10-05"
 }
 }

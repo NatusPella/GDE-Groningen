@@ -2,217 +2,241 @@
 "Tammo|Ach, dat komt altijd van pas.": {
 "src": "geld_opgepakt_v1.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Orus",
-"input": "Ach, dat komt altijd van pas.",
+"input": "Ach, dat komt aaltied van pas.",
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, stiekem blij.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-02"
+"date": "2026-10-05"
 },
 "Tammo|Ach, goed. Opnieuw dan.": {
 "src": "missie_mislukt.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Orus",
-"input": "Ach, goed. Opnieuw dan.",
+"input": "Ach, goud. Opnij dan.",
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: zuchtend, laconiek.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-02"
+"date": "2026-10-05"
 },
 "Tammo|Alweer een klusje.": {
 "src": "missie_gestart_v2.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Orus",
-"input": "Alweer een klusje.",
+"input": "Alweer n klusje.",
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: berustend, droog.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-02"
+"date": "2026-10-05"
 },
 "Tammo|Daar hebben we hem weer.": {
 "src": "opgepakt_v1.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Orus",
-"input": "Daar hebben we hem weer.",
+"input": "Doar hebben wie hom weer.",
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: berustend, mopperend.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-02"
+"date": "2026-10-05"
 },
 "Tammo|Dat is niks geworden.": {
 "src": "missie_mislukt_v2.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Orus",
-"input": "Dat is niks geworden.",
+"input": "Dat is nait wat worden.",
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: zuchtend, laconiek.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-02"
+"date": "2026-10-05"
 },
 "Tammo|Hij staat los. Kom op.": {
 "src": "auto_gejat.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Orus",
-"input": "Hij staat los. Kom op.",
+"input": "Hai stait los. Kom op.",
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: laconiek, haastig.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-02"
+"date": "2026-10-05"
 },
 "Tammo|Hup, aan de slag dan.": {
 "src": "missie_gestart_v1.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Orus",
-"input": "Hup, aan de slag dan.",
+"input": "Hup, aan t wark dan.",
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: berustend, droog.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-02"
+"date": "2026-10-05"
 },
 "Tammo|Ik zwem echt niet graag, hè!": {
 "src": "water_panic_v2.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Orus",
-"input": "Ik zwem echt niet graag, hè!",
+"input": "Ik zwem echt nait graag, hè!",
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: in paniek, proestend, feller dan normaal.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-02"
+"date": "2026-10-05"
 },
 "Tammo|Instappen dan maar.": {
 "src": "auto_gejat_v2.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Orus",
-"input": "Instappen dan maar.",
+"input": "Instappen dan mor.",
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: laconiek, haastig.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-02"
+"date": "2026-10-05"
 },
 "Tammo|Kassa. Mooi zo.": {
 "src": "geld_opgepakt.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Orus",
 "input": "Kassa. Mooi zo.",
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, stiekem blij.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-02"
+"date": "2026-10-05"
 },
 "Tammo|Klaar is Kees.": {
 "src": "missie_gelukt.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Orus",
-"input": "Klaar is Kees.",
+"input": "Kloar is Kees.",
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, stiekem trots.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-02"
+"date": "2026-10-05"
 },
 "Tammo|Kon beter, denk ik.": {
 "src": "opgepakt_v2.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Orus",
 "input": "Kon beter, denk ik.",
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: berustend, mopperend.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-02"
+"date": "2026-10-05"
 },
 "Tammo|Kon minder.": {
 "src": "missie_gelukt_v2.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Orus",
 "input": "Kon minder.",
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, stiekem trots.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-02"
+"date": "2026-10-05"
 },
 "Tammo|Mooi, die kan ik gebruiken.": {
 "src": "wapen_opgepakt_v1.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Orus",
-"input": "Mooi, die kan ik gebruiken.",
+"input": "Mooi, dij kin ik bruken.",
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, tevreden.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-02"
+"date": "2026-10-05"
 },
 "Tammo|Nat. Weer nat.": {
 "src": "water_panic_v1.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Orus",
 "input": "Nat. Weer nat.",
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: in paniek, proestend, feller dan normaal.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-02"
+"date": "2026-10-05"
 },
 "Tammo|Nee toch. Niet weer de bak in.": {
 "src": "opgepakt.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Orus",
-"input": "Nee toch. Niet weer de bak in.",
+"input": "Nee toch. Nait weer de bak in.",
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: berustend, mopperend.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-02"
+"date": "2026-10-05"
 },
 "Tammo|Nou, daar gaan we weer.": {
 "src": "missie_gestart.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Orus",
-"input": "Nou, daar gaan we weer.",
+"input": "Nou, doar goan wie weer.",
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: berustend, droog.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-02"
+"date": "2026-10-05"
 },
 "Tammo|Nou, dat ging even niet.": {
 "src": "missie_mislukt_v1.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Orus",
-"input": "Nou, dat ging even niet.",
+"input": "Nou, dat gong eefkes nait.",
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: zuchtend, laconiek.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-02"
+"date": "2026-10-05"
 },
 "Tammo|Nou, dat is dat dan.": {
 "src": "missie_gelukt_v1.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Orus",
 "input": "Nou, dat is dat dan.",
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, stiekem trots.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-02"
+"date": "2026-10-05"
 },
 "Tammo|Nou, die lenen we effe.": {
 "src": "auto_gejat_v1.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Orus",
-"input": "Nou, die lenen we effe.",
+"input": "Nou, dij lenen wie eefkes.",
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: laconiek, haastig.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-02"
+"date": "2026-10-05"
 },
 "Tammo|Oh, dat werkt wel.": {
 "src": "wapen_opgepakt.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Orus",
-"input": "Oh, dat werkt wel.",
+"input": "Oh, dat wark wel.",
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, tevreden.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-02"
+"date": "2026-10-05"
 },
 "Tammo|Precies wat ik zocht.": {
 "src": "wapen_opgepakt_v2.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Orus",
 "input": "Precies wat ik zocht.",
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, tevreden.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-02"
+"date": "2026-10-05"
 },
 "Tammo|Water! Water!": {
 "src": "water_panic.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Orus",
-"input": "Water! Water!",
+"input": "Woater! Woater!",
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: in paniek, proestend, feller dan normaal.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-02"
+"date": "2026-10-05"
 },
 "Tammo|Weer een paar euro rijker.": {
 "src": "geld_opgepakt_v2.wav",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Orus",
-"input": "Weer een paar euro rijker.",
+"input": "Weer n peer euro rieker.",
 "style": "spoken in Gronings dialect (Grunnegs), warm and strong Groningen accent, like a born and bred Stadjer from the Oosterpark; dry, deadpan man in his thirties. Tone: droog, stiekem blij.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,adelay=40,apad=pad_dur=0.12,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -c:a pcm_s16le wav",
-"date": "2026-10-02"
+"date": "2026-10-05"
 }
 }

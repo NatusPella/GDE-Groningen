@@ -2,19 +2,21 @@
 "Bommen Berend|…Kon minder.": {
 "src": "berend_kon_minder.mp3",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Charon",
 "input": "Kon minder.",
-"style": "spoken in Dutch with a Groningen accent; norse oude Groningse man met een bakkie. Tone: nors, binnensmonds, na een lange stilte, stiekem een heel klein beetje tevreden.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; norse oude Groningse man met een bakkie. Tone: nors, binnensmonds, na een lange stilte, stiekem een heel klein beetje tevreden.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -b:a 64k mp3",
-"date": "2026-10-02"
+"date": "2026-10-05"
 },
 "Rikus|Augustus. In Grunn heet dat zomer.": {
 "src": "rikus_augustus.mp3",
 "model": "google/gemini-3.8-flash-tts",
+"lang": "gro",
 "voice": "Schedar",
-"input": "Augustus. In Grunn heet dat zomer.",
-"style": "spoken in Dutch with a Groningen accent; Rikus, Groningse nacht-dj en verteller, jeugdvriend van Tammo, warm en droog. Tone: loom, droog, met een knipoog, als dj op de radio op een warme ochtend.",
+"input": "Augustus. In Grunn hait dat zomer.",
+"style": "spoken in Gronings dialect (Grunnegs) exactly as written, warm Groningen accent; Rikus, Groningse nacht-dj en verteller, jeugdvriend van Tammo, warm en droog. Tone: loom, droog, met een knipoog, als dj op de radio op een warme ochtend.",
 "post": "ffmpeg -af silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,loudnorm=I=-18:TP=-1.5:LRA=11:linear=true (two-pass) -ac 1 -ar 24000 -b:a 64k mp3; then radio band (highpass 240 Hz, lowpass 4.6 kHz, +3 dB at 1.9 kHz) over a pink-noise static bed, 0.9 s lead-in",
-"date": "2026-10-02"
+"date": "2026-10-05"
 }
 }
