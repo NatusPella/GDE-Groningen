@@ -30,7 +30,6 @@ map.ommeland = { ready: true, ext: om.extent, roads: om.roads.map((r, id) => ({ 
 // ---- distance to the nearest road of any kind (city, real Ommeland, polder grid)
 const RC = 100, rgrid = new Map();
 for (const r of map.ommeland.roads) {
-  if (r.cycle) continue;
   for (let i = 0; i < r.pts.length - 1; i++) {
     const [a, b] = [r.pts[i], r.pts[i + 1]];
     for (let cx = Math.floor(Math.min(a[0], b[0]) / RC); cx <= Math.floor(Math.max(a[0], b[0]) / RC); cx++) {
@@ -115,7 +114,8 @@ for (const [name, [px, py], [tx, ty]] of STORY) {
 let seed = 12345;
 const rnd = () => ((seed = (seed * 1103515245 + 12345) >>> 0) / 4294967296);
 const E = om.extent, MB = map.meta.bounds;
-const realRoads = map.ommeland.roads.filter((r) => !r.cycle);
+// r.cycle: a car road with a painted cycle lane (not a cycle path), part of the graph like any other
+const realRoads = map.ommeland.roads;
 const onReal = () => {
   for (;;) {
     const r = realRoads[Math.floor(rnd() * realRoads.length)], p = r.pts[Math.floor(rnd() * r.pts.length)];
@@ -225,7 +225,7 @@ for (let n = 0; polderRoads.length < 400 && n < 100000; n++) {
   const B = F.BLOCK, bx = Math.floor(x / B), by = Math.floor(y / B);
   for (const s of [0, 1]) if (F.edgeRoad(bx, by, s)) polderRoads.push({ id: 100000 + polderRoads.length, kind: 'polder', name: 'polder', pts: s ? [[bx * B + C, by * B + C], [bx * B + C + B, by * B + C]] : [[bx * B + C, by * B + C], [bx * B + C, by * B + C + B]] });
 }
-const ROADS = process.argv.includes('--no-roads') ? [] : [...realRoads, ...polderRoads];
+const ROADS = process.argv.includes('--no-roads') ? [] : process.argv.includes('--lanes-only') ? realRoads.filter((r) => r.cycle) : [...realRoads, ...polderRoads];
 const FAR = [[1606, 9909], [0, 0], [-9000, -7000]];
 const roadFails = [];
 let driven = 0, notInGraph = 0;
@@ -306,6 +306,29 @@ for (const road of ROADS) {
   }
   if (!inGraph) notInGraph++;
 }
+// ---- one-ways: a route never runs against one
+// A car 60 % along a one-way road, a target 20 % along it (behind the car): the
+// route has to carry on forward (round a roundabout if need be), not turn round on the road.
+{
+  let n = 0, wrong = 0;
+  const oneways = realRoads.filter((r) => r.oneway && r.kind >= 3 && polyLen(r.pts) > 500);
+  for (let k = 0; k < oneways.length && n < 60; k += Math.ceil(oneways.length / 60)) {
+    const r = oneways[k], L = polyLen(r.pts);
+    const [x0, y0] = along(r.pts, L * 0.6), [x1, y1] = along(r.pts, L * 0.2);
+    const w = worldAt(x0, y0, x1, y1, 'oneway ' + r.id, DRIVE);
+    R.updateRouting(0.1, { ...w, storyGuide: null });
+    clockStep(10);
+    R.updateRouting(0.1, w);
+    const rt = R.getActiveRoute();
+    if (!rt || rt.pts.length < 2) continue;
+    n++;
+    const [bx, by] = along(r.pts, L * 0.6 + 1), dx = bx - x0, dy = by - y0;
+    const ahead = rt.pts.find((q) => Math.hypot(q[0] - x0, q[1] - y0) > 1);
+    if (ahead && (ahead[0] - x0) * dx + (ahead[1] - y0) * dy < 0) { wrong++; console.log(`  WRONG WAY road ${r.id} "${r.name}" [${Math.round(x0)},${Math.round(y0)}]`); }
+  }
+  console.log(`one-way: ${wrong} of ${n} routes start against the one-way`);
+  if (wrong > 0 || n < 20) fails++;
+}
 const failIds = new Map();
 for (const [road, di, why, inGraph] of roadFails) { if (!failIds.has(road.id)) failIds.set(road.id, { road, whys: [], inGraph }); failIds.get(road.id).whys.push(`dir ${di}: ${why}`); }
 console.log(`\nroad drive: ${driven} drives over ${ROADS.length} roads, ${failIds.size} roads fail, ${notInGraph} roads not in the route graph`);
@@ -313,5 +336,5 @@ let shown = 0;
 for (const { road, whys, inGraph } of failIds.values()) {
   if (shown++ < (VERBOSE ? 400 : 25)) console.log(`  road ${road.id} kind ${road.kind} "${road.name}" [${road.pts[0].map(Math.round)}] ${inGraph ? '' : '(not in graph) '}${whys.join('; ')}`);
 }
-if (failIds.size) fails++;
+if (failIds.size || notInGraph) fails++;
 process.exit(fails ? 1 : 0);

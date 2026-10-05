@@ -3,7 +3,7 @@ import { getHorecaForRender } from './horeca.js';
 import { getShopsForRender } from './shops.js';
 import { nearestRepairSite } from './garages.js';
 import { getGoal, setGoal, clearGoal, goalTarget, missionOnMap } from './goal.js';
-import { countryReady, countryBuilt, countryCover, countryVersion, snapCountry, countryCosts, countryPath, countryPathToNode, nodeXY, gatewayCandidates } from './countryroute.js';
+import { countryReady, countryBuilt, countryCover, countryVersion, snapCountry, countryCosts, countryPath, countryPathToNode, countryPathFromNode, nodeXY, gatewayCandidates } from './countryroute.js';
 
 const STRAY_M = 25;
 const TELEPORT_M = 150;
@@ -477,7 +477,8 @@ function countryRoute(world, target, from, to, graphMode, driveOnly) {
   const gws = cityGateways(map);
   const outer = pIn ? ts : ps;
   const cityEnd = pIn ? p : target;
-  const { dist } = countryCosts(outer);
+  // towards the outer end for a trip into the country, from it for a trip back (one-ways)
+  const { dist } = countryCosts(outer, pIn);
   // the best gateways first; a one-way or a dead end at the map's edge can
   // leave the city part without a way, then the next one
   const ranked = [];
@@ -492,9 +493,9 @@ function countryRoute(world, target, from, to, graphMode, driveOnly) {
     if (!gs) continue;
     const city = pIn ? cityPart(from, gs) : cityPart(gs, to);
     if (!city) continue;
-    const country = countryPathToNode(outer, g.n);
+    const country = pIn ? countryPathFromNode(g.n, outer) : countryPathToNode(outer, g.n);
     if (!country) continue;
-    return pIn ? [...city, ...country.reverse(), ...lead(ts, target.x, target.y)] : [...lead(ps, p.x, p.y), ...country, ...city];
+    return pIn ? [...city, ...country, ...lead(ts, target.x, target.y)] : [...lead(ps, p.x, p.y), ...country, ...city];
   }
   return null;
 }
