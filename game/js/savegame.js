@@ -18,6 +18,8 @@ import { quitActivity } from './activities.js';
 import { getGoalSave, applyGoalSave } from './goal.js';
 import { migrateSave, SAVE_VERSION } from './savemigrate.js';
 import { getCheatSave, applyCheatSave } from './cheats.js';
+import { closeShopMenu } from './shopui.js';
+import { quitTrainDrive } from './traindrive.js';
 import { statsFromSave } from './world.js';
 import { getRadioSave, applyRadioSave } from './radio.js';
 
@@ -247,6 +249,11 @@ export function applySave(w, d) {
     quitPadel(w);
     stopVillageMini();
     quitActivity(w);
+    // a shop menu (the village quiz is one) or a train drive would go on against the loaded state
+    closeShopMenu({ save: false });
+    quitTrainDrive(w);
+    w.cameraOverride = null;
+    w.minigameUntil = 0;
     const lost = !(typeof d.money === 'number' && Number.isFinite(d.money)) && ('money' in d);
     w.money = lost ? estimateLostMoney(d) : Math.max(0, num(d.money, 0));
     w._goodMoney = w.money;
