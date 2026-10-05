@@ -8,6 +8,7 @@ import { notifyPhone } from './phonefeed.js';
 import { pushAudioEvent } from './pedestrians.js';
 import { addToSaveSet, getSaveSet } from './achievements.js';
 import { WATER_Y } from './util.js';
+import { advanceRoomClock, roomShouldClose } from './roomclock.js';
 
 // Geheimpjes: eight hidden little things in town, each found once per
 // playthrough for a small reward, counted by the hidden achievement
@@ -436,17 +437,21 @@ function updateDucks(w, dt) {
 function enterRoom(w) {
   if (!roomScene) roomScene = buildRoom();
   roomScene.visible = true;
-  room = { t: 0 };
+  room = { t: 0, last: null };
   const first = !found('kamer');
   if (first) discover(w, 'kamer', 'Achter een deurtje in de Martinitoren: een kamertje met een bureau, een oude computer en een plaquette. "Made with ❤ in Groningen." Op het bureau een envelop: "Bedankt voor het spelen."');
   else showCard(w, { kind: 'tip', kicker: 'Martinitoren', title: 'Het kamertje', body: 'Nog altijd hier. Nog altijd met liefde gemaakt.', duration: 5, key: 'geheim-kamer', voice: false });
   pushAudioEvent(w, { kind: 'door_open', x: DOOR.x, y: DOOR.y });
 }
 
-function leaveRoom(w) {
+function dropRoom(w) {
   room = null;
   if (roomScene) roomScene.visible = false;
-  w.cameraOverride = null;
+  if (w.cameraOverride && w.cameraOverride.kamer) w.cameraOverride = null;
+}
+
+function leaveRoom(w) {
+  dropRoom(w);
   const p = w.player;
   p.x = DOOR_SPOT.x; p.y = DOOR_SPOT.y; p.angle = DOOR.a;
   pushAudioEvent(w, { kind: 'door_close', x: DOOR.x, y: DOOR.y });
@@ -458,7 +463,7 @@ function roomCamera(w) {
   const sway = Math.sin(room.t * 0.6) * 0.15;
   w.cameraOverride = {
     position: { x: DOOR.x - 1.7 + k * 0.6, y: DOOR.y + 0.9 - k * 0.5 + sway, z: ROOM_Z + 1.65 },
-    lookAt: { x: DOOR.x + 2.27, y: DOOR.y + sway * 0.3, z: ROOM_Z + 1.5 }, fov: 55, cut: true,
+    lookAt: { x: DOOR.x + 2.27, y: DOOR.y + sway * 0.3, z: ROOM_Z + 1.5 }, fov: 55, cut: true, kamer: true,
   };
 }
 
@@ -533,6 +538,8 @@ export const GEHEIMEN = {
   id: 'geheimen',
   init(w) {
     world = w;
+    // dying or being arrested puts you elsewhere: no walk to the door, but the room and its camera go
+    w.onRespawn.push((ww) => { if (room) dropRoom(ww); });
     window.__geheimen = {
       found: () => [...getSaveSet('geheimen')],
       total: SECRETS_TOTAL,
@@ -557,15 +564,16 @@ export const GEHEIMEN = {
   quit: (w) => { if (room) leaveRoom(w); },
   update(dt, w) {
     if (!room) return;
-    room.t += dt;
+    const t = advanceRoomClock(room, performance.now(), dt);
     const input = w.input;
     w.player.speed = 0;
-    if (w.pendingRespawn || room.t > 9 || (room.t > 1 && (input.wasPressed('e') || input.wasPressed('backspace') || input.wasPressed('f')))) {
+    if (roomShouldClose(t, input.wasPressed('e') || input.wasPressed('backspace') || input.wasPressed('f'), w.pendingRespawn)) {
       input.consume('e'); input.consume('f'); input.consume('backspace');
       leaveRoom(w);
     }
   },
   tick(dt, w) {
+    if (!room && w.cameraOverride && w.cameraOverride.kamer) w.cameraOverride = null;
     if ((lodT -= dt) <= 0) { lodT = 0.5; lod(w); proximity(w, dt); }
     updateUfo(w, dt);
     updateDucks(w, dt);
