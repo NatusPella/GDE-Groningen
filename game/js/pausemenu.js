@@ -3,7 +3,7 @@
 // Hoofdmenu) never changes shape; the sheet beside it shows one section.
 // Esc opens on Overzicht; from another section Esc/Backspace go back to it,
 // then close. Sections: Overzicht, Te doen (todoui.js), Verhaal
-// (verhaalui.js), Kaart, Garage, Prestaties, Streken (cheatsui.js),
+// (verhaalui.js), Kaart, Garage, Prestaties, Cheats (cheatsui.js),
 // Instellingen, Besturing.
 import { getSettings, setSetting, resetSettings, QUALITY_PRESETS } from './settings.js';
 import { logoHtml } from './logo.js';
@@ -185,7 +185,7 @@ const SECTIONS = [
   ['map', 'Kaart', 'Kies een doel of zoek een plek'],
   ['garage', 'Garage', 'Jouw voertuigen'],
   ['prestaties', 'Prestaties', 'Blijven bewaard, ook bij een nieuw spel'],
-  ['streken', 'Streken', 'Een beetje vals spelen, op z\'n Gronings'],
+  ['streken', 'Cheats', 'Een beetje vals spelen'],
   ['settings', 'Instellingen', 'Wijzigingen worden meteen bewaard'],
   ['controls', 'Besturing', 'Alle toetsen, per situatie'],
 ];
@@ -206,7 +206,7 @@ const FOOTERS = {
   prestaties: 'Prestaties blijven bewaard, ook als je een nieuw spel begint',
   spullen: '<b>Enter</b> details en gebruiken · voertuigen staan in <b>Garage</b>, aanwijzingen in <b>Verhaal</b>',
   telefoon: '<b>Enter</b> bellen of lezen · Henk brengt je auto, Berend heeft klussen · een binnenkomend bericht of gesprek opent hier met <b>Esc</b>',
-  streken: '<b>Enter</b> aan of uit · gameplay-streken wachten tijdens missies en filmpjes · zolang er een aan staat, staan prestaties uit',
+  streken: '<b>Enter</b> aan of uit · gameplay-cheats wachten tijdens missies en filmpjes · zolang er een aan staat, staan prestaties uit',
   verhaal: 'Wie je spreekt, komt erbij · <b>Slepen</b> draait het model · niemand verklapt wat nog komt',
   settings: 'Instellingen worden automatisch bewaard',
   controls: '<b>/</b> zoeken · <b>Toetshints</b> aan of uit onder Instellingen › Weergave · indelen: kies een actie en druk de nieuwe toets',
@@ -220,7 +220,7 @@ const PAD_FOOTERS = {
   todo: () => `${pg('a')} zet als doel · ${pg('lt')}${pg('rt')} weergave · geklaarde missies kun je opnieuw spelen`,
   verhaal: () => `${pg('lt')}${pg('rt')} personages of aanwijzingen`,
   map: () => `${pg('a')} doel onder het kruis · ${pg('x')} doel wissen · ${pg('lt')}${pg('rt')} zoomen · ${pg('lstick')} schuiven · ${pg('y')} naar jezelf`,
-  streken: () => `${pg('a')} aan of uit · gameplay-streken wachten tijdens missies · prestaties staan dan uit`,
+  streken: () => `${pg('a')} aan of uit · gameplay-cheats wachten tijdens missies · prestaties staan dan uit`,
   settings: () => `${pg('lt')}${pg('rt')} tabblad · ${pg('dpad')} kiezen en schuiven · wordt meteen bewaard`,
   controls: () => `${pg('lt')}${pg('rt')} tabblad · ${pg('a')} een knop of toets indelen`,
 };

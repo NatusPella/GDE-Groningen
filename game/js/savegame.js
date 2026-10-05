@@ -230,10 +230,14 @@ function placeAt(w, x, y) {
     c.vy = 0;
     if (c.state === 'dead') { c.state = 'alive'; c.health = 100; }
   }
-  const idx = w.vehicles.findIndex((v) => v.isHeroCar);
-  if (idx >= 0) w.vehicles.splice(idx, 1);
+  // the hero car comes along when a spot near the new position is found; out in the
+  // Ommeland (no city street within reach) it stays where it was instead of vanishing
   const hero = spawnHeroCarNear(map, sx, sy);
-  if (hero) w.vehicles.push(hero);
+  if (hero) {
+    const idx = w.vehicles.findIndex((v) => v.isHeroCar);
+    if (idx >= 0) w.vehicles.splice(idx, 1);
+    w.vehicles.push(hero);
+  }
 }
 
 export function applySave(w, d) {
