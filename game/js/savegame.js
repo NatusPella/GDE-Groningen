@@ -214,6 +214,9 @@ function placeAt(w, x, y) {
   p.z = 0;
   p.vz = 0;
   p.gz = 0;
+  p.water = null; p.swimming = false; p.swimTilt = 0; p.waterTime = 0;
+  p.climb = null; p.climbSpot = null; p.canClimbOut = false;
+  p.vault = null; p.perch = null; p.crack = null; p.crouching = false; p.airPose = 0;
   const c = w.companion;
   if (c) {
     if (c.inVehicle) { c.inVehicle.passenger = null; c.inVehicle = null; }

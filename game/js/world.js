@@ -83,6 +83,8 @@ export function respawnPlayer(world, { busted = false, moneyPenalty = 0, announc
   p.z = 0;
   p.vz = 0;
   p.vault = null;
+  p.perch = null;
+  p.crack = null;
   if (p.water && p.leaveWater) p.leaveWater();
   p.climb = null;
   const landmarks = world.map.meta.landmarks || [];

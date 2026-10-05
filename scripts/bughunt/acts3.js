@@ -27,7 +27,7 @@
         SG.loadLatestSave(w); await sleep(800);
         if (AC.isActivityActive()) { issue('load', `${id} still running after loading a save`); g.quit(); }
       } else {
-        PM.openPauseMenu('game'); await sleep(400);
+        PM.openPauseMenu('overzicht'); await sleep(400);
         const hb = document.querySelector('#pause-menu [data-action="home"]');
         if (hb && !hb.hidden) issue('home', `Naar huis offered during ${id}`);
         PM.closePauseMenu(); await sleep(300);
