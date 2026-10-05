@@ -77,7 +77,16 @@
     if (p.enterSwim) p.enterSwim();
     await sleep(500);
     if (!p.water) { log('no swim state at canal spot'); return; }
-    await moved(() => hold(['w'], 2000), 'swim', 0.5);
+    // 'w' swims along the camera yaw; at a quay that can face the wall, so the
+    // player must be able to leave in some direction: try eight headings
+    let best = 0;
+    for (let i = 0; i < 8 && best < 0.5; i++) {
+      w.camYaw = i * Math.PI / 4;
+      const o = { x: p.x, y: p.y };
+      await hold(['w'], 700);
+      best = Math.max(best, Math.hypot(p.x - o.x, p.y - o.y));
+    }
+    if (p.water && best < 0.5) issue('stuck', `swim: no heading moves at (${Math.round(p.x)},${Math.round(p.y)}), best ${best.toFixed(2)} m`);
     for (let i = 0; i < 6 && p.water; i++) { await tap('e'); await hold(['w'], 800); }
     log('after swim', JSON.stringify({ water: !!p.water, x: Math.round(p.x), y: Math.round(p.y), gz: p.gz }));
     if (p.water && p.leaveWater) p.leaveWater();
