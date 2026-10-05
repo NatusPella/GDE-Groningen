@@ -6,8 +6,38 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+## [0.27.1] - 2026-10-05
+
 ### Nieuw
-- **Dark trap op G-Music:** "Koplampen in de Mist" van Lil Polder, 's nachts (ook op Nachtstreek).
+- **Dark trap op G-Music:** "Koplampen in de Mist" van Lil Polder, 's nachts
+  (ook op Nachtstreek).
+
+### Opgelost
+- **Wisselen tussen Tammo en Tessa blijft niet meer hangen.** Na hooguit
+  8 seconden wisselt het op een veilig moment, ook als het spel traag loopt
+  of er nog een melding in beeld staat.
+- **Een overgeslagen missie telt pas als je hem wint.** Hij gaf stilletjes de
+  prestatie "klaar", waardoor de aftiteling te vroeg kon komen.
+- **De skûtsje kan niet meer vastlopen** als je W vasthoudt bij "SEIL LOS!".
+- **Zwemmen in smalle sloten:** je kunt er altijd weg zwemmen. Op 17 plekken in
+  de stad zat je vast.
+- **Over een reling het water in springen** teleporteert je niet meer.
+- **De geheime kamer in de Martinitoren** sluit na 9 seconden echt, ook bij
+  slow motion, en de camera wordt altijd losgelaten.
+- **Laden zet alles netjes terug:** een lopende quiz, missie of treinrit, de
+  winkel, de camera, en je tellers beginnen bij nul als de save ze niet kent.
+  Ook zwemmen, klimmen, springen en op een autodak staan worden gewist.
+- **Fjord Frituur:** als je tijdens een dienst doodgaat of wordt gearresteerd,
+  krijg je wat je al verdiend had.
+- **Kleding klopt na laden:** een oudere save hield outfits uit je huidige
+  sessie vast, zoals de incognito-outfit voor H6.
+- **Opslaan:** de garagevolgorde, de Streken en de radio zorgen nu ook voor een
+  autosave.
+- **Duiven als Tessa:** de intro noemt de juiste naam.
+- **Dood of gearresteerd tijdens een duivenvlucht:** de vlucht stopt eerst.
+- **Een missiemarker gaat niet meer af midden in padel of een activiteit.**
+- **Ome Jans bromfiets** is na de koeienmissie weer gewoon verkeer.
+- **Een telefoongesprek** wordt niet meer twee keer afgesloten.
 
 ## [0.27.0] - 2026-10-04
 
