@@ -21,7 +21,7 @@
   const how = {
     load: async () => { SG.loadLatestSave(w); },
     unstuck: async () => { SF.unstuck(w); },
-    home: async () => { PM.openPauseMenu('game'); await sleep(300); const b = document.querySelector('#pause-menu [data-action="home"]'); if (b && !b.disabled && !b.hidden) b.click(); else log('home button off'); await sleep(300); if (PM.isPauseMenuOpen()) PM.closePauseMenu(); },
+    home: async () => { PM.openPauseMenu('overzicht'); await sleep(300); const b = document.querySelector('#pause-menu [data-action="home"]'); if (b && !b.disabled && !b.hidden) b.click(); else log('home button off'); await sleep(300); if (PM.isPauseMenuOpen()) PM.closePauseMenu(); },
   };
   for (const [hk, act] of Object.entries(how)) {
     for (const [mk, m] of Object.entries(modes)) {

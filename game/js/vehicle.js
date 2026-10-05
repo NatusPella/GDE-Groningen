@@ -186,7 +186,7 @@ export class Vehicle {
       this.speed = this.speed > 0 ? Math.max(0, this.speed - dec) : Math.min(0, this.speed + dec);
     } else if (throttle !== 0) {
       const lim = throttle > 0 ? top : top * REVERSE_FACTOR;
-      const headroom = clamp(1 - absSpeed / lim, 0, 1);
+      const headroom = lim > 0 ? clamp(1 - absSpeed / lim, 0, 1) : 0;
       // player cars pull hard off the line and run out of breath towards top speed
       const floor = isPlayer && !this.isBike && !this.isScooter && !this.isBoat ? 0.12 : isPlayer && this.sailTop != null ? 0.6 : 0.3;
       this.speed += throttle * (tune ? tune.accel : m.accel) * (floor + (1 - floor) * headroom) * dt;

@@ -70,7 +70,7 @@
   if (D.sidejobs) { D.sidejobs.start('bezorger'); await sleep(3000); CB.damagePlayer(w, 999); await waitRespawn('death in job'); if (w.sideJob && w.sideJob.active) log('job still active after death'); D.sidejobs.quit(); await after('death in job'); }
   // death while the pause menu opens right after
   tag('death-pause');
-  CB.damagePlayer(w, 999); await sleep(400); PM2.openPauseMenu('game'); await sleep(2000); PM2.closePauseMenu();
+  CB.damagePlayer(w, 999); await sleep(400); PM2.openPauseMenu('overzicht'); await sleep(2000); PM2.closePauseMenu();
   await waitRespawn('death + pause');
   await after('death + pause');
 
@@ -124,7 +124,7 @@
   await after('load pigeon');
   // pause menu buttons
   tag('load-menu');
-  PM2.openPauseMenu('game'); await sleep(400);
+  PM2.openPauseMenu('overzicht'); await sleep(400);
   const sb = document.querySelector('#pause-menu [data-action="save"]'); if (sb) { sb.click(); await sleep(500); }
   const lb = document.querySelector('#pause-menu [data-action="load"]'); if (lb && !lb.disabled) { lb.click(); await sleep(1500); }
   if (PM2.isPauseMenuOpen()) { issue('save', 'pause menu still open after load'); PM2.closePauseMenu(); }
