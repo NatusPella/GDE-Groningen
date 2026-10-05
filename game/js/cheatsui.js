@@ -1,4 +1,4 @@
-// Pauzemenu › Streken: the cheats as rows in the menu's own style (switches,
+// Pauzemenu › Cheats: the cheats as rows in the menu's own style (switches,
 // buttons, ??? for the locked ones). State and effects live in cheats.js.
 import { CHEATS } from './cheatlist.js';
 import { ACHIEVEMENTS } from './achievements.js';
@@ -83,12 +83,12 @@ export function renderCheatsPanel(el, w) {
   const actions = CHEATS.filter((c) => c.kind === 'action' || c.kind === 'perk');
   const toggles = CHEATS.filter((c) => !c.kind || c.kind === 'toggle');
   const intro = blocked
-    ? '<b>Prestaties staan uit</b> zolang er een streek aan staat (de uiterlijk-streken en teleporteren tellen niet mee).'
-    : 'Teleporteren, Voertuig hier en de uiterlijk-streken laten je prestaties aan. Zet je een andere streek aan, dan staan prestaties uit tot je hem weer uitzet.';
-  el.innerHTML = `<p class="st-intro${blocked ? ' st-off' : ''}">${intro}${busy ? '<br>Je bent nu bezig (missie, filmpje of uitdaging): alleen de uiterlijk-streken doen nu mee.' : ''}</p>` +
+    ? '<b>Prestaties staan uit</b> zolang er een cheat aan staat (de uiterlijk-cheats en teleporteren tellen niet mee).'
+    : 'Teleporteren, Voertuig hier en de uiterlijk-cheats laten je prestaties aan. Zet je een andere cheat aan, dan staan prestaties uit tot je hem weer uitzet.';
+  el.innerHTML = `<p class="st-intro${blocked ? ' st-off' : ''}">${intro}${busy ? '<br>Je bent nu bezig (missie, filmpje of uitdaging): alleen de uiterlijk-cheats doen nu mee.' : ''}</p>` +
     `<p class="pm-note st-msg" role="status">${esc(msg)}</p>` +
     '<h3 class="pm-subhead">Acties</h3><div class="pm-group">' + actions.map((c) => actionRow(c, w)).join('') + '</div>' +
-    '<h3 class="pm-subhead">Streken</h3><div class="pm-group">' + toggles.map(toggleRow).join('') + '</div>';
+    '<h3 class="pm-subhead">Cheats</h3><div class="pm-group">' + toggles.map(toggleRow).join('') + '</div>';
   const n = CHEATS.filter((c) => isAvailable(c.id)).length;
   const lit = toggles.filter((c) => isCheatOn(c.id)).length;
   return `${n} van ${CHEATS.length} vrijgespeeld${lit ? ` · ${lit} aan` : ''}`;
