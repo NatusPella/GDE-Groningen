@@ -1856,11 +1856,22 @@ export function initMapView(world) {
     zoomAt(zin ? 1.35 : 1 / 1.35, state.cw / 2, state.ch / 2);
   });
 
-  window.addEventListener('resize', () => {
+  const resize = () => {
     if (!state.open) return;
     sizeCanvas();
     ensureLevel0();
-  });
+  };
+  window.addEventListener('resize', resize);
+  // the pause menu lays the canvas out after it opens (sheet, zoomed header,
+  // fonts), so its box changes without a window resize: a stale backing store
+  // would be stretched into the new box and squash the map
+  if (typeof ResizeObserver === 'function') {
+    new ResizeObserver(() => {
+      const r = state.canvas.getBoundingClientRect();
+      const d = state.dpr || 1;
+      if (Math.round(r.width * d) !== state.canvas.width || Math.round(r.height * d) !== state.canvas.height) resize();
+    }).observe(state.canvas);
+  }
 }
 
 export function isMapOpen() {
