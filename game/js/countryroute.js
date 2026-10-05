@@ -265,6 +265,10 @@ function stitchPass(xs, ys, flat) {
   return added;
 }
 
+export function countryBuilt() {
+  return !!G;
+}
+
 export function countryReady(real) {
   if (G) return true;
   if (!real || !real.ready || !real.roads || !real.roads.length) return false;

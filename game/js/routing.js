@@ -3,7 +3,7 @@ import { getHorecaForRender } from './horeca.js';
 import { getShopsForRender } from './shops.js';
 import { nearestRepairSite } from './garages.js';
 import { getGoal, setGoal, clearGoal, goalTarget, missionOnMap } from './goal.js';
-import { countryReady, countryCover, countryVersion, snapCountry, countryCosts, countryPath, countryPathToNode, nodeXY, gatewayCandidates } from './countryroute.js';
+import { countryReady, countryBuilt, countryCover, countryVersion, snapCountry, countryCosts, countryPath, countryPathToNode, nodeXY, gatewayCandidates } from './countryroute.js';
 
 const STRAY_M = 25;
 const TELEPORT_M = 150;
@@ -17,6 +17,10 @@ const GATEWAY_CELL_M = 60;
 const GATEWAY_TRIES = 6;
 // out in a field the route starts (or ends) at the nearest country road
 const COUNTRY_SNAP_M = 3000;
+// a point this close to a country road (and no closer to a city street) is on it
+const COUNTRY_ON_M = 30;
+// a city street this close is so surely under the point that the country graph isn't asked
+const CITY_SURE_M = 25;
 
 let graph = null;
 // Up to three routes at once, each its own colour (hud_panel ROUTE_COLORS):
@@ -156,14 +160,16 @@ function buildGraph(map) {
   const walkAdj = csr(walk, walkRoad);
   const driveUndirected = [];
   for (let i = 0; i < drive.length; i += 3) driveUndirected.push(drive[i], drive[i + 1], drive[i + 2], drive[i + 1], drive[i], drive[i + 2]);
+  const driveFree = csr(driveUndirected);
   graph = {
     N,
     walkComp: components(walkAdj),
-    driveComp: components(csr(driveUndirected)),
+    driveComp: components(driveFree),
     x: Float64Array.from(xs),
     y: Float64Array.from(ys),
     roadNodes,
     drive: csr(drive),
+    free: driveFree,
     mixed: csr(mixed),
     walk: walkAdj,
     g: new Float64Array(N),
@@ -242,11 +248,12 @@ class Heap {
   peekF() { return this.f[0]; }
 }
 
-// mode: 'walk' | 'drive' | 'mixed' (true/false kept for walk/drive)
+// mode: 'walk' | 'drive' | 'mixed' | 'free' (drive with the one-ways ignored: the last
+// resort when a one-way the city map cuts off at its edge leaves no way) (true/false kept for walk/drive)
 function astar(fromSnap, toSnap, walkMode, nodesOut = null) {
   const G = graph;
   const mode = walkMode === true ? 'walk' : walkMode === false ? 'drive' : walkMode;
-  const adj = mode === 'walk' ? G.walk : mode === 'mixed' ? G.mixed : G.drive;
+  const adj = mode === 'walk' ? G.walk : mode === 'mixed' ? G.mixed : mode === 'free' ? G.free : G.drive;
   walkMode = mode === 'walk';
   const stamp = ++G.stamp;
   const gx = toSnap.x, gy = toSnap.y;
@@ -261,12 +268,12 @@ function astar(fromSnap, toSnap, walkMode, nodesOut = null) {
   };
 
   const fr = G.roadNodes.get(fromSnap.road);
-  const fOne = fromSnap.road.oneway && !walkMode && isDrivable(fromSnap.road);
+  const fOne = fromSnap.road.oneway && !walkMode && mode !== 'free' && isDrivable(fromSnap.road);
   relax(fr[fromSnap.seg + 1], (1 - fromSnap.t) * fromSnap.segLen, -1);
   if (!fOne) relax(fr[fromSnap.seg], fromSnap.t * fromSnap.segLen, -1);
 
   const tr = G.roadNodes.get(toSnap.road);
-  const tOne = toSnap.road.oneway && !walkMode && isDrivable(toSnap.road);
+  const tOne = toSnap.road.oneway && !walkMode && mode !== 'free' && isDrivable(toSnap.road);
   const goalA = tr[toSnap.seg], goalB = tr[toSnap.seg + 1];
   const extraA = toSnap.t * toSnap.segLen, extraB = (1 - toSnap.t) * toSnap.segLen;
 
@@ -442,8 +449,20 @@ function cityGateways(map) {
 // (both ends in town) or there is no way.
 function countryRoute(world, target, from, to, graphMode, driveOnly) {
   const map = world.map, p = world.player;
-  const pIn = !!from && Math.hypot(from.x - p.x, from.y - p.y) < CITY_SNAP_OK_M;
-  const tIn = !!to && Math.hypot(to.x - target.x, to.y - target.y) < CITY_SNAP_OK_M;
+  // a point counts as in the city when a city street is near and no country
+  // road is nearer: country roads inside the city's bounds (where the city map
+  // has no data) and the ring and its ramps, which the city graph cuts off at
+  // its edge, belong to the country graph
+  const inCity = (s, x, y) => {
+    const cityD = s ? Math.hypot(s.x - x, s.y - y) : Infinity;
+    if (cityD >= CITY_SNAP_OK_M) return false;
+    if (cityD <= CITY_SURE_M && !countryBuilt()) return true;
+    if (!countryReady(map.ommeland)) return true;
+    const c = snapCountry(x, y, COUNTRY_ON_M);
+    return !(c && c.d <= cityD + 5);
+  };
+  const pIn = inCity(from, p.x, p.y);
+  const tIn = inCity(to, target.x, target.y);
   if (pIn && tIn) return null;
   if (!countryReady(map.ommeland)) return null;
   countryCover([[p.x, p.y], [target.x, target.y]]);
@@ -467,7 +486,7 @@ function countryRoute(world, target, from, to, graphMode, driveOnly) {
     if (Number.isFinite(c)) ranked.push([c, g]);
   }
   ranked.sort((a, b) => a[0] - b[0]);
-  const cityPart = (a, b) => astar(a, b, graphMode) || (driveOnly ? astar(a, b, 'mixed') : null);
+  const cityPart = (a, b) => astar(a, b, graphMode) || (driveOnly ? astar(a, b, 'mixed') || astar(a, b, 'free') : null);
   for (const [, g] of ranked.slice(0, GATEWAY_TRIES)) {
     const gs = snapToRoad(map, g.x, g.y, driveOnly);
     if (!gs) continue;
@@ -502,6 +521,7 @@ function computeRoute(world, target, mode) {
       const tw = snapToRoad(map, target.x, target.y, false);
       if (tw) pts = astar(from, tw, 'mixed');
     }
+    if (!pts && driveOnly) pts = astar(from, to, 'free');
   }
   // no route found: no line at all rather than a straight one through town
   if (!pts) pts = [[p.x, p.y]];
