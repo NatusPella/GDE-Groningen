@@ -2012,7 +2012,7 @@ export function updateMissions(dt, world) {
       if (world.sideJob && world.sideJob.active) {
         chain.armed = false;
         world.addMessage('Eerst je bijbaantje afmaken of stoppen (Esc > Spel)', 3);
-      } else if (world.challenge) chain.armed = false; else if (!checkRequirement(world, def, true)) chain.armed = false;
+      } else if (world.challenge || world.padelGame || world.activityGame) chain.armed = false; else if (!checkRequirement(world, def, true)) chain.armed = false;
       else if (!checkRide(world, def)) chain.armed = false;
       else if (hooks.canStart(world, chain.index)) startMission(world, def);
     }
