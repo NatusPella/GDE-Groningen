@@ -426,6 +426,9 @@ export class Player {
   }
 
   startWaterFall() {
+    this.vault = null;
+    this.perch = null;
+    this.airPose = 0;
     this.water = 'fall';
     this.swimming = true;
     this.crouching = false;
