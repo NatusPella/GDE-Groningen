@@ -972,6 +972,11 @@ export function getMissionProgress() {
 export function setMissionProgress(world, prog) {
   if (!chain || !prog) return;
   const n = chain.defs.length;
+  if (chain.phase === 'active') {
+    // a save loaded mid-mission: what the mission put in the world goes with it
+    clearStoryProps();
+    if (chain.defs[chain.index] && chain.defs[chain.index].heist) setStoryOutfit(null);
+  }
   releaseMissionVehicle(world);
   chain.afoot = false;
   chain.handBack = null;
