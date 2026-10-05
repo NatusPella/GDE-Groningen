@@ -1663,6 +1663,7 @@ const GMUSIC_ARTISTS = {
   'Hatchback op de Ring': 'De Uitlaatjes',
   'Zomerse droom in de Stad': 'DJ Dageraad feat. MC Zernike',
   'Trots op mien grond': 'Wierde Wind',
+  'Koplampen in de Mist': 'Lil Polder',
 };
 // file names can't carry every character of a title
 const GMUSIC_TITLES = {

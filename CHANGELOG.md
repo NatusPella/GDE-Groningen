@@ -6,6 +6,9 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Nieuw
+- **Dark trap op G-Music:** "Koplampen in de Mist" van Lil Polder, 's nachts (ook op Nachtstreek).
+
 ## [0.27.0] - 2026-10-04
 
 Een grote speeltestronde met Maus. De hoogtepunten:
