@@ -6,7 +6,9 @@ import { inPassage } from './collision.js';
 import { elevWallContact } from './elevation.js';
 import { crossingSpeedLimit, loweredBoomsNear, snapBoom } from './railway.js';
 import { zebraSpeedLimit } from './pedroutes.js';
-import { countrySurface, countryRect, rectOutside } from './countryfield.js';
+import { countrySurface, countryRect, rectOutside, countryWeight } from './countryfield.js';
+import { pushOutOfPlan } from './countryplan.js';
+import { pushOutOfTrunks } from './countrywalls.js';
 import { roadPriority } from './junctions.js';
 import { pickTrafficCar, carModel, applyFleetFlags, pickBikeVariant, MIDIBUS_MODEL } from './trafficfleet.js';
 import { sirenYield } from './emergency.js';
@@ -2263,6 +2265,7 @@ function updateSuspension(v, dt) {
 // (plus friction), so a glancing scrape slides along while a head-on stops
 // dead, and an off-centre hit swings the car round. dt is unused but kept
 // for callers.
+const _cp = { x: 0, y: 0 };
 export function resolveVehicleBuildingCollision(v, map, dt) {
   // a helicopter keeps its own height and walls (heliflight.js)
   if (v.isHeli || (v.parked && !v.speed && !v.driftX && !v.driftY && !v.yawVel)) return false;
@@ -2272,8 +2275,32 @@ export function resolveVehicleBuildingCollision(v, map, dt) {
   const count = collisionProbes(v).length;
   // up on a viaduct or down in the cutting nothing at street level is in the way
   const offLevel = (v.z || 0) > 4 || (v.z || 0) < -3.5;
+  // Ommeland solids (barns, real buildings, silos, village furniture, trunks):
+  // one circle round the whole body first: the corner tests only run beside one
+  let country = false;
+  if (!offLevel && !v.isBoat && countryWeight(v.x, v.y) > 0.5) {
+    const reach = v.halfLen + 0.6;
+    _cp.x = v.x; _cp.y = v.y;
+    country = pushOutOfPlan(_cp, reach);
+    if (!country) { _cp.x = v.x; _cp.y = v.y; country = pushOutOfTrunks(_cp, reach); }
+  }
   for (let k = 0; k < count; k++) {
     const c = collisionProbes(v)[k];
+    if (country) {
+      _cp.x = c[0]; _cp.y = c[1];
+      const inPlan = pushOutOfPlan(_cp, 0.05), onTrunk = pushOutOfTrunks(_cp, 0.05);
+      if (inPlan || onTrunk) {
+        const ddx = _cp.x - c[0], ddy = _cp.y - c[1], d = Math.hypot(ddx, ddy) || 0.01;
+        const nx = ddx / d, ny = ddy / d;
+        v.x += nx * (d + 0.03);
+        v.y += ny * (d + 0.03);
+        const slide = tangentialSpeed(v, null, nx, ny);
+        const vn = contactImpulse(v, null, c[0], c[1], -nx, -ny, WALL_FRICTION);
+        if (vn >= IMPACT_EVENT_SPEED || slide > SCRAPE_SPEED) recordContact(v, null, _cp.x, _cp.y, -nx, -ny, vn, slide);
+        if (vn > worst) { worst = vn; hx = _cp.x; hy = _cp.y; }
+        hit = true;
+      }
+    }
     for (const b of offLevel ? [] : map.buildingsNear(c[0], c[1], 1)) {
       const [minx, miny, maxx, maxy] = b.bounds;
       if (c[0] < minx || c[0] > maxx || c[1] < miny || c[1] > maxy) continue;

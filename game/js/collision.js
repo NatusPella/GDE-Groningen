@@ -5,6 +5,7 @@ import { closestPointOnSegment, pointInPolygon } from './util.js';
 import { resolveWalkerProps } from './breakables.js';
 import { countryWeight } from './countryfield.js';
 import { pushOutOfPlan } from './countryplan.js';
+import { pushOutOfTrunks } from './countrywalls.js';
 import { resolveRailings } from './bridgerails.js';
 import { resolveElevWalls } from './elevation.js';
 import { pushOutOfWaterObstacles } from './waterindex.js';
@@ -84,6 +85,8 @@ export function resolveBuildingCollisions(x, y, radius, map) {
   if (countryWeight(x, y) > 0.5) {
     const o = { x, y };
     if (pushOutOfPlan(o, radius)) { x = o.x; y = o.y; }
+    o.x = x; o.y = y;
+    if (pushOutOfTrunks(o, radius)) { x = o.x; y = o.y; }
   }
   return [x, y];
 }
