@@ -1,0 +1,169 @@
+{
+  "_comment": "0.27 final: saved mid-mission in a boat (pos null, ctx busy), with garage order, credits flag, a skipped step, boat upgrades and kills",
+  "_expect": {
+    "step": "k-kraakspullen",
+    "money": 3100,
+    "radio": "off"
+  },
+  "save": {
+    "v": 5,
+    "savedAt": 1759900000000,
+    "money": 3100,
+    "moneyBackup": 3100,
+    "health": 100,
+    "armor": 0,
+    "weapon": "fists",
+    "ammo": {
+      "fists": "inf"
+    },
+    "stats": {
+      "missionsDone": 5,
+      "playerWrecks": 1,
+      "spent": 600,
+      "kills": 7,
+      "pedKills": 2,
+      "copKills": 1
+    },
+    "character": "tammo",
+    "pos": null,
+    "ctx": "busy",
+    "missions": {
+      "index": 3,
+      "completed": [
+        0,
+        8,
+        1,
+        9,
+        2
+      ],
+      "seen": [
+        0,
+        1,
+        2,
+        8,
+        9
+      ],
+      "medals": {
+        "0": 2
+      }
+    },
+    "story": {
+      "v": 1,
+      "done": [
+        "H1",
+        "H2",
+        "H3",
+        "H4",
+        "k-fiets",
+        "H5"
+      ],
+      "skipped": [
+        "H1"
+      ],
+      "fails": {
+        "H1": 2
+      },
+      "waived": [],
+      "voorschot": [],
+      "cards": [
+        "kop"
+      ],
+      "flags": [
+        "met:berend",
+        "credits"
+      ]
+    },
+    "visitedLandmarks": [
+      "martinitoren"
+    ],
+    "shops": {
+      "hero": {},
+      "outfit": {
+        "tammo": "incognito",
+        "anita": "incognito"
+      },
+      "ownedOutfits": [
+        "incognito"
+      ],
+      "storyOutfit": "incognito",
+      "hair": {
+        "tammo": {
+          "color": "naturel",
+          "style": "short"
+        },
+        "anita": {
+          "color": "naturel",
+          "style": "bob"
+        }
+      },
+      "heroColor": null,
+      "heroUpgrades": [],
+      "stamps": 2,
+      "vehicles": [
+        {
+          "key": "omafiets",
+          "color": "#1c1c1c",
+          "upgrades": [],
+          "x": 3,
+          "y": 4,
+          "angle": 0
+        },
+        {
+          "key": "sloep",
+          "color": "#e8e6e0",
+          "upgrades": [
+            "motor"
+          ],
+          "x": 12,
+          "y": 9,
+          "angle": 1.2
+        }
+      ]
+    },
+    "prestaties": {
+      "eierballen": [],
+      "geheimen": [],
+      "unlocked": [
+        "m1_klaar"
+      ]
+    },
+    "duif": {
+      "ach": []
+    },
+    "bijbaan": {
+      "v": 1,
+      "jobs": {},
+      "seen": []
+    },
+    "postgame": {},
+    "meubels": {
+      "owned": [],
+      "pending": [],
+      "built": [],
+      "day": 0,
+      "read": 0,
+      "stek": 0,
+      "tips": [],
+      "moment": 0
+    },
+    "doel": null,
+    "radio": "off",
+    "streken": {
+      "v": 1,
+      "unlocked": [
+        "teleport",
+        "voertuig"
+      ],
+      "on": [
+        "slowmo"
+      ],
+      "used": []
+    },
+    "thuis": {
+      "front": [
+        "sloep",
+        "omafiets"
+      ]
+    }
+  }
+}
