@@ -169,8 +169,7 @@ const ICONS = {
   settings: '<path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/>',
   controls: '<rect x="2.5" y="6" width="19" height="12" rx="2"/><path d="M6 10h1M9.5 10h1M13 10h1M16.5 10h1M7 14h10"/>',
   spullen: '<path d="M7 8V6a5 5 0 0 1 10 0v2"/><rect x="4" y="8" width="16" height="13" rx="3"/><path d="M4 13h16M10 13v2h4v-2"/>',
-  // the Pixie Vouw 11, unfolded: two halves and the hinge
-  telefoon: '<rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M12 5v14" stroke-dasharray="1.6 1.6"/><circle cx="16.8" cy="7.6" r="0.5"/>',
+  telefoon: '<rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/>',
 };
 const icon = (id, cls = 'pm-ic') => `<svg class="${cls}" viewBox="0 0 24 24" aria-hidden="true">${ICONS[id] || ''}</svg>`;
 const qBtn = (action, ic, label, cls = 'pm-secondary', extra = '') =>
