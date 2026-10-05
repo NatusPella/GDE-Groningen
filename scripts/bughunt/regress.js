@@ -16,7 +16,7 @@
   // padel: Naar huis hidden, a load ends it
   tag('rg-padel');
   window.__padel.start(); await sleep(1500);
-  PM.openPauseMenu('game'); await sleep(400);
+  PM.openPauseMenu('overzicht'); await sleep(400);
   const hb = document.querySelector('#pause-menu [data-action="home"]');
   if (hb && !hb.hidden) issue('regress', 'Naar huis offered during padel');
   PM.closePauseMenu(); await sleep(200);

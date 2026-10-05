@@ -140,7 +140,7 @@
   await step('pause-actions', async () => {
     for (const a of ['unstuck', 'home']) {
       tag('pm:' + a);
-      PM5.openPauseMenu('game'); await sleep(400);
+      PM5.openPauseMenu('overzicht'); await sleep(400);
       const b = document.querySelector(`#pause-menu [data-action="${a}"]`);
       if (!b || b.disabled || b.hidden) { log('no pause action', a); PM5.closePauseMenu(); continue; }
       b.click(); await sleep(800);
