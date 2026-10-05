@@ -289,7 +289,7 @@ function nextLine(c) {
 
 function finishCall(cut) {
   const c = call;
-  if (!c) return;
+  if (!c || c.phase === 'end') return;
   const said = c.lines.slice(0, cut ? Math.max(0, c.i + 1) : c.lines.length);
   remember(world, `${c.live ? 'Live' : 'Gesprek'} · ${c.from}: ${said.map((l) => l.text).join(' ')}`, c.from, `${c.live ? 'Live' : 'Gesprek'}: ${said.map((l) => l.text).join(' ')}`);
   noticeFrom(c.from);
