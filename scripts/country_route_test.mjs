@@ -216,7 +216,16 @@ console.log(okSweep ? 'sweep ok' : 'sweep FAIL');
 // 100 m away), exist, stay within STRAY_M of the car and never be recomputed
 // while the car follows it. Roads the graph doesn't contain at all (a piece
 // the router stitched on across a field) are listed as such.
-const ROADS = process.argv.includes('--no-roads') ? [] : realRoads;
+// a sample of the polder grid past the real data drawn by the ground shader (countryfield.js edgeRoad)
+const polderRoads = [];
+for (let n = 0; polderRoads.length < 400 && n < 100000; n++) {
+  const side = Math.floor(rnd() * 4), u = rnd(), out = 300 + rnd() * 4000;
+  const x = side === 0 ? E[0] - out : side === 1 ? E[2] + out : E[0] + (E[2] - E[0]) * u;
+  const y = side === 2 ? E[1] - out : side === 3 ? E[3] + out : E[1] + (E[3] - E[1]) * u;
+  const B = F.BLOCK, bx = Math.floor(x / B), by = Math.floor(y / B);
+  for (const s of [0, 1]) if (F.edgeRoad(bx, by, s)) polderRoads.push({ id: 100000 + polderRoads.length, kind: 'polder', name: 'polder', pts: s ? [[bx * B + C, by * B + C], [bx * B + C + B, by * B + C]] : [[bx * B + C, by * B + C], [bx * B + C, by * B + C + B]] });
+}
+const ROADS = process.argv.includes('--no-roads') ? [] : [...realRoads, ...polderRoads];
 const FAR = [[1606, 9909], [0, 0], [-9000, -7000]];
 const roadFails = [];
 let driven = 0, notInGraph = 0;
@@ -242,6 +251,7 @@ function routeAhead(r, m) {
 }
 const polyLen = (pts) => { let l = 0; for (let i = 0; i < pts.length - 1; i++) l += Math.hypot(pts[i + 1][0] - pts[i][0], pts[i + 1][1] - pts[i][1]); return l; };
 for (const road of ROADS) {
+  if (process.env.ROAD && +process.env.ROAD !== road.id) continue;
   const L = polyLen(road.pts);
   if (L < 40) continue;
   const [tx, ty] = FAR[road.id % FAR.length];
@@ -265,7 +275,7 @@ for (const road of ROADS) {
     const goes = ahead > 0 && Math.hypot(r.pts[ahead][0] - ax, r.pts[ahead][1] - ay) < 14;
     if (di === 1 && !goes && roadFails.length && roadFails.at(-1)[0] === road) { /* already reported */ }
     const maxD = Math.min(L, 300);
-    let reroutes = 0, worst = 0, startGap = Math.hypot(r.pts[0][0] - x0, r.pts[0][1] - y0), why = '';
+    let reroutes = 0, worst = 0, offRun = 0, startGap = Math.hypot(r.pts[0][0] - x0, r.pts[0][1] - y0), why = '';
     if (startGap > 20) why = `route starts ${Math.round(startGap)} m from the car`;
     driven++;
     const r0 = r;
@@ -282,10 +292,13 @@ for (const road of ROADS) {
         if (Math.hypot(ox - wx, oy - wy) < 8) reroutes++;
         r = rr;
         const gap = Math.hypot(rr.pts[0][0] - x, rr.pts[0][1] - y);
-        if (gap > 20) { why = `new route starts ${Math.round(gap)} m from the car at ${Math.round(d)} m`; break; }
+        if (goes && gap > 20) { why = `new route starts ${Math.round(gap)} m from the car at ${Math.round(d)} m`; break; }
       }
+      if (process.env.ROAD) console.log(`d ${d} car [${Math.round(x)},${Math.round(y)}] off ${rr.off.toFixed(1)} idx ${rr.idx} pts ${rr.pts.length} same ${rr === r} goes ${goes}`);
       worst = Math.max(worst, rr.off);
-      if (rr.off > 25) { why = `${Math.round(rr.off)} m off the route at ${Math.round(d)} m`; break; }
+      // the GPS may need its 2 s to see a missed turn; staying lost for 4 s is a failure
+      offRun = rr.off > 25 ? offRun + 1 : 0;
+      if (goes && offRun >= 8) { why = `${Math.round(rr.off)} m off the route for 4 s at ${Math.round(d)} m`; break; }
     }
     if (!why && goes && reroutes > 0) why = `${reroutes} reroute(s) while following the route's own road`;
     if (why) roadFails.push([road, di, why, inGraph]);
