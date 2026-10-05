@@ -70,6 +70,7 @@ const NIGHT_HOUR = 23.9;
 const SWAP_FADE = 0.45;
 const SWAP_CALM = 1.2;
 const SWAP_CARD_WAIT = 8;
+const SWAP_MAX_WAIT = 8;
 
 let world = null;
 let ready = false;
@@ -639,8 +640,12 @@ function updateCharacter(w) {
   const want = step && !step.end ? step.player : rt.lastPlayer;
   if (step && !step.end && step.player) rt.lastPlayer = step.player;
   const calm = calmForSwap();
-  if (!want || w.player.character === want) return;
-  if (isCinematicActive() || w.pigeonMode || isMissionActive() || w.player.ragdoll || w.pendingRespawn || !calm) return;
+  if (!want || w.player.character === want) { rt.swapWaitAt = 0; return; }
+  if (isCinematicActive() || w.pigeonMode || isMissionActive() || w.player.ragdoll || w.pendingRespawn) return;
+  const now = performance.now();
+  if (!rt.swapWaitAt) rt.swapWaitAt = now;
+  if (!calm && now - rt.swapWaitAt < SWAP_MAX_WAIT * 1000) return;
+  rt.swapWaitAt = 0;
   swapCharacter(w, want);
   if (!playHandover(w, step)) {
     flash();
