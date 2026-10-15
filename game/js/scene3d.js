@@ -8,7 +8,7 @@ import {
   buildVehicleImpactSparkMesh3D, updateVehicleImpactSparkMesh3D,
   vehicleNeedsFireEffect, buildVehicleFireMesh3D, updateVehicleFireMesh3D,
   vehicleJustWrecked, buildVehicleExplosionMesh3D, updateVehicleExplosionMesh3D,
-  sampleBusTrail, buildSplashMesh3D, updateSplashMesh3D, SPLASH_LIFETIME,
+  sampleBusTrail, busTrailerPose, buildSplashMesh3D, updateSplashMesh3D, SPLASH_LIFETIME,
   spawnVehicleOnRoad, spawnBoatOnWater, spawnPoliceBoatOnWater, TRAFFIC_MODELS,
 } from './vehicle.js';
 import { DEAD_DURATION } from './pedestrians.js';
@@ -68,7 +68,9 @@ import { createFarLOD } from './farlod.js';
 import { initRailway3D, updateRailway3D } from './railway3d.js';
 import { buildCanopies } from './canopies3d.js';
 import { initGrass, updateGrass, grassFarColor, grassFarRank } from './grass.js';
-import { updateCountryside, setCountryPropLevel } from './countryside.js';
+import { updateCountryside, setCountryPropLevel, setRealShown } from './countryside.js';
+import { getRealMap } from './realmap.js';
+import { updateOmmelandLandmarks } from './ommelandlandmarks.js';
 import { setCountryNight, setCountryFacadeLevel } from './countrybuilding.js';
 import { updateCountryBake } from './countrybake.js';
 import { edgeDistance, setCountryBounds } from './countryfield.js';
@@ -324,10 +326,10 @@ function propRayHit(map, ox, oy, oz, dx, dy, dz, len) {
   const ux = dx / len, uy = dy / len, uz = dz / len;
   const mx = ox + dx * 0.5, mz = oz + dz * 0.5, reach = len * 0.5 + 2;
   let best = Infinity;
-  for (const t of map.treesNear(mx, mz, reach)) {
+  for (const t of treesNearAll(map, mx, mz, reach)) {
     if (t._broken) continue;
     const d = treeDims(t[0], t[1]);
-    best = Math.min(best, rayCylinder(ox, oy, oz, ux, uy, uz, len, t[0], t[1], 0.22 + CAM_PROP_PAD, 0, d.trunkH));
+    best = Math.min(best, rayCylinder(ox, oy, oz, ux, uy, uz, len, t[0], t[1], d.tr + CAM_PROP_PAD, 0, d.trunkH));
   }
   for (const p of propsNearInto(mx, mz, reach, _camProps)) {
     if (!CAM_PROP_KINDS.has(p.kind)) continue;
@@ -365,15 +367,15 @@ function updateCamTreeHiding(map, ex, ey, ez, cx, cy, cz) {
   _camHideNext.length = 0;
   const dx = ex - cx, dy = ey - cy, dz = ez - cz;
   const len = Math.hypot(dx, dz);
-  for (const t of map.treesNear(cx + dx * 0.5, cz + dz * 0.5, len * 0.5 + 4)) {
+  for (const t of treesNearAll(map, cx + dx * 0.5, cz + dz * 0.5, len * 0.5 + 4)) {
     if (t._broken) continue;
     const d = treeDims(t[0], t[1]);
-    const crownY = d.trunkH + d.r * 0.7;
+    const crownY = treeCrownY(d);
     const pad = CAM_PROP_PAD;
     // camera inside (near plane padded), or the crown between camera and eye
-    const hit = segHitsEllipsoid(cx, cy, cz, 0, 0, 0, t[0], crownY, t[1], d.r + pad, d.r * 0.85 + pad)
+    const hit = segHitsEllipsoid(cx, cy, cz, 0, 0, 0, t[0], crownY, t[1], d.r + pad, d.ry + pad)
       || segHitsEllipsoid(cx, cy, cz, 0, 0, 0, t[0] + d.lx, d.ly, t[1] + d.lz, d.lr + pad, d.lr * 0.85 + pad)
-      || segHitsEllipsoid(cx, cy, cz, dx, dy, dz, t[0], crownY, t[1], d.r, d.r * 0.85)
+      || segHitsEllipsoid(cx, cy, cz, dx, dy, dz, t[0], crownY, t[1], d.r, d.ry)
       || segHitsEllipsoid(cx, cy, cz, dx, dy, dz, t[0] + d.lx, d.ly, t[1] + d.lz, d.lr, d.lr * 0.85);
     if (hit) _camHideNext.push(t);
   }
@@ -1181,27 +1183,36 @@ SHARED_GEOMETRIES.add(TREE_CANOPY_GEO);
 
 // Trunk, canopy and lobe transforms of the tree at (x, y), shared by the
 // tumbling-tree mesh and the instanced standing trees.
-const _treeDims = { trunkH: 0, r: 0, h2: 0, lr: 0, lx: 0, ly: 0, lz: 0 };
+// Mature street trees (lime, plane, maple): a clear stem of 4-6 m so buses
+// pass under the crown, crowns 7-13 m across, ~10.5-19 m tall in all.
+// ry: the crown's vertical radius; tr: trunk radius at the foot.
+const _treeDims = { trunkH: 0, r: 0, ry: 0, tr: 0, ts: 1, h2: 0, lr: 0, lx: 0, ly: 0, lz: 0 };
 function treeDims(x, y) {
   const h = hash2(x, y);
   const h2 = hash2(y, x);
   const d = _treeDims;
   d.h2 = h2;
-  d.trunkH = 2.2 + h * 1.2;
-  d.r = 1.6 + h * 1.3;
+  d.trunkH = 4.2 + h * 1.6;
+  d.r = 3.4 + h * 2.0 + h2 * 1.0;
+  d.ry = d.r * 1.05;
+  d.ts = 1.5 + h * 0.5;
+  d.tr = 0.22 * d.ts;
   d.lr = d.r * (0.55 + h2 * 0.15);
   d.lx = Math.cos(h2 * 6.3) * d.r * 0.55;
-  d.ly = d.trunkH + d.r * 0.95;
+  d.ly = d.trunkH + d.ry * 1.15;
   d.lz = Math.sin(h2 * 6.3) * d.r * 0.55;
   return d;
 }
+function treeCrownY(d) { return d.trunkH + d.ry * 0.82; }
 
 function layoutTree(x, y, trunk, canopy, lobe) {
-  const { h2, trunkH, r, lr, lx, ly, lz } = treeDims(x, y);
-  trunk.scale.set(1, trunkH, 1);
-  canopy.scale.set(r, r * 0.85, r);
+  const d = treeDims(x, y);
+  const { h2, trunkH, r, ry, ts, lr, lx, ly, lz } = d;
+  // the trunk runs up into the crown
+  trunk.scale.set(ts, trunkH + ry * 0.5, ts);
+  canopy.scale.set(r, ry, r);
   canopy.rotation.y = h2 * Math.PI * 2;
-  canopy.position.y = trunkH + r * 0.7;
+  canopy.position.y = treeCrownY(d);
   lobe.scale.set(lr, lr * 0.85, lr);
   lobe.position.set(lx, ly, lz);
   return Math.floor(h2 * TREE_CANOPY_MATS.length);
@@ -1267,6 +1278,35 @@ function ensureTreeCapacity(n) {
 
 // --- per-frame sync ------------------------------------------------------
 
+// The city map's buildings and roads plus the real Ommeland's (realmap.js):
+// one streaming, batching and detail radius for both.
+function buildingsNearAll(world, x, y, r) {
+  const list = world.map.buildingsNear(x, y, r);
+  const rm = getRealMap();
+  return rm ? list.concat(rm.buildingsNear(x, y, r)) : list;
+}
+function roadsNearAll(world, x, y, r) {
+  const list = world.map.roadsNear(x, y, r);
+  const rm = getRealMap();
+  return rm ? list.concat(rm.roadsNear(x, y, r)) : list;
+}
+function treesNearAll(map, x, y, r) {
+  const list = map.treesNear(x, y, r);
+  const rm = getRealMap();
+  return rm ? list.concat(rm.treesNear(x, y, r)) : list;
+}
+// the real buildings drawn here: the countryside hides their boxes
+let realShownN = 0, realShownSum = 0;
+function syncRealShown() {
+  let n = 0, sum = 0;
+  for (const [b, mesh] of buildingMeshes) if (b.realId !== undefined && mesh.parent && mesh.visible) { n++; sum += (b.realId * 2654435761) % 1048573; }
+  if (n === realShownN && sum === realShownSum) return;
+  realShownN = n; realShownSum = sum;
+  const now = new Set();
+  for (const [b, mesh] of buildingMeshes) if (b.realId !== undefined && mesh.parent && mesh.visible) now.add(b.realId);
+  setRealShown(now);
+}
+
 function syncBuildings(world, px, py) {
   // Detail set must be exactly "centre within detailR": farlod.js hides its
   // copy of a building by the same test, so no unload hysteresis here.
@@ -1274,7 +1314,7 @@ function syncBuildings(world, px, py) {
   // teleport or a train arrival would otherwise build a whole district in
   // one frame); until the ring is complete, detailR shrinks to the nearest
   // building still missing and the far LOD covers everything past it.
-  const view = world.map.buildingsNear(px, py, DRAW_DIST);
+  const view = buildingsNearAll(world, px, py, DRAW_DIST);
   const seen = new Set();
   const centreDist = (b) => Math.hypot((b.bounds[0] + b.bounds[2]) / 2 - px, (b.bounds[1] + b.bounds[3]) / 2 - py);
   const missing = [];
@@ -1337,7 +1377,7 @@ function syncBuildings(world, px, py) {
   for (const [b] of prefetchedBuildings) if (centreDist(b) > DRAW_DIST + BUILDING_PREFETCH + 20 && !nearPrewarm(b)) prefetchedBuildings.delete(b);
   if (missing.length > built) return;
   const prefetchEnd = performance.now() + BUILDING_PREFETCH_MS;
-  for (const b of world.map.buildingsNear(px, py, DRAW_DIST + BUILDING_PREFETCH)) {
+  for (const b of buildingsNearAll(world, px, py, DRAW_DIST + BUILDING_PREFETCH)) {
     if (performance.now() > prefetchEnd) break;
     if (b.landmark || buildingMeshes.has(b) || prefetchedBuildings.has(b)) continue;
     const d = centreDist(b);
@@ -1424,7 +1464,7 @@ function stepPrewarm(world) {
   const end = now + PREWARM_MS;
   for (const s of prewarmSpots) {
     if (!s.list) {
-      s.list = world.map.buildingsNear(s.x, s.y, PREWARM_R).filter((b) => !b.landmark)
+      s.list = buildingsNearAll(world, s.x, s.y, PREWARM_R).filter((b) => !b.landmark)
         .map((b) => [Math.hypot((b.bounds[0] + b.bounds[2]) / 2 - s.x, (b.bounds[1] + b.bounds[3]) / 2 - s.y), b])
         .sort((a, b) => a[0] - b[0]);
       s.i = 0;
@@ -1551,7 +1591,7 @@ function syncRoads(world, px, py) {
     for (const mesh of roadMeshes.values()) scene.remove(mesh);
     roadMeshes.clear();
   }
-  const view = world.map.roadsNear(px, py, DRAW_DIST);
+  const view = roadsNearAll(world, px, py, DRAW_DIST);
   const seen = new Set();
   for (const r of view) seen.add(r);
   // nearest first within a budget; the far LOD's roads cover the rest
@@ -1592,7 +1632,7 @@ function syncRoads(world, px, py) {
 }
 
 function syncTrees(world, px, py) {
-  const trees = world.map.treesNear(px, py, TREE_DIST).filter((t) => !t._broken);
+  const trees = treesNearAll(world.map, px, py, TREE_DIST).filter((t) => !t._broken);
   const hiddenChanged = camTreeHiddenKey !== shownHiddenKey;
   if (!hiddenChanged && trees.length === shownTrees.length && trees.every((t, i) => t === shownTrees[i])) return;
   shownTrees = trees;
@@ -1893,6 +1933,7 @@ export function update3D(dt, world) {
   noteStreamJump(focus.x, focus.y);
   stepPrewarm(world);
   syncBuildings(world, focus.x, focus.y);
+  syncRealShown();
   if (!NO_BATCH) {
     buildingBatcher.update({ scene, meshes: buildingMeshes, hidden: hiddenBuildings, px: focus.x, py: focus.y, detailR: buildingDetailR, drawDist: DRAW_DIST,
       withDetail: facadeDetailDist >= DRAW_DIST, budgetMs: performance.now() < streamBoostUntil ? 1 : 2 });
@@ -1918,6 +1959,7 @@ export function update3D(dt, world) {
   probe.mark('3d:trees');
   updateRailway3D(dt, world);
   updateCountryside(dt, world, scene, cam, viewDist);
+  updateOmmelandLandmarks(world, scene, focus);
   probe.mark('3d:rail+country');
 
   syncParkedLayer(scene, sleepingParkedCars(world), buildVehicleActor, focus, DRAW_DIST);
@@ -1969,7 +2011,7 @@ export function update3D(dt, world) {
         animateBoat(mesh, v, world, animDt);
         crewCtx.dist = Math.hypot(v.x - player.x, v.y - player.y);
         syncBoatCrew(mesh, v, crewCtx);
-      } else if (v.isBus) setBusRearAngle(mesh, v.angle, sampleBusTrail(v, v.model.len * 0.3).angle);
+      } else if (v.isBus) setBusRearAngle(mesh, v.angle, v.model.trailer ? busTrailerPose(v).angle : sampleBusTrail(v, v.model.len * 0.3).angle);
       if (v.sinking) { mesh.rotation.order = 'YZX'; mesh.position.y = v.sinking.z; mesh.rotation.z = v.sinking.pitch; mesh.rotation.x = v.sinking.roll; }
       if ((mesh.userData.roofN || 0) !== (v.roofBoxes || 0)) setRoofBoxes(mesh, v);
       if (v.isPolice || v.sirenOn || v.isAmbulance) updatePoliceLamps(mesh, world.time, v.sirenOn ? !v.wrecked : policeChasing && !v.hijacked && !v.wrecked && v.driver !== 'player', v.id);
@@ -2368,9 +2410,10 @@ export function update3D(dt, world) {
 
   // vehicles get a longer, higher orbit scaled to their length, so the car
   // doesn't fill the lower half of the screen; a bus further still, to see
-  // the road ahead over its roof and its tail through a corner
+  // the road ahead over its roof and its tail through a corner (a gelede
+  // bus's rear unit too)
   const veh = camVeh;
-  const camScale = veh ? (veh.isHeli ? 4.4 : veh._mount === 'horse' ? 1.7 : veh.isBus ? Math.min(4.4, Math.max(3.2, veh.model.len / 2.5)) : Math.min(3.2, Math.max(1.35, veh.model.len / 2.4))) : 1;
+  const camScale = veh ? (veh.isHeli ? 4.4 : veh._mount === 'horse' ? 1.7 : veh.isBus ? (veh.model.trailer ? 5.2 : Math.min(4.4, Math.max(3.2, veh.model.len / 2.5))) : Math.min(3.2, Math.max(1.35, veh.model.len / 2.4))) : 1;
   const radius = orbitRadius * camScale;
   // height of whatever the camera follows: on a viaduct, down in a cutting (elevation.js)
   const baseH = veh ? veh.z || 0 : (player.gz || 0) + Math.max(0, player.z || 0);

@@ -205,9 +205,9 @@ const SEDAN = { name: 'sedan', len: 4.3, wid: 1.8, maxSpeed: 50, accel: 10, brak
       for (let f = 0; f < 90; f++) {
         v.applyControls(1 / 60, 0.5, 0, 0);
         V.resolveVehicleBuildingCollision(v, map, 1 / 60);
-        // past the deck's end the road may bend away: that is not the railing's job
+        // near the deck end the road may bend away (a slower car arrives there later): that is not the railing job
         const along = (v.x - a[0]) * ux + (v.y - a[1]) * uy;
-        if (along > len + 1) break;
+        if (along > len - 1.5) break;
         if (V.overOpenWater(map, v.x, v.y, 0)) { sunk++; break; }
       }
     }

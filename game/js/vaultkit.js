@@ -10,7 +10,7 @@ export const PERCH_SLIP_SPEED = 6; // m/s: a car going faster than this throws y
 // Roof height of a vehicle above its wheels, metres. `model.h` overrides.
 const ROOF_H = {
   bike: 1.05, scooter: 1.15, hatch: 1.45, sedan: 1.45, sport: 1.25, taxi: 1.5, police: 1.5, escort: 1.5,
-  wagon: 1.5, suv: 1.75, van: 2.1, cashvan: 2.2, ambulance: 2.7, foodtruck: 2.8, truck: 3.2, bus: 3.1,
+  wagon: 1.5, suv: 1.75, van: 2.1, cashvan: 2.2, ambulance: 2.7, foodtruck: 2.8, truck: 3.6, bus: 3.1,
   midibus: 2.9, trekkerlimo: 2.6, horse: 1.7, heli: 3.5, boat: 1.2, sloep: 1.0,
 };
 

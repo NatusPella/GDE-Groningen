@@ -1,4 +1,5 @@
 import { makeProp, addProp, removeProp } from './breakables.js';
+import { getRealMap } from './realmap.js';
 
 // Roadside trees as breakable props. Trees stay pure map data; a knocked
 // tree sets raw._broken (the [x,y] pair treesNear returns), which
@@ -27,7 +28,7 @@ function makeTreeProp(raw) {
     mass: 350 + s * 900,
     breakSpeed: 7 + s * 9,
     breakCost: 3 + s * 4,
-    h: 3.5 + s * 4,
+    h: 10.5 + s * 8, // scene3d.js treeDims: mature street trees
     onBreak: () => { raw._broken = true; },
     onRestore: () => { raw._broken = false; },
     makeMesh: () => {
@@ -40,7 +41,9 @@ function makeTreeProp(raw) {
 }
 
 export function streamTreeProps(world, px, py) {
-  for (const raw of world.map.treesNear(px, py, STREAM_RADIUS)) {
+  const rm = getRealMap();
+  const near = world.map.treesNear(px, py, STREAM_RADIUS);
+  for (const raw of rm ? near.concat(rm.treesNear(px, py, STREAM_RADIUS)) : near) {
     if (live.has(raw) || raw._broken) continue;
     const p = makeTreeProp(raw);
     if (addProp(p)) live.set(raw, p);

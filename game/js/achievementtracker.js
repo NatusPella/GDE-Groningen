@@ -328,8 +328,8 @@ function challengeMet(r) {
   const hurt = v ? v.health < (r.vehHealth0 ?? 100) - 0.5 : false;
   switch (r.index) {
     case 0: return r.touches === 0 && !hurt;
-    case 1: return r.elapsed <= 18;
-    case 2: return r.timeLeft >= 40;
+    case 1: return r.elapsed <= 20;
+    case 2: return r.timeLeft >= 60;
     case 3: return r.hard === 0;
     case 4: return (r.racePos ?? 1) === 1 && (r.rivalsSeen ? r.rivalTouches : r.carTouches) === 0;
     case 5: return r.timeLeft >= 60;

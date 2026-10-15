@@ -6,6 +6,9 @@
 
 import { spawnVehicleOnRoad } from './vehicle.js';
 import { carModel, applyFleetFlags } from './trafficfleet.js';
+import { nearestFacility } from './facilities.js';
+import { realRoadNear } from './ommelandplace.js';
+import { edgeDistance } from './countryfield.js';
 
 const YIELD_REACH = 55;
 const HOSPITAL_NEAR = 300;
@@ -67,24 +70,41 @@ function endCall(v) {
   v.waitTimer = 6;
 }
 
-// A few ambulances waiting at the UMCG entrance whenever the player is near.
+// Where ambulances wait: the UMCG entrance, else the nearest real hospital or
+// ambulance post (facilities.js), in town or out in the Ommelanden.
+function ambulanceBase(world, x, y) {
+  const h = world.map.meta.hospital;
+  if (h && Math.hypot(x - h.x, y - h.y) <= HOSPITAL_NEAR) return h;
+  const f = nearestFacility(['hospital', 'ambulance'], x, y, { maxD: HOSPITAL_NEAR });
+  return f && !f.umcg ? f : null;
+}
+
+function baseRoad(world, h) {
+  if (edgeDistance(h.x, h.y) > 40) {
+    const q = realRoadNear(h.x, h.y, 120, (r) => r.kind > 2 && !r.bridge);
+    return q ? { x: q.x, y: q.y, road: q.road, country: true } : null;
+  }
+  return world.map.nearestRoadPoint(h.x, h.y, 120, true, true);
+}
+
+// A few ambulances waiting at the base whenever the player is near.
 let hospitalTimer = 0;
 function hospitalAmbulances(world, dt) {
   hospitalTimer -= dt;
   if (hospitalTimer > 0) return;
   hospitalTimer = 3;
-  const h = world.map.meta.hospital;
-  if (!h) return;
   const p = world.player;
-  if (Math.hypot(p.x - h.x, p.y - h.y) > HOSPITAL_NEAR) return;
+  const h = ambulanceBase(world, p.x, p.y);
+  if (!h) return;
   if (world.vehicles.some((v) => v.hospitalCar)) return;
-  const rp = world.map.nearestRoadPoint(h.x, h.y, 120, true, true);
+  const rp = baseRoad(world, h);
   if (!rp) return;
-  for (let i = 0; i < 3; i++) {
+  const count = h.kind === 'ambulance' ? 2 : 3;
+  for (let i = 0; i < count; i++) {
     const v = spawnVehicleOnRoad(world.map, rp.road, false, Math.random, false, false, { x: rp.x, y: rp.y }, false, carModel('ambulance'));
     applyFleetFlags(v, 'ambulance');
     const fx = Math.cos(v.angle), fy = Math.sin(v.angle);
-    const kerb = Math.max(0, (rp.road.width || 6) / 2 - 1.2);
+    const kerb = Math.max(0, (rp.road.width || rp.road.w || 6) / 2 - 1.2);
     v.x += -fy * kerb + fx * (i - 1) * 6.5;
     v.y += fx * kerb + fy * (i - 1) * 6.5;
     [v.x, v.y] = world.map.escapeBuilding(v.x, v.y, 1.2);

@@ -26,14 +26,14 @@
 // window.__heli (debug): state(), pads(), surface(x, y)
 
 import { Vehicle, disableVehicle, explodeVehicle, reportImpact, overOpenWater } from './vehicle.js';
-import { pointInPolygon, normalizeAngle, clamp } from './util.js';
+import { pointInPolygon, normalizeAngle, clamp, WATER_Y } from './util.js';
 import { inPassage } from './collision.js';
 import { REAL, buildingAt, buildingModel, inRealExtent } from './countryreal.js';
 import { getSettings } from './settings.js';
 import { keyWord } from './controls.js';
 const downKey = () => keyWord(getSettings().keyBinds, 'control');
 import { getVehicleMesh } from './models3d_vehicles.js';
-import { poseHeliRotors, updateHeliDust } from './heli3d.js';
+import { poseHeliRotors, updateHeliDust, ROTOR_Y } from './heli3d.js';
 import { getScene } from './scene3d.js';
 import { unlockAchievement } from './achievements.js';
 import { helipadInfo } from './skyprops.js';
@@ -54,9 +54,8 @@ const EDGE_SOFT = 450, EDGE_HARD = 90;
 const LAND_VZ = 4.5, LAND_H = 7, CRASH_VZ = 11, CRASH_H = 19;
 const FLAT_TOL = 0.6;
 const PITCHED_RIDGE = 2.6;
-const ROTOR_H = 2.6;
+const ROTOR_H = ROTOR_Y; // the mesh's rotor disc
 const RPM = 30;
-const WATER_SURFACE = -2.0;
 // [forward, right, height above the skids at which it touches]
 const BODY_PROBES = [[2.3, 0, 0.25], [1.1, 1.0, 0.25], [1.1, -1.0, 0.25], [-1.0, 1.0, 0.25], [-1.0, -1.0, 0.25], [-4.4, 0, 1.3]];
 const ROTOR_PROBES = [0, 1, 2, 3, 4, 5].map((k) => [Math.cos(k * Math.PI / 3) * 4.6 - 0.2, Math.sin(k * Math.PI / 3) * 4.6, ROTOR_H]);
@@ -151,7 +150,7 @@ function surfaceAt(map, x, y, z) {
   const roof = roofAt(map, x, y);
   const g = map.groundHeightAt ? map.groundHeightAt(x, y, z + 0.5) : 0;
   if (roof && roof.top > g) return { z: roof.top, kind: 'roof', flat: !roof.pitched };
-  if (g < 0.5 && overOpenWater(map, x, y, 0)) return { z: WATER_SURFACE, kind: 'water', flat: true };
+  if (g < 0.5 && overOpenWater(map, x, y, 0)) return { z: WATER_Y, kind: 'water', flat: true };
   return { z: g, kind: 'ground', flat: true };
 }
 

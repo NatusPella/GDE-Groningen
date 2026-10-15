@@ -12,8 +12,8 @@ setHorseMeshBuilder(buildHorseMesh);
 // car or off their bike/horse/scooter to make the arrest on foot, walk back
 // and ride on once the player gets away, or commandeer a nearby car.
 
-const BIKE_MODEL = { name: 'bike', len: 1.8, wid: 0.55, maxSpeed: 7.6, accel: 3.8, brake: 7, turnRate: 4.8, color: '#dfe3ea', rider: '#1c3fae' };
-const HORSE_MODEL = { name: 'horse', len: 2.4, wid: 0.75, maxSpeed: 9.2, accel: 3.2, brake: 6, turnRate: 3.2, color: '#6b3f22', rider: '#1c3fae', coat: 0 };
+const BIKE_MODEL = { name: 'bike', len: 1.8, wid: 0.55, maxSpeed: 6.6, accel: 3.8, brake: 7, turnRate: 4.8, color: '#dfe3ea', rider: '#1c3fae' };
+const HORSE_MODEL = { name: 'horse', len: 2.4, wid: 0.75, maxSpeed: 7.4, accel: 3.2, brake: 6, turnRate: 3.2, color: '#6b3f22', rider: '#1c3fae', coat: 0 };
 const HORSE_COATS = [0, 3, 1];
 
 const MOUNT_SPAWN_STAGGER = 4;

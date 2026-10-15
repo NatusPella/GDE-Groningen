@@ -8,7 +8,13 @@ import { GRID_CONVERGENCE } from './rdnew.js';
 export const DAY_LENGTH_S = 24 * 60;
 const START_HOUR = 17.5;
 const LATITUDE = 53.2 * Math.PI / 180;
-const DECLINATION = 15 * Math.PI / 180;
+// the sun's declination: calendarday.js sets it per date (setSunDeclination);
+// null (the trailer, the intro, before a game runs) is the look they were shot with
+const DEFAULT_DECLINATION = 15 * Math.PI / 180;
+let DECLINATION = DEFAULT_DECLINATION;
+export function setSunDeclination(deg) {
+  DECLINATION = Number.isFinite(deg) ? deg * Math.PI / 180 : DEFAULT_DECLINATION;
+}
 // Horizontal sun bearing at solar noon, in three.js x/z space: chosen for
 // the look against true north, turned onto the RD grid (rdnew.js).
 const NOON_BEARING = -60 * Math.PI / 180 + GRID_CONVERGENCE;
@@ -22,8 +28,6 @@ export function initDayNight(world) {
 export function updateDayNight(dt, world) {
   if (typeof world.clock !== 'number' || !isFinite(world.clock)) world.clock = START_HOUR;
   const next = world.clock + dt * 24 / DAY_LENGTH_S;
-  // midnights played through (calendar.js counts the days with it)
-  if (next >= 24) world.dayWraps = (world.dayWraps | 0) + 1;
   world.clock = next % 24;
   refreshDayNight(world);
 }

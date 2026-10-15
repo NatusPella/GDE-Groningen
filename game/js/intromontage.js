@@ -891,7 +891,7 @@ function buildShots(w) {
       clearRoadNear(r, polyline([[eu.x - ef.x * 40, eu.y - ef.y * 40], [eu.x + ef.x * 40, eu.y + ef.y * 40]]), 7);
       s.d = -16;
       s.q = { x: eu.x + ef.x * s.d, y: eu.y + ef.y * s.d };
-      s.v = tempCar(r, s.q.x, s.q.y, eu.a, { model: { name: 'truck', tank: true, len: 7.2, wid: 2.35, maxSpeed: 24, accel: 4.5, brake: 14, turnRate: 1.5, color: '#e8e6e0' } });
+      s.v = tempCar(r, s.q.x, s.q.y, eu.a, { model: { name: 'truck', tank: true, len: 8.5, wid: 2.5, maxSpeed: 24, accel: 4.5, brake: 14, turnRate: 1.5, color: '#e8e6e0' } });
       sfx(r.w, 'horn', eu.x, eu.y);
     },
     tick(r, s, t, dt) {

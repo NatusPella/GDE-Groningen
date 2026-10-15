@@ -194,7 +194,7 @@ function addPassages(group, b, parts, depth) {
     group.add(parts.interior);
     return;
   }
-  const map = mapRef();
+  const map = mapRef(b);
   if (!map || !map.buildingsNear) return;
   if (parts.tunnel === undefined) {
     const mesh = buildPassageTunnels(b, passagesOf(map, b), depth, 0, doorsOf(map, b));
@@ -215,8 +215,10 @@ let buildingMap = null;
 export function setBuildingMap(map) {
   buildingMap = map;
 }
-function mapRef() {
-  return buildingMap || (typeof window !== 'undefined' && window.__debug && window.__debug.map) || null;
+// the map a building belongs to (b.map: the real Ommeland's, realmap.js),
+// else the city's
+function mapRef(b = null) {
+  return (b && b.map) || buildingMap || (typeof window !== 'undefined' && window.__debug && window.__debug.map) || null;
 }
 
 // --- footprint helpers ---------------------------------------------------------
@@ -276,7 +278,7 @@ function rectangularFrame(edges) {
 
 function markPartyWalls(b, edges) {
   if (edges.partyChecked) return;
-  const map = mapRef();
+  const map = mapRef(b);
   if (!map) return;
   edges.partyChecked = true;
   const [minx, miny, maxx, maxy] = b.bounds;
@@ -1206,7 +1208,24 @@ function pickColors(b, box, archetype, fine) {
     return { wallHex: HOUSEBOAT_WALLS[Math.floor(fine * HOUSEBOAT_WALLS.length)], roofHex: 0x3a3b3d, frame: 0xece8de };
   }
   const fam = PALETTE_FAMILIES[familyIndexFor(box)];
+  // a building that comes with its own colours (the real Ommeland's, drawn
+  // as boxes further out) takes the nearest of the city's, so the materials
+  // stay the city's few and the two look alike
+  if (b.tint !== undefined) {
+    return { wallHex: nearestHex(PALETTE_WALLS, b.tint), roofHex: b.roofTint !== undefined ? nearestHex(PALETTE_ROOFS, b.roofTint) : fam.roof, frame: fam.frame };
+  }
   return { wallHex: fam.wall[Math.floor(fine * fam.wall.length)], roofHex: fam.roof, frame: fam.frame };
+}
+const PALETTE_WALLS = [...new Set(PALETTE_FAMILIES.flatMap((f) => f.wall))];
+const PALETTE_ROOFS = [...new Set(PALETTE_FAMILIES.map((f) => f.roof))];
+function nearestHex(list, hex) {
+  let best = list[0], bd = Infinity;
+  for (const c of list) {
+    const dr = ((c >> 16) & 255) - ((hex >> 16) & 255), dg = ((c >> 8) & 255) - ((hex >> 8) & 255), db = (c & 255) - (hex & 255);
+    const d = dr * dr * 0.3 + dg * dg * 0.59 + db * db * 0.11;
+    if (d < bd) { bd = d; best = c; }
+  }
+  return best;
 }
 
 // Bounded LRU over cached building geometry: evicted entries are disposed and
@@ -1233,7 +1252,7 @@ const BY_WATER_R = 0.8;
 const isWet = (map, e, s, d) => map.inWaterRaw(e.ax + e.tx * s + e.nx * d, e.ay + e.ty * s + e.ny * d);
 export function buildingFoundation(b) {
   if (b._foundation !== undefined) return b._foundation;
-  const map = mapRef();
+  const map = mapRef(b);
   if (!map || !map.inWaterRaw || archetypeOf(b) === 'houseboat') return (b._foundation = null);
   const edges = bboxOf(b).edges;
   const wet = edges.map((e) => {

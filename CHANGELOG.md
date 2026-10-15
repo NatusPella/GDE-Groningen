@@ -1,6 +1,6 @@
 # Changelog
 
-Alle noemenswaardige wijzigingen in GDE Groningen (tot 0.24: GTE VI), per versie. Nieuwste bovenaan.
+Alle noemenswaardige wijzigingen in GDE Groningen, per versie. Nieuwste bovenaan.
 Versies volgen SemVer: `0.x.y` tot de echte release (1.0.0); `x` voor
 nieuwe functies, `y` voor alleen bugfixes.
 

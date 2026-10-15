@@ -5,7 +5,7 @@ import { buildElevation, groundHeightAt, roadZAt, ceilingAt, coveredAt, surfaceH
 
 const CELL = 80; // meters per grid cell
 
-class SpatialGrid {
+export class SpatialGrid {
   constructor(cellSize) {
     this.cell = cellSize;
     this.map = new Map();

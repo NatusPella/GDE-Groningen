@@ -138,7 +138,7 @@ for (const file of files) {
     const { x, y, ...rest } = d[k], { x: ox, y: oy, ...orest } = o;
     ok(same(rest, orest) && movedTo(o, d[k]), `${tag}: ${k} at the same real place`, `${ox},${oy} -> ${x},${y}`);
   }
-  if (before.v < 7) ok(d.frame === 'rd-new', `${tag}: marked as RD New`);
+  if (before.v < 8) ok(d.frame === 'rd-new', `${tag}: marked as RD New`);
   if (exp.pos) ok(Math.hypot(d.pos.x - exp.pos[0], d.pos.y - exp.pos[1]) < 0.06, `${tag}: pos is ${exp.pos}`, `${d.pos.x},${d.pos.y}`);
 }
 

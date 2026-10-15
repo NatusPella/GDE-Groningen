@@ -109,6 +109,8 @@ const DOORS = {
   glasdeur: { room: 'gang', a: -4.5, glass: true },
 };
 
+const GUARD_CHASE = 2.6;
+
 // The guards of a stage `post` (room-local spots): patrol loops, a fixed post
 // that sweeps, the desk guard who dozes off; window = where a distraction sends him.
 const POSTS = {
@@ -480,12 +482,12 @@ function stepWatcher(w, dt, t, world) {
   let speed = 0;
   const p = world.player;
   if (w.chase) {
-    // the alarm: after the player, slower than someone running for it
+    // the alarm: after the player, slower than someone jogging off (3.0)
     const d = dist(w.x, w.y, p.x, p.y);
     if (d > 3 && d < 40 && losClear(world.map, w.x, w.y, p.x, p.y)) {
       const a = Math.atan2(p.y - w.y, p.x - w.x);
-      const nx = w.x + Math.cos(a) * 3 * dt, ny = w.y + Math.sin(a) * 3 * dt;
-      if (walkable(world.map, nx, ny)) { w.x = nx; w.y = ny; speed = 3; }
+      const nx = w.x + Math.cos(a) * GUARD_CHASE * dt, ny = w.y + Math.sin(a) * GUARD_CHASE * dt;
+      if (walkable(world.map, nx, ny)) { w.x = nx; w.y = ny; speed = GUARD_CHASE; }
       w.angle = a;
     }
     if (d < 25 && Math.random() < dt * 0.3) say(world, w, GUARD_LINES.alarm);
