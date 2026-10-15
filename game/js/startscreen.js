@@ -10,8 +10,9 @@ import { COW_LOADING } from './flavourlines.js';
 import { MENU_FRAME_S, getRenderer } from './scene3d.js';
 import { isAdvisorSampling, startGfxAdvisor } from './gfxprofile.js';
 import { ABOUT_HTML } from './credits.js';
+import { startLoadScreen, setLoadTips } from './loadscreen.js';
 
-const TIPS = [
+export const TIPS = [
   'Tip: in Grunn neemt een fietser altijd voorrang, of hij die nou heeft of niet.',
   'Tip: de Martinitoren heet hier gewoon d’Olle Grieze.',
   'Tip: een eierbal eet je warm. Koud is een misdaad, ook in Grunn.',
@@ -25,6 +26,7 @@ const TIPS = [
 ];
 // the commentary cows chime in between the tips
 COW_LOADING.forEach((t, i) => TIPS.splice(i * 3 + 1, 0, t));
+setLoadTips(TIPS);
 const TIP_MS = 3800;
 
 let tipTimer = 0;
@@ -39,24 +41,44 @@ function el(id) {
 function showVersion() {
   const v = document.querySelector('#start-screen .ss-ver');
   if (v && VERSION && VERSION !== 'dev') v.textContent = 'v' + VERSION;
+  const b = document.querySelector('#loading .bt-ver');
+  if (b) b.textContent = (VERSION && VERSION !== 'dev' ? 'v' + VERSION : 'dev') + ' · NatusPella';
 }
+
+// What the boot screen says while the game loads, in Gronings; the phase of
+// the actual work decides the first words, the rest rotate.
+const BOOT_LINES = [
+  'Grunn wordt wakker',
+  'De Martini wordt opgepoetst',
+  'Eierballen in het vet',
+  'Lichten aan, bruggen dicht',
+  'De fietsen worden in het gelid gezet',
+  'Het Reitdiep wordt even gespoeld',
+  'Een bakkie kovvie voor de politie',
+];
 
 export function initLoading() {
   showVersion();
-  const tip = document.querySelector('#loading .ld-tip');
-  if (tip) {
-    let i = Math.floor(Math.random() * TIPS.length);
-    tip.textContent = TIPS[i];
+  // the fonts load now, so the logo never swaps typefaces mid-animation
+  try { if (document.fonts && document.fonts.load) { document.fonts.load('40px "Bebas Neue"'); document.fonts.load('900 40px "Big Shoulders Display"'); } } catch (e) { /* ignore */ }
+  const status = document.querySelector('#loading .ld-status');
+  if (status) {
+    let i = 0;
+    const pace = reducedMotion() ? 0 : 250;
     tipTimer = setInterval(() => {
-      i = (i + 1) % TIPS.length;
-      tip.classList.add('swap');
-      setTimeout(() => { tip.textContent = TIPS[i]; tip.classList.remove('swap'); }, 250);
-    }, TIP_MS);
+      i = (i + 1) % BOOT_LINES.length;
+      status.classList.add('swap');
+      setTimeout(() => { status.textContent = BOOT_LINES[i]; status.classList.remove('swap'); }, pace);
+    }, 2400);
   }
   fakeTimer = setInterval(() => {
     shown += (Math.max(progress, Math.min(0.92, shown + 0.02)) - shown) * 0.25;
     paint();
   }, 80);
+}
+
+function reducedMotion() {
+  return document.documentElement.classList.contains('reduce-motion') || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
 }
 
 function paint() {
@@ -75,23 +97,61 @@ export function yieldToPaint() {
   return new Promise((r) => requestAnimationFrame(() => setTimeout(r, 0)));
 }
 
-// Fills the bar to 100%, holds it briefly so it is seen full, then fades.
+// A run that no person sits at (the story test, the smoke test, recordings,
+// the benchmark) goes straight on to the menu.
+const AUTO = /[?&](noattract|storytest|stil|trailer|benchmark|perf|spotsonly)\b/.test(typeof location !== 'undefined' ? location.search : '');
+
+// Fills the bar to 100%, says "Druk op een toets" and waits for the key. The
+// boot screen stays up until the menu is there (dismissLoading), so there is
+// no black gap between them.
 export async function finishLoading() {
   progress = 1;
   shown = 1;
   clearInterval(fakeTimer);
-  paint();
-  await new Promise((r) => setTimeout(r, 380));
   clearInterval(tipTimer);
+  paint();
   const l = el('loading');
   if (!l) return;
+  const status = l.querySelector('.ld-status');
+  if (status) status.textContent = 'Klaar, Grunn staat te wachten';
+  await new Promise((r) => setTimeout(r, 380));
+  if (AUTO) return;
+  const key = l.querySelector('.bt-key');
+  if (key) key.textContent = 'Druk op een toets';
+  l.classList.add('ready');
+  await new Promise((resolve) => {
+    const go = (e) => {
+      if (e.type === 'keydown' && (e.key === 'Shift' || e.key === 'Control' || e.key === 'Alt' || e.key === 'Meta' || e.repeat)) return;
+      window.removeEventListener('keydown', go, true);
+      window.removeEventListener('pointerdown', go, true);
+      window.removeEventListener('gamepadconnected', go, true);
+      clearInterval(pad);
+      // this press is only "go on": the menu does not see it
+      if (e.type === 'keydown') { e.preventDefault(); e.stopImmediatePropagation(); }
+      resolve();
+    };
+    window.addEventListener('keydown', go, true);
+    window.addEventListener('pointerdown', go, true);
+    const pad = setInterval(() => {
+      const pads = navigator.getGamepads ? navigator.getGamepads() : [];
+      for (const g of pads) if (g && g.buttons.some((b) => b.pressed)) { go({ type: 'pad' }); return; }
+    }, 200);
+  });
+}
+
+// The menu (or the trailer) is up: the boot screen fades away over it.
+export function dismissLoading() {
+  const l = el('loading');
+  if (!l || l.dataset.gone) return;
+  l.dataset.gone = '1';
   l.classList.add('done');
-  setTimeout(() => { l.style.display = 'none'; }, 450);
+  setTimeout(() => { l.style.display = 'none'; }, 800);
 }
 
 export function showLoadError(msg) {
   clearInterval(fakeTimer);
   clearInterval(tipTimer);
+  document.querySelector('#loading .ld-status') && document.querySelector('#loading .ld-status').classList.remove('swap');
   const status = document.querySelector('#loading .ld-status');
   if (status) {
     status.textContent = 'Fout bij laden: ' + msg;
@@ -429,6 +489,8 @@ export function runStartScreen(world, { render, relocate, tick }) {
         startTheme();
         restoreWorld();
         applySave(world, readSave());
+        // the load screen covers the menu until the city round the save has streamed in
+        startLoadScreen(world, { kind: 'save' });
         finish('game');
       } else if (it.act === 'new') {
         if (save && !confirmNew) { setConfirm(true); return; }
@@ -509,6 +571,8 @@ export function runStartScreen(world, { render, relocate, tick }) {
     let trailerOn = false;
     const showMenu = (fromTrailer) => {
       screen.classList.add('visible');
+      if (!fromTrailer && el('loading') && !el('loading').dataset.gone && !AUTO) { screen.classList.add('ss-slide'); setTimeout(() => screen.classList.remove('ss-slide'), 1200); }
+      dismissLoading();
       if (fromTrailer) logoIn(screen);
       focus(0);
     };
@@ -556,6 +620,7 @@ export function runStartScreen(world, { render, relocate, tick }) {
     const intro = pendingTrailer();
     const playIntro = async () => {
       trailerOn = true;
+      dismissLoading();
       if (intro.mode === 'benchmark') { trailerOn = false; benchmark(!!intro.fromGame); return; }
       const res = await runTrailer(world, { ...intro, env });
       if (intro.mode === 'opname' && !res.aborted && window.gdeDesktop && window.gdeDesktop.isDesktop) { window.gdeDesktop.quit(); return; }
