@@ -44,6 +44,26 @@ export function streetNameAt(map, x, y) {
   return best;
 }
 
+// The named building of the city map (Gerechtsgebouw, Stadsschouwburg ...):
+// { x, y, cx, cy } with the walkable ground nearest its middle, or null.
+export function namedBuildingSpot(map, name) {
+  let best = null, area = -1;
+  for (const b of map.buildings) {
+    if (b.name !== name || !b.pts || b.pts.length < 3) continue;
+    let a = 0, cx = 0, cy = 0;
+    for (let i = 0; i < b.pts.length; i++) {
+      const q = b.pts[i], r = b.pts[(i + 1) % b.pts.length];
+      a += q[0] * r[1] - r[0] * q[1];
+      cx += q[0]; cy += q[1];
+    }
+    a = Math.abs(a / 2);
+    if (a > area) { area = a; best = { cx: cx / b.pts.length, cy: cy / b.pts.length }; }
+  }
+  if (!best) return null;
+  const o = map.findOpenSpawn(best.cx, best.cy, 80);
+  return o ? { x: o.x, y: o.y, cx: best.cx, cy: best.cy } : null;
+}
+
 // A walkable spot in front of the nearest facade: where a customer waits.
 export function doorSpot(map, x, y) {
   let best = null;

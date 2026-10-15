@@ -29,6 +29,16 @@ nieuwe functies, `y` voor alleen bugfixes.
   - **Waterskibaan bij het Grunopark.** Een boot trekt je over het meer. Leun uit
     met A en D, zwaai ruim om de boeien, spring met Spatie over de golven en
     draai of grab in de lucht voor extra punten. Drie valpogingen.
+- **Drie zijmissies met tekst.** Overslaan mag altijd en geld blokkeert nooit:
+  - **BOA voor een dag** (bij het Stadhuis). Loop op een overtreder af, lees de
+    regel uit het dikke boekje van onzin en reken de boete uit: kies met 1, 2 of
+    3 het goede bedrag. Een foute boete betaalt minder en de overtreder
+    protesteert; Backspace laat de zaak rusten.
+  - **Dossier naar de rechtbank** (bij het Politiebureau). Lees de drie feiten
+    van een verzonnen zaak, breng het dossier naar het Gerechtsgebouw en
+    beantwoord drie vragen van de griffier. Met Tab lees je de feiten nog eens.
+  - **Cabaret in de Stadsschouwburg.** De Friese cabaretier Ype Tjaarda speelt;
+    jij roept op de maat iets terug. Druk Spatie als de balk in het groen is.
 
 ## [0.31.0] - 2026-10-16
 
