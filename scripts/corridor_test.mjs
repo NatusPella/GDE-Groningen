@@ -233,6 +233,44 @@ M.rail = Object.fromEntries(routes.map((r) => [r.id, { stops: r.stops.map((s) =>
   ] }]);
   if (lines.length !== 1 || lines[0].pts.length !== 3 || lines[0].stops.length !== 2 || lines[0].ref !== '61') fail('bus line from a route relation: ' + JSON.stringify(lines));
 }
+// the Ommeland's train routes run on over the corridor's track (corridorrail.js)
+{
+  const { extendRoutes } = await import('../game/js/corridorrail.js');
+  const fs = await import('node:fs');
+  const om = JSON.parse(fs.readFileSync(new URL('../game/ommeland.json', import.meta.url)));
+  const same = extendRoutes(om, built.global);
+  M.railAdded = same.added;
+  // with today's caches the corridor's track ends where the Ommeland's does
+  if (same.added.length !== built.global.routes.reduce((n, r) => n + Math.max(0, r.stops.length - (r.id === 'spoor-delfzijl' ? 4 : 3)), 0)) fail(`routes grew by ${same.added.join(', ')} without track for it`);
+  // a line that does run on: Ommeland route to A, corridor A -> B -> C
+  const line = (x0, x1) => { const P = []; for (let x = x0; x <= x1; x += 50) P.push([x, 0]); return P; };
+  const omT = { routes: [{ name: 'Stoptrein Delfzijl', base: 'x', cutS: 0, keep: [], pts: line(0, 1000).flat(), stops: [{ name: 'A', s: 800 }, { name: 'Z', s: 900, offmap: true }] }], stations: [{ name: 'A', x: 800, y: 5 }] };
+  const cor = { routes: [{ id: 'spoor-delfzijl', via: ['G', 'A', 'B', 'C'], pts: line(-500, 3000), stops: [{ name: 'G', s: 0 }, { name: 'A', s: 1300 }, { name: 'B', s: 2300 }, { name: 'C', s: 3500 }], reached: true }], stations: [{ key: 'B', name: 'Station B', x: 1800, y: 4 }, { key: 'C', name: 'Station C', x: 3000, y: 4 }] };
+  const x = extendRoutes(omT, cor);
+  const r = x.routes[0];
+  const end = [r.pts[r.pts.length - 2], r.pts[r.pts.length - 1]];
+  if (r.stops.map((q) => q.name).join() !== 'A,B,C' || r.stops[1].s !== 1800 || r.stops[2].s !== 3000 || end[0] !== 3000 || x.added.join() !== 'B,C' || omT.routes[0].stops.length !== 2) fail('extendRoutes: ' + JSON.stringify({ stops: r.stops, end, added: x.added }));
+  const part = extendRoutes(omT, { ...cor, routes: [{ ...cor.routes[0], stops: cor.routes[0].stops.slice(0, 3), reached: false }] });
+  if (part.routes[0].stops.map((q) => `${q.name}${q.offmap ? '*' : ''}`).join() !== 'A,B,C*') fail('extendRoutes: a line the data does not finish keeps an off-map end: ' + JSON.stringify(part.routes[0].stops));
+}
+// the edge at the Wadden coast (worldedge.js): a coastline way as OSM draws
+// it north of Eemshaven (running west, land on its left), a boat heading out
+{
+  const E = await import('../game/js/worldedge.js');
+  const { wgsToWorld } = await import('../game/js/rdnew.js');
+  const edge = E.edgeFromOsm([{ type: 'way', id: 1, tags: { natural: 'coastline' }, g: [[53.45, 6.9], [53.45, 6.8], [53.45, 6.7]] }], (la, lo) => wgsToWorld(la, lo));
+  const [cx, cy] = wgsToWorld(53.45, 6.8);
+  const at = (north) => E.edgeRule(cx, cy - north, edge, { mode: 'boat' });
+  const land = E.edgeRule(cx, cy + 500, edge, { mode: 'boat' });
+  if (land || at(1000) || !at(2850) || at(2850).action !== 'warn' || !at(3100) || at(3100).action !== 'back' || at(3100).edge !== 'wad') fail(`Wadden edge: land ${JSON.stringify(land)}, 1 km ${JSON.stringify(at(1000))}, 2.85 km ${JSON.stringify(at(2850))}, 3.1 km ${JSON.stringify(at(3100))}`);
+  const back = at(3100);
+  if (back && Math.abs(Math.sin(back.face) - 1) > 0.05) fail(`the turn-back faces the coast (south): ${back.face}`);
+  // the border-bridge rule: past the Eems border on a bridge nothing happens until after it
+  const border = { border: [{ kind: 'eems', out: 1, bufferM: 300, pts: [[0, 0], [0, -1000]] }] };
+  const side = E.outsideDist(500, -500, border.border).d > 0 ? 500 : -500;
+  if (!E.edgeRule(side, -500, border, { mode: 'car' }) || E.edgeRule(side, -500, border, { mode: 'car', onDeck: true }) || E.edgeRule(side, -500, border, { mode: 'car', bridgeDist: 20 })) fail('border-bridge rule: the turn-back waits until after the bridge');
+  M.edgeCoastLines = built.global.edge.coast.length;
+}
 M.bus = built.global.bus.length;
 M.places = built.global.places.length;
 M.stations = built.global.stations.map((s) => s.key);

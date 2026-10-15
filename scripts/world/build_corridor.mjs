@@ -22,6 +22,7 @@ import * as G from '../../game/js/gdt.js';
 import * as WB from '../../game/js/worldbuilder.js';
 import { wgsToWorld, worldToWgs } from '../../game/js/rdnew.js';
 import { edgeRows } from '../../game/js/navgraph.js';
+import { edgeFromOsm } from '../../game/js/worldedge.js';
 import { LINES, TOWNS, loadPlaces, corridorTiles, tileSources, packOf } from './corridor.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
@@ -394,6 +395,8 @@ export function buildCorridor({ root = ROOT, cityKeys = new Set(), sources = loa
     builder: CORRIDOR_BUILDER, towns: TOWNS.map((T) => T.name), places: placeList,
     stations: [...stations.entries()].filter(([, s]) => inCorridor(s.x, s.y)).map(([key, s]) => ({ key, ...s })).sort((a, b) => (a.key < b.key ? -1 : 1)),
     routes, bus, lines: LINES.map(({ id, kind, name, via }) => ({ id, kind, name, via })),
+    // the Wadden coast and borders (worldedge.js), from the corridor cache
+    edge: edgeFromOsm([...sources.corridor.values()].flat(), (la, lo) => wgsToWorld(la, lo).map(r2)),
     missing: missing.sort(), city: city.sort(),
   };
   return { blobs, global, stats, keys, want, missing };
