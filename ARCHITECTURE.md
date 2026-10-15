@@ -701,6 +701,72 @@ don't collide, and actors are drawn at their height.
   `terrainArrays`), so a change there reaches both;
   the check should pass after it.
 
+## World tiles (`.gdt`, F0 of docs/PROVINCIE-PLAN.md)
+
+The map reaches the game as tiles, one code path in the browser, Electron and
+Node; the JSON files (`citymap.json`, `mapextras.json`, `ommeland.*`) are the
+source the packer reads and the fallback for a build without `world/` (the dev
+server, `?legacymap`).
+
+- **Format (`js/gdt.js`).** Tile grid on the RD kilometre lines (key = RD km of
+  the south-west corner, `234_581`; in the world frame x = 330 + 1000 i,
+  y = 75 + 1000 j). A blob is `GDT1`, format and builder version, the tile, a
+  section table (type, version, offset, length, rows) and the sections; one
+  STRINGS section holds every string. Table sections are columnar: per column
+  a kind per row (absent, null, bool, number, string, points, number list,
+  json) and one value stream per kind. Numbers are integers or exact
+  centimetres, else float64 per row, so a round trip gives the same doubles;
+  points are tile-local centimetres, delta + zigzag varints, all dx then all
+  dy. Section types are reserved for what F1 fills: junctions, heights (AHN
+  raster), pois, furniture, nav, overlay (`SECTION`). Readers skip unknown
+  sections and refuse a newer format. Hashes are two xxh32 (16 hex digits).
+- **Packs (`scripts/world/pack_tiles.mjs`).** The GameMap's arrays after its
+  load-time derivation (doubled footprints, canopies, houseboats, roof steps,
+  ways cut at a wall, dry crossings, trees off the carriageway) are cut into
+  tiles: each object, with its `gid` (its place in the array), is written
+  into every tile its bounds touch. Tiles are raw-deflated, 8 x 8 tiles to a
+  pack named by its hash (`p0_0-<hash>.gdp`), plus `global-<hash>.gdp` (meta,
+  stations and routes, the Ommeland data) and `index.json` (per tile: pack,
+  offset, length, raw size, hash, counts, tallest building; the pinned city
+  set). Same input, same bytes. Per building: `hm` (best height in metres) and
+  `hsrc` (`3dbag`, `osm_height`, `osm_levels`, `default`), roof, colours,
+  materials, BAG year and id from the OSM tags (`scripts/world/building_attrs.py`);
+  the 3D BAG join is in place for F1's extract. `game/world/` is a build
+  artifact (gitignored); `desktop/build.mjs` packs it into the stage, cached by
+  the hash of its inputs in `desktop/.world-cache/`.
+- **Loading (`js/tileworld.js`, `js/tilestore.js`).** `loadTileWorld('world/')`
+  reads `index.json`, the global blob and the pinned city tiles through a
+  `ByteSource` (`HttpRangeSource`: Range fetches, the same on the web and on
+  Electron's `app://` protocol; `MemorySource` in tests; a remote
+  download-on-demand source is another `ByteSource`), decodes them (inflate +
+  decode in `tileworker.js`, or inline) and builds a `TileWorld`.
+  `TileWorld extends GameMap` and `GameMap.fromParts` skips the derivation,
+  so the query API (`buildingsNear`, `roadsNear`, `waterNear`, `greenNear`,
+  `treesNear`, `nearestRoadPoint`, `escapeBuilding`, `isOnBridge`,
+  `groundHeightAt`, `isOpenSpot`, `queryView`, ...) answers exactly as before
+  (`scripts/tileworld_test.mjs` compares them at 4,000 points). Tiles that
+  stream in or out go through `addTile` / `dropTile` (reference count per
+  object, into the same grids) on the `FrameQueue` (a few ms a frame).
+  Until F1 the systems read whole arrays and one elevation model, so the
+  city is pinned; the arrays and the elevation model keep to the pinned set.
+- **Store.** `TileStore` keeps an LRU of decoded tiles under a byte budget
+  (150 MB), pins, a request queue by priority with `AbortController`
+  cancellation (`cancel(token)`), at most four reads at once, and
+  `prefetch(x, y, { vx, vy, radius, ahead })`: the tiles within radius plus
+  speed x 10 s, scored by distance minus speed x 8 s x cos to the heading;
+  tiles are dropped only after ten seconds outside radius + 300 m.
+  `main.js` calls `map.follow` each frame with the camera or the player.
+  `missing(keys)` and `TileWorld.prefetchPoints` are the hooks for a
+  teleport or a cutscene pre-roll.
+- **Floating origin (`js/floatingorigin.js`).** `renderOrigin.toRender(x, y)`,
+  `rebaseIfNeeded(camX, camY)`, `attachRoot(group)` and the `uRenderOrigin`
+  uniform; inert at (0, 0) until tile-local geometry exists (F1). Tested at
+  +-40 km (`scripts/floatingorigin_test.mjs`).
+- **Tests.** `node scripts/world_tiles_test.mjs` (codec, determinism, round
+  trips, the building attribute join), `node scripts/tileworld_test.mjs`
+  (equivalence, streaming on a virtual clock, ranges), `node scripts/floatingorigin_test.mjs`,
+  `node scripts/rdnew_test.mjs`.
+
 ## Saves and versions
 
 One savegame (`savegame.js`, localStorage `gde-save-v1`) and one settings file

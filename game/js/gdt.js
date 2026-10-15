@@ -1,5 +1,5 @@
 // The .gdt tile format, version 1 (docs/PROVINCIE-PLAN.md 2.1, 2.4b; the
-// byte layout is in docs/TEGELFORMAAT.md). Pure: no DOM, no three.js; the
+// byte layout is in ARCHITECTURE.md "World tiles"). Pure: no DOM, no three.js; the
 // map packer (scripts/world/pack_tiles.mjs), the tile worker and the game
 // share it, so what is written is exactly what is read.
 //

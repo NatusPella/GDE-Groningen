@@ -32,7 +32,7 @@ node scripts/save_migration_test.mjs     # old saves and settings keep loading
 node scripts/storage_migration_test.mjs  # the gte-* -> gde-* key and userData rename
 node scripts/voice_coverage.mjs --quiet  # every subtitle has a recording
 cd desktop && npm run stage && cd ..     # once: vendors three.js for the 3D tests
-for t in scripts/*_test.mjs; do node "$t" || echo "FAIL $t"; done
+for t in scripts/*_test.mjs; do node "$t" || echo "FAIL $t"; done   # includes rdnew, world_tiles, tileworld, floatingorigin
 ```
 
 ## Controls
@@ -381,6 +381,14 @@ steps, in order:
    (gzip: building boxes and a water distance field). `citymap.json` is not
    touched. Needs numpy and Pillow. The cache `data/ommeland_raw.json.gz`
    keeps only trimmed tags and building boxes.
+
+Then the tiles (`node scripts/world/pack_tiles.mjs [--out game/world]`, about
+20 s; `cd desktop && npm run stage` does it for the staged game and caches it
+by the hash of its inputs). `python3 scripts/world/building_attrs.py` rewrites
+`data/world/building_attrs.json.gz` (building tags from the OSM caches) when
+the caches change. The game reads `world/` when it is there and the JSON
+files when it is not (`?legacymap` forces the JSON files). `scripts/devserver.py`
+answers HTTP Range requests, like the desktop app and the web build.
 
 Overpass responses are cached in `data/` together with the box they cover
 (`osmfetch.py`) and refetched when the map outgrows them. Keys another tool
