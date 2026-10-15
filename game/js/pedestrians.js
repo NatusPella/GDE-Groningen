@@ -1223,7 +1223,11 @@ export function updatePedestrians(dt, world) {
       }
       ped.x = nx;
       ped.y = ny;
-      if (map.elev && map.elev.has) ped.gz = map.groundHeightAt(nx, ny, ped.gz || 0);
+      if (map.elev && map.elev.has) {
+        const st = ped.surf || (ped.surf = { z: 0, ribbon: null, kind: 'ground' });
+        st.z = ped.gz || 0;
+        ped.gz = map.surfaceAt(nx, ny, st).z;
+      }
     }
 
     checkBump(ped, world);
