@@ -6,6 +6,14 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Nieuw
+- **Het spoor ligt zoals het hoort.** Elke spoorlijn heeft een eigen
+  hoogteprofiel: flauwe hellingen en lange bogen, dus een trein schiet niet
+  meer vlak na het perron steil omhoog. Perrons liggen vlak, overwegen precies
+  op de hoogte van de weg, station Noord ligt op een verhoogde baan met de
+  straten eronderdoor, en het Emmaviaduct en de Hereweg gaan over het spoor
+  heen, zoals in het echt.
+
 ## [0.31.0] - 2026-10-16
 
 ### Nieuw
