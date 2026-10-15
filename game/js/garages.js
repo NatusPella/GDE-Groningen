@@ -177,6 +177,8 @@ export function initGarages(w) {
     ...(map.meta.fuel || []).map((f) => ({ ...f, kind: 'pomp' })),
     ...country(['car_repair', 'car', 'tyres'], 'garage'),
     ...country('fuel', 'pomp'),
+    // every other real fuel station in town (the old list misses a few)
+    ...facilitiesOf('fuel').filter((f) => f.city).map((f) => ({ x: f.x, y: f.y, kind: 'pomp' })),
   ];
   for (const poi of pois) {
     if (sites.some((s) => Math.hypot(s.x - poi.x, s.y - poi.y) < 60)) continue;
