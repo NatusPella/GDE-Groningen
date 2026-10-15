@@ -34,11 +34,14 @@ export async function loadFacilities(mapUrl = 'citymap.json') {
   }
 }
 
-// Inside the built world: the city map or the real Ommelanden.
+// Inside the built world: the city map, the real Ommelanden, or a layer of
+// tiles next to them (setExtraBuiltWorld: the proefstrook with ?corridor).
+let extraWorld = null;
+export function setExtraBuiltWorld(fn) { extraWorld = fn; }
 export function inBuiltWorld(m, x, y, edge = EDGE) {
   const b = m.bounds;
   if (b && x > b[0] + edge && x < b[2] - edge && y > b[1] + edge && y < b[3] - edge) return true;
-  return REAL.ready && inRealExtent(x, y, edge);
+  return (REAL.ready && inRealExtent(x, y, edge)) || (!!extraWorld && extraWorld(x, y));
 }
 
 function inCity(m, x, y) {

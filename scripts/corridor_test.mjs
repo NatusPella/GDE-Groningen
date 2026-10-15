@@ -8,7 +8,7 @@
 //     Stad -> Eemshaven: tiles late within 250 m, main-thread work per frame
 //     (TileWorld.addTile into the grids), and the data holes on the way;
 //  4. rail routes over the cached track, bus lines from route relations.
-//   node scripts/corridor_test.mjs [--json]   (--json: the measurements as one line)
+//   node scripts/corridor_test.mjs [--json] [--quick]   (--json: the measurements as one line; --quick: no streaming runs)
 import './node3d.mjs';
 import zlib from 'node:zlib';
 
@@ -50,6 +50,20 @@ for (const [k, b] of built.blobs) if (b.src === 'ommeland' && !(b.flags & 8)) fa
 }
 M.inGameTiles = [...built.blobs.values()].filter((b) => !(b.flags & 8)).length;
 for (const town of ['Appingedam', 'Delfzijl', 'Winsum', 'Uithuizen', 'Eemshaven']) if (!built.global.places.some((p) => p.name === town)) fail(`${town} is not a place of the corridor`);
+
+// the places name the spot (worldplaces.js, the location chip past the old Ommeland)
+{
+  const WP = await import('../game/js/worldplaces.js');
+  WP.setWorldPlaces(built.global.places);
+  for (const town of ['Appingedam', 'Delfzijl', 'Winsum', 'Uithuizen', 'Eemshaven', 'Uithuizermeeden', 'Farmsum']) {
+    const p = built.global.places.find((q) => q.name === town);
+    const a = WP.worldPlaceAt(p.x + 120, p.y - 80);
+    if (!a || a.place !== town || a.near) fail(`the spot next to ${town}'s centre is called ${JSON.stringify(a)}`);
+  }
+  const d = built.global.places.filter((q) => q.of);
+  M.districts = d.length;
+  if (d.length) { const q = d[0]; const a = WP.worldPlaceAt(q.x, q.y); if (a.district !== q.name) fail(`district ${q.name} of ${q.of}: ${JSON.stringify(a)}`); }
+}
 
 // --- 2. decode, rows, portals
 const decoded = new Map();
@@ -195,10 +209,12 @@ async function stream(name, route, speed, { hz = 20, radius = 1200, latency = 20
   return r;
 }
 M.stream = {};
+if (!process.argv.includes('--quick')) {
 M.stream.car = await stream('car N360 40 m/s', polyRoute(['Groningen', 'Ten Boer', 'Garrelsweer', 'Wirdum', 'Appingedam', 'Delfzijl']), 40);
 M.stream.train = await stream('train Stad-Loppersum-Delfzijl 39 m/s', polyRoute(['Groningen', 'Bedum', 'Stedum', 'Loppersum', 'Appingedam', 'Delfzijl']), 39);
 M.stream.heli = await stream('heli Stad-Eemshaven 60 m/s', polyRoute(['Groningen', 'Eemshaven']), 60);
 for (const [k, r] of Object.entries(M.stream)) if (r.late) fail(`${k}: ${r.late} tile-frames late within 250 m`);
+}
 
 // --- 4. rail and bus
 const routes = built.global.routes;
