@@ -6,6 +6,17 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Nieuw
+- **Events in de zomer.** Soms trilt de grond even: een lichte aardbeving met een
+  korte rommel, een trillend beeld, rammelende fietsen, verbaasde voorbijgangers
+  en een rustig Kiekdoar-berichtje zonder schade. Op sommige dagen zit er
+  blauwalg in de grote plassen: groene vlekken op het water, borden "Niet
+  zwemmen" langs de kant, en wie er toch doorheen zwemt wordt trager, moe en
+  een beetje ziek. Op Gronings Ontzet gaat 's avonds vuurwerk op boven de stad,
+  te zien en te horen vanaf de hele binnenstad en aan het eind een slotsalvo. En
+  op de bloemetjesmarkt (12 september) lopen er veel Duitse toeristen met
+  rugzak en pet rond, die in het Duits om zich heen praten.
+
 ## [0.31.0] - 2026-10-16
 
 ### Nieuw

@@ -8,6 +8,7 @@ import { playAutoGejatLine } from './audio.js';
 import { requestRespawn } from './world.js';
 import { roadGrip } from './weather.js';
 import { getSettings } from './settings.js';
+import { ALGAE } from './eventrules.js';
 import { knockDown, isKnockedDown } from './ragdoll.js';
 import { resolveBuildingCollisions, resolveWalker } from './collision.js';
 import { resolveWalkerProps, propAhead } from './breakables.js';
@@ -536,7 +537,9 @@ export class Player {
     const throttle = dir ? 1 : 0;
     const sprint = input.isDown('shift') && throttle > 0 && this.swimStamina > 0;
     this.swimStamina = clamp(this.swimStamina + (sprint ? -dt / 6 : dt / 5), 0, 1);
-    const speed = (sprint ? SWIM_SPRINT : SWIM_SPEED) * throttle;
+    const algae = world.algaeAt && world.algaeAt(this.x, this.y);
+    if (algae) this.swimStamina = clamp(this.swimStamina - dt * 0.32, 0, 1);
+    const speed = (sprint ? SWIM_SPRINT : SWIM_SPEED) * throttle * (algae ? ALGAE.speed : 1);
     const k = Math.min(1, dt * 3);
     this.vx += (Math.cos(this.angle) * speed - this.vx) * k;
     this.vy += (Math.sin(this.angle) * speed - this.vy) * k;
