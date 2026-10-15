@@ -61,6 +61,7 @@ import { initPhone, updatePhone, isPhoneOpen } from './phone.js';
 import { initSaveGame, updateSaveGame, hasSave, readSave } from './savegame.js';
 import { initWeather, updateWeather } from './weather.js';
 import { initWorldEvents, updateWorldEvents } from './worldevents.js';
+import { initMuggings, updateMuggings } from './muggings.js';
 import { initFlitspaal, updateFlitspaal } from './flitspaal.js';
 import { initWildlife, updateWildlife } from './wildlife.js';
 import { initSkyProps, updateSkyProps } from './skyprops.js';
@@ -281,6 +282,7 @@ async function boot() {
   initOmmelandFun(world);
   initWeather(world);
   initWorldEvents(world);
+  initMuggings(world);
   initFlitspaal(world);
   initWildlife(world);
   initSkyProps(world);
@@ -572,6 +574,7 @@ async function boot() {
     updateOmmelandFun(dt, world);
     updateWeather(dt, world);
     updateWorldEvents(dt, world);
+    updateMuggings(dt, world);
     updateDayNight(dt, world);
     updateCalendar(dt, world);
     updateCheats(dt, world);
