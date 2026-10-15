@@ -1,5 +1,5 @@
 import { onPaletteChange } from './a11y.js';
-import { MODES, MODE_LABEL, roadAllowed, travelModeOf } from './roadaccess.js';
+import { MODES, MODE_LABEL, ROUTE_MODE, roadAllowed, travelModeOf } from './roadaccess.js';
 import { drawMapIcon, drawRoute, drawRoadRoute, forEachPoliceUnit, declutter, ROUTE_COLORS, routeLabel, drawSearchArea, getPoliceSearch, missionMapKind } from './hud_panel.js';
 import { getGaragesForRender } from './garages.js';
 import { getHomeForRender, getHomeGarageForRender, getHomeMooringForRender, getHomeHelipadForRender } from './home.js';
@@ -28,7 +28,7 @@ import { getMissionList } from './missions.js';
 import { MEDALS } from './achievements.js';
 import { nicknameOf, FLAVOUR_MAP_PLACES } from './flavourlines.js';
 import {
-  updateRouting, getActiveRoute, getRouteAhead, getRoutes, dismissCareRoute, setUserWaypoint, clearUserWaypoint, getUserWaypoint, formatDistance,
+  updateRouting, getActiveRoute, getRouteAhead, getRoutes, dismissCareRoute, setUserWaypoint, clearUserWaypoint, getUserWaypoint, formatDistance, setRoutePrefs, getRoutePrefs,
 } from './routing.js';
 import { KEYS } from './storagekeys.js';
 
@@ -1640,6 +1640,7 @@ function setMode(m) {
   state.mode = m;
   for (const b of state.overlay.querySelectorAll('.mapview-modes [data-mode]')) b.setAttribute('aria-checked', String(b.dataset.mode === m));
   if (state.modeNote) state.modeNote.textContent = MODE_NOTE[m];
+  if (state.avoidBtn) state.avoidBtn.hidden = m !== 'auto';
   clearTiles();
   state.dirty = true;
 }
@@ -1674,6 +1675,7 @@ function closeMap() {
   setMapTeleport(false);
   hideCard();
   state.open = false;
+  setRoutePrefs({ planMode: null });
   state.overlay.classList.remove('open');
   state.tooltip.style.display = 'none';
   state.drag = null;
@@ -1739,7 +1741,7 @@ export function initMapView(world) {
     '<button type="button" class="m-bg mv-layers" data-act="layers" aria-expanded="false" aria-controls="mv-legend">Lagen <span class="mv-layers-n"></span></button></div></div>' +
     '<div class="mapview-body"><canvas class="mapview-canvas"></canvas>' +
     '<div class="mapview-zoom"><button type="button" class="m-bg" data-act="in" aria-label="Inzoomen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button><button type="button" class="m-bg" data-act="out" aria-label="Uitzoomen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg></button><button type="button" class="m-bg" data-act="centre" aria-label="Naar jezelf"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 3v4M12 17v4M3 12h4M17 12h4"/></svg></button></div>' +
-    '<div class="mv-goal"><span class="m-eb">Je route</span><span class="mapview-route"></span><button type="button" class="m-bt" data-act="clear" hidden>Doel wissen</button></div>' +
+    '<div class="mv-goal"><span class="m-eb">Je route</span><span class="mapview-route"></span><button type="button" class="m-bt" data-act="clear" hidden>Doel wissen</button><button type="button" class="m-bt" data-act="avoid" aria-pressed="false" hidden>Snelwegen vermijden</button></div>' +
     '<div class="mapview-osm">© OpenStreetMap-bijdragers</div>' +
     '<div class="mapview-tp" hidden>Kies een plek: daar sta je meteen · <b>Esc</b> stopt</div><div class="mapview-tooltip"></div><div class="mapview-card" hidden></div><aside class="mapview-legend" id="mv-legend" hidden></aside></div>';
   document.body.appendChild(overlay);
@@ -1809,6 +1811,7 @@ export function initMapView(world) {
   state.searchIndex = buildSearchIndex(world);
   initFog(world);
   buildLegend(overlay.querySelector('.mapview-legend'));
+  state.avoidBtn = overlay.querySelector('[data-act="avoid"]');
   state.modeNote = document.createElement('p');
   state.modeNote.className = 'hint mv-modenote';
   overlay.querySelector('.mapview-legend').prepend(state.modeNote);
@@ -1821,8 +1824,15 @@ export function initMapView(world) {
     const btn = e.target.closest('[data-act]');
     if (!btn) return;
     const act = btn.dataset.act;
-    if (act === 'mode') setMode(btn.dataset.mode);
-    else if (act === 'centre') centreOn(world.player.x, world.player.y, 3);
+    if (act === 'mode') {
+      setMode(btn.dataset.mode);
+      // plan the goal for the chosen way of travel; your own way is the default
+      setRoutePrefs({ planMode: btn.dataset.mode === travelModeOf(world) ? null : ROUTE_MODE[btn.dataset.mode] });
+    } else if (act === 'avoid') {
+      const on = !getRoutePrefs().avoidMotorways;
+      setRoutePrefs({ avoidMotorways: on });
+      btn.setAttribute('aria-pressed', String(on));
+    } else if (act === 'centre') centreOn(world.player.x, world.player.y, 3);
     else if (act === 'layers') toggleLegend();
     else if (act === 'clear') clearUserWaypoint();
     else if (act === 'care-off') dismissCareRoute();

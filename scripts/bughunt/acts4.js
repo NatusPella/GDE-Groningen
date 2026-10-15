@@ -4,7 +4,7 @@
   const step = async (name, fn) => { tag(name); try { await fn(); } catch (e) { issue('script', `${name}: ${e && e.message}`); } await quiet(); };
   w.devInvuln = true;
   if (p.inVehicle) p.exitVehicle(map, w);
-  teleport(100, 77); await sleep(1500);
+  teleport(...P(100, 77)); await sleep(1500);
 
   await step('menu-sections', async () => {
     for (const sec of ['overzicht', 'telefoon', 'todo', 'verhaal', 'spullen', 'map', 'garage', 'prestaties', 'streken', 'settings', 'controls']) {
@@ -35,7 +35,7 @@
   });
 
   await step('horse', async () => {
-    teleport(100, 77); await sleep(800);
+    teleport(...P(100, 77)); await sleep(800);
     const h = PMT.spawnPoliceMountNear(w, 'horse', false);
     if (!h) { log('no horse spawn here'); return; }
     h.bhTemp = true;
@@ -55,7 +55,7 @@
   });
 
   await step('jump-vault', async () => {
-    teleport(100, 77); await sleep(800);
+    teleport(...P(100, 77)); await sleep(800);
     for (let i = 0; i < 6; i++) { await hold(['w', 'shift'], 400); await tap(' ', 80); await sleep(400); }
     SG.saveGame(w, { toast: false });
     await tap(' ', 40); SG.loadLatestSave(w); await sleep(400);
@@ -87,7 +87,7 @@
     for (const id of ['skutsje', 'koe']) {
       for (const how of ['win', 'abort', 'load', 'pause']) {
         tag(`${id}:${how}`);
-        teleport(100, 77); await sleep(500);
+        teleport(...P(100, 77)); await sleep(500);
         SG.saveGame(w, { toast: false });
         let ok = false;
         try { ok = PG.start(id); } catch (e) { issue('challenge', `${id} start threw ${e.message}`); }

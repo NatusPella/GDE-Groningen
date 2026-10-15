@@ -25,7 +25,7 @@ const HOUSEBOAT_DRAFT = 0.3;
 export const HOUSEBOAT_BASE_Y = WATER_Y - HOUSEBOAT_DRAFT;
 const HOUSEBOAT_HULL_H = 0.85;
 const HOUSEBOAT_WALLS = [0x6b8a5a, 0x3f6f8a, 0x8a5a3c, 0xd6cab0, 0xcfb46c, 0x5b3a2e, 0xa3b2a0, 0x2f4a3a];
-const CITY_CENTRE = [100, 77];
+const CITY_CENTRE = { x: 100.63, y: 76.18 };
 const CITY_CENTRE_R = 650;
 const PART_CACHE_MAX = 800;
 const MAX_WINDOWS = 420;
@@ -228,6 +228,9 @@ function bboxOf(b) {
   return {
     minx, miny, maxx, maxy, w: maxx - minx, d: maxy - miny,
     cx: (minx + maxx) / 2, cy: (miny + maxy) / 2, cz: (miny + maxy) / 2,
+    // what the looks are seeded with: the centre in the frame they were first
+    // made in (b.sd, scripts/world/rebase_data.py), so every facade stays
+    sx: b.sd ? b.sd[0] : (minx + maxx) / 2, sy: b.sd ? b.sd[1] : (miny + maxy) / 2,
     edges: b._ring,
   };
 }
@@ -296,7 +299,7 @@ function markPartyWalls(b, edges) {
 }
 
 function familyIndexFor(box) {
-  const gx = Math.round(box.cx / 20) * 20, gy = Math.round(box.cy / 20) * 20;
+  const gx = Math.round(box.sx / 20) * 20, gy = Math.round(box.sy / 20) * 20;
   return Math.floor(hash2(gx, gy) * PALETTE_FAMILIES.length);
 }
 
@@ -921,7 +924,7 @@ function buildDetailGeometry(b, box, archetype, depth, fine, fine2, wallHex, roo
   const B = new GeoBuilder(4);
   const seed = fine * 1000 + fine2 * 37;
   const r = (k) => hash2(seed + k * 13.37, fine2 * 91 + k * 3.3);
-  const centre = Math.hypot(box.cx - CITY_CENTRE[0], box.cy - CITY_CENTRE[1]) < CITY_CENTRE_R;
+  const centre = Math.hypot(box.cx - CITY_CENTRE.x, box.cy - CITY_CENTRE.y) < CITY_CENTRE_R;
   const industrial = archetype === 'industrial';
   const houseboat = archetype === 'houseboat';
   const brick = BRICKS.has(wallHex);
@@ -1324,7 +1327,7 @@ export function buildingBase(b) {
 export function buildingLodStyle(b) {
   const box = bboxOf(b);
   const archetype = archetypeOf(b);
-  const fine = hash2(box.cx, box.cy);
+  const fine = hash2(box.sx, box.sy);
   const depth = archetype === 'houseboat' ? Math.min(HOUSEBOAT_MAX_DEPTH, Math.max(HOUSEBOAT_MIN_DEPTH, b.h * LEVEL_HEIGHT)) : Math.max(2.4, b.h * LEVEL_HEIGHT) + (b.lift || 0);
   const { wallHex, roofHex } = pickColors(b, box, archetype, fine);
   const pitched = archetype === 'house' || (archetype !== 'industrial' && archetype !== 'houseboat' && b.h <= 3 && Math.min(box.w, box.d) <= 11);
@@ -1382,8 +1385,8 @@ export function buildBuildingMesh(b) {
 
   const box = bboxOf(b);
   const archetype = archetypeOf(b);
-  const fine = hash2(box.cx, box.cy);
-  const fine2 = hash2(box.cx * 1.7 + 3.1, box.cy * 1.3 - 2.7);
+  const fine = hash2(box.sx, box.sy);
+  const fine2 = hash2(box.sx * 1.7 + 3.1, box.sy * 1.3 - 2.7);
 
   let depth;
   if (b.landmark && b.landmarkKind === 'tower') depth = TOWER_HEIGHT * 0.6;

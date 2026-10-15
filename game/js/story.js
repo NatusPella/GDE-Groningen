@@ -408,9 +408,11 @@ const CREDITS = [
   ...THIRD_PARTY_CARDS,
 ];
 
+const FINALE_SPOT = [160.64, 68.15];
+
 // A slow climb around d'Olle Grieze for the ending.
 function finaleShot(t0 = 0) {
-  const lm = (world.map.meta.landmarks || []).find((l) => l.name === 'Martinitoren') || { x: 214, y: 13 };
+  const lm = (world.map.meta.landmarks || []).find((l) => l.name === 'Martinitoren') || { x: 213.81, y: 9.9 };
   return (u, t) => {
     const a = 0.6 + (t0 + t) * 0.035;
     const r = 150 - (t0 + t) * 0.6;
@@ -424,7 +426,7 @@ function recapPlace(p) {
   if (p === 'studio') return { studio: true, x: 0, y: 0 };
   if (Array.isArray(p)) return { x: p[0], y: p[1] };
   const lm = (world.map.meta.landmarks || []).find((l) => l.name === p);
-  return lm ? { x: lm.x, y: lm.y } : { x: 160, y: 70 };
+  return lm ? { x: lm.x, y: lm.y } : { x: 160.64, y: 68.15 };
 }
 
 function playRecap(part) {
@@ -473,7 +475,7 @@ function playFinale(part) {
   const P = PARTS[part];
   // the ending plays over the Grote Markt: the world streams around the player
   const p = world.player;
-  const spot = world.map.nearestRoadPoint(160, 70, 120, false);
+  const spot = world.map.nearestRoadPoint(...FINALE_SPOT, 120, false);
   if (spot && !p.inVehicle) {
     p.x = spot.x; p.y = spot.y;
     world.teleported = world.time;

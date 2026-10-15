@@ -1,7 +1,7 @@
 """The Groningen ringweg as one closed loop over the processed road graph.
 
-RING_WAYPOINTS are hand-picked points on the ring (world metres, origin
-53.2195/6.565, y south) in driving order: Zuidelijke Ringweg westbound ->
+RING_WAYPOINTS are hand-picked points on the ring (placed in the old
+equirectangular frame, origin 53.2195/6.565, y south; P() moves them to the world frame) in driving order: Zuidelijke Ringweg westbound ->
 Julianaplein -> Vrijheidsplein -> Westelijke Ringweg north -> Friesestraatweg
 -> Noordelijke Ringweg (Plataanlaan, Noordzeeweg) -> Noorderhoogebrug ->
 Oostelijke Ringweg (Beneluxweg N46) south -> Euvelgunne -> Beneluxweg N7
@@ -11,12 +11,17 @@ the ring roads themselves.
 """
 import heapq
 import math
+import os
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from world.rdnew import P  # noqa: E402
 
 RING_WAYPOINTS = [
-    (1420, 1010), (600, 1585), (-60, 1815), (-700, 2030), (-1380, 850), (-1700, 60),
-    (-2000, -800), (-2330, -1660), (-1200, -2040), (190, -2180), (420, -2780),
-    (900, -3160), (1500, -2420), (2500, -1840), (3030, -1010), (3150, -740),
-    (3320, -330), (2800, 470), (2310, 605), (1960, 700),
+    tuple(P(1420, 1010)), tuple(P(600, 1585)), tuple(P(-60, 1815)), tuple(P(-700, 2030)), tuple(P(-1380, 850)), tuple(P(-1700, 60)),
+    tuple(P(-2000, -800)), tuple(P(-2330, -1660)), tuple(P(-1200, -2040)), tuple(P(190, -2180)), tuple(P(420, -2780)),
+    tuple(P(900, -3160)), tuple(P(1500, -2420)), tuple(P(2500, -1840)), tuple(P(3030, -1010)), tuple(P(3150, -740)),
+    tuple(P(3320, -330)), tuple(P(2800, 470)), tuple(P(2310, 605)), tuple(P(1960, 700)),
 ]
 
 RING_REFS = {"N7", "N370", "N46"}

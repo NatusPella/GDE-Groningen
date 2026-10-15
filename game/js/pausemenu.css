@@ -312,3 +312,6 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 #pause-menu .m-disc > .m-bar { flex: none; width: 200px; margin-left: auto; max-width: none; }
 #pause-menu .m-disc > .bebas { min-width: 64px; text-align: right; }
 #pause-menu .vh-stage { height: 230px; }
+#pause-menu .mapview-overlay.embedded .mv-goal:has([data-act="avoid"]:not([hidden])) { display: flex; }
+#pause-menu .mapview-overlay.embedded .mv-goal [data-act="avoid"][aria-pressed="true"] { color: var(--g); }
+#pause-menu .mapview-overlay.embedded .mv-goal [data-act="avoid"][hidden] { display: none; }

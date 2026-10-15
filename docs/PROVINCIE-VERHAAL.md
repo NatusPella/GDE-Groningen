@@ -271,14 +271,12 @@ het ontdekken van de regio.
   - een voetbalwedstrijd op het dorpsveld;
   - een begrafenis (stil, niet storen; wie toetert krijgt een blik);
   - een fanfare.
-- **Groot (per regio, per seizoen):**
+- **Groot (per regio, alleen zomerdata):**
   - de kermis;
   - het oogstfeest;
   - een jaarmarkt;
   - een paardenmarkt;
-  - Koningsdag met vrijmarkt (als de kalender het toelaat);
-  - oudjaar met carbid in elk dorp;
-  - de winter met natuurijs (A32).
+  - carbid in het dorp (de bestaande activiteit, geen seizoen).
 - **Regels:** een event start nooit tijdens een missie; er speelt er maar één
   tegelijk in beeld; en elk event heeft een beloning of een grap,
   nooit alleen decor.

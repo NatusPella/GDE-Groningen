@@ -8,7 +8,7 @@ const act = async (name, fn) => {
   await quiet();
 };
 w.devInvuln = true;
-teleport(100, 77); await sleep(2000);
+teleport(...P(100, 77)); await sleep(2000);
 
 await act('pause-tabs', async () => {
   for (const t of ['overzicht', 'telefoon', 'todo', 'verhaal', 'spullen', 'map', 'garage', 'prestaties', 'streken', 'settings', 'controls']) {
@@ -162,7 +162,7 @@ await act('heli', async () => {
 
 await act('pigeon', async () => {
   const PG = await imp('pigeonmode');
-  teleport(100, 77); await sleep(800);
+  teleport(...P(100, 77)); await sleep(800);
   PG.startPigeonMode(w, null); await sleep(2500); await quiet();
   if (!w.pigeonMode) issue('pigeon', 'did not start');
   await hold(['w'], 1500);

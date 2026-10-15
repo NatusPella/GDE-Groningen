@@ -8,6 +8,23 @@ The code is the source of truth; this file is the map.
 ## Units and coordinates
 
 - World units are meters. `x` is east, `y` is south.
+- The world frame is RD New (EPSG:28992) shifted to the old origin:
+  `x = RD_x − 233670`, `y = −(RD_y − 582075)` (`js/rdnew.js`, its Python twin
+  `scripts/world/rdnew.py`, bit-identical; `node scripts/rdnew_test.mjs`).
+  Grid north is 0.94° off true north round Stad (`GRID_CONVERGENCE`, used
+  by the sun in `daynight.js`). Up to 0.28 the frame was equirectangular
+  ("legacy"); `legacyToWorld` converts from it.
+- Map files carry `frame: 'rd-new'` (`citymap.json` meta, `mapextras.json`,
+  `ommeland.json`); the loaders log an error otherwise. Hand-placed
+  positions in code are written in the legacy frame through the helpers in
+  `js/worldframe.js` (`P(x, y)`, `{ ...PO(x, y) }`, `P3`, `PA` for headings,
+  `PL` for polylines, `PB` for boxes, `L` back to legacy for old
+  axis-aligned region tests). A new coordinate is either such a helper call
+  or a world-frame number. Building looks stay seeded on their legacy
+  centre (`b.sd`). `node scripts/world/rebase_coords.mjs --write` bakes every
+  helper call with literal numbers into the numbers it returns (and drops
+  the import), once the tests are green; a branch that still writes
+  positions in the legacy frame wraps them in the helpers when it merges.
 - In 3D: `three.x = world.x`, `three.z = world.y`, `three.y` is up.
 - Angles are radians; `0` faces +x.
 - Building and terrain geometry bake absolute world coordinates into their
@@ -347,8 +364,36 @@ HUD zoom at 1920x1080), `--hud-edge` is the 46 px margin.
   minimap's zoom per mode. The minimap and the big map (`mapview.js`, mode
   selector in its header, opens on how you travel) emphasise the roads for
   your mode, dim the others and dash trunk roads red for walkers and cyclists
-  ("niet voor jou"); the real access tags and the legal consequences (police
-  interest) come with the province tiles.
+  ("niet voor jou"). A road may carry `acc` (bits foot 1, bike 2, car 4,
+  bus 8) from the OSM tags (`foot/bicycle/motor_vehicle/motorcar/access/
+  motorroad/bus/psv`, written by `scripts/process_osm.py` `access_mask` only
+  when they differ from the class; the next `fetch_osm.py` run brings the
+  tags, until then the class decides); `roadAllowed`, `navgraph.accessOf`
+  and the routers read it first. `oneWayFor(road, mode)` (walkers ignore
+  one-ways, cyclists on quiet streets), `offenceOf(road, mode)` and
+  `ROUTE_MODE`/`MODE_OF_ROUTE` (router names `walk/bike/drive/boat/ov/fly`
+  against these).
+- `trafficlaw.js`: walking or cycling on a trunk road or the ring, a car on a
+  cycle path or footway, a bike on a footway: a `politie` card at once, one
+  star after `GRACE_S` (12 s) on it, once per stretch (re-armed 25 s after
+  leaving), never more than one star from this alone; not during missions,
+  jobs, challenges, for the emergency services, buses or in a train/heli.
+  `main.js` calls `updateTrafficLaw` next to `updatePolice`.
+- `travelroute.js` (pure): `boatRoute` (grid A* over the water with shore
+  clearance and bridge clearance, string-pulled, a goal on land ends at the
+  nearest water), `trainTrip` (walk, station, train, change, station, walk
+  with `uitstappen`, `changes` and `stops` for the signs; from the cab the
+  start is the track under you), `airRoute` (a line round the no-fly zones, an
+  altitude hint, the landing spot near the goal), `etaSeconds`. `routing.js`
+  wraps them as `planBoatRoute`, `planTrainTrip`, `planAirRoute` and keeps
+  `noFlyZones`/`landingSpots` (police stations are no-fly, 70 m; pads from
+  `heliflight.js getHelipads`). Bridge and lock data for boats are not in the
+  map yet: deck height from the z profile is all there is (`ctx.clearAt`
+  hook); opening bridges and locks wait for the province tiles.
+- `waymarkers3d.js`: buoys along a boat route, station signs at the stops of a
+  train trip, air rings and a landing pad in the air; the bike ribbon takes
+  its own colour. On the road the route ribbon and the waypoint beacon stay
+  the markers. `scene3d.js` calls `updateWaymarkers3D` from the ribbon update.
 - Boot screen (`#loading`, startscreen.js): dark green from the first paint
   (inline `--ui` script, Electron `backgroundColor`), the logo builds up,
   Gronings status lines rotate, "Druk op een toets" when ready (runs with
@@ -421,7 +466,27 @@ to the nearest snackbar, supermarket or kroeg when health is below 35 (until
 vehicle (hero or bought) below 55 health (until 90; never for stolen
 vehicles). Priority: an active bijbaan or mission, then the goal (a mission
 goal that still needs gear routes to the shop first), then the story step,
-then the post-game guide. `setUserWaypoint` makes a place goal. `getActiveRoute()` is the primary one (goal, else
+then the post-game guide. `setUserWaypoint(x, y, name, z)` makes a place goal
+(`z`: a spot on a bridge deck).
+
+Per travel mode (`route.mode`: `walk`, `bike`, `drive`, `boat`, `ov`, `fly`;
+`route.etaS`, `route.compromise`, boat `route.dock`, air `route.alt` and
+`route.landing`, train `route.uitstappen/changes/stops/legs`): the city graph
+has a walk, a bike and a drive network built from `roadaccess.js` (never an
+illegal edge; `planLandRoute(map, kind, a, b, { avoidMotorways, az, bz })` is
+the strict version the tests hold to the rules; `route.compromise` marks the
+two rule-bending fallbacks, `mixed` over a pedestrian area for a car-free goal
+and `free` against a one-way at the data's edge). The Ommeland graph has a
+foot network that leaves out the motorways (kind 1) and slows on links.
+"Snelwegen vermijden" (a button on the map in Auto mode, `setRoutePrefs`)
+makes motorway metres count 8x. A waypoint and the start snap to the nearest
+road for the mode on the right level: a road on the other level (bridge
+deck or the street under it, from the `z` profile) counts 40 m (start) or
+12 m (goal) further away. The big map's mode buttons plan the goal for that
+mode (`setRoutePrefs({ planMode })`, cleared when the map closes). The GPS
+card gives turns by car, bike and boat, "Uitstappen bij" in the train and the
+altitude and landing spot in the air. `node scripts/mode_route_test.mjs`
+runs all of it on the city map and on the F0 tiles. `getActiveRoute()` is the primary one (goal, else
 objective, else care: 3D ribbon, route chip), `getRoutes()` all of them
 (minimap, full map, map header); `dismissCareRoute()` (the "Negeren" button
 in the map header) hides the pink route until the need is over. In pigeon
@@ -765,6 +830,72 @@ don't collide, and actors are drawn at their height.
   `terrainArrays`), so a change there reaches both;
   the check should pass after it.
 
+## World tiles (`.gdt`, F0 of docs/PROVINCIE-PLAN.md)
+
+The map reaches the game as tiles, one code path in the browser, Electron and
+Node; the JSON files (`citymap.json`, `mapextras.json`, `ommeland.*`) are the
+source the packer reads and the fallback for a build without `world/` (the dev
+server, `?legacymap`).
+
+- **Format (`js/gdt.js`).** Tile grid on the RD kilometre lines (key = RD km of
+  the south-west corner, `234_581`; in the world frame x = 330 + 1000 i,
+  y = 75 + 1000 j). A blob is `GDT1`, format and builder version, the tile, a
+  section table (type, version, offset, length, rows) and the sections; one
+  STRINGS section holds every string. Table sections are columnar: per column
+  a kind per row (absent, null, bool, number, string, points, number list,
+  json) and one value stream per kind. Numbers are integers or exact
+  centimetres, else float64 per row, so a round trip gives the same doubles;
+  points are tile-local centimetres, delta + zigzag varints, all dx then all
+  dy. Section types are reserved for what F1 fills: junctions, heights (AHN
+  raster), pois, furniture, nav, overlay (`SECTION`). Readers skip unknown
+  sections and refuse a newer format. Hashes are two xxh32 (16 hex digits).
+- **Packs (`scripts/world/pack_tiles.mjs`).** The GameMap's arrays after its
+  load-time derivation (doubled footprints, canopies, houseboats, roof steps,
+  ways cut at a wall, dry crossings, trees off the carriageway) are cut into
+  tiles: each object, with its `gid` (its place in the array), is written
+  into every tile its bounds touch. Tiles are raw-deflated, 8 x 8 tiles to a
+  pack named by its hash (`p0_0-<hash>.gdp`), plus `global-<hash>.gdp` (meta,
+  stations and routes, the Ommeland data) and `index.json` (per tile: pack,
+  offset, length, raw size, hash, counts, tallest building; the pinned city
+  set). Same input, same bytes. Per building: `hm` (best height in metres) and
+  `hsrc` (`3dbag`, `osm_height`, `osm_levels`, `default`), roof, colours,
+  materials, BAG year and id from the OSM tags (`scripts/world/building_attrs.py`);
+  the 3D BAG join is in place for F1's extract. `game/world/` is a build
+  artifact (gitignored); `desktop/build.mjs` packs it into the stage, cached by
+  the hash of its inputs in `desktop/.world-cache/`.
+- **Loading (`js/tileworld.js`, `js/tilestore.js`).** `loadTileWorld('world/')`
+  reads `index.json`, the global blob and the pinned city tiles through a
+  `ByteSource` (`HttpRangeSource`: Range fetches, the same on the web and on
+  Electron's `app://` protocol; `MemorySource` in tests; a remote
+  download-on-demand source is another `ByteSource`), decodes them (inflate +
+  decode in `tileworker.js`, or inline) and builds a `TileWorld`.
+  `TileWorld extends GameMap` and `GameMap.fromParts` skips the derivation,
+  so the query API (`buildingsNear`, `roadsNear`, `waterNear`, `greenNear`,
+  `treesNear`, `nearestRoadPoint`, `escapeBuilding`, `isOnBridge`,
+  `groundHeightAt`, `isOpenSpot`, `queryView`, ...) answers exactly as before
+  (`scripts/tileworld_test.mjs` compares them at 4,000 points). Tiles that
+  stream in or out go through `addTile` / `dropTile` (reference count per
+  object, into the same grids) on the `FrameQueue` (a few ms a frame).
+  Until F1 the systems read whole arrays and one elevation model, so the
+  city is pinned; the arrays and the elevation model keep to the pinned set.
+- **Store.** `TileStore` keeps an LRU of decoded tiles under a byte budget
+  (150 MB), pins, a request queue by priority with `AbortController`
+  cancellation (`cancel(token)`), at most four reads at once, and
+  `prefetch(x, y, { vx, vy, radius, ahead })`: the tiles within radius plus
+  speed x 10 s, scored by distance minus speed x 8 s x cos to the heading;
+  tiles are dropped only after ten seconds outside radius + 300 m.
+  `main.js` calls `map.follow` each frame with the camera or the player.
+  `missing(keys)` and `TileWorld.prefetchPoints` are the hooks for a
+  teleport or a cutscene pre-roll.
+- **Floating origin (`js/floatingorigin.js`).** `renderOrigin.toRender(x, y)`,
+  `rebaseIfNeeded(camX, camY)`, `attachRoot(group)` and the `uRenderOrigin`
+  uniform; inert at (0, 0) until tile-local geometry exists (F1). Tested at
+  +-40 km (`scripts/floatingorigin_test.mjs`).
+- **Tests.** `node scripts/world_tiles_test.mjs` (codec, determinism, round
+  trips, the building attribute join), `node scripts/tileworld_test.mjs`
+  (equivalence, streaming on a virtual clock, ranges), `node scripts/floatingorigin_test.mjs`,
+  `node scripts/rdnew_test.mjs`.
+
 ## Saves and versions
 
 One savegame (`savegame.js`, localStorage `gde-save-v1`) and one settings file
@@ -797,7 +928,10 @@ every step, `n -> n + 1`, on a copy, before anything reads it.
 - Save 3 (0.27): `radio` becomes `'on'`/`'off'`. Save 4 (0.28): `streken`
   (`{ v: 1, unlocked, on, used }`, cheats.js), filled for an older save with
   the streken its story already earned (`cheatlist.js` `cheatUnlocksFromSave`).
-  Save 5 (0.28, 18+): knockout counters back to kills.
+  Save 5 (0.28, 18+): knockout counters back to kills. Save 8 (0.30, F0; 7 is the calendar): the world frame
+  is RD New; the player, the own vehicles (with heading) and the goal marker
+  move to the same real place (`legacyToWorld`), and the save gets
+  `frame: 'rd-new'`.
 - `node scripts/save_migration_test.mjs` runs every fixture in
   `scripts/fixtures/saves/` (saves in the shape 0.4, 0.21, 0.22, 0.23 and 0.24
   wrote them, a save from the future, two old settings files) and checks that

@@ -92,6 +92,10 @@ export function registerHelipad(pad) {
   pads.push(pad);
 }
 
+export function getHelipads() {
+  return pads;
+}
+
 export function helipadById(id) {
   return pads.find((p) => p.id === id) || null;
 }
@@ -171,7 +175,7 @@ function hurt(v, dmg, byWorld) {
 function mapEdge(map) {
   if (REAL.ready && REAL.ext) return REAL.ext;
   const b = map.meta && map.meta.bounds;
-  return b || [-3000, -3800, 4200, 2600];
+  return b || [-3068, -3895, 4253, 2666];
 }
 
 // --- flight --------------------------------------------------------------------
@@ -375,7 +379,7 @@ function onTouchdown(v, surf, w) {
 }
 
 function outsideCity(map, x, y) {
-  if (!cityBounds) cityBounds = (map.meta && map.meta.bounds) || [-3000, -3800, 4200, 2600];
+  if (!cityBounds) cityBounds = (map.meta && map.meta.bounds) || [-3068, -3895, 4253, 2666];
   const B = cityBounds;
   return x < B[0] || x > B[2] || y < B[1] || y > B[3];
 }

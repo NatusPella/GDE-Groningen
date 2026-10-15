@@ -46,7 +46,7 @@ export const SHOP_TYPES = {
 
 // Rotor Roelf, the one helicopter dealer: on Groningen Airport Eelde, by the
 // Machlaan (the kiosk faces the road, the platform with the H behind it).
-const HELI_DEALER = { x: 1595.5, y: 9922.9, road: [1590, 9930], pad: { x: 1606, y: 9909, r: 6 }, street: 'Machlaan', wijk: 'Eelde' };
+const HELI_DEALER = { x: 1764.51, y: 9959.94, road: [1759.1, 9967.18], pad: { x: 1774.82, y: 9945.78, r: 6 }, street: 'Machlaan', wijk: 'Eelde' };
 
 // Jetties for boat rental: a kade street next to open water.
 const BOAT_JETTIES = ['Hoge der A', 'Oosterkade', 'Noorderhaven', 'Eendrachtskade', 'Winschoterkade'];
@@ -1509,7 +1509,7 @@ function spawnOwned(world, o, x, y, angle = null, z = null) {
   if (sp.kind === 'heli') return spawnOwnedHeli(world, o, x, y, angle, z);
   const map = world.map;
   // out in the Ommeland (no city street near) a vehicle with a heading is still put right here
-  const point = map.nearestRoadPoint(x, y, 150, sp.kind === 'car') || (angle != null ? map.nearestRoadPoint(0, 0, 400, sp.kind === 'car') : null);
+  const point = map.nearestRoadPoint(x, y, 150, sp.kind === 'car') || (angle != null ? map.nearestRoadPoint(-0.84, 0.33, 400, sp.kind === 'car') : null);
   if (!point) return null;
   const v = spawnVehicleOnRoad(map, point.road, false, Math.random, sp.kind === 'bike', false, angle == null ? point : { x, y }, sp.kind === 'scooter', { ...sp.model, color: o.color });
   v.model = { ...sp.model, color: o.color };

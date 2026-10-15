@@ -195,13 +195,13 @@ function pickShotWeather(base) {
   };
 }
 const EXTRA_SPOTS = [
-  { name: 'Hoge der A', x: -471, y: 76, kind: 'canal' },
-  { name: 'Noorderhaven', x: -349, y: -78, kind: 'canal' },
-  { name: 'Reitdiepskade', x: -553, y: 48, kind: 'canal' },
-  { name: 'Herestraat', x: 114, y: 179, kind: 'street' },
-  { name: 'Folkingestraat', x: -67, y: 311, kind: 'street' },
-  { name: 'Poelestraat', x: 347, y: 130, kind: 'street' },
-  { name: 'Turfsingel', x: 375, y: -216, kind: 'canal' },
+  { name: 'Hoge der A', x: -471.57, y: 84.51, kind: 'canal' },
+  { name: 'Noorderhaven', x: -351.84, y: -72.46, kind: 'canal' },
+  { name: 'Reitdiepskade', x: -554.19, y: 57.67, kind: 'canal' },
+  { name: 'Herestraat', x: 116.34, y: 178.6, kind: 'street' },
+  { name: 'Folkingestraat', x: -62.87, y: 314.41, kind: 'street' },
+  { name: 'Poelestraat', x: 349.02, y: 125.46, kind: 'street' },
+  { name: 'Turfsingel', x: 371.35, y: -223.21, kind: 'canal' },
 ];
 const BIG_KINDS = new Set(['station', 'stadium', 'mall', 'park', 'garden']);
 

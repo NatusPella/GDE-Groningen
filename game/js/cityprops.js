@@ -23,8 +23,8 @@ const MAX_SCENE_PEDS = 18;
 const DRIVE_CATS = ['major', 'normal', 'minor', 'cycle'];
 
 const MARKETS = [
-  { name: 'Grote Markt', x: 162, y: 78, r: 34 },
-  { name: 'Vismarkt', x: 18, y: 244, r: 38 },
+  { name: 'Grote Markt', x: 162.77, y: 76.17, r: 34 },
+  { name: 'Vismarkt', x: 21.21, y: 245.59, r: 38 },
 ];
 
 const VENDOR_LINES = ['Verse haring, moi!', 'Kom moar kieken!', 'Twee kilo appels, twee euro!', 'Lekker stoet, vers van vandoag!', 'Grunneger metworst! Wie wil der nog ain?', 'Kom moar, t is hail goud spul!', 'Dank joe wel, tot kiek!'];
@@ -520,7 +520,7 @@ function findQuaySpot(map, cx0, cy0, rng) {
 
 function findHaulerSpot(map) {
   const rng = new SeededRng(4242);
-  const target = { x: 10, y: 370 };
+  const target = { x: 15.27, y: 372.53 };
   let best = null, bestD = Infinity;
   for (let gx = -4; gx <= 4; gx++) {
     for (let gy = -4; gy <= 4; gy++) {

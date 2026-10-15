@@ -45,6 +45,34 @@ class NoCacheHandler(http.server.SimpleHTTPRequestHandler):
                 return os.path.abspath(root)
         return local
 
+    # HTTP Range (a single bytes=a-b range): the map tiles are read that way
+    # (js/tilestore.js), the same as on the web build and in the desktop app
+    def do_GET(self):
+        rng = self.headers.get("Range", "")
+        local = self.translate_path(self.path)
+        if rng.startswith("bytes=") and "," not in rng and os.path.isfile(local):
+            size = os.path.getsize(local)
+            a, _, b = rng[6:].partition("-")
+            start = size - int(b) if not a else int(a)
+            end = size - 1 if (not b or not a) else min(int(b), size - 1)
+            if start < 0 or start > end or start >= size:
+                self.send_response(416)
+                self.send_header("Content-Range", f"bytes */{size}")
+                self.send_header("Content-Length", "0")
+                self.end_headers()
+                return
+            self.send_response(206)
+            self.send_header("Content-Type", self.guess_type(local))
+            self.send_header("Accept-Ranges", "bytes")
+            self.send_header("Content-Range", f"bytes {start}-{end}/{size}")
+            self.send_header("Content-Length", str(end - start + 1))
+            self.end_headers()
+            with open(local, "rb") as f:
+                f.seek(start)
+                self.wfile.write(f.read(end - start + 1))
+            return
+        super().do_GET()
+
     def end_headers(self):
         self.send_header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
         self.send_header("Pragma", "no-cache")

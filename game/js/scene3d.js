@@ -57,6 +57,7 @@ const NO_WHEEL_INSTANCES = NO_BATCH;
 const wheelFrustum = new THREE.Frustum(), wheelProj = new THREE.Matrix4();
 import { getUiScale } from './uiscale.js';
 import { getActiveRoute, getRouteAhead, getUserWaypoint } from './routing.js';
+import { updateWaymarkers3D, hideWaymarkers3D, routeColor } from './waymarkers3d.js';
 import { OUTLINE_MAT } from './pixelart3d.js';
 import { createSkyUniforms, buildSkyDome, createEnvironmentUpdater, setStarOpacity, SKY_HORIZON } from './sky3d.js';
 import { computeLighting } from './daynight.js';
@@ -2208,6 +2209,7 @@ export function update3D(dt, world) {
   if (!navVisible) {
     if (waypointBeacon) waypointBeacon.visible = false;
     if (routeRibbonMesh) routeRibbonMesh.visible = false;
+    hideWaymarkers3D();
   }
 
   // garages stream their own workshop meshes (garages.js)
@@ -3398,6 +3400,8 @@ function updateRouteRibbon3D(dt, world) {
   }
 
   const route = getActiveRoute();
+  // buoys, station signs, air rings: the markers of the boat, the train and the air
+  updateWaymarkers3D(scene, performance.now() / 1000, route, route && route.remaining > 10 ? getRouteAhead(260) : null, cam);
   if (!routeRibbonMesh) {
     routeRibbonMesh = new THREE.Mesh(new THREE.BufferGeometry(), new THREE.MeshBasicMaterial({
       map: buildChevronTexture(), vertexColors: true, transparent: true, opacity: 0.85, depthWrite: false,
@@ -3408,14 +3412,14 @@ function updateRouteRibbon3D(dt, world) {
     routeRibbonMesh.frustumCulled = false;
     scene.add(routeRibbonMesh);
   }
-  const ahead = route && route.remaining > 10 ? getRouteAhead(RIBBON_AHEAD_M) : null;
+  const ahead = route && route.remaining > 10 && route.mode !== 'boat' && route.mode !== 'fly' ? getRouteAhead(RIBBON_AHEAD_M) : null;
   if (!ahead || ahead.length < 2) {
     routeRibbonMesh.visible = false;
     routeRibbonKey = '';
     return;
   }
   routeRibbonMesh.visible = true;
-  const key = `${route.version}:${Math.round(route.px / 2)}:${Math.round(route.py / 2)}`;
+  const key = `${route.version}:${route.mode}:${Math.round(route.px / 2)}:${Math.round(route.py / 2)}`;
   if (key !== routeRibbonKey) {
     routeRibbonKey = key;
     routeRibbonMesh.geometry.dispose();
@@ -3423,7 +3427,7 @@ function updateRouteRibbon3D(dt, world) {
     const lane = route.mode === 'drive' ? keepRight(ahead, world.map) : ahead;
     const pl = world.player;
     routeRibbonMesh.geometry = buildRouteRibbonGeometry(lane, route.cum[route.idx] + Math.hypot(route.px - p0[0], route.py - p0[1]), world.map, pl.inVehicle ? pl.inVehicle.z || 0 : pl.gz || 0);
-    routeRibbonMesh.material.color.set(markerColors()[route.kind] || markerColors().mission); // a11y.js palette
+    routeRibbonMesh.material.color.set(routeColor(route, markerColors()[route.kind] || markerColors().mission)); // a11y.js palette
   }
   routeRibbonMesh.material.map.offset.y -= dt * 0.8;
 }

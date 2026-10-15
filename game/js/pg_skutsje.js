@@ -17,8 +17,8 @@ import { finish, jelle, setTarget } from './postgame.js';
 // Under a bridge both strike their mast and glide through on their way.
 // Finish = brons, beat Jelle = zilver, by 12 s = goud.
 
-const FROM = [744, 390];
-const TO = [-376, 280];
+const FROM = [751.16, 380.57];
+const TO = [-373.03, 288.27];
 const GATE_EVERY = 160;
 const LIMIT = 600;
 const DEG = Math.PI / 180;

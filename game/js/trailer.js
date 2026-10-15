@@ -348,9 +348,9 @@ function playSfx(kind) {
 
 // --- shots ---------------------------------------------------------------------------
 
-function landmark(w, name, fx, fy) {
+function landmark(w, name, fb) {
   const lm = (w.map.meta.landmarks || []).find((l) => l.name === name);
-  return lm ? { x: lm.x, y: lm.y } : { x: fx, y: fy };
+  return lm ? { x: lm.x, y: lm.y } : fb;
 }
 
 // Nearest point within r metres that is not inside a building footprint.
@@ -672,12 +672,12 @@ const CUT_ORDER = {
 // enter/tick/exit(r, s), cam(u, t, s) -> {position, lookAt, fov}.
 function buildShots(w) {
   const map = w.map;
-  const tower = landmark(w, 'Martinitoren', 214, 13);
-  const vis = landmark(w, 'Vismarkt', 13, 254);
-  const forum = landmark(w, 'Forum Groningen', 356, 63);
-  const museum = landmark(w, 'Groninger Museum', 70.9, 798.3);
-  const park = landmark(w, 'Noorderplantsoen', 133, -719);
-  const square = { x: 172, y: 56 };
+  const tower = landmark(w, 'Martinitoren', { x: 213.81, y: 9.9 });
+  const vis = landmark(w, 'Vismarkt', { x: 16.36, y: 255.74 });
+  const forum = landmark(w, 'Forum Groningen', { x: 356.93, y: 57.89 });
+  const museum = landmark(w, 'Groninger Museum', { x: 83.35, y: 802.56 });
+  const park = landmark(w, 'Noorderplantsoen', { x: 120.57, y: -725.44 });
+  const square = { x: 172.43, y: 53.87 };
   const gz = (x, y, hint = 0) => { const z = map.groundHeightAt ? map.groundHeightAt(x, y, hint) : 0; return Number.isFinite(z) ? z : 0; };
   const lane = (road, s, off) => {
     const q = road.at(s);
@@ -800,7 +800,7 @@ function buildShots(w) {
   };
 
   // the Herestraat in the morning
-  const here = polyline([[214, 398], [217, 403], [222, 413], [230, 430], [232, 438], [235, 446], [247, 476], [250, 483], [252, 490], [252, 494], [264, 554], [266, 570], [270, 591], [273, 602]]);
+  const here = polyline([[220.16, 397.36], [223.25, 402.34], [228.43, 412.32], [236.73, 429.3], [238.86, 437.32], [242, 445.32], [254.52, 475.31], [257.64, 482.31], [259.76, 489.32], [259.83, 493.35], [272.85, 553.53], [275.11, 569.6], [279.47, 590.67], [282.66, 601.69]]);
   const hq = here.at(40);
   const hf = { x: Math.cos(hq.a), y: Math.sin(hq.a) }, hn = { x: -hf.y, y: hf.x };
   const anita = {
@@ -895,7 +895,7 @@ function buildShots(w) {
   };
 
   // Jelle up through the roof of his trekker-limo, the low sun behind him
-  const fjordRoad = polyline([[309, 685], [326, 722], [341, 755], [351, 778], [358, 794], [360, 798], [387, 864], [412, 943], [413, 948], [424, 979], [440, 1026], [452, 1064]]);
+  const fjordRoad = polyline([[320.11, 684.63], [337.76, 721.58], [353.33, 754.55], [363.74, 777.53], [371.02, 793.52], [373.09, 797.51], [401.24, 863.48], [427.6, 942.58], [428.69, 947.59], [440.22, 978.61], [457.04, 1025.64], [469.69, 1063.69]]);
   const LIMO = { ...MODELS[0], name: 'trekkerlimo', len: 5.6, wid: 2.0, color: '#0d0d0f' };
   const jelle = {
     label: 'Jelle Terpstra', cuts: ['vol'], dur: 4.0, clock: 18.9, weather: 'helder', focus: lane(fjordRoad, 70, 2),
@@ -937,7 +937,7 @@ function buildShots(w) {
   };
 
   // Durk and Douwe in one bumper car, under the kermis tent
-  const kc = { x: 168, y: 110 };
+  const kc = { x: 169.31, y: 108.28 };
   const twins = {
     label: 'Durk & Douwe', cuts: ['vol'], dur: 3.2, clock: 16.6, weather: 'helder', focus: kc,
     freezeAt: 1.9, name: { at: 1.9, title: 'Durk <span class="amp">&amp;</span> Douwe', line: 'Twee reuzen. Eén brein.' },
@@ -1019,7 +1019,7 @@ function buildShots(w) {
     },
   };
 
-  const chaseRoad = polyline([[407, 375], [401, 381], [394, 387], [381, 396], [362, 409], [325, 430], [320, 433], [311, 439], [295, 449], [280, 458], [266, 467], [257, 472], [253, 473], [247, 476], [239, 479], [223, 485], [205, 491], [186, 499], [182, 500], [98, 536], [95, 537], [88, 540], [81, 542], [73, 544], [66, 546], [58, 547], [50, 547], [35, 547]]);
+  const chaseRoad = polyline([[413.19, 371.04], [407.28, 377.17], [400.37, 383.33], [387.49, 392.6], [368.66, 405.99], [331.93, 427.74], [326.97, 430.84], [318.05, 437.03], [302.18, 447.35], [287.29, 456.66], [273.41, 465.94], [264.48, 471.12], [260.48, 472.2], [254.52, 475.31], [246.55, 478.46], [230.62, 484.77], [212.68, 491.1], [193.77, 499.46], [189.78, 500.54], [106.19, 538.14], [103.2, 539.2], [96.23, 542.33], [89.25, 544.46], [81.27, 546.61], [74.28, 548.73], [66.28, 549.87], [58.27, 550], [43.23, 550.25]]);
   const chase = {
     label: 'Achtervolging door de binnenstad', cuts: ['vol', 'kort'], dur: 4.2, kort: 3.0, clock: 21.6, weather: 'motregen',
     focus: chaseRoad.at(150),
@@ -1115,7 +1115,7 @@ function buildShots(w) {
   };
 
   // the Us Mem Vet tanker on the Europaweg, sliding, the fat sloshing out
-  const euro = polyline([[1113, 424], [1118, 430], [1122, 436], [1130, 447], [1137, 456], [1140, 460], [1143, 464], [1171, 496], [1197, 524], [1224, 551], [1277, 605], [1307, 635]]);
+  const euro = polyline([[1121.51, 408.67], [1126.63, 414.62], [1130.73, 420.59], [1138.93, 431.53], [1146.1, 440.47], [1149.17, 444.45], [1152.25, 448.42], [1180.84, 480.16], [1207.36, 507.91], [1234.87, 534.63], [1288.89, 588.09], [1319.46, 617.78]]);
   const TANKER = { name: 'truck', tank: true, len: 8.5, wid: 2.5, maxSpeed: 24, accel: 4.5, brake: 14, turnRate: 1.5, color: '#e6c21a' };
   const tanker = {
     label: 'Tankwagen op de Europaweg', cuts: ['vol'], dur: 4.0, clock: 17.6, weather: 'helder', focus: lane(euro, 130, 0),
@@ -1165,7 +1165,8 @@ function buildShots(w) {
   };
 
   // evening light on the Diepenring, Tammo and Tessa at the rail
-  const sBoat0 = canalNear(455, -51) - 30;
+  const boatNear = { x: 454.24, y: -58.47 };
+  const sBoat0 = canalNear(boatNear.x, boatNear.y) - 30;
   const boat = {
     voice: [[0.9, 'audio/voicelines/lines/anita/praat_straks_eens_tegen_mij_542cf4c3.mp3', ['verhaal'], 1.5], [2.7, 'audio/voicelines/lines/tammo/straks_624071a2.mp3', ['verhaal'], 0.8]],
     lines: [[0.9, 1.7, 'Anita', 'Praat straks eens tegen mij.', ['verhaal']], [2.7, 1.2, 'Tammo', '…Straks.', ['verhaal']]],
@@ -1195,7 +1196,7 @@ function buildShots(w) {
   };
 
   const pad = helipadInfo(map);
-  const padC = pad || { x: 749.6, y: -267.8, deck: 20, angle: -0.642 };
+  const padC = pad || { x: 745.84, y: -281.52, deck: 20, angle: -0.6606 };
   // low on the roof edge opposite the city: the heli lifts off against the
   // skyline instead of a wide shot over the flat hospital roofs
   const awayA = Math.atan2(padC.y - tower.y, padC.x - tower.x);
@@ -1231,8 +1232,8 @@ function buildShots(w) {
   };
 
   // the kermis at night: the wheel, the lights, the crowd (kermis.js)
-  const wheel = { x: 146, y: 60 };
-  const kermisPeds = { x: 160, y: 85 };
+  const wheel = { x: 146.44, y: 58.32 };
+  const kermisPeds = { x: 160.89, y: 83.25 };
   const kermis = {
     label: 'Kermis op de Grote Markt', cuts: ['vol', 'kort'], dur: 4.0, kort: 3.0, clock: 22.4, weather: 'helder', focus: kermisPeds,
     voice: [[0.2, 'audio/voicelines/lines/rikus/achtentwintig_augustus_gronings__2e7dda33.mp3', ['verhaal'], 7.05]],
@@ -1255,7 +1256,7 @@ function buildShots(w) {
   };
 
   // last orders in the Poelestraat; Durk sings
-  const poele = polyline([[268, 129], [304, 131], [347, 130], [373, 123], [414, 115]]);
+  const poele = polyline([[269.84, 125.76], [305.94, 127.18], [349.02, 125.46], [374.95, 117.99], [415.91, 109.26]]);
   const singer = lane(poele, 72, 1.6);
   const night = {
     label: 'Nacht in de Poelestraat', cuts: ['vol'], dur: 3.8, clock: 23.3, weather: 'helder', focus: poele.at(70),
@@ -1343,7 +1344,8 @@ function buildShots(w) {
   };
 
   // after the logo: Berend finds a scratch on his bakkie
-  const bq = openSpot(map, 224, -27, 14);
+  const bqAt = { x: 223.17, y: -30.52 };
+  const bq = openSpot(map, bqAt.x, bqAt.y, 14);
   const BAKKIE = { ...MODELS[4], color: '#2f4a66' };
   const BEREND_LOOK = { shirt: 0x4a4038, skin: 0xe2b48c, hair: 0xb8b2a8, variant: 'male', pants: 0x3a3a40, shoes: 0x2a2a2a, hairStyle: 'short', seed: 1672, look: { age: 'old', hat: 'flatcap', hatColor: 0x3a3430, top: 'coat', bottom: 'trousers', bag: null, umbrella: null, glasses: false, build: 'heavy' } };
   const berend = {
@@ -1409,7 +1411,7 @@ function buildShots(w) {
       const q = lane(here, s.d, -0.4);
       s.car = tempCar(r, q.x, q.y, q.a + Math.PI, { hero: true });
       hudPlayer(r, s.car);
-      r.w.goal = { name: 'Grote Markt', sub: 'Jelmer wacht', x: 168, y: 72 };
+      r.w.goal = { name: 'Grote Markt', sub: 'Jelmer wacht', x: 168.69, y: 70.04 };
     },
     tick(r, s, t, dt) {
       const v = lerp(6, 13, smooth(t / 2));
@@ -1429,7 +1431,8 @@ function buildShots(w) {
 
   // the stunt evening on the Grote Markt: parasols and kliko's over, pigeons
   // up, the score panel counting
-  const gm = openSpot(map, 168, 72, 30);
+  const gmAt = { x: 168.69, y: 70.04 };
+  const gm = openSpot(map, gmAt.x, gmAt.y, 30);
   const SR = 15;
   const arcAt = (a) => ({ x: gm.x + Math.cos(a) * SR, y: gm.y + Math.sin(a) * SR, angle: a + Math.PI / 2 });
   const STUNT_PROPS = [['parasol', 0.75, 0.9], ['kliko', 1.15, -0.8], ['parasol', 1.55, 1.0], ['parasol', 1.95, -0.9], ['kliko', 2.3, 0.8]];
@@ -1620,7 +1623,7 @@ function buildShots(w) {
       const q = lane(fjordRoad, s.d, 1.6);
       s.car = tempCar(r, q.x, q.y, q.a, { model: { ...MODELS[8], color: '#c9541e' } });
       hudPlayer(r, s.car);
-      r.w.sideJob = { active: true, goal: { label: 'Bezorg bij de Oosterpoort', desc: '' }, progress: 'Hap & Rap · 3/5', timeLeft: 44, dots: [], marker: { x: 452, y: 1064 } };
+      r.w.sideJob = { active: true, goal: { label: 'Bezorg bij de Oosterpoort', desc: '' }, progress: 'Hap & Rap · 3/5', timeLeft: 44, dots: [], marker: { x: 469.69, y: 1063.69 } };
     },
     tick(r, s, t, dt) {
       const v = 12;
@@ -1643,7 +1646,7 @@ function buildShots(w) {
       const q = lane(poele, s.d, -1.4);
       s.car = tempCar(r, q.x, q.y, q.a, { hero: true });
       hudPlayer(r, s.car);
-      r.w.goal = { name: 'Grote Markt', sub: 'Jelmer wacht', x: 168, y: 72 };
+      r.w.goal = { name: 'Grote Markt', sub: 'Jelmer wacht', x: 168.69, y: 70.04 };
     },
     tick(r, s, t, dt) {
       const v = lerp(5, 0, smooth(t / 1.5));

@@ -212,8 +212,9 @@ async function missionShot(c) {
     const g = w.storyGuide;
     if (p.inVehicle) p.exitVehicle(w.map, w);
     // across the Grote Markt from the yellow marker, facing it
-    const cx = 200, cy = 95;
-    const gx = g ? g.x : 204, gy = g ? g.y : 113;
+    const { P } = await import('/js/worldframe.js');
+    const [cx, cy] = P(200, 95), [fx, fy] = P(204, 113);
+    const gx = g ? g.x : fx, gy = g ? g.y : fy;
     const d = Math.hypot(cx - gx, cy - gy) || 1;
     const tx = gx + (cx - gx) / d * 30, ty = gy + (cy - gy) / d * 30;
     const s = w.map.findOpenSpawn ? (w.map.findOpenSpawn(tx, ty, 40) || { x: tx, y: ty }) : { x: tx, y: ty };

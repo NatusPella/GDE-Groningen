@@ -16,6 +16,10 @@ import json
 import math
 import os
 import subprocess
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from world.rdnew import meta_frame, meta_bbox, P  # noqa: E402
 
 MAP_PATH = "game/citymap.json"
 RAW_PATH = "data/railways_raw.json"
@@ -28,11 +32,7 @@ OVERPASS_URLS = [
 
 def bbox_for(meta, pad=0.004):
     """lat/lon box around the map bounds (plus a little for the lines out)."""
-    lat0, lon0 = meta["origin"]["lat"], meta["origin"]["lon"]
-    m_lat, m_lon = meta["mPerDegLat"], meta["mPerDegLon"]
-    x0, y0, x1, y1 = meta["bounds"]
-    return (round(lat0 - y1 / m_lat - pad, 3), round(lon0 + x0 / m_lon - pad, 3),
-            round(lat0 - y0 / m_lat + pad, 3), round(lon0 + x1 / m_lon + pad, 3))
+    return meta_bbox(meta, pad, 3)
 
 
 def query_for(bbox):
@@ -55,10 +55,10 @@ STATION_NAMES = {
 # the track is then extrapolated EXIT_RUN metres further so the train can
 # drive out of view and come back later.
 ROUTES = [
-    ("Stoptrein Roodeschool", "gtw", ["Groningen Hoofdstation", "Groningen Noord", ("exit", -1000, -4400, "Roodeschool")]),
-    ("Intercity Zwolle", "virm", ["Groningen Hoofdstation", "Groningen Europapark", ("exit", 2254, 2320, "Zwolle")]),
-    ("Stoptrein Winschoten", "wink", ["Groningen Hoofdstation", "Groningen Europapark", ("exit", 2261, 2311, "Winschoten")]),
-    ("Stoptrein Leeuwarden", "gtw", ["Groningen Hoofdstation", ("exit", -3600, 910, "Leeuwarden")]),
+    ("Stoptrein Roodeschool", "gtw", ["Groningen Hoofdstation", "Groningen Noord", ("exit", *P(-1000, -4400), "Roodeschool")]),
+    ("Intercity Zwolle", "virm", ["Groningen Hoofdstation", "Groningen Europapark", ("exit", *P(2254, 2320), "Zwolle")]),
+    ("Stoptrein Winschoten", "wink", ["Groningen Hoofdstation", "Groningen Europapark", ("exit", *P(2261, 2311), "Winschoten")]),
+    ("Stoptrein Leeuwarden", "gtw", ["Groningen Hoofdstation", ("exit", *P(-3600, 910), "Leeuwarden")]),
 ]
 EXIT_RUN = 800.0
 # Rail lifted over roads it crosses without a level crossing (OSM: rail
@@ -197,12 +197,8 @@ def main():
     with open(MAP_PATH) as f:
         data = json.load(f)
     meta = data["meta"]
-    lat0, lon0 = meta["origin"]["lat"], meta["origin"]["lon"]
-    m_lat, m_lon = meta["mPerDegLat"], meta["mPerDegLon"]
+    project, _ = meta_frame(meta)
     bx0, by0, bx1, by1 = meta["bounds"]
-
-    def project(lat, lon):
-        return ((lon - lon0) * m_lon, (lat0 - lat) * m_lat)
 
     def inside(p, margin=CLIP_MARGIN):
         return bx0 - margin <= p[0] <= bx1 + margin and by0 - margin <= p[1] <= by1 + margin

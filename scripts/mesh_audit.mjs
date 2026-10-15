@@ -95,7 +95,7 @@ setRoadNetwork(map);
 setBuildingMap(map);
 log('map loaded');
 // home.js prepareHomeMap reshapes the House of Groningen when the game loads
-const isHome = (b) => b.h >= 12 && pointInPolygon(-1268, -1096, b.pts);
+const isHome = (b) => b.h >= 12 && pointInPolygon(-1289.19, -1082.05, b.pts);
 const inArea = (x, y) => !AREA || (x >= AREA[0] && x <= AREA[2] && y >= AREA[1] && y <= AREA[3]);
 const near = (bb, pad = 0) => !AREA || (bb[2] >= AREA[0] - pad && bb[0] <= AREA[2] + pad && bb[3] >= AREA[1] - pad && bb[1] <= AREA[3] + pad);
 

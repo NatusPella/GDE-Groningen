@@ -239,7 +239,7 @@ export function buildMuseumInterior(b) {
   buildCase(group);
   refreshCase();
   registerPortalBoxes(b, MUSEUM_ROOMS.map((r) => ({ cx: r.cx, cy: r.cy, ux: r.ux, uy: r.uy, hl: r.hl, hw: r.hw, top: r.h + 0.02, bottom: -2 })));
-  registerInterior(group, { x: 70, y: 798 }, SHOW_RADIUS, refreshCase);
+  registerInterior(group, { x: 82.44, y: 802.27 }, SHOW_RADIUS, refreshCase);
   built = group;
   return group;
 }

@@ -75,11 +75,11 @@ if (worstPol.d > MAX_POLICE) fail(`police too far: ${Math.round(worstPol.d)} m`)
 // a few known places
 const near = (kind, x, y) => Fac.nearestFacility(kind, x, y);
 const expect = [
-  ['medical', 800, -170, /^UMCG$/],
-  ['police', 480, 430, /Groningen Centrum/],
-  ['police', 2079, -8936, /Bedum/],
-  ['police', -2400, -12300, /Winsum/],
-  ['medical', -10665, -3160, /Zuidhorn/],
+  ['medical', 797.97, -183.93, /^UMCG$/],
+  ['police', 487.26, 425.18, /Groningen Centrum/],
+  ['police', 1931.4, -9027.27, /Bedum/],
+  ['police', -2602.1, -12339.71, /Winsum/],
+  ['medical', -10732.8, -3017.02, /Zuidhorn/],
 ];
 for (const [k, x, y, re] of expect) {
   const f = near(k, x, y);

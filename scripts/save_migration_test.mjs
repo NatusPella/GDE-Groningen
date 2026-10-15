@@ -13,6 +13,7 @@ import { migrateSave, migrateSettings, savedStoryStep, SAVE_VERSION, SETTINGS_VE
 import { STEP_BY_ID, RETIRED_STEPS } from '../game/js/storyarc.js';
 import { STAT_DEFAULTS, statsFromSave } from '../game/js/world.js';
 import { CHEAT_BY_ID } from '../game/js/cheatlist.js';
+import { legacyToWorld, legacyAngleToWorld } from '../game/js/rdnew.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DIR = path.join(ROOT, 'scripts/fixtures/saves');
@@ -29,6 +30,7 @@ const STATS = new Set(Object.keys(STAT_DEFAULTS));
 let n = 0, fails = 0;
 const ok = (cond, name, info = '') => { n++; if (!cond) { fails++; console.log(`FAIL ${name}${info ? ' (' + info + ')' : ''}`); } };
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+const movedTo = (o, n) => { const [x, y] = legacyToWorld(o.x, o.y); return Math.abs(n.x - x) <= 0.051 && Math.abs(n.y - y) <= 0.051; };
 
 for (const sanity of [[VEHICLES, 'omafiets'], [OUTFIT_IDS, 'incognito'], [UPGRADES, 'turbo'], [STATS, 'pedKills']]) ok(sanity[0].has(sanity[1]), `id list from source has ${sanity[1]}`);
 
@@ -97,7 +99,14 @@ for (const file of files) {
   // garage, outfits, prestaties
   const sh = d.shops;
   if (sh) {
-    ok(same(sh.vehicles, before.shops.vehicles), `${tag}: garage intact`);
+    const noPos = (list) => list.map(({ x, y, angle, ...rest }) => rest);
+    ok(same(noPos(sh.vehicles), noPos(before.shops.vehicles)), `${tag}: garage intact`);
+    sh.vehicles.forEach((v, i) => {
+      const o = before.shops.vehicles[i];
+      if (!Number.isFinite(o.x)) return ok(!('x' in v), `${tag}: ${v.key} without a place stays without`);
+      ok(movedTo(o, v), `${tag}: ${v.key} at the same real place (RD New)`, `${o.x},${o.y} -> ${v.x},${v.y}`);
+      if (Number.isFinite(o.angle)) ok(Math.abs(v.angle - legacyAngleToWorld(o.x, o.y, o.angle)) < 0.06, `${tag}: ${v.key} heading turned with the frame`);
+    });
     for (const v of sh.vehicles) ok(VEHICLES.has(v.key), `${tag}: vehicle ${v.key} still exists`);
     for (const v of sh.vehicles) for (const u of v.upgrades) ok(UPGRADES.has(u) || /bel|mand|slot/.test(u), `${tag}: upgrade ${u} still exists`);
     ok(same(sh.ownedOutfits, before.shops.ownedOutfits) && same(sh.outfit, before.shops.outfit), `${tag}: outfits intact`);
@@ -118,9 +127,19 @@ for (const file of files) {
     for (const id of exp.streken || []) ok(sk.unlocked.includes(id), `${tag}: streek ${id} unlocked`);
     for (const id of exp.strekenLocked || []) ok(!sk.unlocked.includes(id), `${tag}: streek ${id} still locked`);
   }
-  for (const k of ['visitedLandmarks', 'meubels', 'bijbaan', 'postgame', 'doel', 'duif', 'character', 'pos']) {
+  for (const k of ['visitedLandmarks', 'meubels', 'bijbaan', 'postgame', 'duif', 'character']) {
     if (k in before) ok(same(d[k], before[k]), `${tag}: ${k} intact`);
   }
+  // positions: the same real place in the RD New frame (save v7)
+  for (const k of ['pos', 'doel']) {
+    const o = before[k];
+    if (!(k in before)) continue;
+    if (!o || !Number.isFinite(o.x)) { ok(same(d[k], o), `${tag}: ${k} without a place intact`); continue; }
+    const { x, y, ...rest } = d[k], { x: ox, y: oy, ...orest } = o;
+    ok(same(rest, orest) && movedTo(o, d[k]), `${tag}: ${k} at the same real place`, `${ox},${oy} -> ${x},${y}`);
+  }
+  if (before.v < 8) ok(d.frame === 'rd-new', `${tag}: marked as RD New`);
+  if (exp.pos) ok(Math.hypot(d.pos.x - exp.pos[0], d.pos.y - exp.pos[1]) < 0.06, `${tag}: pos is ${exp.pos}`, `${d.pos.x},${d.pos.y}`);
 }
 
 // every station id the radio list ever saved

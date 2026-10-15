@@ -263,7 +263,7 @@ export async function driveRingLap(world) {
 
 // Every place a major or numbered road runs over water, one entry per
 // carriageway: { road, x, y, s0, s1 } with s0..s1 the wet stretch along it.
-function waterCrossings(map) {
+export function waterCrossings(map) {
   const out = [];
   for (const r of map.roads) {
     if (!(r.cat === 'major' || (r.ref && (r.cat === 'normal' || r.cat === 'minor')))) continue;
@@ -289,7 +289,7 @@ function waterCrossings(map) {
 // The carriageway through a crossing as one polyline, `reach` metres on
 // either side: the road itself, continued at its ends along the car road that
 // carries straight on (same level, smallest turn).
-function crossingPath(map, c, reach) {
+export function crossingPath(map, c, reach) {
   const r = c.road, P = r.pts;
   const len = (Q) => Q.slice(1).reduce((a, q, i) => a + Math.hypot(q[0] - Q[i][0], q[1] - Q[i][1]), 0);
   const zEnd = (w, end) => (w.z ? (end ? w.z[w.z.length - 1] : w.z[0]) : 0);
@@ -348,7 +348,7 @@ function cornerSpeed(path, s) {
 
 // The path shifted o metres sideways, but never nearer than a car's half
 // width to the edge of the carriageway it is on (the road ahead may narrow).
-function offsetPath(map, path, o) {
+export function offsetPath(map, path, o) {
   if (!o) return path;
   return path.map((q, i) => {
     const a = path[Math.max(0, i - 2)], b = path[Math.min(path.length - 1, i + 2)];
@@ -368,7 +368,7 @@ function offsetPath(map, path, o) {
 
 // A car with the player's collision driven over the path at `speed` m/s.
 // Resolves null when it crossed, else { what, x, y, z }.
-async function driveAcross(world, path, speed) {
+export async function driveAcross(world, path, speed) {
   const map = world.map, p = world.player;
   const car = new Vehicle(path[0][0], path[0][1], Math.atan2(path[3][1] - path[0][1], path[3][0] - path[0][0]), { name: 'sport', len: 4.1, wid: 1.85, maxSpeed: 40, accel: 14, brake: 30, turnRate: 3.2, color: '#8a1414' });
   car.driver = 'player';
@@ -415,7 +415,9 @@ async function driveAcross(world, path, speed) {
       if (before - car.speed > 1.5) return fail('botst');
       if (car.speed < 2) return fail('staat stil');
       // (where two carriageways overlap on their way to merge it may ride the other one)
-      if (!car.airborne && (car.z || 0) < path[bs][2] - 2.5) return fail('van het dek gevallen');
+      // (the last metres are run-out, the path is cut there at an arbitrary point: where a
+      // ramp runs beneath its own viaduct a car still on the ramp is 'below' the end of the path)
+      if (!car.airborne && bs < path.length - 12 && (car.z || 0) < path[bs][2] - 2.5) return fail('van het dek gevallen');
       if (t > 30) return fail('komt niet vooruit');
     }
     streamAround(world, car.x, car.y);
