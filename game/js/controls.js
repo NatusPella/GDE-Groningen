@@ -14,6 +14,9 @@ export const KEY_ACTIONS = [
   [' ', 'Springen, over hek of auto klimmen, uit het water klimmen, handrem, klapwieken; heli: omhoog', 'beweging'],
   ['shift', 'Rennen, boost, duiken; heli: sneller', 'beweging'],
   ['control', 'Bukken; duif: pikken en landen; heli: omlaag', 'beweging'],
+  ['.', 'Rijden, handmatig schakelen: een versnelling hoger', 'beweging'],
+  [',', 'Rijden, handmatig schakelen: een versnelling lager', 'beweging'],
+  ['j', 'Rijden, handmatig met koppeling: koppeling indrukken', 'beweging'],
   ['e', 'Instappen (ook vanuit het water in een boot), praten, gebruiken; duif: pikken', 'actie'],
   ['f', 'Instappen (tweede toets); duif: poepen', 'actie'],
   ['k', 'Kusje', 'actie'],
@@ -181,6 +184,8 @@ const FOOT = {
 export const PAD_MAPS = {
   foot: FOOT,
   vehicle: { a: ' ', b: 'l', x: 'h', y: 'e', lb: 'n', rb: '@fire', lt: '@brake', rt: '@gas', ls: 'shift', rs: 'q', up: null, down: 'v', left: 'o', right: 'r', view: 'm', start: 'escape', stick: 'steer' },
+  // manual shifting (setting shiftMode): the bumpers shift, L3 is the clutch, the radio moves to the D-pad
+  vehicleManual: { a: ' ', b: 'l', x: 'h', y: 'e', lb: ',', rb: '.', lt: '@brake', rt: '@gas', ls: 'j', rs: 'q', up: 'n', down: 'v', left: 'o', right: 'r', view: 'm', start: 'escape', stick: 'steer' },
   skutsje: { a: ' ', b: 'l', x: 'h', y: 'e', lb: 'z', rb: 'q', lt: '@brake', rt: '@gas', ls: 'shift', rs: null, up: null, down: 'v', left: 'o', right: 'r', view: 'm', start: 'escape', stick: 'steer' },
   // the helicopter: left stick flies (forward/back, turn), A or RT up, B or LT down, RB or L3 faster
   heli: { a: ' ', b: 'control', x: null, y: 'e', lb: null, rb: 'shift', lt: 'control', rt: ' ', ls: 'shift', rs: null, up: null, down: 'v', left: 'o', right: 'backspace', view: 'm', start: 'escape', stick: 'move' },
