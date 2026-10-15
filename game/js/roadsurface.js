@@ -360,23 +360,45 @@ function buildAtlas() {
 // ---------------------------------------------------------------- network
 
 let netMap = null;
-const nodeIndex = new Map();
+let nodeIndex = new Map();
 let lights = [];
 const nodeKey = (p) => Math.round(p[0] * 10) + ',' + Math.round(p[1] * 10);
 
-export function setRoadNetwork(map) {
-  if (netMap === map) return;
-  netMap = map;
-  nodeIndex.clear();
+// Junction index and signals per road network: the city map, and any other
+// map whose roads carry it as r.net (the real Ommeland, realmap.js); a road
+// is always built against its own network.
+const nets = new WeakMap();
+function netState(map) {
+  let s = nets.get(map);
+  if (s) return s;
+  s = { nodeIndex: new Map(), lights: allSignals(map).filter((l) => !l.bike) };
   for (const r of map.roads) {
     for (let i = 0; i < r.pts.length; i++) {
       const k = nodeKey(r.pts[i]);
-      let a = nodeIndex.get(k);
-      if (!a) nodeIndex.set(k, a = []);
+      let a = s.nodeIndex.get(k);
+      if (!a) s.nodeIndex.set(k, a = []);
       a.push(r, i);
     }
   }
-  lights = allSignals(map).filter((l) => !l.bike);
+  nets.set(map, s);
+  return s;
+}
+function useNet(map) {
+  const prev = [netMap, nodeIndex, lights];
+  const s = netState(map);
+  netMap = map; nodeIndex = s.nodeIndex; lights = s.lights;
+  return prev;
+}
+function ownNet(r) {
+  return r.net && r.net !== netMap ? useNet(r.net) : null;
+}
+function restoreNet(prev) {
+  if (prev) [netMap, nodeIndex, lights] = prev;
+}
+
+export function setRoadNetwork(map) {
+  if (netMap === map) return;
+  useNet(map);
 }
 
 function roadHash(r) {
@@ -1377,6 +1399,7 @@ function markingGeometry(r) {
 export function roadSurfaceGeometries(r, det = detail) {
   const prev = detail;
   detail = det;
+  const net = ownNet(r);
   try {
     const surf = roadSurface(r);
     return {
@@ -1386,6 +1409,7 @@ export function roadSurfaceGeometries(r, det = detail) {
     };
   } finally {
     detail = prev;
+    restoreNet(net);
   }
 }
 export function roadDetail() {
@@ -1445,6 +1469,14 @@ export function roadGeometryReady(r) {
 // ---------------------------------------------------------------- road group
 
 export function buildRoadGroup(r) {
+  const net = ownNet(r);
+  try {
+    return roadGroup(r);
+  } finally {
+    restoreNet(net);
+  }
+}
+function roadGroup(r) {
   const group = new THREE.Group();
   const surf = roadSurface(r);
 
