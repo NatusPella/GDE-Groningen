@@ -90,7 +90,7 @@ function mergeWorld(pieces, mode) {
   let total = 0;
   for (const L of byGroup) for (const r of L) total += r.count;
   if (!total) return null;
-  const P = new Float32Array(total * 3), N = new Int8Array(total * 3), C = new Uint8Array(total * 3), A = new Float32Array(total * 2);
+  const P = new Float32Array(total * 3), N = new Int8Array(total * 3), C = new Uint8Array(total * 3), A = new Float32Array(total * 3);
   const geo = new THREE.BufferGeometry();
   const v = new THREE.Vector3(), n = new THREE.Vector3();
   let o = 0;
