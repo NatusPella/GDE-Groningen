@@ -31,7 +31,7 @@ import { setGhostBar, ring, pop } from './motion.js';
 import { renderSnapshot, PORTRAIT_ANGLE } from './vehiclepreview.js';
 import { TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { initPrompts, updatePrompts, hintCount } from './prompts.js';
-import { hudPixelRatio } from './uiscale.js';
+import { hudPixelRatio, sizeSquareCanvas } from './uiscale.js';
 import { initCards, updateCards } from './hudcards.js';
 import { markerColors, onPaletteChange } from './a11y.js';
 import { drawMissionGlyph } from './missionicons.js';
@@ -1899,8 +1899,7 @@ function drawVillageNames(ctx, player, radius, toScreen) {
 function drawMinimap(dt, world) {
   const ctx = els.mmCtx;
   const dpr = hudPixelRatio();
-  const px = Math.round(MINIMAP_SIZE * dpr);
-  if (els.mmCanvas.width !== px) els.mmCanvas.width = els.mmCanvas.height = px;
+  sizeSquareCanvas(els.mmCanvas, Math.round(MINIMAP_SIZE * dpr));
   const player = world.player;
   const t = performance.now() / 1000;
 
