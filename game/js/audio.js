@@ -2294,6 +2294,7 @@ function updateEngineSynth(dt, world) {
   if (t < S.shiftUntil) load = 0.3;
   rpm = Math.min(rpm, spec.red * 0.95);
   S.prevThr = thr;
+  S.rpm = rpm;
 
   // an electric motor is silent standing still and whines up with speed
   const gain = spec.level * (world.paused ? 0.5 : 1) * (S.kind === 7 ? clamp(speed / 2.5, 0, 1) * (0.6 + 0.4 * (thr > 0 ? 1 : 0)) : 1);
@@ -2305,6 +2306,16 @@ function updateEngineSynth(dt, world) {
     engineEarly.level.gain.setTargetAtTime(v.isBoat ? 0 : 0.05 + 0.13 * clamp(place.density || 0, 0, 1), ctx.currentTime, 0.5);
   }
   synthPost(synth.player, { type: 'p', v: [{ i: 0, kind: S.kind, rpm, load, gain, pitch: 1, muffle }], road });
+}
+
+// The HUD's rev counter and gear (hud_panel.js): the engine sound's own
+// state, so the needle and the sound agree. null when no engine runs.
+export function engineReadout() {
+  const S = engineState;
+  if (!S.vehicle) return null;
+  const spec = ENGINE_SPECS[S.kind];
+  const geared = S.kind !== 3 && S.kind !== 4 && S.kind !== 7;
+  return { rpm: S.rpm || spec.idle, red: spec.red, gear: geared ? S.gear : -1, reverse: S.vehicle.speed < -0.2, gears: geared ? (S.kind === 2 ? BUS_GEAR_TOPS : GEAR_TOPS).length : 0 };
 }
 
 const trafficEngine = new WeakMap();
