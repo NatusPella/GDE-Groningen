@@ -14,7 +14,7 @@ const map = new GameMap(data);
 const all = process.argv.includes('--all');
 // the House of Groningen: home.js prepareHomeMap reshapes its footprint and
 // takes the garage aisles out when the game loads (the story test checks it)
-const home = (b) => b.h >= 12 && pointInPolygon(-1268, -1096, b.pts);
+const home = (b) => b.h >= 12 && pointInPolygon(-1289.19, -1082.05, b.pts);
 const res = auditPassages(map, { all, skip: home });
 if (process.argv.includes('--json')) console.log(JSON.stringify(res.list));
 else for (const e of res.list) console.log(`${e.cls.padEnd(8)} ${String(e.x).padStart(8)} ${String(e.y).padStart(8)}  depth ${e.depth} len ${e.len}  ${e.road}  | ${e.building}`);

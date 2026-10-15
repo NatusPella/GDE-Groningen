@@ -23,8 +23,8 @@ const SPOTS = [
   { id: 'grotemarkt', landmark: 'Grote Markt', name: 'Grote Markt', host: 'Een zwerm op de keien' },
   { id: 'martini', landmark: 'Martinitoren', name: 'Martinitoren', host: 'Duiven aan de voet van d\'Olle Grieze' },
   { id: 'noorderplantsoen', landmark: 'Noorderplantsoen', name: 'Noorderplantsoen', host: 'Duiven bij de vijver' },
-  { id: 'station', x: -60, y: 892, name: 'Stationsplein', host: 'Stationsduiven wachten op de trein' },
-  { id: 'volkstuin', x: 1010, y: 1537, name: 'Duiventil volkstuin', host: 'Duivenmelker Bert leent je een duif', loft: true },
+  { id: 'station', x: -46.3, y: 899, name: 'Stationsplein', host: 'Stationsduiven wachten op de trein' },
+  { id: 'volkstuin', x: 1036.85, y: 1530.47, name: 'Duiventil volkstuin', host: 'Duivenmelker Bert leent je een duif', loft: true },
 ];
 const USE_RADIUS = 2.4;
 const FLOCK_DRAW = 45;

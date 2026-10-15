@@ -38,6 +38,7 @@ export async function loadOmmeland(mapUrl = 'citymap.json') {
       fetch(base + 'ommeland.bin').then((r) => (r.ok ? r.arrayBuffer() : null)),
     ]);
     if (!j || !b || typeof DecompressionStream === 'undefined') return null;
+    if (j.frame !== 'rd-new') console.error('ommeland.json is not in the rd-new frame (scripts/world/rebase_data.py)');
     const raw = await new Response(new Blob([b]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer();
     return { ...j, bin: raw };
   } catch (e) {

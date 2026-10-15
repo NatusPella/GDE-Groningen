@@ -76,14 +76,14 @@ const ROOF = { tile: 0x8f3f2c, slate: 0x3e4449, reed: 0x6b5d45 };
 
 // Hand-tuned icons (by name and spot), over what the rules pick.
 export const LANDMARK_LOOKS = [
-  { n: 'Walfriduskerk', x: 2555, y: -9069, p: { tower: 'saddle', lean: 0.075, towerH: 36, choir: 'apse', wierde: true } },
-  { n: 'Kerk van Garmerwolde', x: 5505, y: -3169, p: { tower: 'saddle', ruin: true, towerH: 26 } },
-  { n: 'Nicolaaskerk', x: 2677, y: 5182, p: { tower: 'saddle', towerH: 27, choir: 'poly', wierde: true } },
-  { n: 'Het Witte Kerkje', x: 2991, y: 5175, p: { tower: 'ridge', brick: 'white', roof: 'slate', choir: 'flat' } },
-  { n: 'Kloosterkerk', x: 8454, y: -6267, p: { tower: 'ridge', choir: 'poly', windows: 'pointed', buttress: true } },
-  { n: 'Torenkerk', x: -3181, y: -12273, p: { tower: 'saddle', towerH: 30, wierde: true } },
-  { n: 'Sebastiaan/Fabius', x: -10518, y: -2520, p: { tower: 'spire', towerH: 42 } },
-  { n: 'Abdijkerk', x: -7069, y: -4075, p: { tower: 'ridge', windows: 'pointed', buttress: true, choir: 'poly' } },
+  { n: 'Walfriduskerk', x: 2405.22, y: -9169.15, p: { tower: 'saddle', lean: 0.075, towerH: 36, choir: 'apse', wierde: true } },
+  { n: 'Kerk van Garmerwolde', x: 5459.59, y: -3282.23, p: { tower: 'saddle', ruin: true, towerH: 26 } },
+  { n: 'Nicolaaskerk', x: 2769.82, y: 5170.7, p: { tower: 'saddle', towerH: 27, choir: 'poly', wierde: true } },
+  { n: 'Het Witte Kerkje', x: 3084.68, y: 5158.32, p: { tower: 'ridge', brick: 'white', roof: 'slate', choir: 'flat' } },
+  { n: 'Kloosterkerk', x: 8356.13, y: -6452.57, p: { tower: 'ridge', choir: 'poly', windows: 'pointed', buttress: true } },
+  { n: 'Torenkerk', x: -3382.27, y: -12300.22, p: { tower: 'saddle', towerH: 30, wierde: true } },
+  { n: 'Sebastiaan/Fabius', x: -10576.47, y: -2374.99, p: { tower: 'spire', towerH: 42 } },
+  { n: 'Abdijkerk', x: -7145.44, y: -3990.13, p: { tower: 'ridge', windows: 'pointed', buttress: true, choir: 'poly' } },
 ];
 
 // item: { k, n, x, y, o?, t } (scripts/add_landmark_kits.py), fit: an

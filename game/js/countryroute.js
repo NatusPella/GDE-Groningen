@@ -34,7 +34,7 @@ const PC = ROAD_IN + ROAD_W / 2;
 function build(real, need = null) {
   const t0 = performance.now();
   // ---- segments: the real roads, then the polder grid
-  const sx0 = [], sy0 = [], sx1 = [], sy1 = [], sroad = [], sbridge = [], sone = [];
+  const sx0 = [], sy0 = [], sx1 = [], sy1 = [], sroad = [], sbridge = [], sone = [], skind = [];
   const ends = [];
   let rid = 0;
   let wx0 = Infinity, wy0 = Infinity, wx1 = -Infinity, wy1 = -Infinity;
@@ -42,7 +42,7 @@ function build(real, need = null) {
     const p = r.pts;
     for (let i = 0; i < p.length - 1; i++) {
       if (p[i][0] === p[i + 1][0] && p[i][1] === p[i + 1][1]) continue;
-      sx0.push(p[i][0]); sy0.push(p[i][1]); sx1.push(p[i + 1][0]); sy1.push(p[i + 1][1]); sroad.push(rid); sbridge.push(!!r.bridge); sone.push(!!r.oneway);
+      sx0.push(p[i][0]); sy0.push(p[i][1]); sx1.push(p[i + 1][0]); sy1.push(p[i + 1][1]); sroad.push(rid); sbridge.push(!!r.bridge); sone.push(!!r.oneway); skind.push(r.kind | 0);
     }
     for (const q of p) { wx0 = Math.min(wx0, q[0]); wy0 = Math.min(wy0, q[1]); wx1 = Math.max(wx1, q[0]); wy1 = Math.max(wy1, q[1]); }
     ends.push(p[0][0], p[0][1], rid, p.at(-1)[0], p.at(-1)[1], rid);
@@ -61,7 +61,7 @@ function build(real, need = null) {
         const x = i * BLOCK + PC, y = j * BLOCK + PC;
         for (const s of [0, 1]) {
           if (!edgeRoad(i, j, s)) continue;
-          sx0.push(x); sy0.push(y); sx1.push(s ? x + BLOCK : x); sy1.push(s ? y : y + BLOCK); sroad.push(rid); sbridge.push(false); sone.push(false);
+          sx0.push(x); sy0.push(y); sx1.push(s ? x + BLOCK : x); sy1.push(s ? y : y + BLOCK); sroad.push(rid); sbridge.push(false); sone.push(false); skind.push(7);
           ends.push(x, y, rid, s ? x + BLOCK : x, s ? y : y + BLOCK, rid);
           rid++;
         }
@@ -140,7 +140,7 @@ function build(real, need = null) {
   // ---- nodes and edges
   const ids = new Map();
   const xs = [], ys = [];
-  const flat = [];
+  const flat = [], fk = [];
   const nodeOf = (x, y) => {
     const key = (Math.round(x * 2) + 200000) * 400000 + (Math.round(y * 2) + 200000);
     let id = ids.get(key);
@@ -148,10 +148,11 @@ function build(real, need = null) {
     return id;
   };
   // flat: a, b, length, one-way (1: a to b only, the way's own direction)
-  const edge = (a, b, one = 0) => {
+  const edge = (a, b, one = 0, kind = 0) => {
     if (a === b) return;
     const L = Math.hypot(xs[b] - xs[a], ys[b] - ys[a]);
     flat.push(a, b, L, one);
+    fk[flat.length / 4 - 1] = kind;
   };
   for (let s = 0; s < S; s++) {
     const ts = splits[s] ? splits[s].sort((p, q) => p - q) : [0, 1];
@@ -160,7 +161,7 @@ function build(real, need = null) {
     for (let i = 1; i < ts.length; i++) {
       if (ts[i] - ts[i - 1] < 1e-6) continue;
       const b = i === ts.length - 1 ? nodeOf(sx1[s], sy1[s]) : nodeOf(sx0[s] + dx * ts[i], sy0[s] + dy * ts[i]);
-      edge(a, b, sone[s] ? 1 : 0);
+      edge(a, b, sone[s] ? 1 : 0, skind[s]);
       a = b;
     }
   }
@@ -169,10 +170,14 @@ function build(real, need = null) {
   const N = xs.length, m = flat.length / 4;
   // forward: the way a car may drive; reverse: the same turned round, for costs
   // towards a target; undirected: connected parts and snapping
-  const adjacency = (dir) => {
+  // foot: for walkers and cyclists, who stay off the motorways (kind 1) and are
+  // slow on their ramps and links (kind 2)
+  const adjacency = (dir, foot = false) => {
     const pairs = [];
     for (let e = 0; e < m; e++) {
-      const a = flat[e * 4], b = flat[e * 4 + 1], L = flat[e * 4 + 2], one = flat[e * 4 + 3];
+      const kd = fk[e] | 0;
+      if (foot && kd === 1) continue;
+      const a = flat[e * 4], b = flat[e * 4 + 1], L = foot && kd === 2 ? flat[e * 4 + 2] * 2.5 : flat[e * 4 + 2], one = flat[e * 4 + 3];
       if (dir === 'und' || !one) pairs.push(a, b, L, b, a, L);
       else if (dir === 'fwd') pairs.push(a, b, L);
       else pairs.push(b, a, L);
@@ -186,7 +191,7 @@ function build(real, need = null) {
     for (let e = 0; e < k; e++) { const q = fill[pairs[e * 3]]++; to[q] = pairs[e * 3 + 1]; len[q] = pairs[e * 3 + 2]; }
     return { start, to, len };
   };
-  const fwd = adjacency('fwd'), rev = adjacency('rev'), und = adjacency('und');
+  const fwd = adjacency('fwd'), rev = adjacency('rev'), und = adjacency('und'), foot = adjacency('und', true);
   const start = und.start, to = und.to;
   // the main network: the biggest connected part (stray farm tracks stay out)
   const comp = new Int32Array(N).fill(-1);
@@ -205,23 +210,26 @@ function build(real, need = null) {
     id++;
   }
   // edges of the main network in a grid, for snapping onto the nearest road: a, b, one-way
-  const egrid = new Map();
+  const egrid = new Map(), egridFoot = new Map();
   for (let e = 0; e < m; e++) {
     const u = flat[e * 4], v = flat[e * 4 + 1], one = flat[e * 4 + 3];
     if (comp[u] !== main) continue;
+    const grids = (fk[e] | 0) === 1 ? [egrid] : [egrid, egridFoot];
     const cx0 = Math.floor(Math.min(xs[u], xs[v]) / CELL), cx1 = Math.floor(Math.max(xs[u], xs[v]) / CELL);
     const cy0 = Math.floor(Math.min(ys[u], ys[v]) / CELL), cy1 = Math.floor(Math.max(ys[u], ys[v]) / CELL);
     for (let cx = cx0; cx <= cx1; cx++) {
       for (let cy = cy0; cy <= cy1; cy++) {
         const k = cx * 100003 + cy;
-        let c = egrid.get(k);
-        if (!c) egrid.set(k, (c = []));
-        c.push(u, v, one);
+        for (const g of grids) {
+          let c = g.get(k);
+          if (!c) g.set(k, (c = []));
+          c.push(u, v, one);
+        }
       }
     }
   }
   G = {
-    N, x: Float64Array.from(xs), y: Float64Array.from(ys), fwd, rev, und, comp, main, mainSize, egrid, win,
+    N, x: Float64Array.from(xs), y: Float64Array.from(ys), fwd, rev, und, foot, comp, main, mainSize, egrid, egridFoot, win,
     version: (G ? G.version : 0) + 1, cache: new Map(), ms: performance.now() - t0,
   };
 }
@@ -312,11 +320,12 @@ export function nodeXY(n) {
   return [G.x[n], G.y[n]];
 }
 
-// The nearest point on the main network: { x, y, a, b, da, db, d, one } (on the
+// The nearest point on the main network (foot: leaving out the motorways): { x, y, a, b, da, db, d, one } (on the
 // edge a-b, da/db metres from its ends, d from the query point, one: 1 when the
 // edge may only be driven from a to b), or null.
-export function snapCountry(x, y, maxD = 600) {
+export function snapCountry(x, y, maxD = 600, foot = false) {
   if (!G) return null;
+  const grid = foot ? G.egridFoot : G.egrid;
   let best = null;
   for (let r = CELL; ; r = Math.min(r * 2, maxD)) {
     let bd = r;
@@ -324,7 +333,7 @@ export function snapCountry(x, y, maxD = 600) {
     const cx = Math.floor(x / CELL), cy = Math.floor(y / CELL);
     for (let i = -n; i <= n; i++) {
       for (let j = -n; j <= n; j++) {
-        const c = G.egrid.get((cx + i) * 100003 + (cy + j));
+        const c = grid.get((cx + i) * 100003 + (cy + j));
         if (!c) continue;
         for (let k = 0; k < c.length; k += 3) {
           const a = c[k], b = c[k + 1];
@@ -340,18 +349,18 @@ export function snapCountry(x, y, maxD = 600) {
   }
 }
 
-const snapKey = (s, rev, free) => `${free ? 'u' : rev ? 'r' : 'f'}${s.a}:${s.b}:${Math.round(s.da)}:${s.one}`;
+const snapKey = (s, rev, free) => `${free === 'foot' ? 'w' : free ? 'u' : rev ? 'r' : 'f'}${s.a}:${s.b}:${Math.round(s.da)}:${s.one}`;
 
 // Costs and predecessors over the whole network. Forward: the cheapest way
 // from the snap to every node. Reverse (`toward`): from every node to the
 // snap, and a node's predecessor is the next node on its way there. `free`:
-// the one-ways ignored, the last resort when a one-way dead end (a ramp cut at
+// the one-ways ignored ('foot': and the motorways closed, for walkers and cyclists), the last resort when a one-way dead end (a ramp cut at
 // the data's edge) leaves no way.
 export function countryCosts(from, toward = false, free = false) {
   const key = snapKey(from, toward, free);
   let c = G.cache.get(key);
   if (c) return c;
-  const adj = free ? G.und : toward ? G.rev : G.fwd;
+  const adj = free === 'foot' ? G.foot : free ? G.und : toward ? G.rev : G.fwd;
   const one = free ? 0 : from.one;
   const dist = new Float64Array(G.N).fill(Infinity), prev = new Int32Array(G.N).fill(-1);
   const heap = [];

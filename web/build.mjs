@@ -167,7 +167,7 @@ async function main() {
     if (!fits) throw new Error('not zipping: over the itch.io limits');
     const zip = path.join(ROOT, `GDE-Groningen-${version}-web.zip`);
     fs.rmSync(zip, { force: true });
-    execFileSync('zip', ['-q', '-r', '-X', '-n', '.webm:.mp3:.pack:.bin:.glb:.woff2', zip, '.'], { cwd: OUT, stdio: 'inherit' });
+    execFileSync('zip', ['-q', '-r', '-X', '-n', '.webm:.mp3:.pack:.bin:.glb:.woff2:.gdp', zip, '.'], { cwd: OUT, stdio: 'inherit' });
     console.log(`zip: ${path.relative(ROOT, zip)} (${mb(fs.statSync(zip).size)})`);
   }
 }

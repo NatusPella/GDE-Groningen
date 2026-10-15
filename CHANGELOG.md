@@ -16,6 +16,15 @@ nieuwe functies, `y` voor alleen bugfixes.
   zijn staan rood gestreept. Bij Doorgaan en lange sprongen komt een
   laadscherm met je verhaal tot nu toe. Het spel opent donkergroen, met
   "Druk op een toets".
+- **Routes per reiswijze.** De GPS kent nu lopen, fiets, auto, boot, trein
+  en lucht. Te voet en op de fiets blijf je van de snelweg af, een auto van
+  fiets- en voetpaden; "Snelwegen vermijden" staat op de kaart bij Auto. Een
+  doel klikt vast op de juiste weg, op de brug of eronder. Een boot krijgt een
+  route over het water met boeien, de trein een route met "Uitstappen bij" en
+  een stationsbord, een heli een lijn om verboden gebied met hoogteadvies en
+  een landingsplek. Loop of fiets je toch op de snelweg, of rij je met een
+  auto over een fietspad, dan krijg je eerst een waarschuwing en na twaalf
+  seconden een ster.
 
 ## [0.29.0] - 2026-10-15
 

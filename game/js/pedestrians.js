@@ -40,11 +40,11 @@ const WITNESS_RADIUS = 45;
 const CALL_MIN = 7;
 const CALL_MAX = 11;
 
-export const CITY_CENTRE = { x: 190, y: 140, r: 380 };
+export const CITY_CENTRE = { x: 191.86, y: 138.11, r: 380 };
 const NIGHT_HOTSPOTS = [
-  { x: 390, y: 122, r: 90 },
-  { x: 395, y: 205, r: 80 },
-  { x: 160, y: 95, r: 90 },
+  { x: 391.97, y: 116.7, r: 90 },
+  { x: 398.36, y: 200.15, r: 80 },
+  { x: 161.05, y: 93.31, r: 90 },
 ];
 
 const GRONINGS_PHRASES = [

@@ -45,6 +45,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from world.rdnew import meta_frame  # noqa: E402
 
 MAP_PATH = "game/citymap.json"
 RING_TYPES = {"motorway", "motorway_link", "trunk", "trunk_link", "primary", "primary_link"}
@@ -106,14 +107,13 @@ def load_rails(meta):
     except Exception as e:  # rails are optional for the height solve
         print(f"no rail data for crossings ({e})", file=sys.stderr)
         return []
-    lat0, lon0 = meta["origin"]["lat"], meta["origin"]["lon"]
-    m_lat, m_lon = meta["mPerDegLat"], meta["mPerDegLon"]
+    proj, _ = meta_frame(meta)
     rails = []
     for w in elements:
         t = w.get("tags", {})
         if w.get("type") != "way" or t.get("railway") != "rail":
             continue
-        pts = [((g["lon"] - lon0) * m_lon, (lat0 - g["lat"]) * m_lat) for g in w["geometry"]]
+        pts = [proj(g["lat"], g["lon"]) for g in w["geometry"]]
         lay = 0
         try:
             lay = int(t.get("layer", "0"))

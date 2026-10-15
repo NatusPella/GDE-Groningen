@@ -3,6 +3,7 @@ import { GeoBuilder, vcMaterial, createBrickDetailTexture, createRoofTileTexture
 import { pointInPolygon, closestPointOnSegment } from './util.js';
 import { MUSEUM_ROOMS, rectCorners } from './museumplan.js';
 import { paddepoelBlock, setPaddepoelNight } from './paddepoel3d.js';
+import { P } from './worldframe.js';
 
 // Procedural models for the named Groningen landmarks, one merged
 // vertex-coloured geometry per building (five shared materials). Geometry is
@@ -569,19 +570,18 @@ function hoofdstation(B, ring) {
       archWindow(B, e, t, 5.7, 1.3, 2.2, { pointed: false, frame: C.stone });
     }
   }
-  // blocks: [x0, x1, front map-y (north), eave, roof]
+  // blocks: [front-west corner, front-east corner (north face), eave, roof]
   const blocks = [
-    [-119.4, -102.4, 940.4, 14.5, 'pav'],
-    [-102.2, -78.6, 945.3, 12.5, 'wing'],
-    [-78.6, -45.2, 938.8, 16, 'hall'],
-    [-72.3, -52, 935.4, 18.5, 'front'],
-    [-44.6, -21.7, 942.2, 12.5, 'wing'],
-    [-21.4, -4.7, 935.4, 14.5, 'pav'],
+    [[-105.04, 948.69], [-88, 948.41], 14.5, 'pav'],
+    [[-87.72, 953.34], [-64.06, 952.95], 12.5, 'wing'],
+    [[-64.17, 946.41], [-30.7, 945.86], 16, 'hall'],
+    [[-57.91, 942.88], [-37.57, 942.55], 18.5, 'front'],
+    [[-30.04, 949.27], [-7.09, 948.9], 12.5, 'wing'],
+    [[-6.9, 942.05], [9.84, 941.78], 14.5, 'pav'],
   ];
-  const yMid = (F.v0 + F.v1) / 2;
-  for (const [x0, x1, yN, eave, kind] of blocks) {
-    const u0 = F.U(x0, yMid), u1 = F.U(x1, yMid);
-    const v0 = vAt((x0 + x1) / 2, yN) + 0.06;
+  for (const [[ax, ay], [bx, by], eave, kind] of blocks) {
+    const u0 = F.U(ax, ay), u1 = F.U(bx, by);
+    const v0 = vAt((ax + bx) / 2, (ay + by) / 2) + 0.06;
     const v1 = kind === 'front' ? v0 + 8 : vBack - 0.06;
     const um = (u0 + u1) / 2, vm = (v0 + v1) / 2;
     fbox(B, F, um, vm, 0, u1 - u0, v1 - v0, eave, C.brick, G_BRICK);
@@ -633,7 +633,8 @@ function hoofdstation(B, ring) {
     }
   }
   // entrance canopy on the square side
-  const [ex, ez] = F.P(F.U(-62, yMid), vAt(-62, 935.4) - 2.2);
+  const [gx, gy] = [-47.59, 942.71];
+  const [ex, ez] = F.P(F.U(gx, gy), vAt(gx, gy) - 2.2);
   obox(B, ex, ez, 4.8, 16, 4.2, 0.35, F.rot, C.charcoal, G_METAL);
 }
 

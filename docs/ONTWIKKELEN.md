@@ -32,7 +32,7 @@ node scripts/save_migration_test.mjs     # old saves and settings keep loading
 node scripts/storage_migration_test.mjs  # the gte-* -> gde-* key and userData rename
 node scripts/voice_coverage.mjs --quiet  # every subtitle has a recording
 cd desktop && npm run stage && cd ..     # once: vendors three.js for the 3D tests
-for t in scripts/*_test.mjs; do node "$t" || echo "FAIL $t"; done
+for t in scripts/*_test.mjs; do node "$t" || echo "FAIL $t"; done   # includes rdnew, world_tiles, tileworld, floatingorigin
 ```
 
 ## Controls
@@ -345,8 +345,16 @@ Zuidelijke Ringweg with Julianaplein, Europaplein, Euvelgunne and
 Noorderhoogebrug) plus ~300 m around it; beyond that the Ommelanden take
 over: real roads, rails, water and villages in low detail for ~12 km, with
 the procedural fields, ditches, farms and animals in between, and fully
-procedural polders further out. The origin stays at the centre of the original city
-core, so all coordinates in the game keep their meaning. The steps, in order:
+procedural polders further out. Every script projects lat/lon to the world
+frame, RD New shifted to the old origin (`scripts/world/rdnew.py`, see
+ARCHITECTURE.md "Units and coordinates"); hand-placed points in the scripts
+(ring waypoints, train exits, building patches) are written in the old frame
+inside `P(...)`. The caches stay keyed on the lat/lon box they were fetched
+for (`meta.wgsBox`), so nothing is refetched. The data in the repo was moved
+to RD once with `scripts/world/rebase_data.py` (it was not exactly
+reproducible from the caches); a fresh build agrees with it to the
+decimetre inside the map (only the cut at the outer rectangle differs). The
+steps, in order:
 
 1. `fetch_osm.py`: the ways around the city core into `data/ring_raw.json.gz`
    and `data/ring_extra.json.gz` (only if missing). The core itself comes
@@ -373,6 +381,14 @@ core, so all coordinates in the game keep their meaning. The steps, in order:
    (gzip: building boxes and a water distance field). `citymap.json` is not
    touched. Needs numpy and Pillow. The cache `data/ommeland_raw.json.gz`
    keeps only trimmed tags and building boxes.
+
+Then the tiles (`node scripts/world/pack_tiles.mjs [--out game/world]`, about
+20 s; `cd desktop && npm run stage` does it for the staged game and caches it
+by the hash of its inputs). `python3 scripts/world/building_attrs.py` rewrites
+`data/world/building_attrs.json.gz` (building tags from the OSM caches) when
+the caches change. The game reads `world/` when it is there and the JSON
+files when it is not (`?legacymap` forces the JSON files). `scripts/devserver.py`
+answers HTTP Range requests, like the desktop app and the web build.
 
 Overpass responses are cached in `data/` together with the box they cover
 (`osmfetch.py`) and refetched when the map outgrows them. Keys another tool

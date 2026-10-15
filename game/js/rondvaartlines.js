@@ -6,28 +6,30 @@
 // documented; the jokes are clearly jokes. Line keys: T Tammo, A Tessa,
 // D the German tourist, E the English one, R the one from the Randstad
 // (foreign lines get a Dutch subtitle, subtitles.js INTL).
+
+
 export const TOUR_WELCOME = [
   ['T', 'Welkom aan boord! We varen een rondje over de Diepenring, de gracht rond de binnenstad, grotendeels gegraven in de zeventiende eeuw toen Grunn werd uitgebreid en een nieuwe vestinggordel kreeg.'],
   ['A', 'Tammo vertelt, ik stuur. Vragen over de geschiedenis mag u gerust aan mij stellen.'],
   ['T', 'Vragen over de kroegen aan mij.'],
 ];
 export const TOUR_STOPS = [
-  { at: [29, -264], name: 'het Ebbingekwartier', lines: [
+  { at: [23.87, -265.83], name: 'het Ebbingekwartier', lines: [
     ['T', 'Hier langs het water: het Ebbingekwartier. Vroeger stond hier onder meer de gasfabriek.'],
     ['A', 'Het heette eerst het CiBoGa-terrein: circusterrein, Bodenterrein en gasfabriek. Nu wonen en werken er mensen.'],
   ] },
-  { at: [120, -330], name: 'de Stadsschouwburg', lines: [
+  { at: [113.96, -333.74], name: 'de Stadsschouwburg', lines: [
     ['T', 'Links, aan de Turfsingel: de Stadsschouwburg, geopend in 1883. De Turfsingel heet zo omdat hier de turf uit de venen werd aangevoerd. Brandstof voor de hele stad.'],
   ] },
-  { at: [228, -279], name: 'de Maagdenbrug', lines: [
+  { at: [223.02, -284.19], name: 'de Maagdenbrug', lines: [
     ['T', 'De Maagdenbrug. Waar die naam vandaan komt? Geen idee. En ik ga het ook niet verzinnen.'],
     ['A', 'Eindelijk een eerlijke gids.'],
   ] },
-  { at: [265, -205], name: 'de Prinsentuin', lines: [
+  { at: [261.31, -210.33], name: 'de Prinsentuin', lines: [
     ['T', 'Rechts de Prinsenhoftuin, aangelegd in 1625 bij het Prinsenhof, waar de stadhouders woonden. Met rozen, kruiden en een beroemde zonnewijzer.'],
     ['D', 'Wunderschön, diese Rosen!'],
   ] },
-  { at: [214, 13], name: "d'Olle Grieze", lines: [
+  { at: [213.81, 9.9], name: "d'Olle Grieze", lines: [
     ['T', "Rechts over de daken: de Martinitoren, zo'n 97 meter hoog en rond 1482 voltooid. De Stadjers noemen hem d'Olle Grieze: de oude grijze."],
     ['T', 'Hoogste toren van Nederland, trouwens.'],
     ['A', 'Nee, Tammo. De Domtoren in Utrecht is hoger. Maar d\'Olle Grieze is wel de mooiste.'],
@@ -35,107 +37,107 @@ export const TOUR_STOPS = [
     ['D', 'Wie viele Stufen hat der Turm?'],
     ['T', 'Te veel.'],
   ] },
-  { at: [505, 91], name: 'het Schuitendiep', lines: [
+  { at: [506.7, 83.61], name: 'het Schuitendiep', lines: [
     ['T', 'Dit is het Schuitendiep. Hier legden de schuiten aan, platte vrachtschepen die de stad bevoorraadden. Rechts de Poelestraat: overdag stil, om vier uur \'s nachts het drukste stukje Grunn.'],
     ['A', 'Grunn staat erom bekend dat de kroegen hier geen vaste sluitingstijd hebben. Geen grap.'],
     ['E', 'Four in the morning? I\'m in!'],
   ] },
-  { at: [560, 216], name: 'het Gedempte Kattendiep', lines: [
+  { at: [563.88, 208.5], name: 'het Gedempte Kattendiep', lines: [
     ['T', 'Links het Gedempte Kattendiep. Vroeger een gracht, nu een straat. Groningers dempen iets en zetten dat dan gewoon in de naam.'],
     ['A', 'Net als het Gedempte Zuiderdiep, verderop. Waar nu de bussen rijden, voeren vroeger schepen.'],
   ] },
-  { at: [601, 283], name: 'de Steentilbrug', lines: [
+  { at: [606.08, 275.25], name: 'de Steentilbrug', lines: [
     ['T', 'We gaan onder de Steentilbrug door. "Til" is Gronings voor brug, dus eigenlijk heet hij gewoon de stenen brug.'],
     ['A', 'Rechtdoor loopt het Damsterdiep, het oude kanaal naar Appingedam en Delfzijl.'],
     ['T', 'Handig, voor als je ooit snel de stad uit moet.'],
   ] },
-  { at: [681, 342], name: "Voor 't voormalig klein Poortje", lines: [
+  { at: [687.23, 333.3], name: "Voor 't voormalig klein Poortje", lines: [
     ['A', 'Die straat daar heet echt "Voor \'t voormalig klein Poortje". Hier zat ooit een klein poortje in de stadswal.'],
     ['T', 'Kijk. Dat noem ik nou een duidelijke straatnaam.'],
   ] },
-  { at: [744, 390], name: 'de Oosterhaven', lines: [
+  { at: [751.16, 380.57], name: 'de Oosterhaven', lines: [
     ['T', 'De Oosterhaven: vroeger een drukke binnenhaven, nu vol woonboten. Tuinen die meebewegen. Zwaai maar, ze zwaaien terug.'],
     ['R', 'Wonen hier echt mensen op het water? Wat kost dat per vierkante meter?'],
     ['A', 'Minder dan in Amsterdam, mevrouw. Veel minder.'],
   ] },
-  { at: [712, 492], name: 'de Oosterpoort', lines: [
+  { at: [720.79, 483.75], name: 'de Oosterpoort', lines: [
     ['T', 'Achter de Trompsingel: de Oosterpoort. Nu een wijk en een concertgebouw, ooit een echte stadspoort.'],
     ['A', 'Van die poort is niks meer over. De wijk en de zaal hebben de naam gehouden.'],
   ] },
-  { at: [590, 650], name: 'Gronings Ontzet', lines: [
+  { at: [601.14, 644.77], name: 'Gronings Ontzet', lines: [
     ['T', 'In 1672 lag Bommen Berend voor de stad. Niet onze Berend met z\'n bakkie, hè: de bisschop van Münster, met een leger en heel veel kanonskogels.'],
     ['A', 'Hij kreeg Grunn niet. Op 28 augustus trok hij af, en dat vieren we nog elk jaar: Gronings Ontzet.'],
     ['D', 'Münster? Oh. Entschuldigung.'],
     ['T', 'Geeft niks. Is al even geleden.'],
   ] },
-  { at: [375, 753], name: 'de Herebrug', lines: [
+  { at: [387.38, 751.97], name: 'de Herebrug', lines: [
     ['T', 'De Herebrug verbindt de Herestraat met de Hereweg: eeuwenlang de hoofdroute de stad uit, naar het zuiden en Drenthe. Gaat hij open, dan staat half Grunn te wachten.'],
   ] },
-  { at: [250, 800], name: 'het Verbindingskanaal', lines: [
+  { at: [262.88, 801.33], name: 'het Verbindingskanaal', lines: [
     ['T', 'We varen nu over het Verbindingskanaal. Een kanaal dat dingen verbindt. Daar hebben ze lang over nagedacht.'],
   ] },
-  { at: [102, 834], name: 'het Groninger Museum', lines: [
+  { at: [115.11, 837.98], name: 'het Groninger Museum', lines: [
     ['T', 'Links het Groninger Museum, geopend in 1994, op een eiland in het kanaal. Ontworpen door Alessandro Mendini, met paviljoens van onder anderen Philippe Starck en Coop Himmelb(l)au. Ja, het hoort zo scheef.'],
     ['A', 'In die gouden toren zit het depot. Daar staat de kunst die even niet aan de muur hangt.'],
     ['T', 'Net als mijn fiets in de schuur.'],
   ] },
-  { at: [60, 836], name: 'de Werkmanbrug', lines: [
+  { at: [73.05, 840.68], name: 'de Werkmanbrug', lines: [
     ['T', 'Deze brug is vernoemd naar Hendrik Werkman, drukker en kunstenaar van De Ploeg. Hij werd in april 1945 door de bezetter gefusilleerd, een paar dagen voor Groningen werd bevrijd.'],
   ] },
-  { at: [-60, 948], name: 'het Hoofdstation', lines: [
+  { at: [-45.38, 955.36], name: 'het Hoofdstation', lines: [
     ['T', 'Links, achter de bomen: het Hoofdstation uit 1896. Van buiten een paleis, van binnen een van de mooiste stationshallen van het land.'],
     ['E', 'Is that the station or a palace?'],
     ['A', 'Allebei, zeggen ze hier.'],
   ] },
-  { at: [-208, 773], name: 'de Emmabrug', lines: [
+  { at: [-196.58, 781.67], name: 'de Emmabrug', lines: [
     ['T', 'De Emmabrug, net als de Emmasingel vernoemd naar koningin Emma. Hier komen studenten aan met één koffer en vertrekken ze tien jaar later met drie fietsen.'],
   ] },
-  { at: [-325, 756], name: 'de Emmasingel', lines: [
+  { at: [-314.12, 766.47], name: 'de Emmasingel', lines: [
     ['R', 'Is dit nog steeds hetzelfde water?'],
     ['T', 'Het is allemaal één ring, mevrouw. Je kunt niet verdwalen.'],
     ['A', 'Hij wel.'],
   ] },
-  { at: [-372, 513], name: 'de Praediniussingel', lines: [
+  { at: [-365.2, 522.69], name: 'de Praediniussingel', lines: [
     ['A', 'Rechts de Praediniussingel, vernoemd naar Regnerus Praedinius. Hij was in de zestiende eeuw rector van de Latijnse school in Grunn.'],
     ['T', 'Ik had geen Latijn. Wel een fiets.'],
   ] },
-  { at: [-200, 359], name: 'de Der Aa-kerk', lines: [
+  { at: [-195.36, 364.9], name: 'de Der Aa-kerk', lines: [
     ['T', 'Rechts de Der Aa-kerk, voluit de Onze Lieve Vrouwe der A-kerk, vernoemd naar datzelfde riviertje. De toren is een paar keer ingestort; de huidige staat er sinds het begin van de achttiende eeuw.'],
   ] },
-  { at: [-384, 318], name: 'de A', lines: [
+  { at: [-380.42, 326.64], name: 'de A', lines: [
     ['T', 'Het riviertje heet de A, omdat ze in Grunn geen tijd hebben voor lange namen.'],
     ['A', 'Aa is gewoon een oud woord voor water, Tammo. Half Nederland heeft wel een Aa.'],
     ['T', 'Dus ik had half gelijk.'],
   ] },
-  { at: [-376, 250], name: 'de Hoge der A', lines: [
+  { at: [-373.52, 258.07], name: 'de Hoge der A', lines: [
     ['T', 'De Hoge en de Lage der A, de oude stadshaven aan het riviertje de A. De pakhuizen komen uit de tijd dat de schepen via het Reitdiep naar zee voeren.'],
     ['D', 'Das ist wie in Amsterdam, nur ruhiger.'],
     ['A', 'Zeg dat maar niet te hard. Hier zijn ze trots op hun eigen grachten.'],
   ] },
-  { at: [-460, 102], name: 'de Visserbrug', lines: [
+  { at: [-460.12, 110.5], name: 'de Visserbrug', lines: [
     ['T', 'De Visserbrug. Of eigenlijk, volgens de kaart: de tijdelijke Visserbrug.'],
     ['A', 'In Grunn is tijdelijk een rekbaar begrip.'],
   ] },
-  { at: [-533, 49], name: 'het Reitdiep', lines: [
+  { at: [-534.14, 58.35], name: 'het Reitdiep', lines: [
     ['A', 'Daar gaat het Reitdiep naar het noorden, via Zoutkamp naar het Lauwersmeer. Eeuwenlang de weg van Grunn naar zee.'],
     ['T', 'Nu vooral de weg naar een visje in Zoutkamp.'],
   ] },
-  { at: [-408, -72], name: 'de Noorderhaven', lines: [
+  { at: [-410.86, -65.46], name: 'de Noorderhaven', lines: [
     ['T', 'De Noorderhaven, ooit de haven voor de zeeschepen. Nu liggen hier oude zeilschepen en woonboten. De eenden betalen geen liggeld.'],
   ] },
-  { at: [-340, -150], name: 'het Noorderplantsoen', lines: [
+  { at: [-344, -145.07], name: 'het Noorderplantsoen', lines: [
     ['T', 'Hier vlakbij ligt het Noorderplantsoen, aangelegd op de oude vestingwallen.'],
     ['A', 'Eind negentiende eeuw, toen de wallen weg mochten. Nu ligt heel Grunn er in de zomer op een kleedje.'],
   ] },
-  { at: [-270, -143], name: "de Kijk in 't Jatbrug", lines: [
+  { at: [-273.74, -139.16], name: "de Kijk in 't Jatbrug", lines: [
     ['T', "De Kijk in 't Jatbrug, genoemd naar de Kijk in 't Jatstraat. Die dankt zijn naam aan een toren in de oude stadsmuur."],
     ['E', 'Kijk in... what?'],
     ['T', 'Precies.'],
   ] },
-  { at: [-143, -32], name: 'het Academiegebouw', lines: [
+  { at: [-144.66, -29.53], name: 'het Academiegebouw', lines: [
     ['T', 'Rechts, verderop: het Academiegebouw van de universiteit, die in 1614 werd opgericht. Het huidige gebouw is van 1909; het vorige brandde in 1906 af.'],
   ] },
-  { at: [-146, -197], name: 'de Ossenmarkt', lines: [
+  { at: [-150.38, -195.53], name: 'de Ossenmarkt', lines: [
     ['A', 'Rechts de Ossenmarkt. Raad eens wat daar vroeger werd verhandeld.'],
     ['T', 'Fietsen.'],
     ['A', 'Ossen, Tammo. Het staat er gewoon.'],

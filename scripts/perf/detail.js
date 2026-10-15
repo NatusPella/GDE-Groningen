@@ -23,6 +23,8 @@ const imp = (f) => import('/js/' + f + '.js');
 const cine = await imp('cinematics');
 const PM = await imp('pausemenu');
 const DN = await imp('daynight');
+// hand-placed points are in the legacy frame; builds before worldframe.js keep them as they are
+const { PO = (x, y) => ({ x, y }) } = await imp('worldframe').catch(() => ({}));
 const CR = await imp('countryreal');
 const CP = await imp('cityprops');
 const RM = await imp('realmap').catch(() => null);
@@ -91,8 +93,8 @@ function villageSpot(name) {
 }
 
 const AREAS = [
-  { name: 'grotemarkt', x: 70, y: 60, a: 0.15 },
-  { name: 'bergstraat', x: -780, y: -583, road: 'Bergstraat' },
+  { name: 'grotemarkt', ...PO(70, 60), a: 0.15 },
+  { name: 'bergstraat', ...PO(-780, -583), road: 'Bergstraat' },
   ...[['Ten Boer', 'Kloosterkerk'], ['Zuidhorn', 'Sebastiaan/Fabius'], ['Haren', 'Nicolaaskerk'], ['Winsum', 'Torenkerk'], ['Bedum', 'Walfriduskerk']]
     .map(([n, church]) => ({ name: n.toLowerCase().replace(' ', ''), village: n, church })),
 ];

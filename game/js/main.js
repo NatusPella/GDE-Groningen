@@ -3,6 +3,7 @@ import './storagekeys.js';
 import { setErrorContext } from './errorlog.js';
 import { DEV, STORY_TEST } from './devflags.js';
 import { loadMap } from './mapdata.js';
+import { loadTileWorld, tileOmmeland } from './tileworld.js';
 import { loadOmmeland, initReal, warmRows } from './countryreal.js';
 import { loadFacilities, initFacilities } from './facilities.js';
 import { ensureCountryEdge } from './countryplan.js';
@@ -19,6 +20,7 @@ import { updateTrafficAI, resolveVehicleBuildingCollision, resolveVehicleVehicle
 import { spawnPedestriansNear, updatePedestrians } from './pedestrians.js';
 import { updateCombat, updateBullets } from './combat.js';
 import { updatePolice } from './police.js';
+import { updateTrafficLaw } from './trafficlaw.js';
 import { initMissions, updateMissions } from './missions.js';
 import { initStory, updateStory, currentStep } from './story.js';
 import { initGoal, updateGoal } from './goal.js';
@@ -206,6 +208,7 @@ function maintainPedestrians(world) {
 // load timeline (ms since navigation) for perf runs: window.__loadMarks
 const loadMarks = window.__loadMarks = {};
 const markLoad = (k) => { loadMarks[k] = Math.round(performance.now()); };
+let tileWorldStats = null;
 
 async function boot() {
   markLoad('boot');
@@ -214,9 +217,14 @@ async function boot() {
   initA11y();
   initGlyphs();
   initTheme();
-  const ommeland = loadOmmeland('citymap.json');
+  // the map comes from .gdt tiles (world/, js/tileworld.js); a build without
+  // them, or ?legacymap, reads the JSON files as before
+  const onMapProgress = (f) => setLoadProgress(0.05 + f * 0.45);
+  const tiles = /[?&]legacymap\b/.test(location.search) ? null : await loadTileWorld('world/', { onProgress: onMapProgress });
+  const ommeland = tiles ? tileOmmeland(tiles.global) : loadOmmeland('citymap.json');
   const facilities = loadFacilities('citymap.json');
-  const map = await loadMap('citymap.json', (f) => setLoadProgress(0.05 + f * 0.45));
+  const map = tiles ? tiles.world : await loadMap('citymap.json', onMapProgress);
+  tileWorldStats = tiles ? tiles.store : null;
   markLoad('map');
   initReal(map, await ommeland);
   initFacilities(map, await facilities);
@@ -345,6 +353,7 @@ async function boot() {
   let last = performance.now();
   let menuDt = 0;
   let trafficTimer = 0;
+  const tileFollow = {};
   let pedTimer = 0;
   function frame(now) {
     const frameMs = now - last;
@@ -379,6 +388,14 @@ async function boot() {
     // dev mode time scale (storydev.js): whole extra gameplay steps per frame
     const reps = world.devTimeScale > 1 ? Math.min(8, Math.round(world.devTimeScale)) : 1;
     if (!world.paused) for (let r = 0; r < reps; r++) updateGameplay(gameDt);
+    // the tiles follow the camera or the player (speed and heading prefetch)
+    if (world.map.follow) {
+      const f = world.cameraOverride || world.player;
+      const dtp = Math.max(dt, 1e-3);
+      const vx = f.x !== undefined ? (f.x - (tileFollow.x ?? f.x)) / dtp : 0, vy = f.y !== undefined ? (f.y - (tileFollow.y ?? f.y)) / dtp : 0;
+      tileFollow.x = f.x; tileFollow.y = f.y;
+      if (f.x !== undefined) world.map.follow(f.x, f.y, { vx: Math.min(80, Math.max(-80, vx)), vy: Math.min(80, Math.max(-80, vy)) }, 1.5);
+    }
     updateAudio(dt, world);
     updateNarrative();
     updateBanter(world.paused ? 0 : gameDt, world);
@@ -494,6 +511,7 @@ async function boot() {
     probe.mark('traffic');
 
     if (!world.pigeonMode && !world.heliRun) updatePolice(dt, world);
+    updateTrafficLaw(dt, world);
     resolveVehicleVehicleCollisions(world.vehicles, world);
     tickBurningVehicles(world, dt);
     updateRailway(dt, world);

@@ -5,7 +5,8 @@
 // the story guide takes over again and a card says so.
 //
 // A goal: { kind, id, name, sub, x, y }
-//   kind 'place'      done when the player gets there
+//   kind 'place'      done when the player gets there (z: the height of a place on a bridge deck, so
+//                     the route aims at the bridge and not at the street below it)
 //   kind 'mission'    id = missions.js index; done when that mission is passed
 //   kind 'play'       id = padel | carbid | kermis | heli | duif; done after one game
 //   kind 'job'        id = sidejobs.js id; done when a shift of it ends
@@ -66,7 +67,7 @@ export function isGoal(kind, id) {
 
 export function setGoal(spec, { quiet = false } = {}) {
   if (!spec || !KINDS.has(spec.kind) || !Number.isFinite(spec.x) || !Number.isFinite(spec.y)) return false;
-  goal = { kind: spec.kind, id: spec.id ?? null, name: String(spec.name || 'Doel'), sub: spec.sub ? String(spec.sub) : '', x: spec.x, y: spec.y };
+  goal = { kind: spec.kind, id: spec.id ?? null, name: String(spec.name || 'Doel'), sub: spec.sub ? String(spec.sub) : '', x: spec.x, y: spec.y, ...(Number.isFinite(spec.z) ? { z: spec.z } : {}) };
   run = null;
   target = null;
   targetT = 0;
@@ -110,7 +111,7 @@ function busy(w) {
 // gear, the nearest place that sells it first.
 export function goalTarget(w = world) {
   if (!goal || !w) return null;
-  if (goal.kind !== 'mission') return { x: goal.x, y: goal.y, name: goal.name };
+  if (goal.kind !== 'mission') return { x: goal.x, y: goal.y, name: goal.name, z: goal.z };
   const now = w.time || 0;
   if (!target || now - targetT > TARGET_EVERY || now < targetT) {
     targetT = now;

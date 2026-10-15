@@ -4,7 +4,7 @@
   const SG = await imp('savegame'), AC = await imp('activities');
   w.devInvuln = true;
   if (p.inVehicle) p.exitVehicle(map, w);
-  teleport(100, 77); await sleep(1500);
+  teleport(...P(100, 77)); await sleep(1500);
   SG.saveGame(w, { toast: false });
   const walk = async (label) => { if (await moved(() => hold(['w'], 900), 'walk?', 0) < 0.6) await moved(() => hold(['s'], 1200), 'walk after ' + label); };
   const games = { carbid: window.__carbid, kermis: window.__kermis };
@@ -59,7 +59,7 @@
   }
   // car radio (single station, G-Music): switch off and on while driving
   tag('radio');
-  teleport(100, 77); await sleep(1200);
+  teleport(...P(100, 77)); await sleep(1200);
   const car = spawnCar();
   if (car && window.__radio) {
     p.enterVehicle(car, w);

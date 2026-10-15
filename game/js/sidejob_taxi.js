@@ -15,21 +15,21 @@ const DROP_R = 9;
 const STOP_SPEED = 1.5;
 
 const PLACES = {
-  poelestraat: { name: 'de Poelestraat', x: 368, y: 118 },
-  station: { name: 'het Hoofdstation', x: -20, y: 880 },
-  plantsoen: { name: 'het Noorderplantsoen', x: 133, y: -718 },
-  oosterpoort: { name: 'De Oosterpoort', x: 694, y: 575 },
-  vismarkt: { name: 'de Vismarkt', x: 13, y: 254 },
-  oosterpark: { name: 'de Oosterparkwijk', x: 1280, y: -722 },
-  forum: { name: 'het Forum', x: 356, y: 63 },
-  martini: { name: 'de Martinitoren', x: 214, y: 13 },
-  selwerd: { name: 'Selwerd', x: -901, y: -1691 },
-  paddepoel: { name: 'Paddepoel', x: -1493, y: -1017 },
-  korreweg: { name: 'de Korrewegwijk', x: 378, y: -1324 },
-  umcg: { name: 'het UMCG', x: 749, y: -268 },
-  europapark: { name: 'station Europapark', x: 1388, y: 1636 },
-  schilders: { name: 'de Schildersbuurt', x: -862, y: 276 },
-  herewegbuurt: { name: 'de Herewegbuurt', x: 675, y: 1257 },
+  poelestraat: { name: 'de Poelestraat', x: 369.86, y: 113.04 },
+  station: { name: 'het Hoofdstation', x: -6.41, y: 886.27 },
+  plantsoen: { name: 'het Noorderplantsoen', x: 120.59, y: -724.43 },
+  oosterpoort: { name: 'De Oosterpoort', x: 704.13, y: 567.58 },
+  vismarkt: { name: 'de Vismarkt', x: 16.36, y: 255.74 },
+  oosterpark: { name: 'de Oosterparkwijk', x: 1269.7, y: -747.42 },
+  forum: { name: 'het Forum', x: 356.93, y: 57.89 },
+  martini: { name: 'de Martinitoren', x: 213.81, y: 9.9 },
+  selwerd: { name: 'Selwerd', x: -931.21, y: -1686.78 },
+  paddepoel: { name: 'Paddepoel', x: -1513.33, y: -998.93 },
+  korreweg: { name: 'de Korrewegwijk', x: 356.03, y: -1338.33 },
+  umcg: { name: 'het UMCG', x: 745.24, y: -281.71 },
+  europapark: { name: 'station Europapark', x: 1417.4, y: 1623.81 },
+  schilders: { name: 'de Schildersbuurt', x: -860.12, y: 292.14 },
+  herewegbuurt: { name: 'de Herewegbuurt', x: 696.4, y: 1254.24 },
 };
 
 const FARES = [
@@ -115,7 +115,7 @@ export default {
   sikkom: (c) => `Taxichauffeur rijdt ${c.streak} klanten achter elkaar keurig naar huis. Centrale denkt aan een storing`,
 
   anchor(map) {
-    const s = nearestOnStreet(map, 'Stationsweg', 40, 870);
+    const s = nearestOnStreet(map, 'Stationsweg', 53.56, 875.23);
     return s ? kerbSide(map, s, 1.6) : null;
   },
 

@@ -4,7 +4,7 @@
   const PM5 = await imp('pausemenu'), SU5 = await imp('shopui'), SH5 = await imp('shops'), CB5 = await imp('combat');
   const step = async (name, fn) => { tag(name); try { await fn(); } catch (e) { issue('script', `${name}: ${e && e.message}`); } await quiet(); };
   w.devInvuln = true;
-  teleport(100, 77); await sleep(1500);
+  teleport(...P(100, 77)); await sleep(1500);
 
   await step('settings', async () => {
     PM5.openPauseMenu('settings'); await sleep(500);
@@ -42,7 +42,7 @@
   });
 
   await step('combat', async () => {
-    teleport(100, 77); await sleep(1500);
+    teleport(...P(100, 77)); await sleep(1500);
     for (const k of CB5.WEAPON_KEYS) w.ammo[k] = CB5.WEAPONS[k].ammo === Infinity ? Infinity : 30;
     const rig = (await imp('pedestrians'));
     for (const k of CB5.WEAPON_KEYS) {
@@ -73,7 +73,7 @@
   });
 
   await step('swim', async () => {
-    teleport(-33.0, -259.5, false); await sleep(300);
+    teleport(...P(-33.0, -259.5), false); await sleep(300);
     if (p.enterSwim) p.enterSwim();
     await sleep(500);
     if (!p.water) { log('no swim state at canal spot'); return; }
@@ -93,7 +93,7 @@
   });
 
   await step('jump-crouch-kiss', async () => {
-    teleport(100, 77); await sleep(1200);
+    teleport(...P(100, 77)); await sleep(1200);
     await tap(' ', 80); await sleep(700);
     down('control'); await sleep(600); up('control');
     await tap('k', 60); await sleep(1500);
@@ -132,7 +132,7 @@
 
   await step('phone-vehicles', async () => {
     // Henk (Telefoon › Contacten) brings a vehicle round
-    teleport(100, 77); await sleep(1200);
+    teleport(...P(100, 77)); await sleep(1200);
     PM.openPauseMenu('telefoon', { sub: 'contacten' }); await sleep(400);
     const henk = [...document.querySelectorAll('#pause-menu [data-ph-contact]')].find((b) => /Knalpot/i.test(b.textContent));
     if (!henk) { issue('phone', 'no Garage Knalpot contact'); PM.closePauseMenu(); return; }

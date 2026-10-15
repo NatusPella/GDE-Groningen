@@ -735,7 +735,7 @@ function updateDistraction(world) {
 // --- the plan -------------------------------------------------------------------------------
 
 // the blueprint's frame (world x0, y0, x1, y1): everything H6 puts outside sits in it
-export const PLAN_BOUNDS = [8, 738, 128, 828];
+export const PLAN_BOUNDS = [19, 740, 142, 834];
 const inPlan = (x, y) => x > PLAN_BOUNDS[0] + 1 && x < PLAN_BOUNDS[2] - 1 && y > PLAN_BOUNDS[1] + 1 && y < PLAN_BOUNDS[3] - 1;
 
 // Every guard and camera H6 placed, for the story test.
@@ -747,9 +747,9 @@ function planData(world, def) {
   const map = world.map;
   const bounds = PLAN_BOUNDS;
   const inBox = (pts) => pts.some(([x, y]) => x > bounds[0] && x < bounds[2] && y > bounds[1] && y < bounds[3]);
-  const water = map.waterNear(70, 780, 110).map((w) => w.pts).filter(inBox);
-  const buildings = map.buildingsNear(70, 790, 80).map((b) => b.pts).filter(inBox);
-  const bridges = (map.roadsNear ? map.roadsNear(70, 790, 90) : []).filter((r) => r.bridge).map((r) => r.pts).filter(inBox);
+  const water = map.waterNear(82.15, 784.16, 110).map((w) => w.pts).filter(inBox);
+  const buildings = map.buildingsNear(82.31, 794.22, 80).map((b) => b.pts).filter(inBox);
+  const bridges = (map.roadsNear ? map.roadsNear(82.31, 794.22, 90) : []).filter((r) => r.bridge).map((r) => r.pts).filter(inBox);
   const names = { zaal1: 'Zaal 1', zaal3: 'Zaal 3', entreehal: 'Entreehal', atrium: 'Atrium' };
   const rooms = MUSEUM_ROOMS.map((r) => ({ pts: rectCorners(r), c: [r.cx, r.cy], name: names[r.id] || '' }));
   const guards = [];
@@ -764,17 +764,17 @@ function planData(world, def) {
   for (const w of H.watchers) if (w.kind === 'guard' && w.group !== undefined && !guards.some((g) => dist(g.x, g.y, w.x, w.y) < 1)) guards.push({ x: w.x, y: w.y, a: w.center, r: w.range * 0.6 });
   const cams = H.watchers.filter((w) => w.kind === 'camera').map((w) => ({ x: w.x, y: w.y, a: w.center }));
   const lasers = LASER_ROWS.map((row) => [at('zaal3', -5.2, row.c), at('zaal3', 5.2, row.c)].map((q) => [q.x, q.y]));
-  const P = (q) => [q.x, q.y];
-  const fuse = H.fuseAt || { x: 45, y: 761 };
+  const xy = (q) => [q.x, q.y];
+  const fuse = H.fuseAt || { x: 56.78, y: 765.45 };
   const start = def && def.start;
-  const common = [...(start ? [P(start)] : []), P(fuse), P(at('noord', 0, -7.4)), P(at('noord', -0.4, -1.4))];
-  const inside = [P(SPOTS.deur3()), P(SPOTS.laserStart()), P(SPOTS.stand())];
+  const common = [...(start ? [xy(start)] : []), xy(fuse), xy(at('noord', 0, -7.4)), xy(at('noord', -0.4, -1.4))];
+  const inside = [xy(SPOTS.deur3()), xy(SPOTS.laserStart()), xy(SPOTS.stand())];
   return {
     bounds, water, buildings, bridges, rooms,
-    marks: { start, fuse, cams, guards, lasers, vitrine: MUSEUM_CASE, achterdeur: at('achterdeur', -7.0, 0), glasdeur: at('gang', -4.5, 0), water: { x: 26, y: 772 } },
+    marks: { start, fuse, cams, guards, lasers, vitrine: MUSEUM_CASE, achterdeur: at('achterdeur', -7.0, 0), glasdeur: at('gang', -4.5, 0), water: { x: 37.92, y: 776.83 } },
     routes: {
-      sluip: [...common, P(at('achterdeur', -7, 0)), P(at('achterdeur', 7.3, 0)), P(at('zaal1', -3.9, 1)), P(at('zaal1', -0.6, 6.8)), P(SPOTS.deur1()), P(at('entreehal', -1.4, 0.6)), ...inside],
-      vermomd: [...common, P(at('atrium', 1.8, -8)), P(at('atrium', 2.2, 1.6)), P(SPOTS.glasdeur()), P(at('gang', 4.5, 0)), P(at('entreehal', -4, 2)), ...inside],
+      sluip: [...common, xy(at('achterdeur', -7, 0)), xy(at('achterdeur', 7.3, 0)), xy(at('zaal1', -3.9, 1)), xy(at('zaal1', -0.6, 6.8)), xy(SPOTS.deur1()), xy(at('entreehal', -1.4, 0.6)), ...inside],
+      vermomd: [...common, xy(at('atrium', 1.8, -8)), xy(at('atrium', 2.2, 1.6)), xy(SPOTS.glasdeur()), xy(at('gang', 4.5, 0)), xy(at('entreehal', -4, 2)), ...inside],
     },
   };
 }
