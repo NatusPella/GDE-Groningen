@@ -144,6 +144,7 @@ export class Vehicle {
     this.driftX = 0;
     this.driftY = 0;
     this.roll = 0;
+    this.arcadeSlide = false;
     this.slipAngle = 0; // rad between heading and travel direction (player cars, drift.js)
     this.yawVel = 0; // rad/s of spin from an off-centre impact, decays in applyControls
 
@@ -262,14 +263,19 @@ export class Vehicle {
       this.steer = target;
     }
     let yaw = this.steer * maxYawRate(this) * (handbrakeDrift ? 1.6 : 1) * (this.speed < 0 ? -1 : 1);
-    // arcade drifting for cars (setting driftAssist): lifting off or braking in a slide shifts
-    // the weight forward and kicks the tail out further; the assist then counter-steers
-    // towards where the car is going so the slide stays catchable, and throttle keeps it alive
+    // arcade drifting for cars (setting driftAssist), only for a slide started with the full
+    // handbrake (Space; an analog brake pedal in tests and AI stays as it was): lifting off or
+    // braking in the slide shifts the weight forward and kicks the tail out further; the assist
+    // then counter-steers towards where the car is going so the slide stays catchable, and
+    // throttle keeps it alive
     let driftKeep = 1;
+    const fullHandbrake = handbrakeDrift && brake >= 1;
     if (isPlayer && !this.isBoat && !this.isBus && !this.isBike && !this.isScooter && !this.isHeli && !m.motorbike) {
       const slip = this.speed > 2 ? slipAngle(this.angle, this.speed, this.driftX, this.driftY) : 0;
       this.slipAngle = slip;
-      if (Math.abs(slip) > 0.12 && absSpeed > 8) {
+      if (fullHandbrake) this.arcadeSlide = true;
+      else if (this.arcadeSlide && (Math.abs(slip) < 0.08 || absSpeed < 5)) this.arcadeSlide = false;
+      if (this.arcadeSlide && Math.abs(slip) > 0.12 && absSpeed > 8) {
         const assist = this.driftAssist !== false;
         if (this.prevThrottle > 0 && throttle <= 0 && grip >= 0.97) {
           this.yawVel = clamp(this.yawVel - Math.sign(slip) * (assist ? 0.35 : 0.9), -MAX_SPIN, MAX_SPIN);
@@ -292,9 +298,9 @@ export class Vehicle {
     // Past the grip limit (handbrake, flat-out with full lock, or a wet road)
     // part of the old velocity carries on sideways - a recoverable slide.
     if (isPlayer) {
-      let slip = this.isBoat ? 0.72 : handbrakeDrift ? (this.driftAssist !== false ? 0.3 : 0.45) : absSpeed > top * 0.8 && Math.abs(this.steer) > 0.6 ? 0.85 : 1;
+      let slip = this.isBoat ? 0.72 : handbrakeDrift ? (fullHandbrake ? (this.driftAssist !== false ? 0.3 : 0.45) : 0.5) : absSpeed > top * 0.8 && Math.abs(this.steer) > 0.6 ? 0.85 : 1;
       // power slide: on the throttle in a slide with the wheel turned, the tail keeps coming round
-      if (slip === 1 && throttle > 0 && absSpeed > 10 && grip >= 0.97 && Math.abs(this.slipAngle) > 0.15 && Math.abs(this.steer) > 0.2) slip = this.driftAssist !== false ? 0.5 : 0.7;
+      if (slip === 1 && this.arcadeSlide && throttle > 0 && absSpeed > 10 && grip >= 0.97 && Math.abs(this.slipAngle) > 0.15 && Math.abs(this.steer) > 0.2) slip = this.driftAssist !== false ? 0.5 : 0.7;
       const hardBrake = brake > 0.5 || against;
       if (grip < 0.97 && !this.isBoat && absSpeed > 7 && (Math.abs(this.steer) > 0.35 || hardBrake)) {
         slip = Math.min(slip, 0.35 + 0.65 * grip);
