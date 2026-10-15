@@ -1,5 +1,6 @@
 import { dist, isInWater, pointInPolygon } from './util.js';
 import { clearOfReal } from './countryreal.js';
+import { facilitiesOf, countryDoor } from './facilities.js';
 import { recordUnique } from './achievements.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
@@ -9,6 +10,7 @@ const MIN_SPEND = 12;
 const MAX_SPEND = 35;
 const HEAL_AMOUNT = 15;
 const TOAST_DURATION = 3.2;
+const COUNTRY_SPACING = 250;
 
 let spots = [];
 
@@ -28,10 +30,19 @@ export function initHoreca(world) {
     if (r) { h.x = r.x; h.y = r.y; }
   }
   spots = (world.map.meta.horeca || []).map((h) => ({ x: h.x, y: h.y, name: cafeName(h), osmName: h.name, lastUsed: -Infinity }));
+  // out in the Ommelanden: the real cafés, pubs and restaurants (facilities.js),
+  // at their street door
+  for (const f of facilitiesOf('horeca')) {
+    if (f.city || spots.some((s) => dist(s.x, s.y, f.x, f.y) < COUNTRY_SPACING)) continue;
+    const d = countryDoor(map, f.x, f.y);
+    if (!d) continue;
+    const h = { x: d.x, y: d.y };
+    spots.push({ x: d.x, y: d.y, name: cafeName(h), osmName: `${f.place} ${Math.round(f.x)},${Math.round(f.y)}`, place: f.place, lastUsed: -Infinity });
+  }
 }
 
-// The map and the search keep the OSM name; what you order and read about
-// happens in a made-up café, the same one every time for this spot.
+// What you order and read about happens in a made-up café, the same one
+// every time for this spot (no real business names).
 const CAFE_NAMES = [
   'Café De Lallende Koe', "Kroeg 't Scheve Toorntje", 'Eetcafé De Vette Klomp', 'Café Kon Minder',
   'Café De Natte Fiets', 'Bar Moi & Proost', "Café 't Kolde Bakkie", 'Café De Dikke Duif',
