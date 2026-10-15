@@ -23,6 +23,7 @@ const { edgeRows, globalChains } = await import('../../game/js/navgraph.js');
 const { heightRows } = await import('../../game/js/roadprofile.js');
 const { junctionRows } = await import('../../game/js/junctions.js');
 const { polygonBounds } = await import('../../game/js/util.js');
+const WB = await import('../../game/js/worldbuilder.js');
 
 export const BUILDER = 1;
 // what a road row gets from the heights section besides its z (tileworld.js attachProfiles)
@@ -42,7 +43,6 @@ export function cleanRow(o) {
 
 // --- building attributes (scripts/world/building_attrs.py, docs/PROVINCIE-PLAN.md 0.1)
 export const ATTR_KEYS = ['hm', 'hsrc', 'roof', 'colour', 'rcolour', 'mat', 'rmat', 'year', 'bag', 'hmax', 'h50', 'hg'];
-const LEVEL_M = 3.1;
 
 export function loadAttrs(root = ROOT) {
   const f = path.join(root, 'data/world/building_attrs.json.gz');
@@ -102,15 +102,8 @@ export function joinAttrs(buildings, attrs) {
       for (const k of ['roof', 'colour', 'rcolour', 'mat', 'rmat', 'year', 'bag']) if (o[k] !== undefined) f[k] = o[k];
     }
     const g3 = (o && o.bag && byBag.get(String(o.bag))) || pick(gBag, b, bb, area);
-    if (g3 && g3.hmax !== undefined && g3.hg !== undefined) {
-      f.hm = Math.round((g3.hmax - g3.hg) * 100) / 100;
-      f.hmax = g3.hmax; f.hg = g3.hg;
-      if (g3.h50 !== undefined) f.h50 = g3.h50;
-      if (g3.roof && !f.roof) f.roof = g3.roof;
-      f.hsrc = '3dbag';
-    } else if (o && o.h) { f.hm = o.h; f.hsrc = 'osm_height'; }
-    else if (o && o.lv) { f.hm = Math.round((o.lv * LEVEL_M + (o.rl || 0) * LEVEL_M) * 100) / 100; f.hsrc = 'osm_levels'; }
-    else { f.hm = Math.round((b.h || 1) * LEVEL_M * 100) / 100; f.hsrc = 'default'; }
+    // the world builder's evidence order (worldbuilder.js heightFields)
+    Object.assign(f, WB.heightFields(g3, o, b.h, !!f.roof));
     src[f.hsrc]++;
     out.set(b, f);
   }

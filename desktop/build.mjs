@@ -60,7 +60,7 @@ function packWorld() {
   const packer = path.join(root, 'scripts', 'world', 'pack_tiles.mjs');
   if (!fs.existsSync(packer) || !fs.existsSync(path.join(SRC, 'js', 'gdt.js'))) { console.log('no tile packer in this checkout: JSON map only'); return; }
   const h = crypto.createHash('sha1');
-  for (const f of ['citymap.json', 'mapextras.json', 'ommeland.json', 'ommeland.bin', 'js/gdt.js', 'js/mapdata.js', 'js/elevation.js', 'js/passages.js', 'js/museumplan.js', 'js/util.js']) h.update(fs.readFileSync(path.join(SRC, f)));
+  for (const f of ['citymap.json', 'mapextras.json', 'ommeland.json', 'ommeland.bin', 'js/gdt.js', 'js/mapdata.js', 'js/elevation.js', 'js/passages.js', 'js/museumplan.js', 'js/util.js', 'js/worldbuilder.js']) h.update(fs.readFileSync(path.join(SRC, f)));
   h.update(fs.readFileSync(packer));
   const WCACHE = path.join(HERE, '.world-cache');
   const cache = path.join(WCACHE, 'world-' + h.digest('hex').slice(0, 16));
