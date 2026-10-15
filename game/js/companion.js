@@ -1,7 +1,7 @@
 import { dist, isInWater, inWaterPoly, WATER_Y, normalizeAngle, pointInPolygon, closestPointOnSegment } from './util.js';
 import { knockDown, isKnockedDown } from './ragdoll.js';
 import { resolveElevWalls } from './elevation.js';
-import { resolveBuildingCollisions, findExitSpot, stopVehicle, EXIT_RIGHT_FIRST, swimDepth, findClimbSpot, SWIM_SPEED, CLIMB_TIME } from './player.js';
+import { resolveBuildingCollisions, findExitSpot, stopVehicle, EXIT_RIGHT_FIRST, swimDepth, findClimbSpot, SWIM_SPEED, CLIMB_TIME, GRAVITY } from './player.js';
 import { findProps } from './breakables.js';
 import { pushCircleOutOfVehicle } from './vehicle.js';
 import { resolveRailings } from './bridgerails.js';
@@ -20,7 +20,7 @@ import { registerPoseSource, unregisterPoseSource, TAMMO_APPEARANCE, ANITA_APPEA
 
 const FOLLOW_DIST = 3.2;
 const ARRIVE_SLACK = 1.1;
-const CATCH_UP_SPEED = 7.5;
+const CATCH_UP_SPEED = 7.0;
 const BOARD_DIST = 3;
 const VEHICLE_HIT_SPEED = 4;
 const DEAD_DURATION = 5;
@@ -28,17 +28,16 @@ const RADIUS = 0.35;
 const TELEPORT_DIST = 60;
 const SWIM_TELEPORT_DIST = 14;
 const SWIM_STUCK_TIME = 3;
-const GRAVITY = 16;
 
 // walking together (open-world buddy style): a slot at the player's shoulder
-const WALK_SPEED = 4.2;
+const WALK_SPEED = 3.0; // the player's default jog
 const SIDE_OFFSET = 1.2;
 const SIDE_OFFSET_CROUCH = 1.0;
 const SHOULDER_LAG = 0.35;
 const FILE_GAP = 1.7;
 const CATCH_UP_START = 9;
 const CATCH_UP_END = 3.5;
-const RUN_CATCH_SPEED = 8.3;
+const RUN_CATCH_SPEED = 7.6;
 const ACCEL = 16;
 const BRAKE = 24;
 const GAIN = 1.8;

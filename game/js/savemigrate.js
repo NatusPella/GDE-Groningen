@@ -13,8 +13,9 @@
 import { RETIRED_STEPS, STEP_BY_ID, MISSION_IDS, nextStoryStep } from './storyarc.js';
 import { normalizeRadio } from './musicpick.js';
 import { cheatUnlocksFromSave, RETIRED_CHEATS } from './cheatlist.js';
+import { dayForSavedStep } from './calendar.js';
 
-export const SAVE_VERSION = 6;
+export const SAVE_VERSION = 7;
 export const SETTINGS_VERSION = 8;
 
 const isObj = (o) => !!o && typeof o === 'object' && !Array.isArray(o);
@@ -96,6 +97,12 @@ export const SAVE_MIGRATIONS = {
     sk.unlocked = keep(sk.unlocked);
     sk.on = keep(sk.on);
     sk.used = keep(sk.used);
+    return d;
+  },
+  // 0.30: the calendar (calendar.js); an older save gets the day of the
+  // story step it continues at, no special day announced yet
+  6(d) {
+    if (!isObj(d.kalender)) d.kalender = { v: 1, dag: dayForSavedStep(savedStoryStep(d)), gezien: [] };
     return d;
   },
 };

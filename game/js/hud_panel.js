@@ -67,7 +67,6 @@ export const routeLabel = (r) => (r.kind === 'user' ? 'Doel' : r.kind === 'job' 
 let els = null;
 
 const STAR_PATH = 'M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z';
-const FLAG_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></svg>';
 const TURN_ICON = {
   rechts: '<path d="M7 20V10a3 3 0 0 1 3-3h8"/><path d="M14 3l4 4-4 4"/>',
   links: '<path d="M17 20V10a3 3 0 0 0-3-3H6"/><path d="M10 3L6 7l4 4"/>',
@@ -92,7 +91,7 @@ export function initHud(world) {
   const topRight = document.createElement('div');
   topRight.className = 'hud-top-right';
   topRight.innerHTML =
-    '<div class="hud-clock" role="timer" aria-label="Tijd in het spel"><span class="hud-special" hidden>' + FLAG_SVG + '<span></span></span><span class="hud-date"></span><b class="hud-time"></b></div>' +
+    '<div class="hud-clock" role="timer" aria-label="Tijd in het spel"><span class="hud-special" hidden></span><span class="hud-date"></span><b class="hud-time"></b></div>' +
     '<div class="hud-wanted" role="img"></div>' +
     '<div class="hud-search" hidden><span>Uit het zicht blijven</span><i role="img" aria-label="Zoekgebied"><i></i></i></div>' +
     '<div class="hud-moneyrow"><span class="hud-money-delta"></span><span class="hud-money"></span></div>' +
@@ -227,7 +226,6 @@ export function initHud(world) {
     searchBar: topRight.querySelector('.hud-search i i'),
     clock: topRight.querySelector('.hud-clock'),
     special: topRight.querySelector('.hud-special'),
-    specialTxt: topRight.querySelector('.hud-special span'),
     date: topRight.querySelector('.hud-date'),
     time: topRight.querySelector('.hud-time'),
     moneyRow: topRight.querySelector('.hud-moneyrow'),
@@ -865,12 +863,16 @@ function updateClock(world) {
   els.time.textContent = t;
   // the date and a special day: once a game minute is plenty
   if (--dateT > 0) return;
-  dateT = 30;
+  dateT = 5;
   const d = hudDate(world);
   setText(els.date, d.short);
-  els.clockSpecial = d.special;
+  els.clockSpecial = d.special && !d.small ? d.special : '';
   els.special.hidden = !d.special;
-  setText(els.specialTxt, d.special);
+  els.special.classList.toggle('small', d.small);
+  if (els.specialKey !== d.key) {
+    els.specialKey = d.key;
+    els.special.innerHTML = d.special ? `${d.icon}<span>${d.special}</span>` : '';
+  }
 }
 
 let lastHpFx = null;

@@ -1,6 +1,7 @@
 // Every fixed place the player has to reach (mission starts and targets,
 // activities, side jobs, shops, garages, post-game challenges, pigeon, heli,
-// station and Fjord Frituur spots, eierballen, respawn points, the Ommeland
+// station and Fjord Frituur spots, eierballen, respawn points (where
+// respawn.js puts you at every reachable facility), the Ommeland
 // extras' wereldeinden and dorpsuitjes), checked for
 // being on open ground you can walk away from: not inside a building
 // footprint (a mapped passage is fine), not in the water unless it is a boat
@@ -29,6 +30,9 @@ import { ensureCountryEdge, pushOutOfPlan } from './countryplan.js';
 import { countryWeight } from './countryfield.js';
 import { buildingAt as realBuildingAt } from './countryreal.js';
 import { getOmmelandSpots } from './ommelandfun.js';
+import { reachableFacilities, FAC } from './facilities.js';
+import { realRoadNear } from './ommelandplace.js';
+import { respawnArrival } from './respawn.js';
 
 const DRIVE_REACH = 25;
 const WALK_REACH = 45;
@@ -79,7 +83,7 @@ export function spotProblem(map, s) {
   const solid = countrySolid(x, y);
   if (solid) return solid;
   if (!map.canWalkOut(x, y, WALK_REACH)) return 'ingesloten, je kunt er niet weg';
-  if (mode === 'drive' && driveDist(map, x, y) > DRIVE_REACH) return 'te ver van een rijweg';
+  if (mode === 'drive' && driveDist(map, x, y) > DRIVE_REACH && !realRoadNear(x, y, DRIVE_REACH, (r) => r.kind > 2)) return 'te ver van een rijweg';
   return null;
 }
 
@@ -138,9 +142,14 @@ export function collectSpots(world) {
     for (const q of list) add('postgame', `${c.id} ${q.name || ''}`, q, c.vehicle ? 'drive' : 'walk');
   }
   for (const o of getOmmelandSpots(world)) add(o.kind, o.id, o);
+  // every hospital, GP post, doctor and police station a death or an arrest
+  // can lead to (facilities.js), where respawn.js puts the player
   const meta = world.map.meta || {};
-  const sites = [...(meta.policeStations || []), ...(meta.careSites || []), ...(meta.hospital ? [meta.hospital] : [])];
-  for (const s of sites) add('respawn', s.name || `${Math.round(s.x)},${Math.round(s.y)}`, world.map.findOpenSpawn(s.x, s.y, 120));
+  const sites = FAC.ready
+    ? [...reachableFacilities('medical'), ...reachableFacilities('police')]
+    : [...(meta.policeStations || []), ...(meta.careSites || []), ...(meta.hospital ? [{ ...meta.hospital, umcg: true }] : [])];
+  const probe = { ...world, vehicles: [] };
+  for (const s of sites) add('respawn', s.name || `${Math.round(s.x)},${Math.round(s.y)}`, respawnArrival(probe, s).player);
   return out;
 }
 

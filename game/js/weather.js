@@ -150,9 +150,9 @@ const WEATHER_KINDS = [
   { kind: 'storm', weight: 5, peak: 1, dur: [30, 55] },
 ];
 
-// During the story it is summer (late August): longer dry spells, the odd
-// shower, no full storms. world.storyFreePlay (story.js) ends the summer.
-const summer = (world) => !!world && !world.storyFreePlay;
+// The game is always summer (calendar.js; after the story the nazomer
+// holds): longer dry spells, the odd shower, no full storms.
+const summer = (world) => !!world;
 
 function pickWeatherKind(world) {
   const kinds = summer(world) ? WEATHER_KINDS.filter((k) => k.kind !== 'storm') : WEATHER_KINDS;

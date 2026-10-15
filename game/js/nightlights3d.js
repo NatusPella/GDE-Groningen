@@ -2,6 +2,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { pointInPolygon, WATER_Y } from './util.js';
 import { makeProp, addProp, removeProp, isPropBroken, propKey } from './breakables.js';
 import { policeFlash } from './models3d_vehicles.js';
+import { getRealMap } from './realmap.js';
 
 // Night lighting: instanced street lamps along road edges with additive
 // light-pool decals, a small pool of real PointLights handed to the lamps
@@ -129,6 +130,7 @@ export function initNightLights(targetScene) {
   scene = targetScene;
   poleMesh = new THREE.InstancedMesh(buildPoleGeometry(), new THREE.MeshStandardMaterial({ color: 0x2c3230, roughness: 0.55, metalness: 0.35, flatShading: true }), LAMP_MAX);
   poleMesh.castShadow = true;
+  poleMesh.userData.kind = 'streetlamp';
   poleMesh.receiveShadow = true;
   const headGeo = new THREE.PlaneGeometry(0.52, 0.22).rotateX(Math.PI / 2).translate(ARM, HEAD_Y - 0.05, 0);
   headMesh = new THREE.InstancedMesh(headGeo, new THREE.MeshBasicMaterial({ color: 0xffffff, fog: false }), LAMP_MAX);
@@ -387,10 +389,11 @@ function rebuildVisible(world, px, py) {
   visible = [];
   const seen = new Set();
   // street lamps claim their spots before the path lamps fill the gaps
-  const near = world.map.roadsNear(px, py, LAMP_VIEW);
+  const rm = getRealMap();
+  const near = rm ? world.map.roadsNear(px, py, LAMP_VIEW).concat(rm.roadsNear(px, py, LAMP_VIEW)) : world.map.roadsNear(px, py, LAMP_VIEW);
   const ordered = near.filter((r) => !PATH_CATS.has(r.cat)).concat(near.filter((r) => PATH_CATS.has(r.cat)));
   for (const road of ordered) {
-    for (const l of lampsForRoad(road, world.map)) {
+    for (const l of lampsForRoad(road, road.net || world.map)) {
       if (seen.has(l) || Math.abs(l.x - px) > LAMP_VIEW || Math.abs(l.y - py) > LAMP_VIEW) continue;
       seen.add(l);
       if (l.broken || isPropBroken(l.key)) { l.broken = true; continue; }
