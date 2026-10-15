@@ -129,6 +129,19 @@ export class TileWorld extends GameMap {
     return this.tileQueue.run(budgetMs);
   }
 
+  // A cutscene registers its shots before it starts: { at: [x, y], look: [x, y] }
+  // per shot (camera and look-at). Their tiles load first (the pre-roll) and are
+  // held (pinned) until releaseShots, so the cut never shows a hole.
+  // Resolves when every tile is in; shotsReady() asks without waiting.
+  registerShots(shots, { radius = 350, token = 'shots' } = {}) {
+    this._shotKeys = new Set();
+    for (const s of shots) for (const [x, y] of [s.at, s.look].filter(Boolean)) for (const k of this.store.keysAround(x, y, radius)) this._shotKeys.add(k);
+    for (const k of this._shotKeys) this.store.pin(k);
+    return Promise.all([...this._shotKeys].map((k) => this.store.request(k, { priority: -1000, token }))).then(() => { this.tileQueue.run(1e9); return this._shotKeys.size; });
+  }
+  shotsReady() { return !this._shotKeys || this.store.missing([...this._shotKeys]).length === 0; }
+  releaseShots() { if (this._shotKeys) for (const k of this._shotKeys) this.store.unpin(k); this._shotKeys = null; }
+
   // the tile keys of a camera shot or a destination, for a pre-roll
   prefetchPoints(points, { radius = 400, token = 'shot' } = {}) {
     const keys = new Set();
