@@ -22,6 +22,16 @@ export function hudPixelRatio() {
   return (window.devicePixelRatio || 1) * getUiScale();
 }
 
+// Gives a square canvas a px x px backing store. Both sides are checked: a
+// fresh canvas is 300x150, so at px 300 (250 HUD px at 1.2x) a width-only
+// check kept it 300x150, stretched 2x tall in its square box.
+export function sizeSquareCanvas(canvas, px) {
+  if (canvas.width === px && canvas.height === px) return false;
+  canvas.width = px;
+  canvas.height = px;
+  return true;
+}
+
 export function onUiScaleChange(cb) {
   listeners.add(cb);
   return () => listeners.delete(cb);
