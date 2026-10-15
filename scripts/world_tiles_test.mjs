@@ -96,6 +96,7 @@ for (const [key, e] of Object.entries(index.tiles)) {
   const again = G.encodeBlob({ i: d.i, j: d.j, flags: d.flags, builder: d.builder, sections: d.sections.map((s) => ({ ...s, tuple: false })) });
   if (!sameBytes(again, raw)) reenc++;
   for (const s of d.sections) {
+    if (s.type === G.SECTION.NAV) continue;
     const kind = P.KINDS.find(([, t]) => t === s.type)[0];
     for (const row of s.rows) {
       const gid = kind === 'trees' ? row.g : row.gid;
@@ -141,7 +142,7 @@ ok((attrSeen.year || 0) > 10000 && (attrSeen.bag || 0) > 10000, 'BAG year and id
 // the global layer
 {
   const d = G.decodeBlob(gRaw);
-  const meta = d.sections.find((s) => s.type === G.SECTION.META).json;
+  const meta = Object.assign({}, ...d.sections.filter((s) => s.type === G.SECTION.META).map((s) => s.json));
   ok(canon(meta.meta) === canon(src.map.meta), 'meta round trip');
   const bin = d.sections.find((s) => s.type === G.SECTION.BLOB);
   ok(bin.name === 'ommeland.bin' && sameBytes(bin.bytes, src.bin), 'ommeland boxes round trip');

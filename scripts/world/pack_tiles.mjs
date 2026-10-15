@@ -19,6 +19,7 @@ import { fileURLToPath } from 'node:url';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const { GameMap, applyMapExtras } = await import('../../game/js/mapdata.js');
 const G = await import('../../game/js/gdt.js');
+const { edgeRows, globalChains } = await import('../../game/js/navgraph.js');
 const { polygonBounds } = await import('../../game/js/util.js');
 
 export const BUILDER = 1;
@@ -168,11 +169,18 @@ export function build({ map, om, bin }, attrs = loadAttrs()) {
       }
     });
   }
+  // the route graph: an edge sits in the tile of its midpoint (navgraph.js)
+  for (const e of edgeRows(map.roads)) {
+    const [i, j] = G.tileIndexOf((e.a[0] + e.b[0]) / 2, (e.a[1] + e.b[1]) / 2);
+    const t = tileOf(i, j);
+    const { a, b, ...rest } = e;
+    (t.kinds.nav || (t.kinds.nav = [])).push({ ...rest, p: [a, b] });
+  }
   const blobs = new Map();
   for (const t of [...tiles.values()].sort((a, b) => a.i - b.i || a.j - b.j)) {
-    const sections = KINDS.filter(([kind]) => t.kinds[kind]).map(([kind, type]) => ({ type, rows: t.kinds[kind] }));
+    const sections = [...KINDS, ['nav', G.SECTION.NAV]].filter(([kind]) => t.kinds[kind]).map(([kind, type]) => ({ type, rows: t.kinds[kind] }));
     const maxH = Math.max(0, ...(t.kinds.buildings || []).map((b) => b.h || 0));
-    const n = Object.fromEntries(KINDS.filter(([k]) => t.kinds[k]).map(([k]) => [k, t.kinds[k].length]));
+    const n = Object.fromEntries([...KINDS, ['nav']].filter(([k]) => t.kinds[k]).map(([k]) => [k, t.kinds[k].length]));
     blobs.set(t.key, { i: t.i, j: t.j, flags: 1, bytes: G.encodeBlob({ i: t.i, j: t.j, flags: 1, builder: BUILDER, sections }), n, maxH });
   }
   // the global layer: what every system needs everywhere until F1 gives it a tile home
@@ -182,6 +190,7 @@ export function build({ map, om, bin }, attrs = loadAttrs()) {
   const global = G.encodeBlob({
     builder: BUILDER,
     sections: [
+      { type: G.SECTION.META, json: { nav: globalChains(map.roads) } },
       { type: G.SECTION.META, json: { meta: map.meta, counts, dryCrossings: map.dryCrossings || 0, clippedWays: clipped } },
       { type: G.SECTION.ROADS, version: 1, rows: [] },
       ...['stations', 'levelCrossings', 'railRoutes', 'railLifts'].map((k) => ({ type: G.SECTION.META, json: { [k]: map[k] } })),
