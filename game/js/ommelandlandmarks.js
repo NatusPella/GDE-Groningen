@@ -88,6 +88,9 @@ export function updateOmmelandLandmarks(world, scene, focus) {
     }).catch((e) => console.warn('landmark kits not loaded', e && e.message));
   }
   if (!S.layer) return;
+  // (perf A/B: window.__noLandmarkKits)
+  S.layer.group.visible = !window.__noLandmarkKits;
+  if (window.__noLandmarkKits) return;
   const night = world.dayNight ? world.dayNight.night || 0 : 0;
   const h = typeof world.clock === 'number' ? world.clock : 12;
   // floodlights from dusk until midnight

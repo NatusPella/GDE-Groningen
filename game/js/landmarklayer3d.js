@@ -16,17 +16,19 @@ import { landmarkGeometry, LOD_FULL, LOD_MASS, LOD_SKY } from './landmarkkit.js'
 const R0 = 320, R1 = 1100, CELL = 1000, PREFETCH = 60;
 const U = { uLkP: { value: new THREE.Vector2() }, uLkR0: { value: R0 }, uLkR1: { value: R1 }, uLkFlood: { value: 0 }, uLkNight: { value: 0 } };
 
-function patch(m, key, { flood = false, hide = 0 } = {}) {
+// One program per material for all three levels: aMode says which level a
+// vertex belongs to (0 near: always drawn, 1 masses: R0..R1, 2 skyline: past R1).
+function patch(m, key, { flood = false } = {}) {
   m.onBeforeCompile = (sh) => {
     Object.assign(sh.uniforms, U);
     sh.vertexShader = sh.vertexShader
       .replace('#include <common>', `#include <common>
 uniform vec2 uLkP; uniform float uLkR0, uLkR1;
-${hide ? 'attribute vec2 aC;' : ''}
+attribute vec3 aC;
 varying float vLkY;`)
       .replace('#include <begin_vertex>', `#include <begin_vertex>
-${hide === 1 ? 'float lkD = distance(aC, uLkP); if (lkD < uLkR0 || lkD > uLkR1) transformed = vec3(0.0);' : ''}
-${hide === 2 ? 'if (distance(aC, uLkP) < uLkR1) transformed = vec3(0.0);' : ''}
+float lkD = distance(aC.xy, uLkP);
+if ((aC.z > 0.5 && aC.z < 1.5 && (lkD < uLkR0 || lkD > uLkR1)) || (aC.z > 1.5 && lkD < uLkR1)) transformed = vec3(0.0);
 vLkY = (modelMatrix * vec4(transformed, 1.0)).y;`);
     sh.fragmentShader = sh.fragmentShader
       .replace('#include <common>', `#include <common>
@@ -50,16 +52,12 @@ totalEmissiveRadiance += diffuseColor.rgb * vec3(1.0, 0.78, 0.5) * uLkFlood * mi
 let M = null;
 function materials() {
   if (M) return M;
-  const glass = (k, hide) => patch(vcMaterial({ roughness: 0.4, emissive: new THREE.Color(0) }), k, { hide });
-  const glow = (k, hide) => patch(new THREE.MeshBasicMaterial({ vertexColors: true }), k, { hide });
-  const set = (hide, tag) => {
-    const out = {
-      lit: [patch(vcMaterial({ roughness: 0.9 }), 'lit' + tag, { flood: true, hide }), glow('glow' + tag, hide), glass('glass' + tag, hide)],
-      dark: [patch(vcMaterial({ roughness: 0.9 }), 'dark' + tag, { hide }), glow('glowd' + tag, hide), glass('glassd' + tag, hide)],
-    };
-    return out;
+  const glass = (k) => patch(vcMaterial({ roughness: 0.4, emissive: new THREE.Color(0) }), k);
+  const glow = (k) => patch(new THREE.MeshBasicMaterial({ vertexColors: true }), k);
+  M = {
+    lit: [patch(vcMaterial({ roughness: 0.9 }), 'lit', { flood: true }), glow('glow'), glass('glass')],
+    dark: [patch(vcMaterial({ roughness: 0.9 }), 'dark'), glow('glowd'), glass('glassd')],
   };
-  M = { near: set(0, 'n'), mid: set(1, 'm'), sky: set(2, 's') };
   return M;
 }
 
@@ -67,11 +65,9 @@ function materials() {
 function applyNight(night, flood) {
   U.uLkNight.value = night;
   U.uLkFlood.value = flood;
-  for (const s of Object.values(M)) {
-    for (const k of ['lit', 'dark']) {
-      s[k][1].color.setScalar(0.55 + night * 2.2);
-      s[k][2].emissive.setRGB(1, 0.62, 0.3).multiplyScalar(night * (k === 'lit' ? 0.35 : 0.1));
-    }
+  for (const k of ['lit', 'dark']) {
+    M[k][1].color.setScalar(0.55 + night * 2.2);
+    M[k][2].emissive.setRGB(1, 0.62, 0.3).multiplyScalar(night * (k === 'lit' ? 0.35 : 0.1));
   }
 }
 
@@ -85,7 +81,7 @@ function placeMatrix(p) {
 
 // Merges the pieces' geometries into world space, per material group, with
 // each vertex's landmark centre in aC.
-function mergeWorld(pieces) {
+function mergeWorld(pieces, mode) {
   const byGroup = [[], [], []];
   for (const pc of pieces) {
     const g = pc.geo, pos = g.attributes.position, nor = g.attributes.normal, col = g.attributes.color;
@@ -108,7 +104,7 @@ function mergeWorld(pieces) {
         n.fromBufferAttribute(r.nor, i).applyMatrix3(rot).normalize();
         N[o * 3] = Math.round(n.x * 127); N[o * 3 + 1] = Math.round(n.y * 127); N[o * 3 + 2] = Math.round(n.z * 127);
         C[o * 3] = r.col.array[i * 3]; C[o * 3 + 1] = r.col.array[i * 3 + 1]; C[o * 3 + 2] = r.col.array[i * 3 + 2];
-        A[o * 2] = r.pc.cx; A[o * 2 + 1] = r.pc.cy;
+        A[o * 3] = r.pc.cx; A[o * 3 + 1] = r.pc.cy; A[o * 3 + 2] = mode;
       }
     }
     if (o > start) geo.addGroup(start, o - start, gi);
@@ -116,7 +112,7 @@ function mergeWorld(pieces) {
   geo.setAttribute('position', new THREE.BufferAttribute(P, 3));
   geo.setAttribute('normal', new THREE.BufferAttribute(N, 3, true));
   geo.setAttribute('color', new THREE.BufferAttribute(C, 3, true));
-  geo.setAttribute('aC', new THREE.BufferAttribute(A, 2));
+  geo.setAttribute('aC', new THREE.BufferAttribute(A, 3));
   geo.computeBoundingSphere();
   return geo;
 }
@@ -132,12 +128,12 @@ function piecesOf(p, lod) {
   return out;
 }
 
-function mergedMesh(items, lod, set) {
+function mergedMesh(items, lod, mode) {
   const lit = [], dark = [];
   for (const p of items) (isDark(p) ? dark : lit).push(...piecesOf(p, lod));
   const group = new THREE.Group();
-  for (const [list, mats] of [[lit, set.lit], [dark, set.dark]]) {
-    const geo = mergeWorld(list);
+  for (const [list, mats] of [[lit, M.lit], [dark, M.dark]]) {
+    const geo = mergeWorld(list, mode);
     for (const pc of list) pc.geo.dispose();
     if (!geo) continue;
     const mesh = new THREE.Mesh(geo, mats);
@@ -148,9 +144,16 @@ function mergedMesh(items, lod, set) {
   return group;
 }
 
+// near meshes: drawn whatever the distance (aMode 0)
+function nearMode(geo) {
+  geo.setAttribute('aC', new THREE.BufferAttribute(new Float32Array(geo.attributes.position.count * 3), 3));
+}
+
 function nearObject(p) {
   const g = landmarkGeometry(p, LOD_FULL);
-  const mats = isDark(p) ? M.near.dark : M.near.lit;
+  const mats = isDark(p) ? M.dark : M.lit;
+  nearMode(g.geometry);
+  if (g.sails) nearMode(g.sails);
   const root = new THREE.Group();
   root.position.set(p.x, -0.05, p.y);
   root.rotation.y = -p.angle;
@@ -189,12 +192,12 @@ export function createLandmarkLayer(scene, list) {
     U.uLkP.value.set(px, py);
     applyNight(night, flood);
     // the skyline: once, after the first frames (a few hundred small meshes)
-    if (!sky && ++skyAt > 30) { sky = mergedMesh(items.map((it) => it.p), LOD_SKY, M.sky); sky.name = 'landmarkkits:sky'; group.add(sky); }
+    if (!sky && ++skyAt > 30) { sky = mergedMesh(items.map((it) => it.p), LOD_SKY, 2); sky.name = 'landmarkkits:sky'; group.add(sky); }
     // the masses per cell, one cell per frame
     let budget = 1;
     for (const c of cells.values()) {
       const d = Math.hypot(c.cx - px, c.cy - py) - CELL * 0.71;
-      if (d < R1 + 200 && !c.mesh && budget > 0) { c.mesh = mergedMesh(c.items.map((it) => it.p), LOD_MASS, M.mid); group.add(c.mesh); budget--; }
+      if (d < R1 + 200 && !c.mesh && budget > 0) { c.mesh = mergedMesh(c.items.map((it) => it.p), LOD_MASS, 1); group.add(c.mesh); budget--; }
       else if (d > R1 + 600 && c.mesh) { group.remove(c.mesh); for (const m of c.mesh.children) m.geometry.dispose(); c.mesh = null; }
     }
     // full detail near, built one per frame from just outside R0

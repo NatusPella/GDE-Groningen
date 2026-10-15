@@ -2,7 +2,9 @@
 # Detail comparison city vs Ommeland in the staged desktop build (run
 # `npm run stage` in desktop/ first): scripts/perf/detail.js at 1600x900, dpr 1.
 #   zsh scripts/perf/detail.sh <name> [electron flags...]
-# DETAIL_ONLY=grotemarkt,haren picks areas. Output: $DETAIL_OUT/<name>.json, the
+# DETAIL_ONLY=grotemarkt,haren picks areas (views: only the landmark shots),
+# DETAIL_TOGGLE=1 adds an in-process on/off comparison of realmap.js and the
+# landmark kits per area. Output: $DETAIL_OUT/<name>.json, the
 # day and night screenshots <name>-<area>.png, and a table (detail_table.py).
 HERE=${0:A:h}
 OUT=${DETAIL_OUT:-${TMPDIR:-/tmp}/gde-detail}
@@ -11,7 +13,7 @@ mkdir -p $OUT
 cd $HERE/../../desktop || exit 1
 while pgrep -x Electron >/dev/null; do sleep 5; done
 echo "start $(date +%T) load $(sysctl -n vm.loadavg)" >&2
-{ echo "window.__detailOnly = '${DETAIL_ONLY:-}';"; cat $HERE/detail.js; } > $OUT/_$N.js
+{ echo "window.__detailOnly = '${DETAIL_ONLY:-}'; window.__detailToggle = ${DETAIL_TOGGLE:-0};"; cat $HERE/detail.js; } > $OUT/_$N.js
 PROFILE=gde-test-detail
 rm -rf "${TMPDIR:-/tmp}/$PROFILE"
 GDE_TEST_PROFILE=$PROFILE ./node_modules/.bin/electron . --windowed --stil --force-device-scale-factor=1 --window-size=1600x900 \
