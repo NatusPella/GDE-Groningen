@@ -45,7 +45,8 @@ import { updateNarrative } from './narrative.js';
 import { initStoryContact, updateStoryContact } from './storycontact.js';
 import { initTheme } from './theme.js';
 import { initTrafficLights, updateTrafficLights } from './trafficlights.js';
-import { initRailway, updateRailway } from './railway.js';
+import { initRailway, updateRailway, setRailExtraWorld } from './railway.js';
+import { extendRoutes } from './corridorrail.js';
 import { geoWorkerActive } from './geojobs.js';
 import { init3D, update3D, resize3D, getScene, getRenderer, setMenuCover, MENU_FRAME_S, refreshRenderScale, terrainReady, canvasFrameCount, prewarmStreamAt } from './scene3d.js';
 import { checkFrame } from './blackframe.js';
@@ -235,13 +236,17 @@ async function boot() {
   const tiles = /[?&]legacymap\b/.test(location.search) ? null : await loadTileWorld('world/', { onProgress: onMapProgress, extra });
   const corLayer = tiles && tiles.index.layers && tiles.index.layers['corridor'];
   if (corLayer && corLayer.global) setWorldPlaces(corLayer.global.places);
-  if (corridor && tiles) setExtraBuiltWorld((x, y) => { const [i, j] = tileIndexOf(x, y); const t = tiles.index.tiles[tileKey(i, j)]; return !!t && !!(t.flags & 4); });
+  const inCorridor = (x, y) => { const [i, j] = tileIndexOf(x, y); const t = tiles.index.tiles[tileKey(i, j)]; return !!t && !!(t.flags & 4); };
+  if (corridor && tiles) { setExtraBuiltWorld(inCorridor); setRailExtraWorld(inCorridor); }
   const ommeland = tiles ? tileOmmeland(tiles.global) : loadOmmeland('citymap.json');
   const facilities = loadFacilities('citymap.json');
   const map = tiles ? tiles.world : await loadMap('citymap.json', onMapProgress);
   tileWorldStats = tiles ? tiles.store : null;
   markLoad('map');
-  initReal(map, await ommeland);
+  // with ?corridor the train lines run on over the corridor's track (corridorrail.js)
+  let om = await ommeland;
+  if (corridor && om && corLayer && corLayer.global) { const x = extendRoutes(om, corLayer.global); om = { ...om, routes: x.routes, stations: x.stations }; }
+  initReal(map, om);
   initFacilities(map, await facilities);
   markLoad('ommeland');
   prepareHomeMap(map);
