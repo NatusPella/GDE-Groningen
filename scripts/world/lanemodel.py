@@ -21,11 +21,13 @@ LANE_W = {
     "living_street": 2.75, "service": 2.75, "track": 2.75, "busway": 3.25,
 }
 # one-way carriageway: what comes on top of its lanes (both edges; motorway
-# with a hard shoulder, a ramp with a little room either side)
+# with a hard shoulder, a ramp with a little room either side; an urban
+# secondary or tertiary carriageway its kerb margins, room to pass a stopped
+# car and a bridge's railings set back: a single lane is 5 m)
 ONEWAY_EXTRA = {
     "motorway": 3.5, "motorway_link": 3.0, "trunk": 1.0, "trunk_link": 1.5,
-    "primary": 1.0, "primary_link": 1.5, "secondary": 0.8, "secondary_link": 1.2,
-    "tertiary": 0.8, "tertiary_link": 1.0,
+    "primary": 1.0, "primary_link": 1.5, "secondary": 2.0, "secondary_link": 1.6,
+    "tertiary": 2.0, "tertiary_link": 1.6,
 }
 # lanes in a one-way carriageway's direction without a tag
 ONEWAY_LANES = {"motorway": 2, "trunk": 2, "primary": 2}
