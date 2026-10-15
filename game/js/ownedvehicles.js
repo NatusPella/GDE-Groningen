@@ -33,7 +33,7 @@ import { realRoadNear } from './ommelandplace.js';
 import { buildingAt } from './countryreal.js';
 import { isSpawnHidden } from './pedestrians.js';
 import { slotFits, propBlocked, sleepingParkedCars } from './parkedcars.js';
-import { spawnHeroCarNear } from './vehicle.js';
+import { spawnHeroCarNear, playerTopSpeed } from './vehicle.js';
 import { inHomeFlat } from './home.js';
 import { BLOCK, ROAD_IN, ROAD_W, edgeDistance, edgeRoad, realWater } from './countryfield.js';
 import { REAL, RTILE, roadsInTile, realStreetAt, inRealExtent } from './countryreal.js';
@@ -112,7 +112,7 @@ function ringFor(opts) {
 
 function searchRing(world, x, y, model, twoWheel, ring, ignore) {
   const map = world.map;
-  const m = { len: model.len || 4, wid: model.wid || 1.7 };
+  const m = { len: (model.len || 4) + 2 * (model.trailer || 0), wid: model.wid || 1.7 };
   const halfLen = m.len / 2;
   const target = ring.minDist + (ring.maxDist - ring.minDist) * 0.25;
   const cands = [];
@@ -169,7 +169,7 @@ export function findParkingSpot(world, x, y, model, opts = {}) {
 
 // Beside the nearest Ommeland road, 25-120 m out, on dry open ground.
 function countrySpot(world, x, y, model, ignore) {
-  const m = { len: model.len || 4, wid: model.wid || 1.7 };
+  const m = { len: (model.len || 4) + 2 * (model.trailer || 0), wid: model.wid || 1.7 };
   for (const r of [45, 70, 30, 100, 120]) {
     for (let k = 0; k < 12; k++) {
       const a = (k / 12) * Math.PI * 2;
@@ -195,7 +195,7 @@ function countrySpot(world, x, y, model, ignore) {
 // roads), clear of buildings, farms, water and other cars. Open country
 // hides little, so a spot in view is taken when no hidden one is found.
 function countryKerbSpot(world, x, y, model, ring, ignore) {
-  const m = { len: model.len || 4, wid: model.wid || 1.7 };
+  const m = { len: (model.len || 4) + 2 * (model.trailer || 0), wid: model.wid || 1.7 };
   // polder roads run a block (960 m) apart: look up to 700 m out, nearest first
   const maxD = 700, target = ring.minDist + (Math.max(ring.maxDist, 120) - ring.minDist) * 0.25;
   const cands = [];
@@ -365,8 +365,8 @@ function statusOf(world, v, lost, kind, key) {
 function view(world, { id, hero, spec, color, upgrades, v, lost, key }) {
   const list = upgradeListForStock(spec);
   const perf = perfModel(spec.model, upgrades, list);
-  // a boat's top for the player (vehicle.js playerTune), scaled by its upgrades
-  const top = spec.kind === 'boat' && spec.model.playerTop ? spec.model.playerTop * perf.maxSpeed / spec.model.maxSpeed : perf.maxSpeed;
+  // the top the player gets out of it (vehicle.js playerTune), scaled by its upgrades
+  const top = playerTopSpeed(spec.model) * perf.maxSpeed / spec.model.maxSpeed;
   const status = statusOf(world, v, lost, spec.kind, hero ? 'hero' : key);
   const where = v && status.key !== 'garage' && status.key !== 'lost'
     ? { street: streetAt(world.map, v.x, v.y), wijk: wijkAt(world.map, v.x, v.y) } : null;
@@ -423,7 +423,7 @@ export function getGarageCatalog(world) {
     return {
       id: key, key, hero: false, owned: false, locked, v: null, spec, ...nameOf(spec, null),
       kind: glyphKind(spec), kindLabel: spec.type || KIND_LABEL[spec.kind], color: spec.color, paint: paintLabel(spec.color, 'Fabriekskleur'),
-      upgrades: [], topSpeed: kmh(spec.kind === 'boat' && spec.model.playerTop ? spec.model.playerTop : spec.model.maxSpeed), accel: spec.model.accel,
+      upgrades: [], topSpeed: kmh(playerTopSpeed(spec.model)), accel: spec.model.accel,
       accelScore: Math.max(1, Math.min(10, Math.round(spec.model.accel / 1.2))),
       meme: MEMES[key] || spec.desc, price: spec.price || 0, shop,
       unlockText: spec.unlock ? VEHICLE_UNLOCKS[spec.unlock].text : '',
@@ -500,7 +500,8 @@ const solidAt = (map, x, y, m) => {
 // spot nearby (cars, bikes), visible this time.
 function besideSpot(world, kind, model, ignore) {
   const map = world.map, p = world.player;
-  const len = model.len || 4, wid = model.wid || 1.7, half = len / 2;
+  // a gelede bus's rear unit trails behind the body: room for it either way
+  const len = (model.len || 4) + 2 * (model.trailer || 0), wid = model.wid || 1.7, half = len / 2;
   const gz = p.gz || 0;
   const radii = kind === 'boat' ? [3, 6, 10, 15, 20, 28, 36, 45] : kind === 'heli' ? [7, 10, 14, 19, 25, 32] : [3, 4.5, 6, 8, 11, 15, 20];
   const angle = p.angle;
@@ -519,7 +520,8 @@ function besideSpot(world, kind, model, ignore) {
       if (map.groundHeightAt && Math.abs((map.groundHeightAt(x, y, gz) || 0) - gz) > 0.8) continue;
       if (kind === 'heli') {
         if (solidAt(map, x, y, 8) || !clearOfVehicles(world, x, y, 7, ignore)) continue;
-        if (map.treesNear && map.treesNear(x, y, 7).some((t) => Math.hypot((t.x ?? t[0]) - x, (t.y ?? t[1]) - y) < 7)) continue;
+        // rotor (r 5) clear of the street trees' crowns (r up to 6.4)
+        if (map.treesNear && map.treesNear(x, y, 10).some((t) => Math.hypot((t.x ?? t[0]) - x, (t.y ?? t[1]) - y) < 10)) continue;
         return { x, y, angle, street: '' };
       }
       const e = wid / 2 + 0.3;
