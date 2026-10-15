@@ -10,8 +10,9 @@
 // lifetime key was ever cleared.
 import { dualHtml } from './subtitles.js';
 import { mayStart, noteToast } from './narrative.js';
+import { KEYS } from './storagekeys.js';
 
-const KEY = 'gte-prestaties-v1';
+const KEY = KEYS.achievements;
 const WRITE_DELAY_MS = 2500;
 const TOAST_S = 4.2;
 export const EIERBAL_TOTAL = 30;

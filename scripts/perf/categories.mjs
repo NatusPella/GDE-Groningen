@@ -1,5 +1,5 @@
 // Main-thread time per category from raw CPU profiles (run.sh with
-// GTE_PROFILE_OUT=<dir> PERF_PROFILE=<routes>). A sample belongs to the
+// GDE_PROFILE_OUT=<dir> PERF_PROFILE=<routes>). A sample belongs to the
 // nearest game-code frame on its stack (three.js frames count for the game
 // code that called them); files map to a category below, scene3d.js by
 // function name.

@@ -16,6 +16,7 @@ import { mayInterrupt, noteMoment } from './attention.js';
 import { registerNarrative } from './narrative.js';
 import { lineVoiceFor } from './linevoice.js';
 import { getFollowPose, prewarmStreamAt } from './scene3d.js';
+import { KEYS } from './storagekeys.js';
 
 // world.cameraOverride poses use map coordinates: x/y on the map, z = height in metres.
 // world.timeScale (0..1) slows gameplay; main.js multiplies the gameplay dt by it.
@@ -28,7 +29,7 @@ const FAIL_BANNER_TIME = 2.8;
 // after this long, playing on (moving, a click, a key) takes the banner away
 const BANNER_GRACE = 0.9;
 const CAM_MODES = ['', 'BUMPER', 'ZIJKANT', 'HELIKOPTER', 'TELELENS'];
-const WIJK_KEY = 'gte-wijken-seen';
+const WIJK_KEY = KEYS.wijkenSeen;
 // cinematics that book their own attention.js moment
 const OWN_MOMENTS = new Set(['wijk', 'landmark', 'crash', 'wanted5']);
 let endedAt = -Infinity;
@@ -677,7 +678,7 @@ const WIJK_GENERIC = [
   'De buren hebben je al gezien. Zwaai maar even.',
   'Het is hier stil. Dat verandert zo.',
 ];
-const WIJK_RECENT_KEY = 'gde-wijk-lines-recent';
+const WIJK_RECENT_KEY = KEYS.wijkLinesRecent;
 const WIJK_RECENT = 12;
 
 function wijkLine(name) {

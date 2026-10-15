@@ -6,8 +6,8 @@
 // - shows real download sizes for the map data on the loading screen;
 // - then imports js/main.js.
 (() => {
-  const CACHE = '__GTE_CACHE__';
-  const SIZES = __GTE_SIZES__;
+  const CACHE = '__GDE_CACHE__';
+  const SIZES = __GDE_SIZES__;
   const BASE = new URL('./', document.baseURI).href;
   const probe = document.createElement('audio');
   const OPUS = !/[?&]mp3\b/.test(location.search) && probe.canPlayType('audio/webm; codecs="opus"') === 'probably';

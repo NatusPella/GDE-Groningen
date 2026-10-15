@@ -4,6 +4,7 @@ import { buildWeaponMesh, buildPersonMesh, animatePersonWalk } from './models3d_
 import { buildProductMesh } from './shopmodels3d.js';
 import { VERSION } from './version.js';
 import { watchContext } from './blackframe.js';
+import { KEYS } from './storagekeys.js';
 
 const OBJECT_KINDS = new Set(['weapon', 'person', 'product']);
 // a person seen from the front, the face turned a little into the screen
@@ -302,7 +303,7 @@ function shoot(spec, w, h, angle) {
 // in localStorage for this game version, so a new session shows them
 // without a render (one shot costs 10 to 50 ms on a slow CPU). A model
 // change ships with a new version; source runs ('dev') keep nothing.
-const KEEP_KEY = 'gte-snapshots';
+const KEEP_KEY = KEYS.snapshots;
 const KEEP_MAX = 8;
 let kept = null;
 function keptShots() {

@@ -1,3 +1,5 @@
+// first: copies the pre-0.29 'gte-*' storage keys before any module reads them
+import './storagekeys.js';
 import { setErrorContext } from './errorlog.js';
 import { DEV, STORY_TEST } from './devflags.js';
 import { loadMap } from './mapdata.js';

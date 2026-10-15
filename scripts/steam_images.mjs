@@ -136,9 +136,9 @@ const SETTINGS_INIT = `try {
   if (!sessionStorage.getItem('steam-init')) {
     sessionStorage.setItem('steam-init', '1');
     localStorage.clear();
-    localStorage.setItem('gte-settings', JSON.stringify({ quality: 'hoog', shadows: true, drawDistance: 'ver', resolution: 1, autoResolution: false, showHints: false, v: 6 }));
-    localStorage.setItem('gte-gfx-advice', 'done');
-    localStorage.setItem('gte-muted', '1');
+    localStorage.setItem('gde-settings', JSON.stringify({ quality: 'hoog', shadows: true, drawDistance: 'ver', resolution: 1, autoResolution: false, showHints: false, v: 6 }));
+    localStorage.setItem('gde-gfx-advice', 'done');
+    localStorage.setItem('gde-muted', '1');
   }
 } catch (e) {}`;
 const CLEAN_TRAILER_CSS = `#trailer .tr-card, #trailer .tr-name, #trailer .tr-sub, #trailer .tr-bar, #trailer .tr-freeze, #trailer .tr-skip, #trailer .tr-fps, #trailer .tr-flash { display: none !important; }`;

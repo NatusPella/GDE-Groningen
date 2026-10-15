@@ -9,6 +9,7 @@ import { findEnterableVehicle, distToVehicleBody } from './vehicle.js';
 import { findRideableProp } from './rideprops.js';
 import { getSettings } from './settings.js';
 import { physicalKey, tokenKey, keyName, keyWord, PAD_LAYOUTS } from './controls.js';
+import { KEYS } from './storagekeys.js';
 const downKey = () => keyWord(getSettings().keyBinds, 'control');
 import { isPadActive, padState } from './gamepad.js';
 import { getUiScale } from './uiscale.js';
@@ -27,7 +28,7 @@ import { ommelandPrompt, ommelandSecondary } from './ommelandfun.js';
 import { renderAimReticle } from './aimassist.js';
 import { WEAPONS, isMeleeWeapon, isRangedWeapon } from './combat.js';
 
-const USES_KEY = 'gte-hint-uses';
+const USES_KEY = KEYS.hintUses;
 const LEARN_USES = 3;
 const MASTER_USES = 6;
 const KISS_DIST = 1.8;

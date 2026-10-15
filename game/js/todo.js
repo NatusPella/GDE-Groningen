@@ -349,7 +349,7 @@ export function isPlayAheadOpen() {
 
 function buildDialog() {
   const el = document.createElement('div');
-  el.id = 'gte-ahead';
+  el.id = 'gde-ahead';
   el.hidden = true;
   el.innerHTML = `<div class="ga-box" role="dialog" aria-modal="true" aria-labelledby="ga-title">
     <b id="ga-title"></b><p class="ga-text"></p><p class="ga-now"></p>

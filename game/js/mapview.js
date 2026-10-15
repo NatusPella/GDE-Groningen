@@ -28,6 +28,7 @@ import { nicknameOf, FLAVOUR_MAP_PLACES } from './flavourlines.js';
 import {
   updateRouting, getActiveRoute, getRouteAhead, getRoutes, dismissCareRoute, setUserWaypoint, clearUserWaypoint, getUserWaypoint, formatDistance,
 } from './routing.js';
+import { KEYS } from './storagekeys.js';
 
 const PADDING = 0.94;
 const ICON = 1.25;
@@ -50,7 +51,7 @@ const DRAG_PX = 4;
 const HOVER_PX = 12;
 const FOG_CELL = 50;
 const FOG_REVEAL = 2;
-const FOG_KEY = 'gte-fog';
+const FOG_KEY = KEYS.fog;
 const FOG_FEATHER = 16; // cells
 
 // city ground and the endless meadows past it share one colour (countrymap.js)

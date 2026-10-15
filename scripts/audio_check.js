@@ -1,6 +1,6 @@
 // Scripted check of the audio state machine in the real game (no sound):
-//   cd desktop && npm run stage && GTE_TEST_PROFILE=gte-vi-test-audio npx electron . --windowed \
-//     --stil --audio-graph --smoke-test=/tmp/gte-audio.png --perf-script=../scripts/audio_check.js
+//   cd desktop && npm run stage && GDE_TEST_PROFILE=gde-test-audio npx electron . --windowed \
+//     --stil --audio-graph --smoke-test=/tmp/gde-audio.png --perf-script=../scripts/audio_check.js
 // --audio-graph (?stil&audiograf) builds the whole graph into a muted sink.
 // Breaks things on purpose (stuck holds, a stuck story scene, zeroed gains,
 // a muffle, a held or suspended G-Music, a suspended context) and checks

@@ -402,7 +402,7 @@ export function initGamepad(inp, w, h = {}) {
     if (key === 'padLayout' && active) { family = layoutFor(currentPad() && currentPad().id); document.documentElement.dataset.pad = family; emit(); }
   });
   // a real key, click or mouse sweep hands the hints back to the keyboard
-  const toKeys = (e) => { if (active && e.isTrusted && !e.__gte) setActive(false); };
+  const toKeys = (e) => { if (active && e.isTrusted && !e.__gde) setActive(false); };
   inp.onRealKey = () => { if (active) setActive(false); };
   window.addEventListener('keydown', toKeys, true);
   window.addEventListener('mousedown', toKeys, true);

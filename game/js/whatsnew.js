@@ -2,9 +2,10 @@
 // when this install last ran another version. A first launch ever skips it;
 // a player with a save or settings from before this was stored counts as
 // returning. Dev builds never open it.
+import { KEYS } from './storagekeys.js';
 
-const KEY = 'gte-last-version';
-const RETURNING_KEYS = ['gte-save-v1', 'gte-settings'];
+const KEY = KEYS.lastVersion;
+const RETURNING_KEYS = [KEYS.save, KEYS.settings];
 
 // 0.21.0 < 0.22.0; non-numeric parts count as 0
 export function compareVersions(a, b) {

@@ -341,7 +341,7 @@ export function runStartScreen(world, { render, relocate, tick }) {
     items.push({ act: 'news', label: 'Wat is er nieuw', sub: 'Alle versies en wijzigingen' });
     items.push({ act: 'settings', label: 'Instellingen', sub: 'Geluid, beeld en camera' });
     items.push({ act: 'about', label: 'Over', sub: 'Credits, licenties en privacy' });
-    if (window.gteDesktop && window.gteDesktop.isDesktop) items.push({ act: 'exit', label: 'Afsluiten', sub: 'Tot de volgende keer. Hou dij goud!' });
+    if (window.gdeDesktop && window.gdeDesktop.isDesktop) items.push({ act: 'exit', label: 'Afsluiten', sub: 'Tot de volgende keer. Hou dij goud!' });
     const pct = getAchievementSummary().pct;
     const badge = (it) => it.act === 'continue' && pct > 0 ? `<span class="ss-pct" title="Prestaties behaald" style="font-size:0.5em;letter-spacing:1px;margin-left:12px;opacity:0.8;vertical-align:middle">${pct}% voltooid</span>` : '';
     menu.innerHTML = items.map((it, i) =>
@@ -415,7 +415,7 @@ export function runStartScreen(world, { render, relocate, tick }) {
       done = true;
       news.hidden = true;
       window.removeEventListener('keydown', onKey, true);
-      window.removeEventListener('gte-benchmark', onBenchmark);
+      window.removeEventListener('gde-benchmark', onBenchmark);
       world._menuCamPose = Math.hypot(pose.lookAt.x - p.x, pose.lookAt.y - p.y) < 150 ? pose : null;
       world.cameraOverride = null;
       screen.classList.remove('visible');
@@ -443,7 +443,7 @@ export function runStartScreen(world, { render, relocate, tick }) {
       } else if (it.act === 'settings') {
         openPauseMenu('settings', { prestart: true, onClose: () => focus(sel) });
       } else if (it.act === 'exit') {
-        window.gteDesktop.quit();
+        window.gdeDesktop.quit();
       }
     };
     const news = screen.querySelector('.ss-news');
@@ -548,7 +548,7 @@ export function runStartScreen(world, { render, relocate, tick }) {
       if (next === 'settings') openPauseMenu('settings', { prestart: true, sub: 'video', onClose: () => focus(sel) });
     };
     const onBenchmark = () => benchmark(false);
-    window.addEventListener('gte-benchmark', onBenchmark);
+    window.addEventListener('gde-benchmark', onBenchmark);
     // after an update the menu opens on "Wat is er nieuw"
     const update = /[?&]storytest/.test(location.search) ? null : checkWhatsNew(VERSION);
     if (update) { newsSince = update.since; changelogCache = null; }
@@ -558,7 +558,7 @@ export function runStartScreen(world, { render, relocate, tick }) {
       trailerOn = true;
       if (intro.mode === 'benchmark') { trailerOn = false; benchmark(!!intro.fromGame); return; }
       const res = await runTrailer(world, { ...intro, env });
-      if (intro.mode === 'opname' && !res.aborted && window.gteDesktop && window.gteDesktop.isDesktop) { window.gteDesktop.quit(); return; }
+      if (intro.mode === 'opname' && !res.aborted && window.gdeDesktop && window.gdeDesktop.isDesktop) { window.gdeDesktop.quit(); return; }
       if (res.continuation) {
         shot = res.continuation;
         shotT = 0;

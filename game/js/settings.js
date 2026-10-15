@@ -1,11 +1,12 @@
 import { normalizeKeyBinds, normalizePadBinds } from './controls.js';
 import { migrateSettings, SETTINGS_VERSION } from './savemigrate.js';
 import { VIEW_DISTANCES } from './viewdist.js';
+import { KEYS } from './storagekeys.js';
 
 // Player settings, persisted per browser. Modules read getSettings() and
 // subscribe with onSettingsChange() to apply changes live.
 
-const STORAGE_KEY = 'gte-settings';
+const STORAGE_KEY = KEYS.settings;
 
 export const QUALITY_PRESETS = {
   laag: { pixelRatio: 1, shadows: true, shadowMapSize: 1024 },

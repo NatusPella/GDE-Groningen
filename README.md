@@ -44,7 +44,7 @@ SmartScreen warns about the file, choose "Meer info" → "Toch uitvoeren".
   vervolgd". Storage stays in memory. The desktop run writes a screenshot per
   step plus `report.json` to `<dir>` (default: the temp dir) and exits with
   0 on PASS. Use a throwaway profile:
-  `cd desktop && npm run stage && GTE_TEST_PROFILE=gte-vi-test-story npx electron . --windowed --story-test=/tmp/st`
+  `cd desktop && npm run stage && GDE_TEST_PROFILE=gde-test-story npx electron . --windowed --story-test=/tmp/st`
 
 ### Performance runs
 
@@ -104,7 +104,7 @@ from the end of the radio intro. Used three ways:
   `--trailer=3840x2160` (page size in device pixels),
   `--trailer-frames=<dir>` (every frame as a png), `&stil` / `--stil` (no
   sound). `--trailer` uses a throwaway profile, e.g.
-  `cd desktop && npm run stage && GTE_TEST_PROFILE=gte-vi-trailer npx electron . --trailer=1920x1080`
+  `cd desktop && npm run stage && GDE_TEST_PROFILE=gde-trailer npx electron . --trailer=1920x1080`
 - **Video export**: desktop `--trailer-video[=<file.mp4>]` (default
   `~/Downloads/GDE-Groningen-Een-zomer-in-Grunn.mp4`) runs the recording and pipes
   every captured frame straight into ffmpeg (no frame files on disk), with
@@ -176,7 +176,7 @@ npm run web:serve    # serve it at http://localhost:8790/gte/ (add -- --log for 
 
 What the web build (`web/build.mjs`) adds on top of `desktop/build.mjs`:
 
-- **Relative paths everywhere** (`GTE_STAGE_RELATIVE=1`), so it runs from any
+- **Relative paths everywhere** (`GDE_STAGE_RELATIVE=1`), so it runs from any
   sub path (itch.io, GitHub Pages). three.js and the fonts are vendored, so no
   external URL is loaded.
 - **Opus audio**: every clip is also encoded as Opus in WebM (voices 32 kbps
@@ -428,7 +428,7 @@ keep the old name on purpose:
   `GTE VI` (`~/Library/Application Support/GTE VI`, `%APPDATA%\GTE VI`,
   `~/.config/GTE VI` on Linux),
   because the new product name would otherwise start with an empty profile;
-- the npm package name `gte-vi`, the `GTE_*` environment variables, the
+- the npm package name `gte-vi`, the `GDE_*` environment variables, the
   repo and file names, CSS ids such as `#gte-ahead`, and the `GTE-VI/`
   folder inside the Windows zip (so `START DE GAME.bat` finds an earlier
   install);

@@ -3,7 +3,10 @@
 // Player, the goal, the route, the story's mission and police are always
 // drawn and have no switch. Klussen (passed missions) start switched off:
 // missions outside the story only show once they are the player's goal.
-const STORAGE_KEY = 'gte-map-layers';
+import { KEYS } from './storagekeys.js';
+
+const STORAGE_KEY = KEYS.mapLayers;
+// the minimap's own switches in older versions: removed when seen
 const OLD_MINIMAP_KEY = 'gte-minimap-layers';
 const ALWAYS_ON = new Set(['route', 'userWaypoint', 'police', 'mission']);
 const DEFAULT_OFF = new Set(['klussen']);

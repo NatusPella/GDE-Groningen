@@ -796,7 +796,7 @@ function driveArrival(state, dur) {
 
 // Debug handle for testing from the console.
 if (typeof window !== 'undefined') {
-  window.__gteRespawn = {
+  window.__gdeRespawn = {
     destination: (w, busted, x, y) => destination(w, busted, x, y),
     plan: (w, site) => planArrival(w, site),
   };

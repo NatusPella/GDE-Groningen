@@ -22,13 +22,14 @@ import { closeShopMenu } from './shopui.js';
 import { quitTrainDrive } from './traindrive.js';
 import { statsFromSave } from './world.js';
 import { getRadioSave, applyRadioSave } from './radio.js';
+import { KEYS } from './storagekeys.js';
 
 // the key keeps its old name; the version inside the save is what counts (savemigrate.js)
-const KEY = 'gte-save-v1';
+const KEY = KEYS.save;
 const VERSION = SAVE_VERSION;
 // a copy of the save as it was before its first migration, and of a save
 // from a newer game before this one overwrites it
-const BACKUP_KEY = 'gte-save-backup';
+const BACKUP_KEY = KEYS.saveBackup;
 // Autosave follows the permanent state, not the clock: a purchase, repair,
 // upgrade, finished mission, unlocked achievement or side-job payout marks
 // the game dirty (markDirty, or the state check below) and it saves once

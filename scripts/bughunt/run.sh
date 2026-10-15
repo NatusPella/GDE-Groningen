@@ -8,7 +8,7 @@
 # snapshots) lands in $BH_OUT/out-<name>.log; parse.py prints it. Throwaway profile,
 # silent (--stil), waits until no other game Electron runs.
 HERE=${0:A:h}
-OUT=${BH_OUT:-${TMPDIR:-/tmp}/gte-bughunt}
+OUT=${BH_OUT:-${TMPDIR:-/tmp}/gde-bughunt}
 N=$1; shift
 mkdir -p $OUT
 cat $HERE/lib.js > $OUT/_$N.js
@@ -20,9 +20,9 @@ done
 echo 'return report();' >> $OUT/_$N.js
 cd $HERE/../../desktop || exit 1
 while pgrep -f "Electron.app/Contents/MacOS/Electron" >/dev/null; do sleep 4; done
-PROFILE=gte-vi-test-bughunt
+PROFILE=gde-test-bughunt
 rm -rf "${TMPDIR:-/tmp}/$PROFILE"
-GTE_TEST_PROFILE=$PROFILE ./node_modules/.bin/electron . --windowed --stil --smoke-test=$OUT/smoke.png --bench-eval=$HERE/hook.js --perf-script=$OUT/_$N.js > $OUT/out-$N.log 2>&1
+GDE_TEST_PROFILE=$PROFILE ./node_modules/.bin/electron . --windowed --stil --smoke-test=$OUT/smoke.png --bench-eval=$HERE/hook.js --perf-script=$OUT/_$N.js > $OUT/out-$N.log 2>&1
 echo "exit $? -> $OUT/out-$N.log"
 rm -rf "${TMPDIR:-/tmp}/$PROFILE" $OUT/smoke*.png $OUT/_$N.js
 python3 $HERE/parse.py $OUT/out-$N.log

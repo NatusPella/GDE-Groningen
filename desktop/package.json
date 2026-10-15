@@ -1,9 +1,10 @@
 {
-  "name": "gte-vi",
+  "name": "gde-groningen",
   "productName": "GDE Groningen",
   "version": "0.28.0",
   "description": "GDE Groningen – Zomer vol misdaad (GDE: Grootste Diefstal Ever)",
   "author": "NatusPella",
+  "license": "GPL-3.0-or-later",
   "private": true,
   "main": "main.js",
   "desktopName": "gde-groningen.desktop",
@@ -20,7 +21,7 @@
     "web:serve": "node ../web/serve.mjs"
   },
   "build": {
-    "appId": "nl.natuspella.gte-vi",
+    "appId": "nl.natuspella.gde-groningen",
     "productName": "GDE Groningen",
     "directories": {
       "output": "dist",
@@ -30,6 +31,7 @@
       "main.js",
       "preload.js",
       "trailervideo.js",
+      "userdata.js",
       "package.json"
     ],
     "extraResources": [
