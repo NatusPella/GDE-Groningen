@@ -6,6 +6,8 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+## [0.30.0] - 2026-10-15
+
 ### Nieuw
 - **Handmatig schakelen, driften en motoren.** Onder Instellingen kies je
   Schakelen: Automaat (zoals altijd), Handmatig (. en , of de bumpers van je
