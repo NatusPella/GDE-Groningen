@@ -183,7 +183,7 @@ function minigameItems(world) {
   };
   const rel = (v) => (v === 0 ? 'E' : v > 0 ? `+${v}` : String(v));
   mg('discgolf', 'mg:discgolf', 'discgolf', 'Discgolf', 'Stadspark · negen holes · gratis', 'discgolf', (v) => `Record ${rel(v)} t.o.v. par`, 'Minigame · Stadspark',
-    'Negen manden in het Stadspark. Richt, kies hyzer of anhyzer, houd Spatie voor kracht en let op de wind. Water kost een worp.', [[1, '8 boven par'], [2, '3 boven par'], [3, 'onder par']]);
+    'Negen manden in het Stadspark. Richt, kies hyzer of anhyzer, houd Spatie voor kracht en let op de wind. Water kost een worp.', [[1, '6 boven par'], [2, '1 boven par'], [3, '2 onder par']]);
   mg('pitchputt', 'mg:pitchputt', 'pitchputt', 'Pitch & putt', 'Concourslaan · zes holes · gratis', 'pitchputt', (v) => `Record ${rel(v)} t.o.v. par`, 'Minigame · Concourslaan',
     'Zes korte holes: pitchen naar de green en putten. Lees de pijltjes op de green, de bal loopt naar beneden.', [[1, '7 boven par'], [2, '3 boven par'], [3, 'op par of beter']]);
   mg('skatepark', 'mg:skatepark', 'skatepark', 'Skatepark', 'Stadspark · 90 seconden · gratis', 'skatepark', (v) => `Record ${Math.round(v).toLocaleString('nl-NL')} punten`, 'Minigame · Stadspark',
