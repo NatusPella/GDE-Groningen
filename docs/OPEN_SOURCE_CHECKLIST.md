@@ -128,19 +128,20 @@ eigenaar nodig. De procedures (filter-repo, GitHub-instellingen) staan in
 
 - [x] Het werk-e-mailadres staat niet meer in de huidige bestanden (ook
       niet meer in `docs/PUBLICEREN.md`, met de verouderde aantallen).
-- [?] **Werk-e-mailadres in de historie**: de oudere commits en 27
-      tag-objecten (tot 3 okt) hebben het werkadres als auteur, committer
-      en tagger; nieuwere het noreply-adres. Herschrijven met
-      `git filter-repo --mailmap` en force-push (PUBLICEREN.md §2). Alleen
-      na akkoord; daarna alle oude kloons en worktrees weggooien.
+- [x] **Historie herschreven** (15 okt, met akkoord): alle commits en
+      tags staan op NatusPella met het noreply-adres; naam, werkadres, de
+      Esri-luchtfoto, de oude Sikkom-audio, het oude GTE VI-icoon, de
+      verwijzingen naar een echte persoon en GTA-termen in commitberichten
+      zijn uit de hele historie. Force-push van `main` en de tags gedaan;
+      een lokale back-up (mirror) bestaat buiten de repo. Oude kloons
+      niet meer gebruiken.
 - [x] **Eigen naam** (15 okt): overal "NatusPella" of "de eigenaar":
       `desktop/package.json` (`author`, `copyright`), het About-paneel
       (`desktop/main.js`), ROADMAP, `docs/ONBOARDING.md`,
       `docs/PUBLICEREN.md` (mailmap-voorbeeld) en
       `docs/steam/winkelpagina.md`. Geen persoonsnaam, werkadres of
       thuispad (`/Users/…`) meer in de getrackte bestanden (de
-      OSM-kaartdata buiten beschouwing). In de **historie**
-      staan naam en werkadres nog (zie hierboven).
+      OSM-kaartdata buiten beschouwing). Ook de historie is schoon (zie hierboven).
 - [x] OSM-exports in `data/` bevatten zakelijke contactgegevens uit
       OpenStreetMap (ook enkele privé-ogende e-mailadressen): publiek onder
       de ODbL, acceptabel. Desgewenst `contact:*`/`email`/`phone` uit de
@@ -225,14 +226,15 @@ eigenaar nodig. De procedures (filter-repo, GitHub-instellingen) staan in
       `bootstrap()`). `npm audit`: 0 kwetsbaarheden; `npm run stage`
       werkt. Haal de overrides weg zodra `electron-builder` zelf nieuwere
       versies gebruikt.
-- [?] De release-zips en -builds tot 0.23 dragen nog de oude naam; die
-      staan in de privé-repo bij de Releases. Houden of verwijderen.
+- [x] De releases tot 0.23 heten nu "GDE Groningen x.y.z" met hernoemde
+      downloadbestanden (15 okt). De app in die oude builds toont nog de
+      oude naam; dat is acceptabel als historische versie.
 
 ## 8. Volgorde tot publiek
 
-1. [?] Besluiten hierboven, vooral: historie herschrijven (e-mail, Esri,
-   personen) ja of nee.
-2. [ ] Deze branch mergen; dan pas de filter-repo-run (PUBLICEREN.md §2),
-   anders komt oud werk terug.
-3. [ ] gitleaks, sleutel roteren, GitHub-instellingen.
+1. [x] Historie herschreven (15 okt).
+2. [x] Branches gemerged en daarna de filter-repo-run gedaan.
+3. [ ] gitleaks, OpenRouter-sleutel roteren (eigenaar), private
+   vulnerability reporting aanzetten zodra de repo publiek is (kan alleen
+   op publieke repo's).
 4. [?] Zichtbaarheid naar publiek: alleen met uitdrukkelijk akkoord.
