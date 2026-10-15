@@ -159,8 +159,8 @@ const SEDAN = { name: 'sedan', len: 4.3, wid: 1.8, maxSpeed: 50, accel: 10, brak
     if (Math.hypot(b[0] - a[0], b[1] - a[1]) > 60 && F.edgeDistance(a[0], a[1]) > 300) { road = [a[0], a[1], Math.atan2(b[1] - a[1], b[0] - a[0])]; break; }
   }
   const ai = drive(meadow[0], meadow[1], 0, null), pl = drive(meadow[0], meadow[1], 0, 'player'), onRoad = drive(road[0], road[1], road[2], null);
-  // the same soft cap for every driver: the engine and the drag meet near 30 m/s for a sedan
-  const ok = ai.worst < 33 && pl.worst < 33 && Math.abs(ai.worst - pl.worst) < 4 && onRoad.worst > 36;
+  // the same gentle cap for every driver: grass costs a sedan some top end, not a wall
+  const ok = ai.worst < onRoad.worst - 2 && pl.worst < onRoad.worst - 2 && ai.worst > 28 && pl.worst > 28 && Math.abs(ai.worst - pl.worst) < 4;
   if (!ok) fails++;
   console.log(`${ok ? 'ok  ' : 'FAIL'} meadow drag: AI ${ai.worst.toFixed(1)} m/s, player ${pl.worst.toFixed(1)} m/s after 2 s flat out from 30 on grass; on a road ${onRoad.worst.toFixed(1)}`);
 }
