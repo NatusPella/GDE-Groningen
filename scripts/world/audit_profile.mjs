@@ -1,41 +1,30 @@
-// Profile audit harness (docs/PROVINCIE-PLAN.md 2.11), F0 skeleton on the
-// current data: grades per road class, steps where roads share a vertex, and
-// the ring and A7 drive-through that `ring_probe.mjs` / `ringcheck.js` do.
+// Profile audit (docs/PROVINCIE-PLAN.md 2.11) on the current map: the height
+// solver's checks (scripts/world/profile.mjs audit: grade per class, vertical
+// curves, steps at joints, clearance per class, steps between overlapping
+// ribbons) and the ring's lanes free of solids (ringcheck.js probeRingSolids).
 //   node scripts/world/audit_profile.mjs [--strict]
-// The F1 solver's output is audited by the same checks (per tile, over every
-// road, both directions); --strict exits 1 when a limit is exceeded.
+// --strict exits 1 on a grade over the limit, a step at a joint, a car road
+// under its clearance or a solid on the ring's lanes.
 import '../node3d.mjs';
-const P = await import('./pack_tiles.mjs');
-const { roadZAt } = await import('../../game/js/elevation.js');
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+const { audit, printAudit } = await import('./profile.mjs');
+const { CAR } = await import('../../game/js/roadprofile.js');
+const data = JSON.parse(fs.readFileSync(path.join(ROOT, 'game/citymap.json'), 'utf8'));
+const rep = audit(data);
+printAudit(rep);
+// car roads under their clearance (foot and cycle ways under a ring road are
+// listed above; the game keeps those paths at street level for now)
+const carLow = rep.clearance.filter((q) => CAR.has(q.loCat) || q.loCat === 'rail');
+console.log(`car roads and rails under the clearance: ${carLow.length}`);
+
+const P = await import('./pack_tiles.mjs');
 const { map } = P.loadSources();
-const LIMIT = { major: 0.08, normal: 0.08, minor: 0.1 }; // grade limits of the current model (5 % solved, ramps up to ~6.7 %)
-let ways = 0, steep = 0, worst = { g: 0 }, jumps = 0, worstJump = { d: 0 };
-const at = new Map();
-const key = (p) => `${Math.round(p[0] * 10)},${Math.round(p[1] * 10)}`;
-for (const r of map.roads) {
-  if (!r.z) continue;
-  ways++;
-  for (let i = 0; i < r.pts.length - 1; i++) {
-    const len = Math.hypot(r.pts[i + 1][0] - r.pts[i][0], r.pts[i + 1][1] - r.pts[i][1]);
-    if (len < 0.5) continue;
-    const g = Math.abs(r.z[i + 1] - r.z[i]) / len;
-    if (g > (LIMIT[r.cat] || 0.1)) steep++;
-    if (g > worst.g) worst = { g, road: r.name || r.ref || r.type, at: r.pts[i] };
-  }
-  r.pts.forEach((p, i) => { const k = key(p); (at.get(k) || at.set(k, []).get(k)).push([r, r.z[i]]); });
-}
-for (const list of at.values()) {
-  if (list.length < 2) continue;
-  const zs = list.map((q) => q[1]);
-  const d = Math.max(...zs) - Math.min(...zs);
-  if (d > 0.02) { jumps++; if (d > worstJump.d) worstJump = { d, at: list[0][0].pts[0], names: list.map((q) => q[0].name || q[0].ref || q[0].type).join(' / ') }; }
-}
-console.log(`${ways} roads with a height profile, ${map.roads.length} roads`);
-console.log(`segments steeper than the limit: ${steep}; steepest ${(worst.g * 100).toFixed(1)} % on ${worst.road} at ${worst.at && worst.at.map(Math.round)}`);
-console.log(`vertices shared by roads whose heights differ by more than 2 cm: ${jumps}${jumps ? `; worst ${worstJump.d.toFixed(2)} m between ${worstJump.names}` : ''}`);
 const { probeRingSolids } = await import('../../game/js/ringcheck.js');
 await import('../../game/js/player.js');
 const hits = probeRingSolids({ map, flitspaalen: [] });
 console.log(`ring and numbered roads, solids on the lanes: ${hits.length}`);
-if (process.argv.includes('--strict') && (steep || jumps || hits.length)) process.exit(1);
+if (process.argv.includes('--strict') && (rep.steep.length || rep.joints.length || carLow.length || hits.length)) process.exit(1);

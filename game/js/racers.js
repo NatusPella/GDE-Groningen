@@ -101,7 +101,15 @@ export function buildTrack(map, route, edge = EDGE) {
   // road height at each point, followed from the start in 1 m steps so the
   // viaducts and cuttings keep their own level (spawnZ takes the nearest road)
   const z = new Float64Array(n);
-  if (map.groundHeightAt) {
+  if (map.surfaceAt) {
+    // one surfaceAt state round the lap: it keeps to the ribbon it is on
+    const st = map.spawnState(x[0], y[0]);
+    for (let i = 0; i < n; i++) {
+      z[i] = map.surfaceAt(x[i], y[i], st).z;
+      const j = (i + 1) % n, steps = Math.ceil(s[i + 1] - s[i]);
+      for (let k = 1; k < steps; k++) map.surfaceAt(x[i] + (x[j] - x[i]) * k / steps, y[i] + (y[j] - y[i]) * k / steps, st);
+    }
+  } else if (map.groundHeightAt) {
     let h = map.spawnZ ? map.spawnZ(x[0], y[0]) : 0;
     for (let i = 0; i < n; i++) {
       z[i] = h = map.groundHeightAt(x[i], y[i], h);

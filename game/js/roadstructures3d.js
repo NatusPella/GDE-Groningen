@@ -8,7 +8,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { WATER_Y, closestPointOnSegment } from './util.js';
 import {
   DECK_T, EMB_SLOPE, WALL_T, FENCE_H, BARRIER_H, ROOF_T, RAISED, COPING,
-  surfaceHalfWidth, roofTopAt, coveredAt, isWallBroken,
+  surfaceHalfWidth, roofTopAt, coveredAt, isWallBroken, lowerSurfaceAt,
 } from './elevation.js';
 
 const PIER_EVERY = 24;
@@ -368,10 +368,15 @@ export function structureArrays(r, map) {
       // a floor under the sunken carriageway: where two ways' ribbons meet
       // (or stop short at a portal) the ground above is cut away, so a
       // crack would look straight into the void
+      // (out past the verge to under the wall: the open-cut mask's texels
+      // reach a little beyond it, and a slip road alongside a wider
+      // carriageway puts its wall on that one's verge)
       const ext = 0.6, ux = (P[i + 1][0] - P[i][0]), uy = (P[i + 1][1] - P[i][1]), ul = Math.hypot(ux, uy) || 1;
       const ex = ux / ul * ext, ey = uy / ul * ext;
-      const l0 = edge(i, 1, hs), r0 = edge(i, -1, hs), l1 = edge(i + 1, 1, hs), r1 = edge(i + 1, -1, hs);
       const fa = Math.min(za - 0.06, -0.12), fb = Math.min(zb - 0.06, -0.12);
+      // (never out over a lower carriageway beside it)
+      const fw = (k, side, f) => { const q = edge(k, side, hs + WALL_T + 0.8); return lowerSurfaceAt(elev, q[0], q[1], f + 1) ? hs : hs + WALL_T + 0.8; };
+      const l0 = edge(i, 1, fw(i, 1, fa)), r0 = edge(i, -1, fw(i, -1, fa)), l1 = edge(i + 1, 1, fw(i + 1, 1, fb)), r1 = edge(i + 1, -1, fw(i + 1, -1, fb));
       B.quad('concrete', [l0[0] - ex, fa, l0[1] - ey], [l1[0] + ex, fb, l1[1] + ey], [r1[0] + ex, fb, r1[1] + ey], [r0[0] - ex, fa, r0[1] - ey]);
     }
     if (r.tunnel && (za < -RAISED || zb < -RAISED)) {

@@ -274,6 +274,27 @@ function onFlatRoad(map, x, y) {
   return false;
 }
 
+// How far out from (x, y) along (nx, ny) the open-cut mask has the ground
+// cut away (up to 4 m): where an open sunken segment's mask (openCutMask:
+// its half width plus the wall's pad) still covers the point.
+function cutReach(elev, x, y, nx, ny) {
+  const pad = WALL_T + 0.2;
+  let reach = 0;
+  for (let t = 0.25; t <= 4; t += 0.25) {
+    const px = x + nx * t, py = y + ny * t;
+    let cut = false;
+    for (const s of elev.grid.at(px, py) || []) {
+      if (s.covered || s.rail || (s.za > -CUT_Z && s.zb > -CUT_Z)) continue;
+      const cp = closestPointOnSegment(px, py, s.ax, s.ay, s.bx, s.by);
+      const z = s.za + (s.zb - s.za) * cp.t, r = s.hs + pad;
+      if (cp.dist2 <= r * r && z < -CUT_Z && (z < -1.0 || cp.dist2 <= (s.hs + SHALLOW_PAD) ** 2)) { cut = true; break; }
+    }
+    if (!cut) break;
+    reach = t;
+  }
+  return reach + 0.3;
+}
+
 // Width of the street-level coping strip beside a cutting's wall at (x, y),
 // outward (nx, ny): up to the edge of a street running alongside the top (it
 // tucks under that street's ribbon), none where the street is over the wall.
@@ -290,7 +311,10 @@ function copingWidth(map, x, y, nx, ny, line) {
 // highest, so a car keeps to the road it is driving on.
 const STAY_ON = 0.35;
 const OVERLAP_BAND = 1.2;
-const _roadZ = [], _roadD = [], _capZ = [], _capD = [], _capX = [], _capY = [], _capR = [], _midS = [];
+const _roadZ = [], _roadD = [], _roadR = [], _capZ = [], _capD = [], _capX = [], _capY = [], _capR = [], _midS = [];
+// what the last groundHeightAt stood on: a ribbon (road or rail), an
+// embankment slope or the ground (surfaceAt keeps it as the asker's state)
+const _pick = { ribbon: null, kind: 'ground' };
 
 // Nearest street-level road ribbon near the raised ones at (x, y): distance
 // to its centreline over its half width (Infinity when on none).
@@ -310,13 +334,15 @@ function flatRoadAt(elev, x, y) {
 // overlapping roads). Falling back to the lowest surface when there is none
 // (standing over an open cut).
 export function groundHeightAt(elev, x, y, zHint = 0, stepUp = STEP_UP) {
+  _pick.ribbon = null; _pick.kind = 'ground';
   if (!elev.has) return 0;
   const list = elev.grid.at(x, y);
   if (!list) return 0;
   let best = -Infinity, lowest = Infinity, bestRoad = false, cap = -Infinity, capRoad = false;
+  let bestR = null, capRb = null;
   let ground = true;
   const lim = zHint + stepUp;
-  _roadZ.length = _roadD.length = _capZ.length = _capD.length = _capX.length = _capY.length = _capR.length = _midS.length = 0;
+  _roadZ.length = _roadD.length = _roadR.length = _capZ.length = _capD.length = _capX.length = _capY.length = _capR.length = _midS.length = 0;
   for (const s of list) {
     const q = onSeg(s, x, y);
     let z = null, road = false;
@@ -342,9 +368,9 @@ export function groundHeightAt(elev, x, y, zHint = 0, stepUp = STEP_UP) {
         _capZ.push(z); _capD.push(q.d / s.hs + (tip ? 1 : 0));
         _capX.push(q.t <= 0 ? s.ax : s.bx); _capY.push(q.t <= 0 ? s.ay : s.by); _capR.push(s.r);
       } else {
-        if (road) { _roadZ.push(z); _roadD.push(q.d / s.hs); _midS.push(s); }
-        if (end) { if (z > cap) { cap = z; capRoad = road; } }
-        else if (z > best) { best = z; bestRoad = road; }
+        if (road) { _roadZ.push(z); _roadD.push(q.d / s.hs); _roadR.push(s.r); _midS.push(s); }
+        if (end) { if (z > cap) { cap = z; capRoad = road; capRb = road ? s.r : null; } }
+        else if (z > best) { best = z; bestRoad = road; bestR = road ? s.r : null; }
       }
     }
     if (z < lowest) lowest = z;
@@ -363,28 +389,142 @@ export function groundHeightAt(elev, x, y, zHint = 0, stepUp = STEP_UP) {
       if (q.d <= m.hs && Math.abs(q.z - z) < 0.05) { joined = true; break; }
     }
     if (joined) continue;
-    _roadZ.push(z); _roadD.push(_capD[i]);
-    if (z > cap) { cap = z; capRoad = true; }
+    _roadZ.push(z); _roadD.push(_capD[i]); _roadR.push(_capR[i]);
+    if (z > cap) { cap = z; capRoad = true; capRb = _capR[i]; }
   }
-  if ((cap > best + 0.5 || best === -Infinity) && cap > best) { best = cap; bestRoad = capRoad; }
+  if ((cap > best + 0.5 || best === -Infinity) && cap > best) { best = cap; bestRoad = capRoad; bestR = capRb; }
   if (!ground && onFlatRoad(elev.map, x, y)) ground = true;
   if (ground && 0 <= lim) {
     // a street-level road next to the raised ones is a road surface too
     const nd = best < OVERLAP_BAND ? flatRoadAt(elev, x, y) : Infinity;
-    if (nd < Infinity) { _roadZ.push(0); _roadD.push(nd); }
-    if (0 > best) { best = 0; bestRoad = nd < Infinity; }
+    if (nd < Infinity) { _roadZ.push(0); _roadD.push(nd); _roadR.push(null); }
+    if (0 > best) { best = 0; bestRoad = nd < Infinity; bestR = null; }
   }
   if (_roadZ.length > (bestRoad ? 1 : 0)) {
     let pick = -1;
     for (let i = 0; i < _roadZ.length; i++) {
       if (Math.abs(_roadZ[i] - zHint) <= STAY_ON && (pick < 0 || _roadD[i] < _roadD[pick])) pick = i;
     }
-    if (pick >= 0) return _roadZ[pick];
+    if (pick >= 0) {
+      _pick.ribbon = _roadR[pick]; _pick.kind = _roadR[pick] ? 'road' : 'ground';
+      return _roadZ[pick];
+    }
   }
-  if (best > -Infinity) return best;
+  if (best > -Infinity) {
+    _pick.ribbon = bestR; _pick.kind = bestR ? 'road' : best > RAISED ? 'slope' : 'ground';
+    return best;
+  }
   // below every surface here (pushed into the side of a cutting): stay put,
   // the walls move it back; never pop up to the street
   return Math.min(zHint, lowest < Infinity ? lowest : 0);
+}
+
+// Height of ribbon r (a road or rail with a profile) at (x, y) where (x, y)
+// is on its surface, else null. Past the ribbon's own two ends it is not:
+// whatever carries on from there has the say.
+export function ribbonZAt(elev, r, x, y) {
+  if (!elev.has || !r) return null;
+  const list = elev.grid.at(x, y);
+  if (!list) return null;
+  // the nearest point of the ribbon decides: past one of its two ends (that
+  // end vertex is the nearest point and the point lies beyond it) is off it,
+  // also where an inner vertex's round cap would still reach
+  let bd = Infinity, bz = null, bh = 0, past = false;
+  for (const s of list) {
+    if (s.r !== r) continue;
+    const q = onSeg(s, x, y);
+    if (q.d >= bd - 1e-9) continue;
+    bd = q.d; bz = q.z; bh = s.hs; past = false;
+    if ((q.t <= 0 && s.i === 0) || (q.t >= 1 && s.i === s.r.pts.length - 2)) {
+      const along = (x - s.ax) * s.ux + (y - s.ay) * s.uy;
+      past = along < -0.05 || along > s.len + 0.05;
+    }
+  }
+  return !past && bz !== null && bd <= bh ? bz : null;
+}
+
+// The one height query (docs/PROVINCIE-PLAN.md 2.11): the surface under
+// (x, y) for whoever is in `state` = { z, ribbon }, its layer: the height it
+// is at and the road or rail deck it stands on. Whoever is on a ribbon stays
+// on it while (x, y) is on its surface, however other decks, ramps and
+// streets overlap it in plan; off it (past an edge, onto the next way at a
+// joint) the surface is the highest one within a step up (groundHeightAt).
+// Updates and returns state: { z, ribbon, kind: 'road'|'slope'|'ground' }.
+// `ground` is the stateless query to fall back on (GameMap passes its own,
+// so a patched groundHeightAt, like the home's storey, is honoured).
+export function surfaceAt(elev, x, y, state, ground = null) {
+  const z0 = state.z || 0;
+  const own = state.ribbon;
+  if (own && elev.has) {
+    const zr = ribbonZAt(elev, own, x, y);
+    if (zr !== null && Math.abs(zr - z0) <= STEP_UP) {
+      state.z = zr;
+      state.kind = 'road';
+      return state;
+    }
+    // past its end: the way that carries on from there (the same road
+    // first, so through traffic at a slip road's split stays on the
+    // main road), at about this height
+    let best = null, bz = 0, bk = Infinity;
+    for (const r of joinsOf(elev, own)) {
+      const z = ribbonZAt(elev, r, x, y);
+      if (z === null || Math.abs(z - z0) > STEP_UP) continue;
+      const k = (sameRoad(r, own) ? 0 : 1) * 10 + Math.abs(z - z0);
+      if (k < bk) { bk = k; best = r; bz = z; }
+    }
+    if (best) {
+      state.ribbon = best;
+      state.z = bz;
+      state.kind = 'road';
+      return state;
+    }
+  }
+  _pick.ribbon = null; _pick.kind = 'ground';
+  state.z = ground ? ground(x, y, z0) : groundHeightAt(elev, x, y, z0);
+  state.ribbon = _pick.ribbon;
+  state.kind = _pick.kind;
+  return state;
+}
+
+// Ribbons with a profile that share a vertex with either end of r.
+const vkey = (p) => Math.round(p[0] * 100) * 1e7 + Math.round(p[1] * 100);
+function joinsOf(elev, r) {
+  if (!elev.joins) {
+    const at = new Map();
+    for (const s of elev.segs) {
+      if (s.rail || at.has(s.r)) continue;
+      at.set(s.r, null);
+    }
+    const byKey = new Map();
+    for (const q of at.keys()) for (const p of q.pts) { const k = vkey(p); (byKey.get(k) || byKey.set(k, []).get(k)).push(q); }
+    elev.joins = new WeakMap();
+    elev.joinKeys = byKey;
+  }
+  let j = elev.joins.get(r);
+  if (!j) {
+    const set = new Set();
+    if (r.pts) for (const p of [r.pts[0], r.pts[r.pts.length - 1]]) for (const q of elev.joinKeys.get(vkey(p)) || []) if (q !== r) set.add(q);
+    elev.joins.set(r, j = [...set]);
+  }
+  return j;
+}
+const sameRoad = (a, b) => (a.ref && a.ref === b.ref) || (a.name && a.name === b.name && /_link$/.test(a.type) === /_link$/.test(b.type));
+
+// The ribbon something put down at (x, y) at about height z stands on: of
+// the ribbons covering the point, the one nearest in height (then nearest
+// its centreline); null at street level.
+export function ribbonAt(elev, x, y, z) {
+  if (!elev.has) return null;
+  const list = elev.grid.at(x, y);
+  if (!list) return null;
+  let best = null, bz = Infinity, bd = Infinity;
+  for (const s of list) {
+    const q = onSeg(s, x, y);
+    if (q.d > s.hs) continue;
+    const dz = Math.abs(q.z - z), dd = q.d / s.hs;
+    if (dz < bz - 0.05 || (dz < bz + 0.05 && dd < bd)) { best = s.r; bz = dz; bd = dd; }
+  }
+  return bz <= STEP_UP ? best : null;
 }
 
 // Is (x, y) on a raised or sunken surface: a road deck or cutting floor off
@@ -594,8 +734,10 @@ function buildWalls(elev, map) {
         }
         const joined = s.rail ? surfaceOf(elev, mx, my, s.r, zr, 1.2, true)
           // (a crash barrier that would stand on the asphalt of a ramp alongside
-          // it, even a couple of metres lower, is left out)
-          : surfaceOf(elev, mx, my, s.r, zr, cut ? 1.6 : 2.5) || (Math.abs(zr) < (cut ? 1.6 : 2.5) && onFlatRoad(map, mx, my));
+          // it at about its height is left out; one more than a barrier's
+          // reach lower, a deck edge over a slip road going down beside it,
+          // keeps it: it stands on this deck, not in that ramp's way)
+          : surfaceOf(elev, mx, my, s.r, zr, cut ? 1.6 : 1.7) || (Math.abs(zr) < (cut ? 1.6 : 1.7) && onFlatRoad(map, mx, my));
         const piece = {
           ax: s.ax + s.ux * s.len * t0 + nx * off, ay: s.ay + s.uy * s.len * t0 + ny * off,
           bx: s.ax + s.ux * s.len * t1 + nx * off, by: s.ay + s.uy * s.len * t1 + ny * off,
@@ -646,7 +788,13 @@ function buildWalls(elev, map) {
           }
           else if (onFlatRoad(map, mx, my)) elev.skirts.push({ ...ends, coping: false });
         }
-        if (cut && piece.low && !s.covered) piece.coping = copingWidth(map, mx, my, nx, ny, true);
+        if (cut && piece.low && !s.covered) {
+          piece.coping = copingWidth(map, mx, my, nx, ny, true);
+          // a wider cutting alongside (a slip road's wall standing on the main
+          // road's verge) has the ground cut away past this wall: the coping
+          // reaches out to where the ground is back (openCutMask)
+          if (piece.coping === COPING) piece.coping = Math.max(COPING, cutReach(elev, mx, my, nx, ny));
+        }
         if (raise && s.pieces && !joined) {
           const fp = s.pieces[Math.min(s.pieces.length - 1, k * s.pieces.length / n | 0)];
           if (fp && fp.retain[side > 0 ? 0 : 1]) {
@@ -797,8 +945,9 @@ export function openCutMask(elev, maxTex = 4096) {
         const cp = closestPointOnSegment(px, py, s.ax, s.ay, s.bx, s.by);
         if (cp.dist2 > r * r) continue;
         const z = s.za + (s.zb - s.za) * cp.t;
-        // (a shallow dip has no retaining wall to reach over: just the lanes)
-        if (z < -CUT_Z && (z < -RAISED || cp.dist2 <= (s.hs + SHALLOW_PAD) ** 2)) data[j * w + i] = 255;
+        // (a dip of under a metre has no retaining wall to reach over: just the
+        // lanes and their verge; the skirts close its sides)
+        if (z < -CUT_Z && (z < -1.0 || cp.dist2 <= (s.hs + SHALLOW_PAD) ** 2)) data[j * w + i] = 255;
       }
     }
   }

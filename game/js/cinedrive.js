@@ -51,9 +51,12 @@ export function pathHeights(map, path, z0 = 0, step = 1) {
   const n = Math.max(2, Math.ceil(path.len / step) + 1);
   const zs = new Float64Array(n);
   let z = z0;
+  // one surfaceAt state along the whole path: it keeps to the ribbon it starts on
+  const q0 = path.at(0);
+  const st = map.surfaceAt ? { z: z0, ribbon: map.ribbonAt(q0.x, q0.y, z0) } : null;
   for (let i = 0; i < n; i++) {
     const q = path.at(Math.min(path.len, i * step));
-    z = map.groundHeightAt ? map.groundHeightAt(q.x, q.y, z) : 0;
+    z = st ? map.surfaceAt(q.x, q.y, st).z : map.groundHeightAt ? map.groundHeightAt(q.x, q.y, z) : 0;
     zs[i] = z;
   }
   return (s) => {

@@ -539,20 +539,54 @@ The panel scales with `--ui`. Shops that buy and sell list Kopen first.
 ## Heights
 
 Groningen is flat and so is the world (y = 0), except the ringweg and its
-grade-separated junctions: roads carrying `z` (one height per vertex, from
-`scripts/add_elevation.py`) run over viaducts and embankments or through
-the sunken Zuidelijke Ringweg (open cuttings and covered sections, under
-the Winschoterdiep as an aqueduct). `elevation.js` builds from them, once
-per map (`map.elev`):
+grade-separated junctions: roads carrying `z` (one height per vertex,
+metres above the terrain under it; the terrain is flat until an AHN raster
+plugs into the solver's `terrain` sampler) run over viaducts and
+embankments or through the sunken Zuidelijke Ringweg (open cuttings and
+covered sections, under the Winschoterdiep as an aqueduct).
 
-- `map.groundHeightAt(x, y, zHint)`: the highest surface at most ~1.1 m
-  above `zHint` - road decks, cutting floors, embankment slopes, else the
-  street. Everything that has a height keeps its own absolute value and
-  passes it as the hint: vehicles `v.z` (+ `v.pitch`/`v.roll` from the
+The profiles come from the network height solver
+(`scripts/world/profile.mjs`, rules in `js/roadprofile.js`, run by
+`build_map.py` after `add_elevation.py`, whose per-way heights are its
+prior): one height per vertex shared by roads (joints are continuous by
+construction), the grade limit per class (`MAX_GRADE`: trunk 5 %, links
+6 %, urban 6-8 %), vertical curves (`MIN_RADIUS`), the clearance under every
+grade separation by the class of what passes below (`CLEARANCE`: road
+4.6 m, cycle/foot 2.5 m, rail 6.0 m, plus the 1 m deck; the tagged side
+moves: a bridge rises, a tunnel sinks), tunnels at least 5.8 m under the
+terrain (8.2 m under a canal), slip roads at their carriageway's height while
+their lanes overlap; projections onto those constraints from the prior.
+`node scripts/world/profile.mjs` audits the map (grades, curves, joints,
+clearance; foot and cycle paths that OSM puts in a tunnel or on a bridge
+are still at street level and listed as open, `--paths` gives them a
+profile; `KNOWN_KNOTS` are OSM joints between ways that pass over each
+other). Tiles carry the profiles in the heights section (below, "World
+tiles"). `elevation.js` builds from them, once per map (`map.elev`), and
+embankments, retaining walls, abutments and decks come from the profile's
+difference with the terrain:
+
+- `map.surfaceAt(x, y, state)`: the one height query, for whoever keeps a
+  `state = { z, ribbon }` (its layer: its height and the road or rail deck
+  it is on). It stays on its ribbon while on that ribbon's surface, however
+  other decks, ramps and streets overlap it in plan (stacked roads); past the
+  ribbon's end it takes the way that carries on (the same road first, so
+  through traffic at a slip road's split stays on the main road); off an
+  edge it falls to what is below. Vehicles (`v.surf`, the wheelbase and
+  slope probes through `map.surfaceZ`), the walker (`player.surf`),
+  pedestrians, the race track, cutscene paths (`cinedrive.js` pathHeights)
+  and the GPS route ribbon use it. `map.ribbonAt(x, y, z)` gives the ribbon
+  for something put down at a height, `map.spawnState(x, y)` the surface
+  seen from street level (what `spawnZ` always gave).
+- `map.groundHeightAt(x, y, zHint)`: the stateless fallback: the highest
+  surface at most ~1.1 m above `zHint` - road decks, cutting floors,
+  embankment slopes, else the street. Everything that has a height keeps its
+  own absolute value: vehicles `v.z` (+ `v.pitch`/`v.roll` from the
   surface, falling off an edge or cresting a ramp fast goes ballistic, hard
   landings damage; `susPitch`/`susRoll`/`susHeave` are the drawn-only body
   springs), the player and companion `gz`
   (plus the jump height `z`; drops hurt), pedestrians `gz`, ragdolls.
+  A patched `groundHeightAt` (the home's storey) is honoured by
+  `surfaceAt` off the ribbons.
 - Walls: retaining walls of cuttings (solid from inside, with a fence solid
   from the street), crash barriers on raised roads, abutments where an
   embankment meets a road passing underneath. `resolveWalker(..., z)` and
@@ -579,6 +613,61 @@ per map (`map.elev`):
 
 Nothing else needs to know about heights: vehicles on different levels
 don't collide, and actors are drawn at their height.
+
+## Lanes
+
+Every car road carries the lane model (docs/PROVINCIE-PLAN.md 2.12; set by
+`scripts/world/lanemodel.py` from its OSM way's tags, in `process_osm.py`
+for a new build and `scripts/world/lanes.py` on the current map):
+`lanesFwd`/`lanesBwd` (`lanesBoth`), `lanes`, `turnFwd`/`turnBwd` (one
+turn:lanes entry per lane, left to right), `placement`, `laneW` (NL widths:
+trunk 3.25 m, urban 2.75-3.25), `widthSrc` and `osm` (the way id). A
+one-way carriageway of a trunk, primary, motorway or slip road (and of a dual
+secondary or tertiary road) is as wide as its lanes plus its edges: before,
+each half of a dual carriageway had the width of the whole road (the N7
+halves 12 m, drawn with four lanes each way where OSM has two). After
+`lanes.py`, `profile.mjs --write` re-solves (slip roads couple to their
+carriageway where the lanes overlap) and `ring_widths.mjs --write` brings
+the race lap's half widths along. `lanes.js` `laneLayout(r)` places the
+lanes across the carriageway (forward lanes right of the divider): the
+markings (`roadsurface.js`: lane lines, the divider, turn arrows 10 and 40 m
+before the end of a way) and the traffic AI (`vehicle.js` `laneOffset`: the
+middle of the right lane, the left one when it sorts for a left turn) use
+it. `scripts/world/audit_lanes.py` checks the map against the tags.
+`placement` is kept but the ribbon is not yet shifted by it (the joints
+would need a taper).
+
+## Junctions
+
+`junctions.js` `junctionModel(map)` is the one object per car junction node
+(docs/PROVINCIE-PLAN.md 2.13) that the markings, signs, traffic lights, the
+traffic AI and the tiles read: a control (`signals` where a signal
+controller stands, `roundabout`, `priority` where a higher class road
+crosses, `equal` where traffic from the right goes first, `graded` off
+street level) and per arm a rule (`signal`, `priority`, `yield`, `exit`
+for driveways and living streets, `right`, `free`) and a stop distance (the
+edge of the crossing carriageway, where the haaientanden or the stop line
+are). `yieldArms` (haaientanden and B6 signs) are exactly the arms with
+`yield`; the AI (`vehicle.js` `junctionYieldLimit`) gives way by the same
+Dutch rules (class, right before left, a left turn yields to oncoming
+traffic, roundabout entries to the ring) and stops at the arm's stop
+distance. Tiles carry it in the JUNCTIONS section (`junctionRows`).
+`node scripts/junction_sim_test.mjs` checks the model and runs the AI
+through the busiest signalised crossing, roundabout, priority and equal
+junction on a seeded virtual clock (throughput, no deadlock, no more AI
+knocks than the v0.29 AI). Junction surfaces with corner radii, islands
+and per-lane stop lines are the next step (F1b).
+
+Network audits: `node scripts/world/drive_audit.mjs [--all] [--solids]`
+drives every road both ways at its speed with the player's car
+(`ringcheck.js` `driveAcross`, 25 m on into the ways that carry on; knock,
+jump, fall, sinking, push off) and probes every lane for solids
+(`probeRoadSolids`); `scripts/network_drive_test.mjs` runs it strictly over
+the main and profiled roads plus the ring's water crossings. Joints, grades,
+curves and clearance: `scripts/world/profile.mjs`; lanes:
+`scripts/world/audit_lanes.py`; voids, floating edges and z-fighting:
+`scripts/mesh_audit.mjs`. In dev mode F8 shows the profile of the ribbon
+under the player (`profileoverlay.js`).
 
 ## 3D notes
 
@@ -868,8 +957,15 @@ server, `?legacymap`).
   json) and one value stream per kind. Numbers are integers or exact
   centimetres, else float64 per row, so a round trip gives the same doubles;
   points are tile-local centimetres, delta + zigzag varints, all dx then all
-  dy. Section types are reserved for what F1 fills: junctions, heights (AHN
-  raster), pois, furniture, nav, overlay (`SECTION`). Readers skip unknown
+  dy. The heights section (`SECTION.HEIGHTS`, version 1) holds the vertical
+  profiles: per profiled road its `gid`, `z` (m per vertex, exact cm), `pnet`
+  (its connected network), `st` (per segment: 0 ground, 1 deck, 2
+  embankment, 3 cutting, 4 tunnel; `roadprofile.js` STRUCT) and `ly` (the
+  OSM grade order per segment); the road rows carry no `z` of their own and
+  `tileworld.js` joins the profile back by gid, so meshes, colliders and the
+  height query read one profile. The AHN terrain raster will be a RASTER
+  next to it. Section types reserved for the rest of F1: junctions, pois,
+  furniture, nav, overlay (`SECTION`). Readers skip unknown
   sections and refuse a newer format. Hashes are two xxh32 (16 hex digits).
 - **Packs (`scripts/world/pack_tiles.mjs`).** The GameMap's arrays after its
   load-time derivation (doubled footprints, canopies, houseboats, roof steps,
