@@ -27,7 +27,16 @@ const V = await imp('vehicle');
 const BT = await imp('boattypes');
 const T = await imp('trafficfleet');
 const SL = await imp('streetlife');
-const skipper = setInterval(() => { if (cine.isCinematicActive()) cine.skipCinematic(); }, 100);
+let ownShot = false;
+const skipper = setInterval(() => { if (!ownShot && cine.isCinematicActive()) cine.skipCinematic(); }, 100);
+// a fixed camera: eye (x, y, height) looking at (x, y, height)
+const shot = (e, l) => {
+  if (cine.isCinematicActive()) cine.skipCinematic();
+  ownShot = true;
+  const pose = { position: { x: e[0], y: e[1], z: e[2] }, lookAt: { x: l[0], y: l[1], z: l[2] }, cut: true };
+  cine.playCinematic({ id: 'life-shot', duration: 60, priority: 9, shot: () => pose });
+};
+const unshot = () => { if (cine.isCinematicActive()) cine.skipCinematic(); ownShot = false; };
 w.devInvuln = true;
 D.input.canLock = () => false;
 if (document.pointerLockElement) document.exitPointerLock();
@@ -98,7 +107,7 @@ for (const kind of ['bernard', 'seller', 'beggar', 'magnet']) {
   teleport(open.x, open.y);
   const toward = Math.atan2(s.y - open.y, s.x - open.x);
   hold = { x: open.x, y: open.y, a: toward + Math.PI };
-  await sleep(7000);
+  await sleep(10000);
   hold.a = toward;
   await sleep(1800);
   const ped = w.pedestrians.find((q) => q.scene && q.scene.kind === kind && Math.hypot(q.x - s.x, q.y - s.y) < 3);
@@ -115,8 +124,13 @@ for (const kind of ['bernard', 'seller', 'beggar', 'magnet']) {
     results.scenes[kind].money = w.money;
     await sleep(500);
   }
+  if (ped) {
+    shot([ped.x + Math.cos(ped.angle) * 3.2, ped.y + Math.sin(ped.angle) * 3.2, 1.7], [ped.x, ped.y, 0.9]);
+    await sleep(1200);
+  }
   console.log('[capture] ' + kind);
   await sleep(600);
+  unshot();
 }
 
 // --- 3. rowing and paddling on wide water
@@ -146,8 +160,16 @@ if (wide) {
     await sleep(5000);
     hold.a = Math.atan2(target.y - spot.y, target.x - spot.x);
     results.scenes.rowing = { crew: made.map((v) => v.model.kind), speeds: made.map((v) => +Math.abs(v.speed).toFixed(2)), meanWidth: Math.round(wide.w) };
+    const mx = made.reduce((a, v) => a + v.x, 0) / made.length, my = made.reduce((a, v) => a + v.y, 0) / made.length;
+    shot([spot.x, spot.y, 5], [mx, my, -1.5]);
+    await sleep(1500);
     console.log('[capture] rowing');
     await sleep(600);
+    shot([made[0].x - Math.sin(made[0].angle) * 7, made[0].y + Math.cos(made[0].angle) * 7, 2.5], [made[0].x, made[0].y, -1.8]);
+    await sleep(800);
+    console.log('[capture] rowing-close');
+    await sleep(600);
+    unshot();
   }
 }
 
@@ -179,6 +201,8 @@ if (road) {
   }
   const hold0 = row.map((v) => [v.x, v.y]);
   const pin = setInterval(() => { row.forEach((v, i) => { v.x = hold0[i][0]; v.y = hold0[i][1]; v.speed = 0; }); }, 30);
+  const mid = row.length ? [row.reduce((a, v) => a + v.x, 0) / row.length, row.reduce((a, v) => a + v.y, 0) / row.length] : [road.x, road.y];
+  shot([mid[0] + Math.sin(segA) * 6, mid[1] - Math.cos(segA) * 6, 1.6], [mid[0], mid[1], 0.9]);
   await sleep(2500);
   console.log('[capture] bikes-dinner');
   await sleep(600);
@@ -187,6 +211,7 @@ if (road) {
   console.log('[capture] bikes-night');
   await sleep(600);
   clearInterval(pin);
+  unshot();
 }
 
 // --- 5. the news van (a white van with a roof camera)
@@ -203,10 +228,12 @@ if (road) {
     teleport(road2.x - Math.cos(a2) * 5, road2.y - Math.sin(a2) * 5);
     hold = { x: p.x, y: p.y, a: a2 + 0.4 };
     const pin = setInterval(() => { v.x = road2.x + Math.cos(a2) * 7; v.y = road2.y + Math.sin(a2) * 7; v.speed = 0; }, 30);
+    shot([v.x + Math.sin(a2) * 7 + Math.cos(a2) * 2, v.y - Math.cos(a2) * 7 + Math.sin(a2) * 2, 2.2], [v.x, v.y, 1.4]);
     await sleep(2500);
     console.log('[capture] newsvan');
     await sleep(600);
     clearInterval(pin);
+    unshot();
     results.scenes.newsvan = { spawned: true };
   }
 }

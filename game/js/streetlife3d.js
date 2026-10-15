@@ -118,15 +118,18 @@ export function crateGeometry() {
 export function cartGeometry() {
   return fresh((B) => {
     const steel = 0x8a8e92;
-    B.box(0, 0.5, 0, 0.9, 0.04, 0.55, steel);
-    for (const s of [1, -1]) B.box(0, 0.78, s * 0.28, 0.9, 0.5, 0.025, steel);
-    B.box(-0.45, 0.78, 0, 0.025, 0.5, 0.55, steel);
-    B.box(-0.45, 0.98, 0, 0.06, 0.04, 0.6, 0x2a2a2b);
-    for (const x of [-0.35, 0.35]) for (const s of [1, -1]) B.geo(new THREE.CylinderGeometry(0.07, 0.07, 0.04, 8).rotateX(Math.PI / 2), composeMatrix(x, 0.07, s * 0.26), 0x1c1c1e);
-    B.box(0.05, 0.78, 0.05, 0.5, 0.36, 0.4, 0x5a6a7a);
-    B.box(-0.18, 0.92, -0.1, 0.34, 0.28, 0.3, 0xb5654a);
-    B.box(0.2, 0.98, -0.05, 0.4, 0.14, 0.14, 0x7a2f2a);
-    B.box(0.42, 1.12, 0.1, 0.02, 0.4, 0.02, 0x6a5038);
-    B.box(0.42, 1.28, 0.2, 0.02, 0.16, 0.28, 0xc9382b);
+    B.box(0, 0.2, 0, 0.9, 0.04, 0.55, steel);
+    for (const s of [1, -1]) B.box(0, 0.45, s * 0.28, 0.9, 0.5, 0.025, steel);
+    B.box(-0.45, 0.45, 0, 0.025, 0.5, 0.55, steel);
+    B.box(-0.47, 0.72, 0, 0.06, 0.04, 0.6, 0x2a2a2b);
+    for (const x of [-0.35, 0.35]) for (const s of [1, -1]) {
+      B.geo(new THREE.CylinderGeometry(0.09, 0.09, 0.04, 8).rotateX(Math.PI / 2), composeMatrix(x, 0.09, s * 0.26), 0x1c1c1e);
+      B.box(x, 0.15, s * 0.26, 0.03, 0.1, 0.03, steel);
+    }
+    B.box(0.05, 0.5, 0.05, 0.5, 0.36, 0.4, 0x5a6a7a);
+    B.box(-0.18, 0.66, -0.1, 0.34, 0.28, 0.3, 0xb5654a);
+    B.box(0.2, 0.72, -0.05, 0.4, 0.14, 0.14, 0x7a2f2a);
+    B.box(0.42, 0.85, 0.1, 0.02, 0.4, 0.02, 0x6a5038);
+    B.box(0.42, 1.02, 0.2, 0.02, 0.16, 0.28, 0xc9382b);
   });
 }
