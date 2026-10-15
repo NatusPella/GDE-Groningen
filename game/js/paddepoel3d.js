@@ -179,8 +179,8 @@ function outerWall(B, e, top, { piers = C.aubergine, luifel = true } = {}) {
   for (let k = 0; k <= n; k++) ebox(B, e, Math.min(e.len - 0.35, Math.max(0.35, k * step)), 0, 0.7, top - 0.2, 0.2, piers, G_PLAIN, 0.01);
   if (!luifel) return;
   const P = (t, out, y) => [e.a[0] + e.tx * t + e.nx * out, y, e.a[1] + e.ty * t + e.ny * out];
-  B.quadOut([-0.44, 0.53], P(e.len - 0.4, 0.2, 4.0), P(e.len - 0.4, 2.4, 3.55), [-0.4, 2.74], [0, 1, 0], C.roofGlass, G_GLASS);
-  B.quadOut([-0.4, 2.74], P(e.len - 0.4, 2.4, 3.55), P(e.len - 0.4, 2.45, 3.4), [-0.4, 2.79], [e.nx, 0, e.ny], C.steel, G_METAL);
+  B.quadOut(P(0.4, 0.2, 4.0), P(e.len - 0.4, 0.2, 4.0), P(e.len - 0.4, 2.4, 3.55), P(0.4, 2.4, 3.55), [0, 1, 0], C.roofGlass, G_GLASS);
+  B.quadOut(P(0.4, 2.4, 3.55), P(e.len - 0.4, 2.4, 3.55), P(e.len - 0.4, 2.45, 3.4), P(0.4, 2.45, 3.4), [e.nx, 0, e.ny], C.steel, G_METAL);
   for (let t = 0.6; t < e.len - 0.3; t += 3.6) {
     B.quadOut(P(t - 0.05, 0.2, 4.05), P(t - 0.05, 2.4, 3.6), P(t - 0.05, 2.4, 3.4), P(t - 0.05, 0.2, 3.7), [e.tx, 0, e.ty], C.steel, G_METAL);
   }
