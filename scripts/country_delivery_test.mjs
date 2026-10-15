@@ -26,11 +26,11 @@ ensureCountryEdge(map);
 const model = { name: 'car', len: 4.3, wid: 1.8 };
 const world = { map, vehicles: [], time: 0 };
 const CASES = [
-  ['carbid field (Beijumerweg)', 1748, -3972],
-  ['Eelde', 1606, 9909],
-  ['open polder NE', 5700, -11600],
-  ['west, Ommeland', -9000, -2000],
-  ['past the real data', 16000, 15000],
+  ['carbid field (Beijumerweg)', 1683.9, -4025.98],
+  ['Eelde', 1774.82, 9945.78],
+  ['open polder NE', 5505.95, -11770.51],
+  ['west, Ommeland', -9048.54, -1873.44],
+  ['past the real data', 16328.69, 14806.14],
 ];
 let fails = 0;
 
@@ -46,7 +46,7 @@ for (const [name, x, y] of CASES) {
 // the cheat's delivery (Voertuig hier) shares the placement: right beside you, off buildings and water
 {
   const { deliverOwnedVehicle } = await import('../game/js/ownedvehicles.js');
-  const HERE = [['Eelde', 1606, 9909, 'hero'], ['open polder NE', 5700, -11600, 'stadsfiets'], ['west, Ommeland', -9000, -2000, 'wervelwind']];
+  const HERE = [['Eelde', 1774.82, 9945.78, 'hero'], ['open polder NE', 5505.95, -11770.51, 'stadsfiets'], ['west, Ommeland', -9048.54, -1873.44, 'wervelwind']];
   for (const [name, x, y, id] of HERE) {
     const w = { map, vehicles: [], time: 0, money: 0, wanted: 0, messages: [], addMessage() {}, player: { x, y, angle: 0.7, gz: 0, swimming: false, inVehicle: null } };
     const res = deliverOwnedVehicle(w, id, { here: true });

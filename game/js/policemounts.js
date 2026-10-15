@@ -124,11 +124,11 @@ export function trySpawnMounts(world, state) {
 // follow world.wanted, so a patrol stays quiet.
 
 const PATROL_ZONES = [
-  { name: 'binnenstad', x: 190, y: 110, r: 330, max: 2 },
-  { name: 'Grote Markt', x: 150, y: 90, r: 110, max: 2 },
-  { name: 'Vismarkt', x: 18, y: 244, r: 90, max: 2 },
-  { name: 'Noorderplantsoen', x: 140, y: -700, r: 170, max: 1 },
-  { name: 'Stadspark', x: -1250, y: 1500, r: 230, max: 1 },
+  { name: 'binnenstad', x: 191.36, y: 107.92, r: 330, max: 2 },
+  { name: 'Grote Markt', x: 150.95, y: 88.45, r: 110, max: 2 },
+  { name: 'Vismarkt', x: 21.21, y: 245.59, r: 90, max: 2 },
+  { name: 'Noorderplantsoen', x: 127.9, y: -706.43, r: 170, max: 1 },
+  { name: 'Stadspark', x: -1229.12, y: 1530.22, r: 230, max: 1 },
 ];
 const PATROL_CATS = ['foot', 'cycle', 'minor'];
 const PATROL_STAGGER = 25;

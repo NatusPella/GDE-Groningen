@@ -70,7 +70,7 @@ export default {
   sikkom: (c) => `Handhaver ruimt ${c.streak} keer het Stationsplein leeg, fietsenrekken voor het eerst ooit halfvol`,
 
   anchor(map) {
-    const s = nearestOnStreet(map, 'Stationsweg', -40, 880) || nearestOnStreet(map, 'Stationsweg', 20, 870);
+    const s = nearestOnStreet(map, 'Stationsweg', -26.45, 886.6) || nearestOnStreet(map, 'Stationsweg', 33.52, 875.55);
     return s ? kerbSide(map, s, 1.6) : null;
   },
 

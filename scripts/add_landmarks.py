@@ -4,8 +4,12 @@ data/landmarks_raw.json + a manual Der Aa-kerk lookup) onto the matching
 building polygons in game/citymap.json, and record a spawn-candidate list in
 meta.landmarks so the player starts each game in front of a different one.
 """
+import sys
+import os
 import json
 import math
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from world.rdnew import project as rd_project  # noqa: E402
 
 MAP_PATH = "game/citymap.json"
 
@@ -70,11 +74,8 @@ def main():
     with open(MAP_PATH) as f:
         data = json.load(f)
     meta = data["meta"]
-    lat0, lon0 = meta["origin"]["lat"], meta["origin"]["lon"]
-    m_lat, m_lon = meta["mPerDegLat"], meta["mPerDegLon"]
-
     def project(lat, lon):
-        return (lon - lon0) * m_lon, (lat0 - lat) * m_lat
+        return rd_project(lat, lon)
 
     buildings = data["buildings"]
     out_landmarks = []

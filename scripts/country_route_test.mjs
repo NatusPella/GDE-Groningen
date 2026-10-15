@@ -88,10 +88,10 @@ function offroad(pts) {
 // ---- the story's routes (as before)
 const padel = map.meta.padel[0];
 const STORY = [
-  ['centre -> carbid (Beijumerweg)', [0, 0], [1748, -3972]],
-  ['centre -> Rotor Roelf, Eelde', [0, 0], [1606, 9909]],
-  ['carbid -> padel in town', [1748, -3972], [padel.x, padel.y]],
-  ['Eelde -> Martinitoren', [1599, 9914], [0, 0]],
+  ['centre -> carbid (Beijumerweg)', [-0.84, 0.33], [1683.9, -4025.98]],
+  ['centre -> Rotor Roelf, Eelde', [-0.84, 0.33], [1774.82, 9945.78]],
+  ['carbid -> padel in town', [1683.9, -4025.98], [padel.x, padel.y]],
+  ['Eelde -> Martinitoren', [1767.87, 9950.93], [-0.84, 0.33]],
 ];
 let fails = 0;
 let clock = 0;
@@ -226,7 +226,7 @@ for (let n = 0; polderRoads.length < 400 && n < 100000; n++) {
   for (const s of [0, 1]) if (F.edgeRoad(bx, by, s)) polderRoads.push({ id: 100000 + polderRoads.length, kind: 'polder', name: 'polder', pts: s ? [[bx * B + C, by * B + C], [bx * B + C + B, by * B + C]] : [[bx * B + C, by * B + C], [bx * B + C, by * B + C + B]] });
 }
 const ROADS = process.argv.includes('--no-roads') ? [] : process.argv.includes('--lanes-only') ? realRoads.filter((r) => r.cycle) : [...realRoads, ...polderRoads];
-const FAR = [[1606, 9909], [0, 0], [-9000, -7000]];
+const FAR = [[1774.82, 9945.78], [-0.84, 0.33], [-9121.42, -6905.51]];
 const roadFails = [];
 let driven = 0, notInGraph = 0;
 const clockStep = (s) => { clock += s; };

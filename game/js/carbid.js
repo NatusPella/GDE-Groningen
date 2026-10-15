@@ -26,7 +26,7 @@ import { ROELF_LOOK, HILJE_LOOK } from './storycast.js';
 
 // a long strip of meadow between two ditches, fired along (the tree rows
 // stand on the ditches, beside the range rather than across it)
-const FIELD = { x: 1748, y: -3972, rot: -Math.PI / 2 };
+const FIELD = { x: 1683.9, y: -4025.98, rot: -1.5875 };
 const SHOTS = 5;
 const YAW_MAX = 0.42, EL_MIN = 0.26, EL_MAX = 0.8;
 const POUR_RATE = 0.5;

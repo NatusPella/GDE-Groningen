@@ -8,7 +8,7 @@ reads game/landmarkkits.json:
     {"items": [{"k": kind, "n": name, "x": x, "y": y, "o": [x0, y0, x1, y1, ...],
                 "t": {tag: value, ...}}, ...]}
 
-x/y in the city map's metres (game/citymap.json meta), the outline only for
+x/y in the world frame (RD New, scripts/world/rdnew.py), the outline only for
 mapped areas (ways), simplified to 0.3 m. Only the tags the kits read are
 kept. Communication masts and chimneys are left out.
 
@@ -22,6 +22,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from osmfetch import cached  # noqa: E402
+from world.rdnew import project as rd_project  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 RAW = os.path.join(ROOT, "data", "landmark_kits_raw.json")
@@ -93,11 +94,7 @@ def kind(t):
 
 def main():
     raw = cached(RAW, BBOX, query)
-    with open(MAP) as f:
-        meta = json.load(f)["meta"]
-    lat0, lon0 = meta["origin"]["lat"], meta["origin"]["lon"]
-    mlat, mlon = meta["mPerDegLat"], meta["mPerDegLon"]
-    proj = lambda la, lo: (round((lo - lon0) * mlon, 1), round((lat0 - la) * mlat, 1))
+    proj = lambda la, lo: rd_project(la, lo, 1)
     items, seen = [], set()
     for el in raw.get("elements", []):
         t = el.get("tags") or {}

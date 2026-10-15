@@ -61,12 +61,13 @@ export function helipadInfo(map) {
 function launchSites(map) {
   if (map._balloonSites) return map._balloonSites;
   const sites = [];
+  const [ox, oy] = [-0.84, 0.33];
   for (const g of map.green || []) {
     if (g.kind !== 'park' && g.kind !== 'meadow') continue;
     const [x0, y0, x1, y1] = g.bounds || [0, 0, 0, 0];
     if ((x1 - x0) * (y1 - y0) < 40000) continue;
     const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
-    if (Math.hypot(cx, cy) < 700 || !pointInPolygon(cx, cy, g.pts)) continue;
+    if (Math.hypot(cx - ox, cy - oy) < 700 || !pointInPolygon(cx, cy, g.pts)) continue;
     sites.push({ x: cx, y: cy });
   }
   map._balloonSites = sites;

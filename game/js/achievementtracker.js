@@ -185,7 +185,7 @@ function trackMovement(dt, w, p, pv) {
     for (const k of Object.keys(acc)) if (acc[k] > 0) { recordStat(w, k, Math.round(acc[k] * 10) / 10); acc[k] = 0; }
   }
   if (prevWater === 'climb' && !p.water && !p.inVehicle) {
-    const lm = (w.map.meta.landmarks || []).find((l) => l.name === 'Martinitoren') || { x: 214, y: 13 };
+    const lm = (w.map.meta.landmarks || []).find((l) => l.name === 'Martinitoren') || { x: 213.81, y: 9.9 };
     if (Math.hypot(p.x - lm.x, p.y - lm.y) < DIEPENRING_R) unlockAchievement(w, 'kade_klim');
   }
   prevWater = p.water || null;

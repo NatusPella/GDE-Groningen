@@ -24,6 +24,9 @@ import sys
 import numpy as np
 from PIL import Image, ImageDraw
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from world.rdnew import meta_frame, FRAME  # noqa: E402
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 RAW = os.path.join(ROOT, "data", "ommeland_raw.json.gz")
 MAP = os.path.join(ROOT, "game", "citymap.json")
@@ -64,13 +67,17 @@ def main():
     with open(MAP) as f:
         city = json.load(f)
     meta = city["meta"]
-    lat0, lon0 = meta["origin"]["lat"], meta["origin"]["lon"]
-    mlat, mlon = meta["mPerDegLat"], meta["mPerDegLon"]
-    proj = lambda la, lo: ((lo - lon0) * mlon, (lat0 - la) * mlat)
+    proj, _ = meta_frame(meta)
     s, w, n, e = raw["bbox"]
-    X0, Y0 = proj(n, w)
-    X1, Y1 = proj(s, e)
-    ext = [round(X0), round(Y0), round(X1), round(Y1)]
+    corners = [proj(la, lo) for la in (s, n) for lo in (w, e)]
+    ext = [math.floor(min(c[0] for c in corners)), math.floor(min(c[1] for c in corners)),
+           math.ceil(max(c[0] for c in corners)), math.ceil(max(c[1] for c in corners))]
+
+    def east_turn(la, lo):
+        """The cached box angles are against true north (fetch_ommeland.py
+        local frame); in the map frame east points this many degrees off +x."""
+        a, b = proj(la, lo - 0.0005), proj(la, lo + 0.0005)
+        return math.degrees(math.atan2(b[1] - a[1], b[0] - a[0]))
     print(f"extent {ext}")
 
     cover, cgrid = city_cover(city, ext)
@@ -258,6 +265,7 @@ def main():
     for b in raw["bld"]:
         la, lo, bw, bl, ang, code, lv, fill = b[:8]
         x, y = proj(la, lo)
+        ang = round(ang + east_turn(la, lo)) % 180
         if not (ext[0] < x < ext[2] and ext[1] < y < ext[3]):
             continue
         if in_cover(x, y) and city_boxes.hit(x, y, 1.5):
@@ -276,7 +284,7 @@ def main():
     print(f"buildings: {len(bld)} boxes, {sum(1 for b in bld if b[8] == 1)} outlines in parts")
 
     out = {
-        "extent": ext, "water": wmeta, "buildings": len(bld),
+        "extent": ext, "water": wmeta, "buildings": len(bld), **({"frame": FRAME} if meta.get("frame") == FRAME else {}),
         "roads": roads, "cycleways": cycleways, "waterways": wlines, "boatways": boatways, "rails": rails, "stations": stations, "routes": routes,
         "places": places, "churches": churches,
     }

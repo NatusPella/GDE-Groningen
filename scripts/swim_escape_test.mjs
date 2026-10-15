@@ -45,9 +45,10 @@ function best(x, y) {
 }
 
 let fails = 0;
-const spot = best(-33, -259.5);
-console.log(`canal spot (-33,-259.5): in water ${inWaterPoly(map, -33, -259.5)}, best heading moves ${spot.toFixed(2)} m`);
-console.log('  per heading (deg:m):', Array.from({ length: 16 }, (_, a) => `${a * 22.5}:${swim(-33, -259.5, a * Math.PI / 8).toFixed(1)}`).join(' '));
+const [sx, sy] = [-38.18, -260.28];
+const spot = best(sx, sy);
+console.log(`canal spot (${sx},${sy}): in water ${inWaterPoly(map, sx, sy)}, best heading moves ${spot.toFixed(2)} m`);
+console.log('  per heading (deg:m):', Array.from({ length: 16 }, (_, a) => `${a * 22.5}:${swim(sx, sy, a * Math.PI / 8).toFixed(1)}`).join(' '));
 if (!(spot > 1)) { fails++; console.log('FAIL canal spot: cannot swim away'); }
 
 let total = 0, stuck = [];

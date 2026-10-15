@@ -17,6 +17,7 @@ import time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from osmfetch import bbox_str, cached, map_bbox  # noqa: E402
+from world.rdnew import meta_frame  # noqa: E402
 
 MAP_PATH = "game/citymap.json"
 CACHE_PATH = "data/pois_raw.json"
@@ -333,11 +334,10 @@ def main():
     with open(MAP_PATH) as f:
         data = json.load(f)
     meta = data["meta"]
-    lat0, lon0 = meta["origin"]["lat"], meta["origin"]["lon"]
-    m_lat, m_lon = meta["mPerDegLat"], meta["mPerDegLon"]
+    proj, _ = meta_frame(meta)
 
     def project(lat, lon):
-        return (lon - lon0) * m_lon, (lat0 - lat) * m_lat
+        return proj(lat, lon)
 
     world = World(data)
     raw = {"health": [], "money": [], "weapons": [], "armor": []}

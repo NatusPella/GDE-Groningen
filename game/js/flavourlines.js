@@ -4,6 +4,7 @@
 // scripts/voicelines_collect.mjs and need a recording in the lines manifest;
 // keep them plain literals so that script can read them.
 
+
 // Billboards: [headline, small print]. Which one a board shows moves on with
 // every story mission passed.
 export const BILLBOARD_SLOGANS = [
@@ -21,10 +22,10 @@ export const BILLBOARD_SLOGANS = [
 
 // Nicknames per place; `landmark` matches map.meta.landmarks names.
 export const NICKNAMES = [
-  { key: 'grieze', nick: 'd’Olle Grieze', landmark: 'Martinitoren', x: 214, y: 13 },
-  { key: 'kiekdeuse', nick: 'Kiekdeuse', landmark: 'Forum Groningen', x: 356, y: 63 },
-  { key: 'apenrots', nick: 'Apenrots', label: 'Gasuniegebouw', x: -914, y: 2023 },
-  { key: 'cruiseschip', nick: 'Cruiseschip', label: 'Rijkskantoor Kempkensberg', x: 956, y: 1504 },
+  { key: 'grieze', nick: 'd’Olle Grieze', landmark: 'Martinitoren', x: 213.81, y: 9.9 },
+  { key: 'kiekdeuse', nick: 'Kiekdeuse', landmark: 'Forum Groningen', x: 356.93, y: 57.89 },
+  { key: 'apenrots', nick: 'Apenrots', label: 'Gasuniegebouw', x: -883.81, y: 2051.13 },
+  { key: 'cruiseschip', nick: 'Cruiseschip', label: 'Rijkskantoor Kempkensberg', x: 982.17, y: 1498.16 },
 ];
 
 // spoken (bubbles): what passers-by say near a nicknamed building
@@ -218,5 +219,5 @@ export function nicknameOf(landmark) {
 }
 export const FLAVOUR_MAP_PLACES = [
   ...NICKNAMES.filter((n) => n.label).map((n) => ({ x: n.x, y: n.y, name: n.nick, sub: n.label })),
-  { x: 1706, y: -641, name: OOSTERPARK_LABEL, sub: 'Hier stond het stadion, 1933–2005' },
+  { x: 1697.87, y: -673.02, name: OOSTERPARK_LABEL, sub: 'Hier stond het stadion, 1933–2005' },
 ];

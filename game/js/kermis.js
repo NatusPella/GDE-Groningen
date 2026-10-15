@@ -23,7 +23,7 @@ import { isToday } from './calendarday.js';
 // for every bump you give, more for a fast one or one in a flank, a combo
 // for quick ones in a row. `window.__kermis` debug.
 
-const K = { x: 172, y: 110, rot: 0 };
+const K = { x: 173.32, y: 108.21, rot: -0.0164 };
 const HU = 10, HV = 6;
 const CAR_R = 0.92;
 const RIDE_S = 75;
