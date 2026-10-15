@@ -33,6 +33,7 @@ import { realRoadNear, ommelandArea } from './ommelandplace.js';
 import { buildingAt } from './countryreal.js';
 import { isSpawnHidden } from './pedestrians.js';
 import { slotFits, propBlocked, sleepingParkedCars } from './parkedcars.js';
+import { baysIn } from './parkinglots.js';
 import { spawnHeroCarNear } from './vehicle.js';
 import { inHomeFlat } from './home.js';
 import { BLOCK, ROAD_IN, ROAD_W, edgeDistance, edgeRoad, realWater } from './countryfield.js';
@@ -158,13 +159,36 @@ export function findParkingSpot(world, x, y, model, opts = {}) {
   if (!world || !world.map || !model) return null;
   const twoWheel = model.name === 'bike' || model.name === 'scooter';
   const ring = ringFor(opts);
-  return searchRing(world, x, y, model, twoWheel, ring, opts.ignore || null)
+  return (twoWheel ? null : baySpot(world, x, y, model, ring, opts.ignore || null))
+    || searchRing(world, x, y, model, twoWheel, ring, opts.ignore || null)
     // nothing in the ring (dense centre, water all around): widen it once
     || searchRing(world, x, y, model, twoWheel, { ...ring, minDist: ring.minDist * 0.6, maxDist: ring.maxDist * 1.6 }, opts.ignore || null)
     // out in the Ommelanden: the verge of a country road (real or polder
     // roads), else beside the nearest real road
     || (edgeDistance(x, y) > -30 ? countryKerbSpot(world, x, y, model, ring, opts.ignore || null) : null)
     || countrySpot(world, x, y, model, opts.ignore || null);
+}
+
+// A free bay in a real parking lot or parking lane (parkinglots.js) in the ring.
+function baySpot(world, x, y, model, ring, ignore) {
+  const m = { len: model.len || 4, wid: model.wid || 1.7 };
+  const target = ring.minDist + (ring.maxDist - ring.minDist) * 0.25;
+  const R = ring.maxDist;
+  const bays = baysIn(world.map, x - R, y - R, x + R, y + R)
+    .filter((b) => b.len >= m.len + 0.3 && b.wid >= m.wid - 0.1)
+    .map((b) => ({ b, d: Math.hypot(b.x - x, b.y - y) }))
+    .filter((q) => q.d >= ring.minDist && q.d <= ring.maxDist)
+    .sort((p, q) => Math.abs(p.d - target) - Math.abs(q.d - target));
+  let tests = 0;
+  for (const { b } of bays) {
+    if (++tests > MAX_TESTS) break;
+    if (!clearOfVehicles(world, b.x, b.y, m.len / 2, ignore)) continue;
+    if (ring.outOfView && !hiddenFootprint(world, b.x, b.y, b.angle, m.len / 2)) continue;
+    if (propBlocked(b.x, b.y, b.angle, m)) continue;
+    const rp = world.map.nearestRoadPoint(b.x, b.y, 40, true);
+    return { x: b.x, y: b.y, angle: b.angle, street: (rp && rp.road.name) || realStreetAt(b.x, b.y) || '', bay: true };
+  }
+  return null;
 }
 
 // Beside the nearest Ommeland road, 25-120 m out, on dry open ground.
