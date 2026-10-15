@@ -122,7 +122,7 @@ export default {
     placeStack(c, oldDoor);
     d.dist = Math.hypot(newDoor.x - oldDoor.x, newDoor.y - oldDoor.y);
     const tight = (1 - 0.03 * Math.min(c.streak, 8)) * (1 - 0.03 * (c.level - 1));
-    c.timeLeft = (count * 22 + d.dist * 1.45 / 10 + 45) * tight;
+    c.timeLeft = (count * 26 + d.dist * 1.45 / 10 + 45) * tight;
     c.msg(`Klus: ${d.student.name} verhuist van de ${oldDoor.street} naar ${area.name}. ${count} dingen sjouwen.`, 4);
   },
 

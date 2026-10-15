@@ -486,6 +486,14 @@ function doorSide(R, x, y, m) {
   return dv > 0 ? 3 : 4;
 }
 
+// A real building's piece, filed under its building (hidden while
+// scene3d.js draws that building with the city's generator, realmap.js).
+function pushReal(tile, i, type, ...args) {
+  push(tile, type, ...args);
+  const list = tile.items[type];
+  (list.b || (list.b = [])).push(i);
+}
+
 // The real Ommelanden in this tile: building boxes with their roofs, tree
 // lanes along the country roads, and a bit of farmyard round the barns.
 const REAL_STYLE = { house: STYLE.house, block: STYLE.block, barn: STYLE.barn, shed: STYLE.shed, glass: STYLE.glass };
@@ -502,17 +510,17 @@ function* genReal(tile) {
       const rotY = -m.angle;
       const style = REAL_STYLE[m.kind];
       const door = style === STYLE.glass || m.wing ? 0 : doorSide(R, x, y, m);
-      push(tile, 'rbBody', x, y, rotY, m.long, m.wall, m.short, m.color, 0.05, 0, bldCode(style, REAL.shopFace.has(i) ? 4 + REAL.shopFace.get(i) : door));
+      pushReal(tile, i, 'rbBody', x, y, rotY, m.long, m.wall, m.short, m.color, 0.05, 0, bldCode(style, REAL.shopFace.has(i) ? 4 + REAL.shopFace.get(i) : door));
       (tile.bodies || (tile.bodies = new Map())).set(i, [tile.items.rbBody.c.length / 3 - 1, style, door]);
       if (m.roof > 0) {
         const rs = m.kind === 'barn' ? STYLE.sheet : STYLE.tile;
-        if (m.hip) push(tile, 'rbHip', x, y, rotY, m.long, m.roof, m.short, m.roofColor, 0.06, m.wall, bldCode(rs));
+        if (m.hip) pushReal(tile, i, 'rbHip', x, y, rotY, m.long, m.roof, m.short, m.roofColor, 0.06, m.wall, bldCode(rs));
         else {
-          push(tile, 'rbRoof', x, y, rotY, m.long, m.roof, m.short, m.roofColor, 0.06, m.wall, bldCode(rs));
-          push(tile, 'rbGable', x, y, rotY, m.long, m.roof, m.short, m.color, 0.05, m.wall, bldCode(style));
+          pushReal(tile, i, 'rbRoof', x, y, rotY, m.long, m.roof, m.short, m.roofColor, 0.06, m.wall, bldCode(rs));
+          pushReal(tile, i, 'rbGable', x, y, rotY, m.long, m.roof, m.short, m.color, 0.05, m.wall, bldCode(style));
         }
         // past MID_R every roof is the one closed gable piece (one draw per chunk)
-        push(tile, 'rbRoofMid', x, y, rotY, m.long, m.roof, m.short, m.roofColor, 0.06, m.wall, bldCode(rs));
+        pushReal(tile, i, 'rbRoofMid', x, y, rotY, m.long, m.roof, m.short, m.roofColor, 0.06, m.wall, bldCode(rs));
       }
       if (m.kind === 'barn' && urbanWeight(x, y) < 0.3) {
         const h = chash(Math.round(x) + 3, Math.round(y) - 5);
@@ -1031,6 +1039,10 @@ function rebuildChunk(ch) {
       if (!it || !inTier(k, t)) continue;
       mesh.instanceMatrix.array.set(it.m, off * 16);
       mesh.instanceColor.array.set(it.c, off * 3);
+      if (it.b && S.realShown.size) {
+        const A = mesh.instanceMatrix.array;
+        for (let j = 0; j < it.b.length; j++) if (S.realShown.has(it.b[j])) A.fill(0, (off + j) * 16, (off + j + 1) * 16);
+      }
       off += it.c.length / 3;
     }
     mesh.count = off;
@@ -1045,6 +1057,24 @@ function dropChunk(ch) {
   dropChunkWater(ch);
   ch.meshes.clear();
   S.chunks.delete(ch.key);
+}
+
+// The real buildings scene3d.js draws in full (realmap.js): their boxes
+// leave the chunks that hold them.
+export function setRealShown(set) {
+  if (!S) return;
+  const old = S.realShown;
+  S.realShown = set;
+  const touched = new Set();
+  const mark = (i) => {
+    const k = Math.floor(REAL.bx[i] / TILE) + ',' + Math.floor(REAL.by[i] / TILE);
+    if (touched.has(k)) return;
+    touched.add(k);
+    const t = S.tiles.get(k);
+    if (t) chunkFor(t).dirty = true;
+  };
+  for (const i of set) if (!old.has(i)) mark(i);
+  for (const i of old) if (!set.has(i)) mark(i);
 }
 
 // Tier per tile (with some slack), then the dirty chunks nearest first.
@@ -1080,7 +1110,7 @@ function init(scene) {
     tiles: new Map(), queue: [], wantKey: '', genMax: 0,
     animals: [], animalDirty: true,
     skinned: new Map(), meshPool: new Map(), herdPools: new Map(),
-    farmCount: 0, signs: new Map(), flocks: [], poolWarm: Object.keys(PROP_TYPES),
+    farmCount: 0, signs: new Map(), realShown: new Set(), flocks: [], poolWarm: Object.keys(PROP_TYPES),
     prev: null, surf: null, splashAt: 0,
     audible: [],
   };

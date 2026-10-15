@@ -6,6 +6,7 @@ import { GeoBuilder, vcMaterial, markShared, composeMatrix, tubeGeometry } from 
 import { roundTreeGeometry } from './countrymodels.js';
 import { glowMaterial, poolGeometry } from './countryglow.js';
 import { Pedestrian } from './pedestrians.js';
+import { builtUp } from './realmap.js';
 
 // Village centres for the real Ommelanden: the OSM church (drawn by the
 // skyline layer) gets a brink beside it with benches, lime trees, a pump and
@@ -420,6 +421,8 @@ function* layout(p) {
       const off = rd.w / 2 + 0.9;
       const x = a[0] + ux * t - uy * off * side, y = a[1] + uy * t + ux * off * side;
       if (Math.hypot(x - C.x, y - C.y) > lr || !open(x, y, 0.3)) continue;
+      // the built-up streets get the city's lamps (realmap.js, nightlights3d.js)
+      if (builtUp(x, y)) continue;
       const rot = Math.atan2(ux * side, uy * side);
       put(L, 'lamp', x, y, rot);
       put(L, 'lampHead', x, y, rot);

@@ -16,6 +16,7 @@ import { quitPadel } from './padel.js';
 import { stopVillageMini } from './dorpsuitjes.js';
 import { quitActivity } from './activities.js';
 import { getGoalSave, applyGoalSave } from './goal.js';
+import { getCalendarSave, applyCalendarSave } from './calendarday.js';
 import { migrateSave, SAVE_VERSION } from './savemigrate.js';
 import { getCheatSave, applyCheatSave } from './cheats.js';
 import { closeShopMenu } from './shopui.js';
@@ -159,6 +160,8 @@ function serialize(w) {
     radio: getRadioSave(),
     // the streken: unlocked, switched on, used once (cheats.js)
     streken: getCheatSave(),
+    // the day of the summer and the special days already announced (calendarday.js)
+    kalender: getCalendarSave(w),
   };
 }
 
@@ -293,6 +296,7 @@ export function applySave(w, d) {
     applyGoalSave(d.doel);
     applyRadioSave(d.radio);
     applyCheatSave(d.streken, d);
+    applyCalendarSave(w, d.kalender);
     applyHomeOnLoad(w, d);
     w.loadedFromSave = true;
     w.loadCount = (w.loadCount || 0) + 1;

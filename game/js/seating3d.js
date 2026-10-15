@@ -2,6 +2,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { seatPose, SEAT_CONTACT, SEAT_CAR, blendSeatPose, standBehindPose, supPose, waveOverlay, carryOverlay, animatePersonWalk, buildPersonMesh, PERSON_RIG } from './models3d_people.js';
 import { boatSeats, boatCrewCount, boatKind } from './boattypes.js';
 import { WATER_Y } from './util.js';
+import { tractorCab } from './models3d_vehicles.js';
 
 // Where people sit in and on vehicles, and the short enter/exit animations
 // (walk to the door, sit down; swing a leg over a bike; a carjack yank),
@@ -39,11 +40,14 @@ const CAR_SEATS = {
   sport: { y: 0.3, pose: { recline: 0.42, footX: 0.8, footY: -0.02, arms: 'lap' } },
   suv: { y: 0.66, pose: { recline: 0.18, footX: 0.66, footY: -0.18, arms: 'lap' } },
   van: { y: 0.72, pose: VAN_POSE },
-  truck: { y: 1.22, pose: VAN_POSE },
+  truck: { y: 1.47, pose: VAN_POSE },
   trekker: { y: 1.36, pose: { recline: 0.06, footX: 0.46, footY: -0.4, arms: 'lap' } },
   quad: { y: 0.92, pose: { recline: -0.08, footX: 0.3, footY: -0.5, splay: 0.3, arms: 'lap' } },
   bus: { y: 1.5, pose: { recline: 0.08, footX: 0.45, footY: -0.33, arms: 'lap' } },
 };
+
+// the farm tractor's cushion above its cab floor (models3d_vehicles.js tractorCab)
+const TRACTOR_SEAT_UP = 0.55;
 
 const seatCache = new WeakMap();
 
@@ -76,7 +80,11 @@ export function vehicleSeat(v, driver) {
     else if (k === 'truck') { x = hl - 1.0; z = (driver ? -1 : 1) * hw * 0.45; }
     else if (k === 'trekker') {
       // one tractor seat in the middle of the cab, a buddy seat beside it
-      x = driver ? hl - 1.78 : hl - 1.55;
+      if (v.model.name === 'tractor') {
+        const cab = tractorCab(v.model.len);
+        x = (cab.x0 + cab.x1) / 2 + (driver ? -0.05 : 0.2);
+        y = cab.floor + TRACTOR_SEAT_UP;
+      } else x = driver ? hl - 1.78 : hl - 1.55;
       z = driver ? -0.1 : 0.5;
       if (!driver) y -= 0.12;
     } else if (k === 'quad') {

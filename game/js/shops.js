@@ -1,8 +1,9 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { dist, closestPointOnSegment, isInWater, pointInPolygon, boatDryPoints } from './util.js';
 import { clearOfReal } from './countryreal.js';
+import { facilitiesOf, countryDoor } from './facilities.js';
 import { getScene, refreshCharacterMeshes } from './scene3d.js';
-import { spawnVehicleOnRoad, spawnBoatOnWater, HERO_CAR_MODEL } from './vehicle.js';
+import { spawnVehicleOnRoad, spawnBoatOnWater, HERO_CAR_MODEL, playerTopSpeed } from './vehicle.js';
 import { BOAT_KINDS } from './boattypes.js';
 import { TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { getHorecaForRender } from './horeca.js';
@@ -156,7 +157,7 @@ export const VEHICLE_STOCK = {
   bakwagen: { kind: 'car', type: 'Vrachtwagen', shop: 'auto', label: 'Oldambt Bakwagen', desc: 'Achteruit piept hij. Vooruit ook, eigenlijk', price: 2600, nameIdx: 0, color: '#e8e6e0', model: CAR_M('truck', 7.2, 2.35, 30, 5, 13, 1.5) },
   sjouwer: { kind: 'car', type: 'Vrachtwagen', shop: 'auto', label: 'Eemshaven Sjouwer', desc: 'Verhuist een heel studentenhuis in één rit, inclusief bank', price: 2800, nameIdx: 1, color: '#c9541e', model: CAR_M('truck', 7.2, 2.35, 31, 5, 13, 1.5) },
   midibus: { kind: 'car', type: 'Midibus', shop: 'auto', label: 'Stadsbus Wijkhopper', desc: 'Buurtbus voor als lijn 3 weer niet komt', price: 3800, nameIdx: 0, color: '#132a44', flags: { isBus: true }, model: CAR_M('midibus', 8.4, 2.3, 24, 5, 12, 1.3, BUS_STRIPES) },
-  stadsbus: { kind: 'car', type: 'Stadsbus', shop: 'auto', label: 'Stadsbus Diepenrinkel', desc: 'Je eigen lijn. Haltes kies je zelf, dienstregeling ook', unlock: 'buschauffeur', nameIdx: 0, color: '#132a44', flags: { isBus: true }, model: CAR_M('bus', 11, 2.35, 22, 4.5, 12, 1.1, BUS_STRIPES) },
+  stadsbus: { kind: 'car', type: 'Stadsbus', shop: 'auto', label: 'Stadsbus Diepenrinkel', desc: 'Je eigen lijn. Haltes kies je zelf, dienstregeling ook', unlock: 'buschauffeur', nameIdx: 0, color: '#132a44', flags: { isBus: true }, model: { ...CAR_M('bus', 11.2, 2.55, 22, 4.5, 12, 1.1, BUS_STRIPES), trailer: 6.8 } },
   // --- specials, unlocked through the story and achievements ---
   poen: { kind: 'car', type: 'Geldwagen', shop: 'auto', label: 'Poen Express Kluiswagen', desc: 'Gepantserd, loodzwaar en helaas leeg', unlock: 'pinautomaat', nameIdx: 0, color: '#5b625d', flags: { isCashVan: true }, model: CAR_M('cashvan', 5.2, 2.0, 36, 6.5, 13, 2.0) },
   ambulance: { kind: 'car', type: 'Ambulance', shop: 'auto', label: 'Ambulance Spoedrit', desc: 'Sirene aan en heel de Herestraat gaat opzij', unlock: 'fatbike', nameIdx: 0, color: '#f1d21c', flags: { isAmbulance: true }, model: CAR_M('ambulance', 5.6, 2.0, 46, 9, 17, 2.6) },
@@ -171,11 +172,11 @@ export const VEHICLE_STOCK = {
   bijboot: { kind: 'boat', type: 'Bijbootje', shop: 'boot', label: 'Bijbootje Woonbootje', desc: 'Klein motortje, groot ego', price: 300, nameIdx: 0, color: '#2f4a3a', model: { ...BOAT_KINDS.dinghy } },
   rubberboot: { kind: 'boat', type: 'Rubberboot', shop: 'boot', label: 'Rubberboot Stuiterbal', desc: 'Stuitert over de golven van elke rondvaartboot', price: 700, nameIdx: 0, color: '#3c4044', model: { ...BOAT_KINDS.rubberboot } },
   sloep: { kind: 'boat', type: 'Sloep', shop: 'boot', label: 'Sloep Nait Soezen', desc: 'Rosé aan boord, pet op, rustig tuffen', price: 900, nameIdx: 0, color: '#e8e6e0', model: { ...BOAT_KINDS.sloep } },
-  speedboot: { kind: 'boat', type: 'Speedboot', shop: 'boot', label: 'Speedboot Grachtengast', desc: 'Harder dan mag. De kade vindt je niet leuk', price: 1800, nameIdx: 1, color: '#c9a227', model: { name: 'boat', kind: 'sloep', len: 4.2, wid: 1.6, playerTop: 25, playerAccel: 7, maxSpeed: 7.5, accel: 2.8, brake: 2.8, turnRate: 1.7, color: '#c9a227', cabin: '#1c1c1c' } },
+  speedboot: { kind: 'boat', type: 'Speedboot', shop: 'boot', label: 'Speedboot Grachtengast', desc: 'Harder dan mag. De kade vindt je niet leuk', price: 1800, nameIdx: 1, color: '#c9a227', model: { name: 'boat', kind: 'sloep', len: 5.2, wid: 1.9, playerTop: 25, playerAccel: 7, maxSpeed: 7.5, accel: 2.8, brake: 2.8, turnRate: 1.7, color: '#c9a227', cabin: '#1c1c1c' } },
   rondvaartboot: { kind: 'boat', type: 'Rondvaartboot', shop: 'boot', label: 'Rondvaartboot Stadjer', desc: 'Glazen dak, veertig stoelen, nul passagiers', price: 3500, nameIdx: 1, color: '#1d3350', model: { ...BOAT_KINDS.rondvaart } },
   // --- the air ---
   wiekenwubbo: { kind: 'heli', type: 'Helikopter', shop: 'heli', label: 'Wieken Wubbo', desc: 'Tweezits helikopter. Landt op elk plat stuk: het weiland, een plat dak of je eigen helidek', price: 5500, nameIdx: 0, color: '#b8322a', flags: { isHeli: true }, model: { name: 'heli', len: 8.8, wid: 2.1, maxSpeed: 40, accel: 7, brake: 9, turnRate: 1.5 } },
-  politieboot: { kind: 'boat', type: 'Politieboot', shop: 'boot', label: 'Politie Boot', desc: 'Voor wie de politie op het water ook eens wil ontlopen. Met de politie', unlock: 'vijfsterren', nameIdx: 0, color: '#e8e6e0', flags: { isPolice: true, hijacked: true }, model: { name: 'boat', kind: 'sloep', len: 4.1, wid: 1.65, maxSpeed: 9.8, accel: 3.2, brake: 3.4, turnRate: 1.8, color: '#e8e6e0', cabin: '#12294f' } },
+  politieboot: { kind: 'boat', type: 'Politieboot', shop: 'boot', label: 'Politie Boot', desc: 'Voor wie de politie op het water ook eens wil ontlopen. Met de politie', unlock: 'vijfsterren', nameIdx: 0, color: '#e8e6e0', flags: { isPolice: true, hijacked: true }, model: { name: 'boat', kind: 'sloep', len: 5.5, wid: 2.0, maxSpeed: 9.8, accel: 3.2, brake: 3.4, turnRate: 1.8, color: '#e8e6e0', cabin: '#12294f' } },
 };
 
 const missionDone = (id) => isMissionCompleted(missionIndexById(id));
@@ -392,6 +393,38 @@ function placeJetty(map, street, horeca, taken) {
   return { x, y, water: { x: wx, y: wy, angle: Math.atan2(-ux, uy) }, kiosk: { nx: -ux, ny: -uy }, street };
 }
 
+// Out in the Ommelanden: branches at the real shops of the matching kind
+// (facilities.js), one per type per village, the sign on the real
+// building's street side; named after the village like the city's after
+// the wijk. The city keeps its own picks (meta.shops, add_shops.py).
+const COUNTRY_SHOPS = {
+  super: ['supermarket', 'convenience'], snack: ['snack'], kapper: ['hairdresser', 'beauty'], kleding: ['clothes', 'shoes'],
+  fietsenmaker: ['craft_bicycle', 'bicycle'], fietsen: ['bicycle'], tabak: ['tobacco', 'newsagent', 'kiosk'],
+  auto: ['car'], tuning: ['car_parts', 'tyres'], pand: ['pawnbroker', 'second_hand'], wapens: ['outdoor'],
+};
+const COUNTRY_SPACING = 900;
+
+export function placeCountryShops(map, horeca = [], taken = []) {
+  const out = [];
+  const used = new Set();
+  for (const [type, kinds] of Object.entries(COUNTRY_SHOPS)) {
+    const mine = [];
+    const cands = facilitiesOf(kinds).filter((f) => !f.city && !used.has(f))
+      .sort((a, b) => kinds.indexOf(a.kind) - kinds.indexOf(b.kind) || a.x - b.x || a.y - b.y);
+    for (const f of cands) {
+      if (mine.some((q) => dist(q.x, q.y, f.x, f.y) < COUNTRY_SPACING) || mine.some((q) => q.wijk === f.place)) continue;
+      const p = countryDoor(map, f.x, f.y, (x, y) => doorClear(x, y, horeca, [...taken, ...out]));
+      const wijk = f.place || (p && p.street);
+      if (!p || !wijk) continue;
+      used.add(f);
+      const shop = { ...p, type, wijk, street: p.street || f.street, country: true };
+      mine.push(shop);
+      out.push(shop);
+    }
+  }
+  return out;
+}
+
 function nameBranches(list) {
   const byType = {};
   for (const s of list) (byType[s.type] = byType[s.type] || []).push(s);
@@ -442,7 +475,9 @@ export function initShops(world) {
     const p = placeAtPoi(map, { x: cx, y: cy }, horeca, placed);
     if (p) placed.push({ ...p, type: 'eikea', wijk: 'Sontweg', street: p.street || 'Sontweg' });
   }
+  placed.push(...placeCountryShops(map, horeca, placed));
   for (const s of placed) {
+    if (s.country) continue;
     const o = clearOfReal(s.x, s.y, (x, y) => !isInWater(map, x, y) && !map.buildingsNear(x, y, 1).some((b) => pointInPolygon(x, y, b.pts)));
     if (o) { s.x = o.x; s.y = o.y; }
   }
@@ -682,7 +717,7 @@ function statMax(cls) {
     const models = [...Object.values(VEHICLE_STOCK).map((sp) => [vclass(sp.kind), sp.model]), ...RENTALS.map((r) => ['boat', r.model])];
     for (const [c, m] of models) {
       const o = vmax[c] || (vmax[c] = {});
-      for (const [k] of VSTAT) o[k] = Math.max(o[k] || 0, (m[k] || 0) * (k === 'maxSpeed' || k === 'accel' ? 1.45 : 1.3));
+      for (const [k] of VSTAT) o[k] = Math.max(o[k] || 0, (k === 'maxSpeed' ? playerTopSpeed(m) : m[k] || 0) * (k === 'maxSpeed' || k === 'accel' ? 1.45 : 1.3));
     }
   }
   return vmax[cls] || vmax.car;
@@ -692,7 +727,9 @@ function statMax(cls) {
 export function vehicleStats(model, kind, after = null) {
   const max = statMax(vclass(kind));
   return VSTAT.map(([k, label]) => {
-    const a = model[k] || 0, b = after ? after[k] || 0 : null;
+    // the top speed as the player rides it (a fatbike's model is the AI's)
+    const a = k === 'maxSpeed' ? playerTopSpeed(model) : model[k] || 0;
+    const b = !after ? null : k === 'maxSpeed' ? playerTopSpeed(after, model) : after[k] || 0;
     const pct = b != null && a ? Math.round((b / a - 1) * 100) : 0;
     const base = k === 'maxSpeed' ? `${Math.round(a * 3.6)} km/u` : '';
     return { label, v: clamp01(a / max[k]), to: b == null ? null : clamp01(b / max[k]), text: pct ? `${base ? base + ' ' : ''}+${pct}%` : base };
@@ -926,7 +963,7 @@ function pandSections(world, shop) {
 
 const RENTALS = [
   { id: 'sloep', label: 'Sloep "Nait Soezen"', desc: 'Rustig tuffen door de grachten', price: 40, nameIdx: 0, model: { ...BOAT_KINDS.sloep } },
-  { id: 'speed', label: 'Speedbootje "Grachtengast"', desc: 'Harder dan mag. Niet tegen de wal!', price: 90, nameIdx: 1, model: { name: 'boat', kind: 'sloep', len: 4.2, wid: 1.6, playerTop: 25, playerAccel: 7, maxSpeed: 7.5, accel: 2.8, brake: 2.8, turnRate: 1.7, color: '#c9a227', cabin: '#1c1c1c' } },
+  { id: 'speed', label: 'Speedbootje "Grachtengast"', desc: 'Harder dan mag. Niet tegen de wal!', price: 90, nameIdx: 1, model: { name: 'boat', kind: 'sloep', len: 5.2, wid: 1.9, playerTop: 25, playerAccel: 7, maxSpeed: 7.5, accel: 2.8, brake: 2.8, turnRate: 1.7, color: '#c9a227', cabin: '#1c1c1c' } },
   { id: 'kano', label: 'Kano', desc: 'Zelf peddelen, met z\'n tweeën in één kano', price: 15, nameIdx: 0, model: { ...BOAT_KINDS.kano } },
   { id: 'kajak', label: 'Kajak', desc: 'Voor één, laag bij het water', price: 12, nameIdx: 0, model: { ...BOAT_KINDS.kajak } },
   { id: 'waterfiets', label: 'Waterfiets', desc: 'Samen trappen, geen haast', price: 20, nameIdx: 1, model: { ...BOAT_KINDS.waterfiets } },

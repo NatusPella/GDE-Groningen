@@ -28,8 +28,9 @@ export function ommelandArea(x, y) {
 }
 
 // Nearest real road within R: { d (to the road edge, < 0 on it), x, y (on the
-// centre line), road, ux, uy (its direction) } or null.
-export function realRoadNear(x, y, R = 40) {
+// centre line), road, ux, uy (its direction) } or null. ok(road): only roads
+// that pass.
+export function realRoadNear(x, y, R = 40, ok = null) {
   if (!REAL.ready) return null;
   let best = null;
   const t0x = Math.floor((x - R) / RTILE), t1x = Math.floor((x + R) / RTILE);
@@ -40,6 +41,7 @@ export function realRoadNear(x, y, R = 40) {
       if (!L) continue;
       for (let k = 0; k < L.length; k += 2) {
         const r = REAL.roads[L[k]], a = r.pts[L[k + 1]], b = r.pts[L[k + 1] + 1];
+        if (ok && !ok(r)) continue;
         const [d, px, py] = segDist(x, y, a, b);
         const de = d - r.w / 2;
         if (de > R || (best && de >= best.d)) continue;

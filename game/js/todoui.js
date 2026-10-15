@@ -11,6 +11,8 @@ import { formatDistance } from './routing.js';
 import { dualHtml } from './subtitles.js';
 import { fillBars, pop, shine, countTo } from './motion.js';
 import { placeShot } from './placeshot.js';
+import { todayInfo, todaySpecial, upcoming } from './calendarday.js';
+import { calIcon } from './calendar.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const PART_IDS = Object.keys(PARTS);
@@ -137,6 +139,17 @@ function goalStrip(world) {
     '<button type="button" class="pm-secondary pm-small" data-todo-clear>Doel wissen</button></div>';
 }
 
+// Today and the coming special days (calendarday.js)
+function agendaHtml(world) {
+  const t = todayInfo(world), sp = todaySpecial(world);
+  const list = upcoming(world, 4).filter((u) => !sp || u.s.id !== sp.id);
+  const item = (icon, name, when, on) => `<li${on ? ' data-on' : ''}>${calIcon(icon, 'ov-ag-ic')}<b>${esc(name)}</b><small>${esc(when)}</small></li>`;
+  return `<div class="ov-agenda"><h2>${esc(t.long)} <small>${t.nazomer ? 'de nazomer houdt aan' : `zomerdag ${t.n}`}</small></h2><ul>` +
+    (sp ? item(sp.icon, sp.name, 'vandaag', true) : '') +
+    list.map((u) => item(u.s.icon, u.s.name, u.label, false)).join('') +
+    (!sp && !list.length ? '<li><small>Geen bijzondere dagen meer. Het blijft zomer.</small></li>' : '') + '</ul></div>';
+}
+
 // help: [[action, icon svg, label]] for the contextual buttons (pausemenu.js decides which)
 export function renderOverview(el, world, help) {
   refresh(world);
@@ -150,7 +163,7 @@ export function renderOverview(el, world, help) {
     (ach.length ? ach.map((a) => `<button type="button" class="ov-a" data-goto="prestaties"><b>${dualHtml(a.title)}</b><small>${esc(a.desc)}</small>` +
       `<span class="td-bar"><i data-bar="ach-${esc(a.id)}" data-w="${Math.round((a.progress.cur / a.progress.goal) * 100)}"></i></span><span class="ov-a-n"><span data-num="ach-${esc(a.id)}" data-to="${a.progress.cur}">${a.progress.cur}</span> van ${a.progress.goal}${a.progress.unit ? ' ' + esc(a.progress.unit) : ''}</span></button>`).join('')
       : '<p class="pm-note">Speel wat rond, dan komen ze vanzelf.</p>') +
-    '</div></div></div>' +
+    '</div></div></div>' + agendaHtml(world) +
     (help.length ? `<div class="ov-help"><span>Hulp</span>${help.map(([a, ic, label]) => `<button type="button" class="pm-secondary pm-small" data-action="${a}">${ic}<span>${esc(label)}</span></button>`).join('')}</div>` : '');
   animateChanges(el);
 }
