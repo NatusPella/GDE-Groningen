@@ -295,7 +295,9 @@ function fillJunctionArms(ctrl, list) {
 function onOtherCarriageway(x, y, own) {
   if (!map) return false;
   for (const r of map.roadsNear(x, y, 12)) {
-    if (r === own || r.cat === 'foot' || r.cat === 'cycle' || r.bridge) continue;
+    // (a raised deck overhead leaves room for a pole under it; a bridge at
+    // street level over a canal is a carriageway like any other)
+    if (r === own || r.cat === 'foot' || r.cat === 'cycle' || (r.bridge && r.z)) continue;
     const hw = (r.width || 6) / 2 + 0.4;
     const P = r.pts;
     for (let i = 0; i < P.length - 1; i++) {

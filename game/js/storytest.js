@@ -155,7 +155,7 @@ export async function runStoryTest(world) {
     const railLifts = probeRailLifts(world);
     check('rail lifts can be walked, driven and cycled up', !railLifts.length, railLifts.map((h) => `lift ${h.lift} ${h.how}: ${h.what} (${h.x}, ${h.y}, z ${h.z})`).join('; '));
     const wet = await driveWaterCrossings(world);
-    check(`cars cross all ${wet.drives} major-road water crossings at 80 km/h`, !wet.fails.length, wet.fails.slice(0, 30).map((f) => `${f.route} (${f.dir}, strook ${f.lane}) bij (${f.at}): ${f.what} op (${f.x}, ${f.y}, z ${f.z}) ${f.v} km/u${f.by ? " door " + f.by : ""}`).join('; '));
+    check(`cars cross all ${wet.drives} major-road water crossings at 80 km/h`, !wet.fails.length, wet.fails.slice(0, 30).map((f) => `${f.route} (${f.dir}, strook ${f.lane}) bij (${f.at}): ${f.what} op (${f.x}, ${f.y}, z ${f.z}) ${f.v} km/u${f.by ? " door " + f.by : ""}${f.near ? " (vooraf: " + f.near + ")" : ""}`).join('; '));
     const lap = await driveRingLap(world);
     check('scripted car drives a full ring lap', lap.scripted.ok, JSON.stringify(lap.scripted));
     check('AI racers finish a full ring lap', lap.ai.ok, JSON.stringify(lap.ai));

@@ -28,7 +28,9 @@ const RC = await import('../../game/js/ringcheck.js');
 const data = JSON.parse(fs.readFileSync(path.join(ROOT, 'game/citymap.json'), 'utf8'));
 applyMapExtras(data, JSON.parse(fs.readFileSync(path.join(ROOT, 'game/mapextras.json'), 'utf8')));
 const map = new GameMap(data);
-const world = { map, flitspaalen: [], player: { x: 0, y: 0 }, vehicles: [], props: [] };
+const world = { map, flitspaalen: [], player: { x: 0, y: 0 }, vehicles: [], props: [], particles: [], stats: {}, time: 0, addMessage() {}, audioEvents: [] };
+// the signal poles stand in the world as in the game (props a car can hit)
+(await import('../../game/js/trafficlights.js')).initTrafficLights(world);
 
 const CLASSES = args.includes('--all') ? new Set(['major', 'normal', 'minor']) : new Set(['major', 'normal']);
 const len = (P) => P.slice(1).reduce((a, q, i) => a + Math.hypot(q[0] - P[i][0], q[1] - P[i][1]), 0);

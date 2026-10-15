@@ -437,6 +437,8 @@ export async function driveAcross(world, path, speed, opts = {}) {
       // corners on the approach (a junction just past a city bridge) are taken slower
       const vT = Math.min(speed, cornerSpeed(path, s));
       const before = car.speed;
+      // (a breakable prop knocked over in the step is gone from findProps after it)
+      const propsBefore = findProps(car.x, car.y, 4).filter((q) => !q.water).map((q) => `${q.kind}@${capsuleDist(car.x, car.y, q).toFixed(1)}`);
       car.applyControls(dt, car.speed < vT ? 1 : 0, steer, car.speed > vT + 1 ? 0.6 : 0);
       resolveVehicleBuildingCollision(car, map, dt);
       resolvePropCollisions([car], world);
@@ -456,7 +458,7 @@ export async function driveAcross(world, path, speed, opts = {}) {
       s = Math.max(s, bs);
       if (bd > 36) return fail('van de rijbaan geduwd');
       // braking never takes more than ~0.5 m/s off in a step: more is an impact
-      if (before - car.speed > 1.5) return fail(`botst (-${(before - car.speed).toFixed(1)} m/s)`);
+      if (before - car.speed > 1.5) return { ...fail(`botst (-${(before - car.speed).toFixed(1)} m/s)`), near: propsBefore.join(',') };
       if (car.speed < 2) return fail('staat stil');
       // (where two carriageways overlap on their way to merge it may ride the other one,
       // at the same height; the car keeps to its own ribbon, map.surfaceAt, to the end)
