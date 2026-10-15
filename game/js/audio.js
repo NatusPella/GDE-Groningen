@@ -1513,6 +1513,14 @@ export function playClueSting() {
   playTone({ freq: 329.6, type: 'triangle', duration: 1.4, gain: 0.035, bus: stingBus, prio: 2 });
 }
 
+// One heartbeat when badly hurt (lowhealth.js): a low "lub-dub", louder the closer to death.
+export function playHeartbeat(strength = 0.5) {
+  if (!ctx || muted || !uiBus) return;
+  const g = 0.06 + 0.1 * Math.max(0, Math.min(1, strength));
+  playTone({ freq: 62, freqEnd: 42, type: 'sine', duration: 0.16, gain: g, bus: uiBus, prio: 2 });
+  playTone({ freq: 54, freqEnd: 38, type: 'sine', duration: 0.14, gain: g * 0.75, delay: 0.19, bus: uiBus, prio: 2 });
+}
+
 // Two glasses touching (H11's toasts, missionstory.js playToast): a bright
 // ting with a short second ring, softer for small jenever glasses.
 export function playGlassClink(small = false) {

@@ -79,8 +79,13 @@ export function startLoadScreen(world, opts = {}) {
   const ach = (() => { try { return getAchievementSummary(); } catch (e) { return { done: 0, total: 0 }; } })();
   const img = pickImage(world, place);
   const line = place.line || LANDMARK_LINES[place.name] || '';
-  const rawTip = tips.length ? tips[Math.floor(Math.random() * tips.length)] : '';
-  const tip = rawTip.replace(/^Tip: /, '').replace(/^./, (c) => c.toUpperCase());
+  const tipText = (t) => t.replace(/^Tip: /, '').replace(/^./, (c) => c.toUpperCase());
+  const firstSentence = (t) => (t.match(/^.*?[.!?](\s|$)/) || [t])[0].trim();
+  // one short line at a time: where you are going or the story so far, then tips
+  const lead = kind === 'save' ? ['Eerder in het verhaal', firstSentence(recapText(view))] : ['Onderweg', line || 'Even geduld, de stad bouwt zich op.'];
+  const pool = [lead];
+  const shuffled = [...tips].sort(() => Math.random() - 0.5).slice(0, 4);
+  for (const t of shuffled) pool.push(['Wist je dat', tipText(t)]);
 
   const el = document.createElement('div');
   el.id = 'load-screen';
@@ -93,7 +98,6 @@ export function startLoadScreen(world, opts = {}) {
     '<div class="ls-shade"></div><div class="ls-foot-shade"></div>' +
     '<div class="ls-stage">' +
       '<div class="ls-brand"><div class="gde-logo" aria-hidden="true"><span class="gde-mark">GDE</span><span class="gde-sign">Groningen</span><span class="gde-sub">Zomer vol misdaad</span></div></div>' +
-      `<div class="ls-recap"><span>${kind === 'save' ? 'Eerder in het verhaal' : 'Onderweg'}</span><p>${esc(kind === 'save' ? recapText(view) : (line || 'Even geduld, de stad bouwt zich op.'))}</p></div>` +
       '<div class="ls-card">' +
         `<span class="ls-kick">${kind === 'save' ? 'Je gaat verder in' : 'Je gaat naar'}</span>` +
         `<b class="ls-place">${esc(place.name || 'Grunn')}</b>` +
@@ -106,8 +110,8 @@ export function startLoadScreen(world, opts = {}) {
         '</div>' +
       '</div>' +
       '<div class="ls-bottom">' +
-        `<div class="ls-tip"><span class="ls-tip-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.8.8 1 1.5 1 2.5h6c0-1 .2-1.7 1-2.5A6 6 0 0 0 12 3z"/></svg></span><div><span>Wist je dat</span><p>${esc(tip)}</p></div></div>` +
-        '<div class="ls-prog"><div class="ls-phase"><svg class="ls-spin" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 9 9"/></svg><b>De stad wordt opgebouwd</b><small></small></div>' +
+        '<div class="ls-tip"><span class="ls-tip-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.8.8 1 1.5 1 2.5h6c0-1 .2-1.7 1-2.5A6 6 0 0 0 12 3z"/></svg></span><div><span></span><p></p></div></div>' +
+        '<div class="ls-prog"><div class="ls-phase"><svg class="ls-spin" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 9 9"/></svg></div>' +
         '<div class="ls-bar"><i></i></div></div>' +
       '</div>' +
     '</div>';
@@ -117,8 +121,20 @@ export function startLoadScreen(world, opts = {}) {
   const wasPaused = !!world.uiPaused;
   world.uiPaused = true;
   const fill = el.querySelector('.ls-bar i');
-  const phaseB = el.querySelector('.ls-phase b');
-  const phaseS = el.querySelector('.ls-phase small');
+  const lineKick = el.querySelector('.ls-tip div span');
+  const lineText = el.querySelector('.ls-tip p');
+  const tipBox = el.querySelector('.ls-tip');
+  let lineI = -1, lineAt = -1e9;
+  const LINE_S = 4.5;
+  const nextLine = (now) => {
+    lineI = (lineI + 1) % pool.length;
+    lineAt = now;
+    lineKick.textContent = pool[lineI][0];
+    lineText.textContent = pool[lineI][1];
+    tipBox.classList.remove('swap');
+    void tipBox.offsetWidth;
+    tipBox.classList.add('swap');
+  };
   const t0 = performance.now();
   const min = (kind === 'save' ? MIN_SAVE_S : MIN_TRAVEL_S) * 1000;
   let total = 0, shown = 0, calm = 0, frames = 0;
@@ -146,11 +162,7 @@ export function startLoadScreen(world, opts = {}) {
     const bar = Math.min(shown, 0.04 + timeK * 0.96);
     fill.style.transform = `scaleX(${bar.toFixed(3)})`;
     el.setAttribute('aria-valuenow', String(Math.round(bar * 100)));
-    const roads = st.buildings === 0 && st.roads > 0;
-    const text = frames <= 3 || pending > 0 ? (roads ? 'De straten worden uitgerold' : 'De stad wordt opgebouwd') : 'Het licht gaat aan';
-    if (phaseB.textContent !== text) phaseB.textContent = text;
-    const small = pending > 0 && total ? `${total - pending} / ${total} gebouwen en wegen` : '';
-    if (phaseS.textContent !== small) phaseS.textContent = small;
+    if (now - lineAt >= LINE_S * 1000) nextLine(now);
     calm = frames > 3 && pending === 0 ? calm + 1 : 0;
     if ((now - t0 >= min && calm >= 12) || now - t0 > MAX_S * 1000) { fill.style.transform = 'scaleX(1)'; finish(); return; }
     requestAnimationFrame(step);

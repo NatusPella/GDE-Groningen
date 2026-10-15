@@ -143,6 +143,19 @@ function clearSight(map, ax, ay, bx, by) {
   return true;
 }
 
+// A short pedestrian street picked as often as a long road fills up: no more
+// than PED_CROWD people within PED_CROWD_R metres of a new spawn.
+const PED_CROWD = 3;
+const PED_CROWD_R = 6;
+function crowdedAt(x, y, fresh) {
+  let n = 0;
+  const r2 = PED_CROWD_R * PED_CROWD_R;
+  for (const p of fresh) if ((p.x - x) ** 2 + (p.y - y) ** 2 < r2 && ++n >= PED_CROWD) return true;
+  const all = spawnWorld && spawnWorld.pedestrians;
+  if (all) for (const p of all) if ((p.x - x) ** 2 + (p.y - y) ** 2 < r2 && p.state !== 'dead' && ++n >= PED_CROWD) return true;
+  return false;
+}
+
 function spawnPedsRaw(map, x, y, count, rng, minDist = 0, hidden = true) {
   const peds = [];
   const view = hidden && spawnWorld && spawnWorld.pedView && spawnWorld.time >= (spawnWorld.pedFreeSpawnUntil || 0);
@@ -176,6 +189,7 @@ function spawnPedsRaw(map, x, y, count, rng, minDist = 0, hidden = true) {
     if (map.offStreetLevel && map.offStreetLevel(fx, fy)) continue;
     if (map.onRingCarriageway && map.onRingCarriageway(fx, fy)) continue;
     if (view && !isSpawnHidden(spawnWorld, fx, fy)) continue;
+    if (crowdedAt(fx, fy, peds)) continue;
 
     peds.push(new Pedestrian(fx, fy, segAngle + (rng() < 0.5 ? 0 : Math.PI)));
   }

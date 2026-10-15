@@ -379,7 +379,27 @@ HUD zoom at 1920x1080), `--hud-edge` is the 46 px margin.
   star after `GRACE_S` (12 s) on it, once per stretch (re-armed 25 s after
   leaving), never more than one star from this alone; not during missions,
   jobs, challenges, for the emergency services, buses or in a train/heli.
-  `main.js` calls `updateTrafficLaw` next to `updatePolice`.
+  `main.js` calls `updateTrafficLaw` next to `updatePolice`. Two money
+  fines when an agent is within 45 m: the phone (pause menu, Telefoon tab)
+  opened while riding or driving (`checkPhoneWhileMoving`, called by
+  `phone.js`, EUR 45 bike / 100 car) and cycling in the dark without a
+  light (`updateBikeLight`, EUR 25, once per two minutes);
+  `node scripts/fines_test.mjs`.
+- `indicators.js`: turn signals (`[` `]`, D-pad left/right) and hazards
+  (`P`, D-pad up) as `v.indicator` ('left' | 'right' | 'hazard'); a signal
+  switches off after the swing is done and the wheels are straight; other cars
+  blink while their heading swings. `models3d_vehicles.js updateIndicatorLamps`
+  draws four orange lamps per vehicle (made on first use);
+  `node scripts/indicators_test.mjs`.
+- `lowhealth.js`: under 25 health a red vignette, drained colours (backdrop
+  saturate), a heartbeat pulse and sound (`audio.js playHeartbeat`) and slower
+  walking (`world.hurtWalk`, read by `player.js`); `hud_panel.js updateDamage`
+  ticks it.
+- `snackautomaat.js`: the Muurkroket vending machine at snack bars and the
+  stations (E: EUR 3, a random eierbal, kroket or frikandel, +8 health);
+  `node scripts/snackautomaat_test.mjs`.
+- `node scripts/clearance_audit.mjs` lists the headroom under every road
+  viaduct deck (most are 4.2 to 4.6 m; ramp feet over cycle paths are lower).
 - `travelroute.js` (pure): `boatRoute` (grid A* over the water with shore
   clearance and bridge clearance, string-pulled, a goal on land ends at the
   nearest water), `trainTrip` (walk, station, train, change, station, walk
@@ -403,8 +423,9 @@ HUD zoom at 1920x1080), `--hud-edge` is the 46 px margin.
   (`dismissLoading`). The first tiles round the save are prewarmed meanwhile.
 - Load screen (`loadscreen.js` + `.css`): Ken Burns picture from `img/laad/`
   (the game's own renders), logo, "Eerder in het verhaal" from the part's
-  recap, the "Je gaat verder in" card, a tip and a progress bar from
-  `scene3d.js streamPending()`. Shown when loading a save (Doorgaan) and by
+  recap, the "Je gaat verder in" card and a progress bar from
+  `scene3d.js streamPending()`; one short text line at a time rotates in the
+  tip slot (where you are going or the story so far, then tips). Shown when loading a save (Doorgaan) and by
   `watchJumps` (main.js) for a jump over 700 m outside cutscenes.
 - `node scripts/hud_test.mjs` checks the rules, the turn finder and the
   access table.

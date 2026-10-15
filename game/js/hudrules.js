@@ -87,7 +87,7 @@ export class ZoneBoard {
   free(zone, owner) { const h = this.hold[zone]; return !h || h.owner === owner; }
   occupy(zone, owner, prio) { if (!this.free(zone, owner)) return false; this.hold[zone] = { owner, prio }; return true; }
   vacate(zone, owner) { if (this.hold[zone] && this.hold[zone].owner === owner) delete this.hold[zone]; }
-  // the number waiting per owner, summed for the "+N in de wacht" counter
+  // the number waiting per owner (a higher priority waiting pressures the holder)
   setWaiting(zone, owner, n, prio = P3) { (this.wants[zone] ||= {})[owner] = { n, prio }; }
   waiting(zone) { return Object.values(this.wants[zone] || {}).reduce((s, w) => s + (w.n | 0), 0); }
   // someone else waits with a higher priority than the holder

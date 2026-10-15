@@ -6,6 +6,40 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Nieuw
+- **Richtingaanwijzers en alarmlichten.** [ en ] zetten de knipperlichten links
+  en rechts aan (nog eens: uit), P de alarmlichten; op een controller zijn het
+  links, rechts en omhoog op het D-pad. Na de bocht gaat de richtingaanwijzer
+  vanzelf uit. Oranje lampjes knipperen op alle voertuigen, ook bij andere
+  auto's en fietsers die een bocht maken.
+- **Je merkt het als je zwaar gewond bent.** Onder een kwart gezondheid wordt
+  het beeld rood aan de randen en grauw, het klopt mee met je hartslag (je hoort
+  hem ook) en je loopt trager. Bij beterschap is het meteen voorbij.
+- **Muurkroket.** Een snackautomaat bij de snackbars en de stations: drie euro,
+  en er rolt een eierbal, kroket of frikandel uit die je een beetje opknapt.
+- **Boetes.** Een agent in de buurt ziet het als je de telefoon openvouwt op de
+  fiets of achter het stuur, en als je 's nachts zonder licht fietst.
+- **Hintbron.** Onder Instellingen kies je of de hints toetsenbord, controller
+  of automatisch tonen, in de hele HUD en in het menu.
+- **Politiepaarden** laten af en toe een hoopje achter. Er rijden meer fietsen
+  in het centrum, en op een reclamebord vraagt iemand of u uit Steden komt of
+  naar Stedum gaat.
+
+### Aangepast
+- **Een nieuwe wijk** krijgt standaard een korte naamkaart met de stem van Rikus
+  en wat er te zien is. De volledige rondvlucht staat onder Instellingen als
+  Filmpje bij nieuwe wijken.
+- **Eén keycap-stijl:** overal waar een toets staat is het dezelfde witte,
+  heldere knop (HUD, hints, kaarten, menu en de kraak-schermen).
+- **Het laadscherm** toont steeds één korte regel tegelijk.
+- **De Herestraat en andere voetgangersstraten** zijn minder volgestouwd met
+  fietsen, rekken en mensen.
+- De kaartlabel bij de Apenrots noemt geen echt bedrijf meer.
+
+### Opgelost
+- Het weghalen van de teller "+N in de wacht" bovenin.
+- "Missie geslaagd" verschijnt maar één keer.
+
 ## [0.30.0] - 2026-10-15
 
 ### Nieuw

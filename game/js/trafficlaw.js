@@ -6,6 +6,15 @@
 // emergency services are left alone. Pure logic apart from reading the world.
 import { travelModeOf, offenceOf } from './roadaccess.js';
 
+// Two money fines when an agent is watching: the phone in your hand while
+// riding or driving, and cycling after dark without a light.
+export const FINE_WATCH_M = 45;
+export const FINE_PHONE = { fiets: 45, auto: 100 };
+export const FINE_NO_LIGHT = 25;
+const LIGHT_WATCHED_S = 3;
+const LIGHT_COOLDOWN_S = 120;
+const MOVING_MS = 2;
+
 export const GRACE_S = 12;
 const GAP_S = 3;
 const REARM_S = 25;
@@ -61,6 +70,7 @@ function exempt(world, v) {
 // call every frame; scans four times a second
 export function updateTrafficLaw(dt, world) {
   if (!dt) return;
+  updateBikeLight(dt, world);
   const p = world.player;
   const v = p && p.inVehicle;
   if (exempt(world, v)) { state.on = 0; state.kind = null; return; }
@@ -103,4 +113,52 @@ export function updateTrafficLaw(dt, world) {
       world.addMessage(STAR_TEXT, 5, { kind: 'politie', key: 'roadlaw-star' });
     }
   }
+}
+
+// Is an agent (on foot or in a police vehicle) close enough to see you?
+export function agentWatching(world, x, y, range = FINE_WATCH_M) {
+  const r2 = range * range;
+  for (const p of world.pedestrians || []) if (p.isCop && p.state !== 'dead' && (p.x - x) ** 2 + (p.y - y) ** 2 < r2) return true;
+  for (const v of world.vehicles || []) if (v.isPolice && !v.wrecked && v.driver !== 'player' && (v.x - x) ** 2 + (v.y - y) ** 2 < r2) return true;
+  return false;
+}
+
+function charge(world, amount, text) {
+  const pay = Math.min(amount, Math.max(0, Math.floor(world.money || 0)));
+  world.money = (world.money || 0) - pay;
+  world.addMessage(`${text}: boete €${pay}`, 5, { kind: 'politie', key: 'roadfine' });
+  return pay;
+}
+
+// The phone (the pause menu on its Telefoon tab) opened while riding or
+// driving at speed: a fine if an agent sees it. Returns the amount.
+export function checkPhoneWhileMoving(world) {
+  const p = world.player;
+  const v = p && p.inVehicle;
+  if (!v || exempt(world, v)) return 0;
+  const mode = travelModeOf(world);
+  const fine = FINE_PHONE[mode];
+  if (!fine || Math.abs(v.speed || 0) < MOVING_MS) return 0;
+  if (!agentWatching(world, v.x, v.y)) return 0;
+  return charge(world, fine, mode === 'fiets' ? 'Mobiel in de hand op de fiets' : 'Mobiel in de hand achter het stuur');
+}
+
+const light = { watched: 0, cooldown: 0 };
+export function resetLightFine() { light.watched = 0; light.cooldown = 0; }
+
+// Cycling in the dark without a light (the bikes have none unless v.light is
+// set): after a few seconds in an agent's sight, a fine, then a long pause.
+export function updateBikeLight(dt, world) {
+  if (!dt) return 0;
+  if (light.cooldown > 0) light.cooldown -= dt;
+  const p = world.player;
+  const v = p && p.inVehicle;
+  const night = world.dayNight && (world.dayNight.night ?? 0) > 0.5;
+  if (!v || !night || light.cooldown > 0 || exempt(world, v) || travelModeOf(world) !== 'fiets' || v.light || Math.abs(v.speed || 0) < MOVING_MS) { light.watched = 0; return 0; }
+  if (!agentWatching(world, v.x, v.y, FINE_WATCH_M * 0.7)) { light.watched = 0; return 0; }
+  light.watched += dt;
+  if (light.watched < LIGHT_WATCHED_S) return 0;
+  light.watched = 0;
+  light.cooldown = LIGHT_COOLDOWN_S;
+  return charge(world, FINE_NO_LIGHT, 'Fietsen zonder licht in het donker');
 }

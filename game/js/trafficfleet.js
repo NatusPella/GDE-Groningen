@@ -34,7 +34,7 @@ const PROFILES = {
   chic: { car: { suv: 3, sedan: 3, wagon: 2, sport: 1.2, hatch: 0.7, delivery: 0.3 }, colors: POSH, bakfiets: 0.18, oldBike: 0.05 },
   bakfiets: { car: { hatch: 2.5, wagon: 2.5, sedan: 1.2, suv: 0.4, van: 0.6, delivery: 0.6, roestbak: 0.3 }, colors: GREYS, bakfiets: 0.32, oldBike: 0.15 },
   industrie: { car: { van: 3.5, truck: 2.2, delivery: 1.5, hatch: 1, sedan: 0.6, wagon: 0.4 }, colors: VAN_COLORS, bakfiets: 0, oldBike: 0.25 },
-  centrum: { car: { taxi: 0.9, delivery: 1.6, hatch: 1.8, van: 1, sedan: 1.2, wagon: 0.6, cashvan: 0.08, suv: 0.3 }, colors: GREYS, bakfiets: 0.12, oldBike: 0.35 },
+  centrum: { car: { taxi: 0.9, delivery: 1.6, hatch: 1.8, van: 1, sedan: 1.2, wagon: 0.6, cashvan: 0.08, suv: 0.3 }, colors: GREYS, bakfiets: 0.15, oldBike: 0.5 },
 };
 
 const WIJK_PROFILE = {
