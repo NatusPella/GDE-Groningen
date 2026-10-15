@@ -729,6 +729,72 @@ function consumeContacts(world) {
   }
 }
 
+// --- horse droppings -----------------------------------------------------------------------------
+// A police horse now and then leaves a small heap behind it; the heaps shrink
+// away after a minute and never number more than DROP_MAX.
+
+const DROP_MAX = 10;
+const DROP_LIFE = 70;
+const DROP_FADE = 8;
+const drops = [];
+let dropScene = null;
+let dropGeo = null, dropMat = null;
+
+function addDropping(x, y, z, angle) {
+  if (!dropScene) return;
+  if (!dropGeo) {
+    const parts = [[0, 0.07, 0, 0.13], [0.12, 0.05, 0.06, 0.09], [-0.1, 0.05, 0.08, 0.1], [0.03, 0.14, -0.04, 0.08]];
+    const geos = parts.map(([px, py, pz, r]) => new THREE.IcosahedronGeometry(r, 0).translate(px, py, pz));
+    dropGeo = mergeGeos(geos);
+    dropMat = new THREE.MeshLambertMaterial({ color: 0x4a3420 });
+  }
+  const m = new THREE.Mesh(dropGeo, dropMat);
+  m.position.set(x, z + 0.02, y);
+  m.rotation.y = angle;
+  m.name = 'horse-dropping';
+  dropScene.add(m);
+  drops.push({ m, age: 0 });
+  if (drops.length > DROP_MAX) { const o = drops.shift(); dropScene.remove(o.m); }
+}
+
+function mergeGeos(list) {
+  const pos = [], idx = [];
+  let base = 0;
+  for (const g of list) {
+    const gi = g;
+    const pa = gi.attributes.position;
+    for (let i = 0; i < pa.count; i++) pos.push(pa.getX(i), pa.getY(i), pa.getZ(i));
+    if (gi.index) for (let i = 0; i < gi.index.count; i++) idx.push(gi.index.getX(i) + base);
+    else for (let i = 0; i < pa.count; i++) idx.push(base + i);
+    base += pa.count;
+  }
+  const out = new THREE.BufferGeometry();
+  out.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  out.setIndex(idx);
+  out.computeVertexNormals();
+  return out;
+}
+
+function horseDroppings(v, dt) {
+  if (v._mount !== 'horse' || v.wrecked || v.driver === 'player') return;
+  if (v._dropIn === undefined) v._dropIn = 20 + Math.random() * 50;
+  v._dropIn -= dt;
+  if (v._dropIn > 0) return;
+  if (Math.abs(v.speed || 0) > 3) { v._dropIn = 2; return; }
+  v._dropIn = 40 + Math.random() * 80;
+  addDropping(v.x - Math.cos(v.angle) * 1.3, v.y - Math.sin(v.angle) * 1.3, v.z || 0, Math.random() * 6.28);
+}
+
+function updateDroppings(dt) {
+  for (let i = drops.length - 1; i >= 0; i--) {
+    const d = drops[i];
+    d.age += dt;
+    if (d.age > DROP_LIFE) { dropScene.remove(d.m); drops.splice(i, 1); continue; }
+    const k = d.age > DROP_LIFE - DROP_FADE ? (DROP_LIFE - d.age) / DROP_FADE : 1;
+    d.m.scale.setScalar(Math.max(0.05, k));
+  }
+}
+
 // --- entry ---------------------------------------------------------------------------------------
 
 function init(scene) {
@@ -738,6 +804,7 @@ function init(scene) {
   chunks = makeDebrisPool(scene, new THREE.IcosahedronGeometry(0.62, 0), CHUNK_MAX, 'fx-debris');
   panels = makeDebrisPool(scene, new THREE.BoxGeometry(1, 1, 1), PANEL_MAX, 'fx-panels');
   contactCursor = vehicleContacts.head;
+  dropScene = scene;
   ready = true;
 }
 
@@ -756,12 +823,13 @@ export function updateFx3D(dt, world, scene) {
       const v = vs[i];
       if (!nearPlayer(world, v.x, v.y, FX_RANGE)) continue;
       if (v.wrecked) wreckSmoke(v, world, dt);
-      else vehicleFx(v, world, dt);
+      else { vehicleFx(v, world, dt); if (v._mount) horseDroppings(v, dt); }
     }
   }
   updateSkidFade(dt);
   updateSmoke(dt);
   updateSparks(dt);
+  updateDroppings(dt);
   updateDebris(chunks, dt);
   updateDebris(panels, dt);
 }

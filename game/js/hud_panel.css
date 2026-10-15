@@ -546,14 +546,14 @@ body:not(.cine-hide-hud) #cine .cine-skip { right: 50%; bottom: calc(14px * var(
   height: 20px;
   padding: 0 5px;
   margin-right: 3px;
-  background: linear-gradient(180deg, #4a4f47, #2a2e28);
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  border-bottom: 2px solid rgba(0, 0, 0, 0.6);
-  border-radius: 4px;
-  color: var(--gron-green-light);
-  font-size: 11px;
+  background: #fbfaf5;
+  border: 0;
+  border-radius: 5px;
+  color: #0c140e;
+  font-size: 12px;
   font-weight: bold;
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08) inset;
+  text-shadow: none;
+  box-shadow: 0 2px 0 #a9a69b, 0 0 0 1px rgba(0, 0, 0, 0.18);
 }
 
 /* drift score chip (driftzone.js) */

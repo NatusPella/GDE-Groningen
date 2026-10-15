@@ -3,9 +3,8 @@
 #heist-ui { position: fixed; inset: 0; z-index: 16; pointer-events: none; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; color: #f0ede4; }
 #heist-ui .hud-key {
   display: inline-flex; align-items: center; justify-content: center; min-width: 22px; height: 22px; padding: 0 6px;
-  background: linear-gradient(180deg, #4a4f47, #2a2e28); border: 1px solid rgba(255, 255, 255, 0.35); border-bottom: 2px solid rgba(0, 0, 0, 0.6);
-  border-radius: 4px; color: var(--gron-green-light, #3fc97a); font-size: 13px; font-weight: bold; letter-spacing: 1px;
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08) inset; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif;
+  background: #fbfaf5; border: 0; border-radius: 5px; color: #0c140e; font-size: 13px; font-weight: bold; letter-spacing: 1px;
+  box-shadow: 0 2px 0 #a9a69b, 0 0 0 1px rgba(0, 0, 0, 0.18); font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif;
 }
 
 /* --- minigame panel ------------------------------------------------------------ */

@@ -744,20 +744,79 @@ function checkWijk(dt, w) {
   if (!wijkCand || wijkCand.name !== p.name) { wijkCand = p; wijkDwell = 0; return; }
   wijkDwell += step;
   // a second before the flyover can start, its street is picked and built ahead
-  if (wijkDwell >= WIJK_DWELL - 1 && (!wijkPrep || wijkPrep.name !== wijkCand.name) && !active && !busyWithJob(w)) prepWijk(w, wijkCand);
-  if (wijkDwell < WIJK_DWELL || active || !momentsOn() || w.pendingRespawn || w.wanted > 0 || w.time < (w.quietUntil || 0)) return;
+  const film = momentsOn() && getSettings().wijkFilm === true;
+  if (film && wijkDwell >= WIJK_DWELL - 1 && (!wijkPrep || wijkPrep.name !== wijkCand.name) && !active && !busyWithJob(w)) prepWijk(w, wijkCand);
+  if (wijkDwell < WIJK_DWELL || active || w.pendingRespawn || w.wanted > 0 || w.time < (w.quietUntil || 0)) return;
   // never during a mission, race or bijbaantje: the wijk stays unseen and
   // plays once the player is free again (and still in it)
   if (busyWithJob(w)) return;
   // at speed a paused flyover is jarring: wait until the player slows down
   const v = w.player.inVehicle;
-  if (v && Math.abs(v.speed || 0) > WIJK_MAX_SPEED) return;
+  if (film && v && Math.abs(v.speed || 0) > WIJK_MAX_SPEED) return;
   // over the attention budget: waits while the player is still in the wijk
   if (aloft(w) || !mayInterrupt('wijk', w)) return;
   noteMoment('wijk');
   markWijk(p);
   wijkCand = null;
-  playWijk(w, p);
+  if (film) playWijk(w, p);
+  else showWijkCard(w, p);
+}
+
+// The landmarks that belong to a wijk (it is their nearest wijk point), the
+// closest first; the card lists a few of them.
+export function wijkHighlights(w, name, max = 3) {
+  const pts = w.map.meta.neighbourhoodPoints || [];
+  const out = [];
+  for (const l of w.map.meta.landmarks || []) {
+    let best = null, bestD2 = Infinity;
+    for (const q of pts) {
+      const d2 = (q.x - l.x) ** 2 + (q.y - l.y) ** 2;
+      if (d2 < bestD2) { bestD2 = d2; best = q; }
+    }
+    if (best && best.name === name && bestD2 < 700 * 700) out.push({ name: l.name, d2: bestD2 });
+  }
+  return out.sort((a, b) => a.d2 - b.d2).map((o) => o.name).filter((n, i, a) => a.indexOf(n) === i).slice(0, max);
+}
+
+// The default for a new wijk: a short name card with Rikus's line spoken and
+// the wijk's highlights listed; the flyover is the optional film (Instellingen).
+let wijkCardEl = null;
+let wijkCardT = 0;
+function showWijkCard(w, wijk) {
+  if (typeof document === 'undefined') return false;
+  if (!wijkCardEl) {
+    const st = document.createElement('style');
+    st.textContent = `
+#wijk-card { position: fixed; left: 6vw; bottom: 22vh; z-index: 17; pointer-events: none; color: #f0ede4; max-width: 44ch;
+  opacity: 0; transform: translateX(-28px); transition: opacity .35s, transform .6s cubic-bezier(.2,.7,.2,1); text-shadow: 0 2px 12px rgba(0,0,0,.85); }
+#wijk-card.on { opacity: 1; transform: none; }
+#wijk-card .wc-kick { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 18px; letter-spacing: .2em; color: #3fc97a; }
+#wijk-card .wc-name { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: clamp(44px, 6vw, 84px); line-height: .9; letter-spacing: 1px; text-transform: uppercase; }
+#wijk-card .wc-name::after { content: ''; display: block; width: 120px; height: 4px; margin-top: 8px; background: linear-gradient(90deg, #1e9e56, #3fc97a); }
+#wijk-card .wc-line { font-family: 'Arial Narrow', Arial, sans-serif; font-size: clamp(16px, 1.6vw, 22px); margin-top: 8px; }
+#wijk-card .wc-hi { font-family: 'Arial Narrow', Arial, sans-serif; font-size: clamp(14px, 1.3vw, 18px); margin-top: 8px; color: rgba(240,237,228,.75); }
+#wijk-card .wc-hi:empty { display: none; }
+`;
+    document.head.appendChild(st);
+    wijkCardEl = document.createElement('div');
+    wijkCardEl.id = 'wijk-card';
+    wijkCardEl.setAttribute('aria-live', 'polite');
+    wijkCardEl.innerHTML = '<div class="wc-kick">Nieuwe wijk</div><div class="wc-name"></div><div class="wc-line"></div><div class="wc-hi"></div>';
+    document.body.appendChild(wijkCardEl);
+  }
+  const text = wijkLine(wijk.name);
+  const hi = wijkHighlights(w, wijk.name);
+  wijkCardEl.querySelector('.wc-name').textContent = wijk.name;
+  wijkCardEl.querySelector('.wc-line').textContent = text;
+  wijkCardEl.querySelector('.wc-hi').textContent = hi.length ? 'Te zien: ' + hi.join(' · ') : '';
+  wijkCardEl.classList.remove('on');
+  void wijkCardEl.offsetWidth;
+  wijkCardEl.classList.add('on');
+  const v = lineVoiceFor('', text);
+  if (v) playStoryVoice(v.src, {});
+  clearTimeout(wijkCardT);
+  wijkCardT = setTimeout(() => wijkCardEl.classList.remove('on'), Math.max(5, (v ? v.dur : 0) + 1.5) * 1000);
+  return true;
 }
 
 export { pathShot, roofAt, clearKeys };
@@ -838,14 +897,6 @@ function orbitShot(w, { radius = 8, height = 3, sweep = 1, start = null, lookY =
     const a = a0 + easeInOut(u) * sweep * dir;
     return { position: W(c.x + Math.cos(a) * r, h, c.y + Math.sin(a) * r), lookAt: W(c.x, lookY, c.y) };
   };
-}
-
-export function playMissionOutro(w, info) {
-  showBanner({ kind: 'pass', title: 'MISSIE GESLAAGD', ...info });
-  return playCinematic({
-    id: 'mission-outro', priority: 3, duration: 3.4, letterbox: false, timeScale: 0.35,
-    shot: orbitShot(w, { radius: 7.5, height: 3.2, sweep: 0.9 }),
-  });
 }
 
 export function playMissionFailed(w, info, withShot = true) {
@@ -1031,6 +1082,8 @@ function esc(s) {
 export function showBanner({ kind = 'pass', title, reason = '', reward = 0, stats = [] }) {
   if (!els) return;
   const b = els.banner;
+  // the same result already up (scene start, then a fallback): once is enough
+  if (banner && !b.hidden && b.dataset.kind === kind && els.bTitle.textContent === title) return;
   b.dataset.kind = kind;
   els.bTitle.textContent = title;
   els.bReason.textContent = reason;

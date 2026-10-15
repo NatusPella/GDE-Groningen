@@ -27,6 +27,8 @@ const DEFAULTS = {
   cameraDistance: 1,
   showMinimap: true,
   showHints: true,
+  // which glyphs every hint shows: 'auto' (what you used last), 'keys' or 'pad'
+  hintSource: 'auto',
   // HUD: 'slim' (default: only what matters now), 'alles', 'minimaal' (hudrules.js)
   hudMode: 'slim',
   // minimap: zoom factor and north-up ('nooit', 'lucht' only flying, 'altijd')
@@ -37,6 +39,8 @@ const DEFAULTS = {
   reduceMotion: false,
   showFog: true,
   cinematicMoments: true,
+  // a new wijk: false = a name card with a spoken line, true = the full flyover
+  wijkFilm: false,
   gore: true,
   // Zichtafstand (viewdist.js): 'ver', not Hoog's 'heelver', so a first
   // launch on an iGPU laptop stays at 600 m
@@ -73,6 +77,7 @@ export const SHIFT_CHOICES = ['auto', 'manual', 'clutch'];
 export const SUBTITLE_SIZES = { klein: 0.85, normaal: 1, groot: 1.25, extragroot: 1.5 };
 export const COLOR_BLIND_MODES = ['uit', 'deuteranopie', 'protanopie', 'tritanopie'];
 const PAD_LAYOUT_CHOICES = ['auto', 'xbox', 'ps', 'deck'];
+const HINT_SOURCE_CHOICES = ['auto', 'keys', 'pad'];
 
 function load() {
   if (typeof localStorage === 'undefined') return { ...DEFAULTS };
@@ -98,6 +103,7 @@ function load() {
     if (!SHIFT_CHOICES.includes(out.shiftMode)) out.shiftMode = DEFAULTS.shiftMode;
     if (!COLOR_BLIND_MODES.includes(out.colorBlind)) out.colorBlind = DEFAULTS.colorBlind;
     if (!PAD_LAYOUT_CHOICES.includes(out.padLayout)) out.padLayout = DEFAULTS.padLayout;
+    if (!HINT_SOURCE_CHOICES.includes(out.hintSource)) out.hintSource = DEFAULTS.hintSource;
     if (!(out.padLookSensitivity >= 0.3 && out.padLookSensitivity <= 2.5)) out.padLookSensitivity = DEFAULTS.padLookSensitivity;
     if (stored && mig && mig.from < SETTINGS_VERSION) {
       try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...out, v: SETTINGS_VERSION })); } catch (e) { /* ignore */ }
