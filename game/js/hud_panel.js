@@ -1,5 +1,3 @@
-import { todayInfo, todaySpecial } from './calendarday.js';
-import { calIcon } from './calendar.js';
 import { dualHtml } from './subtitles.js';
 import { simLevel } from './simload.js';
 import { getGaragesForRender } from './garages.js';
@@ -17,36 +15,43 @@ import { getStationsForRender, drawStationMapIcon } from './stationtravel.js';
 import { getSideJobSpotsForRender, drawSideJobMapIcon, JOB_TARGET_COLOR } from './sidejobs.js';
 import { vehicleDisplayName } from './vehiclenames.js';
 import { findEnterableVehicle, HERO_CAR_MODEL } from './vehicle.js';
-import { cinematicAllowsDamageFx } from './cinematics.js';
-import { isMuted } from './audio.js';
+import { cinematicAllowsDamageFx, isBannerUp, isCinematicActive, wijkBlurb } from './cinematics.js';
+import { isMuted, engineReadout } from './audio.js';
 import { drawRailsOnMap, drawTrainsOnMap } from './railway.js';
 import { drawCountryMinimap, villageLabels, MINI_STYLE } from './countrymap.js';
 import { edgeDistance } from './countryfield.js';
 import { REAL, realStreetAt } from './countryreal.js';
 import { ommelandArea } from './ommelandplace.js';
 import { ommelandMapSpots, drawOmmelandMapIcon } from './ommelandmap.js';
+import { VILLAGES } from './ommelandlines.js';
 import { getActiveRoute, getRouteAhead, getRoutes, getUserWaypoint, formatDistance } from './routing.js';
 import { storyWaiting, missionOnMap } from './goal.js';
 import { setGhostBar, ring, pop } from './motion.js';
 import { renderSnapshot, PORTRAIT_ANGLE } from './vehiclepreview.js';
 import { TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
-import { initPrompts, updatePrompts } from './prompts.js';
+import { initPrompts, updatePrompts, hintCount } from './prompts.js';
 import { hudPixelRatio } from './uiscale.js';
 import { initCards, updateCards } from './hudcards.js';
 import { markerColors, onPaletteChange } from './a11y.js';
 import { drawMissionGlyph } from './missionicons.js';
+import { decideHud, zones, hudNow, P3, PLACE_SHOW, E_SHOW, DEFER_MAX, GPS_NEAR } from './hudrules.js';
+import { nextTurn, turnText, etaText } from './hudgps.js';
+import { travelModeOf, roadAllowed, minimapScale, northUp, MINIMAP_MODE } from './roadaccess.js';
+import { hudDate } from './hudcalendar.js';
+import { LANDMARK_LINES } from './placelines.js';
+import { getSettings } from './settings.js';
+import { heldBack } from './narrative.js';
+import { isPauseMenuOpen } from './pausemenu.js';
 // portraits share the HUD's green (DESIGN_SYSTEM: no blue accents); speaker
 // colours stay in subtitles
 const HUD_ACCENT = '#3fc97a';
 
-const HEART_PATH = 'M12 21s-7.8-4.7-9.6-10A5.3 5.3 0 0 1 12 6.1a5.3 5.3 0 0 1 9.6 4.9C19.8 16.3 12 21 12 21z';
-const SHIELD_PATH = 'M12 2.5l8 3v6c0 5-3.4 8.6-8 10-4.6-1.4-8-5-8-10v-6z';
-const MINIMAP_SIZE = 230;
-const MM_SCALE = 1.45; // px per meter (css pixels) when standing still
-const MM_SCALE_FAST = 0.62;
-const MM_FAST_SPEED = 28;
-let mmScale = MM_SCALE;
+// the minimap's square, in HUD px (CSS --mm-size follows it)
+const MINIMAP_SIZE = 250;
+let mmScale = 1.45;
 let mmSkip = 0, mmDt = 0;
+let mmMode = 'lopen';
+let mmRot = null;
 
 // Genre convention: purple for your own waypoint, yellow for missions, orange for
 // side jobs, pink for care (food when hurt, a garage for your own damaged ride)
@@ -61,6 +66,15 @@ export const routeLabel = (r) => (r.kind === 'user' ? 'Doel' : r.kind === 'job' 
 
 let els = null;
 
+const STAR_PATH = 'M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z';
+const TURN_ICON = {
+  rechts: '<path d="M7 20V10a3 3 0 0 1 3-3h8"/><path d="M14 3l4 4-4 4"/>',
+  links: '<path d="M17 20V10a3 3 0 0 0-3-3H6"/><path d="M10 3L6 7l4 4"/>',
+};
+const RPM_ARC = 'M30 160 A85 85 0 1 1 170 160';
+// the red zone starts at this share of the arc
+const RPM_RED_AT = 85;
+
 export function initHud(world) {
   const link = document.createElement('link');
   link.rel = 'stylesheet';
@@ -69,43 +83,27 @@ export function initHud(world) {
 
   const root = document.getElementById('hud');
 
-  const topLeft = document.createElement('div');
-  topLeft.className = 'hud-top-left';
-  topLeft.innerHTML =
-    '<div class="hud-id">' +
-      '<div class="hud-portrait" aria-hidden="true"><svg viewBox="0 0 40 40"><circle cx="20" cy="15" r="7.2"/><path class="hair"/><path d="M6 40c1-9 7-13.5 14-13.5S33 31 34 40z"/></svg><img alt=""></div>' +
-      '<div class="hud-id-main">' +
-        '<div class="hud-name-row"><div class="hud-character"></div><div class="hud-status">' +
-          '<span class="hud-chip drunk" role="status" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h11l-1.3 15.2A3 3 0 0 1 12.7 21h-2.4a3 3 0 0 1-3-2.8zM7.4 7.5h8.2"/></svg>Aangeschoten</span>' +
-          '<span class="hud-chip hud-mute" role="status" aria-label="Geluid uit" title="Geluid uit (U)" hidden>🔇</span>' +
-        '</div></div>' +
-        `<div class="hud-meter hp" role="meter" aria-label="Gezondheid" aria-valuemin="0" aria-valuemax="100"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="${HEART_PATH}"/></svg><div class="hud-bar"><div class="hud-bar-ghost"></div><div class="hud-bar-fill health"></div></div><b></b></div>` +
-        `<div class="hud-meter ar" hidden role="meter" aria-label="Bescherming" aria-valuemin="0" aria-valuemax="100"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="${SHIELD_PATH}"/></svg><div class="hud-bar"><div class="hud-bar-ghost"></div><div class="hud-bar-fill armor"></div></div><b></b></div>` +
-      '</div>' +
-    '</div>' +
-    '<div class="hud-mate" hidden><span class="hud-mate-pic" aria-hidden="true"><img alt=""></span><span class="hud-mate-txt"></span></div>';
-  root.appendChild(topLeft);
-
-  const topRight = document.createElement('div');
-  topRight.className = 'hud-top-right';
-  topRight.innerHTML =
-    '<div class="hud-clock" role="timer" aria-label="Tijd in het spel"><span class="hud-dp"><svg class="hud-clock-icon" viewBox="0 0 24 24" aria-hidden="true"></svg><small></small></span><b></b></div>' +
-    '<div class="hud-date" aria-label="Datum in het spel"><span class="hud-date-day"></span><span class="hud-date-n"></span><span class="hud-day-badge" hidden></span></div>' +
-    '<div class="hud-wanted" role="img"></div>' +
-    '<i class="hud-tr-sep"></i>' +
-    '<div class="hud-tr-row"><small>Op zak</small><span class="hud-money"></span></div>' +
-    '<div class="hud-money-delta"></div>' +
-    '<i class="hud-tr-sep"></i>' +
-    '<div class="hud-weapon"></div>';
-  root.appendChild(topRight);
-
   const damage = document.createElement('div');
   damage.className = 'hud-damage';
   root.insertBefore(damage, root.firstChild);
 
+  // zone C: clock and date, stars, the search, money, weapon
+  const topRight = document.createElement('div');
+  topRight.className = 'hud-top-right';
+  topRight.innerHTML =
+    '<div class="hud-clock" role="timer" aria-label="Tijd in het spel"><span class="hud-special" hidden></span><span class="hud-date"></span><b class="hud-time"></b></div>' +
+    '<div class="hud-wanted" role="img"></div>' +
+    '<div class="hud-search" hidden><span>Uit het zicht blijven</span><i role="img" aria-label="Zoekgebied"><i></i></i></div>' +
+    '<div class="hud-moneyrow"><span class="hud-money-delta"></span><span class="hud-money"></span></div>' +
+    '<div class="hud-weapon"></div>';
+  root.appendChild(topRight);
+
+  // zone H: speed, gear, revs (the vehicle's damage is in F)
   const speedo = document.createElement('div');
   speedo.className = 'hud-speedo';
-  speedo.innerHTML = '<span class="sp-pic" aria-hidden="true"><img alt=""></span><span class="sp-num"><b></b><span>km/u</span></span><span class="sp-info"><span class="sp-name"><small></small><em></em></span><span class="sp-hp"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5l-1.3-1.2C5.6 14.7 2.5 11.9 2.5 8.4 2.5 5.6 4.7 3.5 7.4 3.5c1.6 0 3.4.8 4.6 2.2 1.2-1.4 3-2.2 4.6-2.2 2.7 0 4.9 2.1 4.9 4.9 0 3.5-3.1 6.3-8.2 10.9z"/></svg><span class="sp-bar" role="meter" aria-label="Staat van het voertuig" aria-valuemin="0" aria-valuemax="100"><i></i></span></span></span>';
+  speedo.innerHTML = '<div class="sp-main"><div class="sp-gears" role="img" aria-label="Versnelling"></div><b class="sp-val">0</b><span class="sp-unit">km/u</span></div>' +
+    `<svg class="sp-rpm" viewBox="0 0 200 200" role="img" aria-label="Toerental"><path class="rpm-bg" d="${RPM_ARC}"/><path class="rpm-zone" d="${RPM_ARC}" pathLength="100" stroke-dasharray="${100 - RPM_RED_AT} 100" stroke-dashoffset="${-RPM_RED_AT}"/>` +
+    `<path class="rpm-fill" d="${RPM_ARC}" pathLength="100" stroke-dasharray="0 100"/><text x="100" y="112" text-anchor="middle" class="rpm-t">TOEREN</text><text x="100" y="138" text-anchor="middle" class="rpm-u">x1000</text></svg>`;
   root.appendChild(speedo);
 
   const vehName = document.createElement('div');
@@ -114,19 +112,34 @@ export function initHud(world) {
   vehName.innerHTML = '<div class="vn-text"><small></small><b></b></div><svg class="vn-ic" viewBox="0 0 24 24" aria-hidden="true"></svg>';
   root.appendChild(vehName);
 
-  // the objective line: one objective at a time, top centre
+  // zone B: the GPS card (next turn, distance, a mission timer) and the place name
+  const gps = document.createElement('div');
+  gps.className = 'hud-gps';
+  gps.hidden = true;
+  gps.innerHTML = '<svg class="gps-arrow" viewBox="0 0 24 24" aria-hidden="true"></svg><div class="gps-txt"><b></b><span></span></div>' +
+    '<i class="gps-sep"></i><div class="gps-dist"><b></b><span></span></div><i class="gps-sep gps-tsep"></i><div class="gps-timer"><span>Tijd</span><b></b></div>';
+  root.appendChild(gps);
+
+  const place = document.createElement('div');
+  place.className = 'hud-place';
+  place.setAttribute('aria-live', 'polite');
+  place.innerHTML = '<div class="pl-kick"><i></i><span></span><i></i></div><b class="pl-name"></b><span class="pl-line"></span>';
+  root.appendChild(place);
+
+  // zone G: the objective, one at a time, over the subtitles
   const mission = document.createElement('div');
   mission.className = 'hud-mission';
   mission.setAttribute('aria-live', 'polite');
-  mission.innerHTML = '<svg class="hud-obj-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l9.5 9.5-9.5 9.5L2.5 12z"/></svg>' +
-    '<div class="hud-obj-text"><div class="hud-mission-label"></div><div class="hud-mission-progress"></div></div><div class="hud-mission-timer"></div>';
+  mission.innerHTML = '<svg class="hud-obj-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l9 10-9 10-9-10z"/></svg>' +
+    '<div class="hud-obj-text"><div class="hud-mission-label"></div><div class="hud-mission-progress"></div></div><span class="hud-obj-dist"></span>';
   root.appendChild(mission);
 
+  // zone E: the radio station (an achievement goes first, hudcards.js)
   const nowPlaying = document.createElement('div');
   nowPlaying.className = 'hud-nowplaying';
   nowPlaying.setAttribute('aria-live', 'polite');
-  nowPlaying.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 17.5V5.2l11-2.2v12.3"/><circle cx="6.5" cy="17.5" r="2.8"/><circle cx="17.5" cy="15.3" r="2.8"/></svg>' +
-    '<div><small>NU OP G-MUSIC</small><b class="np-artist"></b><span class="np-title"></span></div>';
+  nowPlaying.innerHTML = '<span class="np-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M5 12a7 7 0 0 1 14 0M2 12a10 10 0 0 1 20 0"/></svg></span>' +
+    '<div><small>G-Music</small><b class="np-title"></b><span class="np-artist"></span></div>';
   root.appendChild(nowPlaying);
 
   const race = document.createElement('div');
@@ -143,64 +156,110 @@ export function initHud(world) {
 
   const cards = initCards(world, root);
 
-  const location = document.createElement('div');
-  location.className = 'hud-location';
-  location.innerHTML = '<svg class="hud-loc-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s-7-7.2-7-12.4a7 7 0 0 1 14 0C19 14.8 12 22 12 22z"/><circle cx="12" cy="9.6" r="2.6"/></svg><div><div class="hud-district"></div><div class="hud-street"></div></div>';
-  root.appendChild(location);
-
-  const routeChip = document.createElement('div');
-  routeChip.className = 'hud-route';
-  routeChip.setAttribute('aria-live', 'off');
-  root.appendChild(routeChip);
-
+  // zone F: the minimap, the street, you (health, stamina, the vehicle's damage)
   const mmWrap = document.createElement('div');
   mmWrap.className = 'hud-minimap-wrap';
   const mmCanvas = document.createElement('canvas');
   mmWrap.appendChild(mmCanvas);
   root.appendChild(mmWrap);
 
+  const fcol = document.createElement('div');
+  fcol.className = 'hud-fcol';
+  root.appendChild(fcol);
+
+  const location = document.createElement('div');
+  location.className = 'hud-location';
+  location.innerHTML = '<div class="hud-street"></div><div class="hud-district"></div>';
+  fcol.appendChild(location);
+
+  const topLeft = document.createElement('div');
+  topLeft.className = 'hud-top-left';
+  topLeft.innerHTML =
+    '<div class="hud-id">' +
+      '<div class="hud-portrait" aria-hidden="true"><svg viewBox="0 0 40 40"><circle cx="20" cy="15" r="7.2"/><path class="hair"/><path d="M6 40c1-9 7-13.5 14-13.5S33 31 34 40z"/></svg><img alt=""></div>' +
+      '<div class="hud-id-main">' +
+        '<div class="hud-name-row"><div class="hud-character"></div><span class="hud-mate"><span class="hud-mate-pic" aria-hidden="true"><img alt=""></span><span class="hud-mate-txt"></span></span><div class="hud-status">' +
+          '<span class="hud-chip drunk" role="status" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h11l-1.3 15.2A3 3 0 0 1 12.7 21h-2.4a3 3 0 0 1-3-2.8zM7.4 7.5h8.2"/></svg>Aangeschoten</span>' +
+          '<span class="hud-chip hud-mute" role="status" aria-label="Geluid uit" title="Geluid uit (U)" hidden>🔇</span>' +
+        '</div></div>' +
+        '<div class="hud-meter hp" role="meter" aria-label="Gezondheid" aria-valuemin="0" aria-valuemax="100"><div class="hud-bar"><div class="hud-bar-ghost"></div><div class="hud-bar-fill health"></div></div><b></b></div>' +
+        '<div class="hud-meter ar" hidden role="meter" aria-label="Bescherming" aria-valuemin="0" aria-valuemax="100"><div class="hud-bar"><div class="hud-bar-ghost"></div><div class="hud-bar-fill armor"></div></div><b></b></div>' +
+        '<div class="hud-meter st" hidden role="meter" aria-label="Uithoudingsvermogen" aria-valuemin="0" aria-valuemax="100"><div class="hud-bar"><div class="hud-bar-fill stamina"></div></div></div>' +
+        '<div class="hud-meter veh" hidden role="meter" aria-label="Staat van het voertuig" aria-valuemin="0" aria-valuemax="100"><span class="veh-name"></span><div class="hud-bar"><div class="hud-bar-ghost"></div><div class="hud-bar-fill vehicle"></div></div></div>' +
+      '</div>' +
+    '</div>';
+  fcol.appendChild(topLeft);
+
+  // the route's distance lives in the objective and the GPS card now
+  const routeChip = document.createElement('div');
+  routeChip.className = 'hud-route';
+  routeChip.setAttribute('aria-live', 'off');
+  root.appendChild(routeChip);
 
   els = {
+    root,
     character: topLeft.querySelector('.hud-character'),
     healthFill: topLeft.querySelector('.health'),
     armorFill: topLeft.querySelector('.armor'),
+    staminaFill: topLeft.querySelector('.stamina'),
+    vehFill: topLeft.querySelector('.vehicle'),
     hpRow: topLeft.querySelector('.hud-meter.hp'),
     arRow: topLeft.querySelector('.hud-meter.ar'),
+    stRow: topLeft.querySelector('.hud-meter.st'),
+    vehRow: topLeft.querySelector('.hud-meter.veh'),
+    vehLabel: topLeft.querySelector('.veh-name'),
     hpNum: topLeft.querySelector('.hud-meter.hp b'),
     arNum: topLeft.querySelector('.hud-meter.ar b'),
     portrait: topLeft.querySelector('.hud-portrait'),
     portraitImg: topLeft.querySelector('.hud-portrait img'),
+    you: topLeft,
     mate: topLeft.querySelector('.hud-mate'),
     mateImg: topLeft.querySelector('.hud-mate img'),
     mateTxt: topLeft.querySelector('.hud-mate-txt'),
     mateKey: '', portraitKey: '', portraitT: 0,
     drunk: topLeft.querySelector('.hud-chip.drunk'),
-    idKey: '', hpKey: '', arKey: '',
+    idKey: '', hpKey: '', arKey: '', stKey: '', vehKey: '',
     mute: topLeft.querySelector('.hud-mute'),
+    topRight,
     wanted: topRight.querySelector('.hud-wanted'),
+    search: topRight.querySelector('.hud-search'),
+    searchBar: topRight.querySelector('.hud-search i i'),
     clock: topRight.querySelector('.hud-clock'),
+    special: topRight.querySelector('.hud-special'),
     date: topRight.querySelector('.hud-date'),
+    time: topRight.querySelector('.hud-time'),
+    moneyRow: topRight.querySelector('.hud-moneyrow'),
     money: topRight.querySelector('.hud-money'),
     moneyDelta: topRight.querySelector('.hud-money-delta'),
+    weapon: topRight.querySelector('.hud-weapon'),
     damage,
     speedo,
-    speedoValue: speedo.querySelector('b'),
-    speedoHp: speedo.querySelector('.sp-bar i'),
-    speedoHpMeter: speedo.querySelector('.sp-bar'),
-    speedoMake: speedo.querySelector('.sp-name small'),
-    speedoModel: speedo.querySelector('.sp-name em'),
-    speedoKey: '',
-    speedoPic: speedo.querySelector('.sp-pic img'),
-    speedoPicKey: '',
-    weapon: topRight.querySelector('.hud-weapon'),
+    speedoValue: speedo.querySelector('.sp-val'),
+    gears: speedo.querySelector('.sp-gears'),
+    rpmFill: speedo.querySelector('.rpm-fill'),
+    rpmSvg: speedo.querySelector('.sp-rpm'),
+    speedoKey: '', gearKey: '', rpmKey: '',
+    gps,
+    gpsArrow: gps.querySelector('.gps-arrow'),
+    gpsTitle: gps.querySelector('.gps-txt b'),
+    gpsSub: gps.querySelector('.gps-txt span'),
+    gpsDist: gps.querySelector('.gps-dist b'),
+    gpsEta: gps.querySelector('.gps-dist span'),
+    gpsTimer: gps.querySelector('.gps-timer b'),
+    gpsKey: '',
+    place,
+    placeKick: place.querySelector('.pl-kick span'),
+    placeName: place.querySelector('.pl-name'),
+    placeLine: place.querySelector('.pl-line'),
     mission,
     vehName,
     missionLabel: mission.querySelector('.hud-mission-label'),
     missionProgress: mission.querySelector('.hud-mission-progress'),
-    missionTimer: mission.querySelector('.hud-mission-timer'),
+    missionDist: mission.querySelector('.hud-obj-dist'),
     locationEl: location,
     district: location.querySelector('.hud-district'),
     street: location.querySelector('.hud-street'),
+    fcol,
     cards,
     race,
     raceRows: Object.fromEntries([...race.querySelectorAll('.hr-row')].map((r) => [r.dataset.k, r])),
@@ -212,11 +271,14 @@ export function initHud(world) {
     npShown: null,
     routeChip,
     routeText: '',
+    mmWrap,
     mmCanvas,
     mmCtx: mmCanvas.getContext('2d'),
+    vis: {},
   };
   initPrompts(root);
   watchRightStack(root, topRight, race);
+  watchInput();
 }
 
 // The right column flows under the top-right block: the race panel sits just
@@ -244,6 +306,8 @@ function restartClass(el, cls, still = () => true) {
   el.classList.remove(cls);
   requestAnimationFrame(() => { if (still()) el.classList.add(cls); });
 }
+
+const setText = (el, t) => { if (el.textContent !== t) el.textContent = t; };
 
 const VEH_ICONS = {
   car: '<path d="M3.5 15.5v-3l2-4.6A2 2 0 0 1 7.3 6.7h9.4a2 2 0 0 1 1.8 1.2l2 4.6v3z"/><path d="M6 11.5h12" class="ln"/><circle cx="7.3" cy="16.3" r="1.9"/><circle cx="16.7" cy="16.3" r="1.9"/>',
@@ -280,6 +344,7 @@ function updateVehicleName(dt, world) {
 }
 
 export function updateHud(dt, world) {
+  sense(dt, world);
   updateVehicleName(dt, world);
   updateCharacter(dt, world);
   updateBars(world);
@@ -291,20 +356,160 @@ export function updateHud(dt, world) {
   updateSpeedo(world);
   updateSpeedoPrefetch(dt, world);
   updateMission(world);
+  updateGps(dt, world);
+  updatePlace(dt, world);
   updateRaceHud(world);
   updateCards(dt, world);
-  updateNowPlaying(world);
+  updateNowPlaying(dt, world);
   updateLocation(dt, world);
   updatePrompts(dt, world);
   updateRouteChip(world);
+  updateVisibility(dt, world);
   // very CPU-bound (simload.js level 2): the minimap redraws every second
   // frame, its zoom easing over the time in between. It turns with the
   // player, so a lower rate shows as stutter; the whole HUD costs ~1 ms.
   mmDt += dt;
   if (mmSkip-- > 0) return;
   mmSkip = simLevel() >= 2 ? 1 : 0;
-  drawMinimap(mmDt, world);
+  if (els.vis.minimap !== false) drawMinimap(mmDt, world);
   mmDt = 0;
+}
+
+// --- what the HUD knows about the moment (hudrules.js decides from it) -------
+
+const S = {
+  lastInput: 0, wantedOff: -Infinity, moneyAt: -Infinity, moneySign: 0, moneyHeld: null,
+  hpAt: -Infinity, stAt: -Infinity, vehAt: -Infinity, hurtAt: -Infinity, fightAt: -Infinity,
+  nearShop: false, shopT: 0, wasPause: false, lastHp: null, lastSt: null, lastVeh: null, now: 0,
+};
+const nowS = () => performance.now() / 1000;
+
+function watchInput() {
+  const poke = () => { S.lastInput = nowS(); };
+  for (const t of ['keydown', 'mousedown', 'wheel']) window.addEventListener(t, poke, { capture: true, passive: true });
+  let mv = 0;
+  window.addEventListener('mousemove', (e) => { if (Math.abs(e.movementX) + Math.abs(e.movementY) > 6 && ++mv % 4 === 0) poke(); }, { capture: true, passive: true });
+  S.lastInput = nowS();
+}
+
+function sense(dt, world) {
+  const now = S.now = nowS();
+  const p = world.player;
+  if (world.wanted > 0) S.wantedOff = Infinity;
+  else if (S.wantedOff === Infinity) S.wantedOff = now;
+  // the pause menu or a moving controller stick: everything back for a moment
+  const pause = isPauseMenuOpen();
+  if (pause !== S.wasPause) { S.wasPause = pause; S.lastInput = now; }
+  const input = world.input;
+  if (input && input.padKeys && input.padKeys.size) S.lastInput = now;
+  if (input && input.mouse && input.mouse.down && world.weapon && world.weapon !== 'fists' && !p.inVehicle) S.fightAt = now;
+  const hp = world.health;
+  if (S.lastHp != null && hp < S.lastHp - 0.5) { S.hurtAt = now; S.fightAt = now; }
+  if (hp !== S.lastHp) { S.hpAt = now; S.lastHp = hp; }
+  if ((S.shopT -= dt) <= 0) {
+    S.shopT = 0.5;
+    S.nearShop = false;
+    for (const sh of getShopsForRender()) if (Math.abs(sh.x - p.x) < 22 && Math.abs(sh.y - p.y) < 22) { S.nearShop = true; break; }
+  }
+}
+
+const isBusy = (world) => world.wanted > 0 || nowS() - S.fightAt < 5 || !!(world.mission && world.mission.phase === 'active' && world.mission.raceHud) || !!world.challengeHud;
+const isDialogue = () => document.body.classList.contains('hud-call-on') || heldBack();
+
+let visT = 0;
+const VIS_EVERY = 0.1;
+// element -> the rules' key
+const VIS_ELS = () => [
+  ['gps', els.gps, (v) => v.gps || v.timer],
+  ['place', els.place, (v) => v.place],
+  ['stars', els.wanted, (v) => v.stars],
+  ['search', els.search, (v) => v.stars],
+  ['money', els.moneyRow, (v) => v.money],
+  ['weapon', els.weapon, (v) => v.weapon],
+  ['clock', els.clock, (v) => v.clock],
+  ['minimap', els.mmWrap, (v) => v.minimap],
+  ['street', els.locationEl, (v) => v.street],
+  ['bars', els.you, (v) => v.bars],
+  ['vehicle', els.speedo, (v) => v.vehicle],
+  ['objective', els.mission, (v) => v.objective],
+];
+
+function updateVisibility(dt, world) {
+  if ((visT -= dt) > 0) return;
+  visT = VIS_EVERY;
+  const b = document.body.classList;
+  const now = nowS();
+  const p = world.player;
+  const v = p.inVehicle || world.trainCam || null;
+  const busy = isBusy(world);
+  const dialogue = isDialogue();
+  hudNow.busy = busy;
+  hudNow.dialogue = dialogue;
+  // money coming in during a busy moment waits (P3), at most DEFER_MAX
+  if (S.moneyHeld != null) {
+    if (!busy) { S.moneyAt = now; S.moneyHeld = null; } else if (now - S.moneyHeld > DEFER_MAX) S.moneyHeld = null;
+  }
+  const hp = world.health;
+  const st = staminaOf(world);
+  const vehHp = v && Number.isFinite(v.health) ? v.health : null;
+  const mapOpen = !!document.querySelector('.mapview-overlay.open');
+  const sub = document.getElementById('banter-sub');
+  const card = zones.occupant('A');
+  const cardE = zones.occupant('E');
+  const d = decideHud({
+    mode: getSettings().hudMode,
+    hidden: !(b.contains('game-started') || b.contains('trailer-hud')) || b.contains('cine-hide-hud') || mapOpen,
+    banner: isBannerUp(),
+    busy, dialogue,
+    idle: now - S.lastInput,
+    wanted: world.wanted, wantedAgo: S.wantedOff === Infinity ? 0 : now - S.wantedOff,
+    moneyAgo: now - S.moneyAt, moneySign: S.moneySign, nearShop: S.nearShop, moneyHeld: S.moneyHeld != null,
+    armed: !!world.weapon && world.weapon !== 'fists', fighting: now - S.fightAt < 5,
+    hpFull: hp >= 99.5 && !(world.armor > 0 && world.armor < 100), hpAgo: now - S.hpAt, hpLow: hp < 30,
+    stamFull: st == null || st >= 0.995, stamAgo: now - S.stAt,
+    inVehicle: !!v, vehFull: vehHp == null || vehHp >= 99.5, vehAgo: now - S.vehAt,
+    timer: !!gpsState.timer, gps: !!gpsState.turn, place: placeState.on,
+    specialDay: !!els.clockSpecial, timeGoal: !!gpsState.timer,
+    objective: !els.mission.hidden, subtitle: !!(sub && sub.style.opacity === '1'),
+    cardA: card ? card.prio : null, cardE: cardE ? cardE.prio : null,
+    keys: hintCount(),
+  });
+  const vis = d.show;
+  for (const [key, el, pick] of VIS_ELS()) {
+    const on = !!pick(vis);
+    if (els.vis[key] === on) continue;
+    els.vis[key] = on;
+    el.classList.toggle('hv-off', !on);
+    if (on) restartClass(el, 'hv-in');
+  }
+  els.gps.classList.toggle('no-turn', !vis.gps);
+  els.clock.classList.toggle('big', d.big.clock);
+  els.mission.classList.toggle('dim', d.dimObjective);
+  // the cards and the radio follow the ceiling and the busy rules (they start themselves)
+  setVisFlag('cardA', vis.cardA || !card, () => { els.cards.classList.toggle('hv-off', !(vis.cardA || !card)); });
+  setVisFlag('cardE', vis.cardE || !cardE, () => { els.root.classList.toggle('hv-e-off', !(vis.cardE || !cardE)); });
+  setVisFlag('keys', vis.keys, () => { els.root.classList.toggle('hv-keys-off', !vis.keys); });
+  setVisFlag('dim', d.dimAll, () => { els.root.classList.toggle('hud-dimmed', d.dimAll); });
+  setVisFlag('mode', d.mode, () => { els.root.dataset.hudMode = d.mode; });
+}
+
+function setVisFlag(key, val, apply) {
+  if (els.vis[key] === val) return;
+  els.vis[key] = val;
+  apply();
+}
+
+// Stamina: swimming, or a bike's (or horse's) sprint; null when there is none.
+function staminaOf(world) {
+  const p = world.player;
+  let st = null;
+  if (p.swimming && Number.isFinite(p.swimStamina)) st = p.swimStamina;
+  const v = p.inVehicle;
+  if (v && (v.isBike || v._mount) && (v.sprintRest > 0 || v.sprintT > 0)) {
+    const total = (v.sprintRest || 0) + (v.sprintT || 0);
+    st = v.sprintT > 0 ? 1 - Math.min(1, (v.sprintRest - v.sprintT) / Math.max(0.1, total)) : 1 - Math.min(1, v.sprintRest / 4);
+  }
+  return st;
 }
 
 function updateRouteChip(world) {
@@ -358,21 +563,142 @@ function currentDistrict(world) {
   return null;
 }
 
+// The place at any point (the load screen): the village, a landmark within
+// reach, else the wijk.
+export function placeLabel(world, x, y) {
+  const area = ommelandArea(x, y);
+  if (area) {
+    const name = area.near || !area.place ? 'Ommeland' : area.place;
+    const v = VILLAGES[name];
+    return { name, country: true, district: name, line: v && v.teaser ? v.teaser : '' };
+  }
+  for (const l of world.map.meta.landmarks || []) {
+    if (Math.hypot(l.x - x, l.y - y) <= 90) return { name: l.name, country: false, district: '', line: LANDMARK_LINES[l.name] || '' };
+  }
+  let best = null, bestD2 = Infinity;
+  for (const q of world.map.meta.neighbourhoodPoints || []) {
+    const d2 = (q.x - x) ** 2 + (q.y - y) ** 2;
+    if (d2 < bestD2) { bestD2 = d2; best = q.name; }
+  }
+  return { name: best || 'Grunn', country: false, district: best || '', line: best ? wijkBlurb(best) : '' };
+}
+
 let locationTimer = 0;
+let locWhere = { district: '', country: false };
 function updateLocation(dt, world) {
   locationTimer -= dt;
   if (locationTimer > 0) return;
   locationTimer = 0.5;
-  // savegame.js's "Opgeslagen" sits in the location chip
+  // savegame.js's "Opgeslagen" sits in the location block
   if (!els.savedIn) {
     const t = document.querySelector('#hud > .hud-saved');
     if (t) { els.locationEl.appendChild(t); els.savedIn = true; }
   }
   const district = currentDistrict(world);
+  const country = !!ommelandArea(world.player.x, world.player.y);
   const rp = world.map.nearestRoadPoint(world.player.x, world.player.y, 60, false);
   const street = (rp && rp.road && rp.road.name) || (REAL.ready && edgeDistance(world.player.x, world.player.y) > 0 ? realStreetAt(world.player.x, world.player.y) : '');
-  els.district.textContent = district || '';
-  els.street.textContent = street || '';
+  locWhere = { district: district || '', country };
+  // the street big, the wijk (or village) and the city under it
+  setText(els.street, street || district || '');
+  setText(els.district, street ? [district, country ? (district === 'Ommeland' ? '' : 'Ommeland') : 'Grunn'].filter(Boolean).join(' · ') : (country ? 'Ommeland' : 'Grunn'));
+}
+
+// --- zone B: a new place, big for a moment ---------------------------------------
+
+const placeState = { on: false, t: 0, shown: new Map(), last: '', lastAt: -Infinity, pendingAt: 0, pending: null };
+const PLACE_GAP = 20;
+const PLACE_AGAIN = 600;
+const LANDMARK_R = 55;
+let placeScanT = 0;
+
+function placeCandidate(world) {
+  const p = world.player;
+  for (const l of world.map.meta.landmarks || []) {
+    if (Math.abs(l.x - p.x) > LANDMARK_R || Math.abs(l.y - p.y) > LANDMARK_R) continue;
+    if (Math.hypot(l.x - p.x, l.y - p.y) <= LANDMARK_R) return { key: 'lm:' + l.name, kick: locWhere.district || 'Grunn', name: l.name, line: LANDMARK_LINES[l.name] || '' };
+  }
+  const d = locWhere.district;
+  if (!d) return null;
+  if (locWhere.country) {
+    if (d === 'Ommeland') return null;
+    const v = VILLAGES[d];
+    return { key: 'v:' + d, kick: v && v.gro ? `Ommeland · ${v.gro}` : 'Ommeland', name: d, line: v && v.teaser ? v.teaser : '' };
+  }
+  return { key: 'w:' + d, kick: 'Grunn', name: d, line: wijkBlurb(d) };
+}
+
+function updatePlace(dt, world) {
+  const now = nowS();
+  if (placeState.on) {
+    placeState.t -= dt;
+    if (placeState.t <= 0) { placeState.on = false; els.place.classList.remove('on'); }
+  }
+  if ((placeScanT -= dt) > 0) return;
+  placeScanT = 0.5;
+  const c = placeCandidate(world);
+  if (!c || c.key === placeState.last) return;
+  // a mission timer, a cutscene or a busy moment: the place is just taken in
+  const timer = !!gpsState.timer;
+  if (timer || isCinematicActive() || world.pigeonMode || world.heliRun || !document.body.classList.contains('game-started')) { placeState.last = c.key; return; }
+  if (isBusy(world) || isDialogue()) {
+    if (!placeState.pending || placeState.pending.key !== c.key) { placeState.pending = c; placeState.pendingAt = now; }
+    if (now - placeState.pendingAt > DEFER_MAX) { placeState.last = c.key; placeState.pending = null; }
+    return;
+  }
+  if (now - placeState.lastAt < PLACE_GAP) return;
+  if (now - (placeState.shown.get(c.key) ?? -Infinity) < PLACE_AGAIN) { placeState.last = c.key; return; }
+  placeState.last = c.key;
+  placeState.pending = null;
+  placeState.lastAt = now;
+  placeState.shown.set(c.key, now);
+  placeState.on = true;
+  placeState.t = PLACE_SHOW + 0.6;
+  setText(els.placeKick, c.kick);
+  setText(els.placeName, c.name);
+  setText(els.placeLine, c.line);
+  restartClass(els.place, 'on', () => placeState.on);
+}
+
+// --- zone B: the GPS card ---------------------------------------------------------
+
+const gpsState = { turn: null, timer: '', t: 0 };
+function updateGps(dt, world) {
+  if ((gpsState.t -= dt) > 0) return;
+  gpsState.t = 0.2;
+  const o = lastObjective;
+  gpsState.timer = o && o.timer ? o.timer : '';
+  const p = world.player;
+  const mode = travelModeOf(world);
+  const route = getActiveRoute();
+  let turn = null;
+  // a turn card only in a vehicle on the roads, with a route, near a turn
+  if (route && !route.fly && (mode === 'auto' || mode === 'fiets') && route.remaining > 30) {
+    const ahead = getRouteAhead(GPS_NEAR + 20, route);
+    turn = nextTurn(ahead, GPS_NEAR);
+  }
+  gpsState.turn = turn;
+  if (!turn && !gpsState.timer) return;
+  let key = gpsState.timer;
+  if (turn) {
+    const after = turn.after ? world.map.nearestRoadPoint(turn.after[0], turn.after[1], 25, false) : null;
+    const street = after && after.road && after.road.name ? after.road.name : '';
+    const dest = route.target && route.target.name ? route.target.name : '';
+    const sub = [street, dest ? `richting ${dest}` : ''].filter(Boolean).join(', ');
+    const v = p.inVehicle;
+    const title = turnText(turn);
+    key += '|' + title + '|' + sub + '|' + formatDistance(route.remaining);
+    if (key === els.gpsKey) return;
+    els.gpsArrow.innerHTML = TURN_ICON[turn.side];
+    setText(els.gpsTitle, title);
+    setText(els.gpsSub, sub);
+    setText(els.gpsDist, formatDistance(route.remaining));
+    setText(els.gpsEta, etaText(route.remaining, v ? v.speed : 0, mode === 'fiets' ? 'bike' : 'drive'));
+  } else if (key === els.gpsKey) return;
+  els.gpsKey = key;
+  setText(els.gpsTimer, gpsState.timer);
+  els.gps.classList.toggle('has-timer', !!gpsState.timer);
+  els.gps.hidden = false;
 }
 
 const CHARACTER_LABELS = { tammo: 'Tammo', anita: 'Tessa' };
@@ -391,7 +717,7 @@ function updateCharacter(dt, world) {
     els.idKey = key;
     const name = CHARACTER_LABELS[ch];
     els.character.textContent = name;
-    els.character.closest('.hud-top-left').style.setProperty('--spk', HUD_ACCENT);
+    els.you.style.setProperty('--spk', HUD_ACCENT);
     els.portrait.querySelector('.hair').setAttribute('d', HAIR[ch]);
     els.drunk.hidden = !drunk;
     els.portraitT = 0;
@@ -425,7 +751,7 @@ function setPortrait(img, ch, keyField) {
   }, { angle: PORTRAIT_ANGLE, keep: true });
 }
 
-// "Tessa rijdt mee": the companion's own small portrait while they are with you.
+// "· Tessa rijdt mee": the companion, next to your name, while they are with you.
 function updateMate(world) {
   const c = world.companion;
   const p = world.player;
@@ -441,8 +767,7 @@ function updateMate(world) {
   els.mateKey = key;
   els.mate.hidden = !text;
   if (!text) return;
-  els.mateTxt.textContent = text;
-  els.mate.style.setProperty('--spk', HUD_ACCENT);
+  els.mateTxt.textContent = '· ' + text;
   setPortrait(els.mateImg, c.character === 'anita' ? 'anita' : 'tammo', 'mateLookKey');
   if (!was) restartClass(els.mate, 'in');
 }
@@ -467,14 +792,47 @@ function updateBars(world) {
     els.arRow.hidden = ar <= 0;
     if (wasHidden && ar > 0) pop(els.arRow);
   }
+  const st = staminaOf(world);
+  const stKey = st == null ? '' : Math.round(st * 50) * 2;
+  if (stKey !== els.stKey) {
+    els.stKey = stKey;
+    S.stAt = nowS();
+    els.stRow.hidden = st == null;
+    if (st != null) { els.staminaFill.style.width = stKey + '%'; els.stRow.setAttribute('aria-valuenow', stKey); }
+  }
+  // the vehicle's damage under yours, with its name (the train has none)
+  const v = world.player.inVehicle;
+  const vh = v && Number.isFinite(v.health) ? Math.round(clampPct(v.health)) : null;
+  const vKey = vh == null ? '' : (v.id || '') + ':' + vh;
+  if (vKey !== els.vehKey) {
+    const fresh = !els.vehKey || els.vehKey.split(':')[0] !== String(v ? v.id || '' : '');
+    els.vehKey = vKey;
+    els.vehRow.hidden = vh == null;
+    if (vh != null) {
+      if (fresh) { setText(els.vehLabel, vehicleDisplayName(v).model || 'Voertuig'); S.vehAt = -Infinity; } else S.vehAt = nowS();
+      setGhostBar(els.vehFill, els.vehFill.previousElementSibling, vh);
+      els.vehRow.setAttribute('aria-valuenow', vh);
+      els.vehRow.classList.toggle('hurt', vh <= 35);
+    }
+  }
 }
 
-const STAR = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.6 5.6 6 .6-4.5 4 1.3 6-5.4-3.2-5.4 3.2 1.3-6-4.5-4 6-.6z"/></svg>';
+const STAR = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${STAR_PATH}"/></svg>`;
 let wantedKey = '';
 let wantedShown = 0;
 function updateWanted(world) {
-  const searching = !!(world.police && world.police.searching);
+  const pol = world.police;
+  const searching = !!(pol && pol.searching);
+  // the search box: how far you are out of the search area (and how long until a star drops)
+  if (searching && world.wanted > 0 && pol.searchCenter) {
+    const d = Math.hypot(world.player.x - pol.searchCenter.x, world.player.y - pol.searchCenter.y);
+    const k = Math.max(0, Math.min(1, d / Math.max(1, pol.searchRadius) * 0.5 + (world.wantedDecayTimer || 0) / 24));
+    const w = Math.round(k * 50) * 2 + '%';
+    if (els.searchBar.style.width !== w) els.searchBar.style.width = w;
+  }
+  els.search.hidden = !(searching && world.wanted > 0);
   const key = world.wanted + (searching ? 's' : '');
+  els.mmWrap.classList.toggle('wanted', world.wanted > 0);
   if (key === wantedKey) return;
   wantedKey = key;
   if (!els.wanted.children.length) els.wanted.innerHTML = STAR.repeat(5);
@@ -484,6 +842,7 @@ function updateWanted(world) {
   for (let i = wantedShown; i < world.wanted; i++) pop(stars[i]);
   wantedShown = world.wanted;
   els.wanted.classList.toggle('searching', searching && world.wanted > 0);
+  els.wanted.classList.toggle('chase', world.wanted > 0 && !searching);
   els.wanted.setAttribute('aria-label', `Gezocht: ${world.wanted} van 5${searching ? ', politie zoekt je' : ''}`);
 }
 
@@ -494,106 +853,93 @@ export function getClockText(world) {
   return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
 }
 
-const SUN_ICON = '<circle cx="12" cy="12" r="4.6"/><g stroke-width="2.2" stroke-linecap="round">' +
-  [0, 45, 90, 135, 180, 225, 270, 315].map((a) => {
-    const c = Math.cos(a * Math.PI / 180), s = Math.sin(a * Math.PI / 180);
-    return `<line x1="${(12 + c * 7.4).toFixed(1)}" y1="${(12 + s * 7.4).toFixed(1)}" x2="${(12 + c * 10).toFixed(1)}" y2="${(12 + s * 10).toFixed(1)}"/>`;
-  }).join('') + '</g>';
-const MOON_ICON = '<path d="M15.6 3.2a8.6 8.6 0 1 0 5.2 13.9A7.2 7.2 0 0 1 15.6 3.2z"/>';
-
-function dayPart(h) {
-  if (h < 6) return 'NACHT';
-  if (h < 12) return 'OCHTEND';
-  if (h < 18) return 'MIDDAG';
-  return 'AVOND';
-}
-
 let clockShown = null;
-let clockNight = null;
+let dateT = 0;
 function updateClock(world) {
   const t = getClockText(world);
   els.clock.hidden = !t;
   if (t === clockShown) return;
   clockShown = t;
-  const h = world.dayNight.hour;
-  const night = (world.dayNight.night ?? 0) > 0.5;
-  if (night !== clockNight) {
-    clockNight = night;
-    const icon = els.clock.querySelector('svg');
-    icon.innerHTML = night ? MOON_ICON : SUN_ICON;
-    els.clock.classList.toggle('night', night);
+  els.time.textContent = t;
+  // the date and a special day: once a game minute is plenty
+  if (--dateT > 0) return;
+  dateT = 5;
+  const d = hudDate(world);
+  setText(els.date, d.short);
+  els.clockSpecial = d.special && !d.small ? d.special : '';
+  els.special.hidden = !d.special;
+  els.special.classList.toggle('small', d.small);
+  if (els.specialKey !== d.key) {
+    els.specialKey = d.key;
+    els.special.innerHTML = d.special ? `${d.icon}<span>${d.special}</span>` : '';
   }
-  els.clock.querySelector('b').textContent = t;
-  els.clock.querySelector('small').textContent = dayPart(h);
-  updateDate(world);
 }
 
-// the date and today's special day (calendarday.js), checked with the clock
-let dateShown = null;
-function updateDate(world) {
-  const info = todayInfo(world), sp = todaySpecial(world);
-  const key = `${info.n}|${sp ? sp.id : ''}`;
-  if (key === dateShown) return;
-  dateShown = key;
-  els.date.querySelector('.hud-date-day').textContent = info.short;
-  els.date.querySelector('.hud-date-n').textContent = info.dayLabel;
-  const badge = els.date.querySelector('.hud-day-badge');
-  badge.hidden = !sp;
-  badge.classList.toggle('small', !!(sp && sp.small));
-  badge.innerHTML = sp ? `${calIcon(sp.icon)}<span>${sp.name}</span>` : '';
-}
-
-let lastHp = null;
+let lastHpFx = null;
 let flash = 0;
 function updateDamage(dt, world) {
   const hp = world.health + world.armor;
   if (document.body.classList.contains('intro-montage') || !cinematicAllowsDamageFx()) {
     // no blood screen in cutscenes, and no delayed flash for damage taken during one
     flash = 0;
-    lastHp = hp;
+    lastHpFx = hp;
     els.damage.style.opacity = '0';
     return;
   }
-  if (lastHp != null && hp < lastHp - 0.5) flash = Math.min(1, flash + 0.35 + (lastHp - hp) / 30);
-  lastHp = hp;
+  if (lastHpFx != null && hp < lastHpFx - 0.5) flash = Math.min(1, flash + 0.35 + (lastHpFx - hp) / 30);
+  lastHpFx = hp;
   flash = Math.max(0, flash - dt * 1.8);
-  const low = world.health < 30 && world.health > 0 ? 0.35 + 0.15 * Math.sin(performance.now() / 260) : 0;
+  // almost no health: a red edge, no words (P0); steady under reduced motion
+  const low = world.health < 30 && world.health > 0 ? (document.documentElement.classList.contains('reduce-motion') ? 0.45 : 0.35 + 0.15 * Math.sin(performance.now() / 260)) : 0;
   const o = Math.max(flash, low);
-  els.damage.style.opacity = o.toFixed(3);
+  const s = o.toFixed(2);
+  if (els.damage.style.opacity !== s) els.damage.style.opacity = s;
 }
 
-// Speed, name and, for a vehicle that can break, its condition (a heart and
-// a bar that empties as it takes damage) under the minimap.
+// Without a running engine sound (audio off or not started yet) the gear and
+// revs come from the speed, with the same gear tops as the engine sound.
+const FALLBACK_TOPS = [0.15, 0.3, 0.48, 0.7, 1.05];
+function fallbackEngine(v) {
+  if (!v || v.isBoat || v.isBike || v.isHeli || v.isScooter || v._mount || !v.model) return null;
+  const red = 7000;
+  if (v.speed < -0.2) return { rpm: 1500 + Math.min(1, -v.speed / 6) * 2500, red, gear: 0, reverse: true, gears: 5 };
+  const frac = Math.abs(v.speed || 0) / (v.model.maxSpeed || 30);
+  let g = 0;
+  while (g < FALLBACK_TOPS.length - 1 && frac > FALLBACK_TOPS[g]) g++;
+  return { rpm: Math.max(900, red * 0.93 * frac / FALLBACK_TOPS[g]), red, gear: g, reverse: false, gears: 5 };
+}
+
+// Zone H: the speed big, the gear row over it and the revs in an arc.
 function updateSpeedo(world) {
   const v = world.player.inVehicle || world.trainCam;
-  els.speedo.classList.toggle('visible', !!v);
+  const on = !!v && !(v.isHeli && document.body.classList.contains('heli-flying'));
+  els.speedo.classList.toggle('visible', on);
   document.body.classList.toggle('hud-in-vehicle', !!v);
   if (!v) { els.speedoKey = ''; return; }
-  els.speedoValue.textContent = String(Math.round(Math.abs(v.speed || 0) * 3.6));
+  setText(els.speedoValue, String(Math.round(Math.abs(v.speed || 0) * 3.6)));
   const isTrain = v === world.trainCam;
-  const hp = isTrain || !Number.isFinite(v.health) ? -1 : Math.round(clampPct(v.health));
-  const key = v.id + ':' + hp;
-  if (key === els.speedoKey) return;
-  const was = Number(els.speedoKey.split(':')[1]);
-  const fresh = !els.speedoKey.startsWith(v.id + ':');
-  els.speedoKey = key;
-  if (fresh) {
-    setSpeedoPic(isTrain ? null : v);
-    const { make, model } = isTrain ? { make: 'Spoor', model: 'Stoptrein' } : vehicleDisplayName(v);
-    els.speedoMake.textContent = make;
-    els.speedoModel.textContent = model;
-    els.speedo.title = make ? `${make} ${model}` : model;
+  const eng = isTrain ? null : engineReadout() || fallbackEngine(v);
+  const gearKey = !eng || eng.gear < 0 ? '' : (eng.reverse ? 'R' : String(eng.gear + 1)) + '/' + eng.gears;
+  if (gearKey !== els.gearKey) {
+    els.gearKey = gearKey;
+    if (!gearKey) els.gears.innerHTML = '';
+    else {
+      const cur = eng.reverse ? 'R' : eng.gear + 1;
+      const list = eng.reverse ? ['R', 1] : [cur - 1, cur, cur + 1, cur + 2].filter((g) => g >= 1 && g <= eng.gears);
+      els.gears.innerHTML = list.map((g) => `<span${g === cur ? ' class="on"' : ''}>${g}</span>`).join('');
+      els.gears.setAttribute('aria-label', `Versnelling ${cur}`);
+    }
   }
-  els.speedo.classList.toggle('no-dmg', hp < 0);
-  els.speedo.style.setProperty('--dmg', hp < 0 ? '0' : (1 - hp / 100).toFixed(2));
-  if (hp < 0) return;
-  els.speedo.classList.toggle('hurt', hp <= 35);
-  els.speedo.classList.toggle('worn', hp > 35 && hp <= 65);
-  els.speedoHpMeter.setAttribute('aria-valuenow', String(hp));
-  if (fresh) els.speedoHp.style.transition = 'none';
-  els.speedoHp.style.width = hp + '%';
-  if (fresh) requestAnimationFrame(() => { els.speedoHp.style.transition = ''; });
-  else if (hp < was - 4) pop(els.speedo);
+  els.speedo.classList.toggle('no-rpm', !eng);
+  if (eng) {
+    const pct = Math.max(0, Math.min(100, Math.round((eng.rpm / (eng.red / (RPM_RED_AT / 100))) * 100)));
+    const k = String(pct);
+    if (k !== els.rpmKey) {
+      els.rpmKey = k;
+      els.rpmFill.setAttribute('stroke-dasharray', `${pct} 100`);
+      els.speedo.classList.toggle('redline', pct >= RPM_RED_AT - 1);
+    }
+  }
 }
 
 const SPEEDO_PIC_W = 62;
@@ -613,29 +959,10 @@ function speedoSpec(v) {
 }
 const speedoPx = () => Math.min(3, Math.max(2, Math.ceil(hudPixelRatio())));
 
-// A still of the vehicle you are in (vehiclepreview.js, cached per model and
-// colour), rendered once on getting in; its damage shows as a CSS filter.
-function setSpeedoPic(v) {
-  const img = els.speedoPic;
-  const spec = speedoSpec(v);
-  if (!spec) { els.speedoPicKey = ''; els.speedo.classList.add('no-pic'); img.classList.remove('on'); return; }
-  const key = JSON.stringify(spec);
-  els.speedo.classList.remove('no-pic');
-  if (els.speedoPicKey === key) return;
-  els.speedoPicKey = key;
-  img.classList.remove('on');
-  const px = speedoPx();
-  renderSnapshot(spec, SPEEDO_PIC_W * px, SPEEDO_PIC_H * px, (url) => {
-    if (els.speedoPicKey !== key) return;
-    if (!url) { els.speedo.classList.add('no-pic'); return; }
-    img.src = url;
-    img.classList.add('on');
-  }, { angle: 0.75 });
-}
-
-// The still is made ahead, in idle time: the vehicle you walk up to, and
-// once at the start your own car (that first shot also warms up the
-// renderer), so getting in costs no long frame.
+// The garage and phone show vehicle stills (vehiclepreview.js, cached per
+// model and colour); they are made ahead, in idle time: the vehicle you walk
+// up to, and once at the start your own car (that first shot also warms up
+// the renderer), so opening them costs no long frame.
 const PREFETCH_REACH = 7;
 const PREFETCH_EVERY = 0.4;
 let prefetchIn = 0;
@@ -696,8 +1023,12 @@ function updateMoneyWeapon(dt, world) {
   if (target !== moneyTarget) {
     deltaSum = (deltaTimer > 0 ? deltaSum : 0) + (target - moneyTarget);
     deltaTimer = 2.2;
+    // money in is P3 and waits out a chase; money out (and a shop) shows at once
+    if (target > moneyTarget && isBusy(world)) S.moneyHeld = nowS();
+    else { S.moneyAt = nowS(); S.moneyHeld = null; }
+    S.moneySign = target > moneyTarget ? 1 : -1;
     moneyTarget = target;
-    els.moneyDelta.textContent = (deltaSum > 0 ? '+ €' : '− €') + Math.abs(deltaSum).toLocaleString('nl-NL');
+    els.moneyDelta.textContent = (deltaSum > 0 ? '+€' : '−€') + Math.abs(deltaSum).toLocaleString('nl-NL');
     els.moneyDelta.dataset.sign = deltaSum > 0 ? 'plus' : 'min';
     els.moneyDelta.classList.add('visible');
   }
@@ -707,7 +1038,7 @@ function updateMoneyWeapon(dt, world) {
     const step = Math.max(1, Math.abs(diff) * Math.min(1, dt * 5));
     moneyShown = Math.abs(diff) <= step ? moneyTarget : moneyShown + Math.sign(diff) * step;
   }
-  els.money.textContent = '€' + Math.round(moneyShown).toLocaleString('nl-NL');
+  setText(els.money, '€ ' + Math.round(moneyShown).toLocaleString('nl-NL'));
   els.money.classList.toggle('rolling', diff !== 0);
   const ammo = world.ammo ? world.ammo[world.weapon] : undefined;
   const weaponKey = WEAPON_ICONS[world.weapon] ? world.weapon : 'fists';
@@ -783,8 +1114,10 @@ const OBJ_HINT_TIME = 6;
 const GOAL_HINTS = 3;
 let goalHints = 0;
 
+let lastObjective = null;
 function updateMission(world) {
   const o = currentObjective(world);
+  lastObjective = o;
   els.mission.hidden = !o || (!o.title && !o.timer);
   if (els.mission.hidden) { els.objKey = ''; return; }
   const key = o.kind + '|' + o.title;
@@ -793,7 +1126,8 @@ function updateMission(world) {
   const sub = o.hint && world.time - els.objAt < OBJ_HINT_TIME ? o.hint : o.sub;
   if (els.missionLabel.textContent !== o.title) els.missionLabel.textContent = o.title;
   if (els.missionProgress.textContent !== sub) els.missionProgress.textContent = sub;
-  if (els.missionTimer.textContent !== o.timer) els.missionTimer.textContent = o.timer;
+  const r = getActiveRoute();
+  setText(els.missionDist, r && r.remaining > 12 && o.kind !== 'job' ? formatDistance(r.remaining) : '');
   if (key !== els.objKey) {
     els.objKey = key;
     els.mission.dataset.kind = o.kind;
@@ -852,22 +1186,34 @@ function updateRaceHud(world) {
   setRaceRow('best', r.best != null ? fmtRaceTime(r.best) : '–', r.best != null && r.elapsed < r.best ? 'ahead' : '');
 }
 
-const NOW_PLAYING_TIME = 8;
-function updateNowPlaying(world) {
+// Zone E: the radio station for a few seconds. It waits out a chase or a
+// call (at most DEFER_MAX s, then it lapses) and gives way to an achievement.
+let npTimer = 0, npWait = 0;
+function updateNowPlaying(dt, world) {
   const np = world.nowPlaying;
   if (np && np !== els.npShown) {
     els.npShown = np;
-    // the station and, under a record, the programme it runs in
+    npWait = DEFER_MAX;
+    npTimer = 0;
+    els.nowPlaying.classList.remove('on');
     const prog = np.programme && np.programme !== np.title ? ' · ' + np.programme : '';
-    els.npStation.textContent = ('NU OP ' + (np.station || 'G-Music') + prog).toUpperCase();
-    els.npArtist.textContent = np.artist || '';
-    els.npTitle.textContent = np.title || '';
-    restartClass(els.nowPlaying, 'on', () => els.npShown === np);
+    setText(els.npStation, (np.station || 'G-Music') + prog);
+    setText(els.npTitle, np.title || '');
+    setText(els.npArtist, np.artist || '');
   }
-  if (np && world.time - np.at > NOW_PLAYING_TIME) {
+  if (np && npWait > 0 && npTimer <= 0) {
+    if (!isBusy(world) && !isDialogue() && !zones.occupant('E') && !world.paused) {
+      npTimer = E_SHOW;
+      npWait = 0;
+      restartClass(els.nowPlaying, 'on', () => npTimer > 0);
+    } else if (!world.paused && (npWait -= dt) <= 0) world.nowPlaying = null;
+  }
+  if (npTimer > 0 && !world.paused && (npTimer -= dt) <= 0) {
     els.nowPlaying.classList.remove('on');
     world.nowPlaying = null;
   }
+  // an achievement or a call takes the zone over at once
+  if (npTimer > 0 && (zones.occupant('E') || isBusy(world))) { npTimer = 0; els.nowPlaying.classList.remove('on'); world.nowPlaying = null; }
 }
 
 function escapeHtml(s) {
@@ -1523,16 +1869,27 @@ function drawMinimap(dt, world) {
   ctx.clearRect(0, 0, els.mmCanvas.width, els.mmCanvas.height);
 
   const speed = player.inVehicle ? Math.abs(player.inVehicle.speed || 0) : 0;
-  const targetScale = MM_SCALE - (MM_SCALE - MM_SCALE_FAST) * Math.min(1, speed / MM_FAST_SPEED);
-  mmScale += (targetScale - mmScale) * Math.min(1, dt * 1.2);
-  const MM_RADIUS_M = MINIMAP_SIZE / 2 / mmScale;
+  mmMode = travelModeOf(world);
+  const mode = MINIMAP_MODE[mmMode] || MINIMAP_MODE.lopen;
+  const st = getSettings();
+  const targetScale = minimapScale(mmMode, speed, st.minimapZoom || 1);
+  mmScale += (targetScale - mmScale) * Math.min(1, dt * 1.6);
+  const MM_RADIUS_M = MINIMAP_SIZE / 2 * 1.42 / mmScale;
 
   const cx = MINIMAP_SIZE / 2, cy = MINIMAP_SIZE / 2;
-  // The map rotates so the camera heading always points up; any world
-  // angle plus mapRotation gives its on-screen angle.
+  // The map rotates so the camera heading always points up (or stays north-up
+  // in the air or by setting); any world angle plus mapRotation gives its
+  // on-screen angle. A change of mode turns it smoothly.
   // a flying pigeon: its own heading (pigeonmode.js keeps player.angle on it)
-  const mapRotation = -Math.PI / 2 - (world.pigeonMode ? player.angle : world.camYaw ?? player.angle);
+  const upYaw = world.pigeonMode ? player.angle : world.camYaw ?? player.angle;
+  const rotTarget = northUp(st.minimapNorth, mmMode) ? 0 : -Math.PI / 2 - upYaw;
+  if (mmRot == null) mmRot = rotTarget;
+  let dr = rotTarget - mmRot;
+  dr -= Math.round(dr / (Math.PI * 2)) * Math.PI * 2;
+  mmRot += Math.abs(dr) < 0.02 ? dr : dr * Math.min(1, dt * 8);
+  const mapRotation = mmRot;
   const cosR = Math.cos(mapRotation), sinR = Math.sin(mapRotation);
+  const dimLand = mode.dimLand;
   ctx.translate(cx * dpr, cy * dpr);
   ctx.rotate(mapRotation);
   ctx.scale(mmScale * dpr, mmScale * dpr);
@@ -1555,15 +1912,36 @@ function drawMinimap(dt, world) {
   ctx.fillStyle = MINI_STYLE.water;
   for (const w of view.water) fillPoly(ctx, w.pts);
 
+  const emph = mode.emph;
+  const landAlpha = 1 - dimLand;
   for (const r of view.roads) {
     if (r.pts.length < 2) continue;
+    const allowed = roadAllowed(r, mmMode);
     ctx.beginPath();
     ctx.moveTo(r.pts[0][0], r.pts[0][1]);
     for (let i = 1; i < r.pts.length; i++) ctx.lineTo(r.pts[i][0], r.pts[i][1]);
-    ctx.strokeStyle = r.cat === 'major' ? '#f0ede4' : r.cat === 'cycle' ? '#c9603f' : '#a8ada2';
-    ctx.lineWidth = Math.max(r.width, 3);
+    let color = r.cat === 'major' ? '#f0ede4' : r.cat === 'cycle' ? '#c9603f' : '#a8ada2';
+    let w = Math.max(r.width, 3);
+    let a = landAlpha;
+    if (emph === 'foot') { if (r.cat === 'foot') { color = '#d9d4c4'; w = Math.max(w, 3.4); } }
+    else if (emph === 'cycle') { if (r.cat === 'cycle') { color = '#ff8a5c'; w = Math.max(w, 4); } else if (r.cat === 'foot') a *= 0.4; }
+    else if (emph === 'major') { if (r.cat === 'major') w = Math.max(w, r.width * 1.1); else if (r.cat === 'foot' || r.cat === 'cycle') a *= 0.35; }
+    if (allowed === false && r.cat !== 'major') a *= 0.45;
+    ctx.globalAlpha = a;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = w;
     ctx.stroke();
+    // "niet voor jou": a trunk road you may not walk or cycle on gets a red dash
+    if (allowed === false && r.cat === 'major') {
+      ctx.globalAlpha = 1;
+      ctx.setLineDash([5, 4]);
+      ctx.strokeStyle = '#d93f3f';
+      ctx.lineWidth = Math.max(2, w * 0.4);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
   }
+  ctx.globalAlpha = landAlpha;
   drawRailsOnMap(ctx, world.map, player.x - MM_RADIUS_M, player.y - MM_RADIUS_M, player.x + MM_RADIUS_M, player.y + MM_RADIUS_M, 3.2);
   drawTrainsOnMap(ctx);
 
@@ -1572,10 +1950,11 @@ function drawMinimap(dt, world) {
     ctx.fillStyle = b.landmark ? '#8a8474' : MM_BUILDING_COLORS[Math.floor(mmHash(b.pts[0][0], b.pts[0][1]) * MM_BUILDING_COLORS.length)];
     fillPoly(ctx, b.pts);
   }
+  ctx.globalAlpha = 1;
 
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-  const iconRangeM = MM_RADIUS_M - 5 / mmScale;
+  const iconRangeM = (MINIMAP_SIZE / 2 - 8) / mmScale;
   const toScreen = (x, y) => {
     const dx = x - player.x, dy = y - player.y;
     return [cx + (dx * cosR - dy * sinR) * mmScale, cy + (dx * sinR + dy * cosR) * mmScale];
@@ -1669,7 +2048,7 @@ function drawMinimap(dt, world) {
 
   drawMapIcon(ctx, 'player', cx, cy, 1.35, { angle: player.angle + mapRotation });
 
-  drawNorthIndicator(ctx, cx, cy, mapRotation + -Math.PI / 2);
+  drawNorthIndicator(ctx, cx, cy, mapRotation - Math.PI / 2);
 
   const edgeR = MINIMAP_SIZE / 2 - 11;
   if (heroEdge != null) {
@@ -1733,40 +2112,36 @@ function drawHeliRunMarks(ctx, marks, toScreen, inRange, scale, t) {
   ctx.restore();
 }
 
+// The N badge sits on the square's edge, towards north.
 function drawNorthIndicator(ctx, cx, cy, screenAngle) {
-  const R = MINIMAP_SIZE / 2 - 5;
-  ctx.save();
-  ctx.translate(cx + Math.cos(screenAngle) * R, cy + Math.sin(screenAngle) * R);
-  ctx.rotate(screenAngle + Math.PI / 2);
-  ctx.fillStyle = '#3fc97a';
-  ctx.strokeStyle = '#0c140e';
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.moveTo(0, -5);
-  ctx.lineTo(-3.5, 3.5);
-  ctx.lineTo(3.5, 3.5);
-  ctx.closePath();
-  ctx.fill();
-  ctx.stroke();
-  // the letter from a cached bitmap: text on the rotated minimap each frame was costly
+  const half = MINIMAP_SIZE / 2 - 17;
+  const dx = Math.cos(screenAngle), dy = Math.sin(screenAngle);
+  const t = Math.min(half / (Math.abs(dx) || 1e-6), half / (Math.abs(dy) || 1e-6));
+  const x = cx + dx * t, y = cy + dy * t;
   const tf = ctx.getTransform();
   const dpr = Math.max(1, Math.round(Math.hypot(tf.a, tf.b)));
   if (!northGlyph || northGlyph.dpr !== dpr || (!northGlyph.font && document.fonts && document.fonts.check('bold 10px "Bebas Neue"'))) northGlyph = makeNorthGlyph(dpr);
-  ctx.drawImage(northGlyph.c, -6, 0, 12, 12);
-  ctx.restore();
+  ctx.drawImage(northGlyph.c, x - 13, y - 13, 26, 26);
 }
 
 let northGlyph = null;
 function makeNorthGlyph(dpr) {
   const c = document.createElement('canvas');
-  c.width = c.height = 12 * dpr;
+  c.width = c.height = 26 * dpr;
   const g = c.getContext('2d');
   g.scale(dpr, dpr);
+  g.beginPath();
+  g.arc(13, 13, 12, 0, Math.PI * 2);
+  g.fillStyle = '#0c140e';
+  g.fill();
+  g.lineWidth = 1.2;
+  g.strokeStyle = '#3fc97a';
+  g.stroke();
   g.fillStyle = '#3fc97a';
-  g.font = 'bold 10px "Bebas Neue", "Arial Narrow", Arial, sans-serif';
+  g.font = '18px "Bebas Neue", "Arial Narrow", Arial, sans-serif';
   g.textAlign = 'center';
   g.textBaseline = 'middle';
-  g.fillText('N', 6, 6);
+  g.fillText('N', 13, 14);
   return { c, dpr, font: !!(document.fonts && document.fonts.check('bold 10px "Bebas Neue"')) };
 }
 

@@ -28,6 +28,7 @@ import { unseenAchievementCount } from './achievements.js';
 import { mayStart, noteToast, heldBack } from './narrative.js';
 import { missionIconInner } from './missionicons.js';
 import { isPauseMenuOpen } from './pausemenu.js';
+import { zones, mayShow, cardPrio, cardZone, hudNow } from './hudrules.js';
 import { CAL_ICONS } from './calendar.js';
 
 // the HUD's attention budget: one prominent card at a time
@@ -90,6 +91,7 @@ const RULES = [
 
 let world = null;
 let stackEl = null;
+let stackE = null;
 let countEl = null;
 let waitEl = null;
 let waitN = 0;
@@ -115,6 +117,11 @@ export function initCards(w, root) {
   stackEl.className = 'hud-cards';
   stackEl.setAttribute('aria-live', 'polite');
   root.appendChild(stackEl);
+  // zone E (left middle): an achievement, one at a time (hudrules.js)
+  stackE = document.createElement('div');
+  stackE.className = 'hud-cards-e';
+  stackE.setAttribute('aria-live', 'polite');
+  root.appendChild(stackE);
   const chips = document.createElement('div');
   chips.className = 'hc-chips';
   stackEl.appendChild(chips);
@@ -159,7 +166,7 @@ function syncWait() {
   if (n > waitN) waitT = CHIP_SECS;
   if (!n) waitT = 0;
   waitN = n;
-  if (n) waitEl.innerHTML = `<i></i>${n} ${n === 1 ? 'melding wacht' : 'meldingen wachten'}`;
+  if (n) waitEl.innerHTML = `<i></i>+${n} in de wacht`;
 }
 
 // Unlocked but not yet looked at in Prestaties; information only.
@@ -279,13 +286,16 @@ function cardHtml(c) {
     '<i class="hc-timer"></i>';
 }
 
+const zoneOf = (c) => cardZone(c.spec.kind);
+
 function mount(c) {
   const el = document.createElement('div');
   el.className = 'hud-card';
   el.dataset.kind = c.spec.kind;
   el.innerHTML = cardHtml(c);
   el.style.setProperty('--hc-dur', `${c.secs}s`);
-  stackEl.appendChild(el);
+  (zoneOf(c) === 'E' ? stackE : stackEl).appendChild(el);
+  zones.occupy(zoneOf(c), 'card', cardPrio(c.spec.kind));
   // on next frame, so the entry transition runs without a forced layout
   requestAnimationFrame(() => { if (!c.leaving) el.classList.add('on'); });
   c.el = el;
@@ -387,7 +397,11 @@ export function updateCards(dt, w) {
   for (const c of visible) { c.left -= dt; if (c.hint) tryHint(c); }
   for (const c of visible.filter((v) => v.left <= 0)) {
     if (!c.leaving) leave(c);
-    else { c.el.remove(); visible.splice(visible.indexOf(c), 1); }
+    else {
+      c.el.remove();
+      visible.splice(visible.indexOf(c), 1);
+      if (!visible.some((v) => zoneOf(v) === zoneOf(c))) zones.vacate(zoneOf(c), 'card');
+    }
   }
   // age only counts while a card could be shown; tips wait out the tip gap,
   // an important one (it teaches a key, or says so) much longer
@@ -397,14 +411,16 @@ export function updateCards(dt, w) {
   queue = queue.filter((q) => q.age < (q.spec.kind !== 'tip' ? 30 : q.important ? TIP_KEEP : TIP_STALE));
   if (!queue.length) return;
   const up = visible.filter((c) => !c.leaving);
-  const urgent = CARD_KINDS[queue[0].spec.kind].rank >= CARD_PRIORITY.politie;
-  if (calling && !urgent) return;
-  // a story call on the phone or another toast that just popped up: the rest waits
-  if (!pressing(queue[0], w) && !up.length && waiting) return;
-  if (up.length < MAX_VISIBLE) {
-    // tips are rationed (attention.js); a waiting tip lets others go first
-    const i = queue.findIndex((q) => q.spec.kind !== 'tip' || mayShowTip());
-    if (i < 0) return;
+  const busy = hudNow.busy, dia = hudNow.dialogue || calling;
+  const rankOf = (q) => CARD_KINDS[q.spec.kind].rank;
+  const isFree = (q) => !up.some((c) => zoneOf(c) === zoneOf(q)) && zones.free(zoneOf(q), 'card');
+  // one card per zone; P3 waits out a chase or a call; tips are rationed (attention.js)
+  const i = queue.findIndex((q) => isFree(q)
+    && !(calling && rankOf(q) < CARD_PRIORITY.politie)
+    && mayShow(cardPrio(q.spec.kind), { busy, dialogue: dia, zone: zoneOf(q) })
+    && (q.spec.kind !== 'tip' || mayShowTip())
+    && (pressing(q, w) || up.length || !waiting));
+  if (i >= 0) {
     const next = queue.splice(i, 1)[0];
     if (next.spec.kind === 'tip') noteTip();
     noteToast();
@@ -413,8 +429,8 @@ export function updateCards(dt, w) {
   }
   // a danger or police card pushes the oldest less urgent one out early
   const next = queue[0];
-  const weakest = up.filter((c) => CARD_KINDS[c.spec.kind].rank < CARD_KINDS[next.spec.kind].rank).sort((a, b) => a.left - b.left)[0];
+  const weakest = up.filter((c) => zoneOf(c) === zoneOf(next) && CARD_KINDS[c.spec.kind].rank < CARD_KINDS[next.spec.kind].rank).sort((a, b) => a.left - b.left)[0];
   if (weakest) leave(weakest);
   // a waiting queue shortens the card that is up (but it stays readable)
-  else { const old = up.find((c) => c.secs - c.left > 3 && c.left > 1); if (old) old.left = Math.min(old.left, 1); }
+  else { const old = up.find((c) => zoneOf(c) === zoneOf(next) && c.secs - c.left > 3 && c.left > 1); if (old) old.left = Math.min(old.left, 1); }
 }

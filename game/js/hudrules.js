@@ -1,0 +1,188 @@
+// The HUD's layout rules (the approved "HUD-regels" design): eight fixed
+// zones, at most one thing per zone, four priorities, and what may show when.
+// Pure logic, no DOM: hud_panel.js feeds it the situation every few frames
+// and applies the answer as classes; scripts/hud_test.mjs checks the rules.
+//
+// Zones (screen position in hud_panel.css):
+//   A  top left      messages: call > text > tip, one card, "+N in de wacht"
+//   B  top centre    timer + GPS turn > GPS turn > a new place name
+//   C  top right     stars > money (+/-) > weapon > clock
+//   D  centre        free: crosshair and the P0 banners only
+//   E  left middle   achievement > radio station
+//   F  bottom left   minimap, street, health, vehicle damage
+//   G  bottom centre subtitle > objective (the objective dims under a subtitle)
+//   H  bottom right  speed, gear, rpm > at most two key hints
+//
+// Priorities:
+//   P0  mission passed/failed, dead, busted (a banner in D, the rest dims),
+//       dangers and the police; almost no health is a red edge
+//   P1  the mission: B and G, story calls and texts, mission cards
+//   P2  status: stars (C), the map and you (F), the vehicle and keys (H),
+//       money taken off, the weapon in a fight, other texts
+//   P3  tips, E, the place name, money coming in
+//
+// Busy (a chase, a fight, a race): only P0, P1 (B, G) and P2 (stars, F, H)
+// show; P3 waits until it is quiet again, at most 30 s, then it lapses.
+// Rest ("Slim"): after 8 s without input only the minimap stays; a key or the
+// pause menu brings everything back for a moment.
+// Ceiling: at most 7 elements besides the minimap; over that P3 goes first,
+// then the clock, then the money.
+// Never: cutscenes, photo mode, the big map. "Minimaal": stars, objective,
+// subtitles and P0 only.
+
+export const P0 = 0, P1 = 1, P2 = 2, P3 = 3;
+
+export const ZONES = {
+  A: 'Berichten', B: 'Missiestatus', C: 'Status', D: 'Vrij',
+  E: 'Radio', F: 'Kaart + jij', G: 'Doel + ondertitels', H: 'Voertuig + toetsen',
+};
+
+export const HUD_MODES = ['slim', 'alles', 'minimaal'];
+
+// HUD card categories (hudcards.js) and phone items (phonefeed.js) on the P scale
+export const CARD_P = { politie: P0, gevaar: P0, missie: P1, bijbaan: P1, call: P1, story: P1, geld: P2, sms: P2, prestatie: P3, tip: P3 };
+export const cardPrio = (kind) => CARD_P[kind] ?? P3;
+// a category's zone: achievements share E with the radio, the rest is A
+export const cardZone = (kind) => (kind === 'prestatie' ? 'E' : 'A');
+
+export const STAR_AFTERGLOW = 6;
+export const MONEY_SHOW = 5;
+export const BAR_SHOW = 3;
+export const PLACE_SHOW = 4;
+export const E_SHOW = 4;
+export const IDLE_AFTER = 8;
+export const WAKE_FOR = 4;
+export const DEFER_MAX = 30;
+export const CEILING = 7;
+export const GPS_NEAR = 400;
+
+// May an item of priority p start now? Busy moments and dialogue hold P3
+// (and P2 messages in zone A, which are not on the busy list).
+export function mayShow(p, { busy = false, dialogue = false, zone = '' } = {}) {
+  if (p <= P1) return true;
+  if (busy) return p === P2 && zone !== 'A' && zone !== 'E';
+  if (dialogue) return p === P2 && zone !== 'E';
+  return true;
+}
+
+// A deferred item (P3 during a busy moment): waits while held, lapses after
+// DEFER_MAX seconds of waiting. tick() returns 'show', 'wait' or 'drop'.
+export class Deferred {
+  constructor(max = DEFER_MAX) { this.max = max; this.waited = 0; this.item = null; }
+  offer(item) { this.item = item; this.waited = 0; }
+  clear() { this.item = null; this.waited = 0; }
+  tick(dt, held) {
+    if (!this.item) return 'none';
+    if (!held) return 'show';
+    this.waited += dt;
+    if (this.waited >= this.max) { this.item = null; return 'drop'; }
+    return 'wait';
+  }
+}
+
+// One slot per zone; a waiting item of a higher priority shortens the holder.
+export class ZoneBoard {
+  constructor() { this.hold = {}; this.wants = {}; }
+  occupant(zone) { return this.hold[zone] || null; }
+  free(zone, owner) { const h = this.hold[zone]; return !h || h.owner === owner; }
+  occupy(zone, owner, prio) { if (!this.free(zone, owner)) return false; this.hold[zone] = { owner, prio }; return true; }
+  vacate(zone, owner) { if (this.hold[zone] && this.hold[zone].owner === owner) delete this.hold[zone]; }
+  // the number waiting per owner, summed for the "+N in de wacht" counter
+  setWaiting(zone, owner, n, prio = P3) { (this.wants[zone] ||= {})[owner] = { n, prio }; }
+  waiting(zone) { return Object.values(this.wants[zone] || {}).reduce((s, w) => s + (w.n | 0), 0); }
+  // someone else waits with a higher priority than the holder
+  pressured(zone, owner) {
+    const h = this.hold[zone];
+    if (!h || h.owner !== owner) return false;
+    return Object.entries(this.wants[zone] || {}).some(([o, w]) => o !== owner && w.n > 0 && w.prio < h.prio);
+  }
+  reset() { this.hold = {}; this.wants = {}; }
+}
+
+export const zones = new ZoneBoard();
+
+// the live situation flags the modules share (hud_panel.js writes them)
+export const hudNow = { busy: false, dialogue: false };
+
+// What shows now. s: the situation (all optional):
+//   mode, hidden, banner, busy, dialogue, idle, wake,
+//   wanted, wantedAgo, moneyAgo, moneySign (+1/-1), nearShop, moneyHeld,
+//   armed, fighting, hpFull, hpAgo, hpLow, stamFull, stamAgo,
+//   inVehicle, vehFull, vehAgo,
+//   timer, gps, place, specialDay, timeGoal,
+//   objective, subtitle, cardA (its P or null), cardE (P or null), keys (count)
+// Returns { show: { id: bool }, big: { clock }, dimObjective, dimAll, count }.
+export function decideHud(s = {}) {
+  const mode = HUD_MODES.includes(s.mode) ? s.mode : 'slim';
+  const show = {
+    cardA: false, timer: false, gps: false, place: false, stars: false, money: false, weapon: false, clock: false,
+    cardE: false, minimap: false, street: false, bars: false, vehicle: false, keys: false, objective: false, subtitle: false,
+  };
+  const out = { show, big: { clock: false }, dimObjective: false, dimAll: !!s.banner, count: 0, mode };
+  if (s.hidden) return out;
+  const wanted = (s.wanted | 0) > 0;
+  const busy = !!s.busy;
+  const p0Card = s.cardA != null && s.cardA <= P0;
+
+  if (mode === 'minimaal') {
+    show.stars = wanted;
+    show.objective = !!s.objective;
+    show.subtitle = !!s.subtitle;
+    show.cardA = p0Card;
+    out.dimObjective = !!s.subtitle;
+    out.count = countShown(show);
+    return out;
+  }
+
+  const all = mode === 'alles';
+  show.minimap = true;
+  show.street = true;
+  show.subtitle = !!s.subtitle;
+  show.objective = !!s.objective;
+  out.dimObjective = !!s.subtitle;
+  show.cardA = s.cardA != null && mayShow(s.cardA, { busy, dialogue: s.dialogue, zone: 'A' });
+  show.cardE = s.cardE != null && mayShow(s.cardE, { busy, dialogue: s.dialogue, zone: 'E' });
+  show.timer = !!s.timer;
+  show.gps = !!s.gps;
+  // the place name: only when B has nothing else, never under a mission timer, not while busy
+  show.place = !!s.place && !show.timer && !show.gps && !busy;
+  show.stars = all || wanted || (s.wantedAgo ?? Infinity) < STAR_AFTERGLOW;
+  const moneyRecent = (s.moneyAgo ?? Infinity) < MONEY_SHOW;
+  // money coming in is P3: it waits out a busy moment (the caller holds it)
+  show.money = all || ((moneyRecent || !!s.nearShop) && !busy && !s.moneyHeld);
+  show.weapon = all || !!s.armed || !!s.fighting;
+  show.clock = all || !busy;
+  out.big.clock = !!(s.specialDay || s.timeGoal);
+  const barsMoving = (s.hpAgo ?? Infinity) < BAR_SHOW || (s.stamAgo ?? Infinity) < BAR_SHOW || (s.inVehicle && (s.vehAgo ?? Infinity) < BAR_SHOW);
+  show.bars = all || s.hpFull === false || s.stamFull === false || !!s.hpLow || (s.inVehicle && s.vehFull === false) || barsMoving;
+  show.vehicle = !!s.inVehicle;
+  show.keys = (s.keys | 0) > 0;
+
+  // rest: after a while without input only the minimap (and what is being said or told)
+  if (!all && (s.idle ?? 0) >= IDLE_AFTER && !s.wake && !wanted && !busy) {
+    for (const k of ['timer', 'gps', 'place', 'money', 'weapon', 'clock', 'bars', 'vehicle', 'keys', 'objective']) show[k] = false;
+    if (show.cardE) show.cardE = false;
+  }
+
+  // the ceiling: P3 first, then the clock, then the money
+  if (!all) {
+    const drops = [['place', 'cardE', 'cardA3'], ['clock'], ['money'], ['keys'], ['weapon']];
+    for (const group of drops) {
+      if (countShown(show) <= CEILING) break;
+      for (const k of group) {
+        if (k === 'cardA3') { if (show.cardA && s.cardA >= P3) show.cardA = false; } else show[k] = false;
+        if (countShown(show) <= CEILING) break;
+      }
+    }
+  }
+  out.count = countShown(show);
+  return out;
+}
+
+// Elements on screen besides the minimap (F's street is part of the map block).
+const COUNTED = ['cardA', 'timer|gps|place', 'stars', 'money', 'weapon', 'clock', 'cardE', 'bars', 'vehicle', 'keys', 'objective', 'subtitle'];
+export function countShown(show) {
+  let n = 0;
+  for (const k of COUNTED) if (k.split('|').some((x) => show[x])) n++;
+  return n;
+}

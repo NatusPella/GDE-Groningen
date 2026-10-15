@@ -343,7 +343,10 @@ function settingsHtml() {
     <div data-of="settings" data-sub="display" class="pm-group" hidden>
       ${slider('brightness', 'Helderheid', 0.6, 1.6, 0.05)}
       ${slider('uiScale', 'Grootte interface', 0.8, 1.5, 0.05)}
+      ${segmented('hudMode', 'HUD<small>Slim toont alleen wat nu telt; Alles houdt alles in beeld; Minimaal laat alleen sterren, doel en ondertitels over</small>', [['slim', 'Slim'], ['alles', 'Altijd alles'], ['minimaal', 'Minimaal']])}
       ${toggle('showMinimap', 'Minimap')}
+      ${slider('minimapZoom', 'Zoom van de minimap', 0.6, 1.6, 0.05)}
+      ${segmented('minimapNorth', 'Minimap met noord boven<small>Standaard draait de kaart mee, in de lucht staat noord boven</small>', [['nooit', 'Nooit'], ['lucht', 'In de lucht'], ['altijd', 'Altijd']])}
       ${toggle('showHints', 'Toetshints')}
       ${toggle('onboardingTips', 'Uitleg voor nieuwe spelers', 'Korte tips, elk één keer: je eerste klus, geld en winkels, de telefoon, de kaart en Te doen')}
       ${toggle('reduceMotion', 'Beweging beperken', 'Menu’s, kaarten en tellers springen meteen naar hun nieuwe stand, zonder animatie.')}
