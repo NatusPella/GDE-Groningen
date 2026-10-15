@@ -20,7 +20,7 @@ const { loadTileWorld, TileWorld } = await import('../game/js/tileworld.js');
 
 let n = 0, fails = 0;
 const ok = (cond, name, info = '') => { n++; if (!cond) { fails++; console.log(`FAIL ${name}${info ? ' (' + info + ')' : ''}`); } };
-const canon = (v) => JSON.stringify(v, (k, x) => (x && typeof x === 'object' && !Array.isArray(x) ? Object.fromEntries(Object.keys(x).filter((q) => q !== 'bounds').sort().map((q) => [q, x[q]])) : x));
+const canon = (v) => JSON.stringify(v, (k, x) => (x && typeof x === 'object' && !Array.isArray(x) ? Object.fromEntries(Object.keys(x).filter((q) => q !== 'bounds' && !P.PROFILE_KEYS.includes(q)).sort().map((q) => [q, x[q]])) : x));
 
 const stripA = (o) => { const c = { ...o }; for (const k of P.ATTR_KEYS) delete c[k]; return c; };
 const src = P.loadSources();
@@ -35,6 +35,22 @@ for (const f of fs.readdirSync(dir)) files[f] = new Uint8Array(fs.readFileSync(p
 const T = await loadTileWorld('world/', { source: new S.MemorySource(files), pool: false });
 const tw = T.world;
 ok(tw instanceof TileWorld && T.store.residentKeys.length === Object.keys(index0.tiles).length, 'the pinned city is resident', T.store.residentKeys.length);
+
+// the profiles come back from the heights section, and the roads build their
+// meshes (r.net is the road network roadsurface.js builds a road against:
+// the profile's network is r.pnet)
+{
+  const prof = tw.roads.filter((r) => r.z);
+  ok(prof.length === legacy.roads.filter((r) => r.z).length && prof.every((r) => Number.isInteger(r.pnet) && r.st.length === r.pts.length - 1), 'profiles joined back from the heights section', prof.length);
+  ok(tw.roads.every((r) => r.net == null || typeof r.net === 'object'), 'no road carries a number for its road network');
+  const RS = await import('../game/js/roadsurface.js');
+  RS.setRoadNetwork(tw);
+  let built = 0, err = '';
+  for (const r of prof.slice(0, 40)) {
+    try { if (RS.roadSurfaceGeometries(r, 1).road) built++; } catch (e) { err = e.message; break; }
+  }
+  ok(built === Math.min(40, prof.length), 'profiled roads from tiles build their surfaces', err || built);
+}
 
 // --- 1. equivalence
 for (const k of ['roads', 'buildings', 'canopies', 'water', 'green', 'trees', 'rails', 'stations', 'levelCrossings', 'railRoutes', 'railLifts', 'passageWays', 'clippedWays']) {

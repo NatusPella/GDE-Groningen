@@ -7,7 +7,9 @@
 Steps (each script edits game/citymap.json in place, see its docstring):
   fetch_osm             ringweg surroundings -> data/ring_*.json.gz (only if missing)
   process_osm           roads, buildings, water, green, trees (+ grade tags)
-  add_elevation         heights for the ring and its grade-separated junctions
+  add_elevation         first heights for the ring and its grade-separated junctions
+  world/profile.mjs     the network height solver over them (node): grade, vertical
+                        curves and clearance per class, tunnels, slip roads
   add_landmarks         landmark tags + meta.landmarks
   add_districts         meta.districts, meta.neighbourhoodPoints
   add_garages           meta.garages
@@ -51,6 +53,15 @@ def run(script, *args):
     print(f"   {time.time() - t:.1f} s", flush=True)
 
 
+def run_node(script, *args):
+    t = time.time()
+    print(f"== {script} {' '.join(args)}", flush=True)
+    r = subprocess.run(["node", os.path.join("scripts", script), *args], cwd=ROOT)
+    if r.returncode:
+        raise SystemExit(f"{script} failed ({r.returncode})")
+    print(f"   {time.time() - t:.1f} s", flush=True)
+
+
 def main():
     refresh = "--refresh" in sys.argv
     extra = ["--refresh"] if refresh else []
@@ -63,6 +74,7 @@ def main():
         run("fetch_osm")
     run("process_osm")
     run("add_elevation")
+    run_node("world/profile.mjs", "--write")
     run("add_landmarks")
     run("add_districts")
     run("add_garages", *extra)

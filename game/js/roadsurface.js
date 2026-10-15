@@ -8,6 +8,7 @@ import { allSignals, yieldArms } from './junctions.js';
 import { groundHeightAt } from './elevation.js';
 import { runGeo, geoWorkerActive } from './geojobs.js';
 import { geometryFromPlain } from './geokernels.js';
+import { laneLayout } from './lanes.js';
 
 // Street surfaces: procedural asphalt / klinkers / stoeptegels / gravel in the
 // shared wet-ground shader, mitred ribbons carrying road-space coordinates,
@@ -1323,6 +1324,57 @@ function rnd(r, k) {
   return v - Math.floor(v);
 }
 
+// A painted arrow in a lane for traffic travelling `dir`, its tip at sTip:
+// one shaft and a head per turn in `turns` (turn:lanes values).
+const ARROW_LEN = 5, ARROW_HEAD = 1.4;
+function arrowMark(r, rs, M, sTip, off, dir, turns) {
+  const tail = sTip - dir * ARROW_LEN;
+  const s0 = Math.min(tail, sTip - dir * ARROW_HEAD), s1 = Math.max(tail, sTip - dir * ARROW_HEAD);
+  stripAlong(r, rs, M, s0, s1, off, 0.08);
+  for (const t of turns) {
+    const side = /left/.test(t) ? -1 : /right/.test(t) ? 1 : 0;
+    if (/through/.test(t) || /none/.test(t) || !side) triangleMark(r, rs, M, sTip - dir * ARROW_HEAD, sTip, off, 0.35);
+    if (!side) continue;
+    // a turn: a head off to the side half way along the shaft (dir flips
+    // left and right for a lane running against the pts)
+    const sm = sTip - dir * ARROW_LEN * 0.45, o = side * dir;
+    polyMark(r, rs, M, [[sm - dir * 0.35, off], [sm + dir * 0.35, off], [sm + dir * 0.1, off + o * 0.9], [sm + dir * 0.45, off + o * 0.95], [sm - dir * 0.2, off + o * 1.45]]);
+  }
+}
+
+// a convex polygon of paint given as [along, offset] points (fan)
+function polyMark(r, rs, M, pts) {
+  const tmp = [0, 0, 0, 0];
+  const base = M.pos.length / 3;
+  for (const [sv, o] of pts) {
+    at(r, rs, sv, o, tmp);
+    M.pos.push(tmp[0], tmp[3] + PAINT_WHITE, tmp[1]);
+    M.nrm.push(0, 1, 0);
+    M.uv.push(UV_WHITE[0], UV_WHITE[1]);
+  }
+  for (let i = 1; i < pts.length - 1; i++) M.idx.push(base, base + i, base + i + 1, base, base + i + 1, base + i);
+}
+
+// Turn arrows from turn:lanes on the approach to the way's end (forward
+// lanes) and start (backward lanes): two per lane, 10 and 40 m before it.
+function turnArrows(r, rs, M, a, b) {
+  const lay = laneLayout(r);
+  for (const [list, dir] of [[r.turnFwd, 1], [r.turnBwd, -1]]) {
+    if (!list || !list.length) continue;
+    const mine = lay.lanes.filter((q) => q.dir === dir).sort((p, q) => (p.off - q.off) * dir);
+    if (mine.length !== list.length) continue;
+    // turn:lanes lists the lanes from left to right in the direction of travel
+    mine.forEach((q, i) => {
+      const turns = String(list[i]).split(';');
+      for (const back of [10, 40]) {
+        const sTip = dir > 0 ? b - back : a + back;
+        if (sTip - ARROW_LEN < a || sTip + ARROW_LEN > b) continue;
+        arrowMark(r, rs, M, sTip, q.off, dir, turns);
+      }
+    });
+  }
+}
+
 function markingGeometry(r) {
   const rs = analyse(r);
   const surf = roadSurface(r);
@@ -1330,7 +1382,8 @@ function markingGeometry(r) {
   const hw = rs.hw, L = rs.L;
   const a = Math.max(0, rs.S0) + 0.5, b = Math.min(L, rs.S1) - 0.5;
   const asphalt = surf === 'asphalt';
-  const lanes = Math.max(1, Math.round(r.width / 3.3));
+  const lay = laneLayout(r);
+  const lanes = lay.n;
 
   if (asphalt && b > a) {
     if (r.cat === 'major') {
@@ -1338,14 +1391,15 @@ function markingGeometry(r) {
       if (!sideCut(r, rs, 0)) stripClipped(r, rs, M, a, b, hw - 0.35, 0.075);
       if (!sideCut(r, rs, 1)) stripClipped(r, rs, M, a, b, -hw + 0.35, 0.075);
       if (!r.oneway) {
-        if (r.width >= 12) { stripAlong(r, rs, M, a, b, 0.12, 0.05); stripAlong(r, rs, M, a, b, -0.12, 0.05); }
-        else stripAlong(r, rs, M, a, b, 0, 0.06);
-      } else {
-        for (let k = 1; k < lanes; k++) dashesClipped(r, rs, M, a, b, -hw + (r.width / lanes) * k, 0.06, 3, 9);
+        if (r.width >= 12 && r.lanesFwd == null) { stripAlong(r, rs, M, a, b, 0.12, 0.05); stripAlong(r, rs, M, a, b, -0.12, 0.05); }
+        else stripAlong(r, rs, M, a, b, lay.divider || 0, 0.06);
       }
+      for (const o of lay.lines) dashesClipped(r, rs, M, a, b, o, 0.06, 3, 9);
     } else if (r.cat === 'normal' && r.type !== 'residential' && !r.oneway && r.width >= 5.5) {
-      dashes(r, rs, M, a, b, 0, 0.05, 3, 6);
+      dashes(r, rs, M, a, b, lay.divider || 0, 0.05, 3, 6);
+      for (const o of lay.lines) dashes(r, rs, M, a, b, o, 0.05, 3, 6);
     }
+    if (detail && (r.turnFwd || r.turnBwd) && (r.cat === 'major' || r.cat === 'normal')) turnArrows(r, rs, M, a, b);
   }
   if (b > a && (r.busOnly || r.busLane)) busLaneMarkings(r, rs, M, a, b);
   if (r.cat === 'cycle' && b > a) {

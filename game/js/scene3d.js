@@ -3310,9 +3310,9 @@ function buildRouteRibbonGeometry(pts, along0, map = null, z0 = 0) {
   // follow the ring's ramps: each point takes the surface nearest the previous one
   const zs = new Float32Array(n);
   const elev = map && map.elev && map.elev.has;
-  let h = z0;
+  const st = elev ? { z: z0, ribbon: map.ribbonAt(pts[0][0], pts[0][1], z0) } : null;
   for (let i = 0; i < n; i++) {
-    if (elev) { h = map.groundHeightAt(pts[i][0], pts[i][1], h); zs[i] = h; }
+    if (elev) zs[i] = map.surfaceAt(pts[i][0], pts[i][1], st).z;
     if (map && Math.abs(zs[i]) < 0.3) zs[i] += routeLift(map, pts[i][0], pts[i][1]);
   }
   const pos = new Float32Array(n * 2 * 3), uv = new Float32Array(n * 2 * 2), col = new Float32Array(n * 2 * 4);

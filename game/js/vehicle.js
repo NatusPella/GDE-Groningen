@@ -11,13 +11,14 @@ import { countryWater } from './countryedge.js';
 import { pushOutOfPlan, onFarmPaving, planExtraSolids } from './countryplan.js';
 import { pushOutOfTrunks } from './countrywalls.js';
 import { countryRailsNear, pushOutOfRails } from './countryrails.js';
-import { roadPriority } from './junctions.js';
+import { roadPriority, junctionArm } from './junctions.js';
 import { pickTrafficCar, carModel, applyFleetFlags, pickBikeVariant, MIDIBUS_MODEL } from './trafficfleet.js';
 import { sirenYield } from './emergency.js';
 import { manageParkedCars, tickParkedCars } from './parkedcars.js';
 import { pickBoatModel } from './boattypes.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { MODS } from './cheatmods.js';
+import { laneLayout } from './lanes.js';
 import { profileFor, createGearbox, stepGearbox } from './gearbox.js';
 import { slipAngle } from './drift.js';
 import { MOPED_LEGAL_SPEED } from './motomodels.js';
@@ -621,14 +622,36 @@ export function busTrailerPose(v) {
 
 // Right-hand-traffic offset from the road centerline (to the right of the
 // direction of travel), used both at spawn and for the driving path.
-function laneOffset(road, v, half = road.width / 2) {
+function laneOffset(road, v, half = road.width / 2, dir = 1) {
   const halfWid = v.model.wid / 2;
   if (v.isBike || v.isScooter) {
     if (road.cat === 'cycle') return road.oneway ? 0 : Math.min(0.6, half / 2);
     return Math.max(0.3, half - 0.7);
   }
+  // the lane model (roadsurface.js laneLayout): the middle of the right lane
+  const m = modelLane(road, dir, 'right');
+  if (m !== null) return clamp(m, 0, Math.max(0, half - halfWid - 0.2));
   if (road.oneway) return clamp(half - halfWid - 1.2, 0, 1);
   return clamp(half / 2, 0.3, Math.max(0.3, half - halfWid - 0.25));
+}
+
+// The middle of the rightmost or leftmost lane for traffic going `dir` along
+// a road with the lane model (lanesFwd/lanesBwd), as an offset right of the
+// direction of travel; null without the model or with a single lane there
+// and 'left' asked.
+function modelLane(road, dir, which) {
+  if (road.lanesFwd == null) return null;
+  let lay = road._lanes;
+  if (!lay) road._lanes = lay = laneLayout(road);
+  const mine = lay.lanes.filter((q) => q.dir === (road.oneway ? 1 : dir));
+  if (!mine.length || (which === 'left' && mine.length < 2)) return null;
+  const sgn = road.oneway ? 1 : dir;
+  let best = null;
+  for (const q of mine) {
+    const o = q.off * sgn;
+    if (best === null || (which === 'right' ? o > best : o < best)) best = o;
+  }
+  return best;
 }
 
 function pointInAnyBuilding(buildings, x, y) {
@@ -719,7 +742,7 @@ function busLaneUser(v) {
 
 function lanePoint(map, road, i, dir, v) {
   const half = roadHalfWidths(map, road)[i];
-  let lane = laneOffset(road, v, half);
+  let lane = laneOffset(road, v, half, dir);
   const small = v.isBike || v.isScooter;
   const bl = road.busLane && !small && (dir > 0 ? road.busLane.fwd : road.busLane.bwd);
   if (bl && half >= 3) {
@@ -729,7 +752,9 @@ function lanePoint(map, road, i, dir, v) {
       ? Math.max(0.3, half - laneW / 2)
       : road.oneway ? Math.min(lane, half - laneW - v.halfWid - 0.2) : clamp(half - laneW - v.halfWid - 0.3, 0.3, half);
   }
+  const leftLane = v.laneMode === 'left' && !small ? modelLane(road, dir, 'left') : null;
   if (v.laneMode === 'yield' && !small) lane = Math.max(lane, half - v.halfWid - 0.05);
+  else if (leftLane !== null) lane = clamp(leftLane, -(half - v.halfWid - 0.2), half);
   else if (v.laneMode === 'left' && !small && half >= 4.5) lane = road.oneway ? -Math.max(0.3, Math.min(1.8, half - v.halfWid - 1.4)) : Math.min(lane, Math.max(v.halfWid + 0.25, half * 0.28));
   else if (v.laneMode === 'squeeze' && !road.oneway) lane = Math.max(lane, half - v.halfWid + 0.4);
   else if (v.laneMode === 'pass') lane = road.oneway || half < 3.5 ? -Math.max(0.5, half - v.halfWid + 0.6) : -half / 2;
@@ -1811,7 +1836,10 @@ function junctionYieldLimit(v, path, world, decel, claim) {
   if (!yieldTo) return Infinity;
   const waited = v.yieldWait || 0;
   if ((waited > 2.5 && othersWaiting && v.id <= minId) || waited > 8 + (v.id % 5)) return Infinity;
-  const stopS = first.s - 4 - v.halfLen;
+  // stop where the junction model puts the teeth or the stop line of this
+  // arm (the edge of the crossing carriageway), not on the crossing road
+  const arm = world.map && first.r ? junctionArm(world.map, first.r, first.i, first.fromDir) : null;
+  const stopS = first.s - (arm ? clamp(arm.stop, 3, 10) : 4) - v.halfLen;
   return stopS < -0.5 ? Infinity : Math.sqrt(2 * decel * Math.max(0, stopS));
 }
 
@@ -1969,6 +1997,8 @@ export function updateTrafficAI(v, dt, map, world, rng = Math.random, opts = nul
   v.hornFor = blockedByPlayer ? (v.hornFor || 0) + dt : 0;
   v.horn = v.hornFor > 1.5 && v.hornFor < 2.2;
   v.stuckFor = Math.abs(v.speed) < 0.6 && vTarget > 2 ? (v.stuckFor || 0) + dt : 0;
+  // what holds a car that wants to stand still (the junction sim test reads it)
+  v._why = vTarget >= 0.5 ? null : follow.vmax < 0.5 ? 'queue' : lightV < 0.5 ? 'light' : walkerV < 0.5 ? 'walker' : yieldV < 0.5 ? 'yield' : 'other';
   // held (not by a light) for a long time: turn around and find another way
   v.waitFor = Math.abs(v.speed) < 0.5 && vTarget < 0.5 && lightV > 1 ? (v.waitFor || 0) + dt : 0;
   if (!chase && v.waitFor > 35 + (v.id % 10) && !v.road.oneway && !goal && !queuedAtLight(v)) {
@@ -2357,7 +2387,13 @@ export function settleVehicleHeight(v, map, dt) {
   updateSuspension(v, dt);
   if (!map.groundHeightAt) return;
   const z = v.z || 0;
-  const g0 = map.groundHeightAt(v.x, v.y, z);
+  // the car's layer (map.surfaceAt): it keeps to the deck or ramp it is on
+  let g0;
+  if (map.surfaceAt) {
+    const st = v.surf || (v.surf = { z, ribbon: null, kind: 'ground' });
+    st.z = z;
+    g0 = map.surfaceAt(v.x, v.y, st).z;
+  } else g0 = map.groundHeightAt(v.x, v.y, z);
   const g = v.airborne ? g0 : wheelbaseGround(v, map, g0, z);
   if (v.airborne) {
     v.vz -= FALL_G * (v.driver === 'player' ? MODS.grav : 1) * dt;
@@ -2403,8 +2439,9 @@ export function settleVehicleHeight(v, map, dt) {
   const h = Math.min(v.halfLen * 0.75, 2.4);
   const c = Math.cos(v.angle), s = Math.sin(v.angle);
   const zc = v.z;
+  const rib = v.surf && v.surf.ribbon;
   const probe = (x, y) => {
-    const q = map.groundHeightAt(x, y, zc);
+    const q = rib && map.surfaceZ ? map.surfaceZ(x, y, zc, rib) : map.groundHeightAt(x, y, zc);
     return Math.abs(q - zc) > SLOPE_SAMPLE_MAX ? zc : q;
   };
   let targetPitch = (v.pitch || 0) * 0.98, targetRoll = (v.roll || 0) * 0.95;
@@ -2434,9 +2471,10 @@ function wheelbaseGround(v, map, g, z) {
   const h = Math.min(v.halfLen * 0.85, 2.6);
   const c = Math.cos(v.angle), s = Math.sin(v.angle);
   let sum = g, n = 1;
+  const rib = v.surf && v.surf.ribbon;
   for (const f of WB_OFFS) {
     const d = f * h;
-    const q = map.groundHeightAt(v.x + c * d, v.y + s * d, z);
+    const q = rib && map.surfaceZ ? map.surfaceZ(v.x + c * d, v.y + s * d, z, rib) : map.groundHeightAt(v.x + c * d, v.y + s * d, z);
     if (Math.abs(q - g) <= Math.abs(d) * 0.12 + 0.02) { sum += q; n++; }
   }
   return sum / n;

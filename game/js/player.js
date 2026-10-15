@@ -417,7 +417,13 @@ export class Player {
   // into jump height so gravity takes over (and hurts on landing).
   followGround(map) {
     if (!map.elev || !map.elev.has) { this.gz = 0; return; }
-    const g = map.groundHeightAt(this.x, this.y, this.gz + this.z);
+    // the walker's layer (map.surfaceAt): it keeps to the deck it is on
+    let g;
+    if (map.surfaceAt) {
+      const st = this.surf || (this.surf = { z: 0, ribbon: null, kind: 'ground' });
+      st.z = this.gz + this.z;
+      g = map.surfaceAt(this.x, this.y, st).z;
+    } else g = map.groundHeightAt(this.x, this.y, this.gz + this.z);
     if (g < this.gz - 0.4) this.z += this.gz - g;
     this.gz = g;
   }
