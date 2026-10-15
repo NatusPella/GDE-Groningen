@@ -1094,3 +1094,743 @@ Speler: Tammo. Doel: `{ type: 'filiaal', at: 'veendam' }`. **Wissel:** **Tammo**
 - **Brugwachter Wubbo** *(gemoedelijk)*: Het schip wacht. Een tel. Dat is zijn vak.
 **Klaar:** **Tessa** *(warm)*: Filiaal zes: Wubbo's brugwachtershuisje. Hij bakt alleen als er geen schip komt. Er komt altijd een schip. · **HUD:** "Filiaal geopend: het brugwachtershuisje" · "Safehouse: het brugwachtershuisje, boot onder de brug" · "Nieuw recept: de Veenkoloniale eierbal, met aardappelzetmeel in de korst"
 
+### Ring 4 · Westerwolde en de finale
+
+Bondgenoot **Berend Bos** (de bisschop) en de **boswachter Siemen** (melder én Ubbo's laatste jurylid); tegenstander **Ubbo zelf**, in zijn laatste voorronde. Geen spoor: "Daar is geen trein. Dat hoort zo." De finale speelt in en rond **Vesting Bourtange** (stervormige vesting uit 1593, gracht, ophaalbrug, bolwerken; de beleg van 1672 door "Bommen Berend" is hier echt gebeurd, en de vesting hield stand) en op de heide en het veen tot het grensbord. Alles wat met een beleg te maken heeft is **toneel**: karton, meel, water, geen doden.
+
+### Tussendoor: Zonder trein (`n-westerwolde`)
+
+Speler: Tessa. Doel: `{ type: 'arrive', at: 'westerwolde-bosrand' }`. Eerste aankomst: over de weg, bij een bosrand; een melder; de laatste kaartonthulling.
+**Wissel:** **Tessa** *(zakelijk)*: Ik rij. Dit is de laatste regio. Ik wil het zien. · **Lead:** **Oma Trijntje** *(stellig, aan de telefoon)*: Nummer zeven is geen naam. Het is een man op een paard. Hij wacht bij de bosrand bij Sellingen. Hij is ook niet aardig. Maar hij is van mij.
+**Radio:** **Rikus** *(droog, als nacht-dj op de radio)*: Nachtstreek, op tournee. Vanavond vanuit Westerwolde. Er is geen station. Dat hoort zo. Ik heb gevraagd waarom. Iemand zei: zo blijft het stil.
+**Scène: De bosrand bij Sellingen.** *Camera:* De Fjord rijdt een zandweg op tussen paarse heide in bloei; stof dwarrelt in het slaglicht; de camera hangt achter de wagen en laat de dennen langs trekken. Aan de bosrand staat een man in een groen jasje bij een pick-up; achter hem, ver, een stipje dat een paard blijkt.
+- **Boswachter Siemen** *(rustig, kort)*: Moi. Siemen. Boswachter. U bent van Trijntje. `[naamkaart: siemen]`
+- **Tessa** *(vriendelijk)*: Hoe weet u dat?
+- **Boswachter Siemen** *(droog, warm)*: Iedereen die hier stopt, is van iemand. Ik meld alleen.
+- **Tessa** *(nieuwsgierig)*: Bent u familie van de torenwachter?
+- **Boswachter Siemen** *(rustig, kort)*: Mijn neef. Ik zit tussen de bomen. Dat is hoger dan je denkt.
+- **Boswachter Siemen** *(rustig, kort)*: Ik zit in de jury. Van Ubbo. Dat weet hij. Wat hij niet weet: ik hoor alles. Ik zeg weinig.
+- **Tessa** *(zacht, verrast)*: U bent zijn juryman?
+- **Boswachter Siemen** *(droog, warm)*: Hij heeft mij gekozen omdat ik niks zeg. Dat is een misverstand. Dat is het mooiste misverstand.
+- **Boswachter Siemen** *(rustig, kort)*: Kijk. De vesting. Zaterdag. Hij sluit hem af. Berend wacht op u.
+**Klaar:** **Tessa** *(zacht)*: De heide staat in bloei. Zo ver je kijkt. · **HUD:** "Westerwolde is open" · "Uitkijkpunt: de bosrand bij Sellingen"
+
+### O28 · Een bisschop in het bos
+
+| Type | Regio | Speler | Start | Beloning | Code |
+|---|---|---|---|---|---|
+| verhaal, verkennen | Westerwolde | Tammo | De bosrand bij Sellingen (ochtend, zaterdag) | € 1200 | `O28` / missie `bisschop` |
+
+**Wissel:** **Tammo** *(droog)*: Ik rij. Achter een paard aan. Dat is mijn tempo. · **Lead:** **Tessa** *(warm, aan de telefoon)*: Berend heeft een plan. Hij zegt dat hij het veertig jaar heeft geoefend. Ik snap niet wat er te oefenen valt aan verliezen.
+
+**Bel Rikus (beller: Berend Bos, Stad)**
+- **Rikus** *(warm, als nacht-dj op de radio)*: Nachtstreek. Ik heb een beller uit de Schildersbuurt. Hij belt zelden. Hij brengt dan meestal een brief.
+- **Berend Bos** *(nors, aan de telefoon op de radio)*: Rikus. Berend. Ik zit op een paard. Het is een heel groot paard. Hij heet Münster.
+- **Rikus** *(droog, als nacht-dj op de radio)*: Gaat u het weer verliezen, Berend?
+- **Berend Bos** *(nors, aan de telefoon op de radio)*: Nee. Ik heb een plan. Dit keer win ik. Ik heb veertig jaar geoefend.
+
+**Route en plekken.** De bosrand bij **Sellingen** → heide en zandwegen (heide in bloei) → langs de **Ruiten Aa** (OSM-check) → **Vlagtwedde** niet; het pad loopt door de bossen ten noorden van **Bourtange** → een heuvel (duin) met uitzicht op de vesting van boven. ± 5 km in wandeltempo.
+
+**Verloop**
+1. **Rij de Fjord achter Berends paard aan** (`follow`, NIEUW): blijf tussen 12 en 25 m achter het paard. Te dichtbij of toeteren: Münster schrikt (Berend scheldt). Te ver: Berend raakt het spoor kwijt en stopt.
+2. **Gesprekken onderweg** (companion): Tessa zit naast je; Berend roept dingen van het paard. Eén vaste stop bij een heideven (foto).
+3. **Een grijze schaduw** tussen de dennen (foreshadow Z19: niemand zegt iets, de camera wel).
+4. **De heuvel:** Berend legt zijn plan uit op een kaart die hij uit zijn jas haalt, met de vesting eronder.
+5. **Telefoontje van Oma** (hieronder).
+
+**Falen, overslaan:** Münster slaat op hol (3× te dichtbij): hij rent terug naar het begin. Geen fail op tijd. **Overslaan** na één poging: je staat op de heuvel, het plan speelt. **Bezit:** het paard is van Berend.
+
+**Intro.** *Camera:* Een zandweg tussen heide in bloei; in de verte een man in vol ornaat (kuras, pluimenhoed, bisschopsmantel van een gordijn) op een groot grijs paard. De camera loopt mee op paardenpas, kijkt om naar de Fjord die zachtjes volgt.
+- **Berend Bos** *(nors, grommend)*: Dat stel. Eindelijk. Ik wacht al drie kwartier. Het paard ook.
+- **Tammo** *(droog)*: Dag Berend. Mooie jurk.
+- **Berend Bos** *(nors)*: Het is een mantel. Hij is van de bisschop. Ik leen hem. Hij heeft hem niet nodig.
+- **Tessa** *(vriendelijk)*: Hoe heet het paard?
+- **Berend Bos** *(nors, een tikje trots)*: Münster. Hij is zachter dan hij klinkt.
+
+**HUD-doelen:** "Rij achter Berends paard aan (12-25 m)" → "Stop bij het heideven" → "Volg Berend naar de heuvel" → "Luister naar zijn plan"
+
+**In de missie**
+- **Berend Bos** *(nors, roepend, van het paard)*: Niet toeteren! Hij is een paard, geen auto!
+- **Tammo** *(droog)*: Ik toeter nooit. Het is Tessa.
+- **Tessa** *(lachend)*: Ik doe niks. Ik zit.
+- **Berend Bos** *(nors)*: Kijk. De heide. Dit is van niemand. Daarom is het van iedereen.
+- **Tessa** *(zacht, in de wagen)*: Als we winnen. Dan is er een filiaal in een boshut.
+- **Tammo** *(droog, zacht)*: Dan is er één kraam in een bos.
+- **Tessa** *(zacht, eerlijk)*: Ik ben bang dat je meer wilt vasthouden dan ik kan loslaten.
+- **Tammo** *(droog, zacht)*: Ik ben bang dat jij meer wilt dan je kunt dragen.
+- **Tessa** *(zacht)*: Na de Ronde beslissen we. Samen.
+- **Tammo** *(droog, zacht)*: Samen is ook een antwoord.
+- **Berend Bos** *(nors, van het paard)*: Ik hoor jullie praten. Praat zachter. Mijn paard luistert mee.
+- **Tammo** *(droog)*: Sorry, Münster.
+
+**Scène: De heuvel boven de vesting.** *Camera:* Een duin met uitzicht: onder hen, in het bos, het perfecte vijfpuntige patroon van de vesting met bolwerken, gracht en een kerkje in het midden; de zon op het water; Berend trekt zijn kaart uit zijn mantel en spreidt hem over de zadelknop.
+- **Berend Bos** *(nors, plechtig)*: Zestienhonderdtweeënzeventig. Bommen Berend valt Bourtange aan. Hij verliest.
+- **Tammo** *(droog)*: Dat weet iedereen.
+- **Berend Bos** *(nors)*: Hij verliest, omdat hij van één kant komt. Bourtange heeft vijf bolwerken. Je valt niet van één kant aan. Je valt aan van overal. Tegelijk. En je weet precies wanneer elk bolwerk te laat reageert.
+- **Tessa** *(snel, scherp)*: Hoe weet u dat?
+- **Berend Bos** *(nors, bijna zacht)*: Ik heb veertig jaar verloren. Ik weet precies hoe het fout gaat. Nu doe ik het andersom.
+- **Berend Bos** *(nors)*: Water. Land. Lucht. En een brug die te vroeg opengaat.
+- **Tammo** *(droog)*: Waar halen we dat vandaan?
+- **Berend Bos** *(nors, een tikje trots)*: Van Trijntje. Zij heeft zeven mensen die haar nog wat schuldig zijn. Dat is een leger.
+
+**Telefoon: Oma Trijntje (het 1953-verhaal; één set, twee varianten)**
+- **Oma Trijntje** *(stellig, oud, aan de telefoon)*: Ik kom zaterdag. Ik laat me rijden. Durk en Douwe zorgen voor mij. Ze zijn aardig. Ze hebben ook een klomp.
+- **Tessa** *(zacht, aan de telefoon)*: Oma. Waarom Bourtange?
+- **Oma Trijntje** *(droog, oud, aan de telefoon)*: Dat zeg ik één keer. Ik was negentien. De Ronde was in Bourtange. Mijn eierbal was beter. De jury had een kilo paling in zijn zak. Hendrik Oldenhuis zat voorop. Hij gaf zichzelf de prijs.
+- **Oma Trijntje** *(stellig, aan de telefoon)*: `[alleen als Z4 gespeeld]` Jullie hebben de medaille. Ik gooide hem in de klei, van boosheid. Dat was dom. Die klei was van iemand anders.
+- **Oma Trijntje** *(droog, aan de telefoon)*: `[alleen zonder Z4]` Ik gooide mijn medaille in de klei, vanaf de dijk. Van boosheid. Er is vast iemand met een detector die hem vindt. Die zijn er altijd.
+- **Tammo** *(zacht, aan de telefoon)*: Oma. Waarom heeft u dat nooit gezegd?
+- **Oma Trijntje** *(stellig, aan de telefoon)*: Ik ben Gronings. Wij zeggen het één keer. Dan is het waar. Dit is die keer.
+
+**Outro.** *Camera:* Op de heuvel, de zon hoger: de Fjord stilgezet naast het paard; Berend kijkt uit over de vesting, zijn handen op de zadelknop. Een lange stilte, dan buigt hij zijn hoofd.
+- **Berend Bos** *(nors, zacht)*: Veertig jaar. Ik wil het één keer goed doen.
+- **Tessa** *(zacht)*: U heeft het goed gedaan.
+- **Berend Bos** *(nors, dan zacht)*: Kon minder.
+- **Tammo** *(droog, zacht)*: Dat is het mooiste wat u hebt gezegd.
+- **Berend Bos** *(nors)*: Ik zeg niks. Ik ben bisschop.
+
+**Bij herhaling:** **Berend Bos** *(nors)*: Weer op de heuvel? Het paard houdt van herhalingen. Ik niet. **Mislukt:** **Berend Bos** *(nors, roepend)*: Mijn paard is weg! Dat is jouw schuld! · **Tammo** *(droog)*: Hij stond ernaast, Berend.
+
+**Berichten:** *Harm-Jan* `[alleen zonder Z4]`: "Gevonden in de klei van Uithuizen. Geen goud. Brons. Er staat Trijntje op. Ik graaf niet. Ik piep. – H-J." · *U. Oldenhuis*: "Een bisschop. Op een paard. In een vesting. Dat is een museum. – U.O." **Kiekdoar:** "Man in bisschopsgewaad op grijs paard in de bossen bij Sellingen. Boswachter: 'Ik zag niks.'"
+**Afrondingskaart:** **EEN BISSCHOP IN HET BOS** · Eén plan. Eén paard. Veertig jaar geoefend. · *+ € 1200*
+
+**Autogesprek `o28-pass-samen`:** **Tessa** *(soft)*: "Samen is ook een antwoord." · **Tammo** *(dry, quiet)*: Ik zeg ze zelden. · **Tessa** *(warm)*: Dat is waarom ze tellen.
+**Autogesprek `o28-pass-berend`:** **Tammo** *(dry)*: Berend zei "kon minder". · **Tessa** *(amazed)*: Tegen een paard. · **Tammo** *(dry)*: Tegen zichzelf.
+**Autogesprek `o28-fail`:** **Tessa** *(sighing)*: Hij rent. Je was te dichtbij. · **Tammo** *(dry)*: Hij is een paard. Hij had ruimte nodig.
+
+**"Wat weten we?"** *Het plan van de bisschop* (clue): Berend: de vesting valt je niet van één kant aan. Water, land, lucht, en een brug die te vroeg opengaat. Zeven mensen die Trijntje iets schuldig zijn: dat is een leger. · *Ommelander Ronde, 1953* (hart): Oma was negentien. De Ronde was in Bourtange. De jury had paling in de zak. Hendrik Oldenhuis zat voorop en gaf zichzelf de prijs. "Ik ben Gronings. Wij zeggen het één keer. Dit is die keer."
+
+### O29 · Stil in het klooster
+
+| Type | Regio | Speler | Start | Beloning | Code |
+|---|---|---|---|---|---|
+| te voet, sluipen | Westerwolde | Tammo | Een zandweg bij Sellingen, een kwartier lopen van "Huize Stilte" (nacht, 01:00) | € 3000 | `O29` / missie `klooster` |
+
+De nacht voor de finale. Het "klooster" uit het plan is verplaatst: **Huize Stilte** is een fictief voormalig kloosterlandgoed bij Sellingen, tegenwoordig een stiltehuis; het staat niet op een echte plek.
+
+**Wissel:** **Tammo** *(droog, zacht)*: Ik ga. Stilte kan ik. Ik oefen het al twaalf jaar. · **Lead:** **Tessa** *(zacht, aan de telefoon)*: Ubbo's laatste jury logeert in een stiltehuis. Drie van hen krijgen morgenochtend een envelop. Als jij ze ruilt, ruilen zij mee. Je mag niets laten horen.
+
+**Bel Rikus (beller: Rikus zelf)**
+- **Rikus** *(zacht, samenzweerderig, laat op de avond, als nacht-dj op de radio)*: Nachtstreek, de stilste uitzending van het jaar. Ik draai niks. Ik zeg niks. Ik adem alleen. Als jullie dat horen, ben ik er.
+
+**Route en plekken.** Een zandweg bij **Sellingen** → het hek van Huize Stilte → de **kruidentuin** (grind, gras, kruidenbedden, een kapelletje met een collectebus) → de gastenvleugel met drie ramen op de begane grond (de kamers van notaris Rieks, slager Ruurd en kermisbaas Hennie) → de keuken → de achterpoort.
+
+**Verloop**
+1. **Sluipen door de kruidentuin** (`noise`-meter, NIEUW): grind = luid, gras = stil, kruidenbedden = niezen (wacht). De stiltebel (een kleine klok in het kapelletje) gaat bij 100 %.
+2. **Luister bij de drie ramen** (`listen`): elk jurylid praat in zijn slaap (grappen: zie scène).
+3. **Ruil de enveloppen** (`swap`, NIEUW; houd E 3 s per envelop): in elke envelop zit Ubbo's geld; jij stopt Oma's receptkaartje en een warm eierbalpakket (thermoszak) ervoor in.
+4. **Het geld** gaat in de collectebus van de kapel ("Voor het dak. Die lekt."): scènetje.
+5. **Weg via de keuken:** Broeder Everhard (stil, met een schoolbord) zit er al; hij ziet je en schrijft iets.
+
+**Falen:** de stiltebel gaat (noise 100 %): de gasten worden niet wakker, maar Broeder Everhard staat in de deuropening met zijn schoolbord: opnieuw vanaf het hek. Er zijn geen gevaarlijke bewakers; het is een stiltehuis. **Overslaan** na één poging: de enveloppen zijn geruild, de collectebus-scène speelt. **Bezit:** niets.
+
+**Intro.** *Camera:* Een zandweg bij maanlicht, de heide zilver; een hek met een bordje "STILTE"; de camera gaat zonder geluid over het hek; in de kruidentuin elke stap hoorbaar groot: grind, gras, een uil. Close op Tammo's schoenen.
+- **Tammo** *(droog, gefluisterd)*: Dit is een tuin met een bordje. Het bordje zegt: stil. Ik doe wat het bordje zegt.
+- **Tessa** *(zacht, in het oortje)*: Grind is luid. Gras is stil. Kruiden niezen.
+- **Tammo** *(droog, gefluisterd)*: Kruiden niezen?
+- **Tessa** *(zacht, in het oortje)*: Lavendel. Ik heb het opgezocht.
+
+**HUD-doelen:** "Sluip door de kruidentuin (houd de stilte-meter laag)" → "Luister bij de drie ramen" → "Ruil de drie enveloppen (houd E)" → "Stop het geld in de collectebus" → "Weg via de keuken"
+
+**In de missie (fluisterend)**
+- **Tessa** *(zacht, in het oortje)*: Gras links. Daar. Niet het grind.
+- **Boswachter Siemen** *(fluisterend, door een raam)*: Ik snurk. Ga uw gang.
+- **Tammo** *(gefluisterd, droog)*: Dank u.
+- **Boswachter Siemen** *(fluisterend)*: Ik meld alleen: de kat zit bij de keuken. Hij is de enige die het hoort.
+- **Notaris Rieks** *(slaaptalend, mompelend)*: …tekenen…lezen…ik moet lezen…
+- **Slager Ruurd** *(slaaptalend, stug)*: …één kilo…per man…geen vis…
+- **Kermisbaas Hennie** *(slaaptalend, plechtig)*: …eerlijk voor mij…eerlijk voor mij…
+- **Tammo** *(gefluisterd, droog)*: Hij herhaalt het in zijn slaap. Dat is erg.
+- **Tessa** *(zacht, in het oortje)*: Envelop. Nu. Geen geluid.
+- **Tammo** *(gefluisterd, gespannen)*: Het kaartje van Oma. "Proef eerlijk. T." Erin.
+- **Tessa** *(zacht, in het oortje)*: En de thermoszak. Warm. Dat ruiken ze straks.
+- **Tammo** *(gefluisterd, verrast)*: Er zit… veel geld in.
+- **Tessa** *(zacht, in het oortje)*: De collectebus. In het kapelletje. Daar mag het in.
+
+**Scène: De collectebus.** *Camera:* Het kapelletje bij maanlicht; een eenvoudige houten collectebus met het plaatje "Voor het dak"; Tammo schuift één voor één de bundels naar binnen; elke bundel een zachte plof; boven in het balkenwerk een gat waar de maan doorheen schijnt.
+- **Tammo** *(gefluisterd, droog)*: Voor het dak. Dat lekt. Dat zie ik.
+- **Tessa** *(zacht, in het oortje, lachend)*: Dat is het eerlijkste wat dat geld ooit gedaan heeft.
+- **Broeder Everhard** *(geschreven op een schoolbord)*: IK HEB NIKS GEZIEN. ZELFS NIET DE KAT. `[geschreven op het scherm; geen stem]`
+- **Tammo** *(gefluisterd, zacht)*: Dank u, broeder.
+- **Broeder Everhard** *(geschreven op een schoolbord)*: HET DAK DANKT U.
+
+**Outro.** *Camera:* De zandweg bij het eerste ochtendgrauw: Tammo loopt naar de Fjord waar Tessa wacht; ze geeft hem een thermosbeker; geen woorden; alleen hun adem. De camera blijft op afstand; boven het bos de eerste vogel.
+- **Tessa** *(zacht)*: Drie enveloppen geruild.
+- **Tammo** *(droog, zacht)*: Drie keer eerlijk.
+- **Tessa** *(zacht, een glimlach)*: Hij merkt het pas bij het ontbijt.
+- **Tammo** *(droog, zacht)*: Dan zit hij al aan tafel.
+
+**Bij herhaling:** **Tammo** *(droog, gefluisterd)*: Weer die tuin. Het gras is mijn vriend. **Mislukt:** **Tammo** *(droog, gefluisterd)*: De bel. Ik zweer dat het grind begon. · **Tessa** *(zacht)*: Grind begint nooit. Grind is gewoon grind.
+
+**Berichten:** *U. Oldenhuis*: "Mijn jury heeft slecht geslapen. Dat is vreemd. De bedden zijn nieuw. – U.O." **Kiekdoar:** "Stiltehuis bij Sellingen: collectebus 's nachts onverwacht vol. Beheerder: 'Het dak is gered. Door wie, weten we niet. De kat zegt niks.'"
+**Afrondingskaart:** **STIL IN HET KLOOSTER** · Drie enveloppen. Eén collectebus. Eén dak, gered. · *+ € 3000*
+
+**Autogesprek `o29-pass-dak`:** **Tessa** *(amused)*: Een dak. Dat is het enige goede wat Ubbo ooit betaald heeft. · **Tammo** *(dry)*: Zonder het te weten. · **Tessa** *(dry)*: Dat is de beste soort.
+**Autogesprek `o29-fail`:** **Tammo** *(whispering, dry)*: Het was lavendel. · **Tessa** *(soft)*: Het is altijd lavendel.
+
+**"Wat weten we?"** *Drie enveloppen* (clue): Ubbo's laatste jury (notaris Rieks, slager Ruurd, Hennie) logeerde in een stiltehuis bij Sellingen. Tammo ruilde hun enveloppen voor Oma's kaartje en een warm pakket. Het geld ging in de collectebus voor het dak.
+
+### O30 · Het beleg
+
+| Type | Regio | Speler | Start | Beloning | Code |
+|---|---|---|---|---|---|
+| groot gevecht (toneel, geen doden) | Westerwolde (Vesting Bourtange) | Tessa | Een hooiberg ten noorden van de vesting (zaterdag, middag) | € 5000 | `O30` / missie `beleg` |
+
+**Wissel:** **Tessa** *(vastberaden)*: Ik leid. Jij zit bij de duiven. Zeg waar het grind begint. · **Lead:** **Berend Bos** *(nors, aan de telefoon)*: Het leger staat klaar. Ik ben de bisschop. Jij bent de generaal. Dat is voor het eerst dat een Stadjer een leger leidt dat ik niet verraad.
+
+**Bel Rikus (beller: Rikus zelf, live)**
+- **Rikus** *(warm, plechtig, als nacht-dj op de radio, in het daglicht)*: Nachtstreek, in het daglicht. Ik voel me een vleermuis. Ik sta op de heide ten noorden van Vesting Bourtange. Er zijn kartonnen kanonnen. Ik tel er zeven.
+- **Rikus** *(droog, als nacht-dj op de radio)*: De torenwachter belde: "Ik zie een vesting. Er staat een leger voor. Het is Gronings." Hij meldt alleen.
+- **Harm** *(gemoedelijk, trots, met een pion)*: De vesting is afgesloten. Laatste fase.
+- **Tessa** *(droog)*: Harm. Dit is écht de laatste fase.
+- **Harm** *(gemoedelijk, na een pauze, met overtuiging)*: …Ik zeg het nu voor het eerst met overtuiging.
+
+**Route en plekken.** Een hooiberg op de heide ten noorden van **Vesting Bourtange** (krijgsberaad) → de **gracht** met de ophaalbrug aan de noordkant → de glooiing (de "zompige voorzijde": veen) → de vijf **bolwerken** (waarvan er drie genomen worden) → de **poort** en het centrale plein met kerkje, hoofdwacht en kruithuis (namen OSM-check). Wat daar nu staat is museum; voor het spel zijn de gebouwen leeg en de bezoekers weg (Ubbo heeft de vesting afgehuurd: "besloten finale").
+
+**Opzet.** Zeven bondgenoten, vier fronten, één bevelwiel (`command`, NIEUW): Tessa staat op een kleine commandoplek (een hooikar) en geeft per front een teken (E + 1-4); elk front speelt dan een eigen mini-setpiece van ± 15 s, met banter. Wie geraakt wordt door meel of water wordt "wit" of "nat" (trager, geen schade); er bestaat in dit gevecht geen dood. De klok loopt 8 minuten.
+
+**Verloop (vijf aktes, met cutscènes)**
+1. **Akte 1: Het krijgsberaad** (cutscène, zie onder): de bondgenoten komen één voor één bij de hooiberg. Berend verdeelt het leger.
+2. **Akte 2: De gracht.** Lammert zet de sluis op de Ruiten Aa open (de gracht stijgt zodat de boten onder de brug kunnen); Kapitein Klaas loodst de eerste boten; Fenna leidt de voetsoldaten over het veen ("Zet je voeten waar ik ze zet"); Jelle springt met zijn polsstok en valt erin. Tessa vaart mee in de voorste boot.
+3. **Akte 3: De ophaalbrug.** Wubbo bedient de lier: hij opent **te vroeg**. Berend op Münster rijdt de brug over; de verdedigers deinzen terug.
+4. **Akte 4: De bolwerken.** Drie bolwerken nemen: **Meel** (Roelfiens gewasspuiter laat een witte wolk vallen), **Duiven** (Bert met veertig duiven op de hoeden van de knechten) en **Kanon** (Tinus' trekker trekt de belegertoren, Durk en Douwe duwen het kartonnen kanon om). Op elk bolwerk plant Tessa de kartonnen vlag.
+5. **Akte 5: De poort.** Berend wint. Cutscène.
+
+**Falen, overslaan:** de klok (8 min) loopt af: "Het beleg is mislukt" (het toneel is afgelopen; Berend zit met zijn hoofd in zijn handen). Je kunt niet doodgaan. **Overslaan** na één poging: de vesting is genomen, de poortscène speelt. **Bezit:** niets; de boten, trekker, spuiter en het paard zijn van de bondgenoten.
+
+**Akte 1 · Het krijgsberaad (cutscène).** *Camera:* Een hooiberg op de heide, een grote kaart op een hooikar met bierviltjes als eenheden. De camera maakt een trage cirkel om de tafel terwijl de bondgenoten één voor één in beeld komen: een boot op een aanhanger, een trekker met een torenvormige constructie, een gele gewasspuiter aan de horizon, een limousine met een trekker-motorkap. Heide in bloei rondom. Rikus staat met een microfoon op een hooibaal.
+- **Berend Bos** *(nors, plechtig, op Münster)*: Dames en heren. Het beleg van Bourtange. Zestienhonderdtweeënzeventig. Ik verloor. Vandaag niet. `[camera: pan]`
+- **Rikus** *(warm, plechtig, live)*: Het is half twee. De zon schijnt. Er is geen schot, geen bloed, geen kogel van ijzer. Alleen karton, meel en water. Zo is het in Grunn.
+- **Tessa** *(zakelijk, boven de kaart)*: Vier fronten. Water. Land. Lucht. Brug. Wie waar?
+- **Sluiswachter Lammert** *(oud, kalm)*: Ik heb de sleutel van de sluis. Vrij genomen voor het eerst in zestig jaar. Mijn neef houdt de sluis in Delfzijl. Hij meldt alleen.
+- **Kapitein Klaas** *(schor, knipogend)*: Een gracht is ook water. Ik vaar ze allemaal. Behalve de zee. Die is te groot voor mijn geduld.
+- **Wadgids Fenna** *(kordaat)*: Het veen is net het wad. Je moet de route kennen. Zet je voeten waar ik ze zet. En niet erbij.
+- **Jelle Terpstra** *(charmant, opschepperig)*: Jelle springt. Altijd. Met polsstok. Foar mem. *(Jelle springt. Altijd. Met polsstok. Voor mijn moeder.)*
+- **Tinus** *(kort, trots)*: Trekker heeft een toren. Hij trekt hem. Zonder motor ging het niet. Met motor wel.
+- **Roelfien** *(droog, kordaat)*: Ik vlieg boven. Meel. Zes zakken. Eén keer wit. Daarna sta ik stil.
+- **Brugwachter Wubbo** *(gemoedelijk, trots)*: Ik doe de lier van de brug. Te vroeg. Voor één keer. Ik oefen het al vanochtend.
+- **Duivenmelker Bert** *(zacht, wijs)*: Veertig duiven. Ze luisteren naar niemand. Behalve naar jongen. Tammo, kom maar.
+- **Durk** *(traag, plechtig)*: Wij zijn de stormram. Wij hebben er ook niets tegen.
+- **Douwe** *(traag, trots)*: …tegen.
+- **Dokter Dijkstra** *(droog, zakelijk)*: Er is vandaag geen gewonde. Het is toneel. Ik sta er toch. Dit stond niet in het rooster, maar het staat er nu.
+- **Kosteres Geesje** *(droog, kordaat)*: Ik zie alles vanaf mijn toren. Dit is geen toren. Het is een hooiberg. Ik zie alles toch.
+- **Tessa** *(zacht, bijna ontroerd)*: Zeven mensen. Zeven gunsten. Ik weet niet wat ik moet zeggen.
+- **Berend Bos** *(nors, kort)*: Zeg: aanvallen. Dat is wat een generaal zegt.
+- **Tessa** *(vastberaden)*: Aanvallen.
+
+**Akte 2 · De gracht (in de missie)**
+- **Sluiswachter Lammert** *(oud, kalm, via de marifoon)*: Sluis open. Het water komt. Het komt niet snel. Het komt op tijd.
+- **Kapitein Klaas** *(schor, via de marifoon)*: Stuurboord, Tessa. Dat is rechts. Dat zeg ik ook tegen mijn boot.
+- **Wadgids Fenna** *(kordaat, op het veen)*: Hier. Daar. Niet dáár. Ik zei: niet dáár.
+- **Knecht van Ubbo** *(stug, roepend, van de wal)*: Wij houden de gracht! Dat is onze gracht!
+- **Tessa** *(strijdlustig, in de voorste boot)*: Hij is van iedereen. Het is een gracht.
+- **Jelle Terpstra** *(roepend, in de lucht)*: Oant sjen! *(Tot ziens!)* — *plons*
+- **Tessa** *(lachend)*: Jelle ligt in de gracht.
+- **Kapitein Klaas** *(schor, grinnikend)*: Hij ligt er elke keer in. Dat is een traditie.
+
+**Akte 3 · De ophaalbrug (in de missie)**
+- **Brugwachter Wubbo** *(trots, rustig, via de marifoon)*: Lier. Nu. Te vroeg. Het is gelukt.
+- **Tessa** *(verbaasd)*: Hij is open. Voor we toeterden.
+- **Brugwachter Wubbo** *(trots, rustig)*: Te vroeg. Dat is ook een soort op tijd. Het is mijn beste dag.
+- **Berend Bos** *(nors, roepend, op Münster)*: Voor Münster! Voor het bisdom! Voor het eerst!
+- **Knecht van Ubbo** *(stug, verbaasd)*: Dat is een bisschop. Daar mag je niet op schieten. Met karton.
+
+**Akte 4 · De bolwerken (in de missie)**
+- **Roelfien** *(droog, kordaat, door de marifoon)*: Boven jullie. Meel komt. Hoofd omlaag.
+- **Knecht van Ubbo** *(stug, onder het meel)*: Ik ben wit. Ik ben alweer wit.
+- **Tessa** *(lachend)*: Net Sinterklaas.
+- **Duivenmelker Bert** *(zacht, wijs, door de marifoon)*: Laat de jongen roepen. Ze komen.
+- **Tammo** *(droog, gespannen, door de marifoon)*: Duiven. Links. Op de hoeden. Nu.
+- **Knecht van Ubbo** *(stug, geschrokken)*: Er zit een duif op mijn hoed.
+- **Durk** *(traag, plechtig, bij het kanon)*: Dat kanon is van karton.
+- **Douwe** *(traag)*: …karton.
+- **Durk** *(traag, trots)*: Dat is onze specialiteit.
+- **Tinus** *(kort, trots, op de trekker)*: Toren trekt. Hij leunt. Hij leunt goed.
+- **Kosteres Geesje** *(droog, kordaat, op de hooikar)*: Links. Het derde bolwerk. Ze kijken niet. Ze eten.
+- **Tessa** *(snel, plantend)*: Vlag. Vlag. Vlag. Drie.
+
+**Akte 5 · De poort (cutscène).** *Camera:* De poort van de vesting, de ophaalbrug neerwaarts; een lange track achter Berend op Münster naar binnen; de knechten staan op een rij met hun gele petten in hun handen; de camera blijft laag bij het paard en kijkt omhoog naar Berend's gezicht. Dan een brede kraanshot over het plein, de vijf bolwerken met kartonnen vlaggen, de gracht met Jelle die zich eruit hijst.
+- **Berend Bos** *(nors, zacht, verbaasd)*: …Het is open.
+- **Tessa** *(zacht)*: Het is open, Berend.
+- **Berend Bos** *(nors, onzeker)*: Ik heb gewonnen.
+- **Tammo** *(droog, zacht)*: U heeft gewonnen.
+- **Berend Bos** *(nors, bijna fluisterend)*: Dit is verkeerd.
+- **Tessa** *(lachend, ontroerd)*: Dat is winnen, Berend.
+- **Berend Bos** *(nors, na een lange pauze)*: Dan is winnen verkeerd.
+- **Rikus** *(warm, plechtig, live)*: Grunn. Het is half vier. Het beleg van Bourtange is gewonnen door de belegeraars. Voor het eerst in de geschiedenis. Berend Bos heeft gewonnen. Hij zegt dat het verkeerd voelt. Dat is hoe het hoort.
+- **Brugwachter Wubbo** *(trots, rustig, via de marifoon)*: Ik meld alleen: het is te vroeg gelukt. Dat is een record.
+- **Harm** *(gemoedelijk, trots, bij een pion)*: Vesting is geopend. Eerste fase.
+- **Berend Bos** *(nors, zacht, tegen zichzelf)*: Eindelijk. Eerste fase.
+- **Ubbo Oldenhuis** *(joviaal, vanaf de trap van de hoofdwacht, klapt langzaam)*: Mooi gedaan, mevrouw. Mooi gedaan, allemaal. Ik had het niet beter kunnen regisseren. Komt u binnen. Er is een tafel gedekt. Er is een jury. Dit is wat ik wilde. `[camera: close]`
+- **Tessa** *(kil, zacht)*: Dat wilde je?
+- **Ubbo Oldenhuis** *(vriendelijk)*: Een finale. In mijn vesting. Met iedereen erbij. Dat is de enige manier waarop een Ronde afloopt.
+
+**Bij herhaling:** **Berend Bos** *(nors)*: Weer het beleg? Ik win nog steeds niet graag. Doe maar. **Mislukt:** **Berend Bos** *(nors, hoofd in zijn handen)*: Het is mislukt. Zoals altijd. Ik ben er goed in. · **Tessa** *(zacht)*: Nee, Berend. Nu was het ons.
+
+**Berichten:** *U. Oldenhuis*: "Het beleg. Karton. Meel. Duiven. Dat is geen leger. Dat is een parade. Ik was erbij. – U.O." **Kiekdoar:** "Vesting Bourtange 'genomen' door een leger van karton, meel en duiven. Voor het eerst in 354 jaar wint de belegeraar. Bisschop: 'Dit is verkeerd.' Dokter: 'Er is geen gewonde. Ik sta er toch.'"
+**Afrondingskaart:** **HET BELEG** · Zeven bondgenoten. Vijf bolwerken. Nul doden. · *+ € 5000*
+
+**Autogesprek `o30-pass-winnen`:** **Tammo** *(dry)*: "Dan is winnen verkeerd." Dat zegt hij over alles. · **Tessa** *(warm)*: Maar nu zei hij het voor het eerst na een overwinning. · **Tammo** *(dry)*: Dat is het mooiste.
+**Autogesprek `o30-pass-zeven`:** **Tessa** *(moved)*: Zeven mensen. Voor Oma. · **Tammo** *(dry, soft)*: Zeventig jaar rente. · **Tessa** *(quiet)*: Ze hebben het allemaal betaald.
+**Autogesprek `o30-fail`:** **Tammo** *(dry)*: Acht minuten. Berend zegt dat hij het in zeven had gedaan. · **Tessa** *(dry)*: Hij heeft veertig jaar verloren. Hij weet.
+
+**"Wat weten we?"** *Het beleg van Bourtange* (clue): De vesting is genomen door een leger van karton, meel en duiven. Berend Bos heeft voor het eerst gewonnen. Ubbo wil dat het zo gaat: "Een finale in mijn vesting, met iedereen erbij." · *Zeven gunsten* (hart): Geesje, Lammert, Fenna, Jelle, Tinus, Roelfien, Wubbo. Zeventig jaar rente, in één middag afbetaald.
+
+### O31 · De laatste ronde
+
+| Type | Regio | Speler | Start | Beloning | Code |
+|---|---|---|---|---|---|
+| bakken + achtervolging (drie stukken, zoals H18) | Westerwolde | Tammo, met een wissel naar Tessa | De hoofdwacht op het plein van Vesting Bourtange (zaterdag, laat in de middag) | € 6000 | `O31` / missie `laatste` |
+
+**Wissel:** **Tammo** *(droog, zacht)*: Ik bak. Daar ben ik goed in. De rest is aan jou. · **Lead:** **Tessa** *(zacht, aan de telefoon)*: Het is zover. Het laatste bord. Eén jury. Eén bal. Ubbo zit op het podium. Ik zit naast je.
+
+**Bel Rikus (beller: Oma Trijntje, in de vesting)**
+- **Rikus** *(warm, plechtig, als nacht-dj op de radio, live)*: Nachtstreek, in het daglicht, het laatste uur. Aan de lijn: een dame van tweeënnegentig, uit een limousine met een motorkap van een trekker.
+- **Oma Trijntje** *(droog, stellig, aan de telefoon op de radio)*: Rikus. Trijntje. Ik ben er. Ik zit in de schaduw. Het is warm. Het is een goede dag.
+- **Rikus** *(warm, als nacht-dj op de radio)*: En de eierbal?
+- **Oma Trijntje** *(droog, liefdevol, aan de telefoon op de radio)*: Die is van mijn kleinzoon. Die is van mijn kleinzoon en zijn vriendin. Dat is nog beter.
+
+**Route en plekken.** De hoofdwacht en het plein van **Vesting Bourtange** (jurytafel op het plein; de keuken in een oude vestingbakkerij, fictief) → de ophaalbrug uit → de **heide en het veen ten oosten van de vesting** (zandwegen, veenwegen, hoogspanningslijn) → een verlaten laadplaats van een heli (fictief) → het **grensbord** bij het Bourtangermoor (OSM-check; grensovergang bij Rütenbrock).
+
+**Verloop (drie stukken)**
+1. **De kraam: bakken** (Tammo, `bake`, NIEUW): drie rondes van 70 s in de vestingbakkerij. Zeven ingrediënten, één van elke regio: kerkland-paneermeel (Hogeland), zeezout (Eemsdelta), de Wadkust- en Westerkwartier-ingrediënten uit F4b (ingevuld door F4b), gerstemout (Oldambt), aardappelzetmeel (Veenkoloniën) en heidehoning in de mosterd (Westerwolde: Siemens bijen). De jury proeft in de tweede ronde.
+2. **De proeverij** (scène): Oldenhuis Bakt gaat eerst; dan de Fjord. Oma spreekt. Ubbo grijpt de Gouden Eierbal en vlucht.
+3. **De achtervolging (wissel naar Tessa):** over de heide en het veen, achter Ubbo's gouden terreinwagen met twee quads aan; de eierballen in de Fjord moeten warm blijven (`warm`-meter; remmen voor eieren); Henk belt: de zender onder Ubbo's bumper geeft de stip op de kaart. 
+4. **De duiven (wissel naar Tammo):** bij de heli-plek stuurt Tammo met Bert's duiven een zwerm voor de voorruit van Ubbo's heli: de piloot kan niets zien en landt zacht (duiven blijven heel; ze zijn "onder de indruk"). `pigeon`-stage.
+5. **Het grensbord (wissel naar Tessa):** Siemens pick-up blokkeert de laatste weg; Ubbo loopt met de bal naar het bord. Scène.
+6. **Terug naar de vesting:** de prijsuitreiking (outro).
+
+**Falen, overslaan:** bakken: de eierballen verbranden (rondes mislukt = jury krijgt ze koud: dat is minder, geen fail; drie keer mislukt = fail). Achtervolging: Ubbo > 400 m weg; de `warm`-meter op nul (de Fjord-eierballen worden koud: de proeverij is dan al geweest, dus minder erg: de vraag is alleen of Ubbo bij het bord komt). Duiven: de heli stijgt op (45 s). **Overslaan** na één poging: Ubbo staat bij het bord, de bal in zijn hand; de scène en de uitreiking spelen. **Bezit:** niets; de Fjord is van jou, de quads van de knechten.
+
+**Intro: de proeverij (cutscène).** *Camera:* Het plein van de vesting in het late licht: een lange tafel met wit kleed, vijf stoelen met namen; in het midden, onder een glazen stolp, de Gouden Eierbal, naast een bordje "Bruikleen, Groninger Museum". Een trage cirkel om de tafel. De jury komt zitten: Lammert, Berend (nog in zijn mantel), Siemen, en een stoel die leeg blijft. Een limousine met trekkermotorkap rijdt het plein op; Durk en Douwe helpen Oma Trijntje uit de auto; Geesje draagt haar tas.
+- **Kosteres Geesje** *(droog, zacht, draagt een schooltas)*: Ik draag. Dat doen wij. `[camera: close]`
+- **Oma Trijntje** *(droog, stellig)*: Die tas is van 1953.
+- **Kosteres Geesje** *(droog, zacht)*: Ik heb hem bewaard. Er zit een eierbalrecept in. In jouw handschrift. Je vergat hem in de klas.
+- **Oma Trijntje** *(zacht, dan stellig)*: Dat is… niet waar.
+- **Kosteres Geesje** *(droog, warm)*: Wel waar. Nu draag ik wat terug. Ik weet nu wat. Dat weet je dan.
+- **Ubbo Oldenhuis** *(joviaal, vanaf het podium)*: Welkom, mevrouwen en heren, bij de finale van de Ommelander Ronde! Voorzitter van de jury, de oudste in het gezelschap: mevrouw Trijntje. `[camera: wide]`
+- **Oma Trijntje** *(droog, oud)*: Dat hoor ik voor het eerst. Dank je. Ik had het zelf nooit gedacht.
+- **Sluiswachter Lammert** *(oud, kalm, zacht, kijkend)*: Trijntje. Je bent er.
+- **Oma Trijntje** *(droog, zacht, even)*: Lammert. Je bent er ook.
+- **Sluiswachter Lammert** *(oud, droog)*: Ik heb mijn dansschoenen bij me. Ik bewaar ze nog.
+- **Oma Trijntje** *(droog, stellig, zacht)*: Dat is vroeg. Eerst proeven.
+
+**HUD-doelen (stuk 1):** "Bak in de vestingbakkerij (3 rondes)" → "Serveer de jury"
+
+**Stuk 1 · Bakken (in de missie)**
+- **Tessa** *(gehaast, naast hem)*: Eerste ronde. Kerkland-paneermeel. Zeezout. Hou de olie op temperatuur.
+- **Tammo** *(droog, geconcentreerd)*: Ik doe alles tegelijk. Zo kan ik het.
+- **Tessa** *(snel)*: Tweede ronde. Mout, zetmeel. De korst moet kraken.
+- **Tammo** *(droog, gespannen)*: Hij kraakt. Dat is goed. Dat is Veendam.
+- **Tessa** *(snel, zacht)*: Derde. Heidehoning in de mosterd. Zeven ingrediënten. Eén bal.
+- **Tammo** *(droog, zacht, even stil)*: Eén bal. Voor Oma.
+
+**Stuk 2 · De proeverij (scène).** *Camera:* Op het plein; het bord met Ubbo's snackbar-ballen op een gele schaal komt eerst; de camera laat de gezichten één voor één passeren. Dan wordt een bordje met één eierbal van de Fjord voor Oma gezet; de camera blijft lang op haar handen, die trillen, en dan op haar gezicht.
+- **Ubbo Oldenhuis** *(joviaal, trots, wijzend)*: Oldenhuis Bakt. Eenenveertig snackbars. Eén recept. Probeer.
+- **Boswachter Siemen** *(rustig, kort, proevend)*: Ow.
+- **Sluiswachter Lammert** *(oud, droog, proevend)*: Ow.
+- **Berend Bos** *(nors, proevend)*: Ow. Hoorde u dat? Ow.
+- **Oma Trijntje** *(droog, oud, proevend)*: Ow.
+- **Ubbo Oldenhuis** *(joviaal, een tikje onzeker)*: Dat is vier keer Ow. Dat is veel Ow.
+- **Rikus** *(droog, plechtig, live)*: Ow is de eerste trede, Ubbo. Daar sta je. Je staat er goed.
+- **Tessa** *(zacht, zet het bordje voor Oma)*: Oma. De Fjord.
+- **Oma Trijntje** *(zacht, een hap)*: …
+- **Boswachter Siemen** *(rustig, kort, proevend)*: Braid noar de zin. *(Helemaal tevreden.)*
+- **Sluiswachter Lammert** *(oud, plechtig, zacht, proevend)*: Kon minder. Ik heb dat bewaard, Trijntje. Zeventig jaar. Voor jou.
+- **Berend Bos** *(nors, kauwend, een tel stil)*: …
+- **Berend Bos** *(nors, hees)*: …
+- **Rikus** *(zacht, plechtig, live)*: Berend Bos zegt niks. Dat is de hoogste trede. Dat is een kloet in de strotte.
+- **Oma Trijntje** *(stil, een lange pauze)*: …
+- **Oma Trijntje** *(droog, oud, haar stem breekt, dan stellig)*: Dit is 1953. Dit is mijn eierbal. Die van toen.
+- **Oma Trijntje** *(stellig, tegen Ubbo)*: Weet je wat dat betekent? Dat hij toen ook beter was. Dat jouw opa het wist.
+- **Ubbo Oldenhuis** *(joviaal, verstijfd)*: Dat is een beschuldiging.
+- **Tessa** *(kil, zacht, legt een telefoon neer)*: Het is een vel papier. "Eigen kar: 10. Trijntje: 6." Met een kilo paling per jurylid.
+- **Sluiswachter Lammert** *(oud, droog)*: Mijn broer was een van die juryleden. Hij heeft die paling nooit opgegeten. Hij werd zeeziek van het idee.
+- **Ubbo Oldenhuis** *(stil, kil)*: …
+- **Ubbo Oldenhuis** *(snel, zacht)*: Dan is dit voorbij.
+- **Ubbo Oldenhuis** *(snel, grijpt de stolp)*: Dan is de bal van de sponsor.
+- **Tammo** *(droog, scherp)*: Ubbo.
+- **Ubbo Oldenhuis** *(snel, rent met de Gouden Eierbal)*: Vergunning verlopen, jongens! Dat is geen kwestie van willen! Dat is papier! `[camera: track]`
+
+**Stuk 3 · De achtervolging, wissel naar Tessa (in de missie)**
+- **Tammo** *(gehaast, bij de vestingpoort)*: Hij heeft een terreinwagen. Goud. Twee quads erachter. Ik zie het stofspoor. Naar het oosten.
+- **Tessa** *(vastberaden, achter het stuur)*: Ik ben al weg.
+- **Henk** *(gemoedelijk, aan de telefoon)*: Moi. Henk. Hij liet zijn auto bij mij nakijken. In Stad. Voor de Ronde. Ik heb alleen even onder zijn bumper gekeken.
+- **Tessa** *(snel, aan de telefoon)*: Henk!
+- **Henk** *(gemoedelijk, wetend, aan de telefoon)*: Ik vraag niet waarom. Er zit een schroefje. Eentje. Ik zie hem. Hij gaat naar het oosten. De heide op.
+- **Tessa** *(vastberaden)*: Dank, Henk. Zeg het niet tegen de baas.
+- **Henk** *(gemoedelijk)*: Die baas zit er al niet meer.
+- **Tessa** *(gespannen)*: Eerst de eierballen. Ze mogen niet afkoelen. Zacht remmen.
+- **Tammo** *(droog, aan de telefoon)*: Remmen voor eieren. Daar ben ik beroemd om.
+- **Tessa** *(scherp)*: Niet nu, Tammo. Ik doe het zelf.
+- **Wolvenman Gerrit** *(fluisterend, vanuit de heide, aan de telefoon)* `[alleen als Z17-Z19 gespeeld]`: Gerrit. Wolvenman. Ik heb een sporenlijn. Hij loopt naar het oosten. Bor wijst de andere kant op. Ik ga mee met Bor.
+- **Tessa** *(snel)*: Dank, Gerrit.
+
+**Stuk 4 · De duiven, wissel naar Tammo (in de missie)**
+- **Tessa** *(gespannen, via de marifoon)*: Hij is bij de heli. Hij zit er al in. Tammo!
+- **Duivenmelker Bert** *(zacht, wijs, bij de vestingmuur)*: Kom, jongen. Fluit maar. Ze staan klaar.
+- **Tammo** *(droog, de ogen dicht, fluitend)*: …Ik fluit. De duif pikt.
+- **Tammo** *(droog, geconcentreerd)*: Voor de voorruit. Alle veertig. Zacht.
+- **Ubbo's piloot** *(roepend, vanuit de heli)*: Ik zie niks! Er zit een duif op mijn bril!
+- **Tammo** *(droog, zacht, met een kleine glimlach)*: Ze willen alleen even zitten.
+- **Duivenmelker Bert** *(zacht, wijs)*: Ze luisteren naar niemand. Alleen naar jou. Dat is de gave. Gebruik haar mooi.
+- **Tammo** *(droog, zacht)*: Landen. Rustig. Het is maar een grasveld.
+- **Ubbo's piloot** *(roepend, opgelucht)*: Ik land! Ik land! Hij staat!
+
+**Stuk 5 · Het grensbord, wissel naar Tessa (scène).** *Camera:* Een smalle veenweg die doodloopt op een blauw bord met sterren en een witte streep; de Fjord stopt achter een boswachtersauto; vlak voor de streep staat Ubbo, de Gouden Eierbal in beide handen, ademloos; aan de ene kant een Nederlandse agent in blauw, aan de andere een Duitse in groen, een thermoskan tussen hen. De camera blijft op een hoogte van de bal, de zon laag erachter.
+- **Grenswacht** *(kortaf, onverbiddelijk)*: Hier houdt het op. Voor mij.
+- **Grenzwächter** *(kortaf, vriendelijk)*: Hier hört es auf. Für mich auch. *(Hier houdt het op. Voor mij ook.)*
+- **Ubbo Oldenhuis** *(buiten adem, joviaal, uit gewoonte)*: Ik heb papieren, meneer. Ik heb altijd papieren.
+- **Grenswacht** *(droog, vriendelijk)*: Voor u. Niet voor de bal. Uitvoervergunning ontbreekt. Dat is geen kwestie van willen. Dat is papier.
+- **Ubbo Oldenhuis** *(stil, een bittere lach)*: Mijn eigen zin.
+- **Grenzwächter** *(vriendelijk, aan de overkant)*: Wollen Sie einen Kaffee? *(Wilt u koffie?)*
+- **Ubbo Oldenhuis** *(stil)*: …Graag.
+- **Tessa** *(zacht, uit de Fjord stappend)*: Ubbo.
+- **Ubbo Oldenhuis** *(stil, zonder om te kijken)*: Meisje. Je hebt de bal geroken. Hij is warm.
+- **Tessa** *(zacht)*: Ja. Het is een Fjord-eierbal. Hij blijft warm.
+- **Ubbo Oldenhuis** *(stil, de bal in zijn handen)*: Mijn opa wist het. Een jury is een stoel. Wie erop zit, wint. Hij zat op een kar en op een stoel tegelijk.
+- **Ubbo Oldenhuis** *(stil, eerlijk)*: Ik heb zijn medaille op mijn bureau. Elke ochtend kijk ik ernaar. Ik was zes toen ik hoorde hoe hij hem kreeg. Hij lachte erom. Ik niet.
+- **Ubbo Oldenhuis** *(zacht, kijkt naar de bal)*: Ik heb eenenveertig snackbars gebouwd, zodat niemand ooit meer zou proeven wat wij niet konden.
+- **Tessa** *(zacht, verbaasd)*: Jij kunt wél bakken.
+- **Ubbo Oldenhuis** *(zacht, een kleine lach)*: Nee. Ik ben nooit verder gekomen dan Ow.
+- **Tammo** *(droog, zacht, komt naast haar staan, hijgend, met een bordje)*: Proef.
+- **Ubbo Oldenhuis** *(stil)*: Wat?
+- **Tammo** *(droog, zacht)*: Gewoon. Eén keer. Zonder jury.
+- **Ubbo Oldenhuis** *(stil, een hap, een lange pauze)*: …
+- **Ubbo Oldenhuis** *(zacht, hees)*: Ow.
+- **Ubbo Oldenhuis** *(zacht, na een stilte)*: Dat is hetzelfde Ow. Maar het is niet hetzelfde.
+- **Tessa** *(zacht, een glimlach)*: Dat is de eerste trede, Ubbo.
+- **Ubbo Oldenhuis** *(zacht, kijkt naar de grens)*: Mijn vergunning voor de Vismarkt. Die ligt in mijn kantoor.
+- **Tessa** *(zacht, scherp)*: Die liep af op één september. Dat is geen kwestie van willen. Dat is papier.
+- **Ubbo Oldenhuis** *(zacht, een halve lach)*: …Dat zeg ik altijd.
+- **Ubbo Oldenhuis** *(zacht, geeft de Gouden Eierbal aan Tessa)*: Hier. Hij is niet van mij. Hij was nooit van ons.
+- **Grenswacht** *(droog, vriendelijk)*: Meneer Oldenhuis. Ik moet u meenemen. Voor het uitvoeren van cultuurgoed zonder vergunning. En een paar vragen over enveloppen.
+- **Ubbo Oldenhuis** *(zacht, glimlachend)*: Dat is correct. Dat is papier.
+- **Grenzwächter** *(vriendelijk, aan de overkant, rustig)*: Er bekommt Kaffee. Wir passen auf. *(Hij krijgt koffie. Wij letten op hem.)*
+
+**Outro: de prijsuitreiking (cutscène).** *Camera:* Het plein van de vesting in het gouden uur: honderden schaduwen, een tafel met de Gouden Eierbal in het midden, Oma Trijntje in een stoel, Lammert naast haar met zijn dansschoenen in de hand. Een lange, langzame kraanshot over de bolwerken met de kartonnen vlaggen en de bomen; dan een close op Oma's handen. Op de achtergrond komt Ubbo, geëscorteerd, terug om iets te zeggen.
+- **Rikus** *(warm, plechtig, live)*: Nachtstreek, in het daglicht, de laatste minuut van de laatste uitzending van de zomer. Er staat een bal op een tafel. Iemand draagt een medaille.
+- **Ubbo Oldenhuis** *(zacht, geëscorteerd, met een gouden medaille in zijn hand)*: Mevrouw Trijntje. Dit is van mijn opa. Eerste prijs. Hij is niet van ons. Dat was hij nooit.
+- **Oma Trijntje** *(stil, een lange pauze, dan droog, oud)*: Ik hang hem naast de andere. Aan het spiegeltje van die frietwagen. Dan heeft Hendrik een plek. Achterin.
+- **Ubbo Oldenhuis** *(zacht, bijna glimlachend)*: Dat is een goede plek.
+- **Kosteres Geesje** *(droog, kordaat)*: Ik heb hem gedragen. De tas. Dat is nu af.
+- **Sluiswachter Lammert** *(oud, kalm, houdt zijn hand uit)*: Trijntje. Mag ik?
+- **Oma Trijntje** *(droog, een kleine glimlach)*: Je hebt zeventig jaar gewacht. Je mag.
+- **Sluiswachter Lammert** *(oud, zacht, zet zijn dansschoenen aan)*: Ik schuif niet meer. Ik dans.
+- **Oma Trijntje** *(zacht, een lach, staat op met hulp van Geesje)*: Langzaam. Met de voeten op de grond.
+- **Tammo** *(zacht, droog, tegen Tessa)*: Ze dansen.
+- **Tessa** *(zacht, een traan)*: Ze dansen. Langzaam.
+- **Rikus** *(zacht, plechtig, live)*: Lammert en Trijntje dansen. Op een plein, in een vesting. Het duurt twee minuten. Het is het mooiste wat ik dit jaar gezien heb. Ik zeg niks. Ik draai strijkers.
+- **Berend Bos** *(nors, zacht, zijn hand voor zijn mond)*: Kon minder.
+- **Brugwachter Wubbo** *(trots, rustig)*: Het is te vroeg gelukt. Maar het is precies op tijd gebeurd.
+- **Harm-Jan** *(opgewonden, zacht, vanuit de menigte)* `[alleen zonder Z4]`: Ik graaf niet. Ik piep. Hij hing al aan haar jas, dacht ik. Het is de medaille. `[naamkaart: harmjan]`
+- **Tessa** *(zacht, aan de rand van de dans, tegen Tammo)*: Het is af, hè?
+- **Tammo** *(droog, zacht)*: Bijna.
+- **Tessa** *(zacht)*: Wat is er nog?
+- **Tammo** *(droog, zacht)*: Thuis.
+
+**Bij herhaling:** **Oma Trijntje** *(droog)*: Weer de finale? Ik ben tweeënnegentig. Ik heb tijd. Kom maar. **Mislukt:** **Tessa** *(ontdaan)*: Hij haalde het bord. De bal is de grens over. · **Tammo** *(droog, zacht)*: Dan halen we hem terug. Het bord kan dat niet verbieden.
+
+**Berichten:** *U. Oldenhuis*: "Ik heb geen telefoon meer. Dit is een bericht van de agent. Hij zegt dat ik 'proef' moet schrijven. Proef. – U.O." · *Mem Terpstra*: "Foar myn jonge. En foar Trijntje. Ik kom nog wel op bezoek. – M." *(Voor mijn jongen. En voor Trijntje.)* **Kiekdoar:** "Gouden Eierbal onderschept op de grens bij Bourtange. Patatbaron aangehouden voor uitvoer zonder vergunning. Grenswacht: 'Wij zijn voor de lijn.'"
+**Afrondingskaart:** **DE LAATSTE RONDE** · Zeven van zeven. Eén bal, thuis. Eén dans. · *+ € 6000*
+
+**Autogesprek `o31-pass-ow`:** **Tammo** *(dry)*: Ubbo zei Ow. · **Tessa** *(warm)*: Hij zei het alsof hij het voor het eerst hoorde. · **Tammo** *(dry, soft)*: Dat is hoe het begint.
+**Autogesprek `o31-pass-dans`:** **Tessa** *(soft)*: Ze danste. Langzaam. Met de voeten op de grond. · **Tammo** *(dry, quiet)*: Ik wil niet weten wat ik daarbij voel. · **Tessa** *(teasing, warm)*: Dat is wat jij voelt, Tammo.
+**Autogesprek `o31-fail`:** **Tessa** *(frustrated)*: Hij haalde het bord. · **Tammo** *(dry)*: Een grens is een lijn. Je moest alleen eerder zijn.
+
+**"Wat weten we?"** *De laatste ronde* (hart): Oma's eierbal was in 1953 beter. De jury zat vol paling. Ubbo gaf toe dat hij nooit verder kwam dan "Ow". Zijn opa's medaille hangt nu aan het spiegeltje van de Fjord, achterin. · *Zeven van zeven* (clue): De Gouden Eierbal is terug. Ubbo is aangehouden voor uitvoer zonder vergunning en voor de enveloppen. "Dat is papier."
+
+### Tussendoor: Een boshut (`n-boshut`)
+
+Speler: Tessa. Doel: `{ type: 'filiaal', at: 'westerwolde' }` (safehouse: de boshut; filiaal zeven: Siemens kiosk aan de bosrand). Korte scène, direct na O31, vóór de colonne.
+**Wissel:** **Tessa** *(zacht, warm)*: Ik pak de sleutel. Jij pakt het deksel van de thermoszak. · **Lead:** **Boswachter Siemen** *(rustig, kort, aan de telefoon)*: Er staat een hut bij het bos. Er kan een luik in. Ik ben boswachter. Ik hou van luiken die er niet te zien zijn.
+**Scène: De boshut.** *Camera:* Een houten hut tussen dennen in het gouden uur; trage dolly door de open deur naar twee stoelen en een tafel met een bord; buiten gaat de zon onder boven de heide.
+- **Boswachter Siemen** *(rustig, kort, warm)*: Dit is het. De hut. Er is hout voor de kachel. Maar het is zomer.
+- **Tessa** *(zacht, glimlachend)*: Filiaal zeven.
+- **Tammo** *(droog, zacht)*: Zeven van zeven.
+- **Boswachter Siemen** *(rustig, droog)*: Zeven is een mooi getal. Ik heb het nooit verteld.
+- **Tessa** *(zacht)*: De Westerwoldse eierbal. Met heidehoning.
+- **Boswachter Siemen** *(rustig, kort)*: De bijen vinden het goed.
+**Klaar:** **Tessa** *(warm)*: Filiaal zeven: de bosrand bij Sellingen. Siemen bakt niet. Hij kijkt toe. Dat is zijn manier. · **HUD:** "Filiaal geopend: de boshut (Siemen)" · "Safehouse: de boshut, met een kachel die niemand nodig heeft" · "Nieuw recept: de Westerwoldse eierbal, met heidehoning in de mosterd" · *Idee voor later: een paard bij de hut.*
+
+### O32 · Thuis
+
+| Type | Regio | Speler | Start | Beloning | Code |
+|---|---|---|---|---|---|
+| verhaal, rijden (colonne) | Westerwolde → Veenkoloniën → Stad | Tessa | Het plein van Vesting Bourtange (gouden uur, zaterdag) | € 2000 | `O32` / missie `thuis` |
+
+**Wissel:** **Tessa** *(zacht, glimlachend)*: Ik rij. Jij zit naast me. Dat is hoe het hoort. · **Lead:** **Oma Trijntje** *(stellig, aan de telefoon)*: Het is tijd, jongens. Ik wil naar huis. En ik wil niet alleen.
+
+**Bel Rikus (beller: de torenwachter, d'Olle Grieze)**
+- **Rikus** *(warm, als nacht-dj op de radio)*: Nachtstreek, de laatste rit. De torenwachter belt.
+- **Torenwachter** *(oud, droog, onverstoorbaar, aan de telefoon op de radio)*: Rikus. Torenwachter. Ik zie een colonne. Hij komt uit het oosten. Hij is lang. Hij heeft een frietwagen voorop.
+- **Rikus** *(droog, als nacht-dj op de radio)*: En?
+- **Torenwachter** *(oud, droog, onverstoorbaar, aan de telefoon op de radio)*: Ik meld alleen. Ik ben blij.
+
+**Route en plekken.** Het plein van **Vesting Bourtange** → **Vlagtwedde** → de N-weg naar **Stadskanaal** (Dries blaast de fluit van de loc op het museumspoor) → **Veendam** (Wubbo opent één brug, niet te laat) → de A7 bij **Zuidbroek** (Roelfiens combines in de berm) → **Hoogezand-Sappemeer** (langs huizen met steigers: de colonne rijdt stil, niemand toetert) → Stad: de **Vismarkt**. De colonne is ± 6 minuten rijden, in een vrij tempo; je kunt toeteren (H) behalve bij de steigers en de dorpskerken.
+
+**Verloop**
+1. **Scène op het plein** (zie onder): wie rijdt in welke auto; Tammo's zes woorden (nee: vijf, en Tessa telt).
+2. **Rij de colonne** (`convoy`, NIEUW): je rijdt voorop in de Fjord Frituur; achter je: de limousine met Oma, Durk, Douwe en Jelle; Roelfiens pick-up; Tinus' trekker; Lammerts bootje op een aanhanger; Wubbo's stationwagen; Eppo's combine achteraan ("Ow"); de rest komt op de weg erbij. Geen tijdslimiet, geen schade, geen politie. De beloning is het uitzicht.
+3. **Cameospots** onderweg (zie onder): iedereen zwaait.
+4. **Hoogezand-Sappemeer: de steigers.** De radio zwijgt; de camera blijft laag; niemand toetert.
+5. **De Vismarkt:** de rij staat er nog (de oude rij uit O1). Slotscène.
+
+**Falen, overslaan:** niet te falen. **Overslaan:** Spatie houdt de colonne in tijdsverloop; de slotscène speelt altijd. **Bezit:** niets nieuws; de Fjord is van jou.
+
+**Scène: Het plein van de vesting (voor vertrek).** *Camera:* De zon laag achter de bolwerken, een lange rij auto's op de ophaalbrug; een lage cirkel om Tessa en Tammo bij de Fjord; Oma wordt in de limousine geholpen door Durk en Douwe, Jelle houdt het portier met een plechtig gezicht.
+- **Tessa** *(zacht, bij de Fjord)*: Tammo. We hebben het nog niet beantwoord.
+- **Tammo** *(droog, zacht)*: Groeien of thuis.
+- **Tessa** *(zacht, eerlijk)*: Ik wil Fjord Frituren in de dorpen waar iemand het lekker vindt. Niet eenenveertig. Zeven. Door mensen die zij zelf zijn.
+- **Tammo** *(droog, zacht)*: Fjord & Familie.
+- **Tessa** *(zacht, verrast)*: Hoe heet dat?
+- **Tammo** *(droog, zacht)*: Zo heet het. Ik heb het bedacht. Op de fiets.
+- **Tessa** *(zacht, een lach)*: En jij?
+- **Tammo** *(droog, kort, stellig)*: Thuis is waar de kar staat.
+- **Tessa** *(zacht, telt op haar vingers)*: Thuis. Is. Waar. De. Kar. Staat. Zes.
+- **Tammo** *(droog, zacht)*: Kon minder.
+- **Tessa** *(lachend, zacht)*: Kon veel minder.
+- **Tammo** *(droog, zacht, even)*: Eén kar. Op de Vismarkt. En één keer per zomer rijdt hij een ronde. Door alle zeven. Dat is ook thuis. Dan heb ik het verplaatst.
+- **Tessa** *(zacht, kijkt hem aan)*: Je wilt dat de kar rijdt.
+- **Tammo** *(droog, zacht)*: Ik wil dat hij terugkomt.
+- **Tessa** *(zacht, glimlachend)*: Dat is een ronde.
+- **Tammo** *(droog, zacht, een glimlach)*: Dat is een ronde.
+
+**Cameospots onderweg**
+- **Vlagtwedde:** **Boswachter Siemen** *(rustig, kort, zwaaiend vanaf de bosrand)*: Ik meld alleen: ik ben blij. · **Wolvenman Gerrit** *(fluisterend, vanuit de heide, zwaaiend)* `[alleen als Z17-Z19 gespeeld]`: Ik heb ze gezien. Ze rijden mooi.
+- **Stadskanaal:** **Machinist Dries** *(schor, droog, op de loc, trekt aan de fluit)*: Dat was voor de stoker. Rijd door.
+- **Veendam:** **Brugwachter Wubbo** *(trots, rustig, op zijn brug)*: Eén brug open, voor de colonne. Op tijd. Ik heb dat nooit eerder gedaan.
+- **A7 bij Zuidbroek:** **Roelfien** *(droog, kordaat, van haar combine)*: Rente betaald. Een beetje extra. Voor de boterham. · **Eppo Bolt** *(luid, grinnikend, achteraan op zijn combine)*: Ow. Ik rij mee. Ik ben grondig.
+- **Hoogezand-Sappemeer (de steigers):** *geen stem.* Alleen de motor, het geluid van banden op asfalt, en één hand die zacht zwaait vanuit een raam.
+- **Onderweg over de weilanden:** **Koe Aaltje** *(droog, vlak, vanaf een wei)*: Ze rijden langzaam. Dat is verstandig. · **Koe Grietje** *(wijs, droog)*: Ze hebben iets goeds gedaan. Dat zie je aan de snelheid.
+
+**Telefoon: Mem Terpstra**
+- **Mem Terpstra** *(warm, stellig, aan de telefoon)*: Tessa. Famke. Ik hoor dat jullie thuiskomen. Ik hoor ook dat Durk en Douwe weer eten. Net fertelle. *(Ik hoor dat jullie thuiskomen. Ik hoor ook dat Durk en Douwe weer eten. Niet doorvertellen.)*
+- **Tessa** *(warm, aan de telefoon)*: Mem. Dank u.
+- **Mem Terpstra** *(warm, stellig, aan de telefoon)*: Ik heb mijn bakkerij terug. De baas zit niet meer in zijn fabriek. Dat is een goeie dag.
+
+**Telefoon: Jelle Terpstra**
+- **Jelle Terpstra** *(zacht, charmant, aan de telefoon)*: Grinzers. Durk en Douwe zitten weer bij mem aan tafel. Ze eten. Ze zeggen niks. Moai.
+- **Tammo** *(droog, aan de telefoon)*: Je klinkt blij.
+- **Jelle Terpstra** *(zacht, eerlijk, aan de telefoon)*: Het is stil. Maar het is een goeie stilte. Tige tank. *(Heel erg bedankt.)*
+
+**Slotscène: De Vismarkt.** *Camera:* De Vismarkt in het laatste zomerlicht; een lange rij mensen, nog steeds tot aan de Korenbeurs; de oude rij uit O1, zonder kraam, die elke dag is blijven komen. De Fjord Frituur rijdt langzaam voorbij de rij; de camera glijdt mee langs de gezichten, dan op de gemeente-bode die een kleurloos bordje van de Oldenhuis Bakt-kraam haalt. Een tijdelijke stilte; dan gaat het luik open.
+- **Rikus** *(warm, plechtig, live)*: Dames en heren. De gemeente belt. De vergunning van Oldenhuis Bakt is vervallen. Er mist een papier: een Verklaring omtrent Gedrag. Er is geen kwestie van willen. Dat is papier.
+- **Rikus** *(droog, als nacht-dj op de radio)*: De plek is vrij. Er staat een frietwagen te wachten. Die rijdt nu.
+- **Menigte** *(juichend, door elkaar)*: Fjord! Fjord! Fjord!
+- **Tammo** *(droog, zacht, naast Tessa, kijkend naar de rij)*: Ze zijn gebleven.
+- **Tessa** *(zacht, ontroerd)*: Elke dag.
+- **Tammo** *(droog, zacht)*: Dat is thuis.
+- **Tessa** *(zacht, een lach)*: Dat is zes woorden.
+- **Tammo** *(droog, zacht, een glimlach)*: Ik heb er nog meer. Maar niet vandaag.
+- **Tessa** *(zacht, legt haar hand op de zijne)*: Bewaar ze.
+- **Rikus** *(zacht, plechtig, live)*: De laatste zomeravond. De zon gaat onder boven de Vismarkt. Ik heb de tweede friet. Hij heeft betaald, zegt hij. Hij heeft betaald. Dat is nieuw.
+
+**Bij herhaling:** **Rikus** *(droog, als nacht-dj op de radio)*: Weer de colonne? Ik zit al in de auto. **Mislukt:** (kan niet).
+
+**Berichten:** *Oma Trijntje*: "Goed gedaan. Ik slaap nu. – Oma." · *Mem Terpstra*: "Foar myn jonges. – M." *(Voor mijn jongens.)* **Kiekdoar:** "Colonne van tweeëndertig voertuigen rijdt door vier regio's naar de Vismarkt. Politie: 'Wij zijn alleen komen kijken.' Gemeente: 'De vergunning is weer van de Fjord Frituur. Het was een formaliteit.'"
+**Afrondingskaart:** **THUIS** · Eén kar. Zeven filialen. Eén ronde per zomer. · *+ € 2000*
+
+**Autogesprek `o32-pass-zes`:** **Tessa** *(teasing)*: "Thuis is waar de kar staat." Dat is zes woorden. · **Tammo** *(dry)*: Dat telde je met je vingers. · **Tessa** *(warm)*: Ik tel altijd mee.
+**Autogesprek `o32-pass-ronde`:** **Tammo** *(dry, soft)*: Eén ronde per zomer. Dat is een soort thuis. · **Tessa** *(warm)*: Dat is een soort groei. · **Tammo** *(dry)*: Dan zijn we allebei klaar.
+
+**"Wat weten we?"** *Thuis* (hart): Tammo: "Thuis is waar de kar staat." Tessa telde zes. Eén kar op de Vismarkt, zeven filialen onder de naam Fjord & Familie, en één ronde per zomer door de hele provincie. Allebei hebben ze hun zin.
+
+### Het einde van Deel 4: epiloog, credits en wat daarna komt
+
+Direct na de slotscène van O32 speelt de **epiloog** (zelfde vorm als het slot van Deel 3), met de kaart `PARTS.nazomer.card` als eindkaart (`end: 'Einde van Deel 4'`, `finale: true`):
+
+- **Rikus** *(warm, als nacht-dj op de radio, vanuit de studio, nacht)*: Moi. Nachtstreek. Ik zei in augustus dat het het laatste kwartier was. Dat was een misrekening. Het was het eerste.
+- **Rikus** *(droog, als nacht-dj op de radio)*: De Gouden Eierbal staat in het museum. Het bordje heeft drie namen. De derde is van een mevrouw van tweeënnegentig, eerste prijs, Ommelander Ronde, 1953. Ze kwam er zeventig jaar te laat. Op tijd.
+- **Rikus** *(droog, als nacht-dj op de radio)*: Bij de Vismarkt staat een blauwe frietwagen op een rode Escapade. De rij loopt nog tot de Korenbeurs. Hij is vandaag ook gebleven.
+- **Rikus** *(droog, als nacht-dj op de radio)*: De torenwachter belde: "De rij is lang. Ik meld alleen." En: "Het is zomer." Hij zei het twee keer.
+- **Rikus** *(plagend, als nacht-dj op de radio)*: Berend Bos stuurde een brief. Hij wil volgend jaar niet meer verliezen. Hij heeft het niet over winnen. Hij wil gewoon niet.
+- **Rikus** *(droog, als nacht-dj op de radio)*: De peiling "Groeien of thuis": uitslag. Groeien, 50. Thuis, 50. Eén luisteraar in Paddepoel heeft niet gestemd. Ik zeg niks.
+- **Rikus** *(zacht, als nacht-dj op de radio)*: En ik heb de tweede friet. Hij heeft betaald. Ze zijn samen. Ze zeggen het niet. Maar dat doen ze. Moi.
+
+**Credits (flow).** De credits blijven één keer rollen, aan het echte einde. Zie §9 voor de technische regels. De kaarten die erbij komen (rol, drie regels per beeld, geen stem):
+- **Ubbo Oldenhuis** · *verkocht alles, behalve één eierbal*
+- **Roelfien** · *rekende het uit, en betaalde terug*
+- **Brugwachter Wubbo** · *opende altijd, een tel te laat*
+- **Boswachter Siemen** · *meldde alleen, en snurkte*
+- **Molenaar Eilert** · *zag het graan voor het groeide*
+- **Mevrouw Oldenhuis-Blauw** · *rekende door, tot de laatste koe*
+- **Machinist Dries** · *keek naar het sein*
+- **Berend Bos** · *won, en vond het verkeerd*
+- **Lammert en Trijntje** · *dansten, langzaam*
+- **Met dank aan:** *iedereen die hoog zit of bij het water*
+
+**Haken naar het post-game (epiloogrichting):**
+1. **De Ronde als jaarlijks event:** elke zomer één ronde door zeven regio's, als herhaalbare "klus" in de bijbanenlijst (de Fjord & Familie-ronde; geld is nooit een blokkade).
+2. **Fjord & Familie:** de zeven filialen blijven en leveren daginkomen (plan §6.3); een "bezoek de familie"-activiteit per regio.
+3. **Mevrouw Oldenhuis-Blauw** belt na de credits (stinger, post-credits): "Ik heb een voorstel. Over de eenenveertig snackbars." Geen vervolg beloofd; wel de deur.
+4. **Wolf (alleen met Z17-Z19):** een foto in het fotoalbum (A16) van de wolf bij Bourtange, met de tekst "Hij liep weg. Hij had gelijk."
+5. **Rikus' nieuwe peiling:** "Welke regio wordt de volgende?" (hint naar Deel 5 of een uitbreiding; niets verplicht).
+
+---
+
+## 4. Zijreeksen
+
+Elke reeks start met een "?" op de kaart. Ze zijn niet nodig voor het verhaal en volgen dezelfde regels: overslaan na één poging, geld blokkeert niets, geleende voertuigen gaan terug.
+
+### De Randstedelingen (Oldambt)
+
+*Start:* na `n-winschoten` (Floor staat op het erf van een boerderij bij Midwolda en wil een foto). Floor en Joost zijn rijk, vriendelijk en verdwaald; het spel lacht om hun verwachtingen, nooit om het dorp: de buren spelen mee en winnen er een glimlach bij.
+
+#### Z9 · Echt Gronings
+
+**Type:** regie · **Speler:** Tessa · **Start:** de boerderij van Floor en Joost bij Midwolda · **Beloning:** € 500
+Ze willen een "echte boerderijdag" voor vrienden uit het westen. Regisseer een nep-boerderijdag met geleende koeien (Aaltje en Grietje!), een paar boeren en een trekker. Elke gast heeft een verwachting (hooi, een melkemmer, een koe die muu zegt); je zet mensen op hun plek (`direct`, NIEUW). **Falen:** een gast ziet een telefoon bij een boer (verdacht-meter 100 %). **Overslaan** na één poging.
+**Intro.** *Camera:* Een erf in de middagzon, een grote bloemenkrans aan de schuur, twee mensen in linnen die alles filmen.
+- **Floor** *(enthousiast, snel)*: Is dit nou het echte leven? Wij willen het echte. Echt Gronings. Zonder filter. `[naamkaart: floor]`
+- **Joost** *(beleefd, vaag)*: We hebben een erf. We hebben geen koeien. Dat is raar, hè?
+- **Tessa** *(zakelijk)*: Dat regel ik.
+- **Tammo** *(droog)*: Hoeveel koeien wilt u?
+- **Floor** *(ontroerd, snel)*: Eén. Een echte. Die muu zegt.
+- **Koe Aaltje** *(droog, vlak)*: Muu.
+- **Koe Grietje** *(wijs, droog)*: Zo. Dat was dat.
+**In de missie**
+- **Tessa** *(zakelijk)*: Boer links. Hooivork. Niet kijken naar de camera.
+- **Boer** *(droog, op zijn paasbest)*: Ik kijk nooit naar camera's. Dat is hoe je weet dat ik echt ben.
+- **Joost** *(beleefd, vaag, filmend)*: Mag ik hem aaien?
+- **Koe Aaltje** *(droog, vlak)*: Liever niet.
+- **Floor** *(enthousiast)*: Hij zei "liever niet"!
+- **Tessa** *(snel)*: Dat is een koe, Floor. Die zegt dat altijd.
+**Outro.** *Camera:* Het erf bij zonsondergang: de gasten met een glas, de koeien als achtergrond.
+- **Floor** *(ontroerd, zacht)*: Dit is het mooiste dat ik ooit heb gezien.
+- **Boer** *(droog, tevreden)*: Het is een gewone dag. Ik heb alleen mijn goeie laarzen aan.
+- **Tammo** *(droog, zacht)*: Dat is het mooiste.
+**Afrondingskaart:** **ECHT GRONINGS** · Eén boerderijdag. Twee koeien. Geen telefoons. · *+ € 500*
+
+#### Z10 · Wolf gezien
+
+**Type:** regie · **Speler:** Tammo · **Start:** het erf van Floor en Joost bij Midwolda (avond) · **Beloning:** € 600
+Ze willen een wolf zien (er is er geen in het Oldambt). Tammo regelt een hond van een buurman in een wolvenpak, "op tijd voor de foto". De hond heet Bram en is blij. **Let op:** dit is een hond, geen wolf; het spel laat nergens toe dat je op een wilde dier schiet. **Falen:** de foto is niet op tijd (60 s). **Overslaan** na één poging.
+- **Floor** *(opgewonden, zacht)*: Er is een wolf in Groningen. Dat stond in de krant. Ik wil hem zien.
+- **Tammo** *(droog)*: Die zit in Westerwolde.
+- **Joost** *(beleefd, vaag)*: Kan hij niet even hier komen?
+- **Tammo** *(droog, zacht)*: Ik zal het vragen.
+- **Buurman** *(droog)*: Hier. Mien hond Bram. Hij heeft een pak aan. Hij vindt het leuk.
+- **Tessa** *(zacht, in het oortje, lachend)*: Hij kwispelt.
+- **Floor** *(fluisterend, ontroerd)*: Daar. Een wolf. Hij is zo… mooi.
+- **Tammo** *(droog, zacht)*: Hij is een hond.
+- **Floor** *(fluisterend, zonder te horen)*: Hij heeft de ogen van een wolf.
+- **Tammo** *(droog, kort)*: Dat is een compliment.
+**Afrondingskaart:** **WOLF GEZIEN** · Eén wolf. Eén hond. Eén foto, op tijd. · *+ € 600*
+
+#### Z11 · Boerenbruiloft
+
+**Type:** regie, konvooi · **Speler:** Tammo · **Start:** de erf bij Midwolda (middag) · **Beloning:** € 800
+Floor en Joost trouwen opnieuw, "zoals hier". Twaalf trekkers rijden in een stoet van het erf naar de kerk van Midwolda (rustig tempo, geen inhalen, geen toeteren in het dorp). Jij rijdt voorop op een geleende trekker. **Falen:** een trekker valt uit de stoet (> 80 m achter). **Overslaan** na één poging.
+- **Floor** *(ontroerd, zacht, in een trouwjurk van linnen)*: Een stoet. Twaalf trekkers. Dat doen jullie hier toch?
+- **Tammo** *(droog)*: Alleen als iemand trouwt. Of verdwaalt.
+- **Joost** *(beleefd, onzeker)*: Wij zijn allebei.
+- **Tammo** *(droog, zacht)*: Dan is het een goede dag.
+- **Boer** *(droog, vanaf zijn trekker)*: Twaalf. Ik tel er elf.
+- **Tammo** *(droog, kijkt achterom)*: Er zijn er twaalf. De twaalfde zit ver achter.
+**Afrondingskaart:** **BOERENBRUILOFT** · Twaalf trekkers. Eén kerk. Twee keer ja. · *+ € 800*
+
+#### Z12 · Verhuisd
+
+**Type:** verhuizing · **Speler:** Tessa · **Start:** het erf bij Midwolda (ochtend) · **Beloning:** € 700
+Ze gaan terug naar het westen ("Te stil."). Verhuis hun kunst (een beeld van een koe in brons, drie schilderijen, een heel groot ding) in een verhuiswagen, heel, naar het station van Winschoten. **Falen:** breekbaar-meter vol. **Overslaan** na één poging.
+- **Floor** *(zacht, verbaasd)*: Het is te stil. Ik heb gisteren een uur naar een koe gekeken. Hij keek terug.
+- **Joost** *(beleefd, vaag)*: Wij missen de stad. Dat is gek, want we zijn er weggegaan.
+- **Tessa** *(vriendelijk)*: Dat is niet gek. Dat is stilte.
+- **Floor** *(zacht, ontroerd)*: We komen terug. Als vakantie. In de zomer. Voor de heide.
+- **Tessa** *(zacht, glimlachend)*: Dan zijn jullie hier thuis.
+- **Floor** *(zacht)*: Dank je. Dat is het liefste dat iemand ooit tegen ons gezegd heeft.
+**Afrondingskaart:** **VERHUISD** · Eén koe in brons, heel. Twee mensen, onderweg naar huis. · *+ € 700*
+
+### Brugwachter Wubbo (Veenkoloniën)
+
+*Start:* na `n-veendam` (Wubbo zwaait vanaf zijn brug).
+
+#### Z13 · Open, dicht
+
+**Type:** getimed · **Speler:** Tammo · **Start:** het brugwachtershuisje, Veendam · **Beloning:** € 500
+Een botenparade, tien bruggen, één wachter. Jij bedient het paneel op het ritme van een fanfare (`rhythm`, NIEUW): open op de beat, dicht op de beat. Mist een beat = een bootje wacht. **Falen:** vijf gemiste beats. **Overslaan** na één poging.
+- **Brugwachter Wubbo** *(trots, rustig)*: Tien bruggen. Eén fanfare. Ik heb de maat nooit helemaal gehad.
+- **Tammo** *(droog)*: Ik wel. Ik tel altijd.
+- **Brugwachter Wubbo** *(verontschuldigend)*: Dat is jouw gave. Ik heb er een tel te laat.
+- **Tammo** *(droog, geconcentreerd)*: Open. Dicht. Open. Dicht.
+- **Brugwachter Wubbo** *(gemoedelijk)*: Mooi. Heel mooi. Je zou brugwachter kunnen worden.
+- **Tammo** *(droog)*: Ik wil niet. Maar het is leuk.
+**Afrondingskaart:** **OPEN, DICHT** · Tien bruggen. Op de maat. · *+ € 500*
+
+#### Z14 · Kanaalspringer
+
+**Type:** stunt · **Speler:** Tessa · **Start:** een halfopen brug, Veendam · **Beloning:** € 700
+Springen met de Escapade over bruggen die net opengaan (in een veilige, afgesloten stunt-zone met schansen; geen echt verkeer). Wubbo opent een tel te laat: dat is jouw schans. **Falen:** de Escapade in het kanaal (hij wordt eruit gehaald; geen verlies). **Overslaan** na één poging.
+- **Tessa** *(opgewonden)*: Dit is de beste baan ter wereld.
+- **Brugwachter Wubbo** *(gemoedelijk, via de marifoon)*: Ik doe open. Jij springt. Het moment spreken we niet af.
+- **Tessa** *(snel)*: Dat is geen plan, Wubbo!
+- **Brugwachter Wubbo** *(trots, rustig)*: Het is het enige dat ik heb.
+- **Tessa** *(juichend, in de lucht)*: Ik vlieg!
+**Afrondingskaart:** **KANAALSPRINGER** · Drie sprongen. Eén tel te laat. · *+ € 700*
+
+#### Z15 · De verkeerde kant
+
+**Type:** boot · **Speler:** Tessa · **Start:** de sluis bij Veendam · **Beloning:** € 600
+Een plezierjacht vaart de verkeerde kant op in het kanaal, recht voor een vrachtboot. Sleep het jacht weg (Wubbo's brugboot met een lijn) voor de vrachtboot er is. **Falen:** de lijn breekt twee keer. **Overslaan** na één poging.
+- **Plezierjachtschipper** *(luid, verbaasd, in pak)*: Ik vaar de goede kant! Het is een gewoonte!
+- **Brugwachter Wubbo** *(gemoedelijk, via de marifoon)*: Er is hier geen goede kant. Er is een kant. En die is rechts.
+- **Tessa** *(snel, gespannen)*: Lijn vast! Trekken! De vrachtboot toetert!
+- **Plezierjachtschipper** *(luid, opgelucht)*: Dank u, mevrouw! Ik ga naar huis!
+**Afrondingskaart:** **DE VERKEERDE KANT** · Eén jacht. Eén vrachtboot. Nul botsingen. · *+ € 600*
+
+#### Z16 · Pensioen
+
+**Type:** verhaal · **Speler:** Tammo · **Start:** het brugwachtershuisje (avond) · **Beloning:** € 1000
+Wubbo wil met pensioen ("ik ben tweeënzestig, ik had het niet gedacht"). Alle bruggen van de wijken gaan één keer tegelijk open voor een vuurwerk langs het kanaal. Jij bedient ze samen met hem (rustig, geen spel, alleen kijken). Hij blijft melder: "Pensioen is een brug te ver." **Kan niet mislukken.**
+- **Brugwachter Wubbo** *(gemoedelijk, trots, zacht)*: Ik wil één keer alle bruggen tegelijk open. Dat doe je nooit. Dat is verboden. Dat is een feest.
+- **Tammo** *(droog, zacht)*: En dan?
+- **Brugwachter Wubbo** *(rustig, wijs)*: En dan ben ik klaar. En dan ga ik thuis zitten. En dan meld ik alleen.
+- **Tammo** *(droog, zacht)*: Dat is het mooiste afscheid dat ik ken.
+- **Brugwachter Wubbo** *(gemoedelijk, zacht, kijkend naar het vuurwerk)*: Ik heb nooit eerder gezien wat een brug doet als hij open is. Ik zat er altijd in.
+**Afrondingskaart:** **PENSIOEN** · Alle bruggen open. Eén keer. Eén brugwachter, thuis. · *+ € 1000*
+
+### De Wolvenman (Westerwolde)
+
+*Start:* na `n-westerwolde` (Gerrit staat met een kijker bij een heideven). Regel voor de hele reeks: er is een echte wolf; het spel laat nooit toe dat je er op schiet, hem aait of hem opjaagt: foto's op afstand.
+
+#### Z17 · Sporen
+
+**Type:** zoeken · **Speler:** Tammo · **Start:** een heideven bij Sellingen · **Beloning:** € 400
+Gerrit is zeker dat de wolf terug is. Zoek sporen op de zandpaden (`track`: pijl op de HUD alleen bij het eerste spoor). De sporen zijn van zijn eigen hond Bor. **Falen:** geen. **Overslaan** na één poging.
+- **Wolvenman Gerrit** *(opgewonden, zeker)*: Stil! Dat is een wolvenspoor. Ik voel het. `[naamkaart: gerrit]`
+- **Tammo** *(droog)*: Het is een poot.
+- **Wolvenman Gerrit** *(fluisterend, plechtig)*: Een wolvenpoot.
+- **Tammo** *(droog, zacht)*: Er staat een hond bij.
+- **Bor** *(blaft, vrolijk)*: *(blaft)*
+- **Wolvenman Gerrit** *(teleurgesteld, sportief)*: Bor. Het is Bor. Ik weet het niet. Maar de volgende keer weet ik het wel.
+**Afrondingskaart:** **SPOREN** · Vijf sporen. Alle vijf van Bor. · *+ € 400*
+
+#### Z18 · Volle maan
+
+**Type:** nacht, wachten · **Speler:** Tessa · **Start:** een nachtpost op de heide (nacht) · **Beloning:** € 500
+Een hele nacht op een nachtpost: wachten (`wait`: tijd versneld met Spatie; af en toe een "schaduw"). Tessa haat wachten. Er komt een uil, een ree en een drone van de buren. **Falen:** geen. **Overslaan** na één poging.
+- **Wolvenman Gerrit** *(fluisterend, plechtig)*: Zitten. Stil. Zes uur. Hij komt. Hij komt altijd als je het niet verwacht.
+- **Tessa** *(zacht, ongeduldig)*: Hoe lang is zes uur?
+- **Wolvenman Gerrit** *(fluisterend)*: Zes uur.
+- **Tessa** *(zacht, vermoeid)*: Ik haat wachten.
+- **Wolvenman Gerrit** *(fluisterend, vergevingsgezind)*: Dat weet iedereen. Het gaat vanzelf.
+- **Tessa** *(zacht, verbaasd)*: Een uil. Hij kijkt me aan.
+- **Wolvenman Gerrit** *(fluisterend)*: Dat is geen wolf.
+- **Tessa** *(zacht, snel)*: Een drone.
+- **Wolvenman Gerrit** *(fluisterend, teleurgesteld)*: Dat zijn de buren.
+**Afrondingskaart:** **VOLLE MAAN** · Zes uur. Een uil, een ree en een drone. · *+ € 500*
+
+#### Z19 · Toch een wolf
+
+**Type:** foto · **Speler:** Tammo · **Start:** de heide bij Bourtange (ochtend) · **Beloning:** € 900
+Er is echt een wolf. Fotografeer hem op afstand (> 80 m) zonder dat hij je ziet (wind, stilte); te dichtbij of te luid = hij loopt weg. Hij loopt toch weg, zoals het hoort. **Niet schieten** (het spel staat het niet toe). **Falen:** geen; de foto's tellen voor het album.
+- **Wolvenman Gerrit** *(fluisterend, ongelovig)*: Daar. Tussen de berken. Een wolf.
+- **Tammo** *(droog, fluisterend)*: Ik zie hem.
+- **Wolvenman Gerrit** *(fluisterend, trillend)*: Ik heb hem al jaren niet gezien. Nu zie ik hem. Hij kijkt.
+- **Tammo** *(droog, fluisterend)*: Klik.
+- **Wolvenman Gerrit** *(fluisterend, ontroerd)*: Hij loopt weg. Dat is goed. Hij heeft gelijk.
+- **Bor** *(zacht, een klein blaffend geluid)*: *(blaft zacht)*
+- **Wolvenman Gerrit** *(fluisterend, zacht)*: Bor weet het. Bor wist het altijd.
+**Afrondingskaart:** **TOCH EEN WOLF** · Eén foto. Op afstand. Hij liep weg. · *+ € 900*
+
