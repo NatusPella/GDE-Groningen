@@ -309,6 +309,14 @@ export function crossingPath(map, c, reach) {
       const Q = cur.pts, e = fwd ? Q[Q.length - 1] : Q[0], ze = zEnd(cur, fwd);
       const d0 = fwd ? [e[0] - Q[Q.length - 2][0], e[1] - Q[Q.length - 2][1]] : [e[0] - Q[1][0], e[1] - Q[1][1]];
       const a0 = Math.atan2(d0[1], d0[0]);
+      // only through a plain joint (two car ways meet): a junction, with its
+      // corners, kerbs and poles, is not the carriageway carrying on
+      let ways = 0;
+      for (const o of map.roadsNear(e[0], e[1], 1)) {
+        if (o.cat === 'foot' || o.cat === 'cycle') continue;
+        if (o.pts.some((q) => Math.abs(q[0] - e[0]) < 0.05 && Math.abs(q[1] - e[1]) < 0.05)) ways++;
+      }
+      if (ways > 2) break;
       let best = null, bt = 0.9;
       for (const o of map.roadsNear(e[0], e[1], 1)) {
         if (o === cur || o.cat === 'foot' || o.cat === 'cycle' || o.pts.length < 2) continue;
@@ -395,7 +403,8 @@ export async function driveAcross(world, path, speed, opts = {}) {
   // on the layer of the path's own road (its ribbon), not whatever overlaps it there
   car.surf = { z: path[0][2], ribbon: map.ribbonAt(path[0][0], path[0][1], path[0][2]) };
   car.z = map.surfaceAt(car.x, car.y, car.surf).z;
-  car.speed = speed;
+  // (a path that starts in a bend starts at the speed for it)
+  car.speed = Math.min(speed, cornerSpeed(path, 0));
   const dt = 1 / 60;
   let s = 0, t = 0, air = 0;
   // what the car ran into: props, footprints or walls around it
