@@ -20,7 +20,7 @@
 
 ## Shotlijst: "Een zomer in Grunn" (ongeveer 90 s)
 
-*Toon: een trailerparodie op GTA VI. Zon, warmte, synth, en de muziek bouwt op. Captions als grote kaarten in Bebas, met naamkaarten als bevroren beeld. Er wordt geen verhaal verklapt na de Kop. Het gaat om de belofte.*
+*Toon: een trailerparodie. Zon, warmte, synth, en de muziek bouwt op. Captions als grote kaarten in Bebas, met naamkaarten als bevroren beeld. Er wordt geen verhaal verklapt na de Kop. Het gaat om de belofte.*
 
 | # | Tijd | Shot | Camera | Caption / geluid | Zwaar voor de benchmark? |
 |---|---|---|---|---|---|

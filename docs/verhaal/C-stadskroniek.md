@@ -9,7 +9,7 @@
 ## Wat dit script repareert
 
 - **Berend** is **Berend uit de Schildersbuurt**, een vaste beller die elke week klaagt. Rikus noemt hem Bommen Berend omdat hij de uitzending "bombardeert". Berend vindt dat een eretitel. In de finale speelt hij de bisschop in het naspel van het Ontzet, omdat niemand anders wil.
-- **De overval uit de trailer.** De opening is een trailer-parodie, en de "overval" blijkt Tammo en Anita die een pinautomaat terugbrengen voor een klant. Je ziet hetzelfde shot als in GTA VI, maar het is een klus.
+- **De overval uit de trailer.** De opening is een trailer-parodie, en de "overval" blijkt Tammo en Anita die een pinautomaat terugbrengen voor een klant. Je ziet een klassiek overvalshot, maar het is een klus.
 - **Jelles plan in één zin** (hij belt in): "Op Gronings Ontzet win ik jullie Snackprijs. Ik heb jullie trofee al. Dat scheelt een rit." Al het vet, de vlag en de race zijn daar stappen in.
 - **Running gags met een payoff:** de fietstunnel ("bijna klaar"), de Krolbrug ("storing"), "sikkom" als scherm bij een missie die net mislukt, de torenwachter die alles meldt, en het ene koekje uit de trommel.
 

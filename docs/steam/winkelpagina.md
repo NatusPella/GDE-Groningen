@@ -5,8 +5,8 @@ naar Steam gestuurd. Nederlands is de hoofdtaal van de pagina; de Engelse
 tekst is alleen voor de winkelpagina (de game zelf is alleen Nederlands).
 
 Regels die voor alles hieronder gelden (docs/LICENTIES.md §8.2 en §8.5):
-geen "GTA", "Grand Theft" of "Rockstar" in titels, beschrijvingen, tags of
-capsules, en geen "-achtige" vergelijkingen. Ook de disclaimer noemt daarom
+geen namen of merken van andere games of uitgevers in titels,
+beschrijvingen, tags of capsules, en geen "-achtige" vergelijkingen. Ook de disclaimer noemt daarom
 geen namen (zie [Disclaimer](#disclaimer)).
 
 De beelden staan in [`beelden/`](beelden/) en worden gemaakt door
@@ -180,7 +180,7 @@ In volgorde van belang (Steam weegt de bovenste het zwaarst):
 19. Indie
 20. Controller
 
-Niet gebruiken: alles met "GTA", "Rockstar" of "Grand Theft", en ook geen
+Niet gebruiken: namen van andere games of uitgevers, en ook geen
 "Shooter"-tags (wapens zijn een bijzaak en alleen voor de politie). Bij het
 invullen in de tag-wizard van Steamworks de exacte schrijfwijze kiezen die
 de wizard voorstelt (bijv. "Low-Poly").

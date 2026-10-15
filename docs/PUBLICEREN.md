@@ -96,9 +96,8 @@ Daarna:
     een aparte map "ontwerp");
   - `docs/groningen-memes*.md` (onderzoek naar memes: controleer op
     namen van echte personen en geciteerd materiaal van derden);
-  - de "GTA-style"-opmerkingen in code, `ARCHITECTURE.md` en
-    `DESIGN_SYSTEM.md` zijn op 15 okt neutraal gemaakt; de ontwerpdocs in
-    `docs/verhaal/` noemen de trailerparodie nog bij naam (bewust).
+  - verwijzingen naar de oude naam en naar andere games in code,
+    commentaar en docs zijn op 15 okt neutraal gemaakt.
 - [ ] Commitberichten met bedragen of kosten (bijv. "$0.04 spent"): geen
       probleem, wel bewust van zijn.
 - [ ] `docs/LICENTIES.md` en deze checklist: houden of naar een wiki.
@@ -160,7 +159,7 @@ hiervan komt erboven. Opties (keuze eigenaar):
       sites mogen max. 1 GB zijn, ~150 MB audio past.
 - [ ] Issues/Discussions aan of uit; `SECURITY.md` en een korte
       `CONTRIBUTING.md` (bijdragen onder dezelfde licentie).
-- [ ] Repo-beschrijving en topics zonder "GTA" (merk), bijv. "Groningen
+- [ ] Repo-beschrijving en topics zonder merknamen van andere games, bijv. "Groningen
       open-world parody game, three.js".
 - [ ] Releases: de unsigned-builds-tekst staat al in de release notes;
       SHA-256 van de downloads erbij zetten.

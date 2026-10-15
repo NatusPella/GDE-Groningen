@@ -4,8 +4,7 @@ __pycache__/
 .env
 .env.*
 .python/
-GTE-VI-Windows.zip
-GDE-Groningen-Windows.zip
+*-Windows.zip
 # trailer recordings never go in the repo (desktop --trailer-video refuses it too)
 *.mp4
 *.mov
@@ -14,8 +13,7 @@ trailer-frames/
 # the web build (desktop: npm run web) and its Opus cache
 web-dist/
 web/.cache/
-GTE-VI-*-web.zip
-GDE-Groningen-*-web.zip
+*-web.zip
 
 # Steam (SteamPipe) content and logs: copies of desktop/dist (steam/README.md)
 steam/content/

@@ -5,8 +5,8 @@ trailers te uploaden. **Er is niets geüpload of aangemaakt**: kanaal,
 uploads en instellingen doet de eigenaar zelf.
 
 Dezelfde regels als de Steam-pagina (`docs/steam/winkelpagina.md`,
-`docs/LICENTIES.md` §8.2): geen "GTA", "Grand Theft" of "Rockstar" in
-namen, titels, beschrijvingen, tags of thumbnails, en geen "-achtige"
+`docs/LICENTIES.md` §8.2): geen namen of merken van andere games of
+uitgevers in namen, titels, beschrijvingen, tags of thumbnails, en geen "-achtige"
 vergelijkingen. De personages heten **Tammo en Tessa** (besluit van de
 eigenaar, 3 okt; zie de checklist voor de oude naam in de game).
 
@@ -180,7 +180,7 @@ GDE Groningen, Zomer vol misdaad, Grootste Diefstal Ever, Groningen, Grunn, Gron
 
 Extra voor de verhaaltrailer: `trailer, verhaaltrailer, story trailer`.
 Extra voor de gameplaytrailer: `gameplay, gameplaytrailer, PC game, Steam Deck`.
-Niet gebruiken: "GTA", "Grand Theft", "Rockstar", "GTA 6" en dergelijke
+Niet gebruiken: namen van andere games of uitgevers
 (misleidende tags zijn ook tegen het spambeleid van YouTube).
 
 ## AI-melding ("Veranderde of synthetische content")
@@ -281,8 +281,8 @@ Niets gaat openbaar tot de eigenaar het besluit.
       een cut zonder het kaartje. Geen beelden van de finale op Ontzet.
 - [ ] **Geen echte merken** in beeld of tekst: parodiewinkels
       (Kruidvet, Albert Hijgt, ...), Kiekdoar, Radio Proat. Geen
-      "GTA", "Grand Theft", "Rockstar" of "VI" in titel, tags,
-      beschrijving, thumbnail of in de video (oude logo's).
+      namen van andere games of uitgevers, en geen oude logo's, in titel,
+      tags, beschrijving, thumbnail of video.
 - [ ] Disclaimer en AI-vermelding staan in de beschrijving.
 - [ ] "Gemaakt voor kinderen: Nee" en AI-melding ingevuld.
 - [ ] Geen Content ID-claims na de privé-upload.

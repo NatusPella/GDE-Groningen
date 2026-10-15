@@ -225,9 +225,9 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
 
 - [x] **Nieuwe naam, besloten op 3 okt.** De titel is **GDE Groningen – Zomer vol misdaad**, met *Grootste Diefstal Ever* als betekenis van GDE (`claude/gde-naam`).
   - De reeks heet GDE, plus een stad of provincie en een ondertitel per game, bijvoorbeeld GDE Drenthe of GDE Leeuwarden. `game/js/logo.js` houdt de naam op één plek; een vervolg wisselt alleen de plaats en de ondertitel.
-  - Het cijfer "VI" en de woorden "Grand Theft" zijn weg uit alles wat een speler ziet: `<title>`, laad- en titelscherm, disclaimer, pauzemenu, trailer, intro, aftiteling, telefoonberichten (afzender "GDE"), *Over*, het venster en het Mac-menu, de Windows-zip en de README.
+  - De oude naam is weg uit alles wat een speler ziet: `<title>`, laad- en titelscherm, disclaimer, pauzemenu, trailer, intro, aftiteling, telefoonberichten (afzender "GDE"), *Over*, het venster en het Mac-menu, de Windows-zip en de README.
   - De releasebestanden heten `GDE-Groningen-<versie>-mac.dmg` en `GDE-Groningen-<versie>-windows-portable.exe`, de webzip `GDE-Groningen-<versie>-web.zip`.
-  - [x] Ook de interne namen (voorbereiding open source): de `gte-*`-sleutels in localStorage heten nu `gde-*` (eenmalig gekopieerd bij het opstarten, `game/js/storagekeys.js`; de oude sleutels blijven nog even staan), appId `nl.natuspella.gde-groningen`, userData-map `GDE Groningen` (eenmalig gekopieerd uit `GTE VI`, `desktop/userdata.js`), cachenamen `gde-*`, IPC `gde:`, `GDE_*`-variabelen (`GTE_*` werkt nog), npm-naam `gde-groningen`. Alleen de reponaam en de map in de lokale checkout heten nog zo; zie `docs/OPEN_SOURCE_CHECKLIST.md`.
+  - [x] Ook de interne namen (voorbereiding open source): de `gte-*`-sleutels in localStorage heten nu `gde-*` (eenmalig gekopieerd bij het opstarten, `game/js/storagekeys.js`; de oude sleutels blijven nog even staan), appId `nl.natuspella.gde-groningen`, userData-map `GDE Groningen` (eenmalig gekopieerd uit de oude map, `desktop/userdata.js`), cachenamen `gde-*`, IPC `gde:`, `GDE_*`-variabelen (`GTE_*` werkt nog), npm-naam `gde-groningen`. Alleen de reponaam en de map in de lokale checkout heten nog zo; zie `docs/OPEN_SOURCE_CHECKLIST.md`.
   - De conflictcheck via webzoekopdrachten vond niets (`docs/LICENTIES.md` §8.2). De handmatige registercheck staat hieronder nog open.
   - De recaps van Rikus zeggen nu "Eerder in GDE", opnieuw ingesproken.
 - [x] Inventaris van bronnen en licenties: `docs/LICENTIES.md`, `docs/PUBLICEREN.md`, `NOTICE.md` en `licenses/`.
@@ -269,9 +269,9 @@ Steam kost eenmalig $100 per game (Steam Direct). Dat bedrag komt terug na $1.00
 - **Geen code signing nodig.** Steam start de game zelf, en macOS zet geen quarantainelabel op downloads via Steam. De ad-hoc-handtekening van electron-builder is genoeg voor Apple Silicon.
 - **AI-melding** in de inhoudsvragenlijst van Valve, die op de winkelpagina komt. Vooraf gegenereerd: alle stemmen (Gemini TTS) en alle muziek (Gemini). Live gegenereerd: niets. De tekst om in te vullen staat in `docs/steam/winkelpagina.md`.
 - [ ] De actuele regels van Steamworks online nalopen: het AI-beleid, de fee, de review en de wachttijden.
-- [ ] **Branding verder van GTA af.** Dit is het grootste risico, want Valve reviewt op IP en Take-Two treedt actief op.
-  - een eigen naam en logo, zonder "VI" in GTA-stijl en zonder het GTA-lettertype;
-  - geen verwijzing naar GTA in de titel;
+- [x] **Eigen branding.** Valve reviewt op IP, dus:
+  - een eigen naam en logo, zonder romeins cijfer en met een eigen lettertype;
+  - geen verwijzing naar andere games in de titel;
   - een duidelijke disclaimer.
 - [ ] Leeftijdsclassificatie (IARC): de vragenlijst invullen volgens [docs/LEEFTIJD.md](docs/LEEFTIJD.md). Het doel is 18 (PEGI 18 / USK 18).
 - [~] Winkelpagina (`claude/steam-pagina`, alles in `docs/steam/`; er is niets naar Steam gestuurd):
