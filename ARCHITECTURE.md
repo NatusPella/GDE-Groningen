@@ -363,6 +363,23 @@ HUD zoom at 1920x1080), `--hud-edge` is the 46 px margin.
 - `node scripts/hud_test.mjs` checks the rules, the turn finder and the
   access table.
 
+## Menus (`menu.css`)
+
+`menu.css` is the one menu stylesheet (see DESIGN_SYSTEM.md, Menus);
+`pausemenu.css`, `shopui.css` and `startscreen.css` only place things. The pause
+menu (`pausemenu.js`) has a rail in three groups (Overzicht, Te doen, Kaart,
+Telefoon / Verhaal, Spullen, Garage, Prestaties / Instellingen, Besturing, Cheats)
+and one panel; the map section hides the rail and is the full screen. Q/E switch
+the section's tabs (a section without tabs: the sections); `[` and `]` do the same
+in tabbed sections. Footer hints are `HINTS` per section in pausemenu.js (keys or
+controller glyphs, clickable). Settings pickers (`.m-pk`, previous / value / next)
+replace the old segmented rows; the options live in `data-options`. The shop
+(`shopui.js`) draws every shop and the station machine with the same panel;
+an item may carry `cols` (extra values before the price) and `route` (the station's
+travel card). The result screen is `showBanner` in cinematics.js, styled in
+hud_panel.css. Screenshots for review: `desktop --smoke-test --perf-script` with a
+script that opens each section and logs `[capture] name`.
+
 ## Narrative scheduler
 
 `narrative.js` puts the story's items in one line, so nothing narrative

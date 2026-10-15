@@ -398,7 +398,9 @@ function menuFor(w, here) {
         const via = legs.length > 1 ? ` · overstappen op ${legs[0].to.route.stops[legs[0].to.idx].name.replace(/^Groningen\s+/, '')}` : '';
         trips.push({
           id: 'trein-' + dest.short, label: dest.name,
-          desc: `${lineLabel(legs[0])} · ${spoor(here, legs[0])} · ${info.minutes} min${via}${VILLAGES[dest.name] ? ` · Te doen: ${VILLAGES[dest.name].teaser.toLowerCase()}` : ''}`,
+          desc: `${lineLabel(legs[0])} · ${spoor(here, legs[0])}${via}${VILLAGES[dest.name] ? ` · Te doen: ${VILLAGES[dest.name].teaser.toLowerCase()}` : ''}`,
+          cols: [`${info.minutes} min`], verb: 'Instappen ·',
+          route: { from: here.short, to: dest.short, minutes: info.minutes, text: `${lineLabel(legs[0])}, ${spoor(here, legs[0])}${via}.`, teaser: VILLAGES[dest.name] ? `Te doen: ${VILLAGES[dest.name].teaser.toLowerCase()}` : '', board },
           price: info.price, swatch: [legs[0].train.type === 'virm' ? '#ffc917' : '#00a3ad'],
           disabled: w.money < info.price ? 'Te weinig geld' : null,
           buy() {
