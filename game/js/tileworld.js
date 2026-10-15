@@ -71,7 +71,7 @@ export class TileWorld extends GameMap {
     map._res = res;
     map._gidOf = new WeakMap();
     for (const kind of Object.keys(res)) for (const [gid, e] of res[kind]) if (typeof e.obj === 'object') map._gidOf.set(e.obj, gid);
-    map.frame = new FrameQueue();
+    map.tileQueue = new FrameQueue();
     map.store = null;
     map.resident = new Set(tiles.map((t) => `${t.i},${t.j}`));
     map.info = info;
@@ -80,8 +80,8 @@ export class TileWorld extends GameMap {
 
   attachStore(store) {
     this.store = store;
-    store.on('tile', (tile) => this.frame.add(() => this.addTile(tile), 1, `add:${tile.i},${tile.j}`));
-    store.on('drop', (key) => { const e = store.index.tiles[key]; if (e) this.frame.add(() => this.dropTile(`${e.i},${e.j}`), 0, `drop:${e.i},${e.j}`); });
+    store.on('tile', (tile) => this.tileQueue.add(() => this.addTile(tile), 1, `add:${tile.i},${tile.j}`));
+    store.on('drop', (key) => { const e = store.index.tiles[key]; if (e) this.tileQueue.add(() => this.dropTile(`${e.i},${e.j}`), 0, `drop:${e.i},${e.j}`); });
     return this;
   }
 
@@ -126,14 +126,14 @@ export class TileWorld extends GameMap {
   // the grids are updated within the frame budget
   follow(x, y, opts, budgetMs = 2) {
     if (this.store) this.store.prefetch(x, y, opts);
-    return this.frame.run(budgetMs);
+    return this.tileQueue.run(budgetMs);
   }
 
   // the tile keys of a camera shot or a destination, for a pre-roll
   prefetchPoints(points, { radius = 400, token = 'shot' } = {}) {
     const keys = new Set();
     for (const [x, y] of points) for (const k of this.store.keysAround(x, y, radius)) keys.add(k);
-    return Promise.all([...keys].map((k) => this.store.request(k, { priority: -1000, token }))).then(() => this.frame.run(1e9));
+    return Promise.all([...keys].map((k) => this.store.request(k, { priority: -1000, token }))).then(() => this.tileQueue.run(1e9));
   }
 }
 

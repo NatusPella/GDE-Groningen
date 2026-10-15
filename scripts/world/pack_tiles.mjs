@@ -167,8 +167,9 @@ export function writeWorld(out, { blobs, global, counts }, citySet = null) {
 async function main() {
   const args = process.argv.slice(2);
   const out = path.resolve(ROOT, args.includes('--out') ? args[args.indexOf('--out') + 1] : 'game/world');
+  const game = args.includes('--game') ? path.resolve(args[args.indexOf('--game') + 1]) : undefined;
   const t0 = performance.now();
-  const src = loadSources();
+  const src = loadSources(game);
   const t1 = performance.now();
   const built = build(src);
   const city = new Set(built.blobs.keys());

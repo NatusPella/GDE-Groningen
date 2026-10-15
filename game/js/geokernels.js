@@ -1,7 +1,8 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { setCountryBounds, setRealZone } from './countryfield.js';
 import { tileWater, chunkWaterArrays, canalWaterFrom, openWaterFrom } from './countrywatergeo.js';
-import { loadMap, slimWorkerMap } from './mapdata.js';
+import { slimWorkerMap } from './mapdata.js';
+import { loadMapAuto } from './tileworld.js';
 import { setRoadNetwork, roadSurfaceGeometries, roadKey } from './roadsurface.js';
 import { terrainArrays } from './terrain3d.js';
 import { structureArrays, overpassDeckArrays, structureTransfer } from './roadstructures3d.js';
@@ -124,7 +125,7 @@ export function geometryFromPlain(p) {
 // the main thread has dropped since (home.js) taken out the same way
 const RD = { byKey: null, map: null };
 async function roadInit({ url, keys }) {
-  const map = await loadMap(url);
+  const map = await loadMapAuto(url, null, { pool: false });
   const want = new Set(keys);
   for (let i = map.roads.length - 1; i >= 0; i--) {
     const r = map.roads[i];
