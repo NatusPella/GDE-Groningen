@@ -1647,14 +1647,14 @@ export function animatePersonWalk(mesh, speed, dt) {
   const gait = ud.gait || 1;
   const cb = ud.crouchBlend = approach(ud.crouchBlend || 0, ud.crouch ? 1 : 0, step / CROUCH_BLEND_TIME);
   const crouch = cb * cb * (3 - 2 * cb);
-  const cadence = Math.min(1.45, (0.42 + 0.3 * s) * gait) * (1 - crouch) + Math.min(1.6, 0.35 + s / 1.1) * crouch;
+  const cadence = Math.min(2.1, (0.42 + 0.3 * s) * gait) * (1 - crouch) + Math.min(1.6, 0.35 + s / 1.1) * crouch;
   const moving = Math.min(1, s / 0.25);
   const phase = ((ud.walkPhase || 0) + TAU * cadence * step * moving) % TAU;
   ud.walkPhase = phase;
 
   const ease = Math.min(1, step * 8);
   const w = (ud.walkBlend || 0) + (Math.min(1, s / 1.0) - (ud.walkBlend || 0)) * ease;
-  const r = (ud.runBlend || 0) + (smoothstep(2.6, 5.8, s) - (ud.runBlend || 0)) * ease;
+  const r = (ud.runBlend || 0) + (smoothstep(2.0, 5.6, s) - (ud.runBlend || 0)) * ease;
   ud.walkBlend = w;
   ud.runBlend = r;
   const idle = 1 - w;

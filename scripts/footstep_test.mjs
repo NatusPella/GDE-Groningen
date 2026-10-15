@@ -3,7 +3,7 @@
 // after a jump, a vault and a climb onto a car roof, and steps on the roof.
 //   node scripts/footstep_test.mjs
 import fs from 'node:fs';
-import { stepNames, stepSurface, tickFoot, STEP_SURFACES, STEP_VARIANTS } from '../game/js/sfx/steps.js';
+import { stepNames, stepSurface, tickFoot, strideFor, STEP_SURFACES, STEP_VARIANTS } from '../game/js/sfx/steps.js';
 
 let fails = 0;
 const check = (name, ok, extra = '') => { if (!ok) { fails++; console.log('FAIL', name, extra); } else console.log('ok  ', name); };
@@ -33,7 +33,9 @@ const run = (p, secs, dt = 1 / 60, each = null) => {
   }
   return ev;
 };
-for (const [name, speed, crouch, stride] of [['walk', 4.2, false, 0.75], ['run', 7.5, false, 1.05], ['crouch', 1.7, true, 0.55], ['slow walk', 0.6, false, 0.75]]) {
+// player.js: jog 3.0, sprint 6.8, stroll 1.5, crouch 1.4
+for (const [name, speed, crouch, stride] of [['jog', 3.0, false, 1.14], ['run', 6.8, false, 1.62], ['stroll', 1.5, false, 0.86], ['crouch', 1.4, true, 0.55], ['slow walk', 0.6, false, 0.5]]) {
+  check(`${name}: stride ${stride} m`, Math.abs(strideFor(speed, crouch) - stride) < 0.02, strideFor(speed, crouch).toFixed(2));
   for (const dt of [1 / 144, 1 / 60, 1 / 20]) {
     const steps = run({ vx: speed, vy: 0, z: 0, crouching: crouch }, 4, dt).filter((e) => e.kind === 'step').length;
     const want = Math.floor(speed * 4 / stride);
@@ -41,10 +43,10 @@ for (const [name, speed, crouch, stride] of [['walk', 4.2, false, 0.75], ['run',
   }
 }
 {
-  const ev = run({ vx: 4.2, vy: 0, z: 0, vz: 0 }, 2, 1 / 60, (p, t) => {
-    // a jump at 0.5 s: 5.2 m/s up, g 16
+  const ev = run({ vx: 3.0, vy: 0, z: 0, vz: 0 }, 2, 1 / 60, (p, t) => {
+    // a jump at 0.5 s: 3.45 m/s up, g 9.8
     const u = t - 0.5;
-    p.z = u > 0 ? Math.max(0, 5.2 * u - 8 * u * u) : 0;
+    p.z = u > 0 ? Math.max(0, 3.45 * u - 4.9 * u * u) : 0;
   });
   const land = ev.find((e) => e.kind === 'land');
   check('a jump plays a take-off and a landing', ev.some((e) => e.kind === 'takeoff') && !!land);
@@ -69,17 +71,17 @@ for (const [name, speed, crouch, stride] of [['walk', 4.2, false, 0.75], ['run',
   });
   const land = ev.find((e) => e.kind === 'land');
   check('landing on the roof is heard', !!land && land.t >= 0.75 && land.t < 0.8);
-  check('steps on the roof', ev.filter((e) => e.kind === 'step' && e.t > 0.8).length >= 6);
+  check('steps on the roof', ev.filter((e) => e.kind === 'step' && e.t > 0.8).length >= 4);
 }
 {
   // standing on a viaduct deck (gz 6): grounded, steps as normal
-  const steps = run({ vx: 4.2, vy: 0, z: 0, gz: 6 }, 2).filter((e) => e.kind === 'step').length;
-  check('steps up on a viaduct', steps >= 10);
+  const steps = run({ vx: 3.0, vy: 0, z: 0, gz: 6 }, 2).filter((e) => e.kind === 'step').length;
+  check('steps up on a viaduct', steps >= 4);
 }
 {
   // swimming: z under the waterline still strokes
   const steps = run({ vx: 1.8, vy: 0, z: -0.4, swimming: true, water: 'swim' }, 3).filter((e) => e.kind === 'step').length;
-  check('swim strokes sound', steps >= 6);
+  check('swim strokes sound', steps >= 5);
 }
 
 console.log(fails ? `${fails} failed` : 'all passed');

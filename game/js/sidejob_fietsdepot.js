@@ -12,7 +12,7 @@ import { isInWater } from './util.js';
 const VAN = { name: 'van', len: 5.0, wid: 2.0, maxSpeed: 26, accel: 6.5, brake: 19, turnRate: 2.0, color: '#2f6fb8' };
 const GRAB_R = 1.7;
 const LOAD_R = 3.6;
-const PROTEST_SPEED = 4.6;
+const PROTEST_SPEED = 4.0; // a sprint with a bike in your arms (6.8 x 0.72) still gets away
 const BIKE_COLORS = [0x1c1c1c, 0x2b2b2b, 0x7a1f1f, 0x2e4a34, 0x1f3a52, 0xc9a227, 0xe8e6e0, 0x6b6b6b];
 
 const PROTEST_LINES = [
@@ -116,7 +116,7 @@ export default {
     d.protester = null;
     d.nextProtest = world.time + rand(6, 10);
     const tight = (1 - 0.03 * Math.min(c.streak, 8)) * (1 - 0.03 * (c.level - 1));
-    c.timeLeft = (30 + d.bikes.length * 15) * tight;
+    c.timeLeft = (35 + d.bikes.length * 18) * tight;
     c.msg(`${d.bikes.length} foutgeparkeerde fietsen gespot. Oranje label = mag weg.`, 3.2);
   },
 
