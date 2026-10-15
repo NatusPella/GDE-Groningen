@@ -8,7 +8,7 @@
 //   kind 'place'      done when the player gets there (z: the height of a place on a bridge deck, so
 //                     the route aims at the bridge and not at the street below it)
 //   kind 'mission'    id = missions.js index; done when that mission is passed
-//   kind 'play'       id = padel | carbid | kermis | drift | heli | duif; done after one game
+//   kind 'play'       id = padel | carbid | kermis | drift | discgolf | pitchputt | skatepark | kartbaan | heli | duif; done after one game
 //   kind 'job'        id = sidejobs.js id; done when a shift of it ends
 //   kind 'challenge'  id = postgame.js challenge id; done when it ends
 // Saved in the savegame under `doel`; world.goal mirrors it for the HUD and maps.
@@ -25,6 +25,10 @@ const BUSY = {
     carbid: (w) => w.activityGame === 'carbid',
     kermis: (w) => w.activityGame === 'kermis',
     drift: (w) => !!w.driftRun,
+    discgolf: (w) => w.activityGame === 'discgolf',
+    pitchputt: (w) => w.activityGame === 'pitchputt',
+    skatepark: (w) => w.activityGame === 'skatepark',
+    kartbaan: (w) => w.activityGame === 'kartbaan',
     heli: (w) => !!w.heliRun,
     duif: (w) => !!w.pigeonMode,
   },

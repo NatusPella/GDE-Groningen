@@ -21,7 +21,7 @@ import { STEPS, STEP_BY_ID, PARTS, stepAvailable, computeMoneyTimeline, missionI
 import { getMissionDefs, isMissionActive } from './missions.js';
 import { applySave, saveGame, loadLatestSave } from './savegame.js';
 import { isVillageMiniActive } from './dorpsuitjes.js';
-import { isActivityActive } from './activities.js';
+import { isActivityActive, activitySpots } from './activities.js';
 import { getOwnedEntries, WEAPON_STOCK, VEHICLE_STOCK, CAR_UPGRADES, OUTFITS, replacementFee } from './shops.js';
 import { repairCost, bustFine, HERO_REPLACE_FEE, SIDEJOB_PAY_MULT } from './economy.js';
 import { getFurnitureSave } from './furniture.js';
@@ -123,6 +123,100 @@ function economyChecks(check, tl) {
   ];
 }
 
+
+const hold = (k, code) => { for (const t of [window, document]) t.dispatchEvent(new KeyboardEvent('keydown', { key: k, code, bubbles: true })); };
+const release = (k, code) => { for (const t of [window, document]) t.dispatchEvent(new KeyboardEvent('keyup', { key: k, code, bubbles: true })); };
+const boardUp = () => !!document.querySelector('.mg-board:not([hidden])');
+
+// Minigames batch 1 (discgolf.js, pitchputt.js, skatepark.js, kartbaan.js): each
+// starts through its debug hook, runs a little, shows its HUD board, ends
+// cleanly on quit, and a loaded save ends a running one.
+async function minigameSmoke(world, check, capture) {
+  const A = window.__activities;
+  const ids = ['discgolf', 'pitchputt', 'skatepark', 'kartbaan'];
+  check('minigames: four activities in the hub, one spot each', ids.every((id) => A.list().some((a) => a.id === id && a.spots === 1)), JSON.stringify(A.list().map((a) => a.id)));
+  check('minigames: their spots are registered for the spot check', ids.every((id) => activitySpots().some((s) => s.kind === id)));
+  const cleared = async (name) => {
+    const ok = await waitFor(() => !isActivityActive() && !world.activityGame && !boardUp(), 4000);
+    check(`minigames: ${name} ends cleanly (hub, input claim, HUD)`, ok && !world.cameraOverride, JSON.stringify({ active: isActivityActive(), game: world.activityGame, board: boardUp(), cam: !!world.cameraOverride }));
+  };
+  world.wanted = 0;
+
+  const dg = window.__discgolf;
+  check('discgolf: starts', dg && dg.start() && await waitFor(() => dg.state() && dg.state().phase === 'aim', 6000));
+  await sleep(1200);
+  check('discgolf: board shows and the hub claims the input', boardUp() && world.activityGame === 'discgolf' && world.minigameUntil > world.time);
+  capture('mg-discgolf-aim');
+  check('discgolf: a throw flies', dg.throwAt(0.95));
+  await sleep(1400);
+  capture('mg-discgolf-flight');
+  check('discgolf: the disc comes down', await waitFor(() => dg.state() && ['landed', 'holeDone'].includes(dg.state().phase), 14000), JSON.stringify(dg.state()));
+  await sleep(1800);
+  capture('mg-discgolf-next');
+  dg.quit();
+  await cleared('discgolf');
+
+  const pp = window.__pitchputt;
+  check('pitch & putt: starts', pp && pp.start() && await waitFor(() => pp.state() && pp.state().phase === 'aim', 6000));
+  await sleep(1200);
+  check('pitch & putt: board shows', boardUp() && world.activityGame === 'pitchputt');
+  capture('mg-pitchputt-aim');
+  check('pitch & putt: a pitch flies', pp.shoot(0.8));
+  await sleep(900);
+  capture('mg-pitchputt-flight');
+  check('pitch & putt: the ball comes to rest', await waitFor(() => pp.state() && ['landed', 'holeDone'].includes(pp.state().phase), 14000), JSON.stringify(pp.state()));
+  await sleep(1800);
+  capture('mg-pitchputt-next');
+  pp.quit();
+  await cleared('pitch & putt');
+
+  const sk = window.__skatepark;
+  check('skatepark: starts', sk && sk.start() && await waitFor(() => sk.state() && sk.state().phase === 'run', 8000));
+  hold('w', 'KeyW');
+  await sleep(1500);
+  const sp = sk.state().b.speed;
+  check('skatepark: the board gets going', sp > 2.5 && Number.isFinite(sp), String(sp));
+  capture('mg-skatepark-ride');
+  key(' ', 'Space');
+  await sleep(300);
+  check('skatepark: an ollie leaves the ground', sk.state().b.z > 0.05 || !sk.state().b.grounded, JSON.stringify(sk.state()));
+  capture('mg-skatepark-air');
+  await sleep(2200);
+  release('w', 'KeyW');
+  check('skatepark: the board stays in the park', Math.abs(sk.state().b.u) <= 25.01 && Math.abs(sk.state().b.v) <= 13.01 && Number.isFinite(sk.state().b.z), JSON.stringify(sk.state()));
+  sk.score(1500);
+  sk.finish();
+  check('skatepark: the run ends by itself', await waitFor(() => !isActivityActive(), 9000));
+  await cleared('skatepark');
+
+  const kb = window.__kartbaan;
+  check('kartbaan: starts', kb && kb.start() && await waitFor(() => kb.state() && kb.state().phase === 'grid', 6000));
+  await sleep(900);
+  capture('mg-kart-grid');
+  check('kartbaan: the lights go and the race starts', await waitFor(() => kb.state() && kb.state().phase === 'race', 9000), JSON.stringify(kb.state()));
+  hold('w', 'KeyW');
+  await sleep(3200);
+  const ks = kb.state().karts;
+  check('kartbaan: karts drive and stay on the track', ks.every((k) => Number.isFinite(k.prog) && k.f > 3) && ks.every((k) => Math.abs(k.off) < 9), JSON.stringify(ks));
+  capture('mg-kart-race');
+  release('w', 'KeyW');
+  check('kartbaan: the race can be finished', kb.finish());
+  check('kartbaan: the race ends by itself', await waitFor(() => !isActivityActive(), 24000));
+  await cleared('kartbaan');
+
+  // a loaded save ends a running minigame (savegame.js quitActivity)
+  saveGame(world, { toast: false });
+  for (const [name, hook] of [['discgolf', window.__discgolf], ['kartbaan', window.__kartbaan], ['skatepark', window.__skatepark], ['pitch & putt', window.__pitchputt]]) {
+    hook.start();
+    await sleep(700);
+    check(`${name}: running before the load`, isActivityActive());
+    loadLatestSave(world);
+    await sleep(300);
+    check(`${name}: a loaded save ends it`, !isActivityActive() && !world.activityGame && world.minigameUntil === 0 && !boardUp() && !world.cameraOverride, JSON.stringify({ game: world.activityGame, board: boardUp() }));
+  }
+  await drain(world);
+}
+
 export async function runStoryTest(world) {
   const errors = [];
   window.addEventListener('error', (e) => errors.push(String(e.message || e)));
@@ -160,6 +254,7 @@ export async function runStoryTest(world) {
     check('scripted car drives a full ring lap', lap.scripted.ok, JSON.stringify(lap.scripted));
     check('AI racers finish a full ring lap', lap.ai.ok, JSON.stringify(lap.ai));
     await drain(world);
+    await minigameSmoke(world, check, capture);
 
     // desktop --validate-spots: only the spot check
     story: {

@@ -1,6 +1,8 @@
 // Free-roam activities outside the story: carbid schieten on a field in the
 // Ommelanden (carbid.js), the botsautootjes on the kermis at the Grote Markt
-// (kermis.js) and the hidden little things around town (geheimen.js). One
+// (kermis.js), the hidden little things around town (geheimen.js), the
+// drift zones, and Minigames batch 1: discgolf and pitch & putt around the
+// Stadspark, the skatepark there and the kart track at Kardinge. One
 // list, so the prompts, the E key, the frame loop, the maps, Ubbo and the
 // spot check each have a single hook here instead of one per activity.
 //
@@ -15,11 +17,15 @@ import { CARBID } from './carbid.js';
 import { KERMIS } from './kermis.js';
 import { GEHEIMEN } from './geheimen.js';
 import { DRIFT_ZONE } from './driftzone.js';
+import { DISCGOLF } from './discgolf.js';
+import { PITCHPUTT } from './pitchputt.js';
+import { SKATEPARK } from './skatepark.js';
+import { KARTBAAN } from './kartbaan.js';
 import { isShopOpen } from './shopui.js';
 import { isCinematicActive } from './cinematics.js';
 export { activityBlock, iconDisc } from './activitykit.js';
 
-const LIST = [CARBID, KERMIS, GEHEIMEN, DRIFT_ZONE];
+const LIST = [CARBID, KERMIS, GEHEIMEN, DRIFT_ZONE, DISCGOLF, PITCHPUTT, SKATEPARK, KARTBAAN];
 
 export function initActivities(w) {
   for (const a of LIST) {
