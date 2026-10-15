@@ -10,6 +10,7 @@ import { noteSpoken } from './characters.js';
 import { initCinematics, updateCinematics, cinematicPausesGameplay } from './cinematics.js';
 import { getMissionList, getNextMission } from './missions.js';
 import { playMission, isPlayAheadOpen } from './todo.js';
+import { checkPhoneWhileMoving } from './trafficlaw.js';
 import { openPauseMenu, closePauseMenu, isPauseMenuOpen, pauseMenuTab } from './pausemenu.js';
 import { setUserWaypoint } from './routing.js';
 import { storyFlag } from './story.js';
@@ -354,8 +355,12 @@ function refreshPause() {
   if (world) world.uiPaused = cinematicPausesGameplay() || isPlayAheadOpen();
 }
 
+let phoneWasOpen = false;
 export function updatePhone(dt, w) {
   world = w;
+  const open = isPhoneOpen();
+  if (open && !phoneWasOpen) checkPhoneWhileMoving(w);
+  phoneWasOpen = open;
   updateCinematics(dt, w);
   refreshPause();
   if (call && !isPauseMenuOpen()) hangUp();

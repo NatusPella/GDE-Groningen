@@ -874,8 +874,12 @@ export function generateClutter(ctx) {
 
   // Fietsnietjes in pedestrian streets, full of bikes.
   if (mid) {
+    // a pedestrian street stays walkable: at most two racks per street in a cell
+    const racks = new Map();
     S(isPedestrian, 22, (r, x, y, segA) => {
-      if (rng.next() > (inner ? 0.6 : 0.3)) return;
+      if (rng.next() > (inner ? 0.4 : 0.25)) return;
+      if ((racks.get(r) || 0) >= 2) return;
+      racks.set(r, (racks.get(r) || 0) + 1);
       const side = rng.next() < 0.5 ? 1 : -1;
       const nx = -Math.sin(segA) * side, ny = Math.cos(segA) * side;
       const off = Math.max(1.2, (r.width || 4) * 0.38);

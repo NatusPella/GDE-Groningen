@@ -15,6 +15,7 @@ import { getStationsForRender, drawStationMapIcon } from './stationtravel.js';
 import { getSideJobSpotsForRender, drawSideJobMapIcon, JOB_TARGET_COLOR } from './sidejobs.js';
 import { vehicleDisplayName } from './vehiclenames.js';
 import { findEnterableVehicle, HERO_CAR_MODEL } from './vehicle.js';
+import { tickLowHealth } from './lowhealth.js';
 import { cinematicAllowsDamageFx, isBannerUp, isCinematicActive, wijkBlurb } from './cinematics.js';
 import { isMuted, engineReadout } from './audio.js';
 import { gearboxReadout } from './gearbox.js';
@@ -902,6 +903,8 @@ function updateClock(world) {
 let lastHpFx = null;
 let flash = 0;
 function updateDamage(dt, world) {
+  // almost no health: lowhealth.js (red edge, drained colours, heartbeat), no words
+  tickLowHealth(dt, world);
   const hp = world.health + world.armor;
   if (document.body.classList.contains('intro-montage') || !cinematicAllowsDamageFx()) {
     // no blood screen in cutscenes, and no delayed flash for damage taken during one
@@ -913,10 +916,7 @@ function updateDamage(dt, world) {
   if (lastHpFx != null && hp < lastHpFx - 0.5) flash = Math.min(1, flash + 0.35 + (lastHpFx - hp) / 30);
   lastHpFx = hp;
   flash = Math.max(0, flash - dt * 1.8);
-  // almost no health: a red edge, no words (P0); steady under reduced motion
-  const low = world.health < 30 && world.health > 0 ? (document.documentElement.classList.contains('reduce-motion') ? 0.45 : 0.35 + 0.15 * Math.sin(performance.now() / 260)) : 0;
-  const o = Math.max(flash, low);
-  const s = o.toFixed(2);
+  const s = flash.toFixed(2);
   if (els.damage.style.opacity !== s) els.damage.style.opacity = s;
 }
 

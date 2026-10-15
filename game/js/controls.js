@@ -24,6 +24,9 @@ export const KEY_ACTIONS = [
   ['z', 'Skûtsje: zeil vieren', 'actie'],
   ['h', 'Toeteren', 'actie'],
   ['l', 'Zwaailicht en sirene', 'actie'],
+  ['[', 'Richtingaanwijzer links (nog eens: uit)', 'actie'],
+  [']', 'Richtingaanwijzer rechts (nog eens: uit)', 'actie'],
+  ['p', 'Alarmlichten aan of uit', 'actie'],
   ['v', 'Filmcamera', 'actie'],
   ['r', 'Lak of garagemenu', 'actie'],
   ['c', 'Duif: koeren', 'actie'],
@@ -183,9 +186,9 @@ const FOOT = {
 };
 export const PAD_MAPS = {
   foot: FOOT,
-  vehicle: { a: ' ', b: 'l', x: 'h', y: 'e', lb: 'n', rb: '@fire', lt: '@brake', rt: '@gas', ls: 'shift', rs: 'q', up: null, down: 'v', left: 'o', right: 'r', view: 'm', start: 'escape', stick: 'steer' },
+  vehicle: { a: ' ', b: 'l', x: 'h', y: 'e', lb: 'n', rb: '@fire', lt: '@brake', rt: '@gas', ls: 'shift', rs: 'q', up: 'p', down: 'v', left: '[', right: ']', view: 'm', start: 'escape', stick: 'steer' },
   // manual shifting (setting shiftMode): the bumpers shift, L3 is the clutch, the radio moves to the D-pad
-  vehicleManual: { a: ' ', b: 'l', x: 'h', y: 'e', lb: ',', rb: '.', lt: '@brake', rt: '@gas', ls: 'j', rs: 'q', up: 'n', down: 'v', left: 'o', right: 'r', view: 'm', start: 'escape', stick: 'steer' },
+  vehicleManual: { a: ' ', b: 'l', x: 'h', y: 'e', lb: ',', rb: '.', lt: '@brake', rt: '@gas', ls: 'j', rs: 'q', up: 'n', down: 'v', left: '[', right: ']', view: 'm', start: 'escape', stick: 'steer' },
   skutsje: { a: ' ', b: 'l', x: 'h', y: 'e', lb: 'z', rb: 'q', lt: '@brake', rt: '@gas', ls: 'shift', rs: null, up: null, down: 'v', left: 'o', right: 'r', view: 'm', start: 'escape', stick: 'steer' },
   // the helicopter: left stick flies (forward/back, turn), A or RT up, B or LT down, RB or L3 faster
   heli: { a: ' ', b: 'control', x: null, y: 'e', lb: null, rb: 'shift', lt: 'control', rt: ' ', ls: 'shift', rs: null, up: null, down: 'v', left: 'o', right: 'backspace', view: 'm', start: 'escape', stick: 'move' },
@@ -271,7 +274,7 @@ export function slotUses(slot) {
 const ACTION_WORDS = Object.fromEntries(KEY_ACTIONS.map(([k, d]) => [k, d.split(/[;,]/)[0]]));
 Object.assign(ACTION_WORDS, {
   '@fire': 'Aanvallen, schieten', '@aim': 'Richten', '@wheel+': 'Volgend wapen', '@wheel-': 'Vorig wapen', '@gas': 'Gas', '@brake': 'Remmen, achteruit',
-  escape: 'Pauzemenu', enter: 'Kiezen', delete: 'Doel wissen', '[': 'Vorig tabblad', ']': 'Volgend tabblad',
+  escape: 'Pauzemenu', enter: 'Kiezen', delete: 'Doel wissen',
   arrowup: 'Omhoog', arrowdown: 'Omlaag', arrowleft: 'Links', arrowright: 'Rechts', ' ': 'Springen, handrem', q: 'Achterom kijken', e: 'Instappen, gebruiken', f: 'Gebruiken (tweede knop), duif: poepen', m: 'Kaart',
 });
 const MENU_WORDS = { enter: 'kiezen', escape: 'terug', delete: 'doel wissen', ' ': 'naar jezelf op de kaart', q: 'vorig onderdeel', e: 'volgend onderdeel', '[': 'vorig tabblad, uitzoomen', ']': 'volgend tabblad, inzoomen', m: 'kaart' };

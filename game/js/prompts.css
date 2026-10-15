@@ -238,11 +238,11 @@ body.hud-in-vehicle #hud .hud-ctx { bottom: calc(var(--hud-edge, 46px) + 190px);
   #hud .hud-ctx { right: 16px; }
 }
 
-/* the bottom-right hints are cream keycaps (the approved HUD), the rest keeps the canonical cap */
+/* the bottom-right hints use the canonical white cap, only larger */
 #hud .ctx-row { background: none; border-right: 0; padding: 2px 0; flex-direction: row-reverse; gap: 10px; box-shadow: none; }
 #hud .ctx-row.learn { background: none; box-shadow: none; border-right: 0; padding: 2px 0; }
 #hud .ctx-row .ctx-pic { display: none; }
-#hud .ctx-row .ctx-glyphs .hud-key { background: #f0ede4; color: #0c140e; border: 0; border-radius: 6px; min-width: 30px; height: 30px; padding: 0 8px; font-size: 16px; box-shadow: 0 3px 0 #9c998f; text-shadow: none; }
+#hud .ctx-row .ctx-glyphs .hud-key { border-radius: 6px; min-width: 30px; height: 30px; padding: 0 8px; font-size: 16px; box-shadow: 0 3px 0 #a9a69b, 0 0 0 1px rgba(0, 0, 0, 0.18); }
 #hud .ctx-row.icon { opacity: 0.8; }
 #hud .ctx-row.icon::before { content: attr(title); font-size: 16px; color: #f0ede4; text-shadow: var(--hud-shadow); }
 #hud .ctx-row.learn .ctx-text b, #hud .ctx-row.new .ctx-text b { color: #f0ede4; font-size: 17px; text-transform: none; font-family: 'Arial Narrow', Arial, sans-serif; }

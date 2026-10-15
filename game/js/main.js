@@ -17,7 +17,7 @@ import { Player } from './player.js';
 import { World } from './world.js';
 import { initCompanion, updateCompanion } from './companion.js';
 import { updateTrafficAI, resolveVehicleBuildingCollision, resolveVehicleVehicleCollisions, manageTrafficPopulation, manageBikePopulation, manageBusPopulation, manageScooterPopulation, manageBoatPopulation, updateBoatAI, checkVehicleWater, spawnHeroCarNear, tickBurningVehicles, setGroundMap } from './vehicle.js';
-import { spawnPedestriansNear, updatePedestrians } from './pedestrians.js';
+import { spawnPedestriansNear, updatePedestrians, CITY_CENTRE } from './pedestrians.js';
 import { updateCombat, updateBullets } from './combat.js';
 import { updatePolice } from './police.js';
 import { updateTrafficLaw } from './trafficlaw.js';
@@ -30,6 +30,7 @@ import { initHud, updateHud } from './hud_panel.js';
 import { initGarages, updateGarages, tryGarageInteract } from './garages.js';
 import { initHoreca, updateHoreca, tryHorecaInteract } from './horeca.js';
 import { initShops, updateShops, tryShopInteract } from './shops.js';
+import { initSnackMachines, updateSnackMachines, tryMachineInteract } from './snackautomaat.js';
 import { updateParkingLots3D } from './parkinglots3d.js';
 import { isShopOpen } from './shopui.js';
 import { initMapView, updateMapView, isMapOpen } from './mapview.js';
@@ -77,6 +78,7 @@ import { initOmmelandFun, updateOmmelandFun, tryOmmelandInteract } from './ommel
 import { tryTrainInteract, updateTrainDriving } from './traindrive.js';
 import { dist } from './util.js';
 import { updateEmergency } from './emergency.js';
+import { updateIndicators } from './indicators.js';
 import { initAchievementTracker, updateAchievementTracker } from './achievementtracker.js';
 import { probe } from './hitchprobe.js';
 import { initSafety, updateSafety } from './safety.js';
@@ -266,6 +268,7 @@ async function boot() {
   initGarages(world);
   initHoreca(world);
   initShops(world);
+  initSnackMachines(world);
   initHome(world);
   parkHeroAtHome(world);
   initTrafficLights(world);
@@ -450,7 +453,9 @@ async function boot() {
     if (trafficTimer <= 0) {
       trafficTimer = 1.5;
       manageTrafficPopulation(world, { target: Math.round(scaledTarget(30) * MODS.cars) });
-      manageBikePopulation(world, { target: Math.round(scaledTarget(16) * MODS.bikes) });
+      // the centre is full of bikes: eight more cyclists while you are in it
+      const inCentre = Math.hypot(world.player.x - CITY_CENTRE.x, world.player.y - CITY_CENTRE.y) < CITY_CENTRE.r;
+      manageBikePopulation(world, { target: Math.round((scaledTarget(16) + (inCentre ? scaledTarget(8) : 0)) * MODS.bikes) });
       manageBusPopulation(world);
       manageScooterPopulation(world, { target: scaledTarget(10) });
       manageBoatPopulation(world, { target: boatTarget() });
@@ -475,12 +480,14 @@ async function boot() {
       trySideJobInteract(world);
       tryHeliSpotInteract(world);
       tryGarageInteract(world);
+      tryMachineInteract(world);
       tryShopInteract(world);
       tryPigeonSpotInteract(world);
       tryOmmelandInteract(world);
       tryStationInteract(world);
       tryHomeInteract(world);
       tryHorecaInteract(world);
+      updateSnackMachines();
       if (!updateTrainDriving(dt, world)) {
         // a post-game minigame (the fierljep duel) holds the player in place
         if (!world.challengeHoldPlayer) player.update(dt, world);
@@ -488,6 +495,7 @@ async function boot() {
       }
       updateHome(dt, world);
       updateEmergency(dt, world);
+      updateIndicators(dt, world);
     }
     updateHomeExterior(dt, world);
     probe.mark('player');
