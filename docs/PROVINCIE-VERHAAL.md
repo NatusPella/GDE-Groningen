@@ -88,6 +88,13 @@ ze kiezen: groeien of thuis blijven.
 | 4 | **Westerwolde** (finale) | over de weg; geen spoor, en dat hoort zo | zes voorrondes + O26 |
 
 - Vrij rondrijden kan altijd overal.
+- **Kalender:** Deel 4 heeft vaste speldagen, 15 september (dinsdag, dag 33)
+  tot en met de finale op zaterdag dag 51. De voorrondes vallen op dag 37
+  (za, Hogeland), 40 (di, Eemsdelta), 43 (vr, Wadkust), 45 (zo,
+  Westerkwartier), 47 (di, Oldambt), 50 (vr, Veenkoloniën) en 51 (za,
+  Westerwolde). Na 22 september (dag 40) toont de HUD "nazomer · dag N". De
+  hele tabel, met weekdagen en bijzondere dagen: [verhaal/KALENDER.md](verhaal/KALENDER.md)
+  (Deel 4).
 - Een regio "op slot" heeft geen missies, maar wel zijn landschap, zijn
   activiteiten en een "binnenkort"-melding van Rikus.
 - Ring 1 valt precies in de F1-corridor uit het plan, dus de eerste missies
@@ -116,7 +123,7 @@ ze kiezen: groeien of thuis blijven.
 | **Verleiding en dieptepunt** | Ubbo biedt Tessa de franchise aan, met haar naam op 41 karren. Ruzie: "Jij wilt alles groter." "Jij wilt alles hetzelfde." Tessa speelt O23-O24 alleen | O23-O24 |
 | **Keuze** | Tessa vindt in de stoomtrein Ubbo's grootboek: de franchisenemers betalen hem met smokkelgeld. Ze verscheurt het contract live op Nachtstreek | O24 |
 | **Finale** | het beleg van de vesting en de laatste voorronde, met de jury onder vuur | O30-O31 |
-| **Thuis** | de Vismarkt terug, de eerste vorst, en een frietwagen die elke zomer één ronde door de provincie rijdt. Allebei krijgen ze hun zin | O32 |
+| **Thuis** | de Vismarkt terug, de laatste zomeravond, en een frietwagen die elke zomer één ronde door de provincie rijdt. Allebei krijgen ze hun zin | O32 |
 
 **Tammo's nieuwe vijf woorden** (O32, als antwoord op "Groeien of thuis?"):
 *"Thuis is waar de kar staat."* Tessa telt op haar vingers: "Zes."
@@ -161,7 +168,7 @@ trein), **wad** (te voet met getij), **vliegtuig** en **trekker**.
 | O29 | Stil in het klooster | te voet, sluipen | Westerwolde | Ubbo's jury logeert in een kloostertuin | een kruidentuin bij nacht; niemand mag iets horen |
 | O30 | Het beleg | groot gevecht (geen doden, toneel) | Westerwolde | de vesting is Ubbo's laatste voorronde, met hekken dicht | een stervormige vesting, ophaalbruggen, kartonnen kanonnen; dit keer winnen de belegeraars |
 | O31 | De laatste ronde | bakken + achtervolging | Westerwolde | bakken voor de jury terwijl Ubbo met de bal over de heide vlucht | een achtervolging over het veen tot de grens; de heli, de duiven van Bert |
-| O32 | Thuis | verhaal, rijden | Westerwolde → Stad | terug naar de Vismarkt | een colonne door de hele provincie: alle bondgenoten rijden mee, de eerste vorst |
+| O32 | Thuis | verhaal, rijden | Westerwolde → Stad | terug naar de Vismarkt | een colonne door de hele provincie: alle bondgenoten rijden mee, de laatste zomeravond |
 
 ## 4. Zijmissies: vreemde types in reeksen (28)
 
@@ -210,7 +217,7 @@ het ontdekken van de regio.
 | A4 | **Wadgids** | bijbaan, te voet | Wadkust | groepen over het wad bij eb |
 | A5 | **Trekkertrek** | wedstrijd | Westerkwartier, Hogeland | tunen, trekken, winnen |
 | A6 | **Kermiscircuit** | minispellen | zes stadjes (wisselt per week) | botsauto's, schiettent, zweefmolen, grijpautomaat |
-| A7 | **Balen rapen** | landbouw, getimed | overal (september) | hooibalen ophalen voor de regen |
+| A7 | **Balen rapen** | landbouw, getimed | overal (nazomer) | hooibalen ophalen voor de regen |
 | A8 | **Rooien** | landbouw | Veenkoloniën | aardappelen rooien in een race tegen de buurman |
 | A9 | **Dijkraces** | race | de zeedijk, Eemsdelta, Wadkust | tijdritten over dijkwegen met wind |
 | A10 | **N-wegsprints** | race | N33, N360, N361, N355 | punt-tot-punt, met verkeer |
@@ -251,7 +258,7 @@ het ontdekken van de regio.
 | **Treinen, bussen en ponten** | rijden echt, ook als je er niet bent | plan §3 |
 | **Dag en nacht, weer** | storm op de kust, mist in de Veenkoloniën, helder in het Lauwersmeer | `daynight.js`, het weersysteem |
 | **Getij** | eb en vloed op het wad en in de havens | plan 2.7 |
-| **Seizoenen** (Deel 4: september-oktober) | oogst, stoppelvelden, vroege mist, herfstkleuren, eerste vorst in O32 | een seizoensparameter op landuse en weer |
+| **Nazomer** (Deel 4: dag 33-51, "altijd zomer") | oogst, stoppelvelden, ochtendmist, gouden avonden; geen herfstkleuren, geen vorst (de laatste zomeravond in O32) | een seizoensparameter op landuse en weer |
 | **Events** | §6.1 | een eventplanner per regio |
 | **Dialect** | elke regio een eigen kleur Gronings: Westerkwartiers (met Friese invloed), Hogelandsters, Oldambtsters, Veenkoloniaals, Westerwolds (dicht bij het Drents), en Stads | TTS via de bestaande pijplijn (Gemini 3.8, `speech_metadata` per regio), ondertitels via `subtitles.js` |
 

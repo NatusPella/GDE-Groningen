@@ -13,7 +13,7 @@ Productiescript voor inhoudsdrop **F4c** van Deel 4 "Nazomer" (de Ommelander Ron
 - een **data-bijlage** in de vorm van de bestaande code (§11) en de tellingen (§12).
 
 **Vaste regels voor dit script**
-- **Altijd zomer.** Deel 4 speelt in de nazomer, 15-27 september, en blijft zomer: geen herfst, geen winter, geen vorst, geen Koningsdag. Het plan-item "de eerste vorst" in O32 is vervangen door "de laatste zomeravond" (§9). Heide in bloei, stoppelvelden, warme avonden, af en toe een bui.
+- **Altijd zomer.** Deel 4 speelt in de nazomer (F4c: dag 46-51, maandag 28 september tot en met zaterdag, de finale; de HUD toont "nazomer · dag N", nooit een maand), en blijft zomer: geen herfst, geen winter, geen vorst, geen Koningsdag. Het plan-item "de eerste vorst" in O32 is vervangen door "de laatste zomeravond" (§9). Heide in bloei, stoppelvelden, warme avonden, af en toe een bui.
 - **Gaswinning** komt alleen voor als stille, respectvolle zijlijn: twee momenten (O23-aankomst Hoogezand en de colonne in O32), zonder grap.
 - **Ter Apel is nooit een decor**, ook niet als woord. Het klooster uit het plan is verplaatst naar een fictief landgoed (O29). Ubbo's keten loopt "van Lauwersoog tot Bourtange".
 - Geen echte levende personen, geen echte merken of bedrijven (alles verzonnen: Oldenhuis Bakt, Veenmeel, de Vetinspectie, de Stichting Veenspoor, Transport Wierda, Grenswacht). 18+.
@@ -39,18 +39,23 @@ Productiescript voor inhoudsdrop **F4c** van Deel 4 "Nazomer" (de Ommelander Ron
 
 **Voorrondes in totaal:** Hogeland O6, Eemsdelta O10, Wadkust (F4b), Westerkwartier O18, Oldambt **O22** (vijfde), Veenkoloniën **O27** (zesde), Westerwolde **O30-O31** (zevende).
 
-### 1.2 Kalender (een teller, geen rooster)
+### 1.2 Kalender (vaste dagen, één bron: KALENDER.md)
 
-De datumkaart "Deel 4 · 15 september" staat in F4a. Voor de rest geldt: de speldag is een **teller**; elke gewonnen voorronde schuift hem anderhalve dag op, zodat zeven voorrondes binnen 15-27 september passen, hoe snel of langzaam je ook speelt. Er zijn maar drie datumkaarten: O1 (15 sept), de finale (**zaterdag 27 september**) en het slot van O32. In dialogen staan daarom geen weekdagen behalve "zaterdag" voor de finale. *Dit botst met F4a, dat O10 op za 27 sept zet; voorstel: O10 naar "zo 21 sept".*
+De datumkaart "Deel 4 · 15 september" staat in F4a; de enige bron voor alle data van Deel 4 is [KALENDER.md](KALENDER.md) (Deel 4). F4a speelt dag 33-40 (di 15 - di 22 sept), F4b dag 41-45 (wo 23 - zo 27), F4c dag 46-51 (ma 28 - za). Dat zijn zeven voorrondes op zeven verschillende dagen: za, di, vr, zo, di, vr, za. De dagen na 22 september zijn "nazomer · dag N" op de HUD; in het verhaal blijft het september (O20 "Het sneeuwt. In september.", O26 "Het is september" kloppen dus). In dialogen staan weekdagen alleen voor de finale: "zaterdag" (de finale is op **dag 51, zaterdag**). *De eerdere teller ("elke voorronde schuift de speldag anderhalve dag op") en het voorstel O10 naar "zo 21 sept" zijn vervallen: O10 staat in F4a op di 22 sept.*
 
-| Moment | Dagdeel | Missie |
-|---|---|---|
-| Oldambt | avond / ochtend / middag / avond | O19, O20, O21, O22 (kermis) |
-| Veenkoloniën | middag, avond, nacht, nacht, middag | O23, O24, O25, O26, O27 |
-| za 27 sept | ochtend | O28 (de rit door het bos) |
-| za 27 sept | nacht ervoor | O29 (kloostertuin; speelt "de nacht voor de finale") |
-| za 27 sept | middag | O30 (het beleg), O31 (de laatste ronde) |
-| za 27 sept | gouden uur tot nacht | O32 (colonne naar Stad) |
+| Dag | Weekdag | Dagdeel | Missie |
+|---|---|---|---|
+| 46 | ma | middag / avond | `n-winschoten`, O19 (avond) |
+| 47 | di | ochtend / middag / avond / nacht | O20, O21, O22 (**voorronde 5, kermis Winschoten**), `n-beerta`, `n-aanbod`, `n-ruzie` (nacht) |
+| 48 | wo | middag, avond, nacht | `n-veendam`, O23, O24, O25 |
+| 49 | do | nacht | O26 |
+| 50 | vr | middag | O27 (**voorronde 6, Veendam**), `n-brugwachter`, `n-westerwolde` |
+| 51 | za | ochtend | O28 (de rit door het bos) |
+| 51 | za | nacht ervoor (01:00) | O29 (kloostertuin; speelt "de nacht voor de finale") |
+| 51 | za | middag | O30 (het beleg), O31 (de laatste ronde, **voorronde 7**) |
+| 51 | za | gouden uur tot nacht | O32 (colonne naar Stad), `n-boshut` |
+
+Een nachtmissie hoort bij de dag waarop hij begint; na middernacht is het de volgende dag, binnen de grens van de volgende stap (O25 begint op wo, O26 op do en speelt na middernacht op vr; zie KALENDER.md).
 
 (O29 speelt dus tussen O28 en O30 maar in de nacht van vrijdag op zaterdag; de HUD zet de klok daarvoor terug naar 01:00. Zo blijft de finale op één dag.)
 
@@ -1957,7 +1962,7 @@ Minispellen: **botsauto's** (O22-stijl, arena), **schiettent** (pluche, geen ech
 
 ### 5.7 Oogstfeest (groot event, zomer)
 
-*Waar:* **Beerta** (Roelfiens erf en het dorpsplein), eind augustus-september: het laatste graan is binnen. Trekkerparade, combineshow, een eierbalkraam van de Fjord, een orkestje, een prijs voor de beste boterham. Nooit tijdens een missie; geen herfstmarkt, geen pompoenen.
+*Waar:* **Beerta** (Roelfiens erf en het dorpsplein), nazomer (dag 46-48, ma 28 - wo 30): het laatste graan is binnen. Trekkerparade, combineshow, een eierbalkraam van de Fjord, een orkestje, een prijs voor de beste boterham. Nooit tijdens een missie; geen herfstmarkt, geen pompoenen.
 - **Roelfien** *(droog, warm, op een podiumpje)*: Het graan is binnen. Nu de mensen nog. Bier staat klaar.
 - **Omroeper** *(luid, enthousiast)*: Dames en heren, de trekkerparade! Eén trekker! Dat is het hele dorp! Hij heeft een vlag!
 - **Tessa** *(lachend)*: Hij heeft ook de burgemeester achterop.
@@ -2084,7 +2089,7 @@ Regels als F4a: nooit tijdens een missie, één tegelijk, altijd een beloning of
 - **Tessa** *(droog)*: Het wordt elke keer beter.
 - **Tammo** *(droog)*: Het wordt elke keer langer.
 
-**De kermis in Winschoten (zomerweekend)** · groot · Winschoten
+**De kermis in Winschoten (dag 47-52, di - zo; de voorronde O22 is op di, het weekend is de afsluiting)** · groot · Winschoten
 - **Tessa** *(uitgelaten)*: Botsauto's! Zweefmolen! Schiettent! Alles!
 - **Tammo** *(droog)*: Ik doe de schiettent. Van de grond. Daar is hij het mooist.
 
@@ -2095,7 +2100,7 @@ Regels als F4a: nooit tijdens een missie, één tegelijk, altijd een beloning of
 - **Tessa** *(zacht, lachend)*: Hij is zo mooi.
 - **Tammo** *(droog)*: Hij weegt meer dan de Fjord.
 
-**Een jaarmarkt in Stadskanaal** · groot · Stadskanaal
+**Een jaarmarkt in Stadskanaal (do, dag 49: de stoomtreindag)** · groot · Stadskanaal
 - **Machinist Dries** *(schor, knipogend)*: Jaarmarkt. Er rijdt vandaag een stoomtrein. Hij is gratis. Dat is geen grap. Dat is een jaarmarkt.
 
 ## 7. Herkenningspunten en geheimen
