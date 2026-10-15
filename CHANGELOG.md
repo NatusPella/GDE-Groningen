@@ -7,6 +7,19 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Nieuw
+- **Handmatig schakelen, driften en motoren.** Onder Instellingen kies je
+  Schakelen: Automaat (zoals altijd), Handmatig (. en , of de bumpers van je
+  controller) of Handmatig + koppeling (J of L3: zonder koppeling kraakt het
+  en de motor kan afslaan). Auto's, bestelbussen, vrachtwagens, de bus en de
+  trekker hebben elk hun eigen versnellingen, toerenbegrenzer en motorrem;
+  de HUD toont de versnelling (N ook), een schakellampje en MOTOR AF. Driften
+  gaat met de handrem: een tegenstuurhulp houdt de slip beheersbaar (uit =
+  realistischer), punten en combo's tellen mee en op drie rotondes zijn
+  driftzones met medailles. Nieuw in Trap & Toeter: de sportmotor Wadden
+  Stormvogel, de naked Hunze Knetter, de Dollard Klassieker en de brommer
+  Tweetakt Pruttelaar met koppeling en vier versnellingen (45 km/u; opvoeren
+  trekt de aandacht van de politie). Motoren leunen in de bocht, doen
+  wheelies en stoppies (Shift) en je vliegt eraf bij een harde klap.
 - **Nieuwe HUD, laadscherm en opstartscherm.** De HUD toont alleen wat nu
   telt (instelling HUD: Slim, Altijd alles of Minimaal): sterren alleen als je
   gezocht wordt, geld bij een wijziging, een afslagkaart met de GPS vlak voor

@@ -4,7 +4,7 @@
 // never what the rest is. Choosing a weapon takes it in hand; furniture
 // puts home on the GPS. Vehicles stay in Garage, clues and people in Verhaal.
 import { WEAPONS, hasWeapon, isMeleeWeapon } from './combat.js';
-import { WEAPON_STOCK, OUTFITS, CAR_UPGRADES, BIKE_UPGRADES, inventoryShopState } from './shops.js';
+import { WEAPON_STOCK, OUTFITS, CAR_UPGRADES, BIKE_UPGRADES, MOTO_UPGRADES, inventoryShopState } from './shops.js';
 import { furnitureOwned, FURNITURE_TOTAL } from './furniture.js';
 import { fjordUpgradeOffers } from './pg_foodtruck.js';
 import { getHomeForRender } from './home.js';
@@ -102,7 +102,7 @@ function collect(w) {
   const label = (list, id) => (list.find((u) => u.id === id) || {});
   for (const id of shop.heroUpgrades) { const u = label(CAR_UPGRADES, id); ups.push({ key: 'u:hero:' + id, title: u.label || id, sub: 'Fjord Escapade', perk: u.desc, how: u.price ? `Knal & Kolder, ${euro(u.price)}` : '' }); }
   for (const v of shop.vehicles) {
-    for (const id of v.upgrades) { const u = label(v.kind === 'bike' ? BIKE_UPGRADES : CAR_UPGRADES, id); ups.push({ key: `u:${v.key}:${id}`, title: u.label || id, sub: v.label, perk: u.desc, how: u.price ? euro(u.price) : '' }); }
+    for (const id of v.upgrades) { const u = label(v.kind === 'bike' ? BIKE_UPGRADES : v.kind === 'scooter' ? [...BIKE_UPGRADES, ...MOTO_UPGRADES] : CAR_UPGRADES, id); ups.push({ key: `u:${v.key}:${id}`, title: u.label || id, sub: v.label, perk: u.desc, how: u.price ? euro(u.price) : '' }); }
   }
   for (const u of fjordUpgradeOffers(w)) if (u.owned) ups.push({ key: 'u:fjord:' + u.id, title: u.name, sub: 'Fjord Frituur', perk: u.blurb, how: euro(u.price) });
   for (const u of ups) out.push({ ...u, cat: 'upgrade', icon: 'upgrade', link: u.sub === 'Fjord Frituur' ? null : ['garage', 'Naar Garage'] });

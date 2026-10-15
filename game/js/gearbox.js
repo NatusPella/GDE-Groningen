@@ -42,9 +42,9 @@ const GRIND_HINT = 0.6;
 export function profileFor(v) {
   if (!v || v.isBoat || v.isHeli || v._mount) return null;
   const m = v.model || {};
+  if (m.motorbike) return m.motorbike === 'naked' ? 'motorNaked' : m.motorbike === 'old' ? 'motorOld' : 'motorSport';
   if (v.isBike) return null;
   if (v.isScooter) return m.geared ? 'moped' : null;
-  if (m.motorbike) return m.motorbike === 'naked' ? 'motorNaked' : m.motorbike === 'old' ? 'motorOld' : 'motorSport';
   if (v.isBus || m.name === 'bus' || m.name === 'midibus') return 'bus';
   const n = m.name;
   if (n === 'quad') return null;

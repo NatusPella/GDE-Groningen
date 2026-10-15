@@ -3,7 +3,7 @@ import { markerColors } from './a11y.js';
 import { speakerHtml } from './speakers.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { buildBuildingMesh, setBuildingMap, setNightFactor } from './models3d_buildings.js';
-import { buildVehicleMesh, updateVehicleWheelSpin, setBusRearAngle, updatePoliceLamps, syncPoliceMount, boatHullProfile } from './models3d_vehicles.js';
+import { buildVehicleMesh, updateVehicleWheelSpin, setBusRearAngle, updatePoliceLamps, syncPoliceMount, boatHullProfile, riderSeatFor, attachHelmet } from './models3d_vehicles.js';
 import {
   buildVehicleImpactSparkMesh3D, updateVehicleImpactSparkMesh3D,
   vehicleNeedsFireEffect, buildVehicleFireMesh3D, updateVehicleFireMesh3D,
@@ -720,7 +720,19 @@ function syncPlayerRider(pv, pvMesh, hide) {
   }
   const ud = playerRider.userData;
   if (playerRider.parent !== pvMesh) pvMesh.add(playerRider);
-  if (pv.isScooter) {
+  const seat = pv.isScooter ? riderSeatFor(pv.model) : null;
+  if (seat) {
+    playerRider.position.set(seat.x, seat.y - 0.93 * playerRider.scale.y, 0);
+    playerRider.rotation.set(0, 0, seat.lean);
+    ud.armL.rotation.set(0, 0, seat.arm);
+    ud.armR.rotation.set(0, 0, seat.arm);
+    ud.legL.rotation.set(0, 0, seat.leg);
+    ud.legR.rotation.set(0, 0, seat.leg);
+    if (pv.model.motorbike || pv.model.geared) {
+      if (!ud.helmet) attachHelmet(playerRider, pv.model.motorbike === 'sport' ? 0xe8e6e0 : pv.model.geared ? 0xd8c8a0 : 0x1c1c1e);
+    } else if (ud.helmet) { ud.head.remove(ud.helmet); ud.helmet = null; }
+  } else if (pv.isScooter) {
+    if (ud.helmet) { ud.head.remove(ud.helmet); ud.helmet = null; }
     playerRider.position.set(-0.08, 0.155, 0);
     playerRider.rotation.set(0, 0, -0.03);
     ud.armL.rotation.set(0, 0, 0.66);
@@ -728,6 +740,7 @@ function syncPlayerRider(pv, pvMesh, hide) {
     ud.legL.rotation.set(0, 0, 0.12);
     ud.legR.rotation.set(0, 0, -0.1);
   } else {
+    if (ud.helmet) { ud.head.remove(ud.helmet); ud.helmet = null; }
     const fat = !!pv.model.fat;
     playerRider.position.set(fat ? -0.26 : -0.3, (fat ? 0.93 : 1.02) - 0.93 * playerRider.scale.y, 0);
     playerRider.rotation.set(0, 0, -0.08);
@@ -2000,6 +2013,8 @@ export function update3D(dt, world) {
         mesh.rotation.order = 'YZX';
         mesh.rotation.z = (v.pitch || 0) + (body ? 0 : (v.susPitch || 0) * 0.6);
         mesh.rotation.x = (v.roll || 0) + (body ? 0 : (v.susRoll || 0) * 0.6);
+        // a wheelie turns about the rear tyre, a stoppie about the front one
+        if (v.pitch && v.model.motorbike) mesh.position.y += v.model.len * 0.33 * Math.abs(Math.sin(v.pitch));
         if (body) {
           body.rotation.z = v.susPitch || 0;
           body.rotation.x = v.susRoll || 0;
