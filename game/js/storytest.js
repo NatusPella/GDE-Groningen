@@ -217,6 +217,63 @@ async function minigameSmoke(world, check, capture) {
   await drain(world);
 }
 
+// Minigames batch 2 (zwembad.js, klimtoren.js, waterski.js): start through the
+// debug hook, run a little, finish, and end cleanly.
+async function minigames2Smoke(world, check, capture) {
+  const A = window.__activities;
+  const ids = ['zwembad', 'klimtoren', 'waterski'];
+  check('minigames 2: three activities in the hub, one spot each', ids.every((id) => A.list().some((a) => a.id === id && a.spots === 1)), JSON.stringify(A.list().map((a) => a.id)));
+  check('minigames 2: their spots are registered for the spot check', ids.every((id) => activitySpots().some((s) => s.kind === id)));
+  const cleared = async (name) => {
+    const ok = await waitFor(() => !isActivityActive() && !world.activityGame && !boardUp(), 5000);
+    check(`minigames 2: ${name} ends cleanly (hub, input claim, HUD)`, ok && !world.cameraOverride, JSON.stringify({ active: isActivityActive(), game: world.activityGame, board: boardUp(), cam: !!world.cameraOverride }));
+  };
+  world.wanted = 0;
+  const finite = (p) => [p.x, p.y, p.z].every(Number.isFinite);
+
+  const zw = window.__zwembad;
+  check('zwembad: starts', zw && zw.start() && await waitFor(() => zw.state() && zw.state().swim.phase === 'block', 6000));
+  await sleep(800);
+  check('zwembad: board shows and the hub claims the input', boardUp() && world.activityGame === 'zwembad');
+  capture('mg-zwembad-block');
+  key(' ', 'Space');
+  await sleep(300);
+  check('zwembad: the dive starts the swim', zw.state().swim.phase === 'swim', JSON.stringify(zw.state()));
+  for (let i = 0; i < 6; i++) { key(i % 2 ? 'd' : 'a', i % 2 ? 'KeyD' : 'KeyA'); await sleep(550); }
+  capture('mg-zwembad-swim');
+  check('zwembad: strokes move the swimmer', zw.state().swim.dist > 3 && finite(world.player), JSON.stringify(zw.state()));
+  zw.finish();
+  check('zwembad: the swim ends by itself', await waitFor(() => !isActivityActive(), 6000));
+  await cleared('zwembad');
+
+  const kt = window.__klimtoren;
+  check('klimtoren: starts', kt && kt.start() && await waitFor(() => kt.state() && kt.state().climb.phase === 'climb', 6000));
+  await sleep(500);
+  hold('a', 'KeyA');
+  await sleep(1100);
+  check('klimtoren: holding A grips a hold and lifts the climber', kt.state().climb.body > 0.1 && finite(world.player), JSON.stringify(kt.state()));
+  capture('mg-klimtoren-grip');
+  release('a', 'KeyA');
+  await sleep(300);
+  kt.finish();
+  check('klimtoren: the climb ends by itself', await waitFor(() => !isActivityActive(), 7000));
+  await cleared('klimtoren');
+
+  const ws = window.__waterski;
+  check('waterski: starts', ws && ws.start() && await waitFor(() => ws.state() && ws.state().phase === 'run', 6000));
+  await sleep(1500);
+  capture('mg-waterski-run');
+  check('waterski: the boat tows the skier along the lake', ws.state().ski.sS > 2 && finite(world.player), JSON.stringify(ws.state()));
+  hold('a', 'KeyA');
+  await sleep(900);
+  release('a', 'KeyA');
+  check('waterski: leaning moves the skier sideways', Math.abs(ws.state().ski.px) > 0.3, JSON.stringify(ws.state()));
+  ws.finish();
+  check('waterski: the run ends by itself', await waitFor(() => !isActivityActive(), 7000));
+  await cleared('waterski');
+  await drain(world);
+}
+
 export async function runStoryTest(world) {
   const errors = [];
   window.addEventListener('error', (e) => errors.push(String(e.message || e)));
@@ -255,6 +312,7 @@ export async function runStoryTest(world) {
     check('AI racers finish a full ring lap', lap.ai.ok, JSON.stringify(lap.ai));
     await drain(world);
     await minigameSmoke(world, check, capture);
+    await minigames2Smoke(world, check, capture);
 
     // desktop --validate-spots: only the spot check
     story: {
