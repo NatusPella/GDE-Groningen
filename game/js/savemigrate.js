@@ -1,12 +1,12 @@
 // Save versions and their migrations, in one place. The promise (README,
-// "Saves"): a save from 1.0 on keeps loading in every later version.
+// "Saves en privacy"): a save from 1.0 on keeps loading in every later version.
 //
-// - The savegame (savegame.js, localStorage 'gte-save-v1') carries `v`. A save
+// - The savegame (savegame.js, localStorage 'gde-save-v1') carries `v`. A save
 //   with an older `v` runs through SAVE_MIGRATIONS one step at a time
 //   (1 -> 2 -> ...) before the game reads it; a save from a newer game is left
 //   alone. The sections inside it (story `v: 1`, the shops, ...) keep their own
 //   tolerant loaders that drop unknown ids; only the top-level `v` moves.
-// - The settings (settings.js, 'gte-settings') do the same with SETTINGS_MIGRATIONS.
+// - The settings (settings.js, 'gde-settings') do the same with SETTINGS_MIGRATIONS.
 // - Never change a released migration: add the next one and raise the version.
 // - Pure (no DOM, no three.js): node scripts/save_migration_test.mjs runs the
 //   fixtures in scripts/fixtures/saves/ through it.

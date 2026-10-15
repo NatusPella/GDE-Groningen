@@ -186,7 +186,7 @@ export class Player {
     }
     this.crouching = input.isDown('control') && this.z <= 0;
 
-    // GTA V-style: WASD moves relative to the camera, the body turns to face
+    // Modern third-person style: WASD moves relative to the camera, the body turns to face
     // the movement; while attacking/aiming the body faces the camera instead
     // this.carrying: speed factor while hauling a side-job load (sidejobs.js)
     const speed = (this.crouching ? CROUCH_SPEED : input.isDown('shift') ? RUN_SPEED : WALK_SPEED) * (this.carrying || 1);
@@ -659,7 +659,7 @@ export class Player {
     if (world.health <= 0) requestRespawn(world);
   }
 
-  // Bailing out above BAIL_SPEED: GTA-style dive onto the tarmac with a
+  // Bailing out above BAIL_SPEED: an action-movie dive onto the tarmac with a
   // tumble; the car keeps rolling without you.
   diveOut(world, v, vx, vy) {
     const speed = Math.hypot(vx, vy);

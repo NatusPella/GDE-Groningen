@@ -106,8 +106,8 @@ function setupTrailerVideo({ ipcMain, win, out, size, gameDir, ffmpeg }) {
   const [W, H] = size;
   let sheet = null, proc = null, done = null, frames = 0, t0 = 0, failed = false;
   const thumb = out.replace(/\.(mp4|mov|m4v)$/i, '') + '.png';
-  ipcMain.removeHandler('gte:video-begin');
-  ipcMain.handle('gte:video-begin', (e, s) => {
+  ipcMain.removeHandler('gde:video-begin');
+  ipcMain.handle('gde:video-begin', (e, s) => {
     sheet = s;
     console.log(`[video] ${s.frames} frames (${s.total.toFixed(1)} s), theme from ${s.themeAt.toFixed(2)} s, ${(s.voices || []).length} voice lines -> ${out}`);
     return true;
@@ -119,8 +119,8 @@ function setupTrailerVideo({ ipcMain, win, out, size, gameDir, ffmpeg }) {
     proc.stdin.on('error', (err) => { failed = true; console.log('[video] ffmpeg pipe:', err.message); });
     t0 = Date.now();
   };
-  ipcMain.removeHandler('gte:capture-frame');
-  ipcMain.handle('gte:capture-frame', async () => {
+  ipcMain.removeHandler('gde:capture-frame');
+  ipcMain.handle('gde:capture-frame', async () => {
     if (!sheet || failed) return false;
     const img = await win.webContents.capturePage();
     const { width, height } = img.getSize();

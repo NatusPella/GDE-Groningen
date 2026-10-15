@@ -396,7 +396,7 @@ function setClock(h) {
 
 // Credits after the epilogue: name cards over the city, no voices.
 const CREDITS = [
-  ['Tammo & Tessa', 'Vijf woorden'],
+  ['Tammo & Tessa', 'twee Stadjers met een droom. Vijf woorden'],
   ['Rikus', 'vertelde het, op Nachtstreek'],
   ['Jelle Terpstra', 'de Fryske Snackkening, foar mem'],
   ['Gerda Terpstra', 'tweede in 1953. Nu op het bordje'],

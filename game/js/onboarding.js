@@ -8,7 +8,7 @@
 //   scheduler watches (scenes, radio, story texts, calls, banter, subtitles,
 //   cards) has been quiet for QUIET seconds, and the previous lesson is GAP
 //   seconds old. Never blocks play: they are ordinary HUD tip cards.
-// - Seen lessons are kept per device (gte-uitleg), like the hint progress, so
+// - Seen lessons are kept per device (gde-uitleg), like the hint progress, so
 //   a second playthrough gets none. A lesson whose key the player already
 //   used (hintUses) counts as seen.
 // - Instellingen › Weergave › "Uitleg voor nieuwe spelers" turns them off;
@@ -20,8 +20,9 @@ import { isPauseMenuOpen } from './pausemenu.js';
 import { getSettings } from './settings.js';
 import { physicalKey, keyName, tokenKey } from './controls.js';
 import { hintUses, glyphHtml } from './prompts.js';
+import { KEYS } from './storagekeys.js';
 
-const STORE_KEY = 'gte-uitleg';
+const STORE_KEY = KEYS.onboarding;
 const FIRST_AFTER = 12;
 const GAP = 30;
 const AFTER_SCENE = 4;

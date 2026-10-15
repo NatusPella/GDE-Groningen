@@ -1,7 +1,9 @@
 # Checklist: de repo publiek maken
 
 Voor rond 1.0. Alles hieronder is een voorstel: de eigenaar vinkt af en
-voert uit. Niets hiervan is al gedaan. Achtergrond in
+voert uit. De actuele stand (15 okt 2026) en de open beslissingen staan in
+[OPEN_SOURCE_CHECKLIST.md](OPEN_SOURCE_CHECKLIST.md); dit document beschrijft
+de procedures. Achtergrond in
 [LICENTIES.md](LICENTIES.md).
 
 Volgorde: eerst opruimen en de historie herschrijven (stap 1-4), dan pas
@@ -10,7 +12,7 @@ verandert alle commit-hashes; doe het één keer, vóór iemand anders kloont.
 
 ## 1. Secrets
 
-Gecontroleerd op 3 okt 2026 (alle 547 commits, alle branches):
+Gecontroleerd op 3 en 15 okt 2026 (alle commits, alle branches):
 
 - [x] Geen API-sleutels in de historie. Gezocht op OpenRouter
       (`sk-or-v1-…`), Google (`AIza…`), Anthropic (`sk-ant-…`), GitHub
@@ -29,10 +31,12 @@ Gecontroleerd op 3 okt 2026 (alle 547 commits, alle branches):
 
 ## 2. Auteur-e-mail vervangen in de historie
 
-Nu: 545 commits met `5644798+NatusPella@users.noreply.github.com` (werkadres), 3 met
+De oudere commits en tags (tot 3 okt 2026) staan op het werk-e-mailadres
+van de eigenaar, de nieuwere op
 `5644798+NatusPella@users.noreply.github.com`. Doel: alles op het
-noreply-adres. Het werkadres staat verder nergens in de bestanden of in
-commitberichten (gecontroleerd).
+noreply-adres. Het werkadres staat niet in de huidige bestanden of in
+commitberichten (gecontroleerd); wel in een oudere versie van dit
+document, dus neem het ook op in `--replace-text`.
 
 **Niet uitgevoerd.** Procedure met
 [git filter-repo](https://github.com/newren/git-filter-repo):
@@ -41,12 +45,12 @@ commitberichten (gecontroleerd).
 # 0. alle branches die bewaard moeten blijven eerst mergen of lokaal hebben;
 #    worktrees opruimen (git worktree list / git worktree remove …)
 # 1. verse, losse kloon als werkkopie (filter-repo wil dat)
-git clone --no-local /pad/naar/grand-theft-eierbal-vi /tmp/gte-rewrite
-cd /tmp/gte-rewrite
+git clone --no-local /pad/naar/de/checkout /tmp/gde-rewrite
+cd /tmp/gde-rewrite
 
 # 2. mailmap: <nieuw> <oud>
 cat > ../mailmap.txt <<'EOF'
-NatusPella <5644798+NatusPella@users.noreply.github.com> <5644798+NatusPella@users.noreply.github.com>
+NatusPella <5644798+NatusPella@users.noreply.github.com> <WERKADRES>
 EOF
 
 # 3. herschrijven (author én committer)
@@ -54,7 +58,7 @@ git filter-repo --mailmap ../mailmap.txt
 
 # 4. controleren
 git log --all --format='%ae %ce' | sort | uniq -c   # alleen noreply
-git log --all --format='%B' | grep -i iwink          # leeg
+git log --all --format='%B' | grep -i "<werkdomein>"  # leeg
 
 # 5. desgewenst tegelijk de Esri-foto uit de historie halen (stap 3):
 git filter-repo --invert-paths --path data/satellite_reference.jpg
@@ -79,11 +83,12 @@ Daarna:
 
 ## 3. Bestanden die niet publiek mogen of horen
 
-- [ ] **`data/satellite_reference.jpg`** (6,4 MB, Esri World Imagery-
-      export): mag niet herverspreid worden. Verwijderen uit de repo **en**
-      de historie (zie stap 2.5). `scripts/extract_palette.py` documenteert
-      hoe je hem opnieuw exporteert; de afgeleide kleuren in de code mogen
+- [x] **`data/satellite_reference.jpg`** (6,4 MB, Esri World Imagery-
+      export, mag niet herverspreid worden) is uit de huidige boom (15 okt)
+      en staat in `.gitignore`. `scripts/extract_palette.py` zegt hoe je hem
+      lokaal opnieuw exporteert; de afgeleide kleuren in de code mogen
       blijven.
+- [ ] Hetzelfde bestand uit de **historie** halen (zie stap 2.5).
 - [ ] Interne documenten doorlezen (`docs/`): ze zijn in principe
       publiceerbaar, maar bevatten plannen, prompts en kosten:
   - `docs/3d-model-prompts.md` (Claude Design-prompts, creditverbruik);
@@ -91,10 +96,9 @@ Daarna:
     een aparte map "ontwerp");
   - `docs/groningen-memes*.md` (onderzoek naar memes: controleer op
     namen van echte personen en geciteerd materiaal van derden);
-
-    regel is goed bedoeld, maar overweeg die regel neutraler te maken);
-  - `ARCHITECTURE.md`, `DESIGN_SYSTEM.md` (vermelden "GTA-style" en "GTA
-    poster": prima intern, maar lees ze met het oog op §6 van LICENTIES).
+  - de "GTA-style"-opmerkingen in code, `ARCHITECTURE.md` en
+    `DESIGN_SYSTEM.md` zijn op 15 okt neutraal gemaakt; de ontwerpdocs in
+    `docs/verhaal/` noemen de trailerparodie nog bij naam (bewust).
 - [ ] Commitberichten met bedragen of kosten (bijv. "$0.04 spent"): geen
       probleem, wel bewust van zijn.
 - [ ] `docs/LICENTIES.md` en deze checklist: houden of naar een wiki.
@@ -109,7 +113,7 @@ zitten. Grootste blobs:
 |---:|---|
 | 32,5 | `data/groningen_raw.json` (Overpass-cache, kan weg of gz) |
 | 11,2 | `game/citymap.json` (meerdere versies in de historie) |
-| 6,4 | `data/satellite_reference.jpg` (moet weg, zie 3) |
+| 6,4 | `data/satellite_reference.jpg` (alleen nog in de historie, zie 3) |
 | 2,9-4,2 | 14 G-Music-mp3's, 2 scenario-mp3's, titelnummer |
 | 3,0 | `data/ommeland_raw.json.gz` |
 | — | ~3.400 kleine voiceline-wav's (samen het grootste deel van 152 MB) |
@@ -127,13 +131,12 @@ hiervan komt erboven. Opties (keuze eigenaar):
 
 ## 5. Licentie en vermeldingen
 
-- [ ] Licentie kiezen (LICENTIES.md §7) en `LICENSE` toevoegen.
+- [x] Licentie gekozen (15 okt): `LICENSE` (GPL-3.0-or-later) en
+      `LICENSE-CONTENT.md` (CC BY-NC-SA 4.0, naam en logo voorbehouden).
 - [x] `NOTICE.md` en `licenses/` (three.js MIT, Bebas Neue OFL).
 - [x] Disclaimer en OSM-vermelding in README en in het spel.
-- [ ] Naam en logo omzetten naar "GDE Groningen – Zomer vol misdaad"
-      (LICENTIES.md §8.2) vóór de repo publiek gaat, zodat de publieke
-      historie niet begint met een GTA-achtige naam? (De oude naam blijft
-      in de historie staan; dat is te accepteren.)
+- [x] Naam en logo omgezet naar "GDE Groningen – Zomer vol misdaad"
+      (0.24; interne namen in 0.29). De oude naam blijft in de historie.
 
 ## 6. GitHub-instellingen (later)
 

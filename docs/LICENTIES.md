@@ -17,8 +17,8 @@ Korte versie:
   daarop is weinig waard.
 - Het grootste risico is de naam en stijl tegenover GTA (Take-Two). Op
   Steam wordt dat groter. Zie §6 en §8.
-- Te verwijderen vóór publicatie: `data/satellite_reference.jpg` (Esri-
-  luchtfoto, mag niet herverspreid worden), ook uit de git-historie.
+- `data/satellite_reference.jpg` (Esri-luchtfoto, mag niet herverspreid
+  worden) is uit de repo (15 okt); uit de git-historie halen staat nog open.
 
 ---
 
@@ -33,7 +33,7 @@ Korte versie:
 | **Electron** 44 | desktopapp | [MIT](https://github.com/electron/electron/blob/main/LICENSE); Chromium en Node onder eigen licenties | electron-builder zet `LICENSE.electron.txt` en `LICENSES.chromium.html` naast de app | ok, niet weghalen |
 | **electron-builder** 26 | alleen bouwtool | [MIT](https://github.com/electron-userland/electron-builder/blob/master/LICENSE) | niets: zit niet in de app | ok |
 | Python (portable, door `start.bat` van python.org gedownload) | Windows-zip | [PSF License](https://docs.python.org/3/license.html) | niets: de speler downloadt het zelf van python.org | ok |
-| Eigen code | `game/`, `desktop/`, `scripts/` | nog geen licentie (zie §7) | | **beslissing** |
+| Eigen code | `game/`, `desktop/`, `web/`, `scripts/` | GPL-3.0-or-later (`LICENSE`, gekozen 15 okt 2026, zie §7) | | ok |
 
 Geen andere vendored code, geen npm-afhankelijkheden in het spel zelf,
 geen `node_modules` in git.
@@ -45,7 +45,7 @@ geen `node_modules` in git.
 | Texturen, borden, gevels, alle 3D-modellen behalve de Martinitoren | procedureel in de code (canvas, three.js-geometrie) | eigen werk | ok |
 | `game/models/martinitoren.glb` | gemaakt met **Claude Design** (Anthropic), commit `a30ad76`; prompt in `docs/3d-model-prompts.md`; exporter `THREE.GLTFExporter r184` | Anthropic draagt zijn rechten op output over aan de gebruiker ([Consumer Terms](https://www.anthropic.com/legal/consumer-terms), "Outputs") | ok |
 | Referentiefoto's voor Paddepoel (oogtv.nl, Wikimedia Commons, genoemd in `paddepoel3d.js`) | alleen gebruikt als voorbeeld bij het modelleren | foto's zitten niet in het spel | ok |
-| `data/satellite_reference.jpg` (6,4 MB) | **Esri World Imagery**-export (`scripts/extract_palette.py`) | Esri-beelden mogen niet als los bestand herverspreid worden ([Esri-voorwaarden](https://www.esri.com/en-us/legal/terms/full-master-agreement)); alleen de afgeleide kleurwaarden zitten in het spel | **RISICO**: weghalen uit repo en historie vóór publicatie (zie `docs/PUBLICEREN.md`) |
+| `data/satellite_reference.jpg` (6,4 MB) | **Esri World Imagery**-export (`scripts/extract_palette.py`) | Esri-beelden mogen niet als los bestand herverspreid worden ([Esri-voorwaarden](https://www.esri.com/en-us/legal/terms/full-master-agreement)); alleen de afgeleide kleurwaarden zitten in het spel | uit de repo (15 okt, nu in `.gitignore`); **RISICO** tot hij ook uit de historie is (zie `docs/PUBLICEREN.md`) |
 | Geluidseffecten (motor, foley, ambience, UI) | gesynthetiseerd in `game/js/sfx/*.js` | eigen werk | ok |
 | Muziek: 14 G-Music-nummers, 2 scenario-loops, titelnummer `miles_past_the_city_square.mp3` | Google Gemini (volgens de eigenaar) | zie §4 | ok, met kanttekeningen |
 | Stemmen: ~3.400 clips in `game/audio/voicelines` (gelogd in `tts.json`, allemaal `google/gemini-3.8-flash-tts`, prebuilt stemmen zoals Orus en Callirrhoe; sinds 5 okt spreken ze Gronings, uit `scripts/gronings_spoken.json`, geschreven met Claude, de Friese personages en toeristen daargelaten) | Gemini TTS via OpenRouter | zie §4 | ok |
@@ -92,7 +92,7 @@ respawn heten "Huisartsenpost <wijk>" (`add_police_stations.py`) en garages
 
 ### Wat de voorwaarden zeggen
 
-| Document | Kern voor GTE VI |
+| Document | Kern voor GDE Groningen |
 |---|---|
 | [Google Terms of Service](https://policies.google.com/terms) (van kracht 30 juli 2026) | Google "won't claim ownership" van jouw content, ook AI-output. Verboden: AI-output gebruiken om ML-modellen te trainen, en anderen laten denken dat AI-content door een mens is gemaakt. |
 | [Gemini API Additional Terms](https://ai.google.dev/gemini-api/terms) (bijgewerkt 28 april 2026) | Google claimt geen eigendom van gegenereerde content, maar kan vergelijkbare content voor anderen maken. Gebruiker van de API moet 18+ zijn. Geen concurrerende modellen bouwen. Gratis tier: prompts en output mogen door Google gebruikt worden om producten te verbeteren; betaald niet. Verbod om de **Services** te gebruiken "as part of" een app die gericht is op of waarschijnlijk gebruikt wordt door minderjarigen. |
@@ -140,7 +140,7 @@ respawn heten "Huisartsenpost <wijk>" (`add_police_stations.py`) en garages
 Gecontroleerd in `game/js` en `desktop/`:
 
 - Opslag: alleen `localStorage` (save, instellingen, prestaties,
-  kaartfilters, gezien-versie, het foutenlogboek `gte-foutlog`). Geen
+  kaartfilters, gezien-versie, het foutenlogboek `gde-foutlog`). Geen
   cookies, geen IndexedDB-tracking.
 - Foutrapport (`errorlog.js`, sinds 0.25): fouten en waarschuwingen in een
   ringbuffer, alleen lokaal. Per melding de tekst, de stack (paden ingekort
@@ -165,7 +165,7 @@ Gecontroleerd in `game/js` en `desktop/`:
 
 **Voorgestelde privacyverklaring (één regel)**, staat nu ook in *Over*:
 
-> GTE VI bewaart je voortgang en instellingen alleen op je eigen apparaat; er
+> GDE Groningen bewaart je voortgang en instellingen alleen op je eigen apparaat; er
 > gaat niets naar een server, geen account, geen tracking, geen statistieken.
 > Fouten komen in een logboek op je eigen apparaat, dat je zelf kunt kopiëren.
 
@@ -213,14 +213,12 @@ en DMCA-takedowns tegen GTA-mods en -fanprojecten.
 
 - Geen bekende levende personen gevonden in code of teksten (gezocht op
   politici, BN'ers, sporters, burgemeester, koningshuis).
-- **Tammo**: `docs/personages.md` zegt expliciet "Onze Tammo is niet
-
-  Tammo met dialect kan als verwijzing gelezen worden. **RISICO laag-
-  gemiddeld**. Disclaimer "personages verzonnen" helpt; houd uiterlijk en
-  catchphrases ver van hem.
-  **Vraag aan de eigenaar**: zijn Tammo en Tessa op echte personen
-  gebaseerd? Zo ja: schriftelijke toestemming vragen. Zo nee: de
-  credit herformuleren (bijv. "als Tammo & Tessa").
+- **Tammo en Tessa** zijn eigen, verzonnen personages (besluit eigenaar,
+  15 okt 2026). De aftiteling noemt ze als personages, niet meer "als
+  zichzelf"; de code-opmerking over een echte auto is al eerder weg. Houd
+  uiterlijk, catchphrases en grappen ver van bestaande Groningse typetjes
+  en influencers. Oudere versies in de git-historie leggen nog een link:
+  zie `docs/OPEN_SOURCE_CHECKLIST.md`.
 - Huisartsenpraktijken uit OSM (bijv. "Huisarts van de Riet") waren
   respawnplekken. **Opgelost** (3 okt): ze heten nu "Huisartsenpost <wijk>"
   (`add_police_stations.py` en `citymap.json`).
@@ -231,9 +229,17 @@ en DMCA-takedowns tegen GTA-mods en -fanprojecten.
 - "Schipper Wiebe", "Bommen Berend" (historisch: de bisschop van Münster,
   1672): verzonnen of historisch, ok.
 
-## 7. Licentievoorstel (de eigenaar kiest)
+## 7. Licentie
 
-Er staat nog **geen** `LICENSE`-bestand; dat komt pas na de keuze.
+**Gekozen door de eigenaar (15 okt 2026):** code **GPL-3.0-or-later**
+(`LICENSE`), eigen creatieve inhoud **CC BY-NC-SA 4.0**
+(`LICENSE-CONTENT.md`, met de mappen), kaartdata blijft **ODbL**, de naam
+GDE en het logo **alle rechten voorbehouden**, werk van derden houdt zijn
+eigen licentie (`NOTICE.md`). Dat lijkt het meest op optie C hieronder,
+met ShareAlike voor de inhoud. Open punten (o.a. teksten in GPL-bestanden en
+CC op AI-audio): `docs/OPEN_SOURCE_CHECKLIST.md`.
+
+De oorspronkelijke opties, ter achtergrond:
 
 | Optie | Code | Inhoud (verhaal, teksten, ontwerp) | AI-audio | Kaartdata | Voor | Tegen |
 |---|---|---|---|---|---|---|
@@ -287,8 +293,10 @@ Gekozen door de eigenaar: **GDE** = *Grootste Diefstal Ever*, vaste
 reeksnaam; per deel een plaats of provincie plus ondertitel ("GDE
 Groningen – Zomer vol misdaad", later bijv. "GDE Drenthe", "GDE
 Leeuwarden"). Doorgevoerd in 0.24 (branch `claude/gde-naam`): spel, logo,
-appnaam, releasebestanden, README. Interne sleutels (`gte-*`, appId,
-userData-map `GTE VI`) blijven, zodat saves blijven werken.
+appnaam, releasebestanden, README. Sinds 0.29 ook de interne namen
+(`gde-*`-sleutels, appId `nl.natuspella.gde-groningen`, userData-map
+`GDE Groningen`), met een eenmalige kopie van de oude, zodat saves blijven
+werken (ARCHITECTURE.md, "Name and logo").
 
 **Conflictcheck** (3 okt 2026, via webzoekopdrachten; de registers van
 [EUIPO/TMview](https://www.tmdn.org/tmview/), [BOIP](https://register.boip.int/)
@@ -442,18 +450,19 @@ over minderjarigen (§4) past daar goed bij.
 
 ## 9. Beslissingen voor de eigenaar
 
-1. **Licentie** kiezen (§7; advies optie A: MIT + CC BY-NC 4.0 + ODbL
-   voor data). Dan `LICENSE` toevoegen.
+1. ~~**Licentie** kiezen~~ **gekozen** (15 okt): GPL-3.0-or-later voor de
+   code, CC BY-NC-SA 4.0 voor de inhoud, ODbL voor de kaartdata, naam en
+   logo voorbehouden (§7).
 2. **Naam en logo**: gekozen "GDE Groningen – Zomer vol misdaad" en
    doorgevoerd in 0.24 (logo in Big Shoulders Display met plaatsnaambord,
-   spel, `productName`, releasebestanden, README, disclaimer). De `appId`
-   blijft `nl.natuspella.gte-vi` (anders verweesde saves). Nog doen: de
+   spel, `productName`, releasebestanden, README, disclaimer). Sinds 0.29 heten
+   ook appId, userData en opslagsleutels GDE (met migratie). Nog doen: de
    handmatige registercheck.
 3. ~~**Sikkom** en **Radio Grunn** hernoemen + opnieuw inspreken~~
    **gedaan**: Kiekdoar en Radio Proat (§6.2).
-4. **Tammo & Tessa**: echte mensen of niet? Toestemming of credit
-   herformuleren (§6.3).
-5. **Esri-luchtfoto** weg uit repo en historie (zie `docs/PUBLICEREN.md`).
+4. ~~**Tammo & Tessa**: echte mensen of niet?~~ **besloten** (15 okt): eigen,
+   verzonnen personages; credit aangepast (§6.3).
+5. **Esri-luchtfoto**: uit de repo (15 okt); nog uit de historie halen (zie `docs/PUBLICEREN.md`).
 6. ~~**Oudere TTS-clips** opnieuw maken en loggen~~ **gedaan** (§2).
 7. **Browserversie**: three.js en Bebas Neue zelf hosten (privacy).
 8. **Muziekbron** vastleggen: Gemini-app of API, welk abonnement (§4.3).

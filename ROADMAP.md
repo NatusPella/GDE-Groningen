@@ -227,7 +227,7 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
   - De reeks heet GDE, plus een stad of provincie en een ondertitel per game, bijvoorbeeld GDE Drenthe of GDE Leeuwarden. `game/js/logo.js` houdt de naam op één plek; een vervolg wisselt alleen de plaats en de ondertitel.
   - Het cijfer "VI" en de woorden "Grand Theft" zijn weg uit alles wat een speler ziet: `<title>`, laad- en titelscherm, disclaimer, pauzemenu, trailer, intro, aftiteling, telefoonberichten (afzender "GDE"), *Over*, het venster en het Mac-menu, de Windows-zip en de README.
   - De releasebestanden heten `GDE-Groningen-<versie>-mac.dmg` en `GDE-Groningen-<versie>-windows-portable.exe`, de webzip `GDE-Groningen-<versie>-web.zip`.
-  - Blijft bewust "GTE": de `gte-*`-sleutels in localStorage, de appId `nl.natuspella.gte-vi`, de userData-map `GTE VI` (expliciet vastgezet in `desktop/main.js`, anders verweesde saves), de cachenamen van de webversie, de `gte:`-IPC-kanalen, `GTE_*`-variabelen, bestands- en reponamen. Zie README, "The old name".
+  - [x] Ook de interne namen (voorbereiding open source): de `gte-*`-sleutels in localStorage heten nu `gde-*` (eenmalig gekopieerd bij het opstarten, `game/js/storagekeys.js`; de oude sleutels blijven nog even staan), appId `nl.natuspella.gde-groningen`, userData-map `GDE Groningen` (eenmalig gekopieerd uit `GTE VI`, `desktop/userdata.js`), cachenamen `gde-*`, IPC `gde:`, `GDE_*`-variabelen (`GTE_*` werkt nog), npm-naam `gde-groningen`. Alleen de reponaam en de map in de lokale checkout heten nog zo; zie `docs/OPEN_SOURCE_CHECKLIST.md`.
   - De conflictcheck via webzoekopdrachten vond niets (`docs/LICENTIES.md` §8.2). De handmatige registercheck staat hieronder nog open.
   - De recaps van Rikus zeggen nu "Eerder in GDE", opnieuw ingesproken.
 - [x] Inventaris van bronnen en licenties: `docs/LICENTIES.md`, `docs/PUBLICEREN.md`, `NOTICE.md` en `licenses/`.
@@ -236,15 +236,13 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
 - [x] De voorwaarden voor muziek en stemmen (Gemini via OpenRouter) zijn vastgelegd. Ze zijn vrij te verspreiden in een gratis game, met een AI-label, en mogen niet gebruikt worden om modellen te trainen.
 - [ ] **Licentie (advies):** MIT voor de code, CC BY-NC 4.0 voor verhaal, stemmen en art, en ODbL voor de kaartdata. Daarna een `LICENSE`-bestand toevoegen.
 - [x] **Sikkom** (een echt merk van het DvhN) heet nu **Kiekdoar**, en **Radio Grunn** (te dicht bij Grunn FM) heet **Radio Proat**. De regels met de oude namen zijn opnieuw ingesproken. Het scherm "Sikkom." bij een net mislukte missie blijft, want dat is het Groningse woord voor "bijna".
-- [ ] **De Esri-satellietfoto** (`data/satellite_reference.jpg`) uit de repo en uit de geschiedenis halen. Dat gebeurt samen met het herschrijven van het e-mailadres, na akkoord.
+- [x] **De Esri-satellietfoto** (`data/satellite_reference.jpg`) is uit de repo (15 okt). Nog [?]: uit de geschiedenis halen, samen met het herschrijven van het e-mailadres, na akkoord (`docs/OPEN_SOURCE_CHECKLIST.md`).
 - [x] De ongelogde, oudere stemclips (npc, politie, nieuws, jingles) zijn opnieuw ingesproken met 3.8 en gelogd, via `tts_barks_lines.mjs`.
 - [x] De kleuren van de parodiewinkels zijn verschoven (Kruidvet, Albert Hijgt, DUMBO, Blokkie, Wiebel en Bakkie Prut). Cafés heten in berichten en in de kroegentocht naar verzonnen zaken; de kaart houdt de OSM-namen. Huisartsenposten bij respawn hebben een algemene naam.
 - [x] Het logo met **Big Shoulders Display** (OFL), de plaatsnaam op een plaatsnaambord-vorm, en Gronings groen (`claude/gde-naam`). Het bord is groen met een witte rand in plaats van blauw: blauw zou de enige blauwe kleur in de game zijn en leest als een echt verkeersbord; de vorm zegt al "plaatsnaambord". Ook het app-icoon is nieuw. Lettertype en OFL staan in `licenses/`, `NOTICE.md` en `docs/LICENTIES.md`.
 - [ ] Handmatig in het merkenregister zoeken naar "GDE" en "Grootste Diefstal Ever" (EUIPO en BOIP, ongeveer 15 minuten).
-
-  1. **Schriftelijke toestemming** van de maker of makers. Dat is het veiligste, en kan meteen een mooie samenwerking of promotie opleveren. Doe dit vóór elke publieke release, en zeker vóór Steam.
-  - [x] 3 okt: de eigenaar koos een andere naam voor haar. Anita heet nu Tessa, overal waar je het ziet of hoort (de interne sleutel `anita` blijft, voor de saves).
-
+- [x] **Tammo en Tessa zijn eigen, verzonnen personages.** De aftiteling noemt ze als personages ("twee Stadjers met een droom"), de stemmen zijn gegenereerd. Uiterlijk, catchphrases en grappen blijven ver van bestaande Groningse typetjes en influencers (`docs/personages.md`).
+  - [x] 3 okt: Anita heet nu Tessa, overal waar je het ziet of hoort (de interne sleutel `anita` blijft, voor de saves).
 - [?] **Muziek:** met welk Gemini-product en welk abonnement is ze gemaakt? Dat moet in `docs/LICENTIES.md`.
 - [?] BOIP-registratie (ongeveer €244 tot €271): advies is nu niet, want zonder kosten is de afspraak.
 - [x] Het e-mailadres voor nieuwe commits is het GitHub-noreply-adres.
@@ -263,7 +261,6 @@ Alles staat in `docs/youtube/kanaal.md` (`claude/youtube-kit`). Er is niets geü
 - [ ] De gameplaytrailer maken (de Steam-cut met HUD, zie `docs/steam/trailer.md`) en de hoofdstuktijden invullen.
 - [ ] De verhaaltrailer opnieuw exporteren met Tessa in plaats van Anita (naamkaart in shot 5).
 - [?] Shot 11 (de lege vitrine met "Tige tank!") in de YouTube-versie houden of eruit knippen (Alexander).
-
 
 ## Steam-klaar (optioneel, na of rond 1.0)
 
@@ -287,7 +284,7 @@ Steam kost eenmalig $100 per game (Steam Direct). Dat bedrag komt terug na $1.00
 - [~] Een Steam-build: de Windows-, Mac- en Linux-builds via SteamPipe (`claude/builds`). De sjablonen staan in `steam/` (`app_build.vdf` en een depot per OS, met nep-id's), `steam/copy-builds.mjs` zet de uitgepakte builds in `steam/content/`, en `steam/README.md` beschrijft het uploaden met `steamcmd`. Nog te doen zodra er een app-id is: de id's invullen en de eerste upload.
 - [ ] De Steam-overlay met Electron en Chromium testen, en oplossen of accepteren.
 - [~] Steam Deck: een Linux-build en een test op het toestel. De controllersupport (0.25) is er, en de HUD en het menu zijn op 1280×800 nagekeken.
-  - [x] De Linux-build: `npm run dist:linux` of `npm run release -- minor --linux` maakt `GDE-Groningen-<versie>-linux.AppImage` en `.tar.gz` (x64), ook op de Mac zonder Docker (`claude/builds`). Saves staan in `~/.config/GTE VI`.
+  - [x] De Linux-build: `npm run dist:linux` of `npm run release -- minor --linux` maakt `GDE-Groningen-<versie>-linux.AppImage` en `.tar.gz` (x64), ook op de Mac zonder Docker (`claude/builds`). Saves staan in `~/.config/GDE Groningen`.
   - [ ] Testen op een echte Steam Deck en op een Linux-pc: start hij, werkt de controller, en is `--no-sandbox` nodig binnen de Steam Linux Runtime.
 - [ ] Optioneel: Steam-achievements en cloud-saves via steamworks.js, gekoppeld aan de bestaande prestaties.
 - [ ] De planning: 30 dagen wachten na betaling, minimaal 2 weken "coming soon", en de review van de pagina en de build.

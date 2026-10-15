@@ -65,7 +65,7 @@ def fetch(query, cache, refresh):
             return json.load(f)
     for attempt in range(6):
         for url in OVERPASS_URLS:
-            r = subprocess.run(["curl", "-s", "-m", "180", "-A", "gte-vi-mapbuilder/1.0", "--data-urlencode", f"data={query}", url],
+            r = subprocess.run(["curl", "-s", "-m", "180", "-A", "gde-groningen-mapbuilder/1.0", "--data-urlencode", f"data={query}", url],
                                capture_output=True, text=True)
             if r.stdout.lstrip().startswith("{"):
                 data = json.loads(r.stdout)

@@ -61,7 +61,7 @@ async function pool(items, n, fn) {
 async function main() {
   console.log(`web build GDE Groningen ${version}`);
   execFileSync(process.execPath, [path.join(ROOT, 'desktop', 'build.mjs')], {
-    stdio: 'inherit', env: { ...process.env, GTE_STAGE_OUT: OUT, GTE_STAGE_RELATIVE: '1' },
+    stdio: 'inherit', env: { ...process.env, GDE_STAGE_OUT: OUT, GDE_STAGE_RELATIVE: '1' },
   });
   const before = walk(OUT);
   const beforeBytes = sizeOf(before);
@@ -138,10 +138,10 @@ async function main() {
   const h = crypto.createHash('sha1');
   for (const f of files) h.update(rel(f) + '\0' + sha(fs.readFileSync(f)) + '\0');
   for (const f of ['web.js', 'sw.js']) h.update(fs.readFileSync(path.join(HERE, f)));
-  const cacheName = `gte-vi-${version}-${h.digest('hex').slice(0, 10)}`;
+  const cacheName = `gde-${version}-${h.digest('hex').slice(0, 10)}`;
   const sizes = Object.fromEntries(ESSENTIALS.filter((f) => fs.existsSync(path.join(OUT, f))).map((f) => [f, fs.statSync(path.join(OUT, f)).size]));
   const shell = ['', 'web.js', ...walk(path.join(OUT, 'vendor', 'fonts')).map(rel)];
-  const stamp = (src) => src.split('__GTE_CACHE__').join(cacheName).split('__GTE_SIZES__').join(JSON.stringify(sizes)).split('__GTE_SHELL__').join(JSON.stringify(shell));
+  const stamp = (src) => src.split('__GDE_CACHE__').join(cacheName).split('__GDE_SIZES__').join(JSON.stringify(sizes)).split('__GDE_SHELL__').join(JSON.stringify(shell));
   fs.writeFileSync(path.join(OUT, 'web.js'), stamp(fs.readFileSync(path.join(HERE, 'web.js'), 'utf8')));
   fs.writeFileSync(path.join(OUT, 'sw.js'), stamp(fs.readFileSync(path.join(HERE, 'sw.js'), 'utf8')));
   const html = path.join(OUT, 'index.html');

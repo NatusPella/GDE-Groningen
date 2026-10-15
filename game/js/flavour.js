@@ -15,6 +15,7 @@ import {
   COW_FEED, EVENT_DAYS, PLANTSOEN_BARKS, PLANTSOEN_NEWS, PEERD_NEWS, PEERD_BARKS, BIKE_RESURFACE,
   NACHTSTREEK, NACHTSTREEK_STORY, SUPPORTER_CHANTS,
 } from './flavourlines.js';
+import { KEYS } from './storagekeys.js';
 
 // World flavour after docs/groningen-memes.md: nicknames, the Gerrit
 // Krolbrug gag, Ring Zuid navigation, "Kon minder", the Noorderplantsoen in
@@ -24,7 +25,7 @@ import {
 // stats, weather and the clock, and only ever adds bubbles, messages,
 // parked props and a few extra walkers. Runs on a 0.25 s tick.
 
-const SAVE_KEY = 'gte-flavour-v1';
+const SAVE_KEY = KEYS.flavour;
 const TICK = 0.25;
 export const KROLBRUG = { x: 869, y: -1836 };
 export const PLANTSOEN = { x: 180, y: -700, r: 230 };

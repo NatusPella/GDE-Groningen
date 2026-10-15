@@ -26,6 +26,7 @@ import { KITCHEN, buildKitchen, buildAtmTrailer, buildWetBike, buildFrikandel, b
 import { logoHtml } from './logo.js';
 import { PARTS, partNumber } from './storyarc.js';
 import { homeSpawnPoint } from './home.js';
+import { KEYS } from './storagekeys.js';
 
 // Recorded montage dialogue: the story manifest ("<speaker>|<text>"), then the
 // lines manifest (linevoice.js) for the newer lines.
@@ -34,7 +35,7 @@ let voices = {};
 fetch(VOICE_DIR + 'manifest.json').then((r) => (r.ok ? r.json() : {})).then((m) => { voices = m || {}; }).catch(() => {});
 
 // Opening of a fresh game, cut to the theme's beat (docs/verhaal/D-definitief.md,
-// "Trailer" and "Opening"): first a GTA VI trailer parody (sun on d'Olle
+// "Trailer" and "Opening"): first a game-trailer parody (sun on d'Olle
 // Grieze, cyclists, a gull with a frikandel, freeze frames with name cards
 // for Tessa and Tammo, flashes ahead in the story, the title), then the
 // opening scene: dawn in the Oosterparkwijk, Rikus on Nachtstreek, the
@@ -43,7 +44,7 @@ fetch(VOICE_DIR + 'manifest.json').then((r) => (r.ok ? r.json() : {})).then((m) 
 // Groningen in Paddepoel. Ends in the swoop down to the spawn there, their
 // new home. Narration it told is skipped in H1's intro.
 
-const SEEN_KEY = 'gte-intro-seen';
+const SEEN_KEY = KEYS.introSeen;
 const PED_TARGET = 40;
 
 export function introSeen() {

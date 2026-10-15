@@ -40,7 +40,7 @@ OVERPASS_URLS = [
 def fetch_query(query):
     for url in OVERPASS_URLS:
         result = subprocess.run(
-            ["curl", "-s", "-m", "150", "-A", "gte-vi-script/1.0", "--data-urlencode", f"data={query}", url],
+            ["curl", "-s", "-m", "150", "-A", "gde-groningen-script/1.0", "--data-urlencode", f"data={query}", url],
             capture_output=True, text=True,
         )
         try:

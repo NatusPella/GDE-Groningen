@@ -7,9 +7,11 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-// GTE_STAGE_SRC / GTE_STAGE_OUT stage another checkout (perf runs against main)
-const SRC = process.env.GTE_STAGE_SRC || path.join(HERE, '..', 'game');
-const OUT = process.env.GTE_STAGE_OUT || path.join(HERE, 'build', 'game');
+// the GTE_* names from before 0.29 still work
+for (const [k, v] of Object.entries(process.env)) if (k.startsWith('GTE_') && process.env['GDE_' + k.slice(4)] === undefined) process.env['GDE_' + k.slice(4)] = v;
+// GDE_STAGE_SRC / GDE_STAGE_OUT stage another checkout (perf runs against main)
+const SRC = process.env.GDE_STAGE_SRC || path.join(HERE, '..', 'game');
+const OUT = process.env.GDE_STAGE_OUT || path.join(HERE, 'build', 'game');
 const CACHE = path.join(HERE, 'vendor-cache');
 const CDN = 'https://cdn.jsdelivr.net/npm/';
 const THREE = CDN + 'three@0.160.0/build/three.module.js';
@@ -17,9 +19,9 @@ const ADDONS = CDN + 'three@0.160.0/examples/jsm/';
 // Bebas Neue for the UI, Big Shoulders Display for the logo (one variable font)
 const FONT_CSS = 'https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Big+Shoulders+Display:wght@700;800;900&display=swap';
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36';
-// GTE_STAGE_RELATIVE=1 (the web build): vendor paths relative to each file,
+// GDE_STAGE_RELATIVE=1 (the web build): vendor paths relative to each file,
 // so the folder works from any sub path (itch.io, GitHub Pages)
-const RELATIVE = process.env.GTE_STAGE_RELATIVE === '1';
+const RELATIVE = process.env.GDE_STAGE_RELATIVE === '1';
 const { version } = JSON.parse(fs.readFileSync(path.join(HERE, 'package.json'), 'utf8'));
 
 async function cached(url, key) {
@@ -53,7 +55,7 @@ function resolveSpec(spec, base) {
 
 async function main() {
   console.log(`staging GDE Groningen ${version}`);
-  fs.rmSync(process.env.GTE_STAGE_OUT ? OUT : path.join(HERE, 'build'), { recursive: true, force: true });
+  fs.rmSync(process.env.GDE_STAGE_OUT ? OUT : path.join(HERE, 'build'), { recursive: true, force: true });
   // tts.json records how each voice clip was made; the game never reads it
   fs.cpSync(SRC, OUT, { recursive: true, filter: (p) => path.basename(p) !== 'tts.json' });
   // the start screen's "Wat is er nieuw" panel reads the changelog

@@ -7,6 +7,7 @@ import { pushAudioEvent } from './pedestrians.js';
 import { unlockAchievement } from './achievements.js';
 import { saveGame } from './savegame.js';
 import { pointInPolygon, isInWater, clamp, angleLerp, normalizeAngle, WATER_Y } from './util.js';
+import { KEYS } from './storagekeys.js';
 
 const LEVEL_H = 3.1;
 const G = 9.8;
@@ -19,7 +20,7 @@ const WALL_STEP = 0.35;
 const PIGEON_SCALE = 1.5;
 const PROXY_NEAR = 50;
 const PROXY_FAR = 85;
-const STORE_KEY = 'gte-duif-v1';
+const STORE_KEY = KEYS.pigeon;
 const COMBO_S = 3.5;
 const BOOST_S = 15;
 const MILESTONES = [

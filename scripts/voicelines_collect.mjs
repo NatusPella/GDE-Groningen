@@ -180,7 +180,7 @@ export function collect() {
   }
   for (const l of allLits(mi, '      intro: [')) for (const t of l) add('Missie-intro (terugval)', 'lines', ['Tammo', 'Anita'], t, { tag: ['samenzweerderig, zacht', 'geamuseerd, zakelijk', 'opgewonden, fluisterend'] });
 
-  // --- how Jelle and the twins reach them (storycontact.js), the "Eerder in GTE VI"
+  // --- how Jelle and the twins reach them (storycontact.js), the "Eerder in GDE"
   // recaps and the handover lines (story.js) -> lines manifest
   const CONTACT = SPEAKERS;
   for (const st of STEPS) for (const c of st.contact || []) for (const [k, t, o] of c.lines) add('Verhaal-contact (telefoon)', 'lines', [CONTACT[k]], t, o && o.tag ? { tag: o.tag } : {});

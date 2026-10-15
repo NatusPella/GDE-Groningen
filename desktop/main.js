@@ -17,8 +17,8 @@ function saveWindowState(state) {
 
 const SCHEME = 'app';
 const HOST = 'game';
-// GTE_GAME_DIR serves another staged copy (perf runs against an older build)
-const GAME_DIR = app.isPackaged ? path.join(process.resourcesPath, 'game') : process.env.GTE_GAME_DIR || path.join(__dirname, 'build', 'game');
+// GDE_GAME_DIR serves another staged copy (perf runs against an older build)
+const GAME_DIR = app.isPackaged ? path.join(process.resourcesPath, 'game') : process.env.GDE_GAME_DIR || path.join(__dirname, 'build', 'game');
 
 const MIME = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8',
@@ -28,11 +28,9 @@ const MIME = {
   '.wasm': 'application/wasm', '.txt': 'text/plain; charset=utf-8',
 };
 
-// Saves, settings and achievements live in userData, which Electron names
-// after the app. The game was called "GTE VI" until 0.24: keep that folder,
-// or a rename would orphan every save. Same for appId / AppUserModelId.
-const LEGACY_NAME = 'GTE VI';
-app.setPath('userData', path.join(app.getPath('appData'), LEGACY_NAME));
+// the GTE_* names from before 0.29 still work
+for (const [k, v] of Object.entries(process.env)) if (k.startsWith('GTE_') && process.env['GDE_' + k.slice(4)] === undefined) process.env['GDE_' + k.slice(4)] = v;
+
 // the name everywhere, also when run unpackaged (npm start): menu, About
 // panel, Dock, Windows taskbar grouping
 const APP_NAME = 'GDE Groningen';
@@ -61,11 +59,16 @@ if (VIDEO) {
 // shot's fps / draw calls / GPU memory and quits (throwaway profile)
 const BENCH = process.argv.find((a) => a === '--benchmark' || a.startsWith('--benchmark='));
 if (TRAILER || BENCH || process.argv.includes('--stil') || process.argv.some((a) => a.startsWith('--smoke-test') || a.startsWith('--story-test') || a.startsWith('--validate-spots'))) {
-  // GTE_TEST_PROFILE picks another throwaway dir, so parallel test runs
+  // GDE_TEST_PROFILE picks another throwaway dir, so parallel test runs
   // don't block each other through the single-instance lock
-  app.setPath('userData', path.join(require('os').tmpdir(), process.env.GTE_TEST_PROFILE || 'gte-vi-test-profile'));
+  app.setPath('userData', path.join(require('os').tmpdir(), process.env.GDE_TEST_PROFILE || 'gde-test-profile'));
+} else {
+  // saves, settings and prestaties: "GDE Groningen", copied once from the
+  // pre-0.29 folder "GTE VI" (userdata.js; on any error it keeps using that one)
+  const { chooseUserData } = require('./userdata.js');
+  app.setPath('userData', chooseUserData(app.getPath('appData'), APP_NAME, { log: console.log }).dir);
 }
-if (process.platform === 'win32') app.setAppUserModelId('nl.natuspella.gte-vi');
+if (process.platform === 'win32') app.setAppUserModelId('nl.natuspella.gde-groningen');
 
 protocol.registerSchemesAsPrivileged([
   { scheme: SCHEME, privileges: { standard: true, secure: true, supportFetchAPI: true, corsEnabled: true, stream: true } },
@@ -145,7 +148,7 @@ function createWindow() {
   const syncFullscreen = () => {
     const on = win.isFullScreen();
     if (!process.argv.includes('--windowed')) saveWindowState({ fullscreen: on });
-    win.webContents.send('gte:fullscreen', on);
+    win.webContents.send('gde:fullscreen', on);
   };
   win.on('enter-full-screen', syncFullscreen);
   win.on('leave-full-screen', syncFullscreen);
@@ -226,15 +229,15 @@ function createWindow() {
     });
   } else if (TRAILER && trailerFrames) {
     fsSync.mkdirSync(trailerFrames, { recursive: true });
-    ipcMain.removeHandler('gte:capture-frame');
-    ipcMain.handle('gte:capture-frame', async (e, n) => {
+    ipcMain.removeHandler('gde:capture-frame');
+    ipcMain.handle('gde:capture-frame', async (e, n) => {
       const img = await win.webContents.capturePage();
       fsSync.writeFileSync(path.join(trailerFrames, `frame-${String(n).padStart(5, '0')}.png`), img.toPNG());
       return true;
     });
   }
   win.loadURL(`${SCHEME}://${HOST}/index.html${query ? '?' + query : ''}`);
-  if (storyTest) runStoryTest(win, storyTest.includes('=') ? storyTest.slice(storyTest.indexOf('=') + 1) : path.join(require('os').tmpdir(), 'gte-story-test'));
+  if (storyTest) runStoryTest(win, storyTest.includes('=') ? storyTest.slice(storyTest.indexOf('=') + 1) : path.join(require('os').tmpdir(), 'gde-story-test'));
   if (smoke) {
     win.webContents.on('console-message', function (e, legacyLevel, legacyMessage) {
       const level = e.level !== undefined ? e.level : legacyLevel;
@@ -257,7 +260,7 @@ function createWindow() {
           ready: !!window.__debug, canvas: !!document.querySelector('canvas'),
           version: (document.querySelector('.ss-ver') || {}).textContent || '',
           font: document.fonts.check('40px Bebas Neue'),
-          desktop: !!window.gteDesktop, fullscreen: window.gteDesktop ? window.gteDesktop.isFullscreen() : null,
+          desktop: !!window.gdeDesktop, fullscreen: window.gdeDesktop ? window.gdeDesktop.isFullscreen() : null,
           menu: [...document.querySelectorAll('#start-screen .ss-item')].map((e) => e.firstChild && e.firstChild.textContent).join(' | '),
           pauseButtons: [...document.querySelectorAll('#pause-menu .pm-game [data-action]')].map((b) => b.dataset.action).join(','),
           fullscreenToggle: !!document.querySelector('[data-desktop="fullscreen"]'),
@@ -402,15 +405,15 @@ async function runProfile(win, ms = 6000) {
   const dbg = win.webContents.debugger;
   if (!dbg.isAttached()) dbg.attach('1.3');
   await dbg.sendCommand('Profiler.enable');
-  // GTE_PROFILE_INTERVAL (µs): coarser sampling keeps --cpu-throttle runs near their real speed
-  await dbg.sendCommand('Profiler.setSamplingInterval', { interval: Number(process.env.GTE_PROFILE_INTERVAL) || 200 });
+  // GDE_PROFILE_INTERVAL (µs): coarser sampling keeps --cpu-throttle runs near their real speed
+  await dbg.sendCommand('Profiler.setSamplingInterval', { interval: Number(process.env.GDE_PROFILE_INTERVAL) || 200 });
   await dbg.sendCommand('Profiler.start');
   await new Promise((r) => setTimeout(r, ms));
   const { profile } = await dbg.sendCommand('Profiler.stop');
-  // GTE_PROFILE_OUT=<dir>: also keep the raw profile (scripts/perf/categories.mjs)
-  if (process.env.GTE_PROFILE_OUT) {
-    fsSync.mkdirSync(process.env.GTE_PROFILE_OUT, { recursive: true });
-    fsSync.writeFileSync(path.join(process.env.GTE_PROFILE_OUT, `${Date.now()}.cpuprofile`), JSON.stringify(profile));
+  // GDE_PROFILE_OUT=<dir>: also keep the raw profile (scripts/perf/categories.mjs)
+  if (process.env.GDE_PROFILE_OUT) {
+    fsSync.mkdirSync(process.env.GDE_PROFILE_OUT, { recursive: true });
+    fsSync.writeFileSync(path.join(process.env.GDE_PROFILE_OUT, `${Date.now()}.cpuprofile`), JSON.stringify(profile));
   }
   const byId = new Map(profile.nodes.map((n) => [n.id, n]));
   const self = new Map();
@@ -478,16 +481,16 @@ if (!app.requestSingleInstanceLock()) {
     const [win] = BrowserWindow.getAllWindows();
     if (win) { if (win.isMinimized()) win.restore(); win.focus(); }
   });
-  ipcMain.on('gte:is-fullscreen', (e) => {
+  ipcMain.on('gde:is-fullscreen', (e) => {
     const w = BrowserWindow.fromWebContents(e.sender);
     e.returnValue = w ? w.isFullScreen() : loadWindowState().fullscreen;
   });
-  ipcMain.on('gte:set-fullscreen', (e, on) => {
+  ipcMain.on('gde:set-fullscreen', (e, on) => {
     const w = BrowserWindow.fromWebContents(e.sender);
     if (w) w.setFullScreen(!!on);
   });
-  ipcMain.on('gte:quit', () => app.quit());
-  ipcMain.handle('gte:save-text', async (e, name, text) => {
+  ipcMain.on('gde:quit', () => app.quit());
+  ipcMain.handle('gde:save-text', async (e, name, text) => {
     const w = BrowserWindow.fromWebContents(e.sender);
     const res = await dialog.showSaveDialog(w, {
       defaultPath: path.join(app.getPath('documents'), path.basename(name || 'foutrapport.txt')),

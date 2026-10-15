@@ -1,4 +1,4 @@
-// GTA-style name cards: the first time someone turns up, their name in big
+// Trailer-style name cards: the first time someone turns up, their name in big
 // Bebas letters with one dry line under it (storyarc.js CHARACTERS), bottom
 // left, above the subtitles. Cutscene lines (missionstory.js, a line's
 // `card`) and radio fragments (storycontact.js) show them; story.js hears
