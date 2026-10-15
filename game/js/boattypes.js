@@ -19,6 +19,11 @@ export const BOAT_KINDS = {
   // stand-up paddle board, one paddler standing
   sup: { kind: 'sup', name: 'boat', len: 3.2, wid: 0.8, playerTop: 2.6, playerAccel: 1.1, maxSpeed: 1.9, accel: 0.8, brake: 1.4, turnRate: 1.2, color: '#2a8fb0' },
   supWit: { kind: 'sup', name: 'boat', len: 3.0, wid: 0.78, playerTop: 2.5, playerAccel: 1.1, maxSpeed: 1.8, accel: 0.8, brake: 1.4, turnRate: 1.2, color: '#f2f0ea' },
+  // Rowing: a single scull and a coxed eight (students from the invented
+  // rowing clubs; riggers and oars are part of the hull model). Only picked by
+  // streetlifedata.pickWaterLife, not part of the everyday mix.
+  skiff: { kind: 'skiff', name: 'boat', len: 8, wid: 0.5, playerTop: 6, playerAccel: 1.6, maxSpeed: 4.6, accel: 0.9, brake: 1.2, turnRate: 0.9, color: '#f2f0ea', cabin: '#c8502a' },
+  acht: { kind: 'acht', name: 'boat', len: 17, wid: 0.62, playerTop: 7, playerAccel: 1.4, maxSpeed: 5.4, accel: 0.8, brake: 1.0, turnRate: 0.5, color: '#e7eef2', cabin: '#1f4f9a' },
   // Frisian sailing barge (Jelle's): not in the ambient mix
   skutsje: { kind: 'skutsje', name: 'boat', sail: true, len: 15, wid: 3.6, maxSpeed: 7, accel: 0.9, brake: 1.3, turnRate: 0.8, color: '#1b1d1f', cabin: '#8a5a2c' },
 };
@@ -70,6 +75,17 @@ export function boatSeats(v) {
         { x: -hl * 0.3, z: -0.5, y: 0.96, face: 0, pose: { recline: 0.1, ...LEGS_BENCH, arms: 'lap' } },
         { x: 0.3, z: 0.5, y: 0.96, face: 0, pose: { recline: 0.1, ...LEGS_BENCH, arms: 'lap' } },
         { x: -hl * 0.3, z: 0.5, y: 0.96, face: Math.PI / 2, pose: { recline: 0.06, ...LEGS_BENCH, arms: 'rail' } },
+      ];
+    case 'acht': {
+      // cox at the stern facing forward, eight rowers facing aft
+      const s = [{ x: -hl + 0.7, z: 0, y: 0.22, face: 0, pose: { recline: 0.1, footX: 0.6, footY: -0.1, arms: 'helm' } }];
+      for (let i = 0; i < 8; i++) s.push({ x: -hl + 2.4 + i * 1.55, z: 0, y: 0.2, face: Math.PI, pose: { recline: 0.08, footX: 0.7, footY: -0.05, arms: 'row', phase: 0 } });
+      return s;
+    }
+    case 'skiff':
+      return [
+        { x: -0.2, z: 0, y: 0.2, face: Math.PI, pose: { recline: 0.08, footX: 0.7, footY: -0.05, arms: 'row' } },
+        { x: -hl + 0.5, z: 0, y: 0.14, face: 0, pose: { recline: 0.1, footX: 0.6, footY: -0.05, arms: 'lap' } },
       ];
     case 'kano':
       return [
@@ -131,6 +147,8 @@ export function boatCrewCount(v) {
     case 'rondvaart': return 5 + Math.floor(r * 5);
     case 'kano': return r < 0.6 ? 2 : 1;
     case 'kajak': return 1;
+    case 'skiff': return 1;
+    case 'acht': return 9;
     case 'sup': return 1;
     case 'waterfiets': return r < 0.7 ? 2 : 1;
     case 'dinghy': return r < 0.5 ? 2 : 1;
@@ -142,5 +160,5 @@ export function boatCrewCount(v) {
 // and pedal craft only a white all-round lamp.
 export function boatIsMotorised(v) {
   const k = boatKind(v);
-  return k !== 'kano' && k !== 'kajak' && k !== 'waterfiets' && k !== 'sup';
+  return k !== 'kano' && k !== 'kajak' && k !== 'waterfiets' && k !== 'sup' && k !== 'skiff' && k !== 'acht';
 }

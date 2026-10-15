@@ -3,6 +3,9 @@
 // the villa streets of the south, bakfietsen in the Oosterpoort and the
 // Schildersbuurt, vans and trucks on the industrial estates, taxis and
 // delivery vans in the centre. Pure data and picks: vehicle.js spawns them.
+// The street-life layer (streetlifedata.js) adds delivery riders with a big
+// bag, bike-share bikes, students moving house and unlit shabby bikes.
+import { pickStreetBike, shabbyHasLight, distToCentre, SHARE_TINT } from './streetlifedata.js';
 
 const CAR = {
   hatch: { name: 'hatch', len: 3.8, wid: 1.7, maxSpeed: 30, accel: 8.5, brake: 23, turnRate: 3.0 },
@@ -16,6 +19,7 @@ const CAR = {
   delivery: { name: 'van', livery: 'pakket', len: 5.0, wid: 2.0, maxSpeed: 26, accel: 6.5, brake: 19, turnRate: 2.0 },
   cashvan: { name: 'cashvan', len: 5.2, wid: 2.0, maxSpeed: 28, accel: 6.8, brake: 19, turnRate: 2.0 },
   truck: { name: 'truck', len: 8.5, wid: 2.5, maxSpeed: 22, accel: 4.5, brake: 14, turnRate: 1.5 },
+  newsvan: { name: 'van', livery: 'nieuws', len: 5.0, wid: 2.0, maxSpeed: 27, accel: 7, brake: 19, turnRate: 2.0 },
   ambulance: { name: 'ambulance', len: 6.0, wid: 2.0, maxSpeed: 30, accel: 8, brake: 18, turnRate: 2.6 },
 };
 
@@ -92,6 +96,7 @@ export function carModel(kind, rng = Math.random, colors = GREYS) {
   if (kind === 'taxi') color = rng() < 0.7 ? '#1b1c1f' : '#e8e6e0';
   else if (kind === 'delivery') color = rng() < 0.5 ? '#e0701e' : '#e8c93a';
   else if (kind === 'cashvan') color = '#5b625d';
+  else if (kind === 'newsvan') color = '#f2f0ea';
   else if (kind === 'ambulance') color = '#f1d21c';
   else if (kind === 'truck') color = VAN_COLORS[Math.floor(rng() * VAN_COLORS.length)];
   else if (kind === 'van' && colors !== VAN_COLORS) color = VAN_COLORS[Math.floor(rng() * VAN_COLORS.length)];
@@ -104,20 +109,35 @@ export function applyFleetFlags(v, kind) {
   if (kind === 'taxi') v.isTaxi = true;
   else if (kind === 'ambulance') v.isAmbulance = true;
   else if (kind === 'cashvan') v.isCashVan = true;
+  else if (kind === 'newsvan') v.isNewsVan = true;
 }
 
 const OLD_BIKE_COLORS = ['#5a3a2a', '#4a4d52', '#6b2a24', '#2f3b2a', '#7a6a5a', '#1c1c1c'];
 const RIDERS = ['#2f5c8a', '#7a2e2e', '#3f6b3f', '#c9a227', '#6a2e8a', '#2b2b2b', '#d0457a'];
 
-// null: a regular bike from vehicle.js' own pool.
-export function pickBikeVariant(map, x, y, rng = Math.random) {
-  const prof = wijkProfileAt(map, x, y).def;
+// null: a regular bike from vehicle.js' own pool. ctx.hour (0..24) steers the
+// time-of-day mix (more delivery riders at dinner time).
+export function pickBikeVariant(map, x, y, rng = Math.random, ctx = {}) {
+  const prof = wijkProfileAt(map, x, y);
+  const def = prof.def;
   const rider = RIDERS[Math.floor(rng() * RIDERS.length)];
-  if (rng() < prof.bakfiets) {
+  const hour = Number.isFinite(ctx.hour) ? ctx.hour : 14;
+  const d = distToCentre(x, y);
+  const street = pickStreetBike(prof.key, d, hour, rng);
+  if (street && street.type === 'delivery') {
+    return { name: 'bike', delivery: street.chain.id, bag: street.chain.color, bagTrim: street.chain.trim, len: 1.8, wid: 0.5, maxSpeed: 6.4, accel: 3.2, brake: 5, turnRate: 4.2, color: '#23262a', rider: street.chain.color };
+  }
+  if (street && street.type === 'mover') {
+    return { name: 'bike', cargo: true, load: street.load, len: 2.55, wid: 0.72, maxSpeed: 4.4, accel: 2.0, brake: 4.6, turnRate: 3.0, color: ['#2f4a3a', '#1c1c1c', '#23324a', '#6b2a24'][Math.floor(rng() * 4)], rider };
+  }
+  if (street && street.type === 'share') {
+    return { name: 'bike', share: true, tint: SHARE_TINT, len: 1.75, wid: 0.5, maxSpeed: 5.0, accel: 2.7, brake: 5, turnRate: 4.4, color: '#c9ccd0', rider };
+  }
+  if (rng() < def.bakfiets) {
     return { name: 'bike', cargo: true, len: 2.55, wid: 0.72, maxSpeed: 5.2, accel: 2.4, brake: 5, turnRate: 3.2, color: ['#2f4a3a', '#1c1c1c', '#23324a', '#6b2a24'][Math.floor(rng() * 4)], rider };
   }
-  if (rng() < prof.oldBike) {
-    return { name: 'bike', old: true, len: 1.75, wid: 0.5, maxSpeed: 5.4, accel: 2.8, brake: 5, turnRate: 4.4, color: OLD_BIKE_COLORS[Math.floor(rng() * OLD_BIKE_COLORS.length)], rider };
+  if (rng() < def.oldBike) {
+    return { name: 'bike', old: true, noLight: !shabbyHasLight(prof.key, rng), len: 1.75, wid: 0.5, maxSpeed: 5.4, accel: 2.8, brake: 5, turnRate: 4.4, color: OLD_BIKE_COLORS[Math.floor(rng() * OLD_BIKE_COLORS.length)], rider };
   }
   return null;
 }

@@ -8,6 +8,10 @@ import { initClutter, generateClutter, whiteUV } from './streetclutter.js';
 import { breakableWallsIn } from './elevation.js';
 import { runGeo } from './geojobs.js';
 import { getRealMap } from './realmap.js';
+import { wijkProfileAt } from './trafficfleet.js';
+import { slotChance } from './streetlifedata.js';
+import { crateGeometry, cartGeometry } from './streetlife3d.js';
+import { decorateScenePed } from './streetlife.js';
 
 // Ambient city life: benches, bins, bike racks, café terraces, market stalls,
 // canal anglers. Streamed per CELL around the player; each cell merges all its
@@ -291,6 +295,11 @@ export function cellPropSpots(map, gx, gy) {
   const c = generateCell(map, gx, gy);
   return [...c.items, ...c.market].filter((it) => it.prop).map((it) => ({ ...it.prop, angle: it.prop.axis }));
 }
+// The standing-person slots a cell would get (streetlife_test.mjs counts them).
+export function cellSlotSpots(map, gx, gy) {
+  if (!protos) return [];
+  return generateCell(map, gx, gy).slots.map((s) => ({ kind: s.kind, x: s.x, y: s.y, angle: s.angle, pose: s.pose }));
+}
 export const CLUTTER_CELL = CELL;
 
 // A cell without city streets takes the real Ommeland's (realmap.js).
@@ -427,6 +436,13 @@ function generateCell(map, cx, cy) {
       slots.push({ kind: 'fisher', x: spot.x, y: spot.y, angle: spot.angle, pose: 'fish', occ: 0 });
     }
   }
+  if (!map.centreDist) streetFolkSlots({ map, rng, cx0, cy0, mid, centreD, roads, items, slots, clear, take });
+  if (bernard && bernard.x >= cx0 && bernard.x < cx0 + CELL && bernard.y >= cy0 && bernard.y < cy0 + CELL) {
+    const { x, y, angle } = bernard;
+    items.push({ geo: crateGeo(), m: place(x, y, angle) });
+    items.push({ geo: cartGeo(), m: place(x + Math.sin(angle) * 1.05, y - Math.cos(angle) * 1.05, angle) });
+    slots.push({ kind: 'bernard', x, y, angle, pose: 'sit', occ: 0 });
+  }
   if (hauler && hauler.x >= cx0 && hauler.x < cx0 + CELL && hauler.y >= cy0 && hauler.y < cy0 + CELL) {
     const { x, y, angle } = hauler;
     const bx = x + Math.cos(angle) * 1.9, by = y + Math.sin(angle) * 1.9;
@@ -449,6 +465,44 @@ function generateCell(map, cx, cy) {
   const walls = map.elev && map.elev.has ? breakableWallsIn(map.elev, cx0, cy0, CELL) : [];
 
   return { cx, cy, items, market, slots, walls, mesh: null, marketMesh: null, active: false };
+}
+
+let crateGeoCache = null, cartGeoCache = null;
+const crateGeo = () => crateGeoCache || (crateGeoCache = whiteUV(crateGeometry()));
+const cartGeo = () => cartGeoCache || (cartGeoCache = whiteUV(cartGeometry()));
+
+// Street-paper sellers and someone sitting with a cup in the busy parts, and
+// magnet fishers on the quays (streetlifedata.slotChance: heavy in the
+// centre, none in the polders; the Ommeland's own map is left alone).
+function streetFolkSlots({ map, rng, cx0, cy0, mid, centreD, roads, items, slots, clear, take }) {
+  const prof = wijkProfileAt(map, mid.x, mid.y).key;
+  const onPavement = (kind, cats, off, pose, crate) => {
+    if (rng.next() >= slotChance(kind, prof, centreD)) return;
+    let done = false;
+    roadSamples(roads, cx0, cy0, cats, 30, rng, (r, x, y, segA) => {
+      if (done || rng.next() > 0.3) return;
+      const side = rng.next() < 0.5 ? 1 : -1;
+      const nx = -Math.sin(segA) * side, ny = Math.cos(segA) * side;
+      const o = (r.width || 4) / 2 + off;
+      const bx = x + nx * o, by = y + ny * o;
+      if (!isFree(map, bx, by, 0.6) || !clear(bx, by, 1.4)) return;
+      take(bx, by, 1.4);
+      done = true;
+      const face = Math.atan2(-ny, -nx);
+      if (crate) items.push({ geo: crateGeo(), m: place(bx, by, face) });
+      slots.push({ kind, x: bx, y: by, angle: face, pose, occ: 0 });
+    });
+  };
+  onPavement('seller', ['foot', 'minor', 'normal'], 0.9, 'vendor', false);
+  onPavement('beggar', ['foot', 'minor'], 0.8, 'sit', true);
+  if (rng.next() < slotChance('magnet', prof, centreD)) {
+    const spot = findQuaySpot(map, cx0, cy0, rng);
+    if (spot && clear(spot.x, spot.y, 1.2)) {
+      take(spot.x, spot.y, 1.2);
+      items.push({ geo: ropeGeometry(), m: place(spot.x, spot.y, spot.angle) });
+      slots.push({ kind: 'magnet', x: spot.x, y: spot.y, angle: spot.angle, pose: 'haul', occ: 0 });
+    }
+  }
 }
 
 let ropeGeo = null;
@@ -516,6 +570,34 @@ function findQuaySpot(map, cx0, cy0, rng) {
     }
   }
   return null;
+}
+
+// Bernhard sits where the Grote Markt's stalls end, on a footway, facing the street.
+let bernard = null;
+export function getBernardSpot() {
+  return bernard;
+}
+function findBernardSpot(map) {
+  const m = MARKETS[0];
+  const rng = new SeededRng(777);
+  let best = null, bestD = Infinity;
+  for (const road of map.roadsNear(m.x, m.y, m.r + 40)) {
+    if (road.cat !== 'foot' || !road.pts || road.pts.length < 2) continue;
+    for (let i = 0; i < road.pts.length - 1; i++) {
+      const a = road.pts[i], b = road.pts[i + 1];
+      const segA = Math.atan2(b[1] - a[1], b[0] - a[0]);
+      for (const side of [1, -1]) {
+        const nx = -Math.sin(segA) * side, ny = Math.cos(segA) * side;
+        const o = (road.width || 3) / 2 + 1.0;
+        const x = (a[0] + b[0]) / 2 + nx * o, y = (a[1] + b[1]) / 2 + ny * o;
+        const d = Math.abs(Math.hypot(x - m.x, y - m.y) - (m.r + 8)) + rng.next() * 0.01;
+        if (d >= bestD || !isFree(map, x, y, 1.6) || !isFree(map, x - ny * 1.05, y + nx * 1.05, 0.7)) continue;
+        bestD = d;
+        best = { x, y, angle: Math.atan2(-ny, -nx) };
+      }
+    }
+  }
+  return best;
 }
 
 function findHaulerSpot(map) {
@@ -671,7 +753,7 @@ function slotWanted(slot, night) {
   if (slot.propKey && isPropBroken(slot.propKey)) return false;
   if (slot.kind === 'vendor') return !night;
   if (slot.kind === 'terrace') return slot.occ < (night ? 0.8 : 0.4);
-  if (slot.kind === 'fisher') return !night;
+  if (slot.kind === 'fisher' || slot.kind === 'seller' || slot.kind === 'magnet') return !night;
   return true;
 }
 
@@ -699,6 +781,7 @@ function updateSlots(activeCells) {
       const ped = new Pedestrian(s.x, s.y, s.angle);
       ped.state = 'idle';
       ped.scene = { x: s.x, y: s.y, angle: s.angle, pose: s.pose, kind: s.kind };
+      decorateScenePed(ped, s.kind);
       setPedPose(ped, s.pose);
       world.pedestrians.push(ped);
       s.ped = ped;
@@ -771,6 +854,7 @@ export function initCityProps(w) {
   initProtos();
   material = vcMaterial({ roughness: 0.9, map: atlas });
   hauler = findHaulerSpot(w.map);
+  bernard = w.map.centreDist ? null : findBernardSpot(w.map);
 }
 
 export function updateCityProps(dt, w, scene) {

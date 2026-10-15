@@ -399,6 +399,34 @@ HUD zoom at 1920x1080), `--hud-edge` is the 46 px margin.
 - `snackautomaat.js`: the Muurkroket vending machine at snack bars and the
   stations (E: EUR 3, a random eierbal, kroket or frikandel, +8 health);
   `node scripts/snackautomaat_test.mjs`.
+- Street life, batch 1 (open-wereldleven; all names invented, text only, no
+  voice): `streetlifedata.js` (pure: density by wijk profile and distance to
+  the centre (`lifeDensity`, 0 beyond ~2.2 km: polders get none), time-of-day
+  rules (`deliveryChance` x4 at dinner, `bikeBoost` rush hour and dinner,
+  `pickWaterLife` rowing in the morning and evening, `slotChance`), the
+  invented names (`De Reep`, `Noord-Nieuws`, `Wisselwiel`, `Bernhard met de
+  Karretje`, delivery chains Happie, Flitsmaal, Gauw Gebracht), magnet loot and
+  lines). `trafficfleet.pickBikeVariant(map, x, y, rng, {hour})` now also
+  returns delivery riders (`model.delivery`, big cube bag), bike-share
+  (`model.share`, coral front wheel), movers (`model.cargo` + `model.load`
+  sofa/matras/plant/kasten) and shabby bikes with `model.noLight`
+  (`nightlights3d.vehicleLightsOn` keeps their lamps dark); the news van is
+  the `newsvan` fleet kind (`livery: 'nieuws'`, `v.isNewsVan`, one by day
+  within 1.4 km of the centre, kept by `manageTrafficPopulation`). Boats:
+  `boattypes.js` kinds `skiff` (single scull) and `acht` (cox plus eight,
+  seats facing aft, `arms: 'row'` in `models3d_people.seatPose`, riggers and
+  oars in `models3d_vehicles.rowFit`); `manageBoatPopulation` asks
+  `pickWaterLife` per water polygon (an eight only on wide water, max 1; two
+  skiffs, three stand-up paddlers). On foot: `cityprops.js` slots `seller`,
+  `beggar`, `magnet` (rope and magnet like the hauler) and the fixed `bernard`
+  (crate and cart; `getBernardSpot`), only on the city map (not the Ommeland);
+  `streetlife.js` dresses them (`decorateScenePed`: `ped.look`, `ped.carry`,
+  read by `scene3d.buildPedActor`), the E prompt (`streetLifePrompt`, wired in
+  `prompts.js` and `main.js tryStreetLifeInteract`), coins, De Reep, magnet
+  pulls and the rare old grenade (carry it, report it to an officer or a police
+  station for EUR 120; nothing explodes, not saved), and
+  `updateStreetLife` makes the odd student walk with a sofa, mattress or plant
+  (`ped.carry`, `streetlife3d.js`). Tests: `node scripts/streetlife_test.mjs`.
 - `node scripts/clearance_audit.mjs` lists the headroom under every road
   viaduct deck (most are 4.2 to 4.6 m; ramp feet over cycle paths are lower).
 - `travelroute.js` (pure): `boatRoute` (grid A* over the water with shore

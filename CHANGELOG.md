@@ -42,6 +42,18 @@ nieuwe functies, `y` voor alleen bugfixes.
   fiets of achter het stuur, en als je 's nachts zonder licht fietst.
 - **Hintbron.** Onder Instellingen kies je of de hints toetsenbord, controller
   of automatisch tonen, in de hele HUD en in het menu.
+- **Meer leven op straat.** Roeiers in een skiff en soms een acht op het brede
+  water, vaker iemand op een SUP, studenten die verhuizen met een bankstel,
+  matras of plant (op de bakfiets of lopend), bezorgers met een grote kubustas
+  (drukker rond etenstijd), Wisselwiel-deelfietsen met een gekleurd voorwiel
+  en gammele studentenfietsen die 's nachts geen licht voeren. Een busje van
+  Noord-Nieuws rijdt door de stad.
+- **Op straat gebeurt iets.** Verkopers van De Reep (E: een krant, twee euro),
+  iemand met een bekertje (E: een muntje geven) en Bernhard met de Karretje
+  bij de Grote Markt, die graag een praatje maakt. Aan de kade staan
+  magneetvissers: help mee trekken en haal van alles uit het water. Soms zit
+  er een oude granaat aan: laat hem liggen en meld hem bij de politie voor een
+  beloning.
 - **Politiepaarden** laten af en toe een hoopje achter. Er rijden meer fietsen
   in het centrum, en op een reclamebord vraagt iemand of u uit Steden komt of
   naar Stedum gaat.

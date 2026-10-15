@@ -20,6 +20,7 @@ import { pigeonSpotPrompt, pigeonSpotSecondary } from './pigeonspots.js';
 import { sideJobPrompt, sideJobSecondary } from './sidejobs.js';
 import { stationPrompt, stationSecondary } from './stationtravel.js';
 import { machinePrompt } from './snackautomaat.js';
+import { streetLifePrompt } from './streetlife.js';
 import { trainPrompt } from './traindrive.js';
 import { heliSpotPrompt, heliSpotSecondary } from './helirun.js';
 import { padelPrompt, padelSecondary } from './padel.js';
@@ -336,6 +337,8 @@ function findPrimary(world) {
   if (pg) return pg;
   const muur = machinePrompt(world);
   if (muur) return muur;
+  const straat = streetLifePrompt(world);
+  if (straat) return straat;
   const shop = shopPrimaryPrompt(world);
   if (shop) return shop;
   const thuis = homePrompt(world);
