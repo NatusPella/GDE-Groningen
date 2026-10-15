@@ -638,7 +638,7 @@ function hitPlayer(t, car, push, world) {
   const tv = t.v * t.dir;
   p.shoveX = Math.cos(car.angle) * tv * 0.5 + push.nx * 6;
   p.shoveY = Math.sin(car.angle) * tv * 0.5 + push.ny * 6;
-  p.vz = 4 + Math.min(4, t.v * 0.25);
+  p.vz = (4 + Math.min(4, t.v * 0.25)) * 0.78; // as high as it was at the old g 16
   let dmg = 25 + t.v * 3.5;
   if (world.armor > 0) { const a = Math.min(world.armor, dmg); world.armor -= a; dmg -= a; }
   world.health -= dmg;

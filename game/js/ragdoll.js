@@ -28,7 +28,8 @@ const IMPULSE = {
 const STEP = 1 / 60;
 const MAX_STEPS = 3;
 const ITERATIONS = 8;
-const GRAVITY = 13;
+const GRAVITY = 9.8;
+const LIFT_K = Math.sqrt(GRAVITY / 13);
 const AIR_DAMP = 0.999;
 const FRICTION = 0.1;
 const SLEEP_SPEED = 0.15;
@@ -105,7 +106,8 @@ export function knockDown(actor, world, o = {}) {
     if (o.dead) rd.dead = true;
     return rd;
   }
-  const imp = { x: o.vx || 0, y: o.vz || 0, z: o.vy || 0, kind: IMPULSE[o.kind] ? o.kind : 'hit' };
+  // callers' lift speeds were tuned at g 13: scaled so a body flies as high at 9.8
+  const imp = { x: o.vx || 0, y: (o.vz || 0) * LIFT_K, z: o.vy || 0, kind: IMPULSE[o.kind] ? o.kind : 'hit' };
   if (!rd) {
     rd = actor.ragdoll = {
       phase: 'pending', dead: !!o.dead, hitAt: now, seenAt: now, imp: [imp], startPose: o.startPose || null,
