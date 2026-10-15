@@ -78,6 +78,8 @@ Bronnen: `ROADMAP.md`, `docs/PROVINCIE-PLAN.md`, `docs/PROVINCIE-VERHAAL.md`, `d
 | F4b | Wadden, Westerkwartier | scripts nog te schrijven |
 | F4c | Oldambt, Veenkoloniën, Westerwolde + finale in Vesting Bourtange | scripts nog te schrijven |
 
+Scripts F4a, F4b en F4c staan alle drie in `docs/verhaal/`. **Kalenderfout om recht te zetten voor het bouwen:** F4a zet 15 september op een maandag en de voorrondes op zaterdag 20 en 27 september; in 2026 zijn dat een dinsdag en twee zondagen. Zeven voorrondes passen bovendien niet in 15 tot en met 27 september. Eén gezamenlijke kalenderronde over F4a, F4b en F4c (`STEP_DATES` in `calendar.js`), met F4c die verder loopt dan 27 september of voorrondes die dichter op elkaar liggen, en O10 verplaatst naar 21 september.
+
 Openstaand rond Deel 4: Groningse spelling laten nalezen door een echte Gronings-spreker **[eigenaar]**; de gaswinning-zijlijn alleen met zorg (geen grappen over de schade); winterinhoud en natuurijs uit `PROVINCIE-VERHAAL.md` halen (het is altijd zomer).
 
 ## Open source en publiceren (parallel, bijna klaar)
