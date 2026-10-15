@@ -93,8 +93,6 @@ let world = null;
 let stackEl = null;
 let stackE = null;
 let countEl = null;
-let waitEl = null;
-let waitN = 0;
 let awardEl = null;
 let awardN = 0;
 let visible = [];
@@ -125,13 +123,10 @@ export function initCards(w, root) {
   const chips = document.createElement('div');
   chips.className = 'hc-chips';
   stackEl.appendChild(chips);
-  waitEl = document.createElement('div');
-  waitEl.className = 'hc-wait';
-  waitEl.hidden = true;
   awardEl = document.createElement('div');
   awardEl.className = 'hc-wait hc-award';
   awardEl.hidden = true;
-  chips.append(waitEl, awardEl);
+  chips.append(awardEl);
   countEl = document.createElement('div');
   countEl.className = 'hud-count';
   countEl.setAttribute('aria-live', 'assertive');
@@ -150,23 +145,12 @@ export function initCards(w, root) {
 const CHIP_SECS = 5;
 const CHIP_FADE = 0.6;
 const CHIP_AFTER_PAUSE = 3.5;
-let waitT = 0;
 let awardT = 0;
 let wasInMenu = false;
 
 function setChip(el, t) {
   el.hidden = t <= 0;
   el.classList.toggle('out', t > 0 && t < CHIP_FADE);
-}
-
-// How many cards wait their turn (tips not counted: they may never come).
-function syncWait() {
-  const n = queue.filter((q) => q.spec.kind !== 'tip').length;
-  if (n === waitN) return;
-  if (n > waitN) waitT = CHIP_SECS;
-  if (!n) waitT = 0;
-  waitN = n;
-  if (n) waitEl.innerHTML = `<i></i>+${n} in de wacht`;
 }
 
 // Unlocked but not yet looked at in Prestaties; information only.
@@ -186,10 +170,7 @@ function tickChips(dt, frozen, menuOpen) {
     wasInMenu = false;
     if (awardN > 0) awardT = Math.max(awardT, CHIP_AFTER_PAUSE);
   }
-  if (!frozen) { waitT = Math.max(0, waitT - dt); awardT = Math.max(0, awardT - dt); }
-  // the queue chip only means something next to a card that is up
-  if (!visible.some((c) => !c.leaving)) waitT = Math.min(waitT, CHIP_FADE);
-  setChip(waitEl, frozen ? 0 : waitT);
+  if (!frozen) awardT = Math.max(0, awardT - dt);
   setChip(awardEl, frozen ? 0 : awardT);
 }
 
@@ -386,11 +367,10 @@ export function updateCards(dt, w) {
   stackEl.classList.toggle('hc-held', held);
   const frozen = hudHidden() || w.paused || w.uiPaused || held || !mayStart('card', { urgent: true });
   stackEl.classList.toggle('paused', !!frozen);
-  syncWait();
   syncAward();
   tickChips(dt, !!frozen, isPauseMenuOpen());
   document.body.classList.toggle('hud-card-on', visible.some((c) => !c.leaving));
-  document.body.classList.toggle('hud-chip-on', waitT > 0 || awardT > 0);
+  document.body.classList.toggle('hud-chip-on', awardT > 0);
   if (frozen) return;
   // during a phone call only dangers and the police get a card
   const calling = document.body.classList.contains('hud-call-on');
