@@ -115,11 +115,11 @@ if (!farm.tractor || !farm.quad) fails++;
   let pairs = 0, overlaps = 0;
   for (const [name, x, y] of SPOTS) {
     const world = { map, vehicles: [], time: 0, player: { x, y, inVehicle: null }, input: null };
-    for (let k = 0; k < 400; k++) { if (k % 50 === 0) P.manageParkedCars(world); P.tickParkedCars(world); world.time += 1 / 60; }
-    const cars = [...P.sleepingParkedCars(world), ...world.vehicles].filter((v) => F.edgeDistance(v.x, v.y) >= 0);
+    for (let k = 0; k < 400; k++) { if (k % 50 === 0) PC.manageParkedCars(world); PC.tickParkedCars(world); world.time += 1 / 60; }
+    const cars = [...PC.sleepingParkedCars(world), ...world.vehicles].filter((v) => F.edgeDistance(v.x, v.y) >= 0);
     for (let i = 0; i < cars.length; i++) {
       const a = cars[i];
-      if (P.slotOverlaps(cars.slice(i + 1).map((b) => ({ x: b.x, y: b.y, angle: b.angle, model: b.model })), a.x, a.y, a.angle, a.model, 0.05)) { overlaps++; console.log('  overlap at', name, Math.round(a.x), Math.round(a.y)); }
+      if (PC.slotOverlaps(cars.slice(i + 1).map((b) => ({ x: b.x, y: b.y, angle: b.angle, model: b.model })), a.x, a.y, a.angle, a.model, 0.05)) { overlaps++; console.log('  overlap at', name, Math.round(a.x), Math.round(a.y)); }
       pairs++;
     }
   }
@@ -223,7 +223,7 @@ const SEDAN = { name: 'sedan', len: 4.3, wid: 1.8, maxSpeed: 50, accel: 10, brak
   const Pol = await import('../game/js/police.js');
   const { snapCountry } = await import('../game/js/countryroute.js');
   let units = 0, onRoad = 0, offRoad = 0, reached = 0, wet = 0, runs = 0;
-  for (const target of [[5700, -11600], [2079, -8936], [8673, -6393]]) {
+  for (const target of [P(5700, -11600), P(2079, -8936), P(8673, -6393)]) {
     runs++;
     const car = new V.Vehicle(target[0], target[1], 0, SEDAN);
     car.driver = 'player';
