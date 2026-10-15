@@ -45,6 +45,11 @@ nieuwe functies, `y` voor alleen bugfixes.
   je geld, zonder geweld. Ren hem achterna en pak het terug. Op de kaart krijgen
   die wijken na donker een oranje naam en een driehoek, en bij het binnenlopen
   waarschuwt een kaartje je.
+- **Fietsen over de Grote Markt is duidelijk.** De fietsroute over het plein heeft
+  nu witte streeplijnen en een fietssymbool op de klinkers, en bij elke ingang
+  staat een bord "Fietsroute, stapvoets". De eerste keer dat je erop fietst zegt
+  een kaartje dat het mag; op marktdag (dinsdag, vrijdag, zaterdag, overdag) stap
+  je af en loop je met je fiets.
 
 ## [0.31.0] - 2026-10-16
 

@@ -4,7 +4,8 @@
 // after a grace period on it the police take an interest (one star, once per
 // stretch; never more than one from this alone). Missions, jobs and the
 // emergency services are left alone. Pure logic apart from reading the world.
-import { travelModeOf, offenceOf } from './roadaccess.js';
+import { travelModeOf, offenceOf, marktFietsHint, MARKT } from './roadaccess.js';
+import { weekdayOf } from './calendar.js';
 
 // Two money fines when an agent is watching: the phone in your hand while
 // riding or driving, and cycling after dark without a light.
@@ -21,12 +22,14 @@ const REARM_S = 25;
 const SCAN_EVERY = 0.25;
 const LEVEL_SPLIT_M = 2.5;
 
+let marktHinted = false;
 const state = { kind: null, mode: null, on: 0, off: 0, warned: false, fined: false, rearm: 0, scanT: 0, road: null };
 
 export function getLawState() {
   return { kind: state.kind, onS: state.on, warned: state.warned, fined: state.fined, grace: Math.max(0, GRACE_S - state.on) };
 }
 export function resetTrafficLaw() {
+  marktHinted = false;
   Object.assign(state, { kind: null, mode: null, on: 0, off: 0, warned: false, fined: false, rearm: 0, scanT: 0, road: null });
 }
 
@@ -88,6 +91,12 @@ export function updateTrafficLaw(dt, world) {
       const road = roadUnder(world.map, x, y, z);
       found = road ? offenceOf(road, mode) : null;
       state.road = found ? road : null;
+      if (!found && mode === 'fiets' && road && !marktHinted) {
+        const hour = ((world.clock % 24) + 24) % 24;
+        const weekday = world.calendar && Number.isFinite(world.calendar.day) ? weekdayOf(world.calendar.day) : -1;
+        const text = marktFietsHint(mode, road, { weekday, hour });
+        if (text) { marktHinted = true; world.addMessage(text, 6, { kind: 'tip', key: MARKT.hint }); }
+      }
     }
     if (found) { state.off = 0; kind = found; } else { state.off += SCAN_EVERY; if (state.off > GAP_S) kind = null; }
     state.kind = kind;
