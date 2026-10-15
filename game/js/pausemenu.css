@@ -306,3 +306,9 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 #pause-menu .mapview-overlay.embedded .mapview-card .mapview-btn.ghost:hover { color: var(--ink); }
 #pause-menu .mapview-overlay.embedded .mapview-card .mapview-btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; }
 #pause-menu .mapview-overlay.embedded .mapview-card .mv-pip { width: 20px; height: 20px; }
+#pause-menu .mapview-overlay.embedded .mapview-title { display: block; }
+#pause-menu .td-stack { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 32px; }
+#pause-menu .gar-stage { height: 170px; }
+#pause-menu .m-disc > .m-bar { flex: none; width: 200px; margin-left: auto; max-width: none; }
+#pause-menu .m-disc > .bebas { min-width: 64px; text-align: right; }
+#pause-menu .vh-stage { height: 230px; }
