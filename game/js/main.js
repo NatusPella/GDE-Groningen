@@ -37,7 +37,7 @@ import { initTheme } from './theme.js';
 import { initTrafficLights, updateTrafficLights } from './trafficlights.js';
 import { initRailway, updateRailway } from './railway.js';
 import { geoWorkerActive } from './geojobs.js';
-import { init3D, update3D, resize3D, getScene, getRenderer, setMenuCover, MENU_FRAME_S, refreshRenderScale, terrainReady, canvasFrameCount } from './scene3d.js';
+import { init3D, update3D, resize3D, getScene, getRenderer, setMenuCover, MENU_FRAME_S, refreshRenderScale, terrainReady, canvasFrameCount, prewarmStreamAt } from './scene3d.js';
 import { checkFrame } from './blackframe.js';
 import { noteFrame, hideAdvice, classifyGpu, readGpu, dynamicScale, cpuLevel } from './gfxprofile.js';
 import { updateStreetSigns } from './streetsigns.js';
@@ -49,13 +49,14 @@ import { updateKnockFx3D } from './knockfx3d.js';
 import { updateGunFx3D } from './gunfx3d.js';
 import { initCityProps, updateCityProps } from './cityprops.js';
 import { initPhone, updatePhone, isPhoneOpen } from './phone.js';
-import { initSaveGame, updateSaveGame } from './savegame.js';
+import { initSaveGame, updateSaveGame, hasSave, readSave } from './savegame.js';
 import { initWeather, updateWeather } from './weather.js';
 import { initFlitspaal, updateFlitspaal } from './flitspaal.js';
 import { initWildlife, updateWildlife } from './wildlife.js';
 import { initSkyProps, updateSkyProps } from './skyprops.js';
 import { initSikkomFeed, updateSikkomFeed } from './sikkomfeed.js';
 import { initPhoneFeed, updatePhoneFeed } from './phonefeed.js';
+import { watchJumps, resetJumpWatch } from './loadscreen.js';
 import { initLoading, setLoadProgress, finishLoading, showLoadError, runStartScreen, yieldToPaint } from './startscreen.js';
 import { initPigeonMode, updatePigeonMode, updatePigeonCamera, updatePigeonAfterglow } from './pigeonmode.js';
 import { initPigeonSpots, updatePigeonSpots, tryPigeonSpotInteract } from './pigeonspots.js';
@@ -74,7 +75,7 @@ import { updateEmergency } from './emergency.js';
 import { initAchievementTracker, updateAchievementTracker } from './achievementtracker.js';
 import { probe } from './hitchprobe.js';
 import { initSafety, updateSafety } from './safety.js';
-import { updateCinematics } from './cinematics.js';
+import { updateCinematics, isCinematicActive, sinceCinematic } from './cinematics.js';
 import { initFlavour, updateFlavour } from './flavour.js';
 import { initFlavour3D, updateFlavour3D } from './flavour3d.js';
 import { prepareHomeMap, initHome, updateHome, updateHomeExterior, tryHomeInteract, homeSpawnPoint, parkHeroAtHome } from './home.js';
@@ -315,6 +316,8 @@ async function boot() {
   if (DEV) import('./storydev.js').then((m) => m.initStoryDev(world)).catch((e) => console.error('storydev', e));
   if (STORY_TEST) import('./storytest.js').then((m) => m.runStoryTest(world)).catch((e) => console.error('storytest', e));
   markLoad('systems');
+  // the first tiles round the save build while the boot screen is still up
+  try { const sv = hasSave() ? readSave() : null; if (sv && sv.pos) prewarmStreamAt(sv.pos.x, sv.pos.y, 40); } catch (e) { /* ignore */ }
   await terrainReady();
   markLoad('terrain');
   await finishLoading();
@@ -406,6 +409,8 @@ async function boot() {
       menuDt = 0;
     }
     updateHud(dt, world);
+    // a long jump (fast travel, teleport): the load screen while the city streams in
+    watchJumps(world, { swallow: world.pigeonMode || !!world.pendingRespawn || isCinematicActive() || sinceCinematic() < 2 || !!world.cameraOverride, hold: world.paused && !world.uiPaused });
     probe.mark('hud');
   }
 
@@ -532,6 +537,7 @@ async function boot() {
   }
 
   input.reset();
+  resetJumpWatch();
   requestAnimationFrame(frame);
 }
 

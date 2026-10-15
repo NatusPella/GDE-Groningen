@@ -1312,6 +1312,8 @@ function syncBuildings(world, px, py) {
     buildingMeshes.set(b, mesh);
     scene.add(mesh);
   }
+  streamStat.b = 0;
+  for (const m of missing) if (!buildingMeshes.has(m[1])) streamStat.b++;
   // shown only once the far LOD stops drawing them
   if (buildingDetailR < DRAW_DIST) {
     for (const [b, mesh] of buildingMeshes) {
@@ -1355,6 +1357,9 @@ const BUILDING_BUILD_BOOST_MS = 9;
 const ROAD_BUILD_MS = 2.5;
 const STREAM_JUMP = 60;
 let streamBoostUntil = 0;
+// what still waits to be built round the player (the load screen's progress)
+const streamStat = { b: 0, r: 0 };
+export function streamPending() { return { buildings: streamStat.b, roads: streamStat.r, ahead: performance.now() < streamBoostUntil }; }
 let streamLastX = null, streamLastY = 0;
 let buildingDetailR = DRAW_DIST;
 const FACADE_DETAIL_DIST = { laag: 80 };
@@ -1583,6 +1588,8 @@ function syncRoads(world, px, py) {
       built++;
     }
   }
+  streamStat.r = 0;
+  for (const m of missing) if (!roadMeshes.has(m[1])) streamStat.r++;
   for (const [r, mesh] of roadMeshes) {
     if (seen.has(r)) continue;
     scene.remove(mesh); // geometry is cached on the road, materials are shared per layer

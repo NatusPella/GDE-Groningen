@@ -1,0 +1,51 @@
+/* The load screen (loadscreen.js). Laid out for 1440x900 like the HUD and
+   zoomed with --ui; no backdrop-filter, the picture moves with a transform. */
+#load-screen { position: fixed; inset: 0; z-index: 50; overflow: hidden; color: #f0ede4; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.04em; background: radial-gradient(ellipse at center, #17301f, #0c140e); opacity: 0; transition: opacity 0.45s ease; }
+#load-screen.on { opacity: 1; }
+#load-screen.instant { opacity: 1; transition: none; }
+#load-screen.instant.out { transition: opacity 0.7s ease; }
+#load-screen.out { opacity: 0; pointer-events: none; }
+#load-screen .ls-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform-origin: 60% 40%; animation: ls-kb 18s ease-in-out infinite alternate; }
+@keyframes ls-kb { 0% { transform: scale(1.04) translate(0, 0); } 100% { transform: scale(1.14) translate(-2%, -1.5%); } }
+#load-screen .ls-shade { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(12,20,14,0.92) 0%, rgba(12,20,14,0.7) 32%, rgba(12,20,14,0.1) 62%, rgba(12,20,14,0.35) 100%); }
+#load-screen .ls-foot-shade { position: absolute; left: 0; right: 0; bottom: 0; height: 30%; background: linear-gradient(0deg, rgba(12,20,14,0.95), rgba(12,20,14,0)); }
+#load-screen .ls-stage { position: absolute; left: 0; top: 0; width: calc(100vw / var(--ui, 1)); height: calc(100vh / var(--ui, 1)); zoom: var(--ui, 1); }
+#load-screen .ls-brand { position: absolute; top: 100px; left: 100px; }
+#load-screen .gde-logo { font-size: 167px; align-items: flex-start; }
+#load-screen .gde-logo .gde-sign { font-size: 0.32em; align-self: flex-start; }
+#load-screen .gde-logo .gde-sub { margin: 14px 0 0; font: normal 28px/1.1 'Bebas Neue', 'Arial Narrow', sans-serif; letter-spacing: 0.32em; text-align: left; }
+#load-screen .ls-recap { position: absolute; top: 467px; left: 100px; width: 517px; display: flex; flex-direction: column; gap: 11px; }
+#load-screen .ls-recap > span { font-size: 18px; letter-spacing: 0.2em; color: rgba(240, 237, 228, 0.6); }
+#load-screen .ls-recap p { margin: 0; font: 20px/1.45 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.01em; }
+#load-screen .ls-card { position: absolute; top: 100px; right: 100px; width: 350px; display: flex; flex-direction: column; gap: 12px; padding: 20px 22px; border-radius: 14px; background: linear-gradient(180deg, rgba(23,48,31,0.82), rgba(12,20,14,0.86)); box-shadow: 0 0 0 1px rgba(63,201,122,0.3), 0 20px 50px rgba(0,0,0,0.45); }
+#load-screen .ls-kick { font-size: 15px; letter-spacing: 0.2em; color: #3fc97a; }
+#load-screen .ls-place { font-weight: normal; font-size: 43px; line-height: 0.95; }
+#load-screen .ls-when { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+#load-screen .ls-when > span { font-size: 18px; color: rgba(240, 237, 228, 0.85); }
+#load-screen .ls-when .ls-badge { font-size: 15px; padding: 2px 8px; border-radius: 5px; color: #f3dc6a; background: rgba(232, 201, 58, 0.14); box-shadow: inset 0 0 0 1px rgba(232, 201, 58, 0.55); }
+#load-screen .ls-rule { display: block; height: 1px; background: rgba(63, 201, 122, 0.25); }
+#load-screen .ls-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+#load-screen .ls-stats div { display: flex; flex-direction: column; }
+#load-screen .ls-stats b { font-weight: normal; font-size: 28px; line-height: 1; white-space: nowrap; }
+#load-screen .ls-stats b.g { color: #3fc97a; }
+#load-screen .ls-stats span { font-size: 13px; color: rgba(240, 237, 228, 0.6); }
+#load-screen .ls-bottom { position: absolute; left: 100px; right: 100px; bottom: 80px; display: flex; gap: 50px; align-items: flex-end; justify-content: space-between; }
+#load-screen .ls-tip { display: flex; gap: 15px; align-items: flex-start; max-width: 717px; }
+#load-screen .ls-tip-ic { width: 43px; height: 43px; border-radius: 10px; background: rgba(63, 201, 122, 0.16); box-shadow: inset 0 0 0 1px rgba(63, 201, 122, 0.5); display: grid; place-items: center; flex: none; }
+#load-screen .ls-tip-ic svg { width: 22px; height: 22px; fill: none; stroke: #3fc97a; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+#load-screen .ls-tip div span { font-size: 18px; letter-spacing: 0.14em; color: #3fc97a; }
+#load-screen .ls-tip p { margin: 3px 0 0; font: 18px/1.4 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.01em; }
+#load-screen .ls-prog { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; width: 433px; flex: none; }
+#load-screen .ls-phase { display: flex; gap: 10px; align-items: center; }
+#load-screen .ls-phase b { font-weight: normal; font-size: 20px; }
+#load-screen .ls-phase small { font-size: 16px; color: rgba(240, 237, 228, 0.55); }
+#load-screen .ls-phase small:empty { display: none; }
+#load-screen .ls-spin { width: 25px; height: 25px; animation: ls-spin 2.4s linear infinite; }
+#load-screen .ls-spin circle { fill: none; stroke: rgba(240, 237, 228, 0.18); stroke-width: 3; }
+#load-screen .ls-spin path { fill: none; stroke: #3fc97a; stroke-width: 3; stroke-linecap: round; }
+@keyframes ls-spin { to { transform: rotate(360deg); } }
+#load-screen .ls-bar { width: 100%; height: 4px; border-radius: 2px; background: rgba(240, 237, 228, 0.15); overflow: hidden; }
+#load-screen .ls-bar i { display: block; height: 100%; transform-origin: left; transform: scaleX(0.04); background: linear-gradient(90deg, #1e9e56, #3fc97a); box-shadow: 0 0 12px #3fc97a; transition: transform 0.2s linear; }
+@media (max-width: 900px) { #load-screen .ls-recap, #load-screen .ls-tip { display: none; } #load-screen .ls-card { right: 40px; top: 40px; } #load-screen .ls-brand { left: 40px; top: 40px; } #load-screen .ls-bottom { left: 40px; right: 40px; } #load-screen .ls-prog { width: 100%; } }
+@media (prefers-reduced-motion: reduce) { #load-screen .ls-bg, #load-screen .ls-spin { animation: none; } #load-screen { transition: none; } }
+html.reduce-motion #load-screen .ls-bg, html.reduce-motion #load-screen .ls-spin { animation: none; }

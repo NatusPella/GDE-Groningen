@@ -565,6 +565,26 @@ function currentDistrict(world) {
   return null;
 }
 
+// The place at any point (the load screen): the village, a landmark within
+// reach, else the wijk.
+export function placeLabel(world, x, y) {
+  const area = ommelandArea(x, y);
+  if (area) {
+    const name = area.near || !area.place ? 'Ommeland' : area.place;
+    const v = VILLAGES[name];
+    return { name, country: true, district: name, line: v && v.teaser ? v.teaser : '' };
+  }
+  for (const l of world.map.meta.landmarks || []) {
+    if (Math.hypot(l.x - x, l.y - y) <= 90) return { name: l.name, country: false, district: '', line: LANDMARK_LINES[l.name] || '' };
+  }
+  let best = null, bestD2 = Infinity;
+  for (const q of world.map.meta.neighbourhoodPoints || []) {
+    const d2 = (q.x - x) ** 2 + (q.y - y) ** 2;
+    if (d2 < bestD2) { bestD2 = d2; best = q.name; }
+  }
+  return { name: best || 'Grunn', country: false, district: best || '', line: best ? wijkBlurb(best) : '' };
+}
+
 let locationTimer = 0;
 let locWhere = { district: '', country: false };
 function updateLocation(dt, world) {
