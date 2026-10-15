@@ -243,3 +243,8 @@ export function wheelieLift(gb, frac, throttle) {
   if (!gb || !gb.p.wheelie || gb.gear < 1 || gb.gear > 2 || throttle < 0.9 || frac > 0.35 || gb.torque < 0.7) return 0;
   return gb.p.wheelie * (gb.gear === 1 ? 1 : 0.55);
 }
+
+// What the HUD shows of a gearbox.
+export function gearboxReadout(gb) {
+  return { mode: gb.mode, layout: gb.p.layout, pos: gb.pos, gear: gb.gear, shiftLight: gb.shiftLight, limiter: gb.limiter, stalled: gb.stalled, grind: gb.grindT > 0, refuse: gb.refuseT > 0, clutchIn: gb.clutchIn };
+}
