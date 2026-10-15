@@ -13,6 +13,7 @@ import { activityMapIcons, ACTIVITY_LEGEND } from './activities.js';
 import { getPostgameSpotsForRender } from './postgame.js';
 import { getStationsForRender } from './stationtravel.js';
 import { VILLAGES } from './ommelandlines.js';
+import { ommelandMapSpots } from './ommelandmap.js';
 import { getSideJobSpotsForRender } from './sidejobs.js';
 import { getEierbalTips } from './furniture.js';
 import { drawRailsOnMap } from './railway.js';
@@ -982,6 +983,7 @@ function drawDynamicMarkers(ctx, world) {
   }
   for (const sj of getSideJobSpotsForRender()) icon(sj.job.layer || 'bijbaan', 'sj-' + sj.job.id, sj.x, sj.y, sj.job.name, {}, `${sj.job.kicker || 'Bijbaantje'}: ${sj.job.blurb.toLowerCase()}`, { goal: { kind: 'job', id: sj.job.id, name: sj.job.name, sub: 'Bijbaantje', x: sj.x, y: sj.y }, todo: 'job:' + sj.job.id });
   for (const st of getStationsForRender()) icon('trein', 'station', st.x, st.y, st.name, {}, VILLAGES[st.name] ? `Reizen met de trein · ${VILLAGES[st.name].teaser}` : 'Reizen met de trein');
+  for (const q of ommelandMapSpots()) icon('ommeland', q.kind, q.x, q.y, q.name, {}, q.sub);
   for (const e of getEierbalTips()) icon(null, 'eierbalTip', e.x, e.y, 'Eierbal-tip', {}, 'Uit de Buukenkaas: hier ligt er eentje verstopt');
 
   const c = world.companion;
@@ -1438,6 +1440,7 @@ const LEGEND = [
     { kind: 'padel', label: 'Minigames', note: 'padel, carbid, botsauto\'s, duiven, ballonjacht', layers: ['padel', 'duif', 'heli', ...ACTIVITY_LEGEND.map((l) => l.layer)] },
     { kind: 'sj-taxi', label: 'Bijbaantjes', note: 'start bij de baas', layers: ['bijbaan', 'rondvaarttour'] },
     { kind: 'missionIdle', label: 'Klussen', note: 'gespeelde missies, om opnieuw te spelen', layers: ['klussen'] },
+    { kind: 'dorp', label: 'Ommeland', note: 'dorpsuitjes waar je in de buurt was, gevonden wereldeinden', layers: ['ommeland'] },
     { kind: 'pg-jelle', label: 'Na het verhaal', note: 'Jelle\'s uitdagingen en de Fjord Frituur', layers: ['postgame'] },
   ] },
   { group: 'Diensten', folded: true, rows: [

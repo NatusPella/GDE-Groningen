@@ -412,9 +412,17 @@ function assemblyMenu(w) {
   };
 }
 
+// The Ommeland villages' hidden eierballen (ommelandfun.js registers
+// dorpsuitjes.js getVillageEggs): the books point at those too.
+let extraEggs = () => [];
+export function setExtraEggs(fn) {
+  extraEggs = fn;
+}
+const allEggs = (withExtra) => (withExtra ? getEierballen().concat(extraEggs()) : getEierballen());
+
 function readBooks(w) {
   if (state.read === state.day) { w.addMessage('Vandaag al gelezen. Morgen staan er weer tips in', 3); return; }
-  const open = getEierballen().filter((e) => !e.found);
+  const open = allEggs(true).filter((e) => !e.found);
   if (!open.length) { w.addMessage(`Alle eierballen zijn al gevonden. ${other(w)} leest gewoon een detective`, 4, { kind: 'tip' }); return; }
   for (let i = open.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [open[i], open[j]] = [open[j], open[i]]; }
   state.tips = open.slice(0, TIPS_PER_DAY).map((e) => e.id);
@@ -426,7 +434,7 @@ function readBooks(w) {
 export function getEierbalTips() {
   if (!state.tips.length) return [];
   const want = new Set(state.tips);
-  return getEierballen().filter((e) => want.has(e.id) && !e.found);
+  return allEggs(state.tips.some((id) => String(id).startsWith('dorp:'))).filter((e) => want.has(e.id) && !e.found);
 }
 
 // --- the Zitmoi ------------------------------------------------------------------------

@@ -6,7 +6,8 @@ import { ROAD_C, openLand } from './countryplan.js';
 import { GeoBuilder, vcMaterial, markShared, composeMatrix, tubeGeometry } from './pixelart3d.js';
 import { tractorBodyGeometry, tractorBaseGeometry, trailerBodyGeometry, trailerBaseGeometry } from './countrymodels.js';
 import { glowMaterial, headlightGeometry } from './countryglow.js';
-import { Vehicle, MODELS, TRACTOR_MODEL, QUAD_MODEL, makeTwoWheeler } from './vehicle.js';
+import { Vehicle, MODELS, TRACTOR_MODEL, QUAD_MODEL, makeTwoWheeler, attachToNearestRoad } from './vehicle.js';
+import { isSpawnHidden } from './pedestrians.js';
 
 // Life in the Ommelanden: a few slow road users on the polder roads (a
 // tractor, a cyclist, the odd car), boats puttering along the maaren, and
@@ -341,8 +342,10 @@ function stepRealTraffic(a, dt, world) {
     }
   }
   // country traffic is drawn at ground level: it turns round before the
-  // city's data, where the roads rise onto viaducts and sink into cuttings
+  // city's data, where the roads rise onto viaducts and sink into cuttings;
+  // a real vehicle carries on as city traffic on the street it meets there
   if (edgeDistance(wx + hx * 8, wy + hy * 8) < 0) {
+    if (a.veh && handOver(a, world)) return;
     if (REAL.roads[a.ri].oneway) a.gone = true;
     else { a.dir = -a.dir; a.speed *= 0.3; }
     return;
@@ -468,6 +471,18 @@ function trafficModel(a) {
 }
 function showLight(a, on) {
   for (const o of a.g.children) if (!o.userData.trailer) o.visible = on;
+}
+// A real vehicle at the city's edge becomes an ordinary city road user on
+// the street there (vehicle.js traffic AI), the road user is done.
+function handOver(a, world) {
+  const v = a.veh;
+  if (!v || !world.map || !world.map.nearestRoadPoint(v.x, v.y, 25, true) || !attachToNearestRoad(v, world.map)) return false;
+  v.countryDrive = false;
+  v.cruiseScale = 0.9 + Math.random() * 0.2;
+  a.veh = null;
+  a.handed = true;
+  a.gone = true;
+  return true;
 }
 function dropVehicle(a, world) {
   const v = a.veh;
@@ -725,6 +740,7 @@ export function updateCountryLife(dt, world, scene, flocks, fogFar) {
   const t0 = performance.now();
   const p = world.player;
   const time = world.time || 0;
+  // new road users only out in the Ommeland; the ones about stay until out of sight
   const active = edgeDistance(p.x, p.y) > 60 && !world.cinematicActive;
   const paused = world.paused;
   const spawnD = Math.min(Math.max(170, fogFar * 0.85), 480);
@@ -750,7 +766,15 @@ export function updateCountryLife(dt, world, scene, flocks, fogFar) {
   }
   L.traffic = L.traffic.filter((a) => {
     const [x, y] = roadPos(a);
-    if (Math.hypot(x - p.x, y - p.y) > keepD || !active || a.gone) { L.group.remove(a.g); dropVehicle(a, world); return false; }
+    const d = Math.hypot(x - p.x, y - p.y);
+    // done (turned off the data, handed over to the city) or, with the player
+    // back in town, no longer needed: gone once out of sight, never in view
+    const leave = a.gone || !active;
+    if (d > keepD || world.cinematicActive || (leave && !a.veh && isSpawnHidden(world, x, y)) || a.handed) {
+      L.group.remove(a.g); if (!a.handed) dropVehicle(a, world); return false;
+    }
+    // a road user with nowhere to go waits, its real vehicle too, until let go
+    if (a.gone) { a.speed = 0; placeTraffic(a, 0); if (!paused) syncVehicle(a, world); return true; }
     if (!paused && !a.left) stepTraffic(a, dt, world);
     placeTraffic(a, paused || a.left ? 0 : dt);
     if (!paused) syncVehicle(a, world);
@@ -758,7 +782,7 @@ export function updateCountryLife(dt, world, scene, flocks, fogFar) {
   });
   L.boats = L.boats.filter((b) => {
     const [x, y] = boatPos(b);
-    if (Math.hypot(x - p.x, y - p.y) > keepD || !active) { L.group.remove(b.g); return false; }
+    if (Math.hypot(x - p.x, y - p.y) > keepD || world.cinematicActive || (!active && isSpawnHidden(world, x, y))) { L.group.remove(b.g); return false; }
     if (!paused) stepBoat(b, dt, time);
     return true;
   });
