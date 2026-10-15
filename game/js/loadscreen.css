@@ -14,9 +14,6 @@
 #load-screen .gde-logo { font-size: 167px; align-items: flex-start; }
 #load-screen .gde-logo .gde-sign { font-size: 0.32em; align-self: flex-start; }
 #load-screen .gde-logo .gde-sub { margin: 14px 0 0; font: normal 28px/1.1 'Bebas Neue', 'Arial Narrow', sans-serif; letter-spacing: 0.32em; text-align: left; }
-#load-screen .ls-recap { position: absolute; top: 467px; left: 100px; width: 517px; display: flex; flex-direction: column; gap: 11px; }
-#load-screen .ls-recap > span { font-size: 18px; letter-spacing: 0.2em; color: rgba(240, 237, 228, 0.6); }
-#load-screen .ls-recap p { margin: 0; font: 20px/1.45 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.01em; }
 #load-screen .ls-card { position: absolute; top: 100px; right: 100px; width: 350px; display: flex; flex-direction: column; gap: 12px; padding: 20px 22px; border-radius: 14px; background: linear-gradient(180deg, rgba(23,48,31,0.82), rgba(12,20,14,0.86)); box-shadow: 0 0 0 1px rgba(63,201,122,0.3), 0 20px 50px rgba(0,0,0,0.45); }
 #load-screen .ls-kick { font-size: 15px; letter-spacing: 0.2em; color: #3fc97a; }
 #load-screen .ls-place { font-weight: normal; font-size: 43px; line-height: 0.95; }
