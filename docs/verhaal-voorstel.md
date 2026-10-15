@@ -1,4 +1,4 @@
-# Verhaalvoorstel GDE Groningen (toen nog GTE VI): "Alles voor één eierbal"
+# Verhaalvoorstel GDE Groningen: "Alles voor één eierbal"
 
 Ontwerpvoorstel, nog geen code. Reageert op de playtestfeedback: geen duidelijk eindspel, te weinig hoofdmissies, de speler moet zelf zoeken wat te doen, Tammo en Anita zeggen weinig tegen elkaar, en er is geen trailer.
 
