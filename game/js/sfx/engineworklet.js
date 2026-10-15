@@ -401,4 +401,4 @@ class EngineProcessor extends AudioWorkletProcessor {
   }
 }
 
-registerProcessor('gte-engine', EngineProcessor);
+registerProcessor('gde-engine', EngineProcessor);

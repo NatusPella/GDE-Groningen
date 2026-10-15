@@ -60,7 +60,7 @@ def overpass_query(bbox):
 def fetch(bbox):
     q = overpass_query(bbox)
     for url in OVERPASS_URLS:
-        r = subprocess.run(["curl", "-s", "-m", "120", "-A", "gte-vi-mapbuilder/1.0", "--data-urlencode", f"data={q}", url],
+        r = subprocess.run(["curl", "-s", "-m", "120", "-A", "gde-groningen-mapbuilder/1.0", "--data-urlencode", f"data={q}", url],
                            capture_output=True, text=True)
         if r.stdout.lstrip().startswith("{"):
             return json.loads(r.stdout)

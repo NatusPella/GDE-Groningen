@@ -139,7 +139,7 @@ async function run(name, setup, move, teardown) {
   return out;
 }
 
-const results = { gpu, longTasks: H.longTaskState || 'on', dpr: devicePixelRatio, css: [innerWidth, innerHeight], settings: JSON.parse(localStorage.getItem('gte-settings') || '{}'), routes: {} };
+const results = { gpu, longTasks: H.longTaskState || 'on', dpr: devicePixelRatio, css: [innerWidth, innerHeight], settings: JSON.parse(localStorage.getItem('gde-settings') || '{}'), routes: {} };
 const FOOT = [[167, 283], [121, 193], [105, 161], [100, 77], [124, 7], [134, 36]];
 results.routes.foot = await run('foot', async () => { teleport(FOOT[0][0], FOOT[0][1]); return {}; }, (c, t) => {
   const q = at(FOOT, Math.max(0, t) * 6);

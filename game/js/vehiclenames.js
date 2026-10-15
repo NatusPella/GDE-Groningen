@@ -1,4 +1,4 @@
-// Made-up makes and models (no real brands), GTA-style, with a Grunn wink.
+// Made-up makes and models (no real brands), with a Grunn wink.
 // A vehicle keeps the same name for its lifetime: picked by its id.
 
 const NAMES = {

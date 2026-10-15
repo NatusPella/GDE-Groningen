@@ -44,7 +44,7 @@ const MM_FAST_SPEED = 28;
 let mmScale = MM_SCALE;
 let mmSkip = 0, mmDt = 0;
 
-// GTA-style: purple for your own waypoint, yellow for missions, orange for
+// Genre convention: purple for your own waypoint, yellow for missions, orange for
 // side jobs, pink for care (food when hurt, a garage for your own damaged ride)
 // filled from the palette (a11y.js: the colour-blind settings) below; kept
 // as one object so importers always read the current colours
@@ -249,7 +249,7 @@ const VEH_ICONS = {
   heli: '<path d="M3 6h16M11 6v3" class="ln"/><path d="M5.5 13a4.5 3.5 0 0 1 9 0v1.5h-9z"/><path d="M14.5 12.5h6.5M20 10v4.5M6 19h8M8 16v3M12 16v3" class="ln"/>',
 };
 
-// GTA-style: the model name shows for a moment when you get into a vehicle
+// Genre convention: the model name shows for a moment when you get into a vehicle
 let vehNameFor = null;
 let vehNameTimer = 0;
 function updateVehicleName(dt, world) {
@@ -338,7 +338,7 @@ function currentDistrict(world) {
   }
   // Only 2 of the real admin boundaries actually reach into this play area,
   // and they're coarse (e.g. plain "Groningen") - the ~66 named
-  // neighbourhood/quarter points give a far more specific, GTA-style
+  // neighbourhood/quarter points give a far more specific, genre-style
   // district name ("Binnenstad", "Ebbingekwartier", ...), so prefer those
   // and only fall back to a boundary polygon if literally nothing is near.
   let best = null, bestD2 = Infinity;
@@ -709,7 +709,7 @@ function updateMoneyWeapon(dt, world) {
 }
 
 // The objective line: one objective at a time (a mission stage, else the
-// bijbaan's next goal, else "lose the police"), GTA style: the objective
+// bijbaan's next goal, else "lose the police"), genre style: the objective
 // big, its live counter small under it, a timer to the right. It pops in
 // again whenever the objective itself changes.
 function currentObjective(world) {

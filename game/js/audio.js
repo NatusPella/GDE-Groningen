@@ -12,6 +12,7 @@ import { createScenarioDirector, loopPoints } from './scenariomusic.js';
 import { normalizeTrack, pickTrack, pushHistory, pickJingle, STATION_NAME } from './musicpick.js';
 import * as speech from './speech.js';
 import { drunkLevel } from './drunk.js';
+import { KEYS } from './storagekeys.js';
 
 if (typeof window !== 'undefined') window.__speech = speech;
 
@@ -181,7 +182,7 @@ const hornWasOn = new WeakMap();
 const MAX_RICOCHETS_PER_FRAME = 3;
 const CRASH_MIN_GAP = 0.35;
 
-const MUTE_STORAGE_KEY = 'gte-muted';
+const MUTE_STORAGE_KEY = KEYS.muted;
 const PLAYER_HURT_MIN_GAP = 0.4;
 
 function loadMuted() {
@@ -449,10 +450,10 @@ async function loadEngineWorklet() {
   } catch (e) {
     return;
   }
-  const player = new AudioWorkletNode(ctx, 'gte-engine', {
+  const player = new AudioWorkletNode(ctx, 'gde-engine', {
     numberOfInputs: 0, numberOfOutputs: 2, outputChannelCount: [2, 1], processorOptions: { voices: 1, road: true, stereo: true },
   });
-  const traffic = new AudioWorkletNode(ctx, 'gte-engine', {
+  const traffic = new AudioWorkletNode(ctx, 'gde-engine', {
     numberOfInputs: 0, numberOfOutputs: ENGINE_VOICES, outputChannelCount: Array(ENGINE_VOICES).fill(1),
     processorOptions: { voices: ENGINE_VOICES, running: true },
   });
@@ -1130,7 +1131,7 @@ function playClip(src, pos = null) {
   const cleanup = () => { for (const n of nodes) n.disconnect(); nodes.length = 0; setTimeout(() => releaseEl(el), 0); };
   el.addEventListener('ended', cleanup, { once: true });
   el.addEventListener('error', cleanup, { once: true });
-  el.play().catch(() => { if (el.gteLive) el.dispatchEvent(new Event('error')); });
+  el.play().catch(() => { if (el.gdeLive) el.dispatchEvent(new Event('error')); });
   return el;
 }
 
@@ -1141,12 +1142,12 @@ let liveVoiceEls = 0;
 function newVoiceEl(src) {
   const el = new Audio(src);
   liveVoiceEls++;
-  el.gteLive = true;
+  el.gdeLive = true;
   return el;
 }
 function releaseEl(el) {
-  if (!el || !el.gteLive) return;
-  el.gteLive = false;
+  if (!el || !el.gdeLive) return;
+  el.gdeLive = false;
   liveVoiceEls--;
   try { el.pause(); el.removeAttribute('src'); el.load(); } catch (e) { /* ignore */ }
 }
@@ -1621,7 +1622,7 @@ const GMUSIC_PENDING_TIMEOUT = 5;
 let gmusicTracks = [];
 // what played lately, both pools together (musicpick.js); kept
 // between sessions so a new one doesn't open with the record you just heard
-const GMUSIC_HISTORY_KEY = 'gte-radio-history';
+const GMUSIC_HISTORY_KEY = KEYS.radioHistory;
 const gmusicHistory = loadMusicHistory();
 let lastJingleKey = null;
 // the in-game hour (world.clock), for the night records

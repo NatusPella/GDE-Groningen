@@ -6,7 +6,7 @@ import { helipadInfo, scriptHeli, landHeliOnPad } from './skyprops.js';
 import { isInWater, closestPointOnSegment, pointInPolygon } from './util.js';
 import { saveSoon } from './savegame.js';
 
-// GTA-style respawn trips, played after the DOOD / OPGEPAKT shot:
+// Genre-style respawn trips, played after the DOOD / OPGEPAKT shot:
 //  - dead: the trauma helicopter picks you up and lands on the UMCG roof, or
 //    (when a GP post / other hospital in meta.careSites is closer) an
 //    ambulance drives you there;
@@ -796,7 +796,7 @@ function driveArrival(state, dur) {
 
 // Debug handle for testing from the console.
 if (typeof window !== 'undefined') {
-  window.__gteRespawn = {
+  window.__gdeRespawn = {
     destination: (w, busted, x, y) => destination(w, busted, x, y),
     plan: (w, site) => planArrival(w, site),
   };

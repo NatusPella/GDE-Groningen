@@ -36,8 +36,9 @@ import { renderPhonePanel, phoneClick, phoneUnread, selectPhoneThread, PHONE_NAM
 import { recentNotice } from './phonefeed.js';
 import { storyContactCaller } from './storycontact.js';
 import { getErrorLog, errorReport, clearErrorLog, onErrorLogChange } from './errorlog.js';
+import { KEYS } from './storagekeys.js';
 // Running inside the desktop app (desktop/preload.js): window mode + quit.
-const DESKTOP = typeof window !== 'undefined' && window.gteDesktop && window.gteDesktop.isDesktop ? window.gteDesktop : null;
+const DESKTOP = typeof window !== 'undefined' && window.gdeDesktop && window.gdeDesktop.isDesktop ? window.gdeDesktop : null;
 
 // Besturing: [alternatives, description]; an alternative is one token or a
 // combo joined with '+' (tokens as glyphHtml in prompts.js takes them).
@@ -238,7 +239,7 @@ let origin = 'home';
 let prestart = null;
 const lastFocus = {};
 
-const PREF_KEY = 'gte-menu-v1';
+const PREF_KEY = KEYS.menu;
 const pref = loadPref();
 function loadPref() {
   try {
@@ -992,7 +993,7 @@ function runAction(a) {
     // saves and starts from a fresh load, and "Terug" continues the save
     if (prestart || !started()) {
       setOpen(false);
-      window.dispatchEvent(new Event('gte-benchmark'));
+      window.dispatchEvent(new Event('gde-benchmark'));
     } else {
       if (world && world.pigeonMode && world.pigeonActions) world.pigeonActions.stop();
       if (world) saveGame(world);

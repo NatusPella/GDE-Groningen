@@ -284,7 +284,7 @@ def main():
         json.dump(out, f, separators=(",", ":"), ensure_ascii=False)
     body = np.array(bld, dtype=np.int16).tobytes() + water.tobytes()
     with open(OUT_BIN, "wb") as f:
-        f.write(gzip.compress(b"GTEO" + struct.pack("<II", len(bld), 11) + body, 9, mtime=0))
+        f.write(gzip.compress(b"GDEO" + struct.pack("<II", len(bld), 11) + body, 9, mtime=0))
     print(f"{OUT_JSON}: {os.path.getsize(OUT_JSON) / 1e6:.2f} MB, {OUT_BIN}: {os.path.getsize(OUT_BIN) / 1e6:.2f} MB")
 
 

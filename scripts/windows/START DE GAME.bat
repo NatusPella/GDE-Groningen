@@ -4,35 +4,35 @@ title GDE Groningen - Zomer vol misdaad
 cd /d "%~dp0"
 
 rem Uitgepakte ZIP: de game staat naast dit bestand
-if exist "%~dp0GTE-VI\start.bat" (
-  call "%~dp0GTE-VI\start.bat"
+if exist "%~dp0GDE-Groningen\start.bat" (
+  call "%~dp0GDE-Groningen\start.bat"
   exit /b
 )
 
 rem Direct vanuit de ZIP geopend: Windows heeft alleen dit ene bestand
-rem uitgepakt. Zoek de ZIP op en pak hem eenmalig uit naar %LOCALAPPDATA%\GTE-VI.
+rem uitgepakt. Zoek de ZIP op en pak hem eenmalig uit naar %LOCALAPPDATA%\GDE-Groningen.
 echo.
 echo   GDE Groningen wordt klaargezet, een moment...
 echo.
-set "GTE_HERE=%~dp0"
-set "GTE_SELF=%~f0"
-set "GTE_DEST=%LOCALAPPDATA%\GTE-VI"
-powershell -NoProfile -ExecutionPolicy Bypass -Command "$s = Get-Content -LiteralPath $env:GTE_SELF -Raw; $m = '#PS' + '-BEGIN'; iex $s.Substring($s.IndexOf($m))"
+set "GDE_HERE=%~dp0"
+set "GDE_SELF=%~f0"
+set "GDE_DEST=%LOCALAPPDATA%\GDE-Groningen"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$s = Get-Content -LiteralPath $env:GDE_SELF -Raw; $m = '#PS' + '-BEGIN'; iex $s.Substring($s.IndexOf($m))"
 if errorlevel 1 (
   echo.
   pause
   exit /b 1
 )
-call "%GTE_DEST%\GTE-VI\start.bat"
+call "%GDE_DEST%\GDE-Groningen\start.bat"
 exit /b
 
 #PS-BEGIN
 $ErrorActionPreference = 'Stop'
-$here = $env:GTE_HERE
-$dest = $env:GTE_DEST
+$here = $env:GDE_HERE
+$dest = $env:GDE_DEST
 $name = $null
 if ($here -match '\\Temp\d*_([^\\]+?\.zip)\\') { $name = $Matches[1] }
-$userDir = if ($env:GTE_TEST_HOME) { $env:GTE_TEST_HOME } else { [Environment]::GetFolderPath('UserProfile') }
+$userDir = if ($env:GDE_TEST_HOME) { $env:GDE_TEST_HOME } else { [Environment]::GetFolderPath('UserProfile') }
 $dirs = @((Join-Path $userDir 'Downloads'), [Environment]::GetFolderPath('Desktop'), [Environment]::GetFolderPath('MyDocuments'), $userDir)
 $zip = $null
 foreach ($d in $dirs) {
@@ -40,7 +40,6 @@ foreach ($d in $dirs) {
   $found = @()
   if ($name) { $found = @(Get-ChildItem -LiteralPath $d -Filter $name -File -ErrorAction SilentlyContinue) }
   if (-not $found.Count) { $found = @(Get-ChildItem -LiteralPath $d -Filter 'GDE-Groningen*.zip' -File -ErrorAction SilentlyContinue) }
-  if (-not $found.Count) { $found = @(Get-ChildItem -LiteralPath $d -Filter 'GTE-VI*.zip' -File -ErrorAction SilentlyContinue) }
   if ($found.Count) { $zip = ($found | Sort-Object LastWriteTime -Descending | Select-Object -First 1).FullName; break }
 }
 if (-not $zip) {
@@ -53,7 +52,7 @@ Write-Host "  Uitpakken van $zip"
 Write-Host "  naar $dest ..."
 New-Item -ItemType Directory -Force -Path $dest | Out-Null
 Expand-Archive -Force -LiteralPath $zip -DestinationPath $dest
-if (-not (Test-Path -LiteralPath (Join-Path $dest 'GTE-VI\start.bat'))) {
+if (-not (Test-Path -LiteralPath (Join-Path $dest 'GDE-Groningen\start.bat'))) {
   Write-Host '  [!] Uitpakken is mislukt. Pak de ZIP zelf uit en start START DE GAME.bat daaruit.'
   exit 1
 }

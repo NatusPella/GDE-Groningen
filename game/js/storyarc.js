@@ -89,7 +89,7 @@ export const SPEAKERS = {
   roelf: 'Boer Roelf', hilje: 'Hilje',
 };
 
-// The people Tammo and Tessa meet, for the GTA-style name cards (namecard.js:
+// The people Tammo and Tessa meet, for the trailer-style name cards (namecard.js:
 // the name in Bebas, one dry line) and a later "Verhaal" menu: story.js keeps
 // who was met (`met:<key>` flags, getStoryCharacters). bio and quote are for
 // that menu; `step` is where they first turn up.

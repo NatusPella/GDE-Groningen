@@ -363,7 +363,7 @@ export function initSkyProps(world) {
   world._heliTimer = randIn(HELI_FIRST);
   world._balloonTimer = randIn(BALLOON_FIRST);
   world._skyInit = false;
-  if (typeof window !== 'undefined') window.__gteSky = debugApi(world);
+  if (typeof window !== 'undefined') window.__gdeSky = debugApi(world);
 }
 
 function firstFrame(world, pad) {

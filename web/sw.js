@@ -4,11 +4,11 @@
 // a new build gets a new cache and the old one is deleted.
 // The page: network first (offline falls back to the cache). Audio packs are
 // read in slices by web.js, which caches the clips itself.
-const CACHE = '__GTE_CACHE__';
+const CACHE = '__GDE_CACHE__';
 const SCOPE = self.registration.scope;
 
 // what the page loads before this worker controls it on the first visit
-const SHELL = __GTE_SHELL__;
+const SHELL = __GDE_SHELL__;
 
 self.addEventListener('install', (e) => {
   e.waitUntil((async () => {
@@ -21,7 +21,8 @@ self.addEventListener('install', (e) => {
 
 self.addEventListener('activate', (e) => {
   e.waitUntil((async () => {
-    for (const k of await caches.keys()) if (k.startsWith('gte-vi-') && k !== CACHE) await caches.delete(k);
+    // 'gte-vi-*': the cache names before 0.29
+    for (const k of await caches.keys()) if ((k.startsWith('gde-') || k.startsWith('gte-vi-')) && k !== CACHE) await caches.delete(k);
     await self.clients.claim();
   })());
 });

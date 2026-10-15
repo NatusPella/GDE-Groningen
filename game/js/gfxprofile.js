@@ -3,6 +3,7 @@
 // still change each one in Instellingen > Beeld.
 import { getSettings, setSetting } from './settings.js';
 import { DRAW_DISTANCE_LABELS } from './viewdist.js';
+import { KEYS } from './storagekeys.js';
 
 export const GFX_PRESETS = {
   laag: { quality: 'laag', shadows: false, drawDistance: 'kort', resolution: 0.75, autoResolution: true },
@@ -127,7 +128,7 @@ export function adviseFromSample(gpuTier, medianMs, current) {
 
 // --- first-run advice ----------------------------------------------------
 
-const ADVICE_KEY = 'gte-gfx-advice';
+const ADVICE_KEY = KEYS.gfxAdvice;
 let sampling = false;
 export const isAdvisorSampling = () => sampling;
 

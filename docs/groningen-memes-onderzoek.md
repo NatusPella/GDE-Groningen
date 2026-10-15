@@ -10,7 +10,7 @@ kermis, Bloemetjesmarkt als event) laten we hier weg of vullen we alleen aan.
 **De grondregels blijven gelden:**
 - Gebruik de culturele kern, nooit de echte uitvoering.
 - Geen echte personen of typetjes. Dus geen *"Tou eem"* (staat in lijstjes als
-
+  "typisch Gronings", maar hoort bij een bestaand typetje) en geen bietengrappen.
 - Satire alleen richting instituties. Nooit richting gedupeerden van de gaswinning.
 - Geen stereotypen waardoor bewoners dom lijken. Dat geldt ook voor wijken
   (Beijum, Vinkhuizen, Paddepoel, Hoogezand): die hebben in de pers een
@@ -254,7 +254,7 @@ Bron voor de klanken: [Wikipedia NL, Gronings](https://nl.wikipedia.org/wiki/Gro
 ### 1.26 Let op bij twee "typische" zinnen
 - *"Doe mor gewoon, dan doe je al gek genoeg"* is landelijk Nederlands, geen Gronings.
   Het mag wel, maar niet als "lokale" grap.
-
+- *"Tou eem"* staat in veel lijstjes. **Niet gebruiken**: het hoort bij een bestaand typetje (zie de regels).
 - *"Nuver"* betekent volgens de ene bron "leuk", volgens de andere "vreemd". Juist die dubbelzinnigheid is
   bruikbaar: **Anita:** "Nuver weer, hè?" **Tammo:** "Leuk-nuver of raar-nuver?" **Anita:** "Ja."
 
@@ -353,7 +353,7 @@ Bron voor de klanken: [Wikipedia NL, Gronings](https://nl.wikipedia.org/wiki/Gro
 - **Gebruik:** **NPC (Hoogkerk):** "Je bent nu in Stad." "Nee, je bent in Hoogkerk. Sinds de annexatie
   ligt Stad toevallig om ons heen."
   - De herfstlucht: Rikus op de radio: "Het ruikt naar suiker. Het is weer herfst in Grunn."
-- ⚠️ Houd het bij de *suikerlucht*. Geen grappen over **bieten** (dat is een TikTok-Tammo-associatie).
+- ⚠️ Houd het bij de *suikerlucht*. Geen grappen over **bieten** (die horen bij een bestaand typetje).
 - **Bronnen:** [Hoogkerk Online, terugblik op de annexatie](https://hoogkerkonline.nl/terugblik-op-de-annexatie-van-hoogkerk-in-1969/) · [De Verhalen van Groningen, kenmerkende geur](https://www.deverhalenvangroningen.nl/alle-verhalen/suikerbieten-geven-groningen-kenmerkende-geur)
 
 ### 2.12 Zernike: bus 15, "Sorry, bus vol"
@@ -900,7 +900,7 @@ Een schaal voor NPC-reacties en voor de beoordeling na een missie (van laag naar
 ---
 
 ## Liever niet (aanvulling op de lijst in `groningen-memes.md`)
-
+- **"Tou eem"** en alles met bieten (bestaand typetje). De suikerlucht van Hoogkerk mag wel, de bieten niet.
 - **Het Facebookfeest in Haren (2012)**: een bekende lokale saga, maar een filmverwijzing met echte
   slachtoffers, schade en echte betrokkenen. Liever niet.
 - **Bevingen, scheuren en versterking als effect of gameplay.** Satire alleen op loketten, procedures en Den Haag (§3.20).

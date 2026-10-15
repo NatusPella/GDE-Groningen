@@ -5,13 +5,13 @@ Deze personagebijbel houdt de personages consistent: in dialogen, telefoontjes, 
 Regels die voor iedereen gelden:
 - Het is **Grunn**, nooit "de Grunn". Stadjers zeggen gewoon **Stad**.
 - Echte merken zijn niet toegestaan, parodieën wel.
-
+- Echte bekende Groningers, typetjes of influencers kopiëren we niet. Tammo en Tessa zijn eigen personages: dus geen catchphrases van bestaande typetjes (zoals "Tou eem") en geen grappen over bieten.
 - De humor komt van **understatement**. Het hoogste compliment is *"Kon minder."*
 - Fries is een kruiderij, geen hoofdgerecht. Friese zinnen krijgen altijd een Nederlandse ondertitel (FY in `subtitles.js`).
 - De TTS-stemmen en basistags staan in `scripts/tts_lines_list.mjs` (`CAST`), die van Tammo en Tessa in `scripts/tts_cast.mjs` (`DUO`). Houd de tags hieronder daarmee in lijn.
 - Elk personage heeft een eigen kleur voor zijn naam in de ondertitels (zie **Sprekerskleuren** onderaan, `game/js/speakers.js`).
 - Het verhaal staat in `docs/verhaal/D-definitief.md`: één Groningse zomer, de laatste twee weken van augustus (Kop: KEI-week, Romp: Noorderzon, Staart: kermis en Gronings Ontzet op 28 augustus), met een epiloog in september.
-- Bij de eerste ontmoeting krijgt elk personage een **naamkaart** in GTA-stijl: de naam in Bebas en één droge regel (`CHARACTERS` in `game/js/storyarc.js`, getoond door `namecard.js`). Daar staan ook een korte bio en een citaat per personage.
+- Bij de eerste ontmoeting krijgt elk personage een **naamkaart** in trailerstijl: de naam in Bebas en één droge regel (`CHARACTERS` in `game/js/storyarc.js`, getoond door `namecard.js`). Daar staan ook een korte bio en een citaat per personage.
 - De **complimentenladder** komt overal terug: Ow → Goud → Valt mie nait of → Braid noar de zin → Kon minder → stilte, met een *kloet in de strotte*.
 
 ---

@@ -20,3 +20,9 @@ GDE-Groningen-*-web.zip
 # Steam (SteamPipe) content and logs: copies of desktop/dist (steam/README.md)
 steam/content/
 steam/output/
+
+# Esri World Imagery export for scripts/extract_palette.py: local only, may not be redistributed
+data/satellite_reference.jpg
+
+# local agent settings, reviews and worktrees
+.claude/
