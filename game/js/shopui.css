@@ -1,0 +1,76 @@
+/* The shop (shopui.js): one big panel, the stock on the left, the chosen item
+   (3D preview, bars, price and the one buy button) on the right. menu.css base. */
+#shop-menu { position: fixed; inset: 0; z-index: 41; display: none; -webkit-backdrop-filter: blur(12px) saturate(0.75) brightness(0.55); backdrop-filter: blur(12px) saturate(0.75) brightness(0.55);
+  background: radial-gradient(ellipse at 55% 45%, rgba(12, 20, 14, 0.2) 0%, rgba(12, 20, 14, 0.82) 85%), linear-gradient(90deg, rgba(12, 20, 14, 0.75) 0%, rgba(12, 20, 14, 0) 32%); }
+#shop-menu.visible { display: block; animation: m-fade 0.2s ease-out; }
+#shop-menu .sm-panel { left: 80px; right: 80px; top: var(--mt); bottom: var(--mb); }
+#shop-menu .sm-accent { display: block; width: 64px; height: 4px; border-radius: 2px; background: var(--shop, var(--g)); margin-bottom: 16px; }
+#shop-menu .sm-icon { display: none; }
+#shop-menu .sm-money { color: var(--ink); white-space: nowrap; }
+#shop-menu .sm-money.pay { animation: sm-pay 0.5s ease-out; }
+@keyframes sm-pay { 0% { color: var(--redtx); transform: scale(1.08); } 100% { color: var(--ink); transform: none; } }
+#shop-menu .sm-main { padding-top: 32px; }
+#shop-menu .sm-list { width: 560px; scrollbar-width: thin; scrollbar-color: rgba(240, 237, 228, 0.18) transparent; }
+#shop-menu .sm-list .m-gh { padding-top: 24px; }
+#shop-menu .sm-list .m-gh:first-child { padding-top: 0; }
+#shop-menu .sm-note { padding: 0 24px 8px; font-size: 18px; color: #f3dc6a; }
+#shop-menu .sm-item[aria-disabled="true"] { cursor: default; color: rgba(240, 237, 228, 0.6); }
+#shop-menu .sm-item[aria-disabled="true"] .v { color: rgba(240, 237, 228, 0.6); }
+#shop-menu .sm-item .v.free { color: var(--g); }
+#shop-menu .sm-item .t.no { color: var(--mut); }
+#shop-menu .sm-sw { display: inline-flex; gap: 3px; flex: none; }
+#shop-menu .sm-sw i { width: 14px; height: 28px; border-radius: 4px; box-shadow: inset 0 0 0 1px rgba(240, 237, 228, 0.35); }
+#shop-menu .sm-sw i:only-child { width: 28px; border-radius: 50%; }
+#shop-menu .sm-item.story-ok { box-shadow: inset 4px 0 0 #e8c93a; background: rgba(232, 201, 58, 0.08); }
+#shop-menu .sm-item.story-ok.sel, #shop-menu .sm-item.story-ok:focus-within { background: rgba(232, 201, 58, 0.16); }
+#shop-menu .sm-story { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 16px; margin: 24px 64px 0; padding: 14px 24px; border-radius: 8px; background: rgba(232, 201, 58, 0.1); box-shadow: inset 4px 0 0 #e8c93a; font-size: 20px; line-height: 1.35; }
+#shop-menu .sm-story[hidden] { display: none; }
+#shop-menu .sm-story i { font-style: normal; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; color: #e8c93a; font-size: 26px; }
+#shop-menu .sm-story b { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-weight: normal; font-size: 26px; letter-spacing: 0.05em; color: #f3dc6a; }
+#shop-menu .sm-story small { flex-basis: 100%; font-size: 18px; color: var(--mut); }
+#shop-menu .sm-story.done { background: rgba(63, 201, 122, 0.12); box-shadow: inset 4px 0 0 var(--g); }
+#shop-menu .sm-story.done i, #shop-menu .sm-story.done b { color: var(--g); }
+#shop-menu .sm-stage { display: none; position: relative; flex: none; height: 220px; background: radial-gradient(ellipse at 50% 80%, color-mix(in srgb, var(--shop, #3fc97a) 14%, transparent), rgba(240, 237, 228, 0) 62%); }
+#shop-menu .sm-stage.on { display: block; }
+#shop-menu .sm-preview, #shop-menu .sm-scratch { position: absolute; inset: 0; width: 100%; height: 100%; cursor: grab; touch-action: none; opacity: 0; transition: opacity 0.25s; }
+#shop-menu .sm-preview.on { opacity: 1; }
+#shop-menu .sm-preview:active { cursor: grabbing; }
+#shop-menu .sm-scratch { pointer-events: none; }
+#shop-menu .sm-scratch.on { opacity: 1; pointer-events: auto; cursor: pointer; }
+#shop-menu .sm-detail { display: flex; flex-direction: column; gap: 20px; flex: 1; min-height: 0; }
+#shop-menu .sm-detail[hidden] { display: none; }
+#shop-menu .sm-effect { color: var(--g); }
+#shop-menu .sm-effect:empty, #shop-menu .sm-ddesc:empty { display: none; }
+#shop-menu .sm-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 20px 48px; }
+#shop-menu .sm-stats:empty { display: none; }
+#shop-menu .sm-stat { display: grid; grid-template-columns: auto 1fr; gap: 8px 12px; align-items: baseline; font-size: 18px; }
+#shop-menu .sm-stat > span:first-child { color: var(--mut); }
+#shop-menu .sm-stat > small { text-align: right; font-size: 18px; }
+#shop-menu .sm-bar { grid-column: 1 / -1; position: relative; display: block; height: 4px; border-radius: 2px; background: rgba(240, 237, 228, 0.14); }
+#shop-menu .sm-bar b { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 2px; background: rgba(240, 237, 228, 0.85); }
+#shop-menu .sm-bar em { position: absolute; top: 0; bottom: 0; border-radius: 2px; background: var(--g); }
+#shop-menu .sm-bar em.down { background: var(--redtx); }
+#shop-menu .sm-buyrow { display: flex; align-items: center; gap: 32px; flex: none; }
+#shop-menu .sm-pricebig { font-size: 56px; }
+#shop-menu .sm-buy { min-width: 240px; }
+#shop-menu .sm-buy[aria-disabled="true"] { background: rgba(240, 237, 228, 0.14); color: rgba(240, 237, 228, 0.6); cursor: default; }
+#shop-menu .sm-buy.armed { background: var(--red); color: #fff; }
+#shop-menu .sm-status { min-height: 28px; font-size: 20px; color: var(--mut); flex: none; }
+#shop-menu .sm-status[data-tone="win"] { color: var(--g); }
+#shop-menu .sm-status[data-tone="no"] { color: var(--redtx); }
+#shop-menu .sm-status[data-tone="jackpot"] { color: #e8c93a; }
+#shop-menu .sm-status.pop { animation: m-up 0.3s ease both; }
+#shop-menu .sm-empty { padding: 16px 24px; color: var(--mut); }
+#shop-menu .m-foot .sm-close { display: inline-flex; }
+@media (max-height: 820px) {
+  #shop-menu .sm-stage { height: 160px; }
+  #shop-menu .sm-pricebig { font-size: 44px; }
+  #shop-menu .sm-list { width: 500px; }
+  #shop-menu .sm-detail { gap: 14px; }
+}
+#shop-menu .sm-ddesc { display: flex; flex-direction: column; gap: 16px; }
+#shop-menu .sm-route { display: flex; align-items: center; gap: 24px; }
+#shop-menu .sm-rs { display: flex; flex-direction: column; }
+#shop-menu .sm-rs .bebas { font-size: 44px; line-height: 1; }
+#shop-menu .sm-rl { flex: 1; height: 4px; border-radius: 2px; background: rgba(240, 237, 228, 0.3); max-width: 200px; }
+#shop-menu .sm-rt { display: block; max-width: 640px; }
