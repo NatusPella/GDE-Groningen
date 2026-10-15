@@ -28,7 +28,7 @@ export const PACK_TILES = 8;
 const MARGIN = { roads: (r) => (r.width || 4) / 2 + 2, rails: () => 3 };
 
 // keys that are worked out again when a tile is loaded
-const DROP = new Set(['bounds', 'rooms']);
+const DROP = new Set(['bounds', 'rooms', 'passages']);
 export function cleanRow(o) {
   const out = {};
   for (const k in o) if (!DROP.has(k) && k[0] !== '_' && o[k] !== undefined) out[k] = o[k];

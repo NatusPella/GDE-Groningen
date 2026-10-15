@@ -28,6 +28,19 @@ class SpatialGrid {
       }
     }
   }
+  remove(item, bounds) {
+    const { cx0, cy0, cx1, cy1 } = this.cellRange(...bounds);
+    for (let cx = cx0; cx <= cx1; cx++) {
+      for (let cy = cy0; cy <= cy1; cy++) {
+        const k = this.key(cx, cy);
+        const arr = this.map.get(k);
+        if (!arr) continue;
+        const i = arr.indexOf(item);
+        if (i >= 0) arr.splice(i, 1);
+        if (!arr.length) this.map.delete(k);
+      }
+    }
+  }
   query(minx, miny, maxx, maxy) {
     const { cx0, cy0, cx1, cy1 } = this.cellRange(minx, miny, maxx, maxy);
     // one cell: its list as it is (a copy), no dedupe needed
@@ -443,6 +456,56 @@ export class GameMap {
     for (const t of this.trees) {
       this.treeGrid.insert(t, [t[0], t[1], t[0], t[1]]);
     }
+  }
+
+  // A map from data that has been through the constructor's derivation
+  // already (scripts/world/pack_tiles.mjs writes the result into tiles): the
+  // arrays are final, so only the lookups and the elevation model are built.
+  // parts: meta, roads, buildings, canopies, water, green, trees, rails,
+  // stations, levelCrossings, railRoutes, railLifts, passageWays, plus
+  // dryCrossings and clippedWays [{ road, building, x, y, len }].
+  static fromParts(p) {
+    const m = Object.create(this.prototype);
+    m.meta = p.meta;
+    m.roads = p.roads;
+    m.canopies = p.canopies || [];
+    m.buildings = p.buildings;
+    m.water = p.water;
+    m.green = p.green;
+    m.trees = p.trees || [];
+    m.rails = p.rails || [];
+    m.stations = p.stations || [];
+    m.levelCrossings = p.levelCrossings || [];
+    m.railRoutes = p.railRoutes || [];
+    m.railLifts = p.railLifts || [];
+    m.passageWays = (p.passageWays || []).map((q) => ({ ...q, bounds: polygonBounds(q.pts) }));
+    m.dryCrossings = p.dryCrossings || 0;
+    m.buildingGrid = new SpatialGrid(CELL);
+    for (const b of m.buildings) {
+      b.bounds = polygonBounds(b.pts);
+      m.buildingGrid.insert(b, b.bounds);
+    }
+    attachMuseumPlan(m.buildings);
+    m.roadGrid = new SpatialGrid(CELL);
+    for (const r of m.roads) {
+      r.bounds = polygonBounds(r.pts);
+      m.roadGrid.insert(r, r.bounds);
+    }
+    m.clippedWays = p.clippedWays || [];
+    m.waterGrid = new SpatialGrid(CELL * 2);
+    for (const w of m.water) {
+      w.bounds = polygonBounds(w.pts);
+      m.waterGrid.insert(w, w.bounds);
+    }
+    m.greenGrid = new SpatialGrid(CELL * 2);
+    for (const g of m.green) {
+      g.bounds = polygonBounds(g.pts);
+      m.greenGrid.insert(g, g.bounds);
+    }
+    m.elev = buildElevation(m);
+    m.treeGrid = new SpatialGrid(CELL * 2);
+    for (const t of m.trees) m.treeGrid.insert(t, [t[0], t[1], t[0], t[1]]);
+    return m;
   }
 
   // Height of the surface under (x, y) for something at zHint (absolute m):
