@@ -6,6 +6,8 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+## [0.30.1] - 2026-10-16
+
 ### Nieuw
 - **Richtingaanwijzers en alarmlichten.** [ en ] zetten de knipperlichten links
   en rechts aan (nog eens: uit), P de alarmlichten; op een controller zijn het
@@ -37,7 +39,12 @@ nieuwe functies, `y` voor alleen bugfixes.
 - De kaartlabel bij de Apenrots noemt geen echt bedrijf meer.
 
 ### Opgelost
-- Het weghalen van de teller "+N in de wacht" bovenin.
+- **De minimap stond scheef.** Op gewone schermen (zonder retina, bij 1080p) werd
+  hij twee keer zo hoog uitgerekt en stond je onderaan in plaats van in het
+  midden; bij het draaien leek de kaart te vervormen. Dat is hersteld en
+  wordt voortaan getest.
+- De teller "+N in de wacht" bovenin is weg, en "Missie geslaagd" komt
+  maar één keer in beeld.
 - "Missie geslaagd" verschijnt maar één keer.
 
 ## [0.30.0] - 2026-10-15
