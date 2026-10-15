@@ -12,6 +12,7 @@ import {
   spawnVehicleOnRoad, spawnBoatOnWater, spawnPoliceBoatOnWater, TRAFFIC_MODELS,
 } from './vehicle.js';
 import { DEAD_DURATION } from './pedestrians.js';
+import { attachCarry, carryPose } from './streetlife3d.js';
 import { buildPersonMesh, animatePersonWalk, applyAttackPose, applyHitReaction, setHeldWeapon, seatPose, seatedY, waveOverlay, carryOverlay, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { vehicleSeat, placeSeated, makeSeatTracker, trackSeat, drawTransition, syncBoatCrew } from './seating3d.js';
 import { updateSwimmers3D } from './swimmers3d.js';
@@ -1785,7 +1786,8 @@ const pedView = { inView: pedInView, camX: 0, camY: 0 };
 function buildPedActor(p) {
   // stable per-ped look, so a ped doesn't change clothes when it streams back in
   if (p._lookSeed === undefined) p._lookSeed = Math.random() * 1000;
-  const mesh = buildPersonActor(p.clothing ? colorFromHex(p.clothing) : 0xcaa46a, p.skin ? colorFromHex(p.skin) : 0xe0b48a, { seed: p._lookSeed });
+  const mesh = buildPersonActor(p.clothing ? colorFromHex(p.clothing) : 0xcaa46a, p.skin ? colorFromHex(p.skin) : 0xe0b48a, p.look ? { seed: p._lookSeed, look: p.look } : { seed: p._lookSeed });
+  if (p.carry) attachCarry(mesh, p.carry);
   return enableShadows(mesh, false);
 }
 
@@ -1855,6 +1857,7 @@ function syncPedestrianMeshes(world, player, animDt) {
       animatePersonWalk(mesh, p.speed || 0, ud.animAcc);
       ud.animAcc = 0;
     } else animatePersonWalk(mesh, p.speed || 0, animDt);
+    if (p.carry && !p.pose) carryPose(mesh, p.carry);
     if (p.greetUntil > world.time) {
       const left = p.greetUntil - world.time;
       waveOverlay(mesh, world.time + (p._lookSeed || 0), Math.min(1, left / 0.3, (2.4 - left) / 0.3));
@@ -3164,9 +3167,9 @@ function buildWildlifeActor(a) {
 // from speed (planing craft lift their bow), a dip of the bow when braking,
 // a heel in turns, and per kind a little extra draft or lift. Whatever the
 // pitch and roll, stern, bow and sides stay above the local water level.
-const BOAT_TRIM = { rubberboot: 0.075, sloep: 0.035, dinghy: 0.04, rondvaart: 0.012, skutsje: 0.01, kano: 0.004, kajak: 0.004, sup: 0, waterfiets: 0.01 };
-const BOAT_LIFT = { kano: 0.02, kajak: 0.02, sup: 0.03, rubberboot: 0.015, waterfiets: 0.01 };
-const BOAT_CLEAR = { sup: 0.035, kajak: 0.05, kano: 0.06 };
+const BOAT_TRIM = { rubberboot: 0.075, sloep: 0.035, dinghy: 0.04, rondvaart: 0.012, skutsje: 0.01, kano: 0.004, kajak: 0.004, sup: 0, waterfiets: 0.01, skiff: 0.004, acht: 0.004 };
+const BOAT_LIFT = { skiff: 0.02, acht: 0.02, kano: 0.02, kajak: 0.02, sup: 0.03, rubberboot: 0.015, waterfiets: 0.01 };
+const BOAT_CLEAR = { skiff: 0.05, acht: 0.05, sup: 0.035, kajak: 0.05, kano: 0.06 };
 function animateBoat(mesh, v, world, dt) {
   const time = world.time;
   const kind = v.isPolice ? 'sloep' : v.model.kind || 'sloep';

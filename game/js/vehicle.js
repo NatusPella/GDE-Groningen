@@ -12,10 +12,11 @@ import { pushOutOfPlan, onFarmPaving, planExtraSolids } from './countryplan.js';
 import { pushOutOfTrunks } from './countrywalls.js';
 import { countryRailsNear, pushOutOfRails } from './countryrails.js';
 import { roadPriority } from './junctions.js';
-import { pickTrafficCar, carModel, applyFleetFlags, pickBikeVariant, MIDIBUS_MODEL } from './trafficfleet.js';
+import { pickTrafficCar, carModel, applyFleetFlags, pickBikeVariant, wijkProfileAt, MIDIBUS_MODEL } from './trafficfleet.js';
+import { pickWaterLife, newsVanWanted, distToCentre, hourOf } from './streetlifedata.js';
 import { sirenYield } from './emergency.js';
 import { manageParkedCars, tickParkedCars } from './parkedcars.js';
-import { pickBoatModel } from './boattypes.js';
+import { pickBoatModel, BOAT_KINDS } from './boattypes.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { MODS } from './cheatmods.js';
 import { profileFor, createGearbox, stepGearbox } from './gearbox.js';
@@ -907,16 +908,16 @@ export function manageTrafficPopulation(world, { target = 30, spawnMin = 70, spa
   const candidates = map.roadsNear(player.x, player.y, spawnMax).filter((r) => r.cat !== 'foot' && r.cat !== 'cycle' && r.width >= 3 && !r.busOnly);
   // ambulances, taxis and a cash-transport van are part of the everyday
   // traffic, not one-offs: keep a few of them around
-  const have = { ambulance: 0, taxi: 0, cashvan: 0 };
+  const have = { ambulance: 0, taxi: 0, cashvan: 0, newsvan: 0 };
   for (const v of vehicles) if (v.fleetKind in have && !v.wrecked && v.driver !== 'player') have[v.fleetKind]++;
-  const want = { ambulance: 1, taxi: 2, cashvan: 1 };
+  const want = { ambulance: 1, taxi: 2, cashvan: 1, newsvan: newsVanWanted(hourOf(world), distToCentre(player.x, player.y)) ? 1 : 0 };
   let guard = 0;
   while (count < target && candidates.length && guard++ < target * 4) {
     const road = candidates[Math.floor(Math.random() * candidates.length)];
     const mid = road.pts[Math.floor(road.pts.length / 2)];
     let pick = pickTrafficCar(map, mid[0], mid[1]);
-    for (const k of ['ambulance', 'taxi', 'cashvan']) {
-      if (have[k] < want[k] && Math.random() < (k === 'cashvan' ? 0.08 : 0.25)) { pick = { kind: k, model: carModel(k) }; break; }
+    for (const k of ['ambulance', 'taxi', 'cashvan', 'newsvan']) {
+      if (have[k] < want[k] && Math.random() < (k === 'cashvan' ? 0.08 : k === 'newsvan' ? 0.1 : 0.25)) { pick = { kind: k, model: carModel(k) }; break; }
     }
     if (!canUseRoad({ model: pick.model }, road)) continue;
     const v = spawnVehicleOnRoad(map, road, false, Math.random, false, false, null, false, pick.model);
@@ -949,7 +950,7 @@ export function manageBikePopulation(world, { target = 16, spawnMin = 40, spawnM
   while (count < target && candidates.length && guard++ < target * 4) {
     const road = candidates[Math.floor(Math.random() * candidates.length)];
     const mid = road.pts[Math.floor(road.pts.length / 2)];
-    const variant = pickBikeVariant(map, mid[0], mid[1]);
+    const variant = pickBikeVariant(map, mid[0], mid[1], Math.random, { hour: hourOf(world) });
     if (variant && variant.cargo && road.cat === 'minor' && road.width < 3) continue;
     const v = spawnVehicleOnRoad(map, road, false, Math.random, true, false, null, false, variant);
     const d = Math.hypot(v.x - player.x, v.y - player.y);
@@ -1084,10 +1085,18 @@ export function manageBoatPopulation(world, { target = 4, spawnMin = 20, spawnMa
   for (const v of vehicles) if (v.isBoat && !v.wrecked && !v.isPolice && v.driver !== 'player') count++;
 
   const candidates = map.waterNear(player.x, player.y, spawnMax);
+  const have = { skiff: 0, acht: 0, sup: 0 };
+  for (const v of vehicles) if (v.isBoat && !v.wrecked && v.model.kind in have) have[v.model.kind]++;
+  const life = { hour: hourOf(world), d: distToCentre(player.x, player.y), profile: wijkProfileAt(map, player.x, player.y).key, have };
   let guard = 0;
   while (count < target && candidates.length && guard++ < target * 6) {
     const poly = candidates[Math.floor(Math.random() * candidates.length)];
-    const v = spawnBoatOnWater(map, poly, Math.random, { near: [player.x, player.y], min: spawnMin, max: spawnMax, budget: 3 });
+    // rowers, an eight and stand-up paddlers on the wider city water
+    const b = poly.bounds;
+    life.wide = !!b && Math.min(b[2] - b[0], b[3] - b[1]) > 22;
+    const lifeKind = pickWaterLife(Math.random, life);
+    const v = spawnBoatOnWater(map, poly, Math.random, { near: [player.x, player.y], min: spawnMin, max: spawnMax, budget: 3, model: lifeKind ? BOAT_KINDS[lifeKind] : undefined });
+    if (v && lifeKind) have[lifeKind]++;
     if (!v || !spawnSpotFree(vehicles, v) || spawnWouldPop(world, v)) continue;
     vehicles.push(v);
     count++;

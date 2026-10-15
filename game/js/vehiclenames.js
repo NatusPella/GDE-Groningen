@@ -26,6 +26,8 @@ const BOATS = {
   kano: [['Kano', 'Peddelpiet'], ['Kano', 'Reitdiepper']],
   kajak: [['Kajak', 'Waterjuffer']],
   sup: [['SUP', 'Rechtop Roelie'], ['SUP', 'Plankgast']],
+  skiff: [['Skiff', 'Eenpitter'], ['Skiff', 'Natte Mouwen']],
+  acht: [['Acht', 'Vigilante Acht'], ['Acht', 'Slagroeier']],
   waterfiets: [['Waterfiets', 'Trapkoppel'], ['Waterfiets', 'Zwaantje']],
   rubberboot: [['Rubberboot', 'Stuiterbal'], ['Rubberboot', 'Zeehond']],
   dinghy: [['Bijbootje', 'Woonbootje'], ['Roeiboot', 'Kleine Jan']],
@@ -53,6 +55,7 @@ export function vehicleDisplayName(v) {
   }
   if (v.isAmbulance) return { make: 'Ambulance', model: 'Spoedrit' };
   if (name === 'hatch' && v.model.rusty) return { make: 'Dollard', model: 'Roestbak' };
+  if (name === 'van' && v.model.livery === 'nieuws') return { make: 'Noord-Nieuws', model: 'Verslaggeversbus' };
   if (name === 'van' && v.model.livery === 'pakket') return { make: 'Pakkie Nou', model: 'Bezorgbus' };
   if (name === 'scooter' && v.model.geared) return { make: 'Tweetakt', model: 'Pruttelaar' };
   if (name === 'motor') {

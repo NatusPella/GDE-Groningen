@@ -31,6 +31,9 @@ import { initGarages, updateGarages, tryGarageInteract } from './garages.js';
 import { initHoreca, updateHoreca, tryHorecaInteract } from './horeca.js';
 import { initShops, updateShops, tryShopInteract } from './shops.js';
 import { initSnackMachines, updateSnackMachines, tryMachineInteract } from './snackautomaat.js';
+import { updateStreetLife, tryStreetLifeInteract } from './streetlife.js';
+import { bikeBoost, hourOf } from './streetlifedata.js';
+import { wijkProfileAt } from './trafficfleet.js';
 import { updateParkingLots3D } from './parkinglots3d.js';
 import { isShopOpen } from './shopui.js';
 import { initMapView, updateMapView, isMapOpen } from './mapview.js';
@@ -455,7 +458,8 @@ async function boot() {
       manageTrafficPopulation(world, { target: Math.round(scaledTarget(30) * MODS.cars) });
       // the centre is full of bikes: eight more cyclists while you are in it
       const inCentre = Math.hypot(world.player.x - CITY_CENTRE.x, world.player.y - CITY_CENTRE.y) < CITY_CENTRE.r;
-      manageBikePopulation(world, { target: Math.round((scaledTarget(16) + (inCentre ? scaledTarget(8) : 0)) * MODS.bikes) });
+      const rush = bikeBoost(wijkProfileAt(world.map, world.player.x, world.player.y).key, Math.hypot(world.player.x - CITY_CENTRE.x, world.player.y - CITY_CENTRE.y), hourOf(world));
+      manageBikePopulation(world, { target: Math.round((scaledTarget(16) + (inCentre ? scaledTarget(8) : 0) + (rush ? scaledTarget(rush) : 0)) * MODS.bikes) });
       manageBusPopulation(world);
       manageScooterPopulation(world, { target: scaledTarget(10) });
       manageBoatPopulation(world, { target: boatTarget() });
@@ -481,6 +485,7 @@ async function boot() {
       tryHeliSpotInteract(world);
       tryGarageInteract(world);
       tryMachineInteract(world);
+      tryStreetLifeInteract(world);
       tryShopInteract(world);
       tryPigeonSpotInteract(world);
       tryOmmelandInteract(world);
@@ -537,6 +542,7 @@ async function boot() {
     updatePedestrians(dt, world);
     probe.mark('peds');
     updateWildlife(dt, world);
+    updateStreetLife(dt, world);
     updateSkyProps(dt, world);
     updatePigeonSpots(dt, world);
     updateHeliSpot(dt);

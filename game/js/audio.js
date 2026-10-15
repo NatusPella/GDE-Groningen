@@ -2104,7 +2104,7 @@ const ENGINE_SPECS = [
 
 // Canoes, kayaks and pedalos have no engine: paddle strokes or the pedalo's
 // wheel instead (updatePaddling).
-const HUMAN_BOATS = new Set(['kano', 'kajak', 'waterfiets', 'sup']);
+const HUMAN_BOATS = new Set(['kano', 'kajak', 'waterfiets', 'sup', 'skiff', 'acht']);
 function humanPowered(v) {
   return !!(v && v.isBoat && v.model && HUMAN_BOATS.has(v.model.kind));
 }
@@ -2202,7 +2202,7 @@ function updatePaddling(dt, world) {
     if (!st) { st = { t: Math.random() * 0.5 }; paddleState.set(v, st); }
     const top = v.model.maxSpeed || 2.5;
     const frac = clamp(speed / top, 0, 1);
-    const period = v.model.kind === 'waterfiets' ? 0.34 - 0.16 * frac : v.model.kind === 'kajak' ? 0.62 - 0.14 * frac : v.model.kind === 'sup' ? 1.1 - 0.2 * frac : 0.95 - 0.2 * frac;
+    const period = v.model.kind === 'waterfiets' ? 0.34 - 0.16 * frac : v.model.kind === 'kajak' ? 0.62 - 0.14 * frac : v.model.kind === 'sup' ? 1.1 - 0.2 * frac : v.model.kind === 'skiff' || v.model.kind === 'acht' ? 1.5 - 0.3 * frac : 0.95 - 0.2 * frac;
     st.t -= dt;
     if (st.t > 0) continue;
     st.t = period * (0.92 + Math.random() * 0.16);
