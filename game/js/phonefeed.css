@@ -2,12 +2,12 @@
    street name. Inside #hud: uiscale.js zoom applies, vw/vh are / --ui. */
 #hud .phonefeed {
   position: absolute;
-  left: 16px;
-  bottom: 104px;
-  width: min(390px, calc(44vw / var(--ui, 1)));
+  left: var(--hud-edge, 46px);
+  top: var(--hud-top, 34px);
+  width: min(350px, calc(30vw / var(--ui, 1)));
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
+  justify-content: flex-start;
   gap: 8px;
   pointer-events: none;
 }
@@ -23,13 +23,13 @@
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.55);
   overflow: hidden;
   opacity: 0;
-  transform: translateY(70px) rotate(-2.5deg) scale(0.96);
-  transform-origin: 20% 100%;
+  transform: translateY(-40px) rotate(1.5deg) scale(0.96);
+  transform-origin: 20% 0%;
   transition: opacity 0.35s ease, transform 0.55s cubic-bezier(0.2, 0.8, 0.2, 1), filter 0.4s;
 }
 #hud .pf-card.on, #hud .pf-callcard.on { opacity: 1; transform: none; }
 #hud .pf-card.back { opacity: 0.72; transform: scale(0.95); filter: saturate(0.6); }
-#hud .pf-card.out, #hud .pf-callcard.out { opacity: 0; transform: translateY(40px) scale(0.96); transition-duration: 0.45s; }
+#hud .pf-card.out, #hud .pf-callcard.out { opacity: 0; transform: translateY(-30px) scale(0.96); transition-duration: 0.45s; }
 #hud .pf-card[data-app="bericht"] { --pf: #8fd3ff; }
 #hud .pf-card[data-app="geld"] { --pf: #3fc97a; }
 #hud .pf-card::after {
@@ -110,7 +110,6 @@
 #hud .pf-callcard.ended { filter: saturate(0.3); opacity: 0.8; }
 
 @media (max-height: 640px) {
-  #hud .phonefeed { bottom: 96px; }
   #hud .pf-title { font-size: 21px; }
   #hud .pf-body, #hud .pf-say { font-size: 16px; }
 }

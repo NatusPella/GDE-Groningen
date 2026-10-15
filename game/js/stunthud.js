@@ -6,7 +6,7 @@
 // so it fades with the rest of the HUD during cutscenes.
 
 const CSS = `
-#hud .stunt-hud { position: absolute; top: calc(var(--hud-tr-bottom) + 8px); right: 14px; width: 232px; box-sizing: border-box;
+#hud .stunt-hud { position: absolute; top: calc(var(--hud-tr-bottom) + 8px); right: var(--hud-edge, 46px); width: 232px; box-sizing: border-box;
   padding: 8px 14px 10px; border-radius: 10px; background: rgba(10, 19, 13, 0.78); border: 1px solid rgba(63, 201, 122, 0.16);
   border-right: 3px solid var(--gron-green-light); color: #f0ede4; text-shadow: var(--hud-shadow); font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; }
 #hud .stunt-hud[hidden], #hud .stunt-brief[hidden] { display: none; }

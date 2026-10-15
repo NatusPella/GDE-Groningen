@@ -9,6 +9,7 @@ import { smsVoiceFor, smsKind } from './smsvoice.js';
 import { mayVoiceText, noteVoiceText } from './attention.js';
 import { hold as holdChannel, release as releaseChannel } from './speech.js';
 import { registerNarrative, mayStart, noteToast, heldBack } from './narrative.js';
+import { zones, P1, P2, hudNow } from './hudrules.js';
 
 // The folded phone (the Pixie Vouw 11's cover screen) on the HUD, bottom
 // left above the street name: notification cards and incoming calls. Both slide up out of the bottom like a phone
@@ -360,7 +361,7 @@ export function updatePhoneFeed(dt, w) {
       remember(w, n.from ? `${n.from}: ${n.text}` : n.text);
     }
     // narrative.js: not over a cutscene or a story call, a beat apart, story texts after their "Bel Rikus"
-    if (!call && !cards.some((c) => !c.leaving) && notes.length && mayStart(notes[0].story ? 'text' : 'phone')) { noteToast(); showNote(w, notes.shift()); }
+    if (!call && !cards.some((c) => !c.leaving) && zones.free('A', 'phone') && notes.length && !(hudNow.busy && !notes[0].story) && mayStart(notes[0].story ? 'text' : 'phone')) { noteToast(); showNote(w, notes.shift()); }
     syncCounter();
     for (const c of cards) { c.t += dt; voiceCard(c); if (c.speaking && c.t > 40) c.speaking = false; if (!c.speaking) c.left -= dt; }
     for (const c of cards.filter((k) => k.left <= 0)) {
@@ -369,4 +370,6 @@ export function updatePhoneFeed(dt, w) {
     }
   }
   if (!w.paused) updateCall(dt, w, visible);
+  // zone A is one card at a time: a call or text holds it, hudcards.js waits
+  if (call || cards.length) zones.occupy('A', 'phone', call ? P1 : P2); else zones.vacate('A', 'phone');
 }

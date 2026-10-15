@@ -165,15 +165,15 @@
 
 #hud .hud-ctx {
   position: absolute;
-  right: calc(var(--mm-size, 160px) + 30px);
-  bottom: 62px;
+  right: var(--hud-edge, 46px);
+  bottom: var(--hud-edge, 46px);
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   gap: 5px;
   transition: opacity 0.4s ease;
 }
-body.hide-minimap #hud .hud-ctx { right: 16px; bottom: 96px; }
+body.hud-in-vehicle #hud .hud-ctx { bottom: calc(var(--hud-edge, 46px) + 190px); }
 #hud .hud-ctx.quiet { opacity: 0.7; }
 
 /* key cap + pictogram chips; text only while new or rare (prompts.js) */
@@ -235,5 +235,14 @@ body.hide-minimap #hud .hud-ctx { right: 16px; bottom: 96px; }
   #hud .wp-primary.in .wp-dot, #hud .ctx-row { animation: none; }
 }
 @media (max-width: 720px) {
-  #hud .hud-ctx { right: 16px; bottom: calc(var(--mm-size, 160px) + 30px); }
+  #hud .hud-ctx { right: 16px; }
 }
+
+/* the bottom-right hints are cream keycaps (the approved HUD), the rest keeps the canonical cap */
+#hud .ctx-row { background: none; border-right: 0; padding: 2px 0; flex-direction: row-reverse; gap: 10px; box-shadow: none; }
+#hud .ctx-row.learn { background: none; box-shadow: none; border-right: 0; padding: 2px 0; }
+#hud .ctx-row .ctx-pic { display: none; }
+#hud .ctx-row .ctx-glyphs .hud-key { background: #f0ede4; color: #0c140e; border: 0; border-radius: 6px; min-width: 30px; height: 30px; padding: 0 8px; font-size: 16px; box-shadow: 0 3px 0 #9c998f; text-shadow: none; }
+#hud .ctx-row.icon { opacity: 0.8; }
+#hud .ctx-row.icon::before { content: attr(title); font-size: 16px; color: #f0ede4; text-shadow: var(--hud-shadow); }
+#hud .ctx-row.learn .ctx-text b, #hud .ctx-row.new .ctx-text b { color: #f0ede4; font-size: 17px; text-transform: none; font-family: 'Arial Narrow', Arial, sans-serif; }

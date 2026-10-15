@@ -27,6 +27,11 @@ const DEFAULTS = {
   cameraDistance: 1,
   showMinimap: true,
   showHints: true,
+  // HUD: 'slim' (default: only what matters now), 'alles', 'minimaal' (hudrules.js)
+  hudMode: 'slim',
+  // minimap: zoom factor and north-up ('nooit', 'lucht' only flying, 'altijd')
+  minimapZoom: 1,
+  minimapNorth: 'lucht',
   // short tip cards for new players (onboarding.js)
   onboardingTips: true,
   reduceMotion: false,
@@ -82,6 +87,9 @@ function load() {
     out.keyBinds = normalizeKeyBinds(out.keyBinds);
     out.padBinds = normalizePadBinds(out.padBinds);
     if (!(out.subtitleSize in SUBTITLE_SIZES)) out.subtitleSize = DEFAULTS.subtitleSize;
+    if (!['slim', 'alles', 'minimaal'].includes(out.hudMode)) out.hudMode = DEFAULTS.hudMode;
+    if (!['nooit', 'lucht', 'altijd'].includes(out.minimapNorth)) out.minimapNorth = DEFAULTS.minimapNorth;
+    if (!(out.minimapZoom >= 0.6 && out.minimapZoom <= 1.6)) out.minimapZoom = DEFAULTS.minimapZoom;
     if (!COLOR_BLIND_MODES.includes(out.colorBlind)) out.colorBlind = DEFAULTS.colorBlind;
     if (!PAD_LAYOUT_CHOICES.includes(out.padLayout)) out.padLayout = DEFAULTS.padLayout;
     if (!(out.padLookSensitivity >= 0.3 && out.padLookSensitivity <= 2.5)) out.padLookSensitivity = DEFAULTS.padLookSensitivity;

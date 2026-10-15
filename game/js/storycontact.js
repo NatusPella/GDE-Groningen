@@ -61,8 +61,8 @@ function injectStyle() {
   const st = document.createElement('style');
   st.id = 'storycontact-style';
   st.textContent = `
-#hud .sc-phone { position: absolute; right: 14px; top: var(--hud-stack-top, 210px); width: 232px; box-sizing: border-box; border-radius: 26px; padding: 10px 9px 14px;
-  max-height: calc(100vh / var(--ui, 1) - var(--hud-stack-top, 210px) - var(--mm-size, 230px) - var(--mm-bottom, 16px) - 46px); overflow: hidden;
+#hud .sc-phone { position: absolute; right: var(--hud-edge, 46px); top: var(--hud-stack-top, 210px); width: 232px; box-sizing: border-box; border-radius: 26px; padding: 10px 9px 14px;
+  max-height: calc(100vh / var(--ui, 1) - var(--hud-stack-top, 210px) - 200px); overflow: hidden;
   background: #0c140e; border: 2px solid #1e9e56; box-shadow: 0 14px 34px rgba(0,0,0,.6), 0 0 0 3px rgba(12,20,14,.85);
   color: #f2f2f2; font-family: 'Arial Narrow', Arial, sans-serif; transform: translateY(40px) rotate(3deg); opacity: 0;
   transition: transform var(--dur-slow, 320ms) var(--ease-out, ease-out), opacity var(--dur-base, 200ms) var(--ease-out, ease-out); pointer-events: none; }
