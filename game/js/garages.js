@@ -11,10 +11,16 @@ import { markDirty } from './savegame.js';
 import { recordStat } from './achievements.js';
 import { startCall } from './phonefeed.js';
 import { buildingAt as realBuildingAt } from './countryreal.js';
+import { realWater } from './countryfield.js';
+import { pushOutOfPlan } from './countryplan.js';
+import { realRoadNear } from './ommelandplace.js';
+import { facilitiesOf } from './facilities.js';
 
 // Garages: every Garage Knalpot branch (from the OSM car repair shops) and
 // every Pomp & Poets gas station has a workshop with a roller door by the
-// street. Drive up and the door rolls open, drive in, stop, press R: repair
+// street; in town from meta.garages / meta.fuel, out in the Ommelanden from
+// the real car repair shops and fuel stations in facilities.js (the bay on
+// the forecourt where its outline is mapped). Drive up and the door rolls open, drive in, stop, press R: repair
 // (dents gone too), upgrades, new plates, and wrecks of your own vehicles
 // brought back to life for a fee. Henk the mechanic phones when your own
 // car is in a bad way and puts the nearest garage on your map.
@@ -106,21 +112,79 @@ function placeSite(map, poi) {
   return best;
 }
 
+// Out in the Ommelanden: the same bay behind the verge of a real road, clear
+// of the real building boxes, farmsteads, ditches and other roads; on the
+// forecourt (poi.poly) when the station's outline is mapped.
+function countrySolid(x, y, own) {
+  if (realBuildingAt(x, y, 0.3) >= 0 || realWater(x, y) > -0.5 || pushOutOfPlan({ x, y }, 0.3)) return true;
+  const o = realRoadNear(x, y, 1, (r) => r !== own);
+  return !!(o && o.d < 0.3);
+}
+
+function placeCountrySite(map, poi) {
+  let best = null;
+  const seen = new Set();
+  for (let k = 0; k < 9; k++) {
+    const a = (k / 8) * Math.PI * 2, r = k ? 35 : 0;
+    const q = realRoadNear(poi.x + Math.cos(a) * r, poi.y + Math.sin(a) * r, 70, (rd) => rd.kind > 2 && !rd.bridge);
+    if (!q || seen.has(q.road)) continue;
+    seen.add(q.road);
+    const road = q.road, P = road.pts, hw = road.w / 2 + 1.6;
+    for (let i = 0; i < P.length - 1; i++) {
+      const a0 = P[i], b0 = P[i + 1];
+      const L = Math.hypot(b0[0] - a0[0], b0[1] - a0[1]);
+      if (L < BAY_W + 2) continue;
+      const tx = (b0[0] - a0[0]) / L, ty = (b0[1] - a0[1]) / L;
+      for (let t = BAY_W / 2 + 1; t < L - BAY_W / 2 - 1; t += 3) {
+        const rx = a0[0] + tx * t, ry = a0[1] + ty * t;
+        if (Math.hypot(rx - poi.x, ry - poi.y) > 80) continue;
+        for (const side of [1, -1]) {
+          const nx = -ty * side, ny = tx * side;
+          const cx = rx + nx * (hw + BAY_D / 2), cy = ry + ny * (hw + BAY_D / 2);
+          const onYard = poi.poly && pointInPolygon(cx, cy, poi.poly);
+          const score = Math.hypot(cx - poi.x, cy - poi.y) - (onYard ? 40 : 0);
+          if (best && score >= best.score) continue;
+          let ok = true;
+          for (let u = -0.5; u <= 0.5 && ok; u += 0.25) {
+            for (let v = -0.5; v <= 0.5 && ok; v += 0.25) {
+              const x = cx + nx * u * (BAY_D + 0.6) + tx * v * (BAY_W + 0.8), y = cy + ny * u * (BAY_D + 0.6) + ty * v * (BAY_W + 0.8);
+              if (countrySolid(x, y, road) || isInWater(map, x, y)) ok = false;
+            }
+          }
+          if (ok) best = { score, x: cx, y: cy, angle: Math.atan2(-ny, -nx), road };
+        }
+      }
+    }
+  }
+  return best;
+}
+
+function siteName(poi, wijk, road) {
+  const base = `${CHAIN[poi.kind]} ${wijk || road.name || ''}`.trim();
+  if (!poi.country || !sites.some((s) => s.name === base)) return base;
+  const alt = road.name ? `${CHAIN[poi.kind]} ${road.name}` : '';
+  if (alt && !sites.some((s) => s.name === alt)) return alt;
+  for (let k = 2; ; k++) if (!sites.some((s) => s.name === `${base} ${k}`)) return `${base} ${k}`;
+}
+
 export function initGarages(w) {
   world = w;
   const map = w.map;
   sites = [];
+  const country = (kinds, kind) => facilitiesOf(kinds).filter((f) => !f.city).map((f) => ({ x: f.x, y: f.y, poly: f.poly, place: f.place, kind, country: true }));
   const pois = [
     ...(map.meta.garages || []).map((g) => ({ ...g, kind: 'garage' })),
     ...(map.meta.fuel || []).map((f) => ({ ...f, kind: 'pomp' })),
+    ...country(['car_repair', 'car', 'tyres'], 'garage'),
+    ...country('fuel', 'pomp'),
   ];
   for (const poi of pois) {
     if (sites.some((s) => Math.hypot(s.x - poi.x, s.y - poi.y) < 60)) continue;
-    const spot = placeSite(map, poi);
+    const spot = poi.country ? placeCountrySite(map, poi) : placeSite(map, poi);
     if (!spot || sites.some((s) => Math.hypot(s.x - spot.x, s.y - spot.y) < 40)) continue;
-    const wijk = wijkAt(map, spot.x, spot.y);
+    const wijk = poi.country ? poi.place : wijkAt(map, spot.x, spot.y);
     const site = {
-      kind: poi.kind, name: `${CHAIN[poi.kind]} ${wijk || spot.road.name || ''}`.trim(),
+      kind: poi.kind, name: siteName(poi, wijk, spot.road),
       x: spot.x, y: spot.y, angle: spot.angle, wijk, door: 0, mesh: null, cooldownUntil: 0,
     };
     const fx = Math.cos(site.angle), fy = Math.sin(site.angle), sx = -fy, sy = fx;
@@ -128,7 +192,7 @@ export function initGarages(w) {
       for (const side of [1, -1]) {
         const free = [-2.5, 0, 2.5].every((f) => [1.1, 2.2].every((o) => {
           const x = site.x + fx * f + sx * side * (BAY_W / 2 + o), y = site.y + fy * f + sy * side * (BAY_W / 2 + o);
-          return !solidAt(map, x, y) && !onOtherRoad(map, x, y, null);
+          return !solidAt(map, x, y) && !onOtherRoad(map, x, y, null) && !(poi.country && countrySolid(x, y, spot.road));
         }));
         if (free) { site.pumpSide = side; break; }
       }
