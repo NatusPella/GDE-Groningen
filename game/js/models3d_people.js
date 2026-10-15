@@ -1018,6 +1018,18 @@ export function seatPose(mesh, spec = SEAT_CAR, t = 0) {
       ud.paddleProp.rotation.set(0.3 * s, 0, 0);
       break;
     }
+    case 'row': {
+      // rowing, facing aft: k 0 = the catch (arms out, knees up, leaning in),
+      // 1 = the finish (hands to the chest, legs flat, leaning back)
+      const k = (1 + Math.sin(t * 2.1)) / 2;
+      ud.chest.rotation.z = -0.32 + 0.66 * k;
+      ud.head.rotation.z = 0.2 - 0.3 * k;
+      setArm(ud.armL, ud.elbowL, 1.42 - 0.62 * k, 0.12 + 1.5 * k, -0.18);
+      setArm(ud.armR, ud.elbowR, 1.42 - 0.62 * k, 0.12 + 1.5 * k, 0.18);
+      legIK(ud.legL, ud.kneeL, fx * (0.62 + 0.38 * k), fy + 0.12 * (1 - k));
+      legIK(ud.legR, ud.kneeR, fx * (0.62 + 0.38 * k) - 0.03, fy + 0.12 * (1 - k) + 0.01);
+      break;
+    }
     case 'hug':
       setArm(ud.armL, ud.elbowL, 1.05 + lean, 1.2, 0.15);
       setArm(ud.armR, ud.elbowR, 1.05 + lean, 1.2, -0.15);

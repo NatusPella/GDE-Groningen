@@ -337,9 +337,9 @@ export function syncBoatCrew(mesh, v, ctx) {
     c.mesh.visible = show;
     if (!show) continue;
     const moving = Math.abs(v.speed) > 0.3;
-    const animated = c.seat.pose && (c.seat.pose.arms === 'paddle' || c.seat.pose.arms === 'sup' || c.seat.pose.pedal);
+    const animated = c.seat.pose && (c.seat.pose.arms === 'paddle' || c.seat.pose.arms === 'row' || c.seat.pose.arms === 'sup' || c.seat.pose.pedal);
     if (near && (animated || c.greetUntil > ctx.time || c.waved)) {
-      poseCrew(c.mesh, c.seat, moving ? ctx.time + c.seat.x : 0);
+      poseCrew(c.mesh, c.seat, moving ? ctx.time + (c.seat.pose && c.seat.pose.arms === 'row' ? 0 : c.seat.x) : 0);
       c.waved = false;
       if (c.greetUntil > ctx.time) {
         const left = c.greetUntil - ctx.time;
