@@ -6,6 +6,17 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Nieuw
+- **Nieuwe HUD, laadscherm en opstartscherm.** De HUD toont alleen wat nu
+  telt (instelling HUD: Slim, Altijd alles of Minimaal): sterren alleen als je
+  gezocht wordt, geld bij een wijziging, een afslagkaart met de GPS vlak voor
+  een bocht, de naam van een nieuwe wijk groot in beeld. De minimap is een
+  vierkant linksonder en past zich aan hoe je reist. De kaart heeft een
+  keuze voor lopen, fiets, auto, boot, OV en lucht; wegen die niet voor jou
+  zijn staan rood gestreept. Bij Doorgaan en lange sprongen komt een
+  laadscherm met je verhaal tot nu toe. Het spel opent donkergroen, met
+  "Druk op een toets".
+
 ## [0.29.0] - 2026-10-15
 
 ### Nieuw
