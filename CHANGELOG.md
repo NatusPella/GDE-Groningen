@@ -16,6 +16,19 @@ nieuwe functies, `y` voor alleen bugfixes.
   te zien en te horen vanaf de hele binnenstad en aan het eind een slotsalvo. En
   op de bloemetjesmarkt (12 september) lopen er veel Duitse toeristen met
   rugzak en pet rond, die in het Duits om zich heen praten.
+- **Minigames, deel 2.** Drie nieuwe dingen om tussendoor te doen, gratis,
+  overslaanbaar (Backspace) en met medailles, records en prestaties:
+  - **Zwembad Het Natte Papier** aan de Papiermolenlaan. Vier banen van
+    vijfentwintig meter: duik vanaf het blok als de balk in het groen is, zwem
+    met A en D om en om in een rustig ritme en draai vlak voor de muur om met
+    Spatie. Wie spartelt wordt moe; de badmeester geeft commentaar.
+  - **Klimtoren Zernike.** Twaalf meter klimwand tegen de klok. Houd A (linker)
+    en D (rechter hand) vast om een greep te pakken en laat steeds één hand los
+    om hem hoger te zetten. Rust op de grote grepen, anders geven je armen het
+    op; vallen kan, op de mat, en kost vier seconden.
+  - **Waterskibaan bij het Grunopark.** Een boot trekt je over het meer. Leun uit
+    met A en D, zwaai ruim om de boeien, spring met Spatie over de golven en
+    draai of grab in de lucht voor extra punten. Drie valpogingen.
 
 ## [0.31.0] - 2026-10-16
 
