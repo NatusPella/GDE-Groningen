@@ -18,6 +18,7 @@ import { vehicleSeat, placeSeated, makeSeatTracker, trackSeat, drawTransition, s
 import { updateSwimmers3D } from './swimmers3d.js';
 import { driveRagdoll, syncBikeRider } from './ragdoll.js';
 import { applyWeatherToScene3D } from './weather.js';
+import { quakeJitter } from './eventrules.js';
 import { buildFlitspaalMesh3D } from './flitspaal.js';
 import { getHorecaForRender, horecaBadges3D, horecaPads3D, updateHorecaPads3D } from './horeca.js';
 import { buildWildlifeMesh3D, wildlifeShadowSize, animateWildlifeMesh3D } from './wildlife.js';
@@ -2549,6 +2550,10 @@ export function update3D(dt, world) {
     cam.position.x += Math.sin(t) * amp;
     cam.position.y += Math.sin(t * 1.31 + 1.7) * amp * 0.6;
     cam.position.z += Math.cos(t * 0.87 + 0.4) * amp;
+  }
+  if (world.quake && world.quake.amp > 0.002) {
+    const j = quakeJitter(world.time, world.quake.amp);
+    cam.position.x += j.x; cam.position.y += j.y; cam.position.z += j.z;
   }
   const lookUp = Math.max(0, LOOK_UP_FROM_DEG * Math.PI / 180 - followPitch) * radius * LOOK_UP_LIFT;
   let lookX = player.x, lookY = (veh ? baseH + (eyeY - baseH) * 0.85 : baseH + 1.3) + lookUp, lookZ = player.y;
