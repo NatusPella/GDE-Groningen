@@ -28,13 +28,14 @@ const RIVALS = [
 // The race was balanced on these tops (m/s); street cars got faster since,
 // so race cars keep their own base and the field stays as it was tuned.
 const RACE_TOP = { sport: 42, sedan: 33, hatch: 30 };
-const RACE_ACCEL = { sport: 12, sedan: 9, hatch: 8.5 };
-// KEI-week students, just under the 11.5 m/s a player gets out of any bike
+// accel: the player's cars pull at half their model accel (vehicle.js PLAYER_CAR_ACCEL)
+const RACE_ACCEL = { sport: 7.2, sedan: 5.4, hatch: 5.1 };
+// KEI-week students, just under the 7 m/s a player gets out of any bike
 const BIKE_RIVALS = [
-  { bike: true, color: '#1c1c1c', rider: '#d8462b', top: 11.2, skill: 1.0 },
-  { bike: true, color: '#2f5c8a', rider: '#e8c21a', top: 11.0, skill: 0.98 },
-  { bike: true, color: '#7a2e2e', rider: '#2e9e5a', top: 10.8, skill: 0.97 },
-  { bike: true, color: '#3a3a3a', rider: '#e8e6e0', top: 10.5, skill: 0.95 },
+  { bike: true, color: '#1c1c1c', rider: '#d8462b', top: 6.85, skill: 1.0 },
+  { bike: true, color: '#2f5c8a', rider: '#e8c21a', top: 6.75, skill: 0.98 },
+  { bike: true, color: '#7a2e2e', rider: '#2e9e5a', top: 6.6, skill: 0.97 },
+  { bike: true, color: '#3a3a3a', rider: '#e8e6e0', top: 6.4, skill: 0.95 },
 ];
 
 function modelFor(base, color, topScale = 1, accelScale = 1) {
@@ -44,7 +45,7 @@ function modelFor(base, color, topScale = 1, accelScale = 1) {
 
 function makeRivalBike(def, x, y, ang) {
   const v = makeTwoWheeler('bike', x, y, ang);
-  v.model = { ...v.model, color: def.color, rider: def.rider, maxSpeed: def.top, accel: 4.4, brake: 8 };
+  v.model = { ...v.model, color: def.color, rider: def.rider, maxSpeed: def.top, accel: 3.4, brake: 8 };
   return v;
 }
 

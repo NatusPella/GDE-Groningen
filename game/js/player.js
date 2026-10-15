@@ -23,9 +23,11 @@ const BIKE_SPRINT_S = 2.5;
 const BIKE_SPRINT_REST_S = 4;
 const HORSE_GALLOP_S = 5;
 const RADIUS = 0.35;
-const WALK_SPEED = 4.2;
-const RUN_SPEED = 7.5;
-const CROUCH_SPEED = 1.7;
+const WALK_SPEED = 3.0; // the default pace: a light jog
+const RUN_SPEED = 6.8;
+const STROLL_SPEED = 1.5; // the stick pushed only a little
+const STROLL_STICK = 0.55;
+const CROUCH_SPEED = 1.4; // just quicker than a patrolling guard (heist.js)
 const KNOCKDOWN_CLOSING = 5.5; // m/s a car has to hit you with to floor you
 const FACE_TURN_RATE = 12; // rad/s the body turns toward its movement direction
 const MOUSE_TURN_PER_PX = 0.0025; // rad per px of mouse motion, camera orbit
@@ -33,8 +35,8 @@ const KISS_DIST = 1.8;
 const KISS_HEAL = 25;
 const KISS_COOLDOWN = 3;
 let kissReadyAt = 0;
-const JUMP_SPEED = 5.2;
-const GRAVITY = 16;
+const JUMP_SPEED = 3.45; // ~0.6 m at GRAVITY
+export const GRAVITY = 9.8;
 const SHOVE_DECAY = 6; // 1/s
 const MAX_SHOVE = 7; // m/s
 export const SWIM_SPEED = 1.8;
@@ -61,8 +63,8 @@ const CLIMB_UP_TIME = 0.55;
 const JUMP_VAULT_WINDOW = 0.45; // s after take-off a jump can still become a vault
 const ROOF_WALK = 2.2;
 
-const FALL_HURT_SPEED = 8.5; // m/s landing speed (~3.7 m drop) above which a fall hurts
-const BAIL_SPEED = 7; // m/s (25 km/h): getting out faster than this is a dive with a tumble
+const FALL_HURT_SPEED = 8.5; // m/s landing speed (a ~3.7 m drop at GRAVITY) above which a fall hurts
+const BAIL_SPEED = 6; // m/s (22 km/h): getting out faster than this is a dive with a tumble
 const BLAST_HURT = 60; // health lost when your own car explodes around you
 const SUBSTEP = 1.2; // m: fast cars are integrated in steps this long (no tunnelling)
 const LOCK_CRACK_S = 0.7; // a bike locked to a rack or railing takes a quick jiggle first
@@ -189,7 +191,9 @@ export class Player {
     // Modern third-person style: WASD moves relative to the camera, the body turns to face
     // the movement; while attacking/aiming the body faces the camera instead
     // this.carrying: speed factor while hauling a side-job load (sidejobs.js)
-    const speed = (this.crouching ? CROUCH_SPEED : input.isDown('shift') ? RUN_SPEED : WALK_SPEED) * (this.carrying || 1);
+    const stick = input.padAxis ? Math.hypot(input.padAxis[0], input.padAxis[1]) : 0;
+    const pace = input.isDown('shift') ? RUN_SPEED : stick > 0 && stick < STROLL_STICK ? STROLL_SPEED : WALK_SPEED;
+    const speed = (this.crouching ? CROUCH_SPEED : pace) * (this.carrying || 1);
     const aiming = input.mouse.down || input.mouse.rightDown;
     const dir = drunkMove(world, cameraRelativeMove(input, world.camYaw), dt);
     this.moving = !!dir;

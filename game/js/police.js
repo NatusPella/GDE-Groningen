@@ -27,7 +27,7 @@ const ROADBLOCK_EXTRA_CHANCE = 0.5;
 
 const MOTOR_WANTED = 4;
 const MOTOR_MAX = 2;
-const MOTOR_MODEL = { name: 'scooter', len: 1.3, wid: 0.45, maxSpeed: 17, accel: 7, brake: 9, turnRate: 5, color: '#eceae4', rider: '#1c3fae' };
+const MOTOR_MODEL = { name: 'scooter', len: 1.3, wid: 0.45, maxSpeed: 15.5, accel: 6, brake: 9, turnRate: 5, color: '#eceae4', rider: '#1c3fae' };
 const DESPAWN_DIST = 260;
 const SPAWN_STAGGER = 1.4;
 const FIRE_RANGE = 28;
@@ -43,7 +43,8 @@ const COP_PED_MIN_DIST = 40;
 
 // Top speed per wanted level (index = stars); a regular sedan does 33.
 const POLICE_TOP_SPEED = [30, 32, 35, 39, 44, 50];
-const POLICE_ACCEL = [8.5, 9, 9.5, 10.5, 11.5, 12.5];
+// the player's cars do 0-100 in ~6-8 s (vehicle.js PLAYER_CAR_ACCEL); a patrol car a bit quicker
+const POLICE_ACCEL = [5.5, 6, 6.5, 7, 7.5, 8];
 // Out of sight and far behind, units speed up with distance towards 95% of
 // a fast player's speed, between 1.04x and 1.2x their own top speed.
 const RUBBER_BAND_NEAR = 60;
@@ -53,7 +54,7 @@ const RUBBER_BAND_MIN = 1.04;
 const RUBBER_BAND_MAX = 1.2;
 const RUBBER_BAND_ACCEL = 0.2;
 const MOUNT_RUBBER_BAND = 1.15;
-const OUTRUN_SPEED = 17;
+const OUTRUN_SPEED = 15; // the tuned fatbike's sprint (16) gets away too
 const OUTRUN_CLEAR_DIST = 80;
 const RECYCLE_DIST = 170;
 
@@ -77,7 +78,7 @@ const MOUNT_STOP_DIST = 2.5;
 // you for a moment while you're (nearly) stopped; in a car you have to be
 // boxed in and stopped with police right beside you.
 const FOOT_BUST_RANGE = 1.5;
-const FOOT_BUST_MAX_SPEED = 4.6;
+const FOOT_BUST_MAX_SPEED = 3.4; // the player's jog (3.0) is caught, a sprint is not
 const FOOT_BUST_TIME = 1;
 const CAR_BUST_MAX_SPEED = 2;
 const CAR_BUST_CAR_GAP = 2.6;
