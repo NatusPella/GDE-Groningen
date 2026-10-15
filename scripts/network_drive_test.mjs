@@ -21,7 +21,9 @@ const root = new URL('../game/', import.meta.url);
 const data = JSON.parse(fs.readFileSync(new URL('citymap.json', root)));
 applyMapExtras(data, JSON.parse(fs.readFileSync(new URL('mapextras.json', root))));
 const map = new GameMap(data);
-const world = { map, flitspaalen: [], player: { x: 0, y: 0 }, vehicles: [], props: [] };
+const world = { map, flitspaalen: [], player: { x: 0, y: 0 }, vehicles: [], props: [], particles: [], stats: {}, time: 0, addMessage() {}, audioEvents: [] };
+// the signal poles stand in the world as in the game (they are props a car can hit)
+(await import('../game/js/trafficlights.js')).initTrafficLights(world);
 const len = (P) => P.slice(1).reduce((a, q, i) => a + Math.hypot(q[0] - P[i][0], q[1] - P[i][1]), 0);
 
 const roads = map.roads.filter((r) => r.cat !== 'foot' && r.cat !== 'cycle' && !r.busOnly && (r.cat === 'major' || r.z) && len(r.pts) >= 8);
