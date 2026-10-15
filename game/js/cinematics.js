@@ -840,14 +840,6 @@ function orbitShot(w, { radius = 8, height = 3, sweep = 1, start = null, lookY =
   };
 }
 
-export function playMissionOutro(w, info) {
-  showBanner({ kind: 'pass', title: 'MISSIE GESLAAGD', ...info });
-  return playCinematic({
-    id: 'mission-outro', priority: 3, duration: 3.4, letterbox: false, timeScale: 0.35,
-    shot: orbitShot(w, { radius: 7.5, height: 3.2, sweep: 0.9 }),
-  });
-}
-
 export function playMissionFailed(w, info, withShot = true) {
   // sikkom: Gronings for "almost, but not quite" (the dialect word, not the news site)
   showBanner({ kind: 'fail', title: 'Sikkom.', ...info });
@@ -1031,6 +1023,8 @@ function esc(s) {
 export function showBanner({ kind = 'pass', title, reason = '', reward = 0, stats = [] }) {
   if (!els) return;
   const b = els.banner;
+  // the same result already up (scene start, then a fallback): once is enough
+  if (banner && !b.hidden && b.dataset.kind === kind && els.bTitle.textContent === title) return;
   b.dataset.kind = kind;
   els.bTitle.textContent = title;
   els.bReason.textContent = reason;
