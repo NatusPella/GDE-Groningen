@@ -274,7 +274,7 @@ function updateAlgae(dt, w) {
     if (!e.patches.length) continue;
     const near = e.patches.some((q) => Math.hypot(q.x - p.x, q.y - p.y) < 700);
     const have = A.built.get(id);
-    if (near && !have) A.built.set(id, buildLake(e.lake, e.patches));
+    if (near && !have) { if (getScene()) A.built.set(id, buildLake(e.lake, e.patches)); }
     else if (!near && have) { getScene().remove(have); have.traverse((o) => { if (o.geometry) o.geometry.dispose(); }); A.built.delete(id); }
     else if (have) have.traverse((o) => { if (o.userData.p) { o.rotation.z += dt * 0.02; o.material.opacity = 0.72 + Math.sin(w.time * 0.7 + o.userData.p.x) * 0.08; } });
   }
