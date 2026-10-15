@@ -1196,15 +1196,19 @@ function buildBusMesh(v) {
   const group = new THREE.Group();
   const len = v.model.len, wid = v.model.wid;
   const hl = len / 2;
-  const jointX = hl - len * BUS_JOINT_FRAC;
+  // model.trailer: the rear unit's length behind the body (an 18 m gelede
+  // bus: the 11.2 m front unit is the physics body, vehicle.js
+  // busTrailerPose); without it the joint sits inside the body's length
+  const trailer = v.model.trailer || 0;
+  const jointX = trailer ? -hl : hl - len * BUS_JOINT_FRAC;
   const frontLen = hl - jointX - BUS_JOINT_GAP;
   const frontX = hl - frontLen / 2;
-  const rearLen = jointX + hl - BUS_JOINT_GAP;
+  const rearLen = trailer ? trailer - BUS_JOINT_GAP : jointX + hl - BUS_JOINT_GAP;
   const rearX = -BUS_JOINT_GAP - rearLen / 2;
   const x0f = jointX + BUS_JOINT_GAP;
-  const fwX = hl - 2.7, mwX = x0f + 1.0;
-  const rwX = -hl * 0.78 - jointX;
-  const key = `bus|${len}|${wid}|${!!v.wrecked}`;
+  const fwX = hl - 2.7, mwX = trailer ? x0f + 1.6 : x0f + 1.0;
+  const rwX = trailer ? -BUS_JOINT_GAP - rearLen + 2.4 : -hl * 0.78 - jointX;
+  const key = `bus|${len}|${wid}|${trailer}|${!!v.wrecked}`;
   const mats = vehicleMaterials(!!v.wrecked);
 
   const frontGeo = cached(key + '|f', () => {
@@ -1222,7 +1226,7 @@ function buildBusMesh(v) {
   group.add(rear);
   const rearGeo = cached(key + '|r', () => {
     const B = new GeoBuilder(3);
-    busSection(B, -BUS_JOINT_GAP - rearLen, -BUS_JOINT_GAP, wid, { front: false, rear: true, wheelXs: [rwX], doorXs: [-BUS_JOINT_GAP - 1.2] });
+    busSection(B, -BUS_JOINT_GAP - rearLen, -BUS_JOINT_GAP, wid, { front: false, rear: true, wheelXs: [rwX], doorXs: [-BUS_JOINT_GAP - (trailer ? 1.4 : 1.2)] });
     return B.build();
   });
   rear.add(new THREE.Mesh(rearGeo, mats));
@@ -1688,7 +1692,8 @@ function pompebledTexture() {
 // the mast for the trim; the pennant and the stern flag flutter.
 function buildSkutsjeRig(L) {
   const hl = L / 2;
-  const mastH = Math.min(9, L * 0.85);
+  // a 15 m skûtsje carries a ~17 m mast (struck flat for the bridges)
+  const mastH = Math.min(17, L * 1.13);
   const boomL = L * 0.58, gaffL = L * 0.4;
   const rigGeo = cached(`skutsje-rig|${L}`, () => {
     const B = new GeoBuilder(3);
@@ -1765,8 +1770,9 @@ export function animateSkutsjeRig(v, trim, strike, t) {
   if (!rig) return false;
   const ud = rig.userData;
   ud.trim += (trim - ud.trim) * 0.08;
-  ud.strike += (strike - ud.strike) * 0.1;
-  rig.rotation.z = ud.strike * 1.38;
+  // raised slowly: the struck mast reaches well aft of the stern, past the bridge
+  ud.strike += (strike - ud.strike) * (strike > ud.strike ? 0.1 : 0.025);
+  rig.rotation.z = ud.strike * 1.5;
   ud.sail.rotation.y = ud.trim;
   ud.sail.scale.z = ud.trim < 0 ? -1 : 1;
   const flap = Math.sin(t * 7 + v.id) * 0.25 + Math.sin(t * 11.3) * 0.12;

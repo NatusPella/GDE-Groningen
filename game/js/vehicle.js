@@ -104,9 +104,12 @@ const POLICE_BOAT_MODEL = { name: 'boat', len: 5.5, wid: 2.0, playerTop: 15, pla
 // spawned on the bigger through-roads (see manageBusPopulation).
 // Qbuzz runs the Groningen-Drenthe concession: deep navy body with a cyan
 // accent band, not a generic tour-bus livery.
+// An 18 m gelede bus: len is the 11.2 m front unit (the physics body),
+// trailer the 6.8 m rear unit that swings behind it (busTrailerPose).
+export const BUS_TRAILER = 6.8;
 const BUS_MODELS = [
-  { name: 'bus', len: 11, wid: 2.35, maxSpeed: 20, accel: 4.5, brake: 12, turnRate: 1.1, color: '#132a44', stripe: '#3fc6d4', accent: '#e8e6de' },
-  { name: 'bus', len: 11, wid: 2.35, maxSpeed: 20, accel: 4.5, brake: 12, turnRate: 1.1, color: '#0f3a4a', stripe: '#3fc6d4', accent: '#e8e6de' },
+  { name: 'bus', len: 11.2, wid: 2.55, trailer: BUS_TRAILER, maxSpeed: 20, accel: 4.5, brake: 12, turnRate: 1.1, color: '#132a44', stripe: '#3fc6d4', accent: '#e8e6de' },
+  { name: 'bus', len: 11.2, wid: 2.55, trailer: BUS_TRAILER, maxSpeed: 20, accel: 4.5, brake: 12, turnRate: 1.1, color: '#0f3a4a', stripe: '#3fc6d4', accent: '#e8e6de' },
 ];
 
 let nextId = 1;
@@ -190,8 +193,8 @@ export class Vehicle {
       const lim = throttle > 0 ? top : top * REVERSE_FACTOR;
       const headroom = lim > 0 ? clamp(1 - absSpeed / lim, 0, 1) : 0;
       // player cars pull evenly through the gears (0-100 in ~6-8 s) and only run out of breath near top speed
-      const playerCar = isPlayer && !this.isBike && !this.isScooter && !this.isBoat;
-      const floor = playerCar ? 0.2 : isPlayer && this.sailTop != null ? 0.6 : 0.3;
+      const playerCar = isPlayer && !this.isBike && !this.isScooter && !this.isBoat && !this.isBus;
+      const floor = playerCar ? 0.2 : isPlayer && this.isBus ? 0.12 : isPlayer && this.sailTop != null ? 0.6 : 0.3;
       this.speed += throttle * (tune ? tune.accel : m.accel) * (floor + (1 - floor) * (playerCar ? Math.sqrt(headroom) : headroom)) * dt;
     } else {
       const drag = coastDrag(this, isPlayer, absSpeed) * dt;
@@ -390,6 +393,8 @@ function minTurnRadius(m, player = false) {
   if (m.name === 'bus') return player ? 10.5 : 9;
   if (m.name === 'midibus' && player) return 8.5;
   if (m.name === 'bike' || m.name === 'scooter') return 1.8;
+  // a long tour boat or barge turns on its own length or so (rudder and bow thruster)
+  if (m.name === 'boat') return m.len > 10 ? Math.max(12.5, m.len * 0.8) : Math.min(m.len * 1.25, 5.5);
   return m.len * 1.25;
 }
 
@@ -439,7 +444,7 @@ function pushBusTrail(v) {
   const e = free.pop() || {};
   e.x = v.x; e.y = v.y; e.angle = v.angle; e.dist = v.trailDist;
   v.trailHistory.push(e);
-  const keepFrom = v.trailDist - v.model.len * 1.6;
+  const keepFrom = v.trailDist - (v.model.len + (v.model.trailer || 0)) * 1.6;
   while (v.trailHistory.length > 2 && v.trailHistory[1].dist < keepFrom) free.push(v.trailHistory.shift());
 }
 
@@ -457,6 +462,23 @@ export function sampleBusTrail(v, backDist) {
     }
   }
   return { x: hist[0].x, y: hist[0].y, angle: hist[0].angle };
+}
+
+// The rear unit of a gelede bus (model.trailer): it hangs off the joint at
+// the body's tail and points at where that joint ran a trailer-length ago,
+// so it cuts the corner the way a real one does. angle is clamped to the
+// joint's 0.75 rad; cap is its collision capsule (vehicleCapsule's form).
+export function busTrailerPose(v) {
+  const hl = v.model.len / 2, tl = v.model.trailer || 0;
+  const c = Math.cos(v.angle), sn = Math.sin(v.angle);
+  const jx = v.x - c * hl, jy = v.y - sn * hl;
+  const back = sampleBusTrail(v, tl * 0.65);
+  const bjx = back.x - Math.cos(back.angle) * hl, bjy = back.y - Math.sin(back.angle) * hl;
+  let a = Math.hypot(jx - bjx, jy - bjy) > 0.4 && v.speed >= 0 ? Math.atan2(jy - bjy, jx - bjx) : back.angle;
+  a = v.angle + clamp(normalizeAngle(a - v.angle), -0.75, 0.75);
+  const r = v.halfWid + 0.05, ca = Math.cos(a), sa = Math.sin(a);
+  const ax = jx - ca * r, ay = jy - sa * r, bx = jx - ca * Math.max(r, tl - r), by = jy - sa * Math.max(r, tl - r);
+  return { jx, jy, angle: a, cap: { ax, ay, bx, by, r } };
 }
 
 // Right-hand-traffic offset from the road centerline (to the right of the
@@ -685,8 +707,9 @@ function lineOfSight(map, ax, ay, bx, by) {
 }
 
 function spawnSpotFree(vehicles, v, clearance = 9) {
+  const own = v.model.trailer || 0;
   for (const o of vehicles) {
-    if (Math.hypot(o.x - v.x, o.y - v.y) < clearance + o.halfLen) return false;
+    if (Math.hypot(o.x - v.x, o.y - v.y) < clearance + own + o.halfLen + (o.model.trailer || 0)) return false;
   }
   return true;
 }
@@ -841,8 +864,9 @@ export function manageBusPopulation(world, { target = 4, spawnMin = 90, spawnMax
   let guard = 0;
   while (count < target && candidates.length && guard++ < target * 6) {
     const road = candidates[Math.floor(Math.random() * candidates.length)];
-    // a midi bus now and then on the quieter lines
-    const midi = Math.random() < (road.cat === 'normal' ? 0.5 : 0.25);
+    // the 18 m gelede buses keep to the main roads and bus lanes; a midi bus
+    // now and then there too, always on the quieter lines
+    const midi = road.cat === 'normal' || Math.random() < 0.25;
     const v = spawnVehicleOnRoad(map, road, false, Math.random, false, true, null, false, midi ? { ...MIDIBUS_MODEL } : null);
     const d = Math.hypot(v.x - player.x, v.y - player.y);
     if (d < spawnMin || d > spawnMax || !spawnSpotFree(vehicles, v) || spawnWouldPop(world, v)) continue;
@@ -2119,7 +2143,43 @@ export function resolveVehicleVehicleCollisions(vehicles, world = null) {
       }
     }
   }
+  for (const a of vehicles) if (a.model.trailer && !a.sinking) resolveTrailerContacts(a, vehicles, world);
   if (world) resolvePropCollisions(vehicles, world);
+}
+
+// The gelede bus's rear unit against the other vehicles: as heavy as a wall
+// to them (it is dragged by its front unit, not pushed about itself).
+function resolveTrailerContacts(a, vehicles, world) {
+  const t = busTrailerPose(a);
+  const cap = t.cap;
+  const mx = (cap.ax + cap.bx) / 2, my = (cap.ay + cap.by) / 2, reach0 = Math.hypot(cap.bx - cap.ax, cap.by - cap.ay) / 2 + cap.r;
+  for (const b of vehicles) {
+    if (b === a || b.sinking || b.isBoat || (b.isHeli && !b.onGround) || Math.abs((a.z || 0) - (b.z || 0)) > 2.5) continue;
+    const reach = reach0 + b.halfLen + 0.2;
+    if ((b.x - mx) * (b.x - mx) + (b.y - my) * (b.y - my) > reach * reach) continue;
+    const capB = vehicleCapsule(b);
+    const { p1x, p1y, p2x, p2y, dist2: d2 } = closestPointsBetweenSegments(cap, capB);
+    const minDist = cap.r + capB.r;
+    let dist = Math.sqrt(d2);
+    if (dist >= minDist) continue;
+    let nx, ny;
+    if (dist < 1e-4) { dist = 1e-4; nx = -Math.sin(t.angle); ny = Math.cos(t.angle); if ((b.x - mx) * nx + (b.y - my) * ny < 0) { nx = -nx; ny = -ny; } }
+    else { nx = (p2x - p1x) / dist; ny = (p2y - p1y) / dist; }
+    const corr = Math.max(0, minDist - dist - 0.01);
+    b.x += nx * corr; b.y += ny * corr;
+    const hx = (p1x + p2x) / 2, hy = (p1y + p2y) / 2;
+    const relN = contactImpulse(b, null, hx, hy, -nx, -ny, CONTACT_FRICTION);
+    if (relN < IMPACT_EVENT_SPEED) continue;
+    recordContact(b, a, hx, hy, -nx, -ny, relN, 0);
+    const playerInvolved = a.driver === 'player' || b.driver === 'player';
+    reportImpact(world, hx, hy, relN, playerInvolved);
+    if (relN > HARD_HIT_CLOSING_SPEED) {
+      const base = (relN - HARD_HIT_CLOSING_SPEED) * IMPACT_DAMAGE_PER_MPS;
+      applyImpactDamage(b, clamp(base, 0, MAX_IMPACT_DAMAGE), playerInvolved, world);
+      applyImpactDamage(a, clamp(base * 0.5, 0, MAX_IMPACT_DAMAGE), playerInvolved, world);
+      b.hitThisFrame = true; b.hitX = hx; b.hitY = hy; b.hitImpactSpeed = relN;
+    }
+  }
 }
 
 function collisionProbes(v) {
@@ -2389,7 +2449,12 @@ export function resolveBoomCollisions(v, world) {
 // Push a circle (pedestrian, player on foot) out of a vehicle's capsule.
 // Returns the corrected position and the push normal, or null if clear.
 export function pushCircleOutOfVehicle(x, y, radius, v) {
-  const cap = vehicleCapsule(v);
+  const out = pushCircleOutOfCapsule(x, y, radius, v, vehicleCapsule(v));
+  if (out || !v.model.trailer) return out;
+  return pushCircleOutOfCapsule(x, y, radius, v, busTrailerPose(v).cap);
+}
+
+function pushCircleOutOfCapsule(x, y, radius, v, cap) {
   const cp = closestPointOnSegment(x, y, cap.ax, cap.ay, cap.bx, cap.by);
   const min = cap.r + radius;
   if (cp.dist2 >= min * min) return null;

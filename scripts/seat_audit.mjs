@@ -41,7 +41,7 @@ const CASES = [
   ['trekkerlimo', car('trekkerlimo', 5.6, 2.0)],
   ['tractor', car('tractor', 4.3, 2.3)],
   ['quad', car('quad', 2.1, 1.2)],
-  ['bus (gelede)', car('bus', 11, 2.35, { v: { isBus: true } })],
+  ['bus (gelede)', car('bus', 11.2, 2.55, { v: { isBus: true }, model: { trailer: 6.8 } })],
   ['midibus', car('midibus', 8.4, 2.3, { v: { isBus: true } })],
   ['heli', car('heli', 9, 2.4, { v: { isHeli: true } })],
 ];
