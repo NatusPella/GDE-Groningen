@@ -425,6 +425,73 @@ export function countryPath(from, to, free = false) {
   return pts;
 }
 
+// A short way from snap `from` towards snap `to` for a driver giving chase
+// (police.js): A* over the one-way graph that settles at most maxNodes, so
+// it never walks the whole network like countryCosts. When the budget runs
+// out the path ends at the settled node nearest the target.
+export function countryPathNear(from, to, maxNodes = 2500) {
+  if (!G || !from || !to) return null;
+  if (from.a === to.a && from.b === to.b && (!from.one || to.da >= from.da)) return [[from.x, from.y], [to.x, to.y]];
+  const tx = to.x, ty = to.y;
+  const h = (n) => Math.hypot(G.x[n] - tx, G.y[n] - ty);
+  const dist = new Map(), prev = new Map(), done = new Set();
+  const heap = [];
+  const push = (f, n) => {
+    heap.push([f, n]);
+    for (let i = heap.length - 1; i > 0;) {
+      const p = (i - 1) >> 1;
+      if (heap[p][0] <= heap[i][0]) break;
+      [heap[i], heap[p]] = [heap[p], heap[i]];
+      i = p;
+    }
+  };
+  const pop = () => {
+    const top = heap[0], last = heap.pop();
+    if (heap.length) {
+      heap[0] = last;
+      for (let i = 0; ;) {
+        let k = 2 * i + 1;
+        if (k >= heap.length) break;
+        if (k + 1 < heap.length && heap[k + 1][0] < heap[k][0]) k++;
+        if (heap[k][0] >= heap[i][0]) break;
+        [heap[i], heap[k]] = [heap[k], heap[i]];
+        i = k;
+      }
+    }
+    return top;
+  };
+  const seed = (n, d) => { if (!(dist.get(n) <= d)) { dist.set(n, d); prev.set(n, -1); push(d + h(n), n); } };
+  seed(from.b, from.db);
+  if (!from.one) seed(from.a, from.da);
+  // arriving on the target's edge: from a (on to b's side only when two-way)
+  const endA = to.a, endB = to.one ? -1 : to.b;
+  let best = -1, bestH = Infinity, hit = -1;
+  while (heap.length && done.size < maxNodes) {
+    const [, u] = pop();
+    if (done.has(u)) continue;
+    done.add(u);
+    const hu = h(u);
+    if (hu < bestH) { bestH = hu; best = u; }
+    if (u === endA || u === endB) { hit = u; break; }
+    const du = dist.get(u);
+    for (let e = G.fwd.start[u]; e < G.fwd.start[u + 1]; e++) {
+      const v = G.fwd.to[e], nd = du + G.fwd.len[e];
+      if (dist.get(v) <= nd) continue;
+      dist.set(v, nd);
+      prev.set(v, u);
+      push(nd + h(v), v);
+    }
+  }
+  const end = hit >= 0 ? hit : best;
+  if (end < 0) return null;
+  const pts = [];
+  for (let n = end; n >= 0; n = prev.get(n)) pts.push([G.x[n], G.y[n]]);
+  pts.push([from.x, from.y]);
+  pts.reverse();
+  if (hit >= 0) pts.push([to.x, to.y]);
+  return pts;
+}
+
 // From snap `from` to node n.
 export function countryPathToNode(from, n, free = false) {
   const { dist, prev } = countryCosts(from, false, free);

@@ -5,7 +5,8 @@ import { closestPointOnSegment, pointInPolygon } from './util.js';
 import { resolveWalkerProps } from './breakables.js';
 import { countryWeight } from './countryfield.js';
 import { pushOutOfPlan } from './countryplan.js';
-import { pushOutOfTrunks } from './countrywalls.js';
+import { pushOutOfTrunks, pushOutOfWalls } from './countrywalls.js';
+import { pushOutOfRails, COUNTRY_RAIL_H } from './countryrails.js';
 import { resolveRailings } from './bridgerails.js';
 import { resolveElevWalls } from './elevation.js';
 import { pushOutOfWaterObstacles } from './waterindex.js';
@@ -22,8 +23,11 @@ const PASSAGE_SLACK = 0.6;
 // Push a circle out of any nearby building polygon it overlaps - including
 // when its centre is already inside, where the nearest-edge vector points
 // outward rather than away from the wall. Inside a passage the circle is
-// kept within the corridor instead.
-export function resolveBuildingCollisions(x, y, radius, map) {
+// kept within the corridor instead. Out in the Ommeland the countryplan
+// solids, tree trunks and bridge railings (unless jumped over: hop) hold it
+// too, and with `walls` the field hedges and fences (the player vaults
+// those, countryside.js).
+export function resolveBuildingCollisions(x, y, radius, map, hop = 0, walls = false) {
   const nearby = map.buildingsNear(x, y, radius + 2);
   // several passes: in a tight gap between two buildings one push can land
   // against the other wall
@@ -87,6 +91,10 @@ export function resolveBuildingCollisions(x, y, radius, map) {
     if (pushOutOfPlan(o, radius)) { x = o.x; y = o.y; }
     o.x = x; o.y = y;
     if (pushOutOfTrunks(o, radius)) { x = o.x; y = o.y; }
+    o.x = x; o.y = y;
+    if (hop < COUNTRY_RAIL_H && pushOutOfRails(o, radius)) { x = o.x; y = o.y; }
+    o.x = x; o.y = y;
+    if (walls && hop < 0.5 && pushOutOfWalls(o, radius)) { x = o.x; y = o.y; }
   }
   return [x, y];
 }
@@ -110,5 +118,5 @@ export function resolveWalker(x, y, radius, map, vx = 0, vy = 0, opts = null, z 
   // moored houseboats along the quays are solid too
   const hb = pushOutOfWaterObstacles(map, x, y, radius);
   if (hb) [x, y] = hb;
-  return resolveBuildingCollisions(x, y, radius, map);
+  return resolveBuildingCollisions(x, y, radius, map, hop, !(opts && opts.noWalls));
 }

@@ -3,18 +3,19 @@ import { ensureWorldEnds, updateWorldEnds, worldEndSolids, getWorldEndSpots, wor
 import { initVillages, updateVillages, villageSolids, villagePrompt, villageSecondary, tryVillageInteract, getVillageSpots, ensureVillages, villageDebug, villageUse } from './dorpsuitjes.js';
 import { getKoeSites, koeCowTo } from './pg_koe.js';
 import { updateTalk } from './ommelandtalk.js';
+import { setExtraSolids } from './countryplan.js';
 
 // The Ommeland extras in one place for main.js, prompts.js and spotcheck.js:
 // the wereldeinden (worldends.js), the dorpsuitjes (dorpsuitjes.js) and the
 // solid bits of their props. De Koe van Ome Jan runs as a post-game
 // challenge (pg_koe.js). Debug: window.__ommeland.
 
-const PUSH_R = 60;
 let world = null;
 const solids = [];
 
 export function initOmmelandFun(w) {
   world = w;
+  setExtraSolids(solids);
   initVillages(w);
   if (typeof window !== 'undefined') {
     window.__ommeland = {
@@ -27,24 +28,12 @@ export function initOmmelandFun(w) {
   }
 }
 
-// Props block the player on foot and in a vehicle: a plain circle push-out.
-function pushOut(w) {
-  const p = w.player, v = p.inVehicle;
-  if (v && v.isHeli && !v.onGround) return;
-  const o = v || p;
-  const R = v ? Math.max(0.9, v.halfWid || 0.9) : 0.35;
+// The props' solid circles join countryplan.js pushOutOfPlan: every vehicle
+// (vehicle.js, damage and impact sound), the camera ray and every walker.
+function refreshSolids() {
   solids.length = 0;
   worldEndSolids(solids);
   villageSolids(solids);
-  for (const s of solids) {
-    const dx = o.x - s.x, dy = o.y - s.y;
-    if (Math.abs(dx) > PUSH_R || Math.abs(dy) > PUSH_R) continue;
-    const d = Math.hypot(dx, dy), min = s.r + R;
-    if (d >= min || d < 1e-4) continue;
-    o.x = s.x + (dx / d) * min;
-    o.y = s.y + (dy / d) * min;
-    if (v) v.speed *= 0.6;
-  }
 }
 
 export function updateOmmelandFun(dt, w) {
@@ -54,7 +43,7 @@ export function updateOmmelandFun(dt, w) {
   updateWorldEnds(dt, w);
   updateVillages(dt, w);
   updateTalk(w);
-  if (!w.pigeonMode) pushOut(w);
+  refreshSolids();
 }
 
 export function tryOmmelandInteract(w) {

@@ -1,5 +1,8 @@
 import { clamp, pointInPolygon } from '../util.js';
 import { getScene } from '../scene3d.js';
+import { edgeDistance, urbanWeight, parcelAt, MAAR_WATER } from '../countryfield.js';
+import { openWater } from '../countryedge.js';
+import { trunksNear } from '../countrywalls.js';
 
 // Place-aware ambience: looping beds crossfaded by where/when the listener
 // is, scheduled ambient events (birds, gulls, clinks, thunder), the
@@ -11,7 +14,7 @@ const BED_STOP_AFTER = 4;
 
 const place = {
   green: 0, trees: 0, treePts: [], waterD: Infinity, waterX: 0, waterY: 0,
-  square: 0, horeca: 0, horecaPts: [], density: 0, open: 0, traffic: 0, peds: 0,
+  square: 0, horeca: 0, horecaPts: [], density: 0, open: 0, traffic: 0, peds: 0, rural: 0,
 };
 export function getPlace() { return place; }
 
@@ -226,9 +229,46 @@ function scan(world) {
   for (const ped of world.pedestrians) if (ped.state !== 'dead' && Math.abs(ped.x - x) < 30 && Math.abs(ped.y - y) < 30) peds++;
   place.peds = clamp(peds / 14, 0, 1);
 
+  countryPlace(x, y);
+
   const v = p.inVehicle;
   const closed = !!v && !v.isBike && !v.isScooter && !v.isBoat;
   K.setReverb(place.density, place.open, closed);
+}
+
+// Out in the Ommeland the city's green, trees and water polygons are gone:
+// the meadows all round, the trunks of the road trees and hedgerows
+// (countrywalls.js) and the open water, canals and maren take their place,
+// and the polder is open (no city hum, more wind) outside a village's
+// built-up part.
+const _trunks = [];
+function countryPlace(x, y) {
+  const e = edgeDistance(x, y);
+  place.rural = smooth01(20, 220, e) * (1 - 0.8 * urbanWeight(x, y));
+  if (e < 20) return;
+  const k = smooth01(20, 220, e);
+  place.green = Math.max(place.green, 0.85 * k * (1 - 0.6 * urbanWeight(x, y)));
+  _trunks.length = 0;
+  const tn = trunksNear(x, y, 35, _trunks, 10);
+  if (tn) {
+    place.trees = Math.max(place.trees, clamp(tn / 12, 0, 1));
+    if (place.treePts.length < 4) place.treePts.push(..._trunks);
+  }
+  place.open = Math.max(place.open, place.rural);
+  // the nearest open water down the slope of its distance field
+  const w = openWater(x, y);
+  if (w > -60) {
+    const d = Math.max(0, -w);
+    if (d < place.waterD) {
+      const gx = openWater(x + 3, y) - openWater(x - 3, y), gy = openWater(x, y + 3) - openWater(x, y - 3), gl = Math.hypot(gx, gy);
+      place.waterD = d;
+      place.waterX = gl > 1e-3 ? x + (gx / gl) * d : x;
+      place.waterY = gl > 1e-3 ? y + (gy / gl) * d : y;
+    }
+  }
+  // a maar of the polder grid (past the real data)
+  const pm = parcelAt(x, y).dMaar - MAAR_WATER;
+  if (pm < place.waterD) { place.waterD = Math.max(0, pm); place.waterX = x; place.waterY = y; }
 }
 
 function smooth01(a, b, x) {
@@ -246,7 +286,7 @@ function setTargets(world) {
   const paused = K.muted() ? 0 : world.paused ? 0.45 : 1;
   const cabin = closed ? 0.45 : 1;
 
-  beds.city.target = (0.07 + place.traffic * 0.1 + place.density * 0.04 - place.green * 0.04) * (0.55 + 0.45 * day) * cabin * paused;
+  beds.city.target = (0.07 + place.traffic * 0.1 + place.density * 0.04 - place.green * 0.04) * (0.55 + 0.45 * day) * (1 - 0.9 * place.rural) * cabin * paused;
   beds.wind.target = (0.03 + place.open * 0.04 + place.green * 0.015 + rain * 0.26) * (closed ? 0.35 : 1) * paused;
   beds.rain.target = rain * (closed ? 0.1 : 0.28) * paused;
   beds.roof.target = closed ? rain * 0.32 * paused : 0;
