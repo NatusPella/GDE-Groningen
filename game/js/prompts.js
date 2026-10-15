@@ -19,6 +19,7 @@ import { lineOfSight } from './pedestrians.js';
 import { pigeonSpotPrompt, pigeonSpotSecondary } from './pigeonspots.js';
 import { sideJobPrompt, sideJobSecondary } from './sidejobs.js';
 import { stationPrompt, stationSecondary } from './stationtravel.js';
+import { machinePrompt } from './snackautomaat.js';
 import { trainPrompt } from './traindrive.js';
 import { heliSpotPrompt, heliSpotSecondary } from './helirun.js';
 import { padelPrompt, padelSecondary } from './padel.js';
@@ -333,6 +334,8 @@ function findPrimary(world) {
   if (gar) return gar;
   const pg = postgamePrompt(world);
   if (pg) return pg;
+  const muur = machinePrompt(world);
+  if (muur) return muur;
   const shop = shopPrimaryPrompt(world);
   if (shop) return shop;
   const thuis = homePrompt(world);
