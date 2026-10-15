@@ -10,6 +10,7 @@ import { isMissionActive } from './missions.js';
 import { isActivityActive } from './activities.js';
 import { inHomeFlat } from './home.js';
 import { GROTE_MARKT } from './flavour.js';
+import { updateMarktSigns } from './marktfiets.js';
 import {
   QUAKE, rollQuakeGap, mayQuake, rollQuake, quakeEnvelope, quakeStrength, bikeWobble, QUAKE_BARKS, quakeNewsText,
   ALGAE, algaePatches, patchAt, algaeEffect, algaeHurt, algaeDay, ALGAE_SIGN, ALGAE_NEWS, ALGAE_SWIM_MSG,
@@ -60,6 +61,7 @@ export function updateWorldEvents(dt, w) {
   updateAlgae(dt, w);
   updateFireworks(dt, w);
   updateTourists(dt, w);
+  updateMarktSigns(dt, w);
 }
 
 const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
