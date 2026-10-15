@@ -35,6 +35,83 @@ export function cleanRow(o) {
   return out;
 }
 
+// --- building attributes (scripts/world/building_attrs.py, docs/PROVINCIE-PLAN.md 0.1)
+export const ATTR_KEYS = ['hm', 'hsrc', 'roof', 'colour', 'rcolour', 'mat', 'rmat', 'year', 'bag', 'hmax', 'h50', 'hg'];
+const LEVEL_M = 3.1;
+
+export function loadAttrs(root = ROOT) {
+  const f = path.join(root, 'data/world/building_attrs.json.gz');
+  const osm = fs.existsSync(f) ? JSON.parse(zlib.gunzipSync(fs.readFileSync(f)).toString('utf8')) : [];
+  // 3D BAG (CC BY 4.0): data/3dbag/*.json, made by scripts/world/fetch_3dbag.py (F1)
+  const dir = path.join(root, 'data/3dbag');
+  const bag = fs.existsSync(dir) ? fs.readdirSync(dir).filter((q) => q.endsWith('.json')).sort().flatMap((q) => JSON.parse(fs.readFileSync(path.join(dir, q), 'utf8'))) : [];
+  return { osm, bag };
+}
+
+const polyArea = (P) => { let a = 0; for (let i = 0; i < P.length; i++) { const [x0, y0] = P[i], [x1, y1] = P[(i + 1) % P.length]; a += x0 * y1 - x1 * y0; } return Math.abs(a / 2); };
+function inPoly(x, y, P) {
+  let inside = false;
+  for (let i = 0, j = P.length - 1; i < P.length; j = i++) {
+    const [xi, yi] = P[i], [xj, yj] = P[j];
+    if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside;
+  }
+  return inside;
+}
+
+// per building (the GameMap's objects): the extra fields for its tile rows
+export function joinAttrs(buildings, attrs) {
+  const CELL = 16;
+  const grid = (list) => {
+    const g = new Map();
+    for (const r of list) { const k = `${Math.floor(r.c[0] / CELL)},${Math.floor(r.c[1] / CELL)}`; (g.get(k) || g.set(k, []).get(k)).push(r); }
+    return g;
+  };
+  const gOsm = grid(attrs.osm), gBag = grid(attrs.bag);
+  const near = (g, b, bb) => {
+    const out = [];
+    for (let i = Math.floor(bb[0] / CELL); i <= Math.floor(bb[2] / CELL); i++) for (let j = Math.floor(bb[1] / CELL); j <= Math.floor(bb[3] / CELL); j++) for (const r of g.get(`${i},${j}`) || []) out.push(r);
+    return out;
+  };
+  const pick = (g, b, bb, area) => {
+    let best = null, bd = Infinity;
+    for (const r of near(g, b, bb)) {
+      if (!inPoly(r.c[0], r.c[1], b.pts)) continue;
+      const ratio = r.a / area;
+      if (ratio < 0.75 || ratio > 1.34) continue;
+      const d = Math.abs(Math.log(ratio));
+      if (d < bd) { bd = d; best = r; }
+    }
+    return best;
+  };
+  const byBag = new Map(attrs.bag.map((r) => [String(r.id).replace(/^NL\.IMBAG\.Pand\./, ''), r]));
+  const out = new Map();
+  const stats = { buildings: buildings.length, matched: 0, 3: 0 };
+  const src = { '3dbag': 0, osm_height: 0, osm_levels: 0, default: 0 };
+  for (const b of buildings) {
+    const bb = b.bounds || (() => { const xs = b.pts.map((p) => p[0]), ys = b.pts.map((p) => p[1]); return [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)]; })();
+    const area = polyArea(b.pts) || 1;
+    const o = pick(gOsm, b, bb, area);
+    const f = {};
+    if (o) {
+      stats.matched++;
+      for (const k of ['roof', 'colour', 'rcolour', 'mat', 'rmat', 'year', 'bag']) if (o[k] !== undefined) f[k] = o[k];
+    }
+    const g3 = (o && o.bag && byBag.get(String(o.bag))) || pick(gBag, b, bb, area);
+    if (g3 && g3.hmax !== undefined && g3.hg !== undefined) {
+      f.hm = Math.round((g3.hmax - g3.hg) * 100) / 100;
+      f.hmax = g3.hmax; f.hg = g3.hg;
+      if (g3.h50 !== undefined) f.h50 = g3.h50;
+      if (g3.roof && !f.roof) f.roof = g3.roof;
+      f.hsrc = '3dbag';
+    } else if (o && o.h) { f.hm = o.h; f.hsrc = 'osm_height'; }
+    else if (o && o.lv) { f.hm = Math.round((o.lv * LEVEL_M + (o.rl || 0) * LEVEL_M) * 100) / 100; f.hsrc = 'osm_levels'; }
+    else { f.hm = Math.round((b.h || 1) * LEVEL_M * 100) / 100; f.hsrc = 'default'; }
+    src[f.hsrc]++;
+    out.set(b, f);
+  }
+  return { fields: out, stats: { ...stats, src } };
+}
+
 export function loadSources(game = path.join(ROOT, 'game')) {
   const data = JSON.parse(fs.readFileSync(path.join(game, 'citymap.json'), 'utf8'));
   applyMapExtras(data, JSON.parse(fs.readFileSync(path.join(game, 'mapextras.json'), 'utf8')));
@@ -71,7 +148,8 @@ export function tilesOf(bounds) {
   return out;
 }
 
-export function build({ map, om, bin }) {
+export function build({ map, om, bin }, attrs = loadAttrs()) {
+  const joined = joinAttrs(map.buildings, attrs);
   const tiles = new Map();
   const tileOf = (i, j) => {
     const k = G.tileKey(i, j);
@@ -86,7 +164,7 @@ export function build({ map, om, bin }) {
     list.forEach((o, gid) => {
       for (const [i, j] of tilesOf(boundsOf(kind, o))) {
         const t = tileOf(i, j);
-        (t.kinds[kind] || (t.kinds[kind] = [])).push(kind === 'trees' ? { g: gid, p: [[o[0], o[1]]] } : { gid, ...cleanRow(o) });
+        (t.kinds[kind] || (t.kinds[kind] = [])).push(kind === 'trees' ? { g: gid, p: [[o[0], o[1]]] } : { gid, ...cleanRow(o), ...(kind === 'buildings' ? joined.fields.get(o) : null) });
       }
     });
   }
@@ -111,7 +189,7 @@ export function build({ map, om, bin }) {
       { type: G.SECTION.BLOB, name: 'ommeland.bin', bytes: new Uint8Array(bin) },
     ],
   });
-  return { blobs, global, counts };
+  return { blobs, global, counts, attrStats: joined.stats };
 }
 
 const deflate = (b) => new Uint8Array(zlib.deflateRawSync(b, { level: 9 }));
@@ -178,6 +256,8 @@ async function main() {
   const size = Object.values(index.packs).reduce((a, p) => a + p.size, 0);
   const raw = Object.values(index.tiles).reduce((a, t) => a + t.raw, 0) + index.global.raw;
   console.log(`${Object.keys(index.tiles).length} tiles in ${Object.keys(index.packs).length} packs, ${(size / 1e6).toFixed(2)} MB (${(raw / 1e6).toFixed(2)} MB raw), index ${(fs.statSync(path.join(out, 'index.json')).size / 1e3).toFixed(0)} kB`);
+  const a = built.attrStats;
+  console.log(`building attributes: ${a.matched}/${a.buildings} matched to OSM tags, height from ${Object.entries(a.src).map(([k, v]) => `${k} ${v}`).join(', ')}`);
   console.log(`load + derive ${((t1 - t0) / 1000).toFixed(1)} s, tile + pack ${((t2 - t1) / 1000).toFixed(1)} s -> ${path.relative(ROOT, out)}`);
 }
 
