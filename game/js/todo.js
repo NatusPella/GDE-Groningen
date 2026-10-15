@@ -24,6 +24,7 @@ import { SET_DONE, SET_EGGS } from './dorpsuitjes.js';
 import { VILLAGES } from './ommelandlines.js';
 import { getStationsForRender } from './stationtravel.js';
 import { SECRETS_TOTAL } from './geheimen.js';
+import { DRIFT_ZONE, DRIFT_MEDAL_AT } from './driftzone.js';
 import { getGoal, setGoal, clearGoal } from './goal.js';
 import { drawMapIcon } from './hud_panel.js';
 import { klusloon } from './economy.js';
@@ -168,6 +169,12 @@ function minigameItems(world) {
   add({ key: 'mg:botsauto', playId: 'kermis', icon: 'act-kermis', title: "Botsauto's", meta: 'Grote Markt · €3 · kermis 19:00–01:00',
     medal: kr ? kr.medal : 0, record: kr && kr.best != null ? `Record ${kr.best} punten` : 'Nog niet gespeeld',
     detail: { kicker: 'Minigame · Grote Markt', text: 'Botsen tegen vijf rijders, Tammo of Tessa incluis. Van opzij en van achteren telt het dubbel.', rows: [] } }, kermis);
+  const drift = acts.filter((a) => a.layer === 'drift');
+  const dz = DRIFT_ZONE.bestOverall();
+  add({ key: 'mg:drift', playId: 'drift', icon: 'act-drift', title: 'Driftzones', meta: `${drift.length} rotondes · handrem en gas`,
+    medal: dz.medal, record: dz.best != null ? `Record ${dz.best} punten` : 'Nog niet gedrift',
+    detail: { kicker: 'Minigame · rotondes in de stad', text: 'Rijd een driftzone in, trek aan de handrem in de bocht en blijf glijden met gas erop. Combo\'s en wisselbochten tellen mee; een klap kost je de punten.', rows: [['Zones', drift.map((d) => d.name).join(', ')]],
+      medals: DRIFT_MEDAL_AT.map((p, i) => [i + 1, `${p.toLocaleString('nl-NL')} punten`]) } }, drift);
   const heli = getHeliSpotsForRender();
   const best = getStat('heliBest');
   const hr = getChallengeRecord('ballonjacht');

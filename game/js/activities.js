@@ -14,11 +14,12 @@
 import { CARBID } from './carbid.js';
 import { KERMIS } from './kermis.js';
 import { GEHEIMEN } from './geheimen.js';
+import { DRIFT_ZONE } from './driftzone.js';
 import { isShopOpen } from './shopui.js';
 import { isCinematicActive } from './cinematics.js';
 export { activityBlock, iconDisc } from './activitykit.js';
 
-const LIST = [CARBID, KERMIS, GEHEIMEN];
+const LIST = [CARBID, KERMIS, GEHEIMEN, DRIFT_ZONE];
 
 export function initActivities(w) {
   for (const a of LIST) {

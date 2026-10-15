@@ -128,7 +128,7 @@ function context() {
   if (w.challenge && w.challenge.id === 'fjord') return 'foodtruck';
   if (w.padelGame || w.activityGame) return 'minigame';
   const v = w.player && w.player.inVehicle;
-  if (v) return v.isHeli ? 'heli' : w.noLookBack ? 'skutsje' : 'vehicle';
+  if (v) return v.isHeli ? 'heli' : w.noLookBack ? 'skutsje' : v.gb && getSettings().shiftMode !== 'auto' ? 'vehicleManual' : 'vehicle';
   return 'foot';
 }
 

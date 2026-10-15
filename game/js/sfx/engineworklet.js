@@ -30,6 +30,12 @@ const PROFILES = [
   { fpr: 2, idle: 750, red: 4300, odd: 0.08, tilt: 0.8, fc: [380, 1100], body: [140, 110, 0.8], exh: [340, 200, 0.6], exhRise: 120, rasp: 0.15, intake: 0.06, mech: 0.02, jit: 0.002, wobble: 0.005, out: 0.5, crank: 0.8 },
   // 7: e-step hub motor - a clean rising whine, no combustion at all
   { fpr: 2, idle: 2400, red: 48000, odd: 0.35, tilt: 1.7, fc: [2200, 3600], body: [700, 300, 0.4], exh: [1500, 500, 0.5], exhRise: 300, rasp: 0, intake: 0, mech: 0.003, jit: 0, wobble: 0, out: 0.3, crank: 0.05 },
+  // 8: sport bike, an inline four: a high, clean scream with a lot of intake
+  { fpr: 4, idle: 1300, red: 13000, odd: 0.18, tilt: 0.62, fc: [700, 2600], body: [200, 140, 0.7], exh: [520, 260, 0.9], exhRise: 260, rasp: 0.3, intake: 0.16, mech: 0.02, jit: 0.002, wobble: 0.005, out: 0.5, crank: 0.5 },
+  // 9: naked twin, lumpy and throaty
+  { fpr: 2, idle: 1200, red: 10000, odd: 0.3, tilt: 0.8, fc: [500, 1800], body: [140, 100, 1.0], exh: [360, 200, 1.0], exhRise: 200, rasp: 0.24, intake: 0.1, mech: 0.012, jit: 0.006, wobble: 0.02, out: 0.5, crank: 0.6 },
+  // 10: old-timer single, a slow thump with mechanical clatter
+  { fpr: 1, idle: 1000, red: 7500, odd: 0.35, tilt: 0.65, fc: [380, 1200], body: [110, 90, 1.1], exh: [300, 180, 0.8], exhRise: 120, rasp: 0.12, intake: 0.05, mech: 0.02, jit: 0.01, wobble: 0.03, out: 0.5, crank: 0.9 },
 ];
 
 class Rng {

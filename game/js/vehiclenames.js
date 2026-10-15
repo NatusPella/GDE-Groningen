@@ -17,6 +17,7 @@ const NAMES = {
   truck: [['Oldambt', 'Bakwagen'], ['Eemshaven', 'Sjouwer']],
   ambulance: [['Ambulance', 'Spoedrit']],
   scooter: [['E-step', 'Zoemzoem'], ['Deelstep', 'Stadswesp']],
+  motor: [['Wadden', 'Stormvogel']],
   boat: [['Sloep', 'Nait Soezen'], ['Sloep', 'Grachtengast']],
   heli: [['Rotor Roelf', 'Wieken Wubbo']],
 };
@@ -53,6 +54,11 @@ export function vehicleDisplayName(v) {
   if (v.isAmbulance) return { make: 'Ambulance', model: 'Spoedrit' };
   if (name === 'hatch' && v.model.rusty) return { make: 'Dollard', model: 'Roestbak' };
   if (name === 'van' && v.model.livery === 'pakket') return { make: 'Pakkie Nou', model: 'Bezorgbus' };
+  if (name === 'scooter' && v.model.geared) return { make: 'Tweetakt', model: 'Pruttelaar' };
+  if (name === 'motor') {
+    const k = v.model.motorbike;
+    return k === 'naked' ? { make: 'Hunze', model: 'Knetter' } : k === 'old' ? { make: 'Dollard', model: 'Klassieker' } : { make: 'Wadden', model: 'Stormvogel' };
+  }
   if (name === 'scooter' && v.model.moped) return { make: 'Snorscooter', model: 'Brommie' };
   if (name === 'trekkerlimo') return { make: 'Terpstra', model: 'Trekker-limo' };
   if (name === 'tractor') return { make: 'Ommelander', model: 'Trekker' };

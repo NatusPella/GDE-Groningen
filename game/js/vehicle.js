@@ -18,6 +18,10 @@ import { manageParkedCars, tickParkedCars } from './parkedcars.js';
 import { pickBoatModel } from './boattypes.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { MODS } from './cheatmods.js';
+import { profileFor, createGearbox, stepGearbox } from './gearbox.js';
+import { slipAngle } from './drift.js';
+import { MOPED_LEGAL_SPEED } from './motomodels.js';
+export { MOTORBIKE_MODELS, GEARED_MOPED_MODEL, MOPED_LEGAL_SPEED } from './motomodels.js';
 
 // every traffic model, for warming their meshes before they first spawn
 export const TRAFFIC_MODELS = () => [...MODELS, ...BUS_MODELS, ...SCOOTER_MODELS, ...FATBIKE_MODELS, ...REGULAR_BIKE_MODELS];
@@ -139,6 +143,9 @@ export class Vehicle {
     // Zero outside of a collision's immediate aftermath.
     this.driftX = 0;
     this.driftY = 0;
+    this.roll = 0;
+    this.arcadeSlide = false;
+    this.slipAngle = 0; // rad between heading and travel direction (player cars, drift.js)
     this.yawVel = 0; // rad/s of spin from an off-centre impact, decays in applyControls
 
     // traffic AI path state: current segment runs road.pts[segIdx] ->
@@ -157,6 +164,35 @@ export class Vehicle {
   bounds(margin = 0) {
     const r = this.halfLen + margin;
     return [this.x - r, this.y - r, this.x + r, this.y + r];
+  }
+
+  // Motorbike feel (player only): the bike leans into a turn (v.roll, drawn by scene3d.js) and the
+  // front wheel comes up on a wheelie or goes down on a stoppie while the trick key (Shift) is
+  // held. With the assist (setting bikeAssist) the lean is capped and a wheelie levels off; without
+  // it a wheelie held too long loops out, a lean past the limit is a low-side, and both throw the
+  // rider (this.crashed, handled in player.js).
+  rideMotorbike(dt, throttle, gb, top, absSpeed, yawRate) {
+    const assist = this.bikeAssist !== false;
+    const limit = assist ? 0.8 : 1.15;
+    const lean = clamp(Math.atan2(yawRate * absSpeed * Math.sign(this.speed || 1), 9.81), -1.4, 1.4);
+    this.roll += (clamp(lean, -limit, limit) - this.roll) * Math.min(1, dt * 7);
+    let want = 0;
+    const trick = !!this.trick && !this.disabled;
+    if (trick && throttle > 0 && absSpeed > 2.5 && absSpeed < top * 0.6) {
+      const gear = gb ? gb.gear : 1;
+      const k = gb && gb.p.wheelie ? gb.p.wheelie * (gear === 1 ? 1 : gear === 2 ? 0.7 : gear === 3 ? 0.35 : 0) : 0;
+      want = 0.62 * k;
+    } else if (trick && throttle < 0 && absSpeed > 9) want = -0.3;
+    const catchUp = Math.min(1, dt * (want > 0 ? 3.2 : 4));
+    if (want > 0 && !assist) {
+      this.wheelieT = (this.wheelieT || 0) + dt;
+      this.pitch += (want * (1 + Math.max(0, this.wheelieT - 0.8) * 1.4) - this.pitch) * catchUp;
+    } else {
+      this.wheelieT = 0;
+      this.pitch += (want - this.pitch) * catchUp;
+    }
+    if (!assist && (this.pitch > 1.3 || Math.abs(this.roll) >= limit - 0.001 && absSpeed > 8 && Math.abs(lean) > limit + 0.1)) this.crashed = true;
+    this.wheelie = this.pitch > 0.2;
   }
 
   // Player/AI driving physics shared by both control sources. brakeInput may
@@ -181,6 +217,17 @@ export class Vehicle {
       if (Math.sign(throttle) !== this.holdSign) this.holdStill = 0;
       else { this.holdStill -= dt; throttle = 0; }
     }
+    // gearbox (gearbox.js): always tracked for the player's geared vehicles so the HUD and the
+    // engine sound agree; only manual modes change the driving (torque curve, limiter, engine braking)
+    let gb = null, manual = false;
+    if (isPlayer) {
+      if (this.gb === undefined) { const pid = profileFor(this); this.gb = pid ? createGearbox(pid) : null; }
+      gb = this.gb;
+      if (gb) {
+        stepGearbox(gb, { speed: this.speed, top, throttle, mode: this.shiftMode || 'auto', clutchIn: !!this.clutchIn }, dt);
+        manual = gb.mode !== 'auto';
+      }
+    }
     let decel = brake * brakeMax * (handbrakeDrift ? 0.32 : 1);
     if (against) {
       // player pedal bites at 60% and builds to full within ~0.25 s (a bus's air brakes take longer)
@@ -191,15 +238,15 @@ export class Vehicle {
       const dec = decel * dt;
       if (isPlayer && against && absSpeed <= dec) { this.holdStill = 0.3; this.holdSign = Math.sign(throttle); }
       this.speed = this.speed > 0 ? Math.max(0, this.speed - dec) : Math.min(0, this.speed + dec);
-    } else if (throttle !== 0) {
+    } else if (throttle !== 0 && !(manual && throttle > 0 && gb.torque <= 0)) {
       const lim = throttle > 0 ? top : top * REVERSE_FACTOR;
       const headroom = lim > 0 ? clamp(1 - absSpeed / lim, 0, 1) : 0;
       // player cars pull evenly through the gears (0-100 in ~6-8 s) and only run out of breath near top speed
       const playerCar = isPlayer && !this.isBike && !this.isScooter && !this.isBoat && !this.isBus;
       const floor = playerCar ? 0.2 : isPlayer && this.isBus ? 0.12 : isPlayer && this.sailTop != null ? 0.6 : 0.3;
-      this.speed += throttle * (tune ? tune.accel : m.accel) * (floor + (1 - floor) * (playerCar ? Math.sqrt(headroom) : headroom)) * dt;
+      this.speed += throttle * (tune ? tune.accel : m.accel) * (floor + (1 - floor) * (playerCar ? Math.sqrt(headroom) : headroom)) * (manual && throttle > 0 ? gb.torque : 1) * dt;
     } else {
-      const drag = coastDrag(this, isPlayer, absSpeed) * dt;
+      const drag = (coastDrag(this, isPlayer, absSpeed) + (manual ? gb.engineBrake : 0)) * dt;
       if (this.speed > 0) this.speed = Math.max(0, this.speed - drag);
       else this.speed = Math.min(0, this.speed + drag);
     }
@@ -215,7 +262,32 @@ export class Vehicle {
     } else {
       this.steer = target;
     }
-    const yaw = this.steer * maxYawRate(this) * (handbrakeDrift ? 1.6 : 1) * (this.speed < 0 ? -1 : 1);
+    let yaw = this.steer * maxYawRate(this) * (handbrakeDrift ? 1.6 : 1) * (this.speed < 0 ? -1 : 1);
+    // arcade drifting for cars (setting driftAssist), only for a slide started with the full
+    // handbrake (Space; an analog brake pedal in tests and AI stays as it was): lifting off or
+    // braking in the slide shifts the weight forward and kicks the tail out further; the assist
+    // then counter-steers towards where the car is going so the slide stays catchable, and
+    // throttle keeps it alive
+    let driftKeep = 1;
+    const fullHandbrake = handbrakeDrift && brake >= 1;
+    if (isPlayer && !this.isBoat && !this.isBus && !this.isBike && !this.isScooter && !this.isHeli && !m.motorbike) {
+      const slip = this.speed > 2 ? slipAngle(this.angle, this.speed, this.driftX, this.driftY) : 0;
+      this.slipAngle = slip;
+      if (fullHandbrake) this.arcadeSlide = true;
+      else if (this.arcadeSlide && (Math.abs(slip) < 0.08 || absSpeed < 5)) this.arcadeSlide = false;
+      if (this.arcadeSlide && Math.abs(slip) > 0.12 && absSpeed > 8) {
+        const assist = this.driftAssist !== false;
+        if (this.prevThrottle > 0 && throttle <= 0 && grip >= 0.97) {
+          this.yawVel = clamp(this.yawVel - Math.sign(slip) * (assist ? 0.35 : 0.9), -MAX_SPIN, MAX_SPIN);
+        }
+        if (assist) {
+          const over = Math.max(0, Math.abs(slip) - 0.55);
+          yaw += clamp(Math.sign(slip) * (Math.abs(slip) * 0.5 + over * 5), -2.5, 2.5) * Math.min(1, absSpeed / 14);
+        }
+        if (throttle > 0 && grip >= 0.97) driftKeep = (assist ? 0.25 : 0.6) * (this.upgrades && this.upgrades.includes('sperdiff') ? 0.5 : 1);
+      }
+      this.prevThrottle = throttle;
+    }
     const oldAngle = this.angle;
     this.angle = normalizeAngle(this.angle + (yaw + this.yawVel) * dt);
     if (this.yawVel) {
@@ -226,7 +298,9 @@ export class Vehicle {
     // Past the grip limit (handbrake, flat-out with full lock, or a wet road)
     // part of the old velocity carries on sideways - a recoverable slide.
     if (isPlayer) {
-      let slip = this.isBoat ? 0.72 : handbrakeDrift ? 0.5 : absSpeed > top * 0.8 && Math.abs(this.steer) > 0.6 ? 0.85 : 1;
+      let slip = this.isBoat ? 0.72 : handbrakeDrift ? (fullHandbrake ? (this.driftAssist !== false ? 0.3 : 0.45) : 0.5) : absSpeed > top * 0.8 && Math.abs(this.steer) > 0.6 ? 0.85 : 1;
+      // power slide: on the throttle in a slide with the wheel turned, the tail keeps coming round
+      if (slip === 1 && this.arcadeSlide && throttle > 0 && absSpeed > 10 && grip >= 0.97 && Math.abs(this.slipAngle) > 0.15 && Math.abs(this.steer) > 0.2) slip = this.driftAssist !== false ? 0.5 : 0.7;
       const hardBrake = brake > 0.5 || against;
       if (grip < 0.97 && !this.isBoat && absSpeed > 7 && (Math.abs(this.steer) > 0.35 || hardBrake)) {
         slip = Math.min(slip, 0.35 + 0.65 * grip);
@@ -243,6 +317,8 @@ export class Vehicle {
       }
     }
 
+    if (isPlayer && m.motorbike) this.rideMotorbike(dt, throttle, gb, top, absSpeed, normalizeAngle(this.angle - oldAngle) / (dt || 1));
+
     this.x += Math.cos(this.angle) * this.speed * dt;
     this.y += Math.sin(this.angle) * this.speed * dt;
 
@@ -252,7 +328,7 @@ export class Vehicle {
       this.x += this.driftX * dt;
       this.y += this.driftY * dt;
       const wetSlide = isPlayer && grip < 0.97;
-      const rate = handbrakeDrift || wetSlide ? SLIDE_DECAY_RATE * (wetSlide ? 0.5 + 0.5 * grip : 1) : isPlayer && this.isBoat ? BOAT_SLIDE_DECAY_RATE : DRIFT_DECAY_RATE;
+      const rate = (handbrakeDrift || wetSlide ? SLIDE_DECAY_RATE * (wetSlide ? 0.5 + 0.5 * grip : 1) : isPlayer && this.isBoat ? BOAT_SLIDE_DECAY_RATE : DRIFT_DECAY_RATE) * driftKeep;
       const decay = Math.exp(-rate * dt);
       this.driftX *= decay;
       this.driftY *= decay;
@@ -409,6 +485,8 @@ function playerTune(v) {
   // shop upgrades scale the two-wheelers' player tuning too
   const b = v._baseModel;
   const up = b ? m.maxSpeed / b.maxSpeed : 1, upA = b ? m.accel / b.accel : 1;
+  if (v.isScooter && m.motorbike) return { top: m.maxSpeed * (b ? up : 1), accel: m.accel * (b ? upA : 1), brake: m.brake };
+  if (v.isScooter && m.geared) return { top: MOPED_LEGAL_SPEED * up, accel: m.accel * upA, brake: 8 };
   if (v.isScooter && m.moped) return { top: 12.5 * up, accel: 4.2 * upA, brake: 8 };
   if (v.isScooter) return { top: 7 * up, accel: 4.5 * upA, brake: 6.5 };
   // Shift on a bike: a short sprint of harder pedalling (player.js sprintT)
@@ -451,6 +529,7 @@ function minTurnRadius(m, player = false) {
   if (m.name === 'bus') return player ? 10.5 : 9;
   if (m.name === 'midibus' && player) return 8.5;
   if (m.name === 'bike' || m.name === 'scooter') return 1.8;
+  if (m.name === 'motor') return 3.2;
   // a long tour boat or barge turns on its own length or so (rudder and bow thruster)
   if (m.name === 'boat') return m.len > 10 ? Math.max(11.5, m.len * 0.78) : Math.min(m.len * 1.25, 5.5);
   return m.len * 1.25;
@@ -464,6 +543,7 @@ function lateralGrip(m, player = false) {
   if (m.name === 'bus') return player ? 3.9 : 4.5;
   if (m.name === 'midibus' && player) return 3.9;
   if (m.name === 'bike' || m.name === 'scooter') return player ? 11 : 5;
+  if (m.name === 'motor') return player ? 17 : 8;
   if (m.name === 'boat') return player ? 5.5 : 2.5;
   return player ? 23 : 16;
 }
@@ -475,7 +555,7 @@ export function maxYawRate(v, speed = v.speed) {
   if (s < 1e-3) return 0;
   const player = v.driver === 'player';
   const radius = minTurnRadius(v.model, player) * (v.tightTurn && !player ? 0.45 : 1);
-  const grip = lateralGrip(v.model, player) * (player ? 0.45 + 0.55 * (v.gripK ?? 1) : 1);
+  const grip = lateralGrip(v.model, player) * (player ? 0.45 + 0.55 * (v.gripK ?? 1) : 1) * (player && v.model.motorbike && v.bikeAssist === false ? 0.78 : 1);
   return Math.min(s / radius, v.model.turnRate, grip / s);
 }
 
