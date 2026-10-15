@@ -29,7 +29,8 @@ Use these exact tokens everywhere - never invent a near-miss hex.
 | wanted stars | `#e8c93a` (unfilled: `rgba(255,255,255,0.25)`) | wanted level only - legacy yellow stays here on purpose, it's a universal genre convention, not branding |
 
 Never use plain black backgrounds, blue accents, or a second unrelated
-brand color. Yellow is reserved for the wanted-stars convention above and
+brand color. Yellow is reserved for the wanted-stars convention above, the
+special-day badge in the clock (approved with the AAA HUD) and
 for the mission/waypoint marker (the genre's usual marker language)
 — everything else is green.
 
@@ -97,6 +98,17 @@ logo only; all other UI stays Bebas Neue.
   pressed-key look - see `.hud-key` in hud_panel.css, this is the canonical
   keycap and every other "press X" hint should reuse that exact class/style
   rather than re-inventing bracket text.
+
+## HUD, load screen and boot screen
+
+The AAA HUD, the load screen and the boot screen follow the approved
+mockups; the rules (eight zones, one thing per zone, what shows when) are in
+ARCHITECTURE.md "HUD zones and rules". Cards are `linear-gradient(180deg,
+rgba(23,48,31,.84), rgba(12,20,14,.84))` with a 1 px green ring, 10 px radius;
+the minimap is a rounded square (18 px) with a green ring that turns red when
+you are wanted; keys at the bottom right are cream caps with a hard shadow
+(`#f0ede4` on `#9c998f`). Red `#d93f3f` only for danger (search box, vehicle
+damage, the "niet voor jou" dash, the age badge).
 
 ## Where this already applies (reference implementations)
 
