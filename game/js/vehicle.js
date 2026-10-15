@@ -261,7 +261,7 @@ export class Vehicle {
 }
 
 // Off the roads out in the Ommeland, for every driver alike: meadow rolls
-// slower (at most 4 m/s2 of drag; a quad or tractor hardly notices) with a
+// slower (gently: at most 2.5 m/s2 of drag down to ~3/4 of top speed; a quad or tractor hardly notices) with a
 // little yaw wobble that grows with speed, a maar or other wide water painted
 // on the ground is waded through at walking pace, a ditch is a dip that costs
 // some speed. Deep water sinks the vehicle (checkVehicleWater).
@@ -270,7 +270,7 @@ export function setGroundMap(map) {
   groundMap = map;
 }
 const GROUND_SAMPLE_M = 0.6;
-const GRASS_DRAG = 4;
+const GRASS_DRAG = 2.5;
 const WADE_DRAG = 9;
 const WADE_TOP = 2.5;
 function offroadDrag(v, dt) {
@@ -288,10 +288,10 @@ function offroadDrag(v, dt) {
   if (g !== 'gras' && g !== 'wade') return;
   const sp = Math.abs(v.speed);
   const top = v.model.maxSpeed || 30;
-  const cap = g === 'wade' ? WADE_TOP : Math.min(top, Math.max(14, top * (0.5 + 0.5 * (v.model.offroad || 0))));
+  const cap = g === 'wade' ? WADE_TOP : Math.min(top, Math.max(20, top * (0.75 + 0.25 * (v.model.offroad || 0))));
   if (sp > cap) v.speed -= Math.sign(v.speed) * Math.min(sp - cap, (g === 'wade' ? WADE_DRAG : GRASS_DRAG) * dt);
   v._wob = (v._wob || 0) + dt;
-  v.angle += Math.sin(v._wob * 13.7 + v.x * 0.9) * Math.sin(v._wob * 5.3 + v.y) * dt * 0.35 * Math.min(1, sp / 12);
+  v.angle += Math.sin(v._wob * 13.7 + v.x * 0.9) * Math.sin(v._wob * 5.3 + v.y) * dt * 0.18 * Math.min(1, sp / 15);
 }
 
 // 'gras', 'wade', 'ditch' (countryedge.js countryWater) or null where the
