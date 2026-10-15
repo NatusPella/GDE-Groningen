@@ -543,7 +543,7 @@ function park(w, v, x, y, angle) {
 
 // --- vehicles --------------------------------------------------------------------
 
-const lenOf = (spec) => (spec.model && spec.model.len) || 4;
+const lenOf = (spec) => ((spec.model && spec.model.len) || 4) + 2 * ((spec.model && spec.model.trailer) || 0);
 const kindOf = (spec) => (spec.kind === 'boat' ? 'boat' : spec.kind === 'heli' ? 'heli' : spec.kind === 'car' ? (lenOf(spec) > SHORT_CAR_M ? 'long' : 'car') : 'bike');
 
 function stash(w, o) {

@@ -23,8 +23,10 @@ export function stepNames(surface, r = Math.random()) {
   return out;
 }
 
+// One foot to the next at the cadence models3d_people.js animatePersonWalk
+// swings the legs: ~0.85 m strolling, ~1.15 m at a jog, ~1.6 m sprinting.
 export function strideFor(speed, crouch) {
-  return crouch ? 0.55 : speed > 6 ? 1.05 : 0.75;
+  return crouch ? 0.55 : Math.max(0.4, speed / (2 * Math.min(2.1, 0.42 + 0.3 * speed)));
 }
 
 // Feet on something: the ground, or a car roof (z > 0 up there).
@@ -46,7 +48,7 @@ export function tickFoot(foot, p, dt, out = []) {
   if (foot.air) {
     foot.air = false;
     // how far you came down from the top of the arc
-    const k = Math.min(1, Math.max(0.3, (foot.maxRise + Math.max(0, foot.baseZ - z)) / 0.8));
+    const k = Math.min(1, Math.max(0.3, (foot.maxRise + Math.max(0, foot.baseZ - z)) / 0.55));
     out.push({ kind: 'land', gain: 0.22 * k, rate: 0.9, k });
     // the next foot comes down half a stride later
     foot.phase = strideFor(speed, p.crouching) * 0.5;
@@ -58,7 +60,7 @@ export function tickFoot(foot, p, dt, out = []) {
     foot.phase += speed * dt;
     if (foot.phase >= stride) {
       foot.phase %= stride;
-      const run = speed > 6, crouch = !!p.crouching;
+      const run = speed > 4.5, crouch = !!p.crouching;
       out.push({ kind: 'step', gain: crouch ? 0.08 : run ? 0.3 : 0.2, rate: run ? 0.88 : crouch ? 1.12 : 1 });
     }
   } else foot.phase = Math.min(foot.phase, 0.5);

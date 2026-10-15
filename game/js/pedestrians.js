@@ -29,8 +29,8 @@ const SPEECH_MAX_INTERVAL = 30;
 
 const COP_CLOTHING = '#1c3fae';
 // a jogging cop runs down a walker; a sprinting player (7.5) still gets away
-const COP_JOG_SPEED = 5;
-const COP_SPRINT_SPEED = 6.5;
+const COP_JOG_SPEED = 3.5;
+const COP_SPRINT_SPEED = 6.0; // just under the player's sprint (6.8)
 const COP_SPRINT_RADIUS = 8;
 const COP_HOLD_DIST = 0.75;
 const COP_SEEK_TRIGGER_RADIUS = 18;

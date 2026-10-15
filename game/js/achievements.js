@@ -35,13 +35,13 @@ export const CATEGORIES = [
 // damage budget for gold/silver (health + armour lost) and the optional
 // challenge. wanted: highest star count still allowed for gold.
 export const MISSION_GOALS = [
-  { name: 'Berend telt de krassen', gold: 50, silver: 70, wanted: 1, extra: ['Geen schampje', 'Lever Berends bakkie af zonder ook maar één tikje'] },
-  { name: 'Iets met de Grote Markt', gold: 25, silver: 35, wanted: 5, extra: ['Kijkcijferrecord', 'Haal de livestream binnen 18 seconden: Jelmer breekt alle records'] },
-  { name: 'Wind tegen, beide kanten op', gold: 150, silver: 180, wanted: 1, extra: ['Achterlichten', 'Win de KEI-weekrace met minstens 40 seconden voorsprong op de klok'] },
-  { name: 'Heel aankomen is ook een kunst', gold: 105, silver: 125, wanted: 1, extra: ['Decor in één stuk', 'Bezorg het Noorderzon-decor zonder één harde klap'] },
+  { name: 'Berend telt de krassen', gold: 55, silver: 77, wanted: 1, extra: ['Geen schampje', 'Lever Berends bakkie af zonder ook maar één tikje'] },
+  { name: 'Iets met de Grote Markt', gold: 28, silver: 39, wanted: 5, extra: ['Kijkcijferrecord', 'Haal de livestream binnen 20 seconden: Jelmer breekt alle records'] },
+  { name: 'Wind tegen, beide kanten op', gold: 248, silver: 297, wanted: 1, extra: ['Achterlichten', 'Win de KEI-weekrace met minstens een minuut voorsprong op de klok'] },
+  { name: 'Heel aankomen is ook een kunst', gold: 115, silver: 137, wanted: 1, extra: ['Decor in één stuk', 'Bezorg het Noorderzon-decor zonder één harde klap'] },
   { name: 'Ring Zuid, laatste fase', gold: 150, silver: 190, wanted: 5, byPlace: true, extra: ['Netjes ingehaald', 'Win de ringweg-race zonder een rivaal te raken'] },
-  { name: 'Nog eentje dan', gold: 95, silver: 120, wanted: 0, extra: ['Laatste ronde', 'Haal alle vier de kroegen met nog een volle minuut op de klok'] },
-  { name: 'Fatbikes tellen niet als fiets', gold: 95, silver: 120, wanted: 0, extra: ['Geen bandafdruk', 'Kom van de Grote Markt tot de Noorderhaven zonder één keer geschept te worden'] },
+  { name: 'Nog eentje dan', gold: 110, silver: 138, wanted: 0, extra: ['Laatste ronde', 'Haal alle vier de kroegen met nog een volle minuut op de klok'] },
+  { name: 'Fatbikes tellen niet als fiets', gold: 110, silver: 138, wanted: 0, extra: ['Geen bandafdruk', 'Kom van de Grote Markt tot de Noorderhaven zonder één keer geschept te worden'] },
   { name: 'Alles klopt, behalve de papieren', gold: 660, silver: 800, wanted: 0, happy: [80, 50], extra: ['Glad water', 'Vaar de hele Diepenring rond zonder één tik: geen kade, geen woonboot, en ontwijk elke ramkoers van Wiebe'] },
 ];
 export const GOLD_DAMAGE = 25;

@@ -96,6 +96,13 @@ const TYPES = {
 };
 
 let K = null;
+// the churches are drawn by the landmark kits (ommelandlandmarks.js) once they are in
+let churchesOn = true;
+export function setSkylineChurches(on) {
+  if (churchesOn === on) return;
+  churchesOn = on;
+  if (K) K.dirty = true;
+}
 
 function init(scene) {
   const group = new THREE.Group();
@@ -195,7 +202,7 @@ function* gatherGen(px, py, nearR) {
   // the real Ommelanden: church towers, and the roofs of the villages
   // beyond the prop radius (the belt haze keeps the near ones hidden)
   if (REAL.ready) {
-    for (const c of REAL.churches) {
+    for (const c of churchesOn ? REAL.churches : []) {
       if ((c.x - px) ** 2 + (c.y - py) ** 2 > rt2) continue;
       const f = churchFit(c);
       put(L, 'church' + f.v, f.x, -0.05, f.y, f.rot, f.sx, f.sy, f.sz);

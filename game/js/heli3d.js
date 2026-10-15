@@ -10,7 +10,7 @@ const G_BODY = 0, G_GLASS = 1, G_LAMP = 2;
 const TRIM = 0x26282b;
 const CREAM = 0xf0ede4;
 const GLASS = 0x2b3740;
-const ROTOR_Y = 2.86;
+export const ROTOR_Y = 2.86;
 export const ROTOR_R = 5.0;
 export const TAIL_X = -4.75;
 

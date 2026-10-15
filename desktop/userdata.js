@@ -1,7 +1,7 @@
 // Where the desktop app keeps saves, settings and prestaties (Electron's
 // userData: localStorage lives in its "Local Storage" folder).
 //
-// Until 0.29 that was the folder "GTE VI" (the game's old name). From 0.29 it
+// Until 0.29 that was the folder "GTE VI". From 0.29 it
 // is "GDE Groningen", Electron's default for the product name. On the first
 // start after the update the old folder is copied, never moved:
 //   1. copy "GTE VI" to a temporary sibling folder (caches and lock files left out),

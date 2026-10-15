@@ -29,6 +29,9 @@ import { validateSpots } from './spotcheck.js';
 import { auditPassages } from './passagecheck.js';
 import { probeRingSolids, driveRingLap, probeRailLifts, driveWaterCrossings } from './ringcheck.js';
 import { P, PO } from './worldframe.js';
+import { requestRespawn } from './world.js';
+import { nearestFacility } from './facilities.js';
+import { realRoadNear } from './ommelandplace.js';
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -213,6 +216,10 @@ export async function runStoryTest(world) {
           prevChar = world.player.character;
           await drain(world, 300);
         }
+        // the calendar: every step plays on its own day (calendar.js), Ontzet on vrijdag 28 augustus
+        const cal = window.__calendar && window.__calendar.get();
+        check(`${cur.id}: on its day`, cal && cal.day >= window.__calendar.stepDay(cur.id) && cal.day <= cal.bounds.max, cal && `${cal.info.long} (dag ${cal.day})`);
+        if (cur.id === 'H18') check('H18 on Gronings Ontzet', cal && cal.info.long === 'Vrijdag 28 augustus' && cal.specials[0] === 'ontzet', cal && cal.specials.join());
         if (cur.kind === 'activity') {
           const courts0 = window.__storyFun ? window.__storyFun.state().played.court : 0;
           S().teleport();
@@ -443,6 +450,8 @@ export async function runStoryTest(world) {
       check('"Wordt vervolgd" card shown', S().cardShown(lastPart));
       check('all available steps passed', report.steps.length === STEPS.filter(stepAvailable).length, `${report.steps.length} stappen`);
       check('Tammo and Tessa take turns', swaps >= 4, `${swaps} wissels`);
+      const calEnd = window.__calendar && window.__calendar.get();
+      check('after the story the calendar is in September', calEnd && (!PARTS[lastPart].finale || calEnd.day >= 19), calEnd && calEnd.info.long);
       check('no cutscene camera off the map', !cinematicPoseIssues().length, JSON.stringify(cinematicPoseIssues().slice(0, 4)));
       check('Rotor Roelf took his demo heli back', !window.__storyFun || !window.__storyFun.state().demo, JSON.stringify(window.__storyFun && window.__storyFun.state()));
 
@@ -547,6 +556,23 @@ export async function runStoryTest(world) {
       check('old save plays as the current step\'s character', await waitFor(() => world.player.character === STEP_BY_ID.get('H2').player, 5000), world.player.character);
       check('old save keeps money', world.money === 1234, `€${world.money}`);
       world.money = money;
+
+      // death and arrest trips to the nearest real facility, in town and out
+      // in the Ommelanden (respawn.js, facilities.js)
+      for (const [label, x, y, busted] of [['UMCG', ...P(760, -120), false], ['Bedum', ...P(2079, -8936), true], ['Zuidhorn', ...P(-10665, -3160), false], ['Stad', ...P(300, 300), true]]) {
+        const p = world.player;
+        if (p.inVehicle) { p.inVehicle.driver = null; p.inVehicle = null; }
+        const q = realRoadNear(x, y, 300);
+        const at = q && label !== 'UMCG' && label !== 'Stad' ? q : world.map.findOpenSpawn(x, y, 200) || { x, y };
+        p.x = at.x; p.y = at.y;
+        const want = nearestFacility(busted ? 'police' : 'medical', p.x, p.y);
+        const site = want && want.umcg && world.map.meta.hospital ? world.map.meta.hospital : want;
+        requestRespawn(world, { busted });
+        await sleep(300);
+        await drain(world, 900);
+        const d = site ? Math.hypot(p.x - site.x, p.y - site.y) : Infinity;
+        check(`${busted ? 'arrest' : 'death'} at ${label} -> ${want ? want.name : '?'}`, !world.pendingRespawn && d < 150, `${Math.round(d)} m from it, at (${Math.round(p.x)}, ${Math.round(p.y)})`);
+      }
     }
   } catch (e) {
     errors.push('test: ' + (e && e.stack || e));

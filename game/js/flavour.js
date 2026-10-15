@@ -17,6 +17,7 @@ import {
 } from './flavourlines.js';
 import { KEYS } from './storagekeys.js';
 import { P, PO, L } from './worldframe.js';
+import { isToday } from './calendarday.js';
 
 // World flavour after docs/groningen-memes.md: nicknames, the Gerrit
 // Krolbrug gag, Ring Zuid navigation, "Kon minder", the Noorderplantsoen in
@@ -69,8 +70,6 @@ export function initFlavour(w) {
   F.islands = findIslands(w.map);
   placePeerd();
   F.sunny = Math.random() < 0.7;
-  const real = realDateEvent(new Date());
-  if (real) startEvent(real, 25);
   F.billboardStage = storyStage();
   window.__flavour = debugApi;
 }
@@ -152,6 +151,7 @@ export function updateFlavour(dt, w) {
   const step = tickT;
   tickT = 0;
   clockEdges();
+  calendarEvent();
   cyclistsFirst();
   if (busy()) return;
   const p = w.player;
@@ -183,8 +183,6 @@ function clockEdges() {
 function newDay() {
   F.day++;
   F.sunny = Math.random() < 0.6;
-  if (F.event && F.eventDay < F.day) endEvent();
-  if (!F.event && F.eventDay < F.day - 3 && Math.random() < 0.07) startEvent(pick(Object.keys(EVENT_DAYS)), 20);
   F.peerdNews = !!F.peerd;
 }
 
@@ -315,23 +313,20 @@ function cows(p) {
 
 // --- event days -------------------------------------------------------------------
 
-// Real-world dates first (Goede Vrijdag, KEI-week, 28 augustus); otherwise a
-// rare random event day at dawn.
-export function realDateEvent(now) {
-  const y = now.getFullYear(), m = now.getMonth() + 1, d = now.getDate();
-  if (m === 8 && d === 28) return 'bommenberend';
-  if (m === 8 && d >= 10 && d <= 17) return 'keiweek';
-  const e = easter(y);
-  const gf = new Date(y, e.m - 1, e.d - 2);
-  if (gf.getMonth() + 1 === m && gf.getDate() === d) return 'bloemetjesmarkt';
+// The event of the day comes from the game's calendar (calendar.js
+// SPECIAL_DAYS id -> EVENT_DAYS key); the "Vandaag in Grunn" card is
+// calendarday.js's, here only the Kiekdoar post.
+const CALENDAR_EVENTS = [['ontzet', 'bommenberend'], ['bloemetjesmarkt', 'bloemetjesmarkt'], ['kei', 'keiweek']];
+export function calendarEventKey(w = world) {
+  for (const [id, key] of CALENDAR_EVENTS) if (isToday(id, w)) return key;
   return null;
 }
 
-function easter(y) {
-  const a = y % 19, b = Math.floor(y / 100), c = y % 100, d = Math.floor(b / 4), e = b % 4;
-  const f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30;
-  const i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451);
-  return { m: Math.floor((h + l - 7 * m + 114) / 31), d: ((h + l - 7 * m + 114) % 31) + 1 };
+function calendarEvent() {
+  if (F.debugEvent) return;
+  const want = calendarEventKey();
+  if (want === F.event) return;
+  if (want) startEvent(want, 25); else endEvent();
 }
 
 function startEvent(key, delay = 0) {
@@ -355,7 +350,6 @@ function events(p, step) {
   if (F.announceAt != null && world.time >= F.announceAt) {
     F.announceAt = null;
     notify('Kiekdoar', ev.announce);
-    world.addMessage(ev.card ? `${ev.name}: ${ev.card}` : `Vandaag in Grunn: ${ev.name}`, 6, { kind: 'tip', kicker: 'Vandaag in Grunn', important: true, key: 'event-day' });
   }
   const centre = d2(p, CITY_CENTRE) < CITY_CENTRE.r + 80;
   if (centre && ready('evbark') && Math.random() < 0.12 && bark(p, ev.barks)) hold('evbark', 22 + Math.random() * 18);
@@ -620,7 +614,7 @@ function oosterpark(p) {
 
 const debugApi = {
   get state() { return F; },
-  event(k = 'bloemetjesmarkt') { startEvent(k, 0); return F.event; },
+  event(k = 'bloemetjesmarkt') { F.debugEvent = !!k; if (k) startEvent(k, 0); else endEvent(); return F.event; },
   end() { endEvent(); },
   krol() { F.krolInside = false; cd.krol = 0; krolbrug({ x: KROLBRUG.x, y: KROLBRUG.y }); return F.krolText; },
   peerd() { F.night++; placePeerd(); F.peerdNews = true; return F.peerd; },
