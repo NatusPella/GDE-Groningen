@@ -73,6 +73,7 @@ frame then runs, in order:
 | Ommelanden | `countryreal.js` (the real countryside ~12 km round town from `ommeland.json` + `ommeland.bin`: OSM roads, narrow waterways, a 10 m water distance field, rails, places, churches, stations and building boxes; a built-up mask; carries the city train routes on to the real stations; `REAL`, `buildingsInTile`, `pushOutOfReal`, `realBlocked`; `clearOfReal` moves a shop door, café or padel door that landed in a real building box to its nearest free side, since those boxes are solid in the countryside), `countryfield.js` (field layout shared by JS and the ground shader; inside the real extent the polder blocks lose their procedural roads, maaren and villages), `countryedge.js` (city-edge mask; the real roads and canals as ground-shader segments with a 48 m integer lookup grid), `countryplan.js`, `countryside.js` (streamed 160 m prop tiles, incl. the real buildings, laid out a section per step by a generator; drawn per 2x2-tile chunk, one culled instanced mesh per prop type, the real buildings as instanced boxes with painted facades: gable ends within ~300 m, box + closed roof beyond; a building `realmap.js` hands to the city's generator leaves its chunk while scene3d.js draws it), `realmap.js` (the real Ommeland as a `GameMap` the city's generators read: built-up road runs (`urbanWeight` >= 0.5) as city roads, houses, rows, blocks and sheds as city buildings from their OSM box (colours snapped to the city palette), street trees along the built-up streets; scene3d.js streams, batches and LODs them with the city's own `DRAW_DIST`, `roadsurface.js` builds each road against its own network (`r.net`), nightlights3d.js puts its lamps and cityprops.js its benches, bins, racks and clutter (village-relative `centreDist`) on them, treeprops.js makes the trees solid; barns, greenhouses, polder farmhouses and churches keep their countryside models; `window.__noRealMap` switches it off for A/B runs; `scripts/perf/detail.sh` compares the areas), `countrybake.js` (the real roads' and canals' signed distances rendered round the player into a 0.5 m and a 2 m texture, so the ground shader reads one texel instead of looping over segments; `window.__countryBake.off` switches back), `countryvillage.js` (village centres near the player: a brink by the OSM church with benches, lime trees, pump and bike rack, shopfronts with signs and a café terrace on the houses along the nearest streets, lamp posts, a few anchored pedestrians; kerb slots for parkedcars.js; its furniture is solid through `pushOutOfPlan`), `countryskyline.js` (leaves out what the props draw; its church templates step aside once the landmark kits are in), `countrylife.js` (traffic on the real roads, boats on the real canals), `countrymap.js`, `countrysigns.js`, `countrywalls.js` (hedge and fence walls plus tree trunks, per loaded tile), `countrycam.js` (the chase camera's ray against the Ommeland solids; parity notes in `docs/OMMELAND-PARITEIT.md`), `countryrails.js` (the bridge railings as solid lines for vehicles and walkers), `ommelandmap.js` (the Ommeland layer of the map and minimap); the one water rule is countryedge.js `countryWater`, the meadow drag for every driver vehicle.js `offroadDrag`, police on the country roads police.js `countryFollow` |
 | Input | `input.js` (`isDown`, `wasPressed`, `axis`, `mouse`; rebound keys are translated back to the default key in one capture listener), `controls.js` (the scheme as data: rebindable keys, controller tables per situation, glyph lookup; Node-safe), `gamepad.js` (Gamepad API polling: buttons become key events, sticks and triggers feed `input.js`; last-used device; rumble), `glyphs.js` (every keycap on screen shows the rebound key or the controller button), `a11y.js` + `a11y.css` (subtitle size and box, colour-blind palettes, controller glyph styles) |
 | Player | `player.js` (movement, building collision, vehicles, jump, crouch, kiss), `companion.js` (Tammo/Tessa; `world.companionHold` parks them at a spot or in a vehicle for a mission) |
+| Arcade driving | `gearbox.js` (pure, node-testable: a profile per vehicle class (car, hero, sport, van, truck, bus, tractor, three motorbikes, the geared moped) with gear tops as fractions of top speed, a position layout (cars N-1-2.., bikes 1-N-2..), idle/redline, shift time and engine braking; `stepGearbox` gives gear, revs, `torque` (a curve over the rev range, 0 on the limiter, in a shift cut, in neutral or with the clutch in), `engineBrake`, shift light and stall; `shift()` is the sequential shifter and refuses over-revving downshifts or grinds without the clutch; setting `shiftMode`: `auto` (default: the box only reports, the driving model and its 0-100 in 6-8 s are untouched), `manual` (no clutch, never stalls), `clutch` (J held to shift, can stall); vehicle.js `applyControls` creates `v.gb` for the player's geared vehicles and applies torque and engine braking in the manual modes; keys `.` and `,` (rebindable), J, bumpers and L3 on the pad (`PAD_MAPS.vehicleManual`, picked by gamepad.js when `v.gb` and a manual mode); audio.js maps `gb.rpm` onto the engine's range and hud_panel.js shows the gear row with N, shift light, limiter, KRAKEN and MOTOR AF), `drift.js` (pure: slip angle, drift scoring with a multiplier that climbs with time and direction changes, a grace period, banking and crash loss, medals), `driftzone.js` (an activity-hub entry: three big roundabouts, a run starts when a car drives in and ends on leaving, after 90 s or on a crash, medals pay once per tier, a score chip anywhere you drift; vehicle.js `applyControls` holds the arcade help: setting `driftAssist` counter-steers and keeps a slide catchable, off is realistic and can spin out; the shop's `sperdiff` makes slides last), `motomodels.js` (motorbike and geared-moped models as data, no imports), motorbikes are `isScooter` two-wheelers with `model.motorbike` (`sport`, `naked`, `old`): vehicle.js `rideMotorbike` leans them (`v.roll`, capped by `bikeAssist`), Shift pops a wheelie on the gas or a stoppie on the brake (`v.pitch`, pivot compensated in scene3d.js), a hard hit or an over-lean without the assist throws the rider like a bail-out; `models3d_vehicles.js` draws them and the classic moped with a seated, helmeted rider (`riderSeatFor`, `attachHelmet`, also used for the player's own figure); the geared moped is capped at 45 km/h and a tuned one over that builds heat (`crime.js` `tunedMoped`); `node scripts/gearbox_test.mjs`, `drift_test.mjs`, `motorbike_test.mjs`, `drive_sim.mjs` |
 | Vehicles | `vehicle.js` (physics, traffic AI, boats, damage, wrecks, water; a car at zero health is `disabled` and burns until `explodeVehicle` makes it a wreck; `playerTune` holds the player's own speeds: bike 25 km/h (Shift ~33), step 25, brommer 45, the tuned fatbike 50, cars at half their model accel for 0-100 in ~6-8 s; the 18 m gelede bus is an 11.2 m front unit as the body plus `model.trailer`, the rear unit `busTrailerPose` hangs off its tail, drawn and collided with along the joint's own track); the own helicopter: `heliflight.js` (a Vehicle with `v.isHeli`: arcade flight for the driven one via player.js `flyHeli` (W/S height, A/D or mouse yaw, arrows forward/sideways, Shift boost, Space hover, landing assist near the surface), body and rotor probes against city and real Ommeland buildings, landing only on flat ground, flat roofs and registered helipads (`registerHelipad`: home, Rotor Roelf, UMCG) at low speed, harder touchdowns damage, a crash explodes it; soft wall at the map edge, ceiling 125 m; `updateHelis` (main.js) spools rotors, poses rotor/shadow/dust and runs the flight card in the HUD; airborne helis skip vehicle-vehicle contacts, building collision, water until down on the canal, speed cameras, roadblocks, busts; police heli flies above it; discovery cinematics wait until it lands; `window.__heli`), `heli3d.js` (its mesh, helipads, downwash) |
 | People and animals | `pedestrians.js`, `wildlife.js`. The game is 18+ (docs/LEEFTIJD.md): a car, train, weapon or blast kills a person (`killPed`: the `'dead'` state, body removed after `DEAD_DURATION`) and an animal. `gore3d.js` draws the Carmageddon-style gore behind the setting `gore` (on by default): body parts (`splatterPed` above `GIB_SPEED`, `splatterAnimal`), blood spray, pools, road splats and splats on the car, and birds the player drives through. `knockfx3d.js` keeps the non-lethal side: on H3's stunt evening (`world.stuntSafe`) a hit person gets dust, comic stars (`koUntil`, `groggyUntil`) and gets up; birds that escape flap off with a few feathers |
 | Combat and police | `combat.js` (weapons in slots 1-4 by kind: melee swings that land after a wind-up with per-weapon reach, knockdown and prop breaking, guns, water, throws; bullets swept against walls, props, car boxes and people (civilians and officers alike; aim assist targets everyone); recoil in `world.camKick`; `world.scoped` for the jachtgeweer scope, drawn by scene3d.js and aimassist.js), `throwables.js` (water spray, carbidbus and firework rockets: flight, fuse, blasts via pedestrians.js `blastPeople`, and their own 3D, called from gunfx3d.js), `aimassist.js` (right-mouse soft lock on the best target in a cone, hostiles first and never through walls, Tab/flick to switch, light hip-fire bend; lock reticle; setting `autoAim`), `gunfx3d.js` (muzzle flashes with a light pop, tracers, per-surface impacts, pooled bullet holes), `police.js`, `policemounts.js` (bike/horse units, crews on foot, and quiet wanted-0 patrols in the binnenstad and parks), `crime.js`, `drunk.js` (`world.drunk` from the kroegentocht pubs: camera sway, double vision in the grade pass, warm vignette, wandering feet and steering, muffled music, hiccups; setting `drunkFx`, reduced motion; drunk driving adds police heat) (small offences build heat first: a star only when police see it, a witness phones it in, or it piles up) |
@@ -364,8 +365,36 @@ HUD zoom at 1920x1080), `--hud-edge` is the 46 px margin.
   minimap's zoom per mode. The minimap and the big map (`mapview.js`, mode
   selector in its header, opens on how you travel) emphasise the roads for
   your mode, dim the others and dash trunk roads red for walkers and cyclists
-  ("niet voor jou"); the real access tags and the legal consequences (police
-  interest) come with the province tiles.
+  ("niet voor jou"). A road may carry `acc` (bits foot 1, bike 2, car 4,
+  bus 8) from the OSM tags (`foot/bicycle/motor_vehicle/motorcar/access/
+  motorroad/bus/psv`, written by `scripts/process_osm.py` `access_mask` only
+  when they differ from the class; the next `fetch_osm.py` run brings the
+  tags, until then the class decides); `roadAllowed`, `navgraph.accessOf`
+  and the routers read it first. `oneWayFor(road, mode)` (walkers ignore
+  one-ways, cyclists on quiet streets), `offenceOf(road, mode)` and
+  `ROUTE_MODE`/`MODE_OF_ROUTE` (router names `walk/bike/drive/boat/ov/fly`
+  against these).
+- `trafficlaw.js`: walking or cycling on a trunk road or the ring, a car on a
+  cycle path or footway, a bike on a footway: a `politie` card at once, one
+  star after `GRACE_S` (12 s) on it, once per stretch (re-armed 25 s after
+  leaving), never more than one star from this alone; not during missions,
+  jobs, challenges, for the emergency services, buses or in a train/heli.
+  `main.js` calls `updateTrafficLaw` next to `updatePolice`.
+- `travelroute.js` (pure): `boatRoute` (grid A* over the water with shore
+  clearance and bridge clearance, string-pulled, a goal on land ends at the
+  nearest water), `trainTrip` (walk, station, train, change, station, walk
+  with `uitstappen`, `changes` and `stops` for the signs; from the cab the
+  start is the track under you), `airRoute` (a line round the no-fly zones, an
+  altitude hint, the landing spot near the goal), `etaSeconds`. `routing.js`
+  wraps them as `planBoatRoute`, `planTrainTrip`, `planAirRoute` and keeps
+  `noFlyZones`/`landingSpots` (police stations are no-fly, 70 m; pads from
+  `heliflight.js getHelipads`). Bridge and lock data for boats are not in the
+  map yet: deck height from the z profile is all there is (`ctx.clearAt`
+  hook); opening bridges and locks wait for the province tiles.
+- `waymarkers3d.js`: buoys along a boat route, station signs at the stops of a
+  train trip, air rings and a landing pad in the air; the bike ribbon takes
+  its own colour. On the road the route ribbon and the waypoint beacon stay
+  the markers. `scene3d.js` calls `updateWaymarkers3D` from the ribbon update.
 - Boot screen (`#loading`, startscreen.js): dark green from the first paint
   (inline `--ui` script, Electron `backgroundColor`), the logo builds up,
   Gronings status lines rotate, "Druk op een toets" when ready (runs with
@@ -379,6 +408,23 @@ HUD zoom at 1920x1080), `--hud-edge` is the 46 px margin.
   `watchJumps` (main.js) for a jump over 700 m outside cutscenes.
 - `node scripts/hud_test.mjs` checks the rules, the turn finder and the
   access table.
+
+## Menus (`menu.css`)
+
+`menu.css` is the one menu stylesheet (see DESIGN_SYSTEM.md, Menus);
+`pausemenu.css`, `shopui.css` and `startscreen.css` only place things. The pause
+menu (`pausemenu.js`) has a rail in three groups (Overzicht, Te doen, Kaart,
+Telefoon / Verhaal, Spullen, Garage, Prestaties / Instellingen, Besturing, Cheats)
+and one panel; the map section hides the rail and is the full screen. Q/E switch
+the section's tabs (a section without tabs: the sections); `[` and `]` do the same
+in tabbed sections. Footer hints are `HINTS` per section in pausemenu.js (keys or
+controller glyphs, clickable). Settings pickers (`.m-pk`, previous / value / next)
+replace the old segmented rows; the options live in `data-options`. The shop
+(`shopui.js`) draws every shop and the station machine with the same panel;
+an item may carry `cols` (extra values before the price) and `route` (the station's
+travel card). The result screen is `showBanner` in cinematics.js, styled in
+hud_panel.css. Screenshots for review: `desktop --smoke-test --perf-script` with a
+script that opens each section and logs `[capture] name`.
 
 ## Narrative scheduler
 
@@ -421,7 +467,27 @@ to the nearest snackbar, supermarket or kroeg when health is below 35 (until
 vehicle (hero or bought) below 55 health (until 90; never for stolen
 vehicles). Priority: an active bijbaan or mission, then the goal (a mission
 goal that still needs gear routes to the shop first), then the story step,
-then the post-game guide. `setUserWaypoint` makes a place goal. `getActiveRoute()` is the primary one (goal, else
+then the post-game guide. `setUserWaypoint(x, y, name, z)` makes a place goal
+(`z`: a spot on a bridge deck).
+
+Per travel mode (`route.mode`: `walk`, `bike`, `drive`, `boat`, `ov`, `fly`;
+`route.etaS`, `route.compromise`, boat `route.dock`, air `route.alt` and
+`route.landing`, train `route.uitstappen/changes/stops/legs`): the city graph
+has a walk, a bike and a drive network built from `roadaccess.js` (never an
+illegal edge; `planLandRoute(map, kind, a, b, { avoidMotorways, az, bz })` is
+the strict version the tests hold to the rules; `route.compromise` marks the
+two rule-bending fallbacks, `mixed` over a pedestrian area for a car-free goal
+and `free` against a one-way at the data's edge). The Ommeland graph has a
+foot network that leaves out the motorways (kind 1) and slows on links.
+"Snelwegen vermijden" (a button on the map in Auto mode, `setRoutePrefs`)
+makes motorway metres count 8x. A waypoint and the start snap to the nearest
+road for the mode on the right level: a road on the other level (bridge
+deck or the street under it, from the `z` profile) counts 40 m (start) or
+12 m (goal) further away. The big map's mode buttons plan the goal for that
+mode (`setRoutePrefs({ planMode })`, cleared when the map closes). The GPS
+card gives turns by car, bike and boat, "Uitstappen bij" in the train and the
+altitude and landing spot in the air. `node scripts/mode_route_test.mjs`
+runs all of it on the city map and on the F0 tiles. `getActiveRoute()` is the primary one (goal, else
 objective, else care: 3D ribbon, route chip), `getRoutes()` all of them
 (minimap, full map, map header); `dismissCareRoute()` (the "Negeren" button
 in the map header) hides the pink route until the need is over. In pigeon

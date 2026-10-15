@@ -49,6 +49,10 @@ const DEFAULTS = {
   invertY: false,
   autoAim: true,
   drunkFx: 'aan',
+  // driving (gearbox.js, drift.js): 'auto' | 'manual' | 'clutch'; the arcade helps are on by default
+  shiftMode: 'auto',
+  driftAssist: true,
+  bikeAssist: true,
   // controls (controls.js): rebound keyboard keys and controller buttons,
   // only the changed ones; the rest of the controller and accessibility
   keyBinds: {},
@@ -65,6 +69,7 @@ const DEFAULTS = {
 };
 // the Besturing screen has its own "Standaard herstellen" for the bindings
 const KEEP_ON_RESET = new Set(['attractSeen', 'keyBinds', 'padBinds']);
+export const SHIFT_CHOICES = ['auto', 'manual', 'clutch'];
 export const SUBTITLE_SIZES = { klein: 0.85, normaal: 1, groot: 1.25, extragroot: 1.5 };
 export const COLOR_BLIND_MODES = ['uit', 'deuteranopie', 'protanopie', 'tritanopie'];
 const PAD_LAYOUT_CHOICES = ['auto', 'xbox', 'ps', 'deck'];
@@ -90,6 +95,7 @@ function load() {
     if (!['slim', 'alles', 'minimaal'].includes(out.hudMode)) out.hudMode = DEFAULTS.hudMode;
     if (!['nooit', 'lucht', 'altijd'].includes(out.minimapNorth)) out.minimapNorth = DEFAULTS.minimapNorth;
     if (!(out.minimapZoom >= 0.6 && out.minimapZoom <= 1.6)) out.minimapZoom = DEFAULTS.minimapZoom;
+    if (!SHIFT_CHOICES.includes(out.shiftMode)) out.shiftMode = DEFAULTS.shiftMode;
     if (!COLOR_BLIND_MODES.includes(out.colorBlind)) out.colorBlind = DEFAULTS.colorBlind;
     if (!PAD_LAYOUT_CHOICES.includes(out.padLayout)) out.padLayout = DEFAULTS.padLayout;
     if (!(out.padLookSensitivity >= 0.3 && out.padLookSensitivity <= 2.5)) out.padLookSensitivity = DEFAULTS.padLookSensitivity;

@@ -3,7 +3,7 @@ import { markerColors } from './a11y.js';
 import { speakerHtml } from './speakers.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { buildBuildingMesh, setBuildingMap, setNightFactor } from './models3d_buildings.js';
-import { buildVehicleMesh, updateVehicleWheelSpin, setBusRearAngle, updatePoliceLamps, syncPoliceMount, boatHullProfile } from './models3d_vehicles.js';
+import { buildVehicleMesh, updateVehicleWheelSpin, setBusRearAngle, updatePoliceLamps, syncPoliceMount, boatHullProfile, riderSeatFor, attachHelmet } from './models3d_vehicles.js';
 import {
   buildVehicleImpactSparkMesh3D, updateVehicleImpactSparkMesh3D,
   vehicleNeedsFireEffect, buildVehicleFireMesh3D, updateVehicleFireMesh3D,
@@ -57,6 +57,7 @@ const NO_WHEEL_INSTANCES = NO_BATCH;
 const wheelFrustum = new THREE.Frustum(), wheelProj = new THREE.Matrix4();
 import { getUiScale } from './uiscale.js';
 import { getActiveRoute, getRouteAhead, getUserWaypoint } from './routing.js';
+import { updateWaymarkers3D, hideWaymarkers3D, routeColor } from './waymarkers3d.js';
 import { OUTLINE_MAT } from './pixelart3d.js';
 import { createSkyUniforms, buildSkyDome, createEnvironmentUpdater, setStarOpacity, SKY_HORIZON } from './sky3d.js';
 import { computeLighting } from './daynight.js';
@@ -720,7 +721,19 @@ function syncPlayerRider(pv, pvMesh, hide) {
   }
   const ud = playerRider.userData;
   if (playerRider.parent !== pvMesh) pvMesh.add(playerRider);
-  if (pv.isScooter) {
+  const seat = pv.isScooter ? riderSeatFor(pv.model) : null;
+  if (seat) {
+    playerRider.position.set(seat.x, seat.y - 0.93 * playerRider.scale.y, 0);
+    playerRider.rotation.set(0, 0, seat.lean);
+    ud.armL.rotation.set(0, 0, seat.arm);
+    ud.armR.rotation.set(0, 0, seat.arm);
+    ud.legL.rotation.set(0, 0, seat.leg);
+    ud.legR.rotation.set(0, 0, seat.leg);
+    if (pv.model.motorbike || pv.model.geared) {
+      if (!ud.helmet) attachHelmet(playerRider, pv.model.motorbike === 'sport' ? 0xe8e6e0 : pv.model.geared ? 0xd8c8a0 : 0x1c1c1e);
+    } else if (ud.helmet) { ud.head.remove(ud.helmet); ud.helmet = null; }
+  } else if (pv.isScooter) {
+    if (ud.helmet) { ud.head.remove(ud.helmet); ud.helmet = null; }
     playerRider.position.set(-0.08, 0.155, 0);
     playerRider.rotation.set(0, 0, -0.03);
     ud.armL.rotation.set(0, 0, 0.66);
@@ -728,6 +741,7 @@ function syncPlayerRider(pv, pvMesh, hide) {
     ud.legL.rotation.set(0, 0, 0.12);
     ud.legR.rotation.set(0, 0, -0.1);
   } else {
+    if (ud.helmet) { ud.head.remove(ud.helmet); ud.helmet = null; }
     const fat = !!pv.model.fat;
     playerRider.position.set(fat ? -0.26 : -0.3, (fat ? 0.93 : 1.02) - 0.93 * playerRider.scale.y, 0);
     playerRider.rotation.set(0, 0, -0.08);
@@ -2000,6 +2014,8 @@ export function update3D(dt, world) {
         mesh.rotation.order = 'YZX';
         mesh.rotation.z = (v.pitch || 0) + (body ? 0 : (v.susPitch || 0) * 0.6);
         mesh.rotation.x = (v.roll || 0) + (body ? 0 : (v.susRoll || 0) * 0.6);
+        // a wheelie turns about the rear tyre, a stoppie about the front one
+        if (v.pitch && v.model.motorbike) mesh.position.y += v.model.len * 0.33 * Math.abs(Math.sin(v.pitch));
         if (body) {
           body.rotation.z = v.susPitch || 0;
           body.rotation.x = v.susRoll || 0;
@@ -2208,6 +2224,7 @@ export function update3D(dt, world) {
   if (!navVisible) {
     if (waypointBeacon) waypointBeacon.visible = false;
     if (routeRibbonMesh) routeRibbonMesh.visible = false;
+    hideWaymarkers3D();
   }
 
   // garages stream their own workshop meshes (garages.js)
@@ -3398,6 +3415,8 @@ function updateRouteRibbon3D(dt, world) {
   }
 
   const route = getActiveRoute();
+  // buoys, station signs, air rings: the markers of the boat, the train and the air
+  updateWaymarkers3D(scene, performance.now() / 1000, route, route && route.remaining > 10 ? getRouteAhead(260) : null, cam);
   if (!routeRibbonMesh) {
     routeRibbonMesh = new THREE.Mesh(new THREE.BufferGeometry(), new THREE.MeshBasicMaterial({
       map: buildChevronTexture(), vertexColors: true, transparent: true, opacity: 0.85, depthWrite: false,
@@ -3408,14 +3427,14 @@ function updateRouteRibbon3D(dt, world) {
     routeRibbonMesh.frustumCulled = false;
     scene.add(routeRibbonMesh);
   }
-  const ahead = route && route.remaining > 10 ? getRouteAhead(RIBBON_AHEAD_M) : null;
+  const ahead = route && route.remaining > 10 && route.mode !== 'boat' && route.mode !== 'fly' ? getRouteAhead(RIBBON_AHEAD_M) : null;
   if (!ahead || ahead.length < 2) {
     routeRibbonMesh.visible = false;
     routeRibbonKey = '';
     return;
   }
   routeRibbonMesh.visible = true;
-  const key = `${route.version}:${Math.round(route.px / 2)}:${Math.round(route.py / 2)}`;
+  const key = `${route.version}:${route.mode}:${Math.round(route.px / 2)}:${Math.round(route.py / 2)}`;
   if (key !== routeRibbonKey) {
     routeRibbonKey = key;
     routeRibbonMesh.geometry.dispose();
@@ -3423,7 +3442,7 @@ function updateRouteRibbon3D(dt, world) {
     const lane = route.mode === 'drive' ? keepRight(ahead, world.map) : ahead;
     const pl = world.player;
     routeRibbonMesh.geometry = buildRouteRibbonGeometry(lane, route.cum[route.idx] + Math.hypot(route.px - p0[0], route.py - p0[1]), world.map, pl.inVehicle ? pl.inVehicle.z || 0 : pl.gz || 0);
-    routeRibbonMesh.material.color.set(markerColors()[route.kind] || markerColors().mission); // a11y.js palette
+    routeRibbonMesh.material.color.set(routeColor(route, markerColors()[route.kind] || markerColors().mission)); // a11y.js palette
   }
   routeRibbonMesh.material.map.offset.y -= dt * 0.8;
 }

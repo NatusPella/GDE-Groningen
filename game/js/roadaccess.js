@@ -28,13 +28,19 @@ export function travelModeOf(world) {
   return 'auto';
 }
 
+// Access bits per road (navgraph.js ACC: voet 1, fiets 2, auto 4, bus 8). A
+// road carries `acc` when the OSM tags (foot/bicycle/motor_vehicle/access/
+// motorroad) differ from what its class implies (scripts/process_osm.py).
+export const ACC_BIT = { lopen: 1, fiets: 2, auto: 4 };
+
 // true: the road is for this mode; false: "niet voor jou"; null: no roads in this mode.
 export function roadAllowed(road, mode) {
   if (!road) return null;
+  if (typeof road.acc === 'number' && ACC_BIT[mode]) return (road.acc & ACC_BIT[mode]) !== 0;
   const t = road.type || '';
   if (mode === 'lopen') return !NO_FOOT.has(t);
   if (mode === 'fiets') return !NO_BIKE.has(t);
-  if (mode === 'auto') return !NO_CAR.has(t) && road.cat !== 'foot' && road.cat !== 'cycle';
+  if (mode === 'auto') return !NO_CAR.has(t) && !road.busOnly && road.cat !== 'foot' && road.cat !== 'cycle';
   return null;
 }
 
@@ -59,4 +65,30 @@ export function minimapScale(mode, speed, zoom = 1) {
 // north-up: 'nooit' turns with the camera, 'lucht' only while flying, 'altijd'
 export function northUp(setting, mode) {
   return setting === 'altijd' || (setting === 'lucht' && mode === 'lucht');
+}
+
+// The routers' mode names (routing.js) and these.
+export const ROUTE_MODE = { lopen: 'walk', fiets: 'bike', auto: 'drive', boot: 'boat', ov: 'ov', lucht: 'fly' };
+export const MODE_OF_ROUTE = { walk: 'lopen', bike: 'fiets', drive: 'auto', boat: 'boot', ov: 'ov', fly: 'lucht' };
+
+// Roads where cyclists may ride against the one-way (OSM oneway:bicycle=no is
+// the rule on quiet streets in the Netherlands); never on the busy ones.
+const BIKE_BOTH_WAYS = new Set(['residential', 'living_street', 'unclassified', 'service', 'track', 'tertiary', 'tertiary_link']);
+
+// Is the road one-way for this mode? Walkers ignore it, cyclists on quiet streets too.
+export function oneWayFor(road, mode) {
+  if (!road || !road.oneway) return false;
+  if (mode === 'lopen') return false;
+  if (mode === 'fiets') return !!road.roundabout || !BIKE_BOTH_WAYS.has(road.type || '');
+  return true;
+}
+
+// Moving on a road that is not for you is possible, but an offence: the kind
+// is the word on the warning card. 'snelweg' (walking or cycling on the
+// motorways and the ring), 'fietspad' (a car on a cycle path), 'voetpad' (a
+// car or bike on a footway or steps). null: nothing wrong.
+export function offenceOf(road, mode) {
+  if (!road || roadAllowed(road, mode) !== false) return null;
+  if (mode === 'auto') return road.cat === 'cycle' || road.type === 'cycleway' ? 'fietspad' : 'voetpad';
+  return NO_FOOT.has(road.type || '') ? 'snelweg' : 'voetpad';
 }

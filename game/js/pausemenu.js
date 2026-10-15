@@ -9,7 +9,7 @@ import { getSettings, setSetting, resetSettings, QUALITY_PRESETS } from './setti
 import { logoHtml } from './logo.js';
 import { PRESET_ORDER, presetLabel, describePreset, describeChanges, currentPreset, applyPreset, getBenchResult, dismissBenchBanner, GEAR_SVG } from './gfxprofile.js';
 import { mountMapView, setMapActive, setMapCloseHandler, setMapView, getDiscoveredRatio, setMapTeleport } from './mapview.js';
-import { renderCheatsPanel, cheatsClick, cheatsInput, resetCheatsPanel } from './cheatsui.js';
+import { renderCheatsPanel, cheatsClick, cheatsInput, resetCheatsPanel, cheatsFocus } from './cheatsui.js';
 import { skipCurrent, getStoryJournal, markCluesSeen } from './story.js';
 import { saveGame, hasSave, loadLatestSave, clearSave, getSaveSummary } from './savegame.js';
 import { getClockText } from './hud_panel.js';
@@ -27,7 +27,7 @@ import { capturePadButton, isPadActive, onPadChange } from './gamepad.js';
 import { padGlyphInner } from './glyphs.js';
 import { getUiScale } from './uiscale.js';
 import { DEV } from './devflags.js';
-import { renderOverview, renderTodo, todoClick, todoFocus, todoEnter, todoSummary, selectTodo } from './todoui.js';
+import { renderOverview, renderTodo, todoClick, todoFocus, todoEnter, todoSummary, selectTodo, foldNote } from './todoui.js';
 import { isPlayAheadOpen } from './todo.js';
 import { renderVerhaal, verhaalClick, verhaalSummary, disposeVerhaalViewer } from './verhaalui.js';
 import { anyFresh } from './characters.js';
@@ -56,7 +56,9 @@ const CONTROL_GROUPS = [
   ['rijden', 'Rijden', [
     [['WASD'], 'Gas, remmen en achteruit, sturen'],
     [['SPACE'], 'Handrem'],
-    [['SHIFT'], 'Op de fiets: even flink doortrappen'],
+    [['.', ','], 'Handmatig schakelen: hoger, lager (Instellingen › Schakelen)'],
+    [['J'], 'Handmatig met koppeling: koppeling indrukken bij het schakelen'],
+    [['SHIFT'], 'Op de fiets: even flink doortrappen; op een motor: wheelie met gas, stoppie met remmen'],
     [['E', 'F'], 'Uitstappen'],
     [['Q', 'WHEEL'], 'Achterom kijken (vasthouden; middelste muisknop)'],
     [['H'], 'Toeteren'],
@@ -179,52 +181,51 @@ const qBtn = (action, ic, label, cls = 'pm-secondary', extra = '') =>
 // [id, label, hint under the title in the sheet]
 const SECTIONS = [
   ['overzicht', 'Overzicht', ''],
-  ['telefoon', 'Telefoon', 'Bellen en berichten'],
   ['todo', 'Te doen', 'Verhaal, missies, minigames en meer'],
+  ['map', 'Kaart', 'Kies een doel of zoek een plek'],
+  ['telefoon', 'Telefoon', 'Bellen en berichten'],
   ['verhaal', 'Verhaal', 'Personages en aanwijzingen'],
   ['spullen', 'Spullen', 'Alles wat je hebt'],
-  ['map', 'Kaart', 'Kies een doel of zoek een plek'],
   ['garage', 'Garage', 'Jouw voertuigen'],
   ['prestaties', 'Prestaties', 'Blijven bewaard, ook bij een nieuw spel'],
-  ['streken', 'Cheats', 'Een beetje vals spelen'],
   ['settings', 'Instellingen', 'Wijzigingen worden meteen bewaard'],
   ['controls', 'Besturing', 'Alle toetsen, per situatie'],
+  ['streken', 'Cheats', 'Een beetje vals spelen'],
 ];
+// the rail's three groups: playing, collected, system
+const RAIL_GROUPS = [['overzicht', 'todo', 'map', 'telefoon'], ['verhaal', 'spullen', 'garage', 'prestaties'], ['settings', 'controls', 'streken']];
 const PRESTART_SECTIONS = ['settings', 'controls'];
 const SUBTABS = {
   todo: [['verhaal', 'Verhaal'], ['alles', 'Alles'], ['dichtbij', 'Dichtbij']],
   telefoon: [['contacten', 'Contacten'], ['berichten', 'Berichten']],
   verhaal: [['personages', 'Personages'], ['aanwijzingen', 'Aanwijzingen']],
-  settings: [['sound', 'Geluid'], ['video', 'Beeld'], ['camera', 'Camera & muis'], ['controller', 'Controller'], ['display', 'Weergave'], ['a11y', 'Toegankelijk'], ['fouten', 'Foutrapport']],
-  controls: [['overzicht', 'Overzicht'], ['toetsen', 'Toetsenbord'], ['knoppen', 'Controller']],
+  settings: [['video', 'Beeld'], ['sound', 'Geluid & ondertitels'], ['camera', 'Camera & controller'], ['display', 'Interface'], ['a11y', 'Toegankelijkheid'], ['fouten', 'Foutrapport']],
+  controls: [['toetsen', 'Toetsenbord en muis'], ['knoppen', 'Controller'], ['overzicht', 'Alle toetsen']],
 };
+// old tab names (saved preferences, other modules)
+const SUB_ALIAS = { settings: { controller: 'camera' } };
 
-const FOOTERS = {
-  overzicht: '<b>Enter</b> kiezen · zet iets als <b>doel</b> en de route gaat erheen, het verhaal wacht',
-  todo: '<b>Klik</b> details · <b>Enter</b> zet als doel · geklaarde missies kun je opnieuw spelen voor een betere medaille · wereldeinden en geheimen verklappen nooit waar ze zijn',
-  map: `<b>Klik</b> doel kiezen · <b>Rechtsklik / Del</b> doel wissen · ${DEV ? '<b>Shift+klik</b> teleporteren · ' : ''}<b>Scroll / + −</b> zoomen · <b>WASD</b> schuiven · <b>Spatie</b> naar jezelf`,
-  garage: '<b>Laten afleveren</b> zet je voertuig om de hoek, buiten beeld · gekochte voertuigen blijven voorgoed van jou',
-  prestaties: 'Prestaties blijven bewaard, ook als je een nieuw spel begint',
-  spullen: '<b>Enter</b> details en gebruiken · voertuigen staan in <b>Garage</b>, aanwijzingen in <b>Verhaal</b>',
-  telefoon: '<b>Enter</b> bellen of lezen · Henk brengt je auto, Berend heeft klussen · een binnenkomend bericht of gesprek opent hier met <b>Esc</b>',
-  streken: '<b>Enter</b> aan of uit · gameplay-cheats wachten tijdens missies en filmpjes · zolang er een aan staat, staan prestaties uit',
-  verhaal: 'Wie je spreekt, komt erbij · <b>Slepen</b> draait het model · niemand verklapt wat nog komt',
-  settings: 'Instellingen worden automatisch bewaard',
-  controls: '<b>/</b> zoeken · <b>Toetshints</b> aan of uit onder Instellingen › Weergave · indelen: kies een actie en druk de nieuwe toets',
+// The footer: two to four hints, [keys, label, action]. ' back' is filled in.
+const BACK = '\u0000';
+const HINTS = {
+  overzicht: [[['↑', '↓'], 'kiezen'], [['Enter'], 'ok'], [['Esc'], 'doorgaan', 'resume']],
+  todo: [[['↑', '↓'], 'kiezen'], [['Enter'], 'zet als doel'], [['Q', 'E'], 'weergave'], [['Esc'], BACK, 'back']],
+  map: [[['Klik'], 'doel kiezen'], [['Scroll'], 'zoomen'], [['M'], 'sluiten', 'resume'], [['Esc'], BACK, 'back']],
+  telefoon: [[['↑', '↓'], 'kiezen'], [['Enter'], 'bellen of lezen'], [['Q', 'E'], 'tabblad'], [['Esc'], BACK, 'back']],
+  verhaal: [[['↑', '↓'], 'kiezen'], [['Q', 'E'], 'tabblad'], [['Esc'], BACK, 'back']],
+  spullen: [[['↑', '↓'], 'kiezen'], [['Enter'], 'gebruiken'], [['Esc'], BACK, 'back']],
+  garage: [[['↑', '↓'], 'kiezen'], [['Enter'], 'laten afleveren'], [['Q', 'E'], 'soort'], [['Esc'], BACK, 'back']],
+  prestaties: [[['↑', '↓'], 'kiezen'], [['Enter'], 'openen'], [['Q', 'E'], 'weergave'], [['Esc'], BACK, 'back']],
+  streken: [[['↑', '↓'], 'kiezen'], [['Enter'], 'aan of uit'], [['Esc'], BACK, 'back']],
+  settings: [[['↑', '↓'], 'kiezen'], [['←', '→'], 'wijzigen'], [['Q', 'E'], 'tabblad'], [['Esc'], BACK, 'back']],
+  controls: [[['↑', '↓'], 'kiezen'], [['Enter'], 'toets wijzigen'], [['Q', 'E'], 'onderdeel'], [['Esc'], BACK, 'back']],
 };
+// a line in the sheet header that replaces the section's hint
+const SHEET_NOTE = {};
 // a fixed controller glyph (the menu's own buttons)
-const pg = (slot) => `<span class="pm-pad-g" data-g-raw>${padGlyphInner(slot)}</span>`;
-// with a controller: the footers in its buttons
-const PAD_FOOTERS = {
-  overzicht: () => `${pg('a')} kiezen · zet iets als <b>doel</b> en de route gaat erheen`,
-  telefoon: () => `${pg('a')} bellen of lezen · ${pg('lt')}${pg('rt')} contacten of berichten`,
-  todo: () => `${pg('a')} zet als doel · ${pg('lt')}${pg('rt')} weergave · geklaarde missies kun je opnieuw spelen`,
-  verhaal: () => `${pg('lt')}${pg('rt')} personages of aanwijzingen`,
-  map: () => `${pg('a')} doel onder het kruis · ${pg('x')} doel wissen · ${pg('lt')}${pg('rt')} zoomen · ${pg('lstick')} schuiven · ${pg('y')} naar jezelf`,
-  streken: () => `${pg('a')} aan of uit · gameplay-cheats wachten tijdens missies · prestaties staan dan uit`,
-  settings: () => `${pg('lt')}${pg('rt')} tabblad · ${pg('dpad')} kiezen en schuiven · wordt meteen bewaard`,
-  controls: () => `${pg('lt')}${pg('rt')} tabblad · ${pg('a')} een knop of toets indelen`,
-};
+const pg =(slot) => `<span class="pm-pad-g" data-g-raw>${padGlyphInner(slot)}</span>`;
+const PAD_KEYS = { '↑': 'dpad', '↓': null, '←': 'dpad', '→': null, Enter: 'a', Esc: 'b', Q: 'lb', E: 'rb', Klik: 'a', Scroll: 'rt', M: 'y' };
+const PAD_LABEL = { 'zet als doel': 'zet als doel', 'toets wijzigen': 'indelen' };
 
 const HOME = 'overzicht';
 let root = null;
@@ -269,194 +270,208 @@ const sectionIds = () => (prestart ? PRESTART_SECTIONS : SECTIONS.map(([id]) => 
 const sectionOf = (id) => SECTIONS.find(([s]) => s === id);
 const key = (k) => `<span class="hud-key">${k}</span>`;
 
+const CHEV_L = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 6l-6 6 6 6"/></svg>';
+const CHEV_R = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 6l6 6-6 6"/></svg>';
+const plain = (t) => String(t).replace(/<[^>]*>/g, '').replace(/&shy;/g, '');
+
 function subtabsHtml(of, label) {
-  return `<nav class="pm-subtabs" role="tablist" aria-label="${label}">` + SUBTABS[of].map(([id, text]) =>
-    `<button type="button" role="tab" data-of="${of}" data-subtab="${id}" aria-selected="false">${esc(text)}<small data-count="${id}"></small></button>`).join('') + '</nav>';
+  return `<div class="m-tabs"><nav class="m-tablist" role="tablist" aria-label="${label}">` + SUBTABS[of].map(([id, text]) =>
+    `<button type="button" role="tab" class="m-tab" data-of="${of}" data-subtab="${id}" aria-selected="false">${esc(text)}<small data-count="${id}"></small></button>`).join('') + '</nav>' +
+    (of === 'todo' ? '<span class="m-grow"></span><button type="button" class="m-bt" data-todo-sort aria-pressed="false" hidden>Dichtbij eerst</button>' : '') + '</div>';
 }
 
-function slider(k, label, min = 0, max = 1, step = 0.05) {
-  return `<label class="pm-row"><span>${label}</span><input type="range" min="${min}" max="${max}" step="${step}" data-setting="${k}"><output></output></label>`;
+const rowName = (label, note) => `<span class="nm">${label}${note ? `<span class="mut">${note}</span>` : ''}</span>`;
+
+function slider(k, label, min = 0, max = 1, step = 0.05, note = '') {
+  return `<label class="m-li pm-row">${rowName(label, note)}<input type="range" class="m-sl" min="${min}" max="${max}" step="${step}" data-setting="${k}"><output class="m-val"></output></label>`;
 }
 
 function toggle(k, label, note = '') {
-  return `<label class="pm-row"><span>${label}${note ? `<small>${note}</small>` : ''}</span><input type="checkbox" data-setting="${k}"></label>`;
+  return `<label class="m-li pm-row">${rowName(label, note)}<input type="checkbox" class="m-sw" data-setting="${k}"></label>`;
 }
 
-function segmented(k, label, options) {
-  return `<div class="pm-row"><span id="pm-l-${k}">${label}</span><div class="pm-seg" role="radiogroup" aria-labelledby="pm-l-${k}" data-setting="${k}">` +
-    options.map(([v, text]) => `<button type="button" role="radio" data-value="${v}" aria-checked="false">${text}</button>`).join('') + '</div></div>';
+// a picker: previous, the chosen value, next (the mockups' replacement for a segmented row)
+function picker(k, label, options, note = '', attrs = `data-setting="${k}"`) {
+  const name = plain(label);
+  return `<div class="m-li pm-row"><span class="nm" id="pm-l-${k}">${label}${note ? `<span class="mut">${note}</span>` : ''}</span>` +
+    `<span class="m-pk" role="group" aria-labelledby="pm-l-${k}" ${attrs} data-options="${esc(JSON.stringify(options))}">` +
+    `<button type="button" data-pick="-1" aria-label="${esc(name)}: vorige">${CHEV_L}</button><output aria-live="polite"></output>` +
+    `<button type="button" data-pick="1" aria-label="${esc(name)}: volgende">${CHEV_R}</button></span></div>`;
 }
+
+function disclosure(id, title, hint, inner, open = false) {
+  return `<div class="m-rule"></div><button type="button" class="m-disc" data-fold="${id}" aria-expanded="${open}" aria-controls="pm-f-${id}">${CHEV_R}<b>${title}</b><span class="mut">${hint}</span></button>` +
+    `<div class="m-fold" id="pm-f-${id}" data-fold-body="${id}"${open ? '' : ' hidden'}>${inner}</div>`;
+}
+
+const pane = (eyebrow, title, inner = '') => `<aside class="m-pane"><div class="pm-pane-top"><span class="m-eb">${eyebrow}</span><h2 class="m-h2">${title}</h2></div>${inner}</aside>`;
 
 function settingsHtml() {
-  return `${subtabsHtml('settings', 'Instellingen')}
-    <div data-of="settings" data-sub="sound" class="pm-group">
+  const qualities = Object.keys(QUALITY_PRESETS).map((q) => [q, q[0].toUpperCase() + q.slice(1)]);
+  const presets = [...PRESET_ORDER, 'eigen'].map((n) => [n, n === 'eigen' ? 'Eigen' : presetLabel(n)]);
+  const tab = (id, rows, side = '') => `<div data-of="settings" data-sub="${id}" class="pm-settab" hidden><div class="m-list pm-slist">${rows}</div>${side}</div>`;
+  return `${subtabsHtml('settings', 'Onderdeel')}
+    ${tab('video', `
+      <div class="pm-advice" data-bench-banner hidden></div>
+      ${picker('preset', 'Voorinstelling', presets, '', 'data-preset-pick')}
+      ${picker('resolution', 'Resolutie', [['1', '100%'], ['0.85', '85%'], ['0.75', '75%'], ['0.6', '60%']])}
+      ${toggle('autoResolution', 'Automatische resolutie', 'bij haperen')}
+      ${toggle('shadows', 'Schaduwen')}
+      ${picker('drawDistance', 'Zichtafstand', [['kort', 'Kort'], ['normaal', 'Normaal'], ['ver', 'Ver'], ['heelver', 'Heel ver']])}
+      ${DESKTOP ? '<label class="m-li pm-row"><span class="nm">Volledig scherm<span class="mut">F11 of Alt+Enter</span></span><input type="checkbox" class="m-sw" data-desktop="fullscreen"></label>' : ''}
+      ${slider('brightness', 'Helderheid', 0.6, 1.6, 0.05)}
+      ${disclosure('video', 'Meer opties', 'Licht en gloed, benchmark draaien', `
+        ${picker('quality', 'Kwaliteit', qualities, 'Licht, gloed en kleuren')}
+        <div class="m-li pm-row">${rowName('Benchmark', 'Test hoe soepel Grunn draait op deze computer en welke stand past (±2 min)')}<button type="button" class="m-bg" data-action="bench">Benchmark draaien</button></div>
+        <div class="pm-confirm" data-bench-confirm hidden>
+          <p data-bench-text></p>
+          <div class="m-acts"><button type="button" class="m-bp" data-action="bench-go">Starten</button><button type="button" class="m-bt" data-action="bench-cancel">Annuleren</button></div>
+        </div>`)}`, `
+      <aside class="m-pane" data-preset-pane><div class="pm-pane-top"><span class="m-eb">Voorinstelling</span><h2 class="m-h2" data-preset-name></h2></div>
+        <p data-preset-desc></p>
+        <div class="m-fact" data-preset-fps hidden><span>Verwacht op deze computer</span><span class="m-num pm-big"></span></div>
+        <div class="pm-fpsbars" data-preset-bars></div><p class="mut" data-bench-note></p></aside>`)}
+    ${tab('sound', `
       ${slider('masterVolume', 'Hoofdvolume')}
       ${slider('musicVolume', 'Muziek')}
       ${slider('sfxVolume', 'Effecten')}
       ${slider('voiceVolume', 'Stemmen')}
-      <div class="pm-row"><span id="pm-l-radio">Radio G-Music<small>Ook met N, te voet en in elk voertuig</small></span><div class="pm-seg" role="radiogroup" aria-labelledby="pm-l-radio" data-radio>${[['on', 'Aan'], ['off', 'Uit']].map(([v, t]) => `<button type="button" role="radio" data-value="${v}" aria-checked="false">${t}</button>`).join('')}</div></div>
-      <p class="pm-note">Muziek is de radio (G-Music, 's nachts Nachtstreek) en de titelsong, stemmen zijn Tammo, Tessa, de politie, de mensen op straat en de praatjes op de radio.</p>
-    </div>
-    <div data-of="settings" data-sub="video" class="pm-group pm-video" hidden>
-      <div class="pm-bench" data-bench-banner hidden></div>
-      <div class="pm-presets" role="radiogroup" aria-label="Voorinstelling">
-        ${[...PRESET_ORDER, 'eigen'].map((n) => `<button type="button" role="radio" class="pm-preset" data-preset="${n}" aria-checked="false">
-          <span class="pm-pill" hidden>Aanbevolen</span><b>${n === 'eigen' ? 'Eigen' : presetLabel(n)}</b><span class="pm-fps"></span>
-          <small>${n === 'eigen' ? 'Wat je hieronder zelf instelt' : esc(describePreset(n))}</small></button>`).join('')}
-      </div>
-      <h4 class="pm-subhead">Zelf instellen</h4>
-      ${segmented('quality', 'Kwaliteit<small>Licht, gloed en kleuren</small>', Object.keys(QUALITY_PRESETS).map((q) => [q, q[0].toUpperCase() + q.slice(1)]))}
-      ${toggle('shadows', 'Schaduwen')}
-      ${segmented('resolution', 'Resolutie', [['1', '100%'], ['0.85', '85%'], ['0.75', '75%'], ['0.6', '60%']])}
-      ${toggle('autoResolution', 'Automatische resolutie', 'Resolutie en details gaan even omlaag als het beeld hapert')}
-      ${segmented('drawDistance', 'Zichtafstand', [['kort', 'Kort'], ['normaal', 'Normaal'], ['ver', 'Ver'], ['heelver', 'Heel ver']])}
-      ${DESKTOP ? '<label class="pm-row"><span>Volledig scherm<small>F11 of Alt+Enter</small></span><input type="checkbox" data-desktop="fullscreen"></label>' : ''}
-      <div class="pm-row"><span>Benchmark<small>Test hoe soepel Grunn draait op deze computer en welke stand past (±2 min)</small></span><button type="button" class="pm-secondary pm-small" data-action="bench">Benchmark draaien</button></div>
-      <div class="pm-confirm pm-ok" data-bench-confirm hidden>
-        <p data-bench-text></p>
-        <div class="pm-confirm-row"><button type="button" class="pm-primary pm-small" data-action="bench-go">Starten</button>
-        <button type="button" class="pm-secondary pm-small" data-action="bench-cancel">Annuleren</button></div>
-      </div>
-    </div>
-    <div data-of="settings" data-sub="camera" class="pm-group" hidden>
+      <label class="m-li pm-row">${rowName('Radio G-Music', 'Ook met N, te voet en in elk voertuig')}<input type="checkbox" class="m-sw" data-radio-switch></label>
+      ${disclosure('subs', 'Ondertitels', 'Filmpjes, gesprekken, telefoon, radio en naamkaarten', `
+        ${picker('subtitleSize', 'Grootte', [['klein', 'Klein'], ['normaal', 'Normaal'], ['groot', 'Groot'], ['extragroot', 'Extra groot']])}
+        ${toggle('subtitleBox', 'Donker vlak erachter', 'Een donker vlak maakt ze makkelijker te lezen')}`, true)}`, `
+      <aside class="m-pane"><div class="pm-pane-top"><span class="m-eb">Zo ziet het eruit</span></div>
+        <div class="pm-subprev" data-sub-preview><span class="pm-subtxt"><b>Tammo:</b> Rustig an, rustig an.</span></div>
+        <p class="mut">Muziek is de radio (G-Music, 's nachts Nachtstreek) en de titelsong, stemmen zijn Tammo, Tessa, de politie, de mensen op straat en de praatjes op de radio. Kleurenblind, interfacegrootte en beweging beperken vind je onder Toegankelijkheid.</p></aside>`)}
+    ${tab('camera', `
       ${slider('fov', 'Beeldhoek', 50, 90, 1)}
       ${slider('cameraDistance', 'Camera-afstand', 0.8, 1.6, 0.05)}
       ${slider('mouseSensitivity', 'Muisgevoeligheid', 0.3, 2.5, 0.05)}
-      ${toggle('invertY', 'Omhoog/omlaag omkeren')}
+      ${toggle('invertY', 'Omhoog/omlaag omkeren', 'Geldt voor de muis en de stick')}
       ${toggle('autoAim', 'Automatisch richten', 'Rechtermuisknop zoekt zelf het beste doelwit')}
-    </div>
-    <div data-of="settings" data-sub="controller" class="pm-group" hidden>
-      ${segmented('padLayout', 'Knoppen tonen als<small>Automatisch kiest wat er aangesloten is</small>', [['auto', 'Automatisch'], ['xbox', 'Xbox'], ['ps', 'PlayStation'], ['deck', 'Steam Deck']])}
+      <div class="m-gh"><span>Controller</span></div>
+      ${picker('padLayout', 'Knoppen tonen als', [['auto', 'Automatisch'], ['xbox', 'Xbox'], ['ps', 'PlayStation'], ['deck', 'Steam Deck']], 'Automatisch kiest wat er aangesloten is')}
       ${slider('padLookSensitivity', 'Camera met de rechterstick', 0.3, 2.5, 0.05)}
       ${toggle('rumble', 'Trillen', 'Bij klappen, schoten en botsingen, als je controller dat kan')}
-      ${toggle('invertY', 'Omhoog/omlaag omkeren', 'Geldt voor de muis en de stick')}
-      <div class="pm-row"><span>Knoppen indelen<small>Onder Besturing › Controller</small></span><button type="button" class="pm-secondary pm-small" data-goto-sub="controls:knoppen">Indelen</button></div>
-      <p class="pm-note">Xbox-, PlayStation- en Steam Deck-controllers werken meteen. De hints in beeld wisselen vanzelf tussen toetsen en knoppen, naar wat je het laatst gebruikte.</p>
-    </div>
-    <div data-of="settings" data-sub="a11y" class="pm-group" hidden>
-      ${segmented('subtitleSize', 'Ondertitels<small>Filmpjes, gesprekken, telefoon, radio en naamkaarten</small>', [['klein', 'Klein'], ['normaal', 'Normaal'], ['groot', 'Groot'], ['extragroot', 'Extra groot']])}
-      ${toggle('subtitleBox', 'Vlak achter de ondertitels', 'Een donker vlak maakt ze makkelijker te lezen')}
-      ${segmented('colorBlind', 'Kleurenblind<small>Andere kleuren voor markers, routes, de kaart en de HUD; vormen en patronen helpen altijd</small>', [['uit', 'Uit'], ['deuteranopie', 'Deuter&shy;anopie'], ['protanopie', 'Protan&shy;opie'], ['tritanopie', 'Tritan&shy;opie']])}
-      ${slider('uiScale', 'Grootte interface', 0.8, 1.5, 0.05)}
-      ${toggle('reduceMotion', 'Beweging beperken', 'Staat ook aan als je systeem om minder beweging vraagt.')}
-    </div>
-    <div data-of="settings" data-sub="display" class="pm-group" hidden>
-      ${slider('brightness', 'Helderheid', 0.6, 1.6, 0.05)}
-      ${slider('uiScale', 'Grootte interface', 0.8, 1.5, 0.05)}
-      ${segmented('hudMode', 'HUD<small>Slim toont alleen wat nu telt; Alles houdt alles in beeld; Minimaal laat alleen sterren, doel en ondertitels over</small>', [['slim', 'Slim'], ['alles', 'Altijd alles'], ['minimaal', 'Minimaal']])}
+      <div class="m-li pm-row">${rowName('Knoppen indelen', 'Onder Besturing › Controller')}<button type="button" class="m-bg" data-goto-sub="controls:knoppen">Indelen</button></div>`, `${pane('Camera & controller', 'Meekijken', '<p>Xbox-, PlayStation- en Steam Deck-controllers werken meteen. De hints in beeld wisselen vanzelf tussen toetsen en knoppen, naar wat je het laatst gebruikte.</p><p class="mut">De camera-afstand en beeldhoek gelden te voet en in elk voertuig.</p>')}`)}
+    ${tab('display', `
+      ${picker('hudMode', 'HUD', [['slim', 'Slim'], ['alles', 'Altijd alles'], ['minimaal', 'Minimaal']], 'Slim toont alleen wat nu telt')}
       ${toggle('showMinimap', 'Minimap')}
       ${slider('minimapZoom', 'Zoom van de minimap', 0.6, 1.6, 0.05)}
-      ${segmented('minimapNorth', 'Minimap met noord boven<small>Standaard draait de kaart mee, in de lucht staat noord boven</small>', [['nooit', 'Nooit'], ['lucht', 'In de lucht'], ['altijd', 'Altijd']])}
+      ${picker('minimapNorth', 'Minimap met noord boven', [['nooit', 'Nooit'], ['lucht', 'In de lucht'], ['altijd', 'Altijd']], 'Standaard draait de kaart mee')}
       ${toggle('showHints', 'Toetshints')}
-      ${toggle('onboardingTips', 'Uitleg voor nieuwe spelers', 'Korte tips, elk één keer: je eerste klus, geld en winkels, de telefoon, de kaart en Te doen')}
-      ${toggle('reduceMotion', 'Beweging beperken', 'Menu’s, kaarten en tellers springen meteen naar hun nieuwe stand, zonder animatie.')}
-      ${toggle('showFog', 'Verkende gebieden op de kaart')}
-      ${toggle('cinematicMoments', 'Filmische momenten', 'Korte filmpjes bij bezienswaardigheden, nieuwe wijken, crashes en vijf sterren. Intro’s, missies en de filmcamera (V) staan altijd aan.')}
-      ${segmented('drunkFx', 'Dronken effecten', [['aan', 'Aan'], ['mild', 'Mild'], ['uit', 'Uit']])}
-      ${toggle('gore', 'Bloed en ledematen', 'Uit: aangereden en neergeschoten mensen vallen gewoon om, zonder bloed of rondvliegende ledematen.')}
-    </div>
-    <div data-of="settings" data-sub="fouten" class="pm-group" hidden>
+      ${disclosure('display', 'Meer opties', 'Uitleg, kaart, filmpjes, bloed', `
+        ${toggle('onboardingTips', 'Uitleg voor nieuwe spelers', 'Korte tips, elk één keer: je eerste klus, geld en winkels, de telefoon, de kaart en Te doen')}
+        ${toggle('showFog', 'Verkende gebieden op de kaart')}
+        ${toggle('cinematicMoments', 'Filmische momenten', 'Bij bezienswaardigheden, nieuwe wijken, crashes en vijf sterren; intro’s, missies en de filmcamera (V) staan altijd aan')}
+        ${picker('drunkFx', 'Dronken effecten', [['aan', 'Aan'], ['mild', 'Mild'], ['uit', 'Uit']])}
+        ${picker('shiftMode', 'Schakelen', [['auto', 'Automaat'], ['manual', 'Handmatig'], ['clutch', 'Handmatig + koppeling']], 'Automaat is de standaard; handmatig schakel je met . en , (of de bumpers), met koppeling houd je ook J ingedrukt')}
+        ${toggle('driftAssist', 'Driften met hulp', 'Helpt tegensturen en houdt een slip beheersbaar; uit is realistischer')}
+        ${toggle('bikeAssist', 'Motor met hulp', 'Houdt een motor of brommer rechtop in bochten; uit is realistischer')}
+        ${toggle('gore', 'Bloed en ledematen', 'Uit: mensen vallen gewoon om, zonder bloed of rondvliegende ledematen')}`)}`, `${pane('Interface', 'Wat je ziet', '<p>Slim toont alleen wat nu telt; Altijd alles houdt alles in beeld; Minimaal laat alleen sterren, doel en ondertitels over.</p>')}`)}
+    ${tab('a11y', `
+      ${picker('colorBlind', 'Kleurenblind', [['uit', 'Uit'], ['deuteranopie', 'Deuteranopie'], ['protanopie', 'Protanopie'], ['tritanopie', 'Tritanopie']], 'Andere kleuren voor markers, routes, kaart en HUD')}
+      ${slider('uiScale', 'Grootte interface', 0.8, 1.5, 0.05)}
+      ${toggle('reduceMotion', 'Beweging beperken', 'Staat ook aan als je systeem om minder beweging vraagt')}`, `${pane('Toegankelijkheid', 'Lekker lezen', '<p>Vormen en patronen helpen altijd, ook als je geen kleurenstand kiest. Menu’s, kaarten en tellers springen meteen naar hun nieuwe stand als je beweging beperkt.</p><p class="mut">Ondertitels stel je in onder Geluid & ondertitels.</p>')}`)}
+    ${tab('fouten', `<div class="m-list pm-slist pm-wide">
       <p class="pm-note">Gaat er iets mis, dan schrijft het spel dat hier op. Alleen op dit apparaat: er wordt niets verstuurd. Wil je helpen? Kopieer het rapport en stuur het zelf mee met je melding. Er staat niets persoonlijks in: de melding, waar in de code, de versie, je verhaalstap, een paar instellingen en het soort videokaart.</p>
-      <div class="pm-confirm-row pm-errlog-actions">
-        <button type="button" class="pm-secondary pm-small" data-action="errlog-copy">Kopieer naar klembord</button>
-        ${DESKTOP && DESKTOP.saveTextFile ? '<button type="button" class="pm-secondary pm-small" data-action="errlog-save">Opslaan als bestand</button>' : ''}
-        <button type="button" class="pm-secondary pm-small" data-action="errlog-clear">Wissen</button>
+      <div class="m-acts pm-errlog-actions">
+        <button type="button" class="m-bg" data-action="errlog-copy">Kopieer naar klembord</button>
+        ${DESKTOP && DESKTOP.saveTextFile ? '<button type="button" class="m-bg" data-action="errlog-save">Opslaan als bestand</button>' : ''}
+        <button type="button" class="m-bt" data-action="errlog-clear">Wissen</button>
       </div>
       <p class="pm-status" data-errlog-status role="status"></p>
-      <ol class="pm-errlog" data-errlog></ol>
-    </div>
-    <div class="pm-reset"><button type="button" class="pm-secondary pm-small" data-action="reset">${icon('restart')}<span>Standaardinstellingen</span></button></div>`;
+      <ol class="pm-errlog" data-errlog></ol></div>`)}`;
 }
-
 export function initPauseMenu(w) {
   world = w;
   input = w.input;
-  if (!document.getElementById('fold-style')) {
+  for (const css of ['menu.css', 'pausemenu.css']) {
+    if (document.getElementById('style-' + css)) continue;
     const link = document.createElement('link');
-    link.id = 'fold-style';
+    link.id = 'style-' + css;
     link.rel = 'stylesheet';
-    link.href = new URL('./fold.css', import.meta.url).href;
+    link.href = new URL('./' + css, import.meta.url).href;
     document.head.appendChild(link);
   }
   root = document.createElement('div');
   root.id = 'pause-menu';
+  root.className = 'gm';
   root.setAttribute('role', 'dialog');
   root.setAttribute('aria-modal', 'true');
   root.setAttribute('aria-labelledby', 'pm-title');
   root.dataset.level = 'section';
+  const railBtn = (id) => { const [, label] = sectionOf(id); return `<button type="button" class="ra" data-goto="${id}" aria-current="false">${label}<span class="n" data-n="${id}"></span></button>`; };
   root.innerHTML = `
-    <div class="pm-fold" aria-label="${PHONE_NAME}">
-    <div class="pm-statusbar" aria-hidden="true"><span class="pm-sb-l"><b data-sb="clock"></b><span data-sb="day"></span></span><span class="pm-sb-c"><span class="pm-sb-cam"></span></span><span class="pm-sb-r"><span data-sb="music"></span><span data-sb="who"></span><span class="pm-sb-sig"><i></i><i></i><i></i><i></i></span><span class="pm-sb-batt"><i></i></span></span></div>
-    <div class="pm-stage">
+    <div class="pm-fold gm-stage">
       <nav class="pm-rail" aria-label="Pauzemenu">
         <div class="pm-inner pm-game">
-          <div class="pm-q-head">${logoHtml({ sub: false, cls: 'pm-logo', decorative: true })}<b id="pm-title">Pauze</b><span class="pm-q-info"><span data-info="char"></span><span data-info="clock"></span><span data-info="money"></span></span></div>
-          ${qBtn('resume', 'resume', 'Doorgaan', 'pm-primary pm-q-main', ' aria-keyshortcuts="Escape"').replace('</button>', `${key('Esc')}</button>`)}
-          ${SECTIONS.map(([id, label]) => `<button type="button" class="pm-secondary pm-q-nav" data-goto="${id}" aria-current="false">${icon(id)}<span>${label}</span>${id === 'map' ? key('M') : ''}</button>`).join('')}
+          <div class="pm-q-head">${logoHtml({ sub: false, cls: 'pm-logo', decorative: true })}<b id="pm-title" class="pm-sr">Pauze</b><span class="mut pm-q-info" data-info="when"></span></div>
+          ${RAIL_GROUPS.map((g) => g.map(railBtn).join('')).join('<span class="pm-rail-sp"></span>')}
           <span class="pm-rail-gap"></span>
-          <div class="pm-rail-row pm-ingame">${qBtn('save', 'save', 'Opslaan', 'pm-secondary pm-small')}${qBtn('load', 'load', 'Laden', 'pm-secondary pm-small', ' title="Laatste save laden"')}</div>
-          <p class="pm-status pm-ingame" role="status"></p>
-          <div class="pm-rail-row pm-ingame">${qBtn('menu', 'menu', 'Hoofdmenu', 'pm-secondary pm-small', ' title="Opslaan en terug naar het titelscherm"')}${DESKTOP ? qBtn('exit', 'exit', 'Afsluiten', 'pm-secondary pm-small', ' title="Opslaan en het spel sluiten"') : ''}</div>
-          <div class="pm-rail-danger pm-ingame">
-            ${qBtn('restart', 'restart', 'Opnieuw beginnen', 'pm-danger pm-small')}
+          <button type="button" class="ra pm-back" data-action="resume">Terug</button>
+          <div class="pm-rail-acts pm-ingame">
+            <button type="button" class="m-bt" data-action="save">Opslaan</button>
+            <button type="button" class="m-bt" data-action="load" title="Laatste save laden">Laden</button>
+            <button type="button" class="m-bt" data-action="menu" title="Opslaan en terug naar het titelscherm">Hoofdmenu</button>
+            ${DESKTOP ? '<button type="button" class="m-bt" data-action="exit" title="Opslaan en het spel sluiten">Afsluiten</button>' : ''}
+          </div>
+          <div class="pm-rail-foot pm-ingame">
+            <p class="pm-status" role="status"></p>
+            <button type="button" class="m-bt danger" data-action="restart">Opnieuw beginnen</button>
             <div class="pm-confirm" hidden>
               <p>Opnieuw beginnen? Alles sinds je laatste save gaat verloren.</p>
-              <button type="button" class="pm-secondary pm-small" data-action="load">Laatste save laden</button>
-              <button type="button" class="pm-danger pm-small" data-action="new">Nieuw spel (save wissen)</button>
-              <button type="button" class="pm-secondary pm-small" data-action="cancel">Annuleren</button>
+              <button type="button" class="m-bg" data-action="load">Laatste save laden</button>
+              <button type="button" class="m-bg danger" data-action="new">Nieuw spel (save wissen)</button>
+              <button type="button" class="m-bt" data-action="cancel">Annuleren</button>
             </div>
           </div>
         </div>
       </nav>
-      <section class="pm-sheet" aria-labelledby="pm-sheet-title">
-        <header class="pm-sheet-head">
-          <span class="pm-sheet-ic"></span>
-          <div class="pm-sheet-titles"><h2 class="pm-sheet-title" id="pm-sheet-title"></h2><small class="pm-sheet-sub"></small></div>
-          <div class="pm-cycle">
-            <button type="button" data-cycle="-1" aria-label="Vorig onderdeel">${key('Q')}</button>
-            <button type="button" data-cycle="1" aria-label="Volgend onderdeel">${key('E')}</button>
-            <span>onderdeel</span>
-          </div>
+      <section class="pm-sheet m-panel" aria-labelledby="pm-sheet-title">
+        <header class="pm-sheet-head m-head">
+          <div class="pm-sheet-titles"><span class="m-eb pm-sheet-eb" hidden></span><h1 class="m-h1 pm-sheet-title" id="pm-sheet-title"></h1></div>
+          <div class="m-hr pm-sheet-r"><span class="mut pm-sheet-sub"></span><button type="button" class="m-bt" data-action="reset" hidden>Standaard herstellen</button></div>
         </header>
         <div class="pm-sheet-body">
-          <section data-panel="overzicht" class="pm-panel pm-col" hidden><div class="pm-inner pm-wide pm-ov"></div></section>
-          <section data-panel="telefoon" class="pm-panel pm-col" hidden><div class="pm-inner pm-wide pm-phone">
+          <section data-panel="overzicht" class="pm-panel pm-col" hidden><div class="pm-inner pm-ov"></div></section>
+          <section data-panel="telefoon" class="pm-panel pm-col pm-tabbed" hidden><div class="pm-inner pm-phone">
             ${subtabsHtml('telefoon', 'Telefoon')}
-            <div class="td-layout"><div class="td-list">
+            <div class="m-main"><div class="m-list td-list">
               <div data-of="telefoon" data-sub="contacten"></div><div data-of="telefoon" data-sub="berichten" hidden></div>
-            </div><aside class="td-detail ph-detail" aria-label="Gesprek" aria-live="polite"></aside></div>
+            </div><aside class="m-pane td-detail ph-detail" aria-label="Gesprek" aria-live="polite"></aside></div>
           </div></section>
-          <section data-panel="todo" class="pm-panel pm-col" hidden><div class="pm-inner pm-wide pm-todo">
+          <section data-panel="todo" class="pm-panel pm-col pm-tabbed" hidden><div class="pm-inner pm-todo">
             ${subtabsHtml('todo', 'Weergave')}
-            <div class="td-layout"><div class="td-list">
+            <div class="m-main"><div class="m-list td-list">
               <div data-of="todo" data-sub="verhaal"></div><div data-of="todo" data-sub="alles" hidden></div><div data-of="todo" data-sub="dichtbij" hidden></div>
-            </div><aside class="td-detail" aria-label="Details"></aside></div>
+            </div><aside class="m-pane td-detail" aria-label="Details"></aside></div>
           </div></section>
           <section data-panel="map" class="pm-panel pm-map" hidden></section>
-          <section data-panel="spullen" class="pm-panel pm-col" hidden><div class="pm-inner pm-wide pm-spullen"><div class="td-layout"><div class="td-list"></div><aside class="td-detail" aria-label="Details"></aside></div></div></section>
-          <section data-panel="garage" class="pm-panel pm-col" hidden><div class="pm-inner pm-wide pm-garage"></div></section>
-          <section data-panel="verhaal" class="pm-panel pm-col" hidden><div class="pm-inner pm-wide pm-verhaal">${subtabsHtml('verhaal', 'Verhaal')}
-            <div data-of="verhaal" data-sub="personages"></div><div data-of="verhaal" data-sub="aanwijzingen" hidden></div>
+          <section data-panel="spullen" class="pm-panel pm-col pm-tabbed" hidden><div class="pm-inner pm-spullen"><div class="m-main"><div class="m-list td-list"></div><aside class="m-pane td-detail" aria-label="Details"></aside></div></div></section>
+          <section data-panel="garage" class="pm-panel pm-col" hidden><div class="pm-inner pm-garage"></div></section>
+          <section data-panel="verhaal" class="pm-panel pm-col pm-tabbed" hidden><div class="pm-inner pm-verhaal">${subtabsHtml('verhaal', 'Verhaal')}
+            <div class="m-main pm-vbody"><div data-of="verhaal" data-sub="personages" class="pm-vsub"></div><div data-of="verhaal" data-sub="aanwijzingen" class="pm-vsub" hidden></div></div>
           </div></section>
-          <section data-panel="prestaties" class="pm-panel pm-col" hidden><div class="pm-inner pm-wide pm-ach"></div></section>
-          <section data-panel="streken" class="pm-panel pm-col" hidden><div class="pm-inner pm-narrow pm-streken"></div></section>
-          <section data-panel="settings" class="pm-panel pm-col" hidden><div class="pm-inner pm-narrow">${settingsHtml()}</div></section>
-          <section data-panel="controls" class="pm-panel pm-col" hidden><div class="pm-inner pm-wide pm-cinner">
+          <section data-panel="prestaties" class="pm-panel pm-col" hidden><div class="pm-inner pm-ach"></div></section>
+          <section data-panel="streken" class="pm-panel pm-col" hidden><div class="pm-inner pm-streken"></div></section>
+          <section data-panel="settings" class="pm-panel pm-col pm-tabbed" hidden><div class="pm-inner pm-settings">${settingsHtml()}</div></section>
+          <section data-panel="controls" class="pm-panel pm-col pm-tabbed" hidden><div class="pm-inner pm-cinner">
             ${subtabsHtml('controls', 'Besturing')}
-            <div data-of="controls" data-sub="overzicht">
-            <div class="pm-csearch">${icon('search')}
-              <input type="search" data-controls-search placeholder="Zoek een toets of actie, bijv. toeter, duif of Q" aria-label="Zoek in de besturing" autocomplete="off" spellcheck="false"></div>
-            <div class="pm-cgrid">${controlsHtml()}</div>
-            <p class="pm-note pm-cempty" hidden>Niks gevonden. Probeer een ander woord of een toets.</p>
+            <div data-of="controls" data-sub="overzicht" class="pm-csub" hidden>
+              <div class="m-main"><div class="m-list pm-clist">
+                <label class="m-inp pm-csearch">${icon('search')}
+                  <input type="search" data-controls-search placeholder="Zoek een toets of actie, bijv. toeter, duif of Q" aria-label="Zoek in de besturing" autocomplete="off" spellcheck="false"></label>
+                <div class="pm-cgrid">${controlsHtml()}</div>
+                <p class="m-note pm-cempty" hidden>Niks gevonden. Probeer een ander woord of een toets.</p>
+              </div></div>
             </div>
-            <div data-of="controls" data-sub="toetsen" class="pm-binds" hidden></div>
-            <div data-of="controls" data-sub="knoppen" class="pm-binds" hidden></div>
+            <div data-of="controls" data-sub="toetsen" class="pm-binds pm-csub m-main" hidden></div>
+            <div data-of="controls" data-sub="knoppen" class="pm-binds pm-csub m-main" hidden></div>
           </div></section>
         </div>
       </section>
-    </div>
-    <footer class="pm-footer"><span class="pm-foot-tab"></span><span class="pm-foot-keys"></span></footer>
-    <span class="pm-hinge" aria-hidden="true"></span>
+      <footer class="pm-footer m-foot"></footer>
     </div>`;
   document.body.appendChild(root);
   sheet = root.querySelector('.pm-sheet');
@@ -469,8 +484,12 @@ export function initPauseMenu(w) {
   root.addEventListener('click', (e) => {
     const go = e.target.closest('[data-goto]');
     if (go) return enterSection(go.dataset.goto);
-    const cyc = e.target.closest('[data-cycle]');
-    if (cyc) return cycleSection(Number(cyc.dataset.cycle));
+    const hint = e.target.closest('[data-hint]');
+    if (hint) { if (hint.dataset.hint === 'back') goBack(); else runAction(hint.dataset.hint); return; }
+    const fold = e.target.closest('[data-fold]');
+    if (fold) { toggleFold(fold); return; }
+    const pick = e.target.closest('[data-pick]');
+    if (pick) { stepPicker(pick.closest('.m-pk'), Number(pick.dataset.pick)); return; }
     const gsub = e.target.closest('[data-goto-sub]');
     if (gsub) { const [sec, sub] = gsub.dataset.gotoSub.split(':'); pref.sub[sec] = sub; enterSection(sec); return; }
     const rk = e.target.closest('[data-rebind-key]');
@@ -479,15 +498,6 @@ export function initPauseMenu(w) {
     if (rp) return startPadRebind(rp);
     const st = e.target.closest('[data-subtab]');
     if (st) { showSubtab(st.dataset.of, st.dataset.subtab); if (st.dataset.of === 'todo') renderTodoPanel(); if (st.dataset.of === 'verhaal') renderVerhaalPanel(); if (st.dataset.of === 'controls') renderBinds(); if (st.dataset.of === 'telefoon') renderPhone(); return; }
-    const seg = e.target.closest('.pm-seg [data-value]');
-    if (seg && 'radio' in seg.parentElement.dataset) { setRadio(seg.dataset.value === 'on', { announce: false }); syncControls(); return; }
-    if (seg) { setSetting(seg.parentElement.dataset.setting, seg.dataset.value); syncControls(); return; }
-    const pre = e.target.closest('[data-preset]');
-    if (pre) {
-      if (pre.dataset.preset === 'eigen') { const first = root.querySelector('[data-sub="video"] .pm-subhead + .pm-row [data-value]'); if (first) first.focus(); }
-      else { applyPreset(pre.dataset.preset); syncControls(); }
-      return;
-    }
     if (e.target.closest('[data-story-skip]')) {
       if (skipCurrent()) setOpen(false);
       else rerenderTodo();
@@ -509,6 +519,7 @@ export function initPauseMenu(w) {
     if (action) runAction(action.dataset.action);
   });
   root.addEventListener('input', (e) => {
+    if (e.target.dataset && 'radioSwitch' in e.target.dataset) { setRadio(e.target.checked, { announce: false }); syncControls(); return; }
     if (DESKTOP && e.target.dataset && e.target.dataset.desktop === 'fullscreen') {
       DESKTOP.setFullscreen(e.target.checked);
       return;
@@ -533,6 +544,7 @@ export function initPauseMenu(w) {
     if (p && p.contains(e.target)) lastFocus[tab] = e.target;
     if (tab === 'todo' && p) todoFocus(p, world, e.target);
     if (tab === 'spullen' && p) spullenFocus(p, e.target);
+    if (tab === 'streken' && p) cheatsFocus(p, e.target);
   });
 
   const search = root.querySelector('[data-controls-search]');
@@ -652,7 +664,8 @@ function onKey(e) {
     else enterSection('map');
   } else if (lower === 'q' || lower === 'e') {
     consume(e);
-    cycleSection(lower === 'q' ? -1 : 1);
+    // Q and E: the section's tabs; a section without tabs: the previous or next section
+    if (SUBTABS[tab]) { if (!e.repeat) cycleSubtab(lower === 'q' ? -1 : 1); } else if (!e.repeat && cycleOwnTabs(lower === 'q' ? -1 : 1)) { /* garage, prestaties: their own tabs */ } else cycleSection(lower === 'q' ? -1 : 1);
   } else if ((k === '[' || k === ']') && SUBTABS[tab]) {
     // [ and ] (a controller's triggers): the section's previous or next tab
     consume(e);
@@ -667,7 +680,7 @@ function onKey(e) {
     if (t && t.tagName === 'SELECT') return;
     consume(e);
     if (t && t.type === 'range' && (dir === 'left' || dir === 'right')) stepRange(t, dir === 'right' ? 1 : -1);
-    else if (t && t.closest && t.closest('.pm-seg') && (dir === 'left' || dir === 'right')) stepSegment(t, dir === 'right' ? 1 : -1);
+    else if (t && t.closest && t.closest('.m-pk') && (dir === 'left' || dir === 'right')) stepPicker(t.closest('.m-pk'), dir === 'right' ? 1 : -1);
     else moveFocus(dir);
   } else if (k === 'Enter' || k === ' ') {
     if (!t || !root.contains(t)) return;
@@ -699,6 +712,8 @@ function goBack() {
     root.querySelector('[data-action="restart"]').focus();
     return;
   }
+  const legend = tab === 'map' && root.querySelector('.mapview-legend:not([hidden])');
+  if (legend) { root.querySelector('.mv-layers').click(); root.querySelector('.mv-layers').focus(); return; }
   const bench = root.querySelector('[data-bench-confirm]');
   if (tab === 'settings' && !bench.hidden) {
     bench.hidden = true;
@@ -749,22 +764,39 @@ function cycleSubtab(dir) {
   focusEl(root.querySelector(`[data-subtab="${next}"][data-of="${tab}"]`));
 }
 
+// Q/E in a section whose tabs the section draws itself (Garage, Prestaties).
+function cycleOwnTabs(dir) {
+  const p = activePanel();
+  const tabs = p ? [...p.querySelectorAll('[role="tab"]')].filter((t) => t.getClientRects().length) : [];
+  if (tabs.length < 2) return false;
+  const i = Math.max(0, tabs.findIndex((t) => t.getAttribute('aria-selected') === 'true'));
+  const next = tabs[(i + dir + tabs.length) % tabs.length];
+  next.click();
+  const again = p.querySelector(`[role="tab"][${Object.keys(next.dataset).map((k) => 'data-' + k.replace(/[A-Z]/g, (c) => '-' + c.toLowerCase()) + '="' + next.dataset[k] + '"').join('][')}]`);
+  if (again) again.focus({ preventScroll: true });
+  return true;
+}
+
 // --- Besturing: rebinding keys and buttons (controls.js) ------------------------
 let rebinding = null;
 let bindMsg = '';
 
+function bindPane(kind, note, extra = '') {
+  return `<aside class="m-pane"><div class="pm-pane-top"><span class="m-eb">${kind === 'keys' ? 'Toetsenbord en muis' : 'Controller'}</span><h2 class="m-h2 td-h2">Toets wijzigen</h2></div>` +
+    `<p>${note}</p><p class="pm-status pm-bindmsg g" role="status">${esc(bindMsg)}</p><span class="m-grow"></span>` +
+    `<div class="m-acts td-acts"><button type="button" class="m-bg" data-action="binds-reset-${kind === 'keys' ? 'keys' : 'pad'}">${icon('restart')}Standaard herstellen</button></div>${extra}</aside>`;
+}
+
 function bindRowsKeys() {
   const binds = getSettings().keyBinds;
-  const groups = KEY_GROUPS.map(([g, title]) => `<h4 class="pm-subhead">${esc(title)}</h4>` + KEY_ACTIONS.filter(([, , gr]) => gr === g).map(([k, desc]) => {
+  const groups = KEY_GROUPS.map(([g, title]) => `<div class="m-gh"><span>${esc(title)}</span></div>` + KEY_ACTIONS.filter(([, , gr]) => gr === g).map(([k, desc]) => {
     const phys = physicalKey(binds, k);
     const changed = phys !== defaultKey(k);
-    return `<div class="pm-row pm-bind"><span>${esc(desc)}${changed ? `<small>Standaard: ${esc(keyName(defaultKey(k)))}</small>` : ''}</span>` +
-      `<button type="button" class="pm-secondary pm-small pm-bindbtn${changed ? ' pm-changed' : ''}" data-rebind-key="${esc(k)}" aria-label="${esc(desc)}: ${esc(keyName(phys))}. Kies om te wijzigen"><span class="hud-key" data-g-raw>${esc(keyName(phys))}</span></button></div>`;
+    return `<button type="button" class="m-li pm-bind${changed ? ' pm-changed' : ''}" data-rebind-key="${esc(k)}" aria-label="${esc(desc)}: ${esc(keyName(phys))}. Kies om te wijzigen">` +
+      `<span class="nm"><span class="one">${esc(desc)}</span>${changed ? `<span class="mut">Standaard: ${esc(keyName(defaultKey(k)))}</span>` : ''}</span><span class="m-kc" data-g-raw>${esc(keyName(phys))}</span></button>`;
   }).join('')).join('');
-  return `<p class="pm-note">Kies een actie en druk de nieuwe toets. Zit die toets al op iets anders, dan ruilen ze. Esc, Enter, de pijltjes en de muis liggen vast.${defaultKey('control') !== 'control' ? ' In de browser zit bukken en omlaag op C: Ctrl+W sluit daar het tabblad.' : ''}</p>
-    <p class="pm-status pm-bindmsg" role="status">${esc(bindMsg)}</p>
-    <div class="pm-group">${groups}</div>
-    <div class="pm-reset"><button type="button" class="pm-secondary pm-small" data-action="binds-reset-keys">${icon('restart')}<span>Standaard herstellen</span></button></div>`;
+  const note = `Kies een actie en druk de nieuwe toets. Zit die toets al op iets anders, dan ruilen ze. Esc, Enter, de pijltjes en de muis liggen vast.${defaultKey('control') !== 'control' ? ' In de browser zit bukken en omlaag op C: Ctrl+W sluit daar het tabblad.' : ''}`;
+  return `<div class="m-list pm-slist">${groups}</div>${bindPane('keys', note)}`;
 }
 
 function bindRowsPad() {
@@ -772,13 +804,10 @@ function bindRowsPad() {
   const rows = PAD_REMAPPABLE.map((slot) => {
     const phys = physicalButton(binds, slot);
     const changed = phys !== slot;
-    return `<div class="pm-row pm-bind"><span>${esc(slotUses(slot) || PAD_SLOT_NAMES[slot])}<small>${esc(PAD_SLOT_NAMES[slot])}${changed ? ' · aangepast' : ''}</small></span>` +
-      `<button type="button" class="pm-secondary pm-small pm-bindbtn${changed ? ' pm-changed' : ''}" data-rebind-pad="${slot}" aria-label="${esc(PAD_SLOT_NAMES[slot])}. Kies om te wijzigen">${pg(phys)}</button></div>`;
+    return `<button type="button" class="m-li pm-bind${changed ? ' pm-changed' : ''}" data-rebind-pad="${slot}" aria-label="${esc(PAD_SLOT_NAMES[slot])}. Kies om te wijzigen">` +
+      `<span class="nm"><span class="one">${esc(slotUses(slot) || PAD_SLOT_NAMES[slot])}</span><span class="mut">${esc(PAD_SLOT_NAMES[slot])}${changed ? ' · aangepast' : ''}</span></span><span class="pm-padcap">${pg(phys)}</span></button>`;
   }).join('');
-  return `<p class="pm-note">Kies een rij en druk op de controller de knop die het voortaan moet doen. Ze ruilen van plek. Menu/Start opent altijd het pauzemenu; de sticks liggen vast.</p>
-    <p class="pm-status pm-bindmsg" role="status">${esc(bindMsg)}</p>
-    <div class="pm-group">${rows}</div>
-    <div class="pm-reset"><button type="button" class="pm-secondary pm-small" data-action="binds-reset-pad">${icon('restart')}<span>Standaard herstellen</span></button></div>`;
+  return `<div class="m-list pm-slist">${rows}</div>${bindPane('pad', 'Kies een rij en druk op de controller de knop die het voortaan moet doen. Ze ruilen van plek. Menu/Start opent altijd het pauzemenu; de sticks liggen vast.')}`;
 }
 
 function renderBinds() {
@@ -886,13 +915,34 @@ function stepRange(el, dir) {
   el.dispatchEvent(new Event('input', { bubbles: true }));
 }
 
-function stepSegment(el, dir) {
-  const btns = [...el.closest('.pm-seg').querySelectorAll('[data-value]')];
-  const i = btns.indexOf(el.closest('[data-value]'));
-  const next = btns[i + dir];
-  if (!next) return;
-  next.click();
-  next.focus();
+// A picker (‹ value ›): one step along its options, without wrapping.
+function pickerState(pk) {
+  const options = JSON.parse(pk.dataset.options);
+  let cur;
+  if ('presetPick' in pk.dataset) cur = currentPreset(getSettings()) || 'eigen';
+  else cur = String(getSettings()[pk.dataset.setting]);
+  return { options, i: Math.max(0, options.findIndex(([v]) => v === cur)) };
+}
+
+function stepPicker(pk, dir) {
+  if (!pk) return;
+  const { options, i } = pickerState(pk);
+  const next = Math.min(options.length - 1, Math.max(0, i + dir));
+  if (next === i) return;
+  if ('presetPick' in pk.dataset) {
+    if (options[next][0] !== 'eigen') applyPreset(options[next][0]);
+  } else setSetting(pk.dataset.setting, options[next][0]);
+  syncControls();
+}
+
+// "Meer opties", "Ondertitels": a folded group
+function toggleFold(btn, open) {
+  const body = root.querySelector(`[data-fold-body="${btn.dataset.fold}"]`);
+  if (!body) return;
+  const on = open == null ? body.hidden : open;
+  body.hidden = !on;
+  btn.setAttribute('aria-expanded', String(on));
+  foldNote(btn.dataset.fold, on);
 }
 
 // Arrow keys: jump to the nearest control in that direction, within the rail
@@ -1022,7 +1072,7 @@ function runAction(a) {
     if (a === 'bench-apply' && res && res.rec) applyPreset(res.rec);
     dismissBenchBanner();
     syncControls();
-    const cur = root.querySelector('.pm-preset[aria-checked="true"]');
+    const cur = root.querySelector('[data-preset-pick] [data-pick="1"]');
     if (cur) cur.focus();
   }
 }
@@ -1079,6 +1129,7 @@ onErrorLogChange(() => renderErrorLog());
 
 function showSubtab(of, name) {
   const subs = SUBTABS[of];
+  if (SUB_ALIAS[of] && SUB_ALIAS[of][name]) name = SUB_ALIAS[of][name];
   if (!subs.some(([id]) => id === name)) name = subs[0][0];
   for (const b of root.querySelectorAll(`[data-subtab][data-of="${of}"]`)) b.setAttribute('aria-selected', String(b.dataset.subtab === name));
   for (const p of root.querySelectorAll(`[data-sub][data-of="${of}"]`)) p.hidden = p.dataset.sub !== name;
@@ -1097,23 +1148,18 @@ function syncDesktopControls() {
 
 function syncControls() {
   const st = getSettings();
-  for (const b of root.querySelectorAll('[data-radio] [data-value]')) {
-    const on = (b.dataset.value === 'on') === radioIsOn();
-    b.setAttribute('aria-checked', String(on));
-    b.tabIndex = on ? 0 : -1;
-  }
+  const radio = root.querySelector('[data-radio-switch]');
+  if (radio) radio.checked = radioIsOn();
   const shadowsAllowed = QUALITY_PRESETS[st.quality].shadows;
   syncPresets(st);
   for (const el of root.querySelectorAll('[data-setting]')) {
     const v = st[el.dataset.setting];
-    if (el.classList.contains('pm-seg')) {
-      const btns = [...el.querySelectorAll('[data-value]')];
-      for (const b of btns) {
-        const on = b.dataset.value === String(v);
-        b.setAttribute('aria-checked', String(on));
-        b.tabIndex = on ? 0 : -1;
-      }
-      if (!btns.some((b) => b.tabIndex === 0)) btns[0].tabIndex = 0;
+    if (el.classList.contains('m-pk')) {
+      const { options, i } = pickerState(el);
+      el.querySelector('output').textContent = options[i][1];
+      const [prev, next] = el.querySelectorAll('[data-pick]');
+      prev.setAttribute('aria-disabled', String(i === 0));
+      next.setAttribute('aria-disabled', String(i === options.length - 1));
       continue;
     }
     if (el.type === 'checkbox') el.checked = v;
@@ -1129,18 +1175,30 @@ function syncControls() {
   shadowBox.closest('.pm-row').classList.toggle('pm-disabled', !shadowsAllowed);
 }
 
-// The preset cards and, after a benchmark, its banner with one preset to
-// apply (gfxprofile.js). Only measured numbers are shown.
+// The preset picker, the explanation beside it and, after a benchmark, one line
+// with the preset it advises (gfxprofile.js). Only measured numbers are shown.
 function syncPresets(st) {
   const cur = currentPreset(st) || 'eigen';
   const res = getBenchResult();
-  for (const b of root.querySelectorAll('.pm-preset')) {
-    const n = b.dataset.preset;
-    b.setAttribute('aria-checked', String(n === cur));
-    b.querySelector('.pm-pill').hidden = !(res && res.rec === n);
-    const fps = res && (n === 'eigen' ? (res.preset ? 0 : res.avg) : res.fps[n]);
-    b.querySelector('.pm-fps').textContent = fps ? `± ${Math.round(fps)} fps` : '';
-  }
+  const pk = root.querySelector('[data-preset-pick]');
+  const { options, i } = pickerState(pk);
+  pk.querySelector('output').textContent = options[i][1];
+  const [prev, next] = pk.querySelectorAll('[data-pick]');
+  prev.setAttribute('aria-disabled', String(i === 0));
+  next.setAttribute('aria-disabled', String(i === options.length - 1));
+  const pane = root.querySelector('[data-preset-pane]');
+  pane.querySelector('[data-preset-name]').textContent = options[i][1];
+  pane.querySelector('[data-preset-desc]').textContent = cur === 'eigen' ? 'Wat je zelf instelt: resolutie, schaduwen en zichtafstand wijken af van de drie standen.' : describePreset(cur);
+  const fpsOf = (n) => (res ? (n === 'eigen' ? (res.preset ? 0 : res.avg) : res.fps[n]) : 0);
+  const fps = fpsOf(cur);
+  const fpsBox = pane.querySelector('[data-preset-fps]');
+  fpsBox.hidden = !fps;
+  fpsBox.querySelector('.pm-big').textContent = fps ? `${Math.round(fps)} fps` : '';
+  const shown = options.filter(([n]) => n !== 'eigen' && fpsOf(n));
+  const top = Math.max(1, ...shown.map(([n]) => fpsOf(n)));
+  pane.querySelector('[data-preset-bars]').innerHTML = shown.map(([n, label]) =>
+    `<div class="pm-fpsbar${n === cur ? ' on' : ''}"><span>${esc(label)}</span><span class="m-bar${n === cur ? ' on' : ''}"><i style="width:${Math.round((fpsOf(n) / top) * 100)}%"></i></span><span class="bebas">${Math.round(fpsOf(n))} fps</span></div>`).join('');
+  pane.querySelector('[data-bench-note]').textContent = res ? 'Gemeten met de benchmark op deze computer.' : 'Draai de benchmark (onder Meer opties) om te zien wat elke stand haalt.';
   const ban = root.querySelector('[data-bench-banner]');
   ban.hidden = !(res && res.banner);
   if (ban.hidden) return;
@@ -1149,12 +1207,10 @@ function syncPresets(st) {
   const hitch = res.low < 30 && res.heaviest ? `, met haperingen in ‘${esc(res.heaviest.label)}’` : '';
   const then = res.rec ? ` Op ${presetLabel(res.rec)} wordt dat ongeveer ${r(res.fps[res.rec])} fps.` : ' Dat draait prima.';
   const changes = res.rec ? describeChanges(res.rec, st) : '';
-  ban.innerHTML = `<span class="pm-bench-badge">${GEAR_SVG}</span><div class="pm-bench-body">
-    <h4>${res.rec ? `Benchmark klaar: kies ${presetLabel(res.rec)}` : 'Benchmark klaar'}</h4>
-    <p>${was} haalde je computer gemiddeld ${r(res.avg)} fps${hitch}.${then}</p>
-    ${changes ? `<p class="pm-bench-what">Dit verandert: ${esc(changes)}</p>` : ''}
-    <div class="pm-confirm-row">${res.rec ? '<button type="button" class="pm-primary pm-small" data-action="bench-apply">Toepassen</button><button type="button" class="pm-secondary pm-small" data-action="bench-dismiss">Niet nu</button>'
-      : '<button type="button" class="pm-secondary pm-small" data-action="bench-dismiss">Sluiten</button>'}</div></div>`;
+  ban.innerHTML = `<span class="pm-adv-ic">${GEAR_SVG}</span><span class="pm-adv-t">${res.rec ? `Aanbevolen voor deze computer: <b>${esc(presetLabel(res.rec))}</b>` : 'Benchmark klaar: je instelling past.'}` +
+    `<small class="mut">${was} haalde je computer gemiddeld ${r(res.avg)} fps${hitch}.${then}${changes ? ` Dit verandert: ${esc(changes)}.` : ''}</small></span>` +
+    `${res.rec ? '<button type="button" class="m-bt" data-action="bench-apply">Gebruik advies</button><button type="button" class="m-bt" data-action="bench-dismiss">Niet nu</button>'
+      : '<button type="button" class="m-bt" data-action="bench-dismiss">Sluiten</button>'}`;
 }
 
 // The contextual help buttons on Overzicht: [action, icon, label].
@@ -1219,9 +1275,14 @@ function syncNavBadges() {
   if (vPeople) vPeople.toggleAttribute('data-new', met);
   const vClues = root.querySelector('[data-of="verhaal"][data-subtab="aanwijzingen"]');
   if (vClues) vClues.toggleAttribute('data-new', fresh);
-  const unread = !!world && phoneUnread(world) > 0;
+  const unreadN = world ? phoneUnread(world) : 0;
+  const unread = unreadN > 0;
   const pNav = root.querySelector('[data-goto="telefoon"]');
   if (pNav) pNav.toggleAttribute('data-new', unread);
+  const setN = (id, text, label) => { const n = root.querySelector(`[data-n="${id}"]`); if (n) { n.textContent = text; if (label) n.setAttribute('aria-label', label); else n.removeAttribute('aria-label'); } };
+  setN('telefoon', unread ? String(unreadN) : '', unread ? `${unreadN} ongelezen` : '');
+  setN('todo', fresh ? 'nieuw' : '');
+  setN('verhaal', fresh || met ? 'nieuw' : '');
   const pSub = root.querySelector('[data-of="telefoon"][data-subtab="berichten"]');
   if (pSub) pSub.toggleAttribute('data-new', unread);
 }
@@ -1260,7 +1321,7 @@ function syncSaveButtons() {
 
 function syncRail() {
   const pigeon = !!(world && world.pigeonMode);
-  for (const b of root.querySelectorAll('.pm-rail-row [data-action]')) b.disabled = pigeon;
+  for (const b of root.querySelectorAll('.pm-rail-acts [data-action="save"], .pm-rail-acts [data-action="load"]')) b.disabled = pigeon;
   root.querySelector('.pm-game .pm-confirm').hidden = true;
   root.querySelector('.pm-status').textContent = '';
   syncSaveButtons();
@@ -1269,17 +1330,10 @@ function syncRail() {
 function refreshInfo() {
   if (!world) return;
   const c = world.pigeonMode ? 'Duif' : world.player.character === 'anita' ? 'Tessa' : 'Tammo';
-  const set = (k, text) => { for (const el of root.querySelectorAll(`[data-info="${k}"]`)) el.textContent = text; };
-  set('char', c);
-  set('clock', getClockText(world));
-  set('money', '€' + Math.max(0, Math.floor(world.money)).toLocaleString('nl-NL'));
-  // the phone's status bar
-  const sb = (k, text) => { const el = root.querySelector(`[data-sb="${k}"]`); if (el) el.textContent = text; };
-  sb('clock', getClockText(world));
-  sb('day', storyDate(world).long);
-  sb('who', c);
-  const np = world.nowPlaying;
-  sb('music', radioIsOn() && np ? `♪ ${np.title}${np.artist ? ' · ' + np.artist : ''}` : '');
+  // the rail's date line: the story day and the clock
+  const when = [storyDate(world).long, getClockText(world)].filter(Boolean).join(' · ');
+  for (const el of root.querySelectorAll('[data-info="when"]')) el.textContent = prestart ? '' : when;
+  root.dataset.who = c;
 }
 
 export function pauseMenuTab() {
@@ -1291,27 +1345,28 @@ export function pauseMenuTab() {
 function syncSheetSub() {
   const subEl = sheet.querySelector('.pm-sheet-sub');
   if (tab === 'garage' || tab === 'prestaties') {
-    const s = activePanel().querySelector('.pm-inner > h2:first-child small');
-    if (s) subEl.textContent = s.textContent;
+    const s = activePanel().querySelector('.pm-inner');
+    if (s && s.dataset.sub) subEl.textContent = s.dataset.sub;
   }
 }
 
-function keysHtml() {
-  if (isPadActive()) {
-    const back = prestart ? 'terug naar het hoofdmenu' : tab === HOME || origin !== 'home' ? 'terug naar het spel' : 'terug';
-    return `${pg('lb')}${pg('rb')} onderdeel <span class="pm-kgap"></span>${pg('dpad')} kiezen <span class="pm-kgap"></span>${pg('a')} ok <span class="pm-kgap"></span>${pg('b')} ${back}`;
-  }
-  if (prestart) return `${key('Q')}${key('E')} onderdeel <span class="pm-kgap"></span>${key('↑')}${key('↓')} kiezen <span class="pm-kgap"></span>${key('Esc')} terug naar het hoofdmenu`;
-  const back = tab === HOME || origin !== 'home' ? 'terug naar het spel' : 'terug';
-  if (tab === 'map') return `${key('Q')}${key('E')} onderdeel <span class="pm-kgap"></span>${key('M')} sluiten <span class="pm-kgap"></span>${key('Esc')} ${back}`;
-  return `${key('Q')}${key('E')} onderdeel <span class="pm-kgap"></span>${key('↑')}${key('↓')}${key('←')}${key('→')} kiezen <span class="pm-kgap"></span>${key('Enter')} ok <span class="pm-kgap"></span>${key('Esc')} ${back}`;
+function hintHtml([keys, label, action], pad, back) {
+  if (pad && keys.every((k) => k in PAD_KEYS && PAD_KEYS[k] === null)) return '';
+  const caps = keys.map((k) => {
+    if (pad && k in PAD_KEYS) { const slot = PAD_KEYS[k]; return slot ? pg(slot) : ''; }
+    return `<span class="m-kc">${esc(k)}</span>`;
+  }).join('');
+  const text = label === BACK ? back : (pad && PAD_LABEL[label]) || label;
+  return `<button type="button" class="m-hint" tabindex="-1"${action ? ` data-hint="${action}"` : ''}>${caps}<span>${esc(text)}</span></button>`;
 }
 
 function syncFooter() {
   if (!root) return;
   const pad = isPadActive();
-  root.querySelector('.pm-foot-tab').innerHTML = pad && PAD_FOOTERS[tab] ? PAD_FOOTERS[tab]() : prestart ? '' : FOOTERS[tab] || '';
-  root.querySelector('.pm-foot-keys').innerHTML = keysHtml();
+  const back = prestart ? 'terug naar het hoofdmenu' : origin !== 'home' ? 'doorgaan' : 'terug';
+  let hints = HINTS[tab] || HINTS.overzicht;
+  if (prestart) hints = hints.map(([k, l, a]) => [k, l, a === 'resume' ? 'back' : a]);
+  root.querySelector('.pm-footer').innerHTML = hints.map((h) => hintHtml(h, pad, back)).join('');
 }
 
 function showTab(name, how) {
@@ -1333,13 +1388,11 @@ function showTab(name, how) {
   if (name !== 'verhaal') disposeVerhaalViewer();
   syncFooter();
   root.querySelector('#pm-title').textContent = prestart ? 'Menu' : 'Pauze';
-  root.querySelector('[data-action="resume"] span').textContent = prestart ? 'Terug' : 'Doorgaan';
   syncNavBadges();
   const [, label, hint] = sectionOf(name);
-  sheet.querySelector('.pm-sheet-ic').innerHTML = icon(name);
   sheet.querySelector('.pm-sheet-title').textContent = label;
-  sheet.querySelector('.pm-sheet-sub').textContent = hint;
-  sheet.querySelector('.pm-cycle').hidden = ids.length < 2;
+  sheet.querySelector('.pm-sheet-sub').textContent = SHEET_NOTE[name] || hint;
+  root.querySelector('[data-action="reset"]').hidden = name !== 'settings';
   if (prev !== name) {
     sheet.classList.remove('pm-enter', 'pm-swap');
     void sheet.offsetWidth;
@@ -1348,8 +1401,9 @@ function showTab(name, how) {
   if (!prestart && name !== HOME && pref.last !== name) { pref.last = name; savePref(); }
   if (name === 'map') {
     const r = getDiscoveredRatio();
-    if (r >= 0.01) sheet.querySelector('.pm-sheet-sub').textContent = `${Math.round(r * 100)}% van Grunn verkend · ${hint.toLowerCase()}`;
-  }
+    sheet.querySelector('.pm-sheet-eb').hidden = r < 0.01;
+    if (r >= 0.01) sheet.querySelector('.pm-sheet-eb').textContent = `${Math.round(r * 100)}% van Grunn verkend`;
+  } else sheet.querySelector('.pm-sheet-eb').hidden = true;
   if (name === HOME) renderOverviewPanel();
   if (name === 'todo') { showSubtab('todo', pref.sub.todo || 'verhaal'); renderTodoPanel(); }
   if (name === 'spullen') renderSpullenPanel();
@@ -1358,9 +1412,9 @@ function showTab(name, how) {
   if (name === 'verhaal') { showSubtab('verhaal', pref.sub.verhaal || 'personages'); renderVerhaalPanel(); }
   if (name === 'streken') { if (prev !== 'streken') resetCheatsPanel(); renderCheats(); }
   if (name === 'prestaties') { renderAchievementsPanel(root.querySelector('[data-panel="prestaties"] .pm-inner')); syncSheetSub(); }
-  if (name === 'controls') { const q = root.querySelector('[data-controls-search]'); q.value = ''; filterControls(''); showSubtab('controls', pref.sub.controls || 'overzicht'); bindMsg = ''; renderBinds(); }
+  if (name === 'controls') { const q = root.querySelector('[data-controls-search]'); q.value = ''; filterControls(''); showSubtab('controls', pref.sub.controls || 'toetsen'); bindMsg = ''; renderBinds(); }
   if (prev === 'controls' && name !== 'controls') cancelRebind();
-  if (name === 'settings') { showSubtab('settings', pref.sub.settings || 'sound'); syncControls(); syncDesktopControls(); }
+  if (name === 'settings') { showSubtab('settings', pref.sub.settings || 'video'); syncControls(); syncDesktopControls(); }
   if (prev !== name) { const p = activePanel(); if (p) p.scrollTop = 0; }
 }
 

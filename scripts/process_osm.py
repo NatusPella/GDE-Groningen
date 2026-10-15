@@ -60,6 +60,38 @@ ROAD_SPEC = {
 TREE_ROW_SPACING = 6.0  # meters between canopies sampled along a tree_row way
 
 
+# Legal access per travel mode (game/js/navgraph.js ACC: foot 1, bike 2, car 4,
+# bus 8). Only written when the OSM tags differ from what the road's class
+# implies, so citymap.json stays small; roadaccess.js reads `acc` first.
+def access_mask(hw, cat, tags):
+    if hw in ("motorway", "motorway_link", "trunk", "trunk_link"):
+        default = 4 | 8
+    elif cat == "cycle":
+        default = 2
+    elif cat == "foot":
+        default = 1 | 2 if hw == "pedestrian" else 1
+    else:
+        default = 1 | 2 | 4 | 8
+    mask = default
+    NO = ("no", "private", "customers", "delivery")
+    YES = ("yes", "designated", "permissive")
+    if tags.get("motorroad") == "yes":
+        mask &= ~(1 | 2)
+    for key, bit in (("access", 15), ("vehicle", 2 | 4 | 8)):
+        v = tags.get(key)
+        if v in NO:
+            mask &= ~bit
+    for key, bit in (("foot", 1), ("bicycle", 2), ("motor_vehicle", 4 | 8), ("motorcar", 4)):
+        v = tags.get(key)
+        if v in NO:
+            mask &= ~bit
+        elif v in YES and hw not in ("motorway", "motorway_link"):
+            mask |= bit
+    if tags.get("bus") in YES or tags.get("psv") in YES:
+        mask |= 8
+    return None if mask == default else mask
+
+
 def project(lat, lon):
     return list(rd_project(lat, lon, 1))
 
@@ -462,6 +494,9 @@ def main():
                     grade[k] = True
             if tags.get("ref"):
                 grade["ref"] = tags["ref"]
+            acc = access_mask(hw, spec["cat"], tags)
+            if acc is not None:
+                grade["acc"] = acc
             for line in clip_polyline(coords, world_rect):
                 roads.append({
                     "pts": line,

@@ -403,9 +403,32 @@ export function runStartScreen(world, { render, relocate, tick }) {
     items.push({ act: 'about', label: 'Over', sub: 'Credits, licenties en privacy' });
     if (window.gdeDesktop && window.gdeDesktop.isDesktop) items.push({ act: 'exit', label: 'Afsluiten', sub: 'Tot de volgende keer. Hou dij goud!' });
     const pct = getAchievementSummary().pct;
-    const badge = (it) => it.act === 'continue' && pct > 0 ? `<span class="ss-pct" title="Prestaties behaald" style="font-size:0.5em;letter-spacing:1px;margin-left:12px;opacity:0.8;vertical-align:middle">${pct}% voltooid</span>` : '';
-    menu.innerHTML = items.map((it, i) =>
-      `<button type="button" role="menuitem" class="ss-item" data-i="${i}"><span class="ss-label">${it.label}${badge(it)}</span><small>${it.sub}</small></button>`).join('');
+    const st = save && save.story;
+    const heroSub = st ? [st.part, st.ended ? 'verhaal uit' : '', pct > 0 ? `${pct}% prestaties` : ''].filter(Boolean).join(' · ') : save ? summaryText(save) : '';
+    const itemHtml = (it, i) => {
+      if (it.act === 'continue') {
+        const prog = st && st.total ? Math.round((st.done / st.total) * 100) : null;
+        return `<button type="button" role="menuitem" class="ss-item ss-hero" data-act="continue" data-i="${i}"><span class="ss-label">${it.label}</span><small>${heroSub}</small>` +
+          (prog != null ? `<span class="ss-prog"><span class="m-bar"><i style="width:${prog}%"></i></span><span class="bebas">${prog}%</span></span>` : '') + '</button>';
+      }
+      const extra = it.act === 'news' && VERSION && VERSION !== 'dev' ? `<span class="ss-ver2">${esc(String(VERSION).replace(/^v/, '').split('.').slice(0, 2).join('.'))}</span>` : '';
+      return `<button type="button" role="menuitem" class="ss-item" data-act="${it.act}" data-i="${i}"><span class="ss-label">${it.label}</span>${extra}<small>${it.sub}</small></button>`;
+    };
+    menu.innerHTML = items.map(itemHtml).join('');
+    // where the save picks up, right of the menu
+    const saveCard = screen.querySelector('.ss-save');
+    if (saveCard) {
+      saveCard.hidden = !save;
+      if (save) {
+        const title = st && st.next ? st.next : save.goal || (st ? st.part : 'Grunn');
+        const d = save.savedAt ? new Date(save.savedAt) : null;
+        const ago = d ? Math.round((Date.now() - d.getTime()) / 60000) : -1;
+        const agoText = ago < 0 ? '' : ago < 1 ? 'net opgeslagen' : ago < 120 ? `opgeslagen ${ago} min geleden` : `opgeslagen ${d.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })} ${d.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })}`;
+        saveCard.innerHTML = `<span class="m-eb">Je gaat verder als ${esc(save.character)}</span><span class="big${title.length > 22 ? ' long' : ''}">${esc(title)}</span>` +
+          (save.goal && save.goal !== title ? `<span class="line">Doel: ${esc(save.goal)}</span>` : st ? `<span class="line">${esc(st.part)}${st.date ? ' · ' + esc(st.date) : ''}</span>` : '') +
+          `<span class="meta">${[`€${save.money.toLocaleString('nl-NL')}`, `${save.missionsDone} missies`, agoText].filter(Boolean).join(' · ')}</span>`;
+      }
+    }
     const buttons = [...menu.querySelectorAll('.ss-item')];
     let sel = 0;
     let confirmNew = false;

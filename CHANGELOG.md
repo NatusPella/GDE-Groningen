@@ -6,7 +6,22 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+## [0.30.0] - 2026-10-15
+
 ### Nieuw
+- **Handmatig schakelen, driften en motoren.** Onder Instellingen kies je
+  Schakelen: Automaat (zoals altijd), Handmatig (. en , of de bumpers van je
+  controller) of Handmatig + koppeling (J of L3: zonder koppeling kraakt het
+  en de motor kan afslaan). Auto's, bestelbussen, vrachtwagens, de bus en de
+  trekker hebben elk hun eigen versnellingen, toerenbegrenzer en motorrem;
+  de HUD toont de versnelling (N ook), een schakellampje en MOTOR AF. Driften
+  gaat met de handrem: een tegenstuurhulp houdt de slip beheersbaar (uit =
+  realistischer), punten en combo's tellen mee en op drie rotondes zijn
+  driftzones met medailles. Nieuw in Trap & Toeter: de sportmotor Wadden
+  Stormvogel, de naked Hunze Knetter, de Dollard Klassieker en de brommer
+  Tweetakt Pruttelaar met koppeling en vier versnellingen (45 km/u; opvoeren
+  trekt de aandacht van de politie). Motoren leunen in de bocht, doen
+  wheelies en stoppies (Shift) en je vliegt eraf bij een harde klap.
 - **Nieuwe HUD, laadscherm en opstartscherm.** De HUD toont alleen wat nu
   telt (instelling HUD: Slim, Altijd alles of Minimaal): sterren alleen als je
   gezocht wordt, geld bij een wijziging, een afslagkaart met de GPS vlak voor
@@ -16,6 +31,56 @@ nieuwe functies, `y` voor alleen bugfixes.
   zijn staan rood gestreept. Bij Doorgaan en lange sprongen komt een
   laadscherm met je verhaal tot nu toe. Het spel opent donkergroen, met
   "Druk op een toets".
+- **Routes per reiswijze.** De GPS kent nu lopen, fiets, auto, boot, trein
+  en lucht. Te voet en op de fiets blijf je van de snelweg af, een auto van
+  fiets- en voetpaden; "Snelwegen vermijden" staat op de kaart bij Auto. Een
+  doel klikt vast op de juiste weg, op de brug of eronder. Een boot krijgt een
+  route over het water met boeien, de trein een route met "Uitstappen bij" en
+  een stationsbord, een heli een lijn om verboden gebied met hoogteadvies en
+  een landingsplek. Loop of fiets je toch op de snelweg, of rij je met een
+  auto over een fietspad, dan krijg je eerst een waarschuwing en na twaalf
+  seconden een ster.
+- **Nieuwe menu's.** Alle menu's hebben een rustige, nieuwe stijl: een
+  zijbalk met alleen tekst, links de lijst en rechts wat je geselecteerd
+  hebt, één hoofdknop per scherm. Het pauzemenu opent met je verhaal en
+  "Doorgaan"; Instellingen heeft zes tabs met "Meer opties"; winkel,
+  garage, station, telefoon, prestaties, besturing en cheats volgen
+  dezelfde indeling. Het hoofdmenu toont je opgeslagen spel en
+  verhaalvoortgang.
+- **Een spelkalender.** De game speelt in de zomer van 2026: dag 1 is
+  vrijdag 14 augustus en Gronings Ontzet valt op vrijdag 28 augustus. Na
+  22 september blijft het nazomer. De datum staat onder de klok, speciale
+  dagen krijgen een kaartje "Vandaag in Grunn", en KEI-week, Noorderzon,
+  de kermis en de markten volgen de kalender. De zon gaat in augustus
+  steeds eerder onder.
+- **Echte plekken.** Na een val of arrestatie kom je bij het dichtstbijzijnde
+  echte ziekenhuis, de dichtstbijzijnde echte huisartsenpost of het
+  dichtstbijzijnde echte politiebureau, ook in het Ommeland. Ambulances
+  wachten bij echte posten. In het Ommeland staan tankstations, garages,
+  winkels en cafés op echte plekken (met verzonnen namen), en parkeerplaatsen
+  en parkeerstroken zijn echt: 37.866 vakken waar auto's staan en jij ook
+  kunt parkeren.
+- **Dorpen en landmarks.** Dorpsstraten en huizen in het Ommeland worden
+  met dezelfde bouwers gemaakt als de stad. Kerken, molens, torens en
+  borgen hebben een eigen model, 's nachts aangelicht; Bedum heeft zijn
+  scheve toren en Garmerwolde zijn kerkruïne.
+
+### Veranderd
+- **Realistischer tempo.** Te voet 3 m/s (sprint 6,8), een fiets 25 km/u, de
+  fatbike 50, een brommer 45. Auto's trekken rustiger op: 0 naar 100 in
+  ongeveer 7,5 seconden. Springen is een halve meter, normale zwaartekracht.
+  Missietijden, medailles, de politie en de tegenstanders zijn daarop
+  afgestemd. Straatbomen zijn 10 tot 19 meter, de harmonicabus 18 meter, de
+  rondvaartboot 14 en het skûtsje 15 meter; de trekker, vrachtwagen,
+  ambulance, sloep en het perron zijn bijgewerkt.
+- **Onder de motorkap:** de kaart is nu in de Nederlandse RD-meters en in
+  tegels die onderweg worden geladen. Je merkt het aan een snellere start
+  (de kaart staat 1 seconde eerder klaar) en iets minder geheugen. Je
+  opgeslagen spel wordt vanzelf omgezet.
+
+### Opgelost
+- Het winkelcentrum Paddepoel had bij de nieuwe coördinaten kapotte
+  glazen luifelhoeken; dat is hersteld en wordt voortaan getest.
 
 ## [0.29.0] - 2026-10-15
 

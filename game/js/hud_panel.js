@@ -17,6 +17,7 @@ import { vehicleDisplayName } from './vehiclenames.js';
 import { findEnterableVehicle, HERO_CAR_MODEL } from './vehicle.js';
 import { cinematicAllowsDamageFx, isBannerUp, isCinematicActive, wijkBlurb } from './cinematics.js';
 import { isMuted, engineReadout } from './audio.js';
+import { gearboxReadout } from './gearbox.js';
 import { drawRailsOnMap, drawTrainsOnMap } from './railway.js';
 import { drawCountryMinimap, villageLabels, MINI_STYLE } from './countrymap.js';
 import { edgeDistance } from './countryfield.js';
@@ -70,7 +71,20 @@ const STAR_PATH = 'M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L
 const TURN_ICON = {
   rechts: '<path d="M7 20V10a3 3 0 0 1 3-3h8"/><path d="M14 3l4 4-4 4"/>',
   links: '<path d="M17 20V10a3 3 0 0 0-3-3H6"/><path d="M10 3L6 7l4 4"/>',
+  recht: '<path d="M12 20V6"/><path d="M8 10l4-4 4 4"/>',
 };
+
+// The GPS card where there is no turn to give: the train (where to get off,
+// where to change) and the air (altitude advice, the landing spot).
+function modeCard(route, mode) {
+  if (!route || route.remaining <= 30) return null;
+  if (mode === 'ov' && route.uitstappen) {
+    const change = route.changes && route.changes[0];
+    return { title: `Uitstappen bij ${route.uitstappen.replace(/^Groningen\s+/, '')}`, sub: change ? `Overstappen bij ${change.replace(/^Groningen\s+/, '')}` : '' };
+  }
+  if (mode === 'lucht' && route.alt) return { title: `Hoogte ± ${route.alt} m`, sub: route.landing ? `Landen: ${route.landing.name}` : '' };
+  return null;
+}
 const RPM_ARC = 'M30 160 A85 85 0 1 1 170 160';
 // the red zone starts at this share of the arc
 const RPM_RED_AT = 85;
@@ -468,7 +482,7 @@ function updateVisibility(dt, world) {
     hpFull: hp >= 99.5 && !(world.armor > 0 && world.armor < 100), hpAgo: now - S.hpAt, hpLow: hp < 30,
     stamFull: st == null || st >= 0.995, stamAgo: now - S.stAt,
     inVehicle: !!v, vehFull: vehHp == null || vehHp >= 99.5, vehAgo: now - S.vehAt,
-    timer: !!gpsState.timer, gps: !!gpsState.turn, place: placeState.on,
+    timer: !!gpsState.timer, gps: !!(gpsState.turn || gpsState.card), place: placeState.on,
     specialDay: !!els.clockSpecial, timeGoal: !!gpsState.timer,
     objective: !els.mission.hidden, subtitle: !!(sub && sub.style.opacity === '1'),
     cardA: card ? card.prio : null, cardE: cardE ? cardE.prio : null,
@@ -662,7 +676,7 @@ function updatePlace(dt, world) {
 
 // --- zone B: the GPS card ---------------------------------------------------------
 
-const gpsState = { turn: null, timer: '', t: 0 };
+const gpsState = { turn: null, card: null, timer: '', t: 0 };
 function updateGps(dt, world) {
   if ((gpsState.t -= dt) > 0) return;
   gpsState.t = 0.2;
@@ -673,12 +687,14 @@ function updateGps(dt, world) {
   const route = getActiveRoute();
   let turn = null;
   // a turn card only in a vehicle on the roads, with a route, near a turn
-  if (route && !route.fly && (mode === 'auto' || mode === 'fiets') && route.remaining > 30) {
+  if (route && (mode === 'auto' || mode === 'fiets' || mode === 'boot') && route.remaining > 30) {
     const ahead = getRouteAhead(GPS_NEAR + 20, route);
     turn = nextTurn(ahead, GPS_NEAR);
   }
   gpsState.turn = turn;
-  if (!turn && !gpsState.timer) return;
+  const card = turn ? null : modeCard(route, mode);
+  gpsState.card = card;
+  if (!turn && !card && !gpsState.timer) return;
   let key = gpsState.timer;
   if (turn) {
     const after = turn.after ? world.map.nearestRoadPoint(turn.after[0], turn.after[1], 25, false) : null;
@@ -693,7 +709,15 @@ function updateGps(dt, world) {
     setText(els.gpsTitle, title);
     setText(els.gpsSub, sub);
     setText(els.gpsDist, formatDistance(route.remaining));
-    setText(els.gpsEta, etaText(route.remaining, v ? v.speed : 0, mode === 'fiets' ? 'bike' : 'drive'));
+    setText(els.gpsEta, etaText(route.remaining, v ? v.speed : 0, route.mode || (mode === 'fiets' ? 'bike' : 'drive'), route));
+  } else if (card) {
+    key += `|${card.title}|${card.sub}|${formatDistance(route.remaining)}`;
+    if (key === els.gpsKey) return;
+    els.gpsArrow.innerHTML = TURN_ICON.recht;
+    setText(els.gpsTitle, card.title);
+    setText(els.gpsSub, card.sub);
+    setText(els.gpsDist, formatDistance(route.remaining));
+    setText(els.gpsEta, etaText(route.remaining, 0, route.mode || 'drive', route));
   } else if (key === els.gpsKey) return;
   els.gpsKey = key;
   setText(els.gpsTimer, gpsState.timer);
@@ -900,6 +924,10 @@ function updateDamage(dt, world) {
 // revs come from the speed, with the same gear tops as the engine sound.
 const FALLBACK_TOPS = [0.15, 0.3, 0.48, 0.7, 1.05];
 function fallbackEngine(v) {
+  if (v && v.gb && !v.isBoat && !v.isHeli) {
+    const g = v.gb;
+    return { rpm: g.rpm, red: g.p.red, gear: Math.max(0, g.gear - 1), reverse: g.reverse, gears: g.p.tops.length, gb: gearboxReadout(g) };
+  }
   if (!v || v.isBoat || v.isBike || v.isHeli || v.isScooter || v._mount || !v.model) return null;
   const red = 7000;
   if (v.speed < -0.2) return { rpm: 1500 + Math.min(1, -v.speed / 6) * 2500, red, gear: 0, reverse: true, gears: 5 };
@@ -919,17 +947,28 @@ function updateSpeedo(world) {
   setText(els.speedoValue, String(Math.round(Math.abs(v.speed || 0) * 3.6)));
   const isTrain = v === world.trainCam;
   const eng = isTrain ? null : engineReadout() || fallbackEngine(v);
-  const gearKey = !eng || eng.gear < 0 ? '' : (eng.reverse ? 'R' : String(eng.gear + 1)) + '/' + eng.gears;
+  // manual shifting (gearbox.js): the position row shows N too, a stalled engine and a grinding box say so
+  const gbm = eng && eng.gb && eng.gb.mode !== 'auto' ? eng.gb : null;
+  const gearKey = !eng || eng.gear < 0 ? '' : gbm ? `M${gbm.pos}/${gbm.layout.length}${eng.reverse ? 'R' : ''}${gbm.stalled ? 's' : ''}${gbm.grind ? 'g' : ''}${gbm.refuse ? 'x' : ''}${gbm.mode === 'clutch' ? 'c' : ''}` : (eng.reverse ? 'R' : String(eng.gear + 1)) + '/' + eng.gears;
   if (gearKey !== els.gearKey) {
     els.gearKey = gearKey;
     if (!gearKey) els.gears.innerHTML = '';
-    else {
+    else if (gbm) {
+      const note = gbm.stalled ? 'MOTOR AF' : gbm.grind ? 'KRAKEN' : gbm.refuse ? 'TE HARD' : '';
+      const lay = gbm.layout;
+      const list = eng.reverse ? ['R', ...lay.slice(Math.max(0, gbm.pos), gbm.pos + 2)] : lay.slice(Math.max(0, gbm.pos - 1), gbm.pos + 3);
+      const cur = eng.reverse ? 'R' : lay[gbm.pos];
+      els.gears.innerHTML = note ? `<span class="on warn">${note}</span>` : list.map((g) => `<span${g === cur ? ' class="on"' : ''}>${g}</span>`).join('');
+      els.gears.setAttribute('aria-label', note || `Versnelling ${cur === 'N' ? 'neutraal' : cur}`);
+    } else {
       const cur = eng.reverse ? 'R' : eng.gear + 1;
       const list = eng.reverse ? ['R', 1] : [cur - 1, cur, cur + 1, cur + 2].filter((g) => g >= 1 && g <= eng.gears);
       els.gears.innerHTML = list.map((g) => `<span${g === cur ? ' class="on"' : ''}>${g}</span>`).join('');
       els.gears.setAttribute('aria-label', `Versnelling ${cur}`);
     }
   }
+  els.speedo.classList.toggle('shiftlight', !!gbm && gbm.shiftLight && !gbm.limiter);
+  els.speedo.classList.toggle('limiter', !!gbm && gbm.limiter);
   els.speedo.classList.toggle('no-rpm', !eng);
   if (eng) {
     const pct = Math.max(0, Math.min(100, Math.round((eng.rpm / (eng.red / (RPM_RED_AT / 100))) * 100)));

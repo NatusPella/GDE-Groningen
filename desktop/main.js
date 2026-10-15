@@ -453,9 +453,11 @@ async function runProfile(win, ms = 6000) {
 function runStoryTest(win, dir) {
   fsSync.mkdirSync(dir, { recursive: true });
   const done = (code) => setTimeout(() => app.exit(code), 300);
+  let nanWarnings = 0;
   win.webContents.on('console-message', async (e, legacyLevel, legacyMessage) => {
     const level = e.level !== undefined ? e.level : legacyLevel;
     const message = String(e.message !== undefined ? e.message : legacyMessage);
+    if (/Computed radius is NaN/.test(message)) nanWarnings++;
     if (message.startsWith('[storytest-capture] ')) {
       const name = message.slice(20).trim().replace(/[^\w.-]/g, '_');
       const img = await win.webContents.capturePage();
@@ -468,7 +470,9 @@ function runStoryTest(win, dir) {
       console.log(`[story-test] ${report.result}: ${report.steps.length} steps, ${report.checks.filter((c) => !c.ok).length} failed checks, report in ${dir}`);
       for (const c of report.checks) if (!c.ok) console.log('[story-test] FAIL', c.name, c.info || '');
       for (const err of report.errors) console.log('[story-test] error', err);
-      done(report.result === 'PASS' ? 0 : 1);
+      // three.js logs this once per geometry with a NaN position (a generator bug)
+      if (nanWarnings) console.log(`[story-test] FAIL ${nanWarnings} NaN geometry warnings (computeBoundingSphere)`);
+      done(report.result === 'PASS' && !nanWarnings ? 0 : 1);
     } else if (level === 'error' || level === 3) console.log('[renderer]', message);
   });
   setTimeout(() => { console.log('[story-test] timeout'); done(2); }, 15 * 60 * 1000);

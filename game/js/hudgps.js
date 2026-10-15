@@ -54,9 +54,15 @@ export function turnText(t) {
 }
 
 // Estimated time for the remaining metres: the current speed when moving,
-// else a typical speed for the way you travel.
-export function etaText(remaining, speed, mode = 'drive') {
-  const typical = mode === 'walk' ? 1.6 : mode === 'bike' ? 5 : mode === 'fly' ? 30 : 11;
+// else a typical speed for the way you travel (mode: walk, bike, drive, boat,
+// ov, fly). A train trip counts its own plan: the route's ETA over what is left.
+const TYPICAL = { walk: 1.6, bike: 5, drive: 11, boat: 6, ov: 22, fly: 30 };
+export function etaText(remaining, speed, mode = 'drive', route = null) {
+  if (route && route.etaS && route.length && mode === 'ov') {
+    const min = Math.max(1, Math.round(route.etaS * Math.min(1, remaining / route.length) / 60));
+    return `± ${min} min`;
+  }
+  const typical = TYPICAL[mode] || TYPICAL.drive;
   const v = Math.max(typical * 0.6, Math.abs(speed || 0) > 2 ? Math.abs(speed) : typical);
   const min = Math.max(1, Math.round(remaining / v / 60));
   return `± ${min} min`;

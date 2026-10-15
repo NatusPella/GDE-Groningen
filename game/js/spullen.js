@@ -4,7 +4,7 @@
 // never what the rest is. Choosing a weapon takes it in hand; furniture
 // puts home on the GPS. Vehicles stay in Garage, clues and people in Verhaal.
 import { WEAPONS, hasWeapon, isMeleeWeapon } from './combat.js';
-import { WEAPON_STOCK, OUTFITS, CAR_UPGRADES, BIKE_UPGRADES, inventoryShopState } from './shops.js';
+import { WEAPON_STOCK, OUTFITS, CAR_UPGRADES, BIKE_UPGRADES, MOTO_UPGRADES, inventoryShopState } from './shops.js';
 import { furnitureOwned, FURNITURE_TOTAL } from './furniture.js';
 import { fjordUpgradeOffers } from './pg_foodtruck.js';
 import { getHomeForRender } from './home.js';
@@ -102,7 +102,7 @@ function collect(w) {
   const label = (list, id) => (list.find((u) => u.id === id) || {});
   for (const id of shop.heroUpgrades) { const u = label(CAR_UPGRADES, id); ups.push({ key: 'u:hero:' + id, title: u.label || id, sub: 'Fjord Escapade', perk: u.desc, how: u.price ? `Knal & Kolder, ${euro(u.price)}` : '' }); }
   for (const v of shop.vehicles) {
-    for (const id of v.upgrades) { const u = label(v.kind === 'bike' ? BIKE_UPGRADES : CAR_UPGRADES, id); ups.push({ key: `u:${v.key}:${id}`, title: u.label || id, sub: v.label, perk: u.desc, how: u.price ? euro(u.price) : '' }); }
+    for (const id of v.upgrades) { const u = label(v.kind === 'bike' ? BIKE_UPGRADES : v.kind === 'scooter' ? [...BIKE_UPGRADES, ...MOTO_UPGRADES] : CAR_UPGRADES, id); ups.push({ key: `u:${v.key}:${id}`, title: u.label || id, sub: v.label, perk: u.desc, how: u.price ? euro(u.price) : '' }); }
   }
   for (const u of fjordUpgradeOffers(w)) if (u.owned) ups.push({ key: 'u:fjord:' + u.id, title: u.name, sub: 'Fjord Frituur', perk: u.blurb, how: euro(u.price) });
   for (const u of ups) out.push({ ...u, cat: 'upgrade', icon: 'upgrade', link: u.sub === 'Fjord Frituur' ? null : ['garage', 'Naar Garage'] });
@@ -118,20 +118,20 @@ function homeRoute(what) {
 }
 
 function card(it) {
-  return `<button type="button" class="td-card" data-spul="${esc(it.key)}"${sel === it.key ? ' aria-current="true"' : ''}>` +
-    `<span class="td-ico sp-ico">${svg(it.icon)}</span><span class="td-txt"><b>${esc(it.title)}</b><small>${esc(it.sub || '')}</small></span>` +
-    `<span class="td-side">${it.side ? `<span class="td-pill" data-st="nu">${esc(it.side)}</span>` : ''}</span></button>`;
+  return `<button type="button" class="m-li" data-spul="${esc(it.key)}"${sel === it.key ? ' aria-current="true"' : ''}>` +
+    `<span class="nm"><span class="one">${esc(it.title)}</span><span class="mut one">${esc(it.sub || '')}</span></span>` +
+    `${it.side ? `<span class="t g">${esc(it.side)}</span>` : ''}</button>`;
 }
 
 function detailHtml() {
   const it = byKey.get(sel);
-  if (!it) return '<p class="pm-note">Kies iets om te zien wat het doet.</p>';
-  const rows = [['Hoe', it.how], ['Doet', it.perk], ...(it.rows || [])].filter(([, v]) => v).map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('');
+  if (!it) return '<p class="mut">Kies iets om te zien wat het doet.</p>';
+  const rows = [['Hoe', it.how], ['Doet', it.perk], ...(it.rows || [])].filter(([, v]) => v).map(([k, v]) => `<div class="m-fact"><span>${esc(k)}</span><span class="td-fv">${esc(v)}</span></div>`).join('');
   let btns = '';
-  if (it.act) btns += `<button type="button" class="pm-primary pm-small" data-spul-act="${esc(it.key)}">${esc(it.act.label)}</button>`;
-  if (it.link) btns += `<button type="button" class="pm-secondary pm-small" data-goto="${it.link[0]}">${esc(it.link[1])}</button>`;
-  return `<span class="td-thumb sp-thumb">${svg(it.icon)}</span><span class="td-kicker">${esc((SECTIONS.find(([c]) => c === it.cat) || [, ''])[1])}</span>` +
-    `<h3>${esc(it.title)}</h3>${it.sub ? `<p>${esc(it.sub)}</p>` : ''}${rows ? `<dl>${rows}</dl>` : ''}${btns ? `<div class="ov-btns">${btns}</div>` : ''}`;
+  if (it.act) btns += `<button type="button" class="m-bp" data-spul-act="${esc(it.key)}">${esc(it.act.label)}</button>`;
+  if (it.link) btns += `<button type="button" class="${it.act ? 'm-bg' : 'm-bp'}" data-goto="${it.link[0]}">${esc(it.link[1])}</button>`;
+  return `<div class="pm-pane-top"><span class="m-eb">${esc((SECTIONS.find(([c]) => c === it.cat) || [, ''])[1])}</span><h2 class="m-h2 td-h2">${esc(it.title)}</h2></div>` +
+    `${it.sub ? `<p>${esc(it.sub)}</p>` : ''}${rows ? `<div class="m-facts td-stack">${rows}</div>` : ''}<span class="m-grow"></span>${btns ? `<div class="m-acts td-acts">${btns}</div>` : ''}`;
 }
 
 // Draws the section into panel (pausemenu.js); returns the sheet subtitle.
@@ -143,7 +143,7 @@ export function renderSpullen(panel, w) {
   list.innerHTML = SECTIONS.map(([cat, label]) => {
     const mine = items.filter((it) => it.cat === cat);
     if (!mine.length) return '';
-    return `<h2>${label}${counts[cat] ? ` <small>${esc(counts[cat])}</small>` : ''}</h2><div class="td-grid">${mine.map(card).join('')}</div>`;
+    return `<div class="m-gh"><span>${label}</span>${counts[cat] ? `<span>${esc(counts[cat])}</span>` : ''}</div>${mine.map(card).join('')}`;
   }).join('');
   panel.querySelector('.td-detail').innerHTML = detailHtml();
   const owned = items.filter((it) => it.cat !== 'geld' && it.cat !== 'kaart').length;

@@ -70,7 +70,7 @@ ok(C.KEY_ACTIONS.some(([k, d]) => k === 'control' && /heli/.test(d)) && C.KEY_AC
 ok(C.KEY_ACTIONS.some(([k, d]) => k === 'n' && /radio aan of uit/i.test(d)), 'N turns the radio on or off');
 ok(!C.KEY_ACTIONS.some(([k]) => k === 'b') && !C.KEY_ACTIONS.some(([, d]) => /zender/i.test(d)), 'no previous/next station keys left');
 ok(C.padSlotFor('N', 'vehicle') === 'lb' && /radio aan of uit/i.test(C.slotUses('lb')), 'LB in a vehicle is the radio switch, and Besturing says so', C.slotUses('lb'));
-ok(JSON.stringify(C.normalizeKeyBinds({ b: 'j', n: 'j' })) === '{"n":"j"}', 'a saved bind for the old B action is dropped, N keeps its own');
+ok(JSON.stringify(C.normalizeKeyBinds({ b: 'y', n: 'y' })) === '{"n":"y"}', 'a saved bind for the old B action is dropped, N keeps its own');
 
 // every situation maps every game key it needs to some button
 const need = { foot: [' ', 'control', 'e', 'f', 'k', 'm', 'escape', 'shift', 'tab', 'o'], vehicle: [' ', 'e', 'h', 'l', 'q', 'v', 'm', 'escape', 'n', 'shift', '@fire'],
@@ -122,6 +122,13 @@ for (const speed of [5, 20, 40, 60]) {
   ok(camX - carX > 4.9, `looking back at ${speed} m/s the camera stays ahead of the car`, camX - carX);
 }
 ok(C.chaseFollowLerp(1 / 60) < 1, 'normal chase camera still eases');
+
+// manual shifting: keys, clutch and the bumpers
+ok(['.', ',', 'j'].every((k) => C.KEY_ACTIONS.some(([c]) => c === k)), 'shift up, shift down and the clutch are rebindable keys');
+ok(C.PAD_MAPS.vehicleManual.rb === '.' && C.PAD_MAPS.vehicleManual.lb === ',' && C.PAD_MAPS.vehicleManual.ls === 'j', 'bumpers shift and L3 is the clutch in the manual vehicle map');
+ok(C.PAD_MAPS.vehicleManual.rt === '@gas' && C.PAD_MAPS.vehicleManual.lt === '@brake' && C.PAD_MAPS.vehicleManual.stick === 'steer', 'gas, brake and steering stay as in the automatic vehicle map');
+ok(C.PAD_MAPS.vehicleManual.up === 'n', 'the radio moves to the D-pad when the bumpers shift');
+ok(new Set(C.KEY_ACTIONS.map(([k]) => C.physicalKey({}, k))).size === C.KEY_ACTIONS.length, 'no two actions share a default key');
 
 console.log(`${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

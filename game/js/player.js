@@ -1,7 +1,8 @@
 import { closestPointOnSegment, normalizeAngle, pointInPolygon, isInWater, inWaterPoly, WATER_Y, clamp } from './util.js';
 import { wallAhead } from './countrywalls.js';
 import { waterClearance, pushOutOfWaterObstacles, insideWaterObstacle, swimmerCanLeave } from './waterindex.js';
-import { findEnterableVehicle, distToVehicleBody, resolveBoomCollisions, resolveVehicleBuildingCollision, drivePlayerBoat, pushCircleOutOfVehicle, reportImpact, tickSinkingVehicles } from './vehicle.js';
+import { findEnterableVehicle, distToVehicleBody, resolveBoomCollisions, resolveVehicleBuildingCollision, drivePlayerBoat, pushCircleOutOfVehicle, reportImpact, tickSinkingVehicles, speedCap } from './vehicle.js';
+import { MOPED_LEGAL_SPEED } from './motomodels.js';
 import { findRideableProp, rideProp } from './rideprops.js';
 import { playAutoGejatLine } from './audio.js';
 import { requestRespawn } from './world.js';
@@ -17,6 +18,8 @@ import { vaultDecision, vehicleHeight, roofSpot, onRoof, localToWorld, worldToLo
 import { inHomeFlat } from './home.js';
 import { flyHeli, heliExitBlock } from './heliflight.js';
 import { MODS } from './cheatmods.js';
+import { reportCrime } from './crime.js';
+import { shift as shiftGear } from './gearbox.js';
 export { resolveBuildingCollisions };
 
 const BIKE_SPRINT_S = 2.5;
@@ -829,6 +832,15 @@ export class Player {
     v.handbrake = brake;
     v.throttle = throttle;
     v.horn = input.isDown('h') && !v.disabled;
+    // a tuned-up moped over the legal 45 km/h: heat from the police, once in a while
+    if (world && v.isScooter && v.model.moped && Math.abs(v.speed) > MOPED_LEGAL_SPEED * 1.04) {
+      v._copHeatT = (v._copHeatT ?? 4) - dt;
+      if (v._copHeatT <= 0) {
+        v._copHeatT = 5;
+        if (!v._copHint) { v._copHint = true; world.addMessage('Opgevoerde brommer: de politie let op je', 4, { kind: 'tip', key: 'moped-tuned' }); }
+        reportCrime(world, 'tunedMoped');
+      }
+    }
     v.gripK = world && !v.isBoat ? roadGrip(world, v.x, v.y, v.surface) * MODS.grip : 1;
     // bikes: Shift gives a short sprint, then a breather before the next one
     if (v.isBike) {
@@ -842,6 +854,21 @@ export class Player {
       }
     }
     const steerIn = world ? Math.max(-1, Math.min(1, ax + drunkSteer(world, v))) : ax;
+    const st = getSettings();
+    v.shiftMode = st.shiftMode;
+    v.driftAssist = st.driftAssist;
+    v.bikeAssist = st.bikeAssist;
+    v.clutchIn = st.shiftMode === 'clutch' && input.isDown('j');
+    // motorbikes: Shift pops a wheelie on the throttle or a stoppie on the brake
+    v.trick = !!(v.model && v.model.motorbike) && input.isDown('shift');
+    const motoSpeed = v.model && v.model.motorbike ? Math.abs(v.speed) : 0;
+    if (v.gb && st.shiftMode !== 'auto' && !held) {
+      const dir = input.wasPressed('.') ? 1 : input.wasPressed(',') ? -1 : 0;
+      if (dir) {
+        const res = shiftGear(v.gb, dir, Math.abs(v.speed) / speedCap(v));
+        if (world && res !== 'none') (world.audioEvents || (world.audioEvents = [])).push({ kind: 'gear-' + res, x: v.x, y: v.y });
+      }
+    }
     if (v.isBoat) drivePlayerBoat(v, map, dt, throttle, steerIn, brake && v.speed !== 0);
     else {
       const n = Math.min(4, Math.max(1, Math.ceil(Math.abs(v.speed) * dt / SUBSTEP)));
@@ -849,6 +876,21 @@ export class Player {
         v.applyControls(dt / n, throttle, steerIn, brake && v.speed !== 0);
         resolveVehicleBuildingCollision(v, map, dt / n);
       }
+    }
+    if (motoSpeed && world && !v.wrecked) {
+      // a hard hit or a low-side throws the rider off, tumbling like a bail-out (diveOut)
+      const lost = motoSpeed - Math.abs(v.speed);
+      if (v.crashed || (lost > 6.5 && motoSpeed > 11)) {
+        v.crashed = false;
+        v.speed = Math.sign(v.speed || 1) * Math.max(motoSpeed * 0.8, 12);
+        v.pitch = 0;
+        this.exitVehicle(map, world);
+        return;
+      }
+    }
+    if (v.gb) {
+      if (v.gb.stalled && !v._stallSnd && world) (world.audioEvents || (world.audioEvents = [])).push({ kind: 'engine_stall', x: v.x, y: v.y });
+      v._stallSnd = v.gb.stalled;
     }
     if (world) resolveBoomCollisions(v, world);
     this.x = v.x;
