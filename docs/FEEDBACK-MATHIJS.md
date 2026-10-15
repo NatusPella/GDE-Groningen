@@ -256,3 +256,12 @@ Regel: de speltekst noemt dan één getal met bron en jaar ("Volgens het CBS ...
 | **Totaal** | **79** |
 
 Dubbel met bestaand backlog (samengevoegd): 7, 8, 11, 20, 28, 32, 33, 55 (0.31); 14, 52 (F3, veerboten); 35 (F4c-finale); 25, 36 (herkenningspunten Deel 4); 23 (Wolkenhal, `PROVINCIE-VERHAAL.md` §8); 41, 56, 75 (spelkalender); 12, 17, 22 (bestaande bijbanen).
+
+## Besluiten van de eigenaar (15 okt 2026)
+
+- **Bernard:** een verzonnen lookalike, geen echte persoon.
+- **Jeugdgevangenis en studieschuld-satire:** blijven erin, in de bestaande lichte toon.
+- **Beroofd worden in bepaalde wijken** (de "rooftochten"): de eigenaar liet de invulling aan ons over. Besluit: een overval kost alleen een deel van je geld, zonder geweld in beeld. Gevaarlijke wijken krijgen 's avonds en 's nachts een waarschuwing op de kaart. Je krijgt het geld terug door de dader te achtervolgen.
+- **Roze kersenbloesem:** blijft, ook in een zomerspel.
+- **Kleine bedieningsfixes:** eerst in 0.30.1 voor zover we komen; de rest schuift door.
+- **Eerder besloten:** iWink als knipoog (Wiebelwerk), mijnbouwschade met een verzonnen bedrijf en met zorg, Tessa met voorzichtig sociaal commentaar en geverifieerde cijfers.
