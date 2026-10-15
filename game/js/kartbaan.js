@@ -119,7 +119,7 @@ function buildKartMesh(color, number) {
   // number on a plate
   const plate = new THREE.Mesh(new THREE.PlaneGeometry(0.34, 0.3), new THREE.MeshBasicMaterial({ map: canvasTex(64, 64, (c) => { c.fillStyle = '#fff'; c.fillRect(0, 0, 64, 64); c.fillStyle = '#111'; c.font = 'bold 48px Arial'; c.textAlign = 'center'; c.fillText(String(number), 32, 50); }), side: THREE.DoubleSide }));
   plate.position.set(-0.95, 0.46, 0);
-  plate.rotation.y = Math.PI / 2;
+  plate.rotation.y = -Math.PI / 2;
   g.add(plate);
   const wheels = [];
   for (const [x, z, r, w2, front] of [[0.62, 0.5, 0.15, 0.13, true], [0.62, -0.5, 0.15, 0.13, true], [-0.55, 0.54, 0.18, 0.2, false], [-0.55, -0.54, 0.18, 0.2, false]]) {

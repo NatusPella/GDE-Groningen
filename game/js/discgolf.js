@@ -169,7 +169,7 @@ function buildCourse(w) {
     const sx = h.tee.x - Math.cos(h.heading) * 1.8 + Math.cos(h.heading + Math.PI / 2) * 1.5;
     const sy = h.tee.y - Math.sin(h.heading) * 1.8 + Math.sin(h.heading + Math.PI / 2) * 1.5;
     sign.position.set(sx, 0, sy);
-    sign.rotation.y = -h.heading + Math.PI / 2;
+    sign.rotation.y = -h.heading - Math.PI / 2;
     hg.add(sign);
     const basket = basketMesh(HOLE_COLORS[i], h.n, M);
     basket.position.set(h.basket.x, 0, h.basket.y);
