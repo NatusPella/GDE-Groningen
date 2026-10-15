@@ -93,9 +93,9 @@ logo only; all other UI stays Bebas Neue.
   `text-shadow` or `box-shadow` with `rgba(63,201,122, 0.3-0.4)`.
 - Buttons: green fill, dark text (`#0c140e`), bold, `border-radius: 4px`,
   hover state lightens to `--gron-green-light`.
-- Keycap chips (on-screen control hints): dark gradient
-  (`#4a4f47` → `#2a2e28`), green text, a harder bottom border for a
-  pressed-key look - see `.hud-key` in hud_panel.css, this is the canonical
+- Keycap chips (on-screen control hints): one white, bright cap
+  (`#fbfaf5`, dark text `#0c140e`, a grey `#a9a69b` edge underneath for a
+  pressed-key look); the menu's `.m-kc` matches it - see `.hud-key` in hud_panel.css, this is the canonical
   keycap and every other "press X" hint should reuse that exact class/style
   rather than re-inventing bracket text.
 

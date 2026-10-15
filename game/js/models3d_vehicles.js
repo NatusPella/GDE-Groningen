@@ -1463,6 +1463,34 @@ export function policeFlash(time, id = 0) {
   return phase < 0.5 ? 1 : -1;
 }
 
+// Orange turn-signal lamps at the four corners, made the first time a car
+// blinks and then only shown or hidden (hazards: all four, a signal: one side).
+const IND_GEO = markShared(new THREE.BoxGeometry(0.2, 0.11, 0.16));
+const IND_MAT = markShared(new THREE.MeshBasicMaterial({ color: 0xff9a1a }));
+const IND_PERIOD = 0.62;
+export function updateIndicatorLamps(mesh, v, time) {
+  let lamps = mesh.userData.indLamps;
+  if (!lamps) {
+    if (!v.indicator) return;
+    const m = v.model || {};
+    const len = m.len || 4, wid = m.wid || 1.7;
+    const bike = !!(m.motorbike || v.isBike || v.isScooter);
+    const hz = bike ? 0.2 : wid / 2 - 0.16, y = bike ? 0.85 : m.van ? 0.95 : 0.66;
+    lamps = [];
+    for (const side of [-1, 1]) for (const end of [1, -1]) {
+      const l = new THREE.Mesh(IND_GEO, IND_MAT);
+      l.position.set(end * (len / 2 + 0.01), y, side * hz);
+      l.visible = false;
+      l.userData.side = side;
+      mesh.add(l);
+      lamps.push(l);
+    }
+    mesh.userData.indLamps = lamps;
+  }
+  const on = !!v.indicator && Math.floor(time / IND_PERIOD) % 2 === 0;
+  for (const l of lamps) l.visible = on && (v.indicator === 'hazard' || (v.indicator === 'left' ? l.userData.side < 0 : l.userData.side > 0));
+}
+
 export function updatePoliceLamps(mesh, time, chasing, id = 0) {
   const lamps = mesh.userData.policeLamps;
   if (!lamps) return;

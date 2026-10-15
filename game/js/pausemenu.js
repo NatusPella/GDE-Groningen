@@ -63,6 +63,8 @@ const CONTROL_GROUPS = [
     [['Q', 'WHEEL'], 'Achterom kijken (vasthouden; middelste muisknop)'],
     [['H'], 'Toeteren'],
     [['L'], 'Zwaailicht en sirene (politieauto, ambulance)'],
+    [['[', ']'], 'Richtingaanwijzer links en rechts (nog eens: uit; na de bocht gaat hij vanzelf uit)'],
+    [['P'], 'Alarmlichten'],
     [['V'], 'Filmcamera'],
     [['R'], 'Nieuwe lak bij Spuit & Klaar, garagemenu in een garage'],
   ]],
@@ -360,10 +362,12 @@ function settingsHtml() {
       ${slider('minimapZoom', 'Zoom van de minimap', 0.6, 1.6, 0.05)}
       ${picker('minimapNorth', 'Minimap met noord boven', [['nooit', 'Nooit'], ['lucht', 'In de lucht'], ['altijd', 'Altijd']], 'Standaard draait de kaart mee')}
       ${toggle('showHints', 'Toetshints')}
+      ${picker('hintSource', 'Hints tonen voor', [['auto', 'Automatisch'], ['keys', 'Toetsenbord'], ['pad', 'Controller']], 'Automatisch volgt wat je het laatst gebruikte')}
       ${disclosure('display', 'Meer opties', 'Uitleg, kaart, filmpjes, bloed', `
         ${toggle('onboardingTips', 'Uitleg voor nieuwe spelers', 'Korte tips, elk één keer: je eerste klus, geld en winkels, de telefoon, de kaart en Te doen')}
         ${toggle('showFog', 'Verkende gebieden op de kaart')}
-        ${toggle('cinematicMoments', 'Filmische momenten', 'Bij bezienswaardigheden, nieuwe wijken, crashes en vijf sterren; intro’s, missies en de filmcamera (V) staan altijd aan')}
+        ${toggle('cinematicMoments', 'Filmische momenten', 'Bij bezienswaardigheden, crashes en vijf sterren; intro’s, missies en de filmcamera (V) staan altijd aan')}
+        ${toggle('wijkFilm', 'Filmpje bij nieuwe wijken', 'Uit: een korte naamkaart met wat er te zien is; aan: de volledige rondvlucht')}
         ${picker('drunkFx', 'Dronken effecten', [['aan', 'Aan'], ['mild', 'Mild'], ['uit', 'Uit']])}
         ${picker('shiftMode', 'Schakelen', [['auto', 'Automaat'], ['manual', 'Handmatig'], ['clutch', 'Handmatig + koppeling']], 'Automaat is de standaard; handmatig schakel je met . en , (of de bumpers), met koppeling houd je ook J ingedrukt')}
         ${toggle('driftAssist', 'Driften met hulp', 'Helpt tegensturen en houdt een slip beheersbaar; uit is realistischer')}
