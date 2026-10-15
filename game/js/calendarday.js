@@ -75,13 +75,13 @@ function maybeCard(w, c, h) {
 // --- for the HUD, menus and other systems -------------------------------------------
 
 // onDayChange(fn): fn({ day, from, info, special }) whenever the date moves
-// (also as a 'gde-daychange' event on window, same detail).
+// (also as a 'daychange' event on window, same detail).
 const listeners = new Set();
 export function onDayChange(fn) { listeners.add(fn); return () => listeners.delete(fn); }
 function dayChanged(day, from) {
   const detail = { day, from, info: formatDay(day), special: specialDay(day) };
   for (const fn of listeners) { try { fn(detail); } catch (e) { console.error('daychange', e); } }
-  if (typeof window !== 'undefined' && typeof CustomEvent === 'function') window.dispatchEvent(new CustomEvent('gde-daychange', { detail }));
+  if (typeof window !== 'undefined' && typeof CustomEvent === 'function') window.dispatchEvent(new CustomEvent('daychange', { detail }));
 }
 
 export const today = (w = world) => (w ? state(w).day : 1);

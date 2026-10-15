@@ -129,5 +129,5 @@ calendar.js (puur): `formatDay(n)` → `{ short: 'Vr 28 aug', long, dayLabel:
 
 calendarday.js (vandaag): `today()`, `todayInfo()`, `todaySpecial()`,
 `isToday(id)`, `upcoming(w, k)`, `onDayChange(fn)` en het window-event
-`gde-daychange` (`detail: { day, from, info, special }`). Debug:
+`daychange` (`detail: { day, from, info, special }`). Debug:
 `window.__calendar.get()` / `.set(n)`.
