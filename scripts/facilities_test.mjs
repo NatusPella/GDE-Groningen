@@ -157,5 +157,39 @@ for (const s of sites) console.log(`  ${s.kind.padEnd(9)} ${s.name}`);
   }
 }
 
+// parking: bays on the real lots and lanes (parkinglots.js), cars in them
+// (parkedcars.js), and your own car parked in one (ownedvehicles.js)
+{
+  const L = await import('../game/js/parkinglots.js');
+  const P = await import('../game/js/parkedcars.js');
+  const t1 = performance.now();
+  let lots = 0, bays = 0, bad = 0, laneBays = 0;
+  for (const f of Fac.facilitiesOf(['parking', 'streetpark'])) {
+    if (!f.poly) continue;
+    const B = L.lotBays(map, f);
+    if (B.length) lots++;
+    bays += B.length;
+    for (const b of B) if ((F.edgeDistance(b.x, b.y) > 0 && buildingAt(b.x, b.y, 0) >= 0) || isInWater(map, b.x, b.y)) bad++;
+  }
+  for (const l of Fac.FAC.lanes) laneBays += L.laneBays(map, l).length;
+  console.log(`parking: ${bays} bays on ${lots} lots, ${laneBays} along parking lanes (${Math.round(performance.now() - t1)} ms)`);
+  if (lots < 100 || bays < 2000) fail('too few parking bays');
+  if (bad) fail(`${bad} bays in a building or the water`);
+  // a lot out in the Ommelanden: parked cars in its bays
+  const lot = Fac.facilitiesOf('parking').filter((f) => !f.city && f.poly && L.lotBays(map, f).length >= 10)[0];
+  if (!lot) fail('no Ommeland lot with bays');
+  else {
+    const w2 = { map, vehicles: [], time: 0, player: { x: lot.x, y: lot.y, inVehicle: null }, input: null };
+    for (let k = 0; k < 300; k++) { if (k % 50 === 0) P.manageParkedCars(w2); P.tickParkedCars(w2); w2.time += 1 / 60; }
+    const inLot = [...P.sleepingParkedCars(w2), ...w2.vehicles].filter((v) => L.lotBays(map, lot).some((b) => Math.hypot(b.x - v.x, b.y - v.y) < 0.1)).length;
+    console.log(`${lot.name || 'lot'} (${Math.round(lot.x)}, ${Math.round(lot.y)}): ${inLot} of ${L.lotBays(map, lot).length} bays taken`);
+    if (!inLot) fail('no parked cars in the Ommeland lot');
+    const O = await import('../game/js/ownedvehicles.js');
+    const spot = O.findParkingSpot(w2, lot.x, lot.y, { len: 4, wid: 1.65, name: 'escort' }, { outOfView: false });
+    console.log(`your car near that lot: ${spot ? (spot.bay ? 'in a bay' : 'at the kerb') : 'nowhere'}`);
+    if (!spot || !spot.bay) fail('own car not parked in a lot bay');
+  }
+}
+
 console.log(fails ? `${fails} FAILED` : 'facilities ok');
 process.exit(fails ? 1 : 0);

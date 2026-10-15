@@ -28,6 +28,7 @@ import { initHud, updateHud } from './hud_panel.js';
 import { initGarages, updateGarages, tryGarageInteract } from './garages.js';
 import { initHoreca, updateHoreca, tryHorecaInteract } from './horeca.js';
 import { initShops, updateShops, tryShopInteract } from './shops.js';
+import { updateParkingLots3D } from './parkinglots3d.js';
 import { isShopOpen } from './shopui.js';
 import { initMapView, updateMapView, isMapOpen } from './mapview.js';
 import { initAudio, updateAudio, setMenuAudio } from './audio.js';
@@ -517,6 +518,7 @@ async function boot() {
       updateGarages(dt, world);
       updateHoreca(dt, world);
       updateShops(dt, world);
+      updateParkingLots3D(world);
       updateFlitspaal(dt, world);
       updateFlavour(dt, world);
     } else updateMissions(dt, world);
