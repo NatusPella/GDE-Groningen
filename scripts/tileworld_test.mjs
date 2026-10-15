@@ -227,6 +227,28 @@ async function run(name, route, { speed, radius, ahead, hz = 60, budgetBytes = 1
   ok(ms <= 400, `teleport: L0 tiles round the destination ready after ${ms} virtual ms (30 ms per read)`, ms);
 }
 
+// --- a cutscene registers its shots: tiles first, held until released
+{
+  const { source, store } = mkStore({ budgetBytes: 4e5 }, 30);
+  const keys = Object.entries(index0.tiles).filter(([, t]) => t.n.buildings > 800).map(([k]) => k);
+  const at = (k) => { const [ox, oy] = G.tileOrigin(index0.tiles[k].i, index0.tiles[k].j); return [ox + 500, oy + 500]; };
+  const shots = keys.slice(0, 4).map((k, i) => ({ at: at(k), look: at(keys[(i + 1) % keys.length]) }));
+  const fake = { store, tileQueue: new S.FrameQueue(), registerShots: TileWorld.prototype.registerShots, shotsReady: TileWorld.prototype.shotsReady, releaseShots: TileWorld.prototype.releaseShots };
+  const done = fake.registerShots(shots);
+  ok(!fake.shotsReady(), 'registerShots: nothing is in before the reads are done');
+  let ms = 0;
+  while (!fake.shotsReady() && ms < 5000) { await source.advance(10); ms += 10; }
+  await done;
+  ok(fake.shotsReady() && ms <= 600, `registerShots: every tile of ${shots.length} shots ready after ${ms} virtual ms`, ms);
+  for (const k of keys.slice(4, 14)) store.request(k).catch(() => {});
+  await flush(source, 1500);
+  ok(fake.shotsReady(), 'the shots\' tiles stay pinned while other tiles stream through a tiny budget');
+  fake.releaseShots();
+  for (const k of keys.slice(14, 24)) store.request(k).catch(() => {});
+  await flush(source, 1500);
+  ok(store.stats.evictions > 0 && store.residentBytes <= 4e5 + Math.max(...sizes.map((s) => s[1])), 'after the release they can be evicted again');
+}
+
 // --- the frame queue keeps its budget
 {
   const q = new S.FrameQueue();
