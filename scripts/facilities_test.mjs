@@ -144,5 +144,18 @@ for (const s of sites) console.log(`  ${s.kind.padEnd(9)} ${s.name}`);
   }
 }
 
+// cafés out in the Ommelanden (horeca.js), invented names only
+{
+  const H = await import('../game/js/horeca.js');
+  H.initHoreca(world);
+  const country = H.getHorecaForRender().filter((h) => h.place);
+  console.log(`${country.length} cafés in the Ommelanden`);
+  if (country.length < 10) fail('too few Ommeland cafés');
+  for (const h of country) {
+    const why = spotProblem(map, { x: h.x, y: h.y, mode: 'walk' });
+    if (why) fail(`café ${h.place}: ${why}`);
+  }
+}
+
 console.log(fails ? `${fails} FAILED` : 'facilities ok');
 process.exit(fails ? 1 : 0);
