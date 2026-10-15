@@ -43,6 +43,7 @@ import { noteFrame, hideAdvice, classifyGpu, readGpu, dynamicScale, cpuLevel } f
 import { updateStreetSigns } from './streetsigns.js';
 import { initPauseMenu, isPauseMenuOpen, openPauseMenu, pauseMenuCover } from './pausemenu.js';
 import { initDayNight, updateDayNight } from './daynight.js';
+import { initCalendar, updateCalendar } from './calendarday.js';
 import { updateFx3D } from './fx3d.js';
 import { updateGore3D } from './gore3d.js';
 import { updateKnockFx3D } from './knockfx3d.js';
@@ -302,6 +303,7 @@ async function boot() {
     if (!document.pointerLockElement && document.body.classList.contains('game-started') && !menuOpen()) openPauseMenu();
   });
   initDayNight(world);
+  initCalendar(world);
   initCityProps(world);
   initFlavour(world);
   initFlavour3D(world, getScene());
@@ -525,6 +527,7 @@ async function boot() {
     updateOmmelandFun(dt, world);
     updateWeather(dt, world);
     updateDayNight(dt, world);
+    updateCalendar(dt, world);
     updateCheats(dt, world);
     updateAchievementTracker(dt, world);
     updateRadio(dt, world);
