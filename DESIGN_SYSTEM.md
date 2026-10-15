@@ -73,7 +73,7 @@ would be the only blue in the game (this file rules out blue accents), and
 a blue-and-white sign reads as an actual road sign more than as our brand.
 The shape (rounded plate, inset white border, condensed caps) already says
 "place-name sign"; green and white are the colours of the city of Groningen
-and of our UI. Rules: no Pricedown-like round heavy letters, no sunset
+and of our UI. Rules: no round heavy display letters, no sunset
 gradient, no roman numeral, no small word stacked over a big word in the
 same style (see docs/LICENTIES.md §8.2). Big Shoulders Display is for the
 logo only; all other UI stays Bebas Neue.

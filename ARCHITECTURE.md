@@ -774,8 +774,8 @@ draws the same lockup with a subset of the font embedded; `icon.png` is that
 SVG rendered at 1024 px (`desktop/scripts/render-icon.cjs`, or a headless
 Chrome screenshot with a transparent background).
 
-Until 0.28 the internal identifiers still carried the old name "GTE VI".
-From 0.29 they say GDE, and nothing a player has is lost:
+Until 0.28 the internal identifiers used an older prefix (`gte`). From 0.29
+they say GDE, and nothing a player has is lost:
 
 - Every storage key is listed once in `game/js/storagekeys.js` (`KEYS`,
   `SESSION_KEYS`); modules import their key from there. The module is the
@@ -789,13 +789,13 @@ From 0.29 they say GDE, and nothing a player has is lost:
   a downgrade to 0.28; `removeLegacyKeys()` is there for a later release.
   `node scripts/storage_migration_test.mjs` checks all of this.
 - Desktop: userData is `GDE Groningen` (Electron's default for the product
-  name). `desktop/userdata.js` copies the old `GTE VI` folder there once
+  name). `desktop/userdata.js` copies the pre-0.29 folder there once
   (without caches and lock files) into a temporary folder that is renamed
   into place, and falls back to the old folder on any error; the old folder
   is left as it was. appId and Windows AppUserModelId:
   `nl.natuspella.gde-groningen`.
 - The web build's caches are `gde-<version>-<hash>`; the service worker also
-  clears the old `gte-vi-*` ones. IPC channels are `gde:*`, the preload API
+  clears the pre-0.29 ones. IPC channels are `gde:*`, the preload API
   is `window.gdeDesktop`, env variables `GDE_*` (the old `GTE_*` names still
   work in `desktop/build.mjs` and `desktop/main.js`).
 
