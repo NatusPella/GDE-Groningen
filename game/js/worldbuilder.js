@@ -14,13 +14,13 @@ import { wgsToWorld } from './rdnew.js';
 export const WB_VERSION = 1;
 export const LEVEL_M = 3.1;
 
-// ?wb=1 (or window.__wb = true) routes the Ommeland villages (realmap.js)
-// through the world builder; until its audits are green the old per-zone
-// code is the default.
+// The world builder is the default (its audits: scripts/worldbuilder_test.mjs);
+// ?wb=0 (or window.__wb = false) runs the old per-zone code where it still
+// exists, for an A/B.
 export function worldBuilderOn() {
   if (typeof window !== 'undefined' && typeof window.__wb === 'boolean') return window.__wb;
-  if (typeof location !== 'undefined' && /[?&]wb=1\b/.test(location.search || '')) return true;
-  return false;
+  if (typeof location !== 'undefined' && /[?&]wb=0\b/.test(location.search || '')) return false;
+  return true;
 }
 
 // ------------------------------------------------------------------ roads
