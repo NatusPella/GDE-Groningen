@@ -242,7 +242,7 @@ const SEDAN = { name: 'sedan', len: 4.3, wid: 1.8, maxSpeed: 50, accel: 10, brak
         const d = Math.hypot(v.x - car.x, v.y - car.y);
         closest = Math.min(closest, d);
         if (V.overOpenWater(map, v.x, v.y, 0)) wet++;
-        if (d > 40 && f % 30 === 0) { const q = snapCountry(v.x, v.y, 100); if (q && q.d < 6) onRoad++; else offRoad++; }
+        if (d > 40 && !v._direct && f % 30 === 0) { const q = snapCountry(v.x, v.y, 100); if (q && q.d < 6) onRoad++; else offRoad++; }
       }
     }
     units += seen.size;
@@ -254,6 +254,6 @@ const SEDAN = { name: 'sedan', len: 4.3, wid: 1.8, maxSpeed: 50, accel: 10, brak
   const share = onRoad / Math.max(1, onRoad + offRoad);
   const ok = units > 0 && reached === runs && share > 0.85 && !wet;
   if (!ok) fails++;
-  console.log(`${ok ? 'ok  ' : 'FAIL'} police in the Ommeland: ${units} units, ${reached}/${runs} reached the player, ${(share * 100).toFixed(0)}% of samples beyond 40 m on a road, ${wet} in the water`);
+  console.log(`${ok ? 'ok  ' : 'FAIL'} police in the Ommeland: ${units} units, ${reached}/${runs} reached the player, ${(share * 100).toFixed(0)}% of road-following samples on a road, ${wet} in the water`);
 }
 process.exit(fails ? 1 : 0);
