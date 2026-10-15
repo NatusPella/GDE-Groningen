@@ -1360,6 +1360,47 @@ ARCHITECTURE.md "World tiles" voor de bytes en de modules.
 | Hoogte-, rijstrook-, kruispunt-, route-, POI-, meubilair-secties | gereserveerd in het formaat (`SECTION`), met auditrapporten op de huidige data; de oplossers zijn F1 |
 | Cutscène-streaming | API (`prefetchPoints`, `missing`) klaar; de shotlijsten van `cinematics.js` en de test per cutscène zijn F1 |
 
+**Metingen F0 (zelfde machine, A = v0.29.0 met JSON-kaart, B = F0 met tegels; 3 afwisselende runs onder hoge belasting).**
+
+| Meting | A (nu) | B (F0) |
+|---|---|---|
+| Kaart klaar (`__loadMarks.map`) | 2531 / 3328 / 2396 ms | 1768 / 2378 / 1539 ms |
+| Titelscherm (`title`) | 5018 / 6388 / 4813 ms | 4657 / 5534 / 4251 ms |
+| JS-heap bij het titelscherm | 912 / 887 / 895 MB | 850 / 843 / 857 MB |
+| Perf-routes (foot, ring, heli; gem. frametijd, p95) | 21,8 / 33,8; 23,2 / 34,0; 20,8 / 33,5 ms | 22,1 / 33,8; 23,6 / 33,8; 21,5 / 33,5 ms (gelijk binnen de ruis) |
+| Download | 182 MB | + 6,5 MB tegels (de JSON-bestanden, 19 MB, blijven als terugval; die vallen weg zodra tegels het enige pad zijn) |
+| Tegels bij het opstarten | n.v.t. | 54 tegels, 3,3 MB gelezen via Range, 0 te laat |
+
+Winst: de afleiding van de kaart (dubbele footprints, kanopieën, dakstappen,
+doorsnijdingen) staat vooraf in de tegels. Per tegel: inflate 1 ms, decoderen
+~6 ms (op een worker); de gestructureerde kloon naar de hoofdthread kost nog
+~22 ms per tegel (open: getypeerde arrays in F1).
+
+Streamingtests op een virtuele klok (`scripts/tileworld_test.mjs`): 60 s
+rijden op 38 m/s, 60 s heli op 80 m/s en een rit met een budget van 3 MB:
+geen tegel te laat binnen 250 m; een sprong: L0 rond de bestemming na
+≤ 400 virtuele ms bij 30 ms per leesactie. De treinrit en de echte Electron-
+stresstest (4.2) komen met de corridor in F1.
+
+**Bevindingen op de huidige data** (rapporten, geen herbouw):
+
+- *Rijstroken* (`scripts/world/audit_lanes.py`): 2.377 van de 2.940
+  eenrichtings-ways hebben meer stroken getekend dan de tags zeggen; de
+  trunk-helften (N7, N370, Europaweg) krijgen 4 stroken waar er 2 horen
+  (breedte 12 m voor een halve rijbaan).
+- *Profiel* (`scripts/world/audit_profile.mjs`): 463 wegen met hoogteprofiel;
+  twee segmenten steiler dan de grens (steilste 10,6 % op een `secondary`
+  bij 1974, 612); geen sprong waar wegen een knoop delen; de ring heeft 0
+  obstakels op de rijstroken.
+- *Gebouwhoogtes*: 95 % van de gebouwen valt terug op het typetje
+  (`hsrc = default`), 4,5 % op OSM-verdiepingen, 0,2 % op OSM-`height`:
+  precies waarom 3D BAG in F1 de eerste stap is. Wel zijn BAG-id en bouwjaar
+  uit de OSM-tags voor ~70 % van de gebouwen bekend.
+- *N7-kruising bij het Julianaplein* (-61, 1830), buitenste rijstrook,
+  tegenrichting: de auto verlaat op 80 km/u in de bocht de smalle
+  bruggenrand en vliegt even; dat gebeurt ook in v0.29.0 (de test eindigde net
+  voordat het opviel). De oplosser van 2.11 moet dit oplossen.
+
 Open voor F1: tegel-lokale geometrie en `toRender`, de oplossers (2.11-2.13),
 3D BAG, de worker-kopie van de kaart (nu leest ook de roadsurface-worker de
 volledige stad), het Ommeland als echte tegels (nu een blob in de globale
