@@ -477,7 +477,7 @@ dat.
 
 ## 3. Reizen door de provincie
 
-De provincie is **37 keer zo groot als de kaart van GTA V** (~80 km²) en een
+De provincie is **37 keer zo groot als een grote open-wereldkaart** (~80 km²) en een
 rit van Stad naar Delfzijl is ~32 km. Reizen moet dus zelf leuk zijn, én
 overslaan moet altijd kunnen. Uitgangspunt: **een gewone verplaatsing tussen
 twee verhaalmomenten duurt hooguit 3-5 minuten echte tijd**, tenzij de speler

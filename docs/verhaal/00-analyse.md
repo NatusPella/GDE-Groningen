@@ -28,7 +28,7 @@ Gelezen: de intro-montage, alle 36 verhaalstappen (leads, waarom-zinnen, telefoo
 ## Zijn de missies leuk genoeg?
 
 - **Te veel boodschappen.** Van de 18 activiteitstappen zijn er 9 iets kopen (eierbal, pistool, fiets, kraakspullen, uzi, auto, tuning, bank, boot), plus 2 keer wachten of onderduiken. Dat zijn poorten, geen momenten. Een speler ervaart "nu weer naar een winkel".
-- **Een lange stille Kop.** Na H1 (een auto bezorgen) volgen 4 missies voordat er een tegenstander is. Jelle komt pas na H6 echt in beeld. Een GTA-verhaal wint als de tegenstander vroeg schuurt.
+- **Een lange stille Kop.** Na H1 (een auto bezorgen) volgen 4 missies voordat er een tegenstander is. Jelle komt pas na H6 echt in beeld. Een misdaadverhaal wint als de tegenstander vroeg schuurt.
 - **Variatie is goed.** Race, rampage, duif, kraak, boot, heli, fatbikes en kroegentocht. Maar twee races (H5 en H9) en twee duifmissies (H4 en H10) liggen elk vrij ver uit elkaar zonder dat ze op elkaar voortbouwen: de tweede race of duif kan meer.
 - **De sterkste missies** zijn die met een persoonlijke inzet: H12 (oma), H13 (de kus), H16 (Anita's Fjord) en H18. **De zwakste** zijn H3 (chaos voor content, zonder reden in het verhaal) en H7 (decor voor een festival, ver van het plot).
 - **De finale is een kraam bewaken tegen vuurwerk.** Dat is gezellig, maar het is geen climax die alles samenbrengt (Jelle, de bal, de Fjord, de duif, de race).
@@ -57,11 +57,11 @@ Gelezen: de intro-montage, alle 36 verhaalstappen (leads, waarom-zinnen, telefoo
 
 ## Parodie en introductie
 
-- **De parodie zit er, maar je voelt hem niet bewust.** Een man-vrouw-misdaadduo (Lucia en Jason worden Tammo en Anita), Grunn als Vice City, het Ommeland als Leonida, Jelmer als influencer, Kiekdoar als "Florida Man"-feed en radio's als Nachtstreek. De pinautomaat in de opening is eigenlijk de knipoog naar de overval uit de eerste GTA VI-trailer, maar zonder context lees je hem als een gat in het verhaal.
+- **De parodie zit er, maar je voelt hem niet bewust.** Een man-vrouw-misdaadduo (Tammo en Anita), Grunn als grote stad, het Ommeland als achterland, Jelmer als influencer, Kiekdoar als "Florida Man"-feed en radio's als Nachtstreek. De pinautomaat in de opening is eigenlijk een knipoog naar de klassieke overvalscène uit een gametrailer, maar zonder context lees je hem als een gat in het verhaal.
 - **Tammo en Anita worden niet voorgesteld.** Na de opening weet je niet wie ze zijn, hoe ze elkaar kennen of wat ze willen. De personagebijbel heeft dat allemaal (het Oosterpark, de pet, "Kon minder", de Fjord-droom), maar het spel laat het nauwelijks zien.
 - **Voorstel voor alle scripts:**
-  - De opening als bewuste trailer-parodie: Grunn als Vice City (zon op d'Olle Grieze, fietsen in plaats van flamingo's), dan Anita met een bevroren beeld en naamkaart, daarna Tammo, en de overval-knipoog met een logische aanleiding. Daarna begint hun gewone leven.
-  - Een naamkaart in GTA-stijl bij de eerste ontmoeting met elk personage: een naam in Bebas plus één droge regel, bijvoorbeeld **JELLE TERPSTRA** — "Snackkoning. Fries. Heel tevreden met zichzelf."
+  - De opening als bewuste trailer-parodie: Grunn in de zon (zon op d'Olle Grieze, fietsen in plaats van flamingo's), dan Anita met een bevroren beeld en naamkaart, daarna Tammo, en de overval-knipoog met een logische aanleiding. Daarna begint hun gewone leven.
+  - Een naamkaart (bevroren beeld) bij de eerste ontmoeting met elk personage: een naam in Bebas plus één droge regel, bijvoorbeeld **JELLE TERPSTRA** — "Snackkoning. Fries. Heel tevreden met zichzelf."
 - **Het menu:** een onderdeel Verhaal met de aanwijzingen en de **personages**, die je vrijspeelt zodra je ze ontmoet. Per personage een 3D-model, een bio, hun bekendste uitspraak, de band met het duo en de missies samen; nog onbekend is een silhouet met "???".
 
 ## Randvoorwaarden voor de nieuwe scripts

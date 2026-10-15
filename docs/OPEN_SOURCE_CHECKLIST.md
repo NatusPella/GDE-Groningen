@@ -1,8 +1,11 @@
 # Open source: stand van zaken en open beslissingen
 
-Stand van 15 oktober 2026, op de branch met de naamsopruiming (versie na
-0.28.0). Er is **niets gepubliceerd**: de repo is privé, er is geen Pages,
-niets gepusht naar een publieke plek.
+Stand van 15 oktober 2026, op `main` na 0.29.0. Er is **niets
+gepubliceerd**: de repo is privé, er is geen Pages, niets gepusht naar een
+publieke plek. De historie is herschreven en de licenties staan; wat nog
+openstaat voor de eigenaar: de OpenRouter-sleutel roteren, private
+vulnerability reporting aanzetten zodra de repo publiek is, en het besluit
+om publiek te gaan.
 
 Legenda: **[x]** gedaan, **[ ]** nog te doen, **[?]** besluit van de
 eigenaar nodig. De procedures (filter-repo, GitHub-instellingen) staan in
@@ -24,7 +27,7 @@ eigenaar nodig. De procedures (filter-repo, GitHub-instellingen) staan in
       OFL, three.js MIT, Electron MIT (`NOTICE.md`, `licenses/`).
 - [x] README, NOTICE.md, `docs/LICENTIES.md` §7/§9 en het *Over*-scherm in
       het spel (`game/js/credits.js`) noemen de licenties.
-- [?] **AI-muziek en -stemmen onder CC BY-NC-SA.** Wat de voorwaarden
+- [x] **AI-muziek en -stemmen onder CC BY-NC-SA.** Wat de voorwaarden
       zeggen (LICENTIES.md §4): Google claimt geen eigendom van de output,
       verspreiden in een gratis spel mag, OpenRouter voegt niets toe, en je
       mag niet doen alsof het door mensen is gemaakt (dat vermelden we).
@@ -34,8 +37,7 @@ eigenaar nodig. De procedures (filter-repo, GitHub-instellingen) staan in
       beschermd, dus de CC-licentie is daar mogelijk niet af te dwingen;
       (b) met welk Gemini-product en abonnement de **muziek** gemaakt is
       (app of API, gratis of betaald): dat bepaalt welke voorwaarden
-      gelden. Vastleggen welk product, en de voorwaarden van dat product
-      laten nalezen (juridische check).
+      gelden. Een juridische check blijft optioneel (geen blokkade).
   - [x] Formulering aangepast (15 okt): `LICENSE-CONTENT.md`
         (§ *Door AI gemaakte stemmen en muziek*), `NOTICE.md` en
         LICENTIES.md §4.8 bieden de audio aan onder CC BY-NC-SA "voor zover
@@ -66,50 +68,36 @@ eigenaar nodig. De procedures (filter-repo, GitHub-instellingen) staan in
 - [ ] Handmatige merkcheck "GDE" en "Grootste Diefstal Ever" (EUIPO,
       BOIP), zie ROADMAP.
 
-## 2. Oude namen en GTA-verwijzingen (huidige boom)
+## 2. Oude namen (huidige boom)
 
-- [x] Alles wat een speler ziet heette al GDE (0.24). Nu ook de interne
-      namen: opslagsleutels `gde-*` (met eenmalige migratie,
+- [x] Alles wat een speler ziet heette al GDE (0.24). Sinds 0.29 ook de
+      interne namen: opslagsleutels `gde-*` (met eenmalige migratie,
       `game/js/storagekeys.js`), userData-map `GDE Groningen` (eenmalige
-      kopie uit `GTE VI`, `desktop/userdata.js`), appId en Windows
+      kopie uit de oude map, `desktop/userdata.js`), appId en Windows
       AppUserModelId `nl.natuspella.gde-groningen`, npm-naam
       `gde-groningen`, IPC `gde:*`, `window.gdeDesktop`, webcaches `gde-*`,
-      env-variabelen `GDE_*`, Windows-zipmap `GDE-Groningen`, User-Agent van
-      de kaartscripts. Getest: `scripts/storage_migration_test.mjs` (70
-      checks) en een Electron-check op een wegwerpprofiel (één run
-      die oude sleutels zet, één die opstart: save geladen, geld 3100, "Doorgaan" in het menu, oude sleutels
-      bewaard).
-- [x] "GTA-style" en dergelijke uit code-commentaar, `ARCHITECTURE.md` en
-      `DESIGN_SYSTEM.md`; "GTE VI" uit de verhaaldocs en titels.
-- [x] `GTE-VI-Windows.zip` stond niet (meer) in git; `.gitignore` sluit hem
-      en de nieuwe namen uit. `.claude/` staat nu ook in `.gitignore`.
-- [x] Bewust gehouden (met reden):
-  - de **disclaimer** in het spel en in NOTICE noemt GTA, Rockstar Games
-    en Take-Two ("niet gelieerd aan"): zo hoort een disclaimer, en
-    LICENTIES.md §6.1 adviseert hem;
-  - **juridische en storedocs** (`docs/LICENTIES.md`,
-    `docs/steam/winkelpagina.md`, `docs/youtube/kanaal.md`, ROADMAP
-    "Steam-klaar") noemen GTA juist om te zeggen wat níet mag;
-  - **ontwerpdocs** in `docs/verhaal/` en `docs/SPEELTEST.md` beschrijven
-    de trailerparodie en het genre ("GTA VI-trailerparodie",
-    "GTA-achtige games"): beschrijvend, past bij de aangekondigde parodie;
-  - **CHANGELOG.md**: oude versies heten GTE VI; de kop noemt "tot 0.24:
-    GTE VI" één keer;
-  - **migratiecode**: de oude namen `gte-*`, `gte6.placeshots`,
-    `gte-minimap-layers`, `GTE VI`, `gte-vi-*`, `GTE_*` staan in
-    `storagekeys.js`, `userdata.js`, `web/sw.js`, `desktop/main.js` en
-    `desktop/build.mjs`, anders vindt de migratie de oude data niet;
-  - `desktop/release.sh`: de releasenotes zeggen "Speelde je al toen de
-    game nog GTE VI heette? Je saves blijven staan" (klopt, en helpt
-    spelers met de oude Mac-app);
-  - `game/ommeland.bin` begint nog met de bytes `GTEO` (het spel leest die
-    niet; `scripts/add_ommeland.py` schrijft voortaan `GDEO`, dus dat
-    verdwijnt bij de volgende kaartbouw);
-  - de naam van de lokale checkoutmap (`grand-theft-eierbal-vi`); de
-    GitHub-repo heet al `GDE-Groningen`.
+      env-variabelen `GDE_*`. Getest met
+      `scripts/storage_migration_test.mjs` en een Electron-check op een
+      wegwerpprofiel.
+- [x] Laatste ronde (15 okt): de oude naam en verwijzingen naar andere
+      games zijn uit docs, code-commentaar en `.gitignore`; story- en
+      storedocs zijn neutraal geformuleerd. Bewust gehouden:
+  - de **disclaimer** ("niet gelieerd aan"), één keer: `game/js/credits.js`
+    (spel) en `NOTICE.md`;
+  - de **migratiecode** en haar test (`storagekeys.js`, `userdata.js`,
+    `web/sw.js`, `desktop/main.js`, `desktop/build.mjs`,
+    `scripts/storage_migration_test.mjs`): die moeten de oude sleutels en
+    mapnaam kennen;
+  - **CHANGELOG.md**: de oude versies blijven zoals ze zijn uitgebracht;
+  - `desktop/release.sh`: de releasenotes vertellen spelers met de oude
+    app dat hun saves blijven staan;
+  - `game/ommeland.bin` begint nog met de oude magic bytes (het spel leest
+    die niet; `scripts/add_ommeland.py` schrijft voortaan `GDEO`);
+  - de naam van de lokale checkoutmap; de GitHub-repo heet al
+    `GDE-Groningen`.
 - [ ] Over één of twee releases: de oude sleutels opruimen met
       `removeLegacyKeys()` (TODO in `storagekeys.js`) en spelers laten
-      weten dat de map `GTE VI` weg mag (TODO in `userdata.js`).
+      weten dat de oude map weg mag (TODO in `userdata.js`).
 
 ## 3. Secrets
 
@@ -122,7 +110,8 @@ eigenaar nodig. De procedures (filter-repo, GitHub-instellingen) staan in
       Niet geopend.
 - [ ] Vlak vóór publicatie: `gitleaks detect --source . --log-opts="--all"`
       (gitleaks is nog niet geïnstalleerd).
-- [?] De OpenRouter-sleutel roteren (hij is lokaal en in sessies gebruikt).
+- [ ] **Eigenaar:** de OpenRouter-sleutel roteren (hij is lokaal en in
+      sessies gebruikt).
 
 ## 4. Persoonsgegevens
 
@@ -130,8 +119,8 @@ eigenaar nodig. De procedures (filter-repo, GitHub-instellingen) staan in
       niet meer in `docs/PUBLICEREN.md`, met de verouderde aantallen).
 - [x] **Historie herschreven** (15 okt, met akkoord): alle commits en
       tags staan op NatusPella met het noreply-adres; naam, werkadres, de
-      Esri-luchtfoto, de oude Sikkom-audio, het oude GTE VI-icoon, de
-      verwijzingen naar een echte persoon en GTA-termen in commitberichten
+      Esri-luchtfoto, de oude Sikkom-audio, het oude icoon, de
+      verwijzingen naar een echte persoon en de oude naam in commitberichten
       zijn uit de hele historie. Force-push van `main` en de tags gedaan;
       een lokale back-up (mirror) bestaat buiten de repo. Oude kloons
       niet meer gebruiken.
@@ -155,22 +144,10 @@ eigenaar nodig. De procedures (filter-repo, GitHub-instellingen) staan in
       (`game/js/story.js`); de ROADMAP-notitie over een echt persoon en de
       verwijzingen naar een TikTokker in de docs zijn weg of neutraal
       gemaakt.
-- [?] **In de historie** staat de koppeling met een echt persoon nog:
-      over een echte auto (`vehiclenames.js`, al eerder weggehaald, het
-      commitbericht bevestigt de koppeling), en ROADMAP/docs-passages.
-      Opties: zo laten, of meenemen in de filter-repo-run met
-      `--replace-text` en `--replace-message` (plan in de historie-audit).
-- [x] Echte merken in het spel zijn eerder vervangen (Kiekdoar, Radio
-      Proat, Bakkie Prut, verzonnen cafés; LICENTIES.md §6.2). Parodienamen
-      op winkelketens blijven (Albert Hijgt, DUMBO, EIKEA …), met eigen
-      kleuren.
-- [?] **Oude audio en iconen in de historie**: verwijderde voice-clips met
-      echte merknamen (Sikkom, Radio Grunn, echte cafés; o.a.
-      `game/audio/sikkom/`, ~9 MB) en het oude "GTE VI"-icoon in GTA
-      VI-stijl. Acceptabel als parodie en al opgeschoond, of strippen met
-      `--strip-blobs-with-ids`.
-- [?] Commitberichten met "GTE VI", "Grand Theft Eierbal" en "GTA-style"
-      (15 stuks, o.a. de eerste commit): zo laten of `--replace-message`.
+- [x] **De historie** is meegenomen in de herschrijving (15 okt): de
+      koppeling met een echt persoon, verwijderde voice-clips met echte
+      merknamen, het oude icoon en de oude naam in commitberichten zijn
+      eruit.
 - [ ] `docs/groningen-memes*.md` nog één keer nalezen op geciteerd
       materiaal van derden (lijstjes, uitspraken).
 
@@ -182,18 +159,14 @@ eigenaar nodig. De procedures (filter-repo, GitHub-instellingen) staan in
       paletkleuren opnieuw te bepalen) stopt nu met een duidelijke melding
       als het bestand lokaal ontbreekt. Niet nodig voor het spel of de
       builds.
-- [?] Dezelfde foto **uit de historie** halen (`--invert-paths --path
-      data/satellite_reference.jpg`). Zolang hij in de historie staat, mag
-      de repo niet publiek.
+- [x] Dezelfde foto is **uit de historie** gehaald (herschrijving van 15
+      okt).
 - [x] Geen bestanden boven de 50 MB-waarschuwing van GitHub. Grootste:
       `data/groningen_raw.json` 32,5 MB, `game/citymap.json` 11,2 MB (11
-      versies), de muziek 3-4 MB per nummer. Pack ~353 MB, waarvan ~169 MB
-      alleen in de historie (vooral oude voice-clips).
-- [?] Grootte zo laten, of oude audio uit de historie strippen (~150 MB
-      minder, maar oude commits spelen dan niet meer volledig af), en/of
-      `data/*_raw.json` niet meer committen (opnieuw te maken met de
-      scripts; de ODbL vraagt dat de manier om de data te maken
-      beschikbaar is).
+      versies), de muziek 3-4 MB per nummer.
+- [ ] Later eventueel: `data/*_raw.json` niet meer committen (opnieuw te
+      maken met de scripts; de ODbL vraagt dat de manier om de data te
+      maken beschikbaar is).
 - [x] Beelden in de repo (`docs/steam/beelden`, `docs/youtube/beelden`)
       zijn renders uit het spel; het Martinitoren-model is Claude
       Design-output (rechten bij de gebruiker). Geen andere afbeeldingen,
@@ -206,9 +179,10 @@ eigenaar nodig. De procedures (filter-repo, GitHub-instellingen) staan in
       het Nederlands), `SECURITY.md`, issue-sjablonen (bug, idee) en een
       PR-sjabloon in `.github/`. De ontwikkelaarsnotities die eerst in de
       README stonden, staan nu in `docs/ONTWIKKELEN.md`.
-- [ ] In de repo-instellingen **Private vulnerability reporting** aanzetten
-      (Settings › Code security); `SECURITY.md` en het issue-sjabloon
-      verwijzen ernaar.
+- [ ] **Eigenaar, zodra de repo publiek is:** **Private vulnerability
+      reporting** aanzetten (Settings › Code security; kan alleen op
+      publieke repo's). `SECURITY.md` en het issue-sjabloon verwijzen
+      ernaar.
 - [ ] Secret scanning, push protection en Dependabot aanzetten
       (PUBLICEREN.md §6).
 - [x] **Dependabot-meldingen** (15 okt) in `desktop/package-lock.json`:
@@ -234,7 +208,6 @@ eigenaar nodig. De procedures (filter-repo, GitHub-instellingen) staan in
 
 1. [x] Historie herschreven (15 okt).
 2. [x] Branches gemerged en daarna de filter-repo-run gedaan.
-3. [ ] gitleaks, OpenRouter-sleutel roteren (eigenaar), private
-   vulnerability reporting aanzetten zodra de repo publiek is (kan alleen
-   op publieke repo's).
+3. [ ] gitleaks draaien; OpenRouter-sleutel roteren (eigenaar).
 4. [?] Zichtbaarheid naar publiek: alleen met uitdrukkelijk akkoord.
+5. [ ] Direct daarna private vulnerability reporting aanzetten (eigenaar).
