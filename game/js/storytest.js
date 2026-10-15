@@ -212,6 +212,10 @@ export async function runStoryTest(world) {
           prevChar = world.player.character;
           await drain(world, 300);
         }
+        // the calendar: every step plays on its own day (calendar.js), Ontzet on vrijdag 28 augustus
+        const cal = window.__calendar && window.__calendar.get();
+        check(`${cur.id}: on its day`, cal && cal.day >= window.__calendar.stepDay(cur.id) && cal.day <= cal.bounds.max, cal && `${cal.info.long} (dag ${cal.day})`);
+        if (cur.id === 'H18') check('H18 on Gronings Ontzet', cal && cal.info.long === 'Vrijdag 28 augustus' && cal.specials[0] === 'ontzet', cal && cal.specials.join());
         if (cur.kind === 'activity') {
           const courts0 = window.__storyFun ? window.__storyFun.state().played.court : 0;
           S().teleport();
@@ -442,6 +446,8 @@ export async function runStoryTest(world) {
       check('"Wordt vervolgd" card shown', S().cardShown(lastPart));
       check('all available steps passed', report.steps.length === STEPS.filter(stepAvailable).length, `${report.steps.length} stappen`);
       check('Tammo and Tessa take turns', swaps >= 4, `${swaps} wissels`);
+      const calEnd = window.__calendar && window.__calendar.get();
+      check('after the story the calendar is in September', calEnd && (!PARTS[lastPart].finale || calEnd.day >= 19), calEnd && calEnd.info.long);
       check('no cutscene camera off the map', !cinematicPoseIssues().length, JSON.stringify(cinematicPoseIssues().slice(0, 4)));
       check('Rotor Roelf took his demo heli back', !window.__storyFun || !window.__storyFun.state().demo, JSON.stringify(window.__storyFun && window.__storyFun.state()));
 

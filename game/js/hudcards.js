@@ -28,6 +28,7 @@ import { unseenAchievementCount } from './achievements.js';
 import { mayStart, noteToast, heldBack } from './narrative.js';
 import { missionIconInner } from './missionicons.js';
 import { isPauseMenuOpen } from './pausemenu.js';
+import { CAL_ICONS } from './calendar.js';
 
 // the HUD's attention budget: one prominent card at a time
 const MAX_VISIBLE = 1;
@@ -102,7 +103,7 @@ const voicedAt = new Map();
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 // 'm-<i>': the icon of story mission i (missionicons.js)
-const svg = (kind) => `<svg viewBox="0 0 24 24" aria-hidden="true">${(/^m-\d+$/.test(kind) && missionIconInner(+kind.slice(2))) || ICON[kind] || ICON.tip}</svg>`;
+const svg = (kind) => `<svg viewBox="0 0 24 24" aria-hidden="true">${(/^m-\d+$/.test(kind) && missionIconInner(+kind.slice(2))) || (/^cal-/.test(kind) && CAL_ICONS[kind.slice(4)]) || ICON[kind] || ICON.tip}</svg>`;
 
 export function initCards(w, root) {
   world = w;
