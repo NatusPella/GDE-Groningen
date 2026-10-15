@@ -257,6 +257,17 @@ Regel: de speltekst noemt dan één getal met bron en jaar ("Volgens het CBS ...
 
 Dubbel met bestaand backlog (samengevoegd): 7, 8, 11, 20, 28, 32, 33, 55 (0.31); 14, 52 (F3, veerboten); 35 (F4c-finale); 25, 36 (herkenningspunten Deel 4); 23 (Wolkenhal, `PROVINCIE-VERHAAL.md` §8); 41, 56, 75 (spelkalender); 12, 17, 22 (bestaande bijbanen).
 
+## Tweede ronde speeltest (15 okt, later die dag)
+
+| # | Punt | Soort | P | Doel | Maat | Opmerking |
+|---|---|---|---|---|---|---|
+| 80 | Werkende knipperlichten, voor NPC's en voor jezelf | Open-wereldleven / voertuigen | P1 | 0.30.1 (jezelf) en 0.31 (AI bij afslagen en kruispunten) | M | Speler: Q/E of pijltjes voor links/rechts en alarmlichten, zelfuitzettend na een bocht; modellen krijgen oranje knipperlampen. AI: knipperen bij afslaan, in lijn met het kruispuntmodel van F1. |
+| 81 | Cutscenes voor nieuwe wijken zijn soms vervelend: liever alleen zeggen, en wel de highlights van de wijk laten zien | Meta/UI | P1 | 0.30.1 | S | Standaard geen filmpje meer maar een kort naamkaartje met stem; de highlights van de wijk (landmarks, winkels, bijbaantjes) als lijst in het wijkkaartje. Het filmpje blijft optioneel in Instellingen (Filmische momenten) en bij de grote landmarks. Vgl. #8 in Meta/UI. |
+| 82 | Als je erg gewond bent: visuele feedback | Meta/UI | P1 | 0.30.1 | S | Rode vignet, zwart-wit trekken, hartslag-pulsen en trager lopen onder ~25% gezondheid; een geluid (hartslag) en stopt na het genezen. Past bij het HUD-ontwerp (rode rand, geen extra tekst). |
+| 83 | Een snackautomaat uit de muur (zoals bij de FEBO/de Hoek) | Open-wereldleven / winkel | P2 | 0.31 | S | Verzonnen merknaam ("Muurkroket"), vakjes met eierballen, kroketten en frikandellen; geld erin, snack eruit, geeft gezondheid; staat bij snackbars en op het station. Hoort bij het eierbal-thema. Geen echte merknaam. |
+
+Besluit: alle vier worden doorgegeven; #81 en #82 zijn kleine fixes en horen in 0.30.1 voor zover we komen.
+
 ## Besluiten van de eigenaar (15 okt 2026)
 
 - **Bernard:** een verzonnen lookalike, geen echte persoon.
