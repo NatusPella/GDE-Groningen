@@ -3,6 +3,7 @@
 import * as R from '../game/js/hudrules.js';
 import { nextTurn, turnText } from '../game/js/hudgps.js';
 import * as A from '../game/js/roadaccess.js';
+import * as U from '../game/js/uiscale.js';
 
 let fails = 0, n = 0;
 const ok = (c, name) => { n++; if (!c) { fails++; console.log('FAIL', name); } };
@@ -94,6 +95,18 @@ ok(A.roadAllowed({ type: 'trunk' }, 'boot') === null, 'no road rules for a boat'
 ok(A.minimapScale('lucht', 0) < A.minimapScale('lopen', 0), 'zoomed out in the air');
 ok(A.minimapScale('auto', 28) < A.minimapScale('auto', 0), 'car zoom scales with speed');
 ok(A.northUp('lucht', 'lucht') && !A.northUp('lucht', 'auto') && A.northUp('altijd', 'lopen') && !A.northUp('nooit', 'lucht'), 'north-up setting');
+
+// the minimap's backing store stays square, also from a fresh 300x150 canvas
+// at every HUD pixel ratio (dpr x --ui; 250 HUD px at 1.2x is exactly 300)
+for (const ratio of [0.8, 1, 1.2, 1.25, 1.5, 2, 2.4, 3, 4.8]) {
+  const c = { width: 300, height: 150 }, px = Math.round(250 * ratio);
+  U.sizeSquareCanvas(c, px);
+  ok(c.width === px && c.height === px, `minimap canvas square at ratio ${ratio}`);
+}
+{
+  const c = { width: 300, height: 300 };
+  ok(!U.sizeSquareCanvas(c, 300) && U.sizeSquareCanvas(c, 600) && c.height === 600, 'minimap canvas resized only when needed');
+}
 
 console.log(`${n} checks, ${fails} failed`);
 process.exit(fails ? 1 : 0);
