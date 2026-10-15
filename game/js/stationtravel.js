@@ -2,7 +2,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { getScene } from './scene3d.js';
 import { getTrains, routePoint, placeTrain, railZ, returnStolenTrains } from './railway.js';
 import { isMissionActive, getActiveRace } from './missions.js';
-import { isCinematicActive, playCinematic } from './cinematics.js';
+import { isCinematicActive, playCinematic, skipCinematic } from './cinematics.js';
 import { isShopOpen, openShopMenu, closeShopMenu } from './shopui.js';
 import { recordStat } from './achievements.js';
 import { saveGame } from './savegame.js';
@@ -293,7 +293,7 @@ function placeStation(map, def, scene) {
 
 export function initStationTravel(w) {
   world = w;
-  const scene = getScene();
+  const scene = getScene() || { add() {} };
   const defs = (w.map.stations || []).concat((w.map.countryStations || []).map((d) => ({ ...d, country: true })));
   stations = defs.map((d) => placeStation(w.map, d, scene)).filter(Boolean);
   if (!fadeEl) {
@@ -419,7 +419,7 @@ function menuFor(w, here) {
         return [{ title: 'Vertrekken', note: 'Onderduiken: kies een dorp in het Ommeland, daar zoekt niemand jullie', items: trips }];
       }
       // only stations inside the map: the off-map ends of the lines aren't offered
-      return [{ title: 'Vertrekken', note: board, items: trips }];
+      return [{ title: 'Vertrekken', note: board, items: trips }, { title: 'Meerijden', note: 'De hele rit in de trein, halte voor halte. Houd Spatie ingedrukt om naar je halte te springen.', items: rideItems(w, here) }];
     },
   };
 }
@@ -480,9 +480,8 @@ function startTrip(w, from, to, legs, info, board) {
   w.money -= info.price;
   const first = legs[0], last = legs[legs.length - 1];
   const dirA = Math.sign(first.to.s - first.from.s) || 1;
-  const dirC = Math.sign(last.to.s - last.from.s) || 1;
   const A = sideOf(first.route, first.from.s, from.x, from.y);
-  const C = sideOf(last.route, last.to.s, to.x, to.y);
+  const arrive3 = arrivalShot(w, last, to);
   // the ride shot stays near the origin, where the city is already streamed in
   const midLeg = first;
   const midDir = dirA;
@@ -492,8 +491,8 @@ function startTrip(w, from, to, legs, info, board) {
   trip = { saved: trains.map(saveTrain), from, to, legs, info, phase: '' };
   // after the kraak (H6) they travel in black: on the train toilet they change back
   const change = !!storyOutfit();
-  const tA = first.train, tB = midLeg.train, tC = last.train;
-  const halfA = tA.halfLen, halfC = tC.halfLen;
+  const tA = first.train, tB = midLeg.train;
+  const halfA = tA.halfLen;
   const lines = [
     { at: 0.4, dur: 2.0, speaker: '', text: `${lineLabel(first)} vertrekt van ${spoor(from, first)}` },
     { at: SHOT_A + 0.3, dur: 2.1, speaker: '', text: change ? CHANGE_LINE : legs.length > 1 ? `Overstappen op ${HUB}` : board },
@@ -535,16 +534,7 @@ function startTrip(w, from, to, legs, info, board) {
       return { position: W3(px, py, 11 + z), lookAt: W3(S.px + S.tx * midDir * 10, S.py + S.ty * midDir * 10, 2.5 + z), fov: 50, cut: true };
     }
     // rolling into the destination platform, the head stopping short of the camera
-    const tt = t - SHOT_A - SHOT_B;
-    const stopAt = SHOT_C - 0.5;
-    const rem = Math.max(0, stopAt - tt);
-    const decel = 7;
-    const cC = last.to.s - dirC * 0.5 * decel * rem * rem;
-    poseTrain(tC, cC, dirC);
-    setFocus(w, C.px + C.nx * 5, C.py + C.ny * 5);
-    const K = sideOf(last.route, last.to.s + dirC * (halfC + 30), to.x, to.y);
-    const [hx, hy] = routePoint(last.route, cC + dirC * (halfC - 10));
-    return { position: W3(K.px + K.nx * 4.6, K.py + K.ny * 4.6, 2.3 + railZ(K.px, K.py)), lookAt: W3(hx, hy, 2.2 + railZ(hx, hy)), fov: 50, cut: true };
+    return arrive3(t - SHOT_A - SHOT_B);
   };
 
   const ok = playCinematic({
@@ -561,9 +551,203 @@ function startTrip(w, from, to, legs, info, board) {
   if (!ok) { if (change) setStoryOutfit(null); arrive(w); }
 }
 
+// The last shot of a trip (SHOT_C s): the train rolls into the destination
+// platform, its head stopping short of the camera.
+function arrivalShot(w, last, to) {
+  const dirC = Math.sign(last.to.s - last.from.s) || 1;
+  const C = sideOf(last.route, last.to.s, to.x, to.y);
+  const tC = last.train, halfC = tC.halfLen;
+  return (tt) => {
+    const stopAt = SHOT_C - 0.5;
+    const rem = Math.max(0, stopAt - tt);
+    const decel = 7;
+    const cC = last.to.s - dirC * 0.5 * decel * rem * rem;
+    poseTrain(tC, cC, dirC);
+    setFocus(w, C.px + C.nx * 5, C.py + C.ny * 5);
+    const K = sideOf(last.route, last.to.s + dirC * (halfC + 30), to.x, to.y);
+    const [hx, hy] = routePoint(last.route, cC + dirC * (halfC - 10));
+    return { position: W3(K.px + K.nx * 4.6, K.py + K.ny * 4.6, 2.3 + railZ(K.px, K.py)), lookAt: W3(hx, hy, 2.2 + railZ(hx, hy)), fov: 50, cut: true };
+  };
+}
+
+// --- meerijden: the whole ride, halte voor halte -------------------------------
+// The train runs on railway.js's own physics (it stops at every halte on the
+// way); the player sits in it, hidden, while the camera switches between the
+// window, the side and a high shot. Hold Space to skip: a short arrival
+// scene, then you step off at your halte.
+const RIDE_VIEW_S = 24;
+const RIDE_AVG_MS = 17; // average speed with the stops (a stoptrein tops out at 22 m/s), for the estimate
+let ride = null;
+let rideEl = null;
+
+export function rideMinutes(leg) {
+  const stops = Math.max(0, Math.abs(leg.to.idx - leg.from.idx) - 1);
+  return Math.max(1, Math.round(leg.len / RIDE_AVG_MS / 60 + stops * 0.5));
+}
+
+function rideItems(w, here) {
+  const out = [];
+  for (const dest of stations) {
+    if (dest === here) continue;
+    const leg = directLeg(here, dest);
+    if (!leg) continue;
+    const info = tripInfo([leg]);
+    const min = rideMinutes(leg);
+    out.push({
+      id: 'rit-' + dest.short, label: dest.name,
+      desc: `${lineLabel(leg)} · ${spoor(here, leg)} · de hele rit, ongeveer ${min} min`,
+      cols: [`${min} min`], verb: 'Meerijden ·',
+      route: { from: here.short, to: dest.short, minutes: min, text: `${lineLabel(leg)}, ${spoor(here, leg)}. Houd Spatie ingedrukt om naar ${dest.short} te springen.`, teaser: '', board: '' },
+      price: info.price, swatch: [leg.train.type === 'virm' ? '#ffc917' : '#00a3ad'],
+      disabled: w.money < info.price ? 'Te weinig geld' : null,
+      buy() {
+        if (w.money < info.price) return null;
+        closeShopMenu();
+        startRide(w, here, dest, leg, info);
+        return 'Instappen, een plekje bij het raam';
+      },
+    });
+  }
+  return out;
+}
+
+function rideBoard(text) {
+  if (!rideEl && !text) return;
+  if (!rideEl) {
+    rideEl = document.createElement('div');
+    rideEl.id = 'train-ride-board';
+    rideEl.style.cssText = 'position:fixed;left:50%;bottom:13%;transform:translateX(-50%);z-index:15;pointer-events:none;'
+      + 'padding:7px 16px;background:rgba(12,20,14,0.78);border-left:3px solid ' + BADGE_COLOR + ';color:' + CREAM + ';'
+      + "font:18px 'Bebas Neue','Arial Narrow',Arial,sans-serif;letter-spacing:1.5px;text-align:center;white-space:nowrap;";
+    document.body.appendChild(rideEl);
+  }
+  rideEl.style.display = text ? '' : 'none';
+  if (rideEl.textContent !== text) rideEl.textContent = text || '';
+}
+
+function startRide(w, here, dest, leg, info) {
+  w.money -= info.price;
+  returnStolenTrains();
+  const t = leg.train;
+  const dir = Math.sign(leg.to.s - leg.from.s) || 1;
+  const saved = saveTrain(t);
+  // the train waits at the origin a moment, then railway.js runs it halte by halte
+  Object.assign(t, { c: leg.from.s, v: 0, dir, state: 'dwell', target: leg.from.idx, timer: 4 });
+  placeTrain(t);
+  trip = { saved: [saved], from: here, to: dest, legs: [leg], info, ride: true };
+  const minutes = rideMinutes(leg);
+  ride = { t, leg, dir, toIdx: leg.to.idx, dest, start: w.time, view: -1, cam: null, arrived: false, minutes, lastStop: -1 };
+  // routing and the traffic law see a passenger (roadaccess.js 'ov')
+  w.trainCam = { angle: 0, speed: 0, z: 0, model: { len: 9, wid: 3 } };
+  w.challengeHoldPlayer = true;
+  const ok = playCinematic({
+    id: 'train-ride', priority: 2, duration: minutes * 60 * 3 + 240, pause: false, letterbox: true, skippable: true, hideHud: true,
+    kicker: 'Meerijden', title: `${lineLabel(leg)} · naar ${dest.short}`, cardFor: 3.5,
+    shot: (u, tt) => rideShot(w, tt),
+    onStart() {
+      w.cinematicHidePlayers = true;
+      const q = w.audioEvents || (w.audioEvents = []);
+      q.push({ kind: 'train_horn', x: t.cars[0].x, y: t.cars[0].y });
+    },
+    onEnd() { endRide(w, !(ride && ride.arrived)); },
+  });
+  if (!ok) endRide(w, true);
+}
+
+function rideShot(w, tt) {
+  const r = ride;
+  if (!r) return null;
+  const t = r.t;
+  const stops = t.route.stops;
+  if (!r.arrived && t.state === 'dwell' && t.target === r.toIdx) {
+    r.arrived = true;
+    // end the ride after this frame's cutscene update, not inside it
+    queueMicrotask(() => { if (ride === r && isCinematicActive('train-ride')) skipCinematic(); });
+  }
+  // the board: the next halte, and a line when the train stands at one
+  const atStop = t.state === 'dwell' && t.target !== r.leg.from.idx;
+  if (atStop && t.target !== r.lastStop && t.target !== r.toIdx) {
+    r.lastStop = t.target;
+    w.addMessage(`Halte ${shortName(stops[t.target].name)}`, 2.5);
+  }
+  const next = stops[Math.max(0, Math.min(stops.length - 1, atStop ? t.target + r.dir : t.target))];
+  const left = Math.max(1, Math.round(r.minutes - (w.time - r.start) / 60));
+  rideBoard(`Volgende halte: ${shortName(next.name)}  ·  ${r.dest.short} over ${left} min  ·  Spatie ingedrukt houden: uitstappen bij ${r.dest.short}`);
+  // the camera: a car in the middle of the train, cycling three views
+  const car = t.cars[Math.floor(t.cars.length / 2)] || t.cars[0];
+  const fx = Math.cos(car.angle) * t.dir, fy = Math.sin(car.angle) * t.dir;
+  const nx = -fy, ny = fx;
+  const z0 = car.z || 0;
+  const view = Math.floor(tt / RIDE_VIEW_S) % 3;
+  let pos, at;
+  if (view === 0) { // by the window, looking out and a little ahead
+    pos = { x: car.x + nx * 1.9 - fx * 2, y: car.y + ny * 1.9 - fy * 2, z: z0 + 2.5 };
+    at = { x: car.x + nx * 40 + fx * 22, y: car.y + ny * 40 + fy * 22, z: z0 + 1.6 };
+  } else if (view === 1) { // alongside, the whole train in the polder
+    pos = { x: car.x + nx * 18 - fx * 16, y: car.y + ny * 18 - fy * 16, z: z0 + 6 };
+    at = { x: car.x + fx * 10, y: car.y + fy * 10, z: z0 + 2 };
+  } else { // high behind
+    pos = { x: car.x - fx * 45 - nx * 22, y: car.y - fy * 45 - ny * 22, z: z0 + 32 };
+    at = { x: car.x + fx * 35, y: car.y + fy * 35, z: z0 };
+  }
+  const cut = view !== r.view;
+  if (cut || !r.cam) r.cam = { pos: { ...pos }, at: { ...at } };
+  else for (const k of ['x', 'y', 'z']) { r.cam.pos[k] += (pos[k] - r.cam.pos[k]) * 0.25; r.cam.at[k] += (at[k] - r.cam.at[k]) * 0.25; }
+  r.view = view;
+  // the hidden player (and companion) ride along, clear of the track, so
+  // the world streams round the train; the tiles follow it too
+  setFocus(w, car.x + nx * 9, car.y + ny * 9);
+  w.trainCam.angle = car.angle;
+  w.trainCam.speed = t.v;
+  if (w.map.follow) w.map.follow(car.x, car.y, { vx: fx * t.v, vy: fy * t.v }, 1.5);
+  return { position: { ...r.cam.pos }, lookAt: { ...r.cam.at }, fov: view === 0 ? 62 : 52, cut };
+}
+
+function endRide(w, skipped) {
+  const r = ride;
+  ride = null;
+  rideBoard('');
+  w.challengeHoldPlayer = false;
+  w.trainCam = null;
+  if (!r || !trip) return;
+  const rode = (w.time - r.start) / 60;
+  trip.info = { ...trip.info, minutes: Math.max(1, Math.round(skipped ? Math.max(rode, r.minutes) : rode)), clockMinutes: skipped ? Math.max(0, r.minutes - rode) : 0 };
+  // the arrival scene: skipped, the train rolls in (the rest of the time
+  // passes); ridden to the end, it stands at the platform a moment
+  const shot = arrivalShot(w, r.leg, r.dest);
+  const dur = skipped ? SHOT_C : 2.4;
+  const ok = playCinematic({
+    id: 'train-arrive', priority: 3, duration: dur, pause: true, letterbox: true, skippable: true,
+    kicker: 'Met de trein', title: `Aankomst ${r.dest.name}`, cardFor: 2,
+    lines: [{ at: 0.3, dur: Math.min(2.2, dur - 0.4), speaker: '', text: `Welkom in ${r.dest.name}` }],
+    shot: (u, tt) => {
+      if (fadeEl) fadeEl.style.opacity = String(Math.max(0, skipped ? 1 - tt / FADE : 0, (tt - (dur - FADE)) / FADE));
+      return shot(skipped ? tt : SHOT_C);
+    },
+    onStart() { w.cinematicHidePlayers = true; },
+    onEnd() { arrive(w); },
+  });
+  if (!ok) arrive(w);
+}
+
+// The player is riding along in a train (meerijden).
+export function isTrainRideActive() {
+  return !!ride;
+}
+
+// A ride between two stations by name, as the menu starts it (dev panel,
+// scripts/train_ride_test.mjs); false when there is no direct line.
+export function startRideBetween(w, fromName, toName) {
+  const here = stations.find((s) => s.name === fromName), dest = stations.find((s) => s.name === toName);
+  const leg = here && dest && directLeg(here, dest);
+  if (!leg || trip) return false;
+  startRide(w, here, dest, leg, tripInfo([leg]));
+  return true;
+}
+
 function arrive(w) {
   if (!trip) return;
-  const { to, legs, info, saved } = trip;
+  const { to, legs, info, saved, ride: rode } = trip;
   const last = legs[legs.length - 1];
   for (const s of saved) if (s.t !== last.train) restoreTrain(s);
   // the train you came with waits at the platform for a bit, then goes on
@@ -598,7 +782,9 @@ function arrive(w) {
   w.cameraOverride = null;
   // no new-wijk flyover straight after the train cutscene
   w.quietUntil = Math.max(w.quietUntil || 0, w.time + 60);
-  if (typeof w.clock === 'number') w.clock = (w.clock + info.minutes / 60) % 24;
+  // a ride ran on the game clock; a skipped one adds what was left
+  const clockMin = rode ? info.clockMinutes || 0 : info.minutes;
+  if (typeof w.clock === 'number') w.clock = (w.clock + clockMin / 60) % 24;
   if (w.input) w.input.reset();
 
   try {
