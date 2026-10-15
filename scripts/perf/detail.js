@@ -28,7 +28,8 @@ const CP = await imp('cityprops');
 const RM = await imp('realmap').catch(() => null);
 const ONLY = (window.__detailOnly || '').split(',').filter(Boolean);
 const SETTLE = window.__detailSettle || 10000, DUR = window.__detailDur || 6000, R = 150;
-const skipper = setInterval(() => { if (cine.isCinematicActive()) cine.skipCinematic(); }, 100);
+let ownShot = false;
+const skipper = setInterval(() => { if (!ownShot && cine.isCinematicActive()) cine.skipCinematic(); }, 100);
 w.devInvuln = true;
 const gpu = H.enableGpu(r.getContext());
 D.input.canLock = () => false;
@@ -92,8 +93,31 @@ function villageSpot(name) {
 const AREAS = [
   { name: 'grotemarkt', x: 70, y: 60, a: 0.15 },
   { name: 'bergstraat', x: -780, y: -583, road: 'Bergstraat' },
-  ...['Ten Boer', 'Zuidhorn', 'Haren', 'Winsum', 'Bedum'].map((n) => ({ name: n.toLowerCase().replace(' ', ''), village: n })),
+  ...[['Ten Boer', 'Kloosterkerk'], ['Zuidhorn', 'Sebastiaan/Fabius'], ['Haren', 'Nicolaaskerk'], ['Winsum', 'Torenkerk'], ['Bedum', 'Walfriduskerk']]
+    .map(([n, church]) => ({ name: n.toLowerCase().replace(' ', ''), village: n, church })),
 ];
+// extra landmark views (screenshots only)
+const VIEWS = [['tenboer', 'Kloosterkerk', 'Ten Boer'], ['zuidhorn', 'Sebastiaan/Fabius', 'Zuidhorn'], ['haren', 'Nicolaaskerk', 'Haren'], ['winsum', 'Torenkerk', 'Winsum'],
+  ['bedum', 'Walfriduskerk', 'Bedum'], ['garmerwolde', 'Kerk van Garmerwolde', 'Garmerwolde']];
+
+// 75 m from the church, on open ground, looking at it
+function churchView(church, place) {
+  const pl = CR.REAL.places.find((q) => q.n === place);
+  const c = CR.REAL.churches.filter((q) => q.n === church).sort((a, b) => Math.hypot(a.x - pl.x, a.y - pl.y) - Math.hypot(b.x - pl.x, b.y - pl.y))[0];
+  if (!c) return null;
+  // the clearest line of sight: fewest building boxes on the way in
+  let best = null;
+  for (let k = 0; k < 24; k++) {
+    const a = 2.4 + (k % 12) * 0.5236, d = k < 12 ? 80 : 60;
+    const x = c.x + Math.cos(a) * d, y = c.y + Math.sin(a) * d;
+    if (CR.buildingAt(x, y, 3) >= 0) continue;
+    let hits = 0;
+    for (let t = 4; t < d - 18; t += 3) if (CR.buildingAt(x + (c.x - x) * t / d, y + (c.y - y) * t / d, 0.5) >= 0) hits++;
+    if (!best || hits < best.hits) best = { hits, x, y, a: Math.atan2(c.y - y, c.x - x), cx: c.x, cy: c.y };
+  }
+  if (best) return best;
+  return null;
+}
 
 function cityRoadSpot(A) {
   let best = null;
@@ -163,7 +187,7 @@ function census(x, y) {
 
 const results = { gpu, dpr: devicePixelRatio, css: [innerWidth, innerHeight], settings: JSON.parse(localStorage.getItem('gde-settings') || '{}'), areas: {} };
 for (const A of AREAS) {
-  if (ONLY.length && !ONLY.includes(A.name)) continue;
+  if ((ONLY.length && !ONLY.includes(A.name)) || ONLY.includes('views')) continue;
   const s = A.village ? villageSpot(A.village) : A.road ? cityRoadSpot(A) : A;
   if (!s) { results.areas[A.name] = { error: 'no spot' }; continue; }
   clock = 14;
@@ -196,6 +220,32 @@ for (const A of AREAS) {
   results.areas[A.name] = out;
   console.log('[detail-area]', A.name, JSON.stringify(out));
 }
+for (const [name, church, place] of VIEWS) {
+  if (ONLY.length && !ONLY.includes(name) && !ONLY.includes('views')) continue;
+  const v = churchView(church, place);
+  if (!v) continue;
+  clock = 14;
+  fixWorld();
+  teleport(v.x, v.y);
+  // a fixed shot: the eye 7 m up, on the church's middle at 11 m
+  hold = v;
+  const pose = { position: { x: v.x, y: v.y, z: 7 }, lookAt: { x: v.cx, y: v.cy, z: 11 }, cut: true };
+  if (cine.isCinematicActive()) cine.skipCinematic();
+  ownShot = true;
+  cine.playCinematic({ id: 'detail-view', duration: 60, priority: 9, shot: () => pose });
+  await sleep(SETTLE * 0.8);
+  console.log('[capture] ' + name + '-kerk');
+  await sleep(500);
+  clock = 22.5;
+  fixWorld();
+  await sleep(2500);
+  console.log('[capture] ' + name + '-kerk-nacht');
+  await sleep(500);
+  hold = null;
+  ownShot = false;
+  cine.skipCinematic();
+}
+results.landmarks = window.__landmarkKits && window.__landmarkKits.layer ? window.__landmarkKits.layer.stats() : null;
 hold = null;
 done = true;
 clearInterval(skipper);
