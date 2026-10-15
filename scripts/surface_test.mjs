@@ -130,5 +130,23 @@ ok(near(map.spawnState(0, 2).z, 0) && map.spawnState(0, 2).ribbon === null, 'spa
   }
 }
 
+// the dev profile overlay (F8) draws for a car on a deck and a walker in the street
+{
+  if (!document.body) document.body = document.createElement('div');
+  const O = await import('../game/js/profileoverlay.js');
+  const car = { x: 0, y: 2, z: 6, surf: { z: 6, ribbon: main, kind: 'road' } };
+  const w = { map, player: { x: 0, y: 2, gz: 0, inVehicle: car } };
+  let err = '';
+  try {
+    O.initProfileOverlay(w);
+    window.__profileOverlay.toggle();
+    O.draw();
+    w.player.inVehicle = null; w.player.surf = { z: 0, ribbon: null, kind: 'ground' };
+    O.draw();
+    window.__profileOverlay.toggle();
+  } catch (e) { err = e.stack.split('\n').slice(0, 2).join(' '); }
+  ok(!err, 'the profile overlay draws', err);
+}
+
 console.log(`${n - fails}/${n} surface checks passed`);
 process.exit(fails ? 1 : 0);

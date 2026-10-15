@@ -528,6 +528,11 @@ export class GameMap {
     if (ribbon) {
       const zr = ribbonZAt(this.elev, ribbon, x, y);
       if (zr !== null && Math.abs(zr - z) <= 1.1) return zr;
+      // past its end: the way that carries on (as surfaceAt), not a
+      // carriageway alongside
+      const st = this._probe || (this._probe = { z: 0, ribbon: null, kind: 'ground' });
+      st.z = z; st.ribbon = ribbon;
+      return this.surfaceAt(x, y, st).z;
     }
     return this.groundHeightAt(x, y, z);
   }

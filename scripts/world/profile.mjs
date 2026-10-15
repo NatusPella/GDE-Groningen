@@ -218,7 +218,7 @@ const knotAt = (x, y) => KNOWN_KNOTS.find(([kx, ky, r]) => Math.hypot(x - kx, y 
 // opts.paths: foot and cycle ways that cross a raised or sunken road get a
 // profile too (a cycle bridge over a trunk road, a path through a tunnel).
 // Returns { roads: Map(road -> z[]), pts: Map(road -> densified pts), stats }.
-export function solve(data, { terrain = flatTerrain, iters = 600, pullPrior = 0.05, paths = false, protect = new Set(), couple = true, clear = true } = {}) {
+export function solve(data, { terrain = flatTerrain, iters = 600, pullPrior = 0.05, paths = false, protect = new Set(), couple = true, coupleAll = false, clear = true } = {}) {
   const roads = data.roads;
   const rails = railItems(data);
   const water = data.water || [];
@@ -340,7 +340,7 @@ export function solve(data, { terrain = flatTerrain, iters = 600, pullPrior = 0.
   }
   // slip roads that follow their carriageway (on the solver's view)
   const couples = overlaps(view.filter((v) => active.has(back.get(v))).map((v) => (v.z ? v : { ...v, z: [] })), { carriageway: true })
-    .filter((o) => /_link$/.test(o.f.type) && !/_link$/.test(o.lead.type) && o.f.z && o.f.z.length && o.lead.z && Math.abs(o.f.z[o.j] - zAlong(o.lead, o.i, o.t)) < 1.0);
+    .filter((o) => (coupleAll || (/_link$/.test(o.f.type) && !/_link$/.test(o.lead.type))) && o.f.z && o.f.z.length && o.lead.z && Math.abs(o.f.z[o.j] - zAlong(o.lead, o.i, o.t)) < 1.0);
   const nodeOf = (v, i) => net.of.get(findView(v))[i];
   function findView(v) { return net.of.has(v) ? v : view.find((q) => q.pts === v.pts); }
   const cpl = !couple ? [] : couples.map((o) => [nodeOf(o.f, o.j), nodeOf(o.lead, o.i), nodeOf(o.lead, o.i + 1), o.t]);
