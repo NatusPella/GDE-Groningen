@@ -175,6 +175,21 @@ function minigameItems(world) {
     medal: dz.medal, record: dz.best != null ? `Record ${dz.best} punten` : 'Nog niet gedrift',
     detail: { kicker: 'Minigame · rotondes in de stad', text: 'Rijd een driftzone in, trek aan de handrem in de bocht en blijf glijden met gas erop. Combo\'s en wisselbochten tellen mee; een klap kost je de punten.', rows: [['Zones', drift.map((d) => d.name).join(', ')]],
       medals: DRIFT_MEDAL_AT.map((p, i) => [i + 1, `${p.toLocaleString('nl-NL')} punten`]) } }, drift);
+  const mg = (layer, key, playId, title, meta, recId, fmt, kicker, text, medals) => {
+    const list = acts.filter((a) => a.layer === layer);
+    const r = getChallengeRecord(recId);
+    add({ key, playId, icon: 'act-' + layer, title, meta, medal: r ? r.medal : 0, record: r && r.best != null ? fmt(r.best) : 'Nog niet gespeeld',
+      detail: { kicker, text, rows: [], ...(medals ? { medals } : {}) } }, list);
+  };
+  const rel = (v) => (v === 0 ? 'E' : v > 0 ? `+${v}` : String(v));
+  mg('discgolf', 'mg:discgolf', 'discgolf', 'Discgolf', 'Stadspark · negen holes · gratis', 'discgolf', (v) => `Record ${rel(v)} t.o.v. par`, 'Minigame · Stadspark',
+    'Negen manden in het Stadspark. Richt, kies hyzer of anhyzer, houd Spatie voor kracht en let op de wind. Water kost een worp.', [[1, '6 boven par'], [2, '1 boven par'], [3, '2 onder par']]);
+  mg('pitchputt', 'mg:pitchputt', 'pitchputt', 'Pitch & putt', 'Concourslaan · zes holes · gratis', 'pitchputt', (v) => `Record ${rel(v)} t.o.v. par`, 'Minigame · Concourslaan',
+    'Zes korte holes: pitchen naar de green en putten. Lees de pijltjes op de green, de bal loopt naar beneden.', [[1, '7 boven par'], [2, '3 boven par'], [3, 'op par of beter']]);
+  mg('skatepark', 'mg:skatepark', 'skatepark', 'Skatepark', 'Stadspark · 90 seconden · gratis', 'skatepark', (v) => `Record ${Math.round(v).toLocaleString('nl-NL')} punten`, 'Minigame · Stadspark',
+    'Ramps, een box en rails. Ollie, kickflip, heelflip, spins en grinds; elke nieuwe trick in de keten telt zwaarder, een val kost je de keten.', [[1, '1.200 punten'], [2, '3.200 punten'], [3, '6.500 punten']]);
+  mg('kartbaan', 'mg:kartbaan', 'kartbaan', 'Karten bij Kardinge', 'Kardinge · drie ronden · gratis', 'kart-race', (v) => `Record ${formatMissionTime(v)}`, 'Minigame · Kardinge',
+    'Drie ronden tegen drie rijders. Gas, rem en handrem: een lange drift geeft een boost. Eerste is goud, tweede zilver, derde brons.', [[1, 'derde'], [2, 'tweede'], [3, 'eerste']]);
   const heli = getHeliSpotsForRender();
   const best = getStat('heliBest');
   const hr = getChallengeRecord('ballonjacht');
