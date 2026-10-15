@@ -15,8 +15,8 @@ const CAR = {
   taxi: { name: 'taxi', len: 4.6, wid: 1.8, maxSpeed: 33, accel: 9, brake: 24, turnRate: 2.6 },
   delivery: { name: 'van', livery: 'pakket', len: 5.0, wid: 2.0, maxSpeed: 26, accel: 6.5, brake: 19, turnRate: 2.0 },
   cashvan: { name: 'cashvan', len: 5.2, wid: 2.0, maxSpeed: 28, accel: 6.8, brake: 19, turnRate: 2.0 },
-  truck: { name: 'truck', len: 7.2, wid: 2.35, maxSpeed: 22, accel: 4.5, brake: 14, turnRate: 1.5 },
-  ambulance: { name: 'ambulance', len: 5.6, wid: 2.0, maxSpeed: 30, accel: 8, brake: 18, turnRate: 2.6 },
+  truck: { name: 'truck', len: 8.5, wid: 2.5, maxSpeed: 22, accel: 4.5, brake: 14, turnRate: 1.5 },
+  ambulance: { name: 'ambulance', len: 6.0, wid: 2.0, maxSpeed: 30, accel: 8, brake: 18, turnRate: 2.6 },
 };
 
 export const MIDIBUS_MODEL = { name: 'midibus', len: 8.4, wid: 2.3, maxSpeed: 20, accel: 5, brake: 12, turnRate: 1.3, color: '#132a44' };

@@ -171,11 +171,11 @@ export const VEHICLE_STOCK = {
   bijboot: { kind: 'boat', type: 'Bijbootje', shop: 'boot', label: 'Bijbootje Woonbootje', desc: 'Klein motortje, groot ego', price: 300, nameIdx: 0, color: '#2f4a3a', model: { ...BOAT_KINDS.dinghy } },
   rubberboot: { kind: 'boat', type: 'Rubberboot', shop: 'boot', label: 'Rubberboot Stuiterbal', desc: 'Stuitert over de golven van elke rondvaartboot', price: 700, nameIdx: 0, color: '#3c4044', model: { ...BOAT_KINDS.rubberboot } },
   sloep: { kind: 'boat', type: 'Sloep', shop: 'boot', label: 'Sloep Nait Soezen', desc: 'Rosé aan boord, pet op, rustig tuffen', price: 900, nameIdx: 0, color: '#e8e6e0', model: { ...BOAT_KINDS.sloep } },
-  speedboot: { kind: 'boat', type: 'Speedboot', shop: 'boot', label: 'Speedboot Grachtengast', desc: 'Harder dan mag. De kade vindt je niet leuk', price: 1800, nameIdx: 1, color: '#c9a227', model: { name: 'boat', kind: 'sloep', len: 4.2, wid: 1.6, playerTop: 25, playerAccel: 7, maxSpeed: 7.5, accel: 2.8, brake: 2.8, turnRate: 1.7, color: '#c9a227', cabin: '#1c1c1c' } },
+  speedboot: { kind: 'boat', type: 'Speedboot', shop: 'boot', label: 'Speedboot Grachtengast', desc: 'Harder dan mag. De kade vindt je niet leuk', price: 1800, nameIdx: 1, color: '#c9a227', model: { name: 'boat', kind: 'sloep', len: 5.2, wid: 1.9, playerTop: 25, playerAccel: 7, maxSpeed: 7.5, accel: 2.8, brake: 2.8, turnRate: 1.7, color: '#c9a227', cabin: '#1c1c1c' } },
   rondvaartboot: { kind: 'boat', type: 'Rondvaartboot', shop: 'boot', label: 'Rondvaartboot Stadjer', desc: 'Glazen dak, veertig stoelen, nul passagiers', price: 3500, nameIdx: 1, color: '#1d3350', model: { ...BOAT_KINDS.rondvaart } },
   // --- the air ---
   wiekenwubbo: { kind: 'heli', type: 'Helikopter', shop: 'heli', label: 'Wieken Wubbo', desc: 'Tweezits helikopter. Landt op elk plat stuk: het weiland, een plat dak of je eigen helidek', price: 5500, nameIdx: 0, color: '#b8322a', flags: { isHeli: true }, model: { name: 'heli', len: 8.8, wid: 2.1, maxSpeed: 40, accel: 7, brake: 9, turnRate: 1.5 } },
-  politieboot: { kind: 'boat', type: 'Politieboot', shop: 'boot', label: 'Politie Boot', desc: 'Voor wie de politie op het water ook eens wil ontlopen. Met de politie', unlock: 'vijfsterren', nameIdx: 0, color: '#e8e6e0', flags: { isPolice: true, hijacked: true }, model: { name: 'boat', kind: 'sloep', len: 4.1, wid: 1.65, maxSpeed: 9.8, accel: 3.2, brake: 3.4, turnRate: 1.8, color: '#e8e6e0', cabin: '#12294f' } },
+  politieboot: { kind: 'boat', type: 'Politieboot', shop: 'boot', label: 'Politie Boot', desc: 'Voor wie de politie op het water ook eens wil ontlopen. Met de politie', unlock: 'vijfsterren', nameIdx: 0, color: '#e8e6e0', flags: { isPolice: true, hijacked: true }, model: { name: 'boat', kind: 'sloep', len: 5.5, wid: 2.0, maxSpeed: 9.8, accel: 3.2, brake: 3.4, turnRate: 1.8, color: '#e8e6e0', cabin: '#12294f' } },
 };
 
 const missionDone = (id) => isMissionCompleted(missionIndexById(id));
@@ -926,7 +926,7 @@ function pandSections(world, shop) {
 
 const RENTALS = [
   { id: 'sloep', label: 'Sloep "Nait Soezen"', desc: 'Rustig tuffen door de grachten', price: 40, nameIdx: 0, model: { ...BOAT_KINDS.sloep } },
-  { id: 'speed', label: 'Speedbootje "Grachtengast"', desc: 'Harder dan mag. Niet tegen de wal!', price: 90, nameIdx: 1, model: { name: 'boat', kind: 'sloep', len: 4.2, wid: 1.6, playerTop: 25, playerAccel: 7, maxSpeed: 7.5, accel: 2.8, brake: 2.8, turnRate: 1.7, color: '#c9a227', cabin: '#1c1c1c' } },
+  { id: 'speed', label: 'Speedbootje "Grachtengast"', desc: 'Harder dan mag. Niet tegen de wal!', price: 90, nameIdx: 1, model: { name: 'boat', kind: 'sloep', len: 5.2, wid: 1.9, playerTop: 25, playerAccel: 7, maxSpeed: 7.5, accel: 2.8, brake: 2.8, turnRate: 1.7, color: '#c9a227', cabin: '#1c1c1c' } },
   { id: 'kano', label: 'Kano', desc: 'Zelf peddelen, met z\'n tweeën in één kano', price: 15, nameIdx: 0, model: { ...BOAT_KINDS.kano } },
   { id: 'kajak', label: 'Kajak', desc: 'Voor één, laag bij het water', price: 12, nameIdx: 0, model: { ...BOAT_KINDS.kajak } },
   { id: 'waterfiets', label: 'Waterfiets', desc: 'Samen trappen, geen haast', price: 20, nameIdx: 1, model: { ...BOAT_KINDS.waterfiets } },

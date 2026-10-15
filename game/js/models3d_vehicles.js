@@ -264,6 +264,10 @@ function buildCarGeometry(type, L, W, paint, opts) {
       }
       B.box((x0 + x1) / 2, 1.0, z, x1 - x0, 0.05, 0.012, 0x2f8f4e);
     }
+    // the high-roof conversion box over the patient bay: ~2.6 m in all
+    const roofX0 = P.xB - 0.45, rh = 0.48;
+    B.box((roofX0 - hl) / 2, P.roof + rh / 2 - 0.02, 0, roofX0 + hl, rh, W - 0.04, paint);
+    B.box(roofX0 + 0.04, P.roof + rh / 2, 0, 0.08, rh - 0.1, W * 0.7, 0x1d4fa3);
     B.box(-hl - 0.008, 1.45, 0, 0.012, 0.36, 0.36, 0xf4f2ee);
     B.box(-hl - 0.012, 1.45, 0, 0.012, 0.28, 0.08, 0x1d4fa3);
     B.box(-hl - 0.012, 1.45, 0, 0.012, 0.08, 0.28, 0x1d4fa3);
@@ -359,8 +363,9 @@ function assembleCar(type, L, W, paint, { police = false, ambulance = false, wre
   group.userData.frontWheels = wheels.slice(0, 2);
   group.userData.wheelRadius = wheelR;
   if (police || ambulance) {
+    // the ambulance's lamps sit on the cab roof, just ahead of its roof box
     const barY = P.roof + (ambulance ? 0.07 : 0.14);
-    const barX = ambulance ? P.xB - 0.35 : (P.xB + P.xC) / 2;
+    const barX = ambulance ? P.xB - 0.25 : (P.xB + P.xC) / 2;
     const lamps = [];
     for (const s of [1, -1]) {
       const lamp = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.1, W * 0.3), lampMaterial(0x2f6bff, 0.25));
@@ -408,40 +413,40 @@ function buildCarMesh(v) {
 function buildTruckMesh(v) {
   const L = v.model.len, W = v.model.wid, hl = L / 2, hw = W / 2;
   const paint = v.wrecked ? WRECKED_COLOR : toHex(v.model.color, 0xe8e6e0);
-  const r = 0.46;
+  const r = 0.52;
   const tank = !!v.model.tank;
   const geo = cached(`truck|${L}|${W}|${paint}|${tank}`, () => {
     const B = new GeoBuilder(3);
-    const cabL = 1.9, boxX0 = -hl, boxX1 = hl - cabL - 0.1;
-    B.box(0, 0.62, 0, L - 0.2, 0.22, W - 0.3, 0x2a2b2d);
+    const cabL = 2.0, boxX0 = -hl, boxX1 = hl - cabL - 0.1;
+    B.box(0, 0.74, 0, L - 0.2, 0.22, W - 0.3, 0x2a2b2d);
     const bx = (boxX0 + boxX1) / 2, bl = boxX1 - boxX0;
     if (tank) {
       // a rounded tank from three stacked slabs, a walkway on top and a red band
       const tc = paint === WRECKED_COLOR ? paint : 0xd9dcdf;
-      B.box(bx, 2.05, 0, bl, 1.3, W, tc);
-      B.box(bx, 2.05, 0, bl, 2.1, W - 0.55, tc);
-      B.box(bx, 2.05, 0, bl - 0.2, 2.45, W - 1.1, tc);
-      B.box(bx, 3.3, 0, bl * 0.8, 0.06, 0.5, TRIM);
-      B.box(bx, 1.75, 0, bl + 0.02, 0.28, W + 0.02, paint === WRECKED_COLOR ? paint : 0xb8322a);
-    } else B.box(bx, 2.05, 0, bl, 2.5, W, paint === WRECKED_COLOR ? paint : 0xeeeee8);
+      B.box(bx, 2.2, 0, bl, 1.43, W, tc);
+      B.box(bx, 2.2, 0, bl, 2.31, W - 0.55, tc);
+      B.box(bx, 2.2, 0, bl - 0.2, 2.7, W - 1.1, tc);
+      B.box(bx, 3.58, 0, bl * 0.8, 0.06, 0.5, TRIM);
+      B.box(bx, 1.88, 0, bl + 0.02, 0.3, W + 0.02, paint === WRECKED_COLOR ? paint : 0xb8322a);
+    } else B.box(bx, 2.275, 0, bl, 2.75, W, paint === WRECKED_COLOR ? paint : 0xeeeee8);
     // cab: solid below the windows, glass all round above them, then the roof
     const cx = hl - cabL / 2;
-    B.box(cx, 1.05, 0, cabL, 0.9, W - 0.05, paint);
-    B.box(cx, 2.35, 0, cabL, 0.2, W - 0.05, paint);
-    B.box(cx - 0.02, 1.925, 0, cabL - 0.1, 0.65, W - 0.12, GLASS, G_GLASS);
-    B.box(hl - cabL + 0.04, 1.925, 0, 0.08, 0.65, W - 0.05, paint);
-    B.box(hl - cabL / 2 - 0.05, 2.5, 0, cabL - 0.3, 0.1, W - 0.25, shadeHex(paint, 0.85));
+    B.box(cx, 1.325, 0, cabL, 1.05, W - 0.05, paint);
+    B.box(cx, 2.6, 0, cabL, 0.2, W - 0.05, paint);
+    B.box(cx - 0.02, 2.175, 0, cabL - 0.1, 0.65, W - 0.12, GLASS, G_GLASS);
+    B.box(hl - cabL + 0.04, 2.175, 0, 0.08, 0.65, W - 0.05, paint);
+    B.box(hl - cabL / 2 - 0.05, 2.75, 0, cabL - 0.3, 0.1, W - 0.25, shadeHex(paint, 0.85));
     for (const s of [1, -1]) {
-      B.box(hl - 0.04, 1.925, s * (hw - 0.06), 0.08, 0.65, 0.08, paint);
-      B.box(hl - 1.0, 1.925, s * (hw - 0.05), 0.08, 0.65, 0.06, paint);
-      B.box(hl + 0.02, 0.8, s * (hw - 0.3), 0.03, 0.14, 0.32, HEADLAMP, G_LAMP);
-      B.box(-hl - 0.01, 0.85, s * (hw - 0.2), 0.02, 0.2, 0.18, TAIL, G_LAMP);
-      B.box(hl - 0.1, 2.1, s * (hw + 0.2), 0.06, 0.3, 0.1, TRIM);
-      if (!tank) B.box((boxX0 + boxX1) / 2, 2.2, s * (hw + 0.006), (boxX1 - boxX0) * 0.7, 0.5, 0.012, paint);
+      B.box(hl - 0.04, 2.175, s * (hw - 0.06), 0.08, 0.65, 0.08, paint);
+      B.box(hl - 1.05, 2.175, s * (hw - 0.05), 0.08, 0.65, 0.06, paint);
+      B.box(hl + 0.02, 0.95, s * (hw - 0.3), 0.03, 0.14, 0.32, HEADLAMP, G_LAMP);
+      B.box(-hl - 0.01, 0.95, s * (hw - 0.2), 0.02, 0.2, 0.18, TAIL, G_LAMP);
+      B.box(hl - 0.1, 2.35, s * (hw + 0.2), 0.06, 0.3, 0.1, TRIM);
+      if (!tank) B.box((boxX0 + boxX1) / 2, 2.4, s * (hw + 0.006), (boxX1 - boxX0) * 0.7, 0.55, 0.012, paint);
     }
-    B.box(hl + 0.03, 0.55, 0, 0.1, 0.22, W - 0.1, 0x2a2b2d);
-    B.box(hl + 0.085, 0.55, 0, 0.012, 0.1, 0.48, PLATE);
-    B.box(-hl - 0.012, 0.6, 0, 0.012, 0.1, 0.48, PLATE);
+    B.box(hl + 0.03, 0.64, 0, 0.1, 0.24, W - 0.1, 0x2a2b2d);
+    B.box(hl + 0.085, 0.64, 0, 0.012, 0.1, 0.48, PLATE);
+    B.box(-hl - 0.012, 0.7, 0, 0.012, 0.1, 0.48, PLATE);
     return B.build();
   });
   const mats = vehicleMaterials();
@@ -451,18 +456,18 @@ function buildTruckMesh(v) {
   group.userData.body = body;
   const wgeo = carWheelGeometry(r, 0.3);
   const wheels = [];
-  for (const x of [hl - 1.1, -hl + 1.4]) for (const s of [1, -1]) addWheel(group, wgeo, mats[0], x, r, s * (hw - 0.2), wheels);
+  for (const x of [hl - 1.25, -hl + 1.7]) for (const s of [1, -1]) addWheel(group, wgeo, mats[0], x, r, s * (hw - 0.2), wheels);
   group.userData.wheels = wheels;
   group.userData.wheelRadius = r;
   if (tank && v.model.livery === 'usmemvet' && !v.wrecked) {
     // H8: the lettering on both flanks of the tank, on the body so it pitches,
     // rolls and bounces with the suspension
-    const bl = L - 2.0;
+    const bl = L - 2.1;
     const geoL = cached('usmemvet-panel', () => new THREE.PlaneGeometry(4.1, 0.76));
     const mat = new THREE.MeshLambertMaterial({ map: usMemVetTexture() });
     for (const s of [1, -1]) {
       const panel = new THREE.Mesh(geoL, mat);
-      panel.position.set(-hl + bl / 2, 2.29, s * (hw + 0.012));
+      panel.position.set(-hl + bl / 2, 2.46, s * (hw + 0.012));
       if (s < 0) panel.rotation.y = Math.PI;
       body.add(panel);
     }
@@ -580,31 +585,50 @@ function buildTrekkerLimoMesh(v) {
   return group;
 }
 
-// An Ommeland farm tractor: the trekker-limo's tractor (hood, glass cab,
-// big rear wheels, exhaust) on its own, with a three-point hitch behind.
+// An Ommeland farm tractor (~100 hp): long hood, the glass cab over the
+// rear axle, 1.75 m rear wheels, a 2.45 m wheelbase and a three-point hitch.
+// Built for TRACTOR_MODEL's 4.3 x 2.3; seating3d.js tractorCab() places the driver.
+export function tractorCab(L) {
+  const hl = L / 2;
+  const rearX = hl - 0.75 - TRACTOR_WB;
+  return { x0: rearX - 0.62, x1: rearX + 0.78, floor: 1.0, belt: 1.8, roof: 2.72, rearX, frontX: hl - 0.75 };
+}
+const TRACTOR_WB = 2.45, TRACTOR_RR = 0.88, TRACTOR_FR = 0.58;
 function buildTractorMesh(v) {
   const L = v.model.len, W = v.model.wid, hl = L / 2, hw = W / 2;
   const paint = v.wrecked ? WRECKED_COLOR : toHex(v.model.color, 0x3f7d3a);
+  const C = tractorCab(L);
   const geo = cached(`tractor|${L}|${W}|${paint}`, () => {
     const B = new GeoBuilder(3);
-    const tx0 = hl - 2.3, cz = W * 0.43;
-    B.box(hl - 0.55, 1.05, 0, 1.1, 0.8, W * 0.62, paint);
-    B.box(hl - 1.6, 0.75, 0, 1.6, 0.5, W * 0.5, 0x2a2a2a);
-    B.box(tx0 + 0.6, 1.075, 0, 1.2, 0.85, W * 0.86, paint);
-    B.box(tx0 + 0.6, 2.38, 0, 1.2, 0.16, W * 0.86, paint);
-    B.box(tx0 + 0.6, 2.5, 0, 1.3, 0.08, W * 0.9, shadeHex(paint, 0.8));
-    B.box(tx0 + 1.19, 1.9, 0, 0.02, 0.8, W * 0.8, GLASS, G_GLASS);
-    B.box(tx0 + 0.01, 1.9, 0, 0.02, 0.8, W * 0.8, GLASS, G_GLASS);
+    const cz = W * 0.43, cl = C.x1 - C.x0, cx = (C.x0 + C.x1) / 2;
+    const gh = C.roof - C.belt, gy = (C.roof + C.belt) / 2;
+    // hood over the engine, frame and front axle beneath it
+    const hx0 = C.x1 - 0.05;
+    B.box((hx0 + hl) / 2, 1.27, 0, hl - hx0, 0.76, W * 0.55, paint);
+    B.box((hx0 + hl) / 2 + 0.05, 1.66, 0, hl - hx0 - 0.25, 0.04, W * 0.5, shadeHex(paint, 0.85));
+    B.box((C.x0 + hl) / 2, 0.78, 0, hl - C.x0 - 0.2, 0.5, W * 0.42, 0x2a2a2a);
+    B.box(hl - 0.04, 1.2, 0, 0.08, 0.5, W * 0.48, 0x2a2a2a);
+    // cab: solid up to the belt, glass all round above it, the roof
+    B.box(cx, (C.floor + C.belt) / 2, 0, cl, C.belt - C.floor, W * 0.86, paint);
+    B.box(cx, C.roof + 0.08, 0, cl, 0.16, W * 0.86, paint);
+    B.box(cx, C.roof + 0.2, 0, cl + 0.12, 0.08, W * 0.92, shadeHex(paint, 0.8));
+    B.box(C.x1 - 0.01, gy, 0, 0.02, gh, W * 0.8, GLASS, G_GLASS);
+    B.box(C.x0 + 0.01, gy, 0, 0.02, gh, W * 0.8, GLASS, G_GLASS);
     for (const s of [1, -1]) {
-      for (const px of [tx0 + 0.03, tx0 + 1.17]) B.box(px, 1.9, s * (cz - 0.03), 0.06, 0.8, 0.06, paint);
-      B.box(tx0 + 0.6, 1.9, s * cz, 1.1, 0.8, 0.02, GLASS, G_GLASS);
-      B.box(tx0 + 0.55, 1.62, s * (hw - 0.12), 1.4, 0.1, 0.4, shadeHex(paint, 0.75));
-      B.box(hl + 0.01, 0.95, s * (W * 0.2), 0.02, 0.14, 0.2, HEADLAMP, G_LAMP);
-      B.box(tx0 - 0.05, 1.5, s * (cz - 0.1), 0.04, 0.12, 0.1, TAIL, G_LAMP);
-      B.box(-hl + 0.3, 0.7, s * 0.35, 0.6, 0.08, 0.08, 0x2a2a2a);
+      for (const px of [C.x0 + 0.03, C.x1 - 0.03]) B.box(px, gy, s * (cz - 0.03), 0.06, gh, 0.06, paint);
+      B.box(cx, gy, s * cz, cl - 0.1, gh, 0.02, GLASS, G_GLASS);
+      // rear mudguards over the big wheels, a step up to the cab
+      B.box(C.rearX, TRACTOR_RR * 2 + 0.06, s * (hw - 0.02), 1.9, 0.08, 0.56, shadeHex(paint, 0.75));
+      B.box(C.rearX + 0.92, TRACTOR_RR * 1.55, s * (hw - 0.02), 0.08, TRACTOR_RR * 0.9, 0.56, shadeHex(paint, 0.75));
+      B.box(C.x1 - 0.1, 0.62, s * (hw - 0.45), 0.3, 0.05, 0.25, 0x2a2a2a);
+      B.box(hl + 0.01, 1.3, s * (W * 0.2), 0.02, 0.14, 0.2, HEADLAMP, G_LAMP);
+      B.box(C.x0 - 0.05, C.belt - 0.15, s * (cz - 0.1), 0.04, 0.12, 0.1, TAIL, G_LAMP);
+      B.box(C.x1 + 0.1, C.roof + 0.05, s * (cz - 0.05), 0.08, 0.1, 0.12, HEADLAMP, G_LAMP);
+      B.box(-hl + 0.32, 0.72, s * 0.35, 0.64, 0.08, 0.08, 0x2a2a2a);
     }
-    B.box(hl - 0.95, 2.0, W * 0.2, 0.1, 1.0, 0.1, TRIM);
-    B.box(-hl + 0.12, 0.65, 0, 0.24, 0.3, W * 0.5, 0x2a2a2a);
+    // exhaust up the front corner of the cab
+    B.box(C.x1 + 0.12, C.belt + 0.35, W * 0.22, 0.1, 1.5, 0.1, TRIM);
+    B.box(-hl + 0.12, 0.68, 0, 0.24, 0.3, W * 0.5, 0x2a2a2a);
     return B.build();
   });
   const mats = vehicleMaterials(v.wrecked);
@@ -613,13 +637,13 @@ function buildTractorMesh(v) {
   group.add(body);
   group.userData.body = body;
   const wheels = [];
-  const small = carWheelGeometry(0.46, 0.32), big = carWheelGeometry(0.8, 0.5);
+  const small = carWheelGeometry(TRACTOR_FR, 0.36), big = carWheelGeometry(TRACTOR_RR, 0.52);
   for (const s of [1, -1]) {
-    addWheel(group, small, mats[0], hl - 0.6, 0.46, s * (hw - 0.3), wheels);
-    addWheel(group, big, mats[0], hl - 1.85, 0.8, s * (hw - 0.05), wheels);
+    addWheel(group, small, mats[0], C.frontX, TRACTOR_FR, s * (hw - 0.3), wheels);
+    addWheel(group, big, mats[0], C.rearX, TRACTOR_RR, s * (hw - 0.02), wheels);
   }
   group.userData.wheels = wheels;
-  group.userData.wheelRadius = 0.46;
+  group.userData.wheelRadius = TRACTOR_FR;
   return group;
 }
 
@@ -939,16 +963,21 @@ function buildMopedGeometry(color) {
   });
 }
 
+const MOPED_BODY_L = 1.53;
 function buildMopedMesh(v) {
   const group = new THREE.Group();
   const color = v.wrecked ? WRECKED_COLOR : toHex(v.model.color, 0xe6e1d6);
   const mats = vehicleMaterials();
-  group.add(new THREE.Mesh(buildMopedGeometry(color), mats));
-  const r = 0.2;
+  // the body is drawn 1.53 m long: stretch it to the model (1.7 m, as collision)
+  const sx = (v.model.len || MOPED_BODY_L) / MOPED_BODY_L;
+  const body = new THREE.Mesh(buildMopedGeometry(color), mats);
+  body.scale.x = sx;
+  group.add(body);
+  const r = 0.23;
   const wgeo = bikeWheelGeometry(r, 0.09, false);
   const wheels = [];
-  addWheel(group, wgeo, mats[0], 0.55, r, 0, wheels);
-  addWheel(group, wgeo, mats[0], -0.52, r, 0, wheels);
+  addWheel(group, wgeo, mats[0], 0.55 * sx, r, 0, wheels);
+  addWheel(group, wgeo, mats[0], -0.52 * sx, r, 0, wheels);
   group.userData.wheels = wheels;
   group.userData.wheelRadius = r;
   group.userData.spinStep = 0.28;

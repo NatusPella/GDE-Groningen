@@ -20,8 +20,8 @@ import { buildingAt as realBuildingAt } from './countryreal.js';
 // car is in a bad way and puts the nearest garage on your map.
 
 const BAY_W = 5.2;
-const BAY_D = 8;
-const BAY_H = 3.6;
+const BAY_D = 10.5; // a bakwagen (8.5 m) fits with room for the door
+const BAY_H = 4.2;
 const DOOR_OPEN_M = 16;
 const STREAM_IN = 170;
 const STREAM_OUT = 210;

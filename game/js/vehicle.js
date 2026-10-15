@@ -40,9 +40,9 @@ const MODELS = [
 // spawnHeroCarNear rather than picked from MODELS by the regular traffic RNG.
 // Ommeland farm vehicles (parkedcars.js farm yards, countrylife.js):
 // a tractor (slow, pulls hard off the line) and a quad (nimble off-road)
-export const TRACTOR_MODEL = { name: 'tractor', len: 3.6, wid: 2.0, maxSpeed: 11, accel: 6.5, brake: 11, turnRate: 1.9, color: '#3f7d3a', offroad: 0.9 };
+export const TRACTOR_MODEL = { name: 'tractor', len: 4.3, wid: 2.3, maxSpeed: 11, accel: 6.5, brake: 11, turnRate: 1.9, color: '#3f7d3a', offroad: 0.9 };
 export const QUAD_MODEL = { name: 'quad', len: 2.1, wid: 1.2, maxSpeed: 17, accel: 9, brake: 14, turnRate: 3.2, color: '#b8322a', offroad: 1 };
-export const HERO_CAR_MODEL = { name: 'escort', len: 4.0, wid: 1.65, maxSpeed: 50, accel: 11, brake: 25, turnRate: 3.4, color: '#a11f1f' };
+export const HERO_CAR_MODEL = { name: 'escort', len: 4.0, wid: 1.65, maxSpeed: 50, accel: 8, brake: 25, turnRate: 3.4, color: '#a11f1f' };
 
 const BIKE_MODELS = [
   { name: 'bike', len: 1.75, wid: 0.5, maxSpeed: 6.2, accel: 3.2, brake: 6, turnRate: 4.6, color: '#1c1c1c', rider: '#2f5c8a' },
@@ -98,7 +98,7 @@ export function makeTwoWheeler(kind, x, y, angle, tint = null, rng = Math.random
 // as the regular fleet, dark-navy cabin matching the rest of the police
 // fleet's accent tone, with enough extra accel/turn to actually run down a
 // fleeing player instead of just keeping pace.
-const POLICE_BOAT_MODEL = { name: 'boat', len: 4.1, wid: 1.65, playerTop: 15, playerAccel: 4.5, maxSpeed: 9.8, accel: 3.2, brake: 3.4, turnRate: 1.8, color: '#e8e6e0', cabin: '#12294f' };
+const POLICE_BOAT_MODEL = { name: 'boat', len: 5.5, wid: 2.0, playerTop: 15, playerAccel: 4.5, maxSpeed: 9.8, accel: 3.2, brake: 3.4, turnRate: 1.8, color: '#e8e6e0', cabin: '#12294f' };
 
 // Regional OV city bus - teal/blue livery, roomier turning circle, only
 // spawned on the bigger through-roads (see manageBusPopulation).
@@ -189,9 +189,10 @@ export class Vehicle {
     } else if (throttle !== 0) {
       const lim = throttle > 0 ? top : top * REVERSE_FACTOR;
       const headroom = lim > 0 ? clamp(1 - absSpeed / lim, 0, 1) : 0;
-      // player cars pull hard off the line and run out of breath towards top speed
-      const floor = isPlayer && !this.isBike && !this.isScooter && !this.isBoat ? 0.12 : isPlayer && this.sailTop != null ? 0.6 : 0.3;
-      this.speed += throttle * (tune ? tune.accel : m.accel) * (floor + (1 - floor) * headroom) * dt;
+      // player cars pull evenly through the gears (0-100 in ~6-8 s) and only run out of breath near top speed
+      const playerCar = isPlayer && !this.isBike && !this.isScooter && !this.isBoat;
+      const floor = playerCar ? 0.2 : isPlayer && this.sailTop != null ? 0.6 : 0.3;
+      this.speed += throttle * (tune ? tune.accel : m.accel) * (floor + (1 - floor) * (playerCar ? Math.sqrt(headroom) : headroom)) * dt;
     } else {
       const drag = coastDrag(this, isPlayer, absSpeed) * dt;
       if (this.speed > 0) this.speed = Math.max(0, this.speed - drag);
@@ -328,11 +329,14 @@ function updateOpenWater(v, map, dt) {
 }
 
 // Two-wheelers and boats are tuned for the player separately from the AI
-// fleet's realistic cruising speeds (m/s): a bike is clearly quicker than
-// running (7.5), an e-fatbike quicker still, a scooter quickest.
-// The city bus is heavy for the player but keeps up with town traffic.
-const BIKE_SPRINT_TOP = 1.35;
+// fleet's cruising speeds (m/s): a bike does a brisk 25 km/h (Shift: ~33),
+// the step 25, the brommer 45, and the tuned e-fatbike is the fastest of all
+// (50, Shift ~58). The city bus is heavy for the player but keeps up with
+// town traffic. Cars take the model's accel times PLAYER_CAR_ACCEL.
+const BIKE_SPRINT_TOP = 1.3;
+const FATBIKE_SPRINT_TOP = 1.15;
 const BIKE_SPRINT_ACCEL = 1.8;
+const PLAYER_CAR_ACCEL = 0.5;
 
 function playerTune(v) {
   const m = v.model;
@@ -352,14 +356,14 @@ function playerTune(v) {
   // shop upgrades scale the two-wheelers' player tuning too
   const b = v._baseModel;
   const up = b ? m.maxSpeed / b.maxSpeed : 1, upA = b ? m.accel / b.accel : 1;
-  if (v.isScooter && m.moped) return { top: 13.5 * up, accel: 5 * upA, brake: 8 };
-  if (v.isScooter) return { top: 10 * up, accel: 5.5 * upA, brake: 6.5 };
+  if (v.isScooter && m.moped) return { top: 12.5 * up, accel: 4.2 * upA, brake: 8 };
+  if (v.isScooter) return { top: 7 * up, accel: 4.5 * upA, brake: 6.5 };
   // Shift on a bike: a short sprint of harder pedalling (player.js sprintT)
-  const sprint = v.isBike && v.sprintT > 0 ? BIKE_SPRINT_TOP : 1, sprintA = sprint > 1 ? BIKE_SPRINT_ACCEL : 1;
+  const sprint = v.isBike && v.sprintT > 0 ? (m.fat ? FATBIKE_SPRINT_TOP : BIKE_SPRINT_TOP) : 1, sprintA = sprint > 1 ? BIKE_SPRINT_ACCEL : 1;
   if (v._mount === 'horse') return { top: (v.sprintT > 0 ? 13 : 7.5) * up, accel: (v.sprintT > 0 ? 5.5 : 3.4) * upA, brake: 7 };
-  if (v.isBike) return m.fat ? { top: 17 * up * sprint, accel: 7.2 * upA * sprintA, brake: 9 } : { top: 11.5 * up * sprint, accel: 4.6 * upA * sprintA, brake: 8.5 };
-  if (MODS.turbo && v.isHeroCar) return { top: Math.min(m.maxSpeed * 1.6, MAX_CAR_SPEED + 12), accel: m.accel * 1.9, brake: m.brake * 1.2 };
-  return { top: Math.min(m.maxSpeed, MAX_CAR_SPEED), accel: m.accel, brake: m.brake };
+  if (v.isBike) return m.fat ? { top: 13.9 * up * sprint, accel: 6 * upA * sprintA, brake: 9 } : { top: 7 * up * sprint, accel: 3.6 * upA * sprintA, brake: 8.5 };
+  if (MODS.turbo && v.isHeroCar) return { top: Math.min(m.maxSpeed * 1.6, MAX_CAR_SPEED + 12), accel: m.accel * 1.9 * PLAYER_CAR_ACCEL, brake: m.brake * 1.2 };
+  return { top: Math.min(m.maxSpeed, MAX_CAR_SPEED), accel: m.accel * PLAYER_CAR_ACCEL, brake: m.brake };
 }
 
 const MAX_CAR_SPEED = 76; // m/s (~275 km/h): even a turbo-tuned sports car stops here

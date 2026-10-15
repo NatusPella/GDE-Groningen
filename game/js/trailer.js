@@ -1116,7 +1116,7 @@ function buildShots(w) {
 
   // the Us Mem Vet tanker on the Europaweg, sliding, the fat sloshing out
   const euro = polyline([[1113, 424], [1118, 430], [1122, 436], [1130, 447], [1137, 456], [1140, 460], [1143, 464], [1171, 496], [1197, 524], [1224, 551], [1277, 605], [1307, 635]]);
-  const TANKER = { name: 'truck', tank: true, len: 7.2, wid: 2.35, maxSpeed: 24, accel: 4.5, brake: 14, turnRate: 1.5, color: '#e6c21a' };
+  const TANKER = { name: 'truck', tank: true, len: 8.5, wid: 2.5, maxSpeed: 24, accel: 4.5, brake: 14, turnRate: 1.5, color: '#e6c21a' };
   const tanker = {
     label: 'Tankwagen op de Europaweg', cuts: ['vol'], dur: 4.0, clock: 17.6, weather: 'helder', focus: lane(euro, 130, 0),
     caps: [[0.9, 2.8, 'Al het vet van Grunn.']],
