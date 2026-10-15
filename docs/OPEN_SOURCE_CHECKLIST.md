@@ -34,22 +34,35 @@ eigenaar nodig. De procedures (filter-repo, GitHub-instellingen) staan in
       beschermd, dus de CC-licentie is daar mogelijk niet af te dwingen;
       (b) met welk Gemini-product en abonnement de **muziek** gemaakt is
       (app of API, gratis of betaald): dat bepaalt welke voorwaarden
-      gelden. `LICENSE-CONTENT.md` zegt nu "voor zover daar rechten op
-      rusten". Vastleggen welk product, en eventueel de voorwaarden van dat
-      product laten nalezen.
-- [?] **Spelteksten in GPL-bestanden.** Dialogen en verhaal staan in
-      JavaScript (`storyarc.js`, `*lines.js`, `missionstory.js` …). NOTICE en
-      LICENSE-CONTENT zeggen: GPL voor de code, CC BY-NC-SA voor de teksten
-      in die bestanden. Dat is juridisch niet waterdicht (een GPL-bestand
-      mag commercieel verspreid worden). Opties: zo laten; de teksten naar
-      aparte databestanden verhuizen (veel werk); of accepteren dat die
-      teksten onder de GPL vallen.
-- [?] **Bijdragen en een latere betaalde versie.** `CONTRIBUTING.md` zegt
-      nu dat bijdragen onder GPL (code) en CC BY-NC-SA (inhoud) vallen. Dan
-      mag de eigenaar ingestuurde *inhoud* zelf ook niet commercieel
-      gebruiken (bijv. een betaalde Steam-versie). Wil je die ruimte
-      houden: een korte bijdragersverklaring (CLA of extra licentie aan
-      NatusPella) toevoegen vóór de eerste externe bijdrage.
+      gelden. Vastleggen welk product, en de voorwaarden van dat product
+      laten nalezen (juridische check).
+  - [x] Formulering aangepast (15 okt): `LICENSE-CONTENT.md`
+        (§ *Door AI gemaakte stemmen en muziek*), `NOTICE.md` en
+        LICENTIES.md §4.8 bieden de audio aan onder CC BY-NC-SA "voor zover
+        er rechten op rusten", noemen Google Gemini via OpenRouter, en
+        zeggen dat gebruikers ook de voorwaarden van Google en OpenRouter
+        volgen, voor zover die gelden.
+- [x] **Spelteksten in GPL-bestanden.** Duidelijke regel toegevoegd (15
+      okt) in `LICENSE-CONTENT.md` (§ *Teksten in codebestanden*) en
+      `NOTICE.md`: CC BY-NC-SA voor de dialogen en verhaalteksten in
+      `game/js/*lines.js`, `subtitles.js`, `storyarc.js`, `story.js`,
+      `storycontact.js`, `storyeikea.js`, `storyfun.js`,
+      `missionstory.js`, `missions.js`, `cinematics.js`, `characters.js`,
+      `smsvoice.js`, `sidejobvoice.js`, en voor elke ingesproken regel (met
+      een opname onder `game/audio/`); GPL voor de code en de
+      interfaceteksten. Twijfel = inhoud. Een gemengd bestand blijft
+      juridisch niet volledig waterdicht; de teksten naar aparte
+      databestanden verhuizen kan later nog (veel werk). Nieuwe
+      tekstbestanden in die lijst opnemen.
+- [x] **Bijdragen en een latere betaalde versie.** `CONTRIBUTING.md`
+      (§ *Licentie van je bijdrage*) en het PR-sjabloon (15 okt):
+      bijdragers houden hun auteursrecht, geven hun werk vrij onder GPL /
+      CC BY-NC-SA én geven NatusPella een eeuwigdurende, onherroepelijke,
+      niet-exclusieve licentie om het te gebruiken, onder een andere
+      licentie uit te brengen en te verkopen (ook commercieel, bijv. een
+      betaalde Steam-versie), met een DCO-achtige `Signed-off-by`-regel per
+      commit. Geen juridisch advies: bij een echte betaalde versie de
+      tekst eventueel laten nalezen.
 - [ ] Handmatige merkcheck "GDE" en "Grootste Diefstal Ever" (EUIPO,
       BOIP), zie ROADMAP.
 
@@ -120,12 +133,14 @@ eigenaar nodig. De procedures (filter-repo, GitHub-instellingen) staan in
       en tagger; nieuwere het noreply-adres. Herschrijven met
       `git filter-repo --mailmap` en force-push (PUBLICEREN.md §2). Alleen
       na akkoord; daarna alle oude kloons en worktrees weggooien.
-- [?] **Eigen naam** "NatusPella" in `desktop/package.json` (`author`,
-      `copyright`), in het About-paneel van de desktopapp
-      (`desktop/main.js`), in ROADMAP ("akkoord van Alexander") en in
-      `docs/steam/winkelpagina.md`. Bewust zo houden, of overal
-      "NatusPella" gebruiken (zoals README, NOTICE en LICENSE-CONTENT al
-      doen)?
+- [x] **Eigen naam** (15 okt): overal "NatusPella" of "de eigenaar":
+      `desktop/package.json` (`author`, `copyright`), het About-paneel
+      (`desktop/main.js`), ROADMAP, `docs/ONBOARDING.md`,
+      `docs/PUBLICEREN.md` (mailmap-voorbeeld) en
+      `docs/steam/winkelpagina.md`. Geen persoonsnaam, werkadres of
+      thuispad (`/Users/…`) meer in de getrackte bestanden (de
+      OSM-kaartdata buiten beschouwing). In de **historie**
+      staan naam en werkadres nog (zie hierboven).
 - [x] OSM-exports in `data/` bevatten zakelijke contactgegevens uit
       OpenStreetMap (ook enkele privé-ogende e-mailadressen): publiek onder
       de ODbL, acceptabel. Desgewenst `contact:*`/`email`/`phone` uit de
@@ -195,6 +210,21 @@ eigenaar nodig. De procedures (filter-repo, GitHub-instellingen) staan in
       verwijzen ernaar.
 - [ ] Secret scanning, push protection en Dependabot aanzetten
       (PUBLICEREN.md §6).
+- [x] **Dependabot-meldingen** (15 okt) in `desktop/package-lock.json`:
+      `http-cache-semantics` (hoog, GHSA-ch52-4w7c-c8xp) en `sprintf-js`
+      (middel, GHSA-hp3w-g68c-fv3c). Beide alleen ontwikkeltools:
+      `electron-builder` › `app-builder-lib` › `@electron/get@3` ›
+      `got` › `cacheable-request` › `http-cache-semantics`, en
+      `@electron/get@3` › `global-agent@3` › `roarr` › `sprintf-js`
+      (alleen voor een proxy bij het downloaden van Electron). Ze zitten
+      niet in de app (`build.files` neemt alleen `main.js`,
+      `preload.js`, `trailervideo.js`, `userdata.js` en
+      `package.json` mee). Opgelost met `overrides` in
+      `desktop/package.json`: `http-cache-semantics` ^4.3.0 (gepatcht) en
+      `global-agent` ^4.1.3 (zonder `roarr`/`sprintf-js`; zelfde
+      `bootstrap()`). `npm audit`: 0 kwetsbaarheden; `npm run stage`
+      werkt. Haal de overrides weg zodra `electron-builder` zelf nieuwere
+      versies gebruikt.
 - [?] De release-zips en -builds tot 0.23 dragen nog de oude naam; die
       staan in de privé-repo bij de Releases. Houden of verwijderen.
 

@@ -134,6 +134,13 @@ respawn heten "Huisartsenpost <wijk>" (`add_police_stations.py`) en garages
    Gemini-API-voorwaarden verbieden productiegebruik van previews niet
    expliciet; wel "experimental technology". Opnieuw inspreken met het
    GA-model maakt het netjes (zie §2).
+8. **Formulering in de licentie** (15 okt): `LICENSE-CONTENT.md` en
+   `NOTICE.md` bieden de stemmen en muziek aan onder CC BY-NC-SA 4.0
+   "voor zover er rechten op rusten", zeggen dat ze met Google Gemini (via
+   OpenRouter) zijn gemaakt en dat wie ze gebruikt zich ook aan de
+   voorwaarden van Google en OpenRouter houdt, voor zover die gelden. Zo
+   claimen we geen rechten die er misschien niet zijn. Een juridische check
+   staat nog open (`docs/OPEN_SOURCE_CHECKLIST.md`).
 
 ## 5. Privacy
 
@@ -236,8 +243,25 @@ en DMCA-takedowns tegen GTA-mods en -fanprojecten.
 (`LICENSE-CONTENT.md`, met de mappen), kaartdata blijft **ODbL**, de naam
 GDE en het logo **alle rechten voorbehouden**, werk van derden houdt zijn
 eigen licentie (`NOTICE.md`). Dat lijkt het meest op optie C hieronder,
-met ShareAlike voor de inhoud. Open punten (o.a. teksten in GPL-bestanden en
-CC op AI-audio): `docs/OPEN_SOURCE_CHECKLIST.md`.
+met ShareAlike voor de inhoud.
+
+Aanvullend (15 okt):
+
+- **Teksten in codebestanden**: dialogen en verhaalteksten in de
+  JavaScript-bestanden die `LICENSE-CONTENT.md` noemt (`game/js/*lines.js`,
+  `subtitles.js`, `storyarc.js`, `missionstory.js` …), en elke ingesproken
+  regel, vallen onder CC BY-NC-SA; de code en de interfaceteksten onder de
+  GPL (`LICENSE-CONTENT.md#teksten-in-codebestanden`).
+- **AI-audio**: CC BY-NC-SA "voor zover er rechten op rusten", met
+  verwijzing naar de voorwaarden van Google en OpenRouter (§4, punt 8).
+- **Bijdragen**: bijdragers houden hun auteursrecht, maar geven NatusPella
+  een eeuwigdurende, onherroepelijke licentie om hun bijdrage te gebruiken,
+  onder een andere licentie uit te brengen en te verkopen (bijv. een
+  betaalde Steam-versie), met een `Signed-off-by`-regel per commit
+  (`CONTRIBUTING.md`).
+
+Nog open (o.a. een juridische check op de AI-audio):
+`docs/OPEN_SOURCE_CHECKLIST.md`.
 
 De oorspronkelijke opties, ter achtergrond:
 

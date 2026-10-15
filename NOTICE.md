@@ -9,9 +9,16 @@
 | De naam "GDE" / "GDE Groningen – Zomer vol misdaad" en het logo | **alle rechten voorbehouden**; forks gebruiken een eigen naam en logo ([LICENSE-CONTENT.md](LICENSE-CONTENT.md#naam-en-logo)) |
 | Werk van anderen (hieronder) | de eigen licentie van dat werk |
 
-Waar een bestand zowel code als spelteksten bevat (bijv. `game/js/storyarc.js`),
-geldt de GPL voor de code en CC BY-NC-SA voor de teksten. Hieronder staan de
-verplichte vermeldingen voor gebruikt werk van anderen.
+Waar een bestand zowel code als spelteksten bevat, geldt de GPL voor de
+code en CC BY-NC-SA voor de dialogen en verhaalteksten. Dat gaat om de
+teksten in `game/js/*lines.js`, `subtitles.js`, `storyarc.js`, `story.js`,
+`storycontact.js`, `storyeikea.js`, `storyfun.js`, `missionstory.js`,
+`missions.js`, `cinematics.js`, `characters.js`, `smsvoice.js` en
+`sidejobvoice.js`, en om elke ingesproken regel (met een opname onder
+`game/audio/`) waar die ook staat. Menu's, knoppen en andere
+interfaceteksten vallen met de code onder de GPL. De precieze regel staat in
+[LICENSE-CONTENT.md](LICENSE-CONTENT.md#teksten-in-codebestanden).
+Hieronder staan de verplichte vermeldingen voor gebruikt werk van anderen.
 
 GDE Groningen (tot 0.24: GTE VI) is een gratis, niet-commercieel
 fanproject. **GDE is een fanparodie op GTA, niet gelieerd aan of
@@ -60,6 +67,10 @@ meegeleverd.
   `nieuws`, G-Music-jingles) zijn gemaakt met Google Gemini TTS
   (`google/gemini-3.8-flash-tts`) via OpenRouter. Per map
   legt `tts.json` vast hoe elke clip is gemaakt.
+- Muziek en stemmen staan onder CC BY-NC-SA 4.0 **voor zover er rechten
+  op rusten**; wie ze gebruikt, houdt zich ook aan de voorwaarden van
+  Google (Gemini) en OpenRouter, voor zover die gelden. Zie
+  [LICENSE-CONTENT.md](LICENSE-CONTENT.md#door-ai-gemaakte-stemmen-en-muziek).
 - **Martinitoren-model** (`game/models/martinitoren.glb`): gemaakt met
   Claude Design (Anthropic).
 - Geluidseffecten, texturen en alle andere 3D-modellen worden in de code
