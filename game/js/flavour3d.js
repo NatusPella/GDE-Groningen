@@ -4,6 +4,7 @@ import { isInsideBuilding, isOnRoad } from './pedestrians.js';
 import { isInWater, pointInPolygon } from './util.js';
 import { BILLBOARD_SLOGANS, KROLBRUG_SIGNS, OOSTERPARK_PLAQUE } from './flavourlines.js';
 import { KROLBRUG, PLANTSOEN, GROTE_MARKT, OOSTERPARK, krolLevel } from './flavour.js';
+import { PO, PL } from './worldframe.js';
 
 // The 3D side of flavour.js: billboards, the Gerrit Krolbrug detour, the
 // Noorderplantsoen picnic, the wandering Peerd, the Oosterpark plaque, the
@@ -66,7 +67,7 @@ export function initFlavour3D(world, scene) {
 
 // Along the big roads into and around the city; each spot is moved to a free
 // patch beside the nearest street-level main road, facing it.
-const BOARD_ANCHORS = [[-60, 1090], [1480, 1240], [-260, 1560], [-1960, -260], [60, -2240], [2340, -620], [1180, -140], [-900, -560], [640, 1330], [-1300, 900]];
+const BOARD_ANCHORS = PL([[-60, 1090], [1480, 1240], [-260, 1560], [-1960, -260], [60, -2240], [2340, -620], [1180, -140], [-900, -560], [640, 1330], [-1300, 900]]);
 
 function boardSpot(ax, ay) {
   const q = map.nearestRoadPoint(ax, ay, 320, true, true);
@@ -462,7 +463,7 @@ function updatePlants(world) {
 // kermis), striped awnings, zinc buckets full of colour and a banner.
 const FLOWER_COLORS = [0xd8333f, 0xf2c230, 0xe86fa8, 0xf4f1ea, 0x8e4fc0, 0xee7a2a, 0xc2185b, 0xffe36e];
 const AWNINGS = [0x2f7a4f, 0xd24a3a, 0x3565a8, 0xe0a526];
-const DAILY_MARKET = { x: 162, y: 78, r: 40 };
+const DAILY_MARKET = { ...PO(162, 78), r: 40 };
 function buildFlowerMarket() {
   const spots = [];
   const corners = (x, y, a) => [[1.5, 0.9], [1.5, -0.9], [-1.5, 0.9], [-1.5, -0.9]].map(([s, f]) => [x + Math.cos(a) * f - Math.sin(a) * s, y + Math.sin(a) * f + Math.cos(a) * s]);

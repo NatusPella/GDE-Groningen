@@ -28,6 +28,7 @@ import { getFurnitureSave } from './furniture.js';
 import { validateSpots } from './spotcheck.js';
 import { auditPassages } from './passagecheck.js';
 import { probeRingSolids, driveRingLap, probeRailLifts, driveWaterCrossings } from './ringcheck.js';
+import { P, PO } from './worldframe.js';
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -326,7 +327,7 @@ export async function runStoryTest(world) {
             // the lift: on foot in town, Henk drops the Escapade off for free; then a real round at boer Roelf's churn
             const cb = window.__carbid, sf = window.__storyFun, p = world.player;
             if (p.inVehicle) p.exitVehicle(world.map, world);
-            const town = world.map.nearestRoadPoint(706, -325, 120, false) || { x: 706, y: -325 };
+            const town = world.map.nearestRoadPoint(...P(706, -325), 120, false) || { ...PO(706, -325) };
             p.x = town.x; p.y = town.y;
             for (const v of world.vehicles) if (v.isHeroCar && !v.wrecked) { v.x += 2000; v.y += 2000; }
             world.wanted = 0;

@@ -6,6 +6,7 @@
 import './node3d.mjs';
 import fs from 'node:fs';
 import zlib from 'node:zlib';
+import { P, PO } from '../game/js/worldframe.js';
 
 const root = new URL('../game/', import.meta.url);
 const { GameMap, applyMapExtras } = await import('../game/js/mapdata.js');
@@ -17,7 +18,7 @@ const F = await import('../game/js/countryfield.js');
 const { initReal, buildingAt } = await import('../game/js/countryreal.js');
 const { ensureCountryEdge } = await import('../game/js/countryplan.js');
 const { roadGap } = await import('../game/js/countryedge.js');
-const P = await import('../game/js/parkedcars.js');
+const PC = await import('../game/js/parkedcars.js');
 const { findEnterableVehicle } = await import('../game/js/vehicle.js');
 F.setCountryBounds(map.meta.bounds);
 const om = JSON.parse(fs.readFileSync(new URL('ommeland.json', root)));
@@ -26,12 +27,12 @@ initReal(map, { ...om, bin: bin.buffer.slice(bin.byteOffset, bin.byteOffset + bi
 ensureCountryEdge(map);
 
 const SPOTS = [
-  ['Eelde', 1606, 9909],
-  ['Bedum', 2079, -8936],
-  ['Ten Boer', 8673, -6393],
-  ['Zuidhorn', -10665, -3160],
-  ['open polder NE', 5700, -11600],
-  ['past the real data', 16000, 15000],
+  ['Eelde', ...P(1606, 9909)],
+  ['Bedum', ...P(2079, -8936)],
+  ['Ten Boer', ...P(8673, -6393)],
+  ['Zuidhorn', ...P(-10665, -3160)],
+  ['open polder NE', ...P(5700, -11600)],
+  ['past the real data', ...P(16000, 15000)],
 ];
 let fails = 0;
 const total = {};
@@ -39,12 +40,12 @@ for (const [name, x, y] of SPOTS) {
   const world = { map, vehicles: [], time: 0, player: { x, y, inVehicle: null }, input: null };
   const t0 = performance.now();
   for (let k = 0; k < 400; k++) {
-    if (k % 50 === 0) P.manageParkedCars(world);
-    P.tickParkedCars(world);
+    if (k % 50 === 0) PC.manageParkedCars(world);
+    PC.tickParkedCars(world);
     world.time += 1 / 60;
   }
   const ms = Math.round(performance.now() - t0);
-  const cars = [...P.sleepingParkedCars(world), ...world.vehicles];
+  const cars = [...PC.sleepingParkedCars(world), ...world.vehicles];
   const kinds = {};
   let bad = 0;
   for (const v of cars) {
@@ -59,7 +60,7 @@ for (const [name, x, y] of SPOTS) {
   if (near) {
     world.player.x = near.x + Math.cos(near.angle + Math.PI / 2) * (near.model.wid / 2 + 1);
     world.player.y = near.y + Math.sin(near.angle + Math.PI / 2) * (near.model.wid / 2 + 1);
-    P.tickParkedCars(world);
+    PC.tickParkedCars(world);
     enter = findEnterableVehicle(world.player.x, world.player.y, world.vehicles) === near ? 'enterable' : 'NOT enterable';
   }
   const ok = cars.length > 0 && !bad && enter === 'enterable';
@@ -69,7 +70,7 @@ for (const [name, x, y] of SPOTS) {
 console.log('parked near the spots', JSON.stringify(total));
 // the farm tractors and quads over a 15 x 15 km band past the real data
 const farm = {};
-for (let bx = 14; bx < 30; bx++) for (let by = 14; by < 30; by++) for (const q of P.farmVehicleSpots(bx, by)) farm[q.model.name] = (farm[q.model.name] || 0) + 1;
+for (let bx = 14; bx < 30; bx++) for (let by = 14; by < 30; by++) for (const q of PC.farmVehicleSpots(bx, by)) farm[q.model.name] = (farm[q.model.name] || 0) + 1;
 console.log('farm vehicles in 256 polder blocks', JSON.stringify(farm));
 if (!farm.tractor || !farm.quad) fails++;
 
@@ -79,7 +80,7 @@ if (!farm.tractor || !farm.quad) fails++;
   const THREE = await import('three');
   const life = await import('../game/js/countrylife.js');
   const scene = new THREE.Scene();
-  const world = { map, vehicles: [], time: 0, player: { x: 1606, y: 9909, inVehicle: null }, paused: false };
+  const world = { map, vehicles: [], time: 0, player: { ...PO(1606, 9909), inVehicle: null }, paused: false };
   const types = {};
   let real = 0, onPose = 0, taken = 0, released = 0;
   for (let f = 0; f < 3000; f++) {

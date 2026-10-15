@@ -34,14 +34,11 @@ import time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from osmfetch import cached, map_bbox, bbox_str  # noqa: E402
+from world.rdnew import P, project as rd_project, FRAME  # noqa: E402
 
 OUT = "game/mapextras.json"
 MAP = "game/citymap.json"
 BBOX = (53.1975, 6.5225, 53.2525, 6.626)
-LAT0 = (53.204 + 53.235) / 2
-LON0 = (6.538 + 6.592) / 2
-M_PER_DEG_LAT = 110574.0
-M_PER_DEG_LON = 111320.0 * math.cos(math.radians(LAT0))
 OVERPASS_URLS = [
     "https://overpass-api.de/api/interpreter",
     "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
@@ -56,7 +53,7 @@ BUILDING_AREAS = {
 
 
 def project(lat, lon):
-    return [round((lon - LON0) * M_PER_DEG_LON, 1), round((LAT0 - lat) * M_PER_DEG_LAT, 1)]
+    return list(rd_project(lat, lon, 1))
 
 
 def fetch(query, cache, refresh):
@@ -436,26 +433,26 @@ def missing_buildings(existing, cands):
 # Named buildings that deserve more than the OSM default height, and the
 # EIKEA box (the real IKEA at the Sontweg, as a parody).
 PATCHES = [
-    {"at": [1573.0, 275.0], "set": {"name": "EIKEA", "landmark": "EIKEA", "landmarkKind": "store", "h": 5, "type": "retail"}},
-    {"at": [128.0, 110.0], "set": {"name": "Stadhuis", "h": 6, "type": "civic"}},
+    {"at": P(1573.0, 275.0), "set": {"name": "EIKEA", "landmark": "EIKEA", "landmarkKind": "store", "h": 5, "type": "retail"}},
+    {"at": P(128.0, 110.0), "set": {"name": "Stadhuis", "h": 6, "type": "civic"}},
     # Grote Markt facades and heights (marktgebouwen.js, docs/markt-gebouwen.md)
-    {"at": [172.5, 155.0], "set": {"markt": "drieGezusters36"}},
-    {"at": [179.8, 151.0], "set": {"markt": "drieGezusters37"}},
-    {"at": [188.8, 147.7], "set": {"name": "De Drie Gezusters", "markt": "drieGezusters39"}},
-    {"at": [167.3, 160.2], "set": {"markt": "grandTheatre"}},
-    {"at": [252.0, 78.0], "set": {"name": "Westcord Market Hotel", "markt": "marketHotel", "h": 6}},
-    {"at": [262.0, 110.0], "set": {"name": "Merckt"}},
-    {"at": [236.0, 55.0], "set": {"name": "Mutua Fides", "h": 5}},
-    {"at": [27.0, 270.0], "set": {"name": "Van Gend & Loos"}},
-    {"at": [85.0, -8.0], "set": {"h": 6}},
-    {"at": [85.0, 90.0], "set": {"markt": "nataliniTower"}},
+    {"at": P(172.5, 155.0), "set": {"markt": "drieGezusters36"}},
+    {"at": P(179.8, 151.0), "set": {"markt": "drieGezusters37"}},
+    {"at": P(188.8, 147.7), "set": {"name": "De Drie Gezusters", "markt": "drieGezusters39"}},
+    {"at": P(167.3, 160.2), "set": {"markt": "grandTheatre"}},
+    {"at": P(252.0, 78.0), "set": {"name": "Westcord Market Hotel", "markt": "marketHotel", "h": 6}},
+    {"at": P(262.0, 110.0), "set": {"name": "Merckt"}},
+    {"at": P(236.0, 55.0), "set": {"name": "Mutua Fides", "h": 5}},
+    {"at": P(27.0, 270.0), "set": {"name": "Van Gend & Loos"}},
+    {"at": P(85.0, -8.0), "set": {"h": 6}},
+    {"at": P(85.0, 90.0), "set": {"markt": "nataliniTower"}},
     # Prinsenhof and the DUO "Cruiseschip" (landmarks3d.js models) are taller than OSM says
-    {"at": [261.0, -151.0], "set": {"h": 4}},
-    {"at": [956.0, 1525.0], "set": {"h": 14}},
+    {"at": P(261.0, -151.0), "set": {"h": 4}},
+    {"at": P(956.0, 1525.0), "set": {"h": 14}},
     # Winkelcentrum Paddepoel (paddepoel3d.js): the shop blocks are 6.6 m to the
     # parapet, the 2026 supermarket and gym block 10.8 m; OSM's 3 levels said 9.3
     {"landmark": "Winkelcentrum Paddepoel", "set": {"h": 2.13}},
-    {"at": [-1416.0, -1094.0], "set": {"h": 3.48}},
+    {"at": P(-1416.0, -1094.0), "set": {"h": 3.48}},
 ]
 # Height fixes on ways with a height profile (add_elevation.py), applied by
 # mapdata.js applyMapExtras to every profiled road through that vertex.
@@ -463,8 +460,20 @@ ROAD_Z = [
     # Expositielaan's ramp up to the Leonard Springerlaan crossing: its
     # sidewalk runs under the west wall of the hall at -772,1922, so the
     # ramp is down to 0.28 m by then (5% up to the crossing instead of 2%)
-    {"at": [-779.4, 1906.6], "z": 0.28},
+    {"at": P(-779.4, 1906.6), "z": 0.28},
 ]
+
+
+def snap_road_z(fixes, roads):
+    """Each height fix onto the profiled road vertex it means (mapdata.js
+    matches to the decimetre; the hand-placed point is in the old frame)."""
+    out = []
+    for fx in fixes:
+        best = min(((q[0] - fx["at"][0]) ** 2 + (q[1] - fx["at"][1]) ** 2, q) for r in roads if r.get("z") for q in r["pts"])
+        if best[0] > 1.0:
+            raise SystemExit(f"road height fix {fx['at']}: no profiled road vertex within 1 m")
+        out.append({**fx, "at": list(best[1])})
+    return out
 
 
 def bounds_of(p):
@@ -525,7 +534,7 @@ def structure_patches(existing, roads):
     return out
 
 
-GROTE_MARKT = (130.0, 80.0)
+GROTE_MARKT = tuple(P(130.0, 80.0))
 CORE_R = 250.0
 
 
@@ -592,8 +601,8 @@ def build_fuel(raw):
 # Unverified sports-park spots used only when OSM has fewer than 2 padel
 # sites inside the map: (x, y, rotation, wijk).
 FALLBACK_PADEL = [
-    (1480.0, 1760.0, 0.0, "Sportpark Corpus den Hoorn"),
-    (-1450.0, -1150.0, 0.0, "Sportpark Kardinge"),
+    (*P(1480.0, 1760.0), 0.0, "Sportpark Corpus den Hoorn"),
+    (*P(-1450.0, -1150.0), 0.0, "Sportpark Kardinge"),
 ]
 PADEL_W, PADEL_L = 10.0, 20.0
 
@@ -711,7 +720,8 @@ if __name__ == "__main__":
     padel_raw = cached("data/extras_padel_raw.json", map_bbox(citymap["meta"]), padel_query)
     padel, padel_src = build_padel(padel_raw, citymap["meta"])
     hidden = structure_patches(citymap["buildings"], citymap["roads"])
-    out = {"busRoads": bus_roads, "busLanes": bus_lanes, "buildings": added, "buildingPatches": PATCHES + height_patches + core + hidden, "fuel": fuel_pts, "passages": passages, "padel": padel, "roadZ": ROAD_Z}
+    road_z = snap_road_z(ROAD_Z, citymap["roads"])
+    out = {"frame": FRAME, "busRoads": bus_roads, "busLanes": bus_lanes, "buildings": added, "buildingPatches": PATCHES + height_patches + core + hidden, "fuel": fuel_pts, "passages": passages, "padel": padel, "roadZ": road_z}
     with open(OUT, "w") as f:
         json.dump(out, f, separators=(",", ":"))
     print(f"busRoads={len(bus_roads)} busLanes={len(bus_lanes)} buildings+={len(added)} heights={len(height_patches)} hidden={len(hidden)} fuel={len(fuel_pts)} passages={len(passages)} padel={len(padel)} ({padel_src})")

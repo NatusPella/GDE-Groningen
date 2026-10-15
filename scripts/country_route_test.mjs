@@ -8,6 +8,7 @@
 //   node scripts/country_route_test.mjs [--verbose]
 import './node3d.mjs';
 import fs from 'node:fs';
+import { P, PL } from '../game/js/worldframe.js';
 
 const VERBOSE = process.argv.includes('--verbose');
 const DEBUG = process.argv.includes('--debug');
@@ -88,10 +89,10 @@ function offroad(pts) {
 // ---- the story's routes (as before)
 const padel = map.meta.padel[0];
 const STORY = [
-  ['centre -> carbid (Beijumerweg)', [0, 0], [1748, -3972]],
-  ['centre -> Rotor Roelf, Eelde', [0, 0], [1606, 9909]],
-  ['carbid -> padel in town', [1748, -3972], [padel.x, padel.y]],
-  ['Eelde -> Martinitoren', [1599, 9914], [0, 0]],
+  ['centre -> carbid (Beijumerweg)', P(0, 0), P(1748, -3972)],
+  ['centre -> Rotor Roelf, Eelde', P(0, 0), P(1606, 9909)],
+  ['carbid -> padel in town', P(1748, -3972), [padel.x, padel.y]],
+  ['Eelde -> Martinitoren', P(1599, 9914), P(0, 0)],
 ];
 let fails = 0;
 let clock = 0;
@@ -226,7 +227,7 @@ for (let n = 0; polderRoads.length < 400 && n < 100000; n++) {
   for (const s of [0, 1]) if (F.edgeRoad(bx, by, s)) polderRoads.push({ id: 100000 + polderRoads.length, kind: 'polder', name: 'polder', pts: s ? [[bx * B + C, by * B + C], [bx * B + C + B, by * B + C]] : [[bx * B + C, by * B + C], [bx * B + C, by * B + C + B]] });
 }
 const ROADS = process.argv.includes('--no-roads') ? [] : process.argv.includes('--lanes-only') ? realRoads.filter((r) => r.cycle) : [...realRoads, ...polderRoads];
-const FAR = [[1606, 9909], [0, 0], [-9000, -7000]];
+const FAR = PL([[1606, 9909], [0, 0], [-9000, -7000]]);
 const roadFails = [];
 let driven = 0, notInGraph = 0;
 const clockStep = (s) => { clock += s; };

@@ -5,6 +5,7 @@
 // uses (-33,-259.5) and a grid over all water in the city, in 16 headings.
 import './node3d.mjs';
 import fs from 'node:fs';
+import { P } from '../game/js/worldframe.js';
 
 const { GameMap, applyMapExtras } = await import('../game/js/mapdata.js');
 const { waterClearance, swimmerCanLeave } = await import('../game/js/waterindex.js');
@@ -45,9 +46,10 @@ function best(x, y) {
 }
 
 let fails = 0;
-const spot = best(-33, -259.5);
-console.log(`canal spot (-33,-259.5): in water ${inWaterPoly(map, -33, -259.5)}, best heading moves ${spot.toFixed(2)} m`);
-console.log('  per heading (deg:m):', Array.from({ length: 16 }, (_, a) => `${a * 22.5}:${swim(-33, -259.5, a * Math.PI / 8).toFixed(1)}`).join(' '));
+const [sx, sy] = P(-33, -259.5);
+const spot = best(sx, sy);
+console.log(`canal spot (${sx},${sy}): in water ${inWaterPoly(map, sx, sy)}, best heading moves ${spot.toFixed(2)} m`);
+console.log('  per heading (deg:m):', Array.from({ length: 16 }, (_, a) => `${a * 22.5}:${swim(sx, sy, a * Math.PI / 8).toFixed(1)}`).join(' '));
 if (!(spot > 1)) { fails++; console.log('FAIL canal spot: cannot swim away'); }
 
 let total = 0, stuck = [];

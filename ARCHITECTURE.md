@@ -8,6 +8,20 @@ The code is the source of truth; this file is the map.
 ## Units and coordinates
 
 - World units are meters. `x` is east, `y` is south.
+- The world frame is RD New (EPSG:28992) shifted to the old origin:
+  `x = RD_x − 233670`, `y = −(RD_y − 582075)` (`js/rdnew.js`, its Python twin
+  `scripts/world/rdnew.py`, bit-identical; `node scripts/rdnew_test.mjs`).
+  Grid north is 0.94° off true north round Stad (`GRID_CONVERGENCE`, used
+  by the sun in `daynight.js`). Up to 0.28 the frame was equirectangular
+  ("legacy"); `legacyToWorld` converts from it.
+- Map files carry `frame: 'rd-new'` (`citymap.json` meta, `mapextras.json`,
+  `ommeland.json`); the loaders log an error otherwise. Hand-placed
+  positions in code are written in the legacy frame through the helpers in
+  `js/worldframe.js` (`P(x, y)`, `{ ...PO(x, y) }`, `P3`, `PA` for headings,
+  `PL` for polylines, `PB` for boxes, `L` back to legacy for old
+  axis-aligned region tests). A new coordinate is either such a helper call
+  or a world-frame number. Building looks stay seeded on their legacy
+  centre (`b.sd`).
 - In 3D: `three.x = world.x`, `three.z = world.y`, `three.y` is up.
 - Angles are radians; `0` faces +x.
 - Building and terrain geometry bake absolute world coordinates into their
@@ -719,7 +733,10 @@ every step, `n -> n + 1`, on a copy, before anything reads it.
 - Save 3 (0.27): `radio` becomes `'on'`/`'off'`. Save 4 (0.28): `streken`
   (`{ v: 1, unlocked, on, used }`, cheats.js), filled for an older save with
   the streken its story already earned (`cheatlist.js` `cheatUnlocksFromSave`).
-  Save 5 (0.28, 18+): knockout counters back to kills.
+  Save 5 (0.28, 18+): knockout counters back to kills. Save 7 (0.29+, F0): the world frame
+  is RD New; the player, the own vehicles (with heading) and the goal marker
+  move to the same real place (`legacyToWorld`), and the save gets
+  `frame: 'rd-new'`.
 - `node scripts/save_migration_test.mjs` runs every fixture in
   `scripts/fixtures/saves/` (saves in the shape 0.4, 0.21, 0.22, 0.23 and 0.24
   wrote them, a save from the future, two old settings files) and checks that

@@ -26,6 +26,7 @@ import { KITCHEN, buildKitchen, buildAtmTrailer, buildWetBike, buildFrikandel, b
 import { logoHtml } from './logo.js';
 import { PARTS, partNumber } from './storyarc.js';
 import { homeSpawnPoint } from './home.js';
+import { PO } from './worldframe.js';
 import { KEYS } from './storagekeys.js';
 
 // Recorded montage dialogue: the story manifest ("<speaker>|<text>"), then the
@@ -557,9 +558,9 @@ function sfx(w, kind, x, y, extra = {}) {
   (w.audioEvents || (w.audioEvents = [])).push({ kind, x, y, ...extra });
 }
 
-function landmark(w, name, fx, fy) {
+function landmark(w, name, fb) {
   const lm = (w.map.meta.landmarks || []).find((l) => l.name === name);
-  return lm ? { x: lm.x, y: lm.y } : { x: fx, y: fy };
+  return lm ? { x: lm.x, y: lm.y } : fb;
 }
 
 // --- geometry helpers ---------------------------------------------------------------
@@ -646,16 +647,17 @@ function useKitchen(r, at) {
 // the Oosterparkwijk, Rikus on the radio, the kitchen table.
 function buildShots(w) {
   const map = w.map;
-  const tower = landmark(w, 'Martinitoren', 214, 13);
-  const vismarkt = landmark(w, 'Vismarkt', 13, 254);
-  const museum = landmark(w, 'Groninger Museum', 70.9, 798.3);
+  const tower = landmark(w, 'Martinitoren', { ...PO(214, 13) });
+  const vismarkt = landmark(w, 'Vismarkt', { ...PO(13, 254) });
+  const museum = landmark(w, 'Groninger Museum', { ...PO(70.9, 798.3) });
   // the Oosterpark itself (the park polygon in citymap.json) and Tammo's
   // street on its south-east edge: the Korenbloemstraat
-  const park = { x: 1156, y: -918 };
-  const home = street(map, 1320, -779);
+  const park = { ...PO(1156, -918) };
+  const homeSt = { ...PO(1320, -779) }, homeDoor = { ...PO(1320, -765) };
+  const home = street(map, homeSt.x, homeSt.y);
   const hf = { x: Math.cos(home.a), y: Math.sin(home.a) };
   let hn = { x: -hf.y, y: hf.x };
-  if (hn.x * (1320 - home.x) + hn.y * (-765 - home.y) < 0) hn = { x: -hn.x, y: -hn.y };
+  if (hn.x * (homeDoor.x - home.x) + hn.y * (homeDoor.y - home.y) < 0) hn = { x: -hn.x, y: -hn.y };
   const car = { x: home.x + hn.x * 2.3, y: home.y + hn.y * 2.3 };
   const attic = { x: home.x + hn.x * 9.5, y: home.y + hn.y * 9.5 };
   // the kitchen and the radio studio, high above the street
@@ -756,7 +758,8 @@ function buildShots(w) {
   };
 
   // a work boat fishes a bike out of the Diepenring
-  const bq = canalAt(canalNear(455, -51));
+  const bqNear = { ...PO(455, -51) };
+  const bq = canalAt(canalNear(bqNear.x, bqNear.y));
   const cn = { x: -Math.sin(bq.a), y: Math.cos(bq.a) };
   const boat = {
     minDur: 1.9, clock: 10.4, focus: bq,
@@ -779,7 +782,8 @@ function buildShots(w) {
   };
 
   // Tessa in the Herestraat, a cash machine on a trailer behind her: freeze
-  const here = street(map, 229, 402);
+  const hereSt = { ...PO(229, 402) };
+  const here = street(map, hereSt.x, hereSt.y);
   const rf = { x: Math.cos(here.a), y: Math.sin(here.a) }, rn = { x: -rf.y, y: rf.x };
   const lane = (d, off) => ({ x: here.x + rf.x * d + rn.x * off, y: here.y + rf.y * d + rn.y * off });
   const anitaCard = {
@@ -878,7 +882,8 @@ function buildShots(w) {
   };
 
   // flash: a tanker skids on the Europaweg
-  const eu = street(map, 1250, 578);
+  const euSt = { ...PO(1250, 578) };
+  const eu = street(map, euSt.x, euSt.y);
   const ef = { x: Math.cos(eu.a), y: Math.sin(eu.a) }, en = { x: -ef.y, y: ef.x };
   const tanker = {
     minDur: 1.5, clock: 14.2, focus: eu,

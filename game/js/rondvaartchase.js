@@ -19,6 +19,7 @@ import { playLineVoice } from './audio.js';
 import { lineVoiceFor } from './linevoice.js';
 import { TOUR_WELCOME, TOUR_STOPS, TOURIST_REACT, RV_SCENES } from './rondvaartlines.js';
 import { playDeckMoment } from './missionstory.js';
+import { P, PO, PA, PL } from './worldframe.js';
 
 // --- route ---------------------------------------------------------------------
 // Clockwise from the Spilsluizen. The eastern arc (Turfsingel, Schuitendiep,
@@ -27,7 +28,7 @@ import { playDeckMoment } from './missionstory.js';
 // grid-searched the same way over the water polygons minus houseboats,
 // passing the Groninger Museum south of the island between the piers of the
 // H.N. Werkmanbrug.
-const WEST = [
+const WEST = PL([
   [152, 826], [144, 829], [124, 833], [102, 834], [82, 836], [60, 836], [38, 836], [16, 836], [-6, 836], [-28, 836], [-48, 832],
   [-70, 829], [-90, 823], [-110, 815], [-126, 808], [-146, 800], [-164, 793], [-184, 785], [-202, 775], [-208, 773], [-214, 770],
   [-220, 769], [-240, 762], [-260, 755], [-280, 746], [-300, 738], [-308, 734], [-326, 726], [-334, 718], [-350, 704], [-364, 688],
@@ -39,15 +40,15 @@ const WEST = [
   [-328, -116], [-310, -126], [-290, -134], [-270, -143], [-250, -152], [-232, -161], [-214, -169], [-196, -178], [-178, -187],
   [-160, -196], [-140, -206], [-122, -216], [-118, -217], [-98, -224], [-78, -232], [-58, -241], [-38, -247], [-18, -256], [0, -267],
   [20, -275], [22, -276], [40, -288], [60, -296], [72, -300],
-];
+]);
 const FINISH_AT = 96; // WEST index of the finish, just short of the start berth
 
 // where the side job's line hugs one quay in the Schuitendiep, these pull it
 // back to mid-channel
-const MID_CHANNEL = [[505.4, 85], [504.4, 79.3], [502.4, 74], [558.7, 200.8], [555.7, 195.8], [553.1, 190.5], [611.8, 301.8], [608.3, 297.6], [605.8, 292.8], [603.2, 288.1]];
+const MID_CHANNEL = PL([[505.4, 85], [504.4, 79.3], [502.4, 74], [558.7, 200.8], [555.7, 195.8], [553.1, 190.5], [611.8, 301.8], [608.3, 297.6], [605.8, 292.8], [603.2, 288.1]]);
 
 const PTS = [
-  [-28, -251], ...WEST.slice(98, 103),
+  P(-28, -251), ...WEST.slice(98, 103),
   ...GIDS_LINE.slice().reverse(),
   ...WEST.slice(1, FINISH_AT + 1),
 ];
@@ -168,17 +169,17 @@ export function diepenringProgress(x, y, hint = null) {
 // Checkpoints under the Diepenring's bridges; `via` points in between keep
 // the minimap line and the guidance dots on the water.
 const CHECKPOINTS = [
-  { at: [229, -275], bridge: 'Maagdenbrug' },
-  { at: [455, -51], bridge: 'Sint Jansbrug' },
-  { at: [511, 111], bridge: 'Poelebrug' },
-  { at: [601, 283], bridge: 'Steentilbrug' },
-  { at: [719, 507], bridge: 'Trompbrug' },
-  { at: [353, 757], bridge: 'Herebrug' },
-  { at: [60, 836], bridge: 'H.N. Werkmanbrug' },
-  { at: [-208, 773], bridge: 'Emmabrug' },
-  { at: [-377, 316], bridge: 'A-brug' },
-  { at: [-452, 117], bridge: 'Visserbrug' },
-  { at: [-270, -143], bridge: "Kijk in 't Jatbrug" },
+  { at: P(229, -275), bridge: 'Maagdenbrug' },
+  { at: P(455, -51), bridge: 'Sint Jansbrug' },
+  { at: P(511, 111), bridge: 'Poelebrug' },
+  { at: P(601, 283), bridge: 'Steentilbrug' },
+  { at: P(719, 507), bridge: 'Trompbrug' },
+  { at: P(353, 757), bridge: 'Herebrug' },
+  { at: P(60, 836), bridge: 'H.N. Werkmanbrug' },
+  { at: P(-208, 773), bridge: 'Emmabrug' },
+  { at: P(-377, 316), bridge: 'A-brug' },
+  { at: P(-452, 117), bridge: 'Visserbrug' },
+  { at: P(-270, -143), bridge: "Kijk in 't Jatbrug" },
   { at: PTS[PTS.length - 1], bridge: 'Spilsluizen' },
 ];
 const VIA_STEP = 70;
@@ -211,7 +212,7 @@ export function rondvaartWaypoints() {
 // player tune for a long, heavy boat: slow to get going, wide in the bends.
 export const TOUR_BOAT = { ...BOAT_KINDS.rondvaart, maxSpeed: 7.4, accel: 1.7, brake: 2.3 };
 
-const BERTH_FALLBACK = { start: { x: -33.8, y: -261.6 }, boat: { x: -33.0, y: -259.5, angle: -0.37 } };
+const BERTH_FALLBACK = { start: { ...PO(-33.8, -261.6) }, boat: { ...PO(-33.0, -259.5), angle: PA(-33.0, -259.5, -0.37) } };
 
 export function rondvaartBerth(map) {
   const probe = { model: { len: TOUR_BOAT.len, wid: TOUR_BOAT.wid } };
@@ -498,7 +499,7 @@ function findBridges(map) {
     if (!on && inside) { inside = false; out.push((start + s) / 2); }
   }
   bridgeS = out;
-  werkmanS = sOf(60, 836);
+  werkmanS = sOf(...P(60, 836));
   return out;
 }
 

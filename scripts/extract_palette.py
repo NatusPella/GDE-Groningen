@@ -16,6 +16,9 @@ import random
 import numpy as np
 from PIL import Image
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from world.rdnew import meta_frame  # noqa: E402
+
 SAT_BBOX = dict(west=6.538, south=53.204, east=6.592, north=53.235)
 SAT_PATH = "data/satellite_reference.jpg"
 MAP_PATH = "game/citymap.json"
@@ -32,12 +35,10 @@ def main():
     with open(MAP_PATH) as f:
         data = json.load(f)
     meta = data["meta"]
-    lat0, lon0 = meta["origin"]["lat"], meta["origin"]["lon"]
-    m_per_lat, m_per_lon = meta["mPerDegLat"], meta["mPerDegLon"]
+    _, unproject = meta_frame(meta)
 
     def world_to_px(x, y):
-        lon = lon0 + x / m_per_lon
-        lat = lat0 - y / m_per_lat
+        lat, lon = unproject(x, y)
         px = (lon - SAT_BBOX["west"]) / (SAT_BBOX["east"] - SAT_BBOX["west"]) * iw
         py = (SAT_BBOX["north"] - lat) / (SAT_BBOX["north"] - SAT_BBOX["south"]) * ih
         return px, py

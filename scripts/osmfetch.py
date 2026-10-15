@@ -7,6 +7,9 @@ import subprocess
 import sys
 import time
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from world.rdnew import meta_bbox  # noqa: E402
+
 URLS = [
     "https://overpass-api.de/api/interpreter",
     "https://overpass.private.coffee/api/interpreter",
@@ -20,11 +23,7 @@ if os.environ.get("OVERPASS_URL"):
 
 def map_bbox(meta, pad=0.001):
     """(south, west, north, east) around the map bounds."""
-    lat0, lon0 = meta["origin"]["lat"], meta["origin"]["lon"]
-    m_lat, m_lon = meta["mPerDegLat"], meta["mPerDegLon"]
-    x0, y0, x1, y1 = meta["bounds"]
-    return (round(lat0 - y1 / m_lat - pad, 5), round(lon0 + x0 / m_lon - pad, 5),
-            round(lat0 - y0 / m_lat + pad, 5), round(lon0 + x1 / m_lon + pad, 5))
+    return meta_bbox(meta, pad, 5)
 
 
 def bbox_str(b):

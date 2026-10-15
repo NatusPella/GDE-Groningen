@@ -1,4 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { GRID_CONVERGENCE } from './rdnew.js';
 
 // world.clock: in-game hours 0..24. Advanced only from updateGameplay, so
 // the pause menu and map freeze time. world.dayNight is the derived,
@@ -8,8 +9,9 @@ export const DAY_LENGTH_S = 24 * 60;
 const START_HOUR = 17.5;
 const LATITUDE = 53.2 * Math.PI / 180;
 const DECLINATION = 15 * Math.PI / 180;
-// Horizontal sun bearing at solar noon, in three.js x/z space.
-const NOON_BEARING = -60 * Math.PI / 180;
+// Horizontal sun bearing at solar noon, in three.js x/z space: chosen for
+// the look against true north, turned onto the RD grid (rdnew.js).
+const NOON_BEARING = -60 * Math.PI / 180 + GRID_CONVERGENCE;
 
 export function initDayNight(world) {
   if (typeof world.clock !== 'number' || !isFinite(world.clock)) world.clock = START_HOUR;

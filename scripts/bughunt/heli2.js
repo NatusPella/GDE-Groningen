@@ -21,7 +21,7 @@
   w.devInvuln = true;
   SG.saveGame(w, { toast: false });
   // E in the air keeps you in
-  let v = await mk(100, 77, 'exit-air');
+  let v = await mk(...P(100, 77), 'exit-air');
   await tap('e'); await sleep(400);
   if (p.inVehicle !== v) issue('heli', 'E in the air let the player out at z ' + v.z.toFixed(1));
   // load mid-air
@@ -33,7 +33,7 @@
   await moved(() => hold(['w'], 900), 'walk after heli load');
   removeVeh(v);
   // death mid-air
-  v = await mk(400, 300, 'death');
+  v = await mk(...P(400, 300), 'death');
   w.devInvuln = false; CB.damagePlayer(w, 999);
   for (let i = 0; i < 160 && (w.pendingRespawn || cine.isCinematicActive()); i++) await sleep(250);
   w.devInvuln = true;
@@ -43,7 +43,7 @@
   await moved(() => hold(['w'], 900), 'walk after heli death');
   removeVeh(v);
   // unstuck mid-air
-  v = await mk(-300, 500, 'unstuck');
+  v = await mk(...P(-300, 500), 'unstuck');
   SF.unstuck(w); await sleep(1500);
   sane(v, 'after unstuck');
   log('heli after unstuck', JSON.stringify(window.__heli.state()), 'inV', !!p.inVehicle, 'pz', p.gz, p.z);
@@ -52,8 +52,8 @@
   if (p.inVehicle) p.exitVehicle(map, w);
   removeVeh(v);
   // into the canal
-  v = await mk(0, -300, 'canal');
-  v.x = -33; v.y = -259.5; p.x = v.x; p.y = v.y; await sleep(500);
+  v = await mk(...P(0, -300), 'canal');
+  [v.x, v.y] = P(-33, -259.5); p.x = v.x; p.y = v.y; await sleep(500);
   const t0 = performance.now();
   down('s'); try { while (!v.onGround && !v.sinking && !p.water && performance.now() - t0 < 15000) await sleep(200); } finally { up('s'); }
   await sleep(4000);

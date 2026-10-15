@@ -2,7 +2,7 @@
 {
   const SG = await imp('savegame'), MS = await imp('missions'), SU2 = await imp('shopui'), OF2 = await imp('dorpsuitjes');
   w.devInvuln = true;
-  teleport(100, 77); await sleep(1500);
+  teleport(...P(100, 77)); await sleep(1500);
   SG.saveGame(w, { toast: false });
   const gh = window.__geheimen;
   const door = gh.spots().kamer;

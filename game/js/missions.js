@@ -38,6 +38,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { addDrunk } from './drunk.js';
 import { klusloon, medalBonus } from './economy.js';
 import { startStunt, updateStunt, stopStunt, stuntStatus } from './stuntavond.js';
+import { P, PO } from './worldframe.js';
 
 // radio fragments a stage puts on Nachtstreek (storycontact.js, loaded lazily: it imports the UI)
 let contactMod = null;
@@ -99,7 +100,7 @@ function buildDefs(world) {
   const berth = rondvaartBerth(map);
   // H12: up the Oude Ebbingestraat from the Grote Markt to the Ebbingebrug, then
   // along the water (Spilsluizen, Lopendediep) to Oma Trijntje at the Noorderhaven
-  const fatStart = walk(118, -12), fatBridge = walk(30, -258), fatEnd = walk(-286, -111);
+  const fatStart = walk(...P(118, -12)), fatBridge = walk(...P(30, -258)), fatEnd = walk(...P(-286, -111));
   const laneLegs = [findWalkPath(map, fatStart.x, fatStart.y, fatBridge.x, fatBridge.y), findWalkPath(map, fatBridge.x, fatBridge.y, fatEnd.x, fatEnd.y)];
   const lanePts = laneLegs.every(Boolean) ? [...laneLegs[0].pts, ...laneLegs[1].pts.slice(1)] : [[fatStart.x, fatStart.y], [fatBridge.x, fatBridge.y], [fatEnd.x, fatEnd.y]];
   return [
@@ -115,8 +116,8 @@ function buildDefs(world) {
       vehicleName: 'Berends bakkie',
       destName: 'het Boterdiep',
       handBack: { how: 'drive', say: 'Berend pakt zijn sleutels terug en rijdt weg. Wij lopen, Tessa.' },
-      start: drive(224, -27),
-      dest: drive(-14, -489),
+      start: drive(...P(224, -27)),
+      dest: drive(...P(-14, -489)),
       say: 'De navigatie stuurt je om, via de Diepenring. Sectoren, sinds 1977. Berend heeft er een brief over gestuurd.',
     },
     {
@@ -127,8 +128,8 @@ function buildDefs(world) {
       timeLimit: 120,
       reward: 150,
       // stuntavond.js: the points to reach, on the square round `center`
-      stunt: { center: { x: 168, y: 72 }, radius: 46, target: 1500 },
-      start: walk(204, 113),
+      stunt: { center: { ...PO(168, 72) }, radius: 46, target: 1500 },
+      start: walk(...P(204, 113)),
     },
     {
       type: 'checkpoint',
@@ -157,12 +158,12 @@ function buildDefs(world) {
       timeLimit: 110,
       reward: 850,
       fragile: { label: 'Decor', per: 1.8, failAt: 30, fail: 'het decor ligt in scherven. Het wordt moderne dans' },
-      stops: [{ ...drive(96, -318), name: 'de Stadsschouwburg', bonus: 25, arrive: 'De acteurs springen achterin, tussen het decor. "Rustig rijden, hè!"' }],
+      stops: [{ ...drive(...P(96, -318)), name: 'de Stadsschouwburg', bonus: 25, arrive: 'De acteurs springen achterin, tussen het decor. "Rustig rijden, hè!"' }],
       vehicleName: 'de decorauto',
       destName: 'het Noorderplantsoen',
       handBack: { how: 'park', say: 'De decorauto blijft hier, Femke laadt hem uit. Wij gaan te voet verder.' },
-      start: drive(787, -95),
-      dest: drive(189, -590),
+      start: drive(...P(787, -95)),
+      dest: drive(...P(189, -590)),
     },
     {
       type: 'checkpoint',
@@ -188,17 +189,17 @@ function buildDefs(world) {
       reward: 600,
       onFoot: true,
       drunk: 0.2, // per pub, drunk.js
-      crowds: [walk(279, 124), walk(392, 122), walk(412, 186), walk(378, 222), walk(240, 132)],
-      start: walk(250, 115),
+      crowds: [walk(...P(279, 124)), walk(...P(392, 122)), walk(...P(412, 186)), walk(...P(378, 222)), walk(...P(240, 132))],
+      start: walk(...P(250, 115)),
       waypoints: [
-        via(walk(304.3, 130.9)),
-        kroeg('Café De Lallende Koe', 368, 118.6, { glass: 'beer', variant: 0, lines: [['A', 'Proost!']] }),
-        via(walk(416.2, 125.8)),
-        kroeg("Kroeg 't Scheve Toorntje", 410.5, 170.9, { glass: 'wine', variant: 1, lines: [['T', 'Op Grunn.']] }),
-        via(walk(431.2, 182.1)), via(walk(393.9, 194.8)), via(walk(399.8, 210.6)), via(walk(365.9, 223)),
-        kroeg('Nachtcafé De Uil van Half Vier', 352.6, 224.7, { glass: 'jenever', variant: 2, lines: [] }),
-        via(walk(316.1, 243.9)), via(walk(262.2, 128.3)),
-        kroeg('Café De Dikke Duif', 213.6, 135.9, { glass: 'beer', variant: 3, lines: [['T', 'Op de laatste.']] }),
+        via(walk(...P(304.3, 130.9))),
+        kroeg('Café De Lallende Koe', ...P(368, 118.6), { glass: 'beer', variant: 0, lines: [['A', 'Proost!']] }),
+        via(walk(...P(416.2, 125.8))),
+        kroeg("Kroeg 't Scheve Toorntje", ...P(410.5, 170.9), { glass: 'wine', variant: 1, lines: [['T', 'Op Grunn.']] }),
+        via(walk(...P(431.2, 182.1))), via(walk(...P(393.9, 194.8))), via(walk(...P(399.8, 210.6))), via(walk(...P(365.9, 223))),
+        kroeg('Nachtcafé De Uil van Half Vier', ...P(352.6, 224.7), { glass: 'jenever', variant: 2, lines: [] }),
+        via(walk(...P(316.1, 243.9))), via(walk(...P(262.2, 128.3))),
+        kroeg('Café De Dikke Duif', ...P(213.6, 135.9), { glass: 'beer', variant: 3, lines: [['T', 'Op de laatste.']] }),
       ],
     },
     {
@@ -239,7 +240,7 @@ function buildDefs(world) {
       timeLimit: null,
       reward: 400,
       vehicle: 'car',
-      start: drive(229, 402),
+      start: drive(...P(229, 402)),
       stages: [
         { kind: 'board', label: 'Stap in de auto met de automaat', say: 'Instappen: de automaat ligt achterin, met mijn pas erin. Hij piept een beetje.' },
         { kind: 'garage', stars: 2, target: { garage: true }, label: 'Naar Spuit & Klaar voor een nieuwe kleur', say: 'Alarm! Twee sterren. Rij een garage in: Spuit & Klaar spuit hem om en de pliesie is je kwijt.' },
@@ -253,13 +254,13 @@ function buildDefs(world) {
       outro: 'Drie camera\'s, twee bewakers en een zwarte trekker-limo bij de achteringang.',
       timeLimit: 200,
       reward: 350,
-      start: walk(-58, 890),
+      start: walk(...P(-58, 890)),
       startSpot: 'station',
       stages: [
         {
           kind: 'pigeon', spot: 'station', label: 'Spot het museum van boven', say: 'Eerst even wennen: W/S hoger en lager, muis sturen, Shift sneller. Zweef boven het plein, dan door naar het museum.',
           targets: [
-            { at: [-60, 858], label: 'Vliegles: zweef boven het Stationsplein' },
+            { at: P(-60, 858), label: 'Vliegles: zweef boven het Stationsplein' },
             { landmark: 'Groninger Museum', off: [-30, -22], label: 'Camera bij de noordgevel' },
             { landmark: 'Groninger Museum', off: [34, -8], label: 'Camera op de gouden toren' },
             { landmark: 'Groninger Museum', off: [18, 34], label: 'Camera bij de brug' },
@@ -280,7 +281,7 @@ function buildDefs(world) {
       // midnight: three minutes without cameras, from the fuse box until the case is open
       // once over time: 90 s more (the companion resets the fuse box), then it fails
       window: { after: 'fuse', until: 'crack', secs: 180, extra: 90, label: 'camera\'s uit', extend: 'De camera\'s gaan weer aan! Ik zet ze nog één keer op herhaling: anderhalve minuut. Opschieten!', late: 'de tijd is om. De camera\'s staan weer aan' },
-      start: walk(18, 736),
+      start: walk(...P(18, 736)),
       heist: { fuse: { landmark: 'Groninger Museum', off: [-29, -38], snap: 'walk' }, vitrine: { landmark: 'Groninger Museum', off: [3, 17] } },
       // heist.js: the plan picks the approach; stages with `only` belong to one of them
       stages: [
@@ -326,7 +327,7 @@ function buildDefs(world) {
         {
           kind: 'escape', stars: 2, label: 'Naar de kade bij het Hoofdstation', say: 'Jij stuurt, ik kijk achterom. Schud die pliesie af en leg aan bij het station. Daar zijn we gewoon reizigers.',
           // a mooring on the Verbindingskanaal in front of the station: the run ends there, once the police are gone
-          target: { x: -40, y: 849, label: 'Kade bij het Hoofdstation' }, dock: 14, mode: 'boat',
+          target: { ...PO(-40, 849), label: 'Kade bij het Hoofdstation' }, dock: 14, mode: 'boat',
           // Nachtstreek, live, while they flee: Jelle calls in
           radio: { caller: 'Een beller uit Ljouwert', lines: [
             ['rikus', 'We hebben een beller. Uit… Ljouwert?'],
@@ -348,7 +349,7 @@ function buildDefs(world) {
       timeLimit: null,
       reward: 950,
       vehicle: 'car',
-      start: drive(1149, 422),
+      start: drive(...P(1149, 422)),
       handBack: { how: 'park', say: 'De tankwagen blijft bij de Oosterpoort, voor de frituurpannen. Wij lopen verder.' },
       stages: [
         { kind: 'board', label: 'Stap in de auto', say: 'Instappen, Femke heeft hem voor ons klaargezet. De tankwagen staat bij de groothandel.' },
@@ -357,13 +358,13 @@ function buildDefs(world) {
           // Jumping in (`hijack`) takes it there and then, and the run goes on to the Oosterpoort.
           kind: 'chase', label: 'Kaap de tankwagen of schiet zijn banden plat', say: 'Naar de groothandel aan de Bornholmstraat. Daar laden Durk en Douwe de tankwagen vol.',
           vehicle: { name: 'truck', tank: true, livery: 'usmemvet', len: 7.2, wid: 2.35, maxSpeed: 24, accel: 4.5, brake: 14, turnRate: 1.5, color: '#e6c21a' },
-          name: 'Tankwagen Us Mem Vet', from: [1896, 364], lead: 6, hits: 70, flee: [-2600, 600], cruise: 15.5, escape: 380, time: 180,
+          name: 'Tankwagen Us Mem Vet', from: P(1896, 364), lead: 6, hits: 70, flee: P(-2600, 600), cruise: 15.5, escape: 380, time: 180,
           parked: 60, parkedLabel: 'Naar de groothandel aan de Bornholmstraat', go: 'Ze zien ons! Daar gaat hij. Erin springen, of de banden plat. Schieten mag, rammen mag.',
           stopped: 'Pang! Banden plat. Durk en Douwe springen eruit en fietsen weg, allebei op één fatbike.',
           hijack: 'Gekaapt! Durk en Douwe rollen eruit en fietsen weg, allebei op één fatbike. Het vet is van ons.',
         },
         { kind: 'board', label: 'Kaap de tankwagen', say: 'Hij staat stil. Instappen, het vet is van ons. Van Grunn, bedoel ik.' },
-        { kind: 'goto', target: { at: [610, 668], snap: 'drive', label: 'De Oosterpoort' }, mode: 'vehicle', stop: 1, label: 'Breng de tankwagen naar de Oosterpoort', say: 'Rustig rijden, met platte banden. Naar de Oosterpoort, daar wachten de frituurpannen.', sayHijacked: 'Naar de Oosterpoort, daar wachten de frituurpannen. En rustig, hè: het is een tankwagen.' },
+        { kind: 'goto', target: { at: P(610, 668), snap: 'drive', label: 'De Oosterpoort' }, mode: 'vehicle', stop: 1, label: 'Breng de tankwagen naar de Oosterpoort', say: 'Rustig rijden, met platte banden. Naar de Oosterpoort, daar wachten de frituurpannen.', sayHijacked: 'Naar de Oosterpoort, daar wachten de frituurpannen. En rustig, hè: het is een tankwagen.' },
         {
           kind: 'vault', label: 'Jelle',
           lines: [['jelle', 'Moai, Grinzers. Mijn vet. Mijn tankwagen. Mijn dag.'], ['A', 'Was, Jelle. Het vet blijft in Grunn.'],
@@ -380,7 +381,7 @@ function buildDefs(world) {
       timeLimit: 240,
       reward: 600,
       // moved onto the Martinitoren pigeon spot once that exists (resolveSpotStarts)
-      start: walk(205, 52),
+      start: walk(...P(205, 52)),
       startSpot: 'martini',
       stages: [
         {
@@ -427,7 +428,7 @@ function buildDefs(world) {
       // starts at your rented boat, wherever it is moored (updateMissions)
       startAt: 'rental',
       triggerRadius: 9,
-      start: walk(741, 418),
+      start: walk(...P(741, 418)),
       stages: [
         { kind: 'goto', target: { rental: true }, mode: 'any', radius: 9, label: 'Naar je huurboot', say: 'Naar de huurboot. Het skûtsje gooit zo los.' },
         { kind: 'goto', target: { route: true, label: 'De Diepenring' }, mode: 'boat', radius: 30, label: 'Vaar de Diepenring op', say: 'Varen! De Diepenring op, daar komt het skûtsje langs.' },
@@ -461,7 +462,7 @@ function buildDefs(world) {
       timeLimit: null,
       reward: 1500,
       // one flight in Rotor Roelf's demo heli: off from his pad on Eelde (resolveSpotStarts)
-      start: { x: 1599, y: 9914, road: null },
+      start: { ...PO(1599, 9914), road: null },
       startSpot: 'eelde',
       stages: [
         { kind: 'heli', variant: 'traumaduif', target: { helipad: 'eelde', label: 'Rotor Roelf, Eelde' }, label: 'Vlieg naar het UMCG, dan achter de ballon aan', say: 'Instappen bij Roelf. Spatie omhoog, W vooruit, A/D draaien. De rest staat in beeld.', lost: 'de ballon is ontsnapt, richting de Ommelanden' },
@@ -478,10 +479,10 @@ function buildDefs(world) {
       fjordTrain: true,
       // Tessa alone: Tammo stays behind with the klomp
       solo: true,
-      start: drive(-60, 868),
+      start: drive(...P(-60, 868)),
       stages: [
         {
-          kind: 'goto', target: { at: [-170, 905], snap: 'walk', label: 'De Westerhaven' }, mode: 'any', radius: 14, label: 'Naar de Westerhaven: daar zag Jelmers chat een rode auto', say: 'Jelmers chat zag een rode auto bij de Westerhaven. Erheen, en vraag rond.',
+          kind: 'goto', target: { at: P(-170, 905), snap: 'walk', label: 'De Westerhaven' }, mode: 'any', radius: 14, label: 'Naar de Westerhaven: daar zag Jelmers chat een rode auto', say: 'Jelmers chat zag een rode auto bij de Westerhaven. Erheen, en vraag rond.',
           // Mem Terpstra calls Nachtstreek while Tessa looks
           radio: { caller: 'Gerda Terpstra, Ljouwert', lines: [
             ['mem', 'Rikus. Gerda Terpstra, Ljouwert. Myn soan hat dy reade auto op de trein nei Ljouwert set. Zeg tegen dat famke: perron 3.', { card: 'mem', clue: true }],
@@ -490,7 +491,7 @@ function buildDefs(world) {
           ] },
         },
         {
-          kind: 'scene', label: 'Rondvragen', target: { at: [-170, 905], snap: 'walk' }, solo: true,
+          kind: 'scene', label: 'Rondvragen', target: { at: P(-170, 905), snap: 'walk' }, solo: true,
           kicker: 'De Westerhaven', cast: [{ key: 'hilly', pose: 'point', at: [2.1, 0] }],
           lines: [
             ['hilly', 'Rooie auto? Mit twij grode kerels der in? Dij binnen net richten stasjon reden.'],
@@ -499,12 +500,12 @@ function buildDefs(world) {
             ['A', 'De Escapade heeft nog die oude zender van Henk. Hij piept. Achter het station!', { clue: true }],
           ],
         },
-        { kind: 'goto', target: { at: [-10, 876], snap: 'walk', label: 'Achter het station' }, mode: 'any', radius: 16, label: 'Volg het piepje van de zender naar achter het station', say: 'Het piepje wordt sneller. Achter het station, bij de goederentrein. Perron 3.' },
+        { kind: 'goto', target: { at: P(-10, 876), snap: 'walk', label: 'Achter het station' }, mode: 'any', radius: 16, label: 'Volg het piepje van de zender naar achter het station', say: 'Het piepje wordt sneller. Achter het station, bij de goederentrein. Perron 3.' },
         { kind: 'board', label: 'Stap in de auto', say: 'Jelmer heeft zijn auto laten staan. Instappen, ze rijden weg!' },
         {
           kind: 'chase', label: 'Stop de Escapade', say: 'Achter ze aan! Ram hem tot hij stilstaat, voordat hij op de trein staat. Niet op Tammo\'s auto schieten, hè!',
           vehicle: { name: 'escort', len: 4.0, wid: 1.65, maxSpeed: 50, accel: 9, brake: 22, turnRate: 3.2, color: '#a11f1f' },
-          hero: true, name: 'De Escapade', lead: 45, hits: 60, health: 170, flee: [-2600, 700], cruise: 16.5, escape: 380, time: 45,
+          hero: true, name: 'De Escapade', lead: 45, hits: 60, health: 170, flee: P(-2600, 700), cruise: 16.5, escape: 380, time: 45,
           toTrain: true, loaded: 'Ze rijden de Escapade zo de goederentrein op! Die gaat naar Ljouwert.', late: 'Te laat: de Escapade staat al op de goederentrein naar Ljouwert!',
           meter: 'Escapade', clock: 'trein', half: 'Hij slingert! Durk krijgt de zenuwen.',
           stopped: 'De Escapade staat stil. Durk en Douwe springen eruit en fietsen weg, allebei op één fatbike.',
@@ -529,12 +530,12 @@ function buildDefs(world) {
       outro: 'Alles is binnen, de eieren zijn heel. En ze weten wat ze met de Eierbal doen als ze winnen.',
       timeLimit: null,
       reward: 600,
-      start: walk(-40, 872),
+      start: walk(...P(-40, 872)),
       eggs: { from: 2, failAt: 25, fail: 'omelet op de achterbank. Zo win je geen snackprijs' },
       stages: [
         { kind: 'goto', target: { shop: 'super' }, mode: 'any', stop: 0.8, pay: 60, paid: 'Groninger mosterd, drie potten', label: 'Mosterd halen bij Nait Duur', say: 'Eerst mosterd. Echte Groninger, bij Nait Duur.' },
-        { kind: 'goto', target: { at: [1010, 1537], snap: 'walk', label: 'Volkstuin' }, mode: 'any', stop: 0.8, pay: 90, paid: 'Twaalf eieren van de kippen van Bert', label: 'Verse eieren bij de volkstuin', say: 'Nu eieren. De kippen bij Berts duiventil leggen de beste van Grunn.' },
-        { kind: 'goto', target: { at: [675, 1257], snap: 'walk', label: 'Bakker Deeg & Deugd' }, mode: 'any', stop: 0.8, pay: 150, paid: 'Stoetbrood van gisteren, voor de korst', label: 'Stoetbrood bij Bakker Deeg & Deugd', say: 'Eieren achterin. Rustig rijden, niet remmen als een pion. Door naar de bakker.' },
+        { kind: 'goto', target: { at: P(1010, 1537), snap: 'walk', label: 'Volkstuin' }, mode: 'any', stop: 0.8, pay: 90, paid: 'Twaalf eieren van de kippen van Bert', label: 'Verse eieren bij de volkstuin', say: 'Nu eieren. De kippen bij Berts duiventil leggen de beste van Grunn.' },
+        { kind: 'goto', target: { at: P(675, 1257), snap: 'walk', label: 'Bakker Deeg & Deugd' }, mode: 'any', stop: 0.8, pay: 150, paid: 'Stoetbrood van gisteren, voor de korst', label: 'Stoetbrood bij Bakker Deeg & Deugd', say: 'Eieren achterin. Rustig rijden, niet remmen als een pion. Door naar de bakker.' },
         { kind: 'goto', target: { landmark: 'Grote Markt', off: [20, -5], snap: 'walk' }, mode: 'any', stop: 0.8, label: 'Naar de kraam op de Grote Markt', say: 'Alles binnen. Naar de kraam op de Grote Markt, en heel voorzichtig.' },
       ],
     },
@@ -546,7 +547,7 @@ function buildDefs(world) {
       timeLimit: null,
       reward: 4000,
       vehicle: 'car',
-      start: drive(175, 118),
+      start: drive(...P(175, 118)),
       stages: [
         {
           kind: 'hold', target: { landmark: 'Grote Markt', off: [20, -5], snap: 'walk' }, radius: 9, time: 30, mode: 'foot',
@@ -568,14 +569,14 @@ function buildDefs(world) {
           // into the fireworks; the torenwachter reports every street, then Tammo whistles
           kind: 'chase', label: 'Haal de trekker-limo van Jelle in: blijf erbij, dan fluit Tammo de duiven', say: 'Achter die trekker aan! Blijf erbij, ram hem als het kan. Niet schieten, er is kermis.',
           vehicle: { name: 'trekkerlimo', len: 5.6, wid: 2.0, maxSpeed: 40, accel: 7, brake: 14, turnRate: 2.1, color: '#1b1c1f' },
-          name: 'Trekker-limo van Jelle', from: [19, 97], lead: 6, hits: 90, flee: [-1900, -900], cruise: 14, escape: 500, time: 300,
+          name: 'Trekker-limo van Jelle', from: P(19, 97), lead: 6, hits: 90, flee: P(-1900, -900), cruise: 14, escape: 500, time: 300,
           meter: 'trekker', block: true,
           route: [
-            { at: [-60, -40], radio: { caller: 'De torenwachter, d\'Olle Grieze', lines: [['torenwachter', 'Trekker, Oude Boteringestraat. Ik meld alleen.']] } },
-            { at: [-140, -188], radio: { caller: 'De torenwachter, d\'Olle Grieze', lines: [['torenwachter', 'Trekker, Boteringebrug. Over het water, de bocht te ruim. Ik meld alleen.']] } },
-            { at: [28, -262], radio: { caller: 'De torenwachter, d\'Olle Grieze', lines: [['torenwachter', 'Trekker, Spilsluizen. Hij rijdt een rondje om de toren. Ik meld alleen.']] } },
-            { at: [70, -150], radio: { caller: 'De torenwachter, d\'Olle Grieze', lines: [['torenwachter', 'Trekker, Oude Ebbingestraat. Terug naar de markt, recht onder het vuurwerk door.']] } },
-            { at: [112, -29] },
+            { at: P(-60, -40), radio: { caller: 'De torenwachter, d\'Olle Grieze', lines: [['torenwachter', 'Trekker, Oude Boteringestraat. Ik meld alleen.']] } },
+            { at: P(-140, -188), radio: { caller: 'De torenwachter, d\'Olle Grieze', lines: [['torenwachter', 'Trekker, Boteringebrug. Over het water, de bocht te ruim. Ik meld alleen.']] } },
+            { at: P(28, -262), radio: { caller: 'De torenwachter, d\'Olle Grieze', lines: [['torenwachter', 'Trekker, Spilsluizen. Hij rijdt een rondje om de toren. Ik meld alleen.']] } },
+            { at: P(70, -150), radio: { caller: 'De torenwachter, d\'Olle Grieze', lines: [['torenwachter', 'Trekker, Oude Ebbingestraat. Terug naar de markt, recht onder het vuurwerk door.']] } },
+            { at: P(112, -29) },
           ],
           // a third on the meter, 25 s close behind it, boxed in, or back at the market with you near: the pigeons
           swarm: {

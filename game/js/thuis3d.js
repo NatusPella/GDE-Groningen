@@ -2,6 +2,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { registerBuildingModel, modelKit, LANDMARK_MATERIALS } from './landmarks3d.js';
 import { GeoBuilder } from './pixelart3d.js';
 import { pointInPolygon, closestPointOnSegment } from './util.js';
+import { P } from './worldframe.js';
 
 // The real look of Tammo and Tessa's two homes, as models for the buildings
 // home.js tags (b.model):
@@ -439,9 +440,10 @@ export function tagKorenbloemstraat(map) {
   const [a, c] = [road.pts[0], road.pts[road.pts.length - 1]];
   const L = Math.hypot(c[0] - a[0], c[1] - a[1]);
   const dir = [(c[0] - a[0]) / L, (c[1] - a[1]) / L];
-  const q = closestPointOnSegment(1320, -779, a[0], a[1], c[0], c[1]);
+  const q = closestPointOnSegment(...P(1320, -779), a[0], a[1], c[0], c[1]);
   let hn = [-dir[1], dir[0]];
-  if (hn[0] * (1320 - q.x) + hn[1] * (-765 - q.y) < 0) hn = [-hn[0], -hn[1]];
+  const [px, py] = P(1320, -765);
+  if (hn[0] * (px - q.x) + hn[1] * (py - q.y) < 0) hn = [-hn[0], -hn[1]];
   const attic = [q.x + hn[0] * 9.5, q.y + hn[1] * 9.5];
   let home = null;
   const mid = [(a[0] + c[0]) / 2, (a[1] + c[1]) / 2];
@@ -477,24 +479,24 @@ export function tagPleiadenlaan(map, { tower, frame, plinth, lobby }) {
   tower.model = 'hogToren';
   tower.modelFrame = { corners: frame, closed };
   tower._geo3dParts = null;
-  const atlas = map.buildingsNear(-1276, -1056, 30).find((b) => b.name === 'Atlas');
+  const atlas = map.buildingsNear(...P(-1276, -1056), 30).find((b) => b.name === 'Atlas');
   if (atlas) {
     atlas.model = 'atlasToren';
     atlas.modelFrame = { closed };
     atlas._geo3dParts = null;
   }
   // the 1960s gallery flats a few streets north
-  for (const b of map.buildingsNear(-1460, -1385, 160)) {
+  for (const b of map.buildingsNear(...P(-1460, -1385), 160)) {
     if (b.model || !['Polluxflat', 'Castorflat', 'Morgensterflat'].includes(b.name)) continue;
     b.model = 'galerij60';
     b._geo3dParts = null;
   }
-  const canopy = (map.canopies || []).find((c) => pointInPolygon(-1314, -1075, c.pts));
+  const canopy = (map.canopies || []).find((c) => pointInPolygon(...P(-1314, -1075), c.pts));
   if (canopy) canopy.custom = (m) => buildPeutCanopy(canopy, m);
-  const shop = map.buildingsNear(-1327, -1058, 20).find((b) => pointInPolygon(-1327, -1058, b.pts) && b.h <= 3);
+  const shop = map.buildingsNear(...P(-1327, -1058), 20).find((b) => pointInPolygon(...P(-1327, -1058), b.pts) && b.h <= 3);
   if (shop) {
     shop.model = 'peutShop';
-    shop.modelFrame = { toward: [-1314, -1075] };
+    shop.modelFrame = { toward: P(-1314, -1075) };
     shop._geo3dParts = null;
   }
 }

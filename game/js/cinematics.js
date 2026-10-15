@@ -17,6 +17,7 @@ import { registerNarrative } from './narrative.js';
 import { lineVoiceFor } from './linevoice.js';
 import { getFollowPose, prewarmStreamAt } from './scene3d.js';
 import { KEYS } from './storagekeys.js';
+import { PB } from './worldframe.js';
 
 // world.cameraOverride poses use map coordinates: x/y on the map, z = height in metres.
 // world.timeScale (0..1) slows gameplay; main.js multiplies the gameplay dt by it.
@@ -195,7 +196,7 @@ function poseFocus(pose) {
 
 // Cutscene camera poses off the world (city plus Ommeland extent) or NaN:
 // one entry per cinematic id, for the story test.
-const WORLD_EXTENT = [-12100, -13300, 12600, 10700];
+const WORLD_EXTENT = PB([-12100, -13300, 12600, 10700]);
 const poseIssues = new Map();
 function notePose(id, pose) {
   const P = pose.position, L = pose.lookAt;

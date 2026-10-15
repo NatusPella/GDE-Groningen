@@ -37,6 +37,7 @@ import { poseHeliRotors, updateHeliDust } from './heli3d.js';
 import { getScene } from './scene3d.js';
 import { unlockAchievement } from './achievements.js';
 import { helipadInfo } from './skyprops.js';
+import { PB } from './worldframe.js';
 
 export const HELI_MODEL = { name: 'heli', len: 8.8, wid: 2.1, maxSpeed: 40, accel: 7, brake: 9, turnRate: 1.5 };
 
@@ -172,7 +173,7 @@ function hurt(v, dmg, byWorld) {
 function mapEdge(map) {
   if (REAL.ready && REAL.ext) return REAL.ext;
   const b = map.meta && map.meta.bounds;
-  return b || [-3000, -3800, 4200, 2600];
+  return b || PB([-3000, -3800, 4200, 2600]);
 }
 
 // --- flight --------------------------------------------------------------------
@@ -376,7 +377,7 @@ function onTouchdown(v, surf, w) {
 }
 
 function outsideCity(map, x, y) {
-  if (!cityBounds) cityBounds = (map.meta && map.meta.bounds) || [-3000, -3800, 4200, 2600];
+  if (!cityBounds) cityBounds = (map.meta && map.meta.bounds) || PB([-3000, -3800, 4200, 2600]);
   const B = cityBounds;
   return x < B[0] || x > B[2] || y < B[1] || y > B[3];
 }

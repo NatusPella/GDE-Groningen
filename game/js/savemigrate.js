@@ -13,8 +13,9 @@
 import { RETIRED_STEPS, STEP_BY_ID, MISSION_IDS, nextStoryStep } from './storyarc.js';
 import { normalizeRadio } from './musicpick.js';
 import { cheatUnlocksFromSave, RETIRED_CHEATS } from './cheatlist.js';
+import { legacyToWorld, legacyAngleToWorld } from './rdnew.js';
 
-export const SAVE_VERSION = 6;
+export const SAVE_VERSION = 7;
 export const SETTINGS_VERSION = 8;
 
 const isObj = (o) => !!o && typeof o === 'object' && !Array.isArray(o);
@@ -96,6 +97,24 @@ export const SAVE_MIGRATIONS = {
     sk.unlocked = keep(sk.unlocked);
     sk.on = keep(sk.on);
     sk.used = keep(sk.used);
+    return d;
+  },
+  // 0.29: the world frame is RD New (rdnew.js, PROVINCIE-PLAN 1.5). The
+  // player, the own vehicles (with heading) and the goal marker move to the
+  // same real place in the new frame.
+  6(d) {
+    const dm = (v) => Math.round(v * 10) / 10;
+    const move = (o, withAngle) => {
+      if (!isObj(o) || !Number.isFinite(o.x) || !Number.isFinite(o.y)) return;
+      if (withAngle && Number.isFinite(o.angle)) o.angle = dm(legacyAngleToWorld(o.x, o.y, o.angle));
+      const [x, y] = legacyToWorld(o.x, o.y);
+      o.x = dm(x);
+      o.y = dm(y);
+    };
+    move(d.pos, false);
+    if (isObj(d.shops) && Array.isArray(d.shops.vehicles)) for (const v of d.shops.vehicles) move(v, true);
+    move(d.doel, false);
+    d.frame = 'rd-new';
     return d;
   },
 };

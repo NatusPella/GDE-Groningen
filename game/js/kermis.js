@@ -12,6 +12,7 @@ import { ambientOut } from './audio.js';
 import { activityBlock, iconDisc } from './activitykit.js';
 import { KERMIS_LINES, BOTS_BUMPED, BOTS_HIT, KERMIS_NEWS, KERMIS_TWINS } from './funlines.js';
 import { DURK_LOOK, DOUWE_LOOK } from './storycast.js';
+import { PO, PA } from './worldframe.js';
 
 // Kermis op de Grote Markt. The botsautotent of kermisbaas Jan stands on
 // the south side of the square all the time (always open, €3 a ride);
@@ -22,7 +23,7 @@ import { DURK_LOOK, DOUWE_LOOK } from './storycast.js';
 // for every bump you give, more for a fast one or one in a flank, a combo
 // for quick ones in a row. `window.__kermis` debug.
 
-const K = { x: 172, y: 110, rot: 0 };
+const K = { ...PO(172, 110), rot: PA(172, 110, 0) };
 const HU = 10, HV = 6;
 const CAR_R = 0.92;
 const RIDE_S = 75;

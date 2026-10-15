@@ -9,6 +9,7 @@ import { GeoBuilder, vcMaterial } from './pixelart3d.js';
 import { pointInPolygon } from './util.js';
 import { MUSEUM_ROOMS, MUSEUM_CASE, rectDist } from './museumplan.js';
 import { registerPortalBoxes, registerInterior } from './portalcut3d.js';
+import { PO } from './worldframe.js';
 
 const G_SOLID = 0, G_LAMP = 1;
 const SHOW_RADIUS = 95;
@@ -239,7 +240,7 @@ export function buildMuseumInterior(b) {
   buildCase(group);
   refreshCase();
   registerPortalBoxes(b, MUSEUM_ROOMS.map((r) => ({ cx: r.cx, cy: r.cy, ux: r.ux, uy: r.uy, hl: r.hl, hw: r.hw, top: r.h + 0.02, bottom: -2 })));
-  registerInterior(group, { x: 70, y: 798 }, SHOW_RADIUS, refreshCase);
+  registerInterior(group, { ...PO(70, 798) }, SHOW_RADIUS, refreshCase);
   built = group;
   return group;
 }

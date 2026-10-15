@@ -345,8 +345,16 @@ Zuidelijke Ringweg with Julianaplein, Europaplein, Euvelgunne and
 Noorderhoogebrug) plus ~300 m around it; beyond that the Ommelanden take
 over: real roads, rails, water and villages in low detail for ~12 km, with
 the procedural fields, ditches, farms and animals in between, and fully
-procedural polders further out. The origin stays at the centre of the original city
-core, so all coordinates in the game keep their meaning. The steps, in order:
+procedural polders further out. Every script projects lat/lon to the world
+frame, RD New shifted to the old origin (`scripts/world/rdnew.py`, see
+ARCHITECTURE.md "Units and coordinates"); hand-placed points in the scripts
+(ring waypoints, train exits, building patches) are written in the old frame
+inside `P(...)`. The caches stay keyed on the lat/lon box they were fetched
+for (`meta.wgsBox`), so nothing is refetched. The data in the repo was moved
+to RD once with `scripts/world/rebase_data.py` (it was not exactly
+reproducible from the caches); a fresh build agrees with it to the
+decimetre inside the map (only the cut at the outer rectangle differs). The
+steps, in order:
 
 1. `fetch_osm.py`: the ways around the city core into `data/ring_raw.json.gz`
    and `data/ring_extra.json.gz` (only if missing). The core itself comes
