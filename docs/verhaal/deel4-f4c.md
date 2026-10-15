@@ -1834,3 +1834,428 @@ Er is echt een wolf. Fotografeer hem op afstand (> 80 m) zonder dat hij je ziet 
 - **Wolvenman Gerrit** *(fluisterend, zacht)*: Bor weet het. Bor wist het altijd.
 **Afrondingskaart:** **TOCH EEN WOLF** · Eén foto. Op afstand. Hij liep weg. · *+ € 900*
 
+## 5. Activiteiten en bijbanen
+
+Alles is altijd te starten en af te breken; niets is nodig voor het verhaal. Regels uit F4a gelden: geld blokkeert niets, geleende voertuigen gaan terug, niets op wierden, kerkpaden of in natuurgebieden dat daar niet hoort.
+
+### 5.1 Museumspoor: stoker en machinist (+ de lijn naar Nieuweschans en Veendam)
+
+*Plan:* A27 + nieuw (wens eigenaar: machinist en passagier) · *Waar:* Stadskanaal-Musselkanaal (museumspoor, `railway=preserved`, OSM-check), Groningen-Hoogezand-Sappemeer-Zuidbroek-Scheemda-Winschoten-Nieuweschans, Zuidbroek-Veendam
+
+**Stoomtrein (nieuw).** Stap bij een stilstaande stoomtrein in Stadskanaal voorin (E): je bent **stoker** (kolen scheppen op de maat, ketel op druk) of, na goud op de stoker-score, **machinist** (regelaar, rem, fluit). Machinist Dries zit naast je. Score: stiptheid, comfort, druk. Medailles: brons, zilver, goud, "Kon minder" (alles vol op de hele lijn). Bijbaan: een dienst = één rit heen-en-terug, betaald per rit; niveau 2 met dagjesmensen die uitstappen bij een overweg, niveau 3 de avondrit met lichtjes. Ontgrendeld na O24.
+**Gewone treinen (F4a-minigame uitgebreid).** De lijn naar Nieuweschans (met Berthus als instructeur) en de zijtak naar Veendam hebben dezelfde bediening als Roodeschool en Delfzijl; snelheidsborden uit OSM (`maxspeed` op `railway=rail`), overwegen in elk dorp. Ontgrendeld na `n-winschoten`.
+
+**Dries (stoomtrein)**
+- **Machinist Dries** *(schor, instruerend)*: Kolen. Eén schep. Twee. Op de maat. Niet te veel. Stoom is een dier. Het wil eten, niet stikken.
+- **Machinist Dries** *(schor, kort)*: Druk. Kijk naar de naald. Hij leest geen krant. Hij zegt de waarheid.
+- **Machinist Dries** *(schor, droog)*: Fluit. Eén keer lang. Dat is voor de koeien. Die kijken altijd.
+- **Machinist Dries** *(schor, trots)*: Dat was een goede stoker. Dat was een betere machinist. Zeg het niet tegen de ketel.
+- **Machinist Dries** *(schor, streng)*: Te hard. Het is een museum. Het hoort langzaam.
+- **Machinist Dries** *(schor, tevreden)*: Musselkanaal. Eindpunt. De koffie is er koud. Maar de rit was warm.
+
+**Berthus (lijn Nieuweschans en Veendam)**
+- **Machinist Berthus** *(droog, instruerend)*: Winschoten. Hier staat een molen. Hij kijkt naar jou. Hij kijkt altijd.
+- **Machinist Berthus** *(kort, streng)*: Nieuweschans. Verder gaat het spoor niet. Daarna is het Duitsland. Dat heeft een ander spoor.
+- **Machinist Berthus** *(droog)*: Veendam. Een zijtak. Hij houdt van rustig.
+- **Machinist Berthus** *(droog)*: Overweg. Bel, bomen, toeter. In die volgorde. Dat zei Jantina ook. Ze heeft gelijk.
+
+**Omroepen (nieuwe haltes)**
+- **Treinomroep** *(kalm, monotoon)*: Volgende halte: Hoogezand-Sappemeer. · Volgende halte: Sappemeer Oost. · Volgende halte: Zuidbroek. · Volgende halte: Scheemda. · Volgende halte: Winschoten. · Volgende halte: Nieuweschans. Eindpunt. Wilt u bij het uitstappen op de grens letten. · Volgende halte: Veendam. Deze trein eindigt hier. · Volgende halte: Stadskanaal. Eindpunt van het museumspoor.
+- **Tammo** *(droog, in de omroep)*: Volgende halte: Scheemda. Daar is een oom.
+- **Tessa** *(vrolijk, in de omroep)*: Dames en heren, de machinist zegt dat hij weet wat hij doet. Hou u even vast. Het is een stoomtrein.
+
+**Medereizigers (één zin per keer)**
+- **Reiziger** *(kletserig)*: Ik ga naar mijn zus in Veendam. Ze weet het niet. Het is een verrassing. Voor haar. Voor mij ook.
+- **Student** *(moe, droog)*: Eerste college in Stad om negen. Ik woon in Scheemda. Ik heb spijt van het college.
+- **Boer** *(droog)*: De trein is sneller dan mijn trekker. Mijn trekker heeft meer karakter.
+- **Toerist** *(nieuwsgierig)*: Is dit de grens? Ik zie alleen een bord met sterren.
+- **Reiziger** *(kletserig, warm)*: Kijk, de molen van Winschoten. Hij draait. Niemand zet hem aan.
+
+**Coupégesprek Tammo en Tessa: lijn Veendam (`trigger: train:veendam`, `needs: n-veendam`)**
+- **Tessa** *(quiet)*: Zuidbroek. Hier zat ik gisteren. Alleen.
+- **Tammo** *(dry, soft)*: Ik zat in de trein naar Stad. Ook alleen.
+- **Tessa** *(soft)*: Dat was geen goede dag.
+- **Tammo** *(dry, quiet)*: Het was een nuttige dag.
+- **Tessa** *(teasing, warm)*: Dat is dezelfde dag, Tammo.
+- **Tammo** *(dry, small smile)*: Het was een nuttige dag.
+
+### 5.2 Streekbus: Oldambt, Veenkoloniën en Westerwolde
+
+*Plan:* A1 · *Waar:* Streeklijn Winschoten-Scheemda-Midwolda-Beerta; Veendam-Stadskanaal-Musselkanaal; **Buurtbus** Vlagtwedde-Bourtange-Sellingen (klein busje, drie passagiers max.); een **grensbus** Nieuweschans-het bord (geen oversteek, alleen tot de streep). Haltes en volgorde uit OSM (`route=bus`); de bussen heten Streekbus; geen echte vervoerder. Nieuw: **wind op de klei** (open vlakte, zijwind), **bruggen die opengaan** op de lijn Veendam (wachten is geen fail: de bus staat en de passagiers kijken), **aansluiting gehaald** op de trein in Winschoten. Ontgrendeld na `n-winschoten`, `n-veendam`, `n-westerwolde`. Collega Jannes geeft de dienst.
+- **Buschauffeur Jannes** *(droog, gemoedelijk)*: Nieuwe lijn. Het is het Oldambt. Er is hier niks. Dat is het mooie. Je ziet alles komen.
+- **Buschauffeur Jannes** *(droog)*: In Veendam gaat een brug open. Je wacht. Er zit een man die zijn brug heeft. Hij is iets te laat. Dat is zijn vak.
+- **Buschauffeur Jannes** *(droog, gemoedelijk)*: Bourtange. Het busje is klein. De vesting is groot. Er zitten mensen die er gewoon wonen. Rij zachtjes.
+- **Reiziger** *(kletserig)*: Ik ga naar de kapper in Winschoten. Daar is het leuker. Hij weet alles.
+- **Boer** *(droog)*: Zet me af bij het hek. Niet bij de halte. Bij het hek. Het graan wacht niet.
+- **Toerist** *(nieuwsgierig, vragend)*: Waar is de grens? Ik zie alleen een bord.
+- **Reiziger** *(stellig)*: Vroeger stond hier een heel dorp. Nu ook. Het is alleen kleiner geworden.
+- **Student** *(moe)*: Wekt u mij in Stad? Of Veendam. Waar we dan ook als eerste zijn.
+
+### 5.3 Vrachtwagen: Veendam en de grens
+
+*Plan:* A26 (nu helemaal: Eemshaven → Veendam) · *Waar:* Depot "Transport Wierda" (Stad) → N33 → Veendam (zetmeelfabriek, silo-oplegger), Hoogezand (strokarton), Winschoten, de grens (Nieuweschans, paletten voor de Duitse kant)
+De vrachtwagen met oplegger (F4a) rijdt nu de volle lijn **Eemshaven-Veendam** over de N33 (container ophalen aan de kraan, lossen onder de silo), en korte ritten: **strokarton** (balen, breekbaar-meter voor de stapel), **zetmeel** (tankoplegger, klotsen), en **de grensdrop** (paletten naar de laatste halte voor de streep; Grenswacht controleert, zie §5.8). Niveaus: 1 overdag, 2 met tijdvenster bij de silo, 3 's nachts met mist op de veenwegen. Geen merknamen.
+- **Loodsdienst** *(zakelijk, door de marifoon)*: Silo twee. Achteruit. Aan de linkerkant. Nog een meter. Klik.
+- **Buschauffeur Jannes** *(droog, aan de telefoon)*: Planner. Je moet om vier uur in Veendam zijn. Het is drie. Je zit in Hoogezand. Ik zou niet zuchten. Het is kaarsrecht.
+- **Tessa** *(gespannen)*: Hij is achttien meter lang en het kanaal ligt links.
+- **Tammo** *(droog)*: Rechts is een brug. Hij gaat open.
+- **Tammo** *(tevreden)*: Zetmeel voor Veendam. Een container voor de silo. We bezorgen ons eigen meel.
+- **Tessa** *(trots)*: Een netwerk, Tammo.
+- **Tammo** *(droog)*: Een vrachtwagen.
+
+### 5.4 Driftplekken en veenwegsprints
+
+*Plan:* nieuw (wens eigenaar) + A10 · *Waar:* vijf driftplekken, 's avonds en 's nachts, en vier sprints op de rechte veenwegen. Driftplekken: lege verharde plekken; geen drift op erven, kerkpaden, heide of bij wierden; na 2 minuten een melding, na 4 minuten surveillance (1 ster).
+1. **Het parkeerterrein van de oude strokartonfabriek** (Hoogezand-Sappemeer, `landuse=brownfield`, OSM-check): groot, leeg, rijk aan kartonstof.
+2. **Industrieterrein Veendam** (bij de zetmeelfabriek): een rotonde zonder verkeer bij nacht.
+3. **Het kermisterrein van Winschoten** buiten de kermisweek.
+4. **De taxiebaan van het vliegveldje bij Oostwold** als er niet gevlogen wordt (afgezet met pylonen: een "rustig" uur).
+5. **De carpoolplaats bij de N366 bij Vlagtwedde** (OSM-check).
+**Veenwegsprints (A10):** punt-tot-punt over de kaarsrechte wegen: **N33** (Zuidbroek-Veendam), **N366** (Veendam-Stadskanaal-Vlagtwedde), **N362** (Winschoten-Beerta), en de **Dollarddijkweg** (A9, met wind). Kaarsrecht = gladde tijdrit; bochten komen als verrassing. Roelfiens combine of een trekker op de weg is hinder, geen fail.
+- **Tessa** *(juichend)*: Dwars! Op een kartonrotonde!
+- **Tammo** *(droog, duizelig)*: Ik zie de fabriek vier keer.
+- **Durk** *(traag, plechtig)*: Douwe. Kijk. Zij rijdt opzij.
+- **Douwe** *(traag)*: …opzij.
+- **Agent** *(kordaat, door een luidspreker)*: Dit is een parkeerterrein. Het is geen circuit. Ga naar huis.
+- **Tessa** *(grinnikend)*: Dat zeggen ze overal.
+- **Tammo** *(droog)*: Ze hebben gelijk.
+
+### 5.5 Kermiscircuit (A6)
+
+*Plan:* A6 · *Waar:* de kermis van **Winschoten** (zomerweekend), plus vijf stadjes die per week wisselen (Veendam, Stadskanaal, Beerta, Bellingwolde en Vlagtwedde)
+Minispellen: **botsauto's** (O22-stijl, arena), **schiettent** (pluche, geen echt wapen), **zweefmolen** (tijdtrap), **grijpautomaat** (een vet bakje friet als hoofdprijs), **krachtmeter** (hamer, "hoog-hoog": de bel), **eierbal-gooien** (een eierbal in een emmer). Elk spel geeft een beloning of een grap; een beker per kermis.
+- **Botsautobaas Dolf** *(luid, joviaal)*: Dames en heren, de botsauto's zijn gratis! Dat is niet waar. Maar het klinkt goed!
+- **Tessa** *(uitgelaten)*: De zweefmolen! Eén rondje! Je hoeft niet mee, Tammo.
+- **Tammo** *(droog)*: Ik kijk wel. Van de grond. Daar is hij het mooist.
+- **Kermisbaas Hennie** *(plechtig, luid)*: Krachtmeter! Wie slaat de bel? Niemand! Dat is de bedoeling!
+- **Tammo** *(droog, trots, na een slag)*: De bel ging.
+- **Tessa** *(verbaasd)*: Hij ging echt.
+- **Tammo** *(droog)*: Dat bedoelde ik.
+
+### 5.6 Combinerace (A33), rooien (A8) en balen rapen (A7)
+
+*Plan:* A33, A8, A7 · *Waar:* de stoppelvelden bij Beerta en Midwolda (combine), de akkers rond Veendam (rooien), overal in de nazomer (balen rapen)
+- **Combinerace:** met een combine over stoppelvelden van Roelfien, een kring om vlaggen; de combine is van Roelfien (geleend, `handBack`); zwaar en traag in de bocht; wie het maaibord tegen een boom zet, staat twee seconden stil. Eppo Bolt doet mee ("Ow").
+- **Rooien:** aardappelen rooien in een race tegen de buurman; je rooimachine (geleend) vult de kiepper; elke minuut verder is een sprint naar de volgende rij.
+- **Balen rapen:** ronde balen van het land naar het erf voor de bui (een wolk op de minimap); Roelfien en drie boeren bieden het aan.
+- **Roelfien** *(droog, kordaat, voor de combinerace)*: Het is geen race. Het is een rondje met een prijs. Wie wint, krijgt een boterham.
+- **Eppo Bolt** *(luid, grinnikend, op zijn combine)*: Ik rij vandaag clean. Voor één keer.
+- **Tammo** *(droog)*: Hij zei clean.
+- **Tessa** *(droog)*: Hij zei het zachtjes.
+- **Tessa** *(gehaast, bij de balen)*: Naar het erf, niet de sloot in. Een baal zwemt niet.
+- **Tammo** *(droog)*: Ze rollen beter dan ik dacht.
+
+### 5.7 Oogstfeest (groot event, zomer)
+
+*Waar:* **Beerta** (Roelfiens erf en het dorpsplein), eind augustus-september: het laatste graan is binnen. Trekkerparade, combineshow, een eierbalkraam van de Fjord, een orkestje, een prijs voor de beste boterham. Nooit tijdens een missie; geen herfstmarkt, geen pompoenen.
+- **Roelfien** *(droog, warm, op een podiumpje)*: Het graan is binnen. Nu de mensen nog. Bier staat klaar.
+- **Omroeper** *(luid, enthousiast)*: Dames en heren, de trekkerparade! Eén trekker! Dat is het hele dorp! Hij heeft een vlag!
+- **Tessa** *(lachend)*: Hij heeft ook de burgemeester achterop.
+- **Tammo** *(droog, zacht)*: Dat is de burgemeester. Op een trekker. Ik zou het zo doen.
+
+### 5.8 Grensgrappen (Nieuweschans en Bourtange)
+
+*Waar:* het grensbord bij **Nieuweschans** (en een tweede bij Bourtange). De fictieve **Grenswacht** staat aan de Nederlandse kant, aan de overkant een Duitse collega (`grenzer`, Duits). Je mag er niet overheen met de Fjord (geen papieren, het is een frietwagen); wel te voet tot de streep. Grappen: op de streep staan; een selfie met beide agenten; koffie van de Duitse thermoskan; **de grensdrop** (paletten); een toerist die de weg naar Nederland vraagt, terwijl hij erin staat. Geen nationalistische grappen: de grap gaat over regels, lijnen en thermoskannen.
+- **Grenswacht** *(droog, vriendelijk)*: Op de streep staan mag. Eén voet. Twee voeten is een mening.
+- **Grenzwächter** *(vriendelijk)*: Eine Fuß. Zwei Füße sind eine Meinung. *(Eén voet. Twee voeten zijn een mening.)*
+- **Toerist** *(nieuwsgierig, vragend)*: Is dit Nederland? Ik wil naar Nederland. Ik sta er in, geloof ik.
+- **Grenswacht** *(droog)*: U staat er in. Het is niet te zien. Dat is het mooie.
+- **Grenzwächter** *(droog, vriendelijk)*: Möchten Sie ein Foto? *(Wilt u een foto?)*
+- **Tessa** *(lachend)*: Ja. Met beide. En de thermoskan.
+- **Grenswacht** *(droog)*: De thermoskan is dienstmateriaal.
+
+### 5.9 Gewasspuiter Oldambt (A2), vliegbrevet (A14), meerregatta (A12), kanaalraces (A11) en kanaalboot-banen
+
+- **Gewasspuiter (A2):** vanaf **Roelfiens graspiste** (na O20), "groenbemester" (onschuldig); onder de lijn door = bonus; Roelfien geeft de vluchten. **Vliegbrevet (A14):** bij het vliegveldje bij **Oostwold**: taxiën, starten, landen; de eerste vlucht is Roelfiens tweezitter; een eigen toestel te koop. **Meerregatta (A12):** zeilen of motorboot op het **Oldambtmeer** (Blauwestad, Midwolda), gratis sloepen van de jachthaven. **Kanaalraces (A11):** het **Winschoterdiep** (Winschoten-Zuidbroek) en de kanalen van **Veendam** (bruggen die open moeten: toeteren en hopen; Wubbo is een tel te laat). **Kanaalboot-banen (nieuw):** de **Veenboot**: pakketten en toeristen langs de wijken van Veendam, bruggen openen via Wubbo (dispatcher): niveau 1 overdag, niveau 2 met een vaarschema, niveau 3 de avondrondvaart met lichtjes.
+- **Roelfien** *(droog, kordaat, door de headset)*: Perceel vier. Begin bij de sloot, eindig bij de berm. Niet bij de buren. Ik ken ze.
+- **Roelfien** *(droog)*: Onder de lijn door. Mien man deed het erover. Hij is nu boer in de sloot.
+- **Brugwachter Wubbo** *(gemoedelijk, via de marifoon)*: Veenboot. Pakket naar het Oosterdiep. Brug open. Over een tel.
+- **Brugwachter Wubbo** *(gemoedelijk)*: Je bent op tijd. Ik ben iets te laat. Dat compenseert.
+- **Tessa** *(gespannen, op het meer)*: Zeil bij. Wind uit het noordwesten. Ik zei: bij.
+- **Tammo** *(droog, zeilend)*: Ik ben bij. Alleen het zeil niet.
+
+### 5.10 Taxi, pakketten en verhuizen
+
+*Plan:* A23-A25 · *Waar:* taxi-standplaats Winschoten (station) en Veendam; pakketdepot Hoogezand; verhuisbusjes in Scheemda. Ritten naar de dorpen langs de Dollard, lange rondes op de rechte wegen, en één verhuizing "van Stad naar Bellingwolde, voor de rust".
+- **Reiziger** *(kletserig)*: Naar Beerta graag. Ik wil de zon zien ondergaan boven de Dollard. Niet te snel, dan mis ik hem.
+- **Boer** *(droog)*: Naar Midwolda. Het is maar vier kilometer. Ik zou lopen, maar ik heb een grote kist.
+- **Reiziger** *(stellig)*: Een pakket voor Sellingen? Dat is voor mij. Ik heb het niet besteld. Ik neem het wel.
+- **Student** *(moe)*: We verhuizen van Stad naar Bellingwolde. Voor de rust. Is het altijd zo stil? O. Fijn.
+
+### 5.11 Fjord-filialen (Oldambt, Veenkoloniën, Westerwolde)
+
+*Waar:* de graanschuur bij Beerta (Roelfien, na O22), het brugwachtershuisje in Veendam (Wubbo, na O27) en de bosrand bij Sellingen (Siemen, na O31). Zelfde regels als F4a: daginkomen, een tweede pan, een terras, het eigen recept (gerstemout; aardappelzetmeel; heidehoning); overvallen door Ubbo's knechten zijn na O31 weg, want hij zit vast; er blijven kleine overvallen door "ongeduldige klanten". Na O32 heten ze samen **Fjord & Familie**.
+- **Roelfien** *(droog, warm, aan de telefoon)*: Vandaag tachtig eierballen. Er kwam een bus. Hij stond stil. Alle mensen bestelden. Ik heb gekeken.
+- **Brugwachter Wubbo** *(gemoedelijk, aan de telefoon)*: Veertig eierballen. Twee schepen. Een tel te laat. De klanten waren tevreden.
+- **Boswachter Siemen** *(rustig, kort, aan de telefoon)*: Zes. Er komt weinig langs. Maar het zijn goede zes.
+- **Tessa** *(tevreden)*: Drie filialen draaien. Zonder ons.
+- **Tammo** *(droog)*: Dat is het mooie. En het enge.
+
+### 5.12 Verkennen en verzamelen
+
+*Plan:* A7, A15-A20, A27, A29, A34-A36 · *Waar:* Oldambt, Veenkoloniën, Westerwolde
+- **Uitkijkpunten (A15):** de molen van **Winschoten** (Eilert), het **brugwachtershuisje** in Veendam (Wubbo), de bosrand bij **Sellingen** (Siemen), en de wal van **Vesting Bourtange**. Elk onthult 6 km en wordt een snelreispunt.
+- **Kieken (A16):** album "Oldambt", "Veenkoloniën", "Westerwolde", elk 20-25 herkenningspunten (§7); één wolvenfoto (met Z19).
+- **Kerkenpad (A17):** ± 40 kerken in Oldambt en de Veenkoloniën (de Oldambtster kerken zijn groot, de klei was rijk) en ± 15 in Westerwolde.
+- **Borgenroute (A19):** **Fraeylemaborg** (Slochteren), **Wedderborg** (Wedde), en de borgen die OSM in Oldambt kent; op de fiets, één dag speltijd (OSM-check van namen).
+- **Molenaar (A20):** molen van Winschoten (Eilert), de molen bij Bourtange en de molens die OSM heeft.
+- **Vogels tellen (A29):** de trekvogels in de **Dollard** (nazomer: de eerste ganzen komen: dat is zomer genoeg), met een uitkijkplek bij **Nieuw-Statenzijl** of de **Punt van Reide** (OSM-check).
+- **Wereldeinden (A34):** de Punt van Reide / de Dollardpunt, het uiterste oosten bij het grensbord, en het laatste huisje voor het veen.
+- **Treinspotter (A27):** de lijnen Nieuweschans en Veendam en het museumspoor uitrijden; badge "Elke halte".
+- **Eilert** *(bedachtzaam, droog, aan de telefoon)*: Je staat op mijn molen. Je ziet mijn graan. Ik zie jou. Ik meld alleen.
+- **Brugwachter Wubbo** *(gemoedelijk, aan de telefoon)*: Je staat op mijn brug. Ik zie je. Een tel te laat.
+- **Boswachter Siemen** *(rustig, kort, aan de telefoon)*: Je staat aan de bosrand. Ik hoor je. Dat is genoeg.
+- **Tessa** *(zacht, bij de Dollard)*: De ganzen komen. Dat is geen herfst, dat is… vogels.
+- **Tammo** *(droog, zacht)*: Dat is zomer die doorreist.
+
+## 6. Toevallige ontmoetingen en events
+
+Regels als F4a: nooit tijdens een missie, één tegelijk, altijd een beloning of een grap; alleen zomer (kermis, oogstfeest, jaarmarkt, paardenmarkt, een fanfare).
+
+**Een combine op de weg** · klein · Oldambt, Veenkoloniën
+- **Tammo** *(droog)*: Een combine. Negen meter breed. Hij komt niet naar ons. Wij gaan naar hem.
+- **Tessa** *(droog)*: Berm in. Hij is groter dan jouw hele flat.
+
+**Aardappelkiepers** · klein · de veenwegen
+- **Tessa** *(droog)*: Kiepers. Vier achter elkaar. Ze lossen op de brug.
+- **Tammo** *(droog)*: Ze rijden harder dan ik denk. Voor een aardappel.
+
+**Brug gaat open, rij wacht** · klein · Veendam, de kanalen
+- **Brugwachter Wubbo** *(gemoedelijk, vanuit zijn raam)*: Een tel. Het duurt een tel. Dat is het.
+- **Tessa** *(droog)*: Het is de langste tel van de provincie.
+
+**Een lifter met een koffer** · klein · N33, N366
+- **Reiziger** *(kletserig, stapt in)*: Naar Stad. Ik ben daar naartoe verhuisd. Ik ga terug. Ik mis de kou. Dat is een grap, het is zomer.
+- **Tammo** *(droog)*: Hier is het nooit koud.
+- **Reiziger** *(kletserig)*: Dat is ook zo. Ik vergeet het steeds.
+
+**Een kapotte auto bij het veen** · klein · Veenkoloniën
+- **Boer** *(droog)*: Hij loopt niet. Hij liep nooit. Maar vandaag ook niet.
+- **Tessa** *(zakelijk)*: Accu. Kabels erop, Tammo.
+- **Boer** *(droog, dankbaar)*: Hier. Een zak aardappels. Meer heb ik niet. Ze zijn wel goed.
+
+**Een boer die zijn koe kwijt is** · klein · Oldambt
+- **Boer** *(droog, bezorgd)*: Hebben jullie een koe gezien? Zwart-wit. Ze heet Grietje.
+- **Tammo** *(droog)*: Die praat toch?
+- **Boer** *(droog)*: Een andere Grietje. Deze zegt niks. Gelukkig.
+
+**Een melder fietst voorbij** · klein · overal
+- **Molenaar Eilert** *(bedachtzaam, droog, fietsend)*: Jullie rijden te hard. Ik meld alleen.
+- **Brugwachter Wubbo** *(gemoedelijk, op zijn bromfiets)*: Mooi weer. Er komt geen schip. Ik meld alleen.
+- **Boswachter Siemen** *(rustig, kort, op een bankje)*: Een ree. Eén. Ik meld alleen.
+
+**Een overval op een Fjord-filiaal** · klein · Beerta, Veendam, Sellingen
+- **Tessa** *(fel)*: Twee ongeduldige klanten bij het luik! Met een koevoet!
+- **Tammo** *(droog)*: Ze hebben honger. Dat is geen misdaad.
+
+**De Friese tolbrug (grensgrap, voor de neven)** · klein · Veendam
+- **Wybe** *(traag, plechtig)*: Halt. Fryske tol. Ien klomp, as it jo belieft. *(Halt. Friese tol. Eén klomp, alstublieft.)*
+- **Tessa** *(ongelovig)*: Dit is een Groningse brug.
+- **Wiebren** *(traag, eerlijk)*: Wy oefenje. *(Wij oefenen.)*
+- **Tammo** *(droog)*: Jullie hebben een klomp.
+- **Wybe** *(traag, trots)*: Fan Durk en Douwe. *(Van Durk en Douwe.)*
+- **Wiebren** *(traag)*: …Douwe.
+- **Tessa** *(droog)*: Natuurlijk.
+- **Wybe** *(traag, plechtig)*: Jim meie troch. Mar net fertelle. *(Jullie mogen door. Maar niet doorvertellen.)*
+
+**De weekmarkt in Winschoten of Veendam** · middel
+- **Reiziger** *(kletserig)*: Kaas, vis, en een mevrouw die zegt dat ze een notaris is. Ik koop de kaas.
+
+**Een voetbalwedstrijd op het dorpsveld** · middel · Midwolda, Vlagtwedde
+- **Tessa** *(lachend)*: Veertien toeschouwers. Elf spelers. Één scheidsrechter. Ze kennen elkaar allemaal.
+- **Tammo** *(droog)*: Dan is het altijd een thuiswedstrijd.
+
+**Een begrafenis (stil, niet storen; wie toetert krijgt een blik)** · middel · een dorpskerk
+- **Tammo** *(zacht)*: Rustig. Even niet toeteren.
+- **Tessa** *(zacht)*: Ik weet het.
+
+**Een fanfare die oefent** · middel · Veendam, Stadskanaal
+- **Tammo** *(droog)*: Hetzelfde stuk. Voor de vijfde keer.
+- **Tessa** *(droog)*: Het wordt elke keer beter.
+- **Tammo** *(droog)*: Het wordt elke keer langer.
+
+**De kermis in Winschoten (zomerweekend)** · groot · Winschoten
+- **Tessa** *(uitgelaten)*: Botsauto's! Zweefmolen! Schiettent! Alles!
+- **Tammo** *(droog)*: Ik doe de schiettent. Van de grond. Daar is hij het mooist.
+
+**Het oogstfeest in Beerta** · groot · Beerta (zie §5.7)
+
+**Een paardenmarkt (fictief) in Vlagtwedde** · groot · Vlagtwedde
+- **Boer** *(droog, trots)*: Paarden. Alleen paarden. Geen auto's. Dit is de laatste markt waar niemand toetert.
+- **Tessa** *(zacht, lachend)*: Hij is zo mooi.
+- **Tammo** *(droog)*: Hij weegt meer dan de Fjord.
+
+**Een jaarmarkt in Stadskanaal** · groot · Stadskanaal
+- **Machinist Dries** *(schor, knipogend)*: Jaarmarkt. Er rijdt vandaag een stoomtrein. Hij is gratis. Dat is geen grap. Dat is een jaarmarkt.
+
+## 7. Herkenningspunten en geheimen
+
+Bij de eerste keer dichtbij: een naamkaart (plaatsnaam groot, één droge regel klein) en één zin van Rikus (`V`, radioklank). Alle namen: zie §10 voor de OSM-controle.
+
+| Naamkaart | Kaartregel |
+|---|---|
+| Winschoten, molen | Een molen in een stad. Hij kijkt. |
+| Winschoten, het Pagediep | Een kanaal door het centrum. Het kijkt terug. |
+| Winschoten, het Marktplein | Vandaag papier uit de lucht. Meestal kaas. |
+| Heiligerlee, het monument | Een slag uit 1568. Een monument dat het niet vergeet. |
+| Oostwold, het vliegveldje | Gras, een windzak, en een mevrouw met een gewasspuiter. |
+| Midwolda, de kerk | Midden in het graan. Midden in het dorp. |
+| Scheemda | Een oom. Altijd een oom. |
+| Beerta, de kerk | Groot voor een dorp. Het dorp vond dat prima. |
+| Beerta, de Dollarddijk | Land, slik, water. En daarachter Duitsland. |
+| Nieuweschans, de wallen | Een vestingdorpje met een grens. De grens won. |
+| Nieuweschans, het grensbord | Blauw, met sterren. En een thermoskan. |
+| Blauwestad, het Oldambtmeer | Een meer van tien jaar. Het weet het nog niet. |
+| Veendam, het Westerdiep | Rechte kanalen. Mensen met haast. |
+| Veendam, het brugwachtershuisje | Eén stoel, één brug, één wachter. |
+| Veendam, de zetmeelfabriek | Het ruikt naar pannenkoeken. Dat is zetmeel. |
+| Stadskanaal, het station | Het museumspoor. De rook staat recht omhoog. |
+| Stadskanaal, het Stadskanaal | Een kanaal dat de stad heet. |
+| Musselkanaal, het eindpunt | Waar de stoom ophoudt. De koffie niet. |
+| Hoogezand-Sappemeer, de strokartonfabriek | Karton tot aan het plafond. Nu leeg. |
+| Hoogezand-Sappemeer, de steigers | Balken tegen gevels. Mensen die wachten. Stil. |
+| Sellingen, de bosrand | Heide in bloei. Zo ver je kijkt. |
+| Vlagtwedde | Een dorp met een lange naam. Het weet waarom. |
+| Bellingwolde | Waar het Oldambt ophoudt en de heide begint. |
+| Wedde, de Wedderborg | Een borg in het veen. Hij is droog gebleven. |
+| Bourtange, de vesting | Vijf bolwerken, een gracht, een kerkje. Eén keer verslagen. Door karton. |
+| Bourtange, de hoofdwacht | Waar de jury zat. En waar het bijna verkeerd ging. |
+
+**Rikus bij de ontdekking**
+- **Rikus (verteller)** *(droog, als nacht-dj op de radio)*: De molen van Winschoten. Hij draait mee met de wind. De wind draait niet mee met hem. `[naamkaart]`
+- **Rikus (verteller)** *(warm, vertellend)*: Heiligerlee. In 1568 was hier een slag. Er staat een monument. Het houdt het vast voor ons. `[naamkaart]`
+- **Rikus (verteller)** *(droog)*: Het vliegveldje bij Oostwold. Gras, een windzak en een mevrouw die zegt dat ze er geen heeft. `[naamkaart]`
+- **Rikus (verteller)** *(droog)*: Beerta. Een grote kerk in een klein dorp. De klei was rijk. Dat is het hele verhaal. `[naamkaart]`
+- **Rikus (verteller)** *(droog)*: Nieuweschans. Een vestingdorp met een grens. Daar stopt Nederland. Het stopt vriendelijk. `[naamkaart]`
+- **Rikus (verteller)** *(warm)*: Het Oldambtmeer. Tien jaar oud, en het meer weet het niet. Het denkt dat het er altijd lag. `[naamkaart]`
+- **Rikus (verteller)** *(droog)*: Veendam. Rechte kanalen, rechte mensen. Als je hier te laat bent, is dat een keuze. `[naamkaart]`
+- **Rikus (verteller)** *(warm)*: Stadskanaal. Een stad die vond dat een kanaal genoeg was om haar naam te geven. Het was genoeg. `[naamkaart]`
+- **Rikus (verteller)** *(droog)*: Musselkanaal. Waar het museumspoor ophoudt. De rook niet. `[naamkaart]`
+- **Rikus (verteller)** *(ernstig, zacht)*: Hoogezand-Sappemeer. Balken tegen gevels, steigers langs de straat. Daar wonen mensen die wachten. Ik zeg niks. Ik zeg: ze zijn er. `[naamkaart]`
+- **Rikus (verteller)** *(droog)*: Sellingen. Heide in bloei, zo ver je kijkt. Iemand heeft hier een boswachter neergezet. Hij zegt niks. Hij hoort alles. `[naamkaart]`
+- **Rikus (verteller)** *(warm)*: Bourtange. Een vesting van 1593. Vijf bolwerken. In 1672 hield hij een bisschop buiten. In 2026 niet. `[naamkaart]`
+
+**Geheimen (A36), 4 per regio**
+- **De klomp van Durk** (Oldambt): in een kraam op de kermis van Winschoten staat één klomp met geld. Hij is van Durk en Douwe. Ze hebben hem "verloren".
+  - **Durk** *(traag, plechtig)*: Wij hebben een klomp. Hij is weg. Dat is goed. Er zit geld in. Dat is niet goed.
+- **De kerkjurk** (Oldambt): Roelfiens kerkjurk hangt, nog nat, in de schuur bij Beerta. Er zit een briefje aan: "Rekening volgt."
+  - **Roelfien** *(droog)*: Hij droogt. Dat duurt. Hij is van 1983.
+- **De zandweg van Berend** (Oldambt, met Westerwolde): in de heide ligt een bisschopsmuts. Hij is van Berend. Hij is hem kwijt sinds 1977.
+  - **Berend Bos** *(nors)*: Dat is mijn muts. Ik zocht hem. Ik heb hem nooit gemist.
+- **De tel te laat** (Veenkoloniën): op de brug in Veendam staat een bordje: "Wacht even." Daaronder, in kleiner letters: "Het duurt een tel."
+  - **Brugwachter Wubbo** *(gemoedelijk, trots)*: Dat bordje is van mien vader. Hij heeft ook de tel uitgevonden.
+- **De zak aardappelmeel** (Veenkoloniën): in de fabriek in Veendam staat nog één zak, ongeopend. Hij is wit. Hij is koud. Hij ruikt naar niets.
+  - **Tessa** *(zacht, lachend)*: Dat is het meest eerlijke wat ik ooit gevonden heb.
+- **De fietspomp** (Veenkoloniën): na O25 hangt Tammo's fietspomp in een lijst aan de muur van het brugwachtershuisje. Er staat een plaatje bij: "Nuttig."
+  - **Tammo** *(droog, zacht)*: Dat is een compliment.
+- **De heidehoning** (Westerwolde): bij de bosrand staat een bijenkast met een bordje "Siemens bijen. Niet aanraken. Ze meldden alleen."
+  - **Boswachter Siemen** *(rustig, droog)*: Ze zijn mijn neven. Wij zeggen weinig.
+- **De wolfsfoto** (Westerwolde, alleen met Z19): in een boomstam bij Bourtange is een gaatje met een kaartje: "Hij liep weg. Hij had gelijk."
+  - **Wolvenman Gerrit** *(fluisterend, zacht)*: Dat heb ik geschreven. Bor is het ermee eens.
+- **De dansschoenen** (Westerwolde): in de hoofdwacht van Bourtange staat een paar oude dansschoenen op een tafel. Na O31 staat er een tweede paar naast.
+  - **Sluiswachter Lammert** *(oud, zacht)*: Eén paar is van 1953. Het andere van vandaag. Ze passen allebei nog.
+- **De schooltas** (Westerwolde): in het kerkje van Bourtange staat een oude schooltas. Er zit een receptkaartje in, in een handschrift van een negentienjarige.
+  - **Kosteres Geesje** *(droog, zacht)*: Dat is wat ik heb gedragen. Zeventig jaar. Nu ligt hij hier. Het is af.
+
+## 8. Nachtstreek in F4c
+
+Alle radiomomenten op een rij (de regels staan bij de missies). Rikus zendt "op tournee"; de melders bellen in; Ubbo belt drie keer live.
+
+| Stap | Moment | Beller |
+|---|---|---|
+| n-winschoten | na afloop | Rikus zelf |
+| O19 | Bel Rikus | Mevrouw Oldenhuis-Blauw |
+| O20 | Bel Rikus + na afloop | Roelfien; een marktkoopman |
+| O21 | Bel Rikus | Roelfien |
+| O22 | Bel Rikus + na afloop | Ubbo, Oldenhuis Bakt; Jelle, Ljouwert |
+| n-veendam | na afloop | Rikus zelf (de ene ernstige zin) |
+| O23 | Bel Rikus | Wubbo, Veendam |
+| O24 | Bel Rikus + live | Dries; Rikus op de rails met Tessa |
+| O25 | Bel Rikus | Rikus zelf |
+| O26 | Bel Rikus + na afloop | Wubbo; **Siebrand Mulder** (cel, Delfzijl) |
+| O27 | Bel Rikus | Ubbo, Oldenhuis Bakt |
+| O28 | Bel Rikus | Berend Bos |
+| O29 | Bel Rikus | Rikus zelf |
+| O30 | Bel Rikus (live) | Rikus zelf, Harm |
+| O31 | Bel Rikus + live | Oma Trijntje; Rikus live |
+| O32 | Bel Rikus + epiloog | De torenwachter; Rikus vanuit de studio |
+
+**Vaste rubrieken:** de fietstunnel-update schuift door ("Bijna klaar. 2032."), het storingsbericht wordt in de Veenkoloniën "Storingsbericht: een brug bij Veendam is open. Volgens de brugwachter is dat geen storing. Dat is een tel te laat." en de peiling "Groeien of thuis?" sluit in de epiloog af (50-50).
+
+## 9. Continuïteit, eindpunt en gevoelige onderwerpen
+
+**Deel 1-3 blijven ongewijzigd.** F4c raakt niets wat al gespeeld is:
+- De **Fjord Frituur** is de Escapade met het luik; de Gouden Eierbal staat in het museum "met twee namen op het bordje" (Deel 3), in Deel 4 komt er een derde bij (Trijntje, 1953).
+- **Rikus' "laatste kwartier"** (slot Deel 3) wordt een grap: "Het was het eerste."
+- **Oma Trijntje is 92** en won in 1953 de Snackprijs in Stad; de Ommelander Ronde van 1953 (Bourtange) verloor ze door een gekochte jury. Geen conflict: twee wedstrijden.
+- **Mem Terpstra / Jelle:** de bakkerij die Ubbo "koopt" (O22) is Us Mem Snacks in Ljouwert; hij wordt teruggegeven (O32). Jelle's regel "Ze komen niet meer bij mem eten" (O1) wordt afgemaakt: "Ze eten weer."
+- **Durk en Douwe** lopen over in O22 om Mem (niet om Tessa); in F4a waren ze nooit gemeen; nu staan ze er open. Ze brengen Oma naar Bourtange.
+- **Berend Bos:** "Ik wil volgend jaar weer de bisschop zijn" (Deel 3) wordt "Ik wil niet meer verliezen". Hij zegt "Kon minder" (de hoogste trede na stilte).
+- **De complimentenladder in F4c:** Goud (Dolf en Dina, O22), Valt mie nait of (Rieks en Wubbo, O27), Ow (de jury bij Ubbo's bal, O31), Braid noar de zin (Siemen), Kon minder (Lammert), stilte (Berend en Oma). Ubbo's Ow aan het einde is zijn eerste.
+- **Harm** zegt "Laatste fase" sinds Deel 1; in O30 meent hij het.
+- **Henks zender** (F4a O8) keert terug als het schroefje onder Ubbo's bumper (O31).
+- **Siebrand en Lammert** (Eemsdelta) komen terug: Siebrand getuigt (O26), Lammert zet de sluis open en danst (O30, O31).
+- **Dokter Dijkstra, Bert, Klaas** (Deel 1-3 en F4a) staan in het leger; Dijkstra "staat er toch".
+- **Tammo en Tessa:** de ruzie (n-ruzie) is de enige echte; ze wordt opgelost zonder speech: Tammo zegt het in een paar woorden (vijf, dan zes). De stelregel blijft: Tammo noemt het belangrijke kort.
+- **Personagebijbel:** Tessa geeft bevelen en tikt feiten af; Tammo zegt het belangrijke kort; Rikus vertelt nooit meer dan de speler weet; Durk maakt zinnen af, Douwe herhaalt.
+
+**Credits en post-game: de technische regels.**
+- De bestaande credits (`credits` in story.js) rollen één keer, als alle missies en uitdagingen af zijn (`endingProgress`). Met Deel 4 wordt dat "het echte einde" en telt `endingProgress` ook O1-O32 mee (een overgeslagen missie blijft open). **Voor saves die de credits al hebben gehad** (vlag `credits`): na O32 rolt een korte versie (vlag `credits4`) met alleen de nieuwe kaarten uit §3; ook die rolt één keer.
+- `PARTS.nazomer` krijgt `end: 'Einde van Deel 4'`, `finale: true` en `card` met de epiloog. De bestaande `staart.finale` blijft zoals hij is; `story.js` moet twee finale-delen aankunnen (de epiloog van Deel 3 speelt nog steeds aan het einde van Deel 3; die van Deel 4 aan het einde van O32).
+- Het "Einde"-kaartje ("Grunn is van jou") blijft het laatste beeld.
+- De post-game haken (§3, einde) zijn alleen tekst; niets is vereist.
+
+**Gevoelige onderwerpen (verhaal-document §8)**
+
+| Onderwerp | In F4c |
+|---|---|
+| Gaswinning en aardbevingen | Twee stille momenten: de zin van Rikus bij de steigers (n-veendam) en de colonne die stil rijdt (O32). Geen grap, geen bedrijf, geen schurk. De naamkaart "Hoogezand-Sappemeer, de steigers" zegt het zacht. |
+| Datacenters | Niet aanwezig in F4c. |
+| Ter Apel | Komt niet voor, ook niet als woord. Het "klooster" uit het plan is verplaatst naar een fictief landgoed (O29); de keten loopt tot Bourtange; geen route of uitkijkpunt gaat via Ter Apel. |
+| De grens | Alleen de fictieve **Grenswacht** met de Duitse collega: grappen over lijnen, papieren en thermoskannen. "Hier houdt het op. Voor mij." Geen nationalistische grap; geen echte dienst. Duitse regels zijn vriendelijk en krijgen een Nederlandse ondertitel (`DE`). |
+| Armoede in Veenkoloniën en Oldambt | Mensen met trots en humor: Wubbo, Roelfien, Dries; Ubbo als uitbuiter. De Randstedelingen worden om hun verwachting geplaagd, nooit het dorp. |
+| Wolven | Een foto op afstand; het spel laat niet toe dat je schiet, aait of opjaagt; Z10 is een hond in een pak, uitdrukkelijk. |
+| Het beleg van Bourtange | Toneel: karton, meel, water; "geen doden". De historische beleg van 1672 wordt niet gegriefd: de vesting hield stand; wie nu wint is een bisschop in een gordijnmantel. |
+| Echte bedrijven | Geen. Oldenhuis Bakt, Veenmeel, de Vetinspectie, de Stichting Veenspoor, Transport Wierda, Grenswacht zijn verzonnen. Plaatsen en gebouwen hebben hun echte naam. |
+| Echte levende personen | Geen. |
+
+**Afwijkingen van het plan (bewust)**
+- Ring 3 niet vrij (O22 is het middenpunt); Westerwolde na O26 en zes voorrondes (plan: "zes voorrondes + O26": dat klopt, maar O26 hangt nu vast aan O25).
+- Safehouse Oldambt in Beerta (plan: Termunten); filiaal in Roelfiens graanschuur.
+- O29 verplaatst van het klooster naar een fictief landgoed.
+- O32 "eerste vorst" → "de laatste zomeravond" (altijd zomer).
+- O24 "Ubbo's grootboek in de stoomtrein" is "Kasboek, deel twee"; het grootboek van O14 (F4b) is Fokko's boekje (zie §1.3).
+- O31 krijgt de drie stukken van H18 (kraam, achtervolging met duiven, jury) en een wissel naar Tessa.
+- **Nieuwe stage-soorten** (in §11 met `NEW`): `mingle`, `fly`, `drop`, `evade`, `land`, `bridges` (honk, lag) in chase, `cycle`, `brawl`, `choose`, `arena` + `turncoat` in defend, `bridge` in defend, `follow`, `noise`, `swap`, `command`, `bake`, `pigeon` (bestaand, hergebruikt), `convoy`, `direct`, `rhythm`, `track`, `wait`, `arrive` (goal-type), `train` met `steam` en `light`. Nieuwe voertuigen: gewasspuiter (tweezitter), botsauto, brugboot, loc (stoom), paard (alleen als leidraad: Berends paard is NPC).
+
+## 10. Echte plekken om te verifiëren (OSM)
+
+Namen zoals ze in OSM zouden moeten staan; "Check" zegt wat de bouwer moet nakijken. Alles wat niet in deze lijst staat (de villa, de fabrieken, de snackbars, Huize Stilte, de hooiberg) is verzonnen.
+
+| Plek | OSM (verwacht) | Gebruikt in | Check |
+|---|---|---|---|
+| Station Hoogezand-Sappemeer, Sappemeer Oost, Zuidbroek, Scheemda, Winschoten, Nieuweschans | `railway=station`/`halt` | n-winschoten, §5.1 | volgorde, haltenamen (Nieuweschans heet officieel "Bad Nieuweschans"?) |
+| Zijtak Zuidbroek-Veendam | `railway=rail` | §5.1 | of Veendam personenhalte is |
+| Museumspoor Stadskanaal-Musselkanaal | `railway=preserved` | O24, §5.1 | bestaat de lijn/halte, namen, stationsgebouwen |
+| Winschoten: molen, Pagediep, Marktplein, Oostersingel, kermisplek | `man_made=windmill`, `waterway=canal`, `highway=*` | n-winschoten, O20, O21, O22 | welke molen (Molen Berg?), kermisterrein |
+| Heiligerlee (monument) | `historic=monument` | §7 | naam en plek |
+| Oostwold (vliegveldje) | `aeroway=aerodrome` | O20, §5 | naam, graspiste |
+| Midwolda, Beerta (kerk, Dollarddijk), Scheemda | `place=village` | O19-O22 | afstanden; dijkweg |
+| Oldambtmeer, Blauwestad, Midwolda (jachthaven) | `natural=water`, `place=*` | O19, §5 | bevaarbaarheid, zuidoever |
+| Nieuweschans (wallen, Hoofdstraat), grensovergang bij Nieuweschans/Bunde | `historic=*`, `barrier=border_control` | O21, §5.8 | ligging van het bord |
+| Veendam: Westerdiep, Oosterdiep, bruggen, sluis | `waterway=canal`, `bridge=movable` | O23, O27 | namen, beweegbare bruggen, schutting |
+| Veendam industrieterrein | `landuse=industrial` | O26 | plek voor de fictieve fabriek |
+| Hoogezand-Sappemeer, Kropswolde, Foxhol, Winschoterdiep (fietspad) | `place=*`, `waterway=canal` | O25, §5.4 | fietspad Stad-Hoogezand (± 14 km), strokartonterrein |
+| Stadskanaal (Stadskanaal-kanaal), Musselkanaal, Mussel-Aa | `waterway=canal`, `place=town` | O24 | route langs de Mussel-Aa |
+| Slochteren (Fraeylemaborg) | `historic=manor` | §5.12 | naam |
+| Sellingen, Vlagtwedde, Bellingwolde, Wedde (Wedderborg) | `place=village`, `historic=manor` | O28, §5, §7 | namen, afstanden |
+| Vesting Bourtange (gracht, bolwerken, poort, hoofdwacht, kerkje, molen) | `historic=fort`, `man_made=windmill` | O30, O31 | naam en vorm; ophaalbrug; stromen van de Ruiten Aa |
+| Ruiten Aa | `waterway=river` | O28, O30 | stroomrichting, sluis |
+| Grensovergang bij het Bourtangermoor (bij Rütenbrock) | `barrier=border_control` | O31 | ligging van het bord, wegennet |
+| N33, N366, N362 | `ref=*` | §5.4 | `maxspeed` |
+| Nieuw-Statenzijl, Punt van Reide | `place=*`, `natural=*` | §5.12 | bereikbaarheid, kijkplek |
+| Vlagtwedde, Bellingwolde (bushaltes) | `public_transport=*` | §5.2 | buurtbus |
+
+## 11. Data-bijlage (voor storyarc.js, missionstory.js, missions.js, banterlines.js, subtitles.js en de TTS-pijplijn)
+
+Dezelfde vormen als F4a §11. Coördinaten staan open (`/* ... */`). Nieuwe stage-soorten en goal-types zijn met `NEW` gemarkeerd.
