@@ -73,3 +73,123 @@ are).
 | 7 | Parked cars: `countrySlots` and `villageKerbs` can fill the same village street | fixed: `parkedcars.js slotOverlaps` (box test) keeps a kerb slot clear of every slot already in the cell |
 | 8 | Fog, shadows, view distance, day/night | same code path: no difference found |
 | 9 | Speed cameras, traffic lights, rural pedestrians | deliberate: none in the countryside |
+
+## Detailniveau (visuals: city vs Ommeland)
+
+Measured with `zsh scripts/perf/detail.sh <name>` (staged desktop build, 1600x900,
+dpr 1, 14:00 clear, the player standing on a real street, same camera
+framing; per area one day and one night screenshot, plus `DETAIL_ONLY=views`
+for the church shots; `DETAIL_TOGGLE=1` switches `realmap.js` and the kits
+on and off in one process). Counts are within 150 m: building meshes (city
+generator), instanced building boxes (countryside), street furniture
+(lamps, benches, bins, racks, clutter, village furniture), trees. The
+machine ran at load 10-60 (other agents), so frame and GPU times are
+indicative only; draw calls, triangles, materials and counts are exact.
+
+### Before (v0.28.0 base)
+
+| area | draw calls | triangles | materials | bld meshes | bld boxes | furniture | lamps | trees |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| Grote Markt | 297 | 855k | 94 | 142 | 1 | 1071 | 74 | 74 |
+| Bergstraat (city street) | 632 | 731k | 163 | 337 | 0 | 141 | 83 | 1 |
+| Ten Boer | 215 | 506k | 80 | 0 | 165 | 18 | 14 | 0 |
+| Zuidhorn | 224 | 1024k | 71 | 0 | 149 | 0 | 0 | 34 |
+| Haren | 146 | 488k | 76 | 0 | 162 | 49 | 28 | 0 |
+| Winsum | 257 | 1262k | 90 | 0 | 171 | 46 | 43 | 28 |
+| Bedum | 237 | 876k | 70 | 0 | 165 | 17 | 17 | 18 |
+
+(The city's lamps are 0 in the Grote Markt / Bergstraat "before" rows only
+because the lamp mesh was not tagged yet; the real count is the "after" one.)
+
+### After
+
+| area | draw calls | triangles | materials | bld meshes | bld boxes | furniture | lamps | trees |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| Grote Markt | 296 | 865k | 101 | 142 | 1 | 1145 | 74 | 74 |
+| Bergstraat | 631 | 733k | 174 | 337 | 0 | 224 | 83 | 1 |
+| Ten Boer | 386 | 550k | 109 | 142 | 23 | 141 | 36 | 33 |
+| Zuidhorn | 339 | 1097k | 103 | 133 | 16 | 136 | 33 | 68 |
+| Haren | 326 | 545k | 107 | 140 | 22 | 197 | 41 | 9 |
+| Winsum | 497 | 1316k | 117 | 159 | 12 | 119 | 46 | 60 |
+| Bedum | 427 | 934k | 101 | 153 | 12 | 110 | 36 | 72 |
+
+Reading: a village street within 150 m now has the city's number of
+building meshes (130-160 against 140 and 340 in town), 110-200 pieces of
+street furniture (city: 140-1150) and 33-46 lamps (city 74-83); the instanced
+boxes that remain are what lies past the detail radius or that keeps its
+countryside model (barns, polder farmhouses, churches). The village row
+dropped from about 2 to 4 times fewer draw calls than the Bergstraat to
+about half of it; at night the village streets are lit by the same lamps
+and light pools as the city's.
+
+### Fixed
+
+| # | Difference | Status |
+|---|---|---|
+| 1 | Village houses, rows, blocks and sheds were instanced boxes with a shader-painted facade (no frames, sills, doors, canopies, chimneys, dormers, shopfront depth) | fixed: `realmap.js` hands the built-up houses to `models3d_buildings.js` (the city's generator) from their OSM box, colours snapped to the city palette; same detail radius, batching and facade-detail levels as the city |
+| 2 | Village streets were painted on the ground (no kerbs, pavement, markings, junction joints) | fixed: built-up road runs are city roads (`roadsurface.js` per-network, `r.net`): carriageway, kerbs, pavements, markings, klinker surfaces |
+| 3 | Street furniture: 2 lamps per village stretch, a brink with a bench | fixed: nightlights3d.js lamps with light pools and the real light pool, cityprops.js benches, bins, racks, kliko's, bollards, planters, bikes on the village streets (`map.centreDist`: a village counts as a centre); the village layer keeps its own brink, shopfronts and people |
+| 4 | Trees: lanes along country roads only, no street trees | fixed: street trees along built-up streets (about 2/3 of the streets, a side or both), solid via treeprops.js, same crowns as the city's |
+| 5 | Box LOD at 300 m vs the city's 140 m | consistent: within 140 m (160 m with prefetch) the city generator; the countryside boxes stay as the mid and far tier (gable ends within 300 m, closed roof beyond) and hide the box of what is drawn in full |
+| 6 | Churches: 4 generic templates | fixed: landmark kits (below) |
+| 7 | Night windows | same shader family; lit windows now also on the generator-built houses (city interior glass) |
+
+### Landmark kits (LK1)
+
+Module-independent of the countryside code (`landmarkkit.js`: OSM data in,
+low-poly geometry per LOD out; `landmarklayer3d.js` draws any list;
+`ommelandlandmarks.js` is the only adapter): the F1 world builder can call
+`landmarkParams` and `createLandmarkLayer` for every place. Data:
+`game/landmarkkits.json` (302 candidates: 167 churches, 46 mills, 52
+towers, 12 borgen, 21 museums), made by `scripts/add_landmark_kits.py`
+(one cached Overpass query). Rules: medieval (before 1600 or untagged
+and not catholic or post-war): saddle-roof tower, ridge turret, needle or
+spire, apse or three-sided choir, round or pointed windows, a wierde with
+churchyard wall for part of them; catholic names: a spire and buttresses;
+post-war names or build year: a hall with a slim open bell tower; synagogue
+and small chapels: a hall; mills: stellingmolen, grondzeiler, windmotor
+with turning sails; bell towers and lookouts; borgen with stepped gables
+and a stair tower. OSM `height` is used as the top of the crown.
+Hand-tuned looks (`LANDMARK_LOOKS`): Bedum Walfriduskerk (leaning tower),
+Garmerwolde (tower, choir, roofless nave), Haren Nicolaaskerk and Witte
+Kerkje, Ten Boer Kloosterkerk, Winsum Torenkerk, Zuidhorn Sebastiaan/Fabius,
+Aduard abdijkerk. LOD: full detail within 320 m, masses per km cell to
+1.1 km, one skyline mesh beyond (haze capped, towers stay visible on the
+horizon). Night: floodlit church and tower until midnight, lit clock
+faces and door lamps, mills dark. Test: `node scripts/landmark_kits_test.mjs`
+(every candidate, every level, triangle budgets 16k / 4k / 900, heights).
+
+| village | landmark (church unless noted) |
+|---|---|
+| Bedum | Walfriduskerk: leaning saddle-roof tower on a wierde; Martyriakerk, post-war and catholic churches from rules |
+| Garmerwolde | Kerk van Garmerwolde: tower and choir with a ruin nave |
+| Haren | Nicolaaskerk (wierde, tower), Witte Kerkje (white, ridge turret), 5 others from rules |
+| Ten Boer | Kloosterkerk (three-sided choir, ridge turret, pointed windows), Gereformeerde Kerk (post-war rule) |
+| Winsum | Torenkerk (saddle roof tower), De Vriendschap mill, 3 other churches |
+| Zuidhorn | Sebastiaan/Fabius (spire), Sint Jozefkerk (catholic rule), De Rank (post-war rule) |
+| elsewhere | every one of the 167 OSM churches, 46 mills, 52 bell towers and lookouts and 12 borgen in the data |
+
+### Performance (fps / frame time)
+
+`scripts/perf/run.sh` routes (foot city, heli, village by heli), interleaved
+A (v0.28.0 base) / B (this branch), 1920x1080, dpr 1, at load 7-11 (not
+quiet; GPU-bound at 33-50 ms on this machine in the heli and village
+routes, both builds): foot city 29.7 / 31.2 ms, heli 22.4 / 23.4 ms, village
+22.2 / 24.0 ms (frame; main-thread cpu 26.9 / 28.4, 12.1 / 14.0, 12.1 / 16.7 ms).
+City draw calls and triangles are unchanged (606 / 587 calls, 867k / 862k
+triangles); the village route has 254 / 368 calls. The extra main-thread
+time is the streaming of generator buildings and cells; it stays within the
+"village within ~10% of the city" frame time (village 24.0 ms against city
+31.2 ms) but the village cpu cost (+38%) is the thing to watch in the unified
+pipeline (move the building and road builds to the geometry worker).
+
+### What carries over to the unified tile pipeline
+
+- `landmarkkit.js`, `landmarklayer3d.js`, `landmarkkits.json` and the
+  script: independent of both worlds; per tile in the F1 builder.
+- `realmap.js`: a stop-gap adapter (built-up runs from `urbanWeight`,
+  buildings from boxes). In the unified world the same generators read real
+  footprints from the tiles; `roadsurface.js` per-network state (`r.net`),
+  `models3d_buildings.js` `b.map`, and `cityprops.js` `centreDist` already
+  take their map from the item.
+- `scripts/perf/detail.*`: the measurement stays valid for any world.
