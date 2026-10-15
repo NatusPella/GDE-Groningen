@@ -134,6 +134,7 @@ function census(x, y) {
   // trees: the city map's (all drawn within the detail radius) and the
   // Ommeland tree instances
   out.trees = map.treesNear(x, y, R).filter((t) => near(t[0], t[1])).length;
+  if (window.__realMap) out.trees += window.__realMap.treesNear(x, y, R).filter((t) => near(t[0], t[1])).length;
   sc.scene.traverse((o) => {
     const kind = o.userData.kind || '';
     if (!o.isInstancedMesh || !o.visible || !o.count || !/^country:(tree|poplar|willow)$/.test(kind)) return;

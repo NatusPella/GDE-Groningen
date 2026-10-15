@@ -1,4 +1,5 @@
 import { makeProp, addProp, removeProp } from './breakables.js';
+import { getRealMap } from './realmap.js';
 
 // Roadside trees as breakable props. Trees stay pure map data; a knocked
 // tree sets raw._broken (the [x,y] pair treesNear returns), which
@@ -40,7 +41,9 @@ function makeTreeProp(raw) {
 }
 
 export function streamTreeProps(world, px, py) {
-  for (const raw of world.map.treesNear(px, py, STREAM_RADIUS)) {
+  const rm = getRealMap();
+  const near = world.map.treesNear(px, py, STREAM_RADIUS);
+  for (const raw of rm ? near.concat(rm.treesNear(px, py, STREAM_RADIUS)) : near) {
     if (live.has(raw) || raw._broken) continue;
     const p = makeTreeProp(raw);
     if (addProp(p)) live.set(raw, p);

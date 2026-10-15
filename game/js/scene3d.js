@@ -68,7 +68,8 @@ import { createFarLOD } from './farlod.js';
 import { initRailway3D, updateRailway3D } from './railway3d.js';
 import { buildCanopies } from './canopies3d.js';
 import { initGrass, updateGrass, grassFarColor, grassFarRank } from './grass.js';
-import { updateCountryside, setCountryPropLevel } from './countryside.js';
+import { updateCountryside, setCountryPropLevel, setRealShown } from './countryside.js';
+import { getRealMap } from './realmap.js';
 import { setCountryNight, setCountryFacadeLevel } from './countrybuilding.js';
 import { updateCountryBake } from './countrybake.js';
 import { edgeDistance, setCountryBounds } from './countryfield.js';
@@ -324,7 +325,7 @@ function propRayHit(map, ox, oy, oz, dx, dy, dz, len) {
   const ux = dx / len, uy = dy / len, uz = dz / len;
   const mx = ox + dx * 0.5, mz = oz + dz * 0.5, reach = len * 0.5 + 2;
   let best = Infinity;
-  for (const t of map.treesNear(mx, mz, reach)) {
+  for (const t of treesNearAll(map, mx, mz, reach)) {
     if (t._broken) continue;
     const d = treeDims(t[0], t[1]);
     best = Math.min(best, rayCylinder(ox, oy, oz, ux, uy, uz, len, t[0], t[1], 0.22 + CAM_PROP_PAD, 0, d.trunkH));
@@ -365,7 +366,7 @@ function updateCamTreeHiding(map, ex, ey, ez, cx, cy, cz) {
   _camHideNext.length = 0;
   const dx = ex - cx, dy = ey - cy, dz = ez - cz;
   const len = Math.hypot(dx, dz);
-  for (const t of map.treesNear(cx + dx * 0.5, cz + dz * 0.5, len * 0.5 + 4)) {
+  for (const t of treesNearAll(map, cx + dx * 0.5, cz + dz * 0.5, len * 0.5 + 4)) {
     if (t._broken) continue;
     const d = treeDims(t[0], t[1]);
     const crownY = d.trunkH + d.r * 0.7;
@@ -1267,6 +1268,33 @@ function ensureTreeCapacity(n) {
 
 // --- per-frame sync ------------------------------------------------------
 
+// The city map's buildings and roads plus the real Ommeland's (realmap.js):
+// one streaming, batching and detail radius for both.
+function buildingsNearAll(world, x, y, r) {
+  const list = world.map.buildingsNear(x, y, r);
+  const rm = getRealMap();
+  return rm ? list.concat(rm.buildingsNear(x, y, r)) : list;
+}
+function roadsNearAll(world, x, y, r) {
+  const list = world.map.roadsNear(x, y, r);
+  const rm = getRealMap();
+  return rm ? list.concat(rm.roadsNear(x, y, r)) : list;
+}
+function treesNearAll(map, x, y, r) {
+  const list = map.treesNear(x, y, r);
+  const rm = getRealMap();
+  return rm ? list.concat(rm.treesNear(x, y, r)) : list;
+}
+// the real buildings drawn here: the countryside hides their boxes
+let realShown = new Set();
+function syncRealShown() {
+  const now = new Set();
+  for (const [b, mesh] of buildingMeshes) if (b.realId !== undefined && mesh.parent && mesh.visible) now.add(b.realId);
+  if (now.size === realShown.size && [...now].every((i) => realShown.has(i))) return;
+  realShown = now;
+  setRealShown(now);
+}
+
 function syncBuildings(world, px, py) {
   // Detail set must be exactly "centre within detailR": farlod.js hides its
   // copy of a building by the same test, so no unload hysteresis here.
@@ -1274,7 +1302,7 @@ function syncBuildings(world, px, py) {
   // teleport or a train arrival would otherwise build a whole district in
   // one frame); until the ring is complete, detailR shrinks to the nearest
   // building still missing and the far LOD covers everything past it.
-  const view = world.map.buildingsNear(px, py, DRAW_DIST);
+  const view = buildingsNearAll(world, px, py, DRAW_DIST);
   const seen = new Set();
   const centreDist = (b) => Math.hypot((b.bounds[0] + b.bounds[2]) / 2 - px, (b.bounds[1] + b.bounds[3]) / 2 - py);
   const missing = [];
@@ -1337,7 +1365,7 @@ function syncBuildings(world, px, py) {
   for (const [b] of prefetchedBuildings) if (centreDist(b) > DRAW_DIST + BUILDING_PREFETCH + 20 && !nearPrewarm(b)) prefetchedBuildings.delete(b);
   if (missing.length > built) return;
   const prefetchEnd = performance.now() + BUILDING_PREFETCH_MS;
-  for (const b of world.map.buildingsNear(px, py, DRAW_DIST + BUILDING_PREFETCH)) {
+  for (const b of buildingsNearAll(world, px, py, DRAW_DIST + BUILDING_PREFETCH)) {
     if (performance.now() > prefetchEnd) break;
     if (b.landmark || buildingMeshes.has(b) || prefetchedBuildings.has(b)) continue;
     const d = centreDist(b);
@@ -1424,7 +1452,7 @@ function stepPrewarm(world) {
   const end = now + PREWARM_MS;
   for (const s of prewarmSpots) {
     if (!s.list) {
-      s.list = world.map.buildingsNear(s.x, s.y, PREWARM_R).filter((b) => !b.landmark)
+      s.list = buildingsNearAll(world, s.x, s.y, PREWARM_R).filter((b) => !b.landmark)
         .map((b) => [Math.hypot((b.bounds[0] + b.bounds[2]) / 2 - s.x, (b.bounds[1] + b.bounds[3]) / 2 - s.y), b])
         .sort((a, b) => a[0] - b[0]);
       s.i = 0;
@@ -1551,7 +1579,7 @@ function syncRoads(world, px, py) {
     for (const mesh of roadMeshes.values()) scene.remove(mesh);
     roadMeshes.clear();
   }
-  const view = world.map.roadsNear(px, py, DRAW_DIST);
+  const view = roadsNearAll(world, px, py, DRAW_DIST);
   const seen = new Set();
   for (const r of view) seen.add(r);
   // nearest first within a budget; the far LOD's roads cover the rest
@@ -1592,7 +1620,7 @@ function syncRoads(world, px, py) {
 }
 
 function syncTrees(world, px, py) {
-  const trees = world.map.treesNear(px, py, TREE_DIST).filter((t) => !t._broken);
+  const trees = treesNearAll(world.map, px, py, TREE_DIST).filter((t) => !t._broken);
   const hiddenChanged = camTreeHiddenKey !== shownHiddenKey;
   if (!hiddenChanged && trees.length === shownTrees.length && trees.every((t, i) => t === shownTrees[i])) return;
   shownTrees = trees;
@@ -1893,6 +1921,7 @@ export function update3D(dt, world) {
   noteStreamJump(focus.x, focus.y);
   stepPrewarm(world);
   syncBuildings(world, focus.x, focus.y);
+  syncRealShown();
   if (!NO_BATCH) {
     buildingBatcher.update({ scene, meshes: buildingMeshes, hidden: hiddenBuildings, px: focus.x, py: focus.y, detailR: buildingDetailR, drawDist: DRAW_DIST,
       withDetail: facadeDetailDist >= DRAW_DIST, budgetMs: performance.now() < streamBoostUntil ? 1 : 2 });
