@@ -100,6 +100,27 @@ Openstaand rond Deel 4: Groningse spelling laten nalezen door een echte Gronings
 - **P2** Resterende kleinigheden: de HUD op 720p en 4K opnieuw bekijken; de schakel- en driftteksten in de besturingslijst; AI-motoren in het verkeer; ghost-replay voor drift; fietspadregel voor brommers.
 - **P3** Nieuwe prestaties voor drift, trein en vliegen; meer cutscenes met beweging.
 
+## Speeltest Mathijs & Alexander (15 okt)
+
+79 punten, volledig getrieerd in `docs/FEEDBACK-MATHIJS.md` (categorie, P, release, grootte, verzonnen namen, besloten en open vragen). Samenvatting:
+
+| Categorie | Aantal | Waar het landt |
+|---|---|---|
+| Bug en UX-fix | 3 | 0.30.1 (Herestraat, viaducthoogte bijstellen, schepen slopen bruggen niet) |
+| Meta en UI | 7 | 0.30.1 (wachtrij-teller, plaatsnaam minimap, dubbele melding, knopstijl, hintbron-instelling, laadscherm, fietsen Grote Markt) |
+| World-fidelity | 8 | 0.31 (samengevoegd met hoogteprofielen, waterhoogtes, 3D BAG, straatdetails), 0.32 (fietsstromen, schepen) |
+| Open-wereldleven | 19 | 0.31 (bezorgers, verhuizers, fietsendiefstal, berovingen), 0.32 en later |
+| Minigame | 8 | 0.32 (karten, boot te water), rest F3 |
+| Missie en verhaalhaak | 19 | F4a (Stad, Hogeland), Bourtange in F4c |
+| Landmark en iconisch | 11 | 0.31 (lijst per wijk), 0.32 en 0.33 (bouw, kerken van binnen) |
+| Event en weer | 4 | 0.31 (Duitsers, vuurwerk), F3 (aardbeving stil, blauwalg) |
+
+**Besloten door de eigenaar:** iWink als knipoog (verzonnen webbureau, geen echt merk); wraak op een verzonnen mijnbouwbedrijf met zorg; Tessa onveilig bij uitgaan als lichte sociale noot met geverifieerde cijfers (CBS Veiligheidsmonitor, cijfers nog te verifiëren).
+**Regel:** geen echte merken, bedrijven of personen in speltekst; echte plaatsen en gebouwen mogen.
+
+Quick wins 0.30.1 (details en bestanden in het triagedocument):
+1. "+N in de wacht" weghalen (`hudcards.js`). 2. Plaatsnaam naast minimap uitlijnen (`hud_panel.css`). 3. Dubbele "missie geslaagd" (`cinematics.js`, `missionstory.js`). 4. Eén witte knopstijl. 5. Hintbron Auto/Toetsenbord/Controller (`settings.js`, `pausemenu.js`). 6. Laadscherm één regel. 7. Hint fietsen Grote Markt (`roadaccess.js`). 8. Herestraat dichtheid. 9. Viaducten omhoog (`roadstructures3d.js`). 10. Schepen slopen bruggen niet (`breakables.js`). 11. Boetes mobiel en fietslicht (`trafficlaw.js`). 12. Stedum-grap. 13. Politiepaarden. 14. Merknamen controleren. 15. Meer fietsen in het centrum.
+
 ## Beslissingen van de eigenaar (15 okt 2026)
 
 1. De zonnetijd mag zo blijven (zonsondergang 28 augustus rond 18:50).
