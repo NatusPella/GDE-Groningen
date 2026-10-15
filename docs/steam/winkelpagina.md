@@ -20,7 +20,7 @@ De beelden staan in [`beelden/`](beelden/) en worden gemaakt door
 |---|---|
 | Naam (overal) | **GDE Groningen – Zomer vol misdaad** |
 | Sorteernaam | GDE Groningen |
-| Ontwikkelaar / uitgever | NatusPella (natuspella) — nog bevestigen bij de onboarding |
+| Ontwikkelaar / uitgever | NatusPella — nog bevestigen bij de onboarding |
 | Prijs | Gratis (Free to Play is een *tag*; als prijs kies je "Free") |
 | Genres (Steam) | Action, Adventure, Free To Play, Indie, Simulation (alleen de eerste drie als primaire genres) |
 | Releasedatum | "Coming soon" — minimaal 2 weken zichtbaar vóór release |
