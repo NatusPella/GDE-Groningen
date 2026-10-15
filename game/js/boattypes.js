@@ -8,8 +8,8 @@
 // bow. pose: arms/legs spec for models3d_people.seatPose.
 
 export const BOAT_KINDS = {
-  sloep: { kind: 'sloep', name: 'boat', len: 4, wid: 1.6, playerTop: 11, playerAccel: 3.4, maxSpeed: 4.5, accel: 1.6, brake: 2.2, turnRate: 1.3, color: '#e8e6e0', cabin: '#2f3a44' },
-  sloepGrijs: { kind: 'sloep', name: 'boat', len: 4.2, wid: 1.7, playerTop: 10.5, playerAccel: 3.2, maxSpeed: 4.3, accel: 1.5, brake: 2.0, turnRate: 1.2, color: '#c7c9cc', cabin: '#1c1c1c' },
+  sloep: { kind: 'sloep', name: 'boat', len: 5.5, wid: 2.0, playerTop: 11, playerAccel: 3.4, maxSpeed: 4.5, accel: 1.6, brake: 2.2, turnRate: 1.3, color: '#e8e6e0', cabin: '#2f3a44' },
+  sloepGrijs: { kind: 'sloep', name: 'boat', len: 5.8, wid: 2.1, playerTop: 10.5, playerAccel: 3.2, maxSpeed: 4.3, accel: 1.5, brake: 2.0, turnRate: 1.2, color: '#c7c9cc', cabin: '#1c1c1c' },
   rondvaart: { kind: 'rondvaart', name: 'boat', len: 8, wid: 2.3, playerTop: 7.4, playerAccel: 1.7, maxSpeed: 3.6, accel: 0.9, brake: 1.4, turnRate: 0.75, color: '#1d3350', cabin: '#e8e6e0' },
   kano: { kind: 'kano', name: 'boat', len: 4.2, wid: 0.8, playerTop: 3.6, playerAccel: 1.6, maxSpeed: 2.6, accel: 1.3, brake: 1.8, turnRate: 1.5, color: '#c8502a' },
   kajak: { kind: 'kajak', name: 'boat', len: 3.6, wid: 0.66, playerTop: 4, playerAccel: 1.8, maxSpeed: 2.8, accel: 1.5, brake: 2.0, turnRate: 1.7, color: '#e0b020' },
