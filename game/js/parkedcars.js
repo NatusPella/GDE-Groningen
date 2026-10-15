@@ -142,13 +142,35 @@ function* genCell(world, st, gx, gy) {
         const off = k.hw + m.wid / 2 + 0.4;
         const x = k.ax + k.ux * t + nx * off, y = k.ay + k.uy * t + ny * off;
         if (x < x0 || x >= x0 + CELL || y < y0 || y >= y0 + CELL) continue;
-        const fits = villageSlotFree(x, y, angle, m.len + 0.6, m.wid + 0.4);
+        // the same street may already have kerb slots from countrySlots
+        const fits = villageSlotFree(x, y, angle, m.len + 0.6, m.wid + 0.4) && !slotOverlaps(slots, x, y, angle, m);
         yield;
         if (fits) slots.push({ x, y, angle, model: m, v: null, taken: false });
       }
     }
   }
   return slots;
+}
+
+// Would a car (model m) at (x, y, angle) touch one already in slots? Box
+// against box, with half a metre to spare.
+export function slotOverlaps(slots, x, y, angle, m, gap = 0.5) {
+  const c = Math.cos(angle), sn = Math.sin(angle);
+  for (const q of slots) {
+    const R = (m.len + q.model.len) / 2 + gap;
+    if (Math.abs(q.x - x) > R || Math.abs(q.y - y) > R) continue;
+    const qc = Math.cos(q.angle), qs = Math.sin(q.angle);
+    const dx = q.x - x, dy = q.y - y;
+    let apart = false;
+    // separating axes: the four box axes
+    for (const [ax, ay] of [[c, sn], [-sn, c], [qc, qs], [-qs, qc]]) {
+      const ra = Math.abs(ax * c + ay * sn) * m.len / 2 + Math.abs(-ax * sn + ay * c) * m.wid / 2;
+      const rb = Math.abs(ax * qc + ay * qs) * q.model.len / 2 + Math.abs(-ax * qs + ay * qc) * q.model.wid / 2;
+      if (Math.abs(dx * ax + dy * ay) > ra + rb + gap) { apart = true; break; }
+    }
+    if (!apart) return true;
+  }
+  return false;
 }
 
 // Out in the Ommelanden: the farm tractors (the countryplan farmsteads and
@@ -238,7 +260,7 @@ function* countrySlots(x0, y0, slots) {
         const off = r.w / 2 + m.wid / 2 + 0.45;
         const x = a[0] + ux * t + nx * off, y = a[1] + uy * t + ny * off;
         if (!inCell(x, y)) continue;
-        const ok = countryFree(x, y, angle, m) && villageSlotFree(x, y, angle, m.len + 0.6, m.wid + 0.4);
+        const ok = countryFree(x, y, angle, m) && villageSlotFree(x, y, angle, m.len + 0.6, m.wid + 0.4) && !slotOverlaps(slots, x, y, angle, m);
         yield;
         if (ok) slots.push({ x, y, angle, model: m, v: null, taken: false });
       }

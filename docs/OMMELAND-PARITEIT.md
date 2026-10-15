@@ -7,7 +7,10 @@ what was done. Status: **fixed**, **deliberate** (a design choice, kept) or
 
 Checked by: `scripts/country_route_test.mjs` (GPS, drives every road),
 `scripts/country_camera_test.mjs` (camera ray and trunks), `scripts/country_vehicles_test.mjs`,
-`scripts/country_props_audit.mjs`, `scripts/controls_test.mjs`, plus a headless
+`scripts/country_props_audit.mjs`, `scripts/controls_test.mjs` (`country_vehicles_test.mjs` also
+checks parked cars never overlap, the meadow drag for AI and player, the one
+water rule, the bridge decks and railings, and police chasing a player parked in
+the fields at three spots), plus a headless
 Electron drive (a car at 40 m/s over an Ommeland road, 20 vehicle models, Q held;
 a car into a barn).
 
@@ -49,24 +52,24 @@ are).
 | 6 | "Vastgelopen? Zet me vrij" puts you on the nearest street | out in the Ommeland it moved you to a city street kilometres away or back to a landmark | fixed: nearest real road (safety.js) |
 | 7 | Loading a save respawns the hero car near you | out in the Ommeland the old hero car was deleted and no new one spawned | fixed: the old one stays unless a new one is placed (savegame.js) |
 | 8 | Additive night decals are fog-free (`nightlights3d.js`) | `countryglow.js` pools tinted towards the fog colour | fixed |
-| 9 | Hedges and fences (props) stop cars | hedges and wire fences are low walls you vault; vehicles drive through (countrywalls.js header) | deliberate: a car stuck in a field fence is worse; revisit with gaps at farm lanes |
-| 10 | Grass drag and wobble for any driver | `countryside.js gameplay()` caps speed and wobbles only the player's vehicle; police cross meadows at full speed | open: move into `Vehicle.applyControls` keyed on `surfaceUnder`, needs a feel pass |
-| 11 | Water: one test (`overOpenWater`) | `wideWaterAt` (sinking) and `wideDitch` (wading) use different thresholds, a procedural maar wades at 2.5 m/s but never sinks | open |
-| 12 | Bridges have railings and a deck height | Ommeland bridges are a mesh; a car one metre off the painted road sinks | open |
+| 9 | Hedges and fences (props) stop cars | hedges and wire fences are low walls you vault; vehicles drive through (countrywalls.js header) | deliberate, kept: the fences already open at every gate and farm lane (countryside.js `genFieldEdges`), but nearly every pasture is fenced, so solid fences would wall the polder into pens and take away driving across the fields (the meadow drag already slows it). Like the city's breakable props they would need a break speed, which is a new subsystem, not a consistency fix. Walkers are held by them now (see 15) |
+| 10 | Grass drag and wobble for any driver | `countryside.js gameplay()` caps speed and wobbles only the player's vehicle; police cross meadows at full speed | fixed: `vehicle.js offroadDrag` at the end of `applyControls` for every driver (AI, police, racers, the player), keyed on `offroadGround` (the same ground rule as before, sampled every 0.6 m); same numbers, so the player's feel is unchanged; the AI's stronger top-end pull leaves a sedan ~2 m/s faster than the player on grass |
+| 11 | Water: one test (`overOpenWater`) | `wideWaterAt` (sinking) and `wideDitch` (wading) use different thresholds, a procedural maar wades at 2.5 m/s but never sinks | fixed: `countryedge.js countryWater` is the one rule for vehicles and walkers: `deep` = drawn at canal level (`wideWaterAt`, what `isInWater`/`inWaterPoly` sink and swim in), `wade` = a maar or open-water rim painted on the ground (crawl / wade), `ditch` = a dip. The procedural maaren stay `wade`: they are painted on the ground, not drawn as water, so a car sinking into them would vanish into grass |
+| 12 | Bridges have railings and a deck height | Ommeland bridges are a mesh; a car one metre off the painted road sinks | fixed: a bridge deck is dry out to its railings (`deckHalf`, matching the mesh's scale), and `countryrails.js` makes the drawn railings of real and polder bridges solid: vehicle corner probes (impact, sound, damage) and walkers unless they jump over. The deck is at road level like the mesh |
 | 13 | Ground height and viaducts (elevation.js) | flat zero | deliberate: the countryside is polder |
-| 14 | Village furniture / world-end props pushed by `ommelandfun.js pushOut` (circle, speed x0.6 per frame) | only the player; no damage or sound | open (could join the corner probes) |
-| 15 | Walkers (companion, peds) vs hedges and fences | only the player is pushed out | open |
+| 14 | Village furniture / world-end props pushed by `ommelandfun.js pushOut` (circle, speed x0.6 per frame) | only the player; no damage or sound | fixed: the props' circles are part of `countryplan.js pushOutOfPlan` (every walker, the camera ray) and `resolveVehicleBuildingCollision` tests them against the whole body box (impulse, impact sound, damage) for every vehicle |
+| 15 | Walkers (companion, peds) vs hedges and fences | only the player is pushed out | fixed: `collision.js` holds peds, animals and the companion at hedges and fences; the player keeps the vault rule (countryside.js). The companion left behind a vaulted hedge catches up like behind a city railing (stuck, then repositioned) |
 
 ## Other systems (from the code audit, not touched)
 
 | # | Difference | Status |
 |---|---|---|
-| 1 | Police: `findSpawnPoint`, roadblocks and boats use city roads only; no new units or roadblocks past ~40 m from a city road, followers drive `_direct` across fields | open: needs a design decision (`realRoadNear` fallback) |
-| 2 | Ambience (`sfx/ambience.js`) reads city green/trees/water: city hum bed in open polder, no crickets or water lap | open: audio is being changed elsewhere |
-| 3 | `isEngineRunning` / engine range ignore `countryDrive` cars (idling country car silent, light meshes beyond 70 m silent) | open: audio |
-| 4 | Minimap and map show no Ommeland places (dorpsuitjes, wereldeinden, eierballen) | open: map is being changed elsewhere |
-| 5 | Country traffic is removed at once at the city edge (`active = edgeDistance > 60`), including real vehicles 20 m away | open |
-| 6 | Garage "Waar staat hij?" names a city district for a car in the Ommeland | open |
-| 7 | Parked cars: `countrySlots` and `villageKerbs` can fill the same village street | open |
+| 1 | Police: `findSpawnPoint`, roadblocks and boats use city roads only; no new units or roadblocks past ~40 m from a city road, followers drive `_direct` across fields | fixed (police.js): spawn points, roadblocks and officers on foot fall back to a country road (`realRoadNear`, past the real data the polder grid); units follow the roads with a bounded A* (`countryroute.js countryPathNear`) and pure pursuit, braking for bends; only the last stretch from the road nearest the player goes across the field, and never through water (they wait at the road instead); line of sight is blocked by real buildings; police boats come out on the open country water; a unit left out there at wanted 0 drives on along the roads. Bike and horse units stay in town (they belong to the binnenstad patrols, deliberate) |
+| 2 | Ambience (`sfx/ambience.js`) reads city green/trees/water: city hum bed in open polder, no crickets or water lap | fixed: out in the Ommeland the meadows count as green, the road and hedgerow trunks as trees, the open water and maren give the lap (placed down the water's distance field), the polder is open (wind), and the city hum fades out except in a village's built-up part |
+| 3 | `isEngineRunning` / engine range ignore `countryDrive` cars (idling country car silent, light meshes beyond 70 m silent) | fixed: a country road user idles like city traffic; the tractor gets the slow diesel, the quad the small single. The light meshes beyond 70 m match the city (`ENGINE_RANGE` 70 m is the conversion radius) |
+| 4 | Minimap and map show no Ommeland places (dorpsuitjes, wereldeinden, eierballen) | fixed (`ommelandmap.js`, layer "Ommeland"): the uitjes of every village you have been near (ticked once done), the wereldeinden already found (the rest stays "zoek ze zelf"); the villages' eierballen join the Buukenkaas tips like the city's; villages and stations already had labels and icons |
+| 5 | Country traffic is removed at once at the city edge (`active = edgeDistance > 60`), including real vehicles 20 m away | fixed (countrylife.js): back in town no new road users come, the ones about drive on and go once out of sight; a real vehicle reaching the city's edge is handed over to the city traffic AI on the street there; a road user with nowhere to go waits until hidden |
+| 6 | Garage "Waar staat hij?" names a city district for a car in the Ommeland | fixed: country road and village, or "bij <village>" in the fields (`ommelandplace.js ommelandArea`, shared with the location chip); status "In het Ommeland" |
+| 7 | Parked cars: `countrySlots` and `villageKerbs` can fill the same village street | fixed: `parkedcars.js slotOverlaps` (box test) keeps a kerb slot clear of every slot already in the cell |
 | 8 | Fog, shadows, view distance, day/night | same code path: no difference found |
 | 9 | Speed cameras, traffic lights, rural pedestrians | deliberate: none in the countryside |

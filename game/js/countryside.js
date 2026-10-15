@@ -3,21 +3,20 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { createTerrainMaterial } from './terrain3d.js';
 import {
   BLOCK, PW, PL, DITCH_HW, MAIN_HW, MAAR_HW, MAAR_WATER, ROAD_IN, ROAD_W,
-  chash, countryWeight, countryRect, edgeDistance, parcelAt, parcelUse, blockToWorld, edgeRoad, countrySurface, maarX, maarY, villageOf,
+  chash, countryWeight, countryRect, edgeDistance, parcelAt, parcelUse, blockToWorld, edgeRoad, maarX, maarY, villageOf,
 } from './countryfield.js';
 import { SkinBuilder, vcMaterial, tubeGeometry, loftGeometry, markShared, composeMatrix } from './pixelart3d.js';
-import { surfaceUnder } from './vehicle.js';
 import { buildCowMesh3D, buildSheepMesh3D, buildDuckMesh3D, animateWildlifeMesh3D, runOverAnimal, poseDeadAnimal } from './wildlife.js';
 import { distToVehicleBody } from './vehicle.js';
 import * as M3 from './countrymodels.js';
 import {
   ROAD_C, FARM_TYPES, TREE_ROW_P, WILLOW_ROW_P, HEDGE_ROW_P, WIRE_ROW_P, ROAD_ROW,
-  openLand, blockPlan, farmDetail, villagePlan, blockSigns, farmAt, inVillage, pushOutOfPlan, onFarmPaving,
+  openLand, blockPlan, farmDetail, villagePlan, blockSigns, farmAt, inVillage, pushOutOfPlan,
 } from './countryplan.js';
 import { updateSkyline, skylineStats } from './countryskyline.js';
 import { updateCountryLife, lifeStats } from './countrylife.js';
 import { buildSign, disposeSign } from './countrysigns.js';
-import { EDGE, edgeBlocked, edgeTileItems, roadGap } from './countryedge.js';
+import { EDGE, edgeBlocked, edgeTileItems, roadGap, countryWater } from './countryedge.js';
 import { ensureCountryEdge } from './countryplan.js';
 import { thinDitchOn, ditchRamp, urbanWeight, realBlock, realWater } from './countryfield.js';
 import { REAL, buildingsInTile, roadsInTile, buildingModel } from './countryreal.js';
@@ -1628,23 +1627,6 @@ function updateAnimals(dt, world, time, simulate) {
 
 // ------------------------------------------------------------------ gameplay
 
-// Countryside ground under (x, y), or null where a real mapped road or
-// plot takes precedence (the meadow feathers a little into the map).
-// Deep water under (x, y): a maar, a real canal or open water, not a ditch.
-function wideDitch(x, y) {
-  if (REAL.ready && realWater(x, y) > 0.8) return true;
-  const p = parcelAt(x, y);
-  return p.dMaar < MAAR_WATER;
-}
-
-function groundAt(map, x, y) {
-  const cs = countrySurface(x, y);
-  if (!cs || cs === 'weg') return cs;
-  if (countryWeight(x, y) > 0.99 && onFarmPaving(x, y)) return 'weg';
-  if (edgeDistance(x, y) > 0) return cs;
-  return surfaceUnder(map, x, y) === 'gras' ? 'gras' : null;
-}
-
 function gameplay(dt, world) {
   const p = world.player;
   if (world.pigeonMode || world.paused) { S.prev = null; return; }
@@ -1653,33 +1635,18 @@ function gameplay(dt, world) {
   for (const o of world.vehicles || []) {
     if (o === v || o.isBoat || o.wrecked || o.countryDrive || Math.abs(o.x - p.x) > 250 || Math.abs(o.y - p.y) > 250) continue;
     if (countryWeight(o.x, o.y) > 0.5 && pushOutOfPlan(o, 1.2)) o.speed *= 0.3;
+    // the meadow drag and the ditches are vehicle.js offroadDrag, for every driver
+    if (o.splashed) { o.splashed = false; if (Math.abs(o.x - p.x) < 80 && Math.abs(o.y - p.y) < 80) splash(world, o.x, o.y); }
   }
-  if (v && !v.isBoat && !v.isHeli && !v.sinking && !v.wrecked) {
-    const surf = groundAt(world.map, v.x, v.y);
-    const sp = Math.abs(v.speed);
-    // a strip or main ditch (1.5-2 m) is a dip you bump through; only a
-    // maar, a canal or open water is deep enough to wade
-    const deep = surf === 'sloot' && wideDitch(v.x, v.y);
-    if (surf === 'sloot' && !deep && S.surf !== 'sloot') v.speed *= 0.88;
-    if (surf === 'gras' || deep) {
-      // grass rolls slower, gradually (at most 4 m/s2 of drag): off-road
-      // vehicles (quad, tractor) hardly notice it
-      const off = v.model.offroad || 0;
-      const cap = deep ? 2.5 : Math.min((v.model.maxSpeed || 30), Math.max(14, (v.model.maxSpeed || 30) * (0.5 + 0.5 * off)));
-      if (sp > cap) v.speed -= Math.sign(v.speed) * Math.min(sp - cap, (deep ? 9 : 4) * dt);
-      // bumpy meadow: a little random yaw wobble that grows with speed
-      const k = Math.min(1, sp / 12);
-      v.angle += Math.sin(world.time * 13.7 + v.x * 0.9) * Math.sin(world.time * 5.3 + v.y) * dt * 0.35 * k;
-    }
-    if (surf === 'sloot' && S.surf !== 'sloot' && sp > 1.5) splash(world, v.x, v.y);
-    // farm buildings, silos and trunks stop the vehicle in vehicle.js resolveVehicleBuildingCollision, like the city's walls
-    S.surf = surf;
+  if (v) {
+    if (v.splashed) { v.splashed = false; splash(world, v.x, v.y); }
+    S.surf = null;
     S.prev = null;
     return;
   }
-  if (v) { S.prev = null; return; }
-  const surf = groundAt(world.map, p.x, p.y);
-  const wading = surf === 'sloot' && !p.water && !p.swimming;
+  // on foot: wading in anything painted wet, swimming in deep water (player.js)
+  const w = edgeDistance(p.x, p.y) > 0 ? countryWater(p.x, p.y) : null;
+  const wading = (w === 'wade' || w === 'ditch') && !p.water && !p.swimming;
   if (wading && S.prev && Math.hypot(p.x - S.prev[0], p.y - S.prev[1]) < 3) {
     p.x = S.prev[0] + (p.x - S.prev[0]) * 0.45;
     p.y = S.prev[1] + (p.y - S.prev[1]) * 0.45;
@@ -1693,7 +1660,7 @@ function gameplay(dt, world) {
     // field hedges and fences: over them only with a vault (player.js)
     if (!p.vault && (p.gz || 0) < 0.5 && (p.z || 0) < 1) pushOutOfWalls(p, p.radius || 0.35);
   }
-  S.surf = surf;
+  S.surf = wading ? 'sloot' : null;
   S.prev = [p.x, p.y];
 }
 

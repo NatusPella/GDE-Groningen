@@ -6,9 +6,11 @@ import { inPassage } from './collision.js';
 import { elevWallContact } from './elevation.js';
 import { crossingSpeedLimit, loweredBoomsNear, snapBoom } from './railway.js';
 import { zebraSpeedLimit } from './pedroutes.js';
-import { countrySurface, countryRect, rectOutside, countryWeight } from './countryfield.js';
-import { pushOutOfPlan, onFarmPaving } from './countryplan.js';
+import { countrySurface, countryRect, rectOutside, countryWeight, edgeDistance } from './countryfield.js';
+import { countryWater } from './countryedge.js';
+import { pushOutOfPlan, onFarmPaving, planExtraSolids } from './countryplan.js';
 import { pushOutOfTrunks } from './countrywalls.js';
+import { countryRailsNear, pushOutOfRails } from './countryrails.js';
 import { roadPriority } from './junctions.js';
 import { pickTrafficCar, carModel, applyFleetFlags, pickBikeVariant, MIDIBUS_MODEL } from './trafficfleet.js';
 import { sirenYield } from './emergency.js';
@@ -258,7 +260,55 @@ export class Vehicle {
     }
 
     if (this.isBus) pushBusTrail(this);
+    if (groundMap && !this.isBoat && !this.isHeli && !this.sinking && !this.wrecked && !this.countryDrive && dt > 0) offroadDrag(this, dt);
   }
+}
+
+// Off the roads out in the Ommeland, for every driver alike: meadow rolls
+// slower (gently: at most 2.5 m/s2 of drag down to ~3/4 of top speed; a quad or tractor hardly notices) with a
+// little yaw wobble that grows with speed, a maar or other wide water painted
+// on the ground is waded through at walking pace, a ditch is a dip that costs
+// some speed. Deep water sinks the vehicle (checkVehicleWater).
+let groundMap = null;
+export function setGroundMap(map) {
+  groundMap = map;
+}
+const GROUND_SAMPLE_M = 0.6;
+const GRASS_DRAG = 2.5;
+const WADE_DRAG = 9;
+const WADE_TOP = 2.5;
+function offroadDrag(v, dt) {
+  if (v._gx === undefined || Math.abs(v.x - v._gx) + Math.abs(v.y - v._gy) > GROUND_SAMPLE_M) {
+    v._gx = v.x; v._gy = v.y;
+    const prev = v.ground;
+    v.ground = offroadGround(groundMap, v.x, v.y);
+    const wet = v.ground === 'wade' || v.ground === 'ditch';
+    if (wet && prev !== 'wade' && prev !== 'ditch') {
+      if (v.ground === 'ditch') v.speed *= 0.88;
+      if (Math.abs(v.speed) > 1.5) v.splashed = true;
+    }
+  }
+  const g = v.ground;
+  if (g !== 'gras' && g !== 'wade') return;
+  const sp = Math.abs(v.speed);
+  const top = v.model.maxSpeed || 30;
+  const cap = g === 'wade' ? WADE_TOP : Math.min(top, Math.max(20, top * (0.75 + 0.25 * (v.model.offroad || 0))));
+  if (sp > cap) v.speed -= Math.sign(v.speed) * Math.min(sp - cap, (g === 'wade' ? WADE_DRAG : GRASS_DRAG) * dt);
+  v._wob = (v._wob || 0) + dt;
+  v.angle += Math.sin(v._wob * 13.7 + v.x * 0.9) * Math.sin(v._wob * 5.3 + v.y) * dt * 0.18 * Math.min(1, sp / 15);
+}
+
+// 'gras', 'wade', 'ditch' (countryedge.js countryWater) or null where the
+// tyres are on a road, farm yard paving or the city's own surfaces.
+export function offroadGround(map, x, y) {
+  if (edgeDistance(x, y) < -80) return null;
+  const cs = countrySurface(x, y);
+  if (!cs) return countryWater(x, y) === 'wade' ? 'wade' : null;
+  if (cs === 'weg') return null;
+  if (countryWeight(x, y) > 0.99 && onFarmPaving(x, y)) return null;
+  if (edgeDistance(x, y) <= 0) return surfaceUnder(map, x, y) === 'gras' ? 'gras' : null;
+  if (cs === 'sloot') return countryWater(x, y) === 'ditch' ? 'ditch' : 'wade';
+  return 'gras';
 }
 
 // world.stats.playerWrecks is a monotonic counter (sikkomfeed diffs it), so
@@ -926,6 +976,17 @@ export function spawnPoliceBoatOnWater(map, waterPoly, rng = Math.random, opts =
   return v;
 }
 
+// A police boat on the open water of the Ommeland (countrywater.js), which
+// has no polygon: it only gives chase (updateBoatAI) and waits otherwise.
+export function spawnCountryPoliceBoat(map, x, y, angle) {
+  if (boatDryPoints(map, { model: POLICE_BOAT_MODEL }, x, y, angle) > 0) return null;
+  const v = new Vehicle(x, y, angle, POLICE_BOAT_MODEL);
+  v.isBoat = true;
+  v.isPolice = true;
+  v.countryWater = true;
+  return v;
+}
+
 // Mirrors manageBikePopulation's despawn/spawn-quota shape, but candidates
 // are water bodies near the player instead of roads. Police boats are
 // excluded here exactly like manageTrafficPopulation excludes police cars -
@@ -1006,10 +1067,9 @@ const BOAT_WAYPOINT_MAX = 9;
 export function updateBoatAI(v, dt, map, world, rng = Math.random) {
   if (v.wrecked || v.scripted) return; // scripted: a mission module steers this boat itself
   // a mission, side-job or own boat waits where it lies until the player boards it
-  if (!v.waterPoly || v.missionCar || v.playerOwned || v.homeStored) { v.applyControls(dt, 0, 0, true); return; }
-
   // Police pursuit: the waypoint is simply the player's live position.
   const chasing = v.isPolice && !v.hijacked && world.wanted > 0;
+  if ((!v.waterPoly && !(v.countryWater && chasing)) || v.missionCar || v.playerOwned || v.homeStored) { v.applyControls(dt, 0, 0, true); return; }
   if (chasing) {
     v.waypoint = [world.player.x, world.player.y];
   } else {
@@ -2350,15 +2410,31 @@ export function resolveVehicleBuildingCollision(v, map, dt) {
   const offLevel = (v.z || 0) > 4 || (v.z || 0) < -3.5;
   // Ommeland solids (barns, real buildings, silos, village furniture, trunks):
   // one circle round the whole body first: the corner tests only run beside one
-  let country = false;
+  let country = false, rails = false;
   if (!offLevel && !v.isBoat && countryWeight(v.x, v.y) > 0.5) {
     const reach = v.halfLen + 0.6;
     _cp.x = v.x; _cp.y = v.y;
     country = pushOutOfPlan(_cp, reach);
     if (!country) { _cp.x = v.x; _cp.y = v.y; country = pushOutOfTrunks(_cp, reach); }
+    rails = countryRailsNear(v.x, v.y, reach + 1).length > 0;
   }
   for (let k = 0; k < count; k++) {
     const c = collisionProbes(v)[k];
+    if (rails) {
+      // a bridge railing: the corner stays on the deck side, where the body's centre is
+      _cp.x = c[0]; _cp.y = c[1];
+      const rh = pushOutOfRails(_cp, 0.05, v.x, v.y);
+      if (rh) {
+        const ddx = _cp.x - c[0], ddy = _cp.y - c[1], d = Math.hypot(ddx, ddy);
+        v.x += ddx + rh.nx * 0.03;
+        v.y += ddy + rh.ny * 0.03;
+        const slide = tangentialSpeed(v, null, rh.nx, rh.ny);
+        const vn = contactImpulse(v, null, c[0], c[1], -rh.nx, -rh.ny, WALL_FRICTION);
+        if (vn >= IMPACT_EVENT_SPEED || slide > SCRAPE_SPEED) recordContact(v, null, rh.x, rh.y, -rh.nx, -rh.ny, vn, slide);
+        if (vn > worst) { worst = vn; hx = rh.x; hy = rh.y; }
+        if (d > 0) hit = true;
+      }
+    }
     if (country) {
       _cp.x = c[0]; _cp.y = c[1];
       const inPlan = pushOutOfPlan(_cp, 0.05), onTrunk = pushOutOfTrunks(_cp, 0.05);
@@ -2405,6 +2481,37 @@ export function resolveVehicleBuildingCollision(v, map, dt) {
       if (vn >= IMPACT_EVENT_SPEED || slide > SCRAPE_SPEED) recordContact(v, null, rc.x, rc.y, -rc.nx, -rc.ny, vn, slide);
       if (vn > worst) { worst = vn; hx = rc.x; hy = rc.y; }
       hit = true;
+    }
+  }
+  // the round props of the wereldeinden and dorpsuitjes against the whole
+  // body box, so a post between the headlights stops the car too
+  if (!offLevel && !v.isBoat) {
+    const xs = planExtraSolids();
+    if (xs.length) {
+      const c = Math.cos(v.angle), sn = Math.sin(v.angle);
+      for (const q of xs) {
+        const dx = q.x - v.x, dy = q.y - v.y, reach = v.halfLen + q.r;
+        if (Math.abs(dx) > reach || Math.abs(dy) > reach) continue;
+        const lu = dx * c + dy * sn, lv = -dx * sn + dy * c;
+        const cu = clamp(lu, -v.halfLen, v.halfLen), cv = clamp(lv, -v.halfWid, v.halfWid);
+        let eu = lu - cu, ev = lv - cv, d = Math.hypot(eu, ev), pen;
+        if (d > 1e-4) { pen = q.r - d; eu /= d; ev /= d; } else {
+          // centre inside the box: out through the nearest side
+          const o = [[v.halfLen - lu, 1, 0], [lu + v.halfLen, -1, 0], [v.halfWid - lv, 0, 1], [lv + v.halfWid, 0, -1]].sort((a, b) => a[0] - b[0])[0];
+          eu = o[1]; ev = o[2]; pen = q.r + o[0];
+        }
+        if (pen <= 0) continue;
+        // n: from the prop towards the car
+        const nx = -(eu * c - ev * sn), ny = -(eu * sn + ev * c);
+        v.x += nx * (pen + 0.02);
+        v.y += ny * (pen + 0.02);
+        const px = q.x - nx * q.r, py = q.y - ny * q.r;
+        const slide = tangentialSpeed(v, null, nx, ny);
+        const vn = contactImpulse(v, null, px, py, -nx, -ny, WALL_FRICTION);
+        if (vn >= IMPACT_EVENT_SPEED || slide > SCRAPE_SPEED) recordContact(v, null, px, py, -nx, -ny, vn, slide);
+        if (vn > worst) { worst = vn; hx = px; hy = py; }
+        hit = true;
+      }
     }
   }
   if (worst > IMPACT_EVENT_SPEED && worst > ((v.pendingImpact && v.pendingImpact.speed) || 0)) {

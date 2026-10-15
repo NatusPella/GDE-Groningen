@@ -2209,6 +2209,9 @@ function engineKind(v) {
   const name = v.model && v.model.name;
   if (name === 'sport' || name === 'police' || v.isPolice) return 5;
   if (name === 'van') return 6;
+  // farm vehicles: the tractor a slow diesel like the bus, the quad a small single
+  if (name === 'tractor') return 2;
+  if (name === 'quad') return 3;
   return 0;
 }
 
@@ -2812,7 +2815,8 @@ function vehicleVoiceParams(v) {
 function isEngineRunning(v) {
   if (v.wrecked || v.isBike || v.isHeli || v.parked || v.driver === 'player' || noMotor(v)) return false;
   if (Math.abs(v.speed) > 0.2) return true;
-  return v.isBoat || v.racer || (!!v.road && !v.isHeroCar);
+  // a driven car idles: city traffic, racers, and the Ommeland's road users (countrylife.js)
+  return v.isBoat || v.racer || v.countryDrive || (!!v.road && !v.isHeroCar);
 }
 
 function updateTrafficAudio(dt, world) {
