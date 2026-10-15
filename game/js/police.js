@@ -1,4 +1,4 @@
-import { clamp, closestPointOnSegment, pointInPolygon } from './util.js';
+import { clamp, closestPointOnSegment, pointInPolygon, isInWater } from './util.js';
 import { spawnVehicleOnRoad, updateTrafficAI, resolveVehicleBuildingCollision, spawnPoliceBoatOnWater, spawnCountryPoliceBoat, attachToNearestRoad, maxCurvature } from './vehicle.js';
 import { requestRespawn } from './world.js';
 import { bustFine } from './economy.js';
@@ -295,7 +295,12 @@ function updateChase(v, dt, world) {
   if (v._losTimer <= 0) {
     v._losTimer = 0.25;
     v._sees = d < SEE_RANGE_CAR && (aloftInSight(world) || hasLineOfSight(world.map, v.x, v.y, p.x, p.y));
-    v._direct = d < DIRECT_CHASE_DIST && v._sees && !pol.searching;
+    // out in the fields the last stretch from the road nearest the player is
+    // across the grass (countryFollow sets _fieldRun at the end of its way)
+    if (v._fieldRun && (d > FIELD_RUN_DIST || pol.searching || !dryLine(world.map, v.x, v.y, p.x, p.y))) v._fieldRun = false;
+    v._direct = (d < DIRECT_CHASE_DIST && v._sees || !!v._fieldRun) && !pol.searching;
+    // never straight into a canal or a maar out there
+    if (v._direct && !v._fieldRun && REAL.ready && edgeDistance(v.x, v.y) > 0 && !dryLine(world.map, v.x, v.y, p.x, p.y)) v._direct = false;
   }
   tunePoliceCar(v, world, d, v._sees);
   let goal = p;
@@ -934,6 +939,7 @@ export function updatePolice(dt, world) {
 // close and in sight, like in town.
 
 const COUNTRY_SNAP_M = 80;
+const FIELD_RUN_DIST = 110;
 const COUNTRY_REPLAN_S = 1.2;
 const COUNTRY_CORNER_DECEL = 8;
 
@@ -956,6 +962,13 @@ function countryRoadPoint(x, y, R) {
 }
 function lineRoad(x, y, ux, uy, width, oneway) {
   return { pts: [[x - ux * 20, y - uy * 20], [x + ux * 20, y + uy * 20]], width: Math.max(4, width), oneway: !!oneway, cat: 'normal', country: true };
+}
+
+// No water to sink in on the straight line from a to b (every 2 m).
+function dryLine(map, ax, ay, bx, by) {
+  const n = Math.ceil(Math.hypot(bx - ax, by - ay) / 2);
+  for (let k = 1; k < n; k++) if (isInWater(map, ax + (bx - ax) * k / n, ay + (by - ay) * k / n)) return false;
+  return true;
 }
 
 function solidAt(map, x, y) {
@@ -1040,9 +1053,17 @@ function countryFollow(v, dt, world, goal, cruise) {
   const steer = Math.abs(alpha) > Math.PI / 2 ? Math.sign(alpha) : clamp(curv / maxCurvature(v), -1, 1);
   let vTarget = Math.min(vCap, Math.sqrt(6 / Math.max(1e-3, Math.abs(curv))), v.model.maxSpeed);
   if (Math.abs(alpha) > 0.7) vTarget = Math.min(vTarget, 6);
-  // at the end of the way (the player on the road ahead) close in gently
-  const left = Math.hypot(P[P.length - 1][0] - v.x, P[P.length - 1][1] - v.y);
+  // at the end of the way: the player on the road ahead (close in gently),
+  // or off it in the fields (the rest is straight across)
+  const end = P[P.length - 1];
+  const left = Math.hypot(end[0] - v.x, end[1] - v.y);
+  if (left < 18 && Math.hypot(goal.x - end[0], goal.y - end[1]) > 6 && goal === world.player && dryLine(world.map, v.x, v.y, goal.x, goal.y)) {
+    v._fieldRun = true;
+    v._direct = true;
+  }
   if (left < 25) vTarget = Math.min(vTarget, Math.max(3, left * 0.6));
+  // nowhere further to go on the road: wait there
+  if (left < 6 && !v._fieldRun) vTarget = 0;
   const err = vTarget - v.speed;
   const throttle = err > 0.25 ? clamp(err * 0.4, 0.15, 1) : 0;
   const brake = err < -0.5 ? clamp(-err * 0.3, 0.1, 1) : 0;

@@ -1,6 +1,7 @@
 import { REAL } from './countryreal.js';
 import { ensureWorldEnds, updateWorldEnds, worldEndSolids, getWorldEndSpots, worldEndDebug, worldEndCount } from './worldends.js';
-import { initVillages, updateVillages, villageSolids, villagePrompt, villageSecondary, tryVillageInteract, getVillageSpots, ensureVillages, villageDebug, villageUse } from './dorpsuitjes.js';
+import { setExtraEggs } from './furniture.js';
+import { initVillages, updateVillages, villageSolids, getVillageEggs, villagePrompt, villageSecondary, tryVillageInteract, getVillageSpots, ensureVillages, villageDebug, villageUse } from './dorpsuitjes.js';
 import { getKoeSites, koeCowTo } from './pg_koe.js';
 import { updateTalk } from './ommelandtalk.js';
 import { setExtraSolids } from './countryplan.js';
@@ -16,6 +17,7 @@ const solids = [];
 export function initOmmelandFun(w) {
   world = w;
   setExtraSolids(solids);
+  setExtraEggs(() => (REAL.ready ? getVillageEggs(w) : []));
   initVillages(w);
   if (typeof window !== 'undefined') {
     window.__ommeland = {
