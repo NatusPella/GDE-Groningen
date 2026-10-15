@@ -1,6 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { dist, closestPointOnSegment, isInWater, pointInPolygon, boatDryPoints } from './util.js';
 import { clearOfReal } from './countryreal.js';
+import { facilitiesOf, countryDoor } from './facilities.js';
 import { getScene, refreshCharacterMeshes } from './scene3d.js';
 import { spawnVehicleOnRoad, spawnBoatOnWater, HERO_CAR_MODEL, playerTopSpeed } from './vehicle.js';
 import { BOAT_KINDS } from './boattypes.js';
@@ -392,6 +393,38 @@ function placeJetty(map, street, horeca, taken) {
   return { x, y, water: { x: wx, y: wy, angle: Math.atan2(-ux, uy) }, kiosk: { nx: -ux, ny: -uy }, street };
 }
 
+// Out in the Ommelanden: branches at the real shops of the matching kind
+// (facilities.js), one per type per village, the sign on the real
+// building's street side; named after the village like the city's after
+// the wijk. The city keeps its own picks (meta.shops, add_shops.py).
+const COUNTRY_SHOPS = {
+  super: ['supermarket', 'convenience'], snack: ['snack'], kapper: ['hairdresser', 'beauty'], kleding: ['clothes', 'shoes'],
+  fietsenmaker: ['craft_bicycle', 'bicycle'], fietsen: ['bicycle'], tabak: ['tobacco', 'newsagent', 'kiosk'],
+  auto: ['car'], tuning: ['car_parts', 'tyres'], pand: ['pawnbroker', 'second_hand'], wapens: ['outdoor'],
+};
+const COUNTRY_SPACING = 900;
+
+export function placeCountryShops(map, horeca = [], taken = []) {
+  const out = [];
+  const used = new Set();
+  for (const [type, kinds] of Object.entries(COUNTRY_SHOPS)) {
+    const mine = [];
+    const cands = facilitiesOf(kinds).filter((f) => !f.city && !used.has(f))
+      .sort((a, b) => kinds.indexOf(a.kind) - kinds.indexOf(b.kind) || a.x - b.x || a.y - b.y);
+    for (const f of cands) {
+      if (mine.some((q) => dist(q.x, q.y, f.x, f.y) < COUNTRY_SPACING) || mine.some((q) => q.wijk === f.place)) continue;
+      const p = countryDoor(map, f.x, f.y, (x, y) => doorClear(x, y, horeca, [...taken, ...out]));
+      const wijk = f.place || (p && p.street);
+      if (!p || !wijk) continue;
+      used.add(f);
+      const shop = { ...p, type, wijk, street: p.street || f.street, country: true };
+      mine.push(shop);
+      out.push(shop);
+    }
+  }
+  return out;
+}
+
 function nameBranches(list) {
   const byType = {};
   for (const s of list) (byType[s.type] = byType[s.type] || []).push(s);
@@ -442,7 +475,9 @@ export function initShops(world) {
     const p = placeAtPoi(map, { x: cx, y: cy }, horeca, placed);
     if (p) placed.push({ ...p, type: 'eikea', wijk: 'Sontweg', street: p.street || 'Sontweg' });
   }
+  placed.push(...placeCountryShops(map, horeca, placed));
   for (const s of placed) {
+    if (s.country) continue;
     const o = clearOfReal(s.x, s.y, (x, y) => !isInWater(map, x, y) && !map.buildingsNear(x, y, 1).some((b) => pointInPolygon(x, y, b.pts)));
     if (o) { s.x = o.x; s.y = o.y; }
   }

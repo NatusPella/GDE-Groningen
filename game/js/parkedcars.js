@@ -6,6 +6,7 @@ import { BLOCK, chash, edgeDistance, urbanWeight, realWater } from './countryfie
 import { REAL, RTILE, buildingsInTile, roadsInTile, buildingModel, buildingAt } from './countryreal.js';
 import { blockPlan, farmDetail, farmWorld, pushOutOfPlan, FARM_TYPES } from './countryplan.js';
 import { roadGap } from './countryedge.js';
+import { baysIn } from './parkinglots.js';
 
 // Kerbside parking along residential streets: half a car length up on the
 // stoep, clear of the traffic lane. Slots are deterministic per road segment
@@ -26,6 +27,9 @@ const SLOT_GAP = 6.4;
 const END_CLEAR = 7; // m kept free at each segment end (junctions, bends)
 const ROAD_P = { residential: 0.6, unclassified: 0.4, tertiary: 0.25 };
 const FILL = 0.62;
+const LOT_FILL = 0.55;
+// a big lot stays a lot, not a wall of meshes
+const LOT_CARS_PER_CELL = 12;
 const CACHE_CELLS = 600;
 const GRID = 16;
 const WAKE_WALK_R = 7; // m: on foot this close, the car is live (enter, push, bump)
@@ -148,6 +152,17 @@ function* genCell(world, st, gx, gy) {
         if (fits) slots.push({ x, y, angle, model: m, v: null, taken: false });
       }
     }
+  }
+  // the bays of the real parking lots and parking lanes (parkinglots.js)
+  let inBays = 0;
+  for (const b of baysIn(map, x0, y0, x0 + CELL, y0 + CELL)) {
+    if (inBays >= LOT_CARS_PER_CELL) break;
+    if (hash(b.id, b.k, 77) > LOT_FILL) continue;
+    const m = MODELS[Math.floor(hash(b.id, b.k, 78) * MODELS.length)];
+    if (m.len > b.len - 0.3 || m.wid > b.wid + 0.1) continue;
+    const free = !slotOverlaps(slots, b.x, b.y, b.angle, m, 0.3) && !(map.reservedAt && map.reservedAt(b.x, b.y));
+    yield;
+    if (free) { slots.push({ x: b.x, y: b.y, angle: b.angle, model: m, v: null, taken: false, bay: true }); inBays++; }
   }
   return slots;
 }
