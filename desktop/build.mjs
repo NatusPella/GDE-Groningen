@@ -2,6 +2,8 @@
 // every CDN module (three.js + the addons it pulls in, crawled recursively)
 // and the Google fonts, rewrites the URLs to local paths and stamps the
 // version. Downloads are cached in vendor-cache/ so rebuilds work offline.
+import crypto from 'crypto';
+import { spawnSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -51,6 +53,27 @@ function resolveSpec(spec, base) {
   if (spec.startsWith('https://')) return spec;
   if (spec.startsWith('.') && base) return new URL(spec, base).href;
   return null;
+}
+
+function packWorld() {
+  const root = path.join(SRC, '..');
+  const packer = path.join(root, 'scripts', 'world', 'pack_tiles.mjs');
+  if (!fs.existsSync(packer) || !fs.existsSync(path.join(SRC, 'js', 'gdt.js'))) { console.log('no tile packer in this checkout: JSON map only'); return; }
+  const h = crypto.createHash('sha1');
+  for (const f of ['citymap.json', 'mapextras.json', 'ommeland.json', 'ommeland.bin', 'js/gdt.js', 'js/mapdata.js', 'js/elevation.js', 'js/passages.js', 'js/museumplan.js', 'js/util.js']) h.update(fs.readFileSync(path.join(SRC, f)));
+  h.update(fs.readFileSync(packer));
+  const WCACHE = path.join(HERE, '.world-cache');
+  const cache = path.join(WCACHE, 'world-' + h.digest('hex').slice(0, 16));
+  if (!fs.existsSync(path.join(cache, 'index.json'))) {
+    fs.rmSync(cache, { recursive: true, force: true });
+    const t = Date.now();
+    const r = spawnSync(process.execPath, [packer, '--game', SRC, '--out', cache], { stdio: 'inherit', cwd: root });
+    if (r.status) { fs.rmSync(cache, { recursive: true, force: true }); throw new Error('packing the map tiles failed'); }
+    for (const d of fs.readdirSync(WCACHE)) if (path.join(WCACHE, d) !== cache) fs.rmSync(path.join(WCACHE, d), { recursive: true, force: true });
+    console.log(`packed the map tiles in ${((Date.now() - t) / 1000).toFixed(0)} s`);
+  }
+  fs.cpSync(cache, path.join(OUT, 'world'), { recursive: true });
+  console.log('map tiles: ' + fs.readdirSync(path.join(OUT, 'world')).length + ' files');
 }
 
 async function main() {
@@ -125,6 +148,10 @@ async function main() {
 
   // 5. version stamp (shown in the main menu)
   fs.writeFileSync(path.join(OUT, 'js', 'version.js'), `export const VERSION = '${version}';\n`);
+
+  // 5b. the map as .gdt tiles (scripts/world/pack_tiles.mjs): a build artifact,
+  // cached by the content of its inputs
+  packWorld();
 
   // 6. nothing may still come from the internet at load time
   const left = [];
