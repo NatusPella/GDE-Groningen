@@ -112,7 +112,7 @@ export function applyCalendarSave(w, d) {
 }
 
 const debugApi = {
-  get: () => ({ ...state(world), info: todayInfo(), specials: specialsOn(today()).map((s) => s.id) }),
+  get: () => ({ ...state(world), info: todayInfo(), specials: specialsOn(today()).map((s) => s.id), bounds: bounds() }),
   set(n) { state(world).day = Math.max(1, n | 0); return this.get(); },
   stepDay: (id) => STEP_DAY.get(id),
 };
