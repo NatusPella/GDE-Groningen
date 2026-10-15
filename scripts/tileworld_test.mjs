@@ -22,6 +22,7 @@ let n = 0, fails = 0;
 const ok = (cond, name, info = '') => { n++; if (!cond) { fails++; console.log(`FAIL ${name}${info ? ' (' + info + ')' : ''}`); } };
 const canon = (v) => JSON.stringify(v, (k, x) => (x && typeof x === 'object' && !Array.isArray(x) ? Object.fromEntries(Object.keys(x).filter((q) => q !== 'bounds').sort().map((q) => [q, x[q]])) : x));
 
+const stripA = (o) => { const c = { ...o }; for (const k of P.ATTR_KEYS) delete c[k]; return c; };
 const src = P.loadSources();
 const legacy = src.map;
 const built = P.build(src);
@@ -42,8 +43,8 @@ for (const k of ['roads', 'buildings', 'canopies', 'water', 'green', 'trees', 'r
   if (bad === 0) for (let i = 0; i < a.length; i++) {
     const x = k === 'clippedWays' ? { ...a[i], building: legacy.buildings.indexOf(a[i].building), road: P.cleanRow(a[i].road) } : a[i];
     const y = k === 'clippedWays' ? { ...b[i], building: tw.buildings.indexOf(b[i].building), road: P.cleanRow(b[i].road) } : b[i];
-    const cx = k === 'trees' ? JSON.stringify(x) : canon(k === 'buildings' || k === 'roads' || k === 'canopies' ? { ...P.cleanRow(x) } : x);
-    const cy = k === 'trees' ? JSON.stringify(y) : canon(k === 'buildings' || k === 'roads' || k === 'canopies' ? { ...P.cleanRow(y) } : y);
+    const cx = k === 'trees' ? JSON.stringify(x) : canon(k === 'buildings' || k === 'roads' || k === 'canopies' ? stripA(P.cleanRow(x)) : x);
+    const cy = k === 'trees' ? JSON.stringify(y) : canon(k === 'buildings' || k === 'roads' || k === 'canopies' ? stripA(P.cleanRow(y)) : y);
     if (cx !== cy) { bad++; if (bad < 3) console.log(`  ${k}[${i}]`, cx.slice(0, 160), '|', cy.slice(0, 160)); }
   }
   ok(bad === 0, `${k}: ${a.length} the same as in the JSON map`, bad);

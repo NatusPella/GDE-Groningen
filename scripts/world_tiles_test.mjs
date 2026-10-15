@@ -85,6 +85,7 @@ const blobOf = (e) => {
 };
 ok(Object.keys(index.tiles).length === built.blobs.size, 'game/world has every tile the packer makes now (run node scripts/world/pack_tiles.mjs)');
 let staleTiles = 0, hashBad = 0, reenc = 0;
+const attrSeen = {};
 const back = Object.fromEntries(P.KINDS.map(([k]) => [k, []]));
 for (const [key, e] of Object.entries(index.tiles)) {
   const raw = blobOf(e);
@@ -100,6 +101,7 @@ for (const [key, e] of Object.entries(index.tiles)) {
       const gid = kind === 'trees' ? row.g : row.gid;
       const obj = kind === 'trees' ? row.p[0] : row;
       if (kind !== 'trees') delete obj.gid;
+      if (kind === 'buildings') for (const k of P.ATTR_KEYS) { if (k in obj) attrSeen[k] = (attrSeen[k] || 0) + 1; delete obj[k]; }
       const have = back[kind][gid];
       if (have && canon(have) !== canon(obj)) back[kind].conflict = (back[kind].conflict || 0) + 1;
       back[kind][gid] = obj;
@@ -116,6 +118,25 @@ for (const [kind] of P.KINDS) {
   const got = back[kind];
   ok(!got.conflict, `${kind}: copies in different tiles agree`, got.conflict);
   ok(got.length === want.length && want.every((o, i) => got[i] && canon(got[i]) === canon(o)), `${kind}: ${want.length} objects back exactly`, `${got.filter(Boolean).length}/${want.length}`);
+}
+ok((attrSeen.hm || 0) >= src.map.buildings.length && (attrSeen.hsrc || 0) >= src.map.buildings.length, 'every building row carries hm and hsrc', JSON.stringify(attrSeen));
+ok((attrSeen.year || 0) > 10000 && (attrSeen.bag || 0) > 10000, 'BAG year and id joined from the OSM tags', `${attrSeen.year} ${attrSeen.bag}`);
+// the 3D BAG join (F1 brings the data; the join is tested with made-up records)
+{
+  const b = src.map.buildings.find((q) => q.pts.length >= 4 && !q.landmark);
+  const xs = b.pts.map((p) => p[0]), ys = b.pts.map((p) => p[1]);
+  const c = [(Math.min(...xs) + Math.max(...xs)) / 2, (Math.min(...ys) + Math.max(...ys)) / 2];
+  const inside = b.pts.reduce((a, p) => [a[0] + p[0] / b.pts.length, a[1] + p[1] / b.pts.length], [0, 0]);
+  const area = Math.abs(b.pts.reduce((a, p, i) => { const q = b.pts[(i + 1) % b.pts.length]; return a + p[0] * q[1] - q[0] * p[1]; }, 0) / 2);
+  const j = P.joinAttrs([b], { osm: [{ id: 1, c: inside, a: area, h: 11.5, roof: 'gabled', year: 1931, bag: '0014100000012345' }], bag: [{ id: 'NL.IMBAG.Pand.0014100000012345', c: inside, a: area, hmax: 4.8, h50: 4.1, hg: -0.4, roof: 'slanted' }] });
+  const f = j.fields.get(b);
+  ok(f.hsrc === '3dbag' && f.hm === 5.2 && f.hmax === 4.8 && f.hg === -0.4 && f.h50 === 4.1 && f.roof === 'gabled' && f.year === 1931, '3D BAG beats the OSM height, by BAG id', JSON.stringify(f));
+  const k = P.joinAttrs([b], { osm: [{ id: 1, c: inside, a: area, h: 11.5 }], bag: [] }).fields.get(b);
+  ok(k.hsrc === 'osm_height' && k.hm === 11.5, 'then the OSM height');
+  const l = P.joinAttrs([b], { osm: [{ id: 1, c: inside, a: area, lv: 4 }], bag: [] }).fields.get(b);
+  ok(l.hsrc === 'osm_levels' && l.hm === 12.4, 'then the levels');
+  const d = P.joinAttrs([b], { osm: [], bag: [] }).fields.get(b);
+  ok(d.hsrc === 'default' && d.hm === Math.round((b.h || 1) * 3.1 * 100) / 100, 'last the type default');
 }
 // the global layer
 {
