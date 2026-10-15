@@ -35,7 +35,7 @@ let voices = {};
 fetch(VOICE_DIR + 'manifest.json').then((r) => (r.ok ? r.json() : {})).then((m) => { voices = m || {}; }).catch(() => {});
 
 // Opening of a fresh game, cut to the theme's beat (docs/verhaal/D-definitief.md,
-// "Trailer" and "Opening"): first a GTA VI trailer parody (sun on d'Olle
+// "Trailer" and "Opening"): first a game-trailer parody (sun on d'Olle
 // Grieze, cyclists, a gull with a frikandel, freeze frames with name cards
 // for Tessa and Tammo, flashes ahead in the story, the title), then the
 // opening scene: dawn in the Oosterparkwijk, Rikus on Nachtstreek, the

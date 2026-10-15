@@ -558,7 +558,7 @@ body.cine-tint-bust:not(.gpu-screenfx) #game3d { filter: grayscale(1) brightness
 }
 #cine.has-big .cine-big { opacity: 1; transform: translateY(-50%) scale(1); }
 #cine[data-tint="death"] .cine-big { color: #d93f3f; }
-/* the DOOD / OPGEPAKT moment: GTA-style title on a dark band, a beat late */
+/* the DOOD / OPGEPAKT moment: a big title on a dark band, a beat late */
 #cine[data-tint="death"] .cine-big, #cine[data-tint="bust"] .cine-big {
   padding: 2.2vh 0 1.4vh;
   line-height: 1;
@@ -674,7 +674,7 @@ body:not(.cine-hide-hud) #cine .cine-skip { right: 50%; bottom: calc(14px * var(
 #cine .cine-sub { font-size: clamp(calc(16px * var(--ui, 1)), 1.6vw, calc(21px * var(--ui, 1))); width: min(86vw, calc(820px * var(--ui, 1))); }
 
 #hud .hud-vehname {
-  /* GTA-style: bottom right, just above the minimap */
+  /* genre convention: bottom right, just above the minimap */
   position: absolute;
   right: 16px;
   bottom: calc(var(--mm-size) + var(--mm-bottom) + 46px);
@@ -705,7 +705,7 @@ body:not(.cine-hide-hud) #cine .cine-skip { right: 50%; bottom: calc(14px * var(
 @media (prefers-reduced-motion: reduce) { #hud .hud-vehname { transition: opacity 0.2s; transform: none; } }
 
 #hud .hud-nowplaying {
-  /* GTA-style radio card, left under the health bars */
+  /* the radio card, left under the health bars */
   position: absolute;
   top: 104px;
   left: 14px;

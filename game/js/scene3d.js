@@ -83,7 +83,7 @@ import { lookBackActive, chaseFollowLerp } from './controls.js';
 // draws - same x/y meters, same b.h building heights, same vehicle/pedestrian
 // arrays. Nothing about gameplay/physics/collision changes here; this module
 // only ever READS world and mirrors it into a Three.js scene with a
-// GTA3-style third-person follow camera. World mapping: three.x = world.x,
+// Classic third-person follow camera. World mapping: three.x = world.x,
 // three.z = world.y, three.y = up (meters, roughly 3m per building level).
 
 // The night-light pool keeps a fixed number of point/spot lights in every lit
@@ -126,11 +126,11 @@ export function terrainReady() {
 }
 let followYaw = 0;
 // orbit radius kept constant so pitch changes swing the camera around the
-// player like a real GTA camera (higher/steeper looking down, lower/flatter
+// player like a classic open-world camera (higher/steeper looking down, lower/flatter
 // looking up) instead of just sliding the camera height up and down in place
 const ORBIT_RADIUS = Math.hypot(2.6, 2.6);
 const PITCH_MIN_DEG = 10; // mouse near top of screen - low, near-level "looking up" angle
-const PITCH_MAX_DEG = 52; // mouse near bottom of screen - steep GTA-style overhead angle
+const PITCH_MAX_DEG = 52; // mouse near bottom of screen - steep overhead angle
 // mouse-look goes lower still: below LOOK_UP_FROM_DEG the camera sinks to
 // the ground and the view tilts up towards the rooftops and the sky
 const PITCH_LOOK_MIN_DEG = -16;
@@ -2309,7 +2309,7 @@ export function update3D(dt, world) {
     }
   }
   // third-person follow: smoothly settle behind whatever the player is
-  // currently facing (on foot or driving), GTA3-style - with a wall-aware
+  // currently facing (on foot or driving), classic third-person style - with a wall-aware
   // pull-in so the camera never ends up clipped inside a building, and an
   // instant snap on teleport (respawn/mission warp) instead of a long lerp
   // that would otherwise glide the camera straight through geometry
@@ -2319,7 +2319,7 @@ export function update3D(dt, world) {
   const targetAngle = camVeh ? camVeh.angle : player.angle;
   followYaw += normalizeAngleDelta(-targetAngle - followYaw) * Math.min(1, dt * 5);
 
-  // mouse Y pans the camera up/down around the player, GTA-style - top of
+  // mouse Y pans the camera up/down around the player - top of
   // the screen swings the camera down to a lower, more level angle ("looking
   // up"), bottom of the screen swings it up to a steeper overhead angle
   // captured mouse (mouse-look): relative motion tilts the camera and, in a
@@ -2341,7 +2341,7 @@ export function update3D(dt, world) {
   // around the car and the camera eases back behind it after a moment idle
   if (world.camYaw == null) world.camYaw = targetAngle;
   let camAngle;
-  // hold Q / middle mouse in a vehicle: GTA-style look back, a hard cut
+  // hold Q / middle mouse in a vehicle: look back, a hard cut
   // (world.noLookBack: a minigame has Q for itself, the skûtsje's sail trim)
   const lookBack = lookBackActive({ inVehicle: !!camVeh, override: !!world.cameraOverride, noLookBack: world.noLookBack, qDown: world.input.isDown('q'), middleDown: mouse.middleDown });
   const lookBackCut = lookBack !== lookBackWas;
@@ -2405,7 +2405,7 @@ export function update3D(dt, world) {
   const fullDist = Math.hypot(dx, dy, dz) || 1;
   const hitDist = raycastBuildingDist(dx, dy, dz, fullDist);
   // Blocked view (narrow Gronings streets, turning the camera past a wall):
-  // slide in along the same ray, GTA-style. This used to jump to a 75-degree
+  // slide in along the same ray. This used to jump to a 75-degree
   // overhead vantage or snap to 1 m behind the head, so turning the view
   // flipped between eye level, top-down and near first person - very
   // disorienting. Now: in at once (never clip the wall), back out slowly, and

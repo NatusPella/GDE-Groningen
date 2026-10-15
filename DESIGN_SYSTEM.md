@@ -2,8 +2,8 @@
 
 Small, deliberately simple. Every UI surface in this game (HUD, start screen,
 map view, phone notifications, future menus) should read as *one* system:
-fresh Gronings green, on dark GTA-poster chrome, in a tall condensed
-GTA-style font. If a screen doesn't match this, it's a bug.
+fresh Gronings green, on dark crime-poster chrome, in a tall condensed
+poster font. If a screen doesn't match this, it's a bug.
 
 **This file covers 2D screen-space UI only.** The 3D world (buildings,
 vehicles, people, wildlife) follows its own visual language. The Habbo
@@ -26,19 +26,19 @@ Use these exact tokens everywhere - never invent a near-miss hex.
 | background base | `#0c140e` → `#17301f` | radial dark-green gradient, never flat black |
 | foreground text | `#f2f2f2` / `#f0ede4` | body text on dark chrome |
 | warning/danger | `#d93f3f` | health-low, busted, fines - the ONE red allowed |
-| wanted stars | `#e8c93a` (unfilled: `rgba(255,255,255,0.25)`) | wanted level only - legacy yellow stays here on purpose, it's a universal GTA convention, not branding |
+| wanted stars | `#e8c93a` (unfilled: `rgba(255,255,255,0.25)`) | wanted level only - legacy yellow stays here on purpose, it's a universal genre convention, not branding |
 
 Never use plain black backgrounds, blue accents, or a second unrelated
 brand color. Yellow is reserved for the wanted-stars convention above and
-for the mission/waypoint marker (matches the existing GTA-marker language)
+for the mission/waypoint marker (the genre's usual marker language)
 — everything else is green.
 
 ## Typography
 
 - Font stack: `'Bebas Neue', 'Arial Narrow', Arial, sans-serif` everywhere.
   Bebas Neue is a free Google Font - tall, condensed, all-caps-leaning -
-  that reads much closer to a real GTA HUD/poster than plain Arial Narrow
-  without copying an actual Rockstar typeface. Loaded once via a
+  that gives the HUD and posters a bold, condensed look without imitating
+  any existing game's typeface. Loaded once via a
   `<link>` in `game/index.html`'s `<head>` (Google Fonts, no build step);
   every other file just references the family name and gets it for free
   via the cascade or by repeating the same font-family string. `Arial
@@ -78,7 +78,7 @@ gradient, no roman numeral, no small word stacked over a big word in the
 same style (see docs/LICENTIES.md §8.2). Big Shoulders Display is for the
 logo only; all other UI stays Bebas Neue.
 
-## Chrome (the "GTA poster" look)
+## Chrome (the crime-poster look)
 
 - Dark backgrounds are a **radial gradient**, not flat: center `#17301f`
   fading to `#0c140e`. Any full-screen panel (start screen, map view) uses

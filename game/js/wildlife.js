@@ -7,7 +7,7 @@ import { pushCircleOutOfVehicle, vehicleHitBody } from './vehicle.js';
 import { splatterAnimal, GIB_SPEED } from './gore3d.js';
 import { MODS } from './cheatmods.js';
 
-// Ambient GTA6-marketing-parody wildlife: seagulls over the Diepenring,
+// Ambient trailer-parody wildlife: seagulls over the Diepenring,
 // ducks and geese on the canals, pigeon flocks on the squares, the odd
 // street cat, dogs out for a walk with pedestrians, and the occasional
 // cow/sheep in Noorderplantsoen-style green. Pure atmosphere - no health,

@@ -12,6 +12,10 @@ nieuwe functies, `y` voor alleen bugfixes.
   start worden ze eenmalig gekopieerd, je verliest niets. De desktopapp
   bewaart alles voortaan in de map `GDE Groningen` (eenmalig gekopieerd uit
   `GTE VI`; die oude map blijft staan, zodat terug naar 0.28 ook nog kan).
+- **Licenties.** De code valt onder de GPL-3.0 (of later), de eigen inhoud
+  (stemmen, muziek, verhaal) onder CC BY-NC-SA 4.0; de naam GDE en het logo
+  niet. *Over* in het startmenu zegt het ook.
+- **De aftiteling** noemt Tammo en Tessa nu als personages.
 
 ## [0.28.0] - 2026-10-05
 

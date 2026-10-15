@@ -30,7 +30,7 @@ const SWIM_TELEPORT_DIST = 14;
 const SWIM_STUCK_TIME = 3;
 const GRAVITY = 16;
 
-// walking together (GTA V buddy-style): a slot at the player's shoulder
+// walking together (open-world buddy style): a slot at the player's shoulder
 const WALK_SPEED = 4.2;
 const SIDE_OFFSET = 1.2;
 const SIDE_OFFSET_CROUCH = 1.0;
