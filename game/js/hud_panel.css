@@ -251,6 +251,11 @@ body.pigeon-mode #hud .hud-mission.in-mission:not([hidden]) { display: flex !imp
 #hud .sp-main { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
 #hud .sp-gears { display: flex; gap: 4px; font-size: 18px; color: rgba(240, 237, 228, 0.35); min-height: 18px; }
 #hud .sp-gears .on { color: var(--gron-green-light); }
+#hud .sp-gears .warn { color: #ff6f61; font-size: 15px; letter-spacing: 0.04em; }
+#hud .hud-speedo.shiftlight .rpm-fill { stroke: #ffd23f; }
+#hud .hud-speedo.limiter .rpm-fill { stroke: #ff6f61; animation: rpm-limit 0.12s steps(2) infinite; }
+@keyframes rpm-limit { 50% { opacity: 0.35; } }
+@media (prefers-reduced-motion: reduce) { #hud .hud-speedo.limiter .rpm-fill { animation: none; } }
 #hud .sp-val { font-weight: normal; font-size: 100px; line-height: 0.85; font-variant-numeric: tabular-nums; min-width: 2ch; text-align: right; }
 #hud .sp-unit { font-size: 18px; color: rgba(240, 237, 228, 0.65); }
 #hud .sp-rpm { width: 166px; height: 166px; flex: none; fill: none; }
@@ -551,3 +556,12 @@ body:not(.cine-hide-hud) #cine .cine-skip { right: 50%; bottom: calc(14px * var(
   font-weight: bold;
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08) inset;
 }
+
+/* drift score chip (driftzone.js) */
+#drift-chip { position: fixed; left: 50%; bottom: 27%; transform: translateX(-50%); z-index: 20; display: flex; align-items: baseline; gap: 10px; padding: 6px 16px; border-radius: 10px; background: rgba(12, 20, 14, 0.72); color: #f0ede4; font-family: 'Bebas Neue', 'Arial Narrow', sans-serif; letter-spacing: 0.04em; pointer-events: none; border: 1px solid rgba(232, 82, 58, 0.55); }
+#drift-chip[hidden] { display: none; }
+#drift-chip .dc-k { font-size: 15px; color: rgba(240, 237, 228, 0.7); }
+#drift-chip .dc-p { font-size: 34px; font-weight: normal; color: #ffd23f; min-width: 3ch; text-align: right; font-variant-numeric: tabular-nums; }
+#drift-chip .dc-m { font-size: 22px; color: rgba(240, 237, 228, 0.5); }
+#drift-chip .dc-m.on { color: #ff6f61; }
+#drift-chip .dc-t { font-size: 16px; color: rgba(240, 237, 228, 0.6); }

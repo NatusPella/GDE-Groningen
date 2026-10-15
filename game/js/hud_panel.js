@@ -17,6 +17,7 @@ import { vehicleDisplayName } from './vehiclenames.js';
 import { findEnterableVehicle, HERO_CAR_MODEL } from './vehicle.js';
 import { cinematicAllowsDamageFx, isBannerUp, isCinematicActive, wijkBlurb } from './cinematics.js';
 import { isMuted, engineReadout } from './audio.js';
+import { gearboxReadout } from './gearbox.js';
 import { drawRailsOnMap, drawTrainsOnMap } from './railway.js';
 import { drawCountryMinimap, villageLabels, MINI_STYLE } from './countrymap.js';
 import { edgeDistance } from './countryfield.js';
@@ -900,6 +901,10 @@ function updateDamage(dt, world) {
 // revs come from the speed, with the same gear tops as the engine sound.
 const FALLBACK_TOPS = [0.15, 0.3, 0.48, 0.7, 1.05];
 function fallbackEngine(v) {
+  if (v && v.gb && !v.isBoat && !v.isHeli) {
+    const g = v.gb;
+    return { rpm: g.rpm, red: g.p.red, gear: Math.max(0, g.gear - 1), reverse: g.reverse, gears: g.p.tops.length, gb: gearboxReadout(g) };
+  }
   if (!v || v.isBoat || v.isBike || v.isHeli || v.isScooter || v._mount || !v.model) return null;
   const red = 7000;
   if (v.speed < -0.2) return { rpm: 1500 + Math.min(1, -v.speed / 6) * 2500, red, gear: 0, reverse: true, gears: 5 };
@@ -919,17 +924,28 @@ function updateSpeedo(world) {
   setText(els.speedoValue, String(Math.round(Math.abs(v.speed || 0) * 3.6)));
   const isTrain = v === world.trainCam;
   const eng = isTrain ? null : engineReadout() || fallbackEngine(v);
-  const gearKey = !eng || eng.gear < 0 ? '' : (eng.reverse ? 'R' : String(eng.gear + 1)) + '/' + eng.gears;
+  // manual shifting (gearbox.js): the position row shows N too, a stalled engine and a grinding box say so
+  const gbm = eng && eng.gb && eng.gb.mode !== 'auto' ? eng.gb : null;
+  const gearKey = !eng || eng.gear < 0 ? '' : gbm ? `M${gbm.pos}/${gbm.layout.length}${eng.reverse ? 'R' : ''}${gbm.stalled ? 's' : ''}${gbm.grind ? 'g' : ''}${gbm.refuse ? 'x' : ''}${gbm.mode === 'clutch' ? 'c' : ''}` : (eng.reverse ? 'R' : String(eng.gear + 1)) + '/' + eng.gears;
   if (gearKey !== els.gearKey) {
     els.gearKey = gearKey;
     if (!gearKey) els.gears.innerHTML = '';
-    else {
+    else if (gbm) {
+      const note = gbm.stalled ? 'MOTOR AF' : gbm.grind ? 'KRAKEN' : gbm.refuse ? 'TE HARD' : '';
+      const lay = gbm.layout;
+      const list = eng.reverse ? ['R', ...lay.slice(Math.max(0, gbm.pos), gbm.pos + 2)] : lay.slice(Math.max(0, gbm.pos - 1), gbm.pos + 3);
+      const cur = eng.reverse ? 'R' : lay[gbm.pos];
+      els.gears.innerHTML = note ? `<span class="on warn">${note}</span>` : list.map((g) => `<span${g === cur ? ' class="on"' : ''}>${g}</span>`).join('');
+      els.gears.setAttribute('aria-label', note || `Versnelling ${cur === 'N' ? 'neutraal' : cur}`);
+    } else {
       const cur = eng.reverse ? 'R' : eng.gear + 1;
       const list = eng.reverse ? ['R', 1] : [cur - 1, cur, cur + 1, cur + 2].filter((g) => g >= 1 && g <= eng.gears);
       els.gears.innerHTML = list.map((g) => `<span${g === cur ? ' class="on"' : ''}>${g}</span>`).join('');
       els.gears.setAttribute('aria-label', `Versnelling ${cur}`);
     }
   }
+  els.speedo.classList.toggle('shiftlight', !!gbm && gbm.shiftLight && !gbm.limiter);
+  els.speedo.classList.toggle('limiter', !!gbm && gbm.limiter);
   els.speedo.classList.toggle('no-rpm', !eng);
   if (eng) {
     const pct = Math.max(0, Math.min(100, Math.round((eng.rpm / (eng.red / (RPM_RED_AT / 100))) * 100)));

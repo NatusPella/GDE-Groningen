@@ -56,6 +56,8 @@ const CONTROL_GROUPS = [
   ['rijden', 'Rijden', [
     [['WASD'], 'Gas, remmen en achteruit, sturen'],
     [['SPACE'], 'Handrem'],
+    [['.', ','], 'Handmatig schakelen: hoger, lager (Instellingen › Schakelen)'],
+    [['J'], 'Handmatig met koppeling: koppeling indrukken bij het schakelen'],
     [['SHIFT'], 'Op de fiets: even flink doortrappen'],
     [['E', 'F'], 'Uitstappen'],
     [['Q', 'WHEEL'], 'Achterom kijken (vasthouden; middelste muisknop)'],
@@ -353,6 +355,9 @@ function settingsHtml() {
       ${toggle('showFog', 'Verkende gebieden op de kaart')}
       ${toggle('cinematicMoments', 'Filmische momenten', 'Korte filmpjes bij bezienswaardigheden, nieuwe wijken, crashes en vijf sterren. Intro’s, missies en de filmcamera (V) staan altijd aan.')}
       ${segmented('drunkFx', 'Dronken effecten', [['aan', 'Aan'], ['mild', 'Mild'], ['uit', 'Uit']])}
+      ${segmented('shiftMode', 'Schakelen<small>Automaat is de standaard. Handmatig schakel je met . en , (of de bumpers); met koppeling hou je J ingedrukt bij het schakelen en kan de motor afslaan</small>', [['auto', 'Automaat'], ['manual', 'Handmatig'], ['clutch', 'Handmatig + koppeling']])}
+      ${toggle('driftAssist', 'Driften met hulp', 'Helpt tegensturen en houdt een slip beheersbaar. Uit is realistischer: je kunt zo uit de bocht vliegen')}
+      ${toggle('bikeAssist', 'Motor met hulp', 'Houdt een motor of brommer rechtop in bochten. Uit is realistischer: ook voorover- en achterover gaan kan')}
       ${toggle('gore', 'Bloed en ledematen', 'Uit: aangereden en neergeschoten mensen vallen gewoon om, zonder bloed of rondvliegende ledematen.')}
     </div>
     <div data-of="settings" data-sub="fouten" class="pm-group" hidden>
