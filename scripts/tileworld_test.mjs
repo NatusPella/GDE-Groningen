@@ -20,7 +20,7 @@ const { loadTileWorld, TileWorld } = await import('../game/js/tileworld.js');
 
 let n = 0, fails = 0;
 const ok = (cond, name, info = '') => { n++; if (!cond) { fails++; console.log(`FAIL ${name}${info ? ' (' + info + ')' : ''}`); } };
-const canon = (v) => JSON.stringify(v, (k, x) => (x && typeof x === 'object' && !Array.isArray(x) ? Object.fromEntries(Object.keys(x).filter((q) => q !== 'bounds').sort().map((q) => [q, x[q]])) : x));
+const canon = (v) => JSON.stringify(v, (k, x) => (x && typeof x === 'object' && !Array.isArray(x) ? Object.fromEntries(Object.keys(x).filter((q) => q !== 'bounds' && !P.PROFILE_KEYS.includes(q)).sort().map((q) => [q, x[q]])) : x));
 
 const stripA = (o) => { const c = { ...o }; for (const k of P.ATTR_KEYS) delete c[k]; return c; };
 const src = P.loadSources();

@@ -1406,6 +1406,16 @@ Open voor F1: tegel-lokale geometrie en `toRender`, de oplossers (2.11-2.13),
 volledige stad), het Ommeland als echte tegels (nu een blob in de globale
 laag), zstd met woordenboek, OPFS-cache voor het web.
 
+### 2.26 F1, eerste helft: de wegenkern van de wereldbouwer (stand)
+
+Op het bestaande gebied (stad + Ommeland zoals in de tegels), stap voor stap,
+het spel speelbaar na elke commit.
+
+| Onderdeel | Stand |
+|---|---|
+| **1. Hoogte-oplosser** | **klaar voor de wegen.** `scripts/world/profile.mjs` (regels in `roadprofile.js`): per verbonden netwerk, één hoogte per knoop (voegen kunnen niet springen), helling per klasse, verticale bogen, vrije hoogte per klasse (weg 4,6 m, fiets/voet 2,5 m, spoor 6,0 m, plus 1 m dek), tunnels ≥ 5,8 m onder het maaiveld (8,2 m onder een kanaal), toeritten op de hoogte van hun rijbaan zolang de stroken overlappen. Projecties op de voorwaarden vanuit het oude profiel (`add_elevation.py`) als ontwerphoogte; geen scipy nodig. Terrein: plat, met een `terrain`-haak voor AHN; `road.z` is hoogte boven het terrein, dus taluds, keermuren en landhoofden (`elevation.js`) komen uit profiel min terrein. Tegels: sectie `heights` (profiel, netwerk, constructie per segment, laag). Op de huidige kaart: 200 → 19 te krappe verticale bogen, 0 te steile segmenten, 0 wegen en spoor onder de vrije hoogte (was 5, de N370 over het spoor 1 m te laag), fiets- en voetpaden onder de vrije hoogte 16 → 11, 0 sprongen in voegen. Open: die 11 fiets- en voetpaden die OSM in een tunnel of op een brug legt liggen nog op straatniveau (`--paths` geeft ze een profiel, nog niet aangezet); één OSM-knoop bij de Roeierspad blijft zoals hij was (`KNOWN_KNOTS`); spoorprofielen (de radiale `railLifts` blijven tot de spoorstap) |
+| **Eén hoogtequery** | **klaar:** `map.surfaceAt(x, y, state)` met de laag van de vrager (`{ z, ribbon }`): blijft op zijn dek, neemt bij een voeg de weg die doorloopt (dezelfde weg eerst), valt over een rand. Rijden, lopen, voetgangers, racebaan, cutscènepaden en de GPS-lijn gebruiken hem; `groundHeightAt` blijft de stateloze terugval. De N7-kruising bij het Julianaplein (-61, 1830) rijdt weer met de strenge dekcheck tot het eind van het pad (`scripts/surface_test.mjs`) |
+
 ## 3. Reizen door de provincie
 
 De provincie is **37 keer zo groot als een grote open-wereldkaart** (~80 km²) en een

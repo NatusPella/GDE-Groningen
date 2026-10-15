@@ -40,7 +40,7 @@ export function tileFromKey(key) {
 export const SECTION = {
   STRINGS: 0,
   BUILDINGS: 1, // footprints: pts, h, type, name, landmark, sd (look seed), lift, height source, ...
-  ROADS: 2, // ribbons: pts, z profile, class, width, lanes, oneway, bridge, layer, ...
+  ROADS: 2, // ribbons: pts, class, width, lanes, oneway, bridge, layer, ... (the z profile is in HEIGHTS)
   WATER: 3,
   GREEN: 4, // landuse and green areas
   TREES: 5, // points [x, y]
@@ -48,7 +48,7 @@ export const SECTION = {
   CANOPIES: 7, // open roofs (building=roof, platform roofs)
   PASSAGES: 8, // ways through or under a building
   JUNCTIONS: 9, // reserved (F1): junction surfaces, control, stop lines
-  HEIGHTS: 10, // reserved (F1/F2): AHN raster, cm above -10 m NAP
+  HEIGHTS: 10, // vertical road profiles (v1: gid, z, net, st, ly; roadprofile.js heightRows); the AHN raster goes next to it (F2)
   POIS: 11, // reserved (F1): kind, name, entrance, tags (real facilities)
   FURNITURE: 12, // reserved (F1): mapped street furniture
   NAV: 13, // reserved (F1): road/bike/foot/boat graphs with portal nodes

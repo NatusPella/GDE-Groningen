@@ -452,20 +452,54 @@ The panel scales with `--ui`. Shops that buy and sell list Kopen first.
 ## Heights
 
 Groningen is flat and so is the world (y = 0), except the ringweg and its
-grade-separated junctions: roads carrying `z` (one height per vertex, from
-`scripts/add_elevation.py`) run over viaducts and embankments or through
-the sunken Zuidelijke Ringweg (open cuttings and covered sections, under
-the Winschoterdiep as an aqueduct). `elevation.js` builds from them, once
-per map (`map.elev`):
+grade-separated junctions: roads carrying `z` (one height per vertex,
+metres above the terrain under it; the terrain is flat until an AHN raster
+plugs into the solver's `terrain` sampler) run over viaducts and
+embankments or through the sunken Zuidelijke Ringweg (open cuttings and
+covered sections, under the Winschoterdiep as an aqueduct).
 
-- `map.groundHeightAt(x, y, zHint)`: the highest surface at most ~1.1 m
-  above `zHint` - road decks, cutting floors, embankment slopes, else the
-  street. Everything that has a height keeps its own absolute value and
-  passes it as the hint: vehicles `v.z` (+ `v.pitch`/`v.roll` from the
+The profiles come from the network height solver
+(`scripts/world/profile.mjs`, rules in `js/roadprofile.js`, run by
+`build_map.py` after `add_elevation.py`, whose per-way heights are its
+prior): one height per vertex shared by roads (joints are continuous by
+construction), the grade limit per class (`MAX_GRADE`: trunk 5 %, links
+6 %, urban 6-8 %), vertical curves (`MIN_RADIUS`), the clearance under every
+grade separation by the class of what passes below (`CLEARANCE`: road
+4.6 m, cycle/foot 2.5 m, rail 6.0 m, plus the 1 m deck; the tagged side
+moves: a bridge rises, a tunnel sinks), tunnels at least 5.8 m under the
+terrain (8.2 m under a canal), slip roads at their carriageway's height while
+their lanes overlap; projections onto those constraints from the prior.
+`node scripts/world/profile.mjs` audits the map (grades, curves, joints,
+clearance; foot and cycle paths that OSM puts in a tunnel or on a bridge
+are still at street level and listed as open, `--paths` gives them a
+profile; `KNOWN_KNOTS` are OSM joints between ways that pass over each
+other). Tiles carry the profiles in the heights section (below, "World
+tiles"). `elevation.js` builds from them, once per map (`map.elev`), and
+embankments, retaining walls, abutments and decks come from the profile's
+difference with the terrain:
+
+- `map.surfaceAt(x, y, state)`: the one height query, for whoever keeps a
+  `state = { z, ribbon }` (its layer: its height and the road or rail deck
+  it is on). It stays on its ribbon while on that ribbon's surface, however
+  other decks, ramps and streets overlap it in plan (stacked roads); past the
+  ribbon's end it takes the way that carries on (the same road first, so
+  through traffic at a slip road's split stays on the main road); off an
+  edge it falls to what is below. Vehicles (`v.surf`, the wheelbase and
+  slope probes through `map.surfaceZ`), the walker (`player.surf`),
+  pedestrians, the race track, cutscene paths (`cinedrive.js` pathHeights)
+  and the GPS route ribbon use it. `map.ribbonAt(x, y, z)` gives the ribbon
+  for something put down at a height, `map.spawnState(x, y)` the surface
+  seen from street level (what `spawnZ` always gave).
+- `map.groundHeightAt(x, y, zHint)`: the stateless fallback: the highest
+  surface at most ~1.1 m above `zHint` - road decks, cutting floors,
+  embankment slopes, else the street. Everything that has a height keeps its
+  own absolute value: vehicles `v.z` (+ `v.pitch`/`v.roll` from the
   surface, falling off an edge or cresting a ramp fast goes ballistic, hard
   landings damage; `susPitch`/`susRoll`/`susHeave` are the drawn-only body
   springs), the player and companion `gz`
   (plus the jump height `z`; drops hurt), pedestrians `gz`, ragdolls.
+  A patched `groundHeightAt` (the home's storey) is honoured by
+  `surfaceAt` off the ribbons.
 - Walls: retaining walls of cuttings (solid from inside, with a fence solid
   from the street), crash barriers on raised roads, abutments where an
   embankment meets a road passing underneath. `resolveWalker(..., z)` and
@@ -781,8 +815,15 @@ server, `?legacymap`).
   json) and one value stream per kind. Numbers are integers or exact
   centimetres, else float64 per row, so a round trip gives the same doubles;
   points are tile-local centimetres, delta + zigzag varints, all dx then all
-  dy. Section types are reserved for what F1 fills: junctions, heights (AHN
-  raster), pois, furniture, nav, overlay (`SECTION`). Readers skip unknown
+  dy. The heights section (`SECTION.HEIGHTS`, version 1) holds the vertical
+  profiles: per profiled road its `gid`, `z` (m per vertex, exact cm), `net`
+  (its connected network), `st` (per segment: 0 ground, 1 deck, 2
+  embankment, 3 cutting, 4 tunnel; `roadprofile.js` STRUCT) and `ly` (the
+  OSM grade order per segment); the road rows carry no `z` of their own and
+  `tileworld.js` joins the profile back by gid, so meshes, colliders and the
+  height query read one profile. The AHN terrain raster will be a RASTER
+  next to it. Section types reserved for the rest of F1: junctions, pois,
+  furniture, nav, overlay (`SECTION`). Readers skip unknown
   sections and refuse a newer format. Hashes are two xxh32 (16 hex digits).
 - **Packs (`scripts/world/pack_tiles.mjs`).** The GameMap's arrays after its
   load-time derivation (doubled footprints, canopies, houseboats, roof steps,
