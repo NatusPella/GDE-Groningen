@@ -110,5 +110,22 @@ console.log(`${sites.length} respawn sites (${Math.round(performance.now() - t0)
 if (cars < sites.length * 0.8) fail(`car placed at only ${cars}/${sites.length} sites`);
 for (const s of sites) console.log(`  ${s.kind.padEnd(9)} ${s.name}`);
 
+// garages and fuel stations out in the Ommelanden (garages.js)
+{
+  const { initGarages, getGaragesForRender } = await import('../game/js/garages.js');
+  initGarages(world);
+  const all = getGaragesForRender();
+  const [bx0, by0, bx1, by1] = map.meta.bounds;
+  const country = all.filter((g) => g.x < bx0 || g.x > bx1 || g.y < by0 || g.y > by1);
+  const pomp = country.filter((g) => g.kind === 'pomp').length;
+  console.log(`garages: ${all.length}, ${country.length} in the Ommelanden (${pomp} fuel stations)`);
+  if (country.length < 10 || pomp < 5) fail('too few Ommeland garages / fuel stations');
+  for (const g of country) {
+    const why = spotProblem(map, { x: g.x, y: g.y, mode: 'drive' });
+    if (why) fail(`${g.name}: ${why}`);
+    if (!/^(Garage Knalpot|Pomp & Poets) \S/.test(g.name)) fail(`garage name "${g.name}"`);
+  }
+}
+
 console.log(fails ? `${fails} FAILED` : 'facilities ok');
 process.exit(fails ? 1 : 0);

@@ -31,6 +31,7 @@ import { countryWeight } from './countryfield.js';
 import { buildingAt as realBuildingAt } from './countryreal.js';
 import { getOmmelandSpots } from './ommelandfun.js';
 import { reachableFacilities, FAC } from './facilities.js';
+import { realRoadNear } from './ommelandplace.js';
 import { respawnArrival } from './respawn.js';
 
 const DRIVE_REACH = 25;
@@ -82,7 +83,7 @@ export function spotProblem(map, s) {
   const solid = countrySolid(x, y);
   if (solid) return solid;
   if (!map.canWalkOut(x, y, WALK_REACH)) return 'ingesloten, je kunt er niet weg';
-  if (mode === 'drive' && driveDist(map, x, y) > DRIVE_REACH) return 'te ver van een rijweg';
+  if (mode === 'drive' && driveDist(map, x, y) > DRIVE_REACH && !realRoadNear(x, y, DRIVE_REACH, (r) => r.kind > 2)) return 'te ver van een rijweg';
   return null;
 }
 
