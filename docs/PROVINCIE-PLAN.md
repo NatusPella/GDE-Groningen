@@ -514,6 +514,17 @@ plant missies per regio zodat de speler niet heen en weer hoeft.
   menu, korte cinematic), maar naar elk ontdekt station.
 - Treinen rijden echt over de hele lijn, ook als je er niet in zit
   (kinematisch op de globale spoorlaag), met overwegen die dichtgaan.
+- **Zelf machinist (wens eigenaar):** stap voorin en rijd de trein zelf
+  als mini-game onderweg. Gas en remmen met gewicht en lange remweg,
+  snelheidsborden en seinen (rood = stoppen, anders straf), op tijd en
+  precies bij de perronmarkering stoppen, deuren open/dicht, omroepen
+  ("Volgende halte: Winsum") en overwegen. Scoren op stiptheid, comfort
+  (geen rukken) en stopplek; medailles per lijn en een bijbaantje
+  "machinist" met een dienstregeling. Altijd overslaan: na elke halte
+  kun je naar passagier of snelreizen wisselen.
+- **Passagier:** zitten in de coupé met uitzicht, banter van Tammo en Tessa
+  en medereizigers; Spatie houdt = overslaan naar je station (versneld of
+  met korte cinematic), zoals cutscenes.
 - Tickets kosten bijna niets; zwartrijden geeft een kleine kans op een
   conducteur (een droge mini-scène, geen wanted).
 
@@ -869,7 +880,7 @@ Electron-tests alleen in één slotronde per fase.
 |---|---|---|---|
 | **F0** | RD New, tegelformaat, streaming, zwevende oorsprong, huidige stad + Ommeland omgezet naar tegels | 12-16 | niets (sneller laden) |
 | **LK1** (parallel aan F0) | Kerk- en molenbouwdoos in het huidige Ommeland (3b) | 5-7 | echte dorpskerken en molens |
-| **F1** | Wereldbouwer, prototype-corridor Stad → Delfzijl → Eemshaven, de stad opnieuw gebouwd, trein en bus, proefdrop "Op de rails" | 22-30 | corridor speelbaar, treinen en een buslijn |
+| **F1** | Wereldbouwer, prototype-corridor Stad → Delfzijl → Eemshaven, de stad opnieuw gebouwd, trein (passagier én zelf machinist als mini-game) en bus, proefdrop "Op de rails" | 22-30 | corridor speelbaar, treinen en een buslijn |
 | **F2** | Hele provincie: geometrie, hoogte, water, kust, horizon; oude lagen verwijderd; verkenningsinhoud | 26-34 | de hele provincie te verkennen |
 | **F3** | Steden en reizen: winkels, garages, safehouses, ponten, vliegtuig, taxi, snelreizen, regionale politie; bijbaantjes, races, filialen | 28-38 | elke stad heeft wat te doen |
 | **F4** | Deel 4 (32 hoofdmissies) en 28 zijmissies in drie drops (zie PROVINCIE-VERHAAL.md) | 52-66 | het verhaal door de provincie |
