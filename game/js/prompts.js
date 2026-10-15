@@ -30,12 +30,12 @@ import { WEAPONS, isMeleeWeapon, isRangedWeapon } from './combat.js';
 
 const USES_KEY = KEYS.hintUses;
 const LEARN_USES = 3;
-const MASTER_USES = 6;
+const MASTER_USES = 3;
 const KISS_DIST = 1.8;
 const KISS_COOLDOWN = 3;
 const SECONDARY_INTERVAL = 0.15;
 const MAX_SECONDARY = 1;
-const MAX_ROWS = 3;
+const MAX_ROWS = 2;
 // key hints come up one by one: a moment after spawning or a cutscene, then one more per stagger
 const ROWS_DELAY = 2.5;
 const ROWS_STAGGER = 1.4;
@@ -717,6 +717,9 @@ function renderRows(world, primary, dt = 0) {
   }
   rowsEl.classList.toggle('quiet', rows.length > 0 && !rows.some((r) => r.fresh));
 }
+
+// the key hints on screen (hudrules.js: at most two, gone after 3 uses)
+export const hintCount = () => rowsEl ? rowsEl.querySelectorAll('.ctx-row:not(.gone)').length : 0;
 
 export function resetHintProgress() {
   uses = {};

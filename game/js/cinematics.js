@@ -681,6 +681,13 @@ const WIJK_GENERIC = [
 const WIJK_RECENT_KEY = KEYS.wijkLinesRecent;
 const WIJK_RECENT = 12;
 
+// The HUD's place name (hud_panel.js) shows the wijk's first line, without
+// booking it as heard.
+export function wijkBlurb(name) {
+  const pool = WIJK_LINES[name] || WIJK_LINES[WIJK_ALIAS[name]];
+  return pool ? pool[0] : '';
+}
+
 function wijkLine(name) {
   const pool = WIJK_LINES[name] || WIJK_LINES[WIJK_ALIAS[name]] || WIJK_GENERIC;
   let recent = [];

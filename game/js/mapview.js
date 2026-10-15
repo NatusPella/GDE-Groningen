@@ -1,4 +1,5 @@
 import { onPaletteChange } from './a11y.js';
+import { MODES, MODE_LABEL, roadAllowed, travelModeOf } from './roadaccess.js';
 import { drawMapIcon, drawRoute, drawRoadRoute, forEachPoliceUnit, declutter, ROUTE_COLORS, routeLabel, drawSearchArea, getPoliceSearch, missionMapKind } from './hud_panel.js';
 import { getGaragesForRender } from './garages.js';
 import { getHomeForRender, getHomeGarageForRender, getHomeMooringForRender, getHomeHelipadForRender } from './home.js';
@@ -117,6 +118,12 @@ function injectStyles() {
       pointer-events: auto;
     }
     .mapview-title { font-size: 20px; white-space: nowrap; }
+    .mapview-modes { display: inline-flex; gap: 3px; padding: 3px; border-radius: 10px; background: rgba(0,0,0,0.3); border: 1px solid rgba(63,201,122,0.3); }
+    .mapview-modes button { font: 16px 'Bebas Neue', 'Arial Narrow', sans-serif; letter-spacing: 1px; padding: 5px 11px 3px; border: 0; border-radius: 7px; background: transparent; color: rgba(240,237,228,0.75); cursor: pointer; }
+    .mapview-modes button:hover { color: #fff; background: rgba(30,158,86,0.2); }
+    .mapview-modes button[aria-checked="true"] { background: linear-gradient(180deg, #3fc97a, #1e9e56); color: #0c140e; }
+    .mapview-modes button:focus-visible { outline: 2px solid #f0ede4; }
+    .mv-modenote { color: #f0ede4 !important; font-size: 14px !important; padding: 6px 4px 8px; }
     .mapview-search { position: relative; flex: 1; max-width: 340px; min-width: 140px; }
     .mapview-search input {
       width: 100%;
@@ -490,9 +497,12 @@ function renderTile(L, tx, ty) {
   c.fillStyle = GREEN;
   for (const g of view.green) fillPoly(c, g.pts);
 
+  const mode = state.mode || 'lopen';
+  // per travel mode: the water stands out for a boat, the land steps back
+  const landA = mode === 'boot' ? 0.4 : mode === 'lucht' ? 0.55 : mode === 'ov' ? 0.6 : 1;
   c.fillStyle = WATER;
   c.strokeStyle = WATER_EDGE;
-  c.lineWidth = px(z < MID_ZOOM ? 1.2 : 0.8);
+  c.lineWidth = px((z < MID_ZOOM ? 1.2 : 0.8) * (mode === 'boot' ? 2 : 1));
   c.lineJoin = 'round';
   for (const w of view.water) {
     fillPoly(c, w.pts);
@@ -500,10 +510,12 @@ function renderTile(L, tx, ty) {
   }
 
   if (z >= NEAR_ZOOM && layerOn('buildings')) {
+    c.globalAlpha = landA;
     for (const b of view.buildings) {
       c.fillStyle = b.landmark ? BUILDING_LANDMARK : BUILDING;
       fillPoly(c, b.pts);
     }
+    c.globalAlpha = 1;
   }
 
   const roads = view.roads.filter((r) => {
@@ -523,14 +535,31 @@ function renderTile(L, tx, ty) {
       c.lineWidth = px(wpx + 2);
       c.stroke();
     }
-    c.strokeStyle = ROAD_COLORS[r.cat] || ROAD_COLORS.normal;
-    c.globalAlpha = z < MID_ZOOM && r.cat === 'normal' ? 0.6 : 1;
-    c.lineWidth = px(wpx);
+    const allowed = roadAllowed(r, mode);
+    // the roads for your way of travel stand out; the ones that are not for you step back
+    let a = z < MID_ZOOM && r.cat === 'normal' ? 0.6 : 1;
+    a *= landA;
+    let wpx2 = wpx, col = ROAD_COLORS[r.cat] || ROAD_COLORS.normal;
+    if (mode === 'lopen' && r.cat === 'foot') { col = '#d9d4c4'; wpx2 = wpx * 1.4; }
+    else if (mode === 'fiets' && r.cat === 'cycle') { col = '#ff8a5c'; wpx2 = wpx * 1.6; }
+    else if (mode === 'auto' && r.cat === 'major') wpx2 = wpx * 1.2;
+    if (allowed === false && r.cat !== 'major') a *= 0.35;
+    c.strokeStyle = col;
+    c.globalAlpha = a;
+    c.lineWidth = px(wpx2);
     c.stroke();
     c.globalAlpha = 1;
+    // "niet voor jou": a trunk road you may not walk or cycle on, red and dashed
+    if (allowed === false && r.cat === 'major') {
+      c.setLineDash([px(6), px(4)]);
+      c.strokeStyle = '#d93f3f';
+      c.lineWidth = px(Math.max(1.4, wpx * 0.5));
+      c.stroke();
+      c.setLineDash([]);
+    }
   }
   drawCountryDetail(c, wx0, wy0, wx0 + tws, wy0 + tws, cssPerM, MAP_STYLE);
-  drawRailsOnMap(c, state.map, wx0, wy0, wx0 + tws, wy0 + tws, px(z < MID_ZOOM ? 1.6 : 2.6));
+  drawRailsOnMap(c, state.map, wx0, wy0, wx0 + tws, wy0 + tws, px((z < MID_ZOOM ? 1.6 : 2.6) * (mode === 'ov' ? 1.8 : 1)));
   return canvas;
 }
 
@@ -1570,8 +1599,29 @@ function refreshLegend(world) {
   if (d.story) d.story.textContent = world.storyGuide ? world.storyGuide.name : world.storyFreePlay ? 'het verhaal is uit' : '';
 }
 
+// The map's travel mode (Lopen, Fiets, Auto, Boot, OV, Lucht): it opens on how
+// you travel now; the roads that are for you stand out, the others step back
+// and a trunk road you may not walk or cycle on is dashed red.
+const MODE_NOTE = {
+  lopen: 'Voetpaden en straten. Rood gestreept: niet voor jou (autowegen).',
+  fiets: 'Fietspaden lichten op. Rood gestreept: niet voor jou (autowegen).',
+  auto: 'Doorgaande wegen. Fiets- en voetpaden zijn niet voor je auto.',
+  boot: 'Vaarwater, bruggen en sluizen; het land staat op de achtergrond.',
+  ov: 'Het spoor en de stations.',
+  lucht: 'Van boven: oriëntatiepunten en landingsplekken.',
+};
+function setMode(m) {
+  if (!MODES.includes(m)) return;
+  state.mode = m;
+  for (const b of state.overlay.querySelectorAll('.mapview-modes [data-mode]')) b.setAttribute('aria-checked', String(b.dataset.mode === m));
+  if (state.modeNote) state.modeNote.textContent = MODE_NOTE[m];
+  clearTiles();
+  state.dirty = true;
+}
+
 function openMap(world) {
   ensureCountryEdge(world.map);
+  setMode(travelModeOf(world));
   state.open = true;
   state.overlay.classList.add('open');
   sizeCanvas();
@@ -1653,6 +1703,7 @@ export function initMapView(world) {
   overlay.setAttribute('aria-label', 'Kaart van Groningen');
   overlay.innerHTML =
     '<div class="mapview-header"><span class="mapview-title">KAART VAN GRONINGEN</span>' +
+    `<div class="mapview-modes" role="radiogroup" aria-label="Reiswijze">${MODES.map((m) => `<button type="button" role="radio" data-act="mode" data-mode="${m}" aria-checked="false">${MODE_LABEL[m]}</button>`).join('')}</div>` +
     '<div class="mapview-search"><input type="search" placeholder="Zoek een plek, missie of minigame…" aria-label="Zoek een plek, missie of minigame" autocomplete="off" spellcheck="false">' +
     '<ul class="mapview-results" role="listbox" hidden></ul></div>' +
     '<button type="button" class="mapview-btn" data-act="centre">Centreer op mij</button>' +
@@ -1731,6 +1782,10 @@ export function initMapView(world) {
   state.searchIndex = buildSearchIndex(world);
   initFog(world);
   buildLegend(overlay.querySelector('.mapview-legend'));
+  state.modeNote = document.createElement('p');
+  state.modeNote.className = 'hint mv-modenote';
+  overlay.querySelector('.mapview-legend').prepend(state.modeNote);
+  setMode('lopen');
   onSettingsChange((s, key) => { if (key === 'showFog') state.dirty = true; });
 
   overlay.addEventListener('mousedown', (e) => e.stopPropagation());
@@ -1739,7 +1794,8 @@ export function initMapView(world) {
     const btn = e.target.closest('[data-act]');
     if (!btn) return;
     const act = btn.dataset.act;
-    if (act === 'centre') centreOn(world.player.x, world.player.y, 3);
+    if (act === 'mode') setMode(btn.dataset.mode);
+    else if (act === 'centre') centreOn(world.player.x, world.player.y, 3);
     else if (act === 'clear') clearUserWaypoint();
     else if (act === 'care-off') dismissCareRoute();
     else if ((act === 'pg-next' || act === 'pg-off' || act === 'pg-on') && world.postgameActions) {
