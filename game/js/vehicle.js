@@ -42,9 +42,9 @@ const MODELS = [
 // spawnHeroCarNear rather than picked from MODELS by the regular traffic RNG.
 // Ommeland farm vehicles (parkedcars.js farm yards, countrylife.js):
 // a tractor (slow, pulls hard off the line) and a quad (nimble off-road)
-export const TRACTOR_MODEL = { name: 'tractor', len: 3.6, wid: 2.0, maxSpeed: 11, accel: 6.5, brake: 11, turnRate: 1.9, color: '#3f7d3a', offroad: 0.9 };
+export const TRACTOR_MODEL = { name: 'tractor', len: 4.3, wid: 2.3, maxSpeed: 11, accel: 6.5, brake: 11, turnRate: 1.9, color: '#3f7d3a', offroad: 0.9 };
 export const QUAD_MODEL = { name: 'quad', len: 2.1, wid: 1.2, maxSpeed: 17, accel: 9, brake: 14, turnRate: 3.2, color: '#b8322a', offroad: 1 };
-export const HERO_CAR_MODEL = { name: 'escort', len: 4.0, wid: 1.65, maxSpeed: 50, accel: 11, brake: 25, turnRate: 3.4, color: '#a11f1f' };
+export const HERO_CAR_MODEL = { name: 'escort', len: 4.0, wid: 1.65, maxSpeed: 50, accel: 8, brake: 25, turnRate: 3.4, color: '#a11f1f' };
 
 const BIKE_MODELS = [
   { name: 'bike', len: 1.75, wid: 0.5, maxSpeed: 6.2, accel: 3.2, brake: 6, turnRate: 4.6, color: '#1c1c1c', rider: '#2f5c8a' },
@@ -100,15 +100,18 @@ export function makeTwoWheeler(kind, x, y, angle, tint = null, rng = Math.random
 // as the regular fleet, dark-navy cabin matching the rest of the police
 // fleet's accent tone, with enough extra accel/turn to actually run down a
 // fleeing player instead of just keeping pace.
-const POLICE_BOAT_MODEL = { name: 'boat', len: 4.1, wid: 1.65, playerTop: 15, playerAccel: 4.5, maxSpeed: 9.8, accel: 3.2, brake: 3.4, turnRate: 1.8, color: '#e8e6e0', cabin: '#12294f' };
+const POLICE_BOAT_MODEL = { name: 'boat', len: 5.5, wid: 2.0, playerTop: 15, playerAccel: 4.5, maxSpeed: 9.8, accel: 3.2, brake: 3.4, turnRate: 1.8, color: '#e8e6e0', cabin: '#12294f' };
 
 // Regional OV city bus - teal/blue livery, roomier turning circle, only
 // spawned on the bigger through-roads (see manageBusPopulation).
 // Qbuzz runs the Groningen-Drenthe concession: deep navy body with a cyan
 // accent band, not a generic tour-bus livery.
+// An 18 m gelede bus: len is the 11.2 m front unit (the physics body),
+// trailer the 6.8 m rear unit that swings behind it (busTrailerPose).
+export const BUS_TRAILER = 6.8;
 const BUS_MODELS = [
-  { name: 'bus', len: 11, wid: 2.35, maxSpeed: 20, accel: 4.5, brake: 12, turnRate: 1.1, color: '#132a44', stripe: '#3fc6d4', accent: '#e8e6de' },
-  { name: 'bus', len: 11, wid: 2.35, maxSpeed: 20, accel: 4.5, brake: 12, turnRate: 1.1, color: '#0f3a4a', stripe: '#3fc6d4', accent: '#e8e6de' },
+  { name: 'bus', len: 11.2, wid: 2.55, trailer: BUS_TRAILER, maxSpeed: 20, accel: 4.5, brake: 12, turnRate: 1.1, color: '#132a44', stripe: '#3fc6d4', accent: '#e8e6de' },
+  { name: 'bus', len: 11.2, wid: 2.55, trailer: BUS_TRAILER, maxSpeed: 20, accel: 4.5, brake: 12, turnRate: 1.1, color: '#0f3a4a', stripe: '#3fc6d4', accent: '#e8e6de' },
 ];
 
 let nextId = 1;
@@ -191,9 +194,10 @@ export class Vehicle {
     } else if (throttle !== 0) {
       const lim = throttle > 0 ? top : top * REVERSE_FACTOR;
       const headroom = lim > 0 ? clamp(1 - absSpeed / lim, 0, 1) : 0;
-      // player cars pull hard off the line and run out of breath towards top speed
-      const floor = isPlayer && !this.isBike && !this.isScooter && !this.isBoat ? 0.12 : isPlayer && this.sailTop != null ? 0.6 : 0.3;
-      this.speed += throttle * (tune ? tune.accel : m.accel) * (floor + (1 - floor) * headroom) * dt;
+      // player cars pull evenly through the gears (0-100 in ~6-8 s) and only run out of breath near top speed
+      const playerCar = isPlayer && !this.isBike && !this.isScooter && !this.isBoat && !this.isBus;
+      const floor = playerCar ? 0.2 : isPlayer && this.isBus ? 0.12 : isPlayer && this.sailTop != null ? 0.6 : 0.3;
+      this.speed += throttle * (tune ? tune.accel : m.accel) * (floor + (1 - floor) * (playerCar ? Math.sqrt(headroom) : headroom)) * dt;
     } else {
       const drag = coastDrag(this, isPlayer, absSpeed) * dt;
       if (this.speed > 0) this.speed = Math.max(0, this.speed - drag);
@@ -378,11 +382,14 @@ function updateOpenWater(v, map, dt) {
 }
 
 // Two-wheelers and boats are tuned for the player separately from the AI
-// fleet's realistic cruising speeds (m/s): a bike is clearly quicker than
-// running (7.5), an e-fatbike quicker still, a scooter quickest.
-// The city bus is heavy for the player but keeps up with town traffic.
-const BIKE_SPRINT_TOP = 1.35;
+// fleet's cruising speeds (m/s): a bike does a brisk 25 km/h (Shift: ~33),
+// the step 25, the brommer 45, and the tuned e-fatbike is the fastest of all
+// (50, Shift ~58). The city bus is heavy for the player but keeps up with
+// town traffic. Cars take the model's accel times PLAYER_CAR_ACCEL.
+const BIKE_SPRINT_TOP = 1.3;
+const FATBIKE_SPRINT_TOP = 1.15;
 const BIKE_SPRINT_ACCEL = 1.8;
+const PLAYER_CAR_ACCEL = 0.5;
 
 function playerTune(v) {
   const m = v.model;
@@ -402,17 +409,25 @@ function playerTune(v) {
   // shop upgrades scale the two-wheelers' player tuning too
   const b = v._baseModel;
   const up = b ? m.maxSpeed / b.maxSpeed : 1, upA = b ? m.accel / b.accel : 1;
-  if (v.isScooter && m.moped) return { top: 13.5 * up, accel: 5 * upA, brake: 8 };
-  if (v.isScooter) return { top: 10 * up, accel: 5.5 * upA, brake: 6.5 };
+  if (v.isScooter && m.moped) return { top: 12.5 * up, accel: 4.2 * upA, brake: 8 };
+  if (v.isScooter) return { top: 7 * up, accel: 4.5 * upA, brake: 6.5 };
   // Shift on a bike: a short sprint of harder pedalling (player.js sprintT)
-  const sprint = v.isBike && v.sprintT > 0 ? BIKE_SPRINT_TOP : 1, sprintA = sprint > 1 ? BIKE_SPRINT_ACCEL : 1;
+  const sprint = v.isBike && v.sprintT > 0 ? (m.fat ? FATBIKE_SPRINT_TOP : BIKE_SPRINT_TOP) : 1, sprintA = sprint > 1 ? BIKE_SPRINT_ACCEL : 1;
   if (v._mount === 'horse') return { top: (v.sprintT > 0 ? 13 : 7.5) * up, accel: (v.sprintT > 0 ? 5.5 : 3.4) * upA, brake: 7 };
-  if (v.isBike) return m.fat ? { top: 17 * up * sprint, accel: 7.2 * upA * sprintA, brake: 9 } : { top: 11.5 * up * sprint, accel: 4.6 * upA * sprintA, brake: 8.5 };
-  if (MODS.turbo && v.isHeroCar) return { top: Math.min(m.maxSpeed * 1.6, MAX_CAR_SPEED + 12), accel: m.accel * 1.9, brake: m.brake * 1.2 };
-  return { top: Math.min(m.maxSpeed, MAX_CAR_SPEED), accel: m.accel, brake: m.brake };
+  if (v.isBike) return m.fat ? { top: 13.9 * up * sprint, accel: 6 * upA * sprintA, brake: 9 } : { top: 7 * up * sprint, accel: 3.6 * upA * sprintA, brake: 8.5 };
+  if (MODS.turbo && v.isHeroCar) return { top: Math.min(m.maxSpeed * 1.6, MAX_CAR_SPEED + 12), accel: m.accel * 1.9 * PLAYER_CAR_ACCEL, brake: m.brake * 1.2 };
+  return { top: Math.min(m.maxSpeed, MAX_CAR_SPEED), accel: m.accel * PLAYER_CAR_ACCEL, brake: m.brake };
 }
 
 const MAX_CAR_SPEED = 76; // m/s (~275 km/h): even a turbo-tuned sports car stops here
+
+// The top speed the player gets out of a model (garage and shop bars):
+// base is the stock model when `model` carries upgrades.
+export function playerTopSpeed(model, base = model) {
+  const n = model.name;
+  const v = { model, _baseModel: base, isBike: n === 'bike', isScooter: n === 'scooter', isBoat: n === 'boat', isBus: n === 'bus' || n === 'midibus', sprintT: 0 };
+  return playerTune(v).top;
+}
 
 export function speedCap(v) {
   const t = v.driver === 'player' ? playerTune(v) : null;
@@ -436,6 +451,8 @@ function minTurnRadius(m, player = false) {
   if (m.name === 'bus') return player ? 10.5 : 9;
   if (m.name === 'midibus' && player) return 8.5;
   if (m.name === 'bike' || m.name === 'scooter') return 1.8;
+  // a long tour boat or barge turns on its own length or so (rudder and bow thruster)
+  if (m.name === 'boat') return m.len > 10 ? Math.max(11.5, m.len * 0.78) : Math.min(m.len * 1.25, 5.5);
   return m.len * 1.25;
 }
 
@@ -485,7 +502,7 @@ function pushBusTrail(v) {
   const e = free.pop() || {};
   e.x = v.x; e.y = v.y; e.angle = v.angle; e.dist = v.trailDist;
   v.trailHistory.push(e);
-  const keepFrom = v.trailDist - v.model.len * 1.6;
+  const keepFrom = v.trailDist - (v.model.len + (v.model.trailer || 0)) * 1.6;
   while (v.trailHistory.length > 2 && v.trailHistory[1].dist < keepFrom) free.push(v.trailHistory.shift());
 }
 
@@ -503,6 +520,23 @@ export function sampleBusTrail(v, backDist) {
     }
   }
   return { x: hist[0].x, y: hist[0].y, angle: hist[0].angle };
+}
+
+// The rear unit of a gelede bus (model.trailer): it hangs off the joint at
+// the body's tail and points at where that joint ran a trailer-length ago,
+// so it cuts the corner the way a real one does. angle is clamped to the
+// joint's 0.75 rad; cap is its collision capsule (vehicleCapsule's form).
+export function busTrailerPose(v) {
+  const hl = v.model.len / 2, tl = v.model.trailer || 0;
+  const c = Math.cos(v.angle), sn = Math.sin(v.angle);
+  const jx = v.x - c * hl, jy = v.y - sn * hl;
+  const back = sampleBusTrail(v, tl * 0.65);
+  const bjx = back.x - Math.cos(back.angle) * hl, bjy = back.y - Math.sin(back.angle) * hl;
+  let a = Math.hypot(jx - bjx, jy - bjy) > 0.4 && v.speed >= 0 ? Math.atan2(jy - bjy, jx - bjx) : back.angle;
+  a = v.angle + clamp(normalizeAngle(a - v.angle), -0.75, 0.75);
+  const r = v.halfWid + 0.05, ca = Math.cos(a), sa = Math.sin(a);
+  const ax = jx - ca * r, ay = jy - sa * r, bx = jx - ca * Math.max(r, tl - r), by = jy - sa * Math.max(r, tl - r);
+  return { jx, jy, angle: a, cap: { ax, ay, bx, by, r } };
 }
 
 // Right-hand-traffic offset from the road centerline (to the right of the
@@ -731,8 +765,9 @@ function lineOfSight(map, ax, ay, bx, by) {
 }
 
 function spawnSpotFree(vehicles, v, clearance = 9) {
+  const own = v.model.trailer || 0;
   for (const o of vehicles) {
-    if (Math.hypot(o.x - v.x, o.y - v.y) < clearance + o.halfLen) return false;
+    if (Math.hypot(o.x - v.x, o.y - v.y) < clearance + own + o.halfLen + (o.model.trailer || 0)) return false;
   }
   return true;
 }
@@ -887,8 +922,9 @@ export function manageBusPopulation(world, { target = 4, spawnMin = 90, spawnMax
   let guard = 0;
   while (count < target && candidates.length && guard++ < target * 6) {
     const road = candidates[Math.floor(Math.random() * candidates.length)];
-    // a midi bus now and then on the quieter lines
-    const midi = Math.random() < (road.cat === 'normal' ? 0.5 : 0.25);
+    // the 18 m gelede buses keep to the main roads and bus lanes; a midi bus
+    // now and then there too, always on the quieter lines
+    const midi = road.cat === 'normal' || Math.random() < 0.25;
     const v = spawnVehicleOnRoad(map, road, false, Math.random, false, true, null, false, midi ? { ...MIDIBUS_MODEL } : null);
     const d = Math.hypot(v.x - player.x, v.y - player.y);
     if (d < spawnMin || d > spawnMax || !spawnSpotFree(vehicles, v) || spawnWouldPop(world, v)) continue;
@@ -2175,7 +2211,43 @@ export function resolveVehicleVehicleCollisions(vehicles, world = null) {
       }
     }
   }
+  for (const a of vehicles) if (a.model.trailer && !a.sinking) resolveTrailerContacts(a, vehicles, world);
   if (world) resolvePropCollisions(vehicles, world);
+}
+
+// The gelede bus's rear unit against the other vehicles: as heavy as a wall
+// to them (it is dragged by its front unit, not pushed about itself).
+function resolveTrailerContacts(a, vehicles, world) {
+  const t = busTrailerPose(a);
+  const cap = t.cap;
+  const mx = (cap.ax + cap.bx) / 2, my = (cap.ay + cap.by) / 2, reach0 = Math.hypot(cap.bx - cap.ax, cap.by - cap.ay) / 2 + cap.r;
+  for (const b of vehicles) {
+    if (b === a || b.sinking || b.isBoat || (b.isHeli && !b.onGround) || Math.abs((a.z || 0) - (b.z || 0)) > 2.5) continue;
+    const reach = reach0 + b.halfLen + 0.2;
+    if ((b.x - mx) * (b.x - mx) + (b.y - my) * (b.y - my) > reach * reach) continue;
+    const capB = vehicleCapsule(b);
+    const { p1x, p1y, p2x, p2y, dist2: d2 } = closestPointsBetweenSegments(cap, capB);
+    const minDist = cap.r + capB.r;
+    let dist = Math.sqrt(d2);
+    if (dist >= minDist) continue;
+    let nx, ny;
+    if (dist < 1e-4) { dist = 1e-4; nx = -Math.sin(t.angle); ny = Math.cos(t.angle); if ((b.x - mx) * nx + (b.y - my) * ny < 0) { nx = -nx; ny = -ny; } }
+    else { nx = (p2x - p1x) / dist; ny = (p2y - p1y) / dist; }
+    const corr = Math.max(0, minDist - dist - 0.01);
+    b.x += nx * corr; b.y += ny * corr;
+    const hx = (p1x + p2x) / 2, hy = (p1y + p2y) / 2;
+    const relN = contactImpulse(b, null, hx, hy, -nx, -ny, CONTACT_FRICTION);
+    if (relN < IMPACT_EVENT_SPEED) continue;
+    recordContact(b, a, hx, hy, -nx, -ny, relN, 0);
+    const playerInvolved = a.driver === 'player' || b.driver === 'player';
+    reportImpact(world, hx, hy, relN, playerInvolved);
+    if (relN > HARD_HIT_CLOSING_SPEED) {
+      const base = (relN - HARD_HIT_CLOSING_SPEED) * IMPACT_DAMAGE_PER_MPS;
+      applyImpactDamage(b, clamp(base, 0, MAX_IMPACT_DAMAGE), playerInvolved, world);
+      applyImpactDamage(a, clamp(base * 0.5, 0, MAX_IMPACT_DAMAGE), playerInvolved, world);
+      b.hitThisFrame = true; b.hitX = hx; b.hitY = hy; b.hitImpactSpeed = relN;
+    }
+  }
 }
 
 function collisionProbes(v) {
@@ -2492,7 +2564,12 @@ export function resolveBoomCollisions(v, world) {
 // Push a circle (pedestrian, player on foot) out of a vehicle's capsule.
 // Returns the corrected position and the push normal, or null if clear.
 export function pushCircleOutOfVehicle(x, y, radius, v) {
-  const cap = vehicleCapsule(v);
+  const out = pushCircleOutOfCapsule(x, y, radius, v, vehicleCapsule(v));
+  if (out || !v.model.trailer) return out;
+  return pushCircleOutOfCapsule(x, y, radius, v, busTrailerPose(v).cap);
+}
+
+function pushCircleOutOfCapsule(x, y, radius, v, cap) {
   const cp = closestPointOnSegment(x, y, cap.ax, cap.ay, cap.bx, cap.by);
   const min = cap.r + radius;
   if (cp.dist2 >= min * min) return null;

@@ -9,6 +9,7 @@ import { saveGame } from './savegame.js';
 import { manageTrafficPopulation, manageBikePopulation } from './vehicle.js';
 import { spawnPedestriansNear } from './pedestrians.js';
 import { isInWater } from './util.js';
+import { addStaticCollider } from './breakables.js';
 import { VILLAGES } from './ommelandlines.js';
 import { setStoryOutfit, storyOutfit } from './shops.js';
 
@@ -224,24 +225,43 @@ function placeCountryStation(def, stops, scene) {
   return s;
 }
 
-// Low concrete platform with a shelter beside a country halt.
+// Concrete platform with a shelter beside a country halt: its top 0.76 m
+// above the rails (RAIL_TOP 0.26), the edge 1.7 m from the track's centre,
+// a ramp down at either end. Solid to walkers (a static collider).
+const PLAT_LEN = 80, PLAT_W = 3.2, PLAT_OFF = 3.3, PLAT_TOP = 1.02, RAMP_LEN = 7;
 function buildPlatform(px, py, tx, ty, nx, ny) {
   const g = new THREE.Group();
+  g.position.set(px + nx * PLAT_OFF, 0, py + ny * PLAT_OFF);
+  g.rotation.y = -Math.atan2(ty, tx);
+  // local frame: x along the track, z away from it (the side the station is on)
+  const side = Math.sign((-ty) * nx + tx * ny) || 1;
   const mat = new THREE.MeshLambertMaterial({ color: 0xa8a49a });
-  const slab = new THREE.Mesh(new THREE.BoxGeometry(80, 0.55, 3.2), mat);
-  slab.position.set(px + nx * 3.7, 0.27, py + ny * 3.7);
-  slab.rotation.y = -Math.atan2(ty, tx);
+  const slab = new THREE.Mesh(new THREE.BoxGeometry(PLAT_LEN, PLAT_TOP, PLAT_W), mat);
+  slab.position.y = PLAT_TOP / 2;
   slab.receiveShadow = true;
   g.add(slab);
+  const edge = new THREE.Mesh(new THREE.BoxGeometry(PLAT_LEN, 0.02, 0.3), new THREE.MeshLambertMaterial({ color: 0xe8e2c8 }));
+  edge.position.set(0, PLAT_TOP + 0.01, -side * (PLAT_W / 2 - 0.25));
+  g.add(edge);
+  const slope = Math.atan2(PLAT_TOP, RAMP_LEN), rl = Math.hypot(PLAT_TOP, RAMP_LEN);
+  for (const e of [-1, 1]) {
+    const ramp = new THREE.Mesh(new THREE.BoxGeometry(rl, 0.2, PLAT_W - 0.6), mat);
+    ramp.position.set(e * (PLAT_LEN / 2 + RAMP_LEN / 2), PLAT_TOP / 2 - 0.08, side * 0.3);
+    ramp.rotation.z = -e * slope;
+    ramp.receiveShadow = true;
+    g.add(ramp);
+  }
   const glass = new THREE.MeshLambertMaterial({ color: 0x9fb8c0, transparent: true, opacity: 0.45 });
   const roof = new THREE.Mesh(new THREE.BoxGeometry(6, 0.12, 1.8), new THREE.MeshLambertMaterial({ color: 0x2d5fa8 }));
   const back = new THREE.Mesh(new THREE.BoxGeometry(6, 2.2, 0.05), glass);
-  for (const [m, o, h] of [[roof, 4.6, 2.9], [back, 5.1, 1.7]]) {
-    m.position.set(px + nx * o + tx * 12, h, py + ny * o + ty * 12);
-    m.rotation.y = -Math.atan2(ty, tx);
+  for (const [m, o, h] of [[roof, 0.9, PLAT_TOP + 2.35], [back, 1.4, PLAT_TOP + 1.12]]) {
+    m.position.set(12, h, side * o);
     m.castShadow = true;
     g.add(m);
   }
+  const cx = px + nx * PLAT_OFF, cy = py + ny * PLAT_OFF;
+  // walkers only (base above the road): a level crossing may run past its ends
+  addStaticCollider('perron', cx, cy, PLAT_W / 2, PLAT_LEN / 2 + RAMP_LEN * 0.4, Math.atan2(ty, tx), false, PLAT_TOP).base = 0.05;
   return g;
 }
 

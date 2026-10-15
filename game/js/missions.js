@@ -67,7 +67,7 @@ const BIKE_HIT_GRACE = 2.5;
 const CROWD_SIZE = 11;
 const CROWD_RADIUS = 3.6;
 const CHARGE_EVERY = [3.5, 6];
-const CHARGE_SPEED = 4.6;
+const CHARGE_SPEED = 3.4; // a drunk charging at you: a bit quicker than the player's jog (3.0)
 const CHARGE_MAX_T = 4.5;
 const DRUNK_LINES = ['Proost!', 'Nog ééntje dan!', 'Ik hou van jullie allemaal!', 'Waar is mijn fiets?', 'KEI-week! KEI-week!', 'Wie heeft mijn pet?', 'Ik ben niet dronken, ik ben Gronings!', 'Kom, nog één kroeg!'];
 const CHARGE_LINES = ['Maaaaat! Knuffel!', 'HÉ! Jij bent toch die van Kiekdoar?', 'Ik ken jou! Van... ergens!', 'Opzij, ik moet naar de wc!', 'Polonaise! Iedereen mee!'];
@@ -108,7 +108,7 @@ function buildDefs(world) {
       label: 'Berend telt de krassen',
       intro: ['Berend Bos wil zijn bakkie bij zijn zus aan het Boterdiep. Hij staat bij het Martinikerkhof.', 'Rij hem heel naar het Boterdiep, om het centrum heen: daar mag je sinds 1977 niet meer door. Berend telt de krassen.'],
       outro: 'Berend zei goud. En moi. Tegen Tessa.',
-      timeLimit: 85,
+      timeLimit: 94,
       reward: 50,
       // Berend takes 50 cents off per percent of damage, down to a quarter of the fee
       scratchFine: 0.5,
@@ -143,8 +143,9 @@ function buildDefs(world) {
       // each on their own bike (D: she comes the other way at the all-green crossing), so she gets off his
       ownBike: true,
       say: 'Ik fiets zelf, op mijn eigen fiets. Met bonnetje. Zie je op het kruispunt.',
-      timeLimit: 35,
-      checkpointBonus: 20,
+      // a bike does 25 km/h (Shift: ~33)
+      timeLimit: 58,
+      checkpointBonus: 33,
       reward: 550,
       start: kei(0),
       waypoints: [...KEI_CHECKPOINTS.slice(1).map(kei), kei(0)],
@@ -154,7 +155,7 @@ function buildDefs(world) {
       label: 'Heel aankomen is ook een kunst',
       intro: ['Noorderzon mist een auto vol breekbaar decor, en de acteurs staan nog bij de Stadsschouwburg.', 'Eerst de acteurs oppikken aan de Turfsingel, dan door naar het Noorderplantsoen. Elke klap en het decor ligt in scherven.'],
       outro: 'Het decor staat. Het publiek dacht dat de gierende banden bij de show hoorden.',
-      timeLimit: 110,
+      timeLimit: 120,
       reward: 850,
       fragile: { label: 'Decor', per: 1.8, failAt: 30, fail: 'het decor ligt in scherven. Het wordt moderne dans' },
       stops: [{ ...drive(96, -318), name: 'de Stadsschouwburg', bonus: 25, arrive: 'De acteurs springen achterin, tussen het decor. "Rustig rijden, hè!"' }],
@@ -183,8 +184,8 @@ function buildDefs(world) {
       label: 'Nog eentje dan',
       intro: ['Kroegentocht! Vier kroegen, één avond, nul excuses. Grunn slaapt toch nooit.', 'Te voet, hè. De hele Poelestraat staat vol dronken studenten, en die lopen je zo omver.'],
       outro: 'Vier kroegen gehaald. Morgen wordt het een eierbalontbijt.',
-      timeLimit: 95,
-      checkpointBonus: 22,
+      timeLimit: 110,
+      checkpointBonus: 25,
       reward: 600,
       onFoot: true,
       drunk: 0.2, // per pub, drunk.js
@@ -206,7 +207,7 @@ function buildDefs(world) {
       label: 'Fatbikes tellen niet als fiets',
       intro: ['De Oude Ebbingestraat: smal, druk, en vol fatbikes die van twee kanten komen, over de stoep. Remmen hebben ze wel, gebruiken doen ze ze niet.', 'Loop de straat uit, over de Ebbingebrug en langs het water naar Oma Trijntje aan de Noorderhaven. Geschept worden doet pijn, maar zolang je blijft ademen telt het.'],
       outro: 'Overeind gebleven tussen de fatbikes. Oma Trijntje is trots.',
-      timeLimit: 140,
+      timeLimit: 160,
       reward: 500,
       onFoot: true,
       lane: lanePts,
@@ -356,7 +357,7 @@ function buildDefs(world) {
           // parked at the groothandel until you come close (`parked` m) or hit it; then it flees.
           // Jumping in (`hijack`) takes it there and then, and the run goes on to the Oosterpoort.
           kind: 'chase', label: 'Kaap de tankwagen of schiet zijn banden plat', say: 'Naar de groothandel aan de Bornholmstraat. Daar laden Durk en Douwe de tankwagen vol.',
-          vehicle: { name: 'truck', tank: true, livery: 'usmemvet', len: 7.2, wid: 2.35, maxSpeed: 24, accel: 4.5, brake: 14, turnRate: 1.5, color: '#e6c21a' },
+          vehicle: { name: 'truck', tank: true, livery: 'usmemvet', len: 8.5, wid: 2.5, maxSpeed: 24, accel: 4.5, brake: 14, turnRate: 1.5, color: '#e6c21a' },
           name: 'Tankwagen Us Mem Vet', from: [1896, 364], lead: 6, hits: 70, flee: [-2600, 600], cruise: 15.5, escape: 380, time: 180,
           parked: 60, parkedLabel: 'Naar de groothandel aan de Bornholmstraat', go: 'Ze zien ons! Daar gaat hij. Erin springen, of de banden plat. Schieten mag, rammen mag.',
           stopped: 'Pang! Banden plat. Durk en Douwe springen eruit en fietsen weg, allebei op één fatbike.',
@@ -503,8 +504,8 @@ function buildDefs(world) {
         { kind: 'board', label: 'Stap in de auto', say: 'Jelmer heeft zijn auto laten staan. Instappen, ze rijden weg!' },
         {
           kind: 'chase', label: 'Stop de Escapade', say: 'Achter ze aan! Ram hem tot hij stilstaat, voordat hij op de trein staat. Niet op Tammo\'s auto schieten, hè!',
-          vehicle: { name: 'escort', len: 4.0, wid: 1.65, maxSpeed: 50, accel: 9, brake: 22, turnRate: 3.2, color: '#a11f1f' },
-          hero: true, name: 'De Escapade', lead: 45, hits: 60, health: 170, flee: [-2600, 700], cruise: 16.5, escape: 380, time: 45,
+          vehicle: { name: 'escort', len: 4.0, wid: 1.65, maxSpeed: 50, accel: 6, brake: 22, turnRate: 3.2, color: '#a11f1f' },
+          hero: true, name: 'De Escapade', lead: 45, hits: 60, health: 170, flee: [-2600, 700], cruise: 16.5, escape: 380, time: 50,
           toTrain: true, loaded: 'Ze rijden de Escapade zo de goederentrein op! Die gaat naar Ljouwert.', late: 'Te laat: de Escapade staat al op de goederentrein naar Ljouwert!',
           meter: 'Escapade', clock: 'trein', half: 'Hij slingert! Durk krijgt de zenuwen.',
           stopped: 'De Escapade staat stil. Durk en Douwe springen eruit en fietsen weg, allebei op één fatbike.',
@@ -2630,7 +2631,7 @@ function updateFireworks(dt, world, def, st, S) {
     const close = dist(p.x, p.y, c.x, c.y) < (st.radius || HOLD_RADIUS) * 2.5;
     const aim = close && Math.random() < 0.6 ? p : c;
     const a = Math.random() * Math.PI * 2, r = Math.random() * 5;
-    S.fw.push({ x: aim.x + Math.cos(a) * r, y: aim.y + Math.sin(a) * r, t: 1.1 });
+    S.fw.push({ x: aim.x + Math.cos(a) * r, y: aim.y + Math.sin(a) * r, t: 1.3 });
     const f = S.fw[S.fw.length - 1];
     (world.audioEvents || (world.audioEvents = [])).push({ kind: 'weapon', sub: 'incoming', x: f.x, y: f.y });
   }

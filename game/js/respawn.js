@@ -22,7 +22,7 @@ const DRIVE = { a: 2.4, b: 3.0, c: 2.4 };
 const FADE = 0.4;
 const HOLD = 0.2;
 const SEARCH_R = 70;
-const AMBULANCE_MODEL = { name: 'ambulance', len: 5.6, wid: 2.0, maxSpeed: 30, accel: 8, brake: 18, turnRate: 2.6, color: '#f1d21c' };
+const AMBULANCE_MODEL = { name: 'ambulance', len: 6.0, wid: 2.0, maxSpeed: 30, accel: 8, brake: 18, turnRate: 2.6, color: '#f1d21c' };
 const HERO_MODEL = { len: 4.0, wid: 1.65 };
 
 const W = (x, h, y) => ({ x, y, z: h });

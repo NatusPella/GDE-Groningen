@@ -994,7 +994,7 @@ const DUCK_LOOKS = {
   hen: { body: 0x8a6a48, back: 0x6a4e34, chest: 0x7a5a3c, head: 0x7a5a3c, bill: 0xb8783a, ring: false, speculum: 0x3a4fa0, tail: 0x5a4430, scale: 0.95, neck: 0.05 },
   goose: { body: 0x8a8274, back: 0x6e6658, chest: 0x9a9284, head: 0x7e776a, bill: 0xd9803a, ring: false, speculum: 0x5a5448, tail: 0xe6e1d6, scale: 1.7, neck: 0.11 },
   // mute swan: all white, long neck, orange bill with the black knob
-  swan: { body: 0xeeece6, back: 0xe2dfd6, chest: 0xf2f0ea, head: 0xf2f0ea, bill: 0xe0702a, ring: false, speculum: 0xe2dfd6, tail: 0xe8e6de, scale: 2.5, neck: 0.2 },
+  swan: { body: 0xeeece6, back: 0xe2dfd6, chest: 0xf2f0ea, head: 0xf2f0ea, bill: 0xe0702a, ring: false, speculum: 0xe2dfd6, tail: 0xe8e6de, scale: 3.1, neck: 0.2 },
 };
 
 function duckGeometry(variant) {

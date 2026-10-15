@@ -27,7 +27,7 @@ function makeTreeProp(raw) {
     mass: 350 + s * 900,
     breakSpeed: 7 + s * 9,
     breakCost: 3 + s * 4,
-    h: 3.5 + s * 4,
+    h: 10.5 + s * 8, // scene3d.js treeDims: mature street trees
     onBreak: () => { raw._broken = true; },
     onRestore: () => { raw._broken = false; },
     makeMesh: () => {
