@@ -59,11 +59,37 @@ const STEP_DATES = {
   's-boot': 24, 'H14': 25, 's-proefvlucht': 25, 'H15': 26, 's-carbid': 26, 's-padel': 27, 'H16': 27, 'H17': 27, 'H18': 28,
 };
 
+// Deel 4 "Nazomer" (docs/verhaal/KALENDER.md, Deel 4): day numbers, not August
+// dates. The first night of a night mission is its day (the clock after midnight
+// is the next day, within the bounds of the next step). Days 41+ are
+// "nazomer · dag N". Planned data: the steps are not all built yet; the order
+// here is the default build order (a region played in another order gets the
+// later of its own day and today, see storyBounds). Weekdays (2026): 33 di,
+// 37 za, 40 di, 41 wo, 43 vr, 44 za, 45 zo, 46 ma, 51 za.
+export const DEEL4_STEP_DAYS = {
+  // F4a: Stad and ring 1. Hogeland: voorronde 1 on za 19 (kermis Uithuizen); Eemsdelta: voorronde 2 on di 22 (the last summer day)
+  'O1': day(9, 15), 'O2': day(9, 16), 'O3': day(9, 16), 'O4': day(9, 17), 'n-trekkertrek': day(9, 17), 'O5': day(9, 18),
+  'O6': day(9, 19), 'n-warffum': day(9, 19), 'n-delfzijl': day(9, 20), 'O7': day(9, 20), 'O8': day(9, 20), 'O9': day(9, 21),
+  'O10': day(9, 22), 'n-woonschip': day(9, 22),
+  // F4b: ring 2, nazomer from day 41. Wadkust: voorronde 3 on vr 25 (havenfeest); Westerkwartier: voorronde 4 on zo 27 (O18)
+  'n-zoutkamp': day(9, 23), 'O11': day(9, 23), 'O12': day(9, 23), 'O13': day(9, 24), 'O14': day(9, 25), 'n-kotter': day(9, 25),
+  'n-zuidhorn': day(9, 25), 'O15': day(9, 26), 'O16': day(9, 26), 'O17': day(9, 27), 'O18': day(9, 27), 'n-schuur': day(9, 27),
+  // F4c: ring 3 and 4. Oldambt: voorronde 5 on di 29 (kermis Winschoten); Veenkoloniën: voorronde 6 on vr 2; Westerwolde: the finale on za 3
+  'n-winschoten': day(9, 28), 'O19': day(9, 28), 'O20': day(9, 29), 'O21': day(9, 29), 'O22': day(9, 29),
+  'n-beerta': day(9, 29), 'n-aanbod': day(9, 29), 'n-ruzie': day(9, 29),
+  'n-veendam': day(9, 30), 'O23': day(9, 30), 'O24': day(9, 30), 'O25': day(9, 30), 'O26': day(10, 1), 'O27': day(10, 2),
+  'n-brugwachter': day(10, 2), 'n-westerwolde': day(10, 2),
+  'O28': day(10, 3), 'O29': day(10, 3), 'O30': day(10, 3), 'O31': day(10, 3), 'O32': day(10, 3), 'n-boshut': day(10, 3),
+};
+// the seven voorrondes of the Ommelander Ronde, in the order they are won by default
+export const VOORRONDE_STEPS = ['O6', 'O10', 'O14', 'O18', 'O22', 'O27', 'O31'];
+
 export const STEP_DAY = new Map();
 {
   let last = 1;
   for (const s of STEPS) {
     if (STEP_DATES[s.id] != null) last = day(8, STEP_DATES[s.id]);
+    else if (DEEL4_STEP_DAYS[s.id] != null) last = DEEL4_STEP_DAYS[s.id];
     STEP_DAY.set(s.id, last);
   }
 }
@@ -132,18 +158,28 @@ export const SPECIAL_DAYS = [
     card: ['De laatste zomerdag', 'Morgen begint de nazomer. In Grunn houdt die aan.'] },
   // the weekly market on the Grote Markt and the Vismarkt: dinsdag, vrijdag, zaterdag
   { id: 'markt', name: 'Marktdag', weekdays: [2, 5, 6], rank: 1, icon: 'kraam' },
-  // Deel 4 "Nazomer" (docs/PROVINCIE-VERHAAL.md): on the calendar, not in the game yet
-  { id: 'oogstfeest', name: 'Oogstfeest op het Hogeland', from: day(9, 5), to: day(9, 5), rank: 6, icon: 'aar', open: false,
-    card: ['Oogstfeest op het Hogeland', 'Trekkers met slingers tussen de wierden. De eerste voorronde van de Ommelander Ronde.'] },
-  { id: 'jaarmarkt', name: 'Jaarmarkt in de Eemsdelta', from: day(9, 9), to: day(9, 9), rank: 5, icon: 'kraam', open: false,
-    card: ['Jaarmarkt in de Eemsdelta', 'Kramen langs het Damsterdiep. De sluiswachter meldt alleen.'] },
-  { id: 'oldambtkermis', name: 'Kermis in het Oldambt', from: day(9, 10), to: day(9, 13), rank: 6, icon: 'rad', open: false,
-    card: ['Kermis in het Oldambt', 'Vier dagen kermis aan de rand van het graan. Durk en Douwe zijn er ook.'] },
-  { id: 'trekkertrek', name: 'Trekkertrek in het Westerkwartier', from: day(9, 19), to: day(9, 19), rank: 6, icon: 'trekker', open: false,
-    card: ['Trekkertrek in het Westerkwartier', 'De finale op het dorpsveld. Wie het verst trekt, wint.'] },
-  { id: 'stoomtrein', name: 'Stoomtreindag in de Veenkoloniën', from: day(9, 20), to: day(9, 20), rank: 5, icon: 'trein', open: false,
-    card: ['Stoomtreindag in de Veenkoloniën', 'Een museumtrein langs de kanaalwijken. Elke brug gaat open.'] },
-  { id: 'vesting', name: 'Vestingdag in Westerwolde', from: LAST_SUMMER_DAY, to: LAST_SUMMER_DAY, rank: 9, icon: 'vlag', open: false,
+  // Deel 4 "Nazomer" (docs/verhaal/KALENDER.md): on the calendar, not in the game yet. Days 41+ show as "nazomer · dag N".
+  { id: 'borgfeest', name: 'Tuinfeest in de Menkemaborg', from: day(9, 18), to: day(9, 18), rank: 5, icon: 'ster', open: false,
+    card: ['Tuinfeest in de Menkemaborg', 'Lampjes langs de gracht. Ubbo zoekt zijn jury. Jij bent niet uitgenodigd.'] },
+  { id: 'uithuizenkermis', name: 'Kermis in Uithuizen', from: day(9, 19), to: day(9, 20), rank: 6, icon: 'rad', open: false,
+    card: ['Kermis in Uithuizen', 'Botsauto\'s en zweefmolen op het dorpsveld. De eerste voorronde van de Ommelander Ronde.'] },
+  { id: 'jaarmarkt', name: 'Jaarmarkt in de Eemsdelta', from: day(9, 22), to: day(9, 22), rank: 5, icon: 'kraam', open: false,
+    card: ['Jaarmarkt in de Eemsdelta', 'Kramen langs het Damsterdiep in Appingedam. De sluiswachter meldt alleen.'] },
+  { id: 'havenfeest', name: 'Havenfeest in Lauwersoog', from: day(9, 25), to: day(9, 25), rank: 6, icon: 'vlag', open: false,
+    card: ['Havenfeest in Lauwersoog', 'Vlaggetjes op de pier. De laatste boot naar Schier vaart om 19:05.'] },
+  { id: 'trekkertrek', name: 'Trekkertrek in het Westerkwartier', from: day(9, 26), to: day(9, 26), rank: 6, icon: 'trekker', open: false,
+    card: ['Trekkertrek in het Westerkwartier', 'De finale op het sportveld bij Niekerk. Wie het verst trekt, wint.'] },
+  { id: 'zuidhornkermis', name: 'Kermis in Zuidhorn', from: day(9, 26), to: day(9, 27), rank: 6, icon: 'rad', open: false,
+    card: ['Kermis in Zuidhorn', 'Het is geen Uithuizen, maar het draait. Zondag is er een rally.'] },
+  { id: 'nienoord', name: 'Open dag in Nienoord', from: day(9, 27), to: day(9, 27), rank: 5, icon: 'bloem', open: false,
+    card: ['Open dag in park Nienoord', 'Het Rijtuigenhuis is open. De koetsen staan klaar, de paarden ook.'] },
+  { id: 'oogstfeest', name: 'Oogstfeest in Beerta', from: day(9, 28), to: day(9, 30), rank: 6, icon: 'aar', open: false,
+    card: ['Oogstfeest in Beerta', 'Trekkerparade en combineshow. Het laatste graan is binnen.'] },
+  { id: 'oldambtkermis', name: 'Kermis in Winschoten', from: day(9, 29), to: day(10, 4), rank: 6, icon: 'rad', open: false,
+    card: ['Kermis in Winschoten', 'Een week kermis aan de rand van het graan. Durk en Douwe zijn er ook.'] },
+  { id: 'stoomtrein', name: 'Jaarmarkt en stoomtreindag in Stadskanaal', from: day(10, 1), to: day(10, 1), rank: 5, icon: 'trein', open: false,
+    card: ['Stoomtreindag in Stadskanaal', 'Een museumtrein langs de kanaalwijken, vandaag gratis. Elke brug gaat open.'] },
+  { id: 'vesting', name: 'Vestingdag in Westerwolde', from: day(10, 3), to: day(10, 3), rank: 9, icon: 'vlag', open: false,
     card: ['Vestingdag in Westerwolde', 'Kartonnen kanonnen op de wallen. Berend speelt weer de belegeraar.'] },
 ];
 const SPECIAL_BY_ID = new Map(SPECIAL_DAYS.map((s) => [s.id, s]));
