@@ -4,7 +4,7 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
 
 **Spelregels**
 - Geen kosten: geen betaalde certificaten, hosting of diensten. De downloads blijven ongetekend, en de release notes zeggen dat.
-- Niets wordt openbaar zonder uitdrukkelijk akkoord van Alexander. Dat geldt voor de zichtbaarheid van de repo, Pages, itch.io, YouTube en posts.
+- Niets wordt openbaar zonder uitdrukkelijk akkoord van de eigenaar (NatusPella). Dat geldt voor de zichtbaarheid van de repo, Pages, itch.io, YouTube en posts.
 - Er is één testronde per release: de verhaaltest in Electron, de node-tests, en een korte speeltest. Agents doen tussendoor alleen lichte checks.
 - De legenda: `[x]` is klaar, `[~]` loopt (met de branch erachter), `[ ]` is open, en `[?]` wacht op een besluit.
 
@@ -40,7 +40,7 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
   - laadtijd.
 
 **Trailer**
-- [?] Feedback van Alexander op "Een zomer in Grunn".
+- [?] Feedback van de eigenaar op "Een zomer in Grunn".
 - [ ] Bekende puntjes:
   - de vetdruppels zijn klein;
   - Durk is te donker;
@@ -117,7 +117,7 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
 
 ## 0.24: echte zwakke hardware en de webversie
 
-- [ ] Meten op een echte Intel-laptop (Iris Xe of UHD 620) en een Chromebook of vergelijkbaar toestel. Daarvoor is hardware van Alexander of een kennis nodig.
+- [ ] Meten op een echte Intel-laptop (Iris Xe of UHD 620) en een Chromebook of vergelijkbaar toestel. Daarvoor is hardware van de eigenaar of een kennis nodig.
 - [ ] De lat: Laag haalt 30 fps zonder haperingen op de drukste plekken, en de laadtijd blijft onder de 30 s.
 - [~] Een webversie bouwen (`claude/webversie`): `npm run web` in `desktop/` maakt `web-dist/` uit de offline-staging, met relatieve paden, een laadscherm dat de MB's van de kaart telt, een service worker die alles cachet (per versie, ook offline), en audio die pas laadt als hij speelt. Getest in headless Chrome; nog niet in Safari, Firefox en op echte zwakke hardware.
 - [x] Audio comprimeren (Opus) voor de webversie: 149 MB wordt 85 MB (muziek de helft, stemmen 28% kleiner, want die waren al 48 kbps). Safari vóór 18.4 krijgt de mp3's.
@@ -252,19 +252,19 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
 
 ## YouTube-kanaal
 
-Alles staat in `docs/youtube/kanaal.md` (`claude/youtube-kit`). Er is niets geüpload en niets aangemaakt; kanaal en uploads doet Alexander.
+Alles staat in `docs/youtube/kanaal.md` (`claude/youtube-kit`). Er is niets geüpload en niets aangemaakt; kanaal en uploads doet de eigenaar.
 
 - [x] Kanaalbeelden in `docs/youtube/beelden/`: profielfoto (800×800), banner (2560×1440, veilige zone 1546×423, plus een controleversie met hulplijnen), watermerk (150×150, transparant) en twee thumbnails (1280×720) voor de verhaal- en de gameplaytrailer. Opnieuw te maken met `nice -n 10 node scripts/youtube_images.mjs`, dat de helpers van `scripts/steam_images.mjs` hergebruikt.
 - [x] De thumbnails tonen de Gouden Eierbal in zijn vitrine, nooit de lege vitrine of het kaartje "Tige tank!". De render komt uit de trailer met de bal teruggezet (`__trailer.prop()`).
 - [x] Naam- en handlevoorstellen (advies `@GDEGroningen`), kanaalbeschrijving (NL met een Engelse regel), links, titels, beschrijvingen, tags en hoofdstukken voor beide trailers, de AI-melding (advies: "Nee", maar stemmen en muziek wel noemen), de disclaimer zonder merknamen, "niet voor kinderen", afspeellijsten en een uploadplan voor de eerste week.
-- [ ] Kanaal aanmaken als merkaccount en de branding uploaden (Alexander).
+- [ ] Kanaal aanmaken als merkaccount en de branding uploaden (eigenaar).
 - [ ] De gameplaytrailer maken (de Steam-cut met HUD, zie `docs/steam/trailer.md`) en de hoofdstuktijden invullen.
 - [ ] De verhaaltrailer opnieuw exporteren met Tessa in plaats van Anita (naamkaart in shot 5).
-- [?] Shot 11 (de lege vitrine met "Tige tank!") in de YouTube-versie houden of eruit knippen (Alexander).
+- [?] Shot 11 (de lege vitrine met "Tige tank!") in de YouTube-versie houden of eruit knippen (eigenaar).
 
 ## Steam-klaar (optioneel, na of rond 1.0)
 
-Steam kost eenmalig $100 per game (Steam Direct). Dat bedrag komt terug na $1.000 omzet. Alexander beslist of hij dat ervoor overheeft; de game maken we in elk geval klaar.
+Steam kost eenmalig $100 per game (Steam Direct). Dat bedrag komt terug na $1.000 omzet. De eigenaar beslist of hij dat ervoor overheeft; de game maken we in elk geval klaar.
 
 - **Geen code signing nodig.** Steam start de game zelf, en macOS zet geen quarantainelabel op downloads via Steam. De ad-hoc-handtekening van electron-builder is genoeg voor Apple Silicon.
 - **AI-melding** in de inhoudsvragenlijst van Valve, die op de winkelpagina komt. Vooraf gegenereerd: alle stemmen (Gemini TTS) en alle muziek (Gemini). Live gegenereerd: niets. De tekst om in te vullen staat in `docs/steam/winkelpagina.md`.
@@ -288,7 +288,7 @@ Steam kost eenmalig $100 per game (Steam Direct). Dat bedrag komt terug na $1.00
   - [ ] Testen op een echte Steam Deck en op een Linux-pc: start hij, werkt de controller, en is `--no-sandbox` nodig binnen de Steam Linux Runtime.
 - [ ] Optioneel: Steam-achievements en cloud-saves via steamworks.js, gekoppeld aan de bestaande prestaties.
 - [ ] De planning: 30 dagen wachten na betaling, minimaal 2 weken "coming soon", en de review van de pagina en de build.
-- [?] Het besluit: $100 betalen en naar Steam (Alexander).
+- [?] Het besluit: $100 betalen en naar Steam (eigenaar).
 
 ## 1.0-RC en 1.0.0
 

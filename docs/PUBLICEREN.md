@@ -78,8 +78,8 @@ Daarna:
 - [ ] Release-tags (`v0.x.y`) worden mee herschreven; bestaande GitHub
       Releases wijzen dan naar oude commits. Releases opnieuw koppelen of
       verwijderen en opnieuw maken.
-- [ ] `desktop/package.json` noemt `"author": "NatusPella"` en
-      `copyright: © 2026 NatusPella`: bewust zo laten of aanpassen.
+- [x] `desktop/package.json` (`author`, `copyright`) en het About-paneel
+      noemen alleen nog "NatusPella" (15 okt).
 
 ## 3. Bestanden die niet publiek mogen of horen
 

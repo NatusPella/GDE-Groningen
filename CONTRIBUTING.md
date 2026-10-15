@@ -72,10 +72,28 @@ Draai `node --check` op JavaScript dat je aanpast.
 Maak een branch, houd de wijziging klein en gericht, en beschrijf wat je
 veranderde en hoe je het testte (het sjabloon helpt daarbij).
 
-Door een bijdrage in te sturen ga je ermee akkoord dat code onder de
-**GPL-3.0-or-later** valt ([LICENSE](LICENSE)) en inhoud (teksten, audio,
-beelden, modellen) onder **CC BY-NC-SA 4.0**
-([LICENSE-CONTENT.md](LICENSE-CONTENT.md)), en dat je het recht hebt om
-het zo te delen. De naam GDE en het logo vallen daar niet onder.
+### Licentie van je bijdrage
+
+Je houdt het auteursrecht op je bijdrage. Door een bijdrage in te sturen:
+
+1. geef je haar vrij onder de licenties van het project: code onder de
+   **GPL-3.0-or-later** ([LICENSE](LICENSE)), inhoud (teksten, audio,
+   beelden, modellen) onder **CC BY-NC-SA 4.0**
+   ([LICENSE-CONTENT.md](LICENSE-CONTENT.md));
+2. geef je **NatusPella** daarnaast een wereldwijde, eeuwigdurende,
+   onherroepelijke, niet-exclusieve en kosteloze licentie om je bijdrage te
+   gebruiken, aan te passen, te verspreiden, onder een andere licentie uit
+   te brengen en te verkopen, **ook commercieel** (bijvoorbeeld in een
+   betaalde Steam-versie), en om die rechten door te geven;
+3. verklaar je dat je dat mag: het is je eigen werk, of je hebt het recht
+   om het zo in te sturen, zoals beschreven in het
+   [Developer Certificate of Origin 1.1](https://developercertificate.org/).
+
+Bevestig dit met een regel `Signed-off-by: Naam <e-mail>` onder elke
+commit; `git commit -s` zet hem er vanzelf onder. Een vaste bijnaam en het
+noreply-adres van GitHub zijn prima. Pull requests zonder die regel nemen
+we niet over.
+
+De naam GDE en het logo vallen niet onder de licenties van het project.
 
 We houden ons aan de [gedragscode](CODE_OF_CONDUCT.md).
