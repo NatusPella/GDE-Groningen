@@ -371,6 +371,14 @@ function playerTune(v) {
 
 const MAX_CAR_SPEED = 76; // m/s (~275 km/h): even a turbo-tuned sports car stops here
 
+// The top speed the player gets out of a model (garage and shop bars):
+// base is the stock model when `model` carries upgrades.
+export function playerTopSpeed(model, base = model) {
+  const n = model.name;
+  const v = { model, _baseModel: base, isBike: n === 'bike', isScooter: n === 'scooter', isBoat: n === 'boat', isBus: n === 'bus' || n === 'midibus', sprintT: 0 };
+  return playerTune(v).top;
+}
+
 export function speedCap(v) {
   const t = v.driver === 'player' ? playerTune(v) : null;
   return t ? t.top : v.model.maxSpeed;

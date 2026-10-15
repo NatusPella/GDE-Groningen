@@ -2,7 +2,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { dist, closestPointOnSegment, isInWater, pointInPolygon, boatDryPoints } from './util.js';
 import { clearOfReal } from './countryreal.js';
 import { getScene, refreshCharacterMeshes } from './scene3d.js';
-import { spawnVehicleOnRoad, spawnBoatOnWater, HERO_CAR_MODEL } from './vehicle.js';
+import { spawnVehicleOnRoad, spawnBoatOnWater, HERO_CAR_MODEL, playerTopSpeed } from './vehicle.js';
 import { BOAT_KINDS } from './boattypes.js';
 import { TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { getHorecaForRender } from './horeca.js';
@@ -682,7 +682,7 @@ function statMax(cls) {
     const models = [...Object.values(VEHICLE_STOCK).map((sp) => [vclass(sp.kind), sp.model]), ...RENTALS.map((r) => ['boat', r.model])];
     for (const [c, m] of models) {
       const o = vmax[c] || (vmax[c] = {});
-      for (const [k] of VSTAT) o[k] = Math.max(o[k] || 0, (m[k] || 0) * (k === 'maxSpeed' || k === 'accel' ? 1.45 : 1.3));
+      for (const [k] of VSTAT) o[k] = Math.max(o[k] || 0, (k === 'maxSpeed' ? playerTopSpeed(m) : m[k] || 0) * (k === 'maxSpeed' || k === 'accel' ? 1.45 : 1.3));
     }
   }
   return vmax[cls] || vmax.car;
@@ -692,7 +692,9 @@ function statMax(cls) {
 export function vehicleStats(model, kind, after = null) {
   const max = statMax(vclass(kind));
   return VSTAT.map(([k, label]) => {
-    const a = model[k] || 0, b = after ? after[k] || 0 : null;
+    // the top speed as the player rides it (a fatbike's model is the AI's)
+    const a = k === 'maxSpeed' ? playerTopSpeed(model) : model[k] || 0;
+    const b = !after ? null : k === 'maxSpeed' ? playerTopSpeed(after, model) : after[k] || 0;
     const pct = b != null && a ? Math.round((b / a - 1) * 100) : 0;
     const base = k === 'maxSpeed' ? `${Math.round(a * 3.6)} km/u` : '';
     return { label, v: clamp01(a / max[k]), to: b == null ? null : clamp01(b / max[k]), text: pct ? `${base ? base + ' ' : ''}+${pct}%` : base };
