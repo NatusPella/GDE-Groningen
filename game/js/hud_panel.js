@@ -70,7 +70,20 @@ const STAR_PATH = 'M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L
 const TURN_ICON = {
   rechts: '<path d="M7 20V10a3 3 0 0 1 3-3h8"/><path d="M14 3l4 4-4 4"/>',
   links: '<path d="M17 20V10a3 3 0 0 0-3-3H6"/><path d="M10 3L6 7l4 4"/>',
+  recht: '<path d="M12 20V6"/><path d="M8 10l4-4 4 4"/>',
 };
+
+// The GPS card where there is no turn to give: the train (where to get off,
+// where to change) and the air (altitude advice, the landing spot).
+function modeCard(route, mode) {
+  if (!route || route.remaining <= 30) return null;
+  if (mode === 'ov' && route.uitstappen) {
+    const change = route.changes && route.changes[0];
+    return { title: `Uitstappen bij ${route.uitstappen.replace(/^Groningen\s+/, '')}`, sub: change ? `Overstappen bij ${change.replace(/^Groningen\s+/, '')}` : '' };
+  }
+  if (mode === 'lucht' && route.alt) return { title: `Hoogte ± ${route.alt} m`, sub: route.landing ? `Landen: ${route.landing.name}` : '' };
+  return null;
+}
 const RPM_ARC = 'M30 160 A85 85 0 1 1 170 160';
 // the red zone starts at this share of the arc
 const RPM_RED_AT = 85;
@@ -468,7 +481,7 @@ function updateVisibility(dt, world) {
     hpFull: hp >= 99.5 && !(world.armor > 0 && world.armor < 100), hpAgo: now - S.hpAt, hpLow: hp < 30,
     stamFull: st == null || st >= 0.995, stamAgo: now - S.stAt,
     inVehicle: !!v, vehFull: vehHp == null || vehHp >= 99.5, vehAgo: now - S.vehAt,
-    timer: !!gpsState.timer, gps: !!gpsState.turn, place: placeState.on,
+    timer: !!gpsState.timer, gps: !!(gpsState.turn || gpsState.card), place: placeState.on,
     specialDay: !!els.clockSpecial, timeGoal: !!gpsState.timer,
     objective: !els.mission.hidden, subtitle: !!(sub && sub.style.opacity === '1'),
     cardA: card ? card.prio : null, cardE: cardE ? cardE.prio : null,
@@ -662,7 +675,7 @@ function updatePlace(dt, world) {
 
 // --- zone B: the GPS card ---------------------------------------------------------
 
-const gpsState = { turn: null, timer: '', t: 0 };
+const gpsState = { turn: null, card: null, timer: '', t: 0 };
 function updateGps(dt, world) {
   if ((gpsState.t -= dt) > 0) return;
   gpsState.t = 0.2;
@@ -673,12 +686,14 @@ function updateGps(dt, world) {
   const route = getActiveRoute();
   let turn = null;
   // a turn card only in a vehicle on the roads, with a route, near a turn
-  if (route && !route.fly && (mode === 'auto' || mode === 'fiets') && route.remaining > 30) {
+  if (route && (mode === 'auto' || mode === 'fiets' || mode === 'boot') && route.remaining > 30) {
     const ahead = getRouteAhead(GPS_NEAR + 20, route);
     turn = nextTurn(ahead, GPS_NEAR);
   }
   gpsState.turn = turn;
-  if (!turn && !gpsState.timer) return;
+  const card = turn ? null : modeCard(route, mode);
+  gpsState.card = card;
+  if (!turn && !card && !gpsState.timer) return;
   let key = gpsState.timer;
   if (turn) {
     const after = turn.after ? world.map.nearestRoadPoint(turn.after[0], turn.after[1], 25, false) : null;
@@ -693,7 +708,15 @@ function updateGps(dt, world) {
     setText(els.gpsTitle, title);
     setText(els.gpsSub, sub);
     setText(els.gpsDist, formatDistance(route.remaining));
-    setText(els.gpsEta, etaText(route.remaining, v ? v.speed : 0, mode === 'fiets' ? 'bike' : 'drive'));
+    setText(els.gpsEta, etaText(route.remaining, v ? v.speed : 0, route.mode || (mode === 'fiets' ? 'bike' : 'drive'), route));
+  } else if (card) {
+    key += `|${card.title}|${card.sub}|${formatDistance(route.remaining)}`;
+    if (key === els.gpsKey) return;
+    els.gpsArrow.innerHTML = TURN_ICON.recht;
+    setText(els.gpsTitle, card.title);
+    setText(els.gpsSub, card.sub);
+    setText(els.gpsDist, formatDistance(route.remaining));
+    setText(els.gpsEta, etaText(route.remaining, 0, route.mode || 'drive', route));
   } else if (key === els.gpsKey) return;
   els.gpsKey = key;
   setText(els.gpsTimer, gpsState.timer);

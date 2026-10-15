@@ -364,8 +364,36 @@ HUD zoom at 1920x1080), `--hud-edge` is the 46 px margin.
   minimap's zoom per mode. The minimap and the big map (`mapview.js`, mode
   selector in its header, opens on how you travel) emphasise the roads for
   your mode, dim the others and dash trunk roads red for walkers and cyclists
-  ("niet voor jou"); the real access tags and the legal consequences (police
-  interest) come with the province tiles.
+  ("niet voor jou"). A road may carry `acc` (bits foot 1, bike 2, car 4,
+  bus 8) from the OSM tags (`foot/bicycle/motor_vehicle/motorcar/access/
+  motorroad/bus/psv`, written by `scripts/process_osm.py` `access_mask` only
+  when they differ from the class; the next `fetch_osm.py` run brings the
+  tags, until then the class decides); `roadAllowed`, `navgraph.accessOf`
+  and the routers read it first. `oneWayFor(road, mode)` (walkers ignore
+  one-ways, cyclists on quiet streets), `offenceOf(road, mode)` and
+  `ROUTE_MODE`/`MODE_OF_ROUTE` (router names `walk/bike/drive/boat/ov/fly`
+  against these).
+- `trafficlaw.js`: walking or cycling on a trunk road or the ring, a car on a
+  cycle path or footway, a bike on a footway: a `politie` card at once, one
+  star after `GRACE_S` (12 s) on it, once per stretch (re-armed 25 s after
+  leaving), never more than one star from this alone; not during missions,
+  jobs, challenges, for the emergency services, buses or in a train/heli.
+  `main.js` calls `updateTrafficLaw` next to `updatePolice`.
+- `travelroute.js` (pure): `boatRoute` (grid A* over the water with shore
+  clearance and bridge clearance, string-pulled, a goal on land ends at the
+  nearest water), `trainTrip` (walk, station, train, change, station, walk
+  with `uitstappen`, `changes` and `stops` for the signs; from the cab the
+  start is the track under you), `airRoute` (a line round the no-fly zones, an
+  altitude hint, the landing spot near the goal), `etaSeconds`. `routing.js`
+  wraps them as `planBoatRoute`, `planTrainTrip`, `planAirRoute` and keeps
+  `noFlyZones`/`landingSpots` (police stations are no-fly, 70 m; pads from
+  `heliflight.js getHelipads`). Bridge and lock data for boats are not in the
+  map yet: deck height from the z profile is all there is (`ctx.clearAt`
+  hook); opening bridges and locks wait for the province tiles.
+- `waymarkers3d.js`: buoys along a boat route, station signs at the stops of a
+  train trip, air rings and a landing pad in the air; the bike ribbon takes
+  its own colour. On the road the route ribbon and the waypoint beacon stay
+  the markers. `scene3d.js` calls `updateWaymarkers3D` from the ribbon update.
 - Boot screen (`#loading`, startscreen.js): dark green from the first paint
   (inline `--ui` script, Electron `backgroundColor`), the logo builds up,
   Gronings status lines rotate, "Druk op een toets" when ready (runs with
@@ -421,7 +449,27 @@ to the nearest snackbar, supermarket or kroeg when health is below 35 (until
 vehicle (hero or bought) below 55 health (until 90; never for stolen
 vehicles). Priority: an active bijbaan or mission, then the goal (a mission
 goal that still needs gear routes to the shop first), then the story step,
-then the post-game guide. `setUserWaypoint` makes a place goal. `getActiveRoute()` is the primary one (goal, else
+then the post-game guide. `setUserWaypoint(x, y, name, z)` makes a place goal
+(`z`: a spot on a bridge deck).
+
+Per travel mode (`route.mode`: `walk`, `bike`, `drive`, `boat`, `ov`, `fly`;
+`route.etaS`, `route.compromise`, boat `route.dock`, air `route.alt` and
+`route.landing`, train `route.uitstappen/changes/stops/legs`): the city graph
+has a walk, a bike and a drive network built from `roadaccess.js` (never an
+illegal edge; `planLandRoute(map, kind, a, b, { avoidMotorways, az, bz })` is
+the strict version the tests hold to the rules; `route.compromise` marks the
+two rule-bending fallbacks, `mixed` over a pedestrian area for a car-free goal
+and `free` against a one-way at the data's edge). The Ommeland graph has a
+foot network that leaves out the motorways (kind 1) and slows on links.
+"Snelwegen vermijden" (a button on the map in Auto mode, `setRoutePrefs`)
+makes motorway metres count 8x. A waypoint and the start snap to the nearest
+road for the mode on the right level: a road on the other level (bridge
+deck or the street under it, from the `z` profile) counts 40 m (start) or
+12 m (goal) further away. The big map's mode buttons plan the goal for that
+mode (`setRoutePrefs({ planMode })`, cleared when the map closes). The GPS
+card gives turns by car, bike and boat, "Uitstappen bij" in the train and the
+altitude and landing spot in the air. `node scripts/mode_route_test.mjs`
+runs all of it on the city map and on the F0 tiles. `getActiveRoute()` is the primary one (goal, else
 objective, else care: 3D ribbon, route chip), `getRoutes()` all of them
 (minimap, full map, map header); `dismissCareRoute()` (the "Negeren" button
 in the map header) hides the pink route until the need is over. In pigeon
