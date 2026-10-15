@@ -9,11 +9,10 @@
 // reports the outcome to missions.js.
 import { addMissionTrain, removeMissionTrain, clearTrackFor, getLevelCrossings, routePoint, placeTrain, railZ, FLAT_DECK_Z } from './railway.js';
 import { playCinematic } from './cinematics.js';
-import { P } from './worldframe.js';
 
 const ROUTE = 'Stoptrein Leeuwarden';
 const TAIL_S = 520;            // arc length of the train's tail: west of the station, past the rail's climb over the Emmaviaduct
-const CROSSING_NEAR = P(-1043, 1021); // Peizerweg
+const CROSSING_NEAR = [-1029.4, 1044.83]; // Peizerweg
 const LOAD_SPEED = 6;
 const RAMP = 5;
 const DEPART_AFTER = 2.5;

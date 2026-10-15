@@ -9,7 +9,6 @@ import { pushAudioEvent } from './pedestrians.js';
 import { addToSaveSet, getSaveSet } from './achievements.js';
 import { WATER_Y } from './util.js';
 import { advanceRoomClock, roomShouldClose } from './roomclock.js';
-import { P, PO, PA } from './worldframe.js';
 
 // Geheimpjes: eight hidden little things in town, each found once per
 // playthrough for a small reward, counted by the hidden achievement
@@ -23,15 +22,15 @@ import { P, PO, PA } from './worldframe.js';
 
 export const SECRETS_TOTAL = 8;
 const D = (x, y) => ({ x, y });
-const DOOR = { ...PO(216.05, 3.62), a: PA(216.05, 3.62, -1.9) };
+const DOOR = { x: 215.71, y: 0.43, a: -1.9151 };
 const ROOM_Z = 360;
-const UFO = { ...PO(-1880, -2050), z: 55 };
-const TOWER = { ...PO(214.5, 13.5), top: 95.3 };
-const JELLE_AT = D(...P(290, -200));
-const VENDING = { ...PO(102.62, 150), a: PA(102.62, 150, Math.PI) };
-const BENCH = { ...PO(248, -63), a: PA(248, -63, Math.PI / 2) };
-const DUCKS = { x0: P(88, -688)[0], x1: P(180, -688)[0], y: P(134, -688)[1], sign: D(...P(118, -704)) };
-const BIKE_TREE = { ...PO(-1943, -2034), z: 4.6 };
+const UFO = { x: -1917.64, y: -2032.32, z: 55 };
+const TOWER = { x: 214.32, y: 10.4, top: 95.3 };
+const JELLE_AT = D(286.45, -205.71);
+const VENDING = { x: 104.46, y: 149.61, a: 3.1252 };
+const BENCH = { x: 246.62, y: -67.14, a: 1.5544 };
+const DUCKS = { x0: [76, -693.5][0], x1: [168.18, -695.01][0], y: [122.09, -694.26][1], sign: D(105.79, -710.1) };
+const BIKE_TREE = { x: -1980.48, y: -2015.21, z: 4.6 };
 
 const fromA = (p, a, d) => ({ x: p.x + Math.cos(a) * d, y: p.y + Math.sin(a) * d });
 const DOOR_SPOT = fromA(DOOR, DOOR.a, 1.1);
@@ -280,7 +279,7 @@ function buildDucks() {
     out.push({ g, name, lane: -5 + i * 2, x: DUCKS.x0, speed: 0 });
   });
   const sign = canvasTex(192, 96, (c, w, h) => { c.fillStyle = '#f2e8d0'; c.fillRect(0, 0, w, h); c.fillStyle = '#c8261e'; c.font = 'bold 22px Arial'; c.textAlign = 'center'; c.fillText('BADEENDJES-', w / 2, 34); c.fillText('RACE', w / 2, 60); c.fillStyle = '#333'; c.font = '15px Arial'; c.fillText('inleg €2 · winst €10', w / 2, 84); });
-  const g = anchor(DUCKS.sign, PA(118, -704, Math.PI / 2));
+  const g = anchor(DUCKS.sign, 1.5544);
   add(g, new THREE.BoxGeometry(0.06, 1.1, 0.06), std(0x6a4a2a), 0, 0.55, 0);
   const s = add(g, new THREE.PlaneGeometry(0.8, 0.4), new THREE.MeshStandardMaterial({ map: sign, side: THREE.DoubleSide }), 0.04, 1.2, 0);
   s.rotation.y = Math.PI / 2;

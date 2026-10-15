@@ -13,7 +13,6 @@
 // Needs the vendored three.js once: cd desktop && npm run stage
 import './node3d.mjs';
 import fs from 'node:fs';
-import { PO } from '../game/js/worldframe.js';
 
 const args = process.argv.slice(2);
 const has = (k) => args.some((a) => a === '--' + k || a.startsWith('--' + k + '='));
@@ -70,7 +69,7 @@ MB.setBuildingMap(map);
 try { (await import('../game/js/home.js')).prepareHomeMap(map); } catch (e) { log('prepareHomeMap skipped:', e.message); }
 log('map loaded,', map.buildings.length, 'buildings');
 
-const CENTRE = { ...PO(100, 77) };
+const CENTRE = { x: 100.63, y: 76.18 };
 function moduleOf(b) {
   if (b.landmark && b.name && getLandmarkModel(b.name)) return 'glb';
   if (marktKind(b)) return 'marktgebouwen';

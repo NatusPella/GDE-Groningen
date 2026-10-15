@@ -572,12 +572,12 @@ function hoofdstation(B, ring) {
   }
   // blocks: [front-west corner, front-east corner (north face), eave, roof]
   const blocks = [
-    [P(-119.4, 940.4), P(-102.4, 940.4), 14.5, 'pav'],
-    [P(-102.2, 945.3), P(-78.6, 945.3), 12.5, 'wing'],
-    [P(-78.6, 938.8), P(-45.2, 938.8), 16, 'hall'],
-    [P(-72.3, 935.4), P(-52, 935.4), 18.5, 'front'],
-    [P(-44.6, 942.2), P(-21.7, 942.2), 12.5, 'wing'],
-    [P(-21.4, 935.4), P(-4.7, 935.4), 14.5, 'pav'],
+    [[-105.04, 948.69], [-88, 948.41], 14.5, 'pav'],
+    [[-87.72, 953.34], [-64.06, 952.95], 12.5, 'wing'],
+    [[-64.17, 946.41], [-30.7, 945.86], 16, 'hall'],
+    [[-57.91, 942.88], [-37.57, 942.55], 18.5, 'front'],
+    [[-30.04, 949.27], [-7.09, 948.9], 12.5, 'wing'],
+    [[-6.9, 942.05], [9.84, 941.78], 14.5, 'pav'],
   ];
   for (const [[ax, ay], [bx, by], eave, kind] of blocks) {
     const u0 = F.U(ax, ay), u1 = F.U(bx, by);
@@ -633,7 +633,7 @@ function hoofdstation(B, ring) {
     }
   }
   // entrance canopy on the square side
-  const [gx, gy] = P(-62, 935.4);
+  const [gx, gy] = [-47.59, 942.71];
   const [ex, ez] = F.P(F.U(gx, gy), vAt(gx, gy) - 2.2);
   obox(B, ex, ez, 4.8, 16, 4.2, 0.35, F.rot, C.charcoal, G_METAL);
 }

@@ -6,7 +6,6 @@ import { isCinematicActive } from './cinematics.js';
 import { isShopOpen } from './shopui.js';
 import { startPigeonMode, isPigeonActive, addPigeonLoft, buildPigeonBird, posePigeonBird } from './pigeonmode.js';
 import { isInWater } from './util.js';
-import { PO } from './worldframe.js';
 
 // Places in the city where Tammo, the duivenfluisteraar, can steer a pigeon:
 // a badge + a few pecking pigeons at each; E and he whistles one up (eyes
@@ -24,8 +23,8 @@ const SPOTS = [
   { id: 'grotemarkt', landmark: 'Grote Markt', name: 'Grote Markt', host: 'Een zwerm op de keien' },
   { id: 'martini', landmark: 'Martinitoren', name: 'Martinitoren', host: 'Duiven aan de voet van d\'Olle Grieze' },
   { id: 'noorderplantsoen', landmark: 'Noorderplantsoen', name: 'Noorderplantsoen', host: 'Duiven bij de vijver' },
-  { id: 'station', ...PO(-60, 892), name: 'Stationsplein', host: 'Stationsduiven wachten op de trein' },
-  { id: 'volkstuin', ...PO(1010, 1537), name: 'Duiventil volkstuin', host: 'Duivenmelker Bert leent je een duif', loft: true },
+  { id: 'station', x: -46.3, y: 899, name: 'Stationsplein', host: 'Stationsduiven wachten op de trein' },
+  { id: 'volkstuin', x: 1036.85, y: 1530.47, name: 'Duiventil volkstuin', host: 'Duivenmelker Bert leent je een duif', loft: true },
 ];
 const USE_RADIUS = 2.4;
 const FLOCK_DRAW = 45;

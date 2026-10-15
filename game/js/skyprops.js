@@ -1,6 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { pointInPolygon, normalizeAngle } from './util.js';
-import { P } from './worldframe.js';
 
 // Decorative sky traffic, no gameplay effect and no collision:
 //  - world.skyHeli: a trauma helicopter that now and then flies in from
@@ -62,7 +61,7 @@ export function helipadInfo(map) {
 function launchSites(map) {
   if (map._balloonSites) return map._balloonSites;
   const sites = [];
-  const [ox, oy] = P(0, 0);
+  const [ox, oy] = [-0.84, 0.33];
   for (const g of map.green || []) {
     if (g.kind !== 'park' && g.kind !== 'meadow') continue;
     const [x0, y0, x1, y1] = g.bounds || [0, 0, 0, 0];

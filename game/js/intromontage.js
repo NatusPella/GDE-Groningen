@@ -26,7 +26,6 @@ import { KITCHEN, buildKitchen, buildAtmTrailer, buildWetBike, buildFrikandel, b
 import { logoHtml } from './logo.js';
 import { PARTS, partNumber } from './storyarc.js';
 import { homeSpawnPoint } from './home.js';
-import { PO } from './worldframe.js';
 import { KEYS } from './storagekeys.js';
 
 // Recorded montage dialogue: the story manifest ("<speaker>|<text>"), then the
@@ -647,13 +646,13 @@ function useKitchen(r, at) {
 // the Oosterparkwijk, Rikus on the radio, the kitchen table.
 function buildShots(w) {
   const map = w.map;
-  const tower = landmark(w, 'Martinitoren', { ...PO(214, 13) });
-  const vismarkt = landmark(w, 'Vismarkt', { ...PO(13, 254) });
-  const museum = landmark(w, 'Groninger Museum', { ...PO(70.9, 798.3) });
+  const tower = landmark(w, 'Martinitoren', { x: 213.81, y: 9.9 });
+  const vismarkt = landmark(w, 'Vismarkt', { x: 16.36, y: 255.74 });
+  const museum = landmark(w, 'Groninger Museum', { x: 83.35, y: 802.56 });
   // the Oosterpark itself (the park polygon in citymap.json) and Tammo's
   // street on its south-east edge: the Korenbloemstraat
-  const park = { ...PO(1156, -918) };
-  const homeSt = { ...PO(1320, -779) }, homeDoor = { ...PO(1320, -765) };
+  const park = { x: 1142.19, y: -942.61 };
+  const homeSt = { x: 1308.82, y: -805.45 }, homeDoor = { x: 1309.06, y: -791.36 };
   const home = street(map, homeSt.x, homeSt.y);
   const hf = { x: Math.cos(home.a), y: Math.sin(home.a) };
   let hn = { x: -hf.y, y: hf.x };
@@ -758,7 +757,7 @@ function buildShots(w) {
   };
 
   // a work boat fishes a bike out of the Diepenring
-  const bqNear = { ...PO(455, -51) };
+  const bqNear = { x: 454.24, y: -58.47 };
   const bq = canalAt(canalNear(bqNear.x, bqNear.y));
   const cn = { x: -Math.sin(bq.a), y: Math.cos(bq.a) };
   const boat = {
@@ -782,7 +781,7 @@ function buildShots(w) {
   };
 
   // Tessa in the Herestraat, a cash machine on a trailer behind her: freeze
-  const hereSt = { ...PO(229, 402) };
+  const hereSt = { x: 235.26, y: 401.14 };
   const here = street(map, hereSt.x, hereSt.y);
   const rf = { x: Math.cos(here.a), y: Math.sin(here.a) }, rn = { x: -rf.y, y: rf.x };
   const lane = (d, off) => ({ x: here.x + rf.x * d + rn.x * off, y: here.y + rf.y * d + rn.y * off });
@@ -882,7 +881,7 @@ function buildShots(w) {
   };
 
   // flash: a tanker skids on the Europaweg
-  const euSt = { ...PO(1250, 578) };
+  const euSt = { x: 1261.38, y: 561.37 };
   const eu = street(map, euSt.x, euSt.y);
   const ef = { x: Math.cos(eu.a), y: Math.sin(eu.a) }, en = { x: -ef.y, y: ef.x };
   const tanker = {

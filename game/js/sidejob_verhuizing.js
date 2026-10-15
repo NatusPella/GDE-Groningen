@@ -7,10 +7,9 @@ import {
   pick, rand, nearestOnStreet, kerbSide, spawnJobVehicle, pointAlongRoad, randomStreetPoint, doorSpot,
   spawnPed, pedAlive, holdPed, freePed, say, buildBox, streetNameAt,
 } from './sidejobkit.js';
-import { P, PO } from './worldframe.js';
 
 const VAN = { name: 'van', len: 5.0, wid: 2.0, maxSpeed: 26, accel: 6.5, brake: 19, turnRate: 2.0, color: '#e8e6e0' };
-const CENTRE = { ...PO(190, 140), r: 1500 };
+const CENTRE = { x: 191.86, y: 138.11, r: 1500 };
 const REACH = 1.9;
 const VAN_REAR = 2.8;
 const SHOW_R = 90;
@@ -44,9 +43,9 @@ const THANKS = [
 const BROKEN = ['Eh... was dat er al af?', 'Nou ja, plant Henk groeit wel weer aan.', 'Mijn moeder hoeft dit niet te weten, oké?'];
 
 const NEW_AREAS = [
-  { name: 'Paddepoel', ...PO(-1450, -900) }, { name: 'Selwerd', ...PO(-900, -1500) }, { name: 'de Korrewegwijk', ...PO(378, -1200) },
-  { name: 'de Oosterparkwijk', ...PO(1200, -650) }, { name: 'de Schildersbuurt', ...PO(-862, 276) }, { name: 'de Zeeheldenbuurt', ...PO(-883, 781) },
-  { name: 'de Rivierenbuurt', ...PO(184, 1250) },
+  { name: 'Paddepoel', x: -1468.36, y: -881.87 }, { name: 'Selwerd', x: -927.1, y: -1494.58 }, { name: 'de Korrewegwijk', x: 358.08, y: -1213.53 },
+  { name: 'de Oosterparkwijk', x: 1190.75, y: -673.63 }, { name: 'de Schildersbuurt', x: -860.12, y: 292.14 }, { name: 'de Zeeheldenbuurt', x: -872.95, y: 800.7 },
+  { name: 'de Rivierenbuurt', x: 204.15, y: 1255.28 },
 ];
 
 function findDoor(map, near, rMin, rMax) {
@@ -84,7 +83,7 @@ export default {
   sikkom: (c) => `Verhuizer zet ${c.streak} studenten heel op hun nieuwe kamer, kamernood officieel een beetje minder`,
 
   anchor(map) {
-    const s = nearestOnStreet(map, 'Meeuwerderweg', ...P(846, 571));
+    const s = nearestOnStreet(map, 'Meeuwerderweg', 856.39, 561.03);
     return s ? kerbSide(map, s, 1.6) : null;
   },
 

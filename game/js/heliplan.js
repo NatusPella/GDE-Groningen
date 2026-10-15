@@ -17,14 +17,14 @@
 // assist(v, keys, tgt, dt, mode)   the steering and height help (keys: a Set of held keys)
 // pilotKeys(v, tgt, mode) -> Set   a simple pilot for the test and the debug autopilot
 
-import { PO, PA, PL } from './worldframe.js';
+import { PA } from './worldframe.js';
 
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
 
 export const RING_R = 11;
 // Jelle's balloon stands in the Oosterpark (storyarc.js H14 radio) and drifts towards Ten Boer
-export const BALLOON_AT = { ...PO(1593, -466) };
+export const BALLOON_AT = { x: 1587.59, y: -495.01 };
 const BALLOON_A = PA(1593, -466, Math.atan2(-0.5, 0.86));
 export const BALLOON_DIR = { x: Math.cos(BALLOON_A), y: Math.sin(BALLOON_A) };
 export const BALLOON_SPEED = 3;
@@ -36,10 +36,7 @@ export const CRUISE_S = 9;
 export const ENTRY = { back: 1000, z: 70 };
 
 // the standalone Ballonjacht: a tour over Stad first, as before (heights in m)
-const TOUR = PL([
-  [560, -420, 62], [300, -640, 55], [133, -719, 45], [-120, -560, 60], [-190, -250, 72],
-  [-143, -32, 58], [40, -20, 52], [300, 40, 66], [620, -130, 60], [980, -300, 64], [1300, -420, 66],
-]);
+const TOUR = [[553.34, -431.56, 62], [289.2, -648.68, 55], [120.57, -725.44, 45], [-130.29, -561.28, 60], [-195.34, -248.15, 72], [-144.66, -29.53, 58], [38.91, -20.45, 52], [300.43, 35.66, 66], [618.27, -140.7, 60], [976.17, -317.74, 64], [1294.79, -443.83, 66]];
 
 function ringsBetween(a, b, n, heights, sway) {
   const out = [];

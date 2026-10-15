@@ -8,7 +8,6 @@ import { unlockAchievement } from './achievements.js';
 import { saveGame } from './savegame.js';
 import { pointInPolygon, isInWater, clamp, angleLerp, normalizeAngle, WATER_Y } from './util.js';
 import { KEYS } from './storagekeys.js';
-import { PO } from './worldframe.js';
 
 const LEVEL_H = 3.1;
 const G = 9.8;
@@ -47,7 +46,7 @@ const ACH = {
   meeuw: 'Meeuw te slim af',
 };
 const CAR_ROOF = { van: 2.05, sport: 1.22, hatch: 1.45, sedan: 1.42, wagon: 1.5, escort: 1.38 };
-const LOFT_SPOT = { ...PO(265.2, -205.6) };
+const LOFT_SPOT = { x: 261.5, y: -210.93 };
 
 const INTRO_S = 1.9;
 const CAM_BLEND_S = 0.7;
