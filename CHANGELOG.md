@@ -7,6 +7,25 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Nieuw
+- **Minigames, deel 1.** Vier nieuwe dingen om tussendoor te doen, allemaal
+  gratis, overslaanbaar (Backspace, B op een controller) en met medailles,
+  records en prestaties:
+  - **Discgolf in het Stadspark.** Negen holes met manden en vlaggen. Richt met
+    A en D, kies de hoek met W en S, wissel met E tussen hyzer, vlak en anhyzer
+    en met F van disc, houd Spatie om te laden en laat los om te gooien. Let op
+    de wind, de bomen en het water (kost een worp). Een scorekaart telt tegen par.
+  - **Pitch & putt aan de Concourslaan.** Zes korte holes op de open grond in het
+    Concoursterrein: pitchen naar de green, daar putten. De pijltjes op de green
+    laten zien waar de bal heen loopt, en het witte streepje op de meter is de
+    kracht voor een rechte slag.
+  - **Skatepark Stadspark.** Negentig seconden op een skateboard tussen
+    quarterpipes, kickers, een box en rails: ollie, kickflip, heelflip, spins,
+    grabs en grinds. Een keten van verschillende tricks telt zwaarder; een val
+    kost je de keten.
+  - **Karten bij Kardinge.** Drie ronden tegen drie rijders op een eigen
+    kartbaan naast Kardinge: gas, rem en handrem. Een lange drift geeft een
+    boost. Eerste is goud, tweede zilver, derde brons; er zijn records voor de
+    racetijd en de snelste ronde.
 - **Richtingaanwijzers en alarmlichten.** [ en ] zetten de knipperlichten links
   en rechts aan (nog eens: uit), P de alarmlichten; op een controller zijn het
   links, rechts en omhoog op het D-pad. Na de bocht gaat de richtingaanwijzer
