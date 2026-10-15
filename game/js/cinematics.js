@@ -107,8 +107,8 @@ export function initCinematics(w) {
     '<div class="cine-sub"><span class="cine-speaker"></span><span class="cine-line"></span></div>' +
     '<div class="cine-skip"><svg class="cine-skip-ring" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle class="fill" cx="12" cy="12" r="10"/></svg>' +
     '<span>Houd</span><span class="hud-key">SPATIE</span><span>ingedrukt om over te slaan</span></div>' +
-    '<div class="cine-banner" hidden><div class="cb-band"><div class="cb-title"></div></div>' +
-    '<div class="cb-reason"></div><div class="cb-reward"></div><div class="cb-stats"></div></div>' +
+    '<div class="cine-banner" hidden><div class="cb-col"><span class="cb-bar"></span><div class="cb-title"></div>' +
+    '<div class="cb-reason"></div><div class="cb-fact"><span>Beloning</span><div class="cb-reward"></div></div><div class="cb-stats"></div></div></div>' +
     '<div class="cine-chip"></div>';
   document.body.appendChild(root);
   els = {
