@@ -2089,6 +2089,9 @@ const ENGINE_SPECS = [
   { idle: 750, red: 7000, shift: 0.16, level: 0.38 },
   { idle: 750, red: 4300, shift: 0.2, level: 0.38 },
   { idle: 0, red: 48000, shift: 0, level: 0.24 },
+  { idle: 1300, red: 13000, shift: 0.08, level: 0.4 },
+  { idle: 1200, red: 10000, shift: 0.1, level: 0.4 },
+  { idle: 1000, red: 7500, shift: 0.16, level: 0.38 },
 ];
 
 // Canoes, kayaks and pedalos have no engine: paddle strokes or the pedalo's
@@ -2203,6 +2206,7 @@ function updatePaddling(dt, world) {
 // Deelsteps are electric (kind 7); the police motor and the Snorscooter
 // (model.moped) are a real two-stroke brommer.
 function engineKind(v) {
+  if (v.isScooter && v.model.motorbike) return v.model.motorbike === 'sport' ? 8 : v.model.motorbike === 'naked' ? 9 : 10;
   if (v.isScooter) return v.isPolice || v.model.moped ? 3 : 7;
   if (v.isBoat) return 4;
   if (v.isBus) return 2;

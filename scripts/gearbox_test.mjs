@@ -129,7 +129,7 @@ check('torque curve: weak low, full mid, none on the limiter', torqueCurve(0.1) 
   check('e-step has none', profileFor(veh({ name: 'scooter' }, { isScooter: true })) === null);
   check('automatic moped has none', profileFor(veh({ name: 'scooter', moped: true }, { isScooter: true })) === null);
   check('geared moped has one', profileFor(veh({ name: 'scooter', moped: true, geared: true }, { isScooter: true })) === 'moped');
-  check('motorbike -> bike profile', profileFor(veh({ name: 'motor', motorbike: 'naked' })) === 'motorNaked');
+  check('motorbike -> bike profile', profileFor(veh({ name: 'motor', motorbike: 'naked' }, { isScooter: true })) === 'motorNaked');
   check('boat has none', profileFor(veh({ name: 'boat' }, { isBoat: true })) === null);
 }
 

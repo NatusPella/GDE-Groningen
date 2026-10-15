@@ -123,5 +123,12 @@ for (const speed of [5, 20, 40, 60]) {
 }
 ok(C.chaseFollowLerp(1 / 60) < 1, 'normal chase camera still eases');
 
+// manual shifting: keys, clutch and the bumpers
+ok(['.', ',', 'j'].every((k) => C.KEY_ACTIONS.some(([c]) => c === k)), 'shift up, shift down and the clutch are rebindable keys');
+ok(C.PAD_MAPS.vehicleManual.rb === '.' && C.PAD_MAPS.vehicleManual.lb === ',' && C.PAD_MAPS.vehicleManual.ls === 'j', 'bumpers shift and L3 is the clutch in the manual vehicle map');
+ok(C.PAD_MAPS.vehicleManual.rt === '@gas' && C.PAD_MAPS.vehicleManual.lt === '@brake' && C.PAD_MAPS.vehicleManual.stick === 'steer', 'gas, brake and steering stay as in the automatic vehicle map');
+ok(C.PAD_MAPS.vehicleManual.up === 'n', 'the radio moves to the D-pad when the bumpers shift');
+ok(new Set(C.KEY_ACTIONS.map(([k]) => C.physicalKey({}, k))).size === C.KEY_ACTIONS.length, 'no two actions share a default key');
+
 console.log(`${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);
