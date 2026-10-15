@@ -39,6 +39,12 @@ nieuwe functies, `y` voor alleen bugfixes.
     beantwoord drie vragen van de griffier. Met Tab lees je de feiten nog eens.
   - **Cabaret in de Stadsschouwburg.** De Friese cabaretier Ype Tjaarda speelt;
     jij roept op de maat iets terug. Druk Spatie als de balk in het groen is.
+- **Berovingen na donker.** In een paar wijken (het station en de uitgaansstraten
+  van de binnenstad, en de lege bedrijventerreinen) kan je 's avonds en 's nachts
+  je portemonnee kwijtraken: iemand botst tegen je op en je verliest een deel van
+  je geld, zonder geweld. Ren hem achterna en pak het terug. Op de kaart krijgen
+  die wijken na donker een oranje naam en een driehoek, en bij het binnenlopen
+  waarschuwt een kaartje je.
 
 ## [0.31.0] - 2026-10-16
 

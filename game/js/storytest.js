@@ -311,6 +311,18 @@ async function batch2Smoke(world, check, capture) {
   WE.tourists(false);
   p.x = home.x; p.y = home.y;
 
+  // a mugging: the wallet is snatched, nobody is hurt, and running the thief down gives it back
+  const MG = window.__muggings;
+  world.money = 300;
+  check('muggings: a thief shows up', MG && MG.mug() && MG.state().phase === 'approach');
+  check('muggings: the wallet is snatched (a share is lost)', await waitFor(() => MG.state().phase === 'chase', 9000) && world.money < 300 && world.money >= 200, JSON.stringify({ money: world.money, st: MG.state() }));
+  capture('event-mugging');
+  await sleep(2600);
+  const thief = world.pedestrians.find((q) => q.mugger);
+  check('muggings: the thief runs and nothing is NaN', !!thief && [thief.x, thief.y].every(Number.isFinite) && finite(world.player));
+  if (thief) { p.x = thief.x + 0.6; p.y = thief.y; }
+  check('muggings: catching him gives the money back', await waitFor(() => MG.state().phase === null && world.money === 300, 6000), JSON.stringify({ money: world.money, st: MG.state() }));
+
   // the text jobs
   const SJ = () => window.__debug.sidejobs;
   const panelUp = () => !!document.querySelector('.cw-panel:not([hidden])');
