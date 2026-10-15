@@ -41,7 +41,7 @@
 - **Agent:** "…'s Nachts?"
 - **Anita:** "Overdag mogen we niet fietsen in de Herestraat."
 - *De agent denkt na en fietst door.*
-- *Titel: GTE VI. Eronder, kleiner: "Er gaat niets boven Grunn. Behalve de Martinitoren."*
+- *Titel: GDE Groningen. Eronder, kleiner: "Er gaat niets boven Grunn. Behalve de Martinitoren."*
 
 **Overgang (cutscène, Nachtstreek, studio boven de stad).**
 - **Rikus:** Moi. Rikus, Nachtstreek. Het is twijduustern in Grunn: de schemer. Het uur van de fietsdieven, de duiven en de mensen die niet kunnen slapen.

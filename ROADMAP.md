@@ -236,15 +236,13 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
 - [x] De voorwaarden voor muziek en stemmen (Gemini via OpenRouter) zijn vastgelegd. Ze zijn vrij te verspreiden in een gratis game, met een AI-label, en mogen niet gebruikt worden om modellen te trainen.
 - [ ] **Licentie (advies):** MIT voor de code, CC BY-NC 4.0 voor verhaal, stemmen en art, en ODbL voor de kaartdata. Daarna een `LICENSE`-bestand toevoegen.
 - [x] **Sikkom** (een echt merk van het DvhN) heet nu **Kiekdoar**, en **Radio Grunn** (te dicht bij Grunn FM) heet **Radio Proat**. De regels met de oude namen zijn opnieuw ingesproken. Het scherm "Sikkom." bij een net mislukte missie blijft, want dat is het Groningse woord voor "bijna".
-- [ ] **De Esri-satellietfoto** (`data/satellite_reference.jpg`) uit de repo en uit de geschiedenis halen. Dat gebeurt samen met het herschrijven van het e-mailadres, na akkoord.
+- [x] **De Esri-satellietfoto** (`data/satellite_reference.jpg`) is uit de repo (15 okt). Nog [?]: uit de geschiedenis halen, samen met het herschrijven van het e-mailadres, na akkoord (`docs/OPEN_SOURCE_CHECKLIST.md`).
 - [x] De ongelogde, oudere stemclips (npc, politie, nieuws, jingles) zijn opnieuw ingesproken met 3.8 en gelogd, via `tts_barks_lines.mjs`.
 - [x] De kleuren van de parodiewinkels zijn verschoven (Kruidvet, Albert Hijgt, DUMBO, Blokkie, Wiebel en Bakkie Prut). Cafés heten in berichten en in de kroegentocht naar verzonnen zaken; de kaart houdt de OSM-namen. Huisartsenposten bij respawn hebben een algemene naam.
 - [x] Het logo met **Big Shoulders Display** (OFL), de plaatsnaam op een plaatsnaambord-vorm, en Gronings groen (`claude/gde-naam`). Het bord is groen met een witte rand in plaats van blauw: blauw zou de enige blauwe kleur in de game zijn en leest als een echt verkeersbord; de vorm zegt al "plaatsnaambord". Ook het app-icoon is nieuw. Lettertype en OFL staan in `licenses/`, `NOTICE.md` en `docs/LICENTIES.md`.
 - [ ] Handmatig in het merkenregister zoeken naar "GDE" en "Grootste Diefstal Ever" (EUIPO en BOIP, ongeveer 15 minuten).
-
-  1. **Schriftelijke toestemming** van de maker of makers. Dat is het veiligste, en kan meteen een mooie samenwerking of promotie opleveren. Doe dit vóór elke publieke release, en zeker vóór Steam.
-  - [x] 3 okt: de eigenaar koos een andere naam voor haar. Anita heet nu Tessa, overal waar je het ziet of hoort (de interne sleutel `anita` blijft, voor de saves).
-
+- [x] **Tammo en Tessa zijn eigen, verzonnen personages.** De aftiteling noemt ze als personages ("twee Stadjers met een droom"), de stemmen zijn gegenereerd. Uiterlijk, catchphrases en grappen blijven ver van bestaande Groningse typetjes en influencers (`docs/personages.md`).
+  - [x] 3 okt: Anita heet nu Tessa, overal waar je het ziet of hoort (de interne sleutel `anita` blijft, voor de saves).
 - [?] **Muziek:** met welk Gemini-product en welk abonnement is ze gemaakt? Dat moet in `docs/LICENTIES.md`.
 - [?] BOIP-registratie (ongeveer €244 tot €271): advies is nu niet, want zonder kosten is de afspraak.
 - [x] Het e-mailadres voor nieuwe commits is het GitHub-noreply-adres.
@@ -263,7 +261,6 @@ Alles staat in `docs/youtube/kanaal.md` (`claude/youtube-kit`). Er is niets geü
 - [ ] De gameplaytrailer maken (de Steam-cut met HUD, zie `docs/steam/trailer.md`) en de hoofdstuktijden invullen.
 - [ ] De verhaaltrailer opnieuw exporteren met Tessa in plaats van Anita (naamkaart in shot 5).
 - [?] Shot 11 (de lege vitrine met "Tige tank!") in de YouTube-versie houden of eruit knippen (Alexander).
-
 
 ## Steam-klaar (optioneel, na of rond 1.0)
 

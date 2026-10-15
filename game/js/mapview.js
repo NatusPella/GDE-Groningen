@@ -1015,7 +1015,7 @@ function drawDynamicMarkers(ctx, world) {
   state.dynHover = hover;
 }
 
-// GTA-style GPS line over the whole route, thick enough to read at every
+// A GPS line over the whole route, thick enough to read at every
 // zoom level; without a road route (boat, off the network) a dashed line
 // points straight at the destination instead.
 function drawFullRoute(ctx, world, t, route) {

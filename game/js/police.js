@@ -73,7 +73,7 @@ const RAM_CONTACT_GAP = 0.35;
 const FOOT_STOP_DIST = 6.5;
 const MOUNT_STOP_DIST = 2.5;
 
-// GTA-style arrests: never on contact. On foot a cop has to stand next to
+// Genre-style arrests: never on contact. On foot a cop has to stand next to
 // you for a moment while you're (nearly) stopped; in a car you have to be
 // boxed in and stopped with police right beside you.
 const FOOT_BUST_RANGE = 1.5;

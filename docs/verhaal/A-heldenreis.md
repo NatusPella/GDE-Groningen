@@ -30,7 +30,7 @@
 - *Flits: een vrouw in een rode jas sleept een pinautomaat over een stoep (uit H2). Bevroren beeld:* **ANITA** — "Heeft altijd een plan B. Plan A is ook van haar."
 - *Flits: een man met een pet houdt een deur open en kijkt schuldig in de camera. Bevroren beeld:* **TAMMO** — "Stadjer. Groot hart. Kleine portemonnee."
 - *Flitsen: een duif boven het museum, een trekker-limo op de ring, een tankwagen die slipt, een heli aan een touw boven het Oosterpark.*
-- *Titel:* **GTE VI** — "Er gaat niets boven Grunn."
+- *Titel:* **GDE Groningen** — "Er gaat niets boven Grunn."
 - *Zwart. Dan het zachte geluid van een radio. De opening begint.*
 
 **Naamkaarten:** elk personage krijgt bij de eerste ontmoeting een bevroren beeld met een naamkaart in GTA-stijl, met de naam in Bebas en één droge regel:
@@ -68,7 +68,7 @@
 - **Tammo:** Bommen Berend? Die belt alleen als het slecht nieuws is.
 - **Anita:** Dan zijn we de juiste mensen. Kom.
 - **Rikus (radio):** En voor Tammo, als je luistert: ze zegt nooit "kom" tegen iemand die ze niet mee wil hebben. Doe er wat mee.
-- *Tammo kijkt naar de radio. Anita heeft niks gehoord. Titel: GTE VI.*
+- *Tammo kijkt naar de radio. Anita heeft niks gehoord. Titel: GDE Groningen.*
 
 ## H1 · Berend telt de krassen
 

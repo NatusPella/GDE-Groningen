@@ -1,5 +1,5 @@
 // Save versions and their migrations, in one place. The promise (README,
-// "Saves"): a save from 1.0 on keeps loading in every later version.
+// "Saves en privacy"): a save from 1.0 on keeps loading in every later version.
 //
 // - The savegame (savegame.js, localStorage 'gde-save-v1') carries `v`. A save
 //   with an older `v` runs through SAVE_MIGRATIONS one step at a time

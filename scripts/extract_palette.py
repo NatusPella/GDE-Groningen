@@ -5,7 +5,11 @@ ground) - the photo itself isn't shown in-game, only its colors are used.
 
 Reads data/satellite_reference.jpg (Esri World Imagery export, imageSR=4326,
 exact bbox below) and game/citymap.json, prints ready-to-paste JS color arrays.
+The photo may not be redistributed, so it is not in the repo (.gitignore):
+export it yourself for the bbox below, keep it local, and run this script.
 """
+import os
+import sys
 import json
 import math
 import random
@@ -20,6 +24,9 @@ random.seed(7)
 
 
 def main():
+    if not os.path.exists(SAT_PATH):
+        sys.exit(f"{SAT_PATH} is missing: export the Esri World Imagery tile for "
+                 f"{SAT_BBOX} (imageSR=4326) and save it there. It stays local (.gitignore).")
     img = np.asarray(Image.open(SAT_PATH).convert("RGB"))
     ih, iw = img.shape[0], img.shape[1]
     with open(MAP_PATH) as f:

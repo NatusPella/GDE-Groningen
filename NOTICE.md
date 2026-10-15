@@ -1,6 +1,17 @@
 # NOTICE — GDE Groningen – Zomer vol misdaad
 
-**Eigen code en content:** © 2026 NatusPella. Alle rechten voorbehouden; er is (nog) geen licentie verleend. Hieronder staan alleen de verplichte vermeldingen voor gebruikt werk van anderen.
+© 2026 NatusPella.
+
+| Wat | Licentie |
+|---|---|
+| Eigen programmacode (`game/`, `desktop/`, `web/`, `scripts/`, `steam/`) | **GPL-3.0-or-later**, zie [LICENSE](LICENSE) |
+| Eigen creatieve inhoud: stemmen en audio, muziek, verhaal en dialogen, het Martinitoren-model, schermafbeeldingen | **CC BY-NC-SA 4.0**, zie [LICENSE-CONTENT.md](LICENSE-CONTENT.md) (met de precieze mappen) |
+| De naam "GDE" / "GDE Groningen – Zomer vol misdaad" en het logo | **alle rechten voorbehouden**; forks gebruiken een eigen naam en logo ([LICENSE-CONTENT.md](LICENSE-CONTENT.md#naam-en-logo)) |
+| Werk van anderen (hieronder) | de eigen licentie van dat werk |
+
+Waar een bestand zowel code als spelteksten bevat (bijv. `game/js/storyarc.js`),
+geldt de GPL voor de code en CC BY-NC-SA voor de teksten. Hieronder staan de
+verplichte vermeldingen voor gebruikt werk van anderen.
 
 GDE Groningen (tot 0.24: GTE VI) is een gratis, niet-commercieel
 fanproject. **GDE is een fanparodie op GTA, niet gelieerd aan of

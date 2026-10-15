@@ -1,4 +1,4 @@
-// GTA-style auto-aim. Holding the right mouse button soft-locks onto the best
+// Genre-style auto-aim. Holding the right mouse button soft-locks onto the best
 // target in a cone around the camera heading (hostiles first, never through a
 // building); left click then fires at it. Tab or a mouse flick switches
 // target. Hip fire only bends shots a few degrees toward a target that is

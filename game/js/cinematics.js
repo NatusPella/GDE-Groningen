@@ -859,7 +859,7 @@ function playDeath(w, pending) {
   const p = w.player, a = heading(w);
   const px = p.x, py = p.y;
   const bx = -Math.cos(a + 0.5), by = -Math.sin(a + 0.5);
-  // GTA-style: slow motion, the colour drains, a slow rise over the spot,
+  // Genre-style: slow motion, the colour drains, a slow rise over the spot,
   // the title on a band, then a dip to black into the trip (respawn.js)
   const keys = [
     { pos: W(px + bx * 4, 2.2, py + by * 4), look: W(px, 0.7, py), fov: 52 },

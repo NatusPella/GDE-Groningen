@@ -43,7 +43,8 @@ personen. Namen, uiterlijk en formuleringen altijd zelf verzinnen.
 | Fiets in een boom, UFO boven Zernike, "Kon minder" op een bankje | `geheimen.js`: acht verstopte geheimpjes, samen een verborgen prestatie. |
 
 ## Liever niet
-
-  is een eigen personage, dus geen *"Tou eem"* of bieten-grappen.
+- Echte personen of typetjes kopiëren. Onze Tammo is een eigen personage,
+  dus geen catchphrases van bestaande typetjes (zoals *"Tou eem"*) of
+  bieten-grappen.
 - Letterlijke meme-fragmenten, lachjes of uitspraken van echte mensen.
 - Algemene stereotypen over studenten, plattelanders of wijkbewoners.

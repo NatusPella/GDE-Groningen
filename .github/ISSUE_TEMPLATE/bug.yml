@@ -1,0 +1,61 @@
+name: Bug melden
+description: Iets werkt niet zoals het hoort
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Dank je! Een beveiligingsprobleem? Meld dat privé, zie SECURITY.md.
+  - type: input
+    id: versie
+    attributes:
+      label: Versie
+      description: Staat op het startscherm, bijv. v0.28.0
+      placeholder: v0.28.0
+    validations:
+      required: true
+  - type: dropdown
+    id: systeem
+    attributes:
+      label: Waarop speel je?
+      options:
+        - macOS-app
+        - Windows-app
+        - Linux-app (AppImage of tar.gz)
+        - Steam Deck
+        - Browser (vanaf de broncode of de webversie)
+    validations:
+      required: true
+  - type: input
+    id: details
+    attributes:
+      label: Systeem en browser
+      description: Bijv. "macOS 15, M2" of "Windows 11, Chrome 140, GTX 1060"
+  - type: textarea
+    id: stappen
+    attributes:
+      label: Wat deed je?
+      description: De stappen om het na te doen, zo precies mogelijk.
+      placeholder: |
+        1. Nieuw spel
+        2. Naar de Vismarkt gereden
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: verwacht
+    attributes:
+      label: Wat gebeurde er, en wat had je verwacht?
+    validations:
+      required: true
+  - type: textarea
+    id: foutrapport
+    attributes:
+      label: Foutrapport
+      description: Instellingen › Foutrapport › Kopiëren, en hier plakken. Bevat geen persoonlijke gegevens.
+      render: text
+  - type: textarea
+    id: beelden
+    attributes:
+      label: Schermafbeelding of filmpje
+      description: Sleep het hierheen, als je het hebt.

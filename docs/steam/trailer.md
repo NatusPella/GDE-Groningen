@@ -11,7 +11,7 @@ zomer in Grunn" (de cut `vol`, die ook de benchmark blijft):
    game, naamkaarten en de set pieces, tot het Ontzet op 28 augustus.
 
 Alles staat in `game/js/trailer.js` (de shots, en `CUT_ORDER` met de volgorde
-en lengte per cut). Export: zie README › Trailer mode, en onderaan hier.
+en lengte per cut). Export: zie `docs/ONTWIKKELEN.md` › Trailer mode, en onderaan hier.
 
 ## Eisen van Steam
 

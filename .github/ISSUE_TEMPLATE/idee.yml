@@ -1,0 +1,21 @@
+name: Idee of wens
+description: Een nieuwe functie, missie, plek of verbetering voorstellen
+labels: [idee]
+body:
+  - type: textarea
+    id: wat
+    attributes:
+      label: Wat zou je willen?
+      description: Beschrijf het idee. Wat doe je in het spel, en waar in Grunn?
+    validations:
+      required: true
+  - type: textarea
+    id: waarom
+    attributes:
+      label: Waarom?
+      description: Wat maakt het leuker, makkelijker of meer Gronings?
+  - type: textarea
+    id: extra
+    attributes:
+      label: Verder nog iets?
+      description: Voorbeelden, schetsen, een plek op de kaart. Geen echte merken of personen, die verzinnen we zelf.

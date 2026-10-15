@@ -268,13 +268,7 @@ Niets gaat openbaar tot de eigenaar het besluit.
 
 ## Checklist vóór openbaar
 
-
-      aantoonbaar eigen gemaakt (ROADMAP › Juridisch en publiceren, nog
-      open). **Advies: tot dan niet openbaar uploaden.** Moet het toch
-      eerder, gebruik dan beelden zonder de naamkaarten van Tammo en
-      Tessa (shots 4 en 5 van de verhaaltrailer) en zonder close-ups van
-      hen, bijvoorbeeld de gameplaytrailer met HUD of de korte cut
-      zonder die shots.
+- [x] Tammo en Tessa zijn eigen, verzonnen personages (ROADMAP › Juridisch en publiceren).
 - [ ] **Tessa, niet Anita**: de video's tonen de nieuwe naam. De
       trailer heeft een naamkaart "ANITA" (shot 5) en de stemmen kunnen
       de oude naam noemen: opnieuw exporteren nadat de naamswijziging in
