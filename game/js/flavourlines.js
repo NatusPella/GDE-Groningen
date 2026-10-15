@@ -25,7 +25,7 @@ export const BILLBOARD_SLOGANS = [
 export const NICKNAMES = [
   { key: 'grieze', nick: 'd’Olle Grieze', landmark: 'Martinitoren', x: 213.81, y: 9.9 },
   { key: 'kiekdeuse', nick: 'Kiekdeuse', landmark: 'Forum Groningen', x: 356.93, y: 57.89 },
-  { key: 'apenrots', nick: 'Apenrots', label: 'Gasuniegebouw', x: -883.81, y: 2051.13 },
+  { key: 'apenrots', nick: 'Apenrots', label: 'Het glazen netbeheerhuis', x: -883.81, y: 2051.13 },
   { key: 'cruiseschip', nick: 'Cruiseschip', label: 'Rijkskantoor Kempkensberg', x: 982.17, y: 1498.16 },
 ];
 
