@@ -314,6 +314,31 @@ function buildCarGeometry(type, L, W, paint, opts) {
     for (const s of [1, -1]) B.box(hl + 0.1, 0.72, s * W * 0.3, 0.08, 0.2, 0.06, BAR);
     B.box(P.xB - 1.2, P.roof + 0.03, 0, 0.5, 0.06, W * 0.5, BAR);
     B.box(P.xB - 1.2, P.roof + 0.12, 0, 0.18, 0.14, 0.18, 0xf08a1c, G_LAMP);
+  } else if (variant === 'nieuws') {
+    // Noord-Nieuws reporter van (invented): teal band, orange stripe, a blocky
+    // double-N on the sides, a camera on a mast and a small dish on the roof
+    const TEAL = 0x16899a, ORANGE = 0xf08a1c;
+    const bx0 = -hl + 0.5, bx1 = Math.min(hl - 0.8, xK - 0.05);
+    for (const s of [1, -1]) {
+      const z = s * (hw + 0.008);
+      B.box((bx0 + bx1) / 2, 1.08, z, bx1 - bx0, 0.36, 0.012, TEAL);
+      B.box((bx0 + bx1) / 2, 0.84, z, bx1 - bx0, 0.05, 0.012, ORANGE);
+      for (let k = 0; k < 2; k++) {
+        const lx = (bx0 + bx1) / 2 - 0.2 + k * 0.34, lz = s * (hw + 0.016);
+        B.box(lx - 0.07, 1.08, lz, 0.05, 0.24, 0.012, 0xf4f2ec);
+        B.box(lx + 0.07, 1.08, lz, 0.05, 0.24, 0.012, 0xf4f2ec);
+        B.box(lx - 0.035, 1.14, lz, 0.05, 0.06, 0.012, 0xf4f2ec);
+        B.box(lx, 1.08, lz, 0.05, 0.06, 0.012, 0xf4f2ec);
+        B.box(lx + 0.035, 1.02, lz, 0.05, 0.06, 0.012, 0xf4f2ec);
+      }
+    }
+    const rx = Math.min(0, (bx0 + bx1) / 2);
+    B.box(rx, P.roof + 0.36, 0, 0.05, 0.72, 0.05, 0x2a2b2d);
+    B.box(rx + 0.12, P.roof + 0.78, 0, 0.42, 0.22, 0.26, 0x2a2b2d);
+    B.box(rx + 0.36, P.roof + 0.78, 0, 0.1, 0.14, 0.14, 0x9fb4d8, G_GLASS);
+    B.geo(new THREE.CylinderGeometry(0.26, 0.04, 0.1, 10), composeMatrix(rx - 0.45, P.roof + 0.14, 0, 0, 0, 0.5), 0xdfe3e6);
+    B.box(rx - 0.45, P.roof + 0.07, 0, 0.05, 0.1, 0.05, 0x2a2b2d);
+    B.box(rx + 0.42, P.roof + 0.78, 0, 0.02, 0.05, 0.05, ORANGE, G_LAMP);
   } else if (variant === 'pakket') {
     for (const s of [1, -1]) {
       const z = s * (hw + 0.008);
@@ -856,6 +881,60 @@ function buildBakfietsGeometry(color) {
   });
 }
 
+// Delivery rider's big cube bag (invented chain colours, streetlifedata.js).
+function buildBagGeometry(color, trim) {
+  return cached(`bag|${color}|${trim}`, () => {
+    const B = new GeoBuilder(3);
+    B.box(0, 0, 0, 0.5, 0.5, 0.52, color);
+    B.box(0, 0.255, 0, 0.52, 0.035, 0.54, trim);
+    B.box(0, 0.02, 0.265, 0.34, 0.2, 0.02, trim);
+    B.box(0, 0.02, -0.265, 0.34, 0.2, 0.02, trim);
+    B.box(-0.255, 0.0, 0, 0.012, 0.3, 0.3, 0xf4f2ec);
+    return B.build();
+  });
+}
+
+// Bike-share (Wisselwiel): a tinted disc over the front wheel and mudguard.
+function buildShareTintGeometry(color, wb, r) {
+  return cached(`sharetint|${color}|${wb}|${r}`, () => {
+    const B = new GeoBuilder(3);
+    for (const s of [1, -1]) B.geo(new THREE.CylinderGeometry(r - 0.02, r - 0.02, 0.012, 14).rotateX(Math.PI / 2), composeMatrix(wb, r, s * 0.03), color);
+    B.geo(new THREE.TorusGeometry(r + 0.025, 0.02, 3, 9, Math.PI * 0.62), composeMatrix(wb, r, 0, 0, 0, Math.PI * 0.19), color);
+    B.box(wb - 0.02, r * 2 + 0.2, 0, 0.1, 0.2, 0.06, color);
+    return B.build();
+  });
+}
+
+// What a student moving house has strapped in the cargo bike's box.
+function buildBikeLoadGeometry(kind) {
+  return cached(`bikeload|${kind}`, () => {
+    const B = new GeoBuilder(3);
+    if (kind === 'sofa') {
+      const fab = 0x3f7a82, dark = 0x2c5860;
+      B.box(0.45, 0.8, 0, 0.62, 0.22, 0.98, fab);
+      B.box(0.2, 1.05, 0, 0.14, 0.42, 0.98, dark);
+      for (const s of [1, -1]) B.box(0.45, 0.96, s * 0.5, 0.62, 0.3, 0.12, dark);
+      B.box(0.55, 0.93, 0, 0.4, 0.07, 0.8, shadeHex(fab, 1.12));
+    } else if (kind === 'matras') {
+      B.box(0.45, 1.12, 0, 1.25, 0.16, 0.85, 0xe8e4da, 0, 0, 0, 0.1);
+      B.box(0.45, 1.13, 0, 0.1, 0.17, 0.87, 0x4a6fa8, 0, 0, 0, 0.1);
+      B.box(0.15, 1.1, 0, 0.04, 0.2, 0.9, 0x2a2a2b, 0, 0, 0, 0.1);
+      B.box(0.75, 1.15, 0, 0.04, 0.2, 0.9, 0x2a2a2b, 0, 0, 0, 0.1);
+    } else if (kind === 'plant') {
+      B.geo(new THREE.CylinderGeometry(0.2, 0.15, 0.32, 8), composeMatrix(0.45, 0.82, 0), 0xb5654a);
+      B.geo(new THREE.CylinderGeometry(0.03, 0.03, 0.6, 5), composeMatrix(0.45, 1.2, 0), 0x6a4a2a);
+      B.geo(new THREE.IcosahedronGeometry(0.42, 0), composeMatrix(0.45, 1.65, 0, 0, 0, 0, 1, 1.15, 1), 0x3f8a3c);
+      B.geo(new THREE.IcosahedronGeometry(0.28, 0), composeMatrix(0.7, 1.45, 0.14), 0x4f9a46);
+    } else {
+      B.box(0.45, 0.88, 0, 0.7, 0.4, 0.55, 0xc8a878);
+      B.box(0.35, 1.28, 0.05, 0.5, 0.36, 0.45, 0xb89868);
+      B.box(0.6, 1.2, -0.1, 0.3, 0.3, 0.3, 0xd2b484);
+      B.box(0.45, 0.88, 0, 0.72, 0.03, 0.57, 0x6b4a2a);
+    }
+    return B.build();
+  });
+}
+
 function buildBakfietsMesh(v) {
   const group = new THREE.Group();
   const color = v.wrecked ? WRECKED_COLOR : toHex(v.model.color, HABBO_PALETTE.black);
@@ -871,6 +950,10 @@ function buildBakfietsMesh(v) {
   poseRider(rider, 0.33, 0.7, -0.05);
   group.add(rider);
   group.userData.riderLegs = { legs: [rider.userData.legL, rider.userData.legR], base: 0.33, amp: 0.2 };
+  if (v.model.load) {
+    group.add(new THREE.Mesh(buildBikeLoadGeometry(v.model.load), mats));
+    return group;
+  }
   // a kid (or two) in the box
   if (hash2(v.id || 0, 7.7) < 0.6) {
     const kid = buildPersonMesh([0xd0457a, 0x3f7ab0, 0xe8c93a][Math.floor(hash2(v.id || 0, 2) * 3)], 0xe8b48a, { seed: (v.id || 0) + 9 });
@@ -907,6 +990,13 @@ function buildBikeMesh(v) {
   poseRider(rider, fat ? 0.55 : 0.33, fat ? 0.95 : 0.85, -0.08);
   group.add(rider);
   group.userData.riderLegs = { legs: [rider.userData.legL, rider.userData.legR], base: fat ? 0.55 : 0.33, amp: 0.2 };
+  if (v.model.delivery && !v.wrecked) {
+    const bag = new THREE.Mesh(buildBagGeometry(toHex(v.model.bag, 0x9bd630), toHex(v.model.bagTrim, 0x2b3a12)), mats);
+    bag.position.set(-0.7, 1.32, 0);
+    group.add(bag);
+  } else if (v.model.share && !v.wrecked) {
+    group.add(new THREE.Mesh(buildShareTintGeometry(toHex(v.model.tint, 0xff6a4d), wb, r), mats));
+  }
   return group;
 }
 
@@ -1550,6 +1640,17 @@ const HULL_SHAPES = {
     f: (t) => (t < 0.08 ? 0.72 + 0.28 * Math.sin((t / 0.08) * Math.PI / 2) : t < 0.66 ? 1 : Math.pow(Math.cos(((t - 0.66) / 0.34) * Math.PI / 2), 0.6)),
     top: (t) => 0.1 + 0.06 * Math.max(0, (t - 0.78) / 0.22) ** 2, rise: () => 0, chine: 0.02, keel: -0.04, floor: 0.08, deck: true, chineK: 0.92,
   },
+  // rowing: a slim decked shell, pointed at both ends (single scull, coxed eight)
+  skiff: {
+    ts: [0, 0.04, 0.14, 0.32, 0.5, 0.68, 0.86, 0.96, 1],
+    f: (t) => Math.pow(Math.max(0, Math.sin(Math.PI * Math.min(1, t * 0.98 + 0.01))), 0.62),
+    top: () => 0.11, rise: () => 0, chine: -0.02, keel: -0.08, floor: 0.04, deck: true, chineK: 0.85,
+  },
+  acht: {
+    ts: [0, 0.03, 0.1, 0.25, 0.4, 0.55, 0.7, 0.85, 0.95, 1],
+    f: (t) => Math.pow(Math.max(0, Math.sin(Math.PI * Math.min(1, t * 0.98 + 0.01))), 0.55),
+    top: () => 0.13, rise: () => 0, chine: -0.02, keel: -0.1, floor: 0.04, deck: true, chineK: 0.85,
+  },
   // Frisian skûtsje: flat bottom, full round bow with a high sheer, a
   // squarish stern; the hold is decked over with hatches (skutsjeFit)
   skutsje: {
@@ -1750,6 +1851,38 @@ function supFit(B, st) {
   const h = hullAt(st, -0.15);
   B.box(-0.15, h.top + 0.05, 0, 0.9, 0.012, h.hw * 1.5, 0x2a2c2e);
   B.box(-0.55, h.top + 0.055, 0, 0.12, 0.02, h.hw * 1.5, 0x1e1f21);
+}
+
+// Rowing gear: sliding seats, riggers out to the oarlocks, long oars with
+// flat blades on the water (the rowers' hands animate in seating3d 'row').
+function rowFit(B, st, L, W, hull, trimColor, seatXs) {
+  const hl = L / 2;
+  const blade = trimColor, shaft = 0x1c1c1e;
+  for (const x of seatXs) {
+    B.box(x, 0.13, 0, 0.3, 0.025, 0.2, 0x2a2b2d);
+    B.box(x + 0.34, 0.12, 0, 0.1, 0.03, 0.34, 0x2a2b2d);
+    for (const s of [1, -1]) {
+      const lx = x + 0.1, lz = s * (W / 2 + 0.52);
+      B.geo(tubeGeometry([lx, 0.12, s * 0.15], [lx - 0.04, 0.24, lz], 0.012, 0.01, 4), null, 0x9aa0a6);
+      B.geo(tubeGeometry([lx - 0.04, 0.24, s * 0.18], [lx - 0.04, 0.24, lz], 0.01, 0.01, 4), null, 0x9aa0a6);
+      B.geo(tubeGeometry([lx - 0.45, 0.3, s * 0.2], [lx + 0.08, 0.25, s * (W / 2 + 0.55)], 0.016, 0.016, 5), null, shaft);
+      B.geo(tubeGeometry([lx + 0.08, 0.25, s * (W / 2 + 0.55)], [lx + 0.5, 0.2, s * (W / 2 + 1.55)], 0.016, 0.016, 5), null, shaft);
+      B.box(lx + 0.62, 0.17, s * (W / 2 + 1.78), 0.46, 0.012, 0.2, blade, 0, 0, 0, 0);
+    }
+  }
+  B.box(hl - 0.1, 0.12, 0, 0.07, 0.06, 0.06, NAV_WHITE, G_LAMP);
+  B.box(-hl + 0.05, 0.12, 0, 0.07, 0.05, 0.05, NAV_WHITE, G_LAMP);
+}
+
+function acht(B, st, L, W, hull, trimColor) {
+  const hl = L / 2;
+  const xs = [];
+  for (let i = 0; i < 8; i++) xs.push(-hl + 2.4 + i * 1.55);
+  rowFit(B, st, L, W, hull, trimColor, xs);
+  // the cox's seat and a stern flag in the club colours
+  B.box(-hl + 0.7, 0.14, 0, 0.5, 0.03, 0.34, 0x2a2b2d);
+  B.geo(tubeGeometry([-hl + 0.3, 0.14, 0], [-hl + 0.28, 0.75, 0], 0.008, 0.008, 4), null, 0x6a5038);
+  B.box(-hl + 0.12, 0.66, 0, 0.3, 0.14, 0.012, trimColor);
 }
 
 function kajakFit(B) {
@@ -2010,6 +2143,8 @@ function buildBoatGeometry(kind, L, W, hull, trim, cabin, police) {
       case 'rondvaart': rondvaartFit(B, st, L, W, hull, cabin || 0xe8e6e0); break;
       case 'kano': kanoFit(B, st, L, W, hull); break;
       case 'kajak': kajakFit(B); break;
+      case 'skiff': rowFit(B, st, L, W, hull, trim, [-0.2]); break;
+      case 'acht': acht(B, st, L, W, hull, trim); break;
       case 'sup': supFit(B, st); break;
       case 'dinghy': dinghyFit(B, st, L); break;
       case 'rubberboot': rubberFit(B, st, L, W, hull, cabin || 0xd8572a); break;
@@ -2019,7 +2154,7 @@ function buildBoatGeometry(kind, L, W, hull, trim, cabin, police) {
     if (kind === 'kano' || kind === 'kajak') {
       const x = -hl * 0.72;
       B.box(x, hullAt(st, x).top + (kind === 'kajak' ? 0.06 : 0.02), 0, 0.05, 0.05, 0.05, NAV_WHITE, G_LAMP);
-    } else if (kind !== 'sup') navLights(B, st, L, st[0].top + (kind === 'rubberboot' ? 0.42 : 0.06));
+    } else if (kind !== 'sup' && kind !== 'skiff' && kind !== 'acht') navLights(B, st, L, st[0].top + (kind === 'rubberboot' ? 0.42 : 0.06));
     return B.build();
   });
 }
@@ -2031,7 +2166,7 @@ function buildBoatMesh(v) {
   const kind = police ? 'sloep' : boatKind(v);
   const hull = v.wrecked ? WRECKED_COLOR : toHex(v.model.color, 0xe8e6e0);
   const cabinColor = toHex(v.model.cabin, 0x2f3a44);
-  const trims = kind === 'skutsje' ? [0x2a211b] : kind === 'rondvaart' ? [0xe8e6e0, 0xc9a227] : kind === 'kano' || kind === 'kajak' || kind === 'sup' ? [shadeHex(hull, 0.7), 0x2a2a2b] : [0x21468b, 0x2f4a3a, 0x6b2a24, 0x9a7048];
+  const trims = kind === 'skutsje' ? [0x2a211b] : kind === 'rondvaart' ? [0xe8e6e0, 0xc9a227] : kind === 'kano' || kind === 'kajak' || kind === 'sup' ? [shadeHex(hull, 0.7), 0x2a2a2b] : kind === 'skiff' || kind === 'acht' ? [0xc8502a, 0x1f4f9a, 0x2f7d46, 0x6a2e8a] : [0x21468b, 0x2f4a3a, 0x6b2a24, 0x9a7048];
   const trim = police ? 0x1f3f8f : trims[Math.floor(hash2(v.id || 0, 8.1) * trims.length)];
   const cabin = kind === 'sloep' ? (boatHasCabin(v) ? cabinColor : 0) : cabinColor;
   group.add(new THREE.Mesh(buildBoatGeometry(kind, len, wid, hull, trim, cabin, police), vehicleMaterials()));
