@@ -196,6 +196,25 @@ for (const A of AREAS) {
   hold = { x: s.x, y: s.y, a: s.a };
   await sleep(SETTLE);
   fixWorld();
+  // DETAIL_TOGGLE=1: the same spot with the real-Ommeland map and the
+  // landmark kits switched off and on in turns (one process, one load)
+  if (window.__detailToggle) {
+    const T = { on: [], off: [] };
+    for (let k = 0; k < 6; k++) {
+      const off = k % 2 === 1;
+      window.__noRealMap = off; window.__noLandmarkKits = off;
+      await sleep(1500);
+      H.start();
+      await sleep(3000);
+      T[off ? 'off' : 'on'].push(H.stop());
+    }
+    window.__noRealMap = false; window.__noLandmarkKits = false;
+    const mean = (L, k) => +(L.reduce((a, r) => a + r[k], 0) / L.length).toFixed(2);
+    results.toggle = results.toggle || {};
+    results.toggle[A.name] = { onCpu: mean(T.on, 'cpuAvg'), offCpu: mean(T.off, 'cpuAvg'), onFrame: mean(T.on, 'avg'), offFrame: mean(T.off, 'avg') };
+    console.log('[detail-toggle]', A.name, JSON.stringify(results.toggle[A.name]));
+    await sleep(1500);
+  }
   calls = 0; tris = 0; renders = 0;
   H.start();
   await sleep(DUR);

@@ -237,6 +237,8 @@ function create() {
 
 // The real Ommeland's map, or null until its data is in.
 export function getRealMap() {
+  // (perf A/B: window.__noRealMap leaves the Ommeland to its countryside models)
+  if (typeof window !== 'undefined' && window.__noRealMap) return null;
   if (RM) return RM;
   if (!REAL.ready || !REAL.n) return null;
   RM = create();
