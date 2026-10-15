@@ -70,6 +70,7 @@ import { buildCanopies } from './canopies3d.js';
 import { initGrass, updateGrass, grassFarColor, grassFarRank } from './grass.js';
 import { updateCountryside, setCountryPropLevel, setRealShown } from './countryside.js';
 import { getRealMap } from './realmap.js';
+import { updateOmmelandLandmarks } from './ommelandlandmarks.js';
 import { setCountryNight, setCountryFacadeLevel } from './countrybuilding.js';
 import { updateCountryBake } from './countrybake.js';
 import { edgeDistance, setCountryBounds } from './countryfield.js';
@@ -1286,12 +1287,14 @@ function treesNearAll(map, x, y, r) {
   return rm ? list.concat(rm.treesNear(x, y, r)) : list;
 }
 // the real buildings drawn here: the countryside hides their boxes
-let realShown = new Set();
+let realShownN = 0, realShownSum = 0;
 function syncRealShown() {
+  let n = 0, sum = 0;
+  for (const [b, mesh] of buildingMeshes) if (b.realId !== undefined && mesh.parent && mesh.visible) { n++; sum += (b.realId * 2654435761) % 1048573; }
+  if (n === realShownN && sum === realShownSum) return;
+  realShownN = n; realShownSum = sum;
   const now = new Set();
   for (const [b, mesh] of buildingMeshes) if (b.realId !== undefined && mesh.parent && mesh.visible) now.add(b.realId);
-  if (now.size === realShown.size && [...now].every((i) => realShown.has(i))) return;
-  realShown = now;
   setRealShown(now);
 }
 
@@ -1947,6 +1950,7 @@ export function update3D(dt, world) {
   probe.mark('3d:trees');
   updateRailway3D(dt, world);
   updateCountryside(dt, world, scene, cam, viewDist);
+  updateOmmelandLandmarks(world, scene, focus);
   probe.mark('3d:rail+country');
 
   syncParkedLayer(scene, sleepingParkedCars(world), buildVehicleActor, focus, DRAW_DIST);

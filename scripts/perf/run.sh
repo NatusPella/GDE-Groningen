@@ -14,7 +14,7 @@ mkdir -p $OUT
 MAXLOAD=${PERF_MAX_LOAD:-999}
 cd $HERE/../../desktop || exit 1
 while true; do
-  if pgrep -f "Electron.app/Contents/MacOS/Electron" >/dev/null; then sleep 5; continue; fi
+  if pgrep -x Electron >/dev/null; then sleep 5; continue; fi
   L=$(sysctl -n vm.loadavg | awk '{print $2}')
   if (( L < MAXLOAD )); then break; fi
   echo "load $L, waiting" >&2; sleep 30

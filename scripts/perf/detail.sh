@@ -9,7 +9,7 @@ OUT=${DETAIL_OUT:-${TMPDIR:-/tmp}/gde-detail}
 N=$1; shift
 mkdir -p $OUT
 cd $HERE/../../desktop || exit 1
-while pgrep -f "Electron.app/Contents/MacOS/Electron" >/dev/null; do sleep 5; done
+while pgrep -x Electron >/dev/null; do sleep 5; done
 echo "start $(date +%T) load $(sysctl -n vm.loadavg)" >&2
 { echo "window.__detailOnly = '${DETAIL_ONLY:-}';"; cat $HERE/detail.js; } > $OUT/_$N.js
 PROFILE=gde-test-detail
