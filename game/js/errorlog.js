@@ -8,8 +8,9 @@
 // lose everything before the game's own folder, and user folders are blanked.
 // Repeats of the same message count up on one entry.
 import { VERSION } from './version.js';
+import { KEYS } from './storagekeys.js';
 
-const STORE_KEY = 'gte-foutlog';
+const STORE_KEY = KEYS.errorLog;
 const MAX = 40;
 const MAX_MSG = 400;
 const MAX_STACK = 1500;
@@ -96,7 +97,7 @@ export function errorReport() {
   try { ctx = context() || {}; } catch (e) { /* ignore */ }
   const head = [
     `GDE Groningen ${VERSION} · foutrapport ${new Date().toISOString()}`,
-    `Platform: ${typeof window !== 'undefined' && window.gteDesktop && window.gteDesktop.isDesktop ? 'desktop (' + window.gteDesktop.platform + ')' : 'browser'}`,
+    `Platform: ${typeof window !== 'undefined' && window.gdeDesktop && window.gdeDesktop.isDesktop ? 'desktop (' + window.gdeDesktop.platform + ')' : 'browser'}`,
     ctx.step ? `Verhaal: ${ctx.step}` : '',
     ctx.settings ? `Instellingen: ${ctx.settings}` : '',
     ctx.gpu ? `GPU-klasse: ${ctx.gpu}` : '',

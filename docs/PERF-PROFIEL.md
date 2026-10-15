@@ -14,13 +14,13 @@ Twee bronnen, omdat de CPU-profiler zelf de meting verstoort:
   tijd van elke sectie op (`summary().sections`, gemiddelde ms per frame),
   zonder profiler. `scripts/perf/sections.py` groepeert ze in categorieën.
   Dit is de hoofdbron.
-- **CPU-profiel** (`PERF_PROFILE=<routes>`): met `GTE_PROFILE_OUT=<map>`
+- **CPU-profiel** (`PERF_PROFILE=<routes>`): met `GDE_PROFILE_OUT=<map>`
   bewaart de desktop-app het ruwe profiel, en `scripts/perf/categories.mjs`
   verdeelt de samples over categorieën (elk sample telt voor de dichtstbij­
   zijnde spelcode op de stack; three.js telt voor wie het aanriep).
   `--incl=fnA,fnB` geeft de inclusieve tijd van functies. Het profiel komt
   hier zonder throttle: met throttle en profiler samen duurt een frame
-  seconden. `GTE_PROFILE_INTERVAL` (µs) maakt het samplen grover; met
+  seconden. `GDE_PROFILE_INTERVAL` (µs) maakt het samplen grover; met
   `--cpu-throttle` laat de app de debugger nu aangekoppeld, anders viel de
   throttle weg na het eerste profiel.
 

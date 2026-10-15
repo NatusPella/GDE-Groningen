@@ -18,6 +18,7 @@ import { registerNarrative, mayStart, storyWaiting } from './narrative.js';
 import { isPhoneOpen } from './phone.js';
 import { playBanterVoice, stopBanterVoice, pauseBanterVoice, voiceBusy } from './audio.js';
 import { hold as holdChannel, release as releaseChannel } from './speech.js';
+import { KEYS } from './storagekeys.js';
 
 const GLOBAL_CD = 75;
 const PLACE_CD = 600;
@@ -38,7 +39,7 @@ const CHECK_EVERY = 0.5;
 const PROGRESS_EVERY = 2;
 const LINE_GAP = 0.3;
 const REPEAT_AFTER_MS = 3 * 3600 * 1000;
-const HEARD_KEY = 'gte-banter-v1';
+const HEARD_KEY = KEYS.banter;
 
 const VOICE_DIR = new URL('../audio/voicelines/banter/', import.meta.url).href;
 let voices = {};

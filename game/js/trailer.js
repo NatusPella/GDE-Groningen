@@ -32,6 +32,7 @@ import { showCard as showHudCard } from './hudcards.js';
 import { showStuntHud, hideStuntHud, updateStuntHud } from './stunthud.js';
 import { heliTrailerKit } from './helirun.js';
 import { trailerPhone } from './phone.js';
+import { KEYS, SESSION_KEYS } from './storagekeys.js';
 
 // Trailer mode: "GDE Groningen - Een zomer in Grunn" (shot list in
 // docs/verhaal/E-trailer.md), one list of staged shots through Grunn, played
@@ -53,7 +54,7 @@ import { trailerPhone } from './phone.js';
 // the title screen's tick/render/relocate.
 
 const Q = typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams();
-const BENCH_KEY = 'gte-benchmark-pending';
+const BENCH_KEY = SESSION_KEYS.benchmarkPending;
 const SKIP_HOLD_S = 0.9;
 const STEP = 1 / 60;
 const MEASURE_AFTER_CUT_S = 0.3;
@@ -311,7 +312,7 @@ function setSub(line) {
 const SILENT = Q.has('stil');
 const voices = new Set();
 function audible() {
-  try { if (localStorage.getItem('gte-muted') === '1') return 0; } catch (e) { /* ignore */ }
+  try { if (localStorage.getItem(KEYS.muted) === '1') return 0; } catch (e) { /* ignore */ }
   const st = getSettings();
   return Math.min(1, (st.masterVolume ?? 1) * (st.voiceVolume ?? 1));
 }
@@ -2200,8 +2201,8 @@ export function runTrailer(world, { mode = 'opname', cut = 'vol', shot = null, f
     for (const o of group.children) if (o.userData.trailerActor) o.visible = false;
     // desktop --trailer-video: main.js pipes every frame into ffmpeg and mixes
     // the sound from this sheet (the page itself stays quiet)
-    r.video = !!(frames && Q.has('video') && window.gteDesktop && window.gteDesktop.videoBegin);
-    const begun = r.video ? window.gteDesktop.videoBegin(soundSheet(r)).catch(() => false) : null;
+    r.video = !!(frames && Q.has('video') && window.gdeDesktop && window.gdeDesktop.videoBegin);
+    const begun = r.video ? window.gdeDesktop.videoBegin(soundSheet(r)).catch(() => false) : null;
     console.log(`[trailer] ${mode}, ${cut}: ${shots.length} shots, ${total.toFixed(1)} s`);
 
     let holdSince = null;
@@ -2290,9 +2291,9 @@ export function runTrailer(world, { mode = 'opname', cut = 'vol', shot = null, f
         ui.skip.style.setProperty('--hold', '0');
         ui.skip.classList.remove('holding');
       }
-      if (frames && window.gteDesktop && window.gteDesktop.captureFrame) {
+      if (frames && window.gdeDesktop && window.gdeDesktop.captureFrame) {
         r.frameNo = (r.frameNo || 0) + 1;
-        window.gteDesktop.captureFrame(r.frameNo).then(() => requestAnimationFrame(loop), () => requestAnimationFrame(loop));
+        window.gdeDesktop.captureFrame(r.frameNo).then(() => requestAnimationFrame(loop), () => requestAnimationFrame(loop));
         return;
       }
       requestAnimationFrame(loop);
@@ -2434,7 +2435,7 @@ export function showBenchmarkResults(res) {
   if (BENCH_RUNS) {
     showBenchmarkResults.runs = (showBenchmarkResults.runs || 0) + 1;
     if (showBenchmarkResults.runs < BENCH_RUNS) return Promise.resolve('again');
-    if (window.gteDesktop && window.gteDesktop.isDesktop) setTimeout(() => window.gteDesktop.quit(), 500);
+    if (window.gdeDesktop && window.gdeDesktop.isDesktop) setTimeout(() => window.gdeDesktop.quit(), 500);
   }
   const st = getSettings();
   const r = Math.round;

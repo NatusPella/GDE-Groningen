@@ -23,7 +23,7 @@ export function keyEventInit(k) {
 export function sendKey(type, k, from, extra = {}) {
   const target = (typeof document !== 'undefined' && document.activeElement) || window;
   const ev = new KeyboardEvent(type, { ...keyEventInit(k), bubbles: true, cancelable: true, ...extra });
-  ev.__gte = from;
+  ev.__gde = from;
   target.dispatchEvent(ev);
   return ev;
 }
@@ -57,7 +57,7 @@ export class Input {
 
     target.addEventListener('keydown', (e) => {
       const k = e.key.toLowerCase();
-      if (e.__gte === 'pad') {
+      if (e.__gde === 'pad') {
         if (!this.padKeys.has(k) && !this.keys.has(k)) this._justPressed.add(k);
         this.padKeys.add(k);
         if (k === ' ' || k === 'tab' || k.startsWith('arrow')) e.preventDefault();
@@ -80,7 +80,7 @@ export class Input {
     });
     target.addEventListener('keyup', (e) => {
       const k = e.key.toLowerCase();
-      if (e.__gte === 'pad') { this.padKeys.delete(k); return; }
+      if (e.__gde === 'pad') { this.padKeys.delete(k); return; }
       this.keys.delete(k);
       if (e.code && this._byCode.has(e.code)) { this.keys.delete(this._byCode.get(e.code)); this._byCode.delete(e.code); }
       // macOS sends no keyup for keys pressed while Cmd is held
@@ -132,7 +132,7 @@ export class Input {
   }
 
   _translate(e) {
-    if (e.__gte) return;
+    if (e.__gde) return;
     // a real key hands the hints back to the keyboard (gamepad.js)
     if (e.isTrusted && e.type === 'keydown' && this.onRealKey) this.onRealKey();
     // a button still focused from a card or menu would take Space/Enter as a click
@@ -161,7 +161,7 @@ export class Input {
     e.stopImmediatePropagation();
     if (canon == null) return;
     const ev = new KeyboardEvent(e.type, { ...keyEventInit(canon), repeat: e.repeat, shiftKey: e.shiftKey && canon !== 'shift', bubbles: true, cancelable: true });
-    ev.__gte = 'remap';
+    ev.__gde = 'remap';
     (e.target || window).dispatchEvent(ev);
   }
 

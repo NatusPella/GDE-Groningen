@@ -227,7 +227,7 @@ Bijgewerkt: 3 oktober 2026, na release 0.22.0.
   - De reeks heet GDE, plus een stad of provincie en een ondertitel per game, bijvoorbeeld GDE Drenthe of GDE Leeuwarden. `game/js/logo.js` houdt de naam op één plek; een vervolg wisselt alleen de plaats en de ondertitel.
   - Het cijfer "VI" en de woorden "Grand Theft" zijn weg uit alles wat een speler ziet: `<title>`, laad- en titelscherm, disclaimer, pauzemenu, trailer, intro, aftiteling, telefoonberichten (afzender "GDE"), *Over*, het venster en het Mac-menu, de Windows-zip en de README.
   - De releasebestanden heten `GDE-Groningen-<versie>-mac.dmg` en `GDE-Groningen-<versie>-windows-portable.exe`, de webzip `GDE-Groningen-<versie>-web.zip`.
-  - Blijft bewust "GTE": de `gte-*`-sleutels in localStorage, de appId `nl.natuspella.gte-vi`, de userData-map `GTE VI` (expliciet vastgezet in `desktop/main.js`, anders verweesde saves), de cachenamen van de webversie, de `gte:`-IPC-kanalen, `GTE_*`-variabelen, bestands- en reponamen. Zie README, "The old name".
+  - [x] Ook de interne namen (voorbereiding open source): de `gte-*`-sleutels in localStorage heten nu `gde-*` (eenmalig gekopieerd bij het opstarten, `game/js/storagekeys.js`; de oude sleutels blijven nog even staan), appId `nl.natuspella.gde-groningen`, userData-map `GDE Groningen` (eenmalig gekopieerd uit `GTE VI`, `desktop/userdata.js`), cachenamen `gde-*`, IPC `gde:`, `GDE_*`-variabelen (`GTE_*` werkt nog), npm-naam `gde-groningen`. Alleen de reponaam en de map in de lokale checkout heten nog zo; zie `docs/OPEN_SOURCE_CHECKLIST.md`.
   - De conflictcheck via webzoekopdrachten vond niets (`docs/LICENTIES.md` §8.2). De handmatige registercheck staat hieronder nog open.
   - De recaps van Rikus zeggen nu "Eerder in GDE", opnieuw ingesproken.
 - [x] Inventaris van bronnen en licenties: `docs/LICENTIES.md`, `docs/PUBLICEREN.md`, `NOTICE.md` en `licenses/`.
@@ -287,7 +287,7 @@ Steam kost eenmalig $100 per game (Steam Direct). Dat bedrag komt terug na $1.00
 - [~] Een Steam-build: de Windows-, Mac- en Linux-builds via SteamPipe (`claude/builds`). De sjablonen staan in `steam/` (`app_build.vdf` en een depot per OS, met nep-id's), `steam/copy-builds.mjs` zet de uitgepakte builds in `steam/content/`, en `steam/README.md` beschrijft het uploaden met `steamcmd`. Nog te doen zodra er een app-id is: de id's invullen en de eerste upload.
 - [ ] De Steam-overlay met Electron en Chromium testen, en oplossen of accepteren.
 - [~] Steam Deck: een Linux-build en een test op het toestel. De controllersupport (0.25) is er, en de HUD en het menu zijn op 1280×800 nagekeken.
-  - [x] De Linux-build: `npm run dist:linux` of `npm run release -- minor --linux` maakt `GDE-Groningen-<versie>-linux.AppImage` en `.tar.gz` (x64), ook op de Mac zonder Docker (`claude/builds`). Saves staan in `~/.config/GTE VI`.
+  - [x] De Linux-build: `npm run dist:linux` of `npm run release -- minor --linux` maakt `GDE-Groningen-<versie>-linux.AppImage` en `.tar.gz` (x64), ook op de Mac zonder Docker (`claude/builds`). Saves staan in `~/.config/GDE Groningen`.
   - [ ] Testen op een echte Steam Deck en op een Linux-pc: start hij, werkt de controller, en is `--no-sandbox` nodig binnen de Steam Linux Runtime.
 - [ ] Optioneel: Steam-achievements en cloud-saves via steamworks.js, gekoppeld aan de bestaande prestaties.
 - [ ] De planning: 30 dagen wachten na betaling, minimaal 2 weken "coming soon", en de review van de pagina en de build.

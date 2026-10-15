@@ -2,17 +2,17 @@
 # Renderer memory of the staged desktop build (run `npm run stage` in
 # desktop/ first): the RSS of the renderer process (main thread and geometry
 # worker), its peak up to 20 s into the game and its value then (memcheck.js
-# marks the moment), sampled every second. GTE_GAME_DIR measures another
+# marks the moment), sampled every second. GDE_GAME_DIR measures another
 # staged build. The worker's map heap: node --expose-gc scripts/perf/mapmem.mjs
 #   scripts/perf/memcheck.sh <name> [electron flags...]
 HERE=${0:A:h}
-OUT=${PERF_OUT:-${TMPDIR:-/tmp}/gte-perf}
+OUT=${PERF_OUT:-${TMPDIR:-/tmp}/gde-perf}
 N=${1:-mem}; shift
 mkdir -p $OUT
 cd $HERE/../../desktop || exit 1
-PROFILE=gte-vi-test-mem
+PROFILE=gde-test-mem
 rm -rf "${TMPDIR:-/tmp}/$PROFILE"
-GTE_TEST_PROFILE=$PROFILE ./node_modules/.bin/electron . --windowed --stil --enable-precise-memory-info \
+GDE_TEST_PROFILE=$PROFILE ./node_modules/.bin/electron . --windowed --stil --enable-precise-memory-info \
   --smoke-test=$OUT/$N.png --perf-script=$HERE/memcheck.js "$@" > $OUT/$N.log 2>&1 &
 APP=$!
 PEAK=0; MARK=0

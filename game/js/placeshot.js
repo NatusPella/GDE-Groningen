@@ -7,6 +7,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
 import { getRenderer, getScene, getCamera } from './scene3d.js';
+import { KEYS } from './storagekeys.js';
 
 export const SHOT_W = 300;
 export const SHOT_H = 170;
@@ -14,7 +15,7 @@ const SCALE = 2;
 const NEAR_M = 110;
 const BACK_M = 46;
 const UP_M = 24;
-const STORE_KEY = 'gte6.placeshots';
+const STORE_KEY = KEYS.placeshots;
 const KEEP = 12;
 
 let shots = null;

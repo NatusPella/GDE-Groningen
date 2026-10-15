@@ -51,7 +51,7 @@ export function isBindableKey(k) {
 // fly the heli down and ahead, so there Ctrl's action starts on C (and the
 // pigeon's coo moves from C to G). The desktop app keeps Ctrl.
 const BROWSER_KEYS = { control: 'c', c: 'g' };
-const inDesktopApp = () => !!(typeof window !== 'undefined' && window.gteDesktop && window.gteDesktop.isDesktop);
+const inDesktopApp = () => !!(typeof window !== 'undefined' && window.gdeDesktop && window.gdeDesktop.isDesktop);
 let platformKeys = typeof window !== 'undefined' && !inDesktopApp() ? BROWSER_KEYS : {};
 // 'browser' or 'desktop'; the tests use it, the game detects it on load
 export function setKeyPlatform(kind) { platformKeys = kind === 'browser' ? BROWSER_KEYS : {}; }
