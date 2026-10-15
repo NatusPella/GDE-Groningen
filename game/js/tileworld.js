@@ -34,6 +34,24 @@ function rowsOf(kind, section) {
   });
 }
 
+// The heights section (pack_tiles.mjs, roadprofile.js heightRows): a road's
+// vertical profile `z`, its network `net`, the structure per segment `st`
+// (STRUCT) and the grade order per segment `ly`, joined to the road by gid.
+// Render meshes, colliders and the height query all read this one profile.
+function attachProfiles(tile, roadOf) {
+  for (const s of tile.sections) {
+    if (s.type !== SECTION.HEIGHTS) continue;
+    for (const row of s.rows) {
+      const r = roadOf(row.gid);
+      if (!r || r.z) continue;
+      r.z = row.z;
+      r.net = row.net;
+      r.st = row.st;
+      r.ly = row.ly;
+    }
+  }
+}
+
 function boundsOfObj(kind, o) {
   if (kind === 'trees') return [o[0], o[1], o[0], o[1]];
   return polygonBounds(o.pts);
@@ -61,6 +79,7 @@ export class TileWorld extends GameMap {
       }
     }
     for (const kind of Object.keys(arrays)) for (let i = 0; i < arrays[kind].length; i++) if (!arrays[kind][i]) throw new Error(`tiles lack ${kind} ${i}: the pinned set is not the whole map`);
+    for (const tile of tiles) attachProfiles(tile, (gid) => arrays.roads[gid]);
     const clipped = (info.clippedWays || []).map((c) => ({ ...c, building: c.building >= 0 ? arrays.buildings[c.building] : null }));
     const map = GameMap.fromParts.call(this, {
       meta: info.meta,
@@ -106,6 +125,7 @@ export class TileWorld extends GameMap {
         e.tiles.add(tk);
       }
     }
+    attachProfiles(tile, (gid) => { const e = this._res.roads.get(gid); return e && e.obj; });
     return true;
   }
 

@@ -20,9 +20,12 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const { GameMap, applyMapExtras } = await import('../../game/js/mapdata.js');
 const G = await import('../../game/js/gdt.js');
 const { edgeRows, globalChains } = await import('../../game/js/navgraph.js');
+const { heightRows } = await import('../../game/js/roadprofile.js');
 const { polygonBounds } = await import('../../game/js/util.js');
 
 export const BUILDER = 1;
+// what a road row gets from the heights section besides its z (tileworld.js attachProfiles)
+export const PROFILE_KEYS = ['net', 'st', 'ly'];
 export const PACK_TILES = 8;
 // margin round an object's bounds when it is put in tiles (a road's ribbon,
 // a rail's ballast)
@@ -159,12 +162,20 @@ export function build({ map, om, bin }, attrs = loadAttrs()) {
     return t;
   };
   const counts = {};
+  const profiles = heightRows(map.roads);
   for (const [kind] of KINDS) {
     const list = map[kind] || [];
     counts[kind] = list.length;
     list.forEach((o, gid) => {
       for (const [i, j] of tilesOf(boundsOf(kind, o))) {
         const t = tileOf(i, j);
+        if (kind === 'roads' && profiles.has(o)) {
+          // the profile goes in the heights section, the ribbon without it
+          const { z, ...row } = cleanRow(o);
+          (t.kinds.roads || (t.kinds.roads = [])).push({ gid, ...row });
+          (t.kinds.heights || (t.kinds.heights = [])).push({ gid, ...profiles.get(o) });
+          continue;
+        }
         (t.kinds[kind] || (t.kinds[kind] = [])).push(kind === 'trees' ? { g: gid, p: [[o[0], o[1]]] } : { gid, ...cleanRow(o), ...(kind === 'buildings' ? joined.fields.get(o) : null) });
       }
     });
@@ -178,9 +189,9 @@ export function build({ map, om, bin }, attrs = loadAttrs()) {
   }
   const blobs = new Map();
   for (const t of [...tiles.values()].sort((a, b) => a.i - b.i || a.j - b.j)) {
-    const sections = [...KINDS, ['nav', G.SECTION.NAV]].filter(([kind]) => t.kinds[kind]).map(([kind, type]) => ({ type, rows: t.kinds[kind] }));
+    const sections = [...KINDS, ['heights', G.SECTION.HEIGHTS], ['nav', G.SECTION.NAV]].filter(([kind]) => t.kinds[kind]).map(([kind, type]) => ({ type, rows: t.kinds[kind] }));
     const maxH = Math.max(0, ...(t.kinds.buildings || []).map((b) => b.h || 0));
-    const n = Object.fromEntries([...KINDS, ['nav']].filter(([k]) => t.kinds[k]).map(([k]) => [k, t.kinds[k].length]));
+    const n = Object.fromEntries([...KINDS, ['heights'], ['nav']].filter(([k]) => t.kinds[k]).map(([k]) => [k, t.kinds[k].length]));
     blobs.set(t.key, { i: t.i, j: t.j, flags: 1, bytes: G.encodeBlob({ i: t.i, j: t.j, flags: 1, builder: BUILDER, sections }), n, maxH });
   }
   // the global layer: what every system needs everywhere until F1 gives it a tile home
