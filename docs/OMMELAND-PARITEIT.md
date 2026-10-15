@@ -117,10 +117,9 @@ Reading: a village street within 150 m now has the city's number of
 building meshes (130-160 against 140 and 340 in town), 110-200 pieces of
 street furniture (city: 140-1150) and 33-46 lamps (city 74-83); the instanced
 boxes that remain are what lies past the detail radius or that keeps its
-countryside model (barns, polder farmhouses, churches). The village row
-dropped from about 2 to 4 times fewer draw calls than the Bergstraat to
-about half of it; at night the village streets are lit by the same lamps
-and light pools as the city's.
+countryside model (barns, polder farmhouses, churches). Village draw calls
+went from 146-257 to 326-497 (the city street has 631), at night the village
+streets are lit by the same lamps and light pools as the city's.
 
 ### Fixed
 
@@ -178,10 +177,11 @@ routes, both builds): foot city 29.7 / 31.2 ms, heli 22.4 / 23.4 ms, village
 22.2 / 24.0 ms (frame; main-thread cpu 26.9 / 28.4, 12.1 / 14.0, 12.1 / 16.7 ms).
 City draw calls and triangles are unchanged (606 / 587 calls, 867k / 862k
 triangles); the village route has 254 / 368 calls. The extra main-thread
-time is the streaming of generator buildings and cells; it stays within the
-"village within ~10% of the city" frame time (village 24.0 ms against city
-31.2 ms) but the village cpu cost (+38%) is the thing to watch in the unified
-pipeline (move the building and road builds to the geometry worker).
+time is the streaming of generator buildings and cells; the village
+frame time (24.0 ms) stays below the city's (31.2 ms, measured in the same
+run), but the village main-thread cost rose 38% (12.1 to 16.7 ms): the thing
+to watch in the unified pipeline (move the building and road builds of
+`realmap.js` to the geometry worker).
 
 ### What carries over to the unified tile pipeline
 
