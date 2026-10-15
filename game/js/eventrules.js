@@ -104,6 +104,11 @@ export const ALGAE = {
 
 // Some summer days have algae in the big lakes, the same for the whole day.
 export const algaeDay = (day) => hash01((day | 0) * 7919 + 17) < 0.5;
+// The first algae day from `day` on (for the debug hook and the tests).
+export function nextAlgaeDay(day) {
+  for (let d = day | 0; d < (day | 0) + 40; d++) if (algaeDay(d)) return d;
+  return day | 0;
+}
 
 // Patches of a lake: `lake` = { id, bounds: [minx, miny, maxx, maxy], area }, `inWater(x, y)`
 // tells whether a point is water. Deterministic for the lake and the day.

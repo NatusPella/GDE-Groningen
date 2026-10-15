@@ -13,7 +13,7 @@ import { GROTE_MARKT } from './flavour.js';
 import { updateMarktSigns } from './marktfiets.js';
 import {
   QUAKE, rollQuakeGap, mayQuake, rollQuake, quakeEnvelope, quakeStrength, bikeWobble, QUAKE_BARKS, quakeNewsText,
-  ALGAE, algaePatches, patchAt, algaeEffect, algaeHurt, algaeDay, ALGAE_SIGN, ALGAE_NEWS, ALGAE_SWIM_MSG,
+  ALGAE, algaePatches, patchAt, algaeEffect, algaeHurt, algaeDay, nextAlgaeDay, ALGAE_SIGN, ALGAE_NEWS, ALGAE_SWIM_MSG,
   SHOW, showState, shellGap, makeShell, soundLag,
   TOURISTS, touristTarget, GERMAN_LINES, GERMAN_HELLO, touristGroup,
 } from './eventrules.js';
@@ -260,7 +260,7 @@ function updateAlgae(dt, w) {
     if (on) {
       for (const lake of A.lakes) {
         const inW = (x, y) => isInWater(w.map, x, y);
-        const patches = algaePatches(lake, S.force.algae && !algaeDay(day) ? day + 3 : day, inW);
+        const patches = algaePatches(lake, S.force.algae ? nextAlgaeDay(day) : day, inW);
         if (S.force.algae && !patches.length) continue;
         A.byLake.set(lake.id, { lake, patches });
         A.patches.push(...patches);

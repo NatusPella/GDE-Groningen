@@ -365,8 +365,7 @@ async function batch2Smoke(world, check, capture) {
   c = SJ().ctx();
   check('cabaret: the act starts with a panel', await waitFor(() => panelUp() && c.data.phase === 'act', 4000));
   const b0 = c.data.sched.beats[0];
-  c.data.t = b0.cueAt - 0.05;
-  await sleep(100);
+  c.data.t = b0.cueAt - 0.1;
   key(' ', 'Space');
   check('cabaret: a heckle on the beat scores', await waitFor(() => c.data.points >= 3, 3000), JSON.stringify({ pts: c.data.points, r: c.data.results }));
   capture('job-cabaret');

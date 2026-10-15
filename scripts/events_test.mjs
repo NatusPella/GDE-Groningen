@@ -66,6 +66,7 @@ const check = (name, ok, info = '') => { n++; if (!ok) { bad++; console.log('FAI
   const on = E.algaeEffect(true), off = E.algaeEffect(false);
   check('algae slows and tires', on.speed < 0.8 && on.staminaDrain > 1 && off.speed === 1 && off.hurtPerS === 0);
   check('health drops slowly, never below the floor', E.algaeHurt(100, 1, on) < 100 && E.algaeHurt(100, 1, on) > 98 && E.algaeHurt(41, 5, on) === 40 && E.algaeHurt(30, 5, on) === 30 && E.algaeHurt(100, 1, off) === 100);
+  check('the next algae day is an algae day and not before today', [1, 2, 3, 10, 33].every((d) => E.algaeDay(E.nextAlgaeDay(d)) && E.nextAlgaeDay(d) >= d));
   check('the sign says niet zwemmen', E.ALGAE_SIGN[0] === 'NIET ZWEMMEN');
 }
 
