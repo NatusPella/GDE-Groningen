@@ -1,0 +1,114 @@
+// Real facilities (game/facilities.json, facilities.js) everywhere you can
+// play: every point on a grid over the city and the real Ommelanden has a
+// hospital / GP post / doctor and a police station within reach, every site
+// a death or an arrest can lead to puts the player on a valid spot
+// (spotcheck.js) with the Escapade parked by the road, and the names are
+// invented (kind + place), never a business name.
+//   node scripts/facilities_test.mjs
+import './node3d.mjs';
+import fs from 'node:fs';
+import zlib from 'node:zlib';
+
+// the far corners of the real Ommelanden (past Roden, past Ten Boer)
+const MAX_MEDICAL = 11000;
+const MAX_POLICE = 14000;
+const STEP = 250;
+
+const root = new URL('../game/', import.meta.url);
+const { GameMap, applyMapExtras } = await import('../game/js/mapdata.js');
+await import('../game/js/player.js');
+const data = JSON.parse(fs.readFileSync(new URL('citymap.json', root)));
+applyMapExtras(data, JSON.parse(fs.readFileSync(new URL('mapextras.json', root))));
+const map = new GameMap(data);
+const F = await import('../game/js/countryfield.js');
+const { initReal, REAL } = await import('../game/js/countryreal.js');
+const { ensureCountryEdge } = await import('../game/js/countryplan.js');
+F.setCountryBounds(map.meta.bounds);
+const om = JSON.parse(fs.readFileSync(new URL('ommeland.json', root)));
+const bin = zlib.gunzipSync(fs.readFileSync(new URL('ommeland.bin', root)));
+initReal(map, { ...om, bin: bin.buffer.slice(bin.byteOffset, bin.byteOffset + bin.byteLength) });
+ensureCountryEdge(map);
+const Fac = await import('../game/js/facilities.js');
+const raw = JSON.parse(fs.readFileSync(new URL('facilities.json', root)));
+Fac.initFacilities(map, raw);
+const { respawnArrival } = await import('../game/js/respawn.js');
+const { spotProblem } = await import('../game/js/spotcheck.js');
+const { buildingAt } = await import('../game/js/countryreal.js');
+const { isInWater } = await import('../game/js/util.js');
+
+let fails = 0;
+const fail = (msg) => { fails++; console.log('FAIL ' + msg); };
+
+// the layer
+if (raw.crs !== 'EPSG:4326') fail('facilities.json is not in lat/lon');
+console.log(`${Fac.FAC.all.length} facilities in the built world: ` + [...Fac.FAC.byKind].map(([k, v]) => `${k} ${v.length}`).join(', '));
+for (const k of ['police', 'doctors', 'hospital', 'fuel', 'car_repair', 'parking', 'supermarket']) if (!Fac.facilitiesOf(k).length) fail(`no ${k} in the built world`);
+
+// names: invented from kind + place, no business names
+const LABELS = /^(UMCG|Ziekenhuis|Huisartsenpost|Huisartsenpraktijk|Ambulancepost|Politiebureau|Politiepost|Brandweerkazerne|Apotheek|Pomp & Poets|Garage Knalpot|Taxistandplaats|Busstation|Parkeerplaats|Parkeergarage)\b/;
+const seen = new Set();
+for (const f of Fac.FAC.all) {
+  if (!f.name) continue;
+  if (!LABELS.test(f.name)) fail(`odd name "${f.name}" (${f.kind})`);
+  if (seen.has(f.name)) fail(`name twice: ${f.name}`);
+  seen.add(f.name);
+}
+
+// the grid: city map plus the real Ommelanden
+const boxes = [map.meta.bounds, REAL.ext];
+let worstMed = { d: 0 }, worstPol = { d: 0 }, n = 0;
+for (const [x0, y0, x1, y1] of boxes) {
+  for (let x = x0; x <= x1; x += STEP) {
+    for (let y = y0; y <= y1; y += STEP) {
+      n++;
+      const m = Fac.nearestFacility('medical', x, y), p = Fac.nearestFacility('police', x, y);
+      const dm = m ? Math.hypot(m.x - x, m.y - y) : Infinity, dp = p ? Math.hypot(p.x - x, p.y - y) : Infinity;
+      if (dm > worstMed.d) worstMed = { d: dm, x, y, to: m && m.name };
+      if (dp > worstPol.d) worstPol = { d: dp, x, y, to: p && p.name };
+    }
+  }
+}
+console.log(`grid ${n} points: farthest medical ${Math.round(worstMed.d)} m (${Math.round(worstMed.x)}, ${Math.round(worstMed.y)} -> ${worstMed.to}), police ${Math.round(worstPol.d)} m (${Math.round(worstPol.x)}, ${Math.round(worstPol.y)} -> ${worstPol.to})`);
+if (worstMed.d > MAX_MEDICAL) fail(`medical too far: ${Math.round(worstMed.d)} m`);
+if (worstPol.d > MAX_POLICE) fail(`police too far: ${Math.round(worstPol.d)} m`);
+
+// a few known places
+const near = (kind, x, y) => Fac.nearestFacility(kind, x, y);
+const expect = [
+  ['medical', 800, -170, /^UMCG$/],
+  ['police', 480, 430, /Groningen Centrum/],
+  ['police', 2079, -8936, /Bedum/],
+  ['police', -2400, -12300, /Winsum/],
+  ['medical', -10665, -3160, /Zuidhorn/],
+];
+for (const [k, x, y, re] of expect) {
+  const f = near(k, x, y);
+  if (!f || !re.test(f.name)) fail(`${k} at (${x}, ${y}): ${f ? f.name : 'none'}, want ${re}`);
+}
+
+// every reachable site: a valid spot, the car by the road
+const world = { map, vehicles: [], time: 0, player: { x: 0, y: 0, inVehicle: null } };
+const sites = [...Fac.reachableFacilities('medical'), ...Fac.reachableFacilities('police')];
+let cars = 0;
+const t0 = performance.now();
+for (const s of sites) {
+  const plan = respawnArrival(world, s);
+  const p = plan.player;
+  const why = spotProblem(map, { x: p.x, y: p.y, mode: 'walk' });
+  const at = s.umcg && map.meta.hospital ? map.meta.hospital : s;
+  const d = Math.hypot(p.x - at.x, p.y - at.y);
+  if (why) fail(`${s.name}: spawn (${Math.round(p.x)}, ${Math.round(p.y)}) ${why}`);
+  if (d > 150) fail(`${s.name}: spawn ${Math.round(d)} m from the building`);
+  if (plan.car) {
+    cars++;
+    const c = plan.car;
+    if (buildingAt(c.x, c.y, 0) >= 0 || isInWater(map, c.x, c.y) || F.realWater(c.x, c.y) > -0.5) fail(`${s.name}: car in a building or the water`);
+  }
+  if (!Number.isFinite(p.angle)) fail(`${s.name}: no facing`);
+}
+console.log(`${sites.length} respawn sites (${Math.round(performance.now() - t0)} ms), ${cars} with the car at the kerb`);
+if (cars < sites.length * 0.8) fail(`car placed at only ${cars}/${sites.length} sites`);
+for (const s of sites) console.log(`  ${s.kind.padEnd(9)} ${s.name}`);
+
+console.log(fails ? `${fails} FAILED` : 'facilities ok');
+process.exit(fails ? 1 : 0);
