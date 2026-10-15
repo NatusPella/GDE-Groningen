@@ -37,6 +37,7 @@
 //   mid-mission: then the saved spot is kept. "Naar huis" in the pause menu.
 
 import { pointInPolygon, closestPointOnSegment, isInWater } from './util.js';
+import { P, PL } from './worldframe.js';
 import { addStaticCollider } from './breakables.js';
 import { getScene, setBuildingHidden } from './scene3d.js';
 import { getOwnedEntries, spawnOwnedEntry, wardrobeMenu } from './shops.js';
@@ -87,11 +88,11 @@ const PAD_R = 7.5;
 const PAD_DECK = 1.2;
 
 // OSM (House of Groningen, way 749915414): the tower and its parking plinth.
-const TOWER = [[-1282.3, -1104.7], [-1270.4, -1111.1], [-1264.3, -1114.4], [-1251.2, -1090.3], [-1269.4, -1080.5]];
-const PLINTH = [[-1298.4, -1096.1], [-1282.3, -1104.7], [-1269.4, -1080.5], [-1271.3, -1079.5], [-1272.4, -1078.9], [-1270.4, -1072.3], [-1270, -1070.9], [-1289.1, -1065.5]];
+const TOWER = PL([[-1282.3, -1104.7], [-1270.4, -1111.1], [-1264.3, -1114.4], [-1251.2, -1090.3], [-1269.4, -1080.5]]);
+const PLINTH = PL([[-1298.4, -1096.1], [-1282.3, -1104.7], [-1269.4, -1080.5], [-1271.3, -1079.5], [-1272.4, -1078.9], [-1270.4, -1072.3], [-1270, -1070.9], [-1289.1, -1065.5]]);
 // Pleiadenlaan kerb in front of the tower (long vehicles), the canal bank behind it (boats)
-const KERB = [[-1273, -1125.5], [-1312, -1105], [-1344, -1088]];
-const BANK = [[-1194, -1053], [-1247, -1134]];
+const KERB = PL([[-1273, -1125.5], [-1312, -1105], [-1344, -1088]]);
+const BANK = PL([[-1194, -1053], [-1247, -1134]]);
 
 const sub = (a, b) => [a[0] - b[0], a[1] - b[1]];
 const len = (v) => Math.hypot(v[0], v[1]);
@@ -280,7 +281,8 @@ export function prepareHomeMap(map) {
   home = buildLayout();
   // the OSM footprint (tower + plinth) becomes the tower only
   const c = home.center;
-  const t = map.buildingsNear(-1268, -1096, 20).find((b) => pointInPolygon(-1268, -1096, b.pts) && b.h >= 12);
+  const [hx, hy] = P(-1268, -1096);
+  const t = map.buildingsNear(hx, hy, 20).find((b) => pointInPolygon(hx, hy, b.pts) && b.h >= 12);
   if (t) {
     t.pts = TOWER.map((p) => [...p]);
     t.bounds = boundsOf(t.pts);

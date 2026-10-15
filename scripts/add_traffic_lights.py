@@ -18,6 +18,9 @@ import os
 import subprocess
 import sys
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from world.rdnew import meta_frame, meta_bbox  # noqa: E402
+
 MAP_PATH = "game/citymap.json"
 CACHE_PATH = "data/traffic_signals_raw.json"
 OVERPASS_URLS = [
@@ -74,10 +77,9 @@ def nearest_on(roads, x, y):
 def main():
     with open(MAP_PATH) as f:
         meta = json.load(f)["meta"]
-    lat0, lon0 = meta["origin"]["lat"], meta["origin"]["lon"]
-    m_lat, m_lon = meta["mPerDegLat"], meta["mPerDegLon"]
+    project, _ = meta_frame(meta)
     x0, y0, x1, y1 = meta["bounds"]
-    bbox = (lat0 - y1 / m_lat - 0.001, lon0 + x0 / m_lon - 0.001, lat0 - y0 / m_lat + 0.001, lon0 + x1 / m_lon + 0.001)
+    bbox = meta_bbox(meta, 0.001)
 
     have = None
     if os.path.exists(CACHE_PATH):
@@ -109,7 +111,7 @@ def main():
         tags = el.get("tags", {})
         if tags.get("traffic_signals") == "emergency":
             continue
-        x, y = (el["lon"] - lon0) * m_lon, (lat0 - el["lat"]) * m_lat
+        x, y = project(el["lat"], el["lon"])
         if not (x0 < x < x1 and y0 < y < y1):
             continue
         crossing = tags.get("highway") == "crossing" or tags.get("traffic_signals") == "crossing"

@@ -8,6 +8,7 @@ import {
   spawnPed, pedAlive, freePed, walkPed, say, buildBike,
 } from './sidejobkit.js';
 import { isInWater } from './util.js';
+import { P } from './worldframe.js';
 
 const VAN = { name: 'van', len: 5.0, wid: 2.0, maxSpeed: 26, accel: 6.5, brake: 19, turnRate: 2.0, color: '#2f6fb8' };
 const GRAB_R = 1.7;
@@ -70,7 +71,7 @@ export default {
   sikkom: (c) => `Handhaver ruimt ${c.streak} keer het Stationsplein leeg, fietsenrekken voor het eerst ooit halfvol`,
 
   anchor(map) {
-    const s = nearestOnStreet(map, 'Stationsweg', -40, 880) || nearestOnStreet(map, 'Stationsweg', 20, 870);
+    const s = nearestOnStreet(map, 'Stationsweg', ...P(-40, 880)) || nearestOnStreet(map, 'Stationsweg', ...P(20, 870));
     return s ? kerbSide(map, s, 1.6) : null;
   },
 

@@ -898,6 +898,12 @@ export async function loadMap(url = 'map.json', onProgress = null) {
   } else {
     data = await res.json();
   }
-  applyMapExtras(data, await extras);
+  const ex = await extras;
+  // every map file is in the RD New world frame (rdnew.js); a file from an
+  // older build would put the whole map tens of metres off
+  for (const [name, f] of [['citymap.json', data.meta && data.meta.frame], ['mapextras.json', ex ? ex.frame : 'rd-new']]) {
+    if (f !== 'rd-new') console.error(`${name} is not in the rd-new frame (scripts/world/rebase_data.py)`);
+  }
+  applyMapExtras(data, ex);
   return new GameMap(data);
 }

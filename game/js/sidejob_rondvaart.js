@@ -6,6 +6,7 @@ import { unlockAchievement } from './achievements.js';
 import { pick, rand, spawnJobBoat, vehicleSpeed } from './sidejobkit.js';
 import { lineVoiceFor } from './linevoice.js';
 import { playLineVoice } from './audio.js';
+import { P, PL } from './worldframe.js';
 
 const BOAT = { name: 'boat', len: 5.4, wid: 1.9, maxSpeed: 4.6, accel: 1.6, brake: 2.2, turnRate: 1.2, color: '#1f4a6e', cabin: '#f2ede0' };
 const PIER_R = 12;
@@ -15,7 +16,7 @@ const TALK_S = 7.5;
 
 // Water centreline (grid search over the map's water polygons, >= 4 m from
 // either quay) from the Groninger Museum to the Noorderhaven.
-export const LINE = [
+export const LINE = PL([
   [151, 825], [171, 819], [193, 819], [215, 819], [235, 809], [255, 803], [275, 793], [295, 785], [313, 775], [333, 765], [353, 757],
   [375, 753], [395, 745], [415, 739], [435, 731], [455, 723], [473, 713], [493, 705], [511, 691], [527, 675], [545, 659], [561, 643],
   [581, 633], [597, 617], [613, 601], [631, 585], [649, 569], [665, 553], [683, 537], [701, 521], [719, 507], [735, 491], [751, 473],
@@ -24,13 +25,13 @@ export const LINE = [
   [505, 91], [499, 69], [493, 49], [485, 29], [479, 9], [473, -11], [465, -31], [455, -51], [447, -71], [435, -89], [421, -107],
   [411, -127], [401, -145], [389, -163], [379, -181], [367, -199], [349, -215], [329, -223], [311, -235], [287, -247], [267, -255],
   [249, -265], [229, -275], [211, -285], [191, -293], [169, -299], [151, -309], [129, -309], [107, -307], [85, -303], [71, -301],
-];
+]);
 
 const PIERS = [
-  { i: 0, name: 'Steiger Groninger Museum', land: [141, 763] },
-  { i: 34, name: 'Steiger Oosterhaven', land: [790, 430] },
-  { i: 55, name: 'Steiger Poelestraat', land: [520, 92] },
-  { i: LINE.length - 1, name: 'Steiger Noorderhaven', land: [72, -318] },
+  { i: 0, name: 'Steiger Groninger Museum', land: P(141, 763) },
+  { i: 34, name: 'Steiger Oosterhaven', land: P(790, 430) },
+  { i: 55, name: 'Steiger Poelestraat', land: P(520, 92) },
+  { i: LINE.length - 1, name: 'Steiger Noorderhaven', land: P(72, -318) },
 ];
 
 const SIGHTS = [

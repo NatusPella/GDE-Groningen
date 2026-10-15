@@ -11,6 +11,7 @@ import { JELLE_LOOK, DURK_LOOK, DOUWE_LOOK, RIKUS_LOOK, MEM_LOOK, ROTOR_LOOK, RO
 import { showLiveFrame } from './storycontact.js';
 import { storyLineVoice } from './linevoice.js';
 import { showNameCard } from './namecard.js';
+import { PO, PA } from './worldframe.js';
 
 // Story cutscenes around the mission chain: who asks and why (start), the
 // payoff (success) and a short sting (fail). Tammo and Tessa's relationship
@@ -1653,7 +1654,7 @@ function waterSpot(w, from) {
   return null;
 }
 
-const LIVE_SPOT = { x: 741, y: 418 };
+const LIVE_SPOT = { ...PO(741, 418), a: PA(741, 418, Math.PI / 2) };
 
 // Jelle's livestream after the museum break-in (a story contact, storycontact.js):
 // he films himself in front of his trekker-limo, the twins behind him, and
@@ -1662,7 +1663,7 @@ export function playLivestream(w, { lines = [], handle = 'JelleWâld', viewers =
   if (run) return false;
   // filmed on the Oosterhaven quay, where his skûtsje lies (seen again in H14)
   const anchor = freeSpot(w, LIVE_SPOT.x, LIVE_SPOT.y);
-  const facing = chooseFacing(w, anchor.x, anchor.y, Math.PI / 2);
+  const facing = chooseFacing(w, anchor.x, anchor.y, LIVE_SPOT.a);
   const r = buildRun(w, {
     anchor, facing, noPair: true,
     extras: [{ key: 'jelle', at: [1.4, 0] }, { key: 'durk', at: [3.1, 1.3], pose: 'arms' }, { key: 'douwe', at: [3.2, -1.3], pose: 'arms' }],

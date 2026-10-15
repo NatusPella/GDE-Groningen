@@ -5,8 +5,12 @@ game/citymap.json as meta.districts, for the in-game "you are in <wijk>,
 <straat>" HUD readout. Falls back to named neighbourhood/quarter POINTS
 (no polygon available) so every area still has *a* name to report.
 """
+import sys
+import os
 import json
 import math
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from world.rdnew import project as rd_project  # noqa: E402
 
 RAW_PATH = "data/districts_raw.json"
 MAP_PATH = "game/citymap.json"
@@ -50,11 +54,8 @@ def main():
     with open(MAP_PATH) as f:
         mapdata = json.load(f)
     meta = mapdata["meta"]
-    lat0, lon0 = meta["origin"]["lat"], meta["origin"]["lon"]
-    m_lat, m_lon = meta["mPerDegLat"], meta["mPerDegLon"]
-
     def project(lat, lon):
-        return [round((lon - lon0) * m_lon, 1), round((lat0 - lat) * m_lat, 1)]
+        return list(rd_project(lat, lon, 1))
 
     districts = []
     for e in raw["elements"]:

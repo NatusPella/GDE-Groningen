@@ -5,6 +5,7 @@ import { isInWater } from './util.js';
 import { FJORD_BUBBLES, FJORD_DUO } from './pg_lines.js';
 import { finish, say, esc } from './postgame.js';
 import { FJORD_SHIFT_BONUS } from './economy.js';
+import { P } from './worldframe.js';
 
 // The Fjord Frituur, after the story: drive the foodtruck (shops.js
 // 'fjordfrituur') to a busy spot, stop, open the hatch (E) and serve the
@@ -39,30 +40,30 @@ const raining = (w) => !!(w.weather && w.weather.active && w.weather.intensity >
 
 // Busy-ness per spot: { level (customers per ~9 s), label }.
 const SPOTS = [
-  { id: 'grotemarkt', name: 'Grote Markt', at: [132, 96], busy: (w) => {
+  { id: 'grotemarkt', name: 'Grote Markt', at: P(132, 96), busy: (w) => {
     const h = hour(w);
     if (between(h, 11, 14)) return { level: 1.3, label: 'lunchdrukte' };
     if (between(h, 17, 20)) return { level: 1.2, label: 'avondeten' };
     if (between(h, 1, 7)) return { level: 0.3, label: 'uitgestorven' };
     return { level: 0.8, label: 'gezellig' };
   } },
-  { id: 'vismarkt', name: 'Vismarkt', at: [13, 236], busy: (w) => {
+  { id: 'vismarkt', name: 'Vismarkt', at: P(13, 236), busy: (w) => {
     const h = hour(w);
     if (between(h, 8, 17)) return { level: 1.2, label: 'marktdag' };
     return { level: between(h, 22, 6) ? 0.2 : 0.5, label: 'rustig' };
   } },
-  { id: 'noorderplantsoen', name: 'Noorderplantsoen', at: [150, -690], busy: (w) => {
+  { id: 'noorderplantsoen', name: 'Noorderplantsoen', at: P(150, -690), busy: (w) => {
     const h = hour(w);
     if (raining(w)) return { level: 0.2, label: 'regen, iedereen is binnen' };
     if (between(h, 12, 20)) return { level: 1.3, label: 'zon in het park' };
     return { level: 0.5, label: 'rustig' };
   } },
-  { id: 'euroborg', name: 'Euroborg', at: [1745, 1420], busy: (w) => {
+  { id: 'euroborg', name: 'Euroborg', at: P(1745, 1420), busy: (w) => {
     const h = hour(w);
     if (between(h, 14, 17) || between(h, 19.5, 22.5)) return { level: 1.6, label: 'wedstrijd!' };
     return { level: 0.15, label: 'geen wedstrijd (14-17 u, 19:30-22:30 u)' };
   } },
-  { id: 'poelestraat', name: 'Poelestraat', at: [398, 132], busy: (w) => {
+  { id: 'poelestraat', name: 'Poelestraat', at: P(398, 132), busy: (w) => {
     const h = hour(w);
     if (between(h, 22, 4)) return { level: 1.5, label: 'KEI-nacht' };
     return { level: 0.2, label: 'pas vanaf 22 u druk' };

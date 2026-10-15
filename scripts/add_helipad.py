@@ -23,6 +23,9 @@ import os
 import subprocess
 import sys
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from world.rdnew import meta_frame, meta_bbox  # noqa: E402
+
 MAP_PATH = "game/citymap.json"
 CACHE_PATH = "data/helipads_raw.json"
 COMPLEX_CACHE_PATH = "data/umcg_complex_raw.json"
@@ -138,15 +141,13 @@ def main():
     with open(MAP_PATH) as f:
         data = json.load(f)
     meta = data["meta"]
-    lat0, lon0 = meta["origin"]["lat"], meta["origin"]["lon"]
-    m_lat, m_lon = meta["mPerDegLat"], meta["mPerDegLon"]
+    to_xy, _ = meta_frame(meta)
     x0, y0, x1, y1 = meta["bounds"]
-    bbox = (lat0 - y1 / m_lat, lon0 + x0 / m_lon, lat0 - y0 / m_lat, lon0 + x1 / m_lon)
+    bbox = meta_bbox(meta)
 
     s, w, n, e = bbox
     raw = cached(CACHE_PATH, f'[out:json][timeout:60];nwr["aeroway"~"helipad|heliport"]({s:.5f},{w:.5f},{n:.5f},{e:.5f});out geom tags;')
 
-    to_xy = lambda lat, lon: ((lon - lon0) * m_lon, (lat0 - lat) * m_lat)
     pads = []
     for el in raw["elements"]:
         if el["type"] == "way" and el.get("geometry"):

@@ -7,6 +7,7 @@ import { routeAt, prepareDiepenringRoute, diepenringProgress } from './rondvaart
 import { getChallengeRecord } from './achievements.js';
 import { pointInPolygon, isInWater, boatDryPoints, clamp } from './util.js';
 import { finish, jelle, setTarget } from './postgame.js';
+import { P } from './worldframe.js';
 
 // Skûtsje-sprint: two skûtsjes, no motors, from the Oosterhaven along the
 // southern Diepenring to the Hoge der A. Speed comes from the wind
@@ -17,8 +18,8 @@ import { finish, jelle, setTarget } from './postgame.js';
 // Under a bridge both strike their mast and glide through on their way.
 // Finish = brons, beat Jelle = zilver, by 12 s = goud.
 
-const FROM = [744, 390];
-const TO = [-376, 280];
+const FROM = P(744, 390);
+const TO = P(-376, 280);
 const GATE_EVERY = 160;
 const LIMIT = 600;
 const DEG = Math.PI / 180;

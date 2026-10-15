@@ -3,6 +3,7 @@ import { GeoBuilder } from './pixelart3d.js';
 import { LANDMARK_MATERIALS, LM, hasLandmarkModel } from './landmarks3d.js';
 import { glassMaterial, paneUV, PANE_HOME, PANE_SHOP } from './interiorglass.js';
 import { pointInPolygon } from './util.js';
+import { PL } from './worldframe.js';
 
 // The buildings round the Grote Markt and the Vismarkt (docs/markt-gebouwen.md).
 // Two kinds:
@@ -33,17 +34,17 @@ function lmReady() {
 
 // The open squares (map metres, x east, y south), traced from the map.
 const SQUARES = [
-  [[152, 38], [216, 40], [229, 70], [240, 102], [196, 128], [150, 162]],
-  [[20, 62], [117, 47], [152, 38], [152, 86], [99, 79], [40, 101], [20, 112]],
-  [[-80, 255], [10, 214], [60, 186], [86, 198], [66, 238], [-6, 283], [-78, 303]],
+  PL([[152, 38], [216, 40], [229, 70], [240, 102], [196, 128], [150, 162]]),
+  PL([[20, 62], [117, 47], [152, 38], [152, 86], [99, 79], [40, 101], [20, 112]]),
+  PL([[-80, 255], [10, 214], [60, 186], [86, 198], [66, 238], [-6, 283], [-78, 303]]),
 ];
 const FRONT_DIST = 32;
 // Natalini's Waagstraat complex: the block between Guldenstraat, Grote Markt,
 // Waagstraat and Tussen Beide Markten, the town-hall wing south of the
 // Stadhuis and the small block at the Herestraat.
-const NATALINI = [[36, 98], [99, 76], [123, 139], [128, 170], [110, 180], [72, 179], [19, 97]];
+const NATALINI = PL([[36, 98], [99, 76], [123, 139], [128, 170], [110, 180], [72, 179], [19, 97]]);
 // Postwar north wall of the Grote Markt (burnt April 1945, rebuilt 1950s).
-const POSTWAR = [[20, -10], [215, -10], [216, 44], [117, 52], [20, 66]];
+const POSTWAR = PL([[20, -10], [215, -10], [216, 44], [117, 52], [20, 66]]);
 
 function polyDist(x, y, poly) {
   if (pointInPolygon(x, y, poly)) return 0;
@@ -438,7 +439,8 @@ const OVERRIDES = {
 
 function buildFacade(b, ring, edges) {
   const [cx, cy] = centroidOf(b);
-  const r = rngOf(hash2(cx * 0.913, cy * 1.137));
+  const [sx, sy] = b.sd || [cx, cy];
+  const r = rngOf(hash2(sx * 0.913, sy * 1.137));
   const Hb = Math.max(2.4, b.h * LEVEL);
   const ov = b.markt ? OVERRIDES[b.markt] : null;
   const setting = pointInPolygon(cx, cy, NATALINI) ? 'natalini' : pointInPolygon(cx, cy, POSTWAR) ? 'postwar' : 'historic';

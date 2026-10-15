@@ -7,6 +7,7 @@
 //   node scripts/skutsje_race_sim.mjs
 import './node3d.mjs';
 import fs from 'node:fs';
+import { P } from '../game/js/worldframe.js';
 
 const { GameMap, applyMapExtras } = await import('../game/js/mapdata.js');
 const { Vehicle, drivePlayerBoat } = await import('../game/js/vehicle.js');
@@ -20,7 +21,7 @@ const data = JSON.parse(fs.readFileSync(new URL('citymap.json', root)));
 applyMapExtras(data, JSON.parse(fs.readFileSync(new URL('mapextras.json', root))));
 const map = new GameMap(data);
 prepareDiepenringRoute(map);
-const s0 = diepenringProgress(744, 390).s, s1 = diepenringProgress(-376, 280).s;
+const s0 = diepenringProgress(...P(744, 390)).s, s1 = diepenringProgress(...P(-376, 280)).s;
 const DEG = Math.PI / 180, DT = 1 / 60, LIMIT = 600;
 
 let fails = 0, n = 0;

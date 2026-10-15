@@ -3,6 +3,7 @@ import { spawnVehicleOnRoad, distToVehicleBody } from './vehicle.js';
 import { makeCopPedestrian, isInsideBuilding, isSpawnHidden, CITY_CENTRE } from './pedestrians.js';
 import { buildHorseMesh } from './countryside.js';
 import { setHorseMeshBuilder } from './models3d_vehicles.js';
+import { PO } from './worldframe.js';
 
 setHorseMeshBuilder(buildHorseMesh);
 
@@ -124,11 +125,11 @@ export function trySpawnMounts(world, state) {
 // follow world.wanted, so a patrol stays quiet.
 
 const PATROL_ZONES = [
-  { name: 'binnenstad', x: 190, y: 110, r: 330, max: 2 },
-  { name: 'Grote Markt', x: 150, y: 90, r: 110, max: 2 },
-  { name: 'Vismarkt', x: 18, y: 244, r: 90, max: 2 },
-  { name: 'Noorderplantsoen', x: 140, y: -700, r: 170, max: 1 },
-  { name: 'Stadspark', x: -1250, y: 1500, r: 230, max: 1 },
+  { name: 'binnenstad', ...PO(190, 110), r: 330, max: 2 },
+  { name: 'Grote Markt', ...PO(150, 90), r: 110, max: 2 },
+  { name: 'Vismarkt', ...PO(18, 244), r: 90, max: 2 },
+  { name: 'Noorderplantsoen', ...PO(140, -700), r: 170, max: 1 },
+  { name: 'Stadspark', ...PO(-1250, 1500), r: 230, max: 1 },
 ];
 const PATROL_CATS = ['foot', 'cycle', 'minor'];
 const PATROL_STAGGER = 25;

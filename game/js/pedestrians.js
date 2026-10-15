@@ -13,6 +13,7 @@ import { splatterPed, bleedPed, GIB_SPEED } from './gore3d.js';
 import { knockFx } from './knockfx3d.js';
 import { walkRoute, processPedPlanQueue, buildPedAvoidGrid, separatePeds, makeCompanion } from './pedroutes.js';
 import { reportCrime } from './crime.js';
+import { PO } from './worldframe.js';
 
 const WANDER_SPEED = 1.3;
 const FLEE_SPEED = 3.6;
@@ -40,11 +41,11 @@ const WITNESS_RADIUS = 45;
 const CALL_MIN = 7;
 const CALL_MAX = 11;
 
-export const CITY_CENTRE = { x: 190, y: 140, r: 380 };
+export const CITY_CENTRE = { ...PO(190, 140), r: 380 };
 const NIGHT_HOTSPOTS = [
-  { x: 390, y: 122, r: 90 },
-  { x: 395, y: 205, r: 80 },
-  { x: 160, y: 95, r: 90 },
+  { ...PO(390, 122), r: 90 },
+  { ...PO(395, 205), r: 80 },
+  { ...PO(160, 95), r: 90 },
 ];
 
 const GRONINGS_PHRASES = [

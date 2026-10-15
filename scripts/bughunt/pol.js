@@ -18,7 +18,7 @@
     await moved(() => hold(['w'], 900), 'walk after ' + label);
   };
   w.devInvuln = false;
-  teleport(100, 77); await sleep(2000);
+  teleport(...P(100, 77)); await sleep(2000);
   for (let n = 1; n <= 5; n++) {
     tag('wanted' + n);
     w.wanted = n; w.wantedDecayTimer = 0;
@@ -41,7 +41,7 @@
   // death, scenes played in full
   tag('death-full');
   skipCine = false;
-  teleport(214, 13); await sleep(1500);
+  teleport(...P(214, 13)); await sleep(1500);
   w.devInvuln = false;
   CB.damagePlayer(w, 999);
   const sec = await waitRespawn('death (full scene)', 60000);
@@ -57,8 +57,8 @@
   skipCine = true;
   // death while swimming
   tag('death-swim');
-  const polys = map.waterNear(-33, -259, 30);
-  teleport(-33.0, -259.5, false); await sleep(400);
+  const polys = map.waterNear(...P(-33, -259), 30);
+  teleport(...P(-33.0, -259.5), false); await sleep(400);
   if (p.enterSwim) p.enterSwim();
   await sleep(800);
   CB.damagePlayer(w, 999);
@@ -76,7 +76,7 @@
 
   // save / load
   tag('save');
-  teleport(100, 77); await sleep(1500);
+  teleport(...P(100, 77)); await sleep(1500);
   w.money = 4321;
   if (!SG.saveGame(w)) issue('save', 'saveGame returned false');
   const d = SG.readSave();
@@ -95,7 +95,7 @@
   await after('load in car');
   // load while swimming
   tag('load-swim');
-  teleport(-33.0, -259.5, false); await sleep(300);
+  teleport(...P(-33.0, -259.5), false); await sleep(300);
   if (p.enterSwim) p.enterSwim();
   await sleep(600);
   SG.loadLatestSave(w); await sleep(1500); await quiet(8000);
@@ -103,7 +103,7 @@
   await after('load swimming');
   // load in a boat
   tag('load-boat');
-  teleport(-33.0, -259.5, false); await sleep(300);
+  teleport(...P(-33.0, -259.5), false); await sleep(300);
   const bt = spawnBoat(); if (bt) { p.enterVehicle(bt, w); await hold(['w'], 800); }
   SG.loadLatestSave(w); await sleep(1500); await quiet(8000);
   if (p.inVehicle) issue('save', 'still in a boat after load');

@@ -7,6 +7,7 @@ import { makeProp, addProp, removeProp, isPropBroken, propKey, updateBreakables 
 import { initClutter, generateClutter, whiteUV } from './streetclutter.js';
 import { breakableWallsIn } from './elevation.js';
 import { runGeo } from './geojobs.js';
+import { PO } from './worldframe.js';
 
 // Ambient city life: benches, bins, bike racks, café terraces, market stalls,
 // canal anglers. Streamed per CELL around the player; each cell merges all its
@@ -22,8 +23,8 @@ const MAX_SCENE_PEDS = 18;
 const DRIVE_CATS = ['major', 'normal', 'minor', 'cycle'];
 
 const MARKETS = [
-  { name: 'Grote Markt', x: 162, y: 78, r: 34 },
-  { name: 'Vismarkt', x: 18, y: 244, r: 38 },
+  { name: 'Grote Markt', ...PO(162, 78), r: 34 },
+  { name: 'Vismarkt', ...PO(18, 244), r: 38 },
 ];
 
 const VENDOR_LINES = ['Verse haring, moi!', 'Kom moar kieken!', 'Twee kilo appels, twee euro!', 'Lekker stoet, vers van vandoag!', 'Grunneger metworst! Wie wil der nog ain?', 'Kom moar, t is hail goud spul!', 'Dank joe wel, tot kiek!'];
@@ -510,7 +511,7 @@ function findQuaySpot(map, cx0, cy0, rng) {
 
 function findHaulerSpot(map) {
   const rng = new SeededRng(4242);
-  const target = { x: 10, y: 370 };
+  const target = { ...PO(10, 370) };
   let best = null, bestD = Infinity;
   for (let gx = -4; gx <= 4; gx++) {
     for (let gy = -4; gy <= 4; gy++) {
