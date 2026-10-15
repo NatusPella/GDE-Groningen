@@ -1,6 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { HABBO_PALETTE, habboMaterial, GeoBuilder, vcMaterial, markShared, composeMatrix, tubeGeometry } from './pixelart3d.js';
-import { buildPersonMesh } from './models3d_people.js';
+import { buildPersonMesh, PERSON_RIG } from './models3d_people.js';
 import { boatKind, boatHasCabin } from './boattypes.js';
 import { buildHeliMesh } from './heli3d.js';
 
@@ -988,7 +988,193 @@ function buildMopedMesh(v) {
   return group;
 }
 
+// --- motorbikes and the geared classic moped ------------------------------------------
+// model.motorbike: 'sport' (faired, clip-ons, leaning over the tank), 'naked'
+// (open frame, wide bars) or 'old' (chrome, round lamp, upright). The geared
+// moped is the scooter family with model.geared: tank, frame and two pipes.
+
+const MOTO_SPEC = {
+  sport: { r: 0.3, tire: 0.1, fx: 0.7, rx: -0.68, seat: { x: -0.3, y: 0.8, lean: -0.5, arm: 1.2, leg: 1.25 } },
+  naked: { r: 0.31, tire: 0.09, fx: 0.7, rx: -0.68, seat: { x: -0.3, y: 0.82, lean: -0.2, arm: 0.95, leg: 1.2 } },
+  old: { r: 0.33, tire: 0.06, fx: 0.72, rx: -0.7, seat: { x: -0.28, y: 0.84, lean: -0.05, arm: 0.85, leg: 1.15 } },
+  moped: { r: 0.24, tire: 0.06, fx: 0.55, rx: -0.52, seat: { x: -0.2, y: 0.78, lean: -0.04, arm: 0.9, leg: 1.2 } },
+};
+
+// Where a rider sits and how they hold on: for the built-in rider and the
+// player's figure (scene3d.js syncPlayerRider). null: the model has no seat pose.
+export function riderSeatFor(model) {
+  const k = model && (model.motorbike || (model.geared ? 'moped' : null));
+  return k && MOTO_SPEC[k] ? MOTO_SPEC[k].seat : null;
+}
+
+function buildMotorbikeGeometry(kind, color) {
+  return cached(`moto|${kind}|${color}`, () => {
+    const B = new GeoBuilder(3);
+    const s = MOTO_SPEC[kind];
+    const dark = 0x2a2b2e, black = 0x1b1b1c, steel = 0x3a3c40;
+    const tube = (a, b, rr, c = dark) => B.geo(tubeGeometry(a, b, rr, rr, 6), null, c);
+    const F = [s.fx, s.r, 0], R = [s.rx, s.r, 0];
+    const head = [s.fx - 0.2, 0.92, 0];
+    const old = kind === 'old', sport = kind === 'sport';
+    // engine and gearbox
+    B.box(-0.02, 0.38, 0, 0.44, 0.34, 0.3, old ? CHROME : steel);
+    B.box(-0.22, 0.34, 0, 0.16, 0.2, 0.34, steel);
+    B.box(0.14, 0.58, 0, 0.2, 0.18, 0.26, old ? CHROME : dark);
+    // forks, steering stem and swing arm
+    for (const z of [0.08, -0.08]) {
+      tube([head[0] + 0.02, head[1] - 0.04, z], [F[0], F[1], z], 0.026, CHROME);
+      tube([-0.2, 0.4, z * 1.4], [R[0], R[1], z * 1.3], 0.022, sport ? color : dark);
+    }
+    tube(head, [0.12, 0.62, 0], 0.03, dark);
+    tube([0.12, 0.62, 0], [-0.32, 0.72, 0], 0.028, dark);
+    tube([-0.32, 0.72, 0], [-0.55, 0.78, 0], 0.025, dark);
+    // tank, seat and tail
+    B.box(0.16, 0.82, 0, 0.48, sport ? 0.2 : 0.24, sport ? 0.3 : 0.28, color, 0, 0, 0, sport ? -0.1 : 0.04);
+    B.box(-0.34, 0.8, 0, 0.62, 0.08, 0.27, black);
+    if (sport) {
+      B.box(-0.76, 0.88, 0, 0.44, 0.14, 0.2, color, 0, 0, 0, 0.22);
+      B.box(0.52, 0.76, 0, 0.5, 0.36, 0.34, color, 0, 0, 0, -0.18);
+      B.box(0.78, 0.96, 0, 0.12, 0.14, 0.26, 0x2b3740, 1, 0, 0, -0.9);
+      B.box(0.62, 0.74, 0, 0.1, 0.12, 0.2, HEADLAMP, G_LAMP);
+      B.box(0.08, 0.28, 0, 0.56, 0.16, 0.32, color);
+    } else {
+      B.box(-0.7, 0.88, 0, 0.36, 0.06, 0.2, color, 0, 0, 0, 0.12);
+      B.geo(new THREE.CylinderGeometry(old ? 0.1 : 0.085, old ? 0.1 : 0.085, 0.1, 10).rotateZ(Math.PI / 2), composeMatrix(head[0] + 0.12, head[1] - 0.04, 0), old ? CHROME : dark);
+      B.box(head[0] + 0.18, head[1] - 0.04, 0, 0.02, old ? 0.12 : 0.1, old ? 0.12 : 0.1, HEADLAMP, G_LAMP);
+    }
+    // handlebars and grips
+    const bar = sport ? 0.2 : old ? 0.4 : 0.34;
+    const bx = head[0] - (sport ? 0.04 : old ? 0.08 : 0.02), by = head[1] + (sport ? 0.05 : old ? 0.18 : 0.12);
+    const gx = bx - (old ? 0.1 : 0.02), gy = by + (old ? 0.04 : 0);
+    tube([head[0], head[1], 0], [bx, by, 0], 0.025, dark);
+    for (const z of [1, -1]) {
+      tube([bx, by, 0], [gx, gy, z * bar], 0.014, old ? CHROME : dark);
+      tube([gx, gy, z * bar], [gx, gy, z * (bar + 0.1)], 0.02, black);
+    }
+    // exhaust
+    if (sport) tube([0.05, 0.22, 0.14], [-0.82, 0.62, 0.1], 0.05, 0x6a6e72);
+    else if (kind === 'naked') { tube([0.2, 0.26, 0.17], [-0.6, 0.34, 0.2], 0.045, CHROME); B.box(-0.74, 0.35, 0.2, 0.26, 0.1, 0.1, 0x6a6e72); }
+    else for (const z of [0.2, -0.2]) { tube([0.18, 0.26, z], [-0.62, 0.34, z * 1.15], 0.04, CHROME); B.box(-0.72, 0.35, z * 1.15, 0.28, 0.08, 0.08, CHROME); }
+    // mudguards, tail lamp, brake discs
+    B.geo(new THREE.TorusGeometry(s.r + 0.03, 0.03, 3, 9, Math.PI * 0.8), composeMatrix(F[0], F[1], 0, 0, 0, Math.PI * 0.1), sport ? color : old ? CHROME : dark);
+    B.box(R[0] - 0.12, 0.62, 0, 0.3, 0.03, 0.2, sport ? color : dark, 0, 0, 0, 0.35);
+    B.box(R[0] - 0.3, 0.66, 0, 0.02, 0.05, 0.1, TAIL, G_LAMP);
+    for (const x of [F[0], R[0]]) B.geo(new THREE.CylinderGeometry(0.1, 0.1, 0.012, 10).rotateX(Math.PI / 2), composeMatrix(x, s.r, 0.05), 0x8a8e92);
+    return B.build();
+  });
+}
+
+function buildClassicMopedGeometry(color) {
+  return cached(`cmoped|${color}`, () => {
+    const B = new GeoBuilder(3);
+    const s = MOTO_SPEC.moped;
+    const dark = 0x2a2b2e, black = 0x1b1b1c;
+    const tube = (a, b, rr, c = dark) => B.geo(tubeGeometry(a, b, rr, rr, 6), null, c);
+    const F = [s.fx, s.r, 0], R = [s.rx, s.r, 0];
+    B.box(-0.02, 0.36, 0, 0.3, 0.26, 0.24, 0x8a8e92);
+    B.box(0.0, 0.62, 0, 0.36, 0.17, 0.24, color, 0, 0, 0, 0.06);
+    tube([0.3, 0.84, 0], [F[0] - 0.02, F[1], 0.06], 0.022, CHROME);
+    tube([0.3, 0.84, 0], [F[0] - 0.02, F[1], -0.06], 0.022, CHROME);
+    tube([0.3, 0.84, 0], [-0.04, 0.5, 0], 0.03, dark);
+    tube([-0.04, 0.5, 0], [R[0] + 0.1, 0.62, 0], 0.025, dark);
+    for (const z of [0.07, -0.07]) tube([-0.04, 0.34, z], [R[0], R[1], z * 1.2], 0.02, dark);
+    B.box(-0.34, 0.74, 0, 0.56, 0.08, 0.22, black);
+    B.box(-0.6, 0.8, 0, 0.26, 0.03, 0.24, dark);
+    B.geo(new THREE.CylinderGeometry(0.075, 0.075, 0.09, 10).rotateZ(Math.PI / 2), composeMatrix(0.36, 0.9, 0), CHROME);
+    B.box(0.42, 0.9, 0, 0.02, 0.09, 0.09, HEADLAMP, G_LAMP);
+    tube([0.3, 0.86, 0], [0.26, 1.04, 0], 0.025, dark);
+    for (const z of [1, -1]) {
+      tube([0.26, 1.04, 0], [0.2, 1.08, z * 0.3], 0.013, CHROME);
+      tube([0.2, 1.08, z * 0.3], [0.2, 1.08, z * 0.4], 0.02, black);
+    }
+    for (const z of [1, -1]) B.box(-0.02, 0.18, z * 0.16, 0.12, 0.02, 0.1, dark);
+    tube([0.1, 0.26, 0.17], [-0.56, 0.34, 0.2], 0.04, CHROME);
+    B.box(-0.62, 0.35, 0.2, 0.22, 0.09, 0.09, 0x6a6e72);
+    B.geo(new THREE.TorusGeometry(s.r + 0.03, 0.025, 3, 9, Math.PI * 0.8), composeMatrix(F[0], F[1], 0, 0, 0, Math.PI * 0.1), color);
+    B.geo(new THREE.TorusGeometry(s.r + 0.03, 0.025, 3, 9, Math.PI * 0.7), composeMatrix(R[0], R[1], 0, 0, 0, Math.PI * 0.15), color);
+    B.box(R[0] - 0.22, 0.6, 0, 0.02, 0.05, 0.08, TAIL, G_LAMP);
+    return B.build();
+  });
+}
+
+function helmetGeometry(color) {
+  return cached(`helmet|${color}`, () => {
+    const B = new GeoBuilder(3);
+    B.geo(new THREE.SphereGeometry(0.168, 10, 8), composeMatrix(0, 0, 0, 0, 0, 0, 1.08, 1, 0.98), color);
+    B.box(0.115, -0.015, 0, 0.08, 0.07, 0.2, 0x1d2328, 1);
+    B.box(0.03, -0.14, 0, 0.14, 0.06, 0.2, color);
+    return B.build();
+  });
+}
+
+// A full-face helmet on a rider's head bone (models3d_people), replacing any earlier one.
+export function attachHelmet(rider, color = 0xe8e6e0) {
+  const head = rider && rider.userData && rider.userData.head;
+  if (!head) return null;
+  if (rider.userData.helmet) head.remove(rider.userData.helmet);
+  const mesh = new THREE.Mesh(helmetGeometry(color), vehicleMaterials());
+  mesh.position.set(0.005, PERSON_RIG.HEAD_Y - PERSON_RIG.NECK_Y + 0.012, 0);
+  head.add(mesh);
+  rider.userData.helmet = mesh;
+  return mesh;
+}
+
+function seatRider(v, seat, hex) {
+  const rider = riderFor(v, toHex(v.model.rider, hex));
+  rider.position.set(seat.x, seat.y - 0.93 * rider.scale.y, 0);
+  poseRider(rider, seat.leg, seat.arm, seat.lean);
+  return rider;
+}
+
+function buildMotorbikeMesh(v) {
+  const group = new THREE.Group();
+  const kind = MOTO_SPEC[v.model.motorbike] ? v.model.motorbike : 'naked';
+  const s = MOTO_SPEC[kind];
+  const color = v.wrecked ? WRECKED_COLOR : toHex(v.model.color, 0xc9a227);
+  const mats = vehicleMaterials();
+  // the body is drawn about 2.05 m long: stretch it to the model's length, as collision
+  const sx = (v.model.len || 2.05) / 2.05;
+  const body = new THREE.Mesh(buildMotorbikeGeometry(kind, color), mats);
+  body.scale.x = sx;
+  group.add(body);
+  const wgeo = bikeWheelGeometry(s.r, s.tire, false);
+  const wheels = [];
+  addWheel(group, wgeo, mats[0], s.fx * sx, s.r, 0, wheels);
+  addWheel(group, wgeo, mats[0], s.rx * sx, s.r, 0, wheels);
+  group.userData.wheels = wheels;
+  group.userData.wheelRadius = s.r;
+  group.userData.spinStep = 0.28;
+  const rider = seatRider(v, s.seat, 0x1c1c1e);
+  attachHelmet(rider, toHex(v.model.helmet, kind === 'sport' ? 0xe8e6e0 : 0x1c1c1e));
+  group.add(rider);
+  return group;
+}
+
+function buildClassicMopedMesh(v) {
+  const group = new THREE.Group();
+  const s = MOTO_SPEC.moped;
+  const color = v.wrecked ? WRECKED_COLOR : toHex(v.model.color, 0xc9541e);
+  const mats = vehicleMaterials();
+  const sx = (v.model.len || 1.7) / 1.7;
+  const body = new THREE.Mesh(buildClassicMopedGeometry(color), mats);
+  body.scale.x = sx;
+  group.add(body);
+  const wgeo = bikeWheelGeometry(s.r, s.tire, true);
+  const wheels = [];
+  addWheel(group, wgeo, mats[0], s.fx * sx, s.r, 0, wheels);
+  addWheel(group, wgeo, mats[0], s.rx * sx, s.r, 0, wheels);
+  group.userData.wheels = wheels;
+  group.userData.wheelRadius = s.r;
+  group.userData.spinStep = 0.34;
+  const rider = seatRider(v, s.seat, HABBO_PALETTE.roofBlue);
+  attachHelmet(rider, 0xd8c8a0);
+  group.add(rider);
+  return group;
+}
+
 function buildScooterMesh(v) {
+  if (v.model.motorbike) return buildMotorbikeMesh(v);
+  if (v.model.geared) return buildClassicMopedMesh(v);
   if (v.model.moped) return buildMopedMesh(v);
   const group = new THREE.Group();
   const color = v.wrecked ? WRECKED_COLOR : toHex(v.model.color, HABBO_PALETTE.black);

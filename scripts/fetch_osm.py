@@ -51,6 +51,7 @@ KEEP_TAGS = {
     "highway", "name", "ref", "width", "est_width", "lanes", "oneway", "junction",
     "bridge", "tunnel", "layer", "cutting", "embankment", "covered",
     "building", "building:levels", "natural", "waterway", "leisure", "landuse",
+    "access", "foot", "bicycle", "motor_vehicle", "motorcar", "vehicle", "motorroad", "bus", "psv",
 }
 
 

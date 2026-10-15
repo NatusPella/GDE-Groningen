@@ -226,35 +226,34 @@ function markRead(from) {
 
 function contactCard(c, i) {
   const cur = callIdx === i && call;
-  return `<button type="button" class="td-card ph-card" data-ph-contact="${i}"${cur ? ' aria-current="true"' : ''}>` +
-    `<span class="td-ico ph-av">${esc(initials(c.name))}</span>` +
-    `<span class="td-txt"><b>${esc(c.name)}</b><small>${dualHtml(c.sub)}</small></span>` +
-    `<span class="td-side">${cur ? `<span class="td-pill" data-st="nu">${call.phase === 'ringing' ? 'Bellen…' : 'In gesprek'}</span>` : ''}</span></button>`;
+  return `<button type="button" class="m-li ph-card" data-ph-contact="${i}"${cur ? ' aria-current="true"' : ''}>` +
+    `<span class="av">${esc(initials(c.name))}</span>` +
+    `<span class="nm"><span class="one">${esc(c.name)}</span><span class="mut one">${dualHtml(c.sub)}</span></span>` +
+    `${cur ? `<span class="t g">${call.phase === 'ringing' ? 'Bellen…' : 'In gesprek'}</span>` : ''}</button>`;
 }
 
 function threadCard(t) {
   const last = t.items[0];
-  return `<button type="button" class="td-card ph-card" data-ph-thread="${esc(t.from)}"${thread === t.from ? ' aria-current="true"' : ''}>` +
-    `<span class="td-ico ph-av${t.from === 'Kiekdoar' ? ' news' : ''}">${esc(initials(t.from))}</span>` +
-    `<span class="td-txt"><b>${esc(t.from)}</b><small class="ph-snip">${dualHtml(bodyOf(last))}</small></span>` +
-    `<span class="td-side">${t.unread ? `<span class="td-pill ph-unread" data-st="nu">${t.unread} nieuw</span>` : ''}<span class="td-dist">${esc(last.at || '')}</span></span></button>`;
+  return `<button type="button" class="m-li ph-card" data-ph-thread="${esc(t.from)}"${thread === t.from ? ' aria-current="true"' : ''}>` +
+    `<span class="av">${esc(initials(t.from))}</span>` +
+    `<span class="nm"><span class="one">${esc(t.from)}</span><span class="mut one">${dualHtml(bodyOf(last))}</span></span>` +
+    `${t.unread ? `<span class="v g" aria-label="${t.unread} ongelezen">${t.unread}</span>` : `<span class="t">${esc(last.at || '')}</span>`}</button>`;
 }
 
 function callHtml() {
   const c = call;
   const name = c.contact.name;
-  return `<div class="ph-call"><span class="ph-av lg">${esc(initials(name))}</span><h3>${esc(name)}</h3>` +
-    `<span class="td-kicker">${c.phase === 'ringing' ? 'Bellen…' : 'Verbonden'}</span>` +
+  const acts = c.phase === 'talk' ? c.actions.map((a, i) => `<button type="button" class="${a.hangup ? 'm-bt danger' : a.primary ? 'm-bp' : 'm-bg'}" data-ph-act="${i}">${esc(a.label)}</button>`).join('') : '';
+  return `<div class="ph-head"><span class="av lg">${esc(initials(name))}</span><div class="pm-pane-top"><span class="m-eb">${c.phase === 'ringing' ? 'Bellen…' : 'Verbonden'}</span><h2 class="m-h2 td-h2">${esc(name)}</h2></div></div>` +
     (c.phase === 'talk' && c.line ? `<p class="ph-bubble">${speakerHtml(c.contact.speaker || name)}${dualHtml(c.line)}</p>` : '') +
-    (c.phase === 'talk' ? `<div class="ov-btns ph-acts">${c.actions.map((a, i) => `<button type="button" class="${a.hangup ? 'pm-danger' : a.primary ? 'pm-primary' : 'pm-secondary'} pm-small" data-ph-act="${i}">${esc(a.label)}</button>`).join('')}</div>` : '') +
-    '</div>';
+    '<span class="m-grow"></span>' + (acts ? `<div class="m-acts ph-acts">${acts}</div>` : '');
 }
 
 function threadHtml(from) {
   const t = phoneThreads().find((x) => x.from === from);
-  if (!t) return '<p class="pm-note">Kies een gesprek.</p>';
-  return `<span class="td-kicker">${t.from === 'Kiekdoar' ? 'Nieuws' : 'Berichten'}</span><h3>${esc(t.from)}</h3>` +
-    `<div class="ph-thread">${[...t.items].reverse().map((e) => `<p class="ph-msg"><small>${esc(e.at || '')}</small>${dualHtml(bodyOf(e))}</p>`).join('')}</div>`;
+  if (!t) return '<p class="mut">Kies een gesprek.</p>';
+  return `<div class="ph-head"><span class="av lg">${esc(initials(t.from))}</span><div class="pm-pane-top"><span class="m-eb">${t.from === 'Kiekdoar' ? 'Nieuws' : 'Berichten'}</span><h2 class="m-h2 td-h2">${esc(t.from)}</h2></div></div>` +
+    `<div class="ph-thread">${[...t.items].reverse().map((e) => `<div class="ph-msg"><span class="mut">${esc(e.at || '')}</span><p>${dualHtml(bodyOf(e))}</p></div>`).join('')}</div>`;
 }
 
 function renderDetail(focusActs = false) {
@@ -262,9 +261,9 @@ function renderDetail(focusActs = false) {
   if (!panel || !panel.isConnected) return;
   const aside = panel.querySelector('.td-detail');
   const sub = panel.dataset.phSub;
-  if (sub === 'berichten') aside.innerHTML = thread ? threadHtml(thread) : '<p class="pm-note">Kies een gesprek om het te lezen.</p>';
+  if (sub === 'berichten') aside.innerHTML = thread ? threadHtml(thread) : '<p class="mut">Kies een gesprek om het te lezen.</p>';
   else if (call) aside.innerHTML = callHtml();
-  else aside.innerHTML = `<p class="pm-note">${note ? esc(note) : 'Kies iemand om te bellen.'}</p>`;
+  else aside.innerHTML = `<p class="mut">${note ? esc(note) : 'Kies iemand om te bellen.'}</p>`;
   for (const b of panel.querySelectorAll('[data-ph-contact]')) {
     const on = !!call && Number(b.dataset.phContact) === callIdx;
     b.toggleAttribute('aria-current', on);
@@ -288,10 +287,10 @@ export function renderPhonePanel(panel, w, sub) {
     const ts = phoneThreads(w);
     if (thread && !ts.some((t) => t.from === thread)) thread = null;
     list.innerHTML = ts.length
-      ? `<h2>Berichten <small>nieuwste eerst</small></h2><div class="td-grid ph-grid">${ts.map(threadCard).join('')}</div>`
-      : '<p class="pm-note">Nog geen berichten. Grunn is rustig… nog wel.</p>';
+      ? `<div class="m-gh"><span>Berichten</span><span>nieuwste eerst</span></div>${ts.map(threadCard).join('')}`
+      : '<p class="m-note">Nog geen berichten. Grunn is rustig… nog wel.</p>';
   } else {
-    list.innerHTML = `<h2>Contacten <small>bel voor een rit, een klus of een praatje</small></h2><div class="td-grid ph-grid">${contacts(w).map(contactCard).join('')}</div>`;
+    list.innerHTML = `<div class="m-gh"><span>Contacten</span><span>bel voor een rit, een klus of een praatje</span></div>${contacts(w).map(contactCard).join('')}`;
   }
   for (const el of panel.querySelectorAll('[data-of="telefoon"][data-sub]')) if (el.dataset.sub !== sub) el.innerHTML = '';
   renderDetail();

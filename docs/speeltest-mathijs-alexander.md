@@ -1,0 +1,83 @@
+# Speeltest-feedback Mathijs en Alexander (15 okt 2026), ruwe invoer
+
+Letterlijk overgenomen van de speeltest. Eigen namen en merken in deze lijst zijn de woorden van de testers; in het spel gebruiken we verzonnen namen (zie het triagedocument).
+
+- OOGTV
+- DUO (Studieschuld wissen / kluis stelen / etc.)
+- Politiepaarden poepen
+- Herestraat ondoordringbaar / straatspam
+- Bedelaars / De Riepe-verkopers
+- Bernard (herkenbare zwerver)
+- Te lage viaducten!
+- Bruggen kapot met aanvaringen met schepen
+- Fatbike-overlast bij McDonalds (als beveiliger iedereen in elkaar slaan)
+- Japanse Kersenbloesem (roze bomen)
+- Meer soorten bomen, subtiele verschillen (kleuren, hoogte, type)
+- Studenten verhuizingen dingen op de fiets, lopen met een bankstel of zo
+- Roeiende studenten op het water
+- Binnenvaartschepen, jachthavens!
+- Discgolf in stadspark
+- Skateparks
+- Swapfietsen
+- Gammele fietsen (studenten), boete voor geen licht :P
+- Boete voor mobiel in de hand
+- De ring kun je niet zomaar overheen lopen / fietstunneltjes
+- Magneetvissers beboeten / granaat uit het water kunnen vissen
+- Meer bezorgers met grote tassen
+- Datacenters op Zernike
+- Fiets stelen en kunnen verkopen voor weinig geld, kans op politie
+- Bedum straatgangs
+- Pieterpad (Winsum)
+- Winsum mooiste dorp van Nederland
+- Slootjes liggen dieper
+- ANWB-stellen in ommeland
+- Wraak nemen voor mijnbouwschade (tegen de NAM)
+- Aardbeving als random weer-event
+- Meer bestaande 3D-maps gebruiken om gebouwen te laten kloppen
+- Vet veel fietsen in het centrum
+- Niet teveel tekst tegelijk in beeld, ook niet op een laadscherm
+- Boertange, een missie daar?
+- Stedum grappen (komt u uit steden of gaat u naar Stedum)?
+- RTV Noord-busje laten rondrijden
+- Kerken een interieur laten hebben (misschien ook meer echte 3D-modellen)
+- Zorg voor voldoende iconische dingen per wijk/gebied. Bijv. de sluisbrug/kade, hoge torens, kunstwerken, Gasunie-gebouw, parken kloppend maken, Forum naar binnen kunnen, korenbeurs, alles rondom nieuwe markt, vismarkt en grote markt heel gedetailleerd, pannekoekenschip
+- De plaatsnaam naast de mini-map lijnt nu verticaal in het midden uit, maar dat is een beetje gek.
+- Tijdens bloemetjesmarkt veel duitsers
+- Iets met de rechtbank
+- Iets met academiegebouw, stereotypes van academische rondlopen (met zo'n hoedje)
+- Iets met busmuseum (een bus stelen / afleveren bij het museum)
+- Stadsschouwburg: Friese cabaret verstoren
+- Tonen we nu niet dubbel dat een missie gelukt is? (Eerst fullscreen en daarna als melding)? Zo ja, dat hoeft niet per se.
+- BOA-missie met onzinnige boetes
+- Verwarring over fiesten over grote markt
+- Iets met Vindicat
+- Overal waar een knop wordt getoond moet dat consistent zijn, graag de witte heldere knoppen gebruiken.
+- Maak instelbaar in de instellingen of je de hints voor controller of voor keyboard wilt zien overal in de HUD.
+- Boot te water laten
+- Je hoeft niet te laten zien dat x meldingen in de wacht staan
+- Mensen die suppen op het water in de stad
+- Bruggen die open en dicht gaan (misschien nog een leuke race)?
+- Vuurwerk tijdens bommen berend
+- Xior-flat die te heet wordt
+- Jeugdgevangenis het poortje
+- Van Mesdag-missie en meer detail van locatie
+- Zwembad (o.a. de papiermolen) (mini-game)
+- Een missie bij GemeenteOplossingen (stoffig en ambtelijk), iWink (hippe websites)
+- De Helix (verven blokkeren)
+- Pitch & Putt minigame!
+- Blauwalg in het water!
+- Klimtoren bij Zernike!
+- Karten bij Kardinge!
+- Meerstad
+- Waterskieren bij Gruno-park
+- Euroborg
+- Groot TV-scherm op Bakker Bart
+- Prinsentuin
+- Niemeyer-fabriek (iets met AI daarin)?
+- Herkenbare begraafplaatsen
+- Hanze namaken
+- Suikerbieten in Hoogkerk
+- Oud KPN-gebouw waar veel raves zijn
+- In bepaalde wijken beroofd kunnen worden
+- Tessa moet zich onveilig kunnen voelen tijdens het uitgaan (als een sociaal commentaar)
+- Iets met de woeste hoeve

@@ -1275,6 +1275,19 @@ auto's), `cycleway`, `footway`, `path`, `pedestrian`, `bus`/`psv`-only,
 - **Tegeldata:** `roads` krijgt `acc` (bitmasker: voet, fiets, brom, auto,
   bus, hulpdienst) uit de tags; `nav` herhaalt het per tak.
 
+**Stand (huidig gebied en de F0-tegels):** de routering per modus loopt al:
+lopen, fiets en auto over `routing.js` (toegangsregels uit `roadaccess.js`,
+`acc` uit de OSM-tags zodra `fetch_osm.py` opnieuw draait; tot dan beslist de
+wegklasse), boot, trein (keten lopen > station > trein > lopen met
+"uitstappen bij"), lucht (lijn om no-fly-zones met hoogteadvies en
+landingsplek) in `travelroute.js`; waypoint-snap op het juiste niveau;
+overtredingen in `trafficlaw.js` (waarschuwing, na 12 s een ster);
+markeringen in `waymarkers3d.js`; `scripts/mode_route_test.mjs` draait op de
+stad en op de tegels. **Nog niet:** afslagbeperkingen en rijstroken (geen
+data), beweegbare bruggen en sluizen (geen data; alleen de dekhoogte uit het
+z-profiel), bushaltes en buslijnen (geen halte-data), de Ommeland-graaf kent
+alleen snelweg (kind 1) en geen `acc`.
+
 **Fase:** F0 de toegangsbits en het datamodel; F1 routering per modus in de
 corridor; F2 provinciebreed; de modusgebonden kaart en minimap bij de
 HUD-ronde (F3).

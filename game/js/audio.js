@@ -3,6 +3,7 @@ import { getCamera } from './scene3d.js';
 import { getSettings, onSettingsChange } from './settings.js';
 import { isThemeActive } from './theme.js';
 import { vehicleContacts } from './vehicle.js';
+import { gearboxReadout } from './gearbox.js';
 import { createBank, buildImpulse } from './sfx/dsp.js';
 import { initAmbience, updateAmbience, ambienceStats, getPlace } from './sfx/ambience.js';
 import { initFoley, updateFoley, propHit, foleyStats } from './sfx/foley.js';
@@ -2088,6 +2089,9 @@ const ENGINE_SPECS = [
   { idle: 750, red: 7000, shift: 0.16, level: 0.38 },
   { idle: 750, red: 4300, shift: 0.2, level: 0.38 },
   { idle: 0, red: 48000, shift: 0, level: 0.24 },
+  { idle: 1300, red: 13000, shift: 0.08, level: 0.4 },
+  { idle: 1200, red: 10000, shift: 0.1, level: 0.4 },
+  { idle: 1000, red: 7500, shift: 0.16, level: 0.38 },
 ];
 
 // Canoes, kayaks and pedalos have no engine: paddle strokes or the pedalo's
@@ -2202,6 +2206,7 @@ function updatePaddling(dt, world) {
 // Deelsteps are electric (kind 7); the police motor and the Snorscooter
 // (model.moped) are a real two-stroke brommer.
 function engineKind(v) {
+  if (v.isScooter && v.model.motorbike) return v.model.motorbike === 'sport' ? 8 : v.model.motorbike === 'naked' ? 9 : 10;
   if (v.isScooter) return v.isPolice || v.model.moped ? 3 : 7;
   if (v.isBoat) return 4;
   if (v.isBus) return 2;
@@ -2284,7 +2289,18 @@ function updateEngineSynth(dt, world) {
   const spec = ENGINE_SPECS[S.kind];
   const thr = world.paused ? 0 : v.throttle || 0;
   const speed = Math.abs(v.speed);
-  const { rpm: baseRpm, shifted } = engineRpm(v, S, S.kind, thr, t);
+  const prevGear = S.gear;
+  let { rpm: baseRpm, shifted } = engineRpm(v, S, S.kind, thr, t);
+  // geared vehicles: the gearbox (gearbox.js) owns gear and revs, mapped onto this engine's range
+  const gb = v.gb;
+  if (gb) {
+    const p = gb.p;
+    baseRpm = spec.idle + clamp((gb.rpm - p.idle) / (p.red - p.idle), 0, 1.02) * (spec.red - spec.idle);
+    if (gb.stalled) baseRpm = 0;
+    const g = Math.max(0, gb.gear - 1);
+    shifted = g === prevGear ? 0 : g > prevGear ? 1 : -1;
+    S.gear = g;
+  }
   let rpm = baseRpm;
   let load = thr > 0 ? 0.9 : speed < 0.4 ? 0.25 : 0.15;
   if (thr < 0 && v.speed <= 0.3) load = 0.7;
@@ -2314,8 +2330,11 @@ export function engineReadout() {
   const S = engineState;
   if (!S.vehicle) return null;
   const spec = ENGINE_SPECS[S.kind];
-  const geared = S.kind !== 3 && S.kind !== 4 && S.kind !== 7;
-  return { rpm: S.rpm || spec.idle, red: spec.red, gear: geared ? S.gear : -1, reverse: S.vehicle.speed < -0.2, gears: geared ? (S.kind === 2 ? BUS_GEAR_TOPS : GEAR_TOPS).length : 0 };
+  const gb = S.vehicle.gb;
+  const geared = !!gb || (S.kind !== 3 && S.kind !== 4 && S.kind !== 7);
+  const out = { rpm: S.rpm || spec.idle, red: spec.red, gear: geared ? S.gear : -1, reverse: S.vehicle.speed < -0.2, gears: gb ? gb.p.tops.length : geared ? (S.kind === 2 ? BUS_GEAR_TOPS : GEAR_TOPS).length : 0 };
+  if (gb) out.gb = gearboxReadout(gb);
+  return out;
 }
 
 const trafficEngine = new WeakMap();
@@ -2631,6 +2650,13 @@ function playAudioEvents(world) {
         engineState.gear = 0;
         break;
       case 'engine_stop': if (!synth.player) playEngineStop(x, y); break;
+      case 'gear-ok': playNoiseBurst({ duration: 0.03, freq: 700, q: 3, gain: 0.05, type: 'bandpass', bus: uiBus }); break;
+      case 'gear-grind': {
+        for (let j = 0; j < 3; j++) playNoiseBurst({ duration: 0.05, freq: 1800 + j * 400, q: 1.5, gain: 0.06, type: 'bandpass', delay: j * 0.045, bus: uiBus });
+        break;
+      }
+      case 'gear-refuse': playTone({ freq: 220, type: 'square', duration: 0.1, gain: 0.04, bus: uiBus }); break;
+      case 'engine_stall': playTone({ freq: 90, freqEnd: 35, type: 'sawtooth', duration: 0.35, gain: 0.12, filterFreq: 500, bus: uiBus }); break;
       case 'prop_hit': propHit(e, x, y); break;
       case 'bullet_hit': playBulletHit(x, y, e.material, clamp(e.strength ?? 0.5, 0, 1)); break;
       case 'coo': case 'flap': case 'bonk': case 'poop': case 'splat': case 'plop': playCritterEvent(e.kind, x, y, clamp(e.strength ?? 0.5, 0, 1)); break;

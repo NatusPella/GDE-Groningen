@@ -108,6 +108,7 @@ const HORSE_BUDDY_POSE = { recline: -0.1, footX: 0.08, footY: -0.72, splay: 0.6,
 // The rider's own figure: origin (feet) height, not a seat top.
 function bikeRiderSeat(v) {
   if (v._mount === 'horse') return { x: -0.08, z: 0, y: HORSE_SADDLE_TOP, face: 0, pose: HORSE_POSE, horse: true };
+  if (v.isScooter && v.model.motorbike) return { x: -0.3, z: 0, y: 0.82 - PERSON_RIG.HIP_Y, face: 0, stand: true, rider: true };
   if (v.isScooter && v.model.moped) return { x: -0.22, z: 0, y: 0.8 - PERSON_RIG.HIP_Y, face: 0, stand: true, rider: true };
   if (v.isScooter) return { x: -0.08, z: 0, y: 0.155, face: 0, stand: true };
   const fat = !!v.model.fat;
@@ -118,7 +119,7 @@ function bikeRiderSeat(v) {
 // behind the rider on a fatbike's long saddle, or standing behind on a step.
 function bikeBuddySeat(v) {
   if (v._mount === 'horse') return { x: -0.56, z: 0, y: HORSE_SADDLE_TOP - 0.02, face: 0, pose: HORSE_BUDDY_POSE, horse: true };
-  if (v.isScooter && v.model.moped) return { x: -0.6, z: 0, y: 0.84, face: 0, pose: { recline: -0.1, footX: 0.2, footY: -0.5, splay: 0.25, arms: 'hug' } };
+  if (v.isScooter && (v.model.moped || v.model.motorbike)) return { x: v.model.motorbike ? -0.62 : -0.6, z: 0, y: 0.86, face: 0, pose: { recline: -0.1, footX: 0.2, footY: -0.5, splay: 0.25, arms: 'hug' } };
   if (v.isScooter) return { x: -0.34, z: 0, y: 0.155, face: 0, stand: true };
   if (v.model.fat) return { x: -0.62, z: 0, y: 0.95, face: 0, pose: { recline: -0.14, footX: 0.14, footY: -0.52, splay: 0.3, arms: 'hug' } };
   return { x: -0.56, z: 0, y: 0.8, face: -Math.PI / 2, pose: { recline: 0.04, footX: 0.26, footY: -0.55, arms: 'rail' } };

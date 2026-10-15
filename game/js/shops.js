@@ -4,6 +4,7 @@ import { clearOfReal } from './countryreal.js';
 import { facilitiesOf, countryDoor } from './facilities.js';
 import { getScene, refreshCharacterMeshes } from './scene3d.js';
 import { spawnVehicleOnRoad, spawnBoatOnWater, HERO_CAR_MODEL, playerTopSpeed } from './vehicle.js';
+import { MOTORBIKE_MODELS, GEARED_MOPED_MODEL } from './motomodels.js';
 import { BOAT_KINDS } from './boattypes.js';
 import { TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { getHorecaForRender } from './horeca.js';
@@ -138,6 +139,11 @@ export const VEHICLE_STOCK = {
   bakfiets: { kind: 'bike', type: 'Bakfiets', shop: 'fietsen', label: 'Bakfiets Kroost-Karretje', desc: 'Voor twee kinderen, een hond of drie kratten', price: 450, nameIdx: 0, color: '#2f4a3a', model: { name: 'bike', cargo: true, len: 2.55, wid: 0.72, maxSpeed: 5.4, accel: 2.5, brake: 5, turnRate: 3.2 } },
   deelstep: { kind: 'scooter', type: 'E-step', shop: 'fietsen', label: 'Deelstep Stadswesp', desc: 'Nu eindelijk van jou. Nooit meer in de gracht vissen', price: 450, nameIdx: 1, color: '#e8e6e0', model: { name: 'scooter', len: 1.1, wid: 0.4, maxSpeed: 7.8, accel: 3.8, brake: 4.2, turnRate: 5.2 } },
   snorscooter: { kind: 'scooter', type: 'Snorscooter', shop: 'fietsen', label: 'Snorscooter Brommie', desc: 'Helm hoeft niet, zegt de verkoper. De verkoper heeft een helm op', price: 900, nameIdx: 0, color: '#8f2f2a', model: { name: 'scooter', moped: true, len: 1.7, wid: 0.62, maxSpeed: 12.5, accel: 4.6, brake: 7, turnRate: 4.2 } },
+  // motorbikes and the classic moped: six gears (1-N-2..6) or four, handmatig te schakelen (Instellingen)
+  stormvogel: { kind: 'scooter', type: 'Motor', shop: 'fietsen', label: 'Wadden Stormvogel', desc: 'Sportmotor, zes versnellingen en een helm die je gelukkig meekrijgt', price: 4200, nameIdx: 0, color: '#c9a227', model: { ...MOTORBIKE_MODELS.sport } },
+  knetter: { kind: 'scooter', type: 'Motor', shop: 'fietsen', label: 'Hunze Knetter', desc: 'Naked bike: geen kuip, wel een mening. Wheelies op bestelling', price: 3100, nameIdx: 0, color: '#2f5a8f', model: { ...MOTORBIKE_MODELS.naked } },
+  klassieker: { kind: 'scooter', type: 'Motor', shop: 'fietsen', label: 'Dollard Klassieker', desc: 'Chroom, één cilinder en een knetter die de buren herkennen', price: 2300, nameIdx: 0, color: '#2e4a34', model: { ...MOTORBIKE_MODELS.old } },
+  pruttelaar: { kind: 'scooter', type: 'Brommer', shop: 'fietsen', label: 'Tweetakt Pruttelaar', desc: 'Echte brommer met koppeling en vier versnellingen: 45 km/u, geen meter harder. Voor de politie dan', price: 1100, nameIdx: 0, color: '#c9541e', model: { ...GEARED_MOPED_MODEL } },
   // --- cars ---
   knakker: { kind: 'car', type: 'Hatchback', shop: 'auto', label: 'Dollard Knakker', desc: 'Klein, pittig en altijd net te laat bij de APK', price: 650, nameIdx: 0, color: '#c7c9cc', model: CAR_M('hatch', 3.8, 1.7, 41, 9, 15, 3.0) },
   pienter: { kind: 'car', type: 'Hatchback', shop: 'auto', label: 'Eemsmond Pienter', desc: 'Zuinig, slim en saai. Precies wat je moeder wil', price: 700, nameIdx: 1, color: '#e8e6e0', model: CAR_M('hatch', 3.8, 1.7, 42, 9, 15, 3.1) },
@@ -232,18 +238,26 @@ const PADDLED = new Set(['kano', 'kajak', 'waterfiets', 'sup']);
 const isSailBoat = (v) => !!(v && v.isBoat && v.model && v.model.sail);
 function upgradeListFor(v) {
   if (v && v.isBoat) return isSailBoat(v) ? [] : PADDLED.has(v.model.kind) ? PADDLE_UPGRADES : BOAT_UPGRADES;
-  return isTwoWheeler(v) ? BIKE_UPGRADES : CAR_UPGRADES;
+  return isTwoWheeler(v) ? (isMotorised(v.model) ? MOTO_UPGRADES : BIKE_UPGRADES) : CAR_UPGRADES;
 }
 export function upgradeListForStock(spec) {
   if (spec.kind === 'boat') return spec.model && spec.model.sail ? [] : PADDLED.has(spec.model && spec.model.kind) ? PADDLE_UPGRADES : BOAT_UPGRADES;
-  return spec.kind === 'car' ? CAR_UPGRADES : BIKE_UPGRADES;
+  return spec.kind === 'car' ? CAR_UPGRADES : isMotorised(spec.model) ? MOTO_UPGRADES : BIKE_UPGRADES;
 }
+
+// Motorbikes and the geared moped. On the moped the exhaust lifts it past the legal 45 km/h: the police notice.
+export const MOTO_UPGRADES = [
+  { id: 'uitlaat', label: 'Sportuitlaat', desc: 'Harder en rapper: +10% top, +15% trekkracht. Een brommer boven de 45 km/u is illegaal', price: 280, mult: { maxSpeed: 1.1, accel: 1.15 } },
+  { id: 'schijven', label: 'Grote remschijven', desc: 'Stopt waar je wil: +30% remkracht', price: 140, mult: { brake: 1.3 } },
+  { id: 'plakbanden', label: 'Plakkende banden', desc: 'Scherper door de bocht', price: 150, mult: { turnRate: 1.15 } },
+];
 
 export const CAR_UPGRADES = [
   { id: 'motor', label: 'Opgevoerde motor', desc: 'Chip erin, filter eruit: +12% top, +20% trekkracht', price: 300, mult: { maxSpeed: 1.12, accel: 1.2 } },
   { id: 'remmen', label: 'Sportremmen', desc: 'Staat stil voor je het weet', price: 150, mult: { brake: 1.35 } },
   { id: 'grip', label: 'Brede banden', desc: 'Scherper door de bocht', price: 175, mult: { turnRate: 1.15 } },
   { id: 'turbo', label: 'Turbo "Tinus"', desc: 'Pssssjoew! +22% top, +35% trekkracht', price: 700, mult: { maxSpeed: 1.22, accel: 1.35 } },
+  { id: 'sperdiff', label: 'Sperdifferentieel', desc: 'Houdt beide achterwielen bij de les: een slip blijft veel langer staan', price: 260, mult: {} },
 ];
 
 const SUPER_ITEMS = [
@@ -590,6 +604,7 @@ function garageForPaint() {
 }
 
 const isTwoWheeler = (v) => !!(v && (v.isBike || v.isScooter));
+const isMotorised = (m) => !!(m && (m.motorbike || m.geared));
 const isCar = (v) => paintableVehicle(v) && !v.isBike && !v.isScooter;
 
 // Stopped in the right vehicle at a fietsenmaker / tuning shop.

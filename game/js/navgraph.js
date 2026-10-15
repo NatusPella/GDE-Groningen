@@ -16,6 +16,7 @@ export const ACC = { FOOT: 1, BIKE: 2, CAR: 4, BUS: 8 };
 export const MODES = { foot: ACC.FOOT, bike: ACC.BIKE, car: ACC.CAR, bus: ACC.BUS };
 
 export function accessOf(r) {
+  if (typeof r.acc === 'number') return r.acc;
   if (r.busOnly) return ACC.BUS;
   if (r.cat === 'cycle') return ACC.BIKE;
   if (r.cat === 'foot') return r.type === 'steps' ? ACC.FOOT : r.type === 'pedestrian' ? ACC.FOOT | ACC.BIKE : ACC.FOOT;

@@ -1,5 +1,6 @@
 // Pauzemenu › Cheats: the cheats as rows in the menu's own style (switches,
-// buttons, ??? for the locked ones). State and effects live in cheats.js.
+// quiet buttons, ??? for the locked ones, folded away). The one in focus is
+// explained beside the list. State and effects live in cheats.js.
 import { CHEATS } from './cheatlist.js';
 import { ACHIEVEMENTS } from './achievements.js';
 import { STEPS } from './storyarc.js';
@@ -7,29 +8,17 @@ import {
   isAvailable, isCheatOn, setCheat, achievementsBlocked, cheatsBusy, blockedReason,
   spawnChoices, spawnVehicleHere,
 } from './cheats.js';
+import { isFolded } from './todoui.js';
 
 const KIND = { car: 'Auto', bike: 'Fiets', scooter: 'E-step', boat: 'Boot', heli: 'Heli' };
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const LOCK = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5.5" y="11" width="13" height="9" rx="1.5"/><path d="M8.5 11V8a3.5 3.5 0 0 1 7 0v3"/></svg>';
+const CHEV = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 6l6 6-6 6"/></svg>';
 
 let picker = false;
 let msg = '';
-let styled = false;
-
-const CSS = `
-  #pause-menu .st-intro { margin: 0 0 10px; padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(63,201,122,0.3); background: rgba(30,158,86,0.08); font: 15px/1.4 'Arial Narrow', Arial, sans-serif; color: rgba(240,237,228,0.85); }
-  #pause-menu .st-intro.st-off { border-color: rgba(217,63,63,0.55); background: rgba(217,63,63,0.1); }
-  #pause-menu .st-intro b { color: #f2f2f2; }
-  #pause-menu .st-tag { justify-self: start; grid-column: 2 / -1; font: 16px 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; letter-spacing: 1px; color: rgba(240,237,228,0.5); }
-  #pause-menu .st-tag.st-yes { color: #3fc97a; }
-  #pause-menu .pm-row small em { font-style: normal; color: #3fc97a; }
-  #pause-menu .pm-row small i { font-style: normal; color: rgba(240,237,228,0.75); }
-  #pause-menu .st-locked > span:first-child { color: rgba(240,237,228,0.5); }
-  #pause-menu .pm-streken .pm-row > .pm-secondary { font-size: 19px; letter-spacing: 1px; padding: 8px 16px 6px; min-height: 0; }
-  #pause-menu .st-pick { display: flex; flex-wrap: wrap; gap: 6px; padding: 4px 0 12px; }
-  #pause-menu .st-pick button { font: 15px 'Arial Narrow', Arial, sans-serif; padding: 7px 12px; border-radius: 8px; color: #f0ede4; cursor: pointer; }
-  #pause-menu .st-pick button small { margin-left: 6px; color: rgba(240,237,228,0.55); }
-  #pause-menu .st-msg:empty { display: none; }
-`;
+let sel = null;
+let lastW = null;
 
 function hintOf(c) {
   if (c.hint) return c.hint;
@@ -42,56 +31,73 @@ function hintOf(c) {
   return '';
 }
 
-function note(c) {
-  return c.safe ? '<em>uiterlijk · prestaties blijven aan</em>' : '<i>niet tijdens missies</i>';
-}
+const noteOf = (c) => (c.safe || c.id === 'teleport' || c.id === 'voertuig' ? 'Prestaties blijven aan, ook tijdens missies.' : 'Niet tijdens missies en filmpjes. Prestaties staan uit zolang hij aan staat.');
 
 function lockedRow(c) {
-  return `<div class="pm-row st-locked"><span>???<small>${esc(hintOf(c))}</small></span><span class="st-tag">Op slot</span></div>`;
+  return `<div class="m-li off" tabindex="0" data-cheat-row="${c.id}"><span class="nm"><span class="one">???</span><span class="mut one">${esc(hintOf(c))}</span></span>${LOCK}<span class="t">Op slot</span></div>`;
 }
 
 function actionRow(c, w) {
-  if (!isAvailable(c.id)) return lockedRow(c);
   const busy = blockedReason(w);
-  let ctrl = '';
-  if (c.id === 'teleport') ctrl = `<button type="button" class="pm-secondary" data-cheat-act="teleport"${busy ? ' disabled' : ''}><span>Kies op de kaart</span></button>`;
-  else if (c.id === 'voertuig') ctrl = `<button type="button" class="pm-secondary" data-cheat-act="picker" aria-expanded="${picker}"${busy ? ' disabled' : ''}><span>${picker ? 'Lijst dicht' : 'Kies voertuig'}</span></button>`;
-  else ctrl = '<span class="st-tag st-yes">Vrijgespeeld</span>';
-  const extra = c.id === 'teleport' || c.id === 'voertuig' ? '<em>prestaties blijven aan</em>' : '';
-  let row = `<div class="pm-row"><span>${esc(c.name)}<small>${esc(c.desc)}${extra ? ' · ' + extra : ''}${busy && (c.id === 'teleport' || c.id === 'voertuig') ? ' · <i>' + esc(busy) + '</i>' : ''}</small></span>${ctrl}</div>`;
+  let ctrl;
+  if (c.id === 'teleport') ctrl = `<button type="button" class="m-bt" data-cheat-act="teleport"${busy ? ' disabled' : ''}>Kies op de kaart</button>`;
+  else if (c.id === 'voertuig') ctrl = `<button type="button" class="m-bt" data-cheat-act="picker" aria-expanded="${picker}"${busy ? ' disabled' : ''}>${picker ? 'Lijst dicht' : 'Kies voertuig'}</button>`;
+  else ctrl = '<span class="t g">Vrijgespeeld</span>';
+  let row = `<div class="m-li" data-cheat-row="${c.id}"><span class="nm"><span class="one">${esc(c.name)}</span>${busy && (c.id === 'teleport' || c.id === 'voertuig') ? `<span class="mut one">${esc(busy)}</span>` : ''}</span>${ctrl}</div>`;
   if (c.id === 'voertuig' && picker && !busy) {
-    row += '<div class="st-pick">' + spawnChoices(w).map((v) => `<button type="button" class="pm-secondary" data-cheat-spawn="${esc(v.id)}">${esc(v.label)}<small>${KIND[v.kind] || ''}${v.own ? '' : ' · showroom'}</small></button>`).join('') + '</div>';
+    row += '<div class="st-pick">' + spawnChoices(w).map((v) => `<button type="button" class="m-chip" data-cheat-spawn="${esc(v.id)}">${esc(v.label)} <span>${KIND[v.kind] || ''}${v.own ? '' : ' · showroom'}</span></button>`).join('') + '</div>';
   }
   return row;
 }
 
 function toggleRow(c) {
-  if (!isAvailable(c.id)) return lockedRow(c);
-  return `<label class="pm-row"><span>${esc(c.name)}<small>${esc(c.desc)} · ${note(c)}</small></span><input type="checkbox" data-cheat="${c.id}"${isCheatOn(c.id) ? ' checked' : ''}></label>`;
+  return `<label class="m-li" data-cheat-row="${c.id}"><span class="nm"><span class="one">${esc(c.name)}</span></span><input type="checkbox" class="m-sw" data-cheat="${c.id}"${isCheatOn(c.id) ? ' checked' : ''}></label>`;
+}
+
+function paneHtml(w) {
+  const c = CHEATS.find((x) => x.id === sel);
+  const blocked = achievementsBlocked();
+  const busy = cheatsBusy(w);
+  const intro = blocked
+    ? 'Prestaties staan uit zolang er een cheat aan staat (de uiterlijk-cheats en teleporteren tellen niet mee).'
+    : 'Teleporteren, Voertuig hier en de uiterlijk-cheats laten je prestaties aan. Zet je een andere cheat aan, dan staan prestaties uit tot je hem weer uitzet.';
+  if (!c) return `<div class="pm-pane-top"><span class="m-eb">Cheats</span><h2 class="m-h2 td-h2">Een beetje vals spelen</h2></div><p>${intro}</p>`;
+  const open = isAvailable(c.id);
+  return `<div class="pm-pane-top"><span class="m-eb">${c.kind === 'action' || c.kind === 'perk' ? 'Actie' : c.safe ? 'Cheat · uiterlijk' : 'Cheat'}</span><h2 class="m-h2 td-h2">${open ? esc(c.name) : '???'}</h2></div>` +
+    `<p>${open ? esc(c.desc) : esc(hintOf(c))}</p>` +
+    (open ? `<p class="${c.safe || c.kind === 'action' ? 'g' : 'mut'}">${noteOf(c)}</p>` : '') +
+    '<span class="m-grow"></span>' +
+    (busy ? '<p class="mut">Je bent nu bezig (missie, filmpje of uitdaging): alleen de uiterlijk-cheats doen nu mee.</p>' : '') +
+    `<p class="${blocked ? 'red' : 'mut'}">${intro}</p><p class="g st-msg" role="status">${esc(msg)}</p>`;
 }
 
 // Fills the section; returns the sheet subtitle.
 export function renderCheatsPanel(el, w) {
-  if (!styled) {
-    styled = true;
-    const s = document.createElement('style');
-    s.textContent = CSS;
-    document.head.appendChild(s);
-  }
-  const blocked = achievementsBlocked();
-  const busy = cheatsBusy(w);
+  lastW = w;
   const actions = CHEATS.filter((c) => c.kind === 'action' || c.kind === 'perk');
   const toggles = CHEATS.filter((c) => !c.kind || c.kind === 'toggle');
-  const intro = blocked
-    ? '<b>Prestaties staan uit</b> zolang er een cheat aan staat (de uiterlijk-cheats en teleporteren tellen niet mee).'
-    : 'Teleporteren, Voertuig hier en de uiterlijk-cheats laten je prestaties aan. Zet je een andere cheat aan, dan staan prestaties uit tot je hem weer uitzet.';
-  el.innerHTML = `<p class="st-intro${blocked ? ' st-off' : ''}">${intro}${busy ? '<br>Je bent nu bezig (missie, filmpje of uitdaging): alleen de uiterlijk-cheats doen nu mee.' : ''}</p>` +
-    `<p class="pm-note st-msg" role="status">${esc(msg)}</p>` +
-    '<h3 class="pm-subhead">Acties</h3><div class="pm-group">' + actions.map((c) => actionRow(c, w)).join('') + '</div>' +
-    '<h3 class="pm-subhead">Cheats</h3><div class="pm-group">' + toggles.map(toggleRow).join('') + '</div>';
-  const n = CHEATS.filter((c) => isAvailable(c.id)).length;
+  const open = toggles.filter((c) => isAvailable(c.id));
+  const shut = [...actions, ...toggles].filter((c) => !isAvailable(c.id));
   const lit = toggles.filter((c) => isCheatOn(c.id)).length;
+  const lockedOpen = isFolded('locked');
+  if (sel && !CHEATS.some((c) => c.id === sel)) sel = null;
+  el.innerHTML = '<div class="m-main"><div class="m-list pm-slist">' +
+    '<div class="m-gh"><span>Acties</span></div>' + actions.filter((c) => isAvailable(c.id)).map((c) => actionRow(c, w)).join('') +
+    `<div class="m-gh"><span>Cheats</span><span>${lit ? `${lit} aan` : ''}</span></div>` + open.map(toggleRow).join('') +
+    (shut.length ? `<div class="m-rule"></div><button type="button" class="m-disc" data-fold="locked" aria-expanded="${lockedOpen}" aria-controls="pm-f-locked">${CHEV}<b>Nog ${shut.length} op slot</b><span class="mut one">Speel verder in het verhaal of haal prestaties</span></button>` +
+      `<div class="m-fold" id="pm-f-locked" data-fold-body="locked"${lockedOpen ? '' : ' hidden'}>${shut.map(lockedRow).join('')}</div>` : '') +
+    `</div><aside class="m-pane cheat-pane" aria-live="polite">${paneHtml(w)}</aside></div>`;
+  const n = CHEATS.filter((c) => isAvailable(c.id)).length;
   return `${n} van ${CHEATS.length} vrijgespeeld${lit ? ` · ${lit} aan` : ''}`;
+}
+
+// Focus on a row shows what it does.
+export function cheatsFocus(panel, el) {
+  const r = el && el.closest && el.closest('[data-cheat-row]');
+  if (!r || !panel.contains(r) || r.dataset.cheatRow === sel) return;
+  sel = r.dataset.cheatRow;
+  const pane = panel.querySelector('.cheat-pane');
+  if (pane && lastW) pane.innerHTML = paneHtml(lastW);
 }
 
 // A switch flipped (click, Enter or A): one of a group turns the others off.
@@ -122,4 +128,5 @@ export function cheatsClick(e, w, api) {
 export function resetCheatsPanel() {
   picker = false;
   msg = '';
+  sel = null;
 }

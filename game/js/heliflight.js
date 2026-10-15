@@ -92,6 +92,10 @@ export function registerHelipad(pad) {
   pads.push(pad);
 }
 
+export function getHelipads() {
+  return pads;
+}
+
 export function helipadById(id) {
   return pads.find((p) => p.id === id) || null;
 }
