@@ -6,9 +6,19 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
-## [0.30.1] - 2026-10-16
+## [0.31.0] - 2026-10-16
 
 ### Nieuw
+- **Wegen kloppen beter.** Elke weg heeft nu zijn eigen hoogteprofiel, dus
+  bruggen, viaducten en afritten liggen op de goede hoogte en je blijft op het
+  dek waar je rijdt. De viaductrand bij het Julianaplein (de N7) waar de auto
+  van de weg viel, is opgelost. Rijstroken kloppen met de kaart: de A7 heeft
+  twee stroken per richting in plaats van vier, met de juiste belijning en
+  voorsorteerpijlen, en het verkeer houdt rechts en gaat links staan voor een
+  linksaf. Kruispunten hebben een eigen regel (voorrang, rotonde, lichten) en
+  auto's stoppen netjes voor de haaientanden. Een controle rijdt elke weg in
+  beide richtingen af (7.084 ritten). In de dev-modus laat F8 het hoogteprofiel
+  zien.
 - **Minigames, deel 1.** Vier nieuwe dingen om tussendoor te doen, allemaal
   gratis, overslaanbaar (Backspace, B op een controller) en met medailles,
   records en prestaties:
@@ -28,6 +38,22 @@ nieuwe functies, `y` voor alleen bugfixes.
     kartbaan naast Kardinge: gas, rem en handrem. Een lange drift geeft een
     boost. Eerste is goud, tweede zilver, derde brons; er zijn records voor de
     racetijd en de snelste ronde.
+- **Meer leven op straat.** Roeiers in een skiff en soms een acht op het brede
+  water, vaker iemand op een SUP, studenten die verhuizen met een bankstel,
+  matras of plant (op de bakfiets of lopend), bezorgers met een grote kubustas
+  (drukker rond etenstijd), Wisselwiel-deelfietsen met een gekleurd voorwiel
+  en gammele studentenfietsen die 's nachts geen licht voeren. Een busje van
+  Noord-Nieuws rijdt door de stad.
+- **Op straat gebeurt iets.** Verkopers van De Reep (E: een krant, twee euro),
+  iemand met een bekertje (E: een muntje geven) en Bernhard met de Karretje
+  bij de Grote Markt, die graag een praatje maakt. Aan de kade staan
+  magneetvissers: help mee trekken en haal van alles uit het water. Soms zit
+  er een oude granaat aan: laat hem liggen en meld hem bij de politie voor een
+  beloning.
+
+## [0.30.1] - 2026-10-16
+
+### Nieuw
 - **Richtingaanwijzers en alarmlichten.** [ en ] zetten de knipperlichten links
   en rechts aan (nog eens: uit), P de alarmlichten; op een controller zijn het
   links, rechts en omhoog op het D-pad. Na de bocht gaat de richtingaanwijzer
@@ -42,18 +68,6 @@ nieuwe functies, `y` voor alleen bugfixes.
   fiets of achter het stuur, en als je 's nachts zonder licht fietst.
 - **Hintbron.** Onder Instellingen kies je of de hints toetsenbord, controller
   of automatisch tonen, in de hele HUD en in het menu.
-- **Meer leven op straat.** Roeiers in een skiff en soms een acht op het brede
-  water, vaker iemand op een SUP, studenten die verhuizen met een bankstel,
-  matras of plant (op de bakfiets of lopend), bezorgers met een grote kubustas
-  (drukker rond etenstijd), Wisselwiel-deelfietsen met een gekleurd voorwiel
-  en gammele studentenfietsen die 's nachts geen licht voeren. Een busje van
-  Noord-Nieuws rijdt door de stad.
-- **Op straat gebeurt iets.** Verkopers van De Reep (E: een krant, twee euro),
-  iemand met een bekertje (E: een muntje geven) en Bernhard met de Karretje
-  bij de Grote Markt, die graag een praatje maakt. Aan de kade staan
-  magneetvissers: help mee trekken en haal van alles uit het water. Soms zit
-  er een oude granaat aan: laat hem liggen en meld hem bij de politie voor een
-  beloning.
 - **Politiepaarden** laten af en toe een hoopje achter. Er rijden meer fietsen
   in het centrum, en op een reclamebord vraagt iemand of u uit Steden komt of
   naar Stedum gaat.
