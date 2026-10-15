@@ -21,7 +21,10 @@ The code is the source of truth; this file is the map.
   `PL` for polylines, `PB` for boxes, `L` back to legacy for old
   axis-aligned region tests). A new coordinate is either such a helper call
   or a world-frame number. Building looks stay seeded on their legacy
-  centre (`b.sd`).
+  centre (`b.sd`). `node scripts/world/rebase_coords.mjs --write` bakes every
+  helper call with literal numbers into the numbers it returns (and drops
+  the import), once the tests are green; a branch that still writes
+  positions in the legacy frame wraps them in the helpers when it merges.
 - In 3D: `three.x = world.x`, `three.z = world.y`, `three.y` is up.
 - Angles are radians; `0` faces +x.
 - Building and terrain geometry bake absolute world coordinates into their
