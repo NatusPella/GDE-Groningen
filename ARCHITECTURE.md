@@ -637,6 +637,17 @@ junction on a seeded virtual clock (throughput, no deadlock, no more AI
 knocks than the v0.29 AI). Junction surfaces with corner radii, islands
 and per-lane stop lines are the next step (F1b).
 
+Network audits: `node scripts/world/drive_audit.mjs [--all] [--solids]`
+drives every road both ways at its speed with the player's car
+(`ringcheck.js` `driveAcross`, 25 m on into the ways that carry on; knock,
+jump, fall, sinking, push off) and probes every lane for solids
+(`probeRoadSolids`); `scripts/network_drive_test.mjs` runs it strictly over
+the main and profiled roads plus the ring's water crossings. Joints, grades,
+curves and clearance: `scripts/world/profile.mjs`; lanes:
+`scripts/world/audit_lanes.py`; voids, floating edges and z-fighting:
+`scripts/mesh_audit.mjs`. In dev mode F8 shows the profile of the ribbon
+under the player (`profileoverlay.js`).
+
 ## 3D notes
 
 - `scene3d.js` only reads `world`. It streams buildings, roads, green, water
