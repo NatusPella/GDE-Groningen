@@ -39,6 +39,60 @@ Wat daaruit volgt:
    `ringcheck`, routetests en `geocheck` worden tegelaudits die over de hele
    provincie lopen.
 
+### 0.1 Laag-poly maar herkenbaar
+
+**Eis van de eigenaar:** de stijl blijft **laag-poly**. Het doel is dat elke
+plek **heel herkenbaar** is. Een Groninger moet zijn straat, zijn dorp en
+zijn afslag zien zonder bordje. Daarom gaat de detailbegroting naar wat een
+plek herkenbaar maakt, niet naar meer polygonen.
+
+Prioriteit (hoog naar laag):
+
+1. **Footprints en hoogtes kloppen.** Echte veelhoeken (OSM, BAG-gecontroleerd),
+   **echte hoogtes en dakvormen** uit 3D BAG (`h_dak_max`, `h_dak_50p`,
+   `h_maaiveld`, daktype). Terugval: OSM `height` → `building:levels` ×
+   verdiepingshoogte per type → `roof:shape`; als laatste een default per
+   gebouwtype. Elk gebouw krijgt een **bronvlag** (`3dbag`, `osm_height`,
+   `osm_levels`, `default`), zodat audits en debugweergave laten zien waar
+   het gokwerk zit.
+2. **Daken.** Zadel, schild, plat, mansarde, sheddak (fabrieken),
+   kas-zaagtand, uit het 3D BAG-daktype of `roof:shape`; nokrichting langs de
+   lange zijde tenzij `roof:orientation`.
+3. **Kleur en materiaal per type en bouwjaar.** Baksteentinten per periode
+   (rood-bruin voor 1940, geel en lichtrood in de wederopbouw, grijs/wit na
+   1990), dakpannen rood/antraciet, riet bij boerderijen. Waar gemapt wint
+   OSM: `building:colour`, `roof:colour`, `building:material`,
+   `roof:material`. Bouwjaar uit BAG (`oorspronkelijkbouwjaar`).
+4. **Herkenningspunten** (3b) staan altijd in L0-L3.
+5. **Wegen zoals ze echt liggen:** juiste ligging, rijstroken, markering,
+   kruispunten en rotondes (2.12, 2.13).
+6. **Straatmeubilair, bomen en groen op hun echte plek** (2.14, 2.15).
+7. **Water en bruggen** met echte peilen en doorvaarthoogtes (2.11).
+8. **De skyline:** torens, silo's, turbines en schoorstenen op echte hoogte,
+   van ver zichtbaar (L3).
+
+**Wat dat betekent voor de grootte.** De downloadgrens van ≤ 230 MB is
+**geen harde grens meer**. Als de kwaliteit het vraagt mag de totale data
+richting **~1 GB**. Regels:
+
+- **getrouwheid van de tegel gaat voor grootte**: liever 1 cm-posities en
+  echte dakvormen dan een kleinere download;
+- **verstandig comprimeren** (zstd met woordenboek, kolomgewijs, 2.4b), geen
+  data meesturen die niets toevoegt (bijv. geen vertices die binnen 1 cm op
+  een rechte lijn liggen);
+- **de eerste keer laden blijft klein**: index, globale lagen en tegels rond
+  het spawnpunt; de rest streamt (2.4, 2.22). De webversie blijft
+  ≤ 25 MB tot speelbaar.
+
+Tegeldata (`buildings`): per gebouw `h_roof_max`, `h_roof_50p`,
+`h_ground` (cm), `roof_type`, `roof_dir`, `levels`, `year`, `colour`,
+`roof_colour`, `material`, `src` (bronvlag), `bag_id`. Audit: verdeling van
+de bronvlaggen per tegel; een tegel met > 30 % `default` in bebouwd gebied
+komt in het rapport.
+
+Fase: F0 velden in het formaat; F1 3D BAG + kleurregels in de bouwer voor de
+corridor; F2 provinciebreed.
+
 ## 1. Omvang en metingen
 
 ### 1.1 Het gebied
@@ -98,7 +152,7 @@ Een Overpass-dump met geometrie kost ~850 B per element
 
 | Laag | Ruw (Overpass-JSON) | Gepakt binair (schatting) | Na gzip/brotli |
 |---|---|---|---|
-| Gebouwen 431,6k (int16 tegel-lokaal op 5 cm, delta-gecodeerd, type/hoogte 4 B) | ~370 MB | ~15 MB (~35 B/gebouw) | ~9 MB |
+| Gebouwen 431,6k (int32 tegel-lokaal op 1 cm, delta + varint, type/hoogte/bron/dakvorm ~10 B) | ~370 MB | ~18 MB (~42 B/gebouw) | ~11 MB |
 | Wegen 102k ways (punten + klasse, breedte, laag, brug) | ~90 MB | ~6 MB | ~4 MB |
 | Landuse + natuur 98k vlakken | ~85 MB | ~9 MB | ~5 MB |
 | Water 20,6k | ~20 MB | ~2 MB | ~1,5 MB |
@@ -197,9 +251,9 @@ oplossing staat in 2.3.
 
 - **Rooster:** 1 km × 1 km, vast op het wereldframe; tegel `(i, j)` dekt
   `x ∈ [i·1000, (i+1)·1000)`. Sleutel `i_j`.
-- **Tegel = binair blok** met een sectietabel (versie, offsets, lengtes),
-  opgeslagen in packs (zie 2.4b). Coördinaten int16 tegel-lokaal in stappen
-  van 5 cm (bereik ±1.638 m, dus 1 km + marge).
+- **Tegel = binair blok** met een sectietabel (versie, type, offsets,
+  lengtes), opgeslagen in packs (zie 2.4b). Posities **int32 tegel-lokaal in
+  centimeters**, delta + zigzag-varint gecodeerd (2.4b); hoogtes in cm.
 - **Secties:** gebouwen (veelhoek, hoogte, dak, type, gevelstijl, gaten en
   doorgangen), wegen (polylijn, klasse, breedte, rijstroken, eenrichting,
   laag, brug/tunnel, stoep/fietspad), kruispunten, water (veelhoek, lijn,
@@ -208,7 +262,12 @@ oplossing staat in 2.3.
   tegelrand), botsdata (statische colliders), kantstrook-slots, overlays.
 - **Objecten over de rand:** een gebouw hoort bij de tegel van zijn
   zwaartepunt; een weg wordt op de rand geknipt met een gedeelde poortknoop.
-  Zo is elke tegel los te laden en blijft de graaf heel.
+  Zo is elke tegel los te laden en blijft de graaf heel. *(F0, zoals
+  gebouwd: elk object staat met zijn `gid` in **elke** tegel die zijn grenzen
+  raken, de laag houdt één kopie per `gid`; het knippen van wegen met
+  poortknopen komt met de navigatiegraaf in F1.)* Het raster ligt op de
+  RD-kilometerlijnen (tegelsleutel = de RD-kilometer van de zuidwesthoek,
+  bijv. `234_581`).
 - **Index (`world.idx`):** per tegel offset/grootte, een vlag (land, water,
   zee, leeg), het aantal gebouwen, de hoogste hoogte, de LOD2-samenvatting.
   Klein genoeg om bij de start te laden.
@@ -249,9 +308,10 @@ straatmeubilair), en L1/L2 groeien.
 
 ### 2.4 Streaming
 
-- **Bron:** Electron leest tegels uit de packs in het app-pakket (`fs.read`
-  op offset via de preload); het web via HTTP Range met een OPFS-cache
-  (2.4b). Eén loader-interface, twee backends.
+- **Bron:** één streamingpad voor Electron en web, alleen de bytebron
+  verschilt (zie 2.22): beide doen `fetch` met een `Range`-header, Electron
+  op `app://game/…` (het eigen protocol in `desktop/main.js` beantwoordt
+  ranges al met 206), het web via HTTP met een OPFS-cache (2.4b).
 - **Wat laden:** een kegel in de rijrichting. Laadstraal
   `r = LODgrens + v · t_vooruit`, met `t_vooruit` = 10 s.
 
@@ -289,11 +349,13 @@ dat.
 | Onderwerp | Keuze | Overwogen | Waarom |
 |---|---|---|---|
 | Wat we verzenden | **vectordata** (footprints, polylijnen, rasters); de meshes bouwt de worker | kant-en-klare meshes per tegel | vector is 5-10× kleiner, en de bestaande kernels (`geokernels.js`) maken de meshes al |
-| Posities | **int16 tegel-lokaal, 5 cm**; hoogtes uint16 in cm boven −10 m NAP | float32; int32 | half zo groot, precisie ruim genoeg; ook de basis voor de zwevende oorsprong |
+| Posities | **int32 tegel-lokaal in centimeters**, opgeslagen als delta + zigzag-varint (zie de volgende rij); hoogtes int32 in cm t.o.v. NAP | int16 op 5 cm; float32 | 1 cm is getrouwheid boven grootte (0.1): stoepranden, rijstrookgrenzen en hoogteprofielen houden hun vorm. Na delta-codering kost 1 cm in plaats van 5 cm ~2-3 bits per coördinaat extra, ~+15-20 % op de wegen- en gebouwsecties. Tegel-lokaal blijft de basis voor de zwevende oorsprong |
+
+(En in §1.3 de eerste tabelrij: "int16 tegel-lokaal op 5 cm" → "int32 tegel-lokaal op 1 cm, delta + varint"; de schatting ~15 MB → ~18 MB.)
 | Lijnen en veelhoeken | **delta + zigzag-varint**, kolomgewijs per sectie (alle x'en, dan alle y'en, dan de attributen) | rijgewijs; Protobuf/FlatBuffers | kolommen comprimeren 20-40 % beter; geen schema-runtime nodig; FlatBuffers is groter |
 | Vooraf gebakken meshes (L3-horizon, iconen, GLB's) | **meshopt** (`EXT_meshopt_compression`, MIT, decoder in three) | Draco | meshopt decodeert ~10× sneller met een kleine WASM, en werkt goed samen met zstd; Draco is iets kleiner maar trager en zwaarder (decoder ~300 KB, blokkerend) |
 | Compressie in rust | **zstd met een getraind woordenboek per sectietype** (decoder `fzstd`, MIT, in de worker); fallback gzip via `DecompressionStream` | gzip; brotli | kleine tegels winnen veel bij een woordenboek (schatting 15-30 % kleiner dan gzip); zstd decodeert sneller dan brotli in JS; GitHub Pages laat ons geen `Content-Encoding` kiezen, dus we comprimeren zelf |
-| Container | **packs van 8 × 8 km** (~1-4 MB, ~100 per provincie) met een index (offset, lengte, hash per tegel); web: **HTTP Range**-verzoeken per tegel; Electron: `fs.read` op offset via de preload (de JS-tegenhanger van mmap, de OS-paginacache doet de rest) | een bestand per tegel | 3.000 losse bestanden zijn traag in installers, zips en cache-API's; met Range is het nog steeds één verzoek per tegel. In dev-modus schrijft de bouwer wel losse bestanden (makkelijk te diffen) |
+| Container | **packs van 8 × 8 km** (~1-4 MB, ~100 per provincie) met een index (offset, lengte, hash per tegel); web: **HTTP Range**-verzoeken per tegel; Electron: dezelfde Range-`fetch` via het eigen `app://`-protocol (2.22; de OS-paginacache doet de rest) | een bestand per tegel | 3.000 losse bestanden zijn traag in installers, zips en cache-API's; met Range is het nog steeds één verzoek per tegel. In dev-modus schrijft de bouwer wel losse bestanden (makkelijk te diffen) |
 | Versies en cache | header `GDT` + formaatversie + bouwerversie; per tegel een **xxHash64** in de index; packs heten naar hun hash (`hogeland-3f9a….gdp`) | datum/versie in de URL | een gewijzigde tegel krijgt automatisch een nieuwe sleutel; ongewijzigde tegels blijven in de cache bij een update |
 
 **Decoderen en bouwen**
@@ -474,6 +536,834 @@ dat.
 | `viewdist_estimate.mjs` | telt per LOD in de drukste en de leegste tegel |
 | Minimap, kaart (M) | piramide, ontdekking (zie het verhaal-document: "mist van de kaart"), zoom tot de hele provincie |
 | Verhaaltest (`--story-test`) | draait de provinciemissies ook, met sprongen tussen regio's |
+
+### 2.11 Hoogte, wegen en kunstwerken: één oplosser voor weg, spoor en water
+
+#### Waarom de ring een hoofdpijndossier was
+
+De ring kostte tientallen rondes. Uit de geschiedenis komen dertien
+oorzaken, in acht families:
+
+| # | Oorzaak | Commits |
+|---|---|---|
+| A1 | Hoogtes uit OSM-tags **per way**, heuristisch opgelost over een vertexgraaf met afgeronde posities als sleutel; kruisingen vlak bij elkaar trekken beide wegen scheef | `eab1f5e0`, `4e592539` (handpatch Expositielaan) |
+| A2 | Op- en afritten en rijbanen die in plan overlappen worden **los** opgelost; de koppelaar kwam later, treden bleven | `eab1f5e0` (1.958 → 1.230 m treden), `e8b24a77` |
+| B3 | "Op welk oppervlak sta ik?" is **stateloos en dubbelzinnig**: hoogste-binnen-een-stap-omhoog, `STAY_ON`, eindkappen | `e8b24a77`, `0cd25889`, `c2073e07`, `e58d174d` (~1.800 keer naast de weg gekozen) |
+| B4 | Systemen gebruiken **verschillende hoogtequeries en hints** (+0,3/+0,5, `spawnZ`, de z van de leider) | `93bba1fd` (`spawnZ` fout op 371 van 1.020 rondepunten), `b26c10cb`, `4d45e37d`, `36b3c038` |
+| C5 | Elke way-mesh **los** gebouwd → scheuren, dichtgeplakt met alleen-getekende platen, vloeren, rokken en kopstenen | `4017c2c7`, `b37dad02` (5.951 m zwevende randen), `6063ccdc`, `734568f8`, `2f73190f`, `ab6e5c33` |
+| C6 | Grond weggehaald met een **rastermasker van ~1 m**, niet met geometrie | `4017c2c7`, `fd9aea6a`, `719e6478`, `3aa2e3b2` |
+| D7 | Linten, terrein, groen en taluds **coplanair zonder eigenaar** → z-fighting, polygon offsets | `3b3a94d0` (12.738 m²), `3aa2e3b2`, `2d2cbb8c`, `1b68e019`, `58429efe` |
+| E8 | Muren afgeleid door oppervlakken **met toleranties af te tasten** → een collider op de rijstroken van een andere weg; getekend en massief gescheiden | `a5f086d4` → `7f170d90` (N46), `60b473c3`, `e5044475` |
+| E9 | Botsen via **z-banden per muursoort** | `e5044475`, `2739e57c` (pijlercolliders negeren de hoogte) |
+| F10 | 2D-plaatsing **weet niets van hoogte**: bomen, palen, rommel en pijlers achteraf weggefilterd | `e8b24a77`, `00bbe4c0` (258 bomen), `e1178d73` |
+| G11 | Waterkruisingen **geraden** (`markDryCrossings`), het tunneldak onder het kanaal met 5 m-steekproeven | `00bbe4c0`, `8e792816` |
+| G12 | Het spoor tilt op met **radiale bulten** en eigen constanten, gespiegeld in `railway3d.js` | `e8b24a77`, `2739e57c` |
+| H13 | Kunstwerken **per weg** herbouwd, plus een kopie in de worker → pieken en een consistentiecheck | `f9dc3b37`, `0cc09e6d` |
+
+Het model nu: `scripts/add_elevation.py` zet `road.z` per vertex
+(`LIFT` 6, `SUNK` −6,5, `UNDER_WATER` −8,2, `CLEAR` 5,6, `MAX_GRADE` 5 %);
+`elevation.js` (`buildElevation`, `groundHeightAt`, `roadZAt`, `ceilingAt`,
+`offLevelAt`, `lowerSurfaceAt`, de muren, `openCutMask`);
+`roadstructures3d.js` (`structureArrays`, `buildOverpassDeck`,
+`buildRailDecks`); `cutmask3d.js`; `railway.js` `railZ`/`railLiftZ`.
+Controles: `ringcheck.js` (`probeRingSolids`, `driveRingLap`,
+`driveWaterCrossings`, `probeRailLifts`), `scripts/ring_probe.mjs`,
+`passagecheck`, `spotcheck`, `mesh_audit.mjs`, `overhang_audit.mjs`,
+`zfight_audit.mjs`, `cine_ring_check.mjs`, `geocheck`.
+
+**De les:** hoogte is geen eigenschap van een way maar van een **netwerk**,
+en tekenen, botsen en rijden moeten uit **één profiel** komen. De provincie
+heeft honderden viaducten, spoorbruggen, aquaducten en beweegbare bruggen;
+met het huidige model wordt elk daarvan een ring.
+
+#### Het ontwerp
+
+**1. Terrein en oppervlakken apart.**
+
+- **Terrein** = AHN DTM (maaiveld zonder gebouwen en kunstwerken) als raster
+  per tegel (`heights`, 2.7). Het terrein weet niets van wegen.
+- **Oppervlakken** = alles waar je op rijdt, loopt of vaart: wegen, spoor,
+  paden, perrons, kades, water. Elk is een **lint** (middellijn + breedte +
+  verticaal profiel) of een vlak met een peil.
+- Waar een lint en het terrein verschillen, ontstaat **geometrie**: talud,
+  keermuur, landhoofd, pijler, tunnelwand. Geen masker (C6), geen
+  coplanaire lagen (D7): het lint is eigenaar van zijn strook, het terrein
+  wordt daar in de bouwer uitgesneden (constrained triangulation langs de
+  lintrand).
+
+**2. Het verticale profiel per verbonden netwerk.**
+
+De oplosser (`scripts/world/profile.py`) werkt per **verbonden netwerk**
+(wegen die elkaar in knopen raken, inclusief op- en afritten en parallelle
+rijbanen), niet per way (A1, A2). Invoer:
+
+| Bron | Wat |
+|---|---|
+| OSM `bridge`, `tunnel`, `layer`, `level`, `bridge:structure`, `embankment`, `cutting` | volgorde: wie ligt boven wie |
+| AHN DTM-samples op de middellijn (elke 2-5 m) | het maaiveld eronder |
+| AHN DSM-samples op dekken | de echte dekhoogte van viaducten en bruggen (het DSM ziet het dek) |
+| `maxheight`, `maxheight:physical` | ondergrens voor de vrije hoogte eronder |
+
+Randvoorwaarden:
+
+| Voorwaarde | Weg | Spoor |
+|---|---|---|
+| Maximale helling | snelweg 4 %, N-weg 5 %, stad 6-8 %, oprit 6 % | hoofdspoor 1,25 %, uitzonderlijk 2,5 % |
+| Verticale bogen | afgeronde knikken, straal ≥ 1.000 m (snelweg), ≥ 300 m (stad) | straal ≥ 5.000 m |
+| Continuïteit | gelijke hoogte en helling in elke knoop en bij elke samenvoeging (C5) | idem, ook bij wissels |
+| Vrije hoogte onder dek | weg 4,6 m (snelweg 4,8 m), fietspad 2,5 m | 6,0 m boven bovenkant spoorstaaf (bovenleiding) |
+| Over water | vaarwegklasse (zie hieronder) boven het peil | idem |
+| Tunnels | dak ≥ 0,5 m onder maaiveld of ≥ de vaardiepte onder de waterbodem | idem |
+
+De oplosser is een **kleinste-kwadratenprobleem per netwerk** (zachte
+termen: dicht bij AHN en DSM; harde termen: knoopgelijkheid, vrije
+hoogtes, helling), opgelost met een sparse solver (scipy, MIT/BSD).
+Uitvoer per lint: hoogte in cm per vertex + per segment de laag-id.
+
+**3. Eén hoogtequery voor alles.**
+
+```
+surfaceAt(x, y, state) → { z, normal, kind, ribbonId, layer, deck }
+```
+
+- `state` is de **toestand van de vrager**: op welk lint hij nu staat. Wie op
+  een viaduct rijdt, blijft op het viaduct tot hij het lint verlaat via een
+  knoop of over de rand valt. Geen "hoogste binnen een stap" meer (B3).
+- **Iedereen** gebruikt hem: rijden (`vehicle.js` `surfaceUnder`,
+  `settleVehicleHeight`), lopen (`player.js`), AI en politie, spawnen
+  (geen `spawnZ`-hints meer, B4), camera (`scene3d.js`, `camerapath.js`
+  `roofAt`, `cinedrive.js` `pathHeights`/`groundPose`), props en plekken
+  (`spotcheck.js`, `cityprops.js`).
+- **Colliders én render-meshes uit hetzelfde profiel**, in dezelfde
+  worker-run, één keer per tegel (H13). Geen afgetaste muren (E8): een
+  muur is een rand van een lint met een hoogteverschil, met een bekend
+  bovenste en onderste lint, dus geen z-banden (E9).
+- **2D-plaatsing vraagt `surfaceAt`** (F10): een boom op een talud krijgt de
+  taludhoogte, een paal op een dek staat op het dek, niets staat in een
+  lint dat het niet bezit.
+- `elevation.js` blijft de façade: `groundHeightAt(x, y, zHint)` wordt een
+  dunne laag over `surfaceAt` met de toestand van de vrager.
+
+**4. Kunstwerken uit het profiel.**
+
+- **Taluds** waar het lint boven het terrein ligt (helling 1:2, `EMB_SLOPE`),
+  **keermuren** waar geen ruimte is (stad, langs een ander lint),
+  **landhoofden** aan elk brugeinde, **pijlers** op een vaste steek onder
+  dekken (niet in een rijbaan of vaargeul: de oplosser kent de linten eronder).
+- **Dekken** met dikte, rand en **leuning** (`bridgerails.js` blijft de bron
+  voor de stukken; leuningen sluiten aan op de profielrand).
+- **Tunnels**: wanden, dak, portalen en verlichting uit het profiel.
+- **Geen rastermasker** (`cutmask3d.js` verdwijnt in F1): de bouwer snijdt
+  het terrein met geometrie.
+
+**5. Spoor.**
+
+- Eigen profiel **per spoornetwerk** (lange verticale bogen, lage hellingen),
+  met taluds en spoorbruggen; de radiale bulten van `railLiftZ` (G12)
+  verdwijnen.
+- **Overwegen**: weg en spoor krijgen in de knoop **exact dezelfde hoogte**
+  (harde term in beide netwerken); `railway.js` `getLevelCrossings` leest de
+  knoop.
+- **Perrons** 0,76-0,84 m boven de bovenkant spoorstaaf (NL-norm),
+  perronrand op de juiste afstand van het spoor.
+- **Bovenleiding**: palen en draad met vaste hoogte boven het profiel;
+  vrije hoogte onder bruggen telt de draad mee.
+- **Treinphysics en camera** (`railway.js`, `traindrive.js`,
+  `railway3d.js`) lezen hetzelfde profiel; `FLAT_DECK_Z` en
+  `inRailBridgeZone` verdwijnen.
+- Audit: **elke lijn van kop tot staart** rijden (Groningen–Leeuwarden,
+  –Roodeschool/Eemshaven, –Delfzijl, –Nieuweschans, Zuidbroek–Veendam,
+  –Assen, het museumspoor): geen sprong, helling binnen de grens, vrije
+  hoogte overal.
+
+**6. Water.**
+
+- **Peil per waterlichaam** (`water`: `level_cm`), niet meer één `WATER_Y`
+  (`util.js`): grachten en Reitdiep, Van Starkenborghkanaal, Eemskanaal,
+  Winschoterdiep, maren en sloten (polderpeil), en de **zee met een vaste
+  hoogwaterstand** (getij pas in F5, 2.7).
+- **Kades en oevers** uit het verschil tussen peil en terrein:
+  kademuur in bebouwd gebied (nu `quaywalls.js`), talud of beschoeiing
+  erbuiten.
+- **Sluizen** waar peilen wisselen (`waterway=lock_gate`, `lock=yes`): een
+  kolk met twee deuren als object, een setpiece voor boten.
+- **Bruggen met echte doorvaarthoogte**: vast of **beweegbaar**
+  (`bridge:movable=bascule|lift|swing|draw`). Beweegbare bruggen gaan open
+  voor boten (slagbomen, rood licht, wachtende auto's) en zijn een kans voor
+  achtervolgingen.
+- **Eén waterquery** `waterAt(x, y) → { level, depth, body, navigable,
+  clearanceAbove }` voor boten (`vehicle.js` `updateBoatAI`,
+  `drivePlayerBoat`), zwemmen (`swimmers3d.js`), de heli (`heliflight.js`
+  landen op water = nat) en `overOpenWater`. `waterindex.js` blijft de
+  index; `waterClearance`/`countryClearance` worden één veld.
+- Audit: **elke bevaarbare waterweg varen** per bootklasse
+  (`boattypes.js`: sloep, rondvaartboot, politieboot, binnenvaart):
+  doorvaarthoogte en diepte per klasse, nergens over land, geen gaten in de
+  kademuur.
+
+**7. Kruisingen van alle drie.** Weg over spoor over water (bijv. bij
+Martenshoek en het Eemskanaal) zitten in **dezelfde oplosser en dezelfde
+audit**: de volgorde komt uit de lagen, de vrije hoogtes uit de klassen.
+
+**8. Audits per tegel** (`scripts/world/audit_profile.mjs`, veralgemeniseert
+`ringcheck` en `ring_probe`):
+
+- **elke weg in beide richtingen rijden** op ontwerpsnelheid met de echte
+  voertuigphysics (headless): geen haker, sprong, gat of wegzakken;
+- voegafstand en hellingsprong per knoop (< 1 cm, < 0,5 %);
+- vrije hoogte per kruising per klasse;
+- geen blokkerende geometrie op een rijbaan (pijler, paal, boom, muur);
+- z-fighting: geen twee oppervlakken binnen 2 cm zonder eigenaar
+  (`zfight_audit.mjs` per tegel);
+- zwevende randen en overhang (`mesh_audit.mjs`, `overhang_audit.mjs`).
+
+**Debuggereedschap:** een profieloverlay (lengteprofiel van het lint onder
+de speler met AHN, DSM en de buren), en kleuren per helling of per laag in
+de wereld (dev-vlag), zodat een fout een plaatje is in plaats van een getal.
+
+**Tegeldata:** `roads` en `rails` krijgen per vertex `z_cm` en per segment
+`layer`, `deck`, `structure` (`bridge`/`tunnel`/`embankment`/`cutting`/
+`ground`); `structures` (dekken, pijlers, landhoofden, keermuren, tunnels,
+sluizen) als eigen sectie, al geometrie; `water` met `level_cm` en
+`navigable_class`; `bridges` met `clearance_cm`, `movable`. De oplosser
+draait over tegelgrenzen (netwerken zijn groter dan een tegel) en knipt pas
+daarna.
+
+**Fase:**
+
+- **F0:** de velden in het formaat; het skelet van de oplosser en de
+  audit-harness waar dat gaat (op de huidige `road.z` als invoer). **De
+  huidige ring blijft op `add_elevation.py` + `elevation.js` tot F1**;
+  `ring_probe` en `ringcheck` moeten op 0 problemen blijven.
+- **F1:** de oplosser voor de corridor (ring, A7-oost, N360, N46, het spoor
+  naar Delfzijl en Eemshaven, Eemskanaal); de ring overgezet en
+  vergeleken met de huidige (shotsdiff + `ringcheck` op 0).
+- **F2:** provinciebreed, sluizen, beweegbare bruggen.
+
+### 2.12 Rijstroken
+
+**Bekende fout (schaal-audit punt 9):** `process_osm.py` geeft elke way de
+standaardbreedte van zijn klasse (`ROAD_SPEC`: `motorway` 12 m, `trunk`
+12 m, `primary` 10 m). Bij een gescheiden rijbaan is elke rijrichting een
+eigen eenrichtings-way, dus krijgt elke helft de breedte van de **hele**
+weg. `roadsurface.js` telt de stroken als `round(width / 3,3)` (en de shader
+`floor(rw / 3,1)`): op de A7 staan zo 3-4 stroken per richting waar er 2
+horen.
+
+**Het model per weg** (`roads`):
+
+| Veld | Bron |
+|---|---|
+| `lanes`, `lanes_fwd`, `lanes_bwd`, `lanes_both` | `lanes`, `lanes:forward`/`backward`, `lanes:both_ways`; default per klasse en `oneway` |
+| `turn_fwd`, `turn_bwd` | `turn:lanes`, `turn:lanes:forward`/`backward` (per strook: `left`, `through`, `right`, `merge_to_*`) |
+| `width_cm` | `width`, `est_width`; anders som van de strookbreedtes + kantstroken |
+| `placement` | `placement`, `placement:forward` (`left_of:2`, `middle_of:1`, `transition`): waar de OSM-lijn in het profiel ligt |
+| `bus_lanes`, `bike_lanes` | `bus:lanes`, `psv:lanes` (leest `add_map_extras.py` nu al), `cycleway=lane`/`track`, `busway` |
+| `shoulder` | `shoulder`, en op snelwegen standaard een vluchtstrook rechts |
+| `lane_w_cm` (per strook) | per klasse, zie hieronder |
+
+**Strookbreedtes (NL):** snelweg 3,50 m, N-weg buiten de kom 3,00-3,25 m,
+stad 2,75-3,25 m, busbaan 3,25 m, fietsstrook 1,50-2,00 m, vluchtstrook
+2,50-3,50 m.
+
+**Gescheiden rijbanen** zijn twee eenrichtingslinten, elk met zijn eigen
+stroken, geplaatst met `placement` (de OSM-lijn ligt meestal in het midden
+van de rijbaan, niet op de as van de hele weg). De middenberm is wat er
+tussen de linten overblijft.
+
+**Eén model voor iedereen:**
+
+- **lintbreedte** in de bouwer (2.11);
+- **markering** (`roadsurface.js`): strookstrepen, pijlen uit `turn:lanes`,
+  bus- en fietsstroken in rood asfalt of met belettering, **in- en
+  uitvoegstroken** met taper bij op- en afritten, doorgetrokken streep vóór
+  een kruispunt;
+- **AI** (`vehicle.js` `updateTrafficAI`) volgt een strook, voorsorteert
+  op `turn:lanes` en wisselt alleen waar de streep onderbroken is;
+- **GPS** (2.16) tekent de route op de juiste strook en zegt "houd links";
+- **verkeerslichten** (`trafficlights.js`): de beschermde linksaf-fase komt
+  uit een echte linksafstrook, niet meer uit "de weg is breed genoeg".
+
+**Audit:** per way het aantal stroken en de breedte tegen de OSM-tags
+(rapport met afwijkingen), en de tapers op de ringaansluitingen en de A7
+(geen strook die uit het niets begint of in een vangrail eindigt).
+
+**Fase:** F0 de velden in het formaat en een **afwijkingsrapport** op de
+huidige kaart (welke ways te breed zijn); F1 het nieuwe model in de bouwer
+en `roadsurface.js` opnieuw voor de corridor.
+
+### 2.13 Kruispunten en rotondes
+
+Nu: `junctions.js` (knopen via afgeronde posities, `roadPriority` uit een
+klasserang, `autoSignals`, `yieldArms` met haaientanden en het B6-bord),
+`trafficlights.js` (vaste-tijdregelingen zonder conflicten, per as een
+groenfase, beschermd linksaf, en de **Groningse fietsfase**: alle fietsers
+en voetgangers tegelijk groen), `pedroutes.js` (`zebraSpeedLimit`) en
+`routing.js`. Dat model is goed; het moet **één object per knoop** worden
+dat iedereen leest.
+
+**Per kruispunt** (`junctions`, sleutel = de OSM-knoop, niet een afgeronde
+positie):
+
+- **Geometrie:** het kruispuntvlak uit de inkomende linten met
+  **bochtstralen** per hoek (vrachtwagen-proof op N-wegen), zonder overlap
+  of z-fighting (het vlak is eigenaar, de linten stoppen op de stopstreep);
+  stoepranden, middeneilanden, opstelvakken voor fietsers.
+- **Rotondes** uit `junction=roundabout`: ring met vaste breedte,
+  **splitsereilanden** op elke tak, een **fietspad rondom** (in de kom:
+  fietsers in de voorrang, buiten de kom niet, zoals in NL gebruikelijk;
+  uit `cycleway` en `crossing`-tags), schuine opritten.
+- **Regeling:** verkeerslichten met fasen per toerit (en per strook uit
+  2.12); `give_way`/`stop`; voorrangsweg (`priority_road`); de NL-default
+  **rechts heeft voorrang** op gelijkwaardige kruisingen; rotondes: de ring
+  heeft voorrang.
+- **Per toeritstrook:** stopstreep of **haaientanden**, opstelvak,
+  voorsorteerpijlen.
+- **Oversteken:** zebra's, fietsoversteken (blokmarkering), met of zonder
+  licht; bushaltes (`highway=bus_stop`, `public_transport=platform`) met
+  hun kant van de weg.
+
+**Eén model, alle gebruikers:** de render (vlak, markering, borden, palen),
+de AI (in de rij staan, gaten in het verkeer, afslagpaden als bogen,
+voorrang verlenen, rotonde in en uit met richtingaanwijzer), voetgangers
+(`pedroutes.js`: oversteken op zebra of bij groen) en politie-achtervolgingen
+(die door rood mogen, maar dezelfde afslagpaden gebruiken).
+
+**Audit:** elke toerit heeft stopstreep of haaientanden die passen bij de
+regeling; geen twee conflicterende stromen tegelijk groen
+(`streamsCompatible` als test over alle regelingen); een **AI-simulatie**
+(headless, versneld) door de drukste kruispunten en rotondes van elke regio:
+geen deadlock, geen botsing, doorstroming boven een minimum.
+
+**Fase:** F0 het datamodel en het auditrapport op de huidige kaart; F1 de
+herbouw (geometrie + AI) in de corridor; F2 provinciebreed.
+
+### 2.14 Straatmeubilair en details
+
+Nu: `cityprops.js` (banken, prullenbakken, fietsenrekken, terrassen,
+marktkramen; per cel samengevoegd), `streetclutter.js` (kliko's,
+ondergrondse containers, paaltjes, bloembakken, reclamezuilen, abri's,
+wegwijzers, kasten), `streetsigns.js` (straatnaambordjes),
+`countrysigns.js` (plaatsnaamborden en blauwe wegwijzers),
+`nightlights3d.js` (lantaarns elke 28 m langs de wegrand, op regel),
+`bridgerails.js`, `elevation.js` (vangrails langs verhoogde wegen,
+`BARRIER_H`), `flitspaal.js`. Vrijwel alles is **regelwerk zonder
+OSM-plek**.
+
+**Wat erbij komt, met bron:**
+
+| Object | Gemapt (OSM) | Regel als OSM leeg is |
+|---|---|---|
+| Vangrail | `barrier=guard_rail` | snelweg- en N-wegbermen, middenbermen, bruggen en hun aanloop, opritten, langs water dichter dan 4 m |
+| Geleiderail bij kunstwerken | `barrier=guard_rail` | elke pijler en elk landhoofd binnen de obstakelvrije zone |
+| Lantaarnpalen | `highway=street_lamp` (+ `lamp_mount`, `light:count`) | per wegklasse: snelweg hoge masten (alleen waar echt verlicht, zie 2.20), stad palen met arm (28-35 m), dorp lantaarns (40 m), buitenwegen niets |
+| Verkeersborden en portalen | `traffic_sign=*`, `highway=traffic_signals`, `destination=*`, `destination:ref`, `junction:ref` | portalen met echte bestemmingen en afritnummers op snelwegen (ANWB-stijl blauw/wit, **zonder merk**), voorrangsborden uit 2.13 |
+| Paaltjes, afzettingen | `barrier=bollard`, `barrier=gate`, `barrier=lift_gate` | bij fietspadingangen en voetgangersgebieden |
+| Geluidsschermen | `barrier=wall` + `wall=noise_barrier` | geen |
+| Hekken | `barrier=fence`, `barrier=hedge` | langs spoor, weilanden (als 2.15 dat niet al doet) |
+| Abri's | `shelter=yes` bij `highway=bus_stop` | bij elke halte in de kom |
+| Banken, prullenbakken, fietsenrekken | `amenity=bench`, `waste_basket`, `bicycle_parking` | per bebouwingsdichtheid (nu `cityprops.js`) |
+| Camera's | `man_made=surveillance`, `highway=speed_camera` | geen (flitspalen blijven gameplay, `flitspaal.js`) |
+| Drempels | `traffic_calming=bump|table|cushion` | 30-zones in woonwijken |
+| Hectometerbordjes | geen in OSM | elke 100 m langs snelwegen en N-wegen, met het echte hectometergetal waar `ref` + afstand het toelaat |
+
+**Tegeldata:** sectie `furniture` (soort, positie in cm, hoek, variant,
+hoogte uit `surfaceAt`, `src`: `osm`/`rule`/`overlay`). **Gemapte objecten
+staan per tegel**; **regelobjecten genereert de bouwer**, deterministisch
+met een seed per tegel, zodat ze in elke build en elke worker op dezelfde
+plek staan (geocheck). Colliders voor alles wat je kunt raken; breekbaar
+via `breakables.js` zoals nu.
+
+**Audit:** niets op een rijbaan, fietspad of in een doorgang; geen
+lantaarn in een boom; vangrail aaneengesloten (geen gat van < 5 m); elke
+portaalbestemming bestaat in de globale laag.
+
+**Fase:** F0 de sectie en de omzetting van wat nu procedureel staat; F1 de
+regels en OSM-objecten in de corridor; F2 provinciebreed.
+
+### 2.15 Bomen en groen op hun echte plek
+
+Nu: `process_osm.py` leest `natural=tree` (nodes) en `natural=tree_row`
+(bemonsterd elke 6 m, `TREE_ROW_SPACING`); de stad heeft 3.765 bomen, de
+provincie heeft er 9.939 gemapt. `treeprops.js` maakt ze breekbaar,
+`scene3d.js` (`syncTrees`) tekent ze, `grass.js` en `countryside.js` vullen
+het groen.
+
+**Bronnen, in volgorde:**
+
+1. **OSM-bomen** (`natural=tree`, met `species`, `genus`, `leaf_type`,
+   `height`, `circumference` waar getagd).
+2. **Bomenrijen** (`natural=tree_row`): echte steek uit de tag of 8-10 m.
+3. **Bossen en parken** (`landuse=forest`, `natural=wood`, `leisure=park`)
+   met `leaf_type`/`leaf_cycle`: verspreid op een Poisson-schijf, dichtheid
+   per type.
+4. **Heggen** (`barrier=hedge`, lijn), **gras, weide en akker**
+   (`landuse=grass|meadow|farmland`), **bloemperken**
+   (`landuse=flowerbed`), **bermen** (de strook tussen lint en sloot).
+5. **Optioneel:** de bomenbestanden van gemeenten (de gemeente Groningen
+   publiceert er een) en **detectie uit AHN** (DSM − DTM, hoge punten
+   buiten gebouwen). AHN is CC0, dus de detectie is licentie-schoon; de
+   gemeentelijke bestanden alleen als de licentie expliciet open is
+   (**te checken per gemeente**, opnemen in 4.3). Wat er niet in mag, gaat
+   er niet in.
+
+**Model:** laag-poly varianten per soort (linde, eik, beuk, es, populier,
+wilg, berk, plataan, den, fruitboom), elk in 3-4 groottes. **Echte hoogtes:**
+volwassen straatbomen 12-20 m, populieren langs dijken tot 25-30 m,
+knotwilgen 4-6 m. Zonder tag: soort uit de omgeving (populier langs
+kanalen, linde bij kerken en op de brink, eik op de zandgronden) en hoogte
+uit AHN als die er is. **Stamcolliders** voor alles in L0.
+
+**Tegeldata:** `trees` (positie, soort, hoogte in dm, kruindiameter,
+`src`); `green` als vlakken met type; heggen als lijnen.
+
+**Audit:** geen boom op een rijbaan, in een gebouw of in water (via
+`surfaceAt`, 2.11); de bomen per tegel tegen de OSM-telling.
+
+**Fase:** F0 sectie + omzetting; F1 soorten en hoogtes in de corridor;
+F2 provinciebreed; de optionele bronnen pas na de licentiecheck.
+
+### 2.16 Navigatie en GPS
+
+Nu: `routing.js` (stadsgraaf met `inCity`, `findWalkPath`,
+`setUserWaypoint`, `getRouteAhead`), `countryroute.js` (Ommelandgraaf met
+gateways naar de stad), `goal.js` (missiedoelen), `mapview.js` (kaart M),
+de minimap in `hud_panel.js`. Er is **geen enkele afslagbeperking**:
+`restriction`-relaties worden niet gelezen.
+
+**Eén routegraaf over de tegels** (HPA*, 2.6):
+
+- **Knopen en takken** per tegel (`nav`), poortknopen op de rand; de
+  **globale laag** (vanaf `tertiary`) voor lange routes, ook naar tegels die
+  niet geladen zijn.
+- Respecteert **rijstroken** (2.12) en **afslagbeperkingen**
+  (`type=restriction`: `no_left_turn`, `only_straight_on`, …, met `via`-knoop
+  of -way), eenrichting, `no_entry`, `access`, `bus`-only en
+  `psv`-only, en de wegklasse (kosten = tijd).
+- Het **kruispuntmodel** (2.13) geeft per afslag de kosten (wachttijd bij
+  licht, voorrang).
+- **Modi:** auto, lopen (voetpaden, zebra's), fiets (fietspaden,
+  `oneway:bicycle=no`), boot (waterwegen met doorvaarthoogte per klasse,
+  2.11).
+
+**Tonen:**
+
+- de route **op het wegdek** op de juiste strook en de juiste hoogte (een
+  lijn onder een viaduct is geen lijn op het viaduct);
+- op de minimap en de kaart;
+- pijl en stemhints ("Over 300 meter rechts, houd links");
+- **snel herberekenen** bij een gemiste afslag (< 100 ms, incrementeel vanaf
+  de huidige tak);
+- een waypoint **klikt vast op het dichtstbijzijnde bereikbare punt op het
+  juiste niveau** (brug of eronder, kade of water).
+
+**Test** (`world_route_test.mjs`, 4.2): willekeurige paren over de
+provincie, en **elke weg in beide richtingen** bereikbaar waar dat mag.
+`country_route_test.mjs` en `bus_route_test.mjs` blijven groen.
+
+**Fase:** F0 graafdata per tegel + globale laag + de harness op het huidige
+gebied (`country_route_test` en `routing` blijven slagen); F1 de nieuwe
+router met afslagbeperkingen in de corridor; F2 provinciebreed, boot- en
+fietsmodus.
+
+### 2.17 Echte voorzieningen (POI-laag)
+
+Een andere agent bouwt nu een laag met **echte voorzieningen**:
+ziekenhuizen, huisartsenposten, politiebureaus, tankstations, brandweer,
+ambulanceposten, apotheken, stations. Met `nearestFacility(kind, x, y)` voor
+respawn en "gepakt" (nu `respawn.js` met `meta.careSites` en
+`meta.policeStations`). Opslag in lat/lon, omgezet met de
+projectiehelper (`rdnew.js` `wgsToWorld`).
+
+- **Sectie `pois`** in het tegelformaat: `kind`, `name` (zonder merk),
+  `entrance` (het punt waar je naar binnen gaat of afgezet wordt, op de
+  juiste kant van de weg), `tags` (openingstijden, `emergency=yes`).
+- In F1 verhuist de laag naar de tegels; de **globale laag** houdt een
+  index per soort, zodat `nearestFacility` ook naar een niet-geladen tegel
+  wijst.
+- De **projectie-API blijft stabiel** (`wgsToWorld`, `worldToWgs`): de
+  aanroepers merken de verhuizing niet.
+
+**Fase:** F0 de sectie gereserveerd; F1 de verhuizing.
+
+### 2.18 LOD tijdens cutscènes
+
+Nu: `scene3d.js` laat de wereld streamen rond `world.streamFocus` (het
+punt waar de camera naar kijkt, hooguit 50 m van de lens,
+`STREAM_LOOK_MAX`), en `cinematics.js` `playCinematic({ prewarm })` bouwt
+vooraf rond opgegeven punten (`prewarmStreamAt`); de flyover warmt vier
+samples van zijn pad op. Dat werkt binnen de stad. Met tegels en
+cutscènes kilometers van de speler is het te weinig.
+
+**Regels:**
+
+- **De streamer volgt de camera**, niet de speler.
+- **Shotlijsten vooraf:** elke cutscène-bron registreert haar shots vóór ze
+  begint: `cinematics.js` (shots, drone en orbit), establishing shots ver van
+  de speler, `trailer.js` en de benchmark-modus, `intromontage.js`, de
+  fotomodus en terugkijken, de kaartvoorvertoning (`mapview.js`
+  `setMapTeleport`). Per shot: camera + kijkpunt + brandpuntsafstand.
+- **Pre-roll:** tegels en L0 rond de camera **en** het kijkpunt van elk shot
+  worden geladen vóór de cut. Niet klaar? Dan houdt de vorige shot iets
+  langer (≤ 1 s), of valt hij terug op een shot dichterbij. **Nooit** lage
+  LOD of gaten in beeld.
+- **Budget:** tijdens een cutscène staat de gameplay stil, dus de
+  L0/L1-straal wordt groter en de LOD-bias schuift naar het frustum
+  (wat in beeld is eerst, wat erachter ligt nooit).
+- **Geen LOD-wissel binnen een shot:** de LOD-staat wordt per shot
+  vastgezet; overgangen alleen bij een cut, met een korte cross-fade.
+- **Wijde shots:** schaduwafstand en far-LOD afgestemd op het shot
+  (een heli-shot over het Hogeland heeft andere schaduwen dan een close-up).
+- **Shaders opwarmen** voor wat het shot ziet (tegeltypes, 2.4b).
+
+**Test** (`scripts/world/cine_lod_test.mjs`, uitbreiding van
+`cine_ring_check.mjs`): render elk shot van elke cutscène headless; tel
+ontbrekende tegels en LOD-wissels binnen een shot. Doel: 0 en 0.
+
+**Fase:** F0 de shotlijst-API en de streamer op de camera; F1 pre-roll en
+vastzetten; F5 de tuning van wijde shots.
+
+### 2.19 Weer in de provincie
+
+**Eis van de eigenaar: het is altijd zomer** ("Zomer vol misdaad"). Geen
+seizoenen, geen herfst, winter of lente, geen sneeuw of ijs. Deel 4 speelt in
+de **nazomer**: gouden licht, oogst, Gronings Ontzet (28 augustus), en dat is
+het verste.
+
+Nu: `weather.js` heeft één globale toestand (`world.weather`: `intensity`,
+`kind` uit `motregen`/`regenbui`/`onweer`/`storm`, `windAngle`, `overcast`,
+`mist`) met `Math.random`-buien; `world.storyFreePlay` "beëindigt de
+zomer" en zet storm aan. `puddleAt` en `roadGrip` bestaan al.
+`daynight.js` en `sky3d.js` doen de lucht.
+
+**Wat verandert:**
+
+- **Geen einde van de zomer:** `storyFreePlay` laat het weer met rust.
+  De zware storm blijft als zeldzame **zomerstorm** (onweer met harde
+  windstoten), niet als seizoen.
+- **Een weermodel voor de provincie**, deterministisch uit speltijd + seed
+  (zodat tegels, cutscènes en een geladen save hetzelfde weer zien):
+  - **fronten uit zee** (meestal uit het noordwesten) die over de kaart
+    trekken met een snelheid en een breedte;
+  - **regionale verschillen:** zeemist en meer wind aan de Wadkust en bij
+    Lauwersoog, buien die zich boven het Hogeland vormen, helderder
+    landinwaarts (Westerwolde);
+  - **van ver te zien:** regengordijnen, wolkenschaduwen over de akkers,
+    mistbanken boven het wad en de maren.
+- **Soorten zomerweer:** zonnig, hitte (trillende lucht boven het asfalt),
+  zomerbuien, onweer, kustmist en wind, en af en toe de **grijze Groningse
+  zomerdag**. Deel 4: nazomer met lage zon en oogststof.
+- **Gameplay:** natte weg = minder grip (`roadGrip`), plassen (`puddleAt`),
+  wind op de heli, boten en fietsers, minder zicht voor de politie (en voor
+  jou), geluid (regen op het dak, onweer in de verte), NPC's met paraplu's
+  en **minder fietsers** bij regen.
+- **Feesten alleen op echte zomerdata:** Gronings Ontzet (28 aug), de
+  kermis (`kermis.js`), oogst, zomerfestivals. **Geen Koningsdag.** Carbid
+  blijft alleen de bestaande activiteit (`carbid.js`).
+
+**Tegeldata:** geen weer in de tegels; wel per tegel een **klimaatklasse**
+(kust, wad, klei, veen, zand) en de afstand tot de kust in de globale laag.
+**Runtime:** één functie `weatherAt(x, y, t) → { rain, wind, fog, cloud,
+kind }`, door iedereen gelezen (rendering, physics, AI, audio).
+
+**Gevolgen elders in dit document:** in F5 vervalt "seizoensevents
+(oogst, carbid, winter-ijs)" → "zomer- en nazomerevents (oogst, Ontzet,
+kermis)"; beslissing 10 (winterinhoud) vervalt: geen winter, ook niet als
+los event.
+
+**Fase:** de haken (`weatherAt`, determinisme, geen einde van de zomer) in
+F0/F1; regionale buien en fronten in F2; volledig (mistbanken, gordijnen,
+NPC-gedrag, audio) in F5.
+
+### 2.20 Dag en nacht over de provincie
+
+Nu: `daynight.js` heeft één klok (`world.clock`, een speldag duurt 24
+minuten, `DAY_LENGTH_S`), een vaste zonsdeclinatie (15°) en een gekozen
+middagrichting die al op het RD-rooster is gedraaid (`NOON_BEARING` +
+`GRID_CONVERGENCE` uit `rdnew.js`). `calendar.js` geeft de verhaaldatum
+(augustus 2026, Ontzet op de 28e, daarna september).
+`nightlights3d.js` zet lantaarns op regel (elke 28 m, een pool van 11 echte
+lampen), `countryglow.js` gloeivlekken in het Ommeland.
+
+**Eén klok, één kalender.**
+
+- De globale klok plus de **spelkalender** (een andere agent breidt
+  `calendar.js` uit: eind augustus - september) bepalen zon en maan:
+  **declinatie per datum** (eind aug ~+9°, half sep ~+3°), echte azimut.
+- Zo **gaat de zon onder boven het Wad en het Lauwersmeer** (NW) en **komt
+  hij op boven de Dollard** (O-NO), met de **lange zomerschemering** van het
+  noorden.
+- **Rooster-noord:** de wereld is RD New, rooster-noord wijkt rond Stad
+  0,94° af van het ware noorden (`GRID_CONVERGENCE`, al toegepast op de
+  zon). Over de provincie loopt dat van ~0,6° (Grijpskerk) tot ~1,5°
+  (Nieuweschans); `rdnew.js` `gridConvergenceAt(x, y)` wordt bij elke
+  verschuiving van de render-oorsprong (2.3) opnieuw gelezen.
+
+**Nachtlicht per tegel, uit data:**
+
+| Bron | Licht |
+|---|---|
+| Lantaarns (2.14, per wegklasse) | aan bij schemering |
+| Ramen per gebouwtype en tijd | woningen 's avonds, kantoren uit, boerderijen met erfverlichting |
+| Kassen | oranje gloed |
+| Eemshaven, Delfzijl | industrieel licht, de fakkel |
+| Windturbines | **rode obstakellichten, synchroon knipperend** (zoals echt) |
+| Vuurtorens | draaiende bundel |
+| Kerken | aangelicht tot middernacht (beslissing 15) |
+| Snelweg | verlichting **alleen waar die echt is** (`lit=yes`) |
+
+**Far-LOD 's nachts:** lichtpunten en -strepen. Dorpen als lichtclusters,
+koplampstrepen op de A7, zodat de provincie vanuit de heli leest als een
+echte nachtkaart.
+
+**Budget:** geclusterd/forward+ of gebakken lichtpunten (instanced
+sprites); **geen schaduwen per lamp**, behalve een paar (speler,
+politie, zoeklicht). Hetzelfde licht bij elke tegel-load en elke cutscène
+(deterministisch, uit de tegel). Verkeer, voetgangers en politie 's nachts
+volgens 2.21.
+
+**Tegeldata:** `lights` (positie, soort, kleur, ritme) als afgeleide
+sectie; ramen als vertex-attribuut op de gebouwen (`buildings`: `win_night`).
+
+**Fase:** haken (kalender, declinatie, `lights`-sectie) F0/F1; volledig
+nachtlicht F2 (tegels) en F5 (far-LOD, tuning).
+
+### 2.21 Verkeer en voetgangers in de hele provincie
+
+Nu: `vehicle.js` (`manageTrafficPopulation`, `manageBikePopulation`,
+`manageScooterPopulation`, `manageBusPopulation`, `manageBoatPopulation`),
+`trafficfleet.js` (wagenpark per wijk-stereotype), `countrylife.js` (een
+handvol trekkers, fietsers en bootjes in de mist), `pedestrians.js` +
+`pedroutes.js`, `police.js`, `emergency.js`, `railway.js`. Twee werelden,
+twee populaties.
+
+**Dichtheid uit echte data:**
+
+- wegklasse en stroken (2.12), **intensiteits-proxies** (wegklasse,
+  bebouwing, bestemmingen; de open intensiteitsdata van Rijkswaterstaat
+  alleen als de licentie het toelaat, **te checken**);
+- bevolkings- en gebouwdichtheid (BAG), POI's (winkels, scholen, stations,
+  2.17);
+- tijdstip: **spits op de A7, A28 en N-wegen**, een drukke Grote Markt,
+  stille polderwegen met af en toe een trekker, **fietsers tussen dorpen**,
+  voetgangers bij winkels, stations, haltes en het strand, joggers en
+  hondenuitlaters op de dijken.
+
+**Simulatie-LOD:**
+
+| Afstand | Wat |
+|---|---|
+| L0 | volle AI met physics (zoals nu) |
+| Middenveld (~0,4-2 km) | **virtueel verkeer**: agenten bewegen over de graaf zonder physics, zodat spawnen en verdwijnen consistent zijn en je koplampen in de verte ziet |
+| Ver | niets, behalve 's nachts lichtstrepen op snelwegen (2.20) |
+
+- **Spawnen en verdwijnen alleen buiten beeld**; budgetten per
+  kwaliteitsstand.
+- **Overdracht tussen tegels zonder verdwijnen:** een agent leeft op de
+  graaf, niet in een tegel.
+- **Wagenpark per regio** (`trafficfleet.js` wordt per regio):
+  landbouwverkeer, vrachtwagens naar Eemshaven en Delfzijl, bussen op echte
+  lijnen (3.3), treinen op een grove dienstregeling (3.2).
+- **Voetgangers per plektype**, oversteken bij zebra of licht (2.13),
+  reageren op speler en politie.
+- **Hulpdiensten** vertrekken vanaf echte posten (2.17); politie en
+  wanted schalen per regio (2.8).
+
+**Eén systeem:** `countrylife.js` en `countryDrive` gaan op in de
+populaties van `vehicle.js`; fietsers, scooters en bussen idem.
+
+**Test** (`scripts/world/traffic_soak.mjs`): een soak per regio, versneld,
+headless: geen deadlocks, geen kettingbotsingen, geen agenten in gebouwen of
+water, binnen het perf-budget.
+
+**Fase:** F1 één verkeer en politie in de corridor (al gepland); dichtheid
+en virtueel verkeer F2; regio-wagenpark en voetgangergedrag F3; de laatste
+tuning F5.
+
+### 2.22 Streaming in Electron en web
+
+**Eén streamingpad voor beide:** dezelfde `TileWorld`, workers, budgetten,
+LRU en prefetch. Alleen de **bytebron** verschilt.
+
+**Hoe Electron de game nu serveert:** `desktop/main.js` registreert een
+eigen, bevoorrecht protocol `app://` (`standard`, `secure`,
+`supportFetchAPI`, `corsEnabled`, `stream`) en laadt
+`app://game/index.html`. `protocol.handle('app', serve)` leest bestanden
+uit de `game`-map (in het pakket `resources/game`) en **beantwoordt
+`Range`-verzoeken al met 206** (`fh.read` op de offset; nu voor audio en
+video), met `cache-control: no-cache`. Er is geen IPC of `fs`-toegang in
+de preload nodig.
+
+Gevolg: **Electron en web doen precies hetzelfde**, `fetch(packUrl, {
+headers: { Range } })`. In Electron gaat dat via `app://game/world/…`, op het
+web via HTTPS. (Dit vervangt de "`fs.read` via de preload" in 2.4 en 2.4b.)
+
+| | Electron | Web |
+|---|---|---|
+| Bron | packs in `resources/game/world/` via `app://` + Range | packs via HTTPS + Range (GitHub Pages ondersteunt Range) |
+| Cache | geen extra cache nodig (OS-paginacache) | OPFS, IndexedDB als terugval (2.4b) |
+| Alles bij de start laden | **nee**, ook niet in Electron | nee |
+
+**De bytebron is inplugbaar:**
+
+```
+interface ByteSource { read(pack, offset, length, signal) → Promise<ArrayBuffer> }
+```
+
+- `FetchRangeSource` (beide platforms), met `AbortController` (2.4b);
+- later eventueel een `RemoteSource` die packs op verzoek downloadt naar de
+  gebruikersmap (download-on-demand). **Geen hosting nu**; de interface
+  houdt de deur open.
+
+**Te doen en te verifiëren in F0:**
+
+- `serve()` opent en sluit het bestand per verzoek; meten bij ~15 tegels
+  per minuut, en zo nodig een kleine LRU van open bestandshandles in het
+  hoofdproces;
+- verifiëren dat `fetch` op `app://` **vanuit een worker** werkt (het
+  protocol is `supportFetchAPI`; anders haalt de hoofdthread de bytes en
+  geeft ze als transferable door);
+- `scripts/devserver.py` ondersteunt nu **geen Range**: in F0 toevoegen,
+  anders werkt de webversie lokaal niet zoals op Pages;
+- de "laad alles"-paden verdwijnen (nu laden beide platforms
+  `citymap.json` en `ommeland.*` in zijn geheel).
+
+**Test:** de streamingtests (4.2) draaien op beide bytebronnen; een
+headless test met `FetchRangeSource` tegen de devserver en tegen een
+`app://`-nabootsing geeft byte-gelijke tegels.
+
+**Fase:** F0.
+
+### 2.23 Reismodi: waypoints, routes, minimap en kaart per modus
+
+Eén routegraaf (2.16), **één stijl per reismodus**. De modus volgt uit wat de
+speler doet (te voet, op de fiets, in een auto of boot, trein, bus, heli of
+vliegtuig) en kan op de kaart worden gekozen.
+
+| Modus | Route en waypoint | Markering in de wereld | Minimap en kaart |
+|---|---|---|---|
+| Lopen | kortste weg over voetpaden, trappen, zebra's, door doorgangen; veerpont | chevrons op de grond | ingezoomd; voetpaden, gebouwingangen, winkels |
+| Fiets | fietspaden en fietsstraten, `oneway:bicycle=no`, nooit snelwegen | chevrons in fietspadkleur | fietspaden benadrukt |
+| Auto en andere voertuigen | stroken, afslagbeperkingen, schakelaar "snelwegen voorkeur" | chevrons op de juiste strook | zoom volgt snelheid; wegklassen; strookpijl bij kruispunten; flitspalen en tankstations |
+| Boot | bevaarbare waterwegen, doorvaarthoogte per bootklasse, beweegbare bruggen, sluizen | boeien | water benadrukt, land gedempt; brughoogte, boeien, sluizen, ligplaatsen |
+| Trein | stations en lijnen, overstappen, "uitstappen bij" | stationsbord | lijndiagram met volgende halte en aankomsttijd |
+| Bus | lijnen en haltes (OSM-relaties) | haltebord | lijn, haltes, volgende halte |
+| Heli en vliegtuig | rechte lijn met hoogteadvies, no-fly-zones, landingsplaatsen (helipads, velden) | 3D-ringen en een landingspad | uitgezoomd; terrein en herkenningspunten; hoogteband; landingsplaatsen; no-fly-zones; noord-boven optioneel |
+
+- **Ketens:** modi schakelen binnen één route, bijvoorbeeld lopen → station →
+  trein → lopen. Elke schakel is een knoop in de graaf met een wisselkost.
+- **Kaart (M):** dezelfde lagen, legenda en routestijl per modus, met een
+  **modusknop** (lopen, fiets, auto, boot, OV, lucht) die standaard de huidige
+  modus kiest. OV toont het trein- en busnet, lucht de landingsplaatsen en
+  no-fly-zones, boot de waterwegen, bruggen en sluizen.
+- **Minimap:** past zich aan met een vloeiende overgang bij het wisselen;
+  instellingen krijgen per modus zoom en draaien/noord-boven.
+- **Test:** de routetest (2.16) dekt elke modus: per modus willekeurige paren,
+  en de toegangsregels hieronder.
+
+**Toegang per modus (wettelijk).** De graaf kent per tak en per modus een
+toegangsvlag uit de OSM-tags: `foot`, `bicycle`, `motor_vehicle`,
+`motorcar`, `access`, `highway=motorway|trunk` met `motorroad=yes` (alleen
+auto's), `cycleway`, `footway`, `path`, `pedestrian`, `bus`/`psv`-only,
+`private`.
+
+- **Routering** stuurt nooit lopend of fietsend over een snelweg of autoweg,
+  en nooit een auto over een fietspad of voetpad.
+- **Gameplay:** lopen of fietsen op een snelweg (of met een brommer over een
+  voetpad) kan **fysiek**, maar is een **overtreding**: eerst een waarschuwing,
+  na een respijt **wanted +1**; de kaart toont zulke wegen als "niet voor jou".
+- **Tegeldata:** `roads` krijgt `acc` (bitmasker: voet, fiets, brom, auto,
+  bus, hulpdienst) uit de tags; `nav` herhaalt het per tak.
+
+**Fase:** F0 de toegangsbits en het datamodel; F1 routering per modus in de
+corridor; F2 provinciebreed; de modusgebonden kaart en minimap bij de
+HUD-ronde (F3).
+
+### 2.24 De rand van de wereld
+
+**Speelgebied:** de provincie plus een **buffer van 3-5 km** in Friesland,
+Drenthe en Duitsland op L1/L2-detail, zodat wegen doorlopen en de horizon
+nooit leeg is. Daarbuiten loopt de L3-horizon tot 40 km. **Nergens een gat.**
+
+**Rand op de weg:** op elke weg die de bufferrand kruist een **grappige
+terugkeer**, als uitbreiding van de bestaande wereldeinden (`worldends.js`):
+
+- Friesland: een Friese wegversperring met neven van Durk en Douwe;
+- Drenthe: een hunebed op de weg, "Drenthe is dicht";
+- Duitsland: een verzonnen "Grenswacht" (geen echte organisaties).
+
+Elke is een korte, overslaanbare scène; de speler wordt teruggezet met het
+gezicht naar binnen. Elke gevonden rand telt voor een prestatie.
+
+**Water en eilanden:**
+
+- **Wad:** speelbaar tot net voorbij Rottumerplaat en Rottumeroog. De open
+  Noordzee voorbij de eilanden is de harde rand: aanzwellende golven,
+  kustwachtradio, dan mist en stroming die je terugdrijven. Daarachter de
+  L3-horizon met schepen en de Duitse eilanden (Borkum) als silhouet.
+- **Rottumeroog en -plaat:** beschermd natuurgebied. Eromheen varen mag; aan
+  land gaan geeft een waarschuwing van de boswachter en een korte,
+  overslaanbare grap die je op de boot terugzet. Eén geheim.
+- **Schiermonnikoog** (Fries): de veerboot vanaf Lauwersoog is een cinematic
+  overtocht; het eiland eerst als L2-decor met een cinematic bezoek, later
+  speelbaar (F5) als het loont.
+- **Eems en Dollard:** waterrand met Duitsland. Varen tot het midden van de
+  vaargeul; de "Grenswacht"-boot waarschuwt. Emden is een silhouet.
+- **Lauwersmeer:** helemaal speelbaar; de sluizen van Lauwersoog naar zee
+  zijn de rand, met een sluisgrap.
+- **Vaargeulen:** grote schepen op de Eems naar Eemshaven en Delfzijl zijn
+  gevaarlijk voor boten. **Zwemmen:** tot het wadlopen bij eb (F5) een
+  uitputtings-terugkeer; tot dan vaste vloed.
+
+**Lucht:** een radiowaarschuwing, dan draait de autopilot van heli of
+vliegtuig zacht terug (zoals de bestaande zachte muur); plafond ~300 m voor
+het vliegtuig. **Spoor:** lijnen eindigen bij het laatste station voor de
+grens met "Deze trein eindigt hier"; snelreizen blijft binnen de grens.
+
+**Bruggen, dammen en sluizen over grenswater** (de Lauwersmeerdijk naar
+Friesland, de Westerwoldse Aa bij Nieuweschans, de kanalen naar Duitsland bij
+Ter Apel en Haren-Rütenbrock, grenskanalen met Drenthe): elk **volledig
+gemodelleerd** (echte hoogte, doorvaarthoogte, openingsgedrag) en volledig
+bespeelbaar tot de overkant. **De terugkeer treedt pas op ná de brug**, in de
+buffer aan de overkant, nooit op het dek of een oprit; op het water na de
+verste sluis of brug. Ze zitten in de hoogte- en wateroplosser en de audits
+(2.11: doorvaarthoogte per bootklasse, beide aanritten); beweegbare bruggen
+openen ook op de grenskanalen. De kaart toont de grens langs het water.
+
+**Kaart:** de provinciegrens is getekend; de buffer eromheen is gearceerd en
+heet "buiten de provincie".
+
+**Veiligheid:** spawnen, teleporteren, respawnen en waypoints worden binnen
+de rand geklemd; de save-migratie zet posities buiten de rand naar binnen;
+tests controleren dat **geen weg of waterweg het speelgebied uit leidt
+zonder terugkeer**.
+
+**Tegeldata:** een `edge`-laag in de globale laag (grenspolygoon, bufferpolygoon,
+terugkeerpunten met hun scène-id); de tegels in de buffer krijgen de vlag
+`buffer`.
+
+**Fase:** F0 de laag gereserveerd; F2 grens, buffer en horizon; F3 de
+terugkeerscènes; F5 Wad, getij en eilanden.
+
+### 2.25 Wat F0 oplevert (stand van zaken)
+
+Het tegelformaat v1 is gebouwd en wordt door het spel gebruikt. Zie
+ARCHITECTURE.md "World tiles" voor de bytes en de modules.
+
+| Onderdeel | Stand |
+|---|---|
+| RD New en `P()`-helpers | **klaar**: `rdnew.js`/`rdnew.py` (0,3 m van de rigoureuze RD over de provincie), `worldframe.js`, alle handgeplaatste coördinaten omgezet, kaartdata en bouwscripts in RD, saves v7, zon op roosternoord |
+| `.gdt` v1 + packer | **klaar**: `gdt.js`, `pack_tiles.mjs`, 1 cm, delta + zigzag-varint, kolomgewijs, packs van 8 × 8 km met index en hashes, deflate (zstd met woordenboek: F1-meting), round-trip- en determinismetests |
+| `TileWorld`-façade, store, wachtrij, workers | **klaar** voor het bestaande gebied: dezelfde query-API, `GameMap.fromParts` (slaat de afleiding bij het laden over), LRU, pins, annuleren, prefetch op snelheid en richting, `FrameQueue`, Range-bytebron. De stad is vastgepind: de systemen lezen nog hele arrays |
+| Zwevende oorsprong | **infrastructuur klaar** en op ±40 km getest, inert op (0, 0); tegel-lokale geometrie (`toRender` overal) is de eerste klus van F1 |
+| Gebouwhoogtes en uiterlijk | velden en join **klaar** (`hm`, `hsrc`, dak, kleur, materiaal, bouwjaar, BAG-id uit de OSM-tags); de 3D BAG-extract zelf komt in F1 |
+| Hoogte-, rijstrook-, kruispunt-, route-, POI-, meubilair-secties | gereserveerd in het formaat (`SECTION`), met auditrapporten op de huidige data; de oplossers zijn F1 |
+| Cutscène-streaming | API (`prefetchPoints`, `missing`) klaar; de shotlijsten van `cinematics.js` en de test per cutscène zijn F1 |
+
+Open voor F1: tegel-lokale geometrie en `toRender`, de oplossers (2.11-2.13),
+3D BAG, de worker-kopie van de kaart (nu leest ook de roadsurface-worker de
+volledige stad), het Ommeland als echte tegels (nu een blob in de globale
+laag), zstd met woordenboek, OPFS-cache voor het web.
 
 ## 3. Reizen door de provincie
 
@@ -808,7 +1698,9 @@ Per icoon: 0,3-0,5 agent-dag, de eigenaar keurt met een screenshot.
 | Snelreizen tot speelbaar | ≤ 6 s | ≤ 4 s | ≤ 3 s |
 | Heap na 30 min rijden (groei) | < 50 MB | < 50 MB | < 50 MB |
 | GPU-geheugen | ≤ 600 MB | ≤ 900 MB | ≤ 1,2 GB |
-| Download (desktop, hele game) | ≤ 230 MB | | |
+| Download (desktop, hele game) | geen harde grens; streven ≤ ~1 GB als de kwaliteit het vraagt (0.1) | | |
+
+(En in F2 "Klaar als": "de download ≤ 230 MB" → "de download binnen de afspraak uit 0.1 (≤ ~1 GB), de webversie ≤ 25 MB tot speelbaar".)
 | Webversie eerste speelbare keer | ≤ 25 MB (code + index + spawn) | | |
 
 Regel: **geen regressie** ten opzichte van de huidige stad-baseline van
@@ -900,6 +1792,7 @@ Electron-tests alleen in één slotronde per fase.
   - de loader met LRU, prefetch en pinnen; tegel-lokale geometrie;
     `toRender()` en de zwevende oorsprong;
   - de worker leest tegels in plaats van een eigen kaartkopie.
+- **Stand:** zie 2.25.
 - **Klaar als:**
   - verhaaltest, spotcheck, passagecheck, ringcheck, geocheck en
     `country_route_test` zijn groen;
@@ -976,7 +1869,7 @@ Electron-tests alleen in één slotronde per fase.
   - alle audits zijn groen;
   - de hele lijst routetests is groen;
   - de perf-routes (A7 naar Nieuweschans, heli naar Eemshaven) halen 4.1;
-  - de download ≤ 230 MB.
+  - de download binnen de afspraak uit 0.1 (≤ ~1 GB), de webversie ≤ 25 MB tot speelbaar.
 - **Risico:** de buildtijd en de hoeveelheid fouten in de OSM-data.
   *Mitigatie:* audits per tegel met een uitzonderingslijst in de repo,
   en de bouwer draait 's nachts.
@@ -1023,7 +1916,7 @@ geheugen), per drop een begroting.
 - het eiland (als gekozen);
 - ambience per landuse (open punt 2 van de pariteit), motorgeluid van
   verre auto's;
-- seizoensevents (oogst, carbid, winter-ijs);
+- zomer- en nazomerevents (oogst, Gronings Ontzet, kermis; carbid blijft de bestaande activiteit);
 - de laatste perf-ronde en de lange-sessie-test.
 
 ### Parallel werken en volgorde
@@ -1057,14 +1950,14 @@ geheugen), per drop een begroting.
 |---|---|---|
 | 1 | Schaal 1:1 (echte afstanden) of ingekort? | **1:1**; de echte kaart is het verkoopargument, reizen met overslaan lost de afstanden op |
 | 2 | Waddeneilanden: Rottumeroog/-plaat (Gronings, onbewoond) en Schiermonnikoog (Fries, met veerboot) | Rottum als verboden natuur (gezien vanaf zee, één geheim); Schier eerst als cinematic, het eiland later als het loont |
-| 3 | Maximale downloadgrootte desktop | ≤ 230 MB totaal (nu 178 MB) |
+| 3 | Maximale downloadgrootte desktop | **geen harde grens** (besluit eigenaar): getrouwheid van de tegels gaat voor grootte, totaal mag richting ~1 GB; eerste keer laden en de webversie blijven klein door streaming |
 | 4 | De webversie op volle provincie? | ja, met streaming; eerste keer ≤ 25 MB |
 | 5 | Verhaal: een **Deel 4** na de epiloog, of alleen vrij spel in de provincie? | Deel 4 "Nazomer" (zie verhaal-document), met de bestaande drie delen ongewijzigd |
 | 6 | Gaswinning en aardbevingen | een stille, respectvolle zijlijn zonder grappen over de schade (zie het verhaal-document), of helemaal niet; jouw keus |
 | 7 | De grens: Friesland, Drenthe en Duitsland | een eenvoudige rand (L2-kwaliteit, geen missies); Eelde blijft het enige stuk Drenthe met detail |
 | 8 | Getij in het spel | ja, in F5; eerst vaste vloed |
 | 9 | 3D BAG (CC BY) voor gebouwhoogtes en daken | ja, met vermelding; anders alleen OSM + type-defaults |
-| 10 | Winterinhoud (ijs, schaatstocht) breekt het "zomer"-idee | als los event na Deel 4, onder de titel van het deel |
+| 10 | ~~Winterinhoud~~ | **vervalt** (besluit eigenaar): het is altijd zomer, geen winter, ijs of schaatsen, ook niet als los event |
 | 11 | De naam blijft "GDE Groningen – Zomer vol misdaad" | ja; Deel 4 speelt in de nazomer, de ondertitel klopt nog |
 | 12 | Volgorde: eerst F0-F2 (techniek) of eerder inhoud? | F0 (+ LK1 parallel) → F1 met kleine inhoud → F2/F3 parallel met F4a-scripts |
 | 13 | RD New: de omzetting van ~150 handgeplaatste coördinaten via een codemod of via een `P(x, y)`-helper | eerst de helper (veilig, te testen), daarna in één keer vastzetten |
