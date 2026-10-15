@@ -197,7 +197,7 @@ export class Player {
     // this.carrying: speed factor while hauling a side-job load (sidejobs.js)
     const stick = input.padAxis ? Math.hypot(input.padAxis[0], input.padAxis[1]) : 0;
     const pace = input.isDown('shift') ? RUN_SPEED : stick > 0 && stick < STROLL_STICK ? STROLL_SPEED : WALK_SPEED;
-    const speed = (this.crouching ? CROUCH_SPEED : pace) * (this.carrying || 1);
+    const speed = (this.crouching ? CROUCH_SPEED : pace) * (this.carrying || 1) * ((world && world.hurtWalk) || 1);
     const aiming = input.mouse.down || input.mouse.rightDown;
     const dir = drunkMove(world, cameraRelativeMove(input, world.camYaw), dt);
     this.moving = !!dir;
