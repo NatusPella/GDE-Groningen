@@ -21,6 +21,7 @@ const { GameMap, applyMapExtras } = await import('../../game/js/mapdata.js');
 const G = await import('../../game/js/gdt.js');
 const { edgeRows, globalChains } = await import('../../game/js/navgraph.js');
 const { heightRows } = await import('../../game/js/roadprofile.js');
+const { junctionRows } = await import('../../game/js/junctions.js');
 const { polygonBounds } = await import('../../game/js/util.js');
 
 export const BUILDER = 1;
@@ -180,6 +181,12 @@ export function build({ map, om, bin }, attrs = loadAttrs()) {
       }
     });
   }
+  // the junction model (junctions.js): a junction sits in the tile of its node
+  for (const row of junctionRows(map)) {
+    const [i, j] = G.tileIndexOf(row.p[0][0], row.p[0][1]);
+    const t = tileOf(i, j);
+    (t.kinds.junctions || (t.kinds.junctions = [])).push(row);
+  }
   // the route graph: an edge sits in the tile of its midpoint (navgraph.js)
   for (const e of edgeRows(map.roads)) {
     const [i, j] = G.tileIndexOf((e.a[0] + e.b[0]) / 2, (e.a[1] + e.b[1]) / 2);
@@ -189,9 +196,9 @@ export function build({ map, om, bin }, attrs = loadAttrs()) {
   }
   const blobs = new Map();
   for (const t of [...tiles.values()].sort((a, b) => a.i - b.i || a.j - b.j)) {
-    const sections = [...KINDS, ['heights', G.SECTION.HEIGHTS], ['nav', G.SECTION.NAV]].filter(([kind]) => t.kinds[kind]).map(([kind, type]) => ({ type, rows: t.kinds[kind] }));
+    const sections = [...KINDS, ['heights', G.SECTION.HEIGHTS], ['junctions', G.SECTION.JUNCTIONS], ['nav', G.SECTION.NAV]].filter(([kind]) => t.kinds[kind]).map(([kind, type]) => ({ type, rows: t.kinds[kind] }));
     const maxH = Math.max(0, ...(t.kinds.buildings || []).map((b) => b.h || 0));
-    const n = Object.fromEntries([...KINDS, ['heights'], ['nav']].filter(([k]) => t.kinds[k]).map(([k]) => [k, t.kinds[k].length]));
+    const n = Object.fromEntries([...KINDS, ['heights'], ['junctions'], ['nav']].filter(([k]) => t.kinds[k]).map(([k]) => [k, t.kinds[k].length]));
     blobs.set(t.key, { i: t.i, j: t.j, flags: 1, bytes: G.encodeBlob({ i: t.i, j: t.j, flags: 1, builder: BUILDER, sections }), n, maxH });
   }
   // the global layer: what every system needs everywhere until F1 gives it a tile home

@@ -11,7 +11,7 @@ import { countryWater } from './countryedge.js';
 import { pushOutOfPlan, onFarmPaving, planExtraSolids } from './countryplan.js';
 import { pushOutOfTrunks } from './countrywalls.js';
 import { countryRailsNear, pushOutOfRails } from './countryrails.js';
-import { roadPriority } from './junctions.js';
+import { roadPriority, junctionArm } from './junctions.js';
 import { pickTrafficCar, carModel, applyFleetFlags, pickBikeVariant, MIDIBUS_MODEL } from './trafficfleet.js';
 import { sirenYield } from './emergency.js';
 import { manageParkedCars, tickParkedCars } from './parkedcars.js';
@@ -1756,7 +1756,10 @@ function junctionYieldLimit(v, path, world, decel, claim) {
   if (!yieldTo) return Infinity;
   const waited = v.yieldWait || 0;
   if ((waited > 2.5 && othersWaiting && v.id <= minId) || waited > 8 + (v.id % 5)) return Infinity;
-  const stopS = first.s - 4 - v.halfLen;
+  // stop where the junction model puts the teeth or the stop line of this
+  // arm (the edge of the crossing carriageway), not on the crossing road
+  const arm = world.map && first.r ? junctionArm(world.map, first.r, first.i, first.fromDir) : null;
+  const stopS = first.s - (arm ? clamp(arm.stop, 3, 10) : 4) - v.halfLen;
   return stopS < -0.5 ? Infinity : Math.sqrt(2 * decel * Math.max(0, stopS));
 }
 
@@ -1914,6 +1917,8 @@ export function updateTrafficAI(v, dt, map, world, rng = Math.random, opts = nul
   v.hornFor = blockedByPlayer ? (v.hornFor || 0) + dt : 0;
   v.horn = v.hornFor > 1.5 && v.hornFor < 2.2;
   v.stuckFor = Math.abs(v.speed) < 0.6 && vTarget > 2 ? (v.stuckFor || 0) + dt : 0;
+  // what holds a car that wants to stand still (the junction sim test reads it)
+  v._why = vTarget >= 0.5 ? null : follow.vmax < 0.5 ? 'queue' : lightV < 0.5 ? 'light' : walkerV < 0.5 ? 'walker' : yieldV < 0.5 ? 'yield' : 'other';
   // held (not by a light) for a long time: turn around and find another way
   v.waitFor = Math.abs(v.speed) < 0.5 && vTarget < 0.5 && lightV > 1 ? (v.waitFor || 0) + dt : 0;
   if (!chase && v.waitFor > 35 + (v.id % 10) && !v.road.oneway && !goal && !queuedAtLight(v)) {

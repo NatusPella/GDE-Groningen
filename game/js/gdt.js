@@ -47,7 +47,7 @@ export const SECTION = {
   RAILS: 6,
   CANOPIES: 7, // open roofs (building=roof, platform roofs)
   PASSAGES: 8, // ways through or under a building
-  JUNCTIONS: 9, // reserved (F1): junction surfaces, control, stop lines
+  JUNCTIONS: 9, // the junction model (v1: k, p, c control, a arms [road gid, idx, d, rule, stop m, enters]; junctions.js junctionRows); surfaces F1b
   HEIGHTS: 10, // vertical road profiles (v1: gid, z, pnet, st, ly; roadprofile.js heightRows); the AHN raster goes next to it (F2)
   POIS: 11, // reserved (F1): kind, name, entrance, tags (real facilities)
   FURNITURE: 12, // reserved (F1): mapped street furniture
