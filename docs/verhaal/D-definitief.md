@@ -26,7 +26,7 @@ Mem Terpstra wil helemaal niet dat haar zoon dit doet.
 
 ## Een zomerverhaal
 
-GDE Groningen speelt in **één Groningse zomer**: de laatste twee weken van augustus. Dat is een eigen sfeer, net zoals Vice City altijd zon en neon heeft.
+GDE Groningen speelt in **één Groningse zomer**: de laatste twee weken van augustus. Dat is een eigen sfeer, zoals een grote misdaadstad in games altijd zon en neon heeft.
 - **Licht:** lange avonden. Twijduustern (de schemer) valt pas na tienen, en de kraak gebeurt in de kortste nacht die er nog over is. Zonsopgang na een lange nacht ("Net studenten").
 - **Stad in de zomer:** terrassen op de Vismarkt, het Noorderplantsoen vol kleedjes bij het eerste zonnetje, heel Stad aan de Hoornseplas ("Negatief zwemadvies. Iedereen zwemt toch."), ijs dat smelt sneller dan je het eet, en studenten die terugkomen voor de KEI-week.
 - **Groningse zomer, droog gebracht:** een hittegolf van 26 graden ("In Grunn heet dat tropisch"), regen die gewoon doorgaat ("Het regent hier niet. Het is zomer, en een beetje nat."), en wind tegen, ook in augustus.
@@ -121,7 +121,7 @@ GDE Groningen speelt in **één Groningse zomer**: de laatste twee weken van aug
 
 ## Trailer (cutscène, ongeveer 40 seconden)
 
-*Een trailerparodie op GTA VI, met flitsen vooruit in het verhaal. Zon op d'Olle Grieze in plaats van palmbomen. Fietsers in plaats van flamingo's. Een werkboot vist een fiets uit de Diepenring, een meeuw steelt een frikandel, synthmuziek.*
+*Een trailerparodie, met flitsen vooruit in het verhaal. Zon op d'Olle Grieze in plaats van palmbomen. Fietsers in plaats van flamingo's. Een werkboot vist een fiets uit de Diepenring, een meeuw steelt een frikandel, synthmuziek.*
 - *Flits: een vrouw in een rode jas met een pinautomaat op een aanhanger. Bevroren beeld:* **TESSA**, met "Heeft altijd een plan B. Plan A is ook van haar."
 - *Flits: een man met een pet die een deur openhoudt en schuldig in de camera kijkt. Bevroren beeld:* **TAMMO**, met "Stadjer. Groot hart. Kleine portemonnee."
 - *Flitsen: een duif boven het museum, een trekker-limo op de ring, een tankwagen die slipt, een helikopter met een man aan een touw boven het Oosterpark.*
@@ -1013,7 +1013,7 @@ Alle drie staan op de kaart; de route gaat naar de dichtstbijzijnde. Elke keuze 
 
 **Verhaal en teksten**
 - Alle cutscènes, leads, telefoontjes en Kiekdoar-berichten volgens dit script. Daarna worden ze ingesproken met de nieuwe stemmen, en dat kost een paar euro.
-- De naamkaarten in GTA-stijl en de trailer-opening (de intromontage wordt herschreven).
+- De naamkaarten en de trailer-opening (de intromontage wordt herschreven).
 - "Bel Rikus" vóór elke missie: een kort radiofragment. Dit kan via de bestaande radiostudio en de Nachtstreek-functies (`radiostudio.js`, `playRadioSting`).
 - Een korte outro bij herhaling voor elke missie, als klus.
 - Rubrieken op Nachtstreek: de fietstunnel-update, het storingsbericht, de torenwachter en de peiling "Woist ja wel?".
