@@ -225,7 +225,10 @@ async function boot() {
   // the map comes from .gdt tiles (world/, js/tileworld.js); a build without
   // them, or ?legacymap, reads the JSON files as before
   const onMapProgress = (f) => setLoadProgress(0.05 + f * 0.45);
-  const tiles = /[?&]legacymap\b/.test(location.search) ? null : await loadTileWorld('world/', { onProgress: onMapProgress });
+  // ?corridor (desktop --corridor): the proefstrook's tiles stream in too,
+  // where the old Ommeland layers do not already draw (flag 8)
+  const extra = /[?&]corridor\b/.test(location.search) ? [{ name: 'index-corridor.json', only: (t) => !(t.flags & 8) }] : [];
+  const tiles = /[?&]legacymap\b/.test(location.search) ? null : await loadTileWorld('world/', { onProgress: onMapProgress, extra });
   const ommeland = tiles ? tileOmmeland(tiles.global) : loadOmmeland('citymap.json');
   const facilities = loadFacilities('citymap.json');
   const map = tiles ? tiles.world : await loadMap('citymap.json', onMapProgress);

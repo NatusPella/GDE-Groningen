@@ -194,6 +194,8 @@ function createWindow() {
     process.argv.some((a) => a === '--gfx-advice' || a.startsWith('--gfx-advice=')) && 'gfxadvies',
     // --nobatch: city buildings drawn one by one (A/B of buildingbatch3d.js)
     process.argv.includes('--nobatch') && 'nobatch',
+    // --corridor: stream the proefstrook's tiles beyond the old Ommeland (F1)
+    process.argv.includes('--corridor') && 'corridor',
     argValue('--gfx-advice') && `gpu=${encodeURIComponent(argValue('--gfx-advice'))}`].filter(Boolean).join('&');
   // --profile-load[=ms]: a CPU profile of the page load (default 20 s from navigation)
   if (process.argv.some((a) => a === '--profile-load' || a.startsWith('--profile-load='))) {
