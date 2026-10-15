@@ -381,9 +381,17 @@ added to `citymap.json` are carried over by `build_map.py`.
 ## Known limits
 
 - The detailed map covers the city inside the ringweg plus ~300 m around it.
-  The real Ommelanden round it are low detail: flat ground, buildings as
-  simple boxes, roads and water painted on the ground (you wade through the
-  lakes rather than swim).
+  In the real Ommelanden round it the built-up streets of the villages and
+  towns go through the city's own generators (`realmap.js`, see
+  docs/OMMELAND-PARITEIT.md "Detailniveau"): road meshes with kerbs,
+  pavements and markings, street lamps, benches, bins, bike racks, street
+  trees, and the houses, rows, blocks and sheds built like the city's,
+  within the same 140 m detail radius. The churches, mills, towers and borgen
+  are landmark kits from OSM (`landmarkkit.js`). What is still lower than in
+  the city: buildings come from OSM boxes (an outline kept as 2-3
+  rectangles), not the real footprint; roads outside the built-up areas,
+  ditches, canals and lakes are painted on the ground (you wade through the
+  lakes rather than swim) and there are no quay walls; the ground is flat.
 - Squares mapped as OSM multipolygon relations (such as the Grote Markt
   paving) and some named canals are not in the data yet, because
   `process_osm.py` only fetches ways.
