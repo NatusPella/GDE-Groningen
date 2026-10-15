@@ -57,7 +57,7 @@ for (const r of roads) {
 }
 const secs = (performance.now() - t0) / 1000;
 const by = {};
-for (const f of fails) by[f.what] = (by[f.what] || 0) + 1;
+for (const f of fails) { const k = f.what.split(" (")[0]; by[k] = (by[k] || 0) + 1; }
 console.log(`${roads.length} roads, ${drives} drives in ${secs.toFixed(0)} s: ${fails.length} failed${fails.length ? ' (' + Object.entries(by).map(([k, v]) => `${k} ${v}`).join(', ') + ')' : ''}`);
 for (const f of fails.slice(0, 40)) console.log(`  ${f.what.padEnd(22)} ${f.road} (${f.type}, ${f.dir}) at ${f.x}, ${f.y} z ${f.z} ${f.v} km/h${f.by ? ' by ' + f.by : ''}`);
 

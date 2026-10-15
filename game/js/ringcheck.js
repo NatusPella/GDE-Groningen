@@ -413,6 +413,16 @@ export async function driveAcross(world, path, speed, opts = {}) {
     for (const p of findProps(car.x, car.y, 4)) if (!p.water && Math.abs((p.z || 0) - (car.z || 0)) < 3 && capsuleDist(car.x, car.y, p) < 3.5) out.add(p.kind);
     for (const b of map.buildingsNear(car.x, car.y, 4)) if (Math.abs(car.z || 0) < 4 && pointInPolygon(car.x + Math.cos(car.angle) * 2.5, car.y + Math.sin(car.angle) * 2.5, b.pts)) out.add('gebouw ' + (b.name || b.type || ''));
     if (map.elev && elevWallContact(map.elev, car.x + Math.cos(car.angle) * 2.2, car.y + Math.sin(car.angle) * 2.2, car.z || 0)) out.add('muur');
+    if (!out.size) {
+      // nothing ahead: what touches the body (a side scrape)
+      for (const b of map.buildingsNear(car.x, car.y, 4)) {
+        for (const [ox, oy] of [[2.2, 1.1], [2.2, -1.1], [0, 1.1], [0, -1.1], [-2.2, 1.1], [-2.2, -1.1]]) {
+          const c = Math.cos(car.angle), sn = Math.sin(car.angle);
+          if (Math.abs(car.z || 0) < 4 && pointInPolygon(car.x + c * ox - sn * oy, car.y + sn * ox + c * oy, b.pts)) { out.add('gebouw ' + (b.name || b.type || '') + ' (zijkant)'); break; }
+        }
+      }
+      for (const p of findProps(car.x, car.y, 6)) if (capsuleDist(car.x, car.y, p) < 5) out.add(`${p.kind}@${capsuleDist(car.x, car.y, p).toFixed(1)}`);
+    }
     return [...out].join(',');
   };
   const fail = (what) => ({ what, x: Math.round(car.x), y: Math.round(car.y), z: Math.round((car.z || 0) * 10) / 10, v: Math.round(car.speed * 3.6), by: cause() });
@@ -446,7 +456,7 @@ export async function driveAcross(world, path, speed, opts = {}) {
       s = Math.max(s, bs);
       if (bd > 36) return fail('van de rijbaan geduwd');
       // braking never takes more than ~0.5 m/s off in a step: more is an impact
-      if (before - car.speed > 1.5) return fail('botst');
+      if (before - car.speed > 1.5) return fail(`botst (-${(before - car.speed).toFixed(1)} m/s)`);
       if (car.speed < 2) return fail('staat stil');
       // (where two carriageways overlap on their way to merge it may ride the other one,
       // at the same height; the car keeps to its own ribbon, map.surfaceAt, to the end)
