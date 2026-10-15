@@ -2277,7 +2277,13 @@ export function settleVehicleHeight(v, map, dt) {
   updateSuspension(v, dt);
   if (!map.groundHeightAt) return;
   const z = v.z || 0;
-  const g0 = map.groundHeightAt(v.x, v.y, z);
+  // the car's layer (map.surfaceAt): it keeps to the deck or ramp it is on
+  let g0;
+  if (map.surfaceAt) {
+    const st = v.surf || (v.surf = { z, ribbon: null, kind: 'ground' });
+    st.z = z;
+    g0 = map.surfaceAt(v.x, v.y, st).z;
+  } else g0 = map.groundHeightAt(v.x, v.y, z);
   const g = v.airborne ? g0 : wheelbaseGround(v, map, g0, z);
   if (v.airborne) {
     v.vz -= FALL_G * (v.driver === 'player' ? MODS.grav : 1) * dt;
@@ -2323,8 +2329,9 @@ export function settleVehicleHeight(v, map, dt) {
   const h = Math.min(v.halfLen * 0.75, 2.4);
   const c = Math.cos(v.angle), s = Math.sin(v.angle);
   const zc = v.z;
+  const rib = v.surf && v.surf.ribbon;
   const probe = (x, y) => {
-    const q = map.groundHeightAt(x, y, zc);
+    const q = rib && map.surfaceZ ? map.surfaceZ(x, y, zc, rib) : map.groundHeightAt(x, y, zc);
     return Math.abs(q - zc) > SLOPE_SAMPLE_MAX ? zc : q;
   };
   let targetPitch = (v.pitch || 0) * 0.98, targetRoll = (v.roll || 0) * 0.95;
@@ -2354,9 +2361,10 @@ function wheelbaseGround(v, map, g, z) {
   const h = Math.min(v.halfLen * 0.85, 2.6);
   const c = Math.cos(v.angle), s = Math.sin(v.angle);
   let sum = g, n = 1;
+  const rib = v.surf && v.surf.ribbon;
   for (const f of WB_OFFS) {
     const d = f * h;
-    const q = map.groundHeightAt(v.x + c * d, v.y + s * d, z);
+    const q = rib && map.surfaceZ ? map.surfaceZ(v.x + c * d, v.y + s * d, z, rib) : map.groundHeightAt(v.x + c * d, v.y + s * d, z);
     if (Math.abs(q - g) <= Math.abs(d) * 0.12 + 0.02) { sum += q; n++; }
   }
   return sum / n;

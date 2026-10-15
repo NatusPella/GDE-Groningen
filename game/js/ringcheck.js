@@ -372,7 +372,9 @@ export async function driveAcross(world, path, speed) {
   const map = world.map, p = world.player;
   const car = new Vehicle(path[0][0], path[0][1], Math.atan2(path[3][1] - path[0][1], path[3][0] - path[0][0]), { name: 'sport', len: 4.1, wid: 1.85, maxSpeed: 40, accel: 14, brake: 30, turnRate: 3.2, color: '#8a1414' });
   car.driver = 'player';
-  car.z = map.groundHeightAt(car.x, car.y, path[0][2]);
+  // on the layer of the path's own road (its ribbon), not whatever overlaps it there
+  car.surf = { z: path[0][2], ribbon: map.ribbonAt(path[0][0], path[0][1], path[0][2]) };
+  car.z = map.surfaceAt(car.x, car.y, car.surf).z;
   car.speed = speed;
   const dt = 1 / 60;
   let s = 0, t = 0;
@@ -414,10 +416,9 @@ export async function driveAcross(world, path, speed) {
       // braking never takes more than ~0.5 m/s off in a step: more is an impact
       if (before - car.speed > 1.5) return fail('botst');
       if (car.speed < 2) return fail('staat stil');
-      // (where two carriageways overlap on their way to merge it may ride the other one)
-      // (the last metres are run-out, the path is cut there at an arbitrary point: where a
-      // ramp runs beneath its own viaduct a car still on the ramp is 'below' the end of the path)
-      if (!car.airborne && bs < path.length - 12 && (car.z || 0) < path[bs][2] - 2.5) return fail('van het dek gevallen');
+      // (where two carriageways overlap on their way to merge it may ride the other one,
+      // at the same height; the car keeps to its own ribbon, map.surfaceAt, to the end)
+      if (!car.airborne && (car.z || 0) < path[bs][2] - 2.5) return fail('van het dek gevallen');
       if (t > 30) return fail('komt niet vooruit');
     }
     streamAround(world, car.x, car.y);

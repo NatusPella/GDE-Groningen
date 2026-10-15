@@ -1,7 +1,7 @@
 import { polygonBounds, closestPointOnSegment, pointInPolygon, pointInStaticPolygon, isInWater } from './util.js';
 import { inPassage, clipWaysInBuildings } from './passages.js';
 import { attachMuseumPlan } from './museumplan.js';
-import { buildElevation, groundHeightAt, roadZAt, ceilingAt, coveredAt, surfaceHalfWidth, offLevelAt } from './elevation.js';
+import { buildElevation, groundHeightAt, surfaceAt, ribbonAt, ribbonZAt, roadZAt, ceilingAt, coveredAt, surfaceHalfWidth, offLevelAt } from './elevation.js';
 
 const CELL = 80; // meters per grid cell
 
@@ -515,18 +515,47 @@ export class GameMap {
     return groundHeightAt(this.elev, x, y, zHint);
   }
 
+  // The one height query (elevation.js surfaceAt) for whoever keeps `state`
+  // = { z, ribbon }: it stays on the road or rail deck it is on. Driving,
+  // walking, AI and the paths of cutscenes and races use it.
+  surfaceAt(x, y, state) {
+    return surfaceAt(this.elev, x, y, state, this._ground || (this._ground = (gx, gy, gz) => this.groundHeightAt(gx, gy, gz)));
+  }
+
+  // Height at (x, y) for something at z on `ribbon` (stateless surfaceAt,
+  // for probes around a vehicle or a walker)
+  surfaceZ(x, y, z, ribbon) {
+    if (ribbon) {
+      const zr = ribbonZAt(this.elev, ribbon, x, y);
+      if (zr !== null && Math.abs(zr - z) <= 1.1) return zr;
+    }
+    return this.groundHeightAt(x, y, z);
+  }
+
+  // The ribbon (layer) at (x, y) nearest height z: what something put down
+  // there stands on (null at street level)
+  ribbonAt(x, y, z) {
+    return ribbonAt(this.elev, x, y, z);
+  }
+
   // Height of road r at (x, y); 0 for flat roads.
   roadZAt(r, x, y) {
     return roadZAt(r, x, y);
   }
 
-  // Height to put a freshly placed car / person at (x, y): on the nearest
-  // drivable road's level (a spot on the ring's viaduct stays on it).
+  // Height to put a freshly placed car / person at (x, y): the surface there
+  // seen from street level (a ramp's foot, not the deck above a street).
+  // (It always was: the nearest-road lookup it made had a 25 m radius, under
+  // nearestRoadPoint's first 30 m ring, so it never found one.) Whoever must
+  // stand on a deck asks for its ribbon: surfaceAt(x, y, { z, ribbon }).
   spawnZ(x, y) {
-    if (!this.elev.has) return 0;
-    const rp = this.nearestRoadPoint(x, y, 25, true);
-    const hint = rp && rp.road.z ? roadZAt(rp.road, x, y) : 0;
-    return groundHeightAt(this.elev, x, y, hint + 0.3);
+    return this.spawnState(x, y).z;
+  }
+
+  // spawnZ as a surfaceAt state, to keep for whatever is put down there
+  spawnState(x, y) {
+    if (!this.elev.has) return { z: 0, ribbon: null, kind: 'ground' };
+    return this.surfaceAt(x, y, { z: 0.3, ribbon: null });
   }
 
   ceilingAt(x, y, z) {
