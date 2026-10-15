@@ -245,14 +245,14 @@ There are no white toast lines. Three channels, all inside `#hud` (so
   hides the HUD. `opts.exact` countdowns ("3", "GO! GO! GO!") are a big
   number in the middle. `cardlines.js` lists the few cards Tammo/Tessa say
   out loud (`react` class, lines manifest). Debug `window.__cards`.
-- Objective line (`hud_panel.js` `currentObjective`, top centre): one
+- Objective line (`hud_panel.js` `currentObjective`, bottom centre, zone G): one
   objective at a time, the mission stage (`missionProgressText` split into
   objective and counter), else the bijbaan goal (its hint first, then the
   counter), else "Ontsnap aan de politie", else the next story step
   (`world.storyGuide`: its name and how to get there, smaller); pops in
   when it changes. Deliver missions say what to do ("Stap in Berends
   bakkie", "Rij naar het Boterdiep": def `vehicleName`, `destName`).
-- Phone (`phonefeed.js`, bottom left above the street name):
+- Phone (`phonefeed.js`, zone A top left, see "HUD zones and rules"):
   - `notifyPhone(world, { from, app, title, text, duration })` (or push
     `{ from, text, duration }` onto `world.phoneNotifications`): a phone
     card. "KIEKDOAR(: | MELDT:)" texts become a Kiekdoar headline + body;
@@ -301,6 +301,60 @@ or car-banter subtitles are up, at most one world prompt (the E prompt, or
 one place label when there is none), and during a call (`body.hud-call-on`)
 the now-playing card, vehicle name and hints step aside.
 `node scripts/attention_test.mjs` checks the rules.
+
+## HUD zones and rules (`hudrules.js`)
+
+The approved AAA HUD (mockups: Main, HUD-Rijden, HUD-Alles, HUD-Regels, in
+the owner's design files) is eight fixed zones with at most one thing each:
+A top left (messages: call > text > tip, `phonefeed.js` and `hudcards.js`
+share it through `zones`), B top centre (mission timer + GPS turn card, a new
+place's name), C top right (date and clock, stars, the search box, money
+with its +/- delta, weapon), D the free centre, E left middle (achievement >
+radio station), F bottom left (the rounded-square minimap, street and wijk,
+health, stamina, the vehicle's damage), G bottom centre (objective, dimmed
+under a subtitle), H bottom right (speed, gear row and rev arc, at most two
+key hints). Layout values in `hud_panel.css` are the mockups' px / 1.2 (the
+HUD zoom at 1920x1080), `--hud-edge` is the 46 px margin.
+
+- `hudrules.js` is pure: `decideHud(situation)` answers what shows (stars
+  only when wanted + 6 s, money 5 s after a change or near a shop, weapon
+  only armed, bars only when not full or changing, vehicle widgets only in a
+  vehicle, keys only with something to do, after 8 s without input only the
+  minimap in Slim, at most 7 elements besides the minimap: P3 goes first,
+  then the clock, money, keys, weapon). Priorities P0 (banner, dangers,
+  police) to P3 (tips, radio, place name, money in); during a chase, fight
+  or race (`hudNow.busy`) only P0-P2 show and P3 waits at most 30 s
+  (`Deferred`), during a call or subtitle tips and the radio wait.
+  `ZoneBoard` (`zones`) holds one occupant per zone.
+- `hud_panel.js` `updateVisibility` feeds it every 0.1 s and toggles
+  `hv-off` / `hv-in` classes (opacity, no layout change). Settings: `hudMode`
+  `slim` (default) / `alles` / `minimaal` (pause menu > Instellingen >
+  Weergave), `minimapZoom`, `minimapNorth` (`nooit` / `lucht` / `altijd`).
+- `hudgps.js` (pure): `nextTurn(routeAhead, 400)`, `turnText`, `etaText` for
+  the GPS card, shown only with a route, in a vehicle on roads, within ~400 m
+  of a turn. `hudcalendar.js` adapts calendar.js (`storyDate`, and
+  `specialDay` once it exists; until then 28 augustus is Gronings Ontzet).
+- `roadaccess.js` (pure): the travel mode (`lopen`, `fiets`, `auto`, `boot`,
+  `ov`, `lucht`), `roadAllowed(road, mode)` (OSM highway type: no walking or
+  cycling on trunk roads, no cars on footways and cycleways) and the
+  minimap's zoom per mode. The minimap and the big map (`mapview.js`, mode
+  selector in its header, opens on how you travel) emphasise the roads for
+  your mode, dim the others and dash trunk roads red for walkers and cyclists
+  ("niet voor jou"); the real access tags and the legal consequences (police
+  interest) come with the province tiles.
+- Boot screen (`#loading`, startscreen.js): dark green from the first paint
+  (inline `--ui` script, Electron `backgroundColor`), the logo builds up,
+  Gronings status lines rotate, "Druk op een toets" when ready (runs with
+  `?noattract|storytest|stil|trailer|benchmark|perf` skip the key), the menu
+  slides in under it and the boot screen fades out over it
+  (`dismissLoading`). The first tiles round the save are prewarmed meanwhile.
+- Load screen (`loadscreen.js` + `.css`): Ken Burns picture from `img/laad/`
+  (the game's own renders), logo, "Eerder in het verhaal" from the part's
+  recap, the "Je gaat verder in" card, a tip and a progress bar from
+  `scene3d.js streamPending()`. Shown when loading a save (Doorgaan) and by
+  `watchJumps` (main.js) for a jump over 700 m outside cutscenes.
+- `node scripts/hud_test.mjs` checks the rules, the turn finder and the
+  access table.
 
 ## Narrative scheduler
 
