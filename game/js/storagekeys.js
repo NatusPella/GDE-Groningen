@@ -1,6 +1,6 @@
 // Every localStorage / sessionStorage key the game uses, in one place.
 //
-// Until 0.29 the keys started with 'gte-' (the game was called GTE VI).
+// Until 0.29 the keys started with 'gte-'.
 // migrateStorage() copies each old key to its 'gde-' name once, at boot:
 // main.js imports this module first, so it runs before any module reads
 // storage. The old keys stay where they are, so a downgrade to 0.28 still
