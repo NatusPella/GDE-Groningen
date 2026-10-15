@@ -122,8 +122,16 @@ export function probeRingSolids(world) {
   const lap = samplesOf(RING_ROUTE, (i) => RING_ROUTE[i][2], true);
   const out = probe(world, lap, 'ringrace', cache);
   // the rest of the ring: every raised or sunken road and the ring's numbered roads
-  for (const r of world.map.roads) {
-    if (r.cat === 'foot' || r.cat === 'cycle' || !(r.z || RING_REFS.has(r.ref))) continue;
+  out.push(...probeRoadSolids(world, world.map.roads.filter((r) => r.z || RING_REFS.has(r.ref)), cache));
+  return out;
+}
+
+// The same probe over any roads' lanes (the whole network: scripts/world/
+// drive_audit.mjs --solids). One entry per 10 m and kind.
+export function probeRoadSolids(world, roads, cache = new Map()) {
+  const out = [];
+  for (const r of roads) {
+    if (r.cat === 'foot' || r.cat === 'cycle') continue;
     const hw = (r.width || 7) / 2;
     const zOf = r.z ? (i, k) => r.z[i] + (r.z[i + 1] - r.z[i]) * k : () => 0;
     const all = samplesOf(r.pts, () => hw, false, zOf);
@@ -307,7 +315,9 @@ export function crossingPath(map, c, reach) {
         const O = o.pts, oa = fwd ? O[0] : O[O.length - 1];
         if (Math.hypot(oa[0] - e[0], oa[1] - e[1]) > 0.5 || Math.abs(zEnd(o, !fwd) - ze) > 1) continue;
         const ob = fwd ? O[1] : O[O.length - 2];
-        const turn = Math.abs(Math.atan2(Math.sin(Math.atan2(fwd ? ob[1] - oa[1] : oa[1] - ob[1], fwd ? ob[0] - oa[0] : oa[0] - ob[0]) - a0), Math.cos(Math.atan2(fwd ? ob[1] - oa[1] : oa[1] - ob[1], fwd ? ob[0] - oa[0] : oa[0] - ob[0]) - a0)));
+        // (on along o, away from the node: the way it carries on, for either end)
+        const ao = Math.atan2(ob[1] - oa[1], ob[0] - oa[0]);
+        const turn = Math.abs(Math.atan2(Math.sin(ao - a0), Math.cos(ao - a0)));
         if (turn < bt) { bt = turn; best = o; }
       }
       if (!best) break;
@@ -376,7 +386,9 @@ export function offsetPath(map, path, o) {
 
 // A car with the player's collision driven over the path at `speed` m/s.
 // Resolves null when it crossed, else { what, x, y, z }.
-export async function driveAcross(world, path, speed) {
+// opts.jump: a car in the air for more than 0.3 s fails too (a crest or a
+// step in the profile); opts.maxT: seconds before 'komt niet vooruit' (30).
+export async function driveAcross(world, path, speed, opts = {}) {
   const map = world.map, p = world.player;
   const car = new Vehicle(path[0][0], path[0][1], Math.atan2(path[3][1] - path[0][1], path[3][0] - path[0][0]), { name: 'sport', len: 4.1, wid: 1.85, maxSpeed: 40, accel: 14, brake: 30, turnRate: 3.2, color: '#8a1414' });
   car.driver = 'player';
@@ -385,7 +397,7 @@ export async function driveAcross(world, path, speed) {
   car.z = map.surfaceAt(car.x, car.y, car.surf).z;
   car.speed = speed;
   const dt = 1 / 60;
-  let s = 0, t = 0;
+  let s = 0, t = 0, air = 0;
   // what the car ran into: props, footprints or walls around it
   const cause = () => {
     const out = new Set();
@@ -413,6 +425,9 @@ export async function driveAcross(world, path, speed) {
       p.x = car.x; p.y = car.y;
       t += dt;
       if (!car.airborne && overOpenWater(map, car.x, car.y, car.z || 0)) return fail('zinkt in het water');
+      air = car.airborne ? air + dt : 0;
+      if (opts.onStep) opts.onStep(car, s);
+      if (opts.jump && air > 0.3) return fail('springt');
       // progress: nearest path point a little ahead of the last
       let bs = s, bd = Infinity;
       for (let j = Math.max(0, Math.floor(s) - 3); j < Math.min(path.length, s + 12); j++) {
@@ -427,7 +442,7 @@ export async function driveAcross(world, path, speed) {
       // (where two carriageways overlap on their way to merge it may ride the other one,
       // at the same height; the car keeps to its own ribbon, map.surfaceAt, to the end)
       if (!car.airborne && (car.z || 0) < path[bs][2] - 2.5) return fail('van het dek gevallen');
-      if (t > 30) return fail('komt niet vooruit');
+      if (t > (opts.maxT || 30)) return fail('komt niet vooruit');
     }
     streamAround(world, car.x, car.y);
     await nextFrame();

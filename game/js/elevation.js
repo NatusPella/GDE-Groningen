@@ -426,18 +426,21 @@ export function ribbonZAt(elev, r, x, y) {
   if (!elev.has || !r) return null;
   const list = elev.grid.at(x, y);
   if (!list) return null;
-  let bd = Infinity, bz = null;
+  // the nearest point of the ribbon decides: past one of its two ends (that
+  // end vertex is the nearest point and the point lies beyond it) is off it,
+  // also where an inner vertex's round cap would still reach
+  let bd = Infinity, bz = null, bh = 0, past = false;
   for (const s of list) {
     if (s.r !== r) continue;
     const q = onSeg(s, x, y);
-    if (q.d > s.hs || q.d >= bd) continue;
+    if (q.d >= bd - 1e-9) continue;
+    bd = q.d; bz = q.z; bh = s.hs; past = false;
     if ((q.t <= 0 && s.i === 0) || (q.t >= 1 && s.i === s.r.pts.length - 2)) {
       const along = (x - s.ax) * s.ux + (y - s.ay) * s.uy;
-      if (along < -0.05 || along > s.len + 0.05) continue;
+      past = along < -0.05 || along > s.len + 0.05;
     }
-    bd = q.d; bz = q.z;
   }
-  return bz;
+  return !past && bz !== null && bd <= bh ? bz : null;
 }
 
 // The one height query (docs/PROVINCIE-PLAN.md 2.11): the surface under
