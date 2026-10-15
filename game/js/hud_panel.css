@@ -135,7 +135,7 @@ body.hide-minimap #hud .hud-minimap-wrap { display: none; }
 #hud .hud-mission {
   --obj: #3fc97a;
   position: absolute; bottom: calc(var(--hud-edge) + 56px); left: 50%; transform: translateX(-50%);
-  display: flex; align-items: center; gap: 12px; max-width: calc(58vw / var(--ui, 1)); padding: 8px 24px; border-radius: 8px;
+  display: flex; align-items: center; gap: 12px; max-width: min(calc(58vw / var(--ui, 1)), calc(100vw / var(--ui, 1) - 2 * (var(--hud-edge) + var(--mm-size) + 190px))); padding: 8px 24px; border-radius: 8px;
   color: #f0ede4; text-shadow: var(--hud-shadow);
   background: linear-gradient(90deg, rgba(12, 20, 14, 0), rgba(12, 20, 14, 0.78) 18%, rgba(12, 20, 14, 0.78) 82%, rgba(12, 20, 14, 0));
   pointer-events: none; transition: opacity 0.4s ease;
@@ -452,7 +452,7 @@ body:not(.cine-hide-hud) #cine .cine-skip { right: 50%; bottom: calc(14px * var(
 
 #hud .hud-vehname {
   /* the model name for a moment on getting in, above the key hints */
-  position: absolute; right: var(--hud-edge); bottom: calc(var(--hud-edge) + 250px); display: flex; align-items: center; gap: 12px;
+  position: absolute; right: var(--hud-edge); bottom: calc(var(--hud-edge) + 300px); display: flex; align-items: center; gap: 12px;
   max-width: min(calc(46vw / var(--ui, 1)), 520px); padding: 8px 12px 8px 26px; text-align: right; color: #f0ede4;
   text-shadow: 0 2px 6px rgba(0, 0, 0, 0.85), 0 0 18px rgba(0, 0, 0, 0.5);
   background: linear-gradient(270deg, rgba(12, 20, 14, 0.82), rgba(23, 48, 31, 0.4) 80%, rgba(23, 48, 31, 0));
