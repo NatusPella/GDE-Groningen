@@ -2289,6 +2289,7 @@ function updateEngineSynth(dt, world) {
   const spec = ENGINE_SPECS[S.kind];
   const thr = world.paused ? 0 : v.throttle || 0;
   const speed = Math.abs(v.speed);
+  const prevGear = S.gear;
   let { rpm: baseRpm, shifted } = engineRpm(v, S, S.kind, thr, t);
   // geared vehicles: the gearbox (gearbox.js) owns gear and revs, mapped onto this engine's range
   const gb = v.gb;
@@ -2297,7 +2298,7 @@ function updateEngineSynth(dt, world) {
     baseRpm = spec.idle + clamp((gb.rpm - p.idle) / (p.red - p.idle), 0, 1.02) * (spec.red - spec.idle);
     if (gb.stalled) baseRpm = 0;
     const g = Math.max(0, gb.gear - 1);
-    shifted = g === S.gear ? 0 : g > S.gear ? 1 : -1;
+    shifted = g === prevGear ? 0 : g > prevGear ? 1 : -1;
     S.gear = g;
   }
   let rpm = baseRpm;
