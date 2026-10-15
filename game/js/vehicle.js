@@ -1068,6 +1068,21 @@ export function spawnCountryPoliceBoat(map, x, y, angle) {
   return v;
 }
 
+// Mean width of a (long) water polygon: twice its area over its perimeter.
+function waterMeanWidth(poly) {
+  if (poly._meanW === undefined) {
+    const p = poly.pts;
+    let a = 0, per = 0;
+    for (let i = 0; i < p.length; i++) {
+      const q = p[(i + 1) % p.length];
+      a += p[i][0] * q[1] - q[0] * p[i][1];
+      per += Math.hypot(q[0] - p[i][0], q[1] - p[i][1]);
+    }
+    poly._meanW = per > 0 ? Math.abs(a) / per : 0;
+  }
+  return poly._meanW;
+}
+
 // Mirrors manageBikePopulation's despawn/spawn-quota shape, but candidates
 // are water bodies near the player instead of roads. Police boats are
 // excluded here exactly like manageTrafficPopulation excludes police cars -
@@ -1092,8 +1107,8 @@ export function manageBoatPopulation(world, { target = 4, spawnMin = 20, spawnMa
   while (count < target && candidates.length && guard++ < target * 6) {
     const poly = candidates[Math.floor(Math.random() * candidates.length)];
     // rowers, an eight and stand-up paddlers on the wider city water
-    const b = poly.bounds;
-    life.wide = !!b && Math.min(b[2] - b[0], b[3] - b[1]) > 22;
+    life.width = waterMeanWidth(poly);
+    life.wide = life.width >= 24;
     const lifeKind = pickWaterLife(Math.random, life);
     const v = spawnBoatOnWater(map, poly, Math.random, { near: [player.x, player.y], min: spawnMin, max: spawnMax, budget: 3, model: lifeKind ? BOAT_KINDS[lifeKind] : undefined });
     if (v && lifeKind) have[lifeKind]++;

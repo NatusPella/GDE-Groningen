@@ -123,14 +123,14 @@ export function shabbyHasLight(profileKey, rng = Math.random) {
 // --- water ----------------------------------------------------------------------
 
 // What the boat spawner should pick instead of the default mix, or null.
-// ctx: { hour, d (to centre), profile, wide (a broad channel), have: {skiff, acht, sup} }
+// ctx: { hour, d (to centre), profile, wide (a broad channel), width (mean, m, optional), have: {skiff, acht, sup} }
 export function pickWaterLife(rng, ctx) {
   const dens = lifeDensity(ctx.profile, ctx.d);
   if (dens <= 0 || isNight(ctx.hour)) return null;
   const have = ctx.have || {};
   const early = (ctx.hour >= 6 && ctx.hour < 10.5) || (ctx.hour >= 17 && ctx.hour < 20.5);
   // rowing wants room: not in the narrow inner canals
-  const rowOk = ctx.d > 150;
+  const rowOk = ctx.d > 150 && (ctx.width === undefined || ctx.width >= 12);
   const r = rng();
   if (rowOk && have.acht < 1 && ctx.wide && r < (early ? 0.07 : 0.025)) return 'acht';
   if (rowOk && have.skiff < 2 && r < (early ? 0.2 : 0.08)) return 'skiff';
