@@ -1855,21 +1855,22 @@ function supFit(B, st) {
 
 // Rowing gear: sliding seats, riggers out to the oarlocks, long oars with
 // flat blades on the water (the rowers' hands animate in seating3d 'row').
-function rowFit(B, st, L, W, hull, trimColor, seatXs) {
+function rowFit(B, st, L, W, hull, trimColor, seatXs, sweep = false) {
   const hl = L / 2;
   const blade = trimColor, shaft = 0x1c1c1e;
-  for (const x of seatXs) {
+  seatXs.forEach((x, i) => {
     B.box(x, 0.13, 0, 0.3, 0.025, 0.2, 0x2a2b2d);
     B.box(x + 0.34, 0.12, 0, 0.1, 0.03, 0.34, 0x2a2b2d);
-    for (const s of [1, -1]) {
+    // a single scull has two oars; in an eight each rower has one, alternating sides
+    for (const s of sweep ? [i % 2 ? 1 : -1] : [1, -1]) {
       const lx = x + 0.1, lz = s * (W / 2 + 0.52);
       B.geo(tubeGeometry([lx, 0.12, s * 0.15], [lx - 0.04, 0.24, lz], 0.012, 0.01, 4), null, 0x9aa0a6);
       B.geo(tubeGeometry([lx - 0.04, 0.24, s * 0.18], [lx - 0.04, 0.24, lz], 0.01, 0.01, 4), null, 0x9aa0a6);
-      B.geo(tubeGeometry([lx - 0.45, 0.3, s * 0.2], [lx + 0.08, 0.25, s * (W / 2 + 0.55)], 0.016, 0.016, 5), null, shaft);
+      B.geo(tubeGeometry([lx - 0.45, 0.3, sweep ? -s * 0.12 : s * 0.2], [lx + 0.08, 0.25, s * (W / 2 + 0.55)], 0.016, 0.016, 5), null, shaft);
       B.geo(tubeGeometry([lx + 0.08, 0.25, s * (W / 2 + 0.55)], [lx + 0.5, 0.2, s * (W / 2 + 1.55)], 0.016, 0.016, 5), null, shaft);
       B.box(lx + 0.62, 0.17, s * (W / 2 + 1.78), 0.46, 0.012, 0.2, blade, 0, 0, 0, 0);
     }
-  }
+  });
   B.box(hl - 0.1, 0.12, 0, 0.07, 0.06, 0.06, NAV_WHITE, G_LAMP);
   B.box(-hl + 0.05, 0.12, 0, 0.07, 0.05, 0.05, NAV_WHITE, G_LAMP);
 }
@@ -1878,7 +1879,7 @@ function acht(B, st, L, W, hull, trimColor) {
   const hl = L / 2;
   const xs = [];
   for (let i = 0; i < 8; i++) xs.push(-hl + 2.4 + i * 1.55);
-  rowFit(B, st, L, W, hull, trimColor, xs);
+  rowFit(B, st, L, W, hull, trimColor, xs, true);
   // the cox's seat and a stern flag in the club colours
   B.box(-hl + 0.7, 0.14, 0, 0.5, 0.03, 0.34, 0x2a2b2d);
   B.geo(tubeGeometry([-hl + 0.3, 0.14, 0], [-hl + 0.28, 0.75, 0], 0.008, 0.008, 4), null, 0x6a5038);

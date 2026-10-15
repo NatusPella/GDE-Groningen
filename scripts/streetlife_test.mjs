@@ -171,6 +171,38 @@ let polderFolk = 0;
 for (let gx = 40; gx <= 60; gx++) for (let gy = -40; gy <= -20; gy++) for (const sl of C.cellSlotSpots(map, gx, gy)) if (['seller', 'beggar', 'magnet', 'bernard'].includes(sl.kind)) polderFolk++;
 ok(polderFolk === 0, 'no street folk in the polders');
 
+// --- the new models build into finite geometry, and the boats drive
+const { Vehicle } = await import('../game/js/vehicle.js');
+const M3 = await import('../game/js/models3d_vehicles.js');
+const finiteMesh = (mesh) => {
+  let verts = 0, badV = 0;
+  mesh.traverse((o) => {
+    const pos = o.geometry && o.geometry.attributes && o.geometry.attributes.position;
+    if (!pos) return;
+    verts += pos.count;
+    for (let i = 0; i < pos.array.length; i++) if (!Number.isFinite(pos.array[i])) { badV++; break; }
+  });
+  return verts > 0 && badV === 0;
+};
+let vid = 9000;
+const mk = (model, flags) => { const v = new Vehicle(0, 0, 0, model); Object.assign(v, flags, { id: ++vid }); return v; };
+for (const k of ['skiff', 'acht']) {
+  const boat = mk({ ...B.BOAT_KINDS[k] }, { isBoat: true });
+  ok(finiteMesh(M3.buildVehicleMesh(boat)), `${k} mesh is finite`);
+  boat.driver = 'player';
+  for (let i = 0; i < 600; i++) boat.applyControls(1 / 60, 1, i % 120 < 30 ? 0.5 : 0, false);
+  ok(Number.isFinite(boat.x + boat.y + boat.speed) && boat.speed > 0.5 && boat.speed <= B.BOAT_KINDS[k].playerTop + 0.5, `${k} drives at a sensible speed (${boat.speed.toFixed(1)})`);
+}
+const bikeModels = [
+  T.pickBikeVariant(map, centre.x, centre.y, () => 0, { hour: 19 }),
+  { name: 'bike', delivery: 'happie', bag: '#9bd630', bagTrim: '#2b3a12', len: 1.8, wid: 0.5, maxSpeed: 6, color: '#23262a', rider: '#9bd630' },
+  { name: 'bike', share: true, tint: '#ff6a4d', len: 1.75, wid: 0.5, maxSpeed: 5, color: '#c9ccd0', rider: '#2f5c8a' },
+  ...D.BIKE_LOADS.map((load) => ({ name: 'bike', cargo: true, load, len: 2.55, wid: 0.72, maxSpeed: 4, color: '#2f4a3a', rider: '#2f5c8a' })),
+  { name: 'bike', old: true, noLight: true, len: 1.75, wid: 0.5, maxSpeed: 5, color: '#5a3a2a', rider: '#2f5c8a' },
+];
+for (const m of bikeModels) ok(finiteMesh(M3.buildVehicleMesh(mk(m, { isBike: true }))), `bike mesh finite: ${m.delivery || m.share || m.load || m.old || 'plain'}`);
+ok(finiteMesh(M3.buildVehicleMesh(mk(T.carModel('newsvan'), {}))), 'news van mesh is finite');
+
 // --- news van and rows of finite fleet numbers
 ok(D.newsVanWanted(14, 300) && !D.newsVanWanted(3, 300) && !D.newsVanWanted(14, 5000), 'the news van drives by day around town');
 const nv = T.carModel('newsvan');
