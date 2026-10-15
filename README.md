@@ -14,8 +14,7 @@
 
 *GDE* staat voor *Grootste Diefstal Ever*. Een open-wereldgame vol
 misdaad en flauwekul, in het echte Groningen: de straten, grachten,
-gebouwen en het Ommeland komen uit OpenStreetMap. Het spel heette tot
-versie 0.24 "GTE VI".
+gebouwen en het Ommeland komen uit OpenStreetMap.
 
 ![Op de Vismarkt, met de Martinitoren op de achtergrond](docs/steam/beelden/screenshots/02-vismarkt.jpg)
 
