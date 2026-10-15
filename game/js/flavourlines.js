@@ -18,6 +18,7 @@ export const BILLBOARD_SLOGANS = [
   ['Er leidt niets mooier om dan Groningen', 'Volg de gele borden. Allemaal.'],
   ['Er zingt niets luider dan Groningen', 'Ook als we achterstaan.'],
   ['Er staat niets vaker open dan de Gerrit Krolbrug', 'Nieuwe brug: binnenkort.'],
+  ['Komt u uit Steden of gaat u naar Stedum?', 'Bij twijfel: rechtdoor, dan zit u goed.'],
 ];
 
 // Nicknames per place; `landmark` matches map.meta.landmarks names.
