@@ -16,7 +16,7 @@ import { P } from './worldframe.js';
 // Extras (bollards, rings, ladders, reeds, debris, houseboats) live in one
 // separate merged mesh per polygon so 'laag' can hide them.
 
-const [CENTRE_X, CENTRE_Y] = P(100, 77);
+const [CENTRE_X, CENTRE_Y] = [100.63, 76.18];
 const STEP = 3;
 const TERRAIN_Y = -0.05;
 const COPE_TOP = 0.07, COPE_FLUSH = 0.008, COPE_BOT = -0.13, COPE_OUT = 0.12, COPE_IN = 0.46;

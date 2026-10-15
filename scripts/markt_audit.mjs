@@ -6,7 +6,6 @@
 // cd desktop && npm run stage
 import './node3d.mjs';
 import fs from 'node:fs';
-import { P } from '../game/js/worldframe.js';
 
 const root = new URL('../game/', import.meta.url);
 const { GameMap, applyMapExtras } = await import('../game/js/mapdata.js');
@@ -17,7 +16,7 @@ applyMapExtras(data, JSON.parse(fs.readFileSync(new URL('mapextras.json', root))
 const map = new GameMap(data);
 MB.setBuildingMap(map);
 
-const AREAS = { 'Grote Markt': [...P(200, 95), 120], Vismarkt: [...P(-20, 265), 100] };
+const AREAS = { 'Grote Markt': [201.13, 92.66, 120], Vismarkt: [-16.52, 267.35, 100] };
 const CELL = 48;
 const list = process.argv.includes('--list');
 for (const [name, [cx, cy, r]] of Object.entries(AREAS)) {

@@ -41,7 +41,6 @@ import { EIKEA_GOALS, updateStoryEikea, waiveEikea, initStoryEikea } from './sto
 import { THIRD_PARTY_CARDS } from './credits.js';
 import { SERIES, GAME_TITLE } from './logo.js';
 import { registerNarrative, mayStart, narrativeBusy, narrativeState } from './narrative.js';
-import { P, PO } from './worldframe.js';
 
 // Rikus' Radio Nachtstreek studio (radiostudio.js, three.js from the CDN) for the
 // recaps and the epilogue; loaded lazily so Node checks can import this file.
@@ -409,11 +408,11 @@ const CREDITS = [
   ...THIRD_PARTY_CARDS,
 ];
 
-const FINALE_SPOT = P(160, 70);
+const FINALE_SPOT = [160.64, 68.15];
 
 // A slow climb around d'Olle Grieze for the ending.
 function finaleShot(t0 = 0) {
-  const lm = (world.map.meta.landmarks || []).find((l) => l.name === 'Martinitoren') || { ...PO(214, 13) };
+  const lm = (world.map.meta.landmarks || []).find((l) => l.name === 'Martinitoren') || { x: 213.81, y: 9.9 };
   return (u, t) => {
     const a = 0.6 + (t0 + t) * 0.035;
     const r = 150 - (t0 + t) * 0.6;
@@ -427,7 +426,7 @@ function recapPlace(p) {
   if (p === 'studio') return { studio: true, x: 0, y: 0 };
   if (Array.isArray(p)) return { x: p[0], y: p[1] };
   const lm = (world.map.meta.landmarks || []).find((l) => l.name === p);
-  return lm ? { x: lm.x, y: lm.y } : { ...PO(160, 70) };
+  return lm ? { x: lm.x, y: lm.y } : { x: 160.64, y: 68.15 };
 }
 
 function playRecap(part) {

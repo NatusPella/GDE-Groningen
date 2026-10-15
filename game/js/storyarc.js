@@ -78,7 +78,6 @@
 //   { type: 'carbid', lift }          one round of carbid schieten at boer Roelf's (carbid.js); lift [from, text]: far out
 //                                     and without a car, your own Escapade is dropped off for free with that text
 
-import { P } from './worldframe.js';
 
 // Who speaks in contacts, step scenes and radio fragments: key -> display name
 // (the voice manifests are keyed by the name). storycontact.js and
@@ -144,7 +143,7 @@ export const PARTS = {
       ['Noorderplantsoen', 'Eerder in GDE. Jelle kocht al het frituurvet van Grunn op. Tammo en Tessa kaapten het terug.'],
       ['Martinitoren', 'Een duif pikte zijn vlag van d\'Olle Grieze. Er stond op: foar mem.'],
       ['Grote Markt', 'Oma Trijntje vertelde over 1953. Over Gerda Terpstra. Zeventig jaar trots, in één zin.'],
-      [P(741, 418), 'En op de rondvaartboot zeiden ze moi. Allebei. Ik zeg niks.'],
+      [[748.62, 408.8], 'En op de rondvaartboot zeiden ze moi. Allebei. Ik zeg niks.'],
     ],
     // the epilogue in September, then Rikus in the studio (the last line plays there)
     card: [['Rikus', 'Het ruikt naar suiker. Dat komt uit Hoogkerk. De zomer is op.'],
@@ -192,7 +191,7 @@ export const HIDEOUTS = [
         ['A', 'Jij zei dat de zee achter de dijk lag. Ik heb het twintig jaar geloofd.', { tag: 'lachend, verwijtend' }],
         ['T', 'Hij ligt er ook. Een beetje.', { tag: 'zacht, droog, met een glimlach' }],
       ] } },
-  { id: 'ijsje', name: 'Een ijsje in het Noorderplantsoen', short: 'ijsje', at: P(133.3, -718.7), r: 16,
+  { id: 'ijsje', name: 'Een ijsje in het Noorderplantsoen', short: 'ijsje', at: [120.88, -725.14], r: 16,
     done: ['T', 'Niemand zoekt een boef met een ijsje.'],
     scene: { kicker: 'Even onderduiken: het Noorderplantsoen',
       lines: [
@@ -203,7 +202,7 @@ export const HIDEOUTS = [
         ['A', 'Dan eet jij het op. Dat doe je al twaalf jaar, mijn restjes.', { tag: 'warm, plagend' }],
         ['T', '…Ze zijn lekker, jouw restjes.', { tag: 'zacht, net te eerlijk' }],
       ] } },
-  { id: 'hogedera', name: 'De zonsondergang aan de Hoge der A', short: 'zonsondergang', at: P(-437, 101), r: 16, clock: 20.9, look: [-60, 10],
+  { id: 'hogedera', name: 'De zonsondergang aan de Hoge der A', short: 'zonsondergang', at: [-437.09, 109.12], r: 16, clock: 20.9, look: [-60, 10],
     done: ['T', 'Twijduustern. Niemand zoekt ons in het donker.'],
     scene: { kicker: 'Even onderduiken: de Hoge der A',
       lines: [
@@ -495,7 +494,7 @@ export const STEPS = [
     ], 'Jelle, Ljouwert')],
     after: [['Kiekdoar', 'Twee Friese reuzen zwemmen door de Oosterhaven. Ooggetuige: "Dat heb ik van mien laven nog nait zain. Ze zwommen synchroon!"']] },
   { id: 's-proefvlucht', part: 'staart', kind: 'activity', player: 'anita', built: true, why: 'Ik vlieg. Rotor Roelf denkt dat we een heli kopen. Dat laat ik even zo.',
-    title: 'Proefvlucht: naar Rotor Roelf op Eelde', goal: { type: 'flight', heli: P(1606, 9909), pad: 'eelde' },
+    title: 'Proefvlucht: naar Rotor Roelf op Eelde', goal: { type: 'flight', heli: [1774.82, 9945.78], pad: 'eelde' },
     lead: ['T', 'Rotor Roelf op Eelde geeft een gratis proefvlucht. Kopen hoeft niet. Dan zoeken we die ballon van bovenaf.'],
     say: ['T', 'Ik zit achterin. Met mijn ogen dicht.'],
     done: ['T', 'Roelf zegt: gratis, als hij heel terugkomt. Jij vliegt.'],

@@ -6,7 +6,6 @@ import { playCinematic, isCinematicActive, skipCinematic } from './cinematics.js
 import { pushAudioEvent } from './pedestrians.js';
 import { isInWater, clamp } from './util.js';
 import { finish, jelle } from './postgame.js';
-import { P } from './worldframe.js';
 
 // Fierljep-duel: Jelle sets a mark over a canal (fierljep.js poleVault), the
 // player gets three jumps with a timing minigame (run-up, the grab, the
@@ -15,12 +14,12 @@ import { P } from './worldframe.js';
 // a near-perfect jump = goud.
 
 const CANDIDATES = [
-  { at: P(-300, 1150), name: 'het Hoornsediep' },
-  { at: P(-190, 1560), name: 'het Hoornsediep' },
-  { at: P(-400, 850), name: 'de Emmasingel' },
-  { at: P(-400, 680), name: 'de Zuiderhaven' },
-  { at: P(-450, -40), name: 'de Noorderhaven' },
-  { at: P(-700, -550), name: 'het Reitdiep' },
+  { at: [-282.61, 1162.57], name: 'het Hoornsediep' },
+  { at: [-165.62, 1573.39], name: 'het Hoornsediep' },
+  { at: [-387.75, 862.29], name: 'de Emmasingel' },
+  { at: [-390.53, 691.21], name: 'de Zuiderhaven' },
+  { at: [-452.42, -32.57], name: 'de Noorderhaven' },
+  { at: [-711.25, -541.76], name: 'het Reitdiep' },
 ];
 const ATTEMPTS = 3;
 const BONUS_MAX = 8;

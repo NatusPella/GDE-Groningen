@@ -2,7 +2,6 @@ import { hasSave, readSave, applySave, clearSave, getSaveSummary } from './saveg
 import { VERSION } from './version.js';
 import { checkWhatsNew, markVersionSeen, compareVersions } from './whatsnew.js';
 import { pointInPolygon } from './util.js';
-import { PO } from './worldframe.js';
 import { openPauseMenu, isPauseMenuOpen } from './pausemenu.js';
 import { getAchievementSummary } from './achievements.js';
 import { pendingTrailer, runTrailer, runBenchmarkSuite, fadeOutTrailer, showBenchmarkResults } from './trailer.js';
@@ -136,13 +135,13 @@ function pickShotWeather(base) {
   };
 }
 const EXTRA_SPOTS = [
-  { name: 'Hoge der A', ...PO(-471, 76), kind: 'canal' },
-  { name: 'Noorderhaven', ...PO(-349, -78), kind: 'canal' },
-  { name: 'Reitdiepskade', ...PO(-553, 48), kind: 'canal' },
-  { name: 'Herestraat', ...PO(114, 179), kind: 'street' },
-  { name: 'Folkingestraat', ...PO(-67, 311), kind: 'street' },
-  { name: 'Poelestraat', ...PO(347, 130), kind: 'street' },
-  { name: 'Turfsingel', ...PO(375, -216), kind: 'canal' },
+  { name: 'Hoge der A', x: -471.57, y: 84.51, kind: 'canal' },
+  { name: 'Noorderhaven', x: -351.84, y: -72.46, kind: 'canal' },
+  { name: 'Reitdiepskade', x: -554.19, y: 57.67, kind: 'canal' },
+  { name: 'Herestraat', x: 116.34, y: 178.6, kind: 'street' },
+  { name: 'Folkingestraat', x: -62.87, y: 314.41, kind: 'street' },
+  { name: 'Poelestraat', x: 349.02, y: 125.46, kind: 'street' },
+  { name: 'Turfsingel', x: 371.35, y: -223.21, kind: 'canal' },
 ];
 const BIG_KINDS = new Set(['station', 'stadium', 'mall', 'park', 'garden']);
 

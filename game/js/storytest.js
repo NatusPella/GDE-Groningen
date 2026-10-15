@@ -28,7 +28,6 @@ import { getFurnitureSave } from './furniture.js';
 import { validateSpots } from './spotcheck.js';
 import { auditPassages } from './passagecheck.js';
 import { probeRingSolids, driveRingLap, probeRailLifts, driveWaterCrossings } from './ringcheck.js';
-import { P, PO } from './worldframe.js';
 import { requestRespawn } from './world.js';
 import { nearestFacility } from './facilities.js';
 import { realRoadNear } from './ommelandplace.js';
@@ -334,7 +333,7 @@ export async function runStoryTest(world) {
             // the lift: on foot in town, Henk drops the Escapade off for free; then a real round at boer Roelf's churn
             const cb = window.__carbid, sf = window.__storyFun, p = world.player;
             if (p.inVehicle) p.exitVehicle(world.map, world);
-            const town = world.map.nearestRoadPoint(...P(706, -325), 120, false) || { ...PO(706, -325) };
+            const town = world.map.nearestRoadPoint(701.21, -338.36, 120, false) || { x: 701.21, y: -338.36 };
             p.x = town.x; p.y = town.y;
             for (const v of world.vehicles) if (v.isHeroCar && !v.wrecked) { v.x += 2000; v.y += 2000; }
             world.wanted = 0;
@@ -559,7 +558,7 @@ export async function runStoryTest(world) {
 
       // death and arrest trips to the nearest real facility, in town and out
       // in the Ommelanden (respawn.js, facilities.js)
-      for (const [label, x, y, busted] of [['UMCG', ...P(760, -120), false], ['Bedum', ...P(2079, -8936), true], ['Zuidhorn', ...P(-10665, -3160), false], ['Stad', ...P(300, 300), true]]) {
+      for (const [label, x, y, busted] of [['UMCG', 758.72, -132.95, false], ['Bedum', 1931.4, -9027.27, true], ['Zuidhorn', -10732.8, -3017.02, false], ['Stad', 304.73, 297.32, true]]) {
         const p = world.player;
         if (p.inVehicle) { p.inVehicle.driver = null; p.inVehicle = null; }
         const q = realRoadNear(x, y, 300);

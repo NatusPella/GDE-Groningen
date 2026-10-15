@@ -7,7 +7,6 @@ import {
   pick, rand, nearestOnStreet, kerbSide, spawnJobVehicle, pointAlongRoad, decorateVehicle,
   spawnPed, pedAlive, holdPed, freePed, walkPed, say, removePed, vehicleSpeed,
 } from './sidejobkit.js';
-import { P, PO } from './worldframe.js';
 
 const TAXI_MODEL = { name: 'sedan', len: 4.3, wid: 1.8, maxSpeed: 33, accel: 9, brake: 24, turnRate: 2.6, color: '#1b1c1f' };
 const SHOW_R = 90;
@@ -16,21 +15,21 @@ const DROP_R = 9;
 const STOP_SPEED = 1.5;
 
 const PLACES = {
-  poelestraat: { name: 'de Poelestraat', ...PO(368, 118) },
-  station: { name: 'het Hoofdstation', ...PO(-20, 880) },
-  plantsoen: { name: 'het Noorderplantsoen', ...PO(133, -718) },
-  oosterpoort: { name: 'De Oosterpoort', ...PO(694, 575) },
-  vismarkt: { name: 'de Vismarkt', ...PO(13, 254) },
-  oosterpark: { name: 'de Oosterparkwijk', ...PO(1280, -722) },
-  forum: { name: 'het Forum', ...PO(356, 63) },
-  martini: { name: 'de Martinitoren', ...PO(214, 13) },
-  selwerd: { name: 'Selwerd', ...PO(-901, -1691) },
-  paddepoel: { name: 'Paddepoel', ...PO(-1493, -1017) },
-  korreweg: { name: 'de Korrewegwijk', ...PO(378, -1324) },
-  umcg: { name: 'het UMCG', ...PO(749, -268) },
-  europapark: { name: 'station Europapark', ...PO(1388, 1636) },
-  schilders: { name: 'de Schildersbuurt', ...PO(-862, 276) },
-  herewegbuurt: { name: 'de Herewegbuurt', ...PO(675, 1257) },
+  poelestraat: { name: 'de Poelestraat', x: 369.86, y: 113.04 },
+  station: { name: 'het Hoofdstation', x: -6.41, y: 886.27 },
+  plantsoen: { name: 'het Noorderplantsoen', x: 120.59, y: -724.43 },
+  oosterpoort: { name: 'De Oosterpoort', x: 704.13, y: 567.58 },
+  vismarkt: { name: 'de Vismarkt', x: 16.36, y: 255.74 },
+  oosterpark: { name: 'de Oosterparkwijk', x: 1269.7, y: -747.42 },
+  forum: { name: 'het Forum', x: 356.93, y: 57.89 },
+  martini: { name: 'de Martinitoren', x: 213.81, y: 9.9 },
+  selwerd: { name: 'Selwerd', x: -931.21, y: -1686.78 },
+  paddepoel: { name: 'Paddepoel', x: -1513.33, y: -998.93 },
+  korreweg: { name: 'de Korrewegwijk', x: 356.03, y: -1338.33 },
+  umcg: { name: 'het UMCG', x: 745.24, y: -281.71 },
+  europapark: { name: 'station Europapark', x: 1417.4, y: 1623.81 },
+  schilders: { name: 'de Schildersbuurt', x: -860.12, y: 292.14 },
+  herewegbuurt: { name: 'de Herewegbuurt', x: 696.4, y: 1254.24 },
 };
 
 const FARES = [
@@ -116,7 +115,7 @@ export default {
   sikkom: (c) => `Taxichauffeur rijdt ${c.streak} klanten achter elkaar keurig naar huis. Centrale denkt aan een storing`,
 
   anchor(map) {
-    const s = nearestOnStreet(map, 'Stationsweg', ...P(40, 870));
+    const s = nearestOnStreet(map, 'Stationsweg', 53.56, 875.23);
     return s ? kerbSide(map, s, 1.6) : null;
   },
 
