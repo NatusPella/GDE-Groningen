@@ -9,7 +9,7 @@ import { getSettings, setSetting, resetSettings, QUALITY_PRESETS } from './setti
 import { logoHtml } from './logo.js';
 import { PRESET_ORDER, presetLabel, describePreset, describeChanges, currentPreset, applyPreset, getBenchResult, dismissBenchBanner, GEAR_SVG } from './gfxprofile.js';
 import { mountMapView, setMapActive, setMapCloseHandler, setMapView, getDiscoveredRatio, setMapTeleport } from './mapview.js';
-import { renderCheatsPanel, cheatsClick, cheatsInput, resetCheatsPanel } from './cheatsui.js';
+import { renderCheatsPanel, cheatsClick, cheatsInput, resetCheatsPanel, cheatsFocus } from './cheatsui.js';
 import { skipCurrent, getStoryJournal, markCluesSeen } from './story.js';
 import { saveGame, hasSave, loadLatestSave, clearSave, getSaveSummary } from './savegame.js';
 import { getClockText } from './hud_panel.js';
@@ -461,8 +461,8 @@ export function initPauseMenu(w) {
                 <p class="m-note pm-cempty" hidden>Niks gevonden. Probeer een ander woord of een toets.</p>
               </div></div>
             </div>
-            <div data-of="controls" data-sub="toetsen" class="pm-binds pm-csub" hidden></div>
-            <div data-of="controls" data-sub="knoppen" class="pm-binds pm-csub" hidden></div>
+            <div data-of="controls" data-sub="toetsen" class="pm-binds pm-csub m-main" hidden></div>
+            <div data-of="controls" data-sub="knoppen" class="pm-binds pm-csub m-main" hidden></div>
           </div></section>
         </div>
       </section>
@@ -539,6 +539,7 @@ export function initPauseMenu(w) {
     if (p && p.contains(e.target)) lastFocus[tab] = e.target;
     if (tab === 'todo' && p) todoFocus(p, world, e.target);
     if (tab === 'spullen' && p) spullenFocus(p, e.target);
+    if (tab === 'streken' && p) cheatsFocus(p, e.target);
   });
 
   const search = root.querySelector('[data-controls-search]');
@@ -659,7 +660,7 @@ function onKey(e) {
   } else if (lower === 'q' || lower === 'e') {
     consume(e);
     // Q and E: the section's tabs; a section without tabs: the previous or next section
-    if (SUBTABS[tab]) { if (!e.repeat) cycleSubtab(lower === 'q' ? -1 : 1); } else cycleSection(lower === 'q' ? -1 : 1);
+    if (SUBTABS[tab]) { if (!e.repeat) cycleSubtab(lower === 'q' ? -1 : 1); } else if (!e.repeat && cycleOwnTabs(lower === 'q' ? -1 : 1)) { /* garage, prestaties: their own tabs */ } else cycleSection(lower === 'q' ? -1 : 1);
   } else if ((k === '[' || k === ']') && SUBTABS[tab]) {
     // [ and ] (a controller's triggers): the section's previous or next tab
     consume(e);
@@ -706,6 +707,8 @@ function goBack() {
     root.querySelector('[data-action="restart"]').focus();
     return;
   }
+  const legend = tab === 'map' && root.querySelector('.mapview-legend:not([hidden])');
+  if (legend) { root.querySelector('.mv-layers').click(); root.querySelector('.mv-layers').focus(); return; }
   const bench = root.querySelector('[data-bench-confirm]');
   if (tab === 'settings' && !bench.hidden) {
     bench.hidden = true;
@@ -756,22 +759,39 @@ function cycleSubtab(dir) {
   focusEl(root.querySelector(`[data-subtab="${next}"][data-of="${tab}"]`));
 }
 
+// Q/E in a section whose tabs the section draws itself (Garage, Prestaties).
+function cycleOwnTabs(dir) {
+  const p = activePanel();
+  const tabs = p ? [...p.querySelectorAll('[role="tab"]')].filter((t) => t.getClientRects().length) : [];
+  if (tabs.length < 2) return false;
+  const i = Math.max(0, tabs.findIndex((t) => t.getAttribute('aria-selected') === 'true'));
+  const next = tabs[(i + dir + tabs.length) % tabs.length];
+  next.click();
+  const again = p.querySelector(`[role="tab"][${Object.keys(next.dataset).map((k) => 'data-' + k.replace(/[A-Z]/g, (c) => '-' + c.toLowerCase()) + '="' + next.dataset[k] + '"').join('][')}]`);
+  if (again) again.focus({ preventScroll: true });
+  return true;
+}
+
 // --- Besturing: rebinding keys and buttons (controls.js) ------------------------
 let rebinding = null;
 let bindMsg = '';
 
+function bindPane(kind, note, extra = '') {
+  return `<aside class="m-pane"><div class="pm-pane-top"><span class="m-eb">${kind === 'keys' ? 'Toetsenbord en muis' : 'Controller'}</span><h2 class="m-h2 td-h2">Toets wijzigen</h2></div>` +
+    `<p>${note}</p><p class="pm-status pm-bindmsg g" role="status">${esc(bindMsg)}</p><span class="m-grow"></span>` +
+    `<div class="m-acts td-acts"><button type="button" class="m-bg" data-action="binds-reset-${kind === 'keys' ? 'keys' : 'pad'}">${icon('restart')}Standaard herstellen</button></div>${extra}</aside>`;
+}
+
 function bindRowsKeys() {
   const binds = getSettings().keyBinds;
-  const groups = KEY_GROUPS.map(([g, title]) => `<h4 class="pm-subhead">${esc(title)}</h4>` + KEY_ACTIONS.filter(([, , gr]) => gr === g).map(([k, desc]) => {
+  const groups = KEY_GROUPS.map(([g, title]) => `<div class="m-gh"><span>${esc(title)}</span></div>` + KEY_ACTIONS.filter(([, , gr]) => gr === g).map(([k, desc]) => {
     const phys = physicalKey(binds, k);
     const changed = phys !== defaultKey(k);
-    return `<div class="pm-row pm-bind"><span>${esc(desc)}${changed ? `<small>Standaard: ${esc(keyName(defaultKey(k)))}</small>` : ''}</span>` +
-      `<button type="button" class="pm-secondary pm-small pm-bindbtn${changed ? ' pm-changed' : ''}" data-rebind-key="${esc(k)}" aria-label="${esc(desc)}: ${esc(keyName(phys))}. Kies om te wijzigen"><span class="hud-key" data-g-raw>${esc(keyName(phys))}</span></button></div>`;
+    return `<button type="button" class="m-li pm-bind${changed ? ' pm-changed' : ''}" data-rebind-key="${esc(k)}" aria-label="${esc(desc)}: ${esc(keyName(phys))}. Kies om te wijzigen">` +
+      `<span class="nm"><span class="one">${esc(desc)}</span>${changed ? `<span class="mut">Standaard: ${esc(keyName(defaultKey(k)))}</span>` : ''}</span><span class="m-kc" data-g-raw>${esc(keyName(phys))}</span></button>`;
   }).join('')).join('');
-  return `<p class="pm-note">Kies een actie en druk de nieuwe toets. Zit die toets al op iets anders, dan ruilen ze. Esc, Enter, de pijltjes en de muis liggen vast.${defaultKey('control') !== 'control' ? ' In de browser zit bukken en omlaag op C: Ctrl+W sluit daar het tabblad.' : ''}</p>
-    <p class="pm-status pm-bindmsg" role="status">${esc(bindMsg)}</p>
-    <div class="pm-group">${groups}</div>
-    <div class="pm-reset"><button type="button" class="pm-secondary pm-small" data-action="binds-reset-keys">${icon('restart')}<span>Standaard herstellen</span></button></div>`;
+  const note = `Kies een actie en druk de nieuwe toets. Zit die toets al op iets anders, dan ruilen ze. Esc, Enter, de pijltjes en de muis liggen vast.${defaultKey('control') !== 'control' ? ' In de browser zit bukken en omlaag op C: Ctrl+W sluit daar het tabblad.' : ''}`;
+  return `<div class="m-list pm-slist">${groups}</div>${bindPane('keys', note)}`;
 }
 
 function bindRowsPad() {
@@ -779,13 +799,10 @@ function bindRowsPad() {
   const rows = PAD_REMAPPABLE.map((slot) => {
     const phys = physicalButton(binds, slot);
     const changed = phys !== slot;
-    return `<div class="pm-row pm-bind"><span>${esc(slotUses(slot) || PAD_SLOT_NAMES[slot])}<small>${esc(PAD_SLOT_NAMES[slot])}${changed ? ' · aangepast' : ''}</small></span>` +
-      `<button type="button" class="pm-secondary pm-small pm-bindbtn${changed ? ' pm-changed' : ''}" data-rebind-pad="${slot}" aria-label="${esc(PAD_SLOT_NAMES[slot])}. Kies om te wijzigen">${pg(phys)}</button></div>`;
+    return `<button type="button" class="m-li pm-bind${changed ? ' pm-changed' : ''}" data-rebind-pad="${slot}" aria-label="${esc(PAD_SLOT_NAMES[slot])}. Kies om te wijzigen">` +
+      `<span class="nm"><span class="one">${esc(slotUses(slot) || PAD_SLOT_NAMES[slot])}</span><span class="mut">${esc(PAD_SLOT_NAMES[slot])}${changed ? ' · aangepast' : ''}</span></span><span class="pm-padcap">${pg(phys)}</span></button>`;
   }).join('');
-  return `<p class="pm-note">Kies een rij en druk op de controller de knop die het voortaan moet doen. Ze ruilen van plek. Menu/Start opent altijd het pauzemenu; de sticks liggen vast.</p>
-    <p class="pm-status pm-bindmsg" role="status">${esc(bindMsg)}</p>
-    <div class="pm-group">${rows}</div>
-    <div class="pm-reset"><button type="button" class="pm-secondary pm-small" data-action="binds-reset-pad">${icon('restart')}<span>Standaard herstellen</span></button></div>`;
+  return `<div class="m-list pm-slist">${rows}</div>${bindPane('pad', 'Kies een rij en druk op de controller de knop die het voortaan moet doen. Ze ruilen van plek. Menu/Start opent altijd het pauzemenu; de sticks liggen vast.')}`;
 }
 
 function renderBinds() {
@@ -1323,8 +1340,8 @@ export function pauseMenuTab() {
 function syncSheetSub() {
   const subEl = sheet.querySelector('.pm-sheet-sub');
   if (tab === 'garage' || tab === 'prestaties') {
-    const s = activePanel().querySelector('.pm-inner > h2:first-child small');
-    if (s) subEl.textContent = s.textContent;
+    const s = activePanel().querySelector('.pm-inner');
+    if (s && s.dataset.sub) subEl.textContent = s.dataset.sub;
   }
 }
 

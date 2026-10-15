@@ -110,6 +110,24 @@ you are wanted; keys at the bottom right are cream caps with a hard shadow
 (`#f0ede4` on `#9c998f`). Red `#d93f3f` only for danger (search box, vehicle
 damage, the "niet voor jou" dash, the age badge).
 
+## Menus
+
+The menus (main menu, pause menu and its sections, shop and station machine,
+result screen) follow the approved Menu-*.dc.html mockups; the shared parts are
+in `game/js/menu.css` (`.gm`, `.m-*`), nothing else defines buttons, rows or
+tabs for them. Rules: one dark-green glass surface (`.m-panel`) over a blurred,
+darkened backdrop; text navigation on the left (`.ra`, a 4 px green bar marks
+the current one); a list left and a detail pane right (`.m-list` + `.m-pane`);
+one focal point and one primary button (`.m-bp`, green) per screen, the rest
+ghost (`.m-bg`) or quiet text (`.m-bt`); green only for selected or primary,
+red (`--red`) only for danger, yellow only for the mission marker and special
+days; big Bebas titles; rarely used options folded behind `.m-disc` (`Meer
+opties`); two to four outlined keycaps (`.m-kc`) bottom right as the hints;
+body text at least 18 px at 1080p, 56 px rows, a visible 2 px cream focus
+ring, reduced motion respected. Everything inside a `.gm-stage` is laid out in
+the mockups' 1920x1080 px and zoomed by `--mz` (`--ui` / 1.2), so it scales with
+"Grootte interface" and works from 1280x720 to 4K.
+
 ## Where this already applies (reference implementations)
 
 - `game/index.html` - start screen, buttons, controls grid

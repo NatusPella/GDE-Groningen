@@ -51,6 +51,8 @@ export function todoItem(key) {
   return byKey.get(key) || null;
 }
 
+export const isFolded = (id) => ui.folds.has(id);
+
 // a folded group (pausemenu.js tells us which ones are open)
 export function foldNote(id, on) {
   if (on) ui.folds.add(id); else ui.folds.delete(id);

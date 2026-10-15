@@ -24,6 +24,7 @@ import { quitTrainDrive } from './traindrive.js';
 import { statsFromSave } from './world.js';
 import { getRadioSave, applyRadioSave } from './radio.js';
 import { KEYS } from './storagekeys.js';
+import { STEPS, PARTS, stepDone, stepAvailable, nextStoryStep } from './storyarc.js';
 
 // the key keeps its old name; the version inside the save is what counts (savemigrate.js)
 const KEY = KEYS.save;
@@ -113,11 +114,28 @@ export function hasSave() {
   return !!readSave();
 }
 
+// Where the story of a save stands: the part, the step to play and how far the part is.
+function storySummary(d) {
+  try {
+    const done = new Set(d.story && Array.isArray(d.story.done) ? d.story.done : []);
+    const passed = new Set(d.missions && Array.isArray(d.missions.completed) ? d.missions.completed : []);
+    const isDone = (id) => done.has(id), isPassed = (i) => passed.has(i);
+    const nx = nextStoryStep(isDone, isPassed);
+    const part = nx.next ? nx.next.part : nx.end;
+    if (!PARTS[part]) return null;
+    const inPart = STEPS.map((s, k) => [s, k]).filter(([s]) => s.part === part && stepAvailable(s));
+    const n = inPart.filter(([, k]) => stepDone(k, isDone, isPassed)).length;
+    return { part: PARTS[part].title, date: PARTS[part].date || '', next: nx.next ? nx.next.title : '', done: n, total: inPart.length, ended: !nx.next };
+  } catch (e) {
+    return null;
+  }
+}
+
 export function getSaveSummary() {
   const d = readSave();
   if (!d) return null;
   const done = d.missions && Array.isArray(d.missions.completed) ? d.missions.completed.length : 0;
-  return { money: num(d.money, 0), missionsDone: done, savedAt: num(d.savedAt, 0), character: d.character === 'anita' ? 'Tessa' : 'Tammo' };
+  return { money: num(d.money, 0), missionsDone: done, savedAt: num(d.savedAt, 0), character: d.character === 'anita' ? 'Tessa' : 'Tammo', story: storySummary(d), goal: d.doel && typeof d.doel.name === 'string' ? d.doel.name : '' };
 }
 
 export function clearSave() {

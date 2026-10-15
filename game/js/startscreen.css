@@ -1,0 +1,78 @@
+/* The main menu (startscreen.js): the logo, then a short text menu with
+   "Doorgaan" as the one big thing; on the right where the save will pick up.
+   Over the flying city camera. menu.css base. */
+#start-screen { position: fixed; inset: 0; z-index: 20; display: none; font-family: 'Arial Narrow', Arial, sans-serif;
+  background: linear-gradient(90deg, rgba(12, 20, 14, 0.92) 0%, rgba(12, 20, 14, 0.7) 34%, rgba(12, 20, 14, 0.1) 64%, rgba(12, 20, 14, 0.4) 100%), radial-gradient(ellipse at 60% 40%, rgba(12, 20, 14, 0) 50%, rgba(12, 20, 14, 0.6) 100%);
+  animation: ss-in 0.8s ease both; }
+@keyframes ss-in { from { opacity: 0; } to { opacity: 1; } }
+#start-screen.visible { display: block; }
+#start-screen.ss-slide .ss-menu { animation: ss-slide 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+#start-screen.ss-slide .ss-save, #start-screen.ss-slide .ss-foot, #start-screen.ss-slide .ss-credit { animation: ss-in 0.8s 0.2s ease both; }
+@keyframes ss-slide { from { opacity: 0; transform: translateX(-48px); } to { opacity: 1; transform: none; } }
+#start-screen.ss-handoff { animation: none; }
+#start-screen.ss-handoff .ss-menu, #start-screen.ss-handoff .ss-save, #start-screen.ss-handoff .ss-foot, #start-screen.ss-handoff .ss-credit { animation: ss-in 0.6s ease 1.8s both; }
+#start-screen .ss-logo { position: absolute; left: 160px; top: 112px; display: flex; flex-direction: column; align-items: flex-start; gap: 16px; }
+#start-screen .gde-logo { font-size: 192px; margin: 0; }
+#start-screen .ss-tag { margin: 0; font-size: 22px; font-style: italic; color: rgba(240, 237, 228, 0.78); text-shadow: 0 1px 8px rgba(0, 0, 0, 0.8); }
+#start-screen .ss-menu { position: absolute; left: 128px; top: 548px; width: 640px; display: flex; flex-direction: column; }
+#start-screen .ss-item { position: relative; display: flex; flex-direction: row; align-items: center; gap: 8px; width: 100%; height: 56px; padding: 0 32px; border-radius: 8px; text-align: left;
+  font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 36px; letter-spacing: 0.05em; line-height: 1; color: rgba(240, 237, 228, 0.66); background: none; border: 0; cursor: pointer;
+  transition: color 0.2s, background 0.2s; text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6); }
+#start-screen .ss-item small { display: none; font-family: 'Arial Narrow', Arial, sans-serif; font-size: 18px; letter-spacing: 0; margin-left: 12px; }
+#start-screen .ss-item:hover { color: var(--ink); }
+#start-screen .ss-item.sel { color: var(--ink); }
+#start-screen .ss-item.sel::before { content: ''; position: absolute; left: 0; top: 10px; bottom: 10px; width: 4px; border-radius: 2px; background: var(--g); }
+#start-screen .ss-item:focus { outline: none; }
+#start-screen .ss-item:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; }
+#start-screen .ss-ver2 { font-family: 'Arial Narrow', Arial, sans-serif; font-size: 18px; letter-spacing: 0; color: var(--mut); margin-left: 8px; }
+#start-screen .ss-item[data-act="exit"] { height: 48px; font-size: 28px; margin-top: 24px; }
+#start-screen .ss-item.ss-hero { flex-direction: column; align-items: flex-start; justify-content: center; gap: 8px; height: auto; padding: 16px 32px 24px; margin-bottom: 16px; color: var(--ink); }
+#start-screen .ss-item.ss-hero.sel { background: rgba(63, 201, 122, 0.12); }
+#start-screen .ss-item.ss-hero.sel::before { top: 0; bottom: 0; border-radius: 8px 0 0 8px; }
+#start-screen .ss-hero .ss-label { font-size: 64px; line-height: 0.9; }
+#start-screen .ss-hero small { display: block; margin: 0; font-size: 20px; color: var(--mut); }
+#start-screen .ss-prog { display: flex; align-items: center; gap: 16px; }
+#start-screen .ss-prog .m-bar { width: 320px; }
+#start-screen .ss-prog .m-bar i { background: var(--g); }
+#start-screen .ss-prog .bebas { font-size: 22px; }
+#start-screen .ss-item.confirm { color: var(--redtx); }
+#start-screen .ss-item.confirm small { display: inline; color: var(--redtx); }
+#start-screen .ss-item.confirm.sel::before { background: var(--red); }
+#start-screen .ss-save { position: absolute; right: 128px; bottom: 128px; max-width: 760px; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; text-align: right; text-shadow: 0 2px 16px rgba(0, 0, 0, 0.5); }
+#start-screen .ss-save .big { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 72px; line-height: 0.9; letter-spacing: 0.04em; }
+#start-screen .ss-save .big.long { font-size: 52px; }
+#start-screen .ss-save .line { font-size: 20px; }
+#start-screen .ss-save .meta { font-size: 18px; color: var(--mut); }
+#start-screen .ss-foot { position: absolute; right: 80px; bottom: 40px; height: 32px; display: flex; align-items: center; gap: 32px; margin: 0; }
+#start-screen .ss-credit { position: absolute; left: 160px; bottom: 40px; height: 32px; display: flex; align-items: center; gap: 8px; margin: 0; font-size: 18px; color: var(--mut); }
+#start-screen .ss-credit .ss-ver { color: var(--mut); }
+#start-screen .ss-credit .heart { display: inline-block; animation: ss-beat 1.6s ease-in-out infinite; }
+@keyframes ss-beat { 0%, 60%, 100% { transform: scale(1); } 30% { transform: scale(1.18); } }
+#start-screen .ss-news { position: absolute; top: var(--mt); bottom: var(--mb); right: 80px; width: 760px; display: flex; flex-direction: column; border-radius: 16px; overflow: hidden;
+  background: linear-gradient(180deg, rgba(20, 40, 27, 0.9), rgba(12, 20, 14, 0.94)); box-shadow: 0 0 0 1px rgba(240, 237, 228, 0.07), 0 32px 64px rgba(0, 0, 0, 0.3); animation: m-panel-in 0.4s cubic-bezier(0.2, 0.7, 0.2, 1) both; -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+#start-screen .ss-news[hidden] { display: none; }
+#start-screen .ss-news-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; padding: 48px 56px 0; }
+#start-screen .ss-news-head h2 { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 64px; line-height: 0.92; letter-spacing: 0.02em; font-weight: normal; }
+#start-screen .ss-news-close { height: 40px; padding: 0 8px; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 22px; letter-spacing: 0.06em; color: rgba(240, 237, 228, 0.72); background: none; border: 0; cursor: pointer; }
+#start-screen .ss-news-close:hover { color: var(--ink); }
+#start-screen .ss-news-body { flex: 1; min-height: 0; overflow-y: auto; padding: 24px 56px 48px; font-size: 20px; line-height: 1.5; color: rgba(240, 237, 228, 0.9); scrollbar-width: thin; scrollbar-color: rgba(240, 237, 228, 0.2) transparent; }
+#start-screen .ss-news-body:focus-visible { outline-offset: -4px; }
+#start-screen .ss-news-body h3 { margin: 32px 0 4px; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-weight: normal; font-size: 36px; letter-spacing: 0.04em; color: var(--ink); }
+#start-screen .ss-news-body h3:first-child { margin-top: 0; }
+#start-screen .ss-news-body h3 small { font-family: 'Arial Narrow', Arial, sans-serif; font-size: 18px; color: var(--mut); margin-left: 12px; letter-spacing: 0; }
+#start-screen .ss-news-body h3.ss-news-new { color: var(--g); }
+#start-screen .ss-news-tag { display: inline-block; margin-left: 12px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: 18px; letter-spacing: 0; color: var(--g); vertical-align: 4px; }
+#start-screen .ss-news-body h4 { margin: 16px 0 4px; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-weight: normal; font-size: 22px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--mut); }
+#start-screen .ss-news-body ul { margin: 0; padding-left: 22px; }
+#start-screen .ss-news-body li { list-style: disc; margin: 4px 0; }
+#start-screen .ss-news-body p { margin: 8px 0; }
+#start-screen .ss-news-body strong { color: var(--ink); }
+#start-screen .ss-news-body a { color: var(--g); }
+#start-screen .ss-news-body code { font-family: Menlo, Consolas, monospace; font-size: 0.9em; background: rgba(240, 237, 228, 0.08); padding: 0 6px; border-radius: 4px; }
+@media (max-height: 820px) {
+  #start-screen .ss-logo { top: 56px; } #start-screen .gde-logo { font-size: 150px; }
+  #start-screen .ss-menu { top: 430px; } #start-screen .ss-item { height: 48px; font-size: 32px; } #start-screen .ss-hero .ss-label { font-size: 52px; }
+  #start-screen .ss-save { bottom: 96px; } #start-screen .ss-save .big { font-size: 56px; }
+}
+@media (prefers-reduced-motion: reduce) { #start-screen, #start-screen * { animation: none !important; transition: none !important; } }
+html.reduce-motion #start-screen, html.reduce-motion #start-screen * { animation: none !important; transition: none !important; }

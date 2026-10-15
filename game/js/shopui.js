@@ -24,151 +24,47 @@ export function isShopOpen() {
   return open;
 }
 
-const SHOP_CSS = `
-  #shop-menu {
-    position: fixed; inset: 0; z-index: 41; display: none; align-items: center; justify-content: center;
-    background: radial-gradient(ellipse at center, rgba(23,48,31,0.78) 0%, rgba(12,20,14,0.92) 75%);
-    font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; color: #f0ede4; padding: 16px; box-sizing: border-box;
-  }
-  #shop-menu.visible { display: flex; }
-  #shop-menu .sm-panel {
-    zoom: var(--ui, 1);
-    width: min(680px, calc(100vw / var(--ui, 1) - 32px)); max-height: min(820px, calc(100vh / var(--ui, 1) - 32px)); display: flex; flex-direction: column;
-    background: rgba(12,20,14,0.96); border: 1px solid rgba(63,201,122,0.35); border-top: 4px solid var(--shop, #1e9e56);
-    border-radius: 6px; box-shadow: 0 18px 60px rgba(0,0,0,0.55); overflow: hidden;
-    animation: sm-in 0.18s ease-out;
-  }
-  @keyframes sm-in { from { transform: translateY(10px) scale(0.98); opacity: 0; } to { transform: none; opacity: 1; } }
-  #shop-menu .sm-head { display: flex; align-items: center; gap: 14px; padding: 14px 18px 12px; border-bottom: 1px solid rgba(63,201,122,0.25);
-    background: linear-gradient(180deg, color-mix(in srgb, var(--shop) 28%, transparent) 0%, transparent 100%); }
-  #shop-menu .sm-icon { width: 46px; height: 46px; flex: 0 0 46px; }
-  #shop-menu .sm-title { flex: 1; min-width: 0; }
-  #shop-menu h1 { margin: 0; font-size: 34px; line-height: 1; letter-spacing: 2px; font-weight: normal; }
-  #shop-menu .sm-tag { margin: 3px 0 0; font: 14px 'Arial Narrow', Arial, sans-serif; color: rgba(240,237,228,0.7); letter-spacing: 0.3px; }
-  #shop-menu .sm-money { font-size: 28px; letter-spacing: 1px; color: #3fc97a; white-space: nowrap; }
-  #shop-menu .sm-money.pay { animation: sm-pay 0.5s ease-out; }
-  @keyframes sm-pay { 0% { color: #d93f3f; transform: scale(1.12); } 100% { color: #3fc97a; transform: none; } }
-  #shop-menu .sm-list { flex: 1; min-height: 0; overflow-y: auto; padding: 6px 12px 10px; scrollbar-width: thin; scrollbar-color: rgba(63,201,122,0.5) transparent; }
-  #shop-menu h2 { margin: 12px 6px 6px; font-size: 19px; letter-spacing: 1.5px; color: #3fc97a; font-weight: normal; }
-  #shop-menu .sm-note { margin: -4px 6px 8px; font: 13px 'Arial Narrow', Arial, sans-serif; color: #e8c93a; }
-  #shop-menu .sm-item {
-    display: grid; grid-template-columns: 40px 1fr auto; align-items: center; gap: 12px; width: 100%;
-    margin: 0 0 4px; padding: 7px 10px; box-sizing: border-box; text-align: left; cursor: pointer;
-    background: rgba(30,158,86,0.07); border: 1px solid rgba(63,201,122,0.18); border-left: 4px solid transparent; border-radius: 4px;
-    color: inherit; font: inherit;
-  }
-  #shop-menu .sm-item:hover, #shop-menu .sm-item:focus-visible, #shop-menu .sm-item:focus {
-    outline: none; border-color: rgba(63,201,122,0.7); border-left-color: var(--shop); background: rgba(30,158,86,0.22);
-  }
-  #shop-menu .sm-item[aria-disabled="true"] { cursor: default; }
-  #shop-menu .sm-item[aria-disabled="true"] .sm-txt, #shop-menu .sm-item[aria-disabled="true"] .sm-sw { opacity: 0.5; }
-  #shop-menu .sm-sw { display: flex; gap: 2px; justify-content: center; align-items: center; height: 32px; }
-  #shop-menu .sm-sw i { width: 12px; height: 28px; border-radius: 3px; border: 1px solid rgba(240,237,228,0.35); }
-  #shop-menu .sm-sw i:only-child { width: 28px; border-radius: 50%; height: 28px; }
-  #shop-menu .sm-sw img { width: 30px; height: 30px; }
-  #shop-menu .sm-txt { display: flex; flex-direction: column; min-width: 0; }
-  #shop-menu .sm-txt b { font-weight: normal; font-size: 21px; letter-spacing: 1px; line-height: 1.05; }
-  #shop-menu .sm-txt small { font: 13px 'Arial Narrow', Arial, sans-serif; color: rgba(240,237,228,0.62); letter-spacing: 0.2px; }
-  #shop-menu .sm-price { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; white-space: nowrap; }
-  #shop-menu .sm-price b { font-weight: normal; font-size: 22px; letter-spacing: 1px; color: #f0ede4; }
-  #shop-menu .sm-price b.free { color: #3fc97a; }
-  #shop-menu .sm-price small { font: 12px 'Arial Narrow', Arial, sans-serif; color: rgba(240,237,228,0.55); }
-  #shop-menu .sm-price small.no { color: #d98a3f; }
-  #shop-menu .sm-chip { font-size: 13px; letter-spacing: 1px; padding: 1px 6px; border-radius: 3px; border: 1px solid #3fc97a; color: #3fc97a; }
-  #shop-menu .sm-status { min-height: 26px; line-height: 1.15; padding: 6px 18px; font-size: 20px; letter-spacing: 1px; text-align: center; color: #3fc97a; border-top: 1px solid rgba(63,201,122,0.2); }
-  #shop-menu .sm-status[data-tone="lose"] { color: rgba(240,237,228,0.7); }
-  #shop-menu .sm-status[data-tone="no"] { color: #d98a3f; }
-  #shop-menu .sm-status[data-tone="win"] { color: #e8c93a; }
-  #shop-menu .sm-status[data-tone="jackpot"] { color: #e8c93a; animation: sm-jackpot 0.4s ease-in-out 4 alternate; }
-  #shop-menu .sm-status.pop { animation: sm-pop 0.28s ease-out; }
-  @keyframes sm-pop { from { transform: scale(1.15); } to { transform: none; } }
-  @keyframes sm-jackpot { from { transform: scale(1); text-shadow: none; } to { transform: scale(1.18); text-shadow: 0 0 14px rgba(232,201,58,0.7); } }
-  #shop-menu .sm-foot { display: flex; justify-content: space-between; gap: 12px; padding: 8px 18px 12px; font: 13px 'Arial Narrow', Arial, sans-serif; color: rgba(240,237,228,0.7); }
-  #shop-menu .sm-foot b { display: inline-block; min-width: 12px; padding: 1px 5px; border: 1px solid rgba(240,237,228,0.45); border-bottom-width: 2px; border-radius: 4px; color: #3fc97a; font: bold 11px/1.2 system-ui, sans-serif; text-align: center; }
-  #shop-menu .sm-close { background: transparent; border: 1px solid rgba(63,201,122,0.6); color: #f0ede4; border-radius: 4px; padding: 3px 12px; font: 16px 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; letter-spacing: 1px; cursor: pointer; }
-  #shop-menu .sm-close:hover, #shop-menu .sm-close:focus-visible { border-color: #3fc97a; color: #3fc97a; outline: none; }
-  #shop-menu .sm-empty { padding: 20px; text-align: center; font: 15px 'Arial Narrow', Arial, sans-serif; color: rgba(240,237,228,0.7); }
-  #shop-menu .sm-stage { display: none; position: relative; flex: 0 0 auto; height: 184px; border-bottom: 1px solid rgba(63,201,122,0.25);
-    background: radial-gradient(ellipse at 38% 72%, color-mix(in srgb, var(--shop) 30%, transparent) 0%, rgba(12,20,14,0) 68%); }
-  #shop-menu .sm-stage.on { display: flex; }
-  #shop-menu .sm-preview { display: none; flex: 1; min-width: 0; height: 100%; cursor: grab; touch-action: none; }
-  #shop-menu .sm-preview.on { display: block; }
-  #shop-menu .sm-preview:active { cursor: grabbing; }
-  #shop-menu .sm-stats { flex: 0 0 250px; display: flex; flex-direction: column; justify-content: center; gap: 7px; padding: 10px 18px 10px 4px; box-sizing: border-box; }
-  #shop-menu .sm-stats:empty { display: none; }
-  #shop-menu .sm-preview:not(.on) + .sm-stats { flex: 1; padding-left: 18px; }
-  #shop-menu .sm-stat { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; font: 13px 'Arial Narrow', Arial, sans-serif; color: rgba(240,237,228,0.8); }
-  #shop-menu .sm-stat small { font-size: 12px; color: rgba(240,237,228,0.6); text-align: right; white-space: nowrap; }
-  #shop-menu .sm-bar { grid-column: 1 / -1; position: relative; height: 7px; border-radius: 4px; background: rgba(240,237,228,0.12); overflow: hidden; }
-  #shop-menu .sm-bar b, #shop-menu .sm-bar em { position: absolute; top: 0; bottom: 0; left: 0; border-radius: 4px; transition: width 0.25s ease-out, left 0.25s ease-out; }
-  #shop-menu .sm-bar b { background: var(--shop); filter: brightness(1.25); }
-  #shop-menu .sm-bar em { background: #3fc97a; box-shadow: 0 0 6px rgba(63,201,122,0.8); animation: sm-gain 1.2s ease-in-out infinite alternate; }
-  #shop-menu .sm-bar em.down { background: #d98a3f; box-shadow: none; }
-  @keyframes sm-gain { from { opacity: 0.55; } to { opacity: 1; } }
-  #shop-menu .sm-scratch { display: none; position: absolute; inset: 0; width: 100%; height: 100%; cursor: pointer; }
-  #shop-menu .sm-scratch.on { display: block; }
-  #shop-menu .sm-effect { display: inline-block; margin-top: 4px; align-self: flex-start; font: 14px 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; letter-spacing: 1px; padding: 1px 8px; border-radius: 3px; color: #0c140e; background: #3fc97a; }
-  #shop-menu .sm-effect:empty { display: none; }
-  @media (max-width: 520px) { #shop-menu .sm-stage { height: auto; flex-direction: column; } #shop-menu .sm-preview { flex: 0 0 120px; height: 120px; } #shop-menu .sm-stats { flex: 0 0 auto; padding: 4px 16px 10px; } }
-  #shop-menu .sm-item.sel { border-color: rgba(63,201,122,0.85); border-left-color: var(--shop); background: rgba(30,158,86,0.28); }
-  #shop-menu .sm-detail { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 6px 14px; padding: 10px 18px; border-top: 1px solid rgba(63,201,122,0.25); background: rgba(23,48,31,0.55); }
-  #shop-menu .sm-detail[hidden] { display: none; }
-  #shop-menu .sm-dtxt { min-width: 0; display: flex; flex-direction: column; }
-  #shop-menu .sm-dtxt b { font-weight: normal; font-size: 24px; letter-spacing: 1px; line-height: 1.05; }
-  #shop-menu .sm-dtxt small { font: 14px 'Arial Narrow', Arial, sans-serif; color: rgba(240,237,228,0.75); line-height: 1.3; }
-  #shop-menu .sm-buy { min-width: 190px; padding: 9px 18px 7px; border: 0; border-bottom: 3px solid #0f5c30; border-radius: 4px; cursor: pointer;
-    font: 22px 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; letter-spacing: 1px; color: #0c140e; background: #1e9e56; white-space: nowrap; }
-  #shop-menu .sm-buy:hover, #shop-menu .sm-buy:focus-visible, #shop-menu .sm-buy:focus { outline: none; background: #3fc97a; box-shadow: 0 0 0 2px rgba(240,237,228,0.8); }
-  #shop-menu .sm-buy.armed { background: #e8c93a; border-bottom-color: #9b8420; animation: sm-pop 0.28s ease-out; }
-  #shop-menu .sm-buy[aria-disabled="true"] { cursor: default; color: #f0ede4; background: #4a4f47; border-bottom-color: #2a2e28; }
-  #shop-menu .sm-buy[aria-disabled="true"]:focus { background: #5a6056; }
-  @media (max-width: 520px) { #shop-menu .sm-detail { grid-template-columns: 1fr; } #shop-menu .sm-buy { width: 100%; } }
-  @media (max-width: 520px) { #shop-menu h1 { font-size: 26px; } #shop-menu .sm-tag { display: none; } #shop-menu .sm-item { grid-template-columns: 30px 1fr auto; gap: 8px; } #shop-menu .sm-foot span { display: none; } }
-  #shop-menu .sm-story { display: grid; grid-template-columns: 34px 1fr; gap: 2px 12px; align-items: center; padding: 10px 18px; border-bottom: 1px solid rgba(232,201,58,0.45);
-    background: linear-gradient(90deg, rgba(232,201,58,0.26) 0%, rgba(232,201,58,0.08) 100%); box-shadow: inset 4px 0 0 #e8c93a; animation: sm-story 1.6s ease-in-out 3 alternate; }
-  #shop-menu .sm-story[hidden] { display: none; }
-  #shop-menu .sm-story i { grid-row: span 3; width: 34px; height: 34px; border-radius: 50%; background: #e8c93a; color: #0c140e; display: flex; align-items: center; justify-content: center; font: normal 24px 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; }
-  #shop-menu .sm-story b { font-weight: normal; font-size: 25px; letter-spacing: 1px; line-height: 1.05; color: #f5dc5c; }
-  #shop-menu .sm-story span, #shop-menu .sm-story small { font: 14px 'Arial Narrow', Arial, sans-serif; color: rgba(240,237,228,0.85); line-height: 1.3; }
-  #shop-menu .sm-story span:empty, #shop-menu .sm-story small:empty { display: none; }
-  #shop-menu .sm-story small { color: #f5dc5c; }
-  #shop-menu .sm-story.done { background: linear-gradient(90deg, rgba(63,201,122,0.3) 0%, rgba(63,201,122,0.08) 100%); box-shadow: inset 4px 0 0 #3fc97a; border-bottom-color: rgba(63,201,122,0.5); animation: sm-pop 0.28s ease-out; }
-  #shop-menu .sm-story.done i { background: #3fc97a; }
-  #shop-menu .sm-story.done b { color: #7fe0a8; }
-  @keyframes sm-story { from { box-shadow: inset 4px 0 0 #e8c93a; } to { box-shadow: inset 4px 0 0 #e8c93a, inset 0 0 22px rgba(232,201,58,0.35); } }
-  #shop-menu h2.story { color: #f5dc5c; }
-  #shop-menu .sm-item.story-ok { border-color: rgba(232,201,58,0.55); border-left-color: #e8c93a; background: rgba(232,201,58,0.1); }
-  #shop-menu .sm-item.story-ok:hover, #shop-menu .sm-item.story-ok:focus, #shop-menu .sm-item.story-ok.sel { border-color: #e8c93a; background: rgba(232,201,58,0.22); }
-  #shop-menu .sm-item.story-ok .sm-chip { border-color: #e8c93a; color: #0c140e; background: #e8c93a; }
-  #shop-menu .sm-item.story-no .sm-txt small { color: rgba(217,138,63,0.9); }
-  @media (prefers-reduced-motion: reduce) { #shop-menu .sm-story { animation: none !important; } }
-  @media (prefers-reduced-motion: reduce) { #shop-menu .sm-panel, #shop-menu .sm-status, #shop-menu .sm-money { animation: none !important; } }
-`;
-
 export function initShopUi(w) {
   world = w;
   if (root) return;
-  const style = document.createElement('style');
-  style.textContent = SHOP_CSS;
-  document.head.appendChild(style);
+  for (const css of ['menu.css', 'shopui.css']) {
+    if (document.getElementById('style-' + css)) continue;
+    const link = document.createElement('link');
+    link.id = 'style-' + css;
+    link.rel = 'stylesheet';
+    link.href = new URL('./' + css, import.meta.url).href;
+    document.head.appendChild(link);
+  }
   root = document.createElement('div');
   root.id = 'shop-menu';
+  root.className = 'gm';
   root.setAttribute('role', 'dialog');
   root.setAttribute('aria-modal', 'true');
   root.setAttribute('aria-labelledby', 'shop-title');
   root.innerHTML = `
-    <div class="sm-panel">
-      <header class="sm-head">
-        <img class="sm-icon" alt="">
-        <div class="sm-title"><h1 id="shop-title"></h1><p class="sm-tag"></p></div>
-        <div class="sm-money" aria-label="Jouw geld"></div>
+    <div class="gm-stage">
+    <section class="sm-panel m-panel" aria-labelledby="shop-title">
+      <header class="m-head">
+        <div><span class="sm-accent" aria-hidden="true"></span><span class="m-eb sm-tag"></span><h1 class="m-h1" id="shop-title"></h1><img class="sm-icon" alt=""></div>
+        <div class="m-hr"><span class="mut">Op zak</span><span class="m-num sm-money" aria-label="Jouw geld"></span></div>
       </header>
       <div class="sm-story" role="note" hidden><i aria-hidden="true">!</i><b></b><span></span><small></small></div>
-      <div class="sm-stage"><canvas class="sm-preview" aria-hidden="true"></canvas><div class="sm-stats" aria-label="Eigenschappen"></div><canvas class="sm-scratch" aria-hidden="true"></canvas></div>
-      <div class="sm-list"></div>
-      <div class="sm-detail" hidden><div class="sm-dtxt"><b></b><small></small><span class="sm-effect"></span></div><button type="button" class="sm-buy"></button></div>
-      <div class="sm-status" role="status" aria-live="polite"></div>
-      <footer class="sm-foot"><span><b>↑</b> <b>↓</b> bekijken · <b>ENTER</b> naar de knop, nog eens <b>ENTER</b> kopen · slepen draait</span><button type="button" class="sm-close">Esc · Weglopen</button></footer>
+      <div class="m-main sm-main">
+        <div class="m-list sm-list"></div>
+        <aside class="m-pane sm-pane">
+          <div class="sm-stage"><canvas class="sm-preview" aria-hidden="true"></canvas><canvas class="sm-scratch" aria-hidden="true"></canvas></div>
+          <div class="sm-detail" hidden>
+            <div class="pm-pane-top"><span class="m-eb sm-ceb"></span><h2 class="m-h2 sm-dname"></h2></div>
+            <p class="sm-ddesc"></p><p class="sm-effect"></p>
+            <div class="sm-stats" aria-label="Eigenschappen"></div>
+            <span class="m-grow"></span>
+            <div class="sm-buyrow"><span class="m-num sm-pricebig"></span><button type="button" class="m-bp sm-buy"></button></div>
+          </div>
+          <div class="sm-status" role="status" aria-live="polite"></div>
+        </aside>
+      </div>
+    </section>
+    <footer class="m-foot"><span class="m-hint"><span class="m-kc">↑</span><span class="m-kc">↓</span><span>bekijken</span></span><span class="m-hint"><span class="m-kc">Enter</span><span>kopen</span></span><button type="button" class="m-hint sm-close"><span class="m-kc">Esc</span><span>weglopen</span></button></footer>
     </div>`;
   document.body.appendChild(root);
   root.addEventListener('click', onClick);
@@ -195,6 +91,7 @@ export function openShopMenu(w, s) {
   panel.style.setProperty('--shop', s.color);
   root.querySelector('#shop-title').textContent = s.name;
   root.querySelector('.sm-tag').textContent = s.tagline || '';
+  root.querySelector('.sm-tag').hidden = !s.tagline;
   root.querySelector('.sm-icon').src = s.icon || shopIconUrl(s.type, 92);
   setStatus('', '');
   root.classList.add('visible');
@@ -226,16 +123,15 @@ function currentItems() {
 }
 
 function priceHtml(it) {
-  const chip = it.tag ? `<span class="sm-chip">${esc(it.tag)}</span>` : '';
-  // it.plain: a choice, not a product (the dorpsquiz answers): no price badge
-  const price = it.plain ? '' : it.income > 0 ? `<b class="free">+€${it.income}</b>` : it.price > 0 ? `<b>€${it.price}</b>` : it.disabled ? '' : '<b class="free">Gratis</b>';
-  const reason = it.disabled ? `<small class="no">${esc(it.disabled)}</small>` : '';
-  return chip + (it.disabled && it.tag ? '' : price) + reason;
+  const chip = it.tag ? `<span class="t">${esc(it.tag)}</span>` : '';
+  // it.plain: a choice, not a product (the dorpsquiz answers): no price
+  const price = it.plain ? '' : it.income > 0 ? `<span class="v free">+€${it.income}</span>` : it.price > 0 ? `<span class="v">€${it.price.toLocaleString('nl-NL')}</span>` : it.disabled ? '' : '<span class="v free">Gratis</span>';
+  const reason = it.disabled ? `<span class="t no">${esc(it.disabled)}</span>` : '';
+  return reason + chip + (it.disabled && it.tag ? '' : price);
 }
 
 function swatchHtml(it) {
-  if (it.swatch && it.swatch.length) return it.swatch.map((c) => `<i style="background:${esc(c)}"></i>`).join('');
-  return `<img src="${shop.icon || shopIconUrl(shop.type, 60)}" alt="">`;
+  return it.swatch && it.swatch.length ? `<span class="sm-sw">${it.swatch.map((c) => `<i style="background:${esc(c)}"></i>`).join('')}</span>` : '';
 }
 
 function render() {
@@ -252,13 +148,13 @@ function render() {
     return;
   }
   list.innerHTML = sections.map((sec) => `
-    <h2${sec.story ? ' class="story"' : ''}>${esc(sec.title)}</h2>
+    <div class="m-gh"><span>${esc(sec.title)}</span></div>
     ${sec.note ? `<p class="sm-note">${esc(sec.note)}</p>` : ''}
     ${sec.items.map((it) => `
-      <button type="button" class="sm-item${it.story ? ' story-' + it.story : ''}" data-id="${esc(it.id)}" aria-disabled="${it.disabled ? 'true' : 'false'}">
-        <span class="sm-sw">${swatchHtml(it)}</span>
-        <span class="sm-txt"><b>${esc(it.label)}</b><small>${esc(it.desc || '')}</small></span>
-        <span class="sm-price">${priceHtml(it)}</span>
+      <button type="button" class="m-li sm-item${it.story ? ' story-' + it.story : ''}" data-id="${esc(it.id)}" aria-disabled="${it.disabled ? 'true' : 'false'}">
+        ${swatchHtml(it)}
+        <span class="nm"><span class="one">${esc(it.label)}</span>${it.desc ? `<span class="mut one">${esc(it.desc)}</span>` : ''}</span>
+        ${(it.cols || []).map((c) => `<span class="v">${esc(c)}</span>`).join('')}${priceHtml(it)}
       </button>`).join('')}`).join('');
   if (focusedId) {
     const el = list.querySelector(`[data-id="${CSS.escape(focusedId)}"]`);
@@ -280,7 +176,7 @@ function renderStory() {
 }
 
 function markSelected() {
-  for (const el of root.querySelectorAll('.sm-item')) el.classList.toggle('sel', el.dataset.id === sel);
+  for (const el of root.querySelectorAll('.sm-item')) { const on = el.dataset.id === sel; el.classList.toggle('sel', on); el.toggleAttribute('aria-current', on); }
 }
 
 function needsConfirm(it) {
@@ -302,9 +198,16 @@ function renderDetail() {
   bar.hidden = !it;
   renderStats(it);
   if (!it) return;
-  bar.querySelector('b').textContent = it.label;
-  bar.querySelector('small').textContent = it.desc || '';
+  bar.querySelector('.sm-ceb').textContent = [shop.name, it.tag].filter(Boolean).join(' · ');
+  bar.querySelector('.sm-dname').textContent = it.label;
+  const dd = bar.querySelector('.sm-ddesc');
+  if (it.route) {
+    const r = it.route;
+    dd.innerHTML = `<span class="sm-route"><span class="sm-rs"><span class="bebas">${esc(r.from)}</span><span class="mut">Vertrek</span></span><span class="sm-rl" aria-hidden="true"></span><span class="sm-rs"><span class="bebas">${esc(r.to)}</span><span class="mut">${r.minutes} min</span></span></span>` +
+      `<span class="sm-rt">${esc(r.text)}</span>${r.teaser ? `<span class="sm-rt">${esc(r.teaser)}</span>` : ''}<span class="sm-rt mut">Bord: ${esc(r.board.toLowerCase())}. De rit is over te slaan.</span>`;
+  } else dd.textContent = it.desc || '';
   bar.querySelector('.sm-effect').textContent = it.effect || '';
+  bar.querySelector('.sm-pricebig').textContent = it.plain ? '' : it.income > 0 ? `+€${it.income}` : it.price > 0 ? `€${it.price.toLocaleString('nl-NL')}` : '';
   const btn = bar.querySelector('.sm-buy');
   btn.textContent = buyLabel(it);
   btn.setAttribute('aria-disabled', it.disabled ? 'true' : 'false');
@@ -326,7 +229,7 @@ function renderStats(it) {
 
 function syncStage() {
   const stage = root.querySelector('.sm-stage');
-  const on = root.querySelector('.sm-preview').classList.contains('on') || !!root.querySelector('.sm-stats').childElementCount || !!scratch;
+  const on = root.querySelector('.sm-preview').classList.contains('on') || !!scratch;
   stage.classList.toggle('on', on);
 }
 

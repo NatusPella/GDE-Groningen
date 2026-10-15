@@ -1326,8 +1326,9 @@ function updateTooltip(sx, sy) {
     s.textContent = sub;
     tip.appendChild(s);
   }
-  tip.style.left = sx + 'px';
-  tip.style.top = sy + 'px';
+  const z = viewZoom();
+  tip.style.left = sx / z + 'px';
+  tip.style.top = sy / z + 'px';
   tip.style.display = 'block';
 }
 
@@ -1407,9 +1408,32 @@ function showCard(world, h, sx, sy) {
     `<div class="mv-btns">${btn}<button type="button" class="mapview-btn ghost" data-card="close">Sluiten</button></div></div>`;
   el.hidden = false;
   state.card = { h, it };
-  const w = el.offsetWidth, hh = el.offsetHeight;
-  el.style.left = Math.max(8, Math.min(state.cw - w - 8, sx + 14)) + 'px';
-  el.style.top = Math.max(8, Math.min(state.ch - hh - 8, sy - hh / 2)) + 'px';
+}
+
+// The menu is zoomed with the interface (menu.css): CSS px of the overlay are
+// this many screen px.
+function viewZoom() {
+  const c = state.canvas;
+  return c && c.offsetWidth ? (c.getBoundingClientRect().width / c.offsetWidth) || 1 : 1;
+}
+
+function layerCount() {
+  const rows = LEGEND.flatMap((g) => g.rows).filter((r) => r.layers);
+  return [rows.filter((r) => r.layers.some((k) => layerOn(k))).length, rows.length];
+}
+
+function syncLayersButton() {
+  const n = state.overlay.querySelector('.mv-layers-n');
+  if (n) { const [on, all] = layerCount(); n.textContent = `${on} van ${all} aan`; }
+}
+
+function toggleLegend(open) {
+  const lg = state.legendEl || state.overlay.querySelector('.mapview-legend');
+  const btn = state.overlay.querySelector('.mv-layers');
+  const on = open == null ? lg.hidden : open;
+  lg.hidden = !on;
+  btn.setAttribute('aria-expanded', String(on));
+  syncLayersButton();
 }
 
 function hideCard() {
@@ -1567,6 +1591,7 @@ function buildLegend(root) {
           const v = !on();
           for (const k of row.layers) setLayer(k, v);
           li.setAttribute('aria-checked', String(v));
+          syncLayersButton();
         };
         li.addEventListener('click', toggle);
         li.addEventListener('keydown', (e) => {
@@ -1630,6 +1655,10 @@ function openMap(world) {
   const c = world.companion;
   if (state.legendMaat) state.legendMaat.textContent = c ? `Maat (${c.character === 'tammo' ? 'Tammo' : 'Tessa'})` : 'Maat';
   refreshLegend(world);
+  syncLayersButton();
+  const eb = state.overlay.querySelector('.mv-eb');
+  const seen = getDiscoveredRatio();
+  if (eb) { eb.hidden = seen < 0.01; eb.textContent = `${Math.round(seen * 100)}% van Grunn verkend`; }
 }
 
 // Streken > Overal en nergens: the next click (or A under the crosshair)
@@ -1702,19 +1731,17 @@ export function initMapView(world) {
   overlay.setAttribute('role', 'dialog');
   overlay.setAttribute('aria-label', 'Kaart van Groningen');
   overlay.innerHTML =
-    '<div class="mapview-header"><span class="mapview-title">KAART VAN GRONINGEN</span>' +
+    '<div class="mapview-header"><div class="mv-hl"><span class="m-eb mv-eb" hidden></span><h1 class="mapview-title m-h1">Kaart</h1>' +
+    '<label class="mapview-search m-inp"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg><input type="search" placeholder="Zoek een plek, missie of minigame" aria-label="Zoek een plek, missie of minigame" autocomplete="off" spellcheck="false">' +
+    '<ul class="mapview-results" role="listbox" hidden></ul></label></div>' +
+    '<div class="mv-hr">' +
     `<div class="mapview-modes" role="radiogroup" aria-label="Reiswijze">${MODES.map((m) => `<button type="button" role="radio" data-act="mode" data-mode="${m}" aria-checked="false">${MODE_LABEL[m]}</button>`).join('')}</div>` +
-    '<div class="mapview-search"><input type="search" placeholder="Zoek een plek, missie of minigame…" aria-label="Zoek een plek, missie of minigame" autocomplete="off" spellcheck="false">' +
-    '<ul class="mapview-results" role="listbox" hidden></ul></div>' +
-    '<button type="button" class="mapview-btn" data-act="centre">Centreer op mij</button>' +
-    '<button type="button" class="mapview-btn ghost" data-act="clear" hidden>Doel wissen</button>' +
-    '<span class="mapview-route"></span></div>' +
+    '<button type="button" class="m-bg mv-layers" data-act="layers" aria-expanded="false" aria-controls="mv-legend">Lagen <span class="mv-layers-n"></span></button></div></div>' +
     '<div class="mapview-body"><canvas class="mapview-canvas"></canvas>' +
-    '<div class="mapview-zoom"><button type="button" data-act="in" aria-label="Inzoomen">+</button><button type="button" data-act="out" aria-label="Uitzoomen">−</button></div>' +
-    '<div class="mapview-osm">© OpenStreetMap-bijdragers · openstreetmap.org/copyright</div>' +
-    '<div class="mapview-tp" hidden>Kies een plek: daar sta je meteen · <b>Esc</b> stopt</div><div class="mapview-tooltip"></div><div class="mapview-card" hidden></div><aside class="mapview-legend"></aside></div>' +
-    `<div class="mapview-footer"><b>Klik</b> doel kiezen · <b>Rechtsklik</b> doel wissen · ${DEV ? '<b>Shift+klik</b> teleporteren · ' : ''}` +
-    '<b>Scroll / + −</b> zoomen · <b>Slepen / WASD</b> verschuiven · <b>Spatie</b> centreren · <b>Del</b> doel wissen · <b>Q / E</b> tabblad · <b>M / Esc</b> sluiten</div>';
+    '<div class="mapview-zoom"><button type="button" class="m-bg" data-act="in" aria-label="Inzoomen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button><button type="button" class="m-bg" data-act="out" aria-label="Uitzoomen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg></button><button type="button" class="m-bg" data-act="centre" aria-label="Naar jezelf"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 3v4M12 17v4M3 12h4M17 12h4"/></svg></button></div>' +
+    '<div class="mv-goal"><span class="m-eb">Je route</span><span class="mapview-route"></span><button type="button" class="m-bt" data-act="clear" hidden>Doel wissen</button></div>' +
+    '<div class="mapview-osm">© OpenStreetMap-bijdragers</div>' +
+    '<div class="mapview-tp" hidden>Kies een plek: daar sta je meteen · <b>Esc</b> stopt</div><div class="mapview-tooltip"></div><div class="mapview-card" hidden></div><aside class="mapview-legend" id="mv-legend" hidden></aside></div>';
   document.body.appendChild(overlay);
 
   const compose = document.createElement('canvas');
@@ -1796,6 +1823,7 @@ export function initMapView(world) {
     const act = btn.dataset.act;
     if (act === 'mode') setMode(btn.dataset.mode);
     else if (act === 'centre') centreOn(world.player.x, world.player.y, 3);
+    else if (act === 'layers') toggleLegend();
     else if (act === 'clear') clearUserWaypoint();
     else if (act === 'care-off') dismissCareRoute();
     else if ((act === 'pg-next' || act === 'pg-off' || act === 'pg-on') && world.postgameActions) {
