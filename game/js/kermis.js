@@ -12,11 +12,12 @@ import { ambientOut } from './audio.js';
 import { activityBlock, iconDisc } from './activitykit.js';
 import { KERMIS_LINES, BOTS_BUMPED, BOTS_HIT, KERMIS_NEWS, KERMIS_TWINS } from './funlines.js';
 import { DURK_LOOK, DOUWE_LOOK } from './storycast.js';
+import { isToday } from './calendarday.js';
 
 // Kermis op de Grote Markt. The botsautotent of kermisbaas Jan stands on
 // the south side of the square all the time (always open, €3 a ride);
-// every evening from 19:00 to 01:00, and all day during the Meikermis
-// (late April to early May), the rest of the kermis joins it: a reuzenrad,
+// every evening from 19:00 to 01:00, and all day during the Zomerkermis
+// (calendar.js: 21 to 30 augustus), the rest of the kermis joins it: a reuzenrad,
 // stalls, coloured lights, a crowd and a barrel organ. The ride: 75 s in a
 // bumper car against five others (Tammo or Tessa in one of them), points
 // for every bump you give, more for a fast one or one in a flank, a combo
@@ -65,13 +66,11 @@ const BOOTH = toW(-HU - 1.6, 3.2);
 const STAND = toW(-HU - 2.8, 0.8);
 const JAN = toW(-HU - 1, 2.4);
 
-// The kermis is in town this evening (or all day in the Meikermis weeks).
+// The kermis is in town this evening (or all day in the Zomerkermis).
 export function kermisOn(w) {
   const h = ((w.clock % 24) + 24) % 24;
   if (h >= 19 || h < 1) return true;
-  const d = new Date();
-  const m = d.getMonth() + 1, day = d.getDate();
-  return (m === 4 && day >= 24) || (m === 5 && day <= 10);
+  return isToday('kermis', w);
 }
 
 // Footprints the market stalls, clutter and parked cars stay out of.

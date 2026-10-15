@@ -182,6 +182,12 @@
   stroke: #e8c93a;
 }
 #hud .hud-clock.night .hud-clock-icon { fill: #f0ede4; stroke: none; }
+#hud .hud-date { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 8px; margin-top: -3px; font-size: 15px; letter-spacing: 1px; }
+#hud .hud-date-n { font-size: 13px; letter-spacing: 2px; text-transform: uppercase; color: #a3b2a6; text-shadow: none; }
+#hud .hud-day-badge { flex-basis: 100%; display: flex; align-items: center; gap: 6px; padding: 2px 8px; border-radius: 4px; font-size: 14px; color: #1a1a12; background: #e8c93a; text-shadow: none; }
+#hud .hud-day-badge[hidden] { display: none; }
+#hud .hud-day-badge.small { color: #e8c93a; background: rgba(232, 201, 58, 0.12); border: 1px solid rgba(232, 201, 58, 0.4); }
+#hud .hud-day-badge svg { width: 15px; height: 15px; fill: currentColor; flex: none; }
 
 #hud .hud-money.rolling { color: var(--gron-green-light); }
 #hud .hud-money-delta {

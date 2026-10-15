@@ -1,70 +1,204 @@
-// The story calendar (August 2026): which day it is in Grunn. Each part
-// starts on its date card (storyarc.js PARTS: Kop 14, Romp 18, Staart 24
-// augustus) and its steps are spread over the days up to the next part, so
-// the last Staart step, Gronings Ontzet, falls on 28 augustus. After the
-// story it is September. Every midnight the player plays through adds a day,
-// until the next step's date. Derived from story progress and the clock only,
-// so savegames need nothing new.
+// The game's calendar: one Groningen summer, 2026 (docs/verhaal/KALENDER.md).
+// Day 1 is vrijdag 14 augustus (the Kop, KEI-week), Gronings Ontzet is day 15
+// (vrijdag 28 augustus), the epilogue starts on dinsdag 1 september and the
+// astronomical summer ends after dinsdag 22 september, day 40. After that the
+// date stops and the days keep counting: "Nazomer · dag 41". It stays summer.
+//
+// Pure: no DOM, no game state (calendarday.js keeps today's date on the world,
+// saves it and drives the HUD). node scripts/calendar_test.mjs tests it.
 import { STEPS, PARTS } from './storyarc.js';
-import { getStoryView } from './story.js';
 
-const YEAR = 2026;
-const AUGUST = 7;
-const ONTZET = 28;
-const SEPTEMBER_FIRST = 32;
+export const YEAR = 2026;
+const AUG = 7;
+const START_DATE = 14;
+export const LAST_SUMMER_DAY = 40;
+export const ONTZET_DAY = 15;
+export const EPILOGUE_DAY = 19;
+
 const WEEKDAYS = ['zondag', 'maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag'];
+const WD_SHORT = ['Zo', 'Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za'];
 const MONTHS = ['januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'oktober', 'november', 'december'];
+const MON_SHORT = ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'];
 
-const PART_IDS = Object.keys(PARTS);
-const startOf = (part) => parseInt(PARTS[part].date, 10);
-const endOf = (part) => {
-  const next = PART_IDS[PART_IDS.indexOf(part) + 1];
-  return next ? startOf(next) - 1 : ONTZET;
-};
+const utc = (n) => new Date(Date.UTC(YEAR, AUG, START_DATE + n - 1));
+// day number of a date in this summer: day(8, 28) = 15
+export const day = (month, date) => Math.round((Date.UTC(YEAR, month - 1, date) - Date.UTC(YEAR, AUG, START_DATE)) / 864e5) + 1;
 
-// day of August (32 = 1 September) for each story step
-const STEP_DAY = new Map();
-for (const part of PART_IDS) {
-  const list = STEPS.filter((s) => s.part === part);
-  const a = startOf(part), span = endOf(part) - a;
-  list.forEach((s, k) => STEP_DAY.set(s.id, a + (list.length > 1 ? Math.round((k * span) / (list.length - 1)) : 0)));
-}
+export const weekdayOf = (n) => utc(n).getUTCDay();
+export const isNazomer = (n) => n > LAST_SUMMER_DAY;
 
-function nextStepDay(id) {
-  const k = STEPS.findIndex((s) => s.id === id);
-  for (let i = k + 1; i < STEPS.length; i++) if (STEP_DAY.has(STEPS[i].id)) return STEP_DAY.get(STEPS[i].id);
-  return ONTZET;
-}
-
-// The anchor (story step + midnight count at the time) lives on the world,
-// not in the save: a loaded game starts on its step's own day.
-export function storyDay(world) {
-  const sv = getStoryView();
-  let base, max, key;
-  if (sv.end) {
-    const finale = sv.part && PARTS[sv.part] && PARTS[sv.part].finale;
-    base = finale ? SEPTEMBER_FIRST : endOf(sv.part in PARTS ? sv.part : 'kop');
-    max = finale ? Infinity : base;
-    key = 'end:' + sv.part;
-  } else {
-    base = STEP_DAY.get(sv.id) ?? startOf(sv.part);
-    max = Math.max(base, nextStepDay(sv.id));
-    key = sv.id;
+// { n, weekday, short: 'Vr 28 aug', long: 'Vrijdag 28 augustus', dayLabel: 'dag 15', nazomer }
+// After the summer: short 'Wo · nazomer', long 'Woensdag, nazomer · dag 41'.
+export function formatDay(n) {
+  const d = utc(n), wd = d.getUTCDay();
+  const weekday = WEEKDAYS[wd];
+  const Weekday = weekday[0].toUpperCase() + weekday.slice(1);
+  if (isNazomer(n)) {
+    return { n, weekday, nazomer: true, short: `${WD_SHORT[wd]} · nazomer`, dayLabel: `dag ${n}`, long: `${Weekday}, nazomer · dag ${n}` };
   }
-  const wraps = (world && world.dayWraps) | 0;
-  if (world && (!world.dayAnchor || world.dayAnchor.key !== key)) world.dayAnchor = { key, wraps };
-  const extra = world ? wraps - world.dayAnchor.wraps : 0;
-  return Math.min(max, base + Math.max(0, extra));
-}
-
-export function storyDate(world) {
-  const d = new Date(YEAR, AUGUST, storyDay(world));
-  const weekday = WEEKDAYS[d.getDay()];
   return {
-    weekday,
-    day: d.getDate(),
-    month: MONTHS[d.getMonth()],
-    // "Vrijdag 14 augustus"
-    long: `${weekday[0].toUpperCase()}${weekday.slice(1)} ${d.getDate()} ${MONTHS[d.getMonth()]}`,
+    n, weekday, nazomer: false, date: d.getUTCDate(), month: MONTHS[d.getUTCMonth()],
+    short: `${WD_SHORT[wd]} ${d.getUTCDate()} ${MON_SHORT[d.getUTCMonth()]}`,
+    dayLabel: `dag ${n}`,
+    long: `${Weekday} ${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]}`,
   };
 }
+
+// --- the story on the calendar ------------------------------------------------------
+
+// The day each story step plays (August). The parts start on their date card
+// (PARTS.date: Kop 14, Romp 18, Staart 24 augustus) and end the day before
+// the next one; H18 is Gronings Ontzet. A step not listed here (a new one)
+// gets the day of the step before it.
+const STEP_DATES = {
+  // Kop, KEI-week: vrijdag 14 to maandag 17
+  'H1': 14, 'k-eikea': 14, 'H2': 15, 'H3': 15, 'H4': 15, 'k-fiets': 16, 'H5': 16, 'k-kraakspullen': 17, 'k-nacht': 17, 'H6': 17,
+  // Romp, Noorderzon: dinsdag 18 to zondag 23 (H7: the decor, the day before it opens; r-kermis: the opening night)
+  'r-trein': 18, 'H7': 19, 'H8': 19, 'r-tuning': 20, 'H9': 20, 'H10': 21, 'r-kermis': 21, 'H11': 22, 'H12': 22, 'r-avond': 23, 'H13': 23,
+  // Staart, kermis and Ontzet: maandag 24 to vrijdag 28
+  's-boot': 24, 'H14': 25, 's-proefvlucht': 25, 'H15': 26, 's-carbid': 26, 's-padel': 27, 'H16': 27, 'H17': 27, 'H18': 28,
+};
+
+export const STEP_DAY = new Map();
+{
+  let last = 1;
+  for (const s of STEPS) {
+    if (STEP_DATES[s.id] != null) last = day(8, STEP_DATES[s.id]);
+    STEP_DAY.set(s.id, last);
+  }
+}
+export const partStartDay = (part) => day(8, parseInt(PARTS[part].date, 10));
+
+// The days a story view (story.js getStoryView, or { id } / { end, finale })
+// allows: the current step's day at the earliest (the story moves the date on),
+// the next step's day at the latest (a night can bring the next day, but the
+// story waits for nobody: Ontzet is always on 28 augustus). Past the finale the
+// summer is open.
+export function storyBounds(view) {
+  if (!view) return { min: 1, max: 1 };
+  if (view.end) {
+    if (view.finale) return { min: EPILOGUE_DAY, max: Infinity };
+    const last = [...STEPS].reverse().find((s) => s.part === view.part);
+    const d = last ? STEP_DAY.get(last.id) : 1;
+    return { min: d, max: d };
+  }
+  const min = STEP_DAY.get(view.id) ?? 1;
+  const k = STEPS.findIndex((s) => s.id === view.id);
+  const next = k >= 0 && k + 1 < STEPS.length ? STEP_DAY.get(STEPS[k + 1].id) : ONTZET_DAY;
+  return { min, max: Math.max(min, next) };
+}
+
+export const clampDay = (n, b) => Math.max(b.min, Math.min(b.max, Math.max(1, Math.floor(n) || 1)));
+
+// A save from before the calendar: the day of the step it continues at
+// (savemigrate.js savedStoryStep: a step, or { end, finale }).
+export function dayForSavedStep(step) {
+  if (!step) return 1;
+  if (step.end) return storyBounds({ end: true, part: step.end, finale: !!step.finale }).min;
+  return STEP_DAY.get(step.id) ?? 1;
+}
+
+// --- the sun -------------------------------------------------------------------------
+
+// Solar declination (degrees) on day n. The nazomer holds: from 1 september
+// on the sun stays where it was that day, so the light never turns autumn.
+export function sunDeclinationDeg(n) {
+  const k = Math.min(Math.max(1, n), EPILOGUE_DAY);
+  const doy = Math.round((Date.UTC(YEAR, AUG, START_DATE + k - 1) - Date.UTC(YEAR, 0, 1)) / 864e5) + 1;
+  return 23.44 * Math.sin((2 * Math.PI * (284 + doy)) / 365);
+}
+
+// --- special days ----------------------------------------------------------------------
+
+// id: stable (saved in the seen list); from/to: day numbers (to inclusive),
+// or weekdays [0-6] for a weekly one; rank: which one the HUD shows when
+// several fall on one day; card: [title, body] for "Vandaag in Grunn" (once,
+// the first morning), none for a small day (only the HUD badge); icon: a
+// CAL_ICONS key; open: false = planned (Deel 4), not shown yet.
+export const SPECIAL_DAYS = [
+  { id: 'ontzet', name: 'Gronings Ontzet', from: day(8, 28), to: day(8, 28), rank: 10, icon: 'vlag',
+    card: ['Gronings Ontzet', 'In 1672 hield Stad stand tegen Bommen Berend. Vlaggen op de Grote Markt, en vanavond vuurwerk.'] },
+  { id: 'kei', name: 'KEI-week', from: day(8, 14), to: day(8, 17), rank: 6, icon: 'kei',
+    card: ['KEI-week', 'Duizenden nieuwe Stadjers zoeken hun groepje. Rij rustig door de binnenstad en het Plantsoen.'] },
+  { id: 'noorderzon', name: 'Noorderzon', from: day(8, 20), to: day(8, 30), rank: 7, icon: 'ster',
+    card: ['Noorderzon', 'Elf dagen theater en muziek in het Noorderplantsoen. Tot laat lampjes in de bomen.'] },
+  { id: 'kermis', name: 'Zomerkermis', from: day(8, 21), to: day(8, 30), rank: 8, icon: 'rad',
+    card: ['Zomerkermis', 'Tot en met 30 augustus staat de kermis de hele dag op de Grote Markt, niet alleen \'s avonds.'] },
+  { id: 'bloemetjesmarkt', name: 'Bloemetjesmarkt', from: day(9, 12), to: day(9, 12), rank: 7, icon: 'bloem',
+    card: ['Bloemetjesmarkt', 'De nazomereditie: de hele dag bloemen op de Grote Markt. De binnenstad staat vol touringcars.'] },
+  { id: 'suiker', name: 'Suikercampagne', from: day(9, 15), to: day(9, 15), rank: 5, icon: 'biet',
+    card: ['De suikercampagne begint', 'Bij Hoogkerk ruikt het weer naar suiker. Op de polderwegen rijden de bietenwagens.'] },
+  { id: 'laatstezomerdag', name: 'Laatste zomerdag', from: LAST_SUMMER_DAY, to: LAST_SUMMER_DAY, rank: 9, icon: 'zon',
+    card: ['De laatste zomerdag', 'Morgen begint de nazomer. In Grunn houdt die aan.'] },
+  // the weekly market on the Grote Markt and the Vismarkt: dinsdag, vrijdag, zaterdag
+  { id: 'markt', name: 'Marktdag', weekdays: [2, 5, 6], rank: 1, icon: 'kraam' },
+  // Deel 4 "Nazomer" (docs/PROVINCIE-VERHAAL.md): on the calendar, not in the game yet
+  { id: 'oogstfeest', name: 'Oogstfeest op het Hogeland', from: day(9, 5), to: day(9, 5), rank: 6, icon: 'aar', open: false,
+    card: ['Oogstfeest op het Hogeland', 'Trekkers met slingers tussen de wierden. De eerste voorronde van de Ommelander Ronde.'] },
+  { id: 'jaarmarkt', name: 'Jaarmarkt in de Eemsdelta', from: day(9, 9), to: day(9, 9), rank: 5, icon: 'kraam', open: false,
+    card: ['Jaarmarkt in de Eemsdelta', 'Kramen langs het Damsterdiep. De sluiswachter meldt alleen.'] },
+  { id: 'oldambtkermis', name: 'Kermis in het Oldambt', from: day(9, 10), to: day(9, 13), rank: 6, icon: 'rad', open: false,
+    card: ['Kermis in het Oldambt', 'Vier dagen kermis aan de rand van het graan. Durk en Douwe zijn er ook.'] },
+  { id: 'trekkertrek', name: 'Trekkertrek in het Westerkwartier', from: day(9, 19), to: day(9, 19), rank: 6, icon: 'trekker', open: false,
+    card: ['Trekkertrek in het Westerkwartier', 'De finale op het dorpsveld. Wie het verst trekt, wint.'] },
+  { id: 'stoomtrein', name: 'Stoomtreindag in de Veenkoloniën', from: day(9, 20), to: day(9, 20), rank: 5, icon: 'trein', open: false,
+    card: ['Stoomtreindag in de Veenkoloniën', 'Een museumtrein langs de kanaalwijken. Elke brug gaat open.'] },
+  { id: 'vesting', name: 'Vestingdag in Westerwolde', from: LAST_SUMMER_DAY, to: LAST_SUMMER_DAY, rank: 9, icon: 'vlag', open: false,
+    card: ['Vestingdag in Westerwolde', 'Kartonnen kanonnen op de wallen. Berend speelt weer de belegeraar.'] },
+];
+const SPECIAL_BY_ID = new Map(SPECIAL_DAYS.map((s) => [s.id, s]));
+export const specialById = (id) => SPECIAL_BY_ID.get(id) || null;
+
+const on = (s, n) => (s.weekdays ? s.weekdays.includes(weekdayOf(n)) : n >= s.from && n <= s.to);
+const shown = (s, all) => all || s.open !== false;
+
+// The special days on day n, most important first.
+export function specialsOn(n, { all = false } = {}) {
+  return SPECIAL_DAYS.filter((s) => shown(s, all) && on(s, n)).sort((a, b) => b.rank - a.rank);
+}
+// The HUD's special day for day n: { id, name, icon, card } or null.
+export function specialDay(n) {
+  const s = specialsOn(n)[0];
+  return s ? { id: s.id, name: s.name, icon: s.icon, card: s.card || null, small: !s.card } : null;
+}
+export const dayOfSummer = (n) => n;
+export const weekdayShort = (n) => WD_SHORT[weekdayOf(n)];
+export const isSpecial = (id, n) => { const s = SPECIAL_BY_ID.get(id); return !!s && on(s, n); };
+
+// The card for day n: the most important special day with a card not seen yet.
+export function cardFor(n, seen = []) {
+  return specialsOn(n).find((s) => s.card && !seen.includes(s.id)) || null;
+}
+
+// The coming special days from day n on (n itself included while it lasts),
+// without the weekly market: [{ s, from, label }] for the pause menu.
+export function upcomingSpecials(n, count = 4) {
+  return SPECIAL_DAYS.filter((s) => shown(s) && !s.weekdays && s.to >= n)
+    .sort((a, b) => Math.max(a.from, n) - Math.max(b.from, n) || b.rank - a.rank)
+    .slice(0, count)
+    .map((s) => ({ s, from: s.from, label: periodLabel(s, n) }));
+}
+
+// "vandaag", "morgen", "vr 28 aug", "t/m zo 30 aug"
+export function periodLabel(s, n) {
+  const f = (k) => formatDay(k).short.toLowerCase();
+  if (s.from <= n) return s.to > n ? `nu, t/m ${f(s.to)}` : 'vandaag';
+  const start = s.from === n + 1 ? 'morgen' : f(s.from);
+  return s.to > s.from ? `${start} t/m ${f(s.to)}` : start;
+}
+
+// Small 24x24 icons (filled paths) for the HUD badge, the card and the agenda.
+export const CAL_ICONS = {
+  zon: '<circle cx="12" cy="12" r="4.6"/><path d="M11 1.5h2v4h-2zM11 18.5h2v4h-2zM1.5 11h4v2h-4zM18.5 11h4v2h-4zM4.2 5.6l1.4-1.4 2.8 2.8-1.4 1.4zM15.6 17l1.4-1.4 2.8 2.8-1.4 1.4zM4.2 18.4l2.8-2.8 1.4 1.4-2.8 2.8zM15.6 7l2.8-2.8 1.4 1.4L17 8.4z"/>',
+  vlag: '<path d="M5 2h2v20H5zM8 3h12l-3 4.5L20 12H8z"/>',
+  kei: '<path d="M12 3 1.5 8.5 12 14l8.5-4.45V16h2V8.5zM5.5 12.2V16c0 2 3 3.8 6.5 3.8s6.5-1.8 6.5-3.8v-3.8L12 15.6z"/>',
+  ster: '<path d="M12 2l2.9 6.3 6.9.7-5.2 4.6 1.5 6.8L12 17l-6.1 3.4 1.5-6.8L2.2 9l6.9-.7z"/>',
+  rad: '<path fill-rule="evenodd" d="M12 2a9 9 0 0 0-1 17.94V21H7v1.5h10V21h-4v-1.06A9 9 0 0 0 12 2zm0 2a7 7 0 0 1 6.93 6H13.7A2 2 0 0 0 13 9.3V4.07A7 7 0 0 1 12 4zm-1 .07V9.3a2 2 0 0 0-.7.7H5.07A7 7 0 0 1 11 4.07zM5.07 12h5.23a2 2 0 0 0 .7.7v5.23A7 7 0 0 1 5.07 12zm7.93.7a2 2 0 0 0 .7-.7h5.23A7 7 0 0 1 13 17.93z"/>',
+  bloem: '<path d="M12 2.5a3 3 0 0 1 3 3 3 3 0 0 1 3.5 4.8A3 3 0 0 1 15 15a3 3 0 0 1-2 .9V22h-2v-6.1a3 3 0 0 1-2-.9 3 3 0 0 1-3.5-4.7A3 3 0 0 1 9 5.5a3 3 0 0 1 3-3zm0 6.3a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/>',
+  biet: '<path d="M8 2c1.5 0 2.7 1 3.3 2.4C12 3 13.4 2 15 2c-.2 2-1.3 3.4-2.6 4A6 6 0 0 1 18 12c0 4.5-3.5 8.5-6 10-2.5-1.5-6-5.5-6-10a6 6 0 0 1 5.4-6C10 5.4 8.3 4 8 2z"/>',
+  kraam: '<path d="M2 4h20l-1.5 6h-17zM4 11h2v9h12v-9h2v11H4zM8 14h8v4H8z"/>',
+  aar: '<path d="M11 2h2v20h-2zM12 6c2-2 4.5-2.5 6-2-.5 2.5-3 4.5-6 4.5zm0 0C10 4 7.5 3.5 6 4c.5 2.5 3 4.5 6 4.5zm0 5c2-2 4.5-2.5 6-2-.5 2.5-3 4.5-6 4.5zm0 0c-2-2-4.5-2.5-6-2 .5 2.5 3 4.5 6 4.5z"/>',
+  trekker: '<path fill-rule="evenodd" d="M5 4h7l1.5 6H18V7h2v3.6a3.5 3.5 0 0 1 1.5 2.9h-2a1.5 1.5 0 0 0-3 0v.5h-4.6A5 5 0 0 0 4 11.3V4zm2 2v4h4.5l-1-4zM7.5 12a4 4 0 1 1 0 8 4 4 0 0 1 0-8zm0 2.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM18 15.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5z"/>',
+  trein: '<path fill-rule="evenodd" d="M6 2h12a2 2 0 0 1 2 2v12a3 3 0 0 1-2.4 2.9L19.5 22h-2.3l-1.7-3h-7l-1.7 3H4.5l1.9-3.1A3 3 0 0 1 4 16V4a2 2 0 0 1 2-2zm0 3v5h12V5zm1.5 8a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm9 0a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z"/>',
+};
+export const calIcon = (key, cls = '') => `<svg${cls ? ` class="${cls}"` : ''} viewBox="0 0 24 24" aria-hidden="true">${CAL_ICONS[key] || CAL_ICONS.zon}</svg>`;

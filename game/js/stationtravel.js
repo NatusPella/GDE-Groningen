@@ -26,7 +26,7 @@ const CHANGE_LINE = 'Op het treintoilet: het zwart uit, hun eigen kleren weer aa
 
 const BOARD_LINES = [
   'Vertraging door een koe op het spoor',
-  'Door herfstblaadjes op het spoor rijdt deze trein iets bedachtzamer',
+  'Door de warmte in de wissels rijdt deze trein iets bedachtzamer',
   'Seinstoring bij Haren. Of niet. Niemand die het precies weet',
   'Deze trein rijdt vandaag in omgekeerde volgorde. Voor de gezelligheid',
   'Het bistrorijtuig is dicht. Neem zelf een eierbal mee',
