@@ -733,7 +733,7 @@ every step, `n -> n + 1`, on a copy, before anything reads it.
 - Save 3 (0.27): `radio` becomes `'on'`/`'off'`. Save 4 (0.28): `streken`
   (`{ v: 1, unlocked, on, used }`, cheats.js), filled for an older save with
   the streken its story already earned (`cheatlist.js` `cheatUnlocksFromSave`).
-  Save 5 (0.28, 18+): knockout counters back to kills. Save 7 (0.29+, F0): the world frame
+  Save 5 (0.28, 18+): knockout counters back to kills. Save 7 (0.30, F0): the world frame
   is RD New; the player, the own vehicles (with heading) and the goal marker
   move to the same real place (`legacyToWorld`), and the save gets
   `frame: 'rd-new'`.

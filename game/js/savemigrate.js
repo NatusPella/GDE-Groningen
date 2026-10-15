@@ -99,7 +99,7 @@ export const SAVE_MIGRATIONS = {
     sk.used = keep(sk.used);
     return d;
   },
-  // 0.29: the world frame is RD New (rdnew.js, PROVINCIE-PLAN 1.5). The
+  // 0.30: the world frame is RD New (rdnew.js, PROVINCIE-PLAN 1.5). The
   // player, the own vehicles (with heading) and the goal marker move to the
   // same real place in the new frame.
   6(d) {
