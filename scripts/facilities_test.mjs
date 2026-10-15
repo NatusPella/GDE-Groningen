@@ -127,5 +127,22 @@ for (const s of sites) console.log(`  ${s.kind.padEnd(9)} ${s.name}`);
   }
 }
 
+// shops out in the Ommelanden (shops.js): at real shops of the matching
+// kind, door on open ground, named after the village
+{
+  const S = await import('../game/js/shops.js');
+  const country = S.placeCountryShops(map);
+  const byType = {};
+  for (const s of country) byType[s.type] = (byType[s.type] || 0) + 1;
+  console.log(`${country.length} shops in the Ommelanden ${JSON.stringify(byType)}`);
+  if (!byType.super || !byType.snack || country.length < 15) fail('too few Ommeland shops');
+  for (const s of country) {
+    const why = spotProblem(map, { x: s.x, y: s.y, mode: 'walk' });
+    if (why) fail(`${s.type} ${s.wijk}: ${why}`);
+    if (!Fac.FAC.all.some((f) => !f.city && Math.hypot(f.x - s.x, f.y - s.y) < 60)) fail(`${s.type} ${s.wijk}: no real shop near`);
+    if (!s.wijk) fail(`${s.type} at (${Math.round(s.x)}, ${Math.round(s.y)}): no village name`);
+  }
+}
+
 console.log(fails ? `${fails} FAILED` : 'facilities ok');
 process.exit(fails ? 1 : 0);
