@@ -27,6 +27,7 @@
 
 import { Vehicle, disableVehicle, explodeVehicle, reportImpact, overOpenWater } from './vehicle.js';
 import { pointInPolygon, normalizeAngle, clamp, WATER_Y } from './util.js';
+import { waterAt } from './waterlevels.js';
 import { inPassage } from './collision.js';
 import { REAL, buildingAt, buildingModel, inRealExtent } from './countryreal.js';
 import { getSettings } from './settings.js';
@@ -153,7 +154,10 @@ function surfaceAt(map, x, y, z) {
   const roof = roofAt(map, x, y);
   const g = map.groundHeightAt ? map.groundHeightAt(x, y, z + 0.5) : 0;
   if (roof && roof.top > g) return { z: roof.top, kind: 'roof', flat: !roof.pitched };
-  if (g < 0.5 && overOpenWater(map, x, y, 0)) return { z: WATER_Y, kind: 'water', flat: true };
+  if (g < 0.5 && overOpenWater(map, x, y, 0)) {
+    const wq = waterAt(map, x, y);
+    return { z: wq ? wq.level : WATER_Y, kind: 'water', flat: true };
+  }
   return { z: g, kind: 'ground', flat: true };
 }
 

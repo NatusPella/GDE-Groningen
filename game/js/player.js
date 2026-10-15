@@ -2,6 +2,8 @@ import { closestPointOnSegment, normalizeAngle, pointInPolygon, isInWater, inWat
 import { wallAhead } from './countrywalls.js';
 import { waterClearance, pushOutOfWaterObstacles, insideWaterObstacle, swimmerCanLeave } from './waterindex.js';
 import { findEnterableVehicle, distToVehicleBody, resolveBoomCollisions, resolveVehicleBuildingCollision, drivePlayerBoat, pushCircleOutOfVehicle, reportImpact, tickSinkingVehicles, speedCap } from './vehicle.js';
+import { hornAt } from './movablebridges.js';
+import { waterAt } from './waterlevels.js';
 import { MOPED_LEGAL_SPEED } from './motomodels.js';
 import { findRideableProp, rideProp } from './rideprops.js';
 import { playAutoGejatLine } from './audio.js';
@@ -28,6 +30,7 @@ const HORSE_GALLOP_S = 5;
 const RADIUS = 0.35;
 const WALK_SPEED = 3.0; // the default pace: a light jog
 const RUN_SPEED = 6.8;
+const WADE_PACE = 0.55;
 const STROLL_SPEED = 1.5; // the stick pushed only a little
 const STROLL_STICK = 0.55;
 const CROUCH_SPEED = 1.4; // just quicker than a patrolling guard (heist.js)
@@ -197,7 +200,11 @@ export class Player {
     // this.carrying: speed factor while hauling a side-job load (sidejobs.js)
     const stick = input.padAxis ? Math.hypot(input.padAxis[0], input.padAxis[1]) : 0;
     const pace = input.isDown('shift') ? RUN_SPEED : stick > 0 && stick < STROLL_STICK ? STROLL_SPEED : WALK_SPEED;
-    const speed = (this.crouching ? CROUCH_SPEED : pace) * (this.carrying || 1) * ((world && world.hurtWalk) || 1);
+    // wading through a ditch or the shallow edge of open water
+    // (waterlevels.js waterAt, the one water rule): slower, ankle to knee deep
+    const wq = world && world.map && !this.water && this.z <= 0 ? waterAt(world.map, this.x, this.y) : null;
+    this.wade = wq && wq.wade && wq.body < 0 ? Math.min(0.45, wq.depth * 0.6) : 0;
+    const speed = (this.crouching ? CROUCH_SPEED : pace) * (this.carrying || 1) * ((world && world.hurtWalk) || 1) * (this.wade ? WADE_PACE : 1);
     const aiming = input.mouse.down || input.mouse.rightDown;
     const dir = drunkMove(world, cameraRelativeMove(input, world.camYaw), dt);
     this.moving = !!dir;
@@ -869,7 +876,12 @@ export class Player {
         if (world && res !== 'none') (world.audioEvents || (world.audioEvents = [])).push({ kind: 'gear-' + res, x: v.x, y: v.y });
       }
     }
-    if (v.isBoat) drivePlayerBoat(v, map, dt, throttle, steerIn, brake && v.speed !== 0);
+    if (v.isBoat) {
+      // the horn in front of a movable bridge: it opens (movablebridges.js)
+      if (v.horn && !v._hornWas) hornAt(v.x, v.y, v);
+      v._hornWas = v.horn;
+      drivePlayerBoat(v, map, dt, throttle, steerIn, brake && v.speed !== 0);
+    }
     else {
       const n = Math.min(4, Math.max(1, Math.ceil(Math.abs(v.speed) * dt / SUBSTEP)));
       for (let i = 0; i < n; i++) {
