@@ -77,6 +77,7 @@ import { initOmmelandFun, updateOmmelandFun, tryOmmelandInteract } from './ommel
 import { tryTrainInteract, updateTrainDriving } from './traindrive.js';
 import { dist } from './util.js';
 import { updateEmergency } from './emergency.js';
+import { updateIndicators } from './indicators.js';
 import { initAchievementTracker, updateAchievementTracker } from './achievementtracker.js';
 import { probe } from './hitchprobe.js';
 import { initSafety, updateSafety } from './safety.js';
@@ -488,6 +489,7 @@ async function boot() {
       }
       updateHome(dt, world);
       updateEmergency(dt, world);
+      updateIndicators(dt, world);
     }
     updateHomeExterior(dt, world);
     probe.mark('player');

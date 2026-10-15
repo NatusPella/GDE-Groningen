@@ -63,6 +63,8 @@ const CONTROL_GROUPS = [
     [['Q', 'WHEEL'], 'Achterom kijken (vasthouden; middelste muisknop)'],
     [['H'], 'Toeteren'],
     [['L'], 'Zwaailicht en sirene (politieauto, ambulance)'],
+    [['[', ']'], 'Richtingaanwijzer links en rechts (nog eens: uit; na de bocht gaat hij vanzelf uit)'],
+    [['P'], 'Alarmlichten'],
     [['V'], 'Filmcamera'],
     [['R'], 'Nieuwe lak bij Spuit & Klaar, garagemenu in een garage'],
   ]],
