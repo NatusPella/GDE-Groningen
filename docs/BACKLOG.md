@@ -100,10 +100,10 @@ Openstaand rond Deel 4: Groningse spelling laten nalezen door een echte Gronings
 - **P2** Resterende kleinigheden: de HUD op 720p en 4K opnieuw bekijken; de schakel- en driftteksten in de besturingslijst; AI-motoren in het verkeer; ghost-replay voor drift; fietspadregel voor brommers.
 - **P3** Nieuwe prestaties voor drift, trein en vliegen; meer cutscenes met beweging.
 
-## Beslissingen die nog bij jou liggen
+## Beslissingen van de eigenaar (15 okt 2026)
 
-1. Mag de afwijkende zonnetijd zo blijven (zonsondergang 28 augustus ~18:50 in plaats van ~20:38)?
-2. Zelfbedachte feestdagen in de kalender (bloemetjesmarkt 12 sep, suikercampagne 15 sep, laatste zomerdag 22 sep): houden of weg?
-3. Rottumeroog als verboden natuur en Schiermonnikoog als cutscene: akkoord (advies uit het plan)?
-4. Na 0.32.0 de provincie volledig doorzetten, of eerst de stad en de proefstrook afwerken en uitbrengen (mijn advies: eerst afwerken en uitbrengen)?
-5. Echte naam of NatusPella op de laatste plekken (credits, Steam)?
+1. De zonnetijd mag zo blijven (zonsondergang 28 augustus rond 18:50).
+2. De zelfbedachte feestdagen in de kalender blijven (bloemetjesmarkt 12 sep, suikercampagne 15 sep, laatste zomerdag 22 sep).
+3. Rottumeroog en Rottumerplaat als verboden natuur, Schiermonnikoog als cutscene.
+4. **De hele provincie in één keer**: na 0.32.0 (go/no-go) niet eerst stad en proefstrook afronden, maar direct door met F2 (alle tegels, alle landmarks) en F3/F4 daarna; releases tussendoor blijven wel geteste pre-releases.
+5. NatusPella, niet je echte naam, op alle laatste plekken (credits, Steam, docs).
