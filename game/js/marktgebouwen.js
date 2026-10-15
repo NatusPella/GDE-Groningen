@@ -33,17 +33,17 @@ function lmReady() {
 
 // The open squares (map metres, x east, y south), traced from the map.
 const SQUARES = [
-  [[152, 38], [216, 40], [229, 70], [240, 102], [196, 128], [150, 162]],
-  [[20, 62], [117, 47], [152, 38], [152, 86], [99, 79], [40, 101], [20, 112]],
-  [[-80, 255], [10, 214], [60, 186], [86, 198], [66, 238], [-6, 283], [-78, 303]],
+  [[152.09, 36.08], [216.26, 37.04], [229.78, 67.02], [241.33, 99.04], [197.67, 125.93], [152.13, 160.9]],
+  [[20.22, 62.4], [117.17, 45.71], [152.09, 36.08], [152.89, 84.39], [99.66, 78.21], [40.9, 101.32], [21.04, 112.72]],
+  [[-76.82, 258.27], [12.7, 215.53], [62.34, 186.53], [88.59, 198.18], [69.21, 238.77], [-2.2, 285.24], [-74.02, 306.54]],
 ];
 const FRONT_DIST = 32;
 // Natalini's Waagstraat complex: the block between Guldenstraat, Grote Markt,
 // Waagstraat and Tussen Beide Markten, the town-hall wing south of the
 // Stadhuis and the small block at the Herestraat.
-const NATALINI = [[36, 98], [99, 76], [123, 139], [128, 170], [110, 180], [72, 179], [19, 97]];
+const NATALINI = [[36.84, 98.37], [99.61, 75.19], [124.7, 138.2], [130.22, 169.32], [112.35, 179.68], [74.25, 179.29], [19.79, 97.64]];
 // Postwar north wall of the Grote Markt (burnt April 1945, rebuilt 1950s).
-const POSTWAR = [[20, -10], [215, -10], [216, 44], [117, 52], [20, 66]];
+const POSTWAR = [[19.03, -10.06], [214.43, -13.26], [216.32, 41.07], [117.25, 50.74], [20.28, 66.43]];
 
 function polyDist(x, y, poly) {
   if (pointInPolygon(x, y, poly)) return 0;
@@ -438,7 +438,8 @@ const OVERRIDES = {
 
 function buildFacade(b, ring, edges) {
   const [cx, cy] = centroidOf(b);
-  const r = rngOf(hash2(cx * 0.913, cy * 1.137));
+  const [sx, sy] = b.sd || [cx, cy];
+  const r = rngOf(hash2(sx * 0.913, sy * 1.137));
   const Hb = Math.max(2.4, b.h * LEVEL);
   const ov = b.markt ? OVERRIDES[b.markt] : null;
   const setting = pointInPolygon(cx, cy, NATALINI) ? 'natalini' : pointInPolygon(cx, cy, POSTWAR) ? 'postwar' : 'historic';

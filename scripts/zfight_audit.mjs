@@ -69,7 +69,7 @@ MB.setBuildingMap(map);
 try { (await import('../game/js/home.js')).prepareHomeMap(map); } catch (e) { log('prepareHomeMap skipped:', e.message); }
 log('map loaded,', map.buildings.length, 'buildings');
 
-const CENTRE = [100, 77];
+const CENTRE = { x: 100.63, y: 76.18 };
 function moduleOf(b) {
   if (b.landmark && b.name && getLandmarkModel(b.name)) return 'glb';
   if (marktKind(b)) return 'marktgebouwen';
@@ -86,7 +86,7 @@ function wanted(b, mod) {
   if (ONLY && mod !== ONLY) return false;
   const [cx, cy] = centreOf(b);
   if (AREA) return cx >= AREA[0] && cx <= AREA[2] && cy >= AREA[1] && cy <= AREA[3];
-  return mod !== 'generic' || Math.hypot(cx - CENTRE[0], cy - CENTRE[1]) <= RADIUS;
+  return mod !== 'generic' || Math.hypot(cx - CENTRE.x, cy - CENTRE.y) <= RADIUS;
 }
 
 // ------------------------------------------------------------ triangles

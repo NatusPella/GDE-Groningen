@@ -4,7 +4,7 @@
   const SG = await imp('savegame'), DU = await imp('dorpsuitjes');
   w.devInvuln = true;
   if (p.inVehicle) p.exitVehicle(map, w);
-  teleport(100, 77); await sleep(1500);
+  teleport(...P(100, 77)); await sleep(1500);
   SG.saveGame(w, { toast: false });
   // heli run: the players stay hidden past the watchdog's 3 s
   tag('rg-heli');

@@ -17,7 +17,7 @@ export const GROUND_LAYER = { green: 1, sidewalk: 2, foot: 3, cycle: 4, minor: 5
 export const SIDEWALK_EXTRA = 1.8;
 export const PAVED_MATS = [];
 
-const CITY_CENTRE = [100, 77];
+const CITY_CENTRE = [100.63, 76.18];
 const KLINKER_RADIUS = 1500;
 const SIDEWALK_CATS = new Set(['major', 'normal', 'minor']);
 const CARRIAGE = new Set(['major', 'normal', 'minor']);

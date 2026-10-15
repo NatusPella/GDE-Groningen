@@ -4,7 +4,7 @@
   const SG = await imp('savegame'), SF = await imp('safety'), OF = await imp('dorpsuitjes'), MS = await imp('missions'), HM = await imp('home'), TD = await imp('railway');
   w.devInvuln = true;
   if (window.__postgame) window.__postgame.unlock();
-  teleport(100, 77); await sleep(1500);
+  teleport(...P(100, 77)); await sleep(1500);
   SG.saveGame(w, { toast: false });
   const om = window.__ommeland;
   const modes = {
@@ -28,7 +28,7 @@
       if (hk !== 'load' && (mk === 'quiz')) continue;
       tag(`${hk}@${mk}`);
       if (p.inVehicle) p.exitVehicle(map, w);
-      teleport(100, 77); await sleep(1200);
+      teleport(...P(100, 77)); await sleep(1200);
       try { await m.start(); } catch (e) { issue('script', `${mk} start: ${e.message}`); continue; }
       await sleep(2500);
       if (!m.on()) { log('mode did not start', mk); continue; }

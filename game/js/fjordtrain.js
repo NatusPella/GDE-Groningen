@@ -12,7 +12,7 @@ import { playCinematic } from './cinematics.js';
 
 const ROUTE = 'Stoptrein Leeuwarden';
 const TAIL_S = 520;            // arc length of the train's tail: west of the station, past the rail's climb over the Emmaviaduct
-const CROSSING_NEAR = [-1043, 1021]; // Peizerweg
+const CROSSING_NEAR = [-1029.4, 1044.83]; // Peizerweg
 const LOAD_SPEED = 6;
 const RAMP = 5;
 const DEPART_AFTER = 2.5;

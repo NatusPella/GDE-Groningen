@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Convert raw Overpass OSM JSON (Groningen) into a compact game map format.
 
-Projects lat/lon to local meters (equirectangular around a fixed origin),
-so 1 unit = 1 meter. Y grows downward (south) to match canvas coordinates.
+Projects lat/lon to the world frame: RD New (EPSG:28992) shifted to the old
+origin, 1 unit = 1 meter, y south (scripts/world/rdnew.py, game/js/rdnew.js).
 
 Sources: the city-core extract (data/groningen_raw.json + _extra.json) plus
 the ringweg surroundings from scripts/fetch_osm.py (data/ring_*.json.gz).
@@ -14,6 +14,9 @@ import math
 import os
 import sys
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from world.rdnew import project as rd_project, frame_meta, legacy_wgs_box, world_to_legacy  # noqa: E402
+
 SRC = ["data/groningen_raw.json", "data/groningen_extra.json", "data/ring_raw.json.gz", "data/ring_extra.json.gz"]
 DST = "game/citymap.json"
 
@@ -24,6 +27,7 @@ BBOX_NORTH, BBOX_EAST = 53.2525, 6.626
 # The origin stays at the centre of the original city-core bbox
 # (53.204..53.235, 6.538..6.592): every saved position, mission and
 # hand-placed coordinate in the game is relative to it.
+# the old equirectangular origin (only for wgs_box now)
 LAT0 = (53.204 + 53.235) / 2
 LON0 = (6.538 + 6.592) / 2
 
@@ -56,9 +60,16 @@ TREE_ROW_SPACING = 6.0  # meters between canopies sampled along a tree_row way
 
 
 def project(lat, lon):
-    x = (lon - LON0) * M_PER_DEG_LON
-    y = (LAT0 - lat) * M_PER_DEG_LAT
-    return [round(x, 1), round(y, 1)]
+    return list(rd_project(lat, lon, 1))
+
+
+def wgs_box():
+    """The lat/lon box of the play rectangle as the caches in data/ were
+    fetched for it (the old equirectangular rectangle, PAD around BBOX)."""
+    def old(lat, lon):
+        return [round((lon - LON0) * M_PER_DEG_LON, 1), round((LAT0 - lat) * M_PER_DEG_LAT, 1)]
+    (x0, y0), (x1, y1) = old(BBOX_SOUTH, BBOX_WEST), old(BBOX_NORTH, BBOX_EAST)
+    return list(legacy_wgs_box((min(x0, x1) - PAD, min(y0, y1) - PAD, max(x0, x1) + PAD, max(y0, y1) + PAD)))
 
 
 def is_closed(coords):
@@ -191,7 +202,8 @@ def sample_along(pts, spacing):
 
 # Outside the original city core only the ring and REGION_MARGIN metres
 # around it are kept; beyond that the procedural Ommelanden take over
-# (countryedge.js derives its edge from where the data stops).
+# (countryedge.js derives its edge from where the data stops). CORE_RECT is
+# a box in the old equirectangular frame (tested there).
 CORE_RECT = (-1919.6, -1833.9, 1919.6, 1833.9)
 REGION_MARGIN = 320.0
 REGION_CELL = 20.0
@@ -230,7 +242,8 @@ def region_mask(roads, world_rect):
                         cells[j * w + i] = 1
 
     def inside(x, y):
-        if CORE_RECT[0] <= x <= CORE_RECT[2] and CORE_RECT[1] <= y <= CORE_RECT[3]:
+        lx, ly = world_to_legacy(x, y)
+        if CORE_RECT[0] <= lx <= CORE_RECT[2] and CORE_RECT[1] <= ly <= CORE_RECT[3]:
             return True
         i, j = int((x - x0) / REGION_CELL), int((y - y0) / REGION_CELL)
         return 0 <= i < w and 0 <= j < h and cells[j * w + i] == 1
@@ -355,10 +368,9 @@ def hidden_structure(tags):
 def main():
     elements = load_elements()
 
-    wx0, wy0 = project(BBOX_SOUTH, BBOX_WEST)
-    wx1, wy1 = project(BBOX_NORTH, BBOX_EAST)
-    world_rect = (min(wx0, wx1) - PAD, min(wy0, wy1) - PAD,
-                  max(wx0, wx1) + PAD, max(wy0, wy1) + PAD)
+    corners = [project(la, lo) for la in (BBOX_SOUTH, BBOX_NORTH) for lo in (BBOX_WEST, BBOX_EAST)]
+    world_rect = (min(c[0] for c in corners) - PAD, min(c[1] for c in corners) - PAD,
+                  max(c[0] for c in corners) + PAD, max(c[1] for c in corners) + PAD)
     rminx, rminy, rmaxx, rmaxy = world_rect
 
     roads, buildings, water, green, trees = [], [], [], [], []
@@ -490,10 +502,10 @@ def main():
     minx, miny, maxx, maxy = world_rect
     out = {
         "meta": {
-            "origin": {"lat": LAT0, "lon": LON0},
             "bounds": [minx, miny, maxx, maxy],
-            "mPerDegLat": M_PER_DEG_LAT,
-            "mPerDegLon": M_PER_DEG_LON,
+            **frame_meta(),
+            # the lat/lon box the map was cut from (the OSM caches cover it)
+            "wgsBox": wgs_box(),
         },
         "roads": roads,
         "buildings": buildings,

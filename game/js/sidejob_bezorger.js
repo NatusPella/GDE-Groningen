@@ -8,7 +8,7 @@ import {
 } from './sidejobkit.js';
 
 const FATBIKE = { name: 'bike', fat: true, len: 1.95, wid: 0.62, maxSpeed: 7.8, accel: 4.2, brake: 6, turnRate: 3.8, color: '#e4572e' };
-const CENTRE = { x: 190, y: 140, r: 1300 };
+const CENTRE = { x: 191.86, y: 138.11, r: 1300 };
 const PICKUP_R = 4.5;
 const HANDOVER_R = 3.2;
 const CUSTOMER_SHOW_R = 80;
@@ -16,12 +16,12 @@ const CRASH_DROP = 4;
 const CRASH_COOL = 12;
 
 const ZAKEN = [
-  { name: 'Snackbar De Vette Hap', street: 'Oosterstraat', at: [397, 364], menu: ['patatje oorlog', 'frikandel speciaal', 'kroket op brood', 'eierbal, want Grunn'] },
-  { name: 'Pizzeria Mamma Grunn', street: 'Folkingestraat', at: [-21, 422], menu: ['pizza shoarma', 'pizza quattro stagioni', 'calzone'] },
-  { name: 'Wok & Rol', street: 'Herestraat', at: [259, 534], menu: ['bami speciaal', 'nasi met saté', 'loempia'] },
-  { name: 'Soep & Stoet', street: 'Nieuwstad', at: [127, 459], menu: ['Grunneger mosterdsoep', 'stoetbrood met oude kaas', 'krentenwegge'] },
-  { name: 'Kapsalonpaleis', street: 'Steentilstraat', at: [490, 347], menu: ['kapsalon', 'kapsalon XL', 'kapsalon zonder sla, "voor de gezondheid"'] },
-  { name: 'Shoarma Sultan', street: 'Gedempte Zuiderdiep', at: [105, 509], menu: ['broodje shoarma', 'shoarmaschotel', 'falafelbak'] },
+  { name: 'Snackbar De Vette Hap', street: 'Oosterstraat', at: [402.99, 360.13], menu: ['patatje oorlog', 'frikandel speciaal', 'kroket op brood', 'eierbal, want Grunn'] },
+  { name: 'Pizzeria Mamma Grunn', street: 'Folkingestraat', at: [-14.94, 425.37], menu: ['pizza shoarma', 'pizza quattro stagioni', 'calzone'] },
+  { name: 'Wok & Rol', street: 'Herestraat', at: [267.5, 533.49], menu: ['bami speciaal', 'nasi met saté', 'loempia'] },
+  { name: 'Soep & Stoet', street: 'Nieuwstad', at: [133.98, 460.18], menu: ['Grunneger mosterdsoep', 'stoetbrood met oude kaas', 'krentenwegge'] },
+  { name: 'Kapsalonpaleis', street: 'Steentilstraat', at: [495.91, 341.49], menu: ['kapsalon', 'kapsalon XL', 'kapsalon zonder sla, "voor de gezondheid"'] },
+  { name: 'Shoarma Sultan', street: 'Gedempte Zuiderdiep', at: [112.76, 510.86], menu: ['broodje shoarma', 'shoarmaschotel', 'falafelbak'] },
 ];
 
 const COOK_LINES = [
@@ -108,7 +108,7 @@ export default {
   sikkom: (c) => `Bezorger fietst ${c.streak} bestellingen op rij warm door de stad, klanten verbijsterd`,
 
   anchor(map) {
-    const s = nearestOnStreet(map, 'Gedempte Kattendiep', 428, 357);
+    const s = nearestOnStreet(map, 'Gedempte Kattendiep', 433.94, 352.58);
     return s ? doorSpot(map, s.x, s.y) || s : null;
   },
 

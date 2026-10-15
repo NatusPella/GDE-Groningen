@@ -25,6 +25,8 @@ const PM = await imp('pausemenu');
 const RR = await imp('ringroute');
 // the geometry worker's job counts (builds before it have no geojobs.js)
 const GJ = await imp('geojobs').catch(() => null);
+// hand-placed points are in the legacy frame; builds before worldframe.js keep them as they are
+const { P = (x, y) => [x, y], PL = (l) => l } = await imp('worldframe').catch(() => ({}));
 if (window.__perfSim !== undefined && window.__perfSim !== '' && window.__simLoad) window.__simLoad.force(Number(window.__perfSim));
 const ONLY = (window.__perfOnly || '').split(',').filter(Boolean);
 const DUR = window.__perfDur || 20000;
@@ -140,7 +142,7 @@ async function run(name, setup, move, teardown) {
 }
 
 const results = { gpu, longTasks: H.longTaskState || 'on', dpr: devicePixelRatio, css: [innerWidth, innerHeight], settings: JSON.parse(localStorage.getItem('gde-settings') || '{}'), routes: {} };
-const FOOT = [[167, 283], [121, 193], [105, 161], [100, 77], [124, 7], [134, 36]];
+const FOOT = PL([[167, 283], [121, 193], [105, 161], [100, 77], [124, 7], [134, 36]]);
 results.routes.foot = await run('foot', async () => { teleport(FOOT[0][0], FOOT[0][1]); return {}; }, (c, t) => {
   const q = at(FOOT, Math.max(0, t) * 6);
   p.x = q.x; p.y = q.y; p.angle = q.ang; w.camYaw = q.ang;
@@ -164,7 +166,7 @@ results.routes.ring = await run('ring', async () => {
   w.camYaw = q.ang;
 }, async (c) => { p.exitVehicle(map, w); w.vehicles.splice(w.vehicles.indexOf(c.v), 1); });
 
-const HELI = [[2494, 3130], [3700, 3150], [4892, 3155]];
+const HELI = PL([[2494, 3130], [3700, 3150], [4892, 3155]]);
 results.routes.heli = await run('heli', async () => {
   teleport(HELI[0][0], HELI[0][1]);
   const gz = map.groundHeightAt(p.x, p.y, 0) || 0;
@@ -186,7 +188,8 @@ results.routes.heli = await run('heli', async () => {
 // nearest village to the heli route's middle, circling at 45 m
 results.routes.village = ONLY.includes('village') ? await run('village', async () => {
   const CR = await imp('countryreal');
-  const pl = CR.REAL.places.filter((q) => q.k === 'village').sort((a, b) => Math.hypot(a.x - 3700, a.y - 3150) - Math.hypot(b.x - 3700, b.y - 3150))[0];
+  const [mx, my] = P(3700, 3150);
+  const pl = CR.REAL.places.filter((q) => q.k === 'village').sort((a, b) => Math.hypot(a.x - mx, a.y - my) - Math.hypot(b.x - mx, b.y - my))[0];
   teleport(pl.x + 60, pl.y);
   const gz = map.groundHeightAt(p.x, p.y, 0) || 0;
   const v = HF.makeHeli(p.x, p.y, gz, 0);
@@ -201,8 +204,8 @@ results.routes.village = ONLY.includes('village') ? await run('village', async (
   w.camYaw = a + Math.PI;
 }, async (c) => { c.v.z = c.v.groundZ || 0; c.v.onGround = true; c.v.airborne = false; await sleep(300); p.exitVehicle(map, w); w.vehicles.splice(w.vehicles.indexOf(c.v), 1); }) : null;
 
-results.routes.pause = await run('pause', async () => { teleport(100, 77); await sleep(4000); wantMenu = true; PM.openPauseMenu('game'); return {}; }, () => {}, async () => { wantMenu = false; PM.closePauseMenu(); });
-results.routes.sheet = await run('sheet', async () => { teleport(100, 77); await sleep(4000); wantMenu = true; PM.openPauseMenu('settings'); return {}; }, () => {}, async () => { wantMenu = false; PM.closePauseMenu(); });
+results.routes.pause = await run('pause', async () => { teleport(...P(100, 77)); await sleep(4000); wantMenu = true; PM.openPauseMenu('game'); return {}; }, () => {}, async () => { wantMenu = false; PM.closePauseMenu(); });
+results.routes.sheet = await run('sheet', async () => { teleport(...P(100, 77)); await sleep(4000); wantMenu = true; PM.openPauseMenu('settings'); return {}; }, () => {}, async () => { wantMenu = false; PM.closePauseMenu(); });
 
 done = true;
 clearInterval(skipper);

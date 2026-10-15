@@ -17,6 +17,7 @@ const CP = await import('/js/cityprops.js');
 const CW = await import('/js/countrywatergeo.js');
 const CE = await import('/js/countryedge.js');
 const CF = await import('/js/countryfield.js');
+const { PL } = await import('/js/worldframe.js');
 const D = window.__debug; const w = D.world; const p = w.player;
 w.devInvuln = true;
 
@@ -80,7 +81,7 @@ function mergeJob(lists) {
 }
 const cmpMerged = (a, b) => (!a || !b ? a === b : same(a.pos, b.pos) && same(a.nor, b.nor) && same(a.col, b.col) && same(a.uvs, b.uvs) && a.sphere.every((x, i) => Object.is(x, b.sphere[i])));
 
-const SPOTS = [[167, 283], [105, 161], [124, 7], [18, 244], [162, 78], [-300, 400], [600, -200]];
+const SPOTS = PL([[167, 283], [105, 161], [124, 7], [18, 244], [162, 78], [-300, 400], [600, -200]]);
 const checked = new Set();
 for (const [x, y] of SPOTS) {
   if (p.inVehicle) p.exitVehicle(w.map, w);
@@ -289,7 +290,7 @@ const TR = await import('/js/terrain3d.js');
     && [...vec(a.boundingSphere.center), a.boundingSphere.radius, ...vec(a.boundingBox.min), ...vec(a.boundingBox.max)]
       .every((x, i) => Object.is(x, [...vec(b.boundingSphere.center), b.boundingSphere.radius, ...vec(b.boundingBox.min), ...vec(b.boundingBox.max)][i]));
   report.batch = { cells: 0, meshes: 0, verts: 0, bad: [] };
-  for (const [x, y] of [[167, 283], [105, 161], [-300, 400]]) {
+  for (const [x, y] of PL([[167, 283], [105, 161], [-300, 400]])) {
     p.x = x; p.y = y;
     await sleep(5000);
     const sc = window.__scene3d.scene;

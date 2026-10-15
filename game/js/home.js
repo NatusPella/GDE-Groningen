@@ -87,11 +87,11 @@ const PAD_R = 7.5;
 const PAD_DECK = 1.2;
 
 // OSM (House of Groningen, way 749915414): the tower and its parking plinth.
-const TOWER = [[-1282.3, -1104.7], [-1270.4, -1111.1], [-1264.3, -1114.4], [-1251.2, -1090.3], [-1269.4, -1080.5]];
-const PLINTH = [[-1298.4, -1096.1], [-1282.3, -1104.7], [-1269.4, -1080.5], [-1271.3, -1079.5], [-1272.4, -1078.9], [-1270.4, -1072.3], [-1270, -1070.9], [-1289.1, -1065.5]];
+const TOWER = [[-1303.66, -1090.58], [-1291.84, -1097.21], [-1285.79, -1100.63], [-1272.27, -1076.59], [-1290.35, -1066.43]];
+const PLINTH = [[-1319.65, -1081.66], [-1303.66, -1090.58], [-1290.35, -1066.43], [-1292.23, -1065.4], [-1293.33, -1064.77], [-1291.22, -1058.16], [-1290.79, -1056.76], [-1309.84, -1051.02]];
 // Pleiadenlaan kerb in front of the tower (long vehicles), the canal bank behind it (boats)
-const KERB = [[-1273, -1125.5], [-1312, -1105], [-1344, -1088]];
-const BANK = [[-1194, -1053], [-1247, -1134]];
+const KERB = [[-1294.68, -1111.66], [-1333.42, -1090.4], [-1365.2, -1072.78]];
+const BANK = [[-1214.36, -1039.97], [-1268.77, -1120.63]];
 
 const sub = (a, b) => [a[0] - b[0], a[1] - b[1]];
 const len = (v) => Math.hypot(v[0], v[1]);
@@ -280,7 +280,8 @@ export function prepareHomeMap(map) {
   home = buildLayout();
   // the OSM footprint (tower + plinth) becomes the tower only
   const c = home.center;
-  const t = map.buildingsNear(-1268, -1096, 20).find((b) => pointInPolygon(-1268, -1096, b.pts) && b.h >= 12);
+  const [hx, hy] = [-1289.19, -1082.05];
+  const t = map.buildingsNear(hx, hy, 20).find((b) => pointInPolygon(hx, hy, b.pts) && b.h >= 12);
   if (t) {
     t.pts = TOWER.map((p) => [...p]);
     t.bounds = boundsOf(t.pts);

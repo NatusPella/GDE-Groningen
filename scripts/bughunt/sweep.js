@@ -18,7 +18,7 @@
   const home = await imp('home');
   const hs = home.homeSpawnPoint();
   pts.push(['home', hs.x, hs.y]);
-  pts.push(['museum', 52.4, 799.0, false]);
+  pts.push(['museum', ...P(52.4, 799.0), false]);
   const lim = window.__bhLimit || 999;
   for (const [name, x, y, open] of pts.slice(0, lim)) {
     tag(name);

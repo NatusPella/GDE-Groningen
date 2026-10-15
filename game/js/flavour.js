@@ -16,6 +16,7 @@ import {
   NACHTSTREEK, NACHTSTREEK_STORY, SUPPORTER_CHANTS,
 } from './flavourlines.js';
 import { KEYS } from './storagekeys.js';
+import { L } from './worldframe.js';
 import { isToday } from './calendarday.js';
 
 // World flavour after docs/groningen-memes.md: nicknames, the Gerrit
@@ -28,11 +29,11 @@ import { isToday } from './calendarday.js';
 
 const SAVE_KEY = KEYS.flavour;
 const TICK = 0.25;
-export const KROLBRUG = { x: 869, y: -1836 };
-export const PLANTSOEN = { x: 180, y: -700, r: 230 };
-export const GROTE_MARKT = { x: 100, y: 77 };
-export const OOSTERPARK = { x: 1706, y: -641 };
-const EUROBORG = { x: 1770, y: 1477 };
+export const KROLBRUG = { x: 839.38, y: -1861.7 };
+export const PLANTSOEN = { x: 167.98, y: -707.09, r: 230 };
+export const GROTE_MARKT = { x: 100.63, y: 76.18 };
+export const OOSTERPARK = { x: 1697.87, y: -673.02 };
+const EUROBORG = { x: 1797.64, y: 1457.41 };
 const GRIEZE = NICKNAMES[0];
 
 let world = null;
@@ -236,7 +237,7 @@ function ringPoints() {
   if (ringPts) return ringPts;
   ringPts = [];
   for (const r of world.map.roads) {
-    if (!(r.name === 'Weg der Verenigde Naties' || r.name === 'Julianaweg' || (r.ref === 'N7' && r.cat === 'major' && r.pts[0][1] > 900))) continue;
+    if (!(r.name === 'Weg der Verenigde Naties' || r.name === 'Julianaweg' || (r.ref === 'N7' && r.cat === 'major' && L(r.pts[0][0], r.pts[0][1])[1] > 900))) continue;
     for (const q of r.pts) if (!ringPts.some((o) => Math.abs(o[0] - q[0]) + Math.abs(o[1] - q[1]) < 50)) ringPts.push(q);
   }
   return ringPts;
@@ -245,7 +246,8 @@ function ringPoints() {
 function ringZuid(p) {
   const v = inCar();
   if (!v || Math.abs(v.speed) < 5 || !ready('gps')) return;
-  if (p.y < 800 || p.y > 2300) return;
+  const [, ly] = L(p.x, p.y);
+  if (ly < 800 || ly > 2300) return;
   if (!ringPoints().some((q) => Math.abs(q[0] - p.x) < 70 && Math.abs(q[1] - p.y) < 70)) return;
   if (Math.random() > (getActiveRoute() ? 0.3 : 0.1)) return;
   F.gpsIdx = ((F.gpsIdx ?? Math.floor(Math.random() * RING_ZUID_GPS.length)) + 1) % RING_ZUID_GPS.length;
@@ -575,7 +577,8 @@ function stolenBikes(p) {
 
 function outsideCity(p) {
   const b = world.map.meta.bounds;
-  return p.x < b[0] || p.x > b[2] || p.y < b[1] || p.y > b[3] || Math.hypot(p.x - 200, p.y) > 3000;
+  const [cx, cy] = [199.57, -2.95];
+  return p.x < b[0] || p.x > b[2] || p.y < b[1] || p.y > b[3] || Math.hypot(p.x - cx, p.y - cy) > 3000;
 }
 
 function nightRadio(p) {

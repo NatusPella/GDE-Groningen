@@ -5,6 +5,7 @@ const imp = (f) => import('/js/' + f + '.js');
 const log = (...a) => (B.oeRaw || console.log)('[bh]', ...a);
 const cine = await imp('cinematics');
 const VEH = await imp('vehicle');
+const { P, PO } = await imp('worldframe');
 const R = { issues: [], mem: [], points: 0, rides: {} };
 const issue = (cat, msg) => { const k = cat + ': ' + msg; if (!R.issues.includes(k) && R.issues.length < 300) { R.issues.push(k); log('ISSUE', k); } };
 const tag = (t) => { B.tag = t; B.frames.tag = t; };

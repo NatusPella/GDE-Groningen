@@ -38,7 +38,7 @@ STAMP = os.path.join(ROOT, "data", "shops_raw.bounds.json")
 
 TOP_KEYS = {"meta", "roads", "buildings", "water", "green", "trees",
             "rails", "stations", "levelCrossings", "railRoutes", "railLifts"}
-META_KEYS = {"origin", "bounds", "mPerDegLat", "mPerDegLon", "landmarks", "districts",
+META_KEYS = {"origin", "bounds", "mPerDegLat", "mPerDegLon", "frame", "rdOrigin", "wgsBox", "landmarks", "districts",
              "neighbourhoodPoints", "garages", "trafficLights", "horeca", "pois", "helipad", "shops"}
 
 
@@ -75,8 +75,9 @@ def main():
     run("add_helipad", *extra)
     run("add_landmark_footprints")
 
+    # the shop cache is stamped with the lat/lon box it was fetched for
     with open(MAP) as f:
-        bounds = json.load(f)["meta"]["bounds"]
+        bounds = json.load(f)["meta"]["wgsBox"]
     stale = True
     if os.path.exists(STAMP):
         with open(STAMP) as f:

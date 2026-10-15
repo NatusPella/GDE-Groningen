@@ -15,6 +15,9 @@ import os
 import subprocess
 import sys
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from world.rdnew import meta_frame, meta_bbox  # noqa: E402
+
 MAP_PATH = "game/citymap.json"
 CACHE = "data/shops_raw.json"
 OVERPASS_URLS = [
@@ -83,10 +86,9 @@ def main():
     with open(MAP_PATH) as f:
         data = json.load(f)
     meta = data["meta"]
-    lat0, lon0 = meta["origin"]["lat"], meta["origin"]["lon"]
-    m_lat, m_lon = meta["mPerDegLat"], meta["mPerDegLon"]
+    project, _ = meta_frame(meta)
     bx0, by0, bx1, by1 = meta["bounds"]
-    bbox = (round(lat0 - by1 / m_lat, 4), round(lon0 + bx0 / m_lon, 4), round(lat0 - by0 / m_lat, 4), round(lon0 + bx1 / m_lon, 4))
+    bbox = meta_bbox(meta, 0, 4)
 
     if "--refresh" in sys.argv or not os.path.exists(CACHE):
         raw = fetch(bbox)
@@ -116,7 +118,7 @@ def main():
             lat, lon = el["center"]["lat"], el["center"]["lon"]
         else:
             continue
-        x, y = (lon - lon0) * m_lon, (lat0 - lat) * m_lat
+        x, y = project(lat, lon)
         if not (bx0 + 40 < x < bx1 - 40 and by0 + 40 < y < by1 - 40):
             continue
         pois.append({"kind": kind_of(tags), "x": x, "y": y, "street": tags.get("addr:street", ""), "id": el.get("id")})

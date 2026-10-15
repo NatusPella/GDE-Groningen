@@ -3,6 +3,7 @@ import { GeoBuilder, markShared, vcMaterial } from './pixelart3d.js';
 import { LANDMARK_MATERIALS } from './landmarks3d.js';
 import { closestPointOnSegment, pointInPolygon } from './util.js';
 import { addStaticCollider } from './breakables.js';
+import { P } from './worldframe.js';
 
 // Winkelcentrum Paddepoel, the covered shopping centre across the
 // Pleiadenlaan from the House of Groningen (home.js, home3d.js).
@@ -56,19 +57,19 @@ const SHOP_ACCENTS = [0xb8322a, 0x2f6fb8, 0x3b8f3b, 0xd0652a, 0x7a4fb0, 0x23948a
 // Covered streets: centre line [x, y] -> [x, y] in map metres, half width.
 // Measured on the OSM building=roof footprint over the streets.
 const STREETS = [
-  { a: [-1440, -1245], b: [-1400, -1124], w: 9.5, open: 'a' }, // main street, NW entrance
-  { a: [-1428, -1217], b: [-1322, -1250], w: 4 }, // Eikenlaan side street
-  { a: [-1321, -1255], b: [-1313, -1209], w: 3.6, open: 'ab' }, // NE: Eikenlaan corner and P1
-  { a: [-1384, -1230], b: [-1373, -1194], w: 7, open: 'b' }, // cross street to P1
-  { a: [-1477, -1099], b: [-1402, -1122], w: 3.5, open: 'a' }, // south street, Zonnelaan
-  { a: [-1395, -1121], b: [-1374, -1108], w: 4 },
-  { a: [-1374, -1108], b: [-1356, -1096], w: 3.6, open: 'b' }, // SE entrance, Pleiadenlaan
+  { a: [-1463.92, -1229.24], b: [-1421.89, -1108.11], w: 9.5, open: 'a' }, // main street, NW entrance
+  { a: [-1451.44, -1201.25], b: [-1345.79, -1236.17], w: 4 }, // Eikenlaan side street
+  { a: [-1344.86, -1241.22], b: [-1336.11, -1195.05], w: 3.6, open: 'ab' }, // NE: Eikenlaan corner and P1
+  { a: [-1407.57, -1215.04], b: [-1395.97, -1178.99], w: 7, open: 'b' }, // cross street to P1
+  { a: [-1498.62, -1081.71], b: [-1423.86, -1106.06], w: 3.5, open: 'a' }, // south street, Zonnelaan
+  { a: [-1416.83, -1105.17], b: [-1395.58, -1092.42], w: 4 },
+  { a: [-1395.58, -1092.42], b: [-1377.36, -1080.64], w: 3.6, open: 'b' }, // SE entrance, Pleiadenlaan
 ];
-const PLAZA = { x: -1402, y: -1124, r: 8.5 }; // the inner square (supermarket entrance)
+const PLAZA = { x: -1423.89, y: -1108.07, r: 8.5 }; // the inner square (supermarket entrance)
 
-const NEW_BLOCK = [-1416, -1094]; // centroid of the 2026 supermarket block
-const FLATS_BLOCK = [-1362, -1264]; // the Eikenlaan block with flats on top
-const FLATS_LINE = [[-1437.5, -1256.8], [-1324.5, -1291.3]]; // its Eikenlaan facade
+const NEW_BLOCK = [-1437.43, -1077.66]; // centroid of the 2026 supermarket block
+const FLATS_BLOCK = [-1386.08, -1249.61]; // the Eikenlaan block with flats on top
+const FLATS_LINE = [[-1461.6, -1241.15], [-1348.96, -1277.69]]; // its Eikenlaan facade
 const FLATS_DEPTH = 11;
 const FLATS_STOREYS = 3;
 
@@ -178,8 +179,8 @@ function outerWall(B, e, top, { piers = C.aubergine, luifel = true } = {}) {
   for (let k = 0; k <= n; k++) ebox(B, e, Math.min(e.len - 0.35, Math.max(0.35, k * step)), 0, 0.7, top - 0.2, 0.2, piers, G_PLAIN, 0.01);
   if (!luifel) return;
   const P = (t, out, y) => [e.a[0] + e.tx * t + e.nx * out, y, e.a[1] + e.ty * t + e.ny * out];
-  B.quadOut(P(0.4, 0.2, 4.0), P(e.len - 0.4, 0.2, 4.0), P(e.len - 0.4, 2.4, 3.55), P(0.4, 2.4, 3.55), [0, 1, 0], C.roofGlass, G_GLASS);
-  B.quadOut(P(0.4, 2.4, 3.55), P(e.len - 0.4, 2.4, 3.55), P(e.len - 0.4, 2.45, 3.4), P(0.4, 2.45, 3.4), [e.nx, 0, e.ny], C.steel, G_METAL);
+  B.quadOut([-0.44, 0.53], P(e.len - 0.4, 0.2, 4.0), P(e.len - 0.4, 2.4, 3.55), [-0.4, 2.74], [0, 1, 0], C.roofGlass, G_GLASS);
+  B.quadOut([-0.4, 2.74], P(e.len - 0.4, 2.4, 3.55), P(e.len - 0.4, 2.45, 3.4), [-0.4, 2.79], [e.nx, 0, e.ny], C.steel, G_METAL);
   for (let t = 0.6; t < e.len - 0.3; t += 3.6) {
     B.quadOut(P(t - 0.05, 0.2, 4.05), P(t - 0.05, 2.4, 3.6), P(t - 0.05, 2.4, 3.4), P(t - 0.05, 0.2, 3.7), [e.tx, 0, e.ty], C.steel, G_METAL);
   }
@@ -443,7 +444,8 @@ function planterTree(B, x, y, big) {
 export function isPaddepoelRoof(c) {
   if (!c.pts || c.pts.length < 20) return false;
   const [x, y] = centroid(c.pts);
-  return Math.hypot(x + 1364, y + 1169) < 25;
+  const [px, py] = [-1386.55, -1153.97];
+  return Math.hypot(x - px, y - py) < 25;
 }
 
 export function buildPaddepoelRoof(map) {
@@ -456,16 +458,16 @@ export function buildPaddepoelRoof(map) {
   for (const s of STREETS) for (const end of s.open || '') porch(B, S, map, s, end);
 
   // anchors and shop names on the outside walls
-  wallSign(S, 'albert', [-1382, -1189], [-1363, -1129], [1, 0], 0.55, 4.5, 1.5, 0.25);
-  wallSign(S, 'dumbo', [-1438, -1068], [-1383, -1085], [0, 1], 0.5, 3.6, 1.5, 0.1);
-  wallSign(S, 'gym', [-1438, -1068], [-1383, -1085], [0, 1], 0.5, 8.9, 1.2, 0.1);
-  wallSign(S, 'dumbo', [-1383, -1085], [-1394, -1120], [1, 0], 0.45, 3.6, 1.4, 0.1);
-  wallSign(S, 'gym', [-1383, -1085], [-1394, -1120], [1, 0], 0.5, 8.9, 1.0, 0.1);
-  wallSign(S, 'kruidvet', [-1489, -1202], [-1465, -1126], [1, 0], 0.5, 4.6, 1.2, 0.1);
-  wallSign(S, 'akzie', [-1508, -1197], [-1489, -1202], [0, -1], 0.5, 4.6, 1.3, 0.1);
-  wallSign(S, 'blokkie', [-1485, -1125], [-1500, -1172], [-1, 0], 0.5, 4.6, 1.2, 0.1);
-  wallSign(S, 'bakker', [-1317, -1212], [-1364, -1194], [0, 1], 0.6, 4.6, 1.1, 0.1);
-  wallSign(S, 'stads', [-1317, -1212], [-1364, -1194], [0, 1], 0.2, 4.6, 1.0, 0.1);
+  wallSign(S, 'albert', [-1404.91, -1173.81], [-1384.9, -1113.73], [1, 0], 0.55, 4.5, 1.5, 0.25);
+  wallSign(S, 'dumbo', [-1459.05, -1051.14], [-1404.23, -1069.13], [0, 1], 0.5, 3.6, 1.5, 0.1);
+  wallSign(S, 'gym', [-1459.05, -1051.14], [-1404.23, -1069.13], [0, 1], 0.5, 8.9, 1.2, 0.1);
+  wallSign(S, 'dumbo', [-1404.23, -1069.13], [-1415.81, -1104.18], [1, 0], 0.45, 3.6, 1.4, 0.1);
+  wallSign(S, 'gym', [-1404.23, -1069.13], [-1415.81, -1104.18], [1, 0], 0.5, 8.9, 1.0, 0.1);
+  wallSign(S, 'kruidvet', [-1512.31, -1185.17], [-1487.04, -1109.07], [1, 0], 0.5, 4.6, 1.2, 0.1);
+  wallSign(S, 'akzie', [-1531.26, -1179.84], [-1512.31, -1185.17], [0, -1], 0.5, 4.6, 1.3, 0.1);
+  wallSign(S, 'blokkie', [-1507.06, -1107.75], [-1522.84, -1154.8], [-1, 0], 0.5, 4.6, 1.2, 0.1);
+  wallSign(S, 'bakker', [-1340.16, -1198], [-1386.95, -1179.13], [0, 1], 0.6, 4.6, 1.1, 0.1);
+  wallSign(S, 'stads', [-1340.16, -1198], [-1386.95, -1179.13], [0, 1], 0.2, 4.6, 1.0, 0.1);
   // the Eikenlaan row: red textile-discount squares under the luifel, 'Paddepoel' in the middle
   const [p, q] = FLATS_LINE;
   for (let t = 0.08; t < 0.95; t += 0.07) {
