@@ -348,11 +348,12 @@ function cornerSpeed(path, s) {
 
 // The path shifted o metres sideways, but never nearer than a car's half
 // width to the edge of the carriageway it is on (the road ahead may narrow).
+// The offset changes by at most a metre per 10 m of path, the way a driver
+// keeps to a lane where the carriageway widens or narrows (the path's points
+// are a metre apart).
 export function offsetPath(map, path, o) {
   if (!o) return path;
-  return path.map((q, i) => {
-    const a = path[Math.max(0, i - 2)], b = path[Math.min(path.length - 1, i + 2)];
-    const L = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1;
+  const cap = path.map((q) => {
     let hw = 0, bd = 9;
     for (const r of map.roadsNear(q[0], q[1], 3)) {
       if (r.cat === 'foot' || r.cat === 'cycle') continue;
@@ -361,7 +362,14 @@ export function offsetPath(map, path, o) {
         if (cp.dist2 < bd) { bd = cp.dist2; hw = (r.width || 7) / 2; }
       }
     }
-    const oo = Math.sign(o) * Math.max(0, Math.min(Math.abs(o), hw - 1.3));
+    return Math.max(0, Math.min(Math.abs(o), hw - 1.3));
+  });
+  for (let i = 1; i < cap.length; i++) cap[i] = Math.min(cap[i], cap[i - 1] + 0.1);
+  for (let i = cap.length - 2; i >= 0; i--) cap[i] = Math.min(cap[i], cap[i + 1] + 0.1);
+  return path.map((q, i) => {
+    const a = path[Math.max(0, i - 2)], b = path[Math.min(path.length - 1, i + 2)];
+    const L = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1;
+    const oo = Math.sign(o) * cap[i];
     return [q[0] - (b[1] - a[1]) / L * oo, q[1] + (b[0] - a[0]) / L * oo, q[2]];
   });
 }

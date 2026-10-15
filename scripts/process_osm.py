@@ -16,6 +16,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from world.rdnew import project as rd_project, frame_meta, legacy_wgs_box, world_to_legacy  # noqa: E402
+from world.lanemodel import lane_fields  # noqa: E402
 
 SRC = ["data/groningen_raw.json", "data/groningen_extra.json", "data/ring_raw.json.gz", "data/ring_extra.json.gz"]
 DST = "game/citymap.json"
@@ -418,22 +419,24 @@ def main():
         hw = tags.get("highway")
         if hw in ROAD_SPEC:
             spec = ROAD_SPEC[hw]
-            width = spec["width"]
-            tag_width = tags.get("width") or tags.get("est_width")
-            if tag_width:
-                try:
-                    width = max(2.5, float(str(tag_width).split()[0].replace(",", ".")))
-                except ValueError:
-                    pass
-            elif tags.get("lanes"):
-                # no explicit width tag, but a lane count is a real signal -
-                # ~3.1m/lane plus a little for shoulders/markings, only ever
-                # used to widen (never narrow) the category default
-                try:
-                    lane_count = int(str(tags["lanes"]).split(";")[0])
-                    width = max(width, lane_count * 3.1 + 0.6)
-                except ValueError:
-                    pass
+            # the lane model (world/lanemodel.py): lanes per direction, turn
+            # lanes, placement and the width (a one-way carriageway is as wide
+            # as its lanes, not as the whole road; a lane count only ever
+            # widens a two-way road's class default); car roads only
+            lane = {}
+            if spec["cat"] in ("major", "normal", "minor"):
+                lane = lane_fields(hw, tags, spec["width"], dual=False)
+                lane["osm"] = el.get("id")
+                lane["_tags"] = tags
+                width = lane.pop("width")
+            else:
+                width = spec["width"]
+                tag_width = tags.get("width") or tags.get("est_width")
+                if tag_width:
+                    try:
+                        width = max(2.5, float(str(tag_width).split()[0].replace(",", ".")))
+                    except ValueError:
+                        pass
             # junction=roundabout implies oneway even without an explicit tag -
             # otherwise traffic AI happily routes the wrong way around a circle
             is_roundabout = tags.get("junction") == "roundabout"
@@ -471,6 +474,7 @@ def main():
                     "name": tags.get("name"),
                     "bridge": is_bridge,
                     **grade,
+                    **lane,
                 })
             continue
 
@@ -497,6 +501,14 @@ def main():
             continue
 
     roads, buildings, water, green, trees = crop_to_ring(roads, buildings, water, green, trees, world_rect)
+    # one-way secondary and tertiary ways that are one carriageway of a dual
+    # road get the width of their lanes too (world/lanes.py duals)
+    from world.lanes import duals
+    dual = duals(roads)
+    for r in roads:
+        tags = r.pop("_tags", None)
+        if tags is not None and id(r) in dual:
+            r["width"] = lane_fields(r["type"], tags, ROAD_SPEC[r["type"]]["width"], dual=True)["width"]
     print(f"jetties: {mark_jetties(roads, water)} footways over the water marked as decks")
 
     minx, miny, maxx, maxy = world_rect

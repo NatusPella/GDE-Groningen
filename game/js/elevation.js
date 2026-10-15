@@ -274,6 +274,27 @@ function onFlatRoad(map, x, y) {
   return false;
 }
 
+// How far out from (x, y) along (nx, ny) the open-cut mask has the ground
+// cut away (up to 4 m): where an open sunken segment's mask (openCutMask:
+// its half width plus the wall's pad) still covers the point.
+function cutReach(elev, x, y, nx, ny) {
+  const pad = WALL_T + 0.2;
+  let reach = 0;
+  for (let t = 0.25; t <= 4; t += 0.25) {
+    const px = x + nx * t, py = y + ny * t;
+    let cut = false;
+    for (const s of elev.grid.at(px, py) || []) {
+      if (s.covered || s.rail || (s.za > -CUT_Z && s.zb > -CUT_Z)) continue;
+      const cp = closestPointOnSegment(px, py, s.ax, s.ay, s.bx, s.by);
+      const z = s.za + (s.zb - s.za) * cp.t, r = s.hs + pad;
+      if (cp.dist2 <= r * r && z < -CUT_Z && (z < -1.0 || cp.dist2 <= (s.hs + SHALLOW_PAD) ** 2)) { cut = true; break; }
+    }
+    if (!cut) break;
+    reach = t;
+  }
+  return reach + 0.3;
+}
+
 // Width of the street-level coping strip beside a cutting's wall at (x, y),
 // outward (nx, ny): up to the edge of a street running alongside the top (it
 // tucks under that street's ribbon), none where the street is over the wall.
@@ -710,8 +731,10 @@ function buildWalls(elev, map) {
         }
         const joined = s.rail ? surfaceOf(elev, mx, my, s.r, zr, 1.2, true)
           // (a crash barrier that would stand on the asphalt of a ramp alongside
-          // it, even a couple of metres lower, is left out)
-          : surfaceOf(elev, mx, my, s.r, zr, cut ? 1.6 : 2.5) || (Math.abs(zr) < (cut ? 1.6 : 2.5) && onFlatRoad(map, mx, my));
+          // it at about its height is left out; one more than a barrier's
+          // reach lower, a deck edge over a slip road going down beside it,
+          // keeps it: it stands on this deck, not in that ramp's way)
+          : surfaceOf(elev, mx, my, s.r, zr, cut ? 1.6 : 1.7) || (Math.abs(zr) < (cut ? 1.6 : 1.7) && onFlatRoad(map, mx, my));
         const piece = {
           ax: s.ax + s.ux * s.len * t0 + nx * off, ay: s.ay + s.uy * s.len * t0 + ny * off,
           bx: s.ax + s.ux * s.len * t1 + nx * off, by: s.ay + s.uy * s.len * t1 + ny * off,
@@ -762,7 +785,13 @@ function buildWalls(elev, map) {
           }
           else if (onFlatRoad(map, mx, my)) elev.skirts.push({ ...ends, coping: false });
         }
-        if (cut && piece.low && !s.covered) piece.coping = copingWidth(map, mx, my, nx, ny, true);
+        if (cut && piece.low && !s.covered) {
+          piece.coping = copingWidth(map, mx, my, nx, ny, true);
+          // a wider cutting alongside (a slip road's wall standing on the main
+          // road's verge) has the ground cut away past this wall: the coping
+          // reaches out to where the ground is back (openCutMask)
+          if (piece.coping === COPING) piece.coping = Math.max(COPING, cutReach(elev, mx, my, nx, ny));
+        }
         if (raise && s.pieces && !joined) {
           const fp = s.pieces[Math.min(s.pieces.length - 1, k * s.pieces.length / n | 0)];
           if (fp && fp.retain[side > 0 ? 0 : 1]) {
@@ -913,8 +942,9 @@ export function openCutMask(elev, maxTex = 4096) {
         const cp = closestPointOnSegment(px, py, s.ax, s.ay, s.bx, s.by);
         if (cp.dist2 > r * r) continue;
         const z = s.za + (s.zb - s.za) * cp.t;
-        // (a shallow dip has no retaining wall to reach over: just the lanes)
-        if (z < -CUT_Z && (z < -RAISED || cp.dist2 <= (s.hs + SHALLOW_PAD) ** 2)) data[j * w + i] = 255;
+        // (a dip of under a metre has no retaining wall to reach over: just the
+        // lanes and their verge; the skirts close its sides)
+        if (z < -CUT_Z && (z < -1.0 || cp.dist2 <= (s.hs + SHALLOW_PAD) ** 2)) data[j * w + i] = 255;
       }
     }
   }

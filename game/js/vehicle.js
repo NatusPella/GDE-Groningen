@@ -18,6 +18,7 @@ import { manageParkedCars, tickParkedCars } from './parkedcars.js';
 import { pickBoatModel } from './boattypes.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { MODS } from './cheatmods.js';
+import { laneLayout } from './lanes.js';
 
 // every traffic model, for warming their meshes before they first spawn
 export const TRAFFIC_MODELS = () => [...MODELS, ...BUS_MODELS, ...SCOOTER_MODELS, ...FATBIKE_MODELS, ...REGULAR_BIKE_MODELS];
@@ -541,14 +542,36 @@ export function busTrailerPose(v) {
 
 // Right-hand-traffic offset from the road centerline (to the right of the
 // direction of travel), used both at spawn and for the driving path.
-function laneOffset(road, v, half = road.width / 2) {
+function laneOffset(road, v, half = road.width / 2, dir = 1) {
   const halfWid = v.model.wid / 2;
   if (v.isBike || v.isScooter) {
     if (road.cat === 'cycle') return road.oneway ? 0 : Math.min(0.6, half / 2);
     return Math.max(0.3, half - 0.7);
   }
+  // the lane model (roadsurface.js laneLayout): the middle of the right lane
+  const m = modelLane(road, dir, 'right');
+  if (m !== null) return clamp(m, 0, Math.max(0, half - halfWid - 0.2));
   if (road.oneway) return clamp(half - halfWid - 1.2, 0, 1);
   return clamp(half / 2, 0.3, Math.max(0.3, half - halfWid - 0.25));
+}
+
+// The middle of the rightmost or leftmost lane for traffic going `dir` along
+// a road with the lane model (lanesFwd/lanesBwd), as an offset right of the
+// direction of travel; null without the model or with a single lane there
+// and 'left' asked.
+function modelLane(road, dir, which) {
+  if (road.lanesFwd == null) return null;
+  let lay = road._lanes;
+  if (!lay) road._lanes = lay = laneLayout(road);
+  const mine = lay.lanes.filter((q) => q.dir === (road.oneway ? 1 : dir));
+  if (!mine.length || (which === 'left' && mine.length < 2)) return null;
+  const sgn = road.oneway ? 1 : dir;
+  let best = null;
+  for (const q of mine) {
+    const o = q.off * sgn;
+    if (best === null || (which === 'right' ? o > best : o < best)) best = o;
+  }
+  return best;
 }
 
 function pointInAnyBuilding(buildings, x, y) {
@@ -639,7 +662,7 @@ function busLaneUser(v) {
 
 function lanePoint(map, road, i, dir, v) {
   const half = roadHalfWidths(map, road)[i];
-  let lane = laneOffset(road, v, half);
+  let lane = laneOffset(road, v, half, dir);
   const small = v.isBike || v.isScooter;
   const bl = road.busLane && !small && (dir > 0 ? road.busLane.fwd : road.busLane.bwd);
   if (bl && half >= 3) {
@@ -649,7 +672,9 @@ function lanePoint(map, road, i, dir, v) {
       ? Math.max(0.3, half - laneW / 2)
       : road.oneway ? Math.min(lane, half - laneW - v.halfWid - 0.2) : clamp(half - laneW - v.halfWid - 0.3, 0.3, half);
   }
+  const leftLane = v.laneMode === 'left' && !small ? modelLane(road, dir, 'left') : null;
   if (v.laneMode === 'yield' && !small) lane = Math.max(lane, half - v.halfWid - 0.05);
+  else if (leftLane !== null) lane = clamp(leftLane, -(half - v.halfWid - 0.2), half);
   else if (v.laneMode === 'left' && !small && half >= 4.5) lane = road.oneway ? -Math.max(0.3, Math.min(1.8, half - v.halfWid - 1.4)) : Math.min(lane, Math.max(v.halfWid + 0.25, half * 0.28));
   else if (v.laneMode === 'squeeze' && !road.oneway) lane = Math.max(lane, half - v.halfWid + 0.4);
   else if (v.laneMode === 'pass') lane = road.oneway || half < 3.5 ? -Math.max(0.5, half - v.halfWid + 0.6) : -half / 2;

@@ -527,6 +527,29 @@ difference with the terrain:
 Nothing else needs to know about heights: vehicles on different levels
 don't collide, and actors are drawn at their height.
 
+## Lanes
+
+Every car road carries the lane model (docs/PROVINCIE-PLAN.md 2.12; set by
+`scripts/world/lanemodel.py` from its OSM way's tags, in `process_osm.py`
+for a new build and `scripts/world/lanes.py` on the current map):
+`lanesFwd`/`lanesBwd` (`lanesBoth`), `lanes`, `turnFwd`/`turnBwd` (one
+turn:lanes entry per lane, left to right), `placement`, `laneW` (NL widths:
+trunk 3.25 m, urban 2.75-3.25), `widthSrc` and `osm` (the way id). A
+one-way carriageway of a trunk, primary, motorway or slip road (and of a dual
+secondary or tertiary road) is as wide as its lanes plus its edges: before,
+each half of a dual carriageway had the width of the whole road (the N7
+halves 12 m, drawn with four lanes each way where OSM has two). After
+`lanes.py`, `profile.mjs --write` re-solves (slip roads couple to their
+carriageway where the lanes overlap) and `ring_widths.mjs --write` brings
+the race lap's half widths along. `lanes.js` `laneLayout(r)` places the
+lanes across the carriageway (forward lanes right of the divider): the
+markings (`roadsurface.js`: lane lines, the divider, turn arrows 10 and 40 m
+before the end of a way) and the traffic AI (`vehicle.js` `laneOffset`: the
+middle of the right lane, the left one when it sorts for a left turn) use
+it. `scripts/world/audit_lanes.py` checks the map against the tags.
+`placement` is kept but the ribbon is not yet shifted by it (the joints
+would need a taper).
+
 ## 3D notes
 
 - `scene3d.js` only reads `world`. It streams buildings, roads, green, water
