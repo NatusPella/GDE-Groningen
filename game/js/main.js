@@ -17,7 +17,7 @@ import { Player } from './player.js';
 import { World } from './world.js';
 import { initCompanion, updateCompanion } from './companion.js';
 import { updateTrafficAI, resolveVehicleBuildingCollision, resolveVehicleVehicleCollisions, manageTrafficPopulation, manageBikePopulation, manageBusPopulation, manageScooterPopulation, manageBoatPopulation, updateBoatAI, checkVehicleWater, spawnHeroCarNear, tickBurningVehicles, setGroundMap } from './vehicle.js';
-import { spawnPedestriansNear, updatePedestrians } from './pedestrians.js';
+import { spawnPedestriansNear, updatePedestrians, CITY_CENTRE } from './pedestrians.js';
 import { updateCombat, updateBullets } from './combat.js';
 import { updatePolice } from './police.js';
 import { updateTrafficLaw } from './trafficlaw.js';
@@ -451,7 +451,9 @@ async function boot() {
     if (trafficTimer <= 0) {
       trafficTimer = 1.5;
       manageTrafficPopulation(world, { target: Math.round(scaledTarget(30) * MODS.cars) });
-      manageBikePopulation(world, { target: Math.round(scaledTarget(16) * MODS.bikes) });
+      // the centre is full of bikes: eight more cyclists while you are in it
+      const inCentre = Math.hypot(world.player.x - CITY_CENTRE.x, world.player.y - CITY_CENTRE.y) < CITY_CENTRE.r;
+      manageBikePopulation(world, { target: Math.round((scaledTarget(16) + (inCentre ? scaledTarget(8) : 0)) * MODS.bikes) });
       manageBusPopulation(world);
       manageScooterPopulation(world, { target: scaledTarget(10) });
       manageBoatPopulation(world, { target: boatTarget() });
