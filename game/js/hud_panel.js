@@ -894,6 +894,19 @@ function updateDamage(dt, world) {
   if (els.damage.style.opacity !== s) els.damage.style.opacity = s;
 }
 
+// Without a running engine sound (audio off or not started yet) the gear and
+// revs come from the speed, with the same gear tops as the engine sound.
+const FALLBACK_TOPS = [0.15, 0.3, 0.48, 0.7, 1.05];
+function fallbackEngine(v) {
+  if (!v || v.isBoat || v.isBike || v.isHeli || v.isScooter || v._mount || !v.model) return null;
+  const red = 7000;
+  if (v.speed < -0.2) return { rpm: 1500 + Math.min(1, -v.speed / 6) * 2500, red, gear: 0, reverse: true, gears: 5 };
+  const frac = Math.abs(v.speed || 0) / (v.model.maxSpeed || 30);
+  let g = 0;
+  while (g < FALLBACK_TOPS.length - 1 && frac > FALLBACK_TOPS[g]) g++;
+  return { rpm: Math.max(900, red * 0.93 * frac / FALLBACK_TOPS[g]), red, gear: g, reverse: false, gears: 5 };
+}
+
 // Zone H: the speed big, the gear row over it and the revs in an arc.
 function updateSpeedo(world) {
   const v = world.player.inVehicle || world.trainCam;
@@ -903,7 +916,7 @@ function updateSpeedo(world) {
   if (!v) { els.speedoKey = ''; return; }
   setText(els.speedoValue, String(Math.round(Math.abs(v.speed || 0) * 3.6)));
   const isTrain = v === world.trainCam;
-  const eng = isTrain ? null : engineReadout();
+  const eng = isTrain ? null : engineReadout() || fallbackEngine(v);
   const gearKey = !eng || eng.gear < 0 ? '' : (eng.reverse ? 'R' : String(eng.gear + 1)) + '/' + eng.gears;
   if (gearKey !== els.gearKey) {
     els.gearKey = gearKey;

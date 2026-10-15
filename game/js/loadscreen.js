@@ -79,7 +79,8 @@ export function startLoadScreen(world, opts = {}) {
   const ach = (() => { try { return getAchievementSummary(); } catch (e) { return { done: 0, total: 0 }; } })();
   const img = pickImage(world, place);
   const line = place.line || LANDMARK_LINES[place.name] || '';
-  const tip = tips.length ? tips[Math.floor(Math.random() * tips.length)] : '';
+  const rawTip = tips.length ? tips[Math.floor(Math.random() * tips.length)] : '';
+  const tip = rawTip.replace(/^Tip: /, '').replace(/^./, (c) => c.toUpperCase());
 
   const el = document.createElement('div');
   el.id = 'load-screen';
@@ -105,7 +106,7 @@ export function startLoadScreen(world, opts = {}) {
         '</div>' +
       '</div>' +
       '<div class="ls-bottom">' +
-        `<div class="ls-tip"><span class="ls-tip-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.8.8 1 1.5 1 2.5h6c0-1 .2-1.7 1-2.5A6 6 0 0 0 12 3z"/></svg></span><div><span>Wist je dat</span><p>${esc(tip.replace(/^Tip: /, ''))}</p></div></div>` +
+        `<div class="ls-tip"><span class="ls-tip-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.8.8 1 1.5 1 2.5h6c0-1 .2-1.7 1-2.5A6 6 0 0 0 12 3z"/></svg></span><div><span>Wist je dat</span><p>${esc(tip)}</p></div></div>` +
         '<div class="ls-prog"><div class="ls-phase"><svg class="ls-spin" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 9 9"/></svg><b>De stad wordt opgebouwd</b><small></small></div>' +
         '<div class="ls-bar"><i></i></div></div>' +
       '</div>' +
