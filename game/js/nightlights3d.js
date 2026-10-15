@@ -129,6 +129,7 @@ export function initNightLights(targetScene) {
   scene = targetScene;
   poleMesh = new THREE.InstancedMesh(buildPoleGeometry(), new THREE.MeshStandardMaterial({ color: 0x2c3230, roughness: 0.55, metalness: 0.35, flatShading: true }), LAMP_MAX);
   poleMesh.castShadow = true;
+  poleMesh.userData.kind = 'streetlamp';
   poleMesh.receiveShadow = true;
   const headGeo = new THREE.PlaneGeometry(0.52, 0.22).rotateX(Math.PI / 2).translate(ARM, HEAD_Y - 0.05, 0);
   headMesh = new THREE.InstancedMesh(headGeo, new THREE.MeshBasicMaterial({ color: 0xffffff, fog: false }), LAMP_MAX);
