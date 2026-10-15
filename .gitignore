@@ -26,3 +26,6 @@ data/satellite_reference.jpg
 
 # local agent settings, reviews and worktrees
 .claude/
+
+# packed map tiles (scripts/world/pack_tiles.mjs): a build artifact
+game/world/
