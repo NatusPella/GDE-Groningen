@@ -29,7 +29,7 @@ export const MAX_OVER_PAR = 4;
 export const BASKET_R = 0.34;
 export const BASKET_H = 1.45;
 export const CIRCLE_M = 12;
-export const MEDAL_REL = [8, 3, -1];
+export const MEDAL_REL = [6, 1, -2];
 
 // vmax in m/s at full power; kd drag, kl lift, turn and fade as stability.
 export const DISCS = {
@@ -45,6 +45,8 @@ export const RELEASES = [
 ];
 
 const K_SET = 2.6, K_TURN = 1.4, K_FADE = 4.2;
+// the wind in a game feels stronger than the Bft figure
+const WIND_GAIN = 1.7;
 const DT = 0.02;
 
 export const holeLength = (h) => Math.hypot(h.basket.x - h.tee.x, h.basket.y - h.tee.y);
@@ -81,7 +83,7 @@ export function windVec(wind) {
 // Returns { end {x,y}, reason, holed, path [[x,y,z]...], air s, from }.
 export function simulateFlight(p, env = {}) {
   const disc = typeof p.disc === 'string' ? DISCS[p.disc] : p.disc;
-  const wv = env.wind ? windVec(env.wind) : { x: 0, y: 0 };
+  const wv = env.wind ? { x: windVec(env.wind).x * WIND_GAIN, y: windVec(env.wind).y * WIND_GAIN } : { x: 0, y: 0 };
   const rng = env.rng || Math.random;
   const v0 = Math.max(4, disc.vmax * Math.max(0.12, Math.min(1, p.power)));
   const loft = p.loft ?? 0.17;
@@ -100,7 +102,8 @@ export function simulateFlight(p, env = {}) {
     const hx = vh > 0.01 ? vx / vh : 1, hy = vh > 0.01 ? vy / vh : 0;
     const ax = -disc.kd * sp * rx - hy * side;
     const ay = -disc.kd * sp * ry + hx * side;
-    const lift = Math.min(G * 0.92, disc.kl * (rx * rx + ry * ry));
+    // lift mostly follows the ground speed, a little the airspeed: wind acts mainly through the drag
+    const lift = Math.min(G * 0.92, disc.kl * (0.8 * vh * vh + 0.2 * (rx * rx + ry * ry)));
     const az = -G + lift - disc.kd * sp * vz * 1.5;
     vx += ax * DT; vy += ay * DT; vz += az * DT;
     const nx = x + vx * DT, ny = y + vy * DT, nz = z + vz * DT;
@@ -177,6 +180,22 @@ export function powerFor(dist, disc, loft = 0.17, release = 0) {
     const mid = (lo + hi) / 2;
     const r = simulateFlight({ x: 0, y: 0, yaw: 0, power: mid, loft, release, disc }, {});
     if (Math.hypot(r.end.x, r.end.y) < dist) lo = mid; else hi = mid;
+  }
+  return (lo + hi) / 2;
+}
+
+// The power at which a throw crosses the basket's height (1 m) at distance d, no
+// wind: the throw that goes into the chains rather than landing at the basket.
+export function powerForBasket(dist, disc, loft = 0.08, release = 0, height = 1) {
+  const reach = (power) => {
+    const r = simulateFlight({ x: 0, y: 0, yaw: 0, power, loft, release, disc }, {});
+    for (let i = 1; i < r.path.length; i++) if (r.path[i][2] <= height && r.path[i - 1][2] > height) return r.path[i][0];
+    return Math.hypot(r.end.x, r.end.y);
+  };
+  let lo = 0.12, hi = 1;
+  for (let i = 0; i < 18; i++) {
+    const mid = (lo + hi) / 2;
+    if (reach(mid) < dist) lo = mid; else hi = mid;
   }
   return (lo + hi) / 2;
 }

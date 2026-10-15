@@ -142,7 +142,7 @@ function buildTrackScene() {
   const asphalt = new THREE.Mesh(ribbon(-T.hw, T.hw, 0.03), M.asphalt);
   asphalt.receiveShadow = true;
   root.add(asphalt);
-  for (const s of [-1, 1]) root.add(new THREE.Mesh(ribbon(s * (T.hw - 0.4), s * (T.hw - 0.22), 0.045), M.line));
+  for (const s of [-1, 1]) root.add(new THREE.Mesh(ribbon(Math.min(s * (T.hw - 0.4), s * (T.hw - 0.22)), Math.max(s * (T.hw - 0.4), s * (T.hw - 0.22)), 0.045), M.line));
   // kerbs on the bends, red and white
   const kerbCol = (i) => ((Math.floor(i / 2) % 2) ? [0.9, 0.1, 0.08] : [0.95, 0.95, 0.9]);
   for (const s of [-1, 1]) {
