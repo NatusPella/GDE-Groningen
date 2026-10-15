@@ -14,7 +14,7 @@ Productiescript voor inhoudsdrop **F4b** van Deel 4 "Nazomer" (de Ommelander Ron
 - een **data-bijlage** in de vorm van de bestaande code (§11) en de tellingen (§12).
 
 **Vaste regels voor dit script** (de besluiten van de eigenaar van 15 oktober en de regels van F4a)
-- **Altijd zomer.** Deel 4 is de late zomer, 15-27 september; er komen geen herfst, winter, vorst of Koningsdag in voor. Events alleen uit de zomer: havenfeest, kermis, maïsfeest, paardenmarkt.
+- **Altijd zomer.** Deel 4 is de late zomer (F4b: dag 41-45, woensdag 23 tot en met zondag 27 september, in de "nazomer · dag N" van de HUD); er komen geen herfst, winter, vorst of Koningsdag in voor. Events alleen uit de zomer: havenfeest, kermis, maïsfeest, paardenmarkt.
 - **Deel 1-3 en F4a blijven zoals ze zijn.** F4b leunt op Henks zender, de lier van Dijkstra, Mem en Jelle, Oma's lijstje en de ladder van complimenten.
 - Droog en Gronings, 18+ zoals nu. Geen echte levende personen, geen echte merken of bedrijven (verzonnen: Oldenhuis Bakt, het Zeehondenhuis, het Rijtuigenhuis, Sloperij De Laatste Versnelling, Rallyclub De Vierde Versnelling, Wietse's Werkplaats, de veerboot "Robbenplaat"). Plaatsen en gebouwen met hun echte naam. Het is **Grunn**, nooit "de Grunn".
 - **Rottumeroog en Rottumerplaat** zijn verboden natuur, gezien vanaf zee: één geheim, en een gag van de vogelwachter als je toch landt. **Schiermonnikoog** is een Fries eiland dat alleen als cutscène van de veerboot voorkomt (kade en silhouet, geen landing).
@@ -34,17 +34,17 @@ Productiescript voor inhoudsdrop **F4b** van Deel 4 "Nazomer" (de Ommelander Ron
 
 **Ontgrendelen.** Twee gewonnen voorrondes (O6 en O10) openen ring 2 (plan §2.3): de **Wadkust & Lauwersmeer** (aankomst per waterbus over het Reitdiep naar Zoutkamp, `n-zoutkamp`) en het **Westerkwartier** (aankomst per trein naar Zuidhorn, `n-zuidhorn`). Binnen een regio liggen de stappen vast; een regio "op slot" heeft geen missies maar wel landschap, activiteiten en een "binnenkort"-melding van Rikus. Vier gewonnen voorrondes (twee uit F4a, twee uit F4b) openen ring 3; omdat F4c nog niet gebouwd is, stopt het verhaal op de "Wordt vervolgd"-kaart hieronder.
 
-**Kalender van F4b (speldagen).** De HUD toont na 22 september geen datum meer, alleen de weekdag en "nazomer · dag N" (KALENDER.md); de data hieronder zijn voor de schrijvers. In 2026 valt 22 september op een dinsdag, dus de dagen 41-45 zijn woensdag 23 tot zondag 27 september.
+**Kalender van F4b (speldagen; de enige bron is [KALENDER.md](KALENDER.md), Deel 4).** De HUD toont na 22 september geen datum meer, alleen de weekdag en "nazomer · dag N"; de data hieronder zijn voor de schrijvers. In 2026 valt 22 september op een dinsdag, dus de dagen 41-45 zijn woensdag 23 tot zondag 27 september. F4a eindigt op dag 40 (di 22: voorronde Eemsdelta); F4c begint op dag 46 (ma 28).
 
 | Dag | Speldag | Wat |
 |---|---|---|
 | 41 | wo 23 sept | `n-zoutkamp`, O11 (ochtend), O12 (nacht, nieuwe maan) |
 | 42 | do 24 sept | O13 (laagwater 15:30, de vloed komt anderhalf uur te vroeg) |
-| 43 | vr 25 sept | O14 (havenfeest in Lauwersoog, laatste boot 19:05), `n-kotter` |
-| 41-44 | wo-za | Westerkwartier: `n-zuidhorn` (vanaf dag 41), O15 (za 26, trekkertrek-finale 's middags), O16 (za 26, nacht) |
-| 45 | zo 27 sept | O17 (open dag in het park van Nienoord, 10:30), O18 (rally in Zuidhorn, 14:00), `n-schuur` |
+| 43 | vr 25 sept | O14 (**voorronde Wadkust**, havenfeest in Lauwersoog, 18:30, laatste boot 19:05), `n-kotter`, `n-zuidhorn` |
+| 44 | za 26 sept | Westerkwartier: O15 (09:00, trekkertrek-finale 's middags), O16 (nacht, 22:30) |
+| 45 | zo 27 sept | O17 (open dag in het park van Nienoord, 10:30), O18 (**voorronde Westerkwartier**, rally in Zuidhorn, 14:00), `n-schuur` |
 
-Een stap krijgt altijd de dag van de stap ervoor of later, nooit eerder (KALENDER.md): wie eerst het Westerkwartier doet, ziet de Wadkust-stappen op dezelfde of latere dagen. Het weer is "nazomer": heldere nachten (O12), wind uit het noordwesten (O11, O13), warme middagen. De weekenden zijn de voorrondes: vrijdagavond (Wadkust) en zondagmiddag (Westerkwartier). **Let op (voor het bouwen van `STEP_DATES`):** de kalender van F4a zet 15 september op een maandag en de voorrondes op 20 en 27 september; in 2026 zijn dat dinsdag, zondag en zondag (zie §9, Afwijkingen).
+Een stap krijgt altijd de dag van de stap ervoor of later, nooit eerder (KALENDER.md): wie eerst het Westerkwartier doet, ziet de Wadkust-stappen op dezelfde of latere dagen. `n-zuidhorn` staat daarom in de data op dag 43 (de stap staat in `STEPS` na `n-kotter`); het Westerkwartier is open vanaf dag 41. Het weer is "nazomer": heldere nachten (O12), wind uit het noordwesten (O11, O13), warme middagen. De weekenden zijn de voorrondes: vrijdagavond (Wadkust) en zondagmiddag (Westerkwartier). Dit is de kalender die in F4a en F4c is overgenomen (F4a ma 15 / za 20 / za 27 is rechtgetrokken, zie §9).
 
 **Geld.** Beloningen lopen van € 1.600 (O11) tot € 3.400 (O18); de zijmissies van € 400 tot € 900. Geen enkele stap kost geld: het motorblok van O15 is gratis, het kaartje naar Schier is "verhalen", een leenauto staat altijd klaar. Koopbare extra's (een eigen trekker, een rallyauto, de clubauto van Rennie) zijn `optional` en staan buiten de geldtijdlijn. `storytest.js` krijgt het doel: met `payShare` 0,5 en niets kopen komt niemand vast te zitten.
 
@@ -2034,7 +2034,7 @@ Regels uit het verhaal-document §6.1: nooit tijdens een missie, één tegelijk 
 - **Tessa** *(droog)*: Het wordt elke keer beter.
 - **Tammo** *(droog)*: Het wordt elke keer harder.
 
-**De paardenmarkt van Marum (verzonnen)** · groot · Marum (zomerweekend)
+**De paardenmarkt van Marum (verzonnen)** · groot · Marum (zomerweekend: zo 27 sept, dag 45)
 
 - **Marktkoopman** *(luid, joviaal)*: Paarden! Pony's! Een koets met een mening! Alles voor de liefhebber!
 - **Tessa** *(uitgelaten)*: Ik wil een pony. Alleen om te kijken.
@@ -2044,7 +2044,7 @@ Regels uit het verhaal-document §6.1: nooit tijdens een missie, één tegelijk 
 
 - **Havenmeester Tjerk** *(luid, plechtig)*: Havenfeest! Iedereen op de pier! Niemand in het water! Dat is het hele programma!
 
-**De Garnalendag in Zoutkamp (verzonnen)** · groot · Zoutkamp (zomerweekend)
+**De Garnalendag in Zoutkamp (verzonnen)** · groot · Zoutkamp (zomerweekend: za 26 sept, dag 44)
 
 - **Garnalenvisser** *(droog, trots)*: Vandaag pellen we. Geen wedstrijd. Gewoon pellen. Het is een meditatie.
 
@@ -2191,7 +2191,7 @@ Alle radiomomenten op een rij (de regels staan bij de missies). Rikus zendt "op 
 - **O14:** het plan zegt dat Fokko "Ubbo's grootboek" met de veerboot meestuurt; in F4b is het **deel drie (Wadkust)** van zeven. Het hele grootboek hoort bij O24.
 - **Z25:** het plan wilde "voet zetten" op Rottumeroog; in F4b is het **kijken, niet landen**, met de gag als je toch landt (besluit eigenaar van 15 oktober).
 - **Nieuwe `n-`stappen:** `n-zoutkamp` (waterbus), `n-zuidhorn` (trein), `n-kotter` en `n-schuur` (safehouses en filialen), zoals F4a ze voor Delfzijl en Warffum had.
-- **Calendar:** F4a zet 15 september op "ma" en de voorrondes op "za 20" en "za 27"; in 2026 zijn dat dinsdag, zondag en zondag (KALENDER.md noemt 15 september zelf ook een dinsdag, de suikercampagne). Dit moet bij het bouwen van `STEP_DATES` voor alle F4-drops in één keer rechtgetrokken worden. **[?] Voor de eigenaar:** zeven voorrondes in dertien dagen past alleen als de data na 22 september "nazomer · dag N" zijn en doorlopen na 27 september; F4b houdt zich aan 23-27 september, F4c kan daarna doorlopen.
+- **Calendar (opgelost):** F4a zette 15 september op "ma" en de voorrondes op "za 20" en "za 27"; in 2026 zijn dat dinsdag, zondag en zondag. De kalender is voor F4a, F4b en F4c in één keer rechtgetrokken in KALENDER.md (Deel 4): F4a dag 33-40 (di 15 - di 22 sept), F4b dag 41-45 (ongewijzigd), F4c dag 46-51 (ma 28 - za, de finale op dag 51). De voorrondes vallen op dag 37 (za), 40 (di), 43 (vr), 45 (zo), 47 (di), 50 (vr) en 51 (za); alles na dag 40 is "nazomer · dag N".
 - Nieuwe stage-soorten (in §11 met `NEW`): `wad`, `rescue`, `lift`, `serve`, `jump`, `grab`, `cutscene` (veerboot), `tune`, `tail`, `plant`, `race` met pacenotes en rivaal; nieuwe goal-types `waterbus` en (herbruikt) `trekkertrek`, `filiaal`, `train`. Nieuwe voertuigen: roeiboot, platbodem, koets met paarden, rallyauto, hakselaar met wagen, garnalenkar, waterbus. Nieuwe systemen: getij met opzet, groepsmeter, afstandsringen (dieren), geluidsmeter, alertmeter.
 - **Zeven voorrondes, vier regio's:** Hogeland (O6), Eemsdelta (O10), Wadkust (O14), Westerkwartier (O18); drie te gaan voor F4c: Oldambt, Veenkoloniën, Westerwolde.
 
