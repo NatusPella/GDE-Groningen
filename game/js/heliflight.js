@@ -440,7 +440,7 @@ export function updateHelis(dt, w) {
 // --- the flight card (HUD) ------------------------------------------------------------
 
 const CSS = `
-#hud .hud-heli { position: absolute; right: calc(var(--mm-size) + 30px); bottom: 14px; display: none; min-width: 188px;
+#hud .hud-heli { position: absolute; right: var(--hud-edge, 46px); bottom: var(--hud-edge, 46px); display: none; min-width: 188px;
   padding: 8px 16px 10px 12px; color: #f0ede4; text-shadow: var(--hud-shadow);
   background: linear-gradient(90deg, rgba(12, 20, 14, 0.86), rgba(23, 48, 31, 0.55) 80%, rgba(23, 48, 31, 0.1));
   border-left: 3px solid var(--hh, #3fc97a); }

@@ -101,6 +101,9 @@ export class ZoneBoard {
 
 export const zones = new ZoneBoard();
 
+// the live situation flags the modules share (hud_panel.js writes them)
+export const hudNow = { busy: false, dialogue: false };
+
 // What shows now. s: the situation (all optional):
 //   mode, hidden, banner, busy, dialogue, idle, wake,
 //   wanted, wantedAgo, moneyAgo, moneySign (+1/-1), nearShop, moneyHeld,
@@ -163,7 +166,7 @@ export function decideHud(s = {}) {
 
   // the ceiling: P3 first, then the clock, then the money
   if (!all) {
-    const drops = [['place', 'cardE', 'cardA3'], ['clock'], ['money']];
+    const drops = [['place', 'cardE', 'cardA3'], ['clock'], ['money'], ['keys'], ['weapon']];
     for (const group of drops) {
       if (countShown(show) <= CEILING) break;
       for (const k of group) {
