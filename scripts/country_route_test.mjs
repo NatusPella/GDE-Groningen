@@ -99,14 +99,15 @@ const realNow = performance.now.bind(performance);
 performance.now = () => realNow() + clock * 1000;
 const worldAt = (px, py, tx, ty, name, inVehicle) => ({ map, time: 0, health: 100, player: { x: px, y: py, inVehicle }, storyGuide: { x: tx, y: ty, name, step: 'x' }, addMessage: () => {} });
 const DRIVE = { isBike: false, isBoat: false };
+const BIKE = { isBike: true, isBoat: false };
 for (const [name, [px, py], [tx, ty]] of STORY) {
-  for (const inVehicle of [null, DRIVE]) {
+  for (const inVehicle of [null, DRIVE, BIKE]) {
     const t0 = realNow();
     R.updateRouting(0.1, worldAt(px, py, tx, ty, name, inVehicle));
     const r = R.getActiveRoute();
     const ok = !!r && r.pts.length > 2 && Math.hypot(r.pts.at(-1)[0] - tx, r.pts.at(-1)[1] - ty) < 150 && r.length < Math.hypot(tx - px, ty - py) * 2.2;
     if (!ok) fails++;
-    console.log(`${ok ? 'ok  ' : 'FAIL'} ${name} (${inVehicle ? 'drive' : 'walk'}): ${r ? r.pts.length + ' pts, ' + Math.round(r.length) + ' m' : 'no route'} in ${Math.round(realNow() - t0)} ms`);
+    console.log(`${ok ? 'ok  ' : 'FAIL'} ${name} (${inVehicle ? (inVehicle.isBike ? 'bike' : 'drive') : 'walk'}): ${r ? r.pts.length + ' pts, ' + Math.round(r.length) + ' m' : 'no route'} in ${Math.round(realNow() - t0)} ms`);
   }
 }
 
@@ -149,7 +150,7 @@ const KINDS = {
   'pfield->omme': () => [polder(true), onReal()],
 };
 const PER = 8;
-const tot = { n: 0, len: 0, off: 0, excess: 0, longest: 0, dead: 0, maxMs: 0, sumMs: 0, rerouteBad: 0 };
+const tot = { n: 0, len: 0, off: 0, excess: 0, longest: 0, dead: 0, maxMs: 0, sumMs: 0, rerouteBad: 0, blocked: 0 };
 const rows = [];
 for (const [kind, gen] of Object.entries(KINDS)) {
   const k = { n: 0, len: 0, off: 0, excess: 0, longest: 0, dead: 0, maxMs: 0 };
@@ -168,6 +169,15 @@ for (const [kind, gen] of Object.entries(KINDS)) {
     // unavoidable: from the start / to the target onto the nearest road
     const own = Math.min(roadDist(px, py, 500), 500) + Math.min(roadDist(tx, ty, 500), 500);
     const dead = !r || r.pts.length < 2 || endGap > Math.max(60, roadDist(tx, ty, 500) + 20) || startGap > Math.max(60, roadDist(px, py, 500) + 20);
+    // no way on foot (the motorways are closed to walkers) but one by car: shut, not dead
+    let blocked = false;
+    if (dead && !inVehicle) {
+      clock += 100;
+      R.updateRouting(0.1, worldAt(px, py, tx, ty, name, DRIVE));
+      const rd = R.getActiveRoute();
+      blocked = !!rd && rd.pts.length > 1 && Math.hypot(rd.pts.at(-1)[0] - tx, rd.pts.at(-1)[1] - ty) <= Math.max(60, roadDist(tx, ty, 500) + 20);
+      if (blocked) { tot.blocked++; console.log(`  SHUT ${name} walk: no legal way for walkers (motorway), the car has one`); }
+    }
     const o = r && r.pts.length > 1 ? offroad(r.pts) : { off: 0, longest: 0 };
     const excess = Math.max(0, o.off - own);
     // leave the route: 200 m sideways from a point a third of the way along
@@ -185,9 +195,9 @@ for (const [kind, gen] of Object.entries(KINDS)) {
       if (bad) tot.rerouteBad++;
       reroute = bad ? ' REROUTE-BAD' : '';
     }
-    k.n++; k.len += r ? r.length : 0; k.off += o.off; k.excess += excess; k.longest = Math.max(k.longest, o.longest); k.dead += dead ? 1 : 0; k.maxMs = Math.max(k.maxMs, ms);
+    k.n++; k.len += r ? r.length : 0; k.off += o.off; k.excess += excess; k.longest = Math.max(k.longest, o.longest); k.dead += dead && !blocked ? 1 : 0; k.maxMs = Math.max(k.maxMs, ms);
     tot.sumMs += ms;
-    if (VERBOSE || dead || excess > 50 || reroute) console.log(`  ${dead ? 'DEAD' : excess > 50 ? 'OFF ' : '    '} ${name} ${inVehicle ? 'drive' : 'walk'} [${Math.round(px)},${Math.round(py)}]->[${Math.round(tx)},${Math.round(ty)}]: ${r ? Math.round(r.length) : '-'} m, off ${Math.round(o.off)} m (own ${Math.round(own)}), longest ${Math.round(o.longest)} m, ${Math.round(ms)} ms${reroute}`);
+    if (VERBOSE || (dead && !blocked) || excess > 50 || reroute) console.log(`  ${dead && !blocked ? 'DEAD' : excess > 50 ? 'OFF ' : '    '} ${name} ${inVehicle ? 'drive' : 'walk'} [${Math.round(px)},${Math.round(py)}]->[${Math.round(tx)},${Math.round(ty)}]: ${r ? Math.round(r.length) : '-'} m, off ${Math.round(o.off)} m (own ${Math.round(own)}), longest ${Math.round(o.longest)} m, ${Math.round(ms)} ms${reroute}`);
     if (DEBUG && o.runs) for (const t of o.runs) console.log('      off-road ' + t);
   }
   rows.push([kind, k]);
@@ -205,7 +215,8 @@ console.log(`avg ${Math.round(tot.sumMs / tot.n)} ms per route, reroutes bad: ${
 const realKinds = rows.filter(([kind]) => !kind.includes('polder') && kind !== 'pfield->omme');
 const realExcess = realKinds.reduce((a, [, k]) => a + k.excess, 0) / realKinds.reduce((a, [, k]) => a + k.len, 0);
 console.log(`real-data routes: ${(100 * realExcess).toFixed(2)}% off road beyond the legs to/from a field`);
-const okSweep = tot.dead === 0 && realExcess < 0.002 && tot.excess / tot.len < 0.015 && tot.rerouteBad === 0;
+console.log(`shut to walkers (motorway), open to cars: ${tot.blocked} of ${tot.n / 2} walks`);
+const okSweep = tot.dead === 0 && tot.blocked <= tot.n * 0.05 && realExcess < 0.002 && tot.excess / tot.len < 0.015 && tot.rerouteBad === 0;
 if (!okSweep) fails++;
 console.log(okSweep ? 'sweep ok' : 'sweep FAIL');
 

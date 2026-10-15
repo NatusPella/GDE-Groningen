@@ -3,9 +3,23 @@ import { getHorecaForRender } from './horeca.js';
 import { getShopsForRender } from './shops.js';
 import { nearestRepairSite } from './garages.js';
 import { getGoal, setGoal, clearGoal, goalTarget, missionOnMap } from './goal.js';
+import { roadAllowed, oneWayFor } from './roadaccess.js';
+import { boatRoute, trainTrip, airRoute, etaSeconds, polyLength } from './travelroute.js';
+import { getWaterIndex, waterClearance } from './waterindex.js';
+import { roadZAt } from './elevation.js';
+import { isInWater, WATER_Y } from './util.js';
+import { getHelipads } from './heliflight.js';
 import { countryReady, countryBuilt, countryCover, countryVersion, snapCountry, countryCosts, countryPath, countryPathToNode, countryPathFromNode, nodeXY, gatewayCandidates } from './countryroute.js';
 
 const STRAY_M = 25;
+// the further from the route you may stray before it is redone, per way of travel
+const STRAY_BY_MODE = { walk: 20, bike: 22, drive: 25, boat: 45, ov: 60, fly: 120 };
+// a snap on the other level (bridge or below it) costs this many metres of distance
+const LEVEL_PEN_START_M = 40;
+const LEVEL_PEN_TARGET_M = 12;
+const LEVEL_SPLIT_M = 2.5;
+// driving with the motorways avoided: a motorway metre counts this many
+const MOTORWAY_AVOID = 8;
 const TELEPORT_M = 150;
 const MIN_RECOMPUTE_S = 2;
 const REACH_M = 8;
@@ -43,7 +57,7 @@ let care = null;
 let careDismissed = null;
 const stats = { buildMs: 0, lastMs: 0, maxMs: 0, avgMs: 0, runs: 0, nodes: 0, driveEdges: 0, walkEdges: 0, lastSettled: 0 };
 
-const isDrivable = (road) => road.cat !== 'foot' && road.cat !== 'cycle' && !road.busOnly;
+const isDrivable = (road) => road.cat !== 'foot' && road.cat !== 'cycle' && !road.busOnly && roadAllowed(road, 'auto') !== false;
 // Driving routes stay on the carriageway: parking aisles and tracks only
 // when they really shortcut, footpaths and cycle paths only for the last
 // stretch to a car-free target (the mixed graph), never as a shortcut.
@@ -51,8 +65,11 @@ const SERVICE_COST = 2.5;
 const OFFROAD_COST = 15;
 const STEPS_COST = 60;
 // no walking along (and so no crossing of) the ring and motorways
-const NO_WALK_TYPES = new Set(['motorway', 'motorway_link', 'trunk', 'trunk_link']);
-const isWalkable = (road) => !NO_WALK_TYPES.has(road.type) && !(road.z && road.cat === 'major');
+const MOTORWAY_TYPES = new Set(['motorway', 'motorway_link', 'trunk', 'trunk_link']);
+const isWalkable = (road) => roadAllowed(road, 'lopen') !== false && !road.busOnly && !(road.z && road.cat === 'major');
+// by bike: no motorways, footways or steps (roadaccess.js), no bus lanes
+const isBikeable = (road) => roadAllowed(road, 'fiets') !== false && !road.busOnly && !(road.z && road.cat === 'major' && MOTORWAY_TYPES.has(road.type));
+const BIKE_COST = { cycle: 0.8, minor: 1.15, normal: 1, major: 1.8, foot: 1.4 };
 // Some OSM footways/service roads cross building footprints (passages,
 // courtyards); still usable, but routes should strongly prefer streets.
 const THROUGH_BUILDING_COST = 8;
@@ -78,7 +95,7 @@ function buildGraph(map) {
   const ids = new Map();
   const xs = [], ys = [];
   const roadNodes = new Map();
-  const drive = [], walk = [], walkRoad = [], mixed = [];
+  const drive = [], driveRoad = [], walk = [], walkRoad = [], mixed = [], bike = [], bikeRoad = [], driveAvoid = [];
   const nodeOf = (x, y) => {
     const key = (Math.round(x * 2) + 32768) * 65536 + (Math.round(y * 2) + 32768);
     let id = ids.get(key);
@@ -98,6 +115,9 @@ function buildGraph(map) {
     roadNodes.set(road, rn);
     const canDrive = isDrivable(road);
     const canWalk = isWalkable(road);
+    const canBike = isBikeable(road);
+    const bikeOne = canBike && oneWayFor(road, 'fiets');
+    const mw = MOTORWAY_TYPES.has(road.type);
     for (let i = 0; i < n - 1; i++) {
       const a = rn[i], b = rn[i + 1];
       if (a === b) continue;
@@ -107,11 +127,18 @@ function buildGraph(map) {
         walk.push(a, b, len, b, a, len);
         walkRoad.push(ri, ri);
       }
+      if (canBike) {
+        const bl = len * (BIKE_COST[road.cat] ?? 1);
+        bike.push(a, b, bl); bikeRoad.push(ri);
+        if (!bikeOne) { bike.push(b, a, bl); bikeRoad.push(ri); }
+      }
       if (canDrive) {
         const dl = road.type === 'service' || road.type === 'track' ? len * SERVICE_COST : len;
-        drive.push(a, b, dl);
+        drive.push(a, b, dl); driveRoad.push(ri);
+        const al = mw ? dl * MOTORWAY_AVOID : dl;
+        driveAvoid.push(a, b, al);
         mixed.push(a, b, dl);
-        if (!road.oneway) { drive.push(b, a, dl); mixed.push(b, a, dl); }
+        if (!road.oneway) { drive.push(b, a, dl); driveRoad.push(ri); driveAvoid.push(b, a, al); mixed.push(b, a, dl); }
       } else if (!road.busOnly) {
         const ml = len * (road.type === 'steps' ? STEPS_COST : OFFROAD_COST);
         mixed.push(a, b, ml, b, a, ml);
@@ -158,17 +185,24 @@ function buildGraph(map) {
     return { comp, main: best };
   };
   const walkAdj = csr(walk, walkRoad);
+  const bikeAdj = csr(bike, bikeRoad);
+  const bikeUndirected = [];
+  for (let i = 0; i < bike.length; i += 3) bikeUndirected.push(bike[i], bike[i + 1], bike[i + 2], bike[i + 1], bike[i], bike[i + 2]);
   const driveUndirected = [];
   for (let i = 0; i < drive.length; i += 3) driveUndirected.push(drive[i], drive[i + 1], drive[i + 2], drive[i + 1], drive[i], drive[i + 2]);
   const driveFree = csr(driveUndirected);
   graph = {
+    map,
     N,
     walkComp: components(walkAdj),
     driveComp: components(driveFree),
     x: Float64Array.from(xs),
     y: Float64Array.from(ys),
     roadNodes,
-    drive: csr(drive),
+    drive: csr(drive, driveRoad),
+    driveAvoid: csr(driveAvoid, driveRoad),
+    bike: bikeAdj,
+    bikeComp: components(csr(bikeUndirected)),
     free: driveFree,
     mixed: csr(mixed),
     walk: walkAdj,
@@ -185,27 +219,36 @@ function buildGraph(map) {
 }
 
 // Prefers the largest connected component so a stray, unconnected way near
-// the point can't make the whole route fail.
-function snapToRoad(map, x, y, driveOnly) {
-  const cc = driveOnly ? graph.driveComp : graph.walkComp;
-  let fallback = null, fallbackD2 = Infinity;
+// the point can't make the whole route fail. kind: 'walk' | 'bike' | 'drive'
+// (true/false kept for drive/walk). lvl: { z, pen } the height the point is
+// at; a road on the other level (the bridge, or the street under it) counts
+// pen metres further away, so a waypoint clicks onto the right one.
+function snapToRoad(map, x, y, kind, lvl = null) {
+  kind = kind === true ? 'drive' : kind === false ? 'walk' : kind;
+  const cc = kind === 'drive' ? graph.driveComp : kind === 'bike' ? graph.bikeComp : graph.walkComp;
+  const usable = kind === 'drive' ? isDrivable : kind === 'bike' ? isBikeable : isWalkable;
+  let fallback = null, fallbackD = Infinity;
   for (let r = 30; r <= SNAP_MAX_M; r *= 2) {
-    let best = null, bestD2 = r * r;
+    let best = null, bestD = r;
     for (const road of map.roadsNear(x, y, r)) {
-      if (driveOnly ? !isDrivable(road) : !isWalkable(road)) continue;
+      if (!usable(road)) continue;
       const rn = graph.roadNodes.get(road);
       const inMain = cc.comp[rn[0]] === cc.main;
-      const p = road.pts;
+      const p = road.pts, Z = road.z;
       for (let i = 0; i < p.length - 1; i++) {
         const ax = p[i][0], ay = p[i][1], dx = p[i + 1][0] - ax, dy = p[i + 1][1] - ay;
         const l2 = dx * dx + dy * dy;
         let t = l2 > 1e-9 ? ((x - ax) * dx + (y - ay) * dy) / l2 : 0;
         t = t < 0 ? 0 : t > 1 ? 1 : t;
         const cx = ax + dx * t, cy = ay + dy * t;
-        const d2 = (cx - x) ** 2 + (cy - y) ** 2;
-        if (inMain ? d2 >= bestD2 : d2 >= fallbackD2) continue;
+        let d = Math.hypot(cx - x, cy - y);
+        if (lvl) {
+          const rz = Z ? Z[i] + (Z[i + 1] - Z[i]) * t : 0;
+          if (Math.abs(rz - lvl.z) > LEVEL_SPLIT_M) d += lvl.pen;
+        }
+        if (inMain ? d >= bestD : d >= fallbackD) continue;
         const hit = { x: cx, y: cy, road, seg: i, t, segLen: Math.sqrt(l2) };
-        if (inMain) { bestD2 = d2; best = hit; } else { fallbackD2 = d2; fallback = hit; }
+        if (inMain) { bestD = d; best = hit; } else { fallbackD = d; fallback = hit; }
       }
     }
     if (best) return best;
@@ -253,8 +296,8 @@ class Heap {
 function astar(fromSnap, toSnap, walkMode, nodesOut = null) {
   const G = graph;
   const mode = walkMode === true ? 'walk' : walkMode === false ? 'drive' : walkMode;
-  const adj = mode === 'walk' ? G.walk : mode === 'mixed' ? G.mixed : mode === 'free' ? G.free : G.drive;
-  walkMode = mode === 'walk';
+  const adj = mode === 'walk' ? G.walk : mode === 'bike' ? G.bike : mode === 'mixed' ? G.mixed : mode === 'free' ? G.free : mode === 'driveAvoid' ? G.driveAvoid : G.drive;
+  walkMode = mode === 'walk' || mode === 'bike';
   const stamp = ++G.stamp;
   const gx = toSnap.x, gy = toSnap.y;
   const h = (n) => Math.hypot(G.x[n] - gx, G.y[n] - gy);
@@ -313,7 +356,7 @@ function astar(fromSnap, toSnap, walkMode, nodesOut = null) {
 // Walking path for pedestrians: the polyline plus the road each leg follows
 // (legs[i] is the road between pts[i] and pts[i + 1]).
 export function findWalkPath(map, ax, ay, bx, by) {
-  if (!graph) buildGraph(map);
+  if (!graph || graph.map !== map) buildGraph(map);
   const from = snapToRoad(map, ax, ay, false), to = snapToRoad(map, bx, by, false);
   if (!from || !to) return null;
   const nodes = [];
@@ -336,11 +379,23 @@ export function findWalkPath(map, ax, ay, bx, by) {
 function travelMode(player) {
   const v = player.inVehicle;
   if (!v) return 'walk';
-  if (v.isBoat) return null;
-  // a helicopter flies straight: a line to the target, no roads
+  if (v.isBoat) return 'boat';
+  // a helicopter or plane flies: a line to the target, around the no-fly zones
   if (v.isHeli) return 'fly';
-  return v.isBike ? 'walk' : 'drive';
+  return v.isBike || v._mount ? 'bike' : 'drive';
 }
+
+// The height the player is at (a bridge deck, or the street below it).
+const levelOf = (player) => { const v = player.inVehicle; return (v ? v.z : player.gz) || 0; };
+
+// What the player chose in the route settings (and on the big map).
+const prefs = { avoidMotorways: false, planMode: null };
+export function setRoutePrefs(o = {}) {
+  if ('avoidMotorways' in o && !!o.avoidMotorways !== prefs.avoidMotorways) { prefs.avoidMotorways = !!o.avoidMotorways; invalidateRoutes(); }
+  if ('planMode' in o && o.planMode !== prefs.planMode) { prefs.planMode = o.planMode || null; invalidateRoutes(); }
+}
+export function getRoutePrefs() { return { ...prefs }; }
+function invalidateRoutes() { for (const k of Object.keys(slots)) { slots[k].key = ''; slots[k].route = null; } }
 
 function busyTarget(world) {
   // a heli run (helirun.js) points at its next ring, pad or the balloon
@@ -435,7 +490,7 @@ function cityGateways(map) {
     const [x, y] = nodeXY(n);
     const key = Math.floor(x / GATEWAY_CELL_M) * 100003 + Math.floor(y / GATEWAY_CELL_M);
     if (cells.has(key)) continue;
-    const sn = snapToRoad(map, x, y, true);
+    const sn = snapToRoad(map, x, y, 'drive');
     if (!sn || Math.hypot(sn.x - x, sn.y - y) > 12) continue;
     cells.add(key);
     gateways.push({ n, x, y });
@@ -447,8 +502,9 @@ function cityGateways(map) {
 // to the city streets at the best gateway. An end out in a field gets one
 // straight leg to the nearest country road. null: the city graph handles it
 // (both ends in town) or there is no way.
-function countryRoute(world, target, from, to, graphMode, driveOnly) {
-  const map = world.map, p = world.player;
+function countryRoute(world, target, from, to, graphMode, kind, p = world.player) {
+  const map = world.map;
+  const driveOnly = kind === 'drive';
   // a point counts as in the city when a city street is near and no country
   // road is nearer: country roads inside the city's bounds (where the city map
   // has no data) and the ring and its ramps, which the city graph cuts off at
@@ -466,8 +522,8 @@ function countryRoute(world, target, from, to, graphMode, driveOnly) {
   if (pIn && tIn) return null;
   if (!countryReady(map.ommeland)) return null;
   countryCover([[p.x, p.y], [target.x, target.y]]);
-  const ps = pIn ? null : snapCountry(p.x, p.y, COUNTRY_SNAP_M);
-  const ts = tIn ? null : snapCountry(target.x, target.y, COUNTRY_SNAP_M);
+  const ps = pIn ? null : snapCountry(p.x, p.y, COUNTRY_SNAP_M, !driveOnly);
+  const ts = tIn ? null : snapCountry(target.x, target.y, COUNTRY_SNAP_M, !driveOnly);
   if ((!pIn && !ps) || (!tIn && !ts)) return null;
   const lead = (s, x, y) => (s && s.d > 0.5 ? [[x, y]] : []);
   const gws = pIn || tIn ? cityGateways(map) : null;
@@ -492,7 +548,7 @@ function countryRoute(world, target, from, to, graphMode, driveOnly) {
     ranked.sort((u, v) => u[0] - v[0]);
     const cityPart = (u, v) => astar(u, v, graphMode) || (driveOnly ? astar(u, v, 'mixed') || astar(u, v, 'free') : null);
     for (const [, g] of ranked.slice(0, GATEWAY_TRIES)) {
-      const gs = snapToRoad(map, g.x, g.y, driveOnly);
+      const gs = snapToRoad(map, g.x, g.y, kind);
       if (!gs) continue;
       const city = pIn ? cityPart(from, gs) : cityPart(gs, to);
       if (!city) continue;
@@ -502,42 +558,137 @@ function countryRoute(world, target, from, to, graphMode, driveOnly) {
     }
     return null;
   };
-  return attempt(!driveOnly) || (driveOnly ? attempt(true) : null);
+  return driveOnly ? attempt(false) || attempt(true) : attempt('foot');
 }
 
-function computeRoute(world, target, mode) {
+// The road router for one way of travel ('walk' | 'bike' | 'drive') between two
+// points, the city graph only: strictly by the rules (no fallbacks), so the
+// tests can hold every edge against roadaccess.js. opts: { avoidMotorways,
+// az, bz } (the heights at the ends, for bridge or below). Returns
+// { pts, roads } (roads[i]: the road between pts[i] and pts[i + 1]) or null.
+export function planLandRoute(map, kind, a, b, opts = {}) {
+  if (!graph || graph.map !== map) buildGraph(map);
+  const lvl = (z, pen) => (Number.isFinite(z) ? { z, pen } : null);
+  const from = snapToRoad(map, a[0], a[1], kind, lvl(opts.az, LEVEL_PEN_START_M));
+  const to = snapToRoad(map, b[0], b[1], kind, lvl(opts.bz, LEVEL_PEN_TARGET_M));
+  if (!from || !to) return null;
+  const gm = kind === 'drive' ? (opts.avoidMotorways ? 'driveAvoid' : 'drive') : kind;
+  const nodes = [];
+  const pts = astar(from, to, gm, nodes);
+  if (!pts) return null;
+  const adj = kind === 'drive' ? (opts.avoidMotorways ? graph.driveAvoid : graph.drive) : kind === 'bike' ? graph.bike : graph.walk;
+  const roads = [from.road];
+  for (let i = 0; i < nodes.length - 1; i++) {
+    const u = nodes[i], v = nodes[i + 1];
+    let road = roads[roads.length - 1];
+    for (let e = adj.start[u]; e < adj.start[u + 1]; e++) if (adj.to[e] === v) { road = map.roads[adj.road[e]]; break; }
+    roads.push(road);
+  }
+  if (nodes.length) roads.push(to.road);
+  return { pts, roads, from, to };
+}
+
+// Where a waypoint clicks onto for a mode: the nearest road that is for the
+// mode, on the level asked for (z: 0 street level, a bridge deck's height).
+export function snapWaypoint(map, kind, x, y, z) {
+  if (!graph || graph.map !== map) buildGraph(map);
+  return snapToRoad(map, x, y, kind, Number.isFinite(z) ? { z, pen: LEVEL_PEN_TARGET_M } : { z: 0, pen: LEVEL_PEN_TARGET_M / 2 });
+}
+
+// no-fly zones and landing spots in the air: police stations are no place for
+// a helicopter; the pads, and the home helipad, are
+const NOFLY_R = 70;
+function airContext(map) {
+  const meta = map.meta || {};
+  if (!map._noFly) map._noFly = (meta.policeStations || []).map((s) => ({ x: s.x, y: s.y, r: NOFLY_R, name: s.name }));
+  // the pads register as the world comes up (home.js, shops.js): asked every time
+  const landings = [];
+  if (meta.helipad) landings.push({ x: meta.helipad.x, y: meta.helipad.y, name: 'Helikopterplatform', kind: 'helipad' });
+  for (const h of getHelipads()) if (!landings.some((l) => Math.hypot(l.x - h.x, l.y - h.y) < 20)) landings.push({ x: h.x, y: h.y, name: h.name || 'Landingsplek', kind: 'helipad' });
+  return { noFly: map._noFly, landings };
+}
+export function noFlyZones(map) { return airContext(map).noFly; }
+export function landingSpots(map) { return airContext(map).landings; }
+
+// The rails for a train trip: the lines with their stops, the station entrances
+function railContext(map) {
+  const lines = (map.railRoutes || []).filter((r) => r.stops && r.stops.length > 1);
+  return { lines, stations: (map.stations || []).concat(map.countryStations || []) };
+}
+
+// Water for a boat: the water polygons ignore the bridges over them (a boat
+// sails under), the clearance keeps it off quays and moored hulls, and a
+// bridge whose deck hangs lower than the boat is tall shuts the way.
+function boatContext(map) {
+  if (map._boatCtx) return map._boatCtx;
+  const idx = getWaterIndex(map);
+  const deck = new Map();
+  const clearAt = (x, y) => {
+    const k = Math.round(x / 6) * 100003 + Math.round(y / 6);
+    let c = deck.get(k);
+    if (c === undefined) {
+      c = Infinity;
+      for (const r of map.roadsNear(x, y, 5)) {
+        if (!r.bridge || !r.z) continue;
+        c = Math.min(c, roadZAt(r, x, y) - WATER_Y - 0.5);
+      }
+      deck.set(k, c);
+    }
+    return c;
+  };
+  return (map._boatCtx = {
+    isWater: (x, y) => idx.inWater(x, y) || isInWater(map, x, y),
+    clearance: (x, y) => waterClearance(map, x, y, 4),
+    clearAt,
+  });
+}
+
+export function planBoatRoute(map, a, b, opts = {}) { return boatRoute(boatContext(map), a, b, opts); }
+export function planAirRoute(map, a, b, opts = {}) { return airRoute(airContext(map), a, b, opts); }
+export function planTrainTrip(map, a, b, opts = {}) {
+  const ctx = railContext(map);
+  return trainTrip({ ...ctx, walk: opts.walk }, a, b, opts);
+}
+
+const ROUTE_TO_HUD = { walk: 'lopen', bike: 'fiets', drive: 'auto', boat: 'boot', ov: 'ov', fly: 'lucht' };
+
+function computeRoute(world, target, mode, start = world.player) {
   const t0 = performance.now();
   const map = world.map;
-  const p = world.player;
-  let pts = null;
-  const driveOnly = mode === 'drive';
-  let to = snapToRoad(map, target.x, target.y, driveOnly);
-  let graphMode = driveOnly ? 'drive' : 'walk';
-  // targets in car-free areas (Grote Markt, Poelestraat): drive along the
-  // streets as close as possible, the last bit over the pedestrian area
-  if (driveOnly && to && Math.hypot(to.x - target.x, to.y - target.y) > CONNECTOR_MAX_M) {
-    const tw = snapToRoad(map, target.x, target.y, false);
-    if (tw && Math.hypot(tw.x - target.x, tw.y - target.y) <= CONNECTOR_MAX_M) { graphMode = 'mixed'; to = tw; }
-  }
-  const from = snapToRoad(map, p.x, p.y, driveOnly);
-  pts = countryRoute(world, target, from, to, graphMode, driveOnly);
-  if (!pts && from && to) {
-    pts = astar(from, to, graphMode);
-    if (!pts && driveOnly) {
-      const tw = snapToRoad(map, target.x, target.y, false);
-      if (tw) pts = astar(from, tw, 'mixed');
+  const p = start;
+  let pts = null, extra = null;
+  if (mode === 'boat') {
+    const r = planBoatRoute(map, [p.x, p.y], [target.x, target.y], { height: 2.2 });
+    pts = r ? r.pts : [[p.x, p.y]];
+    if (r) extra = { etaS: r.etaS, dock: r.dock };
+  } else if (mode === 'fly') {
+    const plane = !!(world.player.inVehicle && world.player.inVehicle.isPlane);
+    const r = planAirRoute(map, [p.x, p.y], [target.x, target.y], { plane });
+    pts = r.pts;
+    extra = { etaS: r.etaS, alt: r.alt, landing: r.landing };
+  } else if (mode === 'ov') {
+    const onTrain = !!(world.trainDriving || world.trainCam);
+    const walk = (a, b) => {
+      if (Math.hypot(b[0] - a[0], b[1] - a[1]) < 20) return [a, b];
+      const w = computeRoute(world, { x: b[0], y: b[1], kind: target.kind }, 'walk', { x: a[0], y: a[1], inVehicle: null });
+      return w.pts.length > 1 ? w.pts : null;
+    };
+    const r = planTrainTrip(map, [p.x, p.y], [target.x, target.y], { onTrain, walk });
+    if (r) {
+      pts = r.pts;
+      extra = { etaS: r.etaS, legs: r.legs.map((l) => ({ kind: l.kind, label: l.label, length: l.length })), uitstappen: r.uitstappen, changes: r.changes, stops: r.stops };
+    } else pts = [[p.x, p.y]];
+  } else {
+    pts = landRoute(world, target, mode, p);
+    extra = { compromise: landCompromise };
+    if (pts.length > 1) {
+      const first = pts[0];
+      const dFirst = Math.hypot(first[0] - p.x, first[1] - p.y);
+      if (dFirst > 0.5 && dFirst <= CONNECTOR_MAX_M) pts.unshift([p.x, p.y]);
+      const last = pts[pts.length - 1];
+      const dLast = Math.hypot(last[0] - target.x, last[1] - target.y);
+      if (dLast > 0.5 && dLast <= CONNECTOR_MAX_M) pts.push([target.x, target.y]);
     }
-    if (!pts && driveOnly) pts = astar(from, to, 'free');
-  }
-  // no route found: no line at all rather than a straight one through town
-  if (!pts) pts = [[p.x, p.y]];
-  else {
-    const first = pts[0];
-    const dFirst = Math.hypot(first[0] - p.x, first[1] - p.y);
-    if (dFirst > 0.5 && dFirst <= CONNECTOR_MAX_M) pts.unshift([p.x, p.y]);
-    const last = pts[pts.length - 1];
-    const dLast = Math.hypot(last[0] - target.x, last[1] - target.y);
-    if (dLast > 0.5 && dLast <= CONNECTOR_MAX_M) pts.push([target.x, target.y]);
   }
 
   const cum = new Float64Array(pts.length);
@@ -549,10 +700,52 @@ function computeRoute(world, target, mode) {
   stats.runs++;
   stats.avgMs += (ms - stats.avgMs) / stats.runs;
 
+  const length = cum[pts.length - 1];
   return {
-    pts, cum, length: cum[pts.length - 1], remaining: cum[pts.length - 1],
+    pts, cum, length, remaining: length,
     kind: target.kind, target, mode, idx: 0, px: p.x, py: p.y, off: 0, version: stats.runs,
+    fly: mode === 'fly' && pts.length <= 2,
+    etaS: etaSeconds(length, ROUTE_TO_HUD[mode] || 'auto'),
+    ...(extra || {}),
   };
+}
+
+// The roads for walk, bike and drive, city and Ommeland. It bends the rules
+// only when nothing else gets there, and `compromise` then says so ('mixed':
+// over the pedestrian area for a car-free goal; 'free': against a one-way at
+// the data's edge).
+let landCompromise = null;
+function landRoute(world, target, mode, p) {
+  const map = world.map;
+  const driveOnly = mode === 'drive';
+  const kind = mode;
+  const avoid = driveOnly && prefs.avoidMotorways;
+  const zFrom = levelOf(p.x === world.player.x && p.y === world.player.y ? world.player : p);
+  const lvlFrom = { z: Number.isFinite(zFrom) ? zFrom : 0, pen: LEVEL_PEN_START_M };
+  const lvlTo = { z: Number.isFinite(target.z) ? target.z : 0, pen: Number.isFinite(target.z) ? LEVEL_PEN_START_M : LEVEL_PEN_TARGET_M / 2 };
+  let to = snapToRoad(map, target.x, target.y, kind, lvlTo);
+  let graphMode = driveOnly ? (avoid ? 'driveAvoid' : 'drive') : kind;
+  let compromise = null;
+  // targets in car-free areas (Grote Markt, Poelestraat): drive along the
+  // streets as close as possible, the last bit over the pedestrian area
+  if (driveOnly && to && Math.hypot(to.x - target.x, to.y - target.y) > CONNECTOR_MAX_M) {
+    const tw = snapToRoad(map, target.x, target.y, 'walk', lvlTo);
+    if (tw && Math.hypot(tw.x - target.x, tw.y - target.y) <= CONNECTOR_MAX_M) { graphMode = 'mixed'; to = tw; compromise = 'mixed'; }
+  }
+  const from = snapToRoad(map, p.x, p.y, kind, lvlFrom);
+  let pts = countryRoute(world, target, from, to, graphMode, kind, p);
+  if (!pts && from && to) {
+    pts = astar(from, to, graphMode);
+    if (!pts && driveOnly) {
+      const tw = snapToRoad(map, target.x, target.y, 'walk', lvlTo);
+      if (tw) { pts = astar(from, tw, 'mixed'); if (pts) compromise = 'mixed'; }
+    }
+    if (!pts && driveOnly) { pts = astar(from, to, 'free'); if (pts) compromise = 'free'; }
+  }
+  // no route found: no line at all rather than a straight one through town
+  if (!pts) { pts = [[p.x, p.y]]; compromise = null; }
+  landCompromise = compromise;
+  return pts;
 }
 
 function trackProgress(r, x, y) {
@@ -575,17 +768,10 @@ function trackProgress(r, x, y) {
   r.remaining = r.length - (cum[bi] + (cum[bi + 1] - cum[bi]) * bt) + r.off;
 }
 
-// As the crow flies (pigeon mode): a straight two-point route, redone every frame.
-function flyRoute(p, target) {
-  const d = Math.hypot(target.x - p.x, target.y - p.y);
-  return { pts: [[p.x, p.y]], cum: new Float64Array(1), length: d, remaining: d, kind: target.kind, target, mode: 'fly', fly: true, idx: 0, px: p.x, py: p.y, off: d, version: 0 };
-}
-
 function updateSlot(world, slot, target, mode) {
   if (!target || !mode) { slot.route = null; slot.key = ''; return; }
   const p = world.player;
-  if (mode === 'fly') { slot.route = flyRoute(p, target); slot.key = ''; return; }
-  const key = `${target.kind}:${Math.round(target.x)}:${Math.round(target.y)}:${mode}`;
+  const key = `${target.kind}:${Math.round(target.x)}:${Math.round(target.y)}:${mode}:${prefs.avoidMotorways ? 1 : 0}`;
   const now = performance.now() / 1000;
   if (key !== slot.key || !slot.route) {
     slot.key = key;
@@ -594,19 +780,23 @@ function updateSlot(world, slot, target, mode) {
     return;
   }
   trackProgress(slot.route, p.x, p.y);
-  if (slot.route.off > TELEPORT_M || (slot.route.off > STRAY_M && now - slot.at >= MIN_RECOMPUTE_S)) {
+  // a train carries you along its line: no straying there
+  if (mode === 'ov' && (world.trainDriving || world.trainCam)) return;
+  if (slot.route.off > TELEPORT_M || (slot.route.off > (STRAY_BY_MODE[mode] ?? STRAY_M) && now - slot.at >= MIN_RECOMPUTE_S)) {
     slot.route = computeRoute(world, target, mode);
     slot.at = now;
   }
 }
 
 export function updateRouting(dt, world) {
-  if (!graph) buildGraph(world.map);
+  if (!graph || graph.map !== world.map) buildGraph(world.map);
   const p = world.player;
 
-  const mode = world.pigeonMode || world.heliRun ? 'fly' : travelMode(p);
+  const mode = world.pigeonMode || world.heliRun ? 'fly' : world.trainDriving || world.trainCam ? 'ov' : travelMode(p);
+  // the big map may plan the waypoint for another way of travel than your own
+  const userMode = prefs.planMode || mode;
   const gt = busyTarget(world) === undefined && !world.challenge ? goalTarget(world) : null;
-  updateSlot(world, slots.user, gt ? { x: gt.x, y: gt.y, kind: 'user', name: gt.name } : null, mode);
+  updateSlot(world, slots.user, gt ? { x: gt.x, y: gt.y, kind: 'user', name: gt.name, z: gt.z } : null, userMode);
   updateSlot(world, slots.objective, objectiveTarget(world), mode);
   const ct = world.pigeonMode || world.heliRun || world.padelGame || world.activityGame ? null : updateCare(world);
   // no care route to where you're already standing
@@ -652,8 +842,8 @@ export function getRouteAhead(maxLen, r = route) {
 
 // A place on the map as the player's goal (goal.js); kept under this name
 // for the many "zet op je kaart" callers.
-export function setUserWaypoint(x, y, name = '') {
-  setGoal({ kind: 'place', x, y, name: name || 'Bestemming' }, { quiet: true });
+export function setUserWaypoint(x, y, name = '', z = undefined) {
+  setGoal({ kind: 'place', x, y, z, name: name || 'Bestemming' }, { quiet: true });
 }
 
 export function clearUserWaypoint() {
