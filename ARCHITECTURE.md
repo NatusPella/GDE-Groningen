@@ -550,6 +550,27 @@ it. `scripts/world/audit_lanes.py` checks the map against the tags.
 `placement` is kept but the ribbon is not yet shifted by it (the joints
 would need a taper).
 
+## Junctions
+
+`junctions.js` `junctionModel(map)` is the one object per car junction node
+(docs/PROVINCIE-PLAN.md 2.13) that the markings, signs, traffic lights, the
+traffic AI and the tiles read: a control (`signals` where a signal
+controller stands, `roundabout`, `priority` where a higher class road
+crosses, `equal` where traffic from the right goes first, `graded` off
+street level) and per arm a rule (`signal`, `priority`, `yield`, `exit`
+for driveways and living streets, `right`, `free`) and a stop distance (the
+edge of the crossing carriageway, where the haaientanden or the stop line
+are). `yieldArms` (haaientanden and B6 signs) are exactly the arms with
+`yield`; the AI (`vehicle.js` `junctionYieldLimit`) gives way by the same
+Dutch rules (class, right before left, a left turn yields to oncoming
+traffic, roundabout entries to the ring) and stops at the arm's stop
+distance. Tiles carry it in the JUNCTIONS section (`junctionRows`).
+`node scripts/junction_sim_test.mjs` checks the model and runs the AI
+through the busiest signalised crossing, roundabout, priority and equal
+junction on a seeded virtual clock (throughput, no deadlock, no more AI
+knocks than the v0.29 AI). Junction surfaces with corner radii, islands
+and per-lane stop lines are the next step (F1b).
+
 ## 3D notes
 
 - `scene3d.js` only reads `world`. It streams buildings, roads, green, water

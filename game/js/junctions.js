@@ -190,6 +190,77 @@ export function yieldArms(map) {
   return out;
 }
 
+// The junction model (docs/PROVINCIE-PLAN.md 2.13): one object per car
+// junction node that the markings, the signs, the traffic AI and the tiles
+// read. key -> { key, x, y, control, arms } with
+//   control  'signals'    a signal controller (OSM or autoSignals)
+//            'roundabout' the ring has right of way, every entry gives way
+//            'priority'   a higher class road: the others give way
+//                         (haaientanden, B6), driveways and living streets
+//                         are exits (uitritten) and give way too
+//            'equal'      equal roads: traffic from the right first (NL)
+//            'graded'     a node off street level (a slip road joining)
+// and per arm { road, idx, d, ux, uy, rank, enter, rule, stop }:
+//   rule  'signal' | 'priority' | 'yield' | 'exit' | 'right' | 'free'
+//   stop  metres from the node to where an entering car stops: the edge of
+//         the crossing carriageway (the teeth, the stop line), 3-16 m
+export function junctionModel(map) {
+  const s = store(map);
+  if (s.model) return s.model;
+  const out = new Map();
+  for (const node of junctionIndex(map).values()) {
+    const sig = !graded(node) && signalised(map, node.x, node.y);
+    const ring = node.arms.some((a) => a.road.roundabout);
+    const car = node.arms.filter((a) => a.rank >= 2);
+    const best = Math.max(-1, ...node.arms.map((a) => a.rank));
+    const worstMain = Math.min(...(car.length ? car : node.arms).map((a) => a.rank));
+    const control = graded(node) ? 'graded' : sig ? 'signals' : ring ? 'roundabout' : best > worstMain ? 'priority' : 'equal';
+    const arms = node.arms.map((a) => {
+      let J = 0;
+      for (const o of node.arms) {
+        if (o.road === a.road) continue;
+        const cos = a.ux * o.ux + a.uy * o.uy;
+        if (Math.abs(cos) > 0.9) continue;
+        J = Math.max(J, ((o.road.width || 6) / 2) / Math.sqrt(1 - cos * cos) + (a.road.width || 6) / 2 * Math.abs(cos) + 1);
+      }
+      const rule = control === 'graded' ? 'free'
+        : control === 'signals' ? 'signal'
+          : control === 'roundabout' ? (a.road.roundabout ? 'priority' : a.rank < 2 ? 'exit' : 'yield')
+            : control === 'priority' ? (a.rank >= best ? 'priority' : a.rank < 2 ? 'exit' : 'yield')
+              : a.rank < 2 && best >= 2 ? 'exit' : 'right';
+      return { road: a.road, idx: a.idx, d: a.d, ux: a.ux, uy: a.uy, rank: a.rank, enter: a.enter, rule, stop: Math.min(16, Math.max(3, J)) };
+    });
+    out.set(node.key, { key: node.key, x: node.x, y: node.y, control, arms });
+  }
+  s.model = out;
+  return out;
+}
+
+// The junction model as tile rows (the JUNCTIONS section, pack_tiles.mjs):
+// { k: node key, p: [[x, y]], c: control, a: [[road gid, idx, d, rule, stop
+// (m), enters], ...] }, the road gid being its place in map.roads.
+export const RULES = ['free', 'signal', 'priority', 'yield', 'exit', 'right'];
+export function junctionRows(map) {
+  const gid = new Map(map.roads.map((r, i) => [r, i]));
+  const out = [];
+  for (const J of junctionModel(map).values()) {
+    out.push({
+      k: J.key, p: [[J.x, J.y]], c: J.control,
+      a: J.arms.map((a) => [gid.get(a.road), a.idx, a.d, RULES.indexOf(a.rule), Math.round(a.stop * 100) / 100, a.enter ? 1 : 0]),
+    });
+  }
+  return out.sort((a, b) => (a.k < b.k ? -1 : a.k > b.k ? 1 : 0));
+}
+
+// The arm of the junction at road's vertex idx that traffic travelling
+// approachDir along the road (+1: towards higher indices) enters by, or null.
+export function junctionArm(map, road, idx, approachDir) {
+  const J = junctionModel(map).get(nodeKey(road.pts[idx]));
+  if (!J) return null;
+  for (const a of J.arms) if (a.road === road && a.idx === idx && a.d === -approachDir) return a;
+  return null;
+}
+
 let roadIds = new WeakMap();
 function mapRoadId(map, r) {
   let id = roadIds.get(r);

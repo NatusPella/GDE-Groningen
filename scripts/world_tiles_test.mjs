@@ -88,6 +88,7 @@ let staleTiles = 0, hashBad = 0, reenc = 0;
 const attrSeen = {};
 const back = Object.fromEntries(P.KINDS.map(([k]) => [k, []]));
 const heights = new Map();
+const junctionsBack = new Map();
 for (const [key, e] of Object.entries(index.tiles)) {
   const raw = blobOf(e);
   if (G.hash64(raw) !== e.hash) hashBad++;
@@ -98,6 +99,7 @@ for (const [key, e] of Object.entries(index.tiles)) {
   if (!sameBytes(again, raw)) reenc++;
   for (const s of d.sections) {
     if (s.type === G.SECTION.NAV) continue;
+    if (s.type === G.SECTION.JUNCTIONS) { for (const row of s.rows) junctionsBack.set(row.k, row); continue; }
     if (s.type === G.SECTION.HEIGHTS) {
       for (const row of s.rows) {
         const have = heights.get(row.gid);
@@ -123,6 +125,12 @@ ok(staleTiles === 0, 'packed tiles are what the packer makes now', `${staleTiles
 ok(reenc === 0, 'every tile: decode + encode gives the same bytes', reenc);
 const gRaw = blobOf(index.global);
 ok(G.hash64(gRaw) === index.global.hash && sameBytes(gRaw, built.global), 'global blob current and intact');
+// the junctions section: the junction model, one row per junction, as junctions.js makes it
+{
+  const { junctionRows } = await import('../game/js/junctions.js');
+  const want = junctionRows(src.map);
+  ok(want.length > 1000 && junctionsBack.size === want.length && want.every((r) => canon(junctionsBack.get(r.k)) === canon(r)), `junctions: ${want.length} junctions back exactly`, `${junctionsBack.size}`);
+}
 // the heights section: every profiled road's profile, once per road, joined back by gid
 {
   const want = src.map.roads.map((r, gid) => [r, gid]).filter(([r]) => r.z);
