@@ -1,3 +1,5 @@
+import { todayInfo, todaySpecial } from './calendarday.js';
+import { calIcon } from './calendar.js';
 import { dualHtml } from './subtitles.js';
 import { simLevel } from './simload.js';
 import { getGaragesForRender } from './garages.js';
@@ -88,6 +90,7 @@ export function initHud(world) {
   topRight.className = 'hud-top-right';
   topRight.innerHTML =
     '<div class="hud-clock" role="timer" aria-label="Tijd in het spel"><span class="hud-dp"><svg class="hud-clock-icon" viewBox="0 0 24 24" aria-hidden="true"></svg><small></small></span><b></b></div>' +
+    '<div class="hud-date" aria-label="Datum in het spel"><span class="hud-date-day"></span><span class="hud-date-n"></span><span class="hud-day-badge" hidden></span></div>' +
     '<div class="hud-wanted" role="img"></div>' +
     '<i class="hud-tr-sep"></i>' +
     '<div class="hud-tr-row"><small>Op zak</small><span class="hud-money"></span></div>' +
@@ -176,6 +179,7 @@ export function initHud(world) {
     mute: topLeft.querySelector('.hud-mute'),
     wanted: topRight.querySelector('.hud-wanted'),
     clock: topRight.querySelector('.hud-clock'),
+    date: topRight.querySelector('.hud-date'),
     money: topRight.querySelector('.hud-money'),
     moneyDelta: topRight.querySelector('.hud-money-delta'),
     damage,
@@ -521,6 +525,22 @@ function updateClock(world) {
   }
   els.clock.querySelector('b').textContent = t;
   els.clock.querySelector('small').textContent = dayPart(h);
+  updateDate(world);
+}
+
+// the date and today's special day (calendarday.js), checked with the clock
+let dateShown = null;
+function updateDate(world) {
+  const info = todayInfo(world), sp = todaySpecial(world);
+  const key = `${info.n}|${sp ? sp.id : ''}`;
+  if (key === dateShown) return;
+  dateShown = key;
+  els.date.querySelector('.hud-date-day').textContent = info.short;
+  els.date.querySelector('.hud-date-n').textContent = info.dayLabel;
+  const badge = els.date.querySelector('.hud-day-badge');
+  badge.hidden = !sp;
+  badge.classList.toggle('small', !!(sp && sp.small));
+  badge.innerHTML = sp ? `${calIcon(sp.icon)}<span>${sp.name}</span>` : '';
 }
 
 let lastHp = null;
