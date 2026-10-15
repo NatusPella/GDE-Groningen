@@ -29,17 +29,24 @@ Productiescript voor inhoudsdrop **F4a** van Deel 4 "Nazomer" (de Ommelander Ron
 
 **De deelkaart.** `PARTS.nazomer`: "Deel 4: Nazomer", ondertitel "De Ommelander Ronde", datumkaart **"Deel 4 · 15 september"**. De epiloog van Deel 3 speelt "een paar weken later" in september; Deel 4 begint daarna, nog in de zomer (de terrassen staan buiten, het graan wordt binnengehaald).
 
-**Kalender van F4a (speldagen, allemaal nazomer):**
-| Dag | Wat |
-|---|---|
-| ma 15 sept | O1 (Vismarkt, A7), 's nachts Ubbo op Nachtstreek |
-| di 16 sept | O2 (vroege trein naar Warffum) |
-| di-vr | Hogeland: O3, O4, het tuinfeest op vrijdagavond (O5) |
-| za 20 sept | O6, voorronde Hogeland op de kermis in Uithuizen |
-| zo-vr | Eemsdelta: n-delfzijl, O7, O8, O9 (een zomerstorm, de laatste van het seizoen) |
-| za 27 sept | O10, voorronde Eemsdelta in Appingedam |
+**Kalender van F4a (speldagen, allemaal nazomer; de enige bron is [KALENDER.md](KALENDER.md), Deel 4):**
+| Dag | Weekdag | Wat |
+|---|---|---|
+| 33 | di 15 sept | O1 (Vismarkt, A7, ochtend), 's nachts Ubbo op Nachtstreek |
+| 34 | wo 16 sept | O2 (vroege trein naar Warffum), O3 |
+| 35 | do 17 sept | O4 (late middag), `n-trekkertrek` (optioneel) |
+| 36 | vr 18 sept | O5, het tuinfeest in de Menkemaborg (avond) |
+| 37 | za 19 sept | O6, **voorronde Hogeland** op de kermis in Uithuizen (middag), `n-warffum` |
+| 38 | zo 20 sept | Eemsdelta: `n-delfzijl`, O7 (schemer), O8 (nacht) |
+| 39 | ma 21 sept | O9 (een zomerstorm, de laatste van het seizoen; nacht) |
+| 40 | di 22 sept | O10, **voorronde Eemsdelta** in Appingedam (de laatste zomerdag), `n-woonschip` |
 
-De volgorde tussen de twee regio's is vrij (hieronder); de kalender schuift dan mee. Het weer staat op "nazomer": lange gouden avonden, af en toe een bui, één storm in O9, ochtendnevel boven het land (geen herfstkleuren).
+De volgorde tussen de twee regio's is vrij (hieronder), maar de dagen staan vast
+op de standaardvolgorde (Hogeland eerst): een stap speelt op zijn eigen dag of
+later (KALENDER.md). 15 september 2026 is een **dinsdag**, 19 en 22 september
+zijn za en di; 20 en 27 september zijn zondagen. Het weer staat op "nazomer":
+lange gouden avonden, af en toe een bui, één storm in O9, ochtendnevel boven
+het land (geen herfstkleuren).
 
 **"Eerder in GDE" (recap aan het begin van Deel 4; plekken: studio, Groninger Museum, Vismarkt, studio)**
 
@@ -118,7 +125,7 @@ De volgorde hieronder is de "standaard"-volgorde (Hogeland eerst); in het spel k
 
 | Type | Regio | Speler | Start | Beloning | Code |
 |---|---|---|---|---|---|
-| achtervolging | Stad | Tessa | Vismarkt, voor de Korenbeurs (ochtend, 15 september) | € 1500 | `O1` / missie `vergunning` |
+| achtervolging | Stad | Tessa | Vismarkt, voor de Korenbeurs (ochtend, dinsdag 15 september) | € 1500 | `O1` / missie `vergunning` |
 
 **Wissel (`why`, bij het overnemen, vóór de intro)**
 
@@ -602,7 +609,7 @@ Bondgenoot **Geesje** (kosteres van Den Andel, melder), tegenstander **Eppo Bolt
 - **Kosteres Geesje** *(droog, kordaat)*: Jullie bakken. Wat moet je anders met paneermeel? `[clue]`
 - **Tessa** *(blij verrast)*: Een Hogelander eierbal. Van kerkland.
 - **Kosteres Geesje** *(droog)*: Ik zeg er niks van. Ik meld alleen.
-- **Kosteres Geesje** *(droog, zakelijk)*: Zaterdag is er een tuinfeest in de Menkemaborg. Ubbo zoekt daar zijn jury. Ze hebben nog bediening nodig.
+- **Kosteres Geesje** *(droog, zakelijk)*: Vrijdag is er een tuinfeest in de Menkemaborg. Ubbo zoekt daar zijn jury. Ze hebben nog bediening nodig.
 
 **Bij herhaling (als klus)**
 
@@ -633,7 +640,7 @@ Bondgenoot **Geesje** (kosteres van Den Andel, melder), tegenstander **Eppo Bolt
 - **Tessa** *(frustrated)*: Een combine stuurt als een kerk.
 - **Tammo** *(dry)*: Dan had Geesje moeten rijden.
 
-**"Wat weten we?"** *Ubbo koopt het Hogeland* (clue): Eppo: Ubbo koopt alles wat hier groeit. Graan, aardappels, mest. Wat niet te koop is, maait Eppo per ongeluk. En zaterdag "regelt hij de stroom" op de kermis. · *Het tuinfeest* (clue): Geesje: Ubbo geeft zaterdag een tuinfeest in de Menkemaborg in Uithuizen. Daar zoekt hij zijn jury. Er is bediening nodig.
+**"Wat weten we?"** *Ubbo koopt het Hogeland* (clue): Eppo: Ubbo koopt alles wat hier groeit. Graan, aardappels, mest. Wat niet te koop is, maait Eppo per ongeluk. En zaterdag "regelt hij de stroom" op de kermis. · *Het tuinfeest* (clue): Geesje: Ubbo geeft vrijdag een tuinfeest in de Menkemaborg in Uithuizen. Daar zoekt hij zijn jury. Er is bediening nodig.
 
 ### Tussendoor: Trekkertrek in Uithuizermeeden (`n-trekkertrek`, optioneel)
 
@@ -1336,7 +1343,7 @@ Speler: Tessa. Doel: `{ type: 'train', to: 'Delfzijl', line: 'delfzijl', cab: 'j
 
 | Type | Regio | Speler | Start | Beloning | Code |
 |---|---|---|---|---|---|
-| verdedigen, boot, bakken | Eemsdelta (Appingedam) | Tessa | Appingedam, de kade aan het Damsterdiep tegenover de hangende keukens (zaterdag) | € 3000 | `O10` / missie `keukens` |
+| verdedigen, boot, bakken | Eemsdelta (Appingedam) | Tessa | Appingedam, de kade aan het Damsterdiep tegenover de hangende keukens (dinsdag 22 september, middag) | € 3000 | `O10` / missie `keukens` |
 
 **Wissel (`why`, bij het overnemen, vóór de intro)**
 
@@ -2399,7 +2406,7 @@ Regels uit het verhaal-document §6.1: nooit tijdens een missie, maar één tege
 - **Tessa** *(uitgelaten)*: De zweefmolen! Eén rondje.
 - **Tammo** *(droog)*: Ik kijk wel. Van de grond. Daar is hij het mooist.
 
-**Het oogstfeest (eind augustus, het laatste graan binnen)** · groot · Warffum of Middelstum
+**Het oogstfeest (nazomer, het laatste graan binnen)** · groot · Warffum of Middelstum
 
 - **Kroegbaas Jakob** *(gemoedelijk)*: Het graan is binnen. Nu de mensen nog. Bier staat klaar.
 
@@ -2818,7 +2825,7 @@ Alles hieronder is gegenereerd uit dezelfde bron als het script hierboven: regel
   { step: 'O3', kind: 'clue', title: 'Eppo werkt voor Ubbo', text: 'Eppo Bolt, loonwerker uit Usquert: "Ubbo heeft mensen. Ik ben er één." Hij zit zaterdag in de jury van de voorronde in Uithuizen.' },
   { step: 'O3', kind: 'hart', title: 'Geesjes tas', text: 'In 1953 brak Geesje haar arm. Trijntje droeg een jaar lang haar tas, ook toen de arm allang genezen was. "Dat doe je dan."' },
   { step: 'O4', kind: 'clue', title: 'Ubbo koopt het Hogeland', text: 'Eppo: Ubbo koopt alles wat hier groeit. Graan, aardappels, mest. Wat niet te koop is, maait Eppo per ongeluk. En zaterdag "regelt hij de stroom" op de kermis.' },
-  { step: 'O4', kind: 'clue', title: 'Het tuinfeest', text: 'Geesje: Ubbo geeft zaterdag een tuinfeest in de Menkemaborg in Uithuizen. Daar zoekt hij zijn jury. Er is bediening nodig.' },
+  { step: 'O4', kind: 'clue', title: 'Het tuinfeest', text: 'Geesje: Ubbo geeft vrijdag een tuinfeest in de Menkemaborg in Uithuizen. Daar zoekt hij zijn jury. Er is bediening nodig.' },
   { step: 'O5', kind: 'clue', title: 'Drie enveloppen', text: 'Op de foto\'s van de duif: Ubbo geeft drie enveloppen aan de jury van Uithuizen. Eppo Bolt, slager Ruurd en kermisbaas Hennie. Hennie wilde eerlijk zijn. "Eerlijk voor mij," zei Ubbo.' },
   { step: 'O5', kind: 'hart', title: 'Ik onthoud gezichten', text: 'Ubbo tegen Tessa, op het terras: "Jij kunt verkopen. Alles is verkopen, meisje." Tessa zei niks terug. Tammo vond dat het ergste wat ze kan doen.' },
   { step: 'O6', kind: 'clue', title: 'Voorronde Hogeland', text: 'Gewonnen in Uithuizen. De jury durfde niet anders: Tessa\'s telefoon lag op tafel, met de foto van de enveloppen. Ubbo applaudisseerde. "Eén van zeven."' },
@@ -2982,7 +2989,7 @@ Alles hieronder is gegenereerd uit dezelfde bron als het script hierboven: regel
       ['geesje', 'Jullie bakken. Wat moet je anders met paneermeel?', { tag: 'droog, kordaat', clue: true }],
       ['A', 'Een Hogelander eierbal. Van kerkland.', { tag: 'blij verrast' }],
       ['geesje', 'Ik zeg er niks van. Ik meld alleen.', { tag: 'droog' }],
-      ['geesje', 'Zaterdag is er een tuinfeest in de Menkemaborg. Ubbo zoekt daar zijn jury. Ze hebben nog bediening nodig.', { tag: 'droog, zakelijk' }],
+      ['geesje', 'Vrijdag is er een tuinfeest in de Menkemaborg. Ubbo zoekt daar zijn jury. Ze hebben nog bediening nodig.', { tag: 'droog, zakelijk' }],
     ],
     replay: [
       ['geesje', 'Hij maait weer. Ik vroeg of hij een bril nodig had. Hij zei: per ongeluk.', { tag: 'droog' }],
@@ -4413,7 +4420,7 @@ Wat de stemmen zeggen: elke getoonde Nederlandse regel → de Groningse uitspraa
 "Winsum. Hier zag ik ooit een ijsvogel. Daarna nooit meer. Ik kijk nog steeds.":"Winsum. Hier zag ik ooit n ijsvogel. Doarnoa nooit meer. Ik kiek nog steeds.",
 "Zandeweer. Ze zijn nog warm. Niet van de kip, van de zon.":"Zandeweer. Zai binnen nog waarm. Nait van de kip, van de zun.",
 "Zaterdag de voorronde in Uithuizen. Ik zit in de jury. Kom maar. Ik hou van friet.":"Zaterdag de voorronde in Uithuizen. Ik zit in de jury. Kom mor. Ik hol van friet.",
-"Zaterdag is er een tuinfeest in de Menkemaborg. Ubbo zoekt daar zijn jury. Ze hebben nog bediening nodig.":"Zaterdag is der n tuinfeest in de Menkemaborg. Ubbo zoekt doar zijn jury. Zai hebben nog bediening neudig.",
+"Vrijdag is er een tuinfeest in de Menkemaborg. Ubbo zoekt daar zijn jury. Ze hebben nog bediening nodig.":"Vrijdag is der n tuinfeest in de Menkemaborg. Ubbo zoekt doar zijn jury. Zai hebben nog bediening neudig.",
 "Zaterdag, Uithuizen. Ik regel de stroom op de kermis. Denk daar maar aan.":"Zaterdag, Uithuizen. Ik regel de stroom op de kermis. Denk doar mor aan.",
 "Ze draaien altijd sneller dan je denkt. Daarom staan ze hier en niet in Stad.":"Zai draaien aaltied sneller as je denkt. Doarom stoan ze hier en nait in Stad.",
 "Ze droeg haar tas. Een jaar lang.":"Zai droeg heur tas. N joar lang.",
