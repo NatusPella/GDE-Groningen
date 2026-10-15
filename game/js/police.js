@@ -191,8 +191,17 @@ function spawnPoliceVehicleAt(world, rp, opts = {}) {
   const v = spawnVehicleOnRoad(world.map, rp.road, !opts.motor, Math.random, false, false, { x: rp.x, y: rp.y }, !!opts.motor);
   if (!spawnSpotHidden(world, v.x, v.y, v.angle, v.halfLen || 2.2)) return null;
   if (solidAt(world.map, v.x, v.y)) return null;
-  // a country road point's stand-in road is no part of the street graph
-  if (rp.road.country) v.road = null;
+  // a country road point's stand-in road is no part of the street graph;
+  // the unit faces the player's way, in its own lane
+  if (rp.road.country) {
+    v.road = null;
+    const p = world.player;
+    if (Math.cos(v.angle) * (p.x - v.x) + Math.sin(v.angle) * (p.y - v.y) < 0 && !rp.road.oneway) {
+      v.angle += Math.PI;
+      v.x = 2 * rp.x - v.x;
+      v.y = 2 * rp.y - v.y;
+    }
+  }
   return v;
 }
 
@@ -1064,10 +1073,17 @@ function countryFollow(v, dt, world, goal, cruise) {
   if (left < 25) vTarget = Math.min(vTarget, Math.max(3, left * 0.6));
   // nowhere further to go on the road: wait there
   if (left < 6 && !v._fieldRun) vTarget = 0;
+  // facing the wrong way: back round in a three-point turn rather than a
+  // wide U off the road (and into the ditch beside it)
+  if (Math.abs(alpha) > 2 || (c.reverse && Math.abs(alpha) > 1.4)) c.reverse = true;
+  else c.reverse = false;
   const err = vTarget - v.speed;
-  const throttle = err > 0.25 ? clamp(err * 0.4, 0.15, 1) : 0;
-  const brake = err < -0.5 ? clamp(-err * 0.3, 0.1, 1) : 0;
-  v.applyControls(dt, throttle, steer, brake);
+  let throttle = err > 0.25 ? clamp(err * 0.4, 0.15, 1) : 0;
+  let brake = err < -0.5 ? clamp(-err * 0.3, 0.1, 1) : 0;
+  if (c.reverse && vTarget > 0) {
+    if (v.speed > 0.5) { throttle = 0; brake = 1; } else { throttle = v.speed > -3 ? -0.6 : 0; brake = 0; }
+    v.applyControls(dt, throttle, -Math.sign(alpha), brake);
+  } else v.applyControls(dt, throttle, steer, brake);
   // stuck against something: despawnFarPolice frees the slot
   c.slow = sp < 1 && vTarget > 3 ? c.slow + dt : 0;
   v.stuckFor = c.slow;
