@@ -28,6 +28,9 @@ import { getFurnitureSave } from './furniture.js';
 import { validateSpots } from './spotcheck.js';
 import { auditPassages } from './passagecheck.js';
 import { probeRingSolids, driveRingLap, probeRailLifts, driveWaterCrossings } from './ringcheck.js';
+import { requestRespawn } from './world.js';
+import { nearestFacility } from './facilities.js';
+import { realRoadNear } from './ommelandplace.js';
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -552,6 +555,23 @@ export async function runStoryTest(world) {
       check('old save plays as the current step\'s character', await waitFor(() => world.player.character === STEP_BY_ID.get('H2').player, 5000), world.player.character);
       check('old save keeps money', world.money === 1234, `€${world.money}`);
       world.money = money;
+
+      // death and arrest trips to the nearest real facility, in town and out
+      // in the Ommelanden (respawn.js, facilities.js)
+      for (const [label, x, y, busted] of [['UMCG', 760, -120, false], ['Bedum', 2079, -8936, true], ['Zuidhorn', -10665, -3160, false], ['Stad', 300, 300, true]]) {
+        const p = world.player;
+        if (p.inVehicle) { p.inVehicle.driver = null; p.inVehicle = null; }
+        const q = realRoadNear(x, y, 300);
+        const at = q && label !== 'UMCG' && label !== 'Stad' ? q : world.map.findOpenSpawn(x, y, 200) || { x, y };
+        p.x = at.x; p.y = at.y;
+        const want = nearestFacility(busted ? 'police' : 'medical', p.x, p.y);
+        const site = want && want.umcg && world.map.meta.hospital ? world.map.meta.hospital : want;
+        requestRespawn(world, { busted });
+        await sleep(300);
+        await drain(world, 900);
+        const d = site ? Math.hypot(p.x - site.x, p.y - site.y) : Infinity;
+        check(`${busted ? 'arrest' : 'death'} at ${label} -> ${want ? want.name : '?'}`, !world.pendingRespawn && d < 150, `${Math.round(d)} m from it, at (${Math.round(p.x)}, ${Math.round(p.y)})`);
+      }
     }
   } catch (e) {
     errors.push('test: ' + (e && e.stack || e));
