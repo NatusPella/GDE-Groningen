@@ -7,6 +7,7 @@ import { DEAD_DURATION } from './pedestrians.js';
 import { knockDown } from './ragdoll.js';
 import { disableVehicle } from './vehicle.js';
 import { splatterPed, bleedPed, GIB_SPEED } from './gore3d.js';
+import { railHeightFn } from './railprofile.js';
 
 const HALF_WIDTH = 1.45;
 const DWELL = 25;
@@ -70,9 +71,12 @@ let ready = false;
 export function getTrains() { return trains; }
 export function getLevelCrossings() { return crossings; }
 
-// Track height above ground at (x, y): the rail climbs on ramps to cross
-// roads on a viaduct (railLifts from add_railways.py), flat elsewhere.
+// Track height above ground at (x, y): the solved track profile
+// (railprofile.js, scripts/world/railprofile.mjs) where the map has one, else
+// ramps round the rail lifts of add_railways.py; flat elsewhere.
+let profileZ = null;
 export function railZ(x, y) {
+  if (profileZ) return profileZ(x, y);
   let z = 0;
   for (const L of lifts) {
     const d = Math.hypot(L.x - x, L.y - y);
@@ -187,6 +191,8 @@ function makeTrain(route, type, atStop, dir, dwell) {
 export function initRailway(world) {
   const map = world.map;
   lifts = map.railLifts || [];
+  const fn = railHeightFn(map);
+  profileZ = fn.profiled ? fn : null;
   bounds = map.meta.bounds;
   ext = map.countryExtent ? [map.countryExtent[0] + 150, map.countryExtent[1] + 150, map.countryExtent[2] - 150, map.countryExtent[3] - 150] : null;
   routes = (map.railRoutes || []).map(buildRoute);

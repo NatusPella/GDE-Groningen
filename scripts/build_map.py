@@ -17,6 +17,9 @@ Steps (each script edits game/citymap.json in place, see its docstring):
   add_traffic_lights    meta.trafficLights
   add_pois              meta.pois
   add_railways          rails, stations, levelCrossings, railRoutes, railLifts
+  world/railprofile.mjs the track height solver per rail network (rail.z, OSM bridge
+                        layers and electrification, railPlatforms), then profile.mjs
+                        again so roads dip under or rise over the track
   add_helipad           meta.helipad (+ the UMCG helipad wing)
   add_landmark_footprints
   add_shops             meta.shops
@@ -39,7 +42,7 @@ MAP = os.path.join(ROOT, "game", "citymap.json")
 STAMP = os.path.join(ROOT, "data", "shops_raw.bounds.json")
 
 TOP_KEYS = {"meta", "roads", "buildings", "water", "green", "trees",
-            "rails", "stations", "levelCrossings", "railRoutes", "railLifts"}
+            "rails", "stations", "levelCrossings", "railRoutes", "railLifts", "railPlatforms"}
 META_KEYS = {"origin", "bounds", "mPerDegLat", "mPerDegLon", "frame", "rdOrigin", "wgsBox", "landmarks", "districts",
              "neighbourhoodPoints", "garages", "trafficLights", "horeca", "pois", "helipad", "shops"}
 
@@ -84,6 +87,12 @@ def main():
     if refresh and os.path.exists(os.path.join(ROOT, "data", "railways_raw.json")):
         os.remove(os.path.join(ROOT, "data", "railways_raw.json"))
     run("add_railways")
+    # the track profile per rail network, then the roads again against it (a
+    # road that has to dip under the track, or go over it where OSM says so),
+    # then the track once more against the solved roads
+    run_node("world/railprofile.mjs", "--write")
+    run_node("world/profile.mjs", "--write")
+    run_node("world/railprofile.mjs", "--write")
     run("add_helipad", *extra)
     run("add_landmark_footprints")
 

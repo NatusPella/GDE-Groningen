@@ -643,6 +643,52 @@ difference with the terrain:
 Nothing else needs to know about heights: vehicles on different levels
 don't collide, and actors are drawn at their height.
 
+### Track profiles
+
+The track has its own profile per connected rail network
+(`scripts/world/railprofile.mjs`, rules and the height query in
+`js/railprofile.js`; docs/PROVINCIE-PLAN.md 2.11 "Spoor"): `rail.z` per
+vertex (densified to 10 m where the track leaves the terrain), `rail.ly` (the
+OSM grade order per segment: bridge, viaduct, layer) and `rail.el` (contact
+line), matched by geometry to the rail ways in `data/railways_raw.json`;
+`railPlatforms` (OSM `railway=platform` areas with their layer) go into the map
+too. The solver: a level crossing's track at exactly the road's height; the
+track along a platform level, on the terrain or, for a platform OSM puts on
+layer 1 (Groningen Noord), at the height that clears every road under the
+station; over a road it crosses away from a level crossing the road's
+clearance, unless OSM grades the road above the track (the Emmaviaduct, the
+Hereweg by the Verbindingskanaal), then the track stays down and
+`profile.mjs` raises the road; grades of 1.25 %, 2.5 % within 900 m of a
+place where 1.25 % cannot reach (exceptional); vertical curves of 5 km (2 km
+there); tracks closer than 6 m (double track, yards, switches) share one
+formation. Grade envelopes (lowest profile that clears everything, under the
+highest the pins allow) and projections onto curves and grades. Where the
+track cannot climb as high as a road under it needs, the road dips the rest
+(`profile.mjs`: a car road crossing the track away from a level crossing is a
+grade separation, the side OSM grades higher goes over; foot and cycle ways
+within 250 m of such a crossing may ramp with it, and the road solve runs to
+a fixed point, three passes). Pipeline: `add_railways.py`, `railprofile.mjs
+--write`, `profile.mjs --write`, `railprofile.mjs --write` (build_map.py).
+
+- One height query: `railHeightFn(map)` (the profile, else the radial
+  `railLifts` of an older map) is `railway.js railZ` (trains, the car and
+  bogie pitch, stations, cutscenes), `elevation.js` (embankments and decks
+  carry walkers and cars; stubs under 0.5 m between OSM ways are left out, so
+  no parapet stands across the track) and `profile.mjs` (the roads' crossing
+  order). `profileLifts(rails)` gives the raised stretches to the probes.
+- Constants: `RAIL_GRADE` 1.25 %, `RAIL_GRADE_MAX` 2.5 %, `RAIL_RADIUS` 5 km,
+  `RAIL_TOP` 0.26 m (top of rail above the bed), platform top 0.76 m above
+  the rail (`PLATFORM_RANGE` 0.76-0.84), `CATENARY_H` 5.5 m, the free height
+  under a deck over any track 6.0 m (roadprofile.js `CLEARANCE.rail`).
+- Audit (`node scripts/world/railprofile.mjs [--strict]`): every line of
+  `railRoutes` end to end every 2 m through the query the trains use: jumps,
+  grade, curves (20 m chords), level crossings at the road's height, level
+  platforms, the clearance of every road crossing (road over track or track
+  over road) and the contact wire under decks on electrified track.
+  `node scripts/railprofile_test.mjs`: the solver on small networks, the map's
+  audit, `railZ` against the profile and the rail lifts walked, driven and
+  cycled up (`ringcheck.js probeRailLifts`).
+
 ## Lanes
 
 Every car road carries the lane model (docs/PROVINCIE-PLAN.md 2.12; set by
