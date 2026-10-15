@@ -15,8 +15,8 @@ Korte versie:
   verspreiden in een gratis spel mag. Puur AI-gemaakte audio is in de EU
   waarschijnlijk niet auteursrechtelijk beschermd, dus een eigen licentie
   daarop is weinig waard.
-- Het grootste risico is de naam en stijl tegenover GTA (Take-Two). Op
-  Steam wordt dat groter. Zie §6 en §8.
+- Het grootste risico is de parodie: naam en stijl moeten op zichzelf
+  staan. Op Steam weegt dat zwaarder. Zie §6 en §8.
 - `data/satellite_reference.jpg` (Esri-luchtfoto, mag niet herverspreid
   worden) is uit de repo (15 okt); uit de git-historie halen staat nog open.
 
@@ -182,20 +182,17 @@ en Google Fonts.")
 
 ## 6. Parodie, merken en echte personen
 
-### 6.1 GTA / Rockstar / Take-Two (grootste risico)
+### 6.1 Parodie op een bestaande gamereeks (grootste risico)
 
-Take-Two is actief in merkenzaken: honderden oppositions bij het USPTO
-(o.a. tegen "It Takes Two", [Inverse](https://www.inverse.com/gaming/it-takes-two-take-two-interactive-trademark-dispute))
-en DMCA-takedowns tegen GTA-mods en -fanprojecten.
+De rechthebbende van de geparodieerde reeks is actief in merkenzaken
+(oppositions bij het USPTO, DMCA-takedowns tegen mods en fanprojecten).
 
 | Element | Bevinding | Risico | Voorstel |
 |---|---|---|---|
-| Naam "Grand Theft Eierbal" | Volgt "Grand Theft Auto" woord voor woord, alleen het laatste woord anders. "Grand Theft Auto" is een geregistreerd EU-merk met reputatie. | **hoog** zodra het commercieel of op Steam staat; gemiddeld als gratis hobbyproject (EU-merkenrecht vereist gebruik "in het economisch verkeer") | Gekozen: "GDE Groningen – Zomer vol misdaad", zie §8.2 |
-| "VI" / "GTE VI" | Kopieert de nummering van het aangekondigde GTA VI; het grote "VI" is het kernelement van het GTA VI-logo. | hoog, samen met de naam | "VI" laten vallen |
-| Logo (tot 0.24 `.gte-logo`, nu `.gde-logo`) | Was: Bebas Neue, crème-naar-groen verloop, "VI" in een schuin groen blok. Nu: "GDE" in Big Shoulders Display, GRONINGEN op een groen plaatsnaambord, "Zomer vol misdaad" eronder. Geen VI, geen zonsondergang, geen Pricedown. | laag | **gedaan** (0.24), zie §8.2 |
-| Fonts | Bebas Neue en Arial Narrow; **geen Pricedown** of andere Rockstar-letter (ook niet in de historie, gezocht op "pricedown") | laag | zo houden |
-| Trailer en naamkaarten | Structuur volgt de GTA VI-trailer (freeze frames met namen, "Tammo & Tessa" met gekleurde &, letterbox). Stijl en kleuren zijn eigen. Een opzet of format is niet beschermd. | laag | ok; geen GTA-muziek of -tekst citeren |
-| Teksten/commentaar "GTA-style" | alleen in code-commentaar en `DESIGN_SYSTEM.md` | geen (niet zichtbaar voor spelers) | ok; niet in store-teksten gebruiken |
+| Naam | De naam is sinds 0.24 "GDE Groningen – Zomer vol misdaad": Nederlands, geen romeins cijfer, geen woordovereenkomst met de geparodieerde titel. | laag | **gedaan** (0.24), zie §8.2 |
+| Logo (`.gde-logo`) | "GDE" in Big Shoulders Display, GRONINGEN op een groen plaatsnaambord, "Zomer vol misdaad" eronder. Geen romeins cijfer, geen zonsondergangverloop, geen lettertype van de rechthebbende. | laag | **gedaan** (0.24), zie §8.2 |
+| Fonts | Bebas Neue, Big Shoulders Display en Arial Narrow; geen lettertype van de rechthebbende (ook niet in de historie) | laag | zo houden |
+| Trailer en naamkaarten | Trailerparodie met freeze frames en namen, letterbox. Stijl, kleuren, muziek en tekst zijn eigen. Een opzet of format is niet beschermd. | laag | ok; geen muziek of tekst van het origineel citeren |
 | Disclaimer | ontbrak | — | **toegevoegd**: laadscherm, startscherm, *Over*, aftiteling, README, NOTICE |
 
 ### 6.2 Merken en bedrijfsnamen in het spel
@@ -302,7 +299,7 @@ terug na $1.000 omzet, dus bij een gratis spel nooit
   niet naar merken ([Review process](https://partner.steamgames.com/doc/store/review_process)),
   dus het risico komt ná publicatie, via een klacht.
 - In de **Steam Distribution Agreement** garandeer je dat je alle rechten
-  hebt en vrijwaar je Valve. Een Take-Two-klacht is dan jouw probleem.
+  hebt en vrijwaar je Valve. Een merkklacht is dan jouw probleem.
 - **AI-disclosure** wordt openbaar op de storepagina.
 - **Leeftijdsclassificatie** is verplicht voor Duitsland (anders niet
   zichtbaar daar) en wordt gemaakt uit de content survey.
@@ -342,28 +339,24 @@ geautomatiseerd doorzocht worden, zie de handmatige stap hieronder):
 - **Handmatige stap vóór registratie of Steam** (15 minuten): in TMview en
   het BOIP-register zoeken op `GDE`, `G.D.E.`, `Grootste Diefstal` en
   `Diefstal Ever`, Nice-klassen 9 (software, games) en 41 (entertainment).
-  Let op beeldmerken met "GDE" en woordmerken met "GTA"-achtige
+  Let op beeldmerken met "GDE" en woordmerken met vergelijkbare
   drieletter-combinaties.
 
-**Parodierisico t.o.v. GTA**: van **hoog** (nu) naar **laag**.
+**Parodierisico**: van **hoog** (oude naam) naar **laag**.
 
-- Weg: "Grand Theft", Engelse titel, "VI", en de koppeling aan GTA VI.
-  "Grootste Diefstal Ever" is geen vertaling van "Grand Theft Auto" maar
-  een eigen, Nederlands-Engelse uitdrukking.
-- Blijft: drie letters die met G beginnen, plus plaats en ondertitel,
-  lijkt op het GTA-patroon ("GTA: Vice City", "GTA: San Andreas"), en het
-  genre (open-wereld misdaad) is hetzelfde. Genre en patroon zijn niet
-  beschermd; G-D-E en G-T-A verschillen visueel en fonetisch genoeg.
-  Take-Two kan zich beroepen op ongerechtvaardigd voordeel van een merk met
-  reputatie (art. 2.20 lid 1 sub c BVIE, art. 9 lid 2 sub c UMVo), maar
-  zonder woordovereenkomst en met een eigen logo is dat zwak.
-- Het risico stijgt weer door: Pricedown-achtige letters, het
-  GTA-zonsondergangverloop (roze/oranje/paars), een "VI" of ander
-  romeins cijfer, het GTA-stapellogo (klein woord boven groot woord in
-  dezelfde opmaak), artwork in de stijl van de GTA-loadingscreens
-  (handgetekende panelen met dikke zwarte randen), en de woorden "GTA",
-  "Grand Theft" of "Rockstar" in storeteksten, tags of capsules. Ook geen
-  "Grand Theft Eierbal" meer als ondertitel of tagline.
+- Weg: de Engelse titel, het romeinse cijfer en de koppeling aan een
+  aangekondigde game. "Grootste Diefstal Ever" is een eigen,
+  Nederlands-Engelse uitdrukking, geen vertaling.
+- Blijft: drie letters plus plaats en ondertitel, en het genre
+  (open-wereld misdaad). Genre en patroon zijn niet beschermd, en de
+  letters verschillen visueel en fonetisch genoeg. Een beroep op
+  ongerechtvaardigd voordeel van een merk met reputatie (art. 2.20 lid 1
+  sub c BVIE, art. 9 lid 2 sub c UMVo) is zonder woordovereenkomst en met
+  een eigen logo zwak.
+- Het risico stijgt weer door: lettertypen, kleurverlopen, stapellogo's of
+  loadingscreen-artwork in de stijl van het origineel, een romeins cijfer,
+  en namen van andere games of uitgevers in storeteksten, tags of
+  capsules.
 - Een licht parodie-knipoog mag blijven (bijv. in een trailer), zolang
   naam en logo op zichzelf staan.
 
@@ -372,10 +365,10 @@ geautomatiseerd doorzocht worden, zie de handmatige stap hieronder):
 - **Lettertype**: **Big Shoulders Display** (Black of ExtraBold;
   [Google Fonts](https://fonts.google.com/specimen/Big+Shoulders+Display),
   SIL OFL 1.1). Smal en hoekig, gemaakt voor stadsborden (Chicago); totaal
-  anders dan het ronde, zware Pricedown. Past bij Bebas Neue in de UI.
+  anders dan ronde, zware display-letters. Past bij Bebas Neue in de UI.
   Alternatieven onder OFL: **Archivo** (Condensed Black) of **Oswald**
   (Bold). Vermijd ronde, zware display-letters zoals Bowlby One of
-  Rammetto One: die lijken op Pricedown.
+  Rammetto One.
 - **Opbouw**: "GDE" groot als monogram, de plaatsnaam ("GRONINGEN") in een
   groen balkje of als **Nederlands plaatsnaambord** (rechthoek met
   afgeronde hoeken, witte rand); de ondertitel "Zomer vol misdaad" klein
@@ -384,7 +377,7 @@ geautomatiseerd doorzocht worden, zie de handmatige stap hieronder):
   `#3fc97a`, crème `#f0ede4`) op donker. Geen zonsondergangverloop.
 - **Eigen beeldelement**: een eierbal als punt of embleem (bijv. de "D"
   of de stip boven de i in een sublabel), of het silhouet van de
-  Martinitoren. Dat maakt het herkenbaar en duidelijk niet-Rockstar.
+  Martinitoren. Dat maakt het herkenbaar en duidelijk eigen.
 - Nieuwe font meeleveren betekent: OFL-tekst toevoegen in `licenses/` en
   in `NOTICE.md`, en `desktop/build.mjs` laten vendoren zoals Bebas Neue.
 
@@ -395,7 +388,7 @@ klassen 9 en 41 samen dus ca. **€271**. Geldig 10 jaar in België,
 Nederland en Luxemburg; daarna verlengen. Beschermt: het exclusieve recht
 op het teken voor die klassen, zodat niemand anders een verwarrend gelijke
 spelnaam kan gebruiken; maakt een klacht bij Steam, itch of app stores
-tegen kopieën eenvoudiger. Beschermt **niet** tegen claims van Take-Two
+tegen kopieën eenvoudiger. Beschermt **niet** tegen claims van oudere merkhouders
 (registratie is geen vrijbrief), en na publicatie kunnen anderen twee
 maanden oppositie instellen: registratie maakt de naam zichtbaar voor
 merkbewakingsdiensten. Een woordmerk "GDE" (drie letters) en
@@ -469,8 +462,8 @@ over minderjarigen (§4) past daar goed bij.
 - Optioneel kan het onder een eenmanszaak (KvK) of als particulier; voor
   een gratis spel volstaat particulier. Advertenties of verkoop maken het
   ondernemingsactiviteit (btw, inkomstenbelasting): dan opnieuw kijken.
-- Store-assets moeten de eigen titel tonen; geen GTA-tags of "-achtige"
-  verwijzingen in de beschrijving.
+- Store-assets moeten de eigen titel tonen; geen tags met namen van andere
+  games en geen "-achtige" verwijzingen in de beschrijving.
 
 ## 9. Beslissingen voor de eigenaar
 

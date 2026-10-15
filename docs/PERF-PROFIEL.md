@@ -25,7 +25,7 @@ Twee bronnen, omdat de CPU-profiler zelf de meting verstoort:
   throttle weg na het eerste profiel.
 
 **Kanttekening.** De machine was tijdens alle metingen zwaar belast: een
-geïnstalleerde versie van de game (toen nog GTE VI) draaide mee (ongeveer 190% CPU en de GPU), plus andere
+geïnstalleerde versie van de game draaide mee (ongeveer 190% CPU en de GPU), plus andere
 agents (load average 15 tot 65 op 8 kernen). De absolute frametijden zijn
 daardoor onbruikbaar (honderden ms tot seconden per frame). De **verhoudingen**
 tussen de categorieën en de aantallen draw calls zijn wel bruikbaar.

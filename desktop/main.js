@@ -64,7 +64,7 @@ if (TRAILER || BENCH || process.argv.includes('--stil') || process.argv.some((a)
   app.setPath('userData', path.join(require('os').tmpdir(), process.env.GDE_TEST_PROFILE || 'gde-test-profile'));
 } else {
   // saves, settings and prestaties: "GDE Groningen", copied once from the
-  // pre-0.29 folder "GTE VI" (userdata.js; on any error it keeps using that one)
+  // pre-0.29 folder (userdata.js; on any error it keeps using that one)
   const { chooseUserData } = require('./userdata.js');
   app.setPath('userData', chooseUserData(app.getPath('appData'), APP_NAME, { log: console.log }).dir);
 }
