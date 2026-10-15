@@ -160,7 +160,7 @@ function seekTowards(c, tx, ty, speed, dt, map, intoWater = false) {
   c.vy = Math.sin(c.angle) * s;
   let nx = c.x + c.vx * dt, ny = c.y + c.vy * dt;
   [nx, ny] = resolveRailings(nx, ny, c.radius, map);
-  [nx, ny] = resolveBuildingCollisions(nx, ny, c.radius, map);
+  [nx, ny] = resolveBuildingCollisions(nx, ny, c.radius, map, 0, true);
   if (!isInWater(map, c.x, c.y) && isInWater(map, nx, ny) && !intoWater) {
     if (!isInWater(map, nx, c.y)) ny = c.y;
     else if (!isInWater(map, c.x, ny)) nx = c.x;
@@ -452,7 +452,7 @@ function moveWithCollisions(c, dt, world) {
     [nx, ny] = pushOutOfProps(nx, ny, c.radius);
     [nx, ny] = pushOutOfPeds(nx, ny, c.radius, world);
     [nx, ny] = resolveRailings(nx, ny, c.radius, map);
-    [nx, ny] = resolveBuildingCollisions(nx, ny, c.radius, map);
+    [nx, ny] = resolveBuildingCollisions(nx, ny, c.radius, map, 0, true);
     if (!isInWater(map, c.x, c.y) && isInWater(map, nx, ny)) {
       if (!isInWater(map, nx, c.y)) ny = c.y;
       else if (!isInWater(map, c.x, ny)) nx = c.x;

@@ -49,7 +49,8 @@ export const CLIMB_TIME = 0.6;
 const CLIMB_REACH = 1.3;
 const CLIMB_SCAN_INTERVAL = 0.15;
 const SPLASH_LIFE = 1.1;
-const WALK_OPTS = { byPlayer: true };
+// the hedges and fences: countryside.js, which lets a vault over them
+const WALK_OPTS = { byPlayer: true, noWalls: true };
 const SWIM_OPTS = { kick: false };
 const SWIM_EDGE_CLEAR = 0.7;
 

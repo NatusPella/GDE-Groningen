@@ -109,4 +109,151 @@ if (!farm.tractor || !farm.quad) fails++;
   if (!ok) fails++;
   console.log(`${ok ? 'ok  ' : 'FAIL'} moving traffic: ${real} real-vehicle frames ${JSON.stringify(types)}, ${onPose} on their road pose, ${released}/${taken} let go when taken, ${cd} still driven`);
 }
+// parked cars never overlap: countrySlots and the village kerbs share streets
+{
+  let pairs = 0, overlaps = 0;
+  for (const [name, x, y] of SPOTS) {
+    const world = { map, vehicles: [], time: 0, player: { x, y, inVehicle: null }, input: null };
+    for (let k = 0; k < 400; k++) { if (k % 50 === 0) P.manageParkedCars(world); P.tickParkedCars(world); world.time += 1 / 60; }
+    const cars = [...P.sleepingParkedCars(world), ...world.vehicles].filter((v) => F.edgeDistance(v.x, v.y) >= 0);
+    for (let i = 0; i < cars.length; i++) {
+      const a = cars[i];
+      if (P.slotOverlaps(cars.slice(i + 1).map((b) => ({ x: b.x, y: b.y, angle: b.angle, model: b.model })), a.x, a.y, a.angle, a.model, 0.05)) { overlaps++; console.log('  overlap at', name, Math.round(a.x), Math.round(a.y)); }
+      pairs++;
+    }
+  }
+  const ok = overlaps === 0;
+  if (!ok) fails++;
+  console.log(`${ok ? 'ok  ' : 'FAIL'} parked cars: ${pairs} checked, ${overlaps} overlapping`);
+}
+
+const V = await import('../game/js/vehicle.js');
+const E = await import('../game/js/countryedge.js');
+const { REAL } = await import('../game/js/countryreal.js');
+const { isInWater, inWaterPoly, setExtraWater } = await import('../game/js/util.js');
+V.setGroundMap(map);
+// as countrywater.js does when the 3D scene starts
+setExtraWater(E.wideWaterAt);
+const SEDAN = { name: 'sedan', len: 4.3, wid: 1.8, maxSpeed: 50, accel: 10, brake: 24, turnRate: 2.6, color: '#444' };
+
+// meadow drag for every driver (vehicle.js offroadDrag): an AI car flat out
+// on grass slows to the cap, the same car on the road does not
+{
+  const drive = (x, y, angle, driver) => {
+    const v = new V.Vehicle(x, y, angle, SEDAN);
+    v.driver = driver;
+    v.speed = 30;
+    let worst = 0;
+    for (let f = 0; f < 120; f++) { v.applyControls(1 / 60, 1, 0, 0); if (f > 90) worst = Math.max(worst, v.speed); }
+    return { v, worst };
+  };
+  let meadow = null, road = null;
+  for (let k = 0; k < 6000 && !meadow; k++) {
+    const x = -9000 + (k * 7919) % 18000, y = -9000 + (k * 104729) % 18000;
+    if (F.edgeDistance(x, y) < 300) continue;
+    if ([0, 10, 20, 30, 40].every((o) => V.offroadGround(map, x + o, y) === 'gras')) meadow = [x, y];
+  }
+  for (const r of REAL.roads) {
+    if (r.kind > 3 || r.bridge) continue;
+    const a = r.pts[0], b = r.pts[1];
+    if (Math.hypot(b[0] - a[0], b[1] - a[1]) > 60 && F.edgeDistance(a[0], a[1]) > 300) { road = [a[0], a[1], Math.atan2(b[1] - a[1], b[0] - a[0])]; break; }
+  }
+  const ai = drive(meadow[0], meadow[1], 0, null), pl = drive(meadow[0], meadow[1], 0, 'player'), onRoad = drive(road[0], road[1], road[2], null);
+  // the same gentle cap for every driver: grass costs a sedan some top end, not a wall
+  const ok = ai.worst < onRoad.worst - 2 && pl.worst < onRoad.worst - 2 && ai.worst > 28 && pl.worst > 28 && Math.abs(ai.worst - pl.worst) < 4;
+  if (!ok) fails++;
+  console.log(`${ok ? 'ok  ' : 'FAIL'} meadow drag: AI ${ai.worst.toFixed(1)} m/s, player ${pl.worst.toFixed(1)} m/s after 2 s flat out from 30 on grass; on a road ${onRoad.worst.toFixed(1)}`);
+}
+
+// one water rule: 'deep' is what sinks (inWaterPoly / isInWater), the painted
+// water ('wade', 'ditch') never does
+{
+  const n = { deep: 0, wade: 0, ditch: 0, dry: 0 };
+  let bad = 0;
+  for (let k = 0; k < 60000; k++) {
+    const x = -14000 + (k * 7919.3) % 28000, y = -14000 + (k * 104729.7) % 28000;
+    if (F.edgeDistance(x, y) < 5) continue;
+    const w = E.countryWater(x, y);
+    n[w || 'dry']++;
+    if ((w === 'deep') !== inWaterPoly(map, x, y) || (w === 'deep') !== isInWater(map, x, y)) bad++;
+  }
+  const ok = !bad && n.deep > 0 && n.wade > 0 && n.ditch > 0;
+  if (!ok) fails++;
+  console.log(`${ok ? 'ok  ' : 'FAIL'} one water rule: ${JSON.stringify(n)}, ${bad} where sinking disagrees`);
+}
+
+// bridges: dry out to the railings, and a car steered at a railing stays on the deck
+{
+  let decks = 0, wetDeck = 0, cars = 0, sunk = 0;
+  for (const r of REAL.roads) {
+    if (!r.bridge) continue;
+    for (let i = 0; i < r.pts.length - 1; i++) {
+      const a = r.pts[i], b = r.pts[i + 1];
+      const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
+      const mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2;
+      if (len <= 8 || F.realWater(mx, my) <= 1.5 || F.rectOutside(mx, my) <= 0 || F.edgeDistance(mx, my) < 30) continue;
+      const ux = (b[0] - a[0]) / len, uy = (b[1] - a[1]) / len, h = E.deckHalf(r.w);
+      decks++;
+      for (const s of [1, -1]) for (const o of [r.w / 2 + 0.5, h - 0.3]) if (E.wideWaterAt(mx - uy * o * s, my + ux * o * s)) wetDeck++;
+      if (cars >= 40) continue;
+      // 40 degrees off the road at 15 m/s, into the railing
+      const v = new V.Vehicle(mx - ux * 6, my - uy * 6, Math.atan2(uy, ux) + 0.7, SEDAN);
+      v.driver = 'player';
+      v.speed = 15;
+      cars++;
+      for (let f = 0; f < 90; f++) {
+        v.applyControls(1 / 60, 0.5, 0, 0);
+        V.resolveVehicleBuildingCollision(v, map, 1 / 60);
+        // past the deck's end the road may bend away: that is not the railing's job
+        const along = (v.x - a[0]) * ux + (v.y - a[1]) * uy;
+        if (along > len + 1) break;
+        if (V.overOpenWater(map, v.x, v.y, 0)) { sunk++; break; }
+      }
+    }
+  }
+  const ok = decks > 0 && !wetDeck && cars > 0 && !sunk;
+  if (!ok) fails++;
+  console.log(`${ok ? 'ok  ' : 'FAIL'} bridges: ${decks} decks over open water, ${wetDeck} deck points in the water, ${sunk}/${cars} cars into a railing ended in the water`);
+}
+
+// police out in the Ommeland: units come in on the country roads, drive them
+// towards a player parked in the fields and get there
+{
+  const Pol = await import('../game/js/police.js');
+  const { snapCountry } = await import('../game/js/countryroute.js');
+  let units = 0, onRoad = 0, offRoad = 0, reached = 0, wet = 0, runs = 0;
+  for (const target of [[5700, -11600], [2079, -8936], [8673, -6393]]) {
+    runs++;
+    const car = new V.Vehicle(target[0], target[1], 0, SEDAN);
+    car.driver = 'player';
+    const world = {
+      map, vehicles: [car], pedestrians: [], bullets: [], particles: [], time: 0, wanted: 3, wantedDecayTimer: 0,
+      player: { x: target[0], y: target[1], inVehicle: car, radius: 0.35 }, addMessage() {}, stats: {},
+    };
+    const seen = new Set();
+    let closest = Infinity;
+    for (let f = 0; f < 60 * 45; f++) {
+      world.time += 1 / 60;
+      world.wanted = 3;
+      Pol.updatePolice(1 / 60, world);
+      for (const v of world.vehicles) {
+        if (!v.isPolice || v.isBoat) continue;
+        seen.add(v);
+        const d = Math.hypot(v.x - car.x, v.y - car.y);
+        closest = Math.min(closest, d);
+        if (V.overOpenWater(map, v.x, v.y, 0)) wet++;
+        if (d > 40 && !v._direct && f % 30 === 0) { const q = snapCountry(v.x, v.y, 100); if (q && q.d < 6) onRoad++; else offRoad++; }
+      }
+    }
+    units += seen.size;
+    // up to the player, or as close as the road nearest them when water lies between
+    const gap = snapCountry(target[0], target[1], 600).d;
+    if (closest < Math.max(15, gap + 8)) reached++;
+    console.log(`     at ${target}: ${seen.size} units, closest ${closest.toFixed(1)} m (nearest road ${gap.toFixed(1)} m)`);
+  }
+  const share = onRoad / Math.max(1, onRoad + offRoad);
+  const ok = units > 0 && reached === runs && share > 0.85 && !wet;
+  if (!ok) fails++;
+  console.log(`${ok ? 'ok  ' : 'FAIL'} police in the Ommeland: ${units} units, ${reached}/${runs} reached the player, ${(share * 100).toFixed(0)}% of road-following samples on a road, ${wet} in the water`);
+}
 process.exit(fails ? 1 : 0);

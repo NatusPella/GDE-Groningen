@@ -29,7 +29,7 @@
 //   getOwnedVehiclesForMap(world) -> [{ x, y, angle, kind, label, hero, color }]
 
 import { closestPointOnSegment, isInWater } from './util.js';
-import { realRoadNear } from './ommelandplace.js';
+import { realRoadNear, ommelandArea } from './ommelandplace.js';
 import { buildingAt } from './countryreal.js';
 import { isSpawnHidden } from './pedestrians.js';
 import { slotFits, propBlocked, sleepingParkedCars } from './parkedcars.js';
@@ -318,6 +318,13 @@ function wijkAt(map, x, y) {
   return best;
 }
 
+// Street and wijk; out in the Ommeland the country road and the village (or "bij <village>").
+function placeOf(map, x, y) {
+  const area = ommelandArea(x, y);
+  if (!area) return { street: streetAt(map, x, y), wijk: wijkAt(map, x, y) };
+  return { street: realStreetAt(x, y), wijk: area.place ? (area.near ? `bij ${area.place}` : area.place) : 'Ommeland' };
+}
+
 function streetAt(map, x, y) {
   const rp = map.nearestRoadPoint(x, y, 40);
   return rp && rp.road.name ? rp.road.name : '';
@@ -330,6 +337,8 @@ export function streetPhrase(name) {
   if (/(kade|singel|diep|gracht|wal|haven|dijk)$/.test(n)) return `aan de ${name}`;
   if (/(markt|plein|hof)$/.test(n)) return `op de ${name}`;
   if (n.includes(' der ')) return `aan de ${name}`;
+  // a numbered road out in the Ommeland: "op de N361"
+  if (/^[an]\d+$/.test(n)) return `op de ${name}`;
   return `in de ${name}`;
 }
 
@@ -359,7 +368,7 @@ function statusOf(world, v, lost, kind, key) {
   if (world.player.inVehicle === v) return { key: 'driving', label: 'Je zit erin' };
   if (!v || !world.vehicles.includes(v) || v.homeStored) return { key: 'garage', label: homeWhereLabel(key) || (kind === 'heli' ? 'Thuis op het helidek' : kind === 'boat' ? 'Thuis aan jouw steiger' : 'Thuis in de garage') };
   const d = Math.hypot(v.x - world.player.x, v.y - world.player.y);
-  return d < NEAR_M ? { key: 'near', label: 'In de buurt', dist: d } : { key: 'far', label: 'Ergens in Grunn', dist: d };
+  return d < NEAR_M ? { key: 'near', label: 'In de buurt', dist: d } : { key: 'far', label: ommelandArea(v.x, v.y) ? 'In het Ommeland' : 'Ergens in Grunn', dist: d };
 }
 
 function view(world, { id, hero, spec, color, upgrades, v, lost, key }) {
@@ -368,8 +377,7 @@ function view(world, { id, hero, spec, color, upgrades, v, lost, key }) {
   // the top the player gets out of it (vehicle.js playerTune), scaled by its upgrades
   const top = playerTopSpeed(spec.model) * perf.maxSpeed / spec.model.maxSpeed;
   const status = statusOf(world, v, lost, spec.kind, hero ? 'hero' : key);
-  const where = v && status.key !== 'garage' && status.key !== 'lost'
-    ? { street: streetAt(world.map, v.x, v.y), wijk: wijkAt(world.map, v.x, v.y) } : null;
+  const where = v && status.key !== 'garage' && status.key !== 'lost' ? placeOf(world.map, v.x, v.y) : null;
   const fee = hero ? (lost || !v ? HERO_REPLACE_FEE : 0) : lost ? replacementFee({ spec }) : status.key === 'garage' && (spec.kind === 'heli' || spec.kind === 'boat') ? 0 : spec.kind === 'heli' ? HELI_FERRY_FEE : REDELIVERY_FEE;
   return {
     id, key, hero, owned: true, v, spec,

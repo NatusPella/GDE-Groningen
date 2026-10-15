@@ -14,7 +14,7 @@ import { isPlayAheadOpen } from './todo.js';
 import { Player } from './player.js';
 import { World } from './world.js';
 import { initCompanion, updateCompanion } from './companion.js';
-import { updateTrafficAI, resolveVehicleBuildingCollision, resolveVehicleVehicleCollisions, manageTrafficPopulation, manageBikePopulation, manageBusPopulation, manageScooterPopulation, manageBoatPopulation, updateBoatAI, checkVehicleWater, spawnHeroCarNear, tickBurningVehicles } from './vehicle.js';
+import { updateTrafficAI, resolveVehicleBuildingCollision, resolveVehicleVehicleCollisions, manageTrafficPopulation, manageBikePopulation, manageBusPopulation, manageScooterPopulation, manageBoatPopulation, updateBoatAI, checkVehicleWater, spawnHeroCarNear, tickBurningVehicles, setGroundMap } from './vehicle.js';
 import { spawnPedestriansNear, updatePedestrians } from './pedestrians.js';
 import { updateCombat, updateBullets } from './combat.js';
 import { updatePolice } from './police.js';
@@ -225,6 +225,7 @@ async function boot() {
   // the map-edge layout (~0.3 s) during loading, not on the first trip out;
   // after init3D, which sets the country bounds it measures from
   ensureCountryEdge(map);
+  setGroundMap(map);
   markLoad('countryEdge');
   setLoadProgress(0.8);
   await yieldToPaint();

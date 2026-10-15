@@ -130,6 +130,13 @@ export function worldEndCount() {
   return WORLD_ENDS.filter((d) => hasUnique(SET, d.id)).length;
 }
 
+// The wereldeinden already found, for the maps (ommelandmap.js); the rest stay
+// a secret ("zoek ze zelf").
+export function getFoundWorldEnds() {
+  if (!spots) return [];
+  return spots.filter((s) => hasUnique(SET, s.def.id)).map((s) => ({ x: s.sx, y: s.sy, name: s.def.name, sub: 'Wereldeinde · gevonden' }));
+}
+
 // For spotcheck.js and the story test: the standing spots, on foot.
 export function getWorldEndSpots() {
   return ensureWorldEnds().map((s) => ({ id: s.def.id, name: s.def.name, x: s.sx, y: s.sy, road: s.road }));

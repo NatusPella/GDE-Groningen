@@ -684,6 +684,16 @@ function pushCircle(obj, cx, cy, r, radius) {
   return true;
 }
 
+// Solid circles other modules keep up to date (ommelandfun.js: the props of
+// the wereldeinden and the dorpsuitjes): [{ x, y, r }].
+let extraSolids = [];
+export function setExtraSolids(list) {
+  extraSolids = list;
+}
+export function planExtraSolids() {
+  return extraSolids;
+}
+
 // Keeps obj ({x, y}) out of every building, silo, mast and terp.
 export function pushOutOfPlan(obj, radius) {
   const bx = Math.floor(obj.x / BLOCK), by = Math.floor(obj.y / BLOCK);
@@ -714,5 +724,6 @@ export function pushOutOfPlan(obj, radius) {
   for (const t of turbinesAround(obj.x, obj.y, 12)) if (pushCircle(obj, t.x, t.y, 3.1, radius)) hit = true;
   const { pylons } = pylonsAround(obj.x, obj.y, 12, [], []);
   for (const p of pylons) if (pushCircle(obj, p.x, p.y, 3.4, radius)) hit = true;
+  for (const c of extraSolids) if (Math.abs(obj.x - c.x) < c.r + radius && Math.abs(obj.y - c.y) < c.r + radius && pushCircle(obj, c.x, c.y, c.r, radius)) hit = true;
   return hit;
 }

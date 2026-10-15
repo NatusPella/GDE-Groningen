@@ -76,6 +76,19 @@ export function pushOutOfWalls(obj, r, src = wallTiles) {
   return hit;
 }
 
+// How many trunks stand within r of (x, y); the first `max` of them go into out as [x, y].
+export function trunksNear(x, y, r, out = null, max = 10) {
+  let n = 0;
+  eachNear(x, y, (W) => {
+    for (let k = 0; k < W.length; k += STRIDE) {
+      if (Math.abs(W[k] - x) > r || Math.abs(W[k + 1] - y) > r || Math.hypot(W[k] - x, W[k + 1] - y) > r) continue;
+      n++;
+      if (out && out.length < max) out.push([W[k], W[k + 1]]);
+    }
+  }, trunkTiles);
+  return n;
+}
+
 // Pushes obj ({x, y}) radius r out of every tree trunk; true when it moved.
 export function pushOutOfTrunks(obj, r) {
   return pushOutOfWalls(obj, r, trunkTiles);
