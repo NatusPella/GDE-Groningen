@@ -37,15 +37,14 @@
 #load-screen .ls-tip p { margin: 3px 0 0; font: 18px/1.4 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.01em; }
 #load-screen .ls-prog { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; width: 433px; flex: none; }
 #load-screen .ls-phase { display: flex; gap: 10px; align-items: center; }
-#load-screen .ls-phase b { font-weight: normal; font-size: 20px; }
-#load-screen .ls-phase small { font-size: 16px; color: rgba(240, 237, 228, 0.55); }
-#load-screen .ls-phase small:empty { display: none; }
+#load-screen .ls-tip.swap { animation: ls-line-in 0.5s ease-out; }
+@keyframes ls-line-in { from { opacity: 0; transform: translateY(4px); } }
 #load-screen .ls-spin { width: 25px; height: 25px; animation: ls-spin 2.4s linear infinite; }
 #load-screen .ls-spin circle { fill: none; stroke: rgba(240, 237, 228, 0.18); stroke-width: 3; }
 #load-screen .ls-spin path { fill: none; stroke: #3fc97a; stroke-width: 3; stroke-linecap: round; }
 @keyframes ls-spin { to { transform: rotate(360deg); } }
 #load-screen .ls-bar { width: 100%; height: 4px; border-radius: 2px; background: rgba(240, 237, 228, 0.15); overflow: hidden; }
 #load-screen .ls-bar i { display: block; height: 100%; transform-origin: left; transform: scaleX(0.04); background: linear-gradient(90deg, #1e9e56, #3fc97a); box-shadow: 0 0 12px #3fc97a; transition: transform 0.2s linear; }
-@media (max-width: 900px) { #load-screen .ls-recap, #load-screen .ls-tip { display: none; } #load-screen .ls-card { right: 40px; top: 40px; } #load-screen .ls-brand { left: 40px; top: 40px; } #load-screen .ls-bottom { left: 40px; right: 40px; } #load-screen .ls-prog { width: 100%; } }
+@media (max-width: 900px) { #load-screen .ls-tip { display: none; } #load-screen .ls-card { right: 40px; top: 40px; } #load-screen .ls-brand { left: 40px; top: 40px; } #load-screen .ls-bottom { left: 40px; right: 40px; } #load-screen .ls-prog { width: 100%; } }
 @media (prefers-reduced-motion: reduce) { #load-screen .ls-bg, #load-screen .ls-spin { animation: none; } #load-screen { transition: none; } }
 html.reduce-motion #load-screen .ls-bg, html.reduce-motion #load-screen .ls-spin { animation: none; }

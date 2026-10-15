@@ -51,12 +51,18 @@ export function onPadChange(cb) {
   return () => listeners.delete(cb);
 }
 
+// the hint source setting can pin the glyphs to keys or to the controller
+function hintsOnPad() {
+  const src = getSettings().hintSource;
+  return src === 'pad' ? true : src === 'keys' ? false : active;
+}
+
 export function padState() {
-  return { active, family, ctx };
+  return { active: hintsOnPad(), family, ctx };
 }
 
 export function isPadActive() {
-  return active;
+  return hintsOnPad();
 }
 
 function emit() {
@@ -399,6 +405,7 @@ export function initGamepad(inp, w, h = {}) {
   hooks = h;
   onSettingsChange((st, key) => {
     if (!key || key === 'padBinds') { padBinds = { ...st.padBinds }; slotMap = buttonSlots(padBinds); }
+    if (key === 'hintSource') { family = layoutFor(currentPad() && currentPad().id); document.documentElement.dataset.pad = family; emit(); }
     if (key === 'padLayout' && active) { family = layoutFor(currentPad() && currentPad().id); document.documentElement.dataset.pad = family; emit(); }
   });
   // a real key, click or mouse sweep hands the hints back to the keyboard
