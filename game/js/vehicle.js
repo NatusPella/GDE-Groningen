@@ -452,7 +452,7 @@ function minTurnRadius(m, player = false) {
   if (m.name === 'midibus' && player) return 8.5;
   if (m.name === 'bike' || m.name === 'scooter') return 1.8;
   // a long tour boat or barge turns on its own length or so (rudder and bow thruster)
-  if (m.name === 'boat') return m.len > 10 ? Math.max(12.5, m.len * 0.8) : Math.min(m.len * 1.25, 5.5);
+  if (m.name === 'boat') return m.len > 10 ? Math.max(11.5, m.len * 0.78) : Math.min(m.len * 1.25, 5.5);
   return m.len * 1.25;
 }
 
