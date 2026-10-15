@@ -2,7 +2,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import {
   BLOCK, ROAD_IN, ROAD_W, MAAR_HW, COUNTRY_UNIFORMS, EDGE_TEX_W, EDGE_SLOTS,
   chash, edgeDistance, countryWeight, edgeRoad, maarX, maarY, setEdgeQuery, setCountryMask, realWater,
-  SHORE_RW, rectOutside, villageAt, VILLAGE_RING, VILLAGE_X, realBlock,
+  SHORE_RW, rectOutside, villageAt, VILLAGE_RING, VILLAGE_X, realBlock, countrySurface, parcelAt, MAAR_WATER,
 } from './countryfield.js';
 import { REAL, realBlocked, buildRealSigns } from './countryreal.js';
 
@@ -699,11 +699,57 @@ export function openWater(x, y) {
 }
 
 // Deep open water past the map edge (countrywater.js draws it at WATER_Y):
-// swum in and sunk in like the city canals; roads over it are bridges.
+// swum in and sunk in like the city canals; roads over it are bridges, dry
+// out to their railings.
 export function wideWaterAt(x, y) {
   if (!REAL.ready || rectOutside(x, y) <= 0 || openWater(x, y) <= SHORE_RW) return false;
-  const h = edgeAt(x, y);
-  return !(h && h.kind === 'road');
+  return !onDeck(x, y);
+}
+
+// countryside.js scales bridgeGeometry (railings at 2.95 m on a 5.2 m road)
+// by (road width + 1.4) / 5.2 across: the railing's distance from the centre line.
+export const deckHalf = (roadW) => 0.567 * (roadW + 1.4);
+// A real road bridge with a deck drawn (countryside.js genReal): its railing offset, else 0.
+export function bridgeDeck(g) {
+  if (g._deck !== undefined) return g._deck;
+  const r = g.owner && g.owner.road;
+  const len = Math.hypot(g.bx - g.ax, g.by - g.ay);
+  g._deck = r && r.bridge && len > 4 && realWater((g.ax + g.bx) / 2, (g.ay + g.by) / 2) > -3 ? deckHalf(r.w) : 0;
+  return g._deck;
+}
+// On a painted road, or on a bridge deck between its railings.
+function onDeck(x, y) {
+  for (const g of segsNear(x, y, 2)) {
+    if (g.kind) continue;
+    const b = g.box;
+    if (x < b[0] || x > b[2] || y < b[1] || y > b[3]) continue;
+    const [d, t] = segDist(x, y, g);
+    if (d <= g.ha + (g.hb - g.ha) * t) return true;
+    const deck = bridgeDeck(g);
+    if (deck && d <= deck && t > 0 && t < 1) return true;
+  }
+  return false;
+}
+
+// The one water rule out in the Ommeland, for vehicles and walkers alike:
+//   'deep'  water drawn at the canal level (wideWaterAt; util.js isInWater
+//           and inWaterPoly): a vehicle sinks, a walker swims, like a city canal
+//   'wade'  a maar, real open water inside the city rectangle that its
+//           polygons miss, or the rim of open water: painted on the ground,
+//           vehicles crawl through at walking pace, walkers wade
+//   'ditch' a strip or main ditch, a narrow real waterway: a dip a vehicle
+//           bumps through, walkers wade
+//   null    dry
+// Inside the city rectangle the city's own water polygons do the sinking.
+export function countryWater(x, y) {
+  if (wideWaterAt(x, y)) return 'deep';
+  if (countrySurface(x, y) === 'sloot') {
+    if (REAL.ready && realWater(x, y) > 0.8) return 'wade';
+    return parcelAt(x, y).dMaar < MAAR_WATER ? 'wade' : 'ditch';
+  }
+  // the shallow rim of open water past the map edge, short of SHORE_RW
+  if (REAL.ready && rectOutside(x, y) > 0 && openWater(x, y) > 0.8 && !onDeck(x, y)) return 'wade';
+  return null;
 }
 
 // Metres from (x, y) to the edge of the nearest paved way the ground

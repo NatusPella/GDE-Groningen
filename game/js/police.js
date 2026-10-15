@@ -1,8 +1,15 @@
-import { clamp, closestPointOnSegment, pointInPolygon } from './util.js';
-import { spawnVehicleOnRoad, updateTrafficAI, resolveVehicleBuildingCollision, spawnPoliceBoatOnWater, attachToNearestRoad, maxCurvature } from './vehicle.js';
+import { clamp, closestPointOnSegment, pointInPolygon, isInWater } from './util.js';
+import { spawnVehicleOnRoad, updateTrafficAI, resolveVehicleBuildingCollision, spawnPoliceBoatOnWater, spawnCountryPoliceBoat, attachToNearestRoad, maxCurvature } from './vehicle.js';
 import { requestRespawn } from './world.js';
 import { bustFine } from './economy.js';
-import { spawnCopPedestriansNear, isInsideBuilding, isSpawnHidden } from './pedestrians.js';
+import { spawnCopPedestriansNear, makeCopPedestrian, isInsideBuilding, isSpawnHidden } from './pedestrians.js';
+import { REAL, buildingAt } from './countryreal.js';
+import { edgeDistance, ROAD_W } from './countryfield.js';
+import { realRoadNear } from './ommelandplace.js';
+import { pushOutOfPlan } from './countryplan.js';
+import { wideWaterAt } from './countryedge.js';
+import { countryReady, snapCountry, countryPathNear, nodeXY } from './countryroute.js';
+import { waterClearance } from './waterindex.js';
 import { isKnockedDown } from './ragdoll.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { makeBeamGeometry, makeBeamMaterial, requestSearchlight } from './nightlights3d.js';
@@ -169,7 +176,8 @@ function findSpawnPoint(world, cx, cy, minFromPlayer = SPAWN_MIN_DIST, ahead = f
     if (heading !== null && ahead && attempt < 7) ang = heading + (Math.random() - 0.5) * 1.6;
     else if (heading !== null && Math.abs(pv.speed) > 6 && attempt < 6) ang = heading + Math.PI / 2 + Math.random() * Math.PI;
     const d = SPAWN_MIN_DIST + Math.random() * (SPAWN_MAX_DIST - SPAWN_MIN_DIST);
-    const rp = map.nearestRoadPoint(cx + Math.cos(ang) * d, cy + Math.sin(ang) * d, 40, true);
+    const qx = cx + Math.cos(ang) * d, qy = cy + Math.sin(ang) * d;
+    const rp = map.nearestRoadPoint(qx, qy, 40, true) || countryRoadPoint(qx, qy, 70);
     if (!rp || rp.road.bridge) continue;
     const dp = Math.hypot(rp.x - p.x, rp.y - p.y);
     if (dp < minFromPlayer || dp > SPAWN_MAX_DIST + 20) continue;
@@ -182,7 +190,18 @@ function findSpawnPoint(world, cx, cy, minFromPlayer = SPAWN_MIN_DIST, ahead = f
 function spawnPoliceVehicleAt(world, rp, opts = {}) {
   const v = spawnVehicleOnRoad(world.map, rp.road, !opts.motor, Math.random, false, false, { x: rp.x, y: rp.y }, !!opts.motor);
   if (!spawnSpotHidden(world, v.x, v.y, v.angle, v.halfLen || 2.2)) return null;
-  if (isInsideBuilding(world.map, v.x, v.y)) return null;
+  if (solidAt(world.map, v.x, v.y)) return null;
+  // a country road point's stand-in road is no part of the street graph;
+  // the unit faces the player's way, in its own lane
+  if (rp.road.country) {
+    v.road = null;
+    const p = world.player;
+    if (Math.cos(v.angle) * (p.x - v.x) + Math.sin(v.angle) * (p.y - v.y) < 0 && !rp.road.oneway) {
+      v.angle += Math.PI;
+      v.x = 2 * rp.x - v.x;
+      v.y = 2 * rp.y - v.y;
+    }
+  }
   return v;
 }
 
@@ -254,8 +273,11 @@ function despawnFarPolice(world, state) {
 function hasLineOfSight(map, ax, ay, bx, by) {
   const d = Math.hypot(bx - ax, by - ay);
   const steps = Math.ceil(d / 3);
+  // out in the Ommeland the real buildings block the view too
+  const country = REAL.ready && edgeDistance((ax + bx) / 2, (ay + by) / 2) > -40;
   for (let k = 1; k < steps; k++) {
     const x = ax + (bx - ax) * k / steps, y = ay + (by - ay) * k / steps;
+    if (country && buildingAt(x, y, 0) >= 0) return false;
     for (const b of map.buildingsNear(x, y, 0.5)) {
       const [minx, miny, maxx, maxy] = b.bounds;
       if (x < minx || x > maxx || y < miny || y > maxy) continue;
@@ -282,7 +304,12 @@ function updateChase(v, dt, world) {
   if (v._losTimer <= 0) {
     v._losTimer = 0.25;
     v._sees = d < SEE_RANGE_CAR && (aloftInSight(world) || hasLineOfSight(world.map, v.x, v.y, p.x, p.y));
-    v._direct = d < DIRECT_CHASE_DIST && v._sees && !pol.searching;
+    // out in the fields the last stretch from the road nearest the player is
+    // across the grass (countryFollow sets _fieldRun at the end of its way)
+    if (v._fieldRun && (d > FIELD_RUN_DIST || pol.searching || !dryLine(world.map, v.x, v.y, p.x, p.y))) v._fieldRun = false;
+    v._direct = (d < DIRECT_CHASE_DIST && v._sees || !!v._fieldRun) && !pol.searching;
+    // never straight into a canal or a maar out there
+    if (v._direct && !v._fieldRun && REAL.ready && edgeDistance(v.x, v.y) > 0 && !dryLine(world.map, v.x, v.y, p.x, p.y)) v._direct = false;
   }
   tunePoliceCar(v, world, d, v._sees);
   let goal = p;
@@ -295,7 +322,13 @@ function updateChase(v, dt, world) {
   }
   let cruise = pursuitCruise(v, d, pv, pol.searching);
   if (!pv && !pol.searching && d < 25) cruise = Math.max(3, (d - FOOT_STOP_DIST) * 0.8);
-  if (!v._direct && v.road && !v._wasDirect) {
+  // out in the Ommeland (the player, or a unit without a city street) the
+  // real roads lead there, like the streets do in town
+  const country = !v._direct && REAL.ready && (edgeDistance(goal.x, goal.y) > 30 || (!v.road && edgeDistance(v.x, v.y) > 0));
+  if (country && countryFollow(v, dt, world, goal, cruise)) {
+    v.road = null;
+    v._wasDirect = false;
+  } else if (!v._direct && v.road && !v._wasDirect) {
     updateTrafficAI(v, dt, world.map, world, Math.random, { goal, chase: true, cruise });
   } else if (!v._direct) {
     if (!attachToNearestRoad(v, world.map)) v._direct = true;
@@ -473,8 +506,9 @@ function trySpawnCopPeds(world, state) {
   const p = world.player;
   const c = pol.searching ? randomPointInSearch(pol) : p;
   state.nextCopPedSpawnAt = world.time + 0.6;
-  const cops = spawnCopPedestriansNear(world.map, c.x, c.y, 1, Math.random, true, COP_PED_MIN_DIST)
+  let cops = spawnCopPedestriansNear(world.map, c.x, c.y, 1, Math.random, true, COP_PED_MIN_DIST)
     .filter((cop) => Math.hypot(cop.x - p.x, cop.y - p.y) >= COP_PED_MIN_DIST);
+  if (!cops.length) cops = countryCopPed(world, c);
   if (!cops.length) return;
   world.pedestrians.push(...cops);
   state.nextCopPedSpawnAt = world.time + COP_PED_SPAWN_STAGGER;
@@ -495,7 +529,27 @@ function despawnFarCopPeds(world) {
 function isPlayerNearWater(world) {
   const p = world.player;
   if (p.inVehicle && p.inVehicle.isBoat) return true;
-  return world.map.waterNear(p.x, p.y, WATER_PROXIMITY).length > 0;
+  if (world.map.waterNear(p.x, p.y, WATER_PROXIMITY).length > 0) return true;
+  // the open water of the Ommeland (countrywater.js)
+  if (!REAL.ready || edgeDistance(p.x, p.y) < 0) return false;
+  for (let k = 0; k < 12; k++) {
+    const a = k * Math.PI / 6;
+    for (const r of [8, WATER_PROXIMITY]) if (wideWaterAt(p.x + Math.cos(a) * r, p.y + Math.sin(a) * r)) return true;
+  }
+  return false;
+}
+
+// A police boat on the Ommeland's open water, BOAT_SPAWN_MIN..MAX_DIST off.
+function spawnCountryBoat(world) {
+  const p = world.player;
+  for (let k = 0; k < 24; k++) {
+    const a = Math.random() * Math.PI * 2, d = BOAT_SPAWN_MIN_DIST + Math.random() * (BOAT_SPAWN_MAX_DIST - BOAT_SPAWN_MIN_DIST);
+    const x = p.x + Math.cos(a) * d, y = p.y + Math.sin(a) * d;
+    if (!wideWaterAt(x, y) || waterClearance(world.map, x, y, 6) < 4) continue;
+    const boat = spawnCountryPoliceBoat(world.map, x, y, Math.atan2(p.y - y, p.x - x));
+    if (boat) return boat;
+  }
+  return null;
 }
 
 function trySpawnPoliceBoat(world, state) {
@@ -504,7 +558,13 @@ function trySpawnPoliceBoat(world, state) {
   const alive = world.vehicles.filter((v) => v.isBoat && v.isPolice && !v.hijacked && !v.wrecked);
   if (alive.length >= 1) return;
   const polys = world.map.waterNear(world.player.x, world.player.y, BOAT_SPAWN_MAX_DIST);
-  if (!polys.length) return;
+  if (!polys.length) {
+    state.nextBoatSpawnAt = world.time + BOAT_SPAWN_STAGGER;
+    const boat = REAL.ready && edgeDistance(world.player.x, world.player.y) > 0 ? spawnCountryBoat(world) : null;
+    if (!boat || !spawnSpotHidden(world, boat.x, boat.y, boat.angle, 2)) { state.nextBoatSpawnAt = world.time + 0.5; return; }
+    world.vehicles.push(boat);
+    return;
+  }
   const poly = polys[Math.floor(Math.random() * polys.length)];
   state.nextBoatSpawnAt = world.time + BOAT_SPAWN_STAGGER;
   const boat = spawnPoliceBoatOnWater(world.map, poly, Math.random, { near: [world.player.x, world.player.y], min: BOAT_SPAWN_MIN_DIST, max: BOAT_SPAWN_MAX_DIST, budget: 3 });
@@ -717,7 +777,7 @@ function tryRoadblock(world, state) {
   const heading = pv.speed >= 0 ? pv.angle : pv.angle + Math.PI;
   const ahead = 95 + Math.min(45, Math.abs(pv.speed) * 2.5);
   const tx = p.x + Math.cos(heading) * ahead, ty = p.y + Math.sin(heading) * ahead;
-  const rp = world.map.nearestRoadPoint(tx, ty, 30, true);
+  const rp = world.map.nearestRoadPoint(tx, ty, 30, true) || countryRoadPoint(tx, ty, 30);
   if (!rp || Math.hypot(rp.x - p.x, rp.y - p.y) < 70) return;
   if (!spawnSpotHidden(world, rp.x, rp.y, 0, 0) || !spawnSpotHidden(world, rp.x, rp.y, heading, 5)) return;
   const road = rp.road;
@@ -753,7 +813,7 @@ function tryRoadblock(world, state) {
     v.road = null;
     v._roadblock = { until: world.time + ROADBLOCK_LIFETIME };
     const ex = Math.cos(v.angle) * v.halfLen, ey = Math.sin(v.angle) * v.halfLen;
-    if (isInsideBuilding(world.map, v.x, v.y) || isInsideBuilding(world.map, v.x + ex, v.y + ey) || isInsideBuilding(world.map, v.x - ex, v.y - ey)) continue;
+    if (solidAt(world.map, v.x, v.y) || solidAt(world.map, v.x + ex, v.y + ey) || solidAt(world.map, v.x - ex, v.y - ey)) continue;
     if (!vehicleClearance(world, v.x, v.y, 2.5)) continue;
     cars.push(v);
     if (!back) outer = Math.max(outer, Math.abs(off));
@@ -765,7 +825,7 @@ function tryRoadblock(world, state) {
     const side = i === 0 ? 1 : -1;
     const gx = rp.x - fx * towardPlayer * 3 + nx * side * (outer + 1.2);
     const gy = rp.y - fy * towardPlayer * 3 + ny * side * (outer + 1.2);
-    if (!isInsideBuilding(world.map, gx, gy)) { c.x = gx; c.y = gy; }
+    if (!solidAt(world.map, gx, gy)) { c.x = gx; c.y = gy; }
     c.guard = { x: c.x, y: c.y, angle: Math.atan2(p.y - c.y, p.x - c.x) };
     c.state = 'guard';
     c._roadblock = true;
@@ -870,12 +930,176 @@ export function updatePolice(dt, world) {
     } else if (v._commandeered) {
       v._commandeered = false;
       v.isPolice = false;
+    } else if (!v.road && !v._mount && REAL.ready && edgeDistance(v.x, v.y) > 0) {
+      countryPatrol(v, dt, world);
+      resolveVehicleBuildingCollision(v, world.map, dt);
     } else {
       updateTrafficAI(v, dt, world.map, world, Math.random);
       resolveVehicleBuildingCollision(v, world.map, dt);
     }
   }
 }
+
+// --- the Ommeland ------------------------------------------------------------
+// Past the city's streets units come in, block and give chase on the real
+// roads (countryroute.js, the graph the GPS drives): spawn points, roadblocks
+// and officers on foot at a country road; a unit out of sight follows the
+// roads to the player and only goes straight for them across the fields when
+// close and in sight, like in town.
+
+const COUNTRY_SNAP_M = 80;
+const FIELD_RUN_DIST = 110;
+const COUNTRY_REPLAN_S = 1.2;
+const COUNTRY_CORNER_DECEL = 8;
+
+// A point on the country roads near (x, y) as a road point { x, y, road },
+// the road a straight stand-in along it (width, direction, one-way).
+function countryRoadPoint(x, y, R) {
+  if (!REAL.ready || edgeDistance(x, y) < 0) return null;
+  const q = realRoadNear(x, y, R);
+  if (q && q.d <= R) {
+    if (q.road.bridge) return null;
+    return { x: q.x, y: q.y, road: lineRoad(q.x, q.y, q.ux, q.uy, q.road.w, q.road.oneway) };
+  }
+  // past the real data: the polder grid
+  if (!countryReady(REAL)) return null;
+  const sn = snapCountry(x, y, R);
+  if (!sn || sn.d > R) return null;
+  const [ax, ay] = nodeXY(sn.a), [bx, by] = nodeXY(sn.b);
+  const l = Math.hypot(bx - ax, by - ay) || 1;
+  return { x: sn.x, y: sn.y, road: lineRoad(sn.x, sn.y, (bx - ax) / l, (by - ay) / l, ROAD_W, !!sn.one) };
+}
+function lineRoad(x, y, ux, uy, width, oneway) {
+  return { pts: [[x - ux * 20, y - uy * 20], [x + ux * 20, y + uy * 20]], width: Math.max(4, width), oneway: !!oneway, cat: 'normal', country: true };
+}
+
+// No water to sink in on the straight line from a to b (every 2 m).
+function dryLine(map, ax, ay, bx, by) {
+  const n = Math.ceil(Math.hypot(bx - ax, by - ay) / 2);
+  for (let k = 1; k < n; k++) if (isInWater(map, ax + (bx - ax) * k / n, ay + (by - ay) * k / n)) return false;
+  return true;
+}
+
+function solidAt(map, x, y) {
+  if (isInsideBuilding(map, x, y)) return true;
+  return REAL.ready && edgeDistance(x, y) > -20 && pushOutOfPlan({ x, y }, 0.6);
+}
+
+// An officer on foot beside a country road, out of sight.
+function countryCopPed(world, c) {
+  if (!REAL.ready || edgeDistance(c.x, c.y) < 0) return [];
+  const p = world.player;
+  for (let k = 0; k < 6; k++) {
+    const a = Math.random() * Math.PI * 2, d = COP_PED_MIN_DIST + 10 + Math.random() * 50;
+    const rp = countryRoadPoint(c.x + Math.cos(a) * d, c.y + Math.sin(a) * d, 30);
+    if (!rp) continue;
+    const [A, B] = rp.road.pts;
+    const ux = (B[0] - A[0]) / 40, uy = (B[1] - A[1]) / 40, side = Math.random() < 0.5 ? 1 : -1;
+    const off = rp.road.width / 2 + 1.5;
+    const x = rp.x - uy * side * off, y = rp.y + ux * side * off;
+    if (Math.hypot(x - p.x, y - p.y) < COP_PED_MIN_DIST || solidAt(world.map, x, y) || !isSpawnHidden(world, x, y)) continue;
+    const cop = makeCopPedestrian(x, y, Math.atan2(uy, ux));
+    cop.noFade = false;
+    return [cop];
+  }
+  return [];
+}
+
+// Drives v along the country roads towards goal at about `cruise`: a short
+// A* way (countryPathNear) replanned every second or so, followed by pure
+// pursuit, braking for the bends ahead. False when no country road is near.
+function countryFollow(v, dt, world, goal, cruise) {
+  if (!countryReady(REAL)) return false;
+  const c = v._country || (v._country = { path: null, at: -99, gx: 0, gy: 0, i: 0, slow: 0 });
+  if (!c.path || world.time - c.at > COUNTRY_REPLAN_S || Math.hypot(goal.x - c.gx, goal.y - c.gy) > 30) {
+    c.at = world.time; c.gx = goal.x; c.gy = goal.y; c.i = 0;
+    const from = snapCountry(v.x, v.y, COUNTRY_SNAP_M);
+    const to = from && from.d <= COUNTRY_SNAP_M ? snapCountry(goal.x, goal.y, 600) : null;
+    c.path = to ? countryPathNear(from, to) : null;
+  }
+  const P = c.path;
+  if (!P || P.length < 2) return false;
+  // where along the way the car is (a few segments on from last time)
+  let bi = c.i, bd = Infinity, bt = 0;
+  for (let i = c.i; i < Math.min(P.length - 1, c.i + 8); i++) {
+    const ax = P[i][0], ay = P[i][1], dx = P[i + 1][0] - ax, dy = P[i + 1][1] - ay, l2 = dx * dx + dy * dy || 1;
+    const t = clamp(((v.x - ax) * dx + (v.y - ay) * dy) / l2, 0, 1);
+    const d = Math.hypot(ax + dx * t - v.x, ay + dy * t - v.y);
+    if (d < bd) { bd = d; bi = i; bt = t; }
+  }
+  c.i = bi;
+  // the point `look` metres on, and the slowest bend within braking range
+  const sp = Math.abs(v.speed);
+  const look = clamp(sp * 0.45, 5, 14);
+  let s = -bt * Math.hypot(P[bi + 1][0] - P[bi][0], P[bi + 1][1] - P[bi][1]);
+  let tx = P[P.length - 1][0], ty = P[P.length - 1][1], found = false;
+  let vCap = cruise;
+  const reach = sp * sp / (2 * COUNTRY_CORNER_DECEL) + 12;
+  for (let i = bi; i < P.length - 1; i++) {
+    const ax = P[i][0], ay = P[i][1], bx = P[i + 1][0], by = P[i + 1][1];
+    const L = Math.hypot(bx - ax, by - ay);
+    if (!found && s + L >= look) {
+      const k = (look - s) / (L || 1);
+      tx = ax + (bx - ax) * k; ty = ay + (by - ay) * k;
+      found = true;
+    }
+    s += L;
+    if (s > reach && found) break;
+    if (i + 2 < P.length) {
+      const h1 = Math.atan2(by - ay, bx - ax), h2 = Math.atan2(P[i + 2][1] - by, P[i + 2][0] - bx);
+      const turn = Math.abs(((h2 - h1 + Math.PI * 3) % (Math.PI * 2)) - Math.PI);
+      if (turn > 0.25) {
+        const vc = Math.max(5, 26 * (1 - turn / 1.9));
+        vCap = Math.min(vCap, Math.sqrt(vc * vc + 2 * COUNTRY_CORNER_DECEL * Math.max(0, s)));
+      }
+    }
+  }
+  const dx = tx - v.x, dy = ty - v.y;
+  const fx = Math.cos(v.angle), fy = Math.sin(v.angle);
+  const fwd = dx * fx + dy * fy, lat = dy * fx - dx * fy;
+  const alpha = Math.atan2(lat, fwd);
+  const curv = 2 * lat / Math.max(1, dx * dx + dy * dy);
+  const steer = Math.abs(alpha) > Math.PI / 2 ? Math.sign(alpha) : clamp(curv / maxCurvature(v), -1, 1);
+  let vTarget = Math.min(vCap, Math.sqrt(6 / Math.max(1e-3, Math.abs(curv))), v.model.maxSpeed);
+  if (Math.abs(alpha) > 0.7) vTarget = Math.min(vTarget, 6);
+  // at the end of the way: the player on the road ahead (close in gently),
+  // or off it in the fields (the rest is straight across)
+  const end = P[P.length - 1];
+  const left = Math.hypot(end[0] - v.x, end[1] - v.y);
+  if (left < 18 && Math.hypot(goal.x - end[0], goal.y - end[1]) > 6 && goal === world.player && dryLine(world.map, v.x, v.y, goal.x, goal.y)) {
+    v._fieldRun = true;
+    v._direct = true;
+  }
+  if (left < 25) vTarget = Math.min(vTarget, Math.max(3, left * 0.6));
+  // nowhere further to go on the road: wait there
+  if (left < 6 && !v._fieldRun) vTarget = 0;
+  // facing the wrong way: back round in a three-point turn rather than a
+  // wide U off the road (and into the ditch beside it)
+  if (Math.abs(alpha) > 2 || (c.reverse && Math.abs(alpha) > 1.4)) c.reverse = true;
+  else c.reverse = false;
+  const err = vTarget - v.speed;
+  let throttle = err > 0.25 ? clamp(err * 0.4, 0.15, 1) : 0;
+  let brake = err < -0.5 ? clamp(-err * 0.3, 0.1, 1) : 0;
+  if (c.reverse && vTarget > 0) {
+    if (v.speed > 0.5) { throttle = 0; brake = 1; } else { throttle = v.speed > -3 ? -0.6 : 0; brake = 0; }
+    v.applyControls(dt, throttle, -Math.sign(alpha), brake);
+  } else v.applyControls(dt, throttle, steer, brake);
+  // stuck against something: despawnFarPolice frees the slot
+  c.slow = sp < 1 && vTarget > 3 ? c.slow + dt : 0;
+  v.stuckFor = c.slow;
+  return true;
+}
+
+// Wanted 0: a unit out in the Ommeland drives on along the roads.
+function countryPatrol(v, dt, world) {
+  const g = v._patrolGoal;
+  if (!g || Math.hypot(g.x - v.x, g.y - v.y) < 25 || world.time > g.until) {
+    const a = v.angle + (Math.random() - 0.5) * 1.2;
+    v._patrolGoal = { x: v.x + Math.cos(a) * 300, y: v.y + Math.sin(a) * 300, until: world.time + 40 };
+  }
+  if (!countryFollow(v, dt, world, v._patrolGoal, v.model.maxSpeed * 0.45)) updateTrafficAI(v, dt, world.map, world, Math.random);
+}
+
 
 // --- 3D mesh for the police helicopter --------------------------------
 // Cheap primitives per the brief: a capsule fuselage + tail boom, and a

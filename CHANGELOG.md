@@ -6,7 +6,24 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+## [0.29.0] - 2026-10-15
+
+### Nieuw
+- **Het Ommeland werkt nu net als de stad.** De politie rijdt er over de
+  wegen, zet wegblokkades op en komt met boten op het water. Bruggen hebben
+  railings waar je tegenaan botst, dorpsmeubels en wereldeinden zijn massief
+  voor iedereen. Verkeer verdwijnt niet meer vlak voor je neus bij de
+  stadsrand. Op de kaart staat een Ommeland-laag met dorpsuitjes en gevonden
+  wereldeinden. "Waar staat hij?" in de garage noemt het dorp.
+- **Klinkt als platteland:** vogels, krekels 's nachts, kabbelend water en
+  meer wind; boerenverkeer is te horen en trekkers klinken als een diesel.
+
 ### Veranderd
+- **Gras remt minder.** Een auto houdt op gras zo'n driekwart van zijn
+  topsnelheid en slingert minder. Het geldt nu voor iedereen, ook voor de
+  politie.
+- **Water in het Ommeland** heeft één duidelijke regel: diep water = zinken
+  of zwemmen, de rand van een meer = waden, een sloot = een kuil.
 - **Ook de interne namen heten nu GDE.** Saves, instellingen en prestaties
   staan onder nieuwe namen (`gde-*` in plaats van `gte-*`); bij de eerste
   start worden ze eenmalig gekopieerd, je verliest niets. De desktopapp
