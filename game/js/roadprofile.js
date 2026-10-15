@@ -197,8 +197,8 @@ export function segmentStructures(r) {
   return out;
 }
 
-// The heights rows of a map's roads: road -> { net, z, st, ly } for every
-// road with a profile (net: its connected network, st: structure per
+// The heights rows of a map's roads: road -> { pnet, z, st, ly } for every
+// road with a profile (pnet: its connected network, st: structure per
 // segment, ly: the OSM grade order per segment)
 export function heightRows(roads) {
   const { comp } = profiledNetworks(roads);
@@ -206,7 +206,7 @@ export function heightRows(roads) {
   for (const r of roads) {
     if (!r.z) continue;
     const st = segmentStructures(r), o = gradeOrder(r);
-    out.set(r, { net: comp.get(r), z: r.z, st, ly: st.map(() => o) });
+    out.set(r, { pnet: comp.get(r), z: r.z, st, ly: st.map(() => o) });
   }
   return out;
 }

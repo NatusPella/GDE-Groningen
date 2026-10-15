@@ -129,7 +129,7 @@ ok(G.hash64(gRaw) === index.global.hash && sameBytes(gRaw, built.global), 'globa
   ok(!heights.conflict, 'heights: copies in different tiles agree', heights.conflict);
   ok(heights.size === want.length && want.every(([r, gid]) => {
     const h = heights.get(gid);
-    return h && h.z.length === r.z.length && h.z.every((v, i) => v === r.z[i]) && h.st.length === r.pts.length - 1 && Number.isInteger(h.net);
+    return h && h.z.length === r.z.length && h.z.every((v, i) => v === r.z[i]) && h.st.length === r.pts.length - 1 && Number.isInteger(h.pnet);
   }), `heights: ${want.length} profiles back exactly, with structure and network`, `${heights.size}`);
   for (const [gid, h] of heights) if (back.roads[gid]) back.roads[gid].z = h.z;
 }
