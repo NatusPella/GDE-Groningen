@@ -1,5 +1,5 @@
-import { REAL, RTILE, buildingAt, inRealExtent, roadsInTile } from './countryreal.js';
-import { realWater, edgeDistance } from './countryfield.js';
+import { REAL, RTILE, buildingAt, inRealExtent, roadsInTile, nearestPlace } from './countryreal.js';
+import { realWater, edgeDistance, urbanWeight } from './countryfield.js';
 import { isInWater } from './util.js';
 
 // Placement queries for the Ommeland extras (worldends.js, dorpsuitjes.js,
@@ -11,6 +11,20 @@ function segDist(x, y, a, b) {
   const t = Math.max(0, Math.min(1, ((x - a[0]) * dx + (y - a[1]) * dy) / (dx * dx + dy * dy || 1)));
   const px = a[0] + dx * t, py = a[1] + dy * t;
   return [Math.hypot(px - x, py - y), px, py, t];
+}
+
+// The Ommeland place (x, y) is in, for the location chip and the garage:
+// { place, near: false } in a village (or a town's built-up part), out in
+// the fields { place: the nearest village within 5 km or '', near: true };
+// null in town or without the real data.
+export function ommelandArea(x, y) {
+  if (!REAL.ready || edgeDistance(x, y) <= 60) return null;
+  const p = nearestPlace(x, y, 0, true);
+  if (!p) return { place: '', near: true };
+  const d = Math.hypot(p.x - x, p.y - y);
+  if (d < p.r * 1.3 || (d < 2500 && urbanWeight(x, y) > 0.3)) return { place: p.n, near: false };
+  const q = nearestPlace(x, y);
+  return { place: q && Math.hypot(q.x - x, q.y - y) < 5000 ? q.n : '', near: true };
 }
 
 // Nearest real road within R: { d (to the road edge, < 0 on it), x, y (on the

@@ -19,8 +19,10 @@ import { cinematicAllowsDamageFx } from './cinematics.js';
 import { isMuted } from './audio.js';
 import { drawRailsOnMap, drawTrainsOnMap } from './railway.js';
 import { drawCountryMinimap, villageLabels, MINI_STYLE } from './countrymap.js';
-import { edgeDistance, urbanWeight } from './countryfield.js';
-import { REAL, nearestPlace, realStreetAt } from './countryreal.js';
+import { edgeDistance } from './countryfield.js';
+import { REAL, realStreetAt } from './countryreal.js';
+import { ommelandArea } from './ommelandplace.js';
+import { ommelandMapSpots, drawOmmelandMapIcon } from './ommelandmap.js';
 import { getActiveRoute, getRouteAhead, getRoutes, getUserWaypoint, formatDistance } from './routing.js';
 import { storyWaiting, missionOnMap } from './goal.js';
 import { setGhostBar, ring, pop } from './motion.js';
@@ -331,11 +333,8 @@ function currentDistrict(world) {
   const { x, y } = world.player;
   const meta = world.map.meta;
   // out in the real Ommelanden: the village you are in, else just Ommeland
-  if (REAL.ready && edgeDistance(x, y) > 60) {
-    const p = nearestPlace(x, y, 0, true);
-    const d = p ? Math.hypot(p.x - x, p.y - y) : Infinity;
-    return d < p.r * 1.3 || (d < 2500 && urbanWeight(x, y) > 0.3) ? p.n : 'Ommeland';
-  }
+  const area = ommelandArea(x, y);
+  if (area) return area.near || !area.place ? 'Ommeland' : area.place;
   // Only 2 of the real admin boundaries actually reach into this play area,
   // and they're coarse (e.g. plain "Groningen") - the ~66 named
   // neighbourhood/quarter points give a far more specific, genre-style
@@ -1189,6 +1188,7 @@ export function drawMapIcon(ctx, kind, x, y, s = 1, opts = {}) {
       break;
     }
     default:
+      if (drawOmmelandMapIcon(ctx, kind, s)) break;
       if (kind.startsWith('shop-')) drawShopMapIcon(ctx, kind.slice(5), s);
       else if (kind === 'pigeon') drawPigeonMapIcon(ctx, s);
       else if (kind === 'heli') drawHeliMapIcon(ctx, s);
@@ -1433,6 +1433,7 @@ function drawMinimapPois(ctx, world, job, placed, inRange, toScreen, t) {
     add('rondvaarttour', sjs.filter((sj) => sj.job.layer === 'rondvaarttour'), (sj) => 'sj-' + sj.job.id, 1, MM_POI_FAR_M);
   }
   add('trein', getStationsForRender(), 'station', 1, MM_POI_FAR_M);
+  add('ommeland', ommelandMapSpots(), (q) => q.kind, 2, MM_POI_FAR_M);
   if (inVehicle) add('flitspaal', world.flitspaalen || [], 'flitspaal', 2);
   if (!inVehicle) add('duif', getPigeonSpotsForRender(), 'pigeon', 1);
   add('heli', getHeliSpotsForRender(), 'heli', 1, MM_POI_FAR_M);

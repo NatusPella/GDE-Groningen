@@ -175,6 +175,29 @@ export function villageStroll(w, name) {
   return a && Number.isFinite(a.ux) ? { x: a.ux, y: a.uy, label: a.def.name } : null;
 }
 
+// For the maps (ommelandmap.js): the uitjes of every village placed so far
+// (the player has been within PLACE_R of its station).
+export function getVillageMapSpots() {
+  const out = [];
+  for (const v of villages || []) {
+    if (!v.placed) continue;
+    for (const a of v.acts) {
+      if (!Number.isFinite(a.ux)) continue;
+      const done = a.role === 'special' && hasUnique(SET_DONE, v.name);
+      out.push({ x: a.ux, y: a.uy, name: a.def.name, sub: `${a.def.label || (a.role === 'special' ? 'Dorpsuitje' : 'Eten en drinken')} · ${v.name}${done ? ' · gedaan' : ''}`, done });
+    }
+  }
+  return out;
+}
+
+// The hidden eierballen of the villages (every village placed first), for
+// the Buukenkaas's tips (furniture.js), the same reveal as the city's.
+export function getVillageEggs(w = world) {
+  const out = [];
+  for (const v of ensureVillages(w)) if (v.egg) out.push({ id: 'dorp:' + v.egg.id, x: v.egg.x, y: v.egg.y, found: hasUnique(SET_EGGS, v.egg.id) });
+  return out;
+}
+
 // For spotcheck.js and the story test.
 export function getVillageSpots() {
   const out = [];
