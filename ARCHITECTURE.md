@@ -816,7 +816,7 @@ server, `?legacymap`).
   centimetres, else float64 per row, so a round trip gives the same doubles;
   points are tile-local centimetres, delta + zigzag varints, all dx then all
   dy. The heights section (`SECTION.HEIGHTS`, version 1) holds the vertical
-  profiles: per profiled road its `gid`, `z` (m per vertex, exact cm), `net`
+  profiles: per profiled road its `gid`, `z` (m per vertex, exact cm), `pnet`
   (its connected network), `st` (per segment: 0 ground, 1 deck, 2
   embankment, 3 cutting, 4 tunnel; `roadprofile.js` STRUCT) and `ly` (the
   OSM grade order per segment); the road rows carry no `z` of their own and

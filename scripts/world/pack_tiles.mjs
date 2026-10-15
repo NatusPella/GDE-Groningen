@@ -25,7 +25,7 @@ const { polygonBounds } = await import('../../game/js/util.js');
 
 export const BUILDER = 1;
 // what a road row gets from the heights section besides its z (tileworld.js attachProfiles)
-export const PROFILE_KEYS = ['net', 'st', 'ly'];
+export const PROFILE_KEYS = ['pnet', 'st', 'ly'];
 export const PACK_TILES = 8;
 // margin round an object's bounds when it is put in tiles (a road's ribbon,
 // a rail's ballast)
