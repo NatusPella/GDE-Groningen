@@ -30,6 +30,7 @@ import { initHud, updateHud } from './hud_panel.js';
 import { initGarages, updateGarages, tryGarageInteract } from './garages.js';
 import { initHoreca, updateHoreca, tryHorecaInteract } from './horeca.js';
 import { initShops, updateShops, tryShopInteract } from './shops.js';
+import { initSnackMachines, updateSnackMachines, tryMachineInteract } from './snackautomaat.js';
 import { updateParkingLots3D } from './parkinglots3d.js';
 import { isShopOpen } from './shopui.js';
 import { initMapView, updateMapView, isMapOpen } from './mapview.js';
@@ -267,6 +268,7 @@ async function boot() {
   initGarages(world);
   initHoreca(world);
   initShops(world);
+  initSnackMachines(world);
   initHome(world);
   parkHeroAtHome(world);
   initTrafficLights(world);
@@ -478,12 +480,14 @@ async function boot() {
       trySideJobInteract(world);
       tryHeliSpotInteract(world);
       tryGarageInteract(world);
+      tryMachineInteract(world);
       tryShopInteract(world);
       tryPigeonSpotInteract(world);
       tryOmmelandInteract(world);
       tryStationInteract(world);
       tryHomeInteract(world);
       tryHorecaInteract(world);
+      updateSnackMachines();
       if (!updateTrainDriving(dt, world)) {
         // a post-game minigame (the fierljep duel) holds the player in place
         if (!world.challengeHoldPlayer) player.update(dt, world);
