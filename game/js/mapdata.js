@@ -801,7 +801,8 @@ export class GameMap {
   // doesn't "drown" cars safely crossing on a bridge deck.
   isOnBridge(x, y) {
     for (const road of this.roadsNear(x, y, 8)) {
-      if (!road.bridge) continue;
+      // (a movable bridge that is open: movablebridges.js)
+      if (!road.bridge || road._open) continue;
       const pts = road.pts;
       const threshold = road.width / 2 + 1.5;
       for (let i = 0; i < pts.length - 1; i++) {

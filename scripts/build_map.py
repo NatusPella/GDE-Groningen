@@ -20,6 +20,7 @@ Steps (each script edits game/citymap.json in place, see its docstring):
   world/railprofile.mjs the track height solver per rail network (rail.z, OSM bridge
                         layers and electrification, railPlatforms), then profile.mjs
                         again so roads dip under or rise over the track
+  world/water.mjs       water bodies, kind, peil, depth, boat class; road.movable; meta.locks
   add_helipad           meta.helipad (+ the UMCG helipad wing)
   add_landmark_footprints
   add_shops             meta.shops
@@ -93,6 +94,8 @@ def main():
     run_node("world/railprofile.mjs", "--write")
     run_node("world/profile.mjs", "--write")
     run_node("world/railprofile.mjs", "--write")
+    # water bodies, peil, depth and boat classes; movable bridges from OSM
+    run_node("world/water.mjs", "--write")
     run("add_helipad", *extra)
     run("add_landmark_footprints")
 

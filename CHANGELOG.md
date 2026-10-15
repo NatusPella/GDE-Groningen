@@ -13,6 +13,14 @@ nieuwe functies, `y` voor alleen bugfixes.
   op de hoogte van de weg, station Noord ligt op een verhoogde baan met de
   straten eronderdoor, en het Emmaviaduct en de Hereweg gaan over het spoor
   heen, zoals in het echt.
+- **Bruggen gaan open.** De ophaal- en draaibruggen van Stad (33 stuks, van de
+  Sint Jansbrug tot de Europaweg) gaan open als je in een boot ervoor toetert:
+  rode lichten, slagbomen omlaag, het val gaat omhoog en het verkeer wacht.
+  Ben je net te laat met de auto, dan sta je voor de slagboom; rijd je erdoor,
+  dan lig je in het kanaal.
+- **Sloten liggen dieper.** In het Ommeland zie je dat een sloot echt diep
+  ligt, en als je erdoorheen loopt sta je tot je knieën in het water en ga je
+  langzamer.
 
 ## [0.31.0] - 2026-10-16
 

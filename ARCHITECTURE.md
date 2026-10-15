@@ -689,6 +689,68 @@ a fixed point, three passes). Pipeline: `add_railways.py`, `railprofile.mjs
   audit, `railZ` against the profile and the rail lifts walked, driven and
   cycled up (`ringcheck.js probeRailLifts`).
 
+### Water levels, bridges and the one water query
+
+`js/waterlevels.js` (pure) and `scripts/world/water.mjs` (docs/PROVINCIE-PLAN.md
+2.11 "Water"). `water.mjs --write` annotates the map: per water polygon
+`body` (polygons whose shores touch), `kind` (`kanaal`, `diep`, `vaart`,
+`vijver`, `sloot`, from the width of the channel it lies in: twice the largest
+distance to its body's shore, so a sliver mapped under a bridge is the canal
+it belongs to; exact distances in narrow water, a 2.5 m distance field
+elsewhere), `lv` (the peil, m relative to street level), `dp` (depth) and
+`nav` (largest boat class); per road that OSM tags `bridge:movable` its
+`movable` kind (by OSM id, else by geometry: cycle and bus bridges carry no
+id); `meta.locks` (OSM lock gates; none in the city caches). The largest body
+is the stadsboezem (NAP -0.93 m, drawn at `util.js WATER_Y` -2.3); a body
+that does not touch it keeps its own peil (a polder ditch -0.8 m), drawn at the
+boezem height until the water renderer takes a level per polygon (F2).
+
+- `waterAt(map, x, y)` -> `{ level, depth, body, kind, navigable, wade,
+  clearanceAbove }` or null: the city polygons, else the Ommeland through
+  `setCountryWaterKind` (countryedge.js `countryWater`: deep, wade, ditch;
+  registered by countrywater.js). `wade` is depth <= `WADE_MAX` 1.2 m. The
+  walker wades through ditches and the shallow edge of open water (slower,
+  standing in it: `player.wade`), the heli lands on the level the query gives.
+- Boats: `BOAT_CLASS` (1 paddled, 2 small motor boats, 3 tour boats and the
+  city's barges, 4 inland shipping), `AIR_DRAFT` and `DRAFT` per kind;
+  `bridgeClearance(road, zDeck, level)` (deck top minus 0.5 m minus the
+  level: 1.8 m under a street-level city bridge; Infinity while a movable
+  bridge is open), `passesUnder`.
+- Audit (`node scripts/world/water.mjs [--strict]`): every navigable waterway
+  sailed per class on the boezem's distance field (room for the beam plus
+  0.5 m a side, depth for the draft plus 0.3 m, every bridge clearing the air
+  draft or movable): the main channel per class, the polygons wide enough
+  that it does not reach and the fixed bridges too low. On the city map: a
+  canoe reaches 81 of 82 polygons, a sloep 79, a tour boat 62 of 81 (the
+  rest narrower than its beam); a barge (class 4) is stopped by 70 fixed
+  bridges at 1.8 m: the big canals' bridges need their real heights in the
+  road solver (corridor work).
+- Movable bridges (`movablebridges.js`, drawn by `movablebridges3d.js`): a
+  fixed cycle per bridge (`BRIDGE_TIMING`: warn 4 s, barriers 4 s, wait for a
+  clear span, 9 s up, at least 14 s open, 9 s down, barriers 4 s;
+  `raceWindow()`), opened by the horn of a boat in front of it
+  (`hornAt`, player.js) or by a boat whose `needsOpening(bridge)` says so; a
+  twin bridge within 30 m opens with it. While the leaf moves the span is no
+  bridge (`road._open`: `map.isOnBridge` false, so a car that gets on it ends
+  in the canal; `bridgeClearance` Infinity), the traffic AI stops at the
+  barrier (`bridgeSpeedLimit`, beside the level crossings' limit), lowered
+  barriers are solid for the player's vehicle and snap like a level
+  crossing's (`loweredBridgeBoomsNear`). The leaf (one hinge, two for a
+  bascule over 26 m, a swing span, a lift or retractable span) is one draw
+  with vertex colours (`geomerge.js`) and is the deck while closed: quaywalls.js
+  leaves movable spans out of the deck slabs, streetclutter.js their railing
+  props (bridgerails.js keeps the walker lines while closed). scene3d.js hides
+  the static road of a span that is not lying closed and keeps it out of the
+  road batches.
+- `node scripts/water_test.mjs`: bodies, kinds and peil on made-up polygons,
+  the query, boat classes against bridges, a bridge's cycle step by step (the
+  span, the barriers, the AI, the horn), a boat never breaking a bridge
+  railing (breakables.js: boats only meet water props) and the map's
+  waterways per class.
+- Ditches lie deeper in the Ommeland ground shader (`countryfield.js`
+  COUNTRY_GLSL: a shadowed inner slope above the water line, darker water to
+  the middle); the geometry cut belongs to the world builder.
+
 ## Lanes
 
 Every car road carries the lane model (docs/PROVINCIE-PLAN.md 2.12; set by

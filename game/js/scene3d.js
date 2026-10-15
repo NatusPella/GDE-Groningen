@@ -68,6 +68,8 @@ import { spawnExplosionFx } from './fx3d.js';
 import { initNightLights, setNightLightQuality, updateNightLights, isLightRigOn, setLightRigVisible } from './nightlights3d.js';
 import { createFarLOD } from './farlod.js';
 import { initRailway3D, updateRailway3D } from './railway3d.js';
+import { initMovableBridges3D, updateMovableBridges3D, openBridgeRoads } from './movablebridges3d.js';
+import { getMovableBridges } from './movablebridges.js';
 import { buildCanopies } from './canopies3d.js';
 import { initGrass, updateGrass, grassFarColor, grassFarRank } from './grass.js';
 import { updateCountryside, setCountryPropLevel, setRealShown } from './countryside.js';
@@ -1604,6 +1606,8 @@ function syncWater(items, cache, y, map, px, py) {
 }
 
 let roadQuality = getRoadQualityVersion();
+const openSpans = new Set();
+let bridgeViews = false;
 function syncRoads(world, px, py) {
   setRoadNetwork(world.map);
   if (roadQuality !== getRoadQualityVersion()) {
@@ -1977,7 +1981,13 @@ export function update3D(dt, world) {
   updateShore(waterNight, cam);
   probe.mark('3d:water');
   syncRoads(world, focus.x, focus.y);
-  if (!NO_BATCH) roadBatcher.update({ scene, meshes: roadMeshes, hidden: null, px: focus.x, py: focus.y, detailR: DRAW_DIST, drawDist: DRAW_DIST, withDetail: true, budgetMs: 1 });
+  // movable bridges (movablebridges3d.js): the static road of a span that is
+  // not lying closed is hidden and left out of the road batches
+  if (getMovableBridges().length && !bridgeViews) { initMovableBridges3D(scene); bridgeViews = true; }
+  openBridgeRoads(openSpans);
+  if (!NO_BATCH) roadBatcher.update({ scene, meshes: roadMeshes, hidden: openSpans.size ? openSpans : null, px: focus.x, py: focus.y, detailR: DRAW_DIST, drawDist: DRAW_DIST, withDetail: true, budgetMs: 1 });
+  for (const b of getMovableBridges()) { const m = roadMeshes.get(b.r); if (m) m.visible = !openSpans.has(b.r); }
+  updateMovableBridges3D(focus.x, focus.y, waterNight);
   probe.mark('3d:roads');
   syncTrees(world, focus.x, focus.y);
   probe.mark('3d:trees');
@@ -2318,7 +2328,7 @@ export function update3D(dt, world) {
       playerMesh.userData.shadow.visible = !player.swimming;
       playerMesh.rotation.x = 0;
       playerMesh.rotation.z = player.swimTilt || 0;
-      playerMesh.position.set(player.x, (player.gz || 0) + (player.z || 0), player.y);
+      playerMesh.position.set(player.x, (player.gz || 0) + (player.z || 0) - (player.wade || 0), player.y);
       playerMesh.rotation.y = -player.angle;
       playerMesh.scale.y = 1;
       playerMesh.userData.crouch = !!player.crouching;
