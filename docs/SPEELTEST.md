@@ -11,7 +11,7 @@ Voor mensen die de game nog niet kennen. Speel ongeveer 45 tot 60 minuten, het l
 
 ## Over jou
 1. Hoe vaak speel je games? *(bijna nooit · soms · wekelijks · dagelijks)*
-2. Ken je GTA-achtige games? *(nee · een beetje · goed)*
+2. Speel je weleens open-wereldgames? *(nee · een beetje · goed)*
 3. Ken je Groningen? *(nee · een beetje · ik woon/woonde er)*
 4. Waarop speelde je? *(laptop/pc + welke, Mac, Steam Deck, anders)* Met toetsenbord of controller?
 

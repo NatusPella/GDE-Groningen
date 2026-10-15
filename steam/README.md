@@ -62,7 +62,7 @@ delete `steam/content/` after uploading.
 ## Notes
 
 - **Saves.** The app keeps its data in the `GDE Groningen` folder on every OS
-  (`desktop/userdata.js`; copied once from the pre-0.29 folder `GTE VI`):
+  (`desktop/userdata.js`; copied once from the pre-0.29 folder):
   `%APPDATA%\GDE Groningen`, `~/Library/Application Support/GDE Groningen`,
   `~/.config/GDE Groningen`. Use that for Steam Cloud (Auto-Cloud) later.
 - **Steam Deck and Linux.** Test on the device. If Electron fails to start
