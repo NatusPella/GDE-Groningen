@@ -7,10 +7,13 @@ import { GAME_TITLE, SERIES, SERIES_MEANING } from './logo.js';
 export const DISCLAIMER = `${SERIES} is een fanparodie op GTA, niet gelieerd aan of goedgekeurd door Rockstar Games of Take-Two Interactive. Namen, personages, merken en gebeurtenissen zijn verzonnen.`;
 
 export const OSM_ATTRIBUTION = '© OpenStreetMap-bijdragers';
+// building heights and roof shapes (scripts/world/fetch_3dbag.py; CC BY 4.0)
+export const BAG3D_ATTRIBUTION = '3DBAG door de 3D geoinformation onderzoeksgroep (TU Delft) en 3DGI';
 
 // [title, kicker] cards for the end credits (story.js)
 export const THIRD_PARTY_CARDS = [
   [OSM_ATTRIBUTION, 'kaartdata (ODbL) · openstreetmap.org/copyright'],
+  ['3DBAG', 'gebouwhoogtes en daken (CC BY 4.0) · TU Delft en 3DGI · 3dbag.nl'],
   ['Google Gemini', 'muziek en stemmen, gemaakt met AI'],
   ['three.js · Bebas Neue · Big Shoulders Display', 'MIT-licentie · SIL Open Font License'],
   ['Fanparodie', 'niet van Rockstar Games of Take-Two. Alles verzonnen'],
@@ -21,6 +24,7 @@ export const ABOUT_HTML = `
 <p>Een gratis, niet-commercieel fanproject uit Groningen. ${SERIES} staat voor ${SERIES_MEANING}. ${DISCLAIMER}</p>
 <h4>Kaart</h4>
 <p>Straten, gebouwen, water en plekken: kaartdata ${OSM_ATTRIBUTION}, beschikbaar onder de Open Database License (ODbL). Zie openstreetmap.org/copyright.</p>
+<p>Gebouwhoogtes en dakvormen: ${BAG3D_ATTRIBUTION}, onder CC BY 4.0. Zie 3dbag.nl.</p>
 <h4>Muziek en stemmen</h4>
 <p>De muziek (G-Music, Nachtstreek, het titelnummer) en alle stemmen zijn gemaakt met Google Gemini (muziek en Gemini TTS via OpenRouter). De Martinitoren is gemodelleerd met Claude Design. Geluidseffecten worden in het spel zelf gesynthetiseerd.</p>
 <h4>Software en lettertypes</h4>

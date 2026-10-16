@@ -10,6 +10,8 @@
 // lanes, width, speed and access from its tags, with one cap for village
 // streets. Nothing here asks "is this the city?".
 import { wgsToWorld } from './rdnew.js';
+import { mappedFromOsm } from './streetfurniture.js';
+import { heightOf, levelsFor } from './buildingheights.js';
 
 export const WB_VERSION = 1;
 export const LEVEL_M = 3.1;
@@ -274,6 +276,10 @@ export function heightFields(bag3d, osm, levels, hasRoof = false) {
     if (bag3d.h50 !== undefined) f.h50 = bag3d.h50;
     if (bag3d.roof && !hasRoof) f.roof = bag3d.roof;
     f.hsrc = '3dbag';
+    // the walls and the roof the renderer draws (buildingheights.js)
+    const hh = heightOf(osm && osm.roof ? osm : null, bag3d, levels);
+    f.eave = hh.eave;
+    if (hh.roof) f.rk = hh.roof;
     return f;
   }
   if (osm && osm.h) return { hm: osm.h, hsrc: 'osm_height' };
@@ -358,6 +364,9 @@ export function buildBuilding(src, ctx = {}) {
   if (hf.hsrc === 'default' && src.wall !== undefined) hf.hm = r2(src.wall + roofH);
   b.hm = hf.hm;
   b.hsrc = hf.hsrc;
+  // a measured building: its walls in storeys, its roof (buildingheights.js)
+  if (hf.eave !== undefined) b.h = levelsFor(hf.eave);
+  if (hf.rk) b.rk = hf.rk;
   b.roof = src.roofShape || (src.hip ? 'hipped' : roofH > 0 ? 'gabled' : 'flat');
   return b;
 }
@@ -388,30 +397,6 @@ export function buildPoi(src) {
 }
 
 // ------------------------------------------------- furniture and greenery
-
-// Mapped street furniture (docs 2.14) by OSM tag: the kind the scatter rules
-// and the props know. Signals and crossings are junction data, not here.
-export const FURNITURE_OF = {
-  highway: { street_lamp: 'lamp', speed_camera: 'flitspaal', milestone: 'paaltje' },
-  amenity: { bench: 'bench', waste_basket: 'bin', bicycle_parking: 'bikerack', post_box: 'postbox', recycling: 'container',
-    vending_machine: 'automaat', drinking_water: 'kraan', charging_station: 'laadpaal', atm: 'pin', clock: 'klok', shelter: 'abri', toilets: 'toilet' },
-  barrier: { bollard: 'bollard', gate: 'hek', lift_gate: 'slagboom', swing_gate: 'hek', cycle_barrier: 'fietshek', block: 'blok', kissing_gate: 'hek', stile: 'hek', cattle_grid: 'rooster' },
-  leisure: { picnic_table: 'picknick', playground: 'speeltuin', fitness_station: 'fitness' },
-  man_made: { flagpole: 'vlag', street_cabinet: 'kast', surveillance: 'camera', utility_pole: 'paal' },
-  tourism: { information: 'info', artwork: 'kunst', viewpoint: 'uitzicht', picnic_site: 'picknick' },
-  power: { tower: 'mast', pole: 'paal' },
-};
-export function buildFurniture(tags, [x, y]) {
-  for (const key in FURNITURE_OF) {
-    const k = FURNITURE_OF[key][tags[key]];
-    if (!k) continue;
-    const row = { k, x: r2(x), y: r2(y) };
-    const d = parseFloat(tags.direction);
-    if (Number.isFinite(d)) row.d = d;
-    return row;
-  }
-  return null;
-}
 
 // Hooks for the scatter rules (docs 2.14, 2.15): a function per kind gets
 // the tile's rows and returns extra rows ({ kind, x, y, a?, ... }). The
@@ -448,12 +433,17 @@ export function fromOsm(el, ctx = {}) {
     out.push({ kind: 'trees', row: [Math.round(x * 100) / 100, Math.round(y * 100) / 100] });
     return out;
   }
+  // mapped street furniture (docs 2.14), in the rows the game keeps
+  // (streetfurniture.js mappedFromOsm: { k, pts, v?, h?, osm })
   if (el.type === 'node' && el.lat !== undefined) {
-    const row = buildFurniture(tags, wgsToWorld(el.lat, el.lon));
-    if (row) out.push({ kind: 'furniture', row });
+    for (const row of mappedFromOsm([el])) out.push({ kind: 'furniture', row });
     return out;
   }
   if (!g || g.length < 2) return out;
+  if ((tags.barrier || tags.traffic_calming) && tags.building === undefined && !tags.highway) {
+    for (const row of mappedFromOsm([{ ...el, geometry: g.map(([lat, lon]) => ({ lat, lon })) }])) out.push({ kind: 'furniture', row });
+    if (tags.barrier !== 'hedge') return out;
+  }
   const P = project(g);
   if (tags.building !== undefined) {
     if (!closed(P) || HIDDEN(tags)) return out;

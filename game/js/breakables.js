@@ -801,6 +801,7 @@ export function updateBreakables(dt, w, sc) {
     streamTreeProps(w, x, y);
     streamTrafficLightProps(w, x, y);
     streamFlitspaalProps(w, x, y);
+    for (const fn of streamers) fn(w, x, y);
   }
   if (w.paused || !root) return;
   respawnTimer -= dt;
@@ -810,6 +811,13 @@ export function updateBreakables(dt, w, sc) {
   updateBodies(dt);
   updatePool(debris, dt);
   updatePool(sparks, dt);
+}
+
+// Other owners of streamed props (streetfurniture3d.js): fn(world, x, y)
+// every STREAM_INTERVAL, like the trees and the traffic lights.
+const streamers = [];
+export function addPropStreamer(fn) {
+  if (!streamers.includes(fn)) streamers.push(fn);
 }
 
 export function findProps(x, y, r) {

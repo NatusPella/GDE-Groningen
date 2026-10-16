@@ -23,7 +23,7 @@ const { edgeRows, globalChains } = await import('../../game/js/navgraph.js');
 const { heightRows } = await import('../../game/js/roadprofile.js');
 const { junctionRows } = await import('../../game/js/junctions.js');
 const { polygonBounds } = await import('../../game/js/util.js');
-const WB = await import('../../game/js/worldbuilder.js');
+const { heightOf, bagKey, pitchedFits } = await import('../../game/js/buildingheights.js');
 
 export const BUILDER = 1;
 // what a road row gets from the heights section besides its z (tileworld.js attachProfiles)
@@ -42,14 +42,14 @@ export function cleanRow(o) {
 }
 
 // --- building attributes (scripts/world/building_attrs.py, docs/PROVINCIE-PLAN.md 0.1)
-export const ATTR_KEYS = ['hm', 'hsrc', 'roof', 'colour', 'rcolour', 'mat', 'rmat', 'year', 'bag', 'hmax', 'h50', 'hg'];
+export const ATTR_KEYS = ['hm', 'hsrc', 'roof', 'colour', 'rcolour', 'mat', 'rmat', 'year', 'bag', 'hmax', 'h50', 'hg', 'eave', 'rk'];
 
 export function loadAttrs(root = ROOT) {
   const f = path.join(root, 'data/world/building_attrs.json.gz');
   const osm = fs.existsSync(f) ? JSON.parse(zlib.gunzipSync(fs.readFileSync(f)).toString('utf8')) : [];
-  // 3D BAG (CC BY 4.0): data/3dbag/*.json, made by scripts/world/fetch_3dbag.py (F1)
-  const dir = path.join(root, 'data/3dbag');
-  const bag = fs.existsSync(dir) ? fs.readdirSync(dir).filter((q) => q.endsWith('.json')).sort().flatMap((q) => JSON.parse(fs.readFileSync(path.join(dir, q), 'utf8'))) : [];
+  // 3D BAG (CC BY 4.0): data/world/3dbag.json.gz, made by scripts/world/fetch_3dbag.py
+  const bf = path.join(root, 'data/world/3dbag.json.gz');
+  const bag = fs.existsSync(bf) ? JSON.parse(zlib.gunzipSync(fs.readFileSync(bf)).toString('utf8')) : [];
   return { osm, bag };
 }
 
@@ -88,7 +88,7 @@ export function joinAttrs(buildings, attrs) {
     }
     return best;
   };
-  const byBag = new Map(attrs.bag.map((r) => [String(r.id).replace(/^NL\.IMBAG\.Pand\./, ''), r]));
+  const byBag = new Map(attrs.bag.map((r) => [bagKey(r.id), r]));
   const out = new Map();
   const stats = { buildings: buildings.length, matched: 0, 3: 0 };
   const src = { '3dbag': 0, osm_height: 0, osm_levels: 0, default: 0 };
@@ -101,9 +101,18 @@ export function joinAttrs(buildings, attrs) {
       stats.matched++;
       for (const k of ['roof', 'colour', 'rcolour', 'mat', 'rmat', 'year', 'bag']) if (o[k] !== undefined) f[k] = o[k];
     }
-    const g3 = (o && o.bag && byBag.get(String(o.bag))) || pick(gBag, b, bb, area);
-    // the world builder's evidence order (worldbuilder.js heightFields)
-    Object.assign(f, WB.heightFields(g3, o, b.h, !!f.roof));
+    const g3 = (o && o.bag && byBag.get(bagKey(o.bag))) || pick(gBag, b, bb, area);
+    // the chain 3dbag, osm_height, osm_levels, default (buildingheights.js)
+    const levels = b.hsrc === '3dbag' || b.hsrc === 'osm_height' ? null : b.h;
+    const hh = heightOf(o, g3 && g3.hmax !== undefined && g3.hg !== undefined ? g3 : null, levels ?? b.h, pitchedFits(b.pts));
+    f.hm = hh.hm; f.hsrc = hh.src; f.eave = hh.eave;
+    if (hh.roof) f.rk = hh.roof;
+    if (hh.src === '3dbag') {
+      f.hmax = g3.hmax; f.hg = g3.hg;
+      if (g3.h50 !== undefined) f.h50 = g3.h50;
+      if (g3.roof && !f.roof) f.roof = g3.roof;
+      if (g3.year && !f.year) f.year = Math.round(g3.year);
+    }
     src[f.hsrc]++;
     out.set(b, f);
   }
@@ -129,6 +138,9 @@ export const KINDS = [
   ['rails', G.SECTION.RAILS],
   ['canopies', G.SECTION.CANOPIES],
   ['passageWays', G.SECTION.PASSAGES],
+  // mapped street furniture (scripts/world/furniture.mjs); the rule furniture
+  // is generated per tile in the game (streetfurniture.js)
+  ['furniture', G.SECTION.FURNITURE],
 ];
 
 function boundsOf(kind, o) {
@@ -136,6 +148,13 @@ function boundsOf(kind, o) {
   const b = polygonBounds(o.pts);
   const m = MARGIN[kind] ? MARGIN[kind](o) : 0;
   return [b[0] - m, b[1] - m, b[2] + m, b[3] + m];
+}
+
+// a tree row: its point, and species, height (dm) and flags (greenery.js) when it has them
+export function treeRow(gid, o) {
+  const row = { g: gid, p: [[o[0], o[1]]] };
+  if (o.length > 2) { row.s = o[2]; row.h = o[3]; if (o[4]) row.f = o[4]; }
+  return row;
 }
 
 export function tilesOf(bounds) {
@@ -146,7 +165,23 @@ export function tilesOf(bounds) {
   return out;
 }
 
-export function build({ map, om, bin }, attrs = loadAttrs()) {
+// AHN terrain rasters (scripts/world/fetch_ahn.py --fetch; data/world/ahn,
+// not committed): tile key -> raster for the RASTER section; none: flat
+export function loadTerrainRasters(root = ROOT) {
+  const dir = path.join(root, 'data/world/ahn');
+  const f = path.join(dir, 'index.json');
+  const out = new Map();
+  if (!fs.existsSync(f)) return out;
+  const idx = JSON.parse(fs.readFileSync(f, 'utf8'));
+  for (const [key, t] of Object.entries(idx.tiles || {})) {
+    const bin = path.join(dir, key + '.bin');
+    if (!fs.existsSync(bin)) continue;
+    out.set(key, { w: t.w, h: t.h, cell: t.cell, x0: t.x0, y0: t.y0, codec: 1, data: new Uint8Array(fs.readFileSync(bin)) });
+  }
+  return out;
+}
+
+export function build({ map, om, bin }, attrs = loadAttrs(), terrain = loadTerrainRasters()) {
   const joined = joinAttrs(map.buildings, attrs);
   const tiles = new Map();
   const tileOf = (i, j) => {
@@ -170,7 +205,7 @@ export function build({ map, om, bin }, attrs = loadAttrs()) {
           (t.kinds.heights || (t.kinds.heights = [])).push({ gid, ...profiles.get(o) });
           continue;
         }
-        (t.kinds[kind] || (t.kinds[kind] = [])).push(kind === 'trees' ? { g: gid, p: [[o[0], o[1]]] } : { gid, ...cleanRow(o), ...(kind === 'buildings' ? joined.fields.get(o) : null) });
+        (t.kinds[kind] || (t.kinds[kind] = [])).push(kind === 'trees' ? treeRow(gid, o) : { gid, ...cleanRow(o), ...(kind === 'buildings' ? joined.fields.get(o) : null) });
       }
     });
   }
@@ -190,6 +225,7 @@ export function build({ map, om, bin }, attrs = loadAttrs()) {
   const blobs = new Map();
   for (const t of [...tiles.values()].sort((a, b) => a.i - b.i || a.j - b.j)) {
     const sections = [...KINDS, ['heights', G.SECTION.HEIGHTS], ['junctions', G.SECTION.JUNCTIONS], ['nav', G.SECTION.NAV]].filter(([kind]) => t.kinds[kind]).map(([kind, type]) => ({ type, rows: t.kinds[kind] }));
+    if (terrain.has(t.key)) sections.push({ type: G.SECTION.RASTER, raster: terrain.get(t.key) });
     const maxH = Math.max(0, ...(t.kinds.buildings || []).map((b) => b.h || 0));
     const n = Object.fromEntries([...KINDS, ['heights'], ['junctions'], ['nav']].filter(([k]) => t.kinds[k]).map(([k]) => [k, t.kinds[k].length]));
     blobs.set(t.key, { i: t.i, j: t.j, flags: 1, bytes: G.encodeBlob({ i: t.i, j: t.j, flags: 1, builder: BUILDER, sections }), n, maxH });

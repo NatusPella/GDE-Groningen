@@ -1,0 +1,68 @@
+// The AHN terrain hook (docs/PROVINCIE-PLAN.md 2.7):
+//   node scripts/terrain_test.mjs
+// - a raster round trip (int16 cm), bilinear sampling, no data;
+// - the RASTER section of a tile (gdt.js) and the field a TileWorld keeps;
+// - flat by default: a map without rasters answers 0 everywhere, and the
+//   height solvers take a terrain sampler (a raised field lifts the profile
+//   with it, relative heights stay);
+// - with fetched rasters (scripts/world/fetch_ahn.py --fetch, not committed):
+//   finite heights inside, street level near 0.
+import './node3d.mjs';
+import fs from 'node:fs';
+
+const T = await import('../game/js/terrainraster.js');
+const G = await import('../game/js/gdt.js');
+const RP = await import('./world/railprofile.mjs');
+
+let n = 0, fails = 0;
+const ok = (cond, name, info = '') => { n++; if (!cond) { fails++; console.log(`FAIL ${name}${info ? ' (' + info + ')' : ''}`); } };
+
+// a 4 x 3 raster: height = x / 10 + y / 100 at the cell centres
+const w = 4, h = 3, cell = 5, x0 = 1000, y0 = 2000;
+const values = [];
+for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) values.push((x0 + (i + 0.5) * cell) / 10 + (y0 + (j + 0.5) * cell) / 100);
+values[11] = NaN;
+const R = T.encodeTerrainRaster({ x0, y0, cell, w, h, values });
+ok(R.codec === T.RASTER_CODEC.i16cm && R.data.length === w * h * 2, 'int16 cm per cell');
+const D = T.decodeTerrainRaster(R);
+ok(Math.abs(D.z[5] - values[5]) < 0.006 && Number.isNaN(D.z[11]), 'round trip to the cm, no data kept');
+const mid = T.sampleRaster(D, x0 + 1.0 * cell, y0 + 1.0 * cell);
+ok(Math.abs(mid - ((x0 + 5) / 10 + (y0 + 5) / 100)) < 0.01, 'bilinear between the cell centres', mid);
+ok(T.sampleRaster(D, x0 - 10, y0) === null, 'outside: null');
+ok(T.sampleRaster(D, x0 + 3.7 * cell, y0 + 2.7 * cell) === null, 'on no data: null');
+// the tile section and back
+const blob = G.encodeBlob({ i: 0, j: 0, sections: [{ type: G.SECTION.RASTER, raster: R }] });
+const back = G.decodeBlob(blob).sections.find((s) => s.type === G.SECTION.RASTER).raster;
+ok(back.w === w && back.codec === 1 && back.data.length === R.data.length && back.data.every((v, i) => v === R.data[i]), 'RASTER section round trip (2 bytes a cell)');
+const field = new T.TerrainField();
+ok(field.at(x0 + 7, y0 + 7) === 0, 'an empty field is flat');
+field.add('t', back);
+ok(Math.abs(field.at(x0 + 7.5, y0 + 7.5) - ((x0 + 7.5) / 10 + (y0 + 7.5) / 100)) < 0.01 && field.at(0, 0) === 0, 'a field: the raster inside, flat outside');
+field.drop('t');
+ok(field.size === 0 && field.at(x0 + 7, y0 + 7) === 0, 'dropped: flat again');
+
+// the game map is flat without rasters
+const { GameMap } = await import('../game/js/mapdata.js');
+const map = new GameMap({ meta: { bounds: [-10, -10, 10, 10] }, roads: [], buildings: [], water: [], green: [], trees: [] });
+ok(map.terrainAt(3, 4) === 0, 'GameMap.terrainAt is flat by default');
+
+// the solvers take a terrain: a field raised 2 m lifts the track with it
+const line = (a, b, step = 50) => { const P = []; for (let x = a; x <= b; x += step) P.push([x, 0]); return P; };
+const mk = () => ({ rails: [{ pts: line(-3010, 2990) }], roads: [{ pts: [[0, -50], [0, 50]], cat: 'normal', type: 'residential', width: 6 }], levelCrossings: [], railLifts: [{ x: 0, y: 0, h: 6, plateau: 8, ramp: 120 }], railRoutes: [] });
+const flat = RP.solve(mk());
+const raised = RP.solve(mk(), { terrain: () => 2 });
+const zf = [...flat.rails.values()][0], zr = [...raised.rails.values()][0];
+ok(zf && zr && zf.every((z, i) => Math.abs(z - zr[i]) < 0.02), 'over a raised terrain the profile is the same above it');
+
+// fetched rasters (optional)
+const idx = new URL('../data/world/ahn/index.json', import.meta.url);
+if (fs.existsSync(idx)) {
+  const { loadTerrainField } = await import('./world/terrain.mjs');
+  const F = loadTerrainField();
+  const [key, t] = Object.entries(JSON.parse(fs.readFileSync(idx, 'utf8')).tiles)[0];
+  const z = F.at(t.x0 + 500, t.y0 + 500);
+  ok(Number.isFinite(z) && Math.abs(z) < 15, `AHN tile ${key}: a height near street level`, z);
+} else console.log('(no AHN rasters fetched: scripts/world/fetch_ahn.py --fetch)');
+
+console.log(`${n - fails}/${n} terrain checks passed`);
+process.exit(fails ? 1 : 0);

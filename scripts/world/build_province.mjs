@@ -258,7 +258,7 @@ export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(s
     const [x0, y0] = G.tileOrigin(i0, j0);
     raster = new Raster(x0, y0, Math.ceil(((i1 - i0 + 1) * G.TILE_M) / FINE_M), Math.ceil(((j1 - j0 + 1) * G.TILE_M) / FINE_M), FINE_M);
   }
-  const gid = { buildings: GID0, roads: GID0, water: GID0, green: GID0, trees: GID0, rails: GID0 };
+  const gid = { buildings: GID0, roads: GID0, water: GID0, green: GID0, trees: GID0, rails: GID0, furniture: GID0 };
   const stats = { tiles: 0, buildings: 0, roads: 0, water: 0, rails: 0, green: 0, trees: 0, furniture: 0, hsrc: {}, packs: 0, sourceMB: 0 };
   const blobs = new Map();
   const empty = [], noPack = [];
@@ -287,7 +287,6 @@ export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(s
       if (f.kind === 'rails') railRows.push(f.row);
       let bb;
       if (f.kind === 'trees') bb = [f.row[0], f.row[1], f.row[0], f.row[1]];
-      else if (f.kind === 'furniture') bb = [f.row.x, f.row.y, f.row.x, f.row.y];
       else if (f.kind === 'buildings') { let x = 0, y = 0; const P = f.row.pts, n = P.length - 1; for (let q = 0; q < n; q++) { x += P[q][0]; y += P[q][1]; } bb = [x / n, y / n, x / n, y / n]; }
       else { let a = Infinity, b = Infinity, c = -Infinity, d = -Infinity; for (const p of f.row.pts) { if (p[0] < a) a = p[0]; if (p[1] < b) b = p[1]; if (p[0] > c) c = p[0]; if (p[1] > d) d = p[1]; } bb = [a, b, c, d]; }
       const [i0, j0] = G.tileIndexOf(bb[0], bb[1]), [i1, j1] = G.tileIndexOf(bb[2], bb[3]);

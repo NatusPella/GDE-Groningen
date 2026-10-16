@@ -135,7 +135,8 @@ const eq = (a, b) => JSON.stringify(a) === JSON.stringify(b);
     if (!o) continue;
     fb++;
     if (o.type !== b.type) { dt++; const k = b.type + '>' + o.type; tdiff[k] = (tdiff[k] || 0) + 1; }
-    if (o.h !== b.h) { dh++; const k = b.h + '>' + o.h; hdiff[k] = (hdiff[k] || 0) + 1; }
+    // (the city's measured heights come from the 3D BAG, which this run of the adapter does not read)
+    if (o.h !== b.h && b.hsrc !== '3dbag') { dh++; const k = b.h + '>' + o.h; hdiff[k] = (hdiff[k] || 0) + 1; }
   }
   console.log(`city buildings: ${fb}/${nb} matched by outline, type differs ${dt}, levels differ ${dh}`);
   const top = (o) => Object.entries(o).sort((a, b) => b[1] - a[1]).slice(0, 8).map(([k, v]) => `${k} ${v}`).join(', ');

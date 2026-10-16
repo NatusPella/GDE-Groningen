@@ -70,6 +70,10 @@ import { initNightLights, setNightLightQuality, updateNightLights, isLightRigOn,
 import { createFarLOD } from './farlod.js';
 import { SECTION, TILE_M, tileOrigin } from './gdt.js';
 import { initRailway3D, updateRailway3D } from './railway3d.js';
+import { initMovableBridges3D, updateMovableBridges3D, openBridgeRoads } from './movablebridges3d.js';
+import { getMovableBridges } from './movablebridges.js';
+import { initStreetFurniture3D, updateStreetFurniture3D } from './streetfurniture3d.js';
+import { treeDims, treeColor, SPECIES, TREE_FLAG } from './greenery.js';
 import { buildCanopies } from './canopies3d.js';
 import { initGrass, updateGrass, grassFarColor, grassFarRank } from './grass.js';
 import { updateCountryside, setCountryPropLevel, setRealShown } from './countryside.js';
@@ -332,7 +336,7 @@ function propRayHit(map, ox, oy, oz, dx, dy, dz, len) {
   let best = Infinity;
   for (const t of treesNearAll(map, mx, mz, reach)) {
     if (t._broken) continue;
-    const d = treeDims(t[0], t[1]);
+    const d = treeDims(t);
     best = Math.min(best, rayCylinder(ox, oy, oz, ux, uy, uz, len, t[0], t[1], d.tr + CAM_PROP_PAD, 0, d.trunkH));
   }
   for (const p of propsNearInto(mx, mz, reach, _camProps)) {
@@ -373,8 +377,8 @@ function updateCamTreeHiding(map, ex, ey, ez, cx, cy, cz) {
   const len = Math.hypot(dx, dz);
   for (const t of treesNearAll(map, cx + dx * 0.5, cz + dz * 0.5, len * 0.5 + 4)) {
     if (t._broken) continue;
-    const d = treeDims(t[0], t[1]);
-    const crownY = treeCrownY(d);
+    const d = treeDims(t);
+    const crownY = d.cy;
     const pad = CAM_PROP_PAD;
     // camera inside (near plane padded), or the crown between camera and eye
     const hit = segHitsEllipsoid(cx, cy, cz, 0, 0, 0, t[0], crownY, t[1], d.r + pad, d.ry + pad)
@@ -781,11 +785,6 @@ function pinShaderPrograms(r) {
   };
 }
 
-function hash2(x, y) {
-  const h = Math.sin(x * 127.1 + y * 311.7) * 43758.5453;
-  return h - Math.floor(h);
-}
-
 export function init3D(map) {
   preloadLandmarkModels();
   setBuildingMap(map);
@@ -905,6 +904,7 @@ export function init3D(map) {
     farLod.addStreamTile(key, ox, oy, TILE_M, { buildings: rows(SECTION.BUILDINGS), roads: rows(SECTION.ROADS), green: rows(SECTION.GREEN).filter((g) => g.kind !== 'meadow' && g.kind !== 'grass'), water: rows(SECTION.WATER) });
   });
   initRailway3D(scene, map);
+  initStreetFurniture3D(scene, map);
   const railDecks = buildRailDecks(map);
   if (railDecks) scene.add(railDecks);
   scene.add(buildCanopies(map));
@@ -1194,74 +1194,70 @@ function limitActorShadows(cache, px, py) {
   }
 }
 
-const TREE_TRUNK_MAT = new THREE.MeshStandardMaterial({ color: 0x4d3a28, roughness: 0.9, flatShading: true });
-// Leaves let light through: a little emissive fill (plus brighter greens)
-// keeps canopies from turning into black blobs at dusk and in shade.
-const TREE_CANOPY_MATS = [0x4a7a3c, 0x568440, 0x648c46].map((color) => new THREE.MeshStandardMaterial({
-  color, roughness: 0.85, flatShading: true, emissive: new THREE.Color(color).multiplyScalar(0.09),
-}));
+// Trees by species (greenery.js: crown shape, height, leaf and bark colour).
+// The instanced trees take their colours per instance; leaves let light
+// through: a little emissive fill keeps canopies from turning into black
+// blobs at dusk and in shade.
+const TREE_TRUNK_MAT = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.9, flatShading: true });
+const TREE_CANOPY_MAT = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.85, flatShading: true, emissive: new THREE.Color(0x56844a).multiplyScalar(0.09) });
 const TREE_TRUNK_GEO = new THREE.CylinderGeometry(0.14, 0.22, 1, 6).translate(0, 0.5, 0);
 const TREE_CANOPY_GEO = new THREE.IcosahedronGeometry(1, 1);
+// a conifer: a cone of radius 1 from y -1 to 1
+const TREE_CONE_GEO = new THREE.ConeGeometry(1, 2, 7);
 SHARED_MATERIALS.add(TREE_TRUNK_MAT);
-for (const m of TREE_CANOPY_MATS) SHARED_MATERIALS.add(m);
+SHARED_MATERIALS.add(TREE_CANOPY_MAT);
 SHARED_GEOMETRIES.add(TREE_TRUNK_GEO);
 SHARED_GEOMETRIES.add(TREE_CANOPY_GEO);
+SHARED_GEOMETRIES.add(TREE_CONE_GEO);
+// a tree filled into a wood or park outline is drawn out to TREE_FAR, as its crown only
+const TREE_FAR = 260;
+const _leaf = new THREE.Color(), _bark = new THREE.Color();
+const tumbleMats = new Map();
+function tumbleMat(hex) {
+  let m = tumbleMats.get(hex);
+  if (!m) { m = new THREE.MeshStandardMaterial({ color: hex, roughness: 0.85, flatShading: true }); SHARED_MATERIALS.add(m); tumbleMats.set(hex, m); }
+  return m;
+}
 
-// Trunk, canopy and lobe transforms of the tree at (x, y), shared by the
-// tumbling-tree mesh and the instanced standing trees.
-// Mature street trees (lime, plane, maple): a clear stem of 4-6 m so buses
-// pass under the crown, crowns 7-13 m across, ~10.5-19 m tall in all.
-// ry: the crown's vertical radius; tr: trunk radius at the foot.
-const _treeDims = { trunkH: 0, r: 0, ry: 0, tr: 0, ts: 1, h2: 0, lr: 0, lx: 0, ly: 0, lz: 0 };
-function treeDims(x, y) {
-  const h = hash2(x, y);
-  const h2 = hash2(y, x);
-  const d = _treeDims;
-  d.h2 = h2;
-  d.trunkH = 4.2 + h * 1.6;
-  d.r = 3.4 + h * 2.0 + h2 * 1.0;
-  d.ry = d.r * 1.05;
-  d.ts = 1.5 + h * 0.5;
-  d.tr = 0.22 * d.ts;
-  d.lr = d.r * (0.55 + h2 * 0.15);
-  d.lx = Math.cos(h2 * 6.3) * d.r * 0.55;
-  d.ly = d.trunkH + d.ry * 1.15;
-  d.lz = Math.sin(h2 * 6.3) * d.r * 0.55;
+// Trunk, canopy and lobe transforms of tree t, shared by the tumbling-tree
+// mesh and the instanced standing trees. Returns the dims (d.cone: a conifer).
+function layoutTree(t, trunk, canopy, lobe) {
+  const d = treeDims(t);
+  trunk.scale.set(d.ts, d.trunkH + d.ry * 0.5, d.ts);
+  canopy.rotation.set(0, d.rot, 0);
+  if (d.cone) {
+    canopy.scale.set(d.r, d.ry, d.r);
+    canopy.position.y = d.trunkH + d.ry * 0.9;
+  } else {
+    canopy.scale.set(d.r, d.ry, d.r);
+    canopy.position.y = d.cy;
+  }
+  lobe.scale.set(d.lr, d.lr * 0.85, d.lr);
+  lobe.position.set(d.lx, d.ly, d.lz);
   return d;
 }
-function treeCrownY(d) { return d.trunkH + d.ry * 0.82; }
 
-function layoutTree(x, y, trunk, canopy, lobe) {
-  const d = treeDims(x, y);
-  const { h2, trunkH, r, ry, ts, lr, lx, ly, lz } = d;
-  // the trunk runs up into the crown
-  trunk.scale.set(ts, trunkH + ry * 0.5, ts);
-  canopy.scale.set(r, ry, r);
-  canopy.rotation.y = h2 * Math.PI * 2;
-  canopy.position.y = treeCrownY(d);
-  lobe.scale.set(lr, lr * 0.85, lr);
-  lobe.position.set(lx, ly, lz);
-  return Math.floor(h2 * TREE_CANOPY_MATS.length);
-}
-
-function buildTreeMesh(x, y) {
+function buildTreeMesh(t) {
   const group = new THREE.Group();
   const trunk = new THREE.Mesh(TREE_TRUNK_GEO, TREE_TRUNK_MAT);
-  const canopy = new THREE.Mesh(TREE_CANOPY_GEO, TREE_CANOPY_MATS[0]);
-  const lobe = new THREE.Mesh(TREE_CANOPY_GEO, TREE_CANOPY_MATS[0]);
-  canopy.material = lobe.material = TREE_CANOPY_MATS[layoutTree(x, y, trunk, canopy, lobe)];
-  group.add(trunk, canopy, lobe);
-  canopy.castShadow = lobe.castShadow = trunk.castShadow = true;
-  lobe.receiveShadow = canopy.receiveShadow = trunk.receiveShadow = true;
-  group.position.set(x, 0, y);
+  const canopy = new THREE.Mesh(TREE_CANOPY_GEO, TREE_CANOPY_MAT);
+  const lobe = new THREE.Mesh(TREE_CANOPY_GEO, TREE_CANOPY_MAT);
+  const d = layoutTree(t, trunk, canopy, lobe);
+  const sp = SPECIES[d.sp];
+  trunk.material = tumbleMat(sp.trunk);
+  canopy.material = lobe.material = tumbleMat(sp.color);
+  if (d.cone) canopy.geometry = TREE_CONE_GEO;
+  group.add(trunk, canopy);
+  if (d.lr > 0) group.add(lobe);
+  for (const m of group.children) m.castShadow = m.receiveShadow = true;
+  group.position.set(t[0], 0, t[1]);
   return group;
 }
 setTreeMeshBuilder(buildTreeMesh);
 
-// Standing trees: one InstancedMesh for the trunks and one per canopy colour
-// (canopy + lobe) instead of three meshes per tree - identical geometry,
-// materials and transforms, but a handful of draw calls in the main and the
-// shadow pass instead of three per tree.
+// Standing trees: one InstancedMesh for the trunks, one for the leafy crowns
+// (crown + lobe), one for the conifers and one for the far crowns of woods,
+// colours per instance: four draws however many species.
 const treeInstanced = [];
 let treeCapacity = 0;
 let shownTrees = [];
@@ -1289,17 +1285,21 @@ function ensureTreeCapacity(n) {
   treeCapacity = Math.max(64, treeCapacity * 2, n);
   for (const m of treeInstanced) { scene.remove(m); m.dispose(); }
   treeInstanced.length = 0;
-  const make = (geo, mat, cap) => {
+  const make = (geo, mat, cap, shadow = true) => {
     const m = new THREE.InstancedMesh(geo, mat, cap);
-    m.castShadow = m.receiveShadow = true;
+    m.castShadow = shadow;
+    m.receiveShadow = true;
     m.count = 0;
     m.matrixAutoUpdate = false;
     m.name = 'trees';
+    m.setColorAt(0, _leaf.setRGB(1, 1, 1));
     scene.add(m);
     treeInstanced.push(m);
   };
   make(TREE_TRUNK_GEO, TREE_TRUNK_MAT, treeCapacity);
-  for (const mat of TREE_CANOPY_MATS) make(TREE_CANOPY_GEO, mat, treeCapacity * 2);
+  make(TREE_CANOPY_GEO, TREE_CANOPY_MAT, treeCapacity * 2);
+  make(TREE_CONE_GEO, TREE_CANOPY_MAT, treeCapacity);
+  make(TREE_CANOPY_GEO, TREE_CANOPY_MAT, treeCapacity, false);
 }
 
 // --- per-frame sync ------------------------------------------------------
@@ -1615,6 +1615,8 @@ function syncWater(items, cache, y, map, px, py) {
 }
 
 let roadQuality = getRoadQualityVersion();
+const openSpans = new Set();
+let bridgeViews = false;
 function syncRoads(world, px, py) {
   setRoadNetwork(world.map);
   if (roadQuality !== getRoadQualityVersion()) {
@@ -1665,30 +1667,57 @@ function syncRoads(world, px, py) {
 }
 
 function syncTrees(world, px, py) {
-  const trees = treesNearAll(world.map, px, py, TREE_DIST).filter((t) => !t._broken);
+  // the trees round the player, and further out the crowns of the woods
+  const all = treesNearAll(world.map, px, py, TREE_FAR);
+  const trees = [];
+  for (const t of all) {
+    if (t._broken) continue;
+    if (Math.abs(t[0] - px) <= TREE_DIST && Math.abs(t[1] - py) <= TREE_DIST && Math.hypot(t[0] - px, t[1] - py) <= TREE_DIST) trees.push(t);
+    else if (t[4] & TREE_FLAG.fill) trees.push(t);
+  }
   const hiddenChanged = camTreeHiddenKey !== shownHiddenKey;
   if (!hiddenChanged && trees.length === shownTrees.length && trees.every((t, i) => t === shownTrees[i])) return;
   shownTrees = trees;
   shownHiddenKey = camTreeHiddenKey;
   ensureTreeCapacity(trees.length);
-  const [trunks, ...canopies] = treeInstanced;
+  const [trunks, crowns, cones, far] = treeInstanced;
   for (const m of treeInstanced) m.count = 0;
   crownShadowOnly.count = 0;
   const [trunk, canopy, lobe] = _treeParts;
+  const put = (m, part, color) => {
+    part.updateMatrix();
+    m.setMatrixAt(m.count, _treeMatrix.multiplyMatrices(_treeGroup.matrix, part.matrix));
+    m.setColorAt(m.count++, color);
+  };
   for (const t of trees) {
     _treeGroup.position.set(t[0], 0, t[1]);
     _treeGroup.updateMatrix();
-    const c = canopies[layoutTree(t[0], t[1], trunk, canopy, lobe)];
-    const hideCrown = camTreeHidden.includes(t) && crownShadowOnly.count < CROWN_SHADOW_CAP - 1;
-    for (const [part, m] of [[trunk, trunks], [canopy, hideCrown ? crownShadowOnly : c], [lobe, hideCrown ? crownShadowOnly : c]]) {
-      part.updateMatrix();
-      m.setMatrixAt(m.count++, _treeMatrix.multiplyMatrices(_treeGroup.matrix, part.matrix));
+    const d = layoutTree(t, trunk, canopy, lobe);
+    treeColor(t, _leaf);
+    const near = Math.hypot(t[0] - px, t[1] - py) <= TREE_DIST;
+    if (!near) {
+      // far: the crown only, no shadow
+      put(far, canopy, _leaf);
+      continue;
     }
+    _bark.setHex(SPECIES[d.sp].trunk);
+    put(trunks, trunk, _bark);
+    const hideCrown = camTreeHidden.includes(t) && crownShadowOnly.count < CROWN_SHADOW_CAP - 1;
+    if (hideCrown) {
+      for (const part of d.lr > 0 ? [canopy, lobe] : [canopy]) {
+        part.updateMatrix();
+        crownShadowOnly.setMatrixAt(crownShadowOnly.count++, _treeMatrix.multiplyMatrices(_treeGroup.matrix, part.matrix));
+      }
+      continue;
+    }
+    put(d.cone ? cones : crowns, canopy, _leaf);
+    if (d.lr > 0) put(crowns, lobe, _leaf);
   }
   crownShadowOnly.instanceMatrix.needsUpdate = true;
   crownShadowOnly.computeBoundingSphere();
   for (const m of treeInstanced) {
     m.instanceMatrix.needsUpdate = true;
+    if (m.instanceColor) m.instanceColor.needsUpdate = true;
     m.computeBoundingSphere();
   }
 }
@@ -1988,7 +2017,14 @@ export function update3D(dt, world) {
   updateShore(waterNight, cam);
   probe.mark('3d:water');
   syncRoads(world, focus.x, focus.y);
-  if (!NO_BATCH) roadBatcher.update({ scene, meshes: roadMeshes, hidden: null, px: focus.x, py: focus.y, detailR: DRAW_DIST, drawDist: DRAW_DIST, withDetail: true, budgetMs: 1 });
+  // movable bridges (movablebridges3d.js): the static road of a span that is
+  // not lying closed is hidden and left out of the road batches
+  if (getMovableBridges().length && !bridgeViews) { initMovableBridges3D(scene); bridgeViews = true; }
+  openBridgeRoads(openSpans);
+  if (!NO_BATCH) roadBatcher.update({ scene, meshes: roadMeshes, hidden: openSpans.size ? openSpans : null, px: focus.x, py: focus.y, detailR: DRAW_DIST, drawDist: DRAW_DIST, withDetail: true, budgetMs: 1 });
+  for (const b of getMovableBridges()) { const m = roadMeshes.get(b.r); if (m) m.visible = !openSpans.has(b.r); }
+  updateMovableBridges3D(focus.x, focus.y, waterNight);
+  updateStreetFurniture3D(focus.x, focus.y);
   probe.mark('3d:roads');
   syncTrees(world, focus.x, focus.y);
   probe.mark('3d:trees');
@@ -2329,7 +2365,7 @@ export function update3D(dt, world) {
       playerMesh.userData.shadow.visible = !player.swimming;
       playerMesh.rotation.x = 0;
       playerMesh.rotation.z = player.swimTilt || 0;
-      playerMesh.position.set(player.x, (player.gz || 0) + (player.z || 0), player.y);
+      playerMesh.position.set(player.x, (player.gz || 0) + (player.z || 0) - (player.wade || 0), player.y);
       playerMesh.rotation.y = -player.angle;
       playerMesh.scale.y = 1;
       playerMesh.userData.crouch = !!player.crouching;
