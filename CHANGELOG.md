@@ -10,6 +10,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **Even pinnen:** de opdrachtregels zeggen nu duidelijk dat de pinautomaat achterin de auto ligt.
 - **Stuntavond op de Grote Markt:** het doel staat nu in de uitleg, en terrasstoelen en -tafels leveren ook punten op.
 - **Water onder gras:** waar een groenvlak over water ligt, wint nu het water. Geen gras meer boven plekken waar je zwemt.
+- **Fatbikers schelden terug:** toeter je naar een fatbiker in de missie, dan krijg je een Gronings antwoord in een tekstbubbel.
 
 ## [0.33.0] - 2026-10-16
 
