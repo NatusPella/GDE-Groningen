@@ -1,6 +1,6 @@
 import { GameMap, SpatialGrid } from './mapdata.js';
 import { polygonBounds } from './util.js';
-import { REAL, RTILE, buildingsInTile, buildingModel, buildingAt } from './countryreal.js';
+import { REAL, RTILE, buildingsInTile, buildingModel, buildingAt, coveredByTiles } from './countryreal.js';
 import { urbanWeight, realWater } from './countryfield.js';
 import { buildRoad, buildBuilding, worldBuilderOn } from './worldbuilder.js';
 
@@ -35,7 +35,7 @@ const KIND_HIGHWAY = { 3: 'primary', 4: 'secondary', 5: 'tertiary', 6: 'unclassi
 let RM = null;
 
 // where the real Ommeland's streets are city streets
-export const builtUp = (x, y) => urbanWeight(x, y) >= URBAN;
+export const builtUp = (x, y) => urbanWeight(x, y) >= URBAN && !coveredByTiles(x, y);
 
 // a road's polyline split into its built-up runs (bridges stay the
 // countryside's deck)

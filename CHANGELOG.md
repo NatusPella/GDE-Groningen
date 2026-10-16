@@ -13,6 +13,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ### Verbeterd
 - **Tegels in het oude Ommeland (voorbereiding):** met `?ommelandtegels` laadt het spel de provinciegegevens ook binnen het oude Ommeland-gebied. Nog niet standaard; `--legacy` werkt zoals altijd.
+- **Tegels vervangen de oude Ommeland-lagen (achter `?ommelandtegels`):** waar een gebouwde provincietegel ligt, vallen de oude gebouwdozen (props, skyline, kaarten, botsing, stadsbouwers) weg en schildert de grondshader geen oude wegen meer, met een rand van 14 m langs de tegelrand zodat wegen doorlopen. Verkeer en routes blijven op de oude wegen. Nog niet standaard; `--legacy` werkt zoals altijd.
 - **Bewegwijzering op de snelweg:** de blauwe portalen boven afritten noemen nu steden en dorpen uit de hele provincie in plaats van alleen die rond de stad, en kiezen er een in de goede richting.
 - **Even pinnen:** de opdrachtregels zeggen nu duidelijk dat de pinautomaat achterin de auto ligt.
 - **Stuntavond op de Grote Markt:** het doel staat nu in de uitleg, en terrasstoelen en -tafels leveren ook punten op.
