@@ -6,6 +6,9 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Toegevoegd
+- **Geldwagen overvallen:** blaas een Poen Express uit het verkeer open (total loss), pak de geldzak en de politie zit je achterna. Geldwagen en geldzak staan op de minimap en de kaart.
+
 ### Verbeterd
 - **Even pinnen:** de opdrachtregels zeggen nu duidelijk dat de pinautomaat achterin de auto ligt.
 - **Stuntavond op de Grote Markt:** het doel staat nu in de uitleg, en terrasstoelen en -tafels leveren ook punten op.
