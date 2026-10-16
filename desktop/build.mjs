@@ -69,6 +69,16 @@ function packWorld() {
   const corDir = path.join(root, 'data', 'world', 'corridor');
   if (corInputs.length && fs.existsSync(corDir)) for (const f of fs.readdirSync(corDir).sort()) corInputs.push(path.join(corDir, f));
   for (const f of corInputs) if (fs.existsSync(f)) h.update(fs.readFileSync(f));
+  // the whole province (scripts/world/build_province.mjs) from the Geofabrik
+  // extract's caches in data/cache/province* (extract_province.py), when there
+  const province = path.join(root, 'scripts', 'world', 'build_province.mjs');
+  const cacheDir = path.join(root, 'data', 'cache');
+  const provDirs = fs.existsSync(province) && fs.existsSync(path.join(cacheDir, 'province', 'province.json.gz'))
+    ? fs.readdirSync(cacheDir).filter((d) => d === 'province' || d.startsWith('province-')).sort().map((d) => path.join(cacheDir, d)) : [];
+  if (provDirs.length) {
+    h.update(fs.readFileSync(province));
+    for (const d of provDirs) for (const f of fs.readdirSync(d).filter((q) => q.endsWith('.json.gz')).sort()) { h.update(f); h.update(fs.readFileSync(path.join(d, f))); }
+  }
   const WCACHE = path.join(HERE, '.world-cache');
   const cache = path.join(WCACHE, 'world-' + h.digest('hex').slice(0, 16));
   if (!fs.existsSync(path.join(cache, 'index.json'))) {
@@ -79,6 +89,10 @@ function packWorld() {
     if (corInputs.length) {
       const c = spawnSync(process.execPath, [corridor, '--out', cache, '--city', path.join(cache, 'index.json')], { stdio: 'inherit', cwd: root });
       if (c.status) { fs.rmSync(cache, { recursive: true, force: true }); throw new Error('building the corridor tiles failed'); }
+    }
+    if (provDirs.length) {
+      const c = spawnSync(process.execPath, [province, '--out', cache, '--city', path.join(cache, 'index.json')], { stdio: 'inherit', cwd: root });
+      if (c.status) { fs.rmSync(cache, { recursive: true, force: true }); throw new Error('building the province tiles failed'); }
     }
     for (const d of fs.readdirSync(WCACHE)) if (path.join(WCACHE, d) !== cache) fs.rmSync(path.join(WCACHE, d), { recursive: true, force: true });
     console.log(`packed the map tiles in ${((Date.now() - t) / 1000).toFixed(0)} s`);
