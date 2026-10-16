@@ -896,12 +896,13 @@ export function init3D(map) {
     roadColorOf: roadFarColor,
   });
   // streamed tiles (the province's, tileworld.js) join the far LOD as they
-  // come and go; up close the detail streamers find them in the map's grids
+  // come and go; up close the detail streamers find them in the map's grids.
+  // A meadow or grass (Dutch farmland is mapped as either) is the ground shader's fields
   if (map.onTiles) map.onTiles((kind, tile, key) => {
     if (kind === 'drop') { farLod.dropStreamTile(key); return; }
     const rows = (type) => (tile.sections.find((q) => q.type === type) || { rows: [] }).rows;
     const [ox, oy] = tileOrigin(tile.i, tile.j);
-    farLod.addStreamTile(key, ox, oy, TILE_M, { buildings: rows(SECTION.BUILDINGS), roads: rows(SECTION.ROADS), green: rows(SECTION.GREEN), water: rows(SECTION.WATER) });
+    farLod.addStreamTile(key, ox, oy, TILE_M, { buildings: rows(SECTION.BUILDINGS), roads: rows(SECTION.ROADS), green: rows(SECTION.GREEN).filter((g) => g.kind !== 'meadow' && g.kind !== 'grass'), water: rows(SECTION.WATER) });
   });
   initRailway3D(scene, map);
   const railDecks = buildRailDecks(map);
