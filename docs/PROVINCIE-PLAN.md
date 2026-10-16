@@ -1432,6 +1432,64 @@ het spel speelbaar na elke commit.
 | **4. Audits** | **klaar voor het bestaande gebied.** `scripts/world/drive_audit.mjs`: elke weg in beide richtingen op zijn snelheid met de echte autophysica, 25 m door in de wegen die doorlopen (haker, sprong, val van een dek, zinken, van de weg geduwd): 7.312 ritten in 25 s, 8 hakers in smalle binnenstadsstraten; `--solids` tast elke rijstrook af (94 gevels over de stroken van steegjes waar de klassebreedte breder is dan de straat). `scripts/network_drive_test.mjs` rijdt streng elke hoofd- en profielweg (2.616 ritten) en de waterkruisingen van de ring. Voegen, hellingen, bogen en vrije hoogte: `profile.mjs`; stroken: `audit_lanes.py`; gaten, zwevende randen en z-fighting: `mesh_audit.mjs`. Gevonden en opgelost: sprongen op 9 trunk-voegen (de nieuwe hoogtequery telde een punt voorbij het eind van een lint nog mee) en `crossingPath` dat achterwaarts een keerbocht koos. Debug: in dev-modus toont F8 het lengteprofiel van het lint onder de speler (`profileoverlay.js`) |
 | **Eén hoogtequery** | **klaar:** `map.surfaceAt(x, y, state)` met de laag van de vrager (`{ z, ribbon }`): blijft op zijn dek, neemt bij een voeg de weg die doorloopt (dezelfde weg eerst), valt over een rand. Rijden, lopen, voetgangers, racebaan, cutscènepaden en de GPS-lijn gebruiken hem; `groundHeightAt` blijft de stateloze terugval. De N7-kruising bij het Julianaplein (-61, 1830) rijdt weer met de strenge dekcheck tot het eind van het pad (`scripts/surface_test.mjs`) |
 
+### 2.27 F1, tweede helft: wereldbouwer en proefstrook (stand)
+
+| Onderdeel | Stand |
+|---|---|
+| **1. Wereldbouwer** | **klaar als één generatorpad.** `game/js/worldbuilder.js`: wegen (klasse, stroken en breedte uit het strookmodel, toegang, kunstwerken, de kom-snelheid op een dorpsstraat), gebouwen (een OSM-omtrek houdt zijn tag, een Ommeland-doos krijgt een stadstype uit zijn vorm; verdiepingen, `hm` + `hsrc` uit het beste bewijs: 3D BAG > OSM-hoogte > OSM-lagen > standaard; daktype), water, spoor, groen, POI's en haken voor straatmeubilair en groen (F1c). De dorpen (`realmap.js`) gaan er nu doorheen (vlag omgezet, `?wb=0` geeft de oude code voor een A/B); de hoogteregel van de stad in de packer is dezelfde functie (tegels byte-gelijk). Audit `scripts/worldbuilder_test.mjs`: dorpen 6.565 wegen en 109.910 gebouwen, 0 verschillen tussen de twee paden; `fromOsm` over de eigen ruwe caches van de stad geeft de rijen van `process_osm.py` terug: 5.845/5.845 autowegen op OSM-id (één veldverschil), 49.446/49.475 gebouwen op omtrek, 0 typeverschillen, 44 verdiepingsverschillen (alleen waar OSM een `height` heeft, nu beter). Open: de stad zelf opnieuw *bouwen* uit OSM in plaats van uit `citymap.json` (de afleidingen van de `add_*.py`-stappen als regels), met de shotsdiff |
+| **2. Proefstrook** | **pijplijn klaar, data half.** `scripts/world/corridor.mjs`: 619 tegels (21 % van de provincie) langs het spoor naar Delfzijl en naar Roodeschool/Eemshaven, de N360, de A7 tot Zuidbroek, de N33 en de Eemskust (Delfzijl–Termunterzijl), plus schijven om Appingedam, Delfzijl, Winsum, Uithuizen en Eemshaven; plaatsen uit de gecachte plaatsknopen. `build_corridor.mjs` bouwt elke tegel uit de beste lokale cache door de wereldbouwer. **Uit de lokale caches: 187 tegels** (het Ommeland-deel tot Loppersum en Winsum, gebouwen daar nog als dozen), 47 zijn de stad, **385 hebben geen data**: Appingedam, Delfzijl, Eemshaven en Uithuizen staan in geen enkele cache. Het ophaalcommando staat hieronder |
+| **Plaatsen** | **klaar:** 253 plaatsen in de strook (steden, dorpen, gehuchten, Eemshaven) met 90 wijken bij hun plaats; voorbij het oude Ommeland noemt de locatie de plaats of "wijk · plaats" (`worldplaces.js`). De voorzieningenlaag (`facilities.json`, al provinciebreed) telt de gestreamde corridortegels mee met `?corridor` |
+| **Streaming** | **klaar en gemeten** (virtuele klok, tabel hieronder). In het spel achter `?corridor` (desktop `--corridor`): alleen tegels die de oude Ommeland-lagen niet al tekenen (vlag 8); met de huidige caches zijn dat er 0, dus het spel blijft gelijk |
+| **3. Trein** | **meerijden klaar**: de hele rit halte voor halte op de eigen treinfysica, Spatie houdt = overslaan met aankomstscène (`scripts/train_ride_test.mjs`: Groningen Noord → Loppersum 19,1 min, stopt in Bedum en Stedum). Lijnen en stations: de corridor vindt de route station voor station over het spoor (nu tot Loppersum en Winsum); `corridorrail.js` laat de Ommeland-lijnen doorrijden zodra er spoor is (Appingedam, Delfzijl, Baflo … Eemshaven). Machinist-minigame: niet gedaan (het kapen van een trein bestaat al als basis) |
+| **Bus** | **alleen de pijplijn:** buslijnen uit `route=bus`-relaties (haltes op volgorde, de ways aan elkaar) in `build_corridor.mjs`, getest op een OSM-vormige relatie. Geen lokale cache heeft streekbusrelaties, dus nog geen lijn, meerijden of bijbaan in de strook |
+| **4. Wereldrand** | **regels en data-haak:** `worldedge.js` (zee: kustwacht, dan stroming en mist terug met het gezicht naar de kust; grens: de gag van het buurland, nooit op een dek of bij een brugeinde; lucht: radio en autopiloot); de kustlijn komt uit de corridorcache. De terugkeerscènes zelf horen bij F3 |
+
+**Ophalen van de ontbrekende data (eigenaar, eenmalig, ~30-60 min, ~15-25 MB gzip):**
+
+```
+python3 scripts/world/fetch_corridor.py --dry-run   # de 20 packs en de vragen, zonder netwerk
+python3 scripts/world/fetch_corridor.py             # haalt de packs op naar data/world/corridor/
+node scripts/world/build_corridor.mjs --out game/world   # (de stage doet dit ook)
+node scripts/corridor_test.mjs
+```
+
+Daarna bouwt dezelfde pijplijn alle 572 niet-stadstegels met echte omtrekken,
+stroken, spoor, water, bushaltes en kustlijn; `?corridor` laat ze zien en de
+treinen rijden door tot Delfzijl en Eemshaven.
+
+**Metingen F1 (proefstrook, deze machine).**
+
+| Meting | Waarde | Doel (4.1 / F1) |
+|---|---|---|
+| Bouwtijd strook (187 tegels uit cache) | ~1,0-1,3 s; de stad packen ~4,5 s | volledige build ≤ 15 min |
+| Grootte strook (187 tegels) | 1,39 MB (7,5 kB/tegel, gebouwen als dozen); schatting hele strook met echte omtrekken en landgebruik ~9-10 MB | strook ≤ 10 MB |
+| Decoderen per tegel (inflate + decode) | p50 0,15 ms, p95 1,2-2,3 ms, max 5-8 ms | ≤ 3 ms |
+| Poorten (wegen op de tegelrand) | 1.436 verbonden, 0 open | 0 open |
+| Auto N360 40 m/s, Stad → Delfzijl (27 km) | 0 tegels te laat binnen 250 m; hoofdthread per frame max 3,9-5,7 ms, 0-1 frames > 4 ms, 0 > 8 ms; 15 tegels zonder data onderweg | 0 te laat |
+| Trein 39 m/s, Stad → Loppersum → Delfzijl (31 km) | 0 te laat; max 3,7-5,7 ms per frame, 0 > 8 ms; 15 tegels zonder data | 0 te laat |
+| Heli 60 m/s, Stad → Eemshaven (30 km) | 0 te laat; max 3,9-6,8 ms, 0 > 8 ms; 21 tegels zonder data | geen pop-in binnen 600 m |
+| Opgeslagen tegeldata tijdens de rit | ~8 MB (incl. de vastgepinde stad) | ≤ 150 MB |
+| Laden tot titelscherm (Electron, `--corridor`, 1 run) | kaart klaar 1.957 ms, titelscherm 5.317 ms; 54 stadstegels, 3,5 MB gelezen, 0 te laat; JS-heap 804 MB; `index-corridor.json` (96 kB) wordt altijd gelezen voor de plaatsnamen | ≤ 6 s (F0: 4,3-5,5 s) |
+| Perf-routes (Electron, `--corridor`; gem. / p95 / p99 ms, frames > 50 ms, langste) | lopen 28,4 / 35,3 / 48,1, 2, 56 ms; ring 27,5 / 35,3 / 50,0, 7, 67 ms; heli 23,5 / 34,9 / 35,3, 3, 125 ms; heap 0,6-1,2 GB | geen regressie t.o.v. F0 (22-24 gem., p95 33,5-34); de belasting liep van 4,3 naar 8,0 (andere agents), dus binnen de ruis niet te beslissen: herhalen op een stille machine |
+| `geocheck` (worker = hoofdthread, byte voor byte) | ok | ok |
+
+(Meetomstandigheden: één machine met parallelle agents; de laadmeting liep
+per ongeluk naast een Electron-proces van een andere agent. De
+virtuele-klokmetingen hierboven zijn daar niet gevoelig voor.)
+
+**Go/no-go: GO voor de pijplijn, nog GEEN go voor de strook in het spel.**
+De wereldbouwer maakt dorp en stad door één pad (0 verschillen, de stad
+reproduceerbaar uit OSM), de tegels zijn klein, decoderen ruim binnen budget,
+en streaming houdt bij auto-, trein- en helisnelheid zonder een tegel te laat
+en zonder hapering op de hoofdthread. Wat ontbreekt is data, geen techniek:
+385 tegels (Appingedam, Delfzijl, Eemshaven, Uithuizen) staan in geen cache.
+Advies: haal de strook op met het commando hierboven, draai
+`corridor_test` en de Electron-ronde met `--corridor`, en zet daarna in F2
+de procedurele polders en `countryreal`/`countryedge` per tegel uit waar
+de wereldbouwer tekent (zonder dat staan de nieuwe tegels op de polders).
+Pas als de hele strook gemeten is (download ≤ 10 MB, 10 min A7/N33 zonder
+hapering > 66 ms) is het een volledige go voor F2.
+
 ## 3. Reizen door de provincie
 
 De provincie is **37 keer zo groot als een grote open-wereldkaart** (~80 km²) en een
@@ -1915,6 +1973,8 @@ Electron-tests alleen in één slotronde per fase.
     (geen hoogte → `building:levels` → type-default).
 - **Parallel:** A bouwer + overlays; B grafen, verkeer en politie; C treinen,
   bus, inhoud en tests.
+- **Stand:** zie 2.26 (wegenkern) en 2.27 (wereldbouwer, proefstrook,
+  metingen en het go/no-go-advies).
 
 ### F2 · De hele provincie
 

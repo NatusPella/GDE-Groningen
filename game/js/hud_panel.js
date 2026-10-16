@@ -558,7 +558,7 @@ function currentDistrict(world) {
   const meta = world.map.meta;
   // out in the real Ommelanden: the village you are in, else just Ommeland
   const area = ommelandArea(x, y);
-  if (area) return area.near || !area.place ? 'Ommeland' : area.place;
+  if (area) return area.near || !area.place ? 'Ommeland' : area.district || area.place;
   // Only 2 of the real admin boundaries actually reach into this play area,
   // and they're coarse (e.g. plain "Groningen") - the ~66 named
   // neighbourhood/quarter points give a far more specific, genre-style
@@ -610,13 +610,16 @@ function updateLocation(dt, world) {
     if (t) { els.locationEl.appendChild(t); els.savedIn = true; }
   }
   const district = currentDistrict(world);
-  const country = !!ommelandArea(world.player.x, world.player.y);
+  const area = ommelandArea(world.player.x, world.player.y);
+  const country = !!area;
   const rp = world.map.nearestRoadPoint(world.player.x, world.player.y, 60, false);
   const street = (rp && rp.road && rp.road.name) || (REAL.ready && edgeDistance(world.player.x, world.player.y) > 0 ? realStreetAt(world.player.x, world.player.y) : '');
   locWhere = { district: district || '', country };
   // the street big, the wijk (or village) and the city under it
   setText(els.street, street || district || '');
-  setText(els.district, street ? [district, country ? (district === 'Ommeland' ? '' : 'Ommeland') : 'Grunn'].filter(Boolean).join(' · ') : (country ? 'Ommeland' : 'Grunn'));
+  // plaats + wijk: a district of a town out in the province names its town
+  const region = area && area.district ? area.place : 'Ommeland';
+  setText(els.district, street ? [district, country ? (district === 'Ommeland' ? '' : region) : 'Grunn'].filter(Boolean).join(' · ') : (country ? region : 'Grunn'));
 }
 
 // --- zone B: a new place, big for a moment ---------------------------------------
