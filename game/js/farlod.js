@@ -58,10 +58,13 @@ if (uNightGlow > 0.0) {
   return m;
 }
 
-function groundMaterial(offset) {
+function groundMaterial(offset, near = false) {
   const m = new THREE.MeshLambertMaterial({
     vertexColors: true, polygonOffset: true, polygonOffsetFactor: -offset, polygonOffsetUnits: -offset * 4,
   });
+  // near: drawn up to the player too (a streamed tile's green and water have
+  // no detailed copy that takes over)
+  if (near) return m;
   m.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, shared);
     shader.vertexShader = shader.vertexShader
@@ -80,7 +83,10 @@ const MATS = {
   green: groundMaterial(0.2),
   path: groundMaterial(0.45),
   road: groundMaterial(0.7),
+  greenNear: groundMaterial(0.2, true),
+  water: groundMaterial(0.3, true),
 };
+const WATER_FLAT = [44, 74, 78];
 
 const _c = new THREE.Color();
 function rgb8(hex) {
@@ -248,7 +254,7 @@ export function createFarLOD(scene, map, opts) {
   function startJob(t) {
     t.job = {
       phase: 0, i: 0,
-      bld: new MeshBuilder(true), green: new MeshBuilder(false), path: new MeshBuilder(false), road: new MeshBuilder(false),
+      bld: new MeshBuilder(true), green: new MeshBuilder(false), path: new MeshBuilder(false), road: new MeshBuilder(false), water: new MeshBuilder(false),
     };
     queue.push(t);
   }
@@ -279,9 +285,12 @@ export function createFarLOD(scene, map, opts) {
           addSegment(car ? J.road : J.path, a[0], a[1], c[0], c[1], half, col, r.z ? r.z[s] : 0, r.z ? r.z[s + 1] : 0);
         }
       } else if (J.phase === 2) {
-        if (J.i >= t.green.length) { J.phase = 3; continue; }
+        if (J.i >= t.green.length) { J.phase = 3; J.i = 0; continue; }
         const g = t.green[J.i++];
         addPolyGeometry(J.green, flatGeometry(g), greenOf(g));
+      } else if (J.phase === 3) {
+        if (!t.water || J.i >= t.water.length) { J.phase = 4; continue; }
+        addPolyGeometry(J.water, flatGeometry(t.water[J.i++]), WATER_FLAT);
       } else {
         finishJob(t);
         return true;
@@ -293,10 +302,10 @@ export function createFarLOD(scene, map, opts) {
     const J = t.job;
     t.job = null;
     t.meshes = [];
-    for (const [name, B] of [['building', J.bld], ['green', J.green], ['path', J.path], ['road', J.road]]) {
+    for (const [name, B] of [['building', J.bld], ['green', J.green], ['path', J.path], ['road', J.road], ['water', J.water]]) {
       const geo = B.build(name !== 'building');
       if (!geo) continue;
-      const mesh = new THREE.Mesh(geo, MATS[name]);
+      const mesh = new THREE.Mesh(geo, MATS[t.stream && name === 'green' ? 'greenNear' : name]);
       mesh.matrixAutoUpdate = false;
       mesh.userData.tris = geo.index.count / 3;
       root.add(mesh);
@@ -357,10 +366,30 @@ export function createFarLOD(scene, map, opts) {
     stats.lastBuildMs = performance.now() - t0;
   }
 
+  // A streamed tile (tileworld.js onTiles: the province's and the
+  // proefstrook's tiles) as one more far-LOD tile, built and dropped like
+  // the rest; its objects are the rows the tile world's grids hold.
+  function addStreamTile(key, x0, y0, size, { buildings = [], roads = [], green = [], water = [] }) {
+    const k = 's:' + key;
+    if (tiles.has(k)) disposeTile(tiles.get(k));
+    const t = { key: k, x0, y0, x1: x0 + size, y1: y0 + size, buildings: [], segs: [], green: [], water: water.filter((w) => w.flat && w.pts.length >= 4), meshes: null, job: null, stream: true };
+    for (const b of buildings) if (!b.landmark && b.bounds) t.buildings.push(b);
+    for (const r of roads) for (let i = 0; i < r.pts.length - 1; i++) t.segs.push(r, i);
+    for (const g of green) if (g.bounds && g.pts.length >= 3) t.green.push(g);
+    if (colors.greenRank) t.green.sort((x, y) => colors.greenRank(x) - colors.greenRank(y));
+    tiles.set(k, t);
+  }
+  function dropStreamTile(key) {
+    const t = tiles.get('s:' + key);
+    if (!t) return;
+    disposeTile(t);
+    tiles.delete(t.key);
+  }
+
   function setNight(glow, litFrac) {
     shared.uNightGlow.value = glow;
     shared.uLitFrac.value = litFrac;
   }
 
-  return { update, setNight, stats, root };
+  return { update, setNight, stats, root, addStreamTile, dropStreamTile };
 }

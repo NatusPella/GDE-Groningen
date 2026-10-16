@@ -1355,6 +1355,38 @@ server, `?legacymap`).
   corridor's track (`corridorrail.js`). `worldedge.js` holds the edge rules
   (sea, border, the border-bridge rule, air). `node scripts/corridor_test.mjs`
   (`--quick` without the streaming runs, `--json` for the numbers).
+- **The whole province (F2a).** `scripts/world/extract_province.py` reads the
+  Geofabrik extract (`data/cache/groningen-latest.osm.pbf`, pyosmium in a
+  venv under `data/cache/venv`, two passes: relations, then everything with
+  node locations; multipolygon rings joined) into the same slim pack caches
+  as `fetch_corridor.py` (`data/cache/province/c<pack>.json.gz`), plus
+  `province.json.gz` (outline, places, stations, bus and train route
+  relations, a building-density grid) and `facilities_raw.json.gz`
+  (`scripts/add_facilities.py --cache`). `--near` cuts a neighbour's extract
+  (Friesland, Drenthe) to a 4 km strip along the border (12 km for the
+  facilities); Germany has no strip yet. `scripts/world/build_province.mjs`
+  builds every tile within 3 km of the outline, pack by pack, through the
+  corridor builder's `tileBlob` (one per-tile path: clip, hooks, nav, flags
+  1 + 4 + 32, 8 where the old Ommeland draws, 16 in the buffer strip) into
+  `v<pack>-<hash>.gdp` + `index-provincie.json` (places with districts,
+  stations, train lines over the track from the OSM route relations, coast
+  and border lines, outline, the base map's meta) + `provincie-bus.json`;
+  `province_map.mjs` paints the base map pyramid (`provmap/z0-3`, 160 to
+  20 m a pixel, PNG). The stage builds it when the caches are there. In the
+  game `provinceworld.js` decides the mode (`?provincie`, desktop
+  `--provincie`, `?legacy` off; `PROVINCE_DEFAULT`), makes the polder blocks
+  under the streamed tiles real blocks (`countryfield.js setProvinceBlocks`,
+  the `uProvBlocks` texture in the ground shader: no procedural roads,
+  maaren, villages or farms) and keeps the countryside's props off real
+  roads, buildings and water (`countryedge.js setExtraBlocked`). Streamed
+  tiles are drawn by the city's own detail streamers (they read the tile
+  world's grids) and, past the detail radius, by `farlod.js` stream tiles
+  (`TileWorld.onTiles`); their water is `flat` (drawn by the far LOD, kept
+  off the water grid, `flatWaterNear`) until the province has its water
+  model. `corridorrail.js provinceRailLines` runs every Ommeland route on
+  over the real track (and a Veendam branch); `provincemap.js` puts the base
+  map under the full map. `node scripts/province_test.mjs` (`--quick`
+  without streaming).
 - **Tests.** `node scripts/world_tiles_test.mjs` (codec, determinism, round
   trips, the building attribute join), `node scripts/tileworld_test.mjs`
   (equivalence, streaming on a virtual clock, ranges), `node scripts/floatingorigin_test.mjs`,

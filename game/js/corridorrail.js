@@ -43,7 +43,7 @@ export function extendRoutes(om, corridor) {
   if (!corridor || !corridor.routes) return { routes, stations, added };
   const byKey = new Map((corridor.stations || []).map((s) => [s.key, s]));
   for (const line of corridor.routes) {
-    const route = routes.find((r) => r.name === LINE_ROUTE[line.id]);
+    const route = routes.find((r) => r.name === (line.route || LINE_ROUTE[line.id]));
     if (!route || !line.pts || line.pts.length < 2) continue;
     const onmap = route.stops.filter((q) => !q.offmap);
     const last = onmap[onmap.length - 1];
@@ -55,15 +55,17 @@ export function extendRoutes(om, corridor) {
     const A = arcPoints(line.pts);
     const head = cutAt(route.pts, last.s);
     const ex = head[head.length - 2], ey = head[head.length - 1];
-    let j = 0, jd = Infinity;
-    for (let i = 0; i < A.length; i++) {
-      if (Math.abs(A[i][2] - line.stops[k].s) > 800) continue;
-      const d = Math.hypot(A[i][0] - ex, A[i][1] - ey);
-      if (d < jd) { jd = d; j = i; }
+    // (on the line's segments: a simplified straight track has few vertices)
+    let j = 0, jd = Infinity, sL = 0;
+    for (let i = 0; i < A.length - 1; i++) {
+      if (A[i + 1][2] < line.stops[k].s - 800 || A[i][2] > line.stops[k].s + 800) continue;
+      const dx = A[i + 1][0] - A[i][0], dy = A[i + 1][1] - A[i][1], L2 = dx * dx + dy * dy || 1;
+      const t = Math.max(0, Math.min(1, ((ex - A[i][0]) * dx + (ey - A[i][1]) * dy) / L2));
+      const d = Math.hypot(A[i][0] + dx * t - ex, A[i][1] + dy * t - ey);
+      if (d < jd) { jd = d; j = i; sL = A[i][2] + (A[i + 1][2] - A[i][2]) * t; }
     }
     if (jd > 60) continue;
-    const sL = A[j][2];
-    const tail = A.slice(j + 1);
+    const tail = A.slice(j + 1).filter((p) => p[2] > sL + 0.05);
     if (!tail.length) continue;
     const pts = head.concat(flat(tail.map((p) => [r1(p[0]), r1(p[1])])));
     const stops = onmap.map((q) => ({ ...q }));
@@ -81,4 +83,59 @@ export function extendRoutes(om, corridor) {
     route.stops = stops;
   }
   return { routes, stations, added };
+}
+
+// The province's lines (index-provincie.json global.routes, scripts/world/
+// build_province.mjs: every OSM train route over the track) for each
+// Ommeland route: the line through its last two stops, turned to run
+// outward from the city, tagged with the route it continues (extendRoutes
+// reads `route`). Branches that have no Ommeland route yet get one: a copy
+// of the route they leave the trunk line from (BRANCHES).
+export const BRANCHES = [{ name: 'Stoptrein Veendam', from: 'Stoptrein Winschoten', to: 'Veendam' }];
+const same = (a, b) => a === b || (/^Groningen( Hoofdstation)?$/.test(a) && /^Groningen( Hoofdstation)?$/.test(b));
+
+function reversed(line) {
+  const A = arcPoints(line.pts);
+  const L = A.length ? A[A.length - 1][2] : 0;
+  return { ...line, pts: line.pts.slice().reverse(), stops: line.stops.slice().reverse().map((q) => ({ ...q, s: r1(L - q.s) })), via: (line.via || []).slice().reverse() };
+}
+
+export function provinceRailLines(om, lines) {
+  const routes = (om.routes || []).slice();
+  for (const b of BRANCHES) {
+    const base = routes.find((r) => r.name === b.from);
+    if (!base || routes.some((r) => r.name === b.name)) continue;
+    const onmap = base.stops.filter((q) => !q.offmap);
+    routes.push({ ...base, name: b.name, stops: onmap.map((q) => ({ ...q })).concat([{ name: b.to, s: onmap.length ? onmap[onmap.length - 1].s + 90 : 90, offmap: true }]) });
+  }
+  const out = [];
+  for (const r of routes) {
+    const own = r.stops.filter((q) => !q.offmap).map((q) => q.name);
+    // an intercity without a stop of its own out here (Zwolle) does not get the stoptrein's
+    if (!own.length) continue;
+    const seq = (r.keep || []).concat(own);
+    const last = seq[seq.length - 1], prev = seq[seq.length - 2];
+    const want = r.stops.find((q) => q.offmap);
+    let best = null, score = -1;
+    for (const line of lines || []) {
+      if (!line.reached || !line.pts || line.pts.length < 2) continue;
+      const k = line.stops.findIndex((q) => same(q.name, last)), kp = line.stops.findIndex((q) => same(q.name, prev));
+      if (k < 0 || kp < 0 || Math.abs(k - kp) !== 1) continue;
+      const L = kp < k ? line : reversed(line);
+      const at = L.stops.findIndex((q) => same(q.name, last));
+      const rest = L.stops.slice(at + 1);
+      // the line toward the route's own far end first (Veendam, Winschoten, ...), then the longest
+      const s = (want && rest.some((q) => q.name === want.name) ? 1000 : 0) + rest.length;
+      if (rest.length && s > score) { score = s; best = L; }
+    }
+    if (!best) continue;
+    // a branch ends at its own far end, not where the trunk line runs on to
+    let L = best;
+    if (want && BRANCHES.some((b) => b.name === r.name)) {
+      const e = L.stops.findIndex((q) => q.name === want.name);
+      if (e > 0 && e < L.stops.length - 1) L = { ...L, stops: L.stops.slice(0, e + 1), via: L.stops.slice(0, e + 1).map((q) => q.name) };
+    }
+    out.push({ ...L, id: `${L.id}>${r.name}`, route: r.name, reached: true });
+  }
+  return { om: { ...om, routes }, lines: out };
 }

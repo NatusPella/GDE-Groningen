@@ -10,6 +10,7 @@
 // lanes, width, speed and access from its tags, with one cap for village
 // streets. Nothing here asks "is this the city?".
 import { wgsToWorld } from './rdnew.js';
+import { mappedFromOsm } from './streetfurniture.js';
 import { heightOf, levelsFor } from './buildingheights.js';
 
 export const WB_VERSION = 1;
@@ -432,7 +433,17 @@ export function fromOsm(el, ctx = {}) {
     out.push({ kind: 'trees', row: [Math.round(x * 100) / 100, Math.round(y * 100) / 100] });
     return out;
   }
+  // mapped street furniture (docs 2.14), in the rows the game keeps
+  // (streetfurniture.js mappedFromOsm: { k, pts, v?, h?, osm })
+  if (el.type === 'node' && el.lat !== undefined) {
+    for (const row of mappedFromOsm([el])) out.push({ kind: 'furniture', row });
+    return out;
+  }
   if (!g || g.length < 2) return out;
+  if ((tags.barrier || tags.traffic_calming) && tags.building === undefined && !tags.highway) {
+    for (const row of mappedFromOsm([{ ...el, geometry: g.map(([lat, lon]) => ({ lat, lon })) }])) out.push({ kind: 'furniture', row });
+    if (tags.barrier !== 'hedge') return out;
+  }
   const P = project(g);
   if (tags.building !== undefined) {
     if (!closed(P) || HIDDEN(tags)) return out;

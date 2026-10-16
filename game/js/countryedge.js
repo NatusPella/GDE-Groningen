@@ -798,7 +798,13 @@ function surfaceQuery(x, y) {
 
 // Kept clear of props, farms and turbines: connector roads (with verge),
 // canals, rail corridors, fringe features and ribbon houses.
+// More that blocks the countryside's props and farms: the province's real
+// tiles (provinceworld.js), whose roads and buildings live in the tile world.
+let extraBlocked = null;
+export function setExtraBlocked(fn) { extraBlocked = fn; }
+
 export function edgeBlocked(x, y, margin = 3) {
+  if (extraBlocked && extraBlocked(x, y, margin)) return true;
   if (!EDGE.ready) return false;
   if (edgeDistance(x, y) > 5000) return false;
   if (edgeAt(x, y, margin)) return true;
