@@ -77,6 +77,7 @@ import { initLoading, setLoadProgress, finishLoading, showLoadError, runStartScr
 import { initPigeonMode, updatePigeonMode, updatePigeonCamera, updatePigeonAfterglow } from './pigeonmode.js';
 import { initPigeonSpots, updatePigeonSpots, tryPigeonSpotInteract } from './pigeonspots.js';
 import { initSideJobs, updateSideJobs, trySideJobInteract } from './sidejobs.js';
+import { updateCashVan } from './cashvan.js';
 import { initHeliRun, updateHeliRun, tryHeliSpotInteract, updateHeliSpot } from './helirun.js';
 import { initPadel, updatePadel, tryPadelInteract, updatePadelWorld, padelCamera } from './padel.js';
 import { initActivities, isActivityActive, updateActivityGame, tryActivityInteract, updateActivitiesWorld, activityCamera } from './activities.js';
@@ -518,6 +519,7 @@ async function boot() {
       tryTrainInteract(world);
       trySideJobInteract(world);
       tryHeliSpotInteract(world);
+      updateCashVan(dt, world);
       tryGarageInteract(world);
       tryMachineInteract(world);
       tryStreetLifeInteract(world);

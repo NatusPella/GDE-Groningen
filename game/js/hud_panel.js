@@ -1340,6 +1340,19 @@ export function drawMapIcon(ctx, kind, x, y, s = 1, opts = {}) {
       ctx.fill();
       break;
     }
+    case 'cash': {
+      ctx.beginPath();
+      ctx.arc(0, 0, 5 * s, 0, Math.PI * 2);
+      ctx.fillStyle = C.yellow;
+      ctx.fill();
+      outline(ctx, s, C.dark, 1.4);
+      ctx.fillStyle = C.dark;
+      ctx.font = `bold ${7.5 * s}px sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('\u20ac', 0, 0.4 * s);
+      break;
+    }
     case 'car': {
       ctx.beginPath();
       ctx.roundRect(-5.5 * s, -2 * s, 11 * s, 5 * s, 1.4 * s);
@@ -1769,6 +1782,8 @@ export function declutter(items, cellM) {
   });
 }
 
+import { forEachCashTarget } from './cashvan.js';
+
 export function getHeroCar(world) {
   return world.vehicles.find((v) => v.isHeroCar && !v.wrecked) || null;
 }
@@ -2086,6 +2101,7 @@ function drawMinimap(dt, world) {
   if (c && c.state !== 'dead' && !c.inVehicle && minimapShows('companion')) icon('companion', c.x, c.y);
 
   forEachPoliceUnit(world, (x, y, kind) => icon(kind, x, y));
+  forEachCashTarget(world, (x, y) => icon('cash', x, y));
 
   drawMapIcon(ctx, 'player', cx, cy, 1.35, { angle: player.angle + mapRotation });
 

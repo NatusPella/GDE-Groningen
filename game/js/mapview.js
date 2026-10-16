@@ -1,5 +1,6 @@
 import { onPaletteChange } from './a11y.js';
 import { MODES, MODE_LABEL, ROUTE_MODE, roadAllowed, travelModeOf } from './roadaccess.js';
+import { forEachCashTarget } from './cashvan.js';
 import { drawMapIcon, drawRoute, drawRoadRoute, forEachPoliceUnit, declutter, ROUTE_COLORS, routeLabel, drawSearchArea, getPoliceSearch, missionMapKind } from './hud_panel.js';
 import { getGaragesForRender } from './garages.js';
 import { getHomeForRender, getHomeGarageForRender, getHomeMooringForRender, getHomeHelipadForRender } from './home.js';
@@ -1042,6 +1043,7 @@ function drawDynamicMarkers(ctx, world) {
     const [sx, sy] = toScreen(search.x, search.y);
     drawSearchArea(ctx, sx, sy, search.r * state.scale, t);
   }
+  forEachCashTarget(world, (x, y, loot) => icon(null, 'cash', x, y, loot ? 'Geldbuit' : 'Geldwagen'));
   forEachPoliceUnit(world, (x, y, kind) => icon(null, kind, x, y, kind === 'policeHorse' ? 'Bereden politie' : kind === 'policeBike' ? 'Politie op de fiets' : 'Politie'));
 
   const wp = getUserWaypoint();
