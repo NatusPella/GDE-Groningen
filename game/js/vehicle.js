@@ -5,6 +5,7 @@ import { resolvePropCollisions } from './breakables.js';
 import { inPassage } from './collision.js';
 import { elevWallContact } from './elevation.js';
 import { crossingSpeedLimit, loweredBoomsNear, snapBoom } from './railway.js';
+import { bridgeSpeedLimit, loweredBridgeBoomsNear } from './movablebridges.js';
 import { zebraSpeedLimit } from './pedroutes.js';
 import { countrySurface, countryRect, rectOutside, countryWeight, edgeDistance } from './countryfield.js';
 import { countryWater } from './countryedge.js';
@@ -1980,7 +1981,7 @@ export function updateTrafficAI(v, dt, map, world, rng = Math.random, opts = nul
 
   let vTarget = Math.min(cruise, curveSpeedLimit(v, path, aLat, decel));
   const follow = followSpeedLimit(v, path, world, decel, chase);
-  const lightV = chase ? Infinity : Math.min(trafficLightLimit(v, path, world), crossingSpeedLimit(v, path, projectOnPath),
+  const lightV = chase ? Infinity : Math.min(trafficLightLimit(v, path, world), crossingSpeedLimit(v, path, projectOnPath), bridgeSpeedLimit(v, path, projectOnPath),
     small ? Infinity : zebraSpeedLimit(v, path, projectOnPath, world.time));
   vTarget = Math.min(vTarget, follow.vmax, lightV);
   const walkerV = chase ? Infinity : walkerAheadLimit(v, path, world, decel);
@@ -2670,7 +2671,7 @@ export function resolveVehicleBuildingCollision(v, map, dt) {
 const BOOM_SNAP_SPEED = 11;
 export function resolveBoomCollisions(v, world) {
   if (v.isBoat || v.sinking || v.wrecked) return;
-  const booms = loweredBoomsNear(v.x, v.y, v.halfLen + 8);
+  const booms = loweredBoomsNear(v.x, v.y, v.halfLen + 8).concat(loweredBridgeBoomsNear(v.x, v.y, v.halfLen + 8));
   if (!booms.length) return;
   for (const b of booms) {
     const cap = vehicleCapsule(v);

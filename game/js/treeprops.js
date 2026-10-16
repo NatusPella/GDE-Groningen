@@ -1,8 +1,9 @@
 import { makeProp, addProp, removeProp } from './breakables.js';
 import { getRealMap } from './realmap.js';
+import { treeDims } from './greenery.js';
 
 // Roadside trees as breakable props. Trees stay pure map data; a knocked
-// tree sets raw._broken (the [x,y] pair treesNear returns), which
+// tree sets raw._broken (the [x, y, species, height] row treesNear returns), which
 // scene3d.js's syncTrees skips. The mesh builder is handed over by scene3d
 // so the tumbling copy looks exactly like the standing tree.
 
@@ -24,16 +25,21 @@ function treeHash(x, y) {
 function makeTreeProp(raw) {
   const [x, y] = raw;
   const s = treeHash(x, y);
+  // the trunk of its species and height (greenery.js): a young cherry gives
+  // way sooner than a full-grown lime or plane
+  const d = treeDims(raw);
+  const big = Math.min(1, d.h / 20);
   return makeProp('tree', x, y, {
-    mass: 350 + s * 900,
-    breakSpeed: 7 + s * 9,
+    r: Math.max(0.16, d.tr),
+    mass: (350 + s * 900) * (0.4 + 0.6 * big),
+    breakSpeed: (7 + s * 9) * (0.55 + 0.45 * big),
     breakCost: 3 + s * 4,
-    h: 10.5 + s * 8, // scene3d.js treeDims: mature street trees
+    h: d.h,
     onBreak: () => { raw._broken = true; },
     onRestore: () => { raw._broken = false; },
     makeMesh: () => {
       if (!buildTree) return null;
-      const m = buildTree(x, y);
+      const m = buildTree(raw);
       m.position.set(0, 0, 0);
       return m;
     },

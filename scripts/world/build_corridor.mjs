@@ -20,6 +20,9 @@ import zlib from 'node:zlib';
 import { fileURLToPath } from 'node:url';
 import * as G from '../../game/js/gdt.js';
 import * as WB from '../../game/js/worldbuilder.js';
+import { registerBuilderHooks } from '../../game/js/builderhooks.js';
+
+registerBuilderHooks();
 import { wgsToWorld, worldToWgs } from '../../game/js/rdnew.js';
 import { edgeRows } from '../../game/js/navgraph.js';
 import { edgeFromOsm } from '../../game/js/worldedge.js';
@@ -347,7 +350,13 @@ export function tileBlob(i, j, list, gid, flags, builder, stats = null) {
   const rows = Object.fromEntries(PER_TILE.map((q) => [q, []]));
   const mapped = [];
   for (const f of list) {
-    if (f.kind === 'furniture') { if (f.row.x >= box[0] && f.row.x < box[2] && f.row.y >= box[1] && f.row.y < box[3]) mapped.push(f.row); continue; }
+    // mapped furniture: in every tile one of its points lies in, one id for it
+    if (f.kind === 'furniture') {
+      if (!f.row.pts.some((p) => p[0] >= box[0] && p[0] < box[2] && p[1] >= box[1] && p[1] < box[3])) continue;
+      if (f.gid === undefined) f.gid = gid.furniture++;
+      mapped.push({ gid: f.gid, ...f.row });
+      continue;
+    }
     if (f.kind === 'buildings' || f.kind === 'trees') { rows[f.kind].push({ gid: gid[f.kind]++, ...f.row }); continue; }
     if (f.kind === 'water' || f.kind === 'green') {
       const P = clipPoly(f.row.pts, box);
@@ -356,11 +365,13 @@ export function tileBlob(i, j, list, gid, flags, builder, stats = null) {
     }
     for (const piece of clipLine(f.row.pts, box)) rows[f.kind].push({ gid: gid[f.kind]++, ...f.row, pts: piece });
   }
-  // what OSM maps, then the tile's own hooks (furniture, greenery)
+  // what OSM maps, then the tile's own hooks (furniture, greenery: builderhooks.js); they see the tile's box
+  rows.tile = { i, j, x0: ox, y0: oy, size: G.TILE_M };
   const extra = mapped.concat(WB.runHooks('furniture', rows), WB.runHooks('greenery', rows));
   const nav = edgeRows(rows.roads, (r) => r.gid).map(({ a, b, ...rest }) => ({ ...rest, p: [a, b] }));
   const sections = PER_TILE.filter((q) => rows[q].length).map((q) => ({
-    type: SECTION_OF[q], rows: q === 'trees' ? rows[q].map((r) => ({ g: r.gid, p: [[r[0], r[1]]] })) : rows[q].map(cleanRow),
+    // a tree: its point, and species, height (dm) and flags (greenery.js)
+    type: SECTION_OF[q], rows: q === 'trees' ? rows[q].map((r) => ({ g: r.gid, p: [[r[0], r[1]]], ...(r[2] !== undefined ? { s: r[2], h: r[3], ...(r[4] ? { f: r[4] } : null) } : null) })) : rows[q].map(cleanRow),
   }));
   if (nav.length) sections.push({ type: G.SECTION.NAV, rows: nav });
   if (extra.length) sections.push({ type: G.SECTION.FURNITURE, rows: extra });
@@ -422,7 +433,7 @@ export function buildCorridor({ root = ROOT, cityKeys = new Set(), sources = loa
     return m;
   };
   const idx = { ommeland: index(feats.ommeland), corridor: new Map([...feats.corridor].map(([k, v]) => [k, index(v)])) };
-  const gid = Object.fromEntries(PER_TILE.map((k) => [k, GID0]));
+  const gid = Object.fromEntries([...PER_TILE, 'furniture'].map((k) => [k, GID0]));
   const blobs = new Map();
   const stats = { tiles: 0, buildings: 0, roads: 0, water: 0, rails: 0, green: 0, trees: 0, hsrc: {} };
   for (const k of [...want.keys()].sort()) {

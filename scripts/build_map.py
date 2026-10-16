@@ -17,6 +17,14 @@ Steps (each script edits game/citymap.json in place, see its docstring):
   add_traffic_lights    meta.trafficLights
   add_pois              meta.pois
   add_railways          rails, stations, levelCrossings, railRoutes, railLifts
+  world/railprofile.mjs the track height solver per rail network (rail.z, OSM bridge
+                        layers and electrification, railPlatforms), then profile.mjs
+                        again so roads dip under or rise over the track
+  world/water.mjs       water bodies, kind, peil, depth, boat class; road.movable; meta.locks
+  world/furniture.mjs   mapped street furniture (furniture)
+  world/greenery.mjs    tree species, heights and flags; woods filled; hedges into furniture
+  world/building_attrs  OSM building attributes -> data/world/building_attrs.json.gz
+  world/building_heights.mjs  heights (3D BAG > OSM height > levels > default), walls in h, ridge hm, roof rk
   add_helipad           meta.helipad (+ the UMCG helipad wing)
   add_landmark_footprints
   add_shops             meta.shops
@@ -39,7 +47,7 @@ MAP = os.path.join(ROOT, "game", "citymap.json")
 STAMP = os.path.join(ROOT, "data", "shops_raw.bounds.json")
 
 TOP_KEYS = {"meta", "roads", "buildings", "water", "green", "trees",
-            "rails", "stations", "levelCrossings", "railRoutes", "railLifts"}
+            "rails", "stations", "levelCrossings", "railRoutes", "railLifts", "railPlatforms", "furniture"}
 META_KEYS = {"origin", "bounds", "mPerDegLat", "mPerDegLon", "frame", "rdOrigin", "wgsBox", "landmarks", "districts",
              "neighbourhoodPoints", "garages", "trafficLights", "horeca", "pois", "helipad", "shops"}
 
@@ -84,6 +92,22 @@ def main():
     if refresh and os.path.exists(os.path.join(ROOT, "data", "railways_raw.json")):
         os.remove(os.path.join(ROOT, "data", "railways_raw.json"))
     run("add_railways")
+    # the track profile per rail network, then the roads again against it (a
+    # road that has to dip under the track, or go over it where OSM says so),
+    # then the track once more against the solved roads
+    run_node("world/railprofile.mjs", "--write")
+    run_node("world/profile.mjs", "--write")
+    run_node("world/railprofile.mjs", "--write")
+    # water bodies, peil, depth and boat classes; movable bridges from OSM
+    run_node("world/water.mjs", "--write")
+    # mapped street furniture (the rules run per tile in the game)
+    run_node("world/furniture.mjs", "--write")
+    # tree species and heights, woods filled, hedges (after furniture: it adds to it)
+    run_node("world/greenery.mjs", "--write")
+    # real building heights and roofs: the OSM attributes, then the 3D BAG extract
+    # (data/world/3dbag.json.gz; refresh it with scripts/world/fetch_3dbag.py)
+    run("world/building_attrs")
+    run_node("world/building_heights.mjs", "--write")
     run("add_helipad", *extra)
     run("add_landmark_footprints")
 

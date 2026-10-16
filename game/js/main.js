@@ -48,6 +48,7 @@ import { initTrafficLights, updateTrafficLights } from './trafficlights.js';
 import { initRailway, updateRailway, setRailExtraWorld } from './railway.js';
 import { extendRoutes, provinceRailLines } from './corridorrail.js';
 import { initProvince, provinceMode } from './provinceworld.js';
+import { buildMovableBridges, updateMovableBridges } from './movablebridges.js';
 import { geoWorkerActive } from './geojobs.js';
 import { init3D, update3D, resize3D, getScene, getRenderer, setMenuCover, MENU_FRAME_S, refreshRenderScale, terrainReady, canvasFrameCount, prewarmStreamAt } from './scene3d.js';
 import { checkFrame } from './blackframe.js';
@@ -137,6 +138,7 @@ function waitForStart(world) {
     resolveVehicleVehicleCollisions(world.vehicles, world);
     tickBurningVehicles(world, dt);
     updateRailway(dt, world);
+    updateMovableBridges(dt, world);
     updatePedestrians(dt, world);
     updateWildlife(dt, world);
     // in play combat.js expires these; the title screen and trailer only add
@@ -304,6 +306,7 @@ async function boot() {
   parkHeroAtHome(world);
   initTrafficLights(world);
   initRailway(world);
+  buildMovableBridges(world.map);
   initStationTravel(world);
   initOmmelandFun(world);
   initWeather(world);
@@ -559,6 +562,7 @@ async function boot() {
     resolveVehicleVehicleCollisions(world.vehicles, world);
     tickBurningVehicles(world, dt);
     updateRailway(dt, world);
+    updateMovableBridges(dt, world);
     for (const v of world.vehicles) {
       if (!v.wrecked) checkVehicleWater(v, map, world);
     }

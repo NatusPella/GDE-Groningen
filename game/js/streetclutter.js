@@ -824,7 +824,8 @@ export function generateClutter(ctx) {
   // Bridges: railings with bikes locked to them. The sections come from
   // bridgerails.js, which also builds their walker collision.
   for (const r of roads) {
-    if (!hasRailings(r)) continue;
+    // (a movable span carries its own railings, movablebridges3d.js)
+    if (!hasRailings(r) || r.movable) continue;
     const bikesOk = hasSidewalk(r) || r.cat === 'foot' || r.cat === 'cycle';
     for (const it of railingItems(map, r)) {
       const { x, y, angle: segA, tx, ty } = it;

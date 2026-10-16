@@ -809,6 +809,10 @@ vec3 countryAlbedo(vec2 p, float cw, inout float sRough, inout float sDip) {
   float water = max(max(wD, wM), wQ) * smoothstep(0.86, 0.98, max(cw, wC));
   float bank = max(max((1.0 - smoothstep(hw * 0.72, hw, dD)) * (1.0 - culvert) * keepD, (1.0 - smoothstep(C_MAIN * 0.8, C_MAIN, dM)) * (1.0 - culvM)) * dry * dryE, max((1.0 - smoothstep(C_MAAR_WATER, C_MAAR, dQ)) * dryE, (1.0 - smoothstep(0.0, 2.2, -rw)) * (1.0 - roadM))) * (1.0 - water);
   c = mix(c, cLin(70.0, 72.0, 44.0) * (0.8 + 0.3 * n3), bank * 0.8 * smoothstep(0.86, 0.98, cw));
+  // ditches lie deeper than the field (the one water rule: waded, 0.6 m):
+  // a shadowed inner slope just above the water line
+  float lip = max((1.0 - smoothstep(hw * 0.72, hw * 0.92, dD)) * (1.0 - culvert) * keepD, (1.0 - smoothstep(C_MAIN * 0.8, C_MAIN * 0.95, dM)) * (1.0 - culvM)) * dry * dryE * (1.0 - water);
+  c *= 1.0 - 0.34 * lip * smoothstep(0.86, 0.98, cw);
   // the open water near the player is the real surface below (countrywater.js)
   vec2 qR = abs(p - uCountryRect.xy) - uCountryRect.zw;
   if ((rw > 0.0 || ce.y > 0.5) && roadM < 0.5 && max(qR.x, qR.y) > 0.0 && length(p - uWaterNear.xy) < uWaterNear.z) discard;
@@ -819,6 +823,9 @@ vec3 countryAlbedo(vec2 p, float cw, inout float sRough, inout float sDip) {
   wc = mix(wc, cLin(93.0, 127.0, 44.0) * 0.8, weed * 0.75);
   float sheen = cNoise(p * 0.45 + vec2(uWaterNear.w * 0.21, -uWaterNear.w * 0.17)) * cNoise(p * 0.9 - uWaterNear.w * 0.13);
   wc *= 0.92 + 0.22 * sheen * (1.0 - weed) * detail;
+  // darker towards the middle of a ditch: the water has depth
+  float deepT = max(wD * (1.0 - smoothstep(0.0, hw * 0.72, dD)), wM * (1.0 - smoothstep(0.0, C_MAIN * 0.8, dM)));
+  wc *= 1.0 - 0.36 * deepT * (1.0 - wQ);
   c = mix(c, wc, water);
   sRough -= water * (1.0 - weed) * 0.86;
   sDip -= water;

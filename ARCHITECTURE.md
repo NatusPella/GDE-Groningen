@@ -682,6 +682,256 @@ difference with the terrain:
 Nothing else needs to know about heights: vehicles on different levels
 don't collide, and actors are drawn at their height.
 
+### Track profiles
+
+The track has its own profile per connected rail network
+(`scripts/world/railprofile.mjs`, rules and the height query in
+`js/railprofile.js`; docs/PROVINCIE-PLAN.md 2.11 "Spoor"): `rail.z` per
+vertex (densified to 10 m where the track leaves the terrain), `rail.ly` (the
+OSM grade order per segment: bridge, viaduct, layer) and `rail.el` (contact
+line), matched by geometry to the rail ways in `data/railways_raw.json`;
+`railPlatforms` (OSM `railway=platform` areas with their layer) go into the map
+too. The solver: a level crossing's track at exactly the road's height; the
+track along a platform level, on the terrain or, for a platform OSM puts on
+layer 1 (Groningen Noord), at the height that clears every road under the
+station; over a road it crosses away from a level crossing the road's
+clearance, unless OSM grades the road above the track (the Emmaviaduct, the
+Hereweg by the Verbindingskanaal), then the track stays down and
+`profile.mjs` raises the road; grades of 1.25 %, 2.5 % within 900 m of a
+place where 1.25 % cannot reach (exceptional); vertical curves of 5 km (2 km
+there); tracks closer than 6 m (double track, yards, switches) share one
+formation. Grade envelopes (lowest profile that clears everything, under the
+highest the pins allow) and projections onto curves and grades. Where the
+track cannot climb as high as a road under it needs, the road dips the rest
+(`profile.mjs`: a car road crossing the track away from a level crossing is a
+grade separation, the side OSM grades higher goes over; foot and cycle ways
+within 250 m of such a crossing may ramp with it, and the road solve runs to
+a fixed point, three passes). Pipeline: `add_railways.py`, `railprofile.mjs
+--write`, `profile.mjs --write`, `railprofile.mjs --write` (build_map.py).
+
+- One height query: `railHeightFn(map)` (the profile, else the radial
+  `railLifts` of an older map) is `railway.js railZ` (trains, the car and
+  bogie pitch, stations, cutscenes), `elevation.js` (embankments and decks
+  carry walkers and cars; stubs under 0.5 m between OSM ways are left out, so
+  no parapet stands across the track) and `profile.mjs` (the roads' crossing
+  order). `profileLifts(rails)` gives the raised stretches to the probes.
+- Constants: `RAIL_GRADE` 1.25 %, `RAIL_GRADE_MAX` 2.5 %, `RAIL_RADIUS` 5 km,
+  `RAIL_TOP` 0.26 m (top of rail above the bed), platform top 0.76 m above
+  the rail (`PLATFORM_RANGE` 0.76-0.84), `CATENARY_H` 5.5 m, the free height
+  under a deck over any track 6.0 m (roadprofile.js `CLEARANCE.rail`).
+- Audit (`node scripts/world/railprofile.mjs [--strict]`): every line of
+  `railRoutes` end to end every 2 m through the query the trains use: jumps,
+  grade, curves (20 m chords), level crossings at the road's height, level
+  platforms, the clearance of every road crossing (road over track or track
+  over road) and the contact wire under decks on electrified track.
+  `node scripts/railprofile_test.mjs`: the solver on small networks, the map's
+  audit, `railZ` against the profile and the rail lifts walked, driven and
+  cycled up (`ringcheck.js probeRailLifts`).
+
+### Water levels, bridges and the one water query
+
+`js/waterlevels.js` (pure) and `scripts/world/water.mjs` (docs/PROVINCIE-PLAN.md
+2.11 "Water"). `water.mjs --write` annotates the map: per water polygon
+`body` (polygons whose shores touch), `kind` (`kanaal`, `diep`, `vaart`,
+`vijver`, `sloot`, from the width of the channel it lies in: twice the largest
+distance to its body's shore, so a sliver mapped under a bridge is the canal
+it belongs to; exact distances in narrow water, a 2.5 m distance field
+elsewhere), `lv` (the peil, m relative to street level), `dp` (depth) and
+`nav` (largest boat class); per road that OSM tags `bridge:movable` its
+`movable` kind (by OSM id, else by geometry: cycle and bus bridges carry no
+id); `meta.locks` (OSM lock gates; none in the city caches). The largest body
+is the stadsboezem (NAP -0.93 m, drawn at `util.js WATER_Y` -2.3); a body
+that does not touch it keeps its own peil (a polder ditch -0.8 m), drawn at the
+boezem height until the water renderer takes a level per polygon (F2).
+
+- `waterAt(map, x, y)` -> `{ level, depth, body, kind, navigable, wade,
+  clearanceAbove }` or null: the city polygons, else the Ommeland through
+  `setCountryWaterKind` (countryedge.js `countryWater`: deep, wade, ditch;
+  registered by countrywater.js). `wade` is depth <= `WADE_MAX` 1.2 m. The
+  walker wades through ditches and the shallow edge of open water (slower,
+  standing in it: `player.wade`), the heli lands on the level the query gives.
+- Boats: `BOAT_CLASS` (1 paddled, 2 small motor boats, 3 tour boats and the
+  city's barges, 4 inland shipping), `AIR_DRAFT` and `DRAFT` per kind;
+  `bridgeClearance(road, zDeck, level)` (deck top minus 0.5 m minus the
+  level: 1.8 m under a street-level city bridge; Infinity while a movable
+  bridge is open), `passesUnder`.
+- Audit (`node scripts/world/water.mjs [--strict]`): every navigable waterway
+  sailed per class on the boezem's distance field (room for the beam plus
+  0.5 m a side, depth for the draft plus 0.3 m, every bridge clearing the air
+  draft or movable): the main channel per class, the polygons wide enough
+  that it does not reach and the fixed bridges too low. On the city map: a
+  canoe reaches 81 of 82 polygons, a sloep 79, a tour boat 62 of 81 (the
+  rest narrower than its beam); a barge (class 4) is stopped by 70 fixed
+  bridges at 1.8 m: the big canals' bridges need their real heights in the
+  road solver (corridor work).
+- Movable bridges (`movablebridges.js`, drawn by `movablebridges3d.js`): a
+  fixed cycle per bridge (`BRIDGE_TIMING`: warn 4 s, barriers 4 s, wait for a
+  clear span, 9 s up, at least 14 s open, 9 s down, barriers 4 s;
+  `raceWindow()`), opened by the horn of a boat in front of it
+  (`hornAt`, player.js) or by a boat whose `needsOpening(bridge)` says so; a
+  twin bridge within 30 m opens with it. While the leaf moves the span is no
+  bridge (`road._open`: `map.isOnBridge` false, so a car that gets on it ends
+  in the canal; `bridgeClearance` Infinity), the traffic AI stops at the
+  barrier (`bridgeSpeedLimit`, beside the level crossings' limit), lowered
+  barriers are solid for the player's vehicle and snap like a level
+  crossing's (`loweredBridgeBoomsNear`). The leaf (one hinge, two for a
+  bascule over 26 m, a swing span, a lift or retractable span) is one draw
+  with vertex colours (`geomerge.js`) and is the deck while closed: quaywalls.js
+  leaves movable spans out of the deck slabs, streetclutter.js their railing
+  props (bridgerails.js keeps the walker lines while closed). scene3d.js hides
+  the static road of a span that is not lying closed and keeps it out of the
+  road batches.
+- Locks (`locks.js`, pure): a chamber between two peilen with a gate at each
+  end and its own level (`chamberLevelAt`): ready at one side, a boat asks
+  from a side (`request`), the lock comes to it, the boat sails in (`enter`),
+  the gate closes (6 s), the level moves at 5 cm/s (at least 8 s) and the
+  other gate opens. The builder places them where OSM has lock gates
+  (`water.mjs findLocks`) and gives each side its body and peil; the city's
+  caches have none.
+- `node scripts/water_test.mjs`: bodies, kinds and peil on made-up polygons, a lock's cycle,
+  the query, boat classes against bridges, a bridge's cycle step by step (the
+  span, the barriers, the AI, the horn), a boat never breaking a bridge
+  railing (breakables.js: boats only meet water props) and the map's
+  waterways per class.
+- Ditches lie deeper in the Ommeland ground shader (`countryfield.js`
+  COUNTRY_GLSL: a shadowed inner slope above the water line, darker water to
+  the middle); the geometry cut belongs to the world builder.
+
+### Street furniture
+
+`js/streetfurniture.js` (pure; docs/PROVINCIE-PLAN.md 2.14) is the generator
+the world builder calls per tile: `furnitureForTile({ x0, y0, size, roads,
+mapped, places, opts })` -> `{ items, colliders }`. Items `{ k, x, y, z, a,
+s, h, v, text, src, key }`, deterministic (no random, sorted by `key`; the
+road order does not matter), each in the tile its position falls in; rules
+walk whole roads, so a run carries on over a tile edge. Mapped rows (OSM, in
+the map as `furniture`, `scripts/world/furniture.mjs --write`; tiles: the
+FURNITURE section) and rules:
+
+- guardrails: motorway and trunk carriageways and their slip roads between
+  -0.9 and 1.2 m of profile height (above, the profile's crash barriers of
+  elevation.js take over; below, a cutting's walls), on the right verge and the
+  central reserve of a one-way carriageway, along the offset line (mitred,
+  Douglas-Peucker 3 cm, 4 m sections), open 18 m round every join, never on
+  another way; one rail on a central reserve the two carriageways share;
+- gantries 140 m before every slip road that leaves a motorway or trunk
+  carriageway: the road number and a real place ahead, the exit and a real
+  place it leads to (`DESTINATIONS`, by bearing; no brands);
+- hectometre posts every 100 m on the right verge of motorways and trunk
+  roads with a ref (numbers along the ref's principal axis: invented,
+  monotonic);
+- lamps by road class (`LAMP_RULES`: mast, arm, lantern, path; height and
+  spacing) with `opts.lamps` (the game draws its own lamps, nightlights3d.js,
+  with the same rules: spacing and height by class, a taller pole lifting its
+  head, light and pool), path bollards
+  with `opts.bollards` (the city has streetclutter.js), woonerf plateaus with
+  `opts.livingBumps`;
+- mapped: guardrail, fence and noise barrier lines (sections), speed bumps
+  and tables (across the road they lie on), benches, bins, bike racks,
+  shelters, bollards, lamps (`mappedFromOsm`).
+
+`furnitureColliders(items)`: breakables.js props (guardrail sections
+'vangrail' and fence panels 'hek' break and respawn; gantry posts, noise
+walls, bollards and shelters are static). `js/streetfurniture3d.js` generates
+the tiles round the player (cached), draws one InstancedMesh per kind with
+vertex colours (`geomerge.js`) and a draw distance per kind (`LOD`), the
+signs of the 16 nearest gantries in one mesh over a canvas atlas, and streams
+the colliders within 70 m through `breakables.js addPropStreamer`. Audit
+(`node scripts/world/furniture.mjs [--strict]`): nothing a rule puts down on
+a carriageway or cycle path (at the same level), guardrail holes under 5 m
+that no crossing way explains (158 small ones where two carriageways merge),
+one item per key, the same items twice. City map: 11.8k guardrail sections
+(~47 km), 33 gantries, 191 hectometre posts, 190 fence panels, 1 speed table.
+The caches hold few mapped objects; furniture.mjs documents the Overpass
+query that fills them. `node scripts/furniture_test.mjs`.
+
+### Trees and green
+
+`js/greenery.js` (pure; docs/PROVINCIE-PLAN.md 2.15) and
+`scripts/world/greenery.mjs --write`. A tree is `[x, y, sp, hdm, flags]`:
+`sp` an index into `SPECIES` (linde, plataan, eik, beuk, es, esdoorn,
+kastanje, populier, wilg, berk, den, and the Japanese ornamental cherry `kers`
+in pink, a late bloom that stays all summer), its height in dm, flags
+`fill` (put into a wood outline) and `row`. Each species has a height range
+(mature street trees 12-20 m, poplars 22-30, willows and cherries low), a
+crown shape (round, oval, spreading, columnar, weeping, conical), a crown
+radius and clear stem, and leaf and bark colours. Where OSM names no species
+(`speciesFromTags`: species/genus/species:nl/leaf_type) the rules
+(`speciesFor`) pick by place: willow or poplar by the water, lime by a church,
+beech, oak, birch, ash and pine in a wood, a mix by the class of the road; a
+row of five or more trees (`findRows`) is one species. Wood and forest
+outlines get trees on a jittered grid (9 m), cemeteries sparser with glades;
+parks keep the trees OSM maps (the minigames and hidden things are laid out
+round them), and the fill keeps clear of the minigame courses, the skatepark,
+the kart track and the map's points (`gameplayClearings`). City map: 17.5k
+trees (3.8k mapped, 14k in woods). `treeDims(t)` is the one shape: scene3d.js
+draws four instanced meshes with colours per instance (trunks, leafy crowns,
+conifers, and the far crowns of woods out to 260 m without shadows),
+treeprops.js gives the trunk prop its species' radius, height and weight,
+the camera's tree tests read it. Tiles: the TREES section rows carry `s`, `h`,
+`f`. Mapped hedges (barrier=hedge) are furniture sections (`hedge`, solid).
+Audit: no filled tree on a way, in a building or in water; the species mix.
+`node scripts/greenery_test.mjs`.
+
+The world builder (worldbuilder.js hooks, run per tile by
+`scripts/world/build_corridor.mjs`) gets the same work from
+`js/builderhooks.js` (`registerBuilderHooks`): the `greenery` hook gives a
+tile's trees species, height and flags from the tile's own water, green and
+roads and fills its forest outlines (ids from `FILL_GID0` per tile, so a tile
+builds the same trees every time; the corridor writes `s`, `h`, `f` in its tree
+rows); the `furniture` hook stores nothing, because the rule furniture is made
+in the game from each tile's roads (streetfurniture3d.js).
+
+### Building heights
+
+Real heights and roofs (docs/PROVINCIE-PLAN.md 0.1). `scripts/world/fetch_3dbag.py`
+reads the 3D BAG's official downloads (CC BY 4.0, 3DBAG by the 3D
+geoinformation research group of TU Delft and 3DGI; credited in NOTICE.md,
+docs/LICENTIES.md and `credits.js`): the tile index (`tile_index.fgb`, read by
+its own small FlatGeobuf reader) and per tile the GeoPackage, cached in
+`data/cache/3dbag/` (gitignored; the city map is 57 tiles, 133 MB), and
+extracts per building the BAG id, footprint centre and area, `hmax` and `h50`
+(the pand table's, else the highest `b3_h_max` and the area-weighted
+`b3_h_50p` of its lod12_2d parts), `hg` (`b3_h_maaiveld`), the roof type,
+storeys and year into `data/world/3dbag.json.gz` (committed, 1.8 MB, 81.6k
+buildings). `js/buildingheights.js` `heightOf` walks the chain 3dbag,
+osm_height, osm_levels, default: the ridge `hm` above the ground, the walls
+`eave` (under a pitched roof as far under the median as the ridge is above
+it; a median far under the ridge is a tower with a low wing: the tower's
+height, flat; where the renderer cannot draw a pitched roof, `pitchedFits`,
+the walls go half way up) and the roof (`roofOf`: 3D BAG slanted/horizontal,
+OSM roof:shape). `scripts/world/building_heights.mjs --write` (pack_tiles.mjs
+`joinAttrs`: by BAG id, else centre in footprint and area within 25 %) sets
+on the map's buildings `h` (the walls in storeys of 3.1 m), `hm`, `rk` and
+`hsrc`; landmarks keep their models and heights. models3d_buildings.js takes
+the known roof over its guess by type and the ridge for the roof's height (the
+far LOD too). City map: 95.8 % of the buildings from the 3D BAG (was 0),
+0.02 % from OSM, 4.2 % default (mostly footprints the BAG does not have); no
+built-up tile over 30 % default. `node scripts/buildingheights_test.mjs`
+(the chain, the map, the drawn ridge, the readers on the cache). Refresh:
+`python3 scripts/world/fetch_3dbag.py` (or `--list` for the tiles and
+sizes, `--extract-only` without network), then `python3 scripts/world/building_attrs.py`
+and `node scripts/world/building_heights.mjs --write`.
+
+### Terrain
+
+`js/terrainraster.js` (pure): a height raster per tile (`encodeTerrainRaster`,
+`decodeTerrainRaster`: int16 cm relative to the tile's street level,
+`sampleRaster` bilinear, `TerrainField` over the tiles that carry one; 0, flat,
+elsewhere). `scripts/world/fetch_ahn.py --fetch` asks PDOK's AHN WCS (CC0)
+for each 1 km tile resampled to 5 m (`dtm_05m`; GeoTIFF read by its own
+reader: deflate, LZW, predictors) and writes `data/world/ahn/<tile>.bin` with
+the street level per tile (the median of the AHN under the map's road centre
+lines) in `index.json`; nothing is downloaded without `--fetch`, and the
+rasters are not committed. Sizes: 80 kB per tile at 5 m, 4.5 MB for the city
+map, ~260 MB for the province at 5 m (~26 GB at AHN's 0.5 m). The packer
+puts a tile's raster in its RASTER section (codec 1, 2 bytes a cell), the
+TileWorld keeps them in `map.terrain` (streamed tiles add and drop theirs),
+`map.terrainAt(x, y)` reads it (flat on a GameMap). The height solvers take
+it as their `terrain` sampler with `--terrain` (`scripts/world/terrain.mjs`);
+until the renderer draws the terrain (F2) the game stays flat.
+`node scripts/terrain_test.mjs`.
+
 ## Lanes
 
 Every car road carries the lane model (docs/PROVINCIE-PLAN.md 2.12; set by
@@ -1031,9 +1281,10 @@ server, `?legacymap`).
   embankment, 3 cutting, 4 tunnel; `roadprofile.js` STRUCT) and `ly` (the
   OSM grade order per segment); the road rows carry no `z` of their own and
   `tileworld.js` joins the profile back by gid, so meshes, colliders and the
-  height query read one profile. The AHN terrain raster will be a RASTER
-  next to it. Section types reserved for the rest of F1: junctions, pois,
-  furniture, nav, overlay (`SECTION`). Readers skip unknown
+  height query read one profile. The AHN terrain raster is a RASTER next to
+  it when one was fetched (below, "Terrain"). The FURNITURE section holds the
+  mapped street furniture, TREES rows species, height and flags. Section types
+  reserved for the rest of F1: pois, overlay (`SECTION`). Readers skip unknown
   sections and refuse a newer format. Hashes are two xxh32 (16 hex digits).
 - **Packs (`scripts/world/pack_tiles.mjs`).** The GameMap's arrays after its
   load-time derivation (doubled footprints, canopies, houseboats, roof steps,
@@ -1043,10 +1294,10 @@ server, `?legacymap`).
   pack named by its hash (`p0_0-<hash>.gdp`), plus `global-<hash>.gdp` (meta,
   stations and routes, the Ommeland data) and `index.json` (per tile: pack,
   offset, length, raw size, hash, counts, tallest building; the pinned city
-  set). Same input, same bytes. Per building: `hm` (best height in metres) and
-  `hsrc` (`3dbag`, `osm_height`, `osm_levels`, `default`), roof, colours,
-  materials, BAG year and id from the OSM tags (`scripts/world/building_attrs.py`);
-  the 3D BAG join is in place for F1's extract. `game/world/` is a build
+  set). Same input, same bytes. Per building: `hm` (the ridge in metres),
+  `eave`, `rk` (the roof) and `hsrc` (`3dbag`, `osm_height`, `osm_levels`,
+  `default`), the 3D BAG's `hmax`/`h50`/`hg`, roof, colours, materials, BAG
+  year and id (below, "Building heights"). `game/world/` is a build
   artifact (gitignored); `desktop/build.mjs` packs it into the stage, cached by
   the hash of its inputs in `desktop/.world-cache/`.
 - **Loading (`js/tileworld.js`, `js/tilestore.js`).** `loadTileWorld('world/')`

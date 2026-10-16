@@ -1,0 +1,180 @@
+// Street furniture: the mapped objects into the map, and the audit of
+// every tile's furniture (docs/PROVINCIE-PLAN.md 2.14).
+//
+//   node scripts/world/furniture.mjs           audit (rules over game/citymap.json)
+//   node scripts/world/furniture.mjs --write   put the mapped OSM furniture in citymap.json (furniture), then audit
+//   node scripts/world/furniture.mjs --strict  exit 1 when the audit finds a problem
+//
+// The mapped objects come from the OSM caches in data/ (barrier=guard_rail,
+// fence, bollard, wall=noise_barrier, traffic_calming, amenity=bench,
+// waste_basket, bicycle_parking, shelter, highway=street_lamp). The caches
+// were fetched for other layers and hold few of them; a fresh extract with
+// these tags (scripts/osmfetch.py, the Overpass query below) fills them in:
+//
+//   [out:json][timeout:180];
+//   ( nwr["barrier"~"guard_rail|fence|bollard|wall"]({{bbox}});
+//     nwr["traffic_calming"]({{bbox}});
+//     node["amenity"~"bench|waste_basket|bicycle_parking|shelter"]({{bbox}});
+//     node["highway"="street_lamp"]({{bbox}}); );
+//   out geom;
+//
+// The audit generates every tile (streetfurniture.js furnitureForTile with
+// the game's options) and checks: nothing solid on a carriageway or cycle
+// path (a gantry spans it, a speed bump lies on it), no lamp in a tree, a
+// guardrail without holes under 5 m, the same items twice over (determinism).
+import fs from 'node:fs';
+import path from 'node:path';
+import zlib from 'node:zlib';
+import { fileURLToPath } from 'node:url';
+import { furnitureForTile, mappedFromOsm } from '../../game/js/streetfurniture.js';
+import { TILE_M, GRID_X0, GRID_Y0, tileIndexOf, tileKey } from '../../game/js/gdt.js';
+
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+const OSM_FILES = ['data/groningen_raw.json', 'data/groningen_extra.json', 'data/extras_bus_raw.json', 'data/facilities_raw.json.gz', 'data/pois_raw.json',
+  'data/landmark_kits_raw.json', 'data/extras_padel_raw.json', 'data/railways_raw.json', 'data/ring_raw.json.gz', 'data/ring_extra.json.gz'];
+// what the game draws itself: lamps (nightlights3d.js), path bollards (streetclutter.js)
+export const GAME_OPTS = { lamps: false, bollards: false, livingBumps: false };
+
+export function loadOsmFurniture(root = ROOT) {
+  const seen = new Set(), els = [];
+  for (const rel of OSM_FILES) {
+    const f = path.join(root, rel);
+    if (!fs.existsSync(f)) continue;
+    const raw = f.endsWith('.gz') ? zlib.gunzipSync(fs.readFileSync(f)).toString('utf8') : fs.readFileSync(f, 'utf8');
+    for (const e of JSON.parse(raw).elements || []) { const k = e.type + e.id; if (!seen.has(k)) { seen.add(k); els.push(e); } }
+  }
+  return mappedFromOsm(els);
+}
+
+// tiles the map's roads touch, each with its roads and mapped rows
+export function tilesOf(data) {
+  const tiles = new Map();
+  const tileOf = (i, j) => { const k = tileKey(i, j); let t = tiles.get(k); if (!t) tiles.set(k, (t = { key: k, i, j, roads: new Set(), mapped: [] })); return t; };
+  for (const r of data.roads || []) {
+    if (!r) continue;
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    for (const p of r.pts) { x0 = Math.min(x0, p[0]); y0 = Math.min(y0, p[1]); x1 = Math.max(x1, p[0]); y1 = Math.max(y1, p[1]); }
+    const [i0, j0] = tileIndexOf(x0 - 200, y0 - 200), [i1, j1] = tileIndexOf(x1 + 200, y1 + 200);
+    for (let i = i0; i <= i1; i++) for (let j = j0; j <= j1; j++) tileOf(i, j).roads.add(r);
+  }
+  for (const m of data.furniture || []) {
+    const p = m.pts ? m.pts : [[m.x, m.y]];
+    const keys = new Set(p.map((q) => tileKey(...tileIndexOf(q[0], q[1]))));
+    for (const k of keys) { const [i, j] = k.split('_').map(Number); void i; void j; const t = [...tiles.values()].find((q) => q.key === k); if (t) t.mapped.push(m); }
+  }
+  return tiles;
+}
+
+export function generateAll(data, opts = GAME_OPTS) {
+  const out = [];
+  for (const t of tilesOf(data).values()) {
+    const x0 = GRID_X0 + t.i * TILE_M, y0 = GRID_Y0 + t.j * TILE_M;
+    const res = furnitureForTile({ x0, y0, size: TILE_M, roads: [...t.roads], mapped: t.mapped, opts });
+    out.push({ key: t.key, ...res });
+  }
+  return out;
+}
+
+export function audit(data, opts = GAME_OPTS) {
+  const tiles = generateAll(data, opts);
+  const items = tiles.flatMap((t) => t.items);
+  const counts = {};
+  for (const it of items) counts[it.k] = (counts[it.k] || 0) + 1;
+  const rep = { tiles: tiles.length, counts, onRoad: [], gaps: [], dup: 0, determinism: true };
+  // nothing solid on a carriageway or cycle path
+  const roads = (data.roads || []).filter((r) => r && r.cat !== 'foot');
+  const G = 32, grid = new Map();
+  for (const r of roads) {
+    const P = r.pts;
+    for (let i = 0; i < P.length - 1; i++) {
+      for (let gx = Math.floor((Math.min(P[i][0], P[i + 1][0]) - 8) / G); gx <= Math.floor((Math.max(P[i][0], P[i + 1][0]) + 8) / G); gx++)
+        for (let gy = Math.floor((Math.min(P[i][1], P[i + 1][1]) - 8) / G); gy <= Math.floor((Math.max(P[i][1], P[i + 1][1]) + 8) / G); gy++)
+          (grid.get(gx * 65536 + gy) || grid.set(gx * 65536 + gy, []).get(gx * 65536 + gy)).push([r, i]);
+    }
+  }
+  const onCarriageway = (x, y) => {
+    for (const [r, i] of grid.get(Math.floor(x / G) * 65536 + Math.floor(y / G)) || []) {
+      const P = r.pts, dx = P[i + 1][0] - P[i][0], dy = P[i + 1][1] - P[i][1], L2 = dx * dx + dy * dy || 1e-9;
+      const t = Math.max(0, Math.min(1, ((x - P[i][0]) * dx + (y - P[i][1]) * dy) / L2));
+      // (a deck overhead or a sunken road below is no carriageway here: the items stand at street level)
+      if (r.z && Math.abs(r.z[i] + (r.z[i + 1] - r.z[i]) * t) > 3) continue;
+      if (Math.hypot(P[i][0] + dx * t - x, P[i][1] + dy * t - y) < r.width / 2 - 0.1) return r;
+    }
+    return null;
+  };
+  for (const it of items) {
+    if (it.k === 'gantry' || it.k === 'speedbump') continue;
+    const r = onCarriageway(it.x, it.y);
+    if (r && it.src === 'rule') rep.onRoad.push({ k: it.k, road: r.name || r.type, at: [Math.round(it.x), Math.round(it.y)] });
+  }
+  const allWays = (data.roads || []).filter((r) => r);
+  const WG = new Map();
+  for (const r of allWays) for (let i = 0; i < r.pts.length - 1; i++) {
+    const k = `${Math.floor(r.pts[i][0] / 32)},${Math.floor(r.pts[i][1] / 32)}`;
+    (WG.get(k) || WG.set(k, []).get(k)).push([r, i]);
+  }
+  // a way across the rail's line (not along it) near (x, y)
+  const wayThrough = (x, y, a) => {
+    for (let gx = -2; gx <= 2; gx++) for (let gy = -2; gy <= 2; gy++) for (const [r, i] of WG.get(`${Math.floor(x / 32) + gx},${Math.floor(y / 32) + gy}`) || []) {
+      const P = r.pts, dx = P[i + 1][0] - P[i][0], dy = P[i + 1][1] - P[i][1], L2 = dx * dx + dy * dy || 1e-9;
+      const t = Math.max(0, Math.min(1, ((x - P[i][0]) * dx + (y - P[i][1]) * dy) / L2));
+      if (Math.abs(Math.sin(Math.atan2(dy, dx) - a)) < 0.5) continue;
+      if (Math.hypot(P[i][0] + dx * t - x, P[i][1] + dy * t - y) < r.width / 2 + 2.5) return true;
+    }
+    return false;
+  };
+  // guardrail holes under 5 m between pieces of one run
+  const rails = items.filter((it) => it.k === 'guardrail').sort((a, b) => a.key.localeCompare(b.key));
+  const RG = new Map();
+  for (const it of rails) (RG.get(`${Math.floor(it.x / 20)},${Math.floor(it.y / 20)}`) || RG.set(`${Math.floor(it.x / 20)},${Math.floor(it.y / 20)}`, []).get(`${Math.floor(it.x / 20)},${Math.floor(it.y / 20)}`)).push(it);
+  for (const it of rails) {
+    const ex = it.x + Math.cos(it.a) * it.s / 2, ey = it.y + Math.sin(it.a) * it.s / 2;
+    let bd = Infinity;
+    for (let gx = -1; gx <= 1; gx++) for (let gy = -1; gy <= 1; gy++) for (const o of RG.get(`${Math.floor(ex / 20) + gx},${Math.floor(ey / 20) + gy}`) || []) {
+      if (o === it) continue;
+      const sx = o.x - Math.cos(o.a) * o.s / 2, sy = o.y - Math.sin(o.a) * o.s / 2;
+      bd = Math.min(bd, Math.hypot(sx - ex, sy - ey));
+    }
+    // (an opening for a way across it is no hole)
+    if (bd > 0.6 && bd < 5 && !wayThrough(ex, ey, it.a)) rep.gaps.push({ at: [Math.round(ex), Math.round(ey)], gap: Math.round(bd * 10) / 10 });
+  }
+  // one item per key, and the same items again
+  rep.dup = items.length - new Set(items.map((it) => it.key)).size;
+  const again = generateAll(data, opts).flatMap((t) => t.items);
+  rep.determinism = again.length === items.length && again.every((it, i) => it.key === items[i].key && it.a === items[i].a);
+  return rep;
+}
+
+export function printAudit(rep) {
+  console.log(`${rep.tiles} tiles: ${Object.entries(rep.counts).map(([k, v]) => `${k} ${v}`).join(', ')}`);
+  console.log(`rule items on a carriageway: ${rep.onRoad.length}`);
+  for (const q of rep.onRoad.slice(0, 8)) console.log(`  ${q.k} on ${q.road} at ${q.at}`);
+  console.log(`guardrail holes under 5 m: ${rep.gaps.length}`);
+  for (const q of rep.gaps.slice(0, 8)) console.log(`  ${q.gap} m at ${q.at}`);
+  console.log(`duplicate keys: ${rep.dup}; same items twice: ${rep.determinism ? 'yes' : 'NO'}`);
+}
+
+export const problems = (rep) => rep.onRoad.length + rep.dup + (rep.determinism ? 0 : 1);
+
+async function main() {
+  const args = process.argv.slice(2);
+  const file = path.join(ROOT, 'game/citymap.json');
+  const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+  if (args.includes('--write')) {
+    // (within the map: the caches reach further than the city)
+    const [bx0, by0, bx1, by1] = data.meta.bounds;
+    data.furniture = loadOsmFurniture().filter((m) => m.pts.every((p) => p[0] >= bx0 && p[0] <= bx1 && p[1] >= by0 && p[1] <= by1));
+    const c = {};
+    for (const m of data.furniture) c[m.k] = (c[m.k] || 0) + 1;
+    console.log(`mapped furniture: ${data.furniture.length} (${Object.entries(c).map(([k, v]) => `${k} ${v}`).join(', ')})`);
+    fs.writeFileSync(file, JSON.stringify(data));
+    console.log(`wrote ${path.relative(ROOT, file)}`);
+  }
+  const t0 = performance.now();
+  const rep = audit(data);
+  printAudit(rep);
+  console.log(`(${((performance.now() - t0) / 1000).toFixed(1)} s for two passes)`);
+  if (args.includes('--strict') && problems(rep)) process.exit(1);
+}
+
+if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) await main();
