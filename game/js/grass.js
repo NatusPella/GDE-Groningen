@@ -4,6 +4,7 @@ import { applyCutMask } from './cutmask3d.js';
 import { onSettingsChange, QUALITY_PRESETS } from './settings.js';
 import { pointInPolygon, markInstancesDirty } from './util.js';
 import { getWaterIndex } from './waterindex.js';
+import { dryIndices } from './greenwater.js';
 
 // Green areas: merged per-chunk lawn surfaces with a procedural world-space
 // grass shader, translucent kerb/path wear strips along their borders, and
@@ -322,12 +323,11 @@ function fillInto(B, g, geo) {
     B.pos.push(pos[i * 3], 0, pos[i * 3 + 2]);
     B.attr.push(info.angle, info.hash, info.mow, info.wild);
   }
-  if (geo.index) {
-    const idx = geo.index.array;
-    for (let i = 0; i < idx.length; i++) B.idx.push(base + idx[i]);
-  } else {
-    for (let i = 0; i < nv; i++) B.idx.push(base + i);
-  }
+  const inWater = map ? getWaterIndex(map).inWater : null;
+  let idx = geo.index ? geo.index.array : null;
+  if (!idx) { idx = new Array(nv); for (let i = 0; i < nv; i++) idx[i] = i; }
+  if (inWater) idx = dryIndices(pos, idx, inWater);
+  for (let i = 0; i < idx.length; i++) B.idx.push(base + idx[i]);
 }
 
 function quad(E, ax, ay, bx, by, cx, cy, dx, dy, ta, tb, type) {
