@@ -148,6 +148,13 @@ function boundsOf(kind, o) {
   return [b[0] - m, b[1] - m, b[2] + m, b[3] + m];
 }
 
+// a tree row: its point, and species, height (dm) and flags (greenery.js) when it has them
+export function treeRow(gid, o) {
+  const row = { g: gid, p: [[o[0], o[1]]] };
+  if (o.length > 2) { row.s = o[2]; row.h = o[3]; if (o[4]) row.f = o[4]; }
+  return row;
+}
+
 export function tilesOf(bounds) {
   const [i0, j0] = G.tileIndexOf(bounds[0], bounds[1]);
   const [i1, j1] = G.tileIndexOf(bounds[2], bounds[3]);
@@ -180,7 +187,7 @@ export function build({ map, om, bin }, attrs = loadAttrs()) {
           (t.kinds.heights || (t.kinds.heights = [])).push({ gid, ...profiles.get(o) });
           continue;
         }
-        (t.kinds[kind] || (t.kinds[kind] = [])).push(kind === 'trees' ? { g: gid, p: [[o[0], o[1]]] } : { gid, ...cleanRow(o), ...(kind === 'buildings' ? joined.fields.get(o) : null) });
+        (t.kinds[kind] || (t.kinds[kind] = [])).push(kind === 'trees' ? treeRow(gid, o) : { gid, ...cleanRow(o), ...(kind === 'buildings' ? joined.fields.get(o) : null) });
       }
     });
   }

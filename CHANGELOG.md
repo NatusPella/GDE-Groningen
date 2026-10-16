@@ -24,6 +24,12 @@ nieuwe functies, `y` voor alleen bugfixes.
   stuk eruit. Voor elke afrit hangt een blauw portaal met echte plaatsnamen,
   en langs de berm staan hectometerpaaltjes. Hekken en drempels die op de kaart
   staan, staan nu ook in het spel.
+- **Meer soorten bomen, en bossen vol bomen.** Linden, platanen, eiken,
+  beuken, essen, esdoorns, kastanjes, berken, dennen, wilgen langs het water,
+  hoge populieren en hier en daar een roze Japanse sierkers: elke soort met zijn
+  eigen kleur, hoogte en kroon. Volwassen straatbomen zijn 12 tot 20 meter hoog
+  en een rij langs een laan is één soort. De bossen rond de stad (Kardinge, het
+  Stadspark en meer) staan nu echt vol bomen, ook van verder weg te zien.
 - **Sloten liggen dieper.** In het Ommeland zie je dat een sloot echt diep
   ligt, en als je erdoorheen loopt sta je tot je knieën in het water en ga je
   langzamer.

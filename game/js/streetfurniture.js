@@ -9,6 +9,7 @@
 //
 // k: guardrail (a section of s m along a), gantry (over a carriageway of s
 // m, signs in `text`), hectometer (a verge post, its number in `text`),
+// hedge (a section of s m, h high; greenery.mjs puts the mapped ones in),
 // lamp (by road class: v the lamp type, h its height), speedbump (across a
 // road of s m), fence and noise (a section of s m, noise h m high), bollard,
 // bench, bin, bikerack, shelter. src: 'osm' for mapped objects, 'rule' for
@@ -277,8 +278,8 @@ export function furnitureForTile({ x0, y0, size = 1000, roads = [], mapped = [],
   for (const m of mapped) {
     if (m.pts && m.pts.length > 1) {
       const k = m.k === 'guard_rail' ? 'guardrail' : m.k === 'noise_barrier' ? 'noise' : m.k === 'wall' ? 'noise' : m.k;
-      if (!['guardrail', 'fence', 'noise'].includes(k)) continue;
-      for (const [x, y, a, s] of pieces(m.pts, k === 'guardrail' ? RULES.guardrailPiece : 3)) add({ k, x, y, a, s, h: k === 'noise' ? (m.h || 4) : undefined, src: 'osm' });
+      if (!['guardrail', 'fence', 'noise', 'hedge'].includes(k)) continue;
+      for (const [x, y, a, s] of pieces(m.pts, k === 'guardrail' ? RULES.guardrailPiece : 3)) add({ k, x, y, a, s, h: k === 'noise' ? (m.h || 4) : k === 'hedge' ? (m.h || 1.4) : undefined, src: 'osm' });
       continue;
     }
     const x = m.x ?? (m.pts && m.pts[0][0]), y = m.y ?? (m.pts && m.pts[0][1]);
@@ -425,6 +426,7 @@ export function furnitureColliders(items) {
     switch (it.k) {
       case 'guardrail': out.push({ kind: 'vangrail', x: it.x, y: it.y, r: 0.14, half: it.s / 2, angle: it.a, key: it.key }); break;
       case 'fence': out.push({ kind: 'hek', x: it.x, y: it.y, r: 0.08, half: it.s / 2, angle: it.a, key: it.key }); break;
+      case 'hedge': out.push({ kind: 'heg', x: it.x, y: it.y, r: 0.4, half: it.s / 2, angle: it.a, key: it.key, static: true, top: it.h }); break;
       case 'noise': out.push({ kind: 'wall', x: it.x, y: it.y, r: 0.15, half: it.s / 2, angle: it.a, key: it.key, static: true, top: it.h }); break;
       case 'gantry': {
         const nx = Math.sin(it.a), ny = -Math.cos(it.a);

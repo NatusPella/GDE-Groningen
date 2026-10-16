@@ -797,6 +797,34 @@ one item per key, the same items twice. City map: 11.8k guardrail sections
 The caches hold few mapped objects; furniture.mjs documents the Overpass
 query that fills them. `node scripts/furniture_test.mjs`.
 
+### Trees and green
+
+`js/greenery.js` (pure; docs/PROVINCIE-PLAN.md 2.15) and
+`scripts/world/greenery.mjs --write`. A tree is `[x, y, sp, hdm, flags]`:
+`sp` an index into `SPECIES` (linde, plataan, eik, beuk, es, esdoorn,
+kastanje, populier, wilg, berk, den, and the Japanese ornamental cherry `kers`
+in pink, a late bloom that stays all summer), its height in dm, flags
+`fill` (put into a wood outline) and `row`. Each species has a height range
+(mature street trees 12-20 m, poplars 22-30, willows and cherries low), a
+crown shape (round, oval, spreading, columnar, weeping, conical), a crown
+radius and clear stem, and leaf and bark colours. Where OSM names no species
+(`speciesFromTags`: species/genus/species:nl/leaf_type) the rules
+(`speciesFor`) pick by place: willow or poplar by the water, lime by a church,
+beech, oak, birch, ash and pine in a wood, a mix by the class of the road; a
+row of five or more trees (`findRows`) is one species. Wood and forest
+outlines get trees on a jittered grid (9 m), cemeteries sparser with glades;
+parks keep the trees OSM maps (the minigames and hidden things are laid out
+round them), and the fill keeps clear of the minigame courses, the skatepark,
+the kart track and the map's points (`gameplayClearings`). City map: 17.5k
+trees (3.8k mapped, 14k in woods). `treeDims(t)` is the one shape: scene3d.js
+draws four instanced meshes with colours per instance (trunks, leafy crowns,
+conifers, and the far crowns of woods out to 260 m without shadows),
+treeprops.js gives the trunk prop its species' radius, height and weight,
+the camera's tree tests read it. Tiles: the TREES section rows carry `s`, `h`,
+`f`. Mapped hedges (barrier=hedge) are furniture sections (`hedge`, solid).
+Audit: no filled tree on a way, in a building or in water; the species mix.
+`node scripts/greenery_test.mjs`.
+
 ## Lanes
 
 Every car road carries the lane model (docs/PROVINCIE-PLAN.md 2.12; set by

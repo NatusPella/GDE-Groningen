@@ -22,6 +22,7 @@ Steps (each script edits game/citymap.json in place, see its docstring):
                         again so roads dip under or rise over the track
   world/water.mjs       water bodies, kind, peil, depth, boat class; road.movable; meta.locks
   world/furniture.mjs   mapped street furniture (furniture)
+  world/greenery.mjs    tree species, heights and flags; woods filled; hedges into furniture
   add_helipad           meta.helipad (+ the UMCG helipad wing)
   add_landmark_footprints
   add_shops             meta.shops
@@ -99,6 +100,8 @@ def main():
     run_node("world/water.mjs", "--write")
     # mapped street furniture (the rules run per tile in the game)
     run_node("world/furniture.mjs", "--write")
+    # tree species and heights, woods filled, hedges (after furniture: it adds to it)
+    run_node("world/greenery.mjs", "--write")
     run("add_helipad", *extra)
     run("add_landmark_footprints")
 
