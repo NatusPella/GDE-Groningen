@@ -65,3 +65,5 @@ for (const k of ['addEventListener', 'removeEventListener', 'dispatchEvent']) if
 if (typeof g.requestAnimationFrame !== 'function') g.requestAnimationFrame = noop;
 if (typeof g.innerWidth !== 'number') { g.innerWidth = 1280; g.innerHeight = 720; g.devicePixelRatio = 1; }
 if (typeof g.self === 'undefined') g.self = g;
+// GDE_TEST_SEARCH='?ommelandtegels' runs a test with that query string (the game's switches)
+if (process.env.GDE_TEST_SEARCH && typeof g.location === 'undefined') g.location = { search: process.env.GDE_TEST_SEARCH, href: 'http://localhost/' + process.env.GDE_TEST_SEARCH };
