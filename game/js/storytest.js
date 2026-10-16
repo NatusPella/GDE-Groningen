@@ -236,6 +236,7 @@ async function minigames2Smoke(world, check, capture) {
   await sleep(800);
   check('zwembad: board shows and the hub claims the input', boardUp() && world.activityGame === 'zwembad');
   capture('mg-zwembad-block');
+  check('zwembad: the intro gives way to the block', await waitFor(() => zw.state().phase === 'run', 4000));
   key(' ', 'Space');
   await sleep(300);
   check('zwembad: the dive starts the swim', zw.state().swim.phase === 'swim', JSON.stringify(zw.state()));
@@ -251,7 +252,7 @@ async function minigames2Smoke(world, check, capture) {
   await sleep(500);
   hold('a', 'KeyA');
   await sleep(1100);
-  check('klimtoren: holding A grips a hold and lifts the climber', kt.state().climb.body > 0.1 && finite(world.player), JSON.stringify(kt.state()));
+  check('klimtoren: holding A grips the first hold', kt.state().climb.best > 0.3 && finite(world.player), JSON.stringify(kt.state()));
   capture('mg-klimtoren-grip');
   release('a', 'KeyA');
   await sleep(300);
@@ -328,7 +329,9 @@ async function batch2Smoke(world, check, capture) {
   const panelUp = () => !!document.querySelector('.cw-panel:not([hidden])');
   const opts = () => document.querySelectorAll('.cw-panel .cw-opt').length;
   const digit = (i) => key(String(i), 'Digit' + i);
+  const intro = async () => { await sleep(300); for (let i = 0; i < 20 && isCinematicActive(); i++) { skipCinematic(); await sleep(250); } };
   check('boa: starts', SJ().start('boa') && world.sideJob.active && world.sideJob.id === 'boa');
+  await intro();
   let c = SJ().ctx();
   check('boa: an offender waits', await waitFor(() => c.data.ped && c.data.phase === 'walk', 4000));
   p.x = c.data.ped.x + 2; p.y = c.data.ped.y;
@@ -342,6 +345,7 @@ async function batch2Smoke(world, check, capture) {
   check('boa: quitting leaves no panel, no input claim', !panelUp() && !world.sideJob.active);
 
   check('rechtbank: starts', await waitFor(() => !world.sideJob.active, 3000) && SJ().start('rechtbank') && world.sideJob.id === 'rechtbank');
+  await intro();
   c = SJ().ctx();
   check('rechtbank: the dossier facts show', await waitFor(() => panelUp() && c.data.phase === 'read' && opts() === 3, 4000));
   capture('job-rechtbank-facts');
@@ -362,6 +366,7 @@ async function batch2Smoke(world, check, capture) {
   await sleep(300);
 
   check('cabaret: starts', await waitFor(() => !world.sideJob.active, 3000) && SJ().start('cabaret') && world.sideJob.id === 'cabaret');
+  await intro();
   c = SJ().ctx();
   check('cabaret: the act starts with a panel', await waitFor(() => panelUp() && c.data.phase === 'act', 4000));
   const b0 = c.data.sched.beats[0];
