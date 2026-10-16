@@ -28,22 +28,16 @@ fetch them again. Re-runnable: the same caches always give the same output.
 import json
 import math
 import os
-import subprocess
 import sys
 import time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from osmfetch import cached, map_bbox, bbox_str  # noqa: E402
+from osmfetch import overpass, cached, map_bbox, bbox_str  # noqa: E402
 from world.rdnew import P, project as rd_project, FRAME  # noqa: E402
 
 OUT = "game/mapextras.json"
 MAP = "game/citymap.json"
 BBOX = (53.1975, 6.5225, 53.2525, 6.626)
-OVERPASS_URLS = [
-    "https://overpass-api.de/api/interpreter",
-    "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
-    "https://overpass.kumi.systems/api/interpreter",
-]
 
 # (south, west, north, east) boxes where the building layer is completed
 BUILDING_AREAS = {
@@ -60,17 +54,10 @@ def fetch(query, cache, refresh):
     if os.path.exists(cache) and not refresh:
         with open(cache) as f:
             return json.load(f)
-    for attempt in range(6):
-        for url in OVERPASS_URLS:
-            r = subprocess.run(["curl", "-s", "-m", "180", "-A", "gde-groningen-mapbuilder/1.0", "--data-urlencode", f"data={query}", url],
-                               capture_output=True, text=True)
-            if r.stdout.lstrip().startswith("{"):
-                data = json.loads(r.stdout)
-                with open(cache, "w") as f:
-                    json.dump(data, f)
-                return data
-        time.sleep(20 * (attempt + 1))
-    sys.exit("Overpass: no server answered with JSON, try again later")
+    data = overpass(query, attempts=6, timeout=180)
+    with open(cache, "w") as f:
+        json.dump(data, f)
+    return data
 
 
 def bus_query():

@@ -14,9 +14,11 @@ tags trimmed to what process_osm.py reads.
 import gzip
 import json
 import os
-import subprocess
 import sys
 import time
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from osmfetch import overpass as _overpass  # noqa: E402
 
 CORE_SRC = ["data/groningen_raw.json", "data/groningen_extra.json"]
 CORE_BBOX = (53.204, 6.538, 53.235, 6.592)
@@ -25,13 +27,6 @@ CORE_BBOX = (53.204, 6.538, 53.235, 6.592)
 BBOX = (53.1975, 6.5225, 53.2525, 6.626)
 DST = "data/ring_raw.json.gz"
 DST_EXTRA = "data/ring_extra.json.gz"
-
-URLS = [
-    "https://overpass-api.de/api/interpreter",
-    "https://overpass.private.coffee/api/interpreter",
-    "https://overpass.kumi.systems/api/interpreter",
-    "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
-]
 
 HW = "motorway|motorway_link|trunk|trunk_link|primary|primary_link|secondary|secondary_link|tertiary|tertiary_link|residential|unclassified|service|living_street|pedestrian"
 B = "({},{},{},{})".format(*BBOX)
@@ -56,17 +51,7 @@ KEEP_TAGS = {
 
 
 def overpass(query):
-    for attempt in range(3):
-        for url in URLS:
-            r = subprocess.run(["curl", "-s", "-m", "400", "-A", "GDE-Groningen-mapbuilder/1.0",
-                                "--data-urlencode", f"data={query}", url],
-                               capture_output=True, text=True)
-            txt = r.stdout.lstrip()
-            if r.returncode == 0 and txt.startswith("{") and txt.rstrip().endswith("}"):
-                return json.loads(txt)["elements"]
-            print(f"  {url} failed, trying next", file=sys.stderr)
-        time.sleep(15)
-    raise SystemExit("all Overpass endpoints failed")
+    return _overpass(query, timeout=400, key="elements")
 
 
 def in_core(lat, lon):

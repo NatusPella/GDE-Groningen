@@ -34,20 +34,50 @@ def covers(have, want):
     return bool(have) and have[0] <= want[0] and have[1] <= want[1] and have[2] >= want[2] and have[3] >= want[3]
 
 
-def overpass(query):
-    for attempt in range(3):
+UA = "GDE-Groningen-mapbuilder/1.0 (+https://github.com/NatusPella/GDE-Groningen)"
+
+
+def overpass_once(url, query, timeout=300):
+    """(status, body, retry_after) for one POST via curl; status 0 on a curl failure."""
+    r = subprocess.run(["curl", "-s", "-m", str(timeout), "-A", UA, "-H", "Accept: application/json",
+                        "-D", "-", "-w", "\n%{http_code}", "--data-urlencode", f"data={query}", url],
+                       capture_output=True, text=True)
+    if r.returncode != 0:
+        return 0, "", 0
+    out = r.stdout
+    out, _, code = out.rpartition("\n")
+    head, _, body = out.partition("\r\n\r\n")
+    retry = 0
+    for line in head.splitlines():
+        if line.lower().startswith("retry-after:"):
+            try:
+                retry = min(int(line.split(":", 1)[1].strip()), 120)
+            except ValueError:
+                pass
+    return int(code) if code.isdigit() else 0, body.strip(), retry
+
+
+def overpass(query, attempts=5, timeout=300, key=None):
+    """Overpass JSON; tries every endpoint, backs off exponentially on 429/5xx
+    (and honours Retry-After). key="elements" returns just that list."""
+    delay = 10
+    for attempt in range(attempts):
+        wait = delay
         for url in URLS:
-            r = subprocess.run(["curl", "-s", "-m", "300", "-A", "GDE-Groningen-mapbuilder/1.0",
-                                "--data-urlencode", f"data={query}", url],
-                               capture_output=True, text=True)
-            txt = r.stdout.strip()
-            if r.returncode == 0 and txt.startswith("{") and txt.endswith("}"):
+            status, txt, retry = overpass_once(url, query, timeout)
+            if status == 200 and txt.startswith("{") and txt.endswith("}"):
                 try:
-                    return json.loads(txt)
+                    data = json.loads(txt)
+                    return data[key] if key else data
                 except ValueError:
                     pass
-            print(f"  overpass {url} failed, trying next", file=sys.stderr)
-        time.sleep(10)
+            if status == 429 and retry:
+                wait = max(wait, retry)
+            print(f"  overpass {url} failed (http {status}), trying next", file=sys.stderr)
+        if attempt + 1 < attempts:
+            print(f"  waiting {wait}s before retry {attempt + 2}/{attempts}", file=sys.stderr)
+            time.sleep(wait)
+        delay = min(delay * 2, 120)
     raise SystemExit("all overpass endpoints failed")
 
 
