@@ -111,7 +111,7 @@ for (const [key, e] of Object.entries(index.tiles)) {
     const kind = P.KINDS.find(([, t]) => t === s.type)[0];
     for (const row of s.rows) {
       const gid = kind === 'trees' ? row.g : row.gid;
-      const obj = kind === 'trees' ? row.p[0] : row;
+      const obj = kind === 'trees' ? (row.s !== undefined ? [row.p[0][0], row.p[0][1], row.s, row.h, row.f || 0] : row.p[0]) : row;
       if (kind !== 'trees') delete obj.gid;
       if (kind === 'buildings') for (const k of P.ATTR_KEYS) { if (k in obj) attrSeen[k] = (attrSeen[k] || 0) + 1; delete obj[k]; }
       const have = back[kind][gid];

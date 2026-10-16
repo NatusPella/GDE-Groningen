@@ -43,7 +43,7 @@ export const SECTION = {
   ROADS: 2, // ribbons: pts, class, width, lanes, oneway, bridge, layer, ... (the z profile is in HEIGHTS)
   WATER: 3,
   GREEN: 4, // landuse and green areas
-  TREES: 5, // points [x, y]
+  TREES: 5, // g, p [[x, y]], s species, h height (dm), f flags (greenery.js)
   RAILS: 6,
   CANOPIES: 7, // open roofs (building=roof, platform roofs)
   PASSAGES: 8, // ways through or under a building

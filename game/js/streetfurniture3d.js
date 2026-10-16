@@ -20,8 +20,8 @@ import { markInstancesDirty } from './util.js';
 // the game draws its own lamps and path bollards (see above)
 export const GAME_OPTS = { lamps: false, bollards: false, livingBumps: false };
 // draw distance per kind (m)
-const LOD = { guardrail: 220, fence: 160, noise: 420, hectometer: 120, gantry: 650, speedbump: 120, bench: 110, bin: 90, bikerack: 100, shelter: 140, bollard: 90, lamp: 200 };
-const CAP = { guardrail: 2600, fence: 600, noise: 400, hectometer: 120, gantry: 24, speedbump: 60, bench: 120, bin: 120, bikerack: 120, shelter: 40, bollard: 200, lamp: 400 };
+const LOD = { guardrail: 220, fence: 160, hedge: 160, noise: 420, hectometer: 120, gantry: 650, speedbump: 120, bench: 110, bin: 90, bikerack: 100, shelter: 140, bollard: 90, lamp: 200 };
+const CAP = { guardrail: 2600, fence: 600, hedge: 600, noise: 400, hectometer: 120, gantry: 24, speedbump: 60, bench: 120, bin: 120, bikerack: 120, shelter: 40, bollard: 200, lamp: 400 };
 const TILE_REACH = 900;     // tiles whose square comes this near are generated
 const PROP_REACH = 70;      // colliders near the player
 const REBUILD_MOVE = 12;
@@ -48,6 +48,9 @@ function fenceGeo() {
     tint(new THREE.BoxGeometry(1, 1.4, 0.03).translate(0, 0.75, 0), 0x4f5a52),
     tint(new THREE.BoxGeometry(0.06, 1.6, 0.06).translate(-0.48, 0.8, 0), 0x3d4640),
   ]);
+}
+function hedgeGeo() {
+  return mergeGeometries([tint(new THREE.BoxGeometry(1, 1, 0.9).translate(0, 0.5, 0), 0x3f6a30), tint(new THREE.BoxGeometry(1, 0.2, 0.7).translate(0, 1.05, 0), 0x4a7838)]);
 }
 function noiseGeo() {
   return mergeGeometries([tint(new THREE.BoxGeometry(1, 1, 0.18).translate(0, 0.5, 0), 0x6f7d6a)]);
@@ -103,7 +106,7 @@ function shelterGeo() {
 }
 function bollardGeo() { return mergeGeometries([tint(new THREE.CylinderGeometry(0.08, 0.1, 0.9, 6).translate(0, 0.45, 0), 0x8c2a2a)]); }
 
-const GEOS = { guardrail: guardrailGeo, fence: fenceGeo, noise: noiseGeo, hectometer: hectometerGeo, speedbump: speedbumpGeo, gantry: gantryGeo, beam: beamGeo, bench: benchGeo, bin: binGeo, bikerack: rackGeo, shelter: shelterGeo, bollard: bollardGeo };
+const GEOS = { guardrail: guardrailGeo, fence: fenceGeo, hedge: hedgeGeo, noise: noiseGeo, hectometer: hectometerGeo, speedbump: speedbumpGeo, gantry: gantryGeo, beam: beamGeo, bench: benchGeo, bin: binGeo, bikerack: rackGeo, shelter: shelterGeo, bollard: bollardGeo };
 const MAT = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.75, metalness: 0.15 });
 
 function meshOf(kind) {
@@ -245,6 +248,7 @@ export function updateStreetFurniture3D(px, py, force = false) {
       case 'guardrail': put('guardrail', it.x, z, it.y, it.a, it.s, 1, 1); break;
       case 'fence': put('fence', it.x, z, it.y, it.a, it.s, 1, 1); break;
       case 'noise': put('noise', it.x, z, it.y, it.a, it.s, it.h || 4, 1); break;
+      case 'hedge': put('hedge', it.x, z, it.y, it.a, it.s, (it.h || 1.4) / 1.15, 1); break;
       case 'hectometer': put('hectometer', it.x, z, it.y, it.a); break;
       case 'speedbump': put('speedbump', it.x, z, it.y, it.a, 1, 1, it.s || 6); break;
       case 'gantry': {

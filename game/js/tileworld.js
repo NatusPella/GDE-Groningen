@@ -28,7 +28,8 @@ const GRID_OF = { buildings: 'buildingGrid', roads: 'roadGrid', water: 'waterGri
 const GID = new WeakMap(); // decoded row -> its id (the game's objects carry no gid field)
 function rowsOf(kind, section) {
   return section.rows.map((row) => {
-    if (kind === 'trees') return { gid: row.g, obj: row.p[0] };
+    // a tree: [x, y] plus species, height (dm) and flags when the tile has them (greenery.js)
+    if (kind === 'trees') return { gid: row.g, obj: row.s !== undefined ? [row.p[0][0], row.p[0][1], row.s, row.h, row.f || 0] : row.p[0] };
     let gid = GID.get(row);
     if (gid === undefined) { gid = row.gid; delete row.gid; GID.set(row, gid); }
     return { gid, obj: row };
