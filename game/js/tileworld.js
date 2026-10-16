@@ -24,10 +24,11 @@ const KIND_OF = new Map([
   [SECTION.FURNITURE, 'furniture'],
 ]);
 const GRID_OF = { buildings: 'buildingGrid', roads: 'roadGrid', water: 'waterGrid', green: 'greenGrid', trees: 'treeGrid' };
-// A province tile's water is drawn flat for now (build_province.mjs `flat`,
-// farlod.js): it stays out of the water grid, so no boat, swimmer, police
-// boat or duck takes it for a canal; flatWaterNear finds it.
-const gridOf = (kind, obj) => (kind === 'water' && obj.flat ? 'flatWaterGrid' : GRID_OF[kind]);
+// A province tile's water row carries kind, lv, dp and nav (waterlevels.js
+// annotateProvinceWater): it joins the water grid like the city's, so boats,
+// swimmers and waterAt see it. An older tile has `flat` only: it stays out of
+// the grid, drawn flat, and flatWaterNear finds it.
+const gridOf = (kind, obj) => (kind === 'water' && obj.flat && obj.nav === undefined ? 'flatWaterGrid' : GRID_OF[kind]);
 
 // the objects of one tile section as the game holds them, with their ids
 const GID = new WeakMap(); // decoded row -> its id (the game's objects carry no gid field)

@@ -159,5 +159,18 @@ ok([1, 2, 3].every((c) => rep.classes[c].stops.length === 0), 'no fixed bridge t
 ok(rep.classes[3].mainKm2 > 1, 'the tour boats sail more than a square kilometre of canals', rep.classes[3].mainKm2);
 console.log(`waterways: canoe ${rep.classes[1].reached}/${rep.classes[1].wide}, sloep ${rep.classes[2].reached}/${rep.classes[2].wide}, tour boat ${rep.classes[3].reached}/${rep.classes[3].wide}, barge ${rep.classes[4].reached}/${rep.classes[4].wide} polygons (${rep.classes[4].stops.length} fixed bridges too low for a barge)`);
 
+// 8. province water: rows get kind, lv, dp, nav; waterAt reads them
+{
+  const rows = L.annotateProvinceWater([rect(0, 0, 400, 40), rect(0, 100, 300, 101.5, 'Hoofdsloot'), rect(0, 200, 30, 230)]);
+  ok(rows[0].kind === 'kanaal' && rows[0].nav === 4, 'a wide province canal is a kanaal', rows[0].kind);
+  ok(rows[1].kind === 'sloot' && rows[1].lv === -0.8, 'a narrow ditch is a sloot');
+  ok(rows[2].nav >= 1 && rows[2].dp > 0, 'a pond carries nav and depth');
+  const m = { waterNear: () => rows, roadsNear: () => [] };
+  const a = L.waterAt(m, 200, 20), d = L.waterAt(m, 100, 100.7);
+  ok(a && !a.wade && a.navigable === 4, 'deep province water: swim, barge');
+  ok(d && d.wade, 'a province ditch is waded');
+  ok(L.waterAt(m, 200, 70) === null, 'dry land between');
+}
+
 console.log(`${n - fails}/${n} water checks passed`);
 process.exit(fails ? 1 : 0);
