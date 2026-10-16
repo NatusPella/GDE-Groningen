@@ -31,6 +31,7 @@ import {
   updateRouting, getActiveRoute, getRouteAhead, getRoutes, dismissCareRoute, setUserWaypoint, clearUserWaypoint, getUserWaypoint, formatDistance, setRoutePrefs, getRoutePrefs,
 } from './routing.js';
 import { KEYS } from './storagekeys.js';
+import { warnsOn, riskWhy } from './muggingrules.js';
 
 const PADDING = 0.94;
 const ICON = 1.25;
@@ -822,8 +823,16 @@ function drawStaticOverlay(ctx) {
       const box = [sx - w / 2 - 2, sy - 8, sx + w / 2 + 2, sy + 8];
       if (collides(boxes, box)) continue;
       boxes.push(box);
-      drawLabel(ctx, label, sx, sy, `rgba(240, 237, 228, ${alpha.toFixed(2)})`, 'center');
-      hover.push({ sx, sy, name: p.name, sub: 'Wijk', teleport: { x: p.x, y: p.y, name: p.name } });
+      // after dark a few wijken carry a warning (muggingrules.js): amber name and a triangle
+      const warn = warnsOn(p.name, ((state.world.clock % 24) + 24) % 24);
+      drawLabel(ctx, label, sx, sy, warn ? `rgba(255, 190, 70, ${Math.max(0.85, alpha).toFixed(2)})` : `rgba(240, 237, 228, ${alpha.toFixed(2)})`, 'center');
+      if (warn) {
+        const tx = sx - w / 2 - 11;
+        ctx.beginPath(); ctx.moveTo(tx, sy - 6); ctx.lineTo(tx + 6, sy + 5); ctx.lineTo(tx - 6, sy + 5); ctx.closePath();
+        ctx.fillStyle = '#ffbe46'; ctx.fill(); ctx.lineWidth = 1.5; ctx.strokeStyle = 'rgba(12, 20, 14, 0.9)'; ctx.stroke();
+        ctx.fillStyle = '#1c1408'; ctx.fillRect(tx - 0.7, sy - 2.5, 1.4, 4); ctx.fillRect(tx - 0.7, sy + 2.3, 1.4, 1.4);
+      }
+      hover.push({ sx, sy, name: p.name, sub: warn ? `Wijk · 's nachts opletten: ${riskWhy(p.name)}` : 'Wijk', teleport: { x: p.x, y: p.y, name: p.name } });
     }
   }
 
@@ -999,7 +1008,7 @@ function drawDynamicMarkers(ctx, world) {
     ctx.restore();
   }
   for (const ps of getPadelSpotsForRender()) icon('padel', 'padel', ps.x, ps.y, ps.name, {}, world.time < ps.nextAt ? 'Baan even bezet' : 'Potje padel: volle gezondheid', play('padel', 'Padel', ps.name, ps.x, ps.y, 'mg:padel'));
-  const ACT_PLAY = { carbid: ['carbid', 'Carbid schieten', 'mg:carbid'], kermis: ['kermis', "Botsauto's", 'mg:botsauto'], drift: ['drift', 'Driftzone', 'mg:drift'], discgolf: ['discgolf', 'Discgolf', 'mg:discgolf'], pitchputt: ['pitchputt', 'Pitch & putt', 'mg:pitchputt'], skatepark: ['skatepark', 'Skatepark', 'mg:skatepark'], kartbaan: ['kartbaan', 'Karten bij Kardinge', 'mg:kartbaan'] };
+  const ACT_PLAY = { carbid: ['carbid', 'Carbid schieten', 'mg:carbid'], kermis: ['kermis', "Botsauto's", 'mg:botsauto'], drift: ['drift', 'Driftzone', 'mg:drift'], discgolf: ['discgolf', 'Discgolf', 'mg:discgolf'], pitchputt: ['pitchputt', 'Pitch & putt', 'mg:pitchputt'], skatepark: ['skatepark', 'Skatepark', 'mg:skatepark'], kartbaan: ['kartbaan', 'Karten bij Kardinge', 'mg:kartbaan'], zwembad: ['zwembad', 'Zwembad', 'mg:zwembad'], klimtoren: ['klimtoren', 'Klimtoren Zernike', 'mg:klimtoren'], waterski: ['waterski', 'Waterskiën', 'mg:waterski'] };
   for (const a of activityMapIcons(world)) {
     const ap = ACT_PLAY[a.layer];
     icon(a.layer, a.kind, a.x, a.y, a.name, {}, a.sub, ap ? play(ap[0], ap[1], a.name, a.x, a.y, ap[2]) : null);
@@ -1490,7 +1499,7 @@ const LEGEND = [
     { kind: 'route', label: 'Route', note: 'doorgetrokken: verhaal of missie, streepjes: jouw doel, puntjes: klus, streep-punt: opknappen of repareren' },
   ] },
   { group: 'Te doen', rows: [
-    { kind: 'padel', label: 'Minigames', note: 'padel, carbid, botsauto\'s, driftzones, discgolf, pitch & putt, skatepark, karten, duiven, ballonjacht', layers: ['padel', 'duif', 'heli', ...ACTIVITY_LEGEND.map((l) => l.layer)] },
+    { kind: 'padel', label: 'Minigames', note: 'padel, carbid, botsauto\'s, driftzones, discgolf, pitch & putt, skatepark, karten, zwemmen, klimmen, waterskiën, duiven, ballonjacht', layers: ['padel', 'duif', 'heli', ...ACTIVITY_LEGEND.map((l) => l.layer)] },
     { kind: 'sj-taxi', label: 'Bijbaantjes', note: 'start bij de baas', layers: ['bijbaan', 'rondvaarttour'] },
     { kind: 'missionIdle', label: 'Klussen', note: 'gespeelde missies, om opnieuw te spelen', layers: ['klussen'] },
     { kind: 'dorp', label: 'Ommeland', note: 'dorpsuitjes waar je in de buurt was, gevonden wereldeinden', layers: ['ommeland'] },
@@ -1511,7 +1520,7 @@ const LEGEND = [
     { kind: 'flitspaal', label: 'Flitspaal', layers: ['flitspaal'] },
     { kind: 'landmark', label: 'Bezienswaardigheid', layers: ['landmark'] },
     { kind: 'text-street', label: 'Straatnamen', layers: ['streets'] },
-    { kind: 'text-wijk', label: 'Wijknamen', layers: ['wijken'] },
+    { kind: 'text-wijk', label: 'Wijknamen (oranje met driehoek: \'s nachts opletten)', layers: ['wijken'] },
     { kind: 'buildings', label: 'Gebouwen', layers: ['buildings'] },
   ] },
 ];

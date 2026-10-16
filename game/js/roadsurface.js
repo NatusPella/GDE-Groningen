@@ -9,6 +9,7 @@ import { groundHeightAt } from './elevation.js';
 import { runGeo, geoWorkerActive } from './geojobs.js';
 import { geometryFromPlain } from './geokernels.js';
 import { laneLayout } from './lanes.js';
+import { isMarktFietsRoad, MARKT } from './roadaccess.js';
 
 // Street surfaces: procedural asphalt / klinkers / stoeptegels / gravel in the
 // shared wet-ground shader, mitred ribbons carrying road-space coordinates,
@@ -1405,6 +1406,12 @@ function markingGeometry(r) {
   if (r.cat === 'cycle' && b > a) {
     if (r.width >= 2.4) dashes(r, rs, M, a, b, 0, 0.05, 1, 2);
     if (detail) for (let s = a + 3; s < b - 2; s += 70) decal(r, rs, M, s, r.width >= 2.4 ? r.width / 4 : 0, 1.5, 0.75, UV_BIKE);
+  }
+
+  // the bike route over the Grote Markt: dashed edge lines and a bike symbol on the cobbles
+  if (b > a + 6 && isMarktFietsRoad(r, rs.L)) {
+    for (const o of [-MARKT.laneHalf, MARKT.laneHalf]) dashes(r, rs, M, a + 1, b - 1, o, 0.06, 1.4, 1.1);
+    for (let s = a + 5; s < b - 3; s += 13) decal(r, rs, M, s, 0, 1.7, 0.85, UV_BIKE);
   }
 
   for (const c of rs.crossings) {

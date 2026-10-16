@@ -427,6 +427,45 @@ HUD zoom at 1920x1080), `--hud-edge` is the 46 px margin.
   station for EUR 120; nothing explodes, not saved), and
   `updateStreetLife` makes the odd student walk with a sofa, mattress or plant
   (`ped.carry`, `streetlife3d.js`). Tests: `node scripts/streetlife_test.mjs`.
+- Open world, batch 2 (summer only; all text, no recorded voice, all names
+  invented): `eventrules.js` (pure: the light earthquake, the blue-green algae,
+  the Ontzet fireworks and the German tourists) played by `worldevents.js` (init
+  and update from main.js, `window.__worldevents`). The quake is a respectful
+  weather-style event (a rumble through audio.js `weapon` sub `rumble`,
+  `world.quake` read by scene3d.js `quakeJitter`, parked bikes rattle, a few
+  bystanders speak, one calm Kiekdoar line that names the fictional "Delfstof
+  Noord"; never over a scene, a mission, a minigame or a call). Algae: on half
+  the days the big lakes get green patches (`algaePatches`, deterministic per
+  lake and day), "Niet zwemmen" signs on the shore and `world.algaeAt(x, y)`,
+  which player.js uses for the swim penalty (slower, tires, a little health,
+  never below 40). Fireworks: Gronings Ontzet 21:30-23:30 from around the Grote
+  Markt, shells and bursts (fx3d.js) visible and audible from 2.8 km (`burst`
+  with `far`), a finale at the end. Tourists: up to 12 German walkers (bubbles in
+  German) in the centre on the bloemetjesmarkt. `muggings.js` +
+  `muggingrules.js` (pure): berovingen in a few wijken after dark (the station
+  and nightlife crowds, empty business parks): a thief snatches the wallet, you
+  lose a share (20%, EUR 10-400), nobody is hit; run him down to get it back; the
+  wijken carry an amber name and triangle on the map after dark (mapview.js) and
+  a warning card on entering. `marktfiets.js` + roadaccess.js `isMarktFietsRoad`:
+  the bike route over the Grote Markt (dashed lanes and a bike symbol painted by
+  roadsurface.js, "Fietsroute" signs, a one-time hint in trafficlaw.js, a
+  different one on a market day). Tests: `events_test.mjs`, `muggings_test.mjs`,
+  `marktfiets_test.mjs`.
+- Minigames batch 2 (`standactivity.js` builds the hub activity for a game that
+  starts where you stand): `swimrules.js` + `zwembad.js` (Zwembad Het Natte Papier
+  at the Papiermolenlaan: a dive on a marker, alternate A and D in rhythm, flip
+  turns with Space, four lengths, records in seconds), `climbrules.js` +
+  `klimtoren.js` (Klimtoren Zernike: hold A and D to reach and grip, never let go
+  with both, big holds rest the arms, chalk once, falls cost four seconds and a
+  try), `skirules.js` + `waterski.js` (waterskibaan at the long straight of the
+  Kardinge lake, standing in for the Gruno-park: a boat, a rope, buoys, jumps over
+  the wake). Lines in `minigamelines2.js`; `scripts/minigames2_test.mjs`.
+- Text jobs (`casework.js`, pure, plus `choicepanel.js`, the panel): the side
+  jobs `sidejob_boa.js` (BOA voor een dag: read the invented rule and pick the
+  right fine), `sidejob_rechtbank.js` (carry a dossier and answer three questions)
+  and `sidejob_cabaret.js` (heckle a Frisian cabaret act on the beat), all on the
+  side-job core (sidejobs.js, `namedBuildingSpot` in sidejobkit.js); Backspace
+  skips, wrong answers only pay less. `scripts/casework_test.mjs`.
 - `node scripts/clearance_audit.mjs` lists the headroom under every road
   viaduct deck (most are 4.2 to 4.6 m; ramp feet over cycle paths are lower).
 - `travelroute.js` (pure): `boatRoute` (grid A* over the water with shore

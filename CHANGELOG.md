@@ -7,6 +7,49 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Nieuw
+- **Events in de zomer.** Soms trilt de grond even: een lichte aardbeving met een
+  korte rommel, een trillend beeld, rammelende fietsen, verbaasde voorbijgangers
+  en een rustig Kiekdoar-berichtje zonder schade. Op sommige dagen zit er
+  blauwalg in de grote plassen: groene vlekken op het water, borden "Niet
+  zwemmen" langs de kant, en wie er toch doorheen zwemt wordt trager, moe en
+  een beetje ziek. Op Gronings Ontzet gaat 's avonds vuurwerk op boven de stad,
+  te zien en te horen vanaf de hele binnenstad en aan het eind een slotsalvo. En
+  op de bloemetjesmarkt (12 september) lopen er veel Duitse toeristen met
+  rugzak en pet rond, die in het Duits om zich heen praten.
+- **Minigames, deel 2.** Drie nieuwe dingen om tussendoor te doen, gratis,
+  overslaanbaar (Backspace) en met medailles, records en prestaties:
+  - **Zwembad Het Natte Papier** aan de Papiermolenlaan. Vier banen van
+    vijfentwintig meter: duik vanaf het blok als de balk in het groen is, zwem
+    met A en D om en om in een rustig ritme en draai vlak voor de muur om met
+    Spatie. Wie spartelt wordt moe; de badmeester geeft commentaar.
+  - **Klimtoren Zernike.** Twaalf meter klimwand tegen de klok. Houd A (linker)
+    en D (rechter hand) vast om een greep te pakken en laat steeds één hand los
+    om hem hoger te zetten. Rust op de grote grepen, anders geven je armen het
+    op; vallen kan, op de mat, en kost vier seconden.
+  - **Waterskibaan bij het Grunopark.** Een boot trekt je over het meer. Leun uit
+    met A en D, zwaai ruim om de boeien, spring met Spatie over de golven en
+    draai of grab in de lucht voor extra punten. Drie valpogingen.
+- **Drie zijmissies met tekst.** Overslaan mag altijd en geld blokkeert nooit:
+  - **BOA voor een dag** (bij het Stadhuis). Loop op een overtreder af, lees de
+    regel uit het dikke boekje van onzin en reken de boete uit: kies met 1, 2 of
+    3 het goede bedrag. Een foute boete betaalt minder en de overtreder
+    protesteert; Backspace laat de zaak rusten.
+  - **Dossier naar de rechtbank** (bij het Politiebureau). Lees de drie feiten
+    van een verzonnen zaak, breng het dossier naar het Gerechtsgebouw en
+    beantwoord drie vragen van de griffier. Met Tab lees je de feiten nog eens.
+  - **Cabaret in de Stadsschouwburg.** De Friese cabaretier Ype Tjaarda speelt;
+    jij roept op de maat iets terug. Druk Spatie als de balk in het groen is.
+- **Berovingen na donker.** In een paar wijken (het station en de uitgaansstraten
+  van de binnenstad, en de lege bedrijventerreinen) kan je 's avonds en 's nachts
+  je portemonnee kwijtraken: iemand botst tegen je op en je verliest een deel van
+  je geld, zonder geweld. Ren hem achterna en pak het terug. Op de kaart krijgen
+  die wijken na donker een oranje naam en een driehoek, en bij het binnenlopen
+  waarschuwt een kaartje je.
+- **Fietsen over de Grote Markt is duidelijk.** De fietsroute over het plein heeft
+  nu witte streeplijnen en een fietssymbool op de klinkers, en bij elke ingang
+  staat een bord "Fietsroute, stapvoets". De eerste keer dat je erop fietst zegt
+  een kaartje dat het mag; op marktdag (dinsdag, vrijdag, zaterdag, overdag) stap
+  je af en loop je met je fiets.
 - **Meerijden met de trein.** Bij de kaartautomaat staat nu ook "Meerijden":
   je zit de hele rit in de stoptrein, halte voor halte (naar Loppersum stopt hij
   in Bedum en Stedum), met uitzicht door het raam, naast de trein of van boven.

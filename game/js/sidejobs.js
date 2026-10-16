@@ -31,10 +31,13 @@ import rondvaart from './sidejob_rondvaart.js';
 import rondvaarttour from './sidejob_rondvaarttour.js';
 import fietsdepot from './sidejob_fietsdepot.js';
 import verhuizing from './sidejob_verhuizing.js';
+import boa from './sidejob_boa.js';
+import rechtbank from './sidejob_rechtbank.js';
+import cabaret from './sidejob_cabaret.js';
 import { SIDEJOB_PAY_MULT, SIDEJOB_LEVEL_BONUS, SIDEJOB_ACCIDENT_FINE } from './economy.js';
 import { furnitureJobBonus } from './furniture.js';
 
-export const SIDE_JOBS = [bezorger, taxi, bus, rondvaart, fietsdepot, verhuizing, rondvaarttour];
+export const SIDE_JOBS = [bezorger, taxi, bus, rondvaart, fietsdepot, verhuizing, rondvaarttour, boa, rechtbank, cabaret];
 const BY_ID = new Map(SIDE_JOBS.map((j) => [j.id, j]));
 
 export const JOB_TARGET_COLOR = '#ff9a3c';
@@ -84,7 +87,7 @@ export function getSideJobList() {
 }
 
 // Rough pay per round for the phone's job app until the player has own figures.
-const PAY_GUESS = { bezorger: [27, 55], taxi: [25, 60], bus: [90, 140], rondvaart: [55, 105], rondvaarttour: [40, 80], fietsdepot: [45, 90], verhuizing: [80, 180] };
+const PAY_GUESS = { bezorger: [27, 55], taxi: [25, 60], bus: [90, 140], rondvaart: [55, 105], rondvaarttour: [40, 80], fietsdepot: [45, 90], verhuizing: [80, 180], boa: [38, 60], rechtbank: [60, 105], cabaret: [25, 85] };
 
 // Phone job app: every job with pay, distance and why it can't start now.
 export function getSideJobOffers(w) {
@@ -726,6 +729,26 @@ export function drawJobGlyph(g, glyph, r, bg) {
       g.moveTo(0.66, -0.3); g.lineTo(0.9, -0.62); g.lineTo(0.3, -0.62); g.lineTo(0.1, -0.3); g.fill();
       g.fillStyle = bg;
       g.fillRect(-0.08, -0.3, 0.16, 0.96);
+      break;
+    case 'boa':
+      g.roundRect(-0.5, -0.66, 1.0, 1.32, 0.12);
+      g.fill();
+      g.fillStyle = bg;
+      for (const y of [-0.34, -0.06, 0.22]) g.fillRect(-0.3, y, 0.6, 0.1);
+      break;
+    case 'rechtbank':
+      g.moveTo(-0.8, -0.2); g.lineTo(0, -0.7); g.lineTo(0.8, -0.2); g.closePath();
+      g.fill();
+      for (const x of [-0.55, -0.18, 0.18, 0.55]) g.fillRect(x - 0.07, -0.12, 0.14, 0.6);
+      g.fillRect(-0.8, 0.54, 1.6, 0.14);
+      break;
+    case 'cabaret':
+      g.arc(0, -0.08, 0.6, 0, Math.PI * 2);
+      g.fill();
+      g.fillStyle = bg;
+      g.beginPath(); g.arc(-0.22, -0.2, 0.09, 0, Math.PI * 2); g.arc(0.22, -0.2, 0.09, 0, Math.PI * 2); g.fill();
+      g.lineWidth = 0.1; g.strokeStyle = bg;
+      g.beginPath(); g.arc(0, 0.04, 0.3, 0.2, Math.PI - 0.2); g.stroke();
       break;
     default:
       g.arc(0, 0, 0.5, 0, Math.PI * 2); g.fill();

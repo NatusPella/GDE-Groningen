@@ -2,7 +2,8 @@
 // Ommelanden (carbid.js), the botsautootjes on the kermis at the Grote Markt
 // (kermis.js), the hidden little things around town (geheimen.js), the
 // drift zones, and Minigames batch 1: discgolf and pitch & putt around the
-// Stadspark, the skatepark there and the kart track at Kardinge. One
+// Stadspark, the skatepark there and the kart track at Kardinge; batch 2: the
+// swimming pool, the climbing tower and the water-ski lake (standactivity.js). One
 // list, so the prompts, the E key, the frame loop, the maps, Ubbo and the
 // spot check each have a single hook here instead of one per activity.
 //
@@ -21,11 +22,14 @@ import { DISCGOLF } from './discgolf.js';
 import { PITCHPUTT } from './pitchputt.js';
 import { SKATEPARK } from './skatepark.js';
 import { KARTBAAN } from './kartbaan.js';
+import { ZWEMBAD } from './zwembad.js';
+import { KLIMTOREN } from './klimtoren.js';
+import { WATERSKI } from './waterski.js';
 import { isShopOpen } from './shopui.js';
 import { isCinematicActive } from './cinematics.js';
 export { activityBlock, iconDisc } from './activitykit.js';
 
-const LIST = [CARBID, KERMIS, GEHEIMEN, DRIFT_ZONE, DISCGOLF, PITCHPUTT, SKATEPARK, KARTBAAN];
+const LIST = [CARBID, KERMIS, GEHEIMEN, DRIFT_ZONE, DISCGOLF, PITCHPUTT, SKATEPARK, KARTBAAN, ZWEMBAD, KLIMTOREN, WATERSKI];
 
 export function initActivities(w) {
   for (const a of LIST) {
