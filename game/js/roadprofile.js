@@ -8,21 +8,24 @@
 // upper one clears the lower one by the clearance of the lower one's class.
 
 // Maximum grade per highway type (NL design practice: motorway 4 %, N-road 5 %,
-// urban 6-8 %, ramps 6 %). Footways and steps are not limited.
+// urban 6-8 %, ramps 6 %; foot and cycle ramps 6-8 %). Steps are not limited.
 export const MAX_GRADE = {
   motorway: 0.04, trunk: 0.05, primary: 0.05, secondary: 0.06, tertiary: 0.07,
   motorway_link: 0.06, trunk_link: 0.06, primary_link: 0.06, secondary_link: 0.07, tertiary_link: 0.07,
   residential: 0.08, unclassified: 0.08, living_street: 0.08, service: 0.1, track: 0.1, busway: 0.06,
-  pedestrian: 0.08, cycleway: 0.06,
+  pedestrian: 0.08, cycleway: 0.06, footway: 0.08, path: 0.08, bridleway: 0.08,
 };
 // what the grade check allows over a solved profile: the limit plus the
 // vertical curve rounding a vertex (a polyline of a curve is a little steeper
 // than the curve)
 export const GRADE_TOL = 0.006;
 
-// Minimum radius of a vertical curve (m): motorway 1000, N-road 600, urban 300
+// Minimum radius of a vertical curve (m): motorway 1000, N-road 600, urban 300,
+// cycle ramps 60, foot ramps 30
 export const MIN_RADIUS = {
   motorway: 1000, trunk: 600, primary: 400, motorway_link: 300, trunk_link: 300, primary_link: 300,
+  // foot and cycle ramps (the solver rounds car roads only; the audit checks these)
+  cycleway: 60, footway: 30, path: 30, pedestrian: 30, bridleway: 30, steps: 1,
 };
 export const DEFAULT_RADIUS = 300;
 

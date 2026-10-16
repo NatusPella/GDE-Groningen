@@ -4,6 +4,7 @@
 //   node scripts/world/profile.mjs --solve    solve, audit the result (dry run)
 //   node scripts/world/profile.mjs --write    solve and write road.z back
 //   node scripts/world/profile.mjs --strict   exit 1 when the audit finds a problem
+//   --terrain                                 solve over the AHN terrain (scripts/world/fetch_ahn.py; F2)
 //
 // See solve() for the model. The audit checks every profiled road: grade per
 // class, vertical curve radius, steps at joints, clearance at every crossing
@@ -17,6 +18,7 @@ import {
   buildNetwork, planCrossings, ribbonHalf, profileStats,
 } from '../../game/js/roadprofile.js';
 import { railLiftZ } from '../../game/js/elevation.js';
+import { railHeightFn, overAtRailCrossing, LC_ZONE } from '../../game/js/railprofile.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
@@ -28,12 +30,15 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 // level of the tile it is in.
 export const flatTerrain = () => 0;
 
-// Rails as crossing items: the track height from the rail lifts (until the
-// rail gets its own profile), ordered over a road where it is lifted.
+// Rails as crossing items: the track height from the rail profile
+// (railprofile.mjs; the radial rail lifts on a map without one) and the level
+// crossings, where road and track meet at one height.
 export function railItems(data) {
-  const lifts = data.railLifts || [];
-  return (data.rails || []).map((r) => ({ pts: r.pts || r, rail: true, cat: 'rail', type: 'rail', zAt: (x, y) => railLiftZ(lifts, x, y) }));
+  const zAt = railHeightFn(data, railLiftZ);
+  const lcs = data.levelCrossings || [];
+  return (data.rails || []).map((r) => ({ pts: r.pts || r, rail: true, cat: 'rail', type: 'rail', ly: r.ly || null, zAt, lcs }));
 }
+const atLevelCrossing = (rail, x, y) => rail.lcs.some((l) => Math.hypot(l.x - x, l.y - y) < LC_ZONE);
 
 // A crossing between two items as { up, lo, x, y, need, zUp, zLo } or null
 // when it is not a grade separation (both at the same level, a level crossing).
@@ -41,6 +46,15 @@ function separation(c) {
   const za = c.a.rail ? c.a.zAt(c.x, c.y) : zAlong(c.a, c.i, c.t);
   const zb = c.b.rail ? c.b.zAt(c.x, c.y) : zAlong(c.b, c.j, c.u);
   let oa = c.a.rail ? (za > 3 ? 1 : 0) : gradeOrder(c.a), ob = c.b.rail ? (zb > 3 ? 1 : 0) : gradeOrder(c.b);
+  // a car road and the track away from a level crossing never meet: the road
+  // goes over where OSM grades it above the track, else the track goes over
+  // it (where the track cannot climb that high the road dips the rest)
+  const rail = c.a.rail ? c.a : c.b.rail ? c.b : null, road = rail === c.a ? c.b : c.a;
+  if (rail && !road.rail && CAR.has(road.cat)) {
+    if (atLevelCrossing(rail, c.x, c.y)) return null;
+    const up = overAtRailCrossing(rail, rail === c.a ? c.i : c.j, road) === 'road' ? road : rail;
+    oa = c.a === up ? 1 : 0; ob = c.b === up ? 1 : 0;
+  }
   // a road the solver raised or sank (or a lifted rail) is where it is
   if (Math.abs(za - zb) > 1.5) { oa = za > zb ? 1 : -1; ob = -oa; }
   if (oa === ob) return null;
@@ -227,7 +241,21 @@ export function solve(data, { terrain = flatTerrain, iters = 600, pullPrior = 0.
   const crossings = planCrossings([...roads, ...rails], crossFilter);
   const active = new Set(roads.filter((r) => r.z));
   const movers = [];
-  const may = (r) => !r.rail && (CAR.has(r.cat) || paths || !!r.z);
+  // a foot or cycle way that OSM puts on a bridge over the track or in a
+  // tunnel under it gets a profile too (the old rail lifts went over them)
+  const railCross = crossings.filter((c) => (c.a.rail || c.b.rail) && !(c.a.rail && c.b.rail) && separation(c));
+  const overRail = new Set(railCross.map((c) => (c.a.rail ? c.b : c.a)).filter((r) => !CAR.has(r.cat) && gradeOrder(r) !== 0));
+  // round a grade separation with the track the street grid is dense: the
+  // foot and cycle ways joining a road that ramps there ramp with it
+  const RAIL_PATHS = 250;
+  const nearRail = (r) => railCross.some((c) => r.pts.some((p) => Math.abs(p[0] - c.x) < RAIL_PATHS && Math.abs(p[1] - c.y) < RAIL_PATHS));
+  const pathMay = new Map();
+  const may = (r) => {
+    if (r.rail) return false;
+    if (CAR.has(r.cat) || paths || r.z || overRail.has(r)) return true;
+    if (!pathMay.has(r)) pathMay.set(r, nearRail(r));
+    return pathMay.get(r);
+  };
   for (const c of crossings) {
     const s = separation(c);
     if (!s || knotAt(c.x, c.y)) continue;
@@ -244,7 +272,7 @@ export function solve(data, { terrain = flatTerrain, iters = 600, pullPrior = 0.
   // runs on into (a side street dipping under a flyover, the cycle path on
   // from a cycle bridge) join in where the grade envelope from the
   // crossings leaves the terrain
-  for (let round = 0; round < 4; round++) {
+  for (let round = 0; round < 16; round++) {
     const g0 = buildNetwork(roads);
     const lo0 = new Float64Array(g0.ids.length).fill(-Infinity), hi0 = new Float64Array(g0.ids.length).fill(Infinity);
     for (const { c, m } of movers) {
@@ -578,9 +606,16 @@ async function main() {
     printAudit(audit(data), 4);
     const extras = JSON.parse(fs.readFileSync(path.join(ROOT, 'game/mapextras.json'), 'utf8'));
     const t0 = performance.now();
-    const sol = solve(data, { paths: args.includes('--paths'), protect: protectedRoads(data, extras), couple: !args.includes('--no-couple'), clear: !args.includes('--no-clear') });
-    const res = apply(data, sol);
-    console.log(`solved in ${((performance.now() - t0) / 1000).toFixed(1)} s: ${JSON.stringify(sol.stats)}; ${res.changed} profiles changed, ${res.cleared} flat now, ${sol.pts.size} roads densified`);
+    // a road that gets a profile brings its own crossings with paths and
+    // service roads into play: solve again until nothing changes (3 passes at most)
+    // --terrain: the AHN field (terrain.mjs; F2, the game draws flat until then)
+    const terrain = args.includes('--terrain') ? (await import('./terrain.mjs')).loadTerrainField().at : flatTerrain;
+    for (let pass = 0; pass < 3; pass++) {
+      const sol = solve(data, { terrain, paths: args.includes('--paths'), protect: protectedRoads(data, extras), couple: !args.includes('--no-couple'), clear: !args.includes('--no-clear') });
+      const res = apply(data, sol);
+      console.log(`pass ${pass + 1} solved in ${((performance.now() - t0) / 1000).toFixed(1)} s: ${JSON.stringify(sol.stats)}; ${res.changed} profiles changed, ${res.cleared} flat now, ${sol.pts.size} roads densified`);
+      if (!res.changed && !res.cleared && !sol.pts.size) break;
+    }
     if (args.includes('--write')) {
       fs.writeFileSync(file, JSON.stringify(data));
       console.log(`wrote ${path.relative(ROOT, file)}`);

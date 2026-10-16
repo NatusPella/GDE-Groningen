@@ -50,6 +50,38 @@ nieuwe functies, `y` voor alleen bugfixes.
   staat een bord "Fietsroute, stapvoets". De eerste keer dat je erop fietst zegt
   een kaartje dat het mag; op marktdag (dinsdag, vrijdag, zaterdag, overdag) stap
   je af en loop je met je fiets.
+- **Het spoor ligt zoals het hoort.** Elke spoorlijn heeft een eigen
+  hoogteprofiel: flauwe hellingen en lange bogen, dus een trein schiet niet
+  meer vlak na het perron steil omhoog. Perrons liggen vlak, overwegen precies
+  op de hoogte van de weg, station Noord ligt op een verhoogde baan met de
+  straten eronderdoor, en het Emmaviaduct en de Hereweg gaan over het spoor
+  heen, zoals in het echt.
+- **Bruggen gaan open.** De ophaal- en draaibruggen van Stad (33 stuks, van de
+  Sint Jansbrug tot de Europaweg) gaan open als je in een boot ervoor toetert:
+  rode lichten, slagbomen omlaag, het val gaat omhoog en het verkeer wacht.
+  Ben je net te laat met de auto, dan sta je voor de slagboom; rijd je erdoor,
+  dan lig je in het kanaal.
+- **Vangrails, portalen en hectometerpaaltjes.** Langs de snelwegen, de
+  N-wegen en hun op- en afritten staan vangrails (ook in de middenberm), met
+  een opening waar een weg aansluit; ram je er hard tegenaan, dan vliegt een
+  stuk eruit. Voor elke afrit hangt een blauw portaal met echte plaatsnamen,
+  en langs de berm staan hectometerpaaltjes. Hekken en drempels die op de kaart
+  staan, staan nu ook in het spel. Lantaarnpalen verschillen per soort weg: hoge
+  palen met een arm langs de grote wegen, lagere lantaarns in de woonstraten.
+- **Meer soorten bomen, en bossen vol bomen.** Linden, platanen, eiken,
+  beuken, essen, esdoorns, kastanjes, berken, dennen, wilgen langs het water,
+  hoge populieren en hier en daar een roze Japanse sierkers: elke soort met zijn
+  eigen kleur, hoogte en kroon. Volwassen straatbomen zijn 12 tot 20 meter hoog
+  en een rij langs een laan is één soort. De bossen rond de stad (Kardinge, het
+  Stadspark en meer) staan nu echt vol bomen, ook van verder weg te zien.
+- **Echte gebouwhoogtes en daken.** Bijna elk gebouw in Stad heeft nu zijn
+  echte hoogte en dakvorm uit de 3DBAG (TU Delft en 3DGI): rijtjeshuizen met
+  een zadeldak, platte daken waar ze plat zijn, en torens als het Cruiseschip
+  aan de Kempkensberg en de Tasmantoren op hun echte hoogte. De skyline is van
+  ver te herkennen.
+- **Sloten liggen dieper.** In het Ommeland zie je dat een sloot echt diep
+  ligt, en als je erdoorheen loopt sta je tot je knieën in het water en ga je
+  langzamer.
 - **Meerijden met de trein.** Bij de kaartautomaat staat nu ook "Meerijden":
   je zit de hele rit in de stoptrein, halte voor halte (naar Loppersum stopt hij
   in Bedum en Stedum), met uitzicht door het raam, naast de trein of van boven.

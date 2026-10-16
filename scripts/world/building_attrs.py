@@ -14,13 +14,13 @@ inside the footprint, area within 25 %) and adds, per building:
   hsrc  where it comes from: 3dbag | osm_height | osm_levels | default
   roof, colour, rcolour, mat, rmat, year, bag, hmax, h50, hg  (when known)
 
-3D BAG (CC BY 4.0, https://3dbag.nl, TU Delft; attribution in NOTICE.md and
-the credits) is joined from data/3dbag/*.json when such files exist - a list
-of { "id": "NL.IMBAG.Pand.<bag id>", "c": [x, y] world frame, "a": area,
-"hmax": h_dak_max, "h50": h_dak_50p, "hg": h_maaiveld, "roof": roof type }
-per building, made from the official tile downloads (GeoPackage / CityJSON)
-by scripts/world/fetch_3dbag.py in F1. F0 has no such file: every building
-falls back to the OSM tags and then to the type default.
+3D BAG (CC BY 4.0, https://3dbag.nl, TU Delft and 3DGI; attribution in
+NOTICE.md and the credits) is joined from data/world/3dbag.json.gz - per
+building { "id": <bag id>, "c": [x, y] world frame, "a": area, "hmax", "h50",
+"hg", "roof", "lv", "year" }, made from the official tile downloads by
+scripts/world/fetch_3dbag.py; scripts/world/building_heights.mjs writes the
+heights into game/citymap.json (game/js/buildingheights.js: 3dbag >
+osm_height > osm_levels > default).
 """
 import glob
 import gzip

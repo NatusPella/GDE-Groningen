@@ -10,6 +10,7 @@
 // lanes, width, speed and access from its tags, with one cap for village
 // streets. Nothing here asks "is this the city?".
 import { wgsToWorld } from './rdnew.js';
+import { heightOf, levelsFor } from './buildingheights.js';
 
 export const WB_VERSION = 1;
 export const LEVEL_M = 3.1;
@@ -274,6 +275,10 @@ export function heightFields(bag3d, osm, levels, hasRoof = false) {
     if (bag3d.h50 !== undefined) f.h50 = bag3d.h50;
     if (bag3d.roof && !hasRoof) f.roof = bag3d.roof;
     f.hsrc = '3dbag';
+    // the walls and the roof the renderer draws (buildingheights.js)
+    const hh = heightOf(osm && osm.roof ? osm : null, bag3d, levels);
+    f.eave = hh.eave;
+    if (hh.roof) f.rk = hh.roof;
     return f;
   }
   if (osm && osm.h) return { hm: osm.h, hsrc: 'osm_height' };
@@ -358,6 +363,9 @@ export function buildBuilding(src, ctx = {}) {
   if (hf.hsrc === 'default' && src.wall !== undefined) hf.hm = r2(src.wall + roofH);
   b.hm = hf.hm;
   b.hsrc = hf.hsrc;
+  // a measured building: its walls in storeys, its roof (buildingheights.js)
+  if (hf.eave !== undefined) b.h = levelsFor(hf.eave);
+  if (hf.rk) b.rk = hf.rk;
   b.roof = src.roofShape || (src.hip ? 'hipped' : roofH > 0 ? 'gabled' : 'flat');
   return b;
 }

@@ -59,6 +59,8 @@ geen `node_modules` in git.
 | `game/citymap.json`, `game/mapextras.json`, `game/ommeland.json`, `game/ommeland.bin` | OpenStreetMap via Overpass (`scripts/fetch_osm.py`, `fetch_ommeland.py`, `add_*.py`, `build_map.py`) | [ODbL 1.0](https://opendatacommons.org/licenses/odbl/1-0/) | naamsvermelding; deze **afgeleide databases** blijven ODbL als je ze verspreidt (share-alike) |
 | `data/*_raw.json(.gz)`, `data/*.overpass` | Overpass-extracten van OSM | ODbL | idem |
 | Hoogtes van de ring (`add_elevation.py`) | berekend uit OSM-tags (layer, bridge, tunnel) | ODbL | idem; geen AHN- of andere hoogtedata gebruikt |
+| `data/world/3dbag.json.gz`, de gebouwhoogtes (`h`, `hsrc`, `roof`) in `game/citymap.json` en de tegels | 3DBAG (TU Delft, 3DGI), officiële tegeldownloads van data.3dbag.nl (`scripts/world/fetch_3dbag.py`); de ruwe tegels staan alleen lokaal in `data/cache/` | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) | naamsvermelding: Over, aftiteling, NOTICE.md ("3DBAG door de 3D geoinformation onderzoeksgroep (TU Delft) en 3DGI") |
+| AHN-hoogteraster (nog niet gedownload; `scripts/world/fetch_ahn.py`) | AHN via PDOK | CC0 | geen verplichting; netjes vermelden |
 | Overpass-servers (overpass-api.de, kumi.systems, private.coffee, maps.mail.ru) | alleen bij het bouwen van de kaart | [gebruiksvoorwaarden](https://dev.overpass-api.de/overpass-doc/en/preface/commons.html): redelijk gebruik | niets voor de speler |
 
 **OSM-vermelding** ([Attribution Guidelines](https://osmfoundation.org/wiki/Licence/Attribution_Guidelines)):
