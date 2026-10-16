@@ -136,6 +136,9 @@ export function pickBikeVariant(map, x, y, rng = Math.random, ctx = {}) {
   if (rng() < def.bakfiets) {
     return { name: 'bike', cargo: true, len: 2.55, wid: 0.72, maxSpeed: 5.2, accel: 2.4, brake: 5, turnRate: 3.2, color: ['#2f4a3a', '#1c1c1c', '#23324a', '#6b2a24'][Math.floor(rng() * 4)], rider };
   }
+  if (rng() < 0.12) {
+    return { name: 'bike', senior: true, old: true, len: 1.75, wid: 0.5, maxSpeed: 5.2, accel: 1.6, brake: 5, turnRate: 3.6, color: '#c9ccd0', rider: '#8a8f94' };
+  }
   if (rng() < def.oldBike) {
     return { name: 'bike', old: true, noLight: !shabbyHasLight(prof.key, rng), len: 1.75, wid: 0.5, maxSpeed: 5.4, accel: 2.8, brake: 5, turnRate: 4.4, color: OLD_BIKE_COLORS[Math.floor(rng() * OLD_BIKE_COLORS.length)], rider };
   }

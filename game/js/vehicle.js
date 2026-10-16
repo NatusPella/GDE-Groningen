@@ -2048,6 +2048,13 @@ export function updateTrafficAI(v, dt, map, world, rng = Math.random, opts = nul
   if (err > 0.25) throttle = clamp(err * 0.6, 0.2, 1);
   else if (err < -0.5) brake = clamp(-err * (walkerV < v.speed ? 0.6 : 0.3), 0.1, 1);
   if (vTarget < 0.3 && Math.abs(v.speed) < 1.2) brake = 1;
+  if (m.senior && !chase) {
+    if (v.stillFor > 0 && v.stillFor < 1.6 && yieldV > 0.5) throttle = 0;
+    else if (v.speed < 2.5) throttle *= 0.5;
+    const wob = Math.sin(world.time * 1.9 + (v.id || v.x)) * 0.18 * Math.min(1, Math.abs(v.speed) / 2);
+    v.applyControls(dt, throttle, clamp(steer + wob, -1, 1), brake);
+    return;
+  }
   v.applyControls(dt, throttle, steer, brake);
 }
 
