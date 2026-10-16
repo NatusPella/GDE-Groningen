@@ -242,9 +242,9 @@ function buildDefs(world) {
       vehicle: 'car',
       start: drive(235.26, 401.14),
       stages: [
-        { kind: 'board', label: 'Stap in de auto met de automaat', say: 'Instappen: de automaat ligt achterin, met mijn pas erin. Hij piept een beetje.' },
-        { kind: 'garage', stars: 2, target: { garage: true }, label: 'Naar Spuit & Klaar voor een nieuwe kleur', say: 'Alarm! Twee sterren. Rij een garage in: Spuit & Klaar spuit hem om en de pliesie is je kwijt.' },
-        { kind: 'goto', target: { shop: 'pand' }, mode: 'vehicle', stop: 1.2, label: 'Naar Pand & Poen', say: 'Nieuwe kleur, nieuw leven. Door naar Pand & Poen, Sjabbe wacht achterom.' },
+        { kind: 'board', label: 'Stap in de auto: de pinautomaat ligt achterin', say: 'Instappen: de pinautomaat ligt achterin de auto, met mijn pas erin. Hij piept een beetje. Volg de groene markering naar de auto.' },
+        { kind: 'garage', stars: 2, target: { garage: true }, label: 'Naar Spuit & Klaar (automaat zit achterin)', say: 'Alarm! Twee sterren. Rij een garage in: Spuit & Klaar spuit hem om en de pliesie is je kwijt.' },
+        { kind: 'goto', target: { shop: 'pand' }, mode: 'vehicle', stop: 1.2, label: 'Naar Pand & Poen: lever de automaat achterin af', say: 'Nieuwe kleur, nieuw leven. Door naar Pand & Poen, Sjabbe wacht achterom. De automaat zit nog achterin.' },
       ],
     },
     {
