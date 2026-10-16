@@ -834,6 +834,56 @@ the camera's tree tests read it. Tiles: the TREES section rows carry `s`, `h`,
 Audit: no filled tree on a way, in a building or in water; the species mix.
 `node scripts/greenery_test.mjs`.
 
+### Building heights
+
+Real heights and roofs (docs/PROVINCIE-PLAN.md 0.1). `scripts/world/fetch_3dbag.py`
+reads the 3D BAG's official downloads (CC BY 4.0, 3DBAG by the 3D
+geoinformation research group of TU Delft and 3DGI; credited in NOTICE.md,
+docs/LICENTIES.md and `credits.js`): the tile index (`tile_index.fgb`, read by
+its own small FlatGeobuf reader) and per tile the GeoPackage, cached in
+`data/cache/3dbag/` (gitignored; the city map is 57 tiles, 133 MB), and
+extracts per building the BAG id, footprint centre and area, `hmax` and `h50`
+(the pand table's, else the highest `b3_h_max` and the area-weighted
+`b3_h_50p` of its lod12_2d parts), `hg` (`b3_h_maaiveld`), the roof type,
+storeys and year into `data/world/3dbag.json.gz` (committed, 1.8 MB, 81.6k
+buildings). `js/buildingheights.js` `heightOf` walks the chain 3dbag,
+osm_height, osm_levels, default: the ridge `hm` above the ground, the walls
+`eave` (under a pitched roof as far under the median as the ridge is above
+it; a median far under the ridge is a tower with a low wing: the tower's
+height, flat; where the renderer cannot draw a pitched roof, `pitchedFits`,
+the walls go half way up) and the roof (`roofOf`: 3D BAG slanted/horizontal,
+OSM roof:shape). `scripts/world/building_heights.mjs --write` (pack_tiles.mjs
+`joinAttrs`: by BAG id, else centre in footprint and area within 25 %) sets
+on the map's buildings `h` (the walls in storeys of 3.1 m), `hm`, `rk` and
+`hsrc`; landmarks keep their models and heights. models3d_buildings.js takes
+the known roof over its guess by type and the ridge for the roof's height (the
+far LOD too). City map: 95.8 % of the buildings from the 3D BAG (was 0),
+0.02 % from OSM, 4.2 % default (mostly footprints the BAG does not have); no
+built-up tile over 30 % default. `node scripts/buildingheights_test.mjs`
+(the chain, the map, the drawn ridge, the readers on the cache). Refresh:
+`python3 scripts/world/fetch_3dbag.py` (or `--list` for the tiles and
+sizes, `--extract-only` without network), then `python3 scripts/world/building_attrs.py`
+and `node scripts/world/building_heights.mjs --write`.
+
+### Terrain
+
+`js/terrainraster.js` (pure): a height raster per tile (`encodeTerrainRaster`,
+`decodeTerrainRaster`: int16 cm relative to the tile's street level,
+`sampleRaster` bilinear, `TerrainField` over the tiles that carry one; 0, flat,
+elsewhere). `scripts/world/fetch_ahn.py --fetch` asks PDOK's AHN WCS (CC0)
+for each 1 km tile resampled to 5 m (`dtm_05m`; GeoTIFF read by its own
+reader: deflate, LZW, predictors) and writes `data/world/ahn/<tile>.bin` with
+the street level per tile (the median of the AHN under the map's road centre
+lines) in `index.json`; nothing is downloaded without `--fetch`, and the
+rasters are not committed. Sizes: 80 kB per tile at 5 m, 4.5 MB for the city
+map, ~260 MB for the province at 5 m (~26 GB at AHN's 0.5 m). The packer
+puts a tile's raster in its RASTER section (codec 1, 2 bytes a cell), the
+TileWorld keeps them in `map.terrain` (streamed tiles add and drop theirs),
+`map.terrainAt(x, y)` reads it (flat on a GameMap). The height solvers take
+it as their `terrain` sampler with `--terrain` (`scripts/world/terrain.mjs`);
+until the renderer draws the terrain (F2) the game stays flat.
+`node scripts/terrain_test.mjs`.
+
 ## Lanes
 
 Every car road carries the lane model (docs/PROVINCIE-PLAN.md 2.12; set by
@@ -1183,9 +1233,10 @@ server, `?legacymap`).
   embankment, 3 cutting, 4 tunnel; `roadprofile.js` STRUCT) and `ly` (the
   OSM grade order per segment); the road rows carry no `z` of their own and
   `tileworld.js` joins the profile back by gid, so meshes, colliders and the
-  height query read one profile. The AHN terrain raster will be a RASTER
-  next to it. Section types reserved for the rest of F1: junctions, pois,
-  furniture, nav, overlay (`SECTION`). Readers skip unknown
+  height query read one profile. The AHN terrain raster is a RASTER next to
+  it when one was fetched (below, "Terrain"). The FURNITURE section holds the
+  mapped street furniture, TREES rows species, height and flags. Section types
+  reserved for the rest of F1: pois, overlay (`SECTION`). Readers skip unknown
   sections and refuse a newer format. Hashes are two xxh32 (16 hex digits).
 - **Packs (`scripts/world/pack_tiles.mjs`).** The GameMap's arrays after its
   load-time derivation (doubled footprints, canopies, houseboats, roof steps,
@@ -1195,10 +1246,10 @@ server, `?legacymap`).
   pack named by its hash (`p0_0-<hash>.gdp`), plus `global-<hash>.gdp` (meta,
   stations and routes, the Ommeland data) and `index.json` (per tile: pack,
   offset, length, raw size, hash, counts, tallest building; the pinned city
-  set). Same input, same bytes. Per building: `hm` (best height in metres) and
-  `hsrc` (`3dbag`, `osm_height`, `osm_levels`, `default`), roof, colours,
-  materials, BAG year and id from the OSM tags (`scripts/world/building_attrs.py`);
-  the 3D BAG join is in place for F1's extract. `game/world/` is a build
+  set). Same input, same bytes. Per building: `hm` (the ridge in metres),
+  `eave`, `rk` (the roof) and `hsrc` (`3dbag`, `osm_height`, `osm_levels`,
+  `default`), the 3D BAG's `hmax`/`h50`/`hg`, roof, colours, materials, BAG
+  year and id (below, "Building heights"). `game/world/` is a build
   artifact (gitignored); `desktop/build.mjs` packs it into the stage, cached by
   the hash of its inputs in `desktop/.world-cache/`.
 - **Loading (`js/tileworld.js`, `js/tilestore.js`).** `loadTileWorld('world/')`

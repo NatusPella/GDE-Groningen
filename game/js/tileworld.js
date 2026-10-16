@@ -16,6 +16,7 @@ import { GameMap, loadMap } from './mapdata.js';
 import { polygonBounds } from './util.js';
 import { SECTION, decodeBlob } from './gdt.js';
 import { TileStore, FrameQueue, HttpRangeSource, inflateRaw, makeWorkerDecoder, decodeCompressed } from './tilestore.js';
+import { TerrainField } from './terrainraster.js';
 
 const KIND_OF = new Map([
   [SECTION.BUILDINGS, 'buildings'], [SECTION.ROADS, 'roads'], [SECTION.WATER, 'water'], [SECTION.GREEN, 'green'],
@@ -83,6 +84,9 @@ export class TileWorld extends GameMap {
     }
     for (const kind of Object.keys(arrays)) for (let i = 0; i < arrays[kind].length; i++) if (!arrays[kind][i]) throw new Error(`tiles lack ${kind} ${i}: the pinned set is not the whole map`);
     for (const tile of tiles) attachProfiles(tile, (gid) => arrays.roads[gid]);
+    // the AHN terrain of the tiles that carry one (terrainraster.js); flat elsewhere
+    const terrain = new TerrainField();
+    for (const tile of tiles) for (const s of tile.sections) if (s.type === SECTION.RASTER) terrain.add(`${tile.i},${tile.j}`, s.raster);
     const clipped = (info.clippedWays || []).map((c) => ({ ...c, building: c.building >= 0 ? arrays.buildings[c.building] : null }));
     const map = GameMap.fromParts.call(this, {
       meta: info.meta,
@@ -93,6 +97,7 @@ export class TileWorld extends GameMap {
     map._res = res;
     map._gidOf = new WeakMap();
     for (const kind of Object.keys(res)) for (const [gid, e] of res[kind]) if (typeof e.obj === 'object') map._gidOf.set(e.obj, gid);
+    map.terrain = terrain;
     map.tileQueue = new FrameQueue();
     map.store = null;
     map.resident = new Set(tiles.map((t) => `${t.i},${t.j}`));
@@ -113,6 +118,7 @@ export class TileWorld extends GameMap {
     if (this.resident.has(tk)) return false;
     this.resident.add(tk);
     for (const s of tile.sections) {
+      if (s.type === SECTION.RASTER && this.terrain) { this.terrain.add(tk, s.raster); continue; }
       const kind = KIND_OF.get(s.type);
       if (!kind) continue;
       for (const { gid, obj } of rowsOf(kind, s)) {
@@ -134,6 +140,7 @@ export class TileWorld extends GameMap {
 
   dropTile(tk) {
     if (!this.resident.delete(tk)) return false;
+    if (this.terrain) this.terrain.drop(tk);
     for (const kind of Object.keys(this._res)) {
       for (const [gid, e] of this._res[kind]) {
         if (!e.tiles.delete(tk) || e.tiles.size) continue;

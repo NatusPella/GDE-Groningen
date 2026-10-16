@@ -31,6 +31,11 @@ nieuwe functies, `y` voor alleen bugfixes.
   eigen kleur, hoogte en kroon. Volwassen straatbomen zijn 12 tot 20 meter hoog
   en een rij langs een laan is één soort. De bossen rond de stad (Kardinge, het
   Stadspark en meer) staan nu echt vol bomen, ook van verder weg te zien.
+- **Echte gebouwhoogtes en daken.** Bijna elk gebouw in Stad heeft nu zijn
+  echte hoogte en dakvorm uit de 3DBAG (TU Delft en 3DGI): rijtjeshuizen met
+  een zadeldak, platte daken waar ze plat zijn, en torens als het Cruiseschip
+  aan de Kempkensberg en de Tasmantoren op hun echte hoogte. De skyline is van
+  ver te herkennen.
 - **Sloten liggen dieper.** In het Ommeland zie je dat een sloot echt diep
   ligt, en als je erdoorheen loopt sta je tot je knieën in het water en ga je
   langzamer.

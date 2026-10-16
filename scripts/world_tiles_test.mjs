@@ -141,8 +141,10 @@ ok(G.hash64(gRaw) === index.global.hash && sameBytes(gRaw, built.global), 'globa
   }), `heights: ${want.length} profiles back exactly, with structure and network`, `${heights.size}`);
   for (const [gid, h] of heights) if (back.roads[gid]) back.roads[gid].z = h.z;
 }
+const withoutAttrs = (o) => { for (const k of P.ATTR_KEYS) delete o[k]; return o; };
 for (const [kind] of P.KINDS) {
-  const want = (src.map[kind] || []).map((o) => (kind === 'trees' ? o : P.cleanRow(o)));
+  // (a building's height attributes are the join's, compared below; the map's own copy of them is left out too)
+  const want = (src.map[kind] || []).map((o) => (kind === 'trees' ? o : kind === 'buildings' ? withoutAttrs(P.cleanRow(o)) : P.cleanRow(o)));
   const got = back[kind];
   ok(!got.conflict, `${kind}: copies in different tiles agree`, got.conflict);
   ok(got.length === want.length && want.every((o, i) => got[i] && canon(got[i]) === canon(o)), `${kind}: ${want.length} objects back exactly`, `${got.filter(Boolean).length}/${want.length}`);

@@ -802,6 +802,12 @@ export class GameMap {
   // A vehicle's (x,y) can fall inside a water polygon that a bridge actually
   // spans above - checkVehicleWater in vehicle.js calls this first so it
   // doesn't "drown" cars safely crossing on a bridge deck.
+  // the terrain under (x, y), m relative to street level (terrainraster.js:
+  // the AHN field of the tiles; flat until the renderer draws it)
+  terrainAt(x, y) {
+    return this.terrain ? this.terrain.at(x, y) : 0;
+  }
+
   isOnBridge(x, y) {
     for (const road of this.roadsNear(x, y, 8)) {
       // (a movable bridge that is open: movablebridges.js)

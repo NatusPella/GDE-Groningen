@@ -55,7 +55,7 @@ export const SECTION = {
   OVERLAY: 14, // reserved (F1): hand-made layers
   COUNTRY_BOXES: 15, // the Ommeland building boxes (countryreal.js), until F1
   META: 20, // JSON: anything global that has no table yet
-  RASTER: 21, // u16 w, u16 h, f32 cell, f64 x0, f64 y0, u8 codec, then the cells
+  RASTER: 21, // u16 w, u16 h, f32 cell, f64 x0, f64 y0, u8 codec (0 u8, 1 int16 cm, 2 f32), then the cells (terrainraster.js: the AHN terrain per tile)
   BLOB: 22, // named raw bytes
 };
 
@@ -398,7 +398,8 @@ export function decodeSection(bytes, sec, strings, i, j) {
     case SECTION.META: return { json: JSON.parse(strings[r.uv()]) };
     case SECTION.RASTER: {
       const w = r.u16(), h = r.u16(), cell = r.f32(), x0 = r.f64(), y0 = r.f64(), codec = r.u8();
-      return { raster: { w, h, cell, x0, y0, codec, data: r.bytes(sec.rows) } };
+      // bytes per cell by codec: 0 u8, 1 int16 cm, 2 float32 (terrainraster.js)
+      return { raster: { w, h, cell, x0, y0, codec, data: r.bytes(sec.rows * (codec === 1 ? 2 : codec === 2 ? 4 : 1)) } };
     }
     case SECTION.BLOB: { const name = strings[r.uv()]; return { name, bytes: r.bytes(r.uv()) }; }
     default: return { rows: readTable(r, strings, ox, oy) };
