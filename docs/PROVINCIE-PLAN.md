@@ -1542,8 +1542,18 @@ GeoPackage-tegels **~2-4 GB** (schatting, niet gemeten), tijdelijk in
 | Trein Groningen → Eemshaven, 39 m/s (45 km) | 0 te laat; max 7,8-41 ms (een dichte bostegel: addTile is één taak) | 0 te laat, < 66 ms |
 | Heli Stad → Eemshaven en → Ter Apel, 60 m/s | 0 te laat; max 8 ms | geen pop-in |
 
-(Virtuele klok, `scripts/province_test.mjs`. De Electron-meting met
-`--provincie` en een stille machine staat open.)
+(Virtuele klok, `scripts/province_test.mjs`. Electron met de provincie
+standaard aan en de lagen in de stage: verhaaltest PASS, 30 stappen, 0
+fouten, 0 NaN; `geocheck` ok. De perf-routes met `--provincie` op een stille
+machine en een visuele ronde door de provincie staan open.)
+
+**Waar F2a stopt.** Klaar: stappen 1-3 en stap 4 voor zover het de
+provincie voorbij het oude Ommeland betreft (standaard aan, polders daar
+vervangen). Open: de oude Ommeland-lagen *binnen* hun eigen gebied per tegel
+vervangen (`countryreal`/`realmap`, `countryedge`-masker, `countrybake`-rand,
+`countryroute`, `countryskyline`); het water per tegel (peil, oevers,
+varen); de Duitse randstrook; 3D BAG en AHN voor de provincie; addTile in
+stukken (een dichte bostegel kost tot ~40 ms in één frame).
 
 ## 3. Reizen door de provincie
 
