@@ -106,6 +106,8 @@ const M = {};
   const blk = (x, y, m = 1) => PW.realBlockedAt(map, isT, x, y, m);
   if (!blk(ox + 110, oy + 110) || !blk(ox + 300, oy + 501) || blk(ox + 300, oy + 300) || !blk(G.tileOrigin(22, 22)[0] + 300, G.tileOrigin(22, 22)[1] + 300) || blk(-50000, 0)) fail('the prop rule: building, road, open field, a tile not in yet, outside the layer');
   if (PW.provinceMode('?legacy&provincie') !== 'off' || PW.provinceMode('?provincie') !== 'on' || PW.provinceMode('?corridor') !== 'on') fail('provinceMode flags');
+  if (PW.ommelandTileMode('?provincie') !== 'off' || PW.ommelandTileMode('?ommelandtegels') !== 'on' || PW.ommelandTileMode('?legacy&ommelandtegels') !== 'off') fail('ommelandTileMode');
+  if (PW.provinceTileFilter('?provincie')({ flags: 8 }) || !PW.provinceTileFilter('?ommelandtegels')({ flags: 8 }) || PW.provinceTileFilter('?legacy')({ flags: 0 })) fail('provinceTileFilter');
 }
 
 // --- 2. the real build

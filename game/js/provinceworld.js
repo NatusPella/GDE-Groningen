@@ -36,6 +36,17 @@ export function provinceMode(search = typeof location !== 'undefined' ? location
   return PROVINCE_DEFAULT ? 'on' : 'off';
 }
 
+// Do the tiles also stream inside the old Ommeland area (flag 8), as the one
+// source there (issue #3, PROVINCIE-PLAN 2.28)? Only with ?ommelandtegels and
+// the province on; the old layers are not switched off by this alone.
+export function ommelandTileMode(search = typeof location !== 'undefined' ? location.search : '') {
+  return provinceMode(search) === 'on' && /[?&]ommelandtegels\b/.test(search) ? 'on' : 'off';
+}
+
+// Which province tiles the index merge takes: all of them in ommelandTileMode,
+// else only where the old layers do not draw.
+export const provinceTileFilter = (search) => (provinceMode(search) !== 'on' ? () => false : ommelandTileMode(search) === 'on' ? () => true : (t) => !(t.flags & PFLAG.OLD));
+
 // The polder blocks (BLOCK m) mostly covered by tiles for which isTile(key)
 // holds: { x0, y0, w, h, data } in block units, or null. A block counts when
 // at least 5 of 9 sample points lie in such a tile.
