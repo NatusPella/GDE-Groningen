@@ -1,6 +1,7 @@
 import { REAL, RTILE, buildingAt, inRealExtent, roadsInTile, nearestPlace } from './countryreal.js';
 import { realWater, edgeDistance, urbanWeight } from './countryfield.js';
 import { isInWater } from './util.js';
+import { worldPlaceAt } from './worldplaces.js';
 
 // Placement queries for the Ommeland extras (worldends.js, dorpsuitjes.js,
 // pg_koe.js): open ground in the real Ommelanden, the nearest real road,
@@ -19,6 +20,12 @@ function segDist(x, y, a, b) {
 // null in town or without the real data.
 export function ommelandArea(x, y) {
   if (!REAL.ready || edgeDistance(x, y) <= 60) return null;
+  // past the old Ommeland data: the tile world's places (worldplaces.js),
+  // with the district when there is one
+  if (!inRealExtent(x, y)) {
+    const w = worldPlaceAt(x, y);
+    if (w) return w;
+  }
   const p = nearestPlace(x, y, 0, true);
   if (!p) return { place: '', near: true };
   const d = Math.hypot(p.x - x, p.y - y);

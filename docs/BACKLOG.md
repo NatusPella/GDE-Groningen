@@ -53,6 +53,15 @@ Bronnen: `ROADMAP.md`, `docs/PROVINCIE-PLAN.md`, `docs/PROVINCIE-VERHAAL.md`, `d
 | 8 | Cutscene-LOD: camera-gestuurd laden, geen "poppen" | P1 | 2–3 |
 | 9 | **Go/no-go meting:** laadtijd, geheugen, framesnelheid, downloadgrootte; beslis of we doorgaan | P0 | 1 |
 
+*Stand (F1b):* 1 klaar (wereldbouwer, dorpen erdoor, stad reproduceerbaar uit
+OSM; de stad zelf herbouwen staat open); 2 pijplijn klaar, 187 van de 572
+strooktegels uit de caches, de rest wacht op `python3 scripts/world/fetch_corridor.py`
+**[eigenaar]**; 3 meerijden klaar, lijnen lopen door zodra er spoor is,
+machinist niet gedaan; 4 alleen de pijplijn (geen busdata in de caches);
+6 regels en data-haak (`worldedge.js`), scènes in F3; 9 gemeten, advies in
+PROVINCIE-PLAN.md 2.27: go voor de pijplijn, de strook in het spel na het
+ophalen en de F2-stap (polders per tegel uit).
+
 ## 0.33.0: heel de provincie (F2)
 
 | # | Wat | P | Schatting |
