@@ -10,6 +10,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **Geldwagen overvallen:** blaas een Poen Express uit het verkeer open (total loss), pak de geldzak en de politie zit je achterna. Geldwagen en geldzak staan op de minimap en de kaart.
 
 ### Verbeterd
+- **Tegels in het oude Ommeland (voorbereiding):** met `?ommelandtegels` laadt het spel de provinciegegevens ook binnen het oude Ommeland-gebied. Nog niet standaard; `--legacy` werkt zoals altijd.
 - **Even pinnen:** de opdrachtregels zeggen nu duidelijk dat de pinautomaat achterin de auto ligt.
 - **Stuntavond op de Grote Markt:** het doel staat nu in de uitleg, en terrasstoelen en -tafels leveren ook punten op.
 - **Water onder gras:** waar een groenvlak over water ligt, wint nu het water. Geen gras meer boven plekken waar je zwemt.

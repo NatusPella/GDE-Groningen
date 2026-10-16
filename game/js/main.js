@@ -47,7 +47,7 @@ import { initTheme } from './theme.js';
 import { initTrafficLights, updateTrafficLights } from './trafficlights.js';
 import { initRailway, updateRailway, setRailExtraWorld } from './railway.js';
 import { extendRoutes, provinceRailLines } from './corridorrail.js';
-import { initProvince, provinceMode } from './provinceworld.js';
+import { initProvince, provinceMode, provinceTileFilter } from './provinceworld.js';
 import { buildMovableBridges, updateMovableBridges } from './movablebridges.js';
 import { geoWorkerActive } from './geojobs.js';
 import { init3D, update3D, resize3D, getScene, getRenderer, setMenuCover, MENU_FRAME_S, refreshRenderScale, terrainReady, canvasFrameCount, prewarmStreamAt } from './scene3d.js';
@@ -240,7 +240,7 @@ async function boot() {
   // ?legacy), where the old Ommeland layers do not already draw (flag 8).
   // The province's tiles win.
   const corridor = provinceMode() === 'on';
-  const only = corridor ? (t) => !(t.flags & 8) : () => false;
+  const only = provinceTileFilter();
   const extra = [{ name: 'index-provincie.json', only }, { name: 'index-corridor.json', only }];
   const tiles = /[?&]legacymap\b/.test(location.search) ? null : await loadTileWorld('world/', { onProgress: onMapProgress, extra });
   const layers = (tiles && tiles.index.layers) || {};
