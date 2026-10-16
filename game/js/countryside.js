@@ -19,7 +19,7 @@ import { buildSign, disposeSign } from './countrysigns.js';
 import { EDGE, edgeBlocked, edgeTileItems, roadGap, countryWater } from './countryedge.js';
 import { ensureCountryEdge } from './countryplan.js';
 import { thinDitchOn, ditchRamp, urbanWeight, realBlock, realWater } from './countryfield.js';
-import { REAL, buildingsInTile, roadsInTile, buildingModel } from './countryreal.js';
+import { REAL, buildingsInTile, roadsInTile, buildingModel, coveredByTiles } from './countryreal.js';
 import { setTileWalls, clearTileWalls, pushOutOfWalls, setTileTrunks, clearTileTrunks, pushOutOfTrunks } from './countrywalls.js';
 import { updateVillages, villageStats, villageWarmMeshes } from './countryvillage.js';
 import { buildingMaterial, bldCode, STYLE } from './countrybuilding.js';
@@ -543,6 +543,8 @@ function* genReal(tile) {
   for (let k = 0; k < R.length; k += 2) {
     if (k % 60 === 58) yield;
     const r = REAL.roads[R[k]], si = R[k + 1];
+    // a province tile draws this road (bridges, tree lanes) itself
+    if (REAL.covered && coveredByTiles((r.pts[si][0] + r.pts[si + 1][0]) / 2, (r.pts[si][1] + r.pts[si + 1][1]) / 2)) continue;
     if (r.bridge) {
       // a deck where a real road bridge crosses the water
       const a = r.pts[si], b = r.pts[si + 1];

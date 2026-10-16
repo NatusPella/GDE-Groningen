@@ -17,6 +17,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { BLOCK, COUNTRY_UNIFORMS, setProvinceBlocks } from './countryfield.js';
 import { setExtraBlocked } from './countryedge.js';
+import { setTileCover } from './countryreal.js';
 import { tileIndexOf, tileKey } from './gdt.js';
 import { pointInPolygon } from './util.js';
 import { setProvinceMap } from './provincemap.js';
@@ -109,11 +110,20 @@ export function realBlockedAt(map, isTile, x, y, m) {
 
 const S = { layer: null, keys: null, blocks: null, tex: null };
 
+// Where the tiles are the one source (ommelandTileMode): the built tiles of
+// the layer. covered(x, y) -> countryreal.js setTileCover.
+export function tileCoverOf(index) {
+  const keys = new Set();
+  for (const k of Object.keys(index.tiles)) { const t = index.tiles[k]; if (t.flags & PFLAG.PROVINCE && t.flags & PFLAG.BUILT) keys.add(k); }
+  return (x, y) => { const [i, j] = tileIndexOf(x, y); return keys.has(tileKey(i, j)); };
+}
+
 // After loadTileWorld: the layer's global part and, when streaming, the
 // polder blocks and the prop rule. -> { layer, tiles (keys streamed), blocks }
 export function initProvince(tiles, { stream = provinceMode() === 'on' } = {}) {
   const layer = tiles && tiles.index.layers && tiles.index.layers.provincie;
   S.layer = layer && layer.global ? layer.global : null;
+  setTileCover(stream && S.layer && tiles.index && ommelandTileMode() === 'on' ? tileCoverOf(tiles.index) : null);
   if (!S.layer || !stream) { setProvinceBlocks(null); setProvinceMap(null); return { layer: S.layer, tiles: 0, blocks: 0 }; }
   // the full map's base layer (provincemap.js)
   setProvinceMap(S.layer.map || null);

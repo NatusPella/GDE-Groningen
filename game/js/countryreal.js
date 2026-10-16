@@ -20,7 +20,14 @@ export const REAL = {
   // village shopfronts: building -> face (1 +x, 2 -x, 3 +z, 4 -z of its
   // model), and the countryside's hook that repaints that building
   shopFace: new Map(), onShop: null,
+  covered: null, tileCovered: 0,
 };
+
+// Tiles that replace the old layers (issue #3, ?ommelandtegels): covered(x, y)
+// holds where a province tile is the one source. Set before initReal by
+// provinceworld.js; null = the old layers draw everywhere (default, ?legacy).
+export function setTileCover(fn) { REAL.covered = fn || null; }
+export const coveredByTiles = (x, y) => !!REAL.covered && REAL.covered(x, y);
 
 export function markShop(i, face) {
   if (REAL.shopFace.get(i) === face) return;
@@ -233,6 +240,9 @@ export function initReal(map, om) {
       const c = Math.cos(REAL.ba[i]), s = Math.sin(REAL.ba[i]), cu = I[o + 9] / 10, cv = I[o + 10] / 10;
       REAL.bx[i] = I[o] + cu * c - cv * s; REAL.by[i] = I[o + 1] + cu * s + cv * c;
     } else { REAL.bx[i] = I[o]; REAL.by[i] = I[o + 1]; }
+    // a building a province tile draws is not bucketed: props, skyline, maps,
+    // colliders and the city generators never see it
+    if (REAL.covered && REAL.covered(REAL.bx[i], REAL.by[i])) { REAL.tileCovered++; continue; }
     const k = tkey(Math.floor(REAL.bx[i] / RTILE), Math.floor(REAL.by[i] / RTILE));
     let a = REAL.bTiles.get(k);
     if (!a) REAL.bTiles.set(k, (a = []));

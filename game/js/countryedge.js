@@ -4,7 +4,7 @@ import {
   chash, edgeDistance, countryWeight, edgeRoad, maarX, maarY, setEdgeQuery, setCountryMask, realWater,
   SHORE_RW, rectOutside, villageAt, VILLAGE_RING, VILLAGE_X, realBlock, countrySurface, parcelAt, MAAR_WATER,
 } from './countryfield.js';
-import { REAL, realBlocked, buildRealSigns } from './countryreal.js';
+import { REAL, realBlocked, buildRealSigns, coveredByTiles } from './countryreal.js';
 
 // an integer sampler must never see the default float texture
 {
@@ -580,6 +580,30 @@ function crossings() {
 
 // Real roads and narrow waterways as ground-shader segments, from just
 // inside the city data outwards (the city draws its own part).
+// Where a province tile draws the roads itself (?ommelandtegels) the ground
+// shader paints none: the mask is the covered tiles, less a rim of RIM m
+// along their borders, so a road runs on under the tile's own mesh instead of
+// stopping at the edge (and the countrybake distance field follows, it is
+// rendered from these segments). The pieces of a segment to paint: [t0, t1].
+export const TILE_RIM = 14;
+const paintable = (x, y) => !coveredByTiles(x, y)
+  || !(coveredByTiles(x + TILE_RIM, y) && coveredByTiles(x - TILE_RIM, y) && coveredByTiles(x, y + TILE_RIM) && coveredByTiles(x, y - TILE_RIM));
+export function paintPieces(a, b) {
+  if (!REAL.covered) return [[0, 1]];
+  const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
+  const n = Math.max(1, Math.ceil(len / 8));
+  const out = [];
+  let from = -1;
+  for (let k = 0; k < n; k++) {
+    const t = (k + 0.5) / n;
+    const on = paintable(a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t);
+    if (on && from < 0) from = k;
+    if ((!on || k === n - 1) && from >= 0) { out.push([from / n, (on ? k + 1 : k) / n]); from = -1; }
+  }
+  return out;
+}
+const lerp2 = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+
 function buildReal() {
   const keep = (a, b) => edgeDistance(a[0], a[1]) > -40 || edgeDistance(b[0], b[1]) > -40;
   for (const r of REAL.roads) {
@@ -587,12 +611,17 @@ function buildReal() {
     let s = 0;
     for (let i = 0; i < r.pts.length - 1; i++) {
       const a = r.pts[i], b = r.pts[i + 1];
-      const n = EDGE.segs.length;
-      if (keep(a, b)) addSeg(a, b, r.w / 2, r.w / 2, 0, -1, own);
-      // road markings: kind, one-way, cycle lanes and the distance along
-      // for the dashes
-      if (EDGE.segs.length > n) EDGE.segs[n].mark = (r.kind + (r.oneway ? 8 : 0) + (r.cycle ? 16 : 0)) * 4096 + (s % 3996);
-      s += Math.hypot(b[0] - a[0], b[1] - a[1]);
+      const segLen = Math.hypot(b[0] - a[0], b[1] - a[1]);
+      if (keep(a, b)) {
+        for (const [t0, t1] of paintPieces(a, b)) {
+          const n = EDGE.segs.length;
+          addSeg(t0 === 0 ? a : lerp2(a, b, t0), t1 === 1 ? b : lerp2(a, b, t1), r.w / 2, r.w / 2, 0, -1, own);
+          // road markings: kind, one-way, cycle lanes and the distance along
+          // for the dashes
+          if (EDGE.segs.length > n) EDGE.segs[n].mark = (r.kind + (r.oneway ? 8 : 0) + (r.cycle ? 16 : 0)) * 4096 + ((s + segLen * t0) % 3996);
+        }
+      }
+      s += segLen;
     }
   }
   // fietspaden: red asphalt the whole width (mark code 32)
@@ -600,9 +629,12 @@ function buildReal() {
     const own = { real: true, cycle: c };
     for (let i = 0; i < c.pts.length - 1; i++) {
       const a = c.pts[i], b = c.pts[i + 1];
-      const n = EDGE.segs.length;
-      if (keep(a, b)) addSeg(a, b, c.hw, c.hw, 0, -1, own);
-      if (EDGE.segs.length > n) EDGE.segs[n].mark = 32 * 4096;
+      if (!keep(a, b)) continue;
+      for (const [t0, t1] of paintPieces(a, b)) {
+        const n = EDGE.segs.length;
+        addSeg(t0 === 0 ? a : lerp2(a, b, t0), t1 === 1 ? b : lerp2(a, b, t1), c.hw, c.hw, 0, -1, own);
+        if (EDGE.segs.length > n) EDGE.segs[n].mark = 32 * 4096;
+      }
     }
   }
   for (const w of REAL.waterways) {
