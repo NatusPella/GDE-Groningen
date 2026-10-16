@@ -156,9 +156,10 @@ function destinationFor(x, y, ux, uy, places) {
   let best = null, bs = -Infinity;
   for (const p of places) {
     const dx = p.x - x, dy = p.y - y, d = Math.hypot(dx, dy);
-    if (d < 4000) continue;
+    if (d < 4000 || (p.max && d > p.max)) continue;
     const c = (dx * ux + dy * uy) / d;
-    const score = c - d / 120000;
+    // places from the province data carry their own reach (scale) and weight (w)
+    const score = c - d / (p.scale || 120000) + (p.w || 0);
     if (score > bs) { bs = score; best = p; }
   }
   return best ? best.n : 'Centrum';

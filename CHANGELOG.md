@@ -13,6 +13,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ### Verbeterd
 - **Tegels in het oude Ommeland (voorbereiding):** met `?ommelandtegels` laadt het spel de provinciegegevens ook binnen het oude Ommeland-gebied. Nog niet standaard; `--legacy` werkt zoals altijd.
+- **Bewegwijzering op de snelweg:** de blauwe portalen boven afritten noemen nu steden en dorpen uit de hele provincie in plaats van alleen die rond de stad, en kiezen er een in de goede richting.
 - **Even pinnen:** de opdrachtregels zeggen nu duidelijk dat de pinautomaat achterin de auto ligt.
 - **Stuntavond op de Grote Markt:** het doel staat nu in de uitleg, en terrasstoelen en -tafels leveren ook punten op.
 - **Water onder gras:** waar een groenvlak over water ligt, wint nu het water. Geen gras meer boven plekken waar je zwemt.
