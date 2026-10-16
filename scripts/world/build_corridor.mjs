@@ -20,6 +20,9 @@ import zlib from 'node:zlib';
 import { fileURLToPath } from 'node:url';
 import * as G from '../../game/js/gdt.js';
 import * as WB from '../../game/js/worldbuilder.js';
+import { registerBuilderHooks } from '../../game/js/builderhooks.js';
+
+registerBuilderHooks();
 import { wgsToWorld, worldToWgs } from '../../game/js/rdnew.js';
 import { edgeRows } from '../../game/js/navgraph.js';
 import { edgeFromOsm } from '../../game/js/worldedge.js';
@@ -346,11 +349,13 @@ export function buildCorridor({ root = ROOT, cityKeys = new Set(), sources = loa
         rows[f.kind].push(row);
       }
     }
-    // the tile's own hooks (furniture, greenery): F1c fills them
+    // the tile's own hooks (furniture, greenery: builderhooks.js); they see the tile's box
+    rows.tile = { i: t.i, j: t.j, x0: ox, y0: oy, size: G.TILE_M };
     const extra = WB.runHooks('furniture', rows).concat(WB.runHooks('greenery', rows));
     const nav = edgeRows(rows.roads, (r) => r.gid).map(({ a, b, ...rest }) => ({ ...rest, p: [a, b] }));
     const sections = PER_TILE.filter((q) => rows[q].length).map((q) => ({
-      type: SECTION_OF[q], rows: q === 'trees' ? rows[q].map((r) => ({ g: r.gid, p: [[r[0], r[1]]] })) : rows[q].map(cleanRow),
+      // a tree: its point, and species, height (dm) and flags (greenery.js)
+      type: SECTION_OF[q], rows: q === 'trees' ? rows[q].map((r) => ({ g: r.gid, p: [[r[0], r[1]]], ...(r[2] !== undefined ? { s: r[2], h: r[3], ...(r[4] ? { f: r[4] } : null) } : null) })) : rows[q].map(cleanRow),
     }));
     if (nav.length) sections.push({ type: G.SECTION.NAV, rows: nav });
     if (extra.length) sections.push({ type: G.SECTION.FURNITURE, rows: extra });

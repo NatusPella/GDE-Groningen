@@ -834,6 +834,15 @@ the camera's tree tests read it. Tiles: the TREES section rows carry `s`, `h`,
 Audit: no filled tree on a way, in a building or in water; the species mix.
 `node scripts/greenery_test.mjs`.
 
+The world builder (worldbuilder.js hooks, run per tile by
+`scripts/world/build_corridor.mjs`) gets the same work from
+`js/builderhooks.js` (`registerBuilderHooks`): the `greenery` hook gives a
+tile's trees species, height and flags from the tile's own water, green and
+roads and fills its forest outlines (ids from `FILL_GID0` per tile, so a tile
+builds the same trees every time; the corridor writes `s`, `h`, `f` in its tree
+rows); the `furniture` hook stores nothing, because the rule furniture is made
+in the game from each tile's roads (streetfurniture3d.js).
+
 ### Building heights
 
 Real heights and roofs (docs/PROVINCIE-PLAN.md 0.1). `scripts/world/fetch_3dbag.py`
