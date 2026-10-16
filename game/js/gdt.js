@@ -43,19 +43,19 @@ export const SECTION = {
   ROADS: 2, // ribbons: pts, class, width, lanes, oneway, bridge, layer, ... (the z profile is in HEIGHTS)
   WATER: 3,
   GREEN: 4, // landuse and green areas
-  TREES: 5, // points [x, y]
+  TREES: 5, // g, p [[x, y]], s species, h height (dm), f flags (greenery.js)
   RAILS: 6,
   CANOPIES: 7, // open roofs (building=roof, platform roofs)
   PASSAGES: 8, // ways through or under a building
   JUNCTIONS: 9, // the junction model (v1: k, p, c control, a arms [road gid, idx, d, rule, stop m, enters]; junctions.js junctionRows); surfaces F1b
   HEIGHTS: 10, // vertical road profiles (v1: gid, z, pnet, st, ly; roadprofile.js heightRows); the AHN raster goes next to it (F2)
   POIS: 11, // reserved (F1): kind, name, entrance, tags (real facilities)
-  FURNITURE: 12, // reserved (F1): mapped street furniture
+  FURNITURE: 12, // mapped street furniture (v1: k, pts, v, h, osm; streetfurniture.js mappedFromOsm); rule items are generated per tile
   NAV: 13, // reserved (F1): road/bike/foot/boat graphs with portal nodes
   OVERLAY: 14, // reserved (F1): hand-made layers
   COUNTRY_BOXES: 15, // the Ommeland building boxes (countryreal.js), until F1
   META: 20, // JSON: anything global that has no table yet
-  RASTER: 21, // u16 w, u16 h, f32 cell, f64 x0, f64 y0, u8 codec, then the cells
+  RASTER: 21, // u16 w, u16 h, f32 cell, f64 x0, f64 y0, u8 codec (0 u8, 1 int16 cm, 2 f32), then the cells (terrainraster.js: the AHN terrain per tile)
   BLOB: 22, // named raw bytes
 };
 
@@ -398,7 +398,8 @@ export function decodeSection(bytes, sec, strings, i, j) {
     case SECTION.META: return { json: JSON.parse(strings[r.uv()]) };
     case SECTION.RASTER: {
       const w = r.u16(), h = r.u16(), cell = r.f32(), x0 = r.f64(), y0 = r.f64(), codec = r.u8();
-      return { raster: { w, h, cell, x0, y0, codec, data: r.bytes(sec.rows) } };
+      // bytes per cell by codec: 0 u8, 1 int16 cm, 2 float32 (terrainraster.js)
+      return { raster: { w, h, cell, x0, y0, codec, data: r.bytes(sec.rows * (codec === 1 ? 2 : codec === 2 ? 4 : 1)) } };
     }
     case SECTION.BLOB: { const name = strings[r.uv()]; return { name, bytes: r.bytes(r.uv()) }; }
     default: return { rows: readTable(r, strings, ox, oy) };

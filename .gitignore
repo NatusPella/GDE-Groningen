@@ -27,3 +27,7 @@ data/satellite_reference.jpg
 
 # packed map tiles (scripts/world/pack_tiles.mjs): a build artifact
 game/world/
+
+# downloaded open data (3D BAG tiles, AHN rasters): scripts/world/fetch_*.py, never in git
+data/cache/
+data/world/ahn/

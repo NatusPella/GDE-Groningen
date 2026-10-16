@@ -1027,9 +1027,16 @@ function buildDetailGeometry(b, box, archetype, depth, fine, fine2, wallHex, roo
 
   const frame = rectangularFrame(edges);
   let roofKind = 'flat';
+  // the roof the data knows (3D BAG b3_dak_type, OSM roof:shape; b.rk from
+  // scripts/world/building_heights.mjs) wins over the guess by type
+  const known = b.rk;
   if (frame && archetype !== 'church') {
     const shortSpan = Math.min(frame.u1 - frame.u0, frame.v1 - frame.v0);
-    if ((archetype === 'house' || archetype === 'generic') && shortSpan <= 14) roofKind = 'pitched';
+    if (known === 'flat') roofKind = 'flat';
+    else if ((known === 'gable' || known === 'hip' || known === 'mansard') && shortSpan <= 16) roofKind = 'pitched';
+    else if ((known === 'shed' || known === 'sawtooth') && shortSpan <= 24 && shortSpan >= 3) roofKind = 'shed';
+    else if (known) roofKind = 'flat';
+    else if ((archetype === 'house' || archetype === 'generic') && shortSpan <= 14) roofKind = 'pitched';
     else if (archetype === 'apartments' && floorCount <= 4 && shortSpan <= 13 && r(16) < 0.55) roofKind = 'pitched';
     else if (archetype === 'retail' && floorCount <= 3 && shortSpan <= 10 && r(16) < 0.6) roofKind = 'pitched';
     else if (industrial && shortSpan <= 24 && shortSpan >= 3 && r(16) < 0.55) roofKind = 'shed';
@@ -1038,10 +1045,12 @@ function buildDetailGeometry(b, box, archetype, depth, fine, fine2, wallHex, roo
   if (roofKind === 'pitched' || roofKind === 'shed') {
     const R = frameMapper(frame);
     const pitch = roofKind === 'shed' ? 0.26 : (archetype === 'house' ? 0.8 + r(17) * 0.2 : 0.7 + r(17) * 0.15);
-    const H = Math.min(roofKind === 'shed' ? 3 : 7, R.half * Math.tan(pitch));
+    // a measured ridge (b.hm over the walls) sets the roof's height
+    const measured = b.hm && roofKind === 'pitched' ? b.hm - depth : null;
+    const H = measured !== null ? Math.max(0.4, Math.min(8, measured)) : Math.min(roofKind === 'shed' ? 3 : 7, R.half * Math.tan(pitch));
     const detached = !edges.some((e) => e.party);
     const endsOpen = [sideOpen(edges, [-R.A[0], 0, -R.A[2]], R.half), sideOpen(edges, R.A, R.half)];
-    const hip = roofKind === 'pitched' && detached && R.len / (R.half * 2) < 2.6 && r(18) < 0.35;
+    const hip = roofKind === 'pitched' && (known === 'hip' || (!known && detached && R.len / (R.half * 2) < 2.6 && r(18) < 0.35));
     const steppedOK = roofKind === 'pitched' && !hip && R.half * 2 <= 8.5 && R.half * 2 >= 4 && (centre ? r(19) < 0.45 : r(19) < 0.12);
     const opts = {
       hip,
@@ -1330,11 +1339,12 @@ export function buildingLodStyle(b) {
   const fine = hash2(box.sx, box.sy);
   const depth = archetype === 'houseboat' ? Math.min(HOUSEBOAT_MAX_DEPTH, Math.max(HOUSEBOAT_MIN_DEPTH, b.h * LEVEL_HEIGHT)) : Math.max(2.4, b.h * LEVEL_HEIGHT) + (b.lift || 0);
   const { wallHex, roofHex } = pickColors(b, box, archetype, fine);
-  const pitched = archetype === 'house' || (archetype !== 'industrial' && archetype !== 'houseboat' && b.h <= 3 && Math.min(box.w, box.d) <= 11);
+  const pitched = b.rk ? (b.rk === 'gable' || b.rk === 'hip' || b.rk === 'mansard') && Math.min(box.w, box.d) <= 16
+    : archetype === 'house' || (archetype !== 'industrial' && archetype !== 'houseboat' && b.h <= 3 && Math.min(box.w, box.d) <= 11);
   return {
     ring: sanitizeFootprint(b.pts).pts,
     base: archetype === 'houseboat' ? HOUSEBOAT_BASE_Y : 0,
-    depth: pitched ? depth + 1.5 : depth,
+    depth: pitched ? depth + (b.hm && b.hm > depth + 0.8 ? Math.min(8, b.hm - depth) * 0.6 : 1.5) : depth,
     wallHex: BRICKS.has(wallHex) ? shade(wallHex, 0.95) : shade(wallHex, 0.9),
     roofHex: pitched ? shade(roofHex, 0.9) : 0x68686a,
   };

@@ -139,9 +139,10 @@ function joinWallEnds(elev) {
   }
 }
 
-// Track height where the rail climbs over a road (railway.js railZ, the
-// same railLifts), so the embankment and viaduct railway3d draws carry
-// whoever gets onto them instead of being walked and driven through.
+// Track height where the rail climbs over a road (railway.js railZ: the
+// track profile, railprofile.js, or on an older map the radial railLifts), so
+// the embankment and viaduct railway3d draws carry whoever gets onto them
+// instead of being walked and driven through.
 const RAIL_STEP = 4;
 const RAIL_BED_HALF = 2.1;           // railway3d embankment crown
 const RAIL_DECK_HALF = 2.5;          // railway3d DECK_HALF
@@ -162,18 +163,25 @@ export function railLiftZ(lifts, x, y) {
 
 function addRailLifts(elev, map) {
   const lifts = map.railLifts || [];
-  if (!lifts.length) return;
+  // the solved track profile (rail.z, railprofile.js) when the map has one,
+  // else the radial lifts
+  const profiled = (map.rails || []).some((r) => r.z);
+  if (!profiled && !lifts.length) return;
   for (const rail of map.rails || []) {
-    const P = rail.pts || rail;
+    const P = rail.pts || rail, Z = rail.z;
+    if (profiled && !Z) continue;
     for (let i = 0; i < P.length - 1; i++) {
       const [x0, y0] = P[i], [x1, y1] = P[i + 1];
       const L = Math.hypot(x1 - x0, y1 - y0);
-      if (L < 1e-3) continue;
+      // (a stub of a few cm between two OSM ways, often at an angle: its
+      // parapets would stand across the track; the segments either side cover it)
+      if (L < 0.5) continue;
       const n = Math.max(1, Math.ceil(L / RAIL_STEP));
       for (let k = 0; k < n; k++) {
         const ax = x0 + (x1 - x0) * k / n, ay = y0 + (y1 - y0) * k / n;
         const bx = x0 + (x1 - x0) * (k + 1) / n, by = y0 + (y1 - y0) * (k + 1) / n;
-        const za = railLiftZ(lifts, ax, ay), zb = railLiftZ(lifts, bx, by);
+        const za = Z ? Z[i] + (Z[i + 1] - Z[i]) * k / n : railLiftZ(lifts, ax, ay);
+        const zb = Z ? Z[i] + (Z[i + 1] - Z[i]) * (k + 1) / n : railLiftZ(lifts, bx, by);
         if (za < 0.05 && zb < 0.05) continue;
         const len = L / n;
         const deck = Math.min(za, zb) >= RAIL_DECK_Z;

@@ -1,7 +1,8 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { WATER_Y, setExtraWater } from './util.js';
 import { COUNTRY_UNIFORMS, SHORE_RW, rectOutside, realWater, countryBounds, realZone } from './countryfield.js';
-import { EDGE, wideWaterAt, openWater, canalGridSnapshot } from './countryedge.js';
+import { EDGE, wideWaterAt, openWater, canalGridSnapshot, countryWater } from './countryedge.js';
+import { setCountryWaterKind } from './waterlevels.js';
 import { runGeo, geoWorkerActive, onGeoFallback } from './geojobs.js';
 import { setWaterQuery } from './geokernels.js';
 import { REAL } from './countryreal.js';
@@ -52,6 +53,7 @@ function init(group) {
   W = { group, bankMat, bed, chunks: 0, tris: 0 };
   setExtraWater(wideWaterAt);
   setCountryClearance(countryClearance);
+  setCountryWaterKind(countryWater);
 }
 
 function dropMeshes(ch) {

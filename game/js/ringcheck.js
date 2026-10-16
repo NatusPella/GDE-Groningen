@@ -19,6 +19,7 @@ import { Vehicle, resolveVehicleBuildingCollision, resolveBoomCollisions, overOp
 import { createRace, updateRace, disposeRace } from './racers.js';
 import { resolveWalker } from './collision.js';
 import { railLiftZ } from './elevation.js';
+import { railHeightFn, profileLifts } from './railprofile.js';
 
 const STEP = 1;
 // probes cover the lanes up to this far inside the carriageway edge, and
@@ -508,7 +509,11 @@ export async function driveWaterCrossings(world, speed = 80 / 3.6) {
 // top and on over it: no step in the surface, nothing solid across the track.
 // One entry per problem: { lift, how, what, x, y, z }.
 export function probeRailLifts(world) {
-  const map = world.map, lifts = map.railLifts || [];
+  const map = world.map;
+  // the raised stretches of the track profile, or the old radial lifts
+  const zAt = railHeightFn(map, railLiftZ);
+  const lifts = zAt.profiled ? profileLifts(map.rails) : map.railLifts || [];
+  const railLiftZ_ = (_, x, y) => zAt(x, y);
   const out = [];
   const car = new Vehicle(0, 0, 0, { name: 'sport', len: 4.1, wid: 1.85, maxSpeed: 40, accel: 14, brake: 30, turnRate: 3.2, color: '#8a1414' });
   car.driver = 'player';
@@ -530,7 +535,7 @@ export function probeRailLifts(world) {
           else if (pts.length) { pts.done = true; break; }
         }
       }
-      if (pts.length < 20 || !pts.some(([x, y]) => railLiftZ(lifts, x, y) > L.h * 0.9)) continue;
+      if (pts.length < 20 || !pts.some(([x, y]) => railLiftZ_(lifts, x, y) > (zAt.profiled ? 1 : L.h * 0.9))) continue;
       const report = (how, what, x, y, z) => {
         if (!out.some((o) => o.lift === li && o.how === how)) out.push({ lift: li, how, what, x: Math.round(x), y: Math.round(y), z: Math.round(z * 10) / 10 });
       };
@@ -538,7 +543,7 @@ export function probeRailLifts(world) {
         const seq = dir > 0 ? pts : pts.slice().reverse();
         // on foot
         // (a stretch may begin half way up, where the rail way before it ends)
-        let z = map.groundHeightAt(seq[0][0], seq[0][1], railLiftZ(lifts, seq[0][0], seq[0][1])), px = seq[0][0], py = seq[0][1];
+        let z = map.groundHeightAt(seq[0][0], seq[0][1], railLiftZ_(lifts, seq[0][0], seq[0][1])), px = seq[0][0], py = seq[0][1];
         for (let k = 1; k < seq.length; k++) {
           const [tx, ty] = seq[k];
           const nz = map.groundHeightAt(tx, ty, z);
@@ -550,7 +555,7 @@ export function probeRailLifts(world) {
         // a car and a bike: the player's vehicle collision (footprints, walls, props)
         for (const [v, how] of [[car, 'rijden'], [bike, 'fietsen']]) {
           v.x = seq[0][0]; v.y = seq[0][1];
-          v.z = map.groundHeightAt(v.x, v.y, railLiftZ(lifts, v.x, v.y));
+          v.z = map.groundHeightAt(v.x, v.y, railLiftZ_(lifts, v.x, v.y));
           for (let k = 2; k < seq.length; k += 2) {
             const [tx, ty] = seq[k], [qx, qy] = seq[k - 2];
             v.angle = Math.atan2(ty - qy, tx - qx);

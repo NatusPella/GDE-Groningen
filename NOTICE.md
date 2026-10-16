@@ -43,6 +43,17 @@ De afgeleide databases in dit project vallen ook onder de ODbL:
 `*_raw.json.gz`, `*.overpass`-resultaten). Ze zijn gemaakt met de scripts in
 `scripts/` (`fetch_osm.py`, `fetch_ommeland.py`, `build_map.py`, `add_*.py`).
 
+## Gebouwhoogtes — 3DBAG
+
+Gebouwhoogtes en dakvormen: 3DBAG door de 3D geoinformation onderzoeksgroep
+(TU Delft) en 3DGI, <https://3dbag.nl>, onder
+[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Gebruikt: per pand
+`b3_h_dak_max`, `b3_h_dak_50p`, `b3_h_maaiveld` en `b3_dak_type`, uit de
+officiële tegeldownloads (`scripts/world/fetch_3dbag.py`), samengevat in
+`data/world/3dbag.json.gz` en in de hoogtes van `game/citymap.json` en de
+tegels. De 3DBAG is zelf gemaakt uit de BAG (Kadaster, publiek domein) en de
+AHN (CC0).
+
 ## Software
 
 | Onderdeel | Licentie | Copyright | Tekst |

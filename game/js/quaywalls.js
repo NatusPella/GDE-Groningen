@@ -718,7 +718,8 @@ function buildBridgeDecks(poly, map, B) {
   const [bx0, by0, bx1, by1] = poly.bounds;
   const inPoly = (x, y) => x >= bx0 && x <= bx1 && y >= by0 && y <= by1 && pointInPolygon(x, y, poly.pts);
   for (const r of map.roadGrid.query(bx0, by0, bx1, by1)) {
-    if (!r.bridge || r.pts.length < 2) continue;
+    // (a movable span draws its own deck, movablebridges3d.js)
+    if (!r.bridge || r.movable || r.pts.length < 2) continue;
     const half = deckHalf(r);
     for (let i = 0; i < r.pts.length - 1; i++) {
       const a = r.pts[i], b = r.pts[i + 1];

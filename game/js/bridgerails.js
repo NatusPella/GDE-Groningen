@@ -86,7 +86,7 @@ function buildRails(map) {
       bySide[it.side].push(it);
       lines.push({
         a: [it.x - it.tx * RAIL_HALF, it.y - it.ty * RAIL_HALF], b: [it.x + it.tx * RAIL_HALF, it.y + it.ty * RAIL_HALF],
-        k1: it.key, k2: it.key, cx: it.cx, cy: it.cy,
+        k1: it.key, k2: it.key, cx: it.cx, cy: it.cy, r,
       });
     }
     // close the wedge on the outside of a bend between two segments
@@ -97,7 +97,7 @@ function buildRails(map) {
         if (q.seg !== p.seg + 1 || p.k !== p.n - 1 || q.k !== 0) continue;
         const pa = [p.x + p.tx * RAIL_HALF, p.y + p.ty * RAIL_HALF], qa = [q.x - q.tx * RAIL_HALF, q.y - q.ty * RAIL_HALF];
         if (Math.hypot(qa[0] - pa[0], qa[1] - pa[1]) > 4) continue;
-        lines.push({ a: pa, b: qa, k1: p.key, k2: q.key, cx: q.cx, cy: q.cy });
+        lines.push({ a: pa, b: qa, k1: p.key, k2: q.key, cx: q.cx, cy: q.cy, r });
       }
     }
   }
@@ -131,7 +131,7 @@ export function resolveRailings(x, y, radius, map, hop = 0) {
     if (x < s.minx - radius || x > s.maxx + radius || y < s.miny - radius || y > s.maxy + radius) continue;
     const cp = closestPointOnSegment(x, y, s.a[0], s.a[1], s.b[0], s.b[1]);
     if (cp.dist2 >= radius * radius) continue;
-    if (isPropBroken(s.k1) || isPropBroken(s.k2)) continue;
+    if (isPropBroken(s.k1) || isPropBroken(s.k2) || (s.r && s.r._open)) continue;
     const d = Math.sqrt(cp.dist2);
     let ox, oy;
     if (d > 1e-6) { ox = (x - cp.x) / d; oy = (y - cp.y) / d; } else {

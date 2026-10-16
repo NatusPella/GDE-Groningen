@@ -111,7 +111,7 @@ for (const [key, e] of Object.entries(index.tiles)) {
     const kind = P.KINDS.find(([, t]) => t === s.type)[0];
     for (const row of s.rows) {
       const gid = kind === 'trees' ? row.g : row.gid;
-      const obj = kind === 'trees' ? row.p[0] : row;
+      const obj = kind === 'trees' ? (row.s !== undefined ? [row.p[0][0], row.p[0][1], row.s, row.h, row.f || 0] : row.p[0]) : row;
       if (kind !== 'trees') delete obj.gid;
       if (kind === 'buildings') for (const k of P.ATTR_KEYS) { if (k in obj) attrSeen[k] = (attrSeen[k] || 0) + 1; delete obj[k]; }
       const have = back[kind][gid];
@@ -141,8 +141,10 @@ ok(G.hash64(gRaw) === index.global.hash && sameBytes(gRaw, built.global), 'globa
   }), `heights: ${want.length} profiles back exactly, with structure and network`, `${heights.size}`);
   for (const [gid, h] of heights) if (back.roads[gid]) back.roads[gid].z = h.z;
 }
+const withoutAttrs = (o) => { for (const k of P.ATTR_KEYS) delete o[k]; return o; };
 for (const [kind] of P.KINDS) {
-  const want = (src.map[kind] || []).map((o) => (kind === 'trees' ? o : P.cleanRow(o)));
+  // (a building's height attributes are the join's, compared below; the map's own copy of them is left out too)
+  const want = (src.map[kind] || []).map((o) => (kind === 'trees' ? o : kind === 'buildings' ? withoutAttrs(P.cleanRow(o)) : P.cleanRow(o)));
   const got = back[kind];
   ok(!got.conflict, `${kind}: copies in different tiles agree`, got.conflict);
   ok(got.length === want.length && want.every((o, i) => got[i] && canon(got[i]) === canon(o)), `${kind}: ${want.length} objects back exactly`, `${got.filter(Boolean).length}/${want.length}`);

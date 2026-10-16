@@ -412,6 +412,8 @@ export class GameMap {
     this.levelCrossings = data.levelCrossings || [];
     this.railRoutes = data.railRoutes || [];
     this.railLifts = data.railLifts || [];
+    // mapped street furniture (scripts/world/furniture.mjs; streetfurniture.js)
+    this.furniture = data.furniture || [];
     // ways OSM maps through or under a building (passages.js)
     this.passageWays = (data.passageWays || []).map((p) => ({ ...p, bounds: polygonBounds(p.pts) }));
 
@@ -478,6 +480,7 @@ export class GameMap {
     m.levelCrossings = p.levelCrossings || [];
     m.railRoutes = p.railRoutes || [];
     m.railLifts = p.railLifts || [];
+    m.furniture = p.furniture || [];
     m.passageWays = (p.passageWays || []).map((q) => ({ ...q, bounds: polygonBounds(q.pts) }));
     m.dryCrossings = p.dryCrossings || 0;
     m.buildingGrid = new SpatialGrid(CELL);
@@ -799,9 +802,16 @@ export class GameMap {
   // A vehicle's (x,y) can fall inside a water polygon that a bridge actually
   // spans above - checkVehicleWater in vehicle.js calls this first so it
   // doesn't "drown" cars safely crossing on a bridge deck.
+  // the terrain under (x, y), m relative to street level (terrainraster.js:
+  // the AHN field of the tiles; flat until the renderer draws it)
+  terrainAt(x, y) {
+    return this.terrain ? this.terrain.at(x, y) : 0;
+  }
+
   isOnBridge(x, y) {
     for (const road of this.roadsNear(x, y, 8)) {
-      if (!road.bridge) continue;
+      // (a movable bridge that is open: movablebridges.js)
+      if (!road.bridge || road._open) continue;
       const pts = road.pts;
       const threshold = road.width / 2 + 1.5;
       for (let i = 0; i < pts.length - 1; i++) {
