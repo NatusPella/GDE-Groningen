@@ -12,7 +12,7 @@
 // and is visible through the query methods and queryView. The arrays and the
 // elevation model keep to the pinned set until the F1 builder gives them a
 // tile home.
-import { GameMap, loadMap } from './mapdata.js';
+import { GameMap, SpatialGrid, loadMap } from './mapdata.js';
 import { polygonBounds } from './util.js';
 import { SECTION, decodeBlob } from './gdt.js';
 import { TileStore, FrameQueue, HttpRangeSource, inflateRaw, makeWorkerDecoder, decodeCompressed } from './tilestore.js';
@@ -22,6 +22,10 @@ const KIND_OF = new Map([
   [SECTION.TREES, 'trees'], [SECTION.RAILS, 'rails'], [SECTION.CANOPIES, 'canopies'], [SECTION.PASSAGES, 'passageWays'],
 ]);
 const GRID_OF = { buildings: 'buildingGrid', roads: 'roadGrid', water: 'waterGrid', green: 'greenGrid', trees: 'treeGrid' };
+// A province tile's water is drawn flat for now (build_province.mjs `flat`,
+// farlod.js): it stays out of the water grid, so no boat, swimmer, police
+// boat or duck takes it for a canal; flatWaterNear finds it.
+const gridOf = (kind, obj) => (kind === 'water' && obj.flat ? 'flatWaterGrid' : GRID_OF[kind]);
 
 // the objects of one tile section as the game holds them, with their ids
 const GID = new WeakMap(); // decoded row -> its id (the game's objects carry no gid field)
@@ -120,24 +124,41 @@ export class TileWorld extends GameMap {
           this._res[kind].set(gid, e);
           if (kind !== 'trees') this._gidOf.set(obj, gid);
           if (kind === 'buildings' || kind === 'roads' || kind === 'water' || kind === 'green') obj.bounds = boundsOfObj(kind, obj);
-          const grid = GRID_OF[kind];
-          if (grid) this[grid].insert(obj, boundsOfObj(kind, obj));
+          const grid = gridOf(kind, obj);
+          if (grid) (this[grid] || (this[grid] = new SpatialGrid(64))).insert(obj, boundsOfObj(kind, obj));
         }
         e.tiles.add(tk);
       }
     }
     attachProfiles(tile, (gid) => { const e = this._res.roads.get(gid); return e && e.obj; });
+    for (const fn of this._tileListeners || []) fn('add', tile, tk);
     return true;
   }
 
+  flatWaterNear(x, y, r) {
+    return this.flatWaterGrid ? this.flatWaterGrid.query(x - r, y - r, x + r, y + r) : [];
+  }
+
+  // the maps draw the flat water too
+  queryView(minx, miny, maxx, maxy) {
+    const v = super.queryView(minx, miny, maxx, maxy);
+    if (this.flatWaterGrid) v.water = v.water.concat(this.flatWaterGrid.query(minx, miny, maxx, maxy));
+    return v;
+  }
+
+  // fn(kind, tile, key): 'add' (the decoded tile, its rows as the grids hold
+  // them) once a streamed tile is in the grids, 'drop' (tile null) once it left
+  onTiles(fn) { (this._tileListeners || (this._tileListeners = [])).push(fn); }
+
   dropTile(tk) {
     if (!this.resident.delete(tk)) return false;
+    for (const fn of this._tileListeners || []) fn('drop', null, tk);
     for (const kind of Object.keys(this._res)) {
       for (const [gid, e] of this._res[kind]) {
         if (!e.tiles.delete(tk) || e.tiles.size) continue;
         this._res[kind].delete(gid);
-        const grid = GRID_OF[kind];
-        if (grid) this[grid].remove(e.obj, boundsOfObj(kind, e.obj));
+        const grid = gridOf(kind, e.obj);
+        if (grid && this[grid]) this[grid].remove(e.obj, boundsOfObj(kind, e.obj));
       }
     }
     return true;

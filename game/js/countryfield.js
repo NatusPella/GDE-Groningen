@@ -80,6 +80,10 @@ export const COUNTRY_UNIFORMS = {
   uWaterNear: { value: [0, 0, 0, 0] },
   uUrbanTex: { value: null },
   uUrbanRect: { value: [0, 0, 1, 0] },
+  // the province's tile world (provinceworld.js): the polder blocks its real
+  // tiles cover, one texel per block; rect = [bx0, by0, w, h], w = 0 when off
+  uProvBlocks: { value: null },
+  uProvRect: { value: [0, 0, 0, 0] },
   // the road / canal distances of cEdge baked round the player (countrybake.js):
   // rect = [x0, y0, size, on], a fine level and a coarse one
   uBake0: { value: null },
@@ -93,13 +97,32 @@ export const COUNTRY_UNIFORMS = {
 let real = null;
 export function setRealZone(z) {
   real = z;
+  // the province blocks ride along with the zone (the geometry worker gets both)
+  if (z.prov) prov = z.prov;
+  else if (prov) z.prov = prov;
   villageCache.clear();
   COUNTRY_UNIFORMS.uRealBlocks.value = [z.bx0, z.by0, z.bx1, z.by1];
   COUNTRY_UNIFORMS.uRealWaterRect.value = [z.water.x0, z.water.y0, z.water.cell * z.water.w, z.water.cell * z.water.h];
   COUNTRY_UNIFORMS.uUrbanRect.value = [z.urban.x0, z.urban.y0, z.urban.cell * z.urban.w, z.urban.cell * z.urban.h];
 }
 export function realBlock(bx, by) {
-  return !!real && bx >= real.bx0 && bx <= real.bx1 && by >= real.by0 && by <= real.by1;
+  return (!!real && bx >= real.bx0 && bx <= real.bx1 && by >= real.by0 && by <= real.by1) || provinceBlock(bx, by);
+}
+
+// Polder blocks the province's real tiles cover (provinceworld.js): like the
+// Ommeland's blocks, no procedural roads, maaren, villages or farms there.
+// { x0, y0, w, h, data: Uint8Array } in block units, or null.
+let prov = null;
+export function setProvinceBlocks(p) {
+  prov = p;
+  if (real) real.prov = p;
+  villageCache.clear();
+  COUNTRY_UNIFORMS.uProvRect.value = p ? [p.x0, p.y0, p.w, p.h] : [0, 0, 0, 0];
+}
+export function provinceBlock(bx, by) {
+  if (!prov) return false;
+  const i = bx - prov.x0, j = by - prov.y0;
+  return i >= 0 && j >= 0 && i < prov.w && j < prov.h && prov.data[j * prov.w + i] > 0;
 }
 export function realActive() {
   return !!real;
@@ -352,6 +375,8 @@ uniform vec4 uRealWaterRect;
 uniform vec4 uWaterNear;
 uniform sampler2D uUrbanTex;
 uniform vec4 uUrbanRect;
+uniform sampler2D uProvBlocks;
+uniform vec4 uProvRect;
 uniform sampler2D uBake0;
 uniform vec4 uBakeRect0;
 uniform sampler2D uBake1;
@@ -396,7 +421,13 @@ float cEdgeDist(vec2 p) {
   return max(r, mix(mix(a, b, f.x), mix(c, d, f.x), f.y));
 }
 
-bool cReal(int bx, int by) { return float(bx) >= uRealBlocks.x && float(bx) <= uRealBlocks.z && float(by) >= uRealBlocks.y && float(by) <= uRealBlocks.w; }
+bool cReal(int bx, int by) {
+  if (float(bx) >= uRealBlocks.x && float(bx) <= uRealBlocks.z && float(by) >= uRealBlocks.y && float(by) <= uRealBlocks.w) return true;
+  if (uProvRect.z < 0.5) return false;
+  ivec2 q = ivec2(bx - int(uProvRect.x), by - int(uProvRect.y));
+  if (q.x < 0 || q.y < 0 || q.x >= int(uProvRect.z) || q.y >= int(uProvRect.w)) return false;
+  return texelFetch(uProvBlocks, q, 0).r > 0.5;
+}
 // signed metres to real open water (positive on it); built-up weight
 float cRealWater(vec2 p) {
   if (uRealBlocks.z < uRealBlocks.x) return -99.0;

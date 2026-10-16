@@ -266,6 +266,10 @@ export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(s
     for (const f of files) { stats.sourceMB += fs.statSync(f).size / 1e6; for (const el of gunzipJson(f).elements) els.push(el); }
     for (const el of els) if (el.tags && el.tags.natural === 'coastline' && el.g && !coast.has(el.id)) coast.set(el.id, el);
     const feats = features(els, ctx);
+    // the water is drawn flat until the province gets its water model (docs
+    // 2.7: levels, banks, locks); cut at the tile edge it would grow quay
+    // walls across every canal there (tileworld.js keeps it off the water grid)
+    for (const f of feats) if (f.kind === 'water') f.row.flat = true;
     WB.applyDuals(feats.filter((f) => f.kind === 'roads').map((f) => f.row));
     // features by tile, only for this pack's tiles
     const mine = new Set(want);
