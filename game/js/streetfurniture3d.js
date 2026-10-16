@@ -11,7 +11,8 @@
 // their slip roads at street level, gantries before the exits, hectometre
 // posts, mapped fences, noise barriers and speed tables.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { furnitureForTile } from './streetfurniture.js';
+import { furnitureForTile, DESTINATIONS } from './streetfurniture.js';
+import { worldSignPlaces } from './worldplaces.js';
 import { mergeGeometries, tint } from './geomerge.js';
 import { makeProp, addProp, removeProp, isPropBroken, addStaticCollider, addPropStreamer } from './breakables.js';
 import { TILE_M, GRID_X0, GRID_Y0, tileIndexOf } from './gdt.js';
@@ -199,7 +200,7 @@ function tileItems(i, j) {
     const p = m.pts ? m.pts : [[m.x, m.y]];
     return p.some((q) => q[0] >= x0 - 50 && q[0] < x0 + TILE_M + 50 && q[1] >= y0 - 50 && q[1] < y0 + TILE_M + 50);
   });
-  const res = furnitureForTile({ x0, y0, size: TILE_M, roads, mapped, opts: GAME_OPTS });
+  const res = furnitureForTile({ x0, y0, size: TILE_M, roads, mapped, places: worldSignPlaces() || DESTINATIONS, opts: GAME_OPTS });
   tiles.set(key, t = { items: res.items, colliders: res.colliders });
   return t.items;
 }

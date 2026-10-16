@@ -27,6 +27,7 @@ export const WATER_KINDS = {
   diep: { depth: 2.4, nav: 3 },     // city canals, diepen, havens: tour boats
   vaart: { depth: 1.4, nav: 2 },    // narrow canals and vaarten: sloepen
   vijver: { depth: 1.5, nav: 1 },   // ponds and park lakes: canoes, pedalos
+  meer: { depth: 3.0, nav: 3, level: -1.0 }, // open lakes (province): their own peil, a tour boat sails
   sloot: { depth: 0.6, nav: 1, level: -0.8 }, // ditches: waded, a canoe at most
 };
 // widths (2 A / P of a polygon, ~ the width of a long one) between the kinds
@@ -218,7 +219,7 @@ export function annotateWater(water, cell = 2.5) {
   water.forEach((w, i) => { area[body[i]] += polyArea(w.pts); });
   let boezem = 0;
   for (let b = 1; b < count; b++) if (area[b] > area[boezem]) boezem = b;
-  const rank = { sloot: 0, vijver: 1, vaart: 2, diep: 3, kanaal: 4 };
+  const rank = { sloot: 0, vijver: 1, vaart: 2, diep: 3, meer: 3.5, kanaal: 4 };
   const bodies = Array.from({ length: count }, (_, id) => ({ id, polys: [], kind: 'sloot', level: BOEZEM_Y, nap: id === boezem ? BOEZEM_NAP : null, area: Math.round(area[id]), nav: 0, boezem: id === boezem }));
   water.forEach((w, i) => {
     const b = bodies[body[i]];
@@ -243,18 +244,32 @@ export function annotateWater(water, cell = 2.5) {
 // city water, so waterAt, boats, swimmers and the heli read it alike. A wide
 // or large polygon counts as open water (the boezem's rule), a narrow one
 // with a ditch name is a sloot.
-export function annotateProvinceWater(rows) {
-  for (const w of rows) {
+export function annotateProvinceWater(rows, { base = 0, village = null } = {}) {
+  // bodies within the rows given (a pack): polygons whose shores touch share a
+  // body, its area decides open water (a lake keeps its own peil) and whether
+  // a thin sliver is part of a canal
+  const { body, count } = waterBodies(rows);
+  const area = new Float64Array(count);
+  rows.forEach((w, i) => { area[body[i]] += polyArea(w.pts); });
+  rows.forEach((w, i) => {
     const A = polyArea(w.pts), w2 = 2 * A / (polyPerimeter(w.pts) || 1);
-    const kind = classifyWater(w, w2 >= KIND_WIDTH.vaart || A > 4000, w2);
+    const bodyA = area[body[i]];
+    let kind = classifyWater(w, w2 >= KIND_WIDTH.vaart || A > 4000 || bodyA > 20000, w2);
+    if (bodyA >= LAKE_AREA && w2 >= LAKE_WIDTH) kind = 'meer';
     const K = WATER_KINDS[kind];
+    w.body = base + body[i];
     w.kind = kind;
     w.lv = K.level !== undefined ? K.level : BOEZEM_Y;
     w.dp = K.depth;
     w.nav = K.nav;
-  }
-  return rows;
+    // quay or natural bank: a canal or haven inside a built-up stretch is walled
+    const c = polyCentre(w.pts);
+    w.bank = (kind === 'kanaal' || kind === 'diep' || kind === 'vaart') && village && village(c[0], c[1]) ? 'kade' : 'oever';
+  });
+  return { rows, bodies: count };
 }
+const LAKE_AREA = 250000, LAKE_WIDTH = 60;
+const polyCentre = (P) => { let x = 0, y = 0; for (const p of P) { x += p[0]; y += p[1]; } return [x / P.length, y / P.length]; };
 
 // --------------------------------------------------------------- boats
 

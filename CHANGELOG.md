@@ -9,10 +9,12 @@ nieuwe functies, `y` voor alleen bugfixes.
 ### Toegevoegd
 - **Geldwagen overvallen:** blaas een Poen Express uit het verkeer open (total loss), pak de geldzak en de politie zit je achterna. Geldwagen en geldzak staan op de minimap en de kaart.
 - **Water in de hele provincie (eerste stap):** meren, plassen, sloten en kanalen buiten de stad hebben nu soort, diepte en peil, net als in het Ommeland. Boten, zwemmen en waden zien dat water zodra de provincie opnieuw is gebouwd.
+- **Water in de provincie, tweede stap:** water krijgt per watergang een eigen lichaam (sloten aan een kanaal horen erbij), grote open meren een eigen peil (`meer`), en kades of natuurlijke oevers per stuk. Sluizen uit OSM staan in de provincielaag, beweegbare bruggen (`bridge:movable`) worden bij de volgende extract meegenomen. Nieuw: `scripts/province_water_audit.mjs` telt soorten, vaarklassen, bruggen en sluizen van een gebouwde provincie.
 
 ### Verbeterd
 - **Tegels in het oude Ommeland (voorbereiding):** met `?ommelandtegels` laadt het spel de provinciegegevens ook binnen het oude Ommeland-gebied. Nog niet standaard; `--legacy` werkt zoals altijd.
 - **Tegels vervangen de oude Ommeland-lagen (achter `?ommelandtegels`):** waar een gebouwde provincietegel ligt, vallen de oude gebouwdozen (props, skyline, kaarten, botsing, stadsbouwers) weg en schildert de grondshader geen oude wegen meer, met een rand van 14 m langs de tegelrand zodat wegen doorlopen. Verkeer en routes blijven op de oude wegen. Nog niet standaard; `--legacy` werkt zoals altijd.
+- **Bewegwijzering op de snelweg:** de blauwe portalen boven afritten noemen nu steden en dorpen uit de hele provincie in plaats van alleen die rond de stad, en kiezen er een in de goede richting.
 - **Even pinnen:** de opdrachtregels zeggen nu duidelijk dat de pinautomaat achterin de auto ligt.
 - **Stuntavond op de Grote Markt:** het doel staat nu in de uitleg, en terrasstoelen en -tafels leveren ook punten op.
 - **Water onder gras:** waar een groenvlak over water ligt, wint nu het water. Geen gras meer boven plekken waar je zwemt.
