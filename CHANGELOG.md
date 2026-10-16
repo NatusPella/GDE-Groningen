@@ -6,6 +6,8 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+## [0.32.0] - 2026-10-16
+
 ### Nieuw
 - **Events in de zomer.** Soms trilt de grond even: een lichte aardbeving met een
   korte rommel, een trillend beeld, rammelende fietsen, verbaasde voorbijgangers
