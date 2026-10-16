@@ -50,7 +50,7 @@ export const SECTION = {
   JUNCTIONS: 9, // the junction model (v1: k, p, c control, a arms [road gid, idx, d, rule, stop m, enters]; junctions.js junctionRows); surfaces F1b
   HEIGHTS: 10, // vertical road profiles (v1: gid, z, pnet, st, ly; roadprofile.js heightRows); the AHN raster goes next to it (F2)
   POIS: 11, // reserved (F1): kind, name, entrance, tags (real facilities)
-  FURNITURE: 12, // reserved (F1): mapped street furniture
+  FURNITURE: 12, // mapped street furniture (v1: k, pts, v, h, osm; streetfurniture.js mappedFromOsm); rule items are generated per tile
   NAV: 13, // reserved (F1): road/bike/foot/boat graphs with portal nodes
   OVERLAY: 14, // reserved (F1): hand-made layers
   COUNTRY_BOXES: 15, // the Ommeland building boxes (countryreal.js), until F1

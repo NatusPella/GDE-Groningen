@@ -412,6 +412,8 @@ export class GameMap {
     this.levelCrossings = data.levelCrossings || [];
     this.railRoutes = data.railRoutes || [];
     this.railLifts = data.railLifts || [];
+    // mapped street furniture (scripts/world/furniture.mjs; streetfurniture.js)
+    this.furniture = data.furniture || [];
     // ways OSM maps through or under a building (passages.js)
     this.passageWays = (data.passageWays || []).map((p) => ({ ...p, bounds: polygonBounds(p.pts) }));
 
@@ -478,6 +480,7 @@ export class GameMap {
     m.levelCrossings = p.levelCrossings || [];
     m.railRoutes = p.railRoutes || [];
     m.railLifts = p.railLifts || [];
+    m.furniture = p.furniture || [];
     m.passageWays = (p.passageWays || []).map((q) => ({ ...q, bounds: polygonBounds(q.pts) }));
     m.dryCrossings = p.dryCrossings || 0;
     m.buildingGrid = new SpatialGrid(CELL);

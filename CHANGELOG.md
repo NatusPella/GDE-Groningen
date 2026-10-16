@@ -18,6 +18,12 @@ nieuwe functies, `y` voor alleen bugfixes.
   rode lichten, slagbomen omlaag, het val gaat omhoog en het verkeer wacht.
   Ben je net te laat met de auto, dan sta je voor de slagboom; rijd je erdoor,
   dan lig je in het kanaal.
+- **Vangrails, portalen en hectometerpaaltjes.** Langs de snelwegen, de
+  N-wegen en hun op- en afritten staan vangrails (ook in de middenberm), met
+  een opening waar een weg aansluit; ram je er hard tegenaan, dan vliegt een
+  stuk eruit. Voor elke afrit hangt een blauw portaal met echte plaatsnamen,
+  en langs de berm staan hectometerpaaltjes. Hekken en drempels die op de kaart
+  staan, staan nu ook in het spel.
 - **Sloten liggen dieper.** In het Ommeland zie je dat een sloot echt diep
   ligt, en als je erdoorheen loopt sta je tot je knieën in het water en ga je
   langzamer.

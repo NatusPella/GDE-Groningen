@@ -20,6 +20,7 @@ import { TileStore, FrameQueue, HttpRangeSource, inflateRaw, makeWorkerDecoder, 
 const KIND_OF = new Map([
   [SECTION.BUILDINGS, 'buildings'], [SECTION.ROADS, 'roads'], [SECTION.WATER, 'water'], [SECTION.GREEN, 'green'],
   [SECTION.TREES, 'trees'], [SECTION.RAILS, 'rails'], [SECTION.CANOPIES, 'canopies'], [SECTION.PASSAGES, 'passageWays'],
+  [SECTION.FURNITURE, 'furniture'],
 ]);
 const GRID_OF = { buildings: 'buildingGrid', roads: 'roadGrid', water: 'waterGrid', green: 'greenGrid', trees: 'treeGrid' };
 

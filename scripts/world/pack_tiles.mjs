@@ -136,6 +136,9 @@ export const KINDS = [
   ['rails', G.SECTION.RAILS],
   ['canopies', G.SECTION.CANOPIES],
   ['passageWays', G.SECTION.PASSAGES],
+  // mapped street furniture (scripts/world/furniture.mjs); the rule furniture
+  // is generated per tile in the game (streetfurniture.js)
+  ['furniture', G.SECTION.FURNITURE],
 ];
 
 function boundsOf(kind, o) {
