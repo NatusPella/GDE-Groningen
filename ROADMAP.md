@@ -1,5 +1,7 @@
 # Roadmap naar GDE Groningen 1.0.0
 
+> **Sinds 16 okt 2026 staat de roadmap op het GitHub-bord:** https://github.com/users/NatusPella/projects/5 . Dit bestand is historische context.
+
 Bijgewerkt: 3 oktober 2026, na release 0.22.0.
 
 **Spelregels**

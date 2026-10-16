@@ -1,3 +1,14 @@
+# Backlog
+
+**De bron van waarheid is het GitHub-bord:** https://github.com/users/NatusPella/projects/5
+(issues in `NatusPella/GDE-Groningen`; kolommen Backlog, Volgende, Bezig, Review, Klaar; labels
+voor prioriteit P0 tot P3 en soort). Een doorlopend kanban, geen versienummers: een release
+bundelt gewoon wat in Klaar staat. Nieuwe wensen en bugs komen als issue, niet in dit bestand.
+
+Het onderstaande is de stand van 15 okt 2026 vóór de overstap, bewaard als context.
+
+---
+
 # Backlog naar de volgende versies (stand 15 okt 2026)
 
 Geprioriteerd op: eerst wat spelers nu raakt en wat de rest ontgrendelt, dan de provincie, dan inhoud, dan afwerking.
