@@ -268,6 +268,71 @@ if (!B.haveProvince()) {
       return r;
     }
     const line = (id) => g.routes.find((r) => r.reached && r.stops[0] && r.stops[r.stops.length - 1] && (r.name.includes(id) || r.id === id));
+    // the game side over a loaded province: polder blocks, the prop rule, the
+    // far LOD of a streamed tile, the train lines (one load, no streaming clock)
+    {
+      const source = new S.MemorySource(files, { latency: 0 });
+      let T = null;
+      const decode = async (b) => G.decodeBlob(new Uint8Array(zlib.inflateRawSync(b)));
+      const pend = loadTileWorld('world/', { source, pool: false, extra: [{ name: 'index-provincie.json', only: (t) => !(t.flags & B.FLAG.OLD) }], now: () => source.now, decode }).then((v) => { T = v; });
+      for (let k = 0; !T && k < 5000; k++) { await source.advance(20); await new Promise((r) => setImmediate(r)); }
+      await pend;
+      const CF = await import('../game/js/countryfield.js');
+      const res = PW.initProvince(T, { stream: true });
+      M.provinceBlocks = res.blocks;
+      if (res.blocks < 1500) fail(`only ${res.blocks} polder blocks under the province's tiles`);
+      // Winschoten's centre: a real block, so no procedural road, maar or village there
+      const [wx, wy] = place('Winschoten');
+      const bx = Math.floor(wx / CF.BLOCK), by = Math.floor(wy / CF.BLOCK);
+      if (!CF.realBlock(bx, by) || CF.edgeRoad(bx, by, 0) || CF.villageOf(bx, by)) fail('Winschoten lies in a real block without procedural roads or villages');
+      // a tile in: the prop rule sees its buildings; the far LOD builds it
+      const [ti, tj] = G.tileIndexOf(wx, wy);
+      const key = G.tileKey(ti, tj);
+      await T.store.request(key, { priority: 0 });
+      for (let k = 0; k < 50 && !T.world.resident.has(`${ti},${tj}`); k++) { await source.advance(20); T.world.tileQueue.run(1e9); }
+      const tile = T.store.get ? T.store.get(key) : null;
+      const blds = T.world.buildingsNear(wx, wy, 300);
+      if (!blds.length) fail('no buildings round Winschoten\'s centre after its tile came in');
+      else {
+        const b = blds.find((q) => q.bounds && q.bounds[2] - q.bounds[0] > 6) || blds[0];
+        const cx = (b.bounds[0] + b.bounds[2]) / 2, cy = (b.bounds[1] + b.bounds[3]) / 2;
+        const CE = await import('../game/js/countryedge.js');
+        if (!CE.edgeBlocked(cx, cy, 1)) fail('the countryside props do not keep off a real building');
+      }
+      const THREE = await import('https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js');
+      const { createFarLOD } = await import('../game/js/farlod.js');
+      const scene = { add() {} };
+      const flat = (poly) => { const c = poly.pts.slice(0, -1).map(([x, y]) => new THREE.Vector2(x, y)); const g = new THREE.BufferGeometry(); const pos = []; for (const [a, b2, c2] of THREE.ShapeUtils.triangulateShape(c, [])) for (const q of [a, b2, c2]) pos.push(c[q].x, 0, c[q].y); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); return g; };
+      const lod = createFarLOD(scene, { buildings: [], roads: [], green: [] }, { flatGeometry: flat, colors: { roads: { major: 0x555555, normal: 0x666666, minor: 0x777777, foot: 0x888888, cycle: 0x993333 }, sidewalk: 0x999999, green: 0x336633 }, sidewalkExtra: 1 });
+      let streamed = 0;
+      T.world.onTiles((kind, tl, k) => {
+        if (kind !== 'add') return;
+        const rows = (type) => (tl.sections.find((q) => q.type === type) || { rows: [] }).rows;
+        const [ox, oy] = G.tileOrigin(tl.i, tl.j);
+        lod.addStreamTile(k, ox, oy, G.TILE_M, { buildings: rows(G.SECTION.BUILDINGS), roads: rows(G.SECTION.ROADS), green: rows(G.SECTION.GREEN), water: rows(G.SECTION.WATER) });
+        streamed++;
+      });
+      T.store.prefetch(wx, wy, { radius: 1500 });
+      for (let k = 0; k < 200; k++) { await source.advance(20); T.world.tileQueue.run(1e9); }
+      for (let k = 0; k < 400 && (k === 0 || lod.stats.queued !== 0); k++) lod.update(wx, wy, 2500, 2500, 400);
+      lod.update(wx, wy, 2500, 2500, 400);
+      M.farlodStreamed = { tiles: streamed, built: lod.stats.tiles, triangles: lod.stats.triangles };
+      if (!streamed || !lod.stats.triangles) fail(`the far LOD of streamed tiles: ${JSON.stringify(M.farlodStreamed)}`);
+      void tile;
+      // every Ommeland train route runs on to its stations over the real track
+      const CR = await import('../game/js/corridorrail.js');
+      const om = JSON.parse(fs.readFileSync(new URL('../game/ommeland.json', import.meta.url)));
+      const pl = CR.provinceRailLines(om, g.routes);
+      const x = CR.extendRoutes(pl.om, { ...g, routes: pl.lines });
+      const stops = new Set(x.routes.flatMap((r) => r.stops.filter((q) => !q.offmap).map((q) => q.name)));
+      const country = ['Zuidhorn', 'Grijpskerk', 'Haren', 'Kropswolde', 'Martenshoek', 'Hoogezand-Sappemeer', 'Zuidbroek', 'Scheemda', 'Winschoten', 'Bad Nieuweschans', 'Veendam',
+        'Sauwerd', 'Winsum', 'Baflo', 'Warffum', 'Usquert', 'Uithuizen', 'Uithuizermeeden', 'Roodeschool', 'Eemshaven', 'Bedum', 'Stedum', 'Loppersum', 'Appingedam', 'Delfzijl West', 'Delfzijl'];
+      const off = country.filter((n) => !stops.has(n));
+      if (off.length) fail(`stations no train route stops at: ${off.join(', ')}`);
+      for (const r of x.routes) for (let i = 1; i < r.stops.length; i++) if (!(r.stops[i].s > r.stops[i - 1].s)) fail(`${r.name}: stops out of order after extending`);
+      M.trainStations = stops.size;
+      PW.initProvince(T, { stream: false });
+    }
     M.stream = {};
     M.stream.carA7 = await stream('car A7 Stad-Bad Nieuweschans 33 m/s', polyRoute(['Groningen', 'Hoogezand', 'Zuidbroek', 'Scheemda', 'Winschoten', 'Bad Nieuweschans'].map(place)), 33);
     const rs = line('Roodeschool') || line('spoor-eemshaven');
