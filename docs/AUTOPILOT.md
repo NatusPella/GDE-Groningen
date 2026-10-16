@@ -13,3 +13,7 @@ Instellingen en rem: zie de kop van het script (`MAX_TASKS`, `DAILY_CAP`, `MODEL
 `TURNS`, `BUDGET_USD`, stopbestand `.claude/autopilot.stop`). Kleine, afgebakende
 taken (een uur werk) krijgen het label `autopilot`; grote dingen blijven voor
 interactieve sessies.
+
+## Prioriteit
+
+Volgorde op het bord: eerst alles met het label `bug`, daarna nieuw werk op hoge impact en lage kosten (`impact-*`, `kosten-*`), en `later` onderaan. Er zijn geen P0–P3-labels meer.
