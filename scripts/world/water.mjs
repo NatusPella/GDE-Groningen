@@ -100,10 +100,11 @@ export function findLocks(water, elements) {
     const p = e.type === 'node' ? wgsToWorld(e.lat, e.lon) : e.geometry ? wgsToWorld(e.geometry[0].lat, e.geometry[0].lon) : null;
     if (p) out.push({ x: Math.round(p[0] * 100) / 100, y: Math.round(p[1] * 100) / 100, name: t.name || t['lock_name'] || '', src: 'osm' });
   }
-  // bodies with their own peil that touch the boezem would need a lock; on
-  // the city map no navigable pond touches it (annotateWater joins touching
-  // polygons into one body), so this list is empty until a body carries a
-  // measured peil of its own
+  // A lock splits the water: the world builder gives each side its body and
+  // peil (game/js/locks.js makeLock takes the levels of both). Touching
+  // polygons are one body here (annotateWater), so the city map, whose
+  // caches hold no lock tags, has none; OSM's lock gates are where they come
+  // from (the Overpass query of furniture.mjs plus waterway=lock_gate, lock=yes)
   void water;
   return out;
 }
