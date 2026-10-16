@@ -144,7 +144,7 @@ export function loadSources(root = ROOT) {
 // ------------------------------------------------------------- features
 
 // Features with world geometry: { kind, row, bounds, c (centre), osm }
-function features(els, ctx) {
+export function features(els, ctx) {
   const out = [];
   const seen = new Set();
   for (const el of els) {
@@ -156,6 +156,15 @@ function features(els, ctx) {
       for (const m of el.members || []) {
         if (m.role !== 'outer' || !m.g || m.g.length < 4) continue;
         for (const f of WB.fromOsm({ type: 'way', id: el.id, tags: { natural: 'water', name: t.name }, g: m.g }, ctx)) out.push(f);
+      }
+      continue;
+    }
+    // a multipolygon (extract_province.py joins its outer rings): each ring
+    // with the relation's tags
+    if (el.type === 'relation' && t.type === 'multipolygon') {
+      for (const m of el.members || []) {
+        if (m.role !== 'outer' || !m.g || m.g.length < 4) continue;
+        for (const f of WB.fromOsm({ type: 'way', id: el.id, tags: t, g: m.g }, ctx)) out.push(f);
       }
       continue;
     }
@@ -187,6 +196,34 @@ function urbanField(boxes) {
 
 const nodeKey = (p) => `${Math.round(p[0] * 2)},${Math.round(p[1] * 2)}`;
 
+// a binary min-heap of [key, value]; equal keys pop in push order
+class Heap {
+  constructor() { this.a = []; this.n = 0; }
+  get size() { return this.a.length; }
+  less(i, j) { const x = this.a[i], y = this.a[j]; return x[0] < y[0] || (x[0] === y[0] && x[2] < y[2]); }
+  swap(i, j) { const t = this.a[i]; this.a[i] = this.a[j]; this.a[j] = t; }
+  push(k, v) {
+    const a = this.a;
+    a.push([k, v, this.n++]);
+    for (let i = a.length - 1; i > 0;) { const p = (i - 1) >> 1; if (!this.less(i, p)) break; this.swap(i, p); i = p; }
+  }
+  pop() {
+    const a = this.a, top = a[0], last = a.pop();
+    if (a.length) {
+      a[0] = last;
+      for (let i = 0; ;) {
+        const l = 2 * i + 1, r = l + 1;
+        let m = i;
+        if (l < a.length && this.less(l, m)) m = l;
+        if (r < a.length && this.less(r, m)) m = r;
+        if (m === i) break;
+        this.swap(i, m); i = m;
+      }
+    }
+    return [top[0], top[1]];
+  }
+}
+
 // A rail route through stations in order over the rail graph (Dijkstra per
 // leg): { pts, stops: [{ name, s }], reached } - as far as the data reaches.
 export function railRoute(rails, stations, via) {
@@ -200,24 +237,35 @@ export function railRoute(rails, stations, via) {
     }
   }
   const keys = [...pos.keys()];
-  const nearest = (x, y, maxD) => { let best = null, bd = maxD; for (const k of keys) { const p = pos.get(k); const d = Math.hypot(p[0] - x, p[1] - y); if (d < bd) { bd = d; best = k; } } return best; };
+  // a station's nodes: every track node within 40 m of the nearest (both
+  // tracks of a double line, the loop at a halt), at most maxD away
+  const zone = (x, y, maxD) => {
+    let bd = maxD;
+    for (const k of keys) { const p = pos.get(k); const d = Math.hypot(p[0] - x, p[1] - y); if (d < bd) bd = d; }
+    if (bd >= maxD) return [];
+    return keys.filter((k) => { const p = pos.get(k); return Math.hypot(p[0] - x, p[1] - y) <= bd + 40; });
+  };
+  // from any node of one station to the nearest node of the next: no
+  // turning back at a crossover because the train came in on the other track
   const dijkstra = (from, to) => {
-    const dist = new Map([[from, 0]]), prev = new Map(), done = new Set();
-    const open = [[0, from]];
-    while (open.length) {
-      open.sort((a, b) => a[0] - b[0]);
-      const [d, u] = open.shift();
+    const goal = new Set(to);
+    const dist = new Map(), prev = new Map(), done = new Set();
+    const open = new Heap();
+    for (const f of from) { dist.set(f, 0); open.push(0, f); }
+    let hit = null;
+    while (open.size) {
+      const [d, u] = open.pop();
       if (done.has(u)) continue;
       done.add(u);
-      if (u === to) break;
+      if (goal.has(u)) { hit = u; break; }
       for (const [v, w] of adj.get(u)) {
         const nd = d + w;
-        if (nd < (dist.has(v) ? dist.get(v) : Infinity)) { dist.set(v, nd); prev.set(v, u); open.push([nd, v]); }
+        if (nd < (dist.has(v) ? dist.get(v) : Infinity)) { dist.set(v, nd); prev.set(v, u); open.push(nd, v); }
       }
     }
-    if (!done.has(to)) return null;
-    const path = [to];
-    while (path[0] !== from) path.unshift(prev.get(path[0]));
+    if (!hit) return null;
+    const path = [hit];
+    while (prev.has(path[0])) path.unshift(prev.get(path[0]));
     return path;
   };
   const pts = [], stops = [];
@@ -225,15 +273,22 @@ export function railRoute(rails, stations, via) {
   for (const name of via) {
     const st = stations.get(name);
     if (!st) break;
-    const k = nearest(st.x, st.y, 400);
-    if (!k) break;
+    const z = zone(st.x, st.y, 400);
+    if (!z.length) break;
     if (last) {
-      const leg = dijkstra(last, k);
+      const leg = dijkstra(last, z);
       if (!leg) break;
+      // the leg may leave the station from its other track: a step across
+      const p0 = pos.get(leg[0]), q = pts[pts.length - 1];
+      if (Math.hypot(p0[0] - q[0], p0[1] - q[1]) > 0.05) { s += Math.hypot(p0[0] - q[0], p0[1] - q[1]); pts.push(p0); }
       for (let i = 1; i < leg.length; i++) { const a = pos.get(leg[i - 1]), b = pos.get(leg[i]); s += Math.hypot(b[0] - a[0], b[1] - a[1]); pts.push(b); }
-    } else pts.push(pos.get(k));
+    } else {
+      let best = z[0], bd = Infinity;
+      for (const k of z) { const p = pos.get(k); const d = Math.hypot(p[0] - st.x, p[1] - st.y); if (d < bd) { bd = d; best = k; } }
+      pts.push(pos.get(best));
+    }
     stops.push({ name, s: r2(s) });
-    last = k;
+    last = z;
   }
   return { pts: pts.map(([x, y]) => [r2(x), r2(y)]), stops, reached: stops.length === via.length };
 }
@@ -274,7 +329,7 @@ export function busLines(els) {
 // does a tile overlap the box of data/ommeland_raw.json.gz (what the old
 // layers draw), whichever cache the tile is built from
 let omBox = null;
-function ommelandBox(i, j, root = ROOT) {
+export function ommelandBox(i, j, root = ROOT) {
   if (!omBox) omBox = gunzipJson(path.join(root, 'data/ommeland_raw.json.gz')).bbox;
   const [ox, oy] = G.tileOrigin(i, j);
   const [s, w, n, e] = omBox;
@@ -283,6 +338,56 @@ function ommelandBox(i, j, root = ROOT) {
 
 const PER_TILE = ['buildings', 'roads', 'water', 'green', 'trees', 'rails'];
 const SECTION_OF = { buildings: G.SECTION.BUILDINGS, roads: G.SECTION.ROADS, water: G.SECTION.WATER, green: G.SECTION.GREEN, trees: G.SECTION.TREES, rails: G.SECTION.RAILS };
+
+// One tile out of the world builder's features that touch it: lines and
+// areas cut at the tile edge (a piece of a way per tile, sharing its end
+// point on the edge with the next: the portal), buildings, trees and mapped
+// furniture by their own point. gid: the running ids per kind (advanced);
+// stats: totals (advanced). null when nothing lands in the tile.
+export function tileBlob(i, j, list, gid, flags, builder, stats = null) {
+  const [ox, oy] = G.tileOrigin(i, j);
+  const box = [ox, oy, ox + G.TILE_M, oy + G.TILE_M];
+  const rows = Object.fromEntries(PER_TILE.map((q) => [q, []]));
+  const mapped = [];
+  for (const f of list) {
+    // mapped furniture: in every tile one of its points lies in, one id for it
+    if (f.kind === 'furniture') {
+      if (!f.row.pts.some((p) => p[0] >= box[0] && p[0] < box[2] && p[1] >= box[1] && p[1] < box[3])) continue;
+      if (f.gid === undefined) f.gid = gid.furniture++;
+      mapped.push({ gid: f.gid, ...f.row });
+      continue;
+    }
+    if (f.kind === 'buildings' || f.kind === 'trees') { rows[f.kind].push({ gid: gid[f.kind]++, ...f.row }); continue; }
+    if (f.kind === 'water' || f.kind === 'green') {
+      const P = clipPoly(f.row.pts, box);
+      if (P && P.length >= 4) rows[f.kind].push({ gid: gid[f.kind]++, ...f.row, pts: P });
+      continue;
+    }
+    for (const piece of clipLine(f.row.pts, box)) rows[f.kind].push({ gid: gid[f.kind]++, ...f.row, pts: piece });
+  }
+  // what OSM maps, then the tile's own hooks (furniture, greenery: builderhooks.js); they see the tile's box
+  rows.tile = { i, j, x0: ox, y0: oy, size: G.TILE_M };
+  const extra = mapped.concat(WB.runHooks('furniture', rows), WB.runHooks('greenery', rows));
+  const nav = edgeRows(rows.roads, (r) => r.gid).map(({ a, b, ...rest }) => ({ ...rest, p: [a, b] }));
+  const sections = PER_TILE.filter((q) => rows[q].length).map((q) => ({
+    // a tree: its point, and species, height (dm) and flags (greenery.js)
+    type: SECTION_OF[q], rows: q === 'trees' ? rows[q].map((r) => ({ g: r.gid, p: [[r[0], r[1]]], ...(r[2] !== undefined ? { s: r[2], h: r[3], ...(r[4] ? { f: r[4] } : null) } : null) })) : rows[q].map(cleanRow),
+  }));
+  if (nav.length) sections.push({ type: G.SECTION.NAV, rows: nav });
+  if (extra.length) sections.push({ type: G.SECTION.FURNITURE, rows: extra });
+  if (!sections.length) return null;
+  const n = Object.fromEntries(PER_TILE.filter((q) => rows[q].length).map((q) => [q, rows[q].length]));
+  if (mapped.length) n.furniture = mapped.length;
+  if (stats) {
+    for (const q of PER_TILE) stats[q] = (stats[q] || 0) + rows[q].length;
+    if (mapped.length) stats.furniture = (stats.furniture || 0) + mapped.length;
+    for (const b of rows.buildings) stats.hsrc[b.hsrc] = (stats.hsrc[b.hsrc] || 0) + 1;
+    stats.tiles++;
+  }
+  let maxH = 0;
+  for (const b of rows.buildings) if ((b.h || 0) > maxH) maxH = b.h;
+  return { i, j, flags, bytes: G.encodeBlob({ i, j, flags, builder, sections }), n, maxH };
+}
 
 export function buildCorridor({ root = ROOT, cityKeys = new Set(), sources = loadSources(root), places = loadPlaces(root) } = {}) {
   const { keys, tiles } = corridorTiles(places);
@@ -328,46 +433,16 @@ export function buildCorridor({ root = ROOT, cityKeys = new Set(), sources = loa
     return m;
   };
   const idx = { ommeland: index(feats.ommeland), corridor: new Map([...feats.corridor].map(([k, v]) => [k, index(v)])) };
-  const gid = Object.fromEntries(PER_TILE.map((k) => [k, GID0]));
+  const gid = Object.fromEntries([...PER_TILE, 'furniture'].map((k) => [k, GID0]));
   const blobs = new Map();
   const stats = { tiles: 0, buildings: 0, roads: 0, water: 0, rails: 0, green: 0, trees: 0, hsrc: {} };
   for (const k of [...want.keys()].sort()) {
     const t = tiles.get(k);
-    const [ox, oy] = G.tileOrigin(t.i, t.j);
-    const box = [ox, oy, ox + G.TILE_M, oy + G.TILE_M];
     const list = want.get(k) === 'corridor' ? (idx.corridor.get(packOf(t.i, t.j)) || new Map()).get(k) || [] : idx.ommeland.get(k) || [];
-    const rows = Object.fromEntries(PER_TILE.map((q) => [q, []]));
-    for (const f of list) {
-      if (f.kind === 'buildings' || f.kind === 'trees') { rows[f.kind].push({ gid: gid[f.kind]++, ...f.row }); continue; }
-      if (f.kind === 'water' || f.kind === 'green') {
-        const P = clipPoly(f.row.pts, box);
-        if (P && P.length >= 4) rows[f.kind].push({ gid: gid[f.kind]++, ...f.row, pts: P });
-        continue;
-      }
-      for (const piece of clipLine(f.row.pts, box)) {
-        const row = { gid: gid[f.kind]++, ...f.row, pts: piece };
-        rows[f.kind].push(row);
-      }
-    }
-    // the tile's own hooks (furniture, greenery: builderhooks.js); they see the tile's box
-    rows.tile = { i: t.i, j: t.j, x0: ox, y0: oy, size: G.TILE_M };
-    const extra = WB.runHooks('furniture', rows).concat(WB.runHooks('greenery', rows));
-    const nav = edgeRows(rows.roads, (r) => r.gid).map(({ a, b, ...rest }) => ({ ...rest, p: [a, b] }));
-    const sections = PER_TILE.filter((q) => rows[q].length).map((q) => ({
-      // a tree: its point, and species, height (dm) and flags (greenery.js)
-      type: SECTION_OF[q], rows: q === 'trees' ? rows[q].map((r) => ({ g: r.gid, p: [[r[0], r[1]]], ...(r[2] !== undefined ? { s: r[2], h: r[3], ...(r[4] ? { f: r[4] } : null) } : null) })) : rows[q].map(cleanRow),
-    }));
-    if (nav.length) sections.push({ type: G.SECTION.NAV, rows: nav });
-    if (extra.length) sections.push({ type: G.SECTION.FURNITURE, rows: extra });
-    if (!sections.length) continue;
-    const n = Object.fromEntries(PER_TILE.filter((q) => rows[q].length).map((q) => [q, rows[q].length]));
-    for (const q of PER_TILE) stats[q] += rows[q].length;
-    for (const b of rows.buildings) stats.hsrc[b.hsrc] = (stats.hsrc[b.hsrc] || 0) + 1;
-    stats.tiles++;
-    const maxH = Math.max(0, ...rows.buildings.map((b) => b.h || 0));
     // flags: 1 land, 4 corridor, 8 the old Ommeland layers (countryreal.js) draw this tile too
-    const flags = 1 | 4 | (oldCover(t.i, t.j) ? 8 : 0);
-    blobs.set(k, { i: t.i, j: t.j, flags, src: want.get(k), bytes: G.encodeBlob({ i: t.i, j: t.j, flags, builder: CORRIDOR_BUILDER, sections }), n, maxH });
+    const tb = tileBlob(t.i, t.j, list, gid, 1 | 4 | (oldCover(t.i, t.j) ? 8 : 0), CORRIDOR_BUILDER, stats);
+    if (!tb) continue;
+    blobs.set(k, { ...tb, src: want.get(k) });
   }
   // the global corridor layer: places, stations, rail routes, bus lines
   const inCorridor = (x, y) => { const [i, j] = G.tileIndexOf(x, y); return tiles.has(G.tileKey(i, j)); };
@@ -408,7 +483,7 @@ export function buildCorridor({ root = ROOT, cityKeys = new Set(), sources = loa
 }
 
 const DROP = new Set(['bounds']);
-function cleanRow(o) {
+export function cleanRow(o) {
   const out = {};
   for (const k in o) if (!DROP.has(k) && k[0] !== '_' && o[k] !== undefined) out[k] = o[k];
   return out;
@@ -417,12 +492,20 @@ function cleanRow(o) {
 const deflate = (b) => new Uint8Array(zlib.deflateRawSync(b, { level: 9 }));
 
 // c<pack>-<hash>.gdp + index-corridor.json; leaves the city's files alone
-export function writeCorridor(out, { blobs, global, stats }) {
+export function writeCorridor(out, built) {
+  return writeLayer(out, built, { prefix: 'c', file: 'index-corridor.json', layer: 'corridor', builder: CORRIDOR_BUILDER });
+}
+
+// A tile layer next to the city's: <prefix><pack>-<hash>.gdp packs and its
+// index file (tiles, packs, the layer's global part); replaces the layer's
+// earlier files in `out` and leaves everything else alone.
+export function writeLayer(out, { blobs, global, stats }, { prefix, file: indexFile, layer, builder }) {
   fs.mkdirSync(out, { recursive: true });
-  for (const f of fs.readdirSync(out)) if (/^c-?\d+_-?\d+-[0-9a-f]+\.gdp$/.test(f) || f === 'index-corridor.json') fs.rmSync(path.join(out, f));
+  const mine = new RegExp(`^${prefix}-?\\d+_-?\\d+-[0-9a-f]+\\.gdp$`);
+  for (const f of fs.readdirSync(out)) if (mine.test(f) || f === indexFile) fs.rmSync(path.join(out, f));
   const packs = new Map();
-  for (const [key, b] of blobs) { const pk = 'c' + packOf(b.i, b.j); (packs.get(pk) || packs.set(pk, []).get(pk)).push([key, b]); }
-  const index = { format: G.GDT_FORMAT, builder: CORRIDOR_BUILDER, frame: 'rd-new', tileM: G.TILE_M, layer: 'corridor', packs: {}, tiles: {}, global, stats };
+  for (const [key, b] of blobs) { const pk = prefix + packOf(b.i, b.j); (packs.get(pk) || packs.set(pk, []).get(pk)).push([key, b]); }
+  const index = { format: G.GDT_FORMAT, builder, frame: 'rd-new', tileM: G.TILE_M, layer, packs: {}, tiles: {}, global, stats };
   let size = 0;
   for (const name of [...packs.keys()].sort()) {
     const entries = packs.get(name).sort((a, b) => (a[0] < b[0] ? -1 : 1));
@@ -444,7 +527,7 @@ export function writeCorridor(out, { blobs, global, stats }) {
     size += all.length;
     for (const [key, m] of meta) index.tiles[key] = { i: m.b.i, j: m.b.j, pack: name, off: m.off, len: m.len, raw: m.raw, hash: m.hash, flags: m.b.flags, n: m.b.n, maxH: m.b.maxH, src: m.b.src };
   }
-  fs.writeFileSync(path.join(out, 'index-corridor.json'), JSON.stringify(index));
+  fs.writeFileSync(path.join(out, indexFile), JSON.stringify(index));
   return { index, size };
 }
 

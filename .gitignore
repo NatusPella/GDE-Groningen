@@ -28,7 +28,8 @@ data/satellite_reference.jpg
 # packed map tiles (scripts/world/pack_tiles.mjs): a build artifact
 game/world/
 
-# downloaded open data (3D BAG tiles, AHN rasters): scripts/world/fetch_*.py, never in git
+# downloaded open data (3D BAG tiles, AHN rasters): scripts/world/fetch_*.py, never in git;
+# the OSM extracts (Geofabrik .pbf), the province caches built from them and their venv
 data/cache/
 data/world/ahn/
 data/world/corridor.partial-pack/

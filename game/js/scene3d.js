@@ -68,6 +68,7 @@ import { noteGfxEvent, watchContext } from './blackframe.js';
 import { spawnExplosionFx } from './fx3d.js';
 import { initNightLights, setNightLightQuality, updateNightLights, isLightRigOn, setLightRigVisible } from './nightlights3d.js';
 import { createFarLOD } from './farlod.js';
+import { SECTION, TILE_M, tileOrigin } from './gdt.js';
 import { initRailway3D, updateRailway3D } from './railway3d.js';
 import { initMovableBridges3D, updateMovableBridges3D, openBridgeRoads } from './movablebridges3d.js';
 import { getMovableBridges } from './movablebridges.js';
@@ -892,6 +893,15 @@ export function init3D(map) {
     colors: { roads: ROAD_COLORS3D, sidewalk: SIDEWALK_COLOR, green: GREEN_COLOR, greenOf: grassFarColor, greenRank: grassFarRank },
     sidewalkExtra: SIDEWALK_EXTRA,
     roadColorOf: roadFarColor,
+  });
+  // streamed tiles (the province's, tileworld.js) join the far LOD as they
+  // come and go; up close the detail streamers find them in the map's grids.
+  // A meadow or grass (Dutch farmland is mapped as either) is the ground shader's fields
+  if (map.onTiles) map.onTiles((kind, tile, key) => {
+    if (kind === 'drop') { farLod.dropStreamTile(key); return; }
+    const rows = (type) => (tile.sections.find((q) => q.type === type) || { rows: [] }).rows;
+    const [ox, oy] = tileOrigin(tile.i, tile.j);
+    farLod.addStreamTile(key, ox, oy, TILE_M, { buildings: rows(SECTION.BUILDINGS), roads: rows(SECTION.ROADS), green: rows(SECTION.GREEN).filter((g) => g.kind !== 'meadow' && g.kind !== 'grass'), water: rows(SECTION.WATER) });
   });
   initRailway3D(scene, map);
   initStreetFurniture3D(scene, map);

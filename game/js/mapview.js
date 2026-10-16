@@ -19,6 +19,7 @@ import { getSideJobSpotsForRender } from './sidejobs.js';
 import { getEierbalTips } from './furniture.js';
 import { drawRailsOnMap } from './railway.js';
 import { drawCountryBase, drawCountryDetail, villageLabels, MAP_STYLE } from './countrymap.js';
+import { drawProvinceBase, provinceMapOn, provinceMapBounds, onProvinceMapLoad } from './provincemap.js';
 import { ensureCountryEdge } from './countryplan.js';
 import { getSettings, onSettingsChange } from './settings.js';
 import { DEV } from './devflags.js';
@@ -449,6 +450,9 @@ function viewRect(marginPx = 0) {
 
 // --- tile cache -------------------------------------------------------------
 
+// the province's base map images come in as the view asks for them
+onProvinceMapLoad(() => clearTiles());
+
 function clearTiles() {
   if (state) {
     state.level0 = false;
@@ -488,9 +492,15 @@ function renderTile(L, tx, ty) {
     c.fillRect(Math.max(rx0, wx0), Math.max(ry0, wy0), Math.min(rx1, wx0 + tws) - Math.max(rx0, wx0), Math.min(ry1, wy0 + tws) - Math.max(ry0, wy0));
   }
   drawCountryBase(c, wx0, wy0, wx0 + tws, wy0 + tws, MAP_STYLE);
+  // the province's base map (provincemap.js), under the vectors
+  const prov = provinceMapOn();
+  if (prov) drawProvinceBase(c, wx0, wy0, wx0 + tws, wy0 + tws, state.baseScale * z * state.tileDpr);
 
-  // the city data only exists inside the real bounds
-  const qx0 = Math.max(wx0, rx0 - 50), qy0 = Math.max(wy0, ry0 - 50), qx1 = Math.min(wx0 + tws, rx1 + 50), qy1 = Math.min(wy0 + tws, ry1 + 50);
+  // the city data only exists inside the real bounds (with the province on:
+  // whatever tiles streamed in, up close)
+  const wide = prov && z >= MID_ZOOM;
+  const qx0 = wide ? wx0 : Math.max(wx0, rx0 - 50), qy0 = wide ? wy0 : Math.max(wy0, ry0 - 50);
+  const qx1 = wide ? wx0 + tws : Math.min(wx0 + tws, rx1 + 50), qy1 = wide ? wy0 + tws : Math.min(wy0 + tws, ry1 + 50);
   const view = qx0 < qx1 && qy0 < qy1 ? state.map.queryView(qx0, qy0, qx1, qy1) : { roads: [], buildings: [], water: [], green: [], trees: [] };
   const cssPerM = state.baseScale * z;
   const px = (n) => n / cssPerM;
@@ -1764,7 +1774,10 @@ export function initMapView(world) {
     bounds: world.map.meta.bounds.map((v, i) => {
       const e = world.map.countryExtent;
       const b = v + (i < 2 ? -COUNTRY_MARGIN : COUNTRY_MARGIN);
-      return e ? (i < 2 ? Math.min(b, e[i] + 800) : Math.max(b, e[i] - 800)) : b;
+      const q = e ? (i < 2 ? Math.min(b, e[i] + 800) : Math.max(b, e[i] - 800)) : b;
+      // the whole province when its tiles are on (provincemap.js)
+      const pb = provinceMapBounds();
+      return pb ? (i < 2 ? Math.min(q, pb[i]) : Math.max(q, pb[i])) : q;
     }),
     overlay,
     canvas: overlay.querySelector('canvas'),
