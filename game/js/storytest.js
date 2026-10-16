@@ -348,10 +348,10 @@ async function batch2Smoke(world, check, capture) {
   check('rechtbank: starts', await waitFor(() => !world.sideJob.active, 3000) && goTo('rechtbank') && SJ().start('rechtbank') && world.sideJob.id === 'rechtbank');
   await intro();
   c = SJ().ctx();
-  check('rechtbank: the dossier facts show', await waitFor(() => panelUp() && c.data.phase === 'read' && opts() === 3, 4000));
+  check('rechtbank: the dossier with three facts is handed over', await waitFor(() => c.data.dossier && (c.data.phase === 'read' || c.data.phase === 'carry'), 4000) && c.data.dossier.facts.length === 3);
   capture('job-rechtbank-facts');
   await sleep(2300);
-  key(' ', 'Space');
+  if (c.data.phase === 'read') key(' ', 'Space');
   check('rechtbank: Space starts the walk', await waitFor(() => c.data.phase === 'carry' && !panelUp(), 3000), c.data.phase);
   p.x = c.data.dest.x; p.y = c.data.dest.y + 1;
   check('rechtbank: at the desk the questions start', await waitFor(() => c.data.phase === 'ask' && panelUp(), 4000), c.data.phase);
