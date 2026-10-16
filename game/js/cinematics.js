@@ -184,6 +184,24 @@ function prewarmPoints(points) {
   for (const p of points || []) if (p) prewarmStreamAt(p.x, p.y);
 }
 
+// The tile world's side of the same list: the tiles round every point are
+// requested first and held (pinned) until the scene ends, so a shot far from
+// the player does not cut to a hole (TileWorld.registerShots).
+let shotsHeld = false;
+function holdShotTiles(points) {
+  releaseShotTiles();
+  const m = world && world.map;
+  const pts = (points || []).filter((p) => p && Number.isFinite(p.x) && Number.isFinite(p.y));
+  if (!pts.length || !m || !m.store || !m.registerShots) return;
+  shotsHeld = true;
+  m.registerShots(pts.map((p) => ({ at: [p.x, p.y] }))).catch(() => {});
+}
+function releaseShotTiles() {
+  if (!shotsHeld) return;
+  shotsHeld = false;
+  if (world && world.map && world.map.releaseShots) world.map.releaseShots();
+}
+
 // The point a pose shows (as scene3d.js streams it): the look target, at
 // most 50 m out from the eye.
 function poseFocus(pose) {
@@ -257,6 +275,7 @@ function begin(spec) {
     priority: 1, duration: 3, letterbox: true, skippable: true, hideHud: true, pause: false, timeScale: 1,
     ...spec, t: 0,
   };
+  holdShotTiles(spec.prewarm);
   attachVoices(active);
   const r = els.root;
   r.classList.toggle('letterbox', !!active.letterbox);
@@ -295,6 +314,7 @@ function begin(spec) {
 function finish(skipped, replaced = false) {
   const a = active;
   active = null;
+  releaseShotTiles();
   const r = els.root;
   r.classList.remove('active', 'letterbox', 'has-card', 'has-big', 'has-sub', 'show-skip', 'sub-clue');
   r.dataset.tint = '';

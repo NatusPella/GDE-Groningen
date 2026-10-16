@@ -7,6 +7,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Toegevoegd
+- **Cutscene-camera laadt vooruit:** een scène die ver van je vandaan speelt, laadt de tegels rond haar shots vooraf en houdt ze vast tot de scène klaar is. Bij een camerasprong kijkt het laden niet meer de verkeerde kant op.
 - **Geldwagen overvallen:** blaas een Poen Express uit het verkeer open (total loss), pak de geldzak en de politie zit je achterna. Geldwagen en geldzak staan op de minimap en de kaart.
 - **Water in de hele provincie (eerste stap):** meren, plassen, sloten en kanalen buiten de stad hebben nu soort, diepte en peil, net als in het Ommeland. Boten, zwemmen en waden zien dat water zodra de provincie opnieuw is gebouwd.
 - **Water in de provincie, tweede stap:** water krijgt per watergang een eigen lichaam (sloten aan een kanaal horen erbij), grote open meren een eigen peil (`meer`), en kades of natuurlijke oevers per stuk. Sluizen uit OSM staan in de provincielaag, beweegbare bruggen (`bridge:movable`) worden bij de volgende extract meegenomen. Nieuw: `scripts/province_water_audit.mjs` telt soorten, vaarklassen, bruggen en sluizen van een gebouwde provincie.

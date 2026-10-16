@@ -436,7 +436,9 @@ async function boot() {
       const dtp = Math.max(dt, 1e-3);
       const vx = f.x !== undefined ? (f.x - (tileFollow.x ?? f.x)) / dtp : 0, vy = f.y !== undefined ? (f.y - (tileFollow.y ?? f.y)) / dtp : 0;
       tileFollow.x = f.x; tileFollow.y = f.y;
-      if (f.x !== undefined) world.map.follow(f.x, f.y, { vx: Math.min(80, Math.max(-80, vx)), vy: Math.min(80, Math.max(-80, vy)) }, 1.5);
+      // a camera cut is a jump, not a speed: no heading prefetch from it
+      const cut = Math.hypot(vx, vy) * dtp > 150;
+      if (f.x !== undefined) world.map.follow(f.x, f.y, cut ? {} : { vx: Math.min(80, Math.max(-80, vx)), vy: Math.min(80, Math.max(-80, vy)) }, 1.5);
     }
     updateAudio(dt, world);
     updateNarrative();
