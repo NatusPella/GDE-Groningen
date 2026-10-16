@@ -8,6 +8,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ### Toegevoegd
 - **Geldwagen overvallen:** blaas een Poen Express uit het verkeer open (total loss), pak de geldzak en de politie zit je achterna. Geldwagen en geldzak staan op de minimap en de kaart.
+- **Water in de hele provincie (eerste stap):** meren, plassen, sloten en kanalen buiten de stad hebben nu soort, diepte en peil, net als in het Ommeland. Boten, zwemmen en waden zien dat water zodra de provincie opnieuw is gebouwd.
 
 ### Verbeterd
 - **Even pinnen:** de opdrachtregels zeggen nu duidelijk dat de pinautomaat achterin de auto ligt.
