@@ -237,6 +237,25 @@ export function annotateWater(water, cell = 2.5) {
   return bodies;
 }
 
+// Province water (docs/PROVINCIE-PLAN.md 2.11): one row per mapped water
+// polygon, with no body graph (a body can span packs): kind from the row's
+// own width (2 A / P) and name, then the same lv, dp and nav fields as the
+// city water, so waterAt, boats, swimmers and the heli read it alike. A wide
+// or large polygon counts as open water (the boezem's rule), a narrow one
+// with a ditch name is a sloot.
+export function annotateProvinceWater(rows) {
+  for (const w of rows) {
+    const A = polyArea(w.pts), w2 = 2 * A / (polyPerimeter(w.pts) || 1);
+    const kind = classifyWater(w, w2 >= KIND_WIDTH.vaart || A > 4000, w2);
+    const K = WATER_KINDS[kind];
+    w.kind = kind;
+    w.lv = K.level !== undefined ? K.level : BOEZEM_Y;
+    w.dp = K.depth;
+    w.nav = K.nav;
+  }
+  return rows;
+}
+
 // --------------------------------------------------------------- boats
 
 export function boatModelKind(v) {

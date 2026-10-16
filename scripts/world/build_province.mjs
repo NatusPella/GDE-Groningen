@@ -23,6 +23,7 @@ import { wgsToWorld } from '../../game/js/rdnew.js';
 import { edgeFromOsm } from '../../game/js/worldedge.js';
 import { features, tileBlob, railRoute, busLines, writeLayer, ommelandBox } from './build_corridor.mjs';
 import { LINES, packOf } from './corridor.mjs';
+import { annotateProvinceWater } from '../../game/js/waterlevels.js';
 import { Raster, paint, writePyramid, FINE_M } from './province_map.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
@@ -275,10 +276,10 @@ export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(s
     for (const f of files) { stats.sourceMB += fs.statSync(f).size / 1e6; for (const el of gunzipJson(f).elements) els.push(el); }
     for (const el of els) if (el.tags && el.tags.natural === 'coastline' && el.g && !coast.has(el.id)) coast.set(el.id, el);
     const feats = features(els, ctx);
-    // the water is drawn flat until the province gets its water model (docs
-    // 2.7: levels, banks, locks); cut at the tile edge it would grow quay
-    // walls across every canal there (tileworld.js keeps it off the water grid)
-    for (const f of feats) if (f.kind === 'water') f.row.flat = true;
+    // the water keeps `flat` (the far LOD draws it so) and gets the city
+    // water's kind, lv, dp and nav: tileworld.js puts annotated rows in the
+    // water grid, so boats, swimmers and waterAt see them
+    annotateProvinceWater(feats.filter((f) => f.kind === 'water').map((f) => { f.row.flat = true; return f.row; }));
     WB.applyDuals(feats.filter((f) => f.kind === 'roads').map((f) => f.row));
     // features by tile, only for this pack's tiles
     const mine = new Set(want);
