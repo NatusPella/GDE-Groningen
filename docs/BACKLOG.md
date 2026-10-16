@@ -72,6 +72,21 @@ ophalen en de F2-stap (polders per tegel uit).
 | 4 | Echte voorzieningen provinciebreed (ziekenhuizen, politie, tankstations, winkels) | P1 | 3–4 |
 | 5 | Prestaties: streaming-stresstest (heli 60 m/s, trein, teleports), downloadbudget ~1 GB | P0 | 4–5 |
 
+*Stand (F2a, PROVINCIE-PLAN.md 2.28):* 1 de tegels zijn er: alle 3.169
+tegels van de provincie plus een randstrook Friesland/Drenthe uit het
+Geofabrik-extract (`extract_province.py`, `build_province.mjs`, ~53 MB), standaard
+aan voorbij het oude Ommeland (`--legacy` = oud), nep-polderwegen en -dorpen
+daar uit; **open:** de oude Ommeland-lagen zelf vervangen (`countryreal`,
+`countryedge`, `countrybake`-rand, `realmap`), het water per tegel (nu plat,
+zonder varen/zwemmen), de Duitse randstrook, 3D BAG voor de provincie (plan
+met schatting in 2.28), AHN-hoogte, de Electron-meting met `--provincie`;
+3 plaatsnamen en wijken, kaart (basispiramide z0-z3) klaar, bewegwijzering
+niet; 4 klaar (`facilities.json` uit hetzelfde extract); 5 virtuele-klokmeting
+klaar (0 tegels te laat bij auto, trein en heli), de echte stresstest staat
+open. Ook klaar: treinen naar alle 26 stations buiten de stad + lijn Veendam.
+**[eigenaar]** de caches staan alleen in deze werkboom: eenmalig de commando's
+uit 2.28 draaien voordat een release de provincie meeneemt.
+
 ## 0.34.0 en verder: de provincie leeft (F3)
 
 - **Voertuigen:** vrachtwagens met opleggers en leveringen naar Eemshaven en Delfzijl, bus-simulator, vliegtuig met landingsbanen, rondvluchten, sproeivliegen, veerboten (P1).

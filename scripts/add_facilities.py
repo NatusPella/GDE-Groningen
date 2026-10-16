@@ -18,7 +18,8 @@ everything across the German border are left out.
 
     python3 scripts/add_facilities.py            # build from the cache
     python3 scripts/add_facilities.py --refresh  # refetch from Overpass
-    python3 scripts/add_facilities.py --cache data/cache/province/facilities_raw.json.gz  # from the Geofabrik extract
+    python3 scripts/add_facilities.py --cache data/cache/province/facilities_raw.json.gz,data/cache/province-drenthe/facilities_raw.json.gz,data/cache/province-friesland/facilities_raw.json.gz
+                                                 # from the Geofabrik extracts (scripts/world/extract_province.py)
 
 The cache is data/facilities_raw.json.gz (one Overpass call).
 """

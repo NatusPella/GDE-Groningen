@@ -234,9 +234,10 @@ async function boot() {
   // them, or ?legacymap, reads the JSON files as before
   const onMapProgress = (f) => setLoadProgress(0.05 + f * 0.45);
   // the province's layer (index-provincie.json, F2) and the proefstrook's
-  // (index-corridor.json) always name their places; with ?provincie (desktop
-  // --provincie; ?corridor too) their tiles stream in as well, where the old
-  // Ommeland layers do not already draw (flag 8). The province's tiles win.
+  // (index-corridor.json) always name their places; their tiles stream in as
+  // well (provinceworld.js provinceMode: by default, ?provincie; not with
+  // ?legacy), where the old Ommeland layers do not already draw (flag 8).
+  // The province's tiles win.
   const corridor = provinceMode() === 'on';
   const only = corridor ? (t) => !(t.flags & 8) : () => false;
   const extra = [{ name: 'index-provincie.json', only }, { name: 'index-corridor.json', only }];
@@ -252,7 +253,7 @@ async function boot() {
   const map = tiles ? tiles.world : await loadMap('citymap.json', onMapProgress);
   tileWorldStats = tiles ? tiles.store : null;
   markLoad('map');
-  // with ?provincie the train lines run on over the real track to every
+  // with the province on the train lines run on over the real track to every
   // station (corridorrail.js): the province's lines, else the proefstrook's
   let om = await ommeland;
   if (corridor && om && corLayer && corLayer.global) {
