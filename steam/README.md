@@ -1,7 +1,7 @@
 # Steam (SteamPipe) template
 
 Prepared for when GDE Groningen gets a Steam app (Steam Direct, $100; see
-ROADMAP.md, "Steam-klaar"). There is no Steam account or app id yet, so
+the "Steam-klaar" issue on the GitHub board). There is no Steam account or app id yet, so
 nothing here has been uploaded, and nothing in this repo contacts Steam.
 
 ```

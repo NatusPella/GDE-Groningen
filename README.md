@@ -165,7 +165,7 @@ beperken". Het volledige overzicht staat in
 
 Hoe de modules samenwerken staat in [ARCHITECTURE.md](ARCHITECTURE.md), de
 beeldstijl in [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md), de plannen in
-[ROADMAP.md](ROADMAP.md) en wat er per versie veranderde in
+[GitHub-bord](https://github.com/users/NatusPella/projects/5) (bugs en wensen, als issues) en wat er per versie veranderde in
 [CHANGELOG.md](CHANGELOG.md).
 
 ## Meedoen
