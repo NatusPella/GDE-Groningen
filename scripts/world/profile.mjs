@@ -4,6 +4,7 @@
 //   node scripts/world/profile.mjs --solve    solve, audit the result (dry run)
 //   node scripts/world/profile.mjs --write    solve and write road.z back
 //   node scripts/world/profile.mjs --strict   exit 1 when the audit finds a problem
+//   --terrain                                 solve over the AHN terrain (scripts/world/fetch_ahn.py; F2)
 //
 // See solve() for the model. The audit checks every profiled road: grade per
 // class, vertical curve radius, steps at joints, clearance at every crossing
@@ -607,8 +608,10 @@ async function main() {
     const t0 = performance.now();
     // a road that gets a profile brings its own crossings with paths and
     // service roads into play: solve again until nothing changes (3 passes at most)
+    // --terrain: the AHN field (terrain.mjs; F2, the game draws flat until then)
+    const terrain = args.includes('--terrain') ? (await import('./terrain.mjs')).loadTerrainField().at : flatTerrain;
     for (let pass = 0; pass < 3; pass++) {
-      const sol = solve(data, { paths: args.includes('--paths'), protect: protectedRoads(data, extras), couple: !args.includes('--no-couple'), clear: !args.includes('--no-clear') });
+      const sol = solve(data, { terrain, paths: args.includes('--paths'), protect: protectedRoads(data, extras), couple: !args.includes('--no-couple'), clear: !args.includes('--no-clear') });
       const res = apply(data, sol);
       console.log(`pass ${pass + 1} solved in ${((performance.now() - t0) / 1000).toFixed(1)} s: ${JSON.stringify(sol.stats)}; ${res.changed} profiles changed, ${res.cleared} flat now, ${sol.pts.size} roads densified`);
       if (!res.changed && !res.cleared && !sol.pts.size) break;

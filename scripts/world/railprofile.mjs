@@ -593,7 +593,8 @@ async function main() {
       console.log(`platforms: ${data.railPlatforms.length} (${data.railPlatforms.filter((p) => p.layer > 0).length} raised)`);
     }
     const t0 = performance.now();
-    const sol = solve(data);
+    // --terrain: the AHN field (terrain.mjs; F2, the game draws flat until then)
+    const sol = solve(data, args.includes('--terrain') ? { terrain: (await import('./terrain.mjs')).loadTerrainField().at } : {});
     const res = apply(data, sol);
     console.log(`solved in ${((performance.now() - t0) / 1000).toFixed(1)} s: ${JSON.stringify(sol.stats)}; ${res.changed} rails changed`);
     if (sol.shortfall.length) {

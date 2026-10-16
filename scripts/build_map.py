@@ -23,6 +23,8 @@ Steps (each script edits game/citymap.json in place, see its docstring):
   world/water.mjs       water bodies, kind, peil, depth, boat class; road.movable; meta.locks
   world/furniture.mjs   mapped street furniture (furniture)
   world/greenery.mjs    tree species, heights and flags; woods filled; hedges into furniture
+  world/building_attrs  OSM building attributes -> data/world/building_attrs.json.gz
+  world/building_heights.mjs  heights (3D BAG > OSM height > levels > default), walls in h, ridge hm, roof rk
   add_helipad           meta.helipad (+ the UMCG helipad wing)
   add_landmark_footprints
   add_shops             meta.shops
@@ -102,6 +104,10 @@ def main():
     run_node("world/furniture.mjs", "--write")
     # tree species and heights, woods filled, hedges (after furniture: it adds to it)
     run_node("world/greenery.mjs", "--write")
+    # real building heights and roofs: the OSM attributes, then the 3D BAG extract
+    # (data/world/3dbag.json.gz; refresh it with scripts/world/fetch_3dbag.py)
+    run("world/building_attrs")
+    run_node("world/building_heights.mjs", "--write")
     run("add_helipad", *extra)
     run("add_landmark_footprints")
 
