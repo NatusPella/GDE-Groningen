@@ -10,7 +10,7 @@
 const STAR_HEAT = 100;
 const RAMPAGE_HEAT = 220;
 const COOL_PER_S = 7;
-const SEVERITY = { pedHit: 45, pedKill: 100, copBump: 60, copHit: 100, drunkDriving: 40, tunedMoped: 30 };
+const SEVERITY = { pedHit: 45, pedKill: 100, copBump: 60, copHit: 100, drunkDriving: 40, tunedMoped: 30, cashVanBlown: 120, cashVanLoot: 60 };
 
 let heat = 0;
 let heatAt = 0;
