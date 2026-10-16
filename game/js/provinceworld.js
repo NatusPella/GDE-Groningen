@@ -24,17 +24,17 @@ import { setProvinceMap } from './provincemap.js';
 // tile flags (build_province.mjs FLAG)
 export const PFLAG = { LAND: 1, BUILT: 4, OLD: 8, BUFFER: 16, PROVINCE: 32 };
 
-// Is the game asked to stream the province's tiles? ?provincie (desktop
-// --provincie) everywhere the old layers do not draw; ?legacy turns it off.
-// Default: on beyond the old Ommeland (F2, provinceDefault), off with ?legacy.
+// Does the game stream the province's tiles? By default (F2, step 4) and
+// with ?provincie (desktop --provincie; ?corridor too) yes, wherever the old
+// Ommeland layers do not draw (flag 8: they keep their own area); ?legacy
+// (desktop --legacy) keeps the old layers and polders everywhere. A build
+// without the province layer (no extract in data/cache) has nothing to stream.
+export const PROVINCE_DEFAULT = true;
 export function provinceMode(search = typeof location !== 'undefined' ? location.search : '') {
   if (/[?&]legacy\b/.test(search)) return 'off';
   if (/[?&](provincie|corridor)\b/.test(search)) return 'on';
   return PROVINCE_DEFAULT ? 'on' : 'off';
 }
-// F2 step 4: the province's tiles stream by default beyond the old
-// Ommeland (they never replace a tile the old layers draw, flag 8)
-export const PROVINCE_DEFAULT = false;
 
 // The polder blocks (BLOCK m) mostly covered by tiles for which isTile(key)
 // holds: { x0, y0, w, h, data } in block units, or null. A block counts when
@@ -115,6 +115,8 @@ export function initProvince(tiles, { stream = provinceMode() === 'on' } = {}) {
     const px = new Uint8Array(B.w * B.h);
     for (let k = 0; k < px.length; k++) px[k] = B.data[k] ? 255 : 0;
     S.tex = new THREE.DataTexture(px, B.w, B.h, THREE.RedFormat, THREE.UnsignedByteType);
+    S.tex.unpackAlignment = 1;
+    S.tex.generateMipmaps = false;
     S.tex.minFilter = S.tex.magFilter = THREE.NearestFilter;
     S.tex.needsUpdate = true;
     COUNTRY_UNIFORMS.uProvBlocks.value = S.tex;

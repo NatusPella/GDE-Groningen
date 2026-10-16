@@ -6,6 +6,29 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Nieuw
+- **De hele provincie.** Voorbij het oude Ommeland ligt nu het echte
+  Groningen: elke weg, elk huis, elke boerderij en elk dorp van Lauwersoog
+  tot Ter Apel en van Grijpskerk tot Bad Nieuweschans, met een strookje
+  Friesland en Drenthe langs de grens. Waar de echte wegen liggen zijn de
+  verzonnen polderwegen, maren en dorpjes weg. Het water is daar voorlopig nog
+  plat: varen en zwemmen kan er nog niet. Wie de oude wereld wil houden start
+  met `--legacy`.
+- **Plaatsnamen overal.** De locatie noemt elke stad, elk dorp en elk gehucht
+  in de provincie, met de wijk erbij.
+- **Treinen naar alle stations.** De stoptreinen rijden door over het echte
+  spoor naar Grijpskerk, Hoogezand-Sappemeer, Zuidbroek, Scheemda,
+  Winschoten, Bad Nieuweschans, Appingedam, Delfzijl, Baflo, Warffum,
+  Usquert, Uithuizen, Uithuizermeeden, Roodeschool en Eemshaven, en er is een
+  nieuwe lijn naar Veendam. Met de kaartautomaat reis je naar elk station.
+- **De kaart van de hele provincie.** De grote kaart laat heel Groningen
+  zien, van de Wadden tot Westerwolde.
+
+### Veranderd
+- **Voorzieningen** (ziekenhuizen, politie, tankstations, winkels, parkeren)
+  komen nu uit één verse kaart van de hele provincie, plus een strook over
+  de grens.
+
 ## [0.32.0] - 2026-10-16
 
 ### Nieuw

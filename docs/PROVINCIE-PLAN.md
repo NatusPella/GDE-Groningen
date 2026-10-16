@@ -1490,6 +1490,61 @@ de wereldbouwer tekent (zonder dat staan de nieuwe tegels op de polders).
 Pas als de hele strook gemeten is (download ≤ 10 MB, 10 min A7/N33 zonder
 hapering > 66 ms) is het een volledige go voor F2.
 
+### 2.28 F2a: de hele provincie uit één OSM-extract (stand)
+
+De eigenaar koos voor de hele provincie in één keer. Overpass weigerde de
+strook (HTTP 406/429), dus de bron is nu het Geofabrik-extract.
+
+| Onderdeel | Stand |
+|---|---|
+| **1. PBF-pijplijn** | **klaar.** `scripts/world/extract_province.py` (pyosmium in `data/cache/venv`) leest `groningen-latest.osm.pbf` (54 MB, md5 gecontroleerd) in twee rondes naar dezelfde pack-caches als `fetch_corridor.py` (`data/cache/province/c<pack>.json.gz`): wegen met toegangs- en strooktags, gebouwen, spoor, water, landuse en groen, multipolygonen met samengevoegde ringen, bomen, barrières en straatmeubilair, plaatsen, stations, bus- en treinroute-relaties. Rand: de extracten van Friesland en Drenthe, met `--near` geknipt tot 4 km langs de grens (voorzieningen 12 km) en daarna weggegooid; **Duitsland heeft nog geen strook** (Niedersachsen is te groot voor één download; de rand daar is horizon en `worldedge`-regels). `fetch_corridor.py` blijft als terugval. Test: `extract_province_test.py` (een zelfgemaakte mini-PBF) |
+| **2. Tegels** | **klaar.** `scripts/world/build_province.mjs`: alle tegels binnen 3 km van de provinciegrens, pack voor pack door hetzelfde tegelpad als de strook (`tileBlob` → `worldbuilder.js`, F1c-haken: boomsoorten, bossen gevuld, meubilair). 4.077 tegels in de set, **3.169 gebouwd** (2.596 voorbij het oude Ommeland, 487 in de randstrook), 54 van de stad, 847 leeg (zee, Duitsland). Plaatsen: 921 (147 wijken bij hun plaats), 30 stations, 10 treinlijnen uit de OSM-routes, 252 buslijnen, kust en grenzen. Hoogtes: nog geen 3D BAG buiten de stad (99 % `default`, zie onder) |
+| **Voorzieningen** | **klaar:** `game/facilities.json` uit hetzelfde extract (`add_facilities.py --cache`, provincie + 12 km): 9.650 voorzieningen (was 11.773 uit de Overpass-rechthoek, die ook Assen en Drachten meenam); binnen de provincie gelijk op een handvol na |
+| **3. In het spel** | **achter `?provincie`** (desktop `--provincie`; ook `?corridor`), `?legacy` zet het uit. De tegels streamen waar de oude Ommeland-lagen niet tekenen (vlag 8). De detailbouwers van de stad tekenen ze al (ze lezen de grids van de tegelwereld); voorbij de detailstraal tekent `farlod.js` ze per tegel. De polderblokken onder de tegels worden echte blokken (geen nep-wegen, maren, dorpen of boerderijen; `uProvBlocks` in de grond-shader), de props houden afstand van echte wegen, gebouwen en water. Plaatsnamen en wijken voor elke plaats (locatie). Treinen: elke Ommeland-lijn rijdt door over het echte spoor naar alle 26 stations buiten de stad, plus een tak naar Veendam; snelreizen naar elk station. Kaart: de volledige kaart bestrijkt de provincie met een basispiramide (z0-z3, 160 tot 20 m per pixel, 5 MB PNG) en de vectoren van de geladen tegels; de minimap tekent de geladen tegels |
+| **Water** | **vlak:** het water van de provincietegels wordt plat getekend (de echte peilen, oevers en sluizen van 2.7 en F1c zijn nog niet per tegel aangesloten) en staat buiten de watergrid: geen boten, zwemmen of eenden op provinciewater, auto's rijden eroverheen |
+| **4. Standaard aan** | zie de stand onderaan |
+
+**De data ophalen en bouwen (eenmalig, ~5 min, ~210 MB download, daarna
+~75 MB caches; alles in `data/cache/`, niet in git):**
+
+```
+python3 -m venv data/cache/venv && data/cache/venv/bin/pip install osmium
+G=https://download.geofabrik.de/europe/netherlands
+for p in groningen friesland drenthe; do curl -L -A 'GDE-Groningen-mapbuilder/1.0' -o data/cache/$p-latest.osm.pbf $G/$p-latest.osm.pbf; done
+data/cache/venv/bin/python scripts/world/extract_province.py
+for p in friesland drenthe; do data/cache/venv/bin/python scripts/world/extract_province.py --pbf data/cache/$p-latest.osm.pbf \
+  --near data/cache/province/province.json.gz --out data/cache/province-$p && rm data/cache/$p-latest.osm.pbf; done
+python3 scripts/add_facilities.py --cache data/cache/province/facilities_raw.json.gz,data/cache/province-drenthe/facilities_raw.json.gz,data/cache/province-friesland/facilities_raw.json.gz
+node scripts/province_test.mjs        # de stage bouwt de tegels daarna zelf (desktop/build.mjs)
+```
+
+**3D BAG voor de provincie (plan, niet uitgevoerd):** `fetch_3dbag.py
+--province` = de bestaande `--bbox`-route met de provinciebox (RD
+200.000-280.000 × 540.000-620.000) en `--max-mb`. Schatting: ~430.000
+panden; de stad (81.586 panden) geeft een extract van 1,8 MB, dus
+**~9-10 MB gzip** voor de provincie (te groot om in git te zetten: per pack
+bouwen in `data/cache`, of per pack ≤ 5 MB committen); downloads van de
+GeoPackage-tegels **~2-4 GB** (schatting, niet gemeten), tijdelijk in
+`data/cache/3dbag`, na het extraheren weg. De join is dezelfde als in de stad
+(BAG-id uit `ref:bag`, anders zwaartepunt + oppervlakte).
+
+**Metingen F2a (deze machine, parallelle agents).**
+
+| Meting | Waarde | Doel |
+|---|---|---|
+| Extract provincie (pyosmium) | 123 s, piek 1,9 GB RAM; caches 55 MB (+ 19 MB randstroken, 1-1,5 min per buur) | eenmalig |
+| Tegels bouwen | 105 s (zonder het bosvullen van F1c: 9 s); stad-sleutels 2 s | ≤ 15 min |
+| Grootte | packs 46,2 MB (88 MB rauw, 14,6 kB/tegel), index 0,83 MB, bussen 1,1 MB, basiskaart 5,0 MB: **~53 MB** | ≤ ~1 GB |
+| Inhoud | 435.000 gebouwen, 110.800 weg-stukken, 26.200 water, 125.400 groen, 1.284 spoor, 1,16 mln bomen (bossen gevuld), 20.300 stuks meubilair | |
+| Decoderen per tegel | p50 0,3 ms, p95 2,7 ms (één uitschieter 90 ms: GC) | ≤ 3 ms |
+| Poorten | 34.164 verbonden, 13 open | ~0 |
+| Auto A7 Stad → Bad Nieuweschans, 33 m/s (47 km) | 0 te laat binnen 250 m; hoofdthread max 9,6-26 ms, 1-4 frames > 8 ms; piek 16 MB tegeldata | 0 te laat |
+| Trein Groningen → Eemshaven, 39 m/s (45 km) | 0 te laat; max 7,8-41 ms (een dichte bostegel: addTile is één taak) | 0 te laat, < 66 ms |
+| Heli Stad → Eemshaven en → Ter Apel, 60 m/s | 0 te laat; max 8 ms | geen pop-in |
+
+(Virtuele klok, `scripts/province_test.mjs`. De Electron-meting met
+`--provincie` en een stille machine staat open.)
+
 ## 3. Reizen door de provincie
 
 De provincie is **37 keer zo groot als een grote open-wereldkaart** (~80 km²) en een
