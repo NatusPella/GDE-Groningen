@@ -186,6 +186,7 @@ export function buildRoad(src, ctx = {}) {
     if (layer) row.layer = layer;
     if (tags.tunnel === 'yes' || tags.tunnel === 'culvert') row.tunnel = true;
     if (tags.bridge === 'viaduct') row.viaduct = true;
+    if (bridge && tags['bridge:movable'] && tags['bridge:movable'] !== 'no') row.movable = tags['bridge:movable'];
     for (const k of ['cutting', 'embankment']) if (tags[k] !== undefined && tags[k] !== 'no') row[k] = true;
     if (tags.ref) row.ref = tags.ref;
     const acc = accessMask(hw, spec.cat, tags);
