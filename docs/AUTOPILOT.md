@@ -17,3 +17,5 @@ interactieve sessies.
 ## Prioriteit
 
 Volgorde op het bord: eerst alles met het label `bug`, daarna nieuw werk op hoge impact en lage kosten (`impact-*`, `kosten-*`), en `later` onderaan. Er zijn geen P0–P3-labels meer.
+
+Elk issue is een `bug` of een `wens`, met één impact- en één kostenlabel. Verder alleen `autopilot` en `eigenaar`. Werkafspraak: als we iets met een issue doen, werken we het issue (en het bord) ook bij.
