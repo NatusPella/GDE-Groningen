@@ -782,7 +782,9 @@ FURNITURE section) and rules:
   roads with a ref (numbers along the ref's principal axis: invented,
   monotonic);
 - lamps by road class (`LAMP_RULES`: mast, arm, lantern, path; height and
-  spacing) with `opts.lamps` (the game keeps nightlights3d.js), path bollards
+  spacing) with `opts.lamps` (the game draws its own lamps, nightlights3d.js,
+  with the same rules: spacing and height by class, a taller pole lifting its
+  head, light and pool), path bollards
   with `opts.bollards` (the city has streetclutter.js), woonerf plateaus with
   `opts.livingBumps`;
 - mapped: guardrail, fence and noise barrier lines (sections), speed bumps
