@@ -265,6 +265,8 @@ export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(s
   const empty = [], noPack = [];
   const railRows = [];
   const coast = new Map();
+  const locks = new Map();
+  let waterBodies = 0;
   const packKey = (k) => { const [a, b] = k.split('_').map(Number); return a * 1000 + b; };
   for (const pk of [...byPack.keys()].sort((a, b) => packKey(a) - packKey(b))) {
     const files = dirs.map((d) => path.join(d, `c${pk}.json.gz`)).filter((f) => fs.existsSync(f));
@@ -279,7 +281,15 @@ export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(s
     // the water keeps `flat` (the far LOD draws it so) and gets the city
     // water's kind, lv, dp and nav: tileworld.js puts annotated rows in the
     // water grid, so boats, swimmers and waterAt see them
-    annotateProvinceWater(feats.filter((f) => f.kind === 'water').map((f) => { f.row.flat = true; return f.row; }));
+    const wr = annotateProvinceWater(feats.filter((f) => f.kind === 'water').map((f) => { f.row.flat = true; return f.row; }), { base: waterBodies, village: ctx.village });
+    waterBodies += wr.bodies;
+    for (const el of els) {
+      const t = el.tags || {};
+      if (el.type === 'way' && el.g && el.g.length > 1 && (t.waterway === 'lock_gate' || t.lock === 'yes') && !locks.has(el.id)) {
+        const m = el.g[Math.floor(el.g.length / 2)], [x, y] = wgsToWorld(m[0], m[1]);
+        locks.set(el.id, { x: r1(x), y: r1(y), name: t.name || '', w: parseFloat(t.maxwidth) || 0 });
+      }
+    }
     WB.applyDuals(feats.filter((f) => f.kind === 'roads').map((f) => f.row));
     // features by tile, only for this pack's tiles
     const mine = new Set(want);
@@ -345,6 +355,7 @@ export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(s
     stations: [...stations.entries()].map(([key, s]) => ({ key, ...s })).sort((a, b) => (a.key < b.key ? -1 : 1)),
     routes, bus: bus.map(({ id, ref, name, from, to, pts, stops }) => ({ id, ref, name, from, to, pts, stops })),
     edge, outline: rings.map((R) => simplify(R, 60).map(([x, y]) => [Math.round(x), Math.round(y)])),
+    locks: [...locks.values()].sort((a, b) => a.x - b.x || a.y - b.y), waterBodies,
     buffer, empty: empty.sort(), city: city.sort(), missing: noPack.sort(),
   };
   return { blobs, global, stats, keys, tiles, empty, missing: noPack, raster };

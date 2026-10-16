@@ -63,7 +63,7 @@ FURNITURE_KEYS = {"support", "lamp_type", "lit", "colour", "material", "backrest
                   "traffic_signals", "information", "capacity", "bicycle_parking", "recycling_type", "covered", "height"}
 EXTRA_KEEP = {"tourism", "power", "generator:source", "sport", "surface", "lit", "sidewalk", "sidewalk:left", "sidewalk:right",
               "sidewalk:both", "parking:lane:both", "parking:lane:left", "parking:lane:right", "hgv", "maxheight", "maxwidth",
-              "maxweight", "agricultural", "motorcycle", "moped", "mofa", "crop", "produce", "wetland", "intermittent", "ISO3166-2"}
+              "maxweight", "agricultural", "motorcycle", "moped", "mofa", "crop", "produce", "wetland", "intermittent", "ISO3166-2", "bridge:movable", "lock", "lock_name"}
 URBAN_CELL = 120
 PLACE_KINDS = {"city", "town", "village", "hamlet", "suburb", "quarter", "neighbourhood", "isolated_dwelling", "locality",
                "island", "islet", "farm", "square"}
