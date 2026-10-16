@@ -23,6 +23,7 @@ import { wgsToWorld } from '../../game/js/rdnew.js';
 import { edgeFromOsm } from '../../game/js/worldedge.js';
 import { features, tileBlob, railRoute, busLines, writeLayer, ommelandBox } from './build_corridor.mjs';
 import { LINES, packOf } from './corridor.mjs';
+import { Raster, paint, writePyramid, FINE_M } from './province_map.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 export const PROVINCE_BUILDER = 1;
@@ -221,7 +222,7 @@ export function trainLines(trains, railRows, stations) {
 
 // ------------------------------------------------------------- build
 
-export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(src), cityKeys = new Set(), buffer = BUFFER_M, onPack = null } = {}) {
+export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(src), cityKeys = new Set(), buffer = BUFFER_M, onPack = null, map = true } = {}) {
   const prov = gunzipJson(path.join(src, 'province.json.gz'));
   // the neighbours' strips: their places, stations and built-up cells join the province's
   const dirs = [src, ...extra];
@@ -248,6 +249,14 @@ export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(s
     const t = tiles.get(k);
     const p = packOf(t.i, t.j);
     (byPack.get(p) || byPack.set(p, []).get(p)).push(k);
+  }
+  // the base map (province_map.mjs), painted pack by pack over the tile set
+  let raster = null;
+  if (map && keys.length) {
+    let i0 = Infinity, j0 = Infinity, i1 = -Infinity, j1 = -Infinity;
+    for (const t of tiles.values()) { i0 = Math.min(i0, t.i); j0 = Math.min(j0, t.j); i1 = Math.max(i1, t.i); j1 = Math.max(j1, t.j); }
+    const [x0, y0] = G.tileOrigin(i0, j0);
+    raster = new Raster(x0, y0, Math.ceil(((i1 - i0 + 1) * G.TILE_M) / FINE_M), Math.ceil(((j1 - j0 + 1) * G.TILE_M) / FINE_M), FINE_M);
   }
   const gid = { buildings: GID0, roads: GID0, water: GID0, green: GID0, trees: GID0, rails: GID0 };
   const stats = { tiles: 0, buildings: 0, roads: 0, water: 0, rails: 0, green: 0, trees: 0, furniture: 0, hsrc: {}, packs: 0, sourceMB: 0 };
@@ -287,6 +296,11 @@ export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(s
         if (!mine.has(k)) continue;
         (idx.get(k) || idx.set(k, []).get(k)).push(f);
       }
+    }
+    if (raster) {
+      const [pi, pj] = pk.split('_').map(Number);
+      const [bx, by] = G.tileOrigin(pi * 8, pj * 8);
+      paint(raster, feats, [bx, by, bx + 8 * G.TILE_M, by + 8 * G.TILE_M]);
     }
     for (const k of want) {
       const t = tiles.get(k);
@@ -333,13 +347,16 @@ export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(s
     edge, outline: rings.map((R) => simplify(R, 60).map(([x, y]) => [Math.round(x), Math.round(y)])),
     buffer, empty: empty.sort(), city: city.sort(), missing: noPack.sort(),
   };
-  return { blobs, global, stats, keys, tiles, empty, missing: noPack };
+  return { blobs, global, stats, keys, tiles, empty, missing: noPack, raster };
 }
 
 // The bus lines (~1 MB) go in a file of their own, read when needed; the
 // index (read at start for the place names) stays small.
 export function writeProvince(out, built) {
   const { bus, ...global } = built.global;
+  // the base map's pyramid (province_map.mjs) next to the packs
+  const pm = built.raster ? writePyramid(built.raster, out) : null;
+  if (pm) { global.map = pm.meta; built.stats.mapMB = +(pm.bytes / 1e6).toFixed(2); }
   const r = writeLayer(out, { ...built, global: { ...global, busFile: 'provincie-bus.json' } }, { prefix: 'v', file: 'index-provincie.json', layer: 'provincie', builder: PROVINCE_BUILDER });
   fs.writeFileSync(path.join(out, 'provincie-bus.json'), JSON.stringify({ builder: PROVINCE_BUILDER, bus }));
   return r;
@@ -374,6 +391,7 @@ async function main() {
   console.log(`  ${Object.keys(index.packs).length} packs ${(size / 1e6).toFixed(1)} MB (${(raw / 1e6).toFixed(1)} MB raw, ${Math.round(size / Math.max(1, s.tiles))} B/tile), index ${(idxSize / 1e6).toFixed(2)} MB; source ${s.sourceMB.toFixed(1)} MB gzip in ${s.packs} packs`);
   console.log(`  ${s.buildings} buildings (height ${Object.entries(s.hsrc).map(([k, v]) => `${k} ${v}`).join(', ')}), ${s.roads} road pieces, ${s.water} water, ${s.green} green, ${s.rails} rail pieces, ${s.trees} trees, ${s.furniture} furniture`);
   console.log(`  ${g.places.length} places, ${g.stations.length} stations, ${g.routes.length} train lines (${g.routes.filter((r) => r.reached).length} complete), ${g.bus.length} bus lines, ${g.edge.coast.length} coast pieces, ${g.edge.border.length} border lines`);
+  if (s.mapMB !== undefined) console.log(`  base map: ${g.map ? '' : ''}${s.mapMB} MB of PNG tiles (z0-z3, ${index.global.map.levels.map((L) => `${L.m} m/px ${L.tiles.length}`).join(', ')})`);
   console.log(`  city keys ${((t1 - t0) / 1000).toFixed(1)} s, build ${((t2 - t1) / 1000).toFixed(1)} s -> ${path.relative(ROOT, out)}`);
 }
 

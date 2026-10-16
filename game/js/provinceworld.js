@@ -19,6 +19,7 @@ import { BLOCK, COUNTRY_UNIFORMS, setProvinceBlocks } from './countryfield.js';
 import { setExtraBlocked } from './countryedge.js';
 import { tileIndexOf, tileKey } from './gdt.js';
 import { pointInPolygon } from './util.js';
+import { setProvinceMap } from './provincemap.js';
 
 // tile flags (build_province.mjs FLAG)
 export const PFLAG = { LAND: 1, BUILT: 4, OLD: 8, BUFFER: 16, PROVINCE: 32 };
@@ -102,7 +103,9 @@ const S = { layer: null, keys: null, blocks: null, tex: null };
 export function initProvince(tiles, { stream = provinceMode() === 'on' } = {}) {
   const layer = tiles && tiles.index.layers && tiles.index.layers.provincie;
   S.layer = layer && layer.global ? layer.global : null;
-  if (!S.layer || !stream) { setProvinceBlocks(null); return { layer: S.layer, tiles: 0, blocks: 0 }; }
+  if (!S.layer || !stream) { setProvinceBlocks(null); setProvinceMap(null); return { layer: S.layer, tiles: 0, blocks: 0 }; }
+  // the full map's base layer (provincemap.js)
+  setProvinceMap(S.layer.map || null);
   const idx = tiles.index.tiles;
   const isTile = (k) => { const t = idx[k]; return t && t.flags & PFLAG.PROVINCE ? t : null; };
   S.keys = Object.keys(idx).filter((k) => isTile(k));
