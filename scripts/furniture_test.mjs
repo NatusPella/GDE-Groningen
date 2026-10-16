@@ -41,6 +41,18 @@ const g = tileA.items.filter((it) => it.k === 'gantry');
 ok(g.length === 1 && Math.abs(g[0].x - (600 - SF.RULES.gantryBefore)) < 1, 'one gantry before the exit', g.map((q) => q.x.toFixed(0)).join(', '));
 const places = new Set(SF.DESTINATIONS.map((p) => p.n).concat('Centrum'));
 ok(g.length && g[0].text.length === 2 && g[0].text.every((t) => [...places].some((p) => t.endsWith(p))), 'gantry signs real places', g[0] && g[0].text.join(' / '));
+// province places (worldplaces.js): a gantry signs towns of the data, far ones are left out
+const WP = await import('../game/js/worldplaces.js');
+ok(WP.worldSignPlaces() === null, 'no province places before they are set');
+WP.setWorldPlaces([
+  { name: 'Oostdorp', kind: 'town', x: 12000, y: 0 }, { name: 'Westdorp', kind: 'town', x: -12000, y: 0 },
+  { name: 'Verweg', kind: 'city', x: 90000, y: 0 }, { name: 'Gehucht', kind: 'hamlet', x: 20000, y: 100 },
+]);
+const sp = WP.worldSignPlaces();
+ok(sp && sp.length === 3, 'cities and towns are sign places', sp && sp.length);
+const gp = SF.furnitureForTile({ x0: 0, y0: -500, size: 1000, roads, places: sp, opts: {} }).items.filter((it) => it.k === 'gantry');
+ok(gp.length === 1 && gp[0].text[0].endsWith('Oostdorp') && !gp[0].text.join().includes('Verweg') && !gp[0].text.join().includes('Gehucht'), 'gantry signs a town of the province', gp[0] && gp[0].text.join(' / '));
+WP.setWorldPlaces([]);
 ok(g.length && g[0].text[0].startsWith('A7 '), 'the way on carries the road number', g[0] && g[0].text[0]);
 // tiles
 const keysA = new Set(tileA.items.map((it) => it.key));
