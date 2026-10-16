@@ -228,6 +228,14 @@ async function run(name, route, { speed, radius, ahead, hz = 60, budgetBytes = 1
   const heli = (t) => [b[0] + 300 + t * 60, b[1] + 600 + t * 55];
   const r2 = await run('heli', heli, { speed: 80, radius: 1200, ahead: 10 });
   ok(r2.late === 0, `heli 60 s at 80 m/s diagonally: no tile late inside 250 m (${r2.loads} loads)`, r2.late);
+  // drifting: the heading swings hard every few seconds, the velocity with it
+  const drift = (t) => { const h = Math.sin(t / 2.2) * 1.3; return [b[0] + 800 + t * 22 * Math.cos(h) + Math.sin(t / 2.2) * 40, cy + t * 22 * Math.sin(h)]; };
+  const r3 = await run('drift', drift, { speed: 25, radius: 1200, ahead: 10 });
+  ok(r3.late === 0, `drift 60 s with hard heading swings: no tile late inside 250 m (${r3.loads} loads)`, r3.late);
+  // heli landing: 70 m/s braking to a hover over the pad, then circling slowly
+  const land = (t) => { const d = Math.min(t, 25); const x = b[0] + 300 + 70 * d - 1.4 * d * d; return [x + (t > 25 ? Math.cos((t - 25) / 4) * 30 - 30 : 0), b[1] + 700 + (t > 25 ? Math.sin((t - 25) / 4) * 30 : 0)]; };
+  const r4 = await run('heli-landing', land, { speed: 70, radius: 1200, ahead: 10 });
+  ok(r4.late === 0, `heli landing (70 m/s braking to a hover): no tile late inside 250 m (${r4.loads} loads)`, r4.late);
   const small = await run('drive-small-budget', drive, { speed: 38, radius: 1200, ahead: 10, budgetBytes: 3e6 });
   ok(small.late === 0 && small.evictions > 0, `the same drive with a 3 MB budget: ${small.evictions} evictions, still none late`, `${small.late}`);
 }
