@@ -1,5 +1,7 @@
 #!/bin/sh
-# Autopilot: works through the unchecked tasks in docs/AUTOPILOT.md, one headless
+# Autopilot: works through the GitHub issues on the project board
+# (https://github.com/users/NatusPella/projects/5) that carry the label `autopilot`
+# and sit in the column "Volgende", one headless
 # Claude run per task, in its own git worktree and branch (autopilot/<slug>).
 # It tests (node tests only), commits on the branch and ticks the task. It never
 # merges, pushes, releases, runs Electron or touches main: review and merge later.
@@ -14,7 +16,8 @@
 set -eu
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
-QUEUE="docs/AUTOPILOT.md"
+REPO="NatusPella/GDE-Groningen"
+PROJECT=5
 STATE=".claude/autopilot"
 MAX_TASKS="${MAX_TASKS:-2}"
 DAILY_CAP="${DAILY_CAP:-4}"
@@ -26,18 +29,28 @@ LOCK="$STATE/lock"
 if [ -e "$LOCK" ] && kill -0 "$(cat "$LOCK" 2>/dev/null)" 2>/dev/null; then echo "autopilot already running"; exit 0; fi
 echo $$ > "$LOCK"; trap 'rm -f "$LOCK"' EXIT
 
+PID="$(gh project view "$PROJECT" --owner NatusPella --format json -q .id)"
+SFIELD="$(gh project field-list "$PROJECT" --owner NatusPella --format json -q '.fields[] | select(.name=="Status") | .id')"
+opt() { gh project field-list "$PROJECT" --owner NatusPella --format json -q ".fields[] | select(.name==\"Status\") | .options[] | select(.name==\"$1\") | .id"; }
+OPT_BEZIG="$(opt Bezig)"; OPT_REVIEW="$(opt Review)"; OPT_VOLGENDE="$(opt Volgende)"
 TODAY="$(date +%F)"
 COUNT_FILE="$STATE/count-$TODAY"
 done_today="$(cat "$COUNT_FILE" 2>/dev/null || echo 0)"
 
 run_one() {
-  line="$(grep -n -m1 '^- \[ \] ' "$QUEUE" || true)"
-  [ -n "$line" ] || { echo "queue empty"; return 1; }
-  num="${line%%:*}"; task="${line#*:- [ ] }"
-  slug="$(printf '%s' "$task" | tr 'A-Z' 'a-z' | tr -c 'a-z0-9' '-' | cut -c1-40 | sed 's/-*$//')"
+  # next issue: label autopilot, status Volgende (lowest number first)
+  pick="$(gh project item-list "$PROJECT" --owner NatusPella --format json --limit 200 -q \
+    '[.items[] | select(.status=="Volgende") | select(.labels // [] | index("autopilot")) | {id, n: .content.number, t: .title}] | sort_by(.n) | .[0] | select(.) | "\(.id)|\(.n)|\(.t)"' 2>/dev/null || true)"
+  [ -n "$pick" ] || { echo "no autopilot issue in 'Volgende'"; return 1; }
+  item="${pick%%|*}"; rest="${pick#*|}"; num="${rest%%|*}"; task="${rest#*|}"
+  body="$(gh issue view "$num" --repo "$REPO" --json body -q .body 2>/dev/null || true)"
+  task="$task (issue #$num): $body"
+  slug="$(printf '%s' "issue-$num-$task" | tr 'A-Z' 'a-z' | tr -c 'a-z0-9' '-' | cut -c1-40 | sed 's/-*$//')"
   branch="autopilot/$TODAY-$slug"
   wt="$ROOT/.claude/worktrees/autopilot-$slug"
-  echo "== task: $task  ->  $branch"
+  echo "== issue #$num -> $branch"
+  setstatus() { gh project item-edit --id "$item" --project-id "$PID" --field-id "$SFIELD" --single-select-option-id "$1" >/dev/null 2>&1 || true; }
+  setstatus "$OPT_BEZIG"
   git worktree add -q -b "$branch" "$wt" main
   ln -s "$ROOT/desktop/node_modules" "$wt/desktop/node_modules" 2>/dev/null || true
   ln -s "$ROOT/desktop/vendor-cache" "$wt/desktop/vendor-cache" 2>/dev/null || true
@@ -54,10 +67,12 @@ Rules: keep the change small and surgical; Dutch-only player text; no real brand
   ( cd "$wt" && for t in scripts/*_test.mjs; do node "$t" >/dev/null 2>&1 || { echo "FAIL $t"; exit 1; }; done ) >> "$log" 2>&1 || ok=0
   changed="$(cd "$wt" && git log --oneline main..HEAD | wc -l | tr -d ' ')"
   if [ "$ok" = 1 ] && [ "$changed" -gt 0 ]; then
-    sed -i '' "${num}s/^- \[ \] /- [x] (branch $branch) /" "$QUEUE"
+    setstatus "$OPT_REVIEW"
+    gh issue comment "$num" --repo "$REPO" --body "Autopilot: branch \`$branch\` ($changed commit(s), node-tests ok). Review, verhaaltest, merge." >/dev/null 2>&1 || true
     echo "done: $branch ($changed commit(s), tests ok)"
   else
-    sed -i '' "${num}s/^- \[ \] /- [!] (needs a look: $branch, see $log) /" "$QUEUE"
+    setstatus "$OPT_VOLGENDE"
+    gh issue comment "$num" --repo "$REPO" --body "Autopilot: niet geslaagd (tests ok=$ok, commits=$changed). Branch \`$branch\`, log $log. Heeft een blik nodig." >/dev/null 2>&1 || true
     echo "needs a look: $branch (tests ok=$ok commits=$changed)"
   fi
   rm -f "$wt/desktop/node_modules" "$wt/desktop/vendor-cache"
@@ -73,7 +88,4 @@ while [ $i -lt "$MAX_TASKS" ]; do
   run_one || break
   i=$((i + 1))
 done
-git add "$QUEUE" 2>/dev/null; git diff --cached --quiet || git commit -q -m "Autopilot: queue status
-
-Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>"
 echo "review: git branch --list 'autopilot/*'  then  git merge --no-ff <branch>  (+ run the story test)"
