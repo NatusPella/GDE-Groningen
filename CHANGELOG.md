@@ -23,7 +23,8 @@ nieuwe functies, `y` voor alleen bugfixes.
   een opening waar een weg aansluit; ram je er hard tegenaan, dan vliegt een
   stuk eruit. Voor elke afrit hangt een blauw portaal met echte plaatsnamen,
   en langs de berm staan hectometerpaaltjes. Hekken en drempels die op de kaart
-  staan, staan nu ook in het spel.
+  staan, staan nu ook in het spel. Lantaarnpalen verschillen per soort weg: hoge
+  palen met een arm langs de grote wegen, lagere lantaarns in de woonstraten.
 - **Meer soorten bomen, en bossen vol bomen.** Linden, platanen, eiken,
   beuken, essen, esdoorns, kastanjes, berken, dennen, wilgen langs het water,
   hoge populieren en hier en daar een roze Japanse sierkers: elke soort met zijn

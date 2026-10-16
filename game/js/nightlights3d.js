@@ -3,6 +3,7 @@ import { pointInPolygon, WATER_Y } from './util.js';
 import { makeProp, addProp, removeProp, isPropBroken, propKey } from './breakables.js';
 import { policeFlash } from './models3d_vehicles.js';
 import { getRealMap } from './realmap.js';
+import { lampRule } from './streetfurniture.js';
 
 // Night lighting: instanced street lamps along road edges with additive
 // light-pool decals, a small pool of real PointLights handed to the lamps
@@ -321,7 +322,13 @@ function lampsForRoad(road, map) {
   const h0 = hash(pts[0][0], pts[0][1]);
   const fixedSide = h0 < 0.5 ? 1 : -1;
   const offset = path ? (road.width || 3) / 2 + 0.5 : (road.width || 6) / 2 + 0.9;
-  const spacing = path ? PATH_SPACING : LAMP_SPACING;
+  // spacing and height by road class and lamp type (streetfurniture.js
+  // LAMP_RULES: an arm over the main roads, the lantern of residential
+  // streets, a low pole on paths); the high masts of a motorway stand on its
+  // reserve, so one carriageway's verge gets an arm
+  const rule = lampRule(road);
+  const spacing = path ? PATH_SPACING : Math.max(LAMP_SPACING, rule.spacing);
+  const lampH = path ? POLE_H : Math.min(10, Math.max(POLE_H * 0.8, rule.h));
   let next = 4 + h0 * spacing * 0.6;
   let along = 0, idx = 0;
   for (let i = 0; i < pts.length - 1; i++) {
@@ -345,6 +352,7 @@ function lampsForRoad(road, map) {
         threshold: 0.12 + hash(x, y) * 0.28,
         on: 0,
         key: propKey('lamp', x, y),
+        hs: lampH / POLE_H,
       };
       lamp.lx = x + Math.cos(lamp.angle) * ARM;
       lamp.ly = y + Math.sin(lamp.angle) * ARM;
@@ -365,6 +373,7 @@ function lampProp(l) {
       makeMesh: () => {
         const m = new THREE.Mesh(poleMesh.geometry, poleMesh.material);
         m.rotation.y = -l.angle;
+        m.scale.y = l.hs || 1;
         return m;
       },
     });
@@ -405,9 +414,11 @@ function rebuildVisible(world, px, py) {
   propLamps = [];
   visible.forEach((l, i) => {
     _q.setFromAxisAngle(_up, -l.angle);
-    _m.compose(_p.set(l.x, 0, l.y), _q, _s.set(1, 1, 1));
+    // a taller pole lifts its head with it; the pool spreads wider
+    _m.compose(_p.set(l.x, 0, l.y), _q, _s.set(1, l.hs || 1, 1));
     poleMesh.setMatrixAt(i, _m);
     headMesh.setMatrixAt(i, _m);
+    _m.compose(_p.set(l.x, 0, l.y), _q, _s.set(l.hs || 1, 1, l.hs || 1));
     poolMesh.setMatrixAt(i, _m);
     if (Math.abs(l.x - px) < PROP_RADIUS && Math.abs(l.y - py) < PROP_RADIUS && addProp(lampProp(l))) propLamps.push(l);
   });
@@ -460,7 +471,7 @@ function updateRealLampLights(px, py) {
     const l = light.userData.lamp;
     if (!l) { light.intensity = 0; continue; }
     const d = Math.hypot(l.lx - px, l.ly - py);
-    light.position.set(l.lx, HEAD_Y - 0.25, l.ly);
+    light.position.set(l.lx, HEAD_Y * (l.hs || 1) - 0.25, l.ly);
     light.intensity = LAMP_REAL_I * l.on * (1 - smoothstep(LAMP_REAL_RANGE * 0.65, LAMP_REAL_RANGE, d));
   }
 }
