@@ -59,6 +59,25 @@ ok(close === 0, 'filled trees not on top of each other', close);
 const rows = GR.findRows([[0, 0], [8, 0], [16, 0.2], [24, 0], [32, -0.1], [40, 0], [100, 100], [103, 109]]);
 ok(rows[0] >= 0 && rows.slice(0, 6).every((r) => r === rows[0]) && rows[6] === -1, 'a row of six found, a pair is no row');
 
+// the world builder's hook (builderhooks.js): a tile's trees get species, its woods are filled
+{
+  const BHK = await import('../game/js/builderhooks.js');
+  const rows = {
+    tile: { i: 3, j: -2, x0: 0, y0: 0, size: 1000 },
+    trees: [{ gid: 7, 0: 100, 1: 100 }],
+    green: [{ kind: 'forest', pts: [[300, 300], [500, 300], [500, 500], [300, 500]] }],
+    water: [{ pts: [[95, 90], [105, 90], [105, 98], [95, 98]] }],
+    roads: [{ pts: [[400, 290], [400, 510]], width: 6, cat: 'normal' }], rails: [], buildings: [],
+  };
+  const extra = BHK.greeneryHook(rows);
+  ok(extra.length === 0 && rows.trees[0][2] === S.wilg && rows.trees[0][3] > 0, 'hook: a tree by the water is a willow');
+  const fill = rows.trees.filter((t) => t[4] & GR.TREE_FLAG.fill);
+  ok(fill.length > 200 && fill.every((t) => Math.abs(t[0] - 400) > 4.5 && Number.isInteger(t.gid) && t.gid >= BHK.FILL_GID0), 'hook: the wood filled, off the road, with ids of their own', fill.length);
+  const again = { ...rows, trees: [{ gid: 7, 0: 100, 1: 100 }] };
+  BHK.greeneryHook(again);
+  ok(JSON.stringify(again.trees.map((t) => [t[0], t[1], t[2], t.gid])) === JSON.stringify(rows.trees.map((t) => [t[0], t[1], t[2], t.gid])), 'hook: the same tile twice, the same trees');
+}
+
 // the map
 const root = new URL('../game/', import.meta.url);
 const data = JSON.parse(fs.readFileSync(new URL('citymap.json', root)));
