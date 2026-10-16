@@ -1038,6 +1038,33 @@ server, `?legacymap`).
   `rebaseIfNeeded(camX, camY)`, `attachRoot(group)` and the `uRenderOrigin`
   uniform; inert at (0, 0) until tile-local geometry exists (F1). Tested at
   +-40 km (`scripts/floatingorigin_test.mjs`).
+- **World builder (`js/worldbuilder.js`, F1).** One generator for every tile:
+  `buildRoad` (class, lanes and width from the lane model, access, grade,
+  the kom speed on a village street), `buildBuilding` (an OSM outline keeps
+  its tag; a box from the Ommeland gets a city type from its form; `h`
+  storeys, `hm` + `hsrc` from the best height evidence, `roof`), `buildWater`,
+  `buildRail`, `buildGreen`, `buildPoi`, `applyDuals`, and `registerHook` /
+  `runHooks` for the furniture and greenery scatter. Adapters: `fromOsm`
+  (raw OSM), realmap.js (the Ommeland villages; `?wb=0` runs the old code),
+  pack_tiles.mjs (`heightFields` for the city's rows). `scripts/worldbuilder_test.mjs`
+  checks the villages are the same through both paths and that `fromOsm`
+  over the city's own raw caches gives process_osm.py's rows.
+- **Proefstrook (F1).** `scripts/world/corridor.mjs` (the tile set: rail and
+  road strips and town discs, places from the cached place nodes),
+  `fetch_corridor.py` (Overpass per 8 x 8 km pack into
+  `data/world/corridor/c<pack>.json.gz`; not run by the build),
+  `build_corridor.mjs` (each tile from the best cache through the world
+  builder; ways cut at the tile edge with shared end points; packs
+  `c<pack>-<hash>.gdp` and `index-corridor.json` with places, stations, rail
+  routes, bus lines and the coastline). The stage builds it next to the
+  city. `loadTileWorld(..., { extra })` merges such a layer (`mergeIndex`, the
+  city's tiles win); main.js always reads its places (`worldplaces.js`) and
+  with `?corridor` (desktop `--corridor`) streams the tiles the old Ommeland
+  layers do not draw (tile flag 8), counts them as built world for the
+  facilities and the trains, and runs the train routes on over the
+  corridor's track (`corridorrail.js`). `worldedge.js` holds the edge rules
+  (sea, border, the border-bridge rule, air). `node scripts/corridor_test.mjs`
+  (`--quick` without the streaming runs, `--json` for the numbers).
 - **Tests.** `node scripts/world_tiles_test.mjs` (codec, determinism, round
   trips, the building attribute join), `node scripts/tileworld_test.mjs`
   (equivalence, streaming on a virtual clock, ranges), `node scripts/floatingorigin_test.mjs`,

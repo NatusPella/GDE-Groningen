@@ -60,8 +60,15 @@ function packWorld() {
   const packer = path.join(root, 'scripts', 'world', 'pack_tiles.mjs');
   if (!fs.existsSync(packer) || !fs.existsSync(path.join(SRC, 'js', 'gdt.js'))) { console.log('no tile packer in this checkout: JSON map only'); return; }
   const h = crypto.createHash('sha1');
-  for (const f of ['citymap.json', 'mapextras.json', 'ommeland.json', 'ommeland.bin', 'js/gdt.js', 'js/mapdata.js', 'js/elevation.js', 'js/passages.js', 'js/museumplan.js', 'js/util.js']) h.update(fs.readFileSync(path.join(SRC, f)));
+  for (const f of ['citymap.json', 'mapextras.json', 'ommeland.json', 'ommeland.bin', 'js/gdt.js', 'js/mapdata.js', 'js/elevation.js', 'js/passages.js', 'js/museumplan.js', 'js/util.js', 'js/worldbuilder.js']) h.update(fs.readFileSync(path.join(SRC, f)));
   h.update(fs.readFileSync(packer));
+  // the proefstrook (scripts/world/build_corridor.mjs): its scripts and caches
+  const corridor = path.join(root, 'scripts', 'world', 'build_corridor.mjs');
+  const corInputs = fs.existsSync(corridor) ? [corridor, path.join(root, 'scripts', 'world', 'corridor.mjs'), path.join(SRC, 'js', 'navgraph.js'),
+    path.join(root, 'data', 'ommeland_raw.json.gz'), path.join(root, 'data', 'facilities_raw.json.gz')] : [];
+  const corDir = path.join(root, 'data', 'world', 'corridor');
+  if (corInputs.length && fs.existsSync(corDir)) for (const f of fs.readdirSync(corDir).sort()) corInputs.push(path.join(corDir, f));
+  for (const f of corInputs) if (fs.existsSync(f)) h.update(fs.readFileSync(f));
   const WCACHE = path.join(HERE, '.world-cache');
   const cache = path.join(WCACHE, 'world-' + h.digest('hex').slice(0, 16));
   if (!fs.existsSync(path.join(cache, 'index.json'))) {
@@ -69,6 +76,10 @@ function packWorld() {
     const t = Date.now();
     const r = spawnSync(process.execPath, [packer, '--game', SRC, '--out', cache], { stdio: 'inherit', cwd: root });
     if (r.status) { fs.rmSync(cache, { recursive: true, force: true }); throw new Error('packing the map tiles failed'); }
+    if (corInputs.length) {
+      const c = spawnSync(process.execPath, [corridor, '--out', cache, '--city', path.join(cache, 'index.json')], { stdio: 'inherit', cwd: root });
+      if (c.status) { fs.rmSync(cache, { recursive: true, force: true }); throw new Error('building the corridor tiles failed'); }
+    }
     for (const d of fs.readdirSync(WCACHE)) if (path.join(WCACHE, d) !== cache) fs.rmSync(path.join(WCACHE, d), { recursive: true, force: true });
     console.log(`packed the map tiles in ${((Date.now() - t) / 1000).toFixed(0)} s`);
   }

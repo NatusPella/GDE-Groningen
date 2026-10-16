@@ -6,6 +6,25 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Nieuw
+- **Meerijden met de trein.** Bij de kaartautomaat staat nu ook "Meerijden":
+  je zit de hele rit in de stoptrein, halte voor halte (naar Loppersum stopt hij
+  in Bedum en Stedum), met uitzicht door het raam, naast de trein of van boven.
+  Een bord laat de volgende halte zien en hoe lang het nog duurt. Houd Spatie
+  ingedrukt om naar je halte te springen: de trein rolt het station binnen en
+  de klok loopt door. Snel reizen zoals eerst kan nog steeds.
+- **Plaatsnamen verder de provincie in.** Voorbij de dorpen rond de stad weet
+  de locatie nu ook waar je bent: Appingedam, Delfzijl, Winsum, Uithuizen,
+  Eemshaven en de dorpen ertussen, en in een wijk van zo'n plaats "wijk ·
+  plaats".
+
+### Veranderd
+- **Eén bouwer voor stad en dorp.** De straten en huizen van de dorpen rond de
+  stad worden nu door dezelfde bouwer gemaakt als de stad zelf (je ziet
+  hetzelfde, maar het is de basis voor de hele provincie). De eerste strook
+  naar Delfzijl en Eemshaven is als proef gebouwd; die komt in het spel zodra
+  de kaartgegevens ervan binnen zijn.
+
 ## [0.31.0] - 2026-10-16
 
 ### Nieuw
