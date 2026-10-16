@@ -27,3 +27,6 @@ data/satellite_reference.jpg
 
 # packed map tiles (scripts/world/pack_tiles.mjs): a build artifact
 game/world/
+
+# OSM extracts (Geofabrik .pbf), the province caches built from them and their venv
+data/cache/
