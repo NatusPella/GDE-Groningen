@@ -234,24 +234,35 @@ export function railRoute(rails, stations, via) {
     }
   }
   const keys = [...pos.keys()];
-  const nearest = (x, y, maxD) => { let best = null, bd = maxD; for (const k of keys) { const p = pos.get(k); const d = Math.hypot(p[0] - x, p[1] - y); if (d < bd) { bd = d; best = k; } } return best; };
+  // a station's nodes: every track node within 40 m of the nearest (both
+  // tracks of a double line, the loop at a halt), at most maxD away
+  const zone = (x, y, maxD) => {
+    let bd = maxD;
+    for (const k of keys) { const p = pos.get(k); const d = Math.hypot(p[0] - x, p[1] - y); if (d < bd) bd = d; }
+    if (bd >= maxD) return [];
+    return keys.filter((k) => { const p = pos.get(k); return Math.hypot(p[0] - x, p[1] - y) <= bd + 40; });
+  };
+  // from any node of one station to the nearest node of the next: no
+  // turning back at a crossover because the train came in on the other track
   const dijkstra = (from, to) => {
-    const dist = new Map([[from, 0]]), prev = new Map(), done = new Set();
+    const goal = new Set(to);
+    const dist = new Map(), prev = new Map(), done = new Set();
     const open = new Heap();
-    open.push(0, from);
+    for (const f of from) { dist.set(f, 0); open.push(0, f); }
+    let hit = null;
     while (open.size) {
       const [d, u] = open.pop();
       if (done.has(u)) continue;
       done.add(u);
-      if (u === to) break;
+      if (goal.has(u)) { hit = u; break; }
       for (const [v, w] of adj.get(u)) {
         const nd = d + w;
         if (nd < (dist.has(v) ? dist.get(v) : Infinity)) { dist.set(v, nd); prev.set(v, u); open.push(nd, v); }
       }
     }
-    if (!done.has(to)) return null;
-    const path = [to];
-    while (path[0] !== from) path.unshift(prev.get(path[0]));
+    if (!hit) return null;
+    const path = [hit];
+    while (prev.has(path[0])) path.unshift(prev.get(path[0]));
     return path;
   };
   const pts = [], stops = [];
@@ -259,15 +270,22 @@ export function railRoute(rails, stations, via) {
   for (const name of via) {
     const st = stations.get(name);
     if (!st) break;
-    const k = nearest(st.x, st.y, 400);
-    if (!k) break;
+    const z = zone(st.x, st.y, 400);
+    if (!z.length) break;
     if (last) {
-      const leg = dijkstra(last, k);
+      const leg = dijkstra(last, z);
       if (!leg) break;
+      // the leg may leave the station from its other track: a step across
+      const p0 = pos.get(leg[0]), q = pts[pts.length - 1];
+      if (Math.hypot(p0[0] - q[0], p0[1] - q[1]) > 0.05) { s += Math.hypot(p0[0] - q[0], p0[1] - q[1]); pts.push(p0); }
       for (let i = 1; i < leg.length; i++) { const a = pos.get(leg[i - 1]), b = pos.get(leg[i]); s += Math.hypot(b[0] - a[0], b[1] - a[1]); pts.push(b); }
-    } else pts.push(pos.get(k));
+    } else {
+      let best = z[0], bd = Infinity;
+      for (const k of z) { const p = pos.get(k); const d = Math.hypot(p[0] - st.x, p[1] - st.y); if (d < bd) { bd = d; best = k; } }
+      pts.push(pos.get(best));
+    }
     stops.push({ name, s: r2(s) });
-    last = k;
+    last = z;
   }
   return { pts: pts.map(([x, y]) => [r2(x), r2(y)]), stops, reached: stops.length === via.length };
 }

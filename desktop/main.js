@@ -196,6 +196,9 @@ function createWindow() {
     process.argv.includes('--nobatch') && 'nobatch',
     // --corridor: stream the proefstrook's tiles beyond the old Ommeland (F1)
     process.argv.includes('--corridor') && 'corridor',
+    // --provincie: stream the whole province's tiles beyond the old Ommeland (F2); --legacy: never
+    process.argv.includes('--provincie') && 'provincie',
+    process.argv.includes('--legacy') && 'legacy',
     argValue('--gfx-advice') && `gpu=${encodeURIComponent(argValue('--gfx-advice'))}`].filter(Boolean).join('&');
   // --profile-load[=ms]: a CPU profile of the page load (default 20 s from navigation)
   if (process.argv.some((a) => a === '--profile-load' || a.startsWith('--profile-load='))) {
