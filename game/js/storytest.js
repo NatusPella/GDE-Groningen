@@ -329,13 +329,14 @@ async function batch2Smoke(world, check, capture) {
   const panelUp = () => !!document.querySelector('.cw-panel:not([hidden])');
   const opts = () => document.querySelectorAll('.cw-panel .cw-opt').length;
   const digit = (i) => key(String(i), 'Digit' + i);
+  const goTo = (id) => { const sp = SJ().spots().find((q) => q.job.id === id); if (sp) { p.x = sp.x; p.y = sp.y; } return !!sp; };
   const intro = async () => { await sleep(300); for (let i = 0; i < 20 && isCinematicActive(); i++) { skipCinematic(); await sleep(250); } };
-  check('boa: starts', SJ().start('boa') && world.sideJob.active && world.sideJob.id === 'boa');
+  check('boa: starts', goTo('boa') && SJ().start('boa') && world.sideJob.active && world.sideJob.id === 'boa');
   await intro();
   let c = SJ().ctx();
   check('boa: an offender waits', await waitFor(() => c.data.ped && c.data.phase === 'walk', 4000));
   p.x = c.data.ped.x + 2; p.y = c.data.ped.y;
-  check('boa: the case panel opens with three fines', await waitFor(() => panelUp() && c.data.phase === 'case' && opts() === 3, 4000), JSON.stringify({ ph: c.data.phase, o: opts() }));
+  check('boa: the case panel opens with three fines', await waitFor(() => panelUp() && c.data.phase === 'case' && opts() === 3, 4000), JSON.stringify({ ph: c.data.phase, o: opts(), inV: !!p.inVehicle, sw: !!p.swimming, d: c.data.ped ? Math.hypot(p.x - c.data.ped.x, p.y - c.data.ped.y) : null }));
   capture('job-boa-case');
   const money = world.money;
   digit(c.data.options.findIndex((o) => o.ok) + 1);
@@ -344,7 +345,7 @@ async function batch2Smoke(world, check, capture) {
   await sleep(300);
   check('boa: quitting leaves no panel, no input claim', !panelUp() && !world.sideJob.active);
 
-  check('rechtbank: starts', await waitFor(() => !world.sideJob.active, 3000) && SJ().start('rechtbank') && world.sideJob.id === 'rechtbank');
+  check('rechtbank: starts', await waitFor(() => !world.sideJob.active, 3000) && goTo('rechtbank') && SJ().start('rechtbank') && world.sideJob.id === 'rechtbank');
   await intro();
   c = SJ().ctx();
   check('rechtbank: the dossier facts show', await waitFor(() => panelUp() && c.data.phase === 'read' && opts() === 3, 4000));
@@ -358,14 +359,14 @@ async function batch2Smoke(world, check, capture) {
   for (let i = 0; i < 3; i++) {
     const q = c.data.questions[c.data.qi];
     digit(q.options.findIndex((o) => o.ok) + 1);
-    await waitFor(() => c.data.phase === 'ask' || c.data.phase === 'result', 4000);
+    await waitFor(() => c.data.qi > i || c.data.phase === 'result', 4000);
     await sleep(200);
   }
   check('rechtbank: three right answers pay', await waitFor(() => world.money > money2 && !panelUp(), 8000), `${money2} -> ${world.money}`);
   SJ().quit();
   await sleep(300);
 
-  check('cabaret: starts', await waitFor(() => !world.sideJob.active, 3000) && SJ().start('cabaret') && world.sideJob.id === 'cabaret');
+  check('cabaret: starts', await waitFor(() => !world.sideJob.active, 3000) && goTo('cabaret') && SJ().start('cabaret') && world.sideJob.id === 'cabaret');
   await intro();
   c = SJ().ctx();
   check('cabaret: the act starts with a panel', await waitFor(() => panelUp() && c.data.phase === 'act', 4000));
