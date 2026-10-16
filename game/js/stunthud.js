@@ -93,7 +93,7 @@ export function showStuntHud(target, rules, { hitCost, comboMax, comboS }) {
   e.target.textContent = String(target);
   e.brief.classList.remove('out');
   e.brief.innerHTML = `<h3>Stuntavond: ${target} punten</h3>` +
-    '<p>Jelmer streamt. Rij met de Escapade over de Grote Markt en haal het doel voor de tijd op is.</p>' +
+    `<p>Jelmer streamt. Doel: rij met de Escapade over de Grote Markt, gooi dingen omver en haal ${target} punten voor de tijd op is. Niemand raken.</p>` +
     '<ul>' + rules.map(([l, p]) => `<li><span>${l}</span><span>+${p}</span></li>`).join('') +
     `<li class="bad"><span>Iemand raken</span><span>-${hitCost}</span></li></ul>` +
     `<div class="sb-foot">Snel achter elkaar scoren is combo: tot x${comboMax}, binnen ${comboS} seconden na je vorige punten.</div>`;
