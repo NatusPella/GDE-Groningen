@@ -241,7 +241,7 @@ if (!B.haveProvince()) {
       const source = new S.MemorySource(files, { latency });
       let T = null, err = null;
       const decode = async (b) => G.decodeBlob(new Uint8Array(zlib.inflateRawSync(b)));
-      const pending = loadTileWorld('world/', { source, pool: false, extra: [{ name: 'index-provincie.json', only: (t) => !(t.flags & B.FLAG.OLD) }], now: () => source.now, decode }).then((v) => { T = v || { failed: true }; }, (e) => { err = e; });
+      const pending = loadTileWorld('world/', { source, pool: false, extra: [{ name: 'index-provincie.json', only: PW.provinceTileFilter(process.env.GDE_TEST_SEARCH || '') }], now: () => source.now, decode }).then((v) => { T = v || { failed: true }; }, (e) => { err = e; });
       for (let k = 0; !T && !err && k < 5000; k++) { await source.advance(20); await new Promise((r) => setImmediate(r)); }
       if (err || !T || T.failed) throw err || new Error('the tile world did not load');
       await pending;
@@ -276,7 +276,7 @@ if (!B.haveProvince()) {
       const source = new S.MemorySource(files, { latency: 0 });
       let T = null;
       const decode = async (b) => G.decodeBlob(new Uint8Array(zlib.inflateRawSync(b)));
-      const pend = loadTileWorld('world/', { source, pool: false, extra: [{ name: 'index-provincie.json', only: (t) => !(t.flags & B.FLAG.OLD) }], now: () => source.now, decode }).then((v) => { T = v; });
+      const pend = loadTileWorld('world/', { source, pool: false, extra: [{ name: 'index-provincie.json', only: PW.provinceTileFilter(process.env.GDE_TEST_SEARCH || '') }], now: () => source.now, decode }).then((v) => { T = v; });
       for (let k = 0; !T && k < 5000; k++) { await source.advance(20); await new Promise((r) => setImmediate(r)); }
       await pend;
       const CF = await import('../game/js/countryfield.js');
