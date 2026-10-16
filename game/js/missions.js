@@ -242,9 +242,9 @@ function buildDefs(world) {
       vehicle: 'car',
       start: drive(235.26, 401.14),
       stages: [
-        { kind: 'board', label: 'Stap in de auto: de pinautomaat ligt achterin', say: 'Instappen: de pinautomaat ligt achterin de auto, met mijn pas erin. Hij piept een beetje. Volg de groene markering naar de auto.' },
+        { kind: 'board', label: 'Stap in de auto: de pinautomaat ligt achterin', say: 'Instappen: de automaat ligt achterin, met mijn pas erin. Hij piept een beetje.' },
         { kind: 'garage', stars: 2, target: { garage: true }, label: 'Naar Spuit & Klaar (automaat zit achterin)', say: 'Alarm! Twee sterren. Rij een garage in: Spuit & Klaar spuit hem om en de pliesie is je kwijt.' },
-        { kind: 'goto', target: { shop: 'pand' }, mode: 'vehicle', stop: 1.2, label: 'Naar Pand & Poen: lever de automaat achterin af', say: 'Nieuwe kleur, nieuw leven. Door naar Pand & Poen, Sjabbe wacht achterom. De automaat zit nog achterin.' },
+        { kind: 'goto', target: { shop: 'pand' }, mode: 'vehicle', stop: 1.2, label: 'Naar Pand & Poen: lever de automaat achterin af', say: 'Nieuwe kleur, nieuw leven. Door naar Pand & Poen, Sjabbe wacht achterom.' },
       ],
     },
     {
@@ -1593,9 +1593,26 @@ function startLane(world, def) {
 // Bikes ride the lane kinematically: weaving, and once the player is close
 // ahead each rider picks a side. Fatbikes mostly hold their line or drift
 // right at you; regular riders try to swerve, not always in time.
+const HONK_BACK = ['Toeter nait zo, jong!', 'Doe toch nait zo roar, mien jong!', 'Zoek dien eigen pad, joh!', 'Wie bist doe, de burgemeester?', 'Kiek uut, tutteltje!', 'Hou dien toeter dicht, joh!'];
+
+function fatbikersAnswerHonk(world, p) {
+  const pv = p.inVehicle;
+  const on = !!(pv && pv.horn);
+  const rising = on && !chain.hornWas;
+  chain.hornWas = on;
+  if (!rising || world.time < (chain.honkBackAt || 0)) return;
+  const b = chain.bikes.find((q) => q.fat && !q.v.wrecked && Math.hypot(q.v.x - p.x, q.v.y - p.y) < 22);
+  if (!b) return;
+  chain.honkBackAt = world.time + 5;
+  chain.honkIdx = ((chain.honkIdx || 0) + 1 + Math.floor(Math.random() * 3)) % HONK_BACK.length;
+  const text = HONK_BACK[chain.honkIdx];
+  (world.extraSpeakers || (world.extraSpeakers = [])).push({ x: b.v.x, y: b.v.y, h: 2.2, follow: b.v, speechText: text, speechUntil: world.time + 2.8 });
+}
+
 function updateLaneBikes(dt, world, def) {
   const g = laneGeom(def);
   const p = world.player;
+  fatbikersAnswerHonk(world, p);
   const pl = laneProject(g, p.x, p.y);
   chain.laneT -= dt;
   if (chain.laneT <= 0 && chain.bikes.length < LANE_MAX_BIKES) {
