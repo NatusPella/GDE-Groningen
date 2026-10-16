@@ -11,6 +11,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **Water in de hele provincie (eerste stap):** meren, plassen, sloten en kanalen buiten de stad hebben nu soort, diepte en peil, net als in het Ommeland. Boten, zwemmen en waden zien dat water zodra de provincie opnieuw is gebouwd.
 
 ### Verbeterd
+- **Tegels in het oude Ommeland (voorbereiding):** met `?ommelandtegels` laadt het spel de provinciegegevens ook binnen het oude Ommeland-gebied. Nog niet standaard; `--legacy` werkt zoals altijd.
 - **Even pinnen:** de opdrachtregels zeggen nu duidelijk dat de pinautomaat achterin de auto ligt.
 - **Stuntavond op de Grote Markt:** het doel staat nu in de uitleg, en terrasstoelen en -tafels leveren ook punten op.
 - **Water onder gras:** waar een groenvlak over water ligt, wint nu het water. Geen gras meer boven plekken waar je zwemt.
