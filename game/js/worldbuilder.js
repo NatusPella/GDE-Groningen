@@ -389,6 +389,30 @@ export function buildPoi(src) {
 
 // ------------------------------------------------- furniture and greenery
 
+// Mapped street furniture (docs 2.14) by OSM tag: the kind the scatter rules
+// and the props know. Signals and crossings are junction data, not here.
+export const FURNITURE_OF = {
+  highway: { street_lamp: 'lamp', speed_camera: 'flitspaal', milestone: 'paaltje' },
+  amenity: { bench: 'bench', waste_basket: 'bin', bicycle_parking: 'bikerack', post_box: 'postbox', recycling: 'container',
+    vending_machine: 'automaat', drinking_water: 'kraan', charging_station: 'laadpaal', atm: 'pin', clock: 'klok', shelter: 'abri', toilets: 'toilet' },
+  barrier: { bollard: 'bollard', gate: 'hek', lift_gate: 'slagboom', swing_gate: 'hek', cycle_barrier: 'fietshek', block: 'blok', kissing_gate: 'hek', stile: 'hek', cattle_grid: 'rooster' },
+  leisure: { picnic_table: 'picknick', playground: 'speeltuin', fitness_station: 'fitness' },
+  man_made: { flagpole: 'vlag', street_cabinet: 'kast', surveillance: 'camera', utility_pole: 'paal' },
+  tourism: { information: 'info', artwork: 'kunst', viewpoint: 'uitzicht', picnic_site: 'picknick' },
+  power: { tower: 'mast', pole: 'paal' },
+};
+export function buildFurniture(tags, [x, y]) {
+  for (const key in FURNITURE_OF) {
+    const k = FURNITURE_OF[key][tags[key]];
+    if (!k) continue;
+    const row = { k, x: r2(x), y: r2(y) };
+    const d = parseFloat(tags.direction);
+    if (Number.isFinite(d)) row.d = d;
+    return row;
+  }
+  return null;
+}
+
 // Hooks for the scatter rules (docs 2.14, 2.15): a function per kind gets
 // the tile's rows and returns extra rows ({ kind, x, y, a?, ... }). The
 // furniture and tree work (F1c) registers here; the builder runs them in
@@ -422,6 +446,11 @@ export function fromOsm(el, ctx = {}) {
   if (el.type === 'node' && tags.natural === 'tree' && el.lat !== undefined) {
     const [x, y] = wgsToWorld(el.lat, el.lon);
     out.push({ kind: 'trees', row: [Math.round(x * 100) / 100, Math.round(y * 100) / 100] });
+    return out;
+  }
+  if (el.type === 'node' && el.lat !== undefined) {
+    const row = buildFurniture(tags, wgsToWorld(el.lat, el.lon));
+    if (row) out.push({ kind: 'furniture', row });
     return out;
   }
   if (!g || g.length < 2) return out;

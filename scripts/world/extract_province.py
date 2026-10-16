@@ -129,6 +129,16 @@ def packs_of_bounds(x0, y0, x1, y1):
     return [(pi, pj) for pi in range(i0 // PACK, i1 // PACK + 1) for pj in range(j0 // PACK, j1 // PACK + 1)]
 
 
+def bounds_world(lats, lons):
+    """The world-frame box (x0, y0, x1, y1) of a lat/lon box's corners."""
+    xs, ys = [], []
+    for la, lo in ((min(lats), min(lons)), (max(lats), max(lons)), (min(lats), max(lons)), (max(lats), min(lons))):
+        x, y = wgs_to_world(la, lo)
+        xs.append(x)
+        ys.append(y)
+    return min(xs), min(ys), max(xs), max(ys)
+
+
 def ll(lat, lon):
     return [round(lat, R), round(lon, R)]
 
@@ -163,8 +173,11 @@ def join_rings(parts):
 
 
 class Extract:
-    def __init__(self, bbox=None):
+    def __init__(self, bbox=None, mask=None, fac_mask=None):
         self.bbox = bbox  # (s, w, n, e) or None: everything
+        self.mask = mask  # a set of tiles (i, j): keep only what touches them (a buffer strip), or None
+        self.fac_mask = fac_mask if fac_mask is not None else mask  # the same for the facilities (a wider strip)
+        self.mask_packs = {(i // PACK, j // PACK) for i, j in mask} if mask is not None else None
         self.packs = {}   # (pi, pj) -> [elements]
         self.rel_want = {}  # relation id -> (kind, tags, members)
         self.way_need = set()
@@ -185,14 +198,35 @@ class Extract:
         return not b or (b[0] <= lat <= b[2] and b[1] <= lon <= b[3])
 
     def put(self, el, lats, lons):
-        xs, ys = [], []
-        for la, lo in ((min(lats), min(lons)), (max(lats), max(lons)), (min(lats), max(lons)), (max(lats), min(lons))):
-            x, y = wgs_to_world(la, lo)
-            xs.append(x)
-            ys.append(y)
-        for pk in packs_of_bounds(min(xs), min(ys), max(xs), max(ys)):
+        b = bounds_world(lats, lons)
+        if self.mask is not None and not self.touches(*b):
+            return
+        for pk in packs_of_bounds(*b):
+            if self.mask is not None and pk not in self.mask_packs:
+                continue
             self.packs.setdefault(pk, []).append(el)
         self.n["elements"] += 1
+
+    def touches(self, x0, y0, x1, y1):
+        i0, j0 = tile_of(x0, y0)
+        i1, j1 = tile_of(x1, y1)
+        if (i1 - i0 + 1) * (j1 - j0 + 1) > len(self.mask):
+            return any(i0 <= i <= i1 and j0 <= j <= j1 for i, j in self.mask)
+        return any((i, j) in self.mask for i in range(i0, i1 + 1) for j in range(j0, j1 + 1))
+
+    def keep_point(self, x, y):
+        return self.mask is None or tile_of(x, y) in self.mask
+
+    # a facility (hospital, police, shop ...) of a neighbour counts from further away
+    def fac_point(self, x, y):
+        return self.fac_mask is None or tile_of(x, y) in self.fac_mask
+
+    def fac_box(self, x0, y0, x1, y1):
+        if self.fac_mask is None:
+            return True
+        i0, j0 = tile_of(x0, y0)
+        i1, j1 = tile_of(x1, y1)
+        return any(i0 <= i <= i1 and j0 <= j <= j1 for i, j in self.fac_mask)
 
     # pass 1: the relations and what their members need
     def relation_pass(self, pbf):
@@ -202,9 +236,9 @@ class Extract:
             kind = None
             if t.get("type") == "multipolygon" and (way_kept(t) or t.get("natural") in WAY_NATURAL or t.get("amenity") == "parking"):
                 kind = "mp"
-            elif t.get("type") == "route" and t.get("route") in ("bus", "train"):
+            elif t.get("type") == "route" and t.get("route") in ("bus", "train") and self.mask is None:
                 kind = t["route"]
-            elif t.get("type") == "boundary" and t.get("admin_level") == "4" and t.get("ISO3166-2") == "NL-GR":
+            elif t.get("type") == "boundary" and t.get("admin_level") == "4" and t.get("ISO3166-2") == "NL-GR" and self.mask is None:
                 kind = "boundary"
             if not kind:
                 continue
@@ -232,7 +266,7 @@ class Extract:
                 lat, lon = o.location.lat, o.location.lon
                 if not self.inside(lat, lon):
                     continue
-                if facility(t, "node") and self.in_fac(lat, lon):
+                if facility(t, "node") and self.in_fac(lat, lon) and self.fac_point(*wgs_to_world(lat, lon)):
                     self.facilities.append({"type": "node", "id": o.id, "lat": lat, "lon": lon, "tags": t})
                 if not node_kept(t):
                     continue
@@ -244,14 +278,15 @@ class Extract:
                 if tags:
                     el["tags"] = tags
                 self.put(el, [lat], [lon])
+                x, y = wgs_to_world(lat, lon)
+                if not self.keep_point(x, y):
+                    continue
                 if "place" in t and t.get("name"):
-                    x, y = wgs_to_world(lat, lon)
                     self.places.append({"id": o.id, "name": t["name"], "kind": t["place"], "lat": round(lat, R), "lon": round(lon, R),
                                         "x": round(x, 2), "y": round(y, 2), "pop": int(t["population"]) if t.get("population", "").isdigit() else 0,
                                         **({"gos": t["name:gos"]} if t.get("name:gos") else {})})
                 if t.get("railway") in ("station", "halt") and t.get("name") and t.get("station") not in ("subway", "light_rail") \
                         and t.get("usage") != "tourism" and t.get("railway:historic") is None:
-                    x, y = wgs_to_world(lat, lon)
                     self.stations.append({"id": o.id, "name": t["name"], "x": round(x, 2), "y": round(y, 2), "kind": t["railway"]})
             elif o.is_way():
                 self.n["ways"] += 1
@@ -271,7 +306,7 @@ class Extract:
                 lons = [p[1] for p in g]
                 if self.bbox and (max(lats) < self.bbox[0] or min(lats) > self.bbox[2] or max(lons) < self.bbox[1] or min(lons) > self.bbox[3]):
                     continue
-                if facility(t, "way"):
+                if facility(t, "way") and self.fac_box(*bounds_world(lats, lons)):
                     c = (sum(lats) / len(lats), sum(lons) / len(lons))
                     if self.in_fac(*c):
                         self.facilities.append({"type": "way", "id": o.id, "tags": t, "geometry": [{"lat": p[0], "lon": p[1]} for p in g]})
@@ -279,6 +314,8 @@ class Extract:
                     continue
                 if "building" in t:
                     x, y = wgs_to_world(sum(lats) / len(lats), sum(lons) / len(lons))
+                    if not self.keep_point(x, y):
+                        continue
                     k = (int(x // URBAN_CELL), int(y // URBAN_CELL))
                     self.bcells[k] = self.bcells.get(k, 0) + 1
                 el = {"type": "way", "id": o.id, "tags": slim_tags(t), "g": g}
@@ -306,7 +343,7 @@ class Extract:
             lons = [p[1] for r in rings for p in r]
             if self.bbox and (max(lats) < self.bbox[0] or min(lats) > self.bbox[2] or max(lons) < self.bbox[1] or min(lons) > self.bbox[3]):
                 return
-            if facility(t, "way") and t.get("amenity") == "parking":
+            if facility(t, "way") and t.get("amenity") == "parking" and self.fac_box(*bounds_world(lats, lons)):
                 self.facilities.append({"type": "relation", "id": rid, "tags": t,
                                         "bounds": {"minlat": min(lats), "minlon": min(lons), "maxlat": max(lats), "maxlon": max(lons)}})
             el = {"type": "relation", "id": rid, "tags": slim_tags(t), "members": [{"type": "way", "ref": 0, "role": "outer", "g": r} for r in rings]}
@@ -325,6 +362,27 @@ class Extract:
         if self.bbox and not any(self.inside(*(m["g"][0] if "g" in m else (m["lat"], m["lon"]))) for m in out):
             return
         (self.bus if kind == "bus" else self.trains).append({"type": "relation", "id": rid, "tags": slim_tags(t), "members": out})
+
+
+def near_mask(province_gz, margin):
+    """The tiles within `margin` metres of the province outline (by its
+    vertices, ~40 m apart) and outside it: the buffer strip a neighbouring
+    extract is cut to."""
+    with gzip.open(province_gz, "rt") as f:
+        rings = json.load(f)["boundary"]
+    mask = set()
+    r = int(margin // TILE_M) + 2
+    half = TILE_M / 2
+    for ring in rings:
+        for la, lo in ring[::2]:
+            x, y = wgs_to_world(la, lo)
+            ti, tj = tile_of(x, y)
+            for i in range(ti - r, ti + r + 1):
+                for j in range(tj - r, tj + r + 1):
+                    cx, cy = GRID_X0 + i * TILE_M + half, GRID_Y0 + j * TILE_M + half
+                    if (cx - x) ** 2 + (cy - y) ** 2 <= (margin + half * 1.4143) ** 2:
+                        mask.add((i, j))
+    return mask
 
 
 def md5(path):
@@ -348,6 +406,9 @@ def main():
     pbf = os.path.abspath(opt("--pbf", PBF))
     out = os.path.abspath(opt("--out", OUT))
     bbox = tuple(float(v) for v in opt("--bbox").split(",")) if opt("--bbox") else None
+    # --near <province.json.gz> [--margin m] [--fac-margin m]: a neighbour's extract, cut to the strip along
+    # the province (the facilities to a wider one: the nearest hospital may be across the border)
+    mask = near_mask(opt("--near"), float(opt("--margin", "4000"))) if opt("--near") else None
     if not os.path.exists(pbf):
         raise SystemExit(f"no extract at {pbf}: download it first (see the docstring)")
     try:
@@ -355,7 +416,7 @@ def main():
     except ImportError:
         raise SystemExit("needs pyosmium: python3 -m venv data/cache/venv && data/cache/venv/bin/pip install osmium")
     t0 = time.time()
-    ex = Extract(bbox)
+    ex = Extract(bbox, mask, near_mask(opt("--near"), float(opt("--fac-margin", "12000"))) if opt("--near") else None)
     ex.relation_pass(pbf)
     t1 = time.time()
     ex.main_pass(pbf)
@@ -375,7 +436,7 @@ def main():
     ex.stations.sort(key=lambda s: (s["name"], s["id"]))
     ex.bus.sort(key=lambda r: r["id"])
     ex.trains.sort(key=lambda r: r["id"])
-    province = {"source": src, "md5": md5(pbf), "bbox": bbox, "boundary": ex.boundary, "places": ex.places, "stations": ex.stations,
+    province = {"source": src, "md5": md5(pbf), "bbox": bbox, "near": bool(mask), "boundary": ex.boundary, "places": ex.places, "stations": ex.stations,
                 "bus": ex.bus, "trains": ex.trains, "counts": ex.n,
                 "urban": {"cell": URBAN_CELL, "cells": sorted([i, j, n] for (i, j), n in ex.bcells.items())}}
     write_gz(os.path.join(out, "province.json.gz"), province)

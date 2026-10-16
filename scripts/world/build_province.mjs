@@ -1,0 +1,376 @@
+// The whole province through the world builder (docs/PROVINCIE-PLAN.md F2):
+// every 1 km tile that touches the province of Groningen, plus a buffer
+// strip into Friesland, Drenthe and Germany as far as the extract reaches,
+// built from the pack caches of scripts/world/extract_province.py (the
+// Geofabrik extract) by the same per-tile code as the proefstrook
+// (build_corridor.mjs tileBlob -> worldbuilder.js). Pack by pack, so the
+// memory stays that of one 8 x 8 km pack.
+//
+//   node scripts/world/build_province.mjs [--out game/world] [--city <index.json>] [--src data/cache/province]
+//
+// Out: v<pack>-<hash>.gdp packs and index-provincie.json (tiles; the global
+// part: places with their districts, stations, train lines over the track,
+// bus lines, the coast and border lines, the province outline, the minimap
+// base). The city's own tiles (pack_tiles.mjs) are left alone and win.
+// Same input, same bytes.
+import fs from 'node:fs';
+import path from 'node:path';
+import zlib from 'node:zlib';
+import { fileURLToPath } from 'node:url';
+import * as G from '../../game/js/gdt.js';
+import * as WB from '../../game/js/worldbuilder.js';
+import { wgsToWorld } from '../../game/js/rdnew.js';
+import { edgeFromOsm } from '../../game/js/worldedge.js';
+import { features, tileBlob, railRoute, busLines, writeLayer, ommelandBox } from './build_corridor.mjs';
+import { LINES, packOf } from './corridor.mjs';
+
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+export const PROVINCE_BUILDER = 1;
+export const GID0 = 20_000_000;
+// how far past the province border tiles are built (the extract's own margin decides the rest)
+export const BUFFER_M = 3000;
+export const SRC_DIR = path.join(ROOT, 'data', 'cache', 'province');
+// tile flags: 1 land, 4 built from OSM by the world builder, 8 the old
+// Ommeland layers draw it too, 16 outside the province (the buffer), 32 this layer
+export const FLAG = { LAND: 1, BUILT: 4, OLD: 8, BUFFER: 16, PROVINCE: 32 };
+
+const gunzipJson = (f) => JSON.parse(zlib.gunzipSync(fs.readFileSync(f)).toString('utf8'));
+const r2 = (v) => Math.round(v * 100) / 100;
+const r1 = (v) => Math.round(v * 10) / 10;
+
+export const haveProvince = (dir = SRC_DIR) => fs.existsSync(path.join(dir, 'province.json.gz'));
+
+// The buffer strips next to the province: extracts of the neighbouring
+// provinces cut to the strip (extract_province.py --near), in
+// data/cache/province-<name>/ next to the province's own.
+export function bufferDirs(src = SRC_DIR) {
+  const base = path.dirname(src), name = path.basename(src);
+  if (!fs.existsSync(base)) return [];
+  return fs.readdirSync(base).filter((d) => d.startsWith(name + '-') && haveProvince(path.join(base, d))).sort().map((d) => path.join(base, d));
+}
+
+// ------------------------------------------------------------- geometry
+
+// Douglas-Peucker on [[x, y]]
+export function simplify(P, tol) {
+  if (P.length < 3) return P.slice();
+  const n = P.length - 1;
+  if (P[0][0] === P[n][0] && P[0][1] === P[n][1] && n > 3) {
+    // a closed ring: split at the point farthest from its start
+    let m = 1, md = -1;
+    for (let i = 1; i < n; i++) { const d = Math.hypot(P[i][0] - P[0][0], P[i][1] - P[0][1]); if (d > md) { md = d; m = i; } }
+    return simplify(P.slice(0, m + 1), tol).concat(simplify(P.slice(m), tol).slice(1));
+  }
+  const keep = new Uint8Array(P.length);
+  keep[0] = keep[P.length - 1] = 1;
+  const stack = [[0, P.length - 1]];
+  while (stack.length) {
+    const [a, b] = stack.pop();
+    const [ax, ay] = P[a], [bx, by] = P[b];
+    const dx = bx - ax, dy = by - ay, L = Math.hypot(dx, dy) || 1;
+    let m = -1, md = tol;
+    for (let i = a + 1; i < b; i++) {
+      const d = Math.abs((P[i][0] - ax) * dy - (P[i][1] - ay) * dx) / L;
+      if (d > md) { md = d; m = i; }
+    }
+    if (m > 0) { keep[m] = 1; stack.push([a, m], [m, b]); }
+  }
+  return P.filter((_, i) => keep[i]);
+}
+
+export function pointInRings(x, y, rings) {
+  let inside = false;
+  for (const R of rings) {
+    for (let i = 0, j = R.length - 1; i < R.length; j = i++) {
+      const [xi, yi] = R[i], [xj, yj] = R[j];
+      if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside;
+    }
+  }
+  return inside;
+}
+
+function distToRings(x, y, rings) {
+  let best = Infinity;
+  for (const R of rings) {
+    for (let i = 0; i < R.length - 1; i++) {
+      const a = R[i], b = R[i + 1];
+      const dx = b[0] - a[0], dy = b[1] - a[1], L2 = dx * dx + dy * dy || 1;
+      const t = Math.max(0, Math.min(1, ((x - a[0]) * dx + (y - a[1]) * dy) / L2));
+      const d = Math.hypot(x - a[0] - dx * t, y - a[1] - dy * t);
+      if (d < best) best = d;
+    }
+  }
+  return best;
+}
+
+// The province outline in the world frame, simplified to `tol` metres.
+export function outline(prov, tol = 25) {
+  return (prov.boundary || []).map((ring) => simplify(ring.map(([la, lo]) => wgsToWorld(la, lo).map(r1)), tol));
+}
+
+// Every tile whose square touches the province or lies within `buffer` of
+// it: Map key -> { i, j, key, buffer } (buffer: outside the province).
+export function provinceTiles(rings, buffer = BUFFER_M) {
+  const tiles = new Map();
+  if (!rings.length) return tiles;
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const R of rings) for (const [x, y] of R) { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); }
+  const [i0, j0] = G.tileIndexOf(x0 - buffer, y0 - buffer), [i1, j1] = G.tileIndexOf(x1 + buffer, y1 + buffer);
+  const half = (G.TILE_M / 2) * Math.SQRT2;
+  for (let i = i0; i <= i1; i++) {
+    for (let j = j0; j <= j1; j++) {
+      const [ox, oy] = G.tileOrigin(i, j);
+      const cx = ox + G.TILE_M / 2, cy = oy + G.TILE_M / 2;
+      const inside = pointInRings(cx, cy, rings);
+      const d = inside ? 0 : distToRings(cx, cy, rings);
+      if (!inside && d > buffer + half) continue;
+      // a tile whose square may reach over the border counts as the province's
+      tiles.set(G.tileKey(i, j), { i, j, key: G.tileKey(i, j), buffer: !inside && d > half });
+    }
+  }
+  return tiles;
+}
+
+// The border lines of the outline by the land on the other side (worldedge.js
+// border): the sea side is the coast's (natural=coastline) and is left out.
+// Rough by position, which is enough for a simple edge: Germany east of the
+// Dollard, Friesland in the west, Drenthe in the south.
+export function borderLines(prov, buffer = BUFFER_M) {
+  const kindOf = (la, lo) => {
+    if (la > 53.33 && lo > 6.3) return null; // the Wadden Sea and the Eems mouth
+    if (lo > 7.03 && la < 53.3) return 'duitsland';
+    if (lo < 6.37 || (la > 53.2 && lo < 6.45)) return 'friesland';
+    if (la < 53.22) return 'drenthe';
+    return null;
+  };
+  const out = [];
+  for (const ring of prov.boundary || []) {
+    // orientation: positive signed area (x east, y south) = clockwise on the map
+    const W = ring.map(([la, lo]) => wgsToWorld(la, lo));
+    let A = 0;
+    for (let i = 0; i < W.length - 1; i++) A += W[i][0] * W[i + 1][1] - W[i + 1][0] * W[i][1];
+    let cur = null;
+    for (let i = 0; i < ring.length; i++) {
+      const k = kindOf(ring[i][0], ring[i][1]);
+      if (cur && cur.kind === k) { cur.pts.push(W[i]); continue; }
+      if (cur && cur.pts.length > 1) out.push(cur);
+      cur = k ? { kind: k, pts: cur && cur.kind ? [cur.pts[cur.pts.length - 1], W[i]] : [W[i]] } : null;
+    }
+    if (cur && cur.pts.length > 1) out.push(cur);
+    // the outside is to the left of the direction when the ring runs clockwise on screen (A > 0 with y south)
+    for (const L of out) if (L.out === undefined) L.out = A > 0 ? -1 : 1;
+  }
+  return out.map((L) => ({ kind: L.kind, out: L.out, bufferM: buffer - 500, pts: simplify(L.pts, 10).map(([x, y]) => [r1(x), r1(y)]) }));
+}
+
+// built-up weight (0..1) from the extract's building-density grid (the same
+// rule as build_corridor.mjs urbanField: 45 buildings in the 3 x 3 cells)
+export function urbanFromGrid(urban) {
+  const cell = (urban && urban.cell) || 120;
+  const n = new Map();
+  for (const [i, j, c] of (urban && urban.cells) || []) n.set(i * 100003 + j, c);
+  return (x, y) => {
+    let s = 0;
+    const cx = Math.floor(x / cell), cy = Math.floor(y / cell);
+    for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) s += n.get((cx + i) * 100003 + cy + j) || 0;
+    return Math.min(1, s / 45);
+  };
+}
+
+// ------------------------------------------------------------- lines
+
+// The station stops of a route relation, in order, by name: each stop node
+// to the station within 350 m (repeats dropped).
+function relationVia(rel, stations) {
+  const names = [];
+  for (const m of rel.members || []) {
+    if (m.type !== 'node' || !/^stop/.test(m.role || '') || m.lat === undefined) continue;
+    const [x, y] = wgsToWorld(m.lat, m.lon);
+    let best = null, bd = 350;
+    for (const [key, s] of stations) { const d = Math.hypot(s.x - x, s.y - y); if (d < bd) { bd = d; best = key; } }
+    if (best && names[names.length - 1] !== best) names.push(best);
+  }
+  return names;
+}
+
+// Every train line OSM has a route for, over the track (railRoute: per leg the
+// shortest way over the rail graph), one per station sequence in either
+// direction; plus the proefstrook's line ids (corridorrail.js extends the
+// Ommeland's routes by them).
+export function trainLines(trains, railRows, stations) {
+  const out = [], seen = new Set();
+  for (const rel of trains) {
+    const via = relationVia(rel, stations);
+    if (via.length < 2) continue;
+    const sig = via.join('>'), rev = via.slice().reverse().join('>');
+    if (seen.has(sig) || seen.has(rev)) continue;
+    seen.add(sig);
+    const t = rel.tags || {};
+    const r = railRoute(railRows, stations, via);
+    if (r.stops.length < 2) continue;
+    out.push({ id: `trein-${rel.id}`, name: t.name || `${via[0]} - ${via[via.length - 1]}`, ref: t.ref || '', via, ...r, pts: simplify(r.pts, 1).map(([x, y]) => [r1(x), r1(y)]) });
+  }
+  for (const L of LINES.filter((q) => q.kind === 'rail')) {
+    // the corridor's via lists name villages without a station (Oudeschip): the stations only
+    const via = L.via.filter((v) => stations.has(v));
+    const r = railRoute(railRows, stations, via);
+    out.push({ id: L.id, name: L.name, via, ...r, pts: simplify(r.pts, 1).map(([x, y]) => [r1(x), r1(y)]), missing: L.via.filter((v) => !stations.has(v)) });
+  }
+  return out.sort((a, b) => (a.id < b.id ? -1 : 1));
+}
+
+// ------------------------------------------------------------- build
+
+export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(src), cityKeys = new Set(), buffer = BUFFER_M, onPack = null } = {}) {
+  const prov = gunzipJson(path.join(src, 'province.json.gz'));
+  // the neighbours' strips: their places, stations and built-up cells join the province's
+  const dirs = [src, ...extra];
+  for (const d of extra) {
+    const q = gunzipJson(path.join(d, 'province.json.gz'));
+    const ids = new Set(prov.places.map((p) => p.id));
+    for (const p of q.places) if (!ids.has(p.id)) prov.places.push(p);
+    const sid = new Set(prov.stations.map((p) => p.id));
+    for (const p of q.stations) if (!sid.has(p.id)) prov.stations.push(p);
+    if (q.urban && prov.urban) prov.urban.cells = prov.urban.cells.concat(q.urban.cells);
+  }
+  const rings = outline(prov);
+  const tiles = provinceTiles(rings, buffer);
+  const keys = [...tiles.keys()].sort();
+  // urban cells of several extracts add up where they overlap; that only
+  // makes a border cell count as built-up a little sooner
+  const urbanAt = urbanFromGrid(prov.urban);
+  const ctx = { urbanAt, village: (x, y) => urbanAt(x, y) >= 0.5 };
+  // tiles per pack
+  const byPack = new Map();
+  const city = [];
+  for (const k of keys) {
+    if (cityKeys.has(k)) { city.push(k); continue; }
+    const t = tiles.get(k);
+    const p = packOf(t.i, t.j);
+    (byPack.get(p) || byPack.set(p, []).get(p)).push(k);
+  }
+  const gid = { buildings: GID0, roads: GID0, water: GID0, green: GID0, trees: GID0, rails: GID0 };
+  const stats = { tiles: 0, buildings: 0, roads: 0, water: 0, rails: 0, green: 0, trees: 0, furniture: 0, hsrc: {}, packs: 0, sourceMB: 0 };
+  const blobs = new Map();
+  const empty = [], noPack = [];
+  const railRows = [];
+  const coast = new Map();
+  const packKey = (k) => { const [a, b] = k.split('_').map(Number); return a * 1000 + b; };
+  for (const pk of [...byPack.keys()].sort((a, b) => packKey(a) - packKey(b))) {
+    const files = dirs.map((d) => path.join(d, `c${pk}.json.gz`)).filter((f) => fs.existsSync(f));
+    const want = byPack.get(pk);
+    if (!files.length) { noPack.push(...want); continue; }
+    stats.packs++;
+    // the province's pack first: a way both extracts hold is the same OSM way (features() keeps the first)
+    const els = [];
+    for (const f of files) { stats.sourceMB += fs.statSync(f).size / 1e6; for (const el of gunzipJson(f).elements) els.push(el); }
+    for (const el of els) if (el.tags && el.tags.natural === 'coastline' && el.g && !coast.has(el.id)) coast.set(el.id, el);
+    const feats = features(els, ctx);
+    WB.applyDuals(feats.filter((f) => f.kind === 'roads').map((f) => f.row));
+    // features by tile, only for this pack's tiles
+    const mine = new Set(want);
+    const idx = new Map();
+    for (const f of feats) {
+      if (f.kind === 'rails') railRows.push(f.row);
+      let bb;
+      if (f.kind === 'trees') bb = [f.row[0], f.row[1], f.row[0], f.row[1]];
+      else if (f.kind === 'furniture') bb = [f.row.x, f.row.y, f.row.x, f.row.y];
+      else if (f.kind === 'buildings') { let x = 0, y = 0; const P = f.row.pts, n = P.length - 1; for (let q = 0; q < n; q++) { x += P[q][0]; y += P[q][1]; } bb = [x / n, y / n, x / n, y / n]; }
+      else { let a = Infinity, b = Infinity, c = -Infinity, d = -Infinity; for (const p of f.row.pts) { if (p[0] < a) a = p[0]; if (p[1] < b) b = p[1]; if (p[0] > c) c = p[0]; if (p[1] > d) d = p[1]; } bb = [a, b, c, d]; }
+      const [i0, j0] = G.tileIndexOf(bb[0], bb[1]), [i1, j1] = G.tileIndexOf(bb[2], bb[3]);
+      for (let i = i0; i <= i1; i++) for (let j = j0; j <= j1; j++) {
+        const k = G.tileKey(i, j);
+        if (!mine.has(k)) continue;
+        (idx.get(k) || idx.set(k, []).get(k)).push(f);
+      }
+    }
+    for (const k of want) {
+      const t = tiles.get(k);
+      const flags = FLAG.LAND | FLAG.BUILT | FLAG.PROVINCE | (t.buffer ? FLAG.BUFFER : 0) | (ommelandBox(t.i, t.j, root) ? FLAG.OLD : 0);
+      const tb = tileBlob(t.i, t.j, idx.get(k) || [], gid, flags, PROVINCE_BUILDER, stats);
+      if (!tb) { empty.push(k); continue; }
+      blobs.set(k, { ...tb, src: 'pbf' });
+    }
+    if (onPack) onPack(pk, stats);
+  }
+  // the global layer
+  const inSet = (x, y) => { const [i, j] = G.tileIndexOf(x, y); return tiles.has(G.tileKey(i, j)); };
+  const places = prov.places.filter((p) => inSet(p.x, p.y)).map((p) => ({ name: p.name, kind: p.kind, x: p.x, y: p.y, pop: p.pop || 0 }));
+  // a suburb or neighbourhood belongs to the nearest town or village within 3 km
+  const seats = places.filter((p) => ['city', 'town', 'village'].includes(p.kind));
+  for (const p of places) {
+    if (!['suburb', 'quarter', 'neighbourhood'].includes(p.kind)) continue;
+    let best = null, bd = 3000;
+    for (const s of seats) { const d = Math.hypot(s.x - p.x, s.y - p.y); if (d < bd) { bd = d; best = s; } }
+    if (best) p.of = best.name;
+  }
+  // Eemshaven has no place node: the harbour's own name at its centre (as the corridor)
+  if (!places.some((p) => p.name === 'Eemshaven')) {
+    const [x, y] = wgsToWorld(53.4417, 6.8333);
+    places.push({ name: 'Eemshaven', kind: 'industrial', x: r2(x), y: r2(y), pop: 0 });
+  }
+  places.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : a.x - b.x));
+  const stations = new Map();
+  for (const s of prov.stations) {
+    if (!inSet(s.x, s.y)) continue;
+    const key = s.name.replace(/^Station\s+/, '');
+    if (!stations.has(key)) stations.set(key, { name: s.name, x: s.x, y: s.y });
+  }
+  if (stations.has('Groningen') && !stations.has('Groningen Hoofdstation')) stations.set('Groningen Hoofdstation', stations.get('Groningen'));
+  const routes = trainLines(prov.trains || [], railRows, stations);
+  const bus = busLines(prov.bus || []).map((b) => ({ ...b, pts: simplify(b.pts, 2).map(([x, y]) => [r1(x), r1(y)]) }));
+  const edge = edgeFromOsm([...coast.values()], (la, lo) => wgsToWorld(la, lo).map(r1));
+  edge.coast = edge.coast.map((c) => ({ ...c, pts: simplify(c.pts, 5) }));
+  edge.border = borderLines(prov, buffer);
+  const global = {
+    builder: PROVINCE_BUILDER, source: prov.source, places,
+    stations: [...stations.entries()].map(([key, s]) => ({ key, ...s })).sort((a, b) => (a.key < b.key ? -1 : 1)),
+    routes, bus: bus.map(({ id, ref, name, from, to, pts, stops }) => ({ id, ref, name, from, to, pts, stops })),
+    edge, outline: rings.map((R) => simplify(R, 60).map(([x, y]) => [Math.round(x), Math.round(y)])),
+    buffer, empty: empty.sort(), city: city.sort(), missing: noPack.sort(),
+  };
+  return { blobs, global, stats, keys, tiles, empty, missing: noPack };
+}
+
+// The bus lines (~1 MB) go in a file of their own, read when needed; the
+// index (read at start for the place names) stays small.
+export function writeProvince(out, built) {
+  const { bus, ...global } = built.global;
+  const r = writeLayer(out, { ...built, global: { ...global, busFile: 'provincie-bus.json' } }, { prefix: 'v', file: 'index-provincie.json', layer: 'provincie', builder: PROVINCE_BUILDER });
+  fs.writeFileSync(path.join(out, 'provincie-bus.json'), JSON.stringify({ builder: PROVINCE_BUILDER, bus }));
+  return r;
+}
+
+async function cityKeysOf(arg) {
+  if (arg && fs.existsSync(arg)) return new Set(Object.keys(JSON.parse(fs.readFileSync(arg, 'utf8')).tiles));
+  await import('../node3d.mjs');
+  const P = await import('./pack_tiles.mjs');
+  return new Set(P.build(P.loadSources()).blobs.keys());
+}
+
+async function main() {
+  const args = process.argv.slice(2);
+  const opt = (k) => (args.includes(k) ? args[args.indexOf(k) + 1] : null);
+  const out = path.resolve(ROOT, opt('--out') || 'game/world');
+  const src = path.resolve(ROOT, opt('--src') || SRC_DIR);
+  if (!haveProvince(src)) { console.log(`no province extract in ${path.relative(ROOT, src)}: run scripts/world/extract_province.py first`); return; }
+  const t0 = performance.now();
+  const cityKeys = await cityKeysOf(opt('--city') || path.join(out, 'index.json'));
+  const t1 = performance.now();
+  const built = buildProvince({ src, cityKeys, onPack: args.includes('--verbose') ? (pk, s) => console.log(`  pack ${pk}: ${s.tiles} tiles so far`) : null });
+  const t2 = performance.now();
+  const { index, size } = writeProvince(out, built);
+  const raw = Object.values(index.tiles).reduce((a, t) => a + t.raw, 0);
+  const s = built.stats;
+  const g = built.global;
+  const buf = Object.values(index.tiles).filter((t) => t.flags & FLAG.BUFFER).length;
+  const old = Object.values(index.tiles).filter((t) => t.flags & FLAG.OLD).length;
+  const idxSize = fs.statSync(path.join(out, 'index-provincie.json')).size;
+  console.log(`provincie: ${built.keys.length} tiles in the set, ${s.tiles} built (${buf} in the buffer strip, ${old} where the old Ommeland layers draw), ${g.city.length} are the city's, ${built.empty.length} empty (sea, no data), ${built.missing.length} without a pack`);
+  console.log(`  ${Object.keys(index.packs).length} packs ${(size / 1e6).toFixed(1)} MB (${(raw / 1e6).toFixed(1)} MB raw, ${Math.round(size / Math.max(1, s.tiles))} B/tile), index ${(idxSize / 1e6).toFixed(2)} MB; source ${s.sourceMB.toFixed(1)} MB gzip in ${s.packs} packs`);
+  console.log(`  ${s.buildings} buildings (height ${Object.entries(s.hsrc).map(([k, v]) => `${k} ${v}`).join(', ')}), ${s.roads} road pieces, ${s.water} water, ${s.green} green, ${s.rails} rail pieces, ${s.trees} trees, ${s.furniture} furniture`);
+  console.log(`  ${g.places.length} places, ${g.stations.length} stations, ${g.routes.length} train lines (${g.routes.filter((r) => r.reached).length} complete), ${g.bus.length} bus lines, ${g.edge.coast.length} coast pieces, ${g.edge.border.length} border lines`);
+  console.log(`  city keys ${((t1 - t0) / 1000).toFixed(1)} s, build ${((t2 - t1) / 1000).toFixed(1)} s -> ${path.relative(ROOT, out)}`);
+}
+
+if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) await main();

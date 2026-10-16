@@ -18,6 +18,7 @@ everything across the German border are left out.
 
     python3 scripts/add_facilities.py            # build from the cache
     python3 scripts/add_facilities.py --refresh  # refetch from Overpass
+    python3 scripts/add_facilities.py --cache data/cache/province/facilities_raw.json.gz  # from the Geofabrik extract
 
 The cache is data/facilities_raw.json.gz (one Overpass call).
 """
@@ -143,7 +144,18 @@ M_LAT, M_LON = 110574.0, 66652.97
 
 def main():
     raw = None
-    if "--refresh" not in sys.argv and os.path.exists(CACHE):
+    if "--cache" in sys.argv:
+        # other raw caches in the same form, comma-separated:
+        # scripts/world/extract_province.py writes data/cache/province*/facilities_raw.json.gz
+        # from the Geofabrik extracts (the province's, the strips of its neighbours)
+        raw, seen = {"elements": []}, set()
+        for path in sys.argv[sys.argv.index("--cache") + 1].split(","):
+            with gzip.open(path, "rt") as f:
+                for el in json.load(f)["elements"]:
+                    if (el["type"], el["id"]) not in seen:
+                        seen.add((el["type"], el["id"]))
+                        raw["elements"].append(el)
+    elif "--refresh" not in sys.argv and os.path.exists(CACHE):
         with gzip.open(CACHE, "rt") as f:
             raw = json.load(f)
         if raw.get("bbox") != list(BBOX):
