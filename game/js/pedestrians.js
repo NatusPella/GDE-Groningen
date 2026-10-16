@@ -938,9 +938,9 @@ function checkVehicleImpact(ped, world) {
     } else ped.speed = 0;
     if (v.driver === 'player') {
       // knocking someone over on a bike or scooter is a scene, not a crime
-      const crime = dead || !light;
+      const crime = dead || !light || ped.isCop;
       world.lastPedHitAt = world.time;
-      const serious = crime && reportCrime(world, dead ? 'pedKill' : 'pedHit');
+      const serious = crime && (ped.isCop ? reportCrime(world, dead ? 'pedKill' : 'copHit', { seen: true }) : reportCrime(world, dead ? 'pedKill' : 'pedHit'));
       if (dead) { world.stats.kills++; world.stats[ped.isCop ? 'copKills' : 'pedKills']++; }
       pendingEvents.push({ kind: 'hit', x: ped.x, y: ped.y, r: 30, crime: serious });
     }
