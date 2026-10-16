@@ -105,6 +105,26 @@ const rect = (x0, y0, x1, y1, name = '') => ({ pts: [[x0, y0], [x1, y0], [x1, y1
   ok(MB.hornAt(10, 200) === null, 'too far: nothing');
 }
 
+// 3b. a lock between two peilen
+{
+  const LK = await import('../game/js/locks.js');
+  const lock = LK.makeLock({ x: 0, y: 0, a: 0, len: 40, width: 8, levels: [-2.3, -0.9] });
+  ok(LK.gateOpen(lock, 0) && !LK.gateOpen(lock, 1) && lock.level === -2.3, 'a lock waits open at its low side');
+  LK.request(lock, 1, 'boot');
+  const T = LK.LOCK_TIMING, run = (s) => { for (let t = 0; t < s; t += 0.1) LK.stepLock(lock, 0.1); };
+  run(4 + T.GATE_S + 0.2);
+  ok(!LK.gateOpen(lock, 0) && lock.state === 'levelling', 'gate shut behind, levelling');
+  run(LK.levelTime(lock) / 2);
+  ok(lock.level > -2.3 && lock.level < -0.9, 'the level rises in between', lock.level);
+  run(LK.levelTime(lock) / 2 + T.GATE_S + 0.3);
+  ok(lock.at === 1 && LK.gateOpen(lock, 1) && Math.abs(lock.level + 0.9) < 1e-9 && lock.queue.length === 1, 'open at the high side for the boat that asked');
+  LK.enter(lock, 'boot');
+  run(4 + T.GATE_S + LK.levelTime(lock) + T.GATE_S + 0.5);
+  ok(lock.at === 0 && LK.gateOpen(lock, 0) && Math.abs(lock.level + 2.3) < 1e-9 && !lock.queue.length, 'in, levelled down and out at the low side');
+  ok(LK.chamberLevelAt(lock, 5, 2) === lock.level && LK.chamberLevelAt(lock, 50, 0) === null, 'the chamber has its own level');
+  ok(Math.abs(LK.levelTime(lock) - 1.4 / T.FILL_MS) < 1e-9, 'levelling time from the difference in peil');
+}
+
 // 4. a boat does not break a bridge railing
 {
   const BR = await import('../game/js/breakables.js');

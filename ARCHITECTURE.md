@@ -742,7 +742,14 @@ boezem height until the water renderer takes a level per polygon (F2).
   props (bridgerails.js keeps the walker lines while closed). scene3d.js hides
   the static road of a span that is not lying closed and keeps it out of the
   road batches.
-- `node scripts/water_test.mjs`: bodies, kinds and peil on made-up polygons,
+- Locks (`locks.js`, pure): a chamber between two peilen with a gate at each
+  end and its own level (`chamberLevelAt`): ready at one side, a boat asks
+  from a side (`request`), the lock comes to it, the boat sails in (`enter`),
+  the gate closes (6 s), the level moves at 5 cm/s (at least 8 s) and the
+  other gate opens. The builder places them where OSM has lock gates
+  (`water.mjs findLocks`) and gives each side its body and peil; the city's
+  caches have none.
+- `node scripts/water_test.mjs`: bodies, kinds and peil on made-up polygons, a lock's cycle,
   the query, boat classes against bridges, a bridge's cycle step by step (the
   span, the barriers, the AI, the horn), a boat never breaking a bridge
   railing (breakables.js: boats only meet water props) and the map's
