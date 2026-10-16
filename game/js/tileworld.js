@@ -175,9 +175,15 @@ export class TileWorld extends GameMap {
 
 // The tile world at `base` (index.json, packs, global blob), the pinned city
 // resident. null when there is no index there (a build without tiles).
-export async function loadTileWorld(base = 'world/', { source = new HttpRangeSource(base), onProgress = null, pool = true, ...opts } = {}) {
+export async function loadTileWorld(base = 'world/', { source = new HttpRangeSource(base), onProgress = null, pool = true, extra = [], ...opts } = {}) {
   let index;
   try { index = JSON.parse(new TextDecoder().decode(await source.readAll('index.json'))); } catch (e) { return null; }
+  // more tile layers next to the city (index-corridor.json: the proefstrook,
+  // scripts/world/build_corridor.mjs); a missing one is skipped
+  for (const x of extra) {
+    const { name, only = null } = typeof x === 'string' ? { name: x } : x;
+    try { mergeIndex(index, JSON.parse(new TextDecoder().decode(await source.readAll(name))), { only }); } catch (e) { /* not in this build */ }
+  }
   const decode = (pool && makeWorkerDecoder(new URL('./tileworker.js', import.meta.url), 2)) || decodeCompressed;
   const store = new TileStore({ source, index, decode, ...opts });
   const g = index.global;
@@ -189,6 +195,22 @@ export async function loadTileWorld(base = 'world/', { source = new HttpRangeSou
   const world = TileWorld.fromTiles(globalBlob, tiles).attachStore(store);
   world.tileIndex = index;
   return { world, store, index, global: globalBlob, source };
+}
+
+// Another layer's tiles and packs into the index; a tile the index already
+// has stays (the city's own tiles win). The layer's global part is kept
+// under index.layers[name] for whoever reads it.
+export function mergeIndex(index, extra, { only = null } = {}) {
+  const name = extra.layer || 'extra';
+  for (const [pk, p] of Object.entries(extra.packs || {})) if (!index.packs[pk]) index.packs[pk] = p;
+  let n = 0;
+  for (const [k, t] of Object.entries(extra.tiles || {})) {
+    if (index.tiles[k] || (only && !only(t, k))) continue;
+    index.tiles[k] = t;
+    n++;
+  }
+  (index.layers || (index.layers = {}))[name] = { global: extra.global || null, tiles: n };
+  return n;
 }
 
 // The Ommeland data (countryreal.js initReal) out of the global blob.

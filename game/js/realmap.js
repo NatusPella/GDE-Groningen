@@ -2,6 +2,7 @@ import { GameMap, SpatialGrid } from './mapdata.js';
 import { polygonBounds } from './util.js';
 import { REAL, RTILE, buildingsInTile, buildingModel, buildingAt } from './countryreal.js';
 import { urbanWeight, realWater } from './countryfield.js';
+import { buildRoad, buildBuilding, worldBuilderOn } from './worldbuilder.js';
 
 // The real Ommelanden (countryreal.js) as a GameMap the city's generators
 // read: the built-up streets as city roads (models3d via roadsurface.js:
@@ -28,6 +29,8 @@ const ROAD_CLASS = {
   7: { cat: 'normal', type: 'residential', speed: 8.5 },
 };
 const PLACE_CORE = { town: 520, village: 650, hamlet: 900 };
+// countryreal road kind -> OSM class, for the world builder
+const KIND_HIGHWAY = { 3: 'primary', 4: 'secondary', 5: 'tertiary', 6: 'unclassified', 7: 'residential' };
 
 let RM = null;
 
@@ -68,7 +71,25 @@ function urbanRuns(pts, bridge) {
   });
 }
 
+// The world builder's road rows (worldbuilder.js) for the built-up runs:
+// a village street's class, width and flags from the compact road, its
+// speed the kom's.
+function convertRoadsWB(map) {
+  const out = [];
+  const add = (row) => { if (row) out.push(Object.assign(row, { layer: 0, net: map, _geoMain: true, real: true })); };
+  for (const r of REAL.roads) {
+    if (!KIND_HIGHWAY[r.kind]) continue;
+    const highway = r.kind === 7 && r.w < 4.8 ? 'living_street' : KIND_HIGHWAY[r.kind];
+    for (const pts of urbanRuns(r.pts, r.bridge)) add(buildRoad({ pts, highway, width: r.w, oneway: r.oneway, name: r.name, bridge: false }, { village: true }));
+  }
+  for (const c of REAL.cycleways) {
+    for (const pts of urbanRuns(c.pts, false)) add(buildRoad({ pts, highway: 'cycleway', width: Math.max(1.8, c.hw * 2), oneway: false, name: '', bridge: false }, { village: true }));
+  }
+  return out;
+}
+
 function convertRoads(map) {
+  if (worldBuilderOn()) return convertRoadsWB(map);
   const out = [];
   for (const r of REAL.roads) {
     const C = ROAD_CLASS[r.kind];
@@ -109,7 +130,27 @@ function cityType(i, m) {
   return null;
 }
 
+// The countryside box as the world builder's source: its rectangle, code,
+// OSM levels and the countryside model's form, wall, roof and colours.
+function makeBuildingWB(map, i) {
+  const x = REAL.bx[i], y = REAL.by[i];
+  if (REAL.code[i] === 7) return null;
+  const m = buildingModel(i);
+  const ux = Math.cos(m.angle), uy = Math.sin(m.angle);
+  const hl = m.long / 2, hs = m.short / 2;
+  const pts = [[-hl, -hs], [hl, -hs], [hl, hs], [-hl, hs]].map(([u, v]) => [x + ux * u - uy * v, y + uy * u + ux * v]);
+  const b = buildBuilding({
+    pts, code: REAL.code[i], levels: REAL.lv[i], form: m.kind, wall: m.wall, roofH: m.roof, hip: m.hip, row: m.row,
+    urban: urbanWeight(x, y), tint: m.color, roofTint: m.roofColor, name: '',
+  }, { keepRural: true });
+  if (!b) return null;
+  Object.assign(b, { realId: i, map, passages: [], _doors: [], _foundation: null });
+  b.bounds = polygonBounds(pts);
+  return b;
+}
+
 function makeBuilding(map, i) {
+  if (worldBuilderOn()) return makeBuildingWB(map, i);
   const x = REAL.bx[i], y = REAL.by[i];
   if (REAL.code[i] === 7 && REAL.churchNear && REAL.churchNear(x, y)) return null;
   const m = buildingModel(i);
@@ -233,6 +274,25 @@ function create() {
   map.isOnBridge = () => false;
   map.ms = Math.round(performance.now() - t0);
   return map;
+}
+
+// Every road and building row of both paths (old code, world builder), for
+// scripts/worldbuilder_test.mjs.
+export function realRowsBoth() {
+  const out = {};
+  const w = typeof window !== 'undefined' ? window : (globalThis.window = {});
+  const prev = w.__wb;
+  try {
+    for (const wb of [false, true]) {
+      w.__wb = wb;
+      const map = { roadGrid: null };
+      const roads = convertRoads(map);
+      const buildings = [];
+      for (let i = 0; i < REAL.n; i++) buildings.push(makeBuilding(map, i));
+      out[wb ? 'wb' : 'old'] = { roads, buildings };
+    }
+  } finally { w.__wb = prev; }
+  return out;
 }
 
 // The real Ommeland's map, or null until its data is in.
