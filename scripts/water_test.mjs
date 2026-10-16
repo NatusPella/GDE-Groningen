@@ -161,10 +161,13 @@ console.log(`waterways: canoe ${rep.classes[1].reached}/${rep.classes[1].wide}, 
 
 // 8. province water: rows get kind, lv, dp, nav; waterAt reads them
 {
-  const rows = L.annotateProvinceWater([rect(0, 0, 400, 40), rect(0, 100, 300, 101.5, 'Hoofdsloot'), rect(0, 200, 30, 230)]);
+  const { rows } = L.annotateProvinceWater([rect(0, 0, 400, 40), rect(0, 100, 300, 101.5, 'Hoofdsloot'), rect(0, 200, 30, 230), rect(1000, 0, 1900, 600)], { village: (x, y) => x < 500 });
   ok(rows[0].kind === 'kanaal' && rows[0].nav === 4, 'a wide province canal is a kanaal', rows[0].kind);
   ok(rows[1].kind === 'sloot' && rows[1].lv === -0.8, 'a narrow ditch is a sloot');
   ok(rows[2].nav >= 1 && rows[2].dp > 0, 'a pond carries nav and depth');
+  ok(rows[3].kind === 'meer' && rows[3].nav === 3 && rows[3].lv === L.WATER_KINDS.meer.level, 'a large open lake is a meer with its own peil', rows[3].kind);
+  ok(rows[0].bank === 'kade' && rows[3].bank === 'oever' && rows[1].bank === 'oever', 'quay in a built-up stretch, bank in the open');
+  ok(new Set(rows.map((r) => r.body)).size === 4, 'apart rows are their own bodies');
   const m = { waterNear: () => rows, roadsNear: () => [] };
   const a = L.waterAt(m, 200, 20), d = L.waterAt(m, 100, 100.7);
   ok(a && !a.wade && a.navigable === 4, 'deep province water: swim, barge');
