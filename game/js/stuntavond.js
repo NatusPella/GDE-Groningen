@@ -29,11 +29,16 @@ const KINDS = [
   { kind: 'kliko', label: 'kliko', pts: 80, n: 10, opts: { r: 0.36, h: 1.1, mass: 25, material: 'plastic', breakSpeed: 0.3, breakCost: 0, burst: 'litter' } },
   { kind: 'stoepbord', label: 'reclamebord', pts: 60, n: 10, opts: { r: 0.3, h: 1, mass: 8, material: 'wood', breakSpeed: 0.2, breakCost: 0 } },
 ];
+const EXTRA = [
+  { kind: 'chair', label: 'terrasstoel', pts: 40, n: 14, opts: { r: 0.26, h: 0.9, mass: 5, material: 'plastic', breakSpeed: 0.2, breakCost: 0 } },
+  { kind: 'table', label: 'terrastafel', pts: 70, n: 8, opts: { r: 0.38, h: 0.8, mass: 14, material: 'metal', breakSpeed: 0.4, breakCost: 0 } },
+];
+KINDS.push(...EXTRA);
 const SAY_HIT = ['Chat vindt dat niet leuk.', 'Niemand raken, zei ik!', 'Au. Strafpunten.'];
 const SAY_COMBO = ['Combo!', 'Chat gaat los!', 'Dik feest!'];
 // what the brief lists, in this order (stunthud.js)
 const RULES = [
-  ['Parasol omver', 120], ['Kliko omver', 80], ['Reclamebord omver', 60], ['Duivenzwerm de lucht in', FLOCK],
+  ['Parasol omver', 120], ['Kliko omver', 80], ['Reclamebord omver', 60], ['Terrasstoel omver', 40], ['Terrastafel omver', 70], ['Duivenzwerm de lucht in', FLOCK],
   ['Waterwagen laten sproeien (één keer)', SPRAY], ['Rakelings langs iemand', NEAR_MISS], ['Driften, per halve seconde', DRIFT_PER_S / 2],
 ];
 // the target never asks more than this share of what the square holds, combos not counted
@@ -43,7 +48,7 @@ const LATE_HINT_S = 30;
 let run = null;
 let seq = 0;
 
-const COLORS = { parasol: [0x1e9e56, 0xf0ede4, 0xc8102e], kliko: [0x3f7a3a, 0x4a4d50], stoepbord: [0x6b4a2e] };
+const COLORS = { parasol: [0x1e9e56, 0xf0ede4, 0xc8102e], kliko: [0x3f7a3a, 0x4a4d50], stoepbord: [0x6b4a2e], chair: [0xc8102e, 0xf0ede4], table: [0x8a8f94] };
 function propMesh(kind, k) {
   const g = new THREE.Group();
   const col = COLORS[kind][k % COLORS[kind].length];
@@ -57,6 +62,11 @@ function propMesh(kind, k) {
   } else if (kind === 'kliko') {
     const b = new THREE.Mesh(new THREE.BoxGeometry(0.6, 1.05, 0.7), mat(col));
     b.position.y = 0.53;
+    g.add(b);
+  } else if (kind === 'chair' || kind === 'table') {
+    const w = kind === 'table' ? 0.8 : 0.45, h = kind === 'table' ? 0.75 : 0.85;
+    const b = new THREE.Mesh(new THREE.BoxGeometry(w, h, w), mat(col));
+    b.position.y = h / 2;
     g.add(b);
   } else {
     const a = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.95, 0.04), mat(col));
@@ -169,7 +179,7 @@ export function updateStunt(dt, w, timeLeft = Infinity) {
   updateStuntHud(dt, { score: R.score, target: R.target, combo: R.combo, comboLeft: Math.max(0, 1 - (w.time - R.lastAt) / COMBO_S), timeLeft }, isCinematicActive());
   if (!R.lateHint && timeLeft <= LATE_HINT_S && R.score < R.target) {
     R.lateHint = true;
-    w.addMessage(`Nog ${R.target - R.score} punten in ${LATE_HINT_S} seconden! Parasols en kliko's leveren het meest op.`, 4, { kind: 'missie', key: 'stunt-late' });
+    w.addMessage(`Nog ${R.target - R.score} punten in ${LATE_HINT_S} seconden! Parasols, tafels en kliko's leveren het meest op.`, 4, { kind: 'missie', key: 'stunt-late' });
   }
   const p = w.player, v = p.inVehicle;
   const inZone = Math.hypot(p.x - R.center.x, p.y - R.center.y) < R.radius + 10;
