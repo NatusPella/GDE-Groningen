@@ -217,6 +217,172 @@ async function minigameSmoke(world, check, capture) {
   await drain(world);
 }
 
+// Minigames batch 2 (zwembad.js, klimtoren.js, waterski.js): start through the
+// debug hook, run a little, finish, and end cleanly.
+async function minigames2Smoke(world, check, capture) {
+  const A = window.__activities;
+  const ids = ['zwembad', 'klimtoren', 'waterski'];
+  check('minigames 2: three activities in the hub, one spot each', ids.every((id) => A.list().some((a) => a.id === id && a.spots === 1)), JSON.stringify(A.list().map((a) => a.id)));
+  check('minigames 2: their spots are registered for the spot check', ids.every((id) => activitySpots().some((s) => s.kind === id)));
+  const cleared = async (name) => {
+    const ok = await waitFor(() => !isActivityActive() && !world.activityGame && !boardUp(), 5000);
+    check(`minigames 2: ${name} ends cleanly (hub, input claim, HUD)`, ok && !world.cameraOverride, JSON.stringify({ active: isActivityActive(), game: world.activityGame, board: boardUp(), cam: !!world.cameraOverride }));
+  };
+  world.wanted = 0;
+  const finite = (p) => [p.x, p.y, p.z].every(Number.isFinite);
+
+  const zw = window.__zwembad;
+  check('zwembad: starts', zw && zw.start() && await waitFor(() => zw.state() && zw.state().swim.phase === 'block', 6000));
+  await sleep(800);
+  check('zwembad: board shows and the hub claims the input', boardUp() && world.activityGame === 'zwembad');
+  capture('mg-zwembad-block');
+  check('zwembad: the intro gives way to the block', await waitFor(() => zw.state().phase === 'run', 4000));
+  key(' ', 'Space');
+  await sleep(300);
+  check('zwembad: the dive starts the swim', zw.state().swim.phase === 'swim', JSON.stringify(zw.state()));
+  for (let i = 0; i < 6; i++) { key(i % 2 ? 'd' : 'a', i % 2 ? 'KeyD' : 'KeyA'); await sleep(550); }
+  capture('mg-zwembad-swim');
+  check('zwembad: strokes move the swimmer', zw.state().swim.dist > 3 && finite(world.player), JSON.stringify(zw.state()));
+  zw.finish();
+  check('zwembad: the swim ends by itself', await waitFor(() => !isActivityActive(), 6000));
+  await cleared('zwembad');
+
+  const kt = window.__klimtoren;
+  check('klimtoren: starts', kt && kt.start() && await waitFor(() => kt.state() && kt.state().climb.phase === 'climb', 6000));
+  await sleep(500);
+  hold('a', 'KeyA');
+  await sleep(1100);
+  check('klimtoren: holding A grips the first hold', kt.state().climb.best > 0.3 && finite(world.player), JSON.stringify(kt.state()));
+  capture('mg-klimtoren-grip');
+  release('a', 'KeyA');
+  await sleep(300);
+  kt.finish();
+  check('klimtoren: the climb ends by itself', await waitFor(() => !isActivityActive(), 7000));
+  await cleared('klimtoren');
+
+  const ws = window.__waterski;
+  check('waterski: starts', ws && ws.start() && await waitFor(() => ws.state() && ws.state().phase === 'run', 6000));
+  await sleep(1500);
+  capture('mg-waterski-run');
+  check('waterski: the boat tows the skier along the lake', ws.state().ski.sS > 2 && finite(world.player), JSON.stringify(ws.state()));
+  hold('a', 'KeyA');
+  await sleep(900);
+  release('a', 'KeyA');
+  check('waterski: leaning moves the skier sideways', Math.abs(ws.state().ski.px) > 0.3, JSON.stringify(ws.state()));
+  ws.finish();
+  check('waterski: the run ends by itself', await waitFor(() => !isActivityActive(), 7000));
+  await cleared('waterski');
+  await drain(world);
+}
+
+// Open-world events and the text jobs, batch 2 (worldevents.js, casework.js and the
+// sidejob_boa / rechtbank / cabaret jobs): drive them through their debug hooks.
+async function batch2Smoke(world, check, capture) {
+  world.wanted = 0;
+  const WE = window.__worldevents;
+  const finite = (p) => [p.x, p.y, p.z].every(Number.isFinite);
+  check('events: the debug hook exists', !!WE && typeof WE.quake === 'function');
+  // earthquake: a short rumble that shakes the picture and then stops
+  check('events: a quake starts', WE.quake(2.2));
+  await sleep(1600);
+  check('events: the picture shakes during the quake', !!world.quake && world.quake.amp > 0.05, JSON.stringify(world.quake));
+  capture('event-quake');
+  check('events: the quake ends by itself', await waitFor(() => !world.quake && !WE.state().quake, 12000), JSON.stringify(WE.state()));
+  check('events: nothing is NaN after the quake', finite(world.player) && [window.__debug.player.x, window.__debug.player.y].every(Number.isFinite));
+  // algae: green patches in the lakes and a swim penalty on them
+  WE.algae(true);
+  await sleep(600);
+  const patches = WE.patches();
+  check('events: algae patches appear in the lakes', patches.length > 0 && patches.every((q) => [q.x, q.y, q.r].every(Number.isFinite)), String(patches.length));
+  check('events: the swim code finds a patch', patches.length > 0 && !!world.algaeAt(patches[0].x, patches[0].y) && !world.algaeAt(patches[0].x + 9999, patches[0].y));
+  WE.algae(false);
+  // fireworks: shells go up over the Grote Markt
+  WE.fireworks(0.5);
+  check('events: fireworks launch shells', await waitFor(() => WE.state().shells > 0, 9000), JSON.stringify(WE.state()));
+  capture('event-fireworks');
+  WE.fireworks(false);
+  // German tourists on the bloemetjesmarkt
+  const p = world.player;
+  const home = { x: p.x, y: p.y };
+  p.x = 100.6; p.y = 76.2 + 40;
+  await sleep(500);
+  WE.tourists(true);
+  check('events: German tourists walk the market', await waitFor(() => WE.state().tourists > 0, 25000), JSON.stringify(WE.state()));
+  capture('event-tourists');
+  WE.tourists(false);
+  p.x = home.x; p.y = home.y;
+
+  // a mugging: the wallet is snatched, nobody is hurt, and running the thief down gives it back
+  const MG = window.__muggings;
+  world.money = 300;
+  check('muggings: a thief shows up', MG && MG.mug() && MG.state().phase === 'approach');
+  check('muggings: the wallet is snatched (a share is lost)', await waitFor(() => MG.state().phase === 'chase', 9000) && world.money < 300 && world.money >= 200, JSON.stringify({ money: world.money, st: MG.state() }));
+  capture('event-mugging');
+  await sleep(2600);
+  const thief = world.pedestrians.find((q) => q.mugger);
+  check('muggings: the thief runs and nothing is NaN', !!thief && [thief.x, thief.y].every(Number.isFinite) && finite(world.player));
+  if (thief) { p.x = thief.x + 0.6; p.y = thief.y; }
+  check('muggings: catching him gives the money back', await waitFor(() => MG.state().phase === null && world.money === 300, 6000), JSON.stringify({ money: world.money, st: MG.state() }));
+
+  // the text jobs
+  const SJ = () => window.__debug.sidejobs;
+  const panelUp = () => !!document.querySelector('.cw-panel:not([hidden])');
+  const opts = () => document.querySelectorAll('.cw-panel .cw-opt').length;
+  const digit = (i) => key(String(i), 'Digit' + i);
+  const goTo = (id) => { const sp = SJ().spots().find((q) => q.job.id === id); if (sp) { p.x = sp.x; p.y = sp.y; } return !!sp; };
+  const intro = async () => { await sleep(300); for (let i = 0; i < 20 && isCinematicActive(); i++) { skipCinematic(); await sleep(250); } };
+  check('boa: starts', goTo('boa') && SJ().start('boa') && world.sideJob.active && world.sideJob.id === 'boa');
+  await intro();
+  let c = SJ().ctx();
+  check('boa: an offender waits', await waitFor(() => c.data.ped && c.data.phase === 'walk', 4000));
+  p.x = c.data.ped.x + 2; p.y = c.data.ped.y;
+  check('boa: the case panel opens with three fines', await waitFor(() => panelUp() && c.data.phase === 'case' && opts() === 3, 4000), JSON.stringify({ ph: c.data.phase, o: opts(), inV: !!p.inVehicle, sw: !!p.swimming, d: c.data.ped ? Math.hypot(p.x - c.data.ped.x, p.y - c.data.ped.y) : null }));
+  capture('job-boa-case');
+  const money = world.money;
+  digit(c.data.options.findIndex((o) => o.ok) + 1);
+  check('boa: a right fine pays and the panel closes', await waitFor(() => world.money > money && !panelUp(), 6000), `${money} -> ${world.money}`);
+  SJ().quit();
+  await sleep(300);
+  check('boa: quitting leaves no panel, no input claim', !panelUp() && !world.sideJob.active);
+
+  check('rechtbank: starts', await waitFor(() => !world.sideJob.active, 3000) && goTo('rechtbank') && SJ().start('rechtbank') && world.sideJob.id === 'rechtbank');
+  await intro();
+  c = SJ().ctx();
+  check('rechtbank: the dossier with three facts is handed over', await waitFor(() => c.data.dossier && (c.data.phase === 'read' || c.data.phase === 'carry'), 4000) && c.data.dossier.facts.length === 3);
+  capture('job-rechtbank-facts');
+  await sleep(2300);
+  if (c.data.phase === 'read') key(' ', 'Space');
+  check('rechtbank: Space starts the walk', await waitFor(() => c.data.phase === 'carry' && !panelUp(), 3000), c.data.phase);
+  p.x = c.data.dest.x; p.y = c.data.dest.y + 1;
+  check('rechtbank: at the desk the questions start', await waitFor(() => c.data.phase === 'ask' && panelUp(), 4000), c.data.phase);
+  const money2 = world.money;
+  for (let i = 0; i < 3; i++) {
+    const q = c.data.questions[c.data.qi];
+    digit(q.options.findIndex((o) => o.ok) + 1);
+    await waitFor(() => c.data.qi > i || c.data.phase === 'result', 4000);
+    await sleep(200);
+  }
+  check('rechtbank: three right answers pay', await waitFor(() => world.money > money2 && !panelUp(), 8000), `${money2} -> ${world.money}`);
+  SJ().quit();
+  await sleep(300);
+
+  check('cabaret: starts', await waitFor(() => !world.sideJob.active, 3000) && goTo('cabaret') && SJ().start('cabaret') && world.sideJob.id === 'cabaret');
+  await intro();
+  c = SJ().ctx();
+  check('cabaret: the act starts with a panel', await waitFor(() => panelUp() && c.data.phase === 'act', 4000));
+  const b0 = c.data.sched.beats[0];
+  c.data.t = b0.cueAt - 0.1;
+  key(' ', 'Space');
+  check('cabaret: a heckle on the beat scores', await waitFor(() => c.data.points >= 3, 3000), JSON.stringify({ pts: c.data.points, r: c.data.results }));
+  capture('job-cabaret');
+  c.data.t = c.data.sched.end - 0.1;
+  check('cabaret: the act ends with applause and pay', await waitFor(() => !panelUp() || c.data.phase === 'result', 8000));
+  SJ().quit();
+  await sleep(300);
+  check('text jobs: all gone, nothing claims the input', !panelUp() && !world.sideJob.active && !(world.minigameUntil > world.time + 0.3));
+  await drain(world);
+}
+
 export async function runStoryTest(world) {
   const errors = [];
   window.addEventListener('error', (e) => errors.push(String(e.message || e)));
@@ -255,6 +421,8 @@ export async function runStoryTest(world) {
     check('AI racers finish a full ring lap', lap.ai.ok, JSON.stringify(lap.ai));
     await drain(world);
     await minigameSmoke(world, check, capture);
+    await minigames2Smoke(world, check, capture);
+    await batch2Smoke(world, check, capture);
 
     // desktop --validate-spots: only the spot check
     story: {

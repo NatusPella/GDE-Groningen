@@ -8,7 +8,6 @@ import { getActiveRoute } from './routing.js';
 import { getMissionDefs, isMissionCompleted } from './missions.js';
 import { Pedestrian, isInsideBuilding, isOnRoad, isSpawnHidden, CITY_CENTRE } from './pedestrians.js';
 import { Vehicle, makeTwoWheeler } from './vehicle.js';
-import { spawnFxPuff, spawnFxSpark } from './fx3d.js';
 import { isInWater } from './util.js';
 import {
   NICKNAMES, NICKNAME_BARKS, BIJNA_THUIS, KROLBRUG_FAULTS, KROLBRUG_SIGNS, RING_ZUID_GPS, KON_MINDER,
@@ -355,7 +354,6 @@ function events(p, step) {
   if (centre && ready('evbark') && Math.random() < 0.12 && bark(p, ev.barks)) hold('evbark', 22 + Math.random() * 18);
   if (key === 'bloemetjesmarkt') coaches(p);
   if (key === 'keiweek') keiCrowd(p, centre || d2(p, PLANTSOEN) < PLANTSOEN.r);
-  if (key === 'bommenberend') fireworks(p, step);
 }
 
 const COACH_COLOURS = [['#f2efe6', '#d24a3a', '#2b3a55'], ['#e9e4d4', '#2f7a4f', '#1e2a38'], ['#f4f1ea', '#e0a526', '#383838'], ['#dfe6ee', '#3565a8', '#1a2230']];
@@ -445,24 +443,6 @@ function keiCrowd(p, here) {
       world.pedestrians.push(ped);
     }
     return;
-  }
-}
-
-const FW = [[1, 0.35, 0.3], [1, 0.85, 0.3], [0.4, 0.8, 1], [0.6, 1, 0.5], [1, 1, 1]];
-
-function fireworks(p, step) {
-  const night = world.dayNight ? world.dayNight.night : 0;
-  if (night < 0.6 || d2(p, GROTE_MARKT) > 700) return;
-  F.fwT = (F.fwT ?? 0) - step;
-  if (F.fwT > 0) return;
-  F.fwT = 0.8 + Math.random() * 1.8;
-  const x = GROTE_MARKT.x + (Math.random() - 0.5) * 60, y = GROTE_MARKT.y + (Math.random() - 0.5) * 60;
-  const h = 38 + Math.random() * 22;
-  const [r, g, b] = pick(FW);
-  for (let k = 0; k < 18; k++) {
-    const a = (k / 18) * Math.PI * 2, e = (Math.random() - 0.3) * 1.2;
-    spawnFxPuff(x, h, y, Math.cos(a) * 9, e * 6, Math.sin(a) * 9, 1.1, 0.35, 1.1, r, g, b, 0.95, 1.6, -1.5);
-    if (k % 3 === 0) spawnFxSpark(x, h, y, Math.cos(a) * 11, e * 8, Math.sin(a) * 11, 0.9);
   }
 }
 

@@ -804,8 +804,16 @@ function playWeaponSfx(e, x, y) {
       playNoiseBurst({ duration: 0.9, freq: 2400, freqEnd: 900, q: 1.2, gain: 0.1, out, prio: 2 });
       break;
     }
+    case 'rumble': {
+      // a light earthquake: a low rolling rumble that swells and fades, a rattle on top
+      const dur = Math.max(3, Math.min(10, e.dur || 6));
+      playNoiseBurst({ duration: dur, freq: 90, freqEnd: 55, q: 0.5, gain: 0.5, type: 'lowpass', bus: worldBus || undefined, prio: 2 });
+      playTone({ freq: 38, freqEnd: 30, type: 'sine', duration: dur, gain: 0.35, bus: worldBus || undefined, prio: 2 });
+      for (let i = 0; i < 10; i++) playNoiseBurst({ duration: 0.05, freq: 900 + Math.random() * 900, q: 2, gain: 0.03, type: 'bandpass', delay: 0.4 + Math.random() * (dur * 0.7), bus: worldBus || undefined });
+      break;
+    }
     case 'burst': {
-      const out = spatialOut(x, y, { ref: 10, rolloff: 0.7, range: 250, h: Number.isFinite(e.z) ? e.z : undefined, prio: 2 });
+      const out = spatialOut(x, y, e.far ? { ref: 120, rolloff: 0.5, range: 3200, h: Number.isFinite(e.z) ? e.z : undefined, prio: 2 } : { ref: 10, rolloff: 0.7, range: 250, h: Number.isFinite(e.z) ? e.z : undefined, prio: 2 });
       if (!out) return;
       playNoiseBurst({ duration: 0.5, freq: 1800, freqEnd: 120, q: 0.6, gain: 0.55, type: 'lowpass', out });
       playTone({ freq: 110, freqEnd: 40, type: 'sine', duration: 0.4, gain: 0.3, out });

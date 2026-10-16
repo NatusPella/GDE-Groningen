@@ -92,3 +92,35 @@ export function offenceOf(road, mode) {
   if (mode === 'auto') return road.cat === 'cycle' || road.type === 'cycleway' ? 'fietspad' : 'voetpad';
   return NO_FOOT.has(road.type || '') ? 'snelweg' : 'voetpad';
 }
+
+// --- cycling over the Grote Markt (feedback 15 oktober: nobody knew where a bike may go) ---------------
+// The square's pedestrian ways are open to cyclists, at walking pace. The ways
+// that cross it are painted as a bike route (dashed edge lines and a bike
+// symbol on the cobbles, roadsurface.js) and each entrance carries a "fietsroute"
+// sign (marktfiets.js); the first time you ride on it a hint says so, and on a
+// market day (dinsdag, vrijdag, zaterdag, daytime) that you get off.
+export const MARKT = { name: 'Grote Markt', x: 100.63, y: 76.18, reach: 140, minLen: 20, laneHalf: 0.95, hint: 'marktfiets' };
+
+const lenOf = (road) => {
+  let l = 0;
+  for (let i = 0; i < road.pts.length - 1; i++) l += Math.hypot(road.pts[i + 1][0] - road.pts[i][0], road.pts[i + 1][1] - road.pts[i][1]);
+  return l;
+};
+
+// Is this one of the ways across the Grote Markt that carries the bike route?
+export function isMarktFietsRoad(road, len = null) {
+  if (!road || road.name !== MARKT.name || road.type !== 'pedestrian' || road.z || !road.pts || road.pts.length < 2) return false;
+  const l = len == null ? lenOf(road) : len;
+  if (l < MARKT.minLen) return false;
+  const a = road.pts[0], b = road.pts[road.pts.length - 1];
+  return Math.hypot((a[0] + b[0]) / 2 - MARKT.x, (a[1] + b[1]) / 2 - MARKT.y) <= MARKT.reach;
+}
+
+export const isMarktDay = (weekday, hour) => [2, 5, 6].includes(weekday) && hour >= 8 && hour < 18;
+
+// The one-time hint for a cyclist on the square; null for anyone else.
+export function marktFietsHint(mode, road, { weekday = -1, hour = 12 } = {}) {
+  if (mode !== 'fiets' || !road || road.name !== MARKT.name) return null;
+  if (isMarktDay(weekday, hour)) return 'Marktdag op de Grote Markt: stap af en loop met je fiets door de kramen.';
+  return 'Fietsen mag over de Grote Markt, rustig aan. Volg het fietssymbool op de klinkers.';
+}
