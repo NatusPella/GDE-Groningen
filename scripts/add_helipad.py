@@ -20,10 +20,10 @@ to fetch it again.
 import json
 import math
 import os
-import subprocess
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from osmfetch import overpass  # noqa: E402
 from world.rdnew import meta_frame, meta_bbox  # noqa: E402
 
 MAP_PATH = "game/citymap.json"
@@ -33,24 +33,8 @@ COMPLEX_RELATION = 7348593
 WING_LEVELS = 6
 # game-scale pad radius; the OSM outline covers the whole ~26 m roof deck
 PAD_R = 8.0
-OVERPASS_URLS = [
-    "https://overpass-api.de/api/interpreter",
-    "https://overpass.kumi.systems/api/interpreter",
-    "https://overpass.private.coffee/api/interpreter",
-]
-
-
 def fetch_query(query):
-    for url in OVERPASS_URLS:
-        result = subprocess.run(
-            ["curl", "-s", "-m", "150", "-A", "gde-groningen-script/1.0", "--data-urlencode", f"data={query}", url],
-            capture_output=True, text=True,
-        )
-        try:
-            return json.loads(result.stdout)
-        except json.JSONDecodeError:
-            print(f"overpass {url} failed, trying next", file=sys.stderr)
-    raise SystemExit("all overpass endpoints failed")
+    return overpass(query, attempts=3, timeout=150)
 
 
 def cached(path, query):
