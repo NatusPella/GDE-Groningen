@@ -6,6 +6,8 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+## [0.33.0] - 2026-10-16
+
 ### Nieuw
 - **De hele provincie.** Voorbij het oude Ommeland ligt nu het echte
   Groningen: elke weg, elk huis, elke boerderij en elk dorp van Lauwersoog
