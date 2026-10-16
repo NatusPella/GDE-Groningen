@@ -751,6 +751,52 @@ boezem height until the water renderer takes a level per polygon (F2).
   COUNTRY_GLSL: a shadowed inner slope above the water line, darker water to
   the middle); the geometry cut belongs to the world builder.
 
+### Street furniture
+
+`js/streetfurniture.js` (pure; docs/PROVINCIE-PLAN.md 2.14) is the generator
+the world builder calls per tile: `furnitureForTile({ x0, y0, size, roads,
+mapped, places, opts })` -> `{ items, colliders }`. Items `{ k, x, y, z, a,
+s, h, v, text, src, key }`, deterministic (no random, sorted by `key`; the
+road order does not matter), each in the tile its position falls in; rules
+walk whole roads, so a run carries on over a tile edge. Mapped rows (OSM, in
+the map as `furniture`, `scripts/world/furniture.mjs --write`; tiles: the
+FURNITURE section) and rules:
+
+- guardrails: motorway and trunk carriageways and their slip roads between
+  -0.9 and 1.2 m of profile height (above, the profile's crash barriers of
+  elevation.js take over; below, a cutting's walls), on the right verge and the
+  central reserve of a one-way carriageway, along the offset line (mitred,
+  Douglas-Peucker 3 cm, 4 m sections), open 18 m round every join, never on
+  another way; one rail on a central reserve the two carriageways share;
+- gantries 140 m before every slip road that leaves a motorway or trunk
+  carriageway: the road number and a real place ahead, the exit and a real
+  place it leads to (`DESTINATIONS`, by bearing; no brands);
+- hectometre posts every 100 m on the right verge of motorways and trunk
+  roads with a ref (numbers along the ref's principal axis: invented,
+  monotonic);
+- lamps by road class (`LAMP_RULES`: mast, arm, lantern, path; height and
+  spacing) with `opts.lamps` (the game keeps nightlights3d.js), path bollards
+  with `opts.bollards` (the city has streetclutter.js), woonerf plateaus with
+  `opts.livingBumps`;
+- mapped: guardrail, fence and noise barrier lines (sections), speed bumps
+  and tables (across the road they lie on), benches, bins, bike racks,
+  shelters, bollards, lamps (`mappedFromOsm`).
+
+`furnitureColliders(items)`: breakables.js props (guardrail sections
+'vangrail' and fence panels 'hek' break and respawn; gantry posts, noise
+walls, bollards and shelters are static). `js/streetfurniture3d.js` generates
+the tiles round the player (cached), draws one InstancedMesh per kind with
+vertex colours (`geomerge.js`) and a draw distance per kind (`LOD`), the
+signs of the 16 nearest gantries in one mesh over a canvas atlas, and streams
+the colliders within 70 m through `breakables.js addPropStreamer`. Audit
+(`node scripts/world/furniture.mjs [--strict]`): nothing a rule puts down on
+a carriageway or cycle path (at the same level), guardrail holes under 5 m
+that no crossing way explains (158 small ones where two carriageways merge),
+one item per key, the same items twice. City map: 11.8k guardrail sections
+(~47 km), 33 gantries, 191 hectometre posts, 190 fence panels, 1 speed table.
+The caches hold few mapped objects; furniture.mjs documents the Overpass
+query that fills them. `node scripts/furniture_test.mjs`.
+
 ## Lanes
 
 Every car road carries the lane model (docs/PROVINCIE-PLAN.md 2.12; set by

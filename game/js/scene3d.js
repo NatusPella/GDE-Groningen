@@ -70,6 +70,7 @@ import { createFarLOD } from './farlod.js';
 import { initRailway3D, updateRailway3D } from './railway3d.js';
 import { initMovableBridges3D, updateMovableBridges3D, openBridgeRoads } from './movablebridges3d.js';
 import { getMovableBridges } from './movablebridges.js';
+import { initStreetFurniture3D, updateStreetFurniture3D } from './streetfurniture3d.js';
 import { buildCanopies } from './canopies3d.js';
 import { initGrass, updateGrass, grassFarColor, grassFarRank } from './grass.js';
 import { updateCountryside, setCountryPropLevel, setRealShown } from './countryside.js';
@@ -896,6 +897,7 @@ export function init3D(map) {
     roadColorOf: roadFarColor,
   });
   initRailway3D(scene, map);
+  initStreetFurniture3D(scene, map);
   const railDecks = buildRailDecks(map);
   if (railDecks) scene.add(railDecks);
   scene.add(buildCanopies(map));
@@ -1988,6 +1990,7 @@ export function update3D(dt, world) {
   if (!NO_BATCH) roadBatcher.update({ scene, meshes: roadMeshes, hidden: openSpans.size ? openSpans : null, px: focus.x, py: focus.y, detailR: DRAW_DIST, drawDist: DRAW_DIST, withDetail: true, budgetMs: 1 });
   for (const b of getMovableBridges()) { const m = roadMeshes.get(b.r); if (m) m.visible = !openSpans.has(b.r); }
   updateMovableBridges3D(focus.x, focus.y, waterNight);
+  updateStreetFurniture3D(focus.x, focus.y);
   probe.mark('3d:roads');
   syncTrees(world, focus.x, focus.y);
   probe.mark('3d:trees');

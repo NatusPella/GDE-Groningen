@@ -21,6 +21,7 @@ Steps (each script edits game/citymap.json in place, see its docstring):
                         layers and electrification, railPlatforms), then profile.mjs
                         again so roads dip under or rise over the track
   world/water.mjs       water bodies, kind, peil, depth, boat class; road.movable; meta.locks
+  world/furniture.mjs   mapped street furniture (furniture)
   add_helipad           meta.helipad (+ the UMCG helipad wing)
   add_landmark_footprints
   add_shops             meta.shops
@@ -43,7 +44,7 @@ MAP = os.path.join(ROOT, "game", "citymap.json")
 STAMP = os.path.join(ROOT, "data", "shops_raw.bounds.json")
 
 TOP_KEYS = {"meta", "roads", "buildings", "water", "green", "trees",
-            "rails", "stations", "levelCrossings", "railRoutes", "railLifts", "railPlatforms"}
+            "rails", "stations", "levelCrossings", "railRoutes", "railLifts", "railPlatforms", "furniture"}
 META_KEYS = {"origin", "bounds", "mPerDegLat", "mPerDegLon", "frame", "rdOrigin", "wgsBox", "landmarks", "districts",
              "neighbourhoodPoints", "garages", "trafficLights", "horeca", "pois", "helipad", "shops"}
 
@@ -96,6 +97,8 @@ def main():
     run_node("world/railprofile.mjs", "--write")
     # water bodies, peil, depth and boat classes; movable bridges from OSM
     run_node("world/water.mjs", "--write")
+    # mapped street furniture (the rules run per tile in the game)
+    run_node("world/furniture.mjs", "--write")
     run("add_helipad", *extra)
     run("add_landmark_footprints")
 
