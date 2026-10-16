@@ -8,13 +8,22 @@
 const REACH = { city: 4500, town: 1700, village: 800, hamlet: 350, industrial: 2500 };
 const DISTRICT_REACH = 900;
 
-const PLACES = { list: [], seats: [], districts: [] };
+const PLACES = { list: [], seats: [], districts: [], signs: [] };
+
+// what a motorway gantry can sign to: cities and towns (streetfurniture.js
+// destinationFor): a city weighs more, nothing beyond 45 km
+const SIGN_KINDS = { city: 0.12, town: 0 };
 
 export function setWorldPlaces(list) {
   PLACES.list = Array.isArray(list) ? list : [];
   PLACES.seats = PLACES.list.filter((p) => REACH[p.kind] !== undefined);
+  PLACES.signs = PLACES.seats.filter((p) => SIGN_KINDS[p.kind] !== undefined && p.name)
+    .map((p) => ({ n: p.name, x: p.x, y: p.y, w: SIGN_KINDS[p.kind], scale: 40000, max: 45000 }));
   PLACES.districts = PLACES.list.filter((p) => p.of && (p.kind === 'suburb' || p.kind === 'quarter' || p.kind === 'neighbourhood'));
 }
+
+// gantry destinations from the province data, or null when there are none
+export const worldSignPlaces = () => (PLACES.signs.length ? PLACES.signs : null);
 
 export const worldPlacesReady = () => PLACES.seats.length > 0;
 
