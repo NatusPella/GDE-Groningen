@@ -2,7 +2,10 @@
 // story mission passed and every post-game challenge done, and only once.
 //   node scripts/ending_test.mjs
 import { endingProgress, creditsDue, endingLeftText } from '../game/js/ending.js';
-import { STEPS, stepAvailable } from '../game/js/storyarc.js';
+import { STEPS, stepAvailable, ARC_ID } from '../game/js/storyarc.js';
+
+// the new arc (nieuwverhaal) has no finale built yet (acts 2-5 follow): the ending belongs to the old arc for now
+if (ARC_ID === 'nieuw') { console.log('ending: the new arc has no finale yet, skipped'); process.exit(0); }
 
 let n = 0, fails = 0;
 const ok = (cond, name, info = '') => { n++; if (!cond) { fails++; console.log(`FAIL ${name}${info ? ' (' + info + ')' : ''}`); } };

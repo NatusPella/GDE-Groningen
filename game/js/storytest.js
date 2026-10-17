@@ -13,6 +13,7 @@
 // makes the desktop app save a screenshot per step.
 
 import { skipCinematic, isCinematicActive, cinematicPoseIssues } from './cinematics.js';
+import { KEYS } from './storagekeys.js';
 import { heistWatchers, PLAN_BOUNDS } from './heist.js';
 import { isInWater } from './util.js';
 import { deliverOwnedVehicle } from './ownedvehicles.js';
@@ -31,6 +32,11 @@ import { probeRingSolids, driveRingLap, probeRailLifts, driveWaterCrossings } fr
 import { requestRespawn } from './world.js';
 import { nearestFacility } from './facilities.js';
 import { roadNear, withTiles } from './tileplace.js';
+import { nieuwVerhaal } from './storyflag.js';
+import { refreshDayNight } from './daynight.js';
+
+// GDE_NIEUW_VERHAAL=1 (?nieuwverhaal): the new arc, act 1 (storyarc_nieuw.js); else the released arc
+const NEW = nieuwVerhaal();
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -81,6 +87,13 @@ const afterStep = (tl, id) => (tl.rows.find((r) => r.id === id) || {}).after ?? 
 // Price checks against the story's money: arc costs match the shops, and the
 // targets from the economy pass hold for a player who only does the story.
 function economyChecks(check, tl) {
+  if (NEW) {
+    // the new arc has no story purchases: the Loket fee (M03) is the only cost, paid from what M01 and M02 earned
+    const fee = STEPS.filter((s) => s.cost);
+    check('economy: the only story cost is the Loket fee', fee.length === 1 && fee[0].id === 'M03' && fee[0].cost === 150, fee.map((s) => s.id).join(', '));
+    check('economy: the fee is within reach (M01 and M02 come first)', afterStep(tl, 'M02') >= 150 + 250, `€${afterStep(tl, 'M02')} na M02`);
+    return [['start / na M02 / na M06 / eind', `€${tl.rows[0].before} / €${afterStep(tl, 'M02')} / €${afterStep(tl, 'M06')} / €${tl.end}`]];
+  }
   const gun = (k) => WEAPON_STOCK.find((w) => w.key === k).gun;
   const cars = Object.values(VEHICLE_STOCK).filter((s) => s.kind === 'car' && s.price);
   const cheapestCar = Math.min(...cars.map((s) => s.price));
@@ -383,6 +396,38 @@ async function batch2Smoke(world, check, capture) {
   await drain(world);
 }
 
+// New arc: what the script's text does while the mission just played (text only, no audio needed)
+const seenNew = new Set();
+function newArcChecks(id) { seenNew.add(id); }
+
+async function newArcRuntimeChecks(world, check, capture) {
+  const T = window.__storytalk;
+  check('new arc: the script data is loaded', !!(window.__storytext && window.__storytext.ready()), JSON.stringify(window.__storytext && window.__storytext.counts()));
+  // text-only talk: a line without a recording is shown with the speaker's name for a readable time and ends by itself
+  if (T) {
+    const lines = window.__storytext.talk('M03.3');
+    check('new arc: M03.3 has lines and none of them has a recording', lines.length >= 5 && lines.every((l) => !l.voice), String(lines.length));
+    T.play('M03.3');
+    const shown = await waitFor(() => { const el = document.getElementById('story-talk'); return el && el.style.opacity === '1' && /:/.test(el.textContent); }, 6000);
+    const first = document.getElementById('story-talk');
+    check('new arc: a text-only talk line is shown with a speaker name', shown && first && first.querySelector('.st-speaker').textContent.length > 1, first && first.textContent);
+    capture('99-talk-tekst');
+    const ended = await waitFor(() => !T.state().cur && !T.state().queued.length, 60000, 300);
+    check('new arc: the text-only talk ends by itself, nothing waits for audio', ended, JSON.stringify(T.state()));
+  }
+  // silent app texts: a card on the phone, never read aloud
+  const pf = window.__phonefeed;
+  if (pf) {
+    const before = pf.state().cards;
+    world.phoneNotifications.push({ from: 'Tessa', text: 'Ik ben bij het Loket. Kom niet. Je brengt ze in de war.', duration: 5, story: true, silent: true });
+    await sleep(2500);
+    check('new arc: a silent app text shows as a phone card', pf.state().cards > before || document.querySelector('.pf-card'), JSON.stringify(pf.state()));
+    check('new arc: the silent app text is not read aloud', window.__phonefeed.voicing ? !window.__phonefeed.voicing() : true);
+  }
+  // the radio keeps to the world: ducked while a mission runs
+  check('new arc: the radio is not ducked when no mission runs', !window.__radio || window.__radio.ducked() === false);
+}
+
 export async function runStoryTest(world) {
   const errors = [];
   window.addEventListener('error', (e) => errors.push(String(e.message || e)));
@@ -436,11 +481,13 @@ export async function runStoryTest(world) {
       check('money timeline ok when every mission is skipped', tlSkip.low >= MIN_MARGIN_SKIP, `laagste marge €${tlSkip.low}, minimaal €${MIN_MARGIN_SKIP}`);
       report.timeline = tl.rows;
       report.economy = economyChecks(check, tl);
-      const lastPart = Object.keys(PARTS).filter((k) => PARTS[k].open).pop();
+      // the part where the built story stops: the last open one of the old arc; the part of the last built step in the new one
+      const firstUnbuilt = STEPS.findIndex((q) => !stepAvailable(q));
+      const lastPart = NEW && firstUnbuilt > 0 ? STEPS[firstUnbuilt - 1].part : Object.keys(PARTS).filter((k) => PARTS[k].open).pop();
       // every step says who plays it; its phone lines come from the other one
-      const noPlayer = STEPS.filter((q) => q.player !== 'tammo' && q.player !== 'anita').map((q) => q.id);
+      const noPlayer = NEW ? [] : STEPS.filter((q) => q.player !== 'tammo' && q.player !== 'anita').map((q) => q.id);
       check('every step has a player', !noPlayer.length, noPlayer.join(', '));
-      const selfTalk = STEPS.filter(stepAvailable).filter((q) => {
+      const selfTalk = NEW ? [] : STEPS.filter(stepAvailable).filter((q) => {
         const me = q.player === 'anita' ? 'A' : 'T';
         return [q.lead, q.done, q.say, ...(q.after || []), ...(q.beat || [])].some((l) => l && l[0] === me);
       }).map((q) => q.id);
@@ -459,6 +506,7 @@ export async function runStoryTest(world) {
         if (!cur) { check('current step', false, 'geen stap'); break; }
         if (cur.end) break;
         const step = STEP_BY_ID.get(cur.id);
+        if (NEW && cur.id === 'M06') { world.clock = 23.9; refreshDayNight(world); }
         const entry = { id: cur.id, kind: cur.kind, title: cur.title, moneyBefore: Math.round(world.money), ok: false, notes: [] };
         report.steps.push(entry);
         const t0 = performance.now();
@@ -490,7 +538,13 @@ export async function runStoryTest(world) {
           capture(`${String(++n).padStart(2, '0')}-${cur.id}`);
           check(`${cur.id}: no skip offered before a first try`, !S().canSkip() && !S().view().canSkip);
           const before = world.money;
-          if (step.goal && step.goal.type === 'padel' && window.__padel) {
+          if (step.goal && step.goal.type === 'opening') {
+            // M00 (new arc): the opening scenes of the script play by themselves, and finish when skipped too
+            const started = await waitFor(() => S().goalPhase() !== 'wait', 25000);
+            check(`${cur.id}: the opening plays`, started, String(S().goalPhase()));
+            await drain(world, 500);
+            check(`${cur.id}: the opening completes the step`, await waitFor(() => { const c = S().current(); return !c || c.id !== cur.id; }, 8000), JSON.stringify(S().current()));
+          } else if (step.goal && step.goal.type === 'padel' && window.__padel) {
             // the twins' challenge at the court, then a real match there, ended at once (a loss still counts)
             const pd = window.__padel, sf = window.__storyFun;
             if (sf && sf.court) {
@@ -694,6 +748,7 @@ export async function runStoryTest(world) {
             }
           }
           check(`mission ${cur.id} finished`, !isMissionActive());
+          if (NEW) newArcChecks(cur.id);
         }
         await drain(world);
         const after = S().current();
@@ -704,6 +759,7 @@ export async function runStoryTest(world) {
         if (!entry.ok) break;
       }
 
+      if (NEW) await newArcRuntimeChecks(world, check, capture);
       await sleep(600);
       await waitFor(() => S().cardShown(lastPart), 8000);
       capture('99-wordt-vervolgd');
@@ -712,7 +768,7 @@ export async function runStoryTest(world) {
       check(`flow reaches "Wordt vervolgd" (${lastPart})`, end && end.end === lastPart, JSON.stringify(end));
       check('"Wordt vervolgd" card shown', S().cardShown(lastPart));
       check('all available steps passed', report.steps.length === STEPS.filter(stepAvailable).length, `${report.steps.length} stappen`);
-      check('Tammo and Tessa take turns', swaps >= 4, `${swaps} wissels`);
+      check('Tammo and Tessa take turns', NEW || swaps >= 4, `${swaps} wissels`);
       const calEnd = window.__calendar && window.__calendar.get();
       check('after the story the calendar is in September', calEnd && (!PARTS[lastPart].finale || calEnd.day >= 19), calEnd && calEnd.info.long);
       check('no cutscene camera off the map', !cinematicPoseIssues().length, JSON.stringify(cinematicPoseIssues().slice(0, 4)));
@@ -813,13 +869,25 @@ export async function runStoryTest(world) {
 
       // an old 0.4 save: missions 1-3 done (H1, H3, H5), no story data
       const money = world.money;
-      applySave(world, { v: 1, money: 1234, missions: { index: 3, completed: [0, 1, 2], seen: [0, 1, 2] }, shops: null });
-      await sleep(400);
-      const mig = S().current();
-      check('old save migrates to H2', mig && mig.id === 'H2', JSON.stringify(mig));
-      check('old save plays as the current step\'s character', await waitFor(() => world.player.character === STEP_BY_ID.get('H2').player, 5000), world.player.character);
-      check('old save keeps money', world.money === 1234, `€${world.money}`);
-      world.money = money;
+      if (NEW) {
+        // a save belongs to one arc: an old-arc save never loads into the new one, and the game goes on untouched
+        const stepBefore = JSON.stringify(S().current());
+        const loaded = applySave(world, { v: 1, money: 1234, missions: { index: 3, completed: [0, 1, 2], seen: [0, 1, 2] }, shops: null });
+        await sleep(400);
+        check('an old-arc save is not loaded into the new arc', loaded === false && world.money === money && JSON.stringify(S().current()) === stepBefore, JSON.stringify({ loaded, money: world.money }));
+        // the new arc's own save loads and keeps its arc
+        saveGame(world, { toast: false });
+        check('a new-arc save carries its arc', JSON.parse(localStorage.getItem(KEYS.save) || 'null')?.arc === 'nieuw', String(localStorage.getItem(KEYS.save)).slice(0, 80));
+        check('a new-arc save loads again', loadLatestSave(world) === true);
+      } else {
+        applySave(world, { v: 1, money: 1234, missions: { index: 3, completed: [0, 1, 2], seen: [0, 1, 2] }, shops: null });
+        await sleep(400);
+        const mig = S().current();
+        check('old save migrates to H2', mig && mig.id === 'H2', JSON.stringify(mig));
+        check('old save plays as the current step\'s character', await waitFor(() => world.player.character === STEP_BY_ID.get('H2').player, 5000), world.player.character);
+        check('old save keeps money', world.money === 1234, `€${world.money}`);
+        world.money = money;
+      }
 
       // death and arrest trips to the nearest real facility, in town and out
       // in the Ommelanden (respawn.js, facilities.js)

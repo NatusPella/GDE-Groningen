@@ -39,6 +39,14 @@ if (nieuwVerhaal() && typeof fetch === 'function' && BASE) {
 }
 
 export const scene = (id) => byId.get(id) || null;
+
+if (typeof window !== 'undefined') {
+  window.__storytext = {
+    ready: () => !!data,
+    counts: () => (data ? { scenes: data.scenes.length, lines: data.scenes.reduce((a, s) => a + s.lines.length, 0) } : null),
+    talk: (id) => talkLines(id),
+  };
+}
 export const scenesOfStep = (step, kind = null) => (data ? data.scenes.filter((s) => s.step === step && !s.anchor && (!kind || s.kind === kind)) : []);
 
 // How long a line stays up when nothing is spoken: reading time, a bit slower than the recorded pace.

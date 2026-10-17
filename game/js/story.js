@@ -1209,6 +1209,7 @@ export const storyApi = {
   },
   mission: () => missionDebug.state(),
   cardShown: (part = 'kop') => state.cards.has(part),
+  goalPhase: () => rt.base && rt.base.phase,
   ending: getStoryEnding,
   credits: requestCredits,
   character: () => world.player.character,
