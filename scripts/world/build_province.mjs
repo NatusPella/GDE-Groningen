@@ -24,6 +24,7 @@ import { edgeFromOsm } from '../../game/js/worldedge.js';
 import { features, tileBlob, railRoute, busLines, writeLayer, ommelandBox } from './build_corridor.mjs';
 import { LINES, packOf } from './corridor.mjs';
 import { annotateProvinceWater } from '../../game/js/waterlevels.js';
+import { encodeRoadNet } from '../../game/js/roadgraph.js';
 import { Raster, paint, writePyramid, FINE_M } from './province_map.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
@@ -33,8 +34,9 @@ export const GID0 = 20_000_000;
 export const BUFFER_M = 3000;
 export const SRC_DIR = path.join(ROOT, 'data', 'cache', 'province');
 // tile flags: 1 land, 4 built from OSM by the world builder, 8 the old
-// Ommeland layers draw it too, 16 outside the province (the buffer), 32 this layer
-export const FLAG = { LAND: 1, BUILT: 4, OLD: 8, BUFFER: 16, PROVINCE: 32 };
+// Ommeland layers draw it too, 16 outside the province (the buffer), 32 this layer,
+// 64 an overlay: the part of a city tile the city's own data leaves empty (its key is 'o' + the tile's)
+export const FLAG = { LAND: 1, BUILT: 4, OLD: 8, BUFFER: 16, PROVINCE: 32, OVERLAY: 64 };
 
 const gunzipJson = (f) => JSON.parse(zlib.gunzipSync(fs.readFileSync(f)).toString('utf8'));
 const r2 = (v) => Math.round(v * 100) / 100;
@@ -221,9 +223,44 @@ export function trainLines(trains, railRows, stations) {
   return out.sort((a, b) => (a.id < b.id ? -1 : 1));
 }
 
+
+// What of a tile's features lies outside the city's data (cityCover.inside):
+// buildings, trees, furniture and areas by their middle, roads and rails cut
+// into the runs that lie outside (sampled every 10 m).
+export function outsideCover(list, inside) {
+  const out = [];
+  const keep = (x, y) => !inside(x, y);
+  for (const f of list) {
+    const r = f.row;
+    if (f.kind === 'trees') { if (keep(r[0], r[1])) out.push(f); continue; }
+    if (f.kind === 'buildings' || f.kind === 'water' || f.kind === 'green') {
+      let a = Infinity, b = Infinity, c = -Infinity, d = -Infinity;
+      for (const p of r.pts) { if (p[0] < a) a = p[0]; if (p[1] < b) b = p[1]; if (p[0] > c) c = p[0]; if (p[1] > d) d = p[1]; }
+      if (keep((a + c) / 2, (b + d) / 2)) out.push(f);
+      continue;
+    }
+    if (f.kind === 'furniture') { if (keep(r.pts[0][0], r.pts[0][1])) out.push(f); continue; }
+    // roads, rails
+    let run = null;
+    const flush = () => { if (run && run.length > 1) out.push({ ...f, row: { ...r, pts: run } }); run = null; };
+    const P = r.pts;
+    for (let i = 0; i < P.length - 1; i++) {
+      const [ax, ay] = P[i], [bx, by] = P[i + 1];
+      const n = Math.max(1, Math.ceil(Math.hypot(bx - ax, by - ay) / 10));
+      for (let t = i === 0 ? 0 : 1; t <= n; t++) {
+        const x = ax + ((bx - ax) * t) / n, y = ay + ((by - ay) * t) / n;
+        if (keep(x, y)) (run || (run = [])).push(t === n ? P[i + 1] : t === 0 ? P[i] : [Math.round(x * 100) / 100, Math.round(y * 100) / 100]);
+        else flush();
+      }
+    }
+    flush();
+  }
+  return out;
+}
+
 // ------------------------------------------------------------- build
 
-export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(src), cityKeys = new Set(), buffer = BUFFER_M, onPack = null, map = true } = {}) {
+export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(src), cityKeys = new Set(), buffer = BUFFER_M, onPack = null, map = true, cityCover = null } = {}) {
   const prov = gunzipJson(path.join(src, 'province.json.gz'));
   // the neighbours' strips: their places, stations and built-up cells join the province's
   const dirs = [src, ...extra];
@@ -245,9 +282,15 @@ export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(s
   // tiles per pack
   const byPack = new Map();
   const city = [];
+  const overlays = [];
   for (const k of keys) {
-    if (cityKeys.has(k)) { city.push(k); continue; }
     const t = tiles.get(k);
+    if (cityKeys.has(k)) {
+      city.push(k);
+      // a city tile the city's data leaves partly empty gets an overlay for the rest
+      if (!cityCover || cityCover.tileShare(t.i, t.j) > 0.97) continue;
+      overlays.push(k);
+    }
     const p = packOf(t.i, t.j);
     (byPack.get(p) || byPack.set(p, []).get(p)).push(k);
   }
@@ -264,6 +307,7 @@ export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(s
   const blobs = new Map();
   const empty = [], noPack = [];
   const railRows = [];
+  const roadNet = [], roadSeen = new Set();
   const coast = new Map();
   const locks = new Map();
   let waterBodies = 0;
@@ -309,6 +353,12 @@ export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(s
         if (!mine.has(k)) continue;
         (idx.get(k) || idx.set(k, []).get(k)).push(f);
       }
+      // the route graph's road net (roadgraph.js): every road piece of the packs, also under the
+      // city's tiles and in the gaps beside them, where the old Ommeland roads used to join the city streets
+      if (f.kind === 'roads') {
+        const key = f.row.osm === undefined ? null : `${f.row.osm}:${f.row.pts[0][0]},${f.row.pts[0][1]}`;
+        if (!key || !roadSeen.has(key)) { if (key) roadSeen.add(key); roadNet.push(f.row); }
+      }
     }
     if (raster) {
       const [pi, pj] = pk.split('_').map(Number);
@@ -317,6 +367,12 @@ export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(s
     }
     for (const k of want) {
       const t = tiles.get(k);
+      if (cityKeys.has(k)) {
+        const list = outsideCover(idx.get(k) || [], cityCover.inside);
+        const tb = list.length ? tileBlob(t.i, t.j, list, gid, FLAG.LAND | FLAG.BUILT | FLAG.PROVINCE | FLAG.OVERLAY | (ommelandBox(t.i, t.j, root) ? FLAG.OLD : 0), PROVINCE_BUILDER, stats) : null;
+        if (tb) blobs.set('o' + k, { ...tb, src: 'pbf', ov: true });
+        continue;
+      }
       const flags = FLAG.LAND | FLAG.BUILT | FLAG.PROVINCE | (t.buffer ? FLAG.BUFFER : 0) | (ommelandBox(t.i, t.j, root) ? FLAG.OLD : 0);
       const tb = tileBlob(t.i, t.j, idx.get(k) || [], gid, flags, PROVINCE_BUILDER, stats);
       if (!tb) { empty.push(k); continue; }
@@ -359,9 +415,9 @@ export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(s
     routes, bus: bus.map(({ id, ref, name, from, to, pts, stops }) => ({ id, ref, name, from, to, pts, stops })),
     edge, outline: rings.map((R) => simplify(R, 60).map(([x, y]) => [Math.round(x), Math.round(y)])),
     locks: [...locks.values()].sort((a, b) => a.x - b.x || a.y - b.y), waterBodies,
-    buffer, empty: empty.sort(), city: city.sort(), missing: noPack.sort(),
+    buffer, empty: empty.sort(), city: city.sort(), overlays: overlays.filter((k) => blobs.has('o' + k)).sort(), missing: noPack.sort(),
   };
-  return { blobs, global, stats, keys, tiles, empty, missing: noPack, raster };
+  return { blobs, global, stats, keys, tiles, empty, missing: noPack, raster, roadNet };
 }
 
 // The bus lines (~1 MB) go in a file of their own, read when needed; the
@@ -371,8 +427,14 @@ export function writeProvince(out, built) {
   // the base map's pyramid (province_map.mjs) next to the packs
   const pm = built.raster ? writePyramid(built.raster, out) : null;
   if (pm) { global.map = pm.meta; built.stats.mapMB = +(pm.bytes / 1e6).toFixed(2); }
-  const r = writeLayer(out, { ...built, global: { ...global, busFile: 'provincie-bus.json' } }, { prefix: 'v', file: 'index-provincie.json', layer: 'provincie', builder: PROVINCE_BUILDER });
+  const r = writeLayer(out, { ...built, global: { ...global, busFile: 'provincie-bus.json', ...(built.roadNet ? { roadsFile: 'provincie-roads.json.gz' } : {}) } }, { prefix: 'v', file: 'index-provincie.json', layer: 'provincie', builder: PROVINCE_BUILDER });
   fs.writeFileSync(path.join(out, 'provincie-bus.json'), JSON.stringify({ builder: PROVINCE_BUILDER, bus }));
+  // the car roads of the tiles for the GPS and the police (roadgraph.js); mtime 0: the same bytes every build
+  if (built.roadNet) {
+    const gz = zlib.gzipSync(JSON.stringify(encodeRoadNet(built.roadNet)), { level: 9 });
+    gz.writeUInt32LE(0, 4);
+    fs.writeFileSync(path.join(out, 'provincie-roads.json.gz'), gz);
+  }
   return r;
 }
 
@@ -381,6 +443,14 @@ async function cityKeysOf(arg) {
   await import('../node3d.mjs');
   const P = await import('./pack_tiles.mjs');
   return new Set(P.build(P.loadSources()).blobs.keys());
+}
+
+// the city map's data cover (citycover.mjs), for the overlay tiles
+async function cityCoverOf() {
+  await import('../node3d.mjs');
+  const P = await import('./pack_tiles.mjs');
+  const { buildCityCover } = await import('./citycover.mjs');
+  return buildCityCover(P.loadSources().map);
 }
 
 async function main() {
@@ -392,7 +462,8 @@ async function main() {
   const t0 = performance.now();
   const cityKeys = await cityKeysOf(opt('--city') || path.join(out, 'index.json'));
   const t1 = performance.now();
-  const built = buildProvince({ src, cityKeys, onPack: args.includes('--verbose') ? (pk, s) => console.log(`  pack ${pk}: ${s.tiles} tiles so far`) : null });
+  const cityCover = args.includes('--no-overlay') ? null : await cityCoverOf();
+  const built = buildProvince({ src, cityKeys, cityCover, onPack: args.includes('--verbose') ? (pk, s) => console.log(`  pack ${pk}: ${s.tiles} tiles so far`) : null });
   const t2 = performance.now();
   const { index, size } = writeProvince(out, built);
   const raw = Object.values(index.tiles).reduce((a, t) => a + t.raw, 0);
@@ -400,8 +471,9 @@ async function main() {
   const g = built.global;
   const buf = Object.values(index.tiles).filter((t) => t.flags & FLAG.BUFFER).length;
   const old = Object.values(index.tiles).filter((t) => t.flags & FLAG.OLD).length;
+  const ovl = Object.values(index.tiles).filter((t) => t.ov).length;
   const idxSize = fs.statSync(path.join(out, 'index-provincie.json')).size;
-  console.log(`provincie: ${built.keys.length} tiles in the set, ${s.tiles} built (${buf} in the buffer strip, ${old} where the old Ommeland layers draw), ${g.city.length} are the city's, ${built.empty.length} empty (sea, no data), ${built.missing.length} without a pack`);
+  console.log(`provincie: ${built.keys.length} tiles in the set, ${s.tiles} built (${buf} in the buffer strip, ${old} where the old Ommeland layers draw), ${g.city.length} are the city's (${ovl} of them with an overlay for the part its data leaves empty), ${built.empty.length} empty (sea, no data), ${built.missing.length} without a pack`);
   console.log(`  ${Object.keys(index.packs).length} packs ${(size / 1e6).toFixed(1)} MB (${(raw / 1e6).toFixed(1)} MB raw, ${Math.round(size / Math.max(1, s.tiles))} B/tile), index ${(idxSize / 1e6).toFixed(2)} MB; source ${s.sourceMB.toFixed(1)} MB gzip in ${s.packs} packs`);
   console.log(`  ${s.buildings} buildings (height ${Object.entries(s.hsrc).map(([k, v]) => `${k} ${v}`).join(', ')}), ${s.roads} road pieces, ${s.water} water, ${s.green} green, ${s.rails} rail pieces, ${s.trees} trees, ${s.furniture} furniture`);
   console.log(`  ${g.places.length} places, ${g.stations.length} stations, ${g.routes.length} train lines (${g.routes.filter((r) => r.reached).length} complete), ${g.bus.length} bus lines, ${g.edge.coast.length} coast pieces, ${g.edge.border.length} border lines`);

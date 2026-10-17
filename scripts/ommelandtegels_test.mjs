@@ -32,7 +32,6 @@ const [ox, oy] = G.tileOrigin(own.i, own.j);
 ok(cover(ox + 500, oy + 500), 'the middle of a built province tile is covered');
 ok(!cover(0, 0), 'the city centre is not covered');
 ok(!cover(-90000, 0), 'far outside is not covered');
-ok(PW.ommelandTileMode('?ommelandtegels') === 'on' && PW.ommelandTileMode('') === 'off', 'the switch');
 
 // --- the rim: a road along a tile edge
 {
@@ -57,11 +56,12 @@ const om = read('ommeland.json');
 om.bin = (await import('node:zlib')).gunzipSync(fs.readFileSync(new URL('ommeland.bin', root)));
 om.bin = om.bin.buffer.slice(om.bin.byteOffset, om.bin.byteOffset + om.bin.byteLength);
 const count = () => { let n = 0; for (const L of CR.REAL.bTiles.values()) n += L.length; return n; };
-const reset = () => { CR.REAL.ready = false; CR.REAL.bTiles = new Map(); CR.REAL.rTiles = new Map(); CR.REAL.churchTiles = new Map(); CR.REAL.tileCovered = 0; };
+const reset = () => { CR.REAL.ready = false; CR.REAL.bTiles = new Map(); CR.REAL.aTiles = new Map(); CR.REAL.rTiles = new Map(); CR.REAL.churchTiles = new Map(); CR.REAL.tileCovered = 0; };
 CR.setTileCover(null);
 const gm = new GameMap(data);
 CR.initReal(gm, om);
-const plain = count(), roads = CR.REAL.rTiles.size;
+const countAll = () => { let n = 0; for (const L of CR.REAL.aTiles.values()) n += L.length; return n; };
+const plain = count(), roads = CR.REAL.rTiles.size, roadRows = CR.REAL.roads.length;
 ok(plain > 1000 && CR.REAL.tileCovered === 0, `the old layers have buildings (${plain})`);
 reset();
 CR.setTileCover(cover);
@@ -69,7 +69,8 @@ CR.initReal(gm, om);
 const withTiles = count();
 ok(CR.REAL.tileCovered > 0 && withTiles + CR.REAL.tileCovered === plain, `covered buildings are left out: ${plain} -> ${withTiles} (${CR.REAL.tileCovered})`);
 ok(withTiles > 0, 'buildings outside the tiles stay');
-ok(CR.REAL.rTiles.size === roads, 'the road buckets (traffic, routing) stay');
+ok(countAll() === plain, 'the placement buckets keep every building');
+ok(CR.REAL.roads.length < roadRows && CR.REAL.roads.every((r) => !r.pts.every((q) => cover(q[0], q[1]))), `roads wholly in tiles are left out: ${roadRows} -> ${CR.REAL.roads.length}`);
 for (const [k, L] of CR.REAL.bTiles) for (const i of L) if (cover(CR.REAL.bx[i], CR.REAL.by[i])) { ok(false, 'a covered building is still bucketed'); break; }
 console.log(`ommelandtegels: ${plain} buildings, ${CR.REAL.tileCovered} left to the tiles, ${withTiles} stay`);
 console.log(fails ? `${fails} FAIL` : 'PASS');

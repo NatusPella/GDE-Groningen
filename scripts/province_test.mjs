@@ -105,9 +105,6 @@ const M = {};
   const isT = (k) => idx[k];
   const blk = (x, y, m = 1) => PW.realBlockedAt(map, isT, x, y, m);
   if (!blk(ox + 110, oy + 110) || !blk(ox + 300, oy + 501) || blk(ox + 300, oy + 300) || !blk(G.tileOrigin(22, 22)[0] + 300, G.tileOrigin(22, 22)[1] + 300) || blk(-50000, 0)) fail('the prop rule: building, road, open field, a tile not in yet, outside the layer');
-  if (PW.provinceMode('?legacy&provincie') !== 'off' || PW.provinceMode('?provincie') !== 'on' || PW.provinceMode('?corridor') !== 'on') fail('provinceMode flags');
-  if (PW.ommelandTileMode('?provincie') !== 'off' || PW.ommelandTileMode('?ommelandtegels') !== 'on' || PW.ommelandTileMode('?legacy&ommelandtegels') !== 'off') fail('ommelandTileMode');
-  if (PW.provinceTileFilter('?provincie')({ flags: 8 }) || !PW.provinceTileFilter('?ommelandtegels')({ flags: 8 }) || PW.provinceTileFilter('?legacy')({ flags: 0 })) fail('provinceTileFilter');
 }
 
 // --- 2. the real build
@@ -128,7 +125,7 @@ if (!B.haveProvince()) {
   M.tiles = built.keys.length; M.built = built.blobs.size; M.city = g.city.length; M.empty = built.empty.length; M.noPack = built.missing.length;
   M.buffer = [...built.blobs.values()].filter((b) => b.flags & B.FLAG.BUFFER).length;
   M.oldLayers = [...built.blobs.values()].filter((b) => b.flags & B.FLAG.OLD).length;
-  M.streamed = M.built - M.oldLayers;
+  M.streamed = M.built;
   if (M.built < 2500) fail(`only ${M.built} tiles built`);
   if (M.built + M.city + M.empty + M.noPack !== M.tiles) fail('every tile is built, the city\'s, empty or without a pack');
   // decode, rows, portals
@@ -241,7 +238,7 @@ if (!B.haveProvince()) {
       const source = new S.MemorySource(files, { latency });
       let T = null, err = null;
       const decode = async (b) => G.decodeBlob(new Uint8Array(zlib.inflateRawSync(b)));
-      const pending = loadTileWorld('world/', { source, pool: false, extra: [{ name: 'index-provincie.json', only: PW.provinceTileFilter(process.env.GDE_TEST_SEARCH || '') }], now: () => source.now, decode }).then((v) => { T = v || { failed: true }; }, (e) => { err = e; });
+      const pending = loadTileWorld('world/', { source, pool: false, extra: [{ name: 'index-provincie.json' }], now: () => source.now, decode }).then((v) => { T = v || { failed: true }; }, (e) => { err = e; });
       for (let k = 0; !T && !err && k < 5000; k++) { await source.advance(20); await new Promise((r) => setImmediate(r)); }
       if (err || !T || T.failed) throw err || new Error('the tile world did not load');
       await pending;
@@ -276,11 +273,11 @@ if (!B.haveProvince()) {
       const source = new S.MemorySource(files, { latency: 0 });
       let T = null;
       const decode = async (b) => G.decodeBlob(new Uint8Array(zlib.inflateRawSync(b)));
-      const pend = loadTileWorld('world/', { source, pool: false, extra: [{ name: 'index-provincie.json', only: PW.provinceTileFilter(process.env.GDE_TEST_SEARCH || '') }], now: () => source.now, decode }).then((v) => { T = v; });
+      const pend = loadTileWorld('world/', { source, pool: false, extra: [{ name: 'index-provincie.json' }], now: () => source.now, decode }).then((v) => { T = v; });
       for (let k = 0; !T && k < 5000; k++) { await source.advance(20); await new Promise((r) => setImmediate(r)); }
       await pend;
       const CF = await import('../game/js/countryfield.js');
-      const res = PW.initProvince(T, { stream: true });
+      const res = PW.initProvince(T);
       M.provinceBlocks = res.blocks;
       if (res.blocks < 1500) fail(`only ${res.blocks} polder blocks under the province's tiles`);
       // Winschoten's centre: a real block, so no procedural road, maar or village there

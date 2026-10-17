@@ -525,7 +525,7 @@ export function writeLayer(out, { blobs, global, stats }, { prefix, file: indexF
     fs.writeFileSync(path.join(out, file), all);
     index.packs[name] = { file, size: all.length };
     size += all.length;
-    for (const [key, m] of meta) index.tiles[key] = { i: m.b.i, j: m.b.j, pack: name, off: m.off, len: m.len, raw: m.raw, hash: m.hash, flags: m.b.flags, n: m.b.n, maxH: m.b.maxH, src: m.b.src };
+    for (const [key, m] of meta) index.tiles[key] = { i: m.b.i, j: m.b.j, pack: name, off: m.off, len: m.len, raw: m.raw, hash: m.hash, flags: m.b.flags, n: m.b.n, maxH: m.b.maxH, src: m.b.src, ...(m.b.ov ? { ov: 1 } : null) };
   }
   fs.writeFileSync(path.join(out, indexFile), JSON.stringify(index));
   return { index, size };
