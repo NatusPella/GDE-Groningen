@@ -126,6 +126,8 @@ export class Input {
     window.addEventListener('contextmenu', (e) => e.preventDefault());
     window.addEventListener('wheel', (e) => {
       if (e.ctrlKey) return;
+      // the title screen's panels (what's new, about) scroll natively
+      if (e.target && e.target.closest && e.target.closest('#start-screen')) return;
       this.mouse.wheel += e.deltaY;
       e.preventDefault();
     }, { passive: false });
