@@ -1,7 +1,8 @@
 import { markInstancesDirty, WATER_Y } from './util.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { BLOCK, MAAR_WATER, chash, edgeDistance, edgeRoad, maarX, maarY, realBlock, realWater, rectOutside, SHORE_RW } from './countryfield.js';
-import { REAL, RTILE, roadsInTile, inRealExtent } from './countryreal.js';
+import { REAL, inRealExtent } from './countryreal.js';
+import { roadKind } from './tileplace.js';
 import { ROAD_C, openLand } from './countryplan.js';
 import { GeoBuilder, vcMaterial, markShared, composeMatrix, tubeGeometry } from './pixelart3d.js';
 import { tractorBodyGeometry, tractorBaseGeometry, trailerBodyGeometry, trailerBaseGeometry } from './countrymodels.js';
@@ -236,51 +237,52 @@ function headingOf(a) {
   return a.axis === 'v' ? (a.dir > 0 ? Math.PI / 2 : -Math.PI / 2) : (a.dir > 0 ? 0 : Math.PI);
 }
 
-// ------------------------------------------------------------------ real roads
+// ------------------------------------------------------------------ tile roads
 
-// A road user on a real road (countryreal.js): road ri, segment si, t metres
+// A road user on a road of the tiles: its row `road`, segment si, t metres
 // from the segment start, dir +1 along the road's points or -1 against.
 function segDir(a) {
-  const P = REAL.roads[a.ri].pts, A = P[a.si], B = P[a.si + 1];
+  const P = a.road.pts, A = P[a.si], B = P[a.si + 1];
   const L = Math.hypot(B[0] - A[0], B[1] - A[1]) || 1;
   return [(B[0] - A[0]) / L, (B[1] - A[1]) / L, L];
 }
 function realPos(a) {
-  const P = REAL.roads[a.ri].pts, A = P[a.si];
+  const A = a.road.pts[a.si];
   const [ux, uy] = segDir(a);
-  const r = REAL.roads[a.ri];
-  const lat = r.oneway ? 0 : Math.min(r.w / 4, 2.2) * a.dir;
+  const lat = a.road.oneway ? 0 : Math.min((a.road.width || 5) / 4, 2.2) * a.dir;
   return [A[0] + ux * a.t - uy * lat, A[1] + uy * a.t + ux * lat];
 }
 const realTypes = (kind) => (kind <= 3 ? ['car'] : kind === 7 ? ['car', 'cyclist', 'car'] : ['tractor', 'cyclist', 'car', 'car', 'tractor', 'cyclist', 'car', 'car', 'quad']);
+// the roads road users drive: classed car roads at ground level
+const drivable = (r) => roadKind(r) > 0 && !r.z && r.cat !== 'foot' && r.cat !== 'cycle' && !r.busOnly;
 
 function spawnRealTraffic(px, py, dist) {
   const R = Math.random;
   for (let tries = 0; tries < 8; tries++) {
     const ang = R() * Math.PI * 2;
     const x = px + Math.cos(ang) * dist, y = py + Math.sin(ang) * dist;
-    if (!inRealExtent(x, y, 200) || edgeDistance(x, y) < 40) continue;
-    const L = roadsInTile(Math.floor(x / RTILE), Math.floor(y / RTILE));
-    if (!L) continue;
-    const k = Math.floor(R() * (L.length / 2)) * 2;
-    const ri = L[k], si = L[k + 1];
-    const r = REAL.roads[ri];
-    const dir = r.oneway || R() < 0.5 ? 1 : -1;
-    const a = { real: true, ri, si, t: 0, dir, speed: 0, yaw: 0, stride: 0 };
+    if (edgeDistance(x, y) < 40) continue;
+    const roads = L.map.roadsNear(x, y, 100).filter(drivable);
+    if (!roads.length) continue;
+    const road = roads[Math.floor(R() * roads.length)];
+    const dir = road.oneway || R() < 0.5 ? 1 : -1;
+    const a = { real: true, road, si: Math.floor(R() * (road.pts.length - 1)), t: 0, dir, speed: 0, yaw: 0, stride: 0 };
     const [, , len] = segDir(a);
     a.t = R() * len;
     const [wx, wy] = realPos(a);
     if (Math.hypot(wx - px, wy - py) < dist * 0.75 || edgeDistance(wx, wy) < 30) continue;
-    const opts = realTypes(r.kind);
+    const kind = roadKind(road);
+    const opts = realTypes(kind);
     const type = opts[Math.floor(R() * opts.length)];
     Object.assign(a, { type }, makeTraffic(type, R));
-    if (r.kind <= 3) a.vmax = 20 + R() * 7;
-    else if (r.kind <= 5 && type === 'car') a.vmax = 14 + R() * 5;
+    if (kind <= 3) a.vmax = 20 + R() * 7;
+    else if (kind <= 5 && type === 'car') a.vmax = 14 + R() * 5;
     a.speed = a.vmax * 0.8;
     a.yaw = headingOf(a);
     L_add(a);
-    return;
+    return true;
   }
+  return false;
 }
 function L_add(a) {
   L.group.add(a.g);
@@ -296,22 +298,18 @@ export function setRealRoadBlocks(list) {
 // Carry on at the end of a road: another road touching this point (not
 // against its one-way direction), else turn round.
 function realJunction(a) {
-  const r = REAL.roads[a.ri];
+  const r = a.road;
   const end = a.dir > 0 ? r.pts[r.pts.length - 1] : r.pts[0];
   const opts = [];
-  const L = roadsInTile(Math.floor(end[0] / RTILE), Math.floor(end[1] / RTILE)) || [];
-  const seen = new Set();
-  for (let k = 0; k < L.length; k += 2) {
-    const ri = L[k];
-    if (ri === a.ri || seen.has(ri)) continue;
-    seen.add(ri);
-    const o = REAL.roads[ri];
-    if (a.type !== 'car' && o.kind <= 2) continue;
-    if (a.type === 'quad' && o.kind <= 4) continue;
+  for (const o of L.map.roadsNear(end[0], end[1], 3)) {
+    if (o === r || !drivable(o)) continue;
+    const kind = roadKind(o);
+    if (a.type !== 'car' && kind <= 2) continue;
+    if (a.type === 'quad' && kind <= 4) continue;
     o.pts.forEach((q, j) => {
       if (Math.abs(q[0] - end[0]) > 1.5 || Math.abs(q[1] - end[1]) > 1.5) return;
-      if (j < o.pts.length - 1) opts.push({ ri, si: j, dir: 1 });
-      if (j > 0 && !o.oneway) opts.push({ ri, si: j - 1, dir: -1 });
+      if (j < o.pts.length - 1) opts.push({ road: o, si: j, dir: 1 });
+      if (j > 0 && !o.oneway) opts.push({ road: o, si: j - 1, dir: -1 });
     });
   }
   if (!opts.length) {
@@ -321,7 +319,7 @@ function realJunction(a) {
     return true;
   }
   const o = opts[Math.floor(Math.random() * opts.length)];
-  a.ri = o.ri; a.si = o.si; a.dir = o.dir;
+  a.road = o.road; a.si = o.si; a.dir = o.dir;
   a.t = o.dir > 0 ? 0 : segDir(a)[2];
   a.speed *= 0.7;
   return true;
@@ -336,7 +334,7 @@ function stepRealTraffic(a, dt, world) {
   for (const b of roadBlocks) {
     const bx = b.x - wx, by = b.y - wy, ah = bx * hx + by * hy;
     if (ah > 0 && ah < 16 && Math.abs(-bx * hy + by * hx) < 6) {
-      if (REAL.roads[a.ri].oneway) a.speed = 0;
+      if (a.road.oneway) a.speed = 0;
       else { a.dir = -a.dir; a.speed *= 0.3; }
       return;
     }
@@ -346,7 +344,7 @@ function stepRealTraffic(a, dt, world) {
   // a real vehicle carries on as city traffic on the street it meets there
   if (edgeDistance(wx + hx * 8, wy + hy * 8) < 0) {
     if (a.veh && handOver(a, world)) return;
-    if (REAL.roads[a.ri].oneway) a.gone = true;
+    if (a.road.oneway) a.gone = true;
     else { a.dir = -a.dir; a.speed *= 0.3; }
     return;
   }
@@ -361,7 +359,7 @@ function stepRealTraffic(a, dt, world) {
     const room = a.dir > 0 ? len - a.t : a.t;
     if (step < room) { a.t += step * a.dir; break; }
     step -= room;
-    const P = REAL.roads[a.ri].pts;
+    const P = a.road.pts;
     if (a.dir > 0 && a.si < P.length - 2) { a.si++; a.t = 0; continue; }
     if (a.dir < 0 && a.si > 0) { a.si--; a.t = segDir(a)[2]; continue; }
     a.t = a.dir > 0 ? len : 0;
@@ -737,6 +735,7 @@ function updateSkeins(dt, world, time, active) {
 // fogFar: the scene's fog distance (spawns happen out in the haze).
 export function updateCountryLife(dt, world, scene, flocks, fogFar) {
   if (!L) init(scene);
+  L.map = world.map;
   const t0 = performance.now();
   const p = world.player;
   const time = world.time || 0;
@@ -751,8 +750,8 @@ export function updateCountryLife(dt, world, scene, flocks, fogFar) {
     if (active && L.spawnT <= 0) {
       L.spawnT = 1.5 + Math.random() * 2;
       if (L.traffic.length < MAX_TRAFFIC) {
-        if (REAL.ready && inRealExtent(p.x, p.y, 400)) spawnRealTraffic(p.x, p.y, spawnD);
-        else spawnTraffic(p.x, p.y, spawnD);
+        // on the tiles' roads, and on the polder grid where there are no tiles
+        if (!spawnRealTraffic(p.x, p.y, spawnD)) spawnTraffic(p.x, p.y, spawnD);
       }
     }
     L.boatT -= dt;

@@ -6,6 +6,13 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Verbeterd
+- **Het hele oude Ommeland loopt over de tegels:** de 27 tegels in de zuidwesthoek (Peize, Foxwolde, Winde: voorbij de strook van het OSM-extract) worden uit de oude gegevens gebouwd, en elke stadstegel met een restje buiten de stadsdata krijgt een overlay. Elk gebouw, elke weg en elk spoorpunt van het oude gebied ligt nu in een tegel (`scripts/ommelandtegels_test.mjs`).
+- **Oude Ommeland-lagen weg:** de gebouwdozen en wegen van het oude Ommeland, de dorpslaag (`countryvillage.js`), de huizen in de verre skyline, de gebouw-, weg- en boomdekken van het platteland en het schilderen van wegen op de grond bestaan niet meer; alles wat daar stond, komt uit de tegels. `countryreal.js` houdt alleen waterveld, bebouwingsmasker, plaatsen, kerken, stations, treinroutes en spoor.
+- **Plaatsing leest de tegels:** winkels, cafés, garages, dorpsuitjes, eierballen en De Koe van Ome Jan zoeken hun plek op de gebouwen en wegen van de tegels (`tileplace.js`). Wat ver van je vandaan vastligt laadt eerst zijn tegels: de deuren van winkels, cafés en garages achter het titelscherm (het spel wacht alleen als je eerder start), de dorpen en de schuur van Ome Jan op de achtergrond erna, een teleport via de kaart en de plekkencontrole voor ze te controleren.
+- **Landverkeer op de tegelwegen:** trekkers, fietsers, quads en auto's rijden over de wegen van de tegels (voorheen alleen over de oude Ommeland-wegen en het polderrooster).
+- **Geparkeerde trekkers bij schuren:** de schuren van de tegels krijgen hun trekker op het erf; auto's langs dorpsstraten zijn de gewone geparkeerde auto's.
+
 ## [0.34.0] - 2026-10-17
 
 ### Toegevoegd

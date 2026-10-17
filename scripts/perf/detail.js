@@ -27,7 +27,8 @@ const DN = await imp('daynight');
 const { PO = (x, y) => ({ x, y }) } = await imp('worldframe').catch(() => ({}));
 const CR = await imp('countryreal');
 const CP = await imp('cityprops');
-const RM = await imp('realmap').catch(() => null);
+const RG = await imp('roadgraph');
+const TP = await imp('tileplace');
 const ONLY = (window.__detailOnly || '').split(',').filter(Boolean);
 const SETTLE = window.__detailSettle || 10000, DUR = window.__detailDur || 6000, R = 150;
 let ownShot = false;
@@ -68,24 +69,18 @@ const fixWorld = () => {
   if (DN.refreshDayNight) DN.refreshDayNight(w);
 };
 
-// a real street in a village: the residential road near the place centre
-// with the most buildings round its middle, standing on it looking along it
+// a real street in a village: the residential road of the province's road net
+// nearest the place centre, standing on it looking along it
 function villageSpot(name) {
   const pl = CR.REAL.places.find((q) => q.n === name);
   let best = null;
-  for (const rd of CR.REAL.roads) {
+  for (const rd of RG.roadNetRows()) {
     if (rd.kind < 5) continue;
     for (let i = 0; i < rd.pts.length - 1; i++) {
       const a = rd.pts[i], b = rd.pts[i + 1];
       const mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2, len = Math.hypot(b[0] - a[0], b[1] - a[1]);
       if (len < 12 || Math.hypot(mx - pl.x, my - pl.y) > Math.min(350, pl.r * 0.6)) continue;
-      let n = 0;
-      for (let tx = Math.floor((mx - 60) / 160); tx <= Math.floor((mx + 60) / 160); tx++) {
-        for (let ty = Math.floor((my - 60) / 160); ty <= Math.floor((my + 60) / 160); ty++) {
-          for (const k of CR.buildingsInTile(tx, ty) || []) if (Math.hypot(CR.REAL.bx[k] - mx, CR.REAL.by[k] - my) < 60) n++;
-        }
-      }
-      const score = n - Math.hypot(mx - pl.x, my - pl.y) / 40;
+      const score = -Math.hypot(mx - pl.x, my - pl.y);
       if (!best || score > best.score) best = { score, x: mx, y: my, a: Math.atan2(b[1] - a[1], b[0] - a[0]), street: rd.name };
     }
   }
@@ -112,9 +107,9 @@ function churchView(church, place) {
   for (let k = 0; k < 24; k++) {
     const a = 2.4 + (k % 12) * 0.5236, d = k < 12 ? 80 : 60;
     const x = c.x + Math.cos(a) * d, y = c.y + Math.sin(a) * d;
-    if (CR.buildingAt(x, y, 3) >= 0) continue;
+    if (TP.buildingAt(w.map, x, y, 3)) continue;
     let hits = 0;
-    for (let t = 4; t < d - 18; t += 3) if (CR.buildingAt(x + (c.x - x) * t / d, y + (c.y - y) * t / d, 0.5) >= 0) hits++;
+    for (let t = 4; t < d - 18; t += 3) if (TP.buildingAt(w.map, x + (c.x - x) * t / d, y + (c.y - y) * t / d, 0.5)) hits++;
     if (!best || hits < best.hits) best = { hits, x, y, a: Math.atan2(c.y - y, c.x - x), cx: c.x, cy: c.y };
   }
   if (best) return best;
@@ -198,19 +193,19 @@ for (const A of AREAS) {
   hold = { x: s.x, y: s.y, a: s.a };
   await sleep(SETTLE);
   fixWorld();
-  // DETAIL_TOGGLE=1: the same spot with the real-Ommeland map and the
+  // DETAIL_TOGGLE=1: the same spot with the
   // landmark kits switched off and on in turns (one process, one load)
   if (window.__detailToggle) {
     const T = { on: [], off: [] };
     for (let k = 0; k < 6; k++) {
       const off = k % 2 === 1;
-      window.__noRealMap = off; window.__noLandmarkKits = off;
+      window.__noLandmarkKits = off;
       await sleep(1500);
       H.start();
       await sleep(3000);
       T[off ? 'off' : 'on'].push(H.stop());
     }
-    window.__noRealMap = false; window.__noLandmarkKits = false;
+    window.__noLandmarkKits = false;
     const mean = (L, k) => +(L.reduce((a, r) => a + r[k], 0) / L.length).toFixed(2);
     results.toggle = results.toggle || {};
     results.toggle[A.name] = { onCpu: mean(T.on, 'cpuAvg'), offCpu: mean(T.off, 'cpuAvg'), onFrame: mean(T.on, 'avg'), offFrame: mean(T.off, 'avg') };
@@ -229,7 +224,7 @@ for (const A of AREAS) {
   const out = {
     at: [Math.round(s.x), Math.round(s.y)], street: s.street || A.road || '', ...res,
     callsPerFrame: Math.round(calls / frames), trisPerFrame: Math.round(tris / frames), materials: mats,
-    ...census(s.x, s.y), realMap: RM && RM.realMapStats ? RM.realMapStats() : null,
+    ...census(s.x, s.y),
   };
   console.log('[capture] ' + A.name);
   await sleep(500);

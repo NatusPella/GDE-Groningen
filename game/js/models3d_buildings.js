@@ -193,7 +193,7 @@ function addPassages(group, b, parts, depth) {
     group.add(parts.interior);
     return;
   }
-  const map = mapRef(b);
+  const map = mapRef();
   if (!map || !map.buildingsNear) return;
   if (parts.tunnel === undefined) {
     const mesh = buildPassageTunnels(b, passagesOf(map, b), depth, 0, doorsOf(map, b));
@@ -214,10 +214,9 @@ let buildingMap = null;
 export function setBuildingMap(map) {
   buildingMap = map;
 }
-// the map a building belongs to (b.map: the real Ommeland's, realmap.js),
-// else the city's
-function mapRef(b = null) {
-  return (b && b.map) || buildingMap || (typeof window !== 'undefined' && window.__debug && window.__debug.map) || null;
+// the map the buildings belong to
+function mapRef() {
+  return buildingMap || (typeof window !== 'undefined' && window.__debug && window.__debug.map) || null;
 }
 
 // --- footprint helpers ---------------------------------------------------------
@@ -277,7 +276,7 @@ function rectangularFrame(edges) {
 
 function markPartyWalls(b, edges) {
   if (edges.partyChecked) return;
-  const map = mapRef(b);
+  const map = mapRef();
   if (!map) return;
   edges.partyChecked = true;
   const [minx, miny, maxx, maxy] = b.bounds;
@@ -1260,7 +1259,7 @@ const BY_WATER_R = 0.8;
 const isWet = (map, e, s, d) => map.inWaterRaw(e.ax + e.tx * s + e.nx * d, e.ay + e.ty * s + e.ny * d);
 export function buildingFoundation(b) {
   if (b._foundation !== undefined) return b._foundation;
-  const map = mapRef(b);
+  const map = mapRef();
   if (!map || !map.inWaterRaw || archetypeOf(b) === 'houseboat') return (b._foundation = null);
   const edges = bboxOf(b).edges;
   const wet = edges.map((e) => {

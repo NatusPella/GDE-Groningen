@@ -27,7 +27,7 @@ import { resetWalker, resetVehicle, placeCompanion } from './safety.js';
 import { isInWater } from './util.js';
 import { REAL, inRealExtent } from './countryreal.js';
 import { edgeDistance } from './countryfield.js';
-import { realRoadNear } from './ommelandplace.js';
+import { roadNear, tilesIn, withTiles } from './tileplace.js';
 import { getGarageCatalog, deliverOwnedVehicle } from './ownedvehicles.js';
 
 const CLOCK = { zomeravond: 20.5, nachtstad: 0.5 };
@@ -209,7 +209,7 @@ function roadAngle(road, x, y) {
 // The nearest road (city or Ommeland) to a map click, else dry open ground.
 export function teleportSpot(map, x, y, car) {
   if (inCountry(x, y)) {
-    const q = realRoadNear(x, y, 900);
+    const q = roadNear(map, x, y, 900);
     if (q) return { x: q.x, y: q.y, angle: Math.atan2(q.uy, q.ux) };
     if (!isInWater(map, x, y)) return { x, y, angle: null };
   }
@@ -227,6 +227,16 @@ export function teleportSpot(map, x, y, car) {
 function teleport(w, x, y, name) {
   const why = blockedReason(w);
   if (why) { w.addMessage(why, 3); return false; }
+  // far from here the tiles round the target are not in yet: they come first,
+  // then the same jump (the road and the open spot are picked from them)
+  if (!tilesIn(w.map, [[x, y]], 400)) {
+    withTiles(w.map, [[x, y]], () => teleportNow(w, x, y, name), { radius: 400, token: 'teleport' }).catch(() => {});
+    return true;
+  }
+  return teleportNow(w, x, y, name);
+}
+
+function teleportNow(w, x, y, name) {
   const p = w.player, v = p.inVehicle, map = w.map;
   const spot = teleportSpot(map, x, y, !!(v && !v.isBike && !v.isScooter));
   if (!spot) { w.addMessage('Daar kun je niet staan', 3); return false; }

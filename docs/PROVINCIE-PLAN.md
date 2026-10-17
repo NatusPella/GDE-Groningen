@@ -566,9 +566,21 @@ strook (HTTP 406/429), dus de bron is het Geofabrik-extract.
 - **Tegels:** `scripts/world/build_province.mjs` bouwt alle tegels binnen 3 km
   van de grens: 4.077 in de set, 3.169 gebouwd, 54 stad, 847 leeg (zee,
   Duitsland); 921 plaatsen, 30 stations, 10 treinlijnen, 252 buslijnen.
-- **In het spel:** standaard aan (`?legacy` zet uit). Tegels streamen waar de
-  oude Ommeland-lagen niet tekenen (vlag 8); voorbij de detailstraal tekent
-  `farlod.js` ze. De polderblokken onder de tegels zijn echte blokken
+- **Het oude Ommeland-gebied (#3):** de strook van het extract houdt 3 km
+  voorbij de grens op; het zuidwesten van het oude gebied (Peize, Foxwolde,
+  Winde: 27 tegels, vlaggen 8 + 16 + 32 + 4) wordt in `fillOldExtent` uit
+  `data/ommeland_raw.json.gz` gebouwd (wegen, spoor, water, plaatsen met volle
+  geometrie, gebouwen als hun dozen en vleugels), met wegen in het routenet en
+  de basiskaart; elke stadstegel waarvan de stadsdata niet 100 % dekt krijgt een
+  overlay. `ommelandtegels_test` bewaakt dat elk oud gebouw, elke weg en elk
+  spoorpunt van `ommeland.*` in een tegel ligt. De oude lagen (`realmap.js`,
+  `countryvillage.js`, de gebouw-, weg- en boomdekken van `countryside.js`, de
+  weglagen van `countryedge.js`, de huizen van `countryskyline.js`) zijn weg;
+  `countryreal.js` houdt het waterveld, het bebouwingsmasker, plaatsen, kerken,
+  stations, routes en rails. Plaatsing leest de tegels (`tileplace.js`): wat vast
+  ligt ver van de speler laadt eerst zijn tegels (`withTiles`).
+- **In het spel:** standaard aan. Tegels streamen overal,
+  ook in het oude gebied; voorbij de detailstraal tekent `farlod.js` ze. De polderblokken onder de tegels zijn echte blokken
   (`uProvBlocks` in de grond-shader); props houden afstand van echte wegen,
   gebouwen en water. Treinen rijden over het echte spoor naar alle 26 stations
   buiten de stad plus Veendam; kaart met basispiramide z0-z3 (5 MB PNG) plus

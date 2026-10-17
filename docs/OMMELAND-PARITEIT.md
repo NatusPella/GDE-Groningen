@@ -1,6 +1,6 @@
 # Ommeland parity with the city
 
-> Historisch (stand 0.34): de lagen en bestanden waar dit over gaat (`countryreal`, `countryedge`, `countrybake`, `countryroute`, `ommeland.json`/`.bin`) worden door tegels vervangen (issue #3, ontwerp in [PROVINCIE-PLAN.md](PROVINCIE-PLAN.md)); de "open" punten voor die lagen worden niet meer opgepakt.
+> Historisch (stand 0.34): de gebouwen, wegen, dorpen en skyline van het oude Ommeland (`realmap`, `countryvillage`, de weg- en gebouwlagen van `countryreal`, `countryedge` en `countryside`, `countryroute`) zijn door tegels vervangen (issue #3, ontwerp in [PROVINCIE-PLAN.md](PROVINCIE-PLAN.md), §2.28); wat van `countryreal`, `countryedge`, `countrybake` en `ommeland.json`/`.bin` overblijft is het oude waterveld, het bebouwingsmasker, plaatsen, kerken en stations. De "open" punten voor die lagen worden niet meer opgepakt, `country_props_audit.mjs` en het bruggendeel van `country_vehicles_test.mjs` zijn weg.
 
 The Ommeland (countryside around the city) was built later and took shortcuts.
 This lists where it behaved differently from the city for no design reason, and

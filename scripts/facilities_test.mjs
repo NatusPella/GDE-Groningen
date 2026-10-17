@@ -15,11 +15,12 @@ const MAX_POLICE = 14000;
 const STEP = 250;
 
 const root = new URL('../game/', import.meta.url);
-const { GameMap, applyMapExtras } = await import('../game/js/mapdata.js');
 await import('../game/js/player.js');
-const data = JSON.parse(fs.readFileSync(new URL('citymap.json', root)));
-applyMapExtras(data, JSON.parse(fs.readFileSync(new URL('mapextras.json', root))));
-const map = new GameMap(data);
+// the tiles as the game has them (the placements read their buildings and roads), the whole old area in
+const { loadGameWorld, loadArea } = await import('./worldload.mjs');
+const T = await loadGameWorld();
+if (!T) { console.log('SKIP no game/world with the province layer'); process.exit(0); }
+const map = T.world;
 const F = await import('../game/js/countryfield.js');
 const { initReal, REAL } = await import('../game/js/countryreal.js');
 const { ensureCountryEdge } = await import('../game/js/countryplan.js');
@@ -27,14 +28,17 @@ F.setCountryBounds(map.meta.bounds);
 const om = JSON.parse(fs.readFileSync(new URL('ommeland.json', root)));
 const bin = zlib.gunzipSync(fs.readFileSync(new URL('ommeland.bin', root)));
 initReal(map, { ...om, bin: bin.buffer.slice(bin.byteOffset, bin.byteOffset + bin.byteLength) });
+const tilesLoaded = await loadArea(T, REAL.ext);
 ensureCountryEdge(map);
 const Fac = await import('../game/js/facilities.js');
 const raw = JSON.parse(fs.readFileSync(new URL('facilities.json', root)));
 Fac.initFacilities(map, raw);
 const { respawnArrival } = await import('../game/js/respawn.js');
 const { spotProblem } = await import('../game/js/spotcheck.js');
-const { buildingAt } = await import('../game/js/countryreal.js');
+const { buildingAt: tileBuildingAt } = await import('../game/js/tileplace.js');
+const buildingAt = (x, y, m) => (tileBuildingAt(map, x, y, m) ? 1 : -1);
 const { isInWater } = await import('../game/js/util.js');
+console.log(`${tilesLoaded} tiles of the old area in`);
 
 let fails = 0;
 const fail = (msg) => { fails++; console.log('FAIL ' + msg); };
@@ -112,8 +116,9 @@ for (const s of sites) console.log(`  ${s.kind.padEnd(9)} ${s.name}`);
 
 // garages and fuel stations out in the Ommelanden (garages.js)
 {
-  const { initGarages, getGaragesForRender } = await import('../game/js/garages.js');
+  const { initGarages, initCountryGarages, getGaragesForRender } = await import('../game/js/garages.js');
   initGarages(world);
+  initCountryGarages(world);
   const all = getGaragesForRender();
   const [bx0, by0, bx1, by1] = map.meta.bounds;
   const country = all.filter((g) => g.x < bx0 || g.x > bx1 || g.y < by0 || g.y > by1);
@@ -148,6 +153,7 @@ for (const s of sites) console.log(`  ${s.kind.padEnd(9)} ${s.name}`);
 {
   const H = await import('../game/js/horeca.js');
   H.initHoreca(world);
+  H.initCountryHoreca(world);
   const country = H.getHorecaForRender().filter((h) => h.place);
   console.log(`${country.length} cafés in the Ommelanden`);
   if (country.length < 10) fail('too few Ommeland cafés');

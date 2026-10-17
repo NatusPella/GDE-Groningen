@@ -6,7 +6,8 @@
 // (build_corridor.mjs tileBlob -> worldbuilder.js). Pack by pack, so the
 // memory stays that of one 8 x 8 km pack.
 //
-//   node scripts/world/build_province.mjs [--out game/world] [--city <index.json>] [--src data/cache/province]
+//   node scripts/world/build_province.mjs [--out game/world] [--city <index.json>] [--src data/cache/province] [--no-fill]
+//   (--no-fill leaves out the old Ommeland area's corner past the strip, which fillOldExtent builds from data/ommeland_raw.json.gz)
 //
 // Out: v<pack>-<hash>.gdp packs and index-provincie.json (tiles; the global
 // part: places with their districts, stations, train lines over the track,
@@ -357,7 +358,7 @@ function fillOldExtent({ root, fill, gid, stats, blobs, roadNet, roadSeen, railR
 
 // ------------------------------------------------------------- build
 
-export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(src), cityKeys = new Set(), buffer = BUFFER_M, onPack = null, map = true, cityCover = null, fillOld = true } = {}) {
+export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(src), cityKeys = new Set(), buffer = BUFFER_M, onPack = null, map = true, cityCover = null, fillOld = false } = {}) {
   const prov = gunzipJson(path.join(src, 'province.json.gz'));
   // the neighbours' strips: their places, stations and built-up cells join the province's
   const dirs = [src, ...extra];
@@ -572,7 +573,7 @@ async function main() {
   const cityKeys = await cityKeysOf(opt('--city') || path.join(out, 'index.json'));
   const t1 = performance.now();
   const cityCover = args.includes('--no-overlay') ? null : await cityCoverOf();
-  const built = buildProvince({ src, cityKeys, cityCover, onPack: args.includes('--verbose') ? (pk, s) => console.log(`  pack ${pk}: ${s.tiles} tiles so far`) : null });
+  const built = buildProvince({ src, cityKeys, cityCover, fillOld: !args.includes('--no-fill'), onPack: args.includes('--verbose') ? (pk, s) => console.log(`  pack ${pk}: ${s.tiles} tiles so far`) : null });
   const t2 = performance.now();
   const { index, size } = writeProvince(out, built);
   const raw = Object.values(index.tiles).reduce((a, t) => a + t.raw, 0);
@@ -581,8 +582,9 @@ async function main() {
   const buf = Object.values(index.tiles).filter((t) => t.flags & FLAG.BUFFER).length;
   const old = Object.values(index.tiles).filter((t) => t.flags & FLAG.OLD).length;
   const ovl = Object.values(index.tiles).filter((t) => t.ov).length;
+  const filled = Object.values(index.tiles).filter((t) => t.src === 'ommeland').length;
   const idxSize = fs.statSync(path.join(out, 'index-provincie.json')).size;
-  console.log(`provincie: ${built.keys.length} tiles in the set, ${s.tiles} built (${buf} in the buffer strip, ${old} where the old Ommeland layers draw), ${g.city.length} are the city's (${ovl} of them with an overlay for the part its data leaves empty), ${built.empty.length} empty (sea, no data), ${built.missing.length} without a pack`);
+  console.log(`provincie: ${built.keys.length} tiles in the set, ${s.tiles} built (${buf} in the buffer strip, ${old} in the old Ommeland area, ${filled} of them filled from the old data), ${g.city.length} are the city's (${ovl} of them with an overlay for the part its data leaves empty), ${built.empty.length} empty (sea, no data), ${built.missing.length} without a pack`);
   console.log(`  ${Object.keys(index.packs).length} packs ${(size / 1e6).toFixed(1)} MB (${(raw / 1e6).toFixed(1)} MB raw, ${Math.round(size / Math.max(1, s.tiles))} B/tile), index ${(idxSize / 1e6).toFixed(2)} MB; source ${s.sourceMB.toFixed(1)} MB gzip in ${s.packs} packs`);
   console.log(`  ${s.buildings} buildings (height ${Object.entries(s.hsrc).map(([k, v]) => `${k} ${v}`).join(', ')}), ${s.roads} road pieces, ${s.water} water, ${s.green} green, ${s.rails} rail pieces, ${s.trees} trees, ${s.furniture} furniture`);
   console.log(`  ${g.places.length} places, ${g.stations.length} stations, ${g.routes.length} train lines (${g.routes.filter((r) => r.reached).length} complete), ${g.bus.length} bus lines, ${g.edge.coast.length} coast pieces, ${g.edge.border.length} border lines`);

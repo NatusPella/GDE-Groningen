@@ -6,8 +6,8 @@ import { loadMap } from './mapdata.js';
 import { loadTileWorld, tileOmmeland } from './tileworld.js';
 import { setWorldPlaces } from './worldplaces.js';
 import { tileIndexOf, tileKey } from './gdt.js';
-import { loadOmmeland, initReal, warmRows } from './countryreal.js';
-import { loadFacilities, initFacilities, setExtraBuiltWorld } from './facilities.js';
+import { loadOmmeland, initReal } from './countryreal.js';
+import { loadFacilities, initFacilities, setExtraBuiltWorld, placeWithTiles } from './facilities.js';
 import { ensureCountryEdge } from './countryplan.js';
 import { warmCountryMaps } from './countrymap.js';
 import { Input } from './input.js';
@@ -29,9 +29,9 @@ import { initGoal, updateGoal } from './goal.js';
 import { updateOnboarding } from './onboarding.js';
 import { initMotion } from './motion.js';
 import { initHud, updateHud } from './hud_panel.js';
-import { initGarages, updateGarages, tryGarageInteract } from './garages.js';
-import { initHoreca, updateHoreca, tryHorecaInteract } from './horeca.js';
-import { initShops, updateShops, tryShopInteract } from './shops.js';
+import { initGarages, initCountryGarages, updateGarages, tryGarageInteract } from './garages.js';
+import { initHoreca, initCountryHoreca, updateHoreca, tryHorecaInteract } from './horeca.js';
+import { initShops, initCountryShops, updateShops, tryShopInteract, COUNTRY_SHOP_KINDS } from './shops.js';
 import { initSnackMachines, updateSnackMachines, tryMachineInteract } from './snackautomaat.js';
 import { updateStreetLife, tryStreetLifeInteract } from './streetlife.js';
 import { bikeBoost, hourOf } from './streetlifedata.js';
@@ -379,13 +379,21 @@ async function boot() {
   markLoad('terrain');
   await finishLoading();
   markLoad('title');
+  // the garages, cafés and shops out in the Ommelanden get their doors from the
+  // tiles round them: those load behind the title screen (a few ms a frame) and
+  // the game waits for them only if you start sooner
+  const countryPlaced = placeWithTiles(map, ['horeca', 'car_repair', 'fuel', ...COUNTRY_SHOP_KINDS], () => {
+    initCountryGarages(world);
+    initCountryHoreca(world);
+    initCountryShops(world);
+  }, { slice: 6 }).then(() => markLoad('placement'), (e) => console.warn('country placement', e));
   // the minimap's and map's Ommeland water and meadow images, a few ms a frame
   warmCountryMaps();
-  warmRows();
   // the title screen already sounds like the city (quieter, no music)
   setMenuAudio(true);
   initAudio(world);
   await waitForStart(world);
+  await countryPlaced;
   document.body.classList.add('game-started');
   hideAdvice();
   input.tryLock();
