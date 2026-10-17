@@ -91,7 +91,7 @@ export function realBlockedAt(map, isTile, x, y, m) {
   return false;
 }
 
-const S = { layer: null, keys: null, blocks: null, tex: null };
+const S = { layer: null, keys: null, blocks: null, tex: null, has: null };
 
 // Where the tiles are the one source: the built tiles of
 // the layer. covered(x, y) -> countryreal.js setTileCover.
@@ -101,18 +101,26 @@ export function tileCoverOf(index) {
   return (x, y) => { const [i, j] = tileIndexOf(x, y); return keys.has(tileKey(i, j)); };
 }
 
+// Whether (x, y) lies in a tile of the province's data; null without the province layer.
+export function inProvinceData(x, y) {
+  if (!S.has) return null;
+  const [i, j] = tileIndexOf(x, y);
+  return S.has.has(tileKey(i, j));
+}
+
 // After loadTileWorld: the layer's global part and, when streaming, the
 // polder blocks and the prop rule. -> { layer, tiles (keys streamed), blocks }
 export function initProvince(tiles) {
   const layer = tiles && tiles.index.layers && tiles.index.layers.provincie;
   S.layer = layer && layer.global ? layer.global : null;
   setTileCover(S.layer && tiles.index ? tileCoverOf(tiles.index) : null);
-  if (!S.layer) { setProvinceBlocks(null); setProvinceMap(null); return { layer: S.layer, tiles: 0, blocks: 0 }; }
+  if (!S.layer) { S.has = null; setProvinceBlocks(null); setProvinceMap(null); return { layer: S.layer, tiles: 0, blocks: 0 }; }
   // the full map's base layer (provincemap.js)
   setProvinceMap(S.layer.map || null);
   const idx = tiles.index.tiles;
   const isTile = (k) => { const t = idx[k]; return t && t.flags & PFLAG.PROVINCE ? t : null; };
   S.keys = Object.keys(idx).filter((k) => isTile(k));
+  S.has = new Set(Object.keys(idx).map((k) => tileKey(idx[k].i, idx[k].j)));
   S.blocks = provinceBlocksOf(S.keys, isTile);
   if (S.blocks) {
     const B = S.blocks;
