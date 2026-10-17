@@ -25,8 +25,9 @@
 // show; P3 waits until it is quiet again, at most 30 s, then it lapses.
 // Rest ("Slim"): after 8 s without input only the minimap stays; a key or the
 // pause menu brings everything back for a moment.
-// Ceiling: at most 7 elements besides the minimap; over that P3 goes first,
-// then the clock, then the money.
+// Ceiling: at most 6 elements besides the minimap; over that P3 goes first,
+// then the clock, then the money. Of what talks (a message, the radio or an
+// achievement, a subtitle) at most two show at once: the P3 one gives way.
 // Never: cutscenes, photo mode, the big map. "Minimaal": stars, objective,
 // subtitles and P0 only.
 
@@ -53,7 +54,7 @@ export const E_SHOW = 4;
 export const IDLE_AFTER = 8;
 export const WAKE_FOR = 4;
 export const DEFER_MAX = 30;
-export const CEILING = 7;
+export const CEILING = 6;
 export const GPS_NEAR = 400;
 
 // May an item of priority p start now? Busy moments and dialogue hold P3
@@ -164,6 +165,10 @@ export function decideHud(s = {}) {
     if (show.cardE) show.cardE = false;
   }
 
+  // what talks: at most two of a message, the radio or an achievement, and a subtitle
+  if (!all && show.cardA && show.cardE && show.subtitle) {
+    if ((s.cardE ?? P3) >= (s.cardA ?? P3)) show.cardE = false; else show.cardA = false;
+  }
   // the ceiling: P3 first, then the clock, then the money
   if (!all) {
     const drops = [['place', 'cardE', 'cardA3'], ['clock'], ['money'], ['keys'], ['weapon']];

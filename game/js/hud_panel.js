@@ -3,6 +3,8 @@ import { simLevel } from './simload.js';
 import { getGaragesForRender } from './garages.js';
 import { getHomeForRender, getHomeGarageForRender, getHomeMooringForRender, getHomeHelipadForRender } from './home.js';
 import { minimapShows } from './mapfilters.js';
+import { mapCategory } from './mapicons.js';
+import { facilitiesOf } from './facilities.js';
 import { getHorecaForRender } from './horeca.js';
 import { getShopsForRender, drawShopMapIcon, drawShopGlyph, SHOP_TYPES, storyTargetShop, drawStoryShopRing } from './shops.js';
 import { getOwnedVehiclesForMap } from './ownedvehicles.js';
@@ -710,8 +712,8 @@ function updateGps(dt, world) {
   if (turn) {
     const after = turn.after ? world.map.nearestRoadPoint(turn.after[0], turn.after[1], 25, false) : null;
     const street = after && after.road && after.road.name ? after.road.name : '';
-    const dest = route.target && route.target.name ? route.target.name : '';
-    const sub = [street, dest ? `richting ${dest}` : ''].filter(Boolean).join(', ');
+    // where it goes is on the objective card below; the turn card says the street
+    const sub = street;
     const v = p.inVehicle;
     const title = turnText(turn);
     key += '|' + title + '|' + sub + '|' + formatDistance(route.remaining);
@@ -1160,6 +1162,7 @@ function currentObjective(world) {
 }
 
 const OBJ_HINT_TIME = 6;
+const QUIET_AFTER = 9;
 const GOAL_HINTS = 3;
 let goalHints = 0;
 
@@ -1173,10 +1176,14 @@ function updateMission(world) {
   if (key !== els.objKey) { els.objAt = world.time; if (o.kind === 'goal') goalHints++; }
   // a new objective first says how (the bijbaan's hint), then its counter
   const sub = o.hint && world.time - els.objAt < OBJ_HINT_TIME ? o.hint : o.sub;
+  // the route and the story speak for themselves after a moment: the card shrinks to the goal and the distance
+  els.mission.classList.toggle('obj-quiet', (o.kind === 'story' || o.kind === 'goal' || o.kind === 'police') && world.time - els.objAt >= QUIET_AFTER);
   if (els.missionLabel.textContent !== o.title) els.missionLabel.textContent = o.title;
   if (els.missionProgress.textContent !== sub) els.missionProgress.textContent = sub;
   const r = getActiveRoute();
-  setText(els.missionDist, r && r.remaining > 12 && o.kind !== 'job' ? formatDistance(r.remaining) : '');
+  // the turn card already carries the distance of the route
+  const gpsShows = !els.gps.hidden && !els.gps.classList.contains('no-turn') && !els.gps.classList.contains('hv-off');
+  setText(els.missionDist, r && r.remaining > 12 && o.kind !== 'job' && !gpsShows ? formatDistance(r.remaining) : '');
   if (key !== els.objKey) {
     els.objKey = key;
     els.mission.dataset.kind = o.kind;
@@ -1550,6 +1557,39 @@ export function drawMapIcon(ctx, kind, x, y, s = 1, opts = {}) {
       ctx.fillRect(1.6 * s, -1.4 * s, 0.9 * s, 0.9 * s);
       break;
     }
+    case 'hospital': {
+      // ziekenhuis / huisartsenpost: a white cross on a red square
+      ctx.beginPath();
+      ctx.roundRect(-5 * s, -5 * s, 10 * s, 10 * s, 2.2 * s);
+      ctx.fillStyle = C.red;
+      ctx.fill();
+      outline(ctx, s, C.dark, 1.2);
+      ctx.fillStyle = C.cream;
+      ctx.fillRect(-1.1 * s, -3.4 * s, 2.2 * s, 6.8 * s);
+      ctx.fillRect(-3.4 * s, -1.1 * s, 6.8 * s, 2.2 * s);
+      break;
+    }
+    case 'politiebureau': {
+      // politiebureau: a still blue shield with a cream star (the flashing one is a unit)
+      ctx.beginPath();
+      ctx.moveTo(0, -5.6 * s);
+      ctx.lineTo(4.8 * s, -3.9 * s);
+      ctx.quadraticCurveTo(4.6 * s, 3 * s, 0, 5.8 * s);
+      ctx.quadraticCurveTo(-4.6 * s, 3 * s, -4.8 * s, -3.9 * s);
+      ctx.closePath();
+      ctx.fillStyle = C.policeBlue;
+      ctx.fill();
+      outline(ctx, s, C.dark, 1.2);
+      ctx.beginPath();
+      for (let i = 0; i < 10; i++) {
+        const a = -Math.PI / 2 + i * Math.PI / 5, r = (i % 2 ? 1 : 2.4) * s;
+        if (i) ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r - 0.2 * s); else ctx.moveTo(Math.cos(a) * r, Math.sin(a) * r - 0.2 * s);
+      }
+      ctx.closePath();
+      ctx.fillStyle = C.cream;
+      ctx.fill();
+      break;
+    }
     case 'landmark': {
       const r = 5 * s;
       ctx.beginPath();
@@ -1627,6 +1667,23 @@ export function drawMapIcon(ctx, kind, x, y, s = 1, opts = {}) {
       else if (kind.startsWith('sj-')) drawSideJobMapIcon(ctx, kind, s, opts);
       else if (kind.startsWith('mi-') || kind.startsWith('ma-')) drawMissionMapIcon(ctx, kind, s, opts, t);
   }
+  ctx.restore();
+}
+
+// A dark disc with a cream rim under an icon, so it reads on sea, meadow and
+// the darker land outside the province alike. Goals, missions, police and the
+// player carry their own rings and get none.
+const NO_HALO = new Set(['player', 'goal', 'mission', 'police']);
+export function drawMapIconHalo(ctx, kind, x, y, s = 1) {
+  if (NO_HALO.has(mapCategory(kind))) return;
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(x, y, 6.6 * s, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(12, 20, 14, 0.78)';
+  ctx.fill();
+  ctx.lineWidth = Math.max(1.2, 0.9 * s);
+  ctx.strokeStyle = 'rgba(240, 237, 228, 0.92)';
+  ctx.stroke();
   ctx.restore();
 }
 
@@ -1810,12 +1867,12 @@ export function forEachPoliceUnit(world, fn) {
   if (world.policeHeli) fn(world.policeHeli.x, world.policeHeli.y, 'police');
 }
 
-const MM_ICON = 1.2;
+const MM_ICON = 1.7;
 // Static places: only the categories switched on in the map legend
 // (mapfilters.js, shared with the full map), only the nearest few, only close by, drawn smaller and
 // skipped where they would overlap something more important.
-const MM_POI_ICON = 1.05;
-const MM_POI_GAP_PX = 15;
+const MM_POI_ICON = 1.45;
+const MM_POI_GAP_PX = 21;
 const MM_POI_NEAR_M = 150;
 const MM_POI_FAR_M = 250;
 const SHOP_GROUPS = ['shopsWapens', 'shops', 'shopsVoertuigen'];
@@ -1846,6 +1903,8 @@ function drawMinimapPois(ctx, world, job, placed, inRange, toScreen, t) {
   add('home', getHomeMooringForRender(world), 'homeMooring', 1, MM_POI_FAR_M * 2);
   add('home', getHomeHelipadForRender(), 'homeHelipad', 1, MM_POI_FAR_M * 2);
   add('garage', getGaragesForRender(), 'garage', 1, MM_POI_FAR_M);
+  add('zorg', facilitiesOf(['hospital', 'gppost']), 'hospital', 1, MM_POI_FAR_M * 2);
+  add('politiebureau', facilitiesOf('police'), 'politiebureau', 1, MM_POI_FAR_M * 2);
   const shops = nearestWithin(getShopsForRender(), px, py, MM_POI_NEAR_M, 24);
   for (const group of SHOP_GROUPS) {
     if (!minimapShows(group)) continue;
@@ -1884,7 +1943,10 @@ function drawMinimapPois(ctx, world, job, placed, inRange, toScreen, t) {
     placed.push(sx, sy);
     drawn.push([kind, sx, sy]);
   }
-  for (const [kind, sx, sy] of drawn) drawMapIcon(ctx, kind, sx, sy, MM_POI_ICON, { t });
+  for (const [kind, sx, sy] of drawn) {
+    drawMapIconHalo(ctx, kind, sx, sy, MM_POI_ICON);
+    drawMapIcon(ctx, kind, sx, sy, MM_POI_ICON, { t });
+  }
 }
 
 // Town, village and region names on the minimap (the list is refreshed when
@@ -2127,7 +2189,7 @@ function drawMinimap(dt, world) {
   forEachPoliceUnit(world, (x, y, kind) => icon(kind, x, y));
   forEachCashTarget(world, (x, y) => icon('cash', x, y));
 
-  drawMapIcon(ctx, 'player', cx, cy, 1.35, { angle: player.angle + mapRotation });
+  drawMapIcon(ctx, 'player', cx, cy, 1.8, { angle: player.angle + mapRotation });
 
   drawNorthIndicator(ctx, cx, cy, mapRotation - Math.PI / 2);
 

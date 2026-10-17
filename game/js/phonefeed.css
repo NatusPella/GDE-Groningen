@@ -146,6 +146,6 @@
   background: #050806;
   box-shadow: 0 0 0 1.5px #1f2622;
 }
-#hud .pf-esc { display: block; padding: 0 14px 10px; font: 12px 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.3px; color: rgba(240, 237, 228, 0.55); }
+#hud .pf-esc { display: none; padding: 0 14px 10px; font: 12px 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.3px; color: rgba(240, 237, 228, 0.55); }
 #hud .pf-esc .hud-key { height: 16px; min-width: 22px; font-size: 10px; margin-right: 4px; }
 #hud .pf-callcard .pf-esc { padding-left: 65px; }

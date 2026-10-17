@@ -1,7 +1,9 @@
 import { onPaletteChange } from './a11y.js';
 import { MODES, MODE_LABEL, ROUTE_MODE, roadAllowed, travelModeOf } from './roadaccess.js';
 import { forEachCashTarget } from './cashvan.js';
-import { drawMapIcon, drawRoute, drawRoadRoute, forEachPoliceUnit, declutter, ROUTE_COLORS, routeLabel, drawSearchArea, getPoliceSearch, missionMapKind } from './hud_panel.js';
+import { facilitiesOf } from './facilities.js';
+import { mapIconScale, mapKindVisible, placeIcons } from './mapicons.js';
+import { drawMapIcon, drawMapIconHalo, drawRoute, drawRoadRoute, forEachPoliceUnit, declutter, ROUTE_COLORS, routeLabel, drawSearchArea, getPoliceSearch, missionMapKind } from './hud_panel.js';
 import { getGaragesForRender } from './garages.js';
 import { getHomeForRender, getHomeGarageForRender, getHomeMooringForRender, getHomeHelipadForRender } from './home.js';
 import { layerOn, setLayer as storeLayer } from './mapfilters.js';
@@ -257,6 +259,8 @@ function injectStyles() {
     .mapview-legend .always { font: 12px 'Arial Narrow', Arial, sans-serif; color: rgba(240, 237, 228, 0.55); }
     .mapview-legend canvas { width: 30px; height: 30px; }
     .mapview-legend .note { color: rgba(240, 237, 228, 0.6); font: 12px 'Arial Narrow', Arial, sans-serif; }
+    .mapview-legend .note:empty { display: none; }
+    .mapview-legend .always { display: none; }
     .mapview-card {
       position: absolute; z-index: 3; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px; width: 360px; max-width: calc(100% - 16px); box-sizing: border-box;
       padding: 12px; border-radius: 12px; background: rgba(10, 19, 13, 0.94); border: 1px solid rgba(63, 201, 122, 0.45); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
@@ -930,20 +934,23 @@ function drawStaticOverlay(ctx) {
 
   if (layerOn('streets') && z >= NEAR_ZOOM) drawStreetNames(ctx, boxes);
 
-  if (layerOn('horeca') && z >= MID_ZOOM) {
-    const cellPx = z >= NEAR_ZOOM * 2 ? 0.1 : z >= NEAR_ZOOM ? 18 : 34;
+  const sc = mapIconScale(z);
+  if (layerOn('horeca') && mapKindVisible('horeca', z)) {
+    const cellPx = z >= NEAR_ZOOM * 2 ? 26 * sc / 1.9 : 40 * sc / 1.9;
     for (const h of declutter(getHorecaForRender(), cellPx / state.scale)) {
       const [sx, sy] = toScreen(h.x, h.y);
       if (!onScreen(sx, sy)) continue;
-      drawMapIcon(ctx, 'horeca', sx, sy, ICON, { t: 0 });
+      drawMapIconHalo(ctx, 'horeca', sx, sy, sc);
+      drawMapIcon(ctx, 'horeca', sx, sy, sc, { t: 0 });
       hover.push({ sx, sy, name: h.name || 'Horeca', sub: 'Horeca' });
     }
   }
-  if (layerOn('flitspaal') && z >= MID_ZOOM) {
+  if (layerOn('flitspaal') && mapKindVisible('flitspaal', z)) {
     for (const f of state.world.flitspaalen || []) {
       const [sx, sy] = toScreen(f.x, f.y);
       if (!onScreen(sx, sy)) continue;
-      drawMapIcon(ctx, 'flitspaal', sx, sy, ICON, { t: 0 });
+      drawMapIconHalo(ctx, 'flitspaal', sx, sy, sc);
+      drawMapIcon(ctx, 'flitspaal', sx, sy, sc, { t: 0 });
       hover.push({ sx, sy, name: 'Flitspaal' });
     }
   }
@@ -953,8 +960,8 @@ function drawStaticOverlay(ctx) {
     for (const l of state.map.meta.landmarks || []) {
       const [sx, sy] = toScreen(l.x, l.y);
       if (!onScreen(sx, sy, 120)) continue;
-      drawMapIcon(ctx, 'landmark', sx, sy, ICON, { t: 0 });
-      drawLabel(ctx, l.name, sx + 9, sy + 1, '#f5f0e6', 'left');
+      drawMapIcon(ctx, 'landmark', sx, sy, sc, { t: 0 });
+      drawLabel(ctx, l.name, sx + 6 + 5 * sc, sy + 1, '#f5f0e6', 'left');
     }
     // nicknamed buildings and the old Oosterpark (flavourlines.js)
     ctx.font = 'italic 13px ' + FONT;
@@ -1012,17 +1019,22 @@ function drawDynamicMarkers(ctx, world) {
   const hover = [];
   const z = state.zoom;
   // pick: what a click on the marker offers ({ goal, todo }, see markerCard)
+  // the icons are queued, then thinned by priority and drawn (mapicons.js)
+  const queue = [];
+  const sc = mapIconScale(z);
   const icon = (layer, kind, x, y, name, opts, sub, pick) => {
     if (layer && !layerOn(layer)) return;
+    if (!mapKindVisible(kind, z)) return;
     const [sx, sy] = toScreen(x, y);
     if (sx < -20 || sy < -20 || sx > state.cw + 20 || sy > state.ch + 20) return;
-    drawMapIcon(ctx, kind, sx, sy, ICON, { t, ...opts });
-    if (name) hover.push({ sx, sy, name, sub, x, y, kind, ...pick });
+    queue.push({ kind, sx, sy, opts, name, sub, x, y, pick });
   };
 
   for (const r of getRoutes()) drawFullRoute(ctx, world, t, r);
 
   for (const g of getGaragesForRender()) icon('garage', 'garage', g.x, g.y, g.name || 'Garage');
+  for (const f of facilitiesOf(['hospital', 'gppost'])) icon('zorg', 'hospital', f.x, f.y, f.name, {}, f.kind === 'hospital' ? 'Ziekenhuis' : 'Huisartsenpost');
+  for (const f of facilitiesOf('police')) icon('politiebureau', 'politiebureau', f.x, f.y, f.name, {}, 'Politiebureau');
   for (const h of getHomeForRender()) icon('home', 'home', h.x, h.y, h.name, {}, h.sub);
   for (const h of getHomeGarageForRender()) icon('homeGarage', 'home', h.x, h.y, h.name, {}, h.sub);
   for (const h of getHomeMooringForRender(world)) icon('home', 'homeMooring', h.x, h.y, h.name, {}, h.sub);
@@ -1145,6 +1157,11 @@ function drawDynamicMarkers(ctx, world) {
   }
 
   icon(null, 'player', world.player.x, world.player.y, 'Jij', { angle: world.player.angle });
+  for (const q of placeIcons(queue, 11 * sc)) {
+    drawMapIconHalo(ctx, q.kind, q.sx, q.sy, sc);
+    drawMapIcon(ctx, q.kind, q.sx, q.sy, sc, { t, ...q.opts });
+    if (q.name) hover.push({ sx: q.sx, sy: q.sy, name: q.name, sub: q.sub, x: q.x, y: q.y, kind: q.kind, ...q.pick });
+  }
   state.dynHover = hover;
 }
 
@@ -1608,6 +1625,8 @@ const LEGEND = [
     { kind: 'home', label: 'Thuis', note: 'flat, garage, steiger en helidek', layers: ['home', 'homeGarage'] },
     { kind: 'own', label: 'Jouw voertuigen', note: 'auto, fiets, e-step, boot, heli', layers: ['car'] },
     { kind: 'garage', label: 'Garage en pomp', note: 'repareren, spuiten, opvoeren, wrakken', layers: ['garage'] },
+    { kind: 'hospital', label: 'Ziekenhuis en huisarts', layers: ['zorg'] },
+    { kind: 'politiebureau', label: 'Politiebureau', layers: ['politiebureau'] },
     { kind: 'horeca', label: 'Horeca', layers: ['horeca'] },
     { kind: 'shop-kleding', label: 'Winkels', note: 'kleding, kapper, loten, krant, super, snacks', layers: ['shops'] },
     { kind: 'shop-fietsen', label: 'Voertuigwinkels', note: 'fietsen, auto\'s, tuning, boten, heli\'s', layers: ['shopsVoertuigen'] },
@@ -1643,6 +1662,7 @@ function drawLegendIcon(ctx, kind) {
     ctx.fillRect(14, 9, 6, 10);
     ctx.fillRect(4, 15, 8, 5);
   } else {
+    drawMapIconHalo(ctx, kind, 12, 12, ICON);
     drawMapIcon(ctx, kind, 12, 12, ICON, { t: 0 });
   }
 }
@@ -1680,9 +1700,11 @@ function buildLegend(root) {
       span.textContent = row.label;
       const n = document.createElement('span');
       n.className = 'note';
-      n.textContent = row.note || '';
-      span.append(document.createElement('br'), n);
+      // the explanation sits in the tooltip: the legend stays a short list of icon and name
+      n.textContent = row.dyn ? row.note || '' : '';
+      if (row.dyn) span.append(document.createElement('br'), n);
       if (row.dyn) state.legendDyn[row.dyn] = n;
+      else if (row.note && !row.layers) li.title = row.note;
       if (row.kind === 'companion') state.legendMaat = span.firstChild;
       li.append(cv, span);
       if (row.layers) {
@@ -1690,7 +1712,7 @@ function buildLegend(root) {
         li.tabIndex = 0;
         const on = () => row.layers.some((k) => layerOn(k));
         li.setAttribute('aria-checked', String(on()));
-        li.title = 'Klik om aan of uit te zetten (kaart en minimap)';
+        li.title = (row.note ? row.note + '. ' : '') + 'Klik om aan of uit te zetten (kaart en minimap)';
         const sw = document.createElement('span');
         sw.className = 'chk';
         sw.setAttribute('aria-hidden', 'true');
@@ -1719,16 +1741,12 @@ function buildLegend(root) {
     box.append(head, list);
     root.appendChild(box);
   }
-  const foot = document.createElement('p');
-  foot.className = 'hint';
-  foot.textContent = 'Missies buiten het verhaal staan pas op de kaart als je ze als doel kiest.';
-  root.appendChild(foot);
 }
 
 function refreshLegend(world) {
   const d = state.legendDyn || {};
   const g = getGoal();
-  if (d.goal) d.goal.textContent = g ? [g.name, g.sub].filter(Boolean).join(' · ') : 'klik op de kaart of op iets dat je wilt doen';
+  if (d.goal) d.goal.textContent = g ? [g.name, g.sub].filter(Boolean).join(' · ') : '';
   if (d.story) d.story.textContent = world.storyGuide ? world.storyGuide.name : world.storyFreePlay ? 'het verhaal is uit' : '';
 }
 
@@ -1736,12 +1754,12 @@ function refreshLegend(world) {
 // you travel now; the roads that are for you stand out, the others step back
 // and a trunk road you may not walk or cycle on is dashed red.
 const MODE_NOTE = {
-  lopen: 'Voetpaden en straten. Rood gestreept: niet voor jou (autowegen).',
-  fiets: 'Fietspaden lichten op. Rood gestreept: niet voor jou (autowegen).',
-  auto: 'Doorgaande wegen. Fiets- en voetpaden zijn niet voor je auto.',
-  boot: 'Vaarwater, bruggen en sluizen; het land staat op de achtergrond.',
-  ov: 'Het spoor en de stations.',
-  lucht: 'Van boven: oriëntatiepunten en landingsplekken.',
+  lopen: 'Rood gestreept: niet voor jou.',
+  fiets: 'Fietspaden lichten op.',
+  auto: 'Doorgaande wegen.',
+  boot: 'Vaarwater en bruggen.',
+  ov: 'Spoor en stations.',
+  lucht: 'Oriëntatiepunten.',
 };
 function setMode(m) {
   if (!MODES.includes(m)) return;
