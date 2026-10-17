@@ -68,7 +68,7 @@ TAMMO: …Hè. [NIEUW]
 OMA TRIJNTJE: Eet je krentjebrij. [BEHOUDEN]
 TAMMO: Ik ben vierendertig, oma. [BEHOUDEN]
 OMA TRIJNTJE: Dan eet je hem al vierendertig jaar te weinig. [BEHOUDEN]
-OMA TRIJNTJE: 1953. Dat ik won, weet je. Wat je niet weet: tweede werd een Fries meisje. Gerda Terpstra. Haar eierbal was beter. Ik wist het, zij wist het. De jury wist het niet. [BEHOUDEN]
+OMA TRIJNTJE: 1953. Dat ik won, weet je. Wat je niet weet: tweede werd een Fries meisje. Gerda Terpstra. Haar eierbal was beter. Ik wist het, zij wist het. De jury wist het niet. [NIEUW]
 TESSA: Terpstra? Van Jelle? [BEHOUDEN]
 OMA TRIJNTJE: Haar zoon, zeker. Ik heb het nooit gezegd. Zeventig jaar trots. Dat is lang voor iets wat in één zin past. [BEHOUDEN]
 OMA TRIJNTJE: Jelle koopt alles wat een eierbal nodig heeft: vet, eieren, zout, bloem, mosterd. Voor elk een vriend van mij. Hier is het lijstje. [NIEUW]
@@ -167,7 +167,7 @@ TESSA: Wil je mem dat wel? [NIEUW]
 JELLE: Mem wil niks. Daarom doe ik het. [NIEUW]
 (regie: Jelle zet een polsstok in de sloot en springt.)
 JELLE: Oant sjen! [BEHOUDEN]
-DOUWE: …Plons. [BEHOUDEN]
+DOUWE: …Plons. [NIEUW]
 
 ## [M11.4] Autogesprek: hij heeft hem niet – Hogeland, bushalte Uithuizen – te voet
 TESSA: Hij vroeg wat er op het kaartje stond. [NIEUW]
@@ -263,7 +263,7 @@ TAMMO: Hoe komen we er? [NIEUW]
 DOKTER DIJKSTRA (radio): Dijkstra, UMCG. Ik heb een heli. Ik haal jullie op. Dit stond niet in het rooster. [NIEUW]
 
 ## [R2.1] Nachtstreek akte 2 (de wereld, geen briefing) – Stad – radio
-RIKUS (radio): Storingsbericht: de Krolbrug is in storing. Niemand merkt verschil. [BEHOUDEN]
+RIKUS (radio): Storingsbericht: de Krolbrug is in storing. Niemand merkt verschil. [NIEUW]
 RIKUS (radio): De fietstunnel-update: 2030. Hij is bijna klaar. [NIEUW]
 RIKUS (radio): De torenwachter belde: "Veel Friezen in Stad. Ik meld alleen." [NIEUW]
 RIKUS (radio): Peiling, Woist ja wel: hij hield haar hand vast in een museum. Ja: 91 procent. [NIEUW]

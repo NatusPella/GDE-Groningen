@@ -42,7 +42,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte5
 | **Motief** | zonder wagen met een luik kun je niet inschrijven; de wagen moet er zijn voor het Ontzet |
 | **Wat de speler weet** | ruzie, het dieptepunt, de Escapade terug |
 | **Verloop** | 1) Tinus (naamkaart, trekkertrekker) en Henk. 2) Luik inbouwen (garage-keuze). 3) Trekker trekt de wagen uit de modder. 4) Avond: scène in de schuur. **Falen:** geen echt falen; de trekkertrek-proef mag je herhalen. |
-| **Spaßelement / uitdaging** | rust; de zachtste missie na het dieptepunt |
+| **Leuk-element / uitdaging** | rust; de zachtste missie na het dieptepunt |
 | **Reizen** | 3 km |
 | **Romantiek (9/10)** | **De knuffel en de openbaring.** Tessa: "Ik heb op zeven plekken gewoond voor ik tien was." Tammo: "Ik zweeg omdat ik dacht dat je dan zou weggaan." Tessa: "Ik ging niet weg." Tammo: "Je bleef nergens." Tessa: "Ik ben gebleven." Hij belooft het te zeggen: "Op het Ontzet. Voor iedereen." |
 | **Plot** | Tessa's verleden: een Nederlandse (geboren in Zwolle, AANNAME), vanaf haar achtste in het Oosterpark, elke zomer bij haar Friese oma in Ljouwert, naast Mem. Daarom kent ze Friezen. Tammo vindt dat gek. |
@@ -52,7 +52,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte5
 
 **Openingsdialoog (schuur, 10 regels):**
 
-- **TINUS:** Ik ben Tinus. Trekkertrekker. Henk belde. Jullie zoeken een luik. [NIEUW]
+- **TINUS:** Tinus, trekkertrekker, van de bus. Welkom in mijn schuur. Henk belde. Jullie zoeken een luik. [NIEUW]
 - **HENK:** Henk, Garage Knalpot. Ik heb een luik, een uitlaat en een koekje. Eén. [NIEUW]
 - **TESSA:** We maken van de Escapade de Fjord Frituur. [NIEUW]
 - **TAMMO:** De Escapade is van mij. [NIEUW]
@@ -96,7 +96,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte5
 | **Motief** | de colonne moet de Grote Markt bereiken voor het Ontzet; de ingrediënten, de wagen en de mensen moeten samen komen |
 | **Wat de speler weet** | alle ingrediënten zijn binnen; Jelle heeft de bal |
 | **Verloop** | 1) Elke bondgenoot sluit aan bij een checkpoint (Geesje, Klaas, Lammert, Roelfien overhead, Wubbo, Tinus, Berend). 2) Jelles limo probeert een gat te slaan. 3) Durk en Douwe lopen over: "Wij zijn alleen de bezigheid. En nu zijn wij de bezigheid van mem." 4) De colonne bereikt de Grote Markt. **Falen:** de colonne valt uiteen: "Sikkom." |
-| **Spaßelement / uitdaging** | vrolijkheid en variatie: een parade van alle voertuigen; veel korte grappen |
+| **Leuk-element / uitdaging** | vrolijkheid en variatie: een parade van alle voertuigen; veel korte grappen |
 | **Reizen** | 20 km, 17 min; skip: een korte scène |
 | **Romantiek (6/10)** | Tessa stuurt, Tammo zit naast haar en zwaait naar het volk; ze houden elkaars hand op de versnellingspook |
 | **Plot** | Durk en Douwe stappen over; ze brengen de sleutel van de Escapade terug (met een strikje) |
@@ -113,7 +113,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte5
 - **BEREND:** Nul krassen. Op de heenweg. [NIEUW]
 - **TAMMO:** Je hebt dat al gezegd. [NIEUW]
 - **BEREND:** Ik zeg het weer. [NIEUW]
-- **TESSA:** Rijden. Niet praten. [BEHOUDEN]
+- **TESSA:** Rijden. Niet praten. [NIEUW]
 
 **Sleutelscène (Durk en Douwe lopen over):**
 
@@ -141,7 +141,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte5
 | **Motief** | Jelle heeft Stad vernederd (plakje: de vlag); morgen is het Ontzet; de torenwachter belt |
 | **Wat de speler weet** | Jelle heeft de bal; Oma, Mem en de vrienden zijn in Stad |
 | **Verloop** | 1) Torenwachter: "Iets Fries." 2) Duivenmodus: vijf touwen doorpikken. 3) De vlag zakt. 4) De Grote Markt klapt. **Falen:** de duif schrikt: opnieuw. |
-| **Spaßelement / uitdaging** | de eerste echte beloning voor Tammo's gave; bekend van 1.5 maar nu publiek |
+| **Leuk-element / uitdaging** | de eerste echte beloning voor Tammo's gave; bekend van 1.5 maar nu publiek |
 | **Reizen** | 0 |
 | **Romantiek (7/10)** | Tessa pakt zijn hand; hij: "Voor de grip?" Zij: "Nee. Gewoon." |
 | **Plot** | de vlag valt; Tammo is Stads held; Jelle ziet het vanuit de menigte |
@@ -187,7 +187,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte5
 | **Motief** | zo goed als klaar voor het Ontzet; Jelle komt met geld |
 | **Wat de speler weet** | de ruzie is bijgelegd; de bal is bij Jelle; mem en Oma zijn samen |
 | **Verloop** | 1) Bakken: ei, vet, zout, bloem, mosterd. 2) Jelle verschijnt met een koffertje. 3) Het bod: geld voor de bal en de wagen. 4) Tessa wijst het af. 5) Mem en Oma zitten aan tafel en horen alles. **Falen:** te veel mislukte eierballen: je mag opnieuw bakken. |
-| **Spaßelement / uitdaging** | rustig bakken; de scène draagt het verhaal |
+| **Leuk-element / uitdaging** | rustig bakken; de scène draagt het verhaal |
 | **Reizen** | 3 km |
 | **Romantiek (8/10)** | Oma: "Hoe zei opa het eigenlijk? Hij zei: 'Woist ja wel.' Ik wilde het één keer horen." Tammo kijkt naar Tessa. |
 | **Plot** | Jelle wordt geconfronteerd: "Je biedt geld voor iets wat geen geld is. En je moeder wil iets anders: dat iemand één keer zegt dat ze de beste was." Hij zwijgt. Hij zegt: "We bakken op het Ontzet. Wie wint, krijgt de bal." |
@@ -235,7 +235,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte5
 | **Motief** | de Snackprijs, de standplaats, de bal, Gerda en Trijntje |
 | **Wat de speler weet** | alles |
 | **Verloop** | 1) De kraam heel houden: Durk en Douwe helpen nu; het vuurwerk gaat per ongeluk af. 2) Jelle grijpt de bal en vlucht in de limo; Tammo, met de duiven van Bert, haalt hem in. 3) Terug naar de kraam. 4) Jury: Berend proeft; Oma en Mem; "Gerda. Jouw eierbal was beter." 5) De vijf woorden. 6) Jelle geeft de plakjes terug. **Falen:** kraam stuk of bal kwijt: "Sikkom." |
-| **Spaßelement / uitdaging** | alles samen: kraam, duif, limo, bakken, publiek |
+| **Leuk-element / uitdaging** | alles samen: kraam, duif, limo, bakken, publiek |
 | **Reizen** | 0 |
 | **Romantiek (10/10)** | **"Ik wil bij jou blijven."** "Vijf woorden." "Ik had er meer. Die waren minder goed." |
 | **Plot** | de jury: Berend; de standplaats naar de Fjord Frituur; Gerda Terpstra komt op het bordje; Jelle: "Better as ús. Net fertelle." en "Ja, mem." |

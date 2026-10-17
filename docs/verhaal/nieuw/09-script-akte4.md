@@ -27,7 +27,7 @@ TAMMO: Dicht? Nu? [NIEUW]
 WUBBO (radio): Nu pas. [NIEUW]
 
 ## [M20.3] Open, dicht: outro – Veenkoloniën, Veendam, brug elf – sloep
-WUBBO (radio): Het schip zit vast. Plons. [BEHOUDEN]
+WUBBO (radio): Het schip zit vast. Plons. [NIEUW]
 WUBBO: De mosterd is van jullie. Grove mosterd, niet dat zoete spul. [NIEUW]
 TESSA: Dat is plakje zeven. Gered. [NIEUW]
 WUBBO: Er is een webbureau in Veendam dat alles om middernacht bijwerkt. Ook mijn bruggen. [NIEUW]
@@ -108,13 +108,13 @@ TESSA: Het perron komt eraan. Stap maar uit. [NIEUW]
 ## [M22.3] Stoom: outro – Veenkoloniën, Veendam, het perron – te voet
 JURYLID: Ik stap hier uit. Ik laat me niet kopen met een eierbal. [NIEUW]
 TESSA: Dat is de jury. Geheel Jelle-vrij. [NIEUW]
-TAMMO: Je rijdt als een fietser met een deadline. [BEHOUDEN]
+TAMMO: Je rijdt als een fietser met een deadline. [NIEUW]
 TESSA: Ik rij een trein. [NIEUW]
 TAMMO: Dat is hetzelfde. [NIEUW]
 BEREND (telefoon): Goidag. Ik heb een bus nodig voor het Beleg. Kom naar Ter Apel. [NIEUW]
 
 ## [M22.4] Stoom: herhaling – Veenkoloniën, Stadskanaal – trein
-DURK: Weer een trein? Net fertelle, hè? [BEHOUDEN]
+DURK: Weer een trein? Net fertelle, hè? [NIEUW]
 
 ## [M23.1] De vestingbus: intro – Westerwolde, Ter Apel-bos – bus
 (regie: dinsdag 25 augustus. Een heideweg, een oude bus, veertig mensen in bisschopsmantels en met kartonnen kanonnen.)
@@ -122,11 +122,13 @@ BEREND: Goidag. Ik heb veertig man, vijftien kanonnen van karton, en een bus die
 TESSA: Wij rijden. Ter Apel-bos naar de vesting. [NIEUW]
 BEREND: Op tijd. Het Beleg begint om negen uur. Ik ben de bisschop. [NIEUW]
 TAMMO: Je valt de vesting aan. [NIEUW]
-BEREND: Elk jaar. En elk jaar verlies ik. Wat mout, dat mout. [BEHOUDEN]
+BEREND: Elk jaar. En elk jaar verlies ik. Wat mout, dat mout. [NIEUW]
 TESSA: Waarom oefenen jullie in Bourtange? [NIEUW]
 BEREND: Omdat Grunn te klein is voor een echt beleg. Ik heb een vriendin in de vesting. [NIEUW]
 TAMMO: Een vriendin? [NIEUW]
-BEREND: Kom mor. Rijden. [BEHOUDEN]
+BEREND: Kom mor. Rijden. [NIEUW]
+TINUS: Ik ben Tinus. Ik beleg mee. Mijn trekker staat thuis, in het Westerkwartier. [NIEUW]
+TAMMO: Welkom in de bus, Tinus. [NIEUW]
 
 ## [M23.2] De vestingbus: onderweg – Westerwolde, de heide – bus
 RIKUS (radio): Een luisteraar meldt dat Tammo en Tessa vandaag naar Bourtange rijden. Ik zeg niks. [NIEUW]
@@ -142,10 +144,10 @@ BEREND: Op tijd. Dat is één minuut te vroeg. [NIEUW]
 TAMMO: Jij telde ze? [NIEUW]
 BEREND: Ik tel alles. [NIEUW]
 TESSA: Dan weet je dat het Beleg om negen uur begint. [NIEUW]
-BEREND: Ik weet alles. Ik zeg niks. [BEHOUDEN]
+BEREND: Ik weet alles. Ik zeg niks. [NIEUW]
 
 ## [M23.4] De vestingbus: herhaling – Westerwolde, Ter Apel-bos – bus
-BEREND: Weer veertig man? Kom mor. [BEHOUDEN]
+BEREND: Weer veertig man? Kom mor. [NIEUW]
 
 ## [M24.1] Het beleg van Bourtange: intro – Westerwolde, Bourtange, de wallen – te voet
 (regie: avond. Fakkels, gracht, ophaalbrug, een wal met kartonnen kanonnen.)
@@ -166,7 +168,7 @@ DURK: Houden jullie een uur bezig. Van Jelle. [NIEUW]
 DOUWE: Durk. Dat was geheim. …Hè. [BEHOUDEN]
 TAMMO: Ik spring. Als ik val, was het de wind. [NIEUW]
 (regie: Tammo springt en valt in de gracht.)
-DOUWE: …Plons. [BEHOUDEN]
+DOUWE: …Plons. [NIEUW]
 
 ## [M24.3] Het beleg van Bourtange: de kruitkelder – Westerwolde, Bourtange, de kruitkelder – te voet
 (regie: Tessa staat al beneden. Mem en Oma zitten aan een tafel met een gouden bal tussen twee kaarsen. Berend staat in de deur.)
@@ -209,13 +211,13 @@ TESSA: Niemand. [BEHOUDEN]
 TAMMO: Je appt al de hele week met Friesland. [BEHOUDEN]
 TESSA: …Ga je dit nu doen? Nu? [BEHOUDEN]
 TAMMO: Ik vraag het alleen. [BEHOUDEN]
-TESSA: Nee. Jij vraagt nooit wat. Jij zegt nooit wat, Tammo. Je wordt alleen stil. En dan boos op mij. Ik haal jouw auto wel terug. Alleen. [BEHOUDEN]
+TESSA: Nee. Jij vraagt nooit wat. Jij zegt nooit wat, Tammo. Je wordt alleen stil. En dan boos op mij. Ik haal jouw auto wel terug. Alleen. [NIEUW]
 (regie: ze loopt weg. Tammo blijft staan met de klomp in zijn handen.)
 OMA TRIJNTJE: Eén zin, jong. [NIEUW]
 TAMMO: Ik heb er geen. [NIEUW]
 
 ## [M24.6] Het beleg van Bourtange: herhaling – Westerwolde, Bourtange, de wallen – te voet
-BEREND: Weer een beleg? Wat mout, dat mout. [BEHOUDEN]
+BEREND: Weer een beleg? Wat mout, dat mout. [NIEUW]
 
 ## [M25.1] Iedereen heeft een rode auto gezien: de rit – Westerwolde naar Westerkwartier, Berends bakkie – bakkie (meerijden)
 (regie: nacht. Tessa zit naast Berend. De bakkie rijdt langs donkere heide.)
@@ -246,20 +248,20 @@ MEM (radio): Zeg maar Mem. [NIEUW]
 ## [M25.4] Iedereen heeft een rode auto gezien: outro – Westerkwartier, de overweg – te voet
 (regie: de Escapade op een wagon bij de overweg. Tammo staat er al, op een trekker.)
 TESSA: Hoe wist jij dat hij hier was? [BEHOUDEN]
-TAMMO: Ik luisterde naar Rikus. Tinus gaf me een lift op zijn trekker. Wind tegen. [NIEUW]
+TAMMO: Ik luisterde naar Rikus. Tinus, van de bus, gaf me een lift op zijn trekker. Wind tegen. [NIEUW]
 TESSA: Beide kanten op. [BEHOUDEN]
 TAMMO: Sorry. Dat ik nooit wat zeg. [BEHOUDEN]
 TESSA: Je zei net iets. [BEHOUDEN]
 TAMMO: Het voelde raar. [BEHOUDEN]
 TESSA: Het klonk goed. [BEHOUDEN]
-TINUS: Ik ben Tinus. Jullie hebben een luik nodig. [NIEUW]
+TINUS: Mijn schuur is drie kilometer verderop. Henk heeft een luik voor jullie. [NIEUW]
 
 ## [M25.5] Iedereen heeft een rode auto gezien: herhaling – Westerkwartier – bakkie
 JELMER: Chat, iedereen heeft weer een rode auto gezien! [BEHOUDEN]
 
 ## [R4.1] Nachtstreek akte 4 (de wereld, geen briefing) – Stad – radio
 RIKUS (radio): De fietstunnel-update: 2031. Bijna klaar. [NIEUW]
-RIKUS (radio): Storingsbericht: de Krolbrug en nog achttien bruggen in storing. Niemand merkt verschil. [BEHOUDEN]
+RIKUS (radio): Storingsbericht: de Krolbrug en nog achttien bruggen in storing. Niemand merkt verschil. [NIEUW]
 RIKUS (radio): Peiling, Woist ja wel: ze kusten op een dijk. Ik zeg niks. Ik draai drie minuten stilte. [NIEUW]
 RIKUS (radio): De torenwachter belde: "Veel Berenden onderweg naar Bourtange. Ik meld alleen." [NIEUW]
 

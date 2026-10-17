@@ -4,7 +4,7 @@
 
 ## [M14.1] Het staat niet in het rooster: intro – Waddenzee, Lauwersoog, helikopterplatform – helikopter
 (regie: vrijdagochtend 21 augustus. Dijkstra's heli landt op het havenplatform. Naamkaart: DOKTER DIJKSTRA.)
-DOKTER DIJKSTRA (radio): Rikus. Dijkstra, UMCG. Mijn traumaheli staat in onderhoud. En de nachtdienst heeft honger. [BEHOUDEN]
+DOKTER DIJKSTRA (radio): Rikus. Dijkstra, UMCG. Mijn traumaheli staat in onderhoud. En de nachtdienst heeft honger. [NIEUW]
 RIKUS (radio): Dokter, wat moet ik daarmee? [BEHOUDEN]
 DOKTER DIJKSTRA (radio): Niks. Maar als er vanochtend een heli langskomt: het staat niet in het rooster. [NIEUW]
 DOKTER DIJKSTRA: Ik ben Dokter Dijkstra, UMCG. Mijn traumaheli staat in onderhoud, en de nachtdienst heeft honger. [NIEUW]
@@ -12,13 +12,13 @@ TESSA: Wij zoeken Jelles ballon. Hij vliegt boven de Dollard. [NIEUW]
 DOKTER DIJKSTRA: Eerst de lunch. Achterin staat een koeltas. Die hebben twaalf uur niks gehad. [NIEUW]
 TESSA: Dat is geen noodgeval. [BEHOUDEN]
 DOKTER DIJKSTRA: Jij hebt nooit nachtdienst gedaan. Landen op de H van het UMCG, graag. [BEHOUDEN]
-DOKTER DIJKSTRA: Dan de ballon. Ik heb een lier. Zij vliegt. Hij hangt. [BEHOUDEN]
+DOKTER DIJKSTRA: Dan de ballon. Ik heb een lier. Zij vliegt. Hij hangt. [NIEUW]
 TAMMO: Natuurlijk hang ík. [BEHOUDEN]
 TESSA: Ik vraag het, Tammo. Wil je hangen? [BEHOUDEN]
 TAMMO: …Ja. Dank je dat je het vraagt. [BEHOUDEN]
 
 ## [M14.2] Het staat niet in het rooster: de lunch – Stad, UMCG, helidek – helikopter
-ROTOR ROELF (radio): Moi! Rotor Roelf, van Eelde. Die heli is van mij, maar de lunch is van Dijkstra. Nait tegen d'Olle Grieze aan, hè? [BEHOUDEN]
+ROTOR ROELF (radio): Moi! Rotor Roelf, van Eelde. Die heli is van mij, maar de lunch is van Dijkstra. Nait tegen d'Olle Grieze aan, hè? [NIEUW]
 DOKTER DIJKSTRA: Eierballen. Nog warm. Jullie zijn mijn helden. [BEHOUDEN]
 TAMMO: Dit is wat Rikus bedoelde met "een gewone vrijdag". [NIEUW]
 DOKTER DIJKSTRA: En nu de ballon. Naar de Dollard. [NIEUW]
@@ -33,7 +33,7 @@ TAMMO: Ik heb hem! [NIEUW]
 TAMMO: Doe bist schier. [BEHOUDEN]
 TESSA: Je praatte de hele tijd, aan dat touw. [BEHOUDEN]
 TAMMO: Ik had hoogtevrees. [BEHOUDEN]
-TESSA: Je zei "doe bist schier" tegen de ballon. [BEHOUDEN]
+TESSA: Je zei "doe bist schier" tegen de ballon. [NIEUW]
 TAMMO: …Hij was mooi. [BEHOUDEN]
 
 ## [M14.4] Het staat niet in het rooster: outro – Eemsdelta, Delfzijl, helidek – helikopter
@@ -43,7 +43,7 @@ TAMMO: Standplaatsen. Vet. Eieren. Zout. [NIEUW]
 TESSA: Haven. Bloem en jury. Mosterd. [NIEUW]
 TAMMO: En het laatste plakje? [NIEUW]
 TESSA: "De bewaarder." [NIEUW]
-DOKTER DIJKSTRA: Die Fries is geland in een weiland bij Winschoten. Tussen de koeien. Hij was niet blij. De koeien ook niet. [BEHOUDEN]
+DOKTER DIJKSTRA: Die Fries is geland in een weiland bij Winschoten. Tussen de koeien. Hij was niet blij. De koeien ook niet. [NIEUW]
 TAMMO: Container 4471. Dat staat bij plakje vijf. [NIEUW]
 TESSA: Dan weten we waar we moeten zijn. De Eemshaven. [NIEUW]
 
@@ -60,7 +60,7 @@ LAMMERT: Hij staat naast de rode. [NIEUW]
 TAMMO: Ze zijn bijna allemaal rood. [NIEUW]
 LAMMERT: Dan moet je de blauwe zoeken. [NIEUW]
 TESSA: We pakken de kraan. Dan zien we van boven welke blauw is. [NIEUW]
-LAMMERT: Ik zeg alleen: niet piepen. Ik meld alleen. [BEHOUDEN]
+LAMMERT: Ik zeg alleen: niet piepen. Ik meld alleen. [NIEUW]
 
 ## [M15.2] Het containerlabyrint: in de kraankooi – Eemsdelta, Eemshaven – te voet
 (regie: de bewaker loopt onder de kraan door.)
@@ -86,7 +86,7 @@ LAMMERT: Weer een container? Mijn kranen zeggen dank. [NIEUW]
 
 ## [M16.1] De dijk: intro – Eemsdelta, Eemshaven, de kade – Escapade
 (regie: zaterdagochtend 22 augustus, zonsopgang. Jelles trekker-limo staat naast de Escapade. Jelle is nat.)
-JELLE: Moai, Grinzer. Eén rondje over jullie dijk. Wie wint, mag famke een eierbal geven. [BEHOUDEN]
+JELLE: Moai, Grinzer. Eén rondje over jullie dijk. Wie wint, mag famke een eierbal geven. [NIEUW]
 TESSA: Famke koopt haar eigen eierbal. [BEHOUDEN]
 TAMMO: Dat neem ik je kwalijk. [BEHOUDEN]
 TESSA: Dat was een hele zin, Tammo. [BEHOUDEN]
@@ -122,7 +122,7 @@ JELLE: Ik ook niet… Ik bedoel: ik zeg niks. [NIEUW]
 JELLE: Weer een rondje? Dat neem ik jullie niet kwalijk. [NIEUW]
 
 ## [R3.1] Nachtstreek na de dijk – Stad – radio
-RIKUS (radio): Peiling, Woist ja wel: hij zei dat ze er goed uitzag met wind. Ja: 88 procent. Een luisteraar uit Haren stemde nee. Hij woont niet in Stad, zegt hij. [BEHOUDEN]
+RIKUS (radio): Peiling, Woist ja wel: hij zei dat ze er goed uitzag met wind. Ja: 88 procent. Een luisteraar uit Haren stemde nee. Hij woont niet in Stad, zegt hij. [NIEUW]
 RIKUS (radio): De fietstunnel-update: bijna klaar. [NIEUW]
 
 ## [T3.1] De trein naar Winschoten – Eemsdelta, Delfzijl naar Winschoten – trein (meerijden)
@@ -136,7 +136,7 @@ TAMMO: Alweer gelijk. [NIEUW]
 ## [M17.1] Nog eentje dan: intro – Oldambt, Winschoten, de kermis – te voet
 GEERT (radio): Rikus. Geert, Poelestraat. Er zitten twee Friese reuzen aan mijn bar en ze zingen al een uur. Ik zoek iemand die vier kroegen doet, om ze bij te houden. [BEHOUDEN]
 RIKUS (radio): Geert, dat is geen klus. Dat is een avond. [BEHOUDEN]
-GEERT: Vier tenten, één avond, alles te voet. En Tessa: mijn nieuwe barman wil heel graag je nummer. [BEHOUDEN]
+GEERT: Vier tenten, één avond, alles te voet. En Tessa: mijn nieuwe barman wil heel graag je nummer. [NIEUW]
 TAMMO: Die barman heeft het druk. [BEHOUDEN]
 TESSA: O ja? Sinds wanneer bepaal jij dat? [BEHOUDEN]
 TAMMO: Sinds nu. [BEHOUDEN]
@@ -145,7 +145,7 @@ TESSA: Het plan: Durk en Douwe volgen tot ze iets zeggen over de bal. [NIEUW]
 TAMMO: Ik drink maar één. [NIEUW]
 
 ## [M17.2] Nog eentje dan: tussen de tenten – Oldambt, Winschoten, de kermis – te voet
-STUDENT: Proost! Nog ééntje dan! [BEHOUDEN]
+STUDENT: Proost! Nog ééntje dan! [NIEUW]
 TESSA: Wie is dat? [NIEUW]
 TAMMO: Een eerstejaars. Ze zijn overal. [NIEUW]
 STUDENT: Ik hou van jullie allemaal! [BEHOUDEN]
@@ -168,7 +168,7 @@ TAMMO: Moi. [NIEUW]
 TESSA: Moi. [NIEUW]
 
 ## [M17.4] Nog eentje dan: herhaling – Oldambt, Winschoten, de kermis – te voet
-GEERT: Vier tenten? Nog eentje dan. [BEHOUDEN]
+GEERT: Vier tenten? Nog eentje dan. [NIEUW]
 
 ## [R3.2] Nachtstreek na de kermis – Stad – radio
 RIKUS (radio): Een luisteraar belt: "Twee reuzen zongen dat ze iets niet hebben." Ik zeg niks. [NIEUW]
@@ -225,7 +225,7 @@ DURK: Plons. [BEHOUDEN]
 ## [M19.3] Botsauto's, deel twee: de dijk – Oldambt, Dollarddijk – te voet
 (regie: zonsondergang aan de dijk. Het water, een rood-oranje lucht, de kermis ver weg.)
 TESSA: Daar. De zon. Zeg maar iets. [NIEUW]
-TAMMO: Weet je nog bij Berend? Toen mocht ik niet eens rijden. [BEHOUDEN]
+TAMMO: Weet je nog bij Berend? Toen mocht ik niet eens rijden. [NIEUW]
 TESSA: Mag je nog steeds niet. [BEHOUDEN]
 TAMMO: Nee. Maar ik zit wel naast je. [BEHOUDEN]
 TESSA: Moi. [BEHOUDEN]
@@ -237,10 +237,10 @@ TESSA: …Ja. [BEHOUDEN]
 APP MEM→TESSA (stil): Nog vijf dagen. Zeg het hem niet. – M. [NIEUW]
 
 ## [M19.4] Botsauto's, deel twee: herhaling – Oldambt, Winschoten, de kermis – botsautootje
-DURK: Weer een rit? Net fertelle, hè? [BEHOUDEN]
+DURK: Weer een rit? Net fertelle, hè? [NIEUW]
 
 ## [R3.3] Overgang naar akte 4: Nachtstreek – studio – radio
-RIKUS (radio): Een foto van een dijk. Ik zeg niks. De peiling is gesloten. [BEHOUDEN]
+RIKUS (radio): Een foto van een dijk. Ik zeg niks. De peiling is gesloten. [NIEUW]
 RIKUS (radio): Storingsbericht: achttien bruggen in storing. Niemand merkt verschil. [BEHOUDEN]
 RIKUS (radio): Maandag. Veendam. De mosterd. Ik zeg niks. [NIEUW]
 

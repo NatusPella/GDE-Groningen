@@ -5,7 +5,7 @@
 
 ## [C00.1] Trailer – Stad, Grote Markt – geen voertuig
 (regie: trailerparodie, zon op d'Olle Grieze, fietsers in plaats van flamingo's, een werkboot vist een fiets uit de Diepenring, een meeuw steelt een frikandel. Bevroren beeld: naamkaart TESSA, daarna TAMMO. Titelkaart: GDE, GRONINGEN, Zomer vol misdaad.)
-RIKUS (radio): Grunn. Tweehonderdduizend mensen, driehonderdduizend fietsen en één toren die alles ziet. [BEHOUDEN]
+RIKUS (radio): Grunn. Tweehonderdduizend mensen, driehonderdduizend fietsen en één toren die alles ziet. [NIEUW]
 RIKUS (radio): Dit is deel zes van een serie die niet bestaat. Ik ben gewoon begonnen met tellen. [NIEUW]
 RIKUS (radio): Er gaat niets boven Grunn. Behalve de Martinitoren. [BEHOUDEN]
 
@@ -131,9 +131,9 @@ TESSA: Dat zeg je zelden. [NIEUW]
 
 ## [M02.3] Even pinnen: outro – Stad, Pand & Poen – Escapade
 (regie: Sjabbe wrikt de klep open en geeft Tessa haar pas. Naamkaart: SJABBE.)
-SJABBE: Braid noar de zin. Vierhonderd, voor de onderdelen. [BEHOUDEN]
+SJABBE: Braid noar de zin. Vierhonderd, voor de onderdelen. [NIEUW]
 TESSA: Daar koop je nog geen halve frietwagen van. [BEHOUDEN]
-SJABBE: Dan moet je groter denken. Die reuzen kwamen hier vorige week met een klomp vol geld. Ze kochten alles wat met frituren te maken heeft. En hun baas vroeg waar het museum alarmen heeft. [BEHOUDEN]
+SJABBE: Dan moet je groter denken. Die reuzen kwamen hier vorige week met een klomp vol geld. Ze kochten alles wat met frituren te maken heeft. En hun baas vroeg waar het museum alarmen heeft. [NIEUW]
 TESSA: Het museum. De Gouden Eierbal. [BEHOUDEN]
 SJABBE: Achttien karaat. Ik vraag niks. Ik zeg alleen: wie hem eerst heeft, heeft hem. [BEHOUDEN]
 
@@ -337,7 +337,7 @@ TAMMO: Weet je zeker dat dit gebouw nog niet gekraakt is? Het ziet er al zo uit.
 TESSA: Dat is architectuur. Eerst dertig jaar mopperen, dan trots. Zo gaat dat hier. [BEHOUDEN]
 TESSA: Dit is het plan. Om twaalf uur gaan de camera's drie minuten uit. In die drie minuten pakken wij de bal, als bewaking, voor Jelle. [NIEUW]
 TAMMO: En daarna brengen we hem terug. [NIEUW]
-TESSA: Na het Ontzet. Om twaalf uur. Drie minuten. Hand. [BEHOUDEN]
+TESSA: Na het Ontzet. Om twaalf uur. Drie minuten. Hand. [NIEUW]
 TAMMO: Wat? [BEHOUDEN]
 TESSA: Geef me je hand. Het is donker daarbinnen. [BEHOUDEN]
 TAMMO: …Voor de grip. [BEHOUDEN]
@@ -379,7 +379,7 @@ TAMMO: Voor de grip. [BEHOUDEN]
 TESSA: Natuurlijk. [BEHOUDEN]
 
 ## [R1.3] Overgang naar akte 2: Nachtstreek, nacht – studio – radio
-RIKUS (radio): Er is iets gestolen dat niemand ooit zag, maar dat iedereen mist. 't Het nog nooit zo donker west, of 't wer altied wel weer licht. [BEHOUDEN]
+RIKUS (radio): Er is iets gestolen dat niemand ooit zag, maar dat iedereen mist. 't Het nog nooit zo donker west, of 't wer altied wel weer licht. [NIEUW]
 RIKUS (radio): Behalve in de fietstunnel. Die is er nog niet. 2029, zeggen ze. Bijna. [BEHOUDEN]
 RIKUS (radio): Politie zoekt twee Stadjers in het zwart. Ik zeg niks. [NIEUW]
 
