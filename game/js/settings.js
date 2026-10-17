@@ -1,4 +1,5 @@
 import { normalizeKeyBinds, normalizePadBinds } from './controls.js';
+import { defaultArcId } from './storyflag.js';
 import { migrateSettings, SETTINGS_VERSION } from './savemigrate.js';
 import { VIEW_DISTANCES } from './viewdist.js';
 import { KEYS } from './storagekeys.js';
@@ -43,7 +44,7 @@ const DEFAULTS = {
   wijkFilm: false,
   gore: true,
   // the story a new game plays: 'oud' (Klassiek) or 'nieuw' (proefversie); read at load by storyflag.js, changed by storychoice.js
-  verhaal: 'oud',
+  verhaal: defaultArcId(),
   // Zichtafstand (viewdist.js): 'ver', not Hoog's 'heelver', so a first
   // launch on an iGPU laptop stays at 600 m
   drawDistance: 'ver',

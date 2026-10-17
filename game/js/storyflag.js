@@ -1,14 +1,14 @@
 // The feature flag `nieuwverhaal`: which story arc this page load plays.
 // 'oud' is the released arc (storyarc.js); 'nieuw' is the five-act story of
-// docs/verhaal/nieuw (storyarc_nieuw.js), off in every release until the
-// owner agrees. Decided once per page load, so the arc never changes under
+// docs/verhaal/nieuw (storyarc_nieuw.js); the default for every profile (a released
+// save stays available under Klassiek; the choice is in Instellingen). Decided once per page load, so the arc never changes under
 // a running game; a save records its arc (savemigrate.js) and never loads
 // into the other one.
 //
 // On, in this order of precedence:
 //   env GDE_NIEUW_VERHAAL=1 (Node tests; the desktop app passes it on as ?nieuwverhaal)
 //   URL query ?nieuwverhaal (web and desktop; ?nieuwverhaal=0 forces it off)
-//   the setting Verhaal (Instellingen, settings.js `verhaal`: 'oud' | 'nieuw', default 'oud', storychoice.js); also localStorage 'gde-nieuwverhaal' = '1'
+//   the setting Verhaal (Instellingen, settings.js `verhaal`: 'oud' | 'nieuw', default: defaultArcId(), storychoice.js); also localStorage 'gde-nieuwverhaal' = '1'
 // Pure: no imports, safe in Node.
 
 const OFF = /^(0|false|nee|uit|off)$/i;
@@ -29,9 +29,21 @@ function decide() {
       if (localStorage.getItem('gde-nieuwverhaal') === '1') return { on: true, forced: false };
       const s = JSON.parse(localStorage.getItem('gde-settings') || 'null');
       if (s && (s.verhaal === 'nieuw' || s.nieuwverhaal === true)) return { on: true, forced: false };
+      if (s && s.verhaal === 'oud') return { on: false, forced: false };
+      // never chosen: everybody plays the new story by default; a released save stays under Klassiek
+      return { on: defaultArcId() === 'nieuw', forced: false };
     }
   } catch (e) { /* storage blocked */ }
   return { on: false, forced: false };
+}
+
+// The arc a profile gets when it never chose: the new story, also for players with a released save
+// (the owner's choice; that save stays untouched under Klassiek, see storychoice.js). In Node (tests)
+// and without storage it stays 'oud'.
+export function defaultArcId() {
+  try {
+    return typeof localStorage === 'undefined' ? 'oud' : 'nieuw';
+  } catch (e) { return 'oud'; }
 }
 
 const decided = decide();

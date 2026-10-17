@@ -13,8 +13,8 @@ let n = 0, fails = 0;
 const ok = (cond, name, info = '') => { n++; if (!cond) { fails++; console.log(`FAIL ${name}${info ? ' (' + info + ')' : ''}`); } };
 
 // the arc a fresh page load picks, in a child process (the flag is decided once at import)
-function arcWith({ env, search = '', settings = null, flag = null }) {
-  const entries = Object.entries({ ...(settings ? { 'gde-settings': JSON.stringify(settings) } : {}), ...(flag ? { 'gde-nieuwverhaal': flag } : {}) });
+function arcWith({ env, search = '', settings = null, flag = null, save = false }) {
+  const entries = Object.entries({ ...(settings ? { 'gde-settings': JSON.stringify(settings) } : {}), ...(flag ? { 'gde-nieuwverhaal': flag } : {}), ...(save ? { 'gde-save-v1': '{}' } : {}) });
   const code = [
     `const store = new Map(${JSON.stringify(entries)});`,
     'globalThis.localStorage = { getItem: (k) => (store.has(k) ? store.get(k) : null) };',
@@ -28,7 +28,9 @@ function arcWith({ env, search = '', settings = null, flag = null }) {
   const r = spawnSync(process.execPath, ['--input-type=module', '-e', code], { env: e, encoding: 'utf8' });
   return r.stdout.trim() || r.stderr.trim();
 }
-ok(arcWith({}) === 'oud false', 'default: the old arc, not forced', arcWith({}));
+ok(arcWith({}) === 'nieuw false', 'every profile (nothing chosen) plays the new arc, not forced', arcWith({}));
+ok(arcWith({ save: true }) === 'nieuw false', 'a profile with a released save also gets the new arc by default (the save stays under Klassiek)', arcWith({ save: true }));
+ok(arcWith({ save: true, settings: { verhaal: 'nieuw' } }) === 'nieuw false', 'a chosen new arc beats the save');
 ok(arcWith({ settings: { verhaal: 'oud' } }) === 'oud false', 'setting oud: the old arc');
 ok(arcWith({ settings: { verhaal: 'nieuw' } }) === 'nieuw false', 'setting nieuw: the new arc, not forced (the setting can change it)');
 ok(arcWith({ env: '1' }) === 'nieuw true', 'GDE_NIEUW_VERHAAL=1 forces the new arc');
@@ -38,14 +40,15 @@ ok(arcWith({ search: '?nieuwverhaal' }) === 'nieuw true', '?nieuwverhaal forces 
 ok(arcWith({ search: '?stil&nieuwverhaal=1' }) === 'nieuw true', '?nieuwverhaal=1 too');
 ok(arcWith({ search: '?nieuwverhaal=0', settings: { verhaal: 'nieuw' } }) === 'oud true', '?nieuwverhaal=0 forces the old arc');
 ok(arcWith({ flag: '1' }) === 'nieuw false', 'the hidden localStorage flag still works');
-ok(arcWith({ settings: { verhaal: 'iets' } }) === 'oud false', 'an unknown setting value is the old arc');
+ok(arcWith({ settings: { verhaal: 'iets' } }) === 'nieuw false', 'an unknown setting value counts as never chosen: a fresh profile gets the new arc');
+ok(arcWith({ settings: { verhaal: 'iets' }, save: true }) === 'nieuw false', 'an unknown setting value with a released save is the new arc');
 
-// the setting: default 'oud', migration
+// the setting: default per profile (defaultArcId), migration
 const src = (f) => fs.readFileSync(path.join(ROOT, 'game/js', f), 'utf8');
-ok(/verhaal: 'oud',/.test(src('settings.js')), 'settings.js: Verhaal defaults to oud');
+ok(/verhaal: defaultArcId\(\),/.test(src('settings.js')), 'settings.js: Verhaal defaults to defaultArcId() (the new arc)');
 ok(/KEEP_ON_RESET = new Set\([^)]*'verhaal'/.test(src('settings.js')), 'settings.js: "Standaard herstellen" does not switch story');
 ok(SETTINGS_VERSION >= 9, 'settings v9 added the Verhaal choice');
-for (const [from, want] of [[{ v: 8 }, 'oud'], [{ v: 8, verhaal: 'nieuw' }, 'nieuw'], [{ v: 8, verhaal: 'rommel' }, 'oud'], [{ v: 3, quality: 'laag' }, 'oud'], [{ v: 9, verhaal: 'nieuw' }, 'nieuw']]) {
+for (const [from, want] of [[{ v: 8 }, 'nieuw'], [{ v: 8, verhaal: 'oud' }, 'oud'], [{ v: 8, verhaal: 'rommel' }, 'nieuw'], [{ v: 3, quality: 'laag' }, 'nieuw'], [{ v: 9, verhaal: 'nieuw' }, 'nieuw']]) {
   const m = migrateSettings(from);
   ok(m && m.data.verhaal === want, `settings ${JSON.stringify(from)} -> verhaal ${want}`, m && m.data.verhaal);
 }

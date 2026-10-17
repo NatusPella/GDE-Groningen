@@ -1,5 +1,5 @@
 {
-  "_era": "settings v8 (0.34): no Verhaal choice yet; 0.35 adds `verhaal` and an untouched file plays the Klassiek story",
-  "_expect": { "verhaal": "oud", "quality": "hoog" },
+  "_era": "settings v8 (0.34): no Verhaal choice yet; 0.35 adds `verhaal` and an untouched file now plays the new story (Klassiek stays a choice)",
+  "_expect": { "verhaal": "nieuw", "quality": "hoog" },
   "settings": { "v": 8, "quality": "hoog", "shadows": true, "sfxVolume": 0.75, "gore": true }
 }
