@@ -19,7 +19,7 @@ import fs from 'node:fs';
 
 const quick = process.argv.includes('--quick');
 const verbose = process.argv.includes('--verbose');
-let seed = 12345;
+let seed = +(process.env.SEED || 12345);
 Math.random = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
 
 const { GameMap, applyMapExtras } = await import('../game/js/mapdata.js');

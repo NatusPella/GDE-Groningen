@@ -10,6 +10,8 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **Scrollen in 'Wat is er nieuw':** met het muiswiel scrol je nu in de lijst met wijzigingen en in 'Over' op het startscherm.
 ### Verbeterd
 - **Eén waterpad voor de hele provincie:** de oude Ommeland-waterlaag (`countrywater.js`, `countrywatergeo.js`, de watergeometrie in de worker) is weg. Het water van de tegels is overal de enige bron: boten, zwemmers, waden, zinkende auto's, politieboten en het geluid van klotsend water gebruiken dezelfde `waterAt`. De grondshader opent de grond boven het tegelwater en tekent het water zelf waar de grond nog niet open is (`tilewatermask.js`).
+### Verbeterd
+- **Huizen in smalle straten:** woningen die in oude straten tot op een meter van het wegmidden stonden, houden nu 1,5 m afstand, zodat je auto er niet meer tegenaan botst (`scripts/world/building_clearance.mjs`).
 
 ## [0.34.0] - 2026-10-17
 
