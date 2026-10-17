@@ -17,6 +17,7 @@
 import { SMS_SAY } from './smsvoice.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene } from './scene3d.js';
+import { buildWorldMarker3D, updateWorldMarker3D } from './worldmarker3d.js';
 import { isMissionActive, getActiveRace } from './missions.js';
 import { isCinematicActive, playMissionIntro, showBanner } from './cinematics.js';
 import { isShopOpen } from './shopui.js';
@@ -615,19 +616,7 @@ const beaconMats = {
 const dotGeo = new THREE.SphereGeometry(0.32, 10, 8);
 
 function buildBeacon(scene) {
-  beacon = new THREE.Group();
-  const ground = new THREE.Mesh(new THREE.CircleGeometry(2.2, 24), beaconMats.ground);
-  ground.rotation.x = -Math.PI / 2;
-  ground.position.y = 0.06;
-  beacon.add(ground);
-  const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.45, 30, 12, 1, true), beaconMats.beam);
-  beam.position.y = 15;
-  beacon.add(beam);
-  const ring = new THREE.Mesh(new THREE.TorusGeometry(1.2, 0.15, 10, 24), beaconMats.ring);
-  ring.rotation.x = Math.PI / 2;
-  ring.position.y = 2.4;
-  beacon.add(ring);
-  beacon.userData.ring = ring;
+  beacon = buildWorldMarker3D('job');
   beacon.visible = false;
   scene.add(beacon);
 }
@@ -640,8 +629,7 @@ function updateBeacon(w) {
   if (m) {
     beacon.position.set(m.x, 0, m.y);
     const t = w.time;
-    beacon.userData.ring.scale.setScalar(1 + Math.sin(t * 4) * 0.22);
-    beacon.userData.ring.position.y = 2.4 + Math.sin(t * 2) * 0.2;
+    updateWorldMarker3D(beacon, t);
   }
   const dots = pub.active ? pub.dots : [];
   const scene = beacon.parent;
