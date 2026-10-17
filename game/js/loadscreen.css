@@ -14,9 +14,9 @@
 #load-screen .gde-logo { font-size: 167px; align-items: flex-start; }
 #load-screen .gde-logo .gde-sign { font-size: 0.32em; align-self: flex-start; }
 #load-screen .gde-logo .gde-sub { margin: 14px 0 0; font: normal 28px/1.1 'Bebas Neue', 'Arial Narrow', sans-serif; letter-spacing: 0.32em; text-align: left; }
-#load-screen .ls-card { position: absolute; top: 100px; right: 100px; width: 350px; display: flex; flex-direction: column; gap: 12px; padding: 20px 22px; border-radius: 14px; background: linear-gradient(180deg, rgba(23,48,31,0.82), rgba(12,20,14,0.86)); box-shadow: 0 0 0 1px rgba(63,201,122,0.3), 0 20px 50px rgba(0,0,0,0.45); }
+#load-screen .ls-card { position: absolute; left: 100px; bottom: 190px; max-width: 760px; display: flex; flex-direction: column; gap: 6px; }
 #load-screen .ls-kick { font-size: 15px; letter-spacing: 0.2em; color: #3fc97a; }
-#load-screen .ls-place { font-weight: normal; font-size: 43px; line-height: 0.95; }
+#load-screen .ls-place { font-weight: normal; font-size: 84px; line-height: 0.95; text-shadow: 0 2px 18px rgba(0,0,0,0.55); }
 #load-screen .ls-when { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 #load-screen .ls-when > span { font-size: 18px; color: rgba(240, 237, 228, 0.85); }
 #load-screen .ls-when .ls-badge { font-size: 15px; padding: 2px 8px; border-radius: 5px; color: #f3dc6a; background: rgba(232, 201, 58, 0.14); box-shadow: inset 0 0 0 1px rgba(232, 201, 58, 0.55); }
@@ -26,13 +26,13 @@
 #load-screen .ls-stats b { font-weight: normal; font-size: 28px; line-height: 1; white-space: nowrap; }
 #load-screen .ls-stats b.g { color: #3fc97a; }
 #load-screen .ls-stats span { font-size: 13px; color: rgba(240, 237, 228, 0.6); }
-#load-screen .ls-bottom { position: absolute; left: 100px; right: 100px; bottom: 80px; display: flex; gap: 50px; align-items: flex-end; justify-content: space-between; }
-#load-screen .ls-tip { display: flex; gap: 15px; align-items: flex-start; max-width: 717px; }
+#load-screen .ls-bottom { position: absolute; left: 100px; right: 100px; bottom: 70px; display: flex; flex-direction: column-reverse; gap: 22px; align-items: stretch; }
+#load-screen .ls-tip { display: flex; gap: 15px; align-items: center; max-width: 900px; }
 #load-screen .ls-tip-ic { width: 43px; height: 43px; border-radius: 10px; background: rgba(63, 201, 122, 0.16); box-shadow: inset 0 0 0 1px rgba(63, 201, 122, 0.5); display: grid; place-items: center; flex: none; }
 #load-screen .ls-tip-ic svg { width: 22px; height: 22px; fill: none; stroke: #3fc97a; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 #load-screen .ls-tip div span { font-size: 18px; letter-spacing: 0.14em; color: #3fc97a; }
 #load-screen .ls-tip p { margin: 3px 0 0; font: 18px/1.4 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.01em; }
-#load-screen .ls-prog { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; width: 433px; flex: none; }
+#load-screen .ls-prog { width: 100%; }
 #load-screen .ls-phase { display: flex; gap: 10px; align-items: center; }
 #load-screen .ls-tip.swap { animation: ls-line-in 0.5s ease-out; }
 @keyframes ls-line-in { from { opacity: 0; transform: translateY(4px); } }
@@ -40,7 +40,7 @@
 #load-screen .ls-spin circle { fill: none; stroke: rgba(240, 237, 228, 0.18); stroke-width: 3; }
 #load-screen .ls-spin path { fill: none; stroke: #3fc97a; stroke-width: 3; stroke-linecap: round; }
 @keyframes ls-spin { to { transform: rotate(360deg); } }
-#load-screen .ls-bar { width: 100%; height: 4px; border-radius: 2px; background: rgba(240, 237, 228, 0.15); overflow: hidden; }
+#load-screen .ls-bar { width: 100%; height: 6px; border-radius: 3px; background: rgba(240, 237, 228, 0.15); overflow: hidden; }
 #load-screen .ls-bar i { display: block; height: 100%; transform-origin: left; transform: scaleX(0.04); background: linear-gradient(90deg, #1e9e56, #3fc97a); box-shadow: 0 0 12px #3fc97a; transition: transform 0.2s linear; }
 @media (max-width: 900px) { #load-screen .ls-tip { display: none; } #load-screen .ls-card { right: 40px; top: 40px; } #load-screen .ls-brand { left: 40px; top: 40px; } #load-screen .ls-bottom { left: 40px; right: 40px; } #load-screen .ls-prog { width: 100%; } }
 @media (prefers-reduced-motion: reduce) { #load-screen .ls-bg, #load-screen .ls-spin { animation: none; } #load-screen { transition: none; } }
