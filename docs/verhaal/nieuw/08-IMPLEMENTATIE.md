@@ -12,8 +12,8 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Er is geen code aangepast. Alles h
 | `storyarc.js` `RETIRED_STEPS` | `r-avond`, `s-boot`, `s-proefvlucht`, `s-carbid`, `s-padel`, `k-fiets`, `H7`, `H9`, `H13` gaan op `RETIRED_STEPS` of blijven als optionele klus; saves laten ze vallen (`story.js` `applyStorySave`) | bestaat |
 | `storyarc.js` `SPEAKERS`, `CHARACTERS` | nieuwe sprekers en naamkaarten: Geesje, Lammert, Roelfien, Wubbo, Tinus; `Boer Roelf` en `Hilje` vervallen | bestaat; uitbreiden |
 | `storyarc.js` `HIDEOUTS` | de drie keuzes van `r-trein` worden de treinscène in de reisbeat "Winsum" (alleen scène) | hergebruik |
-| `game/js/calendar.js` `STEP_DATES` | nieuwe dagen per stap (zie 00-OVERZICHT §Kalender); `DEEL4_STEP_DAYS` botst: Deel 4 begint 15 september met een andere plot (open vraag 1) | bestaat; aanpassen |
-| `calendar.js` `SPECIAL_DAYS` | nieuwe: Oldambt-kermis (za 22 - zo 23), Beleg van Bourtange (di 25). **De bestaande `oldambtkermis` staat nu op di 29 september (Deel 4, `open: false`)** | uitbreiden |
+| `game/js/calendar.js` `STEP_DATES` | nieuwe dagen per stap (zie 00-OVERZICHT §Kalender); de kalender van dit verhaal is leidend; `DEEL4_STEP_DAYS` hoort niet bij dit verhaal en mag blijven staan of bewust weg | bestaat; aanpassen |
+| `calendar.js` `SPECIAL_DAYS` | nieuwe: Oldambt-kermis (za 22 - zo 23), Beleg van Bourtange (di 25). **De bestaande `oldambtkermis` staat nu op di 29 september (`open: false`)** en wordt verplaatst naar za 22 - zo 23 augustus | uitbreiden |
 | `scripts/calendar_test.mjs` | bijwerken voor de nieuwe data | bestaat |
 | `game/js/missions.js` defs | zie §2 | bestaat |
 | `game/js/missionstory.js` | alle scènes (`playStoryIntro`, `playStoryOutro`, `playStoryFail`) voor de nieuwe teksten | bestaat |

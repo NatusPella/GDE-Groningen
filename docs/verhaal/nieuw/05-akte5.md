@@ -13,7 +13,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte5
 | **Wat de speler leert** | niets nieuws: alles wat je kunt wordt hier gebruikt (auto, trekker, duif, bakken, bus, scooter, fiets) |
 | **Plot** | Tessa en Tammo herstellen. De Escapade krijgt een luik: de Fjord Frituur. Alle vrienden van Oma rijden mee naar Stad. Jelles vlag aan de toren valt. Jelle komt naar Oma's keuken voor een bod, en krijgt van twee oude vrouwen zijn les. Op 28 augustus komen alle draden samen: de jury, de bal, de duiven, de wagen. |
 | **Romantiek** | **De knuffel en de openbaring** (5.1): Tessa vertelt dat ze op zeven plekken woonde voor haar tiende, en elke zomer naast Mem in Ljouwert; Tammo vertelt dat hij zweeg omdat hij dacht dat ze dan zou weggaan. Ze houden handen vast in 5.3: "Voor de grip?" "Nee. Gewoon." **Het slot:** "Ik wil bij jou blijven." |
-| **Haak** | epiloog en een kleine zaaiing voor later (vrij spel, Deel 4) |
+| **Haak** | epiloog; daarna loopt de open wereld door (de Fjord Frituur-dienst en alle bijbanen) |
 
 **Het antwoord op het verhaal:** de vijf woorden "Ik wil bij jou blijven" zijn het antwoord op Tessa's openbaring in 5.1 ("Ik blijf nooit ergens"), en op haar zin in de opening ("Een thuis met wielen"). Dat is wat de zin verdiend heeft.
 
