@@ -6,6 +6,9 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Opgelost
+- **Scrollen in 'Wat is er nieuw':** met het muiswiel scrol je nu in de lijst met wijzigingen en in 'Over' op het startscherm.
+
 ## [0.34.0] - 2026-10-17
 
 ### Toegevoegd
