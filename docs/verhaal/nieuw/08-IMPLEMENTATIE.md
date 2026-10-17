@@ -97,7 +97,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Er is geen code aangepast. Alles h
 | **Vliegtuig** | geen bestaande vliegtuigmodus gevonden | M18 als heli-missie bouwen; vliegtuig later |
 | **Trein-lopen** | een gebied waar de physics vol onzekerheid zit | alleen de scène in M22 en Tammo als machinist |
 | **Afstanden** | ruim 460 km reisafstand over alle akten (schatting) | elke reisbeat kent trein, bus, heli of skip; "Overal en nergens"-sprong van #97 |
-| **Eén rol, drie versies** | Tessa's "Groningse vrouw" in de bestaande stem (zie `docs/personages.md`) botst met "Nederlands" in nieuwe regels | open vraag 3; de TTS-tag aanpassen, niet de stem |
+| **Eén rol, drie versies** | Tessa's "Groningse vrouw" in de bestaande stem (zie `docs/personages.md`) botst met "Nederlands" in nieuwe regels | besluit van de eigenaar: Tessa is Nederlands; nieuwe regels in standaard Nederlands, opgenomen regels blijven (de stem blijft) |
 | **Stemkosten** | 707 nieuwe regels | zie `07-TTS-RAMING.md` |
 | **Gevoelig** | Delfstof Noord (alleen zijlijn), Ter Apel (geen decor), de CBS-regel (één getal met bron) | AGENTS.md constitutie 6; het gebruik van die zijlijnen alleen na akkoord |
 | **Echte personen** | de opdracht noemde als voorbeeldspreker de naam "WOPKE" (een echte persoon); die is **niet gebruikt**. Het kaartje blijft "J." (Mems J) | blijf bij verzonnen namen in speltekst en bij de naam NatusPella in de credits |

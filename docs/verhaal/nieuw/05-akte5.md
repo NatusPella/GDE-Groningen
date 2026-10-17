@@ -45,7 +45,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte5
 | **Leuk-element / uitdaging** | rust; de zachtste missie na het dieptepunt |
 | **Reizen** | 3 km |
 | **Romantiek (9/10)** | **De knuffel en de openbaring.** Tessa: "Ik heb op zeven plekken gewoond voor ik tien was." Tammo: "Ik zweeg omdat ik dacht dat je dan zou weggaan." Tessa: "Ik ging niet weg." Tammo: "Je bleef nergens." Tessa: "Ik ben gebleven." Hij belooft het te zeggen: "Op het Ontzet. Voor iedereen." |
-| **Plot** | Tessa's verleden: een Nederlandse (geboren in Zwolle, AANNAME), vanaf haar achtste in het Oosterpark, elke zomer bij haar Friese oma in Ljouwert, naast Mem. Daarom kent ze Friezen. Tammo vindt dat gek. |
+| **Plot** | Tessa's verleden: een Nederlandse (geboren in Zwolle, AANNAME), vanaf haar achtste in het Oosterpark, elke zomer in Ljouwert, in het huis naast Mem. Daarom kent ze Friezen. Tammo vindt dat gek ("Jij? Fries?"). Haar regels zijn standaard Nederlands. |
 | **Gevolg / haak** | de Fjord Frituur is klaar; de vrienden komen naar Stad. |
 | **Behouden / nieuw** | "Hij is van ons. Hij weet het alleen nog niet." BEHOUDEN; Henk-regels BEHOUDEN waar mogelijk; de rest NIEUW |
 | **Nieuwe regels (schatting)** | 30 |
