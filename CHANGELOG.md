@@ -7,6 +7,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Toegevoegd
+- **Esc in een minigame vraagt eerst "Stoppen?":** Esc of Enter bevestigt, Spatie gaat door. Backspace en B op de controller stoppen nog direct.
 - **Cutscene-camera laadt vooruit:** een scène die ver van je vandaan speelt, laadt de tegels rond haar shots vooraf en houdt ze vast tot de scène klaar is. Bij een camerasprong kijkt het laden niet meer de verkeerde kant op.
 - **Geldwagen overvallen:** blaas een Poen Express uit het verkeer open (total loss), pak de geldzak en de politie zit je achterna. Geldwagen en geldzak staan op de minimap en de kaart.
 - **Water in de hele provincie (eerste stap):** meren, plassen, sloten en kanalen buiten de stad hebben nu soort, diepte en peil, net als in het Ommeland. Boten, zwemmen en waden zien dat water zodra de provincie opnieuw is gebouwd.

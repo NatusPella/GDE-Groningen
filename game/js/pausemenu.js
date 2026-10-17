@@ -639,6 +639,7 @@ function onKey(e) {
   const lower = k.length === 1 ? k.toLowerCase() : k;
   if (!open) {
     if (e.repeat || !started()) return;
+    if (k === 'Escape' && document.body.classList.contains('mg-board')) return;
     if (k === 'Escape' || (lower === 'm' && !isCinematicActive())) {
       e.preventDefault();
       // a call, a story contact or a text on screen: Esc opens its thread
