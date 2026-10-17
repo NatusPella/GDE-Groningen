@@ -281,15 +281,18 @@ export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(s
     // the water keeps `flat` (the far LOD draws it so) and gets the city
     // water's kind, lv, dp and nav: tileworld.js puts annotated rows in the
     // water grid, so boats, swimmers and waterAt see them
-    const wr = annotateProvinceWater(feats.filter((f) => f.kind === 'water').map((f) => { f.row.flat = true; return f.row; }), { base: waterBodies, village: ctx.village });
-    waterBodies += wr.bodies;
+    const packLocks = [];
     for (const el of els) {
       const t = el.tags || {};
-      if (el.type === 'way' && el.g && el.g.length > 1 && (t.waterway === 'lock_gate' || t.lock === 'yes') && !locks.has(el.id)) {
+      if (el.type === 'way' && el.g && el.g.length > 1 && (t.waterway === 'lock_gate' || t.lock === 'yes')) {
         const m = el.g[Math.floor(el.g.length / 2)], [x, y] = wgsToWorld(m[0], m[1]);
-        locks.set(el.id, { x: r1(x), y: r1(y), name: t.name || '', w: parseFloat(t.maxwidth) || 0 });
+        packLocks.push({ x: r1(x), y: r1(y), name: t.name || '', w: parseFloat(t.maxwidth) || 0, id: el.id });
       }
     }
+    // a lock splits the water bodies (waterlevels.js annotateProvinceWater)
+    const wr = annotateProvinceWater(feats.filter((f) => f.kind === 'water').map((f) => { f.row.flat = true; return f.row; }), { base: waterBodies, village: ctx.village, locks: packLocks });
+    waterBodies += wr.bodies;
+    for (const k of packLocks) if (!locks.has(k.id)) locks.set(k.id, { x: k.x, y: k.y, name: k.name, w: k.w });
     WB.applyDuals(feats.filter((f) => f.kind === 'roads').map((f) => f.row));
     // features by tile, only for this pack's tiles
     const mine = new Set(want);

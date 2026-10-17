@@ -99,7 +99,7 @@ function distToOutline(P, x, y) {
 // Connected water bodies over a list of polygons ({ pts }): two polygons are
 // one body where a vertex of one lies within `touch` m of the other's outline
 // (or inside it). Returns Int32Array body per polygon and the body count.
-export function waterBodies(water, touch = 1.0) {
+export function waterBodies(water, touch = 1.0, apart = null) {
   const n = water.length;
   const parent = Int32Array.from({ length: n }, (_, i) => i);
   const find = (i) => { while (parent[i] !== i) i = parent[i] = parent[parent[i]]; return i; };
@@ -115,7 +115,7 @@ export function waterBodies(water, touch = 1.0) {
   for (let i = 0; i < n; i++) {
     for (const p of water[i].pts) {
       for (const j of grid.get(Math.floor(p[0] / G) * 65536 + Math.floor(p[1] / G)) || []) {
-        if (j === i || find(i) === find(j)) continue;
+        if (j === i || find(i) === find(j) || (apart && (apart.has(i) || apart.has(j)))) continue;
         const b = B[j];
         if (p[0] < b[0] - touch || p[0] > b[2] + touch || p[1] < b[1] - touch || p[1] > b[3] + touch) continue;
         if (inPolygon(p[0], p[1], water[j].pts) || distToOutline(water[j].pts, p[0], p[1]) < touch) parent[find(i)] = find(j);
@@ -244,11 +244,23 @@ export function annotateWater(water, cell = 2.5) {
 // city water, so waterAt, boats, swimmers and the heli read it alike. A wide
 // or large polygon counts as open water (the boezem's rule), a narrow one
 // with a ditch name is a sloot.
-export function annotateProvinceWater(rows, { base = 0, village = null } = {}) {
+export function annotateProvinceWater(rows, { base = 0, village = null, locks = [] } = {}) {
+  // A lock splits the water: the polygon with a lock in it (the chamber) joins
+  // neither side, so the waters either side of it are bodies of their own and
+  // keep their own peil; the chamber is flagged `lock`.
+  const chambers = new Set();
+  rows.forEach((w, i) => {
+    const b = boundsOf(w.pts);
+    for (const k of locks) {
+      if (k.x < b[0] - 8 || k.x > b[2] + 8 || k.y < b[1] - 8 || k.y > b[3] + 8) continue;
+      if (inPolygon(k.x, k.y, w.pts) || distToOutline(w.pts, k.x, k.y) < LOCK_NEAR) { chambers.add(i); break; }
+    }
+  });
   // bodies within the rows given (a pack): polygons whose shores touch share a
   // body, its area decides open water (a lake keeps its own peil) and whether
   // a thin sliver is part of a canal
-  const { body, count } = waterBodies(rows);
+  const { body, count } = waterBodies(rows, 1.0, chambers);
+  rows.forEach((w, i) => { if (chambers.has(i)) w.lock = true; });
   const area = new Float64Array(count);
   rows.forEach((w, i) => { area[body[i]] += polyArea(w.pts); });
   rows.forEach((w, i) => {
@@ -268,7 +280,7 @@ export function annotateProvinceWater(rows, { base = 0, village = null } = {}) {
   });
   return { rows, bodies: count };
 }
-const LAKE_AREA = 250000, LAKE_WIDTH = 60;
+const LAKE_AREA = 250000, LAKE_WIDTH = 60, LOCK_NEAR = 6;
 const polyCentre = (P) => { let x = 0, y = 0; for (const p of P) { x += p[0]; y += p[1]; } return [x / P.length, y / P.length]; };
 
 // --------------------------------------------------------------- boats
@@ -322,7 +334,7 @@ export function waterAt(map, x, y) {
     const K = WATER_KINDS[kind] || WATER_KINDS.diep;
     const level = poly.lv ?? BOEZEM_Y, depth = poly.dp ?? K.depth;
     return {
-      level, depth, body: poly.body ?? -1, kind, navigable: poly.nav ?? K.nav, wade: depth <= WADE_MAX,
+      level, depth, body: poly.body ?? -1, kind, navigable: poly.nav ?? K.nav, wade: depth <= WADE_MAX, lock: !!poly.lock,
       clearanceAbove: clearanceOver(map, x, y, level),
     };
   }
@@ -330,6 +342,15 @@ export function waterAt(map, x, y) {
   if (!c) return null;
   const K = COUNTRY[c];
   return { level: K.level, depth: K.depth, body: -1, kind: K.kind, navigable: K.nav, wade: K.depth <= WADE_MAX, clearanceAbove: Infinity };
+}
+
+// Water a vehicle drives through: waded depth and a peil of its own above the
+// boezem's (a polder ditch, a shallow of a lake). Deep water sinks it (vehicle.js
+// overOpenWater); on a bridge it is dry. null elsewhere.
+export function shallowWater(map, x, y) {
+  const w = waterAt(map, x, y);
+  if (!w || !w.wade || w.level <= BOEZEM_Y || (map.isOnBridge && map.isOnBridge(x, y))) return null;
+  return w;
 }
 
 // free height from the level to the nearest bridge deck over (x, y)

@@ -5,7 +5,7 @@ import { geometryFromPlain } from './geokernels.js';
 import { workerMapReady } from './roadsurface.js';
 import { createBrickDetailTexture } from './pixelart3d.js';
 import { onSettingsChange } from './settings.js';
-import { getWaterIndex, addWaterObstacle } from './waterindex.js';
+import { getWaterIndex, addWaterObstacle, onTileCut } from './waterindex.js';
 import { pointInPolygon, closestPointOnSegment } from './util.js';
 import { surfaceHalfWidth } from './elevation.js';
 import { P } from './worldframe.js';
@@ -194,6 +194,9 @@ function nearBuilt(map, x, y, r) {
 function shoreRuns(poly, map, index) {
   const pts = poly.pts;
   const pond = /vijver|plas|meer/i.test(poly.name || '');
+  // a province polygon says what its shore is (waterlevels.js annotateProvinceWater):
+  // 'oever' a natural bank, 'kade' a quay where it is built up
+  const prov = poly.bank !== undefined;
   const runs = [];
   let cur = null;
   const close = () => { if (cur && cur.pts.length > 1) runs.push(cur); cur = null; };
@@ -207,10 +210,11 @@ function shoreRuns(poly, map, index) {
     let nx = -uy, ny = ux;
     const leftWet = index.inWater(mx + nx * 0.7, my + ny * 0.7);
     const rightWet = index.inWater(mx - nx * 0.7, my - ny * 0.7);
+    if (prov && onTileCut(a[0], a[1], b[0], b[1])) { close(); continue; }
     if (leftWet === rightWet) { close(); continue; }
     if (leftWet) { nx = -nx; ny = -ny; }
     // the cut along the map edge where the canal carries on into the Ommeland
-    if (rectOutside(mx, my) > -0.5 && realWater(mx + nx * 3, my + ny * 3) > SHORE_RW) { close(); continue; }
+    if (!prov && rectOutside(mx, my) > -0.5 && realWater(mx + nx * 3, my + ny * 3) > SHORE_RW) { close(); continue; }
     const edgeN = [nx, ny];
     const n = Math.max(1, Math.ceil(len / STEP));
     for (let k = 0; k < n; k++) {
@@ -221,6 +225,7 @@ function shoreRuns(poly, map, index) {
       if (dry && nearBridge(map, x, y, 0.3, true)) cls = 'abut';
       else if (dry) {
         if (pond || inGreen(map, x + nx * 2.5, y + ny * 2.5)) cls = 'bank';
+        else if (prov) cls = poly.bank === 'kade' ? 'wall' : 'bank';
         else if (Math.hypot(x - CENTRE_X, y - CENTRE_Y) > 1100 && !nearBuilt(map, x + nx * 3, y + ny * 3, 7)) cls = 'bank';
         else cls = 'wall';
       } else if (!index.inWater(x + nx * 0.15, y + ny * 0.15) && !nearBridge(map, x, y, 0.3, true)) {
@@ -777,7 +782,7 @@ const MATERIAL_OF = { wall: 'brick', stone: 'stone', extras: 'extras', glass: 'g
 let sink = null;
 export function shoreParts(poly, map, waterY, withApron) {
   sink = { seats: [], hulls: [] };
-  const index = getWaterIndex(map);
+  const index = getWaterIndex(map, poly);
   const runs = shoreRuns(poly, map, index);
   const buckets = new Map();
   const B = (kind, x, z) => {

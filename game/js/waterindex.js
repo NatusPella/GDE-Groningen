@@ -3,8 +3,18 @@
 // ray distance queries. Shared by the terrain hole cutter, the water surface
 // builder and the quay walls.
 
+import { GRID_X0, GRID_Y0, TILE_M } from './gdt.js';
+
 const ROW = 8;
 const CELL = 16;
+
+// A province polygon is cut at the 1 km tile border: the edge on the border
+// is where the water carries on into the next tile, not a shore.
+const onGrid = (v, g) => { const m = (((v - g) % TILE_M) + TILE_M) % TILE_M; return Math.min(m, TILE_M - m) < 0.02; };
+export function onTileCut(ax, ay, bx, by) {
+  if (Math.abs(ax - bx) < 0.02 && onGrid(ax, GRID_X0)) return true;
+  return Math.abs(ay - by) < 0.02 && onGrid(ay, GRID_Y0);
+}
 
 export function createWaterIndex(polys) {
   let n = 0;
@@ -88,7 +98,7 @@ export function createWaterIndex(polys) {
   for (let i = 0; i < n; i++) {
     const dx = bx[i] - ax[i], dy = by[i] - ay[i];
     const len = Math.hypot(dx, dy);
-    if (len < 1e-3) continue;
+    if (len < 1e-3 || onTileCut(ax[i], ay[i], bx[i], by[i])) continue;
     const mx = (ax[i] + bx[i]) / 2, my = (ay[i] + by[i]) / 2;
     const nx = -dy / len * 0.6, ny = dx / len * 0.6;
     shore[i] = inWater(mx + nx, my + ny) !== inWater(mx - nx, my - ny) ? 1 : 0;
@@ -152,8 +162,78 @@ function segSeg(p0x, p0y, p1x, p1y, q0x, q0y, q1x, q1y) {
   return t >= 0 && t <= 1 && u >= 0 && u <= 1;
 }
 
-export function getWaterIndex(map) {
+// The city's polygons are the map's own array (indexed once); a streamed
+// province tile's water (TileWorld, waterNear) lives outside it. A polygon of
+// the tiles gets an index over itself and its neighbours (cached on it, for
+// its shore and surface); a point query uses the index of the tile it is in.
+function staticWater(map) {
+  return map._staticWater || (map._staticWater = new Set(map.water));
+}
+export function getWaterIndex(map, poly = null) {
+  if (poly && map.waterNear && !staticWater(map).has(poly)) return polyWaterIndex(map, poly);
   return map._waterIndex || (map._waterIndex = createWaterIndex(map.water));
+}
+
+// the index that has (x, y) in its water: the tile polygons' where they hold it, else the city's
+export function waterIndexAt(map, x, y) {
+  const t = tileWaterIndex(map, x, y);
+  return t && t.inWater(x, y) ? t : getWaterIndex(map);
+}
+// is there water at (x, y), the city's or a province tile's
+export function waterWet(map, x, y) {
+  if (getWaterIndex(map).inWater(x, y)) return true;
+  const t = tileWaterIndex(map, x, y);
+  return !!t && t.inWater(x, y);
+}
+
+function polyWaterIndex(map, poly) {
+  if (poly._wi) return poly._wi;
+  const b = poly.bounds || [Infinity, Infinity, -Infinity, -Infinity];
+  const cx = (b[0] + b[2]) / 2, cy = (b[1] + b[3]) / 2, r = Math.max(b[2] - b[0], b[3] - b[1]) / 2 + 40;
+  const near = new Set(map.waterNear(cx, cy, r));
+  near.add(poly);
+  const st = staticWater(map);
+  return (poly._wi = createWaterIndex([...near].filter((w) => !st.has(w))));
+}
+
+// the index over the streamed polygons around a tile (null: none there),
+// rebuilt when tiles came or went (map._waterVer, tileworld.js)
+function tileWaterIndex(map, x, y) {
+  if (!map.waterNear || !map.waterGrid) return null;
+  const ti = Math.floor((x - GRID_X0) / TILE_M), tj = Math.floor((y - GRID_Y0) / TILE_M);
+  const cache = map._tileWater || (map._tileWater = new Map());
+  const key = ti * 100003 + tj, ver = map._waterVer || 0;
+  const e = cache.get(key);
+  if (e && e.ver === ver) return e.idx;
+  const ox = GRID_X0 + ti * TILE_M, oy = GRID_Y0 + tj * TILE_M, st = staticWater(map);
+  const list = [...new Set(map.waterNear(ox + TILE_M / 2, oy + TILE_M / 2, TILE_M / 2 + 60))].filter((w) => !st.has(w));
+  const idx = list.length ? createWaterIndex(list) : null;
+  if (cache.size > 64) cache.clear();
+  cache.set(key, { ver, idx });
+  return idx;
+}
+
+// Free water at (x, y) from the streamed polygons, unioned with the city's
+// index: a shore edge that the other source has water behind (a province
+// polygon next to a city polygon) is no shore.
+function tileClearance(map, x, y, maxR, st) {
+  const ti = tileWaterIndex(map, x, y);
+  const sIn = st.inWater(x, y), tIn = !!ti && ti.inWater(x, y);
+  if (!sIn && !tIn) return null;
+  let d = maxR;
+  const near = (idx, other) => {
+    const s = idx.nearestShore(x, y, maxR);
+    if (s.i < 0) return;
+    const ex = idx.bx[s.i] - idx.ax[s.i], ey = idx.by[s.i] - idx.ay[s.i], l2 = ex * ex + ey * ey || 1e-9;
+    const t = Math.max(0, Math.min(1, ((x - idx.ax[s.i]) * ex + (y - idx.ay[s.i]) * ey) / l2));
+    const qx = idx.ax[s.i] + ex * t, qy = idx.ay[s.i] + ey * t;
+    const dx = qx - x, dy = qy - y, k = Math.hypot(dx, dy) || 1;
+    if (other && other.inWater(qx + (dx / k) * 0.7, qy + (dy / k) * 0.7)) return;
+    d = Math.min(d, s.d);
+  };
+  if (sIn) near(st, ti);
+  if (ti) near(ti, st);
+  return d;
 }
 
 // --- clearance from the shore ----------------------------------------------
@@ -258,15 +338,12 @@ export function setCountryClearance(fn) { countryClearance = fn; }
 // obstacle; negative on land or inside an obstacle.
 export function waterClearance(map, x, y, maxR = 4) {
   const idx = getWaterIndex(map);
-  let d;
-  if (!idx.inWater(x, y)) {
+  let d = tileClearance(map, x, y, maxR, idx);
+  if (d === null) {
     d = countryClearance ? countryClearance(x, y, -1) : -1;
     if (d <= 0) return -1;
     d = Math.min(maxR, d);
-  } else {
-    d = idx.nearestShore(x, y, maxR).d;
-    if (countryClearance) d = Math.min(maxR, countryClearance(x, y, d));
-  }
+  } else if (countryClearance) d = Math.min(maxR, countryClearance(x, y, d));
   const list = obstacleGrid(map).get(Math.floor(x / OB_CELL) + ',' + Math.floor(y / OB_CELL));
   if (list) {
     for (const ob of list) {
@@ -311,7 +388,7 @@ export function waterChannelPoints(map, poly, budgetMs = Infinity) {
   const limit = budgetMs === Infinity ? Infinity : Math.min(budgetMs, FRAME_BUDGET - budgetSpent);
   if (limit <= 0) return ch;
   const t0 = performance.now();
-  const idx = getWaterIndex(map);
+  const idx = getWaterIndex(map, poly);
   const [minx, , maxx, maxy] = poly.bounds;
   let n = 0;
   while (ch.y < maxy) {
