@@ -3031,7 +3031,7 @@ function onCarRoad(map, x, y) {
     if (r.cat === 'foot' || r.cat === 'cycle' || r.z) continue;
     for (let i = 0; i < r.pts.length - 1; i++) {
       const cp = closestPointOnSegment(x, y, r.pts[i][0], r.pts[i][1], r.pts[i + 1][0], r.pts[i + 1][1]);
-      if (cp.dist2 <= (r.width / 2) ** 2) return true;
+      if (cp.dist2 <= (r.width / 2) ** 2 && !inMapWater(map, cp.x, cp.y)) return true;
     }
   }
   return false;
@@ -3041,8 +3041,8 @@ export function overOpenWater(map, x, y, z) {
   if (!inWaterPoly(map, x, y) || map.isOnBridge(x, y)) return false;
   // over the canal on a viaduct, or under it through the aqueduct
   if (z > 1.5 || (z < -3 && map.coveredAt && map.coveredAt(x, y))) return false;
-  // the countryside's water field reaching over a map road is its embankment, not water
-  if (!inMapWater(map, x, y) && onCarRoad(map, x, y)) return false;
+  // water reaching over the edge of a dry road (a polygon's corner, the countryside's water field) is its embankment
+  if (onCarRoad(map, x, y)) return false;
   // a ditch or shallows with a peil of their own are driven through, not sunk in
   return !shallowWater(map, x, y);
 }
