@@ -1018,7 +1018,7 @@ Alle drie staan op de kaart; de route gaat naar de dichtstbijzijnde. Elke keuze 
 - Een korte outro bij herhaling voor elke missie, als klus.
 - Rubrieken op Nachtstreek: de fietstunnel-update, het storingsbericht, de torenwachter en de peiling "Woist ja wel?".
 - Het "Sikkom."-scherm bij een missie die net mislukt.
-- De dialoogreview van oktober 2026 (`DIALOOG-REVIEW.md`) maakte de regels natuurlijker en logischer; dit script volgt die versie.
+- De dialoogreview van oktober 2026 maakte de regels natuurlijker en logischer; dit script volgt die versie.
 - De banter wordt herschreven op de nieuwe beats. Ongeveer de helft van de huidige regels blijft goed: alles over Stad, het weer, de Friezen en de wijken.
 
 **Missies en stappen**

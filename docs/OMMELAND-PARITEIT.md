@@ -1,5 +1,7 @@
 # Ommeland parity with the city
 
+> Historisch (stand 0.34): de lagen en bestanden waar dit over gaat (`countryreal`, `countryedge`, `countrybake`, `countryroute`, `ommeland.json`/`.bin`) worden door tegels vervangen (issue #3, ontwerp in [PROVINCIE-PLAN.md](PROVINCIE-PLAN.md)); de "open" punten voor die lagen worden niet meer opgepakt.
+
 The Ommeland (countryside around the city) was built later and took shortcuts.
 This lists where it behaved differently from the city for no design reason, and
 what was done. Status: **fixed**, **deliberate** (a design choice, kept) or
