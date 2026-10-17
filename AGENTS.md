@@ -30,7 +30,7 @@ Elk issue is een `bug` of een `wens`, met één impact- en één kostenlabel. Ve
 commit met `Closes #n`, een comment bij wat niet lukte, de kolom bijwerken.
 
 **Releases** zijn pre-releases van wat in Klaar staat: `cd desktop && npm run release -- minor|patch` (macOS en Windows; Linux staat voorlopig uit, voeg `--linux` toe als het nodig is).
-Daarvoor is een `## [X.Y.Z]`-sectie in `CHANGELOG.md` nodig en een schone werkboom. Het script vermeldt de andere medewerkers (@) alleen in een comment op issue #116 (het playtest-issue), niet in de releasenotities, zodat zij een melding krijgen. Spelerzichtbare wijzigingen komen als Nederlandse regels onder `[Unreleased]`.
+Daarvoor is een `## [X.Y.Z]`-sectie in `CHANGELOG.md` nodig en een schone werkboom. Het script vermeldt alle medewerkers (@, ook de eigenaar als playtester) alleen in een comment op issue #116 (het playtest-issue), niet in de releasenotities, zodat zij een melding krijgen. Spelerzichtbare wijzigingen komen als Nederlandse regels onder `[Unreleased]`.
 Release een geteste versie ruim voor de limiet van het gebruik, niet pas op het eind.
 
 **Agents:** werk in een eigen worktree en branch, in kleine commits. Test alleen wat bij je eigen wijziging hoort (`node --check` plus de paar tests die die code dekken); de volledige suite, `province_test`, de zware audits en de Electron-verhaaltest draait de coördinator bij het maken van een release, niet de agent. Geen push, merge, tag of release door agents; dat doet de coördinator na de tests.
