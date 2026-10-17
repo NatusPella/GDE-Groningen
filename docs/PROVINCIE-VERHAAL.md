@@ -371,8 +371,8 @@ trein naar Delfzijl"), met versneld meerijden en een gesprek.
 | **F5** | zomerevents (oogst, wierdentocht A32), getij voor het wad, polish van de dialecten | 4-6 |
 
 - **Per drop:** het script (de cutscènes, "Bel Rikus", outro's bij
-  herhaling, de naamkaarten), een dialoogreview zoals
-  [DIALOOG-REVIEW.md](verhaal/DIALOOG-REVIEW.md), de TTS-begroting (stemmen
+  herhaling, de naamkaarten), een dialoogreview (zoals die van
+  oktober 2026), de TTS-begroting (stemmen
   via OpenRouter-credits), de verhaaltest uitgebreid en de save-fixtures.
 - **Schrijven kan vooruit:** een schrijf-agent kan de scripts van F4a al
   tijdens F1-F2 maken, zonder code.
