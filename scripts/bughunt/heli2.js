@@ -65,8 +65,7 @@
   removeVeh(v);
   // the map edge: the soft wall turns it back
   const [bx0, by0] = map.meta.bounds;
-  const CR = await imp('countryreal');
-  const E = CR.REAL.ext || [bx0, by0];
+  const E = (await imp('provincemap')).provinceMapBounds() || map.meta.bounds;
   v = await mk(E[0] + 120, (E[1] + E[3]) / 2 || 0, 'edge');
   v.angle = Math.PI; w.camYaw = Math.PI;
   await hold(['arrowup', 'shift'], 6000);

@@ -151,9 +151,7 @@ report.roads.bad = report.roads.bad.slice(0, 20).concat(report.roads.bad.length 
 // ---- city shores: every water polygon, main thread vs the worker's (slimmed) map
 {
   const QW = await import('/js/quaywalls.js');
-  const zq = CF.realZone();
-  const gridq = (G) => ({ ...G, data: G.data.slice() });
-  await inWorker('shoreInit', { bounds: CF.countryBounds(), zone: { ...zq, water: gridq(zq.water), urban: gridq(zq.urban) } });
+  await inWorker('shoreInit', { bounds: CF.countryBounds() });
   report.shores = { polys: 0, parts: 0, verts: 0, seats: 0, hulls: 0, bad: [] };
   const y = -0.35;
   for (let wi = 0; wi < map.water.length; wi++) {

@@ -17,6 +17,30 @@ function polyDist(x, y, pts) {
   return Math.sqrt(best);
 }
 
+// Signed metres from (x, y) to the edge of the water of the tiles that are in
+// (map.waterNear and the flat water of the far tiles): positive on the water,
+// negative on land (how far the shore is), -99 when none lies within R.
+export function waterGap(map, x, y, R = 30) {
+  let best = -99;
+  const lists = [map.waterNear(x, y, R)];
+  if (map.flatWaterNear) lists.push(map.flatWaterNear(x, y, R));
+  for (const list of lists) {
+    for (const w of list) {
+      const q = w.bounds;
+      if (q && (x < q[0] - R || x > q[2] + R || y < q[1] - R || y > q[3] + R)) continue;
+      const P = w.pts;
+      let d2 = Infinity;
+      for (let i = 0; i < P.length - 1; i++) {
+        const cp = closestPointOnSegment(x, y, P[i][0], P[i][1], P[i + 1][0], P[i + 1][1]);
+        if (cp.dist2 < d2) d2 = cp.dist2;
+      }
+      const v = pointInPolygon(x, y, P) ? Math.sqrt(d2) : -Math.sqrt(d2);
+      if (v > best) best = v;
+    }
+  }
+  return best;
+}
+
 // The building whose outline (grown by m) holds (x, y), or null.
 export function buildingAt(map, x, y, m = 0) {
   for (const b of map.buildingsNear(x, y, m + 1)) {

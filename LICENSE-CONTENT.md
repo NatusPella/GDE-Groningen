@@ -91,7 +91,7 @@ EU. Users must also respect the terms of those providers where they apply.*
   [Naam en logo](#naam-en-logo).
 - **Werk van anderen** houdt zijn eigen licentie: de kaartdata
   (© OpenStreetMap-bijdragers, ODbL 1.0: `game/citymap.json`,
-  `game/mapextras.json`, `game/ommeland.*`, `data/`), de lettertypen
+  `game/mapextras.json`, de kaarttegels, `data/`), de lettertypen
   (SIL Open Font License) en three.js (MIT). Zie [NOTICE.md](NOTICE.md) en
   [licenses/](licenses/).
 

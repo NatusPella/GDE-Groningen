@@ -1,5 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { SHORE_RW, rectOutside, realWater, realActive, realZone, countryBounds } from './countryfield.js';
+import { rectOutside, countryBounds } from './countryfield.js';
 import { runGeo } from './geojobs.js';
 import { geometryFromPlain } from './geokernels.js';
 import { workerMapReady } from './roadsurface.js';
@@ -213,8 +213,8 @@ function shoreRuns(poly, map, index) {
     if (prov && onTileCut(a[0], a[1], b[0], b[1])) { close(); continue; }
     if (leftWet === rightWet) { close(); continue; }
     if (leftWet) { nx = -nx; ny = -ny; }
-    // the cut along the map edge where the canal carries on into the Ommeland
-    if (!prov && rectOutside(mx, my) > -0.5 && realWater(mx + nx * 3, my + ny * 3) > SHORE_RW) { close(); continue; }
+    // the cut along the map edge where the canal carries on into the province's tiles
+    if (!prov && rectOutside(mx, my) > -0.5) { close(); continue; }
     const edgeN = [nx, ny];
     const n = Math.max(1, Math.ceil(len / STEP));
     for (let k = 0; k < n; k++) {
@@ -846,16 +846,13 @@ export function buildShore(poly, map, { waterY, apronMaterial }) {
 
 // The shores are built in the geometry worker (geokernels.js shore) from its
 // own copy of the map once that is loaded (roadsurface.js), with the map
-// rectangle and the real water field sent once; until then, or without a
-// worker, here as before. done(shore) may run before requestShore returns.
+// rectangle sent once; until then, or without a worker, here as before. done(shore) may run before requestShore returns.
 let shoreInitSent = false;
 function shoreWorker() {
-  if (!workerMapReady() || !realActive() || !countryBounds()) return false;
+  if (!workerMapReady() || !countryBounds()) return false;
   if (!shoreInitSent) {
     shoreInitSent = true;
-    const z = realZone();
-    const grid = (G) => ({ ...G, data: G.data.slice() });
-    runGeo('shoreInit', { bounds: countryBounds(), zone: { ...z, water: grid(z.water), urban: grid(z.urban) } });
+    runGeo('shoreInit', { bounds: countryBounds() });
   }
   return true;
 }

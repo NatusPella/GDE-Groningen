@@ -821,13 +821,3 @@ export function goalGeometry() {
   B.box(-0.9, 1.3, 0, 0.02, 2.4, 7.3, 0xdadad2);
   return B.build();
 }
-
-// Geluidsscherm: unit length (along X) of panels between steel posts.
-export function barrierGeometry() {
-  const B = new GeoBuilder();
-  B.box(0, 1.9, 0, 1, 3.8, 0.22, 0x6f7f6a);
-  B.box(0, 4.1, 0, 1, 0.6, 0.12, 0xa8c0c0);
-  B.box(0, 0.25, 0, 1, 0.5, 0.3, 0x9a968c);
-  for (const x of [-0.5, 0.5]) B.box(x, 2.2, 0, 0.02, 4.4, 0.3, 0x5a5e60);
-  return B.build();
-}

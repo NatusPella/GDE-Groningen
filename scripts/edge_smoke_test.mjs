@@ -62,14 +62,12 @@ for (const e of spots) await load(e[1], e[2]);
 // the twelve wereldeinden, placed as the game does
 const RG = await import('../game/js/roadgraph.js');
 const PW = await import('../game/js/provinceworld.js');
-const CR = await import('../game/js/countryreal.js');
 const L = idx.layers && idx.layers.provincie;
 if (L && L.global) {
   PW.initProvince({ index: idx, world: map });
   const zlib = await import('node:zlib');
   const rows = RG.decodeRoadNet(JSON.parse(zlib.gunzipSync(Buffer.from(files[L.global.roadsFile])).toString()));
   RG.setRoadNet(rows);
-  CR.REAL.ready = true; CR.REAL.ext = CR.REAL.ext || [-12208, -13520, 12758, 10810];
   const W = await import('../game/js/worldends.js');
   for (const e of W.worldEndDebug()) spots.push(['wereldeinde ' + e.id, e.x, e.y]);
 }

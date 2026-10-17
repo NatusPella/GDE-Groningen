@@ -1,17 +1,15 @@
 import {
   BLOCK, PW, PL, ROAD_IN, ROAD_W, MAIN_HW, MAAR_WATER,
-  chash, countryRect, countryMask, edgeDistance, edgeRoad, maarX, maarY, villageOf, ditchRamp,
-  realBlock, urbanWeight,
+  chash, countryRect, countryMask, edgeDistance, edgeRoad, maarX, maarY, villageOf, ditchRamp, provinceBlock,
 } from './countryfield.js';
-import { EDGE } from './countryedge.js';
-import { REAL, realPlaceLabels } from './countryreal.js';
-import { FARM_TYPES, blockPlanCached, blockPlan, villagePlan, turbineRow, turbineValid, isPlanned, pylonsAround, ROAD_ROW, TREE_ROW_P } from './countryplan.js';
+import { provinceMapBounds } from './provincemap.js';
+import { FARM_TYPES, blockPlanCached, blockPlan, villagePlan, ROAD_ROW, TREE_ROW_P } from './countryplan.js';
+import { farPropsIn } from './farprops.js';
 
-// The Ommelanden on the 2D maps (minimap and full map), drawn from the same
-// plan as the 3D world: meadows fading in past the city edge, the ditch
-// grid and maaren, polder roads and the roads carried on from the city,
-// canals, rail lines, farmsteads, villages, the fringe parks and houses,
-// tree rows and turbines. Drawn in world units into a world-transformed
+// The procedural countryside on the 2D maps (minimap and full map), drawn from
+// the same plan as the 3D world: meadows fading in past the city edge, the
+// ditch grid and maaren, polder roads, farmsteads, villages, tree rows and
+// turbines. What the province's tiles hold is drawn from them. Drawn in world units into a world-transformed
 // context; callers cache (mapview tiles) or keep the area small (minimap).
 
 // One land colour for the city and the Ommelanden on each map, so the edge
@@ -37,8 +35,8 @@ const C = ROAD_IN + ROAD_W / 2;
 
 // A w x h canvas in one colour whose alpha (0-255) is alpha(k) per pixel,
 // filled in row bands: step(ms) goes on for about that long, finish() does
-// the rest at once. The water field is ~6 M pixels: built in one go it was a
-// ~100 ms frame on the first minimap tile over the Ommeland.
+// the rest at once (the meadow mask is ~1 M pixels: built in one go it is a
+// frame of its own).
 function alphaCanvas(w, h, color, alpha) {
   const c = document.createElement('canvas');
   c.width = w; c.height = h;
@@ -71,66 +69,6 @@ function alphaCanvas(w, h, color, alpha) {
   return job;
 }
 
-// The real water (countryreal.js distance field) as an image per colour.
-const waterCache = new Map();
-function waterJob(color) {
-  const W = REAL.ready && REAL.waterField;
-  if (!W) return null;
-  let j = waterCache.get(color);
-  if (!j) {
-    j = alphaCanvas(W.w, W.h, color, (k) => {
-      const d = (W.data[k] - 128) / 4;
-      return d < -8 ? 0 : Math.round(255 * Math.min(1, Math.max(0, (d + 5) / 10)));
-    });
-    waterCache.set(color, j);
-  }
-  return j;
-}
-function realWaterImage(color) {
-  const j = waterJob(color);
-  return j ? j.finish() : null;
-}
-
-// The real water, canals and church towers in the window.
-function drawReal(ctx, x0, y0, x1, y1, pxPerM, st) {
-  if (!REAL.ready) return;
-  const E = REAL.ext;
-  if (x1 < E[0] || x0 > E[2] || y1 < E[1] || y0 > E[3]) return;
-  const px = (n) => n / pxPerM;
-  const img = realWaterImage(st.water);
-  if (img) {
-    const W = REAL.waterField;
-    ctx.save();
-    ctx.imageSmoothingEnabled = true;
-    ctx.drawImage(img, W.x0, W.y0, W.w * W.cell, W.h * W.cell);
-    ctx.restore();
-  }
-  ctx.save();
-  ctx.lineCap = 'round';
-  ctx.lineJoin = 'round';
-  ctx.strokeStyle = st.water;
-  for (const w of REAL.waterways) {
-    if (!w.box) w.box = boxOf(w.pts, w.hw);
-    if (w.box[2] < x0 || w.box[0] > x1 || w.box[3] < y0 || w.box[1] > y1) continue;
-    ctx.lineWidth = Math.max(px(1), w.hw * 2);
-    line(ctx, w.pts);
-  }
-  ctx.fillStyle = st.church;
-  for (const c of REAL.churches) if (c.x > x0 && c.x < x1 && c.y > y0 && c.y < y1) ctx.fillRect(c.x - 11, c.y - 5, 22, 10);
-  ctx.restore();
-}
-function boxOf(P, m) {
-  let a = Infinity, b = Infinity, c = -Infinity, d = -Infinity;
-  for (const [x, y] of P) { a = Math.min(a, x); b = Math.min(b, y); c = Math.max(c, x); d = Math.max(d, y); }
-  return [a - m, b - m, c + m, d + m];
-}
-function line(ctx, P) {
-  ctx.beginPath();
-  ctx.moveTo(P[0][0], P[0][1]);
-  for (let i = 1; i < P.length; i++) ctx.lineTo(P[i][0], P[i][1]);
-  ctx.stroke();
-}
-
 // Meadow wherever the real data ends (the coverage mask, feathered like
 // the ground shader), plain meadow beyond the mask grid. Draw before the
 // city's own layers.
@@ -157,7 +95,7 @@ function meadowImage(st) {
 // the title screen), before the first minimap tile or map view needs them.
 export function warmCountryMaps(sliceMs = 4) {
   const jobs = [];
-  for (const st of [MINI_STYLE, MAP_STYLE]) jobs.push(waterJob(st.water), meadowJob(st));
+  for (const st of [MINI_STYLE, MAP_STYLE]) jobs.push(meadowJob(st));
   const next = () => {
     const j = jobs.find((q) => q && !q.done);
     if (!j) return;
@@ -192,7 +130,7 @@ export function drawCountryBase(ctx, x0, y0, x1, y1, st) {
 export function drawCountryDetail(ctx, x0, y0, x1, y1, pxPerM, st) {
   // never loop over more than the countryside anyone can reach
   const rr = countryRect(), LIM = 7000;
-  const E = REAL.ready ? REAL.ext : [Infinity, Infinity, -Infinity, -Infinity];
+  const E = provinceMapBounds() || [Infinity, Infinity, -Infinity, -Infinity];
   x0 = Math.max(x0, Math.min(E[0], rr.cx - rr.hx - LIM)); y0 = Math.max(y0, Math.min(E[1], rr.cy - rr.hy - LIM));
   x1 = Math.min(x1, Math.max(E[2], rr.cx + rr.hx + LIM)); y1 = Math.min(y1, Math.max(E[3], rr.cy + rr.hy + LIM));
   if (x0 >= x1 || y0 >= y1) return;
@@ -217,7 +155,7 @@ export function drawCountryDetail(ctx, x0, y0, x1, y1, pxPerM, st) {
       const qx = ax + (bx - ax) * t0, qy = ay + (by - ay) * t0, rx = ax + (bx - ax) * t1, ry = ay + (by - ay) * t1;
       const mx = (qx + rx) / 2, my = (qy + ry) / 2;
       if (edgeDistance(mx, my) < 5) continue;
-      if (REAL.ready && (notReal ? realBlock(Math.floor(mx / BLOCK), Math.floor(my / BLOCK)) : urbanWeight(mx, my) > 0.5)) continue;
+      if (notReal && provinceBlock(Math.floor(mx / BLOCK), Math.floor(my / BLOCK))) continue;
       seg(qx, qy, rx, ry);
     }
   };
@@ -236,7 +174,7 @@ export function drawCountryDetail(ctx, x0, y0, x1, y1, pxPerM, st) {
           const hS = chash(col + bx * 131 + 5, by * 977 + 61);
           for (let b = 0; b < BLOCK; b += 80) {
             const [mx, my] = W(col * PW, b + 40);
-            if (hS >= ditchRamp(mx, my) || edgeDistance(mx, my) < 0 || urbanWeight(mx, my) > 0.5) continue;
+            if (hS >= ditchRamp(mx, my) || edgeDistance(mx, my) < 0) continue;
             const [ax, ay] = W(col * PW, b), [cx, cy] = W(col * PW, b + 80);
             seg(ax, ay, cx, cy);
           }
@@ -246,7 +184,7 @@ export function drawCountryDetail(ctx, x0, y0, x1, y1, pxPerM, st) {
             const b = row * PL - off;
             if (b <= 0) continue;
             const [mx, my] = W(c0 * PW + PW / 2, b);
-            if (chash(c0 * 31 + bx * 7 + row * 131, by * 977 + 71) >= ditchRamp(mx, my) || edgeDistance(mx, my) < 0 || urbanWeight(mx, my) > 0.5) continue;
+            if (chash(c0 * 31 + bx * 7 + row * 131, by * 977 + 71) >= ditchRamp(mx, my) || edgeDistance(mx, my) < 0) continue;
             const [ax, ay] = W(c0 * PW, b), [cx, cy] = W(col * PW, b);
             seg(ax, ay, cx, cy);
           }
@@ -273,20 +211,6 @@ export function drawCountryDetail(ctx, x0, y0, x1, y1, pxPerM, st) {
   for (let by = by0; by <= by1 + 1; by++) if (maarY(by)) segOut(x0, by * BLOCK, x1, by * BLOCK, 120, true);
   ctx.stroke();
   ctx.globalAlpha = 1;
-
-  // canals carried on from the city
-  ctx.strokeStyle = st.water;
-  for (const c of EDGE.canals) {
-    ctx.lineWidth = c.hw * 2;
-    ctx.lineCap = c.pond ? 'round' : 'butt';
-    ctx.lineJoin = 'round';
-    ctx.beginPath();
-    ctx.moveTo(c.a[0], c.a[1]);
-    ctx.lineTo(c.m[0], c.m[1]);
-    ctx.lineTo(c.b[0], c.b[1]);
-    ctx.stroke();
-  }
-  ctx.lineCap = 'butt';
 
   // tree rows along polder roads and strip boundaries
   if (pxPerM > 0.55) {
@@ -339,59 +263,7 @@ export function drawCountryDetail(ctx, x0, y0, x1, y1, pxPerM, st) {
   ctx.stroke();
   ctx.restore();
 
-  drawReal(ctx, x0, y0, x1, y1, pxPerM, st);
-
-  // rail lines leaving the map (the city layer draws the part inside)
   ctx.save();
-  ctx.lineJoin = 'round';
-  for (const pass of [0, 1]) {
-    const w = Math.max(px(pass ? 0.9 : 2.6), pass ? 1.2 : 3.2);
-    ctx.strokeStyle = pass ? st.railTie : st.rail;
-    ctx.lineWidth = w;
-    ctx.setLineDash(pass ? [w * 1.4, w * 1.4] : []);
-    ctx.beginPath();
-    for (const [a, b] of EDGE.rails) seg(a[0], a[1], b[0], b[1]);
-    ctx.stroke();
-  }
-  ctx.restore();
-
-  // roads carried on from the city (from their start under the city road)
-  ctx.save();
-  ctx.lineCap = 'round';
-  ctx.lineJoin = 'round';
-  for (const k of EDGE.connectors) {
-    const major = k.cat === 'major';
-    ctx.strokeStyle = major ? st.major : k.cat === 'minor' ? st.minor : st.road;
-    for (let i = 0; i < k.pts.length - 1; i++) {
-      const a = k.pts[i], b = k.pts[i + 1];
-      ctx.lineWidth = Math.max(px(major ? st.majorMin : st.roadMin), (k.ws[i] + k.ws[i + 1]) / 2);
-      ctx.beginPath();
-      seg(a[0], a[1], b[0], b[1]);
-      ctx.stroke();
-    }
-  }
-  ctx.restore();
-
-  ctx.save();
-  // fringe parks, business halls and ribbon houses
-  for (const f of EDGE.features) {
-    const q = f.rect;
-    if (q[2] < x0 || q[0] > x1 || q[3] < y0 || q[1] > y1) continue;
-    ctx.fillStyle = st[f.kind === 'allot' ? 'allot' : f.kind === 'sports' ? 'sports' : 'business'];
-    ctx.fillRect(q[0], q[1], q[2] - q[0], q[3] - q[1]);
-    if (pxPerM > 0.4) {
-      ctx.fillStyle = st.building;
-      for (const b of f.boxes) ctx.fillRect(b[0], b[1], b[2] - b[0], b[3] - b[1]);
-    }
-  }
-  if (pxPerM > 0.25) {
-    ctx.fillStyle = st.building;
-    for (const h of EDGE.houses) {
-      if (h.x < x0 - 10 || h.x > x1 + 10 || h.y < y0 - 10 || h.y > y1 + 10) continue;
-      rotRect(ctx, h.x, h.y, 8, 9, h.angle);
-    }
-  }
-
   // farmsteads and village houses
   const detail = pxPerM > 0.18;
   for (let bx = bx0; bx <= bx1; bx++) {
@@ -417,24 +289,17 @@ export function drawCountryDetail(ctx, x0, y0, x1, y1, pxPerM, st) {
     ctx.fillRect(v.x - 13, v.y - 5.5, 26, 11);
   }
 
-  // turbines and mills (only where the plan is already known)
+  // the wind turbines of the province's tiles
   if (pxPerM > 0.08) {
-    const M = BLOCK * 3;
     ctx.strokeStyle = st.turbine;
     ctx.lineWidth = Math.max(px(1.2), 2);
     ctx.beginPath();
-    for (let my = Math.floor(y0 / M); my <= Math.floor(y1 / M); my++) {
-      for (let mx = Math.floor(x0 / M); mx <= Math.floor(x1 / M); mx++) {
-        for (const t of turbineRow(mx, my)) {
-          if (t.x0 < x0 - 60 || t.x0 > x1 + 60 || t.y0 < y0 - 60 || t.y0 > y1 + 60) continue;
-          if (!isPlanned(t.x0, t.y0) || !turbineValid(t)) continue;
-          const L = Math.max(px(5), 14);
-          for (let k = 0; k < 3; k++) {
-            const a = -Math.PI / 2 + (k * Math.PI * 2) / 3;
-            ctx.moveTo(t.x, t.y);
-            ctx.lineTo(t.x + Math.cos(a) * L, t.y + Math.sin(a) * L);
-          }
-        }
+    const L = Math.max(px(5), 14);
+    for (const t of farPropsIn(x0 - 60, y0 - 60, x1 + 60, y1 + 60).turbines) {
+      for (let k = 0; k < 3; k++) {
+        const a = -Math.PI / 2 + (k * Math.PI * 2) / 3;
+        ctx.moveTo(t[0], t[1]);
+        ctx.lineTo(t[0] + Math.cos(a) * L, t[1] + Math.sin(a) * L);
       }
     }
     ctx.stroke();
@@ -450,9 +315,8 @@ function rotRect(ctx, x, y, w, h, angle) {
 }
 
 // Village names for map labels in a window: [{ name, x, y }].
-const PLACE_RANK = { town: 0, village: 1, suburb: 2, hamlet: 3, quarter: 4 };
 export function villageLabels(x0, y0, x1, y1) {
-  const out = realPlaceLabels(x0, y0, x1, y1).sort((a, b) => PLACE_RANK[a.kind] - PLACE_RANK[b.kind]);
+  const out = [];
   // procedural villages only as far out as anyone can reach
   const rr = countryRect(), LIM = 16000;
   x0 = Math.max(x0, rr.cx - LIM); y0 = Math.max(y0, rr.cy - LIM);

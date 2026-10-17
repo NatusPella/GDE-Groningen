@@ -10,15 +10,16 @@ import { recordUnique, hasUnique, recordStat } from './achievements.js';
 import { makeTwoWheeler } from './vehicle.js';
 import { buildVehicleMesh } from './models3d_vehicles.js';
 import { flashScreen } from './postfx3d.js';
-import { realWater, chash } from './countryfield.js';
-import { buildingAt, tilesIn, withTiles } from './tileplace.js';
+import { chash } from './countryfield.js';
+import { WATER_Y } from './util.js';
+import { buildingAt, tilesIn, withTiles, waterGap } from './tileplace.js';
 import { findOpenSpot, openGround, waterNear, shoreFrom } from './ommelandplace.js';
 import { buildProp, disposeProp, animateProp, eierbalMesh, personMesh } from './ommelandprops3d.js';
 import { speak, duoSpeaker } from './ommelandtalk.js';
 import { VILLAGES, QUIZ, DUO } from './ommelandlines.js';
 
-// Dorpsuitjes: a reason to take the train out to each Ommeland station
-// (countryreal.js stations, stationtravel.js halts). Per village one thing
+// Dorpsuitjes: a reason to take the train out to each countryside station
+// (map.countryStations, stationtravel.js halts). Per village one thing
 // to do there (tennis, a canal trip, the Gronings quiz, the mill, the
 // leaning tower, the wierde, the bell, the beach), a place to eat, shop or
 // hire a bike, a hidden eierbal and a signpost at the platform pointing at
@@ -33,8 +34,8 @@ export const SET_DONE = 'dorpsuitjes';
 export const SET_EGGS = 'dorpseierballen';
 const EGG_PAY = 25, RENT_PRICE = 5, TENNIS_PRICE = 8, BOAT_PRICE = 6, CAFE_PRICE = 6;
 const FIT_S = 180;
-// the country water is painted on the ground (countrylife.js boats ride at -0.18)
-const BOAT_Y = -0.18;
+// the boat rides on the tiles' water, at the level every boat sits at (scene3d.js)
+const BOAT_Y = WATER_Y;
 
 // Stock of the farm shops and the beach kiosk: [id, label, desc, price, health, armour]
 const FARM_STOCK = [
@@ -64,20 +65,21 @@ function toWorld(a, lx, lz) {
 
 // --- placement ------------------------------------------------------------------
 
-function canalDir(wx, wy) {
+function canalDir(map, wx, wy) {
   let best = 0, bestV = -Infinity;
   for (let k = 0; k < 36; k++) {
     const a = (k / 36) * Math.PI * 2;
     let v = Infinity;
-    for (let s = 20; s <= 140; s += 20) v = Math.min(v, realWater(wx + cosA(a) * s, wy + sinA(a) * s));
+    for (let s = 20; s <= 140; s += 20) v = Math.min(v, waterGap(map, wx + cosA(a) * s, wy + sinA(a) * s, 6));
     if (v > bestV) { bestV = v; best = a; }
   }
   return best;
 }
 
-// The shore the station's water walk ends at (water and shore only, no tiles needed).
+// The shore the station's water walk ends at: the water within rMax, on the
+// tiles that are in (shoreTiles asks for them).
 function shoreCandidate(map, st, depth, rMax) {
-  const w = waterNear(st.x, st.y, { depth, rMax });
+  const w = waterNear(map, st.x, st.y, { depth, rMax });
   if (!w) return null;
   const sh = shoreFrom(map, w.x, w.y, st.x, st.y, 3);
   return sh ? { w, sh } : null;
@@ -93,7 +95,9 @@ function shoreSpot(map, st, depth, rMax) {
     const x = sh.x + sh.ux * back, y = sh.y + sh.uy * back;
     if (openGround(map, x, y, { r: 1.5, road: 0.5 })) return { x, y, a, water: w };
   }
-  return null;
+  // a road or a quay along the water: the nearest open ground within 16 m of it, looking at the water
+  const q = findOpenSpot(map, sh.x, sh.y, { rMin: 3, rMax: 36, step: 3, opts: { r: 1.5, road: 0.5 }, test: (px, py) => { const g = waterGap(map, px, py, 20); return g < -2 && g > -16; } });
+  return q ? { x: q.x, y: q.y, a: Math.atan2(w.y - q.y, w.x - q.x), water: w } : null;
 }
 
 function spotFor(map, st, kind) {
@@ -141,14 +145,18 @@ function makeAct(v, role, def, spot) {
 
 // Where the water and beach uitjes look for their shore: [depth, how far from the station]
 const SHORE = { boot: [18, 1600], strand: [28, 2600] };
-// the tiles a village is placed on: round its station and round the shore of its water uitje
+// the tiles a village is placed on: round its station and, for a water uitje, the
+// whole disc its shore is searched in (rings of points a window apart)
 const PLACE_WINDOW = 460;
 function placePoints(map, v) {
   const pts = [[v.st.x, v.st.y]];
   for (const def of [v.V.special, v.V.amenity]) {
     const q = SHORE[def.kind];
-    const c = q && shoreCandidate(map, v.st, ...q);
-    if (c) pts.push([c.sh.x, c.sh.y]);
+    if (!q) continue;
+    for (let r = 800; r < q[1] + 700; r += 800) {
+      const n = Math.round((r / 800) * 6);
+      for (let k = 0; k < n; k++) pts.push([v.st.x + Math.cos((k / n) * Math.PI * 2) * r, v.st.y + Math.sin((k / n) * Math.PI * 2) * r]);
+    }
   }
   return pts;
 }
@@ -516,7 +524,7 @@ function updateTennis(dt, w) {
 function boatTrip(w, a) {
   if (!pay(w, BOAT_PRICE)) { w.addMessage('Te weinig geld: het rondvaartje kost €6', 2.5); return; }
   const wp = a.water;
-  const dir = canalDir(wp.x, wp.y);
+  const dir = canalDir(w.map, wp.x, wp.y);
   const [sx, sy] = toWorld(a, 5, 2.2);
   const P = [[sx, sy], [wp.x, wp.y], [wp.x + cosA(dir) * 170, wp.y + sinA(dir) * 170]];
   const boat = a.boat;

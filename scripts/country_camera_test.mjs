@@ -6,7 +6,6 @@
 //   node scripts/country_camera_test.mjs
 import './node3d.mjs';
 import fs from 'node:fs';
-import zlib from 'node:zlib';
 
 const root = new URL('../game/', import.meta.url);
 const { GameMap, applyMapExtras } = await import('../game/js/mapdata.js');
@@ -14,15 +13,11 @@ const data = JSON.parse(fs.readFileSync(new URL('citymap.json', root)));
 applyMapExtras(data, JSON.parse(fs.readFileSync(new URL('mapextras.json', root))));
 const map = new GameMap(data);
 const F = await import('../game/js/countryfield.js');
-const { initReal } = await import('../game/js/countryreal.js');
 const { ensureCountryEdge, blockPlan, pushOutOfPlan } = await import('../game/js/countryplan.js');
 const { countryRayHit } = await import('../game/js/countrycam.js');
 const { setTileTrunks, pushOutOfTrunks } = await import('../game/js/countrywalls.js');
 const C = await import('../game/js/controls.js');
 F.setCountryBounds(map.meta.bounds);
-const om = JSON.parse(fs.readFileSync(new URL('ommeland.json', root)));
-const bin = zlib.gunzipSync(fs.readFileSync(new URL('ommeland.bin', root)));
-initReal(map, { ...om, bin: bin.buffer.slice(bin.byteOffset, bin.byteOffset + bin.byteLength) });
 ensureCountryEdge(map);
 
 let fails = 0;

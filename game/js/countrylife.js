@@ -1,8 +1,7 @@
 import { markInstancesDirty, WATER_Y } from './util.js';
 import { waterAt } from './waterlevels.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { BLOCK, MAAR_WATER, chash, edgeDistance, edgeRoad, maarX, maarY, realBlock, rectOutside } from './countryfield.js';
-import { REAL, inRealExtent } from './countryreal.js';
+import { BLOCK, MAAR_WATER, chash, edgeDistance, edgeRoad, maarX, maarY, provinceBlock, rectOutside } from './countryfield.js';
 import { roadKind } from './tileplace.js';
 import { ROAD_C, openLand } from './countryplan.js';
 import { GeoBuilder, vcMaterial, markShared, composeMatrix, tubeGeometry } from './pixelart3d.js';
@@ -546,7 +545,8 @@ function spawnBoat(px, py, dist) {
   const dir = Math.random() < 0.5 ? 1 : -1;
   const b = { ln, lo, hi, t, dir, lat: -dir * 1.3, speed: 1.8 + Math.random() * 1.8, bob: Math.random() * 6, kind: Math.floor(Math.random() * 3) };
   const [x, y] = boatPos(b);
-  if (!openLand(x, y) || edgeDistance(x, y) < 30 || Math.hypot(x - px, y - py) < 120) return;
+  // (the maaren are the polder grid's: not in the blocks the tiles cover, where their water is)
+  if (!openLand(x, y) || provinceBlock(Math.floor(x / BLOCK), Math.floor(y / BLOCK)) || edgeDistance(x, y) < 30 || Math.hypot(x - px, y - py) < 120) return;
   b.g = new THREE.Mesh(cachedGeo('boat' + b.kind, () => boatGeometry(b.kind)), MAT);
   b.g.castShadow = true;
   b.yaw = boatYaw(b);
@@ -554,61 +554,18 @@ function spawnBoat(px, py, dist) {
   L.boats.push(b);
 }
 
-// Boats on the real canals and rivers (their centre lines, countryreal.js).
-function spawnRealBoat(px, py, dist) {
-  const ways = REAL.boatways;
-  if (!ways || !ways.length) return;
-  const R = Math.random;
-  for (let tries = 0; tries < 6; tries++) {
-    const w = ways[Math.floor(R() * ways.length)];
-    const i = Math.floor(R() * (w.pts.length - 1));
-    const A = w.pts[i], B = w.pts[i + 1];
-    const f = R();
-    const x = A[0] + (B[0] - A[0]) * f, y = A[1] + (B[1] - A[1]) * f;
-    const d = Math.hypot(x - px, y - py);
-    if (d > dist * 1.1 || d < 120 || edgeDistance(x, y) < 30) continue;
-    const dir = R() < 0.5 ? 1 : -1;
-    const b = { real: w, i, f, dir, lat: 0, speed: 1.8 + R() * 2.2, bob: R() * 6, kind: w.hw > 8 ? (R() < 0.6 ? 1 : 0) : Math.floor(R() * 3) };
-    b.g = new THREE.Mesh(cachedGeo('boat' + b.kind, () => boatGeometry(b.kind)), MAT);
-    b.g.castShadow = true;
-    b.yaw = boatYaw(b);
-    L.group.add(b.g);
-    L.boats.push(b);
-    return;
-  }
-}
-
 function boatPos(b) {
-  if (b.real) {
-    const P = b.real.pts, A = P[b.i], B = P[b.i + 1];
-    const L2 = Math.hypot(B[0] - A[0], B[1] - A[1]) || 1;
-    const ux = (B[0] - A[0]) / L2, uy = (B[1] - A[1]) / L2;
-    const off = Math.min(b.real.hw * 0.4, 6) * b.dir;
-    return [A[0] + (B[0] - A[0]) * b.f - uy * off, A[1] + (B[1] - A[1]) * b.f + ux * off];
-  }
   return b.ln.vert ? [b.ln.c + b.lat, b.t] : [b.t, b.ln.c - b.lat];
 }
 function boatYaw(b) {
-  if (b.real) {
-    const P = b.real.pts, A = P[b.i], B = P[b.i + 1];
-    return Math.atan2((B[1] - A[1]) * b.dir, (B[0] - A[0]) * b.dir);
-  }
   return b.ln.vert ? (b.dir > 0 ? Math.PI / 2 : -Math.PI / 2) : (b.dir > 0 ? 0 : Math.PI);
 }
 
 function stepBoat(b, dt, time, map) {
-  if (b.real) {
-    const P = b.real.pts;
-    const segL = () => Math.hypot(P[b.i + 1][0] - P[b.i][0], P[b.i + 1][1] - P[b.i][1]) || 1;
-    b.f += (b.dir * b.speed * dt) / segL();
-    if (b.f > 1) { if (b.i < P.length - 2) { b.i++; b.f = 0; } else { b.f = 1; b.dir = -1; } }
-    if (b.f < 0) { if (b.i > 0) { b.i--; b.f = 1; } else { b.f = 0; b.dir = 1; } }
-  } else {
-    b.t += b.dir * b.speed * dt;
-    if (b.t > b.hi || b.t < b.lo) {
-      b.dir = -b.dir;
-      b.t = Math.min(b.hi, Math.max(b.lo, b.t));
-    }
+  b.t += b.dir * b.speed * dt;
+  if (b.t > b.hi || b.t < b.lo) {
+    b.dir = -b.dir;
+    b.t = Math.min(b.hi, Math.max(b.lo, b.t));
   }
   b.lat += (-b.dir * 1.3 - b.lat) * Math.min(1, dt * 0.4);
   const target = boatYaw(b);
@@ -760,8 +717,7 @@ export function updateCountryLife(dt, world, scene, flocks, fogFar) {
     if (active && L.boatT <= 0) {
       L.boatT = 3 + Math.random() * 4;
       if (L.boats.length < MAX_BOATS) {
-        if (REAL.ready && inRealExtent(p.x, p.y, 400)) spawnRealBoat(p.x, p.y, spawnD);
-        else spawnBoat(p.x, p.y, spawnD);
+        spawnBoat(p.x, p.y, spawnD);
       }
     }
   }

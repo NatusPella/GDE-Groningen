@@ -267,12 +267,6 @@ export function mergeIndex(index, extra, { only = null } = {}) {
   return n;
 }
 
-// The Ommeland data (countryreal.js initReal) out of the global blob.
-export function tileOmmeland(global) {
-  const om = global.sections.find((s) => s.type === SECTION.META && s.json.ommeland).json.ommeland;
-  const bin = global.sections.find((s) => s.type === SECTION.BLOB && s.name === 'ommeland.bin').bytes;
-  return { ...om, bin: bin.buffer.slice(bin.byteOffset, bin.byteOffset + bin.byteLength) };
-}
 
 // The map at `url` (citymap.json) for code that only needs the map: the tile
 // world when the build has tiles, else the JSON files (dev server).

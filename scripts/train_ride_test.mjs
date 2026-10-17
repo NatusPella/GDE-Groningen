@@ -9,7 +9,6 @@
 //   node scripts/train_ride_test.mjs
 import './node3d.mjs';
 import fs from 'node:fs';
-import zlib from 'node:zlib';
 
 // a DOM stub deep enough for the cutscene overlay (cinematics.js) and the ride board
 const noop = () => {};
@@ -29,11 +28,11 @@ const data = JSON.parse(fs.readFileSync(new URL('citymap.json', root)));
 applyMapExtras(data, JSON.parse(fs.readFileSync(new URL('mapextras.json', root))));
 const map = new GameMap(data);
 const F = await import('../game/js/countryfield.js');
-const { initReal } = await import('../game/js/countryreal.js');
 F.setCountryBounds(map.meta.bounds);
-const om = JSON.parse(fs.readFileSync(new URL('ommeland.json', root)));
-const bin = zlib.gunzipSync(fs.readFileSync(new URL('ommeland.bin', root)));
-initReal(map, { ...om, bin: bin.buffer.slice(bin.byteOffset, bin.byteOffset + bin.byteLength) });
+// the routes out of the city as the tile builds bake them (scripts/world/cityroutes.mjs), here the routes' own track
+const { applyCityRoutes } = await import('../game/js/corridorrail.js');
+const { loadCityRouteSource } = await import('./world/cityroutes.mjs');
+applyCityRoutes(map, loadCityRouteSource());
 const RW = await import('../game/js/railway.js');
 const ST = await import('../game/js/stationtravel.js');
 const CI = await import('../game/js/cinematics.js');

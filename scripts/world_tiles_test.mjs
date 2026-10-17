@@ -3,7 +3,7 @@
 // - the codec: every value kind, exact doubles, centimetre points, float64
 //   exceptions, -0 and odd numbers, strings, json, rasters, blobs
 // - the packed world in game/world equals what the packer makes now from
-//   citymap.json + mapextras.json + ommeland.* (so it is not stale)
+//   citymap.json + mapextras.json (so it is not stale)
 // - semantic round trip: decoding every tile and putting the objects back by
 //   gid gives the GameMap's arrays exactly (same doubles, same keys)
 // - byte round trip: decode + encode gives the same blob bytes, and the
@@ -173,8 +173,7 @@ ok((attrSeen.year || 0) > 10000 && (attrSeen.bag || 0) > 10000, 'BAG year and id
   const d = G.decodeBlob(gRaw);
   const meta = Object.assign({}, ...d.sections.filter((s) => s.type === G.SECTION.META).map((s) => s.json));
   ok(canon(meta.meta) === canon(src.map.meta), 'meta round trip');
-  const bin = d.sections.find((s) => s.type === G.SECTION.BLOB);
-  ok(bin.name === 'ommeland.bin' && sameBytes(bin.bytes, src.bin), 'ommeland boxes round trip');
+  ok(!d.sections.some((s) => s.type === G.SECTION.BLOB), 'the global blob holds no blobs');
 }
 // every object in every tile it touches (the bounds rule of the packer)
 {

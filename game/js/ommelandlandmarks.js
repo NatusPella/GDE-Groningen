@@ -1,4 +1,3 @@
-import { REAL } from './countryreal.js';
 import { boxOf, withTiles } from './tileplace.js';
 import { edgeDistance } from './countryfield.js';
 import { landmarkParams } from './landmarkkit.js';
@@ -31,8 +30,7 @@ function churchBox(map, x, y) {
 // The churches without an outline of their own are fitted to a church of the
 // tiles, so their tiles must be in (updateOmmelandLandmarks).
 export function prepareLandmarks(items, map) {
-  const [x0, y0, x1, y1] = REAL.ext;
-  const inside = (it) => it.x > x0 && it.x < x1 && it.y > y0 && it.y < y1 && edgeDistance(it.x, it.y) > 0;
+  const inside = (it) => edgeDistance(it.x, it.y) > 0;
   const churches = [], mills = [], other = [];
   for (const it of items) {
     if (!inside(it)) continue;
@@ -68,9 +66,9 @@ export function prepareLandmarks(items, map) {
   return out.filter(Boolean);
 }
 
-// Per frame from scene3d.js: loads the list once the real Ommeland is in.
+// Per frame from scene3d.js: loads the list once the tiles are in.
 export function updateOmmelandLandmarks(world, scene, focus) {
-  if (!REAL.ready) return;
+  if (!world.map.store) return;
   if (!S) {
     S = { layer: null, list: null };
     window.__landmarkKits = S;

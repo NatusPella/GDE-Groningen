@@ -25,7 +25,7 @@ const PM = await imp('pausemenu');
 const DN = await imp('daynight');
 // hand-placed points are in the legacy frame; builds before worldframe.js keep them as they are
 const { PO = (x, y) => ({ x, y }) } = await imp('worldframe').catch(() => ({}));
-const CR = await imp('countryreal');
+const WP = await imp('worldplaces');
 const CP = await imp('cityprops');
 const RG = await imp('roadgraph');
 const TP = await imp('tileplace');
@@ -72,7 +72,7 @@ const fixWorld = () => {
 // a real street in a village: the residential road of the province's road net
 // nearest the place centre, standing on it looking along it
 function villageSpot(name) {
-  const pl = CR.REAL.places.find((q) => q.n === name);
+  const pl = WP.worldPlaceNamed(name);
   let best = null;
   for (const rd of RG.roadNetRows()) {
     if (rd.kind < 5) continue;
@@ -99,8 +99,10 @@ const VIEWS = [['tenboer', 'Kloosterkerk', 'Ten Boer'], ['zuidhorn', 'Sebastiaan
 
 // 75 m from the church, on open ground, looking at it
 function churchView(church, place) {
-  const pl = CR.REAL.places.find((q) => q.n === place);
-  const c = CR.REAL.churches.filter((q) => q.n === church).sort((a, b) => Math.hypot(a.x - pl.x, a.y - pl.y) - Math.hypot(b.x - pl.x, b.y - pl.y))[0];
+  const pl = WP.worldPlaceNamed(place);
+  // the church building of the tiles nearest the place centre (its tiles must be in)
+  const c = w.map.buildingsNear(pl.x, pl.y, 700).filter((b) => b.type === 'church' && b.bounds).map((b) => ({ x: (b.bounds[0] + b.bounds[2]) / 2, y: (b.bounds[1] + b.bounds[3]) / 2 })).sort((a, b) => Math.hypot(a.x - pl.x, a.y - pl.y) - Math.hypot(b.x - pl.x, b.y - pl.y))[0];
+  void church;
   if (!c) return null;
   // the clearest line of sight: fewest building boxes on the way in
   let best = null;
