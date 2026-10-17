@@ -6,6 +6,9 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Verbeterd
+- **Huizen in smalle straten:** woningen die in oude straten tot op een meter van het wegmidden stonden, houden nu 1,5 m afstand, zodat je auto er niet meer tegenaan botst (`scripts/world/building_clearance.mjs`).
+
 ## [0.34.0] - 2026-10-17
 
 ### Toegevoegd

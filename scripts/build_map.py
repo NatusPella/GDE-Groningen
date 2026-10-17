@@ -27,6 +27,7 @@ Steps (each script edits game/citymap.json in place, see its docstring):
   world/building_heights.mjs  heights (3D BAG > OSM height > levels > default), walls in h, ridge hm, roof rk
   add_helipad           meta.helipad (+ the UMCG helipad wing)
   add_landmark_footprints
+  world/building_clearance.mjs  footprints kept 1.5 m off every car road's centreline (drive_audit 'botst')
   add_shops             meta.shops
   gen_ringroute         game/js/ringroute.js (the ring race lap)
   fetch_ommeland        the Ommelanden ~12 km round town -> data/ommeland_raw.json.gz (only if missing)
@@ -110,6 +111,7 @@ def main():
     run_node("world/building_heights.mjs", "--write")
     run("add_helipad", *extra)
     run("add_landmark_footprints")
+    run_node("world/building_clearance.mjs", "--write")
 
     # the shop cache is stamped with the lat/lon box it was fetched for
     with open(MAP) as f:
