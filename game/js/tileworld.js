@@ -133,6 +133,7 @@ export class TileWorld extends GameMap {
           this._res[kind].set(gid, e);
           if (kind !== 'trees') this._gidOf.set(obj, gid);
           if (kind === 'buildings' || kind === 'roads' || kind === 'water' || kind === 'green') obj.bounds = boundsOfObj(kind, obj);
+          if (kind === 'water') this._waterVer = (this._waterVer || 0) + 1;
           const grid = gridOf(kind, obj);
           if (grid) (this[grid] || (this[grid] = new SpatialGrid(64))).insert(obj, boundsOfObj(kind, obj));
           // a streamed tile's mapped furniture joins the list streetfurniture3d.js reads
@@ -169,6 +170,7 @@ export class TileWorld extends GameMap {
       for (const [gid, e] of this._res[kind]) {
         if (!e.tiles.delete(tk) || e.tiles.size) continue;
         this._res[kind].delete(gid);
+        if (kind === 'water') this._waterVer = (this._waterVer || 0) + 1;
         const grid = gridOf(kind, e.obj);
         if (grid && this[grid]) this[grid].remove(e.obj, boundsOfObj(kind, e.obj));
         if (kind === 'furniture' && this.furniture) { const q = this.furniture.indexOf(e.obj); if (q >= 0) this.furniture.splice(q, 1); }
