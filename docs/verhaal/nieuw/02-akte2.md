@@ -6,8 +6,8 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte2
 
 | | |
 |---|---|
-| **Regio** | Stad (begin), Hogeland (Winsum, Warffum, Usquert), Waddenzee (Zoutkamp, Lauwersmeer, kwelder) |
-| **Sfeer** | de dag na de kraak: Grunn zoekt twee mensen in het zwart; buiten Stad is het zonnig, wijd en stil; wierden, kerken, de dijk, het wad bij laagwater; Noorderzon opent do 20 in Stad (op de radio) |
+| **Regio** | Stad (begin), Hogeland (Winsum, Warffum, Usquert), Waddenzee-kust (Zoutkamp, Reitdiep, monding Lauwersmeer, kwelder; de zee zelf is zichtbaar maar niet bevaarbaar) |
+| **Sfeer** | de dag na de kraak: Grunn zoekt twee mensen in het zwart; buiten Stad is het zonnig, wijd en stil; wierden, kerken, de dijk, de zee aan de horizon en het wad bij laagwater; Noorderzon opent do 20 in Stad (op de radio) |
 | **Tijd** | ca. 55-60 minuten (6 missies + 2 reisbeats) |
 | **Dagen** | di 18 (2.1, 2.2, trein), wo 19 (2.3, 2.4), do 20 (bus, 2.5, 2.6 's nachts) |
 | **Wat de speler leert** | de provincie is groot; reizen is een keuze (trein, bus); trekker, quad, snelle boot, ondiep water; de plakjes van Jelle zichtbaar maken |
@@ -29,7 +29,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte2
 | Usquert | Uithuizen (bushalte) | 6 | quad 4 min (2.4) | geen |
 | Uithuizen | Zoutkamp | 30 | 20 min | streekbus (ride-along, 2 min in beeld; of zelf rijden) |
 | Zoutkamp | Lauwersoog (2.5) | 9 | boot 5 min | geen |
-| Lauwersoog | Noordpolderzijl (2.6) | 14 | boot en wad, 8 min | Klaas' kotter, skip |
+| Lauwersoog | Noordpolderzijl (2.6) | 14 | boot tot de zandplaat (3 min), dan te voet langs de kwelder (5 min) | Klaas' kotter, skip met scène |
 
 ---
 
@@ -246,7 +246,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte2
 | **Id** | `A2-5` (`H14`, mission `skutsje`) |
 | **Plaats** | Zoutkamp naar het Lauwersmeer (Reitdiep) |
 | **Voertuig** | rubberboot (speedboat, `BOAT_KINDS.rubberboot`) |
-| **Mechaniek / hergebruik** | `boatchase`-stage in `missions.js` (skûtsje met zeil, `animateSkutsjeRig`, `heistBoat`); aanboord springen; bestaande def; water in de tegelwereld nodig bij het Reitdiep (RISICO uit FLOW-ANALYSE) |
+| **Mechaniek / hergebruik** | `boatchase`-stage in `missions.js` (skûtsje met zeil, `animateSkutsjeRig`, `heistBoat`); aanboord springen; bestaande def; vaarbaar water nodig voor het Reitdiep en de monding van het Lauwersmeer; verder dan de sluis van Lauwersoog is de Waddenzee wel zichtbaar maar niet bevaarbaar (de achtervolging eindigt bij de sluis, Klaas zegt waarom) |
 | **Doel (hardop)** | "Haal Jelles skûtsje in en spring aan boord: daar ligt de Gouden Eierbal, zegt hij." |
 | **Motief** | hij laat zijn trofee zien aan de pers en aan zijn moeder (Zoutkamp-havenfeest, AANNAME) |
 | **Wat de speler weet** | Jelle bluft; de bal zou op het skûtsje zijn |
@@ -287,15 +287,15 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte2
 | | |
 |---|---|
 | **Id** | `A2-6` (nieuw, step `n-laagwater`) |
-| **Plaats** | Lauwersmeer en de kwelder bij Noordpolderzijl, avond en nacht (do 20) |
-| **Voertuig** | Klaas' sloep (`sloep`) en te voet over het wad |
+| **Plaats** | monding van het Lauwersmeer, een zandplaat en de kwelder bij Noordpolderzijl, avond en nacht (do 20); de Waddenzee ligt zichtbaar ernaast |
+| **Voertuig** | Klaas' sloep (`sloep`) tot de zandplaat, daarna te voet langs de kwelder (de open zee is niet bevaarbaar: Klaas stopt bij de zandplaat) |
 | **Mechaniek / hergebruik** | boot door ondiep water (`waterlevels.js` `shallowWater`), te voet met een oplopende waterlijn (AANNAME: nieuwe kleine timer op bestaande wandelmechaniek); geen nieuw voertuig |
 | **Doel (hardop)** | "Haal het wadzout van de kwelder en ben terug bij de boot voor het water komt." |
 | **Motief** | de vijfde ingrediënt is zout dat nog naar zee smaakt; Jelle kocht de zoutstekers; Klaas kent als enige de vaargeul |
 | **Wat de speler weet** | het lijstje; vet en eieren zijn gered |
-| **Verloop** | 1) Vaargeul zoeken bij laagwater (te ondiep: je loopt vast). 2) Aangespoeld op een zandplaat: tien minuten wachten op het getij (Klaas: "Wachten is het halve werk."). 3) Te voet naar de kwelder, drie zoutkuipen. 4) Terug voor de vloed. **Falen:** water te hoog: "Sikkom.", Klaas pikt je op, nogmaals. |
+| **Verloop** | 1) Vaargeul zoeken bij laagwater tot de zandplaat (te ondiep: je loopt vast; verder de open zee in kan niet, en dat zegt Klaas). 2) Aangespoeld op een zandplaat: tien minuten wachten op het getij (Klaas: "Wachten is het halve werk."). 3) Te voet naar de kwelder, drie zoutkuipen. 4) Terug voor de vloed. **Falen:** water te hoog: "Sikkom.", Klaas pikt je op, nogmaals. |
 | **Leuk-element / uitdaging** | geen race, geen geweld: puur sfeer en tijdsdruk, de rustigste missie van de akte |
-| **Reizen** | Lauwersoog naar Noordpolderzijl 14 km: 8 min met de boot (de missie zelf) |
+| **Reizen** | Lauwersoog naar Noordpolderzijl 14 km: 3 min met de boot tot de zandplaat, 5 min te voet (de missie zelf) |
 | **Romantiek (7/10)** | **De lange blik:** op de zandplaat, sterrenhemel, ze kijken elkaar te lang aan, dan trilt haar telefoon. "Niks. Iemand uit Friesland." Tammo kijkt weg. |
 | **Plot** | het zout is van Jelle verloren; Klaas: "Het donkerste stuk van het land. Hier ziet Jelle ons niet." |
 | **Gevolg / haak** | Rikus: Noorderzon opent. Jelle belt in: "Ik ga naar de haven. Plakje vijf." Klaas: "Dat is Lammerts haven." |

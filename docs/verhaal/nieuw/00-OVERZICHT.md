@@ -115,8 +115,8 @@ Bestaand = uit `docs/personages.md` en `storyarc.js`; **nieuw** alleen waar nodi
 | M10 | 2 | Heel aankomen is ook een kunst | Hogeland, Warffum - Usquert | plakje 3 (eieren); Geesje | Tessa toont koeien en wierden (4) | 3 | trekker, `deliver` |
 | M11 | 2 | Een trekker-limo op de wierde | Hogeland, wierdedorpen | Jelle denkt dat zij de bal hebben; **zijn motief: Mem** | "Voor de grip. Ik heb stuur." (3) | 8 | quad, `escape` |
 | B2 | 2 | De streekbus naar Zoutkamp | Hogeland → Waddenzee | reis is inhoud | (3) | 1 | bus (meerijden of zelf) |
-| M12 | 2 | Geleend van de Friezen | Waddenzee, Zoutkamp - Lauwersmeer | chocoladebal "Foar mem": een oefenbal | "Iedereen is romantischer dan jij." (5) | 8 | rubberboot, `boatchase` |
-| M13 | 2 | Laag water | Waddenzee, kwelder, Noordpolderzijl | plakje 4 (zout); Klaas | **de lange blik**; appje onderbreekt (7) | 3 | sloep en wad |
+| M12 | 2 | Geleend van de Friezen | Waddenzee, Zoutkamp - Lauwersmeer | chocoladebal "Foar mem": een oefenbal | "Iedereen is romantischer dan jij." (5) | 8 | rubberboot op het Reitdiep, `boatchase` (de zee blijft zichtbaar en dicht) |
+| M13 | 2 | Laag water | Waddenzee, kwelder, Noordpolderzijl | plakje 4 (zout); Klaas | **de lange blik**; appje onderbreekt (7) | 3 | sloep tot de zandplaat, dan te voet langs de kwelder |
 | M14 | 3 | Het staat niet in het rooster | Lauwersoog → Dollard | het **koopboek**: acht plakjes | "Dank je dat je het vraagt." (5) | 7 | heli (start: UMCG-dak), lier |
 | M15 | 3 | Het containerlabyrint | Eemshaven | plakje 5 (haven); Lammert | "Je ademt." (4) | 5 | te voet, kraan |
 | M16 | 3 | De dijk | Eemshaven - Delfzijl | Jelle verliest de race | **eerste voorzichtige flirt (Tammo)** (6) | 8 | auto, race |
@@ -236,7 +236,9 @@ Afstanden zijn geschat uit algemene kennis (AANNAME) en moeten met de reisplanne
 | 5 | Zuidhorn-schuur 3, Zuidhorn-Aduard 12, Aduard-Grote Markt 8, Markt-toren-Oma-Markt 6 | 29 | 23 min | 20 min (de colonne is een missie) | Skip met scène |
 | **Totaal** | | **ca. 465** | **ca. 6 uur** | **ca. 70 min** | |
 
-**Luchtvaartuigen: waar ze staan (spawnregel).** Helikopters staan op echte helipads (in de repo: het UMCG-dak, Rotor Roelfs pad op Eelde en het dak van het eigen huis; in de stad bij ziekenhuizen), kleine vliegtuigen alleen op echte vliegvelden of -stroken in de Ommeland (Eelde en een of twee andere, nog te controleren). In de stad staat geen vliegtuig, omdat daar geen vliegveld is. Allebei mogen overal in de provincie vliegen, en een missie buiten de stad mag een heli gebruiken (bijvoorbeeld M14: de heli start op het UMCG-dak en vliegt naar het noorden) of een vliegtuig (M18: start op de strook in het Oldambt). Spawnpunten met bronnen: zie 08-IMPLEMENTATIE.md §3b.
+**Luchtvaartuigen: waar ze staan (spawnregel).** Helikopters staan op echte helipads (in de repo: het UMCG-dak, Rotor Roelfs pad op Eelde en het dak van het eigen huis; andere helipads alleen als ze echt bestaan), kleine vliegtuigen alleen op echte vliegvelden of -stroken in de Ommeland (Eelde en een of twee andere, nog te controleren). In de stad staat geen vliegtuig, omdat daar geen vliegveld is. Allebei mogen overal in de provincie vliegen, en een missie buiten de stad mag een heli gebruiken (bijvoorbeeld M14: de heli start op het UMCG-dak en vliegt naar het noorden) of een vliegtuig (M18: start op de strook in het Oldambt). Spawnpunten met bronnen: zie 08-IMPLEMENTATIE.md §3b.
+
+**De zee (besluit van de eigenaar).** De Waddenzee en de Noordzee staan op de kaart en in de wereld: een zichtbare zee met kust, kwelder en strand, ook als horizon vanaf de dijk en uit de heli. Ze hoeven niet bevaarbaar te zijn; vaarbaar zijn alleen het Reitdiep, de monding van het Lauwersmeer en de havens (M12, M13, M20). Wie verder wil, krijgt een scène: de sluis, een zandbank of Klaas weigert ("Daar vaar ik niet met een sloep").
 
 **Regels (uit #97):** één regio per akte (Stad is begin en eind); 1-3 minuten tussen opeenvolgende doelen, nooit meer dan 5 minuten zonder gesprek, event of keuze; reizen is inhoud (autogesprekken, radio, kleine events); de missie geeft het voertuig; bij falen respawn je bij het doel of het laatste checkpoint, niet in Stad; ETA en route op de missiekaart; de dag eindigt in de regio waar je bent (een verhaaldag dekt de reis).
 

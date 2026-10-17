@@ -40,8 +40,8 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Er is geen code aangepast. Alles h
 | M09 | Fatbikes en Oma | def `fatbike` | nieuwe scène: lijstje en recept | nee |
 | M10 | Eieren (Hogeland) | `deliver` met `TRACTOR_MODEL` (`vehicle.js`); def nieuw | breekbare lading: eieren als teller; routes via wierdepaden (`countryside.js`, `countryplan.js`) | ja, klein |
 | M11 | Trekker-limo op de wierde | `escape`-stage; `QUAD_MODEL` en `trekkerlimo` bestaan; `fierljep.js` voor de animatie | nieuwe def en route | ja, klein-M |
-| M12 | Skûtsje | def `skutsje` (`boatchase`, `animateSkutsjeRig`, `rubberboot`) | start en route naar Zoutkamp en het Reitdiep; **water in de tegelwereld nodig** (`tilewatermask.js`, `waterindex.js`, `water3d.js`) | nee (def), **ja (water)** |
-| M13 | Laag water | boot door ondiep water (`waterlevels.js` `shallowWater`); te voet met timer | nieuwe def; nieuwe kleine "opkomend water"-timer | ja, M |
+| M12 | Skûtsje | def `skutsje` (`boatchase`, `animateSkutsjeRig`, `rubberboot`) | start en route naar Zoutkamp en het Reitdiep; **zichtbare zee en vaarbaar Reitdiep/Lauwersmeer-monding nodig** (`tilewatermask.js`, `waterindex.js`, `water3d.js`); de achtervolging eindigt bij de sluis van Lauwersoog | nee (def), **ja (water)** |
+| M13 | Laag water | boot door ondiep water (`waterlevels.js` `shallowWater`); te voet met timer | nieuwe def: sloep tot de zandplaat (beperkt vaarwater), daarna te voet langs de kwelder met een kleine "opkomend water"-timer; de open zee is alleen te zien | ja, M |
 | M14 | Rooster (heli) | def `traumaduif` (`helirun.js`, `heliplan.js` autopilot) | spawn: heli op het UMCG-dak (pad `umcg`, bestaat), autopilot naar Lauwersoog; daarna route naar de Dollard; ballon en koffer als props (`skyprops.js`) | nee (def), ja (route) |
 | M15 | Containerlabyrint | `heist.js` stages (camera's, bewakers, zekering, `plan`) | nieuwe def; een kraankooi als interactiepunt | ja, M |
 | M16 | De dijk | `racers.js`, `createRace`; structuur van `RING_ROUTE` | nieuwe routedata langs de dijk (AANNAME: uit de wegen te trekken met `ringroute.js` en `scripts/gen_ringroute.py`) | ja, M |
@@ -68,7 +68,8 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Er is geen code aangepast. Alles h
 | Appjes zonder stem (`silent`) | S | `phonefeed.js`, `smsvoice.js` |
 | Radio dimt bij missie en gesprek | S (als duck bestaat) | `audio.js`, `radio.js` |
 | Het Loket (gebouw, bijbaan) | M | `sidejob_rechtbank.js`, `marktgebouwen.js` |
-| Water in de tegelwereld bij Zoutkamp/Reitdiep/Lauwersmeer | M-L (risico) | `tilewatermask.js`, `waterindex.js`, `water3d.js` |
+| **Zee zichtbaar op de kaart en in de wereld** (Waddenzee, Noordzee, kust, kwelder; vereiste) | M | `tilewatermask.js`, `waterindex.js`, `water3d.js`, `mapview.js` |
+| Beperkt bevaarbaar water: Reitdiep, monding Lauwersmeer, havens; scènes voor "hier kun je niet verder" (sluis, zandbank, Klaas weigert) | M (risico) | `waterlevels.js`, `boattypes.js`, `missions.js` |
 | Opkomend-water timer op het wad | S-M | `waterlevels.js` |
 | **Vliegtuigmodus (nieuw voertuig)** | L | `heliflight.js` (basis), `skyprops.js`; werklijst in §3b |
 | Lopen op een rijdende trein | M-L | `railway.js`, `traindrive.js` |
@@ -118,7 +119,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Er is geen code aangepast. Alles h
 | Risico | Wat | Wat helpt |
 |---|---|---|
 | **Saves breken** | stappen verdwijnen of krijgen een andere volgorde; `MISSION_IDS`-indices staan in saves | alleen toevoegen aan `MISSION_IDS`; oude stappen via `RETIRED_STEPS`; migratietest |
-| **Water in de tegelwereld** | Reitdiep, Lauwersmeer en wad ontbreken misschien in de tiles (FLOW-ANALYSE noemt het) | eerst een bestaande water-check (`scripts/province_water_audit.mjs`); anders M12 en M13 vervangen door de rubberboot op bestaand water of een scène |
+| **Zee en water in de tegelwereld** | Waddenzee en Noordzee moeten op de kaart en in de wereld te zien zijn (eis van de eigenaar); Reitdiep en Lauwersmeer-monding ontbreken misschien (FLOW-ANALYSE) | eerst `scripts/province_water_audit.mjs`; de zee hoeft niet vaarbaar, alleen zichtbaar; de vaarstukken blijven beperkt tot Reitdiep, monding en havens; waar je niet verder kunt, een scène in plaats van een muur |
 | **Vliegtuig** | geen bestaande vliegtuigmodus gevonden; geen echte vliegvelddata in de repo | M18 als heli-missie vanaf een Ommeland-helipad bouwen; vliegtuig later; eerst de strook-controle uit §3b |
 | **Trein-lopen** | een gebied waar de physics vol onzekerheid zit | alleen de scène in M22 en Tammo als machinist |
 | **Afstanden** | ruim 460 km reisafstand over alle akten (schatting) | elke reisbeat kent trein, bus, heli of skip; "Overal en nergens"-sprong van #97 |
