@@ -3,7 +3,7 @@ import { pointInPolygon, closestPointOnSegment, inWaterPoly } from './util.js';
 import { propsInRadius } from './breakables.js';
 import { villageKerbs, villageSlotFree } from './countryvillage.js';
 import { BLOCK, chash, edgeDistance, urbanWeight, realWater } from './countryfield.js';
-import { REAL, RTILE, buildingsInTile, roadsInTile, buildingModel, buildingAt } from './countryreal.js';
+import { REAL, RTILE, allBuildingsInTile, roadsInTile, buildingModel, buildingAt } from './countryreal.js';
 import { blockPlan, farmDetail, farmWorld, pushOutOfPlan, FARM_TYPES } from './countryplan.js';
 import { roadGap } from './countryedge.js';
 import { baysIn } from './parkinglots.js';
@@ -248,7 +248,7 @@ function* countrySlots(x0, y0, slots) {
   }
   if (!REAL.ready) return;
   const tx = Math.floor(x0 / RTILE), ty = Math.floor(y0 / RTILE);
-  for (const i of buildingsInTile(tx, ty) || []) {
+  for (const i of allBuildingsInTile(tx, ty) || []) {
     if (REAL.code[i] !== 4 && REAL.code[i] !== 0) continue;
     const q = barnTractorSpot(i);
     if (q && inCell(q.x, q.y) && countryFree(q.x, q.y, q.angle, q.model)) take(q);

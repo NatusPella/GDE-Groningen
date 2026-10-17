@@ -1370,11 +1370,12 @@ server, `?legacymap`).
   1 + 4 + 32, 8 where the old Ommeland draws, 16 in the buffer strip) into
   `v<pack>-<hash>.gdp` + `index-provincie.json` (places with districts,
   stations, train lines over the track from the OSM route relations, coast
-  and border lines, outline, the base map's meta) + `provincie-bus.json`;
-  `province_map.mjs` paints the base map pyramid (`provmap/z0-3`, 160 to
+  and border lines, outline, the base map's meta) + `provincie-bus.json` and `provincie-roads.json.gz` (the car roads of
+  all packs, the route graph's source: `roadgraph.js`, used by `routing.js`
+  and `police.js`); the city tiles' empty edges get overlay tiles (key `o` +
+  tile key, flag 64, `citycover.mjs`) that load at start; `province_map.mjs` paints the base map pyramid (`provmap/z0-3`, 160 to
   20 m a pixel, PNG). The stage builds it when the caches are there. In the
-  game `provinceworld.js` decides the mode (`?provincie`, desktop
-  `--provincie`, `?legacy` off; `PROVINCE_DEFAULT`), makes the polder blocks
+  game the tiles always stream; `provinceworld.js` makes the polder blocks
   under the streamed tiles real blocks (`countryfield.js setProvinceBlocks`,
   the `uProvBlocks` texture in the ground shader: no procedural roads,
   maaren, villages or farms) and keeps the countryside's props off real

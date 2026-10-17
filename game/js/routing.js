@@ -233,6 +233,8 @@ function snapToRoad(map, x, y, kind, lvl = null) {
     for (const road of map.roadsNear(x, y, r)) {
       if (!usable(road)) continue;
       const rn = graph.roadNodes.get(road);
+      // a streamed tile's road is the road graph's (roadgraph.js), not the city graph's
+      if (!rn) continue;
       const inMain = cc.comp[rn[0]] === cc.main;
       const p = road.pts, Z = road.z;
       for (let i = 0; i < p.length - 1; i++) {
