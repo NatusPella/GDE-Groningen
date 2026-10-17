@@ -12,7 +12,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte3
 | **Dagen** | vr 21 (3.1, 3.2 's nachts), za 22 (3.3, 3.4), zo 23 (3.5, 3.6) |
 | **Wat de speler leert** | helikopter (aan een touw), sluipen tussen containers, een race met wind, een kermis te voet, een klein vliegtuig, botsauto's |
 | **Plot** | Het koopboek van Jelle laat zien dat zijn plan uit acht plakjes bestaat. De haven (plakje 5) wordt met een lijst van Lammert, de havenmeester, ontmanteld. In Winschoten blijkt dat **Jelle en Tammo allebei denken dat de ander de bal heeft**. Jelles jury (plakje 6) loopt voor een deel weg. Durk en Douwe laten hun baas niet los, maar zijn hem kwijt in een botsauto |
-| **Romantiek** | **Eerste voorzichtige flirt** (Tammo, 3.3): "Je ziet er goed uit met wind." Tessa denkt dat het een grap is. **De eerste kus** (3.6): de dijk, na de kermis. Daarna doen ze alsof het niet gebeurd is. Tessa verzwijgt dat ze weet waar de bal staat: de eerste leugen. |
+| **Romantiek** | **Eerste voorzichtige flirt** (Tammo, 3.3): "Je ziet er goed uit met wind." Tessa denkt dat het een grap is. **De eerste kus** (3.6): de dijk, na de kermis. Daarna doen ze alsof het niet gebeurd is. Tessa verzwijgt Mems appjes voor Tammo (ze weet niet waar de bal is): haar eerste geheim. |
 | **Haak naar akte 4** | Durk, onder invloed: "Baas gaat naar Veendam, voor de mosterd. Plakje zeven." Tessa's telefoon: "Nog vijf dagen. – M." |
 
 **Het midden van het verhaal:** 3.4 (Durk) is het keerpunt. Tot dan jagen ze Jelle voor de bal; vanaf hier jagen ze Jelles plan en zoeken ze allebei naar wie hem wel heeft. De kus (3.6) sluit akte 3.
@@ -37,7 +37,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte3
 |---|---|
 | **Id** | `A3-1` (`H15`, mission `traumaduif`, aangepast) |
 | **Plaats** | Lauwersoog (helikopterplatform), UMCG (lunch), de Dollard (ballon) |
-| **Voertuig** | helikopter (Dijkstra vliegt, Tessa vliegt het laatste stuk) |
+| **Voertuig** | helikopter (Dijkstra vliegt, Tessa vliegt het laatste stuk). **Spawn:** de heli staat op het UMCG-dak (bestaand pad `umcg`) en vliegt naar het noorden, naar Lauwersoog, om hen op te halen |
 | **Mechaniek / hergebruik** | `heli`-stage (`helirun.js`, `heliflight.js`): lier, naast de mand hangen, `heliplan.js` autopilot voor de lange vlucht; bestaande def met andere plekken en een andere inhoud van de ballon |
 | **Doel (hardop)** | "Breng Dijkstra's lunch naar het UMCG, vlieg naar de Dollard en pak Jelles koffer uit zijn ballon." |
 | **Motief** | Dijkstra's nachtdienst heeft honger; Jelle vliegt per ballon over zijn nieuwe gebied en neemt het koopboek mee |
@@ -184,7 +184,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte3
 | **Reizen** | Delfzijl naar Winschoten 35 km: trein (2 min in beeld) |
 | **Romantiek (5/10)** | Geerts barman wil Tessa's nummer; Tammo: "Die barman heeft het druk." Tessa: "O ja? Sinds wanneer bepaal jij dat?" Tammo: "Sinds nu." |
 | **Plot** | **Het keerpunt.** Durk, zingend: "De bal… hebben wij niet. Baas denkt dat júllie hem hebben." Douwe: "Durk. Dat was geheim. …Hè." |
-| **Gevolg / haak** | Tammo: "Wie heeft hem dan?" Tessa: "Geen idee." (leugen). Durk: "Baas gaat naar Veendam. Voor de mosterd." |
+| **Gevolg / haak** | Tammo: "Wie heeft hem dan?" Tessa: "Geen idee." (waar: ze weet niet wie hem heeft; wat ze verzwijgt zijn Mems appjes). Durk: "Baas gaat naar Veendam. Voor de mosterd." |
 | **Behouden / nieuw** | het grootste deel BEHOUDEN (Geert, Tessa en Tammo); Durks regel NIEUW |
 | **Nieuwe regels (schatting)** | 14 |
 
@@ -223,7 +223,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte3
 |---|---|
 | **Id** | `A3-5` (nieuw, step `n-graan`) |
 | **Plaats** | graanvelden bij Winschoten en de kermis, zo 23 overdag |
-| **Voertuig** | klein vliegtuig (Roelfiens gewasspuiter, nieuw voertuig; fallback: de heli uit 3.1) |
+| **Voertuig** | klein vliegtuig (Roelfiens gewasspuiter, nieuw voertuig; fallback: de heli uit 3.1). **Spawn:** het vliegtuig staat op een landingsstrook in het Oldambt; de bouw gebruikt een echte strook (AANNAME: vliegveld Oostwold, nog te controleren in OSM, `aeroway=aerodrome`) en verzint er geen |
 | **Mechaniek / hergebruik** | vliegen met `heliflight.js`-physics aangepast voor vaste vleugels (AANNAME: nieuwe vliegtuigmodus, de planning noemt het "vliegtuig"); een spandoek slepen en laag door een poortcorridor vliegen (`waymarkers3d.js`) |
 | **Doel (hardop)** | "Sleep een spandoek over de kermis, zodat de juryleden zien dat Jelle ze koopt." |
 | **Motief** | plakje zes: Jelle betaalt de juryleden met levenslang eierballen; Roelfien levert de bloem en leent haar vliegtuig |

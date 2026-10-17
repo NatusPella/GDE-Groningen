@@ -42,7 +42,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Alleen verzonnen namen (geen echte
 | 32 | **Garnalendag in Zoutkamp** | Waddenzee | `dorpsuitjes.js` | pellen op tijd, de kleinste competitie van het noorden | los | S | nee |
 | 33 | **Havenloods** (schepen binnenbrengen) | Eemsdelta, Lauwersoog | `boattypes.js` | mist en stroming; rustig gevaarlijk | M12 | M | nee |
 | 34 | **Machinist** (trein besturen) | alle lijnen | `traindrive.js` | stoomtrein of dieseltreintje; #14 | M22 | M (de bijbaan), S (alleen M22) | nee |
-| 35 | **Gewasspuiter** (bijbaan, klein vliegtuig) | Oldambt | nieuw (vliegtuigmodus, vgl. `heliflight.js`) | laag onder hoogspanning door; #15 | M18 | L | nee |
+| 35 | **Gewasspuiter** (bijbaan, klein vliegtuig) | Oldambt | nieuw (vliegtuigmodus, vgl. `heliflight.js`); start op een echte strook (AANNAME: Oostwold) | laag onder hoogspanning door; #15 | M18 | L | nee |
 | 36 | **Brugwachter** (Wubbo-reeks) | Veenkoloniën | `movablebridges.js`, `pg_bruggenrace.js` | tien bruggen, één wachter | M20 | M | nee |
 | 37 | **Brommer met versnellingen** | Oldambt, Veenkoloniën | `motomodels.js` (`GEARED_MOPED_MODEL`), `vehicle.js` | Pruttelaar op het dorp | los | S | nee |
 | 38 | **Trekkertrek** | Westerkwartier, Hogeland | `racers.js` met trekkerprofiel (nieuw), `TRACTOR_MODEL` | tunen, trekken, winnen; de baan vol zwarte rook | M26 | M | nee |

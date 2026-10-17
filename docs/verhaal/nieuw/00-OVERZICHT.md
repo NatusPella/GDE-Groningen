@@ -1,6 +1,6 @@
 # Het nieuwe verhaal: "Alles voor één eierbal" (de provincietour)
 
-Voorstel voor issue [#93](https://github.com/NatusPella/GDE-Groningen/issues/93). Alleen documenten in `docs/verhaal/nieuw/`; er is geen code aangepast, niets opgenomen en geen TTS of netwerk gebruikt. Alles wat ik niet in de repo heb kunnen controleren, staat als **AANNAME**. Alles wat niemand in beeld heeft gezien, is **nog niet bekeken**.
+Voorstel voor issue [#93](https://github.com/NatusPella/GDE-Groningen/issues/93). Dit is **één verhaal in vijf akten**. Wat er in het oude spel bestaat (de oude delen en het oude plan voor een vervolg) bepaalt de structuur niet; oud materiaal komt alleen terug waar het past (de regels met de tag `[BEHOUDEN]`). Alleen documenten in `docs/verhaal/nieuw/`; er is geen code aangepast, niets opgenomen en geen TTS of netwerk gebruikt. Alles wat ik niet in de repo heb kunnen controleren, staat als **AANNAME**. Alles wat niemand in beeld heeft gezien, is **nog niet bekeken**.
 
 **Bestanden**
 
@@ -9,7 +9,7 @@ Voorstel voor issue [#93](https://github.com/NatusPella/GDE-Groningen/issues/93)
 | `00-OVERZICHT.md` | dit document |
 | `01-akte1.md` … `05-akte5.md` | per akte: intro en alle 30 missies, met opening en sleutelscène |
 | `06-zijmissies-en-minigames.md` | 46 zijmissies en activiteiten, gerangschikt |
-| `07-TTS-RAMING.md` | aantallen behouden en nieuwe regels, kostenraming |
+| `07-TTS-RAMING.md` | aantallen behouden en nieuwe regels; kostenraming alleen ter informatie (voorlopig niets opnemen) |
 | `08-IMPLEMENTATIE.md` | voor een latere bouwronde |
 | `09-script-akte1.md` … `09-script-akte5.md` | het volledige script, machineleesbaar (`SPREKER: tekst [BEHOUDEN\|NIEUW]`) |
 
@@ -27,7 +27,7 @@ Voorstel voor issue [#93](https://github.com/NatusPella/GDE-Groningen/issues/93)
 
 **Hoe volg je Jelles plan?** In "Wat weten we?" staat een **plakjesbord** met acht plakjes (AANNAME: nieuw, klein). Jelle vertelt zijn eigen plan op de radio (hij is ijdel en belt graag in: dat is "wereld", geen briefing). Tessa noemt het plan in M04 hardop "salamitactiek". Het koopboek (M14) laat de acht plakjes zien.
 
-**De draad in vier zinnen:** (1) De bal staat in het museum en moet in Stad blijven, want de bewaarder zit de jury voor (artikel 4). (2) Tessa en Tammo besluiten hem eerst te pakken, als bewaking. (3) De vitrine is al leeg: "Tige tank! – W." (4) Dan jagen ze Jelle en zijn plakjes door de provincie, terwijl Jelle jaagt op hen, want hij denkt dat zij de bal hebben; in Bourtange blijkt dat **W. staat voor "Wij": Oma Trijntje en Mem Terpstra hebben hem zelf gehaald, met Berends bakkie.**
+**De draad in vier zinnen:** (1) De bal staat in het museum en moet in Stad blijven, want de bewaarder zit de jury voor (artikel 4). (2) Tessa en Tammo besluiten hem eerst te pakken, als bewaking. (3) De vitrine is al leeg: "Tige tank! – J." Iedereen denkt aan Jelle, en Jelle bluft op de radio dat hij de bal heeft. (4) Dan jagen ze Jelle en zijn plakjes door de provincie, terwijl Jelle jaagt op hen, want hij denkt dat zij de bal hebben; in Bourtange blijkt dat **de J niet van Jelle is maar van zijn moeder**: Mem Terpstra tekent al zijn hele leven met een J (alle verjaardagskaarten van Jelle), en zij en Oma Trijntje hebben de bal zelf gehaald, met Berends bakkie.
 
 ## 2. Cast
 
@@ -36,10 +36,10 @@ Bestaand = uit `docs/personages.md` en `storyarc.js`; **nieuw** alleen waar nodi
 | Wie | Rol | Boog | Stemregels | Hoe en wanneer geïntroduceerd |
 |---|---|---|---|---|
 | **Tammo** | held, echte Stadjer uit het Oosterpark | van "ik zeg niks" naar vijf woorden: "Ik wil bij jou blijven". Leert de provincie kennen; baalt dat Tessa gelijk heeft; **eigenwijs en vaak fout** ("Dat bedoelde ik ook.") | korte zinnen, understatement, geen speeches, geen Fries | opening (M00, cutscène), naamkaart |
-| **Tessa** | heldin, de baas van het duo; **Nederlandse** (niet in Stad geboren; zomers in Ljouwert naast Mem; AANNAME: geboren in Zwolle) die Friezen kent; Tammo vindt dat gek | van "regelen en niks zeggen" naar toegeven dat ze bang is nergens te blijven; **heeft vaak gelijk, soms wat saai**; laat Tammo nieuwe dingen zien en vindt het leuk als hij haar iets laat zien | snel, ad rem, "Rijden, niet praten." | opening |
+| **Tessa** | heldin, de baas van het duo; **Nederlandse** (niet in Stad geboren; zomers in Ljouwert naast Mem; AANNAME: geboren in Zwolle) die Friezen kent; Tammo vindt dat gek | van "regelen en niks zeggen" naar toegeven dat ze bang is nergens te blijven; **heeft vaak gelijk, soms wat saai**; laat Tammo nieuwe dingen zien en vindt het leuk als hij haar iets laat zien | snel, ad rem, **standaard Nederlands** (geen Gronings; ze is geen Stadjer), "Rijden, niet praten." Opgenomen regels met een Groninger kleur blijven staan. | opening |
 | **Rikus** | nacht-dj Nachtstreek, jeugdvriend, de radio | blijft vertellen, "ik zeg niks" en zegt het toch: dat kost hen in M23 bijna alles | warm en droog; **radio is alleen wereld** | opening, radio |
 | **Jelle Terpstra** | tegenstander, ijdel, nooit gemeen | van "foar mem" naar "ja, mem": geeft alle plakjes terug | Nederlands met Friese woorden; elke zin is reclame | chat (M03), in persoon in M04 |
-| **Mem (Gerda) Terpstra** | Jelles moeder; **medeplichtige** met Oma; appt Tessa | wil dat hij ophoudt; haar eierbal was beter | stellig, Fries-getint, altijd ondertiteld | appjes vanaf M08 (stil), stem in M24 |
+| **Mem (Gerda) Terpstra** | Jelles moeder; **medeplichtige** met Oma; appt Tessa; tekent alles met een J | wil dat hij ophoudt; haar eierbal was beter | stellig, Fries-getint, altijd ondertiteld | appjes vanaf M08 (stil), stem in M24 |
 | **Oma Trijntje** | mentor, 92, bakte in 1953 de beste (volgens haar) | zegt eindelijk: "Gerda. Jouw eierbal was beter." | warm, stellig | M09 (naamkaart); komt daarmee vroeger in beeld dan in het huidige H12 |
 | **Durk en Douwe** | Jelles tweeling, "…Hè." | lopen over in M27 | traag, synchroon | M02 |
 | **Berend Bos** | Bommen Berend, jurylid; **getaway-chauffeur** van de grannies ("Nul krassen. Op de heenweg.") | stiekem trots | nors, korte zinnen, "Goidag" | M01 |
@@ -52,6 +52,8 @@ Bestaand = uit `docs/personages.md` en `storyarc.js`; **nieuw** alleen waar nodi
 | **Wubbo** *(nieuw)* | brugwachter | bondgenoot | rustig | M20 |
 | **Tinus** *(nieuw)* | trekkertrekker, re-enactor | bondgenoot, lift | joviaal | M23 (in de bus), M26 |
 | **Loketbediende, Accountmanager, Jurylid, Buschauffeur** *(nieuw, klein)* | satire-rollen | vast | droog bureaucratisch | M04, M21, M22, bus |
+
+**Tessa is Nederlands, niet Gronings** (besluit van de eigenaar): ze groeide op op zeven plekken en logeerde elke zomer in Ljouwert, in het huis naast Mem. Zo kent ze Friezen, pompeblêden en Mems handschrift. Tammo, die nooit ergens anders woonde dan in Stad, vindt dat gek ("Jij? Fries?"). Al haar nieuwe regels zijn standaard Nederlands.
 
 **Geschrapt of samengevoegd:** Femke (H7), Harm (H9), Hilly, Hilje, Boer Roelf. Rotor Roelf blijft een stem in M14.
 
@@ -89,9 +91,9 @@ Bestaand = uit `docs/personages.md` en `storyarc.js`; **nieuw** alleen waar nodi
 | 13 | wo 26 | M26 | |
 | 14 | do 27 | M27, M28, M29 (nacht) | |
 | 15 | **vr 28 aug** | **M30, Gronings Ontzet** | |
-| 19 | di 1 sep → | epiloog; daarna vrij spel | |
+| 19 | di 1 sep → | epiloog (twee weken later); daarna loopt de open wereld door | |
 
-**Tegenstrijdigheden uit FLOW-ANALYSE §3.4, opgelost:** (a) `r-avond` ("morgen de rondvaartboot") en H13 stonden op dezelfde dag: beide geschrapt als hoofdstap (H13 wordt een bijbaan). (b) `s-boot` ("vandaag") op ma 24 en H14 op di 25: `s-boot` opgegaan in M12. (c) Jelles ballon "vanavond" terwijl H15 de volgende dag was: de ballon vliegt nu overdag, M14 op dezelfde dag. (d) `r-kermis` "wordt opgebouwd" terwijl de kermis opent: de botsauto's spelen nu op een andere kermis (Winschoten). **Constitutie 3 (altijd zomer):** de epiloog heeft nog "Het is koud." (zie open vraag 7). **Deel 4 (15 september):** botst met deze tour (zie open vraag 1).
+**Tegenstrijdigheden uit FLOW-ANALYSE §3.4, opgelost:** (a) `r-avond` ("morgen de rondvaartboot") en H13 stonden op dezelfde dag: beide geschrapt als hoofdstap (H13 wordt een bijbaan). (b) `s-boot` ("vandaag") op ma 24 en H14 op di 25: `s-boot` opgegaan in M12. (c) Jelles ballon "vanavond" terwijl H15 de volgende dag was: de ballon vliegt nu overdag, M14 op dezelfde dag. (d) `r-kermis` "wordt opgebouwd" terwijl de kermis opent: de botsauto's spelen nu op een andere kermis (Winschoten). **Constitutie 3 (altijd zomer):** de epiloog gebruikt geen koude of winterregels meer; Tessa zegt "Het is tweeëntwintig graden." (besluit van de eigenaar).
 
 ## 4. Verhaal en romantiek per onderdeel (de grote tabel)
 
@@ -106,34 +108,34 @@ Bestaand = uit `docs/personages.md` en `storyarc.js`; **nieuw** alleen waar nodi
 | M04 | 1 | Het Loket | Stad, Het Loket | inschrijven; **Jelle in persoon**; artikel 4; salamitactiek | Tammo bewondert haar loketkunst (3) | 2 | te voet, loket |
 | M05 | 1 | Kieken van boven | Stad, Stationsplein - museum | Jelles trekker bij het museum; hij gaat het doen | "Mijn vriend de duivenkoning" (3) | 4 | duif |
 | M06 | 1 | Wind tegen, beide kanten op | Stad, binnenstad | de drie minuten; **besluit: eerst pakken, als bewaking** | **oogcontact** op het kruispunt (5) | 7 | fiets, race |
-| M07 | 1 | Het museum stond er al zo | Stad, Groninger Museum | **vitrine leeg: "Tige tank! – W."**; Jelle claimt de bal | **eerste handaanraking** "Voor de grip" (6) | 8 | te voet, `heist` |
+| M07 | 1 | Het museum stond er al zo | Stad, Groninger Museum | **vitrine leeg: "Tige tank! – J."** (opgenomen regel); Jelle claimt de bal (hij bluft) | **eerste handaanraking** "Voor de grip" (6) | 8 | te voet, `heist` |
 | M08 | 2 | Al het vet van Grunn | Stad, Oosterpoort | plakje 2 (vet) gered; Jelle belt in | Mems eerste appje; "Fierljepper zeker." (3) | 8 | tankwagen, `chase` |
 | M09 | 2 | Fatbikes tellen niet als fiets | Stad, Noorderhaven (Oma) | 1953, Gerda; **lijstje van vijf vrienden** | "Niet tegen haar." (4) | 4 | te voet, fatbikes |
 | B1 | 2 | De trein naar Winsum | Stad → Hogeland | de provincie begint | de zee achter de dijk (4) | 1 | trein (meerijden) |
 | M10 | 2 | Heel aankomen is ook een kunst | Hogeland, Warffum - Usquert | plakje 3 (eieren); Geesje | Tessa toont koeien en wierden (4) | 3 | trekker, `deliver` |
 | M11 | 2 | Een trekker-limo op de wierde | Hogeland, wierdedorpen | Jelle denkt dat zij de bal hebben; **zijn motief: Mem** | "Voor de grip. Ik heb stuur." (3) | 8 | quad, `escape` |
 | B2 | 2 | De streekbus naar Zoutkamp | Hogeland → Waddenzee | reis is inhoud | (3) | 1 | bus (meerijden of zelf) |
-| M12 | 2 | Geleend van de Friezen | Waddenzee, Zoutkamp - Lauwersmeer | chocoladebal "Foar mem": een oefenbal | "Iedereen is romantischer dan jij." (5) | 8 | rubberboot, `boatchase` |
-| M13 | 2 | Laag water | Waddenzee, kwelder, Noordpolderzijl | plakje 4 (zout); Klaas | **de lange blik**; appje onderbreekt (7) | 3 | sloep en wad |
-| M14 | 3 | Het staat niet in het rooster | Lauwersoog → Dollard | het **koopboek**: acht plakjes | "Dank je dat je het vraagt." (5) | 7 | heli, lier |
+| M12 | 2 | Geleend van de Friezen | Waddenzee, Zoutkamp - Lauwersmeer | chocoladebal "Foar mem": een oefenbal | "Iedereen is romantischer dan jij." (5) | 8 | rubberboot op het Reitdiep, `boatchase` (de zee blijft zichtbaar en dicht) |
+| M13 | 2 | Laag water | Waddenzee, kwelder, Noordpolderzijl | plakje 4 (zout); Klaas | **de lange blik**; appje onderbreekt (7) | 3 | sloep tot de zandplaat, dan te voet langs de kwelder |
+| M14 | 3 | Het staat niet in het rooster | Lauwersoog → Dollard | het **koopboek**: acht plakjes | "Dank je dat je het vraagt." (5) | 7 | heli (start: UMCG-dak), lier |
 | M15 | 3 | Het containerlabyrint | Eemshaven | plakje 5 (haven); Lammert | "Je ademt." (4) | 5 | te voet, kraan |
 | M16 | 3 | De dijk | Eemshaven - Delfzijl | Jelle verliest de race | **eerste voorzichtige flirt (Tammo)** (6) | 8 | auto, race |
 | B3 | 3 | De trein naar Winschoten | Eemsdelta → Oldambt | | (3) | 1 | trein (meerijden) |
 | M17 | 3 | Nog eentje dan | Oldambt, Winschoten, kermis | **keerpunt: "De bal hebben wij niet"**; Tessa liegt: "Geen idee." | jaloezie, "Sinds nu." (5) | 3 | te voet |
-| M18 | 3 | Laag over het graan | Oldambt | plakje 6 (jury) half; Roelfien | "Jij kijkt, ik stuur." (4) | 6 | vliegtuig (of heli) |
+| M18 | 3 | Laag over het graan | Oldambt | plakje 6 (jury) half; Roelfien | "Jij kijkt, ik stuur." (4) | 6 | klein vliegtuig (start: landingsstrook in het Oldambt) |
 | M19 | 3 | Botsauto's, deel twee | Oldambt, Winschoten, dijk | Durk: "baas gaat naar Veendam" | **eerste kus** (8) | 4 | botsauto, scène |
 | M20 | 4 | Open, dicht | Veenkoloniën, Veendam | plakje 7 (mosterd); Wubbo | "Over gisteren." "Welk gisteren?" (5) | 5 | sloep, bruggen |
-| M21 | 4 | Wie is W.? | Veenkoloniën, Wiebelwerk | valse piste; pas "T." en gast "G." | Tessa legt een logboek uit (5) | 2 | e-step, kantoor |
+| M21 | 4 | Wie draaide de camera's uit? | Veenkoloniën, Wiebelwerk | valse piste; logboek van 12 augustus: pas "T." en gast "G." | Tessa legt een logboek uit (5) | 2 | e-step, kantoor |
 | M22 | 4 | Stoom | Veenkoloniën, museumtrein | laatste twee juryleden weg | "Je rijdt als een fietser met een deadline." (4) | 9 | trein (machinist) |
 | M23 | 4 | De vestingbus | Westerwolde, Ter Apel-bos - Bourtange | Rikus verklapt Bourtange; Berend weet meer | "Moi" te zacht (4) | 5 | bus |
-| M24 | 4 | **Het beleg van Bourtange** | Westerwolde, Vesting Bourtange | **W. = "Wij"**; Jelle krijgt de bal van zijn moeder; Escapade weg | **het dieptepunt**: "Jij zegt nooit iets!" (3) | 8 | te voet, fierljep, `hold` |
+| M24 | 4 | **Het beleg van Bourtange** | Westerwolde, Vesting Bourtange | **de J is Mems J**; Jelle krijgt de bal van zijn moeder; Escapade weg | **het dieptepunt**: "Jij zegt nooit iets!" (3) | 8 | te voet, fierljep, `hold` |
 | M25 | 4 | Iedereen heeft een rode auto gezien | Bourtange → Westerkwartier | Tessa solo; Mem belt; de Escapade terug | "Sorry. Dat ik nooit wat zeg." (5) | 8 | bakkie, trein achterna |
 | M26 | 5 | Een luik erin | Westerkwartier, schuur | de Fjord Frituur krijgt een luik | **knuffel en openbaring** (9) | 3 | garage, trekker |
 | M27 | 5 | De colonne | Westerkwartier → Stad | alle bondgenoten rijden mee; D&D lopen over | hand op de pook (6) | 7 | alle voertuigen |
 | M28 | 5 | Er hangt iets Fries aan d'Olle Grieze | Stad, Grote Markt | Stad terug; Tammo is held | "Voor de grip?" "Nee. Gewoon." (7) | 5 | duif |
 | M29 | 5 | Het bod viel tegen | Stad, Oma's keuken | Jelle ziet zijn moeder; bod afgewezen | Oma: "Ik wilde het één keer horen." (8) | 2 | bakken |
 | M30 | 5 | **Ontzet, net als in 1672** | Stad, Grote Markt | alles komt samen: jury, bal, duiven, wagen | **"Ik wil bij jou blijven."** (10) | 10 | alles |
-| E | 5 | Epiloog en slot | Stad, Vismarkt | standplaats; plakjes terug | koud/Grunn (9) | 0 | cutscène |
+| E | 5 | Epiloog en slot | Stad, Vismarkt | standplaats; plakjes terug | tweeëntwintig graden/Grunn (9) | 0 | cutscène |
 
 **Tellingen:** 30 hoofdmissies (7, 6, 6, 6, 5), 3 reisbeats, 13 nieuwe missies, 17 bestaande missies in een nieuwe plek en volgorde. 8 vervoertypes: auto, fiets, scooter (e-step, brommer), bus, trein (meerijden en machinist), heli, klein vliegtuig, boot (sloep, rubberboot, skûtsje-achtervolging), trekker en quad, duif.
 
@@ -160,7 +162,7 @@ M17 Kermisbar     actie ███░░░░░░░  3  romantiek ███�
 M18 Graan         actie ██████░░░░  6  romantiek ████░░░░░░  4
 M19 Botsauto+kus  actie ████░░░░░░  4  romantiek ████████░░  8
 M20 Open, dicht   actie █████░░░░░  5  romantiek █████░░░░░  5
-M21 Wie is W.     actie ██░░░░░░░░  2  romantiek █████░░░░░  5
+M21 Logboek       actie ██░░░░░░░░  2  romantiek █████░░░░░  5
 M22 Stoom         actie █████████░  9  romantiek ████░░░░░░  4
 M23 Vestingbus    actie █████░░░░░  5  romantiek ████░░░░░░  4
 M24 Het beleg     actie ████████░░  8  romantiek ███░░░░░░░  3
@@ -174,6 +176,8 @@ M30 Ontzet        actie ██████████ 10  romantiek ███�
 
 Gemiddelden per akte (actie / romantiek): akte 1 5,3 / 3,4; akte 2 5,7 / 4,3; akte 3 5,5 / 5,3; akte 4 6,2 / 4,3; akte 5 5,4 / 8,0. Totaal 5,6 / 4,9.
 
+**Kus-timing (beslissing: M19 blijft).** De eerste kus valt aan het eind van akte 3, op ca. 62-63% van de speeltijd (M19 van 30; 179 van 288 minuten), de breuk in M24 op ca. 80% en de verzoening in M26 op ca. 84%: dat is de klassieke romcom-structuur (kus ruim over het midden, breuk kort voor het einde, hereniging in de finale). Een eerdere kus laat de romantiek te vroeg op volle sterkte komen en een latere kus maakt van de ruzie een gewone ruzie, terwijl ze nu doen alsof er niets gebeurd is (M20-M23, "Over gisteren.") en de breuk dus iets heeft om af te breken.
+
 **Kritische zelf-review**
 
 1. **Pieken zitten waar ze horen:** de eerste kus (M19) midden in het verhaal, het dieptepunt (M24-M25) laag voor romantiek en hoog voor actie, de knuffel (M26) direct erna als contrast, en de finale (M30) bij 10 en 10.
@@ -181,11 +185,13 @@ Gemiddelden per akte (actie / romantiek): akte 1 5,3 / 3,4; akte 2 5,7 / 4,3; ak
 3. **Akte 2 en 3 hebben elk drie missies met actie 8 of meer** (M08, M11, M12 en M16): drie keer "achtervolging" in vier missies. Variatie in voertuig is er (tankwagen, quad, rubberboot), maar het ritme is gelijk. Overweeg M11 korter te maken.
 4. **Twee missies met actie 2 staan vlak voor elkaar (M20-M21, en M29 vlak vóór de finale).** M29 is bewust rustig (bakken en de scène met Jelle en zijn moeder). M20-M21 is een zwak punt.
 5. **M24 draagt veel:** het beleg (komisch), de fierljep, de onthulling, Jelles bal, de ruzie en de Escapade. Als dat niet in één missie past, splitsen (zie 08 §5).
-6. **Tessa's leugen (M17 tot M24) is alleen zichtbaar als de speler de stille appjes leest.** Spelers die dat niet doen, snappen M24 niet meteen. Een gesproken hint is nodig: Tessa zegt "Geen idee." te snel (M17) en "Daar zit hij vast niet" in een autogesprek (nog toe te voegen).
+6. **Tessa's geheim (M08 tot M24) is alleen zichtbaar als de speler de stille appjes leest.** Tessa weet niet wie de bal heeft, maar ze appt met Mem en verzwijgt dat voor Tammo ("Iemand uit Friesland"). Spelers die de appjes niet lezen, snappen M24 toch: Tammo noemt het hardop ("Jij kende Mem") en de grap "Is hij lang?" komt uit in de kruitkelder.
 7. **Romantiek ligt in akte 1 laag (3,4):** goed voor "vriendschappelijk beginnen", maar de eerste 40 minuten zijn de meest actiegestuurde; de lage romantiek mag niet saai worden: M04 (Loket) en M05 moeten grappig genoeg zijn.
 8. **Het Gouden Eierbal-mysterie is iets ver weg tot M17:** de speler weet bijna niets over wie de bal heeft. M11 (Jelle vraagt wat er op het kaartje stond) is de eerste hint; M17 de bevestiging.
 
 ## 6. Oud naar nieuw (stappen H1-H18 en bijstappen)
+
+Het nieuwe verhaal staat op zichzelf. De tabel laat alleen zien welk bestaand materiaal (stappen, scènes, opnames) waar terugkomt, omdat dat geld en werk scheelt. Wat niet in de tabel staat, is niet nodig voor dit verhaal.
 
 | Oud | Nieuw | Wat en waarom |
 |---|---|---|
@@ -198,8 +204,8 @@ Gemiddelden per akte (actie / romantiek): akte 1 5,3 / 3,4; akte 2 5,7 / 4,3; ak
 | `k-fiets` | geschrapt | poortwachter; de fiets is nu Sjoerds startpakket (AANNAME) |
 | H5 Fietsrace | M06 | behouden; het besluit "eerst pakken" erbij |
 | `k-kraakspullen`, `k-nacht` | in M07 | de wachtscène en Henks zender zitten in de intro |
-| H6 Kraak | M07 | behouden; **het kaartje wordt W (was J)**, vier regels opnieuw |
-| `r-trein` (hideouts) | reisbeat B1 | de treinscène blijft, ijsje en Hoge der A als vrij spel |
+| H6 Kraak | M07 | behouden; **het kaartje blijft "J."** (opgenomen), de twist zit in wie de J schreef |
+| `r-trein` (hideouts) | reisbeat B1 | de treinscène blijft; ijsje en Hoge der A blijven losse activiteiten in de open wereld |
 | H7 Heel aankomen | M10 (mechaniek) | Femke vervalt; eieren door het Hogeland |
 | H8 Vet | M08 | behouden in Stad |
 | `r-tuning` | M26 | het luik inbouwen, Henk |
@@ -215,7 +221,7 @@ Gemiddelden per akte (actie / romantiek): akte 1 5,3 / 3,4; akte 2 5,7 / 4,3; ak
 | H17 Het bod | M29 | verplaatst naar Oma's keuken, met Mem erbij |
 | H18 Ontzet | M30 | behouden, Jelle is bewaarder die probeert voor te zitten |
 
-**Behouden:** 17 van de 18 hoofdmissies keren terug (alleen H13 gaat naar de bijbanen). **Samengevoegd:** 5 bijstappen. **Geschrapt:** 3 (`k-fiets`, `r-avond`, de padelstap). **Nieuw:** 13 missies.
+**Hergebruikt waar het past:** 17 van de 18 oude hoofdmissies zijn als mechaniek of scène bruikbaar (alleen H13 gaat naar de bijbanen). **Samengevoegd:** 5 bijstappen. **Geschrapt:** 3 (`k-fiets`, `r-avond`, de padelstap). **Nieuw:** 13 missies.
 
 ## 7. Reisplan per akte
 
@@ -225,10 +231,14 @@ Afstanden zijn geschat uit algemene kennis (AANNAME) en moeten met de reisplanne
 |---|---|---|---|---|---|
 | 1 | binnen Stad: 1,5 + 0,6 + 0,4 + 0,3 + 2 + 1 + 4 | 10 | 8 min | 8 min | te voet, fiets, scooter |
 | 2 | Stad-Winsum 17, Winsum-Warffum 12, Warffum-Usquert 3, Usquert-Uithuizen 6, Uithuizen-Zoutkamp 30, Zoutkamp-Lauwersoog 9, Lauwersoog-Noordpolderzijl 14, plus 5,5 in Stad | 97 | 78 min | 14 min | trein Winsum, streekbus Zoutkamp, Geesjes neef brengt je |
-| 3 | Lauwersoog-UMCG 35, UMCG-Dollard 45, Dollard-Eemshaven 40, Eemshaven-Delfzijl 25, Delfzijl-Winschoten 35, +8 | 188 | 150 min | 12 min | heli (Dijkstra), trein Winschoten |
+| 3 | Lauwersoog-UMCG 35, UMCG-Dollard 45, Dollard-Eemshaven 40, Eemshaven-Delfzijl 25, Delfzijl-Winschoten 35, +8 | 188 | 150 min | 12 min | heli (Dijkstra, start UMCG-dak), trein Winschoten |
 | 4 | Winschoten-Veendam 17, +2, Veendam-Stadskanaal 20, Stadskanaal-Ter Apel 22, Ter Apel-Bourtange 12, Bourtange-Zuidhorn 65 | 138 | 110 min | 15 min | streekbus, Berends bus en bakkie, taxi |
 | 5 | Zuidhorn-schuur 3, Zuidhorn-Aduard 12, Aduard-Grote Markt 8, Markt-toren-Oma-Markt 6 | 29 | 23 min | 20 min (de colonne is een missie) | Skip met scène |
 | **Totaal** | | **ca. 465** | **ca. 6 uur** | **ca. 70 min** | |
+
+**Luchtvaartuigen: waar ze staan (spawnregel).** Helikopters staan op echte helipads (in de repo: het UMCG-dak, Rotor Roelfs pad op Eelde en het dak van het eigen huis; andere helipads alleen als ze echt bestaan), kleine vliegtuigen alleen op echte vliegvelden of -stroken in de Ommeland (Eelde en een of twee andere, nog te controleren). In de stad staat geen vliegtuig, omdat daar geen vliegveld is. Allebei mogen overal in de provincie vliegen, en een missie buiten de stad mag een heli gebruiken (bijvoorbeeld M14: de heli start op het UMCG-dak en vliegt naar het noorden) of een vliegtuig (M18: start op de strook in het Oldambt). Spawnpunten met bronnen: zie 08-IMPLEMENTATIE.md §3b.
+
+**De zee (besluit van de eigenaar).** De Waddenzee en de Noordzee staan op de kaart en in de wereld: een zichtbare zee met kust, kwelder en strand, ook als horizon vanaf de dijk en uit de heli. Ze hoeven niet bevaarbaar te zijn; vaarbaar zijn alleen het Reitdiep, de monding van het Lauwersmeer en de havens (M12, M13, M20). Wie verder wil, krijgt een scène: de sluis, een zandbank of Klaas weigert ("Daar vaar ik niet met een sloep").
 
 **Regels (uit #97):** één regio per akte (Stad is begin en eind); 1-3 minuten tussen opeenvolgende doelen, nooit meer dan 5 minuten zonder gesprek, event of keuze; reizen is inhoud (autogesprekken, radio, kleine events); de missie geeft het voertuig; bij falen respawn je bij het doel of het laatste checkpoint, niet in Stad; ETA en route op de missiekaart; de dag eindigt in de regio waar je bent (een verhaaldag dekt de reis).
 
@@ -245,11 +255,11 @@ Alle scènes volgen dezelfde regel: **context in de gesproken tekst** (wie, waar
 
 ## 9. Wat is nieuw voor ervaren spelers
 
-Spelers die het oude verhaal kennen, krijgen:
+Wie het spel al kent, ziet bekende regels en mechaniek op nieuwe plekken in één nieuw verhaal. Dat levert op:
 
-1. **Het hele land in plaats van de stad:** 7 regio's, 18 van de 30 missies spelen buiten Stad (nu: 0 van 30 stappen in een regio, 3 van 30 buiten Stad). Alle bekende beats keren terug op andere plekken.
+1. **De hele provincie in plaats van de stad:** 7 regio's, 18 van de 30 missies spelen buiten Stad. Bekende beats keren terug op andere plekken.
 2. **Een nieuw doel en een plan dat je volgt:** het plakjesbord en het koopboek; Jelle heeft nu een motief en vertelt zelf wat hij doet.
-3. **Een nieuw mysterie en een keerpunt:** de W op het kaartje; het "wij hebben hem niet" in M17; in M24 de onthulling.
+3. **Een nieuw mysterie en een keerpunt:** de J op het kaartje die iedereen op Jelle betrekt; het "wij hebben hem niet" in M17; in M24 de onthulling dat het Mems J is.
 4. **Een dieptepunt vlak voor de finale** (M24-M25): de ruzie en Jelles bal.
 5. **Een romantische boog in zes zichtbare stappen** in plaats van één kus.
 6. **13 nieuwe missies** op bestaande mechaniek (Het Loket, de brugrace, de trein, de containerkraan, de colonne) en nieuwe voertuigen (klein vliegtuig, quad, trekker, rubberboot als speedboat).
@@ -279,16 +289,18 @@ Voor het testen van nieuwe missies zonder het verhaal te herspelen: dev-paneel (
 | indie en hergebruik | 08-IMPLEMENTATIE: 17 missies op bestaande defs, 13 nieuwe op bestaande mechaniek, 3 zware features optioneel |
 | kanaalscheiding | §8 |
 
-## 11. Open vragen aan de eigenaar (8)
+## 11. Besluiten van de eigenaar
 
-1. **Deel 1-3 volledig vervangen en Deel 4 (Ubbo, de Ommelander Ronde) als vrij spel of later vervolg?** A) ja: dit verhaal vervangt Deel 1-3; Deel 4 wordt later een vrij-spel-uitbreiding (de patatbaron in een Rikus-regel voorgezaaid). B) nee: Deel 4 blijft het vervolg ná dit verhaal zoals het plan nu is (dan overlapt de provincie).
-2. **"Tige tank! – W." = "Wij" (Oma en Mem namen de bal)?** A) ja (voorstel; vier J-regels opnieuw opnemen). B) nee, terug naar J (Jelle heeft hem echt; de twist vervalt).
-3. **Tessa is Nederlandse (geboren elders, zomers in Ljouwert), niet Groningse?** A) ja, nieuwe regels in standaard Nederlands; bestaande Gronings-getinte regels blijven (zachte afwijking). B) nee, ze blijft Groningse met een Friese oma (dan geldt "kent Friezen" nog steeds).
-4. **Eerste kus in akte 3 (M19) of pas in akte 4?** A) akte 3, daarna doen ze alsof het niet gebeurd is (voorstel). B) pas na het dieptepunt (scherpere ruzie, minder warmte).
-5. **Klein vliegtuig (M18) als nieuwe vliegtuigmodus, of de heli?** A) vliegtuig (nieuw voertuig, groot bouwwerk). B) heli (geen nieuwe code).
-6. **Water in de tegelwereld (Reitdiep, Lauwersmeer, wad) voor M12 en M13?** A) ja, bouwen. B) nee, M12 op bestaand water en M13 als scène.
-7. **De epiloog: "Het is koud." (strijdig met constitutie 3) houden?** A) ja, het is een grap van Grunn en de stad is het er niet mee eens. B) nee, vervang door "Het is tweeëntwintig graden." (kost twee regels).
-8. **Hoeveel nieuwe opnames?** A) alles nieuw in één ronde (707 regels, ca. 1-2 dollar). B) eerst akte 1 en 5 (grotendeels bestaand), de rest na een speeltest.
+De acht open vragen uit het eerste voorstel zijn beantwoord; dit is wat nu geldt.
+
+1. **Eén verhaal in akten.** Wat er in het oude spel bestaat (oude delen, oud plan voor een vervolg) bepaalt de structuur niet. Oud materiaal komt alleen terug waar het past (de regels met de tag `[BEHOUDEN]`).
+2. **Het kaartje blijft exact "Tige tank! – J."** (opgenomen: `game/js/missions.js:321`, `storyarc.js`; niet opnieuw opnemen). De "W. = Wij"-gedachte is vervallen. De twist blijft: Oma Trijntje en Mem Terpstra namen de bal, en Mem tekent met de J waarmee ze al zijn hele leven zijn verjaardagskaarten tekent. Iedereen verdenkt Jelle, en Jelle bluft op de radio dat hij hem heeft. In Bourtange (M24) herkent Tessa de J van Mems keukentafel.
+3. **Tessa is Nederlands, niet Gronings.** Ze kent Friezen omdat ze elke zomer naast Mem logeerde; Tammo vindt dat gek. Haar nieuwe regels zijn standaard Nederlands.
+4. **Eerste kus in M19 (akte 3)** blijft, onderbouwd in §5 ("Kus-timing").
+5. **Voertuigen per regio zijn een spawnregel:** helikopters starten op echte helipads (UMCG-dak, Rotor Roelfs pad op Eelde, het eigen dak), kleine vliegtuigen op echte vliegvelden of -stroken in de Ommeland (Eelde en een of twee andere). Beide mogen overal in de provincie vliegen. Het vliegtuig is een nieuwe voertuigmodus (08-IMPLEMENTATIE.md §3b).
+6. **De Waddenzee en de Noordzee bestaan op de kaart en in de wereld** (zichtbare zee, kust, kwelder), maar hoeven niet bevaarbaar te zijn. Alleen het Reitdiep, de monding van het Lauwersmeer en de havens zijn beperkt vaarbaar; elders is er een scène (sluis, zandbank, Klaas weigert).
+7. **Altijd zomer:** de epiloog zegt "Het is tweeëntwintig graden." (geen koude, geen winter).
+8. **Geen nieuwe opnames voorlopig:** alle `[NIEUW]`-regels blijven tekst. De kostenraming in 07-TTS-RAMING.md is alleen informatie.
 
 ## 12. Hoe te beoordelen (checklist: 10 ja/nee)
 
