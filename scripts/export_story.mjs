@@ -17,10 +17,11 @@ const files = fs.readdirSync(root).filter((f) => f.endsWith('.md')).sort();
 const scripts = files.filter((f) => /^09-script-akte\d\.md$/.test(f));
 
 // ---- per speaker -------------------------------------------------------
-const LINE = /^([A-ZÄËÏÖÜ][A-ZÄËÏÖÜ0-9 .'’()→\/&-]*?): (.+?)(?: \[(BEHOUDEN|NIEUW)\])?\s*$/;
+const LINE = /^([A-ZÄËÏÖÜ][A-ZÄËÏÖÜ0-9 .'’\/&→-]*?(?: \([^)]*\))?): (.+?)(?: \[(BEHOUDEN|NIEUW)\])?\s*$/;
 const bySpeaker = new Map();
 let scene = '';
 let total = 0;
+let apps = 0;
 for (const f of scripts) {
   for (const raw of read(f).split('\n')) {
     const h = raw.match(/^## \[([^\]]+)\] (.*)$/);
@@ -28,7 +29,8 @@ for (const f of scripts) {
     if (raw.startsWith('(regie') || raw.startsWith('>') || raw.startsWith('#')) continue;
     const m = raw.match(LINE);
     if (!m) continue;
-    const who = m[1].trim().replace(/\s*\(radio\)$/, '');
+    if (m[1].startsWith('APP ')) { apps++; continue; }
+    const who = m[1].trim().replace(/\s*\((radio|telefoon)\)$/, '');
     const tag = m[3] || '?';
     if (!bySpeaker.has(who)) bySpeaker.set(who, []);
     bySpeaker.get(who).push({ scene, text: m[2], tag, radio: /\(radio\)/.test(m[1]) });
@@ -99,5 +101,7 @@ chunks.forEach((c, i) => {
 });
 
 const chars = chunks.map((c) => c.length + PROMPT.length);
-console.log(`regels: ${total} van ${order.length} sprekers`);
+const nieuw = order.reduce((n, [, ls]) => n + ls.filter((l) => l.tag === 'NIEUW').length, 0);
+const behouden = order.reduce((n, [, ls]) => n + ls.filter((l) => l.tag === 'BEHOUDEN').length, 0);
+console.log(`regels: ${total} van ${order.length} sprekers (${behouden} behouden, ${nieuw} nieuw), plus ${apps} stille appjes`);
 console.log(`export: ${chunks.length} delen, tekens per deel: ${chars.join(', ')} (ongeveer ${Math.round(chars.reduce((a, b) => a + b, 0) / 3.5 / 1000)}k tokens in totaal, schatting)`);
