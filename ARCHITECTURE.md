@@ -1379,6 +1379,21 @@ server, `?legacymap`).
   over the real track (and a Veendam branch); `provincemap.js` puts the base
   map under the full map. `node scripts/province_test.mjs` (`--quick`
   without streaming).
+- **The province gets the city's building derivation (A2 of
+  docs/ARCHITECTUUR-STAD-NAAR-TEGELS.md).** What the `GameMap` constructor
+  works out from raw footprints lives in `js/derive.js` (`deriveBuildings`:
+  bridge machinery dropped, doubled footprints merged, platform roofs and
+  `building=roof` split off as canopies, footprints on a ring carriageway and
+  houseboats that cannot float dropped; `liftNestedRoofs`), and `mapdata.js`
+  calls it (`pack_tiles.mjs` output is byte-identical). `build_province.mjs`
+  runs the same code per pack through `scripts/world/derive_tiles.mjs`:
+  footprints kept 1.5 m off a ground-level car road (`building_clearance.mjs`;
+  the city's `game/citymap.json` is untouched), the derivation, roof steps
+  (`lift`) and footways cut at a solid wall (`passages.js clipWaysInBuildings`).
+  Canopies go in the tile's CANOPIES section (`tileBlob` kind `canopies`, by
+  centre like a building) and `canopies3d.js streamCanopies` draws them per
+  streamed tile (the city's `buildCanopies` is unchanged). Not in the province
+  yet: OSM `building:part` (the extract does not keep it) and the museum plan.
 - **Tests.** `node scripts/world_tiles_test.mjs` (codec, determinism, round
   trips, the building attribute join), `node scripts/tileworld_test.mjs`
   (equivalence, streaming on a virtual clock, ranges), `node scripts/floatingorigin_test.mjs`,

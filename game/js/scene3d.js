@@ -73,7 +73,7 @@ import { initMovableBridges3D, updateMovableBridges3D, openBridgeRoads } from '.
 import { getMovableBridges } from './movablebridges.js';
 import { initStreetFurniture3D, updateStreetFurniture3D } from './streetfurniture3d.js';
 import { treeDims, treeColor, SPECIES, TREE_FLAG } from './greenery.js';
-import { buildCanopies } from './canopies3d.js';
+import { buildCanopies, streamCanopies } from './canopies3d.js';
 import { initGrass, updateGrass, grassFarColor, grassFarRank } from './grass.js';
 import { updateCountryside, setCountryPropLevel } from './countryside.js';
 import { updateOmmelandLandmarks } from './ommelandlandmarks.js';
@@ -906,6 +906,7 @@ export function init3D(map) {
   const railDecks = buildRailDecks(map);
   if (railDecks) scene.add(railDecks);
   scene.add(buildCanopies(map));
+  streamCanopies(scene, map);
   initGrass(scene, map, { polyGeometry: (poly) => poly._geoFlat || (poly._geoFlat = buildPolyGeometry(poly.pts)) });
   onSettingsChange(applyViewSettings);
   resize3D();
