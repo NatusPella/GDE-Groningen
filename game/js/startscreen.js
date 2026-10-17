@@ -12,7 +12,7 @@ import { isAdvisorSampling, startGfxAdvisor } from './gfxprofile.js';
 import { ABOUT_HTML } from './credits.js';
 import { startLoadScreen, setLoadTips } from './loadscreen.js';
 import { ARC_ID, arcForced } from './storyflag.js';
-import { arcName, otherArc, chooseArc, ARC_NOTE } from './storychoice.js';
+import { arcName, otherArc, chooseArc, classicSaveExists, ARC_NOTE } from './storychoice.js';
 
 export const TIPS = [
   'Tip: in Grunn neemt een fietser altijd voorrang, of hij die nou heeft of niet.',
@@ -399,6 +399,8 @@ export function runStartScreen(world, { render, relocate, tick }) {
     const save = hasSave() ? getSaveSummary() : null;
     const items = [];
     if (save) items.push({ act: 'continue', label: 'Doorgaan', sub: summaryText(save) });
+    // the new story is the default: a released save stays untouched under Klassiek, so point to it
+    else if (!arcForced() && ARC_ID === 'nieuw' && classicSaveExists()) items.push({ act: 'story', label: 'Doorgaan met Klassiek', sub: 'Je oude save staat nog klaar. Het nieuwe verhaal is nog in aanbouw' });
     items.push({ act: 'new', label: 'Nieuw spel', sub: save ? 'Begin opnieuw in Grunn' : 'Moi! Stap in en rij' });
     if (!arcForced()) items.push({ act: 'story', label: `Verhaal: ${arcName(ARC_ID)}`, sub: `Wissel naar ${arcName(otherArc())}. ${ARC_NOTE}` });
     items.push({ act: 'news', label: 'Wat is er nieuw', sub: 'Alle versies en wijzigingen' });
