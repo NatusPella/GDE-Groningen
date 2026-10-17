@@ -69,7 +69,7 @@ TESSA: Behalve twaalf augustus. Dan stond hij op elf minuten. Aangevraagd door: 
 TAMMO: Jelle. [NIEUW]
 TESSA: En kijk: zijdeur, 00:03, pas van bewaker twee. Gast: D en D, tilwerk. [NIEUW]
 TAMMO: De bewaker met het koekje. En twee reuzen. [NIEUW]
-TAMMO: En de pas van mevrouw Tuinstra, de bewaarder. Geblokkeerd op twaalf augustus. [NIEUW]
+TAMMO: Tuinstra's pas. Geblokkeerd op twaalf augustus. [NIEUW]
 TESSA: Zodat zij niets merkte. Twaalf augustus. Vijf dagen vóór onze kraak. Hij had hem toen al. [NIEUW]
 TAMMO: Dus wij kraakten een leeg museum. [NIEUW]
 TESSA: Ik print dit. Dit is een bewijs. [NIEUW]
