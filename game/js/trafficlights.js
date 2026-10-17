@@ -522,9 +522,18 @@ export function initTrafficLights(world) {
 }
 
 // AI traffic reads the lights itself (see trafficLightLimit in vehicle.js).
-export function updateTrafficLights(dt) {
+// In the rain the car phases run faster (w.wet 0..1), so the Groningen bike
+// phase comes round sooner; the bike green itself is never shortened.
+export const RAIN_CAR_SPEEDUP = 0.4;
+export function trafficClockRate(phase, wet) {
+  if (!phase || phase.bike || phase.idle) return 1;
+  return 1 + RAIN_CAR_SPEEDUP * Math.max(0, Math.min(1, (wet - 0.2) / 0.8));
+}
+
+export function updateTrafficLights(dt, world) {
+  const wet = (world && world.weather && world.weather.wet) || 0;
   for (const c of controllers) {
-    c.t = (c.t + dt) % c.cycle;
+    c.t = (c.t + dt * trafficClockRate(c.phases[c.cur], wet)) % c.cycle;
     stepController(c);
   }
 }
