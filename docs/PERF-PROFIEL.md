@@ -1,5 +1,7 @@
 # Profiel van de hoofdthread (0.24, Architectuur)
 
+> Historisch (stand 0.34): gemeten op 0.24 met alleen de stad en het oude Ommeland, vóór tegels, de provincie en de nieuwe wereldbouwer; de aantallen zijn verouderd, de methode (`scripts/perf`, `--cpu-throttle=4`) niet. Nieuwe metingen: issues #4 en #56.
+
 Waar gaat de tijd van de hoofdthread heen op zwakke hardware? Gemeten op
 3 oktober 2026 met `scripts/perf`, op de preset Laag (`quality:laag,
 shadows:false, drawDistance:kort, resolution:0.75, autoResolution:true`) en
