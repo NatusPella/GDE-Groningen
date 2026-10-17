@@ -65,7 +65,7 @@ function packWorld() {
   // what else goes into the rows when the checkout has it: the height chain,
   // the profiles, junctions and routes, the building attributes, the 3D BAG
   // extract and fetched AHN rasters
-  const extra = ['js/buildingheights.js', 'js/roadprofile.js', 'js/junctions.js', 'js/navgraph.js'].map((f) => path.join(SRC, f))
+  const extra = ['js/buildingheights.js', 'js/roadprofile.js', 'js/junctions.js', 'js/navgraph.js', 'js/roadgraph.js'].map((f) => path.join(SRC, f))
     .concat(['data/world/building_attrs.json.gz', 'data/world/3dbag.json.gz', 'data/world/ahn/index.json'].map((f) => path.join(root, f)));
   for (const f of extra) if (fs.existsSync(f)) h.update(fs.readFileSync(f));
   const ahn = path.join(root, 'data', 'world', 'ahn');

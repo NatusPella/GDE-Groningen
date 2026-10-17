@@ -9,7 +9,7 @@ import { getWaterIndex, waterClearance } from './waterindex.js';
 import { roadZAt } from './elevation.js';
 import { isInWater, WATER_Y } from './util.js';
 import { getHelipads } from './heliflight.js';
-import { countryReady, countryBuilt, countryCover, countryVersion, snapCountry, countryCosts, countryPath, countryPathToNode, countryPathFromNode, nodeXY, gatewayCandidates } from './countryroute.js';
+import { roadNetReady, roadGraphBuilt, roadGraphVersion, snapRoad, roadCosts, roadPath, roadPathToNode, roadPathFromNode, nodeXY, gatewayCandidates } from './roadgraph.js';
 
 const STRAY_M = 25;
 // the further from the route you may stray before it is redone, per way of travel
@@ -24,7 +24,7 @@ const TELEPORT_M = 150;
 const MIN_RECOMPUTE_S = 2;
 const REACH_M = 8;
 const SNAP_MAX_M = 480;
-// a point further than this from a city street is out in the Ommeland (countryroute.js)
+// a point further than this from a city street is out in the province (roadgraph.js)
 const CITY_SNAP_OK_M = 150;
 const GATEWAY_BAND_M = 700;
 const GATEWAY_CELL_M = 60;
@@ -480,8 +480,8 @@ export function dismissCareRoute() {
 // country graph).
 let gateways = null, gatewaysFor = -1;
 function cityGateways(map) {
-  if (gateways && gatewaysFor === countryVersion()) return gateways;
-  gatewaysFor = countryVersion();
+  if (gateways && gatewaysFor === roadGraphVersion()) return gateways;
+  gatewaysFor = roadGraphVersion();
   gateways = [];
   const B = map.meta && map.meta.bounds;
   if (!B) return gateways;
@@ -512,18 +512,17 @@ function countryRoute(world, target, from, to, graphMode, kind, p = world.player
   const inCity = (s, x, y) => {
     const cityD = s ? Math.hypot(s.x - x, s.y - y) : Infinity;
     if (cityD >= CITY_SNAP_OK_M) return false;
-    if (cityD <= CITY_SURE_M && !countryBuilt()) return true;
-    if (!countryReady(map.ommeland)) return true;
-    const c = snapCountry(x, y, COUNTRY_ON_M);
+    if (cityD <= CITY_SURE_M && !roadGraphBuilt()) return true;
+    if (!roadNetReady()) return true;
+    const c = snapRoad(x, y, COUNTRY_ON_M);
     return !(c && c.d <= cityD + 5);
   };
   const pIn = inCity(from, p.x, p.y);
   const tIn = inCity(to, target.x, target.y);
   if (pIn && tIn) return null;
-  if (!countryReady(map.ommeland)) return null;
-  countryCover([[p.x, p.y], [target.x, target.y]]);
-  const ps = pIn ? null : snapCountry(p.x, p.y, COUNTRY_SNAP_M, !driveOnly);
-  const ts = tIn ? null : snapCountry(target.x, target.y, COUNTRY_SNAP_M, !driveOnly);
+  if (!roadNetReady()) return null;
+  const ps = pIn ? null : snapRoad(p.x, p.y, COUNTRY_SNAP_M, !driveOnly);
+  const ts = tIn ? null : snapRoad(target.x, target.y, COUNTRY_SNAP_M, !driveOnly);
   if ((!pIn && !ps) || (!tIn && !ts)) return null;
   const lead = (s, x, y) => (s && s.d > 0.5 ? [[x, y]] : []);
   const gws = pIn || tIn ? cityGateways(map) : null;
@@ -533,11 +532,11 @@ function countryRoute(world, target, from, to, graphMode, kind, p = world.player
   // when a one-way dead end (a ramp cut at the data's edge) leaves no way
   const attempt = (free) => {
     if (!pIn && !tIn) {
-      const cp = countryPath(ps, ts, free);
+      const cp = roadPath(ps, ts, free);
       return cp ? [...lead(ps, p.x, p.y), ...cp, ...lead(ts, target.x, target.y)] : null;
     }
     // towards the outer end for a trip into the country, from it for a trip back (one-ways)
-    const { dist } = countryCosts(outer, pIn, free);
+    const { dist } = roadCosts(outer, pIn, free);
     // the best gateways first; a one-way or a dead end at the map's edge can
     // leave the city part without a way, then the next one
     const ranked = [];
@@ -552,7 +551,7 @@ function countryRoute(world, target, from, to, graphMode, kind, p = world.player
       if (!gs) continue;
       const city = pIn ? cityPart(from, gs) : cityPart(gs, to);
       if (!city) continue;
-      const country = pIn ? countryPathFromNode(g.n, outer, free) : countryPathToNode(outer, g.n, free);
+      const country = pIn ? roadPathFromNode(g.n, outer, free) : roadPathToNode(outer, g.n, free);
       if (!country) continue;
       return pIn ? [...city, ...country, ...lead(ts, target.x, target.y)] : [...lead(ps, p.x, p.y), ...country, ...city];
     }
