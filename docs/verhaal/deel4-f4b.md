@@ -2169,7 +2169,7 @@ Alle radiomomenten op een rij (de regels staan bij de missies). Rikus zendt "op 
 - **Jelle** valt in het water (personagebijbel: "elke ontsnapping is een polsstokspringen, en de laatste gaat mis"), zegt "Net fertelle" en helpt uit wrok; hij is nooit gemeen.
 - **Tammo en Tessa:** in O13 zeggen ze het zachtjes: "Ik wil niet dat je overal naartoe loopt." "Ik wil niet dat jij nergens naartoe gaat." "Dat is geen ruzie." "Nee. Dat is een lijstje." In n-schuur: "Dit gaat harder dan ik dacht." "Dat dacht ik ook." De echte ruzie is nog steeds voor O23.
 - **Personagebijbel:** Tammo zegt nooit "super" en geen Fries; hij zegt het belangrijke kort ("Eerst het leven. Dan het boek."). Tessa geeft bevelen en weet de feiten (Poolster, stuurboord, regel twee). Rikus vertelt nooit meer dan de speler weet. Durk maakt zinnen af, Douwe herhaalt het laatste woord; in O16 doen Wybe en Wiebren hetzelfde.
-- **Dialoogregels** uit [DIALOOG-REVIEW.md](DIALOOG-REVIEW.md): de `why`-regels verwijzen niet naar wat pas in de intro gebeurt; niemand legt uit wat de ander al weet; "Ik meld alleen" komt per scène hooguit één keer per melder; "Kon minder" spaarzaam (in F4b nergens als compliment).
+- **Dialoogregels** (uit de dialoogreview van oktober 2026): de `why`-regels verwijzen niet naar wat pas in de intro gebeurt; niemand legt uit wat de ander al weet; "Ik meld alleen" komt per scène hooguit één keer per melder; "Kon minder" spaarzaam (in F4b nergens als compliment).
 
 **Gevoelige onderwerpen (verhaal-document §8)**
 
