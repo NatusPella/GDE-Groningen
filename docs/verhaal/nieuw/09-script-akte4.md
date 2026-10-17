@@ -31,25 +31,24 @@ WUBBO (radio): Het schip zit vast. Plons. [NIEUW]
 WUBBO: De mosterd is van jullie. Grove mosterd, niet dat zoete spul. [NIEUW]
 TESSA: Dat is plakje zeven. Gered. [NIEUW]
 WUBBO: Er is een webbureau in Veendam dat alles om middernacht bijwerkt. Ook mijn bruggen. [NIEUW]
-TAMMO: Een W. [NIEUW]
-TESSA: Een webbureau, Tammo. Dat is geen W van "Tige tank". [NIEUW]
+TAMMO: Om middernacht. Net als de camera's van het museum. [NIEUW]
+TESSA: Dat is toeval, Tammo. [NIEUW]
 TAMMO: Dat moeten we weten. [NIEUW]
 
 ## [M20.4] Open, dicht: herhaling – Veenkoloniën, Veendam – sloep
 WUBBO: Weer elf bruggen? Mijn bruggen zeggen dank. [NIEUW]
 
-## [M21.1] Wie is W.?: intro – Veenkoloniën, Veendam, Wiebelwerk – te voet
+## [M21.1] Wie draaide de camera's uit?: intro – Veenkoloniën, Veendam, Wiebelwerk – te voet
 (regie: een kantoorpand bij een rotonde. Een bord: Wiebelwerk, websites met karakter. Een e-step staat voor de deur.)
-TAMMO: W. Wiebelwerk. Dat is een W. [NIEUW]
-TESSA: Dat is een bedrijf met een webbureau, Tammo. [NIEUW]
-TAMMO: Ze werken alles om middernacht bij. Ook de camera's van het museum. [NIEUW]
+TAMMO: Wiebelwerk. Ze werken alles om middernacht bij. Ook de camera's van het museum. [NIEUW]
 TESSA: Dat is toch geen misdaad? [NIEUW]
-TAMMO: Het is verdacht. [NIEUW]
+TAMMO: Het is verdacht. Wie zet er drie minuten alle camera's uit? [NIEUW]
+TESSA: Een webbureau, Tammo. [NIEUW]
 ACCOUNTMANAGER: Welkom bij Wiebelwerk. Wij maken websites. Wat is uw behoefte? [NIEUW]
 TESSA: Een website voor een frietwagen. [NIEUW]
 ACCOUNTMANAGER: Prachtig. Dan beginnen we met een intake. [NIEUW]
 
-## [M21.2] Wie is W.?: de intake – Veenkoloniën, Veendam, Wiebelwerk – te voet
+## [M21.2] Wie draaide de camera's uit?: de intake – Veenkoloniën, Veendam, Wiebelwerk – te voet
 ACCOUNTMANAGER: Wat is uw merkpersoonlijkheid? [NIEUW]
 TAMMO: Friet. [NIEUW]
 ACCOUNTMANAGER: Dat is een product, geen persoonlijkheid. [NIEUW]
@@ -60,7 +59,7 @@ ACCOUNTMANAGER: Iedereen wil een chatbot. [NIEUW]
 TAMMO: Ik niet. [NIEUW]
 ACCOUNTMANAGER: Dan doen wij hem toch. [NIEUW]
 
-## [M21.3] Wie is W.?: de servers – Veenkoloniën, Veendam, Wiebelwerk – te voet
+## [M21.3] Wie draaide de camera's uit?: de servers – Veenkoloniën, Veendam, Wiebelwerk – te voet
 TAMMO: Hier staat de update. Om 00:00. Drie minuten. [NIEUW]
 TESSA: En daar staat: zijdeur, 00:01, pas 1953. Houder: T. [NIEUW]
 TAMMO: Een T. [NIEUW]
@@ -68,17 +67,19 @@ TESSA: Een bewaarder. Dat staat erbij. [NIEUW]
 TAMMO: En daaronder: gast, G. [NIEUW]
 TESSA: …Dat zijn een heleboel letters. [NIEUW]
 TAMMO: Dat is het alfabet, Tessa. [NIEUW]
+TESSA: En kijk naar de datum. Twaalf augustus. [NIEUW]
+TAMMO: Dat is vijf dagen vóór ons. De bal was al weg. [NIEUW]
 TESSA: We moeten weg. [NIEUW]
 
-## [M21.4] Wie is W.?: outro – Veenkoloniën, Veendam – e-step
+## [M21.4] Wie draaide de camera's uit?: outro – Veenkoloniën, Veendam – e-step
 ACCOUNTMANAGER: Wiebelwerk stelt niks. Wij kunnen niks. Wij zijn een webbureau. [NIEUW]
 TAMMO: Dat klinkt als een alibi. [NIEUW]
 TESSA: Dat klinkt als een webbureau. [NIEUW]
-TAMMO: Dan is het niet W. [NIEUW]
-TESSA: Dan is het iemand anders. [NIEUW]
+TAMMO: Dan is het niet Wiebelwerk. [NIEUW]
+TESSA: Dan is het een T met een G. [NIEUW]
 APP MEM→TESSA (stil): Ze zoeken je. Kom naar Bourtange. – M. [NIEUW]
 
-## [M21.5] Wie is W.?: herhaling – Veenkoloniën, Veendam – te voet
+## [M21.5] Wie draaide de camera's uit?: herhaling – Veenkoloniën, Veendam – te voet
 ACCOUNTMANAGER: Weer een intake? Wij zijn altijd open. [NIEUW]
 
 ## [M22.1] Stoom: intro – Veenkoloniën, Stadskanaal, het perron – trein
@@ -177,13 +178,15 @@ TAMMO: Gerda? [NIEUW]
 MEM: Gerda Terpstra. De moeder van Jelle. [NIEUW]
 OMA TRIJNTJE: Wij hebben hem gehaald. Berend reed. [NIEUW]
 BEREND: Nul krassen. Op de heenweg. [NIEUW]
-TESSA: W. Wij. [NIEUW]
-OMA TRIJNTJE: Gerda schreef "Tige tank". Ik schreef de W. [NIEUW]
+TAMMO: Dan heeft Jelle hem nooit gehad. [NIEUW]
 MEM: Mijn zoon wil hem voor mij. Ik wil hem niet. Dus namen wij hem eerst. [NIEUW]
+TESSA: "Tige tank! – J." Dat is niet de J van Jelle. [NIEUW]
+MEM: Dat is mijn J. Ik teken er al sinds zijn eerste verjaardag al zijn kaarten mee. [NIEUW]
+TESSA: Ik zag ze elke zomer op uw keukentafel in Ljouwert. Alleen een moeder schrijft "Tige tank" zo. [NIEUW]
 TAMMO: Jullie hebben ons een museum laten kraken dat al leeg was? [NIEUW]
-OMA TRIJNTJE: Jullie waren al onderweg. We konden jullie niet tegenhouden. We waren je voor. [NIEUW]
-TAMMO: Tessa. Jij wist dit. [NIEUW]
-TESSA: Mem vroeg me niks te zeggen. [NIEUW]
+OMA TRIJNTJE: Jullie waren al onderweg. Rikus praat, jong. Wij waren je voor. [NIEUW]
+TAMMO: Tessa. Jij kende Mem. [NIEUW]
+TESSA: Ze vroeg me Jelle bezig te houden en niks te zeggen. Ik wist niet waarom. [NIEUW]
 TAMMO: Je zegt nooit iets. [NIEUW]
 TESSA: Jij zegt nooit iets! [NIEUW]
 
@@ -192,6 +195,8 @@ TESSA: Jij zegt nooit iets! [NIEUW]
 JELLE: Mem. Wat doe jij hier? [NIEUW]
 MEM: Dit, jonge. Kijk. [NIEUW]
 JELLE: Dat is de bal. [NIEUW]
+MEM: Jij zei op de radio dat je hem had. [NIEUW]
+JELLE: Dat was voor de show, mem. [NIEUW]
 MEM: Dat is de bal. Hier. Dit is wat je wilde. Nu stop je. [NIEUW]
 JELLE: Ik moet hem winnen, mem. [NIEUW]
 MEM: Je hoeft niets te winnen. [NIEUW]

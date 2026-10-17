@@ -272,11 +272,11 @@ BEREND: Weer een Ontzet? Elk jaar hetzelfde. Ik verlies graag. [NIEUW]
 
 ## [E1] Epiloog – Stad, Vismarkt – Fjord Frituur
 (regie: twee weken later. De terrassen gaan naar binnen. Bij de Vismarkt staat de Fjord Frituur met een rij tot de Korenbeurs.)
-RIKUS (radio): Het ruikt naar suiker. Dat komt uit Hoogkerk. De zomer is op. [BEHOUDEN]
-TESSA: Het is koud. [BEHOUDEN]
+RIKUS (radio): Het ruikt naar suiker. Dat komt uit Hoogkerk. De zomer is nog lang niet op. [NIEUW]
+TESSA: Het is tweeëntwintig graden. [NIEUW]
 TAMMO: Het is Grunn. [BEHOUDEN]
 TESSA: Spijt van de zomer? [BEHOUDEN]
-TAMMO: Nee. Van de winter ook niet. Alvast. [BEHOUDEN]
+TAMMO: Nee. Van de volgende ook niet. Alvast. [NIEUW]
 
 ## [E2] Slot – Stad, Nachtstreek – radio
 (regie: Rikus in de studio, met een bakje friet op het bureau.)

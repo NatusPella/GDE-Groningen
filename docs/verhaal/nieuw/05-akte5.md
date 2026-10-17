@@ -13,7 +13,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte5
 | **Wat de speler leert** | niets nieuws: alles wat je kunt wordt hier gebruikt (auto, trekker, duif, bakken, bus, scooter, fiets) |
 | **Plot** | Tessa en Tammo herstellen. De Escapade krijgt een luik: de Fjord Frituur. Alle vrienden van Oma rijden mee naar Stad. Jelles vlag aan de toren valt. Jelle komt naar Oma's keuken voor een bod, en krijgt van twee oude vrouwen zijn les. Op 28 augustus komen alle draden samen: de jury, de bal, de duiven, de wagen. |
 | **Romantiek** | **De knuffel en de openbaring** (5.1): Tessa vertelt dat ze op zeven plekken woonde voor haar tiende, en elke zomer naast Mem in Ljouwert; Tammo vertelt dat hij zweeg omdat hij dacht dat ze dan zou weggaan. Ze houden handen vast in 5.3: "Voor de grip?" "Nee. Gewoon." **Het slot:** "Ik wil bij jou blijven." |
-| **Haak** | epiloog en een kleine zaaiing voor later (vrij spel, Deel 4) |
+| **Haak** | epiloog; daarna loopt de open wereld door (de Fjord Frituur-dienst en alle bijbanen) |
 
 **Het antwoord op het verhaal:** de vijf woorden "Ik wil bij jou blijven" zijn het antwoord op Tessa's openbaring in 5.1 ("Ik blijf nooit ergens"), en op haar zin in de opening ("Een thuis met wielen"). Dat is wat de zin verdiend heeft.
 
@@ -45,7 +45,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte5
 | **Leuk-element / uitdaging** | rust; de zachtste missie na het dieptepunt |
 | **Reizen** | 3 km |
 | **Romantiek (9/10)** | **De knuffel en de openbaring.** Tessa: "Ik heb op zeven plekken gewoond voor ik tien was." Tammo: "Ik zweeg omdat ik dacht dat je dan zou weggaan." Tessa: "Ik ging niet weg." Tammo: "Je bleef nergens." Tessa: "Ik ben gebleven." Hij belooft het te zeggen: "Op het Ontzet. Voor iedereen." |
-| **Plot** | Tessa's verleden: een Nederlandse (geboren in Zwolle, AANNAME), vanaf haar achtste in het Oosterpark, elke zomer bij haar Friese oma in Ljouwert, naast Mem. Daarom kent ze Friezen. Tammo vindt dat gek. |
+| **Plot** | Tessa's verleden: een Nederlandse (geboren in Zwolle, AANNAME), vanaf haar achtste in het Oosterpark, elke zomer in Ljouwert, in het huis naast Mem. Daarom kent ze Friezen. Tammo vindt dat gek ("Jij? Fries?"). Haar regels zijn standaard Nederlands. |
 | **Gevolg / haak** | de Fjord Frituur is klaar; de vrienden komen naar Stad. |
 | **Behouden / nieuw** | "Hij is van ons. Hij weet het alleen nog niet." BEHOUDEN; Henk-regels BEHOUDEN waar mogelijk; de rest NIEUW |
 | **Nieuwe regels (schatting)** | 30 |
@@ -231,7 +231,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte5
 | **Plaats** | Grote Markt, vr 28 augustus, dag en avond |
 | **Voertuig** | te voet, de Fjord Frituur, duiven |
 | **Mechaniek / hergebruik** | bestaande def `ontzet` in drie delen: de kraam heel houden (`stage: hold`), de achtervolging met duiven boven het vuurwerk (`pigeon`, `chase`), terug naar de kraam voor de jury (`goto` + bakken); alle bondgenoten verschijnen |
-| **Doel (hardop)** | "Houd de kraam heel, haal de bal terug en bak voor de jury, voordat de eierballen koud zijn." |
+| **Doel (hardop)** | "Houd de kraam heel, haal de bal terug en bak voor de jury, voordat de eierballen afkoelen." |
 | **Motief** | de Snackprijs, de standplaats, de bal, Gerda en Trijntje |
 | **Wat de speler weet** | alles |
 | **Verloop** | 1) De kraam heel houden: Durk en Douwe helpen nu; het vuurwerk gaat per ongeluk af. 2) Jelle grijpt de bal en vlucht in de limo; Tammo, met de duiven van Bert, haalt hem in. 3) Terug naar de kraam. 4) Jury: Berend proeft; Oma en Mem; "Gerda. Jouw eierbal was beter." 5) De vijf woorden. 6) Jelle geeft de plakjes terug. **Falen:** kraam stuk of bal kwijt: "Sikkom." |
@@ -277,11 +277,11 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte5
 
 **Epiloog (twee weken later, Vismarkt):**
 
-- **RIKUS (radio):** Het ruikt naar suiker. Dat komt uit Hoogkerk. De zomer is op. [BEHOUDEN]
-- **TESSA:** Het is koud. [BEHOUDEN] *(voorstel: vervangen door "Het is tweeëntwintig graden." als constitutie 3 vervalt, zie open vraag)*
+- **RIKUS (radio):** Het ruikt naar suiker. Dat komt uit Hoogkerk. De zomer is nog lang niet op. [NIEUW]
+- **TESSA:** Het is tweeëntwintig graden. [NIEUW]
 - **TAMMO:** Het is Grunn. [BEHOUDEN]
 - **TESSA:** Spijt van de zomer? [BEHOUDEN]
-- **TAMMO:** Nee. Van de winter ook niet. Alvast. [BEHOUDEN]
+- **TAMMO:** Nee. Van de volgende ook niet. Alvast. [NIEUW]
 
 **Slot (Rikus, studio):**
 

@@ -1,10 +1,10 @@
 # 09 · Script akte 1: "Moi, Grunn" (Stad)
 
-> **Formaat (strikt, voor machinale verwerking).** Elke scène begint met een kopregel `## [ID] Titel – regio/plaats – voertuig`. Daarna optioneel `(regie: ...)`-regels. Daarna dialoogregels exact als `SPREKER: tekst [TAG]`, één uiting per regel, spreker in HOOFDLETTERS. Radio: `RIKUS (radio): ...`. Appjes en sms: `APP VAN→NAAR (stil): ...`, nooit voorgelezen. `[BEHOUDEN]` = de regel staat letterlijk in de repo (opname bestaat); `[NIEUW]` = nieuwe of gewijzigde regel (nieuwe opname nodig). Geen toneelaanwijzingen in een uiting. Geen echte personen of merken. Sprekernaam `TESSA` = `anita` in de code.
+> **Formaat (strikt, voor machinale verwerking).** Elke scène begint met een kopregel `## [ID] Titel – regio/plaats – voertuig`. Daarna optioneel `(regie: ...)`-regels. Daarna dialoogregels exact als `SPREKER: tekst [TAG]`, één uiting per regel, spreker in HOOFDLETTERS. Radio: `RIKUS (radio): ...`. Appjes en sms: `APP VAN→NAAR (stil): ...`, nooit voorgelezen. `[BEHOUDEN]` = de regel staat letterlijk in de repo (opname bestaat); `[NIEUW]` = nieuwe of gewijzigde regel (voorlopig alleen tekst, niet opgenomen). Geen toneelaanwijzingen in een uiting. Geen echte personen of merken. Sprekernaam `TESSA` = `anita` in de code.
 > Hoort bij [01-akte1.md](01-akte1.md) en [00-OVERZICHT.md](00-OVERZICHT.md).
 
 ## [C00.1] Trailer – Stad, Grote Markt – geen voertuig
-(regie: trailerparodie, zon op d'Olle Grieze, fietsers in plaats van flamingo's, een werkboot vist een fiets uit de Diepenring, een meeuw steelt een frikandel. Bevroren beeld: naamkaart TESSA, daarna TAMMO. Titelkaart: GDE, GRONINGEN, Zomer vol misdaad.)
+(regie: trailerparodie, zon op d'Olle Grieze, fietsers in plaats van flamingo's, een werkboot vist een fiets uit de Diepenring, een meeuw steelt een frikandel. Stilstaand beeld: naamkaart TESSA, daarna TAMMO. Titelkaart: GDE, GRONINGEN, Zomer vol misdaad.)
 RIKUS (radio): Grunn. Tweehonderdduizend mensen, driehonderdduizend fietsen en één toren die alles ziet. [NIEUW]
 RIKUS (radio): Dit is deel zes van een serie die niet bestaat. Ik ben gewoon begonnen met tellen. [NIEUW]
 RIKUS (radio): Er gaat niets boven Grunn. Behalve de Martinitoren. [BEHOUDEN]
@@ -354,11 +354,9 @@ TAMMO: De vitrine. Die staat open. [NIEUW]
 
 ## [M07.3] Het museum stond er al zo: de lege vitrine – Stad, Groninger Museum – te voet
 (regie: de koepel is van matglas met een gouden gloed. Het slot klikt, de koepel komt omhoog: een leeg kussen. Close-up van het kaartje, zes à acht seconden, wegklikbaar.)
-TESSA: "Tige tank! – W." Hartelijk dank. [NIEUW]
-TAMMO: Er staat een W. [NIEUW]
-TESSA: Jelle heeft een slordig handschrift. [NIEUW]
-TAMMO: Jelle begint met een J. [NIEUW]
-TESSA: Dan is het een slordige J. We moeten hier weg, Tammo. [NIEUW]
+TESSA: "Tige tank! – J." [BEHOUDEN]
+TAMMO: Hij bedankt ons. [BEHOUDEN]
+TESSA: Hij. Bedankt. Ons. [BEHOUDEN]
 (regie: het alarm gaat af en het noodlicht springt aan. Ze rennen.)
 RIKUS (radio): We hebben een beller. Uit… Ljouwert? [BEHOUDEN]
 (regie: naamkaart voor Jelle in beeld.)
@@ -370,7 +368,7 @@ TESSA: J. Van Jelle. Natuurlijk. [BEHOUDEN]
 TAMMO: Beleefd. [BEHOUDEN]
 TAMMO: Hij heeft hem gestolen om hem eerlijk te winnen. [BEHOUDEN]
 TESSA: En de camera's van daarnet hebben óns gefilmd. [BEHOUDEN]
-TAMMO: Alleen staat er een W. [NIEUW]
+TAMMO: Een dief die een bedankje achterlaat. Raar. [NIEUW]
 TESSA: Rennen, Tammo. [NIEUW]
 
 ## [M07.4] Het museum stond er al zo: herhaling – Stad, kade – te voet

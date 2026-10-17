@@ -2,7 +2,7 @@
 
 Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels per scène staan in [09-script-akte1.md](09-script-akte1.md); hier staat de opzet per missie met de openingsdialoog en één sleutelscène.
 
-**Tagregels voor dialoog in dit document:** `[BEHOUDEN]` = de regel staat letterlijk in de repo (opname bestaat). `[NIEUW]` = nieuwe of gewijzigde regel (nieuwe opname nodig). Spreker `TESSA` heet in de code `anita` / `A`.
+**Tagregels voor dialoog in dit document:** `[BEHOUDEN]` = de regel staat letterlijk in de repo (opname bestaat). `[NIEUW]` = nieuwe of gewijzigde regel (voorlopig alleen tekst, niet opgenomen). Spreker `TESSA` heet in de code `anita` / `A`.
 
 ## Intro van de akte
 
@@ -13,15 +13,15 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels per scène staan 
 | **Tijd** | ca. 60-70 minuten (7 missies + opening) |
 | **Dagen** | vr 14 (1.1), za 15 (1.2-1.4), zo 16 (1.5-1.6), ma 17 (1.7, 's nachts) |
 | **Wat de speler leert** | rijden, achtervolgen, stunten, formulieren, de duif, de fiets, sluipen; wie Tammo en Tessa zijn |
-| **Plot** | Tessa wil een thuis met wielen: de Fjord Frituur. De enige vrije standplaats gaat naar de winnaar van de Snackprijs op 28 augustus. Een Fries (Jelle) koopt plakje voor plakje de hele markt op. Wie de Gouden Eierbal bewaart, zit de jury voor (artikel 4). Tessa en Tammo besluiten de bal eerst te pakken, als bewaking. De vitrine is al leeg: "Tige tank! – W." |
+| **Plot** | Tessa wil een thuis met wielen: de Fjord Frituur. De enige vrije standplaats gaat naar de winnaar van de Snackprijs op 28 augustus. Een Fries (Jelle) koopt plakje voor plakje de hele markt op. Wie de Gouden Eierbal bewaart, zit de jury voor (artikel 4). Tessa en Tammo besluiten de bal eerst te pakken, als bewaking. De vitrine is al leeg: "Tige tank! – J." Iedereen denkt aan Jelle. |
 | **Romantiek** | vriendschap, plagen, Tammo is al twaalf jaar verliefd, Tessa merkt niks. Stappen: oogcontact (1.6), de eerste handaanraking "voor de grip" (1.7) |
-| **Haak naar akte 2** | de politie zoekt twee Stadjers in het zwart, Jelle claimt de bal op de radio, en Tammo kijkt de hele nacht naar de letter W. |
+| **Haak naar akte 2** | de politie zoekt twee Stadjers in het zwart, Jelle claimt de bal op de radio, en Tammo kan het kaartje niet loslaten: een dief die bedankt. |
 
 **Doel in de eerste 10 minuten (hardop):** opening, Tessa: winnen op 28 augustus, dan een standplaats. **Motief:** de huur, de bank zegt nee, Tessa wil ergens blijven. **Vroege antagonist:** Rikus' radio noemt de Fries al in minuut 2; Berend noemt hem in 1.1 (de klomp); Jelle komt zelf in beeld in 1.4 (± minuut 30) en eerder in de chat (1.3).
 
 ### Opening (cutscène, geen missie)
 
-**Wat je ziet:** trailerparodie (zon op d'Olle Grieze, fietsers in plaats van flamingo's, bevroren beeld TESSA en TAMMO met naamkaart), daarna zonsopgang boven de Oosterparkwijk, het zolderraam, de Escapade met een lekke band. Verhuisdag naar Paddepoel, elfde verdieping.
+**Wat je ziet:** trailerparodie (zon op d'Olle Grieze, fietsers in plaats van flamingo's, stilstaand beeld TESSA en TAMMO met naamkaart), daarna zonsopgang boven de Oosterparkwijk, het zolderraam, de Escapade met een lekke band. Verhuisdag naar Paddepoel, elfde verdieping.
 
 **Opening, de keuken (uitsnede, 12 regels):**
 
@@ -292,13 +292,13 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels per scène staan 
 | **Doel (hardop)** | "In drie minuten bij de vitrine, de Gouden Eierbal pakken en weg voordat de camera's weer aangaan." |
 | **Motief** | als Jelle hem pakt, wint hij het reglement; Tammo: "terugbrengen na het Ontzet" |
 | **Wat de speler weet** | camera's, bewakers, stroomkast, drie minuten, artikel 4 |
-| **Verloop** | 1) Thuis wachten tot middernacht (korte scène, Henk belt: zender in de Escapade). 2) Plan: sluipen of vermomd. 3) Zekeringkast, slot, bewaker. 4) Binnen: vitrine open, **leeg**, kaartje "Tige tank! – W." 5) Alarm, rennen, nieuwsbericht. **Falen:** gezien of te laat: "Sikkom." en de nacht begint opnieuw bij de kade. |
+| **Verloop** | 1) Thuis wachten tot middernacht (korte scène, Henk belt: zender in de Escapade). 2) Plan: sluipen of vermomd. 3) Zekeringkast, slot, bewaker. 4) Binnen: vitrine open, **leeg**, kaartje "Tige tank! – J." 5) Alarm, rennen, nieuwsbericht. **Falen:** gezien of te laat: "Sikkom." en de nacht begint opnieuw bij de kade. |
 | **Leuk-element / uitdaging** | de eerste sluipmissie met een klok; langzaam beginnen, scherp eindigen |
 | **Reizen** | flat naar museum 4 km; skip met de Escapade: 3 min of de fiets uit 1.6 |
 | **Romantiek (6/10)** | **De eerste handaanraking:** "Geef me je hand. Het is donker daarbinnen." "…Voor de grip." |
-| **Plot** | de vitrine is al leeg. Op het kussen: "Tige tank! – W." Jelle belt live naar Nachtstreek en claimt hem. Tammo kijkt naar de letter. |
+| **Plot** | de vitrine is al leeg. Op het kussen: "Tige tank! – J." Jelle belt live naar Nachtstreek en claimt hem (hij bluft; de speler weet dat nog niet). Tammo: "Hij bedankt ons." |
 | **Gevolg / haak** | de politie zoekt twee mensen in het zwart. De bal is weg, de camera's filmden hen, en Jelle wint de jury als hij hem echt heeft. |
-| **Behouden / nieuw** | bijna alles BEHOUDEN, behalve het kaartje (J wordt W), Tessa's "J. Van Jelle" en de nieuwe vraag over de W |
+| **Behouden / nieuw** | bijna alles BEHOUDEN, ook het kaartje en Tessa's "J. Van Jelle"; alleen Jelles radioregel over artikel 4 is NIEUW |
 | **Nieuwe regels (schatting)** | 14 |
 
 **Openingsdialoog (kade, nacht, 9 regels):**
@@ -315,13 +315,11 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels per scène staan 
 
 **Sleutelscène (de lege vitrine):**
 
-- **TESSA:** "Tige tank! – W." Hartelijk dank. [NIEUW]
-- **TAMMO:** Er staat een W. [NIEUW]
-- **TESSA:** Jelle heeft een slordig handschrift. [NIEUW]
-- **TAMMO:** Jelle begint met een J. [NIEUW]
-- **TESSA:** Dan is het een slordige J. We moeten hier weg, Tammo. [NIEUW]
+- **TESSA:** "Tige tank! – J." [BEHOUDEN]
+- **TAMMO:** Hij bedankt ons. [BEHOUDEN]
+- **TESSA:** Hij. Bedankt. Ons. [BEHOUDEN]
 - **RIKUS (radio):** We hebben een beller. Uit… Ljouwert? [BEHOUDEN]
 - **JELLE (radio):** Moai, Rikus. Jelle Terpstra, van Us Mem Snacks. Ik wil een groet doen aan twee mensen in een museum. [BEHOUDEN]
 - **JELLE (radio):** Reglement van de Noordelijke Snackprijs, artikel 4. De bewaarder zit de jury voor. Ik heb hem alvast meegenomen. Dat scheelt een rit. [NIEUW]
 
-> **Te beoordelen.** A) "W." blijft een raadsel tot 4.5 (voorstel; bijzonder, maar dwingt één opname-ronde voor de vier J-regels). B) Terug naar "J." (geen heropname, wel minder twist). C) De W staat op het kaartje én Tammo kent een W (Wiebelwerk) die later een valse piste wordt (zie 4.2).
+> **Besluit van de eigenaar.** Het kaartje blijft exact "Tige tank! – J." (de regel is opgenomen). De twist is dat Mem Terpstra met haar J tekent; zie 4.5.
