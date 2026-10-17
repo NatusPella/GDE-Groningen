@@ -13,7 +13,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte3
 | **Wat de speler leert** | helikopter (aan een touw), sluipen tussen containers, een race met wind, een kermis te voet, een klein vliegtuig, botsauto's |
 | **Plot** | Het koopboek van Jelle laat zien dat zijn plan uit acht plakjes bestaat. De haven (plakje 5) wordt met een lijst van Lammert, de havenmeester, ontmanteld. In Winschoten blijkt dat **Jelle en Tammo allebei denken dat de ander de bal heeft**. Jelles jury (plakje 6) loopt voor een deel weg. Durk en Douwe laten hun baas niet los, maar zijn hem kwijt in een botsauto |
 | **Romantiek** | **Eerste voorzichtige flirt** (Tammo, 3.3): "Je ziet er goed uit met wind." Tessa denkt dat het een grap is. **De eerste kus** (3.6): de dijk, na de kermis. Daarna doen ze alsof het niet gebeurd is. Tessa verzwijgt dat ze weet waar de bal staat: de eerste leugen. |
-| **Haak naar akte 4** | Durk, onder invloed: "Baas gaat naar Veendam, voor de mosterd. Plakje zeven." Tessa's telefoon: "Nog zes dagen. – M." |
+| **Haak naar akte 4** | Durk, onder invloed: "Baas gaat naar Veendam, voor de mosterd. Plakje zeven." Tessa's telefoon: "Nog vijf dagen. – M." |
 
 **Het midden van het verhaal:** 3.4 (Durk) is het keerpunt. Tot dan jagen ze Jelle voor de bal; vanaf hier jagen ze Jelles plan en zoeken ze allebei naar wie hem wel heeft. De kus (3.6) sluit akte 3.
 
@@ -43,7 +43,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte3
 | **Motief** | Dijkstra's nachtdienst heeft honger; Jelle vliegt per ballon over zijn nieuwe gebied en neemt het koopboek mee |
 | **Wat de speler weet** | Jelle koopt plakjes; de bal is wie weet waar |
 | **Verloop** | 1) Dijkstra landt in Lauwersoog ("Dit stond niet in het rooster."). 2) Autopilot: UMCG, lunch afleveren op de H. 3) Autopilot oost naar de Dollard. 4) Tessa vliegt, Tammo hangt aan de lier naast de mand. 5) Koffer pakken (Jelle in de mand met Durk en Douwe). 6) Terugvliegen. **Falen:** te dicht bij de mand (valt weg): "Sikkom." met respawn op het platform. |
-| **Spaßelement / uitdaging** | de enige missie in de lucht in dit deel; Tammo's hoogtevrees; kaartkijken terwijl je vliegt |
+| **Leuk-element / uitdaging** | de enige missie in de lucht in dit deel; Tammo's hoogtevrees; kaartkijken terwijl je vliegt |
 | **Reizen** | 80 km in totaal: autopilot en een scène; zonder keuze (de heli is het reisalternatief) |
 | **Romantiek (5/10)** | Tessa vraagt: "Wil je hangen?" Tammo: "…Ja. Dank je dat je het vraagt." Later zegt hij tegen de ballon: "Doe bist schier." |
 | **Plot** | de koffer: het koopboek met acht plakjes (standplaatsen, vet, eieren, zout, haven, bloem en jury, mosterd, de bewaarder) |
@@ -58,7 +58,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte3
 - **DOKTER DIJKSTRA:** Eerst de lunch. Achterin staat een koeltas. Die hebben twaalf uur niks gehad. [NIEUW]
 - **TESSA:** Dat is geen noodgeval. [BEHOUDEN]
 - **DOKTER DIJKSTRA:** Jij hebt nooit nachtdienst gedaan. Landen op de H van het UMCG, graag. [BEHOUDEN]
-- **DOKTER DIJKSTRA:** Dan de ballon. Ik heb een lier. Zij vliegt. Hij hangt. [BEHOUDEN]
+- **DOKTER DIJKSTRA:** Dan de ballon. Ik heb een lier. Zij vliegt. Hij hangt. [NIEUW]
 - **TAMMO:** Natuurlijk hang ík. [BEHOUDEN]
 - **TESSA:** Ik vraag het, Tammo. Wil je hangen? [BEHOUDEN]
 - **TAMMO:** …Ja. Dank je dat je het vraagt. [BEHOUDEN]
@@ -89,7 +89,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte3
 | **Motief** | in container 4471 staan Jelles ingekochte voorraden; verwisselde papieren sturen ze naar de havenmeester Lammert |
 | **Wat de speler weet** | het koopboek; plakje 5 is de haven |
 | **Verloop** | 1) Lammert wacht aan de kade (naamkaart). 2) Plan: kraan of overall. 3) Bewakers en camera's. 4) Container 4471 vinden tussen duizenden. 5) Papieren verwisselen. 6) Wegkomen. **Falen:** gezien: "Sikkom." en de nacht begint opnieuw. |
-| **Spaßelement / uitdaging** | tweede sluipmissie, nu met een puzzel (welke container) en geen duif |
+| **Leuk-element / uitdaging** | tweede sluipmissie, nu met een puzzel (welke container) en geen duif |
 | **Reizen** | Dollard naar Eemshaven 40 km: heli (Dijkstra zet je af) of auto 30 min met autogesprekken |
 | **Romantiek (4/10)** | in de kooi van de kraan staan ze dicht bij elkaar; Tessa: "Niet bewegen." Tammo: "Ik beweeg niet." Tessa: "Je ademt." |
 | **Plot** | het schip vertrekt; de voorraden gaan naar Lammert; Lammert is Oma's vriend uit de dansschool van 1953; zijn woonschip in Delfzijl wordt de schuilplaats |
@@ -107,7 +107,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte3
 - **TAMMO:** Ze zijn bijna allemaal rood. [NIEUW]
 - **LAMMERT:** Dan moet je de blauwe zoeken. [NIEUW]
 - **TESSA:** We pakken de kraan. Dan zien we van boven welke blauw is. [NIEUW]
-- **LAMMERT:** Ik zeg alleen: niet piepen. Ik meld alleen. [BEHOUDEN]
+- **LAMMERT:** Ik zeg alleen: niet piepen. Ik meld alleen. [NIEUW]
 
 **Sleutelscène (in de kraankooi):**
 
@@ -135,7 +135,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte3
 | **Motief** | Jelle daagt Tammo uit: "Wie wint, mag famke een eierbal geven." Tammo kan dat niet laten staan |
 | **Wat de speler weet** | de haven is gewonnen; Jelle bluft |
 | **Verloop** | 1) Startschot op de kade. 2) Dijkrace met zijwind en schapen. 3) Jelle probeert te snijden. 4) Finish bij de sluis van Delfzijl. **Falen:** Jelle eerder: "Sikkom." en opnieuw. |
-| **Spaßelement / uitdaging** | de racemissie met een nieuw soort bochten (dijk, zijwind), korter dan de ring |
+| **Leuk-element / uitdaging** | de racemissie met een nieuw soort bochten (dijk, zijwind), korter dan de ring |
 | **Reizen** | Eemshaven naar Delfzijl 25 km: de race zelf (8 km) en een korte rit |
 | **Romantiek (6/10)** | **Eerste voorzichtige flirt (Tammo):** "Je ziet er goed uit met wind." Tessa: "Dat zegt iedereen over de tegenwind." (ze denkt dat het een grap is) |
 | **Plot** | Jelle verliest en scheldt zijn tweeling uit: "Durk, Douwe, hoe vaak moet ik het zeggen." Tessa: "Wij hebben hem niet, Jelle." Jelle: "Ik ook niet… Ik bedoel: ik zeg niks." |
@@ -145,7 +145,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte3
 
 **Openingsdialoog (dijk, 9 regels):**
 
-- **JELLE:** Moai, Grinzer. Eén rondje over jullie dijk. Wie wint, mag famke een eierbal geven. [BEHOUDEN]
+- **JELLE:** Moai, Grinzer. Eén rondje over jullie dijk. Wie wint, mag famke een eierbal geven. [NIEUW]
 - **TESSA:** Famke koopt haar eigen eierbal. [BEHOUDEN]
 - **TAMMO:** Dat neem ik je kwalijk. [BEHOUDEN]
 - **TESSA:** Dat was een hele zin, Tammo. [BEHOUDEN]
@@ -180,7 +180,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte3
 | **Motief** | Geert (kroegbaas uit de Poelestraat) heeft een tent op de kermis; twee Friese reuzen zingen aan zijn bar |
 | **Wat de speler weet** | Jelle bluft, hij valt in sloten, zijn koffer is leeg |
 | **Verloop** | 1) Geert belt via Rikus. 2) Vier tenten, elk een drankje (toast). 3) Dronken menigte duwt je. 4) De vierde tent: Durk zingt. **Falen:** te veel geduwd: "Sikkom." |
-| **Spaßelement / uitdaging** | de kroegentocht in nieuwe vorm; de humor zit in de menigte en het zingen |
+| **Leuk-element / uitdaging** | de kroegentocht in nieuwe vorm; de humor zit in de menigte en het zingen |
 | **Reizen** | Delfzijl naar Winschoten 35 km: trein (2 min in beeld) |
 | **Romantiek (5/10)** | Geerts barman wil Tessa's nummer; Tammo: "Die barman heeft het druk." Tessa: "O ja? Sinds wanneer bepaal jij dat?" Tammo: "Sinds nu." |
 | **Plot** | **Het keerpunt.** Durk, zingend: "De bal… hebben wij niet. Baas denkt dat júllie hem hebben." Douwe: "Durk. Dat was geheim. …Hè." |
@@ -192,7 +192,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte3
 
 - **GEERT (radio):** Rikus. Geert, Poelestraat. Er zitten twee Friese reuzen aan mijn bar en ze zingen al een uur. Ik zoek iemand die vier kroegen doet, om ze bij te houden. [BEHOUDEN]
 - **RIKUS (radio):** Geert, dat is geen klus. Dat is een avond. [BEHOUDEN]
-- **GEERT:** Vier tenten, één avond, alles te voet. En Tessa: mijn nieuwe barman wil heel graag je nummer. [BEHOUDEN]
+- **GEERT:** Vier tenten, één avond, alles te voet. En Tessa: mijn nieuwe barman wil heel graag je nummer. [NIEUW]
 - **TAMMO:** Die barman heeft het druk. [BEHOUDEN]
 - **TESSA:** O ja? Sinds wanneer bepaal jij dat? [BEHOUDEN]
 - **TAMMO:** Sinds nu. [BEHOUDEN]
@@ -229,7 +229,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte3
 | **Motief** | plakje zes: Jelle betaalt de juryleden met levenslang eierballen; Roelfien levert de bloem en leent haar vliegtuig |
 | **Wat de speler weet** | Jelle bluft, de bal is nergens, de jury wordt gekocht |
 | **Verloop** | 1) Roelfien (naamkaart) geeft het vliegtuig. 2) Opstijgen, laag over het graan. 3) Spandoek oppikken. 4) Over de kermis vliegen, door de rij kramen. 5) Drie juryleden lopen weg. **Falen:** te hoog (niemand ziet het) of te laag: "Sikkom." |
-| **Spaßelement / uitdaging** | een heel ander gevoel dan de heli: snel, laag, met een boodschap |
+| **Leuk-element / uitdaging** | een heel ander gevoel dan de heli: snel, laag, met een boodschap |
 | **Reizen** | 4 min |
 | **Romantiek (4/10)** | Tammo mag de bocht aanwijzen; Tessa: "Jij kijkt, ik stuur." Hij: "Ik voel me nuttig." |
 | **Plot** | drie van de vijf juryleden stappen uit; plakje zes valt gedeeltelijk; Roelfien geeft de bloem |
@@ -273,10 +273,10 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte3
 | **Motief** | Durk en Douwe moeten iets verklappen; jullie willen weten waar Jelle heen gaat |
 | **Wat de speler weet** | Jelle en zij hebben allebei geen bal; het koopboek |
 | **Verloop** | 1) Botsautopist: een rit van twee minuten tegen de tweeling. 2) Durk en Douwe botsen in elkaar ("Plons" op de grond). 3) Durk: "Baas gaat naar Veendam." 4) Zonsondergang aan de dijk. **Falen:** geen echt falen; de rit is vrij herhaalbaar. |
-| **Spaßelement / uitdaging** | de lichtste missie; de ontspanning vóór het zware deel |
+| **Leuk-element / uitdaging** | de lichtste missie; de ontspanning vóór het zware deel |
 | **Reizen** | 4 min |
 | **Romantiek (8/10)** | **De eerste kus:** op de dijk, "Moi." "…Moi." Dan kust ze hem, kort. Daarna doen ze alsof het niet gebeurd is. |
-| **Plot** | Jelle gaat naar Veendam voor de mosterd (plakje zeven); Tessa's telefoon: "Nog zes dagen. – M." (stil) |
+| **Plot** | Jelle gaat naar Veendam voor de mosterd (plakje zeven); Tessa's telefoon: "Nog vijf dagen. – M." (stil) |
 | **Gevolg / haak** | de kus; het verzwijgen; de volgende ochtend: Veendam. |
 | **Behouden / nieuw** | botsautoscène BEHOUDEN; dijkscène grotendeels hergebruik van de rondvaartkus (H13) |
 | **Nieuwe regels (schatting)** | 12 |
@@ -295,7 +295,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte3
 **Sleutelscène (de dijk):**
 
 - **TESSA:** Daar. De zon. Zeg maar iets. [NIEUW]
-- **TAMMO:** Weet je nog bij Berend? Toen mocht ik niet eens rijden. [BEHOUDEN]
+- **TAMMO:** Weet je nog bij Berend? Toen mocht ik niet eens rijden. [NIEUW]
 - **TESSA:** Mag je nog steeds niet. [BEHOUDEN]
 - **TAMMO:** Nee. Maar ik zit wel naast je. [BEHOUDEN]
 - **TESSA:** Moi. [BEHOUDEN]
@@ -304,6 +304,6 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte3
 - **TESSA:** Dat was voor de kermis. [NIEUW]
 - **TAMMO:** Die is al dicht. [NIEUW]
 - **TESSA:** …Ja. [BEHOUDEN]
-- *(APP MEM→TESSA, stil: "Nog zes dagen. Zeg het hem niet. – M.")*
+- *(APP MEM→TESSA, stil: "Nog vijf dagen. Zeg het hem niet. – M.")*
 
 > **Te beoordelen.** A) De kus aan het eind van akte 3, midden in het verhaal (voorstel). B) De kus in akte 2 op het wad (te vroeg voor het dieptepunt). C) De kus pas na het dieptepunt (maakt de ruzie scherper, maar het verhaal wordt minder warm).

@@ -52,7 +52,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels per scène staan 
 | **Motief** | Rikus zoekt een chauffeur; Berend mag sinds 1977 niet door het centrum; ze hebben geld nodig |
 | **Wat de speler weet** | de droom, het geld, dat er een Fries rondloopt die alles opkoopt (uit de radio) |
 | **Verloop** | 1) Berend geeft de sleutels. 2) Navigatie stuurt om via de Diepenring. 3) Checkpoints langs het water; elke kras kost vijftig cent. 4) Aflevering bij zijn zus. **Falen:** te veel schade of tijdslimiet (94 s in de bestaande def; aanname dat dat blijft): "Sikkom." en herstart bij het Martinikerkhof. |
-| **Spaßelement / uitdaging** | rustig rijden als moeilijkheid: leren dat schade geld kost (tutorial voor de rest) |
+| **Leuk-element / uitdaging** | rustig rijden als moeilijkheid: leren dat schade geld kost (tutorial voor de rest) |
 | **Reizen** | start 1,5 km van de flat; geen reiskeuze nodig; 2 min |
 | **Romantiek (2/10)** | Berend zegt "Moi" tegen Tessa; Tammo is jaloers op een bejaarde |
 | **Plot** | zaait: een Fries met een klomp wilde Berends bakkie kopen (Jelles eerste plakje: alles wat rijdt) |
@@ -92,7 +92,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels per scène staan 
 | **Motief** | de automaat slikte Tessa's pas; Durk en Douwe trokken hem uit de muur; de politie komt |
 | **Wat de speler weet** | Durk en Douwe werken voor een baas (nog geen naam), het geld is op |
 | **Verloop** | 1) Cutscène Herestraat. 2) Instappen, politie schudt je af (1 of 2 sterren). 3) Spuiten bij Spuit & Klaar. 4) Pand & Poen: Sjabbe wrikt de klep open. **Falen:** gepakt of automaat kwijt: "Sikkom.", respawn bij de Herestraat. |
-| **Spaßelement / uitdaging** | variatie op 1.1: nu mag je schade, maar niet gepakt worden |
+| **Leuk-element / uitdaging** | variatie op 1.1: nu mag je schade, maar niet gepakt worden |
 | **Reizen** | Herestraat ligt 600 m van Berends adres; 1 min |
 | **Romantiek (2/10)** | Tessa regelt alles, Tammo volgt; "We pinnen even." |
 | **Plot** | Sjabbe: de reuzen kochten vorige week alles voor frituren; hun baas vroeg waar het museum alarmen heeft. Tessa legt het verband: iemand wil de bal |
@@ -130,7 +130,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels per scène staan 
 | **Motief** | inschrijven voor de Snackprijs kost 150; Jelmer betaalt voor content |
 | **Wat de speler weet** | de Snackprijs bestaat, kost 150 en is hun enige kans |
 | **Verloop** | 1) Cutscène Jelmer. 2) Stunts tussen parasols, kliko's, de waterwagen; duivenzwerm laten opvliegen. 3) Mensen raken kost je combo. **Falen:** te veel strafpunten, tijd: "Sikkom." |
-| **Spaßelement / uitdaging** | eerste vrije stunt, kijkt grappig; veel meer combo's dan 1.2 |
+| **Leuk-element / uitdaging** | eerste vrije stunt, kijkt grappig; veel meer combo's dan 1.2 |
 | **Reizen** | 400 m; 1 min |
 | **Romantiek (3/10)** | Tammo ziet "famke yn it read" in de chat en vraagt: "Wie is die man." Eerste jaloezie |
 | **Plot** | Jelle verschijnt in de chat ("JelleWâld"): Tessa: "Groot Loug. Zo noemen wíj onszelf." Hij kijkt dus mee |
@@ -168,7 +168,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels per scène staan 
 | **Motief** | inschrijving sluit om twaalf uur; zonder stempel geen deelname; en zonder standplaats geen frituur |
 | **Wat de speler weet** | de prijs is een standplaats; Jelle (nog niet in beeld) heeft alle bakkers van de buurt gebeld |
 | **Verloop** | 1) Binnen: wachtnummer 4117, scherm toont 4093. 2) Loket A: formulier 7B. 3) Loket C: stempel (alleen als je het formulier niet vouwt). 4) Loket B: het dossier. 5) **Jelle staat in de rij vóór je**: hij betaalt contant uit een klomp en koopt "alle vrije standplaatsen van het jaar". 6) Baliemedewerker leest artikel 4 voor. 7) Inschrijfbewijs ophalen terwijl Jelle je afleidt. **Falen:** tijd (12:00): de klok springt; je moet dan terugkomen via een klusje (boete 50); het spel kan niet vastlopen. |
-| **Spaßelement / uitdaging** | geen rijden: een komische puzzelmissie met een klok, in plaats van de zoveelste achtervolging |
+| **Leuk-element / uitdaging** | geen rijden: een komische puzzelmissie met een klok, in plaats van de zoveelste achtervolging |
 | **Reizen** | Grote Markt naar het Loket 300 m: 1 min te voet |
 | **Romantiek (3/10)** | Tessa neemt het over van Tammo en praat zich er doorheen; Tammo: "Je doet dit graag." Tessa: "Ik ben goed in loketten." Hij bewondert haar openlijk, zij merkt het niet |
 | **Plot** | Jelle in eigen persoon: eerste ontmoeting. Hij schrijft in, koopt de standplaatsen, noemt "Operaasje Aaibal" nog niet maar wel zijn moeder. **Artikel 4 wordt hardop voorgelezen: "De bewaarder van de Gouden Eierbal zit de jury voor."** Tessa noemt zijn tactiek "salamitactiek". |
@@ -183,7 +183,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels per scène staan 
 - **TAMMO:** Drie stempels. In drie kwartier. [NIEUW]
 - **LOKETBEDIENDE:** Nummer 4117 aan loket A. Op het scherm staat 4093. [NIEUW]
 - **TAMMO:** Dat is vierentwintig mensen voor ons. [NIEUW]
-- **TESSA:** Vier honderd eierballen zijn sneller klaar. Ik haal het formulier, jij pakt de stempels. [NIEUW]
+- **TESSA:** Vierhonderd eierballen zijn sneller klaar. Ik haal het formulier, jij pakt de stempels. [NIEUW]
 - **LOKETBEDIENDE:** Formulier 7B, in drievoud. Niet vouwen. [NIEUW]
 - **TAMMO:** Wie vouwt er nou een formulier? [NIEUW]
 - **TESSA:** Iedereen, Tammo. Daarom staan we hier. [NIEUW]
@@ -218,7 +218,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels per scène staan 
 | **Motief** | Jelles trekker-limo staat elke nacht bij het museum; als Jelle de bal pakt, is hij weg uit Stad (en wint hij de jury) |
 | **Wat de speler weet** | artikel 4; de bal moet in Stad blijven |
 | **Verloop** | 1) Bert leert Tammo fluiten. 2) Duivenmodus: drie camera's en twee bewakers fotograferen. 3) De stroomkast achter de fietsenstalling. 4) Terug op Berts duiventil. **Falen:** de duif schrikt (te dichtbij), herstart bij Bert. |
-| **Spaßelement / uitdaging** | ander perspectief: vliegen, foto's maken; eerste keer duivenmodus |
+| **Leuk-element / uitdaging** | ander perspectief: vliegen, foto's maken; eerste keer duivenmodus |
 | **Reizen** | Stationsplein naar de flat 2 km; skip: sleep met de scooter; 2 min |
 | **Romantiek (3/10)** | "Mijn vriend de duivenkoning." "Vriend." "Wat?" "Ow." |
 | **Plot** | de limo, de man in het blauwe colbert die alarmen telt, vlaggetjes met pompeblêden: "Hij gaat het echt doen." |
@@ -256,7 +256,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels per scène staan 
 | **Motief** | Sjoerd praat alleen met wie zijn KEI-race rijdt, op een eigen fiets |
 | **Wat de speler weet** | de camera's, de bewakers, de stroomkast |
 | **Verloop** | 1) Eerstejaars wijst route. 2) Race langs de checkpoints, altijd tegenwind. 3) Kruispunt waar alles groen is: Tessa komt van de andere kant, oogcontact, allebei remmen. 4) Finish op het podium. **Falen:** buiten podium: herstart bij de start; je mag opnieuw. |
-| **Spaßelement / uitdaging** | de eerste echte race: herkenbaar Stad (wind, groen in alle richtingen) |
+| **Leuk-element / uitdaging** | de eerste echte race: herkenbaar Stad (wind, groen in alle richtingen) |
 | **Reizen** | 1 km van de start naar het café; 1 min |
 | **Romantiek (5/10)** | **Oogcontact:** de eerste lange blik, dan allebei de andere kant op |
 | **Plot** | Sjoerd: om twaalf uur gaan de camera's drie minuten uit voor een update, sinds 2019 |
@@ -293,7 +293,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels per scène staan 
 | **Motief** | als Jelle hem pakt, wint hij het reglement; Tammo: "terugbrengen na het Ontzet" |
 | **Wat de speler weet** | camera's, bewakers, stroomkast, drie minuten, artikel 4 |
 | **Verloop** | 1) Thuis wachten tot middernacht (korte scène, Henk belt: zender in de Escapade). 2) Plan: sluipen of vermomd. 3) Zekeringkast, slot, bewaker. 4) Binnen: vitrine open, **leeg**, kaartje "Tige tank! – W." 5) Alarm, rennen, nieuwsbericht. **Falen:** gezien of te laat: "Sikkom." en de nacht begint opnieuw bij de kade. |
-| **Spaßelement / uitdaging** | de eerste sluipmissie met een klok; langzaam beginnen, scherp eindigen |
+| **Leuk-element / uitdaging** | de eerste sluipmissie met een klok; langzaam beginnen, scherp eindigen |
 | **Reizen** | flat naar museum 4 km; skip met de Escapade: 3 min of de fiets uit 1.6 |
 | **Romantiek (6/10)** | **De eerste handaanraking:** "Geef me je hand. Het is donker daarbinnen." "…Voor de grip." |
 | **Plot** | de vitrine is al leeg. Op het kussen: "Tige tank! – W." Jelle belt live naar Nachtstreek en claimt hem. Tammo kijkt naar de letter. |
@@ -307,7 +307,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels per scène staan 
 - **TESSA:** Dat is architectuur. Eerst dertig jaar mopperen, dan trots. Zo gaat dat hier. [BEHOUDEN]
 - **TESSA:** Dit is het plan. Om twaalf uur gaan de camera's drie minuten uit. In die drie minuten pakken wij de bal, als bewaking, voor Jelle. [NIEUW]
 - **TAMMO:** En daarna brengen we hem terug. [NIEUW]
-- **TESSA:** Na het Ontzet. Om twaalf uur. Drie minuten. Hand. [BEHOUDEN]
+- **TESSA:** Na het Ontzet. Om twaalf uur. Drie minuten. Hand. [NIEUW]
 - **TAMMO:** Wat? [BEHOUDEN]
 - **TESSA:** Geef me je hand. Het is donker daarbinnen. [BEHOUDEN]
 - **TAMMO:** …Voor de grip. [BEHOUDEN]

@@ -45,7 +45,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte2
 | **Motief** | de snackbarhouder in de Oosterpoort is veertig jaar open en zijn pannen zijn leeg; Jelle koopt het vet (plakje 2) |
 | **Wat de speler weet** | Jelle koopt de standplaatsen (1.4); Sjabbe: de reuzen kopen alles voor frituren |
 | **Verloop** | 1) Rikus belt de snackbarhouder in (radio). 2) Bij de tankwagen: banden stuk. 3) Achtervolgen, kapen. 4) Terug naar de Oosterpoort zonder de lading te verliezen. **Falen:** wagen verloren of tijd: "Sikkom." |
-| **Spaßelement / uitdaging** | eerste echte kaping: de lading en de wagen zijn groter dan de auto |
+| **Leuk-element / uitdaging** | eerste echte kaping: de lading en de wagen zijn groter dan de auto |
 | **Reizen** | Flat naar Bornholmstraat 4,5 km: 4 min |
 | **Romantiek (3/10)** | Tessa's telefoon trilt: "Pas op dysels, famke. – M." Tammo ziet het: "Wie appt jou nou steeds?" "Niks. Iemand uit Friesland." "Is hij lang?" "Fierljepper zeker." |
 | **Plot** | eerste overwinning op een plakje; Jelle belt in: "Dat vet was van mij. No ja. Ik heb meer." |
@@ -66,7 +66,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte2
 - **RIKUS (radio):** Storingsbericht: de Krolbrug is in storing. [BEHOUDEN]
 - **TESSA:** Zie je. Daar kun je op rekenen. [BEHOUDEN]
 
-**Sleutelscène (outro Oosterpoort):** de snackbarhouder: "Vet! Valt mie nij af!" (BEHOUDEN: "Vet! Valt mie nait of!"). Tessa: "Trede drie, Tammo." Tammo: "Dit is het eerste wat ik ooit heb gedaan waar mensen voor klapten." (BEHOUDEN.) Jelle op de radio: "Rikus. Dat vet was van mij. No ja. Ik heb meer." (BEHOUDEN.)
+**Sleutelscène (outro Oosterpoort):** de snackbarhouder: "Vet! Valt mie nait of!" (BEHOUDEN). Tessa: "Trede drie, Tammo." Tammo: "Dit is het eerste wat ik ooit heb gedaan waar mensen voor klapten." (BEHOUDEN.) Jelle op de radio: "Rikus. Dat vet was van mij. No ja. Ik heb meer." (BEHOUDEN.)
 
 > **Te beoordelen.** A) De tankwagen blijft in Stad (voorstel, geen nieuwe code, past bij het Stad-deel van akte 2). B) De tankwagen komt uit een Hogeland-dorp (zie FLOW-ANALYSE) en rijdt naar Stad: meer provincie, maar akte 2 begint dan met een lange rit. C) De snackbarhouder wordt een terugkerend gezicht in de Oosterpoort (kleine bijrol).
 
@@ -84,7 +84,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte2
 | **Motief** | de politie zoekt jullie; Oma Trijntje is veilig, en ze weet iets over de bal en over Gerda Terpstra |
 | **Wat de speler weet** | Jelle koopt het vet; 1953 zit in de buurt |
 | **Verloop** | 1) Oma belt via Rikus. 2) Lopen door een stroom fatbikes; elke aanraking kost je een tel. 3) Aankomst bij Oma, krentjebrij. 4) Scène: 1953, Gerda, het lijstje. **Falen:** te vaak geraakt: "Sikkom." |
-| **Spaßelement / uitdaging** | tegenstelling met 2.1: geen auto, geen wagen, alleen voeten en reflexen |
+| **Leuk-element / uitdaging** | tegenstelling met 2.1: geen auto, geen wagen, alleen voeten en reflexen |
 | **Reizen** | 3 km; skip: scooter (de e-step uit 1.5 is nog steeds beschikbaar) |
 | **Romantiek (4/10)** | Tessa vraagt Tammo naar zijn opa; hij vertelt de rest; Oma: "Niet tegen haar" over wat Tammo moet zeggen |
 | **Plot** | 1953; Gerda's eierbal was beter; het lijstje van vijf namen (Geesje, Klaas, Lammert, Roelfien, Wubbo); Oma kent het plan van Jelle |
@@ -107,7 +107,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte2
 - **OMA TRIJNTJE:** Eet je krentjebrij. [BEHOUDEN]
 - **TAMMO:** Ik ben vierendertig, oma. [BEHOUDEN]
 - **OMA TRIJNTJE:** Dan eet je hem al vierendertig jaar te weinig. [BEHOUDEN]
-- **OMA TRIJNTJE:** 1953. Dat ik won, weet je. Wat je niet weet: tweede werd een Fries meisje. Gerda Terpstra. Haar eierbal was beter. Ik wist het, zij wist het. De jury wist het niet. [BEHOUDEN]
+- **OMA TRIJNTJE:** 1953. Dat ik won, weet je. Wat je niet weet: tweede werd een Fries meisje. Gerda Terpstra. Haar eierbal was beter. Ik wist het, zij wist het. De jury wist het niet. [NIEUW]
 - **TESSA:** Terpstra? Van Jelle? [BEHOUDEN]
 - **OMA TRIJNTJE:** Haar zoon, zeker. Ik heb het nooit gezegd. Zeventig jaar trots. Dat is lang voor iets wat in één zin past. [BEHOUDEN]
 - **OMA TRIJNTJE:** Jelle koopt alles wat een eierbal nodig heeft: vet, eieren, zout, bloem, mosterd. Voor elk een vriend van mij. Hier is het lijstje. [NIEUW]
@@ -149,7 +149,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte2
 | **Motief** | Jelle heeft alle eieren van het Hogeland opgekocht (plakje 3); Geesjes kippen zijn de laatste die nog van niemand zijn |
 | **Wat de speler weet** | het lijstje; de eerste naam is Geesje, 84, kosteres en schoolvriendin van Oma |
 | **Verloop** | 1) Kennismaking met Geesje (naamkaart). 2) Kratten laden. 3) Wierdepaden: bulten, een schaapsbarrière, een boer die niet wil wijken. 4) Kerkkelder in Usquert. **Falen:** meer dan de helft van de eieren stuk: "Sikkom." en laad opnieuw. |
-| **Spaßelement / uitdaging** | traag rijden is nu moeilijker dan snel rijden; het landschap mag je kijken |
+| **Leuk-element / uitdaging** | traag rijden is nu moeilijker dan snel rijden; het landschap mag je kijken |
 | **Reizen** | Winsum naar Warffum 12 km: 8 min; skip: Geesjes neef brengt je |
 | **Romantiek (4/10)** | Tessa laat Tammo koeien zien; hij schrikt van een koe; zij lacht en legt uit wat een wierde is. Hij: "Alweer gelijk." |
 | **Plot** | Geesje weet iets over Jelles moeder: "Gerda woonde in Ljouwert. Ze belt me nog elk jaar op Trijntjes verjaardag." |
@@ -196,7 +196,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte2
 | **Motief** | Jelle denkt dat Tammo en Tessa de bal hebben; hij volgt hen over het Hogeland |
 | **Wat de speler weet** | Jelle claimt de bal op de radio; zijn limo zit hen op de hielen |
 | **Verloop** | 1) Jelles limo rijdt het erf op. 2) Quad over wierdepaden en door de kerktuin. 3) Door een sloot (Jelle probeert te springen: plons). 4) Bushalte. **Falen:** limo haalt je in (Jelle belt: "Gotcha"): "Sikkom.", respawn bij Geesje. |
-| **Spaßelement / uitdaging** | de eerste echte offroad-achtervolging; de limo is breed en traag in bochten |
+| **Leuk-element / uitdaging** | de eerste echte offroad-achtervolging; de limo is breed en traag in bochten |
 | **Reizen** | Usquert naar Uithuizen 6 km: 4 min (de missie zelf) |
 | **Romantiek (3/10)** | Tessa stuurt, Tammo houdt zich vast; hij zegt "Voor de grip" en zij zegt "Ik heb stuur" |
 | **Plot** | **Jelles motief wordt hardop:** Mem is eenennegentig, zeventig jaar tweede. Jelle: "Geef hem terug, famke." Tessa: "Wij hebben hem niet." Jelle: "Ik ook niet… Ik bedoel: ik zeg niks." Beide kanten bluffen. |
@@ -222,7 +222,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte2
 - **TESSA:** Wil je mem dat wel? [NIEUW]
 - **JELLE:** Mem wil niks. Daarom doe ik het. [NIEUW]
 - **JELLE:** Oant sjen! [BEHOUDEN]
-- **DOUWE:** …Plons. [BEHOUDEN]
+- **DOUWE:** …Plons. [NIEUW]
 
 > **Te beoordelen.** A) Jelle zelf achter het stuur van de limo (voorstel; hij valt in de sloot). B) Durk en Douwe achter het stuur, Jelle op de achterbank (twee reuzen op een weg). C) Alleen de politie als achtervolger (geen Jelle, geen motief hier).
 
@@ -251,7 +251,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte2
 | **Motief** | hij laat zijn trofee zien aan de pers en aan zijn moeder (Zoutkamp-havenfeest, AANNAME) |
 | **Wat de speler weet** | Jelle bluft; de bal zou op het skûtsje zijn |
 | **Verloop** | 1) Klaas geeft de boot (kennismaking). 2) Het skûtsje vaart weg met de bal in de kist. 3) Achterhalen en aan boord springen. 4) Kist openmaken: een chocoladebal met "Foar mem". **Falen:** skûtsje ontsnapt of je boot kapseist: "Sikkom." |
-| **Spaßelement / uitdaging** | snelle boot tegen het wiegende zeil; het aanboord springen is de apotheose |
+| **Leuk-element / uitdaging** | snelle boot tegen het wiegende zeil; het aanboord springen is de apotheose |
 | **Reizen** | Zoutkamp naar Lauwersoog 9 km: 5 min (de missie zelf) |
 | **Romantiek (5/10)** | "Iedereen is romantischer dan jij." "Hij is romantischer dan ik." |
 | **Plot** | het is een oefenbal; Jelle oefent hoe hij hem aan zijn moeder geeft. Klaas: "Jongens. Ik heb net twee reuzen uit de haven gevist. Ze zwommen synchroon." |
@@ -294,7 +294,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte2
 | **Motief** | de vijfde ingrediënt is zout dat nog naar zee smaakt; Jelle kocht de zoutstekers; Klaas kent als enige de vaargeul |
 | **Wat de speler weet** | het lijstje; vet en eieren zijn gered |
 | **Verloop** | 1) Vaargeul zoeken bij laagwater (te ondiep: je loopt vast). 2) Aangespoeld op een zandplaat: tien minuten wachten op het getij (Klaas: "Wachten is het halve werk."). 3) Te voet naar de kwelder, drie zoutkuipen. 4) Terug voor de vloed. **Falen:** water te hoog: "Sikkom.", Klaas pikt je op, nogmaals. |
-| **Spaßelement / uitdaging** | geen race, geen geweld: puur sfeer en tijdsdruk, de rustigste missie van de akte |
+| **Leuk-element / uitdaging** | geen race, geen geweld: puur sfeer en tijdsdruk, de rustigste missie van de akte |
 | **Reizen** | Lauwersoog naar Noordpolderzijl 14 km: 8 min met de boot (de missie zelf) |
 | **Romantiek (7/10)** | **De lange blik:** op de zandplaat, sterrenhemel, ze kijken elkaar te lang aan, dan trilt haar telefoon. "Niks. Iemand uit Friesland." Tammo kijkt weg. |
 | **Plot** | het zout is van Jelle verloren; Klaas: "Het donkerste stuk van het land. Hier ziet Jelle ons niet." |
@@ -324,6 +324,6 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte2
 - **TESSA:** Niks. Iemand uit Friesland. [BEHOUDEN]
 - **TAMMO:** Is hij lang? [BEHOUDEN]
 - **TESSA:** Tammo. [BEHOUDEN]
-- *(APP MEM→TESSA, stil: "Nog vier dagen. Hou Jelle bezig. – M.")*
+- *(APP MEM→TESSA, stil: "Nog acht dagen. Hou Jelle bezig. – M.")*
 
 > **Te beoordelen.** A) Rustige sfeermissie met wad en zout (voorstel, past bij het Waddenzee-gevoel). B) Een actiemissie: een vlucht over het wad bij opkomend water met een heli (spannender, duurder). C) Alleen een scène zonder gameplay (goedkoper, maar de akte verliest haar ademruimte).

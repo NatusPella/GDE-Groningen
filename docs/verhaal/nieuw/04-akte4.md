@@ -42,7 +42,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte4
 | **Motief** | de vijfde ingrediënt, grove mosterd, stond bij Jelle (plakje zeven); Wubbo kan de bruggen alleen openen als jij hem zegt wanneer |
 | **Wat de speler weet** | Durks "Baas gaat naar Veendam" |
 | **Verloop** | 1) Wubbo (naamkaart) bij de brug. 2) Race tegen Jelles mosterdschip. 3) Bruggen gaan open en dicht op het ritme van de fanfare. 4) Het schip zit vast. **Falen:** brug te laat of schip eerder: "Sikkom." |
-| **Spaßelement / uitdaging** | timing in plaats van snelheid; leert de bruggen van Veendam te lezen |
+| **Leuk-element / uitdaging** | timing in plaats van snelheid; leert de bruggen van Veendam te lezen |
 | **Reizen** | Winschoten naar Veendam 17 km: bus (2 min in beeld) of auto 13 min |
 | **Romantiek (5/10)** | Tammo: "Over gisteren." Tessa: "Welk gisteren?" Tammo: "Dat bedoelde ik ook." |
 | **Plot** | het mosterdschip loopt vast; Wubbo geeft de mosterd |
@@ -68,7 +68,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte4
 - **TESSA:** Rechtdoor, Tammo. [NIEUW]
 - **TAMMO:** Ik zie alleen een brug. [NIEUW]
 - **TESSA:** Dat is ook de bedoeling. [NIEUW]
-- **WUBBO (radio):** Het schip zit vast. Plons. [BEHOUDEN]
+- **WUBBO (radio):** Het schip zit vast. Plons. [NIEUW]
 
 > **Te beoordelen.** A) Bruggenrace voor de mosterd (voorstel, `pg_bruggenrace.js` bestaat). B) Een achtervolging per auto langs de kanaalwijken (veel meer actie, minder variatie). C) Alleen een gesprek met Wubbo, de mosterd krijg je gratis (goedkoper).
 
@@ -86,7 +86,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte4
 | **Motief** | Tammo gelooft dat de W. van het kaartje de W. van Wiebelwerk is; Wubbo zei dat ze alles om middernacht bijwerken; Tessa laat hem gaan (om hem af te leiden) |
 | **Wat de speler weet** | de camera's gingen om middernacht uit voor een update, sinds 2019 |
 | **Verloop** | 1) Binnen bij Wiebelwerk als "klant". 2) Accountmanager overtuigen met het juiste antwoord (keuzepaneel). 3) Servers: het logboek. 4) De drie minuten: een zijdeur is met een bruikleenpas geopend, pasnummer 1953, houder "T."; een gast: "G." 5) Weg voor het kantoor sluit. **Falen:** de accountmanager ziet je: "Sikkom." |
-| **Spaßelement / uitdaging** | geen actie: een dialoog-puzzel; de grap is het bureau zelf ("Wij zijn alleen een webbureau.") |
+| **Leuk-element / uitdaging** | geen actie: een dialoog-puzzel; de grap is het bureau zelf ("Wij zijn alleen een webbureau.") |
 | **Reizen** | 2 km: e-step 2 min |
 | **Romantiek (5/10)** | Tessa legt Tammo uit wat een logboek is; hij baalt dat ze gelijk heeft; ze vindt het leuk dat hij het wil weten |
 | **Plot** | het is niet Wiebelwerk; maar een pas "1953, T." en een gast "G." ; Tammo: "T en G." Tessa: "Dat zijn een heleboel letters." |
@@ -132,7 +132,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte4
 | **Motief** | plakje zes: de laatste twee juryleden zitten in Jelles salonrijtuig voor een gratis proeverij |
 | **Wat de speler weet** | drie juryleden liepen al weg (3.5) |
 | **Verloop** | 1) Tammo klimt in de cabine, Tessa in de wagon. 2) Stoom opbouwen, rem losgooien. 3) Tessa loopt door de wagons, Durk en Douwe zijn de kelners. 4) De juryleden stappen op een perron uit. **Falen:** de trein rijdt door het station: "Sikkom." |
-| **Spaßelement / uitdaging** | de eerste en enige keer dat Tammo een trein bestuurt; grote actie met een kleine afstand |
+| **Leuk-element / uitdaging** | de eerste en enige keer dat Tammo een trein bestuurt; grote actie met een kleine afstand |
 | **Reizen** | Veendam naar Stadskanaal 20 km: 15 min met de auto |
 | **Romantiek (4/10)** | "Je rijdt als een fietser met een deadline." "Ik rijd een trein." "Dat is hetzelfde." |
 | **Plot** | de jury is bevrijd; de enige jury die overblijft is Berend; Jelles salonrijtuig is leeg |
@@ -176,7 +176,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte4
 | **Motief** | het Beleg van Bourtange is Berends oefening voor het Ontzet; zijn bus is kapot; hij kent Mem en Oma (hij weet meer dan hij zegt) |
 | **Wat de speler weet** | de bal zit niet bij Jelle; een T en een G |
 | **Verloop** | 1) Berend bij de bus (herintroductie, kort). 2) Drie haltes in het bos. 3) De limo blokkeert de weg. 4) Aankomst bij de vesting, op tijd (stiptheid telt). **Falen:** te laat of passagiers boos: "Sikkom." |
-| **Spaßelement / uitdaging** | de eerste keer dat je een bus echt bestuurt; de hindernis is de limo |
+| **Leuk-element / uitdaging** | de eerste keer dat je een bus echt bestuurt; de hindernis is de limo |
 | **Reizen** | Ter Apel-bos naar Bourtange 12 km: de missie zelf, 12 min; skip: Berend neemt je mee |
 | **Romantiek (4/10)** | Tessa zit naast hem, praat weinig; Tammo praat te veel; ze zeggen allebei "Moi" te zacht |
 | **Plot** | Rikus: "Tammo en Tessa rijden vandaag naar Bourtange. Ik zeg niks." (radio, per ongeluk). Berend: "Ik heb niks gezien. Ik ben belegeraar, geen getuige." |
@@ -190,11 +190,12 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte4
 - **TESSA:** Wij rijden. Ter Apel-bos naar de vesting. [NIEUW]
 - **BEREND:** Op tijd. Het Beleg begint om negen uur. Ik ben de bisschop. [NIEUW]
 - **TAMMO:** Je valt de vesting aan. [NIEUW]
-- **BEREND:** Elk jaar. En elk jaar verlies ik. Wat mout, dat mout. [BEHOUDEN]
+- **BEREND:** Elk jaar. En elk jaar verlies ik. Wat mout, dat mout. [NIEUW]
 - **TESSA:** Waarom oefenen jullie in Bourtange? [NIEUW]
 - **BEREND:** Omdat Grunn te klein is voor een echt beleg. Ik heb een vriendin in de vesting. [NIEUW]
 - **TAMMO:** Een vriendin? [NIEUW]
-- **BEREND:** Kom mor. Rijden. [BEHOUDEN]
+- **BEREND:** Kom mor. Rijden. [NIEUW]
+- **TINUS:** Ik ben Tinus. Ik beleg mee. Mijn trekker staat thuis, in het Westerkwartier. [NIEUW]
 
 **Sleutelscène (onderweg):**
 
@@ -219,7 +220,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte4
 | **Motief** | het Beleg moet slagen; Tessa heeft een afspraak in de kruitkelder; Durk en Douwe houden Tammo bezig |
 | **Wat de speler weet** | de pas T, de gast G, het appje: "Ze zoeken je." |
 | **Verloop** | 1) Het Beleg: verdedig de wallen met Berends mensen (kartonnen kanon, ophaalbrug). 2) Durk en Douwe dagen Tammo uit: fierljepen over de gracht; hij valt erin. 3) Tessa gaat naar de kruitkelder. 4) Tammo komt druipend binnen: Mem, Oma en de bal. 5) Jelle komt binnen, Mem geeft hem de bal. 6) Jelle gaat. Durk en Douwe rijden met de Escapade weg. **Falen:** de vesting valt: je herstart het beleg; het dieptepunt zelf is niet te falen. |
-| **Spaßelement / uitdaging** | het hoogtepunt van de komische actie: kartonnen kanonnen en fierljepen, dan een stille, pijnlijke scène |
+| **Leuk-element / uitdaging** | het hoogtepunt van de komische actie: kartonnen kanonnen en fierljepen, dan een stille, pijnlijke scène |
 | **Reizen** | de missie zelf |
 | **Romantiek (3/10, het dieptepunt)** | Tammo: "Je wist het." Tessa: "Mem vroeg me." Tammo: "Je zegt nooit iets." Tessa: "Jij zegt nooit iets!" |
 | **Plot** | **W. = "Wij".** Oma: "Elk jaar op 12 augustus poets ik de bal. Dit jaar kwam Gerda mee. Berend reed." Mem: "Mijn zoon wil hem voor mij. Ik wil hem niet." Mem geeft Jelle de bal: "Hier. Nu stop je." Jelle: "Ik moet hem winnen, mem." Hij gaat. |
@@ -234,7 +235,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte4
 - **BEREND:** Ik, met veertig man en een paard van karton. [NIEUW]
 - **TESSA:** En Jelle? [NIEUW]
 - **BEREND:** Jelle is geen bisschop. Hij komt met zijn limo. [NIEUW]
-- **DURK:** Tammo. Wij dagen je uit. Fierljep. [BEHOUDEN]
+- **DURK:** Tammo. Wij dagen je uit. Fierljep. [NIEUW]
 - **DOUWE:** …fierljep. [NIEUW]
 - **TAMMO:** Dat is een ding voor Friezen. [NIEUW]
 - **DURK:** Net fertelle, hè? [BEHOUDEN]
@@ -269,7 +270,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte4
 | **Motief** | zonder de Escapade geen Fjord Frituur en geen inschrijving; Durk en Douwe hebben hem op een wagon gezet |
 | **Wat de speler weet** | Jelle heeft de bal, de Escapade is weg, Tammo en zij hebben ruzie |
 | **Verloop** | 1) Tessa en Berend rijden terug (autogesprek, 3 min). 2) Het piepje van Henks zender: de trein. 3) Je rijdt langs de rails, haalt de trein in, springt op de wagon. 4) Escapade losmaken, afrijden. **Falen:** de trein ontsnapt: "Sikkom." |
-| **Spaßelement / uitdaging** | de enige solo-missie; een trein achterna, het bekende H16 in een nieuwe regio |
+| **Leuk-element / uitdaging** | de enige solo-missie; een trein achterna, het bekende H16 in een nieuwe regio |
 | **Reizen** | Bourtange naar Zuidhorn 65 km: bakkie ride-along (3 min autogesprek) |
 | **Romantiek (3/10 → 6/10)** | Tessa rijdt boos weg; in de bakkie praat Berend ongevraagd: "Je zoekt iemand die blijft." Tammo, bij de overweg: "Sorry. Dat ik nooit wat zeg." |
 | **Plot** | Mem belt in op de radio (BEHOUDEN, aangepast): "Rikus. Gerda Terpstra. Mijn zoon heeft die rode auto op de trein nei Ljouwert set. Perron 3." |
@@ -293,7 +294,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte4
 
 - **MEM (radio):** Rikus. Gerda Terpstra, Ljouwert. Myn soan hat dy reade auto op de trein nei Ljouwert set. Zeg tegen dat famke: perron 3. [BEHOUDEN]
 - **TESSA:** Hoe wist jij dat hij hier was? [BEHOUDEN]
-- **TAMMO:** Ik luisterde naar Rikus. Tinus gaf me een lift op zijn trekker. Wind tegen. [NIEUW]
+- **TAMMO:** Ik luisterde naar Rikus. Tinus, van de bus, gaf me een lift op zijn trekker. Wind tegen. [NIEUW]
 - **TESSA:** Beide kanten op. [BEHOUDEN]
 - **TAMMO:** Sorry. Dat ik nooit wat zeg. [BEHOUDEN]
 - **TESSA:** Je zei net iets. [BEHOUDEN]

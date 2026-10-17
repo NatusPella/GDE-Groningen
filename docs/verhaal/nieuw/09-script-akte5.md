@@ -4,7 +4,7 @@
 
 ## [M26.1] Een luik erin: intro – Westerkwartier, Tinus' schuur bij Zuidhorn – Escapade
 (regie: woensdag 26 augustus, ochtend. Een boerderijschuur, een trekker, Henk met een luik onder de arm. Naamkaart: TINUS.)
-TINUS: Ik ben Tinus. Trekkertrekker. Henk belde. Jullie zoeken een luik. [NIEUW]
+TINUS: Tinus, trekkertrekker, van de bus. Welkom in mijn schuur. Henk belde. Jullie zoeken een luik. [NIEUW]
 HENK: Henk, Garage Knalpot. Ik heb een luik, een uitlaat en een koekje. Eén. [NIEUW]
 TESSA: We maken van de Escapade de Fjord Frituur. [NIEUW]
 TAMMO: De Escapade is van mij. [NIEUW]
@@ -63,7 +63,7 @@ KAPITEIN KLAAS: Ik ben mijn boot op een aanhanger. Ik praat tegen hem. [NIEUW]
 BEREND: Nul krassen. Op de heenweg. [NIEUW]
 TAMMO: Je hebt dat al gezegd. [NIEUW]
 BEREND: Ik zeg het weer. [NIEUW]
-TESSA: Rijden. Niet praten. [BEHOUDEN]
+TESSA: Rijden. Niet praten. [NIEUW]
 
 ## [M27.2] De colonne: onderweg – Westerkwartier, Zuidhorn naar Aduard – Fjord Frituur
 LAMMERT (radio): Ik zie jullie vanaf de dijk. Dit is de mooiste optocht van de provincie. [NIEUW]
@@ -94,7 +94,7 @@ RIKUS (radio): De colonne is aangekomen. Ik zeg niks. Het is te groot. [NIEUW]
 (regie: Tessa pakt de hand van Tammo op de versnellingspook.)
 
 ## [M27.5] De colonne: herhaling – Westerkwartier – Fjord Frituur
-TESSA: Weer een colonne? Rijden. Niet praten. [BEHOUDEN]
+TESSA: Weer een colonne? Rijden. Niet praten. [NIEUW]
 
 ## [M28.1] Er hangt iets Fries aan d'Olle Grieze: intro – Stad, Grote Markt – duif
 (regie: donderdag 27 augustus, avond. Een reuzenvlag van dertig meter met pompeblêden. Onderaan: FOAR MEM.)
@@ -113,7 +113,7 @@ TAMMO: Ik fluit. Hij pikt. [BEHOUDEN]
 ## [M28.2] Er hangt iets Fries aan d'Olle Grieze: de vlag – Stad, Martinitoren – duif
 TORENWACHTER (telefoon): Touw één. Doorgepikt. Ik meld alleen. [NIEUW]
 TESSA: Vier nog. [NIEUW]
-BERT: Hij luistert, jong. [BEHOUDEN]
+BERT: Hij luistert, jong. [NIEUW]
 
 ## [M28.3] Er hangt iets Fries aan d'Olle Grieze: outro – Stad, Grote Markt – te voet
 (regie: de vlag zakt als een theaterdoek. De Grote Markt klapt.)
@@ -213,7 +213,7 @@ TAMMO: Dat bedoelde ik ook. [BEHOUDEN]
 (regie: Jelle grijpt de bal van de jurytafel en scheurt weg in de trekker-limo, niet uit kwade wil maar in paniek.)
 JELLE: Ik moet hem hebben. Voor mem. [NIEUW]
 MEM: Jelle! [NIEUW]
-TORENWACHTER (telefoon): Tammo. Trekker, Oude Boteringestraat. Ik meld alleen. [BEHOUDEN]
+TORENWACHTER (telefoon): Tammo. Trekker, Oude Boteringestraat. Ik meld alleen. [NIEUW]
 TAMMO: Bert, mijn duiven. [NIEUW]
 BERT: Ze staan klaar, jong. [NIEUW]
 TAMMO: Ik fluit. [NIEUW]
@@ -241,7 +241,7 @@ JELLE: …Valt mie nait of. [BEHOUDEN]
 TAMMO: Hij praat Gronings. [BEHOUDEN]
 TESSA: Dan is het ernstig. [BEHOUDEN]
 JELLE: Better as ús. Net fertelle. [BEHOUDEN]
-BEREND: De Snackprijs gaat naar Grunn. En op het bordje in het museum komt een tweede naam: Gerda Terpstra, 1953. Ik schrijf de gemeente er wel een brief over. [BEHOUDEN]
+BEREND: De Snackprijs gaat naar Grunn. En op het bordje in het museum komt een tweede naam: Gerda Terpstra, 1953. Ik schrijf de gemeente er wel een brief over. [NIEUW]
 BEREND: En de standplaats op de Vismarkt gaat naar de Fjord Frituur. [NIEUW]
 TESSA: Dank u, Berend. [NIEUW]
 JELLE: Ik geef de plakjes terug. Alle acht. [NIEUW]
