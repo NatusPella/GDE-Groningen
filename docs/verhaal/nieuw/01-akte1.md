@@ -2,7 +2,7 @@
 
 Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels per scène staan in [09-script-akte1.md](09-script-akte1.md); hier staat de opzet per missie met de openingsdialoog en één sleutelscène.
 
-**Tagregels voor dialoog in dit document:** `[BEHOUDEN]` = de regel staat letterlijk in de repo (opname bestaat). `[NIEUW]` = nieuwe of gewijzigde regel (nieuwe opname nodig). Spreker `TESSA` heet in de code `anita` / `A`.
+**Tagregels voor dialoog in dit document:** `[BEHOUDEN]` = de regel staat letterlijk in de repo (opname bestaat). `[NIEUW]` = nieuwe of gewijzigde regel (voorlopig alleen tekst, niet opgenomen). Spreker `TESSA` heet in de code `anita` / `A`.
 
 ## Intro van de akte
 
