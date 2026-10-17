@@ -115,6 +115,11 @@ def rebase_citymap(d):
     for key in ("buildings", "water", "green", "rails"):
         for o in d.get(key, []):
             o["pts"] = [P(q) for q in o["pts"]]
+    for o in d.get("buildings", []):
+        for part in o.get("parts", []):
+            part["pts"] = [P(q) for q in part["pts"]]
+        if o.get("pitch"):
+            o["pitch"] = [P(q) for q in o["pitch"]]
     d["trees"] = [pt(*t[:2]) + list(t[2:]) for t in d.get("trees", [])]
     for o in d.get("stations", []) + d.get("railLifts", []):
         xy(o)
