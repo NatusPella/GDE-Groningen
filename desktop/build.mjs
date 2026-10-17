@@ -86,7 +86,8 @@ function packWorld() {
   if (provDirs.length) {
     h.update(fs.readFileSync(province));
     // what the province build runs besides (derive_tiles.mjs: the city's derivation; bag3d.mjs: 3D BAG)
-    for (const f of ['derive_tiles.mjs', 'building_clearance.mjs', 'bag3d.mjs']) h.update(fs.readFileSync(path.join(root, 'scripts', 'world', f)));
+    for (const f of ['derive_tiles.mjs', 'junction_tiles.mjs', 'building_clearance.mjs', 'bag3d.mjs']) h.update(fs.readFileSync(path.join(root, 'scripts', 'world', f)));
+    for (const f of ['builderhooks.js', 'greenery.js', 'streetfurniture.js', 'junctions.js']) h.update(fs.readFileSync(path.join(SRC, 'js', f)));
     const bagP = path.join(root, 'data', 'world', '3dbag_province.json.gz');
     if (fs.existsSync(bagP)) h.update(fs.readFileSync(bagP));
     for (const d of provDirs) for (const f of fs.readdirSync(d).filter((q) => q.endsWith('.json.gz')).sort()) { h.update(f); h.update(fs.readFileSync(path.join(d, f))); }

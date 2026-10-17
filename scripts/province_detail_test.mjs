@@ -35,11 +35,13 @@ const again = { tile, trees: trees.map(cp), roads: [], water: [], green: [], rai
 greeneryHook(again);
 assert.deepEqual(again.trees.map((t) => [t[2], t[3], t[4]]), rows.trees.map((t) => [t[2], t[3], t[4]]), 'deterministic');
 
-// signs, crossings, gates, post boxes
+// signals, signs, crossings, gates, post boxes
 const [la, lo] = wgs(x0, y0);
 const node = (tags) => ({ type: 'node', id: 7, lat: la, lon: lo, tags });
 const k = (tags, ctx) => fromOsm(node(tags), ctx).filter((f) => f.kind === 'furniture').map((f) => f.row.k + (f.row.v ? ':' + f.row.v : ''));
 const ctx = { signs: true };
+assert.deepEqual(k({ highway: 'traffic_signals' }, ctx), ['signals']);
+assert.deepEqual(k({ highway: 'crossing', crossing: 'traffic_signals' }, ctx), ['signals'], 'a signalised crossing is a light');
 assert.deepEqual(k({ highway: 'stop' }, ctx), ['stop']);
 assert.deepEqual(k({ highway: 'give_way' }, ctx), ['giveway']);
 assert.deepEqual(k({ highway: 'crossing', crossing: 'zebra' }, ctx), ['crossing:zebra']);

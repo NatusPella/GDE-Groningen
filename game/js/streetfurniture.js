@@ -477,16 +477,19 @@ export function mappedFromOsm(elements) {
   return out;
 }
 
-// The mapped signs, crossings and gates of one OSM node, for the province's
-// tiles (the city keeps its own lists: signs by rule): [{ k, pts: [[x, y]],
-// v?, osm }] with k stop, giveway, crossing (v: zebra, marked, uncontrolled),
-// gate (v: the barrier), postbox. Nothing draws them yet.
+// The mapped signals, signs, crossings and gates of one OSM node, for the
+// province's tiles (the city keeps its own lists: meta.trafficLights, signs
+// by rule): [{ k, pts: [[x, y]], v?, osm }] with k signals (a traffic light
+// or a signalised crossing: junction_tiles.mjs snaps it onto its road), stop,
+// giveway, crossing (v: zebra, marked, uncontrolled), gate (v: the barrier),
+// postbox. Nothing draws them yet.
 export const GATE_KINDS = new Set(['gate', 'lift_gate', 'swing_gate', 'block', 'cycle_barrier', 'cattle_grid']);
 export function mappedSignsFromOsm(el) {
   const t = el.tags || {};
   if (el.type !== 'node' || el.lat === undefined) return [];
   let k = null, v;
-  if (t.highway === 'stop') k = 'stop';
+  if (t.highway === 'traffic_signals' || t.crossing === 'traffic_signals') k = 'signals';
+  else if (t.highway === 'stop') k = 'stop';
   else if (t.highway === 'give_way') k = 'giveway';
   else if (t.highway === 'crossing' && ['zebra', 'marked', 'uncontrolled'].includes(t.crossing)) { k = 'crossing'; v = t.crossing; }
   else if (GATE_KINDS.has(t.barrier)) { k = 'gate'; v = t.barrier; }
