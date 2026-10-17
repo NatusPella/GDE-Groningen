@@ -345,7 +345,7 @@ HUD zoom at 1920x1080), `--hud-edge` is the 46 px margin.
   only when wanted + 6 s, money 5 s after a change or near a shop, weapon
   only armed, bars only when not full or changing, vehicle widgets only in a
   vehicle, keys only with something to do, after 8 s without input only the
-  minimap in Slim, at most 7 elements besides the minimap: P3 goes first,
+  minimap in Slim, at most 6 elements besides the minimap and at most two of message, radio/achievement and subtitle at once: P3 goes first,
   then the clock, money, keys, weapon). Priorities P0 (banner, dangers,
   police) to P3 (tips, radio, place name, money in); during a chase, fight
   or race (`hudNow.busy`) only P0-P2 show and P3 waits at most 30 s
@@ -355,6 +355,8 @@ HUD zoom at 1920x1080), `--hud-edge` is the 46 px margin.
   `hv-off` / `hv-in` classes (opacity, no layout change). Settings: `hudMode`
   `slim` (default) / `alles` / `minimaal` (pause menu > Instellingen >
   Weergave), `minimapZoom`, `minimapNorth` (`nooit` / `lucht` / `altijd`).
+- `mapicons.js` (pure, `scripts/mapicons_test.mjs`): every map icon kind has a category (player, goal, mission, police, home, station, zorg, politiebureau, garage, job, fun, shop, horeca, flitspaal ...) with a minimum zoom and a priority. The full map queues its icons, drops the categories that are too small for the zoom, thins collisions (the highest priority first; goal, mission, police and home are never dropped) and draws them 15 to 24 px wide (`mapIconScale`) on a dark disc with a cream rim (`drawMapIconHalo`, so they read on sea, meadow and the darker land outside the province). The minimap uses the same halo and larger icons. Hospital and GP posts (red cross) and police stations (blue shield) come from `facilities.js`.
+- `worldmarker3d.js`: the in-world objective marker: a ground ring, a thin light column of fixed height and an icon above it whose shape says what it is (start diamond, goal arrow, optional cube, door or shop hexagon, vehicle pyramid, checkpoint ring) in the map's colours (`markerColors`), with the distance; icon and label grow with the distance but stay capped. Used by missions.js (start and goal), sidejobs.js, postgame.js and the user waypoint in scene3d.js.
 - `hudgps.js` (pure): `nextTurn(routeAhead, 400)`, `turnText`, `etaText` for
   the GPS card, shown only with a route, in a vehicle on roads, within ~400 m
   of a turn. `hudcalendar.js` adapts the game calendar (`calendarday.js`
