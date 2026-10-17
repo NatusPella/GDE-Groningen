@@ -33,7 +33,7 @@ commit met `Closes #n`, een comment bij wat niet lukte, de kolom bijwerken.
 Daarvoor is een `## [X.Y.Z]`-sectie in `CHANGELOG.md` nodig en een schone werkboom. Het script vermeldt de andere medewerkers (@) alleen in een comment op issue #116 (het playtest-issue), niet in de releasenotities, zodat zij een melding krijgen. Spelerzichtbare wijzigingen komen als Nederlandse regels onder `[Unreleased]`.
 Release een geteste versie ruim voor de limiet van het gebruik, niet pas op het eind.
 
-**Agents:** werk in een eigen worktree en branch, in kleine commits. Geen push, merge, tag of release door agents; dat doet de coördinator na de tests.
+**Agents:** werk in een eigen worktree en branch, in kleine commits. Test alleen wat bij je eigen wijziging hoort (`node --check` plus de paar tests die die code dekken); de volledige suite, `province_test`, de zware audits en de Electron-verhaaltest draait de coördinator bij het maken van een release, niet de agent. Geen push, merge, tag of release door agents; dat doet de coördinator na de tests.
 Alleen één Electron-instantie tegelijk en geen nieuwe agents tijdens een releasebouw. Houd de schijf vrij.
 
 ## Testen
