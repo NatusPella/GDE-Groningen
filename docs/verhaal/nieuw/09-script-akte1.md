@@ -12,7 +12,7 @@ RIKUS (radio): Er gaat niets boven Grunn. Behalve de Martinitoren. [BEHOUDEN]
 ## [C00.2] Opening: de keuken – Stad, Oosterparkwijk – geen voertuig
 (regie: ochtend, vrijdag 14 augustus. De camera zakt langs d'Olle Grieze naar een smalle straat. Een zolderraam, een rode Escapade met een lekke band. Op een oude radio zacht Nachtstreek. Binnen zit Tessa aan de keukentafel met papieren en een tekening van een blauwe frietwagen: FJORD FRITUUR. Tammo komt binnen met twee bakken koffie.)
 RIKUS (radio): Moi, Nachtstreek, het laatste uur. Het is twijduustern geweest, en nu wordt het licht. Voor wie wakker ligt van de huur: ik ook, jongens. [BEHOUDEN]
-RIKUS (radio): Het is vrijdag 14 augustus, KEI-week. En een luisteraar meldt een Fries in een blauw colbert die Grunn aan het opkopen is, plakje voor plakje. [NIEUW]
+RIKUS (radio): Het is vrijdag 14 augustus, Kiezelweek. En een luisteraar meldt een Fries in een blauw colbert die Grunn aan het opkopen is, plakje voor plakje. [NIEUW]
 TAMMO: Moi. De bank? [BEHOUDEN]
 TESSA: "Uw plan is sympathiek." Dat betekent nee, met een strikje. [BEHOUDEN]
 TAMMO: Sympathiek is toch goed? [BEHOUDEN]
@@ -218,6 +218,11 @@ JELLE: Dat noemen wij ondernemen. Oant sjen. [NIEUW]
 JELLE: Foar mem. [NIEUW]
 TAMMO: Wat zei hij? [NIEUW]
 TESSA: "Voor mem." Voor zijn moeder. [NIEUW]
+(regie: achter Jelle staat een kleine, oude dame met een hoed, een gouden speldje en een stempel. Naamkaart: MEVROUW TUINSTRA, DE BEWAARDER.)
+BEWAARDER: Mevrouw Tuinstra. Bewaarder van de Gouden Eierbal, sinds 1998. Ik zit de jury voor, dat is artikel 4. Ik teken uw inschrijving af. [NIEUW]
+BEWAARDER: Meneer Terpstra heeft de jury en mij uitgenodigd voor een treinreis met volpension, vanaf maandag, tot na het Ontzet. Een bijzonder aardige man. [NIEUW]
+TESSA: En wie let dan op de bal? [NIEUW]
+BEWAARDER: Het museum. De koepel hangt sinds woensdag onder een doek, wegens restauratie. [NIEUW]
 
 ## [M03.3] Het Loket: de stempels – Stad, Het Loket – te voet
 LOKETBEDIENDE: Uw formulier is gevouwen. [NIEUW]
@@ -233,6 +238,7 @@ LOKETBEDIENDE: Gefeliciteerd. U bent ingeschreven voor de Noordelijke Snackprijs
 TESSA: Wij zijn ingeschreven. Op 28 augustus op de Grote Markt. [NIEUW]
 TAMMO: En Jelle heeft alle standplaatsen. [NIEUW]
 TESSA: Behalve één. Die van de winnaar. Plakje één is van hem, Tammo. Dat krijgen we niet meer terug. [NIEUW]
+TESSA: Hij koopt niet alleen de standplaatsen. Hij koopt ook de voorraad en de jury, zodat niemand anders kan beginnen. Eén officiële standplaats blijft vrij: die van de winnaar. [NIEUW]
 TAMMO: Dat is geen plan. Dat is een gat. [NIEUW]
 TESSA: Dan maken wij er een plan van. [NIEUW]
 BERT (telefoon): Tammo. Bert. Mijn duiven zijn nerveus. Er staat elke nacht een zwarte trekker bij het museum, met een limousine erachter. [NIEUW]
@@ -279,12 +285,12 @@ BERT: Zo. De duivenkoning is weer aan het werk. [BEHOUDEN]
 TAMMO: We gaan het dus echt doen. [BEHOUDEN]
 TESSA: We gaan hem eerder halen dan die Fries. Daarna zien we wel. [BEHOUDEN]
 TAMMO: "Daarna zien we wel" is geen plan. [BEHOUDEN]
-TESSA: As 't nait gait zoas 't mot, mot 't mor zoas 't gait. [BEHOUDEN]
+TESSA: Als het niet gaat zoals het moet, doen we het anders. [NIEUW]
 TAMMO: Dat is ook geen plan. Dat is een tegeltje. [BEHOUDEN]
 
 ## [M05.1] Wind tegen, beide kanten op: intro – Stad, Academiegebouw – fiets
 (regie: zondag 16 augustus, middag. Sjoerd staat bij het Academiegebouw met een clipboard en een rij eerstejaars. Gameplay: een fietsrace door de binnenstad, altijd tegenwind.)
-SJOERD: Moi. Sjoerd, KEI-commissie. Wie op het podium komt, krijgt van mij iets te horen over het museum. [NIEUW]
+SJOERD: Moi. Sjoerd, Kiezelcommissie. Wie op het podium komt, krijgt van mij iets te horen over het museum. [NIEUW]
 SJOERD: Altijd tegenwind. Beide kanten op. Dat staat in het reglement. [BEHOUDEN]
 SJOERD: Op de kruispunten is alles tegelijk groen. Niemand heeft voorrang. Maak oogcontact. [BEHOUDEN]
 TESSA: Tammo heeft hier nog gestudeerd. Twee weken. [BEHOUDEN]
@@ -363,7 +369,7 @@ TESSA: Misschien is hij betaald. Nog negentig seconden. [NIEUW]
 TAMMO: De vitrine. Die staat open. [NIEUW]
 
 ## [M06.3] Het museum stond er al zo: de lege vitrine – Stad, Groninger Museum – te voet
-(regie: de koepel is van matglas met een gouden gloed. Het slot klikt, de koepel komt omhoog: een leeg kussen. Close-up van het kaartje, zes à acht seconden, wegklikbaar.)
+(regie: de koepel is van matglas met een gouden gloed en er hangt een doek omheen met het bordje RESTAURATIE. Het slot klikt, de koepel komt omhoog: een leeg kussen. Close-up van het kaartje, zes à acht seconden, wegklikbaar.)
 TESSA: "Tige tank! – J." [BEHOUDEN]
 TAMMO: Hij bedankt ons. [BEHOUDEN]
 TESSA: Hij. Bedankt. Ons. [BEHOUDEN]
@@ -373,7 +379,7 @@ RIKUS (radio): We hebben een beller. Uit… Ljouwert? [BEHOUDEN]
 (regie: naamkaart voor Jelle in beeld.)
 JELLE (radio): Moai, Rikus. Jelle Terpstra, van Us Mem Snacks. Ik wil een groet doen aan twee mensen in een museum. [BEHOUDEN]
 RIKUS (radio): Jelle. Je bent live. [BEHOUDEN]
-JELLE (radio): Daarom bel ik. Reglement van de Noordelijke Snackprijs, artikel 4. De bewaarder zit de jury voor. Ik ben de bewaarder, want de bal is bij mij. Mijn juristen noemen het een overname. [NIEUW]
+JELLE (radio): Daarom bel ik. Reglement van de Noordelijke Snackprijs, artikel 4. De bewaarder zit de jury voor. De bal is bij mij, dus de rest volgt. Mijn juristen noemen het een overname. [NIEUW]
 JELLE (radio): En geen vet, geen Grinzer aan de start. Oant sjen op it Ontset! [BEHOUDEN]
 TESSA: J. Van Jelle. Natuurlijk. [BEHOUDEN]
 TAMMO: Beleefd. [BEHOUDEN]
@@ -392,7 +398,7 @@ TESSA: Natuurlijk. [BEHOUDEN]
 ## [R1.3] Overgang naar akte 2: Nachtstreek, nacht – studio – radio
 RIKUS (radio): Er is iets gestolen dat niemand ooit zag, maar dat iedereen mist. 't Het nog nooit zo donker west, of 't wer altied wel weer licht. [NIEUW]
 RIKUS (radio): Behalve in de fietstunnel. Die is er nog niet. 2029, zeggen ze. Bijna. [BEHOUDEN]
-RIKUS (radio): Politie zoekt twee Stadjers in het zwart. [NIEUW]
+RIKUS (radio): De politie zoekt twee Stadjers in het zwart. Ik heb niks gezien. Dat is mijn officiële verklaring. [NIEUW]
 
 ## [B1] Autogesprekken akte 1 (pool, in de auto of op de fiets, nooit de briefing herhalen) – Stad – Escapade
 TAMMO: Dat is de Krolbrug. Hij gaat zo open. [NIEUW]

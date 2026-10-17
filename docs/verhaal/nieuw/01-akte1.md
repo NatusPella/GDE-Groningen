@@ -9,7 +9,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels per scène staan 
 | | |
 |---|---|
 | **Regio** | Stad (Grunn): Binnenstad, Paddepoel, Oosterparkwijk, Groninger Museum |
-| **Sfeer** | KEI-week: studenten met polsbandjes, lange zomeravonden, wind tegen |
+| **Sfeer** | Kiezelweek: studenten met polsbandjes, lange zomeravonden, wind tegen |
 | **Tijd** | ca. 62 minuten (6 missies + opening) |
 | **Dagen** | vr 14 (1.1), za 15 (1.2, 1.3), zo 16 (1.4, 1.5), ma 17 (1.6, 's nachts) |
 | **Wat de speler leert** | rijden zonder krassen, stunten, achtervolgen, formulieren, de duif, de fiets, sluipen; wie Tammo en Tessa zijn |
@@ -26,7 +26,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels per scène staan 
 **Opening, de keuken (uitsnede):**
 
 - **RIKUS (radio):** Moi, Nachtstreek, het laatste uur. Het is twijduustern geweest, en nu wordt het licht. Voor wie wakker ligt van de huur: ik ook, jongens. [BEHOUDEN]
-- **RIKUS (radio):** Het is vrijdag 14 augustus, KEI-week. En een luisteraar meldt een Fries in een blauw colbert die Grunn aan het opkopen is, plakje voor plakje. [NIEUW]
+- **RIKUS (radio):** Het is vrijdag 14 augustus, Kiezelweek. En een luisteraar meldt een Fries in een blauw colbert die Grunn aan het opkopen is, plakje voor plakje. [NIEUW]
 - **TAMMO:** Moi. De bank? [BEHOUDEN]
 - **TESSA:** "Uw plan is sympathiek." Dat betekent nee, met een strikje. [BEHOUDEN]
 - **TESSA:** Luister. De Fjord Frituur heeft ook een plek nodig. In Grunn is er maar één vrije standplaats, en die gaat naar de winnaar van de Noordelijke Snackprijs. [NIEUW]
@@ -133,7 +133,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels per scène staan 
 | **Leuk-element / uitdaging** | geen rijden: een komische puzzelmissie met een klok, in plaats van de zoveelste achtervolging |
 | **Reizen** | Pand & Poen naar het Loket 300 m: 1 min te voet |
 | **Romantiek (3/10)** | Tessa neemt het over van Tammo en praat zich er doorheen; Tessa vertaalt zijn gezicht ("Dat gezicht betekent: ik snap het niet." "Klopt."); hij bewondert haar openlijk, zij merkt het niet |
-| **Plot** | Jelle in eigen persoon: kil, zakelijk, "Mijn juristen hebben dit loket vooruit betaald". Artikel 4 en artikel 9 worden hardop voorgelezen. Tessa noemt zijn tactiek "salamitactiek". In de deuropening mompelt hij "Foar mem" (de eerste barst). |
+| **Plot** | Jelle in eigen persoon: kil, zakelijk, "Mijn juristen hebben dit loket vooruit betaald". Artikel 4 en artikel 9 worden hardop voorgelezen. Tessa noemt zijn tactiek "salamitactiek". In de deuropening mompelt hij "Foar mem" (de eerste barst). **Mevrouw Tuinstra, de Bewaarder** (nieuwe kleine rol: bewaarder van de Gouden Eierbal en bij traditie voorzitter van de jury, artikel 4) wordt hier bij naam en in persoon geïntroduceerd; zij heeft van Jelle een treinreis met volpension gekregen (vanaf maandag, tot na het Ontzet) en weet niet dat de koepel sinds woensdag onder een doek hangt ("restauratie"). Jelle zet haar daarmee bewust aan de kant. Tessa zegt hardop waarom Jelle ook voorraad en jury koopt: zodat niemand anders kan beginnen, en dat er één officiële standplaats vrij blijft. |
 | **Gevolg / haak** | Tessa: plakje één krijgen we niet terug. Bert belt: "Mijn duiven zijn nerveus." |
 | **Behouden / nieuw** | alles NIEUW (naamkaart Jelle: BEHOUDEN van `CHARACTERS.jelle`) |
 | **Zij-activiteiten** | Het Loket als terugkerende bijbaan, "Wiebelwerk" aankondiging (zie 06) |
@@ -167,7 +167,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels per scène staan 
 | **Verloop** | 1) Bert leert Tammo fluiten. 2) Duivenmodus: drie camera's en twee bewakers fotograferen; Sjabbe belt: kijk wie er koekjes krijgt. 3) De stroomkast. 4) Terug op Berts duiventil. **Falen:** de duif schrikt, herstart bij Bert. |
 | **Romantiek (3/10)** | "Mijn vriend de duivenkoning." "Vriend." "Wat?" "Ow." |
 | **Plot** | de limo, de man in het blauwe colbert die alarmen telt, **bewaker twee die een eierbal krijgt voor zijn koekje** (de latere handlanger) |
-| **Gevolg / haak** | Tessa: Sjoerd (KEI) heeft een neef bij de beveiliging. Doe de race. |
+| **Gevolg / haak** | Tessa: Sjoerd (Kiezel) heeft een neef bij de beveiliging. Doe de race. |
 | **Behouden / nieuw** | intro, outro BEHOUDEN; Bert belt nu per telefoon (1.3 outro), niet via de radio; 10 nieuwe regels |
 
 **Openingsdialoog (Stationsplein):** BERT: "Niemand kijkt naar een duif. Behalve als hij op je jas poept." TAMMO: "Hoe stuur je een duif?" BERT: "Diep in de ogen kieken. Fluiten. Ogen dicht." (allemaal BEHOUDEN) en TESSA: "We willen weten wat de Fries bij het museum doet." [NIEUW]
@@ -187,15 +187,15 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels per scène staan 
 | **Plaats** | Binnenstad: Academiegebouw naar het café; kruispunt waar alles groen is, zo 16 augustus, middag |
 | **Voertuig** | fiets (`KEI_ROUTE`) |
 | **Mechaniek / hergebruik** | `checkpoint` race (`racers.js`, `keiroute.js`) met een oogcontact-moment (`playEyeContact` in `missionstory.js`) |
-| **Doel (hardop)** | "Podium in de KEI-race: dan vertelt Sjoerd wat zijn neef 's nachts in het museum ziet." |
-| **Motief** | Sjoerd praat alleen met wie zijn KEI-race rijdt, op een eigen fiets |
+| **Doel (hardop)** | "Podium in de Kiezelrace: dan vertelt Sjoerd wat zijn neef 's nachts in het museum ziet." |
+| **Motief** | Sjoerd praat alleen met wie zijn Kiezelrace rijdt, op een eigen fiets |
 | **Verloop** | 1) Sjoerd (ter plekke) legt de regels uit. 2) Race langs de checkpoints, altijd tegenwind. 3) Kruispunt waar alles groen is: Tessa komt van de andere kant, oogcontact, allebei remmen. 4) Finish op het podium. **Falen:** buiten podium: herstart; je mag opnieuw. |
 | **Romantiek (5/10)** | **Oogcontact:** de eerste lange blik, dan allebei de andere kant op |
 | **Plot** | Sjoerd: om twaalf uur gaan de camera's drie minuten uit voor een update, sinds 2019 |
 | **Gevolg / haak** | "Ik heb in drie minuten nog nooit iets goeds gedaan." "Dan wordt het tijd." Het plan: we pakken hem eerst, als bewaking. |
 | **Behouden / nieuw** | intro (ter plekke) en outro BEHOUDEN; Sjoerds radio-intro is nu een ter-plekke-intro (NIEUW); het besluit "eerst pakken" NIEUW |
 
-**Openingsdialoog (Academiegebouw):** SJOERD: "Moi. Sjoerd, KEI-commissie. Wie op het podium komt, krijgt van mij iets te horen over het museum." [NIEUW]; "Altijd tegenwind. Beide kanten op." [BEHOUDEN]; "Op de kruispunten is alles tegelijk groen. Niemand heeft voorrang. Maak oogcontact." [BEHOUDEN].
+**Openingsdialoog (Academiegebouw):** SJOERD: "Moi. Sjoerd, Kiezelcommissie. Wie op het podium komt, krijgt van mij iets te horen over het museum." [NIEUW]; "Altijd tegenwind. Beide kanten op." [BEHOUDEN]; "Op de kruispunten is alles tegelijk groen. Niemand heeft voorrang. Maak oogcontact." [BEHOUDEN].
 
 **Sleutelscène (outro, café):** Sjoerd: "Om twaalf uur gaan de camera's drie minuten uit voor een update. Al sinds 2019. Niemand weet waarom." (BEHOUDEN.) Tessa: "Als een ander hem pakt, is hij weg uit Stad. Dan pakken wij hem eerst, als bewaking, en brengen we hem terug na het Ontzet." Tammo: "Terugbrengen." Tessa: "Terugbrengen. Zeg ik." [NIEUW]
 
@@ -216,12 +216,12 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels per scène staan 
 | **Motief** | als Jelle hem pakt, wint hij het reglement; Tammo: "terugbrengen na het Ontzet" |
 | **Verloop** | 1) Thuis wachten tot middernacht (Henk belt: zender in de Escapade; Rikus draait drie minuten stilte). 2) Plan: sluipen of vermomd. 3) Zekeringkast, slot; bewaker twee met het koekje staat niet op zijn plek. 4) Binnen: vitrine open, **leeg**, kaartje "Tige tank! – J." 5) Alarm, rennen. **Falen:** gezien of te laat: "Sikkom." en de nacht begint opnieuw bij de kade. |
 | **Romantiek (6/10)** | **De eerste handaanraking:** "Geef me je hand. Het is donker daarbinnen." "…Voor de grip." |
-| **Plot** | de vitrine is al leeg. Op het kussen: "Tige tank! – J." Jelle belt live naar Nachtstreek en zegt dat hij de bewaarder is, want de bal is bij hem: **dat is waar**; hij nam hem op 12 augustus (de speler leert dat in 4.2). Tammo: "Hij bedankt ons." Tessa: "Hij wist dat we hier waren. Iemand heeft het hem verteld." Tammo: "Bewaker twee." |
+| **Plot** | de koepel hangt onder een doek (RESTAURATIE), en de vitrine is al leeg. Op het kussen: "Tige tank! – J." Jelle belt live naar Nachtstreek en zegt dat de bal bij hem is ("de rest volgt"): **dat is waar**; hij nam hem op 12 augustus (de speler leert dat in 4.2). Tammo: "Hij bedankt ons." Tessa: "Hij wist dat we hier waren. Iemand heeft het hem verteld." Tammo: "Bewaker twee." |
 | **Gevolg / haak** | de politie zoekt twee mensen in het zwart. De camera's filmden hen. De bal is bij Jelle. |
 | **Behouden / nieuw** | bijna alles BEHOUDEN, ook het kaartje; Jelles radioregel over artikel 4 is NIEUW (nu letterlijk waar); 12 nieuwe regels |
 
 **Openingsdialoog (kade, nacht):** TAMMO: "Weet je zeker dat dit gebouw nog niet gekraakt is? Het ziet er al zo uit." [BEHOUDEN]; TESSA: "Dit is het plan. Om twaalf uur gaan de camera's drie minuten uit. In die drie minuten pakken wij de bal, als bewaking, voor Jelle." [NIEUW]; "Geef me je hand. Het is donker daarbinnen." [BEHOUDEN]; TAMMO: "…Voor de grip." [BEHOUDEN].
 
-**Sleutelscène (de lege vitrine):** TESSA: "Tige tank! – J." [BEHOUDEN]; TAMMO: "Hij bedankt ons." [BEHOUDEN]; TESSA: "Hij was hier eerder. Die J schrijft overal een bedankje bij." [NIEUW]; JELLE (radio, na afloop): "Daarom bel ik. Reglement van de Noordelijke Snackprijs, artikel 4. De bewaarder zit de jury voor. Ik ben de bewaarder, want de bal is bij mij. Mijn juristen noemen het een overname." [NIEUW]
+**Sleutelscène (de lege vitrine):** TESSA: "Tige tank! – J." [BEHOUDEN]; TAMMO: "Hij bedankt ons." [BEHOUDEN]; TESSA: "Hij was hier eerder. Die J schrijft overal een bedankje bij." [NIEUW]; JELLE (radio, na afloop): "Daarom bel ik. Reglement van de Noordelijke Snackprijs, artikel 4. De bewaarder zit de jury voor. De bal is bij mij, dus de rest volgt. Mijn juristen noemen het een overname." [NIEUW]
 
 > **Besluit van de eigenaar.** Het kaartje blijft exact "Tige tank! – J." (de regel is opgenomen). **De twist is nu:** de J is van Jelle zelf, hij schrijft overal een bedankje onder; hij nam de bal eerder dan de spelers en zegt dat terecht op de radio; zijn moeder Mem neemt hem in Bourtange van hem af (M20).

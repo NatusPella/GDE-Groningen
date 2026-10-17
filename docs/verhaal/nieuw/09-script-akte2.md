@@ -9,7 +9,7 @@ RIKUS (radio): Dit is erger dan de fietstunnel. [BEHOUDEN]
 RIKUS (radio): Storingsbericht: de Krolbrug is in storing. [BEHOUDEN]
 
 ## [M07.1] Al het vet van Grunn: intro – Stad, Bornholmstraat – tankwagen
-(regie: dinsdag 18 augustus, ochtend, de dag na de kraak. Tessa en Tammo schuilen achter een muur. Op het terrein staat de tankwagen "Us Mem Vet" tussen twee bewakingswagens. Gameplay: banden van de bewakingswagens doorsteken, de tankwagen kapen en naar de Oosterpoort rijden.)
+(regie: dinsdag 18 augustus, ochtend, de dag na de kraak. Tessa en Tammo schuilen achter een muur. Op het terrein staat de tankwagen "Us Mem Vet" tussen twee bewakingswagens. Op de snackbars in de buurt hangen gele stickers: US MEM SNACKS, EXCLUSIEF LEVERANCIER. De hele stad staat in de rij met lege pannen. Gameplay: banden van de bewakingswagens doorsteken, de tankwagen kapen en naar de Oosterpoort rijden.)
 TESSA: Jelle koopt het vet van heel Grunn. Zonder vet geen oefenronde, en zonder oefenronde geen Snackprijs. Dit is plakje twee, Tammo. [NIEUW]
 TAMMO: Plakje twee. [NIEUW]
 TESSA: Plakje één kregen we niet terug. Dit plakje kunnen we nog winnen. [NIEUW]
@@ -60,8 +60,8 @@ OMA TRIJNTJE (radio): De twee die het niet zeggen. Je weet best wie. [BEHOUDEN]
 
 ## [M08.1] Fatbikes tellen niet als fiets: intro – Stad, Oude Ebbingestraat – te voet
 (regie: dinsdag 18 augustus, middag. Oma Trijntje belt Tammo. Naamkaart OMA TRIJNTJE bij de eerste keer dat ze in beeld is, in haar kamer. Gameplay: te voet door een stroom fatbikes, elke aanraking kost een tel.)
-OMA TRIJNTJE (telefoon): Tammo. Kom naar de Noorderhaven. Lopen, niet fietsen. De politie zoekt jullie op de fiets. [NIEUW]
-TESSA: We lopen naar Oma Trijntje, aan de Noorderhaven. Dat is ver genoeg dat de politie ons niet zoekt. [NIEUW]
+OMA TRIJNTJE (telefoon): Tammo. Kom naar de Noorderhaven. Ik heb iets over die bal. [NIEUW]
+TESSA: We lopen naar Oma Trijntje aan de Noorderhaven. Zij weet iets over de bal. [NIEUW]
 TAMMO: Fatbikes tellen niet als fiets, oma. [BEHOUDEN]
 OMA TRIJNTJE (telefoon): Loop jij daar heelhuids doorheen, jong, dan vertel ik je iets over die bal. [BEHOUDEN]
 OMA TRIJNTJE (telefoon): Zeg dat maar tegen hen. Lopen, jong. [BEHOUDEN]
@@ -83,6 +83,7 @@ OMA TRIJNTJE: 1953. Dat ik won, weet je. Wat je niet weet: tweede werd een Fries
 TESSA: Terpstra? Van Jelle? [BEHOUDEN]
 OMA TRIJNTJE: Haar zoon, zeker. Ik heb het nooit gezegd. Zeventig jaar trots. Dat is lang voor iets wat in één zin past. [BEHOUDEN]
 OMA TRIJNTJE: Het recept van 1953 had vijf dingen van vijf vrienden: vet, eieren, zout, bloem en mosterd. Jelle koopt ze allemaal. Hier is het lijstje. [NIEUW]
+TESSA: We halen de ingrediënten voor Oma's recept bij haar vrienden. Dan kunnen we meedoen, ook als Jelle de voorraad van iedereen opkoopt. [NIEUW]
 TESSA: Weet u waar de bal is, oma? [NIEUW]
 OMA TRIJNTJE: Ik weet waar hij was. In een vitrine. [NIEUW]
 TAMMO: Jelle zegt: bij hem. [NIEUW]
@@ -193,6 +194,8 @@ TESSA: Hij hield de koffer boven water. [NIEUW]
 TAMMO: Boven zichzelf. [NIEUW]
 TESSA: Dat is liefde of een contract. [NIEUW]
 TAMMO: Bij hem is dat hetzelfde. [NIEUW]
+TAMMO: Of hij is dom. [NIEUW]
+TESSA: Hij is niet dom. Hij wil dat we hem onderschatten. [NIEUW]
 APP MEM→TESSA (stil): Is mijn jongen droog? Zeg niks tegen jouw jongen. – M. [NIEUW]
 
 ## [T2] De streekbus naar Zoutkamp – Hogeland, Uithuizen naar Zoutkamp – bus (meerijden)
@@ -281,7 +284,7 @@ TESSA: Naar de Eemshaven? [NIEUW]
 KAPITEIN KLAAS: Dat is Lammerts haven. Hij danste met Trijntje in 1953. [NIEUW]
 
 ## [R2.3] Nachtstreek, donderdagnacht – Stad – radio
-RIKUS (radio): Noorderzon opent vandaag in het Noorderplantsoen. Elf dagen theater en muziek. Het is er druk. [NIEUW]
+RIKUS (radio): Het Plantsoenfestijn opent vandaag in het Noorderplantsoen. Elf dagen theater en muziek. Het is er druk. [NIEUW]
 JELLE (radio): Rikus. Ik ga naar de haven. De Eemshaven is van mij. Plakje vijf. [NIEUW]
 RIKUS (radio): Storingsbericht: de Krolbrug is in storing. Niemand merkt verschil. [NIEUW]
 RIKUS (radio): De torenwachter belde niet. Dat is ook nieuws. [NIEUW]

@@ -31,7 +31,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Alleen verzonnen namen (geen echte
 | 21 | **Vigilantia (corps-parodie): borrel en tafelspeech** | Stad | `choicepanel.js` | tafelspeech met de verkeerde dingen zeggen | los | S | nee |
 | 22 | **Helix: verfblokkade** | Stad | `missions.js` `blast`-stage | echte plek, verzonnen actie; blokkeer het plein | los | S | nee |
 | 23 | **Niemeyer: AI-kamer / robotkok** | Stad | `heist.js` (kamer) | een robotkok die alleen eierballen kent; satire zonder echte bedrijven | los | S | nee |
-| 24 | **Raves in "het oude Telefoonhuis"** | Stad | `stuntavond.js` | geluid regelen, hek; de eerste week van KEI | KEI-week | M | nee |
+| 24 | **Raves in "het oude Telefoonhuis"** | Stad | `stuntavond.js` | geluid regelen, hek; de eerste week van de Kiezelweek | Kiezelweek | M | nee |
 | 25 | **Wolkenhal Zernike: de bewakers** | Stad | `heist.js` (bewakers, dozen) | geen sabotage, alleen dozen; Durk en Douwe als bewakers ("Wij bewaken de cloud.") | los | S | nee |
 | 26 | **Wolkenhal Eemshaven** | Eemsdelta | `heist.js` | de grote grijze dozen aan de horizon; één komische scène | M15 (zijpad) | S | nee |
 | 27 | **Delfstof Noord: herstelploeg** | Hogeland, Eemsdelta | `sidejob_verhuizing.js` | stil en warm: inpakken, verhuizen, terugkomen; Rikus zegt er één keer iets zonder grap; geen schurk, geen "het gasbedrijf" | zijlijn | M | nee, alleen met akkoord en zorg |
