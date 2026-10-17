@@ -4,7 +4,7 @@
 > Hoort bij [01-akte1.md](01-akte1.md) en [00-OVERZICHT.md](00-OVERZICHT.md).
 
 ## [C00.1] Trailer – Stad, Grote Markt – geen voertuig
-(regie: trailerparodie, zon op d'Olle Grieze, fietsers in plaats van flamingo's, een werkboot vist een fiets uit de Diepenring, een meeuw steelt een frikandel. Bevroren beeld: naamkaart TESSA, daarna TAMMO. Titelkaart: GDE, GRONINGEN, Zomer vol misdaad.)
+(regie: trailerparodie, zon op d'Olle Grieze, fietsers in plaats van flamingo's, een werkboot vist een fiets uit de Diepenring, een meeuw steelt een frikandel. Stilstaand beeld: naamkaart TESSA, daarna TAMMO. Titelkaart: GDE, GRONINGEN, Zomer vol misdaad.)
 RIKUS (radio): Grunn. Tweehonderdduizend mensen, driehonderdduizend fietsen en één toren die alles ziet. [NIEUW]
 RIKUS (radio): Dit is deel zes van een serie die niet bestaat. Ik ben gewoon begonnen met tellen. [NIEUW]
 RIKUS (radio): Er gaat niets boven Grunn. Behalve de Martinitoren. [BEHOUDEN]
