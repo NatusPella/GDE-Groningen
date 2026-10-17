@@ -31,6 +31,9 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **Politie is niet meer zo tolerant:** een agent aanrijden, te voet of in zijn auto, kost meteen een ster.
 - **Fatbikers schelden terug:** toeter je naar een fatbiker in de missie, dan krijg je een Gronings antwoord in een tekstbubbel.
 
+### Opgelost
+- **Groninger Museum:** de paviljoenen stonden na de RD-omzetting 12 m naast het gebouw, waardoor je tegen onzichtbare muren botste en vanuit de hal het water in kon. Muren, vloer en voetafdruk vallen weer samen en de H.N. Werkmanbrug loopt niet meer door het gebouw (#79).
+
 ## [0.33.0] - 2026-10-16
 
 ### Nieuw
