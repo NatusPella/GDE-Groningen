@@ -27,6 +27,8 @@ import { LINES, packOf } from './corridor.mjs';
 import { annotateProvinceWater } from '../../game/js/waterlevels.js';
 import { encodeRoadNet } from '../../game/js/roadgraph.js';
 import { Raster, paint, writePyramid, FINE_M } from './province_map.mjs';
+import { bakeCityRoutes, railLines } from './cityroutes.mjs';
+import { collectFarNodes, finishFarProps } from './farprops.mjs';
 import { loadProvinceBag, bagMatcher } from './bag3d.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
@@ -412,6 +414,7 @@ export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(s
   const blobs = new Map();
   const empty = [], noPack = [];
   const railRows = [];
+  const farAcc = { turbines: new Map(), towers: new Map() };
   const roadNet = [], roadSeen = new Set();
   const coast = new Map();
   const locks = new Map();
@@ -426,6 +429,7 @@ export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(s
     const els = [];
     for (const f of files) { stats.sourceMB += fs.statSync(f).size / 1e6; for (const el of gunzipJson(f).elements) els.push(el); }
     for (const el of els) if (el.tags && el.tags.natural === 'coastline' && el.g && !coast.has(el.id)) coast.set(el.id, el);
+    collectFarNodes(els, farAcc);
     const feats = features(els, ctx);
     // the water keeps `flat` (the far LOD draws it so) and gets the city
     // water's kind, lv, dp and nav: tileworld.js puts annotated rows in the
@@ -522,6 +526,10 @@ export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(s
   const edge = edgeFromOsm([...coast.values()], (la, lo) => wgsToWorld(la, lo).map(r1));
   edge.coast = edge.coast.map((c) => ({ ...c, pts: simplify(c.pts, 5) }));
   edge.border = borderLines(prov, buffer);
+  // the city's routes run on over the province's track, and the track outside the city's data (cityroutes.mjs)
+  const stationList = [...stations.entries()].map(([key, s]) => ({ key, ...s })).sort((a, b) => (a.key < b.key ? -1 : 1));
+  const far = finishFarProps(farAcc);
+  const rail = { ...bakeCityRoutes({ stations: stationList, routes }, { province: true, root }), rails: railLines(railRows, cityCover ? cityCover.inside : () => false, cityCover ? cityCover.rails : []), ...far };
   const global = {
     builder: PROVINCE_BUILDER, source: prov.source, places,
     stations: [...stations.entries()].map(([key, s]) => ({ key, ...s })).sort((a, b) => (a.key < b.key ? -1 : 1)),
@@ -530,7 +538,7 @@ export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(s
     locks: [...locks.values()].sort((a, b) => a.x - b.x || a.y - b.y), waterBodies,
     buffer, empty: empty.sort(), city: city.sort(), overlays: overlays.filter((k) => blobs.has('o' + k)).sort(), missing: noPack.sort(),
   };
-  return { blobs, global, stats, keys, tiles, empty, missing: noPack, raster, roadNet };
+  return { blobs, global, stats, keys, tiles, empty, missing: noPack, raster, roadNet, rail };
 }
 
 // The bus lines (~1 MB) go in a file of their own, read when needed; the
@@ -540,8 +548,9 @@ export function writeProvince(out, built) {
   // the base map's pyramid (province_map.mjs) next to the packs
   const pm = built.raster ? writePyramid(built.raster, out) : null;
   if (pm) { global.map = pm.meta; built.stats.mapMB = +(pm.bytes / 1e6).toFixed(2); }
-  const r = writeLayer(out, { ...built, global: { ...global, busFile: 'provincie-bus.json', ...(built.roadNet ? { roadsFile: 'provincie-roads.json.gz' } : {}) } }, { prefix: 'v', file: 'index-provincie.json', layer: 'provincie', builder: PROVINCE_BUILDER });
+  const r = writeLayer(out, { ...built, global: { ...global, busFile: 'provincie-bus.json', landFile: 'provincie-land.json', ...(built.roadNet ? { roadsFile: 'provincie-roads.json.gz' } : {}) } }, { prefix: 'v', file: 'index-provincie.json', layer: 'provincie', builder: PROVINCE_BUILDER });
   fs.writeFileSync(path.join(out, 'provincie-bus.json'), JSON.stringify({ builder: PROVINCE_BUILDER, bus }));
+  fs.writeFileSync(path.join(out, 'provincie-land.json'), JSON.stringify({ builder: PROVINCE_BUILDER, ...built.rail }));
   // the car roads of the tiles for the GPS and the police (roadgraph.js); mtime 0: the same bytes every build
   if (built.roadNet) {
     const gz = zlib.gzipSync(JSON.stringify(encodeRoadNet(built.roadNet)), { level: 9 });
@@ -563,7 +572,8 @@ async function cityCoverOf() {
   await import('../node3d.mjs');
   const P = await import('./pack_tiles.mjs');
   const { buildCityCover } = await import('./citycover.mjs');
-  return buildCityCover(P.loadSources().map);
+  const { map } = P.loadSources();
+  return { ...buildCityCover(map), rails: (map.rails || []).map((r) => r.pts) };
 }
 
 async function main() {

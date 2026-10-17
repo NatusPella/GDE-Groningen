@@ -8,7 +8,7 @@
 const REACH = { city: 4500, town: 1700, village: 800, hamlet: 350, industrial: 2500 };
 const DISTRICT_REACH = 900;
 
-const PLACES = { list: [], seats: [], districts: [], signs: [] };
+const PLACES = { list: [], seats: [], districts: [], signs: [], names: new Set() };
 
 // what a motorway gantry can sign to: cities and towns (streetfurniture.js
 // destinationFor): a city weighs more, nothing beyond 45 km
@@ -16,6 +16,7 @@ const SIGN_KINDS = { city: 0.12, town: 0 };
 
 export function setWorldPlaces(list) {
   PLACES.list = Array.isArray(list) ? list : [];
+  PLACES.names = new Set(PLACES.list.map((p) => p.name));
   PLACES.seats = PLACES.list.filter((p) => REACH[p.kind] !== undefined);
   PLACES.signs = PLACES.seats.filter((p) => SIGN_KINDS[p.kind] !== undefined && p.name)
     .map((p) => ({ n: p.name, x: p.x, y: p.y, w: SIGN_KINDS[p.kind], scale: 40000, max: 45000 }));
@@ -26,6 +27,22 @@ export function setWorldPlaces(list) {
 export const worldSignPlaces = () => (PLACES.signs.length ? PLACES.signs : null);
 
 export const worldPlacesReady = () => PLACES.seats.length > 0;
+
+// The place of that name ({ name, kind, x, y }), or null.
+export const worldPlaceNamed = (name) => PLACES.list.find((p) => p.name === name) || null;
+
+// Every name the province's places carry (the procedural villages keep clear of them).
+export const worldPlaceNames = () => PLACES.names;
+
+// The nearest town, village or hamlet ({ name, kind, x, y }), or null.
+export function nearestWorldPlace(x, y) {
+  let best = null, bd = Infinity;
+  for (const p of PLACES.seats) {
+    const d = Math.hypot(p.x - x, p.y - y);
+    if (d < bd) { bd = d; best = p; }
+  }
+  return best;
+}
 
 // { place, district, near } at (x, y): in a place's reach its name (and the
 // nearest district of it within 900 m), else the nearest place within 5 km

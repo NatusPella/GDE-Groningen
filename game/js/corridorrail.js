@@ -1,12 +1,14 @@
-// The proefstrook's rail lines (docs/PROVINCIE-PLAN.md 3.2: "alle lijnen
-// echt"): the Ommeland's train routes (ommeland.json routes, spliced onto
-// the city's in countryreal.js applyRoutes) run on over the corridor
-// layer's track (index-corridor.json global.routes, scripts/world/
-// build_corridor.mjs) to every station the data reaches: Appingedam and
-// Delfzijl, Baflo ... Uithuizen, Roodeschool and Eemshaven. Pure data, no
-// side effects: main.js applies it to the Ommeland data before initReal.
+// The rail lines of the tile world (docs/PROVINCIE-PLAN.md 3.2: "alle lijnen
+// echt"): the city's train routes run on over the layers' track
+// (index-provincie.json / index-corridor.json global.routes, scripts/world/
+// build_province.mjs, build_corridor.mjs) to every station the data reaches:
+// Appingedam and Delfzijl, Baflo ... Uithuizen, Roodeschool and Eemshaven.
+// Pure data, no side effects but applyCityRoutes: the builders run
+// extendRoutes / provinceRailLines once (scripts/world/cityroutes.mjs) and
+// write the result next to the layer (the rail file); main.js splices it onto
+// the city's routes (scripts/world/cityroutes_src.json holds the six routes
+// with the track out to their last stop in the old data).
 
-// corridor line id -> the Ommeland route it continues
 export const LINE_ROUTE = { 'spoor-delfzijl': 'Stoptrein Delfzijl', 'spoor-eemshaven': 'Stoptrein Roodeschool' };
 
 const flat = (P) => P.flatMap(([x, y]) => [x, y]);
@@ -138,4 +140,55 @@ export function provinceRailLines(om, lines) {
     out.push({ ...L, id: `${L.id}>${r.name}`, route: r.name, reached: true });
   }
   return { om: { ...om, routes }, lines: out };
+}
+
+// ------------------------------------------------------------------ at load
+
+const pairs = (p) => {
+  const out = [];
+  for (let i = 0; i < p.length; i += 2) out.push([p[i], p[i + 1]]);
+  return out;
+};
+
+// The rail file of a layer (scripts/world/cityroutes.mjs): { routes, stations, rails }, or null.
+export async function loadLandData(base = 'world/', file) {
+  if (!file) return null;
+  try {
+    const r = await fetch(base + file);
+    return r.ok ? await r.json() : null;
+  } catch (e) {
+    console.warn('rail data not loaded', e);
+    return null;
+  }
+}
+
+// The city's train routes carried on to the real stations and the edge of the
+// data: the routes cut where the city's own track ends, the baked track
+// (flat points) after it. Sets map.countryStations (the stations those routes
+// stop at) and map.countryRails (the countryside's track for railway3d.js).
+export function applyCityRoutes(map, data) {
+  if (!data) return;
+  const byName = new Map((map.railRoutes || []).map((r) => [r.name, r]));
+  const out = [];
+  for (const e of data.routes || []) {
+    const base = byName.get(e.base);
+    if (!base) continue;
+    const P = base.pts;
+    let s = 0, cut = P.length - 1;
+    for (let i = 1; i < P.length; i++) {
+      s += Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]);
+      if (s >= e.cutS - 0.5) { cut = i; break; }
+    }
+    const pts = P.slice(0, cut).concat(pairs(e.pts));
+    const stops = base.stops.filter((q) => e.keep.includes(q.name)).map((q) => ({ ...q }));
+    for (const q of e.stops) stops.push({ ...q, s: e.cutS + q.s });
+    const route = { ...base, name: e.name, pts, stops };
+    if (e.train) route.train = e.train;
+    out.push(route);
+  }
+  const replaced = new Set(out.map((r) => r.name));
+  map.railRoutes = (map.railRoutes || []).filter((r) => !replaced.has(r.name)).concat(out);
+  const stations = data.stations || [];
+  map.countryStations = stations.filter((s) => (data.routes || []).some((r) => r.stops.some((q) => q.name === s.name && !q.offmap)));
+  map.countryRails = (data.rails || []).map(pairs);
 }
