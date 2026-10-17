@@ -4,7 +4,7 @@ import { buildPersonMesh, animatePersonWalk, swimPose, PERSON_RIG } from './mode
 import { pushAudioEvent } from './pedestrians.js';
 import { isInWater, clamp, WATER_Y } from './util.js';
 import { playCinematic, isCinematicActive, skipCinematic } from './cinematics.js';
-import { waterWet, insideWaterObstacle } from './waterindex.js';
+import { getWaterIndex, waterWet, insideWaterObstacle } from './waterindex.js';
 
 // Fierljeppen: an NPC sprints to a canal, jumps onto a pole standing in the
 // water, climbs it while it tips over and drops onto the far bank - or the
@@ -575,6 +575,7 @@ const FAR_PARALLEL = Math.cos(35 * Math.PI / 180);
 
 export function findVaultSpot(map, x, y, radius = 60, { minWidth = 5, maxWidth = 22, why = null } = {}) {
   const no = (k) => { if (why) why[k] = (why[k] || 0) + 1; };
+  const wi = getWaterIndex(map);
   const wet = (px, py) => waterWet(map, px, py);
   const pts = [];
   const grid = radius > 120 ? 4 : 3;
