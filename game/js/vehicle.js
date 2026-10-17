@@ -1448,7 +1448,9 @@ function findRoute(v, map, gx, gy) {
   tp.forEach((p, i) => { const d = Math.hypot(p[0] - target.x, p[1] - target.y); if (d < tBest) { tBest = d; ti = i; } });
   const goalNode = roadNode(map, target.road, ti);
   const { nodeOf } = roadGraph(map);
-  const stateKey = (road, idx, dir) => (isJunction(map, road, idx) ? nodeOf.get(road)[idx] : road.pts[idx][0] + ',' + road.pts[idx][1] + ',' + dir);
+  // a streamed tile's road is not in the city road graph: no route from or over it
+  if (!nodeOf.get(v.road)) return false;
+  const stateKey = (road, idx, dir) => (isJunction(map, road, idx) && nodeOf.get(road) ? nodeOf.get(road)[idx] : road.pts[idx][0] + ',' + road.pts[idx][1] + ',' + dir);
   const b = v.segIdx + v.dir;
   const start = { road: v.road, idx: b, dir: v.dir, g: Math.hypot(v.road.pts[b][0] - v.x, v.road.pts[b][1] - v.y), prev: null };
   const h = (p) => Math.hypot(p[0] - tp[ti][0], p[1] - tp[ti][1]);
@@ -1483,7 +1485,9 @@ function findRoute(v, map, gx, gy) {
   let found = null;
   for (let n = 0; n < ROUTE_MAX_EXPANSIONS && open.length; n++) {
     const cur = pop();
-    const node = nodeOf.get(cur.road)[cur.idx];
+    const curNodes = nodeOf.get(cur.road);
+    if (!curNodes) continue;
+    const node = curNodes[cur.idx];
     if (node === goalNode) { found = cur; break; }
     const exits = isJunction(map, cur.road, cur.idx) ? node : [{ road: cur.road, idx: cur.idx }];
     for (const e of exits) {
