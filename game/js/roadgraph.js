@@ -1,171 +1,101 @@
-// A road graph over the Ommeland, so routing.js can show the way to a place
-// outside the city map (carbid at boer Roelf's, Rotor Roelf on Eelde, a farm
-// out in the polders) and back into Stad from there. It joins the real roads
-// (countryreal.js REAL.roads) and, past the real data, the polder grid
-// (countryfield.js edgeRoad). The OSM ways are simplified, so crossings and
-// T-junctions often lack a shared node: roads that cross are split where
-// they cross (bridges excepted) and a road that ends right beside another is
-// joined to it. The city graph stays routing.js's own; the two meet at
-// gateways: Ommeland road points near the city's edge that lie on a city
-// street. Built lazily (rebuilt when a route leaves the polder window). No DOM.
+// The road graph of the whole province, for routing.js (the GPS) and police.js
+// (units that follow the roads out of town). The rows come from the province
+// layer's road net (scripts/world/build_province.mjs writes
+// provincie-roads.json.gz next to the tiles): every car road of the tiles,
+// as the tiles draw them, so a route runs over the roads you see and drive.
+// OSM ways meet at shared nodes, so the graph joins them by position (half a
+// metre); pieces cut off from the main network are hung on it by one costly
+// link. The city graph stays routing.js's own; the two meet at gateways:
+// nodes of this network near the city's edge that lie on a city street.
+// Built on the first use. No DOM.
 //
-//   countryReady(real)              true once REAL is loaded (and the graph is built)
-//   snapCountry(x, y, maxD)         the nearest point on the main network within maxD, or null
-//   countryCosts(snap)              Dijkstra costs/predecessors from a snap to every node (cached)
-//   countryPath(from, to)           [[x, y], ...] from snap `from` to snap `to`, or null
-//   countryPathToNode(from, n)      same, ending at node n
-//   countryCover(pts)               grow the polder grid to cover these points (before snapping)
-//   nodeXY(n)                       [x, y]
-//   gatewayCandidates(bounds, band) nodes of the main network inside bounds and within band m of its edge
-import { BLOCK, ROAD_IN, ROAD_W, edgeRoad, realActive } from './countryfield.js';
+//   encodeRoadNet(rows) / decodeRoadNet(json)  the file's format
+//   loadRoadNet(base)                          fetch + decode (browser)
+//   setRoadNet(roads)                          [{ pts, kind, w, oneway, bridge }]: builds the graph
+//   roadNetReady()                             true once set
+//   snapRoad(x, y, maxD, foot)                 the nearest point on the main network within maxD, or null
+//   roadCosts(snap, toward, free)              Dijkstra costs/predecessors from a snap to every node (cached)
+//   roadPath(from, to, free)                   [[x, y], ...] from snap `from` to snap `to`, or null
+//   roadPathNear(from, to, maxNodes)           a short A* way for a chase
+//   roadPathToNode / roadPathFromNode          the same, ending / starting at a node
+//   nodeXY(n), gatewayCandidates(bounds, band)
+//
+// kind: 1 motorway, 2 link, 3 primary/trunk, 4 secondary, 5 tertiary,
+// 6 unclassified, 7 residential / living street.
+
+export const KIND_OF_TYPE = {
+  motorway: 1, motorway_link: 2, trunk: 3, trunk_link: 2, primary: 3, primary_link: 2, secondary: 4, secondary_link: 2,
+  tertiary: 5, tertiary_link: 2, unclassified: 6, residential: 7, living_street: 7,
+};
+
+// ---- the file: [kind, width in dm, flags (1 one-way, 2 bridge), x0, y0, dx, dy, ...] in decimetres
+export function encodeRoadNet(rows) {
+  const out = [];
+  for (const r of rows) {
+    const kind = KIND_OF_TYPE[r.type];
+    if (!kind || r.pts.length < 2) continue;
+    const e = [kind, Math.round((r.width || 5) * 10), (r.oneway ? 1 : 0) | (r.bridge ? 2 : 0)];
+    let px = 0, py = 0;
+    for (const p of r.pts) {
+      const x = Math.round(p[0] * 10), y = Math.round(p[1] * 10);
+      e.push(x - px, y - py);
+      px = x; py = y;
+    }
+    out.push(e);
+  }
+  return { roads: out };
+}
+
+export function decodeRoadNet(json) {
+  return json.roads.map((e) => {
+    const pts = [];
+    let x = 0, y = 0;
+    for (let i = 3; i < e.length; i += 2) { x += e[i]; y += e[i + 1]; pts.push([x / 10, y / 10]); }
+    return { pts, kind: e[0], w: e[1] / 10, oneway: !!(e[2] & 1), bridge: !!(e[2] & 2) };
+  });
+}
+
+export async function loadRoadNet(base = 'world/', file = 'provincie-roads.json.gz') {
+  try {
+    const r = await fetch(base + file);
+    if (!r.ok || typeof DecompressionStream === 'undefined') return null;
+    const raw = await new Response(r.body.pipeThrough(new DecompressionStream('gzip'))).text();
+    return decodeRoadNet(JSON.parse(raw));
+  } catch (e) {
+    console.warn('road net not loaded', e);
+    return null;
+  }
+}
 
 let G = null;
-let REALDATA = null;
 const CELL = 200;
-// a road ending this close to another one meets it there
-const JOIN_M = 15;
-// a road piece cut off from the network further than this stays out of it
+// a piece cut off from the network further than this stays out of it
 const STITCH_M = 1000;
 const STITCH_COST = 4;
-// how far past the real roads the polder grid is built (and grown on demand)
-const POLDER_MARGIN = 6000;
-const PC = ROAD_IN + ROAD_W / 2;
 
-function build(real, need = null) {
+function build(roads) {
   const t0 = performance.now();
-  // ---- segments: the real roads, then the polder grid
-  const sx0 = [], sy0 = [], sx1 = [], sy1 = [], sroad = [], sbridge = [], sone = [], skind = [];
-  const ends = [];
-  let rid = 0;
-  let wx0 = Infinity, wy0 = Infinity, wx1 = -Infinity, wy1 = -Infinity;
-  for (const r of real.roads) {
-    const p = r.pts;
-    for (let i = 0; i < p.length - 1; i++) {
-      if (p[i][0] === p[i + 1][0] && p[i][1] === p[i + 1][1]) continue;
-      sx0.push(p[i][0]); sy0.push(p[i][1]); sx1.push(p[i + 1][0]); sy1.push(p[i + 1][1]); sroad.push(rid); sbridge.push(!!r.bridge); sone.push(!!r.oneway); skind.push(r.kind | 0);
-    }
-    for (const q of p) { wx0 = Math.min(wx0, q[0]); wy0 = Math.min(wy0, q[1]); wx1 = Math.max(wx1, q[0]); wy1 = Math.max(wy1, q[1]); }
-    ends.push(p[0][0], p[0][1], rid, p.at(-1)[0], p.at(-1)[1], rid);
-    rid++;
-  }
-  let win = null;
-  if (realActive() && Number.isFinite(wx0)) {
-    win = [wx0 - POLDER_MARGIN, wy0 - POLDER_MARGIN, wx1 + POLDER_MARGIN, wy1 + POLDER_MARGIN];
-    if (need) win = [Math.min(win[0], need[0]), Math.min(win[1], need[1]), Math.max(win[2], need[2]), Math.max(win[3], need[3])];
-    // Polder roads run just inside a block's low-x / low-y edge; one block's
-    // road and the next block's meet over the main ditch, so the grid is a
-    // lattice through (i * BLOCK + PC, j * BLOCK + PC).
-    const i0 = Math.floor(win[0] / BLOCK), i1 = Math.floor(win[2] / BLOCK), j0 = Math.floor(win[1] / BLOCK), j1 = Math.floor(win[3] / BLOCK);
-    for (let i = i0; i <= i1; i++) {
-      for (let j = j0; j <= j1; j++) {
-        const x = i * BLOCK + PC, y = j * BLOCK + PC;
-        for (const s of [0, 1]) {
-          if (!edgeRoad(i, j, s)) continue;
-          sx0.push(x); sy0.push(y); sx1.push(s ? x + BLOCK : x); sy1.push(s ? y : y + BLOCK); sroad.push(rid); sbridge.push(false); sone.push(false); skind.push(7);
-          ends.push(x, y, rid, s ? x + BLOCK : x, s ? y : y + BLOCK, rid);
-          rid++;
-        }
-      }
-    }
-  }
-  const S = sx0.length;
-  const splits = new Array(S).fill(null);
-  const split = (s, t) => (splits[s] || (splits[s] = [0, 1])).push(t);
-  const bx0 = new Float64Array(S), bx1 = new Float64Array(S), by0 = new Float64Array(S), by1 = new Float64Array(S);
-  for (let s = 0; s < S; s++) {
-    bx0[s] = Math.min(sx0[s], sx1[s]); bx1[s] = Math.max(sx0[s], sx1[s]);
-    by0[s] = Math.min(sy0[s], sy1[s]); by1[s] = Math.max(sy0[s], sy1[s]);
-  }
-  const extra = [];
-  // ---- segment grid
-  const sgrid = new Map();
-  for (let s = 0; s < S; s++) {
-    const cx0 = Math.floor(Math.min(sx0[s], sx1[s]) / CELL), cx1 = Math.floor(Math.max(sx0[s], sx1[s]) / CELL);
-    const cy0 = Math.floor(Math.min(sy0[s], sy1[s]) / CELL), cy1 = Math.floor(Math.max(sy0[s], sy1[s]) / CELL);
-    for (let cx = cx0; cx <= cx1; cx++) {
-      for (let cy = cy0; cy <= cy1; cy++) {
-        const k = cx * 100003 + cy;
-        let c = sgrid.get(k);
-        if (!c) sgrid.set(k, (c = []));
-        c.push(s);
-      }
-    }
-  }
-  // ---- crossings: split both roads where they cross (counted once, in the crossing's own cell)
-  for (const [k, c] of sgrid) {
-    for (let a = 0; a < c.length; a++) {
-      const s = c[a];
-      if (sbridge[s]) continue;
-      const ax = sx0[s], ay = sy0[s], adx = sx1[s] - ax, ady = sy1[s] - ay;
-      for (let b = a + 1; b < c.length; b++) {
-        const u = c[b];
-        if (bx0[u] > bx1[s] || bx1[u] < bx0[s] || by0[u] > by1[s] || by1[u] < by0[s]) continue;
-        if (sroad[u] === sroad[s] || sbridge[u]) continue;
-        const bdx = sx1[u] - sx0[u], bdy = sy1[u] - sy0[u];
-        const den = adx * bdy - ady * bdx;
-        if (Math.abs(den) < 1e-9) continue;
-        const ex = sx0[u] - ax, ey = sy0[u] - ay;
-        const t = (ex * bdy - ey * bdx) / den, v = (ex * ady - ey * adx) / den;
-        if (t < 0 || t > 1 || v < 0 || v > 1) continue;
-        const x = ax + adx * t, y = ay + ady * t;
-        if (Math.floor(x / CELL) * 100003 + Math.floor(y / CELL) !== k) continue;
-        split(s, t);
-        split(u, v);
-      }
-    }
-  }
-  // ---- T-junctions: a road end close beside another road joins it there
-  for (let e = 0; e < ends.length; e += 3) {
-    const x = ends[e], y = ends[e + 1], r = ends[e + 2];
-    let best = -1, bd = JOIN_M, bt = 0;
-    const cx = Math.floor(x / CELL), cy = Math.floor(y / CELL);
-    for (let i = -1; i <= 1; i++) {
-      for (let j = -1; j <= 1; j++) {
-        const c = sgrid.get((cx + i) * 100003 + cy + j);
-        if (!c) continue;
-        for (const s of c) {
-          if (sroad[s] === r) continue;
-          const dx = sx1[s] - sx0[s], dy = sy1[s] - sy0[s], l2 = dx * dx + dy * dy;
-          let t = ((x - sx0[s]) * dx + (y - sy0[s]) * dy) / l2;
-          t = t < 0 ? 0 : t > 1 ? 1 : t;
-          const d = Math.hypot(sx0[s] + dx * t - x, sy0[s] + dy * t - y);
-          if (d < bd) { bd = d; best = s; bt = t; }
-        }
-      }
-    }
-    if (best < 0) continue;
-    split(best, bt);
-    if (bd > 0.5) extra.push(x, y, sx0[best] + (sx1[best] - sx0[best]) * bt, sy0[best] + (sy1[best] - sy0[best]) * bt);
-  }
-  // ---- nodes and edges
   const ids = new Map();
   const xs = [], ys = [];
   const flat = [], fk = [];
   const nodeOf = (x, y) => {
-    const key = (Math.round(x * 2) + 200000) * 400000 + (Math.round(y * 2) + 200000);
+    const key = (Math.round(x * 2) + 400000) * 800000 + (Math.round(y * 2) + 400000);
     let id = ids.get(key);
     if (id === undefined) { id = xs.length; ids.set(key, id); xs.push(x); ys.push(y); }
     return id;
   };
   // flat: a, b, length, one-way (1: a to b only, the way's own direction)
-  const edge = (a, b, one = 0, kind = 0) => {
-    if (a === b) return;
-    const L = Math.hypot(xs[b] - xs[a], ys[b] - ys[a]);
-    flat.push(a, b, L, one);
-    fk[flat.length / 4 - 1] = kind;
-  };
-  for (let s = 0; s < S; s++) {
-    const ts = splits[s] ? splits[s].sort((p, q) => p - q) : [0, 1];
-    const dx = sx1[s] - sx0[s], dy = sy1[s] - sy0[s];
-    let a = nodeOf(sx0[s], sy0[s]);
-    for (let i = 1; i < ts.length; i++) {
-      if (ts[i] - ts[i - 1] < 1e-6) continue;
-      const b = i === ts.length - 1 ? nodeOf(sx1[s], sy1[s]) : nodeOf(sx0[s] + dx * ts[i], sy0[s] + dy * ts[i]);
-      edge(a, b, sone[s] ? 1 : 0, skind[s]);
+  for (const r of roads) {
+    const p = r.pts;
+    let a = nodeOf(p[0][0], p[0][1]);
+    for (let i = 1; i < p.length; i++) {
+      const b = nodeOf(p[i][0], p[i][1]);
+      if (a === b) continue;
+      flat.push(a, b, Math.hypot(xs[b] - xs[a], ys[b] - ys[a]), r.oneway ? 1 : 0);
+      fk[flat.length / 4 - 1] = (r.kind | 0) | (r.bridge ? 16 : 0);
       a = b;
     }
   }
-  for (let e = 0; e < extra.length; e += 4) edge(nodeOf(extra[e], extra[e + 1]), nodeOf(extra[e + 2], extra[e + 3]));
   stitch(xs, ys, flat);
   const N = xs.length, m = flat.length / 4;
   // forward: the way a car may drive; reverse: the same turned round, for costs
@@ -175,7 +105,7 @@ function build(real, need = null) {
   const adjacency = (dir, foot = false) => {
     const pairs = [];
     for (let e = 0; e < m; e++) {
-      const kd = fk[e] | 0;
+      const kd = (fk[e] | 0) & 15;
       if (foot && kd === 1) continue;
       const a = flat[e * 4], b = flat[e * 4 + 1], L = foot && kd === 2 ? flat[e * 4 + 2] * 2.5 : flat[e * 4 + 2], one = flat[e * 4 + 3];
       if (dir === 'und' || !one) pairs.push(a, b, L, b, a, L);
@@ -214,7 +144,7 @@ function build(real, need = null) {
   for (let e = 0; e < m; e++) {
     const u = flat[e * 4], v = flat[e * 4 + 1], one = flat[e * 4 + 3];
     if (comp[u] !== main) continue;
-    const grids = (fk[e] | 0) === 1 ? [egrid] : [egrid, egridFoot];
+    const kind = fk[e] | 0, grids = (kind & 15) === 1 ? [egrid] : [egrid, egridFoot];
     const cx0 = Math.floor(Math.min(xs[u], xs[v]) / CELL), cx1 = Math.floor(Math.max(xs[u], xs[v]) / CELL);
     const cy0 = Math.floor(Math.min(ys[u], ys[v]) / CELL), cy1 = Math.floor(Math.max(ys[u], ys[v]) / CELL);
     for (let cx = cx0; cx <= cx1; cx++) {
@@ -223,22 +153,21 @@ function build(real, need = null) {
         for (const g of grids) {
           let c = g.get(k);
           if (!c) g.set(k, (c = []));
-          c.push(u, v, one);
+          c.push(u, v, one, kind);
         }
       }
     }
   }
   G = {
-    N, x: Float64Array.from(xs), y: Float64Array.from(ys), fwd, rev, und, foot, comp, main, mainSize, egrid, egridFoot, win,
+    N, x: Float64Array.from(xs), y: Float64Array.from(ys), fwd, rev, und, foot, comp, main, mainSize, egrid, egridFoot,
     version: (G ? G.version : 0) + 1, cache: new Map(), ms: performance.now() - t0,
   };
 }
 
 // Road pieces that still don't touch the main network (a lane whose junction
-// the data lost, a farm track, a patch of polder roads between ditches) get
-// one link across the field from their node nearest to it, in a few passes so
-// a far patch can hang on a nearer one; the router avoids those links where
-// it can.
+// the data lost, a patch of roads behind a ditch) get one link across the
+// field from their node nearest to it, in a few passes so a far patch can
+// hang on a nearer one; the router avoids those links where it can.
 function stitch(xs, ys, flat) {
   for (let pass = 0; pass < 4 && stitchPass(xs, ys, flat); pass++);
 }
@@ -285,34 +214,23 @@ function stitchPass(xs, ys, flat) {
   return added;
 }
 
-export function countryBuilt() {
+export function roadGraphBuilt() {
   return !!G;
 }
 
-export function countryReady(real) {
-  if (G) return true;
-  if (!real || !real.ready || !real.roads || !real.roads.length) return false;
-  REALDATA = real;
-  build(real);
+export function roadNetReady() {
+  return !!G;
+}
+
+// Builds the graph from the decoded rows (once; a new set replaces it).
+export function setRoadNet(roads) {
+  if (!roads || !roads.length) { G = null; return false; }
+  build(roads);
   return true;
 }
 
-// Grows the polder grid when a route reaches past it (the countryside is
-// endless). A rebuild renumbers the nodes: call it before snapping.
-export function countryCover(pts) {
-  const w = G && G.win;
-  if (!w) return;
-  let x0 = w[0], y0 = w[1], x1 = w[2], y1 = w[3];
-  for (const [x, y] of pts) {
-    if (x > w[0] + BLOCK && x < w[2] - BLOCK && y > w[1] + BLOCK && y < w[3] - BLOCK) continue;
-    x0 = Math.min(x0, x - POLDER_MARGIN); y0 = Math.min(y0, y - POLDER_MARGIN);
-    x1 = Math.max(x1, x + POLDER_MARGIN); y1 = Math.max(y1, y + POLDER_MARGIN);
-  }
-  if (x0 < w[0] || y0 < w[1] || x1 > w[2] || y1 > w[3]) build(REALDATA, [x0, y0, x1, y1]);
-}
-
 // bumps on every rebuild (node numbers change)
-export function countryVersion() {
+export function roadGraphVersion() {
   return G ? G.version : 0;
 }
 
@@ -322,8 +240,8 @@ export function nodeXY(n) {
 
 // The nearest point on the main network (foot: leaving out the motorways): { x, y, a, b, da, db, d, one } (on the
 // edge a-b, da/db metres from its ends, d from the query point, one: 1 when the
-// edge may only be driven from a to b), or null.
-export function snapCountry(x, y, maxD = 600, foot = false) {
+// edge may only be driven from a to b, kind and bridge of its road), or null.
+export function snapRoad(x, y, maxD = 600, foot = false) {
   if (!G) return null;
   const grid = foot ? G.egridFoot : G.egrid;
   let best = null;
@@ -335,13 +253,13 @@ export function snapCountry(x, y, maxD = 600, foot = false) {
       for (let j = -n; j <= n; j++) {
         const c = grid.get((cx + i) * 100003 + (cy + j));
         if (!c) continue;
-        for (let k = 0; k < c.length; k += 3) {
+        for (let k = 0; k < c.length; k += 4) {
           const a = c[k], b = c[k + 1];
           const ax = G.x[a], ay = G.y[a], dx = G.x[b] - ax, dy = G.y[b] - ay, l2 = dx * dx + dy * dy;
           let t = l2 > 1e-9 ? ((x - ax) * dx + (y - ay) * dy) / l2 : 0;
           t = t < 0 ? 0 : t > 1 ? 1 : t;
           const px = ax + dx * t, py = ay + dy * t, d = Math.hypot(px - x, py - y);
-          if (d < bd) { bd = d; const L = Math.sqrt(l2); best = { x: px, y: py, a, b, da: t * L, db: (1 - t) * L, d, one: c[k + 2] }; }
+          if (d < bd) { bd = d; const L = Math.sqrt(l2); best = { x: px, y: py, a, b, da: t * L, db: (1 - t) * L, d, one: c[k + 2], kind: c[k + 3] & 15, bridge: !!(c[k + 3] & 16) }; }
         }
       }
     }
@@ -356,7 +274,7 @@ const snapKey = (s, rev, free) => `${free === 'foot' ? 'w' : free ? 'u' : rev ? 
 // snap, and a node's predecessor is the next node on its way there. `free`:
 // the one-ways ignored ('foot': and the motorways closed, for walkers and cyclists), the last resort when a one-way dead end (a ramp cut at
 // the data's edge) leaves no way.
-export function countryCosts(from, toward = false, free = false) {
+export function roadCosts(from, toward = false, free = false) {
   const key = snapKey(from, toward, free);
   let c = G.cache.get(key);
   if (c) return c;
@@ -418,14 +336,14 @@ function chain(n, prev, pts) {
 
 // From snap `from` to snap `to`, along the costs towards `to` (cached per
 // target, so rerouting to the same place is cheap).
-export function countryPath(from, to, free = false) {
+export function roadPath(from, to, free = false) {
   if (!from || !to) return null;
   if (from.a === to.a && from.b === to.b) {
     // on the same piece of road: straight there unless it is a one-way the wrong way
     const dir = to.da - from.da;
     if (free || !from.one || dir >= 0) return [[from.x, from.y], [to.x, to.y]];
   }
-  const { dist, prev } = countryCosts(to, true, free);
+  const { dist, prev } = roadCosts(to, true, free);
   // out of from along its edge: on to b, or back to a unless it is a one-way
   const cb = dist[from.b] + from.db, ca = from.one && !free ? Infinity : dist[from.a] + from.da;
   if (!Number.isFinite(Math.min(ca, cb))) return null;
@@ -436,9 +354,9 @@ export function countryPath(from, to, free = false) {
 
 // A short way from snap `from` towards snap `to` for a driver giving chase
 // (police.js): A* over the one-way graph that settles at most maxNodes, so
-// it never walks the whole network like countryCosts. When the budget runs
+// it never walks the whole network like roadCosts. When the budget runs
 // out the path ends at the settled node nearest the target.
-export function countryPathNear(from, to, maxNodes = 2500) {
+export function roadPathNear(from, to, maxNodes = 2500) {
   if (!G || !from || !to) return null;
   if (from.a === to.a && from.b === to.b && (!from.one || to.da >= from.da)) return [[from.x, from.y], [to.x, to.y]];
   const tx = to.x, ty = to.y;
@@ -502,8 +420,8 @@ export function countryPathNear(from, to, maxNodes = 2500) {
 }
 
 // From snap `from` to node n.
-export function countryPathToNode(from, n, free = false) {
-  const { dist, prev } = countryCosts(from, false, free);
+export function roadPathToNode(from, n, free = false) {
+  const { dist, prev } = roadCosts(from, false, free);
   if (!Number.isFinite(dist[n])) return null;
   const pts = chain(n, prev, []).reverse();
   pts.unshift([from.x, from.y]);
@@ -511,8 +429,8 @@ export function countryPathToNode(from, n, free = false) {
 }
 
 // From node n to snap `to`.
-export function countryPathFromNode(n, to, free = false) {
-  const { dist, prev } = countryCosts(to, true, free);
+export function roadPathFromNode(n, to, free = false) {
+  const { dist, prev } = roadCosts(to, true, free);
   if (!Number.isFinite(dist[n])) return null;
   const pts = chain(n, prev, []);
   pts.push([to.x, to.y]);
@@ -532,6 +450,6 @@ export function gatewayCandidates(bounds, band) {
   return out;
 }
 
-export function countryStats() {
+export function roadGraphStats() {
   return G ? { nodes: G.N, main: G.mainSize, ms: Math.round(G.ms) } : null;
 }

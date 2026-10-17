@@ -48,6 +48,7 @@ import { initTrafficLights, updateTrafficLights } from './trafficlights.js';
 import { initRailway, updateRailway, setRailExtraWorld } from './railway.js';
 import { extendRoutes, provinceRailLines } from './corridorrail.js';
 import { initProvince, provinceMode, provinceTileFilter } from './provinceworld.js';
+import { loadRoadNet, setRoadNet } from './roadgraph.js';
 import { buildMovableBridges, updateMovableBridges } from './movablebridges.js';
 import { geoWorkerActive } from './geojobs.js';
 import { init3D, update3D, resize3D, getScene, getRenderer, setMenuCover, MENU_FRAME_S, refreshRenderScale, terrainReady, canvasFrameCount, prewarmStreamAt } from './scene3d.js';
@@ -249,6 +250,9 @@ async function boot() {
   const inCorridor = (x, y) => { const [i, j] = tileIndexOf(x, y); const t = tiles.index.tiles[tileKey(i, j)]; return !!t && !!(t.flags & 4); };
   if (corridor && tiles) { setExtraBuiltWorld(inCorridor); setRailExtraWorld(inCorridor); }
   if (tiles) initProvince(tiles, { stream: corridor });
+  // the tiles' car roads for the GPS and the police (roadgraph.js), read while the rest loads
+  const roadsFile = layers.provincie && layers.provincie.global && layers.provincie.global.roadsFile;
+  if (tiles && corridor && roadsFile) loadRoadNet('world/', roadsFile).then((r) => r && setRoadNet(r));
   const ommeland = tiles ? tileOmmeland(tiles.global) : loadOmmeland('citymap.json');
   const facilities = loadFacilities('citymap.json');
   const map = tiles ? tiles.world : await loadMap('citymap.json', onMapProgress);

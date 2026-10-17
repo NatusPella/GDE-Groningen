@@ -24,6 +24,7 @@ import { edgeFromOsm } from '../../game/js/worldedge.js';
 import { features, tileBlob, railRoute, busLines, writeLayer, ommelandBox } from './build_corridor.mjs';
 import { LINES, packOf } from './corridor.mjs';
 import { annotateProvinceWater } from '../../game/js/waterlevels.js';
+import { encodeRoadNet } from '../../game/js/roadgraph.js';
 import { Raster, paint, writePyramid, FINE_M } from './province_map.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
@@ -264,6 +265,7 @@ export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(s
   const blobs = new Map();
   const empty = [], noPack = [];
   const railRows = [];
+  const roadNet = [], roadSeen = new Set();
   const coast = new Map();
   const locks = new Map();
   let waterBodies = 0;
@@ -305,6 +307,12 @@ export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(s
         const k = G.tileKey(i, j);
         if (!mine.has(k)) continue;
         (idx.get(k) || idx.set(k, []).get(k)).push(f);
+      }
+      // the route graph's road net (roadgraph.js): every road piece of the packs, also under the
+      // city's tiles and in the gaps beside them, where the old Ommeland roads used to join the city streets
+      if (f.kind === 'roads') {
+        const key = f.row.osm === undefined ? null : `${f.row.osm}:${f.row.pts[0][0]},${f.row.pts[0][1]}`;
+        if (!key || !roadSeen.has(key)) { if (key) roadSeen.add(key); roadNet.push(f.row); }
       }
     }
     if (raster) {
@@ -358,7 +366,7 @@ export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(s
     locks: [...locks.values()].sort((a, b) => a.x - b.x || a.y - b.y), waterBodies,
     buffer, empty: empty.sort(), city: city.sort(), missing: noPack.sort(),
   };
-  return { blobs, global, stats, keys, tiles, empty, missing: noPack, raster };
+  return { blobs, global, stats, keys, tiles, empty, missing: noPack, raster, roadNet };
 }
 
 // The bus lines (~1 MB) go in a file of their own, read when needed; the
@@ -368,8 +376,14 @@ export function writeProvince(out, built) {
   // the base map's pyramid (province_map.mjs) next to the packs
   const pm = built.raster ? writePyramid(built.raster, out) : null;
   if (pm) { global.map = pm.meta; built.stats.mapMB = +(pm.bytes / 1e6).toFixed(2); }
-  const r = writeLayer(out, { ...built, global: { ...global, busFile: 'provincie-bus.json' } }, { prefix: 'v', file: 'index-provincie.json', layer: 'provincie', builder: PROVINCE_BUILDER });
+  const r = writeLayer(out, { ...built, global: { ...global, busFile: 'provincie-bus.json', ...(built.roadNet ? { roadsFile: 'provincie-roads.json.gz' } : {}) } }, { prefix: 'v', file: 'index-provincie.json', layer: 'provincie', builder: PROVINCE_BUILDER });
   fs.writeFileSync(path.join(out, 'provincie-bus.json'), JSON.stringify({ builder: PROVINCE_BUILDER, bus }));
+  // the car roads of the tiles for the GPS and the police (roadgraph.js); mtime 0: the same bytes every build
+  if (built.roadNet) {
+    const gz = zlib.gzipSync(JSON.stringify(encodeRoadNet(built.roadNet)), { level: 9 });
+    gz.writeUInt32LE(0, 4);
+    fs.writeFileSync(path.join(out, 'provincie-roads.json.gz'), gz);
+  }
   return r;
 }
 
