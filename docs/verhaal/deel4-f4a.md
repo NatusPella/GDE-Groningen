@@ -2330,7 +2330,7 @@ Elk filiaal geeft daginkomen (economy.js; nooit een blokkade). Verbeteren: een t
 
 ## 6. Toevallige ontmoetingen en events
 
-Regels uit het verhaal-document §6.1: nooit tijdens een missie, maar één tegelijk in beeld, en altijd een beloning of een grap. **Alleen zomer:** geen carbid, geen natuurijs, geen Koningsdag; de grote events in F4a zijn de kermis, het oogstfeest en de havendag.
+Regels uit het verhaal-document §6.1: nooit tijdens een missie, maar één tegelijk in beeld, en altijd een beloning of een grap. **Alleen zomer:** geen carbid, geen Koningsdag; de grote events in F4a zijn de kermis, het oogstfeest en de havendag.
 
 **Een loonwerkkonvooi van Eppo** · klein · smalle wegen Hogeland
 
@@ -2542,7 +2542,7 @@ Alle radiomomenten op een rij (de regels staan bij de missies). Rikus zendt vaak
 - O7 heeft Lammert als melder én bondgenoot; Geesje idem (het plan noemt de kosteres en de sluiswachter als melders van deze regio's).
 - Z7 "drie sluizen" wordt drie schuttingen door twee sluizen (Farmsum, Termunterzijl).
 - Activiteit A26 (containerchauffeur Eemshaven → Veendam) is in F4a ingekort tot ritten binnen Hogeland en Eemsdelta; Veendam komt met F4c.
-- Carbid (A21) en natuurijs (A32) vallen weg uit het plan zolang het spel altijd zomer is.
+- Carbid (A21) valt weg uit het plan; A32 is nu de zomerse wierdenronde (skeeleren, fietsen).
 - Nieuwe stage-soorten (in §11 met `NEW`): `escort`, `ticket`, `train`, `hitch`, `unload`, `listen`, `collect` (ongeordend), `defend` (stroom en water), `lock`, `flee` (boot), `use`, `climb`, `crane`, `push`; nieuwe goal-types `trekkertrek` en `filiaal`. Nieuwe voertuigen: combine, mestinjecteur (aanhanger), quad, loodsboot, vrachtwagen met oplegger, brommer met versnellingen, motor 125 cc.
 
 ## 10. Echte plekken om te verifiëren (OSM)

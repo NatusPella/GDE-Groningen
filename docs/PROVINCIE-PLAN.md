@@ -1026,7 +1026,7 @@ vastzetten; F5 de tuning van wijde shots.
 ### 2.19 Weer in de provincie
 
 **Eis van de eigenaar: het is altijd zomer** ("Zomer vol misdaad"). Geen
-seizoenen, geen herfst, winter of lente, geen sneeuw of ijs. Deel 4 speelt in
+seizoenen: alleen zomer en nazomer. Deel 4 speelt in
 de **nazomer**: gouden licht, oogst, Gronings Ontzet (28 augustus), en dat is
 het verste.
 
@@ -1067,9 +1067,8 @@ zomer" en zet storm aan. `puddleAt` en `roadGrip` bestaan al.
 kind }`, door iedereen gelezen (rendering, physics, AI, audio).
 
 **Gevolgen elders in dit document:** in F5 vervalt "seizoensevents
-(oogst, carbid, winter-ijs)" → "zomer- en nazomerevents (oogst, Ontzet,
-kermis)"; beslissing 10 (winterinhoud) vervalt: geen winter, ook niet als
-los event.
+(oogst, carbid)" → "zomer- en nazomerevents (oogst, Ontzet,
+kermis, wierdenronde)"; beslissing 10 (seizoensinhoud) vervalt: het is altijd zomer.
 
 **Fase:** de haken (`weatherAt`, determinisme, geen einde van de zomer) in
 F0/F1; regionale buien en fronten in F2; volledig (mistbanken, gordijnen,
@@ -2149,7 +2148,7 @@ geheugen), per drop een begroting.
 | 7 | De grens: Friesland, Drenthe en Duitsland | een eenvoudige rand (L2-kwaliteit, geen missies); Eelde blijft het enige stuk Drenthe met detail |
 | 8 | Getij in het spel | ja, in F5; eerst vaste vloed |
 | 9 | 3D BAG (CC BY) voor gebouwhoogtes en daken | ja, met vermelding; anders alleen OSM + type-defaults |
-| 10 | ~~Winterinhoud~~ | **vervalt** (besluit eigenaar): het is altijd zomer, geen winter, ijs of schaatsen, ook niet als los event |
+| 10 | ~~Seizoensinhoud~~ | **vervalt** (besluit eigenaar): het is altijd zomer; het wierdenevent A32 is een zomertocht |
 | 11 | De naam blijft "GDE Groningen – Zomer vol misdaad" | ja; Deel 4 speelt in de nazomer, de ondertitel klopt nog |
 | 12 | Volgorde: eerst F0-F2 (techniek) of eerder inhoud? | F0 (+ LK1 parallel) → F1 met kleine inhoud → F2/F3 parallel met F4a-scripts |
 | 13 | RD New: de omzetting van ~150 handgeplaatste coördinaten via een codemod of via een `P(x, y)`-helper | eerst de helper (veilig, te testen), daarna in één keer vastzetten |
