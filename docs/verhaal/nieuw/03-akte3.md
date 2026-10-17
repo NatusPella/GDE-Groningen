@@ -37,7 +37,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte3
 |---|---|
 | **Id** | `A3-1` (`H15`, mission `traumaduif`, aangepast) |
 | **Plaats** | Lauwersoog (helikopterplatform), UMCG (lunch), de Dollard (ballon) |
-| **Voertuig** | helikopter (Dijkstra vliegt, Tessa vliegt het laatste stuk) |
+| **Voertuig** | helikopter (Dijkstra vliegt, Tessa vliegt het laatste stuk). **Spawn:** de heli staat op het UMCG-dak (bestaand pad `umcg`) en vliegt naar het noorden, naar Lauwersoog, om hen op te halen |
 | **Mechaniek / hergebruik** | `heli`-stage (`helirun.js`, `heliflight.js`): lier, naast de mand hangen, `heliplan.js` autopilot voor de lange vlucht; bestaande def met andere plekken en een andere inhoud van de ballon |
 | **Doel (hardop)** | "Breng Dijkstra's lunch naar het UMCG, vlieg naar de Dollard en pak Jelles koffer uit zijn ballon." |
 | **Motief** | Dijkstra's nachtdienst heeft honger; Jelle vliegt per ballon over zijn nieuwe gebied en neemt het koopboek mee |
@@ -223,7 +223,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte3
 |---|---|
 | **Id** | `A3-5` (nieuw, step `n-graan`) |
 | **Plaats** | graanvelden bij Winschoten en de kermis, zo 23 overdag |
-| **Voertuig** | klein vliegtuig (Roelfiens gewasspuiter, nieuw voertuig; fallback: de heli uit 3.1) |
+| **Voertuig** | klein vliegtuig (Roelfiens gewasspuiter, nieuw voertuig; fallback: de heli uit 3.1). **Spawn:** het vliegtuig staat op een landingsstrook in het Oldambt; de bouw gebruikt een echte strook (AANNAME: vliegveld Oostwold, nog te controleren in OSM, `aeroway=aerodrome`) en verzint er geen |
 | **Mechaniek / hergebruik** | vliegen met `heliflight.js`-physics aangepast voor vaste vleugels (AANNAME: nieuwe vliegtuigmodus, de planning noemt het "vliegtuig"); een spandoek slepen en laag door een poortcorridor vliegen (`waymarkers3d.js`) |
 | **Doel (hardop)** | "Sleep een spandoek over de kermis, zodat de juryleden zien dat Jelle ze koopt." |
 | **Motief** | plakje zes: Jelle betaalt de juryleden met levenslang eierballen; Roelfien levert de bloem en leent haar vliegtuig |

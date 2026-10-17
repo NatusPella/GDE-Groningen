@@ -117,12 +117,12 @@ Bestaand = uit `docs/personages.md` en `storyarc.js`; **nieuw** alleen waar nodi
 | B2 | 2 | De streekbus naar Zoutkamp | Hogeland → Waddenzee | reis is inhoud | (3) | 1 | bus (meerijden of zelf) |
 | M12 | 2 | Geleend van de Friezen | Waddenzee, Zoutkamp - Lauwersmeer | chocoladebal "Foar mem": een oefenbal | "Iedereen is romantischer dan jij." (5) | 8 | rubberboot, `boatchase` |
 | M13 | 2 | Laag water | Waddenzee, kwelder, Noordpolderzijl | plakje 4 (zout); Klaas | **de lange blik**; appje onderbreekt (7) | 3 | sloep en wad |
-| M14 | 3 | Het staat niet in het rooster | Lauwersoog → Dollard | het **koopboek**: acht plakjes | "Dank je dat je het vraagt." (5) | 7 | heli, lier |
+| M14 | 3 | Het staat niet in het rooster | Lauwersoog → Dollard | het **koopboek**: acht plakjes | "Dank je dat je het vraagt." (5) | 7 | heli (start: UMCG-dak), lier |
 | M15 | 3 | Het containerlabyrint | Eemshaven | plakje 5 (haven); Lammert | "Je ademt." (4) | 5 | te voet, kraan |
 | M16 | 3 | De dijk | Eemshaven - Delfzijl | Jelle verliest de race | **eerste voorzichtige flirt (Tammo)** (6) | 8 | auto, race |
 | B3 | 3 | De trein naar Winschoten | Eemsdelta → Oldambt | | (3) | 1 | trein (meerijden) |
 | M17 | 3 | Nog eentje dan | Oldambt, Winschoten, kermis | **keerpunt: "De bal hebben wij niet"**; Tessa liegt: "Geen idee." | jaloezie, "Sinds nu." (5) | 3 | te voet |
-| M18 | 3 | Laag over het graan | Oldambt | plakje 6 (jury) half; Roelfien | "Jij kijkt, ik stuur." (4) | 6 | vliegtuig (of heli) |
+| M18 | 3 | Laag over het graan | Oldambt | plakje 6 (jury) half; Roelfien | "Jij kijkt, ik stuur." (4) | 6 | klein vliegtuig (start: landingsstrook in het Oldambt) |
 | M19 | 3 | Botsauto's, deel twee | Oldambt, Winschoten, dijk | Durk: "baas gaat naar Veendam" | **eerste kus** (8) | 4 | botsauto, scène |
 | M20 | 4 | Open, dicht | Veenkoloniën, Veendam | plakje 7 (mosterd); Wubbo | "Over gisteren." "Welk gisteren?" (5) | 5 | sloep, bruggen |
 | M21 | 4 | Wie draaide de camera's uit? | Veenkoloniën, Wiebelwerk | valse piste; logboek van 12 augustus: pas "T." en gast "G." | Tessa legt een logboek uit (5) | 2 | e-step, kantoor |
@@ -176,7 +176,7 @@ M30 Ontzet        actie ██████████ 10  romantiek ███�
 
 Gemiddelden per akte (actie / romantiek): akte 1 5,3 / 3,4; akte 2 5,7 / 4,3; akte 3 5,5 / 5,3; akte 4 6,2 / 4,3; akte 5 5,4 / 8,0. Totaal 5,6 / 4,9.
 
-**Kus-timing (beslissing: M19 blijft).** De eerste kus valt aan het eind van akte 3, op ca. 62-63% van de speeltijd (M19 van 30; 179 van 288 minuten), de breuk in M24 op ca. 80% en de verzoening in M26 op ca. 84%: dat is de klassieke romcom-structuur (kus ruim over het midden, breuk kort voor het einde, hereniging in de finale). Een eerdere kus (akte 2) laat de romantiek te vroeg op volle sterkte komen en maakt de breuk vlak; een latere kus (pas na het dieptepunt) maakt van de ruzie een gewone ruzie in plaats van een val vanaf een hoogtepunt. Doordat ze na de kus doen alsof er niets gebeurd is (M20-M23, "Over gisteren."), blijft er spanning in akte 4 en heeft de breuk iets om af te breken.
+**Kus-timing (beslissing: M19 blijft).** De eerste kus valt aan het eind van akte 3, op ca. 62-63% van de speeltijd (M19 van 30; 179 van 288 minuten), de breuk in M24 op ca. 80% en de verzoening in M26 op ca. 84%: dat is de klassieke romcom-structuur (kus ruim over het midden, breuk kort voor het einde, hereniging in de finale). Een eerdere kus laat de romantiek te vroeg op volle sterkte komen en een latere kus maakt van de ruzie een gewone ruzie, terwijl ze nu doen alsof er niets gebeurd is (M20-M23, "Over gisteren.") en de breuk dus iets heeft om af te breken.
 
 **Kritische zelf-review**
 
@@ -231,10 +231,12 @@ Afstanden zijn geschat uit algemene kennis (AANNAME) en moeten met de reisplanne
 |---|---|---|---|---|---|
 | 1 | binnen Stad: 1,5 + 0,6 + 0,4 + 0,3 + 2 + 1 + 4 | 10 | 8 min | 8 min | te voet, fiets, scooter |
 | 2 | Stad-Winsum 17, Winsum-Warffum 12, Warffum-Usquert 3, Usquert-Uithuizen 6, Uithuizen-Zoutkamp 30, Zoutkamp-Lauwersoog 9, Lauwersoog-Noordpolderzijl 14, plus 5,5 in Stad | 97 | 78 min | 14 min | trein Winsum, streekbus Zoutkamp, Geesjes neef brengt je |
-| 3 | Lauwersoog-UMCG 35, UMCG-Dollard 45, Dollard-Eemshaven 40, Eemshaven-Delfzijl 25, Delfzijl-Winschoten 35, +8 | 188 | 150 min | 12 min | heli (Dijkstra), trein Winschoten |
+| 3 | Lauwersoog-UMCG 35, UMCG-Dollard 45, Dollard-Eemshaven 40, Eemshaven-Delfzijl 25, Delfzijl-Winschoten 35, +8 | 188 | 150 min | 12 min | heli (Dijkstra, start UMCG-dak), trein Winschoten |
 | 4 | Winschoten-Veendam 17, +2, Veendam-Stadskanaal 20, Stadskanaal-Ter Apel 22, Ter Apel-Bourtange 12, Bourtange-Zuidhorn 65 | 138 | 110 min | 15 min | streekbus, Berends bus en bakkie, taxi |
 | 5 | Zuidhorn-schuur 3, Zuidhorn-Aduard 12, Aduard-Grote Markt 8, Markt-toren-Oma-Markt 6 | 29 | 23 min | 20 min (de colonne is een missie) | Skip met scène |
 | **Totaal** | | **ca. 465** | **ca. 6 uur** | **ca. 70 min** | |
+
+**Luchtvaartuigen: waar ze staan (spawnregel).** Helikopters staan op echte helipads (in de repo: het UMCG-dak, Rotor Roelfs pad op Eelde en het dak van het eigen huis; in de stad bij ziekenhuizen), kleine vliegtuigen alleen op echte vliegvelden of -stroken in de Ommeland (Eelde en een of twee andere, nog te controleren). In de stad staat geen vliegtuig, omdat daar geen vliegveld is. Allebei mogen overal in de provincie vliegen, en een missie buiten de stad mag een heli gebruiken (bijvoorbeeld M14: de heli start op het UMCG-dak en vliegt naar het noorden) of een vliegtuig (M18: start op de strook in het Oldambt). Spawnpunten met bronnen: zie 08-IMPLEMENTATIE.md §3b.
 
 **Regels (uit #97):** één regio per akte (Stad is begin en eind); 1-3 minuten tussen opeenvolgende doelen, nooit meer dan 5 minuten zonder gesprek, event of keuze; reizen is inhoud (autogesprekken, radio, kleine events); de missie geeft het voertuig; bij falen respawn je bij het doel of het laatste checkpoint, niet in Stad; ETA en route op de missiekaart; de dag eindigt in de regio waar je bent (een verhaaldag dekt de reis).
 
