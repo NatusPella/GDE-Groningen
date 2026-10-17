@@ -426,7 +426,10 @@ export async function driveAcross(world, path, speed, opts = {}) {
     }
     return [...out].join(',');
   };
-  const fail = (what) => ({ what, x: Math.round(car.x), y: Math.round(car.y), z: Math.round((car.z || 0) * 10) / 10, v: Math.round(car.speed * 3.6), by: cause() });
+  // (yaw: degrees the body is turned off the path's heading, dev: m it is off the path; a car
+  // swinging round a sharp joint reaches further out than the straight road it was cleared for)
+  let yaw = 0, dev = 0;
+  const fail = (what) => ({ what, x: Math.round(car.x), y: Math.round(car.y), z: Math.round((car.z || 0) * 10) / 10, v: Math.round(car.speed * 3.6), by: cause(), yaw, dev });
   streamAround(world, car.x, car.y);
   await nextFrame();
   while (s < path.length - 4) {
@@ -457,6 +460,12 @@ export async function driveAcross(world, path, speed, opts = {}) {
         if (d < bd) { bd = d; bs = j; }
       }
       s = Math.max(s, bs);
+      {
+        const a = path[Math.min(path.length - 1, bs + 1)], b0 = path[bs];
+        const dh = Math.atan2(a[1] - b0[1], a[0] - b0[0]) - car.angle;
+        yaw = Math.round(Math.abs(Math.atan2(Math.sin(dh), Math.cos(dh))) * 57.3);
+        dev = Math.round(Math.sqrt(bd) * 10) / 10;
+      }
       if (bd > 36) return fail('van de rijbaan geduwd');
       // braking never takes more than ~0.5 m/s off in a step: more is an impact
       if (before - car.speed > 1.5) return { ...fail(`botst (-${(before - car.speed).toFixed(1)} m/s)`), near: propsBefore.join(',') };

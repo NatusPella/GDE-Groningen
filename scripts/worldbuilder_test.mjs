@@ -117,13 +117,14 @@ const eq = (a, b) => JSON.stringify(a) === JSON.stringify(b);
   if (found < n * 0.97) fail(`only ${found}/${n} city car roads found by OSM id`);
   if (worst > found * 0.01) fail(`more than 1% of the city's car roads differ in a field (${worst})`);
   // buildings: the city row whose first vertex the adapter's row shares
-  // the same outline: vertex mean within 0.3 m and the same vertex count
+  // the same outline: vertex mean within 0.3 m and the same vertex count, or (a footprint
+  // building_clearance.mjs pushed off a road, with the extra vertices that adds) within 2.5 m
   const cen = (P) => P.reduce((a, p) => [a[0] + p[0] / P.length, a[1] + p[1] / P.length], [0, 0]);
   const byCell = new Map();
   for (const b of rows.buildings) { const c = cen(b.pts); const k = `${Math.round(c[0])},${Math.round(c[1])}`; (byCell.get(k) || byCell.set(k, []).get(k)).push([c, b]); }
   const lookup = (P) => {
     const c = cen(P);
-    for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) for (const [q, b] of byCell.get(`${Math.round(c[0]) + dx},${Math.round(c[1]) + dy}`) || []) if (b.pts.length === P.length && Math.hypot(q[0] - c[0], q[1] - c[1]) < 0.3) return b;
+    for (let dx = -3; dx <= 3; dx++) for (let dy = -3; dy <= 3; dy++) for (const [q, b] of byCell.get(`${Math.round(c[0]) + dx},${Math.round(c[1]) + dy}`) || []) { const d = Math.hypot(q[0] - c[0], q[1] - c[1]); if ((b.pts.length === P.length && d < 0.3) || (b.pts.length !== P.length && d < 2.5)) return b; }
     return null;
   };
   let nb = 0, fb = 0, dt = 0, dh = 0;
