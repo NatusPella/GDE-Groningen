@@ -1,8 +1,8 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { dist, closestPointOnSegment, isInWater, pointInPolygon, boatDryPoints } from './util.js';
-import { clearOfBuildings } from './tileplace.js';
+import { clearOfBuildings, withTiles } from './tileplace.js';
+import { countryFacilities, countryDoor } from './facilities.js';
 import { edgeDistance } from './countryfield.js';
-import { facilitiesOf, countryDoor } from './facilities.js';
 import { getScene, refreshCharacterMeshes } from './scene3d.js';
 import { spawnVehicleOnRoad, spawnBoatOnWater, HERO_CAR_MODEL, playerTopSpeed } from './vehicle.js';
 import { MOTORBIKE_MODELS, GEARED_MOPED_MODEL } from './motomodels.js';
@@ -426,7 +426,8 @@ export function placeCountryShops(map, horeca = [], taken = []) {
   const used = new Set();
   for (const [type, kinds] of Object.entries(COUNTRY_SHOPS)) {
     const mine = [];
-    const cands = facilitiesOf(kinds).filter((f) => !f.city && !used.has(f))
+    // (the facilities whose tiles are in while this runs: facilities.js DOOR_BOX)
+    const cands = countryFacilities(kinds).filter((f) => !used.has(f))
       .sort((a, b) => kinds.indexOf(a.kind) - kinds.indexOf(b.kind) || a.x - b.x || a.y - b.y);
     for (const f of cands) {
       if (mine.some((q) => dist(q.x, q.y, f.x, f.y) < COUNTRY_SPACING) || mine.some((q) => q.wijk === f.place)) continue;
@@ -493,8 +494,8 @@ export function initShops(world) {
     if (p) placed.push({ ...p, type: 'eikea', wijk: 'Sontweg', street: p.street || 'Sontweg' });
   }
   for (const s of placed) {
-    // out past the city's data a door can stand in a (tile) building: step out of it
-    if (s.country || edgeDistance(s.x, s.y) <= 0) continue;
+    // a door can stand in a building of the tiles (past the city's data, or where an overlay tile fills its gaps): step out of it
+    if (s.country) continue;
     const o = clearOfBuildings(map, s.x, s.y, (x, y) => !isInWater(map, x, y) && !map.buildingsNear(x, y, 1).some((b) => pointInPolygon(x, y, b.pts)));
     if (o) { s.x = o.x; s.y = o.y; }
   }
@@ -529,6 +530,21 @@ export function initCountryShops(world) {
 
 export function getShopsForRender() {
   return shops;
+}
+
+// The city's shops near the edge of its data stand where the city's own map put
+// them; a building of the tiles round that edge (an overlay tile) can stand there
+// too. Once those tiles are in (ommelandfun.js prepareOmmeland) the door steps out of it.
+export async function prepareShopDoors(map) {
+  const near = shops.filter((s) => !s.country && s.type !== 'heli' && edgeDistance(s.x, s.y) > -500);
+  if (!near.length) return;
+  await withTiles(map, near.map((s) => [s.x, s.y]), () => {
+    for (const s of near) {
+      const o = clearOfBuildings(map, s.x, s.y, (x, y) => !isInWater(map, x, y) && !map.buildingsNear(x, y, 1).some((b) => pointInPolygon(x, y, b.pts)));
+      if (o) { s.x = o.x; s.y = o.y; }
+    }
+  }, { radius: 60, token: 'shopdoors', slice: 6 });
+  declutterCache.clear();
 }
 
 // One icon per type per grid cell, for the minimap and zoomed-out map.
