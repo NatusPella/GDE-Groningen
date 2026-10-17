@@ -442,7 +442,7 @@ const closed = (P) => P.length > 3 && P[0][0] === P[P.length - 1][0] && P[0][1] 
 
 // A raw OSM element (Overpass JSON: `geometry` [{lat, lon}] or the slim
 // caches' `g` [[lat, lon]]) as features: [{ kind, row }]. ctx: { urbanAt(x, y)
-// (0..1), village(x, y), signs (keep mapped signs, crossings, gates), bag3d(pts, tags) (the 3D BAG record of a building:
+// (0..1), village(x, y), signs (keep mapped signals, signs, crossings, gates), bag3d(pts, tags) (the 3D BAG record of a building:
 // { hmax, hg, h50?, roof? }, scripts/world/bag3d.mjs) }.
 export function fromOsm(el, ctx = {}) {
   const tags = el.tags || {};
@@ -457,7 +457,7 @@ export function fromOsm(el, ctx = {}) {
   // (streetfurniture.js mappedFromOsm: { k, pts, v?, h?, osm })
   if (el.type === 'node' && el.lat !== undefined) {
     for (const row of mappedFromOsm([el])) out.push({ kind: 'furniture', row });
-    // signs, crossings and gates (ctx.signs: the province's tiles)
+    // signals, signs, crossings and gates (ctx.signs: the province's tiles)
     if (ctx.signs) for (const row of mappedSignsFromOsm(el)) out.push({ kind: 'furniture', row });
     return out;
   }

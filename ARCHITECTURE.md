@@ -1404,6 +1404,21 @@ server, `?legacymap`).
   gates, barriers and post boxes as FURNITURE rows (nothing draws them yet).
   `nightlights3d.js` puts a lamp where OSM maps `highway=street_lamp` (the
   tiles' `lamp` rows) before the rule lamps of the roads fill the gaps.
+- **Lanes, junctions and traffic lights in the province (A4).** The lane
+  model was already in the road rows (`laneFields` from the OSM lane, turn and
+  oneway tags). `scripts/world/junction_tiles.mjs` runs the city's own code
+  (`junctions.js junctionModel` and `autoSignals`) over a pack's road rows with
+  its lights: the OSM nodes `highway=traffic_signals` and `crossing=traffic_signals`
+  snapped onto their road (2.5 m, a cycle path only: `bike`, else dropped, as
+  `add_traffic_lights.py` does for the city), plus the busy crossings the
+  rule adds (`auto`). `tileBlob` writes them as `signals` FURNITURE rows and
+  the nodes of a tile as its JUNCTIONS rows (control, and per arm the road
+  piece of that tile, the node's vertex in it, the direction, rule and stop
+  line in metres; the rows `pack_tiles.mjs` writes for the city). Neither the
+  city's nor the province's JUNCTIONS rows are read by the game yet:
+  `junctions.js` still works the model out from `map.roads` and
+  `meta.trafficLights`, so streamed tiles join it with the road-by-tile work
+  (B3). Heights (`z`) are A3: until then no node counts as graded.
 - **Tests.** `node scripts/world_tiles_test.mjs` (codec, determinism, round
   trips, the building attribute join), `node scripts/tileworld_test.mjs`
   (equivalence, streaming on a virtual clock, ranges), `node scripts/floatingorigin_test.mjs`,

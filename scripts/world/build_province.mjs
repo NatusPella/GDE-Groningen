@@ -29,6 +29,7 @@ import { encodeRoadNet } from '../../game/js/roadgraph.js';
 import { Raster, paint, writePyramid, FINE_M } from './province_map.mjs';
 import { loadProvinceBag, bagMatcher } from './bag3d.mjs';
 import { deriveFeatures } from './derive_tiles.mjs';
+import { snapSignals, junctionsOf } from './junction_tiles.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 export const PROVINCE_BUILDER = 1;
@@ -360,7 +361,7 @@ function fillOldExtent({ root, fill, gid, stats, blobs, roadNet, roadSeen, railR
 
 // ------------------------------------------------------------- build
 
-export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(src), cityKeys = new Set(), buffer = BUFFER_M, onPack = null, map = true, cityCover = null, fillOld = false, bag = loadProvinceBag(), derive = true } = {}) {
+export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(src), cityKeys = new Set(), buffer = BUFFER_M, onPack = null, map = true, cityCover = null, fillOld = false, bag = loadProvinceBag(), derive = true, junctions = true } = {}) {
   const prov = gunzipJson(path.join(src, 'province.json.gz'));
   // the neighbours' strips: their places, stations and built-up cells join the province's
   const dirs = [src, ...extra];
@@ -409,7 +410,7 @@ export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(s
     raster = new Raster(x0, y0, Math.ceil(((i1 - i0 + 1) * G.TILE_M) / FINE_M), Math.ceil(((j1 - j0 + 1) * G.TILE_M) / FINE_M), FINE_M);
   }
   const gid = { buildings: GID0, roads: GID0, water: GID0, green: GID0, trees: GID0, rails: GID0, canopies: GID0, furniture: GID0 };
-  const stats = { tiles: 0, buildings: 0, roads: 0, water: 0, rails: 0, green: 0, trees: 0, furniture: 0, hsrc: {}, packs: 0, sourceMB: 0, bag: bag3d ? bag3d.stats : null, derived: { moved: 0, merged: 0, canopies: 0, lifted: 0, clipped: 0 } };
+  const stats = { tiles: 0, buildings: 0, roads: 0, water: 0, rails: 0, green: 0, trees: 0, furniture: 0, junctions: 0, signals: 0, autoSignals: 0, hsrc: {}, packs: 0, sourceMB: 0, bag: bag3d ? bag3d.stats : null, derived: { moved: 0, merged: 0, canopies: 0, lifted: 0, clipped: 0 } };
   const blobs = new Map();
   const empty = [], noPack = [];
   const railRows = [];
@@ -450,6 +451,20 @@ export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(s
       feats = d.feats;
       for (const k of Object.keys(stats.derived)) stats.derived[k] += d.stats[k];
     }
+    // the traffic lights snapped onto their roads, the city's junction model over the pack's roads
+    // (junction_tiles.mjs: the nodes by the tile they lie in)
+    const nodesIn = new Map();
+    if (junctions) {
+      const sn = snapSignals(feats);
+      const jm = junctionsOf(sn.feats, sn.lights);
+      feats = sn.feats.concat(jm.auto);
+      stats.signals += sn.lights.length;
+      stats.autoSignals += jm.auto.length;
+      for (const J of jm.nodes) {
+        const k = G.tileKey(...G.tileIndexOf(J.x, J.y));
+        (nodesIn.get(k) || nodesIn.set(k, []).get(k)).push(J);
+      }
+    }
     // features by tile, only for this pack's tiles
     const mine = new Set(want);
     const idx = new Map();
@@ -486,7 +501,7 @@ export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(s
         continue;
       }
       const flags = FLAG.LAND | FLAG.BUILT | FLAG.PROVINCE | (t.buffer ? FLAG.BUFFER : 0) | (ommelandBox(t.i, t.j, root) ? FLAG.OLD : 0);
-      const tb = tileBlob(t.i, t.j, idx.get(k) || [], gid, flags, PROVINCE_BUILDER, stats);
+      const tb = tileBlob(t.i, t.j, idx.get(k) || [], gid, flags, PROVINCE_BUILDER, stats, junctions ? { junctions: nodesIn.get(k) || [] } : null);
       if (!tb) { empty.push(k); continue; }
       blobs.set(k, { ...tb, src: 'pbf' });
     }
@@ -597,6 +612,7 @@ async function main() {
   console.log(`provincie: ${built.keys.length} tiles in the set, ${s.tiles} built (${buf} in the buffer strip, ${old} in the old Ommeland area, ${filled} of them filled from the old data), ${g.city.length} are the city's (${ovl} of them with an overlay for the part its data leaves empty), ${built.empty.length} empty (sea, no data), ${built.missing.length} without a pack`);
   console.log(`  ${Object.keys(index.packs).length} packs ${(size / 1e6).toFixed(1)} MB (${(raw / 1e6).toFixed(1)} MB raw, ${Math.round(size / Math.max(1, s.tiles))} B/tile), index ${(idxSize / 1e6).toFixed(2)} MB; source ${s.sourceMB.toFixed(1)} MB gzip in ${s.packs} packs`);
   console.log(`  ${s.buildings} buildings (height ${Object.entries(s.hsrc).map(([k, v]) => `${k} ${v}`).join(', ')}), ${s.roads} road pieces, ${s.water} water, ${s.green} green, ${s.rails} rail pieces, ${s.trees} trees, ${s.furniture} furniture`);
+  if (s.junctions) console.log(`  junction model: ${s.junctions} junction rows, ${s.signals} traffic lights from OSM snapped onto their road, ${s.autoSignals} more by the city's rule for busy crossings`);
   if (s.derived) console.log(`  derived like the city: ${s.derived.moved} footprints pushed 1.5 m off a road, ${s.derived.merged} doubled or bridge-part footprints dropped, ${s.derived.canopies} canopies, ${s.derived.lifted} roof steps, ${s.derived.clipped} ways cut at a wall`);
   if (s.bag) console.log(`  3D BAG: ${s.bag.id} buildings by BAG id, ${s.bag.centre} by centre and area, ${s.bag.none} without a match; ${((100 * (s.hsrc['3dbag'] || 0)) / Math.max(1, s.buildings)).toFixed(1)} % of the buildings have a measured height`);
   console.log(`  ${g.places.length} places, ${g.stations.length} stations, ${g.routes.length} train lines (${g.routes.filter((r) => r.reached).length} complete), ${g.bus.length} bus lines, ${g.edge.coast.length} coast pieces, ${g.edge.border.length} border lines`);
