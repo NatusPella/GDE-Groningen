@@ -28,10 +28,10 @@ import { CHALLENGES } from './postgame.js';
 import { activitySpots } from './activities.js';
 import { ensureCountryEdge, pushOutOfPlan } from './countryplan.js';
 import { countryWeight } from './countryfield.js';
-import { buildingAt as realBuildingAt, coveredByTiles } from './countryreal.js';
+import { coveredByTiles } from './countryreal.js';
 import { getOmmelandSpots } from './ommelandfun.js';
 import { reachableFacilities, FAC } from './facilities.js';
-import { realRoadNear } from './ommelandplace.js';
+import { roadNear, roadKind, tilesIn, withTiles } from './tileplace.js';
 import { respawnArrival } from './respawn.js';
 
 const DRIVE_REACH = 25;
@@ -66,7 +66,7 @@ function countrySolid(x, y) {
   if (countryWeight(x, y) <= 0.5 || coveredByTiles(x, y)) return null;
   const o = { x, y };
   if (!pushOutOfPlan(o, 0.35)) return null;
-  return realBuildingAt(x, y, 0.35) >= 0 ? 'in een Ommelander gebouw' : 'in een erf, dorp, molen of mast in de Ommelanden';
+  return 'in een erf, dorp, molen of mast in de Ommelanden';
 }
 
 // What is wrong with the spot, or null.
@@ -83,7 +83,7 @@ export function spotProblem(map, s) {
   const solid = countrySolid(x, y);
   if (solid) return solid;
   if (!map.canWalkOut(x, y, WALK_REACH)) return 'ingesloten, je kunt er niet weg';
-  if (mode === 'drive' && driveDist(map, x, y) > DRIVE_REACH && !realRoadNear(x, y, DRIVE_REACH, (r) => r.kind > 2)) return 'te ver van een rijweg';
+  if (mode === 'drive' && driveDist(map, x, y) > DRIVE_REACH && !roadNear(map, x, y, DRIVE_REACH, (r) => roadKind(r) > 2)) return 'te ver van een rijweg';
   return null;
 }
 
@@ -98,7 +98,10 @@ function stageMode(st) {
 // nearest quay) are left out.
 const RUNTIME = ['rental', 'route', 'shore', 'skutsje'];
 
-export function collectSpots(world) {
+// fn() with the tiles round the spot in (a spot far from the player is on tiles that are not in)
+const onTiles = async (map, s, radius, fn) => (tilesIn(map, [[s.x, s.y]], radius) ? fn() : withTiles(map, [[s.x, s.y]], fn, { radius, token: 'spotcheck' }));
+
+export async function collectSpots(world) {
   const out = [];
   const add = (kind, id, p, mode = 'walk') => { if (p) out.push({ kind, id, x: p.x, y: p.y, mode }); };
   const defs = getMissionDefs() || [];
@@ -149,17 +152,17 @@ export function collectSpots(world) {
     ? [...reachableFacilities('medical'), ...reachableFacilities('police')]
     : [...(meta.policeStations || []), ...(meta.careSites || []), ...(meta.hospital ? [{ ...meta.hospital, umcg: true }] : [])];
   const probe = { ...world, vehicles: [] };
-  for (const s of sites) add('respawn', s.name || `${Math.round(s.x)},${Math.round(s.y)}`, respawnArrival(probe, s).player);
+  for (const s of sites) add('respawn', s.name || `${Math.round(s.x)},${Math.round(s.y)}`, await onTiles(world.map, s, 200, () => respawnArrival(probe, s).player));
   return out;
 }
 
-export function validateSpots(world) {
+export async function validateSpots(world) {
   // the Ommelanden masks are built lazily in play; the check needs them now
   ensureCountryEdge(world.map);
-  const spots = collectSpots(world);
+  const spots = await collectSpots(world);
   const bad = [];
   for (const s of spots) {
-    const why = spotProblem(world.map, s);
+    const why = await onTiles(world.map, s, 90, () => spotProblem(world.map, s));
     if (why) bad.push({ ...s, x: Math.round(s.x * 10) / 10, y: Math.round(s.y * 10) / 10, why });
   }
   return { total: spots.length, bad };

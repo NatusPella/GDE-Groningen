@@ -1,5 +1,4 @@
-import { dist, isInWater, pointInPolygon } from './util.js';
-import { clearOfReal } from './countryreal.js';
+import { dist } from './util.js';
 import { facilitiesOf, countryDoor } from './facilities.js';
 import { recordUnique } from './achievements.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
@@ -25,13 +24,14 @@ export function initHoreca(world) {
       const o = map.findOpenSpawn(h.x, h.y, 80);
       if (o) { h.x = o.x; h.y = o.y; }
     }
-    // inside an Ommelanden building box: step out of it
-    const r = clearOfReal(h.x, h.y, (x, y) => !isInWater(map, x, y) && !map.buildingsNear(x, y, 1).some((b) => pointInPolygon(x, y, b.pts)));
-    if (r) { h.x = r.x; h.y = r.y; }
   }
   spots = (world.map.meta.horeca || []).map((h) => ({ x: h.x, y: h.y, name: cafeName(h), osmName: h.name, lastUsed: -Infinity }));
-  // out in the Ommelanden: the real cafés, pubs and restaurants (facilities.js),
-  // at their street door
+}
+
+// Out in the Ommelanden: the real cafés, pubs and restaurants (facilities.js),
+// at their street door; their tiles are in while this runs (main.js).
+export function initCountryHoreca(world) {
+  const map = world.map;
   for (const f of facilitiesOf('horeca')) {
     if (f.city || spots.some((s) => dist(s.x, s.y, f.x, f.y) < COUNTRY_SPACING)) continue;
     const d = countryDoor(map, f.x, f.y);

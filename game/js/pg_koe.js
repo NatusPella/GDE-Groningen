@@ -4,9 +4,9 @@ import { buildPersonMesh, seatPerson, animatePersonWalk } from './models3d_peopl
 import { buildCowMesh3D } from './wildlife.js';
 import { DURK_LOOK, DOUWE_LOOK } from './storycast.js';
 import { getScene } from './scene3d.js';
-import { REAL, RTILE, allBuildingsInTile, buildingModel, pushOutOfReal } from './countryreal.js';
+import { boxOf, pushOutOfBuildings, roadNear, roadKind, withTiles } from './tileplace.js';
 import { urbanWeight } from './countryfield.js';
-import { findOpenSpot, realRoadNear, placeNamed } from './ommelandplace.js';
+import { findOpenSpot, placeNamed } from './ommelandplace.js';
 import { buildProp, disposeProp, animateProp, personMesh, sitDown } from './ommelandprops3d.js';
 import { speak, duoSpeaker } from './ommelandtalk.js';
 import { finish, say, setTarget, isPostgameOpen } from './postgame.js';
@@ -37,23 +37,21 @@ let current = null;
 
 // --- where ---------------------------------------------------------------------------
 
-function barnsAround(x, y, r0, r1, pred) {
+// The barns and sheds of the tiles between r0 and r1 from (x, y), in a fixed
+// order: { b, d, x, y (centre), m: { long, short } }.
+const BARN_TAGS = new Set(['barn', 'farm_auxiliary', 'cowshed', 'stable', 'garage', 'garages', 'shed', 'carport', 'industrial', 'warehouse']);
+function barnsAround(map, x, y, r0, r1, pred) {
   const out = [];
-  const t0x = Math.floor((x - r1) / RTILE), t1x = Math.floor((x + r1) / RTILE);
-  const t0y = Math.floor((y - r1) / RTILE), t1y = Math.floor((y + r1) / RTILE);
-  for (let tx = t0x; tx <= t1x; tx++) {
-    for (let ty = t0y; ty <= t1y; ty++) {
-      for (const i of allBuildingsInTile(tx, ty) || []) {
-        const d = Math.hypot(REAL.bx[i] - x, REAL.by[i] - y);
-        if (d < r0 || d > r1) continue;
-        const m = buildingModel(i);
-        if (m.kind !== 'barn' && m.kind !== 'shed') continue;
-        if (pred && !pred(i, d, m)) continue;
-        out.push({ i, d, x: REAL.bx[i], y: REAL.by[i], m });
-      }
-    }
+  for (const b of map.buildingsNear(x, y, r1)) {
+    if (!BARN_TAGS.has(b.type)) continue;
+    const q = boxOf(b);
+    const d = Math.hypot(q.x - x, q.y - y);
+    if (d < r0 || d > r1) continue;
+    const m = { long: Math.max(q.w, q.l), short: Math.min(q.w, q.l) };
+    if (pred && !pred(q, d, m)) continue;
+    out.push({ b, d, x: q.x, y: q.y, m });
   }
-  return out.sort((a, b) => a.i - b.i);
+  return out.sort((a, b) => a.x - b.x || a.y - b.y);
 }
 
 // Open ground beside a building (its long side), within reach of (tx, ty).
@@ -67,9 +65,9 @@ function findSites(map) {
   if (!tb) return null;
   // Ome Jan: a farm with a barn 0.5-1.7 km out of Ten Boer, his yard gate on the road side
   let farm = null, best = Infinity;
-  for (const b of barnsAround(tb.x, tb.y, 500, 1700, (i) => urbanWeight(REAL.bx[i], REAL.by[i]) < 0.12)) {
-    const road = realRoadNear(b.x, b.y, 70);
-    if (!road || road.road.kind > 6) continue;
+  for (const b of barnsAround(map, tb.x, tb.y, 500, 1700, (q) => urbanWeight(q.x, q.y) < 0.12)) {
+    const road = roadNear(map, b.x, b.y, 70, (r) => roadKind(r) > 0);
+    if (!road || roadKind(road.road) > 6) continue;
     const q = besideBuilding(map, b, road, { r: 3.2, road: 1 });
     if (!q) continue;
     const score = Math.abs(b.d - 950);
@@ -79,8 +77,8 @@ function findSites(map) {
   // the twins' barn: a few fields on, about a minute's drive (0.35-0.9 km), not on the road
   let hide = null;
   best = Infinity;
-  for (const b of barnsAround(farm.x, farm.y, 350, 900, (i) => urbanWeight(REAL.bx[i], REAL.by[i]) < 0.08)) {
-    const road = realRoadNear(b.x, b.y, 45);
+  for (const b of barnsAround(map, farm.x, farm.y, 350, 900, (q) => urbanWeight(q.x, q.y) < 0.08)) {
+    const road = roadNear(map, b.x, b.y, 45, (r) => roadKind(r) > 0);
     if (road && road.d < 12) continue;
     const q = besideBuilding(map, b, farm, { r: 5, road: 8 });
     if (!q) continue;
@@ -91,8 +89,18 @@ function findSites(map) {
   return { farm, hide, dist: Math.hypot(hide.x - farm.x, hide.y - farm.y) };
 }
 
+// The sites are picked from the tiles round Ten Boer (the farm lies up to 1.7 km
+// out, the barn up to 0.9 km beyond it): found once those are in, in the
+// background from the start (prepareKoeSites). null until then.
 function ensureSites(map) {
-  if (!sites && REAL.ready) sites = findSites(map) || false;
+  return sites || null;
+}
+
+export async function prepareKoeSites(map) {
+  if (sites !== null) return sites || null;
+  const tb = placeNamed('Ten Boer');
+  if (!tb) return null;
+  await withTiles(map, [[tb.x, tb.y]], () => { if (sites === null) sites = findSites(map) || false; }, { radius: 2700, token: 'koe', slice: 6 });
   return sites || null;
 }
 
@@ -302,7 +310,7 @@ function cowStep(run, dt) {
     c.a += Math.max(-3 * dt, Math.min(3 * dt, da));
     c.x += Math.cos(c.a) * c.v * dt;
     c.y += Math.sin(c.a) * c.v * dt;
-    pushOutOfReal(c, 1.2);
+    pushOutOfBuildings(w.map, c, 1.2);
   }
   c.stride += c.v * dt * 1.6;
   const m = c.mesh;

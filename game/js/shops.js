@@ -1,6 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { dist, closestPointOnSegment, isInWater, pointInPolygon, boatDryPoints } from './util.js';
-import { clearOfReal } from './countryreal.js';
+import { clearOfBuildings } from './tileplace.js';
+import { edgeDistance } from './countryfield.js';
 import { facilitiesOf, countryDoor } from './facilities.js';
 import { getScene, refreshCharacterMeshes } from './scene3d.js';
 import { spawnVehicleOnRoad, spawnBoatOnWater, HERO_CAR_MODEL, playerTopSpeed } from './vehicle.js';
@@ -417,6 +418,8 @@ const COUNTRY_SHOPS = {
   auto: ['car'], tuning: ['car_parts', 'tyres'], pand: ['pawnbroker', 'second_hand'], wapens: ['outdoor'],
 };
 const COUNTRY_SPACING = 900;
+// every kind whose real facilities get a shop door (main.js loads their tiles first)
+export const COUNTRY_SHOP_KINDS = [...new Set(Object.values(COUNTRY_SHOPS).flat())];
 
 export function placeCountryShops(map, horeca = [], taken = []) {
   const out = [];
@@ -489,10 +492,10 @@ export function initShops(world) {
     const p = placeAtPoi(map, { x: cx, y: cy }, horeca, placed);
     if (p) placed.push({ ...p, type: 'eikea', wijk: 'Sontweg', street: p.street || 'Sontweg' });
   }
-  placed.push(...placeCountryShops(map, horeca, placed));
   for (const s of placed) {
-    if (s.country) continue;
-    const o = clearOfReal(s.x, s.y, (x, y) => !isInWater(map, x, y) && !map.buildingsNear(x, y, 1).some((b) => pointInPolygon(x, y, b.pts)));
+    // out past the city's data a door can stand in a (tile) building: step out of it
+    if (s.country || edgeDistance(s.x, s.y) <= 0) continue;
+    const o = clearOfBuildings(map, s.x, s.y, (x, y) => !isInWater(map, x, y) && !map.buildingsNear(x, y, 1).some((b) => pointInPolygon(x, y, b.pts)));
     if (o) { s.x = o.x; s.y = o.y; }
   }
   const hd = HELI_DEALER;
@@ -506,6 +509,21 @@ export function initShops(world) {
     registerHelipad({ id: 'eelde', x: s.pad.x, y: s.pad.y, r: s.pad.r, z: PAD_DECK, name: s.name, exit: true, label: 'Rotor Roelf · E uitstappen' });
   }
   shops = placed;
+  declutterCache.clear();
+}
+
+// The real shops out in the Ommelanden, a door on open ground on the tiles
+// round them (in while this runs; main.js): added after the city's, named like them.
+export function initCountryShops(world) {
+  const country = placeCountryShops(world.map, getHorecaForRender(), shops);
+  if (!country.length) return;
+  // the heli dealer stays last
+  const i = shops.findIndex((s) => s.type === 'heli');
+  const all = i < 0 ? shops.concat(country) : [...shops.slice(0, i), ...country, ...shops.slice(i)];
+  nameBranches(all);
+  for (const s of all) if (s.type === 'eikea') s.name = 'EIKEA Grunn';
+  for (const s of all) if (s.type === 'heli') s.name = 'Rotor Roelf Eelde';
+  shops = all;
   declutterCache.clear();
 }
 

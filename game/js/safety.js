@@ -2,9 +2,6 @@
 // afbreken", and watchdogs that clear overlays, flags and positions that
 // would otherwise leave the player stuck until a reload.
 import { isInWater } from './util.js';
-import { REAL, inRealExtent } from './countryreal.js';
-import { edgeDistance } from './countryfield.js';
-import { realRoadNear } from './ommelandplace.js';
 import { cinematicState, skipCinematic, skipAllCinematics, isCinematicActive } from './cinematics.js';
 import { isPhoneOpen } from './phone.js';
 import { isShopOpen, closeShopMenu } from './shopui.js';
@@ -44,11 +41,6 @@ const finite = (...v) => v.every((n) => Number.isFinite(n));
 // walk away from; falls back to any open spot, then a landmark.
 function safeSpot(map, x, y) {
   const inMap = finite(x, y);
-  // out in the Ommeland the nearest country road, not the city street 5 km away
-  if (inMap && REAL.ready && inRealExtent(x, y) && edgeDistance(x, y) > 40) {
-    const q = realRoadNear(x, y, 900);
-    if (q) return { x: q.x, y: q.y, angle: Math.atan2(q.uy, q.ux) };
-  }
   const road = inMap ? map.nearestRoadPoint(x, y, 600, true, true) : null;
   let spot = road && !road.road.bridge ? map.findOpenSpawn(road.x, road.y, 60) : null;
   if (!spot && inMap) spot = map.findOpenSpawn(x, y, 800);

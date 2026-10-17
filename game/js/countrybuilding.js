@@ -1,24 +1,16 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { setGlowNight } from './countryglow.js';
-import { vcMaterial, markShared, createBrickDetailTexture, createRoofTileTexture } from './pixelart3d.js';
+import { createBrickDetailTexture, createRoofTileTexture } from './pixelart3d.js';
 
-// The one material of the real Ommelanden buildings (countryreal.js), near,
-// mid and skyline tiers alike. The pieces are unit boxes and roofs scaled
-// per instance; a per-vertex part id says what a face is, and the instance
-// colour carries a small code (style and door side, see bldColor) on top
-// of the tint, so the facade is drawn in metres in the fragment shader:
-// window bays whose count follows the wall length, a door on the street
-// side, and at night a random share of the windows lit.
+// The facade material of the countryside's churches (countrymodels.js): a
+// per-vertex part id says what a face is, so the facade is drawn in metres in
+// the fragment shader: brick, window bays whose count follows the wall
+// length, and at night a random share of the windows lit.
 
 // part ids (aPart): what a face of a building piece is
 export const PART = { plain: 0, wall: 1, roof: 2, ridge: 3, gable: 4, top: 5, silWall: 6, silRoof: 7, churchNave: 8, churchBrick: 11 };
-// styles: how a wall is drawn (instance code)
-export const STYLE = { plain: 0, house: 1, block: 2, barn: 3, shed: 4, glass: 5, tile: 6, sheet: 7 };
-// door side in the piece's local frame: 1 +x, 2 -x, 3 +z, 4 -z; 5-8 the
-// same faces with a village shopfront on the ground floor (no door, no
-// painted windows behind it)
-// the skyline silhouettes keep their roof colour index in the door field
-export const ROOF_PAL = [0x9a3e2a, 0x3e4246, 0x8a3a28, 0x2e3236, 0xa8502e, 0x3a3e40, 0x4a5a48, 0x6a6e6c];
+// the roof colours of the part-id shader's silhouette branch
+const ROOF_PAL = [0x9a3e2a, 0x3e4246, 0x8a3a28, 0x2e3236, 0xa8502e, 0x3a3e40, 0x4a5a48, 0x6a6e6c];
 
 // the city's brick (0.5 m tile) and pan-tile (1 m) multipliers, sampled
 // with metre coordinates
@@ -41,11 +33,6 @@ export function withParts(geo, fn) {
   for (let i = 0; i < p.count; i++) a[i] = fn(p.getX(i), p.getY(i), p.getZ(i), n.getX(i), n.getY(i), n.getZ(i));
   geo.setAttribute('aPart', new THREE.BufferAttribute(a, 1));
   return geo;
-}
-
-// Instance tint with the code folded into red: r + 2 * (style * 16 + door).
-export function bldCode(style, door = 0) {
-  return style * 16 + door;
 }
 
 export function setCountryNight(glow, litFrac) {
@@ -275,8 +262,3 @@ export function applyFacade(m, key, extra = null) {
   return m;
 }
 
-let mat = null;
-export function buildingMaterial() {
-  if (!mat) mat = markShared(applyFacade(vcMaterial({ roughness: 0.88 }), 'props'));
-  return mat;
-}

@@ -7,8 +7,6 @@
 import { spawnVehicleOnRoad } from './vehicle.js';
 import { carModel, applyFleetFlags } from './trafficfleet.js';
 import { nearestFacility } from './facilities.js';
-import { realRoadNear } from './ommelandplace.js';
-import { edgeDistance } from './countryfield.js';
 
 const YIELD_REACH = 55;
 const HOSPITAL_NEAR = 300;
@@ -80,10 +78,6 @@ function ambulanceBase(world, x, y) {
 }
 
 function baseRoad(world, h) {
-  if (edgeDistance(h.x, h.y) > 40) {
-    const q = realRoadNear(h.x, h.y, 120, (r) => r.kind > 2 && !r.bridge);
-    return q ? { x: q.x, y: q.y, road: q.road, country: true } : null;
-  }
   return world.map.nearestRoadPoint(h.x, h.y, 120, true, true);
 }
 

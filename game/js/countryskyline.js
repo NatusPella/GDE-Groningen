@@ -1,6 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { BLOCK, PW, chash, edgeDistance, edgeRoad, villageOf, urbanWeight, realWater } from './countryfield.js';
-import { REAL, RTILE, buildingsInTile, buildingModel } from './countryreal.js';
+import { REAL } from './countryreal.js';
 import { roadGap } from './countryedge.js';
 import {
   ROAD_C, FARM_TYPES, openLand, blockPlan, blockPlanCached, villagePlan, turbineRow, turbineValid, pylonsAround, isPlanned, farmWorld,
@@ -8,11 +8,11 @@ import {
 } from './countryplan.js';
 import {
   churchGeometry, turbineTowerGeometry, turbineRotorGeometry, lightGeometry, millBodyGeometry, millSailsGeometry,
-  pylonGeometry, wireGeometry, flareGeometry, beltGeometry, farmSilhouetteGeometry, clumpGeometry, realSilhouetteGeometry,
-  TURBINE_HUB, MILL_AXLE, PYLON_ARMS, TERP_H, CHURCH_SPAN,
+  pylonGeometry, wireGeometry, flareGeometry, beltGeometry, farmSilhouetteGeometry, clumpGeometry,
+  TURBINE_HUB, MILL_AXLE, PYLON_ARMS, TERP_H,
 } from './countrymodels.js';
 import { vcMaterial, markShared } from './pixelart3d.js';
-import { applyFacade, bldCode, STYLE, ROOF_PAL } from './countrybuilding.js';
+import { applyFacade } from './countrybuilding.js';
 import { markInstancesDirty } from './util.js';
 
 // The Ommelanden skyline: church towers, turbine rows, poldermolens, pylon
@@ -79,8 +79,6 @@ const TYPES = {
   church1: { geo: () => churchGeometry(1), mat: 'church', cap: 160, shadow: true },
   church2: { geo: () => churchGeometry(2), mat: 'church', cap: 60, shadow: true },
   church3: { geo: () => churchGeometry(3), mat: 'church', cap: 60, shadow: true },
-  rbSil: { geo: realSilhouetteGeometry, mat: 'bld', cap: 9000 },
-  rbSilFlat: { geo: () => realSilhouetteGeometry(true), mat: 'bld', cap: 3000 },
   turbine: { geo: turbineTowerGeometry, mat: 'tall', cap: 400, shadow: true },
   rotor: { geo: turbineRotorGeometry, mat: 'rotorT', cap: 400 },
   light: { geo: lightGeometry, mat: 'light', cap: 400 },
@@ -96,13 +94,6 @@ const TYPES = {
 };
 
 let K = null;
-// the churches are drawn by the landmark kits (ommelandlandmarks.js) once they are in
-let churchesOn = true;
-export function setSkylineChurches(on) {
-  if (churchesOn === on) return;
-  churchesOn = on;
-  if (K) K.dirty = true;
-}
 
 function init(scene) {
   const group = new THREE.Group();
@@ -115,13 +106,10 @@ function init(scene) {
     rotorT: skyMaterial('rotorT', { rotor: 1.15 }),
     rotorM: skyMaterial('rotorM', { rotor: 0.55 }),
     light: skyMaterial('light', { light: true }),
-    bld: skyMaterial('bld', { belt: true }),
     church: skyMaterial('church'),
   };
   // churches: the tall haze plus the facade's brick and painted windows
   applyFacade(mats.church, 'church', mats.church.onBeforeCompile);
-  // the far real buildings: the belt haze plus the facade (lit windows at night)
-  applyFacade(mats.bld, 'sky', mats.bld.onBeforeCompile);
   const pools = {};
   for (const [k, T] of Object.entries(TYPES)) {
     const mesh = new THREE.InstancedMesh(markShared(T.geo()), mats[T.mat], T.cap);
@@ -166,7 +154,6 @@ function putSeg(L, a, b, thick) {
   list.c.push(1, 1, 1);
 }
 
-const SIL_STYLE = { house: STYLE.house, block: STYLE.block, barn: STYLE.barn, shed: STYLE.shed, glass: STYLE.glass };
 const ROOF_TINT = [0xa04a30, 0x5a5e62, 0x8a7a52];
 const SIL_SCALE = { khr: [1, 1, 1], olda: [1.15, 1.15, 1.3], small: [0.5, 0.58, 0.46], dairy: [1.25, 0.62, 1.45] };
 
@@ -198,37 +185,6 @@ function* gatherGen(px, py, nearR) {
       if (d2 < rb2) gatherBelts(L, P, bx, by);
     }
     yield;
-  }
-  // the real Ommelanden: church towers, and the roofs of the villages
-  // beyond the prop radius (the belt haze keeps the near ones hidden)
-  if (REAL.ready) {
-    for (const c of churchesOn ? REAL.churches : []) {
-      if ((c.x - px) ** 2 + (c.y - py) ** 2 > rt2) continue;
-      const f = churchFit(c);
-      put(L, 'church' + f.v, f.x, -0.05, f.y, f.rot, f.sx, f.sy, f.sz);
-    }
-    yield;
-    const n = Math.ceil(R_BELT / RTILE);
-    const tx0 = Math.floor(px / RTILE), ty0 = Math.floor(py / RTILE);
-    const tiles = [];
-    for (let oy = -n; oy <= n; oy++) for (let ox = -n; ox <= n; ox++) if (ox * ox + oy * oy <= n * n && ox * ox + oy * oy >= 2) tiles.push([ox * ox + oy * oy, tx0 + ox, ty0 + oy]);
-    tiles.sort((a, b) => a[0] - b[0]);
-    let k = 0;
-    // the countryside props draw everything within nearR themselves
-    const nr2 = nearR * nearR;
-    for (const [, tx, ty] of tiles) {
-      const B = buildingsInTile(tx, ty);
-      if (B) {
-        for (const i of B) {
-          if (REAL.bw[i] * REAL.bl[i] < 45 || (REAL.bx[i] - px) ** 2 + (REAL.by[i] - py) ** 2 < nr2) continue;
-          const m = buildingModel(i);
-          const style = SIL_STYLE[m.kind];
-          if (m.roof > 0) put(L, 'rbSil', REAL.bx[i], -0.05, REAL.by[i], -m.angle, m.long, (m.wall + m.roof) * 0.98, m.short, m.color, bldCode(style, Math.max(0, ROOF_PAL.indexOf(m.roofColor))));
-          else put(L, 'rbSilFlat', REAL.bx[i], -0.05, REAL.by[i], -m.angle, m.long, m.wall, m.short, m.color, bldCode(style));
-        }
-      }
-      if (++k % 60 === 0) yield;
-    }
   }
   // turbine rows (a row belongs to a 3x3-block macro cell)
   const M = BLOCK * 3;
@@ -265,36 +221,6 @@ function* gatherGen(px, py, nearR) {
     }
   }
   return { L, missing };
-}
-
-// The OSM church outline (the biggest church box within 35 m of the point)
-// picks the variant and scales and turns it to fit, tower to the west.
-function churchFit(c) {
-  if (c._fit) return c._fit;
-  let best = -1, ba = 0;
-  for (let oy = -1; oy <= 1; oy++) {
-    for (let ox = -1; ox <= 1; ox++) {
-      for (const i of buildingsInTile(Math.floor(c.x / RTILE) + ox, Math.floor(c.y / RTILE) + oy) || []) {
-        if (REAL.code[i] !== 7 || Math.hypot(REAL.bx[i] - c.x, REAL.by[i] - c.y) > 35) continue;
-        const a = REAL.bw[i] * REAL.bl[i];
-        if (a > ba) { ba = a; best = i; }
-      }
-    }
-  }
-  const h = chash(Math.round(c.x), Math.round(c.y));
-  if (best < 0) return (c._fit = { v: h < 0.6 ? 0 : 1, x: c.x + 1, y: c.y, rot: 0, sx: 1, sy: 1, sz: 1 });
-  const w = REAL.bw[best], l = REAL.bl[best];
-  let ang = w >= l ? REAL.ba[best] : REAL.ba[best] + Math.PI / 2;
-  if (Math.cos(ang) < 0) ang += Math.PI;
-  const long = Math.max(w, l), short = Math.min(w, l);
-  const v = ba < 200 ? 3 : ba > 550 && short / long > 0.5 ? 2 : h < 0.6 ? 0 : 1;
-  const [x0, x1, wd] = CHURCH_SPAN[v];
-  const sx = Math.min(1.8, Math.max(0.55, long / (x1 - x0))), sz = Math.min(1.8, Math.max(0.6, short / wd));
-  const sy = Math.min(1.35, Math.max(0.75, Math.sqrt(sx * sz)));
-  // the template's footprint centre onto the outline's centre
-  const mid = ((x0 + x1) / 2) * sx;
-  const x = REAL.bx[best] - Math.cos(ang) * mid, y = REAL.by[best] - Math.sin(ang) * mid;
-  return (c._fit = { v, x, y, rot: -ang, sx, sy, sz });
 }
 
 function rot2(lx, lz, angle) {

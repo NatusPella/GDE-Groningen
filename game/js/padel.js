@@ -12,7 +12,6 @@ import { banterAfter } from './banter.js';
 import { pointInPolygon, isInWater, clamp } from './util.js';
 import { currentStep } from './story.js';
 import { PADEL_PAIR, PADEL_TWINS } from './padellines.js';
-import { buildingAt as realBuildingAt } from './countryreal.js';
 import { bubbleVoiceFor } from './linevoice.js';
 import { playLineVoice } from './audio.js';
 
@@ -81,9 +80,8 @@ function toMap(f, u, v) {
   return { x: f.cx + f.ax * u + f.lx * v, y: f.cy + f.ay * u + f.ly * v };
 }
 
-// city footprints and the Ommelanden building boxes
+// footprints
 function solidAt(map, x, y) {
-  if (realBuildingAt(x, y, 0.3) >= 0) return true;
   for (const b of map.buildingsNear(x, y, 1)) {
     const [minx, miny, maxx, maxy] = b.bounds;
     if (x >= minx && x <= maxx && y >= miny && y <= maxy && pointInPolygon(x, y, b.pts)) return true;

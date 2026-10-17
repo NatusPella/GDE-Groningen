@@ -375,10 +375,11 @@ steps, in order:
 
 8. `fetch_ommeland.py` + `add_ommeland.py`: the real Ommelanden round the
    city (Zuidhorn to Ten Boer, Winsum to Eelde and the Zuidlaardermeer) into
-   `game/ommeland.json` (roads, narrow waterways, rails, places, churches,
+   `game/ommeland.json` (narrow waterways, rails, places, churches,
    stations and the train routes carried on to Haren, Zuidhorn, Sauwerd,
    Winsum, Bedum, Kropswolde and Martenshoek) and `game/ommeland.bin`
-   (gzip: building boxes and a water distance field). `citymap.json` is not
+   (gzip: the water distance field and the building boxes, which are only read for
+   the built-up mask: the tiles are the buildings and roads). `citymap.json` is not
    touched. Needs numpy and Pillow. The cache `data/ommeland_raw.json.gz`
    keeps only trimmed tags and building boxes.
 
@@ -396,18 +397,17 @@ added to `citymap.json` are carried over by `build_map.py`.
 
 ## Known limits
 
-- The detailed map covers the city inside the ringweg plus ~300 m around it.
-  In the real Ommelanden round it the built-up streets of the villages and
-  towns go through the city's own generators (`realmap.js`, see
-  docs/OMMELAND-PARITEIT.md "Detailniveau"): road meshes with kerbs,
-  pavements and markings, street lamps, benches, bins, bike racks, street
-  trees, and the houses, rows, blocks and sheds built like the city's,
-  within the same 140 m detail radius. The churches, mills, towers and borgen
-  are landmark kits from OSM (`landmarkkit.js`). What is still lower than in
-  the city: buildings come from OSM boxes (an outline kept as 2-3
-  rectangles), not the real footprint; roads outside the built-up areas,
-  ditches, canals and lakes are painted on the ground (you wade through the
-  lakes rather than swim) and there are no quay walls; the ground is flat.
+- The detailed map is the tiles: the city inside the ringweg plus ~300 m
+  around it and, streaming in round the player, every village, road and
+  field of the province, with the same generators, detail radius and street
+  furniture (the old Ommeland box included: `build_province.mjs` fills the
+  corner its OSM extract does not reach from `data/ommeland_raw.json.gz`, as
+  boxes and wings instead of the real footprints). The churches, mills,
+  towers and borgen are landmark kits from OSM (`landmarkkit.js`). What is
+  still lower than in the city: the water outside the city still partly
+  comes from the old Ommeland water layer (`countrywater.js`,
+  `countryedge.js` `countryWater`); the ground is flat where there is no
+  AHN raster.
 - Squares mapped as OSM multipolygon relations (such as the Grote Markt
   paving) and some named canals are not in the data yet, because
   `process_osm.py` only fetches ways.
