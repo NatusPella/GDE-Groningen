@@ -16,7 +16,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Er is geen code aangepast. Alles h
 | `calendar.js` `SPECIAL_DAYS` | nieuwe: Oldambt-kermis (za 22 - zo 23), Beleg van Bourtange (di 25). **De bestaande `oldambtkermis` staat nu op di 29 september (Deel 4, `open: false`)** | uitbreiden |
 | `scripts/calendar_test.mjs` | bijwerken voor de nieuwe data | bestaat |
 | `game/js/missions.js` defs | zie §2 | bestaat |
-| `game/js/missionstory.js` | alle scènes (`playStoryIntro`, `playStoryOutro`, `playStoryFail`) voor de nieuwe teksten; `PIERS`-achtige cast voor nieuwe personages | bestaat |
+| `game/js/missionstory.js` | alle scènes (`playStoryIntro`, `playStoryOutro`, `playStoryFail`) voor de nieuwe teksten | bestaat |
 | `storycast.js` | uiterlijk van Geesje, Lammert, Roelfien, Wubbo, Tinus (en Mem/Oma in de kruitkelder) | bestaat; uitbreiden (`MEM_LOOK` bestaat) |
 | `game/js/banterlines.js`, `banter.js` | de autogesprekspools per akte (`[B1]`-`[B5]` in `09`) | bestaat; vervangen/uitbreiden |
 | `game/js/subtitles.js` | `FY` voor Friese regels van Jelle en Mem; `GRO` voor Groningse regels | bestaat |
