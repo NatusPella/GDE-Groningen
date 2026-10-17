@@ -128,6 +128,10 @@ ring, reduced motion respected. Everything inside a `.gm-stage` is laid out in
 the mockups' 1920x1080 px and zoomed by `--mz` (`--ui` / 1.2), so it scales with
 "Grootte interface" and works from 1280x720 to 4K.
 
+## Map icons and world markers
+
+One icon language on the big map, the minimap and in the world. Each category has its own shape AND colour (red cross = hospital, blue shield = police station, blue train = station, green wrench = garage, orange fork = food, coloured rounded square = shop by type, yellow ring = mission, light-blue ring with a dot or arrow = objective, purple pin = your own goal). Icons are 15 to 24 px wide, always on a dark disc with a cream rim for contrast; zoomed out only the important categories show (mapicons.js), and where icons collide the higher priority wins. The legend stays a short list of icon and name; the explanation sits in the tooltip. In the world the marker is a thin light column of fixed height, a ring on the ground and one icon above it (worldmarker3d.js), never a filled screen.
+
 ## Where this already applies (reference implementations)
 
 - `game/index.html` - start screen, buttons, controls grid
