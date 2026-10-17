@@ -30,7 +30,7 @@ Elk issue is een `bug` of een `wens`, met één impact- en één kostenlabel. Ve
 commit met `Closes #n`, een comment bij wat niet lukte, de kolom bijwerken.
 
 **Releases** zijn pre-releases van wat in Klaar staat: `cd desktop && npm run release -- minor|patch` (macOS en Windows; Linux staat voorlopig uit, voeg `--linux` toe als het nodig is).
-Daarvoor is een `## [X.Y.Z]`-sectie in `CHANGELOG.md` nodig en een schone werkboom. Spelerzichtbare wijzigingen komen als Nederlandse regels onder `[Unreleased]`.
+Daarvoor is een `## [X.Y.Z]`-sectie in `CHANGELOG.md` nodig en een schone werkboom. Het script vermeldt de andere medewerkers (@) in de releasenotities en plaatst een comment op issue #116 ("Nieuwe versies om te proberen"), zodat zij een melding krijgen. Spelerzichtbare wijzigingen komen als Nederlandse regels onder `[Unreleased]`.
 Release een geteste versie ruim voor de limiet van het gebruik, niet pas op het eind.
 
 **Agents:** werk in een eigen worktree en branch, in kleine commits. Geen push, merge, tag of release door agents; dat doet de coördinator na de tests.

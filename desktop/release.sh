@@ -111,10 +111,18 @@ Pak \`GDE-Groningen-$VERSION-linux.tar.gz\` uit en start \`gde-groningen\`.
 
 "
 fi
+# mention the other collaborators so they get a notification that a new version is out
+REPO_SLUG="$(gh repo view --json nameWithOwner -q .nameWithOwner 2>/dev/null)"
+OWNER_LOGIN="${REPO_SLUG%%/*}"
+MENTIONS="$(gh api "repos/$REPO_SLUG/collaborators" --jq "[.[] | select(.login != \"$OWNER_LOGIN\") | \"@\" + .login] | join(\" \")" 2>/dev/null || true)"
+TESTERS=""
+[ -n "$MENTIONS" ] && TESTERS="Nieuwe versie om te proberen: $MENTIONS
+"
 NOTES="$(mktemp)"
 cat > "$NOTES" <<EOF
 ## GDE Groningen – Zomer vol misdaad $VERSION
 
+${TESTERS}
 $CHANGES
 
 ## Installeren
@@ -147,6 +155,12 @@ for f in $UPLOADS; do
   [ -n "$ok" ] || { echo "Upload failed: $f (builds stay in dist/)"; exit 1; }
 done
 rm -f "$NOTES"
+# a comment on the standing issue reliably notifies the mentioned collaborators (release notes alone may not)
+NOTIFY_ISSUE="${NOTIFY_ISSUE:-116}"
+if [ -n "$NOTIFY_ISSUE" ] && [ -n "$MENTIONS" ]; then
+  gh issue comment "$NOTIFY_ISSUE" --body "Nieuwe versie $VERSION is beschikbaar om te proberen: https://github.com/$REPO_SLUG/releases/tag/$TAG
+$MENTIONS" >/dev/null 2>&1 || echo "could not notify on issue $NOTIFY_ISSUE"
+fi
 # keep the disk free: the builds are on GitHub now
 rm -rf dist build
 echo "Released $TAG"
