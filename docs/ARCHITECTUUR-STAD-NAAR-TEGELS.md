@@ -408,3 +408,16 @@ beslismoment van de coordinator en de eigenaar.
 ## 8. Niet nagegaan (AANNAME)
 
 Geen tegel, test, audit of Electron-run gedraaid (`game/world/` ontbreekt in de werkboom); #3 als klaar aangenomen; de 87 % 3D BAG en de "10 bocht-schampen" komen uit de opdracht; de 45 hele-array-modules komt uit een grep en kan modules missen; `devflags.js` en de vlagnamen zijn een voorstel; klassegrenzen in 4.4 zijn voorstellen; de 12 plekken zijn nog niet gekozen.
+
+## Besluiten van de eigenaar (2026-10-17)
+
+De eigenaar liet alle acht open besluiten aan Claude ("doe wat je het beste lijkt"). Genomen op basis van het doel: de provincie op stadsniveau, de stad gaat er niet op achteruit, geen verhaalbreuk.
+
+1. **Landmarks:** sleutel = OSM-/BAG-id van het gebouw (A); tekencode blijft procedureel of GLB. Valt terug op RD-coördinaat waar geen id bestaat.
+2. **Interieurs, kamers, winkels:** kamergegevens blijven handwerk in `game/places/*` als objectparameters op de tegel. Buiten de stad: POI's uit OSM met een naamlaag die echte merken door verzonnen namen vervangt. In de stad: de huidige lijst (54 winkels, 470 horeca) als handlaag bevriezen, aangevuld met de naamlaag (B-plus-A, geen verhaalbreuk).
+3. **#77:** de 1,5 m-regel als bouwstap voor de hele provincie. De zijdelingse schampen (bochten) blijven een apart getelde, geaccepteerde uitzondering met een vaste lijst; geen padgeometrie aanpassen tenzij een speler het merkt.
+4. **Ontpinnen:** de stad wordt gewoon streaming (alleen spawn, missie en eigen auto gepind), maar als laatste stap en alleen als audits en schermafdrukken groen blijven.
+5. **Uitrol:** alles achter `?stadlaag` tot poort B en dan één release; een eerste pre-release na poort A (de provincie wint al).
+6. **Verificatie:** licht (bestaande audits en ~12 schermafdrukken, geen prestatiemeting per stap; prestaties bij de releasebouw). Fase A mag de provincie meer GPU en geheugen kosten, zolang de stad er niet slechter uitziet of voelt.
+7. **Downloads:** 3D BAG voor de provincie is gedaan (0,9 GB gestreamd, 6,8 MB resultaat). AHN provinciebreed akkoord (per tegel gestreamd, alleen hoogtes bewaren, ruwe data direct wissen; schijf is krap). Eindgrootte richting 1 GB is toegestaan.
+8. **Oude stadspad (C3):** pas verwijderen in een release nadat poort B is gehaald en de eigenaar de stad akkoord heeft bevonden. De geschiedenis wordt niet herschreven.
