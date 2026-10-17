@@ -277,7 +277,7 @@ TESSA: Dat tel je niet. [NIEUW]
 BEREND: Ik tel alles. [NIEUW]
 HENK (telefoon): Henk. Tinus' schuur is drie kilometer verderop. Ik heb een luik voor jullie. Eén koekje. [NIEUW]
 
-## [M21.4] Iedereen heeft een rode auto gezien: Tammo, de vrienden – Westerwolde naar Westerkwartier, Tinus' trekker – trekker
+## [M21.4] Iedereen heeft een rode auto gezien: Tammo, de vrienden – Westerkwartier, Tinus' schuur bij Zuidhorn – te voet
 (regie: woensdag 26 augustus, vroege ochtend, bij Tinus' schuur in Zuidhorn. Tammo is 's nachts met Tinus' trekker uit Bourtange gekomen. Oma heeft alle vrienden met hun ingrediënten naar de schuur geroepen. Gameplay: zijn deel: de vrienden bij elkaar houden terwijl Jelles advocaten ze een voor een terugroepen.)
 OMA TRIJNTJE (telefoon): Houd mijn vrienden bij elkaar, jong. Zonder hen is er geen recept. [NIEUW]
 MEM (telefoon): Jelles advocaten hebben ze gebeld. Zeg het goed. [NIEUW]
