@@ -324,7 +324,7 @@ Alle scènes volgen dezelfde regel: **context in de gesproken tekst** (wie, waar
 
 Wie het spel al kent, ziet bekende regels en mechaniek op nieuwe plekken in één nieuw verhaal. Dat levert op:
 
-1. **De hele provincie in plaats van de stad:** 7 regio's, 17 van de 26 missies spelen buiten Stad. Bekende beats keren terug op andere plekken.
+1. **De hele provincie in plaats van de stad:** 7 regio's, 15 van de 26 missies spelen buiten Stad. Bekende beats keren terug op andere plekken.
 2. **Een nieuw doel en een plan dat je volgt:** het plakjesbord en het koopboek; Jelle heeft een motief en grijpt actief in.
 3. **Een nieuw mysterie en een keerpunt:** Jelle heeft de bal echt; in M16 verklapt Durk waar; in M20 neemt zijn moeder hem af, en jij houdt hem vast.
 4. **Een dieptepunt van twee missies vlak voor de finale** (M20-M21): de ruzie, de verloren bal en wagen, de vrienden die weglopen.
