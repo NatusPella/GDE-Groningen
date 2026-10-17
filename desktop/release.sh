@@ -114,7 +114,7 @@ fi
 # collaborators are mentioned only in the comment on the standing issue (not in the release notes)
 REPO_SLUG="$(gh repo view --json nameWithOwner -q .nameWithOwner 2>/dev/null)"
 OWNER_LOGIN="${REPO_SLUG%%/*}"
-MENTIONS="$(gh api "repos/$REPO_SLUG/collaborators" --jq "[.[] | select(.login != \"$OWNER_LOGIN\") | \"@\" + .login] | join(\" \")" 2>/dev/null || true)"
+MENTIONS="$(gh api "repos/$REPO_SLUG/collaborators" --jq '[.[] | "@" + .login] | join(" ")' 2>/dev/null || true)"
 NOTES="$(mktemp)"
 cat > "$NOTES" <<EOF
 ## GDE Groningen – Zomer vol misdaad $VERSION
