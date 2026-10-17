@@ -1,6 +1,6 @@
 # Het nieuwe verhaal: "Alles voor één eierbal" (de provincietour)
 
-Voorstel voor issue [#93](https://github.com/NatusPella/GDE-Groningen/issues/93). Alleen documenten in `docs/verhaal/nieuw/`; er is geen code aangepast, niets opgenomen en geen TTS of netwerk gebruikt. Alles wat ik niet in de repo heb kunnen controleren, staat als **AANNAME**. Alles wat niemand in beeld heeft gezien, is **nog niet bekeken**.
+Voorstel voor issue [#93](https://github.com/NatusPella/GDE-Groningen/issues/93). Dit is **één verhaal in vijf akten**. Wat er in het oude spel bestaat (de oude delen en het oude plan voor een vervolg) bepaalt de structuur niet; oud materiaal komt alleen terug waar het past (de regels met de tag `[BEHOUDEN]`). Alleen documenten in `docs/verhaal/nieuw/`; er is geen code aangepast, niets opgenomen en geen TTS of netwerk gebruikt. Alles wat ik niet in de repo heb kunnen controleren, staat als **AANNAME**. Alles wat niemand in beeld heeft gezien, is **nog niet bekeken**.
 
 **Bestanden**
 
@@ -89,9 +89,9 @@ Bestaand = uit `docs/personages.md` en `storyarc.js`; **nieuw** alleen waar nodi
 | 13 | wo 26 | M26 | |
 | 14 | do 27 | M27, M28, M29 (nacht) | |
 | 15 | **vr 28 aug** | **M30, Gronings Ontzet** | |
-| 19 | di 1 sep → | epiloog; daarna vrij spel | |
+| 19 | di 1 sep → | epiloog (twee weken later); daarna loopt de open wereld door | |
 
-**Tegenstrijdigheden uit FLOW-ANALYSE §3.4, opgelost:** (a) `r-avond` ("morgen de rondvaartboot") en H13 stonden op dezelfde dag: beide geschrapt als hoofdstap (H13 wordt een bijbaan). (b) `s-boot` ("vandaag") op ma 24 en H14 op di 25: `s-boot` opgegaan in M12. (c) Jelles ballon "vanavond" terwijl H15 de volgende dag was: de ballon vliegt nu overdag, M14 op dezelfde dag. (d) `r-kermis` "wordt opgebouwd" terwijl de kermis opent: de botsauto's spelen nu op een andere kermis (Winschoten). **Constitutie 3 (altijd zomer):** de epiloog heeft nog "Het is koud." (zie open vraag 7). **Deel 4 (15 september):** botst met deze tour (zie open vraag 1).
+**Tegenstrijdigheden uit FLOW-ANALYSE §3.4, opgelost:** (a) `r-avond` ("morgen de rondvaartboot") en H13 stonden op dezelfde dag: beide geschrapt als hoofdstap (H13 wordt een bijbaan). (b) `s-boot` ("vandaag") op ma 24 en H14 op di 25: `s-boot` opgegaan in M12. (c) Jelles ballon "vanavond" terwijl H15 de volgende dag was: de ballon vliegt nu overdag, M14 op dezelfde dag. (d) `r-kermis` "wordt opgebouwd" terwijl de kermis opent: de botsauto's spelen nu op een andere kermis (Winschoten). **Constitutie 3 (altijd zomer):** de epiloog heeft nog "Het is koud." (zie open vraag 7).
 
 ## 4. Verhaal en romantiek per onderdeel (de grote tabel)
 
@@ -187,6 +187,8 @@ Gemiddelden per akte (actie / romantiek): akte 1 5,3 / 3,4; akte 2 5,7 / 4,3; ak
 
 ## 6. Oud naar nieuw (stappen H1-H18 en bijstappen)
 
+Het nieuwe verhaal staat op zichzelf. De tabel laat alleen zien welk bestaand materiaal (stappen, scènes, opnames) waar terugkomt, omdat dat geld en werk scheelt. Wat niet in de tabel staat, is niet nodig voor dit verhaal.
+
 | Oud | Nieuw | Wat en waarom |
 |---|---|---|
 | H1 Berend | M01 | behouden, 3 contextregels erbij |
@@ -199,7 +201,7 @@ Gemiddelden per akte (actie / romantiek): akte 1 5,3 / 3,4; akte 2 5,7 / 4,3; ak
 | H5 Fietsrace | M06 | behouden; het besluit "eerst pakken" erbij |
 | `k-kraakspullen`, `k-nacht` | in M07 | de wachtscène en Henks zender zitten in de intro |
 | H6 Kraak | M07 | behouden; **het kaartje wordt W (was J)**, vier regels opnieuw |
-| `r-trein` (hideouts) | reisbeat B1 | de treinscène blijft, ijsje en Hoge der A als vrij spel |
+| `r-trein` (hideouts) | reisbeat B1 | de treinscène blijft; ijsje en Hoge der A blijven losse activiteiten in de open wereld |
 | H7 Heel aankomen | M10 (mechaniek) | Femke vervalt; eieren door het Hogeland |
 | H8 Vet | M08 | behouden in Stad |
 | `r-tuning` | M26 | het luik inbouwen, Henk |
@@ -215,7 +217,7 @@ Gemiddelden per akte (actie / romantiek): akte 1 5,3 / 3,4; akte 2 5,7 / 4,3; ak
 | H17 Het bod | M29 | verplaatst naar Oma's keuken, met Mem erbij |
 | H18 Ontzet | M30 | behouden, Jelle is bewaarder die probeert voor te zitten |
 
-**Behouden:** 17 van de 18 hoofdmissies keren terug (alleen H13 gaat naar de bijbanen). **Samengevoegd:** 5 bijstappen. **Geschrapt:** 3 (`k-fiets`, `r-avond`, de padelstap). **Nieuw:** 13 missies.
+**Hergebruikt waar het past:** 17 van de 18 oude hoofdmissies zijn als mechaniek of scène bruikbaar (alleen H13 gaat naar de bijbanen). **Samengevoegd:** 5 bijstappen. **Geschrapt:** 3 (`k-fiets`, `r-avond`, de padelstap). **Nieuw:** 13 missies.
 
 ## 7. Reisplan per akte
 
@@ -245,9 +247,9 @@ Alle scènes volgen dezelfde regel: **context in de gesproken tekst** (wie, waar
 
 ## 9. Wat is nieuw voor ervaren spelers
 
-Spelers die het oude verhaal kennen, krijgen:
+Wie het spel al kent, ziet bekende regels en mechaniek op nieuwe plekken in één nieuw verhaal. Dat levert op:
 
-1. **Het hele land in plaats van de stad:** 7 regio's, 18 van de 30 missies spelen buiten Stad (nu: 0 van 30 stappen in een regio, 3 van 30 buiten Stad). Alle bekende beats keren terug op andere plekken.
+1. **De hele provincie in plaats van de stad:** 7 regio's, 18 van de 30 missies spelen buiten Stad. Bekende beats keren terug op andere plekken.
 2. **Een nieuw doel en een plan dat je volgt:** het plakjesbord en het koopboek; Jelle heeft nu een motief en vertelt zelf wat hij doet.
 3. **Een nieuw mysterie en een keerpunt:** de W op het kaartje; het "wij hebben hem niet" in M17; in M24 de onthulling.
 4. **Een dieptepunt vlak voor de finale** (M24-M25): de ruzie en Jelles bal.
