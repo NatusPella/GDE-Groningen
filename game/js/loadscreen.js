@@ -7,7 +7,6 @@
 // (img/laad/), chosen by where you are going.
 import { getStoryView } from './story.js';
 import { PARTS } from './storyarc.js';
-import { getAchievementSummary } from './achievements.js';
 import { hudDate } from './hudcalendar.js';
 import { streamPending } from './scene3d.js';
 import { placeLabel } from './hud_panel.js';
@@ -50,11 +49,6 @@ function recapText(view) {
   return 'Iemand heeft de Gouden Eierbal gejat. Tammo en Tessa hebben geen cent, wel een droom met een luik, en heel Grunn kijkt mee.';
 }
 
-function storyPct(view) {
-  if (!view || !view.total) return 0;
-  return Math.max(0, Math.min(100, Math.round((view.done / view.total) * 100)));
-}
-
 function ensureCss() {
   if (css) return;
   css = true;
@@ -76,7 +70,6 @@ export function startLoadScreen(world, opts = {}) {
   try { place = { ...place, ...placeLabel(world, x, y) }; } catch (e) { /* the label is a nicety */ }
   const view = (() => { try { return getStoryView(); } catch (e) { return null; } })();
   const date = hudDate(world);
-  const ach = (() => { try { return getAchievementSummary(); } catch (e) { return { done: 0, total: 0 }; } })();
   const img = pickImage(world, place);
   const line = place.line || LANDMARK_LINES[place.name] || '';
   const tipText = (t) => t.replace(/^Tip: /, '').replace(/^./, (c) => c.toUpperCase());
@@ -85,34 +78,26 @@ export function startLoadScreen(world, opts = {}) {
   const lead = kind === 'save' ? ['Eerder in het verhaal', firstSentence(recapText(view))] : ['Onderweg', line || 'Even geduld, de stad bouwt zich op.'];
   const pool = [lead];
   const shuffled = [...tips].sort(() => Math.random() - 0.5).slice(0, 4);
-  for (const t of shuffled) pool.push(['Wist je dat', tipText(t)]);
+  for (const t of shuffled) pool.push(['Wist je dat', firstSentence(tipText(t))]);
 
   const el = document.createElement('div');
   el.id = 'load-screen';
   el.className = 'ls' + (opts.instant || kind === 'save' ? ' instant' : '');
   el.setAttribute('role', 'progressbar');
   el.setAttribute('aria-label', 'Laden');
-  const time = world.dayNight ? `${String(Math.floor(((world.dayNight.hour % 24) + 24) % 24)).padStart(2, '0')}:${String(Math.floor((((world.dayNight.hour % 24) + 24) % 24) % 1 * 60)).padStart(2, '0')}` : '';
   el.innerHTML =
     `<img class="ls-bg" src="img/laad/${img}.jpg" alt="${esc(IMAGES[img])}" decoding="async">` +
     '<div class="ls-shade"></div><div class="ls-foot-shade"></div>' +
     '<div class="ls-stage">' +
       '<div class="ls-brand"><div class="gde-logo" aria-hidden="true"><span class="gde-mark">GDE</span><span class="gde-sign">Groningen</span><span class="gde-sub">Zomer vol misdaad</span></div></div>' +
       '<div class="ls-card">' +
-        `<span class="ls-kick">${kind === 'save' ? 'Je gaat verder in' : 'Je gaat naar'}</span>` +
+        `<span class="ls-kick">${kind === 'save' ? 'Verder in' : 'Naar'}</span>` +
         `<b class="ls-place">${esc(place.name || 'Grunn')}</b>` +
-        `<div class="ls-when"><span>${esc([date.short, time].filter(Boolean).join(' · '))}</span>${date.special ? `<span class="ls-badge">${esc(date.special)}</span>` : ''}</div>` +
-        '<i class="ls-rule"></i>' +
-        '<div class="ls-stats">' +
-          `<div><b class="g">${storyPct(view)}%</b><span>Verhaal</span></div>` +
-          `<div><b>€ ${Math.max(0, Math.floor(world.money || 0)).toLocaleString('nl-NL')}</b><span>Op zak</span></div>` +
-          `<div><b>${ach.done}/${ach.total}</b><span>Prestaties</span></div>` +
-        '</div>' +
+        (date.special ? `<div class="ls-when"><span class="ls-badge">${esc(date.special)}</span></div>` : '') +
       '</div>' +
       '<div class="ls-bottom">' +
         '<div class="ls-tip"><span class="ls-tip-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.8.8 1 1.5 1 2.5h6c0-1 .2-1.7 1-2.5A6 6 0 0 0 12 3z"/></svg></span><div><span></span><p></p></div></div>' +
-        '<div class="ls-prog"><div class="ls-phase"><svg class="ls-spin" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 9 9"/></svg></div>' +
-        '<div class="ls-bar"><i></i></div></div>' +
+        '<div class="ls-prog"><div class="ls-bar"><i></i></div></div>' +
       '</div>' +
     '</div>';
   document.body.appendChild(el);

@@ -405,7 +405,7 @@ export function initPauseMenu(w) {
   root.setAttribute('aria-modal', 'true');
   root.setAttribute('aria-labelledby', 'pm-title');
   root.dataset.level = 'section';
-  const railBtn = (id) => { const [, label] = sectionOf(id); return `<button type="button" class="ra" data-goto="${id}" aria-current="false">${label}<span class="n" data-n="${id}"></span></button>`; };
+  const railBtn = (id) => { const [, label] = sectionOf(id); return `<button type="button" class="ra" data-goto="${id}" aria-current="false">${icon(id, 'pm-ic ra-ic')}<span class="ra-t">${label}</span><span class="n" data-n="${id}"></span></button>`; };
   root.innerHTML = `
     <div class="pm-fold gm-stage">
       <nav class="pm-rail" aria-label="Pauzemenu">

@@ -125,7 +125,7 @@ export function renderAchievementsPanel(el, { keepFresh = false } = {}) {
     }).join('') + '<div class="m-rule"></div>' +
       extras.map(([id, t, hint, inner]) => disc(id, t, `<span class="mut">${hint}</span>`, inner, openExtra.has(id), `data-achextra="${id}"`)).join('');
   }
-  el.dataset.sub = `${sum.done} van ${sum.total} behaald${all.some((a) => a.hidden) ? ` · ${all.filter((a) => a.hidden).length} verborgen` : ''} · blijven bewaard, ook bij een nieuw spel`;
+  el.dataset.sub = `${all.some((a) => a.hidden) ? `${all.filter((a) => a.hidden).length} verborgen · ` : ''}blijven bewaard`;
   el.innerHTML = `<div class="m-tabs"><nav class="m-tablist" role="tablist" aria-label="Weergave">${tab('alles', 'Alles')}${tab('bijna', 'Bijna binnen', near.length)}${tab('behaald', 'Behaald', done.length)}</nav>` +
     `<span class="m-grow"></span><span class="pa-total"><span class="m-num" data-pa-pct>${sum.done}</span><span class="mut">van ${sum.total} behaald</span></span></div>` +
     `<div class="m-main"><div class="m-list pa-list">${list}</div><aside class="m-pane pa-pane" aria-live="polite">${detailHtml(selItem, selItem && selItem.catLabel)}</aside></div>`;
