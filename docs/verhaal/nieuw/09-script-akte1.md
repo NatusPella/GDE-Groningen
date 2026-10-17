@@ -368,7 +368,7 @@ TESSA: J. Van Jelle. Natuurlijk. [BEHOUDEN]
 TAMMO: Beleefd. [BEHOUDEN]
 TAMMO: Hij heeft hem gestolen om hem eerlijk te winnen. [BEHOUDEN]
 TESSA: En de camera's van daarnet hebben óns gefilmd. [BEHOUDEN]
-TAMMO: Een dief die bedankt. Dat is ook beleefd. [NIEUW]
+TAMMO: Een dief die een bedankje achterlaat. Raar. [NIEUW]
 TESSA: Rennen, Tammo. [NIEUW]
 
 ## [M07.4] Het museum stond er al zo: herhaling – Stad, kade – te voet
