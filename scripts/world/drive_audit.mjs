@@ -40,6 +40,7 @@ if (limit) roads = roads.slice(0, limit);
 
 const t0 = performance.now();
 const fails = [];
+const bends = [];
 let drives = 0;
 for (const r of roads) {
   const L = len(r.pts);
@@ -53,6 +54,14 @@ for (const r of roads) {
     for (const dir of [1, -1]) {
       drives++;
       const res = await RC.driveAcross(world, dir > 0 ? piece : piece.slice().reverse(), speed, { jump: true, maxT: 60 });
+      // a side scrape of a house by a car swinging round a sharp joint (yawed over 20 deg off
+      // the path's heading, or more than 1.5 m off it) is the audit's own bend, not a
+      // footprint on the carriageway: listed apart (building_clearance.mjs keeps 1.5 m
+      // between every car centreline and a footprint, a 4.1 x 1.85 m body swings wider in a bend)
+      if (res && res.what.startsWith('botst') && /^gebouw [^,]*\(zijkant\)$/.test(res.by || '') && (res.yaw > 20 || res.dev > 1.5)) {
+        bends.push({ road: `${r.ref || ''} ${r.name || r.type}`.trim(), type: r.type, dir: dir > 0 ? 'mee' : 'tegen', ...res });
+        continue;
+      }
       if (res) fails.push({ road: `${r.ref || ''} ${r.name || r.type}`.trim(), type: r.type, dir: dir > 0 ? 'mee' : 'tegen', ...res });
     }
   }
@@ -61,6 +70,8 @@ const secs = (performance.now() - t0) / 1000;
 const by = {};
 for (const f of fails) { const k = f.what.split(" (")[0]; by[k] = (by[k] || 0) + 1; }
 console.log(`${roads.length} roads, ${drives} drives in ${secs.toFixed(0)} s: ${fails.length} failed${fails.length ? ' (' + Object.entries(by).map(([k, v]) => `${k} ${v}`).join(', ') + ')' : ''}`);
+if (bends.length) console.log(`${bends.length} side scrapes in a sharp joint (yaw over 20 deg or 1.5 m off the path), not counted:`);
+for (const f of bends) console.log(`  ${f.road} (${f.type}, ${f.dir}) at ${f.x}, ${f.y} ${f.v} km/h yaw ${f.yaw} dev ${f.dev} m`);
 for (const f of fails.slice(0, 40)) console.log(`  ${f.what.padEnd(22)} ${f.road} (${f.type}, ${f.dir}) at ${f.x}, ${f.y} z ${f.z} ${f.v} km/h${f.by ? ' by ' + f.by : ''}`);
 
 let solids = [];
@@ -72,5 +83,5 @@ if (args.includes('--solids')) {
   console.log(`solids on the lanes of ${roads.length} roads in ${((performance.now() - t1) / 1000).toFixed(0)} s: ${solids.length}${solids.length ? ' (' + Object.entries(sk).map(([k, v]) => `${k} ${v}`).join(', ') + ')' : ''}`);
   for (const h of solids.slice(0, 30)) console.log(`  ${h.kind.padEnd(8)} ${h.what} on ${h.route} +${h.s} m at ${h.x}, ${h.y} z ${h.z}`);
 }
-if (opt('json')) fs.writeFileSync(opt('json'), JSON.stringify({ drives, fails, solids }));
+if (opt('json')) fs.writeFileSync(opt('json'), JSON.stringify({ drives, fails, bends, solids }));
 process.exit(args.includes('--strict') && (fails.length || solids.length) ? 1 : 0);
