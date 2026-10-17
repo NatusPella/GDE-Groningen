@@ -7,7 +7,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte2
 | | |
 |---|---|
 | **Regio** | Stad (begin), Hogeland (Winsum, Warffum, Usquert), Waddenzee-kust (Zoutkamp, Reitdiep, monding Lauwersmeer, kwelder; de zee zelf is zichtbaar maar niet bevaarbaar) |
-| **Sfeer** | de dag na de kraak: Grunn zoekt twee mensen in het zwart; buiten Stad is het zonnig, wijd en stil; wierden, kerken, de dijk, de zee aan de horizon en het wad bij laagwater; Noorderzon opent do 20 in Stad (op de radio) |
+| **Sfeer** | de dag na de kraak: Grunn zoekt twee mensen in het zwart; buiten Stad is het zonnig, wijd en stil; wierden, kerken, de dijk, de zee aan de horizon en het wad bij laagwater; het Plantsoenfestijn opent do 20 in Stad (op de radio) |
 | **Tijd** | ca. 55 minuten (5 missies + 2 reisbeats) |
 | **Dagen** | di 18 (2.1, 2.2, trein), wo 19 (2.3, 2.4), do 20 (bus, 2.5, 's nachts) |
 | **Wat de speler leert** | de provincie is groot; reizen is een keuze (trein, bus); tankwagen, trekker, quad, snelle boot, ondiep water; sluipen langs de kustwacht; de plakjes van Jelle zichtbaar maken |
@@ -76,14 +76,14 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte2
 | **Mechaniek / hergebruik** | `fatbike`-stage (stroom fatbikes over de stoep, `LANE_SPAWN_EVERY`); bestaande def |
 | **Doel (hardop)** | "Loop heelhuids door de fatbikes naar Oma Trijntje, dan vertelt ze iets over die bal." |
 | **Motief** | de politie zoekt jullie; Oma Trijntje is veilig, en ze weet iets over de bal en over Gerda Terpstra |
-| **Verloop** | 1) Oma belt (en belde eerder Nachtstreek over fatbikes: wereld). 2) Lopen door een stroom fatbikes; elke aanraking kost je een tel. 3) Aankomst bij Oma, krentjebrij. 4) Scène: 1953, Gerda, het recept met vijf vrienden. **Falen:** te vaak geraakt: "Sikkom." |
+| **Verloop** | 1) Oma belt Tammo (en belde eerder Nachtstreek over fatbikes: wereld): "Ik heb iets over die bal." 2) Lopen door een stroom fatbikes; elke aanraking kost je een tel. 3) Aankomst bij Oma, krentjebrij. 4) Scène: 1953, Gerda, het recept met vijf vrienden. **Falen:** te vaak geraakt: "Sikkom." |
 | **Reizen** | 3 km; skip: scooter |
 | **Romantiek (4/10)** | Tessa vraagt Tammo naar zijn opa; Oma: "Niet tegen haar" over wat Tammo moet zeggen |
 | **Plot** | 1953; Gerda's eierbal was beter; het recept van 1953 had vijf dingen van vijf vrienden (Geesje, Klaas, Lammert, Roelfien, Wubbo); Oma weet "waar hij was" en laat zich niet kennen: "Jelle zegt veel." |
 | **Gevolg / haak** | Oma stuurt hen naar Geesje in Warffum |
 | **Behouden / nieuw** | intro, 1953-scène BEHOUDEN, lijstje en recept NIEUW |
 
-**Sleutelscène (Oma's kamer):** OMA TRIJNTJE: "Eet je krentjebrij." TAMMO: "Ik ben vierendertig, oma." (BEHOUDEN, niet aangeraakt.) OMA: "1953. Dat ik won, weet je. Wat je niet weet: tweede werd een Fries meisje. Gerda Terpstra. Haar eierbal was beter." [NIEUW] TESSA: "Terpstra? Van Jelle?" OMA: "Haar zoon, zeker. Ik heb het nooit gezegd. Zeventig jaar trots." (BEHOUDEN.) TAMMO: "Jelle zegt: bij hem." OMA: "Jelle zegt veel." [NIEUW]
+**Sleutelscène (Oma's kamer):** OMA TRIJNTJE: "Eet je krentjebrij." TAMMO: "Ik ben vierendertig, oma." (BEHOUDEN, niet aangeraakt.) OMA: "1953. Dat ik won, weet je. Wat je niet weet: tweede werd een Fries meisje. Gerda Terpstra. Haar eierbal was beter." [NIEUW] TESSA: "Terpstra? Van Jelle?" OMA: "Haar zoon, zeker. Ik heb het nooit gezegd. Zeventig jaar trots." (BEHOUDEN.) TAMMO: "Jelle zegt: bij hem." OMA: "Jelle zegt veel." [NIEUW] Tessa: "We halen de ingrediënten voor Oma's recept bij haar vrienden. Dan kunnen we meedoen, ook als Jelle de voorraad van iedereen opkoopt." [NIEUW]
 
 > **Te beoordelen.** A) Oma geeft het lijstje hier (voorstel). B) Het lijstje komt in stukjes. C) Oma zegt hardop dat Gerda haar vriendin is (raad ik af).
 
@@ -135,7 +135,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte2
 | **Jelle grijpt in** | **hinderlaag met chantage** (de museumbeelden) en de limo-achtervolging |
 | **Reizen** | Usquert naar Uithuizen 6 km: 4 min (de missie zelf) |
 | **Romantiek (3/10)** | Tessa stuurt, Tammo houdt zich vast: "Houd je vast." "Ik heb stuur." |
-| **Plot** | **Jelles motief wordt hardop, en de softe kant komt boven:** Mem is eenennegentig, zeventig jaar tweede. Jelle: "Mem wil niks. Daarom doe ik het." Tessa: "Hij heeft hem echt." |
+| **Plot** | **Jelles motief wordt hardop, en de softe kant komt boven (Tessa: "Hij is niet dom. Hij wil dat we hem onderschatten."):** Mem is eenennegentig, zeventig jaar tweede. Jelle: "Mem wil niks. Daarom doe ik het." Tessa: "Hij heeft hem echt." |
 | **Gevolg / haak** | Jelle valt in de sloot ("Oant sjen!"; Douwe: "…Plons.", eerste van drie keer). Appje: "Is mijn jongen droog? Zeg niks tegen jouw jongen. – M." (stil) |
 | **Behouden / nieuw** | NIEUW (één BEHOUDEN: "Oant sjen!") |
 
