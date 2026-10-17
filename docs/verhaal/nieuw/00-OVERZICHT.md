@@ -40,7 +40,7 @@ Bestaand = uit `docs/personages.md` en `storyarc.js`; **nieuw** alleen waar nodi
 | **Rikus** | nacht-dj Nachtstreek, jeugdvriend, de radio | blijft vertellen, "ik zeg niks" en zegt het toch: dat kost hen in M23 bijna alles | warm en droog; **radio is alleen wereld** | opening, radio |
 | **Jelle Terpstra** | tegenstander, ijdel, nooit gemeen | van "foar mem" naar "ja, mem": geeft alle plakjes terug | Nederlands met Friese woorden; elke zin is reclame | chat (M03), in persoon in M04 |
 | **Mem (Gerda) Terpstra** | Jelles moeder; **medeplichtige** met Oma; appt Tessa | wil dat hij ophoudt; haar eierbal was beter | stellig, Fries-getint, altijd ondertiteld | appjes vanaf M08 (stil), stem in M24 |
-| **Oma Trijntje** | mentor, 92, bakte in 1953 de beste (volgens haar) | zegt eindelijk: "Gerda. Jouw eierbal was beter." | warm, stellig | M09 (naamkaart), hier eerder dan nu (nu H12) |
+| **Oma Trijntje** | mentor, 92, bakte in 1953 de beste (volgens haar) | zegt eindelijk: "Gerda. Jouw eierbal was beter." | warm, stellig | M09 (naamkaart); komt daarmee vroeger in beeld dan in het huidige H12 |
 | **Durk en Douwe** | Jelles tweeling, "…Hè." | lopen over in M27 | traag, synchroon | M02 |
 | **Berend Bos** | Bommen Berend, jurylid; **getaway-chauffeur** van de grannies ("Nul krassen. Op de heenweg.") | stiekem trots | nors, korte zinnen, "Goidag" | M01 |
 | **Duivenmelker Bert** | mentor-duif | kijkt toe | zacht, wijs | M05 |
@@ -89,7 +89,7 @@ Bestaand = uit `docs/personages.md` en `storyarc.js`; **nieuw** alleen waar nodi
 | 13 | wo 26 | M26 | |
 | 14 | do 27 | M27, M28, M29 (nacht) | |
 | 15 | **vr 28 aug** | **M30, Gronings Ontzet** | |
-| 33 | di 1 sep → | epiloog; daarna vrij spel | |
+| 19 | di 1 sep → | epiloog; daarna vrij spel | |
 
 **Tegenstrijdigheden uit FLOW-ANALYSE §3.4, opgelost:** (a) `r-avond` ("morgen de rondvaartboot") en H13 stonden op dezelfde dag: beide geschrapt als hoofdstap (H13 wordt een bijbaan). (b) `s-boot` ("vandaag") op ma 24 en H14 op di 25: `s-boot` opgegaan in M12. (c) Jelles ballon "vanavond" terwijl H15 de volgende dag was: de ballon vliegt nu overdag, M14 op dezelfde dag. (d) `r-kermis` "wordt opgebouwd" terwijl de kermis opent: de botsauto's spelen nu op een andere kermis (Winschoten). **Constitutie 3 (altijd zomer):** de epiloog heeft nog "Het is koud." (zie open vraag 7). **Deel 4 (15 september):** botst met deze tour (zie open vraag 1).
 
@@ -224,10 +224,10 @@ Afstanden zijn geschat uit algemene kennis (AANNAME) en moeten met de reisplanne
 | Akte | Regiosprongen (km, schatting) | Totaal km | Reistijd als je alles rijdt | Reistijd in het ontwerp | Keuzes en alternatieven |
 |---|---|---|---|---|---|
 | 1 | binnen Stad: 1,5 + 0,6 + 0,4 + 0,3 + 2 + 1 + 4 | 10 | 8 min | 8 min | te voet, fiets, scooter |
-| 2 | Stad-Winsum 17, Winsum-Warffum 12, Warffum-Usquert 3, Usquert-Uithuizen 6, Uithuizen-Zoutkamp 30, Zoutkamp-Lauwersoog 9, Lauwersoog-Noordpolderzijl 14 | 97 | 78 min | 14 min | trein Winsum, streekbus Zoutkamp, Geesjes neef brengt je |
+| 2 | Stad-Winsum 17, Winsum-Warffum 12, Warffum-Usquert 3, Usquert-Uithuizen 6, Uithuizen-Zoutkamp 30, Zoutkamp-Lauwersoog 9, Lauwersoog-Noordpolderzijl 14, plus 5,5 in Stad | 97 | 78 min | 14 min | trein Winsum, streekbus Zoutkamp, Geesjes neef brengt je |
 | 3 | Lauwersoog-UMCG 35, UMCG-Dollard 45, Dollard-Eemshaven 40, Eemshaven-Delfzijl 25, Delfzijl-Winschoten 35, +8 | 188 | 150 min | 12 min | heli (Dijkstra), trein Winschoten |
 | 4 | Winschoten-Veendam 17, +2, Veendam-Stadskanaal 20, Stadskanaal-Ter Apel 22, Ter Apel-Bourtange 12, Bourtange-Zuidhorn 65 | 138 | 110 min | 15 min | streekbus, Berends bus en bakkie, taxi |
-| 5 | Zuidhorn-schuur 3, Zuidhorn-Aduard 12, Aduard-Grote Markt 8, +9 | 32 | 26 min | 20 min (de colonne is een missie) | Skip met scène |
+| 5 | Zuidhorn-schuur 3, Zuidhorn-Aduard 12, Aduard-Grote Markt 8, Markt-toren-Oma-Markt 6 | 29 | 23 min | 20 min (de colonne is een missie) | Skip met scène |
 | **Totaal** | | **ca. 465** | **ca. 6 uur** | **ca. 70 min** | |
 
 **Regels (uit #97):** één regio per akte (Stad is begin en eind); 1-3 minuten tussen opeenvolgende doelen, nooit meer dan 5 minuten zonder gesprek, event of keuze; reizen is inhoud (autogesprekken, radio, kleine events); de missie geeft het voertuig; bij falen respawn je bij het doel of het laatste checkpoint, niet in Stad; ETA en route op de missiekaart; de dag eindigt in de regio waar je bent (een verhaaldag dekt de reis).
@@ -247,7 +247,7 @@ Alle scènes volgen dezelfde regel: **context in de gesproken tekst** (wie, waar
 
 Spelers die het oude verhaal kennen, krijgen:
 
-1. **Het hele land in plaats van de stad:** 7 regio's, 0 tot 25 van de 30 missies buiten Stad (was 3 van 30). Alle bekende beats keren terug op andere plekken.
+1. **Het hele land in plaats van de stad:** 7 regio's, 18 van de 30 missies spelen buiten Stad (nu: 0 van 30 stappen in een regio, 3 van 30 buiten Stad). Alle bekende beats keren terug op andere plekken.
 2. **Een nieuw doel en een plan dat je volgt:** het plakjesbord en het koopboek; Jelle heeft nu een motief en vertelt zelf wat hij doet.
 3. **Een nieuw mysterie en een keerpunt:** de W op het kaartje; het "wij hebben hem niet" in M17; in M24 de onthulling.
 4. **Een dieptepunt vlak voor de finale** (M24-M25): de ruzie en Jelles bal.

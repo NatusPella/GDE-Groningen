@@ -304,7 +304,7 @@ TESSA: Het is een goed tegeltje. [NIEUW]
 TAMMO: Kon minder. [BEHOUDEN]
 TESSA: Kon veel minder. [BEHOUDEN]
 
-## [A5.1] Appjes akte 5 (stil, geen stem) – telefoon
+## [A5.1] Appjes akte 5 (stil, geen stem) – alle regio's – telefoon
 APP MEM→TESSA (stil): Tige tank, famke. – M. [NIEUW]
 APP TESSA→MEM (stil): Dank u, Mem. [NIEUW]
 APP TAMMO→TESSA (stil): Straks. Op de Grote Markt. [NIEUW]
