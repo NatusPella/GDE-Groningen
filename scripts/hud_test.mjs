@@ -53,11 +53,16 @@ ok(d({ banner: true }).dimAll, 'a P0 banner dims the rest');
 const mm = d({ mode: 'minimaal', wanted: 2, objective: true, subtitle: true, armed: true, inVehicle: true, moneyAgo: 1, cardA: R.P3, hpFull: false });
 ok(mm.show.stars && mm.show.objective && mm.show.subtitle && !mm.show.minimap && !mm.show.money && !mm.show.weapon && !mm.show.vehicle && !mm.show.cardA, 'Minimaal: stars, objective, subtitles only');
 ok(d({ mode: 'minimaal', cardA: R.P0 }).show.cardA, 'Minimaal keeps P0');
-// ceiling: at most 7 besides the minimap, P3 then clock then money go first
+// ceiling: at most 6 besides the minimap, P3 then clock then money go first
 const full = d({ wanted: 3, moneyAgo: 1, armed: true, hpFull: false, inVehicle: true, vehFull: false, keys: 2, objective: true, subtitle: true, cardA: R.P3, cardE: R.P3, gps: true, place: false });
-ok(full.count <= R.CEILING, 'ceiling of 7 holds, got ' + full.count);
+ok(full.count <= R.CEILING, 'ceiling of 6 holds, got ' + full.count);
 ok(!full.show.cardA && !full.show.cardE, 'P3 goes first over the ceiling');
 ok(full.show.stars && full.show.objective && full.show.vehicle, 'P1/P2 stay');
+// what talks: a message, the radio and a subtitle never stack all three
+const talk = d({ cardA: R.P2, cardE: R.P3, subtitle: true });
+ok(talk.show.cardA && !talk.show.cardE && talk.show.subtitle, 'of message, radio and subtitle the P3 one gives way');
+ok(d({ cardA: R.P3, cardE: R.P2, subtitle: true }).show.cardE === true && d({ cardA: R.P3, cardE: R.P2, subtitle: true }).show.cardA === false, 'the lower priority gives way, also in A');
+ok(d({ cardA: R.P2, cardE: R.P3 }).show.cardE, 'two talkers are fine');
 // zone board
 const z = new R.ZoneBoard();
 ok(z.occupy('A', 'card', R.P3) && !z.occupy('A', 'phone', R.P2), 'one holder per zone');
