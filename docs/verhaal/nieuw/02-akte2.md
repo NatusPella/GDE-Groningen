@@ -118,7 +118,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte2
 - **TAMMO:** Ik zeg wel wat. [BEHOUDEN]
 - **OMA TRIJNTJE:** Niet tegen haar. [BEHOUDEN]
 
-> **Te beoordelen.** A) Oma geeft het lijstje met vijf namen hier (voorstel). B) Het lijstje komt in stukjes: één naam per regio, via Rikus. C) Oma zegt hardop dat Gerda haar vriendin is (verklapt het W-raadsel te vroeg; ik raad af).
+> **Te beoordelen.** A) Oma geeft het lijstje met vijf namen hier (voorstel). B) Het lijstje komt in stukjes: één naam per regio, via Rikus. C) Oma zegt hardop dat Gerda haar vriendin is (verklapt de twist te vroeg; ik raad af).
 
 ---
 
@@ -200,7 +200,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte2
 | **Reizen** | Usquert naar Uithuizen 6 km: 4 min (de missie zelf) |
 | **Romantiek (3/10)** | Tessa stuurt, Tammo houdt zich vast; hij zegt "Voor de grip" en zij zegt "Ik heb stuur" |
 | **Plot** | **Jelles motief wordt hardop:** Mem is eenennegentig, zeventig jaar tweede. Jelle: "Geef hem terug, famke." Tessa: "Wij hebben hem niet." Jelle: "Ik ook niet… Ik bedoel: ik zeg niks." Beide kanten bluffen. |
-| **Gevolg / haak** | Jelle valt in de sloot ("Oant sjen!"). Tessa: "Hij heeft hem niet." Tammo: "Of hij is dom." Tessa: "Hij is niet dom, hij is Fries." Appje: "Hij is veilig. Zeg niks tegen je jongen. – M." (stil, alleen tekst) |
+| **Gevolg / haak** | Jelle valt in de sloot ("Oant sjen!"). Tessa: "Hij heeft hem niet." Tammo: "Of hij is dom." Tessa: "Hij is niet dom, hij is Fries." Appje: "Is mijn jongen droog? Zeg niks tegen jouw jongen. – M." (stil, alleen tekst) |
 | **Behouden / nieuw** | NIEUW (twee BEHOUDEN: "Oant sjen!" en "Plons.") |
 | **Nieuwe regels (schatting)** | 22 |
 
@@ -211,8 +211,8 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte2
 - **JELLE:** Alles is te koop, famke. Behalve de bal. Die heb ik al. [NIEUW]
 - **TAMMO:** Dan heb je hem dus. [NIEUW]
 - **JELLE:** Ik zeg niks. Wat stond er eigenlijk op dat kaartje? [NIEUW]
-- **TESSA:** Tige tank. [NIEUW]
-- **JELLE:** Dat dacht ik ook. Durk, Douwe, pak ze. [NIEUW]
+- **TESSA:** Tige tank. En een J. [NIEUW]
+- **JELLE:** …Een J. Dat dacht ik ook. Durk, Douwe, pak ze. [NIEUW]
 - **TESSA:** Op de quad. Nu. [NIEUW]
 
 **Sleutelscène (aan de sloot):**

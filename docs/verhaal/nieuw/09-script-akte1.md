@@ -354,11 +354,9 @@ TAMMO: De vitrine. Die staat open. [NIEUW]
 
 ## [M07.3] Het museum stond er al zo: de lege vitrine – Stad, Groninger Museum – te voet
 (regie: de koepel is van matglas met een gouden gloed. Het slot klikt, de koepel komt omhoog: een leeg kussen. Close-up van het kaartje, zes à acht seconden, wegklikbaar.)
-TESSA: "Tige tank! – W." Hartelijk dank. [NIEUW]
-TAMMO: Er staat een W. [NIEUW]
-TESSA: Jelle heeft een slordig handschrift. [NIEUW]
-TAMMO: Jelle begint met een J. [NIEUW]
-TESSA: Dan is het een slordige J. We moeten hier weg, Tammo. [NIEUW]
+TESSA: "Tige tank! – J." [BEHOUDEN]
+TAMMO: Hij bedankt ons. [BEHOUDEN]
+TESSA: Hij. Bedankt. Ons. [BEHOUDEN]
 (regie: het alarm gaat af en het noodlicht springt aan. Ze rennen.)
 RIKUS (radio): We hebben een beller. Uit… Ljouwert? [BEHOUDEN]
 (regie: naamkaart voor Jelle in beeld.)
@@ -370,7 +368,7 @@ TESSA: J. Van Jelle. Natuurlijk. [BEHOUDEN]
 TAMMO: Beleefd. [BEHOUDEN]
 TAMMO: Hij heeft hem gestolen om hem eerlijk te winnen. [BEHOUDEN]
 TESSA: En de camera's van daarnet hebben óns gefilmd. [BEHOUDEN]
-TAMMO: Alleen staat er een W. [NIEUW]
+TAMMO: Een dief die bedankt. Dat is ook beleefd. [NIEUW]
 TESSA: Rennen, Tammo. [NIEUW]
 
 ## [M07.4] Het museum stond er al zo: herhaling – Stad, kade – te voet
