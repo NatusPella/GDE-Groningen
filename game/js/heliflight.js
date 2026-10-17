@@ -29,7 +29,7 @@ import { Vehicle, disableVehicle, explodeVehicle, reportImpact, overOpenWater } 
 import { pointInPolygon, normalizeAngle, clamp, WATER_Y } from './util.js';
 import { waterAt } from './waterlevels.js';
 import { inPassage } from './collision.js';
-import { REAL, buildingAt, buildingModel, inRealExtent } from './countryreal.js';
+import { REAL } from './countryreal.js';
 import { getSettings } from './settings.js';
 import { keyWord } from './controls.js';
 const downKey = () => keyWord(getSettings().keyBinds, 'control');
@@ -63,7 +63,6 @@ const SKIDS = [[1.5, 1.0], [1.5, -1.0], [-1.1, 1.0], [-1.1, -1.0]];
 
 let world = null;
 const pads = [];
-const realTops = new Map();
 let edgeWarnAt = -Infinity;
 let msgAt = {};
 let hud = null;
@@ -116,8 +115,8 @@ function say(key, text, s = 3, kind = 'tip', every = 6) {
   world.addMessage(text, s, { kind });
 }
 
-// Roof height of what stands at (x, y): the city's footprints (a passage
-// through one is open) and the real Ommeland boxes.
+// Roof height of what stands at (x, y): the footprints of the tiles (a passage
+// through one is open).
 function roofAt(map, x, y) {
   let top = -Infinity, pitched = false;
   for (const b of map.buildingsNear(x, y, 1)) {
@@ -129,19 +128,6 @@ function roofAt(map, x, y) {
     const p = !b.landmark && (b.h || 3) <= 3 && small;
     const t = peak + (p ? PITCHED_RIDGE : 0);
     if (t > top) { top = t; pitched = p; }
-  }
-  if (REAL.ready && inRealExtent(x, y)) {
-    const i = buildingAt(x, y, 0);
-    if (i >= 0) {
-      let r = realTops.get(i);
-      if (!r) {
-        const m = buildingModel(i);
-        r = { top: m.wall + (m.roof || 0), pitched: (m.roof || 0) > 0.5 };
-        if (realTops.size > 4000) realTops.clear();
-        realTops.set(i, r);
-      }
-      if (r.top > top) { top = r.top; pitched = r.pitched; }
-    }
   }
   return top === -Infinity ? null : { top, pitched };
 }

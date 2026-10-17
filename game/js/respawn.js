@@ -6,10 +6,8 @@ import { helipadInfo, scriptHeli, landHeliOnPad } from './skyprops.js';
 import { isInWater, closestPointOnSegment, pointInPolygon } from './util.js';
 import { saveSoon } from './savegame.js';
 import { nearestFacility } from './facilities.js';
-import { REAL, inRealExtent, buildingAt as realBuildingAt, pushOutOfReal } from './countryreal.js';
-import { edgeDistance, realWater } from './countryfield.js';
-import { pushOutOfPlan } from './countryplan.js';
-import { realRoadNear } from './ommelandplace.js';
+import { REAL, inRealExtent } from './countryreal.js';
+import { edgeDistance } from './countryfield.js';
 
 // Genre-style respawn trips, played after the DOOD / OPGEPAKT shot, to the
 // nearest real facility (facilities.js), in town and out in the Ommelanden:
@@ -87,93 +85,9 @@ function umcgEntrance(map, site) {
 
 // --- the Ommelanden ------------------------------------------------------------------
 
-// Out in the real Ommelanden: no city streets or footprints, the real roads
-// and building boxes instead.
+// Out in the Ommelanden, past the city's data: the trauma helicopter stays home.
 function inCountry(x, y) {
   return REAL.ready && inRealExtent(x, y) && edgeDistance(x, y) > 40;
-}
-
-// A road a car may stop on (no motorway or slip road).
-const carRoad = (r) => r.kind > 2 && !r.bridge;
-
-// Somewhere to stand: not in a building, a farmstead or the water.
-function standable(map, x, y) {
-  if (!walkable(map, x, y) || realBuildingAt(x, y, 0.35) >= 0 || realWater(x, y) > -0.6) return false;
-  return !pushOutOfPlan({ x, y }, 0.35);
-}
-
-// The face of real building box i that looks at (tx, ty), `out` metres out.
-function boxExit(i, tx, ty, out) {
-  const c = Math.cos(REAL.ba[i]), s = Math.sin(REAL.ba[i]);
-  const dx = tx - REAL.bx[i], dy = ty - REAL.by[i];
-  const u = dx * c + dy * s, v = -dx * s + dy * c;
-  const hw = REAL.bw[i] / 2, hl = REAL.bl[i] / 2;
-  let eu, ev;
-  if (Math.abs(u) * hl >= Math.abs(v) * hw) { eu = Math.sign(u || 1) * (hw + out); ev = (v * hw) / (Math.abs(u) || 1); }
-  else { ev = Math.sign(v || 1) * (hl + out); eu = (u * hl) / (Math.abs(v) || 1); }
-  const o = { x: REAL.bx[i] + eu * c - ev * s, y: REAL.by[i] + eu * s + ev * c };
-  for (let k = 0; k < 3 && realBuildingAt(o.x, o.y, 0.2) >= 0; k++) pushOutOfReal(o, out);
-  return o;
-}
-
-// The front door of the real building at `site`, the player on the path to
-// the road, the Escapade on the verge (or at the edge of the lane) beside it.
-function planCountry(w, site) {
-  const map = w.map;
-  const q = realRoadNear(site.x, site.y, 400, carRoad);
-  let bi = -1;
-  for (const m of [0, 4, 10, 20, 30]) if ((bi = realBuildingAt(site.x, site.y, m)) >= 0) break;
-  const toward = q || site;
-  const door = bi >= 0 ? boxExit(bi, toward.x, toward.y, 1.0) : { x: site.x, y: site.y };
-  const ok = (x, y) => standable(map, x, y) && map.canWalkOut(x, y, 20);
-  let p = null;
-  const dl = Math.hypot(toward.x - door.x, toward.y - door.y) || 1;
-  for (let s = 0; s <= Math.min(45, dl) && !p; s += 0.75) {
-    const x = door.x + ((toward.x - door.x) / dl) * s, y = door.y + ((toward.y - door.y) / dl) * s;
-    if (ok(x, y)) p = { x, y };
-  }
-  for (let r = 2; r <= 120 && !p; r += 3) {
-    for (let k = 0; k < 16 && !p; k++) {
-      const a = (k / 16) * Math.PI * 2, x = door.x + Math.cos(a) * r, y = door.y + Math.sin(a) * r;
-      if (ok(x, y)) p = { x, y };
-    }
-  }
-  if (!p) p = { x: door.x, y: door.y };
-  const car = q ? countryKerb(w, q.road, p) : null;
-  let angle = 0;
-  if (car) {
-    angle = car.angle;
-    if (Math.cos(angle) * (car.x - p.x) + Math.sin(angle) * (car.y - p.y) < 0) angle += Math.PI;
-  } else if (q) angle = Math.atan2(q.y - p.y, q.x - p.x);
-  return { car, player: { x: p.x, y: p.y, angle } };
-}
-
-// A spot for the hero car on `road` near the player: on the verge facing the
-// traffic on that side, else at the edge of the lane.
-function countryKerb(w, road, p) {
-  const m = HERO_MODEL;
-  const q = realRoadNear(p.x, p.y, 120, (r) => r === road);
-  if (!q) return null;
-  const nx = -q.uy, ny = q.ux;
-  const side = Math.sign(nx * (p.x - q.x) + ny * (p.y - q.y)) || 1;
-  const hw = road.w / 2;
-  const angle = Math.atan2(q.uy, q.ux) + (side < 0 && !road.oneway ? Math.PI : 0);
-  const ca = Math.cos(angle), sa = Math.sin(angle);
-  for (const [level, off] of [[0, hw + m.wid / 2 + 0.4], [1, Math.max(0, hw - m.wid / 2 - 0.2)]]) {
-    for (const t of [0, 5, -5, 10, -10, 16, -16, 24, -24]) {
-      const x = q.x + q.ux * t + nx * side * off, y = q.y + q.uy * t + ny * side * off;
-      if (Math.hypot(x - p.x, y - p.y) < m.len / 2 + 1.2 || overlapsVehicle(w, x, y, m.len / 2, null)) continue;
-      let bad = false;
-      for (const [lx, ly] of [[m.len / 2, m.wid / 2], [m.len / 2, -m.wid / 2], [-m.len / 2, m.wid / 2], [-m.len / 2, -m.wid / 2], [0, 0]]) {
-        const px = x + lx * ca - ly * sa, py = y + lx * sa + ly * ca;
-        if (!standable(w.map, px, py)) { bad = true; break; }
-        const o = level === 0 ? realRoadNear(px, py, 1, (r) => r !== road) : null;
-        if (o && o.d < 0.3) { bad = true; break; }
-      }
-      if (!bad) return { x, y, angle, road, nx: nx * side, ny: ny * side, level };
-    }
-  }
-  return null;
 }
 
 // A polyline following the road network from (x, y) in travel direction
@@ -354,7 +268,6 @@ function snapToFacade(map, site) {
 
 // Everything about where the player, the partner and the car end up.
 function planArrival(w, siteIn) {
-  if (inCountry(siteIn.x, siteIn.y)) return planCountry(w, siteIn);
   const map = w.map;
   const site = snapToFacade(map, siteIn);
   const hero = w.vehicles.find((v) => v.isHeroCar && !v.wrecked && !v.sinking) || null;
@@ -517,11 +430,7 @@ function poseVehicle(w, v, pose, speed) {
 
 // Pick-up path at (x, y): the longer way along the nearest street.
 function departure(w, x, y) {
-  let rp = null;
-  if (inCountry(x, y)) {
-    const q = realRoadNear(x, y, 60, carRoad);
-    if (q) rp = { x: q.x, y: q.y, road: q.road };
-  } else rp = w.map.nearestRoadPoint(x, y, 60, true, true);
+  const rp = w.map.nearestRoadPoint(x, y, 60, true, true);
   if (!rp || rp.road.z) return null;
   const fwd = roadPath(w.map, rp.road, rp.x, rp.y, 1, 45);
   const back = rp.road.oneway ? null : roadPath(w.map, rp.road, rp.x, rp.y, -1, 45);

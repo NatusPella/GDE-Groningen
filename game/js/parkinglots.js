@@ -7,10 +7,6 @@
 // bays every visit.
 import { FAC, facilitiesIn } from './facilities.js';
 import { pointInPolygon, isInWater, closestPointOnSegment } from './util.js';
-import { REAL, buildingAt as realBuildingAt } from './countryreal.js';
-import { realWater, edgeDistance } from './countryfield.js';
-import { pushOutOfPlan } from './countryplan.js';
-import { realRoadNear } from './ommelandplace.js';
 
 export const BAY_W = 2.5;
 export const BAY_D = 5.0;
@@ -20,7 +16,7 @@ const MAX_BAYS = 300;
 const LOT_KINDS = ['parking', 'streetpark'];
 const CAR = { len: 4.4, wid: 1.8 };
 
-// Solid ground for a car's corner: no building, water, farmstead or through road.
+// Solid ground for a car's corner: no building, water or through road.
 function blocked(map, x, y) {
   for (const b of map.buildingsNear(x, y, 0.5)) {
     const [x0, y0, x1, y1] = b.bounds;
@@ -33,11 +29,6 @@ function blocked(map, x, y) {
     for (let i = 0; i < r.pts.length - 1; i++) {
       if (closestPointOnSegment(x, y, r.pts[i][0], r.pts[i][1], r.pts[i + 1][0], r.pts[i + 1][1]).dist2 < hw * hw) return true;
     }
-  }
-  if (REAL.ready && edgeDistance(x, y) > 0) {
-    if (realBuildingAt(x, y, 0.2) >= 0 || realWater(x, y) > -1 || pushOutOfPlan({ x, y }, 0.2)) return true;
-    const q = realRoadNear(x, y, 1, (r) => r.kind > 2);
-    if (q && q.d < 0) return true;
   }
   return false;
 }
@@ -119,8 +110,7 @@ export function laneBays(map, lane) {
     const ux = (b[0] - a[0]) / len, uy = (b[1] - a[1]) / len;
     const mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2;
     const cityRoad = map.nearestRoadPoint ? map.nearestRoadPoint(mx, my, 6, true) : null;
-    const realRoad = !cityRoad && REAL.ready ? realRoadNear(mx, my, 3) : null;
-    const hw = cityRoad ? (cityRoad.road.width || 6) / 2 : realRoad ? realRoad.road.w / 2 : 3;
+    const hw = cityRoad ? (cityRoad.road.width || 6) / 2 : 3;
     for (const [bit, side] of [[1, 1], [2, -1]]) {
       if (!(lane.sides & bit)) continue;
       // OSM left/right: left of the way's direction is (uy, -ux) in a y-south frame

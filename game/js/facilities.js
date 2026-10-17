@@ -8,10 +8,10 @@
 //   nearestFacility(kind, x, y)  kind: 'medical' | 'police' | any layer kind
 //                                (or an array of them)
 import { geoToGame } from './geoframe.js';
-import { REAL, inRealExtent, buildingAt as realBuildingAt, pushOutOfReal } from './countryreal.js';
+import { REAL, inRealExtent } from './countryreal.js';
 import { realWater } from './countryfield.js';
 import { pushOutOfPlan } from './countryplan.js';
-import { realRoadNear } from './ommelandplace.js';
+import { buildingAt, boxOf, pushOutOfBuildings, roadNear, roadKind, withTiles } from './tileplace.js';
 import { isInWater } from './util.js';
 
 // how far an emergency-capable post may be before the nearest doctor wins
@@ -235,41 +235,43 @@ export function reachableFacilities(kind, step = 400) {
 
 // --- doors out in the Ommelanden ------------------------------------------------
 
-// Open ground: not in a real building box, a farmstead, a ditch or the water.
+// Open ground: not in a building, a farmstead, a ditch or the water.
 export function countryStandable(map, x, y) {
-  return realBuildingAt(x, y, 0.35) < 0 && realWater(x, y) < -0.6 && !isInWater(map, x, y) && !pushOutOfPlan({ x, y }, 0.35);
+  return !buildingAt(map, x, y, 0.35) && realWater(x, y) < -0.6 && !isInWater(map, x, y) && !pushOutOfPlan({ x, y }, 0.35);
 }
 
-// The face of real building box i that looks at (tx, ty): {x, y, nx, ny, tx, ty, h}.
-export function countryFace(i, tx, ty) {
-  const c = Math.cos(REAL.ba[i]), sn = Math.sin(REAL.ba[i]);
-  const dx = tx - REAL.bx[i], dy = ty - REAL.by[i];
+// The face of building b that looks at (tx, ty): {x, y, nx, ny, tx, ty, h}.
+export function countryFace(b, tx, ty) {
+  const q = boxOf(b);
+  const c = Math.cos(q.a), sn = Math.sin(q.a);
+  const dx = tx - q.x, dy = ty - q.y;
   const u = dx * c + dy * sn, v = -dx * sn + dy * c;
-  const hw = REAL.bw[i] / 2, hl = REAL.bl[i] / 2;
+  const hw = q.w / 2, hl = q.l / 2;
   let eu, ev, nu = 0, nv = 0;
   if (Math.abs(u) * hl >= Math.abs(v) * hw) { nu = Math.sign(u || 1); eu = nu * hw; ev = Math.max(-hl + 1, Math.min(hl - 1, (v * hw) / (Math.abs(u) || 1))); }
   else { nv = Math.sign(v || 1); ev = nv * hl; eu = Math.max(-hw + 1, Math.min(hw - 1, (u * hl) / (Math.abs(v) || 1))); }
   return {
-    x: REAL.bx[i] + eu * c - ev * sn, y: REAL.by[i] + eu * sn + ev * c,
+    x: q.x + eu * c - ev * sn, y: q.y + eu * sn + ev * c,
     nx: nu * c - nv * sn, ny: nu * sn + nv * c, tx: nu ? -sn : c, ty: nu ? c : sn,
-    h: Math.max(3, (REAL.lv[i] || 1) * 3),
+    h: Math.max(3, q.lv * 3),
   };
 }
 
 // The street door of a real POI at (x, y) out in the Ommelanden: on the face
-// of its building box towards the nearest car road ({x, y, face, street}),
+// of its building towards the nearest car road ({x, y, face, street}),
 // else a free-standing spot between it and the road ({x, y, kiosk, street});
-// null when neither is open ground or ok(x, y) says no.
+// null when neither is open ground or ok(x, y) says no. Reads the tiles that
+// are in (placeWithTiles).
 export function countryDoor(map, x, y, ok = () => true) {
-  const q = realRoadNear(x, y, 80, (r) => r.kind > 2);
+  const q = roadNear(map, x, y, 80, (r) => roadKind(r) > 2);
   if (!q) return null;
   const street = q.road.name || '';
-  let bi = -1;
-  for (const m of [0, 3, 8, 15]) if ((bi = realBuildingAt(x, y, m)) >= 0) break;
-  if (bi >= 0) {
-    const face = countryFace(bi, q.x, q.y);
+  let b = null;
+  for (const m of [0, 3, 8, 15]) if ((b = buildingAt(map, x, y, m))) break;
+  if (b) {
+    const face = countryFace(b, q.x, q.y);
     const o = { x: face.x + face.nx * 1.3, y: face.y + face.ny * 1.3 };
-    for (let k = 0; k < 3 && realBuildingAt(o.x, o.y, 0.3) >= 0; k++) pushOutOfReal(o, 0.9);
+    for (let k = 0; k < 3 && buildingAt(map, o.x, o.y, 0.3); k++) pushOutOfBuildings(map, o, 0.9);
     if (countryStandable(map, o.x, o.y) && ok(o.x, o.y) && map.canWalkOut(o.x, o.y, 30)) return { x: o.x, y: o.y, face, street };
   }
   const d = Math.hypot(q.x - x, q.y - y) || 1;
@@ -277,8 +279,22 @@ export function countryDoor(map, x, y, ok = () => true) {
     const px = x + ((q.x - x) / d) * s, py = y + ((q.y - y) / d) * s;
     if (!countryStandable(map, px, py)) continue;
     const dq = Math.hypot(q.x - px, q.y - py);
-    if (dq < q.road.w / 2 + 1.5 || !ok(px, py)) return null;
+    if (dq < (q.road.width || 5) / 2 + 1.5 || !ok(px, py)) return null;
     return { x: px, y: py, kiosk: { nx: (q.x - px) / dq, ny: (q.y - py) / dq }, street };
   }
   return null;
 }
+
+// The real facilities of these kinds out in the Ommelanden (outside the city's
+// map, inside the area of the old data): where shops, cafés and garages get a door.
+export function countryFacilities(kinds) {
+  return facilitiesOf(kinds).filter((f) => !f.city && REAL.ready && inRealExtent(f.x, f.y));
+}
+
+// Runs fn (sync) with the tiles round those facilities in: the places that are
+// fixed at the start (shop doors, café doors, garage bays) read the tiles'
+// buildings and roads like everything else. Without a tile store fn runs at once.
+export function placeWithTiles(map, kinds, fn, opts = {}) {
+  return withTiles(map, countryFacilities(kinds).map((f) => [f.x, f.y]), fn, { radius: 160, token: 'placement', ...opts });
+}
+

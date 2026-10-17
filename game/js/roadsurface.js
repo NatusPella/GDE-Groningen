@@ -367,7 +367,7 @@ let lights = [];
 const nodeKey = (p) => Math.round(p[0] * 10) + ',' + Math.round(p[1] * 10);
 
 // Junction index and signals per road network: the city map, and any other
-// map whose roads carry it as r.net (the real Ommeland, realmap.js); a road
+// map whose roads carry it as r.net; a road
 // is always built against its own network.
 const nets = new WeakMap();
 function netState(map) {
