@@ -12,6 +12,12 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **Eén waterpad voor de hele provincie:** de oude Ommeland-waterlaag (`countrywater.js`, `countrywatergeo.js`, de watergeometrie in de worker) is weg. Het water van de tegels is overal de enige bron: boten, zwemmers, waden, zinkende auto's, politieboten en het geluid van klotsend water gebruiken dezelfde `waterAt`. De grondshader opent de grond boven het tegelwater en tekent het water zelf waar de grond nog niet open is (`tilewatermask.js`).
 ### Verbeterd
 - **Huizen in smalle straten:** woningen die in oude straten tot op een meter van het wegmidden stonden, houden nu 1,5 m afstand, zodat je auto er niet meer tegenaan botst (`scripts/world/building_clearance.mjs`).
+### Verbeterd
+- **Kaart en minimap kennen de hele provincie:** een lijn op de provinciegrens (gestippeld, per buurland een eigen kleur), buiten Groningen een donkerder tint, en de namen FRIESLAND, DRENTHE, DUITSLAND, WADDENZEE, EEMS, DOLLARD en NOORDZEE in de kaart. De grote kaart zoomt uit tot de hele provincie past. Nieuw: `regions.js`, `regiondata.js`, `scripts/regions_test.mjs`.
+- **De zee is te zien:** de Waddenzee, de Eems, de Dollard en de zee om de eilanden zijn water in dezelfde kleur als het stadswater, met een oeverlijn, op de kaart en op de minimap. OSM heeft alleen de kustlijn; het zeevlak wordt daaruit getekend.
+- **Plaatsnamen op de kaart en minimap:** steden, plaatsen, dorpen en buurtschappen uit de provinciegegevens, per zoomniveau en zonder dat namen over elkaar vallen. Op de minimap staan de grote plaatsen ook als ze net buiten beeld liggen, aan de rand.
+- **Echte gebiedsnaam in plaats van "Ommeland":** onder de muis op de kaart en op het HUD staat de plaats, de wijk of de streek (Friesland, Drenthe, Duitsland, Waddenzee, Eems, Dollard). "Ommeland" blijft alleen voor open Gronings land, met "bij <plaats>" eronder.
+- **Scherpe kaart bij inzoomen:** bij inzoomen in de provincie laadt de kaart de tegels onder het beeld, zodat wegen, gebouwen en water als vectoren scherp zijn in plaats van de grove 20 m-pixels van de basiskaart.
 
 ## [0.34.0] - 2026-10-17
 
