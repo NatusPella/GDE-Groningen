@@ -6,10 +6,9 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
-### Opgelost
-- **Lantaarns verdwijnen niet meer na het opnieuw laden van een tegel:** een weg die opnieuw wordt geladen, krijgt zijn lantaarns terug in plaats van ze als te dichtbij af te wijzen.
 
 ### Opgelost
+- **Lantaarns verdwijnen niet meer na het opnieuw laden van een tegel:** een weg die opnieuw wordt geladen, krijgt zijn lantaarns terug in plaats van ze als te dichtbij af te wijzen.
 - **Scrollen in 'Wat is er nieuw':** met het muiswiel scrol je nu in de lijst met wijzigingen en in 'Over' op het startscherm.
 ### Verbeterd
 - **Eén waterpad voor de hele provincie:** de oude Ommeland-waterlaag (`countrywater.js`, `countrywatergeo.js`, de watergeometrie in de worker) is weg. Het water van de tegels is overal de enige bron: boten, zwemmers, waden, zinkende auto's, politieboten en het geluid van klotsend water gebruiken dezelfde `waterAt`. De grondshader opent de grond boven het tegelwater en tekent het water zelf waar de grond nog niet open is (`tilewatermask.js`).
