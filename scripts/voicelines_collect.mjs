@@ -184,7 +184,7 @@ export function collect() {
   // recaps and the handover lines (story.js) -> lines manifest
   const CONTACT = SPEAKERS;
   for (const st of STEPS) for (const c of st.contact || []) for (const [k, t, o] of c.lines) add('Verhaal-contact (telefoon)', 'lines', [CONTACT[k]], t, o && o.tag ? { tag: o.tag } : {});
-  for (const P of Object.values(PARTS)) for (const [, t] of P.recap || []) add('Verhaal-kaarten', 'lines', [NARRATOR], t, { tag: ['warm, vertellend, als een terugblik', 'droog, met een knipoog, samenvattend'] });
+  for (const P of Object.values(PARTS)) for (const [, t] of P.textOnly ? [] : P.recap || []) add('Verhaal-kaarten', 'lines', [NARRATOR], t, { tag: ['warm, vertellend, als een terugblik', 'droog, met een knipoog, samenvattend'] });
   for (const st of STEPS) if (st.why) add('Verhaal-stappen', 'lines', [st.player === 'anita' ? 'Anita' : 'Tammo'], st.why);
   // the scenes of activity steps (storyfun.js): where one is done, and Rotor Roelf at his demo heli
   for (const st of STEPS) for (const sc of [st.scene, st.meet, st.homeScene, st.dock]) for (const [k, t, o] of (sc && sc.lines) || []) add('Verhaal-scènes', 'lines', [who(k)], t, o && o.tag ? { tag: o.tag } : {});
@@ -361,7 +361,8 @@ export function collect() {
     out[out.length - 1].fallback = 'lines';
   };
   const SWHO = (k) => (k === 'T' ? 'Tammo' : k === 'A' ? 'Anita' : k);
-  for (const st of STEPS) {
+  // a step with `silent` (the new arc, storyarc_nieuw.js): its phone texts are never read aloud, so no recording is needed
+  for (const st of STEPS.filter((q) => !q.silent)) {
     for (const f of ['lead', 'done']) if (st[f]) sms('Berichten (verhaal)', SWHO(st[f][0]), st[f][1]);
     for (const o of (st.goal && st.goal.options) || []) if (o.done) sms('Berichten (verhaal)', SWHO(o.done[0]), o.done[1]);
     if (st.goal && st.goal.lift) sms('Berichten (verhaal)', st.goal.lift[0], st.goal.lift[1]);

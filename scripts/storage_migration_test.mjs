@@ -2,7 +2,8 @@
 //   node scripts/storage_migration_test.mjs
 // - game/js/storagekeys.js: old keys are copied, a newer new key is never
 //   overwritten, a second run changes nothing, a full storage still gets the
-//   save across, and every key the modules use is in KEYS.
+//   save across, and every key the modules use is in KEYS. (KEYS here is BASE_KEYS: the new
+//   story arc's own keys, the same with '-nieuw', never receive a copy of an old save.)
 // - desktop/userdata.js: the old "GTE VI" userData folder is copied once,
 //   left untouched, and a failed copy falls back to the old folder.
 import fs from 'node:fs';
@@ -10,7 +11,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
-import { migrateStorage, removeLegacyKeys, KEYS, SESSION_KEYS, LEGACY_KEYS, LEGACY_CACHE_KEYS, MIGRATED_KEY } from '../game/js/storagekeys.js';
+import { migrateStorage, removeLegacyKeys, KEYS as ARC_KEYS, BASE_KEYS as KEYS, SESSION_KEYS, LEGACY_KEYS, LEGACY_CACHE_KEYS, MIGRATED_KEY } from '../game/js/storagekeys.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const require = createRequire(import.meta.url);
@@ -119,7 +120,7 @@ const SAVE = JSON.stringify({ v: 9, money: 1234, story: 'h7' });
 
 // 9. no module uses a storage key outside KEYS / SESSION_KEYS
 {
-  const known = new Set([...Object.values(KEYS), ...Object.values(SESSION_KEYS), MIGRATED_KEY]);
+  const known = new Set([...Object.values(KEYS), ...Object.values(ARC_KEYS), ...Object.values(SESSION_KEYS), MIGRATED_KEY]);
   const dir = path.join(ROOT, 'game/js');
   const stray = [];
   for (const f of fs.readdirSync(dir).filter((x) => x.endsWith('.js') && x !== 'storagekeys.js')) {

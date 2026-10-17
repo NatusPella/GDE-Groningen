@@ -1,0 +1,208 @@
+{
+ "_era": "0.34 (save v8, RD New frame): midden in het oude verhaal (na H11, de kroegentocht), twee geparkeerde voertuigen, kalender en streken aanwezig. Dit is wat 0.35 moet blijven laden, ook als het nieuwe verhaal (feature flag) bestaat.",
+ "_expect": {
+  "step": "H12",
+  "money": 5400,
+  "radio": "on",
+  "pos": [
+   233405.2,
+   582310.7
+  ]
+ },
+ "save": {
+  "v": 8,
+  "savedAt": 1760600000000,
+  "money": 5400,
+  "moneyBackup": 5400,
+  "health": 100,
+  "armor": 0,
+  "weapon": "fists",
+  "ammo": {
+   "fists": "inf"
+  },
+  "stats": {
+   "kills": 4,
+   "pedKills": 2,
+   "copKills": 2,
+   "missionsDone": 11,
+   "playerWrecks": 2,
+   "spent": 1800
+  },
+  "character": "anita",
+  "pos": {
+   "x": 233405.2,
+   "y": 582310.7
+  },
+  "ctx": "home",
+  "missions": {
+   "index": 6,
+   "completed": [
+    0,
+    8,
+    1,
+    9,
+    2,
+    10,
+    3,
+    4,
+    11,
+    12,
+    5
+   ],
+   "seen": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    8,
+    9,
+    10,
+    11,
+    12
+   ],
+   "medals": {
+    "0": 2,
+    "8": 1
+   }
+  },
+  "story": {
+   "v": 1,
+   "done": [
+    "H1",
+    "k-eikea",
+    "H2",
+    "H3",
+    "H4",
+    "k-fiets",
+    "H5",
+    "k-kraakspullen",
+    "k-nacht",
+    "H6",
+    "r-trein",
+    "H7",
+    "H8",
+    "r-tuning",
+    "H9",
+    "H10",
+    "r-kermis",
+    "H11"
+   ],
+   "skipped": [],
+   "fails": {},
+   "waived": [],
+   "voorschot": [],
+   "cards": [
+    "kop"
+   ],
+   "flags": [
+    "met:berend",
+    "met:jelle",
+    "snackprijs",
+    "drieminuten",
+    "jelle",
+    "onderduik:ijsje"
+   ]
+  },
+  "visitedLandmarks": [
+   "martinitoren",
+   "museum"
+  ],
+  "shops": {
+   "hero": {},
+   "outfit": {
+    "tammo": "incognito",
+    "anita": "incognito"
+   },
+   "ownedOutfits": [
+    "incognito"
+   ],
+   "storyOutfit": null,
+   "hair": {
+    "tammo": {
+     "color": "naturel",
+     "style": "short"
+    },
+    "anita": {
+     "color": "naturel",
+     "style": "bob"
+    }
+   },
+   "heroColor": null,
+   "heroUpgrades": [
+    "turbo"
+   ],
+   "stamps": 3,
+   "vehicles": [
+    {
+     "key": "omafiets",
+     "color": "#2a6ab0",
+     "upgrades": [],
+     "x": 233100.0,
+     "y": 582000.0,
+     "angle": 1.5
+    },
+    {
+     "key": "raket",
+     "color": "#c8261e",
+     "upgrades": [],
+     "garage": true
+    }
+   ]
+  },
+  "prestaties": {
+   "eierballen": [],
+   "geheimen": [],
+   "unlocked": [
+    "m1_klaar",
+    "m2_klaar"
+   ]
+  },
+  "duif": {
+   "ach": []
+  },
+  "bijbaan": {
+   "v": 1,
+   "jobs": {},
+   "seen": []
+  },
+  "postgame": {},
+  "meubels": {
+   "owned": [],
+   "pending": [],
+   "built": [],
+   "day": 0,
+   "read": 0,
+   "stek": 0,
+   "tips": [],
+   "moment": 0
+  },
+  "doel": {
+   "kind": "place",
+   "id": null,
+   "name": "Noorderhaven",
+   "sub": "",
+   "x": 232900.0,
+   "y": 582500.0
+  },
+  "radio": "on",
+  "streken": {
+   "v": 1,
+   "unlocked": [
+    "teleport",
+    "slowmo"
+   ],
+   "on": [],
+   "used": []
+  },
+  "kalender": {
+   "v": 1,
+   "dag": 8,
+   "gezien": [
+    "kei"
+   ]
+  },
+  "frame": "rd-new"
+ }
+}
