@@ -21,6 +21,9 @@ import { isMuted, engineReadout } from './audio.js';
 import { gearboxReadout } from './gearbox.js';
 import { drawRailsOnMap, drawTrainsOnMap } from './railway.js';
 import { drawCountryMinimap, villageLabels, MINI_STYLE } from './countrymap.js';
+import { drawSea, drawOutside, regionLabels, areaNameAt, REGIONS } from './regions.js';
+import { worldPlaceLabels, worldPlacesReady } from './worldplaces.js';
+import { provinceMapOn } from './provincemap.js';
 import { edgeDistance } from './countryfield.js';
 import { REAL, realStreetAt } from './countryreal.js';
 import { ommelandArea } from './ommelandplace.js';
@@ -558,7 +561,7 @@ function currentDistrict(world) {
   const meta = world.map.meta;
   // out in the real Ommelanden: the village you are in, else just Ommeland
   const area = ommelandArea(x, y);
-  if (area) return area.near || !area.place ? 'Ommeland' : area.district || area.place;
+  if (area) return areaNameAt(x, y).name;
   // Only 2 of the real admin boundaries actually reach into this play area,
   // and they're coarse (e.g. plain "Groningen") - the ~66 named
   // neighbourhood/quarter points give a far more specific, genre-style
@@ -583,7 +586,8 @@ function currentDistrict(world) {
 export function placeLabel(world, x, y) {
   const area = ommelandArea(x, y);
   if (area) {
-    const name = area.near || !area.place ? 'Ommeland' : area.place;
+    const a = areaNameAt(x, y);
+    const name = a.near ? a.name : a.sub && a.region === 'groningen' ? a.sub : a.name;
     const v = VILLAGES[name];
     return { name, country: true, district: name, line: v && v.teaser ? v.teaser : '' };
   }
@@ -599,7 +603,7 @@ export function placeLabel(world, x, y) {
 }
 
 let locationTimer = 0;
-let locWhere = { district: '', country: false };
+let locWhere = { district: '', country: false, region: '' };
 function updateLocation(dt, world) {
   locationTimer -= dt;
   if (locationTimer > 0) return;
@@ -614,11 +618,12 @@ function updateLocation(dt, world) {
   const country = !!area;
   const rp = world.map.nearestRoadPoint(world.player.x, world.player.y, 60, false);
   const street = (rp && rp.road && rp.road.name) || (REAL.ready && edgeDistance(world.player.x, world.player.y) > 0 ? realStreetAt(world.player.x, world.player.y) : '');
-  locWhere = { district: district || '', country };
+  locWhere = { district: district || '', country, region: area ? areaNameAt(world.player.x, world.player.y).region : '' };
   // the street big, the wijk (or village) and the city under it
   setText(els.street, street || district || '');
   // plaats + wijk: a district of a town out in the province names its town
-  const region = area && area.district ? area.place : 'Ommeland';
+  const aname = area ? areaNameAt(world.player.x, world.player.y) : null;
+  const region = aname ? (aname.near ? aname.name : aname.sub || (aname.region === 'groningen' ? 'Ommeland' : aname.name)) : 'Ommeland';
   setText(els.district, street ? [district, country ? (district === 'Ommeland' ? '' : region) : 'Grunn'].filter(Boolean).join(' · ') : (country ? region : 'Grunn'));
 }
 
@@ -641,6 +646,8 @@ function placeCandidate(world) {
   if (locWhere.country) {
     if (d === 'Ommeland') return null;
     const v = VILLAGES[d];
+    const rn = locWhere.region && locWhere.region !== 'groningen' ? REGIONS[locWhere.region].name : '';
+    if (rn) return { key: 'v:' + d, kick: rn === d ? '' : rn, name: d, line: v && v.teaser ? v.teaser : '' };
     return { key: 'v:' + d, kick: v && v.gro ? `Ommeland · ${v.gro}` : 'Ommeland', name: d, line: v && v.teaser ? v.teaser : '' };
   }
   return { key: 'w:' + d, kick: 'Grunn', name: d, line: wijkBlurb(d) };
@@ -1880,36 +1887,49 @@ function drawMinimapPois(ctx, world, job, placed, inRange, toScreen, t) {
   for (const [kind, sx, sy] of drawn) drawMapIcon(ctx, kind, sx, sy, MM_POI_ICON, { t });
 }
 
-// Village and town names on the minimap out in the Ommeland (the list is
-// refreshed when the player has moved a bit), upright over the rotating map.
+// Town, village and region names on the minimap (the list is refreshed when
+// the player has moved a bit), upright over the rotating map; a name just
+// off the map keeps to the rim, towards it.
 const VILLAGE_KINDS = new Set(['town', 'village', 'hamlet', undefined]);
-let villageCache = { x: Infinity, y: Infinity, list: [] };
+let villageCache = { x: Infinity, y: Infinity, list: [], regions: [] };
 function drawVillageNames(ctx, player, radius, toScreen) {
   if (Math.hypot(player.x - villageCache.x, player.y - villageCache.y) > 25) {
-    const r = radius * 1.5;
-    villageCache = { x: player.x, y: player.y, list: villageLabels(player.x - r, player.y - r, player.x + r, player.y + r).filter((v) => VILLAGE_KINDS.has(v.kind)) };
+    const r = radius * 3;
+    const own = worldPlacesReady();
+    const list = own
+      ? worldPlaceLabels(player.x - r, player.y - r, player.x + r, player.y + r).filter((v) => v.rank < 5 && (v.rank <= 1 || (v.x - player.x) ** 2 + (v.y - player.y) ** 2 < (radius * 1.5) ** 2))
+      : villageLabels(player.x - radius * 1.5, player.y - radius * 1.5, player.x + radius * 1.5, player.y + radius * 1.5).filter((v) => VILLAGE_KINDS.has(v.kind));
+    villageCache = { x: player.x, y: player.y, list, regions: provinceMapOn() ? regionLabels(player.x - radius, player.y - radius, player.x + radius, player.y + radius, 0.1).filter((q) => q.id !== 'groningen') : [] };
   }
-  // a village just off the map keeps its name at the rim, towards it
-  const lim = (radius * 1.5) ** 2, rim = MINIMAP_SIZE / 2 - 20;
+  const rim = MINIMAP_SIZE / 2 - 20;
   const [cx, cy] = toScreen(player.x, player.y);
   ctx.save();
-  ctx.font = "15px 'Bebas Neue', 'Arial Narrow', Arial, sans-serif";
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.lineJoin = 'round';
+  ctx.font = "11px 'Bebas Neue', 'Arial Narrow', Arial, sans-serif";
+  for (const q of villageCache.regions) {
+    const [sx, sy] = toScreen(q.x, q.y);
+    ctx.fillStyle = q.land ? 'rgba(240, 237, 228, 0.5)' : 'rgba(190, 225, 245, 0.65)';
+    ctx.fillText(q.name.toUpperCase().split('').join(' '), sx, sy);
+  }
+  ctx.font = "15px 'Bebas Neue', 'Arial Narrow', Arial, sans-serif";
   ctx.lineWidth = 3;
   ctx.strokeStyle = 'rgba(12, 20, 14, 0.85)';
   ctx.fillStyle = '#f0ede4';
+  const boxes = [];
   let n = 0;
   for (const v of villageCache.list) {
-    if ((v.x - player.x) ** 2 + (v.y - player.y) ** 2 > lim) continue;
     let [sx, sy] = toScreen(v.x, v.y);
     const d = Math.hypot(sx - cx, sy - cy);
     if (d > rim) { sx = cx + (sx - cx) * rim / d; sy = cy + (sy - cy) * rim / d; }
     const label = v.name.toUpperCase();
+    const w = ctx.measureText(label).width;
+    if (boxes.some((o) => Math.abs(o[0] - sx) < (o[2] + w) / 2 && Math.abs(o[1] - sy) < 14)) continue;
+    boxes.push([sx, sy, w]);
     ctx.strokeText(label, sx, sy);
     ctx.fillText(label, sx, sy);
-    if (++n >= 3) break;
+    if (++n >= 4) break;
   }
   ctx.restore();
 }
@@ -1954,6 +1974,8 @@ function drawMinimap(dt, world) {
   ctx.fillStyle = MINI_STYLE.meadow;
   ctx.fillRect(player.x - MM_RADIUS_M, player.y - MM_RADIUS_M, MM_RADIUS_M * 2, MM_RADIUS_M * 2);
   drawCountryMinimap(ctx, player.x - MM_RADIUS_M, player.y - MM_RADIUS_M, player.x + MM_RADIUS_M, player.y + MM_RADIUS_M, mmScale);
+  const province = provinceMapOn();
+  if (province) drawSea(ctx, (n) => n / mmScale, { fill: MINI_STYLE.water, edge: '#5aa0c0' });
 
   const view = world.map.queryView(
     player.x - MM_RADIUS_M, player.y - MM_RADIUS_M,
@@ -2007,6 +2029,8 @@ function drawMinimap(dt, world) {
     fillPoly(ctx, b.pts);
   }
   ctx.globalAlpha = 1;
+  // outside the province darker, with its land borders
+  if (province) drawOutside(ctx, [player.x - MM_RADIUS_M, player.y - MM_RADIUS_M, player.x + MM_RADIUS_M, player.y + MM_RADIUS_M], (n) => n / mmScale, { tint: 'rgba(6, 12, 9, 0.34)', width: 2.6 });
 
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
