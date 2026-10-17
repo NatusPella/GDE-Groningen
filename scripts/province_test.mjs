@@ -283,7 +283,7 @@ if (!B.haveProvince()) {
       // Winschoten's centre: a real block, so no procedural road, maar or village there
       const [wx, wy] = place('Winschoten');
       const bx = Math.floor(wx / CF.BLOCK), by = Math.floor(wy / CF.BLOCK);
-      if (!CF.realBlock(bx, by) || CF.edgeRoad(bx, by, 0) || CF.villageOf(bx, by)) fail('Winschoten lies in a real block without procedural roads or villages');
+      if (!CF.provinceBlock(bx, by) || CF.edgeRoad(bx, by, 0) || CF.villageOf(bx, by)) fail('Winschoten lies in a real block without procedural roads or villages');
       // a tile in: the prop rule sees its buildings; the far LOD builds it
       const [ti, tj] = G.tileIndexOf(wx, wy);
       const key = G.tileKey(ti, tj);
@@ -320,7 +320,7 @@ if (!B.haveProvince()) {
       void tile;
       // every Ommeland train route runs on to its stations over the real track
       const CR = await import('../game/js/corridorrail.js');
-      const om = JSON.parse(fs.readFileSync(new URL('../game/ommeland.json', import.meta.url)));
+      const om = (await import('./world/cityroutes.mjs')).loadCityRouteSource();
       const pl = CR.provinceRailLines(om, g.routes);
       const x = CR.extendRoutes(pl.om, { ...g, routes: pl.lines });
       const stops = new Set(x.routes.flatMap((r) => r.stops.filter((q) => !q.offmap).map((q) => q.name)));

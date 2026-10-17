@@ -28,6 +28,8 @@ import { wgsToWorld, worldToWgs } from '../../game/js/rdnew.js';
 import { edgeRows } from '../../game/js/navgraph.js';
 import { edgeFromOsm } from '../../game/js/worldedge.js';
 import { LINES, TOWNS, loadPlaces, corridorTiles, tileSources, packOf } from './corridor.mjs';
+import { bakeCityRoutes, railLines } from './cityroutes.mjs';
+import { collectFarNodes, finishFarProps } from './farprops.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 export const CORRIDOR_BUILDER = 1;
@@ -468,7 +470,7 @@ export function buildCorridor({ root = ROOT, cityKeys = new Set(), sources = loa
   for (const k of [...want.keys()].sort()) {
     const t = tiles.get(k);
     const list = want.get(k) === 'corridor' ? (idx.corridor.get(packOf(t.i, t.j)) || new Map()).get(k) || [] : idx.ommeland.get(k) || [];
-    // flags: 1 land, 4 corridor, 8 the old Ommeland layers (countryreal.js) draw this tile too
+    // flags: 1 land, 4 corridor, 8 inside the old Ommeland box (data/ommeland_raw.json.gz)
     const tb = tileBlob(t.i, t.j, list, gid, 1 | 4 | (oldCover(t.i, t.j) ? 8 : 0), CORRIDOR_BUILDER, stats);
     if (!tb) continue;
     blobs.set(k, { ...tb, src: want.get(k) });
@@ -508,7 +510,10 @@ export function buildCorridor({ root = ROOT, cityKeys = new Set(), sources = loa
     edge: edgeFromOsm([...sources.corridor.values()].flat(), (la, lo) => wgsToWorld(la, lo).map(r2)),
     missing: missing.sort(), city: city.sort(),
   };
-  return { blobs, global, stats, keys, want, missing };
+  // the city's routes run on over the proefstrook's track, and the track outside the city's tiles (cityroutes.mjs)
+  const inCity = (x, y) => { const [i, j] = G.tileIndexOf(x, y); return cityKeys.has(G.tileKey(i, j)); };
+  const rail = { ...bakeCityRoutes(global, { root }), rails: railLines(railRows, inCity), ...finishFarProps(collectFarNodes(allEls)) };
+  return { blobs, global, stats, keys, want, missing, rail };
 }
 
 const DROP = new Set(['bounds']);
@@ -522,7 +527,9 @@ const deflate = (b) => new Uint8Array(zlib.deflateRawSync(b, { level: 9 }));
 
 // c<pack>-<hash>.gdp + index-corridor.json; leaves the city's files alone
 export function writeCorridor(out, built) {
-  return writeLayer(out, built, { prefix: 'c', file: 'index-corridor.json', layer: 'corridor', builder: CORRIDOR_BUILDER });
+  const r = writeLayer(out, { ...built, global: { ...built.global, landFile: 'corridor-land.json' } }, { prefix: 'c', file: 'index-corridor.json', layer: 'corridor', builder: CORRIDOR_BUILDER });
+  fs.writeFileSync(path.join(out, 'corridor-land.json'), JSON.stringify({ builder: CORRIDOR_BUILDER, ...built.rail }));
+  return r;
 }
 
 // A tile layer next to the city's: <prefix><pack>-<hash>.gdp packs and its

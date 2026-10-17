@@ -60,19 +60,19 @@ function packWorld() {
   const packer = path.join(root, 'scripts', 'world', 'pack_tiles.mjs');
   if (!fs.existsSync(packer) || !fs.existsSync(path.join(SRC, 'js', 'gdt.js'))) { console.log('no tile packer in this checkout: JSON map only'); return; }
   const h = crypto.createHash('sha1');
-  for (const f of ['citymap.json', 'mapextras.json', 'ommeland.json', 'ommeland.bin', 'js/gdt.js', 'js/mapdata.js', 'js/elevation.js', 'js/passages.js', 'js/museumplan.js', 'js/util.js', 'js/worldbuilder.js', 'js/derive.js', 'js/spatialgrid.js']) h.update(fs.readFileSync(path.join(SRC, f)));
+  for (const f of ['citymap.json', 'mapextras.json', 'js/gdt.js', 'js/mapdata.js', 'js/elevation.js', 'js/passages.js', 'js/museumplan.js', 'js/util.js', 'js/worldbuilder.js', 'js/derive.js', 'js/spatialgrid.js']) h.update(fs.readFileSync(path.join(SRC, f)));
   h.update(fs.readFileSync(packer));
   // what else goes into the rows when the checkout has it: the height chain,
   // the profiles, junctions and routes, the building attributes, the 3D BAG
   // extract and fetched AHN rasters
-  const extra = ['js/buildingheights.js', 'js/roadprofile.js', 'js/junctions.js', 'js/navgraph.js', 'js/roadgraph.js'].map((f) => path.join(SRC, f))
+  const extra = ['js/buildingheights.js', 'js/roadprofile.js', 'js/junctions.js', 'js/navgraph.js', 'js/roadgraph.js', 'js/corridorrail.js'].map((f) => path.join(SRC, f))
     .concat(['data/world/building_attrs.json.gz', 'data/world/3dbag.json.gz', 'data/world/ahn/index.json'].map((f) => path.join(root, f)));
   for (const f of extra) if (fs.existsSync(f)) h.update(fs.readFileSync(f));
   const ahn = path.join(root, 'data', 'world', 'ahn');
   if (fs.existsSync(ahn)) for (const f of fs.readdirSync(ahn).sort()) if (f.endsWith('.bin')) h.update(fs.readFileSync(path.join(ahn, f)));
   // the proefstrook (scripts/world/build_corridor.mjs): its scripts and caches
   const corridor = path.join(root, 'scripts', 'world', 'build_corridor.mjs');
-  const corInputs = fs.existsSync(corridor) ? [corridor, path.join(root, 'scripts', 'world', 'corridor.mjs'), path.join(SRC, 'js', 'navgraph.js'),
+  const corInputs = fs.existsSync(corridor) ? [corridor, path.join(root, 'scripts', 'world', 'corridor.mjs'), path.join(root, 'scripts', 'world', 'cityroutes.mjs'), path.join(root, 'scripts', 'world', 'cityroutes_src.json'), path.join(root, 'scripts', 'world', 'farprops.mjs'), path.join(SRC, 'js', 'navgraph.js'),
     path.join(root, 'data', 'ommeland_raw.json.gz'), path.join(root, 'data', 'facilities_raw.json.gz')] : [];
   const corDir = path.join(root, 'data', 'world', 'corridor');
   if (corInputs.length && fs.existsSync(corDir)) for (const f of fs.readdirSync(corDir).sort()) corInputs.push(path.join(corDir, f));

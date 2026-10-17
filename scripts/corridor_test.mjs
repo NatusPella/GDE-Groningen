@@ -236,8 +236,7 @@ M.rail = Object.fromEntries(routes.map((r) => [r.id, { stops: r.stops.map((s) =>
 // the Ommeland's train routes run on over the corridor's track (corridorrail.js)
 {
   const { extendRoutes } = await import('../game/js/corridorrail.js');
-  const fs = await import('node:fs');
-  const om = JSON.parse(fs.readFileSync(new URL('../game/ommeland.json', import.meta.url)));
+  const om = (await import('./world/cityroutes.mjs')).loadCityRouteSource();
   const same = extendRoutes(om, built.global);
   M.railAdded = same.added;
   // with today's caches the corridor's track ends where the Ommeland's does

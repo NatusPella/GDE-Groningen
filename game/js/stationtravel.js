@@ -9,6 +9,7 @@ import { saveGame } from './savegame.js';
 import { manageTrafficPopulation, manageBikePopulation } from './vehicle.js';
 import { spawnPedestriansNear } from './pedestrians.js';
 import { isInWater } from './util.js';
+import { buildingAt, withTiles } from './tileplace.js';
 import { addStaticCollider } from './breakables.js';
 import { VILLAGES } from './ommelandlines.js';
 import { setStoryOutfit, storyOutfit } from './shops.js';
@@ -207,7 +208,7 @@ function entranceSpot(map, x, y, px, py) {
   return map.findOpenSpawn(x, y, 150);
 }
 
-// A halt out in the Ommelanden (countryreal.js): no city data round it, so
+// A halt out in the country (map.countryStations): no city data round it, so
 // the machine simply stands on the platform side a few metres off the track.
 function placeCountryStation(def, stops, scene) {
   const st = stops[0];
@@ -220,9 +221,37 @@ function placeCountryStation(def, stops, scene) {
     name: def.name, short: shortName(def.name), x, y, stops, exitAngle: Math.atan2(ny, nx), country: true,
     arrive: { x: x + nx * 3, y: y + ny * 3 },
   };
-  scene.add(buildMachine(x, y, s.exitAngle));
+  s.machine = buildMachine(x, y, s.exitAngle);
+  scene.add(s.machine);
   scene.add(buildPlatform(px, py, tx, ty, nx, ny));
   return s;
+}
+
+// A country halt's machine is first put beside the track without a look at what
+// stands there. Once the tiles round it are in (prepareCountryStations, from
+// ommelandfun.js) it steps further out, or to the other side of the track, when a
+// building of the tiles stands on it.
+function settleCountryStation(map, s) {
+  if (!buildingAt(map, s.x, s.y, 1)) return;
+  const nx = Math.cos(s.exitAngle), ny = Math.sin(s.exitAngle);
+  // the track lies 7 m back along -n: further out on this side first, then past it
+  for (const d of [3, 6, 9, 12, -14, -17, -20]) {
+    const x = s.x + nx * d, y = s.y + ny * d;
+    if (buildingAt(map, x, y, 1) || isInWater(map, x, y)) continue;
+    if (d < 0) s.exitAngle += Math.PI;
+    s.x = x; s.y = y;
+    s.arrive = { x: x + Math.cos(s.exitAngle) * 3, y: y + Math.sin(s.exitAngle) * 3 };
+    if (s.machine) { s.machine.position.set(x, 0, y); s.machine.rotation.y = -s.exitAngle + Math.PI / 2; }
+    return;
+  }
+}
+
+export async function prepareCountryStations(map) {
+  for (const s of stations) {
+    if (!s.country || s.settled) continue;
+    s.settled = true;
+    await withTiles(map, [[s.x, s.y]], () => settleCountryStation(map, s), { radius: 60, token: 'station', slice: 6 });
+  }
 }
 
 // Concrete platform with a shelter beside a country halt: its top 0.76 m

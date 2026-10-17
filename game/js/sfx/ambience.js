@@ -1,6 +1,7 @@
 import { clamp, pointInPolygon } from '../util.js';
 import { getScene } from '../scene3d.js';
-import { edgeDistance, urbanWeight, parcelAt, MAAR_WATER } from '../countryfield.js';
+import { edgeDistance, parcelAt, MAAR_WATER } from '../countryfield.js';
+import { urbanWeight } from '../provinceworld.js';
 import { trunksNear } from '../countrywalls.js';
 
 // Place-aware ambience: looping beds crossfaded by where/when the listener
@@ -243,10 +244,11 @@ function scan(world) {
 const _trunks = [];
 function countryPlace(x, y) {
   const e = edgeDistance(x, y);
-  place.rural = smooth01(20, 220, e) * (1 - 0.8 * urbanWeight(x, y));
+  const urban = urbanWeight(x, y);
+  place.rural = smooth01(20, 220, e) * (1 - 0.8 * urban);
   if (e < 20) return;
   const k = smooth01(20, 220, e);
-  place.green = Math.max(place.green, 0.85 * k * (1 - 0.6 * urbanWeight(x, y)));
+  place.green = Math.max(place.green, 0.85 * k * (1 - 0.6 * urban));
   _trunks.length = 0;
   const tn = trunksNear(x, y, 35, _trunks, 10);
   if (tn) {

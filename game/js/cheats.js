@@ -25,7 +25,7 @@ import { showCard } from './hudcards.js';
 import { inHomeFlat } from './home.js';
 import { resetWalker, resetVehicle, placeCompanion } from './safety.js';
 import { isInWater } from './util.js';
-import { REAL, inRealExtent } from './countryreal.js';
+import { inDoorRange } from './facilities.js';
 import { edgeDistance } from './countryfield.js';
 import { roadNear, tilesIn, withTiles } from './tileplace.js';
 import { getGarageCatalog, deliverOwnedVehicle } from './ownedvehicles.js';
@@ -192,7 +192,7 @@ export function blockedReason(w = world, { vehicleOk = true } = {}) {
   return '';
 }
 
-const inCountry = (x, y) => REAL.ready && inRealExtent(x, y) && edgeDistance(x, y) > 40;
+const inCountry = (x, y) => inDoorRange(x, y) && edgeDistance(x, y) > 40;
 
 function roadAngle(road, x, y) {
   const pts = road && road.pts;

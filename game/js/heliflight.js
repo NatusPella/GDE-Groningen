@@ -29,7 +29,7 @@ import { Vehicle, disableVehicle, explodeVehicle, reportImpact, overOpenWater } 
 import { pointInPolygon, normalizeAngle, clamp, WATER_Y } from './util.js';
 import { waterAt } from './waterlevels.js';
 import { inPassage } from './collision.js';
-import { REAL } from './countryreal.js';
+import { provinceMapBounds } from './provincemap.js';
 import { getSettings } from './settings.js';
 import { keyWord } from './controls.js';
 const downKey = () => keyWord(getSettings().keyBinds, 'control');
@@ -163,7 +163,8 @@ function hurt(v, dmg, byWorld) {
 }
 
 function mapEdge(map) {
-  if (REAL.ready && REAL.ext) return REAL.ext;
+  const pb = provinceMapBounds();
+  if (pb) return pb;
   const b = map.meta && map.meta.bounds;
   return b || [-3068, -3895, 4253, 2666];
 }

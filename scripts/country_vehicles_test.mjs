@@ -21,26 +21,26 @@ const T = await loadGameWorld();
 if (!T) { console.log('SKIP no game/world with the province layer'); process.exit(0); }
 const map = T.world;
 const F = await import('../game/js/countryfield.js');
-const { initReal } = await import('../game/js/countryreal.js');
-const { buildingAt: tileBuildingAt } = await import('../game/js/tileplace.js');
+const { buildingAt: tileBuildingAt, waterGap } = await import('../game/js/tileplace.js');
 const buildingAt = (x, y, m) => (tileBuildingAt(map, x, y, m) ? 1 : -1);
 const { ensureCountryEdge } = await import('../game/js/countryplan.js');
 const { roadGap } = await import('../game/js/countryedge.js');
 const PC = await import('../game/js/parkedcars.js');
 const { findEnterableVehicle } = await import('../game/js/vehicle.js');
 F.setCountryBounds(map.meta.bounds);
-const om = JSON.parse(fs.readFileSync(new URL('ommeland.json', root)));
-const bin = zlib.gunzipSync(fs.readFileSync(new URL('ommeland.bin', root)));
-initReal(map, { ...om, bin: bin.buffer.slice(bin.byteOffset, bin.byteOffset + bin.byteLength) });
 ensureCountryEdge(map);
 
+// a spot past the province's tiles: from the old 'past the real data' spot on south-east until no tile is there
+const PWV = await import('../game/js/provinceworld.js');
+let beyond = [16328.69, 14806.14];
+for (let k = 0; k < 60 && PWV.inProvinceData(beyond[0], beyond[1]) !== false; k++) beyond = [beyond[0] + 1000, beyond[1] + 1000];
 const SPOTS = [
   ['Eelde', 1774.82, 9945.78],
   ['Bedum', 1931.4, -9027.27],
   ['Ten Boer', 8572.98, -6583.35],
   ['Zuidhorn', -10732.8, -3017.02],
   ['open polder NE', 5505.95, -11770.51, true],
-  ['past the real data', 16328.69, 14806.14],
+  ['past the province data', beyond[0], beyond[1], true],
 ];
 let fails = 0;
 const total = {};
@@ -61,7 +61,7 @@ for (const [name, x, y, mayBeEmpty] of SPOTS) {
     kinds[v.model.name] = (kinds[v.model.name] || 0) + 1;
     total[v.model.name] = (total[v.model.name] || 0) + 1;
     if (F.edgeDistance(v.x, v.y) < 0) continue;
-    if (roadGap(v.x, v.y, 3) < 0 || buildingAt(v.x, v.y, 0) >= 0 || F.realWater(v.x, v.y) > -1) bad++;
+    if (roadGap(v.x, v.y, 3) < 0 || buildingAt(v.x, v.y, 0) >= 0 || waterGap(map, v.x, v.y, 3) > -1) bad++;
   }
   // walk up to the nearest one: it wakes and can be entered
   let enter = 'none near';
