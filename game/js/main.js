@@ -5,6 +5,7 @@ import { DEV, STORY_TEST } from './devflags.js';
 import { loadMap } from './mapdata.js';
 import { loadTileWorld, tileOmmeland } from './tileworld.js';
 import { setWorldPlaces } from './worldplaces.js';
+import { setRegionData } from './regions.js';
 import { tileIndexOf, tileKey } from './gdt.js';
 import { loadOmmeland, initReal, warmRows } from './countryreal.js';
 import { loadFacilities, initFacilities, setExtraBuiltWorld } from './facilities.js';
@@ -244,6 +245,7 @@ async function boot() {
   const layers = (tiles && tiles.index.layers) || {};
   const corLayer = (layers.provincie && layers.provincie.global ? layers.provincie : null) || layers.corridor;
   if (corLayer && corLayer.global) setWorldPlaces(corLayer.global.places);
+  setRegionData(corLayer && corLayer.global);
   const inCorridor = (x, y) => { const [i, j] = tileIndexOf(x, y); const t = tiles.index.tiles[tileKey(i, j)]; return !!t && !!(t.flags & 4); };
   if (corridor && tiles) { setExtraBuiltWorld(inCorridor); setRailExtraWorld(inCorridor); }
   if (tiles) initProvince(tiles);
