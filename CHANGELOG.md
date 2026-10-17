@@ -6,8 +6,10 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+## [0.35.0] - 2026-10-18
+
 ### Nieuw
-- **Nieuw verhaal (proefversie, alleen akte 1):** onder Instellingen › Verhaal (en op het startscherm) kies je tussen Klassiek en Nieuw. Klassiek is het verhaal zoals het was; Nieuw is het verhaal in vijf akten, nu met de opening en akte 1 (Het Loket, de stunt in Berends bakkie, het museum) en het vet uit akte 2. Wisselen start het spel opnieuw op; elk verhaal heeft zijn eigen save, dus je oude saves blijven onaangeraakt.
+- **Nieuw verhaal, nu standaard (proefversie, alleen akte 1):** een nieuw verhaal in vijf akten door de hele provincie. Akte 1 (de stad, M01 tot en met M07) is speelbaar; daarna zie je 'Akte 2 volgt' en wacht het verhaal op de volgende versie. Het nieuwe verhaal is de standaard voor iedereen, ook voor wie al een save had. Je oude save is niet weg: die staat onaangeroerd onder Klassiek. Op het startscherm staat 'Doorgaan met Klassiek' als je een oude save hebt; onder Instellingen › Verhaal (en op het startscherm) wissel je tussen Klassiek en Nieuw. De nieuwe tekst is nog niet ingesproken: die verschijnt als ondertitel.
 - **Tekst zonder stem:** regels die nog niet zijn ingesproken verschijnen als ondertitel met naam en kleur, en appjes worden niet voorgelezen. Rikus praat op de radio niet tijdens een missie.
 
 ### Opgelost
