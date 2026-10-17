@@ -8,6 +8,7 @@
 //   nearestFacility(kind, x, y)  kind: 'medical' | 'police' | any layer kind
 //                                (or an array of them)
 import { geoToGame } from './geoframe.js';
+import { inProvinceData } from './provinceworld.js';
 import { pushOutOfPlan } from './countryplan.js';
 import { buildingAt, boxOf, pushOutOfBuildings, roadNear, roadKind, withTiles, waterGap } from './tileplace.js';
 import { isInWater } from './util.js';
@@ -32,14 +33,14 @@ export async function loadFacilities(mapUrl = 'citymap.json') {
   }
 }
 
-// Inside the built world: the city map, or the layer of tiles round it
-// (setExtraBuiltWorld: the province's, else the proefstrook's).
+// Inside the built world: the city map, or any tile of the world (the province's, else
+// the proefstrook's: setExtraBuiltWorld for the tiles that are built from OSM).
 let extraWorld = null;
 export function setExtraBuiltWorld(fn) { extraWorld = fn; }
 export function inBuiltWorld(m, x, y, edge = EDGE) {
   const b = m.bounds;
   if (b && x > b[0] + edge && x < b[2] - edge && y > b[1] + edge && y < b[3] - edge) return true;
-  return !!extraWorld && extraWorld(x, y);
+  return inProvinceData(x, y) === true || (!!extraWorld && extraWorld(x, y));
 }
 
 // The area round town where shops, cafés and garages get doors and where a

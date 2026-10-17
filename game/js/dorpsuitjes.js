@@ -95,7 +95,9 @@ function shoreSpot(map, st, depth, rMax) {
     const x = sh.x + sh.ux * back, y = sh.y + sh.uy * back;
     if (openGround(map, x, y, { r: 1.5, road: 0.5 })) return { x, y, a, water: w };
   }
-  return null;
+  // a road or a quay along the water: the nearest open ground within 16 m of it, looking at the water
+  const q = findOpenSpot(map, sh.x, sh.y, { rMin: 3, rMax: 36, step: 3, opts: { r: 1.5, road: 0.5 }, test: (px, py) => { const g = waterGap(map, px, py, 20); return g < -2 && g > -16; } });
+  return q ? { x: q.x, y: q.y, a: Math.atan2(w.y - q.y, w.x - q.x), water: w } : null;
 }
 
 function spotFor(map, st, kind) {

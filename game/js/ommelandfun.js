@@ -3,6 +3,8 @@ import { setExtraEggs } from './furniture.js';
 import { initVillages, updateVillages, villageSolids, getVillageEggs, villagePrompt, villageSecondary, tryVillageInteract, getVillageSpots, ensureVillages, prepareVillages, villageDebug, villageUse } from './dorpsuitjes.js';
 import { getKoeSites, koeCowTo, prepareKoeSites } from './pg_koe.js';
 import { updateTalk } from './ommelandtalk.js';
+import { prepareCountryStations } from './stationtravel.js';
+import { prepareShopDoors } from './shops.js';
 import { setExtraSolids } from './countryplan.js';
 
 // The Ommeland extras in one place for main.js, prompts.js and spotcheck.js:
@@ -19,6 +21,8 @@ const solids = [];
 export async function prepareOmmeland(w = world) {
   if (!w || !w.map.store) return;
   await prepareKoeSites(w.map);
+  await prepareCountryStations(w.map);
+  await prepareShopDoors(w.map);
   await prepareVillages(w);
 }
 

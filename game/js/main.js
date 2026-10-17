@@ -237,8 +237,8 @@ async function boot() {
   // them, or ?legacymap, reads the JSON files as before
   const onMapProgress = (f) => setLoadProgress(0.05 + f * 0.45);
   // the province's layer (index-provincie.json, F2) and the proefstrook's
-  // (index-corridor.json) name the places and stream their tiles in, also
-  // inside the old Ommeland area (provinceworld.js). The province's tiles win.
+  // (index-corridor.json) name the places and stream their tiles in
+  // (provinceworld.js). The province's tiles win.
   const extra = [{ name: 'index-provincie.json' }, { name: 'index-corridor.json' }];
   const tiles = /[?&]legacymap\b/.test(location.search) ? null : await loadTileWorld('world/', { onProgress: onMapProgress, extra });
   const corridor = !!tiles;

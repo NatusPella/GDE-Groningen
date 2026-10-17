@@ -1,5 +1,5 @@
 import { dist } from './util.js';
-import { facilitiesOf, countryDoor } from './facilities.js';
+import { countryFacilities, countryDoor } from './facilities.js';
 import { recordUnique } from './achievements.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
@@ -32,8 +32,8 @@ export function initHoreca(world) {
 // at their street door; their tiles are in while this runs (main.js).
 export function initCountryHoreca(world) {
   const map = world.map;
-  for (const f of facilitiesOf('horeca')) {
-    if (f.city || spots.some((s) => dist(s.x, s.y, f.x, f.y) < COUNTRY_SPACING)) continue;
+  for (const f of countryFacilities('horeca')) {
+    if (spots.some((s) => dist(s.x, s.y, f.x, f.y) < COUNTRY_SPACING)) continue;
     const d = countryDoor(map, f.x, f.y);
     if (!d) continue;
     const h = { x: d.x, y: d.y };
