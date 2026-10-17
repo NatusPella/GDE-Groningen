@@ -93,7 +93,7 @@ Bestaand = uit `docs/personages.md` en `storyarc.js`; **nieuw** alleen waar nodi
 | 15 | **vr 28 aug** | **M30, Gronings Ontzet** | |
 | 19 | di 1 sep → | epiloog (twee weken later); daarna loopt de open wereld door | |
 
-**Tegenstrijdigheden uit FLOW-ANALYSE §3.4, opgelost:** (a) `r-avond` ("morgen de rondvaartboot") en H13 stonden op dezelfde dag: beide geschrapt als hoofdstap (H13 wordt een bijbaan). (b) `s-boot` ("vandaag") op ma 24 en H14 op di 25: `s-boot` opgegaan in M12. (c) Jelles ballon "vanavond" terwijl H15 de volgende dag was: de ballon vliegt nu overdag, M14 op dezelfde dag. (d) `r-kermis` "wordt opgebouwd" terwijl de kermis opent: de botsauto's spelen nu op een andere kermis (Winschoten). **Constitutie 3 (altijd zomer):** de epiloog heeft nog "Het is koud." (zie open vraag 7).
+**Tegenstrijdigheden uit FLOW-ANALYSE §3.4, opgelost:** (a) `r-avond` ("morgen de rondvaartboot") en H13 stonden op dezelfde dag: beide geschrapt als hoofdstap (H13 wordt een bijbaan). (b) `s-boot` ("vandaag") op ma 24 en H14 op di 25: `s-boot` opgegaan in M12. (c) Jelles ballon "vanavond" terwijl H15 de volgende dag was: de ballon vliegt nu overdag, M14 op dezelfde dag. (d) `r-kermis` "wordt opgebouwd" terwijl de kermis opent: de botsauto's spelen nu op een andere kermis (Winschoten). **Constitutie 3 (altijd zomer):** de epiloog gebruikt geen koude of winterregels meer; Tessa zegt "Het is tweeëntwintig graden." (besluit van de eigenaar).
 
 ## 4. Verhaal en romantiek per onderdeel (de grote tabel)
 
@@ -135,7 +135,7 @@ Bestaand = uit `docs/personages.md` en `storyarc.js`; **nieuw** alleen waar nodi
 | M28 | 5 | Er hangt iets Fries aan d'Olle Grieze | Stad, Grote Markt | Stad terug; Tammo is held | "Voor de grip?" "Nee. Gewoon." (7) | 5 | duif |
 | M29 | 5 | Het bod viel tegen | Stad, Oma's keuken | Jelle ziet zijn moeder; bod afgewezen | Oma: "Ik wilde het één keer horen." (8) | 2 | bakken |
 | M30 | 5 | **Ontzet, net als in 1672** | Stad, Grote Markt | alles komt samen: jury, bal, duiven, wagen | **"Ik wil bij jou blijven."** (10) | 10 | alles |
-| E | 5 | Epiloog en slot | Stad, Vismarkt | standplaats; plakjes terug | koud/Grunn (9) | 0 | cutscène |
+| E | 5 | Epiloog en slot | Stad, Vismarkt | standplaats; plakjes terug | tweeëntwintig graden/Grunn (9) | 0 | cutscène |
 
 **Tellingen:** 30 hoofdmissies (7, 6, 6, 6, 5), 3 reisbeats, 13 nieuwe missies, 17 bestaande missies in een nieuwe plek en volgorde. 8 vervoertypes: auto, fiets, scooter (e-step, brommer), bus, trein (meerijden en machinist), heli, klein vliegtuig, boot (sloep, rubberboot, skûtsje-achtervolging), trekker en quad, duif.
 

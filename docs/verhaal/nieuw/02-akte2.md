@@ -41,7 +41,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte2
 | **Plaats** | Bornholmstraat naar de Oosterpoort (Stad) |
 | **Voertuig** | tankwagen "Us Mem Vet" (gekaapt) |
 | **Mechaniek / hergebruik** | `chase`-stage in `missions.js` (hits 70, `flee`, `cruise 15.5`); bestaande def, geen nieuwe code |
-| **Doel (hardop)** | "Kap de tankwagen met het vet en breng het naar de snackbars in de Oosterpoort, voor de pannen koud zijn." |
+| **Doel (hardop)** | "Kap de tankwagen met het vet en breng het naar de snackbars in de Oosterpoort, zodat de pannen weer heet worden." |
 | **Motief** | de snackbarhouder in de Oosterpoort is veertig jaar open en zijn pannen zijn leeg; Jelle koopt het vet (plakje 2) |
 | **Wat de speler weet** | Jelle koopt de standplaatsen (1.4); Sjabbe: de reuzen kopen alles voor frituren |
 | **Verloop** | 1) Rikus belt de snackbarhouder in (radio). 2) Bij de tankwagen: banden stuk. 3) Achtervolgen, kapen. 4) Terug naar de Oosterpoort zonder de lading te verliezen. **Falen:** wagen verloren of tijd: "Sikkom." |

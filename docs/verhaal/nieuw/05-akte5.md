@@ -231,7 +231,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte5
 | **Plaats** | Grote Markt, vr 28 augustus, dag en avond |
 | **Voertuig** | te voet, de Fjord Frituur, duiven |
 | **Mechaniek / hergebruik** | bestaande def `ontzet` in drie delen: de kraam heel houden (`stage: hold`), de achtervolging met duiven boven het vuurwerk (`pigeon`, `chase`), terug naar de kraam voor de jury (`goto` + bakken); alle bondgenoten verschijnen |
-| **Doel (hardop)** | "Houd de kraam heel, haal de bal terug en bak voor de jury, voordat de eierballen koud zijn." |
+| **Doel (hardop)** | "Houd de kraam heel, haal de bal terug en bak voor de jury, voordat de eierballen afkoelen." |
 | **Motief** | de Snackprijs, de standplaats, de bal, Gerda en Trijntje |
 | **Wat de speler weet** | alles |
 | **Verloop** | 1) De kraam heel houden: Durk en Douwe helpen nu; het vuurwerk gaat per ongeluk af. 2) Jelle grijpt de bal en vlucht in de limo; Tammo, met de duiven van Bert, haalt hem in. 3) Terug naar de kraam. 4) Jury: Berend proeft; Oma en Mem; "Gerda. Jouw eierbal was beter." 5) De vijf woorden. 6) Jelle geeft de plakjes terug. **Falen:** kraam stuk of bal kwijt: "Sikkom." |
@@ -277,11 +277,11 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte5
 
 **Epiloog (twee weken later, Vismarkt):**
 
-- **RIKUS (radio):** Het ruikt naar suiker. Dat komt uit Hoogkerk. De zomer is op. [BEHOUDEN]
-- **TESSA:** Het is koud. [BEHOUDEN] *(voorstel: vervangen door "Het is tweeëntwintig graden." als constitutie 3 vervalt, zie open vraag)*
+- **RIKUS (radio):** Het ruikt naar suiker. Dat komt uit Hoogkerk. De zomer is nog lang niet op. [NIEUW]
+- **TESSA:** Het is tweeëntwintig graden. [NIEUW]
 - **TAMMO:** Het is Grunn. [BEHOUDEN]
 - **TESSA:** Spijt van de zomer? [BEHOUDEN]
-- **TAMMO:** Nee. Van de winter ook niet. Alvast. [BEHOUDEN]
+- **TAMMO:** Nee. Van de volgende ook niet. Alvast. [NIEUW]
 
 **Slot (Rikus, studio):**
 
