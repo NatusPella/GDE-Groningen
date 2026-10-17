@@ -2525,7 +2525,7 @@ Alle radiomomenten op een rij (de regels staan bij de missies). Rikus zendt vaak
 - **Tammo en Tessa zijn samen.** Ze zeggen het niet hardop (dat deed hij al, één keer). De spanning van Deel 4 begint klein: zij telt filialen ("Van zeven."), hij telt wat hij heeft ("Twee is ook een mooi getal.", "Ik wil alleen niet minder."). Geen ruzie in F4a; die is voor O23.
 - **Ubbo** is in F4a geduldig en joviaal en verliest twee keer zonder boos te worden ("Eén van zeven. Ik heb er eenenveertig."). De franchise-verleiding wordt alleen gezaaid ("Jij kunt verkopen. Ik onthoud gezichten.", O5).
 - **Personagebijbel:** Tammo zegt nooit "super" en geen Fries; hij zegt het belangrijke kort ("Wij hebben er één. Die is warm."). Tessa geeft bevelen, weet de feiten (wierden zijn monumenten, stuurboord is rechts) en geeft niet op. Rikus vertelt nooit meer dan de speler weet. Durk maakt zinnen af, Douwe herhaalt het laatste woord. Kapitein Klaas is schor en knipoogt.
-- **Dialoogregels** uit [DIALOOG-REVIEW.md](DIALOOG-REVIEW.md): de `why`-regels verwijzen niet naar wat pas in de intro gebeurt; niemand legt uit wat de ander al weet; "Ik meld alleen" komt per scène hooguit één keer per melder; "Kon minder" spaarzaam.
+- **Dialoogregels** (uit de dialoogreview van oktober 2026): de `why`-regels verwijzen niet naar wat pas in de intro gebeurt; niemand legt uit wat de ander al weet; "Ik meld alleen" komt per scène hooguit één keer per melder; "Kon minder" spaarzaam.
 
 **Gevoelige onderwerpen (verhaal-document §8)**
 | Onderwerp | In F4a |

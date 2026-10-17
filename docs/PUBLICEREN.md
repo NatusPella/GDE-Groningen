@@ -1,182 +1,62 @@
-# Checklist: de repo publiek maken
+# Publiceren: wat besloten en gedaan is
 
-Voor rond 1.0. Alles hieronder is een voorstel: de eigenaar vinkt af en
-voert uit. De actuele stand (15 okt 2026) en de open beslissingen staan in
-[OPEN_SOURCE_CHECKLIST.md](OPEN_SOURCE_CHECKLIST.md); dit document beschrijft
-de procedures. Achtergrond in
-[LICENTIES.md](LICENTIES.md).
+De repo is nog **privé**; er is niets gepubliceerd. Wat nog te doen staat,
+staat als issue: [#83](https://github.com/NatusPella/GDE-Groningen/issues/83)
+(checklist), met #37 (publiek maken), #62 (merken en secrets-scan), #72
+(social preview, credits), #57 (webversie) en #64 (Steam). Juridische
+achtergrond: [LICENTIES.md](LICENTIES.md). Zichtbaarheid wijzigen alleen
+met akkoord van de eigenaar.
 
-Volgorde: eerst opruimen en de historie herschrijven (stap 1-4), dan pas
-pushen en de zichtbaarheid wijzigen (stap 7). Een herschreven historie
-verandert alle commit-hashes; doe het één keer, vóór iemand anders kloont.
+## Gedaan (stand 15-17 okt 2026, 0.34)
 
-## 1. Secrets
+- **Licenties:** code GPL-3.0-or-later (`LICENSE`), eigen inhoud CC BY-NC-SA 4.0
+  (`LICENSE-CONTENT.md`, ook voor spelteksten in `game/js/*lines.js` e.d.),
+  naam en logo voorbehouden. Werk van derden in `NOTICE.md` en `licenses/`.
+  AI-stemmen en -muziek worden aangeboden "voor zover er rechten op rusten";
+  juridische nalezing is gedaan (#38).
+- **Bijdragen:** `CONTRIBUTING.md` en het PR-sjabloon: bijdragers houden hun
+  auteursrecht, geven GPL / CC BY-NC-SA en een brede licentie aan NatusPella
+  (zodat een betaalde Steam-versie kan), met `Signed-off-by`.
+- **Namen:** alles heet GDE; interne namen zijn in 0.29 omgezet (`gde-*`
+  opslagsleutels met migratie in `game/js/storagekeys.js`, userData-map,
+  appId, IPC, env). Bewust gehouden: de disclaimer, de migratiecode en
+  haar test, oude CHANGELOG-regels.
+- **Secrets:** geen sleutels in boom of historie (gecontroleerd op 3 en 15
+  okt over alle commits en branches); `.env` nooit gecommit en genegeerd;
+  de OpenRouter-sleutel is vervangen (#36); `.claude/` staat in `.gitignore`.
+- **Historie herschreven** (15 okt, met akkoord) met `git filter-repo`:
+  alle commits en tags staan op NatusPella met het noreply-adres; werknaam
+  en werkadres, de Esri-luchtfoto (`data/satellite_reference.jpg`, mag niet
+  herverspreid worden), oude Sikkom-audio, oud icoon en verwijzingen naar
+  een echte persoon zijn eruit. Force-push van `main` en tags gedaan; een
+  lokale back-up (mirror) staat buiten de repo. Oude kloons niet meer
+  gebruiken. Releases zijn opnieuw gekoppeld; `git log --all --format='%ae'`
+  geeft alleen het noreply-adres.
+- **Persoonsgegevens:** geen persoonsnaam, werkadres of thuispad in
+  getrackte bestanden; speeltester alleen bij bijnaam. OSM-exports in `data/`
+  bevatten publieke zakelijke contactgegevens onder de ODbL: acceptabel.
+- **Afhankelijkheden:** Dependabot-meldingen in `desktop/package-lock.json`
+  (`http-cache-semantics`, `sprintf-js`, alleen ontwikkeltools) zijn opgelost
+  met `overrides` in `desktop/package.json`; haal die weg zodra
+  `electron-builder` zelf nieuwere versies gebruikt.
+- **Grootte:** niets boven de 50 MB-waarschuwing van GitHub (grootste:
+  `data/groningen_raw.json` 32,5 MB, `game/citymap.json` 11 MB, muziek 3-4 MB
+  per nummer); opruimen van oude data in #76.
+- **Releases:** pre-releases "GDE Groningen x.y.z" met een
+  "niet ondertekend"-waarschuwing; Linux-build optioneel met `--linux`.
+  De webzip wordt lokaal gemaakt en nergens heen geüpload (keuze: #57).
 
-Gecontroleerd op 3 en 15 okt 2026 (alle commits, alle branches):
+## Procedures voor later
 
-- [x] Geen API-sleutels in de historie. Gezocht op OpenRouter
-      (`sk-or-v1-…`), Google (`AIza…`), Anthropic (`sk-ant-…`), GitHub
-      (`ghp_…`, `github_pat_…`), Slack-tokens en private keys. Niets.
-- [x] Nooit een `.env`, `.pem`, `.key` of `*secret*`-bestand toegevoegd.
-- [x] `scripts/gemini_tts.py` leest `OPENROUTER_API_KEY` uit `.env`;
-      `.gitignore` sluit `.env` en `.env.*` uit.
-- [ ] Vlak vóór publicatie nog een keer scannen met een echte tool, bijv.:
-      `gitleaks detect --source . --log-opts="--all"` of
-      `trufflehog git file://. --only-verified`.
-- [ ] Voor de zekerheid de OpenRouter-sleutel roteren (die heeft lokaal en
-      in sessies rondgegaan).
-- [ ] Controleren dat `.claude/` (lokale agent-instellingen en
-      worktrees) niet getrackt is: `git ls-files .claude` moet leeg zijn
-      (nu: leeg). Eventueel `.claude/` aan `.gitignore` toevoegen.
-
-## 2. Auteur-e-mail vervangen in de historie
-
-De oudere commits en tags (tot 3 okt 2026) staan op het werk-e-mailadres
-van de eigenaar, de nieuwere op
-`5644798+NatusPella@users.noreply.github.com`. Doel: alles op het
-noreply-adres. Het werkadres staat niet in de huidige bestanden of in
-commitberichten (gecontroleerd); wel in een oudere versie van dit
-document, dus neem het ook op in `--replace-text`.
-
-**Niet uitgevoerd.** Procedure met
-[git filter-repo](https://github.com/newren/git-filter-repo):
-
-```bash
-# 0. alle branches die bewaard moeten blijven eerst mergen of lokaal hebben;
-#    worktrees opruimen (git worktree list / git worktree remove …)
-# 1. verse, losse kloon als werkkopie (filter-repo wil dat)
-git clone --no-local /pad/naar/de/checkout /tmp/gde-rewrite
-cd /tmp/gde-rewrite
-
-# 2. mailmap: <nieuw> <oud>
-cat > ../mailmap.txt <<'EOF'
-NatusPella <5644798+NatusPella@users.noreply.github.com> <WERKADRES>
-EOF
-
-# 3. herschrijven (author én committer)
-git filter-repo --mailmap ../mailmap.txt
-
-# 4. controleren
-git log --all --format='%ae %ce' | sort | uniq -c   # alleen noreply
-git log --all --format='%B' | grep -i "<werkdomein>"  # leeg
-
-# 5. desgewenst tegelijk de Esri-foto uit de historie halen (stap 3):
-git filter-repo --invert-paths --path data/satellite_reference.jpg
-```
-
-Daarna:
-
-- [ ] `git config user.email 5644798+NatusPella@users.noreply.github.com`
-      in deze repo (en globaal of per map, zodat nieuwe commits goed gaan).
-- [ ] De herschreven kloon wordt de nieuwe bron: remote `origin` opnieuw
-      instellen (filter-repo verwijdert die) en **force-pushen** naar
-      GitHub. Oude kloons, worktrees en open branches daarna weggooien en
-      opnieuw klonen; anders komt de oude historie terug bij een merge.
-- [ ] GitHub bewaart oude commits nog een tijd (via oude PR's, forks en
-      caches). Als het werkadres echt weg moet: na de force-push GitHub
-      Support vragen om cached views/oude refs te verwijderen.
-- [ ] Release-tags (`v0.x.y`) worden mee herschreven; bestaande GitHub
-      Releases wijzen dan naar oude commits. Releases opnieuw koppelen of
-      verwijderen en opnieuw maken.
-- [x] `desktop/package.json` (`author`, `copyright`) en het About-paneel
-      noemen alleen nog "NatusPella" (15 okt).
-
-## 3. Bestanden die niet publiek mogen of horen
-
-- [x] **`data/satellite_reference.jpg`** (6,4 MB, Esri World Imagery-
-      export, mag niet herverspreid worden) is uit de huidige boom (15 okt)
-      en staat in `.gitignore`. `scripts/extract_palette.py` zegt hoe je hem
-      lokaal opnieuw exporteert; de afgeleide kleuren in de code mogen
-      blijven.
-- [ ] Hetzelfde bestand uit de **historie** halen (zie stap 2.5).
-- [ ] Interne documenten doorlezen (`docs/`): ze zijn in principe
-      publiceerbaar, maar bevatten plannen, prompts en kosten:
-  - `docs/3d-model-prompts.md` (Claude Design-prompts, creditverbruik);
-  - `docs/verhaal/*` en `docs/verhaal-voorstel.md` (spoilers; ok of in
-    een aparte map "ontwerp");
-  - `docs/groningen-memes*.md` (onderzoek naar memes: controleer op
-    namen van echte personen en geciteerd materiaal van derden);
-  - verwijzingen naar de oude naam en naar andere games in code,
-    commentaar en docs zijn op 15 okt neutraal gemaakt.
-- [ ] Commitberichten met bedragen of kosten (bijv. "$0.04 spent"): geen
-      probleem, wel bewust van zijn.
-- [ ] `docs/LICENTIES.md` en deze checklist: houden of naar een wiki.
-
-## 4. Grote bestanden
-
-Packgrootte nu ~236 MB, werkboom: `game/audio` 152 MB, `data/` 54 MB.
-Geen grote bestanden die al verwijderd zijn maar nog in de historie
-zitten. Grootste blobs:
-
-| MB | Bestand |
-|---:|---|
-| 32,5 | `data/groningen_raw.json` (Overpass-cache, kan weg of gz) |
-| 11,2 | `game/citymap.json` (meerdere versies in de historie) |
-| 6,4 | `data/satellite_reference.jpg` (alleen nog in de historie, zie 3) |
-| 2,9-4,2 | 14 G-Music-mp3's, 2 scenario-mp3's, titelnummer |
-| 3,0 | `data/ommeland_raw.json.gz` |
-| — | ~3.400 kleine voiceline-wav's (samen het grootste deel van 152 MB) |
-
-GitHub weigert bestanden > 100 MB en waarschuwt boven 50 MB: niets
-hiervan komt erboven. Opties (keuze eigenaar):
-
-- [ ] Zo laten (eenvoudig, repo wordt ~250 MB bij klonen).
-- [ ] `data/*_raw.json` niet meer committen (regenereerbaar met de
-      scripts; de ODbL eist dat de manier om de data te maken beschikbaar
-      is, en dat zijn de scripts).
-- [ ] Audio naar Git LFS (let op: LFS-opslag en bandbreedte zijn beperkt
-      op een gratis account; GitHub Pages serveert geen LFS-bestanden).
-- [ ] Wav-clips naar ogg/opus omzetten (veel kleiner; aparte klus).
-
-## 5. Licentie en vermeldingen
-
-- [x] Licentie gekozen (15 okt): `LICENSE` (GPL-3.0-or-later) en
-      `LICENSE-CONTENT.md` (CC BY-NC-SA 4.0, naam en logo voorbehouden).
-- [x] `NOTICE.md` en `licenses/` (three.js MIT, Bebas Neue OFL).
-- [x] Disclaimer en OSM-vermelding in README en in het spel.
-- [x] Naam en logo omgezet naar "GDE Groningen – Zomer vol misdaad"
-      (0.24; interne namen in 0.29). De oude naam blijft in de historie.
-
-## 6. GitHub-instellingen (later)
-
-- [ ] **Dependabot**: alerts en security updates aanzetten (Settings →
-      Code security). Er zijn alleen devDependencies in `desktop/`
-      (electron, electron-builder); dependabot.yml met
-      `package-ecosystem: npm`, `directory: /desktop`, wekelijks.
-      Electron-updates zijn belangrijk (Chromium-beveiligingsfixes).
-- [ ] **Secret scanning** en **push protection** aanzetten (gratis voor
-      publieke repo's).
-- [ ] **Branch protection** op `main`: geen force-push na de eenmalige
-      herschrijving; eventueel PR verplicht.
-- [ ] **Actions**: nu niet in gebruik (releases worden lokaal gebouwd).
-      Als je ze aanzet: Settings → Actions → "Allow only actions created
-      by GitHub" of een allowlist; `GITHUB_TOKEN` standaard alleen-lezen;
-      geen secrets nodig voor een Pages-build.
-- [ ] **GitHub Pages** (browserversie): bron "GitHub Actions" met een
-      workflow die `game/` publiceert. Advies: three.js en Bebas Neue mee
-      vendoren (zoals `desktop/build.mjs`), zodat de pagina geen CDN's
-      gebruikt (privacy, zie LICENTIES.md §5). Let op de grootte: Pages-
-      sites mogen max. 1 GB zijn, ~150 MB audio past.
-- [ ] Issues/Discussions aan of uit; `SECURITY.md` en een korte
-      `CONTRIBUTING.md` (bijdragen onder dezelfde licentie).
-- [ ] Repo-beschrijving en topics zonder merknamen van andere games, bijv. "Groningen
-      open-world parody game, three.js".
-- [ ] Releases: de unsigned-builds-tekst staat al in de release notes;
-      SHA-256 van de downloads erbij zetten.
-- [x] Linux-build (AppImage en tar.gz, voor de Steam Deck): optioneel met
-      `npm run release -- <bump> --linux`; staat dan ook in de release
-      notes, met dezelfde "niet ondertekend"-waarschuwing.
-- [ ] De webzip (`--web`) wordt alleen lokaal gemaakt. Waar hij komt
-      (itch.io of GitHub Pages) is nog niet besloten; tot dan uploadt het
-      releasescript hem nergens heen.
-- [ ] Steam: `steam/` heeft de SteamPipe-sjablonen en een kopieerscript
-      (zie `steam/README.md`). Pas na de keuze voor Steam en met een app-id;
-      gebruik voor `steamcmd` een apart Steam-account met alleen
-      buildrechten.
-
-## 7. Publiceren
-
-- [ ] Stap 1-6 afgevinkt.
-- [ ] Laatste controle: `git log --all --format='%ae' | sort -u`,
-      gitleaks, en de README-disclaimer.
-- [ ] Zichtbaarheid naar Public (Settings → General → Danger zone).
+- **Historie opnieuw herschrijven** (alleen na akkoord, bijv. voor #76): in een
+  verse `git clone --no-local`, `git filter-repo` met `--mailmap` of
+  `--invert-paths`, controleren met `git log --all`, daarna `origin`
+  opnieuw instellen en force-pushen; oude kloons en worktrees weggooien;
+  tags en Releases opnieuw koppelen. Eén keer doen, vóór iemand anders kloont.
+- **Pages** (als gekozen): bron "GitHub Actions" met een workflow die
+  `game/` publiceert; three.js en het lettertype meevendoren (zoals
+  `desktop/build.mjs`) zodat de pagina geen CDN's gebruikt; Pages-limiet
+  1 GB, ~150 MB audio past; Pages serveert geen Git LFS.
+- **Steam:** `steam/` heeft SteamPipe-sjablonen en een kopieerscript
+  (`steam/README.md`); gebruik voor `steamcmd` een apart account met alleen
+  buildrechten.

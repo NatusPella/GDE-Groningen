@@ -45,7 +45,7 @@ geen `node_modules` in git.
 | Texturen, borden, gevels, alle 3D-modellen behalve de Martinitoren | procedureel in de code (canvas, three.js-geometrie) | eigen werk | ok |
 | `game/models/martinitoren.glb` | gemaakt met **Claude Design** (Anthropic), commit `a30ad76`; prompt in `docs/3d-model-prompts.md`; exporter `THREE.GLTFExporter r184` | Anthropic draagt zijn rechten op output over aan de gebruiker ([Consumer Terms](https://www.anthropic.com/legal/consumer-terms), "Outputs") | ok |
 | Referentiefoto's voor Paddepoel (oogtv.nl, Wikimedia Commons, genoemd in `paddepoel3d.js`) | alleen gebruikt als voorbeeld bij het modelleren | foto's zitten niet in het spel | ok |
-| `data/satellite_reference.jpg` (6,4 MB) | **Esri World Imagery**-export (`scripts/extract_palette.py`) | Esri-beelden mogen niet als los bestand herverspreid worden ([Esri-voorwaarden](https://www.esri.com/en-us/legal/terms/full-master-agreement)); alleen de afgeleide kleurwaarden zitten in het spel | uit de repo (15 okt, nu in `.gitignore`); **RISICO** tot hij ook uit de historie is (zie `docs/PUBLICEREN.md`) |
+| `data/satellite_reference.jpg` (6,4 MB) | **Esri World Imagery**-export (`scripts/extract_palette.py`) | Esri-beelden mogen niet als los bestand herverspreid worden ([Esri-voorwaarden](https://www.esri.com/en-us/legal/terms/full-master-agreement)); alleen de afgeleide kleurwaarden zitten in het spel | uit de repo en de historie (15 okt, in `.gitignore`; zie `docs/PUBLICEREN.md`) |
 | Geluidseffecten (motor, foley, ambience, UI) | gesynthetiseerd in `game/js/sfx/*.js` | eigen werk | ok |
 | Muziek: 14 G-Music-nummers, 2 scenario-loops, titelnummer `miles_past_the_city_square.mp3` | Google Gemini (volgens de eigenaar) | zie §4 | ok, met kanttekeningen |
 | Stemmen: ~3.400 clips in `game/audio/voicelines` (gelogd in `tts.json`, allemaal `google/gemini-3.8-flash-tts`, prebuilt stemmen zoals Orus en Callirrhoe; sinds 5 okt spreken ze Gronings, uit `scripts/gronings_spoken.json`, geschreven met Claude, de Friese personages en toeristen daargelaten) | Gemini TTS via OpenRouter | zie §4 | ok |
@@ -142,7 +142,7 @@ respawn heten "Huisartsenpost <wijk>" (`add_police_stations.py`) en garages
    OpenRouter) zijn gemaakt en dat wie ze gebruikt zich ook aan de
    voorwaarden van Google en OpenRouter houdt, voor zover die gelden. Zo
    claimen we geen rechten die er misschien niet zijn. Een juridische check
-   staat nog open (`docs/OPEN_SOURCE_CHECKLIST.md`).
+   is gedaan (#38; `docs/PUBLICEREN.md`).
 
 ## 5. Privacy
 
@@ -223,8 +223,8 @@ De rechthebbende van de geparodieerde reeks is actief in merkenzaken
   15 okt 2026). De aftiteling noemt ze als personages, niet meer "als
   zichzelf"; de code-opmerking over een echte auto is al eerder weg. Houd
   uiterlijk, catchphrases en grappen ver van bestaande Groningse typetjes
-  en influencers. Oudere versies in de git-historie leggen nog een link:
-  zie `docs/OPEN_SOURCE_CHECKLIST.md`.
+  en influencers. Oudere versies legden een link; die is uit de historie gehaald:
+  zie `docs/PUBLICEREN.md`.
 - Huisartsenpraktijken uit OSM (bijv. "Huisarts van de Riet") waren
   respawnplekken. **Opgelost** (3 okt): ze heten nu "Huisartsenpost <wijk>"
   (`add_police_stations.py` en `citymap.json`).
@@ -259,8 +259,8 @@ Aanvullend (15 okt):
   betaalde Steam-versie), met een `Signed-off-by`-regel per commit
   (`CONTRIBUTING.md`).
 
-Nog open (o.a. een juridische check op de AI-audio):
-`docs/OPEN_SOURCE_CHECKLIST.md`.
+Stand en open punten:
+`docs/PUBLICEREN.md`.
 
 De oorspronkelijke opties, ter achtergrond:
 
@@ -481,7 +481,7 @@ over minderjarigen (§4) past daar goed bij.
    **gedaan**: Kiekdoar en Radio Proat (§6.2).
 4. ~~**Tammo & Tessa**: echte mensen of niet?~~ **besloten** (15 okt): eigen,
    verzonnen personages; credit aangepast (§6.3).
-5. **Esri-luchtfoto**: uit de repo (15 okt); nog uit de historie halen (zie `docs/PUBLICEREN.md`).
+5. **Esri-luchtfoto**: uit de repo (15 okt); ook uit de historie gehaald (zie `docs/PUBLICEREN.md`).
 6. ~~**Oudere TTS-clips** opnieuw maken en loggen~~ **gedaan** (§2).
 7. **Browserversie**: three.js en Bebas Neue zelf hosten (privacy).
 8. **Muziekbron** vastleggen: Gemini-app of API, welk abonnement (§4.3).
