@@ -2,20 +2,22 @@ import {
   BLOCK, PW, ROAD_IN, ROAD_W, MAIN_HW, MAAR_HW, VILLAGE_RING, VILLAGE_X,
   chash, countryWeight, countryRect, edgeDistance, edgeRoad, maarX, maarY, villageOf, parcelAt,
 } from './countryfield.js';
-import { REAL } from './countryreal.js';
-import { EDGE, initCountryEdge, edgeBlocked, edgeBlockBoxes, connectorRuns, pushOutOfEdge, FRINGE } from './countryedge.js';
+import { worldPlaceNames } from './worldplaces.js';
+import { EDGE, initCountryEdge, edgeBlocked } from './countryedge.js';
+import { farSolidsNear } from './farprops.js';
 
-// Deterministic layout of everything built in the Ommelanden, per polder
-// block: farmsteads along the polder roads and on their own terps, wierde
-// villages, gas sites, poldermolens, wind turbine rows and pylon lines.
-// Pure data (no three.js): the tile props, the skyline layer, the traffic
-// and the colliders all read the same plan.
+// Deterministic layout of everything built on the polder grid past the
+// province's tiles, per polder block: farmsteads along the polder roads and on
+// their own terps, wierde villages and gas sites. Pure data (no three.js): the
+// tile props, the traffic and the colliders all read the same plan. Wind
+// turbines and pylons are the real ones of the tile build (farprops.js), mills
+// the landmark kits'.
 
 export const ROAD_C = ROAD_IN + ROAD_W / 2;
 const EDGE_CLEAR = 4;
 
 // Strip-boundary rows (per strip column) and polder-road tree lanes; shared
-// by the near props and the distant tree belts.
+// by the near props and the maps.
 export const TREE_ROW_P = 0.11;
 export const WILLOW_ROW_P = 0.05;
 export const HEDGE_ROW_P = 0.19;
@@ -221,13 +223,7 @@ export let planVersion = 0;
 export function clearPlans() {
   planVersion++;
   blockCache.clear();
-  macroCache.clear();
-  pylonCache.clear();
   villagePlans.clear();
-}
-
-export function isPlanned(x, y) {
-  return blockCache.has(bkey(Math.floor(x / BLOCK), Math.floor(y / BLOCK)));
 }
 
 export function blockPlan(bx, by) {
@@ -256,7 +252,6 @@ function buildBlock(bx, by) {
   const X = bx * BLOCK, Y = by * BLOCK;
   const P = { bx, by, farms: [], village: villageOf(bx, by), villageE: villageOf(bx + 1, by), gas: null, mill: null, blocked: [] };
   const inner = [X + 3, Y + 3, X + BLOCK - 3, Y + BLOCK - 3];
-  for (const q of edgeBlockBoxes(bx, by)) P.blocked.push(q);
   const bands = roadBands(bx, by);
   const villages = [P.village, P.villageE].filter(Boolean);
   const nearVillage = (x, y, m) => villages.some((v) => Math.hypot(x - v.x, y - v.y) < v.r + m);
@@ -280,17 +275,6 @@ function buildBlock(bx, by) {
       P.blocked.push(box);
     }
   }
-  // a poldermolen beside a main ditch or maar
-  if (chash(bx * 47 + 5, by * 53 + 7) < 0.1) {
-    const mx = X + 160 + chash(bx + 17, by + 3) * 640;
-    const my = Y + (edgeRoad(bx, by, 1) ? 20 : maarY(by) ? MAAR_HW + 6 : 8);
-    const box = [mx - 7, my - 7, mx + 7, my + 7];
-    if (boxOk(box) && !nearVillage(mx, my, 40)) {
-      P.mill = { x: mx, y: my, turning: chash(bx - 21, by + 5) < 0.6, phase: chash(bx, by * 3) * 6.28 };
-      P.blocked.push(box);
-    }
-  }
-
   const tryFarm = (x, y, angle, front, seed, typeH, laneFrom) => {
     const type = pickType(x, y, typeH);
     const f = makeFarm(x, y, angle, type, front, seed);
@@ -318,19 +302,6 @@ function buildBlock(bx, by) {
   if (edgeRoad(bx + 1, by, 0) && !maarX(bx + 1)) roads.push({ v: true, fixed: X + BLOCK - 11, angle: Math.PI, front: 16, off: 100 });
   if (edgeRoad(bx, by, 1)) roads.push({ v: false, fixed: Y + ROAD_IN + ROAD_W + 11, angle: Math.PI / 2, front: 11, off: 50 });
   if (edgeRoad(bx, by + 1, 1) && !maarY(by + 1)) roads.push({ v: false, fixed: Y + BLOCK - 11, angle: -Math.PI / 2, front: 16, off: 150 });
-  // and along the roads coming out of the city, past the fringe
-  for (const k of connectorRuns(bx, by)) {
-    for (let t = FRINGE + 40; t < k.runLen - 40; t += 190) {
-      const pos = k.out + k.dir * t;
-      if (pos < (k.vert ? Y : X) + 40 || pos > (k.vert ? Y : X) + BLOCK - 40) continue;
-      for (const side of [-1, 1]) {
-        if (chash(Math.round(t) + side * 7, Math.round(k.c)) > 0.6) continue;
-        const off = k.c + side * (k.wEnd / 2 + 16);
-        const angle = k.vert ? (side > 0 ? 0 : Math.PI) : (side > 0 ? Math.PI / 2 : -Math.PI / 2);
-        tryFarm(k.vert ? off : pos, k.vert ? pos : off, angle, 16, chash(Math.round(t), Math.round(k.c) + side), chash(Math.round(k.c) - side, Math.round(t) + 3));
-      }
-    }
-  }
   roads.forEach((r, ri) => {
     for (let k = 0; k < 5; k++) {
       const h = chash(bx * 97 + ri * 13 + k, by * 89 + k * 7);
@@ -377,11 +348,11 @@ export function villagePlan(v) {
   const dx = v.x - r.cx, dy = v.y - r.cy;
   const ang = Math.atan2(dx, -dy); // 0 = north, clockwise
   const sector = ((Math.round(ang / (Math.PI / 4)) % 8) + 8) % 8;
-  // past the real Ommelanden: names the real map does not use already
+  // past the province's tiles: names its places do not use already
   let list = NAMES[sector];
-  if (REAL.ready) {
-    if (!REAL.nameSet) REAL.nameSet = new Set(REAL.places.map((p) => p.n));
-    const free = list.filter((n) => !REAL.nameSet.has(n));
+  const used = worldPlaceNames();
+  if (used.size) {
+    const free = list.filter((n) => !used.has(n));
     if (free.length) list = free;
   }
   const ring = Math.max(0, Math.hypot(dx, dy) - Math.max(r.hx, r.hy));
@@ -502,121 +473,6 @@ export function blockSigns(bx, by) {
   return signs;
 }
 
-// ------------------------------------------------------------------ turbines
-
-const MACRO = BLOCK * 3;
-const macroCache = new Map();
-
-// Candidate turbine positions of a macro cell's row; turbineValid() settles
-// each against the block plans (shifted sideways off roads and ditches).
-export function turbineRow(mx, my) {
-  const key = mx * 100003 + my;
-  let T = macroCache.get(key);
-  if (T) return T;
-  T = [];
-  const r = countryRect();
-  const cx = (mx + 0.5) * MACRO, cy = (my + 0.5) * MACRO;
-  const dx = cx - r.cx, dy = cy - r.cy, l = Math.hypot(dx, dy) || 1;
-  const ne = Math.max(0, (dx - dy) / (l * Math.SQRT2));
-  if (chash(mx * 61 + 7, my * 67 + 3) < 0.3 + 0.45 * ne) {
-    const sx = mx * MACRO + 300 + chash(mx + 3, my + 9) * 2000, sy = my * MACRO + 300 + chash(mx - 5, my + 1) * 2000;
-    const h = chash(mx + 11, my - 7);
-    const dir = h < 0.4 ? [1, 0] : h < 0.8 ? [0, 1] : h < 0.9 ? [Math.SQRT1_2, Math.SQRT1_2] : [Math.SQRT1_2, -Math.SQRT1_2];
-    const n = 4 + Math.floor(chash(mx * 3, my * 5 + 1) * 5);
-    const hub = 78 + chash(mx, my + 77) * 18;
-    for (let i = 0; i < n; i++) {
-      const x = sx + dir[0] * i * 330, y = sy + dir[1] * i * 330;
-      T.push({ x, y, x0: x, y0: y, dir, hub, ok: undefined });
-    }
-  }
-  macroCache.set(key, T);
-  return T;
-}
-
-export function turbineValid(t) {
-  if (t.ok !== undefined) return t.ok;
-  t.ok = false;
-  for (const sh of [0, 22, -22, 44]) {
-    const tx = t.x0 - t.dir[1] * sh, ty = t.y0 + t.dir[0] * sh;
-    if (!spotClear(tx, ty, 14, 60)) continue;
-    t.x = tx; t.y = ty; t.ok = true; break;
-  }
-  return t.ok;
-}
-
-// Open field: no road, ditch, farm yard, village or special within reach.
-function spotClear(x, y, clear, villageClear) {
-  if (edgeDistance(x, y) < 60 || !openLand(x, y) || edgeBlocked(x, y, clear)) return false;
-  const p = parcelAt(x, y);
-  if (p.road || p.dMain < clear * 0.6 || p.dMaar < clear || p.dDitch < 2) return false;
-  const bx = Math.floor(x / BLOCK), by = Math.floor(y / BLOCK);
-  for (const v of [villageOf(bx, by), villageOf(bx + 1, by)]) if (v && Math.hypot(x - v.x, y - v.y) < v.r + villageClear) return false;
-  const P = blockPlan(bx, by);
-  for (const q of P.blocked) if (inBox(q, x, y, clear)) return false;
-  if (P.mill && Math.hypot(x - P.mill.x, y - P.mill.y) < 50) return false;
-  return true;
-}
-
-export function turbinesAround(x, y, radius, out = []) {
-  const m0x = Math.floor((x - radius) / MACRO), m1x = Math.floor((x + radius) / MACRO);
-  const m0y = Math.floor((y - radius) / MACRO), m1y = Math.floor((y + radius) / MACRO);
-  for (let my = m0y; my <= m1y; my++) {
-    for (let mx = m0x; mx <= m1x; mx++) {
-      for (const t of turbineRow(mx, my)) if (Math.abs(t.x0 - x) < radius + 50 && Math.abs(t.y0 - y) < radius + 50 && turbineValid(t) && Math.abs(t.x - x) < radius && Math.abs(t.y - y) < radius) out.push(t);
-    }
-  }
-  return out;
-}
-
-// ------------------------------------------------------------------ pylons
-
-export const PYLON_STEP = 340;
-const pylonCache = new Map();
-
-function lineX(mx) {
-  return chash(mx * 73 + 5, 921) < 0.3 ? mx * MACRO + 500 + chash(mx * 71 + 1, 919) * 1880 : null;
-}
-function lineY(my) {
-  return chash(my * 79 + 3, 927) < 0.22 ? my * MACRO + 700 + chash(my * 83 + 9, 929) * 1480 : null;
-}
-
-function pylonAt(vert, line, k) {
-  const key = (vert ? 'v' : 'h') + line + ',' + k;
-  let p = pylonCache.get(key);
-  if (p !== undefined) return p;
-  p = null;
-  const c = vert ? lineX(line) : lineY(line);
-  for (const sh of [0, 25, -25, 50]) {
-    const t = k * PYLON_STEP + sh;
-    const x = vert ? c : t, y = vert ? t : c;
-    if (spotClear(x, y, 6, 30)) { p = { x, y, yaw: vert ? Math.PI / 2 : 0 }; break; }
-  }
-  pylonCache.set(key, p);
-  if (pylonCache.size > 4000) pylonCache.clear();
-  return p;
-}
-
-// Pylons and the spans between neighbours (at most one missing pylon).
-export function pylonsAround(x, y, radius, pylons = [], spans = [], ready = null) {
-  const m0x = Math.floor((x - radius) / MACRO), m1x = Math.floor((x + radius) / MACRO);
-  const m0y = Math.floor((y - radius) / MACRO), m1y = Math.floor((y + radius) / MACRO);
-  const walk = (vert, line, c0, c1) => {
-    let prev = null, gap = 0;
-    const c = vert ? lineX(line) : lineY(line);
-    for (let k = Math.floor(c0 / PYLON_STEP); k <= Math.ceil(c1 / PYLON_STEP); k++) {
-      if (ready && !ready(vert ? c : k * PYLON_STEP, vert ? k * PYLON_STEP : c)) { prev = null; continue; }
-      const p = pylonAt(vert, line, k);
-      if (!p) { gap++; continue; }
-      pylons.push(p);
-      if (prev && gap <= 1) spans.push([prev, p]);
-      prev = p; gap = 0;
-    }
-  };
-  for (let mx = m0x; mx <= m1x; mx++) if (lineX(mx) !== null && Math.abs(lineX(mx) - x) < radius) walk(true, mx, y - radius, y + radius);
-  for (let my = m0y; my <= m1y; my++) if (lineY(my) !== null && Math.abs(lineY(my) - y) < radius) walk(false, my, x - radius, x + radius);
-  return { pylons, spans };
-}
-
 // ------------------------------------------------------------------ queries
 
 // Farm whose yard, drive or lane covers (x, y): for props and reeds.
@@ -628,7 +484,6 @@ export function farmAt(x, y, margin = 0) {
       if (inBox(f.full, x, y, margin) || (f.lane && inBox(f.lane, x, y, margin))) return f;
     }
     if (P.gas && inBox(P.gas.box, x, y, margin + 2)) return P.gas;
-    if (P.mill && Math.hypot(x - P.mill.x, y - P.mill.y) < 8 + margin) return P.mill;
     return null;
   };
   let f = check(blockPlan(bx, by));
@@ -708,7 +563,6 @@ export function pushOutOfPlan(obj, radius) {
         for (const c of fd.circles) if (pushCircle(obj, c.x, c.y, c.r, radius)) hit = true;
       }
       if (P.gas && pushBox(obj, [P.gas.box[0] + 2, P.gas.box[1], P.gas.box[2], P.gas.box[3]], radius)) hit = true;
-      if (P.mill && pushCircle(obj, P.mill.x, P.mill.y, 5.2, radius)) hit = true;
       if (ox === 0 && oy === 0) {
         for (const v of [P.village, P.villageE]) {
           if (!v || Math.hypot(obj.x - v.x, obj.y - v.y) > v.r + 10) continue;
@@ -717,10 +571,7 @@ export function pushOutOfPlan(obj, radius) {
       }
     }
   }
-  if (pushOutOfEdge(obj, radius)) hit = true;
-  for (const t of turbinesAround(obj.x, obj.y, 12)) if (pushCircle(obj, t.x, t.y, 3.1, radius)) hit = true;
-  const { pylons } = pylonsAround(obj.x, obj.y, 12, [], []);
-  for (const p of pylons) if (pushCircle(obj, p.x, p.y, 3.4, radius)) hit = true;
+  for (const c of farSolidsNear(obj.x, obj.y, radius)) if (pushCircle(obj, c.x, c.y, c.r, radius)) hit = true;
   for (const c of extraSolids) if (Math.abs(obj.x - c.x) < c.r + radius && Math.abs(obj.y - c.y) < c.r + radius && pushCircle(obj, c.x, c.y, c.r, radius)) hit = true;
   return hit;
 }

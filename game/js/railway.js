@@ -65,7 +65,6 @@ let crossings = [];
 let bridgeZones = [];
 let lifts = [];
 let bounds = null;
-let ext = null;
 let ready = false;
 
 export function getTrains() { return trains; }
@@ -95,8 +94,6 @@ export function setRailExtraWorld(fn) { extraWorld = fn; }
 export function isOffMap(x, y, margin = 40) {
   if (!bounds) return false;
   if (extraWorld && extraWorld(x, y)) return false;
-  // the real Ommelanden round the city (countryreal.js) are part of the world
-  if (ext && x > ext[0] && x < ext[2] && y > ext[1] && y < ext[3]) return false;
   return x < bounds[0] - margin || x > bounds[2] + margin || y < bounds[1] - margin || y > bounds[3] + margin;
 }
 
@@ -198,7 +195,6 @@ export function initRailway(world) {
   const fn = railHeightFn(map);
   profileZ = fn.profiled ? fn : null;
   bounds = map.meta.bounds;
-  ext = map.countryExtent ? [map.countryExtent[0] + 150, map.countryExtent[1] + 150, map.countryExtent[2] - 150, map.countryExtent[3] - 150] : null;
   routes = (map.railRoutes || []).map(buildRoute);
   crossings = (map.levelCrossings || []).map((c) => ({
     x: c.x, y: c.y, railAngle: c.railAngle,

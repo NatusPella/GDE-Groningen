@@ -38,8 +38,8 @@ Kaartdata © OpenStreetMap-bijdragers, beschikbaar onder de
 Zie <https://www.openstreetmap.org/copyright>.
 
 De afgeleide databases in dit project vallen ook onder de ODbL:
-`game/citymap.json`, `game/mapextras.json`, `game/ommeland.json`,
-`game/ommeland.bin` en de Overpass-extracten in `data/` (`*_raw.json`,
+`game/citymap.json`, `game/mapextras.json`, `scripts/world/cityroutes_src.json`,
+de kaarttegels (`game/world/`, bij het bouwen gemaakt) en de Overpass-extracten in `data/` (`*_raw.json`,
 `*_raw.json.gz`, `*.overpass`-resultaten). Ze zijn gemaakt met de scripts in
 `scripts/` (`fetch_osm.py`, `fetch_ommeland.py`, `build_map.py`, `add_*.py`).
 

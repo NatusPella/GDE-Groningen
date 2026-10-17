@@ -8,7 +8,6 @@
 //   node scripts/ommelandplace_test.mjs
 import './node3d.mjs';
 import fs from 'node:fs';
-import zlib from 'node:zlib';
 
 const { loadGameWorld } = await import('./worldload.mjs');
 const T = await loadGameWorld();
@@ -17,12 +16,8 @@ const map = T.world;
 const root = new URL('../game/', import.meta.url);
 await import('../game/js/player.js');
 const F = await import('../game/js/countryfield.js');
-const { initReal, REAL } = await import('../game/js/countryreal.js');
 const { ensureCountryEdge } = await import('../game/js/countryplan.js');
 F.setCountryBounds(map.meta.bounds);
-const om = JSON.parse(fs.readFileSync(new URL('ommeland.json', root)));
-const bin = zlib.gunzipSync(fs.readFileSync(new URL('ommeland.bin', root)));
-initReal(map, { ...om, bin: bin.buffer.slice(bin.byteOffset, bin.byteOffset + bin.byteLength) });
 ensureCountryEdge(map);
 const TP = await import('../game/js/tileplace.js');
 const Koe = await import('../game/js/pg_koe.js');
@@ -46,7 +41,7 @@ if (s) {
   }
   const d = Math.hypot(s.hide.x - s.farm.x, s.hide.y - s.farm.y);
   ok(d > 200 && d < 1100, `the barn is a minute's drive from the farm (${Math.round(d)} m)`);
-  const tb = REAL.places.find((p) => p.n === 'Ten Boer');
+  const tb = (await import('../game/js/worldplaces.js')).worldPlaceNamed('Ten Boer');
   const df = Math.hypot(s.farm.x - tb.x, s.farm.y - tb.y);
   ok(df > 300 && df < 1800, `the farm lies out of Ten Boer (${Math.round(df)} m)`);
   console.log(`koe: farm ${Math.round(df)} m out of Ten Boer, barn ${Math.round(d)} m on (${ms} ms)`);

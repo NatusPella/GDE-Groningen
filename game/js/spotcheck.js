@@ -28,7 +28,7 @@ import { CHALLENGES } from './postgame.js';
 import { activitySpots } from './activities.js';
 import { ensureCountryEdge, pushOutOfPlan } from './countryplan.js';
 import { countryWeight } from './countryfield.js';
-import { coveredByTiles } from './countryreal.js';
+import { coveredByTiles } from './provinceworld.js';
 import { getOmmelandSpots } from './ommelandfun.js';
 import { reachableFacilities, FAC } from './facilities.js';
 import { roadNear, roadKind, tilesIn, withTiles } from './tileplace.js';

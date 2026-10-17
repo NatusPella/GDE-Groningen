@@ -56,7 +56,7 @@ geen `node_modules` in git.
 
 | Onderdeel | Bron | Licentie | Wat moet |
 |---|---|---|---|
-| `game/citymap.json`, `game/mapextras.json`, `game/ommeland.json`, `game/ommeland.bin` | OpenStreetMap via Overpass (`scripts/fetch_osm.py`, `fetch_ommeland.py`, `add_*.py`, `build_map.py`) | [ODbL 1.0](https://opendatacommons.org/licenses/odbl/1-0/) | naamsvermelding; deze **afgeleide databases** blijven ODbL als je ze verspreidt (share-alike) |
+| `game/citymap.json`, `game/mapextras.json`, `scripts/world/cityroutes_src.json`, de kaarttegels (`game/world/`) | OpenStreetMap via Overpass (`scripts/fetch_osm.py`, `fetch_ommeland.py`, `add_*.py`, `build_map.py`) | [ODbL 1.0](https://opendatacommons.org/licenses/odbl/1-0/) | naamsvermelding; deze **afgeleide databases** blijven ODbL als je ze verspreidt (share-alike) |
 | `data/*_raw.json(.gz)`, `data/*.overpass` | Overpass-extracten van OSM | ODbL | idem |
 | Hoogtes van de ring (`add_elevation.py`) | berekend uit OSM-tags (layer, bridge, tunnel) | ODbL | idem; geen AHN- of andere hoogtedata gebruikt |
 | `data/world/3dbag.json.gz`, de gebouwhoogtes (`h`, `hsrc`, `roof`) in `game/citymap.json` en de tegels | 3DBAG (TU Delft, 3DGI), officiële tegeldownloads van data.3dbag.nl (`scripts/world/fetch_3dbag.py`); de ruwe tegels staan alleen lokaal in `data/cache/` | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) | naamsvermelding: Over, aftiteling, NOTICE.md ("3DBAG door de 3D geoinformation onderzoeksgroep (TU Delft) en 3DGI") |
@@ -157,7 +157,7 @@ Gecontroleerd in `game/js` en `desktop/`:
   paar instellingen en de GPU-klasse. Niets wordt verstuurd; de speler kan
   het kopiëren of (desktop) als bestand opslaan en zelf meesturen.
 - Netwerk: alle `fetch()`-aanroepen gaan naar eigen bestanden
-  (`manifest.json`'s, `citymap.json`, `ommeland.*`, muziek,
+  (`manifest.json`'s, `citymap.json`, de kaarttegels, muziek,
   `CHANGELOG.md`). **Geen telemetrie, analytics, crashrapportage of
   update-check.** Geen `speechSynthesis` (die kan in Chrome tekst naar
   Google sturen).

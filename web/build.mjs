@@ -26,7 +26,7 @@ const PACK_MAX = 4e6;
 const VOICE = ['-ac', '1', '-b:a', '32k'];
 const MUSIC = ['-ac', '2', '-b:a', '96k'];
 // files the loading screen counts as "the essentials"
-const ESSENTIALS = ['citymap.json', 'mapextras.json', 'ommeland.json', 'ommeland.bin', 'facilities.json'];
+const ESSENTIALS = ['citymap.json', 'mapextras.json', 'facilities.json'];
 
 const mb = (n) => (n / 1e6).toFixed(1) + ' MB';
 const sha = (buf) => crypto.createHash('sha1').update(buf).digest('hex');

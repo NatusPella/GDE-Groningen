@@ -5,8 +5,7 @@ import { spawnPedestriansNear } from './pedestrians.js';
 import { helipadInfo, scriptHeli, landHeliOnPad } from './skyprops.js';
 import { isInWater, closestPointOnSegment, pointInPolygon } from './util.js';
 import { saveSoon } from './savegame.js';
-import { nearestFacility } from './facilities.js';
-import { REAL, inRealExtent } from './countryreal.js';
+import { nearestFacility, inDoorRange } from './facilities.js';
 import { edgeDistance } from './countryfield.js';
 
 // Genre-style respawn trips, played after the DOOD / OPGEPAKT shot, to the
@@ -87,7 +86,7 @@ function umcgEntrance(map, site) {
 
 // Out in the Ommelanden, past the city's data: the trauma helicopter stays home.
 function inCountry(x, y) {
-  return REAL.ready && inRealExtent(x, y) && edgeDistance(x, y) > 40;
+  return inDoorRange(x, y) && edgeDistance(x, y) > 40;
 }
 
 // A polyline following the road network from (x, y) in travel direction

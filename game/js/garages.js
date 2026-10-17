@@ -11,7 +11,7 @@ import { markDirty } from './savegame.js';
 import { recordStat } from './achievements.js';
 import { startCall } from './phonefeed.js';
 import { facilitiesOf, countryFacilities } from './facilities.js';
-import { nearestPlace } from './countryreal.js';
+import { nearestWorldPlace } from './worldplaces.js';
 
 // Garages: every Garage Knalpot branch (from the OSM car repair shops) and
 // every Pomp & Poets gas station has a workshop with a roller door by the
@@ -113,8 +113,8 @@ function placeSite(map, poi) {
 
 function siteName(poi, wijk, road) {
   // out in the Ommelanden an unnamed road falls back on the nearest village
-  const np = poi.country && !wijk && !road.name ? nearestPlace(poi.x, poi.y) : null;
-  const base = `${CHAIN[poi.kind]} ${wijk || road.name || (np && np.n) || ''}`.trim();
+  const np = poi.country && !wijk && !road.name ? nearestWorldPlace(poi.x, poi.y) : null;
+  const base = `${CHAIN[poi.kind]} ${wijk || road.name || (np && np.name) || ''}`.trim();
   if (!poi.country || !sites.some((s) => s.name === base)) return base;
   const alt = road.name ? `${CHAIN[poi.kind]} ${road.name}` : '';
   if (alt && !sites.some((s) => s.name === alt)) return alt;

@@ -14,8 +14,8 @@ The code is the source of truth; this file is the map.
   Grid north is 0.94° off true north round Stad (`GRID_CONVERGENCE`, used
   by the sun in `daynight.js`). Up to 0.28 the frame was equirectangular
   ("legacy"); `legacyToWorld` converts from it.
-- Map files carry `frame: 'rd-new'` (`citymap.json` meta, `mapextras.json`,
-  `ommeland.json`); the loaders log an error otherwise. Hand-placed
+- Map files carry `frame: 'rd-new'` (`citymap.json` meta, `mapextras.json`);
+  the loaders log an error otherwise. Hand-placed
   positions in code are written in the legacy frame through the helpers in
   `js/worldframe.js` (`P(x, y)`, `{ ...PO(x, y) }`, `P3`, `PA` for headings,
   `PL` for polylines, `PB` for boxes, `L` back to legacy for old
@@ -70,7 +70,7 @@ frame then runs, in order:
 | Area | Files |
 |---|---|
 | Map data | `mapdata.js` (`GameMap`: grid-indexed `buildingsNear`, `roadsNear`, `waterNear`, `nearestRoadPoint`, `isOnBridge`, `escapeBuilding`, `groundHeightAt`), `elevation.js` (ring road heights, walls, open cuts), `util.js` |
-| Ommelanden | The buildings and roads of the old ~12 km round town are the province's tiles like everywhere else (`ommelandtegels_test.mjs`: every old building, road and rail point of `ommeland.*` lies in a tile; the 27 tiles of the south-west corner, past the extract's strip, are built from `data/ommeland_raw.json.gz` by `build_province.mjs` `fillOldExtent`). `tileplace.js` (placement queries over the streamed tiles: `buildingAt`, `roadNear`, `boxOf`, `clearOfBuildings`, `streetAt`; `withTiles` / `tilesIn` load the tiles round a spot first, so a spot that is fixed far from the player is placed on real data: `facilities.js` `placeWithTiles` for the shop, café and garage doors (`initCountryGarages`, `initCountryHoreca`, `initCountryShops`: a few ms a frame behind the title screen, the game waits for them only when you start sooner), `dorpsuitjes.js` `prepareVillages` and `pg_koe.js` `prepareKoeSites` in the background after the start, `cheats.js` teleports, `spotcheck.js`), `countryreal.js` (what is left of the real countryside data from `ommeland.json` + `ommeland.bin`: the 10 m water distance field, the built-up mask (computed from the building table in the file), narrow waterways, rails, places, churches, stations; carries the city train routes on to the real stations; `REAL`, `realBlocked`), `countryfield.js` (field layout shared by JS and the ground shader; inside the real extent and under the province's tiles the polder blocks lose their procedural roads, maaren and villages), `countryedge.js` (city-edge mask; the narrow canals as ground-shader segments with a 48 m integer lookup grid), `countryplan.js`, `countryside.js` (the polder generator: streamed 160 m prop tiles of fields, ditches, fences, farms and animals, laid out a section per step; drawn per 2x2-tile chunk, one culled instanced mesh per prop type), `countrybake.js` (the canals' signed distances rendered round the player into a 0.5 m and a 2 m texture, so the ground shader reads one texel instead of looping over segments; `window.__countryBake.off` switches back), `countryskyline.js` (turbines, pylons, mills and the hazy belts of the polder; the churches are the landmark kits'), `countrylife.js` (country traffic on the roads of the tiles, boats on the real canals, birds), `countrymap.js` (water and churches of the Ommeland on the map), `countrysigns.js`, `countrywalls.js` (hedge and fence walls plus tree trunks, per loaded tile), `countrycam.js` (the chase camera's ray against the Ommeland solids; parity notes in `docs/OMMELAND-PARITEIT.md`), `countryrails.js` (the polder bridge railings as solid lines for vehicles and walkers), `ommelandmap.js` (the Ommeland layer of the map and minimap); the one water rule is waterlevels.js `waterAt` over the tiles' water polygons (`tilewatermask.js` rasterises them round the player for the ground shader: it opens over the water above a bed, and paints it where it is not open yet), the meadow drag for every driver vehicle.js `offroadDrag`, police on the country roads police.js `countryFollow` |
+| Ommelanden | **Two systems: the city map (`citymap.json`, the city generators; issue #90 replaces it by tiles later) and the tiles, which are everything outside it.** The old Ommeland tier (`ommeland.json` + `ommeland.bin`, `countryreal.js`, the real roads, canals and rails of `countryedge.js`, `countrybake.js`, `countryskyline.js`) is gone: the province's tiles (`tileworld.js`, built by `build_corridor.mjs` / `build_province.mjs`) hold the buildings, roads, water, rails and trees of the whole province, the 27 tiles of the south-west corner past the extract's strip are built from `data/ommeland_raw.json.gz` by `build_province.mjs` `fillOldExtent`. What the tile build also writes: `provincie-land.json` (`corridor-land.json` without the province extract), the land file of the layer, read at start by `corridorrail.js loadLandData`: the city's six train routes carried on over the real track to every station (`scripts/world/cityroutes.mjs` runs `provinceRailLines` / `extendRoutes` once, from `cityroutes_src.json`; `applyCityRoutes` splices them onto the city's routes and sets `map.countryStations` and `map.countryRails`, the track railway3d.js draws outside the city), and the wind turbines and pylons (`scripts/world/farprops.mjs`: OSM power nodes; the spans between towers are worked out) that `farprops.js` draws past the detail radius with the old skyline shader (pulled in along the view ray, hazed by true distance, rotors spun in the shader) and makes solid at their feet (`farSolidsNear`, `farPropsIn` for the maps); the places are `worldplaces.js` (`worldPlaceAt`, `worldPlaceNamed`, `nearestWorldPlace`, `worldPlaceNames`). `tileplace.js` (placement queries over the streamed tiles: `buildingAt`, `roadNear`, `boxOf`, `clearOfBuildings`, `streetAt`, `waterGap` (signed metres to the tiles' water: positive on it, negative on land); `withTiles` / `tilesIn` load the tiles round a spot first, so a spot that is fixed far from the player is placed on real data: `facilities.js` `placeWithTiles` for the shop, café and garage doors inside `DOOR_BOX` (the area round town whose doors and respawns are made at the start: `inDoorRange`; `initCountryGarages`, `initCountryHoreca`, `initCountryShops`: a few ms a frame behind the title screen, the game waits for them only when you start sooner), `dorpsuitjes.js` `prepareVillages` (a water uitje loads the whole disc its shore is searched in) and `pg_koe.js` `prepareKoeSites` in the background after the start, `cheats.js` teleports, `spotcheck.js`), `countryfield.js` (the polder generator's field layout shared by JS and the ground shader; under the province's tiles the polder blocks lose their procedural roads, maaren and villages: `provinceBlock`), `countryedge.js` (what is left of the edge: the mask of where data is, the rails the props keep clear of, `roadGap` for the polder roads, `countryWater` for the polder ditches, `edgeBlocked`: the props keep off what the tiles hold, asked of `provinceworld.js` `setExtraBlocked`), `provinceworld.js` (the polder blocks and prop rule of the tiles, `coveredByTiles`, `inProvinceData`, `urbanWeight`: the built-up share from the footprints of the houses of the tiles that are in), `countryplan.js`, `countryside.js` (the polder generator: streamed 160 m prop tiles of fields, ditches, fences, farms and animals, laid out a section per step; drawn per 2x2-tile chunk, one culled instanced mesh per prop type), `countrylife.js` (country traffic on the roads of the tiles, boats on the polder maaren, birds), `countrymap.js` (the polder grid on the maps), `countrysigns.js`, `countrywalls.js` (hedge and fence walls plus tree trunks, per loaded tile), `countrycam.js` (the chase camera's ray against the country solids; parity notes in `docs/OMMELAND-PARITEIT.md`), `countryrails.js` (the polder bridge railings as solid lines for vehicles and walkers), `ommelandmap.js` (the Ommeland layer of the map and minimap); the one water rule is waterlevels.js `waterAt` over the tiles' water polygons: `tilewatermask.js` rasterises them into two masks round the player for the ground shader, a fine one (2 m a texel, ~1 km: the ground opens over the water above a bed) and a wide one (8 m, ~4 km: the water painted flat on the ground, so the ground shows the tiles' water as far as tiles are in), the meadow drag for every driver vehicle.js `offroadDrag`, police on the country roads police.js `countryFollow` |
 | Input | `input.js` (`isDown`, `wasPressed`, `axis`, `mouse`; rebound keys are translated back to the default key in one capture listener), `controls.js` (the scheme as data: rebindable keys, controller tables per situation, glyph lookup; Node-safe), `gamepad.js` (Gamepad API polling: buttons become key events, sticks and triggers feed `input.js`; last-used device; rumble), `glyphs.js` (every keycap on screen shows the rebound key or the controller button), `a11y.js` + `a11y.css` (subtitle size and box, colour-blind palettes, controller glyph styles) |
 | Player | `player.js` (movement, building collision, vehicles, jump, crouch, kiss), `companion.js` (Tammo/Tessa; `world.companionHold` parks them at a spot or in a vehicle for a mission) |
 | Arcade driving | `gearbox.js` (pure, node-testable: a profile per vehicle class (car, hero, sport, van, truck, bus, tractor, three motorbikes, the geared moped) with gear tops as fractions of top speed, a position layout (cars N-1-2.., bikes 1-N-2..), idle/redline, shift time and engine braking; `stepGearbox` gives gear, revs, `torque` (a curve over the rev range, 0 on the limiter, in a shift cut, in neutral or with the clutch in), `engineBrake`, shift light and stall; `shift()` is the sequential shifter and refuses over-revving downshifts or grinds without the clutch; setting `shiftMode`: `auto` (default: the box only reports, the driving model and its 0-100 in 6-8 s are untouched), `manual` (no clutch, never stalls), `clutch` (J held to shift, can stall); vehicle.js `applyControls` creates `v.gb` for the player's geared vehicles and applies torque and engine braking in the manual modes; keys `.` and `,` (rebindable), J, bumpers and L3 on the pad (`PAD_MAPS.vehicleManual`, picked by gamepad.js when `v.gb` and a manual mode); audio.js maps `gb.rpm` onto the engine's range and hud_panel.js shows the gear row with N, shift light, limiter, KRAKEN and MOTOR AF), `drift.js` (pure: slip angle, drift scoring with a multiplier that climbs with time and direction changes, a grace period, banking and crash loss, medals), `driftzone.js` (an activity-hub entry: three big roundabouts, a run starts when a car drives in and ends on leaving, after 90 s or on a crash, medals pay once per tier, a score chip anywhere you drift; vehicle.js `applyControls` holds the arcade help: setting `driftAssist` counter-steers and keeps a slide catchable, off is realistic and can spin out; the shop's `sperdiff` makes slides last), `motomodels.js` (motorbike and geared-moped models as data, no imports), motorbikes are `isScooter` two-wheelers with `model.motorbike` (`sport`, `naked`, `old`): vehicle.js `rideMotorbike` leans them (`v.roll`, capped by `bikeAssist`), Shift pops a wheelie on the gas or a stoppie on the brake (`v.pitch`, pivot compensated in scene3d.js), a hard hit or an over-lean without the assist throws the rider like a bail-out; `models3d_vehicles.js` draws them and the classic moped with a seated, helmeted rider (`riderSeatFor`, `attachHelmet`, also used for the player's own figure); the geared moped is capped at 45 km/h and a tuned one over that builds heat (`crime.js` `tunedMoped`); `node scripts/gearbox_test.mjs`, `drift_test.mjs`, `motorbike_test.mjs`, `drive_sim.mjs` |
@@ -1253,7 +1253,7 @@ under the player (`profileoverlay.js`).
 ## World tiles (`.gdt`, F0 of docs/PROVINCIE-PLAN.md)
 
 The map reaches the game as tiles, one code path in the browser, Electron and
-Node; the JSON files (`citymap.json`, `mapextras.json`, `ommeland.*`) are the
+Node; the JSON files (`citymap.json`, `mapextras.json`) are the
 source the packer reads and the fallback for a build without `world/` (the dev
 server, `?legacymap`).
 
@@ -1283,7 +1283,7 @@ server, `?legacymap`).
   tiles: each object, with its `gid` (its place in the array), is written
   into every tile its bounds touch. Tiles are raw-deflated, 8 x 8 tiles to a
   pack named by its hash (`p0_0-<hash>.gdp`), plus `global-<hash>.gdp` (meta,
-  stations and routes, the Ommeland data) and `index.json` (per tile: pack,
+  stations and routes) and `index.json` (per tile: pack,
   offset, length, raw size, hash, counts, tallest building; the pinned city
   set). Same input, same bytes. Per building: `hm` (the ridge in metres),
   `eave`, `rk` (the roof) and `hsrc` (`3dbag`, `osm_height`, `osm_levels`,
@@ -1326,7 +1326,7 @@ server, `?legacymap`).
   storeys, `hm` + `hsrc` from the best height evidence, `roof`), `buildWater`,
   `buildRail`, `buildGreen`, `buildPoi`, `applyDuals`, and `registerHook` /
   `runHooks` for the furniture and greenery scatter. Adapters: `fromOsm`
-  (raw OSM), the old Ommeland boxes (`fillOldExtent` in build_province.mjs),
+  (raw OSM), the old Ommeland cache (`fillOldExtent` in build_province.mjs),
   pack_tiles.mjs (`heightFields` for the city's rows). `scripts/worldbuilder_test.mjs`
   checks that `fromOsm` over the city's own raw caches gives
   process_osm.py's rows.
@@ -1340,8 +1340,7 @@ server, `?legacymap`).
   routes, bus lines and the coastline). The stage builds it next to the
   city. `loadTileWorld(..., { extra })` merges such a layer (`mergeIndex`, the
   city's tiles win); main.js always reads its places (`worldplaces.js`) and
-  with `?corridor` (desktop `--corridor`) streams the tiles the old Ommeland
-  layers do not draw (tile flag 8), counts them as built world for the
+  with `?corridor` (desktop `--corridor`) streams its tiles, counts them as built world for the
   facilities and the trains, and runs the train routes on over the
   corridor's track (`corridorrail.js`). `worldedge.js` holds the edge rules
   (sea, border, the border-bridge rule, air). `node scripts/corridor_test.mjs`
@@ -1358,7 +1357,7 @@ server, `?legacymap`).
   facilities); Germany has no strip yet. `scripts/world/build_province.mjs`
   builds every tile within 3 km of the outline, pack by pack, through the
   corridor builder's `tileBlob` (one per-tile path: clip, hooks, nav, flags
-  1 + 4 + 32, 8 where the old Ommeland draws, 16 in the buffer strip) into
+  1 + 4 + 32, 8 inside the old Ommeland box, 16 in the buffer strip) into
   `v<pack>-<hash>.gdp` + `index-provincie.json` (places with districts,
   stations, train lines over the track from the OSM route relations, coast
   and border lines, outline, the base map's meta) + `provincie-bus.json` and `provincie-roads.json.gz` (the car roads of
@@ -1370,13 +1369,14 @@ server, `?legacymap`).
   under the streamed tiles real blocks (`countryfield.js setProvinceBlocks`,
   the `uProvBlocks` texture in the ground shader: no procedural roads,
   maaren, villages or farms) and keeps the countryside's props off real
-  roads, buildings and water (`countryedge.js setExtraBlocked`). Streamed
+  roads, buildings and water (`provinceworld.js`, through `countryedge.js setExtraBlocked`). Streamed
   tiles are drawn by the city's own detail streamers (they read the tile
   world's grids) and, past the detail radius, by `farlod.js` stream tiles
   (`TileWorld.onTiles`); their water is `flat` (drawn by the far LOD, kept
   off the water grid, `flatWaterNear`) until the province has its water
-  model. `corridorrail.js provinceRailLines` runs every Ommeland route on
-  over the real track (and a Veendam branch); `provincemap.js` puts the base
+  model. `corridorrail.js provinceRailLines` runs every city route on
+  over the real track (and a Veendam branch) at build time, `cityroutes.mjs` writes it
+  with the countryside's track, turbines and pylons in `provincie-land.json`; `provincemap.js` puts the base
   map under the full map. `node scripts/province_test.mjs` (`--quick`
   without streaming).
 - **Tests.** `node scripts/world_tiles_test.mjs` (codec, determinism, round

@@ -2,7 +2,6 @@
 // --- leak test: the same round trip several times; memory at A should level off ---
 {
   w.devInvuln = true;
-  const CR = await imp('countryreal');
   const vs = window.__ommeland ? window.__ommeland.villages() : [];
   const far = vs[0] ? { x: vs[0].st[0], y: vs[0].st[1] } : { ...PO(3538, 4936) };
   const far2 = vs[3] ? { x: vs[3].st[0], y: vs[3].st[1] } : { ...PO(-10548, -3168) };

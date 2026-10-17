@@ -43,9 +43,7 @@ const ICON = 1.25;
 const FONT = '"Bebas Neue", "Arial Narrow", Arial, sans-serif';
 const OVERLAY_Z = 15;
 const MIN_ZOOM = 0.55;
-// with the real Ommelanden loaded the map zooms out to the villages round town
-const MIN_ZOOM_WIDE = 0.34;
-// the map extends this far past the real data, over the Ommelanden
+// the map extends this far past the city data, over the countryside
 const COUNTRY_MARGIN = 3200;
 const MAX_ZOOM = 12;
 const TILE_PX = 512;
@@ -420,7 +418,7 @@ function minZoom() {
     const [x0, y0, x1, y1] = state.bounds;
     return Math.min(state.cw / (x1 - x0), state.ch / (y1 - y0)) * 0.98 / state.baseScale;
   }
-  return state.map.countryExtent ? MIN_ZOOM_WIDE : MIN_ZOOM;
+  return MIN_ZOOM;
 }
 
 function updateTransform() {
@@ -1893,9 +1891,7 @@ export function initMapView(world) {
     map: world.map,
     real: world.map.meta.bounds,
     bounds: world.map.meta.bounds.map((v, i) => {
-      const e = world.map.countryExtent;
-      const b = v + (i < 2 ? -COUNTRY_MARGIN : COUNTRY_MARGIN);
-      const q = e ? (i < 2 ? Math.min(b, e[i] + 800) : Math.max(b, e[i] - 800)) : b;
+      const q = v + (i < 2 ? -COUNTRY_MARGIN : COUNTRY_MARGIN);
       // the whole province when its tiles are on (provincemap.js)
       const pb = provinceMapBounds();
       return pb ? (i < 2 ? Math.min(q, pb[i]) : Math.max(q, pb[i])) : q;

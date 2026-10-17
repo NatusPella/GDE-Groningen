@@ -207,7 +207,7 @@ function entranceSpot(map, x, y, px, py) {
   return map.findOpenSpawn(x, y, 150);
 }
 
-// A halt out in the Ommelanden (countryreal.js): no city data round it, so
+// A halt out in the country (map.countryStations): no city data round it, so
 // the machine simply stands on the platform side a few metres off the track.
 function placeCountryStation(def, stops, scene) {
   const st = stops[0];

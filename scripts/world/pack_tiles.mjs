@@ -4,7 +4,7 @@
 // In: game/citymap.json + mapextras.json (through the same GameMap the game
 // uses, so everything it works out at load - doubled footprints, canopies,
 // moored houseboats, roof steps, ways cut at a wall, dry crossings, trees off
-// the carriageway - is done here once) and game/ommeland.json + .bin.
+// the carriageway - is done here once).
 // Out: game/world/index.json, packs of 8 x 8 tiles (<pack>-<hash>.gdp) and
 // one global blob. Each object keeps its place in the GameMap's arrays as
 // `gid`, and is written into every tile its bounds touch, so a tile answers
@@ -123,9 +123,7 @@ export function loadSources(game = path.join(ROOT, 'game')) {
   const data = JSON.parse(fs.readFileSync(path.join(game, 'citymap.json'), 'utf8'));
   applyMapExtras(data, JSON.parse(fs.readFileSync(path.join(game, 'mapextras.json'), 'utf8')));
   const map = new GameMap(data);
-  const om = JSON.parse(fs.readFileSync(path.join(game, 'ommeland.json'), 'utf8'));
-  const bin = zlib.gunzipSync(fs.readFileSync(path.join(game, 'ommeland.bin')));
-  return { map, om, bin };
+  return { map };
 }
 
 // the per-tile kinds, in the order the GameMap keeps them
@@ -181,7 +179,7 @@ export function loadTerrainRasters(root = ROOT) {
   return out;
 }
 
-export function build({ map, om, bin }, attrs = loadAttrs(), terrain = loadTerrainRasters()) {
+export function build({ map }, attrs = loadAttrs(), terrain = loadTerrainRasters()) {
   const joined = joinAttrs(map.buildings, attrs);
   const tiles = new Map();
   const tileOf = (i, j) => {
@@ -241,8 +239,6 @@ export function build({ map, om, bin }, attrs = loadAttrs(), terrain = loadTerra
       { type: G.SECTION.META, json: { meta: map.meta, counts, dryCrossings: map.dryCrossings || 0, clippedWays: clipped } },
       { type: G.SECTION.ROADS, version: 1, rows: [] },
       ...['stations', 'levelCrossings', 'railRoutes', 'railLifts'].map((k) => ({ type: G.SECTION.META, json: { [k]: map[k] } })),
-      { type: G.SECTION.META, json: { ommeland: om } },
-      { type: G.SECTION.BLOB, name: 'ommeland.bin', bytes: new Uint8Array(bin) },
     ],
   });
   return { blobs, global, counts, attrStats: joined.stats };

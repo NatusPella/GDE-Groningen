@@ -187,9 +187,9 @@ results.routes.heli = await run('heli', async () => {
 // a village centre from the heli (only on request: PERF_ONLY=village), the
 // nearest village to the heli route's middle, circling at 45 m
 results.routes.village = ONLY.includes('village') ? await run('village', async () => {
-  const CR = await imp('countryreal');
+  const WP = await imp('worldplaces');
   const [mx, my] = P(3700, 3150);
-  const pl = CR.REAL.places.filter((q) => q.k === 'village').sort((a, b) => Math.hypot(a.x - mx, a.y - my) - Math.hypot(b.x - mx, b.y - my))[0];
+  const pl = WP.worldPlaceLabels(mx - 6000, my - 6000, mx + 6000, my + 6000).filter((q) => q.kind === 'village').sort((a, b) => Math.hypot(a.x - mx, a.y - my) - Math.hypot(b.x - mx, b.y - my))[0];
   teleport(pl.x + 60, pl.y);
   const gz = map.groundHeightAt(p.x, p.y, 0) || 0;
   const v = HF.makeHeli(p.x, p.y, gz, 0);

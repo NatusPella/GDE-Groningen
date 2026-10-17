@@ -1,4 +1,3 @@
-import { REAL } from './countryreal.js';
 import { ensureWorldEnds, updateWorldEnds, worldEndSolids, getWorldEndSpots, worldEndDebug, worldEndCount } from './worldends.js';
 import { setExtraEggs } from './furniture.js';
 import { initVillages, updateVillages, villageSolids, getVillageEggs, villagePrompt, villageSecondary, tryVillageInteract, getVillageSpots, ensureVillages, prepareVillages, villageDebug, villageUse } from './dorpsuitjes.js';
@@ -18,7 +17,7 @@ const solids = [];
 // tiles round them: in the background after the start, one place at a time,
 // each with its tiles loaded for that moment (tileplace.js withTiles).
 export async function prepareOmmeland(w = world) {
-  if (!REAL.ready || !w || !w.map.store) return;
+  if (!w || !w.map.store) return;
   await prepareKoeSites(w.map);
   await prepareVillages(w);
 }
@@ -27,7 +26,7 @@ export function initOmmelandFun(w) {
   world = w;
   if (typeof setTimeout === 'function' && !(typeof window !== 'undefined' && window.__noPrepare)) setTimeout(() => prepareOmmeland(w).catch((e) => console.warn('ommeland placement', e && e.message)), 12000);
   setExtraSolids(solids);
-  setExtraEggs(() => (REAL.ready ? getVillageEggs(w) : []));
+  setExtraEggs(() => (w.map.store ? getVillageEggs(w) : []));
   initVillages(w);
   if (typeof window !== 'undefined') {
     window.__ommeland = {
@@ -51,7 +50,7 @@ function refreshSolids() {
 
 export function updateOmmelandFun(dt, w) {
   world = w;
-  if (!REAL.ready) return;
+  if (!w.map.store) return;
   ensureWorldEnds();
   updateWorldEnds(dt, w);
   updateVillages(dt, w);
@@ -73,7 +72,7 @@ export function ommelandSecondary(w) {
 
 // Every fixed point of the extras, for spotcheck.js (all walked to on foot).
 export function getOmmelandSpots(w = world) {
-  if (!REAL.ready || !w) return [];
+  if (!w || !w.map.store) return [];
   const out = [];
   for (const s of getWorldEndSpots()) out.push({ kind: 'wereldeinde', id: s.id, x: s.x, y: s.y });
   ensureVillages(w);

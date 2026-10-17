@@ -1,8 +1,9 @@
 import { Vehicle, MODELS, TRACTOR_MODEL, QUAD_MODEL } from './vehicle.js';
 import { pointInPolygon, closestPointOnSegment, inWaterPoly } from './util.js';
 import { propsInRadius } from './breakables.js';
-import { BLOCK, chash, edgeDistance, urbanWeight, realWater } from './countryfield.js';
-import { buildingAt, boxOf } from './tileplace.js';
+import { BLOCK, chash, edgeDistance } from './countryfield.js';
+import { urbanWeight } from './provinceworld.js';
+import { buildingAt, boxOf, waterGap } from './tileplace.js';
 import { blockPlan, farmDetail, farmWorld, pushOutOfPlan, FARM_TYPES } from './countryplan.js';
 import { roadGap } from './countryedge.js';
 import { baysIn } from './parkinglots.js';
@@ -178,7 +179,7 @@ function countryFree(x, y, angle, m, map = null) {
   const c = Math.cos(angle), s = Math.sin(angle);
   for (const k of [-0.5, 0, 0.5]) {
     const px = x + c * m.len * k, py = y + s * m.len * k;
-    if (edgeDistance(px, py) < 0 || realWater(px, py) > -1.5 || (map && buildingAt(map, px, py, m.wid / 2 + 0.2))) return false;
+    if (edgeDistance(px, py) < 0 || (map && (waterGap(map, px, py, 3) > -1.5 || buildingAt(map, px, py, m.wid / 2 + 0.2)))) return false;
     if (roadGap(px, py, 2) < m.wid / 2 + 0.2) return false;
     if (pushOutOfPlan({ x: px, y: py }, m.wid / 2 + 0.2)) return false;
   }

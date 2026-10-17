@@ -1,11 +1,11 @@
-import { REAL, inRealExtent, nearestPlace } from './countryreal.js';
-import { buildingAt, roadNear } from './tileplace.js';
-import { realWater, edgeDistance, urbanWeight } from './countryfield.js';
+import { buildingAt, roadNear, waterGap } from './tileplace.js';
+import { edgeDistance } from './countryfield.js';
 import { isInWater } from './util.js';
-import { worldPlaceAt } from './worldplaces.js';
+import { worldPlaceAt, worldPlaceNamed } from './worldplaces.js';
+import { inProvinceData } from './provinceworld.js';
 
-// Placement queries for the Ommeland extras (worldends.js, dorpsuitjes.js,
-// pg_koe.js): open ground in the Ommelanden (the tiles' buildings and roads),
+// Placement queries for the countryside extras (worldends.js, dorpsuitjes.js,
+// pg_koe.js): open ground out in the province (the tiles' buildings and roads),
 // water and shore. Read-only, deterministic; the tiles round it must be in (tileplace.js withTiles).
 
 function segDist(x, y, a, b) {
@@ -15,24 +15,13 @@ function segDist(x, y, a, b) {
   return [Math.hypot(px - x, py - y), px, py, t];
 }
 
-// The Ommeland place (x, y) is in, for the location chip and the garage:
-// { place, near: false } in a village (or a town's built-up part), out in
-// the fields { place: the nearest village within 5 km or '', near: true };
-// null in town or without the real data.
+// The place (x, y) is in out in the country, for the location chip and the
+// garage: { place, near: false } in a village (or a town's built-up part), out
+// in the fields { place: the nearest village within 5 km or '', near: true },
+// with the district when there is one; null in town.
 export function ommelandArea(x, y) {
-  if (!REAL.ready || edgeDistance(x, y) <= 60) return null;
-  // past the old Ommeland data: the tile world's places (worldplaces.js),
-  // with the district when there is one
-  if (!inRealExtent(x, y)) {
-    const w = worldPlaceAt(x, y);
-    if (w) return w;
-  }
-  const p = nearestPlace(x, y, 0, true);
-  if (!p) return { place: '', near: true };
-  const d = Math.hypot(p.x - x, p.y - y);
-  if (d < p.r * 1.3 || (d < 2500 && urbanWeight(x, y) > 0.3)) return { place: p.n, near: false };
-  const q = nearestPlace(x, y);
-  return { place: q && Math.hypot(q.x - x, q.y - y) < 5000 ? q.n : '', near: true };
+  if (edgeDistance(x, y) <= 60) return null;
+  return worldPlaceAt(x, y) || { place: '', near: true };
 }
 // Rail segments bucketed per 100 m cell, built once.
 const RCELL = 100;
@@ -70,12 +59,12 @@ export function railClear(map, x, y, m) {
   return true;
 }
 
-// Free, dry ground for a prop of radius r: in the real data, off the roads
-// (unless `road` is false), clear of real and city buildings, water and
-// rails. (Inside the real data the polder plan adds no farms of its own.)
-export function openGround(map, x, y, { r = 3, road = 1.5, rail = 9, edge = 20 } = {}) {
-  if (!REAL.ready || !inRealExtent(x, y, edge)) return false;
-  if (realWater(x, y) > -r - 1.5) return false;
+// Free, dry ground for a prop of radius r: in the province's data, off the
+// roads (unless `road` is false), clear of buildings, water and rails; the
+// tiles round it must be in (tileplace.js withTiles).
+export function openGround(map, x, y, { r = 3, road = 1.5, rail = 9 } = {}) {
+  if (inProvinceData(x, y) === false) return false;
+  if (waterGap(map, x, y, r + 3) > -r - 1.5) return false;
   if (buildingAt(map, x, y, r)) return false;
   if (road !== false) {
     const q = roadNear(map, x, y, r + road + 1);
@@ -110,14 +99,15 @@ export function findOpenSpot(map, x, y, { rMin = 0, rMax = 120, step = 6, a0 = 0
   return null;
 }
 
-// Nearest open water (realWater at least `depth` m in) round (x, y).
-export function waterNear(x, y, { rMax = 2500, depth = 18, step = 20 } = {}) {
+// Nearest open water (at least `depth` m from its shore) round (x, y), on the
+// tiles that are in.
+export function waterNear(map, x, y, { rMax = 2500, depth = 18, step = 20 } = {}) {
   for (let r = step; r <= rMax; r += step) {
     const n = Math.max(12, Math.ceil((2 * Math.PI * r) / step));
     for (let i = 0; i < n; i++) {
       const a = (i / n) * Math.PI * 2;
       const px = x + Math.cos(a) * r, py = y + Math.sin(a) * r;
-      if (realWater(px, py) >= depth) return { x: px, y: py, a };
+      if (waterGap(map, px, py, 2) >= depth) return { x: px, y: py, a };
     }
   }
   return null;
@@ -130,12 +120,10 @@ export function shoreFrom(map, wx, wy, tx, ty, back = 4) {
   const ux = (tx - wx) / d, uy = (ty - wy) / d;
   for (let s = 0; s < d; s += 1) {
     const x = wx + ux * s, y = wy + uy * s;
-    if (realWater(x, y) < -back) return { x, y, ux, uy, edge: { x: x - ux * back, y: y - uy * back } };
+    if (waterGap(map, x, y, back + 2) < -back) return { x, y, ux, uy, edge: { x: x - ux * back, y: y - uy * back } };
   }
   return null;
 }
 
-// Real place by name (countryreal places).
-export function placeNamed(name) {
-  return (REAL.places || []).find((p) => p.n === name) || null;
-}
+// The province's place by name.
+export const placeNamed = worldPlaceNamed;
