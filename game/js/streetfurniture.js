@@ -476,3 +476,22 @@ export function mappedFromOsm(elements) {
   }
   return out;
 }
+
+// The mapped signs, crossings and gates of one OSM node, for the province's
+// tiles (the city keeps its own lists: signs by rule): [{ k, pts: [[x, y]],
+// v?, osm }] with k stop, giveway, crossing (v: zebra, marked, uncontrolled),
+// gate (v: the barrier), postbox. Nothing draws them yet.
+export const GATE_KINDS = new Set(['gate', 'lift_gate', 'swing_gate', 'block', 'cycle_barrier', 'cattle_grid']);
+export function mappedSignsFromOsm(el) {
+  const t = el.tags || {};
+  if (el.type !== 'node' || el.lat === undefined) return [];
+  let k = null, v;
+  if (t.highway === 'stop') k = 'stop';
+  else if (t.highway === 'give_way') k = 'giveway';
+  else if (t.highway === 'crossing' && ['zebra', 'marked', 'uncontrolled'].includes(t.crossing)) { k = 'crossing'; v = t.crossing; }
+  else if (GATE_KINDS.has(t.barrier)) { k = 'gate'; v = t.barrier; }
+  else if (t.amenity === 'post_box') k = 'postbox';
+  if (!k) return [];
+  const [x, y] = wgsToWorld(el.lat, el.lon).map((q) => Math.round(q * 100) / 100);
+  return [{ k, pts: [[x, y]], ...(v ? { v } : null), osm: el.id }];
+}

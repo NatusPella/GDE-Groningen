@@ -10,8 +10,9 @@
 // lanes, width, speed and access from its tags, with one cap for village
 // streets. Nothing here asks "is this the city?".
 import { wgsToWorld } from './rdnew.js';
-import { mappedFromOsm } from './streetfurniture.js';
+import { mappedFromOsm, mappedSignsFromOsm } from './streetfurniture.js';
 import { heightOf, levelsFor } from './buildingheights.js';
+import { hash2 } from './greenery.js';
 
 export const WB_VERSION = 1;
 export const LEVEL_M = 3.1;
@@ -419,12 +420,29 @@ export function runHooks(kind, tile) {
 const HIDDEN = (tags) => tags['bridge:support'] || tags.location === 'underground'
   || (intTag(tags, 'layer') < 0 && !['surface', 'overground', 'roof', 'rooftop'].includes(tags.location));
 
+// Points every `spacing` m along a line, the remainder carried over a vertex
+// (process_osm.py sample_along)
+function sampleAlong(P, spacing) {
+  const out = [];
+  let carry = 0;
+  for (let i = 0; i < P.length - 1; i++) {
+    const [ax, ay] = P[i], [bx, by] = P[i + 1];
+    const len = Math.hypot(bx - ax, by - ay);
+    if (len < 1e-6) continue;
+    let d = carry;
+    while (d < len) { out.push([ax + ((bx - ax) * d) / len, ay + ((by - ay) * d) / len]); d += spacing; }
+    carry = d - len;
+  }
+  return out;
+}
+export const TREE_ROW_SPACING = 6;
+
 const project = (g) => g.map(([lat, lon]) => wgsToWorld(lat, lon).map((v) => Math.round(v * 100) / 100));
 const closed = (P) => P.length > 3 && P[0][0] === P[P.length - 1][0] && P[0][1] === P[P.length - 1][1];
 
 // A raw OSM element (Overpass JSON: `geometry` [{lat, lon}] or the slim
 // caches' `g` [[lat, lon]]) as features: [{ kind, row }]. ctx: { urbanAt(x, y)
-// (0..1), village(x, y), bag3d(pts, tags) (the 3D BAG record of a building:
+// (0..1), village(x, y), signs (keep mapped signs, crossings, gates), bag3d(pts, tags) (the 3D BAG record of a building:
 // { hmax, hg, h50?, roof? }, scripts/world/bag3d.mjs) }.
 export function fromOsm(el, ctx = {}) {
   const tags = el.tags || {};
@@ -439,6 +457,8 @@ export function fromOsm(el, ctx = {}) {
   // (streetfurniture.js mappedFromOsm: { k, pts, v?, h?, osm })
   if (el.type === 'node' && el.lat !== undefined) {
     for (const row of mappedFromOsm([el])) out.push({ kind: 'furniture', row });
+    // signs, crossings and gates (ctx.signs: the province's tiles)
+    if (ctx.signs) for (const row of mappedSignsFromOsm(el)) out.push({ kind: 'furniture', row });
     return out;
   }
   if (!g || g.length < 2) return out;
@@ -447,6 +467,13 @@ export function fromOsm(el, ctx = {}) {
     if (tags.barrier !== 'hedge') return out;
   }
   const P = project(g);
+  // a tree row (an avenue, a hedge of trees): a tree every 6 m along it, as process_osm.py does for the city
+  if (tags.natural === 'tree_row') {
+    // (rowSeed: the row's own seed, so the greenery hook gives it one species)
+    const rowSeed = hash2(P[0][0], P[0][1]);
+    for (const [x, y] of sampleAlong(P, TREE_ROW_SPACING)) { const t = [Math.round(x * 10) / 10, Math.round(y * 10) / 10]; t.rowSeed = rowSeed; out.push({ kind: 'trees', row: t }); }
+    return out;
+  }
   if (tags.building !== undefined) {
     if (!closed(P) || HIDDEN(tags)) return out;
     const lv = num(tags['building:levels']);

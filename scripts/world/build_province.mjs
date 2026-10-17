@@ -383,7 +383,7 @@ export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(s
   const urbanAt = urbanFromGrid(prov.urban);
   // 3D BAG heights and roofs (bag3d.mjs): the same OSM buildings, measured where the BAG has them
   const bag3d = bag.length ? bagMatcher(bag) : null;
-  const ctx = { urbanAt, village: (x, y) => urbanAt(x, y) >= 0.5, bag3d };
+  const ctx = { urbanAt, village: (x, y) => urbanAt(x, y) >= 0.5, bag3d, signs: true };
   // tiles per pack
   const byPack = new Map();
   const city = [];
