@@ -1,6 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { setCountryBounds, setRealZone } from './countryfield.js';
-import { tileWater, chunkWaterArrays, canalWaterFrom, openWaterFrom } from './countrywatergeo.js';
 import { slimWorkerMap } from './mapdata.js';
 import { loadMapAuto } from './tileworld.js';
 import { setRoadNetwork, roadSurfaceGeometries, roadKey } from './roadsurface.js';
@@ -54,45 +53,6 @@ function cityMerge({ geos, lists }) {
   const transfer = [];
   for (const r of out) if (r) transfer.push(r.pos.buffer, r.nor.buffer, r.col.buffer, r.uvs.buffer);
   return { result: out, transfer };
-}
-
-// --- Ommeland water (countrywater.js) ---------------------------------------
-
-// worker side: the field and canal snapshot arrive once (waterInit); the
-// per-tile results are kept for the last 160 tiles (about the streamed ring)
-const W = { open: null, cache: new Map() };
-const CACHE_MAX = 160;
-
-function waterInit({ bounds, zone, canals }) {
-  setCountryBounds(bounds);
-  setRealZone(zone);
-  W.open = openWaterFrom(canalWaterFrom({ grid: new Map(canals.grid), cell: canals.cell }));
-  W.cache.clear();
-  return { result: true, transfer: [] };
-}
-
-function tileWaterCached(open, t, T) {
-  const key = t.tx * 100003 + t.ty + (t.mid ? 0.5 : 0);
-  let w = W.cache.get(key);
-  if (w === undefined) {
-    w = tileWater(open, t.tx, t.ty, T, t.mid);
-    W.cache.set(key, w);
-    if (W.cache.size > CACHE_MAX) W.cache.delete(W.cache.keys().next().value);
-  }
-  return w;
-}
-
-function waterChunk({ tiles, T }) {
-  const r = chunkWaterArrays(tiles, (t) => tileWaterCached(W.open, t, T));
-  const transfer = [];
-  if (r) for (const part of [r.water, r.bank]) if (part) for (const k in part) transfer.push(part[k].buffer);
-  return { result: r, transfer };
-}
-
-// main-thread fallback: the live openWater (countryedge.js) instead of a snapshot
-export function setWaterQuery(fn) {
-  W.open = fn;
-  W.cache.clear();
 }
 
 // --- city road surfaces (roadsurface.js) ----------------------------------
@@ -181,4 +141,4 @@ function terrain({ bounds, water }) {
   return { result: T, transfer: [T.positions.buffer, T.normals.buffer, ...T.tiles.map((t) => t.index.buffer)] };
 }
 
-export const KERNELS = { cityMerge, waterInit, waterChunk, roadInit, roadGeo, shoreInit, shore, terrain };
+export const KERNELS = { cityMerge, roadInit, roadGeo, shoreInit, shore, terrain };

@@ -16,7 +16,7 @@ import {
 import { updateSkyline, skylineStats } from './countryskyline.js';
 import { updateCountryLife, lifeStats } from './countrylife.js';
 import { buildSign, disposeSign } from './countrysigns.js';
-import { EDGE, edgeBlocked, edgeTileItems, roadGap, countryWater } from './countryedge.js';
+import { EDGE, edgeBlocked, edgeTileItems, roadGap } from './countryedge.js';
 import { ensureCountryEdge } from './countryplan.js';
 import { thinDitchOn, ditchRamp, urbanWeight, realBlock, realWater } from './countryfield.js';
 import { REAL, buildingsInTile, roadsInTile, buildingModel, coveredByTiles } from './countryreal.js';
@@ -24,7 +24,8 @@ import { setTileWalls, clearTileWalls, pushOutOfWalls, setTileTrunks, clearTileT
 import { updateVillages, villageStats, villageWarmMeshes } from './countryvillage.js';
 import { buildingMaterial, bldCode, STYLE } from './countrybuilding.js';
 import { glowMaterial, poolGeometry } from './countryglow.js';
-import { rebuildChunkWater, dropChunkWater, updateCountryWater, countryWaterStats } from './countrywater.js';
+import { updateTileWater, tileWaterStats } from './tilewatermask.js';
+import { waterAt } from './waterlevels.js';
 import { propRadius } from './viewdist.js';
 
 // Endless Ommelanden past the real map: a ground ring that follows the
@@ -1051,12 +1052,10 @@ function rebuildChunk(ch) {
     markInstancesDirty(mesh.instanceMatrix, off);
     markInstancesDirty(mesh.instanceColor, off);
   }
-  rebuildChunkWater(ch, S.group, TILE, (t) => t.mid);
 }
 
 function dropChunk(ch) {
   for (const mesh of ch.meshes.values()) { S.group.remove(mesh); mesh.dispose(); }
-  dropChunkWater(ch);
   ch.meshes.clear();
   S.chunks.delete(ch.key);
 }
@@ -1676,9 +1675,9 @@ function gameplay(dt, world) {
     S.prev = null;
     return;
   }
-  // on foot: wading in anything painted wet, swimming in deep water (player.js)
-  const w = edgeDistance(p.x, p.y) > 0 ? countryWater(p.x, p.y) : null;
-  const wading = (w === 'wade' || w === 'ditch') && !p.water && !p.swimming;
+  // on foot: wading in the tiles' shallow water, swimming in deep water (player.js)
+  const w = edgeDistance(p.x, p.y) > 0 && !p.water && !p.swimming ? waterAt(world.map, p.x, p.y) : null;
+  const wading = !!w && w.wade && w.body < 0 && !world.map.isOnBridge(p.x, p.y);
   if (wading && S.prev && Math.hypot(p.x - S.prev[0], p.y - S.prev[1]) < 3) {
     p.x = S.prev[0] + (p.x - S.prev[0]) * 0.45;
     p.y = S.prev[1] + (p.y - S.prev[1]) * 0.45;
@@ -1742,7 +1741,7 @@ export function updateCountryside(dt, world, scene, cam, viewDist) {
     world.countryAudible = [];
   }
   S.idle = !(near || S.tiles.size);
-  updateCountryWater(p.x, p.y, S.idle ? 0 : propRadius(viewDist) - 50, world.time);
+  updateTileWater(world.map, scene, p.x, p.y, S.idle ? 0 : propRadius(viewDist) - 50, world.time);
   gameplay(dt, world);
   // the skyline leaves out what the props draw, less what it may lag behind
   updateSkyline(dt, world, scene, cam, Math.max(0, propRadius(viewDist) - 250));
@@ -1762,6 +1761,6 @@ export function countrysideStats() {
   return {
     ms: +(S.ms || 0).toFixed(3), maxMs: +(S.maxMs || 0).toFixed(2), genMax: +S.genMax.toFixed(2), tiles: S.tiles.size, queue: S.queue.length, chunks: S.chunks.size, meshes,
     animals: S.animals.length, skinned: S.skinned.size, herd, farms: S.farmCount, flocks: S.flocks.length, pools,
-    skyline: skylineStats(), life: lifeStats(), villages: villageStats(), water: countryWaterStats(S.chunks.values()),
+    skyline: skylineStats(), life: lifeStats(), villages: villageStats(), water: tileWaterStats(),
   };
 }

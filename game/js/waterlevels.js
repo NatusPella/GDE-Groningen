@@ -311,16 +311,7 @@ export const passesUnder = (air, clear) => clear >= air + 0.05;
 //   waterAt(map, x, y) -> null on dry land, else
 //   { level, depth, body, kind, navigable, wade, clearanceAbove }
 // clearanceAbove: free height to a bridge deck over (x, y) (Infinity when
-// none). `country` is countryedge.js countryWater for the Ommeland past the
-// city polygons ('deep' | 'wade' | 'ditch' | null); it is set by the game.
-let countryKind = null;
-export function setCountryWaterKind(fn) { countryKind = fn; }
-
-const COUNTRY = {
-  deep: { kind: 'diep', depth: WATER_KINDS.diep.depth, nav: 3, level: BOEZEM_Y },
-  wade: { kind: 'vaart', depth: 0.9, nav: 1, level: -0.9 },
-  ditch: { kind: 'sloot', depth: WATER_KINDS.sloot.depth, nav: 1, level: WATER_KINDS.sloot.level },
-};
+// none).
 
 export function waterAt(map, x, y) {
   let poly = null;
@@ -338,10 +329,7 @@ export function waterAt(map, x, y) {
       clearanceAbove: clearanceOver(map, x, y, level),
     };
   }
-  const c = countryKind ? countryKind(x, y) : null;
-  if (!c) return null;
-  const K = COUNTRY[c];
-  return { level: K.level, depth: K.depth, body: -1, kind: K.kind, navigable: K.nav, wade: K.depth <= WADE_MAX, clearanceAbove: Infinity };
+  return null;
 }
 
 // Water a vehicle drives through: waded depth and a peil of its own above the

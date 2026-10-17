@@ -1,9 +1,8 @@
 // Checks that the geometry worker builds exactly what the main thread built
 // before it (desktop --perf-script, see scripts/perf/geocheck.sh): the city
-// prop cells around a few spots and the Ommeland water of a few hundred
-// tiles, each three ways: the old code (copied here, three.js on the main
-// thread), the kernel on the main thread (the fallback) and the kernel in a
-// fresh geometry worker; then every road (with its civil works) and city shore (main thread vs the
+// prop cells around a few spots, each three ways: the old code (copied here,
+// three.js on the main thread), the kernel on the main thread (the fallback)
+// and the kernel in a fresh geometry worker; then every road (with its civil works) and city shore (main thread vs the
 // worker's own map) and the road batch cells (finish spread over frames vs
 // the old one-frame finish). Every buffer must match byte for byte.
 for (let i = 0; i < 40 && !document.body.classList.contains('game-started'); i++) {
@@ -14,8 +13,6 @@ const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
 const THREE = await import('/vendor/npm/three@0.160.0/build/three.module.js');
 const GK = await import('/js/geokernels.js');
 const CP = await import('/js/cityprops.js');
-const CW = await import('/js/countrywatergeo.js');
-const CE = await import('/js/countryedge.js');
 const CF = await import('/js/countryfield.js');
 const { PL } = await import('/js/worldframe.js');
 const D = window.__debug; const w = D.world; const p = w.player;
@@ -39,7 +36,7 @@ function same(a, b) {
   for (let i = 0; i < x.length; i++) if (x[i] !== y[i]) return false;
   return true;
 }
-const report = { city: { cells: 0, buffers: 0, verts: 0, bad: [] }, water: { chunks: 0, buffers: 0, verts: 0, bad: [] }, roads: { roads: 0, buffers: 0, verts: 0, bad: [] }, structs: { roads: 0, parts: 0, verts: 0, breakable: 0, bad: [] }, terrain: {} };
+const report = { city: { cells: 0, buffers: 0, verts: 0, bad: [] }, roads: { roads: 0, buffers: 0, verts: 0, bad: [] }, structs: { roads: 0, parts: 0, verts: 0, breakable: 0, bad: [] }, terrain: {} };
 
 // ---- city props: the old mergeInstances
 function oldMerge(list) {
@@ -105,73 +102,6 @@ for (const [x, y] of SPOTS) {
   }
 }
 
-// ---- Ommeland water: the old per-chunk merge
-function oldMergeGeo(parts, attrs) {
-  let nv = 0, ni = 0;
-  for (const q of parts) { nv += q.pos.length / 3; ni += q.idx.length; }
-  const geo = new THREE.BufferGeometry();
-  const idx = new Uint32Array(ni);
-  const arrays = {};
-  for (const [name, size] of attrs) arrays[name] = new Float32Array(nv * size);
-  let vo = 0, io = 0;
-  for (const q of parts) {
-    for (const [name, size, src] of attrs) arrays[name].set(q[src], vo * size);
-    for (let k = 0; k < q.idx.length; k++) idx[io + k] = q.idx[k] + vo;
-    vo += q.pos.length / 3;
-    io += q.idx.length;
-  }
-  for (const [name, size] of attrs) geo.setAttribute(name, new THREE.BufferAttribute(arrays[name], size));
-  geo.setIndex(new THREE.BufferAttribute(idx, 1));
-  return geo;
-}
-function oldChunk(tiles, T) {
-  const surf = [], bank = [];
-  for (const t of tiles) {
-    const wt = CW.tileWater(CE.openWater, t.tx, t.ty, T, t.mid);
-    if (!wt) continue;
-    surf.push(wt.s);
-    if (wt.b) bank.push(wt.b);
-  }
-  if (!surf.length) return null;
-  const water = oldMergeGeo(surf, [['position', 3, 'pos'], ['aEdge', 1, 'edge'], ['aFlow', 2, 'flow']]);
-  let basin = null;
-  if (bank.length) { basin = oldMergeGeo(bank, [['position', 3, 'pos'], ['color', 3, 'col']]); basin.computeVertexNormals(); }
-  return { water, basin };
-}
-const cmpGeo = (geo, part) => {
-  if (!geo || !part) return !geo && !part;
-  if (!same(geo.index.array, part.index)) return false;
-  for (const k in geo.attributes) if (!same(geo.attributes[k].array, part[k])) return false;
-  return Object.keys(part).length === Object.keys(geo.attributes).length + 1;
-};
-const z = CF.realZone();
-const grid = (G) => ({ ...G, data: G.data.slice() });
-await inWorker('waterInit', { bounds: CF.countryBounds(), zone: { ...z, water: grid(z.water), urban: grid(z.urban) }, canals: CE.canalGridSnapshot() });
-GK.setWaterQuery(CE.openWater);
-const T = 160;
-// chunks of 2x2 tiles along the heli route and round the map edge, both tiers
-const chunks = [];
-const R = CF.countryRect();
-for (let kx = Math.floor((R.cx - R.hx - 1500) / 320); kx <= Math.floor((R.cx + R.hx + 1500) / 320); kx += 2) {
-  for (let ky = Math.floor((R.cy - R.hy - 1500) / 320); ky <= Math.floor((R.cy + R.hy + 1500) / 320); ky += 2) {
-    chunks.push([kx, ky]);
-  }
-}
-for (const [kx, ky] of chunks) {
-  for (const mid of [false, true]) {
-    const tiles = [];
-    for (const [dx, dy] of [[0, 0], [1, 0], [0, 1], [1, 1]]) tiles.push({ tx: kx * 2 + dx, ty: ky * 2 + dy, mid: mid && (dx + dy) % 2 === 0 });
-    const ref = oldChunk(tiles, T);
-    const sync = GK.KERNELS.waterChunk({ tiles, T }).result;
-    const work = await inWorker('waterChunk', { tiles, T });
-    if (!ref) { if (sync || work) report.water.bad.push(`${kx},${ky} extra`); continue; }
-    report.water.chunks++;
-    report.water.buffers += 4 + (ref.basin ? 4 : 0);
-    report.water.verts += ref.water.attributes.position.count + (ref.basin ? ref.basin.attributes.position.count : 0);
-    const ok = (r) => r && cmpGeo(ref.water, r.water) && cmpGeo(ref.basin, r.bank);
-    if (!ok(sync) || !ok(work)) report.water.bad.push(`${kx},${ky},${mid}`);
-  }
-}
 // ---- city roads: every road's surfaces, main thread vs the worker's own map
 const RS = await import('/js/roadsurface.js');
 const map = w.map;
@@ -317,5 +247,5 @@ const TR = await import('/js/terrain3d.js');
   }
 }
 worker.terminate();
-report.ok = report.batch.cells > 0 && !report.batch.bad.length && report.shores.polys > 0 && !report.shores.bad.length && report.terrain.ok && !report.city.bad.length && !report.water.bad.length && !report.roads.bad.length && report.roads.roads > 0 && report.structs.roads > 0 && !report.structs.bad.length && report.city.cells > 0 && report.water.chunks > 0;
+report.ok = report.batch.cells > 0 && !report.batch.bad.length && report.shores.polys > 0 && !report.shores.bad.length && report.terrain.ok && !report.city.bad.length && !report.roads.bad.length && report.roads.roads > 0 && report.structs.roads > 0 && !report.structs.bad.length && report.city.cells > 0;
 return JSON.stringify(report);

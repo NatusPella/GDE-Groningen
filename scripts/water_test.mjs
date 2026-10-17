@@ -49,10 +49,6 @@ const rect = (x0, y0, x1, y1, name = '') => ({ pts: [[x0, y0], [x1, y0], [x1, y1
   ok(L.waterAt(map, 150, 300) === null, 'query: dry land');
   const d = L.waterAt(map, 150, 400.7);
   ok(d && d.wade, 'query: a ditch is waded');
-  L.setCountryWaterKind((x, y) => (x > 5000 ? 'ditch' : null));
-  const c = L.waterAt(map, 6000, 0);
-  ok(c && c.kind === 'sloot' && c.wade && c.depth <= L.WADE_MAX, 'query: an Ommeland ditch through the country hook');
-  L.setCountryWaterKind(null);
 }
 
 // 2. boats and bridges

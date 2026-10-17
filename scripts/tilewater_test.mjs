@@ -55,7 +55,28 @@ for (const [key, t] of Object.entries(idx.tiles)) {
   if (pick) break;
 }
 ok(!!pick, 'a province canal that crosses a tile border into a tile with water');
-if (!pick) { console.log(`${n} checks, ${fails} failed`); process.exit(1); }
+if (!pick) { // the ground shader's mask (tilewatermask.js): the tiles' water is in it, dry land is not
+{
+  const M = await import('../game/js/tilewatermask.js');
+  const sq = { pts: [[0, 0], [20, 0], [20, 10], [0, 10]], bounds: [0, 0, 20, 10] };
+  const r = M.rasterWater([sq], 10, 5);
+  const at = (x, y) => r.mask[Math.floor((y - r.y0) / M.MASK_CELL) * M.MASK_N + Math.floor((x - r.x0) / M.MASK_CELL)];
+  ok(at(10, 5) === 255 && at(1, 1) === 255 && at(19, 9) === 255, 'mask: a polygon is filled');
+  ok(at(30, 5) === 0 && at(10, 14) === 0 && at(-5, 5) === 0, 'mask: outside it is dry');
+  const polys = map.waterNear(mx, my, 700);
+  const w = M.rasterWater(polys, mx, my);
+  const wet = (x, y) => w.mask[Math.floor((y - w.y0) / M.MASK_CELL) * M.MASK_N + Math.floor((x - w.x0) / M.MASK_CELL)] === 255;
+  ok(polys.length > 0 && inside && wet(inside[0], inside[1]), 'mask: the streamed tile water is wet in it', polys.length);
+  let agree = 0, total = 0;
+  for (let k = 0; k < 400; k++) {
+    const x = mx - 500 + ((k * 7919) % 1000), y = my - 500 + ((k * 104729) % 1000);
+    total++;
+    if (wet(x, y) === !!L.waterAt(map, x, y)) agree++;
+  }
+  ok(agree / total > 0.97, 'mask: it agrees with waterAt on dry and wet ground', `${agree}/${total}`);
+}
+
+console.log(`${n} checks, ${fails} failed`); process.exit(1); }
 
 const load = async (keys) => { await Promise.all(keys.map((k) => T.store.request(k, { priority: -1 }))); map.tileQueue.run(1e9); };
 await load([pick.key]);

@@ -17,7 +17,7 @@ let failed = !WANT;
 let nextId = 1;
 const open = new Map();
 // set-up jobs that only mean something in the worker (never redone here)
-const WORKER_ONLY = new Set(['waterInit', 'roadInit', 'shoreInit']);
+const WORKER_ONLY = new Set(['roadInit', 'shoreInit']);
 const fallbackHooks = [];
 let fellBack = false;
 export const geoStats = { worker: 0, sync: 0, maxRoundTrip: 0 };
