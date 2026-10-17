@@ -1,0 +1,133 @@
+{
+ "_era": "0.35, nieuwe verhaallijn (feature flag nieuwverhaal): save v9 met arc 'nieuw', midden in akte 1 (M00-M02 gedaan). Hoort bij het andere verhaal: wordt in het oude spel niet geladen, en andersom.",
+ "_expect": {
+  "arc": "nieuw",
+  "step": "M03",
+  "money": 850,
+  "radio": "on",
+  "pos": [
+   233405.2,
+   582310.7
+  ]
+ },
+ "save": {
+  "v": 9,
+  "arc": "nieuw",
+  "savedAt": 1760700000000,
+  "money": 850,
+  "moneyBackup": 850,
+  "health": 100,
+  "armor": 0,
+  "weapon": "fists",
+  "ammo": {
+   "fists": "inf"
+  },
+  "stats": {
+   "kills": 0,
+   "pedKills": 0,
+   "copKills": 0,
+   "missionsDone": 2,
+   "playerWrecks": 0,
+   "spent": 0
+  },
+  "character": "tammo",
+  "pos": {
+   "x": 233405.2,
+   "y": 582310.7
+  },
+  "ctx": "home",
+  "missions": {
+   "index": 18,
+   "completed": [
+    19,
+    8
+   ],
+   "seen": [
+    19,
+    8
+   ],
+   "medals": {}
+  },
+  "story": {
+   "v": 1,
+   "done": [
+    "M00",
+    "M01",
+    "M02"
+   ],
+   "skipped": [],
+   "fails": {},
+   "waived": [],
+   "voorschot": [],
+   "cards": [],
+   "flags": [
+    "met:berend",
+    "met:durk"
+   ]
+  },
+  "visitedLandmarks": [],
+  "shops": {
+   "hero": {},
+   "outfit": {
+    "tammo": "incognito",
+    "anita": "incognito"
+   },
+   "ownedOutfits": [
+    "incognito"
+   ],
+   "storyOutfit": null,
+   "hair": {
+    "tammo": {
+     "color": "naturel",
+     "style": "short"
+    },
+    "anita": {
+     "color": "naturel",
+     "style": "bob"
+    }
+   },
+   "heroColor": null,
+   "heroUpgrades": [],
+   "stamps": 0,
+   "vehicles": []
+  },
+  "prestaties": {
+   "eierballen": [],
+   "geheimen": [],
+   "unlocked": []
+  },
+  "duif": {
+   "ach": []
+  },
+  "bijbaan": {
+   "v": 1,
+   "jobs": {},
+   "seen": []
+  },
+  "postgame": {},
+  "meubels": {
+   "owned": [],
+   "pending": [],
+   "built": [],
+   "day": 0,
+   "read": 0,
+   "stek": 0,
+   "tips": [],
+   "moment": 0
+  },
+  "doel": null,
+  "radio": "on",
+  "streken": {
+   "v": 1,
+   "unlocked": [],
+   "on": [],
+   "used": []
+  },
+  "kalender": {
+   "v": 1,
+   "dag": 2,
+   "gezien": []
+  },
+  "frame": "rd-new"
+ }
+}

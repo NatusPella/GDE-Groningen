@@ -16,8 +16,8 @@ import { cheatUnlocksFromSave, RETIRED_CHEATS } from './cheatlist.js';
 import { dayForSavedStep } from './calendar.js';
 import { legacyToWorld, legacyAngleToWorld } from './rdnew.js';
 
-export const SAVE_VERSION = 8;
-export const SETTINGS_VERSION = 8;
+export const SAVE_VERSION = 9;
+export const SETTINGS_VERSION = 9;
 
 const isObj = (o) => !!o && typeof o === 'object' && !Array.isArray(o);
 
@@ -124,7 +124,17 @@ export const SAVE_MIGRATIONS = {
     d.frame = 'rd-new';
     return d;
   },
+  // 0.35: a save records which story arc it belongs to ('oud', the released
+  // story, or 'nieuw', the five-act story behind the feature flag; storyflag.js).
+  // Every save before this one is the old arc. A save never loads into the other arc.
+  8(d) {
+    if (d.arc !== 'nieuw') d.arc = 'oud';
+    return d;
+  },
 };
+
+// The arc a (migrated) save belongs to.
+export const savedArc = (d) => (isObj(d) && d.arc === 'nieuw' ? 'nieuw' : 'oud');
 
 // A save with no `v` never existed (every save since 0.2 had v: 1).
 export function migrateSave(d) {
@@ -161,6 +171,8 @@ export const SETTINGS_MIGRATIONS = {
   // 8: the blood-and-limbs switch is back (18+); a file without it gets the
   // default (on), anything that is not a boolean is dropped
   7(s) { if ('gore' in s && typeof s.gore !== 'boolean') delete s.gore; return s; },
+  // 9: the Verhaal choice (storychoice.js): 'oud' (Klassiek) unless the file says 'nieuw'
+  8(s) { s.verhaal = s.verhaal === 'nieuw' ? 'nieuw' : 'oud'; return s; },
 };
 
 // Settings files before v2 had no `v`.

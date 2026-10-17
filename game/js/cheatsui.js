@@ -3,7 +3,7 @@
 // explained beside the list. State and effects live in cheats.js.
 import { CHEATS } from './cheatlist.js';
 import { ACHIEVEMENTS } from './achievements.js';
-import { STEPS } from './storyarc.js';
+import { STEPS, STEP_ALIAS } from './storyarc.js';
 import {
   isAvailable, isCheatOn, setCheat, achievementsBlocked, cheatsBusy, blockedReason,
   spawnChoices, spawnVehicleHere,
@@ -22,7 +22,7 @@ let lastW = null;
 
 function hintOf(c) {
   if (c.hint) return c.hint;
-  const st = c.step && STEPS.find((x) => x.id === c.step);
+  const st = c.step && STEPS.find((x) => x.id === (STEP_ALIAS[c.step] || c.step));
   if (st) return `Speel het verhaal tot en met "${st.title}"`;
   if (c.ach) {
     const a = ACHIEVEMENTS.find((x) => x.id === c.ach);

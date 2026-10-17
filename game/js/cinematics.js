@@ -15,6 +15,7 @@ import { logoHtml, GAME_NAME, SUBTITLE } from './logo.js';
 import { mayInterrupt, noteMoment } from './attention.js';
 import { registerNarrative } from './narrative.js';
 import { lineVoiceFor } from './linevoice.js';
+import { nieuwVerhaal } from './storyflag.js';
 import { getFollowPose, prewarmStreamAt } from './scene3d.js';
 import { KEYS } from './storagekeys.js';
 
@@ -623,7 +624,7 @@ function playGameStart(w) {
   if (here) markWijk(here);
   w.messages = w.messages.filter((m) => !m.text.startsWith('Je begint bij'));
   // every new game opens with the montage (continuing a save doesn't)
-  if (!w.loadedFromSave && !w.pigeonMode && introMod && playIntro(w)) return;
+  if (!w.loadedFromSave && !w.pigeonMode && introMod && !nieuwVerhaal() && playIntro(w)) return;
   const mp = w._menuCamPose;
   const first = mp && mp.position && mp.lookAt
     ? { pos: V(mp.position.x, mp.position.y, mp.position.z), look: V(mp.lookAt.x, mp.lookAt.y, mp.lookAt.z) }

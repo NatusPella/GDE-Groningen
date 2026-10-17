@@ -41,6 +41,10 @@ import { EIKEA_GOALS, updateStoryEikea, waiveEikea, initStoryEikea } from './sto
 import { THIRD_PARTY_CARDS } from './credits.js';
 import { SERIES, GAME_TITLE } from './logo.js';
 import { registerNarrative, mayStart, narrativeBusy, narrativeState } from './narrative.js';
+import { nieuwVerhaal } from './storyflag.js';
+import './storychoice.js';
+import { storyLines, talkLines, radioContacts, appsAt, storyDataReady, readingTime } from './storytext.js';
+import { updateStoryTalk, stopTalk } from './storytalk.js';
 
 // Rikus' Radio Nachtstreek studio (radiostudio.js, three.js from the CDN) for the
 // recaps and the epilogue; loaded lazily so Node checks can import this file.
@@ -88,8 +92,30 @@ function freshRuntime() {
 
 const who = (k) => (k === 'T' ? 'Tammo' : k === 'A' ? 'Anita' : k);
 
-function phone(from, text, duration = 6, say = undefined) {
-  if (world && world.phoneNotifications) world.phoneNotifications.push({ from, text, duration, say, story: true });
+function phone(from, text, duration = 6, say = undefined, silent = false) {
+  if (world && world.phoneNotifications) world.phoneNotifications.push({ from, text, duration, say, story: true, ...(silent ? { silent: true } : {}) });
+}
+
+// The new arc (storyarc_nieuw.js, storytext.js): the Nachtstreek fragments and the silent app texts of the
+// script that hang on a step, at its start or after it. App texts show as a phone card and are never read
+// aloud. Sent once per save (a flag), so loading mid-step does not repeat them.
+function sendScript(step, at) {
+  if (!nieuwVerhaal() || !storyDataReady()) return;
+  const key = `script:${step.id}:${at}`;
+  if (state.flags.has(key)) return;
+  state.flags.add(key);
+  for (const c of radioContacts(step.id, at)) {
+    if (c.lines.length) queueStoryContact({ via: 'radio', from: 'rikus', on: 'after', mood: 'night', caller: '', lines: c.lines });
+  }
+  for (const a of appsAt(step.id, at)) phone(a.from, a.text, 7, undefined, true);
+}
+
+// A homeScene that names a script scene (storyarc_nieuw.js): its lines from the script, [who, text, { tag }]
+function homeSceneOf(step) {
+  const h = step.homeScene;
+  if (!h || !h.id) return h || null;
+  if (!storyDataReady()) return { ...h, lines: [] };
+  return { ...h, lines: storyLines(h.id).map(([k, text, o]) => [k === 'V' ? 'rikus' : k, text, { tag: o.tag }]) };
 }
 
 function missionIdx(step) {
@@ -169,6 +195,19 @@ const GOALS = {
     met: (st, b) => getPadelMatchCount() > (b.matches ?? Infinity),
     place: () => nearest(getPadelSpotsForRender(), world.player),
   },
+  // M00 (new arc): the opening scenes of the script (C00.1-C00.3) play once, as a cutscene over the new home
+  opening: {
+    begin: (st, b) => { b.phase = 'wait'; },
+    met: (st, b) => {
+      if (b.phase === 'wait') {
+        const ready = !isMissionActive() && !isCinematicActive() && sinceCinematic() > 1 && !narrativeBusy() && !world.pigeonMode && !world.pendingRespawn && document.body.classList.contains('game-started');
+        if (ready && storyDataReady()) { b.phase = 'play'; if (!playOpening(b)) b.phase = 'done'; }
+        else if (ready && world.time - rt.enteredAt > 40) b.phase = 'done';
+      }
+      return b.phase === 'done';
+    },
+    place: () => null,
+  },
   egg: {
     begin: (st, b) => { b.eggs = eggsFound(); },
     met: (st, b) => eggsFound() > (b.eggs ?? Infinity),
@@ -231,16 +270,17 @@ function markDone(step, { skipped = false, quiet = false } = {}) {
     const shown = step.goal && step.goal.type === 'hideout' ? hideoutStep(step, rt.base) : step;
     if (shown.choice) state.flags.add('onderduik:' + shown.choice);
     // a step with a closing scene (storyfun.js) sends its done text after it
-    const send = () => phone(who(shown.done[0]), shown.done[1], 5);
+    const send = () => phone(who(shown.done[0]), shown.done[1], 5, undefined, !!step.silent);
     if (skipped || !storyFunDone(world, shown, send)) send();
   }
   if (!quiet && !skipped && step.kind === 'activity' && isPurchase(step)) {
     const next = currentStep();
     world.addMessage(next && !next.end ? `Gelukt! Terug naar het verhaal: ${next.title}` : 'Gelukt! Terug naar het verhaal', 5, { kind: 'missie', key: 'story-buy' });
   }
-  if (!quiet && step.after) for (const [from, text] of step.after) phone(who(from), text, 6);
-  if (step.beat) for (const [from, text] of step.beat) phone(who(from), text, 6);
+  if (!quiet && step.after) for (const [from, text] of step.after) phone(who(from), text, 6, undefined, !!step.silent);
+  if (step.beat) for (const [from, text] of step.beat) phone(who(from), text, 6, undefined, !!step.silent);
   if (!quiet) queueContacts(step, 'after');
+  if (!quiet && !skipped) sendScript(step, 'after');
   for (const c of CLUES) {
     if (c.step !== step.id) continue;
     rt.newClues.add(c.title);
@@ -356,7 +396,8 @@ function homePlace() {
 // flat, then the scene (lines [who, text, { tag }]), then the clock moves on.
 // Sleeping first works too: the scene follows when you wake up.
 function updateHomeWait(step) {
-  const scene = step.homeScene || null;
+  const scene = homeSceneOf(step);
+  if (scene && scene.id && !scene.lines.length) return;
   const night = step.kind === 'mission' || step.goal.type === 'night';
   if (rt.nightWait || world.pigeonMode || isCinematicActive() || isShopOpen()) return;
   if (night && !scene && isNight(world)) return;
@@ -370,7 +411,7 @@ function updateHomeWait(step) {
   const lines = ((scene && scene.lines) || []).map(([k, text]) => {
     const speaker = SPEAKERS[k] || who(k);
     const v = lineVoiceFor(speaker, text);
-    const dur = Math.max(v ? v.dur + 0.3 : 0, 1.6, Math.min(5, 0.8 + text.length * 0.055));
+    const dur = nieuwVerhaal() && !v ? readingTime(text) : Math.max(v ? v.dur + 0.3 : 0, 1.6, Math.min(5, 0.8 + text.length * 0.055));
     const l = { speaker, text, at, dur };
     at += dur + 0.25;
     return l;
@@ -392,6 +433,34 @@ function setNight() {
 function setClock(h) {
   world.clock = h;
   refreshDayNight(world);
+}
+
+// The opening of the new story (M00): the trailer parody, the kitchen and moving day of the script,
+// as a letterboxed cutscene over the player's new home. Recorded lines play, the others are text.
+function playOpening(b) {
+  const lines = [];
+  let at = 1.2;
+  for (const id of ['C00.1', 'C00.2', 'C00.3']) {
+    for (const l of talkLines(id)) {
+      const dur = l.voice ? Math.max(readingTime(l.text) * 0.6, l.voice.dur + 0.35) : readingTime(l.text);
+      lines.push({ speaker: l.speaker, text: l.text, at, dur, ...(l.voice ? { voice: l.voice.src } : {}), ...(l.channel === 'radio' ? { radio: true } : {}) });
+      at += dur + 0.12;
+    }
+    at += 0.9;
+  }
+  const p = world.player;
+  const kop = PARTS.kop;
+  const ok = playCinematic({
+    id: 'story-opening', priority: 4, duration: at + 1, pause: true, letterbox: true, skippable: true, hideHud: true,
+    kicker: `${partNumber('kop')} · ${kop.date}`, title: kop.name, cardFor: 3.2, lines,
+    shot: (u, t) => {
+      const v = p.inVehicle, x = v ? v.x : p.x, y = v ? v.y : p.y;
+      const a = 0.6 + t * 0.045;
+      return { position: { x: x + Math.cos(a) * 15, y: y + Math.sin(a) * 15, z: 7 - u * 2.5 }, lookAt: { x, y, z: 3.5 }, fov: 46 };
+    },
+    onEnd: () => { b.phase = 'done'; },
+  });
+  return ok;
 }
 
 // Credits after the epilogue: name cards over the city, no voices.
@@ -583,7 +652,7 @@ function playEndCard(part) {
   });
   if (!ok) return false;
   state.cards.add(part);
-  phone(SERIES, 'Het verhaal gaat verder in een volgende versie. Tot die tijd is Grunn van jou: alle missies staan in je telefoon, onder Te doen.', 8);
+  phone(SERIES, nieuwVerhaal() ? `${PARTS[part].end}. Dit stuk van het nieuwe verhaal is nog niet gebouwd. Tot die tijd is Grunn van jou: alle missies staan in je telefoon, onder Te doen.` : 'Het verhaal gaat verder in een volgende versie. Tot die tijd is Grunn van jou: alle missies staan in je telefoon, onder Te doen.', 8, undefined, nieuwVerhaal());
   return true;
 }
 
@@ -855,7 +924,7 @@ export function initStory(w) {
 // Kusjes (K) unlock with the first kiss, at the end of H13; before that the
 // prompt, the key and the Besturing row don't exist (player.js, prompts.js,
 // pausemenu.js read world.kissUnlocked).
-const KISS_STEP = 'H13';
+const KISS_STEP = nieuwVerhaal() ? 'M16' : 'H13';
 // H13 itself, not a later mission played ahead; and only once the story has
 // got there: H13 played ahead from Te doen ("H13 nu al spelen?") left the
 // missions before it open, and whoever you played then (Tammo or Tessa,
@@ -889,6 +958,7 @@ export function updateStory(dt, w) {
   rt.runT = step && !step.end && step.kind === 'mission' && activeMissionIndex() === missionIdx(step) ? (rt.runT || 0) + dt : 0;
   updateSkipUi();
   updateCharacter(w);
+  if (nieuwVerhaal()) updateStoryTalk(dt, w);
   updateStoryFun(dt, w, step, rt.base);
   updateStoryEikea(dt, w, step, rt.base);
   if (!step) return;
@@ -912,7 +982,8 @@ export function updateStory(dt, w) {
   const handoverDue = !!step.player && w.player.character !== step.player && !isMissionActive();
   if (rt.leadAt >= 0 && w.time >= rt.leadAt && !isCinematicActive() && sinceCinematic() > LEAD_AFTER_SCENE && !storyFunBusy() && !handoverDue) {
     rt.leadAt = -1;
-    if (step.lead) phone(who(step.lead[0]), step.lead[1], 7);
+    if (step.lead) phone(who(step.lead[0]), step.lead[1], 7, undefined, !!step.silent);
+    sendScript(step, 'start');
     const buy = isPurchase(step) && (world.storyGuide && world.storyGuide.buy ? world.storyGuide.name : storyBuyLabel(world));
     if (buy) world.addMessage(`Voor het verhaal: ${buy}`, 6, { kind: 'missie', key: 'story-buy' });
     if (step.say) rt.sayAt = w.time + (step.lead ? SAY_AFTER_LEAD : 0);
@@ -936,7 +1007,7 @@ export function updateStory(dt, w) {
     if (step.kind === 'activity') rt.skipUntil = w.time + 60;
     const from = step.lead ? who(step.lead[0]) : 'Anita';
     const remind = from === 'Tammo' ? SMS_SAY.remindT : from === 'Anita' ? SMS_SAY.remindA : null;
-    phone(from, `Nog even dit: ${step.title}. Staat op je kaart, als je zin hebt.`, 6, remind ? remind.lines[0] : undefined);
+    phone(from, `Nog even dit: ${step.title}. Staat op je kaart, als je zin hebt.`, 6, remind ? remind.lines[0] : undefined, !!step.silent);
   }
 }
 
@@ -1075,7 +1146,7 @@ export function devJumpTo(id) {
   world.wanted = 0;
   for (const s of prior) if (s.waive === 'eikea') waiveEikea(); else if (s.waive && s.waive !== 'night') grantStoryItem(world, s.waive);
   const target = STEPS[k];
-  const needsNight = target.id === 'H6';
+  const needsNight = target.id === 'H6' || target.id === 'M06';
   world.clock = needsNight ? NIGHT_HOUR : target.id === 'k-nacht' ? 14 : 12;
   refreshDayNight(world);
   enter(target);
@@ -1138,6 +1209,7 @@ export const storyApi = {
   },
   mission: () => missionDebug.state(),
   cardShown: (part = 'kop') => state.cards.has(part),
+  goalPhase: () => rt.base && rt.base.phase,
   ending: getStoryEnding,
   credits: requestCredits,
   character: () => world.player.character,
