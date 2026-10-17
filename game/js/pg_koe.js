@@ -4,7 +4,7 @@ import { buildPersonMesh, seatPerson, animatePersonWalk } from './models3d_peopl
 import { buildCowMesh3D } from './wildlife.js';
 import { DURK_LOOK, DOUWE_LOOK } from './storycast.js';
 import { getScene } from './scene3d.js';
-import { REAL, RTILE, buildingsInTile, buildingModel, pushOutOfReal } from './countryreal.js';
+import { REAL, RTILE, allBuildingsInTile, buildingModel, pushOutOfReal } from './countryreal.js';
 import { urbanWeight } from './countryfield.js';
 import { findOpenSpot, realRoadNear, placeNamed } from './ommelandplace.js';
 import { buildProp, disposeProp, animateProp, personMesh, sitDown } from './ommelandprops3d.js';
@@ -43,7 +43,7 @@ function barnsAround(x, y, r0, r1, pred) {
   const t0y = Math.floor((y - r1) / RTILE), t1y = Math.floor((y + r1) / RTILE);
   for (let tx = t0x; tx <= t1x; tx++) {
     for (let ty = t0y; ty <= t1y; ty++) {
-      for (const i of buildingsInTile(tx, ty) || []) {
+      for (const i of allBuildingsInTile(tx, ty) || []) {
         const d = Math.hypot(REAL.bx[i] - x, REAL.by[i] - y);
         if (d < r0 || d > r1) continue;
         const m = buildingModel(i);

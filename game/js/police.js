@@ -3,12 +3,11 @@ import { spawnVehicleOnRoad, updateTrafficAI, resolveVehicleBuildingCollision, s
 import { requestRespawn } from './world.js';
 import { bustFine } from './economy.js';
 import { spawnCopPedestriansNear, makeCopPedestrian, isInsideBuilding, isSpawnHidden } from './pedestrians.js';
-import { REAL, buildingAt } from './countryreal.js';
+import { REAL } from './countryreal.js';
 import { edgeDistance, ROAD_W } from './countryfield.js';
-import { realRoadNear } from './ommelandplace.js';
 import { pushOutOfPlan } from './countryplan.js';
 import { wideWaterAt } from './countryedge.js';
-import { countryReady, snapCountry, countryPathNear, nodeXY } from './countryroute.js';
+import { roadNetReady, snapRoad, roadPathNear, nodeXY } from './roadgraph.js';
 import { waterClearance } from './waterindex.js';
 import { isKnockedDown } from './ragdoll.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
@@ -274,11 +273,8 @@ function despawnFarPolice(world, state) {
 function hasLineOfSight(map, ax, ay, bx, by) {
   const d = Math.hypot(bx - ax, by - ay);
   const steps = Math.ceil(d / 3);
-  // out in the Ommeland the real buildings block the view too
-  const country = REAL.ready && edgeDistance((ax + bx) / 2, (ay + by) / 2) > -40;
   for (let k = 1; k < steps; k++) {
     const x = ax + (bx - ax) * k / steps, y = ay + (by - ay) * k / steps;
-    if (country && buildingAt(x, y, 0) >= 0) return false;
     for (const b of map.buildingsNear(x, y, 0.5)) {
       const [minx, miny, maxx, maxy] = b.bounds;
       if (x < minx || x > maxx || y < miny || y > maxy) continue;
@@ -310,7 +306,7 @@ function updateChase(v, dt, world) {
     if (v._fieldRun && (d > FIELD_RUN_DIST || pol.searching || !dryLine(world.map, v.x, v.y, p.x, p.y))) v._fieldRun = false;
     v._direct = (d < DIRECT_CHASE_DIST && v._sees || !!v._fieldRun) && !pol.searching;
     // never straight into a canal or a maar out there
-    if (v._direct && !v._fieldRun && REAL.ready && edgeDistance(v.x, v.y) > 0 && !dryLine(world.map, v.x, v.y, p.x, p.y)) v._direct = false;
+    if (v._direct && !v._fieldRun && roadNetReady() && edgeDistance(v.x, v.y) > 0 && !dryLine(world.map, v.x, v.y, p.x, p.y)) v._direct = false;
   }
   tunePoliceCar(v, world, d, v._sees);
   let goal = p;
@@ -325,7 +321,7 @@ function updateChase(v, dt, world) {
   if (!pv && !pol.searching && d < 25) cruise = Math.max(3, (d - FOOT_STOP_DIST) * 0.8);
   // out in the Ommeland (the player, or a unit without a city street) the
   // real roads lead there, like the streets do in town
-  const country = !v._direct && REAL.ready && (edgeDistance(goal.x, goal.y) > 30 || (!v.road && edgeDistance(v.x, v.y) > 0));
+  const country = !v._direct && roadNetReady() && (edgeDistance(goal.x, goal.y) > 30 || (!v.road && edgeDistance(v.x, v.y) > 0));
   if (country && countryFollow(v, dt, world, goal, cruise)) {
     v.road = null;
     v._wasDirect = false;
@@ -931,7 +927,7 @@ export function updatePolice(dt, world) {
     } else if (v._commandeered) {
       v._commandeered = false;
       v.isPolice = false;
-    } else if (!v.road && !v._mount && REAL.ready && edgeDistance(v.x, v.y) > 0) {
+    } else if (!v.road && !v._mount && roadNetReady() && edgeDistance(v.x, v.y) > 0) {
       countryPatrol(v, dt, world);
       resolveVehicleBuildingCollision(v, world.map, dt);
     } else {
@@ -956,20 +952,14 @@ const COUNTRY_CORNER_DECEL = 8;
 // A point on the country roads near (x, y) as a road point { x, y, road },
 // the road a straight stand-in along it (width, direction, one-way).
 function countryRoadPoint(x, y, R) {
-  if (!REAL.ready || edgeDistance(x, y) < 0) return null;
-  const q = realRoadNear(x, y, R);
-  if (q && q.d <= R) {
-    if (q.road.bridge) return null;
-    return { x: q.x, y: q.y, road: lineRoad(q.x, q.y, q.ux, q.uy, q.road.w, q.road.oneway) };
-  }
-  // past the real data: the polder grid
-  if (!countryReady(REAL)) return null;
-  const sn = snapCountry(x, y, R);
-  if (!sn || sn.d > R) return null;
+  if (!roadNetReady() || edgeDistance(x, y) < 0) return null;
+  const sn = snapRoad(x, y, R);
+  if (!sn || sn.d > R || sn.bridge) return null;
   const [ax, ay] = nodeXY(sn.a), [bx, by] = nodeXY(sn.b);
   const l = Math.hypot(bx - ax, by - ay) || 1;
-  return { x: sn.x, y: sn.y, road: lineRoad(sn.x, sn.y, (bx - ax) / l, (by - ay) / l, ROAD_W, !!sn.one) };
+  return { x: sn.x, y: sn.y, road: lineRoad(sn.x, sn.y, (bx - ax) / l, (by - ay) / l, KIND_WIDTH[sn.kind] || ROAD_W, !!sn.one) };
 }
+const KIND_WIDTH = { 1: 11, 2: 6.5, 3: 9, 4: 7.5, 5: 6.5, 6: 5, 7: 5.5 };
 function lineRoad(x, y, ux, uy, width, oneway) {
   return { pts: [[x - ux * 20, y - uy * 20], [x + ux * 20, y + uy * 20]], width: Math.max(4, width), oneway: !!oneway, cat: 'normal', country: true };
 }
@@ -983,12 +973,12 @@ function dryLine(map, ax, ay, bx, by) {
 
 function solidAt(map, x, y) {
   if (isInsideBuilding(map, x, y)) return true;
-  return REAL.ready && edgeDistance(x, y) > -20 && pushOutOfPlan({ x, y }, 0.6);
+  return roadNetReady() && edgeDistance(x, y) > -20 && pushOutOfPlan({ x, y }, 0.6);
 }
 
 // An officer on foot beside a country road, out of sight.
 function countryCopPed(world, c) {
-  if (!REAL.ready || edgeDistance(c.x, c.y) < 0) return [];
+  if (!roadNetReady() || edgeDistance(c.x, c.y) < 0) return [];
   const p = world.player;
   for (let k = 0; k < 6; k++) {
     const a = Math.random() * Math.PI * 2, d = COP_PED_MIN_DIST + 10 + Math.random() * 50;
@@ -1010,13 +1000,13 @@ function countryCopPed(world, c) {
 // A* way (countryPathNear) replanned every second or so, followed by pure
 // pursuit, braking for the bends ahead. False when no country road is near.
 function countryFollow(v, dt, world, goal, cruise) {
-  if (!countryReady(REAL)) return false;
+  if (!roadNetReady()) return false;
   const c = v._country || (v._country = { path: null, at: -99, gx: 0, gy: 0, i: 0, slow: 0 });
   if (!c.path || world.time - c.at > COUNTRY_REPLAN_S || Math.hypot(goal.x - c.gx, goal.y - c.gy) > 30) {
     c.at = world.time; c.gx = goal.x; c.gy = goal.y; c.i = 0;
-    const from = snapCountry(v.x, v.y, COUNTRY_SNAP_M);
-    const to = from && from.d <= COUNTRY_SNAP_M ? snapCountry(goal.x, goal.y, 600) : null;
-    c.path = to ? countryPathNear(from, to) : null;
+    const from = snapRoad(v.x, v.y, COUNTRY_SNAP_M);
+    const to = from && from.d <= COUNTRY_SNAP_M ? snapRoad(goal.x, goal.y, 600) : null;
+    c.path = to ? roadPathNear(from, to) : null;
   }
   const P = c.path;
   if (!P || P.length < 2) return false;

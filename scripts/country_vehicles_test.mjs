@@ -218,9 +218,12 @@ const SEDAN = { name: 'sedan', len: 4.3, wid: 1.8, maxSpeed: 50, accel: 10, brak
 
 // police out in the Ommeland: units come in on the country roads, drive them
 // towards a player parked in the fields and get there
-{
+if (!fs.existsSync(new URL('world/provincie-roads.json.gz', root))) console.log('SKIP police: no game/world with the province road net');
+else {
   const Pol = await import('../game/js/police.js');
-  const { snapCountry } = await import('../game/js/countryroute.js');
+  const RG = await import('../game/js/roadgraph.js');
+  RG.setRoadNet(RG.decodeRoadNet(JSON.parse(zlib.gunzipSync(fs.readFileSync(new URL('world/provincie-roads.json.gz', root))).toString('utf8'))));
+  const snapCountry = RG.snapRoad;
   let units = 0, onRoad = 0, offRoad = 0, reached = 0, wet = 0, runs = 0;
   for (const target of [[5505.95, -11770.51], [1931.4, -9027.27], [8572.98, -6583.35]]) {
     runs++;
