@@ -1,6 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { HABBO_PALETTE, habboMaterial, GeoBuilder, vcMaterial, markShared, composeMatrix, tubeGeometry } from './pixelart3d.js';
-import { buildPersonMesh, PERSON_RIG } from './models3d_people.js';
+import { buildPersonMesh, PERSON_RIG, holdPhoneRiding } from './models3d_people.js';
 import { boatKind, boatHasCabin } from './boattypes.js';
 import { buildHeliMesh } from './heli3d.js';
 
@@ -988,6 +988,7 @@ function buildBikeMesh(v) {
   const hipY = fat ? 0.93 : 1.02;
   rider.position.set(fat ? -0.26 : -0.3, hipY - 0.93 * rider.scale.y, 0);
   poseRider(rider, fat ? 0.55 : 0.33, fat ? 0.95 : 0.85, -0.08);
+  if (!fat && v.isBike && v.driver !== 'player' && !v.wrecked && hash2((v.id || 0) * 1.9, 7.3) < 0.18) holdPhoneRiding(rider);
   group.add(rider);
   group.userData.riderLegs = { legs: [rider.userData.legL, rider.userData.legR], base: fat ? 0.55 : 0.33, amp: 0.2 };
   if (v.model.delivery && !v.wrecked) {

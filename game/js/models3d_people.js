@@ -1261,6 +1261,15 @@ function propOn(ud, key, geo, mat, build) {
   return m;
 }
 
+// Phone in the right hand while riding (NPC cyclists): the arm stays on the bar side, the forearm lifts.
+export function holdPhoneRiding(person) {
+  const ud = person.userData;
+  propOn(ud, 'phoneProp', PHONE_GEO, PHONE_MAT, (m) => m.position.set(0.045, -0.3, 0.0));
+  ud.phoneProp.rotation.set(0, 0, 0);
+  ud.head.rotation.set(0, 0, -0.35);
+  setArm(ud.armR, ud.elbowR, 0.85, 1.4, -0.1);
+}
+
 function setPropVisible(ud, key, on) {
   if (ud[key]) ud[key].visible = on;
 }

@@ -105,8 +105,8 @@ export function createBoard(title, accent) {
   let last = '';
   return {
     root,
-    show() { root.hidden = false; document.body.classList.add('mg-on'); last = ''; },
-    hide() { root.hidden = true; document.body.classList.remove('mg-on'); },
+    show() { root.hidden = false; document.body.classList.add('mg-on', 'mg-board'); last = ''; },
+    hide() { root.hidden = true; document.body.classList.remove('mg-on', 'mg-board'); cancelStopAsk(); },
     // { row: html, cells: [{ t, cls }], meter: { v, mark, color }, flash, bad, help: html }
     set(s) {
       const sig = JSON.stringify([s.row, s.cells, s.meter && [Math.round(s.meter.v * 100), s.meter.mark != null ? Math.round(s.meter.mark * 100) : -1, s.meter.color], s.flash, !!s.bad, s.help]);
@@ -144,9 +144,32 @@ export function clearBubbles(w, tag) {
 
 export const pick = (list, rand = Math.random) => list[Math.floor(rand() * list.length)];
 
-// Backspace or the pad's B stops any of the games, anytime.
+// Backspace or the pad's B stops any of the games at once; Esc asks "Stoppen?"
+// first (a second Esc or Enter confirms, Space carries on).
+let stopAsk = null;
+function cancelStopAsk() {
+  if (!stopAsk) return;
+  clearTimeout(stopAsk.timer);
+  stopAsk.el.remove();
+  stopAsk = null;
+}
 export function stopPressed(input) {
-  if (input.wasPressed('backspace')) { input.consume('backspace'); return true; }
+  if (input.wasPressed('backspace')) { input.consume('backspace'); cancelStopAsk(); return true; }
+  if (stopAsk) {
+    for (const k of ['escape', 'enter']) {
+      if (input.wasPressed(k)) { input.consume(k); cancelStopAsk(); return true; }
+    }
+    if (input.wasPressed(' ')) { input.consume(' '); cancelStopAsk(); }
+  } else if (input.wasPressed('escape') && typeof document !== 'undefined') {
+    input.consume('escape');
+    const el = document.createElement('div');
+    el.className = 'mg-stopask';
+    el.setAttribute('role', 'alertdialog');
+    el.style.cssText = 'position:fixed;left:50%;top:38%;transform:translateX(-50%);z-index:60;background:rgba(10,12,18,.92);color:#fff;padding:14px 22px;border-radius:12px;font:600 18px/1.4 system-ui,sans-serif;text-align:center;pointer-events:none';
+    el.innerHTML = 'Stoppen?<br><small style="font-weight:400">Esc of Enter = stoppen &middot; Spatie = doorgaan</small>';
+    document.body.appendChild(el);
+    stopAsk = { el, timer: setTimeout(cancelStopAsk, 5000) };
+  }
   return false;
 }
 
