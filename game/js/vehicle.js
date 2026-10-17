@@ -1,4 +1,4 @@
-import { closestPointOnSegment, normalizeAngle, clamp, lerp, pointInPolygon, inWaterPoly, WATER_Y, keepBoatOffShore, boatDryPoints } from './util.js';
+import { closestPointOnSegment, normalizeAngle, clamp, lerp, pointInPolygon, inWaterPoly, inMapWater, WATER_Y, keepBoatOffShore, boatDryPoints } from './util.js';
 import { waterClearance, waterChannelPoints } from './waterindex.js';
 import { shallowWater } from './waterlevels.js';
 import { trafficSignalsNear, trafficLightPhaseMove } from './trafficlights.js';
@@ -3022,10 +3022,23 @@ export function checkVehicleWater(v, map, world) {
 }
 
 // Would something at (x, y, z) on the ground drop into the water here?
+function onCarRoad(map, x, y) {
+  for (const r of map.roadsNear(x, y, 8)) {
+    if (r.cat === 'foot' || r.cat === 'cycle' || r.z) continue;
+    for (let i = 0; i < r.pts.length - 1; i++) {
+      const cp = closestPointOnSegment(x, y, r.pts[i][0], r.pts[i][1], r.pts[i + 1][0], r.pts[i + 1][1]);
+      if (cp.dist2 <= (r.width / 2) ** 2) return true;
+    }
+  }
+  return false;
+}
+
 export function overOpenWater(map, x, y, z) {
   if (!inWaterPoly(map, x, y) || map.isOnBridge(x, y)) return false;
   // over the canal on a viaduct, or under it through the aqueduct
   if (z > 1.5 || (z < -3 && map.coveredAt && map.coveredAt(x, y))) return false;
+  // the countryside's water field reaching over a map road is its embankment, not water
+  if (!inMapWater(map, x, y) && onCarRoad(map, x, y)) return false;
   // a ditch or shallows with a peil of their own are driven through, not sunk in
   return !shallowWater(map, x, y);
 }
