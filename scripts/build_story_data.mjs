@@ -146,7 +146,8 @@ function anchor(scenes) {
     if (s.step || (s.kind !== 'radio' && s.kind !== 'app' && s.kind !== 'banter' && s.kind !== 'side')) return;
     let prev = null, next = null;
     for (let j = i - 1; j >= 0; j--) if (scenes[j].step) { prev = scenes[j].step; break; }
-    for (let j = i + 1; j < scenes.length; j++) if (scenes[j].step) { next = scenes[j].step; break; }
+    // what comes after the scene: a banter or replay line of the step before it does not count
+    for (let j = i + 1; j < scenes.length; j++) if (scenes[j].step && scenes[j].kind !== 'banter' && scenes[j].kind !== 'replay') { next = scenes[j].step; break; }
     if (s.kind === 'banter') { s.pool = s.id; s.step = prev || next; return; }
     if (s.kind === 'side') { s.step = prev || next; return; }
     if (prev && prev === next) s.anchor = { at: 'start', step: prev };

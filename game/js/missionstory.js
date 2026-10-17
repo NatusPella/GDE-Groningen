@@ -11,6 +11,9 @@ import { JELLE_LOOK, DURK_LOOK, DOUWE_LOOK, RIKUS_LOOK, MEM_LOOK, ROTOR_LOOK, RO
 import { showLiveFrame } from './storycontact.js';
 import { storyLineVoice } from './linevoice.js';
 import { showNameCard } from './namecard.js';
+import { nieuwVerhaal } from './storyflag.js';
+import { STEPS, MISSION_IDS } from './storyarc.js';
+import { storyLines, storyDataReady, readingTime, storyDirRecording } from './storytext.js';
 
 // Story cutscenes around the mission chain: who asks and why (start), the
 // payoff (success) and a short sting (fail). Tammo and Tessa's relationship
@@ -26,7 +29,7 @@ import('./fierljep.js').then((m) => { fjMod = m; }).catch(() => {});
 const VOICE_DIR = new URL('../audio/voicelines/story/', import.meta.url).href;
 let voices = {};
 fetch(VOICE_DIR + 'manifest.json').then((r) => (r.ok ? r.json() : {})).then((m) => { voices = m || {}; }).catch(() => {});
-const voiceFor = (speaker, text) => voices[speaker + '|' + text] || storyLineVoice(speaker, text);
+const voiceFor = (speaker, text) => voices[speaker + '|' + text] || storyLineVoice(speaker, text) || (nieuwVerhaal() ? storyDirRecording(speaker, text) : null);
 
 const SKIN = HABBO_PALETTE;
 export const NPC = {
@@ -56,6 +59,22 @@ export const NPC = {
   rotor: { ...ROTOR_LOOK, name: 'Rotor Roelf' },
   roelf: { ...ROELF_LOOK, name: 'Boer Roelf' },
   hilje: { ...HILJE_LOOK, name: 'Hilje' },
+  // the new story (storyarc_nieuw.js): the new cast and the small roles
+  loketbediende: { name: 'Loketbediende', shirt: 0x6a7280, skin: SKIN.woodLight, variant: 'female', seed: 6101, hairStyle: 'bob' },
+  bewaarder: { name: 'Mevrouw Tuinstra', shirt: 0x5b3f6e, skin: SKIN.woodLight, variant: 'female', seed: 6102, hairStyle: 'bun' },
+  geesje: { name: 'Geesje', shirt: 0x7a8a5a, skin: SKIN.woodLight, variant: 'female', seed: 6103, hairStyle: 'bun' },
+  lammert: { name: 'Lammert', shirt: 0x2f4a66, skin: SKIN.woodMid, variant: 'male', seed: 6104 },
+  roelfien: { name: 'Roelfien', shirt: 0xc2793a, skin: SKIN.woodLight, variant: 'female', seed: 6105, hairStyle: 'curly' },
+  wubbo: { name: 'Wubbo', shirt: 0x4a6a4a, skin: SKIN.woodLight, variant: 'male', seed: 6106 },
+  tinus: { name: 'Tinus', shirt: 0x8a5a2a, skin: SKIN.woodMid, variant: 'male', seed: 6107 },
+  accountmanager: { name: 'Accountmanager', shirt: 0x39414e, skin: SKIN.woodLight, variant: 'male', seed: 6108 },
+  jurylid: { name: 'Jurylid', shirt: 0x6e3b3b, skin: SKIN.woodLight, variant: 'female', seed: 6109, hairStyle: 'bob' },
+  buschauffeur: { name: 'Buschauffeur', shirt: 0x2e5d8a, skin: SKIN.woodMid, variant: 'male', seed: 6110 },
+  kustwachter: { name: 'Kustwachter', shirt: 0x1f3a5f, skin: SKIN.woodLight, variant: 'male', seed: 6111 },
+  kermisexploitant: { name: 'Kermisexploitant', shirt: 0xb2402a, skin: SKIN.woodMid, variant: 'male', seed: 6112 },
+  deurwaarder: { name: 'Deurwaarder', shirt: 0x2a2a30, skin: SKIN.woodLight, variant: 'male', seed: 6113 },
+  student: { name: 'Student', shirt: 0x8a4fa8, skin: SKIN.woodLight, variant: 'female', seed: 6114 },
+  boer: { name: 'Boer', shirt: 0x6a7a3a, skin: SKIN.woodLight, variant: 'male', seed: 6115 },
 };
 
 // Display name for a story speaker key (T, A, V or an NPC key); missions.js
@@ -536,6 +555,22 @@ const STORY = [
     replay: [['N', 'Ik proef, ik tel, ik oordeel. …Kon minder.']],
     fail: [['A', 'Hij is weg met de bal. Plan B, Tammo.'], ['T', 'Plan A is ook van jou.']],
   },
+  {
+    // 18: M03 Het Loket (new story; the lines are the script's, see entryFor)
+    npc: 'loketbediende', outroPose: 'hips', ask: 0, textOnly: true,
+    intro: [['N', 'Nummer 4117 aan loket A.']],
+    outro: [['N', 'Gefeliciteerd. U bent ingeschreven voor de Noordelijke Snackprijs.']],
+    replay: [['N', 'Weer bij ons? Loket B is nog steeds Loket C.']],
+    fail: [['A', 'Dicht. Om twaalf uur sloot het loket.'], ['T', 'Loket B was Loket C.']],
+  },
+  {
+    // 19: M01 Nul krassen, vijftienhonderd punten (new story: the stunt in Berend's bakkie, then the delivery)
+    npc: 'berend', outroPose: 'hips', ask: 0, introOpen: 'descend', textOnly: true,
+    intro: [['N', 'Goidag.']],
+    outro: [['N', '…Goud.']],
+    replay: [['N', 'Weer nul krassen. Ik begin het je bijna te gunnen.']],
+    fail: [['A', 'Dit vertellen we Berend dus niet.'], ['T', 'Hij schrijft er vast een brief over.']],
+  },
 ];
 
 // Tammo/Tessa lines for when a mission is played before the ones leading up
@@ -713,8 +748,9 @@ function timeline(lines, npc, lead = 0.5) {
   const out = lines.map(([who, text, o]) => {
     const speaker = speakerName(who, npc);
     const voice = voiceFor(speaker, text);
-    const d = voice ? Math.max(lineDur(text), voice.dur + 0.25) : lineDur(text);
-    const l = { who, speaker, text, at: t, dur: d, voice, clue: !!(o && o.clue), look: (o && o.look) || null, cam: (o && o.cam) || null, card: (o && o.card) || null, kiss: !!(o && o.kiss) };
+    // a line without a recording (the new story) stays up for its reading time, nothing waits for audio
+    const d = voice ? Math.max(lineDur(text), voice.dur + 0.25) : nieuwVerhaal() ? readingTime(text) : lineDur(text);
+    const l = { who, speaker, text, at: t, dur: d, voice, radio: !!(o && o.radio), clue: !!(o && o.clue), look: (o && o.look) || null, cam: (o && o.cam) || null, card: (o && o.card) || null, kiss: !!(o && o.kiss) };
     t += d + 0.1;
     return l;
   });
@@ -1154,7 +1190,7 @@ function runScene(r, tl, { id, kicker = '', title = '', cardFor = 3, camera, pos
       if (cur && cur !== r.voiced) {
         r.voiced = cur;
         // Rikus is always on the radio: his voice in the broadcast band
-        if (cur.voice) playStoryVoice(VOICE_DIR + cur.voice.src, { radio: cur.who === 'V' || cur.who === 'rikus' });
+        if (cur.voice) playStoryVoice(VOICE_DIR + cur.voice.src, { radio: cur.who === 'V' || cur.who === 'rikus' || cur.radio });
         else stopStoryVoice();
         if (cur.clue) playClueSting();
         if (cur.card) showNameCard(cur.card);
@@ -1224,8 +1260,8 @@ function play(w, id, r, tl, { kicker, title, cardFor, closing, opening, target, 
   });
 }
 
-function stageLines(i, stage, kind) {
-  const s = STORY[i];
+function stageLines(i, stage, kind, entry = STORY[i]) {
+  const s = entry;
   const base = s[kind];
   if (stage >= i) return base;
   const npcLines = base.filter((l) => l[0] === 'N');
@@ -1250,8 +1286,30 @@ function onFootAnchor(w) {
   return freeSpot(w, v.x - s * 2.6, v.y + c * 2.6);
 }
 
-export function playStoryIntro(w, i, { stage = i, short = false, kicker = '', title = '', target = null } = {}) {
+// The new arc plays the script's text (script.json, storytext.js) in the staging of the mission's STORY entry:
+// intro, outro and replay come from the step's `story` scene ids (storyarc_nieuw.js); the fail lines stay.
+function entryFor(i) {
   const s = STORY[i];
+  if (!s || !nieuwVerhaal() || !storyDataReady()) return s;
+  const step = STEPS.find((q) => q.kind === 'mission' && q.story && MISSION_IDS.indexOf(q.mission) === i);
+  if (!step) return s;
+  const mk = (ids, npc) => storyLines(ids, { npc });
+  const intro = mk(step.story.intro, s.npc);
+  // outro: null = no outro scene (the mission's last stage scene tells it): the pass banner alone
+  const outro = step.story.outro ? mk(step.story.outro, s.outroNpcKey || s.npc) : [];
+  const replay = step.story.replay ? mk(step.story.replay, s.outroNpcKey || s.npc) : s.replay;
+  if (!intro.length && !outro.length && step.story.outro !== null) return s;
+  const hasN = (l) => l.some((x) => x[0] === 'N');
+  const e = { ...s, intro: intro.length ? intro : s.intro, outro: outro.length ? outro : s.outro, replay, noOutro: step.story.outro === null };
+  e.ask = Math.max(0, Math.min(s.ask || 0, e.intro.length - 1));
+  if (s.introNpc !== false && !hasN(e.intro)) e.introNpc = false;
+  e.outroNpc = hasN(e.outro);
+  return e;
+}
+
+export function playStoryIntro(w, i, { stage = i, short = false, kicker = '', title = '', target = null } = {}) {
+  if (nieuwVerhaal()) stage = i;
+  const s = entryFor(i);
   if (!s || run) return false;
   const v = w.player.inVehicle;
   const onDeck = !!(v && v.isBoat);
@@ -1262,7 +1320,7 @@ export function playStoryIntro(w, i, { stage = i, short = false, kicker = '', ti
   const r = buildRun(w, { npcKey: onDeck || s.introNpc === false ? null : s.npc, anchor, facing, h: onDeck ? deck.h : 0, extras: full ? s.introCast || [] : [], props: full ? s.introProps || [] : [] });
   if (!r) return false;
   // narration the opening montage (intromontage.js) already told is skipped
-  const all = stageLines(i, stage, 'intro').filter((l) => !(l[0] === 'V' && w.introTold && w.introTold.includes(l[1])));
+  const all = stageLines(i, stage, 'intro', s).filter((l) => !(l[0] === 'V' && w.introTold && w.introTold.includes(l[1])));
   const lines = short ? [s.intro[s.ask]] : all;
   const tl = timeline(lines, r.npcDef, short ? 0.4 : 0.6);
   const askText = s.intro[s.ask][1];
@@ -1273,7 +1331,8 @@ export function playStoryIntro(w, i, { stage = i, short = false, kicker = '', ti
 }
 
 export function playStoryOutro(w, i, opts = {}) {
-  const s = STORY[i];
+  if (nieuwVerhaal()) opts = { ...opts, stage: i };
+  const s = entryFor(i);
   const { stage = i, short = false } = opts;
   // a beat before the talk, e.g. the trekker-limo pulling up at the museum (H4)
   if (s && s.before === 'limo' && !short && stage >= i && !run && playLimoReveal(w, () => outroNow(w, i, opts))) return true;
@@ -1281,16 +1340,16 @@ export function playStoryOutro(w, i, opts = {}) {
 }
 
 function outroNow(w, i, { stage = i, short = false, reward = 0, stats = [], reason = '' } = {}) {
-  const s = STORY[i];
+  const s = entryFor(i);
   const banner = { kind: 'pass', title: 'MISSIE GESLAAGD', reason, reward, stats };
-  if (!s || run) { showBanner(banner); return false; }
+  if (!s || run || (s.noOutro && !short)) { showBanner(banner); return false; }
   const p = w.player;
   const v = p.inVehicle;
   const full = !short && stage >= i;
   const kiss = !!s.kiss && full;
   let r;
   // a replay (the mission as a klus) has its own short outro that needs no story
-  const lines = short ? s.replay || [stageLines(i, stage, 'outro').slice(-1)[0]] : stageLines(i, stage, 'outro');
+  const lines = short ? s.replay || [stageLines(i, stage, 'outro', s).slice(-1)[0]] : stageLines(i, stage, 'outro', s);
   const outroKey = s.outroNpcKey || s.npc;
   const wantNpc = short ? lines.some((l) => l[0] === 'N') : !!s.outroNpc && !kiss;
   if (v && v.isBoat) {

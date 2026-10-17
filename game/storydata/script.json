@@ -3727,7 +3727,7 @@
    "step": "M07",
    "kind": "radio",
    "anchor": {
-    "at": "start",
+    "at": "after",
     "step": "M07"
    },
    "regie": [],

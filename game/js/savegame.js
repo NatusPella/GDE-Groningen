@@ -137,7 +137,7 @@ export function getSaveSummary() {
   const d = readSave();
   if (!d) return null;
   const done = d.missions && Array.isArray(d.missions.completed) ? d.missions.completed.length : 0;
-  return { money: num(d.money, 0), missionsDone: done, savedAt: num(d.savedAt, 0), character: d.character === 'anita' ? 'Tessa' : 'Tammo', story: storySummary(d), goal: d.doel && typeof d.doel.name === 'string' ? d.doel.name : '' };
+  return { arc: savedArc(d), money: num(d.money, 0), missionsDone: done, savedAt: num(d.savedAt, 0), character: d.character === 'anita' ? 'Tessa' : 'Tammo', story: storySummary(d), goal: d.doel && typeof d.doel.name === 'string' ? d.doel.name : '' };
 }
 
 export function clearSave() {

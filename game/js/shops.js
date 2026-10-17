@@ -1645,7 +1645,7 @@ export function setStoryOutfit(id) {
 
 // From buying the black until the kraak starts (and on a load in between)
 // both of them wear it, not just whoever was in the shop. True when it changed.
-const HEIST_STEPS = new Set(['k-kraakspullen', 'k-nacht', 'H6']);
+const HEIST_STEPS = new Set(['k-kraakspullen', 'k-nacht', 'H6', 'M06']);
 export function syncHeistOutfit() {
   if (state.storyOutfit || !storyShopState().incognito) return false;
   let step = null;

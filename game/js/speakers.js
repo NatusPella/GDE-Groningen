@@ -36,6 +36,13 @@ export const SPEAKER_COLORS = {
   'Rotor Roelf': '#2a9ab8',
   'Boer Roelf': '#9a7a52',
   Hilje: '#a8709a',
+  // the new story (storyarc_nieuw.js)
+  Geesje: '#c28a3e',
+  Lammert: '#4c8fa8',
+  Roelfien: '#79a23c',
+  Wubbo: '#6f8fb0',
+  Tinus: '#b0883a',
+  'Mevrouw Tuinstra': '#a47ab8',
 };
 // generic NPCs, bijbaan bosses, radio and navigation voices
 export const NEUTRAL = '#8a8a8a';

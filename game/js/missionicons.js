@@ -9,6 +9,8 @@ import { MISSION_IDS } from './storyarc.js';
 export const MISSION_ICONS = {
   // H1 Berend telt de krassen: his bakkie
   berend: { fill: 'M2 17v-3a1 1 0 0 1 1-1h1.6l1.6-4.6a1 1 0 0 1 .9-.4H15a1 1 0 0 1 .8.4l2.8 4.6H21a1 1 0 0 1 1 1v3h-2a3 3 0 0 0-6 0h-4a3 3 0 0 0-6 0zM7.3 9.5L6 13h5V9.5zM13 9.5V13h4.4l-2-3.5zM7 15.2a1.8 1.8 0 1 1 0 3.6 1.8 1.8 0 0 1 0-3.6zM17 15.2a1.8 1.8 0 1 1 0 3.6 1.8 1.8 0 0 1 0-3.6z' },
+  // M03 Het Loket: a queue ticket
+  loket: { fill: 'M3 6h18v4.2a2 2 0 0 0 0 3.6V18H3v-4.2a2 2 0 0 0 0-3.6zM7 9v2h4V9zM7 13v2h6v-2zM15.5 9.5v5H17v-5z' },
   // H3 Iets met de Grote Markt: a terrace parasol going over
   chaos: { fill: 'M3.6 12.6a9 7 -20 0 1 16.9-6.2zM12.4 10.6l1.5-.5 2.6 7.4a2.3 2.3 0 0 1-4.3 1.6l-.2-.5 1.5-.5.2.5a.7.7 0 0 0 1.3-.5z', stroke: 'M3 18.5l2-1M3.6 21.2l2.6-.2' },
   // H5 Wind tegen, beide kanten op: the KEI race bike
@@ -44,6 +46,9 @@ export const MISSION_ICONS = {
   // H18 Ontzet, net als in 1672: the Gouden Eierbal on its trophy
   ontzet: { fill: 'M12 2.5a5.5 5.5 0 1 1 0 11 5.5 5.5 0 0 1 0-11zM10 6a.9.9 0 1 0 0 1.8.9.9 0 0 0 0-1.8zM13.8 8.2a.8.8 0 1 0 0 1.6.8.8 0 0 0 0-1.6zM11 10.2a.7.7 0 1 0 0 1.4.7.7 0 0 0 0-1.4zM8 14.5h8l-1.6 3H9.6zM10.8 17.5h2.4v2h-2.4zM7.5 19.5h9v2h-9z' },
 };
+
+// M01 of the new story is Berend's bakkie again, with the stunts first
+MISSION_ICONS.bakkiestunt = MISSION_ICONS.berend;
 
 // Icon spec for a mission index (missions.js), or null.
 export function missionIcon(i) {
