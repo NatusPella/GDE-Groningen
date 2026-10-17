@@ -242,7 +242,7 @@ het ontdekken van de regio.
 | A29 | **Vogels tellen** | foto | Lauwersmeer, Dollard | trekvogels in het najaar |
 | A30 | **Wind tegen** | fietsen | de zeedijk | een tijdrit tegen windkracht 6 |
 | A31 | **Vissen bij de sluis** | rust | sluizen | een vis, een gesprek, een melder |
-| A32 | **Natuurijs** (winterevent) | schaatsen | Hogeland, rond wierden | een toertocht langs elf wierden, als het vriest (eigen naam, geen Elfsteden) |
+| A32 | **Wierdentocht** (zomerevent) | fietsen | Hogeland, rond wierden | een toertocht langs elf wierden in de avondzon (eigen naam, geen Elfsteden) |
 | A33 | **Combinerace** | race | Oldambt | met een combine over stoppelvelden |
 | A34 | **Wereldeinden** (bestaat) | verkennen | per regio uitgebreid | de verste plekken: Noordpolderzijl, de punt van de Dollard |
 | A35 | **Dorpsuitjes** (bestaat) | verkennen | één per dorp | een kleine scène bij aankomst |
@@ -368,7 +368,7 @@ trein naar Delfzijl"), met versneld meerijden en een gesprek.
 | **F4a** | O1-O10 (Stad, Hogeland, Eemsdelta), de Piepjager (Z1-Z4), Scheuren (Z26-Z28, als de eigenaar ja zegt), trekkertrek (A5) | 16-20 |
 | **F4b** | O11-O18 (Wadkust, Westerkwartier), Fenna (Z23-Z25), Rally-Rennie (Z20-Z22), wadgids (A4), sterren (A28) | 14-18 |
 | **F4c** | O19-O32 (Oldambt, Veenkoloniën, Westerwolde, finale), de Randstedelingen (Z9-Z12), Wubbo (Z13-Z16), de Wolvenman (Z17-Z19), het kermiscircuit (A6), de combinerace (A33) | 22-28 |
-| **F5** | seizoensevents (oogst, carbid, natuurijs A32), getij voor het wad, polish van de dialecten | 4-6 |
+| **F5** | zomerevents (oogst, wierdentocht A32), getij voor het wad, polish van de dialecten | 4-6 |
 
 - **Per drop:** het script (de cutscènes, "Bel Rikus", outro's bij
   herhaling, de naamkaarten), een dialoogreview zoals
@@ -395,7 +395,7 @@ trein naar Delfzijl"), met versneld meerijden en een gesprek.
 3. **"Scheuren" (gaswinning)**: erin, stil en warm, of helemaal niet?
 4. **Schiermonnikoog**: Mem Gerda op het eiland (dan moet het eiland erin),
    of aan de telefoon op de kade?
-5. **De winter** (natuurijs, eerste vorst): alleen als event, of een kleine
-   epiloog "Winter vol misdaad" later?
+5. ~~De winter~~ **vervalt**: het is altijd zomer; de wierdentocht (A32) is
+   een zomerse fietstocht.
 6. **Tammo's zes woorden** in O32: "Thuis is waar de kar staat." Of de
    eigenaar schrijft ze zelf.
