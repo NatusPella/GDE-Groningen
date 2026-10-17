@@ -9,7 +9,7 @@ Voorstel voor issue [#93](https://github.com/NatusPella/GDE-Groningen/issues/93)
 | `00-OVERZICHT.md` | dit document |
 | `01-akte1.md` … `05-akte5.md` | per akte: intro en alle 30 missies, met opening en sleutelscène |
 | `06-zijmissies-en-minigames.md` | 46 zijmissies en activiteiten, gerangschikt |
-| `07-TTS-RAMING.md` | aantallen behouden en nieuwe regels, kostenraming |
+| `07-TTS-RAMING.md` | aantallen behouden en nieuwe regels; kostenraming alleen ter informatie (voorlopig niets opnemen) |
 | `08-IMPLEMENTATIE.md` | voor een latere bouwronde |
 | `09-script-akte1.md` … `09-script-akte5.md` | het volledige script, machineleesbaar (`SPREKER: tekst [BEHOUDEN\|NIEUW]`) |
 
@@ -289,16 +289,18 @@ Voor het testen van nieuwe missies zonder het verhaal te herspelen: dev-paneel (
 | indie en hergebruik | 08-IMPLEMENTATIE: 17 missies op bestaande defs, 13 nieuwe op bestaande mechaniek, 3 zware features optioneel |
 | kanaalscheiding | §8 |
 
-## 11. Open vragen aan de eigenaar (8)
+## 11. Besluiten van de eigenaar
 
-1. **Deel 1-3 volledig vervangen en Deel 4 (Ubbo, de Ommelander Ronde) als vrij spel of later vervolg?** A) ja: dit verhaal vervangt Deel 1-3; Deel 4 wordt later een vrij-spel-uitbreiding (de patatbaron in een Rikus-regel voorgezaaid). B) nee: Deel 4 blijft het vervolg ná dit verhaal zoals het plan nu is (dan overlapt de provincie).
-2. **"Tige tank! – W." = "Wij" (Oma en Mem namen de bal)?** A) ja (voorstel; vier J-regels opnieuw opnemen). B) nee, terug naar J (Jelle heeft hem echt; de twist vervalt).
-3. **Tessa is Nederlandse (geboren elders, zomers in Ljouwert), niet Groningse?** A) ja, nieuwe regels in standaard Nederlands; bestaande Gronings-getinte regels blijven (zachte afwijking). B) nee, ze blijft Groningse met een Friese oma (dan geldt "kent Friezen" nog steeds).
-4. **Eerste kus in akte 3 (M19) of pas in akte 4?** A) akte 3, daarna doen ze alsof het niet gebeurd is (voorstel). B) pas na het dieptepunt (scherpere ruzie, minder warmte).
-5. **Klein vliegtuig (M18) als nieuwe vliegtuigmodus, of de heli?** A) vliegtuig (nieuw voertuig, groot bouwwerk). B) heli (geen nieuwe code).
-6. **Water in de tegelwereld (Reitdiep, Lauwersmeer, wad) voor M12 en M13?** A) ja, bouwen. B) nee, M12 op bestaand water en M13 als scène.
-7. **De epiloog: "Het is koud." (strijdig met constitutie 3) houden?** A) ja, het is een grap van Grunn en de stad is het er niet mee eens. B) nee, vervang door "Het is tweeëntwintig graden." (kost twee regels).
-8. **Hoeveel nieuwe opnames?** A) alles nieuw in één ronde (707 regels, ca. 1-2 dollar). B) eerst akte 1 en 5 (grotendeels bestaand), de rest na een speeltest.
+De acht open vragen uit het eerste voorstel zijn beantwoord; dit is wat nu geldt.
+
+1. **Eén verhaal in akten.** Wat er in het oude spel bestaat (oude delen, oud plan voor een vervolg) bepaalt de structuur niet. Oud materiaal komt alleen terug waar het past (de regels met de tag `[BEHOUDEN]`).
+2. **Het kaartje blijft exact "Tige tank! – J."** (opgenomen: `game/js/missions.js:321`, `storyarc.js`; niet opnieuw opnemen). De "W. = Wij"-gedachte is vervallen. De twist blijft: Oma Trijntje en Mem Terpstra namen de bal, en Mem tekent met de J waarmee ze al zijn hele leven zijn verjaardagskaarten tekent. Iedereen verdenkt Jelle, en Jelle bluft op de radio dat hij hem heeft. In Bourtange (M24) herkent Tessa de J van Mems keukentafel.
+3. **Tessa is Nederlands, niet Gronings.** Ze kent Friezen omdat ze elke zomer naast Mem logeerde; Tammo vindt dat gek. Haar nieuwe regels zijn standaard Nederlands.
+4. **Eerste kus in M19 (akte 3)** blijft, onderbouwd in §5 ("Kus-timing").
+5. **Voertuigen per regio zijn een spawnregel:** helikopters starten op echte helipads (UMCG-dak, Rotor Roelfs pad op Eelde, het eigen dak), kleine vliegtuigen op echte vliegvelden of -stroken in de Ommeland (Eelde en een of twee andere). Beide mogen overal in de provincie vliegen. Het vliegtuig is een nieuwe voertuigmodus (08-IMPLEMENTATIE.md §3b).
+6. **De Waddenzee en de Noordzee bestaan op de kaart en in de wereld** (zichtbare zee, kust, kwelder), maar hoeven niet bevaarbaar te zijn. Alleen het Reitdiep, de monding van het Lauwersmeer en de havens zijn beperkt vaarbaar; elders is er een scène (sluis, zandbank, Klaas weigert).
+7. **Altijd zomer:** de epiloog zegt "Het is tweeëntwintig graden." (geen koude, geen winter).
+8. **Geen nieuwe opnames voorlopig:** alle `[NIEUW]`-regels blijven tekst. De kostenraming in 07-TTS-RAMING.md is alleen informatie.
 
 ## 12. Hoe te beoordelen (checklist: 10 ja/nee)
 

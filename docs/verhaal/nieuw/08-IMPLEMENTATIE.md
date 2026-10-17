@@ -112,7 +112,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Er is geen code aangepast. Alles h
 4. **Nieuwe defs op bestaande mechaniek:** M10, M11, M15, M16, M19, M20, M21, M23, M26.
 5. **Zware nieuwe features (laatst):** vliegtuig (M18), trein-lopen (M22), colonne-AI (M27), beleg (M24).
 6. **Kwaliteit:** `scripts/storytest.js`-achtige verhaaltest (AANNAME: `game/js/storytest.js` is de driver; scriptnaam controleren), nieuwe save-fixtures voor de oude stappen (`savemigrate.js`), `node scripts/voice_coverage.mjs --quiet`.
-7. **Stemmen** pas daarna, na akkoord van de eigenaar.
+7. **Stemmen:** voorlopig niet. Alle `[NIEUW]`-regels blijven tekst (ondertitel of tekstkaart); opnemen kan pas na een nieuw besluit van de eigenaar.
 
 ## 5. Risico's
 
@@ -124,7 +124,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Er is geen code aangepast. Alles h
 | **Trein-lopen** | een gebied waar de physics vol onzekerheid zit | alleen de scène in M22 en Tammo als machinist |
 | **Afstanden** | ruim 460 km reisafstand over alle akten (schatting) | elke reisbeat kent trein, bus, heli of skip; "Overal en nergens"-sprong van #97 |
 | **Eén rol, drie versies** | Tessa's "Groningse vrouw" in de bestaande stem (zie `docs/personages.md`) botst met "Nederlands" in nieuwe regels | besluit van de eigenaar: Tessa is Nederlands; nieuwe regels in standaard Nederlands, opgenomen regels blijven (de stem blijft) |
-| **Stemkosten** | 707 nieuwe regels | zie `07-TTS-RAMING.md` |
+| **Stemkosten** | 711 nieuwe regels | voorlopig tekst, niet opgenomen (besluit van de eigenaar); zie `07-TTS-RAMING.md` |
 | **Gevoelig** | Delfstof Noord (alleen zijlijn), Ter Apel (geen decor), de CBS-regel (één getal met bron) | AGENTS.md constitutie 6; het gebruik van die zijlijnen alleen na akkoord |
 | **Echte personen** | de opdracht noemde als voorbeeldspreker de naam "WOPKE" (een echte persoon); die is **niet gebruikt**. Het kaartje blijft "J." (Mems J) | blijf bij verzonnen namen in speltekst en bij de naam NatusPella in de credits |
 | **Veel tegelijk in één missie** | M24 (siege, fierljep, onthulling, ruzie, Jelle) is te vol | splits in twee missies als de speelduur boven 15 minuten komt |

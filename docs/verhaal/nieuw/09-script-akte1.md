@@ -1,6 +1,6 @@
 # 09 · Script akte 1: "Moi, Grunn" (Stad)
 
-> **Formaat (strikt, voor machinale verwerking).** Elke scène begint met een kopregel `## [ID] Titel – regio/plaats – voertuig`. Daarna optioneel `(regie: ...)`-regels. Daarna dialoogregels exact als `SPREKER: tekst [TAG]`, één uiting per regel, spreker in HOOFDLETTERS. Radio: `RIKUS (radio): ...`. Appjes en sms: `APP VAN→NAAR (stil): ...`, nooit voorgelezen. `[BEHOUDEN]` = de regel staat letterlijk in de repo (opname bestaat); `[NIEUW]` = nieuwe of gewijzigde regel (nieuwe opname nodig). Geen toneelaanwijzingen in een uiting. Geen echte personen of merken. Sprekernaam `TESSA` = `anita` in de code.
+> **Formaat (strikt, voor machinale verwerking).** Elke scène begint met een kopregel `## [ID] Titel – regio/plaats – voertuig`. Daarna optioneel `(regie: ...)`-regels. Daarna dialoogregels exact als `SPREKER: tekst [TAG]`, één uiting per regel, spreker in HOOFDLETTERS. Radio: `RIKUS (radio): ...`. Appjes en sms: `APP VAN→NAAR (stil): ...`, nooit voorgelezen. `[BEHOUDEN]` = de regel staat letterlijk in de repo (opname bestaat); `[NIEUW]` = nieuwe of gewijzigde regel (voorlopig alleen tekst, niet opgenomen). Geen toneelaanwijzingen in een uiting. Geen echte personen of merken. Sprekernaam `TESSA` = `anita` in de code.
 > Hoort bij [01-akte1.md](01-akte1.md) en [00-OVERZICHT.md](00-OVERZICHT.md).
 
 ## [C00.1] Trailer – Stad, Grote Markt – geen voertuig
