@@ -1394,6 +1394,16 @@ server, `?legacymap`).
   centre like a building) and `canopies3d.js streamCanopies` draws them per
   streamed tile (the city's `buildCanopies` is unchanged). Not in the province
   yet: OSM `building:part` (the extract does not keep it) and the museum plan.
+- **Street-level detail in the province (A6).** `fromOsm` turns
+  `natural=tree_row` into a tree every 6 m (`process_osm.py`'s rule for the
+  city; each row has a `rowSeed`), and the greenery hook (`builderhooks.js`)
+  gives a tile's trees what `scripts/world/greenery.mjs` gives the city's: one
+  species in a row (`findRows`, or the tree row's own seed, flag `row`), the
+  church's trees, OSM leaf type and height. With `ctx.signs` (the province
+  build) `mappedSignsFromOsm` adds stop and give-way signs, marked crossings,
+  gates, barriers and post boxes as FURNITURE rows (nothing draws them yet).
+  `nightlights3d.js` puts a lamp where OSM maps `highway=street_lamp` (the
+  tiles' `lamp` rows) before the rule lamps of the roads fill the gaps.
 - **Tests.** `node scripts/world_tiles_test.mjs` (codec, determinism, round
   trips, the building attribute join), `node scripts/tileworld_test.mjs`
   (equivalence, streaming on a virtual clock, ranges), `node scripts/floatingorigin_test.mjs`,
