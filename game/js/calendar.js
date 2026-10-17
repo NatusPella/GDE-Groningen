@@ -7,13 +7,17 @@
 // Pure: no DOM, no game state (calendarday.js keeps today's date on the world,
 // saves it and drives the HUD). node scripts/calendar_test.mjs tests it.
 import { STEPS, PARTS } from './storyarc.js';
+import { nieuwVerhaal } from './storyflag.js';
 
 export const YEAR = 2026;
 const AUG = 7;
 const START_DATE = 14;
 export const LAST_SUMMER_DAY = 40;
 export const ONTZET_DAY = 15;
-export const EPILOGUE_DAY = 19;
+// the new arc's epilogue is two weeks later, vrijdag 11 september (docs/verhaal/nieuw)
+export const EPILOGUE_DAY = nieuwVerhaal() ? 29 : 19;
+// from 1 september the sun stays where it was that day
+const SUN_HOLD_DAY = 19;
 
 const WEEKDAYS = ['zondag', 'maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag'];
 const WD_SHORT = ['Zo', 'Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za'];
@@ -50,7 +54,7 @@ export function formatDay(n) {
 // (PARTS.date: Kop 14, Romp 18, Staart 24 augustus) and end the day before
 // the next one; H18 is Gronings Ontzet. A step not listed here (a new one)
 // gets the day of the step before it.
-const STEP_DATES = {
+const STEP_DATES_OUD = {
   // Kop, KEI-week: vrijdag 14 to maandag 17
   'H1': 14, 'k-eikea': 14, 'H2': 15, 'H3': 15, 'H4': 15, 'k-fiets': 16, 'H5': 16, 'k-kraakspullen': 17, 'k-nacht': 17, 'H6': 17,
   // Romp, Noorderzon: dinsdag 18 to zondag 23 (H7: the decor, the day before it opens; r-kermis: the opening night)
@@ -58,6 +62,17 @@ const STEP_DATES = {
   // Staart, kermis and Ontzet: maandag 24 to vrijdag 28
   's-boot': 24, 'H14': 25, 's-proefvlucht': 25, 'H15': 26, 's-carbid': 26, 's-padel': 27, 'H16': 27, 'H17': 27, 'H18': 28,
 };
+
+// The new arc (storyarc_nieuw.js, docs/verhaal/nieuw 00-OVERZICHT "Kalender"): August dates;
+// the epilogue E is on vrijdag 11 september (EPILOGUE_DAY).
+const STEP_DATES_NIEUW = {
+  'M00': 14, 'M01': 14, 'M02': 15, 'M03': 15, 'M04': 16, 'M05': 16, 'M06': 17,
+  'M07': 18, 'M08': 18, 'T1': 18, 'M09': 19, 'M10': 19, 'T2': 20, 'M11': 20,
+  'M12': 21, 'M13': 21, 'M14': 22, 'T3': 22, 'M15': 22, 'M16': 22,
+  'M17': 24, 'M18': 24, 'M19': 24, 'T4': 25, 'M20': 25, 'M21': 25,
+  'M22': 26, 'M23': 27, 'M24': 27, 'M25': 27, 'M26': 28,
+};
+const STEP_DATES = nieuwVerhaal() ? STEP_DATES_NIEUW : STEP_DATES_OUD;
 
 // Deel 4 "Nazomer" (docs/verhaal/KALENDER.md, Deel 4): day numbers, not August
 // dates. The first night of a night mission is its day (the clock after midnight
@@ -89,6 +104,7 @@ export const STEP_DAY = new Map();
   let last = 1;
   for (const s of STEPS) {
     if (STEP_DATES[s.id] != null) last = day(8, STEP_DATES[s.id]);
+    else if (s.id === 'E') last = EPILOGUE_DAY;
     else if (DEEL4_STEP_DAYS[s.id] != null) last = DEEL4_STEP_DAYS[s.id];
     STEP_DAY.set(s.id, last);
   }
@@ -111,7 +127,8 @@ export function storyBounds(view) {
   const min = STEP_DAY.get(view.id) ?? 1;
   const k = STEPS.findIndex((s) => s.id === view.id);
   const next = k >= 0 && k + 1 < STEPS.length ? STEP_DAY.get(STEPS[k + 1].id) : ONTZET_DAY;
-  return { min, max: Math.max(min, next) };
+  // Ontzet waits for nobody: nothing before it runs past 28 augustus (the new arc's epilogue comes after it)
+  return { min, max: Math.max(min, min <= ONTZET_DAY ? Math.min(next, ONTZET_DAY) : next) };
 }
 
 export const clampDay = (n, b) => Math.max(b.min, Math.min(b.max, Math.max(1, Math.floor(n) || 1)));
@@ -129,7 +146,7 @@ export function dayForSavedStep(step) {
 // Solar declination (degrees) on day n. The nazomer holds: from 1 september
 // on the sun stays where it was that day, so the light never turns autumn.
 export function sunDeclinationDeg(n) {
-  const k = Math.min(Math.max(1, n), EPILOGUE_DAY);
+  const k = Math.min(Math.max(1, n), SUN_HOLD_DAY);
   const doy = Math.round((Date.UTC(YEAR, AUG, START_DATE + k - 1) - Date.UTC(YEAR, 0, 1)) / 864e5) + 1;
   return 23.44 * Math.sin((2 * Math.PI * (284 + doy)) / 365);
 }
@@ -141,7 +158,7 @@ export function sunDeclinationDeg(n) {
 // several fall on one day; card: [title, body] for "Vandaag in Grunn" (once,
 // the first morning), none for a small day (only the HUD badge); icon: a
 // CAL_ICONS key; open: false = planned (Deel 4), not shown yet.
-export const SPECIAL_DAYS = [
+const SPECIAL_BASE = [
   { id: 'ontzet', name: 'Gronings Ontzet', from: day(8, 28), to: day(8, 28), rank: 10, icon: 'vlag',
     card: ['Gronings Ontzet', 'In 1672 hield Stad stand tegen Bommen Berend. Vlaggen op de Grote Markt, en vanavond vuurwerk.'] },
   { id: 'kei', name: 'KEI-week', from: day(8, 14), to: day(8, 17), rank: 6, icon: 'kei',
@@ -182,6 +199,20 @@ export const SPECIAL_DAYS = [
   { id: 'vesting', name: 'Vestingdag in Westerwolde', from: day(10, 3), to: day(10, 3), rank: 9, icon: 'vlag', open: false,
     card: ['Vestingdag in Westerwolde', 'Kartonnen kanonnen op de wallen. Berend speelt weer de belegeraar.'] },
 ];
+// The new arc names the introweek and the festival with invented names (constitutie 2), moves
+// the Winschoten kermis to za 22 - zo 23 augustus and adds the Beleg van Bourtange.
+const SPECIAL_NIEUW = {
+  kei: { name: 'Kiezelweek', card: ['Kiezelweek', 'Duizenden nieuwe Stadjers zoeken hun groepje. Rij rustig door de binnenstad en het Plantsoen.'] },
+  noorderzon: { name: 'Plantsoenfestijn', card: ['Plantsoenfestijn', 'Elf dagen theater en muziek in het Noorderplantsoen. Tot laat lampjes in de bomen.'] },
+  oldambtkermis: { from: day(8, 22), to: day(8, 23), open: true },
+};
+export const SPECIAL_DAYS = nieuwVerhaal()
+  ? [
+    ...SPECIAL_BASE.map((s) => (SPECIAL_NIEUW[s.id] ? { ...s, ...SPECIAL_NIEUW[s.id] } : s)),
+    { id: 'beleg', name: 'Beleg van Bourtange', from: day(8, 25), to: day(8, 25), rank: 9, icon: 'vlag',
+      card: ['Beleg van Bourtange', 'De vesting speelt het beleg na, met kartonnen kanonnen op de wallen. Om negen uur begint het.'] },
+  ]
+  : SPECIAL_BASE;
 const SPECIAL_BY_ID = new Map(SPECIAL_DAYS.map((s) => [s.id, s]));
 export const specialById = (id) => SPECIAL_BY_ID.get(id) || null;
 

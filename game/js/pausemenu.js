@@ -357,6 +357,7 @@ function settingsHtml() {
       ${toggle('rumble', 'Trillen', 'Bij klappen, schoten en botsingen, als je controller dat kan')}
       <div class="m-li pm-row">${rowName('Knoppen indelen', 'Onder Besturing › Controller')}<button type="button" class="m-bg" data-goto-sub="controls:knoppen">Indelen</button></div>`, `${pane('Camera & controller', 'Meekijken', '<p>Xbox-, PlayStation- en Steam Deck-controllers werken meteen. De hints in beeld wisselen vanzelf tussen toetsen en knoppen, naar wat je het laatst gebruikte.</p><p class="mut">De camera-afstand en beeldhoek gelden te voet en in elk voertuig.</p>')}`)}
     ${tab('display', `
+      ${picker('verhaal', 'Verhaal', [['oud', 'Klassiek'], ['nieuw', 'Nieuw (proefversie)']], 'Nieuw verhaal is nog in aanbouw: alleen akte 1 speelbaar; je oude saves blijven onaangeraakt. Wisselen start het spel opnieuw op.')}
       ${picker('hudMode', 'HUD', [['slim', 'Slim'], ['alles', 'Altijd alles'], ['minimaal', 'Minimaal']], 'Slim toont alleen wat nu telt')}
       ${toggle('showMinimap', 'Minimap')}
       ${slider('minimapZoom', 'Zoom van de minimap', 0.6, 1.6, 0.05)}

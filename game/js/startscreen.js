@@ -11,6 +11,8 @@ import { MENU_FRAME_S, getRenderer } from './scene3d.js';
 import { isAdvisorSampling, startGfxAdvisor } from './gfxprofile.js';
 import { ABOUT_HTML } from './credits.js';
 import { startLoadScreen, setLoadTips } from './loadscreen.js';
+import { ARC_ID, arcForced } from './storyflag.js';
+import { arcName, otherArc, chooseArc, ARC_NOTE } from './storychoice.js';
 
 export const TIPS = [
   'Tip: in Grunn neemt een fietser altijd voorrang, of hij die nou heeft of niet.',
@@ -398,13 +400,14 @@ export function runStartScreen(world, { render, relocate, tick }) {
     const items = [];
     if (save) items.push({ act: 'continue', label: 'Doorgaan', sub: summaryText(save) });
     items.push({ act: 'new', label: 'Nieuw spel', sub: save ? 'Begin opnieuw in Grunn' : 'Moi! Stap in en rij' });
+    if (!arcForced()) items.push({ act: 'story', label: `Verhaal: ${arcName(ARC_ID)}`, sub: `Wissel naar ${arcName(otherArc())}. ${ARC_NOTE}` });
     items.push({ act: 'news', label: 'Wat is er nieuw', sub: 'Alle versies en wijzigingen' });
     items.push({ act: 'settings', label: 'Instellingen', sub: 'Geluid, beeld en camera' });
     items.push({ act: 'about', label: 'Over', sub: 'Credits, licenties en privacy' });
     if (window.gdeDesktop && window.gdeDesktop.isDesktop) items.push({ act: 'exit', label: 'Afsluiten', sub: 'Tot de volgende keer. Hou dij goud!' });
     const pct = getAchievementSummary().pct;
     const st = save && save.story;
-    const heroSub = st ? [st.part, st.ended ? 'verhaal uit' : '', pct > 0 ? `${pct}% prestaties` : ''].filter(Boolean).join(' · ') : save ? summaryText(save) : '';
+    const heroSub = st ? [arcName(save.arc), st.part, st.ended ? 'verhaal uit' : '', pct > 0 ? `${pct}% prestaties` : ''].filter(Boolean).join(' · ') : save ? summaryText(save) : '';
     const itemHtml = (it, i) => {
       if (it.act === 'continue') {
         const prog = st && st.total ? Math.round((st.done / st.total) * 100) : null;
@@ -521,6 +524,8 @@ export function runStartScreen(world, { render, relocate, tick }) {
         restoreWorld();
         clearSave();
         finish('game');
+      } else if (it.act === 'story') {
+        chooseArc(otherArc());
       } else if (it.act === 'news') {
         openNews();
       } else if (it.act === 'about') {

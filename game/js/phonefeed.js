@@ -22,7 +22,7 @@ import { zones, P1, P2, hudNow } from './hudrules.js';
 // HUD just showed as a card is only written to the history. A card pings and
 // is read aloud in the sender's voice (smsvoice.js; `say` = the fixed line
 // for a text with numbers or names, `voiced: true` = already spoken); the
-// card stays up until the voice is done.
+// card stays up until the voice is done. `silent: true` (the new story's app texts) is only shown and pinged, never read aloud.
 //
 // Calls: startCall(world, { from, lines: [{ speaker, text, sub }], live,
 // onEnd, voice }) rings, then plays line by line: each line is voiced from
@@ -162,7 +162,7 @@ function showNote(w, n) {
   const secs = Math.min(HOLD_MAX, Math.max(HOLD_MIN, (n.duration || 0) + 1, readingSeconds(full) * 1.4));
   el.style.setProperty('--pf-dur', `${secs}s`);
   const c = { el, left: secs, secs, voice: null, speaking: false, t: 0, story: !!n.story };
-  if (!n.voiced) {
+  if (!n.voiced && !n.silent) {
     const v = smsVoiceFor(n, lineVoiceFor);
     const kind = v && (n.story ? 'story' : smsKind(v.speaker));
     if (v && mayVoiceText(kind)) { c.voice = v; noteVoiceText(kind); }

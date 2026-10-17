@@ -8,7 +8,14 @@ import {
   day, weekdayOf, formatDay, STEP_DAY, storyBounds, clampDay, dayForSavedStep, sunDeclinationDeg, SPECIAL_DAYS,
   specialsOn, specialDay, cardFor, upcomingSpecials, isSpecial, ONTZET_DAY, LAST_SUMMER_DAY, EPILOGUE_DAY, partStartDay, CAL_ICONS, DEEL4_STEP_DAYS, VOORRONDE_STEPS,
 } from '../game/js/calendar.js';
-import { STEPS, PARTS } from '../game/js/storyarc.js';
+import { STEPS, PARTS, ARC_ID } from '../game/js/storyarc.js';
+
+// the same checks run for both arcs: node scripts/calendar_test.mjs, and with GDE_NIEUW_VERHAAL=1
+const NEW = ARC_ID === 'nieuw';
+// per arc: [step ids the story-specific checks look at]
+const S = NEW
+  ? { last: 'M26', race: 'M05', decor: 'M07', kermis: 'M16', mid: 'M06', midSat: 'M05' }
+  : { last: 'H18', race: 'H5', decor: 'H7', kermis: 'r-kermis', mid: 'H14', midSat: 'H5' };
 import { migrateSave, savedStoryStep, SAVE_VERSION } from '../game/js/savemigrate.js';
 
 let n = 0, fails = 0;
@@ -18,7 +25,7 @@ const ok = (cond, name, info = '') => { n++; if (!cond) { fails++; console.log(`
 ok(day(8, 14) === 1 && weekdayOf(1) === 5, 'day 1 is vrijdag 14 augustus');
 ok(day(8, 28) === ONTZET_DAY && weekdayOf(ONTZET_DAY) === 5, 'Gronings Ontzet: vrijdag 28 augustus, day 15');
 ok(formatDay(ONTZET_DAY).short === 'Vr 28 aug' && formatDay(ONTZET_DAY).long === 'Vrijdag 28 augustus', 'labels for 28 augustus', formatDay(ONTZET_DAY).short);
-ok(day(9, 1) === EPILOGUE_DAY && weekdayOf(EPILOGUE_DAY) === 2, 'epilogue: dinsdag 1 september');
+ok(NEW ? day(9, 11) === EPILOGUE_DAY && weekdayOf(EPILOGUE_DAY) === 5 : day(9, 1) === EPILOGUE_DAY && weekdayOf(EPILOGUE_DAY) === 2, NEW ? 'epilogue: vrijdag 11 september' : 'epilogue: dinsdag 1 september');
 ok(day(9, 22) === LAST_SUMMER_DAY && weekdayOf(LAST_SUMMER_DAY) === 2, 'last summer day: dinsdag 22 september, day 40');
 ok(formatDay(41).nazomer && formatDay(41).short === 'Wo · nazomer' && formatDay(41).dayLabel === 'dag 41', 'after the summer: nazomer, days keep counting', formatDay(41).short);
 ok(!/okt|oktober/.test(JSON.stringify([60, 100, 400].map(formatDay))), 'never an autumn month on screen');
@@ -32,14 +39,27 @@ for (const part of Object.keys(PARTS)) {
   const list = STEPS.filter((s) => s.part === part);
   ok(STEP_DAY.get(list[0].id) === partStartDay(part), `${part} starts on its date card (${PARTS[part].date})`);
 }
-ok(STEP_DAY.get('H18') === ONTZET_DAY, 'H18 is on Gronings Ontzet');
-ok(STEP_DAY.get('H5') <= day(8, 17) && isSpecial('kei', STEP_DAY.get('H5')), 'the KEI race is in KEI-week');
-ok(STEP_DAY.get('H7') === day(8, 19) && day(8, 20) === SPECIAL_DAYS.find((s) => s.id === 'noorderzon').from, 'H7 decor the day before Noorderzon opens');
-ok(isSpecial('kermis', STEP_DAY.get('r-kermis')), 'r-kermis is during the Zomerkermis');
-const b5 = storyBounds({ id: 'H5' });
-ok(b5.min === day(8, 16) && b5.max === day(8, 17), 'H5: sunday, at most the next step\'s monday', JSON.stringify(b5));
-ok(clampDay(1, storyBounds({ id: 'H18' })) === ONTZET_DAY && clampDay(40, storyBounds({ id: 'H18' })) === ONTZET_DAY, 'Ontzet waits for nobody: always 28 augustus');
-const fin = storyBounds({ end: true, part: 'staart', finale: true });
+ok(STEP_DAY.get(S.last) === ONTZET_DAY, `${S.last} is on Gronings Ontzet`);
+ok(STEP_DAY.get(S.race) <= day(8, 17) && isSpecial('kei', STEP_DAY.get(S.race)), 'the race is in the introweek');
+if (NEW) {
+  ok(SPECIAL_DAYS.find((s) => s.id === 'kei').name === 'Kiezelweek' && SPECIAL_DAYS.find((s) => s.id === 'noorderzon').name === 'Plantsoenfestijn', 'the new arc says Kiezelweek and Plantsoenfestijn');
+  ok(!/KEI|Noorderzon/.test(JSON.stringify(SPECIAL_DAYS.filter((s) => s.open !== false))), 'no KEI or Noorderzon in the shown special days');
+  const ok2 = SPECIAL_DAYS.find((s) => s.id === 'oldambtkermis');
+  ok(ok2.open !== false && ok2.from === day(8, 22) && ok2.to === day(8, 23) && weekdayOf(ok2.from) === 6, 'kermis in Winschoten: za 22 - zo 23 augustus');
+  const bl = SPECIAL_DAYS.find((s) => s.id === 'beleg');
+  ok(bl && bl.from === day(8, 25) && weekdayOf(bl.from) === 2 && STEP_DAY.get('M20') === bl.from, 'Beleg van Bourtange: dinsdag 25 augustus, M20 plays then');
+  ok(SPECIAL_DAYS.find((s) => s.id === 'noorderzon').from === day(8, 20) && STEP_DAY.get('M11') === day(8, 20), 'the Plantsoenfestijn opens do 20 augustus');
+  ok(STEP_DAY.get('M03') === day(8, 15) && weekdayOf(STEP_DAY.get('M03')) === 6, 'het Loket: zaterdag 15 augustus');
+  ok(STEP_DAY.get('M06') === day(8, 17) && STEP_DAY.get('E') === EPILOGUE_DAY, 'the kraak is on maandag 17, the epilogue on vr 11 september');
+  ok(isSpecial('kermis', STEP_DAY.get('M16')) || STEP_DAY.get('M16') === day(8, 22), 'M16 is on za 22 augustus');
+} else {
+  ok(STEP_DAY.get('H7') === day(8, 19) && day(8, 20) === SPECIAL_DAYS.find((s) => s.id === 'noorderzon').from, 'H7 decor the day before Noorderzon opens');
+  ok(isSpecial('kermis', STEP_DAY.get('r-kermis')), 'r-kermis is during the Zomerkermis');
+}
+const b5 = storyBounds({ id: S.midSat });
+ok(b5.min === day(8, 16) && b5.max >= day(8, 16) && b5.max <= day(8, 17), `${S.midSat}: sunday, at most the next step's monday`, JSON.stringify(b5));
+ok(clampDay(1, storyBounds({ id: S.last })) === ONTZET_DAY && clampDay(40, storyBounds({ id: S.last })) === ONTZET_DAY, 'Ontzet waits for nobody: always 28 augustus');
+const fin = storyBounds({ end: true, part: NEW ? 'ontzet' : 'staart', finale: true });
 ok(fin.min === EPILOGUE_DAY && fin.max === Infinity && clampDay(500, fin) === 500, 'after the finale: September on, open-ended');
 
 // migration
@@ -47,10 +67,12 @@ const save = (done, completed) => ({ v: 6, story: { v: 1, done, skipped: [], voo
 const mNew = migrateSave(save([], []));
 ok(SAVE_VERSION >= 7 && mNew.data.kalender && mNew.data.kalender.dag === 1 && mNew.data.kalender.gezien.length === 0, 'an old new-game save starts on day 1');
 const upTo = (id) => STEPS.slice(0, STEPS.findIndex((s) => s.id === id)).map((s) => s.id);
-const mMid = migrateSave(save(upTo('H14'), []));
-ok(mMid.data.kalender.dag === STEP_DAY.get('H14'), 'a save before H14 gets H14\'s day', String(mMid.data.kalender.dag));
+const mMid = migrateSave(save(upTo(S.mid), []));
+ok(mMid.data.kalender.dag === STEP_DAY.get(S.mid), `a save before ${S.mid} gets ${S.mid}'s day`, String(mMid.data.kalender.dag));
 const mEnd = migrateSave(save(STEPS.map((s) => s.id), []));
-ok(mEnd.data.kalender.dag === EPILOGUE_DAY && dayForSavedStep(savedStoryStep(mEnd.data)) === EPILOGUE_DAY, 'a finished save is in September');
+// the new arc is built up to M07: a save that has done every step stands at the "volgt" card of its part
+const endDay = NEW ? STEP_DAY.get('M11') : EPILOGUE_DAY;
+ok(mEnd.data.kalender.dag === endDay && dayForSavedStep(savedStoryStep(mEnd.data)) === endDay, NEW ? 'a save past the built story stands where the built story stops' : 'a finished save is in September', String(mEnd.data.kalender.dag));
 const keep = migrateSave({ v: 6, kalender: { v: 1, dag: 30, gezien: ['kei'] } });
 ok(keep.data.kalender.dag === 30, 'an existing kalender is kept');
 const dir = path.join(path.dirname(fileURLToPath(import.meta.url)), 'fixtures', 'saves');
@@ -71,7 +93,7 @@ for (const s of SPECIAL_DAYS) {
   ok(!/koningsdag/i.test(JSON.stringify(s)), `${s.id}: no Koningsdag`);
 }
 ok(specialDay(ONTZET_DAY).id === 'ontzet' && specialDay(ONTZET_DAY).icon === 'vlag', 'on 28 augustus the HUD shows Gronings Ontzet');
-ok(specialsOn(ONTZET_DAY).map((s) => s.id).join() === 'ontzet,kermis,noorderzon,markt', 'on 28 augustus: Ontzet, kermis, Noorderzon, market', specialsOn(ONTZET_DAY).map((s) => s.id).join());
+ok(specialsOn(ONTZET_DAY).map((s) => s.id).join() === 'ontzet,kermis,noorderzon,markt', 'on 28 augustus: Ontzet, kermis, festival, market', specialsOn(ONTZET_DAY).map((s) => s.id).join());
 ok(cardFor(ONTZET_DAY, ['kermis', 'noorderzon']).id === 'ontzet' && cardFor(ONTZET_DAY, ['ontzet', 'kermis', 'noorderzon']) === null, 'one card per special day, once');
 ok(isSpecial('markt', day(8, 18)) && isSpecial('markt', day(8, 22)) && !isSpecial('markt', day(8, 17)), 'market on di, vr, za');
 ok(specialDay(day(8, 18)).small && cardFor(day(8, 18), []) === null, 'a market day: badge only, no card');
@@ -99,12 +121,12 @@ ok(wdOf('O5') === 5 && D4.O5 + 1 === D4.O6, 'tuinfeest (O5) on vrijdag, the day 
 ok(wdOf('O11') === 3 && wdOf('O13') === 4 && wdOf('O14') === 5 && wdOf('O15') === 6 && wdOf('O16') === 6 && wdOf('O17') === 0 && wdOf('O18') === 0, 'F4b weekdays: wo, do, vr, za, za, zo, zo');
 ok(D4.O11 === LAST_SUMMER_DAY + 1 && D4.O18 === 45, 'F4b runs day 41-45, from the first nazomer day');
 ok(Object.entries(D4).filter(([id]) => D4[id] <= LAST_SUMMER_DAY).every(([id]) => /^(O([1-9]|10)|n-(trekkertrek|warffum|delfzijl|woonschip))$/.test(id)), 'F4a fills 15-22 september, nothing else');
-ok(D4.O22 === 47 && wdOf('O22') === 2 && isSpecial('oldambtkermis', D4.O22), 'voorronde 5 (O22): dinsdag, in the Winschoten kermis week');
+ok(D4.O22 === 47 && wdOf('O22') === 2 && (NEW || isSpecial('oldambtkermis', D4.O22)), 'voorronde 5 (O22): dinsdag, in the Winschoten kermis week');
 ok(D4.O27 === 50 && wdOf('O27') === 5 && D4.O28 === 51 && wdOf('O28') === 6, 'voorronde 6 on vrijdag, "het wordt zaterdag"');
 ok(['O28', 'O29', 'O30', 'O31', 'O32', 'n-boshut'].every((id) => D4[id] === D4.O28), 'the finale is one day (O29 is the clock back at 01:00)');
 ok(isSpecial('vesting', D4.O31) && isSpecial('trekkertrek', D4.O15) && isSpecial('havenfeest', D4.O14) && isSpecial('uithuizenkermis', D4.O6) && isSpecial('zuidhornkermis', D4.O18), 'Deel 4 events fall on their missions');
 ok(D4.O20 <= day(9, 30), 'O20 ("het sneeuwt, in september") is still in september');
-for (const id of ['uithuizenkermis', 'trekkertrek', 'oldambtkermis']) ok(SPECIAL_DAYS.find((s) => s.id === id).open === false, `${id}: planned, not shown`);
+for (const id of NEW ? ['uithuizenkermis', 'trekkertrek'] : ['uithuizenkermis', 'trekkertrek', 'oldambtkermis']) ok(SPECIAL_DAYS.find((s) => s.id === id).open === false, `${id}: planned, not shown`);
 ok(SPECIAL_DAYS.filter((s) => s.open === false).every((s) => s.from > day(9, 14)), 'planned days are all in Deel 4');
 for (let n41 = 41; n41 <= 60; n41++) {
   const f = formatDay(n41);
