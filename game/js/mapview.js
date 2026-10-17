@@ -21,6 +21,9 @@ import { getEierbalTips } from './furniture.js';
 import { drawRailsOnMap } from './railway.js';
 import { drawCountryBase, drawCountryDetail, villageLabels, MAP_STYLE } from './countrymap.js';
 import { drawProvinceBase, provinceMapOn, provinceMapBounds, onProvinceMapLoad } from './provincemap.js';
+import { drawSea, drawOutside, regionLabels, areaNameAt } from './regions.js';
+import { worldPlaceLabels, worldPlacesReady } from './worldplaces.js';
+import { tileIndexOf, tileOrigin, TILE_M } from './gdt.js';
 import { ensureCountryEdge } from './countryplan.js';
 import { getSettings, onSettingsChange } from './settings.js';
 import { DEV } from './devflags.js';
@@ -48,8 +51,11 @@ const MAX_ZOOM = 12;
 const TILE_PX = 512;
 const MAX_TILES = 72;
 const TILE_BUDGET_MS = 3.5;
-const LEVEL_COUNT = 8;
-const levelZoom = (L) => Math.SQRT2 ** L;
+// tile levels in half octaves of zoom; L_BASE is zoom 1 (the city's extent), the
+// ones below it carry the whole province zoomed out
+const L_BASE = 6;
+const LEVEL_COUNT = 14;
+const levelZoom = (L) => Math.SQRT2 ** (L - L_BASE);
 const MID_ZOOM = 2;
 const NEAR_ZOOM = 4;
 const DRAG_PX = 4;
@@ -408,9 +414,18 @@ function sizeCanvas() {
   updateTransform();
 }
 
+// as far out as the whole province fits (else the villages round town)
+function minZoom() {
+  if (provinceMapOn() && state.baseScale) {
+    const [x0, y0, x1, y1] = state.bounds;
+    return Math.min(state.cw / (x1 - x0), state.ch / (y1 - y0)) * 0.98 / state.baseScale;
+  }
+  return state.map.countryExtent ? MIN_ZOOM_WIDE : MIN_ZOOM;
+}
+
 function updateTransform() {
   const [minx, miny, maxx, maxy] = state.bounds;
-  state.zoom = Math.max(state.map.countryExtent ? MIN_ZOOM_WIDE : MIN_ZOOM, Math.min(MAX_ZOOM, state.zoom));
+  state.zoom = Math.max(minZoom(), Math.min(MAX_ZOOM, state.zoom));
   state.cx = Math.max(minx, Math.min(maxx, state.cx));
   state.cy = Math.max(miny, Math.min(maxy, state.cy));
   state.scale = state.baseScale * state.zoom;
@@ -429,7 +444,7 @@ function toWorld(sx, sy) {
 
 function zoomAt(factor, sx, sy) {
   const [wx, wy] = toWorld(sx, sy);
-  state.zoom = Math.max(state.map.countryExtent ? MIN_ZOOM_WIDE : MIN_ZOOM, Math.min(MAX_ZOOM, state.zoom * factor));
+  state.zoom = Math.max(minZoom(), Math.min(MAX_ZOOM, state.zoom * factor));
   const s = state.baseScale * state.zoom;
   state.cx = wx - (sx - state.cw / 2) / s;
   state.cy = wy - (sy - state.ch / 2) / s;
@@ -472,6 +487,22 @@ function tileWorldSize(L) {
   return TILE_PX / (state.baseScale * levelZoom(L) * state.tileDpr);
 }
 
+// The world boxes [x, y, w, h] of the streamed data tiles inside a window
+function residentRects(x0, y0, x1, y1) {
+  const res = state.map.resident;
+  if (!res || !res.size) return null;
+  const out = [];
+  const [i0, j0] = tileIndexOf(x0, y0), [i1, j1] = tileIndexOf(x1, y1);
+  for (let i = i0; i <= i1; i++) {
+    for (let j = j0; j <= j1; j++) {
+      if (!res.has(`${i},${j}`)) continue;
+      const [ox, oy] = tileOrigin(i, j);
+      out.push([ox, oy, TILE_M, TILE_M]);
+    }
+  }
+  return out;
+}
+
 function renderTile(L, tx, ty) {
   const z = levelZoom(L);
   const s = state.baseScale * z * state.tileDpr;
@@ -495,7 +526,20 @@ function renderTile(L, tx, ty) {
   drawCountryBase(c, wx0, wy0, wx0 + tws, wy0 + tws, MAP_STYLE);
   // the province's base map (provincemap.js), under the vectors
   const prov = provinceMapOn();
-  if (prov) drawProvinceBase(c, wx0, wy0, wx0 + tws, wy0 + tws, state.baseScale * z * state.tileDpr);
+  if (prov) drawSea(c, (n) => n / (state.baseScale * z));
+  if (prov) {
+    // up close the vectors of the streamed tiles replace the base map's coarse pixels there
+    const res = z >= NEAR_ZOOM ? residentRects(wx0, wy0, wx0 + tws, wy0 + tws) : null;
+    if (res && res.length) {
+      c.save();
+      const clip = new Path2D();
+      clip.rect(wx0, wy0, tws, tws);
+      for (const r of res) clip.rect(r[0], r[1], r[2], r[3]);
+      c.clip(clip, 'evenodd');
+      drawProvinceBase(c, wx0, wy0, wx0 + tws, wy0 + tws, state.baseScale * z * state.tileDpr);
+      c.restore();
+    } else drawProvinceBase(c, wx0, wy0, wx0 + tws, wy0 + tws, state.baseScale * z * state.tileDpr);
+  }
 
   // the city data only exists inside the real bounds (with the province on:
   // whatever tiles streamed in, up close)
@@ -572,6 +616,8 @@ function renderTile(L, tx, ty) {
   }
   drawCountryDetail(c, wx0, wy0, wx0 + tws, wy0 + tws, cssPerM, MAP_STYLE);
   drawRailsOnMap(c, state.map, wx0, wy0, wx0 + tws, wy0 + tws, px((z < MID_ZOOM ? 1.6 : 2.6) * (mode === 'ov' ? 1.8 : 1)));
+  // what lies outside the province darker, with its land borders
+  if (prov) drawOutside(c, [wx0, wy0, wx0 + tws, wy0 + tws], px);
   return canvas;
 }
 
@@ -594,7 +640,7 @@ function visibleTiles(L) {
 // The overview tiles over the real map at once; the countryside ones
 // arrive through fillTiles within its time budget.
 function ensureLevel0() {
-  const tws = tileWorldSize(0);
+  const tws = tileWorldSize(L_BASE);
   const [minx, miny, maxx, maxy] = state.bounds;
   const [rx0, ry0, rx1, ry1] = state.real;
   const nx = Math.ceil((maxx - minx) / tws), ny = Math.ceil((maxy - miny) / tws);
@@ -602,8 +648,8 @@ function ensureLevel0() {
     for (let tx = 0; tx < nx; tx++) {
       const ax = minx + tx * tws, ay = miny + ty * tws;
       if (ax > rx1 || ax + tws < rx0 || ay > ry1 || ay + tws < ry0) continue;
-      const k = tileKey(0, tx, ty);
-      if (!state.tiles.has(k)) state.tiles.set(k, { canvas: renderTile(0, tx, ty), used: 0, L: 0 });
+      const k = tileKey(L_BASE, tx, ty);
+      if (!state.tiles.has(k)) state.tiles.set(k, { canvas: renderTile(L_BASE, tx, ty), used: 0, L: L_BASE });
     }
   }
 }
@@ -613,7 +659,7 @@ function ensureLevel0() {
 function evictTiles(keep) {
   const limit = Math.max(MAX_TILES, keep.size + 16);
   if (state.tiles.size <= limit) return;
-  const list = [...state.tiles.entries()].filter(([k, t]) => t.L !== 0 && !keep.has(k)).sort((a, b) => a[1].used - b[1].used);
+  const list = [...state.tiles.entries()].filter(([k, t]) => t.L !== L_BASE && !keep.has(k)).sort((a, b) => a[1].used - b[1].used);
   for (let i = 0; i < list.length && state.tiles.size > limit; i++) {
     state.tiles.delete(list[i][0]);
     if (state.pool.length < 8) state.pool.push(list[i][1].canvas);
@@ -650,7 +696,7 @@ function fillTiles(L) {
   const t0 = performance.now();
   let done = 0;
   const keep = new Set(out.map(([tx, ty]) => tileKey(L, tx, ty)));
-  for (const k of state.tiles.keys()) if (state.tiles.get(k).L === 0) keep.add(k);
+  for (const k of state.tiles.keys()) if (state.tiles.get(k).L === L_BASE) keep.add(k);
   for (const [tx, ty] of missing) {
     if (done > 0 && performance.now() - t0 > TILE_BUDGET_MS) break;
     const r0 = performance.now();
@@ -804,21 +850,58 @@ function drawStaticOverlay(ctx) {
     }
   }
 
-  // villages out in the Ommelanden
+  // region names (Friesland, Drenthe, Duitsland, the seas) under the places
+  if (provinceMapOn() && z < 6) {
+    const [rx0, ry0, rx1, ry1] = viewRect();
+    ctx.textBaseline = 'middle';
+    ctx.textAlign = 'center';
+    for (const r of regionLabels(rx0, ry0, rx1, ry1, 0.1)) {
+      if (r.id === 'groningen' && z > 1.6) continue;
+      const [sx, sy] = toScreen(r.x, r.y);
+      const size = Math.round(r.big ? 30 : r.land ? 28 : 24);
+      ctx.font = `${size}px ${FONT}`;
+      const label = r.name.toUpperCase().split('').join(' ');
+      const w = ctx.measureText(label).width;
+      const a = Math.min(0.55, 0.2 + z * 0.15);
+      ctx.fillStyle = r.land ? `rgba(240, 237, 228, ${a.toFixed(2)})` : `rgba(190, 225, 245, ${(a + 0.1).toFixed(2)})`;
+      ctx.fillText(label, sx, sy);
+      boxes.push([sx - w / 2, sy - size / 2, sx + w / 2, sy + size / 2]);
+    }
+  }
+
+  // towns, villages and hamlets of the province, by zoom (the city's wijken have their own names)
   {
     const [vx0, vy0, vx1, vy1] = viewRect(60);
-    ctx.font = `${z < MID_ZOOM ? 12 : 14}px ${FONT}`;
     ctx.textBaseline = 'middle';
-    for (const v of villageLabels(vx0, vy0, vx1, vy1)) {
-      if ((v.kind === 'hamlet' || v.kind === 'quarter') && z < MID_ZOOM) continue;
-      const [sx, sy] = toScreen(v.x, v.y);
-      const label = v.name.toUpperCase();
-      const w = ctx.measureText(label).width;
-      const box = [sx - w / 2 - 2, sy - 8, sx + w / 2 + 2, sy + 8];
-      if (collides(boxes, box)) continue;
-      boxes.push(box);
-      drawLabel(ctx, label, sx, sy, 'rgba(240, 237, 228, 0.8)', 'center');
-      hover.push({ sx, sy, name: v.name, sub: 'Dorp in het Ommeland' });
+    if (worldPlacesReady()) {
+      const [cx0, cy0, cx1, cy1] = state.real;
+      for (const v of worldPlaceLabels(vx0, vy0, vx1, vy1)) {
+        if (z < v.zoom) continue;
+        if (v.rank >= 5 && v.x > cx0 && v.x < cx1 && v.y > cy0 && v.y < cy1) continue;
+        const [sx, sy] = toScreen(v.x, v.y);
+        const big = v.rank <= 1;
+        ctx.font = `${big ? 16 : z < MID_ZOOM ? 12 : 14}px ${FONT}`;
+        const label = v.name.toUpperCase();
+        const w = ctx.measureText(label).width;
+        const box = [sx - w / 2 - 2, sy - 8, sx + w / 2 + 2, sy + 8];
+        if (collides(boxes, box)) continue;
+        boxes.push(box);
+        drawLabel(ctx, label, sx, sy, big ? '#f5f0e6' : 'rgba(240, 237, 228, 0.82)', 'center');
+        hover.push({ sx, sy, name: v.name, sub: v.rank >= 5 ? 'Wijk' : v.kind === 'city' ? 'Stad' : v.kind === 'town' ? 'Plaats' : v.kind === 'hamlet' ? 'Buurtschap' : 'Dorp' });
+      }
+    } else {
+      ctx.font = `${z < MID_ZOOM ? 12 : 14}px ${FONT}`;
+      for (const v of villageLabels(vx0, vy0, vx1, vy1)) {
+        if ((v.kind === 'hamlet' || v.kind === 'quarter') && z < MID_ZOOM) continue;
+        const [sx, sy] = toScreen(v.x, v.y);
+        const label = v.name.toUpperCase();
+        const w = ctx.measureText(label).width;
+        const box = [sx - w / 2 - 2, sy - 8, sx + w / 2 + 2, sy + 8];
+        if (collides(boxes, box)) continue;
+        boxes.push(box);
+        drawLabel(ctx, label, sx, sy, 'rgba(240, 237, 228, 0.8)', 'center');
+        hover.push({ sx, sy, name: v.name, sub: 'Dorp in het Ommeland' });
+      }
     }
   }
 
@@ -901,8 +984,8 @@ function compose() {
   const ready = fillTiles(L);
   const { tws, out } = visibleTiles(L);
   if (!ready) {
-    const v0 = visibleTiles(0);
-    drawTiles(c, 0, v0.out, v0.tws);
+    const v0 = visibleTiles(L_BASE);
+    drawTiles(c, L_BASE, v0.out, v0.tws);
     drawLastGood(c);
   }
   drawTiles(c, L, out, tws);
@@ -1330,9 +1413,15 @@ function updateTooltip(sx, sy) {
     const [wx, wy] = toWorld(sx, sy);
     const [minx, miny, maxx, maxy] = state.real;
     if (wx < minx || wy < miny || wx > maxx || wy > maxy) {
-      const v = villageLabels(wx - 150, wy - 150, wx + 150, wy + 150).find((q) => Math.hypot(q.x - wx, q.y - wy) < q.r);
-      main = v ? v.name : 'Ommeland';
-      sub = v ? 'Dorp in het Ommeland' : '';
+      if (worldPlacesReady() || provinceMapOn()) {
+        const a = areaNameAt(wx, wy);
+        main = a.name;
+        sub = a.sub || (a.region === 'groningen' ? 'Provincie Groningen' : '');
+      } else {
+        const v = villageLabels(wx - 150, wy - 150, wx + 150, wy + 150).find((q) => Math.hypot(q.x - wx, q.y - wy) < q.r);
+        main = v ? v.name : 'Ommeland';
+        sub = v ? 'Dorp in het Ommeland' : '';
+      }
     } else {
       main = streetAt(wx, wy, Math.max(4, 10 / state.scale)) || '';
       sub = wijkAt(wx, wy) || '';
@@ -1693,6 +1782,7 @@ export function setMapTeleport(on) {
 }
 
 function closeMap() {
+  followViewTiles(true);
   setMapTeleport(false);
   hideCard();
   state.open = false;
@@ -1725,9 +1815,38 @@ function updateHeader() {
   }
 }
 
+// Zoomed in over the province, the tiles under the view stream in (and stay
+// while they are looked at): their vectors take over from the base map's
+// coarsest pixels, so the map is as sharp there as in the city.
+const viewTiles = { keys: new Set(), n: -1, at: 0 };
+const VIEW_TILES_MAX_M = 6000;
+function followViewTiles(release) {
+  const store = state.map.store;
+  if (!store || !provinceMapOn()) return;
+  const now = performance.now();
+  if (!release && now - viewTiles.at < 350) return;
+  viewTiles.at = now;
+  let want = [];
+  if (!release && state.zoom >= MID_ZOOM) {
+    const [x0, y0, x1, y1] = viewRect();
+    if (x1 - x0 <= VIEW_TILES_MAX_M) want = store.keysAround((x0 + x1) / 2, (y0 + y1) / 2, Math.max(x1 - x0, y1 - y0) / 2);
+  }
+  const next = new Set(want);
+  for (const k of viewTiles.keys) if (!next.has(k)) store.unpin(k);
+  for (const k of next) if (!viewTiles.keys.has(k)) { store.pin(k); store.request(k, { priority: -500, token: 'map' }).catch(() => {}); }
+  viewTiles.keys = next;
+  const n = state.map.resident ? state.map.resident.size : 0;
+  if (n !== viewTiles.n) {
+    const first = viewTiles.n < 0;
+    viewTiles.n = n;
+    if (!first && next.size) clearTiles();
+  }
+}
+
 function render(world) {
   const t0 = performance.now();
   state.frame++;
+  followViewTiles(false);
   if (state.dirty) compose();
   const { ctx } = state;
   ctx.setTransform(1, 0, 0, 1, 0, 0);
