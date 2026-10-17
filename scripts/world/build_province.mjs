@@ -26,6 +26,7 @@ import { LINES, packOf } from './corridor.mjs';
 import { annotateProvinceWater } from '../../game/js/waterlevels.js';
 import { encodeRoadNet } from '../../game/js/roadgraph.js';
 import { Raster, paint, writePyramid, FINE_M } from './province_map.mjs';
+import { loadProvinceBag, bagMatcher } from './bag3d.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 export const PROVINCE_BUILDER = 1;
@@ -260,7 +261,7 @@ export function outsideCover(list, inside) {
 
 // ------------------------------------------------------------- build
 
-export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(src), cityKeys = new Set(), buffer = BUFFER_M, onPack = null, map = true, cityCover = null } = {}) {
+export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(src), cityKeys = new Set(), buffer = BUFFER_M, onPack = null, map = true, cityCover = null, bag = loadProvinceBag() } = {}) {
   const prov = gunzipJson(path.join(src, 'province.json.gz'));
   // the neighbours' strips: their places, stations and built-up cells join the province's
   const dirs = [src, ...extra];
@@ -278,7 +279,9 @@ export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(s
   // urban cells of several extracts add up where they overlap; that only
   // makes a border cell count as built-up a little sooner
   const urbanAt = urbanFromGrid(prov.urban);
-  const ctx = { urbanAt, village: (x, y) => urbanAt(x, y) >= 0.5 };
+  // 3D BAG heights and roofs (bag3d.mjs): the same OSM buildings, measured where the BAG has them
+  const bag3d = bag.length ? bagMatcher(bag) : null;
+  const ctx = { urbanAt, village: (x, y) => urbanAt(x, y) >= 0.5, bag3d };
   // tiles per pack
   const byPack = new Map();
   const city = [];
@@ -303,7 +306,7 @@ export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(s
     raster = new Raster(x0, y0, Math.ceil(((i1 - i0 + 1) * G.TILE_M) / FINE_M), Math.ceil(((j1 - j0 + 1) * G.TILE_M) / FINE_M), FINE_M);
   }
   const gid = { buildings: GID0, roads: GID0, water: GID0, green: GID0, trees: GID0, rails: GID0, furniture: GID0 };
-  const stats = { tiles: 0, buildings: 0, roads: 0, water: 0, rails: 0, green: 0, trees: 0, furniture: 0, hsrc: {}, packs: 0, sourceMB: 0 };
+  const stats = { tiles: 0, buildings: 0, roads: 0, water: 0, rails: 0, green: 0, trees: 0, furniture: 0, hsrc: {}, packs: 0, sourceMB: 0, bag: bag3d ? bag3d.stats : null };
   const blobs = new Map();
   const empty = [], noPack = [];
   const railRows = [];
@@ -476,6 +479,7 @@ async function main() {
   console.log(`provincie: ${built.keys.length} tiles in the set, ${s.tiles} built (${buf} in the buffer strip, ${old} where the old Ommeland layers draw), ${g.city.length} are the city's (${ovl} of them with an overlay for the part its data leaves empty), ${built.empty.length} empty (sea, no data), ${built.missing.length} without a pack`);
   console.log(`  ${Object.keys(index.packs).length} packs ${(size / 1e6).toFixed(1)} MB (${(raw / 1e6).toFixed(1)} MB raw, ${Math.round(size / Math.max(1, s.tiles))} B/tile), index ${(idxSize / 1e6).toFixed(2)} MB; source ${s.sourceMB.toFixed(1)} MB gzip in ${s.packs} packs`);
   console.log(`  ${s.buildings} buildings (height ${Object.entries(s.hsrc).map(([k, v]) => `${k} ${v}`).join(', ')}), ${s.roads} road pieces, ${s.water} water, ${s.green} green, ${s.rails} rail pieces, ${s.trees} trees, ${s.furniture} furniture`);
+  if (s.bag) console.log(`  3D BAG: ${s.bag.id} buildings by BAG id, ${s.bag.centre} by centre and area, ${s.bag.none} without a match; ${((100 * (s.hsrc['3dbag'] || 0)) / Math.max(1, s.buildings)).toFixed(1)} % of the buildings have a measured height`);
   console.log(`  ${g.places.length} places, ${g.stations.length} stations, ${g.routes.length} train lines (${g.routes.filter((r) => r.reached).length} complete), ${g.bus.length} bus lines, ${g.edge.coast.length} coast pieces, ${g.edge.border.length} border lines`);
   if (s.mapMB !== undefined) console.log(`  base map: ${g.map ? '' : ''}${s.mapMB} MB of PNG tiles (z0-z3, ${index.global.map.levels.map((L) => `${L.m} m/px ${L.tiles.length}`).join(', ')})`);
   console.log(`  city keys ${((t1 - t0) / 1000).toFixed(1)} s, build ${((t2 - t1) / 1000).toFixed(1)} s -> ${path.relative(ROOT, out)}`);

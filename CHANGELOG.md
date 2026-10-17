@@ -6,6 +6,9 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Toegevoegd
+- **Echte gebouwhoogtes en daken in heel Groningen:** huizen, schuren en flats buiten de stad hebben nu de hoogte en dakvorm van het echte gebouw (3D BAG, CC BY 4.0) in plaats van een standaardhoogte.
+
 ## [0.34.0] - 2026-10-17
 
 ### Toegevoegd
