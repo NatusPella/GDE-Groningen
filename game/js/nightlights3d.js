@@ -303,7 +303,13 @@ function lampTooClose(x, y) {
   return false;
 }
 
+// every lamp ever made, by prop key: a road that is streamed in again (its
+// tile was dropped and rebuilt) gets its lamps back instead of finding its own
+// old ones in lampGrid and rejecting them as too close
+const lampByKey = new Map();
+
 function registerLamp(l) {
+  lampByKey.set(l.key, l);
   const key = Math.floor(l.x / LAMP_GRID) + ',' + Math.floor(l.y / LAMP_GRID);
   let cell = lampGrid.get(key);
   if (!cell) lampGrid.set(key, cell = []);
@@ -342,6 +348,8 @@ function lampsForRoad(road, map) {
       const x = cx - dy * offset * side, y = cy + dx * offset * side;
       idx++;
       next += spacing;
+      const known = lampByKey.get(propKey('lamp', x, y));
+      if (known) { road._lamps.push(known); continue; }
       if (insideBuilding(map, x, y) || lampTooClose(x, y)) continue;
       if (map.offStreetLevel && map.offStreetLevel(x, y, 0.6)) continue;
       if (map.onCarriageway && map.onCarriageway(x, y, 0.4, road)) continue;
@@ -362,6 +370,8 @@ function lampsForRoad(road, map) {
   }
   return road._lamps;
 }
+
+export const lampsForRoadForTest = (road, map) => lampsForRoad(road, map);
 
 function lampProp(l) {
   if (!l.prop) {
