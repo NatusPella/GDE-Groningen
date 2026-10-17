@@ -391,6 +391,28 @@ the caches change. The game reads `world/` when it is there and the JSON
 files when it is not (`?legacymap` forces the JSON files). `scripts/devserver.py`
 answers HTTP Range requests, like the desktop app and the web build.
 
+Building heights and roofs of the whole province come from 3D BAG (TU Delft
+and 3DGI, CC BY 4.0, credited in the game's credits):
+
+```
+python3 scripts/world/fetch_3dbag.py --province --list   # tiles and sizes, no download
+python3 scripts/world/fetch_3dbag.py --province          # resumable; ~436 tiles, ~0.9 GB in total
+rm -rf data/cache/3dbag-province                         # the scratch directory, when done
+```
+
+One tile at a time: the GeoPackage is downloaded to a temporary file (at most
+one tile of raw data exists), only the buildings' centre, footprint area, roof
+heights (`b3_h_dak_max`, `b3_h_dak_50p`), ground level and roof type are kept
+in a small extract per tile, and the download is deleted at once. A stopped
+run skips the tiles that have an extract (`--scratch <dir>` moves the
+directory); errors are retried with 2-16 s backoff, requests are one by one
+with a pause. The merge, `data/world/3dbag_province.json.gz` (rows under
+`cols`, committed, a few MB), is rewritten at the end of every run.
+`scripts/world/build_province.mjs` joins it to the OSM buildings
+(`scripts/world/bag3d.mjs`: the `ref:bag` tag, else the BAG centre inside the
+footprint with an area within 25 %) and uses the height chain 3D BAG > OSM
+height > OSM levels > default; every building keeps its `hsrc`.
+
 Overpass responses are cached in `data/` together with the box they cover
 (`osmfetch.py`) and refetched when the map outgrows them. Keys another tool
 added to `citymap.json` are carried over by `build_map.py`.
