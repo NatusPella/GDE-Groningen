@@ -424,7 +424,8 @@ const closed = (P) => P.length > 3 && P[0][0] === P[P.length - 1][0] && P[0][1] 
 
 // A raw OSM element (Overpass JSON: `geometry` [{lat, lon}] or the slim
 // caches' `g` [[lat, lon]]) as features: [{ kind, row }]. ctx: { urbanAt(x, y)
-// (0..1), village(x, y) }.
+// (0..1), village(x, y), bag3d(pts, tags) (the 3D BAG record of a building:
+// { hmax, hg, h50?, roof? }, scripts/world/bag3d.mjs) }.
 export function fromOsm(el, ctx = {}) {
   const tags = el.tags || {};
   const g = el.g || (el.geometry ? el.geometry.filter(Boolean).map((p) => [p.lat, p.lon]) : null);
@@ -455,6 +456,7 @@ export function fromOsm(el, ctx = {}) {
       pts: P, tag: tags.building, levels: lv ? Math.max(1, lv) : 0, height: Number.isFinite(h) && h > 0 ? h : undefined,
       roofLevels: num(tags['roof:levels']) || 0, roofShape: tags['roof:shape'], name: tags.name || null,
       urban: ctx.urbanAt ? ctx.urbanAt(c[0], c[1]) : 1,
+      bag3d: ctx.bag3d ? ctx.bag3d(P, tags) : undefined,
     });
     if (row) { if (el.id !== undefined) row.osm = el.id; out.push({ kind: 'buildings', row }); }
     return out;
