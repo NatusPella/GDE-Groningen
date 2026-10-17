@@ -1,0 +1,105 @@
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { WATER_Y } from './util.js';
+import { COUNTRY_UNIFORMS } from './countryfield.js';
+import { applyCutMask } from './cutmask3d.js';
+
+// The ground shader's view of the province's water. The tiles' water polygons
+// (the map's water grid, the one source for boats, swimmers and the surface
+// meshes) are rasterised into a mask round the player: within it the ground
+// opens over the water (uWaterNear) and paints the water's own tones where it
+// is not opened yet. A muddy-dark bed under the opened ground hides the gaps.
+
+export const MASK_N = 1024;
+export const MASK_CELL = 2;
+export const MASK_SIZE = MASK_N * MASK_CELL;
+// the window is moved when the player is this far off its centre
+const RECENTRE = 300;
+const BED_Y = WATER_Y - 0.55;
+
+// Even-odd fill of one polygon into a Uint8Array mask (255 inside).
+export function fillPolygon(mask, n, x0, y0, cell, pts) {
+  let miny = Infinity, maxy = -Infinity;
+  for (const p of pts) { if (p[1] < miny) miny = p[1]; if (p[1] > maxy) maxy = p[1]; }
+  const j0 = Math.max(0, Math.ceil((miny - y0) / cell - 0.5)), j1 = Math.min(n - 1, Math.floor((maxy - y0) / cell - 0.5));
+  const xs = [];
+  for (let j = j0; j <= j1; j++) {
+    const y = y0 + (j + 0.5) * cell;
+    xs.length = 0;
+    for (let a = 0, b = pts.length - 1; a < pts.length; b = a++) {
+      const ay = pts[b][1], by = pts[a][1];
+      if ((ay > y) === (by > y)) continue;
+      xs.push(pts[b][0] + ((pts[a][0] - pts[b][0]) * (y - ay)) / (by - ay));
+    }
+    xs.sort((p, q) => p - q);
+    for (let k = 0; k + 1 < xs.length; k += 2) {
+      const i0 = Math.max(0, Math.ceil((xs[k] - x0) / cell - 0.5)), i1 = Math.min(n - 1, Math.floor((xs[k + 1] - x0) / cell - 0.5));
+      if (i1 >= i0) mask.fill(255, j * n + i0, j * n + i1 + 1);
+    }
+  }
+}
+
+// The mask of the water polygons round (cx, cy): { x0, y0, mask }.
+export function rasterWater(polys, cx, cy, mask = new Uint8Array(MASK_N * MASK_N)) {
+  const x0 = cx - MASK_SIZE / 2, y0 = cy - MASK_SIZE / 2;
+  mask.fill(0);
+  for (const w of polys) {
+    const b = w.bounds;
+    if (b && (b[2] < x0 || b[0] > x0 + MASK_SIZE || b[3] < y0 || b[1] > y0 + MASK_SIZE)) continue;
+    fillPolygon(mask, MASK_N, x0, y0, MASK_CELL, w.pts);
+  }
+  return { x0, y0, mask };
+}
+
+const S = { tex: null, bed: null, cx: 0, cy: 0, ver: -1, on: false, map: null, polys: 0 };
+
+function init(scene) {
+  const data = new Uint8Array(MASK_N * MASK_N);
+  S.tex = new THREE.DataTexture(data, MASK_N, MASK_N, THREE.RedFormat, THREE.UnsignedByteType);
+  S.tex.unpackAlignment = 1;
+  S.tex.generateMipmaps = false;
+  S.tex.minFilter = S.tex.magFilter = THREE.LinearFilter;
+  S.tex.wrapS = S.tex.wrapT = THREE.ClampToEdgeWrapping;
+  COUNTRY_UNIFORMS.uTileWater.value = S.tex;
+  const bed = new THREE.Mesh(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2), applyCutMask(new THREE.MeshBasicMaterial({ color: 0x1e2a2c }), null, true));
+  bed.position.y = BED_Y;
+  bed.renderOrder = 1;
+  bed.visible = false;
+  bed.matrixAutoUpdate = false;
+  scene.add(bed);
+  S.bed = bed;
+}
+
+function bake(map, cx, cy) {
+  const polys = map.waterNear(cx, cy, MASK_SIZE * 0.75);
+  const r = rasterWater(polys, cx, cy, S.tex.image.data);
+  S.tex.needsUpdate = true;
+  S.cx = cx; S.cy = cy;
+  S.polys = polys.length;
+  COUNTRY_UNIFORMS.uTileWaterRect.value = [r.x0, r.y0, MASK_SIZE, 1];
+}
+
+// Per frame: the mask round the player, where the ground opens over the
+// water (radius 0 when the countryside is idle) and the bed under it.
+export function updateTileWater(map, scene, px, py, radius, time) {
+  if (!S.tex) init(scene);
+  const u = COUNTRY_UNIFORMS.uWaterNear.value;
+  const on = radius > 0 && !!map && !!map.waterNear;
+  const r = on ? Math.min(radius, MASK_SIZE / 2 - RECENTRE - 20) : 0;
+  u[0] = px; u[1] = py; u[2] = r; u[3] = time % 1000;
+  S.bed.visible = on;
+  if (!on) { COUNTRY_UNIFORMS.uTileWaterRect.value[3] = 0; S.ver = -1; return; }
+  const ver = map._waterVer || 0;
+  const moved = Math.abs(px - S.cx) > RECENTRE || Math.abs(py - S.cy) > RECENTRE;
+  if (S.ver < 0 || moved || (ver !== S.ver && time - (S.at || 0) > 1)) {
+    bake(map, px, py);
+    S.ver = ver;
+    S.at = time;
+  }
+  S.bed.position.set(px, BED_Y, py);
+  S.bed.scale.set(r * 2 + 40, 1, r * 2 + 40);
+  S.bed.updateMatrix();
+}
+
+export function tileWaterStats() {
+  return { polys: S.polys, window: S.tex ? MASK_SIZE : 0 };
+}

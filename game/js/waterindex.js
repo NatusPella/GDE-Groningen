@@ -325,25 +325,13 @@ export function insideWaterObstacle(map, x, y) {
   return false;
 }
 
-// Where a city canal carries on past the map edge as Ommeland water
-// (countrywater.js registers it): (x, y, d) => the clearance there, with d
-// the distance to the city polygon's shore, or -1 outside every polygon
-// (then the free Ommeland water, or <= 0 on land). The polygon's cut along
-// the map edge is no shore, so boats sail out and back in.
-let countryClearance = null;
-export function setCountryClearance(fn) { countryClearance = fn; }
-
 // Free water around (x, y), capped at maxR: distance to the nearest real
 // shore (edges shared by two water polygons don't count) or moored
 // obstacle; negative on land or inside an obstacle.
 export function waterClearance(map, x, y, maxR = 4) {
   const idx = getWaterIndex(map);
   let d = tileClearance(map, x, y, maxR, idx);
-  if (d === null) {
-    d = countryClearance ? countryClearance(x, y, -1) : -1;
-    if (d <= 0) return -1;
-    d = Math.min(maxR, d);
-  } else if (countryClearance) d = Math.min(maxR, countryClearance(x, y, d));
+  if (d === null) return -1;
   const list = obstacleGrid(map).get(Math.floor(x / OB_CELL) + ',' + Math.floor(y / OB_CELL));
   if (list) {
     for (const ob of list) {
