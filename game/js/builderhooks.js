@@ -14,7 +14,7 @@
 //
 // rows: the tile's rows by kind plus rows.tile = { i, j, x0, y0, size }.
 import { registerHook } from './worldbuilder.js';
-import { speciesFor, speciesFromTags, heightFor, fillPolygon, hash2, TREE_FLAG } from './greenery.js';
+import { speciesFor, speciesFromTags, heightFor, fillPolygon, hash2, findRows, TREE_FLAG } from './greenery.js';
 
 export const FILL_GID0 = 20_000_000;
 
@@ -43,13 +43,27 @@ export function greeneryHook(rows) {
   const waterDist = (x, y) => water.reduce((d, w) => Math.min(d, polyDist(x, y, w.pts)), Infinity);
   const placeAt = (x, y) => { for (const g of green) if ((g.kind === 'forest' || g.kind === 'park' || g.kind === 'cemetery') && inPoly(x, y, g.pts)) return g.kind; return 'street'; };
   const roadAt = (x, y) => { let best = null, bd = 12; for (const r of roads) { const d = lineDist(x, y, r.pts) - (r.width || 4) / 2; if (d < bd) { bd = d; best = r; } } return best ? (best.cat === 'major' ? 'major' : best.cat) : null; };
-  for (const t of trees) {
-    if (t[2] !== undefined && t[2] >= 0) continue;
+  // the mapped trees of the tile: a row of five or more in a near straight line is one species
+  // (greenery.js findRows, as scripts/world/greenery.mjs gives the city's trees)
+  const mapped = trees.filter((t) => !(t[4] & TREE_FLAG.fill));
+  const at = mapped.map((t) => [tx(t), t[1]]);
+  const inRow = findRows(at);
+  const churches = buildings.filter((b) => b.type === 'church' || b.type === 'chapel' || b.type === 'cathedral').map((b) => b.pts.reduce((a, p) => [a[0] + p[0] / b.pts.length, a[1] + p[1] / b.pts.length], [0, 0]));
+  mapped.forEach((t, i) => {
+    if (t[2] !== undefined && t[2] >= 0) return;
     const x = tx(t), y = t[1];
-    let sp = speciesFromTags(t.tags || {});
-    if (sp < 0) sp = speciesFor({ water: waterDist(x, y), place: placeAt(x, y), road: roadAt(x, y) }, hash2(x, y));
-    t[2] = sp; t[3] = heightFor(sp, hash2(y * 0.5, x * 0.5)); t[4] = t[4] || 0;
-  }
+    const tags = t.tags || {};
+    let sp = speciesFromTags(tags);
+    if (sp < 0) {
+      const ctx = { water: waterDist(x, y), church: churches.some(([cx, cy]) => Math.hypot(cx - x, cy - y) < 60), place: placeAt(x, y), road: roadAt(x, y), needle: tags.leaf_type === 'needleleaved' };
+      if (t.rowSeed !== undefined) ctx.rowSeed = t.rowSeed;
+      else if (inRow[i] >= 0) ctx.rowSeed = hash2(at[inRow[i]][0], at[inRow[i]][1]);
+      sp = speciesFor(ctx, hash2(x, y));
+    }
+    t[2] = sp; t[3] = heightFor(sp, hash2(y * 0.5, x * 0.5)); t[4] = (t[4] || 0) | (inRow[i] >= 0 || t.rowSeed !== undefined ? TREE_FLAG.row : 0);
+    const th = parseFloat(String(tags.height || '').replace(',', '.'));
+    if (th > 2 && th < 45) t[3] = Math.round(th * 10);
+  });
   // fill the woods
   const keep = (x, y) => {
     if (water.some((w) => polyDist(x, y, w.pts) < 1.5)) return false;

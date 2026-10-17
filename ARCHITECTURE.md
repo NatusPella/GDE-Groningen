@@ -1379,6 +1379,46 @@ server, `?legacymap`).
   over the real track (and a Veendam branch); `provincemap.js` puts the base
   map under the full map. `node scripts/province_test.mjs` (`--quick`
   without streaming).
+- **The province gets the city's building derivation (A2 of
+  docs/ARCHITECTUUR-STAD-NAAR-TEGELS.md).** What the `GameMap` constructor
+  works out from raw footprints lives in `js/derive.js` (`deriveBuildings`:
+  bridge machinery dropped, doubled footprints merged, platform roofs and
+  `building=roof` split off as canopies, footprints on a ring carriageway and
+  houseboats that cannot float dropped; `liftNestedRoofs`), and `mapdata.js`
+  calls it (`pack_tiles.mjs` output is byte-identical). `build_province.mjs`
+  runs the same code per pack through `scripts/world/derive_tiles.mjs`:
+  footprints kept 1.5 m off a ground-level car road (`building_clearance.mjs`;
+  the city's `game/citymap.json` is untouched), the derivation, roof steps
+  (`lift`) and footways cut at a solid wall (`passages.js clipWaysInBuildings`).
+  Canopies go in the tile's CANOPIES section (`tileBlob` kind `canopies`, by
+  centre like a building) and `canopies3d.js streamCanopies` draws them per
+  streamed tile (the city's `buildCanopies` is unchanged). Not in the province
+  yet: OSM `building:part` (the extract does not keep it) and the museum plan.
+- **Street-level detail in the province (A6).** `fromOsm` turns
+  `natural=tree_row` into a tree every 6 m (`process_osm.py`'s rule for the
+  city; each row has a `rowSeed`), and the greenery hook (`builderhooks.js`)
+  gives a tile's trees what `scripts/world/greenery.mjs` gives the city's: one
+  species in a row (`findRows`, or the tree row's own seed, flag `row`), the
+  church's trees, OSM leaf type and height. With `ctx.signs` (the province
+  build) `mappedSignsFromOsm` adds stop and give-way signs, marked crossings,
+  gates, barriers and post boxes as FURNITURE rows (nothing draws them yet).
+  `nightlights3d.js` puts a lamp where OSM maps `highway=street_lamp` (the
+  tiles' `lamp` rows) before the rule lamps of the roads fill the gaps.
+- **Lanes, junctions and traffic lights in the province (A4).** The lane
+  model was already in the road rows (`laneFields` from the OSM lane, turn and
+  oneway tags). `scripts/world/junction_tiles.mjs` runs the city's own code
+  (`junctions.js junctionModel` and `autoSignals`) over a pack's road rows with
+  its lights: the OSM nodes `highway=traffic_signals` and `crossing=traffic_signals`
+  snapped onto their road (2.5 m, a cycle path only: `bike`, else dropped, as
+  `add_traffic_lights.py` does for the city), plus the busy crossings the
+  rule adds (`auto`). `tileBlob` writes them as `signals` FURNITURE rows and
+  the nodes of a tile as its JUNCTIONS rows (control, and per arm the road
+  piece of that tile, the node's vertex in it, the direction, rule and stop
+  line in metres; the rows `pack_tiles.mjs` writes for the city). Neither the
+  city's nor the province's JUNCTIONS rows are read by the game yet:
+  `junctions.js` still works the model out from `map.roads` and
+  `meta.trafficLights`, so streamed tiles join it with the road-by-tile work
+  (B3). Heights (`z`) are A3: until then no node counts as graded.
 - **Tests.** `node scripts/world_tiles_test.mjs` (codec, determinism, round
   trips, the building attribute join), `node scripts/tileworld_test.mjs`
   (equivalence, streaming on a virtual clock, ranges), `node scripts/floatingorigin_test.mjs`,
