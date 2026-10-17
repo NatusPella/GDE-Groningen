@@ -307,27 +307,26 @@ function buildingsCrossedBy(buildings, lines, step, zs = null) {
 // sink there. (The Zuidelijke Ringweg's aqueduct under the Winschoterdiep
 // has real heights, see elevation.js.)
 const DRY_CATS = new Set(['major', 'normal', 'minor', 'service']);
-function markDryCrossings(map) {
-  let n = 0;
-  for (const r of map.roads) {
-    // roads with a height profile pass over/under the water for real
-    if (r.bridge || r.z || !DRY_CATS.has(r.cat)) continue;
-    const pts = r.pts;
-    let wet = false;
-    for (let i = 0; i < pts.length - 1 && !wet; i++) {
-      const [ax, ay] = pts[i], [bx, by] = pts[i + 1];
-      const steps = Math.max(1, Math.ceil(Math.hypot(bx - ax, by - ay) / 2));
-      for (let k = 0; k <= steps; k++) {
-        const x = ax + ((bx - ax) * k) / steps, y = ay + ((by - ay) * k) / steps;
-        for (const w of map.waterNear(x, y, 0.5)) {
-          const [minx, miny, maxx, maxy] = w.bounds;
-          if (x >= minx && x <= maxx && y >= miny && y <= maxy && pointInStaticPolygon(x, y, w.pts)) { wet = true; break; }
-        }
-        if (wet) break;
+export function markDryRoad(map, r) {
+  // roads with a height profile pass over/under the water for real
+  if (r.bridge || r.z || !DRY_CATS.has(r.cat)) return false;
+  const pts = r.pts;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const [ax, ay] = pts[i], [bx, by] = pts[i + 1];
+    const steps = Math.max(1, Math.ceil(Math.hypot(bx - ax, by - ay) / 2));
+    for (let k = 0; k <= steps; k++) {
+      const x = ax + ((bx - ax) * k) / steps, y = ay + ((by - ay) * k) / steps;
+      for (const w of map.waterNear(x, y, 0.5)) {
+        const [minx, miny, maxx, maxy] = w.bounds;
+        if (x >= minx && x <= maxx && y >= miny && y <= maxy && pointInStaticPolygon(x, y, w.pts)) { r.bridge = true; r.dryCrossing = true; return true; }
       }
     }
-    if (wet) { r.bridge = true; r.dryCrossing = true; n++; }
   }
+  return false;
+}
+function markDryCrossings(map) {
+  let n = 0;
+  for (const r of map.roads) if (markDryRoad(map, r)) n++;
   map.dryCrossings = n;
 }
 
