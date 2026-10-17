@@ -33,7 +33,7 @@ import { syncBoatWakes3D } from './boatwake3d.js';
 import { sleepingParkedCars } from './parkedcars.js';
 import { syncParkedLayer } from './parked3d.js';
 import { requestShore, updateShore } from './quaywalls.js';
-import { getWaterIndex } from './waterindex.js';
+import { getWaterIndex, waterIndexAt } from './waterindex.js';
 import { setTreeMeshBuilder } from './treeprops.js';
 import { propsNearInto } from './breakables.js';
 import { buildTerrainMesh3D, terrainArrays, terrainGroup, createTerrainMaterial, applyWetGround, WET_UNIFORMS } from './terrain3d.js';
@@ -1125,7 +1125,7 @@ function buildPolyGeometry(pts) {
 // once per frame in update3D) instead of a flat MeshLambertMaterial per poly.
 let waterMaterial = null;
 function buildWaterMesh(poly, y, map) {
-  if (!poly._geoWater) poly._geoWater = buildWaterGeometry(poly, getWaterIndex(map), cityShoreFix);
+  if (!poly._geoWater) poly._geoWater = buildWaterGeometry(poly, getWaterIndex(map, poly), poly.bank !== undefined ? null : cityShoreFix);
   const group = new THREE.Group();
   const mesh = new THREE.Mesh(poly._geoWater, waterMaterial);
   mesh.position.y = y;
@@ -3229,7 +3229,7 @@ function animateBoat(mesh, v, world, dt) {
   const now = performance.now();
   let sh = v._shore;
   if (!sh || now - sh.at > 400 || Math.abs(sh.x - v.x) + Math.abs(sh.y - v.y) > 3) {
-    const idx = world.map ? getWaterIndex(world.map) : null;
+    const idx = world.map ? waterIndexAt(world.map, v.x, v.y) : null;
     const ns = idx ? idx.nearestShore(v.x, v.y, 24) : { d: 24, i: -1, tx: 1, ty: 0 };
     sh = v._shore = { at: now, x: v.x, y: v.y, d: ns.i >= 0 ? ns.d : 24, tx: ns.i >= 0 ? ns.tx : 1, ty: ns.i >= 0 ? ns.ty : 0, open: ns.i < 0 };
   }
