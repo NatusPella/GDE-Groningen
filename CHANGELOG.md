@@ -24,6 +24,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **Landverkeer op de tegelwegen:** trekkers, fietsers, quads en auto's rijden over de wegen van de tegels (voorheen alleen over de oude Ommeland-wegen en het polderrooster).
 - **Geparkeerde trekkers bij schuren:** de schuren van de tegels krijgen hun trekker op het erf; auto's langs dorpsstraten zijn de gewone geparkeerde auto's.
 ### Toegevoegd
+- **Provinciegebouwen krijgen de afleiding van de stad:** perrondaken en open daken (`building=roof`) zijn luifels in plaats van massieve blokken, dubbele voetafdrukken zijn samengevoegd, een voetafdruk binnen een andere stapt 0,4 m omhoog, paadjes eindigen aan de gevel van een massief blok en huizen houden 1,5 m afstand tot het wegmidden (`js/derive.js`, `scripts/world/derive_tiles.mjs`).
 - **Echte gebouwhoogtes en daken in heel Groningen:** huizen, schuren en flats buiten de stad hebben nu de hoogte en dakvorm van het echte gebouw (3D BAG, CC BY 4.0) in plaats van een standaardhoogte.
 
 ## [0.34.0] - 2026-10-17

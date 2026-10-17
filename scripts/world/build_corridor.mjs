@@ -336,8 +336,9 @@ export function ommelandBox(i, j, root = ROOT) {
   return [[ox, oy], [ox + G.TILE_M, oy], [ox, oy + G.TILE_M], [ox + G.TILE_M, oy + G.TILE_M]].some(([x, y]) => { const [la, lo] = worldToWgs(x, y); return la >= s && la <= n && lo >= w && lo <= e; });
 }
 
-const PER_TILE = ['buildings', 'roads', 'water', 'green', 'trees', 'rails'];
-const SECTION_OF = { buildings: G.SECTION.BUILDINGS, roads: G.SECTION.ROADS, water: G.SECTION.WATER, green: G.SECTION.GREEN, trees: G.SECTION.TREES, rails: G.SECTION.RAILS };
+// canopies (derive_tiles.mjs: platform roofs, open roofs) only come with the province's derivation
+const PER_TILE = ['buildings', 'roads', 'water', 'green', 'trees', 'rails', 'canopies'];
+const SECTION_OF = { buildings: G.SECTION.BUILDINGS, roads: G.SECTION.ROADS, water: G.SECTION.WATER, green: G.SECTION.GREEN, trees: G.SECTION.TREES, rails: G.SECTION.RAILS, canopies: G.SECTION.CANOPIES };
 
 // One tile out of the world builder's features that touch it: lines and
 // areas cut at the tile edge (a piece of a way per tile, sharing its end
@@ -357,7 +358,7 @@ export function tileBlob(i, j, list, gid, flags, builder, stats = null) {
       mapped.push({ gid: f.gid, ...f.row });
       continue;
     }
-    if (f.kind === 'buildings' || f.kind === 'trees') { rows[f.kind].push({ gid: gid[f.kind]++, ...f.row }); continue; }
+    if (f.kind === 'buildings' || f.kind === 'trees' || f.kind === 'canopies') { rows[f.kind].push({ gid: gid[f.kind]++, ...f.row }); continue; }
     if (f.kind === 'water' || f.kind === 'green') {
       const P = clipPoly(f.row.pts, box);
       if (P && P.length >= 4) rows[f.kind].push({ gid: gid[f.kind]++, ...f.row, pts: P });
@@ -379,7 +380,7 @@ export function tileBlob(i, j, list, gid, flags, builder, stats = null) {
   const n = Object.fromEntries(PER_TILE.filter((q) => rows[q].length).map((q) => [q, rows[q].length]));
   if (mapped.length) n.furniture = mapped.length;
   if (stats) {
-    for (const q of PER_TILE) stats[q] = (stats[q] || 0) + rows[q].length;
+    for (const q of PER_TILE) if (rows[q].length || q !== 'canopies') stats[q] = (stats[q] || 0) + rows[q].length;
     if (mapped.length) stats.furniture = (stats.furniture || 0) + mapped.length;
     for (const b of rows.buildings) stats.hsrc[b.hsrc] = (stats.hsrc[b.hsrc] || 0) + 1;
     stats.tiles++;
