@@ -16,7 +16,7 @@ const URBAN_CELL = 40;
 export const REAL = {
   ready: false, ext: null, roads: [], cycleways: [], waterways: [], rails: [], places: [], churches: [], stations: [], routes: [],
   n: 0, bx: null, by: null, bw: null, bl: null, ba: null, code: null, lv: null, fill: null,
-  bTiles: new Map(), rTiles: new Map(), signTiles: new Map(), churchTiles: new Map(),
+  bTiles: new Map(), aTiles: new Map(), rTiles: new Map(), signTiles: new Map(), churchTiles: new Map(),
   // village shopfronts: building -> face (1 +x, 2 -x, 3 +z, 4 -z of its
   // model), and the countryside's hook that repaints that building
   shopFace: new Map(), onShop: null,
@@ -240,10 +240,14 @@ export function initReal(map, om) {
       const c = Math.cos(REAL.ba[i]), s = Math.sin(REAL.ba[i]), cu = I[o + 9] / 10, cv = I[o + 10] / 10;
       REAL.bx[i] = I[o] + cu * c - cv * s; REAL.by[i] = I[o + 1] + cu * s + cv * c;
     } else { REAL.bx[i] = I[o]; REAL.by[i] = I[o + 1]; }
-    // a building a province tile draws is not bucketed: props, skyline, maps,
-    // colliders and the city generators never see it
-    if (REAL.covered && REAL.covered(REAL.bx[i], REAL.by[i])) { REAL.tileCovered++; continue; }
+    // every building is bucketed for the placement queries (buildingAt: shops, doors,
+    // spawn spots keep clear of the old boxes); a building a province tile draws is
+    // not bucketed for drawing: props, skyline, maps and the city generators never see it
     const k = tkey(Math.floor(REAL.bx[i] / RTILE), Math.floor(REAL.by[i] / RTILE));
+    let all = REAL.aTiles.get(k);
+    if (!all) REAL.aTiles.set(k, (all = []));
+    all.push(i);
+    if (REAL.covered && REAL.covered(REAL.bx[i], REAL.by[i])) { REAL.tileCovered++; continue; }
     let a = REAL.bTiles.get(k);
     if (!a) REAL.bTiles.set(k, (a = []));
     a.push(i);
@@ -253,8 +257,11 @@ export function initReal(map, om) {
   const urban = urbanGrid(om.extent);
   REAL.waterField = water;
 
-  REAL.roads = om.roads.map((r) => ({ pts: pairs(r.p), kind: r.k, w: r.w, name: r.n || '', ref: r.r || '', oneway: !!r.o, bridge: !!r.b, cycle: !!r.c }));
-  REAL.cycleways = (om.cycleways || []).map((c) => ({ pts: pairs(c.p), hw: c.h }));
+  // a road or cycle path lying wholly in built province tiles is theirs: traffic, parked cars,
+  // maps and the city generators only see the old ones outside them
+  const theirs = (pts) => !!REAL.covered && pts.every((q) => REAL.covered(q[0], q[1]));
+  REAL.roads = om.roads.map((r) => ({ pts: pairs(r.p), kind: r.k, w: r.w, name: r.n || '', ref: r.r || '', oneway: !!r.o, bridge: !!r.b, cycle: !!r.c })).filter((r) => !theirs(r.pts));
+  REAL.cycleways = (om.cycleways || []).map((c) => ({ pts: pairs(c.p), hw: c.h })).filter((c) => !theirs(c.pts));
   REAL.waterways = om.waterways.map((w) => ({ pts: pairs(w.p), hw: w.h, name: w.n || '' }));
   REAL.rails = om.rails.map(pairs);
   REAL.boatways = (om.boatways || []).map((w) => ({ pts: pairs(w.p), hw: w.h })).concat(REAL.waterways.filter((w) => w.pts.length > 3));
@@ -376,8 +383,15 @@ export function inRealExtent(x, y, m = 0) {
   return !!E && x > E[0] + m && x < E[2] - m && y > E[1] + m && y < E[3] - m;
 }
 
+// The buildings of a 160 m tile that are drawn (props, skyline, maps): not the
+// ones a province tile draws.
 export function buildingsInTile(tx, ty) {
   return REAL.bTiles.get(tkey(tx, ty)) || null;
+}
+
+// All of them, covered or not (gameplay: barns, sites, placement).
+export function allBuildingsInTile(tx, ty) {
+  return REAL.aTiles.get(tkey(tx, ty)) || null;
 }
 
 export function roadsInTile(tx, ty) {
@@ -401,7 +415,7 @@ export function buildingAt(x, y, m = 0) {
   const tx = Math.floor(x / RTILE), ty = Math.floor(y / RTILE);
   for (let oy = -1; oy <= 1; oy++) {
     for (let ox = -1; ox <= 1; ox++) {
-      const L = REAL.bTiles.get(tkey(tx + ox, ty + oy));
+      const L = REAL.aTiles.get(tkey(tx + ox, ty + oy));
       if (!L) continue;
       for (const i of L) {
         const hw = REAL.bw[i] / 2 + m, hl = REAL.bl[i] / 2 + m;
@@ -429,7 +443,7 @@ export function pushOutOfReal(obj, radius) {
   const tx = Math.floor(obj.x / RTILE), ty = Math.floor(obj.y / RTILE);
   for (let oy = -1; oy <= 1; oy++) {
     for (let ox = -1; ox <= 1; ox++) {
-      const L = REAL.bTiles.get(tkey(tx + ox, ty + oy));
+      const L = REAL.aTiles.get(tkey(tx + ox, ty + oy));
       if (!L) continue;
       for (const i of L) {
         const hw = REAL.bw[i] / 2 + radius, hl = REAL.bl[i] / 2 + radius;

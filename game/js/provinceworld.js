@@ -25,28 +25,11 @@ import { setProvinceMap } from './provincemap.js';
 // tile flags (build_province.mjs FLAG)
 export const PFLAG = { LAND: 1, BUILT: 4, OLD: 8, BUFFER: 16, PROVINCE: 32 };
 
-// Does the game stream the province's tiles? By default (F2, step 4) and
-// with ?provincie (desktop --provincie; ?corridor too) yes, wherever the old
-// Ommeland layers do not draw (flag 8: they keep their own area); ?legacy
-// (desktop --legacy) keeps the old layers and polders everywhere. A build
-// without the province layer (no extract in data/cache) has nothing to stream.
-export const PROVINCE_DEFAULT = true;
-export function provinceMode(search = typeof location !== 'undefined' ? location.search : '') {
-  if (/[?&]legacy\b/.test(search)) return 'off';
-  if (/[?&](provincie|corridor)\b/.test(search)) return 'on';
-  return PROVINCE_DEFAULT ? 'on' : 'off';
-}
-
-// Do the tiles also stream inside the old Ommeland area (flag 8), as the one
-// source there (issue #3, PROVINCIE-PLAN 2.28)? Only with ?ommelandtegels and
-// the province on; the old layers are not switched off by this alone.
-export function ommelandTileMode(search = typeof location !== 'undefined' ? location.search : '') {
-  return provinceMode(search) === 'on' && /[?&]ommelandtegels\b/.test(search) ? 'on' : 'off';
-}
-
-// Which province tiles the index merge takes: all of them in ommelandTileMode,
-// else only where the old layers do not draw.
-export const provinceTileFilter = (search) => (provinceMode(search) !== 'on' ? () => false : ommelandTileMode(search) === 'on' ? () => true : (t) => !(t.flags & PFLAG.OLD));
+// The province's tiles are the one source wherever a tile is built (issue #3,
+// PROVINCIE-PLAN 2.28): they stream everywhere, also inside the old Ommeland
+// area (flag 8), and the old layers keep only the cells no built tile covers
+// (the edges of the city's own tiles, where its data ends). A build without
+// the province layer (no extract in data/cache) has nothing to stream.
 
 // The polder blocks (BLOCK m) mostly covered by tiles for which isTile(key)
 // holds: { x0, y0, w, h, data } in block units, or null. A block counts when
@@ -110,21 +93,21 @@ export function realBlockedAt(map, isTile, x, y, m) {
 
 const S = { layer: null, keys: null, blocks: null, tex: null };
 
-// Where the tiles are the one source (ommelandTileMode): the built tiles of
+// Where the tiles are the one source: the built tiles of
 // the layer. covered(x, y) -> countryreal.js setTileCover.
 export function tileCoverOf(index) {
   const keys = new Set();
-  for (const k of Object.keys(index.tiles)) { const t = index.tiles[k]; if (t.flags & PFLAG.PROVINCE && t.flags & PFLAG.BUILT) keys.add(k); }
+  for (const k of Object.keys(index.tiles)) { const t = index.tiles[k]; if (t.flags & PFLAG.PROVINCE && t.flags & PFLAG.BUILT) keys.add(tileKey(t.i, t.j)); }
   return (x, y) => { const [i, j] = tileIndexOf(x, y); return keys.has(tileKey(i, j)); };
 }
 
 // After loadTileWorld: the layer's global part and, when streaming, the
 // polder blocks and the prop rule. -> { layer, tiles (keys streamed), blocks }
-export function initProvince(tiles, { stream = provinceMode() === 'on' } = {}) {
+export function initProvince(tiles) {
   const layer = tiles && tiles.index.layers && tiles.index.layers.provincie;
   S.layer = layer && layer.global ? layer.global : null;
-  setTileCover(stream && S.layer && tiles.index && ommelandTileMode() === 'on' ? tileCoverOf(tiles.index) : null);
-  if (!S.layer || !stream) { setProvinceBlocks(null); setProvinceMap(null); return { layer: S.layer, tiles: 0, blocks: 0 }; }
+  setTileCover(S.layer && tiles.index ? tileCoverOf(tiles.index) : null);
+  if (!S.layer) { setProvinceBlocks(null); setProvinceMap(null); return { layer: S.layer, tiles: 0, blocks: 0 }; }
   // the full map's base layer (provincemap.js)
   setProvinceMap(S.layer.map || null);
   const idx = tiles.index.tiles;
