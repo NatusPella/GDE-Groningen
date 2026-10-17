@@ -28,7 +28,7 @@ import { CHALLENGES } from './postgame.js';
 import { activitySpots } from './activities.js';
 import { ensureCountryEdge, pushOutOfPlan } from './countryplan.js';
 import { countryWeight } from './countryfield.js';
-import { buildingAt as realBuildingAt } from './countryreal.js';
+import { buildingAt as realBuildingAt, coveredByTiles } from './countryreal.js';
 import { getOmmelandSpots } from './ommelandfun.js';
 import { reachableFacilities, FAC } from './facilities.js';
 import { realRoadNear } from './ommelandplace.js';
@@ -63,7 +63,7 @@ function driveDist(map, x, y) {
 // Out in the Ommelanden (countryWeight > 0.5) the countryside colliders are
 // solid for walkers and vehicles alike (collision.js resolveWalker).
 function countrySolid(x, y) {
-  if (countryWeight(x, y) <= 0.5) return null;
+  if (countryWeight(x, y) <= 0.5 || coveredByTiles(x, y)) return null;
   const o = { x, y };
   if (!pushOutOfPlan(o, 0.35)) return null;
   return realBuildingAt(x, y, 0.35) >= 0 ? 'in een Ommelander gebouw' : 'in een erf, dorp, molen of mast in de Ommelanden';
