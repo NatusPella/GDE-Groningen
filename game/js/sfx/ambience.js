@@ -1,7 +1,6 @@
 import { clamp, pointInPolygon } from '../util.js';
 import { getScene } from '../scene3d.js';
 import { edgeDistance, urbanWeight, parcelAt, MAAR_WATER } from '../countryfield.js';
-import { openWater } from '../countryedge.js';
 import { trunksNear } from '../countrywalls.js';
 
 // Place-aware ambience: looping beds crossfaded by where/when the listener
@@ -236,11 +235,11 @@ function scan(world) {
   K.setReverb(place.density, place.open, closed);
 }
 
-// Out in the Ommeland the city's green, trees and water polygons are gone:
-// the meadows all round, the trunks of the road trees and hedgerows
-// (countrywalls.js) and the open water, canals and maren take their place,
-// and the polder is open (no city hum, more wind) outside a village's
-// built-up part.
+// Out in the Ommeland the city's green and trees are gone: the meadows all
+// round and the trunks of the road trees and hedgerows (countrywalls.js)
+// take their place (the water is the tiles' polygons, scanned above), and
+// the polder is open (no city hum, more wind) outside a village's built-up
+// part.
 const _trunks = [];
 function countryPlace(x, y) {
   const e = edgeDistance(x, y);
@@ -255,17 +254,6 @@ function countryPlace(x, y) {
     if (place.treePts.length < 4) place.treePts.push(..._trunks);
   }
   place.open = Math.max(place.open, place.rural);
-  // the nearest open water down the slope of its distance field
-  const w = openWater(x, y);
-  if (w > -60) {
-    const d = Math.max(0, -w);
-    if (d < place.waterD) {
-      const gx = openWater(x + 3, y) - openWater(x - 3, y), gy = openWater(x, y + 3) - openWater(x, y - 3), gl = Math.hypot(gx, gy);
-      place.waterD = d;
-      place.waterX = gl > 1e-3 ? x + (gx / gl) * d : x;
-      place.waterY = gl > 1e-3 ? y + (gy / gl) * d : y;
-    }
-  }
   // a maar of the polder grid (past the real data)
   const pm = parcelAt(x, y).dMaar - MAAR_WATER;
   if (pm < place.waterD) { place.waterD = Math.max(0, pm); place.waterX = x; place.waterY = y; }

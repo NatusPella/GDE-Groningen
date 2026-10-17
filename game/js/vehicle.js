@@ -378,7 +378,7 @@ function offroadDrag(v, dt) {
   v.angle += Math.sin(v._wob * 13.7 + v.x * 0.9) * Math.sin(v._wob * 5.3 + v.y) * dt * 0.18 * Math.min(1, sp / 15);
 }
 
-// 'gras', 'wade', 'ditch' (countryedge.js countryWater) or null where the
+// 'gras', 'wade', 'ditch' (the tiles' shallow water, else countryedge.js countryWater) or null where the
 // tyres are on a road, farm yard paving or the city's own surfaces.
 export function offroadGround(map, x, y) {
   const sw = shallowWater(map, x, y);
@@ -1086,17 +1086,6 @@ export function spawnPoliceBoatOnWater(map, waterPoly, rng = Math.random, opts =
   return v;
 }
 
-// A police boat on the open water of the Ommeland (countrywater.js), which
-// has no polygon: it only gives chase (updateBoatAI) and waits otherwise.
-export function spawnCountryPoliceBoat(map, x, y, angle) {
-  if (boatDryPoints(map, { model: POLICE_BOAT_MODEL }, x, y, angle) > 0) return null;
-  const v = new Vehicle(x, y, angle, POLICE_BOAT_MODEL);
-  v.isBoat = true;
-  v.isPolice = true;
-  v.countryWater = true;
-  return v;
-}
-
 // Mean width of a (long) water polygon: twice its area over its perimeter.
 function waterMeanWidth(poly) {
   if (poly._meanW === undefined) {
@@ -1150,9 +1139,9 @@ export function manageBoatPopulation(world, { target = 4, spawnMin = 20, spawnMa
 // A wander target with room around it that the boat can reach in a straight
 // line through open water (sampled every 3 m), so the route doesn't cut
 // across a bend in the canal; falls back to any spot with some room.
-// Where the boat's canal runs off the map and carries on as Ommeland water
-// (waterindex.js setCountryClearance), now and then a spot out in the
-// country, and from out there spots further along or back into the city.
+// Where the boat's canal runs off the map and carries on as the tiles' water,
+// now and then a spot out in the country, and from out there spots further
+// along or back into the city.
 function countryBoatSpot(v, rng, map, ch) {
   const out = rectOutside(v.x, v.y) > 0;
   let x, y;
@@ -1194,7 +1183,7 @@ const BOAT_WAYPOINT_MIN = 4;
 const BOAT_WAYPOINT_MAX = 9;
 
 // Simple wander/patrol on the water body the boat spawned in (and out into
-// the Ommeland where its canal carries on past the map edge; v.waterPoly,
+// the country where its canal carries on past the map edge; v.waterPoly,
 // set by spawnBoatOnWater) - no road graph involved, so this
 // stands entirely apart from updateTrafficAI.
 export function updateBoatAI(v, dt, map, world, rng = Math.random) {
@@ -1202,7 +1191,7 @@ export function updateBoatAI(v, dt, map, world, rng = Math.random) {
   // a mission, side-job or own boat waits where it lies until the player boards it
   // Police pursuit: the waypoint is simply the player's live position.
   const chasing = v.isPolice && !v.hijacked && world.wanted > 0;
-  if ((!v.waterPoly && !(v.countryWater && chasing)) || v.missionCar || v.playerOwned || v.homeStored) { v.applyControls(dt, 0, 0, true); return; }
+  if (!v.waterPoly || v.missionCar || v.playerOwned || v.homeStored) { v.applyControls(dt, 0, 0, true); return; }
   if (chasing) {
     v.waypoint = [world.player.x, world.player.y];
   } else {

@@ -1,6 +1,7 @@
 import { markInstancesDirty, WATER_Y } from './util.js';
+import { waterAt } from './waterlevels.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { BLOCK, MAAR_WATER, chash, edgeDistance, edgeRoad, maarX, maarY, realBlock, realWater, rectOutside, SHORE_RW } from './countryfield.js';
+import { BLOCK, MAAR_WATER, chash, edgeDistance, edgeRoad, maarX, maarY, realBlock, rectOutside } from './countryfield.js';
 import { REAL, RTILE, roadsInTile, inRealExtent } from './countryreal.js';
 import { ROAD_C, openLand } from './countryplan.js';
 import { GeoBuilder, vcMaterial, markShared, composeMatrix, tubeGeometry } from './pixelart3d.js';
@@ -597,7 +598,7 @@ function boatYaw(b) {
   return b.ln.vert ? (b.dir > 0 ? Math.PI / 2 : -Math.PI / 2) : (b.dir > 0 ? 0 : Math.PI);
 }
 
-function stepBoat(b, dt, time) {
+function stepBoat(b, dt, time, map) {
   if (b.real) {
     const P = b.real.pts;
     const segL = () => Math.hypot(P[b.i + 1][0] - P[b.i][0], P[b.i + 1][1] - P[b.i][1]) || 1;
@@ -616,8 +617,9 @@ function stepBoat(b, dt, time) {
   let d = ((target - b.yaw + Math.PI * 3) % (Math.PI * 2)) - Math.PI;
   b.yaw += d * Math.min(1, dt * 0.6);
   const [x, y] = boatPos(b);
-  // on the deep water (countrywater.js) the surface lies at WATER_Y
-  const wy = rectOutside(x, y) > 0 && realWater(x, y) > SHORE_RW ? WATER_Y - 0.13 : -0.18;
+  // on the tiles' deep water the surface lies at WATER_Y
+  const wq = rectOutside(x, y) > 0 ? waterAt(map, x, y) : null;
+  const wy = wq && !wq.wade ? WATER_Y - 0.13 : -0.18;
   b.wy = b.wy === undefined ? wy : b.wy + (wy - b.wy) * Math.min(1, dt * 1.5);
   b.g.position.set(x, b.wy + Math.sin(time * 1.3 + b.bob) * 0.03, y);
   b.g.rotation.set(Math.sin(time * 0.9 + b.bob) * 0.03, -b.yaw, 0, 'YXZ');
@@ -783,7 +785,7 @@ export function updateCountryLife(dt, world, scene, flocks, fogFar) {
   L.boats = L.boats.filter((b) => {
     const [x, y] = boatPos(b);
     if (Math.hypot(x - p.x, y - p.y) > keepD || world.cinematicActive || (!active && isSpawnHidden(world, x, y))) { L.group.remove(b.g); return false; }
-    if (!paused) stepBoat(b, dt, time);
+    if (!paused) stepBoat(b, dt, time, world.map);
     return true;
   });
 

@@ -130,10 +130,7 @@ if (!farm.tractor || !farm.quad) fails++;
 const V = await import('../game/js/vehicle.js');
 const E = await import('../game/js/countryedge.js');
 const { REAL } = await import('../game/js/countryreal.js');
-const { isInWater, inWaterPoly, setExtraWater } = await import('../game/js/util.js');
 V.setGroundMap(map);
-// as countrywater.js does when the 3D scene starts
-setExtraWater(E.wideWaterAt);
 const SEDAN = { name: 'sedan', len: 4.3, wid: 1.8, maxSpeed: 50, accel: 10, brake: 24, turnRate: 2.6, color: '#444' };
 
 // meadow drag for every driver (vehicle.js offroadDrag): an AI car flat out
@@ -163,23 +160,6 @@ const SEDAN = { name: 'sedan', len: 4.3, wid: 1.8, maxSpeed: 50, accel: 10, brak
   const ok = ai.worst < onRoad.worst - 2 && pl.worst < onRoad.worst - 2 && ai.worst > 28 && pl.worst > 28 && Math.abs(ai.worst - pl.worst) < 4;
   if (!ok) fails++;
   console.log(`${ok ? 'ok  ' : 'FAIL'} meadow drag: AI ${ai.worst.toFixed(1)} m/s, player ${pl.worst.toFixed(1)} m/s after 2 s flat out from 30 on grass; on a road ${onRoad.worst.toFixed(1)}`);
-}
-
-// one water rule: 'deep' is what sinks (inWaterPoly / isInWater), the painted
-// water ('wade', 'ditch') never does
-{
-  const n = { deep: 0, wade: 0, ditch: 0, dry: 0 };
-  let bad = 0;
-  for (let k = 0; k < 60000; k++) {
-    const x = -14000 + (k * 7919.3) % 28000, y = -14000 + (k * 104729.7) % 28000;
-    if (F.edgeDistance(x, y) < 5) continue;
-    const w = E.countryWater(x, y);
-    n[w || 'dry']++;
-    if ((w === 'deep') !== inWaterPoly(map, x, y) || (w === 'deep') !== isInWater(map, x, y)) bad++;
-  }
-  const ok = !bad && n.deep > 0 && n.wade > 0 && n.ditch > 0;
-  if (!ok) fails++;
-  console.log(`${ok ? 'ok  ' : 'FAIL'} one water rule: ${JSON.stringify(n)}, ${bad} where sinking disagrees`);
 }
 
 // bridges: dry out to the railings, and a car steered at a railing stays on the deck
