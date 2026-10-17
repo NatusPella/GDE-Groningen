@@ -176,6 +176,8 @@ M30 Ontzet        actie ██████████ 10  romantiek ███�
 
 Gemiddelden per akte (actie / romantiek): akte 1 5,3 / 3,4; akte 2 5,7 / 4,3; akte 3 5,5 / 5,3; akte 4 6,2 / 4,3; akte 5 5,4 / 8,0. Totaal 5,6 / 4,9.
 
+**Kus-timing (beslissing: M19 blijft).** De eerste kus valt aan het eind van akte 3, op ca. 62-63% van de speeltijd (M19 van 30; 179 van 288 minuten), de breuk in M24 op ca. 80% en de verzoening in M26 op ca. 84%: dat is de klassieke romcom-structuur (kus ruim over het midden, breuk kort voor het einde, hereniging in de finale). Een eerdere kus (akte 2) laat de romantiek te vroeg op volle sterkte komen en maakt de breuk vlak; een latere kus (pas na het dieptepunt) maakt van de ruzie een gewone ruzie in plaats van een val vanaf een hoogtepunt. Doordat ze na de kus doen alsof er niets gebeurd is (M20-M23, "Over gisteren."), blijft er spanning in akte 4 en heeft de breuk iets om af te breken.
+
 **Kritische zelf-review**
 
 1. **Pieken zitten waar ze horen:** de eerste kus (M19) midden in het verhaal, het dieptepunt (M24-M25) laag voor romantiek en hoog voor actie, de knuffel (M26) direct erna als contrast, en de finale (M30) bij 10 en 10.
