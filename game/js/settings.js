@@ -42,6 +42,8 @@ const DEFAULTS = {
   // a new wijk: false = a name card with a spoken line, true = the full flyover
   wijkFilm: false,
   gore: true,
+  // the story a new game plays: 'oud' (Klassiek) or 'nieuw' (proefversie); read at load by storyflag.js, changed by storychoice.js
+  verhaal: 'oud',
   // Zichtafstand (viewdist.js): 'ver', not Hoog's 'heelver', so a first
   // launch on an iGPU laptop stays at 600 m
   drawDistance: 'ver',
@@ -72,7 +74,7 @@ const DEFAULTS = {
   attractSeen: false,
 };
 // the Besturing screen has its own "Standaard herstellen" for the bindings
-const KEEP_ON_RESET = new Set(['attractSeen', 'keyBinds', 'padBinds']);
+const KEEP_ON_RESET = new Set(['attractSeen', 'keyBinds', 'padBinds', 'verhaal']);
 export const SHIFT_CHOICES = ['auto', 'manual', 'clutch'];
 export const SUBTITLE_SIZES = { klein: 0.85, normaal: 1, groot: 1.25, extragroot: 1.5 };
 export const COLOR_BLIND_MODES = ['uit', 'deuteranopie', 'protanopie', 'tritanopie'];
@@ -100,6 +102,7 @@ function load() {
     if (!['slim', 'alles', 'minimaal'].includes(out.hudMode)) out.hudMode = DEFAULTS.hudMode;
     if (!['nooit', 'lucht', 'altijd'].includes(out.minimapNorth)) out.minimapNorth = DEFAULTS.minimapNorth;
     if (!(out.minimapZoom >= 0.6 && out.minimapZoom <= 1.6)) out.minimapZoom = DEFAULTS.minimapZoom;
+    if (out.verhaal !== 'oud' && out.verhaal !== 'nieuw') out.verhaal = DEFAULTS.verhaal;
     if (!SHIFT_CHOICES.includes(out.shiftMode)) out.shiftMode = DEFAULTS.shiftMode;
     if (!COLOR_BLIND_MODES.includes(out.colorBlind)) out.colorBlind = DEFAULTS.colorBlind;
     if (!PAD_LAYOUT_CHOICES.includes(out.padLayout)) out.padLayout = DEFAULTS.padLayout;

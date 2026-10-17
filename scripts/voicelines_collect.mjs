@@ -89,6 +89,8 @@ export function collect() {
   // N = the mission's NPC; V = the narrator; another NPC key speaks off camera
   const nm = (k, npc) => (k === 'T' ? 'Tammo' : k === 'A' ? 'Anita' : k === 'V' ? NARRATOR : k !== 'N' && NPC[k] ? NPC[k].name : NPC[npc].name);
   STORY.forEach((s, i) => {
+    // the new story's entries (textOnly): their lines come from script.json, which voice_coverage checks itself
+    if (s.textOnly) return;
     // the outro (and its replay version) may have its own NPC (outroNpcKey)
     for (const kind of ['intro', 'outro', 'replay', 'fail']) for (const [k, t] of s[kind] || []) add('Missie-cutscenes', 'story', [nm(k, kind === 'outro' || kind === 'replay' ? s.outroNpcKey || s.npc : s.npc)], t, { mission: i, kind });
   });

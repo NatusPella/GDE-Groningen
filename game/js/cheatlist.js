@@ -9,7 +9,7 @@
 // on; the rest pause there (cheats.js) so no mission can break on them.
 // step: the story step (storyarc.js) that unlocks it; ach: the prestatie
 // (achievements.js) that does; neither: from the start.
-import { STEPS, stepDone } from './storyarc.js';
+import { STEPS, STEP_ALIAS, stepDone } from './storyarc.js';
 
 export const CHEATS = [
   { id: 'teleport', kind: 'action', name: 'Overal en nergens', desc: 'Kies een plek op de kaart en je staat er. Met auto en al, als je erin zit.' },
@@ -47,7 +47,7 @@ export function storyCheatUnlocks(doneId, missionPassed) {
   for (const c of CHEATS) {
     if (c.ach) continue;
     if (!c.step) { out.push(c.id); continue; }
-    const k = STEPS.findIndex((s) => s.id === c.step);
+    const k = STEPS.findIndex((s) => s.id === (STEP_ALIAS[c.step] || c.step));
     if (k >= 0 && stepDone(k, doneId, missionPassed)) out.push(c.id);
   }
   return out;

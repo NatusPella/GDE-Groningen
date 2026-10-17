@@ -17,7 +17,7 @@ import { dayForSavedStep } from './calendar.js';
 import { legacyToWorld, legacyAngleToWorld } from './rdnew.js';
 
 export const SAVE_VERSION = 9;
-export const SETTINGS_VERSION = 8;
+export const SETTINGS_VERSION = 9;
 
 const isObj = (o) => !!o && typeof o === 'object' && !Array.isArray(o);
 
@@ -171,6 +171,8 @@ export const SETTINGS_MIGRATIONS = {
   // 8: the blood-and-limbs switch is back (18+); a file without it gets the
   // default (on), anything that is not a boolean is dropped
   7(s) { if ('gore' in s && typeof s.gore !== 'boolean') delete s.gore; return s; },
+  // 9: the Verhaal choice (storychoice.js): 'oud' (Klassiek) unless the file says 'nieuw'
+  8(s) { s.verhaal = s.verhaal === 'nieuw' ? 'nieuw' : 'oud'; return s; },
 };
 
 // Settings files before v2 had no `v`.

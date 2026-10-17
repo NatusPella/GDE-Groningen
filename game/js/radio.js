@@ -15,6 +15,8 @@ import { smsVoiceFor, SMS_SAY } from './smsvoice.js';
 import { NACHTSTREEK, KROLBRUG_FAULTS, COW_FEED, PLANTSOEN_NEWS, EVENT_DAYS } from './flavourlines.js';
 import { RADIO_HOST, RADIO_GRUNN, KERMIS_NEWS } from './funlines.js';
 import { STATION_NAME, programmeAt, normalizeRadio } from './musicpick.js';
+import { nieuwVerhaal } from './storyflag.js';
+import { talkActive } from './storytalk.js';
 
 // the recorded Kiekdoar headlines in audio/nieuws (text from its tts.json)
 const NEWS_CLIPS = [
@@ -81,7 +83,10 @@ function announce(w) {
     : { title: 'Even stilte', artist: '', station: 'Radio uit', at: w.time };
 }
 
-const busy = (w) => w.paused || w.activityGame || w.padelGame || w.heliRun || w.pigeonMode;
+// The new story keeps the radio to the world: Rikus does not talk while a mission or a conversation
+// runs (a story scene, a call, the pair talking), and stays quiet until the mission is over.
+const ducked = (w) => nieuwVerhaal() && !!((w.mission && w.mission.phase === 'active') || talkActive() || w.storyContact || (typeof document !== 'undefined' && document.body.classList.contains('cine-hide-hud')));
+const busy = (w) => w.paused || w.activityGame || w.padelGame || w.heliRun || w.pigeonMode || ducked(w);
 
 export function updateRadio(dt, w) {
   if (!busy(w) && w.input.wasPressed('n')) setRadio(!on);

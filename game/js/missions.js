@@ -38,6 +38,9 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { addDrunk } from './drunk.js';
 import { klusloon, medalBonus } from './economy.js';
 import { startStunt, updateStunt, stopStunt, stuntStatus } from './stuntavond.js';
+import { nieuwVerhaal } from './storyflag.js';
+import { storyLines, talkLines, storyDataReady, readingTime } from './storytext.js';
+import { playTalk, stopTalk } from './storytalk.js';
 
 // radio fragments a stage puts on Nachtstreek (storycontact.js, loaded lazily: it imports the UI)
 let contactMod = null;
@@ -102,7 +105,7 @@ function buildDefs(world) {
   const fatStart = walk(117.2, -13.68), fatBridge = walk(24.97, -259.81), fatEnd = walk(-289.25, -106.7);
   const laneLegs = [findWalkPath(map, fatStart.x, fatStart.y, fatBridge.x, fatBridge.y), findWalkPath(map, fatBridge.x, fatBridge.y, fatEnd.x, fatEnd.y)];
   const lanePts = laneLegs.every(Boolean) ? [...laneLegs[0].pts, ...laneLegs[1].pts.slice(1)] : [[fatStart.x, fatStart.y], [fatBridge.x, fatBridge.y], [fatEnd.x, fatEnd.y]];
-  return [
+  const list = [
     {
       type: 'deliver',
       label: 'Berend telt de krassen',
@@ -606,6 +609,100 @@ function buildDefs(world) {
       ],
     },
   ];
+  // The new story arc (storyarc_nieuw.js) builds its own defs after the old ones, in the order of
+  // MISSION_IDS (append-only: indices live in saves), and stages the existing ones with its text.
+  if (nieuwVerhaal()) {
+    const lm = (map.meta.landmarks || []).find((l) => l.name === 'Goudkantoor') || { x: 86.5, y: 111.7 };
+    const loketAt = (dx, dy) => walk(lm.x + dx, lm.y + dy);
+    list.push(
+      {
+        // M03 Het Loket: a queue puzzle on foot. Jelle bought the queue, so from his scene on the clock runs faster.
+        type: 'stages',
+        label: 'Het Loket',
+        intro: ['Het Loket bij de Grote Markt: om twaalf uur sluit de inschrijving voor de Noordelijke Snackprijs, en het loket neemt alleen contant.', 'Trek een wachtnummer, haal formulier 7B en de stempel, en schrijf in. Voor twaalf uur.'],
+        outro: 'Ingeschreven voor de Noordelijke Snackprijs. De Fjord Frituur doet mee.',
+        timeLimit: 170,
+        reward: 0,
+        onFoot: true,
+        start: loketAt(8, 14),
+        stages: [
+          { kind: 'goto', target: { landmark: 'Goudkantoor', off: [3, 7], snap: 'walk', label: 'Het Loket: wachtnummer' }, mode: 'foot', radius: 5, stop: 0.8, label: 'Trek een wachtnummer', say: 'Nummer 4117. Op het scherm staat 4093.' },
+          {
+            kind: 'scene', label: 'Jelle', kicker: 'Het Loket', script: { ids: ['M03.2'] }, clock: 3,
+            cast: [{ key: 'jelle', pose: 'hold', at: [2.6, 0.8] }, { key: 'bewaarder', pose: 'hips', at: [3.6, -1.2] }],
+          },
+          {
+            kind: 'goto', target: { landmark: 'Goudkantoor', off: [-9, 4], snap: 'walk', label: 'Loket A: formulier 7B' }, mode: 'foot', radius: 5, stop: 0.8,
+            label: 'Haal formulier 7B bij loket A', say: 'Formulier 7B, in drievoud. Niet vouwen.', talk: { ids: ['M03.3'], from: 0, to: 4, delay: 1.2 },
+          },
+          {
+            kind: 'goto', target: { landmark: 'Goudkantoor', off: [11, -9], snap: 'walk', label: 'Loket C: de zijdeur bij de kopieermachine' }, mode: 'foot', radius: 5, stop: 0.8,
+            label: 'Haal de stempel bij loket C', say: 'Loket C heeft een zijdeur bij de kopieermachine.', talk: { ids: ['M03.3'], from: 4, to: 7, delay: 1.2 },
+          },
+          {
+            kind: 'goto', target: { landmark: 'Goudkantoor', off: [3, 7], snap: 'walk', label: 'Het Loket: inschrijven' }, mode: 'foot', radius: 5, stop: 0.8,
+            label: 'Schrijf in bij de balie', say: 'Alles bij elkaar: nu inschrijven, honderdvijftig euro contant.', pay: 150, paid: 'Inschrijving Noordelijke Snackprijs', payShort: ' Tessa legt de rest bij.',
+          },
+        ],
+      },
+      {
+        // M01 Nul krassen, vijftienhonderd punten: the stunt on the Grote Markt in Berend's bakkie, then the delivery (scratches count over both parts)
+        type: 'deliver',
+        label: 'Nul krassen, vijftienhonderd punten',
+        intro: ['Berend Bos wil zijn bakkie bij zijn zus aan het Boterdiep. Eerst een klus voor Jelmer op de Grote Markt: vijftienhonderd stuntpunten.', 'Stunt zonder krassen: parasols en kliko\'s mogen, mensen niet. Daarna het bakkie heel naar het Boterdiep.'],
+        outro: 'Berend zei goud. En moi. Tegen Tessa.',
+        timeLimit: 240,
+        reward: 200,
+        scratchFine: 0.5,
+        vehicleName: 'Berends bakkie',
+        destName: 'het Boterdiep',
+        stunt: { center: { x: 168.69, y: 70.04 }, radius: 46, target: 1500 },
+        handBack: { how: 'drive', say: 'Berend pakt zijn sleutels terug en rijdt weg. Wij lopen, Tessa.' },
+        start: drive(223.17, -30.52),
+        dest: drive(-22.92, -491.56),
+        say: 'Eerst de Grote Markt: vijftienhonderd stuntpunten, zonder krassen. Daarna het Boterdiep.',
+      },
+    );
+    applyNieuw(list);
+  }
+  return list;
+}
+
+// How the new arc stages the defs it shares with the old one: which script scene is said where,
+// the hints that named people who are not in this story, and what the story has dropped.
+// Stage fields: script { ids, from, to } = the lines of a stage scene; talk { ids, from, to, delay } =
+// subtitle talk while the stage runs (storytalk.js); radioScript = a radio fragment (storytext.js).
+function applyNieuw(list) {
+  const by = (label) => list.find((d) => d.label === label);
+  const stageOf = (def, kind, n = 0) => def.stages.filter((q) => q.kind === kind)[n];
+  const pin = by('Even pinnen');
+  if (pin) pin.stages[1].talk = { ids: ['M02.2'], delay: 1.5 };
+  const duif = by('Kieken van boven');
+  if (duif) duif.stages[0].talk = { ids: ['M04.2'], delay: 6 };
+  const kei = by('Wind tegen, beide kanten op');
+  if (kei) kei.moment = { at: 3, text: kei.moment.text, talk: { ids: ['M05.2'] } };
+  const vet = by('Al het vet van Grunn');
+  if (vet) {
+    vet.stages = vet.stages.filter((q) => q.kind !== 'vault');
+    vet.stages[0].say = 'Instappen. De tankwagen staat bij de groothandel.';
+    vet.stages[1].go = 'Ze zien ons! Daar gaat hij. Erin springen, of de banden plat. Schieten mag, rammen mag.';
+    vet.stages[1].stopped = 'Pang! Banden plat. De bewakers rennen weg, Durk en Douwe fietsen achter hun baas aan.';
+    vet.stages[1].hijack = 'Gekaapt! De bewakers rennen weg. Het vet is van ons.';
+    const to = stageOf(vet, 'goto', 0);
+    to.talk = { ids: ['M07.2'], delay: 3 };
+    vet.outro = 'Het vet is terug in Grunn. Plakje twee is gered.';
+  }
+  const mus = by('Het museum stond er al zo');
+  if (mus) {
+    // the black clothes and the boat are in the intro now (08 §2): only the dark is needed, and the call from home
+    mus.requires = ['night'];
+    stageOf(mus, 'scene').script = { ids: ['M06.3'], from: 0, to: 4 };
+    stageOf(mus, 'scene').lines = [];
+    const esc = stageOf(mus, 'escape');
+    esc.radio = undefined;
+    esc.radioScript = { ids: ['M06.3'], from: 4, to: 9, caller: 'Een beller uit Ljouwert' };
+    esc.talk = { ids: ['M06.3'], from: 9, to: 17, delay: 5 };
+  }
 }
 
 let chain = null;
@@ -1089,7 +1186,7 @@ function syncPub(world) {
   let target;
   if (st.phase !== 'active' || def.type === 'stunt') target = def.start;
   else if (board) target = board;
-  else if (def.type === 'deliver') target = nextStop(def) || def.dest;
+  else if (def.type === 'deliver') target = chain.stuntPhase ? def.stunt.center : nextStop(def) || def.dest;
   else if (def.type === 'fatbike') target = def.dest;
   else if (def.type === 'stages') target = stageMarker(world, def);
   // past the last waypoint (the last pub's toast plays before the outro): the last one
@@ -1102,7 +1199,7 @@ function syncPub(world) {
   pub.distanceToMarker = dist(world.player.x, world.player.y, pub.marker.x, pub.marker.y);
   pub.armed = !!st.armed;
   pub.triggerRadius = def.triggerRadius || TRIGGER_RADIUS;
-  pub.stunt = def.type === 'stunt' && st.phase === 'active' ? stuntStatus() : null;
+  pub.stunt = (def.type === 'stunt' || chain.stuntPhase) && st.phase === 'active' ? stuntStatus() : null;
   if (def.type === 'checkpoint' || def.type === 'boat') {
     pub.wpIndex = def.waypoints.slice(0, st.wpIndex).filter((wp) => !wp.via).length;
     pub.wpTotal = def.waypoints.filter((wp) => !wp.via).length;
@@ -1186,6 +1283,10 @@ function nextStop(def) {
 function progressText(world, def, pub) {
   if (def.type === 'deliver') {
     if (vehicleToBoard(world, def)) return `Stap in ${def.vehicleName || 'de auto'}`;
+    if (chain.stuntPhase) {
+      const s = stuntStatus();
+      return s ? `Stunt op de Grote Markt · punten ${s.score}/${s.target}${s.combo > 1 ? ` · combo x${s.combo}` : ''} · niemand raken${pub.vehicleDamage != null ? ` · schade ${pub.vehicleDamage}%` : ''}` : 'Rij naar de Grote Markt';
+    }
     const stop = nextStop(def);
     const to = def.destName || 'de bestemming';
     const bits = [stop ? `Eerst naar ${stop.name}` : def.stops ? `Door naar ${to}` : `Rij naar ${to}`];
@@ -1227,6 +1328,7 @@ function releaseMissionVehicle(world) {
   releaseLaneBikes(world);
   releaseCrowd(world);
   stopStunt(world);
+  chain.stuntPhase = false;
   if (chain.soloHold) { chain.soloHold = false; world.companionHold = null; }
   if (chain.race) {
     disposeRace(world, chain.race);
@@ -1347,6 +1449,7 @@ function rewardAdjust(def, base) {
 
 function succeed(world, def) {
   const i = chain.index;
+  stopTalk();
   // a replay pays the klusloon; the first pass the full reward
   const replay = chain.completed.has(i);
   const base = replay ? klusloon(def.reward) : def.reward;
@@ -1421,6 +1524,7 @@ function fail(world, def, reason) {
 
 function endInFailure(world, text) {
   world.addMessage(text, 3.5);
+  stopTalk();
   clearStoryProps();
   // H6 failed: out of the black again (startMission puts it back on)
   if (chain.defs[chain.index] && chain.defs[chain.index].heist) setStoryOutfit(null);
@@ -1817,6 +1921,9 @@ function startMission(world, def) {
   chain.run = { elapsed: 0, kills: killCount(world), hp: world.health + world.armor, hurt: 0, damage: 0, veh: null, vehHp: 100, vehDamage: 0, vehicleUsed: false };
   chain.windowT = 0;
   chain.windowExtended = false;
+  chain.clockRate = 1;
+  chain.stuntPhase = false;
+  chain.beats = {};
   chain.momentDone = false;
   chain.hijacked = false;
   chain.finishPending = false;
@@ -1835,6 +1942,8 @@ function startMission(world, def) {
   } else if (def.type === 'deliver' && def.start.road) {
     chain.vehicle = spawnMissionCar(world, def);
     world.vehicles.push(chain.vehicle);
+    // M01 of the new arc: the stunt first, in the bakkie, then the delivery
+    if (def.stunt) { startStunt(world, def.stunt); chain.stuntPhase = true; }
   } else if (def.type === 'boat') {
     chain.vehicle = spawnMissionBoat(def, world.map);
     world.vehicles.push(chain.vehicle);
@@ -1933,6 +2042,30 @@ function playMoment(world, m) {
   const staged = !isCinematicActive() && playEyeContact(world, { at: { x: p.x, y: p.y }, heading });
   if (staged && v) v.speed *= 0.3;
   if (!staged) world.addMessage(m.text, 4.5, { kind: 'missie' });
+  if (m.talk && storyDataReady()) playTalk(talkLines(m.talk.ids), { id: 'moment', delay: 0.8 });
+}
+
+// M01's stunt part: the Grote Markt scene when the bakkie arrives, the pair talking while it goes on,
+// and the chat's reaction when the points are in. Then the delivery goes on (the clock keeps running).
+function updateStuntPhase(dt, world, def) {
+  const p = world.player;
+  const b = chain.beats || (chain.beats = {});
+  const near = dist(p.x, p.y, def.stunt.center.x, def.stunt.center.y) < def.stunt.radius + 10;
+  if (near && !b.arrived && !isCinematicActive() && storyDataReady()) {
+    b.arrived = true;
+    playStageScene(world, { script: { ids: ['M01.3'] }, kicker: 'Grote Markt', cast: [{ key: 'jelmer', pose: 'phone', at: [3.2, 1.2] }] }, { target: null });
+  }
+  const s = stuntStatus();
+  if (s && b.arrived && !b.talked && s.score >= s.target * 0.2 && storyDataReady()) {
+    b.talked = true;
+    playTalk(talkLines(['M01.4']), { id: 'M01.4', delay: 0.5 });
+  }
+  if (updateStunt(dt, world, chain.timeLeft) === 'done') {
+    stopStunt(world);
+    chain.stuntPhase = false;
+    if (storyDataReady() && !isCinematicActive()) playStageScene(world, { script: { ids: ['M01.5'] }, kicker: 'Grote Markt', cast: [{ key: 'jelmer', pose: 'cheer', at: [3.2, 1.2] }, { key: 'terras', pose: 'cheer', at: [3.6, -1.4] }] }, { target: null });
+    world.addMessage('Punten binnen. Nu het bakkie heel naar het Boterdiep.', 4.5, { kind: 'missie' });
+  }
 }
 
 // Index of the waypoint the player is at: the current one or, while the
@@ -2047,7 +2180,7 @@ export function updateMissions(dt, world) {
 
   trackRun(dt, world);
   // the clock starts at the race's GO, not while the grid waits
-  if ((!chain.race || chain.race.phase === 'race') && !isCinematicActive()) chain.timeLeft -= dt;
+  if ((!chain.race || chain.race.phase === 'race') && !isCinematicActive()) chain.timeLeft -= dt * (chain.clockRate || 1);
   if (chain.timeLeft <= 0) {
     fail(world, def, def.type === 'boat' ? 'tijd op. De toeristen missen hun trein naar Zwolle' : def.type === 'stunt' ? 'tijd op. Chat is al naar een kattenfilmpje' : 'tijd op. Zelfs de bus was sneller');
     syncPub(world);
@@ -2074,7 +2207,9 @@ export function updateMissions(dt, world) {
     } else chain.run.inVehT = 0;
   }
 
-  if (def.type === 'deliver') {
+  if (def.type === 'deliver' && chain.stuntPhase) {
+    updateStuntPhase(dt, world, def);
+  } else if (def.type === 'deliver') {
     if (def.fragile) {
       const left = cargoLeft(def);
       if (left <= def.fragile.failAt) {
@@ -2557,6 +2692,13 @@ function enterStage(world, def, k) {
   const say = chain.hijacked && st.sayHijacked ? st.sayHijacked : st.say;
   if (say) world.addMessage(say, 4.5);
   if (st.radio && contactMod) contactMod.queueStoryContact({ via: 'radio', from: 'rikus', mood: 'night', ...st.radio });
+  // the new arc: a radio fragment and talk from the script, and the clock that runs faster (Het Loket)
+  if (st.radioScript && contactMod && storyDataReady()) {
+    const lines = storyLines(st.radioScript.ids, { from: st.radioScript.from, to: st.radioScript.to }).map(([who, text, o]) => [who === 'V' ? 'rikus' : who, text, { tag: o.tag, ...(who === 'jelle' ? { card: 'jelle' } : {}) }]);
+    if (lines.length) contactMod.queueStoryContact({ via: 'radio', from: 'rikus', mood: 'night', caller: st.radioScript.caller || '', lines });
+  }
+  if (st.talk && storyDataReady()) playTalk(talkLines(st.talk.ids, st.talk), { id: `${def.id || def.label}:${k}`, delay: st.talk.delay || 1 });
+  if (st.clock) { chain.clockRate = st.clock; world.addMessage('De klok loopt harder: Jelle heeft de rij gekocht.', 4, { kind: 'gevaar', key: 'loket-klok' }); }
 }
 
 function nextStage(world, def) {
@@ -2565,7 +2707,7 @@ function nextStage(world, def) {
   if (cur && cur.pay) {
     const amt = Math.min(cur.pay, Math.max(0, Math.floor(world.money)));
     world.money -= amt;
-    const short = amt < cur.pay ? ` Oma Trijntje legt de laatste €${cur.pay - amt} bij.` : '';
+    const short = amt < cur.pay ? (cur.payShort || ` Oma Trijntje legt de laatste €${cur.pay - amt} bij.`) : '';
     world.addMessage(`Gekocht! ${cur.paid || 'Afgerekend'}, -€${amt}.${short}`, 4, { kind: 'missie', key: 'stage-paid' });
   }
   enterStage(world, def, chain.stageIndex + 1);
@@ -2714,11 +2856,13 @@ function modeOk(p, mode) {
 }
 
 function playStageScene(world, st, S) {
+  // the new arc's stage scenes say the script's lines (storytext.js)
+  if (st.script && storyDataReady()) st = { ...st, lines: storyLines(st.script.ids, st.script) };
   const c = S.target || { x: world.player.x, y: world.player.y };
   const name = (who) => (who === 'T' ? 'Tammo' : who === 'A' ? 'Anita' : storySpeakerName(who));
   let at = st.reveal ? REVEAL.card : 0.6;
   const lines = (st.lines || []).map(([who, text]) => {
-    const dur = Math.max(1.8, Math.min(3.8, 0.95 + text.length * 0.042));
+    const dur = nieuwVerhaal() ? readingTime(text) : Math.max(1.8, Math.min(3.8, 0.95 + text.length * 0.042));
     const l = { speaker: name(who), text, at, dur };
     at += dur + 0.1;
     return l;

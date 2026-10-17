@@ -19,6 +19,8 @@ import { isPhoneOpen } from './phone.js';
 import { playBanterVoice, stopBanterVoice, pauseBanterVoice, voiceBusy } from './audio.js';
 import { hold as holdChannel, release as releaseChannel } from './speech.js';
 import { KEYS } from './storagekeys.js';
+import { nieuwVerhaal } from './storyflag.js';
+import { banterExchanges, storyDataReady } from './storytext.js';
 
 const GLOBAL_CD = 75;
 const PLACE_CD = 600;
@@ -45,14 +47,24 @@ const VOICE_DIR = new URL('../audio/voicelines/banter/', import.meta.url).href;
 let voices = {};
 fetch(VOICE_DIR + 'manifest.json').then((r) => (r.ok ? r.json() : {})).then((m) => { voices = m || {}; }).catch(() => {});
 
-const BY_TRIGGER = new Map();
-for (const ex of BANTER) {
-  if (!BY_TRIGGER.has(ex.trigger)) BY_TRIGGER.set(ex.trigger, []);
-  BY_TRIGGER.get(ex.trigger).push(ex);
+let BY_TRIGGER = new Map();
+let BY_ID = new Map();
+let PLACE_NAMES = new Set();
+let WIJK_NAMES = new Set();
+function indexPool(pool) {
+  BY_TRIGGER = new Map();
+  for (const ex of pool) {
+    if (!BY_TRIGGER.has(ex.trigger)) BY_TRIGGER.set(ex.trigger, []);
+    BY_TRIGGER.get(ex.trigger).push(ex);
+  }
+  BY_ID = new Map(pool.map((ex) => [ex.id, ex]));
+  PLACE_NAMES = new Set(pool.filter((ex) => ex.trigger.startsWith('place:')).map((ex) => ex.trigger.slice(6)));
+  WIJK_NAMES = new Set(pool.filter((ex) => ex.trigger.startsWith('wijk:')).map((ex) => ex.trigger.slice(5)));
 }
-const BY_ID = new Map(BANTER.map((ex) => [ex.id, ex]));
-const PLACE_NAMES = new Set(BANTER.filter((ex) => ex.trigger.startsWith('place:')).map((ex) => ex.trigger.slice(6)));
-const WIJK_NAMES = new Set(BANTER.filter((ex) => ex.trigger.startsWith('wijk:')).map((ex) => ex.trigger.slice(5)));
+// The new arc talks from the script (storytext.js banterExchanges), not from the old pools whose lines
+// belong to the old story; they are indexed once the script data has loaded.
+let poolReady = !nieuwVerhaal();
+indexPool(nieuwVerhaal() ? [] : BANTER);
 
 let world = null;
 let heard = loadHeard();
@@ -80,6 +92,7 @@ function saveHeard() {
 // --- story progress (read-only) --------------------------------------------------
 
 function refreshProgress() {
+  if (!poolReady && storyDataReady()) { poolReady = true; st.places = null; indexPool(banterExchanges()); }
   let save = null;
   try { save = getStorySave(); } catch (e) { save = null; }
   const done = new Set([...(save ? save.done : []), ...(save ? save.skipped : [])]);
