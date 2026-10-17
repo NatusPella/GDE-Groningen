@@ -5,7 +5,7 @@ import { EDGE, wideWaterAt, openWater, canalGridSnapshot, countryWater } from '.
 import { setCountryWaterKind } from './waterlevels.js';
 import { runGeo, geoWorkerActive, onGeoFallback } from './geojobs.js';
 import { setWaterQuery } from './geokernels.js';
-import { REAL } from './countryreal.js';
+import { REAL, coveredByTiles } from './countryreal.js';
 import { sharedWaterMaterial } from './water3d.js';
 import { setCountryClearance } from './waterindex.js';
 import { applyCutMask } from './cutmask3d.js';
@@ -51,7 +51,8 @@ function init(group) {
   bed.matrixAutoUpdate = false;
   group.add(bed);
   W = { group, bankMat, bed, chunks: 0, tris: 0 };
-  setExtraWater(wideWaterAt);
+  // inside a province tile the tile's own water polygons are the water
+  setExtraWater((x, y) => !coveredByTiles(x, y) && wideWaterAt(x, y));
   setCountryClearance(countryClearance);
   setCountryWaterKind(countryWater);
 }
