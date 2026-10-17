@@ -23,6 +23,8 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **Plaatsing leest de tegels:** winkels, cafés, garages, dorpsuitjes, eierballen en De Koe van Ome Jan zoeken hun plek op de gebouwen en wegen van de tegels (`tileplace.js`). Wat ver van je vandaan vastligt laadt eerst zijn tegels: de deuren van winkels, cafés en garages achter het titelscherm (het spel wacht alleen als je eerder start), de dorpen en de schuur van Ome Jan op de achtergrond erna, een teleport via de kaart en de plekkencontrole voor ze te controleren.
 - **Landverkeer op de tegelwegen:** trekkers, fietsers, quads en auto's rijden over de wegen van de tegels (voorheen alleen over de oude Ommeland-wegen en het polderrooster).
 - **Geparkeerde trekkers bij schuren:** de schuren van de tegels krijgen hun trekker op het erf; auto's langs dorpsstraten zijn de gewone geparkeerde auto's.
+### Toegevoegd
+- **Echte gebouwhoogtes en daken in heel Groningen:** huizen, schuren en flats buiten de stad hebben nu de hoogte en dakvorm van het echte gebouw (3D BAG, CC BY 4.0) in plaats van een standaardhoogte.
 
 ## [0.34.0] - 2026-10-17
 
