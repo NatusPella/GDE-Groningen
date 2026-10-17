@@ -6,7 +6,8 @@ import { getScene } from './scene3d.js';
 import { buildPersonMesh, animatePersonWalk } from './models3d_people.js';
 import { JELLE_LOOK } from './storycast.js';
 import { currentStep, getStorySave } from './story.js';
-import { isMissionActive, getActiveRace, buildMissionMarker3D, updateMissionMarker3D } from './missions.js';
+import { isMissionActive, getActiveRace } from './missions.js';
+import { buildWorldMarker3D, updateWorldMarker3D } from './worldmarker3d.js';
 import { isCinematicActive, playCinematic, showBanner } from './cinematics.js';
 import { isShopOpen } from './shopui.js';
 import { lineVoiceFor } from './linevoice.js';
@@ -402,7 +403,7 @@ export function setTarget(t) {
   world.challengeTarget = t ? { x: t.x, y: t.y, path: t.path || [] } : null;
   if (!t) { if (beam) beam.visible = false; return; }
   if (!beam) {
-    beam = buildMissionMarker3D();
+    beam = buildWorldMarker3D('checkpoint');
     getScene().add(beam);
   }
   beam.visible = true;
@@ -735,7 +736,7 @@ export function updatePostgame(dt, w) {
   dayWage(w);
   updateGuide(dt, w);
   for (const d of CHALLENGES) if (d.idle) d.idle(w, dt);
-  if (beam && beam.visible) updateMissionMarker3D(beam, w.time, 'active');
+  if (beam && beam.visible) updateWorldMarker3D(beam, w.time);
   if (spots) {
     const p = w.player;
     for (const s of spots) {

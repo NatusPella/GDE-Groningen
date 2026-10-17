@@ -1,5 +1,5 @@
 import { SMS_SAY } from './smsvoice.js';
-import { markerColors } from './a11y.js';
+import { buildWorldMarker3D, setWorldMarkerKind, updateWorldMarker3D } from './worldmarker3d.js';
 import { dist, pointInPolygon, closestPointOnSegment, boatDryPoints, clamp, isInWater } from './util.js';
 import { PERFECT_VERDICT } from './flavourlines.js';
 import { spawnVehicleOnRoad, Vehicle, makeTwoWheeler, spawnHeroCarNear, attachToNearestRoad } from './vehicle.js';
@@ -3174,107 +3174,15 @@ export const missionDebug = {
 export const MARKER_COLOR_ACTIVE = 0x3fd0ff;
 export const MARKER_COLOR_IDLE = 0xffd23f;
 
-// Earlier pass: a 0.07m-radius, 3.2m-tall beam at opacity 0.4 with no
-// blending. At any real driving/on-foot distance that is a few pixels of
-// faint tint against sky/fog - technically positioned correctly (syncPub's
-// pub.marker.x/y is always a real, current point, never NaN) but invisible
-// in practice, which matches the "ik zie geen waypoints in 3D" report.
-// Fix: much thicker/taller beam, additive ("glow") blending instead of
-// plain alpha so it reads as light rather than a tinted sliver, a ground
-// glow disc for close-range readability, and a bigger ring/core cluster.
-const markerBeamMaterial = new THREE.MeshBasicMaterial({
-  color: MARKER_COLOR_IDLE,
-  transparent: true,
-  opacity: 0.75,
-  depthWrite: false,
-  blending: THREE.AdditiveBlending,
-});
-const markerRingMaterial = new THREE.MeshBasicMaterial({
-  color: MARKER_COLOR_IDLE,
-  transparent: true,
-  opacity: 1,
-  depthWrite: false,
-  blending: THREE.AdditiveBlending,
-});
-const markerCoreMaterial = new THREE.MeshBasicMaterial({ color: MARKER_COLOR_IDLE });
-const markerGroundMaterial = new THREE.MeshBasicMaterial({
-  color: MARKER_COLOR_IDLE,
-  transparent: true,
-  opacity: 0.5,
-  depthWrite: false,
-  blending: THREE.AdditiveBlending,
-  side: THREE.DoubleSide,
-});
-
-const BEAM_HEIGHT = 38;
-
-// One floating waypoint beacon: a ground glow disc, a tall glow-beam (tall
-// enough to clear most rooftops so it reads from across a neighbourhood),
-// a ring and a pulsing core near head height for close-up readability.
-// There is only ever one active mission, so the integrator builds a single
-// instance of this and repositions it every frame - it does not need
-// Map-based bookkeeping like the dots below.
+// The start (idle) and the objective (active) of a mission: the shared world
+// marker (worldmarker3d.js), a diamond for the start, an arrow for the goal.
 export function buildMissionMarker3D() {
-  const group = new THREE.Group();
-
-  const ground = new THREE.Mesh(new THREE.CircleGeometry(2.2, 24), markerGroundMaterial);
-  ground.rotation.x = -Math.PI / 2;
-  ground.position.y = 0.05;
-  group.add(ground);
-
-  const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.5, BEAM_HEIGHT, 12, 1, true), markerBeamMaterial);
-  beam.position.y = BEAM_HEIGHT / 2;
-  group.add(beam);
-
-  const ring = new THREE.Mesh(new THREE.TorusGeometry(1.3, 0.16, 10, 24), markerRingMaterial);
-  ring.rotation.x = Math.PI / 2;
-  ring.position.y = 2.6;
-  group.add(ring);
-
-  const core = new THREE.Mesh(new THREE.SphereGeometry(0.55, 12, 10), markerCoreMaterial);
-  core.position.y = 3.6;
-  group.add(core);
-
-  // an active mission's marker is a downward arrow, an idle one a ball:
-  // the two never differ by colour alone
-  const arrow = new THREE.Mesh(new THREE.ConeGeometry(0.75, 1.3, 4), markerCoreMaterial);
-  arrow.rotation.x = Math.PI;
-  arrow.position.y = 3.7;
-  arrow.visible = false;
-  group.add(arrow);
-
-  group.userData.ring = ring;
-  group.userData.core = core;
-  group.userData.arrow = arrow;
-  return group;
+  return buildWorldMarker3D('start');
 }
 
-// Recolors (MARKER_COLOR_ACTIVE when phase==='active', else MARKER_COLOR_IDLE)
-// and pulses/bobs the beacon built by buildMissionMarker3D(). Call once per
-// frame, after positioning the group, with world.time and world.mission.phase.
-// Mutates the shared marker materials directly - safe since only one marker
-// mesh ever exists at a time.
 export function updateMissionMarker3D(group, time, phase) {
-  const pal = markerColors();
-  const hex = parseInt((phase === 'active' ? pal.missionActive : pal.mission).slice(1), 16);
-  const { core, arrow } = group.userData;
-  if (arrow) {
-    arrow.visible = phase === 'active';
-    core.visible = phase !== 'active';
-    arrow.rotation.y = time * 1.6;
-    arrow.position.y = 3.7 + Math.sin(time * 3) * 0.25;
-  }
-  markerBeamMaterial.color.setHex(hex);
-  markerRingMaterial.color.setHex(hex);
-  markerCoreMaterial.color.setHex(hex);
-  markerGroundMaterial.color.setHex(hex);
-
-  const pulse = 1 + Math.sin(time * 4) * 0.25;
-  // flattened (local z is world up): seen edge-on at eye height a round
-  // tube reads as a fat capsule across the beam, a flat band as a thin line
-  group.userData.ring.scale.set(pulse, pulse, pulse * 0.3);
-  group.userData.ring.position.y = 2.6 + Math.sin(time * 2) * 0.2;
-  group.userData.core.scale.setScalar(0.85 + Math.sin(time * 4) * 0.25);
+  setWorldMarkerKind(group, phase === 'active' ? 'goal' : 'start');
+  updateWorldMarker3D(group, time);
 }
 
 const waypointDotGeometry = new THREE.SphereGeometry(1.1, 12, 10);

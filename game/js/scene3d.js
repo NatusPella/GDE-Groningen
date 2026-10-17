@@ -59,6 +59,7 @@ const wheelFrustum = new THREE.Frustum(), wheelProj = new THREE.Matrix4();
 import { getUiScale } from './uiscale.js';
 import { getActiveRoute, getRouteAhead, getUserWaypoint } from './routing.js';
 import { updateWaymarkers3D, hideWaymarkers3D, routeColor } from './waymarkers3d.js';
+import { buildWorldMarker3D, updateWorldMarker3D, setMarkerCamera } from './worldmarker3d.js';
 import { OUTLINE_MAT } from './pixelart3d.js';
 import { createSkyUniforms, buildSkyDome, createEnvironmentUpdater, setStarOpacity, SKY_HORIZON } from './sky3d.js';
 import { computeLighting } from './daynight.js';
@@ -2209,6 +2210,7 @@ export function update3D(dt, world) {
     scene.remove(missionMarkerMesh);
     missionMarkerMesh = null;
   }
+  setMarkerCamera(cam);
   updateRouteRibbon3D(animDt, world);
 
   // remaining-waypoint preview dots (checkpoint/boat missions only) - the
@@ -3373,28 +3375,6 @@ function buildRouteRibbonGeometry(pts, along0, map = null, z0 = 0) {
   return g;
 }
 
-function buildWaypointBeacon3D() {
-  const group = new THREE.Group();
-  const beam = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.3, 0.45, 40, 12, 1, true),
-    new THREE.MeshBasicMaterial({ color: ROUTE_COLOR_3D.user, transparent: true, opacity: 0.32, depthWrite: false, side: THREE.DoubleSide })
-  );
-  beam.position.y = 20;
-  group.add(beam);
-  const ring = new THREE.Mesh(
-    new THREE.RingGeometry(1.5, 2.1, 32).rotateX(-Math.PI / 2),
-    new THREE.MeshBasicMaterial({
-      color: ROUTE_COLOR_3D.user, transparent: true, opacity: 0.8, depthWrite: false,
-      polygonOffset: true, polygonOffsetFactor: -9, polygonOffsetUnits: -36,
-    })
-  );
-  ring.position.y = 0.045;
-  ring.renderOrder = 1;
-  group.add(ring);
-  group.userData.ring = ring;
-  return group;
-}
-
 // Driving routes follow the right-hand lane (Dutch traffic): shift each
 // point to the lane centre of the road it lies on; one-way roads stay centred.
 function keepRight(pts, map) {
@@ -3426,13 +3406,12 @@ function updateRouteRibbon3D(dt, world) {
   const wp = world.padelGame || world.activityGame || world.heliRun ? null : getUserWaypoint();
   if (wp) {
     if (!waypointBeacon) {
-      waypointBeacon = buildWaypointBeacon3D();
+      waypointBeacon = buildWorldMarker3D('user');
       scene.add(waypointBeacon);
     }
     waypointBeacon.visible = true;
     waypointBeacon.position.set(wp.x, wp.z || 0, wp.y);
-    const pulse = 1 + Math.sin(performance.now() / 260) * 0.08;
-    waypointBeacon.userData.ring.scale.set(pulse, 1, pulse);
+    updateWorldMarker3D(waypointBeacon, performance.now() / 1000);
   } else if (waypointBeacon) {
     waypointBeacon.visible = false;
   }

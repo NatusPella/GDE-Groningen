@@ -455,7 +455,7 @@ function findSecondary(world, primary) {
   const m = world.mission;
   const gameBusy = !!(world.padelGame || world.activityGame || world.heliRun);
   if (m && (m.phase === 'idle') && m.label && !(world.sideJob && world.sideJob.active) && !gameBusy) {
-    add({ id: 'mis', x: m.marker.x, y: m.marker.y, h: 3.2, label: 'Missie: ' + m.label, sub: 'Loop of rij de marker in', kind: 'mission' }, 60);
+    add({ id: 'mis', x: m.marker.x, y: m.marker.y, h: 3.2, label: 'Missie: ' + m.label, kind: 'mission' }, 60);
   }
   const g = world.storyGuide;
   const onMarker = m && m.phase === 'idle' && Math.hypot(m.marker.x - g?.x, m.marker.y - g?.y) < 4;
