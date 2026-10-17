@@ -400,7 +400,21 @@ async function batch2Smoke(world, check, capture) {
 const seenNew = new Set();
 function newArcChecks(id) { seenNew.add(id); }
 
+// Skips scenes and story contacts (the radio fragments that piled up after the missions) until the game has been quiet for a moment.
+async function quietDown(world, ms = 1500) {
+  let since = performance.now();
+  const t0 = performance.now();
+  while (performance.now() - t0 < 60000) {
+    if (isCinematicActive()) { skipCinematic(); since = performance.now(); }
+    else if (world.storyContact || window.__storyContact.pending()) { skipStoryContact(); since = performance.now(); }
+    if (performance.now() - since > ms) return true;
+    await sleep(120);
+  }
+  return false;
+}
+
 async function newArcRuntimeChecks(world, check, capture) {
+  await quietDown(world);
   const T = window.__storytalk;
   check('new arc: the script data is loaded', !!(window.__storytext && window.__storytext.ready()), JSON.stringify(window.__storytext && window.__storytext.counts()));
   // text-only talk: a line without a recording is shown with the speaker's name for a readable time and ends by itself
@@ -418,14 +432,16 @@ async function newArcRuntimeChecks(world, check, capture) {
   // silent app texts: a card on the phone, never read aloud
   const pf = window.__phonefeed;
   if (pf) {
+    await quietDown(world);
     const before = pf.state().cards;
     world.phoneNotifications.push({ from: 'Tessa', text: 'Ik ben bij het Loket. Kom niet. Je brengt ze in de war.', duration: 5, story: true, silent: true });
-    await sleep(2500);
-    check('new arc: a silent app text shows as a phone card', pf.state().cards > before || document.querySelector('.pf-card'), JSON.stringify(pf.state()));
+    const card = await waitFor(() => pf.state().cards > before || document.querySelector('.pf-card'), 8000, 200);
+    check('new arc: a silent app text shows as a phone card', card, JSON.stringify(pf.state()));
     check('new arc: the silent app text is not read aloud', window.__phonefeed.voicing ? !window.__phonefeed.voicing() : true);
   }
   // the radio keeps to the world: ducked while a mission runs
-  check('new arc: the radio is not ducked when no mission runs', !window.__radio || window.__radio.ducked() === false);
+  await quietDown(world);
+  check('new arc: the radio is not ducked when no mission or conversation runs', !window.__radio || window.__radio.ducked() === false, JSON.stringify({ mission: world.mission && world.mission.phase, contact: !!world.storyContact, talk: window.__storytalk && window.__storytalk.state() }));
 }
 
 export async function runStoryTest(world) {
@@ -767,7 +783,9 @@ export async function runStoryTest(world) {
       const end = S().current();
       check(`flow reaches "Wordt vervolgd" (${lastPart})`, end && end.end === lastPart, JSON.stringify(end));
       check('"Wordt vervolgd" card shown', S().cardShown(lastPart));
-      check('all available steps passed', report.steps.length === STEPS.filter(stepAvailable).length, `${report.steps.length} stappen`);
+      // the new arc's opening (M00) already played before the loop started: it is not one of the looped steps
+      const firstLooped = report.steps.length ? STEPS.findIndex((q) => q.id === report.steps[0].id) : 0;
+      check('all available steps passed', report.steps.length === STEPS.filter(stepAvailable).length - firstLooped, `${report.steps.length} stappen`);
       check('Tammo and Tessa take turns', NEW || swaps >= 4, `${swaps} wissels`);
       const calEnd = window.__calendar && window.__calendar.get();
       check('after the story the calendar is in September', calEnd && (!PARTS[lastPart].finale || calEnd.day >= 19), calEnd && calEnd.info.long);
