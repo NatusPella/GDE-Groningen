@@ -1,4 +1,4 @@
-import { REAL, RTILE, buildingAt, inRealExtent, roadsInTile, nearestPlace } from './countryreal.js';
+import { REAL, RTILE, buildingAt, inRealExtent, allRoadsInTile, nearestPlace } from './countryreal.js';
 import { realWater, edgeDistance, urbanWeight } from './countryfield.js';
 import { isInWater } from './util.js';
 import { worldPlaceAt } from './worldplaces.js';
@@ -44,10 +44,10 @@ export function realRoadNear(x, y, R = 40, ok = null) {
   const t0y = Math.floor((y - R) / RTILE), t1y = Math.floor((y + R) / RTILE);
   for (let tx = t0x; tx <= t1x; tx++) {
     for (let ty = t0y; ty <= t1y; ty++) {
-      const L = roadsInTile(tx, ty);
+      const L = allRoadsInTile(tx, ty);
       if (!L) continue;
       for (let k = 0; k < L.length; k += 2) {
-        const r = REAL.roads[L[k]], a = r.pts[L[k + 1]], b = r.pts[L[k + 1] + 1];
+        const r = REAL.allRoads[L[k]], a = r.pts[L[k + 1]], b = r.pts[L[k + 1] + 1];
         if (ok && !ok(r)) continue;
         const [d, px, py] = segDist(x, y, a, b);
         const de = d - r.w / 2;
