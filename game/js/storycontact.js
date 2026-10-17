@@ -76,13 +76,12 @@ body.hide-minimap #hud .sc-phone { max-height: calc(100vh / var(--ui, 1) - var(-
 #hud .sc-phone.show { transform: translateY(0) rotate(0); opacity: 1; }
 #hud .sc-phone.ring { animation: sc-shake .5s infinite; }
 @keyframes sc-shake { 0%,100% { transform: rotate(0); } 25% { transform: rotate(-2.2deg); } 75% { transform: rotate(2.2deg); } }
-#hud .sc-top { display: flex; justify-content: space-between; font-size: 11px; color: rgba(255,255,255,.55); padding: 0 8px 6px; }
-#hud .sc-screen { position: relative; border-radius: 18px; overflow: hidden; background: radial-gradient(ellipse at top, #17301f 0%, #0c140e 85%); border: 1px solid rgba(63,201,122,.35); min-height: 250px; display: flex; flex-direction: column; }
-#hud .sc-head { text-align: center; padding: 14px 10px 6px; }
+#hud .sc-top, #hud .sc-sub { display: none; }
+#hud .sc-screen { position: relative; border-radius: 18px; overflow: hidden; background: radial-gradient(ellipse at top, #17301f 0%, #0c140e 85%); border: 1px solid rgba(63,201,122,.35); min-height: 190px; display: flex; flex-direction: column; }
+#hud .sc-head { text-align: center; padding: 10px 10px 2px; }
 #hud .sc-state { font-size: 12px; letter-spacing: 1px; text-transform: uppercase; color: #3fc97a; }
 #hud .sc-name { font-size: 22px; font-weight: bold; margin-top: 2px; }
-#hud .sc-sub { font-size: 12px; color: rgba(255,255,255,.55); }
-#hud .sc-portrait { display: block; margin: 8px auto 4px; width: 96px; height: 96px; border-radius: 50%; image-rendering: pixelated; background: #1d2a3a; }
+#hud .sc-portrait { display: block; margin: 6px auto 4px; width: 76px; height: 76px; border-radius: 50%; image-rendering: pixelated; background: #1d2a3a; }
 #hud .sc-phone.ring .sc-portrait { box-shadow: 0 0 0 0 rgba(63,201,122,.7); animation: sc-pulse 1.1s infinite; }
 @keyframes sc-pulse { 0% { box-shadow: 0 0 0 0 rgba(63,201,122,.6); } 100% { box-shadow: 0 0 0 16px rgba(63,201,122,0); } }
 #hud .sc-wave { display: flex; gap: 3px; justify-content: center; align-items: center; height: 22px; margin: 2px 0 4px; }
