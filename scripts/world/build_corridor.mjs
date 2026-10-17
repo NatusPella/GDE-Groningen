@@ -21,6 +21,7 @@ import { fileURLToPath } from 'node:url';
 import * as G from '../../game/js/gdt.js';
 import * as WB from '../../game/js/worldbuilder.js';
 import { registerBuilderHooks } from '../../game/js/builderhooks.js';
+import { RULES } from '../../game/js/junctions.js';
 
 registerBuilderHooks();
 import { wgsToWorld, worldToWgs } from '../../game/js/rdnew.js';
@@ -336,19 +337,23 @@ export function ommelandBox(i, j, root = ROOT) {
   return [[ox, oy], [ox + G.TILE_M, oy], [ox, oy + G.TILE_M], [ox + G.TILE_M, oy + G.TILE_M]].some(([x, y]) => { const [la, lo] = worldToWgs(x, y); return la >= s && la <= n && lo >= w && lo <= e; });
 }
 
-const PER_TILE = ['buildings', 'roads', 'water', 'green', 'trees', 'rails'];
-const SECTION_OF = { buildings: G.SECTION.BUILDINGS, roads: G.SECTION.ROADS, water: G.SECTION.WATER, green: G.SECTION.GREEN, trees: G.SECTION.TREES, rails: G.SECTION.RAILS };
+// canopies (derive_tiles.mjs: platform roofs, open roofs) only come with the province's derivation
+const PER_TILE = ['buildings', 'roads', 'water', 'green', 'trees', 'rails', 'canopies'];
+const SECTION_OF = { buildings: G.SECTION.BUILDINGS, roads: G.SECTION.ROADS, water: G.SECTION.WATER, green: G.SECTION.GREEN, trees: G.SECTION.TREES, rails: G.SECTION.RAILS, canopies: G.SECTION.CANOPIES };
 
 // One tile out of the world builder's features that touch it: lines and
 // areas cut at the tile edge (a piece of a way per tile, sharing its end
 // point on the edge with the next: the portal), buildings, trees and mapped
 // furniture by their own point. gid: the running ids per kind (advanced);
-// stats: totals (advanced). null when nothing lands in the tile.
-export function tileBlob(i, j, list, gid, flags, builder, stats = null) {
+// stats: totals (advanced). extras.junctions: the junction model's nodes of the
+// pack (junction_tiles.mjs; arms name road rows), written as the tile's
+// JUNCTIONS rows for the nodes inside it. null when nothing lands in the tile.
+export function tileBlob(i, j, list, gid, flags, builder, stats = null, extras = null) {
   const [ox, oy] = G.tileOrigin(i, j);
   const box = [ox, oy, ox + G.TILE_M, oy + G.TILE_M];
   const rows = Object.fromEntries(PER_TILE.map((q) => [q, []]));
   const mapped = [];
+  const pieces = extras && extras.junctions ? new Map() : null;
   for (const f of list) {
     // mapped furniture: in every tile one of its points lies in, one id for it
     if (f.kind === 'furniture') {
@@ -357,13 +362,34 @@ export function tileBlob(i, j, list, gid, flags, builder, stats = null) {
       mapped.push({ gid: f.gid, ...f.row });
       continue;
     }
-    if (f.kind === 'buildings' || f.kind === 'trees') { rows[f.kind].push({ gid: gid[f.kind]++, ...f.row }); continue; }
+    if (f.kind === 'buildings' || f.kind === 'trees' || f.kind === 'canopies') { rows[f.kind].push({ gid: gid[f.kind]++, ...f.row }); continue; }
     if (f.kind === 'water' || f.kind === 'green') {
       const P = clipPoly(f.row.pts, box);
       if (P && P.length >= 4) rows[f.kind].push({ gid: gid[f.kind]++, ...f.row, pts: P });
       continue;
     }
-    for (const piece of clipLine(f.row.pts, box)) rows[f.kind].push({ gid: gid[f.kind]++, ...f.row, pts: piece });
+    for (const piece of clipLine(f.row.pts, box)) {
+      const r = { gid: gid[f.kind]++, ...f.row, pts: piece };
+      rows[f.kind].push(r);
+      if (pieces && f.kind === 'roads') (pieces.get(f.row) || pieces.set(f.row, []).get(f.row)).push(r);
+    }
+  }
+  // the junction model: a node in this tile, its arms by the road pieces of this tile that hold the node
+  const junctions = [];
+  if (pieces) {
+    for (const J of extras.junctions) {
+      if (!(J.x >= box[0] && J.x < box[2] && J.y >= box[1] && J.y < box[3])) continue;
+      const a = [];
+      for (const arm of J.arms) {
+        const v = arm.road.pts[arm.idx];
+        for (const pc of pieces.get(arm.road) || []) {
+          const q = pc.pts.findIndex((u) => u[0] === v[0] && u[1] === v[1]);
+          if (q >= 0) { a.push([pc.gid, q, arm.d, RULES.indexOf(arm.rule), r2(arm.stop), arm.enter ? 1 : 0]); break; }
+        }
+      }
+      if (a.length >= 2) junctions.push({ k: J.key, p: [[J.x, J.y]], c: J.control, a });
+    }
+    junctions.sort((p, q) => (p.k < q.k ? -1 : p.k > q.k ? 1 : 0));
   }
   // what OSM maps, then the tile's own hooks (furniture, greenery: builderhooks.js); they see the tile's box
   rows.tile = { i, j, x0: ox, y0: oy, size: G.TILE_M };
@@ -373,14 +399,17 @@ export function tileBlob(i, j, list, gid, flags, builder, stats = null) {
     // a tree: its point, and species, height (dm) and flags (greenery.js)
     type: SECTION_OF[q], rows: q === 'trees' ? rows[q].map((r) => ({ g: r.gid, p: [[r[0], r[1]]], ...(r[2] !== undefined ? { s: r[2], h: r[3], ...(r[4] ? { f: r[4] } : null) } : null) })) : rows[q].map(cleanRow),
   }));
+  if (junctions.length) sections.push({ type: G.SECTION.JUNCTIONS, rows: junctions });
   if (nav.length) sections.push({ type: G.SECTION.NAV, rows: nav });
   if (extra.length) sections.push({ type: G.SECTION.FURNITURE, rows: extra });
   if (!sections.length) return null;
   const n = Object.fromEntries(PER_TILE.filter((q) => rows[q].length).map((q) => [q, rows[q].length]));
   if (mapped.length) n.furniture = mapped.length;
+  if (junctions.length) n.junctions = junctions.length;
   if (stats) {
-    for (const q of PER_TILE) stats[q] = (stats[q] || 0) + rows[q].length;
+    for (const q of PER_TILE) if (rows[q].length || q !== 'canopies') stats[q] = (stats[q] || 0) + rows[q].length;
     if (mapped.length) stats.furniture = (stats.furniture || 0) + mapped.length;
+    if (junctions.length) stats.junctions = (stats.junctions || 0) + junctions.length;
     for (const b of rows.buildings) stats.hsrc[b.hsrc] = (stats.hsrc[b.hsrc] || 0) + 1;
     stats.tiles++;
   }

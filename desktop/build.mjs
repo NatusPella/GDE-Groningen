@@ -60,7 +60,7 @@ function packWorld() {
   const packer = path.join(root, 'scripts', 'world', 'pack_tiles.mjs');
   if (!fs.existsSync(packer) || !fs.existsSync(path.join(SRC, 'js', 'gdt.js'))) { console.log('no tile packer in this checkout: JSON map only'); return; }
   const h = crypto.createHash('sha1');
-  for (const f of ['citymap.json', 'mapextras.json', 'ommeland.json', 'ommeland.bin', 'js/gdt.js', 'js/mapdata.js', 'js/elevation.js', 'js/passages.js', 'js/museumplan.js', 'js/util.js', 'js/worldbuilder.js']) h.update(fs.readFileSync(path.join(SRC, f)));
+  for (const f of ['citymap.json', 'mapextras.json', 'ommeland.json', 'ommeland.bin', 'js/gdt.js', 'js/mapdata.js', 'js/elevation.js', 'js/passages.js', 'js/museumplan.js', 'js/util.js', 'js/worldbuilder.js', 'js/derive.js', 'js/spatialgrid.js']) h.update(fs.readFileSync(path.join(SRC, f)));
   h.update(fs.readFileSync(packer));
   // what else goes into the rows when the checkout has it: the height chain,
   // the profiles, junctions and routes, the building attributes, the 3D BAG
@@ -85,6 +85,11 @@ function packWorld() {
     ? fs.readdirSync(cacheDir).filter((d) => d === 'province' || d.startsWith('province-')).sort().map((d) => path.join(cacheDir, d)) : [];
   if (provDirs.length) {
     h.update(fs.readFileSync(province));
+    // what the province build runs besides (derive_tiles.mjs: the city's derivation; bag3d.mjs: 3D BAG)
+    for (const f of ['derive_tiles.mjs', 'junction_tiles.mjs', 'building_clearance.mjs', 'bag3d.mjs']) h.update(fs.readFileSync(path.join(root, 'scripts', 'world', f)));
+    for (const f of ['builderhooks.js', 'greenery.js', 'streetfurniture.js', 'junctions.js']) h.update(fs.readFileSync(path.join(SRC, 'js', f)));
+    const bagP = path.join(root, 'data', 'world', '3dbag_province.json.gz');
+    if (fs.existsSync(bagP)) h.update(fs.readFileSync(bagP));
     for (const d of provDirs) for (const f of fs.readdirSync(d).filter((q) => q.endsWith('.json.gz')).sort()) { h.update(f); h.update(fs.readFileSync(path.join(d, f))); }
   }
   const WCACHE = path.join(HERE, '.world-cache');

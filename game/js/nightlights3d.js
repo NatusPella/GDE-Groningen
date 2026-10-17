@@ -373,6 +373,32 @@ function lampsForRoad(road, map) {
 
 export const lampsForRoadForTest = (road, map) => lampsForRoad(road, map);
 
+// The lamps OSM maps (highway=street_lamp, the tiles' furniture rows k 'lamp')
+// stand where they are mapped, turned to the nearest street; they claim their
+// spots before the rule lamps of the roads fill the gaps.
+function mappedLamp(map, m) {
+  const [x, y] = m.pts[0];
+  let best = null, bd = 25;
+  for (const r of map.roadsNear(x, y, 12)) {
+    if (!LAMP_CATS.has(r.cat) && !PATH_CATS.has(r.cat)) continue;
+    for (let i = 0; i < r.pts.length - 1; i++) {
+      const dx = r.pts[i + 1][0] - r.pts[i][0], dy = r.pts[i + 1][1] - r.pts[i][1], L2 = dx * dx + dy * dy || 1e-9;
+      const t = Math.max(0, Math.min(1, ((x - r.pts[i][0]) * dx + (y - r.pts[i][1]) * dy) / L2));
+      const cx = r.pts[i][0] + dx * t, cy = r.pts[i][1] + dy * t, d2 = (cx - x) ** 2 + (cy - y) ** 2;
+      if (d2 < bd) { bd = d2; best = [cx, cy, r]; }
+    }
+  }
+  const angle = best ? Math.atan2(best[1] - y, best[0] - x) : 0;
+  const lampH = best && !PATH_CATS.has(best[2].cat) ? Math.min(10, Math.max(POLE_H * 0.8, lampRule(best[2]).h)) : POLE_H;
+  const known = lampByKey.get(propKey('lamp', x, y));
+  if (known) return known;
+  const lamp = { x, y, angle, threshold: 0.12 + hash(x, y) * 0.28, on: 0, key: propKey('lamp', x, y), hs: lampH / POLE_H, mapped: true };
+  lamp.lx = x + Math.cos(angle) * ARM;
+  lamp.ly = y + Math.sin(angle) * ARM;
+  registerLamp(lamp);
+  return lamp;
+}
+
 function lampProp(l) {
   if (!l.prop) {
     l.prop = makeProp('lamp', l.x, l.y, {
@@ -407,6 +433,12 @@ function rebuildVisible(world, px, py) {
   visible = [];
   const seen = new Set();
   // street lamps claim their spots before the path lamps fill the gaps
+  for (const m of world.map.furniture || []) {
+    if (m.k !== 'lamp' || !m.pts || Math.abs(m.pts[0][0] - px) > LAMP_VIEW || Math.abs(m.pts[0][1] - py) > LAMP_VIEW) continue;
+    const l = m._lamp || (m._lamp = mappedLamp(world.map, m));
+    if (l.broken || isPropBroken(l.key)) { l.broken = true; continue; }
+    if (visible.length < LAMP_MAX) visible.push(l);
+  }
   const near = world.map.roadsNear(px, py, LAMP_VIEW);
   const ordered = near.filter((r) => !PATH_CATS.has(r.cat)).concat(near.filter((r) => PATH_CATS.has(r.cat)));
   for (const road of ordered) {

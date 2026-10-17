@@ -1,0 +1,58 @@
+// Uniform grid over bounding boxes: insert, remove and query by box.
+export class SpatialGrid {
+  constructor(cellSize) {
+    this.cell = cellSize;
+    this.map = new Map();
+  }
+  key(cx, cy) { return (cx + 32768) * 65536 + cy + 32768; }
+  cellRange(minx, miny, maxx, maxy) {
+    return {
+      cx0: Math.floor(minx / this.cell), cy0: Math.floor(miny / this.cell),
+      cx1: Math.floor(maxx / this.cell), cy1: Math.floor(maxy / this.cell),
+    };
+  }
+  insert(item, bounds) {
+    const { cx0, cy0, cx1, cy1 } = this.cellRange(...bounds);
+    for (let cx = cx0; cx <= cx1; cx++) {
+      for (let cy = cy0; cy <= cy1; cy++) {
+        const k = this.key(cx, cy);
+        let arr = this.map.get(k);
+        if (!arr) { arr = []; this.map.set(k, arr); }
+        arr.push(item);
+      }
+    }
+  }
+  remove(item, bounds) {
+    const { cx0, cy0, cx1, cy1 } = this.cellRange(...bounds);
+    for (let cx = cx0; cx <= cx1; cx++) {
+      for (let cy = cy0; cy <= cy1; cy++) {
+        const k = this.key(cx, cy);
+        const arr = this.map.get(k);
+        if (!arr) continue;
+        const i = arr.indexOf(item);
+        if (i >= 0) arr.splice(i, 1);
+        if (!arr.length) this.map.delete(k);
+      }
+    }
+  }
+  query(minx, miny, maxx, maxy) {
+    const { cx0, cy0, cx1, cy1 } = this.cellRange(minx, miny, maxx, maxy);
+    // one cell: its list as it is (a copy), no dedupe needed
+    if (cx0 === cx1 && cy0 === cy1) {
+      const arr = this.map.get(this.key(cx0, cy0));
+      return arr ? arr.slice() : [];
+    }
+    const seen = new Set();
+    const out = [];
+    for (let cx = cx0; cx <= cx1; cx++) {
+      for (let cy = cy0; cy <= cy1; cy++) {
+        const arr = this.map.get(this.key(cx, cy));
+        if (!arr) continue;
+        for (const item of arr) {
+          if (!seen.has(item)) { seen.add(item); out.push(item); }
+        }
+      }
+    }
+    return out;
+  }
+}
