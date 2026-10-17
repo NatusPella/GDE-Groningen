@@ -9,8 +9,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { migrateSave, migrateSettings, savedStoryStep, SAVE_VERSION, SETTINGS_VERSION } from '../game/js/savemigrate.js';
-import { STEP_BY_ID, RETIRED_STEPS } from '../game/js/storyarc.js';
+import { migrateSave, migrateSettings, savedStoryStep, savedArc, SAVE_VERSION, SETTINGS_VERSION } from '../game/js/savemigrate.js';
+import { STEP_BY_ID, RETIRED_STEPS, ARC_ID } from '../game/js/storyarc.js';
 import { STAT_DEFAULTS, statsFromSave } from '../game/js/world.js';
 import { CHEAT_BY_ID } from '../game/js/cheatlist.js';
 import { legacyToWorld, legacyAngleToWorld } from '../game/js/rdnew.js';
@@ -62,6 +62,12 @@ for (const file of files) {
   ok(same(before, fx.save) && before !== d, `${tag}: the original is not modified`);
   ok(same(migrateSave(d).data, d) && migrateSave(d).steps.length === 0, `${tag}: migrating twice changes nothing`);
 
+  // a save belongs to one story arc: the saves of before 0.35 are the old one, and a save of the
+  // other arc is never loaded (savegame.js readSave); then only its migration is checked
+  const arc = exp.arc || 'oud';
+  ok(savedArc(d) === arc && d.arc === arc, `${tag}: belongs to the ${arc} arc`, d.arc);
+  if (arc !== ARC_ID) { ok(savedArc(d) !== ARC_ID, `${tag}: another arc than the one played (${ARC_ID}): not loaded`); continue; }
+
   // playable: the story continues at a step that exists
   const step = savedStoryStep(d);
   ok(step && (STEP_BY_ID.has(step.id) || step.end), `${tag}: continues at an existing step`, JSON.stringify(step && (step.id || step)));
@@ -104,6 +110,7 @@ for (const file of files) {
     sh.vehicles.forEach((v, i) => {
       const o = before.shops.vehicles[i];
       if (!Number.isFinite(o.x)) return ok(!('x' in v), `${tag}: ${v.key} without a place stays without`);
+      if (before.v >= 7) return ok(o.x === v.x && o.y === v.y && o.angle === v.angle, `${tag}: ${v.key} already in RD New, not moved`);
       ok(movedTo(o, v), `${tag}: ${v.key} at the same real place (RD New)`, `${o.x},${o.y} -> ${v.x},${v.y}`);
       if (Number.isFinite(o.angle)) ok(Math.abs(v.angle - legacyAngleToWorld(o.x, o.y, o.angle)) < 0.06, `${tag}: ${v.key} heading turned with the frame`);
     });
@@ -136,10 +143,21 @@ for (const file of files) {
     if (!(k in before)) continue;
     if (!o || !Number.isFinite(o.x)) { ok(same(d[k], o), `${tag}: ${k} without a place intact`); continue; }
     const { x, y, ...rest } = d[k], { x: ox, y: oy, ...orest } = o;
-    ok(same(rest, orest) && movedTo(o, d[k]), `${tag}: ${k} at the same real place`, `${ox},${oy} -> ${x},${y}`);
+    // a save of v7 or later is in the RD New frame already: nothing moves
+    ok(same(rest, orest) && (before.v >= 7 ? same(o, d[k]) : movedTo(o, d[k])), `${tag}: ${k} at the same real place`, `${ox},${oy} -> ${x},${y}`);
   }
   if (before.v < 8) ok(d.frame === 'rd-new', `${tag}: marked as RD New`);
   if (exp.pos) ok(Math.hypot(d.pos.x - exp.pos[0], d.pos.y - exp.pos[1]) < 0.06, `${tag}: pos is ${exp.pos}`, `${d.pos.x},${d.pos.y}`);
+}
+
+// the arc of a save: before 0.35 every save is the old one; a new-arc save keeps its arc
+{
+  ok(savedArc({}) === 'oud' && savedArc({ arc: 'nieuw' }) === 'nieuw' && savedArc({ arc: 'anders' }) === 'oud' && savedArc(null) === 'oud', 'savedArc: oud unless the save says nieuw');
+  const a = migrateSave({ v: 8, money: 1, story: { v: 1, done: [] } });
+  ok(a && a.data.arc === 'oud' && a.steps.join() === '8->9', 'a v8 save without arc becomes the old arc');
+  const b = migrateSave({ v: 8, arc: 'nieuw', money: 1 });
+  ok(b && b.data.arc === 'nieuw', 'a save that says nieuw stays nieuw');
+  ok(SAVE_VERSION >= 9, 'save v9 added the arc');
 }
 
 // every station id the radio list ever saved

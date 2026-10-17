@@ -17,14 +17,14 @@ import { stopVillageMini } from './dorpsuitjes.js';
 import { quitActivity } from './activities.js';
 import { getGoalSave, applyGoalSave } from './goal.js';
 import { getCalendarSave, applyCalendarSave } from './calendarday.js';
-import { migrateSave, SAVE_VERSION } from './savemigrate.js';
+import { migrateSave, SAVE_VERSION, savedArc } from './savemigrate.js';
 import { getCheatSave, applyCheatSave } from './cheats.js';
 import { closeShopMenu } from './shopui.js';
 import { quitTrainDrive } from './traindrive.js';
 import { statsFromSave } from './world.js';
 import { getRadioSave, applyRadioSave } from './radio.js';
 import { KEYS } from './storagekeys.js';
-import { STEPS, PARTS, stepDone, stepAvailable, nextStoryStep } from './storyarc.js';
+import { STEPS, PARTS, stepDone, stepAvailable, nextStoryStep, ARC_ID } from './storyarc.js';
 
 // the key keeps its old name; the version inside the save is what counts (savemigrate.js)
 const KEY = KEYS.save;
@@ -85,6 +85,8 @@ export function readSave() {
     const raw = localStorage.getItem(KEY);
     const m = migrateSave(JSON.parse(raw || 'null'));
     if (!m) return null;
+    // a save belongs to one story arc and never loads into the other (the new arc has its own key too)
+    if (savedArc(m.data) !== ARC_ID) return null;
     if (m.from !== VERSION) backupOnce(raw, m.from);
     return m.data;
   } catch (e) {
@@ -150,6 +152,7 @@ function serialize(w) {
   const pos = p.inVehicle && p.inVehicle.isBoat ? null : { x: Math.round(p.x * 10) / 10, y: Math.round(p.y * 10) / 10 };
   return {
     v: VERSION,
+    arc: ARC_ID,
     savedAt: Date.now(),
     money: Math.max(0, Math.floor(num(w.money, num(w._goodMoney, 0)))),
     moneyBackup: Math.max(0, Math.floor(num(w._goodMoney, num(w.money, 0)))),
@@ -266,6 +269,7 @@ export function applySave(w, d) {
   if (!w || !d) return false;
   const m = d.v !== VERSION && migrateSave(d);
   if (m) d = m.data;
+  if (savedArc(d) !== ARC_ID) return false;
   try {
     // a running scene (train trip, intro) would otherwise finish against the loaded state
     skipAllCinematics();

@@ -7,13 +7,21 @@
 // finds its save. TODO(1.1 or later): drop the old keys with removeLegacyKeys()
 // once nobody can still go back to a 0.28 build.
 
+import { nieuwVerhaal } from './storyflag.js';
+
 export const PREFIX = 'gde-';
 // ?dev runs keep their own copy of every key under this prefix (devflags.js)
 export const DEV_PREFIX = 'gde-dev:';
 export const LEGACY_PREFIX = 'gte-';
 export const LEGACY_DEV_PREFIX = 'gte-dev:';
 
-export const KEYS = {
+// The new story arc (storyflag.js) keeps its own progress: a different save, backup,
+// prestaties and "already seen" state, so playing it never touches a released save
+// and a save of one arc can never load into the other.
+const ARC_KEYS = ['save', 'saveBackup', 'achievements', 'pigeon', 'flavour', 'banter', 'introSeen', 'wijkenSeen', 'radioHistory'];
+const ARC_SUFFIX = nieuwVerhaal() ? '-nieuw' : '';
+
+export const BASE_KEYS = {
   save: 'gde-save-v1',
   settings: 'gde-settings',
   achievements: 'gde-prestaties-v1',
@@ -36,7 +44,11 @@ export const KEYS = {
   errorLog: 'gde-foutlog',
   snapshots: 'gde-snapshots',
   placeshots: 'gde-placeshots',
+  // hidden setting: play the new story arc (storyflag.js)
+  nieuwVerhaal: 'gde-nieuwverhaal',
 };
+
+export const KEYS = Object.fromEntries(Object.entries(BASE_KEYS).map(([k, v]) => [k, ARC_KEYS.includes(k) ? v + ARC_SUFFIX : v]));
 
 export const SESSION_KEYS = {
   benchmarkPending: 'gde-benchmark-pending',
@@ -45,25 +57,25 @@ export const SESSION_KEYS = {
 // old name -> new name, most important first: if storage runs full halfway,
 // the save and the settings are already across
 export const LEGACY_KEYS = [
-  ['gte-save-v1', KEYS.save],
-  ['gte-settings', KEYS.settings],
-  ['gte-prestaties-v1', KEYS.achievements],
-  ['gte-menu-v1', KEYS.menu],
-  ['gte-duif-v1', KEYS.pigeon],
-  ['gte-flavour-v1', KEYS.flavour],
-  ['gte-banter-v1', KEYS.banter],
-  ['gte-last-version', KEYS.lastVersion],
-  ['gte-gfx-advice', KEYS.gfxAdvice],
-  ['gte-muted', KEYS.muted],
-  ['gte-intro-seen', KEYS.introSeen],
-  ['gte-uitleg', KEYS.onboarding],
-  ['gte-hint-uses', KEYS.hintUses],
-  ['gte-map-layers', KEYS.mapLayers],
-  ['gte-wijken-seen', KEYS.wijkenSeen],
-  ['gte-radio-history', KEYS.radioHistory],
-  ['gte-fog', KEYS.fog],
-  ['gte-save-backup', KEYS.saveBackup],
-  ['gte-foutlog', KEYS.errorLog],
+  ['gte-save-v1', BASE_KEYS.save],
+  ['gte-settings', BASE_KEYS.settings],
+  ['gte-prestaties-v1', BASE_KEYS.achievements],
+  ['gte-menu-v1', BASE_KEYS.menu],
+  ['gte-duif-v1', BASE_KEYS.pigeon],
+  ['gte-flavour-v1', BASE_KEYS.flavour],
+  ['gte-banter-v1', BASE_KEYS.banter],
+  ['gte-last-version', BASE_KEYS.lastVersion],
+  ['gte-gfx-advice', BASE_KEYS.gfxAdvice],
+  ['gte-muted', BASE_KEYS.muted],
+  ['gte-intro-seen', BASE_KEYS.introSeen],
+  ['gte-uitleg', BASE_KEYS.onboarding],
+  ['gte-hint-uses', BASE_KEYS.hintUses],
+  ['gte-map-layers', BASE_KEYS.mapLayers],
+  ['gte-wijken-seen', BASE_KEYS.wijkenSeen],
+  ['gte-radio-history', BASE_KEYS.radioHistory],
+  ['gte-fog', BASE_KEYS.fog],
+  ['gte-save-backup', BASE_KEYS.saveBackup],
+  ['gte-foutlog', BASE_KEYS.errorLog],
 ];
 
 // render caches: rebuilt on demand, so they are not copied (no double storage use)
