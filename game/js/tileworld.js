@@ -12,7 +12,7 @@
 // and is visible through the query methods and queryView. The arrays and the
 // elevation model keep to the pinned set until the F1 builder gives them a
 // tile home.
-import { GameMap, SpatialGrid, loadMap } from './mapdata.js';
+import { GameMap, SpatialGrid, loadMap, markDryRoad } from './mapdata.js';
 import { polygonBounds } from './util.js';
 import { SECTION, decodeBlob } from './gdt.js';
 import { TileStore, FrameQueue, HttpRangeSource, inflateRaw, makeWorkerDecoder, decodeCompressed } from './tilestore.js';
@@ -126,6 +126,7 @@ export class TileWorld extends GameMap {
     const tk = residentKey(tile.i, tile.j, key);
     if (this.resident.has(tk)) return false;
     this.resident.add(tk);
+    const newRoads = [], newWater = [];
     for (const s of tile.sections) {
       if (s.type === SECTION.RASTER && this.terrain) { this.terrain.add(tk, s.raster); continue; }
       const kind = KIND_OF.get(s.type);
@@ -137,7 +138,8 @@ export class TileWorld extends GameMap {
           this._res[kind].set(gid, e);
           if (kind !== 'trees') this._gidOf.set(obj, gid);
           if (kind === 'buildings' || kind === 'roads' || kind === 'water' || kind === 'green') obj.bounds = boundsOfObj(kind, obj);
-          if (kind === 'water') this._waterVer = (this._waterVer || 0) + 1;
+          if (kind === 'water') { this._waterVer = (this._waterVer || 0) + 1; newWater.push(obj); }
+          if (kind === 'roads') newRoads.push(obj);
           const grid = gridOf(kind, obj);
           if (grid) (this[grid] || (this[grid] = new SpatialGrid(64))).insert(obj, boundsOfObj(kind, obj));
           // a streamed tile's mapped furniture joins the list streetfurniture3d.js reads
@@ -147,6 +149,13 @@ export class TileWorld extends GameMap {
       }
     }
     attachProfiles(tile, (gid) => { const e = this._res.roads.get(gid); return e && e.obj; });
+    // a road over water without a bridge tag is a culvert or a dry deck (mapdata.js markDryRoad)
+    for (const r of newRoads) markDryRoad(this, r);
+    for (const w of newWater) {
+      if (!w.bounds) continue;
+      const cx = (w.bounds[0] + w.bounds[2]) / 2, cy = (w.bounds[1] + w.bounds[3]) / 2;
+      for (const r of this.roadsNear(cx, cy, Math.hypot(w.bounds[2] - w.bounds[0], w.bounds[3] - w.bounds[1]) / 2)) markDryRoad(this, r);
+    }
     for (const fn of this._tileListeners || []) fn('add', tile, tk);
     return true;
   }
