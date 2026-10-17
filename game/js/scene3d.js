@@ -78,7 +78,6 @@ import { initGrass, updateGrass, grassFarColor, grassFarRank } from './grass.js'
 import { updateCountryside, setCountryPropLevel } from './countryside.js';
 import { updateOmmelandLandmarks } from './ommelandlandmarks.js';
 import { setCountryNight, setCountryFacadeLevel } from './countrybuilding.js';
-import { updateCountryBake } from './countrybake.js';
 import { edgeDistance, setCountryBounds } from './countryfield.js';
 import { countryRayHit } from './countrycam.js';
 import { probe } from './hitchprobe.js';
@@ -2605,7 +2604,6 @@ export function update3D(dt, world) {
   prewarmLightVariants();
   probe.mark('3d:prewarm');
 
-  updateCountryBake(renderer, focus.x, focus.y, edgeDistance(focus.x, focus.y) > -700);
   // behind a menu the world stands still: the shadow map from the first
   // frame is reused
   // a busy CPU (cpuLevel 1+) renders the shadow map every other frame

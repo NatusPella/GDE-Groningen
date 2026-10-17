@@ -13,13 +13,13 @@ import {
   ROAD_C, FARM_TYPES, TREE_ROW_P, WILLOW_ROW_P, HEDGE_ROW_P, WIRE_ROW_P, ROAD_ROW,
   openLand, blockPlan, farmDetail, villagePlan, blockSigns, farmAt, inVillage, pushOutOfPlan,
 } from './countryplan.js';
-import { updateSkyline, skylineStats } from './countryskyline.js';
+import { updateFarProps, farPropsStats } from './farprops.js';
 import { updateCountryLife, lifeStats } from './countrylife.js';
 import { buildSign, disposeSign } from './countrysigns.js';
-import { EDGE, edgeBlocked, edgeTileItems, roadGap } from './countryedge.js';
+import { EDGE, edgeBlocked, roadGap } from './countryedge.js';
 import { ensureCountryEdge } from './countryplan.js';
-import { thinDitchOn, ditchRamp, urbanWeight, realBlock, realWater } from './countryfield.js';
-import { REAL } from './countryreal.js';
+import { thinDitchOn, ditchRamp, provinceBlock } from './countryfield.js';
+import { urbanWeight } from './provinceworld.js';
 import { setTileWalls, clearTileWalls, pushOutOfWalls, setTileTrunks, clearTileTrunks, pushOutOfTrunks } from './countrywalls.js';
 import { glowMaterial, poolGeometry } from './countryglow.js';
 import { updateTileWater, tileWaterStats } from './tilewatermask.js';
@@ -31,8 +31,8 @@ import { propRadius } from './viewdist.js';
 // without a seam), deterministic prop tiles streamed around the player
 // within a per-frame budget, and grazing herds that react to the player.
 // What stands where comes from countryplan (farmsteads every few hundred
-// metres, wierde villages, gas sites, mills); the skyline layer draws the
-// tall and distant things and countrylife the traffic, boats and birds.
+// metres, wierde villages, gas sites); farprops.js draws the real turbines and
+// pylons and countrylife the traffic, boats and birds.
 // Everything is instanced per prop type; only the nearest animals get rigs.
 
 const TILE = 160;
@@ -239,7 +239,7 @@ const ROAD_CLEAR = {
   tree: 1.2, poplar: 1.2, willow: 1.2, hedge: 1.0, post: 0.3, wire: 0.3, gate: 0.5, bale: 1.0, reed: 0.3,
   barrack: 1.5, shed: 1.5, mestsilo: 1.5, towersilo: 1.5, feedsilo: 1.5, clamp: 1.5, plough: 1,
   tractorBody: 1, tractorBase: 1, trailerBody: 1, trailerBase: 1, grave: 0.5, glass: 1.5, clubhouse: 1.5,
-  mast: 0.5, goal: 1, barrier: 0.3, bank: 0.5, rush: 0.3,
+  mast: 0.5, goal: 1, bank: 0.5, rush: 0.3,
 };
 const clearOfRoad = (x, y, m) => roadGap(x, y, m + 0.5) >= m;
 
@@ -397,7 +397,6 @@ function* genTileSteps(tx, ty) {
     genVillage(tile, v);
   }
   genBridges(tile, bx, by);
-  genEdge(tile);
   yield;
   for (const sg of blockSigns(bx, by)) if (inTile(tile, sg.x, sg.y)) tile.signs.push(sg);
 
@@ -477,53 +476,6 @@ function fadeKeep(x, y) {
   return r >= 1 || chash(Math.floor(x / 25) + 71, Math.floor(y / 25) - 13) < r * 1.1 - 0.05;
 }
 
-// The map-edge fringe (countryedge): allotments, sports parks, business
-// halls, ribbon houses, noise barriers, lanes of trees, city-limit signs
-// and bridges on the roads and canals that carry on from the city.
-function genEdge(tile) {
-  const e = edgeTileItems(tile.tx, tile.ty);
-  if (!e) return;
-  for (const f of e.features) {
-    for (const it of f.items) {
-      if (it.kind === 'hedgeRow' || it.kind === 'fenceRow') { perimeter(tile, f.rect, it.kind === 'hedgeRow'); continue; }
-      const kind = it.kind === 'hall' ? 'shed' : it.kind;
-      push(tile, kind, it.x, it.y, it.rot, it.sx, it.sy, it.sz, it.color, kind === 'slab' ? 0.04 : 0.06, it.h || 0);
-    }
-  }
-  for (const h of e.houses) {
-    push(tile, 'house' + h.kind + h.look, h.x, h.y, -h.angle, 1, 1, 1, 0xffffff, 0.06);
-    const ca = Math.cos(h.angle), sa = Math.sin(h.angle);
-    // front garden hedge and a tree behind
-    for (let k = -2; k <= 2; k++) push(tile, 'hedge', h.x - ca * 7.5 - sa * k * 2.2, h.y - sa * 7.5 + ca * k * 2.2, -h.angle + Math.PI / 2, 2.4, 0.8, 1.1, 0xffffff, 0.08);
-    push(tile, 'tree', h.x + ca * 10 + sa * 3, h.y + sa * 10 - ca * 3, h.x, 0.8, 0.8, 0.8, 0xffffff, 0.1);
-  }
-  for (const b of e.barriers) push(tile, 'barrier', b.x, b.y, -b.rot, b.len, 1, 1, 0xffffff, 0.04);
-  for (const t of e.trees) push(tile, t.poplar ? 'poplar' : 'tree', t.x, t.y, t.x * 0.7, t.s, t.s, t.s, 0xffffff, 0.1);
-  for (const sg of e.signs) tile.signs.push(sg);
-  for (const b of e.bridges) push(tile, 'bridge', b.x, b.y, -b.along, b.span / 11, 1, (b.w + 1.4) / 5.2, 0xffffff, 0);
-}
-
-function perimeter(tile, r, hedge) {
-  const [x0, y0, x1, y1] = r;
-  const step = hedge ? 2.3 : 3.5;
-  const edges = [[x0, y0, x1, y0], [x1, y0, x1, y1], [x1, y1, x0, y1], [x0, y1, x0, y0]];
-  edges.forEach(([ax, ay, bx2, by2], i) => {
-    const len = Math.hypot(bx2 - ax, by2 - ay), n = Math.max(1, Math.floor(len / step));
-    const ang = -Math.atan2(by2 - ay, bx2 - ax);
-    for (let k = 0; k <= n; k++) {
-      const t = k / n;
-      if (i === 0 && Math.abs(t - 0.5) < 0.06) continue; // the gate
-      const x = ax + (bx2 - ax) * t, y = ay + (by2 - ay) * t;
-      if (!inTile(tile, x, y)) continue;
-      if (hedge) push(tile, 'hedge', x, y, ang, 2.6, 0.9, 1.2, 0xffffff, 0.08);
-      else push(tile, 'post', x, y, 0, 1, 1.6, 1, 0x3f5a44, 0.05);
-    }
-    if (!hedge) {
-      const mx = (ax + bx2) / 2, my = (ay + by2) / 2;
-      if (inTile(tile, mx, my)) for (const h of [0.6, 1.1, 1.6]) push(tile, 'wire', mx, my, ang, len, 1, 1, 0x3f5a44, 0, h);
-    }
-  });
-}
 
 // Graphics preset 'laag' (scene3d.js applyViewSettings): field edges with
 // fewer fences on wider posts with two strands, and no rushes, cross-ditch
@@ -605,7 +557,7 @@ function genFieldEdges(tile, bx, by, rot, aMin, bMin, W) {
   const fenceOk = (x, y) => fadeKeep(x, y) && okSpot(x, y, 1.4) && fencedParcel(parcelAt(x, y).seed);
   // across: a cross ditch, its bank running along a
   const bankOk = (x, y, across) => {
-    if (!openLand(x, y) || farmAt(x, y, 1) || inVillage(x, y, 2) || edgeBlocked(x, y, 1) || realWater(x, y) > -0.5) return false;
+    if (!openLand(x, y) || farmAt(x, y, 1) || inVillage(x, y, 2) || edgeBlocked(x, y, 1)) return false;
     const p = parcelAt(x, y);
     if (p.road || p.dMain < MAIN_HW + 0.8 || p.dMaar < MAAR_HW + 1 || !thinDitchOn(p)) return false;
     const other = across ? Math.min(p.a - p.a0, p.a1 - p.a) : Math.min(p.b - p.b0, p.b1 - p.b);
@@ -710,7 +662,7 @@ function genParcel(tile, bx, by, rot, col, row, a0, a1, b0, b1, W, lineAng) {
   const R = parcelRng(seed);
   const [cx, cy] = W((a0 + a1) / 2, (b0 + b1) / 2);
   if (!openLand(cx, cy) || inVillage(cx, cy, -10)) return;
-  const inReal = REAL.ready && realBlock(bx, by);
+  const inReal = provinceBlock(bx, by);
   if (inReal && urbanWeight(cx, cy) > 0.3) return;
   const inset = 3;
   const c0 = W(a0 + inset, b0 + inset), c1 = W(a1 - inset, b1 - inset);
@@ -842,7 +794,6 @@ const PROP_TYPES = {
   clubhouse: { geo: M3.clubhouseGeometry, cap: 40, shadow: true },
   mast: { geo: M3.lightMastGeometry, cap: 200, shadow: true },
   goal: { geo: M3.goalGeometry, cap: 120, shadow: false },
-  barrier: { geo: M3.barrierGeometry, cap: 600, shadow: true },
   bank: { geo: M3.bankGeometry, cap: 6000, shadow: false },
   rush: { geo: M3.rushGeometry, cap: 6000, shadow: false },
 };
@@ -1182,7 +1133,7 @@ function reedItems(t) {
   const put = (a, b) => {
     const [x, y] = blockToWorld(bx, by, rot, a, b);
     const clump = chash(Math.floor(x / 7) + 5, Math.floor(y / 7) - 3);
-    if (clump > 0.42 || !openLand(x, y) || realWater(x, y) > -0.5) return;
+    if (clump > 0.42 || !openLand(x, y)) return;
     const p = parcelAt(x, y);
     if (p.road || p.dMain < MAIN_HW * 0.8 || p.dMaar < MAAR_WATER || (p.dDitch < DITCH_HW * 0.72 && p.dMain > MAIN_HW + 0.5)) return;
     if (farmAt(x, y, 0) || inVillage(x, y, 0) || edgeBlocked(x, y, 1)) return;
@@ -1221,7 +1172,7 @@ function reedItems(t) {
         const o = sd * (MAAR_WATER + 0.25 + chash(Math.round(q * 4), sd + 7) * 0.4);
         const x = vert ? c + o : x0 + q, y = vert ? y0 + q : c + o;
         const clump = chash(Math.floor(x / 7) + 5, Math.floor(y / 7) - 3);
-        if (clump > 0.5 || !openLand(x, y) || realWater(x, y) > -0.5 || parcelAt(x, y).road || farmAt(x, y, 0)) continue;
+        if (clump > 0.5 || !openLand(x, y) || parcelAt(x, y).road || farmAt(x, y, 0)) continue;
         const h = chash(Math.round(x * 3), Math.round(y * 3));
         push(tmp, 'reed', x, y, h * 6.28, 1 + h * 0.3, 0.8 + clump * 1.2, 1 + h * 0.3, 0xffffff, 0.12);
       }
@@ -1585,8 +1536,7 @@ export function updateCountryside(dt, world, scene, cam, viewDist) {
   S.idle = !(near || S.tiles.size);
   updateTileWater(world.map, scene, p.x, p.y, S.idle ? 0 : propRadius(viewDist) - 50, world.time);
   gameplay(dt, world);
-  // the skyline leaves out what the props draw, less what it may lag behind
-  updateSkyline(dt, world, scene, cam, Math.max(0, propRadius(viewDist) - 250));
+  updateFarProps(dt, world, scene, cam);
   updateCountryLife(dt, world, scene, S.idle ? [] : S.flocks, scene.fog ? scene.fog.far : viewDist);
   const ms = performance.now() - t0;
   S.ms = (S.ms || 0) * 0.95 + ms * 0.05;
@@ -1603,6 +1553,6 @@ export function countrysideStats() {
   return {
     ms: +(S.ms || 0).toFixed(3), maxMs: +(S.maxMs || 0).toFixed(2), genMax: +S.genMax.toFixed(2), tiles: S.tiles.size, queue: S.queue.length, chunks: S.chunks.size, meshes,
     animals: S.animals.length, skinned: S.skinned.size, herd, farms: S.farmCount, flocks: S.flocks.length, pools,
-    skyline: skylineStats(), life: lifeStats(), water: tileWaterStats(),
+    farprops: farPropsStats(), life: lifeStats(), water: tileWaterStats(),
   };
 }

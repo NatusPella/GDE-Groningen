@@ -11,8 +11,7 @@
   const NX = window.__bhNX || 6, NY = window.__bhNY || 5;
   for (let j = 0; j < NY; j++) for (let i = 0; i < NX; i++) pts.push(['grid' + i + j, bx0 + (bx1 - bx0) * (i + 0.5) / NX, by0 + (by1 - by0) * (j + 0.5) / NY]);
   for (const l of (map.meta.landmarks || [])) pts.push(['lm:' + l.name, l.x, l.y]);
-  const CR = await imp('countryreal');
-  const E = CR.REAL.ext;
+  const E = (await imp('provincemap')).provinceMapBounds();
   if (E) for (const [fx, fy] of [[0.1, 0.1], [0.9, 0.1], [0.1, 0.9], [0.9, 0.9], [0.5, 0.05], [0.05, 0.5], [0.95, 0.5], [0.5, 0.95]]) pts.push(['om' + fx + fy, E[0] + (E[2] - E[0]) * fx, E[1] + (E[3] - E[1]) * fy]);
   for (const s of (map.countryStations || [])) pts.push(['st:' + s.name, s.x, s.y]);
   const home = await imp('home');

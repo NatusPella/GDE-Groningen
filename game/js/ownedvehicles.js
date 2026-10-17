@@ -30,14 +30,14 @@
 
 import { closestPointOnSegment, isInWater } from './util.js';
 import { ommelandArea } from './ommelandplace.js';
-import { buildingAt, roadNear, roadKind, streetAt as roadName } from './tileplace.js';
+import { buildingAt, roadNear, roadKind, waterGap, streetAt as roadName } from './tileplace.js';
 import { isSpawnHidden } from './pedestrians.js';
 import { slotFits, propBlocked, sleepingParkedCars } from './parkedcars.js';
 import { baysIn } from './parkinglots.js';
 import { spawnHeroCarNear, playerTopSpeed } from './vehicle.js';
 import { inHomeFlat } from './home.js';
-import { BLOCK, ROAD_IN, ROAD_W, edgeDistance, edgeRoad, realWater } from './countryfield.js';
-import { REAL, inRealExtent } from './countryreal.js';
+import { BLOCK, ROAD_IN, ROAD_W, edgeDistance, edgeRoad } from './countryfield.js';
+import { inProvinceData } from './provinceworld.js';
 import { pushOutOfPlan } from './countryplan.js';
 import { vehicleDisplayName } from './vehiclenames.js';
 import {
@@ -228,7 +228,7 @@ function countryKerbSpot(world, x, y, model, ring, ignore) {
     if (d > maxD || d < ring.minDist * 0.6) return;
     cands.push({ x: px, y: py, angle, street, score: Math.abs(d - target) });
   };
-  if (REAL.ready && inRealExtent(x, y)) {
+  if (inProvinceData(x, y)) {
     for (const r of world.map.roadsNear(x, y, maxD)) {
       if (r.z || r.bridge || roadKind(r) <= 2) continue;
       for (let i = 0; i < r.pts.length - 1; i++) {
@@ -258,7 +258,7 @@ function countryKerbSpot(world, x, y, model, ring, ignore) {
   }
   cands.sort((p, q) => p.score - q.score);
   const ok = (c) => {
-    if (edgeDistance(c.x, c.y) < 0 || realWater(c.x, c.y) > -1.5 || !clearOfVehicles(world, c.x, c.y, m.len / 2, ignore)) return false;
+    if (edgeDistance(c.x, c.y) < 0 || waterGap(world.map, c.x, c.y, 3) > -1.5 || !clearOfVehicles(world, c.x, c.y, m.len / 2, ignore)) return false;
     const fx = Math.cos(c.angle) * m.len / 2, fy = Math.sin(c.angle) * m.len / 2;
     for (const [px, py] of [[c.x, c.y], [c.x + fx, c.y + fy], [c.x - fx, c.y - fy]]) {
       const o = { x: px, y: py };

@@ -18,9 +18,6 @@ export const ROAD_W = 5;
 export const ROAD_P = 0.5;
 // maaren: wide canals along some block-boundary lines, running for km
 export const MAAR_HW = 4.2;
-// segment texture width and lookup slots per grid cell (countryedge.js)
-export const EDGE_TEX_W = 2048;
-export const EDGE_SLOTS = 12;
 export const MAAR_WATER = 3.5;
 // wierden (terp villages): centred beside a block's low-x polder road
 export const VILLAGE_P = 0.2;
@@ -44,12 +41,9 @@ export function setCountryBounds(bounds) {
   COUNTRY_UNIFORMS.uCountryRect.value = [rect.cx, rect.cy, rect.hx, rect.hy];
 }
 
-// what setCountryBounds / setRealZone were given (the geometry worker repeats them)
+// what setCountryBounds was given (the geometry worker repeats it)
 export function countryBounds() {
   return bounds0;
-}
-export function realZone() {
-  return real;
 }
 
 export function countryRect() {
@@ -60,65 +54,31 @@ export function countryRect() {
 // accepts arrays for vec4 uniforms.
 export const COUNTRY_UNIFORMS = {
   uCountryRect: { value: [0, 0, 1e9, 1e9] },
-  // roads and canals carrying on from the map edge (countryedge.js)
-  uEdgeTex: { value: null },
-  // lookup grid: per cell up to EDGE_SLOTS segment indices (+1), four per texel
-  uEdgeGrid: { value: null },
-  uEdgeGridRect: { value: [0, 0, 64, 0] },
-  uEdgeGridSize: { value: [0, 0, 0, 0] },
   // coverage mask of the real map data (signed distance, see setCountryMask)
   uMaskTex: { value: null },
   uMaskRect: { value: [0, 0, 1, 0] },
   uMaskSize: { value: [0, 0, 0, 0] },
-  // the real Ommelanden (countryreal.js): polder blocks without procedural
-  // roads, maaren or villages, the water distance field and the built-up mask
-  uRealBlocks: { value: [1, 1, 0, 0] },
-  uRealWater: { value: null },
-  uRealWaterRect: { value: [0, 0, 1, 0] },
   // round the player (x, z, radius) the ground opens over the tiles' water,
   // a real surface at WATER_Y (tilewatermask.js); w = time
   uWaterNear: { value: [0, 0, 0, 0] },
   // the tiles' water round the player as a mask: rect = [x0, y0, size, on]
   uTileWater: { value: null },
   uTileWaterRect: { value: [0, 0, 1, 0] },
-  uUrbanTex: { value: null },
-  uUrbanRect: { value: [0, 0, 1, 0] },
+  // the same water, coarser and wider, for the ground past that window (tilewatermask.js)
+  uTileWaterFar: { value: null },
+  uTileWaterFarRect: { value: [0, 0, 1, 0] },
   // the province's tile world (provinceworld.js): the polder blocks its real
   // tiles cover, one texel per block; rect = [bx0, by0, w, h], w = 0 when off
   uProvBlocks: { value: null },
   uProvRect: { value: [0, 0, 0, 0] },
-  // the road / canal distances of cEdge baked round the player (countrybake.js):
-  // rect = [x0, y0, size, on], a fine level and a coarse one
-  uBake0: { value: null },
-  uBakeRect0: { value: [0, 0, 1, 0] },
-  uBake1: { value: null },
-  uBakeRect1: { value: [0, 0, 1, 0] },
 };
 
-// Real-data zone: { bx0, by0, bx1, by1, water: { x0, y0, cell, w, h, data },
-// urban: { x0, y0, cell, w, h, data } } (countryreal.js sets it).
-let real = null;
-export function setRealZone(z) {
-  real = z;
-  // the province blocks ride along with the zone (the geometry worker gets both)
-  if (z.prov) prov = z.prov;
-  else if (prov) z.prov = prov;
-  villageCache.clear();
-  COUNTRY_UNIFORMS.uRealBlocks.value = [z.bx0, z.by0, z.bx1, z.by1];
-  COUNTRY_UNIFORMS.uRealWaterRect.value = [z.water.x0, z.water.y0, z.water.cell * z.water.w, z.water.cell * z.water.h];
-  COUNTRY_UNIFORMS.uUrbanRect.value = [z.urban.x0, z.urban.y0, z.urban.cell * z.urban.w, z.urban.cell * z.urban.h];
-}
-export function realBlock(bx, by) {
-  return (!!real && bx >= real.bx0 && bx <= real.bx1 && by >= real.by0 && by <= real.by1) || provinceBlock(bx, by);
-}
-
-// Polder blocks the province's real tiles cover (provinceworld.js): like the
-// Ommeland's blocks, no procedural roads, maaren, villages or farms there.
+// Polder blocks the province's real tiles cover (provinceworld.js): no
+// procedural roads, maaren, villages or farms there.
 // { x0, y0, w, h, data: Uint8Array } in block units, or null.
 let prov = null;
 export function setProvinceBlocks(p) {
   prov = p;
-  if (real) real.prov = p;
   villageCache.clear();
   COUNTRY_UNIFORMS.uProvRect.value = p ? [p.x0, p.y0, p.w, p.h] : [0, 0, 0, 0];
 }
@@ -127,41 +87,9 @@ export function provinceBlock(bx, by) {
   const i = bx - prov.x0, j = by - prov.y0;
   return i >= 0 && j >= 0 && i < prov.w && j < prov.h && prov.data[j * prov.w + i] > 0;
 }
-export function realActive() {
-  return !!real;
-}
-function bilinear(G, x, y, outside) {
-  const gx = (x - G.x0) / G.cell - 0.5, gy = (y - G.y0) / G.cell - 0.5;
-  if (gx < 0 || gy < 0 || gx >= G.w - 1 || gy >= G.h - 1) return outside;
-  const ix = Math.floor(gx), iy = Math.floor(gy), fx = gx - ix, fy = gy - iy;
-  const d = G.data, i = iy * G.w + ix;
-  const a = d[i] + (d[i + 1] - d[i]) * fx, b = d[i + G.w] + (d[i + G.w + 1] - d[i + G.w]) * fx;
-  return a + (b - a) * fy;
-}
-// Signed distance to real open water in metres (positive on the water).
-export function realWater(x, y) {
-  if (!real) return -99;
-  return (bilinear(real.water, x, y, 0) - 128) / 4;
-}
-// Past the map rectangle the real open water from about SHORE_RW in is a
-// water surface at the city's WATER_Y; the city's own polygons cover it inside.
-export const SHORE_RW = 1.0;
 export function rectOutside(x, y) {
   return Math.max(Math.abs(x - rect.cx) - rect.hx, Math.abs(y - rect.cy) - rect.hy);
 }
-// 0 in open country, 1 in the built-up parts of the real villages.
-export function urbanWeight(x, y) {
-  if (!real) return 0;
-  return smooth(0.05, 0.16, bilinear(real.urban, x, y, 0) / 255);
-}
-
-// countryedge.js registers its road / canal lookup here (this module stays
-// import-free so the shader source can be shared).
-let edgeQuery = null;
-export function setEdgeQuery(fn) {
-  edgeQuery = fn;
-}
-
 // Near the city the thin ditches thin out: a ditch only runs if its hash
 // is under this ramp, so the ditch grid fades in instead of starting on a line.
 export function ditchRamp(x, y) {
@@ -241,7 +169,7 @@ export function countryWeight(x, y) {
 // Whether the edge of block (bx, by) on side s carries a polder road
 // (s: 0 = low-x edge, 1 = low-y edge; roads run just inside that edge).
 export function edgeRoad(bx, by, s) {
-  if (real && realBlock(bx, by)) return false;
+  if (provinceBlock(bx, by)) return false;
   return chash(bx * 3 + s * 7919, by * 5 + 101) < ROAD_P;
 }
 
@@ -261,7 +189,7 @@ export function villageOf(bx, by) {
   let v = villageCache.get(key);
   if (v !== undefined) return v;
   v = null;
-  if (!realBlock(bx, by) && !realBlock(bx - 1, by) && chash(bx * 29 + 7, by * 31 + 3) < VILLAGE_P && edgeRoad(bx, by, 0) && !maarX(bx)) {
+  if (!provinceBlock(bx, by) && !provinceBlock(bx - 1, by) && chash(bx * 29 + 7, by * 31 + 3) < VILLAGE_P && edgeRoad(bx, by, 0) && !maarX(bx)) {
     const x = bx * BLOCK + VILLAGE_X, y = by * BLOCK + 250 + chash(bx + 71, by - 13) * 460;
     const r = 100 + chash(bx - 9, by + 17) * 30;
     if (edgeDistance(x, y) >= r + 260) v = { x, y, r, bx, by };
@@ -316,7 +244,7 @@ export function parcelAt(x, y) {
   // culvert (or a bridge over a maar)
   P.cont = (rv && edgeRoad(bx, ly < BLOCK / 2 ? by - 1 : by + 1, 0))
     || (rh && edgeRoad(lx < BLOCK / 2 ? bx - 1 : bx + 1, by, 1));
-  P.dMaar = realBlock(bx, by) ? 1e3 : Math.min(maarX(bx) ? lx : 1e3, maarX(bx + 1) ? BLOCK - lx : 1e3, maarY(by) ? ly : 1e3, maarY(by + 1) ? BLOCK - ly : 1e3);
+  P.dMaar = provinceBlock(bx, by) ? 1e3 : Math.min(maarX(bx) ? lx : 1e3, maarX(bx + 1) ? BLOCK - lx : 1e3, maarY(by) ? ly : 1e3, maarY(by + 1) ? BLOCK - ly : 1e3);
   P.seed = chash(col * 7 + bx * 1009, row * 13 + by * 2003 + 1);
   return P;
 }
@@ -336,10 +264,6 @@ export function parcelUse(seed) {
 // Ground kind under (x, y) for gameplay: null (real map), 'gras', 'weg'
 // (polder road) or 'sloot' (ditch water).
 export function countrySurface(x, y) {
-  if (edgeQuery) {
-    const e = edgeQuery(x, y);
-    if (e) return e === 'sloot' && parcelAt(x, y).road ? 'weg' : e;
-  }
   const w = countryWeight(x, y);
   if (w < 0.5) return null;
   const vi = w > 0.99 ? villageAt(x, y) : null;
@@ -351,10 +275,9 @@ export function countrySurface(x, y) {
   const p = parcelAt(x, y);
   const wet = w > 0.92;
   if (wet && p.dMaar < MAAR_WATER) return p.road && p.cont ? 'weg' : 'sloot';
-  const town = real && urbanWeight(x, y) > 0.5;
-  if (wet && !town && p.dMain < MAIN_HW * 0.8 && !(p.road && p.cont)) return 'sloot';
+  if (wet && p.dMain < MAIN_HW * 0.8 && !(p.road && p.cont)) return 'sloot';
   if (p.road) return 'weg';
-  if (wet && !town && p.dDitch < DITCH_HW * 0.72) {
+  if (wet && p.dDitch < DITCH_HW * 0.72) {
     if (thinDitchOn(p)) return 'sloot';
   }
   return 'gras';
@@ -365,27 +288,16 @@ export function countrySurface(x, y) {
 // and sDip (puddle bias) declared by terrain3d's wet-ground code.
 export const COUNTRY_GLSL = `
 uniform vec4 uCountryRect;
-uniform sampler2D uEdgeTex;
-uniform highp usampler2D uEdgeGrid;
-uniform vec4 uEdgeGridRect;
-uniform vec4 uEdgeGridSize;
 uniform sampler2D uMaskTex;
 uniform vec4 uMaskRect;
 uniform vec4 uMaskSize;
-uniform vec4 uRealBlocks;
-uniform sampler2D uRealWater;
-uniform vec4 uRealWaterRect;
 uniform vec4 uWaterNear;
 uniform sampler2D uTileWater;
 uniform vec4 uTileWaterRect;
-uniform sampler2D uUrbanTex;
-uniform vec4 uUrbanRect;
+uniform sampler2D uTileWaterFar;
+uniform vec4 uTileWaterFarRect;
 uniform sampler2D uProvBlocks;
 uniform vec4 uProvRect;
-uniform sampler2D uBake0;
-uniform vec4 uBakeRect0;
-uniform sampler2D uBake1;
-uniform vec4 uBakeRect1;
 float cEdD = 0.0;
 const float C_BLOCK = ${BLOCK.toFixed(1)};
 const float C_PW = ${PW.toFixed(1)};
@@ -427,18 +339,10 @@ float cEdgeDist(vec2 p) {
 }
 
 bool cReal(int bx, int by) {
-  if (float(bx) >= uRealBlocks.x && float(bx) <= uRealBlocks.z && float(by) >= uRealBlocks.y && float(by) <= uRealBlocks.w) return true;
   if (uProvRect.z < 0.5) return false;
   ivec2 q = ivec2(bx - int(uProvRect.x), by - int(uProvRect.y));
   if (q.x < 0 || q.y < 0 || q.x >= int(uProvRect.z) || q.y >= int(uProvRect.w)) return false;
   return texelFetch(uProvBlocks, q, 0).r > 0.5;
-}
-// signed metres to real open water (positive on it); built-up weight
-float cRealWater(vec2 p) {
-  if (uRealBlocks.z < uRealBlocks.x) return -99.0;
-  vec2 uv = (p - uRealWaterRect.xy) / uRealWaterRect.zw;
-  if (uv.x < 0.0 || uv.y < 0.0 || uv.x > 1.0 || uv.y > 1.0) return -99.0;
-  return (texture(uRealWater, uv).r * 255.0 - 128.0) * 0.25;
 }
 // the tiles' water mask (0..1 on the water); -1 outside its window
 float cTileWater(vec2 p) {
@@ -447,11 +351,12 @@ float cTileWater(vec2 p) {
   if (uv.x < 0.0 || uv.y < 0.0 || uv.x > 1.0 || uv.y > 1.0) return -1.0;
   return texture(uTileWater, uv).r;
 }
-float cUrban(vec2 p) {
-  if (uRealBlocks.z < uRealBlocks.x) return 0.0;
-  vec2 uv = (p - uUrbanRect.xy) / uUrbanRect.zw;
-  if (uv.x < 0.0 || uv.y < 0.0 || uv.x > 1.0 || uv.y > 1.0) return 0.0;
-  return smoothstep(0.05, 0.16, texture(uUrbanTex, uv).r);
+// the same water from the wider, coarser mask; -1 outside it
+float cTileWaterFar(vec2 p) {
+  if (uTileWaterFarRect.w < 0.5) return -1.0;
+  vec2 uv = (p - uTileWaterFarRect.xy) / uTileWaterFarRect.z;
+  if (uv.x < 0.0 || uv.y < 0.0 || uv.x > 1.0 || uv.y > 1.0) return -1.0;
+  return texture(uTileWaterFar, uv).r;
 }
 bool cRoad(int bx, int by, int s) { if (cReal(bx, by)) return false; return cHash(bx * 3 + s * 7919, by * 5 + 101) < C_ROAD_P; }
 bool cMaarX(int i) { return cHash(i * 37 + 11, 4441) < 0.18; }
@@ -463,36 +368,6 @@ vec3 cVillage(int bx, int by) {
   float r = 100.0 + cHash(bx - 9, by + 17) * 30.0;
   if (cEdgeDist(vec2(x, y)) < r + 260.0) return vec3(0.0);
   return vec3(x, y, r);
-}
-
-// Roads (x) and canals (y) carried on from the map edge; z = signed
-// distance to the edge of the asphalt (negative on it, 1e3 far off).
-vec3 cEdge(vec2 p, float px) {
-  float road = 0.0, canal = 0.0, line = 1e3;
-  vec2 g = (p - uEdgeGridRect.xy) / uEdgeGridRect.z;
-  if (g.x < 0.0 || g.y < 0.0 || g.x >= uEdgeGridSize.x || g.y >= uEdgeGridSize.y) return vec3(0.0, 0.0, 1e3);
-  ivec2 c = ivec2(floor(g));
-  uvec4 s0 = texelFetch(uEdgeGrid, ivec2(c.x * 3, c.y), 0);
-  if (s0.x == 0u) return vec3(0.0, 0.0, 1e3);
-  uvec4 s1 = texelFetch(uEdgeGrid, ivec2(c.x * 3 + 1, c.y), 0);
-  uvec4 s2 = s1.w == 0u ? uvec4(0u) : texelFetch(uEdgeGrid, ivec2(c.x * 3 + 2, c.y), 0);
-  for (int k = 0; k < ${EDGE_SLOTS}; k++) {
-    uint id = k < 4 ? s0[k] : k < 8 ? s1[k - 4] : s2[k - 8];
-    if (id == 0u) break;
-    int i = int(id) - 1;
-    ivec2 at = ivec2(i % ${EDGE_TEX_W}, (i / ${EDGE_TEX_W}) * 2);
-    vec4 A = texelFetch(uEdgeTex, at, 0);
-    vec2 ab = A.zw - A.xy;
-    float t = clamp(dot(p - A.xy, ab) / max(dot(ab, ab), 1e-3), 0.0, 1.0);
-    float d = length(p - A.xy - ab * t);
-    vec4 W = texelFetch(uEdgeTex, at + ivec2(0, 1), 0);
-    float hw = mix(W.x, W.y, t);
-    if (d > hw + 2.5) continue;
-    float cov = 1.0 - smoothstep(hw - px - 0.05, hw + px + 0.05, d);
-    if (W.z < 0.5) { road = max(road, cov); line = min(line, d - hw); }
-    else canal = max(canal, 1.0 - smoothstep(hw - 1.2 - px, hw - 1.2 + px, d));
-  }
-  return vec3(road, canal, line);
 }
 
 // The city's asphalt (roadsurface.js SURF_ASPHALT) for the painted roads:
@@ -524,110 +399,6 @@ vec3 cPaint(vec3 c, vec2 p, float m) {
   return mix(c, vec3(0.86) * (0.78 + 0.22 * smoothstep(0.33, 0.7, mw)), m);
 }
 
-// Road markings of the real road under p (only asked for near the camera,
-// on road pixels): x = white paint, y = red asphalt (the cycle lanes OSM
-// has on a road, or a whole fietspad). Segment texel W.w = (kind + 8 *
-// oneway + 16 * cycle lanes + 32 * fietspad) * 4096 + metres along the road.
-vec2 cMark(vec2 p, float px) {
-  vec2 g = (p - uEdgeGridRect.xy) / uEdgeGridRect.z;
-  if (g.x < 0.0 || g.y < 0.0 || g.x >= uEdgeGridSize.x || g.y >= uEdgeGridSize.y) return vec2(0.0);
-  ivec2 c = ivec2(floor(g));
-  uvec4 s0 = texelFetch(uEdgeGrid, ivec2(c.x * 3, c.y), 0);
-  if (s0.x == 0u) return vec2(0.0);
-  uvec4 s1 = texelFetch(uEdgeGrid, ivec2(c.x * 3 + 1, c.y), 0);
-  uvec4 s2 = s1.w == 0u ? uvec4(0u) : texelFetch(uEdgeGrid, ivec2(c.x * 3 + 2, c.y), 0);
-  float bd = 0.0, dc = 0.0, hw = 0.0, along = 0.0, code = 0.0;
-  for (int k = 0; k < ${EDGE_SLOTS}; k++) {
-    uint id = k < 4 ? s0[k] : k < 8 ? s1[k - 4] : s2[k - 8];
-    if (id == 0u) break;
-    int i = int(id) - 1;
-    ivec2 at = ivec2(i % ${EDGE_TEX_W}, (i / ${EDGE_TEX_W}) * 2);
-    vec4 W = texelFetch(uEdgeTex, at + ivec2(0, 1), 0);
-    if (W.z > 0.5 || W.w < 4096.0) continue;
-    vec4 A = texelFetch(uEdgeTex, at, 0);
-    vec2 ab = A.zw - A.xy;
-    float L = max(length(ab), 1e-3);
-    float t = clamp(dot(p - A.xy, ab) / (L * L), 0.0, 1.0);
-    float d = length(p - A.xy - ab * t);
-    float h = mix(W.x, W.y, t);
-    if (d - h < bd) { bd = d - h; dc = d; hw = h; code = floor(W.w / 4096.0); along = W.w - code * 4096.0 + t * L; }
-  }
-  if (bd >= 0.0) return vec2(0.0);
-  if (code > 31.5) return vec2(0.0, 1.0);
-  float kind = mod(code, 8.0);
-  bool one = mod(code, 16.0) > 7.5;
-  bool lanes = code > 15.5;
-  float line = 0.0, strip = 0.0;
-  float aa = px + 0.02;
-  if (lanes && hw > 2.4) {
-    // fietsstroken: red asphalt 1.5 m in from each edge behind a line
-    float e = hw - dc;
-    float dl = kind > 4.5 ? step(fract(along / 2.0), 0.5) : 1.0;
-    line = (1.0 - smoothstep(0.06, 0.06 + aa, abs(e - 1.5))) * dl;
-    strip = 1.0 - smoothstep(1.45, 1.45 + aa, e);
-    if (kind < 5.5 && !one) line = max(line, (1.0 - smoothstep(0.05, 0.05 + aa, dc)) * step(fract(along / 9.0), 1.0 / 3.0));
-  } else if (kind < 1.5) {
-    // lane divider on a motorway carriageway: 3 m on, 9 m off (as in the city)
-    line = (1.0 - smoothstep(0.06, 0.06 + aa, dc)) * step(fract(along / 12.0), 0.25);
-  } else if (kind > 2.5 && kind < 3.5 && !one) {
-    // trunk / primary: one solid centre line, like the city's main roads
-    line = 1.0 - smoothstep(0.06, 0.06 + aa, dc);
-  } else if (kind > 3.5 && kind < 5.5 && !one) {
-    // secondary / tertiary: the city's 3 m on, 6 m off
-    line = (1.0 - smoothstep(0.05, 0.05 + aa, dc)) * step(fract(along / 9.0), 1.0 / 3.0);
-  }
-  return vec2(line, strip);
-}
-
-// Signed distances (m, clamped to +-4) to the nearest road edge and to the
-// nearest canal's water edge: what countrybake.js stores per texel.
-vec2 cEdgeSD(vec2 p) {
-  float sdR = 4.0, sdC = 4.0;
-  vec2 g = (p - uEdgeGridRect.xy) / uEdgeGridRect.z;
-  if (g.x < 0.0 || g.y < 0.0 || g.x >= uEdgeGridSize.x || g.y >= uEdgeGridSize.y) return vec2(sdR, sdC);
-  ivec2 c = ivec2(floor(g));
-  uvec4 s0 = texelFetch(uEdgeGrid, ivec2(c.x * 3, c.y), 0);
-  if (s0.x == 0u) return vec2(sdR, sdC);
-  uvec4 s1 = texelFetch(uEdgeGrid, ivec2(c.x * 3 + 1, c.y), 0);
-  uvec4 s2 = s1.w == 0u ? uvec4(0u) : texelFetch(uEdgeGrid, ivec2(c.x * 3 + 2, c.y), 0);
-  for (int k = 0; k < ${EDGE_SLOTS}; k++) {
-    uint id = k < 4 ? s0[k] : k < 8 ? s1[k - 4] : s2[k - 8];
-    if (id == 0u) break;
-    int i = int(id) - 1;
-    ivec2 at = ivec2(i % ${EDGE_TEX_W}, (i / ${EDGE_TEX_W}) * 2);
-    vec4 A = texelFetch(uEdgeTex, at, 0);
-    vec2 ab = A.zw - A.xy;
-    float t = clamp(dot(p - A.xy, ab) / max(dot(ab, ab), 1e-3), 0.0, 1.0);
-    float d = length(p - A.xy - ab * t);
-    vec4 W = texelFetch(uEdgeTex, at + ivec2(0, 1), 0);
-    float hw = mix(W.x, W.y, t);
-    if (W.z < 0.5) sdR = min(sdR, d - hw);
-    else sdC = min(sdC, d - hw + 1.2);
-  }
-  return clamp(vec2(sdR, sdC), -4.0, 4.0);
-}
-
-// The baked texel at p (road and canal distances, the two field noises):
-// false where neither level covers p.
-bool cBake(vec2 p, out vec4 t) {
-  vec2 u = (p - uBakeRect0.xy) / uBakeRect0.z;
-  if (uBakeRect0.w > 0.5 && min(u.x, u.y) > 0.002 && max(u.x, u.y) < 0.998) { t = textureLod(uBake0, u, 0.0); return true; }
-  u = (p - uBakeRect1.xy) / uBakeRect1.z;
-  if (uBakeRect1.w > 0.5 && min(u.x, u.y) > 0.002 && max(u.x, u.y) < 0.998) { t = textureLod(uBake1, u, 0.0); return true; }
-  t = vec4(0.0);
-  return false;
-}
-// cEdge from the baked distances (one texture read instead of the segment
-// loop); junctions come out as one outline.
-vec3 cEdgeFrom(vec4 t, float px) {
-  float sdR = t.r * 8.0 - 4.0, sdC = t.g * 8.0 - 4.0;
-  return vec3(1.0 - smoothstep(-px - 0.05, px + 0.05, sdR), 1.0 - smoothstep(-px, px, sdC), sdR < 2.5 ? sdR : 1e3);
-}
-vec3 cEdgeAt(vec2 p, float px) {
-  vec4 t;
-  return cBake(p, t) ? cEdgeFrom(t, px) : cEdge(p, px);
-}
-
 float countryWeight(vec2 p) {
   float d = cEdgeDist(p);
   cEdD = d;
@@ -635,18 +406,11 @@ float countryWeight(vec2 p) {
   if (d > ${(FEATHER_OUT + FEATHER_NOISE / 2 + 1).toFixed(1)}) return 1.0;
   float n = (cNoise(p * 0.012) + 0.5 * cNoise(p * 0.05 + vec2(17.0, 3.0))) / 1.5;
   float cw = smoothstep(-${FEATHER_IN.toFixed(1)}, ${FEATHER_OUT.toFixed(1)}, d + (n - 0.5) * ${FEATHER_NOISE.toFixed(1)});
-  // the roads and canals running off the map are fully country from the edge on
-  if (cw < 1.0 && d > -16.0 && d < 90.0) {
-    vec3 e = cEdgeAt(p, 0.5);
-    cw = max(cw, max(max(e.x, e.y), smoothstep(-0.5, 0.5, cRealWater(p))));
-  }
   return cw;
 }
 
 vec3 countryAlbedo(vec2 p, float cw, inout float sRough, inout float sDip) {
   float px = length(fwidth(p));
-  vec4 bk;
-  bool baked = cBake(p, bk);
   float detail = 1.0 - smoothstep(0.05, 0.6, px);
   vec2 bf = floor(p / C_BLOCK);
   int bx = int(bf.x), by = int(bf.y);
@@ -665,19 +429,16 @@ vec3 countryAlbedo(vec2 p, float cw, inout float sRough, inout float sDip) {
   float seed = cHash(col * 7 + bx * 1009, row * 13 + by * 2003 + 1);
   float seed2 = fract(seed * 7.31);
   bool inReal = cReal(bx, by);
-  float urb = inReal ? cUrban(p) : 0.0;
   // thin ditches fade in over the first few hundred metres past the city
   float edD = cEdD;
   float keepD = 1.0;
   float ramp = smoothstep(20.0, 450.0, edD);
-  keepD = 1.0 - urb;
   if (ramp < 1.0) {
     if (dA < dB) { int ci = (a - a0 < a0 + C_PW - a) ? col : col + 1; keepD = step(cHash(ci + bx * 131 + 5, by * 977 + 61), ramp); }
     else { int ri = (b - b0 < b1 - b) ? row : row + 1; keepD = step(cHash(col * 31 + bx * 7 + ri * 131, by * 977 + 71), ramp); }
-    keepD *= 1.0 - urb;
   }
 
-  float n1 = baked ? bk.b : cNoise(p * 0.03), n2 = baked ? bk.a : cNoise(p * 0.13 + 5.0), n3 = cNoise(p * 0.55 + 9.0);
+  float n1 = cNoise(p * 0.03), n2 = cNoise(p * 0.13 + 5.0), n3 = cNoise(p * 0.55 + 9.0);
   vec3 grassA = cLin(88.0, 122.0, 54.0), grassB = cLin(79.0, 114.0, 52.0), grassC = cLin(104.0, 138.0, 62.0);
   vec3 c = seed < 0.35 ? grassA : (seed < 0.7 ? grassB : grassC);
   c *= 0.86 + 0.26 * (n1 * 0.6 + n2 * 0.4);
@@ -723,7 +484,7 @@ vec3 countryAlbedo(vec2 p, float cw, inout float sRough, inout float sDip) {
   vec3 vv = vA.z > 0.0 && length(p - vA.xy) < vA.z ? vA : vB;
   float vd = vv.z > 0.0 ? length(p - vv.xy) / vv.z : 2.0;
   float vil = 1.0 - smoothstep(0.82, 1.0, vd);
-  float lawnW = max(vil, urb);
+  float lawnW = vil;
   if (lawnW > 0.0) {
     float gard = smoothstep(0.55, 0.75, cNoise(p * 0.08 + 31.0));
     vec3 lawn = mix(cLin(92.0, 132.0, 58.0), cLin(84.0, 112.0, 60.0), gard) * (0.9 + 0.2 * n3);
@@ -757,37 +518,9 @@ vec3 countryAlbedo(vec2 p, float cw, inout float sRough, inout float sDip) {
   }
   sDip += roadM * 0.4 - 0.2;
 
-  // roads and canals carried on from the city
-  vec3 ce = vec3(0.0, 0.0, 1e3);
-  if (edD > -20.0) ce = baked ? cEdgeFrom(bk, px) : cEdge(p, px);
-  // round the player the tiles' water is the water: no old canals
+  // round the player the tiles' water is the water (past the window the wider mask)
   float tw = cTileWater(p);
   bool tiled = tw >= 0.0;
-  if (tiled) ce.y = 0.0;
-  // verge along the real roads: a gravel berm out in the polder, a kerb
-  // and a strip of the city's pavement tiles in town
-  if (ce.z > 0.0 && ce.z < 2.0 && ce.y < 0.5) {
-    float bw = mix(0.9, 1.6, urb);
-    float berm = (1.0 - smoothstep(bw - 0.6, bw, ce.z)) * (1.0 - ce.x);
-    vec3 bc = mix(cLin(128.0, 116.0, 92.0) * (0.85 + 0.3 * n3), cLin(131.0, 126.0, 116.0) * (0.9 + 0.2 * n3), urb);
-    bc = mix(bc, cLin(168.0, 164.0, 156.0), urb * (1.0 - smoothstep(0.15, 0.15 + px, ce.z)));
-    c = mix(c, bc, berm * mix(0.8, 1.0, urb));
-  }
-  if (ce.x > 0.0) {
-    float ar = 0.0;
-    vec3 asph = cAsphalt(p, px, -ce.z, 3.5, ar);
-    float paint = (1.0 - smoothstep(0.075, 0.075 + px, abs(ce.z + 0.35))) * detail;
-    if (px < 1.2 && ce.x > 0.5) {
-      // the red asphalt carries further out than the white paint
-      vec2 mk = cMark(p, px) * vec2(1.0 - smoothstep(0.2, 0.4, px), 1.0 - smoothstep(0.8, 1.2, px));
-      asph = mix(asph, cLin(130.0, 59.0, 45.0) * (0.9 + 0.2 * n3), mk.y * 0.9);
-      paint = max(paint, mk.x);
-    }
-    asph = cPaint(asph, p, paint);
-    c = mix(c, asph, ce.x);
-    sRough += ar * ce.x;
-    roadM = max(roadM, ce.x);
-  }
 
   // village streets in red klinkers
   if (vil > 0.0) {
@@ -813,18 +546,18 @@ vec3 countryAlbedo(vec2 p, float cw, inout float sRough, inout float sDip) {
     if (cMaarY(by)) dQ = min(dQ, l.y);
     if (cMaarY(by + 1)) dQ = min(dQ, C_BLOCK - l.y);
   }
-  float rw = !tiled && (inReal || edD < 400.0) ? cRealWater(p) : -99.0;
-  float wR = (1.0 - smoothstep(-px - 0.25, px + 0.25, -rw)) * (1.0 - roadM);
-  float dry = (1.0 - vil) * (1.0 - urb) * (1.0 - smoothstep(-3.0, -1.0, rw));
-  float dryE = 1.0 - ce.x;
+  // past the near window the tiles' water comes from the coarser, wider mask
+  float tf = tiled ? -1.0 : cTileWaterFar(p);
+  float wR = tf >= 0.0 ? smoothstep(0.35, 0.6, tf) * (1.0 - roadM) : 0.0;
+  float dry = (1.0 - vil) * (1.0 - smoothstep(0.02, 0.3, max(tf, 0.0)));
+  float dryE = 1.0;
   float wD = (1.0 - smoothstep(hw * 0.72 - px, hw * 0.72 + px, dD)) * (1.0 - culvert) * dry * keepD * dryE;
   float wM = (1.0 - smoothstep(C_MAIN * 0.8 - px, C_MAIN * 0.8 + px, dM)) * (1.0 - culvM) * dry * dryE;
   float wQ = (1.0 - smoothstep(C_MAAR_WATER - px, C_MAAR_WATER + px, dQ)) * dryE;
-  float wC = max(ce.y * (1.0 - roadM), wR);
-  wQ = max(wQ, wC);
-  float water = max(max(wD, wM), wQ) * smoothstep(0.86, 0.98, max(cw, wC));
+  wQ = max(wQ, wR);
+  float water = max(max(wD, wM), wQ) * smoothstep(0.86, 0.98, max(cw, wR));
   if (tiled) { wD = 0.0; wM = 0.0; wQ = 0.0; water = smoothstep(0.35, 0.6, tw) * smoothstep(0.86, 0.98, cw); }
-  float bank = max(max((1.0 - smoothstep(hw * 0.72, hw, dD)) * (1.0 - culvert) * keepD, (1.0 - smoothstep(C_MAIN * 0.8, C_MAIN, dM)) * (1.0 - culvM)) * dry * dryE, max((1.0 - smoothstep(C_MAAR_WATER, C_MAAR, dQ)) * dryE, (1.0 - smoothstep(0.0, 2.2, -rw)) * (1.0 - roadM))) * (1.0 - water);
+  float bank = max(max((1.0 - smoothstep(hw * 0.72, hw, dD)) * (1.0 - culvert) * keepD, (1.0 - smoothstep(C_MAIN * 0.8, C_MAIN, dM)) * (1.0 - culvM)) * dry * dryE, (1.0 - smoothstep(C_MAAR_WATER, C_MAAR, dQ)) * dryE) * (1.0 - water);
   c = mix(c, cLin(70.0, 72.0, 44.0) * (0.8 + 0.3 * n3), bank * 0.8 * smoothstep(0.86, 0.98, cw));
   // ditches lie deeper than the field (the one water rule: waded, 0.6 m):
   // a shadowed inner slope just above the water line

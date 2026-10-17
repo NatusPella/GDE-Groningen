@@ -7,7 +7,6 @@
 //   node scripts/facilities_test.mjs
 import './node3d.mjs';
 import fs from 'node:fs';
-import zlib from 'node:zlib';
 
 // the far corners of the real Ommelanden (past Roden, past Ten Boer)
 const MAX_MEDICAL = 11000;
@@ -22,20 +21,16 @@ const T = await loadGameWorld();
 if (!T) { console.log('SKIP no game/world with the province layer'); process.exit(0); }
 const map = T.world;
 const F = await import('../game/js/countryfield.js');
-const { initReal, REAL } = await import('../game/js/countryreal.js');
 const { ensureCountryEdge } = await import('../game/js/countryplan.js');
 F.setCountryBounds(map.meta.bounds);
-const om = JSON.parse(fs.readFileSync(new URL('ommeland.json', root)));
-const bin = zlib.gunzipSync(fs.readFileSync(new URL('ommeland.bin', root)));
-initReal(map, { ...om, bin: bin.buffer.slice(bin.byteOffset, bin.byteOffset + bin.byteLength) });
-const tilesLoaded = await loadArea(T, REAL.ext);
-ensureCountryEdge(map);
 const Fac = await import('../game/js/facilities.js');
+const tilesLoaded = await loadArea(T, Fac.DOOR_BOX);
+ensureCountryEdge(map);
 const raw = JSON.parse(fs.readFileSync(new URL('facilities.json', root)));
 Fac.initFacilities(map, raw);
 const { respawnArrival } = await import('../game/js/respawn.js');
 const { spotProblem } = await import('../game/js/spotcheck.js');
-const { buildingAt: tileBuildingAt } = await import('../game/js/tileplace.js');
+const { buildingAt: tileBuildingAt, waterGap } = await import('../game/js/tileplace.js');
 const buildingAt = (x, y, m) => (tileBuildingAt(map, x, y, m) ? 1 : -1);
 const { isInWater } = await import('../game/js/util.js');
 console.log(`${tilesLoaded} tiles of the old area in`);
@@ -59,7 +54,7 @@ for (const f of Fac.FAC.all) {
 }
 
 // the grid: city map plus the real Ommelanden
-const boxes = [map.meta.bounds, REAL.ext];
+const boxes = [map.meta.bounds, Fac.DOOR_BOX];
 let worstMed = { d: 0 }, worstPol = { d: 0 }, n = 0;
 for (const [x0, y0, x1, y1] of boxes) {
   for (let x = x0; x <= x1; x += STEP) {
@@ -106,7 +101,7 @@ for (const s of sites) {
   if (plan.car) {
     cars++;
     const c = plan.car;
-    if (buildingAt(c.x, c.y, 0) >= 0 || isInWater(map, c.x, c.y) || F.realWater(c.x, c.y) > -0.5) fail(`${s.name}: car in a building or the water`);
+    if (buildingAt(c.x, c.y, 0) >= 0 || isInWater(map, c.x, c.y) || waterGap(map, c.x, c.y, 3) > -0.5) fail(`${s.name}: car in a building or the water`);
   }
   if (!Number.isFinite(p.angle)) fail(`${s.name}: no facing`);
 }

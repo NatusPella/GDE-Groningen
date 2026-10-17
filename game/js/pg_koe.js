@@ -5,7 +5,7 @@ import { buildCowMesh3D } from './wildlife.js';
 import { DURK_LOOK, DOUWE_LOOK } from './storycast.js';
 import { getScene } from './scene3d.js';
 import { boxOf, pushOutOfBuildings, roadNear, roadKind, withTiles } from './tileplace.js';
-import { urbanWeight } from './countryfield.js';
+import { urbanWeight } from './provinceworld.js';
 import { findOpenSpot, placeNamed } from './ommelandplace.js';
 import { buildProp, disposeProp, animateProp, personMesh, sitDown } from './ommelandprops3d.js';
 import { speak, duoSpeaker } from './ommelandtalk.js';

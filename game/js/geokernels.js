@@ -1,5 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { setCountryBounds, setRealZone } from './countryfield.js';
+import { setCountryBounds } from './countryfield.js';
 import { slimWorkerMap } from './mapdata.js';
 import { loadMapAuto } from './tileworld.js';
 import { setRoadNetwork, roadSurfaceGeometries, roadKey } from './roadsurface.js';
@@ -118,9 +118,8 @@ function roadGeo({ key, detail, struct }) {
 
 // --- city shores (quaywalls.js), on the worker's map -------------------------
 
-function shoreInit({ bounds, zone }) {
+function shoreInit({ bounds }) {
   setCountryBounds(bounds);
-  setRealZone(zone);
   return { result: true, transfer: [] };
 }
 

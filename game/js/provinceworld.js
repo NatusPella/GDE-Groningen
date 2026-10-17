@@ -17,7 +17,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { BLOCK, COUNTRY_UNIFORMS, setProvinceBlocks } from './countryfield.js';
 import { setExtraBlocked } from './countryedge.js';
-import { setTileCover } from './countryreal.js';
 import { tileIndexOf, tileKey } from './gdt.js';
 import { pointInPolygon } from './util.js';
 import { setProvinceMap } from './provincemap.js';
@@ -26,10 +25,9 @@ import { setProvinceMap } from './provincemap.js';
 export const PFLAG = { LAND: 1, BUILT: 4, OLD: 8, BUFFER: 16, PROVINCE: 32 };
 
 // The province's tiles are the one source wherever a tile is built (issue #3,
-// PROVINCIE-PLAN 2.28): they stream everywhere, also inside the old Ommeland
-// area (flag 8), and the old layers keep only the cells no built tile covers
-// (the edges of the city's own tiles, where its data ends). A build without
-// the province layer (no extract in data/cache) has nothing to stream.
+// PROVINCIE-PLAN 2.28): they stream everywhere, and the procedural countryside
+// keeps only the cells no built tile covers. A build without the province layer
+// (no extract in data/cache) has nothing to stream.
 
 // The polder blocks (BLOCK m) mostly covered by tiles for which isTile(key)
 // holds: { x0, y0, w, h, data } in block units, or null. A block counts when
@@ -91,10 +89,39 @@ export function realBlockedAt(map, isTile, x, y, m) {
   return false;
 }
 
-const S = { layer: null, keys: null, blocks: null, tex: null, has: null };
+const S = { layer: null, keys: null, blocks: null, tex: null, has: null, cover: null, map: null };
+
+// How built-up the land round (x, y) is, 0 in open country to 1 in a village:
+// the footprints of the houses and halls of the tiles that are in within 100 m
+// (not barns, sheds and greenhouses) over the circle, from 5 % (0) to 16 % (1).
+// The countryside's props keep out of villages by it. 0 without tiles.
+const URBAN_R = 100;
+const NOT_URBAN = new Set(['barn', 'farm_auxiliary', 'cowshed', 'stable', 'shed', 'greenhouse', 'silo', 'roof', 'hut', 'carport', 'service']);
+function footprint(b) {
+  if (b._fp !== undefined) return b._fp;
+  const P = b.pts;
+  let a = 0;
+  for (let i = 0; i < P.length - 1; i++) a += P[i][0] * P[i + 1][1] - P[i + 1][0] * P[i][1];
+  return (b._fp = Math.min(900, Math.abs(a) / 2));
+}
+export function urbanWeight(x, y) {
+  const map = S.map;
+  if (!map) return 0;
+  let area = 0;
+  for (const b of map.buildingsNear(x, y, URBAN_R)) {
+    const q = b.bounds;
+    if (!q || NOT_URBAN.has(b.type) || ((q[0] + q[2]) / 2 - x) ** 2 + ((q[1] + q[3]) / 2 - y) ** 2 > URBAN_R * URBAN_R) continue;
+    area += footprint(b);
+  }
+  const t = Math.min(1, Math.max(0, (area / (Math.PI * URBAN_R * URBAN_R) - 0.05) / 0.11));
+  return t * t * (3 - 2 * t);
+}
+
+// Does a built province tile cover (x, y)? false without the province layer.
+export const coveredByTiles = (x, y) => !!S.cover && S.cover(x, y);
 
 // Where the tiles are the one source: the built tiles of
-// the layer. covered(x, y) -> countryreal.js setTileCover.
+// the layer. covered(x, y) -> coveredByTiles.
 export function tileCoverOf(index) {
   const keys = new Set();
   for (const k of Object.keys(index.tiles)) { const t = index.tiles[k]; if (t.flags & PFLAG.PROVINCE && t.flags & PFLAG.BUILT) keys.add(tileKey(t.i, t.j)); }
@@ -113,8 +140,8 @@ export function inProvinceData(x, y) {
 export function initProvince(tiles) {
   const layer = tiles && tiles.index.layers && tiles.index.layers.provincie;
   S.layer = layer && layer.global ? layer.global : null;
-  setTileCover(S.layer && tiles.index ? tileCoverOf(tiles.index) : null);
-  if (!S.layer) { S.has = null; setProvinceBlocks(null); setProvinceMap(null); return { layer: S.layer, tiles: 0, blocks: 0 }; }
+  S.cover = S.layer && tiles.index ? tileCoverOf(tiles.index) : null;
+  if (!S.layer) { S.has = null; S.map = null; setProvinceBlocks(null); setProvinceMap(null); return { layer: S.layer, tiles: 0, blocks: 0 }; }
   // the full map's base layer (provincemap.js)
   setProvinceMap(S.layer.map || null);
   const idx = tiles.index.tiles;
@@ -135,6 +162,7 @@ export function initProvince(tiles) {
     setProvinceBlocks({ x0: B.x0, y0: B.y0, w: B.w, h: B.h, data: B.data });
   }
   const map = tiles.world;
+  S.map = map;
   setExtraBlocked((x, y, m) => realBlockedAt(map, isTile, x, y, m));
   return { layer: S.layer, tiles: S.keys.length, blocks: S.blocks ? S.blocks.count : 0 };
 }

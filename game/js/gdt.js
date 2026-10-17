@@ -53,7 +53,7 @@ export const SECTION = {
   FURNITURE: 12, // mapped street furniture (v1: k, pts, v, h, osm; streetfurniture.js mappedFromOsm); rule items are generated per tile
   NAV: 13, // reserved (F1): road/bike/foot/boat graphs with portal nodes
   OVERLAY: 14, // reserved (F1): hand-made layers
-  COUNTRY_BOXES: 15, // the Ommeland building boxes (countryreal.js), until F1
+  COUNTRY_BOXES: 15, // reserved: the old Ommeland building boxes (gone with game/ommeland.bin)
   META: 20, // JSON: anything global that has no table yet
   RASTER: 21, // u16 w, u16 h, f32 cell, f64 x0, f64 y0, u8 codec (0 u8, 1 int16 cm, 2 f32), then the cells (terrainraster.js: the AHN terrain per tile)
   BLOB: 22, // named raw bytes

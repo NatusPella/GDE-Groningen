@@ -3,26 +3,18 @@
 // is clear of buildings, farms and water, near the player.
 //   node scripts/country_delivery_test.mjs
 import './node3d.mjs';
-import fs from 'node:fs';
-import zlib from 'node:zlib';
-
-const root = new URL('../game/', import.meta.url);
 await import('../game/js/player.js');
 const { loadGameWorld } = await import('./worldload.mjs');
 const T = await loadGameWorld();
 if (!T) { console.log('SKIP no game/world with the province layer'); process.exit(0); }
 const map = T.world;
 const F = await import('../game/js/countryfield.js');
-const { initReal } = await import('../game/js/countryreal.js');
 const { buildingAt: tileBuildingAt } = await import('../game/js/tileplace.js');
 const buildingAt = (x, y, m) => (tileBuildingAt(map, x, y, m) ? 1 : -1);
 const { ensureCountryEdge } = await import('../game/js/countryplan.js');
 const { roadGap } = await import('../game/js/countryedge.js');
 const { findParkingSpot } = await import('../game/js/ownedvehicles.js');
 F.setCountryBounds(map.meta.bounds);
-const om = JSON.parse(fs.readFileSync(new URL('ommeland.json', root)));
-const bin = zlib.gunzipSync(fs.readFileSync(new URL('ommeland.bin', root)));
-initReal(map, { ...om, bin: bin.buffer.slice(bin.byteOffset, bin.byteOffset + bin.byteLength) });
 ensureCountryEdge(map);
 
 const model = { name: 'car', len: 4.3, wid: 1.8 };

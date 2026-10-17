@@ -3,11 +3,10 @@ import './storagekeys.js';
 import { setErrorContext } from './errorlog.js';
 import { DEV, STORY_TEST } from './devflags.js';
 import { loadMap } from './mapdata.js';
-import { loadTileWorld, tileOmmeland } from './tileworld.js';
+import { loadTileWorld } from './tileworld.js';
 import { setWorldPlaces } from './worldplaces.js';
 import { setRegionData } from './regions.js';
 import { tileIndexOf, tileKey } from './gdt.js';
-import { loadOmmeland, initReal } from './countryreal.js';
 import { loadFacilities, initFacilities, setExtraBuiltWorld, placeWithTiles } from './facilities.js';
 import { ensureCountryEdge } from './countryplan.js';
 import { warmCountryMaps } from './countrymap.js';
@@ -47,7 +46,8 @@ import { initStoryContact, updateStoryContact } from './storycontact.js';
 import { initTheme } from './theme.js';
 import { initTrafficLights, updateTrafficLights } from './trafficlights.js';
 import { initRailway, updateRailway, setRailExtraWorld } from './railway.js';
-import { extendRoutes, provinceRailLines } from './corridorrail.js';
+import { applyCityRoutes, loadLandData } from './corridorrail.js';
+import { setFarProps } from './farprops.js';
 import { initProvince } from './provinceworld.js';
 import { loadRoadNet, setRoadNet } from './roadgraph.js';
 import { buildMovableBridges, updateMovableBridges } from './movablebridges.js';
@@ -252,21 +252,15 @@ async function boot() {
   // the tiles' car roads for the GPS and the police (roadgraph.js), read while the rest loads
   const roadsFile = layers.provincie && layers.provincie.global && layers.provincie.global.roadsFile;
   if (tiles && roadsFile) loadRoadNet('world/', roadsFile).then((r) => r && setRoadNet(r));
-  const ommeland = tiles ? tileOmmeland(tiles.global) : loadOmmeland('citymap.json');
+  // the city's train routes on over the layer's track, the countryside's rails, turbines and pylons (corridorrail.js)
+  const landData = corLayer && corLayer.global ? loadLandData('world/', corLayer.global.landFile) : null;
   const facilities = loadFacilities('citymap.json');
   const map = tiles ? tiles.world : await loadMap('citymap.json', onMapProgress);
   tileWorldStats = tiles ? tiles.store : null;
   markLoad('map');
-  // with the province on the train lines run on over the real track to every
-  // station (corridorrail.js): the province's lines, else the proefstrook's
-  let om = await ommeland;
-  if (corridor && om && corLayer && corLayer.global) {
-    let cg = corLayer.global;
-    if (layers.provincie && corLayer === layers.provincie) { const pl = provinceRailLines(om, cg.routes); om = pl.om; cg = { ...cg, routes: pl.lines }; }
-    const x = extendRoutes(om, cg);
-    om = { ...om, routes: x.routes, stations: x.stations };
-  }
-  initReal(map, om);
+  const land = await landData;
+  applyCityRoutes(map, land);
+  setFarProps(land);
   initFacilities(map, await facilities);
   markLoad('ommeland');
   prepareHomeMap(map);

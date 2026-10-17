@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """One-off: move the built map data from the legacy frame to RD New.
 
-    python3 scripts/world/rebase_data.py            # citymap.json, mapextras.json, ommeland.*, ringroute.js
+    python3 scripts/world/rebase_data.py            # citymap.json, mapextras.json, ringroute.js
     python3 scripts/world/rebase_data.py --check    # only report which files are in which frame
 
 Equivalent to rebuilding them with scripts/world/rdnew.py's projection
@@ -13,25 +13,17 @@ already say `frame: "rd-new"` are left alone.
 - every position: legacy_to_world, rounded to the centimetre;
 - headings stored with a position (helipad, level crossings, padel courts):
   turned with the projection at that point;
-- arc lengths along the train routes (stops, the Ommeland cut points):
-  recomputed on the new polylines at the same place;
+- arc lengths along the train routes (stops): recomputed on the new polylines at the same place;
 - vertex-matched extras (bus roads and lanes, road heights, passages) take
   the exact converted road vertex, so the decimetre matching in mapdata.js
   still finds them;
-- footprint-bounds patches get the bounds of their footprint after the move;
-- ommeland.bin: the building boxes move and turn (centre kept to the dm via
-  the part offset), the water distance field is resampled onto a world-aligned
-  grid over the new extent.
+- footprint-bounds patches get the bounds of their footprint after the move.
 """
-import gzip
 import json
 import math
 import os
 import re
-import struct
 import sys
-
-import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import rdnew as R  # noqa: E402
@@ -213,102 +205,6 @@ def rebase_extras(ex, legacy_city, vertex):
     ex["frame"] = R.FRAME
 
 
-# ------------------------------------------------------------------ ommeland
-
-def flat(p):
-    out = []
-    for i in range(0, len(p), 2):
-        out += pt(p[i], p[i + 1])
-    return out
-
-
-def rebase_ommeland(om, old_city_routes, new_city_routes):
-    for key in ("roads", "cycleways", "waterways", "boatways"):
-        for o in om.get(key, []):
-            o["p"] = flat(o["p"])
-    om["rails"] = [flat(r) for r in om.get("rails", [])]
-    for key in ("stations", "places", "churches"):
-        for o in om.get(key, []):
-            o["x"], o["y"] = pt(o["x"], o["y"])
-    for r in om.get("routes", []):
-        old_base, new_base = old_city_routes[r["base"]], new_city_routes[r["base"]]
-        old_tail = [r["pts"][i:i + 2] for i in range(0, len(r["pts"]), 2)]
-        r["pts"] = flat(r["pts"])
-        new_tail = [r["pts"][i:i + 2] for i in range(0, len(r["pts"]), 2)]
-
-        def cut_index(P, cut_s):
-            s = 0
-            for i in range(1, len(P)):
-                s += math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1])
-                if s >= cut_s - 0.5:
-                    return i
-            return len(P) - 1
-        ci = cut_index(old_base, r["cutS"])
-        old_full = old_base[:ci] + old_tail
-        new_full = new_base[:ci] + new_tail
-        new_cut = round(remap_s(old_base, new_base, r["cutS"]), 1)
-        for q in r.get("stops", []):
-            q["s"] = round(remap_s(old_full, new_full, r["cutS"] + q["s"]) - new_cut, 1)
-        r["cutS"] = new_cut
-        assert cut_index(new_base, new_cut) == ci, r["name"]
-    old_ext = om["extent"]
-    om["extent"] = envelope(*old_ext)
-    om["legacyExtent"] = old_ext
-    om["frame"] = R.FRAME
-    return old_ext
-
-
-def rebase_bin(raw, om_old_water, new_ext):
-    body = gzip.decompress(raw)
-    magic = body[:4]
-    assert magic in (b"GDEO", b"GTEO"), magic
-    n, stride = struct.unpack("<II", body[4:12])
-    assert stride >= 11, stride
-    B = np.frombuffer(body, dtype=np.int16, count=n * stride, offset=12).reshape(n, stride).astype(np.float64)
-    a = B[:, 4] * math.pi / 180
-    cu, cv = B[:, 9] / 10, B[:, 10] / 10
-    cx = B[:, 0] + cu * np.cos(a) - cv * np.sin(a)
-    cy = B[:, 1] + cu * np.sin(a) + cv * np.cos(a)
-    nx, ny = R.legacy_to_world(cx, cy)
-    # the heading turns by the local convergence (+ the legacy frame's tiny shear)
-    ex, ey = R.legacy_to_world(cx + np.cos(a), cy + np.sin(a))
-    na = np.arctan2(ey - ny, ex - nx)
-    deg = np.round(na * 180 / math.pi)
-    nar = deg * math.pi / 180
-    ix, iy = np.round(nx), np.round(ny)
-    rx, ry = nx - ix, ny - iy
-    # (rx, ry) = cu' * (c, s) + cv' * (-s, c)
-    c, s = np.cos(nar), np.sin(nar)
-    ncu = np.round((rx * c + ry * s) * 10)
-    ncv = np.round((-rx * s + ry * c) * 10)
-    out = B.copy()
-    out[:, 0], out[:, 1], out[:, 4], out[:, 9], out[:, 10] = ix, iy, deg, ncu, ncv
-    bld = out.astype(np.int16)
-
-    wm = om_old_water
-    W, H, C = wm["w"], wm["h"], wm["cell"]
-    old = np.frombuffer(body, dtype=np.uint8, count=W * H, offset=12 + n * stride * 2).reshape(H, W).astype(np.float64)
-    x0, y0 = new_ext[0], new_ext[1]
-    NW = int(math.ceil((new_ext[2] - x0) / C))
-    NH = int(math.ceil((new_ext[3] - y0) / C))
-    gx = x0 + (np.arange(NW) + 0.5) * C
-    gy = y0 + (np.arange(NH) + 0.5) * C
-    X, Y = np.meshgrid(gx, gy)
-    lx, ly = R.world_to_legacy(X, Y)
-    fi = (lx - wm["x0"]) / C - 0.5
-    fj = (ly - wm["y0"]) / C - 0.5
-    i0 = np.clip(np.floor(fi).astype(int), 0, W - 2)
-    j0 = np.clip(np.floor(fj).astype(int), 0, H - 2)
-    tx = np.clip(fi - i0, 0, 1)
-    ty = np.clip(fj - j0, 0, 1)
-    v = (old[j0, i0] * (1 - tx) * (1 - ty) + old[j0, i0 + 1] * tx * (1 - ty)
-         + old[j0 + 1, i0] * (1 - tx) * ty + old[j0 + 1, i0 + 1] * tx * ty)
-    q = np.clip(np.round(v), 0, 255).astype(np.uint8)
-    head = magic + struct.pack("<II", n, stride)
-    data = gzip.compress(head + bld.tobytes() + q.tobytes(), 9, mtime=0)
-    return data, {"x0": x0, "y0": y0, "cell": C, "w": NW, "h": NH}
-
-
 # ------------------------------------------------------------------ ringroute.js
 
 def rebase_ringroute(src, vertex):
@@ -334,18 +230,15 @@ def main():
     if "--game" in sys.argv:
         GAME = os.path.abspath(sys.argv[sys.argv.index("--game") + 1])
     cpath, epath = os.path.join(GAME, "citymap.json"), os.path.join(GAME, "mapextras.json")
-    opath, bpath = os.path.join(GAME, "ommeland.json"), os.path.join(GAME, "ommeland.bin")
     rpath = os.path.join(GAME, "js", "ringroute.js")
     with open(cpath) as f:
         city = json.load(f)
     with open(epath) as f:
         ex = json.load(f)
-    with open(opath) as f:
-        om = json.load(f)
     with open(rpath) as f:
         ring = f.read()
     frames = {"citymap.json": city["meta"].get("frame", "legacy"), "mapextras.json": ex.get("frame", "legacy"),
-              "ommeland.json": om.get("frame", "legacy"), "ringroute.js": "rd-new" if "frame: rd-new" in ring else "legacy"}
+              "ringroute.js": "rd-new" if "frame: rd-new" in ring else "legacy"}
     print(frames)
     if check or all(v == R.FRAME for v in frames.values()):
         return
@@ -354,25 +247,15 @@ def main():
     old_routes, vertex = rebase_citymap(city)
     new_routes = {r["name"]: r["pts"] for r in city.get("railRoutes", [])}
     rebase_extras(ex, legacy_city, vertex)
-    old_water = dict(om["water"])
-    rebase_ommeland(om, old_routes, new_routes)
-    with open(bpath, "rb") as f:
-        raw = f.read()
-    data, wmeta = rebase_bin(raw, old_water, om["extent"])
-    om["water"] = wmeta
     ring2 = rebase_ringroute(ring, vertex)
 
     with open(cpath, "w") as f:
         json.dump(city, f, separators=(",", ":"))
     with open(epath, "w") as f:
         json.dump(ex, f, separators=(",", ":"))
-    with open(opath, "w") as f:
-        json.dump(om, f, separators=(",", ":"), ensure_ascii=False)
-    with open(bpath, "wb") as f:
-        f.write(data)
     with open(rpath, "w") as f:
         f.write(ring2)
-    for p in (cpath, epath, opath, bpath, rpath):
+    for p in (cpath, epath, rpath):
         print(f"{os.path.relpath(p, ROOT)}: {os.path.getsize(p) / 1e6:.2f} MB")
 
 

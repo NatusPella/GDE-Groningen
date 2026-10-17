@@ -2,16 +2,14 @@
 // hospitals, GP posts, doctors, ambulance posts, police, fire stations,
 // pharmacies, fuel, car repair, shops, horeca, parking, taxi ranks and bus
 // stations, in lat/lon, projected here (geoframe.js). Only what lies in the
-// part of the world that is built (the city map and the real Ommelanden) is
+// part of the world that is built (the city map and the province's tiles) is
 // kept. Names are invented from kind + place; no business names.
 //
 //   nearestFacility(kind, x, y)  kind: 'medical' | 'police' | any layer kind
 //                                (or an array of them)
 import { geoToGame } from './geoframe.js';
-import { REAL, inRealExtent } from './countryreal.js';
-import { realWater } from './countryfield.js';
 import { pushOutOfPlan } from './countryplan.js';
-import { buildingAt, boxOf, pushOutOfBuildings, roadNear, roadKind, withTiles } from './tileplace.js';
+import { buildingAt, boxOf, pushOutOfBuildings, roadNear, roadKind, withTiles, waterGap } from './tileplace.js';
 import { isInWater } from './util.js';
 
 // how far an emergency-capable post may be before the nearest doctor wins
@@ -34,15 +32,21 @@ export async function loadFacilities(mapUrl = 'citymap.json') {
   }
 }
 
-// Inside the built world: the city map, the real Ommelanden, or a layer of
-// tiles next to them (setExtraBuiltWorld: the proefstrook with ?corridor).
+// Inside the built world: the city map, or the layer of tiles round it
+// (setExtraBuiltWorld: the province's, else the proefstrook's).
 let extraWorld = null;
 export function setExtraBuiltWorld(fn) { extraWorld = fn; }
 export function inBuiltWorld(m, x, y, edge = EDGE) {
   const b = m.bounds;
   if (b && x > b[0] + edge && x < b[2] - edge && y > b[1] + edge && y < b[3] - edge) return true;
-  return (REAL.ready && inRealExtent(x, y, edge)) || (!!extraWorld && extraWorld(x, y));
+  return !!extraWorld && extraWorld(x, y);
 }
+
+// The area round town where shops, cafés and garages get doors and where a
+// respawn or a teleport counts as out in the country: the tiles round all of
+// them are loaded at the start, so the cost grows with it ([x0, y0, x1, y1]).
+export const DOOR_BOX = [-12208, -13520, 12758, 10810];
+export const inDoorRange = (x, y, m = 0) => x > DOOR_BOX[0] + m && x < DOOR_BOX[2] - m && y > DOOR_BOX[1] + m && y < DOOR_BOX[3] - m;
 
 function inCity(m, x, y) {
   const b = m.bounds;
@@ -221,7 +225,7 @@ function nearestPlain(list, x, y, maxD) {
 export function reachableFacilities(kind, step = 400) {
   const m = meta || {};
   const out = new Set();
-  const boxes = [m.bounds, REAL.ready ? REAL.ext : null].filter(Boolean);
+  const boxes = [m.bounds, DOOR_BOX].filter(Boolean);
   for (const [x0, y0, x1, y1] of boxes) {
     for (let x = x0; x <= x1; x += step) {
       for (let y = y0; y <= y1; y += step) {
@@ -237,7 +241,7 @@ export function reachableFacilities(kind, step = 400) {
 
 // Open ground: not in a building, a farmstead, a ditch or the water.
 export function countryStandable(map, x, y) {
-  return !buildingAt(map, x, y, 0.35) && realWater(x, y) < -0.6 && !isInWater(map, x, y) && !pushOutOfPlan({ x, y }, 0.35);
+  return !buildingAt(map, x, y, 0.35) && waterGap(map, x, y, 3) < -0.6 && !isInWater(map, x, y) && !pushOutOfPlan({ x, y }, 0.35);
 }
 
 // The face of building b that looks at (tx, ty): {x, y, nx, ny, tx, ty, h}.
@@ -285,10 +289,10 @@ export function countryDoor(map, x, y, ok = () => true) {
   return null;
 }
 
-// The real facilities of these kinds out in the Ommelanden (outside the city's
-// map, inside the area of the old data): where shops, cafés and garages get a door.
+// The real facilities of these kinds out in the country (outside the city's
+// map, inside DOOR_BOX): where shops, cafés and garages get a door.
 export function countryFacilities(kinds) {
-  return facilitiesOf(kinds).filter((f) => !f.city && REAL.ready && inRealExtent(f.x, f.y));
+  return facilitiesOf(kinds).filter((f) => !f.city && inDoorRange(f.x, f.y));
 }
 
 // Runs fn (sync) with the tiles round those facilities in: the places that are
