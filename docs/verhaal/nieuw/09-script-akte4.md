@@ -280,7 +280,7 @@ TAMMO: Dat is ook een antwoord. [NIEUW]
 TESSA: Dat is een tegeltje. [NIEUW]
 TAMMO: Het is een goed tegeltje. [NIEUW]
 
-## [A4.1] Appjes akte 4 (stil, geen stem) – telefoon
+## [A4.1] Appjes akte 4 (stil, geen stem) – alle regio's – telefoon
 APP MEM→TESSA (stil): Nog vier dagen. Kom naar Bourtange. – M. [NIEUW]
 APP TESSA→MEM (stil): Ik kom. Hij weet het nog niet. [NIEUW]
 APP TAMMO→TESSA (stil): Ik zeg niks. Maar ik wil het weten. [NIEUW]

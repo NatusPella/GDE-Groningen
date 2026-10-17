@@ -289,7 +289,7 @@ TESSA: Ik heb veel gelezen. [NIEUW]
 TAMMO: En je bent Nederlandse. [NIEUW]
 TESSA: Dat helpt niet. [NIEUW]
 
-## [A2.1] Appjes akte 2 (stil, geen stem) – telefoon
+## [A2.1] Appjes akte 2 (stil, geen stem) – alle regio's – telefoon
 APP MEM→TESSA (stil): Pas op dysels, famke. – M. [BEHOUDEN]
 APP MEM→TESSA (stil): Hij is veilig. Zeg niks tegen je jongen. – M. [NIEUW]
 APP MEM→TESSA (stil): Nog acht dagen. Hou Jelle bezig. – M. [NIEUW]
