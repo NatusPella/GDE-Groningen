@@ -1,5 +1,6 @@
 import { closestPointOnSegment, normalizeAngle, clamp, lerp, pointInPolygon, inWaterPoly, WATER_Y, keepBoatOffShore, boatDryPoints } from './util.js';
 import { waterClearance, waterChannelPoints } from './waterindex.js';
+import { shallowWater } from './waterlevels.js';
 import { trafficSignalsNear, trafficLightPhaseMove } from './trafficlights.js';
 import { resolvePropCollisions } from './breakables.js';
 import { inPassage } from './collision.js';
@@ -380,6 +381,8 @@ function offroadDrag(v, dt) {
 // 'gras', 'wade', 'ditch' (countryedge.js countryWater) or null where the
 // tyres are on a road, farm yard paving or the city's own surfaces.
 export function offroadGround(map, x, y) {
+  const sw = shallowWater(map, x, y);
+  if (sw) return sw.kind === 'sloot' ? 'ditch' : 'wade';
   if (edgeDistance(x, y) < -80) return null;
   const cs = countrySurface(x, y);
   if (!cs) return countryWater(x, y) === 'wade' ? 'wade' : null;
@@ -3022,7 +3025,9 @@ export function checkVehicleWater(v, map, world) {
 export function overOpenWater(map, x, y, z) {
   if (!inWaterPoly(map, x, y) || map.isOnBridge(x, y)) return false;
   // over the canal on a viaduct, or under it through the aqueduct
-  return !(z > 1.5 || (z < -3 && map.coveredAt && map.coveredAt(x, y)));
+  if (z > 1.5 || (z < -3 && map.coveredAt && map.coveredAt(x, y))) return false;
+  // a ditch or shallows with a peil of their own are driven through, not sunk in
+  return !shallowWater(map, x, y);
 }
 
 function startVehicleFall(v, world) {

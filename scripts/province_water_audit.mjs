@@ -1,8 +1,9 @@
 // Audit of the province's water (docs/PROVINCIE-PLAN.md 2.11, issue #1) over a
 // built province layer: every water row has kind/lv/dp/nav, how much water of
 // each kind and boat class there is, the movable bridges, the locks, the
-// bridges over water a boat can sail, and the rows cut at a tile edge (those
-// get no quay walls: the renderer keeps them flat).
+// bridges over water a boat can sail, the lock chambers that split bodies and
+// the rows cut at a tile edge (continuous: the edge on the border is no shore
+// and gets no quay or bank, waterindex.js onTileCut).
 //   node scripts/province_water_audit.mjs [--out game/world] [--strict]
 import './node3d.mjs';
 import fs from 'node:fs';
@@ -30,7 +31,7 @@ const readTile = (t) => {
 };
 
 const kinds = {}, classes = [0, 0, 0, 0, 0], banks = { kade: 0, oever: 0 };
-let rows = 0, missing = 0, edge = 0, packEdge = 0, bridges = 0, movable = 0, navBridges = 0, tilesWithWater = 0, areaM2 = 0;
+let chambers = 0, rows = 0, missing = 0, edge = 0, packEdge = 0, bridges = 0, movable = 0, navBridges = 0, tilesWithWater = 0, areaM2 = 0;
 const bodies = new Set();
 for (const t of Object.values(index.tiles)) {
   const blob = readTile(t);
@@ -46,6 +47,7 @@ for (const t of Object.values(index.tiles)) {
     kinds[w.kind] = (kinds[w.kind] || 0) + 1;
     classes[w.nav]++;
     if (w.bank) banks[w.bank]++;
+    if (w.lock) chambers++;
     areaM2 += polyArea(w.pts);
     bodies.add(`${t.pack}:${w.body}`);
     if (w.nav >= 2 && w.pts.some(onEdge)) edge++;
@@ -63,7 +65,7 @@ const locks = (index.global && index.global.locks) || [];
 console.log(`province water: ${rows} polygons in ${tilesWithWater} tiles, ${bodies.size} bodies, ${(areaM2 / 1e6).toFixed(1)} km2`);
 console.log(`  kinds ${Object.entries(kinds).map(([k, v]) => `${k} ${v}`).join(', ')} (levels: ${Object.entries(WATER_KINDS).map(([k, v]) => `${k} ${v.level ?? 'boezem'}`).join(', ')})`);
 console.log(`  boat classes 0-4: ${classes.join(' / ')}; banks: ${banks.kade} quay, ${banks.oever} natural`);
-console.log(`  ${bridges} bridge pieces (${navBridges} near sailable water, ${movable} movable), ${locks.length} locks, ${edge} sailable rows cut at a tile edge, ${packEdge} touching a pack edge`);
+console.log(`  ${bridges} bridge pieces (${navBridges} near sailable water, ${movable} movable), ${locks.length} locks (${chambers} chambers that split a body), ${edge} sailable rows cut at a tile edge (continuous), ${packEdge} touching a pack edge`);
 let bad = missing;
 if (missing) console.log(`FAIL ${missing} water rows without kind/lv/dp/nav`);
 process.exit(bad && args.includes('--strict') ? 1 : 0);
