@@ -6,6 +6,8 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+## [0.34.0] - 2026-10-17
+
 ### Toegevoegd
 - **Regen, eerder groen voor fietsers:** bij regen lopen de autofases van de verkeerslichten sneller, zodat het fietsgroen eerder komt.
 - **Fietsers aan de telefoon:** een deel van de fietsers in de stad scrolt tijdens het fietsen op de telefoon.
