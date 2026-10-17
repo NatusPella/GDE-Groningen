@@ -1,14 +1,11 @@
 import { clamp, closestPointOnSegment, pointInPolygon, isInWater } from './util.js';
-import { spawnVehicleOnRoad, updateTrafficAI, resolveVehicleBuildingCollision, spawnPoliceBoatOnWater, spawnCountryPoliceBoat, attachToNearestRoad, maxCurvature } from './vehicle.js';
+import { spawnVehicleOnRoad, updateTrafficAI, resolveVehicleBuildingCollision, spawnPoliceBoatOnWater, attachToNearestRoad, maxCurvature } from './vehicle.js';
 import { requestRespawn } from './world.js';
 import { bustFine } from './economy.js';
 import { spawnCopPedestriansNear, makeCopPedestrian, isInsideBuilding, isSpawnHidden } from './pedestrians.js';
-import { REAL } from './countryreal.js';
 import { edgeDistance, ROAD_W } from './countryfield.js';
 import { pushOutOfPlan } from './countryplan.js';
-import { wideWaterAt } from './countryedge.js';
 import { roadNetReady, snapRoad, roadPathNear, nodeXY } from './roadgraph.js';
-import { waterClearance } from './waterindex.js';
 import { isKnockedDown } from './ragdoll.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { makeBeamGeometry, makeBeamMaterial, requestSearchlight } from './nightlights3d.js';
@@ -526,27 +523,7 @@ function despawnFarCopPeds(world) {
 function isPlayerNearWater(world) {
   const p = world.player;
   if (p.inVehicle && p.inVehicle.isBoat) return true;
-  if (world.map.waterNear(p.x, p.y, WATER_PROXIMITY).length > 0) return true;
-  // the open water of the Ommeland (countrywater.js)
-  if (!REAL.ready || edgeDistance(p.x, p.y) < 0) return false;
-  for (let k = 0; k < 12; k++) {
-    const a = k * Math.PI / 6;
-    for (const r of [8, WATER_PROXIMITY]) if (wideWaterAt(p.x + Math.cos(a) * r, p.y + Math.sin(a) * r)) return true;
-  }
-  return false;
-}
-
-// A police boat on the Ommeland's open water, BOAT_SPAWN_MIN..MAX_DIST off.
-function spawnCountryBoat(world) {
-  const p = world.player;
-  for (let k = 0; k < 24; k++) {
-    const a = Math.random() * Math.PI * 2, d = BOAT_SPAWN_MIN_DIST + Math.random() * (BOAT_SPAWN_MAX_DIST - BOAT_SPAWN_MIN_DIST);
-    const x = p.x + Math.cos(a) * d, y = p.y + Math.sin(a) * d;
-    if (!wideWaterAt(x, y) || waterClearance(world.map, x, y, 6) < 4) continue;
-    const boat = spawnCountryPoliceBoat(world.map, x, y, Math.atan2(p.y - y, p.x - x));
-    if (boat) return boat;
-  }
-  return null;
+  return world.map.waterNear(p.x, p.y, WATER_PROXIMITY).length > 0;
 }
 
 function trySpawnPoliceBoat(world, state) {
@@ -555,13 +532,7 @@ function trySpawnPoliceBoat(world, state) {
   const alive = world.vehicles.filter((v) => v.isBoat && v.isPolice && !v.hijacked && !v.wrecked);
   if (alive.length >= 1) return;
   const polys = world.map.waterNear(world.player.x, world.player.y, BOAT_SPAWN_MAX_DIST);
-  if (!polys.length) {
-    state.nextBoatSpawnAt = world.time + BOAT_SPAWN_STAGGER;
-    const boat = REAL.ready && edgeDistance(world.player.x, world.player.y) > 0 ? spawnCountryBoat(world) : null;
-    if (!boat || !spawnSpotHidden(world, boat.x, boat.y, boat.angle, 2)) { state.nextBoatSpawnAt = world.time + 0.5; return; }
-    world.vehicles.push(boat);
-    return;
-  }
+  if (!polys.length) { state.nextBoatSpawnAt = world.time + BOAT_SPAWN_STAGGER; return; }
   const poly = polys[Math.floor(Math.random() * polys.length)];
   state.nextBoatSpawnAt = world.time + BOAT_SPAWN_STAGGER;
   const boat = spawnPoliceBoatOnWater(world.map, poly, Math.random, { near: [world.player.x, world.player.y], min: BOAT_SPAWN_MIN_DIST, max: BOAT_SPAWN_MAX_DIST, budget: 3 });

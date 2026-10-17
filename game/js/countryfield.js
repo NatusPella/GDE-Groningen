@@ -75,9 +75,12 @@ export const COUNTRY_UNIFORMS = {
   uRealBlocks: { value: [1, 1, 0, 0] },
   uRealWater: { value: null },
   uRealWaterRect: { value: [0, 0, 1, 0] },
-  // round the player (x, z, radius) the open water is a real surface at
-  // WATER_Y (countrywater.js): the ground opens over it; w = time
+  // round the player (x, z, radius) the ground opens over the tiles' water,
+  // a real surface at WATER_Y (tilewatermask.js); w = time
   uWaterNear: { value: [0, 0, 0, 0] },
+  // the tiles' water round the player as a mask: rect = [x0, y0, size, on]
+  uTileWater: { value: null },
+  uTileWaterRect: { value: [0, 0, 1, 0] },
   uUrbanTex: { value: null },
   uUrbanRect: { value: [0, 0, 1, 0] },
   // the province's tile world (provinceworld.js): the polder blocks its real
@@ -373,6 +376,8 @@ uniform vec4 uRealBlocks;
 uniform sampler2D uRealWater;
 uniform vec4 uRealWaterRect;
 uniform vec4 uWaterNear;
+uniform sampler2D uTileWater;
+uniform vec4 uTileWaterRect;
 uniform sampler2D uUrbanTex;
 uniform vec4 uUrbanRect;
 uniform sampler2D uProvBlocks;
@@ -434,6 +439,13 @@ float cRealWater(vec2 p) {
   vec2 uv = (p - uRealWaterRect.xy) / uRealWaterRect.zw;
   if (uv.x < 0.0 || uv.y < 0.0 || uv.x > 1.0 || uv.y > 1.0) return -99.0;
   return (texture(uRealWater, uv).r * 255.0 - 128.0) * 0.25;
+}
+// the tiles' water mask (0..1 on the water); -1 outside its window
+float cTileWater(vec2 p) {
+  if (uTileWaterRect.w < 0.5) return -1.0;
+  vec2 uv = (p - uTileWaterRect.xy) / uTileWaterRect.z;
+  if (uv.x < 0.0 || uv.y < 0.0 || uv.x > 1.0 || uv.y > 1.0) return -1.0;
+  return texture(uTileWater, uv).r;
 }
 float cUrban(vec2 p) {
   if (uRealBlocks.z < uRealBlocks.x) return 0.0;
@@ -748,6 +760,10 @@ vec3 countryAlbedo(vec2 p, float cw, inout float sRough, inout float sDip) {
   // roads and canals carried on from the city
   vec3 ce = vec3(0.0, 0.0, 1e3);
   if (edD > -20.0) ce = baked ? cEdgeFrom(bk, px) : cEdge(p, px);
+  // round the player the tiles' water is the water: no old canals
+  float tw = cTileWater(p);
+  bool tiled = tw >= 0.0;
+  if (tiled) ce.y = 0.0;
   // verge along the real roads: a gravel berm out in the polder, a kerb
   // and a strip of the city's pavement tiles in town
   if (ce.z > 0.0 && ce.z < 2.0 && ce.y < 0.5) {
@@ -797,7 +813,7 @@ vec3 countryAlbedo(vec2 p, float cw, inout float sRough, inout float sDip) {
     if (cMaarY(by)) dQ = min(dQ, l.y);
     if (cMaarY(by + 1)) dQ = min(dQ, C_BLOCK - l.y);
   }
-  float rw = inReal || edD < 400.0 ? cRealWater(p) : -99.0;
+  float rw = !tiled && (inReal || edD < 400.0) ? cRealWater(p) : -99.0;
   float wR = (1.0 - smoothstep(-px - 0.25, px + 0.25, -rw)) * (1.0 - roadM);
   float dry = (1.0 - vil) * (1.0 - urb) * (1.0 - smoothstep(-3.0, -1.0, rw));
   float dryE = 1.0 - ce.x;
@@ -807,15 +823,16 @@ vec3 countryAlbedo(vec2 p, float cw, inout float sRough, inout float sDip) {
   float wC = max(ce.y * (1.0 - roadM), wR);
   wQ = max(wQ, wC);
   float water = max(max(wD, wM), wQ) * smoothstep(0.86, 0.98, max(cw, wC));
+  if (tiled) { wD = 0.0; wM = 0.0; wQ = 0.0; water = smoothstep(0.35, 0.6, tw) * smoothstep(0.86, 0.98, cw); }
   float bank = max(max((1.0 - smoothstep(hw * 0.72, hw, dD)) * (1.0 - culvert) * keepD, (1.0 - smoothstep(C_MAIN * 0.8, C_MAIN, dM)) * (1.0 - culvM)) * dry * dryE, max((1.0 - smoothstep(C_MAAR_WATER, C_MAAR, dQ)) * dryE, (1.0 - smoothstep(0.0, 2.2, -rw)) * (1.0 - roadM))) * (1.0 - water);
   c = mix(c, cLin(70.0, 72.0, 44.0) * (0.8 + 0.3 * n3), bank * 0.8 * smoothstep(0.86, 0.98, cw));
   // ditches lie deeper than the field (the one water rule: waded, 0.6 m):
   // a shadowed inner slope just above the water line
   float lip = max((1.0 - smoothstep(hw * 0.72, hw * 0.92, dD)) * (1.0 - culvert) * keepD, (1.0 - smoothstep(C_MAIN * 0.8, C_MAIN * 0.95, dM)) * (1.0 - culvM)) * dry * dryE * (1.0 - water);
   c *= 1.0 - 0.34 * lip * smoothstep(0.86, 0.98, cw);
-  // the open water near the player is the real surface below (countrywater.js)
+  // the tiles' water near the player is the real surface below (tilewatermask.js)
   vec2 qR = abs(p - uCountryRect.xy) - uCountryRect.zw;
-  if ((rw > 0.0 || ce.y > 0.5) && roadM < 0.5 && max(qR.x, qR.y) > 0.0 && length(p - uWaterNear.xy) < uWaterNear.z) discard;
+  if (tw > 0.35 && max(qR.x, qR.y) > 0.0 && length(p - uWaterNear.xy) < uWaterNear.z) discard;
   // the city water's shallow / deep tones (water3d.js), glossy so the sky
   // reflects in it; a slow drifting sheen where it is not weed
   vec3 wc = mix(cLin(44.0, 74.0, 56.0), cLin(11.0, 36.0, 32.0), 0.35 + 0.4 * n2 + 0.25 * wQ);

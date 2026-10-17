@@ -1,7 +1,7 @@
 // Sails the player's boats out of every city canal that leaves the map, into
-// the Ommeland water, and back in: the real boat physics (drivePlayerBoat, as
-// player.js drives a boat: the player's tuning, substeps kept off the shore) and the Ommeland water as the game loads it
-// (countryreal + countryedge + the clearance hook countrywater.js registers).
+// the province's tile water, and back in: the real boat physics (drivePlayerBoat, as
+// player.js drives a boat: the player's tuning, substeps kept off the shore) and the
+// water of the streamed tiles (game/world with the province layer).
 // A scripted helmsman steers like a player: throttle on, the stick toward the
 // goal, and away from the bank it sees ahead; back in, by way of the exit.
 //   node scripts/boat_edge_sim.mjs
@@ -11,28 +11,35 @@ import './node3d.mjs';
 import fs from 'node:fs';
 import zlib from 'node:zlib';
 
-const { GameMap, applyMapExtras } = await import('../game/js/mapdata.js');
 const { Vehicle, drivePlayerBoat } = await import('../game/js/vehicle.js');
-const { setExtraWater, normalizeAngle, clamp, pointInPolygon } = await import('../game/js/util.js');
-const { initReal } = await import('../game/js/countryreal.js');
-const { setCountryBounds, rectOutside, SHORE_RW } = await import('../game/js/countryfield.js');
-const { initCountryEdge, wideWaterAt, openWater } = await import('../game/js/countryedge.js');
-const { setCountryClearance, waterClearance } = await import('../game/js/waterindex.js');
-const { countryClearance } = await import('../game/js/countrywater.js');
+const { normalizeAngle, clamp, pointInPolygon } = await import('../game/js/util.js');
+const { setCountryBounds, rectOutside } = await import('../game/js/countryfield.js');
+const { waterClearance } = await import('../game/js/waterindex.js');
 const { BOAT_KINDS } = await import('../game/js/boattypes.js');
+const S = await import('../game/js/tilestore.js');
+const TW = await import('../game/js/tileworld.js');
+const G = await import('../game/js/gdt.js');
 
-const root = new URL('../game/', import.meta.url);
-const data = JSON.parse(fs.readFileSync(new URL('citymap.json', root)));
-applyMapExtras(data, JSON.parse(fs.readFileSync(new URL('mapextras.json', root))));
-const map = new GameMap(data);
-const om = JSON.parse(fs.readFileSync(new URL('ommeland.json', root)));
-const bin = zlib.gunzipSync(fs.readFileSync(new URL('ommeland.bin', root)));
-initReal(map, { ...om, bin: bin.buffer.slice(bin.byteOffset, bin.byteOffset + bin.byteLength) });
+globalThis.requestAnimationFrame = (f) => setImmediate(f);
+const root = new URL('../game/world/', import.meta.url);
+if (!fs.existsSync(new URL('index-provincie.json', root))) { console.log('SKIP no game/world with the province layer'); process.exit(0); }
+const files = new Proxy({}, { get: (o, f) => (typeof f === 'string' ? (o[f] || (o[f] = new Uint8Array(fs.readFileSync(new URL(f, root))))) : undefined) });
+const T = await TW.loadTileWorld('world/', { source: new S.MemorySource(files), pool: false, extra: ['index-provincie.json'] });
+const map = T.world;
 setCountryBounds(map.meta.bounds);
-initCountryEdge(map);
-// as countrywater.js init() does in the game
-setExtraWater(wideWaterAt);
-setCountryClearance(countryClearance);
+// the tiles round a point: the province's water beyond the city edge streams in
+const loaded = new Set();
+async function loadAround(x, y, r = 260) {
+  const keys = new Set();
+  for (const dx of [-r, 0, r]) for (const dy of [-r, 0, r]) {
+    const [i, j] = G.tileIndexOf ? G.tileIndexOf(x + dx, y + dy) : [Math.floor((x + dx - G.GRID_X0) / 1000), Math.floor((y + dy - G.GRID_Y0) / 1000)];
+    const k = G.tileKey(i, j);
+    if (!loaded.has(k) && T.index.tiles[k]) keys.add(k);
+  }
+  for (const k of keys) loaded.add(k);
+  await Promise.all([...keys].map((k) => T.store.request(k, { priority: -1 })));
+  map.tileQueue.run(1e9);
+}
 
 // City canals that reach the map edge: per polygon and side, the stretch of
 // outline within 2 m of the edge, at least 4 m wide.
@@ -157,6 +164,7 @@ let outOk = 0, backOk = 0, tried = 0;
 const tops = {};
 const rows = [];
 for (const ex of exits) {
+  await loadAround(ex.e[0], ex.e[1]);
   const st = startFor(ex);
   const across = clear(ex.e[0] + ex.n[0] * 2, ex.e[1] + ex.n[1] * 2);
   if (!st) { rows.push(`${ex.name || '?'} side ${ex.s} (${ex.wd.toFixed(0)} m): no start with room`); continue; }
