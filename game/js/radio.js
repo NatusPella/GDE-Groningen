@@ -74,6 +74,7 @@ export function initRadio(w) {
     queue: () => R.queue.map((l) => l.speaker + ': ' + l.text),
     inBreak: () => radioInBreak(),
     played: () => R.played,
+    ducked: () => ducked(world),
   };
 }
 

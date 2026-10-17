@@ -13,7 +13,7 @@ import { playCallVoice } from './audio.js';
 import { isCinematicActive } from './cinematics.js';
 import { isCallActive } from './phonefeed.js';
 import { noteSpoken } from './characters.js';
-import { readingTime } from './storytext.js';
+import { readingTime, talkLines } from './storytext.js';
 
 const LINE_GAP = 0.25;
 const TAIL = 0.35;
@@ -57,6 +57,16 @@ export function playTalk(lines, { id = '', delay = 0, onDone = null } = {}) {
 }
 
 export const talkActive = () => !!cur || queue.length > 0;
+
+// debug and the story test: window.__storytalk
+if (typeof window !== 'undefined') {
+  window.__storytalk = {
+    state: () => talkState(),
+    // plays a scene of the script as a talk
+    play: (id) => playTalk(talkLines(id), { id }),
+    stop: () => stopTalk(),
+  };
+}
 export const talkState = () => ({ cur: cur ? { id: cur.id, i: cur.i, line: cur.lines[cur.i] && cur.lines[cur.i].text } : null, queued: queue.map((q) => q.id) });
 
 export function stopTalk() {

@@ -6,6 +6,10 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Nieuw
+- **Nieuw verhaal (proefversie, alleen akte 1):** onder Instellingen › Verhaal (en op het startscherm) kies je tussen Klassiek en Nieuw. Klassiek is het verhaal zoals het was; Nieuw is het verhaal in vijf akten, nu met de opening en akte 1 (Het Loket, de stunt in Berends bakkie, het museum) en het vet uit akte 2. Wisselen start het spel opnieuw op; elk verhaal heeft zijn eigen save, dus je oude saves blijven onaangeraakt.
+- **Tekst zonder stem:** regels die nog niet zijn ingesproken verschijnen als ondertitel met naam en kleur, en appjes worden niet voorgelezen. Rikus praat op de radio niet tijdens een missie.
+
 ### Opgelost
 - **Scrollen in 'Wat is er nieuw':** met het muiswiel scrol je nu in de lijst met wijzigingen en in 'Over' op het startscherm.
 ### Verbeterd
