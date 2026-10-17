@@ -28,7 +28,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Geen TTS gedraaid, geen netwerk ge
 
 | Spreker | Behouden | Nieuw | Tekens nieuw | Opmerking |
 |---|---:|---:|---:|---|
-| Tessa | 115 | 244 | 9.044 | de grootste klus; nieuwe regels in standaard Nederlands (zie open vraag 3) |
+| Tessa | 115 | 244 | 9.044 | de grootste klus; nieuwe regels in standaard Nederlands (besluit van de eigenaar: Tessa is Nederlands) |
 | Tammo | 124 | 198 | 4.520 | korte zinnen, dus goedkoop |
 | Rikus | 48 | 26 | 2.037 | bijna alle rubrieken blijven |
 | Jelle Terpstra | 13 | 37 | 1.682 | Fries-getint, ondertitels nodig (`subtitles.js` `FY`) |

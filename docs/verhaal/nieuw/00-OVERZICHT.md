@@ -36,7 +36,7 @@ Bestaand = uit `docs/personages.md` en `storyarc.js`; **nieuw** alleen waar nodi
 | Wie | Rol | Boog | Stemregels | Hoe en wanneer geïntroduceerd |
 |---|---|---|---|---|
 | **Tammo** | held, echte Stadjer uit het Oosterpark | van "ik zeg niks" naar vijf woorden: "Ik wil bij jou blijven". Leert de provincie kennen; baalt dat Tessa gelijk heeft; **eigenwijs en vaak fout** ("Dat bedoelde ik ook.") | korte zinnen, understatement, geen speeches, geen Fries | opening (M00, cutscène), naamkaart |
-| **Tessa** | heldin, de baas van het duo; **Nederlandse** (niet in Stad geboren; zomers in Ljouwert naast Mem; AANNAME: geboren in Zwolle) die Friezen kent; Tammo vindt dat gek | van "regelen en niks zeggen" naar toegeven dat ze bang is nergens te blijven; **heeft vaak gelijk, soms wat saai**; laat Tammo nieuwe dingen zien en vindt het leuk als hij haar iets laat zien | snel, ad rem, "Rijden, niet praten." | opening |
+| **Tessa** | heldin, de baas van het duo; **Nederlandse** (niet in Stad geboren; zomers in Ljouwert naast Mem; AANNAME: geboren in Zwolle) die Friezen kent; Tammo vindt dat gek | van "regelen en niks zeggen" naar toegeven dat ze bang is nergens te blijven; **heeft vaak gelijk, soms wat saai**; laat Tammo nieuwe dingen zien en vindt het leuk als hij haar iets laat zien | snel, ad rem, **standaard Nederlands** (geen Gronings; ze is geen Stadjer), "Rijden, niet praten." Opgenomen regels met een Groninger kleur blijven staan. | opening |
 | **Rikus** | nacht-dj Nachtstreek, jeugdvriend, de radio | blijft vertellen, "ik zeg niks" en zegt het toch: dat kost hen in M23 bijna alles | warm en droog; **radio is alleen wereld** | opening, radio |
 | **Jelle Terpstra** | tegenstander, ijdel, nooit gemeen | van "foar mem" naar "ja, mem": geeft alle plakjes terug | Nederlands met Friese woorden; elke zin is reclame | chat (M03), in persoon in M04 |
 | **Mem (Gerda) Terpstra** | Jelles moeder; **medeplichtige** met Oma; appt Tessa; tekent alles met een J | wil dat hij ophoudt; haar eierbal was beter | stellig, Fries-getint, altijd ondertiteld | appjes vanaf M08 (stil), stem in M24 |
@@ -52,6 +52,8 @@ Bestaand = uit `docs/personages.md` en `storyarc.js`; **nieuw** alleen waar nodi
 | **Wubbo** *(nieuw)* | brugwachter | bondgenoot | rustig | M20 |
 | **Tinus** *(nieuw)* | trekkertrekker, re-enactor | bondgenoot, lift | joviaal | M23 (in de bus), M26 |
 | **Loketbediende, Accountmanager, Jurylid, Buschauffeur** *(nieuw, klein)* | satire-rollen | vast | droog bureaucratisch | M04, M21, M22, bus |
+
+**Tessa is Nederlands, niet Gronings** (besluit van de eigenaar): ze groeide op op zeven plekken en logeerde elke zomer in Ljouwert, in het huis naast Mem. Zo kent ze Friezen, pompeblêden en Mems handschrift. Tammo, die nooit ergens anders woonde dan in Stad, vindt dat gek ("Jij? Fries?"). Al haar nieuwe regels zijn standaard Nederlands.
 
 **Geschrapt of samengevoegd:** Femke (H7), Harm (H9), Hilly, Hilje, Boer Roelf. Rotor Roelf blijft een stem in M14.
 
