@@ -1,11 +1,9 @@
 // The wereldbouwer (game/js/worldbuilder.js, docs/PROVINCIE-PLAN.md 2.5):
-//  1. the Ommeland villages (realmap.js) give the same roads and buildings
-//     through the world builder as through the old per-zone code;
-//  2. the OSM adapter, run over the city's own raw OSM cache, gives the
+//  1. the OSM adapter, run over the city's own raw OSM cache, gives the
 //     city's road rows (class, lanes, width, speed, access) and building
 //     rows (type, levels) as process_osm.py built them: the audit that lets
 //     the city go through the same entry point;
-//  3. the height evidence order, the lane model and the hooks.
+//  2. the height evidence order, the lane model and the hooks.
 //   node scripts/worldbuilder_test.mjs
 import './node3d.mjs';
 import fs from 'node:fs';
@@ -17,7 +15,7 @@ let fails = 0;
 const fail = (m) => { fails++; console.log('FAIL ' + m); };
 const eq = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 
-// --- 3. rules -----------------------------------------------------------------
+// --- 2. rules -----------------------------------------------------------------
 {
   const h = WB.heightFields({ hmax: 12.4, hg: 0.6, h50: 9, roof: 'gabled' }, { h: 9, lv: 3 }, 2);
   if (h.hsrc !== '3dbag' || h.hm !== 11.8 || h.roof !== 'gabled') fail('3D BAG wins: ' + JSON.stringify(h));
@@ -39,7 +37,6 @@ const eq = (a, b) => JSON.stringify(a) === JSON.stringify(b);
   const sq = [[0, 0], [30, 0], [30, 20], [0, 20], [0, 0]];
   const barn = WB.buildBuilding({ pts: sq, code: 4, urban: 0.1 });
   if (!barn || barn.type !== 'farm_auxiliary') fail('a barn box in a tile: ' + JSON.stringify(barn));
-  if (WB.buildBuilding({ pts: sq, code: 4, urban: 0.1 }, { keepRural: true })) fail('realmap leaves a barn to the countryside');
   if (WB.buildBuilding({ pts: sq, tag: 'barn' }).type !== 'barn') fail('an OSM outline keeps its tag');
   const flat = WB.buildBuilding({ pts: sq, tag: 'apartments', levels: 5 });
   if (flat.type !== 'apartments' || flat.h !== 5 || flat.hsrc !== 'osm_levels') fail('a block of flats: ' + JSON.stringify(flat));
@@ -49,38 +46,7 @@ const eq = (a, b) => JSON.stringify(a) === JSON.stringify(b);
   if (WB.runHooks('furniture', { roads: [r] }).length !== 1) fail('furniture hook');
 }
 
-// --- 1. the Ommeland villages: old code == world builder ------------------------
-{
-  const { GameMap, applyMapExtras } = await import('../game/js/mapdata.js');
-  const data = JSON.parse(fs.readFileSync(new URL('citymap.json', root)));
-  applyMapExtras(data, JSON.parse(fs.readFileSync(new URL('mapextras.json', root))));
-  const map = new GameMap(data);
-  const F = await import('../game/js/countryfield.js');
-  const { initReal } = await import('../game/js/countryreal.js');
-  F.setCountryBounds(map.meta.bounds);
-  const om = JSON.parse(fs.readFileSync(new URL('ommeland.json', root)));
-  const bin = zlib.gunzipSync(fs.readFileSync(new URL('ommeland.bin', root)));
-  initReal(map, { ...om, bin: bin.buffer.slice(bin.byteOffset, bin.byteOffset + bin.byteLength) });
-  const { realRowsBoth } = await import('../game/js/realmap.js');
-  const t0 = performance.now();
-  const both = realRowsBoth();
-  const KEYS_R = ['pts', 'cat', 'type', 'width', 'speed', 'oneway', 'roundabout', 'name', 'bridge', 'layer', '_geoMain', 'real'];
-  const KEYS_B = ['pts', 'h', 'type', 'name', 'realId', 'tint', 'roofTint', 'bounds'];
-  const pick = (o, K) => o && K.map((k) => o[k]);
-  if (both.old.roads.length !== both.wb.roads.length) fail(`village roads ${both.old.roads.length} old vs ${both.wb.roads.length}`);
-  let rd = 0;
-  for (let i = 0; i < Math.min(both.old.roads.length, both.wb.roads.length); i++) if (!eq(pick(both.old.roads[i], KEYS_R), pick(both.wb.roads[i], KEYS_R))) { if (rd++ < 3) fail(`village road ${i} differs`); }
-  let bd = 0, nb = 0;
-  const src = {};
-  for (let i = 0; i < both.old.buildings.length; i++) {
-    const a = both.old.buildings[i], b = both.wb.buildings[i];
-    if (!a !== !b || (a && !eq(pick(a, KEYS_B), pick(b, KEYS_B)))) { if (bd++ < 3) fail(`village building ${i} differs: ${JSON.stringify(pick(a, KEYS_B.slice(1, 4)))} vs ${JSON.stringify(pick(b, KEYS_B.slice(1, 4)))}`); }
-    if (b) { nb++; src[b.hsrc] = (src[b.hsrc] || 0) + 1; if (!(b.hm > 0) || !b.roof) fail(`village building ${i} lacks hm/roof`); }
-  }
-  console.log(`villages: ${both.wb.roads.length} roads, ${nb} of ${both.old.buildings.length} boxes as city buildings, ${rd + bd} differences (${Math.round(performance.now() - t0)} ms); heights ${JSON.stringify(src)}`);
-}
-
-// --- 2. the city: the OSM adapter against process_osm.py's rows -------------------
+// --- 1. the city: the OSM adapter against process_osm.py's rows -------------------
 {
   // process_osm.py's sources, first copy of each element wins
   const els = [], seen = new Set();

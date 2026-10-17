@@ -3,7 +3,7 @@
 # `npm run stage` in desktop/ first): scripts/perf/detail.js at 1600x900, dpr 1.
 #   zsh scripts/perf/detail.sh <name> [electron flags...]
 # DETAIL_ONLY=grotemarkt,haren picks areas (views: only the landmark shots),
-# DETAIL_TOGGLE=1 adds an in-process on/off comparison of realmap.js and the
+# DETAIL_TOGGLE=1 adds an in-process on/off comparison of the
 # landmark kits per area. Output: $DETAIL_OUT/<name>.json, the
 # day and night screenshots <name>-<area>.png, and a table (detail_table.py).
 HERE=${0:A:h}

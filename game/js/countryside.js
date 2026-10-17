@@ -19,10 +19,8 @@ import { buildSign, disposeSign } from './countrysigns.js';
 import { EDGE, edgeBlocked, edgeTileItems, roadGap } from './countryedge.js';
 import { ensureCountryEdge } from './countryplan.js';
 import { thinDitchOn, ditchRamp, urbanWeight, realBlock, realWater } from './countryfield.js';
-import { REAL, buildingsInTile, roadsInTile, buildingModel, coveredByTiles } from './countryreal.js';
+import { REAL } from './countryreal.js';
 import { setTileWalls, clearTileWalls, pushOutOfWalls, setTileTrunks, clearTileTrunks, pushOutOfTrunks } from './countrywalls.js';
-import { updateVillages, villageStats, villageWarmMeshes } from './countryvillage.js';
-import { buildingMaterial, bldCode, STYLE } from './countrybuilding.js';
 import { glowMaterial, poolGeometry } from './countryglow.js';
 import { updateTileWater, tileWaterStats } from './tilewatermask.js';
 import { waterAt } from './waterlevels.js';
@@ -401,7 +399,6 @@ function* genTileSteps(tx, ty) {
   genBridges(tile, bx, by);
   genEdge(tile);
   yield;
-  if (REAL.ready) yield* genReal(tile);
   for (const sg of blockSigns(bx, by)) if (inTile(tile, sg.x, sg.y)) tile.signs.push(sg);
 
   for (const k in tile.items) {
@@ -464,113 +461,6 @@ function genVillage(tile, v) {
     push(tile, t.poplar ? 'poplar' : 'tree', t.x, t.y, chash(Math.round(t.x), Math.round(t.y)) * 6.28, t.s, t.s, t.s, 0xffffff, 0.1, onTerp ? M3.TERP_H * 0.25 : 0);
   }
   for (const g of V.graves) if (here(g.x, g.y)) push(tile, 'grave', g.x, g.y, g.rot, g.s, g.s, g.s, 0xffffff, 0.12, M3.TERP_H - 0.1);
-}
-
-// Side of building piece m at (x, y) that faces the nearest road of the
-// tile (1 +x, 2 -x, 3 +z, 4 -z in the piece's frame), for the front door.
-function doorSide(R, x, y, m) {
-  let bd = 3600, qx = 0, qy = 0;
-  if (R) {
-    for (let k = 0; k < R.length; k += 2) {
-      const r = REAL.roads[R[k]];
-      const a = r.pts[R[k + 1]], b = r.pts[R[k + 1] + 1];
-      const dx = b[0] - a[0], dy = b[1] - a[1];
-      const t = Math.max(0, Math.min(1, ((x - a[0]) * dx + (y - a[1]) * dy) / (dx * dx + dy * dy || 1)));
-      const px = a[0] + dx * t - x, py = a[1] + dy * t - y, d = px * px + py * py;
-      if (d < bd) { bd = d; qx = px; qy = py; }
-    }
-  }
-  if (bd >= 3600) return chash(Math.round(x), Math.round(y)) < 0.5 ? 3 : 4;
-  const ca = Math.cos(m.angle), sa = Math.sin(m.angle);
-  const du = qx * ca + qy * sa, dv = -qx * sa + qy * ca;
-  if (Math.abs(du) / m.long > Math.abs(dv) / m.short) return du > 0 ? 1 : 2;
-  return dv > 0 ? 3 : 4;
-}
-
-// A real building's piece, filed under its building (hidden while
-// scene3d.js draws that building with the city's generator, realmap.js).
-function pushReal(tile, i, type, ...args) {
-  push(tile, type, ...args);
-  const list = tile.items[type];
-  (list.b || (list.b = [])).push(i);
-}
-
-// The real Ommelanden in this tile: building boxes with their roofs, tree
-// lanes along the country roads, and a bit of farmyard round the barns.
-const REAL_STYLE = { house: STYLE.house, block: STYLE.block, barn: STYLE.barn, shed: STYLE.shed, glass: STYLE.glass };
-function* genReal(tile) {
-  const L = buildingsInTile(tile.tx, tile.ty);
-  if (L) {
-    let n = 0;
-    const R = roadsInTile(tile.tx, tile.ty);
-    for (const i of L) {
-      if (++n % 30 === 0) yield;
-      const x = REAL.bx[i], y = REAL.by[i];
-      if (REAL.code[i] === 7 && REAL.churchNear && REAL.churchNear(x, y)) continue;
-      const m = buildingModel(i);
-      const rotY = -m.angle;
-      const style = REAL_STYLE[m.kind];
-      const door = style === STYLE.glass || m.wing ? 0 : doorSide(R, x, y, m);
-      pushReal(tile, i, 'rbBody', x, y, rotY, m.long, m.wall, m.short, m.color, 0.05, 0, bldCode(style, REAL.shopFace.has(i) ? 4 + REAL.shopFace.get(i) : door));
-      (tile.bodies || (tile.bodies = new Map())).set(i, [tile.items.rbBody.c.length / 3 - 1, style, door]);
-      if (m.roof > 0) {
-        const rs = m.kind === 'barn' ? STYLE.sheet : STYLE.tile;
-        if (m.hip) pushReal(tile, i, 'rbHip', x, y, rotY, m.long, m.roof, m.short, m.roofColor, 0.06, m.wall, bldCode(rs));
-        else {
-          pushReal(tile, i, 'rbRoof', x, y, rotY, m.long, m.roof, m.short, m.roofColor, 0.06, m.wall, bldCode(rs));
-          pushReal(tile, i, 'rbGable', x, y, rotY, m.long, m.roof, m.short, m.color, 0.05, m.wall, bldCode(style));
-        }
-        // past MID_R every roof is the one closed gable piece (one draw per chunk)
-        pushReal(tile, i, 'rbRoofMid', x, y, rotY, m.long, m.roof, m.short, m.roofColor, 0.06, m.wall, bldCode(rs));
-      }
-      if (m.kind === 'barn' && urbanWeight(x, y) < 0.3) {
-        const h = chash(Math.round(x) + 3, Math.round(y) - 5);
-        const ca = Math.cos(m.angle), sa = Math.sin(m.angle);
-        const end = h < 0.5 ? 1 : -1;
-        const ex = x + ca * end * (m.long / 2 + 5), ey = y + sa * end * (m.long / 2 + 5);
-        if (h < 0.55 && okSpot(ex, ey, 1)) {
-          const wrap = h < 0.2 ? 0xe8e8e2 : h < 0.4 ? 0x2a2a2a : 0x9fb58a;
-          for (let k = 0; k < 4; k++) push(tile, 'bale', ex - sa * (k - 1.5) * 1.3, ey + ca * (k - 1.5) * 1.3, -m.angle, 0.86, 0.86, 0.86, wrap, 0.05);
-        }
-        // the yard light over the barn door
-        if (h < 0.75) push(tile, 'glowPool', x - sa * (m.short / 2 + 3), y + ca * (m.short / 2 + 3), rotY, 1.3, 1, 1.3, 0xffffff, 0);
-        // (the yard tractor is a real vehicle: parkedcars.js barnTractorSpot)
-      }
-    }
-  }
-  const R = roadsInTile(tile.tx, tile.ty);
-  if (!R) return;
-  yield;
-  for (let k = 0; k < R.length; k += 2) {
-    if (k % 60 === 58) yield;
-    const r = REAL.roads[R[k]], si = R[k + 1];
-    // a province tile draws this road (bridges, tree lanes) itself
-    if (REAL.covered && coveredByTiles((r.pts[si][0] + r.pts[si + 1][0]) / 2, (r.pts[si][1] + r.pts[si + 1][1]) / 2)) continue;
-    if (r.bridge) {
-      // a deck where a real road bridge crosses the water
-      const a = r.pts[si], b = r.pts[si + 1];
-      const mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2, len = Math.hypot(b[0] - a[0], b[1] - a[1]);
-      if (inTile(tile, mx, my) && len > 4 && realWater(mx, my) > -3) push(tile, 'bridge', mx, my, -Math.atan2(b[1] - a[1], b[0] - a[0]), Math.max(1, (len + 2) / 11), 1, (r.w + 1.4) / 5.2, 0xffffff, 0);
-    }
-    if (r.kind < 4 || r.kind > 6) continue;
-    const rh = chash(R[k] * 7 + 1, 313);
-    if (rh > 0.5) continue;
-    const kind = rh < 0.18 ? 'poplar' : 'tree';
-    const step = kind === 'poplar' ? 8 : 10;
-    const a = r.pts[si], b = r.pts[si + 1];
-    const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
-    if (len < 1) continue;
-    const ux = (b[0] - a[0]) / len, uy = (b[1] - a[1]) / len;
-    for (let t = step / 2; t < len; t += step) {
-      for (const side of [-1, 1]) {
-        const off = r.w / 2 + 3.2;
-        const x = a[0] + ux * t - uy * off * side, y = a[1] + uy * t + ux * off * side;
-        if (!inTile(tile, x, y) || !openLand(x, y) || edgeBlocked(x, y, 1.5) || farmAt(x, y, 2)) continue;
-        if (chash(Math.floor(t / 90) + R[k] * 3, side + 9) < 0.2) continue;
-        push(tile, kind, x, y, chash(Math.round(x), Math.round(y)) * 6.28, 0.9 + rh * 0.4, 0.9 + rh * 0.5, 0.9 + rh * 0.4, 0xffffff, 0.1);
-      }
-    }
-  }
 }
 
 // Bridges where a polder road carries on over a maar.
@@ -961,15 +851,7 @@ farmGeo(M3.farmOldaGeometry, M3.OLDA_LOOKS).forEach((g, i) => { PROP_TYPES['fold
 farmGeo(M3.farmSmallGeometry, M3.SMALL_LOOKS).forEach((g, i) => { PROP_TYPES['fsmall' + i] = { geo: g, cap: 120, shadow: true }; });
 farmGeo(M3.farmDairyGeometry, M3.FARM_LOOKS).forEach((g, i) => { PROP_TYPES['fdairy' + i] = { geo: g, cap: 120, shadow: true }; });
 for (let k = 0; k < 4; k++) for (let l = 0; l < 2; l++) PROP_TYPES['house' + k + l] = { geo: () => M3.houseGeometry(k, M3.HOUSE_LOOKS[l]), cap: 400, shadow: true };
-// the real buildings: walls in every tier, roofs with their gable ends near
-// the player and one closed roof further out (lod), chosen per tile; all
-// in the facade material (countrybuilding.js)
 Object.assign(PROP_TYPES, {
-  rbBody: { geo: M3.realBodyGeometry, cap: 18000, shadow: true, bld: true },
-  rbRoof: { geo: M3.realRoofGeometry, cap: 10000, shadow: true, lod: 'near', bld: true },
-  rbGable: { geo: M3.realGableGeometry, cap: 10000, shadow: false, lod: 'near', bld: true },
-  rbHip: { geo: M3.realHipGeometry, cap: 6000, shadow: true, lod: 'near', bld: true },
-  rbRoofMid: { geo: M3.realRoofMidGeometry, cap: 9000, shadow: true, lod: 'mid', bld: true },
   // yard lights at night (countryglow.js; hidden by day)
   glowPool: { geo: () => poolGeometry(5), cap: 2000, shadow: false, glow: true },
 });
@@ -991,7 +873,7 @@ function chunkMesh(ch, k, n) {
   // headroom: every tile that streams into the chunk grows it, and a full
   // reallocation (new mesh and GPU buffers) per tile is a hitch at long view distance
   const cap = Math.ceil((n * 1.4) / 64) * 64;
-  const mesh = new THREE.InstancedMesh(typeGeo(k), T.bld ? buildingMaterial() : T.glow ? glowMaterial() : T.double ? S.reedMat : T.paving ? S.pavingMat : S.propMat, cap);
+  const mesh = new THREE.InstancedMesh(typeGeo(k), T.glow ? glowMaterial() : T.double ? S.reedMat : T.paving ? S.pavingMat : S.propMat, cap);
   mesh.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(cap * 3), 3);
   mesh.count = 0;
   mesh.boundingSphere = ch.sphere;
@@ -1042,10 +924,6 @@ function rebuildChunk(ch) {
       if (!it || !inTier(k, t)) continue;
       mesh.instanceMatrix.array.set(it.m, off * 16);
       mesh.instanceColor.array.set(it.c, off * 3);
-      if (it.b && S.realShown.size) {
-        const A = mesh.instanceMatrix.array;
-        for (let j = 0; j < it.b.length; j++) if (S.realShown.has(it.b[j])) A.fill(0, (off + j) * 16, (off + j + 1) * 16);
-      }
       off += it.c.length / 3;
     }
     mesh.count = off;
@@ -1058,24 +936,6 @@ function dropChunk(ch) {
   for (const mesh of ch.meshes.values()) { S.group.remove(mesh); mesh.dispose(); }
   ch.meshes.clear();
   S.chunks.delete(ch.key);
-}
-
-// The real buildings scene3d.js draws in full (realmap.js): their boxes
-// leave the chunks that hold them.
-export function setRealShown(set) {
-  if (!S) return;
-  const old = S.realShown;
-  S.realShown = set;
-  const touched = new Set();
-  const mark = (i) => {
-    const k = Math.floor(REAL.bx[i] / TILE) + ',' + Math.floor(REAL.by[i] / TILE);
-    if (touched.has(k)) return;
-    touched.add(k);
-    const t = S.tiles.get(k);
-    if (t) chunkFor(t).dirty = true;
-  };
-  for (const i of set) if (!old.has(i)) mark(i);
-  for (const i of old) if (!set.has(i)) mark(i);
 }
 
 // Tier per tile (with some slack), then the dirty chunks nearest first.
@@ -1111,11 +971,10 @@ function init(scene) {
     tiles: new Map(), queue: [], wantKey: '', genMax: 0,
     animals: [], animalDirty: true,
     skinned: new Map(), meshPool: new Map(), herdPools: new Map(),
-    farmCount: 0, signs: new Map(), realShown: new Set(), flocks: [], poolWarm: Object.keys(PROP_TYPES),
+    farmCount: 0, signs: new Map(), flocks: [], poolWarm: Object.keys(PROP_TYPES),
     prev: null, surf: null, splashAt: 0,
     audible: [],
   };
-  REAL.onShop = onShop;
   const groundMat = createTerrainMaterial();
   const ground = new THREE.Mesh(new THREE.BufferGeometry(), groundMat);
   ground.position.y = GROUND_Y;
@@ -1145,13 +1004,12 @@ function init(scene) {
   // hidden samples of the prop materials for the shader warm-up (scene3d)
   const warm = new THREE.Group();
   warm.visible = false;
-  for (const [k, shadow] of [['tree', true], ['reed', false], ['slab', false], ['rbBody', true]]) {
+  for (const [k, shadow] of [['tree', true], ['reed', false], ['slab', false]]) {
     const m = chunkMesh({ sphere: new THREE.Sphere() }, k, 1);
     m.count = 1;
     m.castShadow = shadow;
     warm.add(m);
   }
-  for (const m of villageWarmMeshes()) warm.add(m);
   group.add(warm);
   window.__countryside = S;
 }
@@ -1253,25 +1111,10 @@ function syncTiles(px, py, viewDist, budgetEnd) {
   }
 }
 
-// A village shopfront put on a real building after its tile was laid out:
-// its body's facade code is set over (no door, no windows behind the shop).
-function shopFront(t, i) {
-  const b = t.bodies && t.bodies.get(i);
-  if (!b || !REAL.shopFace.has(i)) return false;
-  const c = t.items.rbBody.c, o = b[0] * 3;
-  c[o] = (c[o] % 2) + 2 * bldCode(b[1], 4 + REAL.shopFace.get(i));
-  return true;
-}
-function onShop(i) {
-  const t = S && S.tiles.get(Math.floor(REAL.bx[i] / TILE) + ',' + Math.floor(REAL.by[i] / TILE));
-  if (t && shopFront(t, i)) chunkFor(t).dirty = true;
-}
-
 function loadTile(t) {
   setTileWalls(t.tx, t.ty, t.walls);
   setTileTrunks(t.tx, t.ty, t.trunks);
   t.mid = Math.hypot(t.cx - S.px, t.cy - S.py) > MID_R;
-  if (t.bodies && REAL.shopFace.size) for (const i of t.bodies.keys()) shopFront(t, i);
   const ch = chunkFor(t);
   ch.tiles.add(t);
   ch.dirty = true;
@@ -1387,7 +1230,7 @@ function reedItems(t) {
   return tmp.items.reed || null;
 }
 
-// A tile's props as the streamer lays them out, reeds included, without
+// the scene (for audits and tests).
 // the scene (scripts/country_props_audit.mjs).
 export function countryTileItems(tx, ty) {
   const g = genTileSteps(tx, ty);
@@ -1730,7 +1573,6 @@ export function updateCountryside(dt, world, scene, cam, viewDist) {
     // make one missing prop geometry per frame, before tiles need it
     if (S.poolWarm.length) typeGeo(S.poolWarm.shift());
     syncChunks(p.x, p.y, Math.max(performance.now(), t0 + GEN_BUDGET_MS) + CHUNK_MS);
-    updateVillages(dt, world, scene);
     updateAnimals(world.paused ? 0 : dt, world, world.time, !world.paused);
   } else if (!S.idle) {
     // back in the city: drop whatever the last countryside frame left drawn
@@ -1761,6 +1603,6 @@ export function countrysideStats() {
   return {
     ms: +(S.ms || 0).toFixed(3), maxMs: +(S.maxMs || 0).toFixed(2), genMax: +S.genMax.toFixed(2), tiles: S.tiles.size, queue: S.queue.length, chunks: S.chunks.size, meshes,
     animals: S.animals.length, skinned: S.skinned.size, herd, farms: S.farmCount, flocks: S.flocks.length, pools,
-    skyline: skylineStats(), life: lifeStats(), villages: villageStats(), water: tileWaterStats(),
+    skyline: skylineStats(), life: lifeStats(), water: tileWaterStats(),
   };
 }

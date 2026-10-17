@@ -25,7 +25,7 @@ import { drawSea, drawOutside, regionLabels, areaNameAt, REGIONS } from './regio
 import { worldPlaceLabels, worldPlacesReady } from './worldplaces.js';
 import { provinceMapOn } from './provincemap.js';
 import { edgeDistance } from './countryfield.js';
-import { REAL, realStreetAt } from './countryreal.js';
+import { streetAt as roadStreetAt } from './tileplace.js';
 import { ommelandArea } from './ommelandplace.js';
 import { ommelandMapSpots, drawOmmelandMapIcon } from './ommelandmap.js';
 import { VILLAGES } from './ommelandlines.js';
@@ -617,7 +617,7 @@ function updateLocation(dt, world) {
   const area = ommelandArea(world.player.x, world.player.y);
   const country = !!area;
   const rp = world.map.nearestRoadPoint(world.player.x, world.player.y, 60, false);
-  const street = (rp && rp.road && rp.road.name) || (REAL.ready && edgeDistance(world.player.x, world.player.y) > 0 ? realStreetAt(world.player.x, world.player.y) : '');
+  const street = (rp && rp.road && rp.road.name) || (edgeDistance(world.player.x, world.player.y) > 0 ? roadStreetAt(world.map, world.player.x, world.player.y) : '');
   locWhere = { district: district || '', country, region: area ? areaNameAt(world.player.x, world.player.y).region : '' };
   // the street big, the wijk (or village) and the city under it
   setText(els.street, street || district || '');

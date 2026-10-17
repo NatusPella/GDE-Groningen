@@ -11,7 +11,7 @@ import { makeTwoWheeler } from './vehicle.js';
 import { buildVehicleMesh } from './models3d_vehicles.js';
 import { flashScreen } from './postfx3d.js';
 import { realWater, chash } from './countryfield.js';
-import { buildingAt } from './countryreal.js';
+import { buildingAt, tilesIn, withTiles } from './tileplace.js';
 import { findOpenSpot, openGround, waterNear, shoreFrom } from './ommelandplace.js';
 import { buildProp, disposeProp, animateProp, eierbalMesh, personMesh } from './ommelandprops3d.js';
 import { speak, duoSpeaker } from './ommelandtalk.js';
@@ -75,11 +75,18 @@ function canalDir(wx, wy) {
   return best;
 }
 
-function shoreSpot(map, st, depth, rMax) {
+// The shore the station's water walk ends at (water and shore only, no tiles needed).
+function shoreCandidate(map, st, depth, rMax) {
   const w = waterNear(st.x, st.y, { depth, rMax });
   if (!w) return null;
   const sh = shoreFrom(map, w.x, w.y, st.x, st.y, 3);
-  if (!sh) return null;
+  return sh ? { w, sh } : null;
+}
+
+function shoreSpot(map, st, depth, rMax) {
+  const c = shoreCandidate(map, st, depth, rMax);
+  if (!c) return null;
+  const { w, sh } = c;
   // the prop's +x looks out over the water
   const a = Math.atan2(-sh.uy, -sh.ux);
   for (const back of [0, 2, 4, 6, 9]) {
@@ -96,8 +103,8 @@ function spotFor(map, st, kind) {
   const facing = (q) => (q ? { x: q.x, y: q.y, a: Math.atan2(st.y - q.y, st.x - q.x) } : null);
   switch (kind) {
     case 'tennis': return face(around(45, 260, 5, ao - 0.5, 1.6, (x, y, a) => [[11, 6], [-11, 6], [11, -6], [-11, -6], [0, 7]].every(([u, v]) => openGround(map, x + u * cosA(a) - v * sinA(a), y + u * sinA(a) + v * cosA(a), { r: 1 }))));
-    case 'boot': return shoreSpot(map, st, 18, 1600);
-    case 'strand': return shoreSpot(map, st, 28, 2600);
+    case 'boot': return shoreSpot(map, st, ...SHORE.boot);
+    case 'strand': return shoreSpot(map, st, ...SHORE.strand);
     case 'molen': return facing(around(60, 280, 6.5, ao - 0.4));
     case 'toren': return face(around(45, 260, 5, ao - 0.4, 1.6, (x, y, a) => openGround(map, x + cosA(a) * 12, y + sinA(a) * 12, { r: 1.5 }) && openGround(map, x + cosA(a) * 22, y + sinA(a) * 22, { r: 1 })));
     case 'wierde': return facing(around(50, 260, 3.5, ao - 0.4));
@@ -132,6 +139,32 @@ function makeAct(v, role, def, spot) {
   return act;
 }
 
+// Where the water and beach uitjes look for their shore: [depth, how far from the station]
+const SHORE = { boot: [18, 1600], strand: [28, 2600] };
+// the tiles a village is placed on: round its station and round the shore of its water uitje
+const PLACE_WINDOW = 460;
+function placePoints(map, v) {
+  const pts = [[v.st.x, v.st.y]];
+  for (const def of [v.V.special, v.V.amenity]) {
+    const q = SHORE[def.kind];
+    const c = q && shoreCandidate(map, v.st, ...q);
+    if (c) pts.push([c.sh.x, c.sh.y]);
+  }
+  return pts;
+}
+
+// Placed once its tiles are in: a village the player nears is placed in the
+// background (placeSoon), every one by prepareVillages.
+async function placeSoon(map, v) {
+  if (v.placed || v.placing) return;
+  v.placing = true;
+  try { await withTiles(map, placePoints(map, v), () => { if (!v.placed) placeVillage(map, v); }, { radius: PLACE_WINDOW, token: 'village', slice: 6 }); } finally { v.placing = false; }
+}
+
+export async function prepareVillages(w = world) {
+  for (const v of villageList(w) || []) await placeSoon(w.map, v);
+}
+
 function placeVillage(map, v) {
   const st = v.st, V = v.V;
   v.placed = true;
@@ -142,7 +175,7 @@ function placeVillage(map, v) {
   }
   // the eierbal: a few hundred metres out, tucked beside a building if one is near
   const a0 = chash(Math.round(st.x), Math.round(st.y)) * Math.PI * 2;
-  const tucked = (x, y) => buildingAt(x, y, 7) >= 0;
+  const tucked = (x, y) => !!buildingAt(map, x, y, 7);
   const e = findOpenSpot(map, st.x, st.y, { rMin: 150, rMax: 420, a0, step: 9, opts: { r: 1.2, road: 1 }, test: tucked })
     || findOpenSpot(map, st.x, st.y, { rMin: 120, rMax: 420, a0, step: 9, opts: { r: 1.2, road: 1 } });
   if (e) v.egg = { village: v, x: e.x, y: e.y, id: st.name, mesh: null };
@@ -158,11 +191,13 @@ function villageList(w) {
   return villages;
 }
 
-// Every village placed (spotcheck.js, the story test, debug); in play each
-// one is placed when the player first comes within PLACE_R of its station.
+// The villages (spotcheck.js, the story test, debug), each one placed whose
+// tiles are in; in play a village is placed when the player first comes within
+// PLACE_R of its station, the rest by prepareVillages (after the start).
+const tilesReady = (w, v) => tilesIn(w.map, placePoints(w.map, v), PLACE_WINDOW);
 export function ensureVillages(w = world) {
   const list = villageList(w) || [];
-  for (const v of list) if (!v.placed) placeVillage(w.map, v);
+  for (const v of list) if (!v.placed && tilesReady(w, v)) placeVillage(w.map, v);
   return list;
 }
 
@@ -170,7 +205,8 @@ export function ensureVillages(w = world) {
 export function villageStroll(w, name) {
   const v = (villageList(w) || []).find((q) => q.name === name);
   if (!v) return null;
-  if (!v.placed) placeVillage(w.map, v);
+  if (!v.placed && tilesReady(w, v)) placeVillage(w.map, v);
+  if (!v.placed) return null;
   const a = v.acts[0];
   return a && Number.isFinite(a.ux) ? { x: a.ux, y: a.uy, label: a.def.name } : null;
 }
@@ -722,8 +758,8 @@ export function updateVillages(dt, w) {
   const p = w.player, v0 = p.inVehicle;
   const px = v0 ? v0.x : p.x, py = v0 ? v0.y : p.y;
   // one village placed per frame, once the player heads its way
-  const next = villages.find((v) => !v.placed && Math.hypot(v.st.x - px, v.st.y - py) < PLACE_R);
-  if (next) placeVillage(w.map, next);
+  const next = villages.find((v) => !v.placed && !v.placing && Math.hypot(v.st.x - px, v.st.y - py) < PLACE_R);
+  if (next && !villages.some((v) => v.placing)) placeSoon(w.map, next);
   teaser(w);
   if (mini) {
     if (mini.kind === 'tennis') {

@@ -4,7 +4,7 @@ import {
   realBlock, urbanWeight,
 } from './countryfield.js';
 import { EDGE } from './countryedge.js';
-import { REAL, RTILE, buildingsInTile, buildingModel, realPlaceLabels } from './countryreal.js';
+import { REAL, realPlaceLabels } from './countryreal.js';
 import { FARM_TYPES, blockPlanCached, blockPlan, villagePlan, turbineRow, turbineValid, isPlanned, pylonsAround, ROAD_ROW, TREE_ROW_P } from './countryplan.js';
 
 // The Ommelanden on the 2D maps (minimap and full map), drawn from the same
@@ -91,8 +91,7 @@ function realWaterImage(color) {
   return j ? j.finish() : null;
 }
 
-// Real roads, water, rails and buildings in the window.
-const ROAD_ORDER = [7, 6, 5, 2, 4, 3, 1];
+// The real water, canals and church towers in the window.
 function drawReal(ctx, x0, y0, x1, y1, pxPerM, st) {
   if (!REAL.ready) return;
   const E = REAL.ext;
@@ -115,33 +114,6 @@ function drawReal(ctx, x0, y0, x1, y1, pxPerM, st) {
     if (w.box[2] < x0 || w.box[0] > x1 || w.box[3] < y0 || w.box[1] > y1) continue;
     ctx.lineWidth = Math.max(px(1), w.hw * 2);
     line(ctx, w.pts);
-  }
-  if (pxPerM > 0.2) {
-    ctx.fillStyle = st.building;
-    const pal = st.buildings;
-    for (let tx = Math.floor(x0 / RTILE); tx <= Math.floor(x1 / RTILE); tx++) {
-      for (let ty = Math.floor(y0 / RTILE); ty <= Math.floor(y1 / RTILE); ty++) {
-        const L = buildingsInTile(tx, ty);
-        if (!L) continue;
-        for (const i of L) {
-          if (pxPerM < 0.5 && REAL.bw[i] * REAL.bl[i] < 60) continue;
-          if (pal) ctx.fillStyle = pal[Math.floor(chash(REAL.bx[i], REAL.by[i]) * pal.length) % pal.length];
-          rotRect(ctx, REAL.bx[i], REAL.by[i], REAL.bw[i], REAL.bl[i], REAL.ba[i]);
-        }
-      }
-    }
-  }
-  for (const k of ROAD_ORDER) {
-    if (k === 7 && pxPerM < 0.12) continue;
-    const major = k <= 4;
-    for (const r of REAL.roads) {
-      if (r.kind !== k) continue;
-      if (!r.box) r.box = boxOf(r.pts, r.w);
-      if (r.box[2] < x0 || r.box[0] > x1 || r.box[3] < y0 || r.box[1] > y1) continue;
-      ctx.strokeStyle = r.cycle && st.cycle ? st.cycle : major ? st.major : k >= 6 ? st.minor : st.road;
-      ctx.lineWidth = st.roadMetres ? Math.max(st.roadMetres, r.w) : Math.max(px(major ? st.majorMin : st.roadMin * (k === 7 ? 0.7 : 1)), r.w);
-      line(ctx, r.pts);
-    }
   }
   ctx.fillStyle = st.church;
   for (const c of REAL.churches) if (c.x > x0 && c.x < x1 && c.y > y0 && c.y < y1) ctx.fillRect(c.x - 11, c.y - 5, 22, 10);

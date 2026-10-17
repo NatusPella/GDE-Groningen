@@ -7,7 +7,6 @@ import { makeProp, addProp, removeProp, isPropBroken, propKey, updateBreakables 
 import { initClutter, generateClutter, whiteUV } from './streetclutter.js';
 import { breakableWallsIn } from './elevation.js';
 import { runGeo } from './geojobs.js';
-import { getRealMap } from './realmap.js';
 import { wijkProfileAt } from './trafficfleet.js';
 import { slotChance } from './streetlifedata.js';
 import { crateGeometry, cartGeometry } from './streetlife3d.js';
@@ -302,14 +301,6 @@ export function cellSlotSpots(map, gx, gy) {
 }
 export const CLUTTER_CELL = CELL;
 
-// A cell without city streets takes the real Ommeland's (realmap.js).
-function cellMap(map, gx, gy) {
-  const x = (gx + 0.5) * CELL, y = (gy + 0.5) * CELL;
-  if (map.roadsNear(x, y, CELL * 0.75).length) return map;
-  const rm = getRealMap();
-  return rm && rm.roadsNear(x, y, CELL * 0.75).length ? rm : map;
-}
-
 function generateCell(map, cx, cy) {
   const rng = new SeededRng(hash(cx, cy));
   const cx0 = cx * CELL, cy0 = cy * CELL;
@@ -318,7 +309,7 @@ function generateCell(map, cx, cy) {
   const taken = [];
   const clear = (x, y, r) => taken.every((t) => Math.hypot(t[0] - x, t[1] - y) > t[2] + r);
   const take = (x, y, r) => taken.push([x, y, r]);
-  // a map may measure its own centres (realmap.js: the village's)
+  // a map may measure its own centres
   const centreD = map.centreDist ? map.centreDist(mid.x, mid.y) : dist(mid.x, mid.y, CITY_CENTRE.x, CITY_CENTRE.y);
   const roads = map.roadsNear(mid.x, mid.y, CELL * 0.75);
 
@@ -900,7 +891,7 @@ export function updateCityProps(dt, w, scene) {
     if (busy && genQueue[0] !== pcx + ',' + pcy) break;
     const key = genQueue.shift();
     const [gx, gy] = key.split(',').map(Number);
-    cells.set(key, generateCell(cellMap(w.map, gx, gy), gx, gy));
+    cells.set(key, generateCell(w.map, gx, gy));
   }
 
   const night = isNight();

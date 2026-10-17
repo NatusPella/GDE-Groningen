@@ -30,7 +30,7 @@ import { auditPassages } from './passagecheck.js';
 import { probeRingSolids, driveRingLap, probeRailLifts, driveWaterCrossings } from './ringcheck.js';
 import { requestRespawn } from './world.js';
 import { nearestFacility } from './facilities.js';
-import { realRoadNear } from './ommelandplace.js';
+import { roadNear, withTiles } from './tileplace.js';
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -402,7 +402,8 @@ export async function runStoryTest(world) {
     world.devInvuln = true;
 
     // every start and target point is on open ground you can walk away from
-    const spots = validateSpots(world);
+    if (window.__ommeland) await window.__ommeland.prepare();
+    const spots = await validateSpots(world);
     for (const b of spots.bad) console.log('[spotcheck]', b.kind, b.id, b.x, b.y, b.why);
     check(`all ${spots.total} spots reachable`, !spots.bad.length, spots.bad.map((b) => `${b.kind} ${b.id} (${b.x}, ${b.y}): ${b.why}`).join('; '));
     // no street, cycleway or footway runs through a solid wall or an invisible hole
@@ -749,6 +750,7 @@ export async function runStoryTest(world) {
 
       // the Ommeland extras (ommelandfun.js): twelve wereldeinden, a dorpsuitje per station
       const om = window.__ommeland;
+      if (om) await om.prepare();
       if (om) {
         const ends = om.ends();
         check(`all 12 wereldeinden placed at the edge of the data`, ends.length === 12, ends.map((e) => `${e.id} ${e.road}`).join(', '));
@@ -824,7 +826,7 @@ export async function runStoryTest(world) {
       for (const [label, x, y, busted] of [['UMCG', 758.72, -132.95, false], ['Bedum', 1931.4, -9027.27, true], ['Zuidhorn', -10732.8, -3017.02, false], ['Stad', 304.73, 297.32, true]]) {
         const p = world.player;
         if (p.inVehicle) { p.inVehicle.driver = null; p.inVehicle = null; }
-        const q = realRoadNear(x, y, 300);
+        const q = await withTiles(world.map, [[x, y]], () => roadNear(world.map, x, y, 300), { radius: 400 });
         const at = q && label !== 'UMCG' && label !== 'Stad' ? q : world.map.findOpenSpawn(x, y, 200) || { x, y };
         p.x = at.x; p.y = at.y;
         const want = nearestFacility(busted ? 'police' : 'medical', p.x, p.y);

@@ -177,7 +177,7 @@ export function features(els, ctx) {
 }
 
 // urban weight (0..1) from the density of boxes round a point, 120 m cells
-function urbanField(boxes) {
+export function urbanField(boxes) {
   const CELL = 120, n = new Map();
   for (const b of boxes) {
     const [x, y] = wgsToWorld(b[0], b[1]);

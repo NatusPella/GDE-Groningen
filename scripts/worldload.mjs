@@ -1,0 +1,32 @@
+// The built game/world as the game loads it, in Node: the city's tiles pinned,
+// the province layer and the overlays merged, the other tiles streaming in on
+// request (needs game/world: desktop stage, or pack_tiles + build_corridor +
+// build_province). For the scripts that place things on the tiles.
+//   import './node3d.mjs';  (first)   const { loadGameWorld, loadArea } = await import('./worldload.mjs');
+//   const T = await loadGameWorld();   // { world, store, index, global } or null without game/world
+//   await loadArea(T, [x0, y0, x1, y1]);   // every tile of the rectangle resident (pinned)
+import fs from 'node:fs';
+
+export async function loadGameWorld() {
+  globalThis.requestAnimationFrame = (f) => setImmediate(f);
+  const root = new URL('../game/world/', import.meta.url);
+  if (!fs.existsSync(new URL('index-provincie.json', root))) return null;
+  const S = await import('../game/js/tilestore.js');
+  const TW = await import('../game/js/tileworld.js');
+  const files = new Proxy({}, { get: (o, f) => (typeof f === 'string' ? (o[f] || (o[f] = new Uint8Array(fs.readFileSync(new URL(f, root))))) : undefined) });
+  return TW.loadTileWorld('world/', { source: new S.MemorySource(files), pool: false, extra: [{ name: 'index-provincie.json' }, { name: 'index-corridor.json' }] });
+}
+
+// Every tile that touches the rectangle in, held there: what the game's
+// placement windows (tileplace.js withTiles) give a spot, for a whole area.
+export async function loadArea(T, [x0, y0, x1, y1]) {
+  const G = await import('../game/js/gdt.js');
+  const keys = [];
+  const [i0, j0] = G.tileIndexOf(x0, y0), [i1, j1] = G.tileIndexOf(x1, y1);
+  for (let i = i0; i <= i1; i++) for (let j = j0; j <= j1; j++) { const k = G.tileKey(i, j); if (T.store.has(k)) keys.push(k); }
+  const ov = Object.keys(T.index.tiles).filter((k) => k[0] === 'o');
+  for (const k of [...keys, ...ov]) T.store.pin(k);
+  await Promise.all([...keys, ...ov].map((k) => T.store.request(k, { priority: -1 })));
+  T.world.tileQueue.run(1e9);
+  return keys.length;
+}

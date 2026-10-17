@@ -1,9 +1,9 @@
 // The wereldbouwer (docs/PROVINCIE-PLAN.md 2.5): one generator that turns a
 // source feature into the row the game holds, for every tile of the world.
-// The city's packer (scripts/world/pack_tiles.mjs), the Ommeland villages
-// (realmap.js) and the corridor builder (scripts/world/build_corridor.mjs)
-// all go through these functions; only the adapters that read their source
-// differ (a GameMap row, a countryreal.js box, a raw OSM element).
+// The city's packer (scripts/world/pack_tiles.mjs) and the province builders
+// (scripts/world/build_corridor.mjs, build_province.mjs) all go through these
+// functions; only the adapters that read their source differ (a GameMap row,
+// an old Ommeland box, a raw OSM element).
 //
 // Rules, not zones: a building's height comes from the best evidence there
 // is (3D BAG > OSM height > OSM levels > a default per type), a road's class,
@@ -306,7 +306,7 @@ export function formOf({ code = 0, area = 0, levels = 0, urban = 1 }) {
 // The city archetype (models3d_buildings.js archetypeOf reads `type`) for a
 // form. keepRural: a farmhouse, barn, greenhouse or church out in the polder
 // returns null, for a caller that still has a countryside model for it
-// (realmap.js); a tile has no other model, so it gets a type of its own.
+// (none does now); a tile has no other model, so it gets a type of its own.
 export function cityTypeOf(form, { code = 0, urban = 1, hip = false, row = false, levels = 0, keepRural = false } = {}) {
   if (code === 7 || form === 'church') return keepRural ? null : 'church';
   if (form === 'house') {

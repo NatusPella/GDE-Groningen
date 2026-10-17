@@ -29,15 +29,15 @@
 //   getOwnedVehiclesForMap(world) -> [{ x, y, angle, kind, label, hero, color }]
 
 import { closestPointOnSegment, isInWater } from './util.js';
-import { realRoadNear, ommelandArea } from './ommelandplace.js';
-import { buildingAt } from './countryreal.js';
+import { ommelandArea } from './ommelandplace.js';
+import { buildingAt, roadNear, roadKind, streetAt as roadName } from './tileplace.js';
 import { isSpawnHidden } from './pedestrians.js';
 import { slotFits, propBlocked, sleepingParkedCars } from './parkedcars.js';
 import { baysIn } from './parkinglots.js';
 import { spawnHeroCarNear, playerTopSpeed } from './vehicle.js';
 import { inHomeFlat } from './home.js';
 import { BLOCK, ROAD_IN, ROAD_W, edgeDistance, edgeRoad, realWater } from './countryfield.js';
-import { REAL, RTILE, roadsInTile, realStreetAt, inRealExtent } from './countryreal.js';
+import { REAL, inRealExtent } from './countryreal.js';
 import { pushOutOfPlan } from './countryplan.js';
 import { vehicleDisplayName } from './vehiclenames.js';
 import {
@@ -186,7 +186,7 @@ function baySpot(world, x, y, model, ring, ignore) {
     if (ring.outOfView && !hiddenFootprint(world, b.x, b.y, b.angle, m.len / 2)) continue;
     if (propBlocked(b.x, b.y, b.angle, m)) continue;
     const rp = world.map.nearestRoadPoint(b.x, b.y, 40, true);
-    return { x: b.x, y: b.y, angle: b.angle, street: (rp && rp.road.name) || realStreetAt(b.x, b.y) || '', bay: true };
+    return { x: b.x, y: b.y, angle: b.angle, street: (rp && rp.road.name) || roadName(world.map, b.x, b.y) || '', bay: true };
   }
   return null;
 }
@@ -197,14 +197,14 @@ function countrySpot(world, x, y, model, ignore) {
   for (const r of [45, 70, 30, 100, 120]) {
     for (let k = 0; k < 12; k++) {
       const a = (k / 12) * Math.PI * 2;
-      const rr = realRoadNear(x + Math.cos(a) * r, y + Math.sin(a) * r, 30);
+      const rr = roadNear(world.map, x + Math.cos(a) * r, y + Math.sin(a) * r, 30);
       if (!rr) continue;
       for (const side of [1, -1]) {
-        const off = (rr.road.w || 5) / 2 + m.wid / 2 + 0.4;
+        const off = (rr.road.width || 5) / 2 + m.wid / 2 + 0.4;
         const px = rr.x - rr.uy * off * side, py = rr.y + rr.ux * off * side;
         const d = Math.hypot(px - x, py - y);
         if (d < 20 || d > 140) continue;
-        if (isInWater(world.map, px, py) || buildingAt(px, py, m.len / 2 + 0.5) >= 0) continue;
+        if (isInWater(world.map, px, py) || buildingAt(world.map, px, py, m.len / 2 + 0.5)) continue;
         if (!clearOfVehicles(world, px, py, m.len / 2, ignore)) continue;
         const angle = Math.atan2(rr.uy, rr.ux) + (side < 0 ? Math.PI : 0);
         if (propBlocked(px, py, angle, m)) continue;
@@ -229,24 +229,15 @@ function countryKerbSpot(world, x, y, model, ring, ignore) {
     cands.push({ x: px, y: py, angle, street, score: Math.abs(d - target) });
   };
   if (REAL.ready && inRealExtent(x, y)) {
-    const seen = new Set();
-    for (let ty = Math.floor((y - maxD) / RTILE); ty <= Math.floor((y + maxD) / RTILE); ty++) {
-      for (let tx = Math.floor((x - maxD) / RTILE); tx <= Math.floor((x + maxD) / RTILE); tx++) {
-        const L = roadsInTile(tx, ty);
-        if (!L) continue;
-        for (let k = 0; k < L.length; k += 2) {
-          const key = L[k] * 4096 + L[k + 1];
-          if (seen.has(key)) continue;
-          seen.add(key);
-          const r = REAL.roads[L[k]];
-          if (r.bridge || r.kind <= 2) continue;
-          const a = r.pts[L[k + 1]], b = r.pts[L[k + 1] + 1];
-          const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
-          if (len < m.len + 6) continue;
-          const tx2 = (b[0] - a[0]) / len, ty2 = (b[1] - a[1]) / len, off = r.w / 2 + m.wid / 2 + 0.5;
-          for (let t = 3 + m.len / 2; t <= len - 3 - m.len / 2; t += 6) {
-            for (const side of [1, -1]) add(a[0] + tx2 * t - ty2 * off * side, a[1] + ty2 * t + tx2 * off * side, Math.atan2(ty2, tx2) + (side < 0 ? Math.PI : 0), r.name || r.ref || '');
-          }
+    for (const r of world.map.roadsNear(x, y, maxD)) {
+      if (r.z || r.bridge || roadKind(r) <= 2) continue;
+      for (let i = 0; i < r.pts.length - 1; i++) {
+        const a = r.pts[i], b = r.pts[i + 1];
+        const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
+        if (len < m.len + 6) continue;
+        const tx2 = (b[0] - a[0]) / len, ty2 = (b[1] - a[1]) / len, off = (r.width || 5) / 2 + m.wid / 2 + 0.5;
+        for (let t = 3 + m.len / 2; t <= len - 3 - m.len / 2; t += 6) {
+          for (const side of [1, -1]) add(a[0] + tx2 * t - ty2 * off * side, a[1] + ty2 * t + tx2 * off * side, Math.atan2(ty2, tx2) + (side < 0 ? Math.PI : 0), r.name || r.ref || '');
         }
       }
     }
@@ -279,12 +270,12 @@ function countryKerbSpot(world, x, y, model, ring, ignore) {
   for (const c of cands) {
     if (++tests > MAX_TESTS) break;
     if (!ok(c)) continue;
-    if (!ring.outOfView || hiddenFootprint(world, c.x, c.y, c.angle, m.len / 2)) return spotOut(c);
+    if (!ring.outOfView || hiddenFootprint(world, c.x, c.y, c.angle, m.len / 2)) return spotOut(world, c);
     if (!open) open = c;
   }
-  return open && spotOut(open);
+  return open && spotOut(world, open);
 }
-const spotOut = (c) => ({ x: c.x, y: c.y, angle: c.angle, street: c.street || realStreetAt(c.x, c.y) || '' });
+const spotOut = (world, c) => ({ x: c.x, y: c.y, angle: c.angle, street: c.street || roadName(world.map, c.x, c.y) || '' });
 
 function jettySpot(world, x, y, maxDist) {
   let best = null, bd = maxDist;
@@ -346,7 +337,7 @@ function wijkAt(map, x, y) {
 function placeOf(map, x, y) {
   const area = ommelandArea(x, y);
   if (!area) return { street: streetAt(map, x, y), wijk: wijkAt(map, x, y) };
-  return { street: realStreetAt(x, y), wijk: area.place ? (area.near ? `bij ${area.place}` : area.place) : 'Ommeland' };
+  return { street: roadName(map, x, y), wijk: area.place ? (area.near ? `bij ${area.place}` : area.place) : 'Ommeland' };
 }
 
 function streetAt(map, x, y) {
@@ -523,7 +514,7 @@ function placeEntry(world, id, pick) {
 
 const solidAt = (map, x, y, m) => {
   const [ex, ey] = map.escapeBuilding(x, y, m);
-  return Math.hypot(ex - x, ey - y) > 0.05 || buildingAt(x, y, m) >= 0;
+  return Math.hypot(ex - x, ey - y) > 0.05 || !!buildingAt(map, x, y, m);
 };
 
 // Beside you (3 m and out, the first try to your side), facing as you do: dry and

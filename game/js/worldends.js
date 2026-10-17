@@ -1,6 +1,4 @@
 import { getScene } from './scene3d.js';
-import { REAL, buildingAt } from './countryreal.js';
-import { realWater } from './countryfield.js';
 import { setRealRoadBlocks } from './countrylife.js';
 import { roadNetRows } from './roadgraph.js';
 import { inProvinceData } from './provinceworld.js';
@@ -13,7 +11,7 @@ import { speak } from './ommelandtalk.js';
 import { WORLD_ENDS, WORLD_END_TOTAL, WORLD_END_FINAL } from './ommelandlines.js';
 
 // "Einde van de wereld": at twelve of the roads that run off the edge of
-// the real Ommeland data (countryreal.js REAL.ext) something waits where the
+// the province's data (provinceworld.js, the road net's edge) something waits where the
 // asphalt stops - a sign, a lost Frisian, a cow that won't budge. Found ends
 // are a lifetime set (achievements.js 'wereldeinden'), so Prestaties shows
 // "3/12" without saying where; the twelfth plays the final gag. Spots are
@@ -33,8 +31,7 @@ export const SET = 'wereldeinden';
 
 // Where the bigger real roads cross the edge of the data (inset a little):
 // { x, y, ux, uy (outwards along the road), hw, kind, name }.
-// With the province's tiles the edge of the data is where the road net leaves the tiles
-// (the old Ommeland box lies inside them); the old roads serve a build without them.
+// The edge of the data is where the road net leaves the tiles.
 function tileCandidates(rows) {
   const out = [];
   const sideOf = (ux, uy) => (Math.abs(ux) > Math.abs(uy) ? (ux < 0 ? 0 : 1) : (uy < 0 ? 2 : 3));
@@ -60,54 +57,8 @@ function tileCandidates(rows) {
   return out;
 }
 
-function candidates() {
-  const rows = roadNetRows();
-  if (rows && inProvinceData(0, 0) !== null) return tileCandidates(rows);
-  const E = REAL.ext;
-  const X0 = E[0] + INSET, Y0 = E[1] + INSET, X1 = E[2] - INSET, Y1 = E[3] - INSET;
-  const sides = [
-    { axis: 0, v: X0, n: [-1, 0], lo: Y0, hi: Y1 }, { axis: 0, v: X1, n: [1, 0], lo: Y0, hi: Y1 },
-    { axis: 1, v: Y0, n: [0, -1], lo: X0, hi: X1 }, { axis: 1, v: Y1, n: [0, 1], lo: X0, hi: X1 },
-  ];
-  const out = [];
-  for (const r of REAL.roads) {
-    if (!(r.kind in KIND_RANK) || r.bridge) continue;
-    for (let i = 0; i < r.pts.length - 1; i++) {
-      const a = r.pts[i], b = r.pts[i + 1];
-      for (let si = 0; si < 4; si++) {
-        const s = sides[si];
-        const da = a[s.axis] - s.v, db = b[s.axis] - s.v;
-        if (da * db >= 0) continue;
-        const t = da / (da - db);
-        const x = a[0] + (b[0] - a[0]) * t, y = a[1] + (b[1] - a[1]) * t;
-        const other = s.axis ? x : y;
-        if (other < s.lo || other > s.hi) continue;
-        const L = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1;
-        let ux = (b[0] - a[0]) / L, uy = (b[1] - a[1]) / L;
-        const dot = ux * s.n[0] + uy * s.n[1];
-        if (Math.abs(dot) < 0.55) continue;
-        if (dot < 0) { ux = -ux; uy = -uy; }
-        out.push({ x, y, ux, uy, hw: r.w / 2, kind: r.kind, name: r.name || r.ref || '', side: si });
-      }
-    }
-  }
-  return out;
-}
-
-// The props stand on the road and a few metres beside it: all of it dry and
-// clear of the real buildings.
-function roomAt(c) {
-  const sx = -c.uy, sy = c.ux;
-  for (const [f, s] of [[0, 0], [2, 0], [-2, 0], [1, c.hw + 2], [1, -c.hw - 2], [2, c.hw + 3.5], [-1.5, -c.hw - 1]]) {
-    const x = c.x + c.ux * f + sx * s, y = c.y + c.uy * f + sy * s;
-    if (realWater(x, y) > -2.5 || buildingAt(x, y, 1.5) >= 0) return false;
-  }
-  return true;
-}
-
 function place() {
-  const tiled = !!roadNetRows() && inProvinceData(0, 0) !== null;
-  const all = tiled ? candidates() : candidates().filter(roomAt);
+  const all = tileCandidates(roadNetRows());
   all.sort((a, b) => KIND_RANK[a.kind] - KIND_RANK[b.kind] || (b.name ? 1 : 0) - (a.name ? 1 : 0) || a.x - b.x || a.y - b.y);
   // round the four edges in turn, so every side of the map gets its ends
   let pick = [];
@@ -131,8 +82,8 @@ function place() {
     if (pick.length >= WORLD_END_TOTAL) break;
   }
   // the Frisian ones go west (Friesland is that way), the rest round the clock
-  const E = tiled ? [Infinity, Infinity, -Infinity, -Infinity] : REAL.ext;
-  if (tiled) for (const c of all) { E[0] = Math.min(E[0], c.x); E[1] = Math.min(E[1], c.y); E[2] = Math.max(E[2], c.x); E[3] = Math.max(E[3], c.y); }
+  const E = [Infinity, Infinity, -Infinity, -Infinity];
+  for (const c of all) { E[0] = Math.min(E[0], c.x); E[1] = Math.min(E[1], c.y); E[2] = Math.max(E[2], c.x); E[3] = Math.max(E[3], c.y); }
   const cx = (E[0] + E[2]) / 2, cy = (E[1] + E[3]) / 2;
   const byX = [...pick].sort((a, b) => a.x - b.x);
   const west = WORLD_ENDS.filter((d) => d.west), rest = WORLD_ENDS.filter((d) => !d.west);
@@ -153,8 +104,8 @@ export function worldEndsReady() {
 }
 
 export function ensureWorldEnds() {
-  const waiting = inProvinceData(0, 0) !== null && !roadNetRows();
-  if (!spots && REAL.ready && !waiting) {
+  // once the province's road net is in (a build without tiles has no edge of the data to put them on)
+  if (!spots && inProvinceData(0, 0) !== null && roadNetRows()) {
     spots = place();
     setRealRoadBlocks(spots.map((s) => ({ x: s.x - s.ux * 3, y: s.y - s.uy * 3 })));
   }

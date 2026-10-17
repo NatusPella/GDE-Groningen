@@ -10,11 +10,8 @@ import { spawnHeroCarNear } from './vehicle.js';
 import { markDirty } from './savegame.js';
 import { recordStat } from './achievements.js';
 import { startCall } from './phonefeed.js';
-import { buildingAt as realBuildingAt } from './countryreal.js';
-import { realWater } from './countryfield.js';
-import { pushOutOfPlan } from './countryplan.js';
-import { realRoadNear } from './ommelandplace.js';
-import { facilitiesOf } from './facilities.js';
+import { facilitiesOf, countryFacilities } from './facilities.js';
+import { nearestPlace } from './countryreal.js';
 
 // Garages: every Garage Knalpot branch (from the OSM car repair shops) and
 // every Pomp & Poets gas station has a workshop with a roller door by the
@@ -54,14 +51,13 @@ function wijkAt(map, x, y) {
   return best;
 }
 
-// A city footprint, water, the ring's heights, or a real Ommelanden building
-// box (solid out in the countryside; spotcheck.js finds a bay inside one).
+// A footprint, water or the ring's heights (spotcheck.js finds a bay inside one).
 function solidAt(map, x, y) {
   for (const b of map.buildingsNear(x, y, 1)) {
     const [minx, miny, maxx, maxy] = b.bounds;
     if (x >= minx && x <= maxx && y >= miny && y <= maxy && pointInPolygon(x, y, b.pts)) return true;
   }
-  return isInWater(map, x, y) || (map.offStreetLevel && map.offStreetLevel(x, y)) || realBuildingAt(x, y, 0.3) >= 0;
+  return isInWater(map, x, y) || (map.offStreetLevel && map.offStreetLevel(x, y));
 }
 
 function onOtherRoad(map, x, y, own) {
@@ -96,6 +92,9 @@ function placeSite(map, poi) {
         for (const side of [1, -1]) {
           const nx = -ty * side, ny = tx * side;
           const cx = rx + nx * (hw + BAY_D / 2), cy = ry + ny * (hw + BAY_D / 2);
+          // the forecourt, where the station's outline is mapped, wins
+          const sc = score - (poi.poly && pointInPolygon(cx, cy, poi.poly) ? 40 : 0);
+          if (best && sc >= best.score) continue;
           let ok = true;
           for (let u = -0.5; u <= 0.5 && ok; u += 0.25) {
             for (let v = -0.5; v <= 0.5 && ok; v += 0.25) {
@@ -104,54 +103,7 @@ function placeSite(map, poi) {
             }
           }
           if (!ok) continue;
-          best = { score, x: cx, y: cy, angle: Math.atan2(-ny, -nx), road };
-        }
-      }
-    }
-  }
-  return best;
-}
-
-// Out in the Ommelanden: the same bay behind the verge of a real road, clear
-// of the real building boxes, farmsteads, ditches and other roads; on the
-// forecourt (poi.poly) when the station's outline is mapped.
-function countrySolid(x, y, own) {
-  if (realBuildingAt(x, y, 0.3) >= 0 || realWater(x, y) > -0.5 || pushOutOfPlan({ x, y }, 0.3)) return true;
-  const o = realRoadNear(x, y, 1, (r) => r !== own);
-  return !!(o && o.d < 0.3);
-}
-
-function placeCountrySite(map, poi) {
-  let best = null;
-  const seen = new Set();
-  for (let k = 0; k < 9; k++) {
-    const a = (k / 8) * Math.PI * 2, r = k ? 35 : 0;
-    const q = realRoadNear(poi.x + Math.cos(a) * r, poi.y + Math.sin(a) * r, 70, (rd) => rd.kind > 2 && !rd.bridge);
-    if (!q || seen.has(q.road)) continue;
-    seen.add(q.road);
-    const road = q.road, P = road.pts, hw = road.w / 2 + 1.6;
-    for (let i = 0; i < P.length - 1; i++) {
-      const a0 = P[i], b0 = P[i + 1];
-      const L = Math.hypot(b0[0] - a0[0], b0[1] - a0[1]);
-      if (L < BAY_W + 2) continue;
-      const tx = (b0[0] - a0[0]) / L, ty = (b0[1] - a0[1]) / L;
-      for (let t = BAY_W / 2 + 1; t < L - BAY_W / 2 - 1; t += 3) {
-        const rx = a0[0] + tx * t, ry = a0[1] + ty * t;
-        if (Math.hypot(rx - poi.x, ry - poi.y) > 80) continue;
-        for (const side of [1, -1]) {
-          const nx = -ty * side, ny = tx * side;
-          const cx = rx + nx * (hw + BAY_D / 2), cy = ry + ny * (hw + BAY_D / 2);
-          const onYard = poi.poly && pointInPolygon(cx, cy, poi.poly);
-          const score = Math.hypot(cx - poi.x, cy - poi.y) - (onYard ? 40 : 0);
-          if (best && score >= best.score) continue;
-          let ok = true;
-          for (let u = -0.5; u <= 0.5 && ok; u += 0.25) {
-            for (let v = -0.5; v <= 0.5 && ok; v += 0.25) {
-              const x = cx + nx * u * (BAY_D + 0.6) + tx * v * (BAY_W + 0.8), y = cy + ny * u * (BAY_D + 0.6) + ty * v * (BAY_W + 0.8);
-              if (countrySolid(x, y, road) || isInWater(map, x, y)) ok = false;
-            }
-          }
-          if (ok) best = { score, x: cx, y: cy, angle: Math.atan2(-ny, -nx), road };
+          best = { score: sc, x: cx, y: cy, angle: Math.atan2(-ny, -nx), road };
         }
       }
     }
@@ -160,29 +112,41 @@ function placeCountrySite(map, poi) {
 }
 
 function siteName(poi, wijk, road) {
-  const base = `${CHAIN[poi.kind]} ${wijk || road.name || ''}`.trim();
+  // out in the Ommelanden an unnamed road falls back on the nearest village
+  const np = poi.country && !wijk && !road.name ? nearestPlace(poi.x, poi.y) : null;
+  const base = `${CHAIN[poi.kind]} ${wijk || road.name || (np && np.n) || ''}`.trim();
   if (!poi.country || !sites.some((s) => s.name === base)) return base;
   const alt = road.name ? `${CHAIN[poi.kind]} ${road.name}` : '';
   if (alt && !sites.some((s) => s.name === alt)) return alt;
   for (let k = 2; ; k++) if (!sites.some((s) => s.name === `${base} ${k}`)) return `${base} ${k}`;
 }
 
+// The city's garages and fuel stations: at the start. Out in the Ommelanden
+// they are placed on the tiles round them (initCountryGarages, in the
+// background from the title screen on; main.js).
 export function initGarages(w) {
   world = w;
   const map = w.map;
   sites = [];
-  const country = (kinds, kind) => facilitiesOf(kinds).filter((f) => !f.city).map((f) => ({ x: f.x, y: f.y, poly: f.poly, place: f.place, kind, country: true }));
-  const pois = [
+  placeSites(map, [
     ...(map.meta.garages || []).map((g) => ({ ...g, kind: 'garage' })),
     ...(map.meta.fuel || []).map((f) => ({ ...f, kind: 'pomp' })),
-    ...country(['car_repair', 'car', 'tyres'], 'garage'),
-    ...country('fuel', 'pomp'),
     // every other real fuel station in town (the old list misses a few)
     ...facilitiesOf('fuel').filter((f) => f.city).map((f) => ({ x: f.x, y: f.y, kind: 'pomp' })),
-  ];
+  ]);
+}
+
+// The real car repair shops and fuel stations out in the Ommelanden, a bay
+// behind the verge of the nearest road: their tiles are in while this runs.
+export function initCountryGarages(w) {
+  const country = (kinds, kind) => countryFacilities(kinds).map((f) => ({ x: f.x, y: f.y, poly: f.poly, place: f.place, kind, country: true }));
+  placeSites(w.map, [...country(['car_repair', 'car', 'tyres'], 'garage'), ...country('fuel', 'pomp')]);
+}
+
+function placeSites(map, pois) {
   for (const poi of pois) {
     if (sites.some((s) => Math.hypot(s.x - poi.x, s.y - poi.y) < 60)) continue;
-    const spot = poi.country ? placeCountrySite(map, poi) : placeSite(map, poi);
+    const spot = placeSite(map, poi);
     if (!spot || sites.some((s) => Math.hypot(s.x - spot.x, s.y - spot.y) < 40)) continue;
     const wijk = poi.country ? poi.place : wijkAt(map, spot.x, spot.y);
     const site = {
@@ -194,7 +158,7 @@ export function initGarages(w) {
       for (const side of [1, -1]) {
         const free = [-2.5, 0, 2.5].every((f) => [1.1, 2.2].every((o) => {
           const x = site.x + fx * f + sx * side * (BAY_W / 2 + o), y = site.y + fy * f + sy * side * (BAY_W / 2 + o);
-          return !solidAt(map, x, y) && !onOtherRoad(map, x, y, null) && !(poi.country && countrySolid(x, y, spot.road));
+          return !solidAt(map, x, y) && !onOtherRoad(map, x, y, null);
         }));
         if (free) { site.pumpSide = side; break; }
       }

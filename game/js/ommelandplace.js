@@ -1,11 +1,12 @@
-import { REAL, RTILE, buildingAt, inRealExtent, allRoadsInTile, nearestPlace } from './countryreal.js';
+import { REAL, inRealExtent, nearestPlace } from './countryreal.js';
+import { buildingAt, roadNear } from './tileplace.js';
 import { realWater, edgeDistance, urbanWeight } from './countryfield.js';
 import { isInWater } from './util.js';
 import { worldPlaceAt } from './worldplaces.js';
 
 // Placement queries for the Ommeland extras (worldends.js, dorpsuitjes.js,
-// pg_koe.js): open ground in the real Ommelanden, the nearest real road,
-// water and shore. Read-only over countryreal.js data; deterministic.
+// pg_koe.js): open ground in the Ommelanden (the tiles' buildings and roads),
+// water and shore. Read-only, deterministic; the tiles round it must be in (tileplace.js withTiles).
 
 function segDist(x, y, a, b) {
   const dx = b[0] - a[0], dy = b[1] - a[1];
@@ -33,33 +34,6 @@ export function ommelandArea(x, y) {
   const q = nearestPlace(x, y);
   return { place: q && Math.hypot(q.x - x, q.y - y) < 5000 ? q.n : '', near: true };
 }
-
-// Nearest real road within R: { d (to the road edge, < 0 on it), x, y (on the
-// centre line), road, ux, uy (its direction) } or null. ok(road): only roads
-// that pass.
-export function realRoadNear(x, y, R = 40, ok = null) {
-  if (!REAL.ready) return null;
-  let best = null;
-  const t0x = Math.floor((x - R) / RTILE), t1x = Math.floor((x + R) / RTILE);
-  const t0y = Math.floor((y - R) / RTILE), t1y = Math.floor((y + R) / RTILE);
-  for (let tx = t0x; tx <= t1x; tx++) {
-    for (let ty = t0y; ty <= t1y; ty++) {
-      const L = allRoadsInTile(tx, ty);
-      if (!L) continue;
-      for (let k = 0; k < L.length; k += 2) {
-        const r = REAL.allRoads[L[k]], a = r.pts[L[k + 1]], b = r.pts[L[k + 1] + 1];
-        if (ok && !ok(r)) continue;
-        const [d, px, py] = segDist(x, y, a, b);
-        const de = d - r.w / 2;
-        if (de > R || (best && de >= best.d)) continue;
-        const l = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1;
-        best = { d: de, x: px, y: py, road: r, ux: (b[0] - a[0]) / l, uy: (b[1] - a[1]) / l };
-      }
-    }
-  }
-  return best;
-}
-
 // Rail segments bucketed per 100 m cell, built once.
 const RCELL = 100;
 let railCells = null;
@@ -102,9 +76,9 @@ export function railClear(map, x, y, m) {
 export function openGround(map, x, y, { r = 3, road = 1.5, rail = 9, edge = 20 } = {}) {
   if (!REAL.ready || !inRealExtent(x, y, edge)) return false;
   if (realWater(x, y) > -r - 1.5) return false;
-  if (buildingAt(x, y, r) >= 0) return false;
+  if (buildingAt(map, x, y, r)) return false;
   if (road !== false) {
-    const q = realRoadNear(x, y, r + road + 1);
+    const q = roadNear(map, x, y, r + road + 1);
     if (q && q.d < r + road) return false;
   }
   if (!railClear(map, x, y, rail)) return false;
