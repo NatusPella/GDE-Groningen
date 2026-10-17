@@ -68,6 +68,7 @@ export async function loadRoadNet(base = 'world/', file = 'provincie-roads.json.
 }
 
 let G = null;
+let ROWS = null;
 const CELL = 200;
 // a piece cut off from the network further than this stays out of it
 const STITCH_M = 1000;
@@ -224,9 +225,15 @@ export function roadNetReady() {
 
 // Builds the graph from the decoded rows (once; a new set replaces it).
 export function setRoadNet(roads) {
-  if (!roads || !roads.length) { G = null; return false; }
+  if (!roads || !roads.length) { G = null; ROWS = null; return false; }
+  ROWS = roads;
   build(roads);
   return true;
+}
+
+// the rows the graph was built from, or null
+export function roadNetRows() {
+  return ROWS;
 }
 
 // bumps on every rebuild (node numbers change)
