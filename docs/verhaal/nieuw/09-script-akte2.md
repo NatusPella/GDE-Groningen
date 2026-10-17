@@ -147,8 +147,8 @@ TESSA: Dat zijn de eieren van Geesje, Jelle. Die zijn niet te koop. [NIEUW]
 JELLE: Alles is te koop, famke. Behalve de bal. Die heb ik al. [NIEUW]
 TAMMO: Dan heb je hem dus. [NIEUW]
 JELLE: Ik zeg niks. Wat stond er eigenlijk op dat kaartje? [NIEUW]
-TESSA: Tige tank. [NIEUW]
-JELLE: Dat dacht ik ook. Durk, Douwe, pak ze. [NIEUW]
+TESSA: Tige tank. En een J. [NIEUW]
+JELLE: …Een J. Dat dacht ik ook. Durk, Douwe, pak ze. [NIEUW]
 TESSA: Op de quad. Nu. [NIEUW]
 
 ## [M11.2] Een trekker-limo op de wierde: de achtervolging – Hogeland, Warffum naar Uithuizen – quad
@@ -175,7 +175,7 @@ TAMMO: Dan heeft hij hem niet. [NIEUW]
 TESSA: Dan wil hij dat wij denken van wel. [NIEUW]
 TAMMO: Of hij is dom. [NIEUW]
 TESSA: Hij is niet dom. Hij is Fries. [NIEUW]
-APP MEM→TESSA (stil): Hij is veilig. Zeg niks tegen je jongen. – M. [NIEUW]
+APP MEM→TESSA (stil): Is mijn jongen droog? Zeg niks tegen jouw jongen. – M. [NIEUW]
 
 ## [T2.2] De streekbus naar Zoutkamp – Hogeland, Uithuizen naar Zoutkamp – bus (meerijden)
 BUSCHAUFFEUR: Zoutkamp? Dat is de laatste halte. Daarna is er alleen nog water. [NIEUW]
@@ -291,7 +291,7 @@ TESSA: Dat helpt niet. [NIEUW]
 
 ## [A2.1] Appjes akte 2 (stil, geen stem) – alle regio's – telefoon
 APP MEM→TESSA (stil): Pas op dysels, famke. – M. [BEHOUDEN]
-APP MEM→TESSA (stil): Hij is veilig. Zeg niks tegen je jongen. – M. [NIEUW]
+APP MEM→TESSA (stil): Is mijn jongen droog? Zeg niks tegen jouw jongen. – M. [NIEUW]
 APP MEM→TESSA (stil): Nog acht dagen. Hou Jelle bezig. – M. [NIEUW]
-APP TESSA→MEM (stil): Hij zoekt hem nog. Hij weet niks. [NIEUW]
+APP TESSA→MEM (stil): Jelle is droog. Tammo vraagt niks. Nog niet. [NIEUW]
 APP RIKUS→TAMMO (stil): Ik zeg niks. Maar je moet naar Warffum. [NIEUW]

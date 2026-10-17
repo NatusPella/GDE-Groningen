@@ -11,8 +11,8 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte4
 | **Tijd** | ca. 60-65 minuten (6 missies) |
 | **Dagen** | ma 24 (4.1, 4.2, 4.3), di 25 (4.4 overdag, 4.5 's avonds, 4.6 's nachts) |
 | **Wat de speler leert** | bruggen op tijd, een kantoor als speelveld, een rijdende trein, een bus met tijdstippen, een beleg, fierljeppen als slapstick, een achtervolging met een trein |
-| **Plot** | De mosterd wordt gered (plakje zeven). Het W-spoor via Wiebelwerk leidt nergens heen, maar Tammo vindt een pas en een gast ("T" en "G"). De laatste juryleden worden van Jelles trein gehaald. In Bourtange blijkt dat **W. staat voor "Wij": Oma Trijntje en Mem Terpstra hebben de bal zelf uit het museum gehaald**, met Berends bakkie. Dan breekt het dieptepunt los. |
-| **Romantiek** | na de kus: ongemak, ontwijken, mooie momenten en pijnlijke. Het dieptepunt (4.5): Tammo ontdekt dat Tessa het wist. "Jij zegt nooit iets!" van beide kanten. Tessa vertrekt alleen. |
+| **Plot** | De mosterd wordt gered (plakje zeven). Het spoor via Wiebelwerk leidt nergens heen, maar het logboek van 12 augustus toont een pas en een gast ("T" en "G"). De laatste juryleden worden van Jelles trein gehaald. In Bourtange blijkt dat **de J op het kaartje niet van Jelle is maar van zijn moeder: Mem Terpstra tekent al zijn hele leven met een J, en zij en Oma Trijntje hebben de bal zelf uit het museum gehaald**, met Berends bakkie. Dan breekt het dieptepunt los. |
+| **Romantiek** | na de kus: ongemak, ontwijken, mooie momenten en pijnlijke. Het dieptepunt (4.5): Tammo ontdekt dat Tessa al weken met Mem appte en dat voor hem verzweeg. "Jij zegt nooit iets!" van beide kanten. Tessa vertrekt alleen. |
 | **Haak naar akte 5** | Tessa achterna in de trein; Tammo staat al bij de overweg. De bal is bij Jelle, de Escapade ligt op een wagon, de jury is bij Berend. |
 
 **Dieptepunt (vlak voor de finale, 4.5-4.6):** Jelle heeft de echte bal. De Escapade is weg (en dus de Fjord Frituur, de wagen waarmee ze moeten inschrijven). Tessa en Tammo hebben ruzie. Alle ingrediënten zijn binnen, maar niemand weet of er nog een finale is. De zin "Jij zegt nooit iets" is van allebei.
@@ -46,7 +46,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte4
 | **Reizen** | Winschoten naar Veendam 17 km: bus (2 min in beeld) of auto 13 min |
 | **Romantiek (5/10)** | Tammo: "Over gisteren." Tessa: "Welk gisteren?" Tammo: "Dat bedoelde ik ook." |
 | **Plot** | het mosterdschip loopt vast; Wubbo geeft de mosterd |
-| **Gevolg / haak** | Wubbo: "Er is een webbureau dat alles om middernacht bijwerkt. Ook mijn bruggen." Tammo: "Een W." |
+| **Gevolg / haak** | Wubbo: "Er is een webbureau dat alles om middernacht bijwerkt. Ook mijn bruggen." Tammo: "Om middernacht. Net als de camera's van het museum." |
 | **Behouden / nieuw** | NIEUW (op "Dat bedoelde ik ook." en "Plons." na) |
 | **Nieuwe regels (schatting)** | 20 |
 
@@ -74,7 +74,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte4
 
 ---
 
-## 4.2 · Wie is W.? (nieuw)
+## 4.2 · Wie draaide de camera's uit? (nieuw)
 
 | | |
 |---|---|
@@ -82,25 +82,24 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte4
 | **Plaats** | Wiebelwerk, een verzonnen webbureau in een kantoorpand in Veendam |
 | **Voertuig** | e-step (`scooter`) |
 | **Mechaniek / hergebruik** | kantoorgesprek met keuzes (`choicepanel.js`), een balie en een server-kamer (`heist.js` `updateLock`); loketketen als in 1.4 |
-| **Doel (hardop)** | "Zoek uit of Wiebelwerk de W. van het kaartje is en kijk in de logboeken van het museum." |
-| **Motief** | Tammo gelooft dat de W. van het kaartje de W. van Wiebelwerk is; Wubbo zei dat ze alles om middernacht bijwerken; Tessa laat hem gaan (om hem af te leiden) |
+| **Doel (hardop)** | "Zoek uit of Wiebelwerk de camera's van het museum uitzette en kijk in de logboeken." |
+| **Motief** | Tammo gelooft dat wie de camera's uitzet ook weet wie de bal heeft; Wubbo zei dat ze alles om middernacht bijwerken; Tessa laat hem gaan (om hem af te leiden) |
 | **Wat de speler weet** | de camera's gingen om middernacht uit voor een update, sinds 2019 |
-| **Verloop** | 1) Binnen bij Wiebelwerk als "klant". 2) Accountmanager overtuigen met het juiste antwoord (keuzepaneel). 3) Servers: het logboek. 4) De drie minuten: een zijdeur is met een bruikleenpas geopend, pasnummer 1953, houder "T."; een gast: "G." 5) Weg voor het kantoor sluit. **Falen:** de accountmanager ziet je: "Sikkom." |
+| **Verloop** | 1) Binnen bij Wiebelwerk als "klant". 2) Accountmanager overtuigen met het juiste antwoord (keuzepaneel). 3) Servers: het logboek. 4) De drie minuten van 12 augustus: een zijdeur is met een bruikleenpas geopend, pasnummer 1953, houder "T."; een gast: "G." Dat is vijf dagen vóór hun eigen kraak 5) Weg voor het kantoor sluit. **Falen:** de accountmanager ziet je: "Sikkom." |
 | **Leuk-element / uitdaging** | geen actie: een dialoog-puzzel; de grap is het bureau zelf ("Wij zijn alleen een webbureau.") |
 | **Reizen** | 2 km: e-step 2 min |
 | **Romantiek (5/10)** | Tessa legt Tammo uit wat een logboek is; hij baalt dat ze gelijk heeft; ze vindt het leuk dat hij het wil weten |
-| **Plot** | het is niet Wiebelwerk; maar een pas "1953, T." en een gast "G." ; Tammo: "T en G." Tessa: "Dat zijn een heleboel letters." |
+| **Plot** | het is niet Wiebelwerk; maar een pas "1953, T." en een gast "G.", op 12 augustus: de bal was al weg voor zij kwamen; Tammo: "T en G." Tessa: "Dat zijn een heleboel letters." |
 | **Gevolg / haak** | Tessa doet alsof ze niks snapt; haar telefoon: "Ze zoeken je. Kom naar Bourtange. – M." (stil) |
 | **Behouden / nieuw** | NIEUW |
 | **Nieuwe regels (schatting)** | 24 |
 
 **Openingsdialoog (balie, 8 regels):**
 
-- **TAMMO:** W. Wiebelwerk. Dat is een W. [NIEUW]
-- **TESSA:** Dat is een bedrijf met een webbureau, Tammo. [NIEUW]
-- **TAMMO:** Ze werken alles om middernacht bij. Ook de camera's van het museum. [NIEUW]
+- **TAMMO:** Wiebelwerk. Ze werken alles om middernacht bij. Ook de camera's van het museum. [NIEUW]
 - **TESSA:** Dat is toch geen misdaad? [NIEUW]
-- **TAMMO:** Het is verdacht. [NIEUW]
+- **TAMMO:** Het is verdacht. Wie zet er drie minuten alle camera's uit? [NIEUW]
+- **TESSA:** Een webbureau, Tammo. [NIEUW]
 - **ACCOUNTMANAGER:** Welkom bij Wiebelwerk. Wij maken websites. Wat is uw behoefte? [NIEUW]
 - **TESSA:** Een website voor een frietwagen. [NIEUW]
 - **ACCOUNTMANAGER:** Prachtig. Dan beginnen we met een intake. [NIEUW]
@@ -114,6 +113,8 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte4
 - **TAMMO:** En daaronder: gast, G. [NIEUW]
 - **TESSA:** …Dat zijn een heleboel letters. [NIEUW]
 - **TAMMO:** Dat is het alfabet, Tessa. [NIEUW]
+- **TESSA:** En kijk naar de datum. Twaalf augustus. [NIEUW]
+- **TAMMO:** Dat is vijf dagen vóór ons. De bal was al weg. [NIEUW]
 - **TESSA:** We moeten weg. [NIEUW]
 
 > **Te beoordelen.** A) Wiebelwerk als komische valse piste (voorstel; de eigen grap van de eigenaar, wel een extra missie). B) Wiebelwerk alleen als bijrol in 1.4 (Het Loket). C) De pas en de gast komen direct uit het museum (geen valse piste, korter).
@@ -222,10 +223,10 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte4
 | **Verloop** | 1) Het Beleg: verdedig de wallen met Berends mensen (kartonnen kanon, ophaalbrug). 2) Durk en Douwe dagen Tammo uit: fierljepen over de gracht; hij valt erin. 3) Tessa gaat naar de kruitkelder. 4) Tammo komt druipend binnen: Mem, Oma en de bal. 5) Jelle komt binnen, Mem geeft hem de bal. 6) Jelle gaat. Durk en Douwe rijden met de Escapade weg. **Falen:** de vesting valt: je herstart het beleg; het dieptepunt zelf is niet te falen. |
 | **Leuk-element / uitdaging** | het hoogtepunt van de komische actie: kartonnen kanonnen en fierljepen, dan een stille, pijnlijke scène |
 | **Reizen** | de missie zelf |
-| **Romantiek (3/10, het dieptepunt)** | Tammo: "Je wist het." Tessa: "Mem vroeg me." Tammo: "Je zegt nooit iets." Tessa: "Jij zegt nooit iets!" |
-| **Plot** | **W. = "Wij".** Oma: "Elk jaar op 12 augustus poets ik de bal. Dit jaar kwam Gerda mee. Berend reed." Mem: "Mijn zoon wil hem voor mij. Ik wil hem niet." Mem geeft Jelle de bal: "Hier. Nu stop je." Jelle: "Ik moet hem winnen, mem." Hij gaat. |
+| **Romantiek (3/10, het dieptepunt)** | Tammo: "Jij kende Mem." Tessa: "Ze vroeg me Jelle bezig te houden. Ik wist niet waarom." Tammo: "Je zegt nooit iets." Tessa: "Jij zegt nooit iets!" |
+| **Plot** | **De J is Mems J.** Oma: "Elk jaar op 12 augustus poets ik de bal. Dit jaar kwam Gerda mee. Berend reed." Tessa: "Dat is niet de J van Jelle." Mem: "Dat is mijn J. Ik teken er al zijn verjaardagskaarten mee." Tessa herkent het van Mems keukentafel in Ljouwert: alleen een moeder schrijft "Tige tank" zo. Jelle komt, Mem: "Jij zei op de radio dat je hem had." Jelle: "Dat was voor de show, mem." Mem geeft hem de bal: "Hier. Nu stop je." Jelle: "Ik moet hem winnen, mem." Hij gaat. |
 | **Gevolg / haak** | de bal is bij Jelle, de Escapade is weg, Tessa vertrekt met Berend; Tammo blijft bij Oma en Mem. |
-| **Behouden / nieuw** | "Tige tank" en "Wij" NIEUW; "Net fertelle" en "Hè." BEHOUDEN |
+| **Behouden / nieuw** | alles NIEUW (tekst); "Net fertelle" en "Hè." BEHOUDEN |
 | **Nieuwe regels (schatting)** | 38 |
 
 **Openingsdialoog (de wallen, 9 regels):**
@@ -247,10 +248,14 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte4
 - **MEM:** Gerda Terpstra. De moeder van Jelle. [NIEUW]
 - **OMA TRIJNTJE:** Wij hebben hem gehaald. Berend reed. [NIEUW]
 - **BEREND:** Nul krassen. Op de heenweg. [NIEUW]
-- **TESSA:** W. Wij. [NIEUW]
-- **OMA TRIJNTJE:** Gerda schreef "Tige tank". Ik schreef de W. [NIEUW]
-- **TAMMO:** Tessa. Jij wist dit. [NIEUW]
-- **TESSA:** Mem vroeg me niks te zeggen. [NIEUW]
+- **TAMMO:** Dan heeft Jelle hem nooit gehad. [NIEUW]
+- **TESSA:** "Tige tank! – J." Dat is niet de J van Jelle. [NIEUW]
+- **MEM:** Dat is mijn J. Ik teken er al sinds zijn eerste verjaardag al zijn kaarten mee. [NIEUW]
+- **TESSA:** Ik zag ze elke zomer op uw keukentafel in Ljouwert. Alleen een moeder schrijft "Tige tank" zo. [NIEUW]
+- **TAMMO:** Jullie hebben ons een museum laten kraken dat al leeg was? [NIEUW]
+- **OMA TRIJNTJE:** Jullie waren al onderweg. Rikus praat, jong. Wij waren je voor. [NIEUW]
+- **TAMMO:** Tessa. Jij kende Mem. [NIEUW]
+- **TESSA:** Ze vroeg me Jelle bezig te houden en niks te zeggen. Ik wist niet waarom. [NIEUW]
 - **TAMMO:** Je zegt nooit iets. [NIEUW]
 - **TESSA:** Jij zegt nooit iets! [NIEUW]
 
