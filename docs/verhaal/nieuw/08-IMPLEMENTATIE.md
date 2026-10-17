@@ -42,11 +42,11 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Er is geen code aangepast. Alles h
 | M11 | Trekker-limo op de wierde | `escape`-stage; `QUAD_MODEL` en `trekkerlimo` bestaan; `fierljep.js` voor de animatie | nieuwe def en route | ja, klein-M |
 | M12 | Skûtsje | def `skutsje` (`boatchase`, `animateSkutsjeRig`, `rubberboot`) | start en route naar Zoutkamp en het Reitdiep; **water in de tegelwereld nodig** (`tilewatermask.js`, `waterindex.js`, `water3d.js`) | nee (def), **ja (water)** |
 | M13 | Laag water | boot door ondiep water (`waterlevels.js` `shallowWater`); te voet met timer | nieuwe def; nieuwe kleine "opkomend water"-timer | ja, M |
-| M14 | Rooster (heli) | def `traumaduif` (`helirun.js`, `heliplan.js` autopilot) | nieuwe startpad (Lauwersoog) en route naar de Dollard; ballon en koffer als props (`skyprops.js`) | nee (def), ja (route) |
+| M14 | Rooster (heli) | def `traumaduif` (`helirun.js`, `heliplan.js` autopilot) | spawn: heli op het UMCG-dak (pad `umcg`, bestaat), autopilot naar Lauwersoog; daarna route naar de Dollard; ballon en koffer als props (`skyprops.js`) | nee (def), ja (route) |
 | M15 | Containerlabyrint | `heist.js` stages (camera's, bewakers, zekering, `plan`) | nieuwe def; een kraankooi als interactiepunt | ja, M |
 | M16 | De dijk | `racers.js`, `createRace`; structuur van `RING_ROUTE` | nieuwe routedata langs de dijk (AANNAME: uit de wegen te trekken met `ringroute.js` en `scripts/gen_ringroute.py`) | ja, M |
 | M17 | Nog eentje dan | def `kroegentocht` (`checkpoint`, `CROWD_SIZE`, `playToast`) | vier kermistenten in Winschoten in plaats van kroegen | nee (def), ja (locaties) |
-| M18 | Laag over het graan | **nieuw voertuig: klein vliegtuig** (geen vliegtuigmodus gevonden; AANNAME) of heli-fallback (`heliflight.js`) | nieuwe vliegtuigmodus of dezelfde missie in de heli | ja, **L** (of S bij heli) |
+| M18 | Laag over het graan | **nieuw voertuig: klein vliegtuig** (nieuwe vliegtuigmodus; geen bestaande gevonden), spawn op een echte strook in het Oldambt | nieuwe vliegtuigmodus, zie §3b; heli-fallback (`heliflight.js`) alleen als de modus niet af is | ja, **L** (of S bij heli) |
 | M19 | Botsauto's en kus | `kermis.js` (botsauto's met Durk en Douwe, `{ type: 'kermis' }`) | een tweede kermis in Winschoten, plus de dijkscène | ja, S |
 | M20 | Open, dicht | `pg_bruggenrace.js`, `movablebridges.js` | nieuwe def met Wubbo | ja, S-M |
 | M21 | Wie draaide de camera's uit? | `heist.js` (`updateLock`), `choicepanel.js` | nieuwe def en gebouw (Wiebelwerk) | ja, M |
@@ -70,13 +70,38 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Er is geen code aangepast. Alles h
 | Het Loket (gebouw, bijbaan) | M | `sidejob_rechtbank.js`, `marktgebouwen.js` |
 | Water in de tegelwereld bij Zoutkamp/Reitdiep/Lauwersmeer | M-L (risico) | `tilewatermask.js`, `waterindex.js`, `water3d.js` |
 | Opkomend-water timer op het wad | S-M | `waterlevels.js` |
-| Vliegtuigmodus | L | `heliflight.js` (basis), `skyprops.js` |
+| **Vliegtuigmodus (nieuw voertuig)** | L | `heliflight.js` (basis), `skyprops.js`; werklijst in §3b |
 | Lopen op een rijdende trein | M-L | `railway.js`, `traindrive.js` |
 | Containerkraankooi | S | `heist.js` |
 | Dijkroute (race) | M | `racers.js`, `ringroute.js` |
 | Trekkerprofiel (trekkertrek en colonne) | S-M | `racers.js`, `vehicle.js` |
 | Colonne-AI (meerijden van bondgenoten) | M-L | `racers.js`, `trafficfleet.js` |
 | Vesting Bourtange als wereldplek met kruitkelder | M-L | `landmarkkit.js`, `museumplan.js` als sjabloon |
+
+## 3b. Luchtvaartuigen: spawnregel, spawnpunten en werk voor de vliegtuigmodus
+
+**Spawnregel (besluit van de eigenaar).** Helikopters spawnen op echte helipads, kleine vliegtuigen alleen op echte vliegvelden of -stroken in de Ommeland (de provincie buiten de stad). Beide mogen overal in de provincie vliegen. Er wordt geen vliegveld verzonnen: in de stad staat dus geen vliegtuig. Een missie mag buiten de stad een heli gebruiken en andersom.
+
+| Type | Spawnpunt | Echt? | Bron / status |
+|---|---|---|---|
+| heli | UMCG-dakhelipad ("Universitair Medisch Centrum Heliport") | ja | OSM way 400026615 in `data/helipads_raw.json`; geregistreerd als `umcg` in `heliflight.js`; opgehaald met `scripts/add_helipad.py` |
+| heli | Rotor Roelfs pad op Groningen Airport Eelde | gedeeltelijk: het vliegveld is echt, het pad is een spelpad (verzonnen verkoper) | `helipadById('eelde')`, `shops.js`, `helirun.js`; ligging op het echte terrein: AANNAME, controleren |
+| heli | het dak van het eigen huis | nee, spelpad | `home.js`, id `home`; alleen voor de eigen heli |
+| heli | Martini Ziekenhuis (dak) | AANNAME: niet in de repo | `scripts/add_helipad.py` zocht alleen in de stadsbbox; eerst controleren in OSM (`aeroway=helipad`), pas dan gebruiken |
+| heli | Eemshaven / offshorebasis | AANNAME: niet in de repo | controleren in OSM (`aeroway=helipad` of `heliport`) over de hele provincie-bbox |
+| vliegtuig | Groningen Airport Eelde | ja, het vliegveld bestaat | geen `aeroway`-data in de repo gevonden; AANNAME, ophalen uit OSM (`aeroway=aerodrome`) |
+| vliegtuig | vliegveld Oostwold (Oldambt) voor M18 | AANNAME: ik meen dat het bestaat, niet gecontroleerd | controleren in OSM; bestaat het niet, kies een andere echte strook |
+| vliegtuig | 1-2 andere echte stroken in de Ommeland | AANNAME | OSM-query `aeroway=aerodrome` of `airstrip` over de provincie; alleen echte gebruiken |
+| vliegtuig | in de stad | geen | er is geen echt vliegveld in de stad, dus geen vliegtuig-spawn |
+
+**Wat de vliegtuigmodus kost (nieuw voertuig, maat L).**
+1. Vliegmodel met vaste vleugels (voortstuwing, lift, overtrek, minimale snelheid) naast `heliflight.js`; geen zweven of verticaal opstijgen.
+2. Opstijgen en landen op een strook (taxi, rotatie, landing); een plek om te wachten en te parkeren.
+3. Een register van strooklocaties zoals `registerHelipad`, met naam, ligging, richting en lengte.
+4. Een 3D-model en animatie (propeller), geluid, camera en HUD (snelheid, hoogte, overtrek).
+5. Missiestage `plane`: poortcorridor, spandoek slepen en oppikken (`waymarkers3d.js`), falen bij te hoog of te laag.
+6. Luchtruimregels (plafond rond Eelde, zoals de heli nu 125 m heeft) en botsingen met molens en hoogspanning.
+7. Opslag: voertuig-id en spawnpunt, zonder bestaande saves te breken.
 
 ## 4. Volgorde van bouwen
 
@@ -94,7 +119,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Er is geen code aangepast. Alles h
 |---|---|---|
 | **Saves breken** | stappen verdwijnen of krijgen een andere volgorde; `MISSION_IDS`-indices staan in saves | alleen toevoegen aan `MISSION_IDS`; oude stappen via `RETIRED_STEPS`; migratietest |
 | **Water in de tegelwereld** | Reitdiep, Lauwersmeer en wad ontbreken misschien in de tiles (FLOW-ANALYSE noemt het) | eerst een bestaande water-check (`scripts/province_water_audit.mjs`); anders M12 en M13 vervangen door de rubberboot op bestaand water of een scène |
-| **Vliegtuig** | geen bestaande vliegtuigmodus gevonden | M18 als heli-missie bouwen; vliegtuig later |
+| **Vliegtuig** | geen bestaande vliegtuigmodus gevonden; geen echte vliegvelddata in de repo | M18 als heli-missie vanaf een Ommeland-helipad bouwen; vliegtuig later; eerst de strook-controle uit §3b |
 | **Trein-lopen** | een gebied waar de physics vol onzekerheid zit | alleen de scène in M22 en Tammo als machinist |
 | **Afstanden** | ruim 460 km reisafstand over alle akten (schatting) | elke reisbeat kent trein, bus, heli of skip; "Overal en nergens"-sprong van #97 |
 | **Eén rol, drie versies** | Tessa's "Groningse vrouw" in de bestaande stem (zie `docs/personages.md`) botst met "Nederlands" in nieuwe regels | besluit van de eigenaar: Tessa is Nederlands; nieuwe regels in standaard Nederlands, opgenomen regels blijven (de stem blijft) |

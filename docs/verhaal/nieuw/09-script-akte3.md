@@ -3,7 +3,7 @@
 > Formaat zoals in [09-script-akte1.md](09-script-akte1.md): kopregel `## [ID] Titel – regio/plaats – voertuig`, `(regie: ...)`, dialoog `SPREKER: tekst [BEHOUDEN|NIEUW]`, appjes `APP VAN→NAAR (stil): ...`. Hoort bij [03-akte3.md](03-akte3.md). Missie-id's: M14-M19.
 
 ## [M14.1] Het staat niet in het rooster: intro – Waddenzee, Lauwersoog, helikopterplatform – helikopter
-(regie: vrijdagochtend 21 augustus. Dijkstra's heli landt op het havenplatform. Naamkaart: DOKTER DIJKSTRA.)
+(regie: vrijdagochtend 21 augustus. Dijkstra's heli komt vanaf het UMCG-dak aanvliegen en landt op het havenplatform. Naamkaart: DOKTER DIJKSTRA.)
 DOKTER DIJKSTRA (radio): Rikus. Dijkstra, UMCG. Mijn traumaheli staat in onderhoud. En de nachtdienst heeft honger. [NIEUW]
 RIKUS (radio): Dokter, wat moet ik daarmee? [BEHOUDEN]
 DOKTER DIJKSTRA (radio): Niks. Maar als er vanochtend een heli langskomt: het staat niet in het rooster. [NIEUW]
@@ -175,7 +175,7 @@ RIKUS (radio): Een luisteraar belt: "Twee reuzen zongen dat ze iets niet hebben.
 RIKUS (radio): Torenwachter: "Veel Friezen op de kermis. Ik meld alleen." [NIEUW]
 
 ## [M18.1] Laag over het graan: intro – Oldambt, Roelfiens boerderij bij Winschoten – klein vliegtuig
-(regie: zondag 23 augustus, een graanveld en een rode gewasspuiter. Naamkaart: ROELFIEN.)
+(regie: zondag 23 augustus, een landingsstrook naast een graanveld, een rode gewasspuiter. Naamkaart: ROELFIEN.)
 ROELFIEN: Ik ben Roelfien. Graanboerin. Oma Trijntje is mijn nicht. [NIEUW]
 TESSA: Jelle koopt de juryleden. Ze zitten op de kermis voor een gratis proeverij. [NIEUW]
 ROELFIEN: Dan sleep je een spandoek. Mijn gewasspuiter doet dat al twintig jaar voor de kermis. [NIEUW]
