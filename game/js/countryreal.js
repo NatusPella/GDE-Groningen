@@ -16,7 +16,7 @@ const URBAN_CELL = 40;
 export const REAL = {
   ready: false, ext: null, roads: [], cycleways: [], waterways: [], rails: [], places: [], churches: [], stations: [], routes: [],
   n: 0, bx: null, by: null, bw: null, bl: null, ba: null, code: null, lv: null, fill: null,
-  bTiles: new Map(), aTiles: new Map(), rTiles: new Map(), signTiles: new Map(), churchTiles: new Map(),
+  bTiles: new Map(), aTiles: new Map(), rTiles: new Map(), arTiles: new Map(), allRoads: [], signTiles: new Map(), churchTiles: new Map(),
   // village shopfronts: building -> face (1 +x, 2 -x, 3 +z, 4 -z of its
   // model), and the countryside's hook that repaints that building
   shopFace: new Map(), onShop: null,
@@ -260,7 +260,9 @@ export function initReal(map, om) {
   // a road or cycle path lying wholly in built province tiles is theirs: traffic, parked cars,
   // maps and the city generators only see the old ones outside them
   const theirs = (pts) => !!REAL.covered && pts.every((q) => REAL.covered(q[0], q[1]));
-  REAL.roads = om.roads.map((r) => ({ pts: pairs(r.p), kind: r.k, w: r.w, name: r.n || '', ref: r.r || '', oneway: !!r.o, bridge: !!r.b, cycle: !!r.c })).filter((r) => !theirs(r.pts));
+  // (allRoads: every old road for the placement queries, like aTiles for the buildings)
+  REAL.allRoads = om.roads.map((r) => ({ pts: pairs(r.p), kind: r.k, w: r.w, name: r.n || '', ref: r.r || '', oneway: !!r.o, bridge: !!r.b, cycle: !!r.c }));
+  REAL.roads = REAL.allRoads.filter((r) => !theirs(r.pts));
   REAL.cycleways = (om.cycleways || []).map((c) => ({ pts: pairs(c.p), hw: c.h })).filter((c) => !theirs(c.pts));
   REAL.waterways = om.waterways.map((w) => ({ pts: pairs(w.p), hw: w.h, name: w.n || '' }));
   REAL.rails = om.rails.map(pairs);
@@ -269,7 +271,7 @@ export function initReal(map, om) {
   REAL.churches = om.churches;
   REAL.stations = om.stations;
   REAL.routes = om.routes;
-  REAL.roads.forEach((r, ri) => {
+  const indexRoads = (list, tiles) => list.forEach((r, ri) => {
     for (let i = 0; i < r.pts.length - 1; i++) {
       const a = r.pts[i], b = r.pts[i + 1];
       const t0x = Math.floor(Math.min(a[0], b[0]) / RTILE), t1x = Math.floor(Math.max(a[0], b[0]) / RTILE);
@@ -277,13 +279,15 @@ export function initReal(map, om) {
       for (let tx = t0x; tx <= t1x; tx++) {
         for (let ty = t0y; ty <= t1y; ty++) {
           const k = tkey(tx, ty);
-          let L = REAL.rTiles.get(k);
-          if (!L) REAL.rTiles.set(k, (L = []));
+          let L = tiles.get(k);
+          if (!L) tiles.set(k, (L = []));
           L.push(ri, i);
         }
       }
     }
   });
+  indexRoads(REAL.roads, REAL.rTiles);
+  indexRoads(REAL.allRoads, REAL.arTiles);
   for (const c of REAL.churches) {
     const k = tkey(Math.floor(c.x / RTILE), Math.floor(c.y / RTILE));
     if (!REAL.churchTiles.has(k)) REAL.churchTiles.set(k, []);
@@ -392,6 +396,11 @@ export function buildingsInTile(tx, ty) {
 // All of them, covered or not (gameplay: barns, sites, placement).
 export function allBuildingsInTile(tx, ty) {
   return REAL.aTiles.get(tkey(tx, ty)) || null;
+}
+
+// Every old road (REAL.allRoads), covered or not: placement.
+export function allRoadsInTile(tx, ty) {
+  return REAL.arTiles.get(tkey(tx, ty)) || null;
 }
 
 export function roadsInTile(tx, ty) {
