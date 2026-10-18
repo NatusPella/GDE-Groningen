@@ -291,7 +291,6 @@ function gazePoint(a) {
 }
 
 export function look(a, target) { a.gaze = target || null; }
-export function stopLooking(a) { a.gaze = null; }
 
 export function speak(a, { duur, tekst = '' }) {
   const dur = finite(duur, 0);

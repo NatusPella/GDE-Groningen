@@ -48,11 +48,6 @@ export function hasWeapon(world, key) {
   return !!w && (w.ammo === Infinity || (world.ammo[key] || 0) > 0);
 }
 
-// Damage per second, used to decide whether a picked-up gun beats the one in hand.
-export function weaponDps(key) {
-  const w = WEAPONS[key];
-  return w && w.damage ? (w.damage * (w.pellets || 1)) / w.cooldown : 0;
-}
 
 let fireTimer = 0;
 let effect = null;

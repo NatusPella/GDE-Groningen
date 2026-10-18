@@ -3248,7 +3248,6 @@ export const missionDebug = {
 // cooldown (i.e. showing where to go to START the next mission).
 
 export const MARKER_COLOR_ACTIVE = 0x3fd0ff;
-export const MARKER_COLOR_IDLE = 0xffd23f;
 
 // The start (idle) and the objective (active) of a mission: the shared world
 // marker (worldmarker3d.js), a diamond for the start, an arrow for the goal.

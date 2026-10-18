@@ -19,8 +19,3 @@ export const LANDMARK_LINES = {
   EIKEA: 'Een woonwarenhuis met een doolhof. De uitgang vindt niemand in één keer.',
 };
 
-export const PLACE_GENERIC = [
-  'Moi. Hier kent iedereen elkaar, dus doe een beetje normaal.',
-  'Rustige straten, drukke fietspaden. Kiek goed uit.',
-  'Hier zeggen ze niks, maar ze zien alles.',
-];
