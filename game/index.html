@@ -9,6 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Big+Shoulders+Display:wght@700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="js/menu.css">
 <link rel="stylesheet" href="js/startscreen.css">
+<link rel="stylesheet" href="js/loadscene.css">
 <script>try { document.documentElement.style.setProperty('--ui', String(Math.max(1, Math.min(innerHeight / 900, innerWidth / 1440)))); } catch (e) {}</script>
 <style>
   html, body { margin: 0; padding: 0; background: #0c140e; overflow: hidden; height: 100%; }
@@ -133,7 +134,7 @@
 <canvas id="game3d"></canvas>
 <div id="hud"></div>
 <div id="loading" role="progressbar" aria-label="GDE wordt geladen">
-  <img class="bt-bg" src="img/laad/rondvaart.jpg" alt="" decoding="async">
+  <div class="bt-bg" id="bt-scene"></div>
   <div class="bt-veil"></div>
   <div class="bt">
     <div class="bt-logo"><div class="gde-logo" aria-hidden="true"><span class="gde-mark">GDE</span><span class="gde-sign">Groningen</span><span class="gde-sub">Zomer vol misdaad</span></div></div>
