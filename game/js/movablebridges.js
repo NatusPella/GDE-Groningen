@@ -54,7 +54,7 @@ export function buildMovableBridges(map) {
 }
 
 export function resetMovableBridges() {
-  for (const b of bridges) { b.state = 'closed'; b.t = 0; b.open = 0; b.boom = 0; b.warn = false; b.waitFor = null; b.snapped = null; b.r._open = false; }
+  for (const b of bridges) { b.state = 'closed'; b.t = 0; b.open = 0; b.boom = 0; b.warn = false; b.waitFor = null; b.snapped = null; b._hinted = null; b.r._open = false; }
 }
 
 // Ask bridge `b` to open (a boat in front of it). `who`: the boat, kept as
@@ -160,6 +160,30 @@ export function raceWindow() {
   return { boomsDown: T.WARN_S + T.BOOMS_S, deckGone: T.WARN_S + T.BOOMS_S, cycle: T.WARN_S + 2 * T.BOOMS_S + 2 * T.MOVE_S + T.HOLD_S };
 }
 
+// The light for boats at a bridge: green only while the span lies open, red
+// while it is closed or busy (warning, barriers, moving).
+export function boatSignal(b) { return b.state === 'open' ? 'green' : 'red'; }
+
+// The hint (#154) for someone near the bridge, at the moment its state turns to
+// `warn` (it is going to open) or `open` (it lies open). `onWater`: a boat or
+// swimmer, else road traffic. null for any other change.
+const HINT_REACH = 70;
+export function bridgeHint(state, onWater) {
+  if (state === 'warn') return onWater ? 'Brug gaat open, even wachten.' : 'Brug gaat open, wachten.';
+  if (state === 'open') return onWater ? 'Brug open, varen maar.' : 'Brug open.';
+  return null;
+}
+
+function hintNear(b, world) {
+  const p = world && world.player;
+  if (!p || !world.addMessage) return;
+  const v = p.inVehicle;
+  const x = v ? v.x : p.x, y = v ? v.y : p.y;
+  if (Math.abs(x - b.x) > HINT_REACH + b.len / 2 || Math.abs(y - b.y) > HINT_REACH + b.len / 2) return;
+  const text = bridgeHint(b.state, !!(v && v.isBoat));
+  if (text) world.addMessage(text, 3, { kind: 'tip' });
+}
+
 export function updateMovableBridges(dt, world) {
   if (!ready || dt <= 0) return;
   for (const b of bridges) {
@@ -172,6 +196,11 @@ export function updateMovableBridges(dt, world) {
       }
     }
     stepBridge(b, dt, world);
+    // one hint per bridge per change (a request may have set `warn` before this step)
+    if (b._hinted !== b.state) {
+      b._hinted = b.state;
+      if (b.state === 'warn' || b.state === 'open') hintNear(b, world);
+    }
   }
 }
 
