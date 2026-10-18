@@ -764,6 +764,8 @@ export async function runStoryTest(world) {
               const stage = def && def.stages && def.stages[ms.stage];
               if (stage && stage.kind === 'pigeon' && !world.pigeonMode && !entry.waitedPigeon) {
                 entry.waitedPigeon = true;
+                // a pigeon does not drive: step out of the car the last mission left the player in
+                if (world.player.inVehicle) world.player.exitVehicle(world.map, world);
                 const flew = await waitFor(() => world.pigeonMode, 6000);
                 entry.notes.push(flew ? 'duif-modus gestart' : 'duif-modus startte niet ' + JSON.stringify(S().mission()));
                 check(`${cur.id}: pigeon mode starts`, flew);
@@ -780,13 +782,15 @@ export async function runStoryTest(world) {
                 entry.notes.push('duif boven doel');
                 continue;
               }
+              entry.last = S().mission();
               S().objective();
               await sleep(350);
             }
           }
           check(`mission ${cur.id} finished`, !isMissionActive());
           // a vliegmissie (M15: plane, airgates) is not flown by the generic objective skipper: it fails and the story offers the skip
-          { const c2 = S().current(); if (c2 && c2.id === cur.id && S().canSkip()) { const m1 = world.money; S().skip(); await drain(world); entry.notes.push(`mislukt (de harnas vliegt niet) en overgeslagen: +€${Math.round(world.money - m1)}`); } }
+          const failState = entry.last;
+          { const c2 = S().current(); if (c2 && c2.id === cur.id && S().canSkip()) { const m1 = world.money; S().skip(); await drain(world); entry.notes.push(`mislukt en overgeslagen: +€${Math.round(world.money - m1)}; laatste meldingen: ${(world.messages || []).slice(-4).map((m) => m.text).join(' | ')}; stap ${JSON.stringify(failState)}`); } }
           if (NEW) newArcChecks(cur.id);
         }
         await drain(world);
