@@ -58,6 +58,7 @@ import { setFarProps } from './farprops.js';
 import { initProvince } from './provinceworld.js';
 import { loadRoadNet, setRoadNet } from './roadgraph.js';
 import { buildMovableBridges, updateMovableBridges } from './movablebridges.js';
+import { updateBridgeHits, resetBridgeDamage, startBridgeCrashDemo, stepBridgeCrashDemo } from './bridgehitworld.js';
 import { geoWorkerActive } from './geojobs.js';
 import { init3D, update3D, resize3D, getScene, getRenderer, setMenuCover, MENU_FRAME_S, refreshRenderScale, terrainReady, canvasFrameCount, prewarmStreamAt } from './scene3d.js';
 import { checkFrame } from './blackframe.js';
@@ -189,6 +190,7 @@ function waitForStart(world) {
   return runStartScreen(world, { render, relocate, tick });
 }
 
+let bridgeDemoT = 0, bridgeDemoDone = false; // ?brugbotsing
 let errorShown = false;
 function showFrameError(err) {
   console.error(err);
@@ -330,6 +332,7 @@ async function boot() {
   initTrafficLights(world);
   initRailway(world);
   buildMovableBridges(world.map);
+  resetBridgeDamage();
   initStationTravel(world);
   initActivityKinds(world, 'early');
   initWeather(world);
@@ -598,6 +601,12 @@ async function boot() {
     tickBurningVehicles(world, dt);
     updateRailway(dt, world);
     updateMovableBridges(dt, world);
+    updateBridgeHits(dt, world);
+    if (FLAGS.brugbotsing) {
+      bridgeDemoT += dt;
+      if (bridgeDemoT > 6 && !bridgeDemoDone) bridgeDemoDone = !!startBridgeCrashDemo(world);
+      stepBridgeCrashDemo(dt, world);
+    }
     for (const v of world.vehicles) {
       if (!v.wrecked) checkVehicleWater(v, map, world);
     }
