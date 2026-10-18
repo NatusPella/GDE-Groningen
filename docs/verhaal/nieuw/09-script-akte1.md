@@ -79,6 +79,7 @@ TAMMO: Ik ben geen content. Ik ben Tammo. [BEHOUDEN]
 TESSA: Spreek voor jezelf. Ik ben heel veel content. [BEHOUDEN]
 TAMMO: En die terrassen? [BEHOUDEN]
 JELMER: Die zijn het publiek! Niemand raken, wel laten schrikken! [BEHOUDEN]
+(regie: de torenwachter van de Martinitoren belt. Hij kijkt de hele dag over Stad en meldt wat hij ziet.)
 TORENWACHTER (telefoon): Tammo. Torenwachter. Er staan mensen op de Grote Markt. [BEHOUDEN]
 TAMMO: Het is de Grote Markt. [BEHOUDEN]
 TORENWACHTER (telefoon): Ik meld alleen. [BEHOUDEN]
