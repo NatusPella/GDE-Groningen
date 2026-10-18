@@ -6,9 +6,11 @@ import { getTrains, getLevelCrossings, nearLevelCrossing, railZ, isOffMap, TRAIN
 import { WATER_Y } from './util.js';
 import { waterPolyAt } from './waterlevels.js';
 import { addStaticCollider } from './breakables.js';
+import { railViewDistance, RAIL_VIEW } from './viewdist.js';
 
 const CHUNK = 250;
-const VIEW = 190;
+let VIEW = RAIL_VIEW.min; // the view distance for rails and trains (railViewDistance)
+const MAX_CHUNK_BUILDS = 3; // per frame, nearest first
 const STEP = 2;
 const SLEEPER_STEP = 0.75;
 const GAUGE_HALF = 0.7175;
@@ -387,10 +389,26 @@ function buildChunk(c) {
 
 function syncChunks(px, py) {
   const reach = VIEW + CHUNK * 0.71;
+  const todo = [];
   for (const c of chunks.values()) {
     const want = Math.abs(c.x - px) < reach && Math.abs(c.y - py) < reach;
-    if (want && !c.group) { c.group = buildChunk(c); scene.add(c.group); }
+    if (want && !c.group) todo.push(c);
     if (c.group) c.group.visible = want;
+  }
+  // a wider reach must not build a whole ring in one frame: nearest first
+  if (todo.length > MAX_CHUNK_BUILDS) todo.sort((a, b) => Math.hypot(a.x - px, a.y - py) - Math.hypot(b.x - px, b.y - py));
+  for (const c of todo.slice(0, MAX_CHUNK_BUILDS)) { c.group = buildChunk(c); scene.add(c.group); }
+}
+
+// A cutscene is about to show (x, y): build the track chunks round it now
+// (hidden until the camera focus is there), so the first frame has rails.
+export function prewarmRailAt(x, y) {
+  if (!scene || !trackBuilt) return;
+  for (const c of chunks.values()) {
+    if (c.group || Math.abs(c.x - x) > CHUNK || Math.abs(c.y - y) > CHUNK) continue;
+    c.group = buildChunk(c);
+    c.group.visible = false;
+    scene.add(c.group);
   }
 }
 
@@ -744,10 +762,14 @@ export function buildTrackMeshes(mapRef) {
   return [...chunks.values()].map(buildChunk);
 }
 
-export function updateRailway3D(dt, world) {
+// focus: where the camera looks (scene3d streamFocus: the player, or the shot's
+// point in a cutscene); viewDist: the draw distance setting in metres.
+export function updateRailway3D(dt, world, focus, viewDist) {
   if (!scene) return;
   const p = world.player;
-  const px = p.inVehicle ? p.inVehicle.x : p.x, py = p.inVehicle ? p.inVehicle.y : p.y;
+  const f = focus || (p.inVehicle || p);
+  const px = f.x, py = f.y;
+  if (viewDist) VIEW = railViewDistance(viewDist);
   // railway.js (initRailway) must have loaded the lifts before the bed is built
   if (!trackBuilt) { buildTrackData(); trackBuilt = true; }
   if (!crossingsBuilt && getLevelCrossings().length) { buildCrossings(); crossingsBuilt = true; }

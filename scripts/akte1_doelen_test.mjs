@@ -67,6 +67,20 @@ ok(loket.timeLimit > hold.time * 3 + 60, 'loket: enough time left after the wait
 // M02: the garage and delivery steps name the goal (#93)
 const msrc = fs.readFileSync(new URL('js/missions_nieuw.js', root), 'utf8');
 ok(/Schud de politie af/.test(msrc) && /Breng de automaat naar Sjabbe/.test(msrc), 'pinautomaat: goal labels say what to do');
+// M04/M05 (#147): the duif photographs the fuse box too, the race says its goal aloud
+ok(/De stroomkast achter de fietsenstalling/.test(msrc) && /Fotografeer 3 camera/.test(msrc), 'duifverkenning: goal names cameras, guards and fuse box');
+ok(/Podium in de Kiezelrace/.test(msrc), 'kei: the start message names the goal');
+// failure paths (#147): own time-up and lost-vehicle messages instead of the generic ones
+ok(/Loket is dicht/.test(loket.timeUp), 'loket: own time-up message');
+const bak = byId('bakkiestunt');
+ok(/kattenfilmpje/.test(bak.timeUp) && bak.vehicleFail.gone && bak.vehicleFail.wrecked && bak.vehicleFail.left, 'bakkiestunt: time-up and lost-bakkie messages');
+ok(/vehicleFail = \{ gone/.test(msrc) && /duif\.timeUp/.test(msrc) && /kei\.timeUp/.test(msrc), 'pinautomaat, duif and kei have own failure messages');
+ok(/def\.timeUp \? def\.timeUp/.test(missionsSrc) && /vf\.wrecked/.test(missionsSrc), 'missions.js honours timeUp and vehicleFail');
+// rewards and consequences are visible on the success card (#147)
+ok(Array.isArray(loket.costRow) && /150/.test(loket.costRow[1]), 'loket: the card shows the entry fee (reward is 0)');
+ok((msrc.match(/\.costRow = \[/g) || []).length === 5, 'M02, M04, M05, M06, M07 show what they leave you with');
+ok(/def\.costRow && !replay/.test(missionsSrc), 'missions.js adds costRow to the success card');
+ok(/vet.costRow/.test(msrc) && /vet.vehicleFail/.test(msrc), 'M07: consequence row and own vehicle messages');
 void byId;
 console.log(`${n - fails}/${n} act-1 goal checks passed`);
 process.exit(fails ? 1 : 0);
