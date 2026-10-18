@@ -55,3 +55,4 @@ jobs:
         run: |
           python -I scripts/world/rdnew_test.py
           python -I scripts/world/extract_province_test.py
+          python -I scripts/world/fetch_ahn_test.py
