@@ -14,6 +14,8 @@ import { wgsToWorld } from './rdnew.js';
 const ZUIDHORN = [-10732.8, -3017.02];
 const SCHUUR = [ZUIDHORN[0] + 250, ZUIDHORN[1] - 150];
 const MODDER = [ZUIDHORN[0] + 430, ZUIDHORN[1] - 240];
+// the drive test: a slalom through the mud, left of the straight line and then right of it
+const SLALOM = [[SCHUUR[0] + 79, SCHUUR[1] - 0], [SCHUUR[0] + 110, SCHUUR[1] - 94]];
 const HOOGKERK = wgsToWorld(53.2106, 6.4930);   // the bridge on the way to the city: Wubbo's moment
 const ADUARD = wgsToWorld(53.256, 6.460);   // the village node (it was an estimate 1.6 km off)
 const MARKT = { landmark: 'Grote Markt', off: [20, -5], snap: 'walk' };
@@ -51,6 +53,14 @@ export function buildAkte5Defs({ map, walk, drive }) {
           cast: [{ key: 'henk', pose: 'hips', at: [2.8, 1.0] }, { key: 'tinus', pose: 'arms', at: [3.4, -1.6] }],
         },
         { kind: 'board', label: 'Stap in de Escapade', say: 'Instappen. Tinus wijst naar het weiland: de modder wacht.' },
+        {
+          kind: 'goto', target: { at: SLALOM[0], snap: 'drive', label: 'Eerste bocht' }, mode: 'vehicle', radius: 20, stop: 0, mud: true,
+          label: 'Rijproef: slalom door de modder, eerst links', say: 'Gas, sturen, niet vastlopen. Henk wil zien dat de as het houdt.',
+        },
+        {
+          kind: 'goto', target: { at: SLALOM[1], snap: 'drive', label: 'Tweede bocht' }, mode: 'vehicle', radius: 20, stop: 0, mud: true,
+          label: 'Rijproef: nu rechts, en niet vastlopen', say: 'Houd de snelheid erin. In de modder zakt hij weg als je stilstaat.',
+        },
         {
           kind: 'goto', target: { at: MODDER, snap: 'drive', label: 'De modder' }, mode: 'vehicle', radius: 24, stop: 0,
           label: 'Rij de Escapade de modder in: laat zien dat de as het houdt', say: 'Rij hem de modder in. Als de as het houdt, houdt hij het ook op de Grote Markt.',

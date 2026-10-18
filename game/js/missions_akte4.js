@@ -77,6 +77,8 @@ export function buildAkte4Defs() {
       reward: 600,
       onFoot: true,
       costRow: ['Ontdekt', 'Jelle had de bal al op 12 augustus'],
+      tagAdjust: { 'sluip-top': 100 },
+      tagRows: { 'sluip-top': ['Sluipen', 'Langs alle drie de camera\'s, zonder één piep'] },
       start: spot('wiebelwerk'),
       say: 'Wiebelwerk, websites met karakter. Wij zijn klant.',
       stages: [
@@ -98,6 +100,15 @@ export function buildAkte4Defs() {
           ],
         },
         { kind: 'goto', target: ll('wiebelwerkServers', { label: 'De serverkamer' }), mode: 'foot', radius: 5, label: 'Naar de serverkamer', say: 'De accountmanager belt een collega. Nu snel naar de serverkamer.' },
+        {
+          kind: 'timing', kicker: 'De gang naar de serverkamer', help: 'druk als de camera wegdraait', failAt: 2, failText: 'de camera zag je: de beveiliging komt eraan', goodAt: 3, tagGood: 'sluip-top',
+          label: 'Glip langs de camera\'s: druk als de camera wegdraait', say: 'Drie camera\'s in de gang. Wacht tot de streep in het groen is, dan sluip je door.',
+          rounds: [
+            { text: 'Camera één kijkt naar de koffieautomaat.', speed: 0.7, zone: [0.36, 0.64], ok: 'Door, achter de plant.', bad: 'Camera één piept. Terug achter de plant.' },
+            { text: 'Camera twee draait langzaam over de deuren.', speed: 0.85, zone: [0.4, 0.6], ok: 'Door, onder de camera.', bad: 'Camera twee zwenkt je kant op.' },
+            { text: 'Camera drie hangt boven de serverdeur.', speed: 1.0, zone: [0.42, 0.58], ok: 'Binnen. De deur valt zacht dicht.', bad: 'Camera drie ziet een schoen.' },
+          ],
+        },
         {
           kind: 'hold', target: ll('wiebelwerkServers', { label: 'De serverkamer' }), mode: 'foot', radius: 6, time: 8, ticks: ['Update, altijd 00:00, drie minuten. Behalve 12 augustus: elf minuten, aangevraagd door Us Mem Snacks.', 'Zijdeur 00:03, pas van bewaker twee, gast: D en D, tilwerk. De pas van mevrouw Tuinstra is die dag geblokkeerd.'],
           label: 'Lees het logboek van 12 augustus', say: 'Het logboek van 12 augustus. Blijf bij de server staan tot alles gelezen is.',
@@ -136,6 +147,8 @@ export function buildAkte4Defs() {
       reward: 1200,
       onFoot: true,
       costRow: ['Gevolg', 'Mem nam de bal van Jelle af; de Escapade is weg'],
+      tagAdjust: { 'duel-won': 200 },
+      tagRows: { 'duel-won': ['Fierljep', 'Verder gesprongen dan Durk en Douwe'], 'duel-lost': ['Fierljep', 'Tammo landde nat, maar landde'] },
       start: spot('bourtangeWal'),
       say: 'Vesting Bourtange, fakkels, een gracht en kartonnen kanonnen.',
       stages: [
@@ -152,6 +165,15 @@ export function buildAkte4Defs() {
           label: 'Houd ook de noordwal tegen het beleg', say: 'Blijf op de noordwal staan tot het beleg voorbij is.',
         },
         { kind: 'goto', target: ll('bourtangeGracht', { label: 'De gracht' }), mode: 'foot', radius: 12, label: 'Naar de gracht: Durk en Douwe dagen je uit', say: 'Durk en Douwe houden je bezig. Naar de gracht.' },
+        {
+          kind: 'timing', kicker: 'Fierljep-duel in Bourtange', help: 'druk op het goede moment', goodAt: 2, tagGood: 'duel-won', tagLow: 'duel-lost',
+          label: 'Fierljep-duel: spring verder dan Durk en Douwe', say: 'Durk en Douwe springen mee. Aanloop, polsstok, klimmen: druk als de streep in het groen is.',
+          rounds: [
+            { text: '1. De aanloop: vol gas naar de gracht.', speed: 0.8, zone: [0.36, 0.64], ok: 'Een strakke aanloop. Durk kijkt jaloers.', bad: 'Je struikelt over een kartonnen kanon.' },
+            { text: '2. Pak de polsstok.', speed: 1.0, zone: [0.4, 0.6], ok: 'De stok zit. Douwe zegt: …wauw.', bad: 'De stok glijdt weg. Douwe zegt: …oei.' },
+            { text: '3. Klim en wacht op het kantelpunt.', speed: 1.15, zone: [0.43, 0.57], ok: 'Boven. Het kantelt precies goed.', bad: 'Te vroeg. De stok kantelt zijwaarts.' },
+          ],
+        },
         {
           kind: 'scene', target: ll('bourtangeGracht', { label: 'De gracht' }), label: 'Durk en Douwe', kicker: 'De gracht van Bourtange',
           script: { ids: ['M20.2'] }, cast: [{ key: 'durk', pose: 'arms', at: [3.2, 1.0] }, { key: 'douwe', pose: 'arms', at: [3.2, -1.4] }],
@@ -197,8 +219,8 @@ export function applyAkte4(list) {
   fj.outro = 'De Escapade is terug. De bal is weg. En de vrienden zijn weg.';
   fj.costRow = ['Gevolg', 'De bal is van Jelle; de vrienden gingen weg'];
   // the wagon choice has a consequence: the car saves a scratch, the ball costs one (Berend counts)
-  fj.tagAdjust = { bal: -150 };
-  fj.tagRows = { auto: ['Gekozen', 'De auto: geen kras'], bal: ['Gekozen', 'De bal: een kras op de Escapade, Berend telt'] };
+  fj.tagAdjust = { bal: -150, 'sprint-slecht': -100 };
+  fj.tagRows = { 'sprint-goed': ['Sprint', 'Over alle wagons, zonder val'], 'sprint-slecht': ['Sprint', 'Gevallen op de wagons: de schade is voor jou'], auto: ['Gekozen', 'De auto: geen kras'], bal: ['Gekozen', 'De bal: een kras op de Escapade, Berend telt'] };
   fj.fjordTrain = false;
   delete fj.vehicle;
   fj.start = spot('zuidhornOverweg');
@@ -206,9 +228,18 @@ export function applyAkte4(list) {
   fj.stages = [
     { kind: 'goto', target: ll('zuidhornOverweg', { label: 'De overweg bij Zuidhorn' }), mode: 'any', radius: 30, label: 'Naar de overweg bij Zuidhorn: daar stopt de trein om middernacht', say: 'Mems appje: de trein met de rode auto stopt om middernacht bij de overweg in Zuidhorn.', talk: { ids: ['M21.2'], delay: 3 } },
     {
+      kind: 'timing', kicker: 'Over de wagons', help: 'spring op het goede moment', goodAt: 2, tagGood: 'sprint-goed', tagLow: 'sprint-slecht',
+      label: 'Spring van wagon naar wagon naar de Escapade', say: 'De trein rijdt. Druk als de streep in het groen is om naar de volgende wagon te springen.',
+      rounds: [
+        { text: 'Wagon één naar twee: de koppeling schudt.', speed: 0.9, zone: [0.38, 0.62], ok: 'Over de koppeling.', bad: 'Je glijdt, maar grijpt de reling.' },
+        { text: 'Wagon twee naar drie: de beleggers kijken om.', speed: 1.1, zone: [0.41, 0.59], ok: 'Drie. Zij zien je nog niet.', bad: 'Je valt op je rugzak. Au.' },
+        { text: 'Wagon drie naar de Escapade: hij staat los.', speed: 1.25, zone: [0.43, 0.57], ok: 'Je landt op de motorkap.', bad: 'Je landt op je knieën, naast de motorkap.' },
+      ],
+    },
+    {
       kind: 'choice', kicker: 'Op de wagon', label: 'Kies: de auto of de bal', say: 'De beleggers staan op de wagon. Jelle belt: de auto redden of de bal houden. Niet allebei.',
       rounds: [
-        { who: 'Jelle', text: 'U kunt de auto redden of de bal houden. Beide tegelijk is juridisch niet mogelijk.', options: [
+        { who: 'Jelle', time: 6, timeoutPick: 2, rule: 'Beslis snel', text: 'U kunt de auto redden of de bal houden. Beide tegelijk is juridisch niet mogelijk.', options: [
           { label: 'De auto: de Escapade redden', tag: 'auto', reply: 'Tessa laat de rugzak vallen. De beleggers springen met de bal naar een limo.' },
           { label: 'De bal: de rugzak vasthouden', ok: false, tag: 'bal', reply: 'Tessa houdt de bal tot een belegger hem uit haar handen trekt. Dan springt ze terug naar de Escapade: de wagon rolt, maar ze haalt hem in.' },
         ] },
