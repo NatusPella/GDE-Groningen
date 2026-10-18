@@ -40,7 +40,7 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte3
 | **Id** | `A3-1` (`H15`, mission `traumaduif`, aangepast) |
 | **Functie** | **2 · Jelles koopboek bemachtigen**: welke plakjes hij nog koopt, en dat plakje acht op "notaris, 28 augustus" staat |
 | **Plaats** | Lauwersoog (helikopterplatform), UMCG (lunch), de Dollard (ballon), vr 21, ochtend |
-| **Voertuig** | helikopter (Dijkstra vliegt de lange stukken, Tessa houdt hem stil naast de mand). **Spawn:** de heli is Rotor Roelfs heli en staat op zijn pad bij Eelde (bestaand pad `eelde`); Dijkstra vliegt naar het noorden, naar Lauwersoog, om hen op te halen. De route is één keten zonder terugvlucht: Lauwersoog, UMCG (lunch), de Dollard, Delfzijl. **Lichte uitvoering:** autopilot (`heliplan.js`) voor de lange vluchten; de enige spelhandeling is stil houden naast de mand (bestaande `helirun.js`-lier) |
+| **Voertuig** | helikopter (Dijkstra vliegt de lange stukken, Tessa houdt hem stil naast de mand). **Spawn:** de heli is Rotor Roelfs heli, door hem op het UMCG-dak gezet (echt helipad `umcg`; besluit eigenaar #93: de vlucht begint in Stad, niet op Eelde in Drenthe); Dijkstra vliegt naar het noorden, naar Lauwersoog, om hen op te halen. De route is één keten zonder terugvlucht: Lauwersoog, UMCG (lunch), de Dollard, de Eemshaven (waar M13 begint). **Lichte uitvoering:** autopilot (`heliplan.js`) voor de lange vluchten; de enige spelhandeling is stil houden naast de mand (bestaande `helirun.js`-lier) |
 | **Mechaniek / hergebruik** | `heli`-stage (`helirun.js`, `heliflight.js`), `heliplan.js` autopilot; **Tammo pakt de aktetas uit de mand terwijl Tessa de heli stil houdt, en snijdt hem los**; bestaande def met andere plekken en een andere inhoud |
 | **Doel (hardop)** | "Vlieg naar de Dollard, houd de heli stil naast Jelles ballon en pak de aktetas met zijn koopboek: daarin staat welk plakje hij als volgende koopt." |
 | **Motief** | Dijkstra's nachtdienst heeft honger (lunch eerst); Jelle vliegt over zijn nieuwe gebied en neemt het koopboek mee |
@@ -74,8 +74,8 @@ Hoort bij [00-OVERZICHT.md](00-OVERZICHT.md). Volledige regels: [09-script-akte3
 | **Verloop** | 1) Lammert wacht aan de kade (naamkaart). 2) Plan: kraan of overall. 3) Bewakers en camera's. 4) Container 4471 vinden. 5) In de kraankooi: Lammert belt "De kraan piept. De bewaker kijkt bij het tweede piepje omhoog." 6) Papieren verwisselen, wegkomen. **Falen:** gezien: "Sikkom." en de nacht begint opnieuw. |
 | **Reizen** | Dollard naar Eemshaven 40 km: heli (Dijkstra zet je af) of auto 30 min met autogesprekken |
 | **Romantiek (4/10)** | in de kooi van de kraan: "Niet bewegen." "Ik beweeg niet." "Je ademt." |
-| **Plot** | het schip vertrekt leeg; de voorraden gaan naar Lammert; zijn woonschip in Delfzijl wordt de schuilplaats en het voorraadmagazijn |
-| **Gevolg / haak** | plakje vijf valt. Het woonschip: "Een schuilplaats met een bed. Twee bedden." Tessa vertaalt Tammo's gezicht: "Dat gezicht betekent: prima." |
+| **Plot** | het schip vertrekt leeg; de voorraden gaan met Lammerts vrachtwagen naar zijn woonschip in Delfzijl (het voorraadmagazijn); de spelers slapen in zijn havenkantoor in de Eemshaven, zodat M14 daar begint |
+| **Gevolg / haak** | plakje vijf valt. Het havenkantoor: "Met een bed. Twee bedden." Tessa vertaalt Tammo's gezicht: "Dat gezicht betekent: prima." |
 | **Behouden / nieuw** | NIEUW (op een paar regels na); Lammert krijgt een eigen stem (kort, ironisch, geen "Ik meld alleen") |
 
 **Sleutelscène (in de kraankooi):** LAMMERT (telefoon): "De kraan piept. De bewaker kijkt bij het tweede piepje omhoog." TESSA: "Niet bewegen. De bewaker kijkt omhoog." TAMMO: "Ik beweeg niet." TESSA: "Je ademt." TAMMO: "Niet te voorkomen." (NIEUW.)
