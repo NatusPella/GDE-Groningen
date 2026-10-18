@@ -18,6 +18,7 @@ import { createRecorder, recordGhost, finishGhost, ghostAt, loadGhost, saveGhost
 import { KEYS } from './storagekeys.js';
 import { addClearZone, corridorPoints } from './clearzone.js';
 import { ULRUM_RING, ringToLocal, startOnLongestStraight } from './kartbaandata.js';
+import { racingLine } from './kartline.js';
 
 // Karten in Ulrum: the real outdoor kart track of Ulrum (OSM way "Kartbaan
 // Ulrum", kartbaandata.js), laid out exactly as mapped, 330 m with the start
@@ -664,10 +665,13 @@ function updateHud() {
 // Read-only race state for the map layer (missionmap.js): the track in world
 // coordinates, four sector gates, the karts and the lap; null outside a race.
 let kartLine = null;
+let kartIdeal = null;
 export function getKartMapState() {
   const g = game;
   if (!g) return null;
   if (!kartLine) kartLine = Array.from({ length: Math.ceil(TRACK.N / 8) }, (_, i) => { const j = i * 8; const q = FR.toW(TRACK.u[j], TRACK.v[j]); return [q.x, q.y]; });
+  // the ideal line: every 8th point of the track, moved to the inside of the bends
+  if (!kartIdeal) kartIdeal = racingLine(Array.from({ length: Math.ceil(TRACK.N / 8) }, (_, i) => [TRACK.u[i * 8], TRACK.v[i * 8]]), WIDTH).map(([u, v]) => { const q = FR.toW(u, v); return [q.x, q.y]; });
   const me = g.karts[0];
   const at = (s) => { const p = pointAt(TRACK, s); return FR.toW(p.x, p.y); };
   const lapPos = ((me.prog % TRACK.length) + TRACK.length) % TRACK.length;
@@ -676,6 +680,7 @@ export function getKartMapState() {
   const rank = rankKarts(g.karts);
   return {
     line: kartLine,
+    ideal: kartIdeal,
     checkpoints: gates.map((gs) => at(gs)),
     nextCheckpoint: next < 0 ? 0 : next,
     karts: g.karts.map((k) => { const q = FR.toW(k.u, k.v); return { x: q.x, y: q.y, name: k.name, player: !!k.player, lap: Math.min(LAPS, Math.floor(k.prog / TRACK.length) + 1) }; }),
