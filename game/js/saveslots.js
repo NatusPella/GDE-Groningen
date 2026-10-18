@@ -174,13 +174,13 @@ export function writeSlotRaw(ls, n, text) {
   if (prev != null && prev !== text && isSaveText(prev)) {
     try { s.setItem(slotRecoveryKey(n), prev); } catch (e) { /* full: the recovery copy of this round is skipped */ }
   }
-  const put = () => { s.setItem(key, text); if (s.getItem(key) !== text) throw new Error('read-back differs'); };
+  const put = () => { s.setItem(key, text); if (s.getItem(key) !== text) { const e = new Error('read-back differs'); e.torn = true; throw e; } };
   try {
     put();
     return true;
   } catch (e) {
     // full: the recovery copy takes as much room as the save, so give it up before giving up the save
-    try { s.removeItem(slotRecoveryKey(n)); put(); return true; } catch (e1) { /* still no room */ }
+    if (!e.torn) { try { s.removeItem(slotRecoveryKey(n)); put(); return true; } catch (e1) { /* still no room */ } }
     try { if (prev != null) s.setItem(key, prev); } catch (e2) { /* nothing more to do */ }
     return false;
   }
