@@ -7,19 +7,17 @@
 // finds its save. TODO(1.1 or later): drop the old keys with removeLegacyKeys()
 // once nobody can still go back to a 0.28 build.
 
-import { nieuwVerhaal } from './storyflag.js';
-
 export const PREFIX = 'gde-';
 // ?dev runs keep their own copy of every key under this prefix (devflags.js)
 export const DEV_PREFIX = 'gde-dev:';
 export const LEGACY_PREFIX = 'gte-';
 export const LEGACY_DEV_PREFIX = 'gte-dev:';
 
-// The new story arc (storyflag.js) keeps its own progress: a different save, backup,
-// prestaties and "already seen" state, so playing it never touches a released save
-// and a save of one arc can never load into the other.
+// The story keeps its progress under keys with a '-nieuw' suffix: the keys of the first version of
+// the story ('gde-save-v1', ...) stay as they were and are never deleted; oudmigratie.js copies
+// what a player keeps (the save, the prestaties) over once (#187).
 const ARC_KEYS = ['save', 'saveBackup', 'achievements', 'pigeon', 'flavour', 'banter', 'introSeen', 'wijkenSeen', 'radioHistory'];
-const ARC_SUFFIX = nieuwVerhaal() ? '-nieuw' : '';
+const ARC_SUFFIX = '-nieuw';
 
 export const BASE_KEYS = {
   save: 'gde-save-v1',
@@ -49,8 +47,10 @@ export const BASE_KEYS = {
   snackChain: 'gde-snackketen-v1',
   // co-op (#95): only what a session needs (last mode and connection code); the story stays in the one save
   coopSession: 'gde-coop-sessie',
-  // hidden setting: play the new story arc (storyflag.js)
+  // the old key of the hidden setting that played the new story; the story is the only one now, nothing reads it
   nieuwVerhaal: 'gde-nieuwverhaal',
+  // set once the save and prestaties of the first version of the story are across (oudmigratie.js)
+  oudGemigreerd: 'gde-oud-gemigreerd',
   // the last benchmark run, for the comparison (benchstats.js), new in 0.37: no legacy name
   benchmarkLast: 'gde-benchmark-last-v1',
 };

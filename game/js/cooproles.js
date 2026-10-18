@@ -12,8 +12,8 @@ export const PRESENCE = ['beide', 'dichtstbij', 'een'];
 // Per stap-id afwijkende regels (de rest volgt coopRule). needsTwo: de missie
 // vraagt een tweede persoon; met één mens neemt de NPC-metgezel die plek.
 export const OVERRIDES = {
-  H6: { presence: 'beide', needsTwo: true },   // de inbraak: een zekeringkast, twee handen
-  H16: { presence: 'een' },                      // solo: de ander kijkt mee
+  M06: { presence: 'beide', needsTwo: true },   // de inbraak: een zekeringkast, twee handen
+  // (M21 is solo: step.solo, de ander kijkt mee)
 };
 
 // slot van een personage-id (tammo = 0, anita/Tessa = 1)

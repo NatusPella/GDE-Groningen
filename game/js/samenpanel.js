@@ -6,7 +6,6 @@ import { startHost, startClient, addGuest, stopCoopNet, handshakeInfo, canJoin, 
 import { fadeFlash } from './coophud.js';
 import { openHold } from './coophold.js';
 import { readSession, writeSession, toSession } from './coopsave.js';
-import { ARC_ID } from './storyflag.js';
 
 let view = null, mountedOn = null;
 
@@ -18,7 +17,7 @@ export function renderSamenPanel(root, world) {
   if (view) view.close();
   mountedOn = root;
   const ls = store();
-  const info = () => handshakeInfo({ tiles: '-', story: ARC_ID });
+  const info = () => handshakeInfo({ tiles: '-', story: 'nieuw' });
   view = mountLobby(root, {
     laatsteCode: ls ? readSession(ls).laatsteCode : '',
     startHost: (route, onChange) => startHost(world, info(), { fade: fadeFlash, route, onChange, onHold: (rol, slot, reden) => openHold(world, rol, slot, reden) }),

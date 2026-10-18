@@ -47,8 +47,6 @@ import { EIKEA_GOALS, updateStoryEikea, waiveEikea, initStoryEikea } from './sto
 import { THIRD_PARTY_CARDS } from './credits.js';
 import { SERIES, GAME_TITLE } from './logo.js';
 import { registerNarrative, mayStart, narrativeBusy, narrativeState } from './narrative.js';
-import { nieuwVerhaal } from './storyflag.js';
-import './storychoice.js';
 import { storyLines, talkLines, radioContacts, appsAt, storyDataReady, readingTime, scene as storyScene } from './storytext.js';
 import { updateStoryTalk, stopTalk, playTalk } from './storytalk.js';
 import { makeReisGoals } from './storyreis.js';
@@ -110,7 +108,7 @@ function phone(from, text, duration = 6, say = undefined, silent = false) {
 // script that hang on a step, at its start or after it. App texts show as a phone card and are never read
 // aloud. Sent once per save (a flag), so loading mid-step does not repeat them.
 function sendScript(step, at) {
-  if (!nieuwVerhaal() || !storyDataReady()) return;
+  if (!storyDataReady()) return;
   const key = `script:${step.id}:${at}`;
   if (state.flags.has(key)) return;
   state.flags.add(key);
@@ -427,7 +425,7 @@ function updateHomeWait(step) {
   const lines = ((scene && scene.lines) || []).map(([k, text]) => {
     const speaker = SPEAKERS[k] || who(k);
     const v = lineVoiceFor(speaker, text);
-    const dur = nieuwVerhaal() && !v ? readingTime(text) : Math.max(v ? v.dur + 0.3 : 0, 1.6, Math.min(5, 0.8 + text.length * 0.055));
+    const dur = !v ? readingTime(text) : Math.max(v ? v.dur + 0.3 : 0, 1.6, Math.min(5, 0.8 + text.length * 0.055));
     const l = { speaker, text, at, dur };
     at += dur + 0.25;
     return l;
@@ -706,7 +704,7 @@ function playEndCard(part) {
   }) || playCinematic({ id: 'story-card', priority: 2, duration: 6.5, pause: true, letterbox: true, skippable: true, hideHud: true, ...card });
   if (!ok) return false;
   state.cards.add(part);
-  phone(SERIES, nieuwVerhaal() ? `${PARTS[part].end}. Dit stuk van het nieuwe verhaal is nog niet gebouwd. Tot die tijd is Grunn van jou: alle missies staan in je telefoon, onder Te doen.` : 'Het verhaal gaat verder in een volgende versie. Tot die tijd is Grunn van jou: alle missies staan in je telefoon, onder Te doen.', 8, undefined, nieuwVerhaal());
+  phone(SERIES, `${PARTS[part].end}. Dit stuk van het nieuwe verhaal is nog niet gebouwd. Tot die tijd is Grunn van jou: alle missies staan in je telefoon, onder Te doen.`, 8, undefined, true);
   return true;
 }
 
@@ -991,7 +989,7 @@ export function initStory(w) {
 // Kusjes (K) unlock with the first kiss, at the end of H13; before that the
 // prompt, the key and the Besturing row don't exist (player.js, prompts.js,
 // pausemenu.js read world.kissUnlocked).
-const KISS_STEP = nieuwVerhaal() ? 'M16' : 'H13';
+const KISS_STEP = 'M16';
 // H13 itself, not a later mission played ahead; and only once the story has
 // got there: H13 played ahead from Te doen ("H13 nu al spelen?") left the
 // missions before it open, and whoever you played then (Tammo or Tessa,
@@ -1025,7 +1023,7 @@ export function updateStory(dt, w) {
   rt.runT = step && !step.end && step.kind === 'mission' && activeMissionIndex() === missionIdx(step) ? (rt.runT || 0) + dt : 0;
   updateSkipUi();
   updateCharacter(w);
-  if (nieuwVerhaal()) updateStoryTalk(dt, w);
+  updateStoryTalk(dt, w);
   updateStoryFun(dt, w, step, rt.base);
   updateStoryEikea(dt, w, step, rt.base);
   if (!step) return;
@@ -1062,7 +1060,7 @@ export function updateStory(dt, w) {
     if (step.say) companionSays(w, step.say[1]);
   }
   // travel beats (#97): the choice ride along / drive / skip before a long jump, behind ?reizen
-  if (FLAGS.reizen && nieuwVerhaal() && rt.leadAt < 0) {
+  if (FLAGS.reizen && rt.leadAt < 0) {
     tickStoryTravel({ on: true, step, flags: state.flags, world: w, ask: askTravel, script: storyScene,
       busy: isMissionActive() || isCinematicActive() || narrativeBusy() || !!w.pigeonMode || !!w.pendingRespawn || travelPromptOpen() });
   }
@@ -1141,7 +1139,7 @@ export function getStoryJournal() {
   const done = new Set(STEPS.filter((s, k) => isDone(s, k)).map((s) => s.id));
   const found = CLUES.filter((c) => done.has(c.step)).map((c) => ({ ...c, isNew: rt.newClues.has(c.title) })).reverse();
   // the new story: Jelle's plakjes, and how each one ended (plakjes.js)
-  const plakjes = nieuwVerhaal() ? plakjesState(done, step && step.id) : [];
+  const plakjes = plakjesState(done, step && step.id);
   return { why: step && step.finale ? 'Grunn is van jou. En de Fjord Frituur staat op de Vismarkt.' : WHY[part] || '', found, total: CLUES.length, plakjes };
 }
 

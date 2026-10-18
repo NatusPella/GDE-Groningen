@@ -42,7 +42,6 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { addDrunk } from './drunk.js';
 import { klusloon, medalBonus } from './economy.js';
 import { startStunt, updateStunt, stopStunt, stuntStatus } from './stuntavond.js';
-import { nieuwVerhaal } from './storyflag.js';
 import { storyLines, talkLines, storyDataReady, readingTime } from './storytext.js';
 import { playTalk, stopTalk } from './storytalk.js';
 import { buildNieuwDefs, applyNieuw } from './missions_nieuw.js';
@@ -103,6 +102,10 @@ function roadSpot(map, x, y, drivable = false) {
 // route on the road graph: car legs on the drivable network (the inner city
 // is largely one-way and car-free, so straight-line distance lies), foot legs
 // on the walk network, boat legs through the Diepenring's water polygon.
+// A mission of the old story that the story no longer plays (#187). Its id keeps its place in MISSION_IDS
+// (saves and medal records index by it), so the slot stays; nothing starts or lists it (ARC_BUILT).
+const retiredDef = (id) => ({ type: 'stages', label: id, retired: true, reward: 0, start: { x: 0, y: 0, road: null }, stages: [] });
+
 function buildDefs(world) {
   const { map } = world;
   const drive = (x, y) => roadSpot(map, x, y, true);
@@ -121,33 +124,8 @@ function buildDefs(world) {
   const laneLegs = [findWalkPath(map, fatStart.x, fatStart.y, fatBridge.x, fatBridge.y), findWalkPath(map, fatBridge.x, fatBridge.y, fatEnd.x, fatEnd.y)];
   const lanePts = laneLegs.every(Boolean) ? [...laneLegs[0].pts, ...laneLegs[1].pts.slice(1)] : [[fatStart.x, fatStart.y], [fatBridge.x, fatBridge.y], [fatEnd.x, fatEnd.y]];
   const list = [
-    {
-      type: 'deliver',
-      label: 'Berend telt de krassen',
-      intro: ['Berend Bos wil zijn bakkie bij zijn zus aan het Boterdiep. Hij staat bij het Martinikerkhof.', 'Rij hem heel naar het Boterdiep, om het centrum heen: daar mag je sinds 1977 niet meer door. Berend telt de krassen.'],
-      outro: 'Berend zei goud. En moi. Tegen Tessa.',
-      timeLimit: 94,
-      reward: 50,
-      // Berend takes 50 cents off per percent of damage, down to a quarter of the fee
-      scratchFine: 0.5,
-      vehicleName: 'Berends bakkie',
-      destName: 'het Boterdiep',
-      handBack: { how: 'drive', say: 'Berend pakt zijn sleutels terug en rijdt weg. Wij lopen, Tessa.' },
-      start: drive(223.17, -30.52),
-      dest: drive(-22.92, -491.56),
-      say: 'De navigatie stuurt je om, via de Diepenring. Sectoren, sinds 1977. Berend heeft er een brief over gestuurd.',
-    },
-    {
-      type: 'stunt',
-      label: 'Iets met de Grote Markt',
-      intro: ['Kiekdoar kopt: \'Grote Markt saaier dan een lege mensa\'. Jelmer wil een zomeravond vol content.', 'Met de auto over de Grote Markt: parasols, kliko\'s en borden omver, duiven de lucht in, de waterwagen laten sproeien. Niemand raken.'],
-      outro: 'De Grote Markt is weer wakker. Nul gewonden, veel natte mensen.',
-      timeLimit: 120,
-      reward: 150,
-      // stuntavond.js: the points to reach, on the square round `center`
-      stunt: { center: { x: 168.69, y: 70.04 }, radius: 46, target: 1500 },
-      start: walk(205.44, 110.71),
-    },
+    retiredDef('berend'),
+    retiredDef('chaos'),
     {
       type: 'checkpoint',
       label: 'Wind tegen, beide kanten op',
@@ -168,35 +146,8 @@ function buildDefs(world) {
       start: kei(0),
       waypoints: [...KEI_CHECKPOINTS.slice(1).map(kei), kei(0)],
     },
-    {
-      type: 'deliver',
-      label: 'Heel aankomen is ook een kunst',
-      intro: ['Noorderzon mist een auto vol breekbaar decor, en de acteurs staan nog bij de Stadsschouwburg.', 'Eerst de acteurs oppikken aan de Turfsingel, dan door naar het Noorderplantsoen. Elke klap en het decor ligt in scherven.'],
-      outro: 'Het decor staat. Het publiek dacht dat de gierende banden bij de show hoorden.',
-      timeLimit: 120,
-      reward: 850,
-      fragile: { label: 'Decor', per: 1.8, failAt: 30, fail: 'het decor ligt in scherven. Het wordt moderne dans' },
-      stops: [{ ...drive(90.11, -321.27), name: 'de Stadsschouwburg', bonus: 25, arrive: 'De acteurs springen achterin, tussen het decor. "Rustig rijden, hè!"' }],
-      vehicleName: 'de decorauto',
-      destName: 'het Noorderplantsoen',
-      handBack: { how: 'park', say: 'De decorauto blijft hier, Femke laadt hem uit. Wij gaan te voet verder.' },
-      start: drive(786.19, -108.24),
-      dest: drive(178.81, -596.53),
-    },
-    {
-      type: 'checkpoint',
-      label: 'Ring Zuid, laatste fase',
-      intro: ['De Zuidelijke Ringweg is af. Echt. Er staat zelfs een bordje.', 'Eén rondje om de stad over de ringweg, tegen vier gekken. Alleen het podium telt.'],
-      outro: 'Podium op de ringweg! Hij ligt er nog. Op een paar pionnen na.',
-      race: 'ring',
-      requires: 'racecar',
-      ride: 'racecar',
-      timeLimit: 60,
-      checkpointBonus: 16,
-      reward: 1200,
-      start: ring(0),
-      waypoints: [...RING_CHECKPOINTS.slice(1).map(ring), ring(0)],
-    },
+    retiredDef('noorderzon'),
+    retiredDef('ringweg'),
     {
       type: 'checkpoint',
       label: 'Nog eentje dan',
@@ -234,20 +185,7 @@ function buildDefs(world) {
       start: fatStart,
       dest: fatEnd,
     },
-    {
-      type: 'boat',
-      label: 'Alles klopt, behalve de papieren',
-      intro: ['Aan de kade bij de Spilsluizen ligt een rondvaartboot die \'even van niemand\' is. Vraag maar niet hoe.', 'Eén heel rondje Diepenring, vol toeristen. Rustig varen, vertellen, wijzen. En hou je achterkant in de gaten.'],
-      outro: 'Rondje Diepenring voltooid. Niemand vroeg naar je papieren.',
-      timeLimit: 90,
-      checkpointBonus: 45,
-      reward: 750,
-      start: berth.start,
-      boatAt: berth.boat,
-      ride: 'quay',
-      handBack: { how: 'moor', say: 'De rondvaartboot blijft aan de kade. Wiebe haalt hem zelf wel op.' },
-      waypoints: rondvaartWaypoints(),
-    },
+    retiredDef('rondvaart'),
     // --- Kop story missions (storyarc.js H2, H4, H6): 'stages' missions,
     // a list of small objectives run by the stage runner below
     {
@@ -391,49 +329,7 @@ function buildDefs(world) {
         },
       ],
     },
-    {
-      type: 'stages',
-      label: "Er hangt iets Fries aan d'Olle Grieze",
-      intro: ['Jelle heeft een reuzenvlag aan de Martinitoren gehangen. Heel Grunn kijkt ernaar.', 'Fluit een duif bij de toren en pik de vijf touwen los. Pas op voor de Fryske meeuwen.'],
-      outro: 'De vlag ligt op de keien. Heel Grunn klapte voor een duif.',
-      timeLimit: 240,
-      reward: 600,
-      // moved onto the Martinitoren pigeon spot once that exists (resolveSpotStarts)
-      start: walk(205.43, 49.3),
-      startSpot: 'martini',
-      stages: [
-        {
-          kind: 'scene', label: 'De vlag aan de toren', target: { landmark: 'Martinitoren', off: [0, 70], snap: 'walk' }, showFlag: true,
-          cam: { r: 58, h: 30, lookZ: 57, crane: true, at: { landmark: 'Martinitoren', off: [0, 14] } },
-          kicker: "d'Olle Grieze", title: 'Een Friese vlag',
-          cast: [{ key: 'jelle', pose: 'self', at: [3.4, 1.4] }], knots: true,
-          lines: [
-            ['V', 'Dertig meter Fries doek, aan de trots van Grunn. Onderaan, in grote letters: foar mem.'],
-            ['jelle', 'Moai, Grinzers! Kijk eens omhoog. Foar mem.'],
-            ['A', 'Zie je die vijf gele knopen, Tammo? Die houden hem vast.', { clue: true, look: 'knots' }],
-            ['T', 'Vijf knopen. Vijf keer fluiten.'],
-          ],
-        },
-        {
-          kind: 'pigeon', spot: 'martini', label: 'Pik de vijf touwen los', say: 'Vlieg naar de gele knopen van de vlag en blijf er even bij hangen: pik, pik, los.',
-          spotTime: 0.6, gulls: [6, 10], gullText: 'Een Fryske meeuw duikt op je af!', verb: 'Pik! %s is los',
-          flag: { landmark: 'Martinitoren', off: [0, 12], z0: 42, z1: 72, width: 14 },
-          targets: [
-            { landmark: 'Martinitoren', off: [-7, 12], z: 72, r: 6, label: 'Touw linksboven' },
-            { landmark: 'Martinitoren', off: [7, 12], z: 72, r: 6, label: 'Touw rechtsboven' },
-            { landmark: 'Martinitoren', off: [-7, 12], z: 57, r: 6, label: 'Touw links' },
-            { landmark: 'Martinitoren', off: [7, 12], z: 57, r: 6, label: 'Touw rechts' },
-            { landmark: 'Martinitoren', off: [0, 12], z: 43, r: 6, label: 'Touw onderaan' },
-          ],
-        },
-        {
-          kind: 'scene', label: 'De vlag valt', target: { landmark: 'Martinitoren', off: [0, 70], snap: 'walk' }, dropFlag: true, shotLines: 2,
-          cam: { r: 34, h: 9, lookZ: 34, at: { landmark: 'Martinitoren', off: [0, 14] } },
-          kicker: "d'Olle Grieze", big: 'Hij valt!',
-          lines: [['A', 'Daar gaat hij. Kopje onder, Jelle.'], ['T', 'Dertig meter vlag. Losgepikt. Door mijn duif.'], ['A', 'Ja, ja. Jouw duif.']],
-        },
-      ],
-    },
+    retiredDef('vlag'),
     // --- Staart story missions (storyarc.js H14-H18) ---------------------------
     {
       type: 'stages',
@@ -624,10 +520,8 @@ function buildDefs(world) {
       ],
     },
   ];
-  if (nieuwVerhaal()) {
-    list.push(...buildNieuwDefs({ map, walk, drive, models: { tractor: TRACTOR_MODEL, quad: QUAD_MODEL } }));
-    applyNieuw(list);
-  }
+  list.push(...buildNieuwDefs({ map, walk, drive, models: { tractor: TRACTOR_MODEL, quad: QUAD_MODEL } }));
+  applyNieuw(list);
   return list;
 }
 
@@ -716,7 +610,7 @@ export function getMissionList() {
     index: i, id: d.id, code: missionCode(i), order: storyOrder(i), label: d.label, type: d.type, reward: d.reward, status: statusOf(i), skipped: !!hooks.skipped(i), start: { x: d.start.x, y: d.start.y },
     needs: w ? requirementText(w, d) : null, done: chain.completed.has(i), klusloon: klusloon(d.reward), medalPaid: chain.medalPaid[i] || 0,
     pay: chain.completed.has(i) ? klusloon(d.reward) : d.reward,
-  })).filter((m) => !nieuwVerhaal() || ARC_BUILT.has(m.index));
+  })).filter((m) => ARC_BUILT.has(m.index));
 }
 
 // --- requirements ------------------------------------------------------------
@@ -1455,7 +1349,7 @@ export function medalBonusLeft(i) {
 // After mission i: the next unfinished one in story order, else the next
 // one after it (story.js may override with setNextMission).
 function nextOpenMission(i) {
-  const order = [...MISSION_STORY_ORDER, ...(nieuwVerhaal() ? [] : chain.defs.map((d, j) => j).filter((j) => !MISSION_STORY_ORDER.includes(j)))];
+  const order = MISSION_STORY_ORDER;
   const open = order.find((j) => !chain.completed.has(j));
   if (open != null) return open;
   const k = order.indexOf(i);
@@ -3076,7 +2970,7 @@ function playStageScene(world, st, S) {
   const name = (who) => (who === 'T' ? 'Tammo' : who === 'A' ? 'Anita' : storySpeakerName(who));
   let at = st.reveal ? REVEAL.card : 0.6;
   const lines = (st.lines || []).map(([who, text]) => {
-    const dur = nieuwVerhaal() ? readingTime(text) : Math.max(1.8, Math.min(3.8, 0.95 + text.length * 0.042));
+    const dur = readingTime(text);
     const l = { speaker: name(who), text, at, dur };
     at += dur + 0.1;
     return l;

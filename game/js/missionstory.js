@@ -11,7 +11,6 @@ import { JELLE_LOOK, DURK_LOOK, DOUWE_LOOK, RIKUS_LOOK, MEM_LOOK, ROTOR_LOOK, RO
 import { showLiveFrame } from './storycontact.js';
 import { storyLineVoice } from './linevoice.js';
 import { showNameCard } from './namecard.js';
-import { nieuwVerhaal } from './storyflag.js';
 import { STEPS, MISSION_IDS } from './storyarc.js';
 import { storyLines, storyDataReady, readingTime, storyDirRecording } from './storytext.js';
 import { AKTE5_STORY } from './missionstory_akte5.js';
@@ -36,7 +35,7 @@ import('./fierljep.js').then((m) => { fjMod = m; }).catch(() => {});
 // silent instead of playing the wrong recording.
 const VOICE_DIR = openBank('story').dir;
 const voices = openBank('story').entries;
-const voiceFor = (speaker, text) => voices[speaker + '|' + text] || storyLineVoice(speaker, text) || (nieuwVerhaal() ? storyDirRecording(speaker, text) : null);
+const voiceFor = (speaker, text) => voices[speaker + '|' + text] || storyLineVoice(speaker, text) || storyDirRecording(speaker, text);
 
 const SKIN = HABBO_PALETTE;
 export const NPC = {
@@ -783,7 +782,7 @@ function timeline(lines, npc, lead = 0.5) {
     const speaker = speakerName(who, npc);
     const voice = voiceFor(speaker, text);
     // a line without a recording (the new story) stays up for its reading time, nothing waits for audio
-    const d = voice ? Math.max(lineDur(text), voice.dur + 0.25) : nieuwVerhaal() ? readingTime(text) : lineDur(text);
+    const d = voice ? Math.max(lineDur(text), voice.dur + 0.25) : readingTime(text);
     const l = { who, speaker, text, at: t, dur: d, voice, radio: !!(o && o.radio), clue: !!(o && o.clue), look: (o && o.look) || null, cam: (o && o.cam) || null, card: (o && o.card) || null, kiss: !!(o && o.kiss) };
     t += d + 0.1;
     return l;
@@ -1225,7 +1224,7 @@ function runScene(r, tl, { id, kicker = '', title = '', cardFor = 3, camera, pos
         r.voiced = cur;
         // Rikus is always on the radio: his voice in the broadcast band
         if (cur.voice) playStoryVoice(VOICE_DIR + cur.voice.src, { radio: cur.who === 'V' || cur.who === 'rikus' || cur.radio });
-        else { stopStoryVoice(); if (nieuwVerhaal()) playTextMumble(cur.who, cur.text, cur.dur); }
+        else { stopStoryVoice(); playTextMumble(cur.who, cur.text, cur.dur); }
         if (cur.clue) playClueSting();
         if (cur.card) showNameCard(cur.card);
       }
@@ -1305,7 +1304,7 @@ function stagedKey(i, kind) {
 }
 
 function playStaged(w, key, tl, { anchor, facing, kicker = '', title = '', cardFor = 3, banner, bannerAfter }) {
-  if (!nieuwVerhaal() || run || !key) return false;
+  if (run || !key) return false;
   const def = missionScene(key, tl.lines.map((l) => ({ speaker: l.speaker, text: l.text, at: l.at, dur: l.dur })), { looks: NPC });
   if (!def) return false;
   const lines = tl.lines;
@@ -1321,7 +1320,7 @@ function playStaged(w, key, tl, { anchor, facing, kicker = '', title = '', cardF
         if (!cur || cur === voiced) return;
         voiced = cur;
         if (cur.voice) playStoryVoice(VOICE_DIR + cur.voice.src, { radio: cur.who === 'V' || cur.who === 'rikus' || cur.radio });
-        else { stopStoryVoice(); if (nieuwVerhaal()) playTextMumble(cur.who, cur.text, cur.dur); }
+        else { stopStoryVoice(); playTextMumble(cur.who, cur.text, cur.dur); }
         if (cur.clue) playClueSting();
         if (cur.card) showNameCard(cur.card);
       },
@@ -1376,7 +1375,7 @@ function onFootAnchor(w) {
 // intro, outro and replay come from the step's `story` scene ids (storyarc_nieuw.js); the fail lines stay.
 function entryFor(i) {
   const s = storyOf(i);
-  if (!s || !nieuwVerhaal() || !storyDataReady()) return s;
+  if (!s || !storyDataReady()) return s;
   const step = STEPS.find((q) => q.kind === 'mission' && q.story && MISSION_IDS.indexOf(q.mission) === i);
   if (!step) return s;
   const mk = (ids, npc) => storyLines(ids, { npc });
@@ -1398,7 +1397,7 @@ function entryFor(i) {
 }
 
 export function playStoryIntro(w, i, { stage = i, short = false, kicker = '', title = '', target = null } = {}) {
-  if (nieuwVerhaal()) stage = i;
+  stage = i;
   const s = entryFor(i);
   if (!s || run) return false;
   const v = w.player.inVehicle;
@@ -1408,7 +1407,7 @@ export function playStoryIntro(w, i, { stage = i, short = false, kicker = '', ti
   const facing = onDeck ? v.angle + Math.PI / 2 : facingTowards(w, anchor, target);
   const full = !short && stage >= i && !onDeck;
   // the new story: staged with the direction language (cutscenes_akte1.js); a step without staging plays below
-  if (full && nieuwVerhaal()) {
+  if (full) {
     const told = stageLines(i, stage, 'intro', s).filter((l) => !(l[0] === 'V' && w.introTold && w.introTold.includes(l[1])));
     const stagedTl = timeline(told, s.introNpc === false ? null : NPC[s.npc], 0.6);
     if (playStaged(w, stagedKey(i, 'intro'), stagedTl, { anchor, facing, kicker, title, cardFor: 3.6 })) return true;
@@ -1427,7 +1426,7 @@ export function playStoryIntro(w, i, { stage = i, short = false, kicker = '', ti
 }
 
 export function playStoryOutro(w, i, opts = {}) {
-  if (nieuwVerhaal()) opts = { ...opts, stage: i };
+  opts = { ...opts, stage: i };
   const s = entryFor(i);
   const { stage = i, short = false } = opts;
   // a beat before the talk, e.g. the trekker-limo pulling up at the museum (H4)
@@ -1448,7 +1447,7 @@ function outroNow(w, i, { stage = i, short = false, reward = 0, stats = [], reas
   const lines = short ? s.replay || [stageLines(i, stage, 'outro', s).slice(-1)[0]] : stageLines(i, stage, 'outro', s);
   const outroKey = s.outroNpcKey || s.npc;
   const wantNpc = short ? lines.some((l) => l[0] === 'N') : !!s.outroNpc && !kiss;
-  if (full && !kiss && !(v && v.isBoat) && nieuwVerhaal()) {
+  if (full && !kiss && !(v && v.isBoat)) {
     const anchor0 = onFootAnchor(w);
     const stagedTl = timeline(lines, wantNpc ? NPC[outroKey] : null, 0.5);
     if (playStaged(w, stagedKey(i, 'outro'), stagedTl, { anchor: anchor0, facing: facingTowards(w, anchor0, null), banner })) return true;

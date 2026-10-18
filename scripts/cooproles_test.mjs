@@ -3,7 +3,6 @@ import assert from 'node:assert/strict';
 import * as R from '../game/js/cooproles.js';
 import * as S from '../game/js/coopstate.js';
 import { STEPS } from '../game/js/storyarc.js';
-import { STEPS as OUD } from '../game/js/storyarc_oud.js';
 import { STEPS as NIEUW } from '../game/js/storyarc_nieuw.js';
 
 let n = 0;
@@ -12,42 +11,41 @@ const t = (name, f) => { f(); n++; };
 t('alle verhaalstappen hebben een geldige coöp-regel', () => {
   assert.deepEqual(R.auditSteps(STEPS), []);
 });
-t('beide verhaalbogen (alle akten) hebben voor elke stap een geldige coöp-regel; nieuwe akten gaan zonder aanpassing mee', () => {
-  assert.deepEqual(R.auditSteps(OUD), []);
+t('alle akten hebben voor elke stap een geldige coöp-regel; nieuwe akten gaan zonder aanpassing mee', () => {
   assert.deepEqual(R.auditSteps(NIEUW), []);
   assert.ok(NIEUW.length > 0);
 });
-t('H16 is solo: Tessa speelt, Tammo kijkt; wisselcutscene geeft geen bestuurswissel', () => {
-  const h16 = STEPS.find((s) => s.id === 'H16');
-  const r = R.coopRule(h16, 2);
+t('M21 is solo: Tessa speelt, Tammo kijkt; wisselcutscene geeft geen bestuurswissel', () => {
+  const m21 = STEPS.find((s) => s.id === 'M21');
+  const r = R.coopRule(m21, 2);
   assert.equal(r.presence, 'een'); assert.equal(r.activeSlot, 1); assert.deepEqual(r.spectators, [0]);
   assert.equal(r.swapControl, false);
 });
 t('missies vragen beiden; activiteiten dichtstbij', () => {
-  assert.equal(R.coopRule(STEPS.find((s) => s.id === 'H3'), 2).presence, 'beide');
-  assert.equal(R.coopRule(STEPS.find((s) => s.id === 'k-fiets'), 2).presence, 'dichtstbij');
+  assert.equal(R.coopRule(STEPS.find((s) => s.id === 'M03'), 2).presence, 'beide');
+  assert.equal(R.coopRule(STEPS.find((s) => s.id === 'T1'), 2).presence, 'dichtstbij');
 });
 t('alleen spelen: metgezel volgt, wacht bij solo, neemt plek van tweede persoon', () => {
-  const h6 = R.coopRule(STEPS.find((s) => s.id === 'H6'), 1);
+  const h6 = R.coopRule(STEPS.find((s) => s.id === 'M06'), 1);
   assert.equal(h6.needsTwo, true); assert.deepEqual(h6.companionSlots, [1]);
   assert.equal(R.companionMode(h6, 1), 'volg');
-  assert.equal(R.companionMode(R.coopRule(STEPS.find((s) => s.id === 'H16'), 1), 1), 'wacht');
+  assert.equal(R.companionMode(R.coopRule(STEPS.find((s) => s.id === 'M21'), 1), 1), 'wacht');
   assert.equal(R.companionMode(h6, 2), 'mens');
 });
 t('wie praat en wie beslist', () => {
   assert.equal(R.speakerSlot('tammo'), 0); assert.equal(R.speakerSlot('anita'), 1); assert.equal(R.speakerSlot('rikus'), null);
-  const solo = R.coopRule(STEPS.find((s) => s.id === 'H16'), 2);
+  const solo = R.coopRule(STEPS.find((s) => s.id === 'M21'), 2);
   assert.equal(R.decider(solo, 0), 1);
   assert.equal(R.decider(solo, 0, [true, false]), 0, 'valt weg: de ander');
-  const both = R.coopRule(STEPS.find((s) => s.id === 'H3'), 2);
+  const both = R.coopRule(STEPS.find((s) => s.id === 'M03'), 2);
   assert.equal(R.decider(both, 1), 1);
 });
 t('missie: voortgang alleen vooruit, falen bij teamDown, medaille op teamresultaat', () => {
-  const m = R.createMission('H3'), st = S.createCoopState();
+  const m = R.createMission('M03'), st = S.createCoopState();
   R.advance(m, 2); R.advance(m, 1); assert.equal(m.stage, 2);
   S.damage(st, 0, 999); assert.equal(R.checkFail(m, st), 'run');
   S.damage(st, 1, 999); assert.equal(R.checkFail(m, st), 'fail');
-  const m2 = R.createMission('H4'); for (let i = 0; i < 6; i++) R.addKill(m2, 0); for (let i = 0; i < 5; i++) R.addKill(m2, 1);
+  const m2 = R.createMission('M04'); for (let i = 0; i < 6; i++) R.addKill(m2, 0); for (let i = 0; i < 5; i++) R.addKill(m2, 1);
   R.pass(m2); assert.equal(m2.medal, 'zilver');
   assert.equal(R.pass(m), 'fail', 'mislukt blijft mislukt');
 });
