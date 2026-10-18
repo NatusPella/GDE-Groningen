@@ -7,6 +7,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Nieuw
+- **Nieuw verhaal, akte 4 (Zuidwaarts, proefversie):** elf bruggen in Veendam met de sloep, een intake bij een webbureau en het logboek van 12 augustus, een stilstaande stoomtrein bij Stadskanaal, het Beleg van Bourtange met de kruitkelder, en de twee solodelen bij Zuidhorn (Tessa en de wagon, Tammo en de vrienden). De plekken zijn nog niet in beeld bekeken; de akte is pas speelbaar als akte 2 en 3 zijn gebouwd.
 - **Tammo in de mand:** bij de ballonvlucht in het verhaal staat Tammo nu op de vloer van de mand, kijkt naar de heli en schommelt mee met de ballon, in plaats van op heli-hoogte te hangen.
 - **Rustigere HUD:** de melding "x prestaties wachten" is weg uit beeld. Nieuwe prestaties zie je als stille stip bij Prestaties in het pauzemenu.
 - **Rustiger winkelscherm:** elk product heeft een eigen laagpoly-icoon, een korte eigenschap en een duidelijk label (Kan ik kopen, Heb ik al, Te duur, Op slot). Winkels met meerdere afdelingen krijgen tabs (pijltjes links/rechts, of de knoppen op het scherm). Als je te weinig geld hebt, zie je hoeveel je nog mist. Bediening met toetsen, muis, controller en aanraking; de hints onderin zijn witte toetsknoppen of controllerknoppen.
