@@ -6,13 +6,13 @@
 ## [C00.1] Trailer – Stad, Grote Markt – geen voertuig
 (regie: zonsopgang. Trailerparodie, zon op d'Olle Grieze, fietsers in plaats van flamingo's, een werkboot vist een fiets uit de Diepenring, een meeuw steelt een frikandel. Stilstaand beeld: naamkaart TESSA, daarna TAMMO. Titelkaart: GDE, GRONINGEN, Zomer vol misdaad.)
 RIKUS (radio): Grunn. Tweehonderdduizend mensen, driehonderdduizend fietsen en één toren die alles ziet. [NIEUW]
-RIKUS (radio): Vandaag begint het bij twee mensen met een auto die nauwelijks rijdt. [NIEUW]
+RIKUS (radio): Vandaag in Grunn: weinig nieuws. Dat komt nog. [NIEUW]
 RIKUS (radio): Er gaat niets boven Grunn. Behalve de Martinitoren. [BEHOUDEN]
 
 ## [C00.2] Opening: de keuken – Stad, Oosterparkwijk – geen voertuig
 (regie: ochtend, vrijdag 14 augustus. De camera zakt langs d'Olle Grieze naar een smalle straat. Een zolderraam, een rode Escapade met een lekke band. Op een oude radio zacht Nachtstreek. Binnen zit Tessa aan de keukentafel met papieren en een tekening van een blauwe frietwagen: FJORD FRITUUR. Op de tafel ligt ook een folder van de Noordelijke Snackprijs, met een foto van een gouden eierbal. Tammo komt binnen met twee bakken koffie.)
 RIKUS (radio): Moi, Nachtstreek, het laatste uur. Het is twijduustern geweest, en nu wordt het licht. Voor wie wakker ligt van de huur: ik ook, jongens. [BEHOUDEN]
-RIKUS (radio): Het is vrijdag 14 augustus. Een luisteraar meldt een Fries in een blauw colbert die Grunn aan het opkopen is. [NIEUW]
+RIKUS (radio): Het is vrijdag 14 augustus. Een luisteraar meldt een Fries in een blauw colbert die Grunn aan het opkopen is. Ik zeg niks. [NIEUW]
 TAMMO: Moi. De bank? [BEHOUDEN]
 TESSA: "Uw plan is sympathiek." Dat betekent nee, met een strikje. [BEHOUDEN]
 TAMMO: Sympathiek is toch goed? [BEHOUDEN]
@@ -26,14 +26,14 @@ TESSA: Zonder bank blijft er één weg over: de Noordelijke Snackprijs. De winna
 TAMMO: De prijs voor de beste eierbal. [NIEUW]
 TESSA: Wij winnen op 28 augustus, wij krijgen die standplaats, en de Fjord Frituur heeft een thuis. [NIEUW]
 TAMMO: Op Gronings Ontzet. [NIEUW]
-TESSA: Als jullie in 1672 de bisschop buiten houden. Dat spelen jullie elk jaar na. Ik ken het uit de boeken. [NIEUW]
+TESSA: Dat is de dag dat Stad in 1672 de bisschop buiten hield. Dat spelen jullie elk jaar na. Ik ken het uit de boeken. [NIEUW]
 TAMMO: En tot die tijd? Hier past geen frietwagen. [NIEUW]
 TESSA: Daarom. Paddepoel, elfde verdieping. Twee kamers en een garage, voor de Fjord. [BEHOUDEN]
 TAMMO: Paddepoel? Dat is buitenland. [BEHOUDEN]
 TESSA: Alleen kan ik de huur niet betalen. Jij ook niet. Samen net. [BEHOUDEN]
 TAMMO: …Samen. [BEHOUDEN]
 TESSA: Als huisgenoten, Tammo. Teken nou maar. [BEHOUDEN]
-(regie: haar telefoon trilt.)
+(regie: ze schuift het huurcontract over de tafel. Haar telefoon trilt.)
 TESSA: Kom. Werk. [BEHOUDEN]
 
 ## [C00.3] Verhuisdag – Stad, Paddepoel (Pleiadenlaan) – Escapade
@@ -159,6 +159,7 @@ DOUWE: …los. [BEHOUDEN]
 (regie: de trekker rijdt weg, de aanhanger blijft achter een paal haken en schiet los. Ze rijden door zonder hem.)
 TAMMO: Moi. Wat is er gebeurd? [BEHOUDEN]
 TESSA: Mijn pas zit in die automaat. En die automaat zit op die aanhanger. En die aanhanger is van niemand. [BEHOUDEN]
+TESSA: Twee reuzen met een trekker hebben hem uit de muur getrokken. [NIEUW]
 TESSA: In die pas zit mijn geld. Zonder pas geen contant, en het Loket neemt alleen contant. [NIEUW]
 TAMMO: Dus we pinnen even. [BEHOUDEN]
 TESSA: Sjabbe van Pand & Poen koopt wat niemand wil en opent wat niemand kan. Wij brengen hem de automaat. [NIEUW]
@@ -178,7 +179,7 @@ TESSA: Dat zeg je zelden. [NIEUW]
 SJABBE: Netjes. De automaat is vierhonderd euro waard aan onderdelen. Die houd ik. Dit is voor jullie. [NIEUW]
 TESSA: Daar koop je nog geen halve frietwagen van. [BEHOUDEN]
 SJABBE: Dan moet je groter denken. Die twee reuzen werken voor een Fries in een blauw colbert. Jelle Terpstra. [NIEUW]
-TESSA: Jelle Terpstra. De colbert van Berend. De man uit de chat. [NIEUW]
+TESSA: Het colbert van Berend. De man uit de chat. [NIEUW]
 SJABBE: Hij betaalt alles contant, uit een klomp. Een klomp is snel leeg. Daarom halen ze pinautomaten uit de muur. [NIEUW]
 TAMMO: Wat wil hij? [NIEUW]
 SJABBE: Alles wat met frituren te maken heeft. En hij vroeg waar het museum alarmen heeft. [NIEUW]
@@ -246,9 +247,9 @@ TESSA: Dat is een gemeente. [NIEUW]
 LOKETBEDIENDE: Gefeliciteerd. U bent ingeschreven voor de Noordelijke Snackprijs. [NIEUW]
 TESSA: Wij zijn ingeschreven. Op 28 augustus op de Grote Markt. [NIEUW]
 TESSA: Maar Jelle kocht de rij en alle standplaatsen. Plakje één is van hem. Dat krijgen we niet meer terug. [NIEUW]
-TESSA: Wie de Gouden Eierbal bewaart, zit de jury voor. De bewaarder gaat maandag op reis, en de bal hangt onder een doek. [NIEUW]
-TAMMO: Dan pakt Jelle hem. [NIEUW]
-TESSA: En dan beslist Jelle wie de Snackprijs wint. [NIEUW]
+TESSA: Jelle vroeg waar het museum alarmen heeft. Hij wil de bal, want wie de bal bewaart, zit de jury voor. [NIEUW]
+TAMMO: Dan wint Jelle. [NIEUW]
+TESSA: Tenzij iemand hem eerder pakt. [NIEUW]
 TESSA: Als iemand die bal steelt, Tammo, dan liever wij. Dan is hij tenminste nog in Stad. [BEHOUDEN]
 TAMMO: Wij stelen de Gouden Eierbal. [NIEUW]
 TESSA: Wij bewaken hem. Na het Ontzet brengen we hem terug. [NIEUW]
@@ -299,8 +300,8 @@ TAMMO: Dat weet niemand. Behalve Friezen. [BEHOUDEN]
 TESSA: Bewaker twee is omgekocht. Het museum waarschuwen heeft geen zin. [NIEUW]
 TAMMO: En de camera's? [NIEUW]
 TESSA: Daar hebben we een moment voor nodig. [NIEUW]
-TAMMO: Sjoerd, van de Kiezelweek. Zijn neef werkt daar 's nachts. [NIEUW]
-TESSA: Dan winnen we de Kiezelrace. [NIEUW]
+TAMMO: Sjoerd, van de Kiezelweek. Zijn neef werkt daar 's nachts. Hij praat alleen met winnaars van zijn fietsrace. [NIEUW]
+TESSA: Dan winnen wij die fietsrace. [NIEUW]
 
 ## [M04.4] Kieken van boven: herhaling – Stad, Stationsplein – te voet
 BERT: Zo. De duivenkoning is weer aan het werk. [BEHOUDEN]
@@ -392,7 +393,7 @@ TESSA: Een tactiek. [NIEUW]
 TESSA: Bewaker twee met het koekje staat niet op zijn plek. [NIEUW]
 TAMMO: Misschien is hij ziek. [NIEUW]
 TESSA: Misschien is hij betaald. Nog negentig seconden. [NIEUW]
-TAMMO: De vitrine. Die staat open. [NIEUW]
+TAMMO: De vitrine. Daar is hij. [NIEUW]
 
 ## [M06.3] Het museum stond er al zo: de lege vitrine – Stad, Groninger Museum – te voet
 (regie: de koepel is van matglas met een gouden gloed en er hangt een doek omheen met het bordje RESTAURATIE. Het slot klikt, de koepel komt omhoog: een leeg kussen. Close-up van het kaartje, zes à acht seconden, wegklikbaar.)
@@ -405,16 +406,16 @@ RIKUS (radio): We hebben een beller. Uit… Ljouwert? [BEHOUDEN]
 (regie: naamkaart voor Jelle in beeld.)
 JELLE (radio): Moai, Rikus. Jelle Terpstra, van Us Mem Snacks. Ik wil een groet doen aan twee mensen in een museum. [BEHOUDEN]
 RIKUS (radio): Jelle. Je bent live. [BEHOUDEN]
-JELLE (radio): Daarom bel ik. De Gouden Eierbal is bij mij. Wie de bal bewaart, zit de jury voor, dus de rest volgt. Mijn juristen noemen het een overname. [NIEUW]
+JELLE (radio): Daarom bel ik. De Gouden Eierbal is bij mij, dus ik zit de jury voor. Mijn juristen noemen het een overname. [NIEUW]
 JELLE (radio): En geen vet, geen Grinzer aan de start. Oant sjen op it Ontset! [BEHOUDEN]
 TESSA: J. Van Jelle. Natuurlijk. [BEHOUDEN]
 TAMMO: Beleefd. [BEHOUDEN]
 TAMMO: Hij heeft hem gestolen om hem eerlijk te winnen. [BEHOUDEN]
 TESSA: En de camera's van daarnet hebben óns gefilmd. [BEHOUDEN]
-TESSA: Hij wist dat we hier waren. Iemand heeft het hem verteld. [NIEUW]
+TESSA: De camera's gingen uit, maar iemand filmde ons. Hij wist dat we kwamen. [NIEUW]
 TAMMO: Bewaker twee. Met het koekje. [NIEUW]
 TAMMO: Een dief die een bedankje achterlaat. Raar. [NIEUW]
-TESSA: Rennen, Tammo. Morgen zoeken we uit hoe we Jelle stoppen. [NIEUW]
+TESSA: Rennen, Tammo. Eerlijk winnen kan nog. Eerst moeten we Jelle stoppen. [NIEUW]
 
 ## [M06.4] Het museum stond er al zo: herhaling – Stad, kade – te voet
 TESSA: Drie minuten. Hand. [BEHOUDEN]

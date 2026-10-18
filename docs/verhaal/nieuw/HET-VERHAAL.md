@@ -51,7 +51,7 @@ RIKUS (V.O. radio)
 Grunn. Tweehonderdduizend mensen, driehonderdduizend fietsen en één toren die alles ziet.
 
 RIKUS (V.O. radio)  
-Vandaag begint het bij twee mensen met een auto die nauwelijks rijdt.
+Vandaag in Grunn: weinig nieuws. Dat komt nog.
 
 RIKUS (V.O. radio)  
 Er gaat niets boven Grunn. Behalve de Martinitoren.
@@ -64,7 +64,7 @@ RIKUS (V.O. radio)
 Moi, Nachtstreek, het laatste uur. Het is twijduustern geweest, en nu wordt het licht. Voor wie wakker ligt van de huur: ik ook, jongens.
 
 RIKUS (V.O. radio)  
-Het is vrijdag 14 augustus. Een luisteraar meldt een Fries in een blauw colbert die Grunn aan het opkopen is.
+Het is vrijdag 14 augustus. Een luisteraar meldt een Fries in een blauw colbert die Grunn aan het opkopen is. Ik zeg niks.
 
 TAMMO  
 Moi. De bank?
@@ -106,7 +106,7 @@ TAMMO
 Op Gronings Ontzet.
 
 TESSA  
-Als jullie in 1672 de bisschop buiten houden. Dat spelen jullie elk jaar na. Ik ken het uit de boeken.
+Dat is de dag dat Stad in 1672 de bisschop buiten hield. Dat spelen jullie elk jaar na. Ik ken het uit de boeken.
 
 TAMMO  
 En tot die tijd? Hier past geen frietwagen.
@@ -126,7 +126,7 @@ TAMMO
 TESSA  
 Als huisgenoten, Tammo. Teken nou maar.
 
-Haar telefoon trilt.
+Ze schuift het huurcontract over de tafel. Haar telefoon trilt.
 
 TESSA  
 Kom. Werk.
@@ -387,6 +387,9 @@ TESSA
 Mijn pas zit in die automaat. En die automaat zit op die aanhanger. En die aanhanger is van niemand.
 
 TESSA  
+Twee reuzen met een trekker hebben hem uit de muur getrokken.
+
+TESSA  
 In die pas zit mijn geld. Zonder pas geen contant, en het Loket neemt alleen contant.
 
 TAMMO  
@@ -434,7 +437,7 @@ SJABBE
 Dan moet je groter denken. Die twee reuzen werken voor een Fries in een blauw colbert. Jelle Terpstra.
 
 TESSA  
-Jelle Terpstra. De colbert van Berend. De man uit de chat.
+Het colbert van Berend. De man uit de chat.
 
 SJABBE  
 Hij betaalt alles contant, uit een klomp. Een klomp is snel leeg. Daarom halen ze pinautomaten uit de muur.
@@ -604,13 +607,13 @@ TESSA
 Maar Jelle kocht de rij en alle standplaatsen. Plakje één is van hem. Dat krijgen we niet meer terug.
 
 TESSA  
-Wie de Gouden Eierbal bewaart, zit de jury voor. De bewaarder gaat maandag op reis, en de bal hangt onder een doek.
+Jelle vroeg waar het museum alarmen heeft. Hij wil de bal, want wie de bal bewaart, zit de jury voor.
 
 TAMMO  
-Dan pakt Jelle hem.
+Dan wint Jelle.
 
 TESSA  
-En dan beslist Jelle wie de Snackprijs wint.
+Tenzij iemand hem eerder pakt.
 
 TESSA  
 Als iemand die bal steelt, Tammo, dan liever wij. Dan is hij tenminste nog in Stad.
@@ -741,10 +744,10 @@ TESSA
 Daar hebben we een moment voor nodig.
 
 TAMMO  
-Sjoerd, van de Kiezelweek. Zijn neef werkt daar 's nachts.
+Sjoerd, van de Kiezelweek. Zijn neef werkt daar 's nachts. Hij praat alleen met winnaars van zijn fietsrace.
 
 TESSA  
-Dan winnen we de Kiezelrace.
+Dan winnen wij die fietsrace.
 
 INT. ESCAPADE, ONDERWEG - DAG [M04] (AUTOGESPREKKEN)
 
@@ -966,7 +969,7 @@ TESSA
 Misschien is hij betaald. Nog negentig seconden.
 
 TAMMO  
-De vitrine. Die staat open.
+De vitrine. Daar is hij.
 
 SNIJ NAAR:
 
@@ -1000,7 +1003,7 @@ RIKUS (V.O. radio)
 Jelle. Je bent live.
 
 JELLE (V.O. radio)  
-Daarom bel ik. De Gouden Eierbal is bij mij. Wie de bal bewaart, zit de jury voor, dus de rest volgt. Mijn juristen noemen het een overname.
+Daarom bel ik. De Gouden Eierbal is bij mij, dus ik zit de jury voor. Mijn juristen noemen het een overname.
 
 JELLE (V.O. radio)  
 En geen vet, geen Grinzer aan de start. Oant sjen op it Ontset!
@@ -1018,7 +1021,7 @@ TESSA
 En de camera's van daarnet hebben óns gefilmd.
 
 TESSA  
-Hij wist dat we hier waren. Iemand heeft het hem verteld.
+De camera's gingen uit, maar iemand filmde ons. Hij wist dat we kwamen.
 
 TAMMO  
 Bewaker twee. Met het koekje.
@@ -1027,7 +1030,7 @@ TAMMO
 Een dief die een bedankje achterlaat. Raar.
 
 TESSA  
-Rennen, Tammo. Morgen zoeken we uit hoe we Jelle stoppen.
+Rennen, Tammo. Eerlijk winnen kan nog. Eerst moeten we Jelle stoppen.
 
 INT. NACHTSTREEK, STUDIO - NACHT [R1]
 
