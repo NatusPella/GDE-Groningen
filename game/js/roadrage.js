@@ -9,6 +9,7 @@ import { isMissionActive } from './missions.js';
 import { isActivityActive } from './activities.js';
 import { inHomeFlat } from './home.js';
 import { RAGE, RAGE_TEXT, levelOf, rageChance, mayRage, rollWeapon, hitDamage, yields, givesUp } from './roadragerules.js';
+import { playerBusy } from './busy.js';
 
 // Verkeersruzie (rules in roadragerules.js, issue #44): after a hard bump or
 // long honking an ordinary driver may get out, shout, and swing at you with
@@ -37,7 +38,7 @@ export function initRoadRage(w) {
 }
 
 function busy(w) {
-  return isCinematicActive() || isMissionActive() || !!(w.sideJob && w.sideJob.active) || isActivityActive() || !!w.challenge || !!w.race || !!w.padelGame || inHomeFlat()
+  return playerBusy(w, ['cinematic', 'mission', 'sideJob', 'activity', 'challenge', 'race', 'padel']).busy || inHomeFlat()
     || (typeof document !== 'undefined' && document.body.classList.contains('hud-call-on'));
 }
 
