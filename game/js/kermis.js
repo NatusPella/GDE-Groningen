@@ -9,7 +9,6 @@ import { showCard } from './hudcards.js';
 import { notifyPhone } from './phonefeed.js';
 import { spawnFxSpark } from './fx3d.js';
 import { addStaticCollider } from './breakables.js';
-import { ambientOut } from './audio.js';
 import { activityBlock, iconDisc } from './activitykit.js';
 import { KERMIS_LINES, BOTS_BUMPED, BOTS_HIT, KERMIS_NEWS, KERMIS_TWINS } from './funlines.js';
 import { DURK_LOOK, DOUWE_LOOK } from './storycast.js';
@@ -21,7 +20,7 @@ import { WHEEL_AT, R, AX as WHEEL_AX, N, OMEGA } from './reuzenradrules.js';
 // the south side of the square all the time (always open, €3 a ride);
 // every evening from 19:00 to 01:00, and all day during the Zomerkermis
 // (calendar.js: 21 to 30 augustus), the rest of the kermis joins it: a reuzenrad,
-// stalls, coloured lights, a crowd and a barrel organ. The ride: 75 s in a
+// stalls, coloured lights and a crowd. The ride: 75 s in a
 // bumper car against five others (Tammo or Tessa in one of them), points
 // for every bump you give, more for a fast one or one in a flank, a combo
 // for quick ones in a row. `window.__kermis` debug.
@@ -57,7 +56,6 @@ let crowd = null;
 let hud = null;
 let lodT = 0;
 let rides = 0;
-let organ = null;
 let lastKermisDay = -1;
 let announced = false;
 
@@ -342,57 +340,6 @@ function disposeCrowd() {
     c.mesh.traverse((o) => { if (o.isSkinnedMesh) { o.geometry.dispose(); if (o.skeleton) o.skeleton.dispose(); } });
   }
   crowd = null;
-}
-
-// --- barrel organ (a little waltz in 3/4 through the world bus) -----------------------------
-
-const MEL = [67, 72, 76, 74, 72, 71, 72, 74, 76, 79, 77, 76, 74, 72, 71, 69, 67, 69, 71, 72, 74, 72, 71, 72];
-const BASS = [48, 43, 48, 43, 41, 48, 43, 48];
-function midi(n) { return 440 * Math.pow(2, (n - 69) / 12); }
-
-function updateOrgan(w, level) {
-  const o = ambientOut();
-  if (!o) return;
-  if (!organ) {
-    const gain = o.ctx.createGain();
-    gain.gain.value = 0;
-    const lp = o.ctx.createBiquadFilter();
-    lp.type = 'lowpass';
-    lp.frequency.value = 2600;
-    gain.connect(lp);
-    lp.connect(o.bus);
-    organ = { gain, lp, next: o.ctx.currentTime + 0.1, step: 0 };
-  }
-  const t = o.ctx.currentTime;
-  organ.gain.gain.setTargetAtTime(level * 0.06, t, 0.3);
-  if (level < 0.01) { organ.next = t + 0.1; return; }
-  const beat = 0.34;
-  while (organ.next < t + 0.25) {
-    const k = organ.step++;
-    const at = organ.next;
-    organ.next += beat;
-    const bar = Math.floor(k / 3) % BASS.length;
-    if (k % 3 === 0) note(o.ctx, midi(BASS[bar]), at, beat * 0.9, 'triangle', 0.9);
-    else note(o.ctx, midi(BASS[bar] + 12 + (k % 3 === 1 ? 4 : 7)), at, beat * 0.5, 'square', 0.25);
-    note(o.ctx, midi(MEL[k % MEL.length]), at, beat * 0.85, 'square', 0.35);
-    note(o.ctx, midi(MEL[k % MEL.length] + 12), at, beat * 0.6, 'sine', 0.2);
-  }
-}
-
-function note(ctx, f, at, dur, type, g) {
-  const osc = ctx.createOscillator();
-  const env = ctx.createGain();
-  osc.type = type;
-  osc.frequency.value = f;
-  env.gain.setValueAtTime(0, at);
-  env.gain.linearRampToValueAtTime(g, at + 0.02);
-  env.gain.setTargetAtTime(g * 0.6, at + 0.05, 0.08);
-  env.gain.setTargetAtTime(0, at + dur, 0.05);
-  osc.connect(env);
-  env.connect(organ.gain);
-  osc.start(at);
-  osc.stop(at + dur + 0.3);
-  osc.onended = () => env.disconnect();
 }
 
 // --- map icon ----------------------------------------------------------------------------
@@ -835,9 +782,6 @@ export const KERMIS = {
   tick(dt, w) {
     if ((lodT -= dt) <= 0) { lodT = 0.5; updateLod(w, dt); }
     sync3D(w, dt);
-    const d = Math.hypot(w.player.x - K.x, w.player.y - K.y);
-    const level = w.paused ? 0 : game ? 0.9 : kermisOn(w) ? Math.max(0, 1 - d / 110) : Math.max(0, 0.5 - d / 80);
-    try { updateOrgan(w, level); } catch (e) { /* no audio */ }
     updateHud();
   },
   camera,
