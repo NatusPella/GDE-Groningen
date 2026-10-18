@@ -9,6 +9,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 ### Nieuw
 - **Brommers en motoren in het verkeer:** er rijden nu brommers en motoren rond, meer in studentenwijken en het centrum, minder 's nachts. Ze blijven op de weg en nooit op het fietspad; een gewone brommer houdt zich aan 45 km/u, een enkele is opgevoerd.
 - **Spookrijder op de kartbaan en in de driftzones:** je beste race bij Kardinge en je beste run per driftzone worden bewaard en rijden de volgende keer als doorzichtige spook mee.
+- **Machinist:** in een gekaapte of geparkeerde trein start G een dienst: halte voor halte stoppen op de streep, op tijd en onder de snelheidsborden. Het bord toont snelheid, maximum, remweg en je vertraging; je krijgt punten en een medaille. Backspace stopt de dienst.
 - **Meer variatie in het verkeer:** elektrische auto's (Wadden Stroomer, Hunze Zoemer, Reitdiep Voltje) met een stille zoemende motor, en opgevoerde tokkie-auto's (Dollard Dreunbak, Eemshaven Knalpot, Hunze Bonkerd) met vleugel, dikke uitlaat, blauw licht onder de auto en een luide, schelle motor. Elektrisch rijdt vooral in de rijkere buurten, tokkie vooral bij de studenten.
 - **Lekke band:** na een harde klap kan een band van je eigen auto, fiets of scooter lek gaan. Je rijdt dan trager en de wagen trekt scheef. De garage (of fietsenmaker) plakt hem, tegen een kleine meerprijs. Een lekke band blijft bewaard in je save.
 
