@@ -546,7 +546,7 @@ export const PITCHPUTT = {
       quit: () => { if (!game) return false; end(w, { quit: true }); return true; },
     };
   },
-  spots: () => venues.map((v, i) => ({ id: i ? 'pitchputt-' + v.id : 'pitchputt', name: v.name, x: v.x, y: v.y })),
+  spots: () => venues.filter((v) => Number.isFinite(v.x) && Number.isFinite(v.y)).map((v, i) => ({ id: i ? 'pitchputt-' + v.id : 'pitchputt', name: v.name, x: v.x, y: v.y })),
   prompt,
   secondary,
   interact,

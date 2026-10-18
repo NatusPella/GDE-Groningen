@@ -5,12 +5,17 @@ import { streekAt, rollEncounter, rollGap, findNear, findsOf, SET_VERZAMEL, SET_
 import { recordUnique, hasUnique } from './achievements.js';
 import { playerBusy } from './busy.js';
 import { showCard } from './hudcards.js';
+import { createNieuwsLink, tikNieuws } from './nieuwslink.js';
 import { areaOf, partOf, wetOf, rollGebabbel, AREA_NAMES } from './gebabbel.js';
 
 const recent = [];
 const recentTalk = [];
 let talkNext = false;   // om en om: een ontmoeting, dan opgevangen gebabbel
 let gapT = 60, scanT = 0;
+let nieuws = null, nieuwsEnv = {}, nieuwsT = 0, nieuwsNow = 0;
+
+// Bronnen van de ticker die niet in de wereld hangen (main.js: de bruggen).
+export function setNieuwsBronnen(env) { nieuwsEnv = env || {}; }
 
 const isFound = (f) => hasUnique(f.kind === 'geheim' ? SET_GEHEIM : SET_VERZAMEL, f.id);
 const foundIds = () => {
@@ -20,7 +25,16 @@ const foundIds = () => {
 };
 
 export function updateRegioLeven(dt, w) {
-  if (!w || !w.player || playerBusy(w).busy) return;
+  if (!w || !w.player) return;
+  nieuwsNow += dt;
+  if (!nieuws) nieuws = createNieuwsLink(1 + Math.floor(Math.random() * 1e6));
+  if ((nieuwsT -= dt) <= 0 && !w.paused) {
+    nieuwsT = 0.5;
+    const sk = streekAt(w.player.x, w.player.y);
+    const n = tikNieuws(nieuws, w, nieuwsNow, { regio: 'groningen', plaats: sk ? sk.name : 'Groningen' }, nieuwsEnv);
+    if (n && !playerBusy(w).busy) showCard(w, { kind: 'tip', kicker: n.bron, title: n.item.lezer, body: n.item.tekst, duration: 9, key: 'nieuws-' + Math.round(nieuwsNow), voice: false });
+  }
+  if (playerBusy(w).busy) return;
   const p = w.player;
   const moving = p.inVehicle ? Math.abs(p.inVehicle.speed || 0) > 0.5 : (p.speed || 0) > 0.3;
   if ((scanT -= dt) <= 0) {

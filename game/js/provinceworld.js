@@ -16,7 +16,7 @@
 //    away from a tile that has not streamed in yet.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { BLOCK, COUNTRY_UNIFORMS, setProvinceBlocks, setProvinceDitches } from './countryfield.js';
-import { setExtraBlocked, setExtraUse } from './countryedge.js';
+import { setExtraBlocked, setExtraUse, setExtraHedge } from './countryedge.js';
 import { tileIndexOf, tileKey } from './gdt.js';
 import { pointInPolygon } from './util.js';
 import { setProvinceMap } from './provincemap.js';
@@ -60,6 +60,20 @@ export function provinceBlocksOf(keys, isTile) {
     }
   }
   return { x0: i0, y0: j0, w, h, data, count: n };
+}
+
+// A mapped hedge of the tiles within r of (x, y)?
+export function realHedgeNear(map, x, y, r) {
+  if (!map.hedgeNear) return false;
+  for (const h of map.hedgeNear(x, y, r)) {
+    const P = h.pts;
+    for (let k = 0; k < P.length - 1; k++) {
+      const ax = P[k][0], ay = P[k][1], dx = P[k + 1][0] - ax, dy = P[k + 1][1] - ay, L2 = dx * dx + dy * dy || 1;
+      const t = Math.max(0, Math.min(1, ((x - ax) * dx + (y - ay) * dy) / L2));
+      if ((x - ax - dx * t) ** 2 + (y - ay - dy * t) ** 2 < r * r) return true;
+    }
+  }
+  return false;
 }
 
 // The land use the tiles give a point ('akker' | 'weide' | 'boomgaard'), or null: a tile that is not in, or no polygon.
@@ -201,6 +215,7 @@ export function initProvince(tiles) {
   S.map = map;
   setExtraBlocked((x, y, m) => realBlockedAt(map, isTile, x, y, m));
   // the land use of OSM landuse (a world built with it: global.osmParcels); the hash decides where it is silent
+  setExtraHedge((x, y, r) => realHedgeNear(map, x, y, r));
   setExtraUse(S.layer.osmParcels ? (x, y) => realUseAt(map, isTile, x, y) : null);
   return { layer: S.layer, tiles: S.keys.length, blocks: S.blocks ? S.blocks.count : 0 };
 }

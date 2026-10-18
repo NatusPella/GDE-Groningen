@@ -93,10 +93,29 @@ export function buildAkte5Defs({ map, walk, drive }) {
       start: schuur,
       vehicleFail: { gone: 'de Fjord Frituur is foetsie, en de colonne wacht op niemand', wrecked: 'de Fjord Frituur is afgeschreven. De colonne rijdt zonder leider', left: 'je liet de Fjord Frituur achter. De colonne volgt een lege wagen' },
       say: 'Rij voorop. De colonne volgt zolang je hem niet kwijtraakt.',
+      // the ally you ride next to decides how Jelle's limo gets held up here and which street closes in M26 (remembered: 'keuze:bond-...')
+      remember: ['bond-bus', 'bond-trekker', 'bond-scooter'],
+      tagAdjust: { 'bond-trekker': 100 },
+      tagRows: { 'bond-bus': ['Bondgenoot', 'Wubbo\'s bus: de limo komt een minuut later'], 'bond-trekker': ['Bondgenoot', 'Tinus\' trekker: de zwaarste straatafsluiting van het Ontzet'], 'bond-scooter': ['Bondgenoot', 'Geesjes scooter: de limo mist de steegjes'] },
       stages: [
+        {
+          kind: 'choice', kicker: 'De colonne', label: 'Kies wie naast de Fjord Frituur rijdt', say: 'Eén vriend rijdt vlak naast jullie en houdt Jelle bezig. Wie? 1 tot en met 3.',
+          rounds: [
+            { who: 'Tessa', text: 'Alle vrienden rijden mee, maar één rijdt naast ons. Wie neemt Jelles limo voor zijn rekening?', options: [
+              { label: 'Wubbo, met de bus.', tag: 'bond-bus', reply: 'Wubbo: "Een bus is breed. Ik zet hem dwars als het moet."' },
+              { label: 'Tinus, met de trekker.', tag: 'bond-trekker', reply: 'Tinus: "Ik trek hem weg." Hij zegt altijd hetzelfde, maar het klopt.' },
+              { label: 'Geesje, met de scooter.', tag: 'bond-scooter', reply: 'Geesje: "Ik ken elk steegje. Hij is sneller dan hij lijkt, hè, mijn scooter."' },
+            ] },
+          ],
+        },
+        {
+          kind: 'scene', label: 'Wie rijdt naast jullie', target: schuur, kicker: 'Tinus\' schuur', script: { ids: ['M23.6'] },
+          scriptIf: [{ tag: 'bond-bus', ids: ['M23.6'] }, { tag: 'bond-trekker', ids: ['M23.7'] }, { tag: 'bond-scooter', ids: ['M23.8'] }],
+          cast: [{ key: 'wubbo', pose: 'hips', at: [3.0, 1.4] }, { key: 'tinus', pose: 'hips', at: [3.2, -0.2] }, { key: 'geesje', pose: 'arms', at: [3.0, -1.6] }],
+        },
         { kind: 'board', label: 'Stap in de Fjord Frituur', say: 'Instappen. Tessa zei: wij voorop.' },
         {
-          kind: 'convoy', first: true, carHint: 'Stap weer in de Fjord Frituur: de colonne volgt de wagen.', limoAfter: 30, target: { at: ADUARD, snap: 'drive', label: 'Aduard' }, radius: 45, mode: 'vehicle',
+          kind: 'convoy', first: true, carHint: 'Stap weer in de Fjord Frituur: de colonne volgt de wagen.', limoAfter: 30, limoAfterIf: { 'bond-bus': 60, 'bond-scooter': 45 }, target: { at: ADUARD, snap: 'drive', label: 'Aduard' }, radius: 45, mode: 'vehicle',
           label: 'Rij voorop naar Aduard en houd de colonne bij elkaar', say: 'Rij voorop naar Aduard. Wie te ver achterblijft, valt weg: wacht op ze.',
           talk: { ids: ['M23.2'], delay: 6 }, lost: 'de colonne is uiteengevallen',
         },
@@ -186,8 +205,8 @@ export function applyAkte5(list) {
     ontzet.heroCar = true;
     // the baking score decides how the jury votes (M26.10-12) and pays a bonus on the 4000
     ontzet.bakeBonus = { top: 600, goed: 200, mager: 0 };
-    ontzet.tagAdjust = { 'duiven-top': 200 };
-    ontzet.tagRows = { 'duiven-top': ['Duiven', 'De wolk stond precies voor de voorruit'], 'duiven-los': ['Duiven', 'De duiven gingen een eigen weg'] };
+    ontzet.tagAdjust = { 'duiven-top': 200, 'straten-dicht': 150 };
+    ontzet.tagRows = { 'duiven-top': ['Duiven', 'De wolk stond precies voor de voorruit'], 'duiven-los': ['Duiven', 'De duiven gingen een eigen weg'], 'straten-dicht': ['Colonne', 'De bus, de trekker en de scooter sloten de straten af'] };
     ontzet.bakeRows = { top: ['Jury', 'Vijf van de vijf: foutloos gebakken'], goed: ['Jury', 'Vier van de vijf'], mager: ['Jury', 'Drie van de vijf: rommelig gebakken'] };
     ontzet.start = { ...ontzet.start };
     fire.label = 'Houd de kraam heel tegen het vuurwerk van Durk en Douwe';
@@ -199,6 +218,7 @@ export function applyAkte5(list) {
     chase.cruise = 9;
     chase.lead = 30;
     chase.time = 70;
+    chase.timeIf = { 'bond-bus': 82, 'bond-trekker': 90, 'bond-scooter': 78 };
     chase.keep = true;
     chase.route = [{ at: NOTARIS, r: 14 }];
     chase.flee = NOTARIS;
@@ -224,6 +244,22 @@ export function applyAkte5(list) {
           { text: 'Tweede fluit: richting de Oude Boteringestraat.', speed: 1.1, zone: [0.41, 0.59], ok: 'De wolk draait de straat in.', bad: 'De duiven gaan een kerktoren in.' },
           { text: 'Derde fluit: voor de voorruit van de limo.', speed: 1.25, zone: [0.43, 0.57], ok: 'Een muur van veren. De limo remt.', bad: 'De duiven zijn te vroeg: de limo rijdt erdoor.' },
         ],
+      },
+      {
+        // the column of M23 comes back: the bus and the tractor close the streets, the scooter takes the alleys; the ally you chose sits the surest
+        kind: 'timing', kicker: 'De colonne sluit de straten', help: 'sluit op de maat', goodAt: 2, tagGood: 'straten-dicht', tagLow: 'straten-open',
+        label: 'Laat de colonne de straten afsluiten voor Jelles limo', say: 'Wubbo, Tinus en Geesje sluiten de straten. Druk als de streep in het groen is.',
+        rounds: [
+          { text: 'Wubbo zet de bus dwars in de Herestraat.', speed: 0.9, zone: [0.4, 0.6], zoneIf: 'bond-bus', ok: 'De bus staat dwars, deuren open, Wubbo zwaait.', okIf: 'De bus staat dwars. Wubbo weet precies hoe breed hij is.', bad: 'De bus staat half. De limo glipt langs de zijspiegel.' },
+          { text: 'Tinus trekt zijn trekker voor de Gedempte Zuiderdiep.', speed: 1.05, zone: [0.42, 0.58], zoneIf: 'bond-trekker', ok: 'De trekker staat. Er past geen limo meer langs.', okIf: 'De trekker staat als een muur. Tinus: "Ik trek hem weg."', bad: 'De trekker slaat af in plaats van aan. De limo wrijft langs de band.' },
+          { text: 'Geesje stuurt de scooter door de steeg naast de Oude Boteringestraat.', speed: 1.2, zone: [0.44, 0.56], zoneIf: 'bond-scooter', ok: 'De scooter staat in de steeg. Jelle moet de lange weg.', okIf: 'De scooter staat in de steeg. Geesje heeft alle steegjes geteld.', bad: 'De scooter valt om in de steeg. Geesje: "Hij is sneller dan hij lijkt."' },
+        ],
+      },
+      {
+        // the ally of M23 speaks over the radio while he closes his street
+        kind: 'scene', label: 'De straten zijn dicht', target: walkAt(NOTARIS), kicker: 'Oude Boteringestraat', script: { ids: ['M26.14'] },
+        scriptIf: [{ tag: 'bond-trekker', ids: ['M26.15'] }, { tag: 'bond-scooter', ids: ['M26.16'] }, { tag: 'bond-bus', ids: ['M26.14'] }],
+        cast: [{ key: 'wubbo', pose: 'hips', at: [3.0, 1.2] }, { key: 'tinus', pose: 'hips', at: [3.2, -0.2] }, { key: 'geesje', pose: 'arms', at: [3.0, -1.6] }],
       },
       chase,
       {

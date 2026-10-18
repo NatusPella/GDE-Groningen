@@ -77,14 +77,14 @@ export function buildAkte4Defs() {
       reward: 600,
       onFoot: true,
       costRow: ['Ontdekt', 'Jelle had de bal al op 12 augustus'],
-      tagAdjust: { 'sluip-top': 100 },
-      tagRows: { 'sluip-top': ['Sluipen', 'Langs alle drie de camera\'s, zonder één piep'] },
+      tagAdjust: { 'sluip-top': 100, argwaan1: -50, argwaan2: -100 },
+      tagRows: { 'sluip-top': ['Sluipen', 'Langs alle drie de camera\'s, zonder één piep'], argwaan1: ['Intake', 'De accountmanager twijfelde en liep mee'], argwaan2: ['Intake', 'Twee foute antwoorden: de beveiliging liep mee'] },
       start: spot('wiebelwerk'),
       say: 'Wiebelwerk, websites met karakter. Wij zijn klant.',
       stages: [
         { kind: 'goto', target: ll('wiebelwerk', { label: 'Wiebelwerk' }), mode: 'foot', radius: 14, label: 'Ga naar binnen bij Wiebelwerk', say: 'Wiebelwerk, websites met karakter. Binnen doen we alsof we een website willen.' },
         {
-          kind: 'choice', kicker: 'Intake bij Wiebelwerk', wrongFails: 2, wrongText: 'de accountmanager ziet dat je geen klant bent. De beveiliging komt eraan',
+          kind: 'choice', kicker: 'Intake bij Wiebelwerk', wrongFails: 3, countTag: 'argwaan', wrongText: 'de accountmanager ziet dat je geen klant bent. De beveiliging komt eraan',
           label: 'Overtuig de accountmanager: je bent klant', say: 'Geef de juiste antwoorden op de intake, dan mogen we naar de serverkamer.',
           rounds: [
             { who: 'Accountmanager', text: 'Wat is uw merkpersoonlijkheid?', options: [
@@ -97,11 +97,32 @@ export function buildAkte4Defs() {
               { label: 'Nee.', reply: 'Iedereen wil een chatbot. Dan doen wij hem toch.' },
               { label: 'Ja, graag.', reply: 'Prachtig. Dat noteer ik ook.' },
             ] },
+            { who: 'Accountmanager', text: 'En hoe lang bestaat uw bedrijf?', options: [
+              { label: 'Sinds deze zomer. Wij zijn jong, maar eerlijk.', reply: 'Een start-up. Dat zie ik graag. Dat noteer ik.' },
+              { label: 'Sinds 1672.', ok: false, reply: 'Dat is het jaar van het Ontzet. U bent geen bedrijf, u bent een geschiedenisles.' },
+              { label: 'Dat mag u niet vragen.', ok: false, reply: 'Dit is de derde vraag die u niet kent. Ik loop even mee.' },
+            ] },
           ],
+        },
+        {
+          // how wary the manager got: one wrong answer and he walks along, two and the guard does
+          kind: 'scene', label: 'De accountmanager twijfelt', target: ll('wiebelwerk', { label: 'Wiebelwerk' }), kicker: 'Wiebelwerk', script: { ids: ['M18.2'] },
+          scriptIf: [{ tag: 'argwaan2', ids: ['M18.7'] }, { tag: 'argwaan1', ids: ['M18.6'] }],
+          cast: [{ key: 'accountmanager', pose: 'hips', at: [3.0, -0.4] }],
         },
         { kind: 'goto', target: ll('wiebelwerkServers', { label: 'De serverkamer' }), mode: 'foot', radius: 5, label: 'Naar de serverkamer', say: 'De accountmanager belt een collega. Nu snel naar de serverkamer.' },
         {
-          kind: 'timing', kicker: 'De gang naar de serverkamer', help: 'druk als de camera wegdraait', failAt: 2, failText: 'de camera zag je: de beveiliging komt eraan', goodAt: 3, tagGood: 'sluip-top',
+          // a wary manager walks along and the guard looks out: the same hall, a faster sweep, a narrower dark zone
+          kind: 'timing', ifTag: 'argwaan1', kicker: 'De gang, met de accountmanager achter je', help: 'druk als de camera wegdraait', failAt: 2, failText: 'de accountmanager zag je: de beveiliging komt eraan', goodAt: 3, tagGood: 'sluip-top',
+          label: 'Glip langs de camera\'s, met de accountmanager in je nek', say: 'Hij loopt twee stappen achter je. De camera\'s draaien sneller en het groen is smaller.',
+          rounds: [
+            { text: 'Camera één kijkt naar de koffieautomaat. De accountmanager vraagt of je koffie wilt.', speed: 0.85, zone: [0.39, 0.61], ok: 'Door, achter de plant.', bad: 'Camera één piept. Hij kijkt om.' },
+            { text: 'Camera twee draait over de deuren. Hij zegt: "Hier lang, hoor."', speed: 1.0, zone: [0.42, 0.58], ok: 'Door, terwijl hij naar de verkeerde deur wijst.', bad: 'Camera twee zwenkt je kant op. Hij kijkt om.' },
+            { text: 'Camera drie hangt boven de serverdeur. Hij belt zijn collega.', speed: 1.15, zone: [0.44, 0.56], ok: 'Binnen. De deur valt zacht dicht.', bad: 'Camera drie ziet een schoen.' },
+          ],
+        },
+        {
+          kind: 'timing', unlessTag: 'argwaan1', kicker: 'De gang naar de serverkamer', help: 'druk als de camera wegdraait', failAt: 2, failText: 'de camera zag je: de beveiliging komt eraan', goodAt: 3, tagGood: 'sluip-top',
           label: 'Glip langs de camera\'s: druk als de camera wegdraait', say: 'Drie camera\'s in de gang. Wacht tot de streep in het groen is, dan sluip je door.',
           rounds: [
             { text: 'Camera één kijkt naar de koffieautomaat.', speed: 0.7, zone: [0.36, 0.64], ok: 'Door, achter de plant.', bad: 'Camera één piept. Terug achter de plant.' },

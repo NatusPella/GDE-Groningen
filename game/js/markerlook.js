@@ -10,7 +10,11 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 export const iconScale = (d) => clamp(d / 40, 1, 4.5);
 export const iconLift = (d) => (iconScale(d) - 1) * 0.9;
 // the column gets wider far off so it never turns into a hair
-export const columnWidth = (d) => clamp(d / 90, 1, 3);
+// (op 400 m stond de kolom als haar achter de gebouwen: breder en hoger naarmate je verder weg bent)
+export const columnWidth = (d) => clamp(d / 60, 1, 8);
+// hoogte in m (basis 28): boven de daklijn van de stad uit, ook van ver
+export const COLUMN_BASE_H = 28;
+export const columnHeight = (d) => clamp(d * 0.3, COLUMN_BASE_H, 140);
 
 // night, rain: 0..1. 1 by day in the clear.
 export function glowBoost({ night = 0, rain = 0 } = {}) {

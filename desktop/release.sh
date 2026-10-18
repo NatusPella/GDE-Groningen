@@ -18,6 +18,10 @@
 # Everything is built locally (no GitHub Actions needed).
 set -e
 cd "$(dirname "$0")"
+# Windows (Git Bash): gh is often not on PATH; look in the standard install folder (#141).
+if ! command -v gh >/dev/null 2>&1; then
+  for d in "/c/Program Files/GitHub CLI" "/mnt/c/Program Files/GitHub CLI"; do [ -x "$d/gh.exe" ] && PATH="$PATH:$d" && break; done
+fi
 USAGE="usage: npm run release -- patch|minor|major|current [--linux] [--web] [--steam]"
 BUMP=""; LINUX=""; WEB=""; STEAM=""
 for a in "$@"; do

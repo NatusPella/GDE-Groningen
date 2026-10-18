@@ -12,6 +12,8 @@ import { MAP_PALETTE, seaStyle } from './mapstyle.js';
 import { worldPlaceAt } from './worldplaces.js';
 import { coastKinds, borderByData } from './worldedge.js';
 import { edgeLabels } from './mapedge.js';
+import { setSeaClearance } from './waterindex.js';
+import { createSeaClearance } from './seawater.js';
 
 export const REGIONS = {
   groningen: { name: 'Groningen', land: true },
@@ -112,6 +114,8 @@ export function setRegionData(layer, tileHas = null) {
   S.sea = seaPolygon(coast);
   S.seaBox = S.sea ? bboxOf(S.sea) : null;
   S.islandBoxes = islands.map(bboxOf);
+  // boats sail the sea where the map has no water row (#233)
+  setSeaClearance(S.sea ? createSeaClearance(seaAt, [coast].concat(islands)) : null);
   S.path = null;
   // the raw edge layer for worldedge.js / edgeguard.js (the Eems told apart from the Wadden)
   S.edgeLayer = have ? borderByData(coastKinds(layer.edge), tileHas) : null;
@@ -128,7 +132,7 @@ export const regionVersion = () => dataVersion;
 export const regionEdgeLabels = (x0, y0, x1, y1, off) => edgeLabels({ border: S.border, coast: S.coast }, [x0, y0, x1, y1], regionAt, off);
 export const seaRing = () => S.sea;
 
-function seaAt(x, y) {
+export function seaAt(x, y) {
   if (!S.sea || !inRing(x, y, S.sea, S.seaBox)) return false;
   for (let i = 0; i < S.islands.length; i++) if (inRing(x, y, S.islands[i], S.islandBoxes[i])) return false;
   return true;
