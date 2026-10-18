@@ -90,7 +90,7 @@ export function buildElevation(map) {
       if (Z && (Math.abs(Z[i]) >= 0.02 || Math.abs(Z[i + 1]) >= 0.02)) continue;
       const ax = P[i][0], ay = P[i][1], bx = P[i + 1][0], by = P[i + 1][1];
       if (!near(ax, ay) && !near(bx, by) && !near((ax + bx) / 2, (ay + by) / 2)) continue;
-      elev.flatGrid.insert({ ax, ay, bx, by, hs }, Math.min(ax, bx) - hs, Math.min(ay, by) - hs, Math.max(ax, bx) + hs, Math.max(ay, by) + hs);
+      elev.flatGrid.insert({ ax, ay, bx, by, hs, r }, Math.min(ax, bx) - hs, Math.min(ay, by) - hs, Math.max(ax, bx) + hs, Math.max(ay, by) + hs);
     }
   }
   addRailLifts(elev, map);
