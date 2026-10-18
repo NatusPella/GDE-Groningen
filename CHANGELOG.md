@@ -7,6 +7,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Nieuw
+- **Het nieuwe verhaal, akte 2 tot en met 5:** het verhaal loopt nu door tot en met Gronings Ontzet en de epiloog. Van Stad naar het Hogeland (Warffum, Usquert, Uithuizen), de Waddenkust (Zoutkamp, Lauwersoog, Noordpolderzijl), de Eemshaven en Delfzijl, het Oldambt (Winschoten), Veendam en Stadskanaal, Vesting Bourtange (het Beleg), het Westerkwartier en terug naar de Grote Markt. Tussen de plekken kies je hoe je reist: meerijden, zelf rijden of overslaan. Zware onderdelen (het vliegtuig, de botsing op de Waddenzee, de colonne en de stoomtrein) zijn nog vereenvoudigd: je loopt of rijdt naar de plek en de scene speelt daar.
 - **Brommers en motoren in het verkeer:** er rijden nu brommers en motoren rond, meer in studentenwijken en het centrum, minder 's nachts. Ze blijven op de weg en nooit op het fietspad; een gewone brommer houdt zich aan 45 km/u, een enkele is opgevoerd.
 - **Spookrijder op de kartbaan en in de driftzones:** je beste race bij Kardinge en je beste run per driftzone worden bewaard en rijden de volgende keer als doorzichtige spook mee.
 - **Machinist:** in een gekaapte of geparkeerde trein start G een dienst: halte voor halte stoppen op de streep, op tijd en onder de snelheidsborden. Het bord toont snelheid, maximum, remweg en je vertraging; je krijgt punten en een medaille. Backspace stopt de dienst.
