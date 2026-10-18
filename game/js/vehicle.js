@@ -27,6 +27,8 @@ import { profileFor, createGearbox, stepGearbox } from './gearbox.js';
 import { slipAngle } from './drift.js';
 import { MOPED_LEGAL_SPEED } from './motomodels.js';
 import { pickMotor, motorRoadAllowed, motorTarget } from './motortraffic.js';
+import { FLAGS } from './devflags.js';
+import { verkeerOpties } from './simlagen.js';
 export { MOTORBIKE_MODELS, GEARED_MOPED_MODEL, MOPED_LEGAL_SPEED } from './motomodels.js';
 
 // every traffic model, for warming their meshes before they first spawn
@@ -925,8 +927,11 @@ function pruneWrecks(world) {
   for (const v of wrecks.slice(0, wrecks.length - MAX_WRECKS)) vehicles.splice(vehicles.indexOf(v), 1);
 }
 
-export function manageTrafficPopulation(world, { target = 30, spawnMin = 70, spawnMax = 170, despawnDist = 260 } = {}) {
+export function manageTrafficPopulation(world, opts = {}) {
   const { map, player, vehicles } = world;
+  // ?simlagen (issue #18): doelaantal en afstanden per streek uit simlagen.js
+  const lagen = FLAGS.simlagen ? verkeerOpties(wijkProfileAt(map, player.x, player.y).key, hourOf(world)) : null;
+  const { target = lagen ? lagen.target : 30, spawnMin = lagen ? lagen.spawnMin : 70, spawnMax = lagen ? lagen.spawnMax : 170, despawnDist = lagen ? lagen.despawnDist : 260 } = opts;
   pruneWrecks(world);
   manageParkedCars(world);
   for (let i = vehicles.length - 1; i >= 0; i--) {

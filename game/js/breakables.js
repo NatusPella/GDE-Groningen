@@ -7,6 +7,7 @@ import { streamFlitspaalProps } from './flitspaal.js';
 import { setWallBrokenTest } from './elevation.js';
 import { rand as rnd } from './rng.js';
 import { SpatialGrid } from './spatialgrid.js';
+import { touchesProp } from './flightrules.js';
 
 // Breakable street props. Owning modules register colliders near the player
 // (addProp/removeProp); vehicles test against them each frame. Below a prop's
@@ -747,6 +748,7 @@ function footKicks() {
   if (sp < 1.8 || sp > 15) return;
   for (const p of propsNear(pl.x, pl.y, 1.5, _near)) {
     if (p.mass > 20) continue;
+    if (world.pigeonMode && !touchesProp((world.pigeonAlt || 0) - (p.z || 0), p.h || 1)) continue; // a pigeon flying over it
     const c = closestPointOnSegment(pl.x, pl.y, p.x - p.hx, p.y - p.hy, p.x + p.hx, p.y + p.hy);
     const rr = p.r + 0.35;
     if (c.dist2 > rr * rr) continue;

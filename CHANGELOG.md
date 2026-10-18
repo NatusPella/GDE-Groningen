@@ -7,6 +7,10 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Nieuw
+- **Drie nieuwe zijmissies in de stad:** "Het Loket" (formulier, wachtrij en stempel), de "StudieStaat-balie" (rekenen aan een verzonnen studieloket) en "Borrel bij Vigilantia" (tafelspeech van een verzonnen studentenvereniging). Telkens drie vragen aan een balie; een fout antwoord betaalt alleen minder.
+- **Radio valt niet meer stil:** als de muziek hoort te spelen maar stil staat (vastgelopen nummer, een gemist einde, een pauze die nooit eindigt), probeert de radio het eerst opnieuw en kiest daarna zelf het volgende nummer; N hoeft niet meer.
+- **Zeven nieuwe radionummers:** G-Music draait nu ook donkere drill, post-punk, hardstyle, phonk, een levenslied, smooth R&B en een zomerhit, helemaal door het spel zelf gemaakt. Ze verschijnen een paar seconden na het opstarten één voor één in de afspeellijst.
+- **Rustiger laadschermen:** de voortgang van het laden staat nu als twaalf tegels die oplichten, met korte tips van één regel. Een korte sprong (snelreizen in de buurt) krijgt een klein scherm met alleen de plaatsnaam, en het scherm dekt direct, zodat je de nieuwe plek niet even ziet verschijnen.
 - **Brommers en motoren in het verkeer:** er rijden nu brommers en motoren rond, meer in studentenwijken en het centrum, minder 's nachts. Ze blijven op de weg en nooit op het fietspad; een gewone brommer houdt zich aan 45 km/u, een enkele is opgevoerd.
 - **Spookrijder op de kartbaan en in de driftzones:** je beste race bij Kardinge en je beste run per driftzone worden bewaard en rijden de volgende keer als doorzichtige spook mee.
 - **Machinist:** in een gekaapte of geparkeerde trein start G een dienst: halte voor halte stoppen op de streep, op tijd en onder de snelheidsborden. Het bord toont snelheid, maximum, remweg en je vertraging; je krijgt punten en een medaille. Backspace stopt de dienst.
@@ -16,6 +20,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **Lekke band:** na een harde klap kan een band van je eigen auto, fiets of scooter lek gaan. Je rijdt dan trager en de wagen trekt scheef. De garage (of fietsenmaker) plakt hem, tegen een kleine meerprijs. Een lekke band blijft bewaard in je save.
 
 ### Opgelost
+- **Viaducten bij het Emmaviaduct:** het viaduct en de Brailleweg gaan nu hoog genoeg over de Zaanstraat-busbaan (die lag eerder bijna onder het dek). Schuine kruisingen met fietspaden houden de vrije hoogte over de hele breedte van het pad.
 - De meldingen van de politie dat je ergens niet mag rijden, lopen of fietsen zijn weg. Blijf je lang op zo'n plek, dan krijg je nog wel een ster.
 - **Verkeersruzie:** na een harde botsing of lang getoeter stapt een boze bestuurder soms uit, scheldt en deelt kleine klappen uit (nooit het laatste stukje gezondheid, geen bloed). Sommigen hebben een klomp, hockeystick, bezem, fietspomp, knuppel of waterpistool bij zich. Een agent te voet in de buurt komt erop af. Instelbaar onder Instellingen › Meer opties › Verkeersruzie (uit, weinig, normaal, veel).
 - **Wapens oppakken:** sla een ruziemaker neer, of tot hij het opgeeft, dan laat hij zijn spullen vallen. Loop erheen en pak ze op met E.

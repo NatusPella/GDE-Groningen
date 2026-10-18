@@ -43,15 +43,19 @@ export const FLAGS = Object.freeze({
   frames: has('frames'),
   video: has('video'),
   legacymap: has('legacymap'),
+  stadlaag: val('stadlaag'),
   nobatch: has('nobatch'),
   shaderdebug: has('shaderdebug'),
   noworker: has('noworker'),
+  simworker: has('simworker'),
   gfxadvies: has('gfxadvies'),
   gpu: val('gpu'),
   preset: val('preset'),
   touch: val('touch'),
   hitch: has('hitch'),
+  simlagen: has('simlagen'),
   zwartcheck: has('zwartcheck'),
+  reizen: has('reizen'),
 });
 
 export const FLAG_DOCS = Object.freeze({
@@ -70,15 +74,19 @@ export const FLAG_DOCS = Object.freeze({
   frames: 'Trailer: sla beeld voor beeld op',
   video: 'Trailer: neem video op (alleen desktop)',
   legacymap: 'Laad de oude kaart in plaats van de tegelwereld',
+  stadlaag: 'Stad per laag uit de gedeelde tegelbouw (gebouwen, wegen, water, spoor, groen, meubilair, poi, objecten, namen, of alle); #90, standaard uit',
   nobatch: 'Zet het samenvoegen van meshes uit (scene3d)',
   shaderdebug: 'Laat three.js shaderfouten controleren',
   noworker: 'Geometrie op de hoofdthread in plaats van in de worker',
+  simworker: 'Simulatie-worker (simhost.js, #58): nog proefstadium, doet niets aan het spel zelf',
   gfxadvies: 'Toon het grafische advies ook als de speler al koos',
   gpu: 'Doe alsof de GPU deze renderer-tekst heeft (test van het advies)',
   preset: 'Instellingen alleen voor deze run, bv. quality:laag,drawDistance:kort',
   touch: 'Raakbediening aan (touch=1) of uit (touch=0), ook zonder touchscherm',
   hitch: 'Meet haperingen (hitchprobe)',
+  simlagen: 'Verkeer volgens simulatielagen per streek en afstand (simlagen.js)',
   zwartcheck: 'Controleer op zwarte beelden (blackframe)',
+  reizen: 'Reisbeats in het nieuwe verhaal: keuze Meerijden, Zelf rijden of Overslaan bij een sprong (#97)',
 });
 
 

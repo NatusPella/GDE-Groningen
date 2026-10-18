@@ -1,3 +1,4 @@
+import { wantedPhase } from './wantedstate.js';
 import { pointInPolygon as pointInPoly } from './util.js';
 import { dualHtml } from './subtitles.js';
 import { simLevel } from './simload.js';
@@ -23,7 +24,8 @@ import { cinematicAllowsDamageFx, isBannerUp, isCinematicActive, wijkBlurb } fro
 import { isMuted, engineReadout } from './audio.js';
 import { gearboxReadout } from './gearbox.js';
 import { drawRailsOnMap, drawTrainsOnMap } from './railway.js';
-import { drawCountryMinimap, villageLabels, MINI_STYLE } from './countrymap.js';
+import { drawCountryMinimap, villageLabels, syncMapPhase } from './countrymap.js';
+import { MINI_PALETTE as MINI_STYLE, EMPHASIS, seaStyle, miniRoadStyle } from './mapstyle.js';
 import { drawSea, drawOutside, regionLabels, areaNameAt, REGIONS } from './regions.js';
 import { worldPlaceLabels, worldPlacesReady } from './worldplaces.js';
 import { provinceMapOn } from './provincemap.js';
@@ -874,7 +876,7 @@ function updateWanted(world) {
   wantedShown = world.wanted;
   els.wanted.classList.toggle('searching', searching && world.wanted > 0);
   els.wanted.classList.toggle('chase', world.wanted > 0 && !searching);
-  els.wanted.setAttribute('aria-label', `Gezocht: ${world.wanted} van 5${searching ? ', politie zoekt je' : ''}`);
+  els.wanted.setAttribute('aria-label', `Gezocht: ${world.wanted} van 5, ${wantedPhase(world) === 'zoeken' ? 'politie zoekt je' : 'achtervolging'}`);
 }
 
 export function getClockText(world) {
@@ -1993,6 +1995,7 @@ function drawVillageNames(ctx, player, radius, toScreen) {
 }
 
 function drawMinimap(dt, world) {
+  syncMapPhase(world);
   const ctx = els.mmCtx;
   const dpr = hudPixelRatio();
   sizeSquareCanvas(els.mmCanvas, Math.round(MINIMAP_SIZE * dpr));
@@ -2033,7 +2036,7 @@ function drawMinimap(dt, world) {
   ctx.fillRect(player.x - MM_RADIUS_M, player.y - MM_RADIUS_M, MM_RADIUS_M * 2, MM_RADIUS_M * 2);
   drawCountryMinimap(ctx, player.x - MM_RADIUS_M, player.y - MM_RADIUS_M, player.x + MM_RADIUS_M, player.y + MM_RADIUS_M, mmScale);
   const province = provinceMapOn();
-  if (province) drawSea(ctx, (n) => n / mmScale, { fill: MINI_STYLE.water, edge: '#5aa0c0' });
+  if (province) drawSea(ctx, (n) => n / mmScale, seaStyle(MINI_STYLE));
 
   const view = world.map.queryView(
     player.x - MM_RADIUS_M, player.y - MM_RADIUS_M,
@@ -2056,11 +2059,13 @@ function drawMinimap(dt, world) {
     ctx.beginPath();
     ctx.moveTo(r.pts[0][0], r.pts[0][1]);
     for (let i = 1; i < r.pts.length; i++) ctx.lineTo(r.pts[i][0], r.pts[i][1]);
-    let color = r.cat === 'major' ? '#f0ede4' : r.cat === 'cycle' ? '#c9603f' : '#a8ada2';
-    let w = Math.max(r.width, 3);
-    let a = landAlpha;
-    if (emph === 'foot') { if (r.cat === 'foot') { color = '#d9d4c4'; w = Math.max(w, 3.4); } }
-    else if (emph === 'cycle') { if (r.cat === 'cycle') { color = '#ff8a5c'; w = Math.max(w, 4); } else if (r.cat === 'foot') a *= 0.4; }
+    let color = r.cat === 'major' ? MINI_STYLE.major : r.cat === 'cycle' ? MINI_STYLE.cycle : MINI_STYLE.road;
+    const rs = miniRoadStyle(r.cat, r.width, mmScale);
+    if (rs.alpha <= 0.02) continue;
+    let w = rs.widthM;
+    let a = landAlpha * rs.alpha;
+    if (emph === 'foot') { if (r.cat === 'foot') { color = EMPHASIS.foot; w = Math.max(w, 3.4); } }
+    else if (emph === 'cycle') { if (r.cat === 'cycle') { color = EMPHASIS.cycle; w = Math.max(w, 4); } else if (r.cat === 'foot') a *= 0.4; }
     else if (emph === 'major') { if (r.cat === 'major') w = Math.max(w, r.width * 1.1); else if (r.cat === 'foot' || r.cat === 'cycle') a *= 0.35; }
     if (allowed === false && r.cat !== 'major') a *= 0.45;
     ctx.globalAlpha = a;
@@ -2071,7 +2076,7 @@ function drawMinimap(dt, world) {
     if (allowed === false && r.cat === 'major') {
       ctx.globalAlpha = 1;
       ctx.setLineDash([5, 4]);
-      ctx.strokeStyle = '#d93f3f';
+      ctx.strokeStyle = EMPHASIS.forbidden;
       ctx.lineWidth = Math.max(2, w * 0.4);
       ctx.stroke();
       ctx.setLineDash([]);
@@ -2081,9 +2086,9 @@ function drawMinimap(dt, world) {
   drawRailsOnMap(ctx, world.map, player.x - MM_RADIUS_M, player.y - MM_RADIUS_M, player.x + MM_RADIUS_M, player.y + MM_RADIUS_M, 3.2);
   drawTrainsOnMap(ctx);
 
-  const MM_BUILDING_COLORS = ['#b98a6a', '#9a8a7a', '#c9a876', '#8a96a0', '#a88a9a'];
+  const MM_BUILDING_COLORS = MINI_STYLE.buildings;
   for (const b of view.buildings) {
-    ctx.fillStyle = b.landmark ? '#8a8474' : MM_BUILDING_COLORS[Math.floor(mmHash(b.pts[0][0], b.pts[0][1]) * MM_BUILDING_COLORS.length)];
+    ctx.fillStyle = b.landmark ? MINI_STYLE.church : MM_BUILDING_COLORS[Math.floor(mmHash(b.pts[0][0], b.pts[0][1]) * MM_BUILDING_COLORS.length)];
     fillPoly(ctx, b.pts);
   }
   ctx.globalAlpha = 1;

@@ -40,6 +40,20 @@ export function railItems(data) {
 }
 const atLevelCrossing = (rail, x, y) => rail.lcs.some((l) => Math.hypot(l.x - x, l.y - y) < LC_ZONE);
 
+// How far along `road` (m, each way from the crossing point) its profile must
+// clear `other`: the other ribbon's half width over the sine of the angle the
+// two cross at, so a shallow crossing (a cycle path alongside a trunk road)
+// is cleared along its whole overlap, not just where the centre lines meet.
+const MAX_OVERLAP = 40;
+export function overlapReach(c, road, other) {
+  const half = other.rail ? 3 : other.width / 2;
+  const seg = (r, k) => (r.pts[k + 1] ? [r.pts[k + 1][0] - r.pts[k][0], r.pts[k + 1][1] - r.pts[k][1]] : [1, 0]);
+  const [ax, ay] = seg(c.a, c.i), [bx, by] = seg(c.b, c.j);
+  const sin = Math.max(0.15, Math.abs(ax * by - ay * bx) / ((Math.hypot(ax, ay) * Math.hypot(bx, by)) || 1));
+  void road;
+  return Math.min(MAX_OVERLAP, half / sin) + 3;
+}
+
 // A crossing between two items as { up, lo, x, y, need, zUp, zLo } or null
 // when it is not a grade separation (both at the same level, a level crossing).
 function separation(c) {
@@ -279,7 +293,7 @@ export function solve(data, { terrain = flatTerrain, iters = 600, pullPrior = 0.
       const s = separation(c);
       const road = m === 'up' ? s.up : s.lo, other = m === 'up' ? s.lo : s.up;
       const zo = m === 'up' ? s.zLo : s.zUp;
-      const reach = (other.rail ? 3 : other.width / 2) + 3;
+      const reach = overlapReach(c, road, other);
       const a = g0.of.get(road);
       road.pts.forEach((p, i) => {
         if (Math.hypot(p[0] - c.x, p[1] - c.y) > reach + STEP) return;
@@ -396,8 +410,8 @@ export function solve(data, { terrain = flatTerrain, iters = 600, pullPrior = 0.
   const binds = !clear ? [] : movers.map(({ c, m }) => {
     const s = separation(c);
     const road = m === 'up' ? s.up : s.lo, other = m === 'up' ? s.lo : s.up;
-    const near = nearOf(road, c, (other.rail ? 3 : other.width / 2) + 3);
-    const keep = other.rail ? [] : nearOf(other, c, road.width / 2 + 3);
+    const near = nearOf(road, c, overlapReach(c, road, other));
+    const keep = other.rail ? [] : nearOf(other, c, overlapReach(c, other, road));
     return { m, near, keep, seg: segAt(road, c), oseg: other.rail ? null : segAt(other, c), zo: m === 'up' ? s.zLo : s.zUp, need: s.need };
   });
   // the height at the crossing point itself: (1 - t) z_a + t z_b >= (or <=) target
@@ -581,6 +595,37 @@ export function protectedRoads(data, extras) {
   return out;
 }
 
+// The busways mapextras adds as roads of their own (mapdata.js turns each
+// busRoads entry that follows no road of the map into one): the solver must see
+// them, or a viaduct passes a few decimetres over a busway. Returns
+// [{ entry, road }]; push the roads into data.roads for the solve, then
+// restoreBusRoads() carries the profile back into the extras.
+export function busRoadsOf(data, extras) {
+  const key = (p) => `${Math.round(p[0] * 100)},${Math.round(p[1] * 100)}`;
+  const edges = new Set();
+  for (const r of data.roads) for (let i = 0; i < r.pts.length - 1; i++) edges.add(key(r.pts[i]) + '>' + key(r.pts[i + 1]));
+  const out = [];
+  for (const br of extras.busRoads || []) {
+    let follows = false;
+    for (let i = 0; i < br.pts.length - 1 && !follows; i++) follows = edges.has(key(br.pts[i]) + '>' + key(br.pts[i + 1])) || edges.has(key(br.pts[i + 1]) + '>' + key(br.pts[i]));
+    if (follows) continue;
+    out.push({ entry: br, road: { pts: br.pts.map((q) => q.slice()), type: 'busway', cat: 'normal', width: br.width || 6.5, speed: 11, oneway: !!br.oneway, name: br.name || '', bridge: !!br.bridge, busOnly: true } });
+  }
+  return out;
+}
+
+// Puts a busway's solved profile (and densified vertices) back into its extras entry
+export function restoreBusRoads(list) {
+  let changed = 0;
+  for (const { entry, road } of list) {
+    const before = JSON.stringify([entry.pts, entry.z]);
+    entry.pts = road.pts;
+    if (road.z && road.z.some((q) => Math.abs(q) >= 0.02)) entry.z = road.z.map((q) => Math.round(q * 100) / 100); else delete entry.z;
+    if (JSON.stringify([entry.pts, entry.z]) !== before) changed++;
+  }
+  return changed;
+}
+
 // Puts a solution into the map data: road.z (and the densified vertices of
 // roads that got a new profile); a road that ends up flat loses its z.
 export function apply(data, sol) {
@@ -604,19 +649,26 @@ async function main() {
   if (args.includes('--solve') || args.includes('--write')) {
     console.log('before:');
     printAudit(audit(data), 4);
-    const extras = JSON.parse(fs.readFileSync(path.join(ROOT, 'game/mapextras.json'), 'utf8'));
+    const extrasFile = path.join(ROOT, 'game/mapextras.json');
+    const extras = JSON.parse(fs.readFileSync(extrasFile, 'utf8'));
+    const protect = protectedRoads(data, extras);
+    const bus = busRoadsOf(data, extras);
+    for (const { road } of bus) data.roads.push(road);
     const t0 = performance.now();
     // a road that gets a profile brings its own crossings with paths and
     // service roads into play: solve again until nothing changes (3 passes at most)
     // --terrain: the AHN field (terrain.mjs; F2, the game draws flat until then)
     const terrain = args.includes('--terrain') ? (await import('./terrain.mjs')).loadTerrainField().at : flatTerrain;
     for (let pass = 0; pass < 3; pass++) {
-      const sol = solve(data, { terrain, paths: args.includes('--paths'), protect: protectedRoads(data, extras), couple: !args.includes('--no-couple'), clear: !args.includes('--no-clear') });
+      const sol = solve(data, { terrain, paths: args.includes('--paths'), protect, couple: !args.includes('--no-couple'), clear: !args.includes('--no-clear') });
       const res = apply(data, sol);
       console.log(`pass ${pass + 1} solved in ${((performance.now() - t0) / 1000).toFixed(1)} s: ${JSON.stringify(sol.stats)}; ${res.changed} profiles changed, ${res.cleared} flat now, ${sol.pts.size} roads densified`);
       if (!res.changed && !res.cleared && !sol.pts.size) break;
     }
+    data.roads = data.roads.filter((r) => !bus.some((b) => b.road === r));
+    const busChanged = restoreBusRoads(bus);
     if (args.includes('--write')) {
+      if (busChanged) { fs.writeFileSync(extrasFile, JSON.stringify(extras)); console.log(`wrote ${busChanged} busways into ${path.relative(ROOT, extrasFile)}`); }
       fs.writeFileSync(file, JSON.stringify(data));
       console.log(`wrote ${path.relative(ROOT, file)}`);
     }

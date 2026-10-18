@@ -59,6 +59,7 @@ import { keyWord } from './controls.js';
 import { getSettings } from './settings.js';
 const downKey = () => keyWord(getSettings().keyBinds, 'control');
 import { deliverFurniture, furnitureSkip, attachFurniture3D, leaveFurniture, furnitureSolids, furnitureUses, furnitureFocus, furniturePrompt, useFurniture, updateFurniture, updateFurnitureInside, companionSeat, furnitureSlept, fridgeCooldown, fridgePerk } from './furniture.js';
+import { playerBusy } from './busy.js';
 
 const NEAR_M = 200;
 const FAR_M = 260;
@@ -858,7 +859,7 @@ function canEnter(w) {
   const p = w.player;
   if (p.inVehicle || p.swimming) return 'Eerst uitstappen';
   if (w.wanted > 0) return 'Met de politie op je hielen ga je niet naar huis. Eerst ze kwijt!';
-  if (isMissionActive() || (w.sideJob && w.sideJob.active) || w.challenge) return 'Eerst je klus afmaken';
+  if (playerBusy(w, ['mission', 'sideJob', 'challenge']).busy) return 'Eerst je klus afmaken';
   if (w.pigeonMode || w.heliRun || w.pendingRespawn || isCinematicActive() || isPadelActive() || isVillageMiniActive() || isActivityActive()) return 'Nu even niet';
   return '';
 }
@@ -1050,7 +1051,7 @@ export function applyHomeOnLoad(w, d) {
 }
 
 export function homeSaveContext(w) {
-  if (isMissionActive() || (w.sideJob && w.sideJob.active) || w.challenge) return 'busy';
+  if (playerBusy(w, ['mission', 'sideJob', 'challenge']).busy) return 'busy';
   return near(w, 40) ? 'home' : 'free';
 }
 
@@ -1214,7 +1215,7 @@ function toRoof(w) {
 
 function canPark(w) {
   if (w.wanted > 0) return 'Met de politie op je hielen: eerst ze kwijt, dan naar binnen';
-  if (isMissionActive() || (w.sideJob && w.sideJob.active) || w.challenge) return 'Eerst je klus afmaken';
+  if (playerBusy(w, ['mission', 'sideJob', 'challenge']).busy) return 'Eerst je klus afmaken';
   return '';
 }
 
