@@ -203,6 +203,7 @@ Debug hooks on `window` (`window.__x`, read by scripts/perf, the story test and 
 | `?simlagen` | Verkeer volgens simulatielagen per streek en afstand (simlagen.js) |
 | `?zwartcheck` | Controleer op zwarte beelden (blackframe) |
 | `?reizen` | Reisbeats in het nieuwe verhaal: keuze Meerijden, Zelf rijden of Overslaan bij een sprong (#97) |
+| `?brugbotsing` | Stuurt na een paar seconden een binnenvaartschip tegen de dichtstbijzijnde brug (#9) |
 
 - `?dev` (desktop `--dev`): story dev panel on F9. Chapter select (jumps to
   any story step with the money, belongings and progress a player would have

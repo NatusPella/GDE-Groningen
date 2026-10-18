@@ -52,6 +52,7 @@ export const FLAGS = Object.freeze({
   simlagen: has('simlagen'),
   zwartcheck: has('zwartcheck'),
   reizen: has('reizen'),
+  brugbotsing: has('brugbotsing'),
 });
 
 export const FLAG_DOCS = Object.freeze({
@@ -86,6 +87,7 @@ export const FLAG_DOCS = Object.freeze({
   hitch: 'Meet haperingen (hitchprobe)',
   simlagen: 'Verkeer volgens simulatielagen per streek en afstand (simlagen.js)',
   zwartcheck: 'Controleer op zwarte beelden (blackframe)',
+  brugbotsing: 'Stuurt na een paar seconden een binnenvaartschip tegen de dichtstbijzijnde brug (#9)',
   reizen: 'Reisbeats in het nieuwe verhaal: keuze Meerijden, Zelf rijden of Overslaan bij een sprong (#97)',
 });
 
