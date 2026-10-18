@@ -151,6 +151,7 @@ export function playScript(w, def, { lines, duration, anchor, cine = {} } = {}) 
     priority: 4, pause: true, letterbox: true, skippable: true, hideHud: true,
     ...cine, id: cine.id || def.id, duration, lines,
     onStart() {
+      if (cine.onStart) cine.onStart();
       try {
         run = buildScriptRun(def, scene, a);
         root.add(run.group);

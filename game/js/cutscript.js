@@ -243,7 +243,7 @@ export function compileScene(def, opts = {}) {
   function pointOf(ref, t, raw = false) {
     if (isVec(ref, 3)) return { f: ref[0], s: ref[1], h: ref[2] };
     if (isVec(ref, 2)) return { f: ref[0], s: ref[1], h: 0 };
-    if (ref === 'speaker') { const id = actorOfSpeaker(speakerAt(t)); return pointOf(id || Object.keys(actors)[0], t, raw); }
+    if (ref === 'speaker') { const id = actorOfSpeaker(speakerAt(t)); if (id) return pointOf(id, t, raw); const ids = Object.keys(actors); return ids.length > 1 ? pointOf(`mid:${ids[0]},${ids[1]}`, t, raw) : pointOf(ids[0], t, raw); }
     const mid = MID.exec(ref);
     if (mid) { const a = pointOf(mid[1], t, raw), b = pointOf(mid[2], t, raw); return { f: (a.f + b.f) / 2, s: (a.s + b.s) / 2, h: mid[3] ? +mid[3] : (a.h + b.h) / 2 }; }
     const hm = /@([\d.]+)$/.exec(ref);
