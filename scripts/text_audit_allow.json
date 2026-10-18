@@ -46,13 +46,6 @@
     },
     {
       "rule": "winter",
-      "term": "winter",
-      "file": "banterlines.js",
-      "ctx": "in de winter wel terug",
-      "why": "vergelijking/zegswijze, geen winterscène; ingesproken"
-    },
-    {
-      "rule": "winter",
       "term": "ijsbaan",
       "file": "rondvaartchase.js",
       "why": "vergelijking in een grap van de schipper; ingesproken"
