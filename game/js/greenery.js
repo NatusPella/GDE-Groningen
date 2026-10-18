@@ -1,3 +1,4 @@
+import { hash2 } from './rng.js';
 // Trees and green at their real place (docs/PROVINCIE-PLAN.md 2.15): species,
 // heights and crown shapes, the rules that pick a species where OSM names
 // none, and the trees a wood or a park gets where OSM maps only its outline.
@@ -47,10 +48,7 @@ export function speciesFromTags(t = {}) {
   return -1;
 }
 
-export function hash2(a, b) {
-  const h = Math.sin(a * 127.1 + b * 311.7) * 43758.5453;
-  return h - Math.floor(h);
-}
+export { hash2 } from './rng.js';
 const pick = (list, h) => {
   let s = 0;
   for (const [, w] of list) s += w;

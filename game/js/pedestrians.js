@@ -13,6 +13,7 @@ import { splatterPed, bleedPed, GIB_SPEED } from './gore3d.js';
 import { knockFx } from './knockfx3d.js';
 import { walkRoute, processPedPlanQueue, buildPedAvoidGrid, separatePeds, makeCompanion } from './pedroutes.js';
 import { reportCrime } from './crime.js';
+import { hash2 } from './rng.js';
 
 const WANDER_SPEED = 1.3;
 const FLEE_SPEED = 3.6;
@@ -564,10 +565,6 @@ export function soakPed(ped, world, fromX, fromY) {
 const RIDER_CLOSING = 3.5;
 const RIDER_CLOSING_AMBIENT = 6;
 
-function hash2(x, y) {
-  const h = Math.sin(x * 127.1 + y * 311.7) * 43758.5453;
-  return h - Math.floor(h);
-}
 
 // A bike or scooter hit hard enough loses its rider: the built-in rider on
 // the bike mesh is hidden (ragdoll.syncBikeRider) and an identical-looking

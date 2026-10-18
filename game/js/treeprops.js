@@ -1,5 +1,6 @@
 import { makeProp, addProp, removeProp } from './breakables.js';
 import { treeDims } from './greenery.js';
+import { hash2 as treeHash } from './rng.js';
 
 // Roadside trees as breakable props. Trees stay pure map data; a knocked
 // tree sets raw._broken (the [x, y, species, height] row treesNear returns), which
@@ -16,10 +17,6 @@ export function setTreeMeshBuilder(fn) {
   buildTree = fn;
 }
 
-function treeHash(x, y) {
-  const h = Math.sin(x * 127.1 + y * 311.7) * 43758.5453;
-  return h - Math.floor(h);
-}
 
 function makeTreeProp(raw) {
   const [x, y] = raw;

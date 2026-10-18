@@ -17,6 +17,7 @@
 // neighbouring tiles never repeat one; rules walk whole roads, so a guardrail
 // carries on across a tile edge without a seam.
 import { wgsToWorld } from './rdnew.js';
+import { hash2 as hash } from './rng.js';
 
 const MAIN = new Set(['motorway', 'trunk']);
 const LINK = new Set(['motorway_link', 'trunk_link']);
@@ -67,10 +68,6 @@ export const RULES = {
 
 // --------------------------------------------------------------- helpers
 
-function hash(a, b) {
-  const h = Math.sin(a * 127.1 + b * 311.7) * 43758.5453;
-  return h - Math.floor(h);
-}
 export const itemKey = (k, x, y) => `${k}@${Math.round(x * 10)},${Math.round(y * 10)}`;
 const nodeKey = (p) => Math.round(p[0] * 100) * 1e7 + Math.round(p[1] * 100);
 const len = (P) => { let s = 0; for (let i = 1; i < P.length; i++) s += Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]); return s; };
