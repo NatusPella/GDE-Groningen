@@ -128,7 +128,7 @@ export function initHud(world) {
   speedo.className = 'hud-speedo';
   speedo.innerHTML = '<div class="sp-main"><div class="sp-gears" role="img" aria-label="Versnelling"></div><b class="sp-val">0</b><span class="sp-unit">km/u</span></div>' +
     `<svg class="sp-rpm" viewBox="0 0 200 200" role="img" aria-label="Toerental"><path class="rpm-bg" d="${RPM_ARC}"/><path class="rpm-zone" d="${RPM_ARC}" pathLength="100" stroke-dasharray="${100 - RPM_RED_AT} 100" stroke-dashoffset="${-RPM_RED_AT}"/>` +
-    `<path class="rpm-fill" d="${RPM_ARC}" pathLength="100" stroke-dasharray="0 100"/><text x="100" y="112" text-anchor="middle" class="rpm-t">TOEREN</text><text x="100" y="138" text-anchor="middle" class="rpm-u">x1000</text></svg>`;
+    `<path class="rpm-fill" d="${RPM_ARC}" pathLength="100" stroke-dasharray="0 100"/></svg>`;
   root.appendChild(speedo);
 
   const vehName = document.createElement('div');
@@ -215,12 +215,6 @@ export function initHud(world) {
     '</div>';
   fcol.appendChild(topLeft);
 
-  // the route's distance lives in the objective and the GPS card now
-  const routeChip = document.createElement('div');
-  routeChip.className = 'hud-route';
-  routeChip.setAttribute('aria-live', 'off');
-  root.appendChild(routeChip);
-
   els = {
     root,
     character: topLeft.querySelector('.hud-character'),
@@ -294,8 +288,6 @@ export function initHud(world) {
     npArtist: nowPlaying.querySelector('.np-artist'),
     npTitle: nowPlaying.querySelector('.np-title'),
     npShown: null,
-    routeChip,
-    routeText: '',
     mmWrap,
     mmCanvas,
     mmCtx: mmCanvas.getContext('2d'),
@@ -396,7 +388,6 @@ export function updateHud(dt, world) {
   updateNowPlaying(dt, world);
   updateLocation(dt, world);
   updatePrompts(dt, world);
-  updateRouteChip(world);
   updateVisibility(dt, world);
   // very CPU-bound (simload.js level 2): the minimap redraws every second
   // frame, its zoom easing over the time in between. It turns with the
@@ -543,23 +534,6 @@ function staminaOf(world) {
     st = v.sprintT > 0 ? 1 - Math.min(1, (v.sprintRest - v.sprintT) / Math.max(0.1, total)) : 1 - Math.min(1, v.sprintRest / 4);
   }
   return st;
-}
-
-function updateRouteChip(world) {
-  const route = getActiveRoute();
-  let text = '', kind = '';
-  if (route && route.remaining > 12) {
-    kind = route.kind;
-    text = `${routeLabel(route)}: ${formatDistance(route.remaining)}`;
-  } else if (!route && getUserWaypoint()) {
-    const wp = getUserWaypoint();
-    kind = 'user';
-    text = `Doel: ${formatDistance(Math.hypot(wp.x - world.player.x, wp.y - world.player.y))}`;
-  }
-  if (text === els.routeText) return;
-  els.routeText = text;
-  els.routeChip.textContent = text;
-  els.routeChip.dataset.kind = kind;
 }
 
 
