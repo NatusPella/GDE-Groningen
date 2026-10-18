@@ -133,6 +133,8 @@ export const ACHIEVEMENTS = [
   { id: 'pannenkoek_goud', cat: 'verkennen', title: 'Kok van het schip', desc: 'Haal goud op het pannenkoekenschip', medal: true },
   { id: 'hengel_klaar', cat: 'verkennen', title: 'Aan de waterkant', desc: 'Hengel een ronde aan het meer in Meerstad' },
   { id: 'hengel_karper', cat: 'verkennen', title: 'De dikke karper', desc: 'Vang een karper', hidden: true },
+  { id: 'wandel_klaar', cat: 'tevoet', title: 'Pieterpadganger', desc: 'Loop alle stempelposten bij Winsum af' },
+  { id: 'wandel_goud', cat: 'tevoet', title: 'Snelste wandelaar', desc: 'Haal goud op de wandeling bij Winsum', medal: true },
   { id: 'ski_sprong', cat: 'verkennen', title: 'Hoog en schoon', desc: 'Land een sprong met een draai en een grab', hidden: true },
   { id: 'geheimen_alle', cat: 'verkennen', title: 'Stadjer met geheimen', desc: 'Vind alle 8 geheimpjes van Grunn in één spel', save: 'geheimen', goal: 8, hidden: true },
   { id: 'zonsopgang', cat: 'verkennen', title: 'Vroege vogel', desc: 'Zie de zon opkomen boven Grunn' },
