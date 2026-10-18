@@ -1,114 +1,161 @@
-// Coöp (#95): lobby als toestandsmachine. Pure logica (geen DOM): de toestand
-// en de Nederlandse teksten; lobbyui.js tekent het in de menustijl.
-// Eén save, één verhaalvoortgang: bij Nieuw spel en bij Doorgaan kies je per
-// sessie Alleen of Samen (op één scherm, of online als host of gast).
-// Online: de host opent via UPnP een poort op de eigen router en deelt één
-// korte code met adres en poort; de gast typt die in. Geen server van een
-// derde, geen account. Online werkt alleen in de desktop-app. De host speelt
-// Tammo en bewaart het spel; de gast speelt Tessa.
+// Samen spelen (#95): het uitnodigscherm als toestandsmachine, in de stijl van
+// Watch Dogs 2: je kunt op elk moment iemand uitnodigen (host) of aansluiten met
+// een code (gast), vanuit het pauzemenu. Er is geen keuze per save of bij het
+// starten; iedereen houdt zijn eigen voortgang. De host speelt Tammo, de gast Tessa.
+// Pure logica (geen DOM): toestand en Nederlandse teksten; lobbyui.js tekent.
+//
+// Twee routes, naast elkaar:
+//  - 'kamer'  : kamercode, WebRTC met openbare STUN-servers en versleutelde signalering
+//               via openbare brokers (net/rtcroom.js, net/brokers.js). Werkt ook in de browser.
+//  - 'direct' : adres:poort van de host met UPnP, rechtstreeks, zonder servers van anderen
+//               (desktop/coopcore.cjs). Alleen in de desktop-app.
+// Nooit stilzwijgend verbinden: elke route begint met een toestemmingsscherm.
 
 import { REASON_TEXT } from './net/protocol.js';
+import { parseRoom } from './net/sigcrypto.js';
+import { parseCode } from './net/pairing.js';
 
-export const MODES = { ALLEEN: 'alleen', LOKAAL: 'lokaal', HOST: 'host', GAST: 'gast' };
+export const ROLES = { HOST: 'host', GAST: 'gast' };
+export const ROUTES = { KAMER: 'kamer', DIRECT: 'direct' };
 
-// caps: { online (desktop-app), actie: 'nieuw' | 'doorgaan', laatsteCode, start?: 'verbroken', mode? }
+export const CONSENT_TEXT = {
+  kamer: 'Voor samen spelen wordt je IP-adres gedeeld met je medespeler en worden openbare servers gebruikt om elkaar te vinden.',
+  direct: 'Voor samen spelen wordt je IP-adres gedeeld met je medespeler. Er worden geen servers van anderen gebruikt; je router opent een poort die sluit zodra je stopt.',
+};
+export const CONSENT_DETAIL = {
+  kamer: 'Je kamercode versleutelt wat er via die servers gaat: zij zien alleen onleesbare berichten. Er wordt verder niets verstuurd.',
+  direct: 'Iedereen met de code kan zolang de poort open staat proberen te verbinden. Geef de code alleen aan je medespeler.',
+};
+
+// Wat voor invoer is dit? Een kamercode of een adres/code voor de directe route.
+export function classifyInput(text) {
+  const t = String(text || '').trim();
+  if (!t) return { ok: false, reason: 'Er is niets ingevoerd.' };
+  if (/^GDE2/i.test(t.replace(/\s+/g, ''))) {
+    const c = parseCode(t);
+    return c.ok ? { ok: true, route: ROUTES.DIRECT, code: t.replace(/\s+/g, '') } : c;
+  }
+  const r = parseRoom(t);
+  return r.ok ? { ok: true, route: ROUTES.KAMER, room: r.room } : { ok: false, reason: 'Dit is geen kamercode en geen koppelcode van dit spel.' };
+}
+
+// caps: { direct (desktop-app), rtc (WebRTC beschikbaar), laatsteCode, start?: 'verbroken', rol? }
 export function createLobby(caps = {}) {
   return {
-    step: caps.start || 'modus', mode: caps.mode || null, actie: caps.actie === 'nieuw' ? 'nieuw' : 'doorgaan',
-    code: '', lanCode: '', note: '', error: '', reason: null, status: null,
-    caps: { online: !!caps.online, laatsteCode: caps.laatsteCode || '' },
+    step: caps.start || 'start', rol: caps.rol || null, route: null, invoer: null,
+    code: '', lanCode: '', note: '', error: '', reason: null, status: null, partner: null,
+    caps: { direct: !!caps.direct, rtc: caps.rtc !== false, laatsteCode: caps.laatsteCode || '' },
   };
 }
-const fresh = (s) => createLobby({ ...s.caps, actie: s.actie });
+const fresh = (s) => createLobby(s.caps);
 
 // Gebeurtenissen:
-//  kies{mode}  code{code, lanCode?, note?}  fout{msg}  verbinden
-//  status{status, reason}  terug  verbreek  hervat
+//  kies{rol}  route{route}  invoer{text}  akkoord  code{code, lanCode?, note?}  fout{msg}
+//  status{status, reason, partner?}  terug  verbreek  hervat
 export function reduce(s, ev) {
   const n = { ...s, error: '' };
   switch (ev.t) {
     case 'kies':
-      if ((ev.mode === MODES.HOST || ev.mode === MODES.GAST) && !s.caps.online) return { ...n, error: 'Online spelen kan alleen in de desktop-app.' };
-      n.mode = ev.mode; n.code = ''; n.lanCode = ''; n.note = '';
-      n.step = ev.mode === MODES.ALLEEN ? 'alleen' : ev.mode === MODES.LOKAAL ? 'lokaal' : ev.mode === MODES.HOST ? 'host-maakt-code' : 'gast-typt';
+      n.rol = ev.rol;
+      n.step = ev.rol === ROLES.HOST ? 'methode' : 'gast-typt';
       return n;
-    case 'code': // de host heeft een code (met of zonder router)
-      n.code = ev.code; n.lanCode = ev.lanCode || ''; n.note = ev.note || ''; n.step = 'host-wacht';
-      return n;
+    case 'route': // alleen host: kies kamercode of IP-adres
+      if (ev.route === ROUTES.DIRECT && !s.caps.direct) return { ...n, error: 'Een IP-adres gebruiken kan alleen in de desktop-app.' };
+      if (ev.route === ROUTES.KAMER && !s.caps.rtc) return { ...n, error: 'Een kamercode werkt hier niet: dit apparaat kan geen directe verbinding maken.' };
+      n.route = ev.route; n.step = 'toestemming'; return n;
+    case 'invoer': { // alleen gast
+      const c = classifyInput(ev.text);
+      if (!c.ok) return { ...n, error: c.reason };
+      if (c.route === ROUTES.DIRECT && !s.caps.direct) return { ...n, error: 'Een adres of koppelcode van de directe route werkt alleen in de desktop-app. Vraag de host om een kamercode.' };
+      if (c.route === ROUTES.KAMER && !s.caps.rtc) return { ...n, error: 'Een kamercode werkt hier niet.' };
+      n.route = c.route; n.invoer = c; n.step = 'toestemming'; return n;
+    }
+    case 'akkoord':
+      if (s.step !== 'toestemming') return s;
+      n.step = s.rol === ROLES.HOST ? 'host-maakt-code' : 'verbinden'; return n;
+    case 'code': // de host heeft een code (kamercode, of adres met UPnP; zonder router de lokale code)
+      n.code = ev.code; n.lanCode = ev.lanCode || ''; n.note = ev.note || ''; n.step = 'host-wacht'; return n;
     case 'fout': n.error = ev.msg || 'Er ging iets mis.'; return n;
     case 'verbinden': n.step = 'verbinden'; return n;
     case 'status': {
-      n.status = ev.status; n.reason = ev.reason || null;
+      n.status = ev.status; n.reason = ev.reason || null; if (ev.partner) n.partner = ev.partner;
       if (ev.status === 'ok' || ev.status === 'lag') n.step = 'verbonden';
       else if (ev.status === 'lost') n.step = 'verbroken';
       else if (ev.status === 'geweigerd') n.step = 'geweigerd';
-      else if (ev.status === 'verbroken') return fresh(s);
+      else if (ev.status === 'verbroken' || ev.status === 'weg') return fresh(s);
       return n;
     }
     case 'hervat': // de host wacht weer op dezelfde gast; de gast voert de code opnieuw in
       if (s.step !== 'verbroken') return s;
-      n.step = s.mode === MODES.HOST ? 'host-maakt-code' : 'gast-typt'; return n;
+      n.step = s.rol === ROLES.HOST ? 'host-maakt-code' : 'gast-typt'; return n;
     case 'verbreek': return fresh(s);
     case 'terug': return s.step === 'verbonden' ? s : fresh(s);
     default: return s;
   }
 }
 
-// Wat de UI toont. buttons: [{ act, label, primary? }]; input: een tekstvak voor een code.
+const PARTNER_NAME = { host: 'Tessa', gast: 'Tammo' }; // de ander van deze rol
+
+// Wat de UI toont. buttons: [{ act, label, primary? }]; input: een tekstvak; code: de code met kopieerknop.
 export function view(s) {
   const V = (o) => ({ title: 'Samen spelen', lines: [], buttons: [], input: null, code: null, error: s.error, ...o });
-  const wat = s.actie === 'nieuw' ? 'Nieuw spel' : 'Doorgaan';
   switch (s.step) {
-    case 'modus': {
-      const buttons = [{ act: 'kies-alleen', label: 'Alleen', primary: true }, { act: 'kies-lokaal', label: 'Samen op één scherm' }];
-      if (s.caps.online) buttons.push({ act: 'kies-host', label: 'Samen online: ik ben de host' }, { act: 'kies-gast', label: 'Samen online: ik sluit aan' });
+    case 'start':
+      return V({
+        lines: ['Speel samen met een vriend in de open wereld: opdrachten, minigames en het verhaal. Iedereen houdt zijn eigen voortgang. De host speelt Tammo, de gast Tessa.'],
+        buttons: [{ act: 'kies-host', label: 'Iemand uitnodigen', primary: true }, { act: 'kies-gast', label: 'Code of adres invoeren' }],
+      });
+    case 'methode': {
+      const buttons = [{ act: 'route-kamer', label: 'Kamercode', primary: true }];
+      if (s.caps.direct) buttons.push({ act: 'route-direct', label: 'IP-adres (direct)' });
       buttons.push({ act: 'terug', label: 'Terug' });
       return V({
-        title: wat,
-        lines: [
-          s.actie === 'nieuw' ? 'Hoe wil je dit spel spelen?' : 'Hoe wil je deze keer spelen? Je voortgang is één en dezelfde, alleen of samen.',
-          s.caps.online ? 'Online loopt rechtstreeks tussen jullie twee, zonder server van een ander. De host speelt Tammo en bewaart het spel, de gast speelt Tessa.' : 'Online spelen kan alleen in de desktop-app.',
-        ],
+        title: 'Iemand uitnodigen',
+        lines: ['Kamercode: werkt overal, ook in de browser, via openbare servers.',
+          s.caps.direct ? 'IP-adres: rechtstreeks naar jou, zonder servers van anderen. Je router moet UPnP hebben.' : 'Het IP-adres (direct) kan alleen in de desktop-app.'],
         buttons,
       });
     }
-    case 'alleen':
-      return V({ title: wat, lines: ['Je speelt alleen; Tessa loopt als metgezel mee.'], buttons: [{ act: 'start-alleen', label: 'Spelen', primary: true }, { act: 'terug', label: 'Terug' }] });
-    case 'lokaal':
+    case 'toestemming':
       return V({
-        title: 'Samen op één scherm',
-        lines: ['Tammo speelt met WASD of de pijltjes. Tessa speelt met IJKL en U om te rennen, of met een tweede gamepad. Wat jullie samen halen, telt voor je spel.'],
-        buttons: [{ act: 'start-lokaal', label: 'Spelen', primary: true }, { act: 'terug', label: 'Terug' }],
+        title: 'Eerst even toestemming',
+        lines: [CONSENT_TEXT[s.route], CONSENT_DETAIL[s.route]],
+        buttons: [{ act: 'akkoord', label: 'Akkoord en verbinden', primary: true }, { act: 'terug', label: 'Annuleren' }],
       });
     case 'host-maakt-code':
-      return V({ title: 'Online: host', lines: ['Je code wordt gemaakt. Er wordt gekeken of je router een poort wil openen…'], buttons: [{ act: 'terug', label: 'Annuleren' }] });
+      return V({ title: 'Iemand uitnodigen', lines: [s.route === ROUTES.DIRECT ? 'Je router wordt gevraagd een poort te openen…' : 'Je kamercode wordt gemaakt…'], buttons: [{ act: 'terug', label: 'Annuleren' }] });
     case 'host-wacht': {
-      const lines = ['Geef deze code aan je medespeler. Zodra die hem invoert, begint het spel.'];
+      const lines = [s.route === ROUTES.DIRECT ? 'Geef dit adres of deze code aan je medespeler. Zodra die verbindt, komt Tessa naast je staan.' : 'Geef deze kamercode aan je medespeler. Zodra die hem invoert, komt Tessa naast je staan.'];
       if (s.note) lines.push(s.note);
       if (s.lanCode && s.lanCode !== s.code) lines.push('Op hetzelfde netwerk werkt ook de lokale code: ' + s.lanCode);
-      return V({ title: 'Online: host', lines, code: s.code, buttons: [{ act: 'kopieer', label: 'Kopieer mijn code' }, { act: 'terug', label: 'Stoppen' }] });
+      return V({ title: 'Iemand uitnodigen', lines, code: s.code, buttons: [{ act: 'kopieer', label: 'Kopieer', primary: true }, { act: 'terug', label: 'Stoppen' }] });
     }
     case 'gast-typt':
       return V({
-        title: 'Online: aansluiten', lines: ['Voer de code van de host in. Jij speelt Tessa; de host bewaart het spel.'],
-        input: { placeholder: 'GDE2-…', value: s.caps.laatsteCode || '' },
-        buttons: [{ act: 'koppel', label: 'Verbinden', primary: true }, { act: 'terug', label: 'Terug' }],
+        title: 'Aansluiten', lines: ['Voer de kamercode of de koppelcode van de host in. Jij speelt Tessa; jouw voortgang blijft van jou.'],
+        input: { placeholder: 'Kamercode of GDE2-…', value: s.caps.laatsteCode || '' },
+        buttons: [{ act: 'koppel', label: 'Verder', primary: true }, { act: 'terug', label: 'Terug' }],
       });
     case 'verbinden':
       return V({ title: 'Verbinden…', lines: ['Even geduld. Dit duurt een paar seconden.'], buttons: [{ act: 'terug', label: 'Annuleren' }] });
-    case 'verbonden':
+    case 'verbonden': {
+      const naam = PARTNER_NAME[s.rol] || 'je medespeler';
+      const lag = s.status === 'lag';
+      const host = s.rol === ROLES.HOST;
       return V({
-        title: 'Verbonden',
-        lines: [s.status === 'lag' ? 'De verbinding haperde even. We wachten op de ander.' : 'Jullie spelen samen.'],
-        buttons: [{ act: 'verbreek', label: 'Verbinding verbreken' }],
+        title: 'Je speelt samen',
+        lines: [`Je speelt met ${naam}.` + (lag ? ' De verbinding haperde even; we wachten op de ander.' : ''),
+          host ? 'Je gast kan er elk moment uit. Je kunt hem ook zelf verwijderen.' : 'Je kunt er elk moment uit; je komt terug waar je was, met jouw voortgang.'],
+        buttons: [{ act: 'verbreek', label: host ? 'Gast verwijderen' : 'Spel verlaten' }],
       });
+    }
     case 'verbroken': {
-      const host = s.mode === MODES.HOST;
+      const host = s.rol === ROLES.HOST;
       return V({
         title: 'Verbinding weg',
         lines: [
           'De ander is niet meer bereikbaar. Het spel staat stil tot jullie weer verbonden zijn.',
-          host ? 'Wil je niet wachten? Dan speel je alleen verder en loopt Tessa als metgezel mee.' : 'Voer de code van de host opnieuw in, of stop met samen spelen.',
+          host ? 'Wil je niet wachten? Dan speel je alleen verder en loopt Tessa als metgezel mee.' : 'Voer de code van de host opnieuw in, of stop met samen spelen; je komt terug waar je was.',
         ],
         buttons: [{ act: 'hervat', label: 'Opnieuw verbinden', primary: true }, { act: 'verbreek', label: host ? 'Alleen verder' : 'Stoppen' }],
       });
@@ -120,7 +167,7 @@ export function view(s) {
   }
 }
 
-// Verbindingsstatus voor een klein bolletje in de HUD: kleur-onafhankelijk (tekst erbij).
+// Verbindingsstatus voor het partnerlabel: kleur-onafhankelijk (tekst erbij).
 export function statusBadge(status, rttSec = 0) {
   if (status === 'ok') return rttSec > 0.25 ? { level: 'traag', text: 'Traag' } : { level: 'goed', text: 'Verbonden' };
   if (status === 'lag') return { level: 'traag', text: 'Haperend' };
