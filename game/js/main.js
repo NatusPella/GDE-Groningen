@@ -111,6 +111,7 @@ import { initFlavour3D, updateFlavour3D } from './flavour3d.js';
 import { prepareHomeMap, initHome, updateHome, updateHomeExterior, tryHomeInteract, homeSpawnPoint, parkHeroAtHome } from './home.js';
 import { updateDrunk } from './drunk.js';
 import { updateHelis } from './heliflight.js';
+import { planeKind } from './planeflight.js';
 import { scaledTarget, simLevel, nextSimFrame, farAIDist, skipFar, takeDt, keepVehicle } from './simload.js';
 import { getSettings } from './settings.js';
 import { MODS } from './cheatmods.js';
@@ -122,6 +123,7 @@ import { updateRegioLeven } from './regiolevenrt.js';
 registerActivityKind({ id: 'activities', init: initActivities, slot: 'act', interact: tryActivityInteract, tickPhase: 'world', tick: updateActivitiesWorld });
 registerActivityKind({ id: 'postgame', initPhase: 'late', tickRank: 0, init: initPostgame, slot: 'pre', interact: tryPostgameInteract, tickPhase: 'late', tick: updatePostgame });
 registerActivityKind({ id: 'sidejobs', initPhase: 'late', tickRank: -1, init: initSideJobs, slot: 'job', interact: trySideJobInteract, tickPhase: 'late', tick: updateSideJobs });
+registerActivityKind(planeKind);
 registerActivityKind({ id: 'ommeland', initPhase: 'early', init: initOmmelandFun, slot: 'uitje', interact: tryOmmelandInteract, tickPhase: 'late', tick: updateOmmelandFun });
 
 // More life on the water: small paddle and pedal craft make up most of the
