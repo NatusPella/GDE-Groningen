@@ -1,4 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { canvasTex } from './canvastex.js';
 import { getScene } from './scene3d.js';
 import { buildPersonMesh } from './models3d_people.js';
 import { buildHorseMesh } from './countryside.js';
@@ -74,14 +75,7 @@ function discover(w, id, body) {
 
 // --- textures and small builders -------------------------------------------------------
 
-function canvasTex(w, h, draw) {
-  const c = document.createElement('canvas');
-  c.width = w; c.height = h;
-  draw(c.getContext('2d'), w, h);
-  const t = new THREE.CanvasTexture(c);
-  t.colorSpace = THREE.SRGBColorSpace;
-  return t;
-}
+
 
 function heart(g, x, y, s) {
   g.beginPath();

@@ -13,6 +13,8 @@ import { splatterPed, bleedPed, GIB_SPEED } from './gore3d.js';
 import { knockFx } from './knockfx3d.js';
 import { walkRoute, processPedPlanQueue, buildPedAvoidGrid, separatePeds, makeCompanion } from './pedroutes.js';
 import { reportCrime } from './crime.js';
+import { hash2 } from './rng.js';
+import { dayState } from './daynight.js';
 
 const WANDER_SPEED = 1.3;
 const FLEE_SPEED = 3.6;
@@ -565,10 +567,6 @@ export function soakPed(ped, world, fromX, fromY) {
 const RIDER_CLOSING = 3.5;
 const RIDER_CLOSING_AMBIENT = 6;
 
-function hash2(x, y) {
-  const h = Math.sin(x * 127.1 + y * 311.7) * 43758.5453;
-  return h - Math.floor(h);
-}
 
 // A bike or scooter hit hard enough loses its rider: the built-in rider on
 // the bike mesh is hidden (ragdoll.syncBikeRider) and an identical-looking
@@ -809,10 +807,6 @@ const POP_NIGHT_CENTRE = 30;
 const NIGHTLIFE_EXTRA = 18;
 let popTimer = 0;
 
-function nightFactor(world) {
-  return world.dayNight?.night ?? 0;
-}
-
 function hotspotNear(x, y) {
   return NIGHT_HOTSPOTS.find((h) => dist(x, y, h.x, h.y) < h.r + 60) || null;
 }
@@ -846,7 +840,7 @@ function spawnNightGroup(world) {
 
 function managePopulation(world) {
   const { player } = world;
-  const night = nightFactor(world) > 0.5;
+  const night = dayState(world).isNight;
   const inCentre = dist(player.x, player.y, CITY_CENTRE.x, CITY_CENTRE.y) < CITY_CENTRE.r;
   const hot = night && hotspotNear(player.x, player.y);
   let walkers = 0, nightlife = 0;
