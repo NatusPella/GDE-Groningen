@@ -8,7 +8,7 @@ their outline, mills, lighthouses, borgen; mosques and nameless sheds are left o
 the file modest (--cap items outside the Ommeland box). Rerunnable: it keeps
 what lies inside the box and replaces the rest.
 
-    python3 scripts/add_landmark_kits_province.py [--cap 300] [--list]
+    python3 scripts/add_landmark_kits_province.py [--cap 300] [--data GLOB] [--list]
 """
 import glob
 import gzip
@@ -25,6 +25,9 @@ from rdnew import wgs_to_world, world_to_wgs  # noqa: E402
 
 ROOT = os.path.dirname(HERE)
 PACKS = os.path.join(ROOT, "data", "cache", "province", "c*.json.gz")
+# per-kind caps for the everyday kits (landmarkkit.js: farm, silo, factory, flat,
+# townhall, station, school, museum; issue #164), chosen by name and size
+EVERYDAY = {"townhall": 60, "station": 30, "museum": 25, "silo": 40, "factory": 40, "flat": 60, "school": 40, "farm": 60}
 
 
 def in_box(lat, lon):
@@ -39,6 +42,24 @@ def kind(t):
         return "mill"
     if mm == "lighthouse":
         return "lighthouse"
+    if t.get("amenity") == "townhall":
+        return "townhall"
+    if t.get("railway") == "station" and t.get("name") and not t.get("subway"):
+        return "station"
+    if b == "train_station" and t.get("name"):
+        return "station"
+    if t.get("tourism") == "museum" and t.get("name"):
+        return "museum"
+    if mm == "silo" or b == "silo":
+        return "silo"
+    if t.get("amenity") == "school" and t.get("name") and b in ("school", "yes", "public", ""):
+        return "school"
+    if b == "farm" or (b == "farm_auxiliary" and t.get("name")):
+        return "farm"
+    if b == "industrial" and t.get("name"):
+        return "factory"
+    if b == "apartments" and (t.get("building:levels", "0") or "0").isdigit() and int(t.get("building:levels", "0")) >= 8:
+        return "flat"
     if hi in ("castle", "manor") or b == "castle":
         return "castle"
     if t.get("amenity") == "place_of_worship" or b in ("church", "chapel", "cathedral") or hi in ("church", "monastery"):
@@ -62,6 +83,8 @@ def score(it):
         s += 3
     if it["k"] in ("mill", "castle", "lighthouse"):
         s += 6
+    if it["k"] in EVERYDAY:
+        s += 1
     if it["k"] == "church":
         s += 2
     if "o" in it:
@@ -72,8 +95,9 @@ def score(it):
 
 def main():
     cap = int(sys.argv[sys.argv.index("--cap") + 1]) if "--cap" in sys.argv else 300
+    packs = sys.argv[sys.argv.index("--data") + 1] if "--data" in sys.argv else PACKS  # e.g. <main checkout>/data/cache/province/c*.json.gz
     found, seen = [], set()
-    for f in sorted(glob.glob(PACKS)):
+    for f in sorted(glob.glob(packs)):
         for el in json.load(gzip.open(f))["elements"]:
             t = el.get("tags") or {}
             k = kind(t)
@@ -115,7 +139,19 @@ def main():
             continue
         grid[c] = it
         keep.append(it)
-    keep = keep[:cap]
+    # the everyday kits keep their own caps (they would drown the churches and mills)
+    counts_k, kept = {}, []
+    for it in keep:
+        if it["k"] in EVERYDAY:
+            if it["k"] == "farm" and "o" not in it:
+                continue
+            counts_k[it["k"]] = counts_k.get(it["k"], 0) + 1
+            if counts_k[it["k"]] > EVERYDAY[it["k"]]:
+                continue
+            kept.append(it)
+        elif sum(1 for i in kept if i["k"] not in EVERYDAY) < cap:
+            kept.append(it)
+    keep = kept
     if "--list" in sys.argv:
         for i in keep:
             print(i["k"].ljust(9), (i["n"] or "-").ljust(36), round(score(i), 1))
