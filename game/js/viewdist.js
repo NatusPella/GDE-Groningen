@@ -13,6 +13,38 @@ export function viewDistanceFor(setting, scale = 1, cpuLvl = 0) {
   return VIEW_DISTANCES[setting] || VIEW_DISTANCES.normaal;
 }
 
+// The high-detail radius (scene3d.js DRAW_DIST: full buildings, roads, street
+// furniture, walkers) per quality profile. It was one 140 m for everyone; a
+// better profile with a view distance of 350 m or more gets a bigger ring.
+// The cost grows with the area: DETAIL_DIST[q]^2 / 140^2 times the meshes of
+// the ring (hoog 1.84x), which stays inside the Hoog budget (GPU <= 1.2 GB):
+// scripts/viewdist_test.mjs keeps that ratio under DETAIL_AREA_MAX.
+export const DETAIL_BASE = 140;
+export const DETAIL_DIST = { laag: 140, middel: 160, hoog: 190 };
+export const DETAIL_AREA_MAX = 2;
+export function detailDistanceFor(quality, viewDist) {
+  if (!(viewDist >= 350)) return DETAIL_BASE;
+  return DETAIL_DIST[quality] || DETAIL_BASE;
+}
+
+// Rails and trains (railway3d.js) are long thin things that show on the
+// horizon, so they reach further than the 190 m they were fixed at: the view
+// distance times RAIL_VIEW.factor, within [min, max]. Memory: a chunk of
+// track is a few hundred KB of geometry, shared materials; RAIL_CHUNK_MB is
+// the budget estimate per chunk (scripts/viewdist_test.mjs keeps the worst
+// case far under the GPU budget of 1.2 GB on Hoog).
+export const RAIL_VIEW = { min: 190, factor: 1.15, max: 800 };
+export const RAIL_CHUNK = 250;
+export const RAIL_CHUNK_MB = 0.5;
+export function railViewDistance(viewDist, cfg = RAIL_VIEW) {
+  return Math.min(cfg.max, Math.max(cfg.min, viewDist * cfg.factor));
+}
+// most chunks that can be resident at that reach (every cell of the square full)
+export function railChunkCount(view) {
+  const n = Math.ceil((2 * (view + RAIL_CHUNK * 0.71)) / RAIL_CHUNK) + 1;
+  return n * n;
+}
+
 // Ommeland props (countryside.js) stream a little past the fog; beyond 'ver'
 // they stop at 95% of the view distance, where the fog has nearly hidden them
 // and the skyline belts take over.
