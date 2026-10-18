@@ -1671,6 +1671,15 @@ const HULL_SHAPES = {
     f: (t) => Math.pow(Math.max(0, Math.sin(Math.PI * Math.min(1, t * 0.98 + 0.01))), 0.55),
     top: () => 0.13, rise: () => 0, chine: -0.02, keel: -0.1, floor: 0.04, deck: true, chineK: 0.85,
   },
+  // Inland barge (spits, Kempenaar): a long box hull with a rounded bow, a
+  // slightly raked stern and a flat bottom; hold, hatches and the wheelhouse
+  // aft come from binnenvaartFit
+  binnenvaart: {
+    ts: [0, 0.03, 0.08, 0.2, 0.5, 0.8, 0.92, 0.97, 1],
+    f: (t) => (t < 0.08 ? 0.45 + 0.55 * Math.sin((t / 0.08) * Math.PI / 2) : t < 0.92 ? 1 : 0.86 + 0.14 * Math.cos(((t - 0.92) / 0.08) * Math.PI / 2)),
+    top: (t) => 1.1 + 0.2 * Math.max(0, (t - 0.9) / 0.1) + 0.28 * Math.max(0, (0.08 - t) / 0.08),
+    rise: (t) => Math.max(0, (t - 0.9) / 0.1) * 0.3, chine: -0.7, keel: -1.0, floor: 0.35, chineK: 0.93,
+  },
   // Frisian skûtsje: flat bottom, full round bow with a high sheer, a
   // squarish stern; the hold is decked over with hatches (skutsjeFit)
   skutsje: {
@@ -1819,6 +1828,55 @@ function sloepFit(B, st, L, W, hull, cabin, police) {
     B.box(cx - 0.8, 0.68, cz, 0.04, 0.36, 0.34, WOOD, 0, 0, 0, 0.12);
   }
   cityFlag(B, -hl + 0.05, 0.5, 0);
+}
+
+// Inland barge: decks fore and aft, a coaming with hatch covers over the
+// hold, a wheelhouse with a radar mast aft, bollards and a bow winch. The
+// livery colour is the hull; `cabin` paints the wheelhouse and the hatches.
+function binnenvaartFit(B, st, L, W, hull, cabin) {
+  const hl = L / 2;
+  const hatch = shadeHex(hull, 1.35), dark = shadeHex(hull, 0.7);
+  const foreX = hl - 0.6, holdFore = hl - 6.5, holdAft = -hl + 11, aftX = -hl + 0.6;
+  // decks fore and aft of the hold
+  for (const [x0, x1] of [[holdFore, foreX], [aftX, holdAft]]) {
+    for (let x = x0; x < x1 - 0.01; x += 1.2) {
+      const xm = Math.min(x1, x + 1.2), h = hullAt(st, (x + xm) / 2);
+      B.box((x + xm) / 2, h.top - 0.04, 0, xm - x, 0.08, Math.max(0.2, h.hw * 2 - 0.1), 0x5d5f60);
+    }
+  }
+  // gunwale strip and hatch coaming
+  const deckTop = st[Math.floor(st.length / 2)].top;
+  const cw = W - 1.2, cl = holdFore - holdAft;
+  B.box((holdFore + holdAft) / 2, deckTop + 0.2, 0, cl, 0.4, cw, dark);
+  // hatch covers: a row of ridged boxes, the ribs a shade darker
+  const n = Math.max(3, Math.round(cl / 4.2)), hlen = cl / n;
+  for (let i = 0; i < n; i++) {
+    const x = holdAft + hlen * (i + 0.5);
+    B.box(x, deckTop + 0.5, 0, hlen - 0.18, 0.2, cw - 0.2, hatch);
+    B.box(x, deckTop + 0.63, 0, hlen - 0.5, 0.08, cw - 0.7, shadeHex(hatch, 0.9));
+  }
+  // wheelhouse aft: a box with a window band, an overhanging roof, a mast
+  const wx = -hl + 3.6, wl = 4.6, ww = Math.min(W * 0.78, W - 1.0), base = deckTop;
+  B.box(wx, base + 0.9, 0, wl, 1.8, ww, cabin);
+  B.box(wx + 0.05, base + 1.15, 0, wl - 0.2, 0.7, ww + 0.06, GLASS, G_GLASS);
+  B.box(wx + 0.05, base + 1.15, 0, wl + 0.02, 0.7, ww - 0.9, GLASS, G_GLASS);
+  B.box(wx, base + 1.9, 0, wl + 0.6, 0.12, ww + 0.5, shadeHex(cabin, 0.8));
+  B.box(wx - 1.2, base + 2.05, 0, 0.5, 0.18, 0.5, 0x3a3c3e);
+  // radar mast, folded height: its top is the barge's air draft (4.2 m)
+  B.box(wx + 0.4, base + 2.5, 0, 0.12, 1.1, 0.12, 0x2a2a2b);
+  B.box(wx + 0.4, base + 3.05, 0, 0.5, 0.1, 0.9, 0x2a2a2b);
+  B.box(wx + 0.4, base + 3.17, 0, 0.1, 0.1, 0.1, NAV_WHITE, G_LAMP);
+  // fixed-bridge bow: winch, bollards and a bow lamp
+  B.box(hl - 2.2, deckTop + 0.3, 0, 1.2, 0.6, 1.4, dark);
+  for (const s of [1, -1]) {
+    B.box(hl - 1.0, deckTop + 0.25, s * (W / 2 - 0.6), 0.3, 0.5, 0.3, 0x2a2a2b);
+    B.box(-hl + 1.0, deckTop + 0.25, s * (W / 2 - 0.6), 0.3, 0.5, 0.3, 0x2a2a2b);
+  }
+  B.box(hl - 0.5, deckTop + 1.0, 0, 0.08, 1.4, 0.08, 0x2a2a2b);
+  B.box(hl - 0.5, deckTop + 1.75, 0, 0.1, 0.1, 0.1, NAV_WHITE, G_LAMP);
+  // stern light and the colour stripe of the name board
+  B.box(-hl + 0.02, deckTop + 0.5, 0, 0.06, 0.1, 0.1, NAV_WHITE, G_LAMP);
+  for (const s of [1, -1]) B.box(hl * 0.55, deckTop - 0.35, s * (hullAt(st, hl * 0.55).hw + 0.005), 3.2, 0.3, 0.03, 0xe8e6e0);
 }
 
 function rondvaartFit(B, st, L, W, hull, cabin) {
@@ -2170,6 +2228,7 @@ function buildBoatGeometry(kind, L, W, hull, trim, cabin, police) {
       case 'dinghy': dinghyFit(B, st, L); break;
       case 'rubberboot': rubberFit(B, st, L, W, hull, cabin || 0xd8572a); break;
       case 'skutsje': skutsjeFit(B, st, L, W); break;
+      case 'binnenvaart': binnenvaartFit(B, st, L, W, hull, cabin || 0xe8e6e0); break;
       default: sloepFit(B, st, L, W, hull, cabin, police);
     }
     if (kind === 'kano' || kind === 'kajak') {
@@ -2187,7 +2246,7 @@ function buildBoatMesh(v) {
   const kind = police ? 'sloep' : boatKind(v);
   const hull = v.wrecked ? WRECKED_COLOR : toHex(v.model.color, 0xe8e6e0);
   const cabinColor = toHex(v.model.cabin, 0x2f3a44);
-  const trims = kind === 'skutsje' ? [0x2a211b] : kind === 'rondvaart' ? [0xe8e6e0, 0xc9a227] : kind === 'kano' || kind === 'kajak' || kind === 'sup' ? [shadeHex(hull, 0.7), 0x2a2a2b] : kind === 'skiff' || kind === 'acht' ? [0xc8502a, 0x1f4f9a, 0x2f7d46, 0x6a2e8a] : [0x21468b, 0x2f4a3a, 0x6b2a24, 0x9a7048];
+  const trims = kind === 'skutsje' ? [0x2a211b] : kind === 'binnenvaart' ? [0xe8e6e0] : kind === 'rondvaart' ? [0xe8e6e0, 0xc9a227] : kind === 'kano' || kind === 'kajak' || kind === 'sup' ? [shadeHex(hull, 0.7), 0x2a2a2b] : kind === 'skiff' || kind === 'acht' ? [0xc8502a, 0x1f4f9a, 0x2f7d46, 0x6a2e8a] : [0x21468b, 0x2f4a3a, 0x6b2a24, 0x9a7048];
   const trim = police ? 0x1f3f8f : trims[Math.floor(hash2(v.id || 0, 8.1) * trims.length)];
   const cabin = kind === 'sloep' ? (boatHasCabin(v) ? cabinColor : 0) : cabinColor;
   group.add(new THREE.Mesh(buildBoatGeometry(kind, len, wid, hull, trim, cabin, police), vehicleMaterials()));

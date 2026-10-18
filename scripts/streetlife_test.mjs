@@ -75,6 +75,21 @@ ok(D.pickWaterLife(rng, { hour: 8, d: 3000, profile: 'standaard', wide: true, ha
 let narrowAcht = 0;
 for (let i = 0; i < 2000; i++) if (wl(8, { skiff: 0, acht: 0, sup: 0 }, { wide: false }) === 'acht') narrowAcht++;
 ok(narrowAcht === 0, 'an eight only on wide water');
+// inland barges: only on broad shipping canals, capped, also in the polders and at night
+let barges = 0;
+for (let i = 0; i < 2000; i++) { const k = D.pickWaterLife(rng, { hour: 3, d: 3000, profile: 'standaard', wide: true, width: 40, nav: 4, have: { binnenvaart: 0 } }); if (k === 'spits' || k === 'kempenaar') barges++; }
+ok(barges > 500, `barges on a shipping canal, polders and night included (${barges})`);
+ok(D.pickWaterLife(rng, { hour: 12, d: 600, profile: 'student', wide: true, width: 40, nav: 3, have: { binnenvaart: 0 } }) !== 'spits', 'no barge on class 3 water');
+let narrowBarge = 0;
+for (let i = 0; i < 500; i++) if (['spits', 'kempenaar'].includes(D.pickWaterLife(rng, { hour: 12, d: 3000, profile: 'standaard', wide: false, width: 12, nav: 4, have: {} }))) narrowBarge++;
+ok(narrowBarge === 0, 'no barge on a canal under 24 m wide');
+ok(D.pickWaterLife(rng, { hour: 12, d: 3000, profile: 'standaard', wide: true, width: 40, nav: 4, have: { binnenvaart: 2 } }) === null, 'cap: two barges near');
+for (const k of ['spits', 'kempenaar']) {
+  const m = B.BOAT_KINDS[k];
+  ok(m && m.kind === 'binnenvaart' && m.name === 'boat' && m.len > 30 && m.wid > 4.5 && m.maxSpeed > 0, `${k} is a usable barge model`);
+  ok(B.boatSeats({ model: m, id: 3 }).length >= 1 && B.boatIsMotorised({ model: m }), `${k} has a skipper's seat and lights`);
+}
+ok(B.BINNENVAART_NAMES.length >= 10 && B.BINNENVAART_NAMES.every((x) => typeof x === 'string') && typeof B.binnenvaartName({ id: 5 }) === 'string', 'invented barge names');
 for (const k of ['skiff', 'acht']) {
   const m = B.BOAT_KINDS[k];
   ok(m && m.name === 'boat' && Number.isFinite(m.len) && Number.isFinite(m.wid) && m.maxSpeed > 0, `${k} is a usable boat model`);
