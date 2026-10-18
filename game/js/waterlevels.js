@@ -87,13 +87,16 @@ export function waterwayClass(poly) {
   const nav = poly.nav ?? (WATER_KINDS[poly.kind] || WATER_KINDS.diep).nav, w = poly.pts ? meanWidth(poly) : Infinity;
   if (poly.kind === 'sloot' || poly.kind === 'vijver' || poly.kind === 'vaart' || nav < 3) return 'klein';
   if (poly.name && SMALL_WATER.test(poly.name)) return 'klein';
-  if (w < BARGE_MIN_WIDTH) return 'klein';
+  // a canal drawn in strips: a strip of a named main waterway is narrow by itself; the room round the boat (BARGE_MIN_CLEAR) judges its real width
+  const named = !!poly.name && (MAIN_WATERWAYS.test(poly.name) || SHIPPING_NAMES.test(poly.name));
+  if (w < BARGE_MIN_WIDTH && !(named && nav >= 4)) return 'klein';
   if (nav >= 4) return 'hoofd';
   return poly.name && /haven|dok/i.test(poly.name) ? 'haven' : 'klein';
 }
 export const bargeWater = (poly) => { const c = waterwayClass(poly); return c === 'hoofd' || c === 'haven'; };
-// the same by what waterAt returns (no width there): a ditch, pond or vaart is never barge water
-export const bargeWaterAt = (w) => !!w && w.navigable >= 4 && w.kind !== 'sloot' && w.kind !== 'vijver' && w.kind !== 'vaart';
+// the same by what waterAt returns (no width there): a ditch or vaart is never barge water. A pond
+// is left out on purpose: the city map draws pond polygons over canals the province data has (#234).
+export const bargeWaterAt = (w) => !!w && w.kind !== 'sloot' && w.kind !== 'vaart' && w.navigable >= 3;
 // the deck of a city bridge: its top at the road, its soffit this far below
 export const BRIDGE_DECK_T = 0.5;
 
