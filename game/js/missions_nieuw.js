@@ -4,6 +4,8 @@
 // Kept out of missions.js so the old arc's voice coverage (scripts/voicelines_collect.mjs reads that
 // file) does not see their hint texts, which are text only.
 
+import { buildAkte5Defs, applyAkte5 } from './missions_akte5.js';
+
 // The def pieces: walk(x, y) / drive(x, y) are missions.js's road spots.
 export function buildNieuwDefs({ map, walk, drive }) {
   const list = [];
@@ -64,6 +66,7 @@ export function buildNieuwDefs({ map, walk, drive }) {
       say: 'Eerst de Grote Markt: vijftienhonderd stuntpunten, zonder krassen. Daarna het Boterdiep.',
     },
   );
+  list.push(...buildAkte5Defs({ map, walk, drive }));
   return list;
 }
 
@@ -114,6 +117,7 @@ export function applyNieuw(list) {
     vet.costRow = ['Gered', 'Plakje twee: het vet blijft in Grunn'];
     vet.vehicleFail = { gone: 'Femkes auto is foetsie, en de tankwagen rijdt door', wrecked: 'de auto is total loss. Femke wil hem niet zo terug', left: 'je liet de auto staan. Zonder auto geen tankwagen' };
   }
+  applyAkte5(list);
   const mus = by('Het museum stond er al zo');
   if (mus) {
     // the black clothes and the boat are in the intro now (08 §2): only the dark is needed, and the call from home
