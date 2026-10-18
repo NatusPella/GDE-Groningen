@@ -5,6 +5,7 @@
 import { readFileSync } from 'node:fs';
 import { compileScene, validateScene } from '../game/js/cutscript.js';
 import { SPECS, missionScene } from '../game/js/cutscenes_akte1.js';
+import { SPECS_AKTE2 } from '../game/js/cutscenes_akte2.js';
 
 let fails = 0, n = 0;
 const ok = (c, name, extra = '') => { n++; if (!c) { fails++; console.log('FAIL', name, extra); } };
@@ -39,7 +40,7 @@ function linesOf(ids) {
   return { lines: out, total: t + 0.3 };
 }
 
-for (const key of Object.keys(SPECS)) {
+for (const key of Object.keys(SPECS).filter((k) => !(k in SPECS_AKTE2))) {
   ok(SCENES[key], key + ' has a script scene', key);
   const { lines, total } = linesOf(SCENES[key]);
   const def = missionScene(key, lines, { looks });

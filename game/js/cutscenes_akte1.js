@@ -18,6 +18,8 @@
 // missionScene(key, lines, { looks }) -> a cutscript scene def, or null when the key has no spec.
 // looks: the NPC table of missionstory.js ({ name, shirt, skin, ... } per key).
 
+import { SPECS_AKTE2 } from './cutscenes_akte2.js';
+
 const DUO = {
   tammo: { look: 'tammo', at: [0, 0.6], face: 0, anim: 'idle', speaker: 'Tammo', gaze: 'speaker' },
   tessa: { look: 'anita', at: [0, -0.6], face: 0, anim: 'idle', speaker: ['Anita', 'Tessa'], gaze: 'speaker' },
@@ -45,6 +47,8 @@ const merge = (...parts) => ({
 });
 
 export const SPECS = {};
+// act 2 (M08-M11) is staged in its own file
+Object.assign(SPECS, SPECS_AKTE2);
 
 // --- M01 Nul krassen: Berend and his pickup at the Martinikerkhof ---------------------------
 {
