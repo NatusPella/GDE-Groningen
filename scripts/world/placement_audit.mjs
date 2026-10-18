@@ -68,7 +68,7 @@ function boxGrid(items, boxOf, pad = 0) {
 }
 
 // (x, y) inside a water polygon (islands cut out)
-function waterIndex(water) {
+export function waterIndex(water) {
   const rows = water.filter((w) => w && w.pts && w.pts.length >= 4).map((w) => ({ pts: w.pts, b: bounds(w.pts) }));
   const at = boxGrid(rows, (r) => r.b);
   return (x, y) => {
