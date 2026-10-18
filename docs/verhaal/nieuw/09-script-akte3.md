@@ -10,6 +10,7 @@ DOKTER DIJKSTRA: Eerst de lunch. Achterin staat een koeltas. Die hebben twaalf u
 TESSA: Dat is geen noodgeval. [BEHOUDEN]
 DOKTER DIJKSTRA: Jij hebt nooit nachtdienst gedaan. Landen op de H van het UMCG, graag. [BEHOUDEN]
 DOKTER DIJKSTRA: Dan de ballon. Ik heb een lier. Zij houdt de heli stil naast de mand. Hij hangt en pakt de tas. [NIEUW]
+TESSA: Ik heb drie lessen gehad en een jaar gegamed. Dat is meer dan Tammo. [NIEUW]
 TAMMO: Natuurlijk hang ík. [BEHOUDEN]
 TESSA: Ik vraag het, Tammo. Wil je hangen? [BEHOUDEN]
 TAMMO: …Ja. Dank je dat je het vraagt. [BEHOUDEN]
@@ -54,7 +55,7 @@ DOKTER DIJKSTRA: Weer een spoedje? Ik zet het deze keer in het rooster. [BEHOUDE
 ## [M13.1] Het containerlabyrint: intro – Eemsdelta, Eemshaven, de kade – te voet
 (regie: vrijdagnacht 21 augustus. Windmolenbladen, kabelhaspels, kolenbergen, een paar containers, een kraan, schijnwerpers. Naamkaart: LAMMERT. Gameplay: een sluipmissie tussen de opslag; container 4471 vinden en de papieren verwisselen.)
 TESSA: Wij komen van Oma Trijntje. In Jelles koopboek staat dat zijn schip vannacht met de voorraad van haar vrienden uit de Eemshaven vertrekt. [NIEUW]
-LAMMERT: Ik ben Lammert, havenmeester. Ik danste in 1953 met Trijntje. Dat vergeet ze niet. [NIEUW]
+LAMMERT: Ik ben Lammert, havenmeester. Mijn vader danste in 1953 met Trijntje. Dat vergeet zij niet. [NIEUW]
 TESSA: Jelles tweede partij staat in container 4471: alles wat de vrienden van Oma niet in veiligheid konden brengen. Het schip vertrekt om zes uur. [NIEUW]
 LAMMERT: Hier zijn de papieren. Jullie wisselen ze om. Dan blijft alles hier. [NIEUW]
 TAMMO: Eén container tussen alle windmolenbladen en kabelhaspels? [NIEUW]
@@ -88,8 +89,8 @@ TAMMO: Klopt. [NIEUW]
 ## [M13.4] Het containerlabyrint: herhaling – Eemsdelta, Eemshaven – te voet
 LAMMERT: De bewaker kijkt nog steeds omhoog. Hij wacht al een uur. [NIEUW]
 
-## [M14.1] De dijk: intro – Eemsdelta, Bierum, de dijk – Escapade
-(regie: zaterdag 22 augustus, zonsopgang. Jelles trekker-limo staat naast de Escapade, op de dijk bij Bierum. Jelle is droog en keurig, naast hem zit een deurwaarder met een map. Gameplay: een race over de dijk naar de sluis van Delfzijl, met zijwind en schapen.)
+## [M14.1] De dijk: intro – Eemsdelta, Bierum, de dijk – auto van Lammert
+(regie: zaterdag 22 augustus, zonsopgang. Jelles trekker-limo staat naast de auto van Lammert, op de dijk bij Bierum. Jelle is droog en keurig, naast hem zit een deurwaarder met een map. Gameplay: een race over de dijk naar de sluis van Delfzijl, met zijwind en schapen.)
 JELLE: Goedemorgen. Mijn deurwaarder legt om acht uur beslag op de ligplaats van het woonschip van meneer Lammert. Ik heb gisteren zijn huurachterstand gekocht. [NIEUW]
 TESSA: Daar ligt de reservepartij van de vrienden van Oma. En Trijntje tekent om acht uur de overdracht, op de sluis, als wij er zijn. [NIEUW]
 JELLE: Dan raad ik u aan eerder aan de sluis te zijn dan mijn deurwaarder. Wie wint, mag famke een eierbal geven. [NIEUW]
@@ -102,7 +103,7 @@ TAMMO: Ik rij. [NIEUW]
 TESSA: Ik zeg: links, rechts, schaap. [NIEUW]
 TAMMO: Daar heb ik niks aan. [NIEUW]
 
-## [M14.2] De dijk: tijdens de race – Eemsdelta, dijkweg – Escapade
+## [M14.2] De dijk: tijdens de race – Eemsdelta, dijkweg – auto van Lammert
 TESSA: Schaap links. [NIEUW]
 TAMMO: Ik zie het. [NIEUW]
 TESSA: Zijwind. Niet aan het stuur trekken. [NIEUW]
@@ -111,8 +112,8 @@ TESSA: Je hebt net getrokken. [NIEUW]
 JELLE (telefoon): Mevrouw, kom maar mee in mijn limo. Daar is plek. [NIEUW]
 TESSA: Rij, Tammo. [NIEUW]
 
-## [M14.3] De dijk: na de finish – Eemsdelta, sluis Delfzijl – Escapade
-(regie: de Escapade en de limo bij de sluis. Tammo is eerst.)
+## [M14.3] De dijk: na de finish – Eemsdelta, sluis Delfzijl – auto van Lammert
+(regie: de auto van Lammert en de limo bij de sluis. Tammo is eerst.)
 LAMMERT: De overdracht is getekend, om vijf voor acht. Het beslag mislukt. [NIEUW]
 DEURWAARDER: Dat is een formaliteit die ik niet kan bestrijden. [NIEUW]
 TAMMO: Je ziet er goed uit met wind. [NIEUW]
@@ -124,7 +125,7 @@ TESSA: Tammo. Je bent rood. [NIEUW]
 TAMMO: Dat is de wind. [NIEUW]
 JELLE: Durk, Douwe, hoe vaak moet ik het zeggen? Contract is contract. Wij komen terug. [NIEUW]
 
-## [M14.4] De dijk: herhaling – Eemsdelta, dijkweg – Escapade
+## [M14.4] De dijk: herhaling – Eemsdelta, dijkweg – auto van Lammert
 JELLE: Weer een rondje? Dat neem ik jullie niet kwalijk. [NIEUW]
 
 ## [R3.1] Nachtstreek na de dijk – Stad – radio
@@ -167,7 +168,7 @@ JURYLID: Is dit waar? Jelle koopt de jury? [NIEUW]
 JELLE: Het is een proeverij. Er wordt geproefd en er wordt gesteld. [NIEUW]
 JURYLID: Ik stap eruit. [NIEUW]
 JURYLID: Ik ook. [NIEUW]
-ROELFIEN: Twee van de vijf juryleden zijn weggelopen. De rest zit nog bij Jelle. [NIEUW]
+ROELFIEN: Twee van de vier andere juryleden zijn weggelopen. De andere twee zitten nog bij Jelle. [NIEUW]
 TESSA: Twee weg. Dat scheelt, maar het is nog geen meerderheid. [NIEUW]
 ROELFIEN: De molen in Midwolda is van Jelle. Het fijne bloem krijg je daar niet meer. Ik heb mijn eigen graan. Dat is grof. [NIEUW]
 TESSA: Dan heeft Jelle de fijne bloem. [NIEUW]
@@ -188,7 +189,7 @@ TAMMO: Die barman heeft het druk. [BEHOUDEN]
 TESSA: O ja? Sinds wanneer bepaal jij dat? [BEHOUDEN]
 TAMMO: Sinds nu. [BEHOUDEN]
 TESSA: Jaloers? Jij? Wat heb je met Tammo gedaan? [BEHOUDEN]
-TESSA: Het plan: Durk en Douwe weten waar de bal is. We volgen ze langs drie tenten tot ze moe zijn, dan vragen we het ze in de botsauto's. [NIEUW]
+TESSA: Het plan: Durk en Douwe weten waar Jelle morgen heen gaat. We volgen ze langs drie tenten tot ze moe zijn, dan vragen we het ze in de botsauto's. [NIEUW]
 TAMMO: Ik drink maar één. [NIEUW]
 
 ## [M16.2] Nog eentje dan: tussen de tenten – Oldambt, Winschoten, de kermis – te voet
@@ -224,7 +225,7 @@ TAMMO: Au. [NIEUW]
 TESSA: Au. [NIEUW]
 
 ## [M16.5] Nog eentje dan: het antwoord – Oldambt, Winschoten, de kermis – botsautootje
-DURK: De bal… zit in baas zijn koffer. Hik. Onder het kussen van de limo. Baas rijdt maandag naar Veendam, voor de mosterd. [NIEUW]
+DURK: Baas rijdt maandag naar Veendam, voor de mosterd. Hik. De bal gaat mee, in de koffer onder het kussen van de limo. [NIEUW]
 DOUWE: Durk. Dat was geheim. …Hè. [BEHOUDEN]
 TESSA: Hij heeft hem echt. En hij draagt hem altijd bij zich. [NIEUW]
 TAMMO: Dan pakken we hem in Veendam. [NIEUW]
