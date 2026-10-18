@@ -371,7 +371,7 @@ function runStoryTest(win, dir) {
       done(report.result === 'PASS' && !nanWarnings ? 0 : 1);
     } else if (level === 'error' || level === 3) console.log('[renderer]', message);
   });
-  setTimeout(() => { console.log('[story-test] timeout'); done(2); }, 15 * 60 * 1000);
+  setTimeout(() => { console.log('[story-test] timeout'); done(2); }, (+process.env.GDE_STORY_TIMEOUT_MIN || 15) * 60 * 1000);
 }
 
 module.exports = { isTestRun, trailerSize: TRAILER_SIZE, queryParts, attach };
