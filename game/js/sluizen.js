@@ -22,7 +22,7 @@ export const SLUIS = {
   LAT_PAD: 6,         // m naast de kolk waarbinnen een boot "voor de sluis" ligt
   CLEAR_MAX_S: 12,    // s die een deur wacht op een boot in de deurzone
   STALE_S: 150,       // s zonder invaren: de aanvraag vervalt
-  MIN_LEN: 24, MAX_LEN: 90,   // m: kolklengte van het mechaniek (OSM tekent soms een heel kanaalstuk)
+  MIN_LEN: 24, MAX_LEN: 120,   // m: kolklengte van het mechaniek (OSM tekent soms een heel kanaalstuk)
   GATE_THICK: 0.9,    // m: de dikte van de deur als muur
 };
 
@@ -199,9 +199,9 @@ export function stepSluis(lock, dt, world = null) {
   // de cyclus: de deur sluit niet op een boot in de deurzone
   if (lock.state === 'ready') {
     const want = lock.queue.some((q) => q.side !== lock.at || q.inside);
-    if (want && lock.t >= 4 && gateBusy(lock, lock.at, world) && lock.stuck < SLUIS.CLEAR_MAX_S) {
+    if (want && gateBusy(lock, lock.at, world) && lock.stuck < SLUIS.CLEAR_MAX_S) {
       lock.stuck += dt;
-      lock.t = 4;                      // blijft staan tot de zone vrij is
+      lock.t = Math.min(lock.t + dt, 4);   // blijft staan tot de zone vrij is
       updateSignals(lock);
       return;
     }
