@@ -112,7 +112,7 @@ export const STEP_ALIAS = {
 const keep = (k, o) => ({ ...OUD_CHARACTERS[k], ...o });
 export const CHARACTERS = {
   anita: keep('anita', { step: 'M00', bio: 'Snel, ad rem en de baas van het duo. Nederlandse, niet in Stad geboren, zomers in Ljouwert naast Mem. Ze droomt van de Fjord Frituur, een eigen frietwagen, en regelt alles zelf. Ook de flat in Paddepoel, met Tammo als huisgenoot.' }),
-  tammo: keep('tammo', { step: 'M00' }),
+  tammo: keep('tammo', { step: 'M00', bio: 'Stadjer uit het Oosterpark, droog, met een rode Fjord Escapade die nauwelijks rijdt. Al twaalf jaar verliefd op zijn beste vriendin, en sinds de verhuisdag van 14 augustus haar huisgenoot in Paddepoel. Hij zegt het nooit.' }),
   rikus: keep('rikus', { step: 'M00' }),
   berend: keep('berend', { step: 'M01' }),
   jelmer: keep('jelmer', { step: 'M01' }),
@@ -120,12 +120,14 @@ export const CHARACTERS = {
   durk: keep('durk', { step: 'M02' }),
   sjabbe: keep('sjabbe', { step: 'M02' }),
   bert: keep('bert', { step: 'M04' }),
-  sjoerd: keep('sjoerd', { step: 'M05' }),
+  sjoerd: keep('sjoerd', { step: 'M05', card: 'Kiezelcommissie. Wind tegen, beide kanten op.', bio: 'Van de Kiezelcommissie. Zijn neef werkt \'s nachts in het museum.' }),
   henk: keep('henk', { step: 'M06' }),
   jelle: keep('jelle', { step: 'M03', card: 'Snackkoning. Fries. Koopt Grunn op, plakje voor plakje.' }),
   bewaarder: { name: 'Mevrouw Tuinstra', card: 'Bewaarder van de Gouden Eierbal. Zit de jury voor.', step: 'M03', bio: 'Klein, oud en formeel, met een hoed en een gouden speldje. Bewaarder van de Gouden Eierbal sinds 1998 en bij traditie voorzitter van de jury (artikel 4).', quote: 'Ik teken uw inschrijving af.' },
   trijntje: keep('trijntje', { step: 'M08' }),
-  mem: keep('mem', { step: 'M07' }),
+  mem: keep('mem', { step: 'M07', bio: 'Eenennegentig, uit Ljouwert. Appt Tessa stiekem en noemt haar famke. Wat ze wil, laat ze nog niet weten.' }),
+  klaas: keep('klaas', { step: 'M11', bio: 'Oude schipper met een rubberboot en een skûtsje die even van niemand zijn.' }),
+  dijkstra: keep('dijkstra', { step: 'M11' }),
   geesje: { name: 'Geesje', card: 'Kosteres. Eieren zijn haar vak.', step: 'M09', bio: 'Vierentachtig, schoolvriendin van Oma Trijntje, kosteres in Warffum. Haar eieren zijn bijna heilig.', quote: 'Eieren breken alleen als je haast hebt.' },
   lammert: { name: 'Lammert', card: 'Havenmeester. Danste in 1953 met Oma.', step: 'M13', bio: 'Havenmeester in Eemshaven en Delfzijl, kort en ironisch.', quote: 'De kraan piept. De bewaker kijkt bij het tweede piepje omhoog.' },
   roelfien: { name: 'Roelfien', card: 'Graanboerin. Vliegt laag.', step: 'M15', bio: 'Graanboerin en vlieger in het Oldambt, Oma\'s nicht. Vrolijk en praktisch.', quote: 'Vlieg laag, houd de molen rechts en trek pas op na de kermis.' },
@@ -206,7 +208,7 @@ export const STEPS = [
   M('M07', 'romp', 'Al het vet van Grunn', 'vetgekaapt', { built: true, reward: 950,
     story: { intro: ['M07.1'], outro: ['M07.3'], replay: ['M07.5'] }, scenes: ['M07.1', 'M07.2', 'M07.3', 'M07.4', 'M07.5'],
     lead: ['T', 'De tankwagen van Us Mem Vet rijdt over de Europaweg. Tijd voor banden.'] }),
-  M('M08', 'romp', 'Fatbikes tellen niet als fiets', 'fatbike', { built: true, reward: 500,
+  M('M08', 'romp', 'Fatbikes tellen niet als fiets', 'fatbike', { built: true, reward: 500, unlocks: 'zitmoi',
     story: { intro: ['M08.1'], outro: ['M08.3'], replay: ['M08.5'] }, scenes: ['M08.1', 'M08.2', 'M08.3', 'M08.4', 'M08.5'],
     lead: ['T', 'Oma Trijntje belde: kom naar de Noorderhaven. Ze heeft iets over die bal.'] }),
   // travel steps: the goal is the place (storyreis.js); the lines of the trip itself are the travel beat's (reisbeats.js)
@@ -215,7 +217,7 @@ export const STEPS = [
   M('M09', 'romp', 'Heel aankomen is ook een kunst', 'eieren', { built: true, reward: 700,
     story: { intro: ['M09.1'], outro: ['M09.4'], replay: ['M09.5'] }, scenes: ['M09.1', 'M09.2', 'M09.3', 'M09.4', 'M09.5'],
     lead: ['A', 'Geesje woont in de pastorie in Warffum. Zij heeft de laatste eieren van het Hogeland.'] }),
-  M('M10', 'romp', 'Een trekker-limo op de wierde', 'wierde', { built: true, reward: 900,
+  M('M10', 'romp', 'Een trekker-limo op de wierde', 'wierde', { built: true, reward: 900, unlocks: 'jelle',
     // the sloot scene (M10.3) is a stage of the mission itself; the talk in the car after it (M10.4) is a banter exchange
     story: { intro: ['M10.1'], outro: null }, scenes: ['M10.1', 'M10.2', 'M10.3', 'M10.4'],
     lead: ['T', 'Een zwarte trekker met vlaggetjes rijdt het erf van de kerk op. Dat is Jelle.'] }),
