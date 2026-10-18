@@ -59,7 +59,7 @@ const NIGHT_HOTSPOTS = [
 ];
 
 const GRONINGS_PHRASES = [
-  'Moi!', 'Hoi, alles goud?', 't Is mooi weer vandoag, net?',
+  'Moi!', 'Hoi, alles goud?', 't Is mooi weer vandoag, nait?',
   'Kom, we goan derhen.', 'Wat bin je aan het doun?', 'Doe mor gewoon.',
   'Lekker bakkie doen?', 'Nou, mag nait klagen, hoor.',
   'Ligt aan die kolde wind, geleuf ik.', 'Tot straks, moi!',

@@ -379,7 +379,7 @@ function end(w, { quit = false } = {}) {
   const stats = [['Score', score.toLocaleString('nl-NL')], ['Beste keten', c.best.toLocaleString('nl-NL')], ['Gevallen', String(g.b.bails)], ['Grinds', String(g.b.grinds)]];
   if (medal) stats.push(['Medaille', MEDALS[medal]]);
   if (rec && rec.newBest) stats.push(['Record', 'Nieuw!']);
-  showBanner({ kind: medal ? 'pass' : 'fail', title: medal >= 3 ? 'KONING VAN HET SKATEPARK' : medal ? 'MOOIE RUN' : 'NOG EEN RUN?', reason: medal ? `Beste keten: ${c.best.toLocaleString('nl-NL')} punten` : 'Hou je chain vast: elke nieuwe trick telt zwaarder', reward: 0, stats });
+  showBanner({ kind: medal ? 'pass' : 'fail', title: medal >= 3 ? 'KONING VAN HET SKATEPARK' : medal ? 'MOOIE RUN' : 'NOG EEN RUN?', reason: medal ? `Beste keten: ${c.best.toLocaleString('nl-NL')} punten` : 'Hou je keten vast: elke nieuwe trick telt zwaarder', reward: 0, stats });
   const bench = built && built.skater;
   if (built) built.skater.visible = true;
   say(w, medal >= 2 ? 'endGood' : 'endPoor', true, true);
