@@ -2,7 +2,8 @@
 // mission from the modules that own it, hands the snapshot to missionmap.js
 // and keeps the result for the frame, so the minimap and the full map ask
 // once. Thin on purpose; the rules are in missionmap.js (tested).
-import { buildMissionLayer, layerNotices, escapeSpot } from './missionmap.js';
+import { buildMissionLayer, layerNotices, escapeSpot, heliZones } from './missionmap.js';
+import { getHelipads } from './heliflight.js';
 import { wantedPhase } from './wantedstate.js';
 import { getPigeonFlight, getPigeonThreats } from './pigeonmode.js';
 import { getPigeonSpotsForRender } from './pigeonspots.js';
@@ -41,7 +42,7 @@ function snapshot(world) {
   const fl = getPigeonFlight();
   if (fl) {
     const targets = getPigeonSpotsForRender().map((q) => ({ x: q.x, y: q.y, label: q.name || 'Voerplek', d: Math.hypot(q.x - p.x, q.y - p.y) })).sort((a, b) => a.d - b.d).slice(0, PIGEON_TARGETS);
-    s.pigeon = { targets, threats: getPigeonThreats(), noFly: [] };
+    s.pigeon = { targets, threats: getPigeonThreats(), noFly: heliZones(getHelipads()) };
   }
   const sj = world.sideJob;
   if (sj && sj.active && sj.bus) s.bus = sj.bus;
