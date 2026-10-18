@@ -59,6 +59,19 @@ const WARN = {
   fietspad: { auto: 'Een auto op het fietspad mag niet. Rijd door naar de weg' },
   voetpad: { auto: 'Een auto op het voetpad mag niet. Rijd door naar de weg', fiets: 'Fietsen op het voetpad mag niet. Stap af of pak de weg' },
 };
+// A brommer or a motorbike is "auto" to the law, but the card names what you ride.
+const WARN_MOTOR = {
+  fietspad: { moped: 'Een brommer op het fietspad mag niet. Rijd door naar de weg', motor: 'Een motor op het fietspad mag niet. Rijd door naar de weg' },
+  voetpad: { moped: 'Een brommer op het voetpad mag niet. Rijd door naar de weg', motor: 'Een motor op het voetpad mag niet. Rijd door naar de weg' },
+};
+export function warnText(kind, mode, v) {
+  if (mode === 'auto' && v && v.isScooter && v.model) {
+    const w = WARN_MOTOR[kind];
+    if (w && v.model.motorbike) return w.motor;
+    if (w && (v.model.moped || v.model.geared)) return w.moped;
+  }
+  return (WARN[kind] || {})[mode];
+}
 const STAR_TEXT = 'Een agent heeft je gezien. Politie! Je hebt een ster';
 
 function exempt(world, v) {
@@ -110,7 +123,7 @@ export function updateTrafficLaw(dt, world) {
   state.on += dt;
   if (!state.warned && state.rearm <= 0) {
     state.warned = true;
-    const text = (WARN[kind] || {})[state.mode];
+    const text = warnText(kind, state.mode, v);
     if (text) world.addMessage(text, 5, { kind: 'politie', key: 'roadlaw' });
   }
   if (!state.fined && state.on >= GRACE_S) {
