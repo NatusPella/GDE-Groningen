@@ -509,7 +509,7 @@ export function fromOsm(el, ctx = {}) {
   // A culvert or a covered stretch is no open water: the road over it stays whole (markDryRoad needs no help), the ditch has no ribbon there.
   if (DITCH_WIDTH[tags.waterway] && !tags.tunnel && tags.covered !== 'yes' && ctx.ditches !== false) {
     const w = parseFloat(String(tags.width || '').replace(',', '.'));
-    out.push({ kind: 'waterways', row: { pts: P, hw: (Number.isFinite(w) && w > 0 ? Math.min(w, 12) : DITCH_WIDTH[tags.waterway]) / 2, name: tags.name || null, fixed: true } });
+    out.push({ kind: 'waterways', row: { pts: P, hw: (Number.isFinite(w) && w > 0 ? Math.min(w, 12) : DITCH_WIDTH[tags.waterway]) / 2, name: tags.name || null, fixed: true, ditch: true } });
     return out;
   }
   // the land use the countryside's fences and herds follow: arable (no fence, no herd) and pasture (fenced, grazed)
