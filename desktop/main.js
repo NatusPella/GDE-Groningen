@@ -2,6 +2,7 @@
 // so ES modules, fetch, AudioWorklet and localStorage behave exactly like
 // on http://localhost, without a server or an internet connection.
 const { app, BrowserWindow, Menu, protocol, shell, ipcMain, dialog } = require('electron');
+const { createCoopCore } = require('./coopcore.cjs');
 const path = require('path');
 const fs = require('fs/promises');
 const fsSync = require('fs');
@@ -175,6 +176,14 @@ if (!app.requestSingleInstanceLock()) {
     if (w) w.setFullScreen(!!on);
   });
   ipcMain.on('gde:quit', () => app.quit());
+  // Coöp online (#95): TCP + UPnP in het main-proces (coopcore.cjs); alleen op verzoek van het spel (?coop)
+  let coop = null;
+  const coopFor = (sender) => (coop = coop || createCoopCore({ gameDir: GAME_DIR, emit: (kind, payload) => { if (!sender.isDestroyed()) sender.send('gde:coop-event', kind, payload); } }));
+  ipcMain.handle('gde:coop-host', (e) => coopFor(e.sender).host());
+  ipcMain.handle('gde:coop-join', (e, code) => coopFor(e.sender).join(String(code || '').slice(0, 80)));
+  ipcMain.on('gde:coop-send', (e, bytes) => { if (coop && bytes && bytes.length <= 8192) coop.send(new Uint8Array(bytes)); });
+  ipcMain.handle('gde:coop-stop', () => (coop ? coop.stop() : null));
+  app.on('before-quit', () => { if (coop) coop.stop(); }); // sluit de poort op de router weer
   ipcMain.handle('gde:save-text', async (e, name, text) => {
     const w = BrowserWindow.fromWebContents(e.sender);
     const res = await dialog.showSaveDialog(w, {
