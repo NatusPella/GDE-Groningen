@@ -29,22 +29,28 @@ const teleport = (x, y) => {
   p.gz = map.groundHeightAt ? map.groundHeightAt(x, y, 0) || 0 : 0;
 };
 const shot = async (name, wait = 1200) => { await sleep(wait); console.log('[capture] ' + name); await sleep(600); };
-const done = [];
+const done = [`viewport ${innerWidth}x${innerHeight} dpr ${devicePixelRatio} ui ${getComputedStyle(document.documentElement).getPropertyValue('--ui')}`];
 if (want('voet')) { teleport(...P(100, 77)); await shot('hud-voet', 4000); done.push('hud-voet'); }
 if (want('gezocht')) { w.wanted = 3; await shot('hud-gezocht', 1500); w.wanted = 0; done.push('hud-gezocht'); }
 // the player in a vehicle: speed, gear and revs only show with someone driving
 const MOTO = await imp('motomodels');
 const hudState = () => ({ inVehicle: !!p.inVehicle, speedo: !!document.querySelector('#hud .hud-speedo.visible'), speed: (document.querySelector('#hud .sp-val') || {}).textContent });
-const ride = async (name, make, speed) => {
-  teleport(...P(100, 77));
+// a jump far away shows the loading screen first: wait until it is gone
+const settle = async () => { await sleep(1500); for (let i = 0; i < 60 && document.querySelector('.ls.on:not(.out)'); i++) await sleep(500); await sleep(1500); };
+const ride = async (name, make, speed, at = P(100, 77), far = false) => {
+  teleport(...at);
   const v = make();
   if (!v) { done.push(name + ':geen voertuig'); return; }
   v.road = null; v.perfTemp = true;
   w.vehicles.push(v);
+  // a boat starts on its own water: the player goes there first
+  p.x = v.x; p.y = v.y;
   p.enterVehicle(v, w);
-  await sleep(600);
-  v.speed = speed;
-  await shot(name, 1500);
+  await (far ? settle() : sleep(600));
+  // slow and held, so a two-wheeler does not run into a wall before the picture
+  const hold = setInterval(() => { v.speed = speed; }, 50);
+  await shot(name, 500);
+  clearInterval(hold);
   done.push(name + ' ' + JSON.stringify(hudState()));
   p.exitVehicle(map, w);
   const k = w.vehicles.indexOf(v); if (k >= 0) w.vehicles.splice(k, 1);
@@ -54,22 +60,33 @@ const onRoad = (extra = {}) => () => {
   return VEH.spawnVehicleOnRoad(map, pt.road, false, Math.random, false, false, pt, extra.scooter || false, extra.model || null);
 };
 if (want('auto')) await ride('hud-auto', onRoad(), 14);
-if (want('motor')) await ride('hud-motor', onRoad({ scooter: true, model: MOTO.MOTORBIKE_MODELS.sport }), 14);
+if (want('motor')) await ride('hud-motor', onRoad({ scooter: true, model: MOTO.MOTORBIKE_MODELS.sport }), 6);
 if (want('boot')) {
   const poly = map.water && map.water.find((q) => q.bounds && q.bounds[2] - q.bounds[0] > 40);
-  if (poly) await ride('hud-boot', () => VEH.spawnBoatOnWater(map, poly), 6);
+  if (poly) await ride('hud-boot', () => VEH.spawnBoatOnWater(map, poly), 6, P(100, 77), true);
   else done.push('hud-boot:geen water');
 }
 if (want('trein')) {
   const RW = await imp('railway');
-  const t = RW.getTrains().find((q) => q.state === 'dwell' || q.state === 'parked');
-  if (!t) done.push('hud-trein:geen trein');
+  const cab = (t) => RW.routePoint(t.route, t.c + (t.halfLen - 3));
+  const standing = () => RW.getTrains().filter((q) => q.state === 'dwell' || q.state === 'parked');
+  // the standing train nearest the city centre: go there, wait for the loading
+  // screen, then board whichever standing train is nearest the player
+  const c0 = P(100, 77);
+  const first = standing().sort((a, b) => Math.hypot(...[0, 1].map((k) => cab(a)[k] - c0[k])) - Math.hypot(...[0, 1].map((k) => cab(b)[k] - c0[k])))[0];
+  if (!first) done.push('hud-trein:geen trein');
   else {
-    const [x, y] = RW.routePoint(t.route, t.c + (t.halfLen - 3));
-    teleport(x, y);
-    await sleep(800);
-    for (const ty of ['keydown', 'keyup']) for (const tg of [window, document]) tg.dispatchEvent(new KeyboardEvent(ty, { key: 'e', code: 'KeyE', bubbles: true }));
-    await shot('hud-trein', 2500);
+    teleport(...cab(first));
+    await settle();
+    const t = standing().sort((a, b) => Math.hypot(cab(a)[0] - p.x, cab(a)[1] - p.y) - Math.hypot(cab(b)[0] - p.x, cab(b)[1] - p.y))[0];
+    if (t) teleport(...cab(t));
+    await sleep(400);
+    const key = (ty, k, code) => { for (const tg of [window, document]) tg.dispatchEvent(new KeyboardEvent(ty, { key: k, code, bubbles: true })); };
+    key('keydown', 'e', 'KeyE'); key('keyup', 'e', 'KeyE');
+    // gas for a moment: the speedo shows the speed, not a standing train
+    key('keydown', 'w', 'KeyW');
+    await shot('hud-trein', 4000);
+    key('keyup', 'w', 'KeyW');
     done.push('hud-trein ' + JSON.stringify({ driving: !!w.trainDriving, speedo: !!document.querySelector('#hud .hud-speedo.visible') }));
   }
 }
