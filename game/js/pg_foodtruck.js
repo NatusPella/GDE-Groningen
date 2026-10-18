@@ -363,7 +363,7 @@ export const FJORD = {
   },
   // dying or being arrested mid-shift: what was earned so far is still paid out
   onRespawn(run, { busted }) {
-    end(run, busted ? 'Opgepakt: de dienst is voorbij.' : 'Je bent dood: de dienst is voorbij.', true);
+    end(run, busted ? 'Opgepakt: de dienst is voorbij.' : 'Je bent knock-out: de dienst is voorbij.', true);
   },
   debugWin(run) {
     const d = run.data;

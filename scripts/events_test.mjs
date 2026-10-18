@@ -103,7 +103,7 @@ const check = (name, ok, info = '') => { n++; if (!ok) { bad++; console.log('FAI
   check('the bloemetjesmarkt is on 12 September', specialsOn(day(9, 12)).some((s) => s.id === 'bloemetjesmarkt') && !specialsOn(day(9, 11)).some((s) => s.id === 'bloemetjesmarkt'));
   const g = E.touristGroup(makeRng(4));
   check('groups of two or three', g.size >= 2 && g.size <= 3 && /^#[0-9a-f]{6}$/i.test(g.shirt));
-  check('lines are German and short', E.GERMAN_LINES.length >= 10 && E.GERMAN_LINES.every((t) => t.length < 70 && /[a-zäöüß]/.test(t)) && E.GERMAN_LINES.some((t) => /Fahrr|Bus|Blume|Turm/.test(t)));
+  check('lines are Dutch and short', E.GERMAN_LINES.length >= 10 && E.GERMAN_LINES.every((t) => t.length < 70 && /[a-zäöüß]/.test(t)) && E.GERMAN_LINES.some((t) => /fiets|bus|bloem|toren/.test(t)));
   const real = /(albert|lidl|aldi|bmw|vw|volkswagen|ikea)/i;
   check('no real brands', ![...E.GERMAN_LINES, ...E.GERMAN_HELLO, ...E.QUAKE_NEWS, ...E.ALGAE_SIGN, E.ALGAE_NEWS].some((t) => real.test(t)));
 }

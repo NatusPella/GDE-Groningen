@@ -1,7 +1,7 @@
 // Test for scripts/text_audit.mjs: the word lists catch what they should, ordinary Dutch passes,
 // the allowlist has no stale entries, and the game's own player text has no open findings.
 //   node scripts/text_audit_test.mjs
-import { checkText, isProse, jsStrings, audit, voicedLookup, ALLOW } from './text_audit.mjs';
+import { checkText, isProse, jsStrings, jargonIn, audit, voicedLookup, ALLOW } from './text_audit.mjs';
 
 let failed = 0;
 const ok = (cond, msg) => { if (!cond) { failed++; console.log('FAIL ' + msg); } };
@@ -32,8 +32,20 @@ ok(checkText('Je hebt een Fordje gekocht').length === 0, 'merknaam alleen als lo
 ok(!isProse('game/js/foo.js') && !isProse('rgba(0,0,0,0.5)') && !isProse('hud_panel'), 'ids en paden zijn geen proza');
 ok(isProse('Welkom in Grunn'), 'zin is proza');
 const s = jsStrings("// 'commentaar'\nconst a = 'één';\nconst b = `twee ${x + 'drie'} vier`;\nconst r = /'x/; const c = \"vijf zes\";\n");
-ok(s.map((x) => x.text).join('|') === 'één|twee | vier|vijf zes', 'jsStrings: ' + JSON.stringify(s.map((x) => x.text)));
+ok(s.map((x) => x.text).join('|') === 'één|drie|twee | vier|vijf zes', 'jsStrings: ' + JSON.stringify(s.map((x) => x.text)));
 ok(s[0].line === 2 && s[1].line === 3, 'jsStrings regelnummers');
+
+// uitbreidingen (ronde 1 constitution/taal)
+ok(isProse('Kermis in {plaats}: de draaimolens draaien; kom kijken.'), 'placeholders zijn proza');
+ok(!isProse('x = a * b; y = f(x);'), 'code is geen proza');
+const has = (t, rule) => checkText(t).some((f) => f.rule === rule);
+ok(has('Ontworpen door Alessandro Mendini', 'persoon'), 'echte ontwerper');
+ok(has('Ik speel op Eurosonic!', 'persoon'), 'echt festival');
+ok(has('Oudjoarsknaller in november', 'winter'), 'winterlijst: oudjoar en november');
+ok(has('Entschuldigung, wir haben das nicht gesehen', 'duits'), 'Duits');
+ok(has('Bonjour, merci pour tout', 'frans'), 'Frans');
+ok(!has('Wie is die man? Hier pas je op.', 'duits') && !has('Wie is die man? Hier pas je op.', 'frans'), 'Nederlandse woorden geen vals alarm');
+ok(jargonIn('Rond je run af met een combo').length === 2, 'jargonlijst');
 
 // the allowlist: every entry has a reason, and still matches something
 const findings = audit({ voiced: await voicedLookup() });

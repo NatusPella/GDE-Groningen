@@ -31,8 +31,8 @@ export function jsStrings(code, lineBase = 1) {
     while (i < n && depth) {
       const c = code[i];
       if (c === '\n') line++;
-      if (c === '\'' || c === '"') { readString(c, true); continue; }
-      if (c === '`') { readTemplate(true); continue; }
+      if (c === '\'' || c === '"') { readString(c, false); continue; }
+      if (c === '`') { readTemplate(false); continue; }
       if (c === '{') depth++;
       else if (c === '}') depth--;
       i++;
@@ -151,7 +151,8 @@ export function isProse(t) {
   if (/^[#.\/]|^https?:|^[\w-]+\.(js|json|png|jpg|mp3|ogg|wav|glb|gdt|svg|css)$/i.test(s)) return false;
   if (/^[a-z0-9_.:\-\/|]+$/i.test(s) && !/\s/.test(s)) return /^[A-Z][a-zé]{3,}$/.test(s); // single word: only a Capitalised word
   if (/^[\s\d.,:;#%()\-+*/=<>{}\[\]'"|&!?@$^~\\]*$/.test(s)) return false;
-  if (/[{};]|=>|\)\s*\{|^\s*(rgba?|hsla?|translate|scale)\(|\b(px|rem|em|vh|vw)\b;?$/.test(s)) return false;
+  // code and css, not placeholders: `{plaats}` and a ';' inside a sentence are fine
+  if (/=>|\)\s*\{|\{[^}]*[:;=][^}]*\}|^\s*[{}]|\)\s*;|\*=|[^\s]\s\*\s|^\s*(rgba?|hsla?|translate|scale)\(|\b(px|rem|em|vh|vw)\b;?$/.test(s)) return false;
   return /\s/.test(s);
 }
 
@@ -168,7 +169,7 @@ const BRANDS = [
   ...B('media', ['Dagblad van het Noorden', 'RTV Noord', 'Telegraaf', 'Volkskrant', 'NRC', 'RTL', 'SBS', 'Veronica', 'Radio 538', 'Qmusic', 'NPO', 'BNN', 'Disney', 'Marvel', 'Pokémon', 'Pokemon', 'Mario', 'Zelda', 'GTA', 'Grand Theft Auto', 'Minecraft', 'Fortnite', 'Star Wars', 'Harry Potter', 'James Bond', 'Batman', 'Superman', 'Spider-Man', 'Pikachu', 'Lego', 'Barbie', 'Playboy', 'Lonely Planet', 'Joop', 'GeenStijl', 'Linda', 'Libelle', 'Donald Duck', 'Mickey Mouse', 'Tweede Kamer', 'Eurovisie', 'Songfestival', 'Idols', 'Expeditie Robinson', 'Boer zoekt Vrouw', 'Het Klokhuis', 'Sesamstraat', 'Studio Sport'], { cs: false }),
   ...B('overig', ['NS', 'ProRail', 'Arriva', 'Qbuzz', 'Syntus', 'GVB', 'PostNL', 'DHL', 'UPS', 'Shell', 'BP', 'Esso', 'Gasunie', 'Gazprom', 'Vattenfall', 'Eneco', 'Essent', 'Greenpeace', 'Shell', 'Fedex', 'FedEx', 'Tomtom', 'TomTom', 'Philips', 'Unilever', 'Heineken', 'ASML', 'Booking', 'KLM', 'Schiphol', 'Ryanair', 'Easyjet', 'Rijkswaterstaat'], { cs: true }),
 ];
-const PEOPLE = ['Rutte', 'Wilders', 'Trump', 'Obama', 'Biden', 'Putin', 'Poetin', 'Musk', 'Bezos', 'Zuckerberg', 'Willem-Alexander', 'Máxima', 'Maxima', 'Beatrix', 'Cruijff', 'Cruyff', 'Messi', 'Ronaldo', 'Van Gogh', 'Rembrandt', 'Hitler', 'Merkel', 'Klaas Dijkhoff', 'Mark Rutte', 'Geert Wilders', 'Frans Timmermans', 'Jesse Klaver', 'Thierry Baudet', 'Sinterklaas', 'André Hazes', 'Andre Hazes', 'Anouk', 'Gers Pardoel', 'Ali B', 'Marco Borsato', 'Borsato', 'Tom Waes', 'Jeroen Krabbé', 'Johan Derksen', 'René van der Gijp', 'Wilfred Genee', 'Peter R. de Vries', 'Taylor Swift', 'Beyoncé', 'Kanye', 'Elvis', 'Michael Jackson', 'Madonna', 'Eminem', 'Drake', 'Shakira', 'Rihanna'];
+const PEOPLE = ['Mendini', 'Starck', 'Himmelb', 'Eurosonic', 'Lowlands', 'Pinkpop', 'Oerol', 'Sail Amsterdam', 'Koningsdag', 'Werkman', 'Rutte', 'Wilders', 'Trump', 'Obama', 'Biden', 'Putin', 'Poetin', 'Musk', 'Bezos', 'Zuckerberg', 'Willem-Alexander', 'Máxima', 'Maxima', 'Beatrix', 'Cruijff', 'Cruyff', 'Messi', 'Ronaldo', 'Van Gogh', 'Rembrandt', 'Hitler', 'Merkel', 'Klaas Dijkhoff', 'Mark Rutte', 'Geert Wilders', 'Frans Timmermans', 'Jesse Klaver', 'Thierry Baudet', 'Sinterklaas', 'André Hazes', 'Andre Hazes', 'Anouk', 'Gers Pardoel', 'Ali B', 'Marco Borsato', 'Borsato', 'Tom Waes', 'Jeroen Krabbé', 'Johan Derksen', 'René van der Gijp', 'Wilfred Genee', 'Peter R. de Vries', 'Taylor Swift', 'Beyoncé', 'Kanye', 'Elvis', 'Michael Jackson', 'Madonna', 'Eminem', 'Drake', 'Shakira', 'Rihanna'];
 // first names that, followed by a capitalised surname, suggest a real person
 const FIRST = 'Jan Piet Klaas Henk Kees Willem Hendrik Johannes Cornelis Gerrit Dirk Sjoerd Geert Harm Albert Wim Hans Peter Marco Mark Frank Bas Rob Ruud Arjen Robin Wesley Frenkie Virgil Memphis Daley Matthijs Sven Tim Tom Thomas Jeroen Johan Rene René Ronald Erik Eric Martin Maarten Wouter Wilma Maria Anna Sandra Linda Marianne Ingrid Femke Sanne Lisa Emma Sophie Julia Nina Femke Karin Marijke Joke Els Greet Trijntje Fenna Anke Aaltje'.split(/\s+/);
 
@@ -178,6 +179,7 @@ const EN_STRONG = new Set("the and you your with this that these those have has 
 
 const WINTER = [
   /\bsneeuw\w*/i, /\bwinter\w*/i, /\bkerst(?!ens?\b)\w*/i, /\bvorst\b/i, /\bijs(?:baan|banen|vrij|pret|kap|schol|beer|berg|pegel|zeil\w*)?\b/i, /\bijzel\w*/i, /\bschaats\w*/i, /\bbevroren\b/i, /\bbesneeuwd\w*/i, /\bsinterklaas\w*/i, /\boud en nieuw\b/i, /\boliebol\w*/i, /\belfsteden\w*/i, /\bgladheid\b/i, /\bstrooizout\b/i, /\bwinterbanden\b/i, /\bkachel\w*/i, /\bhagel(?!geweer)\w*/i, /\bsnow\b/i, /\bchristmas\b/i, /\bice\b/i,
+  /\boudjoar\w*/i, /\bnajaar\w*/i, /\bherfst\w*/i, /\bvoorjaar\w*/i, /\b(?:november|december|januari|februari)\b/i,
 ];
 
 const FIXED = [
@@ -212,7 +214,25 @@ export function checkText(text) {
     const strong = hits.filter((w) => EN_STRONG.has(w));
     if (strong.length >= 2 || (hits.length >= 3 && hits.length / words.length >= 0.3)) found.push({ rule: 'engels', term: hits.join(' '), note: 'Engelse functiewoorden in speltekst' });
   }
+  // alleen woorden die in het Nederlands niet voorkomen ('wie', 'die', 'der', 'pas', 'je', 'mit' wel)
+  const DE = new Set('und ich nicht ist ein eine wir sie wo bitte danke guten haben wunderschön für auch noch das aber viele sehr schön herrlich dieser entschuldigung sprechen'.split(' '));
+  const FR = new Set('bonjour merci très vous nous est avec pour dans une des mais'.split(' '));
+  const lw = text.toLowerCase().match(/[a-zäöüßéèç]+/g) || [];
+  if (lw.length >= 2) {
+    const de = [...new Set(lw.filter((w) => DE.has(w)))];
+    if (de.length >= 2) found.push({ rule: 'duits', term: de.join(' '), note: 'Duitse tekst in speltekst' });
+    const fr = [...new Set(lw.filter((w) => FR.has(w)))];
+    if (fr.length >= 2) found.push({ rule: 'frans', term: fr.join(' '), note: 'Franse tekst in speltekst' });
+  }
   return found;
+}
+
+// Anglicismen en jargon: geen fout, wel een besluit van de eigenaar. Alleen met --jargon.
+export const JARGON = ['ghost', 'ghosts', 'chain', 'run', 'tricks', 'checkpoint', 'host', 'save', 'total loss', 'livestream', 'deadline', 'hatchback', 'sedan', 'shopaholic', 'combo', 'boost', 'minimap'];
+export function jargonIn(text) {
+  const out = [];
+  for (const w of JARGON) { const m = wordRe(w, false).exec(text); if (m) out.push(m[0]); }
+  return out;
 }
 
 export function audit({ voiced = null } = {}) {
@@ -259,6 +279,11 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   else {
     const show = args.includes('--all') ? findings : open;
     for (const f of show) console.log(`[${f.rule}] ${f.file}:${f.line}${f.ingesproken ? ' (ingesproken)' : ''}: ${f.term} | ${f.text.replace(/\s+/g, ' ').slice(0, 140)}${f.allowed ? `  -- toegestaan: ${f.allowed.why}` : ''}`);
+    if (args.includes('--jargon')) {
+      const seenJ = new Map();
+      for (const it of collectTexts()) if (isProse(it.text)) for (const j of jargonIn(it.text)) seenJ.set(j.toLowerCase(), (seenJ.get(j.toLowerCase()) || 0) + 1);
+      console.log('Jargon (besluit eigenaar):', [...seenJ].map(([k, v]) => `${k} x${v}`).join(', '));
+    }
     console.log(`${open.length} bevindingen (${findings.length - open.length} toegestaan)`);
   }
   process.exit(open.length ? 1 : 0);
