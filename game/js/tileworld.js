@@ -14,6 +14,7 @@
 // tile home.
 import { GameMap, SpatialGrid, loadMap, markDryRoad } from './mapdata.js';
 import { polygonBounds } from './util.js';
+import { promoteMainWaterway } from './waterlevels.js';
 import { SECTION, decodeBlob } from './gdt.js';
 import { TileStore, FrameQueue, HttpRangeSource, inflateRaw, makeWorkerDecoder, decodeCompressed } from './tilestore.js';
 import { TerrainField } from './terrainraster.js';
@@ -138,7 +139,7 @@ export class TileWorld extends GameMap {
           this._res[kind].set(gid, e);
           if (kind !== 'trees') this._gidOf.set(obj, gid);
           if (kind === 'buildings' || kind === 'roads' || kind === 'water' || kind === 'green') obj.bounds = boundsOfObj(kind, obj);
-          if (kind === 'water') { this._waterVer = (this._waterVer || 0) + 1; newWater.push(obj); }
+          if (kind === 'water') { promoteMainWaterway(obj); this._waterVer = (this._waterVer || 0) + 1; newWater.push(obj); }
           if (kind === 'roads') newRoads.push(obj);
           const grid = gridOf(kind, obj);
           if (grid) (this[grid] || (this[grid] = new SpatialGrid(64))).insert(obj, boundsOfObj(kind, obj));
@@ -174,6 +175,18 @@ export class TileWorld extends GameMap {
   // fn(kind, tile, key): 'add' (the decoded tile, its rows as the grids hold
   // them) once a streamed tile is in the grids, 'drop' (tile null) once it left
   onTiles(fn) { (this._tileListeners || (this._tileListeners = [])).push(fn); }
+
+  // Water rows that come with no tile: the fixes of the waterway network (vaarnet.js
+  // patchRows): the holes the map leaves under bridges and in locks, a canal it lacks.
+  // They stay for good (no tile drops them); the ground's water mask follows.
+  addWaterPatches(rows) {
+    for (const w of rows) {
+      w.bounds = polygonBounds(w.pts);
+      this.waterGrid.insert(w, w.bounds);
+    }
+    this._waterVer = (this._waterVer || 0) + 1;
+    return rows.length;
+  }
 
   dropTile(tk) {
     if (!this.resident.delete(tk)) return false;
