@@ -178,7 +178,7 @@ const SEDAN = { name: 'sedan', len: 4.3, wid: 1.8, maxSpeed: 50, accel: 10, brak
 // bridges over open water stay dry across the road's width and a car driven along the deck
 // never sinks (the tiles' railings are road meshes: no solid lines to test in Node)
 {
-  const { inWaterPoly } = await import('../game/js/util.js');
+  const { inMapWater } = await import('../game/js/util.js');
   let decks = 0, wet = 0, cars = 0, sunk = 0;
   for (const r of RG.roadNetRows()) {
     if (!r.bridge || decks >= 12) continue;
@@ -208,7 +208,7 @@ const SEDAN = { name: 'sedan', len: 4.3, wid: 1.8, maxSpeed: 50, accel: 10, brak
   }
   function side(r, mx, my, ux, uy) {
     const o = r.w / 2 + 6;
-    return inWaterPoly(map, mx - uy * o, my + ux * o) || inWaterPoly(map, mx + uy * o, my - ux * o);
+    return inMapWater(map, mx - uy * o, my + ux * o) || inMapWater(map, mx + uy * o, my - ux * o);
   }
   const ok = decks > 0 && !wet && cars > 0 && !sunk;
   if (!ok) fails++;

@@ -1,5 +1,5 @@
 import { nearestLine, project as projectOnLine, makeRunner, stepRunner, startAt } from './busroutes.js';
-import { closestPointOnSegment, normalizeAngle, clamp, lerp, pointInPolygon, inWaterPoly, inMapWater, WATER_Y, keepBoatOffShore, boatDryPoints } from './util.js';
+import { closestPointOnSegment, normalizeAngle, clamp, lerp, pointInPolygon, inMapWater, WATER_Y, keepBoatOffShore, boatDryPoints } from './util.js';
 import { waterClearance, waterChannelPoints } from './waterindex.js';
 import { shallowWater, waterAt, airDraftOf, passesUnder } from './waterlevels.js';
 import { trafficSignalsNear, trafficLightPhaseMove } from './trafficlights.js';
@@ -3144,7 +3144,7 @@ function onCarRoad(map, x, y) {
 }
 
 export function overOpenWater(map, x, y, z) {
-  if (!inWaterPoly(map, x, y) || map.isOnBridge(x, y)) return false;
+  if (!inMapWater(map, x, y) || map.isOnBridge(x, y)) return false;
   // over the canal on a viaduct, or under it through the aqueduct
   if (z > 1.5 || (z < -3 && map.coveredAt && map.coveredAt(x, y))) return false;
   // water reaching over the edge of a dry road (a polygon's corner, the countryside's water field) is its embankment
@@ -3184,7 +3184,7 @@ export function tickSinkingVehicles(world) {
 
 function driftOnWater(v, s, dt, map) {
   const nx = v.x + s.vx * dt, ny = v.y + s.vy * dt;
-  if (inWaterPoly(map, nx, ny)) { v.x = nx; v.y = ny; } else { s.vx = 0; s.vy = 0; }
+  if (inMapWater(map, nx, ny)) { v.x = nx; v.y = ny; } else { s.vx = 0; s.vy = 0; }
 }
 
 function updateSinking(v, dt, world) {

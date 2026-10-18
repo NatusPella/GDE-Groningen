@@ -1,5 +1,5 @@
 import { Vehicle, MODELS, TRACTOR_MODEL, QUAD_MODEL } from './vehicle.js';
-import { pointInPolygon, closestPointOnSegment, inWaterPoly } from './util.js';
+import { pointInPolygon, closestPointOnSegment, inMapWater } from './util.js';
 import { propsInRadius } from './breakables.js';
 import { BLOCK, chash, edgeDistance } from './countryfield.js';
 import { urbanWeight } from './provinceworld.js';
@@ -86,7 +86,7 @@ export function slotFits(map, road, x, y, angle, m, outX, outY) {
   const hl = m.len / 2 + 0.3, hw = m.wid / 2 + 0.2;
   for (const [lx, ly] of [[hl, hw], [hl, -hw], [-hl, hw], [-hl, -hw], [0, 0]]) {
     const px = x + lx * c - ly * s, py = y + lx * s + ly * c;
-    if (inBuilding(map, px, py) || inWaterPoly(map, px, py) || onOtherRoad(map, road, px, py)) return false;
+    if (inBuilding(map, px, py) || inMapWater(map, px, py) || onOtherRoad(map, road, px, py)) return false;
   }
   for (const k of [-0.4, 0, 0.4]) {
     const px = x + c * m.len * k + outX * (m.wid / 2 + 0.9), py = y + s * m.len * k + outY * (m.wid / 2 + 0.9);

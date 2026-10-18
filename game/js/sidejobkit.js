@@ -6,6 +6,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { Vehicle, spawnVehicleOnRoad } from './vehicle.js';
 import { Pedestrian } from './pedestrians.js';
 import { closestPointOnSegment, isInWater, pointInPolygon, boatDryPoints } from './util.js';
+import { waterPolyAt } from './waterlevels.js';
 import { nearestOnRoads } from './tileplace.js';
 import { getVehicleMesh } from './models3d_vehicles.js';
 import { TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
@@ -202,7 +203,7 @@ export function spawnJobBoat(world, x, y, heading, model) {
       boat.x = nx; boat.y = ny;
     }
   }
-  boat.waterPoly = map.waterNear(boat.x, boat.y, 1).find((w) => pointInPolygon(boat.x, boat.y, w.pts)) || null;
+  boat.waterPoly = waterPolyAt(map, boat.x, boat.y);
   world.vehicles.push(boat);
   return boat;
 }
@@ -211,7 +212,7 @@ export function releaseVehicle(world, v) {
   if (!v) return;
   v.missionCar = false;
   v.sideJob = false;
-  if (v.isBoat) v.waterPoly = world.map.waterNear(v.x, v.y, 1).find((w) => pointInPolygon(v.x, v.y, w.pts)) || null;
+  if (v.isBoat) v.waterPoly = waterPolyAt(world.map, v.x, v.y);
 }
 
 export function removeVehicle(world, v) {

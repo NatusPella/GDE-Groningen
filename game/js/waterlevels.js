@@ -79,6 +79,55 @@ function boundsOf(P) {
   for (const p of P) { x0 = Math.min(x0, p[0]); y0 = Math.min(y0, p[1]); x1 = Math.max(x1, p[0]); y1 = Math.max(y1, p[1]); }
   return [x0, y0, x1, y1];
 }
+
+// inPolygon for large polygons that never change (water): the edges
+// are bucketed by height bands once, a test only walks the band of py.
+// Same crossing rule, so the same answer.
+const pipBands = new WeakMap();
+function bandsOf(poly) {
+  let B = pipBands.get(poly);
+  if (B) return B;
+  const n = poly.length;
+  let y0 = Infinity, y1 = -Infinity;
+  for (const p of poly) { if (p[1] < y0) y0 = p[1]; if (p[1] > y1) y1 = p[1]; }
+  const nb = Math.max(1, Math.min(4096, n >> 2));
+  const bh = (y1 - y0) / nb || 1;
+  const lists = Array.from({ length: nb }, () => []);
+  for (let i = 0, j = n - 1; i < n; j = i++) {
+    const a = poly[i][1], b = poly[j][1];
+    const k0 = Math.max(0, Math.min(nb - 1, Math.floor((Math.min(a, b) - y0) / bh)));
+    const k1 = Math.max(0, Math.min(nb - 1, Math.floor((Math.max(a, b) - y0) / bh)));
+    for (let k = k0; k <= k1; k++) lists[k].push(i, j);
+  }
+  B = { y0, y1, bh, nb, lists };
+  pipBands.set(poly, B);
+  return B;
+}
+export function pointInStaticPolygon(px, py, poly) {
+  if (poly.length < 48) return inPolygon(px, py, poly);
+  const B = bandsOf(poly);
+  if (py < B.y0 || py >= B.y1) return false;
+  const L = B.lists[Math.max(0, Math.min(B.nb - 1, Math.floor((py - B.y0) / B.bh)))];
+  let inside = false;
+  for (let e = 0; e < L.length; e += 2) {
+    const pi = poly[L[e]], pj = poly[L[e + 1]];
+    const xi = pi[0], yi = pi[1], xj = pj[0], yj = pj[1];
+    if (((yi > py) !== (yj > py)) && (px < (xj - xi) * (py - yi) / (yj - yi) + xi)) inside = !inside;
+  }
+  return inside;
+}
+
+// The water polygon holding (x, y), or null: the one lookup behind waterAt,
+// isInWater, inMapWater and the waterPoly of a boat.
+export function waterPolyAt(map, x, y) {
+  if (!map.waterNear) return null;
+  for (const w of map.waterNear(x, y, 0.5)) {
+    const b = w.bounds || (w.bounds = boundsOf(w.pts));
+    if (x < b[0] || x > b[2] || y < b[1] || y > b[3]) continue;
+    if (pointInStaticPolygon(x, y, w.pts)) return w;
+  }
+  return null;
+}
 function distToOutline(P, x, y) {
   let best = Infinity;
   for (let i = 0, j = P.length - 1; i < P.length; j = i++) {
@@ -309,12 +358,7 @@ export const passesUnder = (air, clear) => clear >= air + 0.05;
 // none).
 
 export function waterAt(map, x, y) {
-  let poly = null;
-  for (const w of map.waterNear ? map.waterNear(x, y, 0.5) : []) {
-    const b = w.bounds || (w.bounds = boundsOf(w.pts));
-    if (x < b[0] || x > b[2] || y < b[1] || y > b[3]) continue;
-    if (inPolygon(x, y, w.pts)) { poly = w; break; }
-  }
+  const poly = waterPolyAt(map, x, y);
   if (poly) {
     const kind = poly.kind || 'diep';
     const K = WATER_KINDS[kind] || WATER_KINDS.diep;
