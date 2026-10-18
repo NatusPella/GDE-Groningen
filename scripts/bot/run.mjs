@@ -69,7 +69,7 @@ if (replayFile) {
   const rl = L.RunLog.parse(fs.readFileSync(path.resolve(replayFile), 'utf8'));
   pre += `window.__botReplay = ${JSON.stringify(rl.inputs())};\n`;
 }
-fs.writeFileSync(script, pre + fs.readFileSync(path.join(HERE, replayFile ? 'replay.page.js' : cfg.mode === 'minigames' ? 'minigames.page.js' : 'bot.page.js'), 'utf8'));
+fs.writeFileSync(script, pre + fs.readFileSync(path.join(HERE, replayFile ? 'replay.page.js' : cfg.mode === 'minigames' ? 'minigames.page.js' : cfg.mode === 'bruggen' ? 'bruggen.page.js' : 'bot.page.js'), 'utf8'));
 const events = path.join(OUT, 'events.jsonl');
 fs.writeFileSync(events, JSON.stringify({ type: 'meta', replay: L.REPLAY_VERSION, seed, ...cfg, started: new Date().toISOString() }) + '\n');
 
@@ -77,7 +77,7 @@ const electron = process.env.ELECTRON_EXE || path.join(ROOT, 'desktop', 'node_mo
 const env = { ...process.env, GDE_TEST_PROFILE: profile, GDE_NIEUW_VERHAAL: '1' };
 delete env.ELECTRON_RUN_AS_NODE;
 const t0 = Date.now();
-const r = spawnSync(electron, ['.', '--windowed', '--stil', '--force-device-scale-factor=1', '--window-size=1280x720', `--autoplay=${seed}`, ...(flag('audio') ? ['--audio-graph'] : []),
+const r = spawnSync(electron, ['.', '--windowed', '--stil', '--force-device-scale-factor=1', '--window-size=1280x720', `--autoplay=${seed}`, ...(flag('audio') ? ['--audio-graph'] : []), ...(flag('viaducten') ? ['--viaducten'] : []),
   `--smoke-test=${path.join(OUT, 'shots.png')}`, `--perf-script=${script}`, `--bot-events=${events}`],
 { cwd: path.join(ROOT, 'desktop'), env, encoding: 'utf8', maxBuffer: 1 << 28, timeout: (cfg.maxWallS + 240) * 1000, killSignal: 'SIGKILL' });
 if (r.error) console.error('Electron starten mislukt (niet geïnstalleerd? zet ELECTRON_EXE):', r.error.message);

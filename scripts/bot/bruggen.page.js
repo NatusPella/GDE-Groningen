@@ -1,0 +1,139 @@
+// Page half of `scripts/bot/run.mjs --mode=bruggen` (desktop --perf-script body; #235).
+// Rijdt per brug een auto over de brug (naar het einde en 35 m erachter), kijkt of de auto het dek volgt
+// (hoogtesprongen, door het dek zakken, in het water), maakt screenshots van voor, midden en achter de brug en
+// laat een beweegbare brug openen en weer sluiten. Alles gaat als 'brug'-gebeurtenis naar het logboek en in
+// het resultaat. window.__botCfg = { shots }.
+const CFG = window.__botCfg || {};
+const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
+const imp = (f) => import('/js/' + f + '.js');
+const L = await imp('botlogic');
+for (let i = 0; i < 600 && !window.__bot; i++) await sleep(100);
+const B = window.__bot;
+if (!B) return JSON.stringify({ result: 'FOUT', reason: 'window.__bot ontbreekt' });
+const world = B.world, player = B.player;
+const V = await imp('vehicle');
+const MB = await imp('movablebridges');
+world.devInvuln = true;
+let shots = 0;
+const shot = (n) => { if (shots < (CFG.shots || 80)) { shots++; B.shot(n); } };
+
+// [naam, x, y, soort]: stad (vlak, profiel, beweegbaar) en provincie (viaducten; alleen met --viaducten zichtbaar)
+const TARGETS = [
+  ['Gerrit Krolbrug', 0, 0, 'beweegbaar', 'Gerrit Krolbrug'],
+  ['Herebrug', 353, 755, 'beweegbaar'],
+  ['Poelebrug', 503, 108, 'beweegbaar'],
+  ['Eendrachtskade', -874, 566, 'beweegbaar'],
+  ['Emmaviaduct (spoor)', -240, 1050, 'profiel'],
+  ['Ebbingebrug', 17, -278, 'vlak'],
+  ['Eeldersingel', -405, 754, 'vlak'],
+  ['Plataanlaan over Iepenlaan', -734, -2096, 'viaduct'],
+  ['Noordzeeweg over Winsumerweg', 191, -2318, 'viaduct'],
+  ['Friesestraatweg over Nieuwbrugsterweg', -5724, -2738, 'viaduct'],
+  ['Weg der Verenigde Naties', -3610, 2220, 'viaduct'],
+  ['Beneluxweg', 3118, -808, 'viaduct'],
+];
+
+async function settle() {
+  for (let i = 0; i < 80; i++) {
+    const s = B.status();
+    if (s.blocking.pauseMenu) await B.press('escape');
+    else if (s.blocking.cinematic || s.blocking.banner) { B.down(' '); await sleep(1300); B.up(' '); }
+    else if (!s.blocking.talk && !s.blocking.respawn && !s.blocking.loading) { if (i > 5) return true; }
+    await sleep(250);
+  }
+  return false;
+}
+await settle();
+
+function teleport(x, y) {
+  if (player.inVehicle) player.exitVehicle(world.map, world);
+  player.x = x; player.y = y; player.vx = player.vy = 0;
+}
+const bridgesAround = (x, y, r) => world.map.roadsNear(x, y, r).filter((q) => q.bridge && !q.tunnel && q.pts && q.pts.length >= 2);
+const lenOf = (q) => q.pts.reduce((s, p, i) => (i ? s + Math.hypot(p[0] - q.pts[i - 1][0], p[1] - q.pts[i - 1][1]) : 0), 0);
+
+async function findBridge(name, x, y, want) {
+  for (let i = 0; i < 80; i++) {
+    teleport(x, y);
+    let c = bridgesAround(x, y, 60);
+    if (want) c = c.filter((q) => q.name === want);
+    if (c.length) { c.sort((a, b) => lenOf(b) - lenOf(a)); return c[0]; }
+    await sleep(500);
+  }
+  return null;
+}
+
+const out = [];
+for (const [name, x0, y0, kind, want] of TARGETS) {
+  const rep = { name, kind, found: false };
+  out.push(rep);
+  try {
+    let road;
+    if (want) { // zoek op naam in de stad
+      road = (world.map.roads || []).find((q) => q.bridge && q.name === want && q.pts.length >= 2);
+      if (road) { const m = road.pts[Math.floor(road.pts.length / 2)]; teleport(m[0], m[1]); await sleep(1500); }
+    } else road = await findBridge(name, x0, y0, null);
+    if (!road) { rep.reason = 'brug niet gevonden (tegel niet geladen?)'; B.log('brug', rep); continue; }
+    rep.found = true;
+    rep.osm = road.osm; rep.profile = !!road.z; rep.maxZ = road.z ? Math.max(...road.z) : 0; rep.len = Math.round(lenOf(road));
+    const P = road.pts, a = P[0], b = P[P.length - 1];
+    const ux0 = P[1][0] - a[0], uy0 = P[1][1] - a[1], l0 = Math.hypot(ux0, uy0) || 1;
+    const ux1 = b[0] - P[P.length - 2][0], uy1 = b[1] - P[P.length - 2][1], l1 = Math.hypot(ux1, uy1) || 1;
+    const way = [[a[0] - ux0 / l0 * 35, a[1] - uy0 / l0 * 35], a, b, [b[0] + ux1 / l1 * 35, b[1] + uy1 / l1 * 35]];
+    teleport(way[0][0], way[0][1]);
+    await sleep(1200);
+    const ang = Math.atan2(uy0, ux0);
+    const v = V.spawnVehicleOnRoad(world.map, road, false, Math.random, false, false, { x: a[0], y: a[1] });
+    v.x = way[0][0]; v.y = way[0][1]; v.angle = ang; v.speed = 0; v.z = 0; v.driver = 'player';
+    if (!world.vehicles.includes(v)) world.vehicles.push(v);
+    player.enterVehicle(v, world);
+    const tag = `brug-${out.length}-${name.replace(/[^\w]+/g, '_')}`;
+    shot(`${tag}-voor`);
+    const follower = new L.PathFollower(way, { reach: 5 });
+    const wedge = new L.WedgeDetector();
+    const t0 = B.time();
+    let last = null, maxJump = 0, minGap = 0, sunk = false, samples = 0, shotMid = false, done = false, maxZseen = 0;
+    while (B.time() - t0 < 90) {
+      const me = { x: v.x, y: v.y };
+      const aim = follower.next(me);
+      if (!aim) { done = true; break; }
+      const c = L.carControls({ x: v.x, y: v.y, angle: v.angle, speed: v.speed }, aim, { top: 9 });
+      B.stick(c.steer, c.throttle > 0 ? -1 : c.throttle < 0 ? 1 : 0);
+      if (wedge.update(B.time(), v.speed, c.throttle)) { rep.wedged = (rep.wedged || 0) + 1; wedge.reset(); }
+      const st = { z: v.z || 0, ribbon: null, kind: 'ground' };
+      const g = world.map.surfaceAt ? world.map.surfaceAt(v.x, v.y, st).z : 0;
+      const z = v.z || 0;
+      if (last !== null && Math.abs(v.speed) > 1) maxJump = Math.max(maxJump, Math.abs(z - last));
+      last = z; samples++; maxZseen = Math.max(maxZseen, z);
+      minGap = Math.min(minGap, z - g);
+      if (v.sinking || v.inWater) sunk = true;
+      if (!shotMid && L.distance(me, { x: (a[0] + b[0]) / 2, y: (a[1] + b[1]) / 2 }) < 6) { shotMid = true; shot(`${tag}-midden`); }
+      await sleep(100);
+    }
+    B.stick(0, 0);
+    shot(`${tag}-achter`);
+    Object.assign(rep, { done, samples, maxJump: +maxJump.toFixed(2), minGap: +minGap.toFixed(2), sunk, vMaxZ: +maxZseen.toFixed(2), wallS: Math.round(B.time() - t0) });
+    // een beweegbare brug: openen en sluiten
+    const mb = MB.getMovableBridges().find((q) => q.r === road);
+    if (mb) {
+      if (player.inVehicle) player.exitVehicle(world.map, world);
+      player.x = mb.x - mb.uy * (mb.half + 6); player.y = mb.y + mb.ux * (mb.half + 6);
+      MB.requestOpening(mb, null, true, false);
+      const t1 = B.time();
+      let sawOpen = false;
+      while (B.time() - t1 < 70 && !(sawOpen && mb.state === 'closed')) {
+        if (mb.state === 'open' && !sawOpen) { sawOpen = true; await sleep(1500); shot(`${tag}-open`); rep.openFlag = !!road._open; rep.openAmount = mb.open; }
+        if (mb.state === 'opening' && mb.open > 0.45 && !rep.midShot) { rep.midShot = true; shot(`${tag}-opent`); }
+        await sleep(200);
+      }
+      rep.opened = sawOpen; rep.closedAgain = mb.state === 'closed';
+    }
+    const idx = world.vehicles.indexOf(v);
+    if (idx >= 0) world.vehicles.splice(idx, 1);
+  } catch (e) {
+    rep.error = String(e && e.message || e);
+  }
+  B.log('brug', rep);
+}
+const bad = out.filter((r) => !r.found || r.error || r.sunk || (r.maxJump || 0) > 0.6 || (r.wedged || 0) > 2).length;
+return JSON.stringify({ result: 'KLAAR', reason: `${out.filter((r) => r.found).length}/${out.length} bruggen gereden, ${bad} met afwijking`, bridges: out });
