@@ -22,11 +22,6 @@
       "why": "verzonnen naam (woordspeling op de supermarkt), geen merk"
     },
     {
-      "rule": "naam",
-      "term": "Henk van Garage",
-      "why": "verzonnen garagehouder"
-    },
-    {
       "rule": "merk",
       "term": "GTA",
       "file": "credits.js",
@@ -167,6 +162,24 @@
       "file": "winkelkit.js",
       "ctx": "Oliebol",
       "why": "kermiskraam in de zomer: oliebollen worden op de kermis het hele jaar verkocht; geen winterverwijzing"
+    },
+    {
+      "rule": "winter",
+      "term": "oliebollenkraam",
+      "file": "evenementen.js",
+      "why": "grap: de kermis staat bewust in augustus; geen winterbeeld"
+    },
+    {
+      "rule": "naam",
+      "term": "Sjoerd Zoutkamp",
+      "file": "nieuwsticker.js",
+      "why": "verzonnen lezer (Kiekdoar Nieuws)"
+    },
+    {
+      "rule": "naam",
+      "term": "Piet Peilbuis",
+      "file": "nieuwsticker.js",
+      "why": "verzonnen lezer (Kiekdoar Nieuws)"
     }
   ]
 }
