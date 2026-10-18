@@ -5,6 +5,7 @@ import { VIEW_DISTANCES } from './viewdist.js';
 import { KEYS } from './storagekeys.js';
 import { FLAGS } from './devflags.js';
 import { RAGE_CHOICES } from './roadragerules.js';
+import { SUBTITLE_CONTRASTS, TEXT_SIZES } from './a11ylogic.js';
 
 // Player settings, persisted per browser. Modules read getSettings() and
 // subscribe with onSettingsChange() to apply changes live.
@@ -73,6 +74,10 @@ const DEFAULTS = {
   rumble: true,
   subtitleSize: 'normaal',
   subtitleBox: false,
+  // ondertitels op wit-op-zwart met een zwaardere letter ('normaal' | 'hoog'), kaart- en meldingstekst ('normaal' | 'groot' | 'extragroot') en geen schermflitsen (a11y.js)
+  subtitleContrast: 'normaal',
+  textSize: 'normaal',
+  reduceFlash: false,
   colorBlind: 'uit',
   // unused since the attract intro plays at every launch; kept so old
   // settings files load unchanged
@@ -103,6 +108,8 @@ function load() {
     if (!(out.resolution >= 0.5 && out.resolution <= 1)) out.resolution = DEFAULTS.resolution;
     out.keyBinds = normalizeKeyBinds(out.keyBinds);
     out.padBinds = normalizePadBinds(out.padBinds);
+    if (!SUBTITLE_CONTRASTS.includes(out.subtitleContrast)) out.subtitleContrast = DEFAULTS.subtitleContrast;
+    if (!(out.textSize in TEXT_SIZES)) out.textSize = DEFAULTS.textSize;
     if (!(out.subtitleSize in SUBTITLE_SIZES)) out.subtitleSize = DEFAULTS.subtitleSize;
     if (!['slim', 'alles', 'minimaal'].includes(out.hudMode)) out.hudMode = DEFAULTS.hudMode;
     if (!['nooit', 'lucht', 'altijd'].includes(out.minimapNorth)) out.minimapNorth = DEFAULTS.minimapNorth;
