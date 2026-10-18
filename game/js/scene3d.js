@@ -62,7 +62,7 @@ const wheelFrustum = new THREE.Frustum(), wheelProj = new THREE.Matrix4();
 import { getUiScale } from './uiscale.js';
 import { getActiveRoute, getRouteAhead, getUserWaypoint } from './routing.js';
 import { updateWaymarkers3D, hideWaymarkers3D, routeColor } from './waymarkers3d.js';
-import { buildWorldMarker3D, updateWorldMarker3D, setMarkerCamera } from './worldmarker3d.js';
+import { buildWorldMarker3D, updateWorldMarker3D, setMarkerCamera, setMarkerEnv } from './worldmarker3d.js';
 import { OUTLINE_MAT } from './pixelart3d.js';
 import { createSkyUniforms, buildSkyDome, createEnvironmentUpdater, setStarOpacity, setStarShare, SKY_HORIZON } from './sky3d.js';
 import { computeLighting } from './daynight.js';
@@ -2225,6 +2225,7 @@ export function update3D(dt, world) {
     missionMarkerMesh = null;
   }
   setMarkerCamera(cam);
+  setMarkerEnv(world.dayNight ? world.dayNight.night : 0, world.weather ? world.weather.intensity : 0);
   updateRouteRibbon3D(animDt, world);
 
   // remaining-waypoint preview dots (checkpoint/boat missions only) - the
