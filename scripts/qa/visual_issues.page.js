@@ -35,7 +35,8 @@ const tick = () => {
 requestAnimationFrame(tick);
 const fixWorld = () => {
   w.clock = window.__viClock || 14;
-  w.weather = { active: false, timer: 1e9, kind: 'helder', peak: 0, intensity: 0, wet: 0, overcast: 0, mist: 0, windAngle: 0.9, elapsed: 0, duration: Infinity };
+  const W = window.__viWeather || {};
+  w.weather = { active: !!W.kind && W.kind !== 'helder', timer: 1e9, kind: W.kind || 'helder', peak: W.intensity || 0, intensity: W.intensity || 0, wet: W.wet || 0, overcast: W.overcast || 0, mist: W.mist || 0, windAngle: 0.9, elapsed: 0, duration: Infinity };
   if (DN.refreshDayNight) DN.refreshDayNight(w);
 };
 const gh = (x, y) => (map.groundHeightAt ? map.groundHeightAt(x, y, 0) || 0 : 0);
@@ -231,6 +232,50 @@ for (const S of window.__vi.spots) {
         for (let i = 0; i < 30; i++) { await sleep(1000); if (cine.isCinematicActive()) { sawCine = true; if (i % 10 === 4) console.log('[capture] ' + S.name + '-' + m.id + '-' + i); } }
         info.scenes[m.id] = { cinematic: sawCine, events: log.slice(l0).map((e) => e.k) };
         if (cine.isCinematicActive()) cine.skipCinematic();
+      }
+    } else if (S.type === 'weer') {
+      // nacht en weer: the same view in mist, drizzle, a shower and thunder, by day and at night
+      const PRESETS = [['mist', { kind: 'mist', mist: 0.85, overcast: 0.5 }], ['motregen', { kind: 'motregen', intensity: 0.3, wet: 0.6, overcast: 0.6 }], ['regenbui', { kind: 'regenbui', intensity: 0.6, wet: 0.9, overcast: 0.8 }], ['onweer', { kind: 'onweer', intensity: 0.85, wet: 1, overcast: 1, mist: 0.2 }]];
+      await go(S.x, S.y, S.a || 0, 6000);
+      const z = gh(S.x, S.y);
+      info.shots = [];
+      for (const [hour, tag] of [[14, 'dag'], [22.5, 'nacht']]) {
+        for (const [name, W] of PRESETS) {
+          window.__viClock = hour; window.__viWeather = W; fixWorld();
+          await sleep(3500);
+          await shot(S.name + '-' + tag + '-' + name, { position: { x: S.x - Math.cos(S.a || 0) * 12, y: S.y - Math.sin(S.a || 0) * 12, z: z + 3 }, lookAt: { x: S.x + Math.cos(S.a || 0) * 80, y: S.y + Math.sin(S.a || 0) * 80, z: z + 4 }, cut: true }, 1800);
+          info.shots.push(tag + '-' + name);
+        }
+      }
+      window.__viClock = 0; window.__viWeather = null; fixWorld();
+    } else if (S.type === 'voertuigen') {
+      // doors, bonnet and look of vehicles: up to 8 different models near the spot, 3/4 views from 7 m;
+      // then the player climbs into one and a shot is taken while the door is open
+      await go(S.x, S.y, 0, 6000);
+      const seen = new Set(); const list = [];
+      for (const v of w.vehicles) {
+        if (v.isBoat || v.isHeli || v.dead) continue;
+        const k = (v.model && (v.model.name || v.model.kind)) || '?';
+        if (seen.has(k) || Math.hypot(v.x - S.x, v.y - S.y) > 400) continue;
+        seen.add(k); list.push(v);
+        if (list.length >= 8) break;
+      }
+      info.models = list.map((v) => (v.model && (v.model.name || v.model.kind)) || '?');
+      let k = 0;
+      for (const v of list) {
+        const a = (v.angle || 0) + 0.6, g = gh(v.x, v.y);
+        await go(v.x, v.y, 0, 2500);
+        await shot(S.name + '-' + k++ + '-' + (info.models[k - 1] || 'v').toString().replace(/[^a-z0-9]/gi, ''), { position: { x: v.x + Math.cos(a) * 7, y: v.y + Math.sin(a) * 7, z: g + 2.2 }, lookAt: { x: v.x, y: v.y, z: g + 1 }, cut: true }, 1800);
+      }
+      const v0 = list[0];
+      if (v0) {
+        teleport(v0.x, v0.y); hold = null;
+        p.enterVehicle(v0, w);
+        await sleep(400);
+        console.log('[capture] ' + S.name + '-instappen');
+        await sleep(1500);
+        console.log('[capture] ' + S.name + '-erin');
+        if (p.inVehicle) p.exitVehicle(map, w);
       }
     } else if (S.type === 'raillod') {
       // #158: the player stays at the station; the cutscene camera stands ON the line at arc
