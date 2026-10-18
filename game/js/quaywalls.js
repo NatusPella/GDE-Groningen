@@ -1,7 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { rectOutside, countryBounds } from './countryfield.js';
 import { runGeo } from './geojobs.js';
-import { geometryFromPlain } from './geokernels.js';
+import { geometryFromPlain } from './geoplain.js';
 import { workerMapReady } from './roadsurface.js';
 import { createBrickDetailTexture } from './pixelart3d.js';
 import { onSettingsChange } from './settings.js';
