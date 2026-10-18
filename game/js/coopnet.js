@@ -169,7 +169,7 @@ export function tickCoopNet(world, dt) {
     if (n.fixed && (s.status === 'ok' || s.status === 'lag')) {
       const sample = s.world();
       if (sample && !n.joined) { n.joined = true; if (n.fade) n.fade('in'); }
-      applyHostState(world, s.slot, sample, world.coopRoster);
+      applyHostState(world, s.slot, sample, world.coopRoster, dt);
       world.coopHost = sample ? leesEntiteiten(sample.entities) : { voertuigen: [], doelen: [] };
       world.coopPartners = partnersInfo(s.slot, sample ? sample.players : [], world.coopRoster || []);
       world.coopPartner = world.coopPartners[0] || null;
