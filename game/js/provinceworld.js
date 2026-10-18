@@ -15,8 +15,9 @@
 //    roads, buildings and water (countryedge.js setExtraBlocked), and stay
 //    away from a tile that has not streamed in yet.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { provinceLandAt } from './regions.js';
 import { BLOCK, COUNTRY_UNIFORMS, setProvinceBlocks, setProvinceDitches } from './countryfield.js';
-import { setExtraBlocked, setExtraUse, setExtraHedge } from './countryedge.js';
+import { setExtraBlocked, setExtraUse, setExtraHedge, setLandMask } from './countryedge.js';
 import { tileIndexOf, tileKey } from './gdt.js';
 import { pointInPolygon } from './util.js';
 import { setProvinceMap } from './provincemap.js';
@@ -216,6 +217,7 @@ export function initProvince(tiles) {
   setExtraBlocked((x, y, m) => realBlockedAt(map, isTile, x, y, m));
   // the land use of OSM landuse (a world built with it: global.osmParcels); the hash decides where it is silent
   setExtraHedge((x, y, r) => realHedgeNear(map, x, y, r));
+  setLandMask(provinceLandAt);
   setExtraUse(S.layer.osmParcels ? (x, y) => realUseAt(map, isTile, x, y) : null);
   return { layer: S.layer, tiles: S.keys.length, blocks: S.blocks ? S.blocks.count : 0 };
 }
