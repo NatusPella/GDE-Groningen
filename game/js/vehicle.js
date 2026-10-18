@@ -1118,7 +1118,7 @@ export function manageBoatPopulation(world, { target = 4, spawnMin = 20, spawnMa
   for (const v of vehicles) if (v.isBoat && !v.wrecked && !v.isPolice && v.driver !== 'player') count++;
 
   const candidates = map.waterNear(player.x, player.y, spawnMax);
-  const have = { skiff: 0, acht: 0, sup: 0 };
+  const have = { skiff: 0, acht: 0, sup: 0, binnenvaart: 0 };
   for (const v of vehicles) if (v.isBoat && !v.wrecked && v.model.kind in have) have[v.model.kind]++;
   const life = { hour: hourOf(world), d: distToCentre(player.x, player.y), profile: wijkProfileAt(map, player.x, player.y).key, have };
   let guard = 0;
@@ -1127,9 +1127,10 @@ export function manageBoatPopulation(world, { target = 4, spawnMin = 20, spawnMa
     // rowers, an eight and stand-up paddlers on the wider city water
     life.width = waterMeanWidth(poly);
     life.wide = life.width >= 24;
+    life.nav = poly.nav || 0;
     const lifeKind = pickWaterLife(Math.random, life);
     const v = spawnBoatOnWater(map, poly, Math.random, { near: [player.x, player.y], min: spawnMin, max: spawnMax, budget: 3, model: lifeKind ? BOAT_KINDS[lifeKind] : undefined });
-    if (v && lifeKind) have[lifeKind]++;
+    if (v && lifeKind) have[BOAT_KINDS[lifeKind].kind === 'binnenvaart' ? 'binnenvaart' : lifeKind]++;
     if (!v || !spawnSpotFree(vehicles, v) || spawnWouldPop(world, v)) continue;
     vehicles.push(v);
     count++;
