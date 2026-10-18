@@ -6,6 +6,8 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+- **Perrons, schoorstenen, zendmasten, monumenten en parken uit de kaartdata:** bij stations liggen perrons met lantaarns, bankjes en overkappingen, fabrieksschoorstenen en zendmasten steken boven het land uit, wegkruisen en monumenten staan op hun plek en parken hebben bomen, een zandpad en banken. Per cel is er een vast budget.
+
 ## [0.36.0] - 2026-10-18
 
 ### Nieuw
