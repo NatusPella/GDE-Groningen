@@ -13,6 +13,7 @@ import { pushOutOfPlan } from './countryplan.js';
 import { buildingAt, boxOf, pushOutOfBuildings, roadNear, roadKind, withTiles, waterGap } from './tileplace.js';
 import { isInWater } from './util.js';
 import { SpatialGrid } from './spatialgrid.js';
+import { FACILITY_KIND, REPLACED_KINDS } from './shopbind.js';
 
 // how far an emergency-capable post may be before the nearest doctor wins
 export const MEDICAL_REACH = 4500;
@@ -123,6 +124,54 @@ export function initFacilities(map, raw) {
     if (pts.some(([x, y]) => inBuiltWorld(meta, x, y, 0))) FAC.lanes.push({ sides, pts });
   }
   FAC.ready = true;
+}
+
+export async function loadShopPlaces(mapUrl = 'citymap.json') {
+  const base = mapUrl.replace(/[^/]*$/, '');
+  try {
+    const r = await fetch(base + 'shopplaces.json');
+    return r.ok ? await r.json() : null;
+  } catch (e) {
+    console.warn('shop places not loaded', e);
+    return null;
+  }
+}
+
+// The province's real shops and cafés (scripts/world/build_shopplaces.mjs, #175):
+// they take the place of the same kinds from facilities.json (the same real
+// spots, now with an invented name, the building and a budget per tile). The
+// city keeps its own shops (meta.shops): rows inside the city map are skipped.
+// Run after initFacilities.
+export function initShopPlaces(map, raw) {
+  if (!raw || !raw.tiles || !FAC.ready) return 0;
+  const drop = new Set(REPLACED_KINDS);
+  const seen = new Set();
+  const rows = [];
+  for (const list of Object.values(raw.tiles)) {
+    for (const r of list) {
+      const [x, y] = geoToGame(meta, r[0], r[1]);
+      const type = raw.types[r[2]];
+      const kind = FACILITY_KIND[type];
+      const key = kind + '|' + Math.round(x / 4) + '|' + Math.round(y / 4);
+      if (!kind || seen.has(key) || !inBuiltWorld(meta, x, y, 0) || inCity(meta, x, y)) continue;
+      seen.add(key);
+      rows.push({ kind, x, y, place: (raw.places && raw.places[r[6]]) || '', street: '', own: r[3], wk: type, bid: r[4] || '', chain: !!(r[5] & 1), city: false, sp: true });
+    }
+  }
+  if (!rows.length) return 0;
+  FAC.all = FAC.all.filter((f) => f.city || !drop.has(f.kind));
+  for (const k of drop) {
+    const keep = (FAC.byKind.get(k) || []).filter((f) => f.city);
+    if (keep.length) FAC.byKind.set(k, keep); else FAC.byKind.delete(k);
+  }
+  for (const f of rows) {
+    f.name = f.own;
+    FAC.all.push(f);
+    if (!FAC.byKind.has(f.kind)) FAC.byKind.set(f.kind, []);
+    FAC.byKind.get(f.kind).push(f);
+  }
+  grids = new Map();
+  return rows.length;
 }
 
 export function facilitiesOf(kind) {
