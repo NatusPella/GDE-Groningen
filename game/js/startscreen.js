@@ -1,5 +1,6 @@
 import { FLAGS } from './devflags.js';
-import { hasSave, readSave, applySave, clearSave, getSaveSummary } from './savegame.js';
+import { hasSave, readSave, applySave, startNewSlot, getSaveSummary, ensureActiveSlot } from './savegame.js';
+import { openSaveSlots, isSaveSlotsOpen } from './saveslotsui.js';
 import { VERSION } from './version.js';
 import { checkWhatsNew, markVersionSeen, compareVersions } from './whatsnew.js';
 import { pointInPolygon } from './util.js';
@@ -36,9 +37,6 @@ let tipTimer = 0;
 let fakeTimer = 0;
 let progress = 0;
 let shown = 0;
-
-// the boot screen's picture: the same low-poly canal scene as the load screens
-{ const bg = document.getElementById('bt-scene'); if (bg) bg.innerHTML = sceneSvg('water'); }
 
 function el(id) {
   return document.getElementById(id);
@@ -400,17 +398,19 @@ export function runStartScreen(world, { render, relocate, tick }) {
   return new Promise((resolve) => {
     const screen = el('start-screen');
     const menu = screen.querySelector('.ss-menu');
+    ensureActiveSlot();
     const save = hasSave() ? getSaveSummary() : null;
     const items = [];
     if (save) items.push({ act: 'continue', label: 'Doorgaan', sub: summaryText(save) });
     items.push({ act: 'new', label: 'Nieuw spel', sub: save ? 'Begin opnieuw in Grunn' : 'Moi! Stap in en rij' });
+    items.push({ act: 'saves', label: 'Saves', sub: 'Kies, hernoem, exporteer of verwijder je saves' });
     items.push({ act: 'news', label: 'Wat is er nieuw', sub: 'Alle versies en wijzigingen' });
     items.push({ act: 'settings', label: 'Instellingen', sub: 'Geluid, beeld en camera' });
     items.push({ act: 'about', label: 'Over', sub: 'Credits, licenties en privacy' });
     if (window.gdeDesktop && window.gdeDesktop.isDesktop) items.push({ act: 'exit', label: 'Afsluiten', sub: 'Tot de volgende keer. Hou dij goud!' });
     const pct = getAchievementSummary().pct;
     const st = save && save.story;
-    const heroSub = st ? [st.part, st.ended ? 'verhaal uit' : '', pct > 0 ? `${pct}% prestaties` : ''].filter(Boolean).join(' · ') : save ? summaryText(save) : '';
+    const heroSub = st ? [save.name, st.part, st.ended ? 'verhaal uit' : '', pct > 0 ? `${pct}% prestaties` : ''].filter(Boolean).join(' · ') : save ? summaryText(save) : '';
     const itemHtml = (it, i) => {
       if (it.act === 'continue') {
         const prog = st && st.total ? Math.round((st.done / st.total) * 100) : null;
@@ -513,19 +513,29 @@ export function runStartScreen(world, { render, relocate, tick }) {
     const startNew = () => {
       startTheme();
       restoreWorld();
-      clearSave();
+      startNewSlot();
+      finish('game');
+    };
+    const continueGame = () => {
+      startTheme();
+      restoreWorld();
+      applySave(world, readSave());
+      // the load screen covers the menu until the city round the save has streamed in
+      startLoadScreen(world, { kind: 'save' });
       finish('game');
     };
     const activate = (i) => {
       const it = items[i];
       if (it.act !== 'news' && it.act !== 'about') news.hidden = true;
       if (it.act === 'continue') {
-        startTheme();
-        restoreWorld();
-        applySave(world, readSave());
-        // the load screen covers the menu until the city round the save has streamed in
-        startLoadScreen(world, { kind: 'save' });
-        finish('game');
+        continueGame();
+      } else if (it.act === 'saves') {
+        openSaveSlots({ mode: 'start', onLoad: continueGame, onNew: () => startNew(), onClose: () => {
+          // Doorgaan shows the save as it was when the menu opened: rebuild the menu when saves changed
+          const now = hasSave() ? getSaveSummary() : null;
+          if (!done && JSON.stringify(now && [now.slot, now.savedAt, now.name]) !== JSON.stringify(save && [save.slot, save.savedAt, save.name])) location.reload();
+          else focus(sel);
+        } });
       } else if (it.act === 'new') {
         if (save && !confirmNew) { setConfirm(true); return; }
         startNew();
@@ -563,7 +573,7 @@ export function runStartScreen(world, { render, relocate, tick }) {
     };
     news.querySelector('.ss-news-close').addEventListener('click', closeNews);
     const onKey = (e) => {
-      if (isPauseMenuOpen() || done || trailerOn) return;
+      if (isPauseMenuOpen() || isSaveSlotsOpen() || done || trailerOn) return;
       if (e.target && e.target.closest && e.target.closest('#gfx-advice')) return;
       const k = e.key;
       if (!news.hidden) {

@@ -50,6 +50,31 @@ De game is **18+** (geweld, bloed en gokken met spelgeld; zie
 Alle beelden zijn in het spel zelf gemaakt (`scripts/steam_images.mjs`);
 meer in [docs/steam/beelden/](docs/steam/beelden/).
 
+## Spelen en bouwen
+
+Kort, voor wie net binnenkomt:
+
+- **Spelen**: pak een build bij de [Releases](../../releases) (macOS, Windows,
+  soms Linux). Het zijn pre-releases van een spel in ontwikkeling en ze zijn
+  niet ondertekend, dus je systeem waarschuwt de eerste keer. Het spel is
+  Nederlandstalig, bedoeld voor 18+ en gratis. Er is nog geen online versie.
+- **Zelf draaien**: de browserversie start met een kleine lokale server en
+  `python3 scripts/devserver.py 8765 game`, de desktopapp met
+  `cd desktop && npm install && npm start` (Node.js nodig). Zie hieronder.
+- **Bouwen aan het spel**: het spel is gewone JavaScript (ES-modules, three.js),
+  de kaart wordt met Python- en Node-scripts uit OpenStreetMap, 3DBAG en AHN
+  gemaakt. Begin met [docs/ONTWIKKELEN.md](docs/ONTWIKKELEN.md) en
+  [ARCHITECTURE.md](ARCHITECTURE.md). De kaarttegels (`game/world/`) staan
+  niet in git en worden bij het klaarzetten gemaakt (`npm run stage`).
+- **Meedoen**: lees [CONTRIBUTING.md](CONTRIBUTING.md). Alle speltekst is
+  Nederlands, en er komen geen echte merken, bedrijven of personen in. De
+  namen die wel in het spel staan zijn verzonnen; zie het
+  [merkenregister](docs/MERKENREGISTER.md).
+- **Rechten**: code onder GPL-3.0-or-later, eigen inhoud onder CC BY-NC-SA 4.0,
+  naam en logo voorbehouden (zie [Licenties](#licenties)). Muziek en stemmen
+  zijn met AI gemaakt; alleen de geluidseffecten worden in het spel zelf
+  gesynthetiseerd.
+
 ## Downloaden en installeren
 
 De builds staan bij de [Releases](../../releases) van deze repo, per versie:

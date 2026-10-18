@@ -2,14 +2,33 @@ import { MSG, MAX_DT, packSnapshot } from './simcontract.js';
 
 // The pure simulation core behind the worker (issue #58). It runs in
 // simworker.js, or on the main thread when Worker is missing (simhost.js), so
-// both paths give the same numbers. First step: agents follow a road polyline
-// at a fixed speed. The real traffic AI (vehicle.js, pedestrians.js) still
-// runs on the main thread; it moves in here kernel by kernel (see the plan in
-// the issue). No DOM, no THREE, no Math.random: agents are deterministic.
+// both paths give the same numbers. Ambient agents follow a road polyline:
+// cars keep a gap to the car ahead and stop at a red stop line, walkers just
+// walk. The interactive AI (vehicle.js, pedestrians.js: police, crime, the
+// player's surroundings) stays on the main thread; simhandover.js decides
+// which agents cross over. No DOM, no THREE, no Math.random: deterministic.
+
+export const ACCEL = 2.5; // m/s2
+export const BRAKE = 4; // m/s2, comfortable braking
+export const MIN_GAP = 5; // m between bumper and tail, standing
+const SIGNAL_LOOK = 60; // m
+
+// Red/green as a pure function of the kernel clock.
+export function signalGreen(sig, t) {
+  const cycle = sig.cycle > 0 ? sig.cycle : 1;
+  return ((((t + (sig.offset || 0)) % cycle) + cycle) % cycle) < sig.green;
+}
+
+// The speed a car may have with `gap` metres of free road ahead.
+export function safeSpeed(gap) {
+  return Math.sqrt(2 * BRAKE * Math.max(0, gap - MIN_GAP));
+}
 
 export function createSimKernel() {
   let roads = new Map(); // id -> { pts, cum, len }
-  let agents = new Map(); // id -> { id, road, s, speed, x, y, angle }
+  let agents = new Map(); // id -> { id, road, s, speed (cruise), v, kind, x, y, angle }
+  let signals = new Map(); // road -> [{ s, cycle, green, offset }] sorted by s
+  let clock = 0;
 
   function addRoad(r) {
     const pts = r.pts;
@@ -33,16 +52,56 @@ export function createSimKernel() {
     a.angle = Math.atan2(y1 - y0, x1 - x0);
   }
 
+  // Room ahead of a car: the car in front or a red stop line, whichever is nearer.
+  function advance(dt) {
+    const byRoad = new Map();
+    for (const a of agents.values()) {
+      if (a.kind === 'ped') { a.s += a.speed * dt; continue; }
+      if (!byRoad.has(a.road)) byRoad.set(a.road, []);
+      byRoad.get(a.road).push(a);
+    }
+    for (const [rid, list] of byRoad) {
+      const len = roads.get(rid).len;
+      list.sort((p, q) => p.s - q.s || p.id - q.id);
+      const sig = signals.get(rid) || [];
+      for (let i = 0; i < list.length; i++) {
+        const a = list[i];
+        let gap = Infinity;
+        if (list.length > 1) {
+          const lead = list[(i + 1) % list.length];
+          gap = lead.s - a.s;
+          if (gap <= 0) gap += len;
+          gap -= 2; // car length
+        }
+        for (const g of sig) {
+          let d = g.s - a.s;
+          if (d < 0) d += len;
+          if (d > SIGNAL_LOOK || signalGreen(g, clock)) continue;
+          if (d - 1 + MIN_GAP < gap) gap = d - 1 + MIN_GAP; // stop 1 m before the line, not MIN_GAP behind it
+        }
+        const want = Math.min(a.speed, safeSpeed(gap));
+        a.v = want >= a.v ? Math.min(want, a.v + ACCEL * dt) : Math.max(want, a.v - 2 * BRAKE * dt);
+        a.s += a.v * dt;
+      }
+    }
+    for (const a of agents.values()) { place(a); }
+  }
+
   // Handles one message; returns a reply message or null.
   function handle(msg) {
     switch (msg.type) {
       case MSG.INIT:
-        roads = new Map(); agents = new Map();
+        roads = new Map(); agents = new Map(); signals = new Map(); clock = 0;
         for (const r of msg.roads) addRoad(r);
+        for (const g of msg.signals || []) {
+          if (!signals.has(g.road)) signals.set(g.road, []);
+          signals.get(g.road).push(g);
+        }
+        for (const l of signals.values()) l.sort((a, b) => a.s - b.s);
         return { type: MSG.READY };
       case MSG.SPAWN:
         for (const a of msg.agents) {
-          const o = { id: a.id, road: a.road, s: a.s || 0, speed: a.speed || 0, x: 0, y: 0, angle: 0 };
+          const o = { id: a.id, road: a.road, s: a.s || 0, speed: a.speed || 0, v: a.speed || 0, kind: a.kind === 'ped' ? 'ped' : 'car', x: 0, y: 0, angle: 0 };
           if (!roads.has(o.road)) continue;
           place(o);
           agents.set(o.id, o);
@@ -53,8 +112,9 @@ export function createSimKernel() {
         return null;
       case MSG.STEP: {
         const dt = Math.max(0, Math.min(MAX_DT, msg.dt));
-        for (const a of agents.values()) { a.s += a.speed * dt; place(a); }
-        return packSnapshot([...agents.values()], msg.tick);
+        clock += dt;
+        advance(dt);
+        return packSnapshot([...agents.values()].map((a) => ({ ...a, speed: a.v })), msg.tick);
       }
       default:
         return { type: MSG.ERROR, error: `onbekend type ${msg.type}` };

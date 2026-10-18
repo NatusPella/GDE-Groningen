@@ -2855,7 +2855,7 @@ function updateHeliStage(dt, world, def, st, S) {
   if (p.inVehicle && !p.inVehicle.storyDemo) { hint(world, 'Uitstappen: Rotor Roelf wacht bij zijn heli.'); return; }
   if (S.target && dist(p.x, p.y, S.target.x, S.target.y) > 30) { hint(world, st.hint || 'Naar het helidek van Rotor Roelf, op Eelde.'); return; }
   S.started = startHeliRun({ variant: st.variant, onFinish: (res) => { S.result = res; } });
-  if (!S.started && S.t > 10) { world.addMessage('De heli wil niet opstijgen. Rotor Roelf vliegt zelf, en Dokter Dijkstra brengt de Eierbal.', 4); nextStage(world, def); }
+  if (!S.started && S.t > 10) { world.addMessage('Rotor Roelf vliegt zelf. Dijkstra brengt de Eierbal.', 4); nextStage(world, def); }
 }
 
 // --- M14 (new story): a race to a spot against a rival on the road network. Whoever is first at `finish` wins; the
@@ -3198,7 +3198,7 @@ function updateStages(dt, world, def) {
       repaintVehicle(world, v, RESPRAY_COLORS[Math.floor(Math.random() * RESPRAY_COLORS.length)]);
       world.wanted = 0;
       world.wantedDecayTimer = 0;
-      world.addMessage('Spuit & Klaar: "Nieuwe kleur, nieuwe kans." Gratis, voor deze ene keer. De pliesie kent hem niet meer.', 4);
+      world.addMessage('Nieuwe kleur, nieuwe kans. Gratis. De pliesie kent hem niet meer.', 4);
       nextStage(world, def);
       break;
     }

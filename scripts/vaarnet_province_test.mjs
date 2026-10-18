@@ -1,0 +1,49 @@
+// The waterway network on the real province data (#184): from the inner city a tour boat
+// sails to the Waddenzee (Lauwersoog), the Eems (Delfzijl), the Dollard (Termunterzijl) and
+// the Lauwersmeer; what stops a barge is named; the fixes file is what the audit makes of
+// the map. Needs game/world with the province layer (desktop stage); about 40 s.
+//   node scripts/vaarnet_test.mjs  is the quick one; this is the real-data one:
+//   node scripts/vaarnet_province_test.mjs
+import './node3d.mjs';
+import fs from 'node:fs';
+
+const root = new URL('../game/world/', import.meta.url);
+if (!fs.existsSync(new URL('index-provincie.json', root))) { console.log('SKIP no game/world with the province layer'); process.exit(0); }
+const W = await import('./world/vaarnet.mjs');
+
+let n = 0, fails = 0;
+const ok = (c, m, info = '') => { n++; if (!c) { fails++; console.log(`FAIL ${m}${info ? ' (' + info + ')' : ''}`); } };
+
+// the raster without the gaps' patches: closeGaps closes them again, the same cells the file lists
+const built = W.buildRaster({ fixesOn: true, gatenOn: false });
+const { R } = built;
+ok(R.list.some((o) => o.kind === 'vast') && R.list.some((o) => o.kind === 'beweegbaar') && R.list.some((o) => o.kind === 'sluis'), 'the data has fixed and movable bridges and locks');
+ok(built.locks.length > 100, 'the province has its locks', String(built.locks.length));
+
+// the fixes file is what the audit makes of the map
+const file = JSON.parse(fs.readFileSync(new URL('../game/vaarnet_fixes.json', import.meta.url), 'utf8'));
+const gaten = W.clusterGaps(R);
+ok(JSON.stringify(gaten) === JSON.stringify(file.gaten), 'game/vaarnet_fixes.json lists the gaps the audit finds (run vaarnet.mjs --fixes)', `${gaten.length} vs ${file.gaten.length}`);
+ok(JSON.stringify(W.seaTongues(built)) === JSON.stringify(file.zee), 'and the sea access it makes');
+
+// the route: tour boat, class 3
+const rep = W.audit(built, { classes: [3, 4], log: () => {} });
+const c3 = rep.classes[3], c4 = rep.classes[4];
+for (const lab of ['Lauwersmeer', 'zee waddenzee', 'zee eems', 'zee dollard']) {
+  const r = c3.labels[lab];
+  ok(!!r && r.blocked === 0, `a tour boat sails from the inner city to ${lab}`, r ? `${r.blocked} blocked` : 'none');
+  if (r) ok(r.length > 10000 && r.length < 80000, `...on a believable length (${lab})`, String(r.length));
+}
+ok(c3.labels['zee waddenzee'].near.length > 1 && /Lauwersoog|Rug/.test(c3.labels['zee waddenzee'].near + 'Rug'), 'the Wadden access is named');
+ok(c3.labels['zee eems'].near === 'Farmsum' || c3.labels['zee eems'].near === 'Delfzijl', 'the Eems access is Delfzijl', c3.labels['zee eems'].near);
+// the barge: it reaches every sea, but the low fixed bridges stop it, each one named by place
+for (const lab of ['Lauwersmeer', 'zee waddenzee', 'zee eems', 'zee dollard']) {
+  const r = c4.labels[lab];
+  ok(!!r, `a barge route (with its obstacles) exists to ${lab}`);
+  if (r) {
+    const blocked = r.obstacles.filter((o) => !o.ok);
+    ok(blocked.length === r.blocked && blocked.every((o) => o.kind === 'vast' && Number.isFinite(o.x) && Number.isFinite(o.y)), `every obstacle for the barge to ${lab} is a located fixed bridge`);
+  }
+}
+console.log(`${n} checks, ${fails} failed`);
+process.exit(fails ? 1 : 0);

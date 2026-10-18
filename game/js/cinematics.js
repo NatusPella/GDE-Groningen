@@ -215,9 +215,9 @@ function poseFocus(pose) {
   return { x: ex + dx * k, y: ey + dy * k };
 }
 
-// Cutscene camera poses off the world (city plus Ommeland extent) or NaN:
+// Cutscene camera poses off the world (the whole province, outline plus a margin) or NaN:
 // one entry per cinematic id, for the story test.
-const WORLD_EXTENT = [-12312, -13608, 12830, 10952];
+const WORLD_EXTENT = [-28000, -41000, 46000, 43000];
 const poseIssues = new Map();
 function notePose(id, pose) {
   const P = pose.position, L = pose.lookAt;
