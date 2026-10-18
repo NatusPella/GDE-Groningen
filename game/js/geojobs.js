@@ -64,11 +64,6 @@ export function geoWorkerActive() {
   return !!getWorker();
 }
 
-// fn runs once before the first job that runs on the main thread
-export function onGeoFallback(fn) {
-  fallbackHooks.push(fn);
-  if (fellBack) fn();
-}
 
 export function runGeo(kind, data, done = () => {}) {
   const w = getWorker();
@@ -78,6 +73,3 @@ export function runGeo(kind, data, done = () => {}) {
   try { w.postMessage({ id, kind, data }); } catch (e) { fail(e); }
 }
 
-export function geoPending() {
-  return open.size;
-}

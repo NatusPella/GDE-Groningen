@@ -44,9 +44,6 @@ const pick = (a) => a[Math.floor(Math.random() * a.length)];
 export function radioIsOn() {
   return on;
 }
-export function radioProgramme() {
-  return prog;
-}
 
 // The save (savegame.js): 'on' or 'off'; anything else is on.
 export function getRadioSave() {

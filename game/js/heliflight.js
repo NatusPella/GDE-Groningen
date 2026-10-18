@@ -38,6 +38,7 @@ import { poseHeliRotors, updateHeliDust, ROTOR_Y } from './heli3d.js';
 import { getScene } from './scene3d.js';
 import { unlockAchievement } from './achievements.js';
 import { helipadInfo } from './skyprops.js';
+import { shapeInputs } from './helictl.js';
 
 export const HELI_MODEL = { name: 'heli', len: 8.8, wid: 2.1, maxSpeed: 40, accel: 7, brake: 9, turnRate: 1.5 };
 
@@ -187,11 +188,14 @@ export function flyHeli(v, dt, w) {
   let up = k(' ') - k('control');
   let yaw = k('d') - k('a');
   let fwd = Math.max(-1, Math.min(1, k('w') + k('arrowup') - k('s') - k('arrowdown')));
-  const side = k('arrowright') - k('arrowleft');
+  let side = k('arrowright') - k('arrowleft');
   const boost = k('shift') > 0;
   // S while still flying forward brakes hard first, then it backs up
   const hover = fwd < 0 && vx * Math.cos(v.angle) + vy * Math.sin(v.angle) > 2;
   if (dead || held) { up = dead ? -1 : 0; yaw *= dead ? 0.3 : 0; fwd = 0; }
+  // keys ramp up and down instead of jumping to full (helictl.js, #166)
+  if (!dead && !held) ({ up, yaw, fwd, side } = shapeInputs(v.ctl || (v.ctl = {}), { up, yaw, fwd, side }, dt));
+  else v.ctl = null;
   v.throttle = up;
 
   // rotor: spools up while someone sits in it, down when the engine died

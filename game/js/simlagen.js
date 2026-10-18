@@ -11,7 +11,6 @@
 //                  entiteiten en bij het wegtrekken weer een getal (AbstractPool)
 //   weg            buiten bereik: niets
 
-export const LAGEN = ['vol', 'vereenvoudigd', 'abstract', 'weg'];
 
 // Randen in meter per soort: [vol, vereenvoudigd, abstract]
 const RANDEN = {

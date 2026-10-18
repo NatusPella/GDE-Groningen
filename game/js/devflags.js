@@ -40,6 +40,7 @@ export const FLAGS = Object.freeze({
   frames: has('frames'),
   video: has('video'),
   legacymap: has('legacymap'),
+  terrain: has('terrain'),
   stadlaag: val('stadlaag'),
   nobatch: has('nobatch'),
   shaderdebug: has('shaderdebug'),
@@ -59,6 +60,7 @@ export const FLAGS = Object.freeze({
   reizen: has('reizen'),
   testmenu: has('testmenu'),
   brugbotsing: has('brugbotsing'),
+  sfxtest: has('sfxtest'),
 });
 
 export const FLAG_DOCS = Object.freeze({
@@ -78,6 +80,7 @@ export const FLAG_DOCS = Object.freeze({
   frames: 'Trailer: sla beeld voor beeld op',
   video: 'Trailer: neem video op (alleen desktop)',
   legacymap: 'Laad de oude kaart in plaats van de tegelwereld',
+  terrain: 'Hoogtes volgen het AHN-terrein (dijken, wierden; het terrein wordt nog niet getekend)',
   stadlaag: 'Stad per laag uit de gedeelde tegelbouw (gebouwen, wegen, water, spoor, groen, meubilair, poi, objecten, namen, of alle); #90, standaard uit',
   nobatch: 'Zet het samenvoegen van meshes uit (scene3d)',
   shaderdebug: 'Laat three.js shaderfouten controleren',
@@ -95,6 +98,7 @@ export const FLAG_DOCS = Object.freeze({
   simlagen: 'Verkeer volgens simulatielagen per streek en afstand (simlagen.js)',
   zwartcheck: 'Controleer op zwarte beelden (blackframe)',
   testmenu: 'Testmenu op F10 met alle schakelaars en snelkoppelingen; eigen opslag (gde-dev:), raakt de echte save niet',
+  sfxtest: 'Geluidstest: paneel met alle effecten, een afstandsschuif en een afspeelknop per effect; F8 verbergt het (#173)',
   brugbotsing: 'Stuurt na een paar seconden een binnenvaartschip tegen de dichtstbijzijnde brug (#9)',
   reizen: 'Reisbeats in het nieuwe verhaal: keuze Meerijden, Zelf rijden of Overslaan bij een sprong (#97)',
 });

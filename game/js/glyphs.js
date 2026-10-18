@@ -43,11 +43,6 @@ export function padGlyphInner(slot, family = padState().family) {
   return `<span class="pad-g pad-sh" role="img" aria-label="${label}">${L[slot] || slot}</span>`;
 }
 
-// The controller glyph for a key token in a situation, or '' if the pad has none.
-export function padGlyphFor(token, ctx) {
-  const slot = padSlotFor(token, ctx || padState().ctx);
-  return slot ? padGlyphInner(slot) : '';
-}
 
 function tokenOf(el) {
   if (el.dataset.gk) return el.dataset.gk;

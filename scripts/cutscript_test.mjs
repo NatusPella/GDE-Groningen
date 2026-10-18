@@ -4,7 +4,7 @@
 import { readFileSync } from 'node:fs';
 import { compileScene, validateScene, resolveTime, fitCamera, fitAnchor, ACTOR_ANIMS } from '../game/js/cutscript.js';
 import { ANIMS } from '../game/js/actoranim.js';
-import { OPENING, END_CARD, flatScene } from '../game/js/cutscenes.js';
+import { openingActs, END_CARD, flatScene } from '../game/js/cutscenes.js';
 
 let fails = 0, n = 0;
 const ok = (c, name, extra = '') => { n++; if (!c) { fails++; console.log('FAIL', name, extra); } };
@@ -29,54 +29,86 @@ ok(Math.abs(resolveTime('L2+1.5', lines, duration) - (lines[2].at + 1.5)) < 1e-9
 ok(resolveTime('L99', lines, duration) === null, 'unknown line is null');
 ok(resolveTime('end', lines, duration) === duration, 'end');
 
-// the shipped scenes are valid: no broken refs, no standing around, no dull shot
-const issues = validateScene(OPENING, { lines, duration });
-ok(issues.length === 0, 'opening validates', issues.join(' | '));
+// the opening: three acts (trailer in the street, the kitchen, moving day), each on its own share of the lines
+const acts = openingActs(lines);
+ok(acts.length === 3 && acts.map((x) => x.lines.length).join() === '3,23,5', 'the opening splits into 3 + 23 + 5 lines', acts.map((x) => x.lines.length).join());
+ok(acts.every((x) => x.lines.every((l, i) => i === 0 || l.at > x.lines[i - 1].at)), 'lines keep their order in every act');
+for (const x of acts) {
+  const iss = validateScene(x.def, { lines: x.lines, duration: x.duration });
+  ok(iss.length === 0, `act ${x.def.id} validates`, iss.join(' | '));
+}
 const issues2 = validateScene(END_CARD, { duration: 6.5 });
 ok(issues2.length === 0, 'end card validates', issues2.join(' | '));
 
-// sampling is finite and deterministic over the whole scene
+// sampling is finite and deterministic over every act
 const anchor = { x: 1000, y: -500, facing: 0.7, z: 0 };
-const opening = compileScene(OPENING, { lines, duration });
-let finite = true, same = true, maxStep = 0, prev = null;
-for (let t = 0; t <= duration; t += 0.1) {
-  const s = opening.sample(t, anchor), s2 = opening.sample(t, anchor);
-  if (JSON.stringify(s) !== JSON.stringify(s2)) same = false;
-  const c = s.camera;
-  for (const v of [c.position.x, c.position.y, c.position.z, c.lookAt.x, c.lookAt.y, c.lookAt.z, c.fov]) if (!Number.isFinite(v)) finite = false;
-  for (const a of Object.values(s.actors)) for (const v of [a.x, a.y, a.a, a.gaze, a.speed]) if (!Number.isFinite(v)) finite = false;
-  for (const p of Object.values(s.props)) for (const v of [p.x, p.y, p.h, p.a]) if (!Number.isFinite(v)) finite = false;
-  // the camera stays near the set (no shot flying off into the map)
-  if (Math.hypot(c.position.x - anchor.x, c.position.y - anchor.y) > 60) finite = false;
-  if (prev) for (const [id, a] of Object.entries(s.actors)) if (id !== 'fietser' && id !== 'fietsster') maxStep = Math.max(maxStep, Math.hypot(a.x - prev.actors[id].x, a.y - prev.actors[id].y));
-  prev = s;
+const kAnchor = { x: 1000, y: -500, facing: 0, z: 345 };
+const compiled = acts.map((x) => ({ ...x, scene: compileScene(x.def, { lines: x.lines, duration: x.duration }) }));
+let finite = true, same = true, maxStep = 0;
+let kitchenOut = 0;
+for (const x of compiled) {
+  const an = x.def.set === 'keuken' ? kAnchor : anchor;
+  let prev = null;
+  for (let t = 0; t <= x.duration; t += 0.1) {
+    const s = x.scene.sample(t, an), s2 = x.scene.sample(t, an);
+    if (JSON.stringify(s) !== JSON.stringify(s2)) same = false;
+    const c = s.camera;
+    for (const v of [c.position.x, c.position.y, c.position.z, c.lookAt.x, c.lookAt.y, c.lookAt.z, c.fov]) if (!Number.isFinite(v)) finite = false;
+    for (const a of Object.values(s.actors)) for (const v of [a.x, a.y, a.a, a.gaze, a.speed, a.sit]) if (!Number.isFinite(v)) finite = false;
+    for (const p of Object.values(s.props)) for (const v of [p.x, p.y, p.h, p.a]) if (!Number.isFinite(v)) finite = false;
+    // the camera stays near the set (no shot flying off into the map)
+    if (Math.hypot(c.position.x - an.x, c.position.y - an.y) > 60) finite = false;
+    if (x.def.set === 'keuken') {
+      // before the host's clamp: look targets and cameras are meant to be in or at the room (4.4 x 3.6 x 2.6 m)
+      const dx = Math.abs(c.position.x - an.x), dy = Math.abs(c.position.y - an.y), dz = c.position.z - an.z;
+      if (dx > 2.15 || dy > 1.75 || dz < 0.2 || dz > 2.5) kitchenOut++;
+    }
+    if (prev) for (const [id, a] of Object.entries(s.actors)) if (!/^fiets/.test(id)) maxStep = Math.max(maxStep, Math.hypot(a.x - prev.actors[id].x, a.y - prev.actors[id].y));
+    prev = s;
+  }
 }
 ok(finite, 'all samples finite and near the set');
 ok(same, 'sampling is deterministic');
 ok(maxStep < 0.35, 'walkers move smoothly (max 0.1 s step)', String(maxStep));
+ok(kitchenOut === 0, 'the kitchen cameras stay inside the room', String(kitchenOut));
 
-// the story happens: people move, props move, the camera changes shot
-const at0 = opening.sample(0.5, anchor), atEnd = opening.sample(duration - 0.5, anchor);
-ok(Math.hypot(at0.actors.tammo.x - atEnd.actors.tammo.x, at0.actors.tammo.y - atEnd.actors.tammo.y) > 5, 'Tammo ends elsewhere');
-ok(at0.props.matras.visible === false && atEnd.props.matras.visible === true, 'the matras appears on the roof');
-const shotsSeen = new Set();
-for (let t = 0; t < duration; t += 0.25) shotsSeen.add(opening.sample(t, anchor).camera.shotIndex);
-ok(shotsSeen.size >= 15, 'the camera varies', String(shotsSeen.size));
+const [trailer, kitchen, moving] = compiled;
+// the camera varies in every act
+for (const x of compiled) {
+  const seen = new Set();
+  for (let t = 0; t < x.duration; t += 0.25) seen.add(x.scene.sample(t, x.def.set === 'keuken' ? kAnchor : anchor).camera.shotIndex);
+  ok(seen.size >= (x.def.set === 'keuken' ? 20 : 6), `the camera varies in ${x.def.id}`, String(seen.size));
+}
 
-// speakers: the speaking actor talks
-const tl = lines.findIndex((l) => l.speaker === 'Tammo');
-const s = opening.sample(lines[tl].at + 0.8, anchor);
-ok(s.speakerActor === 'tammo' && s.actors.tammo.speaking, 'Tammo speaks on his line');
-const s6 = opening.sample(lines[6].at + 0.5, anchor);
-ok(s6.speakerActor === 'tessa', 'Tessa (voice key Anita) speaks on line 6');
-
-// carrying: a carried prop rides along, a dropped prop stays
-const carried = opening.sample(lines[4].at + 1.0, anchor);
-ok(carried.actors.tammo.carrying === 'doos' && Math.hypot(carried.props.doos.x - carried.actors.tammo.x, carried.props.doos.y - carried.actors.tammo.y) < 0.6, 'the box rides with Tammo');
-const d1 = opening.sample(lines[7].at, anchor).props.doos, d2 = opening.sample(lines[20].at, anchor).props.doos;
-ok(Math.hypot(d1.x - d2.x, d1.y - d2.y) < 1e-6, 'a dropped box stays put');
-// the cyclists ride, not walk
-ok(opening.sample(2, anchor).actors.fietser.anim === 'ride', 'cyclists ride');
+// the kitchen: Tessa sits, Tammo walks in and sits, both stand up and leave; the cat crosses the table
+{
+  const L = kitchen.lines, sm = (t) => kitchen.scene.sample(t, kAnchor);
+  const first = sm(0.5), mid = sm(L[8].at + 1), end = sm(kitchen.duration - 0.3);
+  ok(first.actors.tessa.sit > 0.4 && first.actors.tammo.sit === 0, 'Tessa sits from the start, Tammo stands in the hall');
+  ok(mid.actors.tessa.sit > 0.4 && mid.actors.tammo.sit > 0.4, 'both sit at the table in the middle');
+  ok(end.actors.tessa.sit === 0 && end.actors.tammo.sit === 0, 'both stand at the end');
+  ok(Math.hypot(end.actors.tessa.x - kAnchor.x - 1.3, end.actors.tessa.y - kAnchor.y - 2.3) < 0.3, 'Tessa leaves through the door');
+  const cat0 = sm(0.5).props.kat, cat1 = sm(L[8].at).props.kat;
+  ok(cat0.h - 345 > 1 && Math.abs(cat1.h - 345 - 0.775) < 0.02, 'the cat jumps from the sill to the table', `${cat0.h} ${cat1.h}`);
+  ok(sm(L[2].at + 0.8).speakerActor === 'tammo' && sm(L[3].at + 0.8).speakerActor === 'tessa', 'the kitchen speakers are right');
+  // every line has its own shot or shares one with a close-up on the speaker
+  ok(kitchen.def.shots.length >= 26, 'the kitchen has a shot plan', String(kitchen.def.shots.length));
+  // the goal line (28 augustus) has its own beat: a close shot starts on it
+  ok(kitchen.def.shots.some((q) => q.t === 'L13'), 'the goal line has its own shot');
+  // fx times exist and fall inside the act
+  for (const f of kitchen.def.fx) {
+    const t = resolveTime(f.t, L, kitchen.duration);
+    ok(t != null && t >= 0 && t <= kitchen.duration, 'fx time resolves ' + JSON.stringify(f.t), String(t));
+  }
+}
+// moving day: the Escapade drives off
+{
+  const a = moving.scene.sample(0.5, anchor).props.escapade, b = moving.scene.sample(moving.duration - 0.2, anchor).props.escapade;
+  ok(Math.hypot(a.x - b.x, a.y - b.y) > 20, 'the Escapade drives away at the end');
+  ok(moving.scene.sample(moving.duration - 0.2, anchor).actors.tessa.visible === false, 'Tessa is in the car');
+}
+// the trailer: cyclists ride, the street lives
+ok(trailer.scene.sample(2, anchor).actors.fietser.anim === 'ride', 'cyclists ride');
 
 // the validator catches broken scenes
 const bad = (patch, what) => {
@@ -133,7 +165,8 @@ ok(ACTOR_ANIMS.length === ANIMS.length && ACTOR_ANIMS.every((a) => ANIMS.include
   ok(!solid(c.x, c.y, c.z), 'a camera inside a building is moved to free space', JSON.stringify(c));
   ok(fitCamera({ x: -3, y: 0, z: 1.6 }, { x: -2, y: 0, z: 1.4 }, env).x === -3, 'a free camera stays');
   // the opening scene faces the building: the anchor turns away until nothing stands in the wall
-  const sc = compileScene(OPENING, { lines, duration });
+  const sc = moving.scene;
+  const duration = moving.duration;
   const a0 = { x: 0, y: 0, facing: 0, z: 0 };
   const count = (a) => { let bad = 0; for (let t = 0; t <= duration; t += 0.6) { const s2 = sc.sample(t, a); for (const o of Object.values(s2.actors)) if (solid(o.x, o.y, 0.9)) bad++; } return bad; };
   const a1 = fitAnchor(sc, a0, env);

@@ -14,6 +14,7 @@ import { FLAGS } from './devflags.js';
 import { setMeetHook } from './namecard.js';
 import { displayName } from './speakers.js';
 import { queueStoryContact } from './storycontact.js';
+import { withValidity, setValidityContext } from './validity.js';
 import { isCallActive } from './phonefeed.js';
 import { SMS_SAY } from './smsvoice.js';
 import { playClueSting, playRadioSting } from './audio.js';
@@ -33,7 +34,7 @@ import { inHomeFlat, getHomeForRender, flatStage } from './home.js';
 import { isShopOpen } from './shopui.js';
 import { playCinematic, isCinematicActive, sinceCinematic, isBannerUp } from './cinematics.js';
 import { playScript } from './cutscenehost.js';
-import { OPENING, END_CARD, flatScene } from './cutscenes.js';
+import { openingActs, END_CARD, flatScene } from './cutscenes.js';
 import { refreshDayNight } from './daynight.js';
 import { getTrainTripCount, getStationsForRender } from './stationtravel.js';
 import { getEierballen } from './achievementtracker.js';
@@ -95,10 +96,12 @@ function freshRuntime() {
   return { gifts: {}, cur: undefined, enteredAt: 0, leadAt: -1, sayAt: -1, reminded: false, base: {}, guideT: 0, skipUntil: -1, cardPending: null, nightWait: false, flatSince: -1, voorschotT: 0, lastPlayer: null, recapPending: null, newClues: new Set(), clueToasts: [] };
 }
 
+const STORY_VALID = { ttl: 300, step: true };
 const who = (k) => (k === 'T' ? 'Tammo' : k === 'A' ? 'Anita' : k);
 
 function phone(from, text, duration = 6, say = undefined, silent = false) {
-  if (world && world.phoneNotifications) world.phoneNotifications.push({ from, text, duration, say, story: true, ...(silent ? { silent: true } : {}) });
+  // refs #171: a story text that waits for the player is dropped once its step is over or it is five minutes late
+  if (world && world.phoneNotifications) world.phoneNotifications.push(withValidity({ from, text, duration, say, story: true, ...(silent ? { silent: true } : {}) }, STORY_VALID));
 }
 
 // The new arc (storyarc_nieuw.js, storytext.js): the Nachtstreek fragments and the silent app texts of the
@@ -110,7 +113,7 @@ function sendScript(step, at) {
   if (state.flags.has(key)) return;
   state.flags.add(key);
   for (const c of radioContacts(step.id, at)) {
-    if (c.lines.length) queueStoryContact({ via: 'radio', from: 'rikus', on: 'after', mood: 'night', caller: '', lines: c.lines });
+    if (c.lines.length) queueStoryContact(withValidity({ via: 'radio', from: 'rikus', on: 'after', mood: 'night', caller: '', lines: c.lines }, { ttl: 600, step: true }));
   }
   for (const a of appsAt(step.id, at)) phone(a.from, a.text, 7, undefined, true);
 }
@@ -298,7 +301,7 @@ function markDone(step, { skipped = false, quiet = false } = {}) {
 function queueContacts(step, on) {
   for (const c of step.contact || []) {
     if ((c.on || 'after') !== on) continue;
-    queueStoryContact({ ...c, onDone: () => { for (const [from, text] of c.after || []) phone(who(from), text, 6); } });
+    queueStoryContact(withValidity({ ...c, onDone: () => { for (const [from, text] of c.after || []) phone(who(from), text, 6); } }, { ttl: 600, step: true }));
   }
 }
 
@@ -446,6 +449,9 @@ function setClock(h) {
   refreshDayNight(world);
 }
 
+// the kitchen of the opening hangs this high above the street (the set is a closed room)
+const KITCHEN_Z = 345;
+
 // The opening of the new story (M00): the trailer parody, the kitchen and moving day of the script,
 // as a letterboxed cutscene over the player's new home. Recorded lines play, the others are text.
 function playOpening(b) {
@@ -461,13 +467,28 @@ function playOpening(b) {
   }
   const p = world.player;
   const kop = PARTS.kop;
-  // the staged version (cutscenes.js OPENING): people and props move, the camera cuts; the orbit below stays as the fallback
+  // the staged version (cutscenes.js openingActs): people and props move, the camera cuts; the orbit below stays as the fallback
   const v0 = p.inVehicle;
-  const staged = playScript(world, OPENING, {
-    lines, duration: at + 1,
-    anchor: { x: v0 ? v0.x : p.x, y: v0 ? v0.y : p.y, facing: v0 ? v0.angle : p.angle || 0, z: 0 },
-    cine: { id: 'story-opening', kicker: `${partNumber('kop')} · ${kop.date}`, title: kop.name, cardFor: 3.2, onEnd: () => { b.phase = 'done'; } },
-  });
+  const spot = { x: v0 ? v0.x : p.x, y: v0 ? v0.y : p.y, facing: v0 ? v0.angle : p.angle || 0, z: 0 };
+  // three acts after each other: the trailer in the street, Tessa's kitchen (high above it), moving day.
+  // Skipping (hold Space) ends the whole opening.
+  const acts = openingActs(lines);
+  const playAct = (i) => {
+    const act = acts[i];
+    const last = i === acts.length - 1;
+    return playScript(world, act.def, {
+      lines: act.lines, duration: act.duration,
+      anchor: act.def.set === 'keuken' ? { x: spot.x, y: spot.y, facing: 0, z: KITCHEN_Z } : { ...spot },
+      cine: {
+        id: 'story-opening',
+        ...(i === 0 ? { kicker: `${partNumber('kop')} · ${kop.date}`, title: kop.name, cardFor: 3.2 } : {}),
+        onEnd: (skipped, replaced) => {
+          if (last || skipped || replaced || !playAct(i + 1)) b.phase = 'done';
+        },
+      },
+    });
+  };
+  const staged = acts.length === 3 && playAct(0);
   if (staged) return true;
   const ok = playCinematic({
     id: 'story-opening', priority: 4, duration: at + 1, pause: true, letterbox: true, skippable: true, hideHud: true,
@@ -877,7 +898,7 @@ function initSkipUi() {
     '#story-skip button{zoom:var(--ui,1);display:flex;gap:10px;align-items:center;font:18px/1.1 \'Bebas Neue\',\'Arial Narrow\',Arial,sans-serif;letter-spacing:1px;color:#f0ede4;' +
     'background:radial-gradient(ellipse at center,rgba(23,48,31,.94),rgba(12,20,14,.94));border:1px solid rgba(63,201,122,.6);border-radius:4px;padding:9px 16px;cursor:pointer;box-shadow:0 6px 24px rgba(0,0,0,.4)}' +
     '#story-skip button:hover,#story-skip button:focus-visible{border-color:#3fc97a;box-shadow:0 0 0 1px #3fc97a,0 6px 24px rgba(0,0,0,.4);outline:none}' +
-    '#story-skip .hud-key{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 6px;background:#fbfaf5;border:0;border-radius:5px;color:#0c140e;font:bold 13px/1 "Bebas Neue","Arial Narrow",Arial,sans-serif;letter-spacing:1px;' +
+    '#story-skip .hud-key{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 6px;background:#fbfaf5;border:0;border-radius:5px;color:#0c140e;font:bold 13px/1 \'Bebas Neue\',\'Arial Narrow\',Arial,sans-serif;letter-spacing:1px;' +
     'box-shadow:0 2px 0 #a9a69b,0 0 0 1px rgba(0,0,0,.18)}' +
     'body.cine-hide-hud #story-skip{display:none}';
   document.head.appendChild(style);
@@ -933,8 +954,17 @@ function onGated() {
 
 // --- init / update ------------------------------------------------------------------------
 
+// what the validity of a queued message is judged against (validity.js)
+function validityNow() {
+  if (!world) return null;
+  const s = currentStep();
+  const m = world.mission;
+  return { time: world.time, stepIndex: s && !s.end ? STEPS.indexOf(s) : STEPS.length, mission: m ? { phase: m.phase, index: m.index } : null, player: world.player ? { x: world.player.x, y: world.player.y } : null };
+}
+
 export function initStory(w) {
   world = w;
+  setValidityContext(validityNow);
   setMissionHooks({ waived: (key) => state.waived.has(key), skipped: (i) => STEPS.some((s) => s.kind === 'mission' && missionIdx(s) === i && state.skipped.has(s.id)), passed: onPassed, failed: onFailed, gated: onGated, canStart: swapDone });
   Object.assign(GOALS, FUN_GOALS, EIKEA_GOALS);
   setMeetHook(meet);

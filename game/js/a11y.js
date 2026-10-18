@@ -19,9 +19,6 @@ export function markerColors() {
   return PALETTES[getSettings().colorBlind] || PALETTES.uit;
 }
 
-export function colorBlindOn() {
-  return getSettings().colorBlind !== 'uit';
-}
 
 const listeners = new Set();
 export function onPaletteChange(cb) {
