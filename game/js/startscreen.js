@@ -408,7 +408,6 @@ export function runStartScreen(world, { render, relocate, tick }) {
     // the new story is the default: a released save stays untouched under Klassiek, so point to it
     else if (!arcForced() && ARC_ID === 'nieuw' && classicSaveExists()) items.push({ act: 'story', label: 'Doorgaan met Klassiek', sub: 'Je oude save staat nog klaar. Het nieuwe verhaal is nog in aanbouw' });
     items.push({ act: 'new', label: 'Nieuw spel', sub: arcForced() ? (save ? 'Begin opnieuw in Grunn' : 'Moi! Stap in en rij') : 'Kies je verhaal: nieuw of klassiek' });
-    if (FLAGS.coop) items.push({ act: 'coop', label: 'Coöp', sub: 'Samen spelen: op één scherm of op hetzelfde netwerk' });
     items.push({ act: 'news', label: 'Wat is er nieuw', sub: 'Alle versies en wijzigingen' });
     items.push({ act: 'settings', label: 'Instellingen', sub: 'Geluid, beeld en camera' });
     items.push({ act: 'about', label: 'Over', sub: 'Credits, licenties en privacy' });
@@ -541,8 +540,6 @@ export function runStartScreen(world, { render, relocate, tick }) {
         openNews();
       } else if (it.act === 'about') {
         openAbout();
-      } else if (it.act === 'coop') {
-        openCoop();
       } else if (it.act === 'settings') {
         openPauseMenu('settings', { prestart: true, onClose: () => focus(sel) });
       } else if (it.act === 'exit') {
@@ -562,25 +559,6 @@ export function runStartScreen(world, { render, relocate, tick }) {
     const openNews = () => {
       showPanel('Wat is er nieuw');
       loadChangelog().then((html) => { if (!news.hidden && newsTitle.textContent === 'Wat is er nieuw') newsBody.innerHTML = html; });
-    };
-    // Coöp-lobby (#95), alleen met ?coop: lobby.js (logica) en lobbyui.js (tekenen)
-    let lobby = null;
-    const openCoop = () => {
-      showPanel('Coöp');
-      import('./lobbyui.js').then(({ mountLobby }) => {
-        if (lobby) lobby.close();
-        lobby = mountLobby(newsBody, {
-          startLocal: () => { news.hidden = true; },
-          onTransport: (role, tr) => {
-            if (role !== 'host') { lobby.event({ t: 'fout', msg: 'Aansluiten als gast is nog niet af. Laat je medespeler de host zijn.' }); return; }
-            import('./coopnet.js').then((m) => {
-              const sess = m.startHost(world, tr, m.handshakeInfo({ tiles: '-', story: ARC_ID }));
-              sess.onstatus = (st) => lobby.event({ t: 'status', status: st });
-            });
-          },
-          disconnect: () => import('./coopnet.js').then((m) => m.stopCoopNet(world)),
-        });
-      });
     };
     const openAbout = () => {
       showPanel('Over GDE');

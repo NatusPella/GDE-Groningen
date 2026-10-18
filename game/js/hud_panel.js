@@ -1311,6 +1311,12 @@ function pulseAt(t, speed = 5) {
 
 // Draws one map marker in CSS-pixel space centred on (x, y); shared by the
 // minimap, the full map and its legend so all three always match.
+// vorm per medespeler (coopplayers.js): n hoeken, star = ster, rot = vaste draaiing
+const PARTNER_VORMEN = {
+  driehoek: { n: 3 }, ruit: { n: 4, rot: 0 }, vierkant: { n: 4, rot: Math.PI / 4 }, cirkel: { n: 0 }, vijfhoek: { n: 5 }, ster: { n: 5, star: true },
+  plus: { plus: true }, kruis: { kruis: true }, maan: { n: 6 }, hart: { n: 6, star: true }, bliksem: { n: 7 }, druppel: { n: 8 }, blok: { n: 4, star: true },
+  golf: { n: 7, star: true }, schild: { n: 3, rot: Math.PI / 2 }, bloem: { n: 8, star: true },
+};
 export function drawMapIcon(ctx, kind, x, y, s = 1, opts = {}) {
   const t = opts.t ?? performance.now() / 1000;
   ctx.save();
@@ -1328,6 +1334,23 @@ export function drawMapIcon(ctx, kind, x, y, s = 1, opts = {}) {
       ctx.fillStyle = C.greenLight;
       ctx.fill();
       outline(ctx, s, C.dark, 1.6);
+      break;
+    }
+    case 'partner': { // medespeler (samen spelen, #95): vorm en kleur van de speler, nooit alleen kleur
+      const f = PARTNER_VORMEN[opts.vorm] || PARTNER_VORMEN.cirkel;
+      ctx.rotate(f.rot ?? (f.n === 3 ? (opts.angle ?? -Math.PI / 2) : 0));
+      ctx.beginPath();
+      if (f.plus) { ctx.rect(-1.6 * s, -5.2 * s, 3.2 * s, 10.4 * s); ctx.rect(-5.2 * s, -1.6 * s, 10.4 * s, 3.2 * s); }
+      else if (f.kruis) { ctx.rotate(Math.PI / 4); ctx.rect(-1.6 * s, -5.2 * s, 3.2 * s, 10.4 * s); ctx.rect(-5.2 * s, -1.6 * s, 10.4 * s, 3.2 * s); }
+      else if (!f.n) ctx.arc(0, 0, 4.8 * s, 0, Math.PI * 2);
+      else for (let i = 0; i < (f.star ? f.n * 2 : f.n); i++) {
+        const a = -Math.PI / 2 + (i * Math.PI * 2) / (f.star ? f.n * 2 : f.n), r = (f.star && i % 2 ? 2.6 : 5.6) * s;
+        if (i) ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r); else ctx.moveTo(Math.cos(a) * r, Math.sin(a) * r);
+      }
+      ctx.closePath();
+      ctx.fillStyle = opts.kleur || C.greenLight;
+      ctx.fill();
+      outline(ctx, s, C.dark, 1.4);
       break;
     }
     case 'companion': {
@@ -2201,6 +2224,9 @@ function drawMinimap(dt, world) {
 
   const c = world.companion;
   if (c && c.state !== 'dead' && !c.inVehicle && minimapShows('companion')) icon('companion', c.x, c.y);
+  // medespelers (samen spelen, #95): buiten beeld blijven ze als gekleurde pijl aan de rand staan
+  const partnerEdges = [];
+  for (const p of world.coopPartners || []) if (p.zichtbaar && !icon('partner', p.x, p.y, { kleur: p.kleur, vorm: p.vorm, angle: p.heading + mapRotation })) partnerEdges.push({ a: edgeAngle(p.x, p.y), kleur: p.kleur });
 
   forEachPoliceUnit(world, (x, y, kind) => icon(kind, x, y));
   forEachCashTarget(world, (x, y) => icon('cash', x, y));
@@ -2213,6 +2239,7 @@ function drawMinimap(dt, world) {
   if (heroEdge != null) {
     drawEdgeArrow(ctx, cx + Math.cos(heroEdge) * edgeR, cy + Math.sin(heroEdge) * edgeR, heroEdge, C.greenLight, 0.9);
   }
+  for (const e of partnerEdges) if (e.a != null) drawEdgeArrow(ctx, cx + Math.cos(e.a) * edgeR, cy + Math.sin(e.a) * edgeR, e.a, e.kleur, 0.9);
   if (jobEdge != null) {
     const s = 1 + (wp ? 0 : pulseAt(t) * 0.2);
     drawEdgeArrow(ctx, cx + Math.cos(jobEdge) * edgeR, cy + Math.sin(jobEdge) * edgeR, jobEdge, ROUTE_COLORS.job || JOB_TARGET_COLOR, wp ? 0.8 : s, 'job');
