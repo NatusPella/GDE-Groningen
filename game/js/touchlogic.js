@@ -3,6 +3,7 @@
 // situation gets. The buttons are the controller's slots (controls.js
 // PAD_MAPS), so touch drives exactly the actions the gamepad and keyboard do.
 import { PAD_MAPS } from './controls.js';
+import { playerBusy } from './busy.js';
 
 // A phone or tablet: a coarse primary pointer that can't hover, or touch
 // points without a fine pointer. A laptop with a touchscreen keeps a mouse.
@@ -108,7 +109,7 @@ export function touchContext(w, { started = true, menuOpen = false, shiftMode = 
   if (w.pigeonMode) return 'pigeon';
   if (w.trainDriving) return 'train';
   if (w.challenge && w.challenge.id === 'fjord') return 'foodtruck';
-  if (w.padelGame || w.activityGame) return 'minigame';
+  if (playerBusy(w, ['padel', 'activityGame']).busy) return 'minigame';
   const v = w.player && w.player.inVehicle;
   if (v) return v.isHeli ? 'heli' : w.noLookBack ? 'skutsje' : v.gb && shiftMode !== 'auto' ? 'vehicleManual' : 'vehicle';
   return 'foot';
