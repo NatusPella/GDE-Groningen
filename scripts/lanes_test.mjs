@@ -9,7 +9,7 @@ import './node3d.mjs';
 import fs from 'node:fs';
 
 const { laneLayout } = await import('../game/js/lanes.js');
-const { GameMap, applyMapExtras } = await import('../game/js/mapdata.js');
+import { loadCityWorld } from './lib/loadworld.mjs';
 
 let n = 0, fails = 0;
 const ok = (cond, name, info = '') => { n++; if (!cond) { fails++; console.log(`FAIL ${name}${info ? ' (' + info + ')' : ''}`); } };
@@ -29,9 +29,7 @@ const near = (a, b, e = 1e-6) => Math.abs(a - b) <= e;
 
 // the map
 const root = new URL('../game/', import.meta.url);
-const data = JSON.parse(fs.readFileSync(new URL('citymap.json', root)));
-applyMapExtras(data, JSON.parse(fs.readFileSync(new URL('mapextras.json', root))));
-const map = new GameMap(data);
+const map = (await loadCityWorld()).map;
 {
   const car = map.roads.filter((r) => r.cat === 'major' || r.cat === 'normal' || r.cat === 'minor');
   const modelled = car.filter((r) => r.lanesFwd != null);

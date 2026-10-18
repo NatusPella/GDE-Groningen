@@ -322,7 +322,7 @@ function settingsHtml() {
       ${slider('brightness', 'Helderheid', 0.6, 1.6, 0.05)}
       ${disclosure('video', 'Meer opties', 'Licht en gloed, benchmark draaien', `
         ${picker('quality', 'Kwaliteit', qualities, 'Licht, gloed en kleuren')}
-        <div class="m-li pm-row">${rowName('Benchmark', 'Test hoe soepel Grunn draait op deze computer en welke stand past (±2 min)')}<button type="button" class="m-bg" data-action="bench">Benchmark draaien</button></div>
+        <div class="m-li pm-row">${rowName('Benchmark', 'Test hoe soepel Grunn draait op deze computer en welke stand past (±1 min)')}<button type="button" class="m-bg" data-action="bench">Benchmark draaien</button></div>
         <div class="pm-confirm" data-bench-confirm hidden>
           <p data-bench-text></p>
           <div class="m-acts"><button type="button" class="m-bp" data-action="bench-go">Starten</button><button type="button" class="m-bt" data-action="bench-cancel">Annuleren</button></div>
@@ -1039,7 +1039,7 @@ function runAction(a) {
     const box = root.querySelector('[data-bench-confirm]');
     box.hidden = a === 'bench-cancel';
     box.querySelector('[data-bench-text]').textContent = prestart
-      ? 'Benchmark starten? Duurt ongeveer twee minuten. Esc stopt.'
+      ? 'Benchmark starten? Duurt ongeveer een minuut. Esc stopt.'
       : 'Benchmark starten? Je spel wordt eerst opgeslagen. Esc stopt.';
     if (!box.hidden) box.querySelector('[data-action="bench-go"]').focus();
     else root.querySelector('[data-action="bench"]').focus();

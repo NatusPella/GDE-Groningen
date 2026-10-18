@@ -3,6 +3,7 @@ import { HABBO_PALETTE, habboMaterial, GeoBuilder, vcMaterial, markShared, compo
 import { buildPersonMesh, PERSON_RIG, holdPhoneRiding } from './models3d_people.js';
 import { boatKind, boatHasCabin } from './boattypes.js';
 import { buildHeliMesh } from './heli3d.js';
+import { buildPlaneMesh } from './plane3d.js';
 import { hash2 } from './rng.js';
 
 // Low-poly vehicles. Group origin = vehicle centre at ground level (y=0),
@@ -2334,6 +2335,7 @@ function buildVehicleMeshFor(v) {
   if (v.isBus) return buildBusMesh(v);
   if (v.isBoat) return buildBoatMesh(v);
   if (v.isHeli) return buildHeliMesh(v);
+  if (v.isPlane) return buildPlaneMesh(v);
   if (v.isHeroCar) return buildFordEscortGroup(v.model.color, v.model.len, v.model.wid, v.wrecked);
   return buildCarMesh(v);
 }

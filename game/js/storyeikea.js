@@ -16,7 +16,7 @@ import { playCinematic, isCinematicActive } from './cinematics.js';
 import { playScript } from './cutscenehost.js';
 import { flatScene } from './cutscenes.js';
 import { isMissionActive } from './missions.js';
-import { inHomeFlat, getHomeForRender } from './home.js';
+import { inHomeFlat, getHomeForRender, flatStage } from './home.js';
 import { grantFurniture } from './furniture.js';
 import { lineVoiceFor } from './linevoice.js';
 import { SPEAKERS } from './storyarc.js';
@@ -145,8 +145,9 @@ function updateHome(w, st, b) {
   };
   // staged in the flat (cutscenes.js flatScene), the plain scene as the fallback
   const pl = w.player;
+  const stage = flatStage();
   const ok = lines.length && ((lines.length > 2 && playScript(w, flatScene('eikea', lines), {
-    lines, duration: cine.duration, anchor: { x: pl.x, y: pl.y, facing: pl.angle || 0, z: pl.gz || 0 }, cine,
+    lines, duration: cine.duration, anchor: stage ? stage.anchor : { x: pl.x, y: pl.y, facing: pl.angle || 0, z: pl.gz || 0 }, env: stage ? stage.env : null, cine,
   })) || playCinematic(cine));
   if (!ok) done();
 }

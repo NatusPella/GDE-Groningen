@@ -2,7 +2,8 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { getScene } from './scene3d.js';
 import { buildPersonMesh, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { playCinematic } from './cinematics.js';
-import { compileScene } from './cutscript.js';
+import { compileScene, fitAnchor } from './cutscript.js';
+import { roofAt } from './camerapath.js';
 import { animateActor } from './actoranim.js';
 
 // The game side of the cutscene direction language (cutscript.js): puts the
@@ -11,6 +12,7 @@ import { animateActor } from './actoranim.js';
 //
 // playScript(w, def, { lines, duration, anchor, cine }) -> boolean
 //   anchor: { x, y, facing, z }  (default: the player, facing the way they look)
+//   env:    { solid, clamp } keeps the set out of buildings (cutscript.js fitCamera/fitAnchor); default: the building layer
 //   cine:   extra playCinematic fields (id, priority, kicker, title, tint, ...)
 //   lines:  [{ speaker, text, at, dur, voice? }], untouched: they stay the story's own
 
@@ -68,6 +70,45 @@ const PROP_MAKERS = {
     for (const x of [-1.4, 1.5]) for (const z of [-0.95, 0.95]) { const w = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.38, 0.25, 12), mat(0x1a1a1a)); w.rotation.x = Math.PI / 2; w.position.set(x, 0.38, z); g.add(w); }
     return g;
   },
+  // act 1 (cutscenes_akte1.js)
+  bakkie: () => {
+    // Berend's pickup: olive green, a low bed behind the cab
+    const g = new THREE.Group();
+    g.add(box(4.4, 0.7, 1.85, 0x5a6b3a, 0.65), box(1.5, 0.75, 1.75, 0x5a6b3a, 1.3, 1.1), box(1.3, 0.4, 1.78, 0x9fc3d6, 1.35, 1.15), box(2.2, 0.3, 0.06, 0x4a5a2e, 1.15, -1.0, 0.9), box(2.2, 0.3, 0.06, 0x4a5a2e, 1.15, -1.0, -0.9));
+    for (const x of [-1.4, 1.5]) for (const z of [-0.95, 0.95]) { const w = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.38, 0.25, 12), mat(0x1a1a1a)); w.rotation.x = Math.PI / 2; w.position.set(x, 0.38, z); g.add(w); }
+    return g;
+  },
+  automaat: () => { const g = new THREE.Group(); g.add(box(0.8, 1.5, 0.6, 0x7a808a, 0.75), box(0.5, 0.3, 0.02, 0xaee0d8, 1.15, 0.0, 0.31), box(0.4, 0.04, 0.02, 0x15181c, 0.8, 0.0, 0.31)); return g; },
+  aanhanger: () => {
+    const g = new THREE.Group();
+    g.add(box(3.0, 0.15, 1.7, 0x3c3f45, 0.6), box(1.6, 0.08, 0.1, 0x2a2c30, 0.55, 2.2));
+    for (const z of [-0.95, 0.95]) { const w = new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.34, 0.18, 12), mat(0x1a1a1a)); w.rotation.x = Math.PI / 2; w.position.set(-0.3, 0.34, z); g.add(w); }
+    return g;
+  },
+  trekker: () => {
+    const g = new THREE.Group();
+    g.add(box(2.4, 0.9, 1.2, 0x1c1c1f, 0.95, 0.5), box(1.1, 1.0, 1.2, 0x26262b, 1.85, -0.35), box(0.7, 0.5, 1.22, 0x9fc3d6, 1.95, -0.35), box(0.08, 0.7, 0.08, 0x555555, 1.9, 1.3));
+    for (const z of [-0.85, 0.85]) {
+      const big = new THREE.Mesh(new THREE.CylinderGeometry(0.75, 0.75, 0.4, 14), mat(0x111111)); big.rotation.x = Math.PI / 2; big.position.set(-0.9, 0.75, z); g.add(big);
+      const small = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.42, 0.3, 12), mat(0x111111)); small.rotation.x = Math.PI / 2; small.position.set(1.15, 0.42, z); g.add(small);
+    }
+    return g;
+  },
+  politie: () => {
+    const g = new THREE.Group();
+    g.add(box(4.2, 0.65, 1.75, 0xf2f0ea, 0.65), box(2.0, 0.55, 1.65, 0xf2f0ea, 1.2, -0.2), box(1.8, 0.4, 1.67, 0x9fc3d6, 1.23, -0.2), box(4.22, 0.14, 1.77, 0x1f4a9e, 0.55), box(0.3, 0.12, 1.0, 0x2c5fd8, 1.55, -0.2, -0.28), box(0.3, 0.12, 1.0, 0xd83a3a, 1.55, -0.2, 0.28));
+    for (const x of [-1.2, 1.2]) for (const z of [-0.8, 0.8]) { const w = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.2, 12), mat(0x1a1a1a)); w.rotation.x = Math.PI / 2; w.position.set(x, 0.3, z); g.add(w); }
+    return g;
+  },
+  duiventil: () => {
+    // a loft on legs: planks, a pitched roof, small doorways
+    const g = new THREE.Group();
+    for (const x of [-0.55, 0.55]) for (const z of [-0.3, 0.3]) g.add(box(0.08, 1.0, 0.08, 0x5b4630, 0.5, x, z));
+    g.add(box(1.4, 0.9, 0.8, 0x8a6a46, 1.45), box(1.6, 0.08, 1.0, 0x3c3f45, 1.95), box(1.2, 0.08, 0.9, 0x3c3f45, 2.08), box(0.02, 0.2, 0.2, 0x15181c, 1.5, 0.71, -0.2), box(0.02, 0.2, 0.2, 0x15181c, 1.5, 0.71, 0.2));
+    return g;
+  },
+  zuil: () => { const g = new THREE.Group(); g.add(box(0.4, 1.25, 0.4, 0xb23a3a, 0.62), box(0.3, 0.2, 0.02, 0xe8d98a, 1.2, 0.0, 0.21), box(0.1, 0.06, 0.02, 0xf2f0ea, 0.9, 0.0, 0.21)); return g; },
+  klembord: () => { const g = new THREE.Group(); g.add(box(0.3, 0.02, 0.4, 0x8a6a46, 0.01), box(0.26, 0.012, 0.34, 0xf2f0ea, 0.026)); return g; },
   duif: () => {
     const g = new THREE.Group();
     const body = box(0.3, 0.12, 0.14, 0x7c8088, 0);
@@ -85,7 +126,7 @@ function disposeTree(o) {
   });
 }
 
-export function buildScriptRun(def, scene, anchor) {
+export function buildScriptRun(def, scene, anchor, env = null) {
   const group = new THREE.Group();
   group.name = 'cutscript-' + def.id;
   const actors = {}, props = {};
@@ -101,12 +142,12 @@ export function buildScriptRun(def, scene, anchor) {
     props[id] = m;
   }
   return {
-    scene, group, actors, props, anchor,
+    scene, group, actors, props, anchor, env,
     frame(t, dt) {
-      const s = scene.sample(t, anchor);
+      const s = scene.sample(t, anchor, env);
       for (const [id, m] of Object.entries(actors)) {
         const st = s.actors[id];
-        m.visible = true;
+        m.visible = st.visible !== false;
         m.position.set(st.x, st.h + (st.anim === 'ride' ? 0.4 : 0), st.y);
         m.rotation.set(0, -st.a, 0);
         animateActor(m, { anim: st.anim, speed: st.speed, gaze: st.gaze, t, dt });
@@ -133,7 +174,7 @@ export function scriptActive() {
   return !!current;
 }
 
-export function playScript(w, def, { lines, duration, anchor, cine = {} } = {}) {
+export function playScript(w, def, { lines, duration, anchor, cine = {}, env: envIn = null } = {}) {
   if (current) return false;
   const root = getScene();
   if (!root) return false;
@@ -146,6 +187,9 @@ export function playScript(w, def, { lines, duration, anchor, cine = {} } = {}) 
     console.error('cutscript', e);
     return false;
   }
+  // nobody and no camera inside a building: the anchor turns to free ground, a camera in a wall moves (cutscript.js)
+  const env = envIn || { solid: (x, y, z) => roofAt(w.map, x, y) > z - 0.2 };
+  const at = fitAnchor(scene, a, env);
   let run = null, lastT = 0;
   const ok = playCinematic({
     priority: 4, pause: true, letterbox: true, skippable: true, hideHud: true,
@@ -153,7 +197,7 @@ export function playScript(w, def, { lines, duration, anchor, cine = {} } = {}) 
     onStart() {
       if (cine.onStart) cine.onStart();
       try {
-        run = buildScriptRun(def, scene, a);
+        run = buildScriptRun(def, scene, at, env);
         root.add(run.group);
         current = run;
         w.cinematicHidePlayers = true;
@@ -167,6 +211,7 @@ export function playScript(w, def, { lines, duration, anchor, cine = {} } = {}) 
       if (!run) return null;
       const dt = Math.min(0.1, Math.max(0, t - lastT));
       lastT = t;
+      if (cine.frame) cine.frame(t, dt);
       return run.frame(t, dt);
     },
     onEnd(skipped, replaced) {
