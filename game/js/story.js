@@ -216,6 +216,12 @@ const GOALS = {
     },
     place: () => null,
   },
+  // E (new arc): nothing to do, the epilogue and the studio are the finale card of the last part (PARTS.ontzet.card):
+  // the step is done as soon as the finale's mission has been told
+  epilogue: {
+    met: () => !isMissionActive() && !isCinematicActive() && sinceCinematic() > 1 && !narrativeBusy() && !world.pigeonMode && !world.pendingRespawn,
+    place: () => null,
+  },
   egg: {
     begin: (st, b) => { b.eggs = eggsFound(); },
     met: (st, b) => eggsFound() > (b.eggs ?? Infinity),

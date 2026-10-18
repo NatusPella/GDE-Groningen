@@ -83,7 +83,3 @@ export function updateIndicators(dt, world) {
   }
 }
 
-// leaving the car: a turn signal goes off, the hazards stay on
-export function clearPlayerSignal(v) {
-  if (v && (v.indicator === 'left' || v.indicator === 'right')) setIndicator(v, null);
-}

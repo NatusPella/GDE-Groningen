@@ -14,9 +14,12 @@ import { showNameCard } from './namecard.js';
 import { nieuwVerhaal } from './storyflag.js';
 import { STEPS, MISSION_IDS } from './storyarc.js';
 import { storyLines, storyDataReady, readingTime, storyDirRecording } from './storytext.js';
+import { AKTE5_STORY } from './missionstory_akte5.js';
 import { openBank } from './voicebank.js';
 import { playScript } from './cutscenehost.js';
 import { missionScene } from './cutscenes_akte1.js';
+import { STORY_AKTE4 } from './missionstory_akte4.js';
+import './cutscenes_akte3.js';
 
 // Story cutscenes around the mission chain: who asks and why (start), the
 // payoff (success) and a short sting (fail). Tammo and Tessa's relationship
@@ -574,7 +577,34 @@ const STORY = [
     replay: [['N', 'Weer nul krassen. Ik begin het je bijna te gunnen.']],
     fail: [['A', 'Dit vertellen we Berend dus niet.'], ['T', 'Hij schrijft er vast een brief over.']],
   },
+  {
+    // 20: M13 Het containerlabyrint (new story; the lines are the script's, see entryFor)
+    npc: 'lammert', outroPose: 'hips', ask: 0, textOnly: true,
+    intro: [['N', 'Ik ben Lammert, havenmeester.']],
+    outro: [['N', 'Het schip vaart leeg weg.']],
+    replay: [['N', 'Weer een container? Mijn kranen zeggen dank.']],
+    fail: [['A', 'Gezien. Sikkom.'], ['T', 'De nacht begint opnieuw.']],
+  },
+  {
+    // 21: M14 De dijk (new story; the lines are the script's, see entryFor)
+    npc: 'jelle', outroNpcKey: 'lammert', outroPose: 'hips', ask: 0, textOnly: true,
+    intro: [['N', 'Goedemorgen.']],
+    outro: [['N', 'Het beslag mislukt.']],
+    replay: [['N', 'Weer een rondje? Dat neem ik jullie niet kwalijk.']],
+    fail: [['A', 'Jelle was eerder. Sikkom.'], ['T', 'Opnieuw, en nu zonder schapen.']],
+  },
+  {
+    // 22: M15 Laag over het graan (new story; the lines are the script's, see entryFor)
+    npc: 'roelfien', outroPose: 'hips', ask: 0, textOnly: true,
+    intro: [['N', 'Ik ben Roelfien.']],
+    outro: [['N', 'Twee juryleden zijn weggelopen.']],
+    replay: [['N', 'Weer een spandoek? Het graan wacht.']],
+    fail: [['A', 'Te hoog, of te laag. Sikkom.'], ['T', 'Het graan zat in de wielen.']],
+  },
 ];
+
+// act 5's own entries, by mission id (the array index is the id's index in MISSION_IDS)
+for (const [id, e] of Object.entries(AKTE5_STORY)) { const k = MISSION_IDS.indexOf(id); if (k >= 0) STORY[k] = e; }
 
 // Tammo/Tessa lines for when a mission is played before the ones leading up
 // to it (via the phone), so no callback refers to something that hasn't happened.
@@ -1312,7 +1342,10 @@ function playStaged(w, key, tl, { anchor, facing, kicker = '', title = '', cardF
   return ok;
 }
 
-function stageLines(i, stage, kind, entry = STORY[i]) {
+// the entry of mission index i: the main table, or an act's own table keyed by mission id (missionstory_akte4.js)
+const storyOf = (i) => STORY[i] || STORY_AKTE4[MISSION_IDS[i]];
+
+function stageLines(i, stage, kind, entry = storyOf(i)) {
   const s = entry;
   const base = s[kind];
   if (stage >= i) return base;
@@ -1341,7 +1374,7 @@ function onFootAnchor(w) {
 // The new arc plays the script's text (script.json, storytext.js) in the staging of the mission's STORY entry:
 // intro, outro and replay come from the step's `story` scene ids (storyarc_nieuw.js); the fail lines stay.
 function entryFor(i) {
-  const s = STORY[i];
+  const s = storyOf(i);
   if (!s || !nieuwVerhaal() || !storyDataReady()) return s;
   const step = STEPS.find((q) => q.kind === 'mission' && q.story && MISSION_IDS.indexOf(q.mission) === i);
   if (!step) return s;
@@ -1435,7 +1468,7 @@ function outroNow(w, i, { stage = i, short = false, reward = 0, stats = [], reas
 }
 
 export function playStoryFail(w, i, { reason = '', stats = [] } = {}) {
-  const s = STORY[i];
+  const s = storyOf(i);
   // sikkom: Gronings for "almost, but not quite" (the dialect word, not the news site)
   const banner = { kind: 'fail', title: 'Sikkom.', reason, stats };
   if (!s || run) { showBanner(banner); return false; }
@@ -2334,7 +2367,7 @@ export function playToast(w, { at, facing = 0, lines = [], variant = 0, glass = 
 // A finished mission's intro and outro as plain lines, for Kiekdoar TV in the
 // flat (furniture.js): { speaker, text, src (voice URL or null), dur }.
 export function storyReplayLines(i) {
-  const s = STORY[i];
+  const s = storyOf(i);
   if (!s) return [];
   const npc = NPC[s.npc], outNpc = NPC[s.outroNpcKey || s.npc];
   const n = (s.intro || []).length;

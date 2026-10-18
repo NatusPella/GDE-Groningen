@@ -207,39 +207,6 @@ function writeCloth(f) {
   attr.needsUpdate = true;
 }
 
-// Mast, gaff sail and pennant on boat vehicle v (bow = +x in boat space).
-export function showSkutsjeSail(v) {
-  clearSkutsjeSail();
-  const scene = getScene && getScene();
-  if (!scene) return false;
-  const group = new THREE.Group();
-  group.name = 'story-sail';
-  const woodMat = new THREE.MeshLambertMaterial({ color: 0x5a3d22 });
-  const sailMat = new THREE.MeshLambertMaterial({ color: 0x8a3b1e, side: THREE.DoubleSide });
-  const flagMat = new THREE.MeshBasicMaterial({ color: 0x2553a6, side: THREE.DoubleSide });
-  const mastGeo = new THREE.CylinderGeometry(0.09, 0.12, 9, 6);
-  const mast = new THREE.Mesh(mastGeo, woodMat);
-  mast.position.set(1.2, 5, 0);
-  const boomGeo = new THREE.CylinderGeometry(0.06, 0.06, 5.2, 5);
-  const boom = new THREE.Mesh(boomGeo, woodMat);
-  boom.rotation.z = Math.PI / 2;
-  boom.position.set(-1.4, 1.9, 0);
-  // a four-sided gaff sail aft of the mast
-  const shape = new THREE.Shape();
-  shape.moveTo(0, 0); shape.lineTo(-5, 0); shape.lineTo(-4.2, 5.2); shape.lineTo(0, 6.4); shape.lineTo(0, 0);
-  const sailGeo = new THREE.ShapeGeometry(shape);
-  const cloth = new THREE.Mesh(sailGeo, sailMat);
-  cloth.position.set(1.1, 2, 0);
-  const flagGeo = new THREE.PlaneGeometry(1.1, 0.5);
-  const pennant = new THREE.Mesh(flagGeo, flagMat);
-  pennant.position.set(0.6, 9.3, 0);
-  const inner = new THREE.Group();
-  inner.add(mast, boom, cloth, pennant);
-  group.add(inner);
-  scene.add(group);
-  sail = { v, group, cloth, pennant, t: 0, geos: [mastGeo, boomGeo, sailGeo, flagGeo], mats: [woodMat, sailMat, flagMat] };
-  return true;
-}
 
 export function clearSkutsjeSail() {
   if (!sail) return;

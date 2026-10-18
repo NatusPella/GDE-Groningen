@@ -1,0 +1,164 @@
+{
+ "_era": "0.36, nieuwe verhaallijn: save v9 met arc 'nieuw', midden in akte 4 (M17-M19 en de bus T4 gedaan, M20 het Beleg van Bourtange is de volgende). De missie-indices 20 tot en met 22 (bruggen, wiebelwerk, stoom) staan achter 'loket' en 'bakkiestunt' in MISSION_IDS. Hoort bij het andere verhaal: wordt in het oude spel niet geladen, en andersom. De verwachte stap (M20) wordt niet getoetst zolang akte 2 en 3 niet gebouwd zijn: het verhaal stopt dan bij de eerste ongebouwde stap.",
+ "_expect": {
+  "arc": "nieuw",
+  "money": 3400,
+  "radio": "on",
+  "pos": [
+   276096,
+   559287
+  ]
+ },
+ "save": {
+  "v": 9,
+  "arc": "nieuw",
+  "savedAt": 1760700000000,
+  "money": 3400,
+  "moneyBackup": 3400,
+  "health": 100,
+  "armor": 0,
+  "weapon": "fists",
+  "ammo": {
+   "fists": "inf"
+  },
+  "stats": {
+   "kills": 0,
+   "pedKills": 0,
+   "copKills": 0,
+   "missionsDone": 19,
+   "playerWrecks": 0,
+   "spent": 0
+  },
+  "character": "anita",
+  "pos": {
+   "x": 276096,
+   "y": 559287
+  },
+  "ctx": "world",
+  "missions": {
+   "index": 23,
+   "completed": [
+    19,
+    18,
+    20,
+    21,
+    22,
+    8
+   ],
+   "seen": [
+    19,
+    18,
+    20,
+    21,
+    22,
+    8
+   ],
+   "medals": {}
+  },
+  "story": {
+   "v": 1,
+   "done": [
+    "M00",
+    "M01",
+    "M02",
+    "M03",
+    "M04",
+    "M05",
+    "M06",
+    "M07",
+    "M08",
+    "T1",
+    "M09",
+    "M10",
+    "T2",
+    "M11",
+    "M12",
+    "M13",
+    "M14",
+    "T3",
+    "M15",
+    "M16",
+    "M17",
+    "M18",
+    "M19",
+    "T4"
+   ],
+   "skipped": [],
+   "fails": {},
+   "waived": [],
+   "voorschot": [],
+   "cards": [],
+   "flags": [
+    "met:berend",
+    "met:durk",
+    "met:wubbo",
+    "met:tinus",
+    "reis:T4"
+   ]
+  },
+  "visitedLandmarks": [],
+  "shops": {
+   "hero": {},
+   "outfit": {
+    "tammo": "incognito",
+    "anita": "incognito"
+   },
+   "ownedOutfits": [
+    "incognito"
+   ],
+   "storyOutfit": null,
+   "hair": {
+    "tammo": {
+     "color": "naturel",
+     "style": "short"
+    },
+    "anita": {
+     "color": "naturel",
+     "style": "bob"
+    }
+   },
+   "heroColor": null,
+   "heroUpgrades": [],
+   "stamps": 0,
+   "vehicles": []
+  },
+  "prestaties": {
+   "eierballen": [],
+   "geheimen": [],
+   "unlocked": []
+  },
+  "duif": {
+   "ach": []
+  },
+  "bijbaan": {
+   "v": 1,
+   "jobs": {},
+   "seen": []
+  },
+  "postgame": {},
+  "meubels": {
+   "owned": [],
+   "pending": [],
+   "built": [],
+   "day": 0,
+   "read": 0,
+   "stek": 0,
+   "tips": [],
+   "moment": 0
+  },
+  "doel": null,
+  "radio": "on",
+  "streken": {
+   "v": 1,
+   "unlocked": [],
+   "on": [],
+   "used": []
+  },
+  "kalender": {
+   "v": 1,
+   "dag": 12,
+   "gezien": []
+  },
+  "frame": "rd-new"
+ }
+}

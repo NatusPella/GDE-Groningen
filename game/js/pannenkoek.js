@@ -153,4 +153,3 @@ export const PANNENKOEK = standActivity({
     quit: () => { if (!game) return false; end(w, { quit: true }); return true; },
   }),
 });
-export const PANNENKOEK_MEDALS = MEDAL_AT;

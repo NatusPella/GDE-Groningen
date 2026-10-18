@@ -142,9 +142,6 @@ function context() {
   return 'foot';
 }
 
-export function padContext() {
-  return ctx;
-}
 
 function press(slot) {
   const map = PAD_MAPS[ctx] || PAD_MAPS.foot;

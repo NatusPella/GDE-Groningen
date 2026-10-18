@@ -111,12 +111,9 @@ export function setRegionData(layer) {
 }
 setRegionData(null);
 
-export const regionOutline = () => S.outline;
 // the raw edge layer ({ coast, border, seaM, airM }) for worldedge.js; null without the province layer
 export const regionEdgeLayer = () => S.edgeLayer || null;
-export const regionBorders = () => S.border;
 export const seaRing = () => S.sea;
-export const seaIslands = () => S.islands;
 
 function seaAt(x, y) {
   if (!S.sea || !inRing(x, y, S.sea, S.seaBox)) return false;

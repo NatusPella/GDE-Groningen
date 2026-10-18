@@ -264,10 +264,6 @@ function kitchenEnv(at) {
   };
 }
 
-export function scriptActive() {
-  return !!current;
-}
-
 export function playScript(w, def, { lines, duration, anchor, cine = {}, env: envIn = null } = {}) {
   if (current) return false;
   const root = getScene();

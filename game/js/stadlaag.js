@@ -23,4 +23,3 @@ export function stadLagen(search = FLAGS.stadlaag === null ? '' : '?stadlaag=' +
   return parseStadLagen(q.has('stadlaag') ? q.get('stadlaag') : (env && env.STAD_LAAG) || null);
 }
 
-export const stadLaagAan = (laag, lagen = stadLagen()) => lagen.has(laag);

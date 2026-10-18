@@ -6,7 +6,7 @@ import './node3d.mjs';
 import fs from 'node:fs';
 
 globalThis.requestAnimationFrame = (f) => setImmediate(f);
-const { GameMap, applyMapExtras } = await import('../game/js/mapdata.js');
+import { loadCityWorld } from './lib/loadworld.mjs';
 const V = await import('../game/js/vehicle.js');
 const B = await import('../game/js/boattypes.js');
 const L = await import('../game/js/waterlevels.js');
@@ -16,9 +16,7 @@ const ok = (c, name, info = '') => { n++; if (!c) { fails++; console.log(`FAIL $
 const seeded = (seed) => () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
 
 const root = new URL('../game/', import.meta.url);
-const data = JSON.parse(fs.readFileSync(new URL('citymap.json', root)));
-applyMapExtras(data, JSON.parse(fs.readFileSync(new URL('mapextras.json', root))));
-const map = new GameMap(data);
+const map = (await loadCityWorld()).map;
 const canals = map.water.filter((w) => w.nav >= 4);
 ok(canals.length > 0, 'the city has class 4 water', canals.length);
 
