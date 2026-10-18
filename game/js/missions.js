@@ -1881,7 +1881,8 @@ function startMission(world, def) {
   } else if (def.type === 'stages') {
     if (def.heroCar) {
       // act 5: the Escapade (the Fjord Frituur) waits at the start of the mission
-      chain.vehicle = heroCarTo(world, def.start);
+      chain.vehicle = heroCarTo(world, def.start) || (def.start.road ? spawnMissionCar(world, def) : null);
+      if (chain.vehicle && !world.vehicles.includes(chain.vehicle)) world.vehicles.push(chain.vehicle);
     } else if (def.vehicle === 'car' && def.start.road) {
       chain.vehicle = spawnMissionCar(world, def);
       world.vehicles.push(chain.vehicle);
