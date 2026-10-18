@@ -94,6 +94,8 @@ const SPOTS = [
   { name: 'x-weer-winsum', type: 'weer', issue: 0, ...place('Winsum'), a: 0 },
   // voertuigen: deuren, kap, uiterlijk
   { name: 'x-voertuigen', type: 'voertuigen', issue: 0, ...off(gm, 150, 100) },
+  // #225: deuren, kap en kofferbak (auto, bus, bestelbus, tractor)
+  { name: 'y-delen', type: 'voertuigdelen', issue: 225, ...place('Winsum') },
   // #130: kruisingen, op- en afritten, samenkomende rijstroken
   { name: 'k130-stad', type: 'junction', issue: 130, ...gm, R: 400, n: 3 },
   { name: 'k130-haren', type: 'junction', issue: 130, ...place('Haren', 'town'), R: 500, n: 2 },
