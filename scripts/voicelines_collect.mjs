@@ -180,7 +180,8 @@ export function collect() {
     const anita = m[1] === 'A';
     add('Verhaal-stappen', 'lines', [anita ? BUBBLE.f : BUBBLE.m], evalLit(m[2]), { as: anita ? 'Anita' : 'Tammo' });
   }
-  for (const l of allLits(mi, '      intro: [')) for (const t of l) add('Missie-intro (terugval)', 'lines', ['Tammo', 'Anita'], t, { tag: ['samenzweerderig, zacht', 'geamuseerd, zakelijk', 'opgewonden, fluisterend'] });
+  // an intro with a "Doel:" line is the new opening text (#93): text only, the story script plays the spoken intro
+  for (const l of allLits(mi, '      intro: [')) if (!l.some((t) => /^Doel: /.test(t))) for (const t of l) add('Missie-intro (terugval)', 'lines', ['Tammo', 'Anita'], t, { tag: ['samenzweerderig, zacht', 'geamuseerd, zakelijk', 'opgewonden, fluisterend'] });
 
   // --- how Jelle and the twins reach them (storycontact.js), the "Eerder in GDE"
   // recaps and the handover lines (story.js) -> lines manifest
