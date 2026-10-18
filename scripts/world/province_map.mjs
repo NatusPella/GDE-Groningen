@@ -16,7 +16,7 @@ export const LEVELS = 4;
 // the full map's colours (countrymap.js MAP_STYLE), [r, g, b, a 0..255]
 const hex = (h, a = 255) => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16), a];
 export const STYLE = {
-  green: hex('#2f5c36', 230), forest: hex('#244a2c', 240), water: hex('#2d6a86'), building: [160, 156, 146, 170],
+  green: hex('#2f5c36', 230), forest: hex('#244a2c', 240), water: hex('#2d6a86'), waterEdge: hex('#4a8fae'), building: [160, 156, 146, 170],
   minor: hex('#8f9095', 200), normal: hex('#c7c7c2'), major: hex('#f0ede4'), cycle: hex('#a8543c', 170), rail: hex('#55524c'),
 };
 const FOREST = new Set(['forest', 'wood']);
@@ -94,6 +94,13 @@ export function paint(R, feats, box) {
   // meadow and grass (Dutch farmland is mapped as either) are the land itself
   for (const g of by.green) if (g.kind !== 'meadow' && g.kind !== 'grass') R.fill([g.pts], FOREST.has(g.kind) ? STYLE.forest : STYLE.green);
   for (const w of by.water) R.fill([w.pts], STYLE.water);
+  // the shore line of the city's water (mapview.js WATER_EDGE), only on water wide enough to carry it
+  for (const w of by.water) {
+    if (w.pts.length < 3) continue;
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    for (const p of w.pts) { x0 = Math.min(x0, p[0]); y0 = Math.min(y0, p[1]); x1 = Math.max(x1, p[0]); y1 = Math.max(y1, p[1]); }
+    if (Math.min(x1 - x0, y1 - y0) >= R.m * 4) R.line([...w.pts, w.pts[0]], R.m * 0.9, STYLE.waterEdge);
+  }
   for (const b of by.buildings) {
     let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
     for (const p of b.pts) { x0 = Math.min(x0, p[0]); y0 = Math.min(y0, p[1]); x1 = Math.max(x1, p[0]); y1 = Math.max(y1, p[1]); }
