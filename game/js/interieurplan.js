@@ -1,5 +1,6 @@
-// Walkable ground floors of the Forum, the Martinikerk, the Der Aa-kerk and the
-// Korenbeurs (issue #22), as data in the same shape as museumplan.js: oriented
+// Walkable ground floors of the Forum, the Martinikerk, the Der Aa-kerk, the
+// Korenbeurs, the station hall, the Sint-Jozefkathedraal, the Stadsschouwburg,
+// the Remonstrantse Kerk and the Goudkantoor (issue #22), as data in the same shape as museumplan.js: oriented
 // rectangles in world coordinates; where two overlap there is a doorway, and a
 // `deur` room reaching past the outline is the way in from the street.
 // Each building has a frame (centre + angle of its footprint's long axis) so the
@@ -175,6 +176,173 @@ export const INTERIEUREN = [];
     signs: [
       { room: 'voorhal', a: 0, side: -1, y: 4.6, w: 5.2, lines: ['KORENBEURS', 'Zomermarkt · Graanhandel Van der Stroop'], bg: '#3b1d14', fg: '#f0d79a' },
       { room: 'beurshal', a: 0, side: 1, y: 5.6, w: 5.2, lines: ['BEURSHAL', 'Kraam Wiebelwerk · Streekproducten'], bg: '#f1e6cc', fg: '#2b2418' },
+    ],
+  });
+}
+
+// --- Hoofdstation: stationshal met loketten, wachtruimte en kiosken ---------------
+{
+  // a runs along the long front (about east), c across it
+  const f = frame(-46.94, 952.82, -0.068);
+  const R = (...a) => mk(f, ...a);
+  const hal = { wall: 0xd8d2c0, floor: 0xaaa699, ceil: 0xe9e6da };
+  INTERIEUREN.push({
+    id: 'hoofdstation',
+    match: { landmark: 'Hoofdstation Groningen' },
+    show: 80,
+    rooms: [
+      R('stationshal', 0, 1, 26, 16, 9, { name: 'Stationshal', style: hal }),
+      R('wachtruimte', -22, 4, 18, 8, 5, { name: 'Wachtruimte', style: { wall: 0xcfd6d4, floor: 0x8e9a98, ceil: 0xe6eae8 } }),
+      R('kiosken', 22, 4, 18, 8, 5, { name: 'Kioskengang', style: { wall: 0xe6d9b8, floor: 0xa6a094, ceil: 0xf0eadb } }),
+      R('deurWacht', -12.5, 4, 4, 4, 3.2, { deur: true, style: DOOR }),
+      R('deurKiosk', 12.5, 4, 4, 4, 3.2, { deur: true, style: DOOR }),
+      R('ingangN', 0, 9.4, 5, 3.6, 3.6, { deur: true, name: 'Stadszijde', style: DOOR }),
+      R('ingangZ', 0, -8.8, 5, 4.4, 3.6, { deur: true, name: 'Perronzijde', style: DOOR }),
+    ],
+    decor: [
+      { kind: 'balie', room: 'stationshal', a: -7, c: 4, len: 7 },
+      { kind: 'scherm', room: 'stationshal', a: 6, side: 1, w: 8 },
+      { kind: 'bank', room: 'stationshal', a: 8, c: -3, len: 2.4 },
+      { kind: 'bank', room: 'stationshal', a: 11, c: -3, len: 2.4 },
+      { kind: 'zuil', room: 'stationshal', a: -10, c: -5, r: 0.4, h: 8.8 },
+      { kind: 'zuil', room: 'stationshal', a: 10, c: 5, r: 0.4, h: 8.8 },
+      { kind: 'plant', room: 'stationshal', a: 0, c: 0 },
+      { kind: 'bank', room: 'wachtruimte', a: -4, c: 0, len: 2.4 },
+      { kind: 'bank', room: 'wachtruimte', a: 2, c: 0, len: 2.4 },
+      { kind: 'bank', room: 'wachtruimte', a: 8, c: 0, len: 2.4 },
+      { kind: 'scherm', room: 'wachtruimte', a: -4, side: 1, w: 4 },
+      { kind: 'kraam', room: 'kiosken', a: -5, c: -2, color: 0xd9812b },
+      { kind: 'kraam', room: 'kiosken', a: 0, c: -2, color: 0x3d6fa5 },
+      { kind: 'kraam', room: 'kiosken', a: 5, c: -2, color: 0x5f8f4a },
+      { kind: 'tafel', room: 'kiosken', a: 0, c: 2 },
+    ],
+    signs: [
+      { room: 'stationshal', a: 0, side: 1, y: 6.4, w: 6, lines: ['HOOFDSTATION GRONINGEN', 'Loketten · Reisinformatie'], bg: '#1f2f4a', fg: '#f4efe2' },
+      { room: 'wachtruimte', a: 0, side: -1, y: 3.4, w: 3.2, lines: ['WACHTRUIMTE', 'Trein vertraagd? Neem een kopje'], bg: '#27323a', fg: '#f4efe2' },
+      { room: 'kiosken', a: 0, side: -1, y: 3.4, w: 3.6, lines: ['KIOSKEN', 'Broodjes van Wiebelwerk'], bg: '#3b2c1c', fg: '#f0d79a' },
+    ],
+  });
+}
+
+// --- Sint-Jozefkathedraal: koor, schip, dwarsschip en torenhal --------------------
+{
+  // a runs along the nave (choir at -a), c across it
+  const f = frame(532.64, 504.08, 4.1244);
+  const R = (...a) => mk(f, ...a);
+  const kerk = { wall: 0xddd2b8, floor: 0x8c877c, ceil: 0xede5d0 };
+  INTERIEUREN.push({
+    id: 'jozefkathedraal',
+    match: { name: 'Sint-Jozefkathedraal' },
+    show: 80,
+    rooms: [
+      R('koor', -19, -6, 12, 12, 13, { name: 'Koor', style: { ...kerk, floor: 0x77716a } }),
+      R('schip', -4, -4.5, 22, 17, 15, { name: 'Schip', style: kerk }),
+      R('dwarsschip', 12, 0, 12, 26, 14, { name: 'Dwarsschip', style: kerk }),
+      R('torenhal', 19.5, 8, 5, 6, 12, { name: 'Torenhal', style: { ...kerk, wall: 0xc9bd9f } }),
+      R('portaalZ', 12, 14.8, 4.4, 4.6, 4.6, { deur: true, name: 'Zuidportaal', style: DOOR }),
+      R('portaalN', 0, -14.8, 4.4, 4.6, 4.6, { deur: true, name: 'Noordportaal', style: DOOR }),
+    ],
+    decor: [
+      ...[-9, -4, 1, 6].flatMap((a) => [{ kind: 'zuil', room: 'schip', a, c: -6.5, r: 0.55, h: 14 }, { kind: 'zuil', room: 'schip', a, c: 6.5, r: 0.55, h: 14 }]),
+      { kind: 'pad', room: 'schip', a: 0, c: 0, len: 20, wid: 1.6, color: 0x6a2030 },
+      ...[-9, -5, -1, 3].flatMap((a) => [{ kind: 'bank', room: 'schip', a, c: -3, len: 1.1, pew: true }, { kind: 'bank', room: 'schip', a, c: 3, len: 1.1, pew: true }]),
+      { kind: 'altaar', room: 'koor', a: -3.5, c: 0 },
+      { kind: 'kansel', room: 'schip', a: -8, c: 7.4 },
+      { kind: 'orgel', room: 'torenhal', a: 2, side: 0 },
+      { kind: 'vont', room: 'torenhal', a: -1, c: 0 },
+      { kind: 'kaars', room: 'dwarsschip', a: -1, c: -9 },
+      { kind: 'kaars', room: 'dwarsschip', a: -1, c: 9 },
+      { kind: 'kaars', room: 'koor', a: -2, c: -3 },
+      { kind: 'kaars', room: 'koor', a: -2, c: 3 },
+    ],
+    signs: [
+      { room: 'torenhal', a: 0, side: -1, y: 2.8, w: 3.2, lines: ['SINT-JOZEFKATHEDRAAL', 'Open kerk · Kaarsje opsteken kan'], bg: '#2b2418', fg: '#f4efe2' },
+      { room: 'portaalZ', a: 0, side: -1, y: 3.2, w: 2.2, lines: ['INGANG', 'Zuidportaal'], bg: '#f4efe2', fg: '#1c1c1c' },
+    ],
+  });
+}
+
+// --- Stadsschouwburg: foyer en zaal met toneel ------------------------------------
+{
+  // a runs from the stage (-a) to the foyer (+a)
+  const f = frame(466.78, -157.22, -0.5757);
+  const R = (...a) => mk(f, ...a);
+  INTERIEUREN.push({
+    id: 'schouwburg',
+    match: { name: 'Stadsschouwburg' },
+    show: 70,
+    rooms: [
+      R('zaal', -8, 0, 28, 24, 12, { name: 'Zaal', style: { wall: 0x4a2a30, floor: 0x5a3a3a, ceil: 0x2c1a1e } }),
+      R('foyer', 19, -2.5, 12, 15, 5, { name: 'Foyer', style: { wall: 0xe9dcc2, floor: 0xa89878, ceil: 0xf2eadb } }),
+      R('deurZaal', 9.5, -2.5, 8, 4, 3.2, { deur: true, style: DOOR }),
+      R('ingang', 19, -11.4, 4.4, 4.4, 3.4, { deur: true, name: 'Hoofdingang', style: DOOR }),
+      R('ingangZij', -8, 13.4, 4, 4.4, 3.2, { deur: true, name: 'Artiesteningang', style: DOOR }),
+    ],
+    decor: [
+      { kind: 'pad', room: 'zaal', a: -11, c: 0, len: 6, wid: 20, color: 0x2a1a14 },
+      { kind: 'doek', room: 'zaal', a: -12, side: -1, w: 6, h: 6, color: 0x8a1f2d },
+      { kind: 'doek', room: 'zaal', a: -12, side: 1, w: 4, h: 5, color: 0x8a1f2d },
+      { kind: 'stoelen', room: 'zaal', a: -5, c: 0, rows: 5, cols: 6 },
+      { kind: 'stoelen', room: 'zaal', a: 4, c: 0, rows: 3, cols: 6 },
+      { kind: 'balie', room: 'foyer', a: 1, c: 4, len: 5 },
+      { kind: 'tafel', room: 'foyer', a: -2, c: -2 },
+      { kind: 'tafel', room: 'foyer', a: 3, c: -4 },
+      { kind: 'plant', room: 'foyer', a: -4, c: 5 },
+      { kind: 'plant', room: 'foyer', a: 4, c: 5 },
+    ],
+    signs: [
+      { room: 'foyer', a: 0, side: 1, y: 3.6, w: 4.4, lines: ['STADSSCHOUWBURG', 'Vanavond: De Kikkerkoning'], bg: '#3b1018', fg: '#f0d79a' },
+      { room: 'zaal', a: 0, side: -1, y: 5.5, w: 3.4, lines: ['ZAAL', 'Telefoons uit, lichten dimmen'], bg: '#1c1a24', fg: '#f0c24e' },
+    ],
+  });
+}
+
+// --- Remonstrantse Kerk: kerkzaal en bijzaal --------------------------------------
+{
+  const f = frame(183.73, 659.92, -1.9177);
+  const R = (...a) => mk(f, ...a);
+  INTERIEUREN.push({
+    id: 'remonstrants',
+    match: { name: 'Remonstrantse Kerk' },
+    show: 60,
+    rooms: [
+      R('kerkzaal', -2, 4.5, 18, 12, 8, { name: 'Kerkzaal', style: { wall: 0xe9e1cc, floor: 0x9a8566, ceil: 0xf4eedd } }),
+      R('bijzaal', 8.5, 4, 5.5, 8, 4, { name: 'Bijzaal', style: { wall: 0xefe6d2, floor: 0xa9a08c, ceil: 0xf4f0e6 } }),
+      R('deurZij', 0, -2.8, 3, 4.8, 3.2, { deur: true, name: 'Ingang', style: DOOR }),
+      R('deurTuin', 2, 11.6, 3, 3.4, 3.2, { deur: true, name: 'Tuindeur', style: DOOR }),
+    ],
+    decor: [
+      ...[-5, -2, 1, 4, 7].flatMap((a) => [{ kind: 'bank', room: 'kerkzaal', a, c: -3, len: 1.1, pew: true }, { kind: 'bank', room: 'kerkzaal', a, c: 3, len: 1.1, pew: true }]),
+      { kind: 'kansel', room: 'kerkzaal', a: -8.5, c: 0 },
+      { kind: 'orgel', room: 'kerkzaal', a: 8, side: 1 },
+      { kind: 'tafel', room: 'bijzaal', a: 0, c: 0 },
+      { kind: 'plant', room: 'bijzaal', a: 2, c: 3 },
+    ],
+    signs: [
+      { room: 'kerkzaal', a: 0, side: -1, y: 2.6, w: 3.2, lines: ['REMONSTRANTSE KERK', 'Koffie na de dienst'], bg: '#2b2418', fg: '#f4efe2' },
+    ],
+  });
+}
+
+// --- Goudkantoor: kleine streekwinkel in het oude kantoor -------------------------
+{
+  const f = frame(86.43, 111.28, 2.6286);
+  const R = (...a) => mk(f, ...a);
+  INTERIEUREN.push({
+    id: 'goudkantoor',
+    match: { landmark: 'Goudkantoor' },
+    show: 40,
+    rooms: [
+      R('winkel', 0, 0, 7, 6.4, 3.6, { name: 'Streekwinkel', style: { wall: 0xe3cfa6, floor: 0x9b7650, ceil: 0xefe3c6 } }),
+      R('deurGoud', 0, 4.1, 2.4, 3, 2.8, { deur: true, name: 'Ingang', style: DOOR }),
+    ],
+    decor: [
+      { kind: 'balie', room: 'winkel', a: -1, c: -2.2, len: 3 },
+      { kind: 'kast', room: 'winkel', a: 0, side: -1, len: 5 },
+      { kind: 'tafel', room: 'winkel', a: 1.5, c: 1 },
+    ],
+    signs: [
+      { room: 'winkel', a: 0, side: 1, y: 2.7, w: 2.4, lines: ['GOUDKANTOOR', 'Streekwinkel De Gouden Kruik'], bg: '#3b2c1c', fg: '#f0d79a' },
     ],
   });
 }
