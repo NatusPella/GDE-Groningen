@@ -8,6 +8,9 @@
 // built story the last step's character stays.
 
 import { STEPS, STEP_BY_ID, PARTS, CLUES, WHY, CHARACTERS, SPEAKERS, stepAvailable, missionIndexOf, computeMoneyTimeline, partNumber, stepDone, nextStoryStep } from './storyarc.js';
+import { tickStoryTravel } from './storytravel.js';
+import { askTravel, travelPromptOpen } from './reispanel.js';
+import { FLAGS } from './devflags.js';
 import { setMeetHook } from './namecard.js';
 import { displayName } from './speakers.js';
 import { queueStoryContact } from './storycontact.js';
@@ -45,7 +48,7 @@ import { SERIES, GAME_TITLE } from './logo.js';
 import { registerNarrative, mayStart, narrativeBusy, narrativeState } from './narrative.js';
 import { nieuwVerhaal } from './storyflag.js';
 import './storychoice.js';
-import { storyLines, talkLines, radioContacts, appsAt, storyDataReady, readingTime } from './storytext.js';
+import { storyLines, talkLines, radioContacts, appsAt, storyDataReady, readingTime, scene as storyScene } from './storytext.js';
 import { updateStoryTalk, stopTalk } from './storytalk.js';
 
 // Rikus' Radio Nachtstreek studio (radiostudio.js, three.js from the CDN) for the
@@ -1009,6 +1012,11 @@ export function updateStory(dt, w) {
   if (rt.sayAt >= 0 && w.time >= rt.sayAt && !isCinematicActive() && !isCallActive() && mayStart('say')) {
     rt.sayAt = -1;
     if (step.say) companionSays(w, step.say[1]);
+  }
+  // travel beats (#97): the choice ride along / drive / skip before a long jump, behind ?reizen
+  if (FLAGS.reizen && nieuwVerhaal() && rt.leadAt < 0) {
+    tickStoryTravel({ on: true, step, flags: state.flags, world: w, ask: askTravel, script: storyScene,
+      busy: isMissionActive() || isCinematicActive() || narrativeBusy() || !!w.pigeonMode || !!w.pendingRespawn || travelPromptOpen() });
   }
   // the voorschot follows the lead that says what it is for
   if (rt.leadAt < 0 && (rt.voorschotT -= dt) <= 0) { rt.voorschotT = 2; checkVoorschot(step); }

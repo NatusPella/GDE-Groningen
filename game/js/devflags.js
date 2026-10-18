@@ -53,6 +53,7 @@ export const FLAGS = Object.freeze({
   touch: val('touch'),
   hitch: has('hitch'),
   zwartcheck: has('zwartcheck'),
+  reizen: has('reizen'),
 });
 
 export const FLAG_DOCS = Object.freeze({
@@ -81,6 +82,7 @@ export const FLAG_DOCS = Object.freeze({
   touch: 'Raakbediening aan (touch=1) of uit (touch=0), ook zonder touchscherm',
   hitch: 'Meet haperingen (hitchprobe)',
   zwartcheck: 'Controleer op zwarte beelden (blackframe)',
+  reizen: 'Reisbeats in het nieuwe verhaal: keuze Meerijden, Zelf rijden of Overslaan bij een sprong (#97)',
 });
 
 
