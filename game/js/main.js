@@ -5,7 +5,7 @@ import { DEV, STORY_TEST, FLAGS } from './devflags.js';
 import { bindCoop } from './coopglue.js';
 import { tickCoopNet } from './coopnet.js';
 import { updatePartnerChip } from './coophud.js';
-import { syncFigures, hasFigureMeshes, clearFigures } from './coopfigures3d.js';
+import { syncFigures, hasFigureMeshes } from './coopfigures3d.js';
 import { syncHostEntities, hasHostEntities, clearHostEntities } from './coopentities3d.js';
 import { loadMap } from './mapdata.js';
 import { loadTileWorld } from './tileworld.js';

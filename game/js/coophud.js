@@ -19,7 +19,7 @@ export function fadeFlash(richting = 'in') {
   setTimeout(() => { if (fadeEl) fadeEl.style.opacity = '0'; }, richting === 'in' ? 450 : 350);
 }
 
-const SHAPE = { driehoek: '▲', ruit: '◆', vierkant: '■', cirkel: '●', vijfhoek: '⬟', ster: '★', plus: '✚', kruis: '✖' };
+const SHAPE = { driehoek: '▲', ruit: '◆', vierkant: '■', cirkel: '●', vijfhoek: '⬟', ster: '★', plus: '✚', kruis: '✖', maan: '☾', hart: '♥', bliksem: 'ϟ', druppel: '◖', blok: '▮', golf: '≈', schild: '⬢', bloem: '✿' };
 
 // Elke frame vanuit main.js, alleen als er een sessie is. Het label verandert alleen als de tekst verandert.
 // Toont alle andere spelers: vorm en kleur, naam en status (kleur is nooit het enige signaal).

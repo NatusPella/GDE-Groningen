@@ -7,6 +7,7 @@
 // pri: who wins a collision; keep: never dropped by a collision
 const CATS = {
   player: { min: 0, pri: 1000, keep: true },
+  partner: { min: 0, pri: 950, keep: true }, // medespelers (samen spelen, #95)
   goal: { min: 0, pri: 900, keep: true },
   mission: { min: 0, pri: 800, keep: true },
   police: { min: 0, pri: 700, keep: true },
@@ -29,6 +30,7 @@ const CATS = {
 
 export function mapCategory(kind) {
   if (kind === 'player') return 'player';
+  if (kind === 'partner') return 'partner';
   if (kind === 'userWaypoint' || kind === 'sj-target' || kind === 'missionActive' || kind.startsWith('ma-')) return 'goal';
   if (kind === 'waypoint' || kind === 'sj-dot') return 'mission';
   if (kind === 'missionIdle' || kind.startsWith('mi-')) return 'mission';
