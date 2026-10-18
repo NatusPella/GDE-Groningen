@@ -2245,10 +2245,10 @@ export function update3D(dt, world) {
   // no mission beacon, route or waypoint in the title screen / pigeon mode / cutscenes
   const navVisible = document.body.classList.contains('game-started') && !world.pigeonMode && !world.cinematicHideNav;
   // a minigame on the spot (padel, carbid, the kermis) or a heli run: no mission beacon meanwhile
-  const gameBusy = gameBusy(world);
+  const minigame = gameBusy(world);
   // a running bijbaantje (sidejobs.js) has its own beacon; missions wait
   const jobBusy = !!(world.sideJob && world.sideJob.active);
-  if (missionMarkerMesh) missionMarkerMesh.visible = navVisible && !jobBusy && !gameBusy;
+  if (missionMarkerMesh) missionMarkerMesh.visible = navVisible && !jobBusy && !minigame;
   for (const mesh of missionWaypointDotMeshes.values()) mesh.visible = navVisible && !jobBusy;
   if (!navVisible) {
     if (waypointBeacon) waypointBeacon.visible = false;
