@@ -32,6 +32,9 @@ export const PROFILES = {
 
 // hysteresis, as the engine sound's automatic always used
 const DOWNSHIFT_GAP = 0.04;
+// after an automatic shift, a reversal waits this long unless the speed is clearly past the gap
+const AUTO_DWELL = 1.2;
+const AUTO_DWELL_BREAK = 0.05;
 const RPM_FRAC_FLOOR = 0.93;
 const LIMITER_HOLD = 0.09;
 const STALL_RESTART = 1;
@@ -63,7 +66,7 @@ export function createGearbox(profileId) {
   const first = p.layout.indexOf(1);
   return {
     id: profileId, p, pos: first, gear: 1,
-    rpm: p.idle, free: p.idle, shiftT: 0, limiterT: 0, stallT: 0, grindT: 0, refuseT: 0, upT: 0,
+    rpm: p.idle, free: p.idle, shiftT: 0, autoT: 0, autoDir: 0, limiterT: 0, stallT: 0, grindT: 0, refuseT: 0, upT: 0,
     torque: 1, engineBrake: 0, shiftLight: false, limiter: false, stalled: false, reverse: false,
     mode: 'auto', clutchIn: false,
   };
@@ -97,6 +100,11 @@ export function autoGear(p, frac, current) {
   while (g < p.tops.length && frac > p.tops[g - 1]) g++;
   while (g > 1 && frac < p.tops[g - 2] - DOWNSHIFT_GAP) g--;
   return g;
+}
+
+// Whether the speed is well past the shift point of the gear the automatic wants to leave.
+function autoGearClear(p, frac, from, dir) {
+  return dir < 0 ? frac < p.tops[from - 2] - DOWNSHIFT_GAP - AUTO_DWELL_BREAK : frac > p.tops[from - 1] + AUTO_DWELL_BREAK;
 }
 
 // One sequential shift. dir +1 up, -1 down. Returns 'ok', 'grind' (clutch
@@ -142,6 +150,7 @@ export function stepGearbox(gb, inp, dt) {
   const thr = inp.throttle;
   gb.shiftT = Math.max(0, gb.shiftT - dt);
   gb.upT = Math.max(0, gb.upT - dt);
+  gb.autoT = Math.max(0, gb.autoT - dt);
   gb.limiterT = Math.max(0, gb.limiterT - dt);
   gb.grindT = Math.max(0, gb.grindT - dt);
   gb.refuseT = Math.max(0, gb.refuseT - dt);
@@ -151,7 +160,11 @@ export function stepGearbox(gb, inp, dt) {
     if (gb.reverse) {
       gb.gear = 1;
     } else {
-      const g = autoGear(p, frac, gb.gear);
+      let g = autoGear(p, frac, gb.gear);
+      // speed hovering on a shift point (hills, grass, traffic) must not flip the gear back and forth
+      const dir = Math.sign(g - gb.gear);
+      if (dir && dir === -gb.autoDir && gb.autoT > 0 && !autoGearClear(p, frac, gb.gear, dir)) g = gb.gear;
+      else if (dir) { gb.autoDir = dir; gb.autoT = AUTO_DWELL; }
       gb.gear = g;
     }
     gb.pos = Math.max(0, p.layout.indexOf(gb.gear));
