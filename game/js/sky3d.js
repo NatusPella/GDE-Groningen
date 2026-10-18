@@ -26,6 +26,9 @@ uniform float uSunStrength;
 uniform vec3 uGlowColor;
 uniform vec3 uGlowDir;
 uniform float uGlow;
+uniform vec3 uMoonDir;
+uniform float uMoonPhase;
+uniform float uMoonStrength;
 uniform vec3 fogColor;
 uniform float uFogBlend;
 varying vec3 vDir;
@@ -38,6 +41,26 @@ void main() {
   vec2 hd = normalize(d.xz + 1e-5), hs = normalize(uGlowDir.xz + 1e-5);
   float toward = pow(max(dot(hd, hs), 0.0), 2.0) * 0.8 + 0.2;
   col = mix(col, uGlowColor, uGlow * toward * (1.0 - smoothstep(-0.05, 0.42, d.y)));
+  if (uMoonStrength > 0.001) {
+    // maanschijf met fase: licht komt vanuit de zon-hoek a rond de maan
+    float r = 0.05;
+    float md = dot(d, uMoonDir);
+    col += vec3(0.55, 0.62, 0.8) * uMoonStrength * pow(max(md, 0.0), 120.0) * 0.18;
+    if (md > cos(r * 1.15)) {
+      vec3 rt = normalize(cross(vec3(0.0, 1.0, 0.0), uMoonDir));
+      vec3 up2 = cross(uMoonDir, rt);
+      vec2 q = vec2(dot(d, rt), dot(d, up2)) / sin(r);
+      float q2 = dot(q, q);
+      if (q2 < 1.3) {
+        vec3 n = vec3(q, sqrt(max(1.0 - min(q2, 1.0), 0.0)));
+        float a = uMoonPhase * 6.2831853;
+        float lit = smoothstep(-0.04, 0.08, dot(n, vec3(sin(a), 0.0, -cos(a))));
+        float disc = 1.0 - smoothstep(0.92, 1.0, q2);
+        vec3 mc = mix(vec3(0.05, 0.06, 0.09), vec3(0.93, 0.95, 1.0), lit);
+        col = mix(col, mc, disc * uMoonStrength);
+      }
+    }
+  }
   gl_FragColor = vec4(col, 1.0);
   #include <tonemapping_fragment>
   #include <colorspace_fragment>
@@ -56,6 +79,9 @@ export function createSkyUniforms(sunDir) {
     uGlowColor: { value: new THREE.Color(0xff8a3c) },
     uGlowDir: { value: sunDir.clone().normalize() },
     uGlow: { value: 0 },
+    uMoonDir: { value: new THREE.Vector3(0, 0.5, -1).normalize() },
+    uMoonPhase: { value: 0.5 },
+    uMoonStrength: { value: 0 },
   };
 }
 
@@ -113,6 +139,11 @@ function buildStars(count = 1400) {
   pts.frustumCulled = false;
   pts.renderOrder = -9;
   return pts;
+}
+
+export function setStarShare(dome, share) {
+  const geo = dome.userData.stars.geometry;
+  geo.setDrawRange(0, Math.round(geo.attributes.position.count * share));
 }
 
 export function setStarOpacity(dome, opacity) {

@@ -4,8 +4,9 @@
 // buffer can be transferred, not copied.
 //
 // main -> worker
-//   { type: 'init',    seed, roads: [{ id, pts: Float32Array [x0,y0,x1,y1,...] }] }
-//   { type: 'spawn',   agents: [{ id, road, s, speed, kind }] }   s = metres along the road
+//   { type: 'init',    seed, roads: [{ id, pts: Float32Array [x0,y0,x1,y1,...] }],
+//                      signals?: [{ road, s, cycle, green, offset }] }   stop lines; red outside [offset, offset+green) of each cycle (s)
+//   { type: 'spawn',   agents: [{ id, road, s, speed, kind }] }   s = metres along the road, speed = cruise speed, kind 'car' (follows, stops) or 'ped' (free)
 //   { type: 'despawn', ids: [id, ...] }
 //   { type: 'step',    tick, dt }                                  at most one in flight
 // worker -> main
@@ -13,7 +14,7 @@
 //   { type: 'snapshot', tick, n, data: Float32Array(n * SNAP_STRIDE) }
 //   { type: 'error',   error: string }
 
-export const SNAP_STRIDE = 5; // id, x, y, angle, speed
+export const SNAP_STRIDE = 7; // id, x, y, angle, speed, road, s (road and s let the main thread take an agent over)
 export const MSG = Object.freeze({
   INIT: 'init', SPAWN: 'spawn', DESPAWN: 'despawn', STEP: 'step',
   READY: 'ready', SNAPSHOT: 'snapshot', ERROR: 'error',
@@ -29,6 +30,7 @@ export function packSnapshot(agents, tick) {
     const a = agents[i];
     const o = i * SNAP_STRIDE;
     data[o] = a.id; data[o + 1] = a.x; data[o + 2] = a.y; data[o + 3] = a.angle; data[o + 4] = a.speed;
+    data[o + 5] = a.road === undefined ? -1 : a.road; data[o + 6] = a.s || 0;
   }
   return { type: MSG.SNAPSHOT, tick, n: agents.length, data };
 }
@@ -39,7 +41,7 @@ export function unpackSnapshot(msg, into = new Map()) {
   const d = msg.data;
   for (let i = 0; i < msg.n; i++) {
     const o = i * SNAP_STRIDE;
-    into.set(d[o], { id: d[o], x: d[o + 1], y: d[o + 2], angle: d[o + 3], speed: d[o + 4] });
+    into.set(d[o], { id: d[o], x: d[o + 1], y: d[o + 2], angle: d[o + 3], speed: d[o + 4], road: d[o + 5], s: d[o + 6] });
   }
   return into;
 }

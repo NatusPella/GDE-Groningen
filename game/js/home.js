@@ -1107,7 +1107,7 @@ export function homePrompt(w) {
   const p = w.player;
   if (onHomePad(w)) {
     const why = canPark(w);
-    return { id: 'home-pad', x: home.pad.x, y: home.pad.y, h: home.pad.z + 3.4, key: 'E', label: 'Parkeren en naar binnen', sub: why || 'Met de lift naar jullie flat', ring: true };
+    return { id: 'home-pad', x: home.pad.x, y: home.pad.y, h: home.pad.z + 3.4, key: 'E', label: 'Naar binnen', sub: why || 'Met de lift naar jullie flat', ring: true };
   }
   if (p.inVehicle) return null;
   if (inside) {
@@ -1132,7 +1132,7 @@ export function homePrompt(w) {
   const pn = home.garage.panel;
   if (Math.hypot(p.x - pn.x, p.y - pn.y) < 1.6) {
     const lift = [...homeLayout(w, storedEntries()).where.values()].filter((s) => s.at === 'lift').length;
-    return { id: 'home-panel', x: pn.x, y: pn.y, h: 1.9, key: 'E', label: 'Kies welke auto\'s in de garage staan', sub: lift ? `${lift} in de parkeerlift` : 'Alle auto\'s staan er al', ring: true };
+    return { id: 'home-panel', x: pn.x, y: pn.y, h: 1.9, key: 'E', label: 'Auto\'s kiezen', sub: lift ? `${lift} in de parkeerlift` : 'Alle auto\'s staan er al', ring: true };
   }
   return null;
 }
@@ -1209,7 +1209,7 @@ function toRoof(w) {
       c.inVehicle = v;
       v.passenger = 'companion';
     }
-    w.addMessage(`Boven op het dak. Spatie: opstijgen, W/S vooruit en remmen, A/D draaien, ${downKey()} omlaag`, 5, { kind: 'tip' });
+    w.addMessage(`Op het dak. Spatie: opstijgen, ${downKey()}: omlaag`, 5, { kind: 'tip' });
   }, 520);
 }
 
