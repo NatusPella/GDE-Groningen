@@ -1,4 +1,5 @@
 import { onPaletteChange } from './a11y.js';
+import { pinchStep } from './touchlogic.js';
 import { MODES, roadAllowed, travelModeOf } from './roadaccess.js';
 import { forEachCashTarget } from './cashvan.js';
 import { facilitiesOf } from './facilities.js';
@@ -2093,6 +2094,41 @@ export function initMapView(world) {
       handleClick(world, sx, sy);
     }
   }, true);
+  // a touchscreen sends no mouse events while dragging: one finger pans,
+  // two fingers pinch (a tap still arrives as a mouse click)
+  const fingers = new Map();
+  const fingerPts = () => [...fingers.values()];
+  cv.addEventListener('pointerdown', (e) => {
+    if (e.pointerType !== 'touch') return;
+    fingers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (cv.setPointerCapture) { try { cv.setPointerCapture(e.pointerId); } catch (err) { /* gone already */ } }
+    if (fingers.size === 2) { state.drag = null; cv.classList.remove('dragging'); }
+  });
+  cv.addEventListener('pointermove', (e) => {
+    if (e.pointerType !== 'touch' || !fingers.has(e.pointerId) || !state.open) return;
+    const prev = fingerPts();
+    fingers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    const cur = fingerPts();
+    const r = cv.getBoundingClientRect();
+    if (cur.length === 1) {
+      const dx = cur[0].x - prev[0].x, dy = cur[0].y - prev[0].y;
+      if (!state.touchPan && Math.hypot(dx, dy) < 1) return;
+      state.touchPan = true;
+      hideCard();
+      state.cx -= dx / state.scale;
+      state.cy -= dy / state.scale;
+      updateTransform();
+    } else if (cur.length === 2) {
+      const { factor, mid } = pinchStep(prev, cur);
+      zoomAt(factor, mid.x - r.left, mid.y - r.top);
+    }
+  });
+  const fingerUp = (e) => {
+    if (!fingers.delete(e.pointerId)) return;
+    if (!fingers.size) setTimeout(() => { state.touchPan = false; }, 0);
+  };
+  cv.addEventListener('pointerup', fingerUp);
+  cv.addEventListener('pointercancel', fingerUp);
   cv.addEventListener('contextmenu', (e) => {
     e.preventDefault();
     if (!state.open || !getUserWaypoint()) return;
