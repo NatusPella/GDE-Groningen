@@ -72,10 +72,6 @@ export function inMapWater(map, x, y) {
   return !!waterPolyAt(map, x, y);
 }
 
-export function inWaterPoly(map, x, y) {
-  return inMapWater(map, x, y);
-}
-
 // Hull probes (bow, stern, both beams, the quarters, the centre) in boat-local
 // metres; a probe counts as dry when it has less than BOAT_EDGE_CLEAR of free
 // water around it (quay walls, banks, moored houseboats).

@@ -6,7 +6,7 @@
 
 import { paintSpeaker } from './speakers.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { boatDryPoints, inWaterPoly, keepBoatOffShore, normalizeAngle, pointInPolygon, clamp } from './util.js';
+import { boatDryPoints, inMapWater, keepBoatOffShore, normalizeAngle, pointInPolygon, clamp } from './util.js';
 import { waterPolyAt } from './waterlevels.js';
 import { Vehicle, resolveVehicleBuildingCollision, vehicleContacts } from './vehicle.js';
 import { getVehicleMesh } from './models3d_vehicles.js';
@@ -209,7 +209,7 @@ export function rondvaartBerth(map) {
   // against a houseboat moored there (those count as water obstacles)
   const againstQuay = (x, y, a, nx, ny) => [-hl, 0, hl].every((l) => {
     const px = x + Math.cos(a) * l + nx * (probe.model.wid / 2 + 1.6), py = y + Math.sin(a) * l + ny * (probe.model.wid / 2 + 1.6);
-    return !inWaterPoly(map, px, py);
+    return !inMapWater(map, px, py);
   });
   for (let s = 4; s <= 70; s += 3) {
     const q = routeAt(s);
@@ -225,7 +225,7 @@ export function rondvaartBerth(map) {
     if (!againstQuay(bx, by, q.a, nx, ny)) continue;
     for (let m = 1.5; m <= 7; m += 0.5) {
       const sx = bx + nx * (probe.model.wid / 2 + m), sy = by + ny * (probe.model.wid / 2 + m);
-      if (inWaterPoly(map, sx, sy) || map.buildingsNear(sx, sy, 1).some((b) => pointInPolygon(sx, sy, b.pts))) continue;
+      if (inMapWater(map, sx, sy) || map.buildingsNear(sx, sy, 1).some((b) => pointInPolygon(sx, sy, b.pts))) continue;
       return { start: { x: sx, y: sy }, boat: { x: bx, y: by, angle: q.a } };
     }
   }
@@ -790,7 +790,7 @@ function poseClear(map, v, x, y, a) {
   const h = v.model.len / 2 + 1.2, w = v.model.wid / 2 + 1.2;
   for (const [lx, ly] of [[h, 0], [-h, 0], [0, w], [0, -w], [h, w], [h, -w], [-h, w], [-h, -w]]) {
     const px = x + lx * c - ly * s, py = y + lx * s + ly * c;
-    if (!inWaterPoly(map, px, py)) return false;
+    if (!inMapWater(map, px, py)) return false;
     if (map.buildingsNear(px, py, 1).some((b) => pointInPolygon(px, py, b.pts))) return false;
   }
   return true;
@@ -837,7 +837,7 @@ function latClamp(map, s, lat) {
   const nx = -Math.sin(q.a), ny = Math.cos(q.a);
   for (const k of [lat, lat * 0.5, 0]) {
     const edge = k + Math.sign(k || 1) * 2.6;
-    if (inWaterPoly(map, q.x + nx * edge, q.y + ny * edge)) return { x: q.x + nx * k, y: q.y + ny * k };
+    if (inMapWater(map, q.x + nx * edge, q.y + ny * edge)) return { x: q.x + nx * k, y: q.y + ny * k };
   }
   return { x: q.x, y: q.y };
 }
@@ -989,7 +989,7 @@ export function playRondvaartBoarding(world, boat, { queue = true } = {}) {
   let side = 1;
   for (const s of [1, -1]) {
     const q = onBoat(boat, 0, s * 9);
-    if (inWaterPoly(map, q.x, q.y)) { side = s; break; }
+    if (inMapWater(map, q.x, q.y)) { side = s; break; }
   }
   const board = () => {
     const p = world.player;
