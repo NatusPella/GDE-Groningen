@@ -14,6 +14,8 @@ import { renderCheatsPanel, cheatsClick, resetCheatsPanel, cheatsFocus } from '.
 import { skipCurrent, getStoryJournal, markCluesSeen } from './story.js';
 import { saveGame, hasSave, loadLatestSave, clearSave, getSaveSummary } from './savegame.js';
 import { getClockText } from './hud_panel.js';
+import { VERSION } from './version.js';
+import { versionLabel } from './menumodels.js';
 import { storyDate } from './calendarday.js';
 import { isCinematicActive } from './cinematics.js';
 import { renderAchievementsPanel } from './achievementsui.js';
@@ -423,6 +425,7 @@ export function initPauseMenu(w) {
             <button type="button" class="m-bt" data-action="menu" title="Opslaan en terug naar het titelscherm">Hoofdmenu</button>
             ${DESKTOP ? '<button type="button" class="m-bt" data-action="exit" title="Opslaan en het spel sluiten">Afsluiten</button>' : ''}
           </div>
+          <p class="pm-ver">${versionLabel(VERSION)}</p>
           <div class="pm-rail-foot pm-ingame">
             <p class="pm-status" role="status"></p>
             <button type="button" class="m-bt danger" data-action="restart">Opnieuw beginnen</button>
