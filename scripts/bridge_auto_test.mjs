@@ -1,0 +1,94 @@
+// Movable bridges (#154): a boat too tall for the closed bridge makes it open by
+// itself, timed so the leaf is up as the boat arrives; it stays open until the
+// boat is through (several in a row) and then closes. A horn still works.
+//   node scripts/bridge_auto_test.mjs
+import * as MB from '../game/js/movablebridges.js';
+
+let n = 0, fails = 0;
+const ok = (c, m) => { n++; if (!c) { fails++; console.log('FAIL ' + m); } };
+
+// a bridge over a channel running north-south: the span lies along x, the water along y
+const mkBridge = () => {
+  const road = { movable: 'bascule', bridge: true, pts: [[0, 0], [20, 0]], width: 6, cat: 'normal' };
+  return MB.buildMovableBridges({ roads: [road] })[0];
+};
+const T = MB.BRIDGE_TIMING;
+const world = { vehicles: [], pedestrians: [], player: { x: 900, y: 900 }, time: 0 };
+// a boat of this model kind sailing along the water (+y heading = angle pi/2) at speed sp
+const boat = (kind, y, sp, extra = {}) => ({ isBoat: true, model: { kind }, x: 10, y, speed: sp, angle: Math.PI / 2, ...extra });
+const step = (secs, onTick) => { for (let t = 0; t < secs - 1e-9; t += 0.1) { for (const v of world.vehicles) { v.y += Math.sin(v.angle) * v.speed * 0.1; } MB.updateMovableBridges(0.1, world); if (onTick) onTick(); } };
+
+let b = mkBridge();
+ok(MB.boatNeedsOpening(boat('skutsje', 0, 0)) && !MB.boatNeedsOpening(boat('kano', 0, 0)), 'a skutsje needs the bridge open, a canoe does not');
+const lead = MB.openingLead();
+ok(lead === T.WARN_S + T.BOOMS_S + T.MOVE_S, 'the lead is the time to open');
+
+// 1. a canoe never triggers it; a far or departing skutsje neither
+world.vehicles = [boat('kano', -40, 3)];
+step(2);
+ok(b.state === 'closed', 'a canoe passes under without the bridge opening');
+world.vehicles = [boat('skutsje', -400, 4)];
+step(2);
+ok(b.state === 'closed', 'a boat far away does not trigger it');
+world.vehicles = [boat('skutsje', -40, -4)];
+step(2);
+ok(b.state === 'closed', 'a boat sailing away does not trigger it');
+
+// 2. an approaching skutsje: triggered once its time to the deck is the lead plus a margin
+b = mkBridge(); MB.resetMovableBridges();
+const sp = 4, edge = Math.max(2, b.half);
+const trig = (lead + MB.AUTO.MARGIN_S) * sp + edge; // distance from the middle at the trigger
+world.vehicles = [boat('skutsje', -(trig + 12), sp)];
+let openedAt = null, t0 = 0, closedState = null, tick = 0;
+step(40, () => { tick++; if (openedAt === null && b.state !== 'closed') { openedAt = tick * 0.1; } });
+const v = world.vehicles[0];
+ok(openedAt !== null && openedAt > 2 && openedAt < 4, `triggered when the boat is ~${(lead + MB.AUTO.MARGIN_S).toFixed(0)} s out (${openedAt && openedAt.toFixed(1)} s in)`);
+
+// run it again, recording the state when the boat reaches the deck edge
+b = mkBridge(); MB.resetMovableBridges();
+const bt = boat('skutsje', -(trig + 12), sp);
+world.vehicles = [bt];
+let atEdge = null;
+step(60, () => { if (atEdge === null && Math.abs(bt.y) - edge <= 0.5) atEdge = b.state + ':' + b.open.toFixed(2); });
+ok(/^(opening:0\.[89]|open:1)/.test(atEdge || ''), `the leaf is (nearly) up when the boat gets to the deck (${atEdge})`);
+ok(bt.y > edge + MB.AUTO.PASS_PAD, 'the boat sailed through without stopping');
+
+// 3. it closes some time after the boat is through
+step(T.MOVE_S + T.BOOMS_S + MB.AUTO.MIN_OPEN_S + 6);
+ok(b.state === 'closed' || b.state === 'up' || b.state === 'closing', `it closes after the boat has passed (${b.state})`);
+step(T.MOVE_S + T.BOOMS_S + 4);
+ok(b.state === 'closed', 'and is closed again');
+
+// 4. two boats in a row: it stays open until both are through
+b = mkBridge(); MB.resetMovableBridges();
+const a1 = boat('skutsje', -(trig + 12), sp), a2 = boat('skutsje', -(trig + 12) - 90, sp);
+world.vehicles = [a1, a2];
+let closedWhile = false;
+step(80, () => { if ((b.state === 'closing' || b.state === 'up') && a2.y < edge && a2.y > -200) closedWhile = true; });
+ok(!closedWhile, 'it does not close on the second boat');
+ok(a1.y > edge && a2.y > edge, 'both sailed through');
+
+// 5. a boat lying still at the bridge asks for it; a horn still works by hand
+b = mkBridge(); MB.resetMovableBridges();
+world.vehicles = [boat('skutsje', -30, 0)];
+step(0.3);
+ok(b.state === 'warn', 'a skutsje lying still in front of it asks for it');
+b = mkBridge(); MB.resetMovableBridges();
+world.vehicles = [];
+MB.hornAt(10, -20, null);
+step(0.2);
+ok(b.state === 'warn' && b.manual, 'the horn opens it by hand');
+step(T.WARN_S + T.BOOMS_S + T.MOVE_S + 4);
+ok(b.state === 'open', 'and it holds open for the full hold time');
+
+// 6. a boat that turns back is let go
+b = mkBridge(); MB.resetMovableBridges();
+const tb = boat('skutsje', -60, 3);
+world.vehicles = [tb];
+step(1);
+tb.speed = -4;
+step(T.WARN_S + T.BOOMS_S + T.MOVE_S + MB.AUTO.MIN_OPEN_S + T.MOVE_S + T.BOOMS_S + 14);
+ok(b.state === 'closed', `it closes when the boat turns back (${b.state})`);
+
+console.log(fails ? `${fails} of ${n} FAILED` : `${n} automatic bridge checks passed`);
+process.exit(fails ? 1 : 0);

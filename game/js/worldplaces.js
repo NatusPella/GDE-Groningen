@@ -7,6 +7,11 @@
 // how far a place's name reaches from its node, by kind
 const REACH = { city: 4500, town: 1700, village: 800, hamlet: 350, industrial: 2500 };
 const DISTRICT_REACH = 900;
+// A district is an area, not a point: a quarter or suburb reaches further from
+// its node than a neighbourhood (Corpus den Hoorn and the Hoornse Meer round it
+// are over a kilometre across), else a spot in the middle of a wijk fell back to
+// the open Ommeland (issue #162).
+const DISTRICT_REACHES = { suburb: 2000, quarter: 1500, neighbourhood: DISTRICT_REACH };
 
 const PLACES = { list: [], seats: [], districts: [], signs: [], towns: [], names: new Set() };
 
@@ -50,7 +55,7 @@ export function nearestWorldPlace(x, y) {
 }
 
 // { place, district, near } at (x, y): in a place's reach its name (and the
-// nearest district of it within 900 m), else the nearest place within 5 km
+// district of it the spot lies in), else the nearest place within 5 km
 // with near: true; null without places.
 export function worldPlaceAt(x, y) {
   if (!PLACES.seats.length) return null;
@@ -62,12 +67,13 @@ export function worldPlaceAt(x, y) {
     if (s < 1 && s < bs) { bs = s; best = p; }
     if (d < nd) { nd = d; nearest = p; }
   }
-  // a district within reach names its town, also where the town's own node is far
-  let district = null, dd = DISTRICT_REACH;
+  // a district within reach names its town, also where the town's own node is far;
+  // inside a town's reach a district of that town (the nearest by its own reach)
+  let district = null, dd = Infinity;
   for (const q of PLACES.districts) {
     if (best && q.of !== best.name) continue;
     const d = Math.hypot(q.x - x, q.y - y);
-    if (d < dd) { dd = d; district = q; }
+    if (d < (DISTRICT_REACHES[q.kind] || DISTRICT_REACH) && d < dd) { dd = d; district = q; }
   }
   if (!best && district) return { place: district.of, district: district.name, near: false };
   if (!best) return { place: nearest && nd < 5000 ? nearest.name : '', district: '', near: true };
