@@ -2,7 +2,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { getScene } from './scene3d.js';
 import { buildPersonMesh, animatePersonWalk, swimPose, PERSON_RIG } from './models3d_people.js';
 import { pushAudioEvent } from './pedestrians.js';
-import { isInWater, clamp, WATER_Y } from './util.js';
+import { pointInPolygon as inPoly, isInWater, clamp, WATER_Y } from './util.js';
 import { playCinematic, isCinematicActive, skipCinematic } from './cinematics.js';
 import { getWaterIndex, waterWet, insideWaterObstacle } from './waterindex.js';
 
@@ -647,14 +647,6 @@ export function findVaultSpot(map, x, y, radius = 60, { minWidth = 5, maxWidth =
   return null;
 }
 
-function inPoly(px, py, poly) {
-  let inside = false;
-  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
-    const xi = poly[i][0], yi = poly[i][1], xj = poly[j][0], yj = poly[j][1];
-    if ((yi > py) !== (yj > py) && px < ((xj - xi) * (py - yi)) / (yj - yi) + xi) inside = !inside;
-  }
-  return inside;
-}
 
 export function debugVault(opts = {}) {
   const w = world || (window.__debug && window.__debug.world);
