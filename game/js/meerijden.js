@@ -75,3 +75,21 @@ export function aankomst(rit, dest, geld) {
 export function skipHint(rit) {
   return canSkip(rit) ? { toets: 'Spatie', tekst: 'overslaan' } : null;
 }
+
+// Ondertitel bij de scène (alleen tekst): wat je nu doet, aan de hand van de
+// haltes van de optie en hoe ver de scène is.
+export function ondertitel(rit) {
+  const p = rit.plan;
+  const shot = shotAt(p, rit.t).name;
+  const stops = p.stops || [];
+  const lijn = p.lines[0] ? `${p.lines[0]} · ` : '';
+  const first = stops[0], last = stops[stops.length - 1];
+  if (shot === 'aankomst') return last ? `Volgende halte: ${last.name}` : 'Bijna daar';
+  if (stops.length > 2 && shot !== p.shots[0].name) {
+    const mid = stops.slice(1, -1);
+    const k = Math.min(mid.length - 1, Math.floor(voortgang(rit) * mid.length));
+    return `${lijn}${mid[k].kind === 'overstap' ? 'Overstappen op' : 'Via'} ${mid[k].name}`;
+  }
+  if (shot === p.shots[0].name) return first ? `${lijn}Instappen bij ${first.name}` : 'Instappen';
+  return `${lijn}Onderweg${last ? ` naar ${last.name}` : ''}`;
+}
