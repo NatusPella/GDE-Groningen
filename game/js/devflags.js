@@ -12,6 +12,8 @@ export const STORY_TEST = q.has('storytest');
 // pixels magenta and negative HDR values cyan, so a stray pixel can be
 // identified by colour. Off by default.
 export const PIXEL_DEBUG = q.has('pixeldebug');
+// ?coop (issue #95): local two-player mini co-op, player 2 steers the companion (coop.js)
+export const COOP = q.has('coop');
 export const DEV = q.has('dev') || STORY_TEST;
 // ?marker=vorm: the solid 3D shapes of the world marker (worldmarker3d.js); else the soft glowing glyph
 export const MARKER_SOLID = q.get('marker') === 'vorm';
