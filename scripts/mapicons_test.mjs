@@ -1,6 +1,7 @@
 // Map icon rules (game/js/mapicons.js): categories by zoom, size by zoom, and
 // the thinning where icons would overlap. Run: node scripts/mapicons_test.mjs
-import { mapCategory, mapKindVisible, mapIconScale, placeIcons, mapPriority, mapRimColor, miniIconScale, iconGapPx, MIN_ICON_PX, ICON_UNITS } from '../game/js/mapicons.js';
+import { mapCategory, mapKindVisible, mapIconScale, placeIcons, mapPriority, mapRimColor, miniIconScale, iconGapPx, MIN_ICON_PX, ICON_UNITS, hexContrast, haloRim, haloOutline, HALO_DARK, HALO_LIGHT, GRAPHIC_CONTRAST } from '../game/js/mapicons.js';
+import { MAP_PALETTE, MINI_PALETTE, nightPalette, toRgba } from '../game/js/mapstyle.js';
 
 let n = 0, fails = 0;
 const ok = (c, m) => { n++; if (!c) { fails++; console.log('FAIL', m); } };
@@ -54,5 +55,25 @@ for (const sc of [miniIconScale(250), mapIconScale(1), mapIconScale(12)]) ok(ico
 }
 // the rim is in the category colour
 ok(mapRimColor('hospital') !== mapRimColor('politiebureau') && mapRimColor('garage') !== mapRimColor('station'), 'rims differ per category');
+
+// contrast guarantee (#114): on every ground of every palette (day, night, big map,
+// minimap, sea) the outer rings reach 3:1, and the category rim reads on the disc
+const flat = (c, under) => { const [r, g, b, a] = toRgba(c, 255); const u = toRgba(under, 255); const k = a / 255; return '#' + [r, g, b].map((v, i) => Math.round(v * k + u[i] * (1 - k)).toString(16).padStart(2, '0')).join(''); };
+const GROUND_KEYS = ['meadow', 'park', 'ditch', 'water', 'waterEdge', 'road', 'major', 'minor', 'cycle', 'foot', 'building', 'church', 'tree', 'village', 'allot', 'sports', 'business', 'rail', 'turbine', 'forest'];
+let worst = Infinity, worstAt = '';
+for (const [pname, pal] of [['map', MAP_PALETTE], ['mini', MINI_PALETTE], ['map-nacht', nightPalette(MAP_PALETTE)], ['mini-nacht', nightPalette(MINI_PALETTE)]]) {
+  const grounds = GROUND_KEYS.map((k) => [k, flat(pal[k], pal.meadow)]).concat((pal.buildings || []).map((c, i) => ['buildings' + i, c]));
+  for (const [k, g] of grounds) {
+    const c = hexContrast(haloOutline(g), g);
+    // the dark outline and the cream ring are both always drawn: the better one carries it
+    const both = Math.max(hexContrast(HALO_LIGHT, g), hexContrast(HALO_DARK, g));
+    if (both < worst) { worst = both; worstAt = pname + '.' + k; }
+    ok(c >= GRAPHIC_CONTRAST && both >= GRAPHIC_CONTRAST, `ring on ${pname}.${k} ${g} has ${c.toFixed(2)}:1`);
+  }
+}
+ok(worst >= GRAPHIC_CONTRAST, 'worst ground ' + worstAt + ' ' + worst.toFixed(2));
+for (const kind of ['hospital', 'politiebureau', 'garage', 'station', 'shop-a', 'horeca', 'own', 'dorp', 'sj-a', 'act-x', 'flitspaal', 'tip']) {
+  ok(hexContrast(haloRim(kind), HALO_DARK) >= GRAPHIC_CONTRAST, 'rim of ' + kind + ' reads on the disc');
+}
 console.log(`${n} checks, ${fails} failed`);
 process.exit(fails ? 1 : 0);

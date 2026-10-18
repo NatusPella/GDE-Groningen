@@ -8,7 +8,7 @@ import { simLevel } from './simload.js';
 import { getGaragesForRender } from './garages.js';
 import { getHomeForRender, getHomeGarageForRender, getHomeMooringForRender, getHomeHelipadForRender } from './home.js';
 import { minimapShows } from './mapfilters.js';
-import { mapCategory, mapRimColor, mapPriority, miniIconScale, iconGapPx } from './mapicons.js';
+import { mapCategory, haloRim, HALO_DARK, HALO_LIGHT, mapPriority, miniIconScale, iconGapPx } from './mapicons.js';
 import { facilitiesOf } from './facilities.js';
 import { getHorecaForRender } from './horeca.js';
 import { getShopsForRender, drawShopMapIcon, drawShopGlyph, SHOP_TYPES, storyTargetShop, drawStoryShopRing } from './shops.js';
@@ -1697,8 +1697,18 @@ export function drawMapIconHalo(ctx, kind, x, y, s = 1) {
   ctx.arc(x, y, 6.6 * s, 0, Math.PI * 2);
   ctx.fillStyle = 'rgba(12, 20, 14, 0.78)';
   ctx.fill();
-  ctx.lineWidth = Math.max(1.6, 0.7 * s);
-  ctx.strokeStyle = mapRimColor(kind);
+  // outline, ring, category rim: 3:1 on any ground (mapicons.js, #114)
+  const w = Math.max(1.6, 0.7 * s);
+  ctx.lineWidth = w + 2;
+  ctx.strokeStyle = HALO_DARK;
+  ctx.stroke();
+  ctx.lineWidth = w;
+  ctx.strokeStyle = HALO_LIGHT;
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(x, y, 6.6 * s - w, 0, Math.PI * 2);
+  ctx.lineWidth = Math.max(1.2, w * 0.8);
+  ctx.strokeStyle = haloRim(kind);
   ctx.stroke();
   ctx.restore();
 }
