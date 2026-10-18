@@ -67,6 +67,9 @@ ok(loket.timeLimit > hold.time * 3 + 60, 'loket: enough time left after the wait
 // M02: the garage and delivery steps name the goal (#93)
 const msrc = fs.readFileSync(new URL('js/missions_nieuw.js', root), 'utf8');
 ok(/Schud de politie af/.test(msrc) && /Breng de automaat naar Sjabbe/.test(msrc), 'pinautomaat: goal labels say what to do');
+// M04/M05 (#147): the duif photographs the fuse box too, the race says its goal aloud
+ok(/De stroomkast achter de fietsenstalling/.test(msrc) && /Fotografeer 3 camera/.test(msrc), 'duifverkenning: goal names cameras, guards and fuse box');
+ok(/Podium in de Kiezelrace/.test(msrc), 'kei: the start message names the goal');
 void byId;
 console.log(`${n - fails}/${n} act-1 goal checks passed`);
 process.exit(fails ? 1 : 0);
