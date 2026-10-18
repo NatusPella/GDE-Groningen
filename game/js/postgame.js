@@ -22,6 +22,7 @@ import { FIERLJEP } from './pg_fierljep.js';
 import { SKUTSJE } from './pg_skutsje.js';
 import { FJORD, fjordSave, applyFjordSave, fjordUpgradeOffers } from './pg_foodtruck.js';
 import { KOE } from './pg_koe.js';
+import { setPostgameHost } from './pghost.js';
 import { PG_PRIZE, FJORD_DAY_PAY, FJORD_DAY_HOUR } from './economy.js';
 import { getOwnedEntries, spawnOwnedEntry } from './shops.js';
 import { findParkingSpot } from './ownedvehicles.js';
@@ -51,6 +52,7 @@ import { playerBusy } from './busy.js';
 
 export const CHALLENGES = [BRUGGEN, FIERLJEP, SKUTSJE, FJORD, KOE];
 const BY_ID = new Map(CHALLENGES.map((d) => [d.id, d]));
+setPostgameHost({ finish, say, jelle, setTarget, isPostgameOpen, esc });
 const PRIZE = PG_PRIZE;
 const SAY_GAP = 9;
 

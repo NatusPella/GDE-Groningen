@@ -2,7 +2,7 @@
 // device, the virtual stick, camera swipes and which on-screen buttons a
 // situation gets. The buttons are the controller's slots (controls.js
 // PAD_MAPS), so touch drives exactly the actions the gamepad and keyboard do.
-import { PAD_MAPS, tokenKey } from './controls.js';
+import { PAD_MAPS, GAME_PAD_CTX, tokenKey } from './controls.js';
 import { playerBusy } from './busy.js';
 
 // A phone or tablet: a coarse primary pointer that can't hover, or touch
@@ -55,17 +55,17 @@ export function stickKeys(vec, held = new Set()) {
 }
 
 const LABELS = {
-  ' ': { foot: 'Spring', minigame: 'Spring', vehicle: 'Handrem', vehicleManual: 'Handrem', skutsje: 'Handrem', heli: 'Omhoog', pigeon: 'Vlieg', train: 'Fluit', foodtruck: 'OK' },
+  ' ': { foot: 'Spring', minigame: 'Spring', vehicle: 'Handrem', vehicleManual: 'Handrem', skutsje: 'Handrem', heli: 'Omhoog', pigeon: 'Vlieg', train: 'Fluit', foodtruck: 'OK', klokken: 'Start' },
   control: { heli: 'Omlaag', pigeon: 'Pikken', foot: 'Bukken', minigame: 'Bukken' },
-  e: 'Gebruik', f: 'Instappen', h: 'Toeter', l: 'Sirene', q: 'Achterom', n: 'Radio', m: 'Kaart', o: 'Overslaan', k: 'Kusje',
-  shift: 'Rennen', tab: 'Doel', c: 'Koer', x: 'Mens', v: 'Film', r: 'Lak', z: 'Zeil vieren', '[': 'Links', ']': 'Rechts', p: 'Alarm',
-  backspace: 'Stop', g: 'Dienst', j: 'Koppeling', ',': 'Lager', '.': 'Hoger', s: 'Rem', w: 'Gas',
+  e: { _: 'Gebruik', pannenkoek: 'Appel', klokken: 'Volgend' }, f: 'Instappen', h: 'Toeter', l: 'Sirene', q: { _: 'Achterom', pannenkoek: 'Stroop', klokken: 'Vorig' }, n: 'Radio', m: 'Kaart', o: 'Overslaan', k: 'Kusje',
+  shift: 'Rennen', tab: 'Doel', c: 'Koer', x: 'Mens', v: 'Film', r: { _: 'Lak', pannenkoek: 'Kaas' }, z: 'Zeil vieren', '[': 'Links', ']': 'Rechts', p: 'Alarm',
+  backspace: 'Stop', g: 'Dienst', j: 'Koppeling', ',': 'Lager', '.': 'Hoger', s: 'Rem', w: { _: 'Gas', pannenkoek: 'Spek' },
   '@fire': 'Vuur', '@aim': 'Richt', '@gas': 'Gas', '@brake': 'Rem', '@wheel+': 'Wapen', '@wheel-': 'Wapen',
 };
 
 export function labelFor(ctx, action) {
   const l = LABELS[action];
-  if (l && typeof l === 'object') return l[ctx] || '';
+  if (l && typeof l === 'object') return l[ctx] ?? l._ ?? '';
   return l || (/^[0-9]$/.test(action) ? action : '');
 }
 
@@ -77,6 +77,9 @@ export const TOUCH_SLOTS = [...RIGHT, ...LEFT, 'rb'];
 
 // [{ slot, action, label, side }] for a situation; slots without a Dutch
 // label (or no action) are left out so the screen stays quiet.
+// Situations where the stick must send no keys (W/S/A/D are game keys there).
+export const stickless = (ctx) => (PAD_MAPS[ctx] || {}).stick === 'none';
+
 export function touchPlan(ctx) {
   const map = PAD_MAPS[ctx] || PAD_MAPS.foot;
   const out = [];
@@ -109,6 +112,7 @@ export function touchContext(w, { started = true, menuOpen = false, shiftMode = 
   if (w.pigeonMode) return 'pigeon';
   if (w.trainDriving) return 'train';
   if (w.challenge && w.challenge.id === 'fjord') return 'foodtruck';
+  if (GAME_PAD_CTX[w.activityGame]) return GAME_PAD_CTX[w.activityGame];
   if (playerBusy(w, ['padel', 'activityGame']).busy) return 'minigame';
   const v = w.player && w.player.inVehicle;
   if (v) return v.isHeli ? 'heli' : w.noLookBack ? 'skutsje' : v.gb && shiftMode !== 'auto' ? 'vehicleManual' : 'vehicle';

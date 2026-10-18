@@ -1,5 +1,4 @@
 import { STORY_TEST, FLAGS } from './devflags.js';
-import { KERNELS } from './geokernels.js';
 
 // Geometry jobs (geokernels.js) in a module worker, so streaming the city
 // props and the Ommeland water never blocks a frame on building buffers.
@@ -10,6 +9,11 @@ import { KERNELS } from './geokernels.js';
 // fails, its open jobs are redone that way.
 
 const WANT = typeof Worker !== 'undefined' && !STORY_TEST && !FLAGS.noworker;
+
+// geokernels.js registers its kernels here (main.js imports it), so this module
+// does not import it back
+let KERNELS = null;
+export function registerKernels(k) { KERNELS = k; }
 
 let worker = null;
 let failed = !WANT;

@@ -184,6 +184,9 @@ const FOOT = {
   a: ' ', b: 'control', x: 'f', y: 'e', lb: '@wheel-', rb: '@wheel+', lt: '@aim', rt: '@fire',
   ls: 'shift', rs: 'tab', up: 'n', down: 'k', left: 'o', right: 'r', view: 'm', start: 'escape', stick: 'move',
 };
+// Minigames with their own button layout: world.activityGame -> PAD_MAPS situation
+export const GAME_PAD_CTX = { carillon: 'klokken', pannenkoek: 'pannenkoek' };
+
 export const PAD_MAPS = {
   foot: FOOT,
   vehicle: { a: ' ', b: 'l', x: 'h', y: 'e', lb: 'n', rb: '@fire', lt: '@brake', rt: '@gas', ls: 'shift', rs: 'q', up: 'p', down: 'v', left: '[', right: ']', view: 'm', start: 'escape', stick: 'steer' },
@@ -196,6 +199,10 @@ export const PAD_MAPS = {
   train: { a: ' ', b: 'backspace', x: 'h', y: 'e', lb: null, rb: 'g', lt: 's', rt: 'w', ls: null, rs: null, up: null, down: null, left: 'o', right: null, view: 'm', start: 'escape', stick: 'move' },
   // carbid, botsauto's, padel and the other games on foot: B stops the game
   minigame: { ...FOOT, b: 'backspace', lt: '@aim', rt: '@fire', stick: 'move' },
+  // the carillon: eight bells on the D-pad and the face buttons (A S D F J K L ;), the bumpers pick a tune
+  klokken: { a: ';', b: 'l', x: 'j', y: 'k', lb: 'q', rb: 'e', lt: 'backspace', rt: ' ', ls: null, rs: null, up: 'f', down: 's', left: 'a', right: 'd', view: 'm', start: 'escape', stick: 'arrows' },
+  // the pancake ship: A B X Y serve the four toppings (Q W E R), the bumpers and LT pick the pans (1 2 3), RT stops
+  pannenkoek: { a: 'q', b: 'w', x: 'e', y: 'r', lb: '1', rb: '2', lt: '3', rt: 'backspace', ls: null, rs: null, up: null, down: null, left: null, right: null, view: 'm', start: 'escape', stick: 'none' },
   // the Fjord Frituur: the D-pad and the bumpers pick from the menu
   foodtruck: { a: ' ', b: 'backspace', x: 'backspace', y: 'e', up: '1', right: '2', down: '3', left: '4', lb: '5', rb: '6', lt: null, rt: '@gas', ls: null, rs: null, view: 'm', start: 'escape', stick: 'move' },
   menu: { a: 'enter', b: 'escape', x: 'delete', y: ' ', lb: 'q', rb: 'e', lt: '[', rt: ']', ls: null, rs: null, up: 'arrowup', down: 'arrowdown', left: 'arrowleft', right: 'arrowright', view: 'm', start: 'escape', stick: 'nav' },

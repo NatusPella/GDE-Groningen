@@ -9,7 +9,7 @@ import { urbanWeight } from './provinceworld.js';
 import { findOpenSpot, placeNamed } from './ommelandplace.js';
 import { buildProp, disposeProp, animateProp, personMesh, sitDown } from './ommelandprops3d.js';
 import { speak, duoSpeaker } from './ommelandtalk.js';
-import { finish, say, setTarget, isPostgameOpen } from './postgame.js';
+import { finish, say, setTarget, isPostgameOpen } from './pghost.js';
 import { playCinematic, isCinematicActive } from './cinematics.js';
 import { startCall } from './phonefeed.js';
 import { getChallengeRecord } from './achievements.js';

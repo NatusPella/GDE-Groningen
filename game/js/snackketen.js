@@ -2,9 +2,11 @@ import { getShopsForRender } from './shops.js';
 import { unlockAchievement, setStatMax } from './achievements.js';
 import { iconDisc } from './activitykit.js';
 import { isShopOpen } from './shopui.js';
+import { isInWater, pointInPolygon } from './util.js';
+import { pushAudioEvent } from './pedestrians.js';
 import {
   STORE_KEY, CHAIN_NAME, SNACK, LEVEL_NAMES, newChain, restore, serialize, outletCount, outletCost, upgradeCost, buy, upgrade, collect, accrue,
-  tillTotal, totalIncomePerMin, chainRank,
+  tillTotal, totalIncomePerMin, chainRank, counterSpot,
 } from './snackrules.js';
 
 // Kroketkoning: buy the snack bars of the province one by one (the invented
@@ -33,11 +35,14 @@ function save() {
   try { localStorage.setItem(STORE_KEY, serialize(chain)); } catch (e) { /* private window: the chain lives for this session only */ }
 }
 
-function buildSpots() {
+function buildSpots(map) {
+  // open ground: not in the water, not inside a building
+  const free = map ? (x, y) => !isInWater(map, x, y) && !map.buildingsNear(x, y, 1).some((b) => pointInPolygon(x, y, b.pts)) : () => true;
   spots = [];
   for (const s of getShopsForRender()) {
     if (s.type !== 'snack' || s.country) continue;
-    spots.push({ id: `${Math.round(s.x)}_${Math.round(s.y)}`, x: s.x - 3.4, y: s.y + 0.6, shop: s });
+    const c = counterSpot(s, free);
+    spots.push({ id: `${Math.round(s.x)}_${Math.round(s.y)}`, x: c.x, y: c.y, shop: s });
   }
 }
 
@@ -63,6 +68,8 @@ function promptFor(s) {
   return { label: `${CHAIN_NAME} ${LEVEL_NAMES[o.level]}`, sub: 'Kassa is leeg · hoogste niveau' };
 }
 
+function ding(w, s) { pushAudioEvent(w, { kind: 'fx', name: 'shop_bell', x: s.x, y: s.y }); }
+
 function interactAt(w, s) {
   const o = chain.outlets[s.id];
   if (!o) {
@@ -71,10 +78,12 @@ function interactAt(w, s) {
     w.money -= r.cost;
     w.addMessage(`Snackbar gekocht voor ${euro(r.cost)}: nu ${outletCount(chain)} ${outletCount(chain) === 1 ? 'vestiging' : 'vestigingen'}`, 3.2);
     unlockAchievement(w, 'snackketen_eerste');
+    ding(w, s);
   } else if (o.till >= 1) {
     const euros = collect(chain, s.id);
     w.money += euros;
     w.addMessage(`Kassa geleegd: ${euro(euros)}`, 2.5);
+    ding(w, s);
   } else if (o.level < SNACK.maxLevel) {
     const r = upgrade(chain, s.id, w.money);
     if (!r.ok) { w.addMessage(r.why + (r.cost ? ` (${euro(r.cost)})` : ''), 2.8); return; }
@@ -103,7 +112,7 @@ export const SNACKKETEN = {
   legend: { kind: 'act-snackketen', label: 'Kroketkoning', note: 'snackbarketen: koop snackbars, bouw ze om en leeg de kassa' },
   init(w) {
     load();
-    buildSpots();
+    buildSpots(w.map);
     window.__snackketen = {
       chain: () => chain,
       spots: () => spots.map((s) => ({ id: s.id, x: s.x, y: s.y })),

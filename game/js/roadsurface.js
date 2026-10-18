@@ -7,7 +7,7 @@ import { getWaterIndex } from './waterindex.js';
 import { allSignals, yieldArms } from './junctions.js';
 import { groundHeightAt } from './elevation.js';
 import { runGeo, geoWorkerActive } from './geojobs.js';
-import { geometryFromPlain } from './geokernels.js';
+import { geometryFromPlain } from './geoplain.js';
 import { planBlends, blendAttributes, linearOf } from './surfaceblend.js';
 import { laneLayout } from './lanes.js';
 import { isMarktFietsRoad, MARKT } from './roadaccess.js';

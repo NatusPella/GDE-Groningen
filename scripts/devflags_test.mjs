@@ -18,6 +18,15 @@ for (const f of readdirSync(dir).filter((x) => x.endsWith('.js') && !ALLOWED.has
   ok(!/location\.(search|hash)/.test(src), `${f} reads the URL itself: use FLAGS from devflags.js`);
 }
 
+// Debug hooks on window: every window.__x a module sets must be in the list in
+// docs/ONTWIKKELEN.md (they are read by scripts/perf, the story test and the dev panel).
+const docsText = readFileSync(path.join(root, 'docs', 'ONTWIKKELEN.md'), 'utf8');
+const hookLine = docsText.split(/\r?\n/).find((l) => l.startsWith('Debug hooks on `window`')) || '';
+for (const f of readdirSync(dir).filter((x) => x.endsWith('.js'))) {
+  const src = readFileSync(path.join(dir, f), 'utf8');
+  for (const m of src.matchAll(/window\.(__\w+)\s*=[^=]/g)) ok(hookLine.includes('`' + m[1] + '`'), `${f} sets window.${m[1]}: add it to the hook list in docs/ONTWIKKELEN.md`);
+}
+
 const { FLAGS, FLAG_DOCS } = await import(pathToFileURL(path.join(dir, 'devflags.js')).href);
 const docs = readFileSync(path.join(root, 'docs', 'ONTWIKKELEN.md'), 'utf8');
 // derived values (benchmarkRuns, storytest/dev alias) share the doc of their switch
