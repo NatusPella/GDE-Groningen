@@ -1189,6 +1189,17 @@ function speakClip(cls, src, { pos = null, guess = 2, owner = null, onEnd = null
   return el;
 }
 
+// The one way to speak (every play*Voice below is a wrapper that adds its own
+// gate): asks speech.js for the channel, plays src (pos = in the world, else
+// plain stereo), ducks the ambience for duck = [level, seconds] and reports
+// the clip's end through onEnd. Returns the element, or null when the channel
+// is taken or nothing can play.
+export function playVoice(src, { cls = 'react', owner = null, pos = null, dur = 2, onEnd = null, duck = null } = {}) {
+  const el = speakClip(cls, src, { pos, guess: dur, owner, onEnd });
+  if (el && duck) duckAmbience(duck[0], duck[1]);
+  return el;
+}
+
 // Voicelines/police/Kiekdoar - the event-driven reactions - also keep a
 // short cooldown of their own so a burst of events can't chain them.
 const SPOKEN_MIN_GAP = 1.4;
@@ -1198,9 +1209,8 @@ function playSpokenClip(src, pos = null, cls = 'react') {
   if (!ctx) return false;
   const now = ctx.currentTime;
   if (cls === 'react' && now - lastSpokenAt < SPOKEN_MIN_GAP) return false;
-  if (!speakClip(cls, src, { pos, guess: SPOKEN_MIN_GAP })) return false;
+  if (!playVoice(src, { cls, pos, dur: SPOKEN_MIN_GAP, duck: [0.45, 2.2] })) return false;
   lastSpokenAt = now;
-  duckAmbience(0.45, 2.2);
   return true;
 }
 
@@ -1215,7 +1225,7 @@ function playNpcSpokenClip(src, pos) {
   if (!ctx) return false;
   const now = ctx.currentTime;
   if (now - lastNpcSpokenAt < NPC_SPOKEN_MIN_GAP) return false;
-  if (!speakClip('ambient', src, { pos, guess: 1.2 })) return false;
+  if (!playVoice(src, { cls: 'ambient', pos, dur: 1.2 })) return false;
   lastNpcSpokenAt = now;
   return true;
 }
@@ -1300,9 +1310,7 @@ export function playStoryVoice(src, { radio = false } = {}) {
 export function playBubbleVoice(src, dur, pos = null) {
   if (!ctx || muted || storyScene) return false;
   if (pos && distToListener(pos.x, pos.y) > SPEECH_RANGE) return false;
-  if (!speakClip('ambient', src, { pos, guess: dur })) return false;
-  duckAmbience(0.3, dur);
-  return true;
+  return !!playVoice(src, { cls: 'ambient', pos, dur, duck: [0.3, dur] });
 }
 
 // Narration in front of the player (the rondvaart guide, navigation, cows,
@@ -1311,9 +1319,8 @@ export function playBubbleVoice(src, dur, pos = null) {
 // it plays or can't play at all (muted), so the caller moves on.
 export function playLineVoice(src, dur, cls = 'job') {
   if (!ctx || muted || storyScene) return true;
-  if (!speakClip(cls, src, { guess: dur })) return false;
+  if (!playVoice(src, { cls, dur, duck: [0.45, dur + 0.3] })) return false;
   if (cls !== 'radio') lastSpokenAt = ctx.currentTime;
-  duckAmbience(0.45, dur + 0.3);
   return true;
 }
 
@@ -1389,7 +1396,7 @@ export function holdContactChannel(on, alive = null) {
 // line plays through here; onEnd fires when the clip is done (or failed).
 export function playCallVoice(src, onEnd) {
   if (!ctx || muted) return false;
-  return !!speakClip('call', src, { owner: 'call', guess: 3, onEnd });
+  return !!playVoice(src, { cls: 'call', owner: 'call', dur: 3, onEnd });
 }
 
 // Phone messages read aloud (phonefeed.js): the 'call' class under its own
@@ -1399,8 +1406,7 @@ export function playCallVoice(src, onEnd) {
 export function playSmsVoice(src, dur, onEnd) {
   if (!ctx || muted) return 'off';
   if (storyScene || speech.clipPlaying() || !speech.canSpeak('call', 'sms')) return 'wait';
-  if (!speakClip('call', src, { owner: 'sms', guess: dur || 3, onEnd })) return 'wait';
-  duckAmbience(0.4, (dur || 3) + 0.4);
+  if (!playVoice(src, { cls: 'call', owner: 'sms', dur: dur || 3, onEnd, duck: [0.4, (dur || 3) + 0.4] })) return 'wait';
   return 'play';
 }
 
