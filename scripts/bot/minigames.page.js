@@ -121,7 +121,7 @@ for (const info of list) {
     await sleep(2500);
     try { const pr = a.prompt(world); ev.prompt = !pr ? '' : typeof pr === 'string' ? pr : JSON.stringify(pr).slice(0, 160); } catch (e) { ev.prompt = 'prompt() faalde'; }
     await settle();
-    for (const key of ['e', 'f']) { if (a.active()) break; ev.how += key; await B.press(key); await sleep(900); }
+    for (const key of ['e', 'e', 'f', 'e']) { if (a.active()) break; ev.how += key; await B.press(key); await sleep(1400); }
     if (!a.active()) { try { ev.how += ' interact()=' + !!a.interact(world); } catch (e) { ev.how += ' interact() faalde: ' + e.message; } await sleep(900); }
   }, a));
 }
