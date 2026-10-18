@@ -47,6 +47,7 @@ eq('ui on in play', touchUiActive({ started: true, menuOpen: false }), true);
 
 eq('ctx menu', touchContext({}, { menuOpen: true }), 'menu');
 eq('ctx foot', touchContext({ player: {} }), 'foot');
+eq('ctx klokken', touchContext({ player: {}, activityGame: 'carillon' }), 'klokken');
 eq('ctx car', touchContext({ player: { inVehicle: {} } }), 'vehicle');
 eq('ctx heli', touchContext({ player: { inVehicle: { isHeli: true } } }), 'heli');
 eq('ctx manual', touchContext({ player: { inVehicle: { gb: {} } } }, { shiftMode: 'hand' }), 'vehicleManual');

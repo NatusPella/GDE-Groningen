@@ -196,6 +196,8 @@ export const PAD_MAPS = {
   train: { a: ' ', b: 'backspace', x: 'h', y: 'e', lb: null, rb: 'g', lt: 's', rt: 'w', ls: null, rs: null, up: null, down: null, left: 'o', right: null, view: 'm', start: 'escape', stick: 'move' },
   // carbid, botsauto's, padel and the other games on foot: B stops the game
   minigame: { ...FOOT, b: 'backspace', lt: '@aim', rt: '@fire', stick: 'move' },
+  // the carillon: eight bells on the D-pad and the face buttons (A S D F J K L ;), the bumpers pick a tune
+  klokken: { a: ';', b: 'l', x: 'j', y: 'k', lb: 'q', rb: 'e', lt: 'backspace', rt: ' ', ls: null, rs: null, up: 'f', down: 's', left: 'a', right: 'd', view: 'm', start: 'escape', stick: 'arrows' },
   // the Fjord Frituur: the D-pad and the bumpers pick from the menu
   foodtruck: { a: ' ', b: 'backspace', x: 'backspace', y: 'e', up: '1', right: '2', down: '3', left: '4', lb: '5', rb: '6', lt: null, rt: '@gas', ls: null, rs: null, view: 'm', start: 'escape', stick: 'move' },
   menu: { a: 'enter', b: 'escape', x: 'delete', y: ' ', lb: 'q', rb: 'e', lt: '[', rt: ']', ls: null, rs: null, up: 'arrowup', down: 'arrowdown', left: 'arrowleft', right: 'arrowright', view: 'm', start: 'escape', stick: 'nav' },
