@@ -3,6 +3,7 @@
 
     python3 scripts/world/lanes.py            # report what would change
     python3 scripts/world/lanes.py --write    # write game/citymap.json
+    python3 scripts/world/lanes.py --chain-only [--write]   # only the chain pass (no OSM caches needed)
 
 Every car road in game/citymap.json is matched to its OSM way in the caches
 (same class, its vertices on the way's line) and gets from the tags
@@ -24,7 +25,7 @@ sys.path.insert(0, os.path.dirname(HERE))
 sys.path.insert(0, HERE)
 import process_osm as P  # noqa: E402
 from rdnew import project  # noqa: E402
-from lanemodel import lane_fields  # noqa: E402
+from lanemodel import lane_fields, LANE_W, ONEWAY_EXTRA  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(HERE))
 MAP = os.path.join(ROOT, "game", "citymap.json")
@@ -118,10 +119,62 @@ def duals(roads):
     return out
 
 
+def modelled_width(r):
+    return round(r["lanesFwd"] * r.get("laneW", LANE_W.get(r["type"], 3.0)) + ONEWAY_EXTRA[r["type"]], 2)
+
+
+def chain_duals(roads):
+    """A one-way secondary or tertiary way is one carriageway of a dual road
+    when a parallel way runs the other way (duals()), but that is tested at
+    the midpoint of each way: a street cut into pieces had some pieces at
+    the lanes width (5 m for one lane) and others at the class default
+    (8 m), a step in the kerb line where they meet (scripts/world/road_seams.mjs
+    widthJump, issue #130). A piece that joins end to end, with the same
+    name, a piece that has the modelled width takes that width too, unless a
+    width tag says otherwise. Returns the number of ways changed."""
+    def key(p):
+        return (round(p[0] * 100), round(p[1] * 100))
+    cand = [r for r in roads if r.get("oneway") and not r.get("roundabout") and r["cat"] in CAR
+            and r["type"] in ("secondary", "tertiary") and r.get("name") and r.get("lanesFwd")]
+    ends = defaultdict(list)
+    for i, r in enumerate(cand):
+        ends[key(r["pts"][0])].append(i)
+        ends[key(r["pts"][-1])].append(i)
+    parent = list(range(len(cand)))
+
+    def find(a):
+        while parent[a] != a:
+            parent[a] = parent[parent[a]]
+            a = parent[a]
+        return a
+    for k, ids in ends.items():
+        if len(ids) == 2 and ids[0] != ids[1] and cand[ids[0]]["name"] == cand[ids[1]]["name"]:
+            parent[find(ids[0])] = find(ids[1])
+    model = defaultdict(set)
+    for i, r in enumerate(cand):
+        if r.get("widthSrc") == "lanes" and abs(r["width"] - modelled_width(r)) < 0.01:
+            model[find(i)].add(i)
+    n = 0
+    for i, r in enumerate(cand):
+        if find(i) in model and i not in model[find(i)] and r.get("widthSrc") != "tag":
+            w = modelled_width(r)
+            if abs(r["width"] - w) > 0.01:
+                r["width"], r["widthSrc"] = w, "lanes"
+                n += 1
+    return n
+
+
 def main():
     write = "--write" in sys.argv
     with open(MAP) as f:
         data = json.load(f)
+    if "--chain-only" in sys.argv:
+        print(f"{chain_duals(data['roads'])} ways take the width of their dual-carriageway neighbour")
+        if write:
+            with open(MAP, "w") as f:
+                json.dump(data, f, separators=(",", ":"))
+            print(f"wrote {os.path.relpath(MAP, ROOT)}")
+        return
     ways, grid = osm_ways()
     dual = duals(data["roads"])
     n = matched = changed = 0
@@ -150,6 +203,7 @@ def main():
             r.pop(k, None)
         for k, v in f.items():
             r[k] = v
+    changed += chain_duals(data["roads"])
     print(f"{n} car roads, {matched} matched to their OSM way, {changed} change width")
     for hw, (c, km) in sorted(narrower.items(), key=lambda q: -q[1][1]):
         print(f"  narrower {hw:16s} {c:5d} ways {km:6.1f} km")
