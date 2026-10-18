@@ -1,0 +1,14 @@
+{
+  "appId": "nl.natuspella.gde.groningen",
+  "appName": "GDE Groningen",
+  "webDir": "www",
+  "backgroundColor": "#000000",
+  "android": {
+    "allowMixedContent": false,
+    "adjustMarginsForEdgeToEdge": "disable",
+    "webContentsDebuggingEnabled": true
+  },
+  "server": {
+    "androidScheme": "https"
+  }
+}
