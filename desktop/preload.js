@@ -18,9 +18,10 @@ contextBridge.exposeInMainWorld('gdeDesktop', {
   saveTextFile: (name, text) => ipcRenderer.invoke('gde:save-text', String(name), String(text)),
   // Coöp online (#95): alleen deze vier aanroepen; TCP en UPnP draaien in het main-proces
   coop: {
-    host: () => ipcRenderer.invoke('gde:coop-host'),
+    host: (max) => ipcRenderer.invoke('gde:coop-host', max),
     join: (code) => ipcRenderer.invoke('gde:coop-join', String(code)),
-    send: (bytes) => ipcRenderer.send('gde:coop-send', bytes),
+    send: (id, bytes) => ipcRenderer.send('gde:coop-send', id, bytes),
+    close: (id) => ipcRenderer.send('gde:coop-close', id),
     stop: () => ipcRenderer.invoke('gde:coop-stop'),
     onEvent: (fn) => { coopListeners.add(fn); return () => coopListeners.delete(fn); },
   },
