@@ -18,10 +18,8 @@ document.createElement = mk;
 
 const R = await import('../game/js/machinistrules.js');
 const root = new URL('../game/', import.meta.url);
-const { GameMap, applyMapExtras } = await import('../game/js/mapdata.js');
-const data = JSON.parse(fs.readFileSync(new URL('citymap.json', root)));
-applyMapExtras(data, JSON.parse(fs.readFileSync(new URL('mapextras.json', root))));
-const map = new GameMap(data);
+import { loadCityWorld } from './lib/loadworld.mjs';
+const map = (await loadCityWorld()).map;
 const F = await import('../game/js/countryfield.js');
 F.setCountryBounds(map.meta.bounds);
 const { applyCityRoutes } = await import('../game/js/corridorrail.js');
