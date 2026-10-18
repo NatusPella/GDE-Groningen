@@ -1,8 +1,9 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene } from './scene3d.js';
-import { buildPersonMesh, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
+import { buildPersonMesh, seatPose, seatedY, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
+import { buildKitchen } from './introkitchen3d.js';
 import { playCinematic } from './cinematics.js';
-import { compileScene, fitAnchor } from './cutscript.js';
+import { compileScene, fitAnchor, resolveTime } from './cutscript.js';
 import { roofAt } from './camerapath.js';
 import { animateActor } from './actoranim.js';
 
@@ -15,6 +16,9 @@ import { animateActor } from './actoranim.js';
 //   env:    { solid, clamp } keeps the set out of buildings (cutscript.js fitCamera/fitAnchor); default: the building layer
 //   cine:   extra playCinematic fields (id, priority, kicker, title, tint, ...)
 //   lines:  [{ speaker, text, at, dur, voice? }], untouched: they stay the story's own
+//   def.set 'keuken': Tessa's kitchen (introkitchen3d.js) is built at the anchor (anchor.z = floor height) and the camera is kept inside it;
+//   def.fx: host effects on the set: buzz { dur } (the phone), door { open: 0-1, dur }, cups { actor, on, hands }, tablecups { on },
+//   sfx { kind } (a world sound), pulse { dur } (the radio)
 
 const MATS = {};
 const mat = (c, o = {}) => (MATS[c + JSON.stringify(o)] ||= new THREE.MeshStandardMaterial({ color: c, roughness: 0.8, ...o }));
@@ -29,6 +33,7 @@ function makeActor(spec) {
   const sh = new THREE.Mesh(SHADOW_GEO, SHADOW_MAT);
   sh.position.y = 0.03;
   m.add(sh);
+  m.userData.shadow = sh;
   return m;
 }
 
@@ -109,6 +114,18 @@ const PROP_MAKERS = {
   },
   zuil: () => { const g = new THREE.Group(); g.add(box(0.4, 1.25, 0.4, 0xb23a3a, 0.62), box(0.3, 0.2, 0.02, 0xe8d98a, 1.2, 0.0, 0.21), box(0.1, 0.06, 0.02, 0xf2f0ea, 0.9, 0.0, 0.21)); return g; },
   klembord: () => { const g = new THREE.Group(); g.add(box(0.3, 0.02, 0.4, 0x8a6a46, 0.01), box(0.26, 0.012, 0.34, 0xf2f0ea, 0.026)); return g; },
+  kat: () => {
+    // a ginger cat, +x forward; the tail swings (buildScriptRun frame)
+    const g = new THREE.Group();
+    g.add(box(0.36, 0.15, 0.16, 0xc9803a, 0.15), box(0.14, 0.13, 0.14, 0xc9803a, 0.22, 0.22), box(0.04, 0.06, 0.03, 0xa8672c, 0.32, 0.22, 0.04), box(0.04, 0.06, 0.03, 0xa8672c, 0.32, 0.22, -0.04));
+    for (const x of [-0.13, 0.13]) for (const z of [-0.05, 0.05]) g.add(box(0.04, 0.1, 0.04, 0xb06f30, 0.05, x, z));
+    const tail = new THREE.Group();
+    tail.position.set(-0.18, 0.2, 0);
+    tail.add(box(0.3, 0.04, 0.04, 0xc9803a, 0.05, -0.15, 0));
+    g.add(tail);
+    g.userData.tail = tail;
+    return g;
+  },
   duif: () => {
     const g = new THREE.Group();
     const body = box(0.3, 0.12, 0.14, 0x7c8088, 0);
@@ -126,7 +143,7 @@ function disposeTree(o) {
   });
 }
 
-export function buildScriptRun(def, scene, anchor, env = null) {
+export function buildScriptRun(def, scene, anchor, env = null, w = null) {
   const group = new THREE.Group();
   group.name = 'cutscript-' + def.id;
   const actors = {}, props = {};
@@ -141,16 +158,58 @@ export function buildScriptRun(def, scene, anchor, env = null) {
     group.add(m);
     props[id] = m;
   }
+  // the kitchen set and its effects
+  let kit = null;
+  const fx = (def.fx || []).map((f) => ({ ...f, t0: resolveTime(f.t, scene.lines, scene.duration) ?? 0 })).sort((a, b) => a.t0 - b.t0);
+  const fired = new Set();
+  const cupState = {}, cupKey = {};
+  if (def.set === 'keuken') {
+    kit = buildKitchen(anchor.x, anchor.y, anchor.z || 0);
+    group.add(kit.group);
+    kit.reset();
+  }
+  const doorFx = fx.filter((f) => f.fx === 'door');
+  const sfx = (kind) => { if (w) (w.audioEvents || (w.audioEvents = [])).push({ kind, x: anchor.x, y: anchor.y }); };
+  const kitchenFrame = (t) => {
+    let buzz = false;
+    for (const f of fx) {
+      if (f.t0 > t) break;
+      if (f.fx === 'sfx' && !fired.has(f)) { fired.add(f); sfx(f.kind); }
+      if (!kit) continue;
+      if (f.fx === 'buzz' && t < f.t0 + (f.dur ?? 2)) buzz = true;
+      if (f.fx === 'pulse' && t < f.t0 + (f.dur ?? 2)) kit.radio.rotation.z = Math.sin(t * 9) * 0.05;
+      if (f.fx === 'cups') cupState[f.actor] = f;
+      if (f.fx === 'tablecups') for (const c of kit.tableCups) c.visible = f.on !== false;
+    }
+    if (!kit) return;
+    kit.buzz(t, buzz);
+    if (!buzz) kit.radio.rotation.z = 0;
+    // the door: nearly shut until the first door effect, then eased to its target
+    let ang = doorFx.length ? -0.25 : -1.25;
+    for (const f of doorFx) {
+      if (f.t0 > t) break;
+      const to = -0.25 - 1.0 * (f.open ?? 1), k = Math.max(0, Math.min(1, (t - f.t0) / (f.dur ?? 0.8)));
+      ang = ang + (to - ang) * k * k * (3 - 2 * k);
+    }
+    kit.hinge.rotation.y = ang;
+    for (const [id, f] of Object.entries(cupState)) {
+      const key = f.on === false ? 'off' : (f.hands || 'LR');
+      if (actors[id] && cupKey[id] !== key) { cupKey[id] = key; kit.holdCups(actors[id], f.on !== false, 1.6, f.hands || 'LR'); }
+    }
+  };
   return {
-    scene, group, actors, props, anchor, env,
+    scene, group, actors, props, anchor, env, kit,
     frame(t, dt) {
       const s = scene.sample(t, anchor, env);
+      kitchenFrame(t);
       for (const [id, m] of Object.entries(actors)) {
         const st = s.actors[id];
         m.visible = st.visible !== false;
         m.position.set(st.x, st.h + (st.anim === 'ride' ? 0.4 : 0), st.y);
         m.rotation.set(0, -st.a, 0);
-        animateActor(m, { anim: st.anim, speed: st.speed, gaze: st.gaze, t, dt });
+        if (m.userData.shadow) m.userData.shadow.visible = !st.sit;
+        if (st.sit) seatedFrame(m, st, t);
+        else animateActor(m, { anim: st.anim, speed: st.speed, gaze: st.gaze, t, dt });
       }
       for (const [id, m] of Object.entries(props)) {
         const st = s.props[id];
@@ -158,6 +217,7 @@ export function buildScriptRun(def, scene, anchor, env = null) {
         m.position.set(st.x, st.h, st.y);
         m.rotation.y = -st.a;
         if (m.userData.wing) m.userData.wing.rotation.x = Math.PI / 2 + Math.sin(t * 22) * 0.9;
+        if (m.userData.tail) m.userData.tail.rotation.y = Math.sin(t * 3.2) * 0.55;
       }
       return s.camera;
     },
@@ -169,6 +229,40 @@ export function buildScriptRun(def, scene, anchor, env = null) {
 }
 
 let current = null;
+
+// Seated at a table (the kitchen): feet on the floor, hands on the tabletop; a gesture is a head or chest movement
+const TABLE_SIT = { recline: 0.02, footX: 0.42, footY: -0.44, arms: 'wheel' };
+function seatedFrame(m, st, t) {
+  const ud = m.userData;
+  if (!ud.pelvis || !ud.head) return;
+  seatPose(m, TABLE_SIT);
+  m.position.y = st.h + seatedY(m, st.sit);
+  const talk = st.speaking || st.anim === 'talk';
+  ud.head.rotation.y = st.gaze;
+  if (talk) { ud.head.rotation.z += Math.sin(t * 3.1) * 0.04; ud.head.rotation.y += Math.sin(t * 1.7) * 0.07; ud.chest.rotation.z += Math.sin(t * 2.3) * 0.015; }
+  switch (st.anim) {
+    case 'nod': ud.head.rotation.z += Math.sin(t * 6) * 0.14; break;
+    case 'shake': ud.head.rotation.y += Math.sin(t * 8) * 0.3; break;
+    case 'laugh': ud.chest.rotation.z += Math.sin(t * 15) * 0.035; ud.head.rotation.z -= 0.12 + Math.sin(t * 15) * 0.05; break;
+    case 'shrug': ud.chest.rotation.z += 0.06 * Math.sin(t * 4); ud.head.rotation.x = Math.sin(t * 3) * 0.12; break;
+    case 'lean': case 'point': ud.chest.rotation.z -= 0.13; ud.head.rotation.z += 0.08; break;
+    case 'look': ud.head.rotation.z += 0.18; break;
+    case 'phone': ud.head.rotation.z += 0.2; ud.chest.rotation.z -= 0.05; break;
+    default: break;
+  }
+}
+
+// camera and people stay inside the kitchen (a room of 4.4 x 3.6 x 2.6 m around the anchor)
+function kitchenEnv(at) {
+  return {
+    solid: () => false,
+    clamp(x, y, z, kind) {
+      if (kind !== 'camera') return null;
+      const base = at.z || 0;
+      return { x: Math.max(at.x - 1.95, Math.min(at.x + 1.95, x)), y: Math.max(at.y - 1.55, Math.min(at.y + 1.55, y)), z: Math.max(base + 0.25, Math.min(base + 2.35, z)) };
+    },
+  };
+}
 
 export function scriptActive() {
   return !!current;
@@ -188,8 +282,9 @@ export function playScript(w, def, { lines, duration, anchor, cine = {}, env: en
     return false;
   }
   // nobody and no camera inside a building: the anchor turns to free ground, a camera in a wall moves (cutscript.js)
-  const env = envIn || { solid: (x, y, z) => roofAt(w.map, x, y) > z - 0.2 };
-  const at = fitAnchor(scene, a, env);
+  const indoors = def.set === 'keuken';
+  const env = envIn || (indoors ? kitchenEnv({ x: a.x, y: a.y, z: a.z || 0 }) : { solid: (x, y, z) => roofAt(w.map, x, y) > z - 0.2 });
+  const at = indoors ? { ...a, facing: 0 } : fitAnchor(scene, a, env);
   let run = null, lastT = 0;
   const ok = playCinematic({
     priority: 4, pause: true, letterbox: true, skippable: true, hideHud: true,
@@ -197,7 +292,7 @@ export function playScript(w, def, { lines, duration, anchor, cine = {}, env: en
     onStart() {
       if (cine.onStart) cine.onStart();
       try {
-        run = buildScriptRun(def, scene, at, env);
+        run = buildScriptRun(def, scene, at, env, w);
         root.add(run.group);
         current = run;
         w.cinematicHidePlayers = true;
