@@ -10,6 +10,7 @@
 import { STEPS, STEP_BY_ID, PARTS, CLUES, WHY, CHARACTERS, SPEAKERS, stepAvailable, missionIndexOf, computeMoneyTimeline, partNumber, stepDone, nextStoryStep } from './storyarc.js';
 import { tickStoryTravel } from './storytravel.js';
 import { askTravel, travelPromptOpen } from './reispanel.js';
+import { startMeerijden } from './reisrit.js';
 import { FLAGS } from './devflags.js';
 import { setMeetHook } from './namecard.js';
 import { displayName } from './speakers.js';
@@ -1061,7 +1062,7 @@ export function updateStory(dt, w) {
   }
   // travel beats (#97): the choice ride along / drive / skip before a long jump, behind ?reizen
   if (FLAGS.reizen && rt.leadAt < 0) {
-    tickStoryTravel({ on: true, step, flags: state.flags, world: w, ask: askTravel, script: storyScene,
+    tickStoryTravel({ on: true, step, flags: state.flags, world: w, ask: askTravel, ride: startMeerijden, script: storyScene,
       busy: isMissionActive() || isCinematicActive() || narrativeBusy() || !!w.pigeonMode || !!w.pendingRespawn || travelPromptOpen() });
   }
   // the voorschot follows the lead that says what it is for
