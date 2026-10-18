@@ -477,7 +477,9 @@ export function furnitureColliders(items) {
 // The mapped furniture of an OSM extract ({ elements } of Overpass/osmium JSON)
 // as rows for the tiles: { k, pts } (one point for a node; world frame, cm),
 // plus v (speed bump kind) and h (a noise barrier's height)
-export function mappedFromOsm(elements) {
+// opts.hedges: a mapped barrier=hedge becomes a row too (the province's tiles: houtwallen and field hedges; the city draws its own
+// hedges from the greenery build and leaves them out, so a hedge is not drawn twice, #124)
+export function mappedFromOsm(elements, { hedges = false } = {}) {
   const out = [];
   const P = (lat, lon) => wgsToWorld(lat, lon).map((v) => Math.round(v * 100) / 100);
   for (const e of elements) {
@@ -488,6 +490,7 @@ export function mappedFromOsm(elements) {
     if (t.barrier === 'guard_rail') k = 'guard_rail';
     else if (t.barrier === 'wall' && t.wall === 'noise_barrier') { k = 'noise_barrier'; h = parseFloat(t.height) || undefined; }
     else if (t.barrier === 'fence') k = 'fence';
+    else if (t.barrier === 'hedge' && hedges) k = 'hedge';
     else if (t.barrier === 'bollard') k = 'bollard';
     else if (t.traffic_calming && ['bump', 'table', 'cushion', 'hump'].includes(t.traffic_calming)) { k = 'speedbump'; v = t.traffic_calming; }
     else if (t.amenity === 'bench' || t.leisure === 'picnic_table') k = 'bench';

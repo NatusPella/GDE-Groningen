@@ -164,7 +164,7 @@ export function auditWindow(out, index, key, { rails = [] } = {}) {
           if (pts.some(([x, y]) => J.onRoad(x, y))) add(N + 'OnRoad');
           if (pts.some(([x, y]) => J.inWater(x, y))) add(N + 'InWater');
           if (pts.some(([x, y]) => J.inBuilding(x, y))) add(N + 'InBuilding');
-          if (kind !== 'wire' && CF.countrySurface(px, py) === 'sloot') add(N + 'OnDitch');
+          if (pts.some(([x, y]) => CF.countrySurface(x, y) === 'sloot')) add(N + 'OnDitch');
         }
       }
       // grazing animals (a goose or a duck belongs in the water)
@@ -263,7 +263,7 @@ async function main() {
   const total = sumWindows(rows.map((r) => r.c));
   const perStreek = {};
   for (const r of rows) { const s = perStreek[r.streek] || (perStreek[r.streek] = []); s.push(r.c); }
-  const keys = ['posts', 'wires', 'hedges', 'cattle', 'postOnRail', 'wireOnRail', 'hedgeOnRail', 'postOnRoad', 'wireOnRoad', 'hedgeOnRoad', 'postInWater', 'wireInWater', 'hedgeInWater', 'postInBuilding', 'wireInBuilding', 'hedgeInBuilding', 'postOnDitch', 'hedgeOnDitch', 'doublePosts', 'seamGaps', 'osmPieces', 'osmOnRail', 'osmOnRoad', 'osmInWater', 'osmInBuilding', 'cattleInWater', 'cattleOnRoad', 'cattleOnRail'];
+  const keys = ['posts', 'wires', 'hedges', 'cattle', 'postOnRail', 'wireOnRail', 'hedgeOnRail', 'postOnRoad', 'wireOnRoad', 'hedgeOnRoad', 'postInWater', 'wireInWater', 'hedgeInWater', 'postInBuilding', 'wireInBuilding', 'hedgeInBuilding', 'postOnDitch', 'wireOnDitch', 'hedgeOnDitch', 'doublePosts', 'seamGaps', 'osmPieces', 'osmOnRail', 'osmOnRoad', 'osmInWater', 'osmInBuilding', 'cattleInWater', 'cattleOnRoad', 'cattleOnRail'];
   if (args.includes('--json')) { console.log(JSON.stringify({ total, perStreek: Object.fromEntries(Object.entries(perStreek).map(([s, l]) => [s, sumWindows(l)])) })); }
   else {
     console.log(`${all.length} vensters (${W.rail.length} met spoor, ${W.random.length} willekeurig), seed ${opt('seed', 7)}`);

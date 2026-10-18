@@ -80,6 +80,10 @@ const rows = SF.mappedFromOsm([
 ]);
 ok(rows.length === 4 && rows.find((r) => r.k === 'noise_barrier').h === 5, 'OSM rows', JSON.stringify(rows.map((r) => r.k)));
 
+// a mapped hedge is a row only where asked (the province); the city keeps its own
+const hedgeEl = { type: 'way', id: 9, tags: { barrier: 'hedge' }, geometry: [{ lat: 53.22, lon: 6.56 }, { lat: 53.2201, lon: 6.5605 }] };
+ok(SF.mappedFromOsm([hedgeEl]).length === 0 && SF.mappedFromOsm([hedgeEl], { hedges: true }).map((r) => r.k).join() === 'hedge', 'barrier=hedge is a row for the province only');
+
 // the map
 const root = new URL('../game/', import.meta.url);
 const data = JSON.parse(fs.readFileSync(new URL('citymap.json', root)));
