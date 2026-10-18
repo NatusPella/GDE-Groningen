@@ -1548,6 +1548,7 @@ function spawnOwnedHeli(world, o, x, y, angle, z) {
   v.playerOwned = true;
   v.upgrades = [];
   if (Number.isFinite(o.health)) v.health = Math.max(5, Math.min(100, o.health));
+  if (o.flat === true) v.flat = true;
   world.vehicles.push(v);
   return v;
 }
@@ -1570,6 +1571,7 @@ function spawnOwned(world, o, x, y, angle = null, z = null) {
   setRider(v);
   if (Number.isFinite(o.health)) v.health = Math.max(5, Math.min(100, o.health));
   if (Array.isArray(o.dents)) v.dentLog = o.dents.slice(0, 12);
+  if (o.flat === true) v.flat = true;
   if (angle == null) {
     const kerb = Math.max(0, (point.road.width || 6) / 2 - sp.model.wid / 2 - 0.3);
     v.x += -Math.sin(v.angle) * kerb;
@@ -1785,6 +1787,7 @@ export function updateShops(dt, world) {
   const hero = world.vehicles.find((v) => v.isHeroCar);
   if (hero && pendingHeroDamage) {
     if (Number.isFinite(pendingHeroDamage.health)) hero.health = Math.max(5, Math.min(100, pendingHeroDamage.health));
+    if (pendingHeroDamage.flat === true) hero.flat = true;
     if (pendingHeroDamage.dents) { hero.dentLog = pendingHeroDamage.dents; hero.meshDirty = true; }
     pendingHeroDamage = null;
   }
@@ -1830,6 +1833,7 @@ function damageSave(v) {
   const out = {};
   if ((v.health ?? 100) < 100) out.health = Math.round(v.health);
   if (v.dentLog && v.dentLog.length) out.dents = v.dentLog.map((d) => d.map((n) => Math.round(n * 100) / 100));
+  if (v.flat) out.flat = true;
   return out;
 }
 
@@ -1849,7 +1853,7 @@ export function getShopSave() {
       const v = o.v;
       const pos = o.lost ? null : v ? { x: round(v.x), y: round(v.y), angle: round(v.angle), ...(v.isHeli ? { z: round(v.onGround ? v.z : v.groundZ ?? 0) } : {}) } : o.x != null ? { x: round(o.x), y: round(o.y), angle: round(o.angle) } : null;
       // a stored one (home.js) keeps its damage on the entry
-      const dmg = v && !o.lost ? damageSave(v) : !o.lost && (Number.isFinite(o.health) || (o.dents && o.dents.length)) ? { ...(o.health < 100 ? { health: Math.round(o.health) } : {}), ...(o.dents && o.dents.length ? { dents: o.dents } : {}) } : {};
+      const dmg = v && !o.lost ? damageSave(v) : !o.lost && (Number.isFinite(o.health) || o.flat || (o.dents && o.dents.length)) ? { ...(o.health < 100 ? { health: Math.round(o.health) } : {}), ...(o.dents && o.dents.length ? { dents: o.dents } : {}), ...(o.flat ? { flat: true } : {}) } : {};
       return { key: o.key, color: o.color, upgrades: [...(o.v ? o.v.upgrades || [] : o.upgrades || [])], ...(o.lost ? { lost: true } : {}), ...(!o.lost && !pos ? { garage: true } : {}), ...pos, ...dmg };
     }),
   };
@@ -1880,7 +1884,7 @@ export function applyShopSave(world, d) {
     const spec = VEHICLE_STOCK[sv.key];
     const valid = upgradeListForStock(spec);
     const upgrades = Array.isArray(sv.upgrades) ? sv.upgrades.filter((id) => valid.some((u) => u.id === id)) : [];
-    const o = { key: sv.key, spec, color: isColor(sv.color) ? sv.color : spec.color, upgrades, v: null, lost: !!sv.lost, health: sv.health, dents: validDents(sv.dents) };
+    const o = { key: sv.key, spec, color: isColor(sv.color) ? sv.color : spec.color, upgrades, v: null, lost: !!sv.lost, health: sv.health, dents: validDents(sv.dents), flat: sv.flat === true };
     const has = Number.isFinite(sv.x) && Number.isFinite(sv.y);
     // a helicopter without a spot goes back to its pad at home
     if (spec.kind === 'heli' && !has) sv.garage = true;
@@ -1888,7 +1892,7 @@ export function applyShopSave(world, d) {
     if (!o.v) o.lost = !!sv.lost;
     state.vehicles.push(o);
   }
-  pendingHeroDamage = d.hero && typeof d.hero === 'object' ? { health: d.hero.health, dents: validDents(d.hero.dents) } : null;
+  pendingHeroDamage = d.hero && typeof d.hero === 'object' ? { health: d.hero.health, dents: validDents(d.hero.dents), flat: d.hero.flat === true } : null;
   if (!syncHeistOutfit()) applyLooks();
   upkeepTimer = 0;
 }

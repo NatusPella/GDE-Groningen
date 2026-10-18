@@ -644,6 +644,7 @@ function homeDelivery(world, e) {
   const v = o.v;
   if (v) {
     if ((v.health ?? 100) < 100) o.health = v.health;
+    o.flat = !!v.flat;
     const i = world.vehicles.indexOf(v);
     if (i >= 0) world.vehicles.splice(i, 1);
     o.v = null;
