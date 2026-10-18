@@ -15,6 +15,9 @@ import { countryWeight } from './countryfield.js';
 import { EIERBAL_FIND_PAY, EIERBAL_ALL_BONUS } from './economy.js';
 import { getMissionList, payMedalBonus } from './missions.js';
 import { getScene } from './scene3d.js';
+import { makeNearMiss, nearMissBonus } from './gamefeel.js';
+import { chipPopup } from './stunthud.js';
+import { noteMoney } from './finance.js';
 
 const NEAR_MISS_SPEED = 12;
 const NEAR_MISS_GAP = 0.9;
@@ -31,6 +34,7 @@ let lastVehicle = null;
 const entered = new Set();
 let contactCursor = 0;
 const nearCand = new Map();
+const nearMiss = makeNearMiss();
 const lastHitWith = new Map();
 const seenKiss = new WeakSet();
 let lastPos = null;
@@ -157,7 +161,7 @@ function trackVehicle(dt, w, pv) {
       if (dx * dx + dy * dy > 100) continue;
       const lx = dx * c + dy * s, ly = -dx * s + dy * c;
       const gap = Math.abs(ly) - (pv.halfWid + o.halfWid);
-      if (Math.abs(lx) < pv.halfLen + o.halfLen && gap > 0 && gap < NEAR_MISS_GAP) nearCand.set(o.id, { o, t: w.time });
+      if (Math.abs(lx) < pv.halfLen + o.halfLen && gap > 0 && gap < NEAR_MISS_GAP) nearCand.set(o.id, { o, t: w.time, gap, sameDir: Math.cos(pv.angle - o.angle) * (Math.sign(pv.speed) || 1) * (Math.sign(o.speed) || 1) });
     }
   }
   for (const [id, cand] of nearCand) {
@@ -165,7 +169,12 @@ function trackVehicle(dt, w, pv) {
     const far = Math.hypot(o.x - pv.x, o.y - pv.y) > 12;
     if (!far && w.time - cand.t < 3) continue;
     nearCand.delete(id);
-    if (far && (lastHitWith.get(id) ?? -99) < cand.t - 0.5 && !o.wrecked) recordStat(w, 'nearMiss');
+    if (far && (lastHitWith.get(id) ?? -99) < cand.t - 0.5 && !o.wrecked) {
+      recordStat(w, 'nearMiss');
+      // kleine bonus met een chip (#216); geen beloning tegen het verkeer in, afkoeling per paar
+      const bonus = nearMissBonus(nearMiss, w.time, { pair: pv.id + '-' + id, speed: pv.speed, gap: cand.gap, sameDir: cand.sameDir });
+      if (bonus > 0) { noteMoney('Rijden'); w.money += bonus; chipPopup(`+€${bonus} Rakelings`); }
+    }
   }
 }
 

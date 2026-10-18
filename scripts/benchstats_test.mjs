@@ -62,5 +62,19 @@ st.setItem(BASE_KEYS.benchmarkLast, '{kapot');
 ok('broken json is ignored', readLastRun(st) === null);
 ok('no storage is fine', readLastRun({ getItem() { throw new Error('x'); } }) === null && writeLastRun(packed, { setItem() { throw new Error('x'); } }) === false);
 
+// #216 / G28: frames over 33 ms per route, knop-tot-beeld latency
+{
+  const { routeHitches, latencyStats, HITCH_FRAME_MS } = await import('../game/js/benchstats.js');
+  const fs = frameStats([...Array(90).fill(10), ...Array(10).fill(50)]);
+  ok('frameStats telt frames > 33 ms', fs.slow33 === 10 && Math.abs(fs.slow33Share - 0.1) < 1e-9, JSON.stringify(fs));
+  ok('geen hapering geeft nul', frameStats(Array(50).fill(16)).slow33 === 0 && HITCH_FRAME_MS > 33 && HITCH_FRAME_MS < 34);
+  const h = routeHitches([{ id: 'vismarkt', ms: Array(20).fill(10) }, { id: 'boat', ms: [...Array(15).fill(10), ...Array(5).fill(60)] }, { id: 'leeg', ms: [] }, null]);
+  ok('routeHitches: slechtste eerst, lege shots weg', h.length === 2 && h[0].id === 'boat' && h[0].slow33 === 5 && h[0].share === 0.25 && h[1].slow33 === 0, JSON.stringify(h));
+  const l = latencyStats([10, 12, 14, 80, NaN, -3]);
+  ok('latencyStats', l.n === 4 && l.max === 80 && l.p95 === 80 && Math.abs(l.avg - 29) < 1e-9, JSON.stringify(l));
+  ok('latencyStats leeg', latencyStats([]) === null && latencyStats(null) === null);
+  ok('packRun bewaart het hapering-aandeel', packRun({ stats: { ...fs, avg: 60, p95: 20, low1: 30 }, cats: {} }).slow33 === 10);
+}
+
 console.log(fail ? `${fail} FAILED` : 'all ok');
 process.exit(fail ? 1 : 0);
