@@ -6,8 +6,8 @@ let bad = 0;
 const check = (name, ok, extra = '') => { if (!ok) bad++; console.log(`${ok ? 'ok  ' : 'FAIL'} ${name}${ok ? '' : ' ' + extra}`); };
 const line = (x0, y0, n, step) => ({ pts: Array.from({ length: n }, (_, i) => [x0 + i * step, y0]), kind: 5, w: 6, oneway: 0, bridge: 0 });
 
-const rows = [line(0, 0, 40, 50)];                       // het hoofdnet
-for (let k = 0; k < 8; k++) rows.push(line(-4000, 3000 + k * 40, 20, 30)); // 160 knopen, 3,6 km verderop
+const rows = [line(0, 0, 200, 50)];                       // het hoofdnet
+rows.push(line(-4000, 3000, 160, 30));                   // één stuk van 160 knopen, 3,6 km verderop
 rows.push(line(-4000, 9000, 5, 30));                     // klein stukje, ver weg
 setRoadNet(rows);
 const near = (x, y) => snapRoad(x, y, 5);
