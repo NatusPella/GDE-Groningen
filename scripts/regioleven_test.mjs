@@ -1,6 +1,7 @@
 // regioleven.js (#68): regions, summer events in the calendar, chance encounters, finds. Pure.
 //   node scripts/regioleven_test.mjs
-import { STREKEN, streekAt, REGIO_EVENTS, ENCOUNTERS, encountersFor, rollEncounter, rollGap, ENCOUNTER_GAP, FINDS, findNear, findPos, findsOf, streekProgress, VERZAMEL_TOTAL, GEHEIM_TOTAL, ENCOUNTER_REWARD_MAX } from '../game/js/regioleven.js';
+import { STREKEN, streekAt, REGIO_EVENTS, ENCOUNTERS, encountersFor, rollEncounter, rollGap, ENCOUNTER_GAP, FINDS, findNear, findPos, findsOf, streekProgress, VERZAMEL_TOTAL, GEHEIM_TOTAL, ENCOUNTER_REWARD_MAX, SET_VERZAMEL, SET_GEHEIM } from '../game/js/regioleven.js';
+import { ACHIEVEMENTS } from '../game/js/achievements.js';
 import { SPECIAL_DAYS, specialsOn, day, CAL_ICONS, LAST_SUMMER_DAY } from '../game/js/calendar.js';
 import { wgsToWorld } from '../game/js/rdnew.js';
 import { makeRng } from '../game/js/minigamekit.js';
@@ -14,7 +15,8 @@ for (const s of STREKEN) { const [x, y] = wgsToWorld(s.at[0], s.at[1]); ok(stree
 { const [x, y] = wgsToWorld(52.6, 6.2); ok(streekAt(x, y) === null, 'far away is no streek'); }
 
 // events in the calendar
-ok(REGIO_EVENTS.length >= 7, 'at least seven regional events');
+ok(REGIO_EVENTS.length >= 10, 'at least ten regional events');
+ok(STREKEN.length === 8, 'eight streken');
 ok(new Set(SPECIAL_DAYS.map((s) => s.id)).size === SPECIAL_DAYS.length, 'calendar ids stay unique with the regional events');
 for (const e of REGIO_EVENTS) {
   const s = SPECIAL_DAYS.find((x) => x.id === e.id);
@@ -51,7 +53,9 @@ for (const s of STREKEN) for (const h of [8, 13, 20]) ok(encountersFor(s.id, h).
 }
 
 // finds
-ok(VERZAMEL_TOTAL === 15 && GEHEIM_TOTAL === 5, 'fifteen finds and five secrets');
+ok(VERZAMEL_TOTAL === 24 && GEHEIM_TOTAL === 8, 'twenty-four finds and eight secrets');
+{ const a = ACHIEVEMENTS.find((x) => x.id === 'streek_verzameld'), b = ACHIEVEMENTS.find((x) => x.id === 'streek_geheimen');
+  ok(a.goal === VERZAMEL_TOTAL && b.goal === GEHEIM_TOTAL && a.set === SET_VERZAMEL && b.set === SET_GEHEIM, 'the prestaties follow the totals'); }
 ok(new Set(FINDS.map((f) => f.id)).size === FINDS.length, 'unique find ids');
 for (const s of STREKEN) ok(findsOf(s.id, 'verzamel').length === 3 && findsOf(s.id, 'geheim').length === 1, `${s.id}: three finds and one secret`);
 for (const f of FINDS) {
