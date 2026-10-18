@@ -347,7 +347,8 @@ async function batch2Smoke(world, check, capture) {
   check('boa: starts', goTo('boa') && SJ().start('boa') && world.sideJob.active && world.sideJob.id === 'boa');
   await intro();
   let c = SJ().ctx();
-  check('boa: an offender waits', await waitFor(() => c.data.ped && c.data.phase === 'walk', 4000));
+  check('boa: an offender waits', await waitFor(() => { c = SJ().ctx(); return c && c.data && c.data.ped && c.data.phase === 'walk'; }, 8000));
+  if (!(c && c.data && c.data.ped)) throw new Error('boa: no offender, ctx ' + JSON.stringify(c && Object.keys(c)));
   p.x = c.data.ped.x + 2; p.y = c.data.ped.y;
   check('boa: the case panel opens with three fines', await waitFor(() => panelUp() && c.data.phase === 'case' && opts() === 3, 4000), JSON.stringify({ ph: c.data.phase, o: opts(), inV: !!p.inVehicle, sw: !!p.swimming, d: c.data.ped ? Math.hypot(p.x - c.data.ped.x, p.y - c.data.ped.y) : null }));
   capture('job-boa-case');
@@ -764,6 +765,8 @@ export async function runStoryTest(world) {
             }
           }
           check(`mission ${cur.id} finished`, !isMissionActive());
+          // a vliegmissie (M15: plane, airgates) is not flown by the generic objective skipper: it fails and the story offers the skip
+          { const c2 = S().current(); if (c2 && c2.id === cur.id && S().canSkip()) { const m1 = world.money; S().skip(); await drain(world); entry.notes.push(`mislukt (de harnas vliegt niet) en overgeslagen: +€${Math.round(world.money - m1)}`); } }
           if (NEW) newArcChecks(cur.id);
         }
         await drain(world);
