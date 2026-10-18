@@ -1,4 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { fitText as sharedFitText } from './canvastex.js';
 import { markShared } from './pixelart3d.js';
 
 // Blue Dutch road signs for the Ommelanden: place-name boards at the
@@ -36,10 +37,7 @@ function release(key) {
   texCache.delete(key);
 }
 
-function fitText(g, text, maxW, size, weight = 'bold') {
-  let s = size;
-  do { g.font = `${weight} ${s}px "Arial Narrow", Arial, sans-serif`; s -= 2; } while (g.measureText(text).width > maxW && s > 10);
-}
+const fitText = (g, text, maxW, size, weight = 'bold') => sharedFitText(g, text, maxW, size, weight, '"Arial Narrow", Arial, sans-serif');
 
 // sub: a second, smaller line (the Gronings name)
 function placeBoard(text, sub) {

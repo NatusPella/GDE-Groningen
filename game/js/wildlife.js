@@ -42,12 +42,8 @@ const PIGEON_STAND_Y = 0.1;
 
 let maintainTimer = 0;
 
-function insideBuilding(map, x, y) {
-  return !!buildingAt(map, x, y);
-}
-
 function openGround(map, x, y) {
-  return !insideBuilding(map, x, y) && !isInWater(map, x, y);
+  return !buildingAt(map, x, y) && !isInWater(map, x, y);
 }
 
 function randomOpenPointNear(map, x, y, rMin, rMax, rng = Math.random) {
@@ -174,7 +170,7 @@ function spawnCat(map, px, py, rng) {
     const t = 0.2 + rng() * 0.6;
     let nx = -(b[1] - a[1]) / len, ny = (b[0] - a[0]) / len;
     const mx = a[0] + (b[0] - a[0]) * t, my = a[1] + (b[1] - a[1]) * t;
-    if (insideBuilding(map, mx + nx * 0.5, my + ny * 0.5)) { nx = -nx; ny = -ny; }
+    if (buildingAt(map, mx + nx * 0.5, my + ny * 0.5)) { nx = -nx; ny = -ny; }
     const x = mx + nx * 0.35, y = my + ny * 0.35;
     const d = dist(x, y, px, py);
     if (d < 12 || d > 55 || !openGround(map, x, y)) continue;

@@ -61,7 +61,7 @@ t('voertuig: erbij springen binnen bereik, te ver, vol; eigen voertuig roepen; n
   assert.equal(P.voertuigActie(me, { vehicle: 'b' }, veh).actie, 'vol');
   assert.equal(P.voertuigActie(me, { vehicle: 'fiets' }, veh).actie, 'vol', 'een eenzitter is vol');
   assert.equal(P.voertuigActie(me, { vehicle: 'c' }, veh).actie, 'te-ver');
-  assert.deepEqual(P.voertuigActie(me, { vehicle: null }, veh, 'mijn-auto'), { actie: 'roep', id: 'mijn-auto', tekst: 'Je voertuig komt naar je medespeler.' });
+  assert.deepEqual(P.voertuigActie(me, { vehicle: null }, veh, 'mijn-auto'), { actie: 'roep', id: 'mijn-auto', tekst: 'Voertuig komt' });
   assert.equal(P.voertuigActie(me, { vehicle: null }, veh).actie, 'geen');
 });
 t('N spelers: alle anderen met eigen naam, kleur en vorm uit de lijst; jezelf niet', () => {

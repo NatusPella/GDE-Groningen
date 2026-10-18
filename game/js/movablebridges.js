@@ -238,8 +238,8 @@ export function boatSignal(b) { return b.state === 'open' ? 'green' : 'red'; }
 // swimmer, else road traffic. null for any other change.
 const HINT_REACH = 70;
 export function bridgeHint(state, onWater) {
-  if (state === 'warn') return onWater ? 'Brug gaat open, even wachten.' : 'Brug gaat open, wachten.';
-  if (state === 'open') return onWater ? 'Brug open, varen maar.' : 'Brug open.';
+  if (state === 'warn') return 'Brug gaat open';
+  if (state === 'open') return 'Brug open';
   return null;
 }
 

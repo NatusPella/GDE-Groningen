@@ -11,6 +11,7 @@
 import { dualHtml } from './subtitles.js';
 import { mayStart, noteToast } from './narrative.js';
 import { KEYS } from './storagekeys.js';
+import { iconSvg } from './achievementicons.js';
 
 const KEY = KEYS.achievements;
 const WRITE_DELAY_MS = 2500;
@@ -74,6 +75,9 @@ export const ACHIEVEMENTS = [
   { id: 'bus', cat: 'rijden', title: 'Lijn 5 rijdt vandaag anders', desc: 'Jat een stadsbus' },
   { id: 'alle_typen', cat: 'rijden', title: 'Van fiets tot rondvaartboot', desc: 'Rij in elk soort voertuig: auto, bus, fiets, fatbike, scooter, boot en politieauto', set: 'vehicleTypes', goal: 7 },
   { id: 'politieauto', cat: 'rijden', title: 'Zwaailicht erop', desc: 'Kaap een politieauto', hidden: true },
+  { id: 'drift_1', cat: 'rijden', title: 'Eerste slip', desc: 'Rond een driftrun af op een rotonde', stat: 'driftRuns', goal: 1 },
+  { id: 'drift_10', cat: 'rijden', title: 'Rubber op de rotonde', desc: 'Rond 10 driftruns af', stat: 'driftRuns', goal: 10 },
+  { id: 'drift_goud', cat: 'rijden', title: 'Koning van de rotonde', desc: 'Haal goud in een driftzone', medal: true },
   { id: 'geflitst', cat: 'rijden', title: 'Smile!', desc: 'Word geflitst', hidden: true },
 
   { id: 'lopen_5', cat: 'tevoet', title: 'Wandelen op de Diepenring', desc: 'Loop in totaal 5 km', stat: 'walked', goal: 5000, unit: 'm' },
@@ -162,6 +166,8 @@ export const ACHIEVEMENTS = [
   { id: 'koe_goud', cat: 'nahetverhaal', title: 'Koeienfluisteraar', desc: 'Goud bij De Koe van Ome Jan', medal: true },
   { id: 'fjord_1000', cat: 'nahetverhaal', title: 'Frituurbaron', desc: 'Verdien €1000 met de Fjord Frituur', stat: 'fjordEarned', goal: 1000, unit: '€' },
 
+  { id: 'trein_stations', cat: 'spoor', title: 'Alle haltes af', desc: 'Stap uit op 5 verschillende stations of haltes', set: 'trainStations', goal: 5 },
+  { id: 'trein_dorp', cat: 'spoor', title: 'Dorpsstation', desc: 'Reis met de trein naar een dorpshalte', hidden: true },
   { id: 'treinen', cat: 'spoor', title: 'Treinspotter', desc: 'Zie alle soorten treinen: GTW, WINK en de Intercity', set: 'trains', goal: 3 },
   { id: 'trein_race', cat: 'spoor', title: 'Sneller dan de sprinter', desc: 'Rij een rijdende trein voorbij', hidden: true },
   { id: 'trein_1', cat: 'spoor', title: 'Instappen, deuren sluiten', desc: 'Reis met de trein naar een ander station', stat: 'trainTrips', goal: 1 },
@@ -209,6 +215,23 @@ export const ACHIEVEMENTS = [
   { id: 'sj_verhuizing', cat: 'bijbaan', title: 'Niks gebroken', desc: 'Verhuis een student zonder dat er iets sneuvelt' },
   { id: 'sj_legende', cat: 'bijbaan', title: 'Legende van Grunn', desc: 'Haal niveau 5 bij een bijbaantje' },
   { id: 'sj_kots', cat: 'bijbaan', title: 'Kotszakje vergeten', desc: 'Een student kotst je taxi onder', hidden: true },
+
+  // nieuwe functies (#191): meest op bestaande tellers, dus zonder extra haken
+  { id: 'coop_uur', cat: 'sociaal', title: 'Samen is beter', desc: 'Speel een uur online samen met een tweede speler', stat: 'coopTime', goal: 3600, unit: 's' },
+  { id: 'reuzenrad_1', cat: 'verkennen', title: 'Boven de kermis', desc: 'Draai een ronde mee in het reuzenrad', stat: 'reuzenradRides', goal: 1 },
+  { id: 'reuzenrad_5', cat: 'verkennen', title: 'Rad van avontuur', desc: 'Draai vijf keer mee in het reuzenrad', stat: 'reuzenradRides', goal: 5 },
+  { id: 'botsauto_10', cat: 'verkennen', title: 'Kermisvaste', desc: "Rij tien ritjes in de botsauto's", stat: 'botsautoRides', goal: 10 },
+  { id: 'kart_5', cat: 'verkennen', title: 'Kartvaste', desc: 'Rij vijf kartraces op de baan in Ulrum', stat: 'kartRaces', goal: 5 },
+  { id: 'drift_5', cat: 'rijden', title: 'Dwars door de bocht', desc: 'Rond vijf driftruns af', stat: 'driftRuns', goal: 5 },
+  { id: 'padel_10', cat: 'verkennen', title: 'Padelvaste', desc: 'Speel tien potjes padel', stat: 'padelMatches', goal: 10 },
+  { id: 'varen_5', cat: 'rijden', title: 'Zeebenen', desc: 'Vaar in totaal 5 km over het water', stat: 'sailed', goal: 5000, unit: 'm' },
+  { id: 'varen_25', cat: 'rijden', title: 'Kapitein van de Diepenring', desc: 'Vaar in totaal 25 km over het water', stat: 'sailed', goal: 25000, unit: 'm' },
+  { id: 'ster_5_lang', cat: 'politie', title: 'Op de vlucht', desc: 'Blijf tien minuten achter elkaar gezocht', stat: 'wantedStreak', goal: 600, unit: 's', hidden: true },
+  { id: 'reizen_25', cat: 'spoor', title: 'Vaste klant bij de NS', desc: 'Reis 25 keer met de trein', stat: 'trainTrips', goal: 25 },
+  { id: 'slapen_5', cat: 'sociaal', title: 'Goed uitgerust', desc: 'Slaap vijf keer in je eigen bed', stat: 'slept', goal: 5 },
+  { id: 'hengel_5', cat: 'verkennen', title: 'Geduldige visser', desc: 'Hengel vijf rondes in Meerstad', stat: 'hengelSessions', goal: 5 },
+  { id: 'skate_10', cat: 'verkennen', title: 'Skatepark-vaste', desc: 'Skate tien runs in het Stadspark', stat: 'skateRuns', goal: 10 },
+  { id: 'heli_10', cat: 'verkennen', title: 'Piloot van Grunn', desc: 'Maak tien helikoptervluchten', stat: 'heliRuns', goal: 10 },
 ];
 const BY_ID = new Map(ACHIEVEMENTS.map((a) => [a.id, a]));
 
@@ -541,6 +564,7 @@ const CSS = `
 #hud .ach-toast.on { opacity: 1; transform: translate(-50%, 0); }
 #hud .ach-toast .ach-ico { flex: none; width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center;
   background: radial-gradient(circle at 35% 30%, #6fe39d 0%, #1e9e56 70%); color: #0c140e; box-shadow: 0 0 16px rgba(63,201,122,0.5); }
+#hud .ach-toast .ach-pic { width: 26px; height: 26px; }
 #hud .ach-toast.gold { border-left-color: #e8c93a; }
 #hud .ach-toast.gold .ach-ico { background: radial-gradient(circle at 35% 30%, #fff0a8 0%, #d9a91e 70%); box-shadow: 0 0 16px rgba(232,201,58,0.55); }
 #hud .ach-toast .ach-txt { display: flex; flex-direction: column; min-width: 0; }
@@ -600,7 +624,7 @@ function showNextToast() {
   el.classList.toggle('gold', gold);
   noteToast();
   const { pct } = getAchievementSummary();
-  el.innerHTML = `<span class="ach-ico">${TROPHY_SVG}</span><span class="ach-txt">` +
+  el.innerHTML = `<span class="ach-ico">${a.hidden ? TROPHY_SVG : iconSvg(a, 'ach-pic')}</span><span class="ach-txt">` +
     `<span class="ach-kicker">PRESTATIE ONTGRENDELD<span class="ach-pct">${pct >= 1 ? pct : '&lt;1'}% totaal</span></span>` +
     `<span class="ach-title">${dualHtml(a.title)}</span><span class="ach-desc">${escHtml(a.desc)}</span></span>`;
   void el.offsetWidth;

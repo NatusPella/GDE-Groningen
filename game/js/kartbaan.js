@@ -91,7 +91,8 @@ function mesh(geo2, mat, x, y, z, parent, shadow = true) {
 }
 
 // A strip along the track between two lateral offsets (positive to the left of travel).
-function ribbon(off0, off1, y, colorOf = null, from = 0, to = TRACK.N) {
+// taper(q, n) (optional) scales the strip's width towards the near edge off0 (0..1), so a kerb runs out softly.
+function ribbon(off0, off1, y, colorOf = null, from = 0, to = TRACK.N, taper = null) {
   const T = TRACK;
   const n = to - from;
   const pos = new Float32Array((n + 1) * 2 * 3);
@@ -101,8 +102,12 @@ function ribbon(off0, off1, y, colorOf = null, from = 0, to = TRACK.N) {
     const i = (from + q) % T.N;
     const a = T.ang[i];
     const nx = -Math.sin(a), ny = Math.cos(a);
-    pos.set([T.u[i] + nx * off0, y, T.v[i] + ny * off0, T.u[i] + nx * off1, y, T.v[i] + ny * off1], q * 6);
-    if (col) { const c = colorOf(i); col.set([c[0], c[1], c[2], c[0], c[1], c[2]], q * 6); }
+    const k = taper ? taper(q, n) : 1;
+    // the strip narrows towards its edge nearest the track
+    const inner = Math.abs(off0) < Math.abs(off1);
+    const a0 = inner ? off0 : off1 + (off0 - off1) * k, a1 = inner ? off0 + (off1 - off0) * k : off1;
+    pos.set([T.u[i] + nx * a0, y, T.v[i] + ny * a0, T.u[i] + nx * a1, y, T.v[i] + ny * a1], q * 6);
+    if (col) { const c = colorOf(i, k); col.set([c[0], c[1], c[2], c[0], c[1], c[2]], q * 6); }
     if (q < n) { const k = q * 2; idx.push(k, k + 1, k + 2, k + 1, k + 3, k + 2); }
   }
   const g = new THREE.BufferGeometry();
@@ -156,7 +161,12 @@ function buildTrackScene() {
   root.add(asphalt);
   for (const s of [-1, 1]) root.add(new THREE.Mesh(ribbon(Math.min(s * (T.hw - 0.4), s * (T.hw - 0.22)), Math.max(s * (T.hw - 0.4), s * (T.hw - 0.22)), 0.045), M.line));
   // kerbs on the bends, red and white
-  const kerbCol = (i) => ((Math.floor(i / 2) % 2) ? [0.9, 0.1, 0.08] : [0.95, 0.95, 0.9]);
+  // a kerb runs out over its first and last metres: it narrows and fades into the asphalt
+  const kerbCol = (i, k = 1) => {
+    const c = (Math.floor(i / 2) % 2) ? [0.9, 0.1, 0.08] : [0.95, 0.95, 0.9];
+    return c.map((v) => 0.26 + (v - 0.26) * (0.4 + 0.6 * k));
+  };
+  const kerbTaper = (q, n) => { const e = Math.min(q, n - q) / 4; return Math.max(0.12, Math.min(1, e * e * (3 - 2 * Math.min(e, 1)))); };
   for (const s of [-1, 1]) {
     const o0 = s > 0 ? T.hw : -T.hw - 0.8, o1 = s > 0 ? T.hw + 0.8 : -T.hw;
     let run = -1;
@@ -164,7 +174,7 @@ function buildTrackScene() {
       const sharp = i < T.N && T.curv[i] > 0.022;
       if (sharp && run < 0) run = i;
       if ((!sharp || i === T.N) && run >= 0) {
-        if (i - run > 3) root.add(new THREE.Mesh(ribbon(o0, o1, 0.04, kerbCol, run, i), M.kerb));
+        if (i - run > 3) root.add(new THREE.Mesh(ribbon(o0, o1, 0.04, kerbCol, run, i, kerbTaper), M.kerb));
         run = -1;
       }
     }

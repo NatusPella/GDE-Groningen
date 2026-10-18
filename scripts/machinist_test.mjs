@@ -163,5 +163,11 @@ function driveService(label, pilot, maxS = 1800) {
   if (r.plan.length !== 2) fail('range does not drop halten beyond the track');
 }
 
+ok_pay();
+function ok_pay() {
+  if (R.payFor({ made: 4, score: 80, medal: 2 }) !== Math.round(4 * 16 + 40)) fail('payFor value');
+  if (R.payFor({ made: 4, score: 80, medal: 2 }, true) !== 0 || R.payFor(null) !== 0) fail('abandoned pays nothing');
+  if (R.payFor({ made: 0, score: 0, medal: 0 }) !== 0) fail('no halten, no pay');
+}
 console.log(fails ? `${fails} failure(s)` : 'machinist: ok');
 process.exit(fails ? 1 : 0);

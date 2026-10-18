@@ -256,6 +256,8 @@ function push(tile, type, x, y, rotY, sx, sy, sz, color = 0xffffff, jitter = 0.0
       // the span's ends too: a wire may not cross a lane
       const hx = Math.cos(rotY) * sx * 0.5, hy = -Math.sin(rotY) * sx * 0.5;
       if (!clearOfRoad(x + hx, y + hy, clear) || !clearOfRoad(x - hx, y - hy, clear)) return false;
+      // and the wire between them: not across the tiles' water either (issue #185)
+      if (edgeSpanBlocked(x - hx, y - hy, x + hx, y + hy, 0.5, 1.3)) return false;
     }
   }
   // hedges and wire fences are low walls you vault (countrywalls.js); the
@@ -1181,7 +1183,7 @@ function reedItems(t) {
         const o = sd * (MAAR_WATER + 0.25 + chash(Math.round(q * 4), sd + 7) * 0.4);
         const x = vert ? c + o : x0 + q, y = vert ? y0 + q : c + o;
         const clump = chash(Math.floor(x / 7) + 5, Math.floor(y / 7) - 3);
-        if (clump > 0.5 || !openLand(x, y) || parcelAt(x, y).road || farmAt(x, y, 0)) continue;
+        if (clump > 0.5 || !openLand(x, y) || parcelAt(x, y).road || farmAt(x, y, 0) || edgeBlocked(x, y, 1)) continue;
         const h = chash(Math.round(x * 3), Math.round(y * 3));
         push(tmp, 'reed', x, y, h * 6.28, 1 + h * 0.3, 0.8 + clump * 1.2, 1 + h * 0.3, 0xffffff, 0.12);
       }

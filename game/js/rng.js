@@ -4,6 +4,10 @@ export function hash2(a, b) {
   const h = Math.sin(a * 127.1 + b * 311.7) * 43758.5453;
   return h - Math.floor(h);
 }
+export function hash3(a, b, c) {
+  const h = Math.sin(a * 127.1 + b * 311.7 + c * 74.7) * 43758.5453;
+  return h - Math.floor(h);
+}
 export const rand = (a, b) => a + Math.random() * (b - a);
 
 // Seeded 0..1 generator (mulberry32).

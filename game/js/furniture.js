@@ -427,7 +427,7 @@ function readBooks(w) {
   for (let i = open.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [open[i], open[j]] = [open[j], open[i]]; }
   state.tips = open.slice(0, TIPS_PER_DAY).map((e) => e.id);
   state.read = state.day;
-  w.addMessage(`${other(w)} leest zich in, "Verstopt in Stad" deel ${state.day + 1}: ${state.tips.length} eierbal-tips op de kaart`, 5, { kind: 'tip' });
+  w.addMessage(`${other(w)} leest "Verstopt in Stad" ${state.day + 1}: ${state.tips.length} eierbal-tips`, 5, { kind: 'tip' });
 }
 
 // Unfound eierballen the Buukenkaas pointed at, for the map (mapview.js).

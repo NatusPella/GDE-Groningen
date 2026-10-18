@@ -11,6 +11,8 @@ import os from 'node:os';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
+import { slotKey, slotRecoveryKey } from '../game/js/storagekeys.js';
+import * as Slots from '../game/js/saveslots.js';
 import { migrateStorage, removeLegacyKeys, KEYS as ARC_KEYS, BASE_KEYS as KEYS, SESSION_KEYS, LEGACY_KEYS, LEGACY_CACHE_KEYS, MIGRATED_KEY } from '../game/js/storagekeys.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -195,6 +197,20 @@ if (process.platform !== 'win32' && process.getuid && process.getuid() !== 0) {
     ok(r.action === 'legacy' && r.dir === path.join(tmp, 'GTE VI'), 'failed copy falls back to the old folder', JSON.stringify(r));
     ok(!fs.existsSync(path.join(tmp, 'GDE Groningen')) && !fs.readdirSync(tmp).some((f) => f.includes('.migrating-')), 'failed copy leaves nothing behind');
   } finally { try { fs.chmodSync(locked, 0o755); } catch (e) { /* ignore */ } fs.rmSync(tmp, { recursive: true, force: true }); }
+}
+
+// 10. save slots (#208): the single save of 0.28 / 1.x becomes slot 1 without moving a byte
+{
+  const arcSave = JSON.stringify({ v: 9, arc: ARC_KEYS.save.endsWith('-nieuw') ? 'nieuw' : 'oud', money: 1234, savedAt: 5, speeltijd: 60 });
+  const ls = new MemStorage({ 'gte-save-v1': arcSave });
+  migrateStorage(ls, null);
+  ok(slotKey(1) === ARC_KEYS.save && ls.getItem(slotKey(1)) === ls.getItem('gte-save-v1') || ARC_KEYS.save.endsWith('-nieuw'), 'slot 1 is the migrated save key');
+  ok(slotKey(1) !== slotKey(2) && slotRecoveryKey(1) !== slotKey(1), 'slot keys are distinct');
+  const before = ls.getItem(KEYS.save);
+  const l = Slots.listSlots(ls);
+  ok(before === arcSave && ls.getItem(KEYS.save) === before, 'listing slots leaves the migrated save as it was');
+  ok(!ARC_KEYS.save.endsWith('-nieuw') ? l.length === 1 && l[0].n === 1 && l[0].active : true, 'migrated save shows as the active slot 1');
+  ok(ARC_KEYS.saveSlots.startsWith('gde-') && !ARC_KEYS.saveSlots.startsWith('gte-'), 'slot list key is gde-*');
 }
 
 console.log(`${n - fails}/${n} ok`);

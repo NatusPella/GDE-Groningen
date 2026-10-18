@@ -8,6 +8,7 @@ import { allSignals, yieldArms } from './junctions.js';
 import { groundHeightAt } from './elevation.js';
 import { runGeo, geoWorkerActive } from './geojobs.js';
 import { geometryFromPlain } from './geoplain.js';
+import { planBlends, blendAttributes, linearOf } from './surfaceblend.js';
 import { laneLayout } from './lanes.js';
 import { isMarktFietsRoad, MARKT } from './roadaccess.js';
 
@@ -34,16 +35,20 @@ const VERTEX_COMMON = `
 #ifndef SURF_MARKING
 attribute vec4 aSurf;
 attribute float aSurfEnd;
+attribute vec4 aBlendA;
+attribute vec4 aBlendB;
 #endif
 varying vec4 vSurf;
 varying float vSurfEnd;
+varying vec4 vBlendA;
+varying vec4 vBlendB;
 `;
 
 const VERTEX_MAIN = `
 #ifndef SURF_MARKING
-vSurf = aSurf; vSurfEnd = aSurfEnd;
+vSurf = aSurf; vSurfEnd = aSurfEnd; vBlendA = aBlendA; vBlendB = aBlendB;
 #else
-vSurf = vec4(0.0); vSurfEnd = 0.0;
+vSurf = vec4(0.0); vSurfEnd = 0.0; vBlendA = vec4(0.0); vBlendB = vec4(0.0);
 #endif
 `;
 
@@ -52,6 +57,8 @@ vSurf = vec4(0.0); vSurfEnd = 0.0;
 const FRAGMENT_COMMON = `
 varying vec4 vSurf;
 varying float vSurfEnd;
+varying vec4 vBlendA;
+varying vec4 vBlendB;
 float sFade(float px, float a, float b) { return 1.0 - smoothstep(a, b, px); }
 // integer hash: the float-fract hash degenerates into stripes at city-scale coordinates
 float sHash(vec2 p) {
@@ -216,6 +223,11 @@ const COLOR = `
     diffuseColor.rgb *= 0.78 + 0.22 * smoothstep(0.33, 0.7, mw);
   }
 #endif
+  // soepele overgang naar het dek van de buur aan begin en einde van de weg (surfaceblend.js)
+  if (vBlendA.w > 0.0) {
+    alb *= 1.0 + vBlendA.rgb * (1.0 - smoothstep(0.0, vBlendA.w, vSurf.y));
+    alb *= 1.0 + vBlendB.rgb * (1.0 - smoothstep(0.0, vBlendA.w, vBlendB.w - vSurf.y));
+  }
   diffuseColor.rgb *= alb;
 }
 `;
@@ -233,7 +245,7 @@ const NORMAL = `
 #endif
 `;
 
-const SURF_SHADER = { key: 'roadsurf1', vertexCommon: VERTEX_COMMON, vertexMain: VERTEX_MAIN, fragmentCommon: FRAGMENT_COMMON, color: COLOR, normal: NORMAL };
+const SURF_SHADER = { key: 'roadsurf2', vertexCommon: VERTEX_COMMON, vertexMain: VERTEX_MAIN, fragmentCommon: FRAGMENT_COMMON, color: COLOR, normal: NORMAL };
 
 // ---------------------------------------------------------------- materials
 
@@ -1065,11 +1077,35 @@ function bufGeometry(B) {
   return finishGeometry(B.pos, B.nrm, B.idx, [['aSurf', B.surf, 4], ['aSurfEnd', B.end, 1]]);
 }
 
+// The colour blend at the ends of r's carriageway towards the surface of the
+// ways it meets (surfaceblend.js).
+function surfaceOf(o) {
+  const layer = GROUND_LAYER[o.cat] ? o.cat : 'normal';
+  const surf = roadSurface(o), def = SURFACES[surf];
+  const color = def.colors[layer] ?? def.colors.any ?? Object.values(def.colors)[0];
+  return { id: layer + ':' + surf, colour: linearOf(color), rank: GROUND_LAYER[layer] * 4 + def.rank };
+}
+const sameLevel = (r, o) => o.cat !== 'foot' && !o.bridge === !r.bridge && !o.tunnel === !r.tunnel && (o.layer || 0) === (r.layer || 0);
+function roadBlendPlan(r, rs) {
+  if (!netMap || r.cat === 'foot') return null;
+  const plan = planBlends(nodeIndex, nodeKey, [r], surfaceOf, (_, start) => Math.max(0, (start ? rs.e0 : rs.e1).J), sameLevel);
+  return plan.get(r) || null;
+}
+
 function ribbonGeometry(r, half, surfWidth = r.width) {
   const rs = analyse(r);
   const B = newBuf();
   ribbonInto(r, rs, half, B, surfWidth, roadClip(r, rs), surfWidth ? nearZones(r, rs, 'road') : null, !SIDEWALK_CATS.has(r.cat));
-  return bufGeometry(B);
+  const g = bufGeometry(B);
+  const pl = roadBlendPlan(r, rs);
+  if (pl) {
+    const { A, B: E } = blendAttributes(pl, rs.L);
+    const n = B.pos.length / 3, a = new Float32Array(n * 4), b = new Float32Array(n * 4);
+    for (let i = 0; i < n; i++) { a.set(A, i * 4); b.set(E, i * 4); }
+    g.setAttribute('aBlendA', new THREE.BufferAttribute(a, 4));
+    g.setAttribute('aBlendB', new THREE.BufferAttribute(b, 4));
+  }
+  return g;
 }
 
 function hasKerbs(r) {
@@ -1586,4 +1622,15 @@ function roadGroup(r) {
     if (struct) { struct.userData.batchChildren = true; group.add(struct); }
   }
   return group;
+}
+
+// For the audit: the blend plan of a road ends on this map (null: none needed)
+// and the id of the surface it is drawn with.
+export function roadBlendInfo(r) {
+  const net = ownNet(r);
+  try {
+    return { surface: surfaceOf(r), plan: roadBlendPlan(r, analyse(r)) };
+  } finally {
+    restoreNet(net);
+  }
 }

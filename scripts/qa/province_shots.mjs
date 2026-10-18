@@ -1,7 +1,9 @@
 // Zichtcontrole van de provincie (#5): loopt een plekkenlijst door in één
 // Electron-instantie (wegwerpprofiel, geen echte opslag) en neemt per plek
 // twee screenshots: shots-<naam>.png (straatniveau) en shots-<naam>-hoog.png.
-//   node scripts/qa/province_shots.mjs [--out=<map>] [--only=a,b] [--settle=<ms>] [--list]
+//   node scripts/qa/province_shots.mjs [--ronde=1|2] [--out=<map>] [--only=a,b] [--settle=<ms>] [--drive=<ms>] [--list]
+// Ronde 1: dorpen en stad (twee opnamen per plek). Ronde 2: spoor, A7, water en kust met de
+// camera langs de lijn, plus een speelcheck (een stuk rijden met een auto en varen met een boot).
 // ELECTRON_EXE=<pad naar electron.exe> als desktop/node_modules/electron/dist ontbreekt.
 // Vereist `cd desktop && npm run stage` (de gestagede game/ met de provinciewereld).
 // Uitvoer: <out>/shots-<naam>.png, spots.json (resultaat per plek), run.log.
@@ -19,6 +21,8 @@ const arg = (k, d) => { const a = process.argv.find((v) => v.startsWith(`--${k}=
 const OUT = path.resolve(arg('out', path.join(os.tmpdir(), 'gde-qa-provincie')));
 const ONLY = arg('only', '');
 const SETTLE = Number(arg('settle', 9000));
+const RONDE = Number(arg('ronde', 1));
+const DRIVE = Number(arg('drive', 15000));
 
 const index = JSON.parse(fs.readFileSync(path.join(ROOT, 'game', 'world', 'index-provincie.json'), 'utf8')).global;
 const place = (name, kind) => {
@@ -70,12 +74,47 @@ const SPOTS = [
 ];
 for (const s of SPOTS) { s.x = Math.round(s.x * 10) / 10; s.y = Math.round(s.y * 10) / 10; }
 
-if (process.argv.includes('--list')) { console.log(JSON.stringify(SPOTS)); process.exit(0); }
+
+// ---- ronde 2: spoor, A7, water, kust ----
+// spoor: het stationspunt gesnapt op de dichtstbijzijnde routepunt, kijkrichting langs de lijn
+function railSpot(name, stationName, nth = 0) {
+  const st = station(stationName, nth);
+  let best = null;
+  for (const r of index.routes) for (let i = 0; i < r.pts.length - 1; i++) {
+    const a = r.pts[i], b = r.pts[i + 1], mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2, d = Math.hypot(mx - st.x, my - st.y);
+    if (!best || d < best.d) best = { d, x: mx, y: my, a: Math.atan2(b[1] - a[1], b[0] - a[0]) };
+  }
+  return { name, type: 'rail', x: best.x, y: best.y, a: best.a, stationDist: Math.round(best.d) };
+}
+const water = (name, p, R, nav) => ({ name, type: 'water', x: p.x, y: p.y, R, nav: !!nav });
+const SPOTS2 = [
+  railSpot('rail-sauwerd', 'Sauwerd'),
+  railSpot('rail-winsum', 'Winsum'),
+  railSpot('rail-eemshaven', 'Eemshaven'),
+  railSpot('rail-delfzijl', 'Delfzijl'),
+  railSpot('rail-zuidbroek', 'Zuidbroek'),
+  { name: 'a7-hoogezand', type: 'motor', ...place('Hoogezand') },
+  { name: 'a7-zuidbroek', type: 'motor', ...place('Zuidbroek') },
+  { name: 'a7-scheemda', type: 'motor', ...place('Scheemda') },
+  { name: 'a7-hoogkerk', type: 'motor', ...place('Hoogkerk') },
+  water('water-reitdiep-garnwerd', place('Garnwerd'), 1500, true),
+  water('water-reitdiep-electra', place('Electra'), 2000, true),
+  water('water-lauwersmeer', off(place('Zoutkamp'), -3000, -2500), 3500),
+  water('kust-lauwersoog', off(place('Lauwersoog'), 0, -1500), 3000),
+  water('kust-eemshaven', off(place('Eemshaven'), 0, -1500), 3000),
+  water('water-dollard', off(place('Termunterzijl'), 3000, 3000), 4500),
+  water('water-eemskanaal-tenboer', place('Ten Boer'), 3000, true),
+  water('water-eemskanaal-farmsum', place('Farmsum'), 2000, true),
+  water('water-delfzijl-haven', place('Delfzijl'), 2500, true),
+];
+
+if (process.argv.includes('--list')) { console.log(JSON.stringify(RONDE === 2 ? SPOTS2 : SPOTS)); process.exit(0); }
 
 fs.mkdirSync(OUT, { recursive: true });
 const profile = `gde-test-qa-${process.pid}`;
 const script = path.join(OUT, '_page.js');
-fs.writeFileSync(script, `window.__qaSpots = ${JSON.stringify(SPOTS)}; window.__qaSettle = ${SETTLE}; window.__qaOnly = ${JSON.stringify(ONLY)};\n` + fs.readFileSync(path.join(HERE, 'province_shots.page.js'), 'utf8'));
+fs.writeFileSync(script, RONDE === 2 ? `window.__qa2 = ${JSON.stringify({ spots: SPOTS2, settle: SETTLE, drive: DRIVE, only: ONLY })};
+` + fs.readFileSync(path.join(HERE, 'province_shots2.page.js'), 'utf8') : `window.__qaSpots = ${JSON.stringify(SPOTS)}; window.__qaSettle = ${SETTLE}; window.__qaOnly = ${JSON.stringify(ONLY)};\n` + fs.readFileSync(path.join(HERE, 'province_shots.page.js'), 'utf8'));
 const electron = process.env.ELECTRON_EXE || path.join(ROOT, 'desktop', 'node_modules', 'electron', 'dist', process.platform === 'win32' ? 'electron.exe' : 'Electron');
 const env = { ...process.env, GDE_TEST_PROFILE: profile };
 delete env.ELECTRON_RUN_AS_NODE;
@@ -86,10 +125,11 @@ if (r.error) console.error('Electron starten mislukt (Electron niet geïnstallee
 fs.writeFileSync(path.join(OUT, 'run.log'), `${r.stdout || ''}\n${r.stderr || ''}`);
 fs.rmSync(path.join(os.tmpdir(), profile), { recursive: true, force: true });
 const lines = (r.stdout || '').split('\n');
-let res = {};
-for (const l of lines) { const m = l.match(/^\[perf-script\] (.*)$/); if (m) try { res = JSON.parse(m[1]).spots || {}; } catch {} }
+let res = {}, full = {};
+for (const l of lines) { const m = l.match(/^\[perf-script\] (.*)$/); if (m) try { full = JSON.parse(m[1]); res = full.spots || {}; } catch {} }
+if (RONDE === 2) fs.writeFileSync(path.join(OUT, "ronde2.json"), JSON.stringify(full, null, 1));
 fs.writeFileSync(path.join(OUT, 'spots.json'), JSON.stringify(res, null, 1));
 const nan = lines.filter((l) => /NaN/i.test(l));
-console.log(`plekken: ${Object.keys(res).length}/${SPOTS.length}, exit ${r.status}${r.signal ? ' ' + r.signal : ''}, NaN-regels in log: ${nan.length}`);
+console.log(`plekken: ${Object.keys(res).length}/${(RONDE === 2 ? SPOTS2 : SPOTS).length}, exit ${r.status}${r.signal ? ' ' + r.signal : ''}, NaN-regels in log: ${nan.length}`);
 console.log(`uitvoer: ${OUT}`);
 process.exit(r.status === 0 && Object.keys(res).length ? 0 : 1);
