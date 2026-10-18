@@ -289,6 +289,8 @@ function makePanner({ ref = 5, rolloff = 1, model = 'HRTF', maxDist = MAX_DISTAN
 }
 
 function setPannerPos(p, x, y, h = SOURCE_HEIGHT, smooth = false) {
+  // a non-finite position (a NaN spot from the data) would throw on every AudioParam write
+  if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(h)) return;
   if (p.positionX) {
     if (smooth) {
       const t = ctx.currentTime;
@@ -366,6 +368,7 @@ function updateListener(world) {
   listenerVel.x = v ? Math.cos(v.angle) * v.speed : (p.vx || 0);
   listenerVel.y = v ? Math.sin(v.angle) * v.speed : (p.vy || 0);
 
+  if (![listenerPos.x, listenerPos.y, listenerPos.z, ...fwd, ...up].every(Number.isFinite)) return;
   const L = ctx.listener;
   if (L.positionX) {
     const t = ctx.currentTime;

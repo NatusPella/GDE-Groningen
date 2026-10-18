@@ -1880,12 +1880,14 @@ function releaseCrowd() {
   chain.crowd.length = 0;
 }
 
+// the dev cheat starts a lazyStart mission without road data (the tiles may not stream in headless)
+let forceStart = false;
 function startMission(world, def) {
   removeLeftover(world);
   chain.tags = new Set();
   chain.bakeTier = null;
   // a start out in the province has no road data until the player is there (the tiles stream in): find the road now
-  if (def.lazyStart && !def.start.road) {
+  if (def.lazyStart && !def.start.road && !forceStart) {
     const spot = roadSpot(world.map, def.start.x, def.start.y, true);
     if (spot.road) Object.assign(def.start, spot);
     else {
@@ -3635,9 +3637,15 @@ export const missionDebug = {
     chain.index = i;
     const p = world.player;
     if (!p.inVehicle && dist(p.x, p.y, def.start.x, def.start.y) > 30) { p.x = def.start.x; p.y = def.start.y; }
-    startMission(world, def);
+    // a lazyStart mission needs road data the streaming has not brought yet: look wider for it, the cheat has the player on the spot
+    if (def.lazyStart && !def.start.road) {
+      const far = world.map.nearestRoadPoint(def.start.x, def.start.y, 600, true);
+      if (far && far.road) Object.assign(def.start, far);
+    }
+    forceStart = true;
+    try { startMission(world, def); } finally { forceStart = false; }
     syncPub(world);
-    return true;
+    return chain.phase === 'active';
   },
   win(world) {
     if (!chain || chain.phase !== 'active') return false;
