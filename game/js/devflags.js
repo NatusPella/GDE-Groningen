@@ -52,6 +52,7 @@ export const FLAGS = Object.freeze({
   preset: val('preset'),
   touch: val('touch'),
   hitch: has('hitch'),
+  simlagen: has('simlagen'),
   zwartcheck: has('zwartcheck'),
   reizen: has('reizen'),
 });
@@ -81,6 +82,7 @@ export const FLAG_DOCS = Object.freeze({
   preset: 'Instellingen alleen voor deze run, bv. quality:laag,drawDistance:kort',
   touch: 'Raakbediening aan (touch=1) of uit (touch=0), ook zonder touchscherm',
   hitch: 'Meet haperingen (hitchprobe)',
+  simlagen: 'Verkeer volgens simulatielagen per streek en afstand (simlagen.js)',
   zwartcheck: 'Controleer op zwarte beelden (blackframe)',
   reizen: 'Reisbeats in het nieuwe verhaal: keuze Meerijden, Zelf rijden of Overslaan bij een sprong (#97)',
 });
