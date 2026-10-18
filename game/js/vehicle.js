@@ -21,6 +21,7 @@ import { pickWaterLife, newsVanWanted, distToCentre, hourOf } from './streetlife
 import { sirenYield } from './emergency.js';
 import { manageParkedCars, tickParkedCars } from './parkedcars.js';
 import { pickBoatModel, BOAT_KINDS } from './boattypes.js';
+import { pickTrip } from './vaarnet.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { MODS } from './cheatmods.js';
 import { laneLayout } from './lanes.js';
@@ -1309,6 +1310,33 @@ function pickBoatWaypoint(v, rng, map) {
   return fallback || [v.x, v.y];
 }
 
+// The waterway network (vaarnet.js, game/vaarnet.json): a barge that lies on it sails a trip
+// to one of its hubs, over the edges it clears (no low bridge, a lock or a movable bridge
+// costs time) instead of wandering in its polygon. The trip is a list of points the boat
+// follows as waypoints; a boat that gets stuck, or a net that is out of reach, falls back
+// to the wander.
+let vaarNet = null;
+export function setVaarNet(net) { vaarNet = net; }
+const VAAR_REACH = 150, VAAR_RETRY_S = 45, VAAR_ARRIVE = 14;
+
+function followVaarTrip(v, dt, rng, map) {
+  if (!vaarNet || !isBarge(v)) return false;
+  v._vaarWait = Math.max(0, (v._vaarWait || 0) - dt);
+  if (v.stuckCount >= 2) { v._vaar = null; v._vaarWait = VAAR_RETRY_S; }
+  if (!v._vaar) {
+    if (v._vaarWait > 0) return false;
+    const trip = pickTrip(vaarNet, v.x, v.y, v.angle, v, rng, VAAR_REACH);
+    if (!trip) { v._vaarWait = VAAR_RETRY_S; return false; }
+    v._vaar = { pts: trip.pts, i: 0, name: trip.name };
+  }
+  const T = v._vaar;
+  while (T.i < T.pts.length - 1 && Math.hypot(T.pts[T.i][0] - v.x, T.pts[T.i][1] - v.y) < VAAR_ARRIVE) T.i++;
+  if (T.i >= T.pts.length - 1 && Math.hypot(T.pts[T.i][0] - v.x, T.pts[T.i][1] - v.y) < VAAR_ARRIVE * 2) { v._vaar = null; v._vaarWait = VAAR_RETRY_S; return false; }
+  v.waypoint = [T.pts[T.i][0], T.pts[T.i][1]];
+  v.waypointTimer = BOAT_WAYPOINT_MAX;
+  return true;
+}
+
 const BOAT_WAYPOINT_MIN = 4;
 const BOAT_WAYPOINT_MAX = 9;
 
@@ -1373,7 +1401,7 @@ export function updateBoatAI(v, dt, map, world, rng = Math.random) {
   if (!v.waterPoly || v.missionCar || v.playerOwned || v.homeStored) { v.applyControls(dt, 0, 0, true); return; }
   if (chasing) {
     v.waypoint = [world.player.x, world.player.y];
-  } else {
+  } else if (!followVaarTrip(v, dt, rng, map)) {
     v.waypointTimer = (v.waypointTimer || 0) - dt;
     if (!v.waypoint || v.waypointTimer <= 0 || Math.hypot(v.waypoint[0] - v.x, v.waypoint[1] - v.y) < 4) {
       v.waypoint = pickBoatWaypoint(v, rng, map);
