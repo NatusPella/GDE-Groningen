@@ -2,7 +2,8 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { getScene } from './scene3d.js';
 import { buildPersonMesh, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { playCinematic } from './cinematics.js';
-import { compileScene } from './cutscript.js';
+import { compileScene, fitAnchor } from './cutscript.js';
+import { roofAt } from './camerapath.js';
 import { animateActor } from './actoranim.js';
 
 // The game side of the cutscene direction language (cutscript.js): puts the
@@ -11,6 +12,7 @@ import { animateActor } from './actoranim.js';
 //
 // playScript(w, def, { lines, duration, anchor, cine }) -> boolean
 //   anchor: { x, y, facing, z }  (default: the player, facing the way they look)
+//   env:    { solid, clamp } keeps the set out of buildings (cutscript.js fitCamera/fitAnchor); default: the building layer
 //   cine:   extra playCinematic fields (id, priority, kicker, title, tint, ...)
 //   lines:  [{ speaker, text, at, dur, voice? }], untouched: they stay the story's own
 
@@ -124,7 +126,7 @@ function disposeTree(o) {
   });
 }
 
-export function buildScriptRun(def, scene, anchor) {
+export function buildScriptRun(def, scene, anchor, env = null) {
   const group = new THREE.Group();
   group.name = 'cutscript-' + def.id;
   const actors = {}, props = {};
@@ -140,9 +142,9 @@ export function buildScriptRun(def, scene, anchor) {
     props[id] = m;
   }
   return {
-    scene, group, actors, props, anchor,
+    scene, group, actors, props, anchor, env,
     frame(t, dt) {
-      const s = scene.sample(t, anchor);
+      const s = scene.sample(t, anchor, env);
       for (const [id, m] of Object.entries(actors)) {
         const st = s.actors[id];
         m.visible = st.visible !== false;
@@ -172,7 +174,7 @@ export function scriptActive() {
   return !!current;
 }
 
-export function playScript(w, def, { lines, duration, anchor, cine = {} } = {}) {
+export function playScript(w, def, { lines, duration, anchor, cine = {}, env: envIn = null } = {}) {
   if (current) return false;
   const root = getScene();
   if (!root) return false;
@@ -185,6 +187,9 @@ export function playScript(w, def, { lines, duration, anchor, cine = {} } = {}) 
     console.error('cutscript', e);
     return false;
   }
+  // nobody and no camera inside a building: the anchor turns to free ground, a camera in a wall moves (cutscript.js)
+  const env = envIn || { solid: (x, y, z) => roofAt(w.map, x, y) > z - 0.2 };
+  const at = fitAnchor(scene, a, env);
   let run = null, lastT = 0;
   const ok = playCinematic({
     priority: 4, pause: true, letterbox: true, skippable: true, hideHud: true,
@@ -192,7 +197,7 @@ export function playScript(w, def, { lines, duration, anchor, cine = {} } = {}) 
     onStart() {
       if (cine.onStart) cine.onStart();
       try {
-        run = buildScriptRun(def, scene, a);
+        run = buildScriptRun(def, scene, at, env);
         root.add(run.group);
         current = run;
         w.cinematicHidePlayers = true;
