@@ -16,6 +16,7 @@ import { splatterPed, bleedPed, GIB_SPEED } from './gore3d.js';
 import { knockFx } from './knockfx3d.js';
 import { walkRoute, processPedPlanQueue, buildPedAvoidGrid, separatePeds, makeCompanion } from './pedroutes.js';
 import { reportCrime } from './crime.js';
+import { npcBudget, bystanderReaction } from './wantedlevels.js';
 import { hash2 } from './rng.js';
 import { dayState } from './daynight.js';
 import { buildingAt } from './tileplace.js';
@@ -1065,6 +1066,11 @@ export function updatePedestrians(dt, world) {
     prunePoseSources(new Set(peds));
   }
 
+  // civilians beside a racing police car step back and look (#52); the cap
+  // on lookers follows the stars and the frame time
+  const chaseCars = world.wanted > 0 ? world.vehicles.filter((v) => v.isPolice && !v.isBoat && !v.wrecked && Math.abs(v.speed) > 8) : [];
+  let lookers = 0;
+  const lookerCap = chaseCars.length ? npcBudget(world.wanted, dt * 1000) : 0;
   let filming = 0;
   const pv = player.inVehicle;
   const dodgeVehicle = pv && !pv.isBoat && pv.speed > -0.5 ? pv : null;
@@ -1114,6 +1120,18 @@ export function updatePedestrians(dt, world) {
     else if (aiming && dPlayer < FLEE_TRIGGER_RADIUS && ped.state !== 'flee' && ped.state !== 'cower') {
       startFlee(ped, world, player.x, player.y, true);
       if (Math.random() < 0.3) say(ped, world, pick(SCREAMS), 2, 'shout', 0.8);
+    }
+
+    if (chaseCars.length && !ped.isCop && ped.state === 'wander' && lookers < lookerCap && !(ped._chaseLookAt > world.time)) {
+      ped._chaseLookAt = world.time + 1.5 + Math.random();
+      for (const cv of chaseCars) {
+        const dv = dist(ped.x, ped.y, cv.x, cv.y);
+        if (dv > 22) continue;
+        const react = bystanderReaction({ dist: dv, unitSpeed: Math.abs(cv.speed), onRoad: isOnRoad(map, ped.x, ped.y, 1), seated: !!ped.scene, roll: Math.random() });
+        if (react === 'flee') startFlee(ped, world, cv.x, cv.y);
+        else if (react === 'gawk') { setState(ped, 'gawk', world.time + 2 + Math.random() * 2); ped.fleeFrom = { x: cv.x, y: cv.y }; lookers++; }
+        if (react) break;
+      }
     }
 
     const t = world.time;
