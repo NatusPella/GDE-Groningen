@@ -17,11 +17,20 @@ disables caching, so edited modules are always reloaded. The browser version
 loads three.js from jsDelivr and the fonts from Google Fonts; the desktop
 and web builds vendor both (`desktop/build.mjs`).
 
-**Windows without a terminal:** double-click `start.bat`. It uses an
-installed Python if there is one; otherwise it downloads the official portable
-Python from python.org into `.python\` next to the game (once, no admin rights
-needed). It then picks a free port, starts the server on 127.0.0.1 and opens
-the game in the browser.
+**Windows without a terminal:** double-click `start.bat` (player zip: `START DE GAME.bat`). It serves `web-dist/`
+with `scripts/windows/serve.ps1` (PowerShell only, no Python or Node), picks a free port, listens on
+127.0.0.1 and opens the game in the browser.
+
+**Serve paths (#143):** there are three, each with one job.
+
+| Path | Serves | For |
+| --- | --- | --- |
+| `python3 scripts/devserver.py 8765 game` | `game/` without caching | working on the source |
+| `node web/serve.mjs` | `web-dist/` under `/gde/` | testing the web build like a static host |
+| `scripts/windows/serve.ps1` (via `start.bat`) | `web-dist/` | players on Windows; the same behaviour as `web/serve.mjs` |
+
+The player zip is built from `web-dist/` by `scripts/make_player_zip.mjs`, never from `git archive`.
+
 
 ## Scripts per platform
 
