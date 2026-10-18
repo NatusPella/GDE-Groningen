@@ -3373,7 +3373,12 @@ function updateBakeStage(dt, world, def, st, S) {
   const res = updateBake(S.bake, world.input, title);
   if (res === 'round') world.addMessage(`Eierbal ${S.bake.round} van ${S.bake.rounds} is goud. Door!`, 2);
   else if (res === 'wrong' || res === 'redo') world.addMessage(S.bake.last, 3);
-  if (res === 'done') { hideBake(); world.addMessage('Alle eierballen zijn goud.', 3); return true; }
+  if (res === 'done') {
+    hideBake();
+    const bad = S.bake.wrongs + S.bake.redos * 3;
+    world.addMessage(st.recipe === 'contest' ? (bad === 0 ? 'Alle eierballen zijn goud, geen enkele mislukt. De jury gaat dit proeven.' : bad < 3 ? 'De eierballen zijn goud. Een paar mislukten, de jury merkt het niet.' : 'De eierballen zijn goud, na veel gedoe. De jury heeft het gezien.') : 'Alle eierballen zijn goud.', 3);
+    return true;
+  }
   return false;
 }
 

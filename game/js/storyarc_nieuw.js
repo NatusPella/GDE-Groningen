@@ -155,7 +155,12 @@ export const PARTS = {
     ],
     card: [['Tessa', 'Dat was akte 4.'], ['Tammo', 'Daarna komt de schuur.']] },
   // the finale card: the epilogue (E1, vrijdag 11 september) and Rikus in the studio (E2); the text of the script, kept in sync by scripts/akte5_test.mjs
-  ontzet: { title: 'Akte 5: Ontzet', name: 'Ontzet', date: '26 augustus', open: true, end: 'Einde', finale: true,
+  ontzet: { title: 'Akte 5: Ontzet', name: 'Ontzet', date: '26 augustus', open: true, end: 'Einde', finale: true, textOnly: true,
+    recap: [
+      ['Bourtange', 'Het Beleg. De bal ging naar de moeder van Jelle, en de Escapade naar Jelle.'],
+      ['Zuidhorn', 'De Escapade is terug en de bal is weg. de vrienden van Oma twijfelen.'],
+      ['Morgen', 'Het Ontzet. Jelle schrijft zich om drie uur bij de notaris in: wij moeten eerder zijn.'],
+    ],
     card: [
       ['Rikus', "Het ruikt naar suiker. Dat komt uit Hoogkerk. De zomer is nog lang niet op."],
       ['Tessa', "Het is tweeëntwintig graden."],
@@ -259,7 +264,7 @@ export const STEPS = [
     lead: ['T', 'Wiebelwerk in Veendam doet elke nacht om middernacht de update van het museum. Ik wil het logboek zien.'] }),
   M('M19', 'zuid', 'Stoom', 'stoom', { built: true, reward: 800,
     story: { intro: ['M19.1'], outro: ['M19.3'], replay: ['M19.4'] }, scenes: ['M19.1', 'M19.2', 'M19.3', 'M19.4'],
-    lead: ['A', 'Op het perron in Stadskanaal staat een stoomtrein stil. Daar zitten de laatste juryleden in.'] }),
+    lead: ['A', 'Op het perron in Veendam staat een stoomtrein stil. Daar zitten de laatste juryleden in. Rij hem naar Wildervank.'] }),
   // the bus to Bourtange: the goal is the place (storyreis.js, akte 2's travel steps); the trip talk is the beat's (reisbeats.js)
   A('T4', 'zuid', 'De bus naar Bourtange', { type: 'reis', to: 'Vesting Bourtange', at: [53.0069, 7.1914], r: 350, scene: 'T4.3', from: 0 }, { built: true, scenes: ['T4.1', 'T4.2', 'T4.3', 'T4.4'],
     lead: ['T', 'Berend heeft veertig man, vijftien kartonnen kanonnen en een bus. Hij wacht in het bos bij Ter Apel.'] }),

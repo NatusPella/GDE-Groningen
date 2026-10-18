@@ -2,17 +2,17 @@
 
 > Formaat zoals in [09-script-akte1.md](09-script-akte1.md): kopregel `## [ID] Titel – regio/plaats – voertuig`, `(regie: ...)` (met dagdeel en `Gameplay:`), dialoog `SPREKER: tekst [BEHOUDEN|NIEUW]`, kanalen `(radio)` alleen wereld, `(telefoon)` voor briefings en hints, appjes `APP VAN→NAAR (stil): ...`. Hoort bij [04-akte4.md](04-akte4.md). Missie-id's: M17-M21 en de reisbeat T4 (de bus naar Bourtange). Speciale aandacht voor het dieptepunt (M20 en M21).
 
-## [M17.1] Open, dicht: intro – Veenkoloniën, Veendam, Winschoterdiep – sloep
+## [M17.1] Open, dicht: intro – Veenkoloniën, Veendam, Oosterdiep – sloep
 (regie: maandag 24 augustus, ochtend. Een brug, een kanaal, een fanfare in de verte. Naamkaart: WUBBO. Gameplay: met een sloep door elf bruggen varen, voor Jelles mosterdschip, op het ritme van de bruggen.)
-WUBBO: Ik ben Wubbo, brugwachter. Open of dicht. Nooit allebei. Oma Trijntje belde. [NIEUW]
+WUBBO: Open of dicht. Nooit allebei. Dat is mijn hele werkfilosofie. Ik ben Wubbo, brugwachter, en Oma Trijntje belde. [NIEUW]
 TESSA: Durk zei dat Jelle vandaag in Veendam de mosterd haalt. Zijn mosterdschip moet door elf van jouw bruggen, en de bal reist met hem mee. Die mosterd is plakje zeven. [NIEUW]
 TAMMO: Hoe weten we wanneer? [NIEUW]
 WUBBO: Elf bruggen. Ik open ze op het ritme van de fanfare. Mis je de maat, dan wacht je. [NIEUW]
-WUBBO: De brug draait op tijd. Jullie boot liever ook. [NIEUW]
+WUBBO: Mijn brug is op tijd. Laat je boot dat ook zijn. [NIEUW]
 TAMMO: Over zaterdag. In de botsauto. [NIEUW]
 TESSA: Welke zaterdag? [NIEUW]
 
-## [M17.2] Open, dicht: de fanfare weg – Veenkoloniën, Winschoterdiep – sloep
+## [M17.2] Open, dicht: de fanfare weg – Veenkoloniën, Oosterdiep – sloep
 (regie: halverwege valt de muziek weg. Op de oever loopt de fanfare in optocht naar een zwarte trekker-limo.)
 WUBBO (telefoon): De fanfare is vertrokken. Iemand heeft ze een contract gegeven voor een optocht. [NIEUW]
 JELLE (telefoon): Goedemorgen. De fanfare speelt vandaag voor Us Mem Snacks. U hoort wel hoe bruggen klinken zonder muziek. [NIEUW]
@@ -32,21 +32,21 @@ WUBBO (telefoon): Nu pas. [NIEUW]
 TAMMO: De limo. Met de koffer. [NIEUW]
 WUBBO: Die brug draait niet voor een limo. [NIEUW]
 WUBBO: Het schip zit vast. De mosterd is van jullie. Grove mosterd, niet dat zoete spul. [NIEUW]
-TESSA: Dat is plakje zeven. Gered. [NIEUW]
+TESSA: De mosterd is gered. Voor Oma. [NIEUW]
 WUBBO: Er is een webbureau in Veendam dat alles om middernacht bijwerkt. Ook mijn bruggen. [NIEUW]
 TAMMO: Om middernacht. Net als de museumcamera's. [NIEUW]
 TESSA: Dat is toeval, Tammo. [NIEUW]
 TAMMO: Dat moeten we weten. [NIEUW]
 
 ## [M17.4] Open, dicht: herhaling – Veenkoloniën, Veendam – sloep
-WUBBO: Weer elf bruggen? Mijn bruggen zeggen dank. [NIEUW]
+WUBBO: Weer elf bruggen? Open. Dicht. Ik heb het al geleerd. [NIEUW]
 
 ## [M18.1] Wie draaide de camera's uit?: intro – Veenkoloniën, Veendam, Wiebelwerk – te voet
 (regie: maandag 24 augustus, middag. Een kantoorpand bij een rotonde. Een bord: Wiebelwerk, websites met karakter. Een e-step staat voor de deur. Gameplay: een kantoor als speelveld; de juiste antwoorden kiezen, de serverkamer in en het logboek van 12 augustus bekijken.)
 TAMMO: We staan bij Wiebelwerk, in Veendam. Zij doen elke nacht om middernacht de update van het museum. Ook van de camera's. [NIEUW]
 TESSA: Dat is toch geen misdaad? [NIEUW]
 TAMMO: Wie de camera's uitzet, heeft de bal. [NIEUW]
-TESSA: Dan kijken we in het logboek. Wie wanneer wat vroeg. [NIEUW]
+TESSA: Als daar staat dat Jelle de bal al had, zijn wij geen dieven maar getuigen. Dan kijken we in het logboek. [NIEUW]
 SJABBE (telefoon): Tessa. Sjabbe. Wiebelwerk? Daar liet ik mijn website maken. Hij is nog steeds in aanbouw. [NIEUW]
 ACCOUNTMANAGER: Welkom bij Wiebelwerk. Wij maken websites. Wat is uw behoefte? [NIEUW]
 TESSA: Een website voor een frietwagen. [NIEUW]
@@ -87,9 +87,9 @@ APP MEM→TESSA (stil): Kom dinsdag naar Bourtange, voor het Beleg. Jelle komt o
 ## [M18.5] Wie draaide de camera's uit?: herhaling – Veenkoloniën, Veendam – te voet
 ACCOUNTMANAGER: Weer een intake? Wij zijn altijd open. [NIEUW]
 
-## [M19.1] Stoom: intro – Veenkoloniën, Stadskanaal, het perron – trein
+## [M19.1] Stoom: intro – Veenkoloniën, Veendam, het perron – trein
 (regie: maandag 24 augustus, late middag. Een museumstoomtrein onder stoom, maar hij staat stil. Op een bank bij het perron zit de machinist met een bordje eierballen. In het salonrijtuig zitten twee juryleden en mevrouw Tuinstra, de bewaarder, met een bordje eierballen. Gameplay: Tammo is machinist en rijdt de trein naar het volgende perron, terwijl Tessa door de wagons naar de juryleden loopt.)
-TESSA: We staan op het perron in Stadskanaal. De machinist is omgekocht. Hij zit al een uur op een bank en eet een eierbal. De trein staat stil. De laatste twee juryleden en de bewaarder zitten vier uur vast in Jelles salonrijtuig. [NIEUW]
+TESSA: We staan op het perron in Veendam, bij de museumlijn. De machinist is omgekocht. Hij zit al een uur op een bank en eet een eierbal. De trein staat stil. De laatste twee juryleden en de bewaarder zitten vier uur vast in Jelles salonrijtuig. [NIEUW]
 TAMMO: Wie rijdt hem dan? [NIEUW]
 TESSA: Jij. [NIEUW]
 TAMMO: Ik heb nog nooit een trein bestuurd. [NIEUW]
@@ -98,7 +98,7 @@ TAMMO: Vergelijkbaar. [NIEUW]
 TESSA: Dan rijd jij hem, ik haal de juryleden. [NIEUW]
 DURK: Douwe. Het is de baas niet. [NIEUW]
 
-## [M19.2] Stoom: onderweg – Veenkoloniën, spoorlijn Stadskanaal-Veendam – trein
+## [M19.2] Stoom: onderweg – Veenkoloniën, museumlijn Veendam-Wildervank – trein
 TAMMO: Dit is de rem. [NIEUW]
 TESSA (telefoon): Rem nog niet. Eerst gas. [NIEUW]
 TAMMO: Dit is gas. [NIEUW]
@@ -111,18 +111,18 @@ JURYLID: Dat is toch niet waar. [NIEUW]
 DOUWE: …Hè. [BEHOUDEN]
 TESSA: Het perron komt eraan. Stap maar uit. [NIEUW]
 
-## [M19.3] Stoom: outro – Veenkoloniën, Veendam, het perron – te voet
+## [M19.3] Stoom: outro – Veenkoloniën, Wildervank, het perron – te voet
 JURYLID: Ik stap hier uit. Ik laat me niet kopen met een eierbal. [NIEUW]
 JURYLID: Ik niet. Ik heb een contract. Levenslang eierballen en elke kermis een kaartje. [NIEUW]
 BEWAARDER: Ik stap niet uit. Ik ben verhinderd tot na het Ontzet, dat stond op de uitnodiging. Artikel 9 regelt mijn plaatsvervanger. [NIEUW]
 TESSA: Eén jurylid gered. Eén is van hem. En de voorzitter zit vast in een trein. [NIEUW]
 TAMMO: Eén van vijf. [NIEUW]
-TESSA: Dat is nog geen meerderheid. Drie van de vijf beslist. [NIEUW]
+TESSA: Dat is nog geen meerderheid. Drie van de vijf beslist. En schrijft Jelle zich om drie uur bij de notaris in als nieuwe bewaarder, dan is de hele wedstrijd nietig. [NIEUW]
 TAMMO: Ik heb een trein bestuurd. [NIEUW]
 TESSA: Je hebt hem in een station gezet. Dat is meer dan de machinist. [NIEUW]
-BEREND (telefoon): Goidag. Jelle komt dinsdag naar het Beleg van Bourtange, met zijn beleggers. Ik heb een bus nodig. Kom naar Ter Apel. [NIEUW]
+BEREND (telefoon): Goidag. Die man in dat blauwe colbert wilde mijn bakkie kopen, contant, uit een klomp. Dat vergeef ik hem niet. Hij komt dinsdag naar het Beleg van Bourtange, met zijn beleggers. Ik heb een bus nodig. Kom naar Ter Apel. [NIEUW]
 
-## [M19.4] Stoom: herhaling – Veenkoloniën, Stadskanaal – trein
+## [M19.4] Stoom: herhaling – Veenkoloniën, Veendam – trein
 DURK: Weer een trein? Net fertelle, hè? [NIEUW]
 
 ## [T4.1] De bus naar Bourtange: instappen – Westerwolde, Ter Apel-bos – bus
@@ -183,7 +183,7 @@ DURK: Wij zijn alleen de bezigheid. [BEHOUDEN]
 TAMMO: Wat is de bezigheid? [NIEUW]
 DURK: Baas heeft een afspraak met mem in de kruitkelder. Wij houden jullie een uur bezig. [NIEUW]
 DOUWE: Durk. Dat was geheim. …Hè. [BEHOUDEN]
-TAMMO: Houd even vast. [NIEUW]
+TAMMO: Houd even vast. De sleutel zit erin. [NIEUW]
 (regie: Tammo geeft Douwe zijn jas, met de autosleutel erin.)
 DOUWE: …vast. [NIEUW]
 TAMMO: Ik spring. Val ik, dan de wind. [NIEUW]
@@ -236,6 +236,7 @@ OMA TRIJNTJE: Wij waren jullie voor. En ik had jullie moeten tegenhouden. Dat he
 MEM: Ik wilde Jelle stoppen. Ik heb jullie daarvoor gebruikt. Dat was verkeerd. [NIEUW]
 BEREND: Ik rijd jullie. En na de Snackprijs ga ik naar de politie. Over twaalf augustus. [NIEUW]
 MEM: Neem hem mee, famke. Jij zei het zelf: als bewaking. [NIEUW]
+TESSA: Hij zet de auto op een trein. Zonder wagen geen Fjord Frituur. [NIEUW]
 TESSA: Ik haal jouw auto wel terug. Alleen. [NIEUW]
 (regie: Tessa loopt weg met de bal in haar armen. Tammo blijft staan met de klomp in zijn handen.)
 OMA TRIJNTJE: Eén zin, jong. [NIEUW]
@@ -277,10 +278,11 @@ TESSA: "Tige tank foar de bal. – J." [NIEUW]
 BEREND: Nul krassen op de auto. Eén bal kwijt. [NIEUW]
 TESSA: Dat tel je niet. [NIEUW]
 BEREND: Ik tel alles. [NIEUW]
-HENK (telefoon): Henk. Tinus' schuur is drie kilometer verderop. Ik heb een luik voor jullie. Eén koekje. [NIEUW]
+TESSA: Zonder wagen kunnen we niet bakken. Dan wint Jelle zonder wedstrijd. [NIEUW]
+HENK (telefoon): Henk. Tinus' schuur is hier vlakbij. Ik heb een luik voor jullie. Eén koekje. [NIEUW]
 
 ## [M21.4] Iedereen heeft een rode auto gezien: Tammo, de vrienden – Westerkwartier, Tinus' schuur bij Zuidhorn – te voet
-(regie: woensdag 26 augustus, vroege ochtend, bij Tinus' schuur in Zuidhorn. Tammo is 's nachts met Tinus' trekker uit Bourtange gekomen. Oma heeft alle vrienden met hun ingrediënten naar de schuur geroepen. Gameplay: zijn deel: de vrienden bij elkaar houden terwijl Jelles advocaten ze een voor een terugroepen.)
+(regie: woensdag 26 augustus, vroege ochtend, bij Tinus' schuur in Zuidhorn. Tammo is 's nachts met Tinus en Berend uit Bourtange gekomen. Oma heeft alle vrienden met hun ingrediënten naar de schuur geroepen. Gameplay: zijn deel: de vrienden bij elkaar houden terwijl Jelles advocaten ze een voor een terugroepen.)
 TAMMO: Woensdagochtend, Tinus' schuur. Oma heeft al haar vrienden met hun ingrediënten laten komen. Zonder hen is er geen recept voor de Snackprijs. [NIEUW]
 OMA TRIJNTJE (telefoon): Houd mijn vrienden bij elkaar, jong. Zonder hen is er geen recept. [NIEUW]
 MEM (telefoon): Jelles advocaten hebben ze gebeld. Zeg het goed. [NIEUW]
@@ -304,12 +306,12 @@ RIKUS (radio): Een luisteraar meldt veel Berenden onderweg naar Bourtange. Het w
 
 ## [B4] Autogesprekken akte 4 (pool; Tammo zwijgt, Tessa praat te veel; de ongemakkelijke dagen) – Veenkoloniën, Westerwolde – auto, bus, trein
 TAMMO: Dat is Veendam. Groter dan Grunn. [NIEUW]
-TESSA: Het is een derde. [NIEUW]
-TAMMO: Dat is een kanaal. [NIEUW]
-TESSA: Dat noemen ze een diep. [NIEUW]
-TAMMO: Een sloot met een brug. [NIEUW]
-TESSA: Een Veenkoloniaal diep. [NIEUW]
-TAMMO: Dat is hetzelfde. [NIEUW]
+TESSA: Het is een negende. [NIEUW]
+TAMMO: Ik ben hier nog nooit afgeslagen. [NIEUW]
+TESSA: Er is ook niks om af te slaan. [NIEUW]
+TAMMO: Dat bedoel ik. [NIEUW]
+TESSA: Ruik je dat? Dat is zetmeel. [NIEUW]
+TAMMO: Ik dacht dat het de buren waren. [NIEUW]
 TESSA: Je zegt niks over zaterdag. [NIEUW]
 TAMMO: Dat is ook een antwoord. [NIEUW]
 TESSA: Dat is een tegeltje. [NIEUW]
