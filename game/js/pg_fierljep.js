@@ -5,7 +5,7 @@ import { JELLE_LOOK } from './storycast.js';
 import { playCinematic, isCinematicActive, skipCinematic } from './cinematics.js';
 import { pushAudioEvent } from './pedestrians.js';
 import { pointInPolygon as inPoly, isInWater, clamp } from './util.js';
-import { finish, jelle } from './postgame.js';
+import { finish, jelle } from './pghost.js';
 import { rand } from './rng.js';
 
 // Fierljep-duel: Jelle sets a mark over a canal (fierljep.js poleVault), the

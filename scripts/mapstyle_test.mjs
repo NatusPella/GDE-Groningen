@@ -1,7 +1,7 @@
 // The shared map style (game/js/mapstyle.js): both palettes complete, zoom
 // rules, and the three renderers reading it. Run: node scripts/mapstyle_test.mjs
 import fs from 'node:fs';
-import { mapPhase, applyMapPhase, currentMapPhase, nightPalette, shade, miniRoadStyle, MAP_PALETTE, MINI_PALETTE, ROAD_ORDER, ROAD_WIDTH_PX, ZOOM, layersAtZoom, roadWidthPx, roadColor, seaStyle, toRgba } from '../game/js/mapstyle.js';
+import { mapPhase, applyMapPhase, currentMapPhase, nightPalette, shade, miniRoadStyle, MAP_PALETTE, MINI_PALETTE, ROAD_ORDER, ROAD_WIDTH_PX, ZOOM, layersAtZoom, roadWidthPx, roadColor, seaStyle, toRgba, baseFilter } from '../game/js/mapstyle.js';
 
 let n = 0, fails = 0;
 const ok = (c, m) => { n++; if (!c) { fails++; console.log('FAIL', m); } };
@@ -30,7 +30,8 @@ ok(lum(night.major) > lum(night.meadow) * 2 && lum(night.road) > lum(night.park)
 ok(night.roadMin === MAP_PALETTE.roadMin && nightPalette(MINI_PALETTE).buildings.length === 5, 'numbers and lists kept');
 const dayWater = MAP_PALETTE.water;
 ok(applyMapPhase('nacht') && MAP_PALETTE.water !== dayWater && currentMapPhase() === 'nacht' && !applyMapPhase('nacht'), 'palette turns in place');
-ok(applyMapPhase('dag') && MAP_PALETTE.water === dayWater, 'and back to day');
+ok(baseFilter() === 'brightness(0.6) saturate(0.9)', 'province base is dimmed at night');
+ok(applyMapPhase('dag') && MAP_PALETTE.water === dayWater && baseFilter() === 'none', 'and back to day');
 
 // minimap lines
 ok(miniRoadStyle('major', 12, 1.5).widthM === 12 && miniRoadStyle('minor', 3, 0.5).widthM >= 1.4 / 0.5, 'min px width at small scale');

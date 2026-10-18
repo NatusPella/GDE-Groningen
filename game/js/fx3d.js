@@ -1,6 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { vehicleContacts, surfaceUnder } from './vehicle.js';
-import { getCamera } from './scene3d.js';
 import { getVehicleMesh, pruneVehicleMeshes, applyVehicleDamage, vehicleDamageParts } from './models3d_vehicles.js';
 import { rand } from './rng.js';
 
@@ -244,10 +243,14 @@ export function spawnFxChip(x, y, z, vx, vy, vz, size, color, life) {
 
 const _camQ = new THREE.Quaternion();
 
+// scene3d.js hands over its camera when it makes it (no import back)
+let fxCamera = null;
+export function setFxCamera(c) { fxCamera = c; }
+
 // Uploads only while puffs live (plus one frame to clear the last ones):
 // re-sending idle instance buffers every frame can stall on a busy GPU.
 function updateSmoke(dt) {
-  const cam = getCamera();
+  const cam = fxCamera;
   if (cam) cam.getWorldQuaternion(_camQ);
   const mesh = smoke.mesh;
   let live = 0;

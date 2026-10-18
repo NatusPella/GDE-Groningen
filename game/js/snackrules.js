@@ -93,6 +93,18 @@ export function chainRank(c) {
   return flag >= 3 && n >= 12 ? 3 : n >= 8 ? 2 : n >= 3 ? 1 : 0;
 }
 
+// Where the counter of a snack bar stands: offsets from the door, tried in order,
+// the first one that is open ground. The Muurkroket machine (snackautomaat.js)
+// owns the right side of the door; the door itself is the last resort.
+export const COUNTER_OFFSETS = [[-3.4, 0.6], [-3.4, -1.4], [-2.4, 2.4], [-2.4, -2.4], [0, 2.8], [0, -2.8], [-4.8, 0.6]];
+export function counterSpot(door, free) {
+  for (const [dx, dy] of COUNTER_OFFSETS) {
+    const x = door.x + dx, y = door.y + dy;
+    if (free(x, y)) return { x, y };
+  }
+  return { x: door.x, y: door.y };
+}
+
 export function serialize(c) {
   return JSON.stringify({ v: 1, outlets: c.outlets, earned: Math.floor(c.earned), spent: Math.floor(c.spent) });
 }

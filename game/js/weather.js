@@ -4,6 +4,7 @@ import { playSikkomLine } from './audio.js';
 import { getSettings } from './settings.js';
 import { regenDruppels } from './weerlook.js';
 import { createWeatherState, stepWeather, regionWeather, regionAt } from './weatherstate.js';
+import { qualityLook, regionHaze, sunGlow, createStormPlanner, stepStorm, flashAt } from './weatherlook.js';
 
 const STORM_FOG_COLOR = new THREE.Color(0.35, 0.38, 0.42);
 const LIGHTNING_COLOR = new THREE.Color(0.85, 0.88, 0.95);
@@ -14,6 +15,7 @@ const RAIN_COLOR = new THREE.Color(0x9fb0bf);
 const _stormZenith = new THREE.Color();
 const MIST_COLOR = new THREE.Color(0.66, 0.69, 0.72);
 const _mist = new THREE.Color();
+const _glow = new THREE.Color();
 
 // Rain: a fixed box of streaks centred on the player every frame rather than
 // a per-drop world simulation. Each drop is a thin quad stretched along its
@@ -118,17 +120,20 @@ function updateRain(dt, world, px, py, cam) {
 
 // Heavy storms only: a short double flash, returned as 0..1 for the caller
 // to push onto lights/background.
-const LIGHTNING_MIN_INTENSITY = 0.75;
-const LIGHTNING_RATE = 0.12;
-const LIGHTNING_DURATION = 0.35;
 let lightningAge = Infinity;
+let lightningFlashes = 1;
+const storm = createStormPlanner((Math.random() * 0x7fffffff) | 0);
 
-function updateLightning(dt, t) {
+// weatherlook.js plans the strikes (distance, flickers); the thunder in
+// ambience.js reads scene.userData.lightningDistance to time its rumble.
+function updateLightning(dt, t, quality, scene) {
   lightningAge += dt;
-  if (t > LIGHTNING_MIN_INTENSITY && lightningAge > 2 && Math.random() < LIGHTNING_RATE * dt) lightningAge = 0;
-  if (lightningAge > LIGHTNING_DURATION) return 0;
-  const a = lightningAge;
-  return a < 0.07 ? 1 : a < 0.14 ? 0.15 : Math.max(0, 0.8 * (1 - (a - 0.14) / (LIGHTNING_DURATION - 0.14)));
+  for (const s of stepStorm(storm, dt, t, quality)) {
+    lightningAge = 0;
+    lightningFlashes = s.flashes;
+    scene.userData.lightningDistance = s.dist;
+  }
+  return flashAt(lightningAge, lightningFlashes);
 }
 
 // world.weather fields (read by scene3d.js's 3D pass for fog/lighting mood,
@@ -323,8 +328,10 @@ export function applyWeatherToScene3D(scene, renderer, world, dt, px, py, cam = 
     scene.add(rainMesh);
   }
   updateRain(dt, world, px, py, cam);
-  const flash = updateLightning(dt, w.active ? t : 0);
-  const mist = clamp(w.mist || 0, 0, 1);
+  const quality = getSettings().quality;
+  const flash = updateLightning(dt, w.active ? t : 0, quality, scene);
+  const region = world.player ? regionAt(world.player.x, world.player.y) : 'stad';
+  const mist = clamp((w.mist || 0) * qualityLook(quality).mist * regionHaze(region).mistK, 0, 1);
   const cloud = Math.max(t, clamp(w.overcast || 0, 0, 1), mist * 0.6);
   const moodT = cloud * STORM_MOOD;
   scene.userData.lightningFlash = flash;
@@ -353,6 +360,11 @@ export function applyWeatherToScene3D(scene, renderer, world, dt, px, py, cam = 
     const u = sky.uniforms;
     u.uZenith.value.copy(base.zenith).lerp(_stormZenith, cloud * 0.9).lerp(_mist, mist * 0.85).lerp(LIGHTNING_COLOR, flash * 0.6);
     u.uHorizon.value.copy(base.horizon).lerp(_stormFog, cloud * 0.9).lerp(_mist, mist).lerp(LIGHTNING_COLOR, flash * 0.5);
+    const glow = sunGlow(world.dayNight ? world.dayNight.sunElevation : 30, cloud);
+    if (glow.strength > 0.01) {
+      _glow.setRGB(glow.color[0], glow.color[1], glow.color[2]);
+      u.uHorizon.value.lerp(_glow, glow.strength * 0.35);
+    }
     u.uSunStrength.value = base.sunStrength * (1 - cloud);
     if (u.uGlow) u.uGlow.value = base.glow * (1 - cloud);
   }
