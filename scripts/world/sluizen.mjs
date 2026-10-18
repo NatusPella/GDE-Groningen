@@ -100,6 +100,7 @@ export function measure(plekken, water) {
       id: p.id, n: p.n || '', x: p.x, y: p.y, a: p.a, l: p.l, w: p.w || 8,
       lv: [w0 ? w0.lv : null, w1 ? w1.lv : null],
       kind: [w0 ? w0.kind : null, w1 ? w1.kind : null],
+      nav: [w0 ? w0.nav ?? 0 : 0, w1 ? w1.nav ?? 0 : 0],
       body: [w0 ? w0.body : null, w1 ? w1.body : null],
       gap: Math.round(worst * 10) / 10, gapTotal: Math.round(total), zee: ZEE.test(p.n || ''),
     });
@@ -137,7 +138,26 @@ if (process.argv[1] && import.meta.url.endsWith(path.basename(process.argv[1])))
     console.log(`${why.length ? 'GAT ' : 'ok  '} ${m.n || '(zonder naam)'} (${Math.round(m.x)},${Math.round(m.y)}) peil ${m.lv.join(' / ')} ${m.kind.join(' / ')}${why.length ? ' : ' + why.join(', ') : ''}`);
   }
   for (const m of list) if (m.patch && verdict(m).length) console.log('   sluisgat voor vaarnet_fixes.json: ' + JSON.stringify(m.patch) + ' // ' + (m.n || m.id));
-console.log(`${list.length} sluizen, ${bad} met een gat of een ontbrekende zijde`);
+  console.log(`${list.length} sluizen, ${bad} met een gat of een ontbrekende zijde`);
+  if (process.argv.includes('--raster')) {
+    // het vaarnetraster (vaarnet.mjs): liggen de twee kanten in hetzelfde waterstuk, voor klasse 2 en 3?
+    const { buildRaster, components, cellOf, nearestOpenCell } = await import('./vaarnet.mjs');
+    const built = buildRaster({ worldDir: worldDir() });
+    let apart = 0;
+    for (const cls of [2, 3]) {
+      const comp = components(built.R, cls);
+      for (const m of list) {
+        const c = Math.cos(m.a), s = Math.sin(m.a), h = Math.min(90, Math.max(24, m.l)) / 2 + 10;
+        const cell = (sg) => { const o = nearestOpenCell(built.R, m.x + sg * c * h, m.y + sg * s * h, cls, 6); return o ? comp.label(o[0], o[1]) : 0; };
+        const a = cell(-1), b = cell(1);
+        if (!a || !b || Math.min(...m.nav) < cls) continue;   // een kant is voor deze klasse geen vaarwater (sloot): niet nodig
+        if (a !== b) { apart++; console.log('   sluisgat: ' + JSON.stringify([m.x, m.y, Math.round(Math.min(90, Math.max(24, m.l)) + 6), Math.round((m.w + 2.5) * 10) / 10, m.a, cls]));
+        console.log(`GESCHEIDEN klasse ${cls}: ${m.n || m.id} (${Math.round(m.x)},${Math.round(m.y)}): waterstukken ${a} en ${b}`); }
+      }
+    }
+    console.log(`raster: ${apart} sluizen met gescheiden waterstukken`);
+    if (process.argv.includes('--strict') && apart) process.exit(1);
+  }
   if (process.argv.includes('--write')) {
     const rows = list.map((m) => ({ id: m.id, n: m.n, x: m.x, y: m.y, a: m.a, l: m.l, w: m.w, lv: levelsFor(m), zee: m.zee ? 1 : 0 }));
     fs.writeFileSync(new URL('game/sluizen.json', root), JSON.stringify({ v: 1, uitleg: 'Sluizen voor het sluismechaniek (game/js/sluizen.js), gemaakt door scripts/world/sluizen.mjs: plek, richting a (zijde 0 aan de -as-kant), kolklengte l, breedte w, peil lv aan beide zijden.', sluizen: rows }, null, 0) + '\n');
