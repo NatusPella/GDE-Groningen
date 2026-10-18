@@ -55,7 +55,16 @@ function resolveSpec(spec, base) {
   return null;
 }
 
+// GDE_PREBUILT_WORLD=<dir>: take the staged map tiles of an earlier build as they are (a CI runner has no
+// data/cache for the province, .github/workflows/mac-release.yml)
 function packWorld() {
+  if (process.env.GDE_PREBUILT_WORLD) {
+    const dir = path.resolve(process.env.GDE_PREBUILT_WORLD);
+    if (!fs.existsSync(path.join(dir, 'index.json'))) throw new Error('GDE_PREBUILT_WORLD has no index.json: ' + dir);
+    fs.cpSync(dir, path.join(OUT, 'world'), { recursive: true });
+    console.log('map tiles: ' + fs.readdirSync(path.join(OUT, 'world')).length + ' files (prebuilt)');
+    return;
+  }
   const root = path.join(SRC, '..');
   const packer = path.join(root, 'scripts', 'world', 'pack_tiles.mjs');
   if (!fs.existsSync(packer) || !fs.existsSync(path.join(SRC, 'js', 'gdt.js'))) { console.log('no tile packer in this checkout: JSON map only'); return; }
