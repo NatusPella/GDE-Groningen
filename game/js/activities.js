@@ -137,14 +137,6 @@ export function drawActivityMapIcon(ctx, kind, s) {
   return true;
 }
 
-export function activityUbboRows(w) {
-  const out = [];
-  for (const a of LIST) {
-    const r = a.ubbo && a.ubbo(w);
-    if (r) out.push(r);
-  }
-  return out;
-}
 
 // Fixed places the player walks to, for spotcheck.js.
 export function activitySpots() {
