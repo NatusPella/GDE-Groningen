@@ -111,6 +111,79 @@
       "file": "sidejob_taxi.js",
       "ctx": "Martinitoren please",
       "why": "toerist in de taxi praat Engels, met Nederlandse vertaling erachter"
+    },
+    {
+      "rule": "merk",
+      "term": "albert heijn",
+      "file": "shopbind.js",
+      "why": "blokkadelijst: ketens die juist NIET in beeld mogen komen (CHAINS wordt herkend en vervangen door een verzonnen naam)"
+    },
+    {
+      "rule": "merk",
+      "term": "burger king",
+      "file": "shopbind.js",
+      "why": "blokkadelijst: ketens die juist NIET in beeld mogen komen (CHAINS wordt herkend en vervangen door een verzonnen naam)"
+    },
+    {
+      "rule": "merk",
+      "term": "bakker bart",
+      "file": "shopbind.js",
+      "why": "blokkadelijst: ketens die juist NIET in beeld mogen komen (CHAINS wordt herkend en vervangen door een verzonnen naam)"
+    },
+    {
+      "rule": "merk",
+      "term": "Albert Heijn",
+      "file": "trailerplan.js",
+      "why": "BRANDS is de verboden-woordenlijst van de trailercontrole, geen tekst op beeld"
+    },
+    {
+      "rule": "naam",
+      "term": "Albert Heijn",
+      "file": "trailerplan.js",
+      "why": "BRANDS is de verboden-woordenlijst van de trailercontrole, geen tekst op beeld"
+    },
+    {
+      "rule": "merk",
+      "term": "Google",
+      "file": "trailerplan.js",
+      "why": "BRANDS is de verboden-woordenlijst van de trailercontrole, geen tekst op beeld"
+    },
+    {
+      "rule": "merk",
+      "term": "Facebook",
+      "file": "trailerplan.js",
+      "why": "BRANDS is de verboden-woordenlijst van de trailercontrole, geen tekst op beeld"
+    },
+    {
+      "rule": "merk",
+      "term": "Instagram",
+      "file": "trailerplan.js",
+      "why": "BRANDS is de verboden-woordenlijst van de trailercontrole, geen tekst op beeld"
+    },
+    {
+      "rule": "merk",
+      "term": "Netflix",
+      "file": "trailerplan.js",
+      "why": "BRANDS is de verboden-woordenlijst van de trailercontrole, geen tekst op beeld"
+    },
+    {
+      "rule": "merk",
+      "term": "Shell",
+      "file": "trailerplan.js",
+      "why": "BRANDS is de verboden-woordenlijst van de trailercontrole, geen tekst op beeld"
+    },
+    {
+      "rule": "merk",
+      "term": "Spotify",
+      "file": "trailerplan.js",
+      "why": "BRANDS is de verboden-woordenlijst van de trailercontrole, geen tekst op beeld"
+    },
+    {
+      "rule": "winter",
+      "term": "Oliebol",
+      "file": "winkelkit.js",
+      "ctx": "Oliebol",
+      "why": "kermiskraam in de zomer: oliebollen worden op de kermis het hele jaar verkocht; geen winterverwijzing"
     }
   ]
 }
