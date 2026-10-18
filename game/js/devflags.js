@@ -85,7 +85,7 @@ export const FLAG_DOCS = Object.freeze({
   nobatch: 'Zet het samenvoegen van meshes uit (scene3d)',
   shaderdebug: 'Laat three.js shaderfouten controleren',
   noworker: 'Geometrie op de hoofdthread in plaats van in de worker',
-  simworker: 'Simulatie-worker (simhost.js, #58): nog proefstadium, doet niets aan het spel zelf',
+  simworker: 'Simulatie-worker (simhost.js, #58): kern met volgverkeer, lichten en overdracht klaar en getest, nog niet aan het spel gekoppeld',
   gfxadvies: 'Toon het grafische advies ook als de speler al koos',
   gpu: 'Doe alsof de GPU deze renderer-tekst heeft (test van het advies)',
   preset: 'Instellingen alleen voor deze run, bv. quality:laag,drawDistance:kort',
