@@ -110,7 +110,7 @@
     "afterPack": "scripts/adhoc-sign.cjs"
   },
   "devDependencies": {
-    "electron": "^44.4.5",
+    "electron": "^44.7.2",
     "electron-builder": "^26.15.3"
   },
   "overrides": {
