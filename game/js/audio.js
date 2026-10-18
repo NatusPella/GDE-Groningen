@@ -15,7 +15,6 @@ import { initUiSfx, uiWorldInit, updateUiSfx, uiDomEvent, isUiGestureTarget } fr
 import { updateSkySfx } from './sfx/sky.js';
 import { createScenarioDirector, loopPoints } from './scenariomusic.js';
 import { MIN_TRACK_S, normalizeTrack, pickTrack, pushHistory, pickJingle, STATION_NAME } from './musicpick.js';
-import { SYNTH_TRACKS, synthRecords, renderTrack, toWav } from './synthmusic.js';
 import { createMusicWatch } from './musicwatch.js';
 import * as speech from './speech.js';
 import { drunkLevel } from './drunk.js';
@@ -1586,17 +1585,6 @@ function playWhistle() {
   playTone({ freq: 1700, freqEnd: 2350, type: 'sine', duration: 0.3, gain: 0.05, delay: 0.26, bus: uiBus, prio: 2 });
 }
 
-// The Radio Nachtstreek station sting before Rikus tells a recap: a soft
-// rising three-note jingle over a low pad.
-export function playRadioSting() {
-  if (!ctx || muted || !stingBus) return;
-  [[392, 0, 0.35], [523.25, 0.18, 0.35], [659.25, 0.36, 0.9]].forEach(([freq, delay, duration]) => {
-    playTone({ freq, type: 'triangle', duration, gain: 0.045, delay, bus: stingBus, prio: 2 });
-    playTone({ freq: freq * 2, type: 'sine', duration: duration * 0.6, gain: 0.015, delay: delay + 0.01, bus: stingBus, prio: 2 });
-  });
-  playTone({ freq: 196, type: 'sine', duration: 1.5, gain: 0.03, bus: stingBus, prio: 2 });
-}
-
 export function playPhoneRing(rings = 2) {
   if (!ctx || muted || !uiBus) return;
   for (let k = 0; k < rings; k++) {
@@ -1639,7 +1627,7 @@ export function radioInBreak() {
   return inBreak;
 }
 
-// A steady source for another module (kermis.js's barrel organ): it
+// A steady source for another module (kartbaan.js's engine): it
 // connects its own nodes to `bus`. null until the audio runs.
 export function ambientOut() {
   return ctx && worldBus && !muted ? { ctx, bus: worldBus } : null;
@@ -1666,28 +1654,6 @@ async function loadGMusicManifest() {
   } catch (e) {
     // no manifest yet / bad JSON / fetch blocked - G-Music just stays silent
   }
-  scheduleSynthRecords();
-}
-
-// The self-made records (synthmusic.js): rendered one at a time in the
-// background, a few seconds apart, and only picked once they are ready.
-function scheduleSynthRecords() {
-  const todo = synthRecords().map(normalizeTrack).filter(Boolean);
-  const next = () => {
-    const t = todo.shift();
-    if (!t) return;
-    try {
-      const tr = SYNTH_TRACKS.find((x) => x.id === t.id);
-      const wav = toWav(renderTrack(tr, 22050), 22050);
-      const el = wireGmusicEl(new Audio(URL.createObjectURL(new Blob([wav], { type: 'audio/wav' }))));
-      el.preload = 'auto';
-      el.gmusicTitle = tr.title;
-      el.gmusicTrack = t;
-      gmusicTracks.push(el);
-    } catch (e) { /* this record is skipped, the radio goes on */ }
-    setTimeout(next, 4000);
-  };
-  setTimeout(next, 6000);
 }
 
 // Station-style playback: jingle, shuffled track, jingle, track, ... all through

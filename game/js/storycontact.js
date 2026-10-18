@@ -18,7 +18,7 @@
 
 import { lineVoiceFor } from './linevoice.js';
 import { isStale } from './validity.js';
-import { playContactVoice as playBanterVoice, stopContactVoice as stopBanterVoice, pauseContactVoice as pauseBanterVoice, holdContactChannel, playPhoneRing, playClueSting, playRadioSting } from './audio.js';
+import { playContactVoice as playBanterVoice, stopContactVoice as stopBanterVoice, pauseContactVoice as pauseBanterVoice, holdContactChannel, playPhoneRing, playClueSting } from './audio.js';
 import { SPEAKERS } from './storyarc.js';
 import { showNameCard } from './namecard.js';
 import { isCallActive } from './phonefeed.js';
@@ -305,7 +305,7 @@ function start(c) {
   renderPhone(c);
   fitPhone(c);
   root.classList.add('show');
-  if (c.via === 'call' || c.via === 'voicemail') { root.classList.add('ring'); playPhoneRing(2); cur.until = RING_S; } else if (c.via === 'radio') { playRadioSting(); cur.until = 1.6; } else { cur.until = 0.9; playPhoneRing(1); }
+  if (c.via === 'call' || c.via === 'voicemail') { root.classList.add('ring'); playPhoneRing(2); cur.until = RING_S; } else if (c.via === 'radio') { cur.until = 1.6; } else { cur.until = 0.9; playPhoneRing(1); }
 }
 
 function next() {
