@@ -4,7 +4,7 @@ import { getTrains, routePoint, placeTrain, railZ, returnStolenTrains } from './
 import { isMissionActive, getActiveRace } from './missions.js';
 import { isCinematicActive, playCinematic, skipCinematic } from './cinematics.js';
 import { isShopOpen, openShopMenu, closeShopMenu } from './shopui.js';
-import { recordStat } from './achievements.js';
+import { recordStat, recordUnique, unlockAchievement } from './achievements.js';
 import { saveGame } from './savegame.js';
 import { manageTrafficPopulation, manageBikePopulation } from './vehicle.js';
 import { spawnPedestriansNear } from './pedestrians.js';
@@ -825,6 +825,8 @@ function arrive(w) {
   } catch (e) { console.warn(e); }
 
   recordStat(w, 'trainTrips');
+  recordUnique(w, 'trainStations', to.name);
+  if (VILLAGES[to.name]) unlockAchievement(w, 'trein_dorp');
   w.addMessage(`Aangekomen in ${to.name}. Reistijd ${info.minutes} minuten, €${info.price} armer.`, 4);
   saveGame(w, { toast: false });
 }
