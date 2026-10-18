@@ -7,6 +7,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Nieuw
+- **Nieuw verhaal, akte 2 "Het Noorden is groot" (proefversie):** Fatbikes en Oma's lijstje, de trein naar Winsum, zestig eieren heel over de wierdepaden naar de kerkkelder in Usquert, een achtervolging met Jelles trekker-limo op een quad (met Jelle in de sloot bij Uithuizen), de streekbus naar Zoutkamp en de kustmissie: Jelles skûtsje inhalen over het Reitdiep en het Lauwersmeer, een nacht op de zandplaat en zout halen op de kwelder bij Noordpolderzijl, terwijl het zoeklicht van de kustwacht heen en weer gaat (bukken met Ctrl) en het water komt. Daarna wacht akte 3. De plekken zijn nog niet in beeld bekeken.
 - **Beweegbare bruggen met stoplicht:** bij elke brug die open kan staat nu aan beide waterkanten een bootstoplicht (rood tot de brug open ligt, dan groen), en je krijgt een korte melding als de brug open gaat en als hij openligt. Ook de wegmarkering gaat nu mee met het brugdek.
 - **Drie nieuwe zijmissies in de stad:** "Het Loket" (formulier, wachtrij en stempel), de "StudieStaat-balie" (rekenen aan een verzonnen studieloket) en "Borrel bij Vigilantia" (tafelspeech van een verzonnen studentenvereniging). Telkens drie vragen aan een balie; een fout antwoord betaalt alleen minder.
 - **Low-poly beeld op de laadschermen:** het startscherm en alle laadschermen tonen nu een rustige low-poly scène (stad, nacht, platteland of gracht met boot) met langzame wolken, zon en een draaiende molen, in plaats van een foto.
