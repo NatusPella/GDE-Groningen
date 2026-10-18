@@ -12,6 +12,7 @@ import { dualHtml } from './subtitles.js';
 import { mayStart, noteToast } from './narrative.js';
 import { KEYS } from './storagekeys.js';
 import { iconSvg } from './achievementicons.js';
+import { isOverlayHeld } from './overlayhold.js';
 
 const KEY = KEYS.achievements;
 const WRITE_DELAY_MS = 2500;
@@ -611,6 +612,8 @@ function toastBlocked() {
   if (!b.classList.contains('game-started') || b.classList.contains('cine-hide-hud')) return true;
   // narrative.js: held during cutscenes and story calls, a beat apart from other toasts
   if (!mayStart('award')) return true;
+  // de resultaatkaart, een keuzepaneel of een duelbalk gaat voor (#239): de prestatie staat in de wachtrij
+  if (isOverlayHeld('prestatie')) return true;
   const pm = document.getElementById('pause-menu');
   return !!(pm && pm.classList.contains('visible'));
 }
