@@ -65,8 +65,9 @@ const SERVICE_COST = 2.5;
 const OFFROAD_COST = 15;
 const STEPS_COST = 60;
 // no walking along (and so no crossing of) the ring and motorways
+// and the one-way ramps; a two-way viaduct (the Hereweg over the tracks) is walkable
 const MOTORWAY_TYPES = new Set(['motorway', 'motorway_link', 'trunk', 'trunk_link']);
-const isWalkable = (road) => roadAllowed(road, 'lopen') !== false && !road.busOnly && !(road.z && road.cat === 'major');
+const isWalkable = (road) => roadAllowed(road, 'lopen') !== false && !road.busOnly && !(road.z && road.cat === 'major' && (road.oneway || MOTORWAY_TYPES.has(road.type)));
 // by bike: no motorways, footways or steps (roadaccess.js), no bus lanes
 const isBikeable = (road) => roadAllowed(road, 'fiets') !== false && !road.busOnly && !(road.z && road.cat === 'major' && MOTORWAY_TYPES.has(road.type));
 const BIKE_COST = { cycle: 0.8, minor: 1.15, normal: 1, major: 1.8, foot: 1.4 };
@@ -122,7 +123,7 @@ function buildGraph(map) {
       const a = rn[i], b = rn[i + 1];
       if (a === b) continue;
       const geo = Math.hypot(xs[b] - xs[a], ys[b] - ys[a]);
-      const len = throughBuilding(map, xs[a], ys[a], xs[b], ys[b]) ? geo * THROUGH_BUILDING_COST : geo;
+      const len = !road.bridge && throughBuilding(map, xs[a], ys[a], xs[b], ys[b]) ? geo * THROUGH_BUILDING_COST : geo;
       if (canWalk) {
         walk.push(a, b, len, b, a, len);
         walkRoad.push(ri, ri);
@@ -772,6 +773,8 @@ function trackProgress(r, x, y) {
 function updateSlot(world, slot, target, mode) {
   if (!target || !mode) { slot.route = null; slot.key = ''; return; }
   const p = world.player;
+  // already there: no line left to follow (it stayed on the map, #118)
+  if (Math.hypot(target.x - p.x, target.y - p.y) < REACH_M * 2) { slot.route = null; slot.key = ''; return; }
   const key = `${target.kind}:${Math.round(target.x)}:${Math.round(target.y)}:${mode}:${prefs.avoidMotorways ? 1 : 0}`;
   const now = performance.now() / 1000;
   if (key !== slot.key || !slot.route) {
