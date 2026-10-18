@@ -40,7 +40,7 @@ t('host-pad (kamercode): akkoord, code tonen, gast verbindt, Tessa naast je', ()
   const v = L.view(s); assert.equal(v.code, 'K3J9D-8F2MN'); assert.match(v.lines[0], /Tessa naast je/);
   s = L.reduce(s, { t: 'status', status: 'ok' });
   assert.equal(s.step, 'verbonden'); assert.match(L.view(s).lines[0], /Tessa/);
-  assert.equal(L.view(s).buttons[0].label, 'Gast verwijderen');
+  assert.equal(L.view(s).buttons.at(-1).label, 'Iedereen stoppen');
 });
 t('host-pad (IP-adres): zonder UPnP de melding en de lokale code in beeld, niet dubbel', () => {
   const s = run(APP, { t: 'kies', rol: 'host' }, { t: 'route', route: 'direct' }, { t: 'akkoord' },
@@ -81,7 +81,7 @@ t('wegvallen: spel pauzeert en wacht; host kan Alleen verder, gast Stoppen; herv
   assert.match(L.view(h).lines.join(' '), /haperde/);
   h = L.reduce(h, { t: 'status', status: 'lost' });
   assert.match(L.view(h).lines[0], /staat stil/);
-  assert.deepEqual(L.view(h).buttons.map((b) => b.label), ['Opnieuw verbinden', 'Alleen verder']);
+  assert.deepEqual(L.view(h).buttons.map((b) => b.label), ['Opnieuw verbinden', 'Niet wachten']);
   assert.equal(L.reduce(h, { t: 'hervat' }).step, 'host-maakt-code');
   const g = run(APP, { t: 'kies', rol: 'gast' }, { t: 'status', status: 'lost' });
   assert.deepEqual(L.view(g).buttons.map((b) => b.label), ['Opnieuw verbinden', 'Stoppen']);
@@ -89,7 +89,7 @@ t('wegvallen: spel pauzeert en wacht; host kan Alleen verder, gast Stoppen; herv
 });
 t('het wacht-scherm tijdens het spel start direct op "verbroken"', () => {
   const s = L.createLobby({ direct: true, start: 'verbroken', rol: 'host' });
-  assert.equal(L.view(s).buttons[1].label, 'Alleen verder');
+  assert.equal(L.view(s).buttons[1].label, 'Niet wachten');
 });
 t('uit een lopende sessie ga je alleen met verbreken; de ander weg zet alles terug', () => {
   const s = run(APP, { t: 'kies', rol: 'host' }, { t: 'status', status: 'ok' });
@@ -109,5 +109,43 @@ t('statusbadge en lagbeleid (na 5 s wacht het spel)', () => {
   assert.equal(L.statusBadge('ok', 0.4).level, 'traag'); assert.equal(L.statusBadge('lost').text, 'Verbinding weg');
   assert.deepEqual(L.lagPolicy(0.1), { freezeRemote: false, badge: false, hold: false });
   assert.equal(L.lagPolicy(6).hold, true);
+});
+const LIJST = (n, extra = {}) => [{ slot: 0, char: 'tammo', naam: 'Tammo' }, { slot: 1, char: 'anita', naam: 'Tessa' }, { slot: 2, char: 'bram', naam: 'Bram' }, { slot: 3, char: 'lotte', naam: 'Lotte', ...extra }].slice(0, n);
+t('N spelers: de host ziet de lijst, kan iedereen apart verwijderen en het maximum verhogen', () => {
+  let s = run(APP, { t: 'kies', rol: 'host' }, { t: 'route', route: 'kamer' }, { t: 'akkoord' }, { t: 'code', code: 'K3J9D-8F2MN' });
+  s = L.reduce(s, { t: 'spelers', lijst: LIJST(4), max: 4 });
+  assert.equal(s.step, 'verbonden');
+  const v = L.view(s);
+  assert.match(v.lines[0], /Spelers \(4 van 4\): Tammo \(host\), Tessa, Bram, Lotte/);
+  assert.deepEqual(v.buttons.filter((b) => b.act.startsWith('kick-')).map((b) => b.act), ['kick-1', 'kick-2', 'kick-3']);
+  assert.deepEqual(v.buttons.filter((b) => b.act.startsWith('max-')).map((b) => b.act), ['max-6', 'max-8']);
+  assert.equal(v.code, null, 'vol: de code hoeft niet meer getoond');
+  const s6 = L.reduce(s, { t: 'spelers', lijst: LIJST(4), max: 6 });
+  assert.equal(L.view(s6).code, 'K3J9D-8F2MN', 'er is weer plek: de code blijft zichtbaar');
+  assert.match(L.view(s6).lines.join(' '), /nog plek/);
+});
+t('N spelers: iedereen weg terwijl de uitnodiging openstaat: terug naar wachten op de code', () => {
+  let s = run(APP, { t: 'kies', rol: 'host' }, { t: 'route', route: 'kamer' }, { t: 'akkoord' }, { t: 'code', code: 'K3J9D-8F2MN' });
+  s = L.reduce(s, { t: 'spelers', lijst: LIJST(3), max: 4 }); assert.equal(s.step, 'verbonden');
+  s = L.reduce(s, { t: 'spelers', lijst: LIJST(1), max: 4 }); assert.equal(s.step, 'host-wacht');
+});
+t('N spelers: een verbroken speler staat in de lijst; de pauze noemt de naam', () => {
+  const s = L.reduce(run(APP, { t: 'kies', rol: 'host' }, { t: 'status', status: 'ok' }), { t: 'spelers', lijst: LIJST(3, {}).map((p) => (p.slot === 2 ? { ...p, verbinding: 'lost' } : p)), max: 4 });
+  assert.match(L.view(s).lines[0], /Bram · verbinding weg/);
+  const h = L.reduce(L.reduce(s, { t: 'hold', slot: 2, naam: 'Bram' }), { t: 'status', status: 'lost' });
+  assert.match(L.view(h).lines[0], /Bram is niet meer bereikbaar/); assert.match(L.view(h).lines[1], /verwijder je Bram/);
+});
+t('N spelers: de gast ziet de lijst en kiest een figuur voor plek 2 en hoger; alleen figuren uit de lijst', () => {
+  let s = run(APP, { t: 'kies', rol: 'gast' });
+  assert.equal(L.view(s).wensen.length, 6);
+  assert.ok(!L.view(s).wensen.some((w) => w.id === 'tammo' || w.id === 'anita'), 'Tammo en Tessa zijn niet te kiezen');
+  s = L.reduce(s, { t: 'wens', char: 'bram' }); assert.equal(s.wens, 'bram'); assert.equal(L.view(s).wensen.find((w) => w.id === 'bram').gekozen, true);
+  assert.equal(L.reduce(s, { t: 'wens', char: 'tammo' }).wens, null);
+  const v = L.reduce(L.reduce(s, { t: 'status', status: 'ok' }), { t: 'spelers', lijst: LIJST(3), max: 4 });
+  assert.match(L.view(v).lines[0], /Spelers \(3 van 4\)/); assert.equal(L.view(v).buttons.length, 1);
+});
+t('het maximum blijft tussen 4 en 8', () => {
+  const s = L.reduce(L.createLobby(APP), { t: 'spelers', lijst: [], max: 99 }); assert.equal(s.max, 8);
+  assert.equal(L.reduce(L.createLobby(APP), { t: 'spelers', lijst: [], max: 2 }).max, 4);
 });
 console.log(`lobby_test: ${n}/${n} ok`);
