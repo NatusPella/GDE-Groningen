@@ -771,7 +771,7 @@ export async function runStoryTest(world) {
         entry.ok = !after || after.end || after.id !== cur.id;
         entry.moneyAfter = Math.round(world.money);
         entry.seconds = Math.round((performance.now() - t0) / 100) / 10;
-        check(`step ${cur.id} advances`, entry.ok);
+        check(`step ${cur.id} advances`, entry.ok, entry.ok ? "" : JSON.stringify({ view: S().view(), mission: S().mission(), canSkip: S().canSkip() }).slice(0, 700));
         if (!entry.ok) break;
       }
 
