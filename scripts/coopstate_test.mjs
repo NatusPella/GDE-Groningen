@@ -7,7 +7,7 @@ const t = (name, f) => { f(); n++; };
 
 t('twee spelers, Tammo en Tessa, gedeelde kas', () => {
   const s = C.createCoopState({ money: 100 });
-  assert.deepEqual(s.players.map((p) => p.char), ['tammo', 'tessa']);
+  assert.deepEqual(s.players.map((p) => p.char), ['tammo', 'anita']);
   C.earn(s, 50.7); assert.equal(s.shared.money, 150);
   assert.equal(C.spend(s, 500), false); assert.equal(C.spend(s, 50), true); assert.equal(s.shared.money, 100);
 });
