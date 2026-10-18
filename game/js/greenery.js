@@ -1,4 +1,5 @@
 import { hash2 } from './rng.js';
+import { pointInPolygon as inPoly } from './util.js';
 // Trees and green at their real place (docs/PROVINCIE-PLAN.md 2.15): species,
 // heights and crown shapes, the rules that pick a species where OSM names
 // none, and the trees a wood or a park gets where OSM maps only its outline.
@@ -130,11 +131,6 @@ export function treeColor(t, out) {
 
 // --------------------------------------------------------------- filling
 
-function inPoly(x, y, P) {
-  let c = false;
-  for (let i = 0, j = P.length - 1; i < P.length; j = i++) if ((P[i][1] > y) !== (P[j][1] > y) && x < ((P[j][0] - P[i][0]) * (y - P[i][1])) / (P[j][1] - P[i][1]) + P[i][0]) c = !c;
-  return c;
-}
 
 // Trees in a polygon on a jittered grid (deterministic: the jitter is a hash
 // of the cell), `spacing` m apart on average; keep(x, y) says whether a spot
