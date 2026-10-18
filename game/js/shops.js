@@ -1,6 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { dist, closestPointOnSegment, isInWater, pointInPolygon, boatDryPoints } from './util.js';
-import { clearOfBuildings, withTiles } from './tileplace.js';
+import { clearOfBuildings, withTiles, nearestOnRoads } from './tileplace.js';
 import { countryFacilities, countryDoor } from './facilities.js';
 import { edgeDistance } from './countryfield.js';
 import { getScene, refreshCharacterMeshes } from './scene3d.js';
@@ -306,15 +306,7 @@ const snapshot = (a) => ({ shirt: a.shirt, pants: a.pants, shoes: a.shoes, hair:
 const WALK_ROAD = (r) => r.type !== 'footway' && r.type !== 'cycleway' && r.type !== 'path' && r.type !== 'steps' && r.type !== 'service' && r.type !== 'track';
 
 function nearestStreetPoint(map, x, y, r = 60) {
-  let best = null;
-  for (const road of map.roadsNear(x, y, r)) {
-    if (!WALK_ROAD(road)) continue;
-    for (let i = 0; i < road.pts.length - 1; i++) {
-      const cp = closestPointOnSegment(x, y, road.pts[i][0], road.pts[i][1], road.pts[i + 1][0], road.pts[i + 1][1]);
-      if (!best || cp.dist2 < best.d2) best = { d2: cp.dist2, x: cp.x, y: cp.y, road };
-    }
-  }
-  return best;
+  return nearestOnRoads(map, x, y, r, WALK_ROAD);
 }
 
 function containingBuilding(map, x, y) {
