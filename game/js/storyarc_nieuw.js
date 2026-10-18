@@ -18,7 +18,7 @@
 import { SPEAKERS as OUD_SPEAKERS, CHARACTERS as OUD_CHARACTERS } from './storyarc_oud.js';
 
 // ids appended to MISSION_IDS (indices live in saves: append only, never reorder)
-export const NEW_MISSION_IDS = ['loket', 'bakkiestunt'];
+export const NEW_MISSION_IDS = ['loket', 'bakkiestunt', 'eieren', 'wierde', 'containers', 'dijk', 'graan', 'bruggen', 'wiebelwerk', 'stoom', 'beleg', 'luik', 'colonne'];
 
 // The new cast (storytext.js maps the script's speakers to these keys).
 export const SPEAKERS = {
@@ -87,6 +87,8 @@ export const PARTS = {
     card: [['Tessa', 'Akte 5 volgt.'], ['Tammo', 'Ontzet.']] },
 };
 
+// story.entry for a def shared with the old arc: the old scene's casts and props do not belong to this story
+const CLEAN = { introCast: [], outroCast: [], introProps: [], outroProps: [] };
 const M = (id, part, title, def, o = {}) => ({ id, part, kind: 'mission', mission: def, title, built: false, silent: true, ...o });
 const A = (id, part, title, goal, o = {}) => ({ id, part, kind: 'activity', title, goal, built: false, silent: true, ...o });
 
@@ -119,36 +121,81 @@ export const STEPS = [
   M('M07', 'romp', 'Al het vet van Grunn', 'vetgekaapt', { built: true, reward: 950,
     story: { intro: ['M07.1'], outro: ['M07.3'], replay: ['M07.5'] }, scenes: ['M07.1', 'M07.2', 'M07.3', 'M07.4', 'M07.5'],
     lead: ['T', 'De tankwagen van Us Mem Vet rijdt over de Europaweg. Tijd voor banden.'] }),
-  M('M08', 'romp', 'Fatbikes tellen niet als fiets', 'fatbike', { reward: 500, scenes: ['M08.1', 'M08.2', 'M08.3', 'M08.4', 'M08.5'] }),
-  A('T1', 'romp', 'De trein naar Winsum', { type: 'train' }, { scenes: ['T1'] }),
-  M('M09', 'romp', 'Heel aankomen is ook een kunst', 'eieren', { scenes: ['M09.1', 'M09.2', 'M09.3', 'M09.4', 'M09.5'] }),
-  M('M10', 'romp', 'Een trekker-limo op de wierde', 'wierde', { scenes: ['M10.1', 'M10.2', 'M10.3', 'M10.4'] }),
-  A('T2', 'romp', 'De streekbus naar Zoutkamp', { type: 'bus' }, { scenes: ['T2'] }),
-  M('M11', 'romp', 'Geleend van de Friezen', 'skutsje', { reward: 1300, scenes: ['M11.1', 'M11.2', 'M11.3', 'M11.4', 'M11.5', 'M11.6', 'M11.7', 'M11.8'] }),
+  M('M08', 'romp', 'Fatbikes tellen niet als fiets', 'fatbike', { built: true, reward: 500,
+    story: { intro: ['M08.1'], outro: ['M08.3'], replay: ['M08.5'] }, scenes: ['M08.1', 'M08.2', 'M08.3', 'M08.4', 'M08.5'],
+    lead: ['T', 'Oma Trijntje belt: kom naar de Noorderhaven, ze weet iets over die bal. Via de Oude Ebbingestraat.'] }),
+  A('T1', 'romp', 'De trein naar Winsum', { type: 'travel', to: 'Winsum', beat: 'T1' }, { built: true, scenes: ['T1'] }),
+  M('M09', 'romp', 'Heel aankomen is ook een kunst', 'eieren', { built: true, reward: 400,
+    story: { intro: ['M09.1'], outro: ['M09.4'], replay: ['M09.5'] }, scenes: ['M09.1', 'M09.2', 'M09.3', 'M09.4', 'M09.5'],
+    lead: ['A', 'Geesje wacht in Warffum bij de pastorie. Zes kratten, zestig eieren, en haar neefs trekker.'] }),
+  M('M10', 'romp', 'Een trekker-limo op de wierde', 'wierde', { built: true, reward: 500,
+    story: { intro: ['M10.1'], outro: ['M10.3'] }, scenes: ['M10.1', 'M10.2', 'M10.3', 'M10.4'],
+    lead: ['T', 'Jelles limo staat op Geesjes erf. Hij heeft een koffer. Ik ben benieuwd wat erin zit.'] }),
+  A('T2', 'romp', 'De streekbus naar Zoutkamp', { type: 'travel', to: 'Zoutkamp', beat: 'T2' }, { built: true, scenes: ['T2'] }),
+  M('M11', 'romp', 'Geleend van de Friezen', 'skutsje', { built: true, reward: 1300,
+    story: { intro: ['M11.1'], outro: ['M11.8'], entry: { npc: 'klaas', ...CLEAN } },
+    scenes: ['M11.1', 'M11.2', 'M11.3', 'M11.4', 'M11.5', 'M11.6', 'M11.7', 'M11.8'],
+    lead: ['A', 'Kapitein Klaas wacht in Zoutkamp met een boot. Het zout van Oma ligt bij Noordpolderzijl.'] }),
 
   // --- Akte 3: Aan de Eems (Eemsdelta en Oldambt, vr 21 - zo 23 augustus) ----------------
-  M('M12', 'staart', 'Het staat niet in het rooster', 'traumaduif', { reward: 1500, scenes: ['M12.1', 'M12.2', 'M12.3', 'M12.4', 'M12.5'] }),
-  M('M13', 'staart', 'Het containerlabyrint', 'containers', { scenes: ['M13.1', 'M13.2', 'M13.3', 'M13.4'] }),
-  M('M14', 'staart', 'De dijk', 'dijk', { scenes: ['M14.1', 'M14.2', 'M14.3', 'M14.4'] }),
-  A('T3', 'staart', 'De trein naar Winschoten', { type: 'train' }, { scenes: ['T3'] }),
-  M('M15', 'staart', 'Laag over het graan', 'graan', { scenes: ['M15.1', 'M15.2', 'M15.3', 'M15.4'] }),
-  M('M16', 'staart', 'Nog eentje dan', 'kroegentocht', { reward: 600, scenes: ['M16.1', 'M16.2', 'M16.3', 'M16.4', 'M16.5', 'M16.6', 'M16.7'] }),
+  M('M12', 'staart', 'Het staat niet in het rooster', 'traumaduif', { built: true, reward: 1500,
+    story: { intro: ['M12.1'], outro: ['M12.4'], replay: ['M12.5'], entry: { npc: 'dijkstra', outroNpcKey: 'dijkstra', ...CLEAN } },
+    scenes: ['M12.1', 'M12.2', 'M12.3', 'M12.4', 'M12.5'],
+    lead: ['T', 'Dokter Dijkstra belt vanaf het UMCG-dak. Er is een heli, en een gele ballon bij de Dollard.'] }),
+  M('M13', 'staart', 'Het containerlabyrint', 'containers', { built: true, reward: 600,
+    story: { intro: ['M13.1'], outro: ['M13.3'], replay: ['M13.4'] }, scenes: ['M13.1', 'M13.2', 'M13.3', 'M13.4'],
+    lead: ['A', 'Lammert wacht in de Eemshaven. Jelles schip vertrekt om zes uur.'] }),
+  M('M14', 'staart', 'De dijk', 'dijk', { built: true, reward: 500,
+    story: { intro: ['M14.1'], outro: ['M14.3'], replay: ['M14.4'] }, scenes: ['M14.1', 'M14.2', 'M14.3', 'M14.4'],
+    lead: ['T', 'Jelle laat om acht uur beslag leggen bij de sluis van Delfzijl. We moeten er eerder zijn.'] }),
+  A('T3', 'staart', 'De trein naar Winschoten', { type: 'travel', to: 'Winschoten', beat: 'T3' }, { built: true, scenes: ['T3'] }),
+  M('M15', 'staart', 'Laag over het graan', 'graan', { built: true, reward: 500,
+    story: { intro: ['M15.1'], outro: ['M15.3'], replay: ['M15.4'] }, scenes: ['M15.1', 'M15.2', 'M15.3', 'M15.4'],
+    lead: ['A', 'Roelfien wacht bij Winschoten. Ze heeft een spandoek en een graanveld.'] }),
+  M('M16', 'staart', 'Nog eentje dan', 'kroegentocht', { built: true, reward: 600,
+    story: { intro: ['M16.1'], outro: ['M16.6'], replay: ['M16.7'], entry: { npc: 'geert', ...CLEAN } },
+    scenes: ['M16.1', 'M16.2', 'M16.3', 'M16.4', 'M16.5', 'M16.6', 'M16.7'],
+    lead: ['T', 'Geert belt: Durk en Douwe zitten op de kermis in Winschoten en ze zingen.'] }),
 
   // --- Akte 4: Zuidwaarts (Veenkoloniën en Westerwolde, zo 23 - wo 26 augustus) ----------
-  M('M17', 'zuid', 'Open, dicht', 'bruggen', { scenes: ['M17.1', 'M17.2', 'M17.3', 'M17.4'] }),
-  M('M18', 'zuid', 'Wie draaide de camera\'s uit?', 'wiebelwerk', { scenes: ['M18.1', 'M18.2', 'M18.3', 'M18.4', 'M18.5'] }),
-  M('M19', 'zuid', 'Stoom', 'stoom', { scenes: ['M19.1', 'M19.2', 'M19.3', 'M19.4'] }),
-  A('T4', 'zuid', 'De bus naar Bourtange', { type: 'bus' }, { scenes: ['T4.1', 'T4.2', 'T4.3', 'T4.4'] }),
-  M('M20', 'zuid', 'Het beleg van Bourtange', 'beleg', { scenes: ['M20.1', 'M20.2', 'M20.3', 'M20.4', 'M20.5', 'M20.6'] }),
-  M('M21', 'zuid', 'Iedereen heeft een rode auto gezien', 'fjord', { reward: 1100, scenes: ['M21.1', 'M21.2', 'M21.3', 'M21.4', 'M21.5'] }),
+  M('M17', 'zuid', 'Open, dicht', 'bruggen', { built: true, reward: 500,
+    story: { intro: ['M17.1'], outro: ['M17.3'], replay: ['M17.4'] }, scenes: ['M17.1', 'M17.2', 'M17.3', 'M17.4'],
+    lead: ['A', 'Wubbo wacht bij de eerste brug in Veendam. Elf bruggen, één ritme.'] }),
+  M('M18', 'zuid', 'Wie draaide de camera\'s uit?', 'wiebelwerk', { built: true, reward: 400,
+    story: { intro: ['M18.1'], outro: ['M18.4'], replay: ['M18.5'] }, scenes: ['M18.1', 'M18.2', 'M18.3', 'M18.4', 'M18.5'],
+    lead: ['T', 'Sjabbe appt: Wiebelwerk in Veendam deed de update van het museum.'] }),
+  M('M19', 'zuid', 'Stoom', 'stoom', { built: true, reward: 700,
+    story: { intro: ['M19.1'], outro: ['M19.3'], replay: ['M19.4'] }, scenes: ['M19.1', 'M19.2', 'M19.3', 'M19.4'],
+    lead: ['A', 'Op het perron in Stadskanaal staat een stoomtrein stil. De machinist is omgekocht.'] }),
+  A('T4', 'zuid', 'De bus naar Bourtange', { type: 'travel', to: 'Vesting Bourtange', beat: 'T4', scene: ['T4.1', 'T4.2'], arrive: ['T4.3'] }, { built: true, scenes: ['T4.1', 'T4.2', 'T4.3', 'T4.4'] }),
+  M('M20', 'zuid', 'Het beleg van Bourtange', 'beleg', { built: true, reward: 1000,
+    story: { intro: ['M20.1'], outro: ['M20.5'], replay: ['M20.6'] }, scenes: ['M20.1', 'M20.2', 'M20.3', 'M20.4', 'M20.5', 'M20.6'],
+    lead: ['T', 'Berend wacht op de wallen van Bourtange. Het beleg begint om negen uur.'] }),
+  M('M21', 'zuid', 'Iedereen heeft een rode auto gezien', 'fjord', { built: true, reward: 1100,
+    story: { intro: ['M21.1'], outro: ['M21.4'], replay: ['M21.5'], entry: { npc: 'berend', outroNpcKey: 'trijntje', ...CLEAN } },
+    scenes: ['M21.1', 'M21.2', 'M21.3', 'M21.4', 'M21.5'],
+    lead: ['A', 'De Escapade staat op een trein naar Zuidhorn. Ik ga erachteraan. Tammo, jij houdt Oma\'s vrienden bij elkaar.'] }),
 
   // --- Akte 5: Ontzet (Westerkwartier en Stad, wo 26 - vr 28 augustus, epiloog 11 september) --
-  M('M22', 'ontzet', 'Een luik erin', 'luik', { scenes: ['M22.1', 'M22.2', 'M22.3', 'M22.4', 'M22.5'] }),
-  M('M23', 'ontzet', 'De colonne', 'colonne', { scenes: ['M23.1', 'M23.2', 'M23.3', 'M23.4', 'M23.5'] }),
-  M('M24', 'ontzet', 'Er hangt iets Fries aan d\'Olle Grieze', 'vlag', { reward: 600, scenes: ['M24.1', 'M24.2', 'M24.3', 'M24.4'] }),
-  M('M25', 'ontzet', 'Het bod viel tegen', 'bod', { reward: 600, scenes: ['M25.1', 'M25.2', 'M25.3', 'M25.4', 'M25.5'] }),
-  M('M26', 'ontzet', 'Ontzet, net als in 1672', 'ontzet', { reward: 4000, scenes: ['M26.1', 'M26.2', 'M26.3', 'M26.4', 'M26.5', 'M26.6', 'M26.7', 'M26.8', 'M26.9'] }),
-  A('E', 'ontzet', 'Epiloog en slot', { type: 'epilogue' }, { scenes: ['E1', 'E2'] }),
+  M('M22', 'ontzet', 'Een luik erin', 'luik', { built: true, reward: 600,
+    story: { intro: ['M22.1'], outro: ['M22.4'], replay: ['M22.5'] }, scenes: ['M22.1', 'M22.2', 'M22.3', 'M22.4', 'M22.5'],
+    lead: ['T', 'Tinus heeft een schuur in het Westerkwartier. Henk zegt dat er een luik in past.'] }),
+  M('M23', 'ontzet', 'De colonne', 'colonne', { built: true, reward: 800,
+    story: { intro: ['M23.1'], outro: ['M23.4'], replay: ['M23.5'] }, scenes: ['M23.1', 'M23.2', 'M23.3', 'M23.4', 'M23.5'],
+    lead: ['A', 'Mem en Oma hebben iedereen gebeld. We rijden samen naar de Grote Markt.'] }),
+  M('M24', 'ontzet', 'Er hangt iets Fries aan d\'Olle Grieze', 'vlag', { built: true, reward: 600,
+    story: { intro: ['M24.1'], outro: ['M24.3'], replay: ['M24.4'], entry: { npc: 'bert', ...CLEAN } },
+    scenes: ['M24.1', 'M24.2', 'M24.3', 'M24.4'],
+    lead: ['A', 'Er hangt een Friese vlag aan de Martinitoren, precies boven onze standplaats. Bert fluit al.'] }),
+  M('M25', 'ontzet', 'Het bod viel tegen', 'bod', { built: true, reward: 600,
+    story: { intro: ['M25.1'], outro: ['M25.4'], replay: ['M25.5'], entry: { npc: 'trijntje', ...CLEAN } },
+    scenes: ['M25.1', 'M25.2', 'M25.3', 'M25.4', 'M25.5'],
+    lead: ['T', 'Oma Trijntje wil een oefenronde in haar keuken. Met grof meel.'] }),
+  M('M26', 'ontzet', 'Ontzet, net als in 1672', 'ontzet', { built: true, reward: 4000,
+    story: { intro: ['M26.1'], outro: ['M26.8'], replay: ['M26.9'], entry: { npc: 'berend', outroNpcKey: 'jelle', ...CLEAN } },
+    scenes: ['M26.1', 'M26.2', 'M26.3', 'M26.4', 'M26.5', 'M26.6', 'M26.7', 'M26.8', 'M26.9'],
+    lead: ['A', 'Vrijdag 28 augustus. Gronings Ontzet. De kraam staat klaar op de Grote Markt.'] }),
+  A('E', 'ontzet', 'Epiloog en slot', { type: 'epilogue' }, { built: true, scenes: ['E1', 'E2'] }),
 ];
 
 // what Tammo and Tessa are after, per part ("Wat weten we?")

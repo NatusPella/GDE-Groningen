@@ -572,6 +572,63 @@ const STORY = [
     replay: [['N', 'Weer nul krassen. Ik begin het je bijna te gunnen.']],
     fail: [['A', 'Dit vertellen we Berend dus niet.'], ['T', 'Hij schrijft er vast een brief over.']],
   },
+  // 20-30: the provincial missions of akte 2 to 5 (docs/verhaal/nieuw; the lines are the script's, see entryFor)
+  { // 20: M09 Heel aankomen is ook een kunst (eieren)
+    npc: 'geesje', outroPose: 'cheer', ask: 0, textOnly: true, outroCast: [{ key: 'durk', pose: 'arms' }, { key: 'douwe', pose: 'arms' }],
+    intro: [['N', 'Ik ben Geesje, kosteres van de wierdekerk in Usquert.']], outro: [['N', 'De kratten staan heel.']], replay: [['N', 'Weer eieren?']],
+    fail: [['A', 'Sikkom. Omelet. Opnieuw laden.'], ['T', 'Heel, zei ze.']],
+  },
+  { // 21: M10 Een trekker-limo op de wierde
+    npc: 'jelle', outroPose: 'hips', ask: 0, textOnly: true, outroCast: [{ key: 'douwe', pose: 'arms' }, { key: 'durk', pose: 'arms' }],
+    intro: [['N', 'Ik ben hier niet voor de eieren.']], outro: [['N', 'Oant sjen!']], replay: [['N', 'Weer op de wierde?']],
+    fail: [['A', 'Sikkom. De limo haalde ons in.'], ['T', 'Terug naar Geesje.']],
+  },
+  { // 22: M13 Het containerlabyrint
+    npc: 'lammert', outroPose: 'hips', ask: 0, textOnly: true,
+    intro: [['N', 'Ik ben Lammert, havenmeester.']], outro: [['N', 'Het schip vaart leeg weg.']], replay: [['N', 'Weer een container?']],
+    fail: [['A', 'De bewaker zag ons. Sikkom.'], ['T', 'Het tweede piepje.']],
+  },
+  { // 23: M14 De dijk
+    npc: 'jelle', outroNpcKey: 'lammert', outroPose: 'hips', ask: 0, textOnly: true, outroCast: [{ key: 'deurwaarder', pose: 'hips' }, { key: 'jelle', pose: 'self' }],
+    intro: [['N', 'Mijn deurwaarder legt om acht uur beslag.']], outro: [['N', 'Het beslag mislukt.']], replay: [['N', 'Weer een rondje?']],
+    fail: [['A', 'De deurwaarder was er eerst.'], ['T', 'Schaap links, zeiden we nog.']],
+  },
+  { // 24: M15 Laag over het graan
+    npc: 'roelfien', outroPose: 'cheer', ask: 0, textOnly: true, outroCast: [{ key: 'jurylid', pose: 'hips' }, { key: 'jelle', pose: 'self' }],
+    intro: [['N', 'Ik ben Roelfien. Graanboerin.']], outro: [['N', 'Is dit waar? Jelle koopt de jury?']], replay: [['N', 'Weer een spandoek?']],
+    fail: [['A', 'Het spandoek viel in het graan.'], ['T', 'Roelfien wordt boos.']],
+  },
+  { // 25: M17 Open, dicht
+    npc: 'wubbo', outroPose: 'hips', ask: 0, textOnly: true,
+    intro: [['N', 'Ik ben Wubbo, brugwachter.']], outro: [['N', 'De limo. Met de koffer.']], replay: [['N', 'Weer elf bruggen?']],
+    fail: [['A', 'Dicht. Net te laat.'], ['T', 'Mis je de maat, dan wacht je.']],
+  },
+  { // 26: M18 Wie draaide de camera's uit?
+    npc: 'accountmanager', outroPose: 'hips', ask: 0, textOnly: true,
+    intro: [['N', 'Wat is uw merkpersoonlijkheid?']], outro: [['N', 'Wiebelwerk stelt niks.']], replay: [['N', 'Weer een intake?']],
+    fail: [['A', 'Ze hebben ons de deur gewezen.'], ['T', 'Zonder merkpersoonlijkheid.']],
+  },
+  { // 27: M19 Stoom
+    npc: 'durk', outroNpcKey: 'jurylid', outroPose: 'hips', ask: 0, textOnly: true, outroCast: [{ key: 'bewaarder', pose: 'hips' }, { key: 'berend', pose: 'hips' }],
+    intro: [['N', 'Net fertelle, hè?']], outro: [['N', 'Ik stap hier uit.']], replay: [['N', 'Weer een trein?']],
+    fail: [['A', 'De trein staat nog steeds stil.'], ['T', 'Dit is de rem. Dat was de rem.']],
+  },
+  { // 28: M20 Het beleg van Bourtange
+    npc: 'berend', outroPose: 'cheer', ask: 0, textOnly: true, introCast: [{ key: 'durk', pose: 'arms' }, { key: 'douwe', pose: 'arms' }],
+    outroCast: [{ key: 'trijntje', pose: 'hips' }, { key: 'mem', pose: 'point' }],
+    intro: [['N', 'Het Beleg van Bourtange. De vesting is van ons.']], outro: [['N', 'Wat mout, dat mout.']], replay: [['N', 'Weer een beleg?']],
+    fail: [['A', 'De bal is weg.'], ['T', 'Dit was het dieptepunt.']],
+  },
+  { // 29: M22 Een luik erin
+    npc: 'tinus', outroPose: 'cheer', ask: 0, textOnly: true,
+    intro: [['N', 'Tinus, trekkertrekker. Welkom in mijn schuur.']], outro: [['N', 'Een wagen.']], replay: [['N', 'Weer een luik?']],
+    fail: [['A', 'De as brak.'], ['T', 'De modder pakt eerst de auto.']],
+  },
+  { // 30: M23 De colonne
+    npc: 'mem', outroNpcKey: 'rikus', outroPose: 'hips', ask: 0, textOnly: true,
+    intro: [['N', 'Famke. Trijntje en ik hebben ze gebeld.']], outro: [['N', 'We zijn er. Allemaal.']], replay: [['N', 'Weer een colonne?']],
+    fail: [['A', 'De colonne viel uit elkaar.'], ['T', 'Jelle splitste ons.']],
+  },
 ];
 
 // Tammo/Tessa lines for when a mission is played before the ones leading up
@@ -1290,10 +1347,11 @@ function onFootAnchor(w) {
 // The new arc plays the script's text (script.json, storytext.js) in the staging of the mission's STORY entry:
 // intro, outro and replay come from the step's `story` scene ids (storyarc_nieuw.js); the fail lines stay.
 function entryFor(i) {
-  const s = STORY[i];
-  if (!s || !nieuwVerhaal() || !storyDataReady()) return s;
+  if (!STORY[i] || !nieuwVerhaal() || !storyDataReady()) return STORY[i];
   const step = STEPS.find((q) => q.kind === 'mission' && q.story && MISSION_IDS.indexOf(q.mission) === i);
-  if (!step) return s;
+  if (!step) return STORY[i];
+  // a defs shared with the old arc is staged differently here: story.entry overrides fields of its STORY entry (npc, casts, props)
+  const s = step.story.entry ? { ...STORY[i], ...step.story.entry } : STORY[i];
   const mk = (ids, npc) => storyLines(ids, { npc });
   const intro = mk(step.story.intro, s.npc);
   // outro: null = no outro scene (the mission's last stage scene tells it): the pass banner alone

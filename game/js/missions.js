@@ -43,6 +43,7 @@ import { nieuwVerhaal } from './storyflag.js';
 import { storyLines, talkLines, storyDataReady, readingTime } from './storytext.js';
 import { playTalk, stopTalk } from './storytalk.js';
 import { buildNieuwDefs, applyNieuw } from './missions_nieuw.js';
+import { placeSpot } from './deel4places.js';
 import { registerBusyProbe } from './busy.js';
 import { playerBusy } from './busy.js';
 
@@ -615,7 +616,7 @@ function buildDefs(world) {
   ];
   if (nieuwVerhaal()) {
     list.push(...buildNieuwDefs({ map, walk, drive }));
-    applyNieuw(list);
+    applyNieuw(list, { walk, drive });
   }
   return list;
 }
@@ -2047,6 +2048,14 @@ function resolveSpotStarts(world) {
       for (const d of chain.defs) if (d.startSpot === 'eelde') d.start = { x: ep.x - 7, y: ep.y + 5, road: null };
     }
   }
+  if (!chain.umcgStart) {
+    // M12 (new arc) starts on the UMCG roof pad
+    const up = helipadById('umcg');
+    if (up && Math.abs(up.x) < 1e8) {
+      chain.umcgStart = true;
+      for (const d of chain.defs) if (d.startSpot === 'umcg') d.start = { ...world.map.openSpotNear(up.x + 3.5, up.y + 1.5), road: null };
+    }
+  }
   if (chain.spotStarts) return;
   const spots = getPigeonSpotsForRender();
   if (!spots.length) return;
@@ -2189,6 +2198,7 @@ export function updateMissions(dt, world) {
       if (dist(p.x, p.y, n.x, n.y) > 14) continue;
       (chain.notesSaid || (chain.notesSaid = new Set())).add(n);
       world.addMessage(n.text, 4, { kind: 'missie' });
+      if (n.talk && storyDataReady()) playTalk(talkLines(n.talk.ids, n.talk), { id: 'note', delay: n.talk.delay || 0.5 });
     }
     if (dist(p.x, p.y, def.dest.x, def.dest.y) < CHECKPOINT_RADIUS && !isKnockedDown(p, world)) {
       succeed(world, def);
@@ -2294,6 +2304,11 @@ function resolveTarget(world, spec, from) {
     if (!lm) return null;
     const [dx, dy] = spec.off || [0, 0];
     return { ...snap(lm.x + dx, lm.y + dy), label: spec.label || spec.landmark, z: spec.z, r: spec.r };
+  }
+  // a named place of the province (deel4places.js), `off` metres east and south of it
+  if (spec.place) {
+    const q = placeSpot(spec.place, spec.off);
+    return q ? { ...snap(q.x, q.y), label: spec.label || spec.place } : null;
   }
   if (spec.heistSpot) return heistSpotAt(map, spec.heistSpot);
   if (spec.pigeonSpot) {

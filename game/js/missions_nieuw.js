@@ -4,6 +4,8 @@
 // Kept out of missions.js so the old arc's voice coverage (scripts/voicelines_collect.mjs reads that
 // file) does not see their hint texts, which are text only.
 
+import { buildDeel4Defs, applyDeel4 } from './missions_deel4.js';
+
 // The def pieces: walk(x, y) / drive(x, y) are missions.js's road spots.
 export function buildNieuwDefs({ map, walk, drive }) {
   const list = [];
@@ -58,6 +60,8 @@ export function buildNieuwDefs({ map, walk, drive }) {
       say: 'Eerst de Grote Markt: vijftienhonderd stuntpunten, zonder krassen. Daarna het Boterdiep.',
     },
   );
+  // akte 2 to 5: the provincial missions (missions_deel4.js), in the order of NEW_MISSION_IDS
+  list.push(...buildDeel4Defs({ walk }));
   return list;
 }
 
@@ -65,7 +69,7 @@ export function buildNieuwDefs({ map, walk, drive }) {
 // the hints that named people who are not in this story, and what the story has dropped.
 // Stage fields: script { ids, from, to } = the lines of a stage scene; talk { ids, from, to, delay } =
 // subtitle talk while the stage runs (storytalk.js); radioScript = a radio fragment (storytext.js).
-export function applyNieuw(list) {
+export function applyNieuw(list, ctx) {
   const by = (label) => list.find((d) => d.label === label);
   const stageOf = (def, kind, n = 0) => def.stages.filter((q) => q.kind === kind)[n];
   const pin = by('Even pinnen');
@@ -96,5 +100,6 @@ export function applyNieuw(list) {
     esc.radioScript = { ids: ['M06.3'], from: 4, to: 9, caller: 'Een beller uit Ljouwert' };
     esc.talk = { ids: ['M06.3'], from: 9, to: 17, delay: 5 };
   }
+  applyDeel4(list, ctx);
 }
 

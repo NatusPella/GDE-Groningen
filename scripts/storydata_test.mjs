@@ -73,7 +73,7 @@ for (const m of missions) {
   ok(sc.some((q) => q.kind === 'intro') && sc.find((q) => q.kind === 'intro').id <= sc.find((q) => q.kind === 'outro').id, `${m.id}: the intro comes before the outro`);
 }
 ok(['kop', 'romp', 'staart', 'zuid', 'ontzet'].every((p) => PARTS[p] && STEPS.some((s) => s.part === p)), 'five acts, each with steps');
-ok(NEW_MISSION_IDS.join() === 'loket,bakkiestunt', 'the new defs appended to MISSION_IDS');
+ok(NEW_MISSION_IDS.join() === 'loket,bakkiestunt,eieren,wierde,containers,dijk,graan,bruggen,wiebelwerk,stoom,beleg,luik,colonne', 'the new defs appended to MISSION_IDS (append only)');
 const act = (k) => scenes.filter((s) => s.act === k);
 ok([1, 2, 3, 4, 5].every((k) => act(k).length > 10), 'every act has scenes');
 
