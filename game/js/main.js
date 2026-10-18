@@ -204,7 +204,7 @@ const PED_TARGET = 45;
 // cyclists out of sight go first (simload.js)
 function thinTraffic(world) {
   const { player, vehicles } = world;
-  const want = { car: scaledTarget(30), bike: scaledTarget(16), scooter: scaledTarget(10) };
+  const want = { car: Math.round(scaledTarget(30) * MODS.cars), bike: Math.round(scaledTarget(16) * MODS.bikes), scooter: Math.round(scaledTarget(10) * MODS.scooters) };
   const kindOf = (v) => (v.isBike ? 'bike' : v.isScooter ? 'scooter' : v.isBus || v.isBoat || v.parked || v.wrecked ? null : 'car');
   const have = { car: [], bike: [], scooter: [] };
   for (const v of vehicles) {
@@ -216,7 +216,7 @@ function thinTraffic(world) {
   for (const k in have) {
     const all = have[k];
     let excess = vehicles.reduce((n, v) => n + (kindOf(v) === k && !keepVehicle(v) ? 1 : 0), 0) - want[k];
-    if (excess <= 2) continue;
+    if (MODS.fading ? excess <= 0 : excess <= 2) continue;
     all.sort((a, b) => b[0] - a[0]);
     for (const [, v] of all) {
       if (excess <= 0) break;
@@ -522,11 +522,11 @@ async function boot() {
       const rush = bikeBoost(wijkProfileAt(world.map, world.player.x, world.player.y).key, Math.hypot(world.player.x - CITY_CENTRE.x, world.player.y - CITY_CENTRE.y), hourOf(world));
       manageBikePopulation(world, { target: Math.round((scaledTarget(16) + (inCentre ? scaledTarget(8) : 0) + (rush ? scaledTarget(rush) : 0)) * MODS.bikes) });
       manageBusPopulation(world);
-      manageScooterPopulation(world, { target: scaledTarget(10) });
-      manageMotorPopulation(world, { target: scaledTarget(motorTarget(wijkProfileAt(world.map, world.player.x, world.player.y).key, hourOf(world))) });
+      manageScooterPopulation(world, { target: Math.round(scaledTarget(10) * MODS.scooters) });
+      manageMotorPopulation(world, { target: Math.round(scaledTarget(motorTarget(wijkProfileAt(world.map, world.player.x, world.player.y).key, hourOf(world))) * MODS.motors) });
       manageBoatPopulation(world, { target: boatTarget() });
       tickRowingCoaches(world);
-      if (simLevel()) thinTraffic(world);
+      if (simLevel() || MODS.fading) thinTraffic(world);
     }
     pedTimer -= dt;
     if (pedTimer <= 0) {
