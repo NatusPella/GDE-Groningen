@@ -1,0 +1,4 @@
+node_modules/
+# de gestagede webversie en de APK's zijn bouwresultaten (npm run stage / build)
+www/
+out/
