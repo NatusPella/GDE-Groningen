@@ -215,5 +215,26 @@ for (const [id, b] of Object.entries(REISBEATS)) {
   } catch (e) { ok(false, 'a damaged save does not throw', String(e && e.message)); }
 }
 
+// akte 4 and 5 (#147, #136): the scenes inside the missions are staged and the finale mixes bake, hold, chase and a choice
+{
+  await import('../game/js/cutscenes_akte4.js');
+  const { MORE_SPECS, SPECS } = await import('../game/js/cutscenes_akte1.js');
+  // scenes that are deliberately not staged: the flag fall (own camera), the solo card, and the stages that cut between several script scenes
+  const SKIP = new Set(['M24.3', 'M21.4']);
+  for (const st of missionSteps.filter((q) => ['zuid', 'ontzet'].includes(q.part))) {
+    const d = defs[MISSION_IDS.indexOf(st.mission)];
+    for (const [j, q] of (d.stages || []).entries()) {
+      if (q.kind !== 'scene' || !q.script || q.script.from || q.script.to || q.script.ids.length !== 1 || q.reveal || q.cam) continue;
+      const id = q.script.ids[0];
+      if (SKIP.has(id)) continue;
+      ok(!!(MORE_SPECS[id] || SPECS[id]), `${st.id}: scene stage ${j} (${id}) has a staging`);
+    }
+  }
+  const fin = defs[MISSION_IDS.indexOf('ontzet')];
+  const kinds = fin.stages.map((q) => q.kind);
+  ok(['bake', 'hold', 'chase', 'choice'].every((k) => kinds.includes(k)), 'the finale mixes bake, hold, chase and a choice', kinds.join());
+  ok(!/mag niet|mag je niet/i.test(JSON.stringify(defs)), 'no failure line says "mag niet"');
+}
+
 console.log(fails ? `${fails} of ${n} failed` : `${n}/${n} story flow checks passed`);
 process.exit(fails ? 1 : 0);
