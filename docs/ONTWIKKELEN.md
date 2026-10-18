@@ -168,6 +168,7 @@ All URL switches live in one register, `FLAGS` in `game/js/devflags.js` (parsed 
 | `?frames` | Trailer: sla beeld voor beeld op |
 | `?video` | Trailer: neem video op (alleen desktop) |
 | `?legacymap` | Laad de oude kaart in plaats van de tegelwereld |
+| `?stadlaag` | Stad per laag uit de gedeelde tegelbouw (gebouwen, wegen, water, spoor, groen, meubilair, poi, objecten, namen, of alle); #90, standaard uit |
 | `?nobatch` | Zet het samenvoegen van meshes uit (scene3d) |
 | `?shaderdebug` | Laat three.js shaderfouten controleren |
 | `?noworker` | Geometrie op de hoofdthread in plaats van in de worker |
