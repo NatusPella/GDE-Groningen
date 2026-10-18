@@ -168,6 +168,8 @@ export class Vehicle {
     this.segIdx = 0;
     this.plan = [];
     this.isPolice = false;
+    // een bus herkent zich aan zijn model; spawners en winkel zetten de vlag daarna zelf nog
+    this.isBus = !!model && (model.name === 'bus' || model.name === 'midibus');
     this.waitTimer = 0;
   }
 
