@@ -18,7 +18,9 @@ Alleen de nieuwste release krijgt fixes.
 
 ## Goed om te weten
 
-- Het spel stuurt niets naar een server: geen account, geen telemetrie.
-  Saves en instellingen staan alleen op je eigen apparaat.
+- Het spel heeft geen account en geen telemetrie. Saves en instellingen staan alleen
+  op je eigen apparaat. Alleen bij samen spelen (na jouw toestemming) gaat je IP-adres
+  naar een openbare STUN-server en gaat versleutelde signalering via openbare brokers;
+  zie [docs/PRIVACY-EN-CREDITS.md](docs/PRIVACY-EN-CREDITS.md).
 - De builds zijn niet ondertekend (zie de README). Download ze alleen van
   de Releases van deze repo.
