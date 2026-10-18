@@ -115,5 +115,17 @@ const eq = (a, b) => JSON.stringify(a) === JSON.stringify(b);
   if (dh > fb * 0.005) fail(`${dh} city building levels differ (only height-tagged ones should)`);
 }
 
+// the real ditches, drains and brooks become waterway lines (#124); a culvert does not
+{
+  const g = [[53.2, 6.5], [53.2, 6.502]];
+  const line = (tags) => WB.fromOsm({ type: 'way', id: 1, tags, g });
+  const d = line({ waterway: 'ditch' }), dr = line({ waterway: 'drain' }), st = line({ waterway: 'stream', width: '4' });
+  if (d.length !== 1 || d[0].kind !== 'waterways' || d[0].row.hw !== WB.DITCH_WIDTH.ditch / 2) fail('a ditch is a waterway line of its guessed width');
+  if (dr[0].row.hw !== WB.DITCH_WIDTH.drain / 2 || st[0].row.hw !== 2) fail('a drain and a brook with a mapped width');
+  if (line({ waterway: 'ditch', tunnel: 'culvert' }).length !== 0 || line({ waterway: 'drain', covered: 'yes' }).length !== 0) fail('a culvert or a covered drain is no open water');
+  if (WB.fromOsm({ type: 'way', id: 2, tags: { waterway: 'ditch' }, g }, { ditches: false }).length !== 0) fail('ditches can be left out');
+  if (line({ waterway: 'canal' })[0].row.hw !== 7) fail('a canal keeps its guessed 14 m');
+}
+
 console.log(fails ? `${fails} failure(s)` : 'worldbuilder: ok');
 process.exit(fails ? 1 : 0);
