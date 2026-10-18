@@ -2,6 +2,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { HABBO_PALETTE, habboMaterial, vcMaterial, GeoBuilder, createBrickDetailTexture, createRoofTileTexture, composeMatrix } from './pixelart3d.js';
 import { getLandmarkModel } from './landmarkmodels.js';
 import { hasLandmarkModel, buildLandmarkGeometry, LANDMARK_MATERIALS, setLandmarkNight } from './landmarks3d.js';
+import { facadeLook } from './winkelkit.js';
 import { glassMaterial, setGlassNight, paneUV, PANE_HOME, PANE_GROUND, PANE_SHOP, PANE_OFFICE } from './interiorglass.js';
 import { pointInPolygon, segDist as segDistXY, WATER_Y } from './util.js';
 import { passagesOf, doorsOf } from './passages.js';
@@ -511,6 +512,8 @@ function addShopfront(B, e, s0, s1, top, S, seed) {
   const bw = span / n;
   const doorBay = Math.floor(hash2(seed, 2.2) * n);
   const shopRank = hash2(seed, 5.5);
+  // gevelreclame en markies van hetzelfde winkeltype als het interieur in de ruit (winkelkit.js)
+  const look = facadeLook(shopRank);
   const shopUV = (s0, s1, y0, y1, bay) => wallQuad(B, e, s0, s1, y0, y1, 0.055, GLASS_TONES[(bay + Math.floor(seed * 7)) % 4 + 1], G_GLASS, edgePaneUV(e, shopRank, PANE_SHOP, s1 - s0, y1 - y0, bay));
   for (let i = 0; i < n; i++) {
     const a = s0 + i * bw + 0.07, b = s0 + (i + 1) * bw - 0.07;
@@ -524,14 +527,14 @@ function addShopfront(B, e, s0, s1, top, S, seed) {
       shopUV(a, b, 0.47, top - 0.07, i);
     }
   }
-  wallBox(B, e, s0, s1, top, top + 0.5, 0, 0.12, S.sign);
-  if (S.awning) {
+  wallBox(B, e, s0, s1, top, top + 0.5, 0, 0.12, look.sign);
+  if (look.awning) {
     const a0 = s0 + 0.15, a1 = s1 - 0.15, ya = top - 0.05, yb = top - 0.6, da = 0.12, db = 1.25;
     const strips = Math.max(1, Math.round((a1 - a0) / 0.45));
     const sw = (a1 - a0) / strips;
     const up = [e.nx * 0.45, 1, e.ny * 0.45];
     for (let i = 0; i < strips; i++) {
-      const c = i % 2 ? 0xe3ddd0 : S.awning;
+      const c = i % 2 ? 0xe3ddd0 : look.awning;
       const p0 = a0 + i * sw, p1 = p0 + sw;
       B.quadOut(wp(e, p0, ya, da), wp(e, p1, ya, da), wp(e, p1, yb, db), wp(e, p0, yb, db), up, c);
       B.quadOut(wp(e, p0, ya - 0.03, da), wp(e, p1, ya - 0.03, da), wp(e, p1, yb - 0.03, db), wp(e, p0, yb - 0.03, db), [-up[0], -1, -up[2]], shade(c, 0.6));
