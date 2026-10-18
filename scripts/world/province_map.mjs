@@ -8,16 +8,18 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import zlib from 'node:zlib';
+import { MAP_PALETTE, toRgba } from '../../game/js/mapstyle.js';
 
 export const TILE_PX = 512;
 export const FINE_M = 20; // metres a pixel at the finest level (z3)
 export const LEVELS = 4;
 
-// the full map's colours (countrymap.js MAP_STYLE), [r, g, b, a 0..255]
-const hex = (h, a = 255) => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16), a];
+// the full map's colours (game/js/mapstyle.js), [r, g, b, a 0..255]; the
+// cycleway is the map's own colour (it was a darker red here by mistake)
+const P = MAP_PALETTE;
 export const STYLE = {
-  green: hex('#2f5c36', 230), forest: hex('#244a2c', 240), water: hex('#2d6a86'), waterEdge: hex('#4a8fae'), building: [160, 156, 146, 170],
-  minor: hex('#8f9095', 200), normal: hex('#c7c7c2'), major: hex('#f0ede4'), cycle: hex('#a8543c', 170), rail: hex('#55524c'),
+  green: toRgba(P.park, 230), forest: toRgba(P.forest, 240), water: toRgba(P.water), waterEdge: toRgba(P.waterEdge), building: [160, 156, 146, 170],
+  minor: toRgba(P.minor, 200), normal: toRgba(P.road), major: toRgba(P.major), cycle: toRgba(P.cycle, 170), rail: toRgba(P.rail),
 };
 const FOREST = new Set(['forest', 'wood']);
 
