@@ -147,7 +147,12 @@ export const PARTS = {
       ['Grote Markt', 'Eerder in GDE. Een Fries in een blauw colbert koopt Grunn op, plakje voor plakje. Het eerste plakje is al van hem.'],
     ],
     card: [['Tessa', 'Dat was akte 2. De Eemshaven is van Jelle, zegt hij.'], ['Tammo', 'Akte 3 volgt: aan de Eems.']] },
-  staart: { title: 'Akte 3: Aan de Eems', name: 'Aan de Eems', date: '21 augustus', open: true, end: 'Akte 3 volgt',
+  staart: { title: 'Akte 3: Aan de Eems', name: 'Aan de Eems', date: '21 augustus', open: true, end: 'Akte 3 volgt', textOnly: true,
+    recap: [
+      ['Noorderhaven', 'Eerder in GDE. Oma Trijntje bakt het recept van 1953 na, met vijf ingrediënten en vijf vrienden: vet, eieren, zout, bloem en mosterd.'],
+      ['Hogeland', 'De eieren en het zout zijn gered. Jelle heeft de bal in een koffer, en Mem appt Tessa in het geheim.'],
+      ['Eemshaven', 'Aan de Eems. Jelle vliegt met zijn koopboek in een ballon, en zijn voorraad vaart weg met een schip.'],
+    ],
     card: [['Tessa', 'Akte 3 volgt.'], ['Tammo', 'Aan de Eems.']] },
   zuid: { title: 'Akte 4: Zuidwaarts', name: 'Zuidwaarts', date: '24 augustus', open: true, end: 'Einde van akte 4', textOnly: true,
     recap: [
@@ -157,7 +162,12 @@ export const PARTS = {
     ],
     card: [['Tessa', 'Dat was akte 4.'], ['Tammo', 'Daarna komt de schuur.']] },
   // the finale card: the epilogue (E1, vrijdag 11 september) and Rikus in the studio (E2); the text of the script, kept in sync by scripts/akte5_test.mjs
-  ontzet: { title: 'Akte 5: Ontzet', name: 'Ontzet', date: '26 augustus', open: true, end: 'Einde', finale: true,
+  ontzet: { title: 'Akte 5: Ontzet', name: 'Ontzet', date: '26 augustus', open: true, end: 'Einde', finale: true, textOnly: true,
+    recap: [
+      ['Bourtange', 'Eerder in GDE. Het Beleg is voorbij. Jelle heeft de bal weer, en de Escapade ook.'],
+      ['Noorderhaven', 'Oma, Mem en de vrienden twijfelen niet. Zij bakken het recept van 1953, eerlijk, op het Ontzet.'],
+      ['Grote Markt', 'Overmorgen is het Gronings Ontzet. Eén standplaats, één Gouden Eierbal.'],
+    ],
     card: [
       ['Rikus', "Het ruikt naar suiker. Dat komt uit Hoogkerk. De zomer is nog lang niet op."],
       ['Tessa', "Het is tweeëntwintig graden."],
