@@ -1,4 +1,4 @@
-import { dist, isInWater, inWaterPoly, WATER_Y, normalizeAngle, pointInPolygon, closestPointOnSegment } from './util.js';
+import { dist, isInWater, inMapWater, WATER_Y, normalizeAngle, pointInPolygon, closestPointOnSegment } from './util.js';
 import { knockDown, isKnockedDown } from './ragdoll.js';
 import { resolveElevWalls } from './elevation.js';
 import { resolveBuildingCollisions, findExitSpot, stopVehicle, EXIT_RIGHT_FIRST, swimDepth, findClimbSpot, SWIM_SPEED, CLIMB_TIME, GRAVITY } from './player.js';
@@ -193,13 +193,13 @@ function swimTowards(c, tx, ty, speed, dt, map) {
 
 function updateCompanionWater(c, p, dt, world) {
   const map = world.map;
-  if (c.water !== 'climb' && !inWaterPoly(map, c.x, c.y)) { leaveWater(c); return; }
+  if (c.water !== 'climb' && !inMapWater(map, c.x, c.y)) { leaveWater(c); return; }
 
   if (c.water === 'fall') {
     c.vz -= GRAVITY * dt;
     c.z += c.vz * dt;
     const nx = c.x + c.vx * dt, ny = c.y + c.vy * dt;
-    if (inWaterPoly(map, nx, ny)) { c.x = nx; c.y = ny; }
+    if (inMapWater(map, nx, ny)) { c.x = nx; c.y = ny; }
     if (c.z <= WATER_Y) {
       world.particles.push({ kind: 'splash', x: c.x, y: c.y, until: world.time + 1.1 });
       c.water = 'swim';
@@ -756,7 +756,7 @@ function stepCompanion(dt, world) {
     if (v.sinking) {
       const off = v.halfWid + 0.5, nx = -Math.sin(v.angle), ny = Math.cos(v.angle);
       c.x = v.x + nx * off; c.y = v.y + ny * off;
-      if (!inWaterPoly(world.map, c.x, c.y)) { c.x = v.x; c.y = v.y; }
+      if (!inMapWater(world.map, c.x, c.y)) { c.x = v.x; c.y = v.y; }
       c.water = 'swim'; c.swimming = true; c.z = WATER_Y; c.vx = 0; c.vy = 0;
       return;
     }

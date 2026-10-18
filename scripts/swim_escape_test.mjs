@@ -8,7 +8,7 @@ import fs from 'node:fs';
 
 const { GameMap, applyMapExtras } = await import('../game/js/mapdata.js');
 const { waterClearance, swimmerCanLeave } = await import('../game/js/waterindex.js');
-const { inWaterPoly } = await import('../game/js/util.js');
+const { inMapWater } = await import('../game/js/util.js');
 const root = new URL('../game/', import.meta.url);
 const data = JSON.parse(fs.readFileSync(new URL('citymap.json', root)));
 applyMapExtras(data, JSON.parse(fs.readFileSync(new URL('mapextras.json', root))));
@@ -26,7 +26,7 @@ function swim(x0, y0, ang, secs = 1.5) {
   let x = x0, y = y0;
   for (let t = 0; t < secs; t += DT) {
     const nx = x + Math.cos(ang) * SPEED * DT, ny = y + Math.sin(ang) * SPEED * DT;
-    if (!inWaterPoly(map, nx, ny)) break;
+    if (!inMapWater(map, nx, ny)) break;
     const free = freeFrom(x, y);
     if (free(nx, ny)) { x = nx; y = ny; }
     else if (free(nx, y)) x = nx;
@@ -47,7 +47,7 @@ function best(x, y) {
 let fails = 0;
 const [sx, sy] = [-38.18, -260.28];
 const spot = best(sx, sy);
-console.log(`canal spot (${sx},${sy}): in water ${inWaterPoly(map, sx, sy)}, best heading moves ${spot.toFixed(2)} m`);
+console.log(`canal spot (${sx},${sy}): in water ${inMapWater(map, sx, sy)}, best heading moves ${spot.toFixed(2)} m`);
 console.log('  per heading (deg:m):', Array.from({ length: 16 }, (_, a) => `${a * 22.5}:${swim(sx, sy, a * Math.PI / 8).toFixed(1)}`).join(' '));
 if (!(spot > 1)) { fails++; console.log('FAIL canal spot: cannot swim away'); }
 
@@ -55,7 +55,7 @@ let total = 0, stuck = [];
 const [minx, miny, maxx, maxy] = map.meta.bounds;
 for (let x = minx; x < maxx; x += 6) {
   for (let y = miny; y < maxy; y += 6) {
-    if (!inWaterPoly(map, x, y)) continue;
+    if (!inMapWater(map, x, y)) continue;
     // negative clearance: Ommeland water (country hook, boat_edge_sim.mjs); under 0.3 m: slivers
     const d = waterClearance(map, x, y, EDGE + 1);
     if (d < 0.3) continue;
