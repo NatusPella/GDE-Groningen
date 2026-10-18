@@ -2,6 +2,13 @@ import { saveGame } from './savegame.js';
 import { createVehiclePreview } from './vehiclepreview.js';
 import { shopIconUrl } from './shops.js';
 import { hudPixelRatio } from './uiscale.js';
+import { isPadActive, onPadChange } from './gamepad.js';
+import { padGlyphInner } from './glyphs.js';
+import { shopIconSvg } from './shopicons.js';
+import {
+  itemIcon, itemStatus, refusalMessage, needsConfirm as needsConfirmFor, buyLabel as buyLabelFor, shopTabs, tabSections, stepTab, keepTab,
+  flatItems, keepItem, shortPerk,
+} from './shoplist.js';
 
 let root = null;
 let world = null;
@@ -14,8 +21,7 @@ let storyDone = false;
 // button (or Enter on it), expensive items ask once more
 let sel = null;
 let armed = null;
-const CONFIRM_FROM = 1000;
-const CONFIRM_SHARE = 0.5;
+let tab = 'alles';
 const ARM_TIME = 4000;
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -48,6 +54,7 @@ export function initShopUi(w) {
         <div><span class="sm-accent" aria-hidden="true"></span><span class="m-eb sm-tag"></span><h1 class="m-h1" id="shop-title"></h1><img class="sm-icon" alt=""></div>
         <div class="m-hr"><span class="mut">Op zak</span><span class="m-num sm-money" aria-label="Jouw geld"></span></div>
       </header>
+      <nav class="m-tablist sm-tabs" role="tablist" aria-label="Afdeling" hidden></nav>
       <div class="sm-story" role="note" hidden><i aria-hidden="true">!</i><b></b><span></span><small></small></div>
       <div class="m-main sm-main">
         <div class="m-list sm-list"></div>
@@ -64,9 +71,11 @@ export function initShopUi(w) {
         </aside>
       </div>
     </section>
-    <footer class="m-foot"><span class="m-hint"><span class="m-kc">↑</span><span class="m-kc">↓</span><span>bekijken</span></span><span class="m-hint"><span class="m-kc">Enter</span><span>kopen</span></span><button type="button" class="m-hint sm-close"><span class="m-kc">Esc</span><span>weglopen</span></button></footer>
+    <footer class="m-foot"></footer>
     </div>`;
   document.body.appendChild(root);
+  syncFooter();
+  onPadChange(() => { if (open) syncFooter(); });
   root.addEventListener('click', onClick);
   root.addEventListener('focusin', onFocus);
   // the game's wheel handler (input.js) cancels scrolling page-wide
@@ -85,6 +94,7 @@ export function openShopMenu(w, s) {
   storyDone = false;
   sel = null;
   armed = null;
+  tab = 'alles';
   if (document.pointerLockElement) document.exitPointerLock();
   if (world.input) world.input.reset();
   const panel = root.querySelector('.sm-panel');
@@ -117,17 +127,21 @@ export function closeShopMenu({ save = true } = {}) {
 }
 
 function currentItems() {
-  const out = [];
-  for (const sec of shop.sections()) for (const it of sec.items) out.push(it);
-  return out;
+  return flatItems(shop.sections());
 }
 
-function priceHtml(it) {
-  const chip = it.tag ? `<span class="t">${esc(it.tag)}</span>` : '';
-  // it.plain: a choice, not a product (the dorpsquiz answers): no price
-  const price = it.plain ? '' : it.income > 0 ? `<span class="v free">+€${it.income}</span>` : it.price > 0 ? `<span class="v">€${it.price.toLocaleString('nl-NL')}</span>` : it.disabled ? '' : '<span class="v free">Gratis</span>';
-  const reason = it.disabled ? `<span class="t no">${esc(it.disabled)}</span>` : '';
-  return reason + chip + (it.disabled && it.tag ? '' : price);
+const PG = (slot) => `<span class="pm-pad-g" data-g-raw>${padGlyphInner(slot)}</span>`;
+const cap = (t) => `<span class="m-kc">${t}</span>`;
+function hint(caps, label, cls = '') {
+  return `<button type="button" class="m-hint ${cls}" tabindex="-1">${caps}<span>${label}</span></button>`;
+}
+// the footer follows the last used input: white keycaps, or the controller's buttons
+function syncFooter() {
+  const pad = isPadActive();
+  const tabs = !root.querySelector('.sm-tabs').hidden;
+  root.querySelector('.m-foot').innerHTML = pad
+    ? hint(PG('dpad'), 'kiezen') + (tabs ? hint(PG('dpad'), 'afdeling') : '') + hint(PG('a'), 'kopen', 'sm-hbuy') + hint(PG('b'), 'weglopen', 'sm-close')
+    : hint(cap('↑') + cap('↓'), 'bekijken') + (tabs ? hint(cap('←') + cap('→'), 'afdeling') : '') + hint(cap('Enter'), 'kopen', 'sm-hbuy') + hint(cap('Esc'), 'weglopen', 'sm-close');
 }
 
 function swatchHtml(it) {
@@ -139,7 +153,10 @@ function render() {
   const money = Math.max(0, Math.floor(world.money));
   root.querySelector('.sm-money').textContent = '€' + money.toLocaleString('nl-NL');
   const view = shop.view ? shop.view() : { sections: shop.sections(), banner: null };
-  const sections = view.sections;
+  const tabs = shopTabs(view.sections);
+  tab = keepTab(tabs, tab);
+  const sections = tabSections(view.sections, tab);
+  renderTabs(tabs);
   if (view.banner) storyBanner = view.banner;
   renderStory();
   const list = root.querySelector('.sm-list');
@@ -150,18 +167,57 @@ function render() {
   list.innerHTML = sections.map((sec) => `
     <div class="m-gh"><span>${esc(sec.title)}</span></div>
     ${sec.note ? `<p class="sm-note">${esc(sec.note)}</p>` : ''}
-    ${sec.items.map((it) => `
-      <button type="button" class="m-li sm-item${it.story ? ' story-' + it.story : ''}" data-id="${esc(it.id)}" aria-disabled="${it.disabled ? 'true' : 'false'}">
-        ${swatchHtml(it)}
-        <span class="nm"><span class="one">${esc(it.label)}</span>${it.desc ? `<span class="mut one">${esc(it.desc)}</span>` : ''}</span>
-        ${(it.cols || []).map((c) => `<span class="v">${esc(c)}</span>`).join('')}${priceHtml(it)}
-      </button>`).join('')}`).join('');
+    ${sec.items.map((it) => rowHtml(it, sec.title)).join('')}`).join('');
   if (focusedId) {
     const el = list.querySelector(`[data-id="${CSS.escape(focusedId)}"]`);
     if (el) el.focus({ preventScroll: true });
   }
   markSelected();
   renderDetail();
+}
+
+// a row: low-poly icon, name with the short property, price and the status chip
+function rowHtml(it, secTitle) {
+  const st = itemStatus(it, world.money);
+  const perk = it.desc ? shortPerk({ desc: it.desc }, 70) : '';
+  return `
+      <button type="button" class="m-li sm-item st-${st.id}${it.story ? ' story-' + it.story : ''}" data-id="${esc(it.id)}" aria-disabled="${it.disabled ? 'true' : 'false'}">
+        <span class="sm-ico">${shopIconSvg(itemIcon(it, shop.type, secTitle))}</span>
+        ${swatchHtml(it)}
+        <span class="nm"><span class="one">${esc(it.label)}</span>${perk ? `<span class="mut one">${esc(perk)}</span>` : ''}</span>
+        ${(it.cols || []).map((c) => `<span class="v">${esc(c)}</span>`).join('')}${it.plain ? '' : priceOnly(it)}<span class="sm-st ${st.tone}" data-st="${st.id}">${esc(st.label)}</span>
+      </button>`;
+}
+
+function priceOnly(it) {
+  return it.income > 0 ? `<span class="v free">+€${it.income}</span>` : it.price > 0 ? `<span class="v">€${it.price.toLocaleString('nl-NL')}</span>` : '';
+}
+
+function renderTabs(tabs) {
+  const nav = root.querySelector('.sm-tabs');
+  const was = nav.hidden;
+  nav.hidden = !tabs.length;
+  nav.innerHTML = tabs.map((t) => `<button type="button" class="m-tab sm-tab" role="tab" data-tab="${t.id}" aria-selected="${t.id === tab}">${esc(t.label)}<small>${t.count}</small></button>`).join('');
+  if (was !== nav.hidden) syncFooter();
+}
+
+function viewSections() {
+  return shop.view ? shop.view().sections : shop.sections();
+}
+
+function showTab(id) {
+  if (id === tab) return;
+  tab = id;
+  armed = null;
+  render();
+  const first = keepItem(flatItems(tabSections(viewSections(), tab)), null);
+  const el = first != null && root.querySelector(`.sm-item[data-id="${CSS.escape(first)}"]`);
+  if (el) { el.focus({ preventScroll: true }); select(first); } else renderDetail();
+}
+
+function stepTabs(dir) {
+  const tabs = shopTabs(viewSections());
+  if (tabs.length) showTab(stepTab(tabs, tab, dir));
 }
 
 function renderStory() {
@@ -179,17 +235,16 @@ function markSelected() {
   for (const el of root.querySelectorAll('.sm-item')) { const on = el.dataset.id === sel; el.classList.toggle('sel', on); el.toggleAttribute('aria-current', on); }
 }
 
-function needsConfirm(it) {
-  return !!it.confirmText || it.price >= CONFIRM_FROM || (it.price >= 300 && it.price > world.money * CONFIRM_SHARE);
-}
+const needsConfirm = (it) => needsConfirmFor(it, world.money);
+const buyLabel = (it) => buyLabelFor(it, shop.type, !!(armed && armed.id === it.id && Date.now() < armed.until));
 
-function buyLabel(it) {
-  if (it.disabled) return it.disabled;
-  const verb = it.verb || (shop.type === 'tuning' ? 'Betalen' : 'Kopen voor');
-  if (armed && armed.id === it.id && Date.now() < armed.until) return `Zeker? Nog eens: €${it.price}`;
-  if (it.income > 0) return `Verkopen voor €${it.income}`;
-  if (it.price > 0) return `${verb} €${it.price}`;
-  return it.verb || 'Kiezen';
+// not enough money: the status line says how much is missing and the amount shakes
+function shortOfMoney(it) {
+  setStatus(refusalMessage(it, world.money), 'no');
+  const m = root.querySelector('.sm-money');
+  m.classList.remove('short');
+  void m.offsetWidth;
+  m.classList.add('short');
 }
 
 function renderDetail() {
@@ -255,7 +310,8 @@ function activate(id) {
   const it = currentItems().find((x) => x.id === id);
   if (!it) return;
   if (it.disabled) {
-    setStatus(it.disabled === 'Te weinig geld' ? 'Te weinig geld. Bijverdienen? Kijk in je telefoon onder Te doen › Dichtbij' : it.disabled, 'no');
+    if (itemStatus(it, world.money).id === 'duur') shortOfMoney(it);
+    else setStatus(refusalMessage(it, world.money), 'no');
     return;
   }
   if (needsConfirm(it) && !(armed && armed.id === id && Date.now() < armed.until)) {
@@ -269,7 +325,7 @@ function activate(id) {
   const before = world.money;
   const res = it.buy();
   if (res == null) {
-    setStatus('Te weinig geld', 'no');
+    shortOfMoney({ ...it, price: it.price || world.money + 1 });
     return;
   }
   bought = true;
@@ -426,6 +482,9 @@ function onClick(e) {
   if (e.target === root) { closeShopMenu(); return; }
   if (e.target.closest('.sm-scratch')) { if (scratch && scratch.u < 1) { finishScratch(false); scratch.redraw(); } else finishScratch(true); return; }
   if (e.target.closest('.sm-close')) { closeShopMenu(); return; }
+  const tb = e.target.closest('.sm-tab');
+  if (tb) { showTab(tb.dataset.tab); return; }
+  if (e.target.closest('.sm-hbuy')) { if (sel) activate(sel); return; }
   if (e.target.closest('.sm-buy')) { if (sel) activate(sel); return; }
   const btn = e.target.closest('.sm-item');
   if (btn) { btn.focus({ preventScroll: true }); select(btn.dataset.id); }
@@ -452,6 +511,8 @@ function onKey(e) {
   e.preventDefault();
   if (e.repeat && !k.startsWith('Arrow') && lower !== 'w' && lower !== 's') return;
   if (k === 'Escape' || k === 'Backspace' || lower === 'q') closeShopMenu();
+  else if (k === 'ArrowLeft' || k === '[') stepTabs(-1);
+  else if (k === 'ArrowRight' || k === ']') stepTabs(1);
   else if (k === 'ArrowUp' || lower === 'w') move(-1);
   else if (k === 'ArrowDown' || lower === 's') move(1);
   else if (k === 'Enter' || k === ' ' || lower === 'e' || lower === 'f') {
