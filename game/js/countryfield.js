@@ -74,6 +74,8 @@ export const COUNTRY_UNIFORMS = {
   // tiles cover, one texel per block; rect = [bx0, by0, w, h], w = 0 when off
   uProvBlocks: { value: null },
   uProvRect: { value: [0, 0, 0, 0] },
+  // 1 once the tiles carry the real ditches (global.osmDitches): the painted ditches and their banks are off in those blocks
+  uProvDitch: { value: 0 },
 };
 
 // Polder blocks the province's real tiles cover (provinceworld.js): no
@@ -85,6 +87,15 @@ export function setProvinceBlocks(p) {
   villageCache.clear();
   COUNTRY_UNIFORMS.uProvRect.value = p ? [p.x0, p.y0, p.w, p.h] : [0, 0, 0, 0];
 }
+// The tiles hold the real ditches, drains and brooks (OSM waterway=ditch|drain|stream, worldbuilder.js, #124): the polder's
+// hash-grid ditches, their banks and their ground kind are off in the blocks the tiles cover. Off by default: a world built
+// before that has no ditches in its tiles and keeps the painted ones.
+let osmDitches = false;
+export function setProvinceDitches(on) {
+  osmDitches = !!on;
+  COUNTRY_UNIFORMS.uProvDitch.value = osmDitches ? 1 : 0;
+}
+export const osmDitchesAt = (bx, by) => osmDitches && provinceBlock(bx, by);
 export function provinceBlock(bx, by) {
   if (!prov) return false;
   const i = bx - prov.x0, j = by - prov.y0;
@@ -278,9 +289,10 @@ export function countrySurface(x, y) {
   const p = parcelAt(x, y);
   const wet = w > 0.92;
   if (wet && p.dMaar < MAAR_WATER) return p.road && p.cont ? 'weg' : 'sloot';
-  if (wet && p.dMain < MAIN_HW * 0.8 && !(p.road && p.cont)) return 'sloot';
+  const real = osmDitchesAt(p.bx, p.by); // the tiles' ditches are the real ones
+  if (wet && !real && p.dMain < MAIN_HW * 0.8 && !(p.road && p.cont)) return 'sloot';
   if (p.road) return 'weg';
-  if (wet && p.dDitch < DITCH_HW * 0.72) {
+  if (wet && !real && p.dDitch < DITCH_HW * 0.72) {
     if (thinDitchOn(p)) return 'sloot';
   }
   return 'gras';
@@ -302,6 +314,7 @@ uniform sampler2D uTileWaterFar;
 uniform vec4 uTileWaterFarRect;
 uniform sampler2D uProvBlocks;
 uniform vec4 uProvRect;
+uniform float uProvDitch;
 float cEdD = 0.0;
 const float C_BLOCK = ${BLOCK.toFixed(1)};
 const float C_PW = ${PW.toFixed(1)};
@@ -439,6 +452,8 @@ vec3 countryAlbedo(vec2 p, float cw, inout float sRough, inout float sDip, inout
   float seed = cHash(col * 7 + bx * 1009, row * 13 + by * 2003 + 1);
   float seed2 = fract(seed * 7.31);
   bool inReal = cReal(bx, by);
+  // the tiles hold the real ditches: no painted ones, banks or lips in those blocks
+  if (inReal && uProvDitch > 0.5) { dD = 1e3; dM = 1e3; }
   // thin ditches fade in over the first few hundred metres past the city
   float edD = cEdD;
   float keepD = 1.0;

@@ -124,6 +124,12 @@ export function laneFields(hw, tags, defaultWidth, dual = true) {
   return out;
 }
 
+// OSM landuse to the countryside's land use
+export const PARCEL_USE = { farmland: 'akker', meadow: 'weide', orchard: 'boomgaard' };
+
+// the width (m) of an open ditch, drain or brook that OSM gives no width for
+export const DITCH_WIDTH = { ditch: 2.4, drain: 1.6, stream: 3 };
+
 // Legal access per mode (the navgraph.js ACC bits); null when the class default holds.
 export function accessMask(hw, cat, tags) {
   let def;
@@ -498,6 +504,19 @@ export function fromOsm(el, ctx = {}) {
     // (fixed: the width is mapped; else it is a guess that derive_tiles.mjs trims round the footprints on the bank)
     out.push({ kind: 'waterways', row: { pts: P, hw: (Number.isFinite(w) && w > 0 ? w : tags.waterway === 'canal' ? 14 : 10) / 2, name: tags.name || null, fixed: Number.isFinite(w) && w > 0 } });
     return out;
+  }
+  // ditches, drains and brooks: the real ones, 1037 km in the province (the polder's painted ditches are a hash and know nothing of them).
+  // A culvert or a covered stretch is no open water: the road over it stays whole (markDryRoad needs no help), the ditch has no ribbon there.
+  if (DITCH_WIDTH[tags.waterway] && !tags.tunnel && tags.covered !== 'yes' && ctx.ditches !== false) {
+    const w = parseFloat(String(tags.width || '').replace(',', '.'));
+    out.push({ kind: 'waterways', row: { pts: P, hw: (Number.isFinite(w) && w > 0 ? Math.min(w, 12) : DITCH_WIDTH[tags.waterway]) / 2, name: tags.name || null, fixed: true } });
+    return out;
+  }
+  // the land use the countryside's fences and herds follow: arable (no fence, no herd) and pasture (fenced, grazed)
+  const use = PARCEL_USE[tags.landuse];
+  if (use && closed(P) && ctx.parcels !== false) {
+    const A = Math.abs(P.reduce((a, p, i) => { const q = P[(i + 1) % P.length]; return a + p[0] * q[1] - q[0] * p[1]; }, 0)) / 2;
+    if (A >= 2000) out.push({ kind: 'parcels', row: { pts: P, use } });
   }
   const gk = tags.leisure || tags.landuse;
   if (gk && closed(P)) {

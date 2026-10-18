@@ -61,5 +61,69 @@ CE.EDGE.ready = false;
   ok(seam <= posts.length * 0.004, 'a seam gap in less than 0.4% of the posts', `${seam} of ${posts.length}`);
 }
 
+// the painted ditches are off where the tiles hold the real ones (#124): only after the world is built with them
+{
+  const CF = await import('../game/js/countryfield.js');
+  CF.setCountryBounds([-2000, -2000, 2000, 2000]);
+  const B = { x0: 20, y0: 20, w: 6, h: 6, data: new Uint8Array(36).fill(1) }; // blocks 20..25 (the point 21000, 21000 and on)
+  CF.setProvinceBlocks(B);
+  const scan = () => { let ditch = 0, total = 0; for (let x = 21500; x < 22500; x += 2.5) for (let y = 21500; y < 21700; y += 2.5) { total++; if (CF.countrySurface(x, y) === 'sloot') ditch++; } return { ditch, total }; };
+  CF.setProvinceDitches(false);
+  const off = scan();
+  ok(off.ditch > 20, 'by default the painted ditches are ground kind sloot in a province block', JSON.stringify(off));
+  CF.setProvinceDitches(true);
+  const on = scan();
+  ok(on.ditch === 0, 'with the real ditches in the tiles none are left', JSON.stringify(on));
+  ok(CF.osmDitchesAt(21, 21) && !CF.osmDitchesAt(5, 5), 'only in the blocks the tiles cover');
+  // outside the province blocks the painted ditches stay
+  let outside = 0;
+  for (let x = 4500; x < 5500; x += 2.5) for (let y = 4500; y < 4700; y += 2.5) if (CF.countrySurface(x, y) === 'sloot') outside++;
+  ok(outside > 20, 'and outside them', String(outside));
+  CF.setProvinceDitches(false);
+  CF.setProvinceBlocks(null);
+}
+
+// the land use of the tiles (OSM landuse) over the hash (#124): no wire and no herd on arable, wire and herds on a meadow
+{
+  const CS = await import('../game/js/countryside.js');
+  const CF = await import('../game/js/countryfield.js');
+  CF.setCountryBounds([-2000, -2000, 2000, 2000]);
+  const run = (use) => {
+    CE.setExtraUse(use ? () => use : null);
+    let posts = 0, wires = 0, animals = 0;
+    for (let tx = 40; tx < 46; tx++) for (let ty = 40; ty < 46; ty++) {
+      const t = CS.countryTileItems(tx, ty);
+      posts += ((t.items.post || { m: [] }).m.length) / 16;
+      wires += ((t.items.wire || { m: [] }).m.length) / 16;
+      animals += t.animals.filter((a) => a.kind === 'cow' || a.kind === 'sheep' || a.kind === 'horse').length;
+    }
+    CE.setExtraUse(null);
+    return { posts, wires, animals };
+  };
+  const hash = run(null), akker = run('akker'), weide = run('weide');
+  ok(hash.posts > 500 && hash.animals > 20, 'the hash makes fences and herds', JSON.stringify(hash));
+  ok(akker.animals === 0, 'no herd grazes on arable', JSON.stringify(akker));
+  ok(akker.posts < hash.posts * 0.6, 'and far fewer fence posts', akker.posts + ' vs ' + hash.posts);
+  ok(weide.animals > hash.animals * 0.8 && weide.posts > hash.posts, 'a meadow keeps its herds and its wire', JSON.stringify(weide));
+  ok(CE.landUseAt(0, 0) === null, 'without tiles the land use is silent');
+}
+
+// TileWorld.landUseAt: the smallest polygon holding the point wins
+{
+  const { TileWorld } = await import('../game/js/tileworld.js');
+  const big = { pts: [[0, 0], [100, 0], [100, 100], [0, 100]], bounds: [0, 0, 100, 100], use: 'akker' };
+  const small = { pts: [[10, 10], [30, 10], [30, 30], [10, 30]], bounds: [10, 10, 30, 30], use: 'weide' };
+  const fake = { parcelGrid: { query: () => [big, small] } };
+  const at = (x, y) => TileWorld.prototype.landUseAt.call(fake, x, y);
+  ok(at(50, 50) === 'akker' && at(20, 20) === 'weide' && at(200, 200) === null, 'the smallest polygon wins, none outside');
+  ok(TileWorld.prototype.landUseAt.call({}, 1, 1) === null, 'a world without parcels is silent');
+  const PW = await import('../game/js/provinceworld.js');
+  const mapR = { resident: new Set(['0,0']), landUseAt: () => 'akker' };
+  const [ti, tj] = G.tileIndexOf(500, 500);
+  const isT = (k) => (k === G.tileKey(ti, tj) ? {} : null);
+  ok(PW.realUseAt(mapR, isT, 500, 500) === 'akker' || ti !== 0 || tj !== 0, 'realUseAt asks the world for a province tile that is in');
+  ok(PW.realUseAt({ resident: new Set(), landUseAt: () => 'akker' }, isT, 500, 500) === null, 'and is silent for a tile that is not in');
+}
+
 console.log(`${n} checks, ${fails} failed`);
 process.exit(fails ? 1 : 0);

@@ -16,9 +16,9 @@ import {
 import { updateFarProps, farPropsStats } from './farprops.js';
 import { updateCountryLife, lifeStats } from './countrylife.js';
 import { buildSign, disposeSign } from './countrysigns.js';
-import { EDGE, edgeBlocked, edgeSpanBlocked, roadGap } from './countryedge.js';
+import { EDGE, edgeBlocked, edgeSpanBlocked, roadGap, nearRail, landUseAt } from './countryedge.js';
 import { ensureCountryEdge } from './countryplan.js';
-import { thinDitchOn, ditchRamp, provinceBlock } from './countryfield.js';
+import { thinDitchOn, ditchRamp, provinceBlock, countrySurface, osmDitchesAt } from './countryfield.js';
 import { urbanWeight } from './provinceworld.js';
 import { setTileWalls, clearTileWalls, pushOutOfWalls, setTileTrunks, clearTileTrunks, pushOutOfTrunks } from './countrywalls.js';
 import { glowMaterial, poolGeometry } from './countryglow.js';
@@ -499,8 +499,11 @@ function parcelGate(R, a0, b0, b1) {
 const parcelRng = (seed) => mulberry(chash(Math.floor(seed * 1e7), 91));
 
 // pastures (and some mown strips) kept in by barbed wire
-function fencedParcel(seed) {
-  const use = parcelUse(seed), h = chash(Math.floor(seed * 1e6), 5);
+// (x, y): where the tiles give the land use (OSM landuse: arable has no barbed wire, a meadow keeps it), they decide; else the hash does
+function fencedParcel(seed, x, y) {
+  const real = x === undefined ? null : landUseAt(x, y);
+  if (real === 'akker') return false;
+  const use = real === 'weide' ? 'pasture' : parcelUse(seed), h = chash(Math.floor(seed * 1e6), 5);
   return use === 'pasture' ? h < 0.8 : use === 'mown' && h < 0.25;
 }
 
@@ -520,17 +523,33 @@ function lineRuns(t0, t1, step, ok, maxLen, emit) {
 const segOf = (A, B) => [(A[0] + B[0]) / 2, (A[1] + B[1]) / 2, Math.hypot(B[0] - A[0], B[1] - A[1]), -Math.atan2(B[1] - A[1], B[0] - A[0])];
 const angOf = (P, t) => { const A = P(t, 0), B = P(t + 1, 0); return -Math.atan2(B[1] - A[1], B[0] - A[0]); };
 
+// A wire span across a (painted) ditch: the posts stand either side of it, the strands would hang over the water
+function spanOnDitch(ax, ay, bx, by) {
+  const n = Math.max(1, Math.ceil(Math.hypot(bx - ax, by - ay) / 1.5));
+  for (let k = 1; k < n; k++) if (countrySurface(ax + ((bx - ax) * k) / n, ay + ((by - ay) * k) / n) === 'sloot') return true;
+  return false;
+}
+
 // barbed wire: weathered posts, three dull strands
 // postUntil: the posts stop here (default t1); the last wire span runs on to t1, the first post of the next tile, so a
 // tile seam has no hole in the fence (a post and 5-10 m of wire were missing on every 160 m, #124)
 function fenceLine(tile, P, t0, t1, step, ok, postUntil = t1) {
   let prev = null; // the sample before: the wire to it must not cross a ditch, lane or house of the tiles
+  let afterRail = false; // the fence was cut by the track: a field gate stands at each end of the cut (an overweghek)
+  const railGate = (x, y, t) => { if (!fieldLow) push(tile, 'gate', x, y, angOf(P, t), 1, 1, 1, 0xffffff, 0.04); };
   lineRuns(t0, t1, step, (t) => {
     const [x, y] = P(t);
-    if (!ok(x, y, t)) { prev = null; return false; }
+    if (!ok(x, y, t)) {
+      const onRail = nearRail(x, y);
+      if (prev && onRail) railGate(prev[0], prev[1], t);
+      afterRail = onRail;
+      prev = null;
+      return false;
+    }
     const last = prev;
     prev = [x, y];
-    if (last && edgeSpanBlocked(last[0], last[1], x, y, 0.5)) return false;
+    if (afterRail) { railGate(x, y, t); afterRail = false; }
+    if (last && (edgeSpanBlocked(last[0], last[1], x, y, 0.5) || spanOnDitch(last[0], last[1], x, y))) return false;
     if (t > postUntil) return true; // the neighbour tile's first post stands here
     const h = chash(Math.round(x * 5), Math.round(y * 5));
     return push(tile, 'post', x, y, h * 6.28, 1, 0.92 + h * 0.16, 1, 0xa89a86, 0.12);
@@ -568,11 +587,12 @@ function genFieldEdges(tile, bx, by, rot, aMin, bMin, W) {
     if (g === undefined) gates.set(p.seed, g = parcelGate(parcelRng(p.seed), p.a0, p.b0, p.b1));
     return g;
   };
-  const fenceOk = (x, y) => fadeKeep(x, y) && okSpot(x, y, 1.4) && fencedParcel(parcelAt(x, y).seed);
+  const fenceOk = (x, y) => fadeKeep(x, y) && okSpot(x, y, 1.4) && fencedParcel(parcelAt(x, y).seed, x, y);
   // across: a cross ditch, its bank running along a
   const bankOk = (x, y, across) => {
     if (!openLand(x, y) || farmAt(x, y, 1) || inVillage(x, y, 2) || edgeBlocked(x, y, 1)) return false;
     const p = parcelAt(x, y);
+    if (osmDitchesAt(p.bx, p.by)) return false; // no painted ditch here, so no bank
     if (p.road || p.dMain < MAIN_HW + 0.8 || p.dMaar < MAAR_HW + 1 || !thinDitchOn(p)) return false;
     const other = across ? Math.min(p.a - p.a0, p.a1 - p.a) : Math.min(p.b - p.b0, p.b1 - p.b);
     return other >= 1.8 && clearOfRoad(x, y, 0.8);
@@ -609,7 +629,7 @@ function genFieldEdges(tile, bx, by, rot, aMin, bMin, W) {
         if (!fenceOk(x, y)) return false;
         if (sd === pick) return true;
         const [ox, oy] = W(a - sd * 1.9, t);
-        return !fencedParcel(parcelAt(ox, oy).seed);
+        return !fencedParcel(parcelAt(ox, oy).seed, ox, oy);
       }, t1);
     }
   }
@@ -675,7 +695,10 @@ function genFieldEdges(tile, bx, by, rot, aMin, bMin, W) {
 const HERD_STEP = 8;
 function genParcel(tile, bx, by, rot, col, row, a0, a1, b0, b1, W, lineAng) {
   const seed = chash(col * 7 + bx * 1009, row * 13 + by * 2003 + 1);
-  const use = parcelUse(seed);
+  const [cx0, cy0] = W((a0 + a1) / 2, (b0 + b1) / 2);
+  // the tiles' land use (OSM landuse) over the hash: arable is not grazed, a meadow is
+  const real = landUseAt(cx0, cy0);
+  const use = real === 'akker' ? 'crop' : real === 'weide' ? 'pasture' : parcelUse(seed);
   const R = parcelRng(seed);
   const [cx, cy] = W((a0 + a1) / 2, (b0 + b1) / 2);
   if (!openLand(cx, cy) || inVillage(cx, cy, -10)) return;
@@ -702,7 +725,7 @@ function genParcel(tile, bx, by, rot, col, row, a0, a1, b0, b1, W, lineAng) {
     if (okSpot(gx, gy, 0.5)) {
       const across = rot ? -Math.PI / 2 : 0;
       push(tile, 'gate', gx, gy, across + (R() < 0.3 ? 0.5 : 0), 1, 1, 1, 0xffffff, 0.04);
-      for (const s of fieldLow || !fencedParcel(seed) ? [-1, 1] : []) {
+      for (const s of fieldLow || !fencedParcel(seed, gx, gy) ? [-1, 1] : []) {
         for (let k = 1; k <= 2; k++) {
           const [px, py] = W(ga + s * (2.1 + k * 2.2), endB);
           if (okSpot(px, py, 0.5)) push(tile, 'post', px, py, 0, 1, 1, 1, 0xffffff, 0.12);

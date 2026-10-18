@@ -13,7 +13,7 @@
 // elevation model keep to the pinned set until the F1 builder gives them a
 // tile home.
 import { GameMap, SpatialGrid, loadMap, markDryRoad } from './mapdata.js';
-import { polygonBounds } from './util.js';
+import { polygonBounds, pointInPolygon } from './util.js';
 import { promoteMainWaterway } from './waterlevels.js';
 import { SECTION, decodeBlob } from './gdt.js';
 import { TileStore, FrameQueue, HttpRangeSource, inflateRaw, makeWorkerDecoder, decodeCompressed } from './tilestore.js';
@@ -22,9 +22,9 @@ import { TerrainField } from './terrainraster.js';
 const KIND_OF = new Map([
   [SECTION.BUILDINGS, 'buildings'], [SECTION.ROADS, 'roads'], [SECTION.WATER, 'water'], [SECTION.GREEN, 'green'],
   [SECTION.TREES, 'trees'], [SECTION.RAILS, 'rails'], [SECTION.CANOPIES, 'canopies'], [SECTION.PASSAGES, 'passageWays'],
-  [SECTION.FURNITURE, 'furniture'],
+  [SECTION.FURNITURE, 'furniture'], [SECTION.PARCELS, 'parcels'],
 ]);
-const GRID_OF = { buildings: 'buildingGrid', roads: 'roadGrid', water: 'waterGrid', green: 'greenGrid', trees: 'treeGrid', rails: 'railGrid' };
+const GRID_OF = { buildings: 'buildingGrid', roads: 'roadGrid', water: 'waterGrid', green: 'greenGrid', trees: 'treeGrid', rails: 'railGrid', parcels: 'parcelGrid' };
 // A province tile's water row carries kind, lv, dp and nav (waterlevels.js
 // annotateProvinceWater): it joins the water grid like the city's, so boats,
 // swimmers and waterAt see it. An older tile has `flat` only: it stays out of
@@ -138,7 +138,7 @@ export class TileWorld extends GameMap {
           e = { obj, tiles: new Set() };
           this._res[kind].set(gid, e);
           if (kind !== 'trees') this._gidOf.set(obj, gid);
-          if (kind === 'buildings' || kind === 'roads' || kind === 'water' || kind === 'green' || kind === 'rails') obj.bounds = boundsOfObj(kind, obj);
+          if (kind === 'buildings' || kind === 'roads' || kind === 'water' || kind === 'green' || kind === 'rails' || kind === 'parcels') obj.bounds = boundsOfObj(kind, obj);
           if (kind === 'water') { promoteMainWaterway(obj); this._waterVer = (this._waterVer || 0) + 1; newWater.push(obj); }
           if (kind === 'roads') newRoads.push(obj);
           const grid = gridOf(kind, obj);
@@ -179,6 +179,19 @@ export class TileWorld extends GameMap {
   // The track of the streamed tiles (the city's own is map.rails): realBlockedAt keeps the countryside's props off it (#124)
   railNear(x, y, r) {
     return this.railGrid ? this.railGrid.query(x - r, y - r, x + r, y + r) : [];
+  }
+
+  // The OSM land use of the streamed tiles at (x, y): 'akker' | 'weide' | 'boomgaard' or null (the countryside's fences and herds, #124)
+  landUseAt(x, y) {
+    if (!this.parcelGrid) return null;
+    let best = null, ba = Infinity;
+    for (const p of this.parcelGrid.query(x - 0.5, y - 0.5, x + 0.5, y + 0.5)) {
+      const b = p.bounds;
+      if (!b || x < b[0] || x > b[2] || y < b[1] || y > b[3] || !pointInPolygon(x, y, p.pts)) continue;
+      const a = (b[2] - b[0]) * (b[3] - b[1]);
+      if (a < ba) { ba = a; best = p.use; } // the smallest polygon wins (a meadow in a farmland)
+    }
+    return best;
   }
 
   // Water rows that come with no tile: the fixes of the waterway network (vaarnet.js
