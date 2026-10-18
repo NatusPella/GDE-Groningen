@@ -1,7 +1,6 @@
 // AI motorbikes and brommers: picks, speed limit, cycle-path rule, warning text.
 //   node scripts/motortraffic_test.mjs
 import { pickMotor, motorCruiseTop, motorRoadAllowed, motorTarget, isMotorised, TUNED_TOP } from '../game/js/motortraffic.js';
-import { warnText } from '../game/js/trafficlaw.js';
 import { MOPED_LEGAL_SPEED, MOTORBIKE_MODELS } from '../game/js/motomodels.js';
 
 let bad = 0;
@@ -37,13 +36,6 @@ check('about one in seven brommers is tuned', tuned / mopeds > 0.09 && tuned / m
 check('quieter at night', motorTarget('standaard', 3) < motorTarget('standaard', 14));
 check('more in student wijken', motorTarget('student', 14) > motorTarget('chic', 14));
 check('never negative', motorTarget('x', -5) >= 0);
-
-const v = (model) => ({ isScooter: true, model });
-check('brommer text', /brommer op het fietspad/.test(warnText('fietspad', 'auto', v({ moped: true }))));
-check('motor text', /motor op het fietspad/.test(warnText('fietspad', 'auto', v({ motorbike: 'sport' }))));
-check('snorscooter text', /brommer/.test(warnText('voetpad', 'auto', v({ moped: true }))));
-check('a car keeps its text', /auto op het fietspad/.test(warnText('fietspad', 'auto', { model: {} })));
-check('a cyclist keeps its text', /Fietsen op het voetpad/.test(warnText('voetpad', 'fiets', null)));
 
 if (bad) { console.log(bad, 'failed'); process.exit(1); }
 console.log('motortraffic_test ok');

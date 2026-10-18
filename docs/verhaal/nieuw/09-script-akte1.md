@@ -328,6 +328,7 @@ SJOERD: Wind tegen? Natuurlijk. Beide kanten op. Proost. [BEHOUDEN]
 ## [R1.2] Nachtstreek, zondagavond – Stad – radio
 RIKUS (radio): Een luisteraar meldt een kruispunt in de binnenstad waar alles tegelijk groen was. Niemand had voorrang. Iedereen overleefde. [NIEUW]
 RIKUS (radio): Peiling: wie wint de Noordelijke Snackprijs? Een Fries: 58 procent. Een Stadjer: 31 procent. Weet ik niet: 11 procent. [NIEUW]
+RIKUS (radio): Een luisteraar meldt dat Oldenhuis Bakt in Veendam de eenenveertigste snackbar opent. Eenenveertig snackbars, van Lauwersoog tot Bourtange. Ik weet niet wie dat eet. [NIEUW]
 
 ## [M06.0] Thuis wachten tot middernacht – Stad, Paddepoel – te voet
 (regie: maandag 17 augustus, bijna twaalf uur 's nachts. De flat, de lift, de bank.)

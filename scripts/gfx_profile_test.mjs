@@ -1,6 +1,6 @@
 // node scripts/gfx_profile_test.mjs: the GPU classification, the first-run
 // advice and the benchmark recommendation (game/js/gfxprofile.js).
-import { classifyGpu, adviseFromSample, recommendPreset, describePreset, describeChanges, noteFrame, resetDynamic, dynamicScale, cpuLevel, currentPreset, isDefaultGfx } from '../game/js/gfxprofile.js';
+import { classifyGpu, adviseFromSample, recommendPreset, describePreset, describeChanges, noteFrame, resetDynamic, dynamicScale, cpuLevel, currentPreset, isDefaultGfx, mobileProfileFor, MOBILE_PROFILES } from '../game/js/gfxprofile.js';
 import { VIEW_DISTANCES, viewDistanceFor, propRadius } from '../game/js/viewdist.js';
 
 let fail = 0;
@@ -88,4 +88,10 @@ eq('CPU-bound: detail first, not resolution', steps(5, () => [35, 30]), ['1/1'])
 // slow for 4 s every 30 s: it settles low; each step back up waits longer
 eq('flapping: at most 9 steps in 3 min', steps(180, (i) => (i % 2350 < 115 ? [35, 8] : [12, 6])).length <= 9, true);
 resetDynamic();
+eq('mobile: phone', mobileProfileFor({ width: 390, height: 844 }), 'telefoon');
+eq('mobile: phone landscape', mobileProfileFor({ width: 844, height: 390 }), 'telefoon');
+eq('mobile: tablet', mobileProfileFor({ width: 820, height: 1180, cores: 6, memory: 4 }), 'tablet');
+eq('mobile: strong tablet', mobileProfileFor({ width: 1024, height: 1366, cores: 8, memory: 8 }), 'tabletKrachtig');
+eq('mobile: unknown screen', mobileProfileFor({}), 'tablet');
+eq('mobile: profiles in range', Object.values(MOBILE_PROFILES).every((p) => p.resolution >= 0.5 && p.resolution <= 1 && ['laag', 'middel', 'hoog'].includes(p.quality)), true);
 process.exit(fail ? 1 : 0);

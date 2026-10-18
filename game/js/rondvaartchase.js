@@ -19,6 +19,7 @@ import { playLineVoice } from './audio.js';
 import { lineVoiceFor } from './linevoice.js';
 import { TOUR_WELCOME, TOUR_STOPS, TOURIST_REACT, RV_SCENES } from './rondvaartlines.js';
 import { playDeckMoment } from './missionstory.js';
+import { openBank } from './voicebank.js';
 
 // --- route ---------------------------------------------------------------------
 // Clockwise from the Spilsluizen. The eastern arc (Turfsingel, Schuitendiep,
@@ -312,9 +313,8 @@ const BUMP_RAM = [
 
 // --- voice (optional recordings, keyed "<speaker>|<text>" like the story) ----------
 
-const VOICE_DIR = new URL('../audio/voicelines/story/', import.meta.url).href;
-let voices = {};
-fetch(VOICE_DIR + 'manifest.json').then((r) => (r.ok ? r.json() : {})).then((m) => { voices = m || {}; }).catch(() => {});
+const VOICE_DIR = openBank('story').dir;
+const voices = openBank('story').entries;
 
 // --- subtitles -------------------------------------------------------------------
 

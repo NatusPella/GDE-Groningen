@@ -10,6 +10,7 @@ import { roadZAt } from './elevation.js';
 import { isInWater, WATER_Y } from './util.js';
 import { getHelipads } from './heliflight.js';
 import { roadNetReady, roadGraphBuilt, roadGraphVersion, snapRoad, roadCosts, roadPath, roadPathToNode, roadPathFromNode, nodeXY, gatewayCandidates } from './roadgraph.js';
+import { playerBusy } from './busy.js';
 
 const STRAY_M = 25;
 // the further from the route you may stray before it is redone, per way of travel
@@ -65,8 +66,9 @@ const SERVICE_COST = 2.5;
 const OFFROAD_COST = 15;
 const STEPS_COST = 60;
 // no walking along (and so no crossing of) the ring and motorways
+// and the one-way ramps; a two-way viaduct (the Hereweg over the tracks) is walkable
 const MOTORWAY_TYPES = new Set(['motorway', 'motorway_link', 'trunk', 'trunk_link']);
-const isWalkable = (road) => roadAllowed(road, 'lopen') !== false && !road.busOnly && !(road.z && road.cat === 'major');
+const isWalkable = (road) => roadAllowed(road, 'lopen') !== false && !road.busOnly && !(road.z && road.cat === 'major' && (road.oneway || MOTORWAY_TYPES.has(road.type)));
 // by bike: no motorways, footways or steps (roadaccess.js), no bus lanes
 const isBikeable = (road) => roadAllowed(road, 'fiets') !== false && !road.busOnly && !(road.z && road.cat === 'major' && MOTORWAY_TYPES.has(road.type));
 const BIKE_COST = { cycle: 0.8, minor: 1.15, normal: 1, major: 1.8, foot: 1.4 };
@@ -122,7 +124,7 @@ function buildGraph(map) {
       const a = rn[i], b = rn[i + 1];
       if (a === b) continue;
       const geo = Math.hypot(xs[b] - xs[a], ys[b] - ys[a]);
-      const len = throughBuilding(map, xs[a], ys[a], xs[b], ys[b]) ? geo * THROUGH_BUILDING_COST : geo;
+      const len = !road.bridge && throughBuilding(map, xs[a], ys[a], xs[b], ys[b]) ? geo * THROUGH_BUILDING_COST : geo;
       if (canWalk) {
         walk.push(a, b, len, b, a, len);
         walkRoad.push(ri, ri);
@@ -404,7 +406,7 @@ function busyTarget(world) {
   const hr = world.heliRunTarget;
   if (world.heliRun) return hr ? { x: hr.x, y: hr.y, kind: 'mission', name: hr.name || 'Heli' } : null;
   // a minigame on the spot (padel, carbid, the kermis): no route to anything else meanwhile
-  if (world.padelGame || world.activityGame) return null;
+  if (playerBusy(world, ['padel', 'activityGame']).busy) return null;
   const job = world.sideJob;
   if (job && job.active) return job.marker ? { x: job.marker.x, y: job.marker.y, kind: 'job', name: job.label } : null;
   const m = world.mission;
@@ -772,6 +774,8 @@ function trackProgress(r, x, y) {
 function updateSlot(world, slot, target, mode) {
   if (!target || !mode) { slot.route = null; slot.key = ''; return; }
   const p = world.player;
+  // already there: no line left to follow (it stayed on the map, #118)
+  if (Math.hypot(target.x - p.x, target.y - p.y) < REACH_M * 2) { slot.route = null; slot.key = ''; return; }
   const key = `${target.kind}:${Math.round(target.x)}:${Math.round(target.y)}:${mode}:${prefs.avoidMotorways ? 1 : 0}`;
   const now = performance.now() / 1000;
   if (key !== slot.key || !slot.route) {
@@ -799,7 +803,7 @@ export function updateRouting(dt, world) {
   const gt = busyTarget(world) === undefined && !world.challenge ? goalTarget(world) : null;
   updateSlot(world, slots.user, gt ? { x: gt.x, y: gt.y, kind: 'user', name: gt.name, z: gt.z } : null, userMode);
   updateSlot(world, slots.objective, objectiveTarget(world), mode);
-  const ct = world.pigeonMode || world.heliRun || world.padelGame || world.activityGame ? null : updateCare(world);
+  const ct = playerBusy(world, ['pigeon', 'heliRun', 'padel', 'activityGame']).busy ? null : updateCare(world);
   // no care route to where you're already standing
   updateSlot(world, slots.care, ct && Math.hypot(ct.x - p.x, ct.y - p.y) > REACH_M * 2 ? ct : null, mode);
   route = slots.user.route || slots.objective.route || slots.care.route;

@@ -21,6 +21,7 @@ import { sideJobPrompt, sideJobSecondary } from './sidejobs.js';
 import { stationPrompt, stationSecondary } from './stationtravel.js';
 import { machinePrompt } from './snackautomaat.js';
 import { streetLifePrompt } from './streetlife.js';
+import { weaponDropPrompt } from './weapondrops.js';
 import { trainPrompt } from './traindrive.js';
 import { heliSpotPrompt, heliSpotSecondary } from './helirun.js';
 import { padelPrompt, padelSecondary } from './padel.js';
@@ -29,6 +30,7 @@ import { postgamePrompt, postgameSecondary } from './postgame.js';
 import { ommelandPrompt, ommelandSecondary } from './ommelandfun.js';
 import { renderAimReticle } from './aimassist.js';
 import { WEAPONS, isMeleeWeapon, isRangedWeapon } from './combat.js';
+import { gameBusy } from './busy.js';
 
 const USES_KEY = KEYS.hintUses;
 const LEARN_USES = 3;
@@ -337,6 +339,8 @@ function findPrimary(world) {
   if (pg) return pg;
   const muur = machinePrompt(world);
   if (muur) return muur;
+  const drop = weaponDropPrompt(world);
+  if (drop) return drop;
   const straat = streetLifePrompt(world);
   if (straat) return straat;
   const shop = shopPrimaryPrompt(world);
@@ -453,7 +457,7 @@ function findSecondary(world, primary) {
   for (const c of stationSecondary(world)) add(c, 22);
   for (const c of ommelandSecondary(world)) add(c, 24);
   const m = world.mission;
-  const gameBusy = !!(world.padelGame || world.activityGame || world.heliRun);
+  const gameBusy = gameBusy(world);
   if (m && (m.phase === 'idle') && m.label && !(world.sideJob && world.sideJob.active) && !gameBusy) {
     add({ id: 'mis', x: m.marker.x, y: m.marker.y, h: 3.2, label: 'Missie: ' + m.label, kind: 'mission' }, 60);
   }

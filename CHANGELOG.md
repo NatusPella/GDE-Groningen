@@ -7,8 +7,19 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Nieuw
-- **Brommers en motoren in het verkeer:** er rijden nu brommers en motoren rond, meer in studentenwijken en het centrum, minder 's nachts. Ze blijven op de weg en nooit op het fietspad; een gewone brommer houdt zich aan 45 km/u, een enkele is opgevoerd. Rij je zelf met een brommer of motor over het fietspad, dan zegt de waarschuwing nu "brommer" of "motor" in plaats van "auto".
+- **Brommers en motoren in het verkeer:** er rijden nu brommers en motoren rond, meer in studentenwijken en het centrum, minder 's nachts. Ze blijven op de weg en nooit op het fietspad; een gewone brommer houdt zich aan 45 km/u, een enkele is opgevoerd.
 - **Spookrijder op de kartbaan en in de driftzones:** je beste race bij Kardinge en je beste run per driftzone worden bewaard en rijden de volgende keer als doorzichtige spook mee.
+- **Meer variatie in het verkeer:** elektrische auto's (Wadden Stroomer, Hunze Zoemer, Reitdiep Voltje) met een stille zoemende motor, en opgevoerde tokkie-auto's (Dollard Dreunbak, Eemshaven Knalpot, Hunze Bonkerd) met vleugel, dikke uitlaat, blauw licht onder de auto en een luide, schelle motor. Elektrisch rijdt vooral in de rijkere buurten, tokkie vooral bij de studenten.
+- **Lekke band:** na een harde klap kan een band van je eigen auto, fiets of scooter lek gaan. Je rijdt dan trager en de wagen trekt scheef. De garage (of fietsenmaker) plakt hem, tegen een kleine meerprijs. Een lekke band blijft bewaard in je save.
+
+### Opgelost
+- De meldingen van de politie dat je ergens niet mag rijden, lopen of fietsen zijn weg. Blijf je lang op zo'n plek, dan krijg je nog wel een ster.
+- **Verkeersruzie:** na een harde botsing of lang getoeter stapt een boze bestuurder soms uit, scheldt en deelt kleine klappen uit (nooit het laatste stukje gezondheid, geen bloed). Sommigen hebben een klomp, hockeystick, bezem, fietspomp, knuppel of waterpistool bij zich. Een agent te voet in de buurt komt erop af. Instelbaar onder Instellingen › Meer opties › Verkeersruzie (uit, weinig, normaal, veel).
+- **Wapens oppakken:** sla een ruziemaker neer, of tot hij het opgeeft, dan laat hij zijn spullen vallen. Loop erheen en pak ze op met E.
+
+- **Meer leven op straat:** skateboarders rollen door de studentenwijken en het centrum. Een kennismakingsweek-groepje (Dispuut De Gulle Gans) loopt met pluche ganzen door de stad. Wijken hebben nu ook eigen kleding en tassen voor voetgangers. Er zijn meer bezorgers op de fiets, een vierde keten (Pakkie Pronto) en bezorgers te voet met een grote tas.
+- Het weer is nu per streek van de provincie verschillend: zon, bewolking, mist in de ochtend, motregen, buien en onweer. Altijd zomer.
+- **Binnenin-camera in de auto:** druk op V tot 'Binnenin': je zit achter het stuur, met dashboard, stuur dat meedraait, instrumenten, stoelen en een achterbank in laag-poly stijl. Alleen voor personenauto's; bussen, vrachtwagens en trekkers houden de gewone camera.
 
 ## [0.35.0] - 2026-10-18
 

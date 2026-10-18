@@ -18,7 +18,7 @@ ok(!mapKindVisible('flitspaal', 2), 'speed cameras only close up');
 ok(mapKindVisible('hospital', 1) && !mapKindVisible('hospital', 0.5), 'hospital and police from zoom 0.9');
 
 // icon size grows with zoom, within bounds, and is much bigger than the old 1.25
-ok(mapIconScale(0.3) >= 1.5 && mapIconScale(12) <= 2.4 && mapIconScale(12) > mapIconScale(1), 'scale grows with zoom, bounded');
+ok(mapIconScale(0.3) >= 2.1 && mapIconScale(12) <= 3.2 && mapIconScale(12) > mapIconScale(1), 'scale grows with zoom, bounded');
 
 // collisions: the higher priority stays, a kept category never drops
 const placed = placeIcons([

@@ -27,12 +27,12 @@ import { logoHtml } from './logo.js';
 import { PARTS, partNumber } from './storyarc.js';
 import { homeSpawnPoint } from './home.js';
 import { KEYS } from './storagekeys.js';
+import { openBank } from './voicebank.js';
 
 // Recorded montage dialogue: the story manifest ("<speaker>|<text>"), then the
 // lines manifest (linevoice.js) for the newer lines.
-const VOICE_DIR = new URL('../audio/voicelines/story/', import.meta.url).href;
-let voices = {};
-fetch(VOICE_DIR + 'manifest.json').then((r) => (r.ok ? r.json() : {})).then((m) => { voices = m || {}; }).catch(() => {});
+const VOICE_DIR = openBank('story').dir;
+const voices = openBank('story').entries;
 
 // Opening of a fresh game, cut to the theme's beat (docs/verhaal/D-definitief.md,
 // "Trailer" and "Opening"): first a game-trailer parody (sun on d'Olle

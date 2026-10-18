@@ -1,6 +1,10 @@
-// The route graph (docs/PROVINCIE-PLAN.md 2.16, 2.23). F0: the data model and
-// a harness on the current area; the game's routers (routing.js,
-// countryroute.js) keep working as they are.
+// The route graph (docs/PROVINCIE-PLAN.md 2.16, 2.23). Its build-time half is
+// live: ACC/accessOf (the access bits per mode, which roadaccess.js and
+// worldbuilder.js repeat) and edgeRows/globalChains (pack_tiles.mjs and
+// build_corridor.mjs write the tiles' `nav` section and the global layer).
+// NavGraph (nearest, route) is not used by the game at runtime: the routers
+// are routing.js (city), roadgraph.js (province) and vehicle.js (traffic); one
+// graph for all of them is #90. Only navgraph_test.mjs runs NavGraph.
 //
 // Nodes are the road vertices that roads share (key: the decimetre), edges
 // one road segment each, in both directions unless one-way. Every edge

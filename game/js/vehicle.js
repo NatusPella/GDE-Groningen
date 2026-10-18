@@ -1,3 +1,4 @@
+import { nearestLine, project as projectOnLine, makeRunner, stepRunner, startAt } from './busroutes.js';
 import { closestPointOnSegment, normalizeAngle, clamp, lerp, pointInPolygon, inWaterPoly, inMapWater, WATER_Y, keepBoatOffShore, boatDryPoints } from './util.js';
 import { waterClearance, waterChannelPoints } from './waterindex.js';
 import { shallowWater } from './waterlevels.js';
@@ -207,7 +208,8 @@ export class Vehicle {
     const m = this.model;
     const isPlayer = this.driver === 'player';
     const tune = isPlayer ? playerTune(this) : null;
-    const top = tune ? tune.top : m.maxSpeed;
+    // een lekke band (v.flat): trager en de auto trekt scheef
+    const top = (tune ? tune.top : m.maxSpeed) * (this.flat ? FLAT_TOP_FACTOR : 1);
     // wet road / puddle grip (0..1), set each frame for the player's vehicle
     const grip = isPlayer ? this.gripK ?? 1 : 1;
     const brakeMax = (tune ? tune.brake : m.brake) * (0.4 + 0.6 * grip);
@@ -259,7 +261,8 @@ export class Vehicle {
     const sailing = isPlayer && this.isBoat && this.sailTop != null;
     this.speed = clamp(this.speed, -top * REVERSE_FACTOR, sailing ? Math.max(top, absSpeed - SAIL_GLIDE_DECEL * dt) : top);
 
-    const target = clamp(steerInput, -1, 1);
+    const pull = isPlayer && this.flat ? FLAT_PULL * (this.id % 2 ? 1 : -1) * Math.min(1, absSpeed / 10) : 0;
+    const target = clamp(steerInput + pull, -1, 1);
     if (isPlayer) {
       const returning = Math.abs(target) < Math.abs(this.steer) || target * this.steer < 0;
       const rate = (returning ? PLAYER_STEER_RETURN : PLAYER_STEER_RATE) * (this.isBus ? 0.7 : 1) * dt;
@@ -875,6 +878,10 @@ function lineOfSight(map, ax, ay, bx, by) {
   return true;
 }
 
+// Tammo and Tessa's private garage (home.js sets map.homeGarageAt): no traffic
+// spawns in it and none stays in it, whichever road still runs into the plinth.
+const inPrivateGarage = (map, x, y, pad = 0) => !!(map.homeGarageAt && map.homeGarageAt(x, y, pad));
+
 function spawnSpotFree(vehicles, v, clearance = 9) {
   const own = v.model.trailer || 0;
   for (const o of vehicles) {
@@ -924,7 +931,8 @@ export function manageTrafficPopulation(world, { target = 30, spawnMin = 70, spa
   manageParkedCars(world);
   for (let i = vehicles.length - 1; i >= 0; i--) {
     const v = vehicles[i];
-    if (v.driver === 'player' || v.isPolice || v.isHeroCar || v.missionCar || v.isBike || v.isBus || v.parked) continue;
+    if (v.road && !v.homeStored && v.driver !== 'player' && !v.missionCar && !v.isBoat && inPrivateGarage(map, v.x, v.y)) { vehicles.splice(i, 1); continue; }
+    if (v.driver === 'player' || v.isPolice || v.isHeroCar || v.missionCar || v.isBike || v.isBus || v.parked || v.homeStored || (v.isBoat && v.playerOwned)) continue;
     // Wrecked cars have speed=0 forever and would otherwise almost never
     // reach the distance despawn, silently eating the traffic quota. A
     // vehicle stuck bouncing off the same dead end (isolated stub with no
@@ -952,7 +960,7 @@ export function manageTrafficPopulation(world, { target = 30, spawnMin = 70, spa
     if (!canUseRoad({ model: pick.model }, road)) continue;
     const v = spawnVehicleOnRoad(map, road, false, Math.random, false, false, null, false, pick.model);
     const d = Math.hypot(v.x - player.x, v.y - player.y);
-    if (d < spawnMin || d > spawnMax || !spawnSpotFree(vehicles, v) || spawnWouldPop(world, v)) continue;
+    if (d < spawnMin || d > spawnMax || !spawnSpotFree(vehicles, v) || inPrivateGarage(map, v.x, v.y, 2) || spawnWouldPop(world, v)) continue;
     applyFleetFlags(v, pick.kind);
     if (pick.kind in have) have[pick.kind]++;
     vehicles.push(v);
@@ -984,7 +992,7 @@ export function manageBikePopulation(world, { target = 16, spawnMin = 40, spawnM
     if (variant && variant.cargo && road.cat === 'minor' && road.width < 3) continue;
     const v = spawnVehicleOnRoad(map, road, false, Math.random, true, false, null, false, variant);
     const d = Math.hypot(v.x - player.x, v.y - player.y);
-    if (d < spawnMin || d > spawnMax || !spawnSpotFree(vehicles, v) || spawnWouldPop(world, v)) continue;
+    if (d < spawnMin || d > spawnMax || !spawnSpotFree(vehicles, v) || inPrivateGarage(map, v.x, v.y, 2) || spawnWouldPop(world, v)) continue;
     vehicles.push(v);
     count++;
   }
@@ -1010,7 +1018,7 @@ export function manageScooterPopulation(world, { target = 10, spawnMin = 40, spa
     const road = candidates[Math.floor(Math.random() * candidates.length)];
     const v = spawnVehicleOnRoad(map, road, false, Math.random, false, false, null, true);
     const d = Math.hypot(v.x - player.x, v.y - player.y);
-    if (d < spawnMin || d > spawnMax || !spawnSpotFree(vehicles, v) || spawnWouldPop(world, v)) continue;
+    if (d < spawnMin || d > spawnMax || !spawnSpotFree(vehicles, v) || inPrivateGarage(map, v.x, v.y, 2) || spawnWouldPop(world, v)) continue;
     vehicles.push(v);
     count++;
   }
@@ -1047,6 +1055,10 @@ export function manageMotorPopulation(world, { target = null, spawnMin = 50, spa
 
 // A handful of regional buses on the bigger through-roads only - real bus
 // frequency is much lower than car/bike density.
+let busLines = [];
+// de voorbereide lijnen (busroutes.js prepareLines); leeg = bussen rijden vrij zoals voorheen
+export function setBusLines(lines) { busLines = lines || []; }
+
 export function manageBusPopulation(world, { target = 4, spawnMin = 90, spawnMax = 220, despawnDist = 300 } = {}) {
   const { map, player, vehicles } = world;
   for (let i = vehicles.length - 1; i >= 0; i--) {
@@ -1058,6 +1070,23 @@ export function manageBusPopulation(world, { target = 4, spawnMin = 90, spawnMax
   let count = 0;
   for (const v of vehicles) if (v.isBus && !v.wrecked && v.driver !== 'player') count++;
 
+  // echte lijnen (busroutes.js, zodra de lijndata geladen is): een bus begint op zijn lijn en rijdt hem
+  const line = busLines.length ? nearestLine(busLines, player.x, player.y, spawnMax) : null;
+  for (let tries = 0; line && count < target && tries < 4; tries++) {
+    const pr = projectOnLine(line, player.x, player.y);
+    const dir = Math.random() < 0.5 ? 1 : -1;
+    const at = startAt(line, Math.max(0, Math.min(line.length, pr.s + dir * (spawnMin + Math.random() * (spawnMax - spawnMin) * 0.6))), dir);
+    const rp = map.nearestRoadPoint(at.x, at.y, 25, true);
+    if (!rp || rp.road.cat === 'foot' || rp.road.width < 2.55 + 1.1) continue;
+    const v = spawnVehicleOnRoad(map, rp.road, false, Math.random, false, true, rp);
+    if (Math.abs(normalizeAngle(v.angle - at.angle)) > Math.PI / 2) continue;
+    const d = Math.hypot(v.x - player.x, v.y - player.y);
+    if (d < spawnMin || d > spawnMax || !spawnSpotFree(vehicles, v) || spawnWouldPop(world, v)) continue;
+    v.busRun = makeRunner(line, projectOnLine(line, v.x, v.y).s, dir);
+    vehicles.push(v);
+    count++;
+  }
+
   const candidates = map.roadsNear(player.x, player.y, spawnMax).filter((r) => r.cat === 'major' || r.cat === 'normal' || r.busOnly);
   let guard = 0;
   while (count < target && candidates.length && guard++ < target * 6) {
@@ -1067,7 +1096,7 @@ export function manageBusPopulation(world, { target = 4, spawnMin = 90, spawnMax
     const midi = road.cat === 'normal' || Math.random() < 0.25;
     const v = spawnVehicleOnRoad(map, road, false, Math.random, false, true, null, false, midi ? { ...MIDIBUS_MODEL } : null);
     const d = Math.hypot(v.x - player.x, v.y - player.y);
-    if (d < spawnMin || d > spawnMax || !spawnSpotFree(vehicles, v) || spawnWouldPop(world, v)) continue;
+    if (d < spawnMin || d > spawnMax || !spawnSpotFree(vehicles, v) || inPrivateGarage(map, v.x, v.y, 2) || spawnWouldPop(world, v)) continue;
     vehicles.push(v);
     count++;
   }
@@ -1140,12 +1169,13 @@ export function manageBoatPopulation(world, { target = 4, spawnMin = 20, spawnMa
   const { map, player, vehicles } = world;
   for (let i = vehicles.length - 1; i >= 0; i--) {
     const v = vehicles[i];
-    if (!v.isBoat || v.isPolice || v.driver === 'player') continue;
+    // your own boat at the jetty is home.js's to stash, not ours to sweep away
+    if (!v.isBoat || v.isPolice || v.driver === 'player' || v.playerOwned || v.homeStored) continue;
     if (Math.hypot(v.x - player.x, v.y - player.y) > despawnDist) vehicles.splice(i, 1);
   }
 
   let count = 0;
-  for (const v of vehicles) if (v.isBoat && !v.wrecked && !v.isPolice && v.driver !== 'player') count++;
+  for (const v of vehicles) if (v.isBoat && !v.wrecked && !v.isPolice && v.driver !== 'player' && !v.playerOwned && !v.homeStored) count++;
 
   const candidates = map.waterNear(player.x, player.y, spawnMax);
   const have = { skiff: 0, acht: 0, sup: 0 };
@@ -1160,7 +1190,7 @@ export function manageBoatPopulation(world, { target = 4, spawnMin = 20, spawnMa
     const lifeKind = pickWaterLife(Math.random, life);
     const v = spawnBoatOnWater(map, poly, Math.random, { near: [player.x, player.y], min: spawnMin, max: spawnMax, budget: 3, model: lifeKind ? BOAT_KINDS[lifeKind] : undefined });
     if (v && lifeKind) have[lifeKind]++;
-    if (!v || !spawnSpotFree(vehicles, v) || spawnWouldPop(world, v)) continue;
+    if (!v || !spawnSpotFree(vehicles, v) || inPrivateGarage(map, v.x, v.y, 2) || spawnWouldPop(world, v)) continue;
     vehicles.push(v);
     count++;
   }
@@ -1973,6 +2003,11 @@ export function updateTrafficAI(v, dt, map, world, rng = Math.random, opts = nul
   }
   if (!v.plan) v.plan = [];
   if (!opts) opts = v.aiOpts || null;
+  if (v.busRun && v.driver !== 'player') {
+    const out = stepRunner(v.busRun, v.x, v.y, dt);
+    if (out.atStop) v.waitTimer = Math.max(v.waitTimer || 0, out.hold);
+    opts = { goal: out.goal };
+  }
   const goal = (opts && opts.goal) || null;
   const chase = !!(opts && opts.chase);
   const small0 = v.isBike || v.isScooter;
@@ -2135,6 +2170,10 @@ const MAX_IMPACT_DAMAGE = 30;
 // Cars should survive a fair amount of reckless driving: every collision
 // (cars, walls, props) does this fraction of its raw damage.
 export const CRASH_DAMAGE_SCALE = 0.4;
+const FLAT_MIN_DAMAGE = 8; // een klap van minstens zoveel schade kan een band lek slaan
+const FLAT_MAX_CHANCE = 0.5;
+const FLAT_TOP_FACTOR = 0.7; // lekke band: topsnelheid
+const FLAT_PULL = 0.12; // lekke band: de auto trekt scheef (stuurbias)
 const WALL_DAMAGE_SPEED = 7;
 const MAX_WALL_DAMAGE = 20;
 const SCRAPE_SPEED = 3;
@@ -2216,6 +2255,7 @@ function applyImpactDamage(v, dmg, playerInvolved, world) {
   if (dmg <= 0 || v.wrecked) return;
   if (v.disabled) { v.burnLeft -= dmg * 0.06; return; }
   v.health = Math.max(0, v.health - dmg * CRASH_DAMAGE_SCALE);
+  if (playerInvolved && v.driver === 'player' && !v.flat && !v.isBoat && !v.isHeli && !v.isBus && dmg >= FLAT_MIN_DAMAGE && v.health > 0 && Math.random() < Math.min(FLAT_MAX_CHANCE, dmg / 60)) v.flat = true;
   if (v.health <= 0) disableVehicle(v, playerInvolved, world);
 }
 
@@ -2247,6 +2287,10 @@ export function disableVehicle(v, byPlayer, world = null) {
 
 export function tickBurningVehicles(world, dt) {
   for (const v of world.vehicles) {
+    if (v.flat && !v.flatWarned && v.driver === 'player') {
+      v.flatWarned = true;
+      world.addMessage(v.isBike || v.isScooter ? 'Lekke band! Naar de fietsenmaker of de garage' : 'Lekke band! Je auto trekt scheef. Naar de garage', 4);
+    } else if (!v.flat && v.flatWarned) v.flatWarned = false;
     if (!v.disabled || v.wrecked) continue;
     if (v.sinking) { v.disabled = false; continue; }
     if (v.driver === 'player' && !v.fireWarned) {

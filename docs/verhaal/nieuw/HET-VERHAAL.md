@@ -792,6 +792,9 @@ Een luisteraar meldt een kruispunt in de binnenstad waar alles tegelijk groen wa
 RIKUS (V.O. radio)  
 Peiling: wie wint de Noordelijke Snackprijs? Een Fries: 58 procent. Een Stadjer: 31 procent. Weet ik niet: 11 procent.
 
+RIKUS (V.O. radio)  
+Een luisteraar meldt dat Oldenhuis Bakt in Veendam de eenenveertigste snackbar opent. Eenenveertig snackbars, van Lauwersoog tot Bourtange. Ik weet niet wie dat eet.
+
 EXT. PADDEPOEL, GRUNN - NACHT [M06]
 
 Maandag 17 augustus, bijna twaalf uur 's nachts. De flat, de lift, de bank.
@@ -1728,6 +1731,9 @@ INT. NACHTSTREEK, STUDIO - NACHT [R2]
 RIKUS (V.O. radio)  
 Het Plantsoenfestijn opent vandaag in het Noorderplantsoen. Elf dagen theater en muziek. Het is er druk.
 
+RIKUS (V.O. radio)  
+Het festival heeft een hoofdsponsor: Oldenhuis Bakt, de keten met de eenenveertig snackbars. Bij elke frikandel hoort een bonnetje voor een tweede. Ik zeg niks.
+
 JELLE (V.O. radio)  
 Rikus. Ik ga naar de haven. De Eemshaven is van mij. Plakje vijf.
 
@@ -1803,9 +1809,9 @@ Eemsdelta en Oldambt, vrijdag 21 tot zondag 23 augustus. Het koopboek, de haven,
 
 EXT. LAUWERSOOG, HELIKOPTERPLATFORM, WADDENZEE - OCHTEND [M12]
 
-Vrijdag 21 augustus, ochtend. Dijkstra komt met Rotor Roelfs heli van het pad bij Eelde aanvliegen en landt op het havenplatform. Naamkaart: DOKTER DIJKSTRA.
+Vrijdag 21 augustus, ochtend. Dijkstra komt met Rotor Roelfs heli van het UMCG-dak aanvliegen en landt op het havenplatform. Naamkaart: DOKTER DIJKSTRA.
 
-Gameplay: de route is één keten, Lauwersoog, UMCG (lunch), de Dollard en Delfzijl, zonder terug te vliegen; Tessa houdt de heli stil naast de ballonmand terwijl Tammo aan de lier de aktetas pakt en losknipt.
+Gameplay: de route is één keten, Lauwersoog, UMCG (lunch), de Dollard en de Eemshaven, zonder terug te vliegen; Tessa houdt de heli stil naast de ballonmand terwijl Tammo aan de lier de aktetas pakt en losknipt.
 
 DOKTER DIJKSTRA  
 Ik ben Dokter Dijkstra, UMCG. Mijn traumaheli staat in onderhoud, en de nachtdienst heeft honger.
@@ -1837,7 +1843,7 @@ TAMMO
 EXT. UMCG, HELIDEK, GRUNN - OCHTEND [M12]
 
 ROTOR ROELF (V.O. telefoon)  
-Moi! Rotor Roelf, van Eelde. Die heli is van mij, maar de lunch is van Dijkstra. Nait tegen d'Olle Grieze aan, hè?
+Moi! Rotor Roelf. Die heli is van mij, ik heb hem gisteren op het UMCG-dak gezet. Maar de lunch is van Dijkstra. Nait tegen d'Olle Grieze aan, hè?
 
 DOKTER DIJKSTRA  
 Eierballen. Nog warm. Jullie zijn mijn helden.
@@ -1894,7 +1900,7 @@ Je zei "doe bist schier" tegen de ballon.
 TAMMO  
 …Hij was mooi.
 
-EXT. DELFZIJL, HELIDEK, EEMSDELTA - OCHTEND [M12]
+EXT. EEMSHAVEN, HELIDEK, EEMSDELTA - OCHTEND [M12]
 
 In de aktetas ligt een boek met acht bladzijden, elk met een plakje salami erop getekend.
 
@@ -1989,13 +1995,13 @@ TESSA
 De voorraden blijven hier.
 
 LAMMERT  
-Mijn woonschip in Delfzijl is van jullie. Voor de nacht, en voor de voorraden.
+Mijn vrachtwagen brengt de voorraden vannacht naar mijn woonschip in Delfzijl. Jullie slapen in mijn havenkantoor.
 
 TAMMO  
-Een woonschip?
+Een kantoor?
 
 LAMMERT  
-Een schuilplaats met een bed. Twee bedden.
+Met een bed. Twee bedden.
 
 TESSA  
 Twee bedden.
@@ -2108,6 +2114,9 @@ INT. NACHTSTREEK, STUDIO - NACHT [R3]
 
 RIKUS (V.O. radio)  
 Wind uit het noordwesten. Op de Eemsdijk zijn zeventien schapen gered van een deurwaarder. Ik weet niet hoe.
+
+RIKUS (V.O. radio)  
+Kiekdoar meldt dat Oldenhuis Bakt in Delfzijl een vestiging opent, naast de visboer. De visboer lacht niet.
 
 INT. DELFZIJL NAAR WINSCHOTEN, EEMSDELTA - OCHTEND [T3] (REISBEAT)
 
@@ -2379,7 +2388,7 @@ TAMMO
 Klopt.
 
 MEM (app, stil)  
-Nog vijf dagen. Zeg het hem niet. – M.
+Nog zes dagen. Zeg het hem niet. – M.
 
 INT. NACHTSTREEK, STUDIO - NACHT [R3]
 
@@ -2436,7 +2445,7 @@ Jij ook niet.
 INT. TELEFOON - DAG [A3] (APPJES)
 
 MEM (app, stil)  
-Nog zes dagen. Hou Jelle bezig. – M.
+Nog zeven dagen. Hou Jelle bezig. – M.
 
 MEM (app, stil)  
 Zeg het hem niet. Hij praat met Rikus. – M.
@@ -2558,7 +2567,7 @@ Maandag 24 augustus, middag. Een kantoorpand bij een rotonde. Een bord: Wiebelwe
 Gameplay: een kantoor als speelveld; de juiste antwoorden kiezen, de serverkamer in en het logboek van 12 augustus bekijken.
 
 TAMMO  
-Wiebelwerk. Alles om middernacht bijgewerkt. Ook de camera's.
+We staan bij Wiebelwerk, in Veendam. Zij doen elke nacht om middernacht de update van het museum. Ook van de camera's.
 
 TESSA  
 Dat is toch geen misdaad?
@@ -2672,7 +2681,7 @@ Maandag 24 augustus, late middag. Een museumstoomtrein onder stoom, maar hij sta
 Gameplay: Tammo is machinist en rijdt de trein naar het volgende perron, terwijl Tessa door de wagons naar de juryleden loopt.
 
 TESSA  
-De machinist is omgekocht. Hij zit al een uur op een bank en eet een eierbal. De trein staat stil. De laatste twee juryleden en de bewaarder zitten vier uur vast in Jelles salonrijtuig.
+We staan op het perron in Stadskanaal. De machinist is omgekocht. Hij zit al een uur op een bank en eet een eierbal. De trein staat stil. De laatste twee juryleden en de bewaarder zitten vier uur vast in Jelles salonrijtuig.
 
 TAMMO  
 Wie rijdt hem dan?
@@ -2870,6 +2879,9 @@ En Jelle?
 
 BEREND  
 Jelle is geen bisschop. Hij komt met zijn limo.
+
+TESSA  
+Dan komt de bal ook hierheen, want Jelle draagt hem altijd bij zich. Dit is onze kans, Tammo.
 
 Tessa gaat naar de kruitkelder. Ze zegt dat ze iets moet halen.
 

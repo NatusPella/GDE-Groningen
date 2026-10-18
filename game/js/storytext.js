@@ -17,9 +17,10 @@
 // Pure apart from the fetch of the data; Node tests call setStoryData().
 
 import { nieuwVerhaal } from './storyflag.js';
+import { openBank } from './voicebank.js';
 
 const BASE = typeof document !== 'undefined' || typeof location !== 'undefined' ? new URL('../', import.meta.url).href : '';
-const DIRS = { story: BASE + 'audio/voicelines/story/', lines: BASE + 'audio/voicelines/lines/', banter: BASE + 'audio/voicelines/banter/' };
+const DIRS = { story: openBank('story').dir, lines: openBank('lines').dir, banter: openBank('banter').dir };
 
 let data = null;
 let byId = new Map();
@@ -35,7 +36,7 @@ export const storyDataReady = () => !!data;
 
 if (nieuwVerhaal() && typeof fetch === 'function' && BASE) {
   fetch(BASE + 'storydata/script.json').then((r) => (r.ok ? r.json() : null)).then((d) => { if (d) setStoryData(d); }).catch(() => {});
-  for (const k of Object.keys(DIRS)) fetch(DIRS[k] + 'manifest.json').then((r) => (r.ok ? r.json() : {})).then((m) => { manifests[k] = m || {}; }).catch(() => {});
+  for (const k of Object.keys(DIRS)) manifests[k] = openBank(k).entries;
 }
 
 export const scene = (id) => byId.get(id) || null;

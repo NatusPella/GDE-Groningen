@@ -138,7 +138,7 @@ function tick(dt, w) {
     const left = run ? Math.max(0, Math.ceil(MAX_RUN - run.time)) : 0;
     const mult = drift.chain ? drift.mult : 1;
     const key = `${pts}|${mult}|${left}|${drift.active ? 1 : 0}`;
-    showChip(`<span class="dc-k">${run ? 'DRIFT · ' + run.zone.name : 'DRIFT'}</span><b class="dc-p">${pts.toLocaleString('nl-NL')}</b><span class="dc-m${drift.active ? ' on' : ''}">x${mult}</span>${run ? `<span class="dc-t">${left}s</span>` : ''}`, key);
+    if (key !== chipKey) showChip(`<span class="dc-k">${run ? 'DRIFT · ' + run.zone.name : 'DRIFT'}</span><b class="dc-p">${pts.toLocaleString('nl-NL')}</b><span class="dc-m${drift.active ? ' on' : ''}">x${mult}</span>${run ? `<span class="dc-t">${left}s</span>` : ''}`, key);
   } else showChip('', '');
 }
 
