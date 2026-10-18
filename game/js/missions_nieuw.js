@@ -5,8 +5,13 @@
 // file) does not see their hint texts, which are text only.
 
 // The def pieces: walk(x, y) / drive(x, y) are missions.js's road spots.
-export function buildNieuwDefs({ map, walk, drive }) {
+// Act 2 plays out in the province (Hogeland, Waddenzee): the coordinates are world metres taken from the OSM
+// extract (data/cache/province: the nearest road, bank or water to the named place), see the comments.
+// A start there has no road data until the player is there (the tiles stream in): `lazyStart` makes
+// missions.js look for the road when the mission begins. `models` are the vehicle models of vehicle.js.
+export function buildNieuwDefs({ map, walk, drive, models = {} }) {
   const list = [];
+  const far = (x, y) => ({ x, y, road: null });
   const lm = (map.meta.landmarks || []).find((l) => l.name === 'Goudkantoor') || { x: 86.5, y: 111.7 };
   const loketAt = (dx, dy) => walk(lm.x + dx, lm.y + dy);
   list.push(
@@ -62,6 +67,63 @@ export function buildNieuwDefs({ map, walk, drive }) {
       start: drive(223.17, -30.52),
       dest: drive(-22.92, -491.56),
       say: 'Eerst de Grote Markt: vijftienhonderd stuntpunten, zonder krassen. Daarna het Boterdiep.',
+    },
+    {
+      // M09 Heel aankomen is ook een kunst (Hogeland): sixty eggs in Geesje's tractor, from the pastorie in Warffum to the
+      // church cellar in Usquert. Jelle shuts the road, so the wierdepaden it is: speed breaks eggs there (eggs.rough).
+      type: 'stages',
+      label: 'Heel aankomen is ook een kunst',
+      intro: ['Jelle Terpstra kocht alle eieren van het Hogeland, behalve die van Geesje. Oma\'s recept van 1953 heeft er zestig nodig.', 'Breng Geesjes laatste zes kratten, zestig eieren, heel naar de kerkkelder in Usquert. Rustig rijden: Oma\'s recept heeft er zestig nodig.'],
+      outro: 'Zestig eieren, alle heel. Plakje drie is gered.',
+      timeLimit: null,
+      reward: 700,
+      costRow: ['Gered', 'Plakje drie: de eieren van Geesje'],
+      vehicle: 'car',
+      vehicleName: 'Geesjes trekker',
+      vehicleModel: models.tractor || null,
+      vehicleFail: { gone: 'Geesjes trekker is foetsie, met alle eieren', wrecked: 'de trekker ligt in de sloot, de eieren drijven', left: 'je liet de trekker met de eieren staan' },
+      eggs: { from: 1, count: 60, failAt: 50, fail: 'meer dan de helft van de eieren is stuk. Laad opnieuw', rough: { speed: 8.5, per: 0.35 } },
+      lazyStart: true,
+      // Warffum, Pastorieweg (OSM way Pastorieweg, 53.39185 N 6.56013 E)
+      start: far(-638.9, -19173.8),
+      say: 'Breng Geesjes zestig eieren heel naar de kerkkelder in Usquert. Rustig rijden: ze zijn alle zestig nodig.',
+      stages: [
+        { kind: 'board', label: 'Stap in Geesjes trekker', say: 'De trekker staat bij de schuur. Instappen, de kratten staan achterop.' },
+        // the wierdepaden: the Westerhornseweg south of the main road (the Dorpsweg is shut by Jelle's permit)
+        { kind: 'goto', target: { at: [511.2, -19812.9], snap: 'drive', label: 'Westerhornseweg' }, mode: 'vehicle', radius: 22, label: 'Neem de wierdepaden: de Dorpsweg is dicht', say: 'De Dorpsweg is afgezet. Via de wierdepaden dan: bulten en gaten. Rustig aan.', talk: { ids: ['M09.2'], delay: 2 } },
+        // Usquert: the church (Petrus en Pauluskerk) on its wierde, Kerkstraat
+        { kind: 'goto', target: { at: [2779.1, -20401.5], snap: 'drive', label: 'De kerkkelder in Usquert' }, mode: 'vehicle', radius: 14, stop: 1, label: 'Breng de zestig eieren heel naar de kerkkelder in Usquert', say: 'Door naar Usquert. De kerk staat op de wierde, de kelder is koel.', talk: { ids: ['M09.3'], delay: 8 } },
+      ],
+    },
+    {
+      // M10 Een trekker-limo op de wierde (Hogeland): Jelle with the golden case in his black tractor-limo; Tessa and Tammo
+      // flee on the quad over wierdepaden, Jelle jumps a ditch near Uithuizen with a pole and ends in it.
+      type: 'stages',
+      label: 'Een trekker-limo op de wierde',
+      intro: ['Jelle rijdt het erf op in zijn zwarte trekker-limo, met de gouden koffer in zijn hand. Hij wil de museumbeelden ruilen tegen jullie vertrek uit Grunn.', 'Als Jelle de koffer loslaat, pakken wij hem: schud de limo af en haal de sloot bij Uithuizen.'],
+      outro: 'Jelle ligt in de sloot, de koffer droog. De bal is echt.',
+      timeLimit: null,
+      reward: 900,
+      costRow: ['Ontdekt', 'De bal is echt: Jelle draagt hem in een gouden koffer'],
+      vehicle: 'car',
+      vehicleName: 'de quad van Geesjes neef',
+      vehicleModel: models.quad || null,
+      vehicleFail: { gone: 'de quad is foetsie, en de limo rijdt door', wrecked: 'de quad is total loss. Geesjes neef wil hem niet zo terug', left: 'je liet de quad staan. Zonder quad geen wierdepaden' },
+      lazyStart: true,
+      // Usquert, a service road behind the church (53.40328 N 6.60891 E)
+      start: far(2585.0, -20500.1),
+      say: 'Als Jelle de koffer loslaat, pakken wij hem. Op de quad. Schud de limo af en haal de sloot bij Uithuizen.',
+      stages: [
+        { kind: 'board', label: 'Spring op de quad', say: 'De quad van Geesjes neef staat klaar. Springen, Tammo, hij rijdt.' },
+        {
+          // the ditch (OSM waterway=ditch) west of Uithuizen, on the road Bovenhuizen (53.40844 N 6.65982 E)
+          kind: 'goto', target: { at: [5960.4, -21132.8], snap: 'drive', label: 'De sloot bij Uithuizen' }, mode: 'vehicle', radius: 30,
+          label: 'Schud de limo af en haal de sloot bij Uithuizen', say: 'Over het kerkenpad, door de kerktuin, langs de wierdepaden. De limo kan niet overal heen.', talk: { ids: ['M10.2'], delay: 2 },
+          pursuer: { model: { name: 'trekkerlimo', len: 5.6, wid: 2.0, maxSpeed: 40, accel: 7, brake: 14, turnRate: 2.1, color: '#1b1c1f' }, name: 'Trekker-limo van Jelle', behind: 40, cruise: 15, caught: 7, caughtFor: 3, shake: 170, close: 24, fail: 'de limo haalt je in. Jelle houdt de koffer zelf wel vast', closeText: 'De trekker-limo zit op je bumper!', lostText: 'De limo raakt je kwijt, achter een wierde.' },
+        },
+        { kind: 'vault', label: 'Jelle', target: { bank: [5960.4, -21132.8] }, script: { ids: ['M10.3'], from: 0, to: 4 }, landing: 'Oant sjen!', fail: true },
+        { kind: 'goto', target: { at: [6901.1, -21266.8], snap: 'walk', label: 'De bushalte in Uithuizen' }, mode: 'any', radius: 14, label: 'Loop naar de bushalte bij het station van Uithuizen', say: 'Jelle ligt in de sloot. Naar de bushalte, we hebben nog een bus te halen.', talk: { ids: ['M10.3'], from: 4, to: 5, delay: 1 } },
+      ],
     },
   );
   return list;

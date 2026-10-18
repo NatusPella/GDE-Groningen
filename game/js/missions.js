@@ -3,7 +3,7 @@ import { buildWorldMarker3D, setWorldMarkerKind, updateWorldMarker3D } from './w
 import { dist, pointInPolygon, closestPointOnSegment, boatDryPoints, clamp, isInWater } from './util.js';
 import { waterPolyAt } from './waterlevels.js';
 import { PERFECT_VERDICT } from './flavourlines.js';
-import { spawnVehicleOnRoad, Vehicle, makeTwoWheeler, spawnHeroCarNear, attachToNearestRoad } from './vehicle.js';
+import { spawnVehicleOnRoad, Vehicle, makeTwoWheeler, spawnHeroCarNear, attachToNearestRoad, TRACTOR_MODEL, QUAD_MODEL } from './vehicle.js';
 import { placeOwnedVehicleNear } from './ownedvehicles.js';
 import { findWalkPath } from './routing.js';
 import { setGoal } from './goal.js';
@@ -614,7 +614,7 @@ function buildDefs(world) {
     },
   ];
   if (nieuwVerhaal()) {
-    list.push(...buildNieuwDefs({ map, walk, drive }));
+    list.push(...buildNieuwDefs({ map, walk, drive, models: { tractor: TRACTOR_MODEL, quad: QUAD_MODEL } }));
     applyNieuw(list);
   }
   return list;
@@ -1234,6 +1234,7 @@ function boatProgressText(rv) {
 // traffic that the population managers may despawn.
 function releaseMissionVehicle(world) {
   stopRondvaart(world, 'mission');
+  dropPursuer(world);
   disposeFjordTrain(world);
   disposeHeist();
   if (chain.skutsje) {
@@ -1452,6 +1453,7 @@ function endInFailure(world, text) {
   if (world.pigeonMode) stopPigeonMode(world);
   // an aborted or skipped H15 must not leave the heli run flying on
   if (isHeliRunActive()) abortHeliRun();
+  dropPursuer(world);
   chain.stage = null;
   releaseMissionVehicle(world);
   chain.phase = 'cooldown';
@@ -1488,7 +1490,7 @@ function pointAlongRoad(road, p, offset) {
 
 function spawnMissionCar(world, def) {
   const at = pointAlongRoad(def.start.road, def.start, world.player.inVehicle ? 10 : 6);
-  const car = spawnVehicleOnRoad(world.map, def.start.road, false, Math.random, false, false, at);
+  const car = spawnVehicleOnRoad(world.map, def.start.road, false, Math.random, false, false, at, false, def.vehicleModel ? { ...def.vehicleModel } : null);
   car.road = null;
   car.speed = 0;
   car.missionCar = true;
@@ -1830,6 +1832,11 @@ function releaseCrowd() {
 
 function startMission(world, def) {
   removeLeftover(world);
+  // a start out in the province has no road data until the player is there (the tiles stream in): find the road now
+  if (def.lazyStart && !def.start.road) {
+    const spot = roadSpot(world.map, def.start.x, def.start.y, true);
+    if (spot.road) Object.assign(def.start, spot);
+  }
   chain.afoot = false;
   chain.phase = 'active';
   chain.timeLeft = def.timeLimit ?? Infinity;
@@ -2550,7 +2557,7 @@ function stageProgressBase(world, def) {
     const ft = fjordTrainState();
     return `${st.label} · trein nog ${Math.max(0, Math.round(ft.cross.s - ft.t.c - ft.t.halfLen))} m`;
   }
-  if (def.eggs && chain.stageIndex >= def.eggs.from && chain.eggs != null) return `${st.label} · eiermeter ${Math.round(chain.eggs)}%`;
+  if (def.eggs && chain.stageIndex >= def.eggs.from && chain.eggs != null) return `${st.label} · ${eggText(def)}`;
   return `${st.label} (${n})`;
 }
 
@@ -2630,6 +2637,7 @@ function enterStage(world, def, k) {
 
 function nextStage(world, def) {
   const cur = def.stages[chain.stageIndex];
+  dropPursuer(world);
   if (def.heist) heistLeaveStage(world, cur);
   if (cur && cur.pay) {
     const amt = Math.min(cur.pay, Math.max(0, Math.floor(world.money)));
@@ -2687,6 +2695,65 @@ function updateBoatChase(dt, world, def, st, S) {
     if (S.hold >= (st.boardTime || 2.5)) { B.speed = 0; v.speed = 0; nextStage(world, def); return; }
   } else S.hold = Math.max(0, S.hold - dt * 0.5);
   if (d > (st.escape || 230) || S.t > (st.time || 180)) fail(world, def, st.lost || 'het skûtsje is ontsnapt');
+}
+
+// --- M10: a limo on your tail (goto stage `pursuer`) -------------------------------
+// It drives the road graph after you (the chase AI of vehicle.js, goal = where you are), so a quad that
+// cuts over a wierdepad or through a churchyard loses it. Caught = it stays right on you for `caughtFor` s.
+// pursuer { model, behind, cruise, caught, caughtFor, shake, name, fail, close, lostText }
+function spawnPursuer(world, st) {
+  const P = st.pursuer, ref = world.player.inVehicle || world.player;
+  const back = P.behind || 45, a = ref.angle || 0;
+  const spot = roadSpot(world.map, ref.x - Math.cos(a) * back, ref.y - Math.sin(a) * back, true);
+  if (!spot.road) return null;
+  const v = spawnVehicleOnRoad(world.map, spot.road, false, () => 0.1, false, false, spot, false, { ...P.model });
+  v.missionCar = true;
+  v.chaseDodge = true;
+  v.label = P.name || '';
+  v.aiOpts = { goal: { x: ref.x, y: ref.y }, chase: true, cruise: P.cruise || 14 };
+  return v;
+}
+
+function updatePursuer(dt, world, def, st, S) {
+  const P = st.pursuer;
+  if (S.limo === undefined) {
+    S.limo = spawnPursuer(world, st);
+    if (S.limo) world.vehicles.push(S.limo);
+  }
+  const v = S.limo;
+  if (!v) return false;
+  if (S.lost) return false;
+  // wrecked, or taken out of the world: the chase is over
+  if (!world.vehicles.includes(v) || v.wrecked) { S.lost = true; S.limo = null; return false; }
+  const ref = world.player.inVehicle || world.player;
+  const d = dist(ref.x, ref.y, v.x, v.y);
+  if ((S.goalT = (S.goalT || 0) - dt) <= 0) {
+    S.goalT = 0.8;
+    v.aiOpts = { goal: { x: ref.x, y: ref.y }, chase: true, cruise: P.cruise || 14 };
+  }
+  S.caughtT = d < (P.caught || 7) ? (S.caughtT || 0) + dt : Math.max(0, (S.caughtT || 0) - dt * 0.7);
+  if (d < (P.close || 22) && !S.warned) { S.warned = true; world.addMessage(P.closeText || 'De limo zit op je bumper!', 2.6, { kind: 'gevaar', key: 'pursuer-close' }); }
+  else if (d > (P.close || 22) * 2) S.warned = false;
+  if (S.caughtT > (P.caughtFor || 3)) {
+    fail(world, def, P.fail || 'de limo haalt je in');
+    return true;
+  }
+  if (d > (P.shake || 170)) {
+    S.lost = true;
+    world.addMessage(P.lostText || 'De limo raakt je kwijt.', 3.2);
+    const i = world.vehicles.indexOf(v);
+    if (i >= 0) world.vehicles.splice(i, 1);
+    S.limo = null;
+  }
+  return false;
+}
+
+function dropPursuer(world) {
+  const v = chain.stage && chain.stage.limo;
+  if (!v) return;
+  const i = world.vehicles.indexOf(v);
+  if (i >= 0) world.vehicles.splice(i, 1);
+  chain.stage.limo = null;
 }
 
 // --- H15: the trauma heli (helirun.js) as one stage -----------------------------
@@ -2747,6 +2814,12 @@ function updateFireworks(dt, world, def, st, S) {
 }
 
 // --- H17: the egg meter, from the volkstuin to the stall: no hard braking --------
+// def.eggs.count (M09: sixty eggs): the meter reads as eggs still whole
+function eggText(def) {
+  const n = def.eggs.count;
+  return n ? `${Math.round(chain.eggs / 100 * n)} van ${n} eieren heel` : `eiermeter ${Math.round(chain.eggs)}%`;
+}
+
 function updateEggs(dt, world, def) {
   const v = world.player.inVehicle;
   if (!v || chain.eggs == null || !dt) { chain.eggVeh = null; return; }
@@ -2754,6 +2827,8 @@ function updateEggs(dt, world, def) {
   if (chain.eggVeh === v) {
     const decel = (chain.eggPrev - sp) / dt;
     let loss = decel > 13 ? (decel - 13) * dt * 1.4 : 0;
+    // M09: the wierdepaden are full of holes, so speed breaks eggs too
+    if (def.eggs.rough) loss += Math.max(0, sp - def.eggs.rough.speed) * def.eggs.rough.per * dt;
     if (v.health < chain.eggHp) loss += (chain.eggHp - v.health) * 1.2;
     chain.eggs = Math.max(0, chain.eggs - loss);
   }
@@ -2763,7 +2838,7 @@ function updateEggs(dt, world, def) {
   for (const lvl of [75, 50]) {
     if (chain.eggs < lvl && chain.eggWarn > lvl) {
       chain.eggWarn = lvl;
-      world.addMessage(lvl > 60 ? `Krak. Achterin breekt een ei. Eiermeter ${Math.round(chain.eggs)}%` : `Nog zo'n remmer en het wordt omelet! (${Math.round(chain.eggs)}%)`, 2.8);
+      world.addMessage(lvl > 60 ? `Krak. Achterin breekt een ei. ${eggText(def)}` : `Nog zo'n remmer en het wordt omelet! (${eggText(def)})`, 2.8);
     }
   }
   if (chain.eggs <= def.eggs.failAt) fail(world, def, def.eggs.fail);
@@ -2939,6 +3014,7 @@ function updateStages(dt, world, def) {
       break;
     case 'goto': {
       if (!S.target) { nextStage(world, def); break; }
+      if (st.pursuer && updatePursuer(dt, world, def, st, S)) break;
       if (st.limit && S.t > st.limit) { fail(world, def, st.late || 'te laat'); break; }
       if (dist(p.x, p.y, S.target.x, S.target.y) >= (st.radius || STAGE_RADIUS)) { S.hold = 0; break; }
       if (!modeOk(p, st.mode)) { hint(world, MODE_HINT[st.mode] || ''); break; }
@@ -3066,7 +3142,8 @@ function updateStages(dt, world, def) {
         if (isCinematicActive()) break;
         S.started = true;
         const at = S.target || { x: p.x, y: p.y };
-        if (!playVaultScene(world, { at, lines: st.lines, landing: st.landing, fail: !!st.fail })) { world.addMessage(st.fail ? 'Jelle springt met een polsstok… en ligt in het water.' : 'Jelle springt met een polsstok over de gracht. Moai.', 4); nextStage(world, def); }
+        const vlines = st.script && storyDataReady() ? storyLines(st.script.ids, st.script) : st.lines;
+        if (!playVaultScene(world, { at, lines: vlines, landing: st.landing, fail: !!st.fail })) { world.addMessage(st.fail ? 'Jelle springt met een polsstok… en ligt in het water.' : 'Jelle springt met een polsstok over de gracht. Moai.', 4); nextStage(world, def); }
       } else if (!isCinematicActive('mission-vault')) nextStage(world, def);
       break;
     case 'scene':
