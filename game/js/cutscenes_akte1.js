@@ -267,8 +267,8 @@ Object.assign(SPECS, SPECS_AKTE2);
       { on: 0, dt: 1.5, actor: 'loketbediende', drop: 'stempelblad' },
       { on: 'Wij zijn ingeschreven', actor: 'tessa', face: 'actor:tammo' },
       { on: 'Wij zijn ingeschreven', dt: 0.4, actor: 'tessa', anim: 'cheer' },
-      { on: 'Maar Jelle kocht', actor: 'tessa', anim: 'point' },
-      { on: 'Maar Jelle kocht', dt: 0.1, actor: 'tammo', anim: 'shake' },
+      { on: 'Plakje één is', actor: 'tessa', anim: 'point' },
+      { on: 'Plakje één is', dt: 0.1, actor: 'tammo', anim: 'shake' },
       { on: 'Jelle vroeg waar', actor: 'tessa', anim: 'talk' },
       { on: 'Dan wint Jelle', actor: 'tammo', anim: 'hips' },
       { on: 'Tenzij iemand', actor: 'tessa', anim: 'point' },
@@ -562,7 +562,7 @@ export function missionScene(key, lines, { looks = {} } = {}) {
   for (const [id, c] of Object.entries(spec.cast || {})) {
     const look = looks[c.key];
     if (!look) return null;
-    actors[id] = { look, at: c.at, face: c.face ?? 180, anim: c.anim || 'idle', speaker: [look.name], gaze: 'speaker' };
+    actors[id] = { look, at: c.at, face: c.face ?? 180, anim: c.anim || 'idle', speaker: c.key === 'jelmer' ? [look.name, 'Streamer'] : [look.name], gaze: 'speaker' };
     meta[id] = { gest: c.gest || NPC_GEST, bg: !!c.bg, noauto: !!c.noauto };
   }
   const props = spec.props || {};

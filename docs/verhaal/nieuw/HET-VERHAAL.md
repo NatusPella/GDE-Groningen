@@ -148,7 +148,7 @@ TAMMO
 Honderdvijftig euro. Vandaag.
 
 TESSA  
-Een streamer betaalt voor stunts, maar de Escapade heeft een lekke band. We lenen een bakkie. Rijden, niet praten.
+Een streamer betaalt honderdvijftig euro voor stunts. Alleen heeft de Escapade een lekke band, dus we lenen een bakkie. Rijden, niet praten.
 
 EXT. MARTINIKERKHOF, GRUNN - OCHTEND [M01]
 
@@ -196,16 +196,16 @@ TESSA
 En jij als een fietser zonder fiets. Sleutels, Berend.
 
 TESSA  
-Vijftig euro van de honderdvijftig, Tammo. Nu de rest.
+Vijftig euro van Berend. Met de stunts erbij is dat genoeg, Tammo.
 
 EXT. MARTINIKERKHOF NAAR DE GROTE MARKT, GRUNN - OCHTEND [M01]
 
 Tessa's telefoon gaat. Een streamer van Kiekdoar filmt zichzelf, ergens op een terras.
 
-JELMER (V.O. telefoon)  
+STREAMER (V.O. telefoon)  
 Moi moi! Kiekdoar hier. Je reageerde op mijn oproep: stuntrijder met een bakkie. Ik wil vanavond content op de Grote Markt.
 
-JELMER (V.O. telefoon)  
+STREAMER (V.O. telefoon)  
 Haal vijftienhonderd stuntpunten, dan betaal ik honderdvijftig euro.
 
 TESSA  
@@ -220,7 +220,7 @@ Zonder krassen.
 TAMMO  
 Dat is geen stunt. Dat is een ramp met regels.
 
-JELMER (V.O. telefoon)  
+STREAMER (V.O. telefoon)  
 Niemand raken! Alleen spullen. Spullen zijn content.
 
 TESSA  
@@ -233,7 +233,7 @@ Avond. Een hijskraan, zoals altijd. Een terras vol mensen in de avondzon. De str
 TESSA  
 Dit is de Grote Markt. Parasols en kliko's mogen, mensen niet. Haal die vijftienhonderd punten.
 
-JELMER  
+STREAMER  
 Moi moi chat! Zomeravond op de Grote Markt! En kijk: verse content!
 
 TAMMO  
@@ -245,7 +245,7 @@ Spreek voor jezelf. Ik ben heel veel content.
 TAMMO  
 En die terrassen?
 
-JELMER  
+STREAMER  
 Die zijn het publiek! Niemand raken, wel laten schrikken!
 
 De torenwachter van de Martinitoren belt. Hij kijkt de hele dag over Stad en meldt wat hij ziet.
@@ -261,7 +261,7 @@ Ik meld alleen.
 
 EXT. GROTE MARKT, GRUNN - AVOND [M01]
 
-JELMER  
+STREAMER  
 Chat, kijk die parasol! Die was van het terras. Nu is hij content!
 
 TESSA  
@@ -279,7 +279,7 @@ Het is een parasol, Berend.
 BEREND (V.O. telefoon)  
 Dat is een kras met een parasol.
 
-JELMER  
+STREAMER  
 Chat vindt dat niet leuk! Een terrasstoel met een hoed erop! Min honderd!
 
 TESSA  
@@ -295,10 +295,10 @@ Parasols op hun kant, een kliko in de fontein, een terras dat applaudisseert, na
 TERRASGAST  
 Kon minder!
 
-JELMER  
+STREAMER  
 Tienduizend kijkers! En kijk: ene JelleWâld typt in de chat.
 
-JELMER  
+STREAMER  
 "En dat famke yn it read: sa'n leaf gesicht."
 
 TESSA  
@@ -315,7 +315,7 @@ Is dat een vraag?
 TAMMO  
 Nee.
 
-JELMER  
+STREAMER  
 Honderdvijftig euro, overgemaakt op jouw pas.
 
 TESSA  
@@ -434,7 +434,7 @@ TESSA
 Daar koop je nog geen halve frietwagen van.
 
 SJABBE  
-Dan moet je groter denken. Die twee reuzen werken voor een Fries in een blauw colbert. Jelle Terpstra.
+Dan moet je groter denken. Die twee reuzen, Durk en Douwe, werken voor een Fries in een blauw colbert. Jelle Terpstra.
 
 TESSA  
 Het colbert van Berend. De man uit de chat.
@@ -558,7 +558,7 @@ TESSA
 Achter Jelle staat een kleine, oude dame met een hoed, een gouden speldje en een stempel.
 
 BEWAARDER  
-Mevrouw Tuinstra. Ik bewaar de Gouden Eierbal, al sinds 1998. Wie de bal bewaart, zit de jury voor. Dat is artikel 4.
+Mevrouw Tuinstra. Ik bewaar de Gouden Eierbal, de wisselprijs van de Snackprijs, al sinds 1998. Wie de bal bewaart, zit de jury voor. Dat is artikel 4.
 
 LOKETBEDIENDE  
 Artikel 9: is de bewaarder verhinderd, dan zit het oudste jurylid voor. Dat is meneer Bos, jurylid sinds 1982.
@@ -604,7 +604,7 @@ TESSA
 Wij zijn ingeschreven. Op 28 augustus op de Grote Markt.
 
 TESSA  
-Maar Jelle kocht de rij en alle standplaatsen. Plakje één is van hem. Dat krijgen we niet meer terug.
+Plakje één is van Jelle: alle standplaatsen. Dat krijgen we niet meer terug.
 
 TESSA  
 Jelle vroeg waar het museum alarmen heeft. Hij wil de bal, want wie de bal bewaart, zit de jury voor.
