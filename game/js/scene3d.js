@@ -4,7 +4,7 @@ import { markerColors } from './a11y.js';
 import { speakerHtml } from './speakers.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { buildBuildingMesh, setBuildingMap, setNightFactor } from './models3d_buildings.js';
-import { buildVehicleMesh, updateVehicleWheelSpin, setBusRearAngle, updatePoliceLamps, updateIndicatorLamps, syncPoliceMount, boatHullProfile, riderSeatFor, attachHelmet } from './models3d_vehicles.js';
+import { buildVehicleMesh, updateVehicleWheelSpin, applyFlatTire, setBusRearAngle, updatePoliceLamps, updateIndicatorLamps, syncPoliceMount, boatHullProfile, riderSeatFor, attachHelmet } from './models3d_vehicles.js';
 import {
   buildVehicleImpactSparkMesh3D, updateVehicleImpactSparkMesh3D,
   vehicleNeedsFireEffect, vehicleSmokeOnly, buildVehicleFireMesh3D, updateVehicleFireMesh3D,
@@ -2110,6 +2110,7 @@ export function update3D(dt, world) {
         const moved = lx == null ? 0 : (v.x - lx) * Math.cos(v.angle) + (v.y - ly) * Math.sin(v.angle);
         updateVehicleWheelSpin(mesh, dt > 0 && Math.abs(moved) < 8 ? moved / dt : 0, dt, v.steer || 0);
       } else updateVehicleWheelSpin(mesh, v.speed, animDt, v.steer || 0);
+      if (v.flat || mesh.userData.flatIdx >= 0) applyFlatTire(mesh, v);
       if (v.isBoat) {
         animateBoat(mesh, v, world, animDt);
         crewCtx.dist = Math.hypot(v.x - player.x, v.y - player.y);

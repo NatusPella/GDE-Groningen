@@ -1,3 +1,4 @@
+import { FLAT_SCALE, flatWheelIndex } from './flatlook.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { HABBO_PALETTE, habboMaterial, GeoBuilder, vcMaterial, markShared, composeMatrix, tubeGeometry } from './pixelart3d.js';
 import { buildPersonMesh, PERSON_RIG, holdPhoneRiding } from './models3d_people.js';
@@ -2329,6 +2330,24 @@ export function updateVehicleWheelSpin(mesh, speed, dt, steer = 0) {
     const sw = Math.sin(ud.pedalPhase) * rl.amp * moving;
     rl.legs[0].rotation.z = rl.base + sw;
     rl.legs[1].rotation.z = rl.base - sw;
+  }
+}
+
+// Lekke band (#41): het wiel aan de trekkende kant wordt kleiner en zakt in; terug naar normaal na
+// reparatie (v.flat weg). Idempotent, goedkoop genoeg om elk frame aan te roepen.
+export function applyFlatTire(mesh, v) {
+  const ud = mesh.userData, wheels = ud.wheels;
+  if (!wheels || !wheels.length) return;
+  const want = v.flat ? flatWheelIndex(wheels.map((w) => ({ x: w.position.x, z: w.position.z })), v.id) : -1;
+  if ((ud.flatIdx ?? -1) === want) return;
+  const prev = ud.flatIdx ?? -1;
+  if (prev >= 0 && wheels[prev]) { wheels[prev].scale.setScalar(1); wheels[prev].position.y = wheels[prev].userData.baseY; }
+  ud.flatIdx = want;
+  if (want >= 0) {
+    const w = wheels[want];
+    if (w.userData.baseY == null) w.userData.baseY = w.position.y;
+    w.scale.setScalar(FLAT_SCALE);
+    w.position.y = w.userData.baseY * FLAT_SCALE;
   }
 }
 
