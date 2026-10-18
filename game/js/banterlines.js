@@ -1047,8 +1047,6 @@ export const BANTER = [
   { id: 'id-wikipedia', trigger: 'idle', needs: 'H1', lines: [
     ['T', 'De Martinitoren is honderd meter. Minstens.', 'confident'],
     ['A', 'Zevenennegentig. En een beetje. Klaar rond 1482.', 'matter-of-fact'],
-    ['T', 'Daar gaat Tessa, de wandelende Wikipedia van Stad.', 'teasing'],
-    ['A', 'Iemand moet het weten.', 'smug'],
     ['T', 'Zevenennegentig bedoelde ik ook.', 'deadpan']] },
 
   // summer in Grunn (the story weeks, until Ontzet)
