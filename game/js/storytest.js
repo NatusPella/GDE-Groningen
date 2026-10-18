@@ -765,6 +765,8 @@ export async function runStoryTest(world) {
             }
           }
           check(`mission ${cur.id} finished`, !isMissionActive());
+          // a vliegmissie (M15: plane, airgates) is not flown by the generic objective skipper: it fails and the story offers the skip
+          { const c2 = S().current(); if (c2 && c2.id === cur.id && S().canSkip()) { const m1 = world.money; S().skip(); await drain(world); entry.notes.push(`mislukt (de harnas vliegt niet) en overgeslagen: +€${Math.round(world.money - m1)}`); } }
           if (NEW) newArcChecks(cur.id);
         }
         await drain(world);
