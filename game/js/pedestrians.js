@@ -1,5 +1,6 @@
 import { scaledTarget, farAIDist, skipFar, takeDt } from './simload.js';
 import { inClearZone } from './clearzone.js';
+import { openDriverDoor } from './vehicledoors.js';
 import { profileOf } from './signalement.js';
 import { createVictim, stepVictim, victimDone, VICTIM } from './carjackvictim.js';
 import { dist, pointInPolygon, closestPointOnSegment, isInWater } from './util.js';
@@ -451,6 +452,7 @@ export function ejectDriver(world, ev) {
   ped.health = 40;
   ped.noFade = true;
   world.pedestrians.push(ped);
+  openDriverDoor(v); // the driver's door swings open (vehicledoors3d.js draws it)
   if (ev.calm) return ped; // roadrage.js: he steps out on his own, nobody pulled him
   const ox = x - v.x, oy = y - v.y, ol = Math.hypot(ox, oy) || 1;
   if (Math.abs(v.speed) > 2.5) {

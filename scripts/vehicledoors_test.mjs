@@ -125,5 +125,21 @@ check('limiet geldt ook voor kap en klep', D.reconcileDoors(vm, sed, wv).length 
 
 check('bus staat stil: deuren open', D.stilstandDeurOpen(car('bus', { isBus: true })) && !D.stilstandDeurOpen(car('bus', { isBus: true, speed: 5 })) && !D.stilstandDeurOpen(car('sedan')));
 
+// de bestuurdersdeur bij uitstappen of uit de auto trekken (#49)
+{
+  const s = car('sedan');
+  check('de bestuurdersdeur gaat open', D.openDriverDoor(s) === 'vl' && s.doors.want.vl === 1 && s.doors.hold.vl > 0);
+  const dt = 1 / 60;
+  for (let i = 0; i < 30; i++) D.stepDoors(s.doors, dt, { speed: 0 });
+  check('en staat open', s.doors.open.vl === 1);
+  for (let i = 0; i < 200; i++) D.stepDoors(s.doors, dt, { speed: 0 });
+  check('en valt na een tijdje weer dicht', !(s.doors.open.vl > 0));
+  const w = car('hatch'); w.doors = D.makeDoorState(); w.doors.loose.vl = true;
+  check('een losse deur: geen fout, de opening blijft de weg', ['vl', 'vr'].includes(D.openDriverDoor(w)) && !(w.doors.open.vl > 0));
+  check('een fiets heeft geen deur', D.openDriverDoor(car('bike')) === null);
+  const m = car('sedan', { speed: 8 });
+  D.openDriverDoor(m); D.stepDoors(m.doors, dt * 30, { speed: 8 });
+  check('een rijdende auto slaat de deur dicht', !(m.doors.open.vl > 0.5));
+}
 if (bad) { console.log(bad + ' mislukt'); process.exit(1); }
 console.log('vehicledoors_test: ok');
