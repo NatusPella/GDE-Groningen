@@ -57,9 +57,6 @@ export function setGlassNight(glow, litFrac, shopFrac) {
   glassMaterial.envMapIntensity = interiorOn ? 0.5 + storm * 0.5 : 0.55;
 }
 
-export function setRoomDepth(f) {
-  uniforms.uRoomDepth.value = f;
-}
 
 const DECODE = /* glsl */`
 varying vec2 vWinUv;
