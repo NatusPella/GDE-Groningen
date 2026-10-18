@@ -48,3 +48,46 @@ export function bystanderReaction({ dist, unitSpeed, onRoad, seated = false, rol
   if (seated || roll > 0.6) return null;
   return 'gawk';
 }
+
+// --- the search and the cooldown (#43), the pure core of police.js updateSearch ---------
+// pol: world.police { searching, searchCenter, searchRadius, lastSeen, seenRecently, unseenFor };
+// w: the world's { wanted, wantedDecayTimer }. Pure, so the headless pursuit
+// simulation (scripts/pursuit_sim_test.mjs) steps the real rules.
+export const SEARCH_MIN_RADIUS = 25;
+
+// A unit sees the player (or the escalation still holds): the chase is on.
+export function markSeen(pol, w, px, py) {
+  pol.lastSeen = { x: px, y: py };
+  pol.unseenFor = 0;
+  pol.seenRecently = true;
+  pol.searching = false;
+  w.wantedDecayTimer = 0;
+}
+
+// Nobody sees the player for dt more seconds. decay: signalement.js factor
+// (a changed vehicle or colour cools down faster). Returns true when the last
+// star just dropped.
+export function stepUnseen(pol, w, dt, px, py, decay = 1) {
+  pol.unseenFor += dt;
+  const lvl = levelOf(w.wanted);
+  if (pol.unseenFor < lvl.loseAfter && !pol.searching) {
+    pol.seenRecently = true;
+    return false;
+  }
+  pol.seenRecently = false;
+  if (!pol.searching) {
+    pol.searching = true;
+    pol.searchCenter = pol.lastSeen ? { ...pol.lastSeen } : { x: px, y: py };
+    pol.searchRadius = lvl.searchRadius;
+    w.wantedDecayTimer = 0;
+  }
+  pol.searchRadius = Math.max(SEARCH_MIN_RADIUS, pol.searchRadius - lvl.shrink * dt);
+  const outside = Math.hypot(px - pol.searchCenter.x, py - pol.searchCenter.y) > pol.searchRadius;
+  w.wantedDecayTimer += dt * (outside ? 2 : 1) * decay;
+  if (w.wantedDecayTimer >= lvl.cooldown) {
+    w.wanted = Math.max(0, w.wanted - 1);
+    w.wantedDecayTimer = 0;
+    return w.wanted === 0;
+  }
+  return false;
+}
