@@ -87,7 +87,8 @@ function buildRig(mesh, v, defs) {
       panel = new THREE.Mesh(panelGeo(d.w, d.h), panelMat(paint, glas));
       panel.position.x = d.soort === 'scharnier' ? -d.w / 2 : d.soort === 'achterscharnier' ? d.w / 2 : 0;
       hole = new THREE.Mesh(panelGeo(d.w * 0.92, d.h * 0.92), HOLE_MAT);
-      hole.position.set(cx, d.y0 + d.h / 2, d.side * (hw + 0.006));
+      // schuifdeuren (bus): het deurblad zit al in het model op hw+0.014, de opening moet daar vóór liggen
+      hole.position.set(cx, d.y0 + d.h / 2, d.side * (hw + (d.soort === 'schuif' ? 0.02 : 0.006)));
     }
     pivot.add(panel);
     hole.visible = false;
