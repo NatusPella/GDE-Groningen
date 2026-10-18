@@ -262,10 +262,4 @@ function updateSitter(sw, world, d, time, pv) {
   }
 }
 
-export function swimmerCount() {
-  return swimmers.length;
-}
 
-export function swimmerSpots() {
-  return swimmers.map((s) => ({ x: s.x, y: s.y, built: !!s.mesh }));
-}

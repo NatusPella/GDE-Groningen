@@ -359,4 +359,3 @@ export const WATERSKI = standActivity({
     quit: () => { if (!game) return false; end(w, { quit: true }); return true; },
   }),
 });
-export const WATERSKI_MEDALS = MEDAL_AT;

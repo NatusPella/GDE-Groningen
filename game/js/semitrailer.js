@@ -63,14 +63,6 @@ export function stepTrailer(tr, tractor, dt, kpBack = 1.6) {
   return tr;
 }
 
-// Midden van de oplegger (voor botsingen en tekenen) en de achteras.
-export function trailerCentre(tr) {
-  const h = tr.spec.len / 2 - 1.2;
-  return { x: tr.kx - Math.cos(tr.angle) * h, y: tr.ky - Math.sin(tr.angle) * h };
-}
-export function rearAxle(tr) {
-  return { x: tr.kx - Math.cos(tr.angle) * tr.spec.axle, y: tr.ky - Math.sin(tr.angle) * tr.spec.axle };
-}
 
 // Hoek tussen trekker en oplegger, positief als de oplegger naar links uitzwaait.
 export function hitchAngle(tractor, tr) { return wrap(tractor.angle - tr.angle); }

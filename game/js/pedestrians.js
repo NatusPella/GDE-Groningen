@@ -1,4 +1,5 @@
 import { scaledTarget, farAIDist, skipFar, takeDt } from './simload.js';
+import { inClearZone } from './clearzone.js';
 import { profileOf } from './signalement.js';
 import { createVictim, stepVictim, victimDone, VICTIM } from './carjackvictim.js';
 import { dist, pointInPolygon, closestPointOnSegment, isInWater } from './util.js';
@@ -195,6 +196,7 @@ function spawnPedsRaw(map, x, y, count, rng, minDist = 0, hidden = true) {
     if (map.onRingCarriageway && map.onRingCarriageway(fx, fy)) continue;
     if (view && !isSpawnHidden(spawnWorld, fx, fy)) continue;
     if (crowdedAt(fx, fy, peds)) continue;
+    if (inClearZone(fx, fy, 1)) continue;
 
     peds.push(new Pedestrian(fx, fy, segAngle + (rng() < 0.5 ? 0 : Math.PI)));
   }

@@ -3407,8 +3407,3 @@ const warmList = ['glass', 'crunch_0', 'crunch_1', 'crunch_2', 'bikebell', 'ric_
   'imp_water', 'imp_wood', 'imp_dirt', 'imp_metal_2', 'imp_metal_1', 'imp_metal_0', 'imp_stone_2', 'imp_stone_1', 'imp_stone_0',
   'gun_echo', 'gun_shotgun_1', 'gun_shotgun_0', 'gun_uzi_2', 'gun_uzi_1', 'gun_uzi_0', 'gun_pistol_2', 'gun_pistol_1', 'gun_pistol_0'];
 
-export function getAudioStats() {
-  if (!ctx) return null;
-  const engineSynth = synth.player ? { kind: engineState.kind, gear: engineState.gear, level: +engineState.gain.toFixed(3), traffic: engineVoices.filter((voice) => voice.target).length } : null;
-  return { activeVoices, buffers: bank ? bank.size() : 0, duck: duckState.level, engineSynth, ...ambienceStats(), ...foleyStats() };
-}
