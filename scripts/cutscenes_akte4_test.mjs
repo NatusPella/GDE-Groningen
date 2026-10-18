@@ -21,6 +21,7 @@ ok(looks.berend && looks.berend.name === 'Berend Bos', 'NPC table parsed');
 // spec key -> script scene ids (storyarc_nieuw.js `story`)
 const SCENES = {};
 for (const s of STEPS.filter((q) => (q.part === 'zuid' || q.part === 'ontzet') && q.story)) { SCENES[s.id + '.intro'] = s.story.intro; if (s.story.outro) SCENES[s.id + '.outro'] = s.story.outro; }
+for (const k of Object.keys(SPECS)) if (/^M(1[7-9]|2\d)\.\d$/.test(k)) SCENES[k] = [k];
 const NAME = { T: 'Tammo', A: 'Anita' };
 // the timeline of missionstory.js without recordings: reading time, 0.6 s lead, 0.1 s between
 function linesOf(ids) {
@@ -38,7 +39,8 @@ function linesOf(ids) {
 }
 
 const KEYS = Object.keys(SPECS).filter((k) => /^M(1[7-9]|2[0-9])./.test(k));
-ok(KEYS.length === 16, 'sixteen staged scenes', String(KEYS.length));
+ok(KEYS.filter((k) => /\.(intro|outro)$/.test(k)).length === 16, 'sixteen staged intros and outros', String(KEYS.length));
+ok(KEYS.filter((k) => /\.\d$/.test(k)).length >= 9, 'the in-mission scenes are staged', String(KEYS.length));
 for (const key of KEYS) {
   ok(SCENES[key], key + ' has a script scene', key);
   const { lines, total } = linesOf(SCENES[key]);
