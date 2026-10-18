@@ -147,6 +147,14 @@ for (const [name, pal] of Object.entries(PALETTES)) {
     ok(L.contrast(pal[k], L.HUD_CARD_BG) >= L.GRAPHIC_CONTRAST, 'contrast of ' + k + ' in ' + name + ': ' + L.contrast(pal[k], L.HUD_CARD_BG).toFixed(2));
   }
 }
+// #169: no loose mode switches; the planner follows your vehicle unless another way is chosen
+ok(A.planModeFor(null, 'auto') === null && A.planModeFor('zelf', 'fiets') === null && A.planModeFor('auto', 'auto') === null, 'your own way plans as null');
+ok(A.planModeFor('ov', 'lopen') === 'ov' && A.planModeFor('boot', 'auto') === 'boat' && A.planModeFor('onbekend', 'auto') === null, 'another way plans for that mode');
+{
+  const src = readFileSync(new URL('../game/js/mapview.js', import.meta.url), 'utf8');
+  ok(!/mapview-modes|data-act="mode"/.test(src), 'the map has no mode switches any more');
+}
+
 // #168: 'x prestaties wachten' is not in the HUD any more; the count is a quiet dot in the pause menu
 {
   const dir = new URL('../game/js/', import.meta.url);
