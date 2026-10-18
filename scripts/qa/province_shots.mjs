@@ -72,6 +72,7 @@ const SPOTS = [
   { name: 'spoor-winschoten', ...station('Winschoten'), snapR: 100 },
   { name: 'spoor-eemshaven', ...station('Eemshaven'), snapR: 100 },
 ];
+if (arg('spots', '')) SPOTS.splice(0, SPOTS.length, ...JSON.parse(fs.readFileSync(arg('spots', ''), 'utf8')));
 for (const s of SPOTS) { s.x = Math.round(s.x * 10) / 10; s.y = Math.round(s.y * 10) / 10; }
 
 
