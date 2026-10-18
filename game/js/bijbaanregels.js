@@ -268,3 +268,13 @@ export function stapRonde(r, input, dt) {
 }
 
 export const rondeResultaat = (r) => r.rule.result(r.s);
+
+// Hoeveel doelen een ronde heeft en welke de huidige is, per baan.
+export const DOELEN = {
+  fietssoep: { total: (s) => s.drops, at: (s) => s.done },
+  taxinacht: { total: () => 1, at: () => 0 },
+  balenrit: { total: () => 1, at: () => 0 },
+  berging: { total: () => 2, at: (s) => (s.hooked ? 1 : 0) },
+  schoolrit: { total: (s) => s.stops, at: (s) => s.at },
+  melkrit: { total: (s) => s.farms + 1, at: (s) => Math.min(s.at, s.farms) },
+};
