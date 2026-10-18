@@ -52,6 +52,38 @@ cd desktop && npm run stage && cd ..     # once: vendors three.js for the 3D tes
 for t in scripts/*_test.mjs; do node "$t" || echo "FAIL $t"; done   # includes rdnew, world_tiles, tileworld, floatingorigin
 ```
 
+### Test runner and audits
+
+`scripts/run_tests.mjs` runs the standard set in one go: `node --check` on all JS, `voice_coverage`, every `scripts/*_test.mjs` and the Python tests, with plain `node` (no `timeout` needed, it has its own). CI (`.github/workflows/test.yml`) runs the same on Linux and Windows for every pull request.
+
+```bash
+node scripts/run_tests.mjs --quick        # fast subset: no full syntax sweep, no slow tests (30 s per test)
+node scripts/run_tests.mjs                # everything standard (120 s per test)
+node scripts/run_tests.mjs --only=busy    # tests whose name contains "busy"
+node scripts/run_tests.mjs --list         # show what would run
+node scripts/run_tests.mjs --timeout=300  # per-test limit in seconds
+node scripts/text_audit.mjs               # player-facing text against the constitution (Dutch only, no real brands, "Grunn", summer); --all, --json
+```
+
+Tests that need `game/world` or `data/cache` and do not find it are skipped with a SKIP line. The heavy world checks are deliberately not in the runner and are run by the coordinator before a release: `province_test`, `province_detail_test`, `network_drive_test`, `junction_sim_test` (17/17), `scripts/world/ring_probe`, `scripts/world/drive_audit` (about 2 collisions), the rail and water audits and the Electron story test.
+
+Newer helpers and tests worth knowing:
+
+| Script | What it is |
+| --- | --- |
+| `scripts/lib/loadworld.mjs` | The city map for tests and audits. `WORLD_SRC=json` (default) loads `citymap.json`; `WORLD_SRC=tiles` builds the same city from tiles in memory (#90). `loadworld_test.mjs` |
+| `scripts/devflags_test.mjs` | Guards the `FLAGS` register: every switch has a description and is listed here |
+| `scripts/storage_migration_test.mjs`, `save_migration_test.mjs` | Old keys and old saves keep loading; run these after adding any `gde-*` key (register it in `storagekeys.js`) |
+| `scripts/busy_test.mjs`, `activityhub_test.mjs`, `hudbus_test.mjs`, `hud_test.mjs` | The player-busy gate, the activity registry, the attention planner and the HUD rules |
+| `scripts/cutscript_test.mjs`, `actoranim_test.mjs` | The cutscene language (validator, sampler) and the actor animation layer |
+| `scripts/spatialgrid_test.mjs`, `nearest_road_test.mjs` | The shared grid and the nearest-road query |
+| `scripts/mapstyle_test.mjs`, `regions_test.mjs`, `loadlogic_test.mjs` | Map style table, regions and load-screen logic |
+| `scripts/simlagen_test.mjs`, `simworker_test.mjs` | Simulation layers and the simulation worker kernel |
+| `scripts/padlogic_test.mjs`, `touch_test.mjs` | Controller and touch logic without hardware |
+| `scripts/akte1_doelen_test.mjs`, `reisbeats_test.mjs`, `reiskeuze_test.mjs`, `reistijd_test.mjs` | Every act-1 mission goal exists on the map; travel beats |
+| `scripts/placement_audit_test.mjs`, `road_seams_test.mjs`, `clearance_audit.mjs` | Placement of footprints, road seams and viaduct clearance |
+| `scripts/desktop_args_test.mjs` | The desktop argument parser (`desktop/args.cjs`) |
+
 ## Controls
 
 | Key | On foot | In a vehicle |
@@ -204,6 +236,13 @@ Debug hooks on `window` (`window.__x`, read by scripts/perf, the story test and 
 | `?zwartcheck` | Controleer op zwarte beelden (blackframe) |
 | `?reizen` | Reisbeats in het nieuwe verhaal: keuze Meerijden, Zelf rijden of Overslaan bij een sprong (#97) |
 | `?brugbotsing` | Stuurt na een paar seconden een binnenvaartschip tegen de dichtstbijzijnde brug (#9) |
+
+Every switch above is **off by default**: nothing changes for a player unless the name is in the URL. Value switches (`?shot=3`, `?marker=vorm`, `?stadlaag=gebouwen,wegen`, `?touch=1`, `?preset=quality:laag`, `?gpu=<renderer>`, `?benchmark=<rounds>`) are null when absent. The ones to reach for most often:
+
+- Testing without touching your save: `?dev` (F9 panel) or `?storytest`; both use `gde-dev:` storage or memory.
+- Features still in trial, off by default so the game stays as it was: `?coop`, `?reizen`, `?simlagen`, `?simworker`, `?stadlaag`.
+- Diagnosis: `?pixeldebug` (NaN/Inf pixels magenta), `?hitch`, `?zwartcheck`, `?shaderdebug`, `?noworker`, `?nobatch`.
+- `?nieuwverhaal` (in `storyflag.js`, not in `FLAGS`) forces the new story line for a page load (`?nieuwverhaal=0` forces it off; also the setting Verhaal and `GDE_NIEUW_VERHAAL=1` in Node). `?marker=vorm` brings back the old fixed 3D marker shapes. A new switch is added to `FLAGS` and `FLAG_DOCS` only, and to the table above; `devflags_test.mjs` fails otherwise.
 
 - `?dev` (desktop `--dev`): story dev panel on F9. Chapter select (jumps to
   any story step with the money, belongings and progress a player would have
