@@ -59,7 +59,7 @@ for (const [k, r] of rasters) {
   for (let t = 5; t < 1000; t += 10) {
     for (const [ax, ay, bx, by] of [[x1 - 3, r.y0 + t, x1 + 3, r.y0 + t], [r.x0 + t, y1 - 3, r.x0 + t, y1 + 3]]) {
       const a = field.at(ax, ay), b = field.at(bx, by);
-      if (a !== 0 && b !== 0) steps.push(Math.abs(a - b));
+      if (a !== 0 && b !== 0) { steps.push(Math.abs(a - b)); if (Math.abs(a - b) > 8 && args.includes('--steps')) console.log(`  step ${Math.abs(a - b).toFixed(1)} m at ${Math.round(ax)},${Math.round(ay)} (${k}): ${a.toFixed(1)} / ${b.toFixed(1)}`); }
     }
   }
   const dv = new DataView(r.data.buffer, r.data.byteOffset, r.data.byteLength);
@@ -68,7 +68,7 @@ for (const [k, r] of rasters) {
     if (Math.abs(v - u) / 100 / r.cell > 0.6) steep++;
   }
 }
-console.log(`border steps (6 m across): median ${pct(steps, 0.5).toFixed(2)} m, p99 ${pct(steps, 0.99).toFixed(2)} m, max ${Math.max(0, ...steps).toFixed(2)} m; ${steep} cell pairs steeper than 0.6 m/m`);
+console.log(`border steps (6 m across): median ${pct(steps, 0.5).toFixed(2)} m, p99 ${pct(steps, 0.99).toFixed(2)} m, max ${steps.reduce((m, v) => Math.max(m, v), 0).toFixed(2)} m; ${steep} cell pairs steeper than 0.6 m/m`);
 if (pct(steps, 0.99) > 3) fail('tiles step more than 3 m at their borders (p99)');
 
 // bridges of the province road net: filled terrain smooth between the ends
@@ -84,6 +84,7 @@ if (roadsFile) {
     let dev = 0;
     for (let t = 0.1; t < 1; t += 0.1) dev = Math.max(dev, Math.abs(field.at(a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t) - (za + (zb - za) * t)));
     n++; worst = Math.max(worst, dev);
+    if (args.includes('--bridges') && dev > 2) console.log(`  bridge ${Math.round(a[0])},${Math.round(a[1])} -> ${Math.round(b[0])},${Math.round(b[1])} len ${Math.round(Math.hypot(b[0] - a[0], b[1] - a[1]))} m: ends ${za.toFixed(1)} / ${zb.toFixed(1)}, deviates ${dev.toFixed(1)} m`);
     if (dev > 2) rough++;
   }
   console.log(`${n} bridges: terrain under them deviates ${worst.toFixed(2)} m at most from the line between the ends; ${rough} over 2 m (river valleys and dyke crossings)`);
