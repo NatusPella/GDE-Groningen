@@ -2,7 +2,7 @@
 // mission from the modules that own it, hands the snapshot to missionmap.js
 // and keeps the result for the frame, so the minimap and the full map ask
 // once. Thin on purpose; the rules are in missionmap.js (tested).
-import { buildMissionLayer, layerNotices } from './missionmap.js';
+import { buildMissionLayer, layerNotices, escapeSpot } from './missionmap.js';
 import { wantedPhase } from './wantedstate.js';
 import { getPigeonFlight, getPigeonThreats } from './pigeonmode.js';
 import { getPigeonSpotsForRender } from './pigeonspots.js';
@@ -62,7 +62,8 @@ function snapshot(world) {
     const units = [];
     for (const v of world.vehicles || []) if (v.isPolice && !v.hijacked && !v.wrecked) units.push({ x: v.x, y: v.y, kind: 'police' });
     const ok = pol && pol.searching && pol.searchCenter && pol.searchRadius > 0;
-    s.wanted = { stars: world.wanted, phase, units, search: ok ? { x: pol.searchCenter.x, y: pol.searchCenter.y, r: pol.searchRadius } : null, escape: null };
+    const search = ok ? { x: pol.searchCenter.x, y: pol.searchCenter.y, r: pol.searchRadius } : null;
+    s.wanted = { stars: world.wanted, phase, units, search, escape: escapeSpot(search, player) };
   }
   // help on the way, only while a mission runs: the nearest garage
   if (s.mission) {

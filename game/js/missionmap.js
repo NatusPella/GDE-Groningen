@@ -106,6 +106,19 @@ function nextTarget(kind, s, items) {
   return first(['goal', 'next']) || items.find((i) => i.role === 'checkpoint') || null;
 }
 
+// Where to run to: wantedlevels.stepUnseen counts the cool-down twice as fast
+// outside the search circle, so the escape area lies just outside it, on the
+// player's side of the centre. Nothing is shown with no circle; a player at
+// the centre gets the area straight ahead of the heading.
+export function escapeSpot(search, player, margin = 40, r = 30) {
+  if (!search || !(search.r > 0) || !ok(search) || !ok(player)) return null;
+  let dx = player.x - search.x, dy = player.y - search.y;
+  let d = Math.hypot(dx, dy);
+  if (d < 1) { dx = Math.cos(player.angle || 0); dy = Math.sin(player.angle || 0); d = 1; }
+  const k = (search.r + margin) / d;
+  return { x: search.x + dx * k, y: search.y + dy * k, r };
+}
+
 // Build the layer of a snapshot. Missing parts of the snapshot are fine: a
 // layer with only the player and nothing else comes back as null.
 export function buildMissionLayer(s) {
@@ -158,7 +171,7 @@ export function buildMissionLayer(s) {
     if (w.escape && w.escape.r > 0) areas.push({ id: 'escape', role: 'goal', x: w.escape.x, y: w.escape.y, r: w.escape.r, color: 'safe', label: 'Ontsnappingsgebied' });
     (w.units || []).filter(ok).forEach((u, i) => items.push(item('police', u, { id: 'pu' + i, kind: u.kind || 'police', label: 'Politie', mini: true, focus: dist(u, s.player) < 400, drawn: true })));
     if (w.chased && ok(w.chased)) items.push(item('rival', w.chased, { id: 'chased', label: 'Achtervolgde', sub: 'Achtervolging', focus: true }));
-    if (w.escape && ok(w.escape)) items.push(item('goal', w.escape, { id: 'escape-pt', label: 'Ontsnappen', sub: 'Hier ben je veilig', focus: true }));
+    if (w.escape && ok(w.escape)) items.push(item('goal', w.escape, { id: 'escape-pt', label: 'Ontsnappen', sub: 'Buiten het zoekgebied ben je sneller kwijt', focus: true }));
   } else if (kind === 'boot') {
     const b = s.boat || {};
     title = title || 'Op het water';

@@ -32,16 +32,46 @@ const shot = async (name, wait = 1200) => { await sleep(wait); console.log('[cap
 const done = [];
 if (want('voet')) { teleport(...P(100, 77)); await shot('hud-voet', 4000); done.push('hud-voet'); }
 if (want('gezocht')) { w.wanted = 3; await shot('hud-gezocht', 1500); w.wanted = 0; done.push('hud-gezocht'); }
-if (want('auto')) {
+// the player in a vehicle: speed, gear and revs only show with someone driving
+const MOTO = await imp('motomodels');
+const hudState = () => ({ inVehicle: !!p.inVehicle, speedo: !!document.querySelector('#hud .hud-speedo.visible'), speed: (document.querySelector('#hud .sp-val') || {}).textContent });
+const ride = async (name, make, speed) => {
   teleport(...P(100, 77));
-  const pt = map.nearestRoadPoint(p.x, p.y, 60, true, true);
-  const v = VEH.spawnVehicleOnRoad(map, pt.road, false, Math.random, false, false, pt);
-  v.road = null; v.speed = 0; v.perfTemp = true;
+  const v = make();
+  if (!v) { done.push(name + ':geen voertuig'); return; }
+  v.road = null; v.perfTemp = true;
   w.vehicles.push(v);
   p.enterVehicle(v, w);
-  await shot('hud-auto', 2500);
+  await sleep(600);
+  v.speed = speed;
+  await shot(name, 1500);
+  done.push(name + ' ' + JSON.stringify(hudState()));
   p.exitVehicle(map, w);
-  done.push('hud-auto');
+  const k = w.vehicles.indexOf(v); if (k >= 0) w.vehicles.splice(k, 1);
+};
+const onRoad = (extra = {}) => () => {
+  const pt = map.nearestRoadPoint(p.x, p.y, 60, true, true);
+  return VEH.spawnVehicleOnRoad(map, pt.road, false, Math.random, false, false, pt, extra.scooter || false, extra.model || null);
+};
+if (want('auto')) await ride('hud-auto', onRoad(), 14);
+if (want('motor')) await ride('hud-motor', onRoad({ scooter: true, model: MOTO.MOTORBIKE_MODELS.sport }), 14);
+if (want('boot')) {
+  const poly = map.water && map.water.find((q) => q.bounds && q.bounds[2] - q.bounds[0] > 40);
+  if (poly) await ride('hud-boot', () => VEH.spawnBoatOnWater(map, poly), 6);
+  else done.push('hud-boot:geen water');
+}
+if (want('trein')) {
+  const RW = await imp('railway');
+  const t = RW.getTrains().find((q) => q.state === 'dwell' || q.state === 'parked');
+  if (!t) done.push('hud-trein:geen trein');
+  else {
+    const [x, y] = RW.routePoint(t.route, t.c + (t.halfLen - 3));
+    teleport(x, y);
+    await sleep(800);
+    for (const ty of ['keydown', 'keyup']) for (const tg of [window, document]) tg.dispatchEvent(new KeyboardEvent(ty, { key: 'e', code: 'KeyE', bubbles: true }));
+    await shot('hud-trein', 2500);
+    done.push('hud-trein ' + JSON.stringify({ driving: !!w.trainDriving, speedo: !!document.querySelector('#hud .hud-speedo.visible') }));
+  }
 }
 for (const tab of ['overzicht', 'todo', 'map', 'telefoon', 'verhaal', 'spullen', 'garage', 'prestaties', 'settings', 'controls']) {
   if (!want(tab)) continue;

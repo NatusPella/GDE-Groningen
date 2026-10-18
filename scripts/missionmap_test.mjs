@@ -1,6 +1,8 @@
 // Mission map layers (game/js/missionmap.js): the layer per kind of mission,
 // the minimap's scale and selection, the notices. Run: node scripts/missionmap_test.mjs
 import { bridgesAhead } from '../game/js/boatahead.js';
+import { racingLine } from '../game/js/kartline.js';
+import { escapeSpot } from '../game/js/missionmap.js';
 import { buildMissionLayer, layerKindOf, missionMinimapScale, selectMiniItems, selectMapItems, layerNotices, compassOf, relativeBearing, distLabel, MINI_MAX_ITEMS, MINI_ZOOM, ROLES } from '../game/js/missionmap.js';
 import { mapCategory, mapPriority, mapRimColor, mapKindVisible } from '../game/js/mapicons.js';
 import { drawMissionLayerIcon, layerCaption } from '../game/js/missionmapdraw.js';
@@ -122,6 +124,27 @@ for (const k of ['mm-gevaar', 'mm-rival', 'mm-halte', 'mm-ring', 'mm-pad', 'mm-b
   ok(two.length === 2 && two[1].clearance === 1.9, 'two decks are two bridges');
   const low = buildMissionLayer({ player: { x: 0, y: 0, angle: 0, speed: 5 }, boat: { airDraught: 2.5, bridges: [{ x: 90, y: 0, clearance: 2.4, name: 'Brug' }, { x: 180, y: 0, clearance: 4, name: 'Brug' }] } });
   ok(low && low.kind === 'boot' && low.items.some((i) => i.role === 'hazard') && low.items.some((i) => i.role === 'bridge'), 'a bridge too low is a hazard, one that fits is a bridge');
+}
+
+// the kart's ideal line (kartline.js): to the inside of a bend, the middle on a straight
+{
+  const N = 48, R = 100;
+  const circle = Array.from({ length: N }, (_, i) => [R * Math.cos((2 * Math.PI * i) / N), R * Math.sin((2 * Math.PI * i) / N)]);
+  const ccw = racingLine(circle, 7);
+  ok(ccw.length === N && ccw.every((p, i) => Math.hypot(p[0], p[1]) < R && Math.hypot(p[0] - circle[i][0], p[1] - circle[i][1]) <= 3.5 * 0.6 + 1e-6), 'a left bend moves the line inside, within the width');
+  const cw = racingLine([...circle].reverse(), 7);
+  ok(cw.every((p) => Math.hypot(p[0], p[1]) < R), 'a right bend moves the line inside too');
+  const long = Array.from({ length: 20 }, (_, i) => [i * 10, 0]).concat(Array.from({ length: 20 }, (_, i) => [190 - i * 10, 30]));
+  const st = racingLine(long, 7);
+  ok(Math.abs(st[10][1]) < 1e-6 && Math.abs(st[30][1] - 30) < 1e-6, 'a straight stays on the middle');
+  ok(racingLine([[0, 0], [1, 1]], 7).length === 2 && racingLine(circle, 0).length === N, 'too few points or no width: unchanged');
+}
+// where to run to when the police search (escapeSpot): just outside the circle, on the player's side
+{
+  const e = escapeSpot({ x: 0, y: 0, r: 100 }, { x: 50, y: 0 });
+  ok(e && Math.abs(e.x - 140) < 1e-6 && Math.abs(e.y) < 1e-6 && e.r === 30, 'escape lies margin outside the circle on the player side');
+  ok(escapeSpot({ x: 0, y: 0, r: 100 }, { x: 0, y: 0, angle: Math.PI / 2 }).y > 100, 'at the centre: ahead of the heading');
+  ok(escapeSpot(null, { x: 0, y: 0 }) === null && escapeSpot({ x: 0, y: 0, r: 0 }, { x: 1, y: 1 }) === null, 'no circle, no escape');
 }
 
 console.log(`${n - fails}/${n} ok`);
