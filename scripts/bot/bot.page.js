@@ -119,9 +119,9 @@ function track(s) {
   }
   const ph = s.mission.active ? 'active' : 'idle';
   if (ph !== lastPhase && lastPhase) {
-    if (ph === 'active') { B.log('mission', { event: 'start', id, label: s.mission.label }); shot(`${id}-start`); }
-    else { fails[id] = (fails[id] || 0) + 1; B.log('mission', { event: 'fail', id, label: s.mission.label }); shot(`${id}-fail-${fails[id]}`); }
-  } else if (ph === 'active' && !lastPhase) B.log('mission', { event: 'start', id, label: s.mission.label });
+    if (ph === 'active') { B.log('mission', { event: 'start', id, label: s.mission.label, msgs: s.hud.messages.slice(0, 3), phase: s.mission.phase }); shot(`${id}-start`); }
+    else { fails[id] = (fails[id] || 0) + 1; B.log('mission', { event: 'fail', id, label: s.mission.label, msgs: s.hud.messages.slice(0, 3), phase: s.mission.phase }); shot(`${id}-fail-${fails[id]}`); }
+  } else if (ph === 'active' && !lastPhase) B.log('mission', { event: 'start', id, label: s.mission.label, msgs: s.hud.messages.slice(0, 3), phase: s.mission.phase });
   lastPhase = ph;
   // a scene change: the first moment of each cutscene (a few per step)
   const cine = !!s.blocking.cinematic;
