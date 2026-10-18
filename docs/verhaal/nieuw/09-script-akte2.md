@@ -285,6 +285,7 @@ KAPITEIN KLAAS: Dat is Lammerts haven. Hij danste met Trijntje in 1953. [NIEUW]
 
 ## [R2.3] Nachtstreek, donderdagnacht – Stad – radio
 RIKUS (radio): Het Plantsoenfestijn opent vandaag in het Noorderplantsoen. Elf dagen theater en muziek. Het is er druk. [NIEUW]
+RIKUS (radio): Het festival heeft een hoofdsponsor: Oldenhuis Bakt, de keten met de eenenveertig snackbars. Bij elke frikandel hoort een bonnetje voor een tweede. Ik zeg niks. [NIEUW]
 JELLE (radio): Rikus. Ik ga naar de haven. De Eemshaven is van mij. Plakje vijf. [NIEUW]
 RIKUS (radio): Storingsbericht: de Krolbrug is in storing. Niemand merkt verschil. [NIEUW]
 RIKUS (radio): De torenwachter belde niet. Dat is ook nieuws. [NIEUW]

@@ -286,6 +286,23 @@ function buildCarGeometry(type, L, W, paint, opts) {
     }
     // a door from the scrapyard, in another colour
     B.box((P.xB + P.xC) / 2 + 0.2, (sill + P.belt) / 2 + 0.05, hw + 0.009, 0.9, P.belt - sill - 0.15, 0.012, 0xa89a7a);
+  } else if (variant === 'ev') {
+    // elektrisch: gesloten neus met een lichtbalk, blauwe accentstreep, laadklepje, geen uitlaat
+    B.box(hl + 0.012, P.nose - 0.2, 0, 0.02, 0.16, W * 0.5, 0x1a1b1d);
+    B.box(hl + 0.016, lampY, 0, 0.02, 0.025, W - 0.5, HEADLAMP, G_LAMP);
+    for (const s of [1, -1]) {
+      B.box((P.xB + P.xC) / 2, P.belt - 0.12, s * (hw + 0.008), 1.4, 0.04, 0.012, 0x3fc6d4);
+    }
+    B.box(-hl + 0.5, sill + 0.4, hw + 0.01, 0.16, 0.12, 0.012, 0x3fa66a);
+  } else if (variant === 'tokkie') {
+    // opgevoerd: groot achtervleugel, dikke dubbele uitlaat, zijstrepen en blauwe onderverlichting
+    for (const s of [1, -1]) {
+      B.box(-hl + 0.18, P.tail + 0.14, s * (hw - 0.3), 0.1, 0.3, 0.06, 0x1a1b1d);
+      B.box(-hl - 0.08, 0.26, s * 0.38, 0.28, 0.1, 0.1, CHROME);
+      B.box((P.xA + P.xD) / 2, sill + 0.2, s * (hw + 0.008), L * 0.6, 0.05, 0.012, 0xf2f0ea);
+      B.box(0, 0.1, s * (hw - 0.05), L - 0.8, 0.04, 0.05, 0x35e0ff, G_LAMP);
+    }
+    B.box(-hl + 0.12, P.tail + 0.32, 0, 0.36, 0.05, W * 0.92, 0x1a1b1d);
   } else if (variant === 'cash') {
     // Poen Express armoured cash van: steel plates over the load bay, barred
     // cab windows, green/gold livery with a coin logo, bull bar, amber beacon
@@ -416,6 +433,8 @@ function carVariant(v) {
   if (n === 'taxi' || v.isTaxi) return 'taxi';
   if (n === 'cashvan') return 'cash';
   if (v.model.rusty) return 'rust';
+  if (v.model.electric) return 'ev';
+  if (v.model.tokkie) return 'tokkie';
   return v.model.livery || '';
 }
 
@@ -1557,6 +1576,7 @@ export function policeFlash(time, id = 0) {
 // Orange turn-signal lamps at the four corners, made the first time a car
 // blinks and then only shown or hidden (hazards: all four, a signal: one side).
 const IND_GEO = markShared(new THREE.BoxGeometry(0.2, 0.11, 0.16));
+const IND_GEO_SMALL = markShared(new THREE.BoxGeometry(0.07, 0.05, 0.06));
 const IND_MAT = markShared(new THREE.MeshBasicMaterial({ color: 0xff9a1a }));
 const IND_PERIOD = 0.62;
 export function updateIndicatorLamps(mesh, v, time) {
@@ -1564,12 +1584,14 @@ export function updateIndicatorLamps(mesh, v, time) {
   if (!lamps) {
     if (!v.indicator) return;
     const m = v.model || {};
+    // a bicycle has no indicators; hand signals are not drawn
+    if (v.isBike && !m.motorbike) { mesh.userData.indLamps = []; return; }
     const len = m.len || 4, wid = m.wid || 1.7;
     const bike = !!(m.motorbike || v.isBike || v.isScooter);
-    const hz = bike ? 0.2 : wid / 2 - 0.16, y = bike ? 0.85 : m.van ? 0.95 : 0.66;
+    const hz = bike ? 0.16 : wid / 2 - 0.16, y = bike ? 0.85 : m.van ? 0.95 : 0.66;
     lamps = [];
     for (const side of [-1, 1]) for (const end of [1, -1]) {
-      const l = new THREE.Mesh(IND_GEO, IND_MAT);
+      const l = new THREE.Mesh(bike ? IND_GEO_SMALL : IND_GEO, IND_MAT);
       l.position.set(end * (len / 2 + 0.01), y, side * hz);
       l.visible = false;
       l.userData.side = side;

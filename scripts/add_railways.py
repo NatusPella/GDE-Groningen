@@ -15,19 +15,14 @@ import heapq
 import json
 import math
 import os
-import subprocess
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from osmfetch import overpass  # noqa: E402
 from world.rdnew import meta_frame, meta_bbox, P  # noqa: E402
 
 MAP_PATH = "game/citymap.json"
 RAW_PATH = "data/railways_raw.json"
-OVERPASS_URLS = [
-    "https://overpass.private.coffee/api/interpreter",
-    "https://overpass-api.de/api/interpreter",
-    "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
-]
 
 
 def bbox_for(meta, pad=0.004):
@@ -73,18 +68,11 @@ RAIL_CUT = 4.0      # a path crossing a track at grade stops this far from the r
 
 
 def fetch(bbox):
-    for url in OVERPASS_URLS:
-        r = subprocess.run(
-            ["curl", "-s", "-m", "150", "-A", "Mozilla/5.0", "--data-urlencode", f"data={query_for(bbox)}", url],
-            capture_output=True, text=True,
-        )
-        if r.returncode == 0 and r.stdout.lstrip().startswith("{"):
-            raw = json.loads(r.stdout)
-            raw["bbox"] = list(bbox)
-            with open(RAW_PATH, "w") as f:
-                json.dump(raw, f)
-            return raw["elements"]
-    raise SystemExit("all Overpass endpoints failed")
+    raw = overpass(query_for(bbox))
+    raw["bbox"] = list(bbox)
+    with open(RAW_PATH, "w") as f:
+        json.dump(raw, f)
+    return raw["elements"]
 
 
 def load_raw(bbox):

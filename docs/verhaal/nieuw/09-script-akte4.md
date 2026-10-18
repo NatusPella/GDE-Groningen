@@ -43,7 +43,7 @@ WUBBO: Weer elf bruggen? Mijn bruggen zeggen dank. [NIEUW]
 
 ## [M18.1] Wie draaide de camera's uit?: intro – Veenkoloniën, Veendam, Wiebelwerk – te voet
 (regie: maandag 24 augustus, middag. Een kantoorpand bij een rotonde. Een bord: Wiebelwerk, websites met karakter. Een e-step staat voor de deur. Gameplay: een kantoor als speelveld; de juiste antwoorden kiezen, de serverkamer in en het logboek van 12 augustus bekijken.)
-TAMMO: Wiebelwerk. Alles om middernacht bijgewerkt. Ook de camera's. [NIEUW]
+TAMMO: We staan bij Wiebelwerk, in Veendam. Zij doen elke nacht om middernacht de update van het museum. Ook van de camera's. [NIEUW]
 TESSA: Dat is toch geen misdaad? [NIEUW]
 TAMMO: Wie de camera's uitzet, heeft de bal. [NIEUW]
 TESSA: Dan kijken we in het logboek. Wie wanneer wat vroeg. [NIEUW]
@@ -89,7 +89,7 @@ ACCOUNTMANAGER: Weer een intake? Wij zijn altijd open. [NIEUW]
 
 ## [M19.1] Stoom: intro – Veenkoloniën, Stadskanaal, het perron – trein
 (regie: maandag 24 augustus, late middag. Een museumstoomtrein onder stoom, maar hij staat stil. Op een bank bij het perron zit de machinist met een bordje eierballen. In het salonrijtuig zitten twee juryleden en mevrouw Tuinstra, de bewaarder, met een bordje eierballen. Gameplay: Tammo is machinist en rijdt de trein naar het volgende perron, terwijl Tessa door de wagons naar de juryleden loopt.)
-TESSA: De machinist is omgekocht. Hij zit al een uur op een bank en eet een eierbal. De trein staat stil. De laatste twee juryleden en de bewaarder zitten vier uur vast in Jelles salonrijtuig. [NIEUW]
+TESSA: We staan op het perron in Stadskanaal. De machinist is omgekocht. Hij zit al een uur op een bank en eet een eierbal. De trein staat stil. De laatste twee juryleden en de bewaarder zitten vier uur vast in Jelles salonrijtuig. [NIEUW]
 TAMMO: Wie rijdt hem dan? [NIEUW]
 TESSA: Jij. [NIEUW]
 TAMMO: Ik heb nog nooit een trein bestuurd. [NIEUW]
@@ -170,6 +170,7 @@ TAMMO: Wie valt aan? [NIEUW]
 BEREND: Ik, met veertig man en een paard van karton. [NIEUW]
 TESSA: En Jelle? [NIEUW]
 BEREND: Jelle is geen bisschop. Hij komt met zijn limo. [NIEUW]
+TESSA: Dan komt de bal ook hierheen, want Jelle draagt hem altijd bij zich. Dit is onze kans, Tammo. [NIEUW]
 (regie: Tessa gaat naar de kruitkelder. Ze zegt dat ze iets moet halen.)
 DURK: Tammo. Wij dagen je uit. Fierljep. [NIEUW]
 DOUWE: …fierljep. [NIEUW]

@@ -58,6 +58,7 @@ const LEVEL_COUNT = 14;
 const levelZoom = (L) => Math.SQRT2 ** (L - L_BASE);
 const MID_ZOOM = 2;
 const NEAR_ZOOM = 4;
+const BUILDING_ZOOM = 2.8;
 const DRAG_PX = 4;
 const HOVER_PX = 12;
 const FOG_CELL = 50;
@@ -531,7 +532,7 @@ function renderTile(L, tx, ty) {
   if (prov) drawSea(c, (n) => n / (state.baseScale * z));
   if (prov) {
     // up close the vectors of the streamed tiles replace the base map's coarse pixels there
-    const res = z >= NEAR_ZOOM ? residentRects(wx0, wy0, wx0 + tws, wy0 + tws) : null;
+    const res = z >= MID_ZOOM ? residentRects(wx0, wy0, wx0 + tws, wy0 + tws) : null;
     if (res && res.length) {
       c.save();
       const clip = new Path2D();
@@ -567,7 +568,7 @@ function renderTile(L, tx, ty) {
     if (w.pts.length >= 3) c.stroke();
   }
 
-  if (z >= NEAR_ZOOM && layerOn('buildings')) {
+  if (z >= BUILDING_ZOOM && layerOn('buildings')) {
     c.globalAlpha = landA;
     for (const b of view.buildings) {
       c.fillStyle = b.landmark ? BUILDING_LANDMARK : BUILDING;
@@ -1157,7 +1158,7 @@ function drawDynamicMarkers(ctx, world) {
   }
 
   icon(null, 'player', world.player.x, world.player.y, 'Jij', { angle: world.player.angle });
-  for (const q of placeIcons(queue, 11 * sc)) {
+  for (const q of placeIcons(queue, 12 * sc)) {
     drawMapIconHalo(ctx, q.kind, q.sx, q.sy, sc);
     drawMapIcon(ctx, q.kind, q.sx, q.sy, sc, { t, ...q.opts });
     if (q.name) hover.push({ sx: q.sx, sy: q.sy, name: q.name, sub: q.sub, x: q.x, y: q.y, kind: q.kind, ...q.pick });
