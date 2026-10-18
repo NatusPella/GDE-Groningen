@@ -10,10 +10,12 @@
 // Places: Zuidhorn and Aduard are the real villages (game coordinates from their lat/lon, AANNAME ±60 m,
 // snapped to the road at run time); Tinus' schuur is a spot on the edge of Zuidhorn, not a real farm.
 
+import { wgsToWorld } from './rdnew.js';
 const ZUIDHORN = [-10732.8, -3017.02];
 const SCHUUR = [ZUIDHORN[0] + 250, ZUIDHORN[1] - 150];
 const MODDER = [ZUIDHORN[0] + 430, ZUIDHORN[1] - 240];
-const ADUARD = [-6074, -2658];
+const HOOGKERK = wgsToWorld(53.2106, 6.4930);   // the bridge on the way to the city: Wubbo's moment
+const ADUARD = wgsToWorld(53.256, 6.460);   // the village node (it was an estimate 1.6 km off)
 const MARKT = { landmark: 'Grote Markt', off: [20, -5], snap: 'walk' };
 // Oma Trijntje's kitchen at the Noorderhaven (the end of the old H12 lane)
 const KEUKEN = [-289.25, -106.7];
@@ -93,8 +95,12 @@ export function buildAkte5Defs({ map, walk, drive }) {
           cast: [{ key: 'durk', pose: 'arms', at: [3.4, 1.4] }, { key: 'douwe', pose: 'arms', at: [3.4, -1.4] }],
         },
         {
+          kind: 'convoy', carHint: 'Stap weer in de Fjord Frituur: de colonne volgt de wagen.', target: { at: HOOGKERK, snap: 'drive', label: 'Hoogkerk' }, radius: 45, mode: 'vehicle',
+          label: 'Rij met de colonne naar Hoogkerk: Wubbo draait de brug open', say: 'Wubbo staat bij de brug en draait hem voor de colonne open. Niet te hard, de sloep moet er ook onderdoor.', lost: 'de colonne is uiteengevallen',
+        },
+        {
           kind: 'convoy', carHint: 'Stap weer in de Fjord Frituur: de colonne volgt de wagen.', target: { landmark: 'Grote Markt', off: [20, -5], snap: 'drive' }, radius: 30, mode: 'vehicle',
-          label: 'Rij met de colonne de Grote Markt op', say: 'Nog acht kilometer. De hele colonne, de Grote Markt op.', lost: 'de colonne is uiteengevallen',
+          label: 'Rij met de colonne de Grote Markt op', say: 'Nog vijf kilometer. De hele colonne, de Grote Markt op.', lost: 'de colonne is uiteengevallen',
         },
       ],
     },
@@ -183,7 +189,7 @@ export function applyAkte5(list) {
       { kind: 'board', label: 'Stap in de Fjord Frituur', say: 'Kwart voor drie. Instappen: de limo rijdt naar de notaris.' },
       chase,
       {
-        kind: 'scene', label: 'Jelle in de gracht', target: walkAt(NOTARIS), kicker: 'Oude Boteringestraat', script: { ids: ['M26.4'], from: 7, to: 14 },
+        kind: 'scene', label: 'Jelle in het water', target: walkAt(NOTARIS), kicker: 'Oude Boteringestraat', script: { ids: ['M26.4'], from: 7, to: 14 },
         cast: [{ key: 'jelle', pose: 'hips', at: [3.0, 1.2] }, { key: 'durk', pose: 'arms', at: [-3.2, 1.4] }, { key: 'douwe', pose: 'arms', at: [-3.2, -1.4] }],
       },
       {
