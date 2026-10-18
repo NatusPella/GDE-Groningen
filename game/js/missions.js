@@ -1380,6 +1380,8 @@ function succeed(world, def) {
   world.stats.missionsDone++;
   world.addMessage(`${def.label} geklaard! ${replay ? 'Klusloon ' : ''}+€${base}${tip ? ` en €${tip} fooi` : ''}${adj.text}`, 4);
   const stats = runStats(world, def);
+  // what the mission cost on the way (Het Loket: the entry fee), so the card is honest about a reward of 0
+  if (def.costRow && !replay) stats.push(def.costRow);
   // a flawless run earns the highest compliment there is (flavour.js has an NPC say it too)
   const r = chain.run;
   if (r && r.hurt < 0.5 && (!r.vehicleUsed || r.vehDamage < 3) && (!r.racePos || r.racePos === 1)) {

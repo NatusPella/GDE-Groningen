@@ -17,6 +17,7 @@ export function buildNieuwDefs({ map, walk, drive }) {
       intro: ['Het Loket bij de Grote Markt: om twaalf uur sluit de inschrijving voor de Noordelijke Snackprijs, en het loket neemt alleen contant.', 'Trek een wachtnummer, haal formulier 7B en de stempel, en schrijf in. Voor twaalf uur.'],
       outro: 'Ingeschreven voor de Noordelijke Snackprijs. De Fjord Frituur doet mee.',
       timeLimit: 180,
+      costRow: ['Inschrijfgeld', '-€150, contant betaald'],
       timeUp: 'het Loket is dicht. Om twaalf uur sloot de inschrijving',
       reward: 0,
       onFoot: true,
@@ -90,6 +91,12 @@ export function applyNieuw(list) {
     duif.timeUp = 'tijd op. Bert fluit de duif terug naar de duiventil';
   }
   const kei = by('Wind tegen, beide kanten op');
+  // what each mission leaves you with, on the success card (#147): the clue or the consequence
+  if (duif) duif.costRow = ['Ontdekt', 'Bewaker twee krijgt een eierbal voor zijn koekje'];
+  if (kei) kei.costRow = ['Tip van Sjoerd', 'Om twaalf uur gaan de camera\'s drie minuten uit'];
+  if (pin) pin.costRow = ['Ontdekt', 'Een baas vroeg waar het museum alarmen heeft'];
+  const kraak = by('Het museum stond er al zo');
+  if (kraak) kraak.costRow = ['Gevolg', 'De politie zoekt twee mensen in het zwart'];
   if (kei) kei.timeUp = 'tijd op. De eerstejaars zitten al aan de bar';
   if (pin) pin.vehicleFail = { gone: 'de auto met de automaat is foetsie, en de pas ook', wrecked: 'de auto met de automaat is total loss. Sjabbe kan alleen openen wat heel is', left: 'je liet de automaat staan. Zonder automaat geen pas' };
   if (kei) kei.say = 'Podium in de Kiezelrace, dan vertelt Sjoerd over het museum. Altijd tegenwind, op een eigen fiets.';
