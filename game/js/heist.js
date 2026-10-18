@@ -188,7 +188,8 @@ function say(world, w, list, secs = 2.6) {
 
 // --- start / props ------------------------------------------------------------------------
 
-export function startHeist(world) {
+// opts.bare: a sneak mission outside the museum (the container terminal, M13): watchers and stage sendbacks only, no museum doors or lights
+export function startHeist(world, opts = {}) {
   disposeHeist();
   const scene = getScene();
   if (!scene) return null;
@@ -200,8 +201,10 @@ export function startHeist(world) {
     fuse: null, fuseAt: null, fuseLamp: null, approach: 'sluip', doors: {}, lasers: null, alarm: false,
     boat: null, look: null, stageT: 0, trouble: 0, skipT: 0, hold: false, planT: 0,
   };
-  for (const [id, d] of Object.entries(DOORS)) buildDoor(id, d);
-  setMuseumLights(true, 0);
+  if (!opts.bare) {
+    for (const [id, d] of Object.entries(DOORS)) buildDoor(id, d);
+    setMuseumLights(true, 0);
+  }
   return H;
 }
 

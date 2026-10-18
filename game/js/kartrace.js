@@ -1,4 +1,4 @@
-// Karten bij Kardinge: the track, the light kart and the drivers. Pure maths,
+// Karten in Ulrum: the track, the light kart and the drivers. Pure maths,
 // no DOM and no THREE: kartbaan.js draws it and feeds it the keys;
 // scripts/minigames_test.mjs checks it in node.
 //

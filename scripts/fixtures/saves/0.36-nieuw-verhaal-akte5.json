@@ -1,0 +1,165 @@
+{
+ "_era": "0.36, nieuwe verhaallijn (feature flag nieuwverhaal): save v9 met arc 'nieuw', in akte 5 (M22 Een luik erin en M23 De colonne gedaan, de vlag volgt). Hoort bij het andere verhaal: wordt in het oude spel niet geladen, en andersom.",
+ "_expect": {
+  "arc": "nieuw",
+  "step": "M24",
+  "money": 3400,
+  "radio": "on",
+  "pos": [
+   233405.2,
+   582310.7
+  ]
+ },
+ "save": {
+  "v": 9,
+  "arc": "nieuw",
+  "savedAt": 1760700000000,
+  "money": 3400,
+  "moneyBackup": 3400,
+  "health": 100,
+  "armor": 0,
+  "weapon": "fists",
+  "ammo": {
+   "fists": "inf"
+  },
+  "stats": {
+   "kills": 0,
+   "pedKills": 0,
+   "copKills": 0,
+   "missionsDone": 14,
+   "playerWrecks": 0,
+   "spent": 0
+  },
+  "character": "tammo",
+  "pos": {
+   "x": 233405.2,
+   "y": 582310.7
+  },
+  "ctx": "home",
+  "missions": {
+   "index": 21,
+   "completed": [
+    18,
+    19,
+    20,
+    21
+   ],
+   "seen": [
+    18,
+    19,
+    20,
+    21
+   ],
+   "medals": {}
+  },
+  "story": {
+   "v": 1,
+   "done": [
+    "M00",
+    "M01",
+    "M02",
+    "M03",
+    "M04",
+    "M05",
+    "M06",
+    "M07",
+    "M08",
+    "T1",
+    "M09",
+    "M10",
+    "T2",
+    "M11",
+    "M12",
+    "M13",
+    "M14",
+    "T3",
+    "M15",
+    "M16",
+    "M17",
+    "M18",
+    "M19",
+    "T4",
+    "M20",
+    "M21",
+    "M22",
+    "M23"
+   ],
+   "skipped": [],
+   "fails": {},
+   "waived": [],
+   "voorschot": [],
+   "cards": [],
+   "flags": [
+    "met:berend",
+    "met:durk",
+    "met:henk",
+    "met:tinus",
+    "met:wubbo"
+   ]
+  },
+  "visitedLandmarks": [],
+  "shops": {
+   "hero": {},
+   "outfit": {
+    "tammo": "incognito",
+    "anita": "incognito"
+   },
+   "ownedOutfits": [
+    "incognito"
+   ],
+   "storyOutfit": null,
+   "hair": {
+    "tammo": {
+     "color": "naturel",
+     "style": "short"
+    },
+    "anita": {
+     "color": "naturel",
+     "style": "bob"
+    }
+   },
+   "heroColor": null,
+   "heroUpgrades": [],
+   "stamps": 0,
+   "vehicles": []
+  },
+  "prestaties": {
+   "eierballen": [],
+   "geheimen": [],
+   "unlocked": []
+  },
+  "duif": {
+   "ach": []
+  },
+  "bijbaan": {
+   "v": 1,
+   "jobs": {},
+   "seen": []
+  },
+  "postgame": {},
+  "meubels": {
+   "owned": [],
+   "pending": [],
+   "built": [],
+   "day": 0,
+   "read": 0,
+   "stek": 0,
+   "tips": [],
+   "moment": 0
+  },
+  "doel": null,
+  "radio": "on",
+  "streken": {
+   "v": 1,
+   "unlocked": [],
+   "on": [],
+   "used": []
+  },
+  "kalender": {
+   "v": 1,
+   "dag": 2,
+   "gezien": []
+  },
+  "frame": "rd-new"
+ }
+}
