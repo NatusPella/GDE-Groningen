@@ -1,3 +1,4 @@
+import './fxbank.js';
 import { renderData } from './dsp.js';
 
 self.onmessage = (e) => {

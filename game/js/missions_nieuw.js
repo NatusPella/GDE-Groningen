@@ -5,6 +5,21 @@
 // file) does not see their hint texts, which are text only.
 
 import { buildAkte5Defs, applyAkte5 } from './missions_akte5.js';
+import { wgsToWorld } from './rdnew.js';
+import { ROOSTER } from './heliplan.js';
+import { makeStrip } from './planecontrol.js';
+
+// A spot in the province by latitude/longitude plus metres east/south (province roads are not in the city map: no road snapping).
+const spotAt = (lat, lon, dx = 0, dy = 0) => { const [x, y] = wgsToWorld(lat, lon); return { x: x + dx, y: y + dy, road: null }; };
+
+// M14: the finish at the sluis of Delfzijl and the start 8 km back along the line to the Eemshaven
+const DIJK_SLUIS = spotAt(53.3245, 6.9270);
+const DIJK_START = (() => { const e = spotAt(53.4395, 6.8350), L = Math.hypot(e.x - DIJK_SLUIS.x, e.y - DIJK_SLUIS.y), k = 8000 / L; return { x: DIJK_SLUIS.x + (e.x - DIJK_SLUIS.x) * k, y: DIJK_SLUIS.y + (e.y - DIJK_SLUIS.y) * k, road: null }; })();
+
+// M15: the grass strip of Roelfien near Oostwold (Oldambt), pointing at the kermis of Winschoten, and a spot relative to that kermis
+const kermisAt = (dx, dy) => { const p = spotAt(53.1444, 7.0356, dx, dy); return { x: p.x, y: p.y }; };
+const AIRSTRIP_SPEC = (() => { const a = spotAt(53.1990, 7.0150), k = spotAt(53.1444, 7.0356); return { x: a.x, y: a.y, heading: Math.atan2(k.y - a.y, k.x - a.x), length: 520 }; })();
+const AIRSTRIP = makeStrip(AIRSTRIP_SPEC);
 
 // The def pieces: walk(x, y) / drive(x, y) are missions.js's road spots.
 export function buildNieuwDefs({ map, walk, drive }) {
@@ -65,6 +80,89 @@ export function buildNieuwDefs({ map, walk, drive }) {
       dest: drive(-22.92, -491.56),
       say: 'Eerst de Grote Markt: vijftienhonderd stuntpunten, zonder krassen. Daarna het Boterdiep.',
     },
+    {
+      // M13 Het containerlabyrint: a sneak between the containers of the Noorderterminal (Eemshaven) on the heist watchers;
+      // the crane cabin is a place to keep still, no crane to drive. The places are guesses until the Eemshaven tiles are seen.
+      type: 'stages',
+      label: 'Het containerlabyrint',
+      intro: ["De Eemshaven, vannacht. Lammert, de havenmeester, wacht aan de kade van de Noorderterminal.", "Container 4471 staat tussen drieduizend anderen. Sluip langs de bewakers en camera's, vind hem en verwissel de papieren voor het schip om zes uur vertrekt."],
+      outro: 'De papieren zijn verwisseld. Het schip van Jelle vaart leeg weg.',
+      timeLimit: null,
+      reward: 900,
+      onFoot: true,
+      heist: { bare: true },
+      start: spotAt(53.4440, 6.8560),
+      stages: [
+        { kind: 'goto', watch: { guards: 1, cameras: 1 }, target: { ...spotAt(53.4440, 6.8560, 120, -55), label: 'De kraan van de Noorderterminal' }, mode: 'foot', radius: 7,
+          label: 'Sluip naar de kraan van de Noorderterminal', say: "Eerst de kraan: daarvan zien we welke container blauw is. Blijf uit de lichtbundels en de camera's." },
+        { kind: 'hold', target: { ...spotAt(53.4440, 6.8560, 120, -55), label: 'De kraankooi' }, radius: 8, time: 9, mode: 'foot', ticks: ['Het eerste piepje. Niet bewegen.', 'Het tweede piepje. De bewaker kijkt omhoog.'],
+          label: 'Blijf stil in de kraankooi tot de bewaker wegloopt', say: 'In de kooi van de kraan. Lammert belt: de bewaker kijkt bij het tweede piepje omhoog. Niet bewegen.', talk: { ids: ['M13.2'], delay: 1.5 } },
+        { kind: 'goto', watch: { guards: 2, cameras: 1 }, target: { ...spotAt(53.4440, 6.8560, 260, 40), label: 'Container 4471' }, mode: 'foot', radius: 6,
+          label: 'Zoek container 4471, de blauwe naast de rode', say: 'Van boven zag je hem: de blauwe, naast de rode. Container 4471.' },
+        { kind: 'hold', target: { ...spotAt(53.4440, 6.8560, 260, 40), label: 'Container 4471' }, radius: 6, time: 6, mode: 'foot', ticks: ['De oude papieren eruit.', 'De nieuwe erin, naar het adres van Lammert.'],
+          label: 'Verwissel de papieren van container 4471', say: 'Papieren eruit, papieren erin. Even rustig staan.' },
+        { kind: 'goto', watch: { guards: 1, cameras: 0 }, target: { ...spotAt(53.4440, 6.8560, 10, 5), label: 'Lammert, aan de kade' }, mode: 'foot', radius: 7,
+          label: 'Terug naar Lammert aan de kade', say: 'Klaar. Terug naar de kade, voor het schip vertrekt.' },
+      ],
+    },
+    {
+      // M14 De dijk: a race to the sluis of Delfzijl against Jelle's trekker-limo (with the deurwaarder). The limo follows the roads
+      // like a chase vehicle (missions.js updateChaseRace); the places are guesses until the Eemsdelta tiles are seen.
+      type: 'stages',
+      label: 'De dijk',
+      intro: ["Zaterdag, zonsopgang. Om acht uur legt Jelles deurwaarder beslag op de ligplaats van Lammerts woonschip in Delfzijl, met al het vet, de eieren en het zout van de vrienden van Oma erin.", "Wees eerder bij de sluis van Delfzijl dan de trekker-limo met de deurwaarder. De dijk is lang en er staan schapen op de weg."],
+      outro: 'De sluis van Delfzijl, eerst. Het beslag mislukt: de voorraden zijn veilig.',
+      timeLimit: null,
+      reward: 1000,
+      vehicle: 'car',
+      snapStart: true,
+      vehicleName: 'de auto van Lammert',
+      handBack: { how: 'park', say: 'De auto blijft bij de sluis, Lammert regelt de rest. Wij gaan te voet verder.' },
+      start: DIJK_START,
+      stages: [
+        { kind: 'board', label: 'Stap in de auto naast de trekker-limo', say: 'Instappen. De trekker-limo van Jelle staat al te ronken.' },
+        {
+          kind: 'chase', race: true, label: 'Wees eerder bij de sluis van Delfzijl dan Jelles deurwaarder',
+          say: 'Naar de sluis van Delfzijl, over de dijk. Eerste aan de sluis houdt de voorraden. Let op de zijwind en de schapen.',
+          finish: { ...DIJK_SLUIS, label: 'De sluis van Delfzijl' }, flee: [DIJK_SLUIS.x, DIJK_SLUIS.y], radius: 18, rivalRadius: 45,
+          name: 'Jelles trekker-limo', lead: 30, cruise: 24, health: 400,
+          vehicle: { name: 'trekkerlimo', len: 5.6, wid: 2.0, maxSpeed: 27, accel: 5, brake: 12, turnRate: 1.5, color: '#141414' },
+          talk: { ids: ['M14.2'], delay: 8 },
+          won: 'Eerst bij de sluis! De deurwaarder staat met zijn map in de wind.',
+          lost: 'Jelles deurwaarder was eerder bij de sluis. Het beslag is gelegd',
+        },
+      ],
+    },
+    {
+      // M15 Laag over het graan: Roelfien's gewasspuiter (the plane of planeflight.js) on a strip in the Oldambt; low gates over the
+      // kermis of Winschoten with the banner behind it (planestage.js). The strip near Oostwold is a guess until it is checked in OSM
+      // (aeroway=aerodrome); no airfield is invented, the plane stands on a grass strip like Kist Kees at Eelde.
+      type: 'stages',
+      label: 'Laag over het graan',
+      intro: ["Roelfien wacht bij haar graanveld bij Winschoten. Jelle geeft de juryleden op de kermis een gratis proeverij, en daar koopt hij ze mee.", "Vlieg Roelfiens gewasspuiter laag over het graan, pik het spandoek op en sleep het over de kermis. Hou de molen rechts en trek pas op na de kermis."],
+      outro: 'Het spandoek hing boven de kermis. Twee juryleden stapten uit.',
+      timeLimit: null,
+      reward: 900,
+      onFoot: true,
+      start: { x: AIRSTRIP.point(24, 14).x, y: AIRSTRIP.point(24, 14).y, road: null },
+      stages: [
+        { kind: 'plane', strip: AIRSTRIP_SPEC, label: 'Stap in het vliegtuig van Roelfien', say: 'Roelfiens rode gewasspuiter staat op de strook. Instappen, Tessa stuurt.' },
+        {
+          kind: 'airgates', label: 'Laag over het graan, het spandoek over de kermis', banner: 'JELLE KOOPT DE JURY. LEVENSLANG EIERBALLEN',
+          say: 'Opstijgen en laag over het graan. Eerst het spandoek aan de paal oppikken, dan naar de kermis van Winschoten.',
+          high: 'te hoog: niemand ziet het spandoek', low: 'te laag: het spandoek en de wielen zitten in het graan', wide: 'de poort gemist: zo ziet de kermis het spandoek niet',
+          crashed: 'het vliegtuig is neergestort. Roelfien is niet blij', talk: { ids: ['M15.2'], delay: 6 },
+          gates: [
+            { ...AIRSTRIP.point(430), r: 30, lo: 3, hi: 24, banner: true, label: 'De paal met het spandoek', say: 'Spandoek opgepikt! Laag blijven, naar de kermis.' },
+            { ...kermisAt(-120, -420), r: 45, lo: 15, hi: 75, label: 'Over de molen, hou hem rechts' },
+            { ...kermisAt(-40, -60), r: 40, lo: 14, hi: 48, label: 'Over de kermis', say: 'Ze lezen het! Door de rij kramen.' },
+            { ...kermisAt(70, 70), r: 40, lo: 14, hi: 48, label: 'Door de rij kramen' },
+            { ...kermisAt(260, 260), r: 55, lo: 18, hi: 140, label: 'Trek op na de kermis', say: 'Voorbij de kermis. Nu terug naar de strook.' },
+          ],
+        },
+        { kind: 'landplane', label: 'Land op de strook bij Roelfien', say: 'Terug naar de strook. Gas eraf, neus iets omlaag, en rem met Shift als je staat.', crashed: 'het vliegtuig is neergestort. Roelfien is niet blij' },
+      ],
+    },
   );
   list.push(...buildAkte5Defs({ map, walk, drive }));
   return list;
@@ -118,6 +216,41 @@ export function applyNieuw(list) {
     vet.vehicleFail = { gone: 'Femkes auto is foetsie, en de tankwagen rijdt door', wrecked: 'de auto is total loss. Femke wil hem niet zo terug', left: 'je liet de auto staan. Zonder auto geen tankwagen' };
   }
   applyAkte5(list);
+  // M12 Het staat niet in het rooster: Dijkstra picks them up at Lauwersoog; the flight is the 'rooster' variant of helirun.js
+  const rooster = by('Het staat niet in het rooster');
+  if (rooster) {
+    const L = ROOSTER.lauwersoog;
+    rooster.intro = ['Dokter Dijkstra landt in Lauwersoog met Rotor Roelfs heli. De nachtdienst heeft honger, en Jelle vliegt met zijn koopboek boven de Dollard.', 'Eerst de lunch naar het UMCG, dan achter de ballon aan: houd de heli stil naast de mand, dan pakt Tammo de aktetas.'];
+    rooster.outro = 'Tammo knipte de aktetas los. Het koopboek van Jelle: acht plakjes.';
+    rooster.start = { x: L.x - 7, y: L.y + 5, road: null };
+    delete rooster.startSpot;
+    rooster.stages = [{ kind: 'heli', variant: 'rooster', target: { x: L.x, y: L.y, label: 'Helikopterplatform Lauwersoog' }, hint: 'Naar het helikopterplatform in Lauwersoog: Dokter Dijkstra wacht.',
+      label: 'Vlieg naar het UMCG, dan naar Jelles ballon boven de Dollard', say: 'Instappen bij Dijkstra. Spatie omhoog, W vooruit, A/D draaien. Hij vliegt de lange stukken, jij houdt de heli stil naast de mand.', lost: 'de ballon is ontsnapt over de Dollard' }];
+    rooster.costRow = ['Ontdekt', 'Plakje acht: notaris, 28 augustus'];
+  }
+  // M16 Nog eentje dan: the kroegentocht moves to the kermis of Winschoten (Sat 22 Aug): three tents on foot
+  const kerm = by('Nog eentje dan');
+  if (kerm) {
+    const W = (dx, dy) => spotAt(53.1444, 7.0356, dx, dy);
+    const via = (dx, dy) => ({ ...W(dx, dy), via: true });
+    const tent = (name, dx, dy, toast) => ({ ...W(dx, dy), name, toast });
+    kerm.intro = ['De kermis van Winschoten, zaterdagavond. Geert heeft drie tenten, en Durk en Douwe zingen aan zijn bar.', 'Te voet langs drie tenten, hè. Elke tent een drankje, en de dronken menigte duwt je zo omver.'];
+    kerm.outro = 'Drie tenten gehaald. Durk en Douwe zijn moe genoeg voor de botsauto\'s.';
+    kerm.timeLimit = 100;
+    kerm.checkpointBonus = 25;
+    kerm.drunk = 0.25;
+    kerm.crowds = [W(-30, 25), W(20, 10), W(60, 30), W(70, 10), W(25, -35)];
+    kerm.start = W(-55, 45);
+    kerm.waypoints = [
+      via(-20, 30),
+      tent('Tent De Gouden Aar', 5, 8, { glass: 'beer', variant: 0, lines: [['A', 'Proost!']] }),
+      via(45, 28),
+      tent('Tent Het Scheve Rad', 85, 40, { glass: 'wine', variant: 1, lines: [['student', 'Proost! Nog ééntje dan!'], ['A', 'Wie is dat?'], ['T', 'Een eerstejaars. Ze zijn overal.'], ['student', 'Ik hou van jullie allemaal!'], ['T', 'Dat geloof ik.']] }),
+      via(65, -5),
+      tent('Tent De Laatste Zweefmolen', 25, -55, { glass: 'jenever', variant: 2, lines: [] }),
+    ];
+    kerm.costRow = ['Ontdekt', 'Durk en Douwe zijn moe genoeg voor een rit'];
+  }
   const mus = by('Het museum stond er al zo');
   if (mus) {
     // the black clothes and the boat are in the intro now (08 §2): only the dark is needed, and the call from home

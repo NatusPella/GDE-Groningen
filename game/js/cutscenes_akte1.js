@@ -45,6 +45,8 @@ const merge = (...parts) => ({
 });
 
 export const SPECS = {};
+// more stagings (cutscenes_akte3.js ...): read by missionScene as well, so act 1's own test keeps its list
+export const MORE_SPECS = {};
 
 // --- M01 Nul krassen: Berend and his pickup at the Martinikerkhof ---------------------------
 {
@@ -535,7 +537,7 @@ const CAMS = {
 };
 
 export function missionScene(key, lines, { looks = {} } = {}) {
-  const spec = SPECS[key];
+  const spec = SPECS[key] || MORE_SPECS[key];
   if (!spec || !lines || !lines.length) return null;
   const actors = {};
   for (const id of ['tammo', 'tessa']) actors[id] = { ...DUO[id], ...((spec.duo || {})[id] || {}) };
