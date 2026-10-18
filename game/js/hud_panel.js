@@ -1847,6 +1847,7 @@ export function declutter(items, cellM) {
 }
 
 import { forEachCashTarget } from './cashvan.js';
+import { gameBusy } from './busy.js';
 
 export function getHeroCar(world) {
   return world.vehicles.find((v) => v.isHeroCar && !v.wrecked) || null;
@@ -2119,7 +2120,7 @@ function drawMinimap(dt, world) {
   const heliMarks = getHeliRunMarks();
   if (heliMarks) drawHeliRunMarks(ctx, heliMarks, toScreen, inRange, mmScale, t);
   // a minigame on the spot (padel, carbid, the kermis) or a heli run: no other mission or story marks
-  const busyGame = !!(world.padelGame || world.activityGame || world.heliRun);
+  const busyGame = gameBusy(world);
   const placed = [];
   const icon = (kind, x, y, opts) => {
     if (!inRange(x, y)) return false;

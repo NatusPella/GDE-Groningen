@@ -29,6 +29,7 @@ import { postgamePrompt, postgameSecondary } from './postgame.js';
 import { ommelandPrompt, ommelandSecondary } from './ommelandfun.js';
 import { renderAimReticle } from './aimassist.js';
 import { WEAPONS, isMeleeWeapon, isRangedWeapon } from './combat.js';
+import { gameBusy } from './busy.js';
 
 const USES_KEY = KEYS.hintUses;
 const LEARN_USES = 3;
@@ -453,7 +454,7 @@ function findSecondary(world, primary) {
   for (const c of stationSecondary(world)) add(c, 22);
   for (const c of ommelandSecondary(world)) add(c, 24);
   const m = world.mission;
-  const gameBusy = !!(world.padelGame || world.activityGame || world.heliRun);
+  const gameBusy = gameBusy(world);
   if (m && (m.phase === 'idle') && m.label && !(world.sideJob && world.sideJob.active) && !gameBusy) {
     add({ id: 'mis', x: m.marker.x, y: m.marker.y, h: 3.2, label: 'Missie: ' + m.label, kind: 'mission' }, 60);
   }
