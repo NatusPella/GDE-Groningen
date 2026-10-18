@@ -60,6 +60,7 @@ export const FLAGS = Object.freeze({
   reizen: has('reizen'),
   testmenu: has('testmenu'),
   brugbotsing: has('brugbotsing'),
+  sfxtest: has('sfxtest'),
 });
 
 export const FLAG_DOCS = Object.freeze({
@@ -97,6 +98,7 @@ export const FLAG_DOCS = Object.freeze({
   simlagen: 'Verkeer volgens simulatielagen per streek en afstand (simlagen.js)',
   zwartcheck: 'Controleer op zwarte beelden (blackframe)',
   testmenu: 'Testmenu op F10 met alle schakelaars en snelkoppelingen; eigen opslag (gde-dev:), raakt de echte save niet',
+  sfxtest: 'Geluidstest: paneel met alle effecten, een afstandsschuif en een afspeelknop per effect; F8 verbergt het (#173)',
   brugbotsing: 'Stuurt na een paar seconden een binnenvaartschip tegen de dichtstbijzijnde brug (#9)',
   reizen: 'Reisbeats in het nieuwe verhaal: keuze Meerijden, Zelf rijden of Overslaan bij een sprong (#97)',
 });
