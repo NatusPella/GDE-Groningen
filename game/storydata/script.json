@@ -5863,9 +5863,9 @@
    "vehicle": "helikopter",
    "step": "M12",
    "kind": "intro",
-   "gameplay": "de route is één keten, Lauwersoog, UMCG (lunch), de Dollard en Delfzijl, zonder terug te vliegen; Tessa houdt de heli stil naast de ballonmand terwijl Tammo aan de lier de aktetas pakt en losknipt.",
+   "gameplay": "de route is één keten, Lauwersoog, UMCG (lunch), de Dollard en de Eemshaven, zonder terug te vliegen; Tessa houdt de heli stil naast de ballonmand terwijl Tammo aan de lier de aktetas pakt en losknipt.",
    "regie": [
-    "vrijdag 21 augustus, ochtend. Dijkstra komt met Rotor Roelfs heli van het pad bij Eelde aanvliegen en landt op het havenplatform. Naamkaart: DOKTER DIJKSTRA. Gameplay: de route is één keten, Lauwersoog, UMCG (lunch), de Dollard en Delfzijl, zonder terug te vliegen; Tessa houdt de heli stil naast de ballonmand terwijl Tammo aan de lier de aktetas pakt en losknipt."
+    "vrijdag 21 augustus, ochtend. Dijkstra komt met Rotor Roelfs heli van het UMCG-dak aanvliegen en landt op het havenplatform. Naamkaart: DOKTER DIJKSTRA. Gameplay: de route is één keten, Lauwersoog, UMCG (lunch), de Dollard en de Eemshaven, zonder terug te vliegen; Tessa houdt de heli stil naast de ballonmand terwijl Tammo aan de lier de aktetas pakt en losknipt."
    ],
    "lines": [
     {
@@ -5963,7 +5963,7 @@
     {
      "speaker": "Rotor Roelf",
      "key": "rotor",
-     "text": "Moi! Rotor Roelf, van Eelde. Die heli is van mij, maar de lunch is van Dijkstra. Nait tegen d'Olle Grieze aan, hè?",
+     "text": "Moi! Rotor Roelf. Die heli is van mij, ik heb hem gisteren op het UMCG-dak gezet. Maar de lunch is van Dijkstra. Nait tegen d'Olle Grieze aan, hè?",
      "tag": "NIEUW",
      "channel": "telefoon",
      "textOnly": true
@@ -6134,7 +6134,7 @@
    "id": "M12.4",
    "title": "Het staat niet in het rooster: outro",
    "act": 3,
-   "region": "Eemsdelta, Delfzijl, helidek",
+   "region": "Eemsdelta, Eemshaven, helidek",
    "vehicle": "helikopter",
    "step": "M12",
    "kind": "outro",
@@ -6216,7 +6216,7 @@
    "id": "M12.5",
    "title": "Het staat niet in het rooster: herhaling",
    "act": 3,
-   "region": "Eemsdelta, Delfzijl, helidek",
+   "region": "Eemsdelta, Eemshaven, helidek",
    "vehicle": "helikopter",
    "step": "M12",
    "kind": "replay",
@@ -6428,7 +6428,7 @@
     {
      "speaker": "Lammert",
      "key": "lammert",
-     "text": "Mijn woonschip in Delfzijl is van jullie. Voor de nacht, en voor de voorraden.",
+     "text": "Mijn vrachtwagen brengt de voorraden vannacht naar mijn woonschip in Delfzijl. Jullie slapen in mijn havenkantoor.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -6436,7 +6436,7 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Een woonschip?",
+     "text": "Een kantoor?",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -6444,7 +6444,7 @@
     {
      "speaker": "Lammert",
      "key": "lammert",
-     "text": "Een schuilplaats met een bed. Twee bedden.",
+     "text": "Met een bed. Twee bedden.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -7635,7 +7635,7 @@
      "speaker": "Mem",
      "from": "MEM",
      "to": "TESSA",
-     "text": "Nog vijf dagen. Zeg het hem niet. – M.",
+     "text": "Nog zes dagen. Zeg het hem niet. – M.",
      "tag": "NIEUW",
      "channel": "app-stil",
      "textOnly": true,
@@ -7846,7 +7846,7 @@
      "speaker": "Mem",
      "from": "MEM",
      "to": "TESSA",
-     "text": "Nog zes dagen. Hou Jelle bezig. – M.",
+     "text": "Nog zeven dagen. Hou Jelle bezig. – M.",
      "tag": "NIEUW",
      "channel": "app-stil",
      "textOnly": true,
