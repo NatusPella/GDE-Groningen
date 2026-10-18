@@ -34,6 +34,7 @@ import { nearestFacility } from './facilities.js';
 import { roadNear, withTiles } from './tileplace.js';
 import { nieuwVerhaal } from './storyflag.js';
 import { refreshDayNight } from './daynight.js';
+import { FLAGS } from './devflags.js';
 
 // GDE_NIEUW_VERHAAL=1 (?nieuwverhaal): the new arc, act 1 (storyarc_nieuw.js); else the released arc
 const NEW = nieuwVerhaal();
