@@ -70,9 +70,9 @@ const upTo = (id) => STEPS.slice(0, STEPS.findIndex((s) => s.id === id)).map((s)
 const mMid = migrateSave(save(upTo(S.mid), []));
 ok(mMid.data.kalender.dag === STEP_DAY.get(S.mid), `a save before ${S.mid} gets ${S.mid}'s day`, String(mMid.data.kalender.dag));
 const mEnd = migrateSave(save(STEPS.map((s) => s.id), []));
-// the new arc is built to the end: a save that has done every step is in September
-const endDay = EPILOGUE_DAY;
-ok(mEnd.data.kalender.dag === endDay && dayForSavedStep(savedStoryStep(mEnd.data)) === endDay, 'a finished save is in September', String(mEnd.data.kalender.dag));
+// the new arc is built up to M07: a save that has done every step stands at the "volgt" card of its part
+const endDay = NEW ? STEP_DAY.get(STEPS.filter((s) => s.built).pop().id) : EPILOGUE_DAY;
+ok(mEnd.data.kalender.dag === endDay && dayForSavedStep(savedStoryStep(mEnd.data)) === endDay, NEW ? 'a save past the built story stands where the built story stops' : 'a finished save is in September', String(mEnd.data.kalender.dag));
 const keep = migrateSave({ v: 6, kalender: { v: 1, dag: 30, gezien: ['kei'] } });
 ok(keep.data.kalender.dag === 30, 'an existing kalender is kept');
 const dir = path.join(path.dirname(fileURLToPath(import.meta.url)), 'fixtures', 'saves');

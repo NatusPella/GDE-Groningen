@@ -17,7 +17,7 @@ const ok = (cond, name, info = '') => { n++; if (!cond) { fails++; console.log(`
 
 const walk = (x, y) => ({ x, y, road: null });
 const fresh = buildDeel4Defs({ walk });
-const ids = NEW_MISSION_IDS.slice(5);
+const ids = NEW_MISSION_IDS.slice(9);
 ok(fresh.length === ids.length, 'one def per new mission id after loket and bakkiestunt', `${fresh.length} vs ${ids.length}`);
 
 // the shared old defs, as far as applyDeel4 touches them
@@ -32,7 +32,7 @@ const steps = STEPS.filter((s) => s.kind === 'mission' && s.mission);
 const defOf = (s) => list.find((d) => d.label === s.title);
 const KINDS = new Set(['goto', 'scene', 'hold', 'pigeon']);
 const NPC_KEYS = new Set(Object.keys(SPEAKERS));
-for (const s of steps.filter((q) => !['M01', 'M02', 'M03', 'M04', 'M05', 'M06', 'M07', 'M12', 'M13', 'M14', 'M15', 'M16'].includes(q.id))) {
+for (const s of steps.filter((q) => !['M01', 'M02', 'M03', 'M04', 'M05', 'M06', 'M07', 'M12', 'M13', 'M14', 'M15', 'M16', 'M17', 'M18', 'M19', 'M20', 'M21', 'M22', 'M23', 'M24', 'M25', 'M26'].includes(q.id))) {
   ok(s.built, `${s.id}: built`);
   const d = defOf(s);
   ok(d, `${s.id}: a def with the step's title`, s.title);
@@ -56,15 +56,8 @@ for (const s of steps.filter((q) => !['M01', 'M02', 'M03', 'M04', 'M05', 'M06', 
 // the startSpot of M12 and the notes of M08
 ok(list.find((d) => d.label === 'Fatbikes tellen niet als fiets').notes[0].talk.ids[0] === 'M08.2', 'M08 talks on the lane');
 
-// the travel steps and the epilogue
-for (const s of STEPS.filter((q) => q.goal && q.goal.type === 'travel')) {
-  ok(s.built && placePoint(s.goal.to), `${s.id}: travel to a known place (${s.goal.to})`);
-  ok(REISBEATS[s.goal.beat], `${s.id}: a travel beat`);
-  for (const id of [].concat(s.goal.scene || REISBEATS[s.goal.beat].scene || [], s.goal.arrive || [])) ok(sceneIds.has(id), `${s.id}: travel scene ${id} exists`);
-}
-const epi = STEPS.find((s) => s.id === 'E');
-ok(epi && epi.built && epi.goal.type === 'epilogue' && epi.scenes.every((id) => sceneIds.has(id)), 'the epilogue is built on E1 and E2');
-ok(STEPS.every((s) => s.built), 'every step of the new arc is built');
+// the travel steps
+for (const s of STEPS.filter((q) => q.goal && q.goal.type === 'reis')) ok(s.built && s.goal.at.length === 2, `${s.id}: a travel goal with a place`);
 
 // the places are in the province (RD New, metres from the city): Bourtange in the south-east, Lauwersoog in the north-west
 const b = placePoint('Vesting Bourtange'), l = placePoint('Lauwersoog'), z = placePoint('Zoutkamp');

@@ -17,6 +17,7 @@ import { storyLines, storyDataReady, readingTime, storyDirRecording } from './st
 import { openBank } from './voicebank.js';
 import { playScript } from './cutscenehost.js';
 import { missionScene } from './cutscenes_akte1.js';
+import { STORY_AKTE4 } from './missionstory_akte4.js';
 import './cutscenes_akte3.js';
 
 // Story cutscenes around the mission chain: who asks and why (start), the
@@ -598,47 +599,6 @@ const STORY = [
     outro: [['N', 'Twee juryleden zijn weggelopen.']],
     replay: [['N', 'Weer een spandoek? Het graan wacht.']],
     fail: [['A', 'Te hoog, of te laag. Sikkom.'], ['T', 'Het graan zat in de wielen.']],
-  },
-  { // 20: M09 Heel aankomen is ook een kunst (eieren)
-    npc: 'geesje', outroPose: 'cheer', ask: 0, textOnly: true, outroCast: [{ key: 'durk', pose: 'arms' }, { key: 'douwe', pose: 'arms' }],
-    intro: [['N', 'Ik ben Geesje, kosteres van de wierdekerk in Usquert.']], outro: [['N', 'De kratten staan heel.']], replay: [['N', 'Weer eieren?']],
-    fail: [['A', 'Sikkom. Omelet. Opnieuw laden.'], ['T', 'Heel, zei ze.']],
-  },
-  { // 21: M10 Een trekker-limo op de wierde
-    npc: 'jelle', outroPose: 'hips', ask: 0, textOnly: true, outroCast: [{ key: 'douwe', pose: 'arms' }, { key: 'durk', pose: 'arms' }],
-    intro: [['N', 'Ik ben hier niet voor de eieren.']], outro: [['N', 'Oant sjen!']], replay: [['N', 'Weer op de wierde?']],
-    fail: [['A', 'Sikkom. De limo haalde ons in.'], ['T', 'Terug naar Geesje.']],
-  },
-  { // 25: M17 Open, dicht
-    npc: 'wubbo', outroPose: 'hips', ask: 0, textOnly: true,
-    intro: [['N', 'Ik ben Wubbo, brugwachter.']], outro: [['N', 'De limo. Met de koffer.']], replay: [['N', 'Weer elf bruggen?']],
-    fail: [['A', 'Dicht. Net te laat.'], ['T', 'Mis je de maat, dan wacht je.']],
-  },
-  { // 26: M18 Wie draaide de camera's uit?
-    npc: 'accountmanager', outroPose: 'hips', ask: 0, textOnly: true,
-    intro: [['N', 'Wat is uw merkpersoonlijkheid?']], outro: [['N', 'Wiebelwerk stelt niks.']], replay: [['N', 'Weer een intake?']],
-    fail: [['A', 'Ze hebben ons de deur gewezen.'], ['T', 'Zonder merkpersoonlijkheid.']],
-  },
-  { // 27: M19 Stoom
-    npc: 'durk', outroNpcKey: 'jurylid', outroPose: 'hips', ask: 0, textOnly: true, outroCast: [{ key: 'bewaarder', pose: 'hips' }, { key: 'berend', pose: 'hips' }],
-    intro: [['N', 'Net fertelle, hè?']], outro: [['N', 'Ik stap hier uit.']], replay: [['N', 'Weer een trein?']],
-    fail: [['A', 'De trein staat nog steeds stil.'], ['T', 'Dit is de rem. Dat was de rem.']],
-  },
-  { // 28: M20 Het beleg van Bourtange
-    npc: 'berend', outroPose: 'cheer', ask: 0, textOnly: true, introCast: [{ key: 'durk', pose: 'arms' }, { key: 'douwe', pose: 'arms' }],
-    outroCast: [{ key: 'trijntje', pose: 'hips' }, { key: 'mem', pose: 'point' }],
-    intro: [['N', 'Het Beleg van Bourtange. De vesting is van ons.']], outro: [['N', 'Wat mout, dat mout.']], replay: [['N', 'Weer een beleg?']],
-    fail: [['A', 'De bal is weg.'], ['T', 'Dit was het dieptepunt.']],
-  },
-  { // 29: M22 Een luik erin
-    npc: 'tinus', outroPose: 'cheer', ask: 0, textOnly: true,
-    intro: [['N', 'Tinus, trekkertrekker. Welkom in mijn schuur.']], outro: [['N', 'Een wagen.']], replay: [['N', 'Weer een luik?']],
-    fail: [['A', 'De as brak.'], ['T', 'De modder pakt eerst de auto.']],
-  },
-  { // 30: M23 De colonne
-    npc: 'mem', outroNpcKey: 'rikus', outroPose: 'hips', ask: 0, textOnly: true,
-    intro: [['N', 'Famke. Trijntje en ik hebben ze gebeld.']], outro: [['N', 'We zijn er. Allemaal.']], replay: [['N', 'Weer een colonne?']],
-    fail: [['A', 'De colonne viel uit elkaar.'], ['T', 'Jelle splitste ons.']],
   },
 ];
 
@@ -1378,7 +1338,23 @@ function playStaged(w, key, tl, { anchor, facing, kicker = '', title = '', cardF
   return ok;
 }
 
-function stageLines(i, stage, kind, entry = STORY[i]) {
+// the entry of mission index i: the main table, or an act's own table keyed by mission id (missionstory_akte4.js)
+// akte 2's two missions that no other act stages (eieren, wierde), by mission id
+export const STORY_AKTE2 = {
+  eieren: {
+    npc: 'geesje', outroPose: 'cheer', ask: 0, textOnly: true, outroCast: [{ key: 'durk', pose: 'arms' }, { key: 'douwe', pose: 'arms' }],
+    intro: [['N', 'Ik ben Geesje, kosteres van de wierdekerk in Usquert.']], outro: [['N', 'De kratten staan heel.']], replay: [['N', 'Weer eieren?']],
+    fail: [['A', 'Sikkom. Omelet. Opnieuw laden.'], ['T', 'Heel, zei ze.']],
+  },
+  wierde: {
+    npc: 'jelle', outroPose: 'hips', ask: 0, textOnly: true, outroCast: [{ key: 'douwe', pose: 'arms' }, { key: 'durk', pose: 'arms' }],
+    intro: [['N', 'Ik ben hier niet voor de eieren.']], outro: [['N', 'Oant sjen!']], replay: [['N', 'Weer op de wierde?']],
+    fail: [['A', 'Sikkom. De limo haalde ons in.'], ['T', 'Terug naar Geesje.']],
+  },
+};
+const storyOf = (i) => STORY[i] || STORY_AKTE4[MISSION_IDS[i]] || STORY_AKTE2[MISSION_IDS[i]];
+
+function stageLines(i, stage, kind, entry = storyOf(i)) {
   const s = entry;
   const base = s[kind];
   if (stage >= i) return base;
@@ -1407,11 +1383,12 @@ function onFootAnchor(w) {
 // The new arc plays the script's text (script.json, storytext.js) in the staging of the mission's STORY entry:
 // intro, outro and replay come from the step's `story` scene ids (storyarc_nieuw.js); the fail lines stay.
 function entryFor(i) {
-  if (!STORY[i] || !nieuwVerhaal() || !storyDataReady()) return STORY[i];
+  const base = storyOf(i);
+  if (!base || !nieuwVerhaal() || !storyDataReady()) return base;
   const step = STEPS.find((q) => q.kind === 'mission' && q.story && MISSION_IDS.indexOf(q.mission) === i);
-  if (!step) return STORY[i];
-  // a defs shared with the old arc is staged differently here: story.entry overrides fields of its STORY entry (npc, casts, props)
-  const s = step.story.entry ? { ...STORY[i], ...step.story.entry } : STORY[i];
+  if (!step) return base;
+  // a def shared with the old arc is staged differently here: story.entry overrides fields of its STORY entry (npc, casts, props)
+  const s = step.story.entry ? { ...base, ...step.story.entry } : base;
   const mk = (ids, npc) => storyLines(ids, { npc });
   const intro = mk(step.story.intro, s.npc);
   // outro: null = no outro scene (the mission's last stage scene tells it): the pass banner alone
@@ -1502,7 +1479,7 @@ function outroNow(w, i, { stage = i, short = false, reward = 0, stats = [], reas
 }
 
 export function playStoryFail(w, i, { reason = '', stats = [] } = {}) {
-  const s = STORY[i];
+  const s = storyOf(i);
   // sikkom: Gronings for "almost, but not quite" (the dialect word, not the news site)
   const banner = { kind: 'fail', title: 'Sikkom.', reason, stats };
   if (!s || run) { showBanner(banner); return false; }
@@ -2401,7 +2378,7 @@ export function playToast(w, { at, facing = 0, lines = [], variant = 0, glass = 
 // A finished mission's intro and outro as plain lines, for Kiekdoar TV in the
 // flat (furniture.js): { speaker, text, src (voice URL or null), dur }.
 export function storyReplayLines(i) {
-  const s = STORY[i];
+  const s = storyOf(i);
   if (!s) return [];
   const npc = NPC[s.npc], outNpc = NPC[s.outroNpcKey || s.npc];
   const n = (s.intro || []).length;

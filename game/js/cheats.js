@@ -227,7 +227,7 @@ export function teleportSpot(map, x, y, car) {
   return null;
 }
 
-export function teleport(w, x, y, name) {
+function teleport(w, x, y, name) {
   const why = blockedReason(w);
   if (why) { w.addMessage(why, 3); return false; }
   // far from here the tiles round the target are not in yet: they come first,

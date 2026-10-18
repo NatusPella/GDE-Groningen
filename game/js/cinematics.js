@@ -216,8 +216,9 @@ function poseFocus(pose) {
   return { x: ex + dx * k, y: ey + dy * k };
 }
 
-// Cutscene camera poses off the world (the province: Lauwersoog in the north-west to Bourtange
-// in the south-east, with room round it) or NaN: one entry per cinematic id, for the story test.
+// Cutscene camera poses off the world (city plus Ommeland extent) or NaN:
+// one entry per cinematic id, for the story test.
+// (the province: Lauwersoog in the north-west to Bourtange in the south-east, with room round it)
 const WORLD_EXTENT = [-60000, -45000, 70000, 50000];
 const poseIssues = new Map();
 function notePose(id, pose) {
