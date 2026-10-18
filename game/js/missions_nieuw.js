@@ -78,8 +78,15 @@ export function applyNieuw(list) {
     pin.stages[2].label = 'Breng de automaat naar Sjabbe (Pand & Poen)';
   }
   const duif = by('Kieken van boven');
-  if (duif) duif.stages[0].talk = { ids: ['M04.2'], delay: 6 };
+  if (duif) {
+    duif.stages[0].talk = { ids: ['M04.2'], delay: 6 };
+    // the goal said aloud, and the fuse box too (09-script: three cameras, two guards, a fuse box)
+    duif.stages[0].label = 'Fotografeer 3 camera\'s, 2 bewakers en de stroomkast';
+    duif.stages[0].targets.push({ landmark: 'Groninger Museum', off: [-29, -38], label: 'De stroomkast achter de fietsenstalling' });
+    duif.timeLimit = 230;
+  }
   const kei = by('Wind tegen, beide kanten op');
+  if (kei) kei.say = 'Podium in de Kiezelrace, dan vertelt Sjoerd over het museum. Altijd tegenwind, op een eigen fiets.';
   if (kei) kei.moment = { at: 3, text: kei.moment.text, talk: { ids: ['M05.2'] } };
   const vet = by('Al het vet van Grunn');
   if (vet) {
