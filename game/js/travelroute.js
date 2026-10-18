@@ -41,6 +41,45 @@ const SHORE_SHUT_M = 0.5;
 const SHORE_COST_M = 4;
 const SHORE_SNAP_M = 160;
 
+// A point on water a hull can float at: the point itself when it is on water, else the nearest water within SHORE_SNAP_M
+// (a spot on a quay or a jetty), or null. height: the boat's air draught, a bridge deck lower than that shuts the water.
+export function snapToWater(ctx, p, height = 2.2) {
+  const water = (x, y) => ctx.isWater(x, y) && (!ctx.clearAt || ctx.clearAt(x, y) >= height);
+  if (water(p[0], p[1])) return [p[0], p[1]];
+  for (let r = CELL; r <= SHORE_SNAP_M; r += CELL) {
+    const n = Math.max(8, Math.round(r / 3));
+    for (let k = 0; k < n; k++) {
+      const t = (k / n) * Math.PI * 2;
+      const x = p[0] + Math.cos(t) * r, y = p[1] + Math.sin(t) * r;
+      if (water(x, y)) return [x, y];
+    }
+  }
+  return null;
+}
+
+// A boat trip from a to b: over the waterway network when it joins the two (opts.net(sa, sb) -> { pts, length, etaS } or
+// null: bridges, locks and the boat's height are its business), else the local grid search of boatRoute. Both ends may lie
+// beside the water (a quay, a jetty): the trip runs from and to the nearest water, with a straight bit over the quay.
+// -> { mode, pts, length, etaS, legs, dock, net } or null.
+export const NET_MIN_M = 150;
+export function boatTrip(ctx, a, b, opts = {}) {
+  const height = opts.height ?? 2.2;
+  const sa = snapToWater(ctx, a, height), sb = snapToWater(ctx, b, height);
+  if (!sa || !sb) return null;
+  const nr = opts.net ? opts.net(sa, sb) : null;
+  if (nr && nr.pts && nr.pts.length > 1 && nr.length > NET_MIN_M) {
+    const pts = [[a[0], a[1]]];
+    if (dist(a, nr.pts[0]) > 0.5) pts.push(...(dist(a, sa) > 0.5 ? [sa] : []));
+    for (const p of nr.pts) if (dist(pts[pts.length - 1], p) > 0.1) pts.push(p);
+    if (dist(pts[pts.length - 1], sb) > 0.5) pts.push(sb);
+    if (dist(pts[pts.length - 1], b) > 0.5) pts.push([b[0], b[1]]);
+    const length = polyLength(pts);
+    const extra = nr.etaS - nr.length / (opts.speed || 5);
+    return { mode: 'boot', pts, length, etaS: Math.max(etaSeconds(length, 'boot'), length / (opts.speed || 5) + Math.max(0, extra)), legs: [{ kind: 'boat', pts, length, label: 'Varen' }], dock: dist(sb, b) > 1 ? sb : null, net: true };
+  }
+  return boatRoute(ctx, a, b, opts);
+}
+
 // A boat route over open water. ctx: { isWater(x, y), clearance?(x, y) (m to
 // the shore or a moored hull), clearAt?(x, y) (free height under a bridge in m)
 // }, opts: { height } (the boat's air draught). Cells under a bridge that is
@@ -49,18 +88,7 @@ const SHORE_SNAP_M = 160;
 export function boatRoute(ctx, a, b, opts = {}) {
   const height = opts.height ?? 2.2;
   const water = (x, y) => ctx.isWater(x, y) && (!ctx.clearAt || ctx.clearAt(x, y) >= height);
-  const snap = (p) => {
-    if (water(p[0], p[1])) return [p[0], p[1]];
-    for (let r = CELL; r <= SHORE_SNAP_M; r += CELL) {
-      const n = Math.max(8, Math.round(r / 3));
-      for (let k = 0; k < n; k++) {
-        const t = (k / n) * Math.PI * 2;
-        const x = p[0] + Math.cos(t) * r, y = p[1] + Math.sin(t) * r;
-        if (water(x, y)) return [x, y];
-      }
-    }
-    return null;
-  };
+  const snap = (p) => snapToWater(ctx, p, height);
   const sa = snap(a), sb = snap(b);
   if (!sa || !sb) return null;
   const pad = BOAT_PAD_M + dist(sa, sb) * 0.5;
