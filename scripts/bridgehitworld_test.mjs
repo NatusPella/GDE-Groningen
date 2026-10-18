@@ -12,9 +12,11 @@ const map = { roads: [road], roadsNear: () => [road], waterPolyAt: () => water, 
 const boat = (o) => ({ isBoat: true, x: 0, y: -22, angle: Math.PI / 2, speed: 5, health: 100, model: { kind: 'binnenvaart', len: 38, wid: 5 }, ...o });
 resetBridgeDamage();
 const barge = boat({});
-const w = { map, player: { x: 0, y: -30 }, vehicles: [barge] };
+const msgs = [];
+const w = { map, player: { x: 0, y: -30 }, vehicles: [barge], addMessage: (t) => msgs.push(t) };
 const hits = updateBridgeHits(0.1, w);
 ok('barge hits the bridge', hits.length === 1 && hits[0].severity >= 1, JSON.stringify(hits.map((h) => h.severity)));
+ok('player sees the Dutch line', msgs.length === 1 && msgs[0] === hits[0].line);
 ok('hull dented, never destroyed', barge.health < 100 && barge.health >= 10 && !barge.wrecked);
 ok('barge slowed or stopped', barge.speed < 5);
 const d = bridgeDamageOf(road);

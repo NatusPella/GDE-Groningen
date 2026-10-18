@@ -5,11 +5,11 @@
 ## [M17.1] Open, dicht: intro – Veenkoloniën, Veendam, Winschoterdiep – sloep
 (regie: maandag 24 augustus, ochtend. Een brug, een kanaal, een fanfare in de verte. Naamkaart: WUBBO. Gameplay: met een sloep door elf bruggen varen, voor Jelles mosterdschip, op het ritme van de bruggen.)
 WUBBO: Ik ben Wubbo, brugwachter. Open of dicht. Nooit allebei. Oma Trijntje belde. [NIEUW]
-TESSA: Jelle heeft een mosterdschip. Dat moet door elf van jouw bruggen. Die mosterd is plakje zeven. [NIEUW]
+TESSA: Durk zei dat Jelle vandaag in Veendam de mosterd haalt. Zijn mosterdschip moet door elf van jouw bruggen, en de bal reist met hem mee. Die mosterd is plakje zeven. [NIEUW]
 TAMMO: Hoe weten we wanneer? [NIEUW]
 WUBBO: Elf bruggen. Ik open ze op het ritme van de fanfare. Mis je de maat, dan wacht je. [NIEUW]
 WUBBO: De brug draait op tijd. Jullie boot liever ook. [NIEUW]
-TAMMO: Over zaterdag. [NIEUW]
+TAMMO: Over zaterdag. In de botsauto. [NIEUW]
 TESSA: Welke zaterdag? [NIEUW]
 
 ## [M17.2] Open, dicht: de fanfare weg – Veenkoloniën, Winschoterdiep – sloep
@@ -82,7 +82,7 @@ TAMMO: Een alibi. [NIEUW]
 TESSA: Een webbureau. [NIEUW]
 TAMMO: Dan is het niet Wiebelwerk. [NIEUW]
 TESSA: Dan is het Jelle, en iemand van binnen. [NIEUW]
-APP MEM→TESSA (stil): Ze zoeken je. Kom naar Bourtange. – M. [NIEUW]
+APP MEM→TESSA (stil): Kom dinsdag naar Bourtange, voor het Beleg. Jelle komt ook. – M. [NIEUW]
 
 ## [M18.5] Wie draaide de camera's uit?: herhaling – Veenkoloniën, Veendam – te voet
 ACCOUNTMANAGER: Weer een intake? Wij zijn altijd open. [NIEUW]
@@ -104,7 +104,7 @@ TESSA (telefoon): Rem nog niet. Eerst gas. [NIEUW]
 TAMMO: Dit is gas. [NIEUW]
 TESSA (telefoon): Dat is de fluit. [NIEUW]
 TAMMO: Die ook. [NIEUW]
-TESSA: Meneer de jurylid, wilt u nog een eierbal? [NIEUW]
+TESSA: Meneer, wilt u nog een eierbal? [NIEUW]
 JURYLID: Heerlijk. Wie is die mevrouw? [NIEUW]
 TESSA: Dat is geen eierbal, dat is een boodschap: Jelle koopt u. [NIEUW]
 JURYLID: Dat is toch niet waar. [NIEUW]
@@ -120,7 +120,7 @@ TAMMO: Eén van vijf. [NIEUW]
 TESSA: Dat is nog geen meerderheid. Drie van de vijf beslist. [NIEUW]
 TAMMO: Ik heb een trein bestuurd. [NIEUW]
 TESSA: Je hebt hem in een station gezet. Dat is meer dan de machinist. [NIEUW]
-BEREND (telefoon): Goidag. Ik heb een bus nodig voor het Beleg. Kom naar Ter Apel. [NIEUW]
+BEREND (telefoon): Goidag. Jelle komt dinsdag naar het Beleg van Bourtange, met zijn beleggers. Ik heb een bus nodig. Kom naar Ter Apel. [NIEUW]
 
 ## [M19.4] Stoom: herhaling – Veenkoloniën, Stadskanaal – trein
 DURK: Weer een trein? Net fertelle, hè? [NIEUW]
@@ -128,7 +128,7 @@ DURK: Weer een trein? Net fertelle, hè? [NIEUW]
 ## [T4.1] De bus naar Bourtange: instappen – Westerwolde, Ter Apel-bos – bus
 (regie: dinsdag 25 augustus, vroege avond. Een heideweg, een oude bus, veertig mensen in bisschopsmantels en met kartonnen kanonnen. Reisbeat: meerijden, zelf rijden of skippen.)
 BEREND: Goidag. Ik heb veertig man, vijftien kanonnen van karton, en een bus die niet start. [NIEUW]
-TESSA: Wij rijden. Ter Apel-bos naar de vesting. [NIEUW]
+TESSA: Wij rijden. Ter Apel-bos naar de vesting, en de Escapade komt achter ons aan. [NIEUW]
 BEREND: Op tijd. Het Beleg begint om negen uur. Ik ben de bisschop. [NIEUW]
 TAMMO: Je valt de vesting aan. [NIEUW]
 BEREND: Elk jaar. En elk jaar verlies ik. Wat mout, dat mout. [NIEUW]
@@ -154,6 +154,7 @@ TESSA: Dat was slecht. [NIEUW]
 BEREND: Ik heb niks gezien. Ik ben belegeraar, geen getuige. [NIEUW]
 
 ## [T4.3] De bus naar Bourtange: aankomst – Westerwolde, Bourtange, de poort – bus
+TESSA: De Escapade staat op de parkeerplaats bij de poort. Henks zender zit er nog in. [NIEUW]
 BEREND: Op tijd. Dat is één minuut te vroeg. [NIEUW]
 TAMMO: Jij telde ze? [NIEUW]
 BEREND: Ik tel alles. [NIEUW]
@@ -280,6 +281,7 @@ HENK (telefoon): Henk. Tinus' schuur is drie kilometer verderop. Ik heb een luik
 
 ## [M21.4] Iedereen heeft een rode auto gezien: Tammo, de vrienden – Westerkwartier, Tinus' schuur bij Zuidhorn – te voet
 (regie: woensdag 26 augustus, vroege ochtend, bij Tinus' schuur in Zuidhorn. Tammo is 's nachts met Tinus' trekker uit Bourtange gekomen. Oma heeft alle vrienden met hun ingrediënten naar de schuur geroepen. Gameplay: zijn deel: de vrienden bij elkaar houden terwijl Jelles advocaten ze een voor een terugroepen.)
+TAMMO: Woensdagochtend, Tinus' schuur. Oma heeft al haar vrienden met hun ingrediënten laten komen. Zonder hen is er geen recept voor de Snackprijs. [NIEUW]
 OMA TRIJNTJE (telefoon): Houd mijn vrienden bij elkaar, jong. Zonder hen is er geen recept. [NIEUW]
 MEM (telefoon): Jelles advocaten hebben ze gebeld. Zeg het goed. [NIEUW]
 TAMMO: Goed. [NIEUW]

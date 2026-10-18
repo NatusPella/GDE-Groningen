@@ -16,12 +16,14 @@ export const LEGACY_DEV_PREFIX = 'gte-dev:';
 // The story keeps its progress under keys with a '-nieuw' suffix: the keys of the first version of
 // the story ('gde-save-v1', ...) stay as they were and are never deleted; oudmigratie.js copies
 // what a player keeps (the save, the prestaties) over once (#187).
-const ARC_KEYS = ['save', 'saveBackup', 'achievements', 'pigeon', 'flavour', 'banter', 'introSeen', 'wijkenSeen', 'radioHistory'];
+const ARC_KEYS = ['save', 'saveBackup', 'achievements', 'pigeon', 'flavour', 'banter', 'introSeen', 'wijkenSeen', 'radioHistory', 'saveSlots'];
 const ARC_SUFFIX = '-nieuw';
 
 export const BASE_KEYS = {
   save: 'gde-save-v1',
   settings: 'gde-settings',
+  // the save slots (saveslots.js): the list (names, the active slot); slot 1 is 'save' itself
+  saveSlots: 'gde-save-slots',
   achievements: 'gde-prestaties-v1',
   saveBackup: 'gde-save-backup',
   menu: 'gde-menu-v1',
@@ -45,6 +47,10 @@ export const BASE_KEYS = {
   ghosts: 'gde-ghosts-v1',
   // the Kroketkoning snack-bar chain (snackrules.js), new in 0.36: no legacy name
   snackChain: 'gde-snackketen-v1',
+  // photo mode gallery (fotomodus.js, #199): metadata and small thumbnails only, local
+  gallery: 'gde-galerij-v1',
+  // which summer events the player has seen (evenementen.js, #203)
+  eventsSeen: 'gde-evenementen-v1',
   // co-op (#95): only what a session needs (last mode and connection code); the story stays in the one save
   coopSession: 'gde-coop-sessie',
   // the old key of the hidden setting that played the new story; the story is the only one now, nothing reads it
@@ -53,9 +59,18 @@ export const BASE_KEYS = {
   oudGemigreerd: 'gde-oud-gemigreerd',
   // the last benchmark run, for the comparison (benchstats.js), new in 0.37: no legacy name
   benchmarkLast: 'gde-benchmark-last-v1',
+  // how often each HUD explanation has been shown (hudtext.js), new in 0.38: no legacy name
+  hudSeen: 'gde-hud-gezien',
 };
 
 export const KEYS = Object.fromEntries(Object.entries(BASE_KEYS).map(([k, v]) => [k, ARC_KEYS.includes(k) ? v + ARC_SUFFIX : v]));
+
+// Save slot n (#208): slot 1 is the one save every player already has (KEYS.save), so
+// nothing needs moving; slots 2.. get their own key. The recovery copy is the previous
+// good write of the same slot. Both follow the story arc, like KEYS.save.
+export const MAX_SLOTS = 8;
+export const slotKey = (n) => (n === 1 ? KEYS.save : `gde-save-slot-${n}${ARC_SUFFIX}`);
+export const slotRecoveryKey = (n) => (n === 1 ? `gde-save-herstel${ARC_SUFFIX}` : `gde-save-slot-${n}-herstel${ARC_SUFFIX}`);
 
 export const SESSION_KEYS = {
   benchmarkPending: 'gde-benchmark-pending',

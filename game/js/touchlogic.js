@@ -2,7 +2,7 @@
 // device, the virtual stick, camera swipes and which on-screen buttons a
 // situation gets. The buttons are the controller's slots (controls.js
 // PAD_MAPS), so touch drives exactly the actions the gamepad and keyboard do.
-import { PAD_MAPS } from './controls.js';
+import { PAD_MAPS, tokenKey } from './controls.js';
 import { playerBusy } from './busy.js';
 
 // A phone or tablet: a coarse primary pointer that can't hover, or touch
@@ -113,4 +113,55 @@ export function touchContext(w, { started = true, menuOpen = false, shiftMode = 
   const v = w.player && w.player.inVehicle;
   if (v) return v.isHeli ? 'heli' : w.noLookBack ? 'skutsje' : v.gb && shiftMode !== 'auto' ? 'vehicleManual' : 'vehicle';
   return 'foot';
+}
+
+// Setting touchControls: 'auto' follows the device, 'aan' and 'uit' force it.
+export const TOUCH_CHOICES = ['auto', 'aan', 'uit'];
+export function touchMode(setting, detected) {
+  return setting === 'aan' ? true : setting === 'uit' ? false : !!detected;
+}
+
+// Screen class and orientation: buttons scale with the short side so a thumb
+// reaches them on a phone and they don't float far apart on a tablet. The
+// game is played landscape; portrait gets a hint to turn the device.
+export function touchLayout({ width = 800, height = 400 } = {}) {
+  const short = Math.min(width, height), long = Math.max(width, height);
+  const cls = short >= 600 && long >= 900 ? 'tablet' : 'phone';
+  const base = cls === 'tablet' ? 1.15 : short < 360 ? 0.8 : 0.9;
+  const portrait = height > width;
+  return {
+    cls, portrait, orientation: portrait ? 'portrait' : 'landscape',
+    scale: Math.round(Math.max(0.7, Math.min(1.3, base * (short / (cls === 'tablet' ? 768 : 400) > 1.3 ? 1.1 : 1))) * 100) / 100,
+    hint: portrait ? 'Draai je toestel voor de beste besturing' : '',
+    // the stick zone gets less of the screen on a narrow phone so the look zone stays big enough
+    leftShare: cls === 'tablet' ? 0.4 : 0.45,
+  };
+}
+
+// The extra actions (D-pad and view slots: radio, map, weapons, ...) that
+// have no button of their own; they sit behind one "Meer" button.
+const MORE_SLOTS = ['up', 'down', 'left', 'right', 'view'];
+export function touchMore(ctx) {
+  const map = PAD_MAPS[ctx] || PAD_MAPS.foot;
+  const direct = new Set(touchPlan(ctx).map((b) => b.action));
+  const out = [];
+  const seen = new Set();
+  for (const slot of MORE_SLOTS) {
+    const action = map[slot];
+    if (action == null || action === 'escape' || action === 'steer' || direct.has(action)) continue;
+    const label = labelFor(ctx, action);
+    const id = action.startsWith('@wheel') ? '@wheel' : action;
+    if (!label || seen.has(id)) continue;
+    seen.add(id);
+    out.push({ slot, action, label });
+  }
+  return out;
+}
+
+// What a key hint (the token a keycap shows, 'E', 'Spatie') says on touch:
+// the label of the on-screen button for it, or '' when there is none.
+export function touchLabelForToken(token, ctx) {
+  const key = tokenKey(token);
+  for (const b of [...touchPlan(ctx), ...touchMore(ctx)]) if (b.action === key) return b.label;
+  return '';
 }

@@ -1,4 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { fitText as sharedFitText } from './canvastex.js';
 import { buildHorseMesh } from './countryside.js';
 import { isInsideBuilding, isOnRoad } from './pedestrians.js';
 import { isInWater, pointInPolygon } from './util.js';
@@ -40,10 +41,7 @@ function canvasTex(w, h) {
   return t;
 }
 
-function fitText(ctx, text, maxW, size, weight = 800, font = 'system-ui, sans-serif') {
-  let s = size;
-  do { ctx.font = `${weight} ${s}px ${font}`; s -= 2; } while (ctx.measureText(text).width > maxW && s > 10);
-}
+const fitText = (ctx, text, maxW, size, weight = 800, font = 'system-ui, sans-serif') => sharedFitText(ctx, text, maxW, size, weight, font);
 
 export function initFlavour3D(world, scene) {
   if (root || !scene) return;

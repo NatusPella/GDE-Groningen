@@ -12,8 +12,11 @@ import { mountMapView, setMapActive, setMapCloseHandler, setMapView, getDiscover
 import { renderSamenPanel } from './samenpanel.js';
 import { renderCheatsPanel, cheatsClick, resetCheatsPanel, cheatsFocus } from './cheatsui.js';
 import { skipCurrent, getStoryJournal, markCluesSeen } from './story.js';
-import { saveGame, hasSave, loadLatestSave, clearSave, getSaveSummary } from './savegame.js';
+import { saveGame, hasSave, loadLatestSave, startNewSlot, getSaveSummary } from './savegame.js';
+import { openSaveSlots, isSaveSlotsOpen } from './saveslotsui.js';
 import { getClockText } from './hud_panel.js';
+import { VERSION } from './version.js';
+import { versionLabel } from './menumodels.js';
 import { storyDate } from './calendarday.js';
 import { isCinematicActive } from './cinematics.js';
 import { renderAchievementsPanel } from './achievementsui.js';
@@ -364,6 +367,7 @@ function settingsHtml() {
       ${picker('minimapNorth', 'Minimap met noord boven', [['nooit', 'Nooit'], ['lucht', 'In de lucht'], ['altijd', 'Altijd']], 'Standaard draait de kaart mee')}
       ${toggle('showHints', 'Toetshints')}
       ${picker('hintSource', 'Hints tonen voor', [['auto', 'Automatisch'], ['keys', 'Toetsenbord'], ['pad', 'Controller']], 'Automatisch volgt wat je het laatst gebruikte')}
+      ${picker('touchControls', 'Aanraakbediening', [['auto', 'Automatisch'], ['aan', 'Aan'], ['uit', 'Uit']], 'Knoppen op het scherm voor telefoon en tablet; wisselen werkt na een herstart')}
       ${disclosure('display', 'Meer opties', 'Uitleg, kaart, filmpjes, bloed', `
         ${toggle('onboardingTips', 'Uitleg voor nieuwe spelers', 'Korte tips, elk één keer: je eerste klus, geld en winkels, de telefoon, de kaart en Te doen')}
         ${toggle('showFog', 'Verkende gebieden op de kaart')}
@@ -418,17 +422,18 @@ export function initPauseMenu(w) {
           <button type="button" class="ra pm-back" data-action="resume">Terug</button>
           <div class="pm-rail-acts pm-ingame">
             <button type="button" class="m-bt" data-action="save">Opslaan</button>
-            <button type="button" class="m-bt" data-action="load" title="Laatste save laden">Laden</button>
+            <button type="button" class="m-bt" data-action="saves" title="Saves kiezen, laden, hernoemen, exporteren en verwijderen">Saves</button>
             <button type="button" class="m-bt" data-action="menu" title="Opslaan en terug naar het titelscherm">Hoofdmenu</button>
             ${DESKTOP ? '<button type="button" class="m-bt" data-action="exit" title="Opslaan en het spel sluiten">Afsluiten</button>' : ''}
           </div>
+          <p class="pm-ver">${versionLabel(VERSION)}</p>
           <div class="pm-rail-foot pm-ingame">
             <p class="pm-status" role="status"></p>
             <button type="button" class="m-bt danger" data-action="restart">Opnieuw beginnen</button>
             <div class="pm-confirm" hidden>
-              <p>Opnieuw beginnen? Alles sinds je laatste save gaat verloren.</p>
+              <p>Opnieuw beginnen? Alles sinds je laatste save gaat verloren. Je andere saves blijven staan.</p>
               <button type="button" class="m-bg" data-action="load">Laatste save laden</button>
-              <button type="button" class="m-bg danger" data-action="new">Nieuw spel (save wissen)</button>
+              <button type="button" class="m-bg danger" data-action="new">Nieuw spel (nieuw slot)</button>
               <button type="button" class="m-bt" data-action="cancel">Annuleren</button>
             </div>
           </div>
@@ -632,7 +637,7 @@ function consume(e) {
 function onKey(e) {
   if (e.metaKey || e.ctrlKey || e.altKey) return;
   // the play-ahead question (todo.js) has its own keys
-  if (isPlayAheadOpen()) return;
+  if (isPlayAheadOpen() || isSaveSlotsOpen()) return;
   const k = e.key;
   const lower = k.length === 1 ? k.toLowerCase() : k;
   if (!open) {
@@ -1008,6 +1013,9 @@ function runAction(a) {
   else if (a === 'load') {
     if (loadLatestSave(world)) setOpen(false);
     else status('Geen save gevonden');
+  } else if (a === 'saves') {
+    if (world && world.pigeonMode) { status('Je bent een duif. Stop de duif-modus om saves te gebruiken.'); return; }
+    openSaveSlots({ mode: 'game', world, onLoad: () => setOpen(false), onClose: () => { syncSaveButtons(); const b = root.querySelector('.pm-rail-acts [data-action="saves"]'); if (b) b.focus(); } });
   } else if (a === 'restart') {
     confirmEl.hidden = false;
     syncSaveButtons();
@@ -1036,7 +1044,7 @@ function runAction(a) {
   } else if (a === 'pigeon-home') {
     if (world.pigeonActions && world.pigeonActions.home()) setOpen(false);
   } else if (a === 'new') {
-    clearSave();
+    startNewSlot();
     location.reload();
   } else if (a === 'bench' || a === 'bench-cancel') {
     const box = root.querySelector('[data-bench-confirm]');
@@ -1330,7 +1338,7 @@ function syncSaveButtons() {
 
 function syncRail() {
   const pigeon = !!(world && world.pigeonMode);
-  for (const b of root.querySelectorAll('.pm-rail-acts [data-action="save"], .pm-rail-acts [data-action="load"]')) b.disabled = pigeon;
+  for (const b of root.querySelectorAll('.pm-rail-acts [data-action="save"], .pm-rail-acts [data-action="saves"]')) b.disabled = pigeon;
   root.querySelector('.pm-game .pm-confirm').hidden = true;
   root.querySelector('.pm-status').textContent = '';
   syncSaveButtons();

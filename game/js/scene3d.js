@@ -62,13 +62,14 @@ const wheelFrustum = new THREE.Frustum(), wheelProj = new THREE.Matrix4();
 import { getUiScale } from './uiscale.js';
 import { getActiveRoute, getRouteAhead, getUserWaypoint } from './routing.js';
 import { updateWaymarkers3D, hideWaymarkers3D, routeColor } from './waymarkers3d.js';
-import { buildWorldMarker3D, updateWorldMarker3D, setMarkerCamera } from './worldmarker3d.js';
+import { buildWorldMarker3D, updateWorldMarker3D, setMarkerCamera, setMarkerEnv } from './worldmarker3d.js';
 import { OUTLINE_MAT } from './pixelart3d.js';
-import { createSkyUniforms, buildSkyDome, createEnvironmentUpdater, setStarOpacity, SKY_HORIZON } from './sky3d.js';
+import { createSkyUniforms, buildSkyDome, createEnvironmentUpdater, setStarOpacity, setStarShare, SKY_HORIZON } from './sky3d.js';
 import { computeLighting } from './daynight.js';
 import { createPostFX } from './postfx3d.js';
 import { noteGfxEvent, watchContext } from './blackframe.js';
 import { spawnExplosionFx } from './fx3d.js';
+import { litFraction, moonPhase, STAR_SHARE } from './nightrules.js';
 import { initNightLights, setNightLightQuality, updateNightLights, isLightRigOn, setLightRigVisible } from './nightlights3d.js';
 import { createFarLOD } from './farlod.js';
 import { SECTION, TILE_M, tileOrigin } from './gdt.js';
@@ -266,6 +267,7 @@ function buildKissHeartMesh() {
 let sun = null;
 let hemi = null;
 let skyDome = null;
+let starShare = 1;
 let skyUniforms = null;
 let envUpdater = null;
 let postfx = null;
@@ -815,6 +817,7 @@ export function init3D(map) {
   scene.fog = new THREE.Fog(SKY_HORIZON, DRAW_DIST * 0.45, DRAW_DIST * 1.05);
   skyUniforms = createSkyUniforms(sunDir);
   skyDome = buildSkyDome(skyUniforms);
+  setStarShare(skyDome, starShare);
   scene.add(skyDome);
   envUpdater = createEnvironmentUpdater(renderer, sunDir);
   scene.environment = envUpdater.update(skyUniforms.uZenith.value, skyUniforms.uHorizon.value, new THREE.Color(0x6e6250), sunDir, skyUniforms.uSunColor.value, 0.45);
@@ -963,6 +966,8 @@ function applyViewSettings(st) {
   wantRatio = renderPixelRatio(st, preset);
   resize3D();
   setNightLightQuality(level);
+  starShare = STAR_SHARE[level] ?? 1;
+  if (skyDome) setStarShare(skyDome, starShare);
   setCountryFacadeLevel(level);
   setCountryPropLevel(level);
   facadeQualityDist = FACADE_DETAIL_DIST[level] || Infinity;
@@ -2220,6 +2225,7 @@ export function update3D(dt, world) {
     missionMarkerMesh = null;
   }
   setMarkerCamera(cam);
+  setMarkerEnv(world.dayNight ? world.dayNight.night : 0, world.weather ? world.weather.intensity : 0);
   updateRouteRibbon3D(animDt, world);
 
   // remaining-waypoint preview dots (checkpoint/boat missions only) - the
@@ -3084,22 +3090,10 @@ const lightBase = {
 };
 const MOON_COLOR = new THREE.Color(0xdfe6f5);
 const BED_COLOR = new THREE.Color(0x1e2a2c);
-const WINDOW_LIT = [[0, 0.32], [1, 0.24], [3, 0.14], [5, 0.14], [6.5, 0.3], [8, 0.15], [17, 0.25], [19, 0.5], [22.5, 0.5], [24, 0.32]];
-const SHOP_LIT = [[0, 0.12], [1, 0.05], [6, 0.05], [8, 0.8], [18, 0.9], [21, 0.7], [22.5, 0.25], [24, 0.12]];
 let wetness = 0;
 let envTimer = 0;
 const _envGround = new THREE.Color();
 const _envSun = new THREE.Color();
-
-function curveAt(curve, h) {
-  for (let i = 1; i < curve.length; i++) {
-    if (h <= curve[i][0]) {
-      const [h0, v0] = curve[i - 1], [h1, v1] = curve[i];
-      return v0 + (v1 - v0) * (h - h0) / (h1 - h0);
-    }
-  }
-  return curve[curve.length - 1][1];
-}
 
 function applyTimeOfDay(dt, world) {
   const L = computeLighting(typeof world.clock === 'number' ? world.clock : 12, lightState);
@@ -3124,6 +3118,9 @@ function applyTimeOfDay(dt, world) {
     u.uSunColor.value.copy(L.sun);
     lightBase.sunStrength = 1 - L.night;
   }
+  u.uMoonDir.value.copy(L.moonDir);
+  u.uMoonPhase.value = moonPhase(world.calendar ? world.calendar.day : 1);
+  u.uMoonStrength.value = Math.min(1, L.night * 1.4) * (1 - storm * 0.85);
   u.uGlowColor.value.copy(L.glow);
   u.uGlowDir.value.copy(L.sunDir);
   lightBase.glow = L.glowI;
@@ -3134,9 +3131,9 @@ function applyTimeOfDay(dt, world) {
 
   renderer.toneMappingExposure = L.exp;
   setStarOpacity(skyDome, L.night * (1 - storm));
-  setNightFactor(1.5 * L.night, curveAt(WINDOW_LIT, L.hour), curveAt(SHOP_LIT, L.hour));
-  farLod.setNight(1.5 * L.night, curveAt(WINDOW_LIT, L.hour));
-  setCountryNight(1.5 * L.night, curveAt(WINDOW_LIT, L.hour));
+  setNightFactor(1.5 * L.night, litFraction('wonen', L.hour), litFraction('winkel', L.hour));
+  farLod.setNight(1.5 * L.night, litFraction('wonen', L.hour));
+  setCountryNight(1.5 * L.night, litFraction('wonen', L.hour));
   scene.fog.near = lightBase.fogNear;
   scene.fog.far = lightBase.fogFar;
   setTrafficLightGlow(1 + 3 * L.night);

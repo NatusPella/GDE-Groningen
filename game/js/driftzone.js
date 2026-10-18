@@ -7,7 +7,7 @@
 // over the player (the car keeps driving): the activity hub hands it the
 // map icon, the "doen en beleven" list and Ubbo's rows. `window.__drift` debug.
 import { createDrift, stepDrift, driftMedal } from './drift.js';
-import { recordChallengeResult, getChallengeRecord, recordStat, MEDALS } from './achievements.js';
+import { recordChallengeResult, getChallengeRecord, recordStat, unlockAchievement, MEDALS } from './achievements.js';
 import { showCard } from './hudcards.js';
 import { activityBlock, iconDisc } from './activitykit.js';
 import { createRecorder, recordGhost, finishGhost, ghostAt, loadGhost, saveGhost } from './ghostreplay.js';
@@ -95,6 +95,7 @@ function finalize(w, why) {
   const rec = recordChallengeResult(w, id, { value: pts, medal });
   const ghostSaved = saveGhost(ghostStore(), id, finishGhost(rec0, pts, { higher: true }), KEYS.ghosts);
   recordStat(w, 'driftRuns');
+  if (medal >= 3) unlockAchievement(w, 'drift_goud');
   const prize = Math.max(0, (PRIZE[medal] || 0) - (PRIZE[prev] || 0));
   if (prize) w.money += prize;
   const lines = [`${pts} punten${medal ? ' · ' + MEDALS[medal].toLowerCase() : ''}`];
