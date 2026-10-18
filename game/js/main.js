@@ -53,6 +53,7 @@ import { wijkProfileAt } from './trafficfleet.js';
 import { motorTarget } from './motortraffic.js';
 import { updateParkingLots3D } from './parkinglots3d.js';
 import { updateMarinas3D } from './marinas3d.js';
+import { loadVaarnet, vaarPrefetch } from './vaarload.js';
 import { isShopOpen } from './shopui.js';
 import { initMapView, updateMapView, isMapOpen } from './mapview.js';
 import { initAudio, updateAudio, setMenuAudio, setSfxLinks } from './audio.js';
@@ -306,6 +307,8 @@ async function boot() {
   const map = tiles ? tiles.world : await loadMap('citymap.json', onMapProgress);
   tileWorldStats = tiles ? tiles.store : null;
   markLoad('map');
+  // the waterway network's fixes and route graph (#184), small files read while the rest loads
+  loadVaarnet(map);
   const land = await landData;
   applyCityRoutes(map, land);
   setFarProps(land);
@@ -420,6 +423,7 @@ async function boot() {
   initCheats(world);
   if (DEV) import('./storydev.js').then((m) => m.initStoryDev(world)).catch((e) => console.error('storydev', e));
   if (FLAGS.sfxtest) import('./sfx/sfxtest.js').then((m) => m.initSfxTest(world)).catch((e) => console.error('sfxtest', e));
+  if (FLAGS.autoplay) import('./playerapi.js').then((m) => m.initPlayerApi(world, input)).catch((e) => console.error('playerapi', e));
   if (FLAGS.testmenu) import('./testmenu.js').then((m) => m.initTestMenu(world)).catch((e) => console.error('testmenu', e));
   if (DEV) import('./profileoverlay.js').then((m) => m.initProfileOverlay(world)).catch((e) => console.error('profileoverlay', e));
   if (STORY_TEST) import('./storytest.js').then((m) => m.runStoryTest(world)).catch((e) => console.error('storytest', e));
@@ -494,6 +498,8 @@ async function boot() {
     // the tiles follow the camera or the player (speed and heading prefetch)
     if (world.map.follow) {
       const tf = tileFocus(world.player, world.cameraOverride, tileFollow, dt);
+      // a boat on the waterway network: the tiles of its route ahead come early (#184)
+      if (tf && world.player.inVehicle && world.player.inVehicle.isBoat && !world.cameraOverride) tf.opts = vaarPrefetch(tf.opts, tf.x, tf.y);
       if (tf) world.map.follow(tf.x, tf.y, tf.opts, 1.5);
     }
     updateAudio(dt, world);

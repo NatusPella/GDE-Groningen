@@ -164,6 +164,12 @@ console.log(`waterways: canoe ${rep.classes[1].reached}/${rep.classes[1].wide}, 
   ok(rows[3].kind === 'meer' && rows[3].nav === 3 && rows[3].lv === L.WATER_KINDS.meer.level, 'a large open lake is a meer with its own peil', rows[3].kind);
   ok(rows[0].bank === 'kade' && rows[3].bank === 'oever' && rows[1].bank === 'oever', 'quay in a built-up stretch, bank in the open');
   ok(new Set(rows.map((r) => r.body)).size === 4, 'apart rows are their own bodies');
+  // the great shipping waters by name (#7): a barge sails them, also a lake; a narrow one or an unnamed lake not
+  const sh = L.annotateProvinceWater([rect(0, 0, 900, 700, 'Dollard'), rect(0, 800, 900, 1500), rect(0, 2000, 500, 2012, 'Reitdiep'), rect(0, 3000, 400, 3040, 'Eemskanaal')]).rows;
+  ok(sh[0].kind === 'meer' && sh[0].nav === 4 && sh[0].lv === L.WATER_KINDS.meer.level, 'a named open water takes barges and keeps its peil', `${sh[0].kind} ${sh[0].nav}`);
+  ok(sh[1].nav === 3, 'an unnamed lake stays for tour boats');
+  ok(sh[2].nav < 4, 'a narrow stretch of the name is no barge water');
+  ok(sh[3].nav === 4, 'the Eemskanaal is');
   const m = { waterNear: () => rows, roadsNear: () => [] };
   const a = L.waterAt(m, 200, 20), d = L.waterAt(m, 100, 100.7);
   ok(a && !a.wade && a.navigable === 4, 'deep province water: swim, barge');

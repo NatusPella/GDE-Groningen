@@ -1066,7 +1066,7 @@ export function updateLasers(dt, world, target) {
       worst.dead = true;
       for (const b of worst.beams) for (const s of b.segs) s.visible = false;
       world.addMessage('Ik zie een kastje met LASER erop. Ik druk gewoon op alles.', 3.5);
-    } else world.addMessage('Piep! Die laser zag je. Terug naar het begin. Kijk boven je hoofd wat de volgende laser vraagt.', 3);
+    } else world.addMessage('Piep! Die laser zag je. Terug naar het begin.', 3);
     return false;
   }
   return false;

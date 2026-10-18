@@ -71,7 +71,8 @@ export function pointAt(line, s) {
 }
 
 // dichtstbijzijnde punt op de lijn; from/to beperkt het zoeken tot een boogafstandsvenster
-export function project(line, x, y, from = 0, to = Infinity) {
+// Bij gelijke afstand (een lijn die over zichzelf terugloopt) wint met dir > 0 het latere stuk.
+export function project(line, x, y, from = 0, to = Infinity, dir = 0) {
   const { pts, cum } = line;
   let best = { d: Infinity, s: 0, x: pts[0][0], y: pts[0][1] };
   for (let i = 0; i < pts.length - 1; i++) {
@@ -80,7 +81,7 @@ export function project(line, x, y, from = 0, to = Infinity) {
     const vx = b[0] - a[0], vy = b[1] - a[1], l2 = vx * vx + vy * vy || 1;
     const t = Math.max(0, Math.min(1, ((x - a[0]) * vx + (y - a[1]) * vy) / l2));
     const px = a[0] + vx * t, py = a[1] + vy * t, d = Math.hypot(x - px, y - py);
-    if (d < best.d) best = { d, s: cum[i] + Math.sqrt(l2) * t, x: px, y: py };
+    if (d < best.d - 0.01 || (dir > 0 && d < best.d + 0.01)) best = { d, s: cum[i] + Math.sqrt(l2) * t, x: px, y: py };
   }
   return best;
 }
@@ -135,7 +136,7 @@ export function stepRunner(r, x, y, dt) {
     return { goal: aheadGoal(r), hold: r.dwell, atStop: true };
   }
   // alleen voortgang binnen een venster rond s, zodat een lus zichzelf niet kruist
-  const pr = project(L, x, y, r.s - 80, r.s + 160);
+  const pr = project(L, x, y, r.s - 80, r.s + 160, r.dir);
   if (pr.d < 120) {
     if (r.dir > 0 ? pr.s > r.s : pr.s < r.s) r.s = pr.s;
   }
@@ -158,7 +159,8 @@ export function stepRunner(r, x, y, dt) {
 function aheadGoal(r) {
   const L = r.line;
   let s = r.s + r.dir * LOOKAHEAD;
-  if (L.loop) s = ((s % L.length) + L.length) % L.length;
+  // een ronde lijn heeft tot 150 m tussen eind en begin: het doel stopt op het eind, daar wikkelt stepRunner
+  if (L.loop) s = Math.max(0, Math.min(L.length, s));
   const p = pointAt(L, s);
   return { x: p.x, y: p.y };
 }
