@@ -18,7 +18,7 @@ import { queueStoryContact } from './storycontact.js';
 import { withValidity, setValidityContext } from './validity.js';
 import { isCallActive } from './phonefeed.js';
 import { SMS_SAY } from './smsvoice.js';
-import { playClueSting, playRadioSting } from './audio.js';
+import { playClueSting } from './audio.js';
 import { lineVoiceFor, NARRATOR } from './linevoice.js';
 import {
   setMissionHooks, setNextMission, isMissionActive, isMissionCompleted, markMissionCompleted, getMissionDefs,
@@ -558,7 +558,7 @@ function playRecap(part) {
     at += dur + 0.3;
     return l;
   });
-  // Rikus tells it on the radio: a station sting, his voice in the broadcast
+  // Rikus tells it on the radio: his voice in the broadcast
   // band, and the studio for the 'studio' lines (else the orbit of the first place)
   let studio = null, wasStudio = false;
   const fallback = recapPlace(P.recap.find(([p]) => p !== 'studio')[0]);
@@ -566,7 +566,7 @@ function playRecap(part) {
     id: 'story-recap', priority: 2, duration: at + 0.4, pause: true, letterbox: true, skippable: true, hideHud: true,
     kicker: P.date ? `${partNumber(part)} · ${P.date}` : `Eerder in ${SERIES}`, title: P.name || P.title, cardFor: 3.2,
     lines: lines.map(({ speaker, text, at: a, dur }) => ({ speaker, text, at: a, dur, radio: true })),
-    onStart: () => { studio = openStudio(); playRadioSting(); },
+    onStart: () => { studio = openStudio(); },
     onEnd: () => { if (studio) studio.dispose(); studio = null; },
     shot: (u, t) => {
       let k = lines.findIndex((l) => t < l.at + l.dur + 0.3);
