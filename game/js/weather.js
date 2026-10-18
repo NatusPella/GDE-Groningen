@@ -1,6 +1,8 @@
 import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
 import { clamp, lerp } from './util.js';
 import { playSikkomLine } from './audio.js';
+import { getSettings } from './settings.js';
+import { regenDruppels } from './weerlook.js';
 import { createWeatherState, stepWeather, regionWeather, regionAt } from './weatherstate.js';
 
 const STORM_FOG_COLOR = new THREE.Color(0.35, 0.38, 0.42);
@@ -74,7 +76,8 @@ function updateRain(dt, world, px, py, cam) {
   if (!rainMesh.visible) return;
   rainMesh.material.opacity = RAIN_OPACITY * Math.min(1, 0.5 + t);
 
-  const count = Math.round(RAIN_COUNT * t);
+  // aantal druppels per kwaliteitsprofiel (weerlook.js), nooit meer dan de pool
+  const count = Math.min(RAIN_COUNT, regenDruppels(t, getSettings().quality));
   const wind = RAIN_WIND_SPEED * (0.4 + t * 0.6);
   const vx = Math.cos(w.windAngle) * wind, vz = Math.sin(w.windAngle) * wind;
   const vy = -RAIN_FALL_SPEED;
