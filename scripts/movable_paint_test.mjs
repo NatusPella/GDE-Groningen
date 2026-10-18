@@ -64,5 +64,38 @@ const worldOf = (piv, x, y, z) => new THREE.Vector3(x, y, z).applyMatrix4(piv.ma
   ok(along >= half - 1 && along <= len && Math.abs(across - 0.7) < 0.06, 'the far half\'s paint keeps its place on the road');
 }
 
+// the real bridges of the city: the leaf wears the road's own materials, open and closed
+{
+  const fs = await import('node:fs');
+  const { GameMap, applyMapExtras } = await import('../game/js/mapdata.js');
+  const RS = await import('../game/js/roadsurface.js');
+  const MB = await import('../game/js/movablebridges.js');
+  const M3 = await import('../game/js/movablebridges3d.js');
+  const data = JSON.parse(fs.readFileSync(new URL('../game/citymap.json', import.meta.url)));
+  applyMapExtras(data, JSON.parse(fs.readFileSync(new URL('../game/mapextras.json', import.meta.url))));
+  const map = new GameMap(data);
+  RS.setRoadNetwork(map);
+  const bridges = MB.buildMovableBridges(map);
+  M3.initMovableBridges3D({ add() {}, remove() {} });
+  const views = M3._bridgeViewsForTest();
+  ok(views.length === bridges.length && views.length > 5, `a view per movable bridge (${views.length})`);
+  const mats = (v) => v.leaves.flatMap((l) => l.leaf.children.map((c) => c.material));
+  let wearing = 0, same = true, marked = 0;
+  for (const v of views) {
+    const want = RS.roadSurfaceMaterials(v.b.r);
+    const before = mats(v);
+    v.b.open = 0; M3.updateMovableBridges3D(v.b.x, v.b.y);
+    const closed = mats(v);
+    v.b.open = 1; M3.updateMovableBridges3D(v.b.x, v.b.y);
+    const open = mats(v);
+    if (closed.length !== open.length || closed.some((m, i) => m !== open[i]) || before.some((m, i) => m !== open[i])) same = false;
+    if (open.includes(want.road)) wearing++;
+    if (open.includes(RS.getMarkingMaterial())) marked++;
+  }
+  ok(same, 'the leaf keeps the same materials open and closed');
+  ok(wearing === views.length, `every leaf wears its road's material (${wearing} of ${views.length})`);
+  ok(marked > 0, `paint rides on the leaves (${marked})`);
+}
+
 console.log(fails ? `${fails} of ${n} FAILED` : `${n} movable-bridge paint checks passed`);
 process.exit(fails ? 1 : 0);
