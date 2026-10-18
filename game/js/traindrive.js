@@ -8,6 +8,7 @@ import { isCinematicActive } from './cinematics.js';
 import { isShopOpen } from './shopui.js';
 import { isInWater } from './util.js';
 import { stationPrompt } from './stationtravel.js';
+import { updateMachinist, endService } from './machinist.js';
 
 const BOARD_RANGE = 6.5;
 const EXIT_MAX_SPEED = 2;
@@ -60,7 +61,7 @@ export function trainPrompt(world) {
     const slow = t.v < EXIT_MAX_SPEED;
     return {
       id: 'trein-rijden', x: car.x, y: car.y, h: t.cfg.height + 0.8, key: 'E', label: 'Uitstappen',
-      sub: slow ? 'W gas, S remmen, H toeter' : 'Eerst stoppen: S remmen, Spatie noodrem', ring: true, dim: !slow,
+      sub: slow ? 'W gas, S remmen, H toeter, G dienst rijden' : 'Eerst stoppen: S remmen, Spatie noodrem', ring: true, dim: !slow,
     };
   }
   const b = boardable(world);
@@ -118,6 +119,7 @@ function stopDriving(world, placeOutside) {
   const t = world.trainDriving;
   world.trainDriving = null;
   world.trainCam = null;
+  endService(world);
   if (!t) return;
   const car = cabCar(t);
   if (t.state === 'player') parkTrain(t);
@@ -194,6 +196,7 @@ export function updateTrainDriving(dt, world) {
     const q = world.audioEvents || (world.audioEvents = []);
     q.push({ kind: 'train_horn', x: car.x, y: car.y });
   }
+  updateMachinist(dt, world, t);
   syncRider(world);
   return true;
 }
