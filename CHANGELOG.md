@@ -12,6 +12,9 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ### Opgelost
 - De meldingen van de politie dat je ergens niet mag rijden, lopen of fietsen zijn weg. Blijf je lang op zo'n plek, dan krijg je nog wel een ster.
+- **Verkeersruzie:** na een harde botsing of lang getoeter stapt een boze bestuurder soms uit, scheldt en deelt kleine klappen uit (nooit het laatste stukje gezondheid, geen bloed). Sommigen hebben een klomp, hockeystick, bezem, fietspomp, knuppel of waterpistool bij zich. Een agent te voet in de buurt komt erop af. Instelbaar onder Instellingen › Meer opties › Verkeersruzie (uit, weinig, normaal, veel).
+- **Wapens oppakken:** sla een ruziemaker neer, of tot hij het opgeeft, dan laat hij zijn spullen vallen. Loop erheen en pak ze op met E.
+
 
 ## [0.35.0] - 2026-10-18
 
