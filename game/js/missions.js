@@ -369,7 +369,7 @@ function buildDefs(world) {
           kind: 'chase', label: 'Kaap de tankwagen of schiet zijn banden plat', say: 'Naar de groothandel aan de Bornholmstraat. Daar laden Durk en Douwe de tankwagen vol.',
           vehicle: { name: 'truck', tank: true, livery: 'usmemvet', len: 8.5, wid: 2.5, maxSpeed: 24, accel: 4.5, brake: 14, turnRate: 1.5, color: '#e6c21a' },
           name: 'Tankwagen Us Mem Vet', from: [1905.18, 335.21], lead: 6, hits: 70, flee: [-2596.64, 646.07], cruise: 15.5, escape: 380, time: 180,
-          parked: 60, parkedLabel: 'Naar de groothandel aan de Bornholmstraat', go: 'Ze zien ons! Daar gaat hij. Erin springen, of de banden plat. Schieten mag, rammen mag.',
+          parked: 60, parkedLabel: 'Naar de groothandel aan de Bornholmstraat', go: 'Daar gaat hij! Erin springen, of de banden plat. Schieten mag, rammen mag.',
           stopped: 'Pang! Banden plat. Durk en Douwe springen eruit en fietsen weg, allebei op één fatbike.',
           hijack: 'Gekaapt! Durk en Douwe rollen eruit en fietsen weg, allebei op één fatbike. Het vet is van ons.',
         },
@@ -2366,6 +2366,9 @@ function bankNear(map, x, y) {
 
 // The fleeing vehicle of a chase stage: on the start road, `lead` metres on
 // from the mission start, pointing away from the player where the road allows.
+// seconds a parked chase target waits for the player to come close before it flees by itself
+export const CHASE_WAIT_MAX = 6;
+
 function spawnChaseVehicle(world, def, st) {
   const from = st.from ? roadSpot(world.map, st.from[0], st.from[1], true) : null;
   const base = from && from.road ? from : def.start;
@@ -2668,8 +2671,8 @@ function updateBoatChase(dt, world, def, st, S) {
   if (v.driver !== 'jelle') { fail(world, def, st.lost); return; }
   if (!world.vehicles.includes(v)) world.vehicles.push(v);
   const d = dist(p.x, p.y, v.x, v.y);
-  // rubber band: it waits a little when you fall behind, never lets you sit on it for free
-  const want = d > 90 ? 3.2 : d > 35 ? 5.4 : 7;
+  // a chase does not wait for the player: the skûtsje keeps its pace however far behind you are
+  const want = 7;
   B.speed += clamp(want - B.speed, -2 * dt, 1.4 * dt);
   B.s += B.dir * B.speed * dt;
   if (B.s <= 0 || B.s >= ROUTE_LENGTH) { B.s = clamp(B.s, 0, ROUTE_LENGTH); B.speed = 0; }
@@ -3024,7 +3027,8 @@ function updateStages(dt, world, def) {
       if (st.hijack && p.inVehicle === t) { hijackChase(world, def, st, t); break; }
       const d = dist(p.x, p.y, t.x, t.y);
       if (t.parkedRoad) {
-        if (d > st.parked && t.health >= S.hp0) break;
+        // it does not wait for you for ever: after CHASE_WAIT_MAX s it flees on its own (a chase never waits for the player)
+        if (d > st.parked && t.health >= S.hp0 && S.t < CHASE_WAIT_MAX) break;
         t.road = t.parkedRoad;
         t.aiOpts = t.parkedAi;
         t.parkedRoad = null;
