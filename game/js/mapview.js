@@ -2,7 +2,7 @@ import { onPaletteChange } from './a11y.js';
 import { MODES, MODE_LABEL, ROUTE_MODE, roadAllowed, travelModeOf } from './roadaccess.js';
 import { forEachCashTarget } from './cashvan.js';
 import { facilitiesOf } from './facilities.js';
-import { mapIconScale, mapKindVisible, placeIcons } from './mapicons.js';
+import { mapIconScale, mapKindVisible, placeIcons, iconGapPx } from './mapicons.js';
 import { drawMapIcon, drawMapIconHalo, drawRoute, drawRoadRoute, forEachPoliceUnit, declutter, ROUTE_COLORS, routeLabel, drawSearchArea, getPoliceSearch, missionMapKind } from './hud_panel.js';
 import { getGaragesForRender } from './garages.js';
 import { getHomeForRender, getHomeGarageForRender, getHomeMooringForRender, getHomeHelipadForRender } from './home.js';
@@ -1143,7 +1143,7 @@ function drawDynamicMarkers(ctx, world) {
   }
 
   icon(null, 'player', world.player.x, world.player.y, 'Jij', { angle: world.player.angle });
-  for (const q of placeIcons(queue, 12 * sc)) {
+  for (const q of placeIcons(queue, iconGapPx(sc))) {
     drawMapIconHalo(ctx, q.kind, q.sx, q.sy, sc);
     drawMapIcon(ctx, q.kind, q.sx, q.sy, sc, { t, ...q.opts });
     if (q.name) hover.push({ sx: q.sx, sy: q.sy, name: q.name, sub: q.sub, x: q.x, y: q.y, kind: q.kind, ...q.pick });
