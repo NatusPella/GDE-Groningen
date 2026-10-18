@@ -1267,11 +1267,15 @@ function play(w, id, r, tl, { kicker, title, cardFor, closing, opening, target, 
 // walk, gesture and react, props move, the camera covers the speaker. The recorded voices, the mumble of the
 // text-only lines, name cards and clue stings are the ones of runScene. Returns false when the step has no
 // staging (or it fails to build): the caller then plays the plain scene.
-function playStaged(w, i, kind, tl, { anchor, facing, kicker = '', title = '', cardFor = 3, banner, bannerAfter }) {
-  if (!nieuwVerhaal() || run) return false;
+// 'M01.intro' for mission index i (MISSION_IDS) of the new arc
+function stagedKey(i, kind) {
   const step = STEPS.find((q) => q.kind === 'mission' && q.story && MISSION_IDS.indexOf(q.mission) === i);
-  if (!step) return false;
-  const def = missionScene(step.id + '.' + kind, tl.lines.map((l) => ({ speaker: l.speaker, text: l.text, at: l.at, dur: l.dur })), { looks: NPC });
+  return step ? step.id + '.' + kind : null;
+}
+
+function playStaged(w, key, tl, { anchor, facing, kicker = '', title = '', cardFor = 3, banner, bannerAfter }) {
+  if (!nieuwVerhaal() || run || !key) return false;
+  const def = missionScene(key, tl.lines.map((l) => ({ speaker: l.speaker, text: l.text, at: l.at, dur: l.dur })), { looks: NPC });
   if (!def) return false;
   const lines = tl.lines;
   let voiced = null;
@@ -1280,7 +1284,7 @@ function playStaged(w, i, kind, tl, { anchor, facing, kicker = '', title = '', c
     lines: cineLines(lines), duration: tl.total,
     anchor: { x: anchor.x, y: anchor.y, facing, z: 0 },
     cine: {
-      id: 'mission-' + kind, priority: 3, kicker, title, cardFor,
+      id: 'mission-scene', priority: 3, kicker, title, cardFor,
       frame: (t) => {
         const cur = lines.find((l) => t >= l.at && t < l.at + l.dur);
         if (!cur || cur === voiced) return;
@@ -1369,7 +1373,7 @@ export function playStoryIntro(w, i, { stage = i, short = false, kicker = '', ti
   if (full && nieuwVerhaal()) {
     const told = stageLines(i, stage, 'intro', s).filter((l) => !(l[0] === 'V' && w.introTold && w.introTold.includes(l[1])));
     const stagedTl = timeline(told, s.introNpc === false ? null : NPC[s.npc], 0.6);
-    if (playStaged(w, i, 'intro', stagedTl, { anchor, facing, kicker, title, cardFor: 3.6 })) return true;
+    if (playStaged(w, stagedKey(i, 'intro'), stagedTl, { anchor, facing, kicker, title, cardFor: 3.6 })) return true;
   }
   const r = buildRun(w, { npcKey: onDeck || s.introNpc === false ? null : s.npc, anchor, facing, h: onDeck ? deck.h : 0, extras: full ? s.introCast || [] : [], props: full ? s.introProps || [] : [] });
   if (!r) return false;
@@ -1409,7 +1413,7 @@ function outroNow(w, i, { stage = i, short = false, reward = 0, stats = [], reas
   if (full && !kiss && !(v && v.isBoat) && nieuwVerhaal()) {
     const anchor0 = onFootAnchor(w);
     const stagedTl = timeline(lines, wantNpc ? NPC[outroKey] : null, 0.5);
-    if (playStaged(w, i, 'outro', stagedTl, { anchor: anchor0, facing: facingTowards(w, anchor0, null), banner })) return true;
+    if (playStaged(w, stagedKey(i, 'outro'), stagedTl, { anchor: anchor0, facing: facingTowards(w, anchor0, null), banner })) return true;
   }
   if (v && v.isBoat) {
     const deck = boatStage(v);
@@ -1708,8 +1712,14 @@ export function playVaultScene(w, { at, lines = [], landing = 'Moai! Oant sjen, 
 // the first `shotFor` seconds (the whole scene when 0), else the camera
 // follows the speaker. big: a card after the talk, over the same set.
 // lead: seconds before the first line (a silent beat for the shot).
-export function playCastScene(w, { at, facing = null, lines = [], cast = [], props = [], kicker = '', title = '', big = '', lead = 0.6, shot = null, shotFor = 0, shotLines = 0, deck = null, lookTo = null, poses = null, update = null, solo = false } = {}) {
+export function playCastScene(w, { at, facing = null, lines = [], cast = [], props = [], kicker = '', title = '', big = '', lead = 0.6, shot = null, shotFor = 0, shotLines = 0, deck = null, lookTo = null, poses = null, update = null, solo = false, staging = null } = {}) {
   if (run) return false;
+  // the new story's stage scenes with a staging (cutscenes_akte1.js): the direction language; the rest below
+  if (staging && !deck && !shot && !solo && !big && !cast.some((e) => e && e.water)) {
+    const anchor0 = w.player.inVehicle ? onFootAnchor(w) : freeSpot(w, at.x, at.y);
+    const tlS = timeline(lines, null, lead);
+    if (playStaged(w, staging, tlS, { anchor: anchor0, facing: facing != null ? facing : facingTowards(w, anchor0, lookTo), kicker, title, cardFor: 2.5 })) return true;
+  }
   const anchor = deck ? { x: deck.x, y: deck.y } : freeSpot(w, at.x, at.y);
   // someone in the water (Jelle after his failed fierljep): the nearest wet spot
   const wet = cast.find((e) => e && e.water);

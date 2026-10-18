@@ -2867,7 +2867,7 @@ function playStageScene(world, st, S) {
     const lookTo = (wide && st.cam.at && resolveTarget(world, st.cam.at, c)) || c;
     const staged = playCastScene(world, {
       at: wide ? c : { x: world.player.x, y: world.player.y }, lines: st.lines, cast: st.cast || [],
-      kicker: st.kicker || '', title: st.title || '', big: wide ? '' : st.big || '', lookTo, solo: !!st.solo, lead: st.reveal ? REVEAL.card : 0.6,
+      kicker: st.kicker || '', title: st.title || '', big: wide ? '' : st.big || '', lookTo, solo: !!st.solo, staging: !st.reveal && !st.cam && st.script && !st.script.from && !st.script.to && st.script.ids.length === 1 ? st.script.ids[0] : null, lead: st.reveal ? REVEAL.card : 0.6,
       deck: st.target && st.target.skutsje ? chain.skutsje : null,
       shot: st.reveal || wide || st.deckCam ? shot : null, shotLines: wide ? st.shotLines || 1 : 0,
       poses: st.dropFlag || st.showFlag ? (t, cur) => ({ T: 'lookup', A: cur && cur.who === 'A' ? (st.dropFlag ? 'cheer' : 'point') : 'lookup' }) : null,

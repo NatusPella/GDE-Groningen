@@ -21,7 +21,7 @@ ok(looks.berend && looks.berend.name === 'Berend Bos', 'NPC table parsed');
 const SCENES = {
   'M01.intro': ['M01.1'], 'M01.outro': ['M01.6'], 'M02.intro': ['M02.1'], 'M02.outro': ['M02.3'],
   'M03.intro': ['M03.1'], 'M03.outro': ['M03.4'], 'M04.intro': ['M04.1'], 'M04.outro': ['M04.3'],
-  'M05.intro': ['M05.1'], 'M05.outro': ['M05.3'], 'M06.intro': ['M06.1'],
+  'M05.intro': ['M05.1'], 'M05.outro': ['M05.3'], 'M06.intro': ['M06.1'], 'M01.3': ['M01.3'], 'M01.5': ['M01.5'], 'M03.2': ['M03.2'],
 };
 const NAME = { T: 'Tammo', A: 'Anita' };
 // the timeline of missionstory.js without recordings: reading time, 0.6 s lead, 0.1 s between
