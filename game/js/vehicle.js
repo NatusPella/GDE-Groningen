@@ -1145,12 +1145,12 @@ export function manageBoatPopulation(world, { target = 4, spawnMin = 20, spawnMa
   for (let i = vehicles.length - 1; i >= 0; i--) {
     const v = vehicles[i];
     // your own boat at the jetty is home.js's to stash, not ours to sweep away
-    if (!v.isBoat || v.isPolice || v.driver === 'player' || v.playerOwned || v.homeStored) continue;
+    if (!v.isBoat || v.isPolice || v.driver === 'player' || v.playerOwned || v.homeStored || v.moored) continue;
     if (Math.hypot(v.x - player.x, v.y - player.y) > despawnDist) vehicles.splice(i, 1);
   }
 
   let count = 0;
-  for (const v of vehicles) if (v.isBoat && !v.wrecked && !v.isPolice && v.driver !== 'player' && !v.playerOwned && !v.homeStored) count++;
+  for (const v of vehicles) if (v.isBoat && !v.wrecked && !v.isPolice && v.driver !== 'player' && !v.playerOwned && !v.homeStored && !v.moored) count++;
 
   const candidates = map.waterNear(player.x, player.y, spawnMax);
   const have = { skiff: 0, acht: 0, sup: 0, binnenvaart: 0 };

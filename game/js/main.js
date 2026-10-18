@@ -40,6 +40,7 @@ import { updateStreetLife, tryStreetLifeInteract } from './streetlife.js';
 import { bikeBoost, hourOf } from './streetlifedata.js';
 import { wijkProfileAt } from './trafficfleet.js';
 import { updateParkingLots3D } from './parkinglots3d.js';
+import { updateMarinas3D } from './marinas3d.js';
 import { isShopOpen } from './shopui.js';
 import { initMapView, updateMapView, isMapOpen } from './mapview.js';
 import { initAudio, updateAudio, setMenuAudio } from './audio.js';
@@ -609,6 +610,7 @@ async function boot() {
       updateHoreca(dt, world);
       updateShops(dt, world);
       updateParkingLots3D(world);
+      updateMarinas3D(world);
       updateFlitspaal(dt, world);
       updateFlavour(dt, world);
     } else updateMissions(dt, world);
