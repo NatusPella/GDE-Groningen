@@ -18,6 +18,7 @@ export function findings(events) {
   const add = (kind, severity, step, title, detail, shot) => out.push({ fp: fingerprint(kind, step, title), kind, severity, step: step || '', title, detail: detail || '', shot: shot || '' });
   const shotFor = (name) => (events.find((e) => e.type === 'shot' && e.name === name) || {}).name || '';
   for (const e of S.consoleErrors) add('console', 'bug', '', `Consolefout: ${String(e.msg).slice(0, 120)}`, `${e.msg}`);
+  for (const e of events.filter((x) => x.type === 'console' && (x.level === 'warning' || x.level === 2) && /TypeError|ReferenceError|non-finite|is not a function|undefined/.test(x.msg || ''))) add('console-waarschuwing', 'bug', '', `Waarschuwing: ${String(e.msg).slice(0, 120)}`, String(e.msg));
   if (S.nan) add('nan', 'bug', '', 'NaN-waarschuwingen in geometrie (computeBoundingSphere)', `${S.nan} waarschuwing(en); de verhaaltest faalt hierop`);
   for (const e of S.stuck) {
     const sid = String(e.step || '').split(':')[0];
@@ -29,7 +30,7 @@ export function findings(events) {
   for (const c of S.cheats.filter((x) => x.rung !== 'nudge')) cheatSteps.set(String(c.step).split(':')[0], (cheatSteps.get(String(c.step).split(':')[0]) || []).concat(c.rung));
   for (const [step, rungs] of cheatSteps) add('cheat', 'bug', step, `${step} had een cheat nodig om door te gaan`, `Rungs: ${rungs.join(', ')}`);
   for (const m of S.missions.filter((x) => x.fails >= 2)) add('mislukt', 'opmerking', m.id, `${m.id} mislukte ${m.fails} keer voor de bot`, `Dat kan aan de bot liggen; kijk of de missie ook voor een speler te moeilijk is`);
-  for (const m of S.minigames.filter((x) => !x.started)) add('minigame-start', 'bug', `mg-${m.id}`, `Minigame ${m.id} start niet bij E`, m.how || '');
+  for (const m of S.minigames.filter((x) => !x.started)) add('minigame-start', 'opmerking', `mg-${m.id}`, `Minigame ${m.id} start niet bij E`, [m.how, m.prompt ? `prompt: ${m.prompt}` : ''].filter(Boolean).join('; '));
   for (const e of events.filter((x) => x.type === 'schema')) add('schema', 'bug', '', 'De status van playerapi.js klopt niet met het schema', (e.problems || []).join('; '));
   if (S.unbalanced.length) add('invoer', 'bug', '', 'Toets zonder keyup', S.unbalanced.join(', '));
   // één vingerafdruk komt maar één keer voor
