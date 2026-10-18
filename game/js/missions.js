@@ -55,6 +55,7 @@ import { withValidity } from './validity.js';
 const MISSION_RADIO_VALID = { ttl: 600 };
 import { registerBusyProbe } from './busy.js';
 import { playerBusy } from './busy.js';
+import { noteMoney } from './finance.js';
 
 // radio fragments a stage puts on Nachtstreek (storycontact.js, loaded lazily: it imports the UI)
 let contactMod = null;
@@ -1339,6 +1340,7 @@ function succeed(world, def) {
   const adj = rewardAdjust(def, base);
   const reward = base + tip + adj.amount;
   const reason = def.type === 'boat' ? rondvaartOutro() : def.outro || def.label;
+  noteMoney('Missies');
   world.money += reward;
   world.stats.missionsDone++;
   world.addMessage(`${def.label} geklaard! ${replay ? 'Klusloon ' : ''}+€${base}${tip ? ` en €${tip} fooi` : ''}${adj.text}`, 4);
@@ -1375,7 +1377,7 @@ export function payMedalBonus(world, i, medal) {
   if (medal <= from) return 0;
   const bonus = medalBonus(d.reward, from, medal);
   chain.medalPaid[i] = medal;
-  if (bonus > 0) world.money += bonus;
+  if (bonus > 0) { noteMoney('Missies'); world.money += bonus; }
   return bonus;
 }
 

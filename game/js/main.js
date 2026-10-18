@@ -134,6 +134,7 @@ import { getSettings } from './settings.js';
 import { MODS } from './cheatmods.js';
 import { initCheats, updateCheats } from './cheats.js';
 import { updateRegioLeven } from './regiolevenrt.js';
+import { syncLedger, getLedger } from './finance.js';
 
 // breakables.js calls these every stream interval (it does not import them)
 addPropStreamer(streamTreeProps);
@@ -560,6 +561,7 @@ async function boot() {
       console.warn('geld was geen getal meer, hersteld', world.money);
       world.money = Number.isFinite(world._goodMoney) ? world._goodMoney : 250;
     }
+    syncLedger(getLedger(), world.money, world.clock);
 
     trafficTimer -= dt;
     if (trafficTimer <= 0) {
