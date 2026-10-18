@@ -41,3 +41,8 @@ assert.ok(tail.wrapped && !tail.last && tail.index === 0 && tail.dist > 30 - 1e-
 assert.strictEqual(roundDist(340), '340 m');
 assert.strictEqual(roundDist(1500), '1,5 km');
 console.log('busboard_test ok');
+import { lineDirection } from '../game/js/busboard.js';
+assert.strictEqual(lineDirection(line, 500, 3, 0), 1);
+assert.strictEqual(lineDirection(line, 500, 3, Math.PI), -1);
+assert.strictEqual(lineDirection(line, 500, 300, 0), 0);
+console.log('busboard direction ok');

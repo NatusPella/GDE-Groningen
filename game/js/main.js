@@ -112,6 +112,9 @@ import { prepareHomeMap, initHome, updateHome, updateHomeExterior, tryHomeIntera
 import { updateDrunk } from './drunk.js';
 import { updateHelis } from './heliflight.js';
 import { planeKind } from './planeflight.js';
+import { busBoardKind } from './busboard3d.js';
+import { loadBusLines } from './busroutes.js';
+import { setBusLines } from './vehicle.js';
 import { scaledTarget, simLevel, nextSimFrame, farAIDist, skipFar, takeDt, keepVehicle } from './simload.js';
 import { getSettings } from './settings.js';
 import { MODS } from './cheatmods.js';
@@ -124,6 +127,7 @@ registerActivityKind({ id: 'activities', init: initActivities, slot: 'act', inte
 registerActivityKind({ id: 'postgame', initPhase: 'late', tickRank: 0, init: initPostgame, slot: 'pre', interact: tryPostgameInteract, tickPhase: 'late', tick: updatePostgame });
 registerActivityKind({ id: 'sidejobs', initPhase: 'late', tickRank: -1, init: initSideJobs, slot: 'job', interact: trySideJobInteract, tickPhase: 'late', tick: updateSideJobs });
 registerActivityKind(planeKind);
+registerActivityKind(busBoardKind);
 registerActivityKind({ id: 'ommeland', initPhase: 'early', init: initOmmelandFun, slot: 'uitje', interact: tryOmmelandInteract, tickPhase: 'late', tick: updateOmmelandFun });
 
 // More life on the water: small paddle and pedal craft make up most of the
@@ -274,6 +278,9 @@ async function boot() {
   // the tiles' car roads for the GPS and the police (roadgraph.js), read while the rest loads
   const roadsFile = layers.provincie && layers.provincie.global && layers.provincie.global.roadsFile;
   if (tiles && roadsFile) loadRoadNet('world/', roadsFile).then((r) => r && setRoadNet(r));
+  // the real bus lines for the buses' routes, boards and next stop (busroutes.js, #80, #160)
+  const busFile = layers.provincie && layers.provincie.global && layers.provincie.global.busFile;
+  if (tiles && busFile) loadBusLines('world/', busFile).then(setBusLines);
   // the city's train routes on over the layer's track, the countryside's rails, turbines and pylons (corridorrail.js)
   const landData = corLayer && corLayer.global ? loadLandData('world/', corLayer.global.landFile) : null;
   const facilities = loadFacilities('citymap.json');
