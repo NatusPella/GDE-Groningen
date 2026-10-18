@@ -55,16 +55,8 @@ export function regionAt(x, y) {
   return y < 0 ? 'noord' : 'zuid';
 }
 
-export function mulberry32(seed) {
-  let a = seed >>> 0;
-  return () => {
-    a = (a + 0x6D2B79F5) >>> 0;
-    let t = a;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
+import { mulberry32 } from './rng.js';
+export { mulberry32 };
 
 const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
 const approach = (v, target, step) => (target > v ? Math.min(target, v + step) : Math.max(target, v - step));
