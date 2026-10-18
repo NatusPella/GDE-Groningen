@@ -7,11 +7,13 @@
 // magnet); this module dresses them, gives them lines and the E prompt.
 // Text only: no recordings, no voice. All names are invented.
 import { dist } from './util.js';
-import { spawnPedestriansNear } from './pedestrians.js';
+import { spawnPedestriansNear, Pedestrian, isInsideBuilding } from './pedestrians.js';
+import { makeCompanion } from './pedroutes.js';
 import { wijkProfileAt } from './trafficfleet.js';
 import {
   NAMES, SELLER_LINES, SELLER_BUY, BEGGAR_ASK, BEGGAR_THANKS, BEGGAR_NO_COIN, BERNARD_LINES,
-  GRENADE_REWARD, GRENADE_FOUND, GRENADE_REPORTED, CARRIED, SKATER_MAX, SKATER_PACE, SKATER_LINES, skaterChance, rollMagnet, moverWalkerChance, distToCentre, hourOf, finite,
+  GRENADE_REWARD, GRENADE_FOUND, GRENADE_REPORTED, CARRIED, SKATER_MAX, SKATER_PACE, SKATER_LINES, skaterChance,
+  ONTGROENING, ONTGROENING_MAX, LEADER_LINES, FRESHMAN_LINES, ontgroeningChance, rollMagnet, moverWalkerChance, distToCentre, hourOf, finite,
 } from './streetlifedata.js';
 
 export const KINDS = ['seller', 'beggar', 'bernard', 'magnet'];
@@ -28,6 +30,8 @@ let readyAt = 0;
 let moverTimer = 20;
 let lineAt = -Infinity;
 let skateTimer = 25;
+let groupTimer = 50;
+let groupLineAt = -Infinity;
 
 export function getStreetLifeState() {
   return { ...state };
@@ -38,6 +42,8 @@ export function resetStreetLife() {
   moverTimer = 20;
   lineAt = -Infinity;
   skateTimer = 25;
+  groupTimer = 50;
+  groupLineAt = -Infinity;
 }
 
 // How each standing person looks (clothes, a hat, what they carry).
@@ -198,7 +204,7 @@ export function pickSkater(map, x, y, hour, rng = Math.random) {
 }
 
 function isMoverCarry(ped) {
-  return ped.carry && ped.carry !== 'paper' && ped.carry !== 'skateboard';
+  return ped.carry && ped.carry !== 'paper' && ped.carry !== 'skateboard' && ped.carry !== 'eend';
 }
 
 function spawnSkater(world, p, hour) {
@@ -216,6 +222,37 @@ function spawnSkater(world, p, hour) {
     ped.speechUntil = world.time + 3;
     world.pedestrians.push(ped);
   }
+}
+
+export function pickOrientation(map, x, y, hour, rng = Math.random) {
+  const prof = wijkProfileAt(map, x, y);
+  return rng() < ontgroeningChance(prof.key, distToCentre(x, y), hour) * 6;
+}
+
+// A senior with a megaphone and two first-years walking beside them.
+function spawnOrientation(world, p, hour) {
+  for (const ped of world.pedestrians) if (ped.ontgroening && ped.state !== 'dead') return;
+  if (!pickOrientation(world.map, p.x, p.y, hour)) return;
+  const lead = spawnPedestriansNear(world.map, p.x, p.y, 1, Math.random)[0];
+  if (!lead || !finite(lead.x, lead.y)) return;
+  lead.ontgroening = 'leader';
+  lead.hasBag = false;
+  lead.clothing = ONTGROENING.leaderShirt;
+  lead.look = { top: 'jacket', hat: 'cap', hatColor: 0xc9382b };
+  const group = [lead];
+  for (const s of [1, -1]) {
+    const x = lead.x - Math.sin(lead.angle) * 0.85 * s, y = lead.y + Math.cos(lead.angle) * 0.85 * s;
+    if (isInsideBuilding(world.map, x, y)) continue;
+    const f = new Pedestrian(x, y, lead.angle);
+    makeCompanion(f, lead);
+    f.pairSide = s;
+    f.ontgroening = 'first-year';
+    f.hasBag = false;
+    f.clothing = ONTGROENING.shirt;
+    f.carry = 'eend';
+    group.push(f);
+  }
+  for (const ped of group) world.pedestrians.push(ped);
 }
 
 export function updateStreetLife(dt, world) {
@@ -239,6 +276,21 @@ export function updateStreetLife(dt, world) {
     skateTimer = 30 + Math.random() * 30;
     const h = hourOf(world);
     if (!(world.dayNight && world.dayNight.night > 0.5)) spawnSkater(world, p, h);
+  }
+  groupTimer -= dt;
+  if (groupTimer <= 0) {
+    groupTimer = 60 + Math.random() * 40;
+    if (!(world.dayNight && world.dayNight.night > 0.5)) spawnOrientation(world, p, hourOf(world));
+  }
+  if (world.time - groupLineAt > 11) {
+    for (const ped of world.pedestrians) {
+      if (!ped.ontgroening || ped.state === 'dead' || ped.speechUntil > world.time) continue;
+      const d = dist(p.x, p.y, ped.x, ped.y);
+      if (d > 14 || d < 1) continue;
+      groupLineAt = world.time;
+      say(ped, world, pick(ped.ontgroening === 'leader' ? LEADER_LINES : FRESHMAN_LINES), 3.4);
+      break;
+    }
   }
   moverTimer -= dt;
   if (moverTimer > 0) return;
