@@ -1,5 +1,10 @@
 // first: copies the pre-0.29 'gte-*' storage keys before any module reads them
 import './storagekeys.js';
+import { streamTreeProps } from './treeprops.js';
+import { streamTrafficLightProps } from './trafficlights.js';
+import { streamFlitspaalProps } from './flitspaal.js';
+import { addPropStreamer } from './breakables.js';
+import './geokernels.js'; // registers the geometry kernels with geojobs.js
 import { setErrorContext } from './errorlog.js';
 import { DEV, STORY_TEST, FLAGS } from './devflags.js';
 import { bindCoop } from './coopglue.js';
@@ -126,6 +131,11 @@ import { getSettings } from './settings.js';
 import { MODS } from './cheatmods.js';
 import { initCheats, updateCheats } from './cheats.js';
 import { updateRegioLeven } from './regiolevenrt.js';
+
+// breakables.js calls these every stream interval (it does not import them)
+addPropStreamer(streamTreeProps);
+addPropStreamer(streamTrafficLightProps);
+addPropStreamer(streamFlitspaalProps);
 
 // What the player can do on the map, as one registry (activityhub.js): each
 // module is a kind with its init, interact slot and tick phase.

@@ -1,5 +1,5 @@
 import { createWaterIndex } from './waterindex.js';
-import { pointInPolygon as inPolygon } from './util.js';
+import { pointInPolygon as inPolygon } from './polygon.js';
 
 // Water bodies, levels, depths, boat classes and the one water query
 // (docs/PROVINCIE-PLAN.md 2.11, "Water"). Pure data and geometry: the build

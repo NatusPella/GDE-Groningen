@@ -1,4 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { geometryFromPlain } from './geoplain.js';
+import { registerKernels } from './geojobs.js';
 import { setCountryBounds } from './countryfield.js';
 import { slimWorkerMap } from './mapdata.js';
 import { loadMapAuto } from './tileworld.js';
@@ -71,16 +73,6 @@ export function plainGeometry(g, transfer) {
   const s = g.boundingSphere;
   return { attrs, index: g.index ? g.index.array : null, groups: g.groups.map((q) => ({ ...q })), sphere: s ? [s.center.x, s.center.y, s.center.z, s.radius] : null };
 }
-export function geometryFromPlain(p) {
-  if (!p) return null;
-  const g = new THREE.BufferGeometry();
-  for (const k in p.attrs) { const a = p.attrs[k]; g.setAttribute(k, new THREE.BufferAttribute(a.array, a.itemSize, a.normalized)); }
-  if (p.index) g.setIndex(new THREE.BufferAttribute(p.index, 1));
-  for (const q of p.groups) g.addGroup(q.start, q.count, q.materialIndex);
-  if (p.sphere) g.boundingSphere = new THREE.Sphere(new THREE.Vector3(p.sphere[0], p.sphere[1], p.sphere[2]), p.sphere[3]);
-  return g;
-}
-
 // worker side: its own copy of the map, from the same files, with the roads
 // the main thread has dropped since (home.js) taken out the same way
 const RD = { byKey: null, map: null };
@@ -141,3 +133,5 @@ function terrain({ bounds, water }) {
 }
 
 export const KERNELS = { cityMerge, roadInit, roadGeo, shoreInit, shore, terrain };
+registerKernels(KERNELS);
+export { geometryFromPlain };

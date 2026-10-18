@@ -1,9 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { reportImpact, disableVehicle, vehicleContacts, CRASH_DAMAGE_SCALE, speedCap } from './vehicle.js';
 import { clamp, closestPointOnSegment, pointInPolygon, isInWater } from './util.js';
-import { streamTreeProps } from './treeprops.js';
-import { streamTrafficLightProps } from './trafficlights.js';
-import { streamFlitspaalProps } from './flitspaal.js';
 import { setWallBrokenTest } from './elevation.js';
 import { rand as rnd } from './rng.js';
 import { SpatialGrid } from './spatialgrid.js';
@@ -781,9 +778,6 @@ export function updateBreakables(dt, w, sc) {
   if (streamTimer <= 0) {
     streamTimer = STREAM_INTERVAL;
     const { x, y } = w.player.inVehicle || w.player;
-    streamTreeProps(w, x, y);
-    streamTrafficLightProps(w, x, y);
-    streamFlitspaalProps(w, x, y);
     for (const fn of streamers) fn(w, x, y);
   }
   if (w.paused || !root) return;
