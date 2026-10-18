@@ -10,7 +10,7 @@ import { tileFocus } from './tilefocus.js';
 import { setWorldPlaces } from './worldplaces.js';
 import { setRegionData } from './regions.js';
 import { tileIndexOf, tileKey } from './gdt.js';
-import { loadFacilities, initFacilities, setExtraBuiltWorld, placeWithTiles } from './facilities.js';
+import { loadFacilities, initFacilities, loadShopPlaces, initShopPlaces, setExtraBuiltWorld, placeWithTiles } from './facilities.js';
 import { ensureCountryEdge } from './countryplan.js';
 import { warmCountryMaps } from './countrymap.js';
 import { Input } from './input.js';
@@ -289,6 +289,7 @@ async function boot() {
   // the city's train routes on over the layer's track, the countryside's rails, turbines and pylons (corridorrail.js)
   const landData = corLayer && corLayer.global ? loadLandData('world/', corLayer.global.landFile) : null;
   const facilities = loadFacilities('citymap.json');
+  const shopPlaces = loadShopPlaces('citymap.json');
   const map = tiles ? tiles.world : await loadMap('citymap.json', onMapProgress);
   tileWorldStats = tiles ? tiles.store : null;
   markLoad('map');
@@ -296,6 +297,7 @@ async function boot() {
   applyCityRoutes(map, land);
   setFarProps(land);
   initFacilities(map, await facilities);
+  initShopPlaces(map, await shopPlaces);
   markLoad('ommeland');
   prepareHomeMap(map);
   setLoadProgress(0.55);
