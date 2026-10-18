@@ -21,7 +21,7 @@ import { vehicleSeat, placeSeated, makeSeatTracker, trackSeat, drawTransition, s
 import { updateCarInterior } from './carinterior.js';
 import { updateSwimmers3D } from './swimmers3d.js';
 import { neutralPose, blendPose, applyPose } from './actoranim.js';
-import { sprongStand } from './bewegingrules.js';
+import { sprongStand, zwemStand, klimStand } from './bewegingrules.js';
 import { driveRagdoll, syncBikeRider } from './ragdoll.js';
 import { applyWeatherToScene3D } from './weather.js';
 import { quakeJitter } from './eventrules.js';
@@ -231,9 +231,9 @@ const kissMeshes = new Map();
 // glossy gradient, white rim), so it reads as a heart from every angle.
 let kissHeartTex = null;
 // Over een hek of hindernis: de sprongstand uit bewegingrules.js (#207) op de botten van de speler.
-function vaultPose(mesh, u) {
+function vaultPose(mesh, u, climb, t) {
   const p = neutralPose();
-  blendPose(p, sprongStand(u), 1);
+  blendPose(p, climb ? klimStand(t) : sprongStand(u), 1);
   applyPose(mesh.userData, p);
 }
 
@@ -2413,7 +2413,13 @@ export function update3D(dt, world) {
       playerMesh.userData.air = player.vault ? player.airPose || 0 : !player.perch && !player.swimming && player.z > 0.25 ? 0.45 : 0;
       playerMesh.userData.shadow.position.y = 0.02 - (player.z || 0) / playerMesh.scale.y;
       animatePersonWalk(playerMesh, Math.hypot(player.vx, player.vy), animDt);
-      if (player.vault && Number.isFinite(player.vaultU)) vaultPose(playerMesh, player.vaultU);
+      if (player.vault && Number.isFinite(player.vaultU)) vaultPose(playerMesh, player.vaultU, !!player.vault.climb, world.time);
+      else if (player.swimming && !player.inVehicle) {
+        // zwemmen (#207): schoolslag bij beweging, rustig watertrappelen als je stilligt
+        const p = neutralPose();
+        blendPose(p, zwemStand(world.time * (Math.hypot(player.vx, player.vy) > 0.3 ? 1 : 0.4)), 1);
+        applyPose(playerMesh.userData, p);
+      }
       if (player.sofaSeat != null) { seatPose(playerMesh); playerMesh.position.y = seatedY(playerMesh, (player.gz || 0) + player.sofaSeat); }
       if (player.carrying) carryOverlay(playerMesh);
       const gun = isRangedWeapon(world.weapon) && (world.ammo[world.weapon] || 0) > 0 ? world.weapon : null;
