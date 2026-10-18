@@ -14,6 +14,7 @@ import { showNameCard } from './namecard.js';
 import { nieuwVerhaal } from './storyflag.js';
 import { STEPS, MISSION_IDS } from './storyarc.js';
 import { storyLines, storyDataReady, readingTime, storyDirRecording } from './storytext.js';
+import { AKTE5_STORY } from './missionstory_akte5.js';
 import { openBank } from './voicebank.js';
 import { playScript } from './cutscenehost.js';
 import { missionScene } from './cutscenes_akte1.js';
@@ -575,6 +576,9 @@ const STORY = [
     fail: [['A', 'Dit vertellen we Berend dus niet.'], ['T', 'Hij schrijft er vast een brief over.']],
   },
 ];
+
+// act 5's own entries, by mission id (the array index is the id's index in MISSION_IDS)
+for (const [id, e] of Object.entries(AKTE5_STORY)) { const k = MISSION_IDS.indexOf(id); if (k >= 0) STORY[k] = e; }
 
 // Tammo/Tessa lines for when a mission is played before the ones leading up
 // to it (via the phone), so no callback refers to something that hasn't happened.
