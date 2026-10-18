@@ -54,6 +54,16 @@ const CARRY = {
       B.geo(new THREE.IcosahedronGeometry(0.28, 0), composeMatrix(0.12, 0.6, 0.18), 0x4f9a46);
     },
   },
+  skateboard: {
+    pos: [0, 0.07, 0], arms: null,
+    build(B) {
+      B.box(0, 0.04, 0, 0.82, 0.03, 0.2, 0xd8b04a);
+      B.box(0.42, 0.065, 0, 0.1, 0.02, 0.18, 0xd8b04a);
+      B.box(-0.42, 0.065, 0, 0.1, 0.02, 0.18, 0xd8b04a);
+      B.box(0, 0.015, 0, 0.82, 0.012, 0.19, 0x2a2a2b);
+      for (const x of [-0.27, 0.27]) for (const s of [1, -1]) B.box(x, -0.01, s * 0.1, 0.07, 0.07, 0.04, 0xe8e4da);
+    },
+  },
   paper: {
     pos: [0.28, 0.92, 0.22], arms: null,
     build(B) {

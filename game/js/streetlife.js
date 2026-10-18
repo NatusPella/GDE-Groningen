@@ -11,7 +11,7 @@ import { spawnPedestriansNear } from './pedestrians.js';
 import { wijkProfileAt } from './trafficfleet.js';
 import {
   NAMES, SELLER_LINES, SELLER_BUY, BEGGAR_ASK, BEGGAR_THANKS, BEGGAR_NO_COIN, BERNARD_LINES,
-  GRENADE_REWARD, GRENADE_FOUND, GRENADE_REPORTED, CARRIED, rollMagnet, moverWalkerChance, distToCentre, hourOf, finite,
+  GRENADE_REWARD, GRENADE_FOUND, GRENADE_REPORTED, CARRIED, SKATER_MAX, SKATER_PACE, SKATER_LINES, skaterChance, rollMagnet, moverWalkerChance, distToCentre, hourOf, finite,
 } from './streetlifedata.js';
 
 export const KINDS = ['seller', 'beggar', 'bernard', 'magnet'];
@@ -27,6 +27,7 @@ const state = { grenade: false, coins: 0, papers: 0, junk: 0, reported: 0, berna
 let readyAt = 0;
 let moverTimer = 20;
 let lineAt = -Infinity;
+let skateTimer = 25;
 
 export function getStreetLifeState() {
   return { ...state };
@@ -36,6 +37,7 @@ export function resetStreetLife() {
   readyAt = 0;
   moverTimer = 20;
   lineAt = -Infinity;
+  skateTimer = 25;
 }
 
 // How each standing person looks (clothes, a hat, what they carry).
@@ -189,6 +191,33 @@ export function pickCarrier(map, x, y, hour, rng = Math.random) {
   return pick(CARRIED, rng);
 }
 
+// Skateboarders: a young walker on a board, quicker than the rest.
+export function pickSkater(map, x, y, hour, rng = Math.random) {
+  const prof = wijkProfileAt(map, x, y);
+  return rng() < skaterChance(prof.key, distToCentre(x, y), hour) * 6;
+}
+
+function isMoverCarry(ped) {
+  return ped.carry && ped.carry !== 'paper' && ped.carry !== 'skateboard';
+}
+
+function spawnSkater(world, p, hour) {
+  let skaters = 0;
+  for (const ped of world.pedestrians) if (ped.carry === 'skateboard' && ped.state !== 'dead') skaters++;
+  if (skaters >= SKATER_MAX || !pickSkater(world.map, p.x, p.y, hour)) return;
+  for (const ped of spawnPedestriansNear(world.map, p.x, p.y, 1, Math.random)) {
+    if (!finite(ped.x, ped.y)) continue;
+    ped.carry = 'skateboard';
+    ped.hasBag = false;
+    ped.paceMul = SKATER_PACE;
+    ped.clothing = pick(['#c94b3a', '#3f5c8a', '#1f4a2e', '#c9a227']);
+    ped.look = { top: 'hoodie', hat: 'cap', hatColor: 0x2a2a2a };
+    ped.speechText = pick(SKATER_LINES);
+    ped.speechUntil = world.time + 3;
+    world.pedestrians.push(ped);
+  }
+}
+
 export function updateStreetLife(dt, world) {
   if (!dt || world.paused || !world.player) return;
   const p = world.player;
@@ -205,13 +234,19 @@ export function updateStreetLife(dt, world) {
       break;
     }
   }
+  skateTimer -= dt;
+  if (skateTimer <= 0) {
+    skateTimer = 30 + Math.random() * 30;
+    const h = hourOf(world);
+    if (!(world.dayNight && world.dayNight.night > 0.5)) spawnSkater(world, p, h);
+  }
   moverTimer -= dt;
   if (moverTimer > 0) return;
   moverTimer = 40 + Math.random() * 30;
   const hour = hourOf(world);
   if (hour < 9 || hour >= 20 || world.dayNight && world.dayNight.night > 0.5) return;
   let carriers = 0;
-  for (const ped of world.pedestrians) if (ped.carry && ped.carry !== 'paper' && ped.state !== 'dead') carriers++;
+  for (const ped of world.pedestrians) if (isMoverCarry(ped) && ped.state !== 'dead') carriers++;
   if (carriers >= MAX_CARRIERS) return;
   const kind = pickCarrier(world.map, p.x, p.y, hour);
   if (!kind) return;
