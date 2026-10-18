@@ -3,7 +3,7 @@
 // pantser, wapen, munitie. Voertuigen worden gedeeld (stoelen). Alleen actief
 // met ?coop; zonder blijft world.* ongewijzigd.
 
-export const CHARS = ['tammo', 'tessa'];
+export const CHARS = ['tammo', 'anita']; // 'anita' is het id van Tessa in storyarc
 export const RESPAWN_DELAY = 6;      // seconden voordat een gevallen speler terugkeert
 export const ROBBERY_FRACTION = 0.2; // berovingen kosten een deel van de gedeelde kas (constitution 6)
 export const MAX_WANTED = 5;
