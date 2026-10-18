@@ -23,7 +23,12 @@ import { advanceRoomClock, roomShouldClose } from './roomclock.js';
 
 export const SECRETS_TOTAL = 8;
 const D = (x, y) => ({ x, y });
-const DOOR = { x: 215.71, y: 0.43, a: -1.9151 };
+// On the south face of the Martinitoren model's plinth (landmarkmodels.js: a
+// 14.4 m square centred on the footprint's bounding box, so its wall lies
+// ~2.5 m inside the footprint's collision edge); a little door to fit the
+// plinth's 1 m. The player stands and returns outside the footprint (DOOR_OUT).
+export const DOOR = { x: 215.71, y: 2.94, a: -Math.PI / 2 };
+export const DOOR_OUT = { x: 215.34, y: -0.6 };
 const ROOM_Z = 360;
 const UFO = { x: -1917.64, y: -2032.32, z: 55 };
 const TOWER = { x: 214.32, y: 10.4, top: 95.3 };
@@ -34,7 +39,7 @@ const DUCKS = { x0: [76, -693.5][0], x1: [168.18, -695.01][0], y: [122.09, -694.
 const BIKE_TREE = { x: -1980.48, y: -2015.21, z: 4.6 };
 
 const fromA = (p, a, d) => ({ x: p.x + Math.cos(a) * d, y: p.y + Math.sin(a) * d });
-const DOOR_SPOT = fromA(DOOR, DOOR.a, 1.1);
+export const DOOR_SPOT = DOOR_OUT;
 const VEND_SPOT = fromA(VENDING, VENDING.a, 1.3);
 const BENCH_SPOT = fromA(BENCH, BENCH.a, 1.2);
 const JELLE_SPOT = D(JELLE_AT.x - 1.9, JELLE_AT.y + 0.4);
@@ -109,9 +114,9 @@ function anchor(p, a = 0, z = 0) {
 function buildDoor() {
   const g = anchor(DOOR, DOOR.a);
   const wood = std(0x3a2618), brass = std(0xc8a24a, { metalness: 0.8, roughness: 0.3 });
-  add(g, new THREE.BoxGeometry(0.1, 1.9, 0.86), wood, 0.03, 0.95, 0);
-  add(g, new THREE.BoxGeometry(0.06, 0.1, 0.2), brass, 0.09, 1.55, 0);
-  add(g, new THREE.SphereGeometry(0.04, 8, 6), brass, 0.1, 0.95, 0.3);
+  add(g, new THREE.BoxGeometry(0.1, 0.95, 0.62), wood, 0.03, 0.48, 0);
+  add(g, new THREE.BoxGeometry(0.06, 0.1, 0.2), brass, 0.09, 0.8, 0);
+  add(g, new THREE.SphereGeometry(0.04, 8, 6), brass, 0.1, 0.48, 0.2);
   return g;
 }
 

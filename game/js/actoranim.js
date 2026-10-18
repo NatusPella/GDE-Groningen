@@ -201,11 +201,23 @@ export const REACTIONS = {
     p.pelvisDrop += 0.02 * up * w;
   } },
   knik: { dur: 0.9, fn(p, w, k, t) { p.head.z += Math.sin(clamp(k, 0, 1) * Math.PI * 2) * -0.22 * w; } },
+  schud: { dur: 1.1, fn(p, w, k, t) { p.head.y += Math.sin(t * 11) * 0.35 * w; } },
+  wijs: { dur: 1.4, fn(p, w, k, t) { T(p.armR, 'z', 1.45, w); T(p.armR, 'e', 0.1, w); T(p.armR, 'x', 0.1, w); p.chest.z += 0.04 * w; } },
+  juich: { dur: 1.4, fn(p, w, k, t) { const s = Math.sin(t * 8); T(p.armL, 'z', 2.7 + 0.1 * s, w); T(p.armR, 'z', 2.7 - 0.1 * s, w); T(p.armL, 'e', 0.3, w); T(p.armR, 'e', 0.3, w); T(p.armL, 'x', -0.3, w); T(p.armR, 'x', 0.3, w); p.pelvisDrop += 0.03 * Math.abs(s) * w; p.head.z += -0.15 * w; } },
   zwaai: { dur: 1.8, fn(p, w, k, t) {
     const sway = Math.sin(t * 9);
     T(p.armR, 'z', 2.75, w); T(p.armR, 'x', 0.3 + 0.28 * sway, w); T(p.armR, 'e', 0.45 + 0.2 * sway, w);
     p.head.z += 0.12 * w;
   } },
+};
+
+// Vaste houdingen voor animateActor (gedeeltelijke poses).
+const HOLD = {
+  carry: { armL: { x: -0.2, z: 1.15, e: 1.1 }, armR: { x: 0.2, z: 1.15, e: 1.1 }, chest: { z: -0.04 } },
+  lean: { chest: { z: -0.18 }, pelvisZ: -0.06, armL: { z: 0.55, e: 1.3 }, armR: { z: 0.2, e: 0.4 } },
+  hips: STANCES.heupen,
+  phone: { armR: { x: 0, z: 1.55, e: 2.0 }, head: { z: 0.12 }, armL: { z: 0.35, e: 1.4 } },
+  look: { head: { x: 0.04 } },
 };
 
 // Gebaren (bovenlijf) tijdens het praten; w = envelop 0..1, k = voortgang, s = zijde.
@@ -399,7 +411,7 @@ export function updateActor(a, dt) {
     a.x = pt.x; a.z = pt.z;
     a.speed = approach(a.speed, w.speed, step * 6);
     if (w.d >= w.len - 1e-6) { a.walk = null; a.mode = 'staan'; a.events.push('aangekomen'); }
-  } else a.speed = approach(a.speed, 0, step * 8);
+  } else a.speed = approach(a.speed, finite(a.drivenSpeed, 0), step * (a.drivenSpeed ? 6 : 8));
   a.walkBlend = approach(a.walkBlend, Math.min(1, a.speed / 1.0), step * 5);
   a.walkPhase = (a.walkPhase + TAU * Math.min(2.1, 0.42 + 0.3 * a.speed) * step * Math.min(1, a.speed / 0.25)) % TAU;
 
@@ -449,7 +461,7 @@ export function updateActor(a, dt) {
   const breath = Math.sin(t * 1.7), shift = Math.sin(t * 0.33);
   p.pelvisZ = 0.022 * shift * idleW; p.pelvisRX = 0.035 * shift * idleW;
   p.chest.z = -0.012 * breath * idleW; p.chest.x = -0.03 * shift * idleW;
-  p.head.y = g.v * (1 - a.gazeBlend) * idleW;
+  p.head.y = (a.directGaze !== undefined ? 0 : g.v * (1 - a.gazeBlend)) * idleW;
   p.armL.z += 0.02 * breath; p.armR.z += 0.02 * breath;
   const stFrom = STANCES[st.from] || {}, stTo = STANCES[st.to] || {};
   const stk = smooth(st.k);
@@ -459,6 +471,10 @@ export function updateActor(a, dt) {
   const lean = Math.sin(t * 0.33);
   p.legL.k -= 0.03 + 0.14 * Math.max(0, -lean) * idleW;
   p.legR.k -= 0.03 + 0.14 * Math.max(0, lean) * idleW;
+
+  // vaste houding van animateActor (lean, hips, phone, ...)
+  a.holdK = approach(a.holdK || 0, a.hold ? 1 : 0, step * 4);
+  if (a.hold && a.holdK > 0) blendPose(p, HOLD[a.hold], smooth(a.holdK) * idleW);
 
   // lopen
   const w = a.walkBlend;
@@ -495,6 +511,8 @@ export function updateActor(a, dt) {
     p.head.y += headY * gb;
     p.head.x += 0.0;
   }
+
+  if (a.directGaze !== undefined) p.head.y += -a.directGaze;
 
   // praten: envelop + gebaar
   if (a.talk) {
@@ -601,4 +619,40 @@ export function createStage(opts = {}) {
     },
   };
   return stage;
+}
+
+// ---- contract met cutscript.js (cutscenehost): per mesh een eigen acteur ----------------------
+// De host zet positie en rotatie; deze functie poseert alleen botten (kop, romp, ledematen).
+export const ANIMS = ['idle', 'walk', 'run', 'talk', 'wave', 'point', 'shrug', 'nod', 'shake', 'laugh', 'carry', 'lean', 'hips', 'phone', 'cheer', 'look', 'ride'];
+const LOOPED = { wave: 'zwaai', point: 'wijs', shrug: 'schouders', nod: 'knik', shake: 'schud', laugh: 'lach', cheer: 'juich' };
+const meshActors = new WeakMap();
+
+export function animateActor(mesh, o = {}) {
+  const ud = mesh && mesh.userData;
+  if (!ud || !ud.pelvis) return false;
+  let a = meshActors.get(mesh);
+  if (!a) {
+    a = createActor('mesh', { seed: finite(ud.lookSeed, Math.random()) });
+    a.stance.next = 1e9;
+    meshActors.set(mesh, a);
+  }
+  const anim = ANIMS.includes(o.anim) ? o.anim : 'idle';
+  const speed = Math.max(0, finite(o.speed));
+  a.drivenSpeed = speed > 0.05 ? speed : 0;
+  a.directGaze = clamp(finite(o.gaze), -1, 1);
+  a.hold = HOLD[anim] ? anim : null;
+  if (anim === 'hips') a.hold = 'hips';
+  if (anim === 'talk' && !a.talk) speak(a, { duur: 5, tekst: 'Praten, praten, kijk. Ja!' });
+  if (anim !== 'talk' && a.talk) a.talk = null;
+  if (anim !== a.lastAnim) { a.react = emptyEnv(); a.lastAnim = anim; }
+  if (LOOPED[anim] && !a.react.kind) react(a, LOOPED[anim]);
+  const p = updateActor(a, o.dt);
+  // zit/fiets: de host regelt dat; hier alleen botten
+  if (anim === 'ride') {
+    p.legL.z = 0.9; p.legR.z = 0.5; p.legL.k = -1.1; p.legR.k = -0.5;
+    p.armL.z = 1.0; p.armR.z = 1.0; p.armL.e = 0.4; p.armR.e = 0.4; p.chest.z = -0.15;
+  }
+  applyPose(ud, p);
+  a.events.length = 0;
+  return true;
 }
