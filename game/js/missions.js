@@ -144,8 +144,8 @@ function buildDefs(world) {
     {
       type: 'checkpoint',
       label: 'Wind tegen, beide kanten op',
-      intro: ['KEI-week: eerstejaars op fietsen met polsbandjes denken dat ze Grunn al kennen.', 'Eén rondje door de binnenstad, op de fiets, tegen vier eerstejaars. Alleen het podium telt, en niet stoppen voor gratis tasjes.'],
-      outro: 'De eerstejaars bellen hun ouders. Die snappen het ook niet.',
+      intro: ['Sjoerd, van de Kiezelweek, praat alleen met wie op het podium komt. Zijn neef werkt \'s nachts in het museum.', 'Doel: één rondje door de binnenstad, op de fiets, tegen vier eerstejaars. Alleen het podium telt, en niet stoppen voor gratis tasjes.'],
+      outro: 'Podium! Sjoerd vertelt het: om twaalf uur gaan de camera\'s drie minuten uit. Nieuw doel: vannacht om twaalf uur de bal pakken.',
       race: 'kei',
       requires: 'bike',
       ride: 'bike',
@@ -206,8 +206,8 @@ function buildDefs(world) {
     {
       type: 'stages',
       label: 'Even pinnen',
-      intro: ['Twee reuzen trokken een pinautomaat uit de muur in de Herestraat, met Tessa\'s pas erin. De aanhanger bleef achter.', 'Eerst de pliesie kwijt, dan een nieuwe kleur, dan de automaat naar Pand & Poen. Sjabbe wrikt hem open.'],
-      outro: 'Sjabbe gaf Tessa haar pas terug. En hij vertelde over het museum.',
+      intro: ['Twee reuzen trokken de pinautomaat uit de muur in de Herestraat, met Tessa\'s pas erin. Zonder pas geen contant geld voor het Loket.', 'Doel: breng de automaat naar Sjabbe van Pand & Poen. Eerst de pliesie kwijt, dan een nieuwe kleur.'],
+      outro: 'Sjabbe gaf Tessa haar pas terug. De reuzen werken voor Jelle Terpstra, en hij vroeg naar het museum. Nieuw doel: naar Het Loket.',
       timeLimit: null,
       reward: 400,
       vehicle: 'car',
@@ -221,8 +221,8 @@ function buildDefs(world) {
     {
       type: 'stages',
       label: 'Kieken van boven',
-      intro: ['Bij het Stationsplein leent duivenmelker Bert je een duif.', 'Vlieg naar het Groninger Museum en zweef boven drie camera\'s en twee bewakers: dan staan ze op de foto.'],
-      outro: 'Drie camera\'s, twee bewakers en een zwarte trekker-limo bij de achteringang.',
+      intro: ['Voor ze de bal pakken, willen Tessa en Tammo weten hoe het museum bewaakt wordt. Bert, vriend van Tammo\'s opa, leent je een duif.', 'Doel: vlieg naar het Groninger Museum en fotografeer de camera\'s, de bewakers en de stroomkast.'],
+      outro: 'Drie camera\'s, twee bewakers en een zwarte trekker-limo. Bewaker twee is omgekocht. Nieuw doel: de Kiezelrace winnen, want Sjoerds neef kent de camera\'s.',
       timeLimit: 200,
       reward: 350,
       start: walk(-44.33, 896.96),
@@ -244,8 +244,8 @@ function buildDefs(world) {
     {
       type: 'stages',
       label: 'Het museum stond er al zo',
-      intro: ['Nacht. Via het Verbindingskanaal naar de achterkant van het Groninger Museum.', 'Eerst de stroomkast, dan de vitrine. En daarna wegwezen, het liefst over het water.'],
-      outro: 'De vitrine was leeg. Iemand was ze voor.',
+      intro: ['Middernacht. Via het Verbindingskanaal naar de achterkant van het Groninger Museum. De camera\'s gaan drie minuten uit.', 'Doel: eerst de stroomkast, dan de vitrine met de Gouden Eierbal. En daarna wegwezen, het liefst over het water.'],
+      outro: 'De vitrine was leeg: Jelle was jullie voor, en de camera\'s hebben jullie gefilmd. Nieuw doel: Jelle stoppen.',
       timeLimit: null,
       reward: 400,
       requires: ['heist', 'night'],

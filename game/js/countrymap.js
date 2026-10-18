@@ -3,6 +3,7 @@ import {
   chash, countryRect, countryMask, edgeDistance, edgeRoad, maarX, maarY, villageOf, ditchRamp, provinceBlock,
 } from './countryfield.js';
 import { provinceMapBounds } from './provincemap.js';
+import { provinceLandAt } from './regions.js';
 import { FARM_TYPES, blockPlanCached, blockPlan, villagePlan, ROAD_ROW, TREE_ROW_P } from './countryplan.js';
 import { farPropsIn } from './farprops.js';
 import { MAP_PALETTE, MINI_PALETTE, mapPhase, applyMapPhase, currentMapPhase } from './mapstyle.js';
@@ -143,7 +144,7 @@ export function drawCountryDetail(ctx, x0, y0, x1, y1, pxPerM, st) {
       const t0 = i / n, t1 = (i + 1) / n;
       const qx = ax + (bx - ax) * t0, qy = ay + (by - ay) * t0, rx = ax + (bx - ax) * t1, ry = ay + (by - ay) * t1;
       const mx = (qx + rx) / 2, my = (qy + ry) / 2;
-      if (edgeDistance(mx, my) < 5) continue;
+      if (edgeDistance(mx, my) < 5 || !provinceLandAt(mx, my)) continue; // none over the sea or beyond the border (#233)
       if (notReal && provinceBlock(Math.floor(mx / BLOCK), Math.floor(my / BLOCK))) continue;
       seg(qx, qy, rx, ry);
     }
@@ -163,7 +164,7 @@ export function drawCountryDetail(ctx, x0, y0, x1, y1, pxPerM, st) {
           const hS = chash(col + bx * 131 + 5, by * 977 + 61);
           for (let b = 0; b < BLOCK; b += 80) {
             const [mx, my] = W(col * PW, b + 40);
-            if (hS >= ditchRamp(mx, my) || edgeDistance(mx, my) < 0) continue;
+            if (hS >= ditchRamp(mx, my) || edgeDistance(mx, my) < 0 || !provinceLandAt(mx, my)) continue;
             const [ax, ay] = W(col * PW, b), [cx, cy] = W(col * PW, b + 80);
             seg(ax, ay, cx, cy);
           }
@@ -173,7 +174,7 @@ export function drawCountryDetail(ctx, x0, y0, x1, y1, pxPerM, st) {
             const b = row * PL - off;
             if (b <= 0) continue;
             const [mx, my] = W(c0 * PW + PW / 2, b);
-            if (chash(c0 * 31 + bx * 7 + row * 131, by * 977 + 71) >= ditchRamp(mx, my) || edgeDistance(mx, my) < 0) continue;
+            if (chash(c0 * 31 + bx * 7 + row * 131, by * 977 + 71) >= ditchRamp(mx, my) || edgeDistance(mx, my) < 0 || !provinceLandAt(mx, my)) continue;
             const [ax, ay] = W(c0 * PW, b), [cx, cy] = W(col * PW, b);
             seg(ax, ay, cx, cy);
           }
@@ -233,7 +234,7 @@ export function drawCountryDetail(ctx, x0, y0, x1, y1, pxPerM, st) {
 
   // villages: the ground of the wierde first
   const villages = [];
-  for (let bx = bx0 - 1; bx <= bx1 + 1; bx++) for (let by = by0; by <= by1; by++) { const v = villageOf(bx, by); if (v) villages.push(v); }
+  for (let bx = bx0 - 1; bx <= bx1 + 1; bx++) for (let by = by0; by <= by1; by++) { const v = villageOf(bx, by); if (v && provinceLandAt(v.x, v.y)) villages.push(v); }
   ctx.fillStyle = st.village;
   for (const v of villages) {
     ctx.beginPath();
@@ -264,6 +265,7 @@ export function drawCountryDetail(ctx, x0, y0, x1, y1, pxPerM, st) {
       if (!P) continue;
       ctx.fillStyle = st.building;
       for (const f of P.farms) {
+        if (!provinceLandAt(f.x, f.y)) continue;
         if (!detail) { ctx.fillRect(f.x - 12, f.y - 12, 24, 24); continue; }
         for (const b of f.boxes.slice(0, FARM_TYPES[f.type].boxes.length)) ctx.fillRect(b[0], b[1], b[2] - b[0], b[3] - b[1]);
       }

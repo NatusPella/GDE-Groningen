@@ -230,6 +230,7 @@ Debug hooks on `window` (`window.__x`, read by scripts/perf, the story test and 
 | `?video` | Trailer: neem video op (alleen desktop) |
 | `?legacymap` | Laad de oude kaart in plaats van de tegelwereld |
 | `?terrain` | Hoogtes volgen het AHN-terrein (dijken, wierden; het terrein wordt nog niet getekend) |
+| `?viaducten` | Hoogteprofielen van provinciebruggen en viaducten uit de tegels (alleen als gebouwd met --viaducts; het hoogtemodel volgt nog) |
 | `?stadlaag` | Stad per laag uit de gedeelde tegelbouw (gebouwen, wegen, water, spoor, groen, meubilair, poi, objecten, namen, of alle); #90, standaard uit |
 | `?nobatch` | Zet het samenvoegen van meshes uit (scene3d) |
 | `?shaderdebug` | Laat three.js shaderfouten controleren |
