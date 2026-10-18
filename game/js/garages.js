@@ -352,9 +352,9 @@ function garageMenu(w, site) {
         buy() {
           if (!pay(w, HERO_REPLACE_FEE)) return null;
           const at = exitSpot(site);
-          for (const x of w.vehicles) if (x.isHeroCar && x.wrecked) x.isHeroCar = false;
           const car = spawnHeroCarNear(w.map, at.x, at.y);
           if (!car) { w.money += HERO_REPLACE_FEE; return 'Geen plek om hem neer te zetten, geld terug'; }
+          for (const x of w.vehicles) if (x.isHeroCar && x.wrecked) x.isHeroCar = false;
           w.vehicles.push(car);
           markDirty('reparatie');
           return 'Je Escapade staat weer te glimmen';
