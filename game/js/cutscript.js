@@ -303,6 +303,7 @@ export function compileScene(def, opts = {}) {
     return { x: anchor.x + f * c - s * n, y: anchor.y + f * n + s * c };
   };
 
+  const CAM_CLEAR = 0.85, PROP_CLEAR = 0.7;
   function cameraAt(t, anchor, env) {
     let i = 0;
     while (i + 1 < shots.length && shots[i + 1].t <= t + 1e-9) i++;
@@ -343,6 +344,23 @@ export function compileScene(def, opts = {}) {
     if (sh.shake && shakeFilter(sh.shake) > 0) {
       const a = shakeFilter(sh.shake);
       pos = { f: pos.f + Math.sin(t * 1.3) * a, s: pos.s + Math.sin(t * 1.9 + 2) * a, h: pos.h + Math.sin(t * 1.7 + 1) * a * 0.6 };
+    }
+    // a camera never stands inside a person: pushed out to CAM_CLEAR, away from them (continuous in t)
+    if (pos.h < 2.4) for (const id of Object.keys(track)) {
+      if (last([{ t: 0, v: true }, ...track[id].vis], t).v === false) continue;
+      const p = actorPos(id, t);
+      let dx = pos.f - p.f, ds = pos.s - p.s, d = Math.hypot(dx, ds);
+      if (d >= CAM_CLEAR) continue;
+      if (d < 0.05) { dx = pos.f - look.f; ds = pos.s - look.s; d = Math.hypot(dx, ds) || 1; }
+      pos = { f: p.f + dx / d * CAM_CLEAR, s: p.s + ds / d * CAM_CLEAR, h: pos.h };
+    }
+    for (const id of Object.keys(ptrack)) {
+      const q = propState(id, t);
+      if (!q.visible || pos.h > q.h + 1.4 || pos.h < q.h - 0.3) continue;
+      let dx = pos.f - q.f, ds = pos.s - q.s, d = Math.hypot(dx, ds);
+      if (d >= PROP_CLEAR) continue;
+      if (d < 0.05) { dx = pos.f - look.f; ds = pos.s - look.s; d = Math.hypot(dx, ds) || 1; }
+      pos = { f: q.f + dx / d * PROP_CLEAR, s: q.s + ds / d * PROP_CLEAR, h: pos.h };
     }
     const P = world(anchor, pos.f, pos.s), L = world(anchor, look.f, look.s);
     const z0 = anchor.z || 0;
