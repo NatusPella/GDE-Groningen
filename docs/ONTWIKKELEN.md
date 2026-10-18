@@ -23,6 +23,23 @@ Python from python.org into `.python\` next to the game (once, no admin rights
 needed). It then picks a free port, starts the server on 127.0.0.1 and opens
 the game in the browser.
 
+## Scripts per platform
+
+What works where. "Git Bash" means a POSIX shell on Windows (Git Bash or WSL), not PowerShell or cmd.
+
+| Script | macOS | Windows | Linux |
+| --- | --- | --- | --- |
+| `node scripts/*_test.mjs`, `voice_coverage.mjs` | yes | yes | yes |
+| `desktop/` `npm start`, `npm run stage` | yes | yes | yes |
+| `desktop/release.sh` (`npm run release`) | yes | Git Bash | yes (add `--linux` for the Linux build) |
+| `scripts/make_windows_zip.sh` | yes | Git Bash | yes |
+| `scripts/play_local.sh` | yes | Git Bash | yes |
+| `scripts/perf/*.sh`, `scripts/bughunt/run.sh` | yes | Git Bash | yes |
+| `scripts/steam_images.mjs` | yes | only with `CHROME=<path to chrome.exe>` | only with `CHROME=<path>` (the default path is macOS) |
+| `start.bat` | no | yes | no |
+
+Shell scripts and `.mjs`/`.js` stay LF (see `.gitattributes`); only `.bat` is CRLF.
+
 ## Tests
 
 Plain Node.js scripts, no test framework (a current Node.js release):
@@ -172,12 +189,15 @@ All URL switches live in one register, `FLAGS` in `game/js/devflags.js` (parsed 
 | `?nobatch` | Zet het samenvoegen van meshes uit (scene3d) |
 | `?shaderdebug` | Laat three.js shaderfouten controleren |
 | `?noworker` | Geometrie op de hoofdthread in plaats van in de worker |
+| `?simworker` | Simulatie-worker (simhost.js, #58): proefstadium, doet niets aan het spel zelf |
 | `?gfxadvies` | Toon het grafische advies ook als de speler al koos |
 | `?gpu` | Doe alsof de GPU deze renderer-tekst heeft (test van het advies) |
 | `?preset` | Instellingen alleen voor deze run, bv. quality:laag,drawDistance:kort |
 | `?touch` | Raakbediening aan (touch=1) of uit (touch=0), ook zonder touchscherm |
 | `?hitch` | Meet haperingen (hitchprobe) |
+| `?simlagen` | Verkeer volgens simulatielagen per streek en afstand (simlagen.js) |
 | `?zwartcheck` | Controleer op zwarte beelden (blackframe) |
+| `?reizen` | Reisbeats in het nieuwe verhaal: keuze Meerijden, Zelf rijden of Overslaan bij een sprong (#97) |
 
 - `?dev` (desktop `--dev`): story dev panel on F9. Chapter select (jumps to
   any story step with the money, belongings and progress a player would have

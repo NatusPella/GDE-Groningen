@@ -11,6 +11,7 @@ import { showCard, cardsBusy } from './hudcards.js';
 import { narrativeBusy } from './narrative.js';
 import { isCinematicActive } from './cinematics.js';
 import { isTrailerRunning } from './trailerstate.js';
+import { playerBusy } from './busy.js';
 
 const NIGHT_JUMP = 4;
 const CARD_FROM = 6, CARD_UNTIL = 22;
@@ -66,7 +67,7 @@ function maybeCard(w, c, h) {
   const s = cardFor(c.day, c.seen);
   if (!s) return;
   if (typeof document !== 'undefined' && !document.body.classList.contains('game-started')) return;
-  if ((w.mission && w.mission.phase === 'active') || (w.sideJob && w.sideJob.active) || w.challenge || w.race || w.pigeonMode || w.heliRun) return;
+  if (playerBusy(w, ['missionPhase', 'sideJob', 'challenge', 'race', 'pigeon', 'heliRun']).busy) return;
   if (isCinematicActive() || narrativeBusy() || cardsBusy()) return;
   c.seen.push(s.id);
   showCard(w, { kind: 'tip', kicker: 'Vandaag in Grunn', title: s.card[0], body: s.card[1], icon: 'cal-' + s.icon, important: true, voice: false, key: 'cal-' + s.id });

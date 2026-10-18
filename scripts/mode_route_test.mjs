@@ -11,19 +11,19 @@
 //   the law           a warning on the motorway, a star after the grace period, once
 //   node scripts/mode_route_test.mjs [--verbose] [--no-tiles]
 import './node3d.mjs';
+import { loadCityWorld } from './lib/loadworld.mjs';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
 const VERBOSE = process.argv.includes('--verbose');
-const { GameMap, applyMapExtras } = await import('../game/js/mapdata.js');
+
 const R = await import('../game/js/routing.js');
 const A = await import('../game/js/roadaccess.js');
 const T = await import('../game/js/travelroute.js');
 const L = await import('../game/js/trafficlaw.js');
 const N = await import('../game/js/navgraph.js');
 const { pointInPolygon } = await import('../game/js/util.js');
-const root = new URL('../game/', import.meta.url);
 
 let n = 0, fails = 0;
 const ok = (cond, name, info = '') => { n++; if (!cond) { fails++; console.log(`FAIL ${name}${info !== '' ? ` (${info})` : ''}`); } else if (VERBOSE) console.log(`ok   ${name}${info !== '' ? ` (${info})` : ''}`); };
@@ -52,22 +52,8 @@ const polyLen = (pts) => { let l = 0; for (let i = 1; i < pts.length; i++) l += 
 }
 
 // ---- the maps to run on: the city, and the same city from F0 tiles
-const data = JSON.parse(fs.readFileSync(new URL('citymap.json', root)));
-applyMapExtras(data, JSON.parse(fs.readFileSync(new URL('mapextras.json', root))));
-const maps = [{ name: 'stad', map: new GameMap(data) }];
-if (!process.argv.includes('--no-tiles')) {
-  const P = await import('./world/pack_tiles.mjs');
-  const S = await import('../game/js/tilestore.js');
-  const { loadTileWorld } = await import('../game/js/tileworld.js');
-  const built = P.build(P.loadSources());
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'gde-moderoute-'));
-  process.on('exit', () => fs.rmSync(dir, { recursive: true, force: true }));
-  P.writeWorld(dir, built, new Set(built.blobs.keys()));
-  const files = {};
-  for (const f of fs.readdirSync(dir)) files[f] = new Uint8Array(fs.readFileSync(path.join(dir, f)));
-  const tw = await loadTileWorld('world/', { source: new S.MemorySource(files), pool: false });
-  maps.push({ name: 'tegels', map: tw.world });
-}
+const maps = [{ name: 'stad', map: (await loadCityWorld({ src: 'json' })).map }];
+if (!process.argv.includes('--no-tiles')) maps.push({ name: 'tegels', map: (await loadCityWorld({ src: 'tiles' })).map });
 
 const KIND_MODE = { walk: 'lopen', bike: 'fiets', drive: 'auto' };
 

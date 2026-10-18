@@ -32,7 +32,6 @@ Korte versie:
 | Systeemlettertypen (Arial, Arial Narrow, Georgia, Segoe Print, Comic Sans, Menlo, Consolas, system-ui) | CSS en canvas-teksten | van het OS van de speler | niets: niet meegeleverd | ok |
 | **Electron** 44 | desktopapp | [MIT](https://github.com/electron/electron/blob/main/LICENSE); Chromium en Node onder eigen licenties | electron-builder zet `LICENSE.electron.txt` en `LICENSES.chromium.html` naast de app | ok, niet weghalen |
 | **electron-builder** 26 | alleen bouwtool | [MIT](https://github.com/electron-userland/electron-builder/blob/master/LICENSE) | niets: zit niet in de app | ok |
-| Python (portable, door `start.bat` van python.org gedownload) | Windows-zip | [PSF License](https://docs.python.org/3/license.html) | niets: de speler downloadt het zelf van python.org | ok |
 | Eigen code | `game/`, `desktop/`, `web/`, `scripts/` | GPL-3.0-or-later (`LICENSE`, gekozen 15 okt 2026, zie §7) | | ok |
 
 Geen andere vendored code, geen npm-afhankelijkheden in het spel zelf,
@@ -170,7 +169,7 @@ Gecontroleerd in `game/js` en `desktop/`:
   een Pages-build).
 - Desktop: na `build.mjs` laadt niets meer van internet (de build checkt
   dat). Externe links gaan via `shell.openExternal` naar de standaard-
-  browser. `start.bat` downloadt eenmalig Python van python.org.
+  browser. `start.bat` gebruikt de ingebouwde PowerShell; er wordt niets gedownload.
 
 **Voorgestelde privacyverklaring (één regel)**, staat nu ook in *Over*:
 

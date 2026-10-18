@@ -13,6 +13,8 @@
 import { getShopsForRender } from './shops.js';
 import { playCastScene } from './missionstory.js';
 import { playCinematic, isCinematicActive } from './cinematics.js';
+import { playScript } from './cutscenehost.js';
+import { flatScene } from './cutscenes.js';
 import { isMissionActive } from './missions.js';
 import { inHomeFlat, getHomeForRender } from './home.js';
 import { grantFurniture } from './furniture.js';
@@ -137,10 +139,15 @@ function updateHome(w, st, b) {
   const lines = timed((sc && sc.lines) || []);
   b.phase = 'assembling';
   const done = () => { b.phase = 'done'; };
-  const ok = lines.length && playCinematic({
-    id: 'story-eikea', priority: 2, duration: lines[lines.length - 1].at + lines[lines.length - 1].dur + 0.4, pause: true, letterbox: true, skippable: true, hideHud: true,
+  const cine = {
+    id: 'story-eikea', priority: 2, duration: lines.length ? lines[lines.length - 1].at + lines[lines.length - 1].dur + 0.4 : 0, pause: true, letterbox: true, skippable: true, hideHud: true,
     big: (sc && sc.big) || '', lines, onEnd: done,
-  });
+  };
+  // staged in the flat (cutscenes.js flatScene), the plain scene as the fallback
+  const pl = w.player;
+  const ok = lines.length && ((lines.length > 2 && playScript(w, flatScene('eikea', lines), {
+    lines, duration: cine.duration, anchor: { x: pl.x, y: pl.y, facing: pl.angle || 0, z: pl.gz || 0 }, cine,
+  })) || playCinematic(cine));
   if (!ok) done();
 }
 
