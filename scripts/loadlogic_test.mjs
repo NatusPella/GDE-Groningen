@@ -59,5 +59,12 @@ ok(used.length >= 5 && used.every(pictureOk), 'pickImage only names approved pic
 const cityList = [...src.slice(src.indexOf('CITY_IMAGES'), src.indexOf(']', src.indexOf('CITY_IMAGES'))).matchAll(/'([a-z]+)'/g)].map((x) => x[1]);
 ok(cityList.every(pictureOk), 'city images are approved');
 ok(!/sceneSvg|ls-scene/.test(src), 'load screen has no own svg scene');
+// the first load screen (index.html #loading): only the age sign, no words, and a sharp picture
+const html = fs.readFileSync(new URL('../game/index.html', import.meta.url), 'utf8');
+const boot = html.slice(html.indexOf('<div id="loading"'), html.indexOf('<div id="start-screen"'));
+ok(boot.includes('bt-pegi') && boot.includes('>18<') && !/bt-desc|Geweld|verzonnen|Kaartdata|goedgekeurd/.test(boot), 'boot screen shows only the 18 sign');
+ok(!/blur\(/.test(html.slice(html.indexOf('#loading .bt-bg'), html.indexOf('#loading .bt-veil'))), 'boot picture is not blurred');
+ok(!/blur\(/.test(fs.readFileSync(new URL('../game/js/loadscreen.css', import.meta.url), 'utf8').split(/\r?\n/).filter((l) => /ls-bg/.test(l)).join('')), 'load picture is not blurred');
+ok(/pickImage\(world, place, mission\)\s*\{\s*if \(mission\) return missionPicture\(mission\)/.test(src), 'a mission picks its own picture');
 console.log(`${n - fails}/${n} loadlogic`);
 process.exit(fails ? 1 : 0);

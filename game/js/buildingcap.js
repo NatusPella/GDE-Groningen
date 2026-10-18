@@ -28,6 +28,8 @@ export function ringArea(pts) {
 // the limits { h, hm } for a row, or null when it needs none
 export function heightLimits(b, area = ringArea(b.pts || [])) {
   const type = b.type || 'yes';
+  // a height or storey count a mapper wrote down is a statement about that building, not a guess
+  if (b.hsrc === 'osm_height' || b.hsrc === 'osm_levels') return null;
   const measured = b.hsrc === '3dbag';
   if (SLIM_OK.has(type)) return null;
   let h = Infinity, hm = Infinity;

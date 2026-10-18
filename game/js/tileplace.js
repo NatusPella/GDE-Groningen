@@ -110,7 +110,7 @@ export const roadKind = (r) => KIND[r.type] || 0;
 // a road a car may stop on or be placed beside (no motorway or slip road)
 export const carRoad = (r) => roadKind(r) > 2 && !r.bridge;
 
-function segDist(x, y, a, b) {
+export function segDist(x, y, a, b) {
   const dx = b[0] - a[0], dy = b[1] - a[1];
   const t = Math.max(0, Math.min(1, ((x - a[0]) * dx + (y - a[1]) * dy) / (dx * dx + dy * dy || 1)));
   const px = a[0] + dx * t, py = a[1] + dy * t;

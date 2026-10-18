@@ -6,8 +6,8 @@
 #load-screen.instant.out { transition: opacity 0.7s ease; }
 #load-screen.out { opacity: 0; pointer-events: none; }
 #load-screen .ls-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform-origin: 60% 40%; animation: ls-kb 18s ease-in-out infinite alternate; }
-@keyframes ls-kb { 0% { transform: scale(1.04) translate(0, 0); } 100% { transform: scale(1.14) translate(-2%, -1.5%); } }
-#load-screen .ls-shade { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(12,20,14,0.92) 0%, rgba(12,20,14,0.7) 32%, rgba(12,20,14,0.1) 62%, rgba(12,20,14,0.35) 100%); }
+@keyframes ls-kb { 0% { transform: scale(1.02) translate(0, 0); } 100% { transform: scale(1.07) translate(-1%, -0.8%); } }
+#load-screen .ls-shade { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(10,16,12,0.8) 0%, rgba(10,16,12,0.5) 36%, rgba(10,16,12,0.12) 68%, rgba(10,16,12,0.22) 100%); }
 #load-screen .ls-foot-shade { position: absolute; left: 0; right: 0; bottom: 0; height: 30%; background: linear-gradient(0deg, rgba(12,20,14,0.95), rgba(12,20,14,0)); }
 #load-screen .ls-stage { position: absolute; left: 0; top: 0; width: calc(100vw / var(--ui, 1)); height: calc(100vh / var(--ui, 1)); zoom: var(--ui, 1); }
 #load-screen .ls-brand { position: absolute; top: 100px; left: 100px; }
@@ -15,7 +15,7 @@
 #load-screen .gde-logo .gde-sign { font-size: 0.32em; align-self: flex-start; }
 #load-screen .gde-logo .gde-sub { margin: 14px 0 0; font: normal 28px/1.1 'Bebas Neue', 'Arial Narrow', sans-serif; letter-spacing: 0.32em; text-align: left; }
 #load-screen .ls-card { position: absolute; left: 100px; bottom: 190px; max-width: 760px; display: flex; flex-direction: column; gap: 6px; }
-#load-screen .ls-kick { font-size: 15px; letter-spacing: 0.2em; color: #3fc97a; }
+#load-screen .ls-kick { margin-bottom: 12px; font-size: 15px; letter-spacing: 0.2em; color: #3fc97a; }
 #load-screen .ls-place { font-weight: normal; font-size: 84px; line-height: 0.95; text-shadow: 0 2px 18px rgba(0,0,0,0.55); }
 #load-screen .ls-when { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 #load-screen .ls-when > span { font-size: 18px; color: rgba(240, 237, 228, 0.85); }

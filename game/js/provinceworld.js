@@ -82,7 +82,8 @@ export function realBlockedAt(map, isTile, x, y, m) {
       if ((x - ax - dx * t) ** 2 + (y - ay - dy * t) ** 2 < hw * hw) return true;
     }
   }
-  for (const w of map.flatWaterNear ? map.flatWaterNear(x, y, m + 1) : map.waterNear(x, y, m + 1)) {
+  // both grids: an annotated row (kind, nav) is in the water grid, an older flat one in the flat grid (issue #185)
+  for (const w of map.waterNear(x, y, m + 1).concat(map.flatWaterNear ? map.flatWaterNear(x, y, m + 1) : [])) {
     const q = w.bounds;
     if (q && x >= q[0] - m && x <= q[2] + m && y >= q[1] - m && y <= q[3] + m && (pointInPolygon(x, y, w.pts) || nearRing(x, y, w.pts, Math.min(m, WATER_VERGE)))) return true;
   }

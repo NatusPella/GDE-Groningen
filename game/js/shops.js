@@ -1756,7 +1756,7 @@ function claimUnlocks(world) {
   for (const [key, spec] of Object.entries(VEHICLE_STOCK)) {
     if (!spec.unlock || state.vehicles.some((o) => o.key === key) || !unlockMet(spec)) continue;
     state.vehicles.push({ key, spec, color: spec.color, upgrades: [], v: null, lost: false });
-    world.addMessage(`Vrijgespeeld: ${spec.label}! Staat thuis in je garage. Haal hem daar op, of laat hem afleveren via je telefoon (Esc, Garage)`, 6);
+    world.addMessage(`Vrijgespeeld: ${spec.label}! Staat in je garage.`, 6);
   }
 }
 
@@ -1775,7 +1775,7 @@ export function updateShops(dt, world) {
       o.v = null;
       o.lost = true;
       o.upgrades = [...(v.upgrades || o.upgrades || [])];
-      world.addMessage(`Je ${o.spec.label} is total loss. Henk van Garage Knalpot knapt het wrak op, of regel via je telefoon een nieuwe (eigen risico €${replacementFee(o)})`, 5);
+      world.addMessage(`${o.spec.label} is total loss. Nieuwe via je telefoon (eigen risico €${replacementFee(o)})`, 5);
       continue;
     }
     // the ambient population managers sweep far-away bikes and cars; an

@@ -1,5 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { pointInPolygon, WATER_Y } from './util.js';
+import { WATER_Y } from './util.js';
+import { buildingAt } from './tileplace.js';
 import { makeProp, addProp, removeProp, isPropBroken, propKey } from './breakables.js';
 import { policeFlash } from './models3d_vehicles.js';
 import { lampRule } from './streetfurniture.js';
@@ -280,15 +281,6 @@ function updatePoliceLights(world, vehicleMeshes, px, py, night) {
 }
 
 
-function insideBuilding(map, x, y) {
-  for (const b of map.buildingsNear(x, y, 1.5)) {
-    const [minx, miny, maxx, maxy] = b.bounds;
-    if (x < minx - 0.5 || x > maxx + 0.5 || y < miny - 0.5 || y > maxy + 0.5) continue;
-    if (pointInPolygon(x, y, b.pts)) return true;
-  }
-  return false;
-}
-
 function lampTooClose(x, y) {
   for (const l of lampGrid.queryRadius(x, y, LAMP_MIN_GAP)) if ((l.x - x) ** 2 + (l.y - y) ** 2 < LAMP_MIN_GAP * LAMP_MIN_GAP) return true;
   return false;
@@ -338,7 +330,7 @@ function lampsForRoad(road, map) {
       next += spacing;
       const known = lampByKey.get(propKey('lamp', x, y));
       if (known) { road._lamps.push(known); continue; }
-      if (insideBuilding(map, x, y) || lampTooClose(x, y)) continue;
+      if (buildingAt(map, x, y) || lampTooClose(x, y)) continue;
       if (map.offStreetLevel && map.offStreetLevel(x, y, 0.6)) continue;
       if (map.onCarriageway && map.onCarriageway(x, y, 0.4, road)) continue;
       const lamp = {

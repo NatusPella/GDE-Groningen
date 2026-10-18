@@ -6,7 +6,7 @@
 // by the joints between sections; a knocked-out section opens the railing
 // until the prop respawns. Where another way meets the bridge (steps, a quay
 // path, a side street) the railing is left open.
-import { closestPointOnSegment, pointInPolygon } from './util.js';
+import { closestPointOnSegment } from './util.js';
 import { propKey, isPropBroken } from './breakables.js';
 import { buildingAt } from './tileplace.js';
 
@@ -19,10 +19,6 @@ export const RAIL_H = 1.05;
 
 export function railingOffset(r) {
   return r.cat === 'major' || r.cat === 'normal' ? (r.width || 6) / 2 + 1.7 : (r.width || 3) / 2 + 0.08;
-}
-
-function insideBuilding(map, x, y) {
-  return !!buildingAt(map, x, y);
 }
 
 // Is the railing of bridge `r` at (x, y) interrupted by another way crossing it?
@@ -63,7 +59,7 @@ export function railingItems(map, r) {
         for (let k = 0; k < n; k++) {
           const t = t0 + 1 + k * 2;
           const x = a[0] + tx * t + nx * off, y = a[1] + ty * t + ny * off;
-          if (insideBuilding(map, x, y) || railingOpening(map, r, x, y)) continue;
+          if (buildingAt(map, x, y) || railingOpening(map, r, x, y)) continue;
           out.push({ x, y, angle, tx, ty, key: propKey(RAIL_KIND, x, y), seg: i, side, k, n, cx: a[0], cy: a[1] });
         }
       }
