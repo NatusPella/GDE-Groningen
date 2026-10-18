@@ -3,6 +3,7 @@ import { findWalkPath } from './routing.js';
 import { trafficSignalsNear, pedestriansMayCross, getTrafficLights } from './trafficlights.js';
 import { isInsideBuilding, isOnRoad, setPedPose, lineOfSight } from './pedestrians.js';
 import { findProps, isPropBroken } from './breakables.js';
+import { SpatialGrid } from './spatialgrid.js';
 
 // Long, purposeful walks: every civilian picks a destination a few hundred
 // metres away, walks there over the walk network on one side of the street,
@@ -63,7 +64,6 @@ function pickDestination(map, ped, preferAhead) {
 }
 
 const queue = [];
-const cellKey = (cx, cy) => (cx + 32768) * 65536 + (cy + 32768);
 
 function navOf(ped) {
   if (!ped.nav) {
@@ -230,14 +230,11 @@ const DETOUR_CATS = ['major', 'normal'];
 let sites = null;
 
 function addSite(x, y, kind) {
-  const k = cellKey(Math.floor(x / SITE_CELL), Math.floor(y / SITE_CELL));
-  let a = sites.get(k);
-  if (!a) sites.set(k, a = []);
-  a.push({ x, y, kind });
+  sites.insertPoint({ x, y, kind }, x, y);
 }
 
 function buildSites(map) {
-  sites = new Map();
+  sites = new SpatialGrid(SITE_CELL);
   const nodes = new Map();
   const key = (p) => Math.round(p[0] * 10) * 1e6 + Math.round(p[1] * 10);
   for (const r of map.roads) {
@@ -268,14 +265,7 @@ function buildSites(map) {
 
 function sitesNear(x, y, r, out) {
   out.length = 0;
-  const x0 = Math.floor((x - r) / SITE_CELL), x1 = Math.floor((x + r) / SITE_CELL);
-  const y0 = Math.floor((y - r) / SITE_CELL), y1 = Math.floor((y + r) / SITE_CELL);
-  for (let gx = x0; gx <= x1; gx++) {
-    for (let gy = y0; gy <= y1; gy++) {
-      const a = sites.get(cellKey(gx, gy));
-      if (a) for (const st of a) if ((st.x - x) ** 2 + (st.y - y) ** 2 <= r * r) out.push(st);
-    }
-  }
+  for (const st of sites.queryRadius(x, y, r)) if ((st.x - x) ** 2 + (st.y - y) ** 2 <= r * r) out.push(st);
   return out;
 }
 const _sites = [];
@@ -423,7 +413,7 @@ export function zebraSpeedLimit(v, path, project, now) {
 
 // --- local avoidance ---------------------------------------------------------
 
-let grid = new Map();
+const grid = new SpatialGrid(AVOID_CELL);
 
 export function buildPedAvoidGrid(peds) {
   grid.clear();
@@ -431,32 +421,22 @@ export function buildPedAvoidGrid(peds) {
     const p = peds[n];
     p._sepN = n;
     if (p.state === 'dead') continue;
-    const k = cellKey(Math.floor(p.x / AVOID_CELL), Math.floor(p.y / AVOID_CELL));
-    let a = grid.get(k);
-    if (!a) grid.set(k, a = []);
-    a.push(p);
+    grid.insertPoint(p, p.x, p.y);
   }
 }
 
 function avoidBias(ped, ang) {
   const hx = Math.cos(ang), hy = Math.sin(ang);
-  const cx = Math.floor(ped.x / AVOID_CELL), cy = Math.floor(ped.y / AVOID_CELL);
   let bias = 0;
-  for (let ix = cx - 1; ix <= cx + 1; ix++) {
-    for (let iy = cy - 1; iy <= cy + 1; iy++) {
-      const a = grid.get(cellKey(ix, iy));
-      if (!a) continue;
-      for (const o of a) {
-        if (o === ped || o === ped.leader || o.leader === ped) continue;
-        const dx = o.x - ped.x, dy = o.y - ped.y;
-        const d = Math.hypot(dx, dy);
-        if (d > AVOID_R || d < 1e-3) continue;
-        const ahead = (dx * hx + dy * hy) / d;
-        if (ahead < 0.2) continue;
-        const lat = dx * -hy + dy * hx;
-        bias += (lat > 0 ? -1 : 1) * 0.55 * (1 - d / AVOID_R) * ahead;
-      }
-    }
+  for (const o of grid.queryRadius(ped.x, ped.y, AVOID_CELL)) {
+    if (o === ped || o === ped.leader || o.leader === ped) continue;
+    const dx = o.x - ped.x, dy = o.y - ped.y;
+    const d = Math.hypot(dx, dy);
+    if (d > AVOID_R || d < 1e-3) continue;
+    const ahead = (dx * hx + dy * hy) / d;
+    if (ahead < 0.2) continue;
+    const lat = dx * -hy + dy * hx;
+    bias += (lat > 0 ? -1 : 1) * 0.55 * (1 - d / AVOID_R) * ahead;
   }
   return Math.max(-0.9, Math.min(0.9, bias));
 }
@@ -472,27 +452,20 @@ export function separatePeds(peds, map) {
   for (let n = 0; n < peds.length; n++) {
     const a = peds[n];
     if (a.state === 'dead' || a.ragdoll) continue;
-    const cx = Math.floor(a.x / AVOID_CELL), cy = Math.floor(a.y / AVOID_CELL);
-    for (let ix = cx - 1; ix <= cx + 1; ix++) {
-      for (let iy = cy - 1; iy <= cy + 1; iy++) {
-        const cell = grid.get(cellKey(ix, iy));
-        if (!cell) continue;
-        for (const b of cell) {
-          if (b === a || b._sepN <= n || b.state === 'dead' || b.ragdoll) continue;
-          let dx = b.x - a.x, dy = b.y - a.y;
-          const d2 = dx * dx + dy * dy;
-          if (d2 >= D2) continue;
-          const pa = pinned(a), pb = pinned(b);
-          if (pa && pb) continue;
-          let d = Math.sqrt(d2);
-          if (d < 1e-3) { const g = n * 2.39996; dx = Math.cos(g); dy = Math.sin(g); d = 1; }
-          const push = (SEP_DIST - Math.min(d, SEP_DIST)) * SEP_RATE;
-          const ux = dx / d, uy = dy / d;
-          const ka = pa ? 0 : pb ? push : push / 2, kb = pb ? 0 : pa ? push : push / 2;
-          if (ka && walkable(map, a.x - ux * ka, a.y - uy * ka)) { a.x -= ux * ka; a.y -= uy * ka; }
-          if (kb && walkable(map, b.x + ux * kb, b.y + uy * kb)) { b.x += ux * kb; b.y += uy * kb; }
-        }
-      }
+    for (const b of grid.queryRadius(a.x, a.y, AVOID_CELL)) {
+      if (b === a || b._sepN <= n || b.state === 'dead' || b.ragdoll) continue;
+      let dx = b.x - a.x, dy = b.y - a.y;
+      const d2 = dx * dx + dy * dy;
+      if (d2 >= D2) continue;
+      const pa = pinned(a), pb = pinned(b);
+      if (pa && pb) continue;
+      let d = Math.sqrt(d2);
+      if (d < 1e-3) { const g = n * 2.39996; dx = Math.cos(g); dy = Math.sin(g); d = 1; }
+      const push = (SEP_DIST - Math.min(d, SEP_DIST)) * SEP_RATE;
+      const ux = dx / d, uy = dy / d;
+      const ka = pa ? 0 : pb ? push : push / 2, kb = pb ? 0 : pa ? push : push / 2;
+      if (ka && walkable(map, a.x - ux * ka, a.y - uy * ka)) { a.x -= ux * ka; a.y -= uy * ka; }
+      if (kb && walkable(map, b.x + ux * kb, b.y + uy * kb)) { b.x += ux * kb; b.y += uy * kb; }
     }
   }
 }

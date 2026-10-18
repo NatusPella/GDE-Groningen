@@ -4,6 +4,7 @@ import { makeProp, addProp, removeProp, isPropBroken, propKey } from './breakabl
 import { policeFlash } from './models3d_vehicles.js';
 import { lampRule } from './streetfurniture.js';
 import { hash2 as hash } from './rng.js';
+import { SpatialGrid } from './spatialgrid.js';
 
 // Night lighting: instanced street lamps along road edges with additive
 // light-pool decals, a small pool of real PointLights handed to the lamps
@@ -49,7 +50,7 @@ let searchReq = null;
 const RIG_OFF_DELAY_MS = 2000;
 let rigOn = true;
 let rigLitAt = 0;
-const lampGrid = new Map();
+const lampGrid = new SpatialGrid(LAMP_GRID);
 let visible = [];
 let propLamps = [];
 let lastBuildX = Infinity, lastBuildY = Infinity;
@@ -289,14 +290,7 @@ function insideBuilding(map, x, y) {
 }
 
 function lampTooClose(x, y) {
-  const cx = Math.floor(x / LAMP_GRID), cy = Math.floor(y / LAMP_GRID);
-  for (let i = -1; i <= 1; i++) {
-    for (let j = -1; j <= 1; j++) {
-      const cell = lampGrid.get((cx + i) + ',' + (cy + j));
-      if (!cell) continue;
-      for (const l of cell) if ((l.x - x) ** 2 + (l.y - y) ** 2 < LAMP_MIN_GAP * LAMP_MIN_GAP) return true;
-    }
-  }
+  for (const l of lampGrid.queryRadius(x, y, LAMP_MIN_GAP)) if ((l.x - x) ** 2 + (l.y - y) ** 2 < LAMP_MIN_GAP * LAMP_MIN_GAP) return true;
   return false;
 }
 
@@ -307,10 +301,7 @@ const lampByKey = new Map();
 
 function registerLamp(l) {
   lampByKey.set(l.key, l);
-  const key = Math.floor(l.x / LAMP_GRID) + ',' + Math.floor(l.y / LAMP_GRID);
-  let cell = lampGrid.get(key);
-  if (!cell) lampGrid.set(key, cell = []);
-  cell.push(l);
+  lampGrid.insertPoint(l, l.x, l.y);
 }
 
 // Lamps are computed once per road and accepted first-come into a global

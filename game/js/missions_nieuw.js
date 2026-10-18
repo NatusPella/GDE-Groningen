@@ -16,12 +16,14 @@ export function buildNieuwDefs({ map, walk, drive }) {
       label: 'Het Loket',
       intro: ['Het Loket bij de Grote Markt: om twaalf uur sluit de inschrijving voor de Noordelijke Snackprijs, en het loket neemt alleen contant.', 'Trek een wachtnummer, haal formulier 7B en de stempel, en schrijf in. Voor twaalf uur.'],
       outro: 'Ingeschreven voor de Noordelijke Snackprijs. De Fjord Frituur doet mee.',
-      timeLimit: 170,
+      timeLimit: 180,
       reward: 0,
       onFoot: true,
       start: loketAt(8, 14),
       stages: [
         { kind: 'goto', target: { landmark: 'Goudkantoor', off: [3, 7], snap: 'walk', label: 'Het Loket: wachtnummer' }, mode: 'foot', radius: 5, stop: 0.8, label: 'Trek een wachtnummer', say: 'Nummer 4117. Op het scherm staat 4093.' },
+        // a beat of waiting, so the queue is felt before Jelle buys it (timing instead of only walking)
+        { kind: 'hold', target: { landmark: 'Goudkantoor', off: [3, 7], snap: 'walk', label: 'Het Loket: wachtrij' }, radius: 6, time: 5, ticks: ['Scherm: 4101. Nog zestien nummers.', 'Scherm: 4109. Bijna aan de beurt.'], label: 'Wacht in de rij tot je nummer komt', say: 'Blijf in de rij staan tot 4117 wordt omgeroepen.' },
         {
           kind: 'scene', label: 'Jelle', kicker: 'Het Loket', script: { ids: ['M03.2'] }, clock: 3,
           cast: [{ key: 'jelle', pose: 'hold', at: [2.6, 0.8] }, { key: 'bewaarder', pose: 'hips', at: [3.6, -1.2] }],
@@ -69,7 +71,12 @@ export function applyNieuw(list) {
   const by = (label) => list.find((d) => d.label === label);
   const stageOf = (def, kind, n = 0) => def.stages.filter((q) => q.kind === kind)[n];
   const pin = by('Even pinnen');
-  if (pin) pin.stages[1].talk = { ids: ['M02.2'], delay: 1.5 };
+  if (pin) {
+    pin.stages[1].talk = { ids: ['M02.2'], delay: 1.5 };
+    // the goal said aloud (#93): shake the police, then deliver
+    pin.stages[1].label = 'Schud de politie af: rij een garage in';
+    pin.stages[2].label = 'Breng de automaat naar Sjabbe (Pand & Poen)';
+  }
   const duif = by('Kieken van boven');
   if (duif) duif.stages[0].talk = { ids: ['M04.2'], delay: 6 };
   const kei = by('Wind tegen, beide kanten op');
