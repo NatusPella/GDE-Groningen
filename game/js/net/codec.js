@@ -6,7 +6,7 @@
 export const MAGIC = 0x47;
 export const CODEC_VERSION = 1;
 export const T = { HELLO: 1, WELCOME: 2, INPUT: 3, SNAP: 4, EVENT: 5, ACK: 6, PING: 7, PONG: 8, BYE: 9, RESYNC: 10 };
-export const MAX_PLAYERS = 4;
+export const MAX_PLAYERS = 8; // de host in het midden en tot 7 gasten (sterntopologie)
 export const MAX_ENTITIES = 64;
 export const MAX_JSON = 2048;
 export const NO_VEHICLE = 0xffff;

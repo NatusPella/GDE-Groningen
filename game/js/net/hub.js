@@ -1,0 +1,91 @@
+// Samen spelen (#95): de host als middelpunt van een ster met N spelers (minimaal 4,
+// instelbaar tot 8). Per gast een eigen verbinding en HostSession (eigen invoer,
+// eigen status, eigen token); de hub wijst de plekken en figuren toe (coopplayers.js),
+// stuurt iedereen de lijst met spelers en laat de snapshots meelopen. Pure logica
+// op elk transport met send/onmessage; geen DOM, geen echte sockets.
+
+import { HostSession } from './session.js';
+import { T, encodeJson, readHeader, decodeJson } from './codec.js';
+import { checkHandshake } from './protocol.js';
+import { createRoster, wijsPlekToe, verwijder, zetMax, zetVerbinding, lijst, lijstEvent, charInfo, heeftPlek } from '../coopplayers.js';
+
+export class HostHub {
+  // cfg: { info, seed, sim, caps, max, onJoin(slot, char), onLeave(slot, why), onLost(slot), onResumed(slot), onEvent(slot, body) }
+  constructor(cfg) {
+    this.cfg = cfg; this.roster = createRoster(cfg.max);
+    this.sessions = new Map();   // slot -> HostSession
+    this.pending = new Set();    // sessies die nog geen plek hebben
+    this.onchange = null;        // roster veranderd (voor lobby en HUD)
+    this.snapCache = null; this.snapTick = -1; this.tickN = 0;
+  }
+
+  // Een nieuwe verbinding van een gast. Er is nog geen plek: die komt bij zijn eerste geldige hello.
+  accept(link) {
+    const hub = this;
+    let ses = null;
+    const cfg = {
+      info: this.cfg.info, seed: this.cfg.seed, caps: this.cfg.caps,
+      sim: { applyInput: (slot, input, seq) => this.cfg.sim.applyInput(slot, input, seq), snapshot: () => this._snapshot(), fullState: () => this.cfg.sim.fullState() },
+      assign(hello) {
+        const p = wijsPlekToe(hub.roster, hello && hello.char);
+        if (!p) return null;
+        hub.pending.delete(ses); hub.sessions.set(p.slot, ses);
+        const c = charInfo(p.char);
+        return { slot: p.slot, extra: { char: p.char, naam: c.naam, kleur: c.kleur, max: hub.roster.max, lijst: lijst(hub.roster) } };
+      },
+      onRelease(slot, why) {
+        hub.sessions.delete(slot); verwijder(hub.roster, slot);
+        if (hub.cfg.onLeave) hub.cfg.onLeave(slot, why);
+        hub._announceList();
+      },
+    };
+    ses = new HostSession(link, cfg, this.cfg.rand);
+    this.pending.add(ses);
+    ses.onjoin = (slot) => { if (this.cfg.onJoin) this.cfg.onJoin(slot, this.roster.spelers.find((s) => s.slot === slot).char); this._announceList(); };
+    ses.onlost = (slot) => { zetVerbinding(this.roster, slot, 'lost'); if (this.cfg.onLost) this.cfg.onLost(slot); this._announceList(); };
+    ses.onstatus = (st) => {
+      const slot = ses.slot;
+      if (!this.sessions.has(slot)) return;
+      if (st === 'ok') {
+        const was = this.roster.spelers.find((s) => s.slot === slot);
+        const voorheen = was && was.verbinding;
+        zetVerbinding(this.roster, slot, 'ok');
+        if (voorheen === 'lost' && this.cfg.onResumed) this.cfg.onResumed(slot);
+        this._announceList();
+      }
+      else if (st === 'lag') { zetVerbinding(this.roster, slot, 'lag'); this._announceList(); }
+    };
+    ses.onevent = (b) => { if (this.cfg.onEvent) this.cfg.onEvent(ses.slot, b); };
+    return ses;
+  }
+
+  _snapshot() { // één snapshot per tick voor alle spelers
+    if (this.snapTick !== this.tickN || !this.snapCache) { this.snapCache = this.cfg.sim.snapshot(); this.snapTick = this.tickN; }
+    return this.snapCache;
+  }
+  _announceList() {
+    const ev = lijstEvent(this.roster);
+    for (const s of this.sessions.values()) if (s.guest) s.announce(ev);
+    if (this.onchange) this.onchange(this.roster);
+  }
+
+  tick(dt) {
+    this.tickN++;
+    for (const s of [...this.pending, ...this.sessions.values()]) s.tick(dt);
+  }
+  // naar één speler of naar iedereen (betrouwbaar)
+  announce(body, slot = null) {
+    if (slot != null) { const s = this.sessions.get(slot); return !!s && s.announce(body); }
+    let ok = false; for (const s of this.sessions.values()) ok = s.announce(body) || ok; return ok;
+  }
+  kick(slot, reden = 'verwijderd') {
+    const s = this.sessions.get(slot); if (!s) return false;
+    s.announce({ k: 'weg', reden });
+    return true;
+  }
+  release(slot) { const s = this.sessions.get(slot); if (s) s.leave(); }
+  setMax(n) { const m = zetMax(this.roster, n); this._announceList(); return m; }
+  get vrijePlekken() { return heeftPlek(this.roster); }
+  status(slot) { const s = this.sessions.get(slot); return s ? s.status : null; }
+  closeAll() { for (const s of [...this.sessions.values()]) s.leave(); for (const s of this.pending) { try { s.link.close && s.link.close(); } catch (e) { /* weg */ } } this.pending.clear(); }
+}
