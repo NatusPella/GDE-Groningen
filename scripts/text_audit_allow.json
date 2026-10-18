@@ -111,6 +111,84 @@
       "file": "sidejob_taxi.js",
       "ctx": "Martinitoren please",
       "why": "toerist in de taxi praat Engels, met Nederlandse vertaling erachter"
+    },
+    {
+      "rule": "merk",
+      "term": "albert heijn",
+      "file": "shopbind.js",
+      "why": "detectielijst CHAINS: echte ketens uit OSM worden hiermee herkend en vervangen door verzonnen namen; niet zichtbaar"
+    },
+    {
+      "rule": "merk",
+      "term": "burger king",
+      "file": "shopbind.js",
+      "why": "detectielijst CHAINS: echte ketens uit OSM worden hiermee herkend en vervangen door verzonnen namen; niet zichtbaar"
+    },
+    {
+      "rule": "merk",
+      "term": "bakker bart",
+      "file": "shopbind.js",
+      "why": "detectielijst CHAINS: echte ketens uit OSM worden hiermee herkend en vervangen door verzonnen namen; niet zichtbaar"
+    },
+    {
+      "rule": "merk",
+      "term": "Windows",
+      "file": "trailerplan.js",
+      "why": "platformnaam in de trailer-eindkaart (waar het spel te spelen is), feitelijk"
+    },
+    {
+      "rule": "naam",
+      "term": "Albert Heijn",
+      "file": "trailerplan.js",
+      "why": "detectielijst BRANDS (woorden die niet in beeld mogen), niet zichtbaar"
+    },
+    {
+      "rule": "merk",
+      "term": "Albert Heijn",
+      "file": "trailerplan.js",
+      "why": "detectielijst BRANDS (woorden die niet in beeld mogen), niet zichtbaar"
+    },
+    {
+      "rule": "merk",
+      "term": "Google",
+      "file": "trailerplan.js",
+      "why": "detectielijst BRANDS (woorden die niet in beeld mogen), niet zichtbaar"
+    },
+    {
+      "rule": "merk",
+      "term": "Facebook",
+      "file": "trailerplan.js",
+      "why": "detectielijst BRANDS (woorden die niet in beeld mogen), niet zichtbaar"
+    },
+    {
+      "rule": "merk",
+      "term": "Instagram",
+      "file": "trailerplan.js",
+      "why": "detectielijst BRANDS (woorden die niet in beeld mogen), niet zichtbaar"
+    },
+    {
+      "rule": "merk",
+      "term": "Netflix",
+      "file": "trailerplan.js",
+      "why": "detectielijst BRANDS (woorden die niet in beeld mogen), niet zichtbaar"
+    },
+    {
+      "rule": "merk",
+      "term": "Shell",
+      "file": "trailerplan.js",
+      "why": "detectielijst BRANDS (woorden die niet in beeld mogen), niet zichtbaar"
+    },
+    {
+      "rule": "merk",
+      "term": "Spotify",
+      "file": "trailerplan.js",
+      "why": "detectielijst BRANDS (woorden die niet in beeld mogen), niet zichtbaar"
+    },
+    {
+      "rule": "winter",
+      "term": "Oliebol",
+      "file": "winkelkit.js",
+      "why": "kermiskraam in de zomer (Groningse zomerkermis); oliebollen zijn hier een kermiskraam, geen winterscène"
     }
   ]
 }
