@@ -289,6 +289,8 @@ function makePanner({ ref = 5, rolloff = 1, model = 'HRTF', maxDist = MAX_DISTAN
 }
 
 function setPannerPos(p, x, y, h = SOURCE_HEIGHT, smooth = false) {
+  // a non-finite position (a NaN spot from the data) would throw on every AudioParam write
+  if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(h)) return;
   if (p.positionX) {
     if (smooth) {
       const t = ctx.currentTime;
@@ -366,6 +368,7 @@ function updateListener(world) {
   listenerVel.x = v ? Math.cos(v.angle) * v.speed : (p.vx || 0);
   listenerVel.y = v ? Math.sin(v.angle) * v.speed : (p.vy || 0);
 
+  if (![listenerPos.x, listenerPos.y, listenerPos.z, ...fwd, ...up].every(Number.isFinite)) return;
   const L = ctx.listener;
   if (L.positionX) {
     const t = ctx.currentTime;
@@ -800,6 +803,7 @@ function playWeaponSfx(e, x, y) {
       break;
     }
     case 'fuse': {
+      if (playFx('carbid_fuse', x, y)) break; // the rendered hiss; the noise bursts below are the fallback
       const out = spatialOut(x, y, { ref: 3, rolloff: 1.2, range: 40 });
       if (!out) return;
       for (let i = 0; i < 4; i++) playNoiseBurst({ duration: 0.55, freq: 5200, freqEnd: 4600, q: 0.7, gain: 0.05, type: 'highpass', delay: 0.2 + i * 0.5, out });
@@ -2472,6 +2476,7 @@ function updateEngine(dt, world) {
     if (t < engineState.startAt) targetGain = 0;
     if (t < engineState.shiftUntil) { targetGain *= 0.35; targetFreq *= 0.8; }
   }
+  if (motor && v.tuning) targetGain *= v.tuning.geluid; // uitlaat uit tuningplan.js (#196)
   const k = Math.min(1, dt * (t < engineState.shiftUntil ? 14 : 6));
   engineState.gain += (targetGain - engineState.gain) * k;
   engineState.freq += (targetFreq - engineState.freq) * k;
@@ -2649,12 +2654,28 @@ function updatePlayerHorn(world) {
   const bell = v && (v.isBike || (v.isScooter && !v.isPolice)); // an e-step has a bell too
   if (pressing && bell) {
     if (t >= bellReadyAt && v._mount === 'horse') { playWhinny(v.x, v.y); bellReadyAt = t + 1.6; }
-    else if (t >= bellReadyAt) { playBell(v.x, v.y); bellReadyAt = t + 0.45; }
+    else if (t >= bellReadyAt) {
+      playBell(v.x, v.y);
+      // tuning (#196): de dubbele bel is een tweede, hogere tik net na de eerste
+      if (v.tuning && v.tuning.claxon === 'bel2') setTimeout(() => playBell(v.x, v.y), 140);
+      bellReadyAt = t + 0.45;
+    }
   } else if (!pressing) bellReadyAt = 0;
   const on = pressing && !bell;
   if (on && !hornVoice.on) {
-    const low = v.isScooter ? 1.55 : hornPitch(v);
+    let low = v.isScooter ? 1.55 : hornPitch(v);
     const single = v.isScooter || v.isHeroCar;
+    // tuning (#196): de toeter klinkt hoger en vrolijker, de melodietoeter loopt drie noten omhoog
+    const claxon = v.tuning && v.tuning.claxon;
+    if (claxon === 'toeter') low *= 1.18;
+    if (claxon === 'melodie') {
+      low *= 1.12;
+      for (const [i, m] of [1.26, 1.5].entries()) {
+        const at = t + 0.16 * (i + 1);
+        hornVoice.a.frequency.setValueAtTime(415 * low * m, at);
+        hornVoice.b.frequency.setValueAtTime(498 * low * m * 1.004, at);
+      }
+    }
     hornVoice.a.frequency.setValueAtTime(415 * low, t);
     hornVoice.b.frequency.setValueAtTime(498 * low * 1.004, t);
     hornVoice.bGain.gain.setValueAtTime(single ? 0 : 0.85, t);
@@ -2728,8 +2749,11 @@ function playAudioEvents(world) {
       case 'hiccup': playHiccup(x, y, !!e.female); break;
       case 'weapon': playWeaponSfx(e, x, y); break;
       case 'giggle': playGiggle(x, y, !!e.female); break;
-      case 'door_open': playDoor(x, y, true); doorDelay = 0.3; break;
-      case 'door_close': playDoor(x, y, false); break;
+      case 'door_open': if (!(e.wood && playFx('door_wood_open', x, y))) playDoor(x, y, true); doorDelay = 0.3; break;
+      case 'door_close': if (!(e.wood && playFx('door_wood_close', x, y))) playDoor(x, y, false); break;
+      // a minigame foot on the run-up (pg_fierljep.js) and a boat hitting a bridge (rondvaartchase.js)
+      case 'step': playBuf('prop_wood', { out: spatialOut(x, y, { ref: 4, range: 50 }) || undefined, gain: 0.12 + clamp(e.strength ?? 0.5, 0, 1) * 0.2, rate: 0.9 + Math.random() * 0.2 }); break;
+      case 'impact': propHit({ strength: e.strength ?? 0.7, material: e.material || 'wood' }, x, y); playFx('splash_big', x, y); break;
       case 'engine_start':
         if (synth.player) { engineState.startDelay = doorDelay; break; }
         playEngineStart(x, y, doorDelay);

@@ -180,7 +180,7 @@ Object.assign(SPECS, SPECS_AKTE2);
     ],
     shots: [
       { on: 'Douwe. Hij is los', shot: 'follow', target: 'durk', dist: 3.6, side: 1.2, h: 1.9, fov: 42 },
-      { on: 'In die pas', dt: 0.1, shot: 'cut', at: [-2.2, -2.2, 1.6], look: 'automaat@1', fov: 38 },
+      { on: 'In die pas', dt: 0.1, shot: 'dolly', from: [-2.2, -2.2, 1.6], to: [-0.6, -1.0, 1.55], look: 'automaat@1', fov: 38 },
     ],
     wide: { from: [-6, 6, 3.4], to: [-3, 4.4, 2.6], look: 'mid:tessa,aanhanger@1', fov: 50, until: 1 },
   };
@@ -641,5 +641,27 @@ export function missionScene(key, lines, { looks = {} } = {}) {
   const wend = spec.wide ? { shot: 'dolly', from: [spec.wide.to[0] + 0.5, spec.wide.to[1], spec.wide.to[2] + 0.3], to: [spec.wide.to[0] + 2.2, spec.wide.to[1] * 0.9, spec.wide.to[2] + 1.2], look: spec.wide.look, fov: spec.wide.fov || 48 } : null;
   const lastLine = lines[lines.length - 1];
   if (wend && lastLine.dur > 1.6) shots.push({ t: tspec(lines.length - 1, Math.max(0.6, lastLine.dur - 1.4)), ...wend });
+  drift(shots, lines, endT + 1);
   return { id: 'story-' + key, actors, props, cues, shots };
+}
+
+// Rhythm rule (#136): a camera never holds still longer than ~6 s. A fixed cut that runs long gets a slow push-in
+// (0.4 m toward the middle and a touch lower), so the shot keeps its frame but is never a still photo.
+const DRIFT_AFTER = 6;
+function drift(shots, lines, total) {
+  const at = (t) => {
+    if (typeof t === 'number') return t;
+    const m = /^L(\d+)(?:([+-])([\d.]+))?$/.exec(t);
+    if (!m || !lines[+m[1]]) return null;
+    return lines[+m[1]].at + (m[2] ? (m[2] === '-' ? -1 : 1) * parseFloat(m[3]) : 0);
+  };
+  shots.forEach((s, i) => {
+    if (s.shot !== 'cut' || !Array.isArray(s.at) || s.at.length !== 3) return;
+    const a = at(s.t), b = i + 1 < shots.length ? at(shots[i + 1].t) : total;
+    if (a == null || b == null || b - a <= DRIFT_AFTER) return;
+    const [f, l, h] = s.at;
+    const k = 0.4 / Math.max(0.5, Math.hypot(f, l));
+    const { at: _at, ...rest } = s;
+    shots[i] = { ...rest, shot: 'dolly', from: [f, l, h], to: [f - f * k, l - l * k, h - 0.08] };
+  });
 }

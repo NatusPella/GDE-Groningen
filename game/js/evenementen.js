@@ -139,6 +139,10 @@ export const roadClosed = (x, y, n, hour) => trafficFactor(x, y, n, hour) <= 0;
 // Een routeplanner die afsluitingen mijdt: is dit punt te mijden?
 export const avoidPoint = (x, y, n, hour) => trafficFactor(x, y, n, hour) < 0.5;
 
+// Extra meters voor de routeplanner op (x, y): 0 vrij, oplopend tot ROUTE_PENALTY_M in een dichte afsluiting.
+export const ROUTE_PENALTY_M = 600;
+export const routePenalty = (x, y, n, hour) => (1 - trafficFactor(x, y, n, hour)) * ROUTE_PENALTY_M;
+
 // Menigte (0..1) op (x, y): dichtheid van voetgangers voor de spawnlaag.
 export function crowdAt(x, y, n, hour) {
   let best = 0;
@@ -197,5 +201,19 @@ export function markSeen(storage, seen, id, key = SEEN_KEY) {
   if (seen.includes(id)) return seen;
   const out = [...seen, id];
   try { storage && storage.setItem(key, JSON.stringify(out)); } catch (e) { /* vol: het is maar een hint */ }
+  return out;
+}
+
+// --- activiteitenkind (activities.js) --------------------------------------------------------
+// Plekken voor kaart en spotcheck: alle evenementen van vandaag (nu bezig of nog te komen), of met
+// `all` de hele agenda. { id, name, x, y, live, sub }
+export function activitySpotsFor(n, hour, all = false) {
+  const out = [];
+  for (const ev of AGENDA) {
+    const today = n >= ev.from && n <= ev.to;
+    if (!all && !today) continue;
+    const c = centreOf(ev), live = today && isActive(ev, n, hour);
+    out.push({ id: ev.id, name: ev.naam, x: c.x, y: c.y, live, sub: `${ev.plaats} · ${timeLabel(ev)}${live ? ' · nu bezig' : ''}` });
+  }
   return out;
 }
