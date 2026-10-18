@@ -273,13 +273,13 @@ export function padInfo(id, mapping = '') {
   const s = String(id || '').toLowerCase();
   const family = padFamily(id);
   const standard = mapping === 'standard' || /standard gamepad/.test(s);
-  let name = { xbox: 'Xbox', ps: 'PlayStation', switch: 'Nintendo Switch', deck: 'Steam Deck' }[family];
-  if (/steam controller/.test(s) || (/28de/.test(s) && /product:\s*(1102|1142)/.test(s))) name = 'Steam Controller';
-  else if (/joy-?con/.test(s)) name = 'Joy-Con';
-  else if (/pro controller/.test(s)) name = 'Switch Pro Controller';
+  let name = { xbox: 'Letterknoppen (A B X Y)', ps: 'Vormknoppen', switch: 'Wisselende letters', deck: 'Handheld' }[family];
+  if (/steam controller/.test(s) || (/28de/.test(s) && /product:\s*(1102|1142)/.test(s))) name = 'Ouder pad';
+  else if (/joy-?con/.test(s)) name = 'Los klein pad';
+  else if (/pro controller/.test(s)) name = 'Wisselende letters, groot pad';
   let note = '';
   if (!id) note = 'Geen controller gevonden. Druk op een knop.';
-  else if (!standard) note = 'Dit pad meldt geen standaardindeling: de knoppen kunnen verkeerd liggen. Zet Steam Input of de controller in Xbox-modus, of kies bij Knoppen tonen als de juiste indeling.';
+  else if (!standard) note = 'Dit pad meldt geen standaardindeling: de knoppen kunnen verkeerd liggen. Zet de controller in de standaardstand of kies bij Knoppen tonen als de juiste indeling.';
   return { family, name: id ? name : '', standard, note };
 }
 

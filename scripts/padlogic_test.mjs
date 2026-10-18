@@ -65,10 +65,10 @@ for (const [ctx, map] of Object.entries(C.PAD_MAPS)) for (const s of C.PAD_BUTTO
 // padInfo per id-tekst (#151): soort, indeling en standaardmapping
 const I = C.padInfo;
 ok(I('Xbox Wireless Controller (STANDARD GAMEPAD Vendor: 045e Product: 0b13)', 'standard').family === 'xbox', 'info: Xbox');
-ok(I('Pro Controller (STANDARD GAMEPAD Vendor: 057e Product: 2009)', 'standard').name === 'Switch Pro Controller', 'info: Pro Controller');
-ok(I('Joy-Con (L) (Vendor: 057e Product: 2006)', '').name === 'Joy-Con' && I('Joy-Con (L) (Vendor: 057e Product: 2006)', '').note !== '', 'info: Joy-Con without standard mapping warns');
-ok(I('Steam Controller (Vendor: 28de Product: 1102)', '').name === 'Steam Controller' && !I('Steam Controller (Vendor: 28de Product: 1102)', '').standard, 'info: old Steam Controller, no standard mapping');
-ok(I('Steam Deck Controller (STANDARD GAMEPAD Vendor: 28de Product: 1205)', 'standard').name === 'Steam Deck', 'info: Deck');
+ok(I('Pro Controller (STANDARD GAMEPAD Vendor: 057e Product: 2009)', 'standard').name === 'Wisselende letters, groot pad', 'info: Pro Controller');
+ok(I('Joy-Con (L) (Vendor: 057e Product: 2006)', '').name === 'Los klein pad' && I('Joy-Con (L) (Vendor: 057e Product: 2006)', '').note !== '', 'info: Joy-Con without standard mapping warns');
+ok(I('Steam Controller (Vendor: 28de Product: 1102)', '').name === 'Ouder pad' && !I('Steam Controller (Vendor: 28de Product: 1102)', '').standard, 'info: old Steam Controller, no standard mapping');
+ok(I('Steam Deck Controller (STANDARD GAMEPAD Vendor: 28de Product: 1205)', 'standard').name === 'Handheld', 'info: Deck');
 ok(I('Xbox 360 Controller (XInput STANDARD GAMEPAD)', 'standard').standard, 'info: Steam Input shows up as XInput');
 ok(I('', '').name === '' && I('', '').note !== '', 'info: no pad');
 // de Switch-indeling zet de onderste knop op B
