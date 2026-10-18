@@ -9,6 +9,7 @@
 // is (3D BAG > OSM height > OSM levels > a default per type), a road's class,
 // lanes, width, speed and access from its tags, with one cap for village
 // streets. Nothing here asks "is this the city?".
+import { capBuilding } from './buildingcap.js';
 import { wgsToWorld } from './rdnew.js';
 import { mappedFromOsm, mappedSignsFromOsm } from './streetfurniture.js';
 import { heightOf, levelsFor } from './buildingheights.js';
@@ -357,7 +358,7 @@ export function buildBuilding(src, ctx = {}) {
   if (hf.eave !== undefined) b.h = levelsFor(hf.eave);
   if (hf.rk) b.rk = hf.rk;
   b.roof = src.roofShape || (src.hip ? 'hipped' : roofH > 0 ? 'gabled' : 'flat');
-  return b;
+  return capBuilding(b);
 }
 
 // ---------------------------------------------- water, rail, green, POIs

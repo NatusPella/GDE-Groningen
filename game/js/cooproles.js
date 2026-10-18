@@ -98,7 +98,8 @@ export function mayProceed(rule, dists, alive = [true, true], radius = 12) {
 export function createCutscene(id, rule) {
   return { id, rule, ready: [false, false], skip: [false, false], started: false, t: 0, timeout: 8, done: false };
 }
-export function markReady(cs, slot) { cs.ready[slot] = true; return cs.ready.every(Boolean); }
+// Alleen de hoofdpersonen (plek 0 en 1) houden een scène op; extra spelers lopen in de open wereld en wachten nergens op.
+export function markReady(cs, slot) { if (slot <= 1) cs.ready[slot] = true; return cs.ready.every(Boolean); }
 // Start zodra beiden klaar zijn of de time-out (laadwachttijd) om is.
 export function tickCutscene(cs, dt, humans = 2) {
   if (cs.done) return cs;
@@ -109,6 +110,7 @@ export function tickCutscene(cs, dt, humans = 2) {
   return cs;
 }
 export function holdSkip(cs, slot, down, humans = 2) {
+  if (slot > 1) return cs.done; // extra spelers kunnen een scène niet overslaan
   cs.skip[slot] = !!down;
   const need = humans < 2 ? [0] : [0, 1];
   if (need.every((s) => cs.skip[s])) cs.done = true;
@@ -126,3 +128,64 @@ export function companionMode(rule, humans) {
   if (humans >= 2) return 'mens';
   return rule.presence === 'een' ? 'wacht' : 'volg';
 }
+
+// ---------------------------------------------------------------- uitbreidbaar
+// Elke nieuwe scène, missie, minigame of voertuig registreert zijn coöp-regel
+// hier; de netcode kent alleen deze regel en hoeft nooit aangepast te worden.
+// Wat niet geregistreerd is krijgt een veilige standaard: één speelt, de ander
+// kijkt mee (scène/minigame), of twee stoelen (voertuig). De regel is data:
+//   { spelers: 'een' | 'twee', rollen?: {...}, wacht?: bool, stoelen?: n }
+export const REGISTRY = { scene: new Map(), minigame: new Map(), voertuig: new Map(), activiteit: new Map() };
+const DEFAULTS = {
+  scene: { spelers: 'een', wacht: false },
+  minigame: { spelers: 'een', wacht: false },
+  voertuig: { stoelen: 2 },
+  activiteit: { spelers: 'twee', beloning: 0 },
+};
+
+export function registerCoop(soort, id, regel) {
+  if (!REGISTRY[soort]) throw new Error('onbekende soort: ' + soort);
+  if (typeof id !== 'string' || !id) throw new Error('id ontbreekt');
+  if (!regel || typeof regel !== 'object') throw new Error('regel ontbreekt');
+  if (soort !== 'voertuig' && !['een', 'twee'].includes(regel.spelers)) throw new Error('spelers moet een of twee zijn');
+  for (const k of ['min', 'max']) if (regel[k] !== undefined && !(Number.isInteger(regel[k]) && regel[k] >= 1 && regel[k] <= 8)) throw new Error(k + ' moet 1 tot 8 zijn');
+  if (regel.min !== undefined && regel.max !== undefined && regel.min > regel.max) throw new Error('min mag niet groter zijn dan max');
+  if (soort === 'activiteit' && !(Number.isFinite(regel.beloning) && regel.beloning >= 0)) throw new Error('beloning moet een getal van 0 of meer zijn');
+  if (soort === 'voertuig' && !(Number.isInteger(regel.stoelen) && regel.stoelen >= 1 && regel.stoelen <= 8)) throw new Error('stoelen moet 1 tot 8 zijn');
+  REGISTRY[soort].set(id, Object.freeze({ ...regel }));
+}
+export function coopRegel(soort, id) {
+  return (REGISTRY[soort] && REGISTRY[soort].get(id)) || DEFAULTS[soort] || null;
+}
+export const isGeregistreerd = (soort, id) => !!(REGISTRY[soort] && REGISTRY[soort].has(id));
+
+// Wie speelt een minigame mee? Twee-spelersspellen met twee mensen: beiden; anders de starter, de ander kijkt.
+// aanwezig: aantal mensen (2 = plekken 0 en 1) of de lijst met aanwezige plekken (N spelers).
+// Een spel voor twee of meer spreekt zijn max af (standaard 2); wie niet meespeelt kijkt.
+export function minigameSpelers(id, starter, aanwezig = 2) {
+  const r = coopRegel('minigame', id);
+  const slots = Array.isArray(aanwezig) ? [...aanwezig].sort((a, b) => a - b) : (aanwezig | 0) <= 1 ? [starter] : Array.from({ length: aanwezig | 0 }, (_, i) => i);
+  if (r.spelers === 'twee' && slots.length >= 2) {
+    const max = r.max || 2;
+    const spelers = [starter, ...slots.filter((x) => x !== starter)].slice(0, max).sort((a, b) => a - b);
+    return { spelers, kijkers: slots.filter((x) => !spelers.includes(x)) };
+  }
+  return { spelers: [starter], kijkers: slots.filter((x) => x !== starter) };
+}
+
+// Rol van een plek bij een verhaalstap: de hoofdpersonen volgen de regel; extra spelers doen
+// in het hoofdverhaal niet mee en lopen gewoon in de open wereld (ze houden de stap niet op).
+export function rolVoorSlot(rule, slot) {
+  if (slot >= 2) return { rol: 'wereld', speelt: false, houdtOp: false };
+  if (rule.presence === 'een') return { rol: rule.activeSlot === slot ? 'speelt' : 'kijkt', speelt: rule.activeSlot === slot, houdtOp: rule.activeSlot === slot };
+  return { rol: 'speelt', speelt: true, houdtOp: rule.presence === 'beide' };
+}
+
+// Bekende minigames (alle voor twee waar dat kan: een tweede speler als tegenstander of teamgenoot),
+// en voertuigen met hun stoelen. Nieuwe functies voegen hier of in hun eigen module een regel toe.
+registerCoop('minigame', 'padel', { spelers: 'twee', max: 4 });             // dubbelspel
+registerCoop('minigame', 'kartrace', { spelers: 'twee', max: 8 });
+registerCoop('minigame', 'racers', { spelers: 'twee', max: 8 });
+registerCoop('minigame', 'pg_bruggenrace', { spelers: 'twee', max: 4 });
+for (const id of ['carbid', 'kermis', 'pg_fierljep', 'pg_foodtruck', 'pg_koe', 'pg_skutsje']) registerCoop('minigame', id, { spelers: 'een' });
+for (const [id, stoelen] of Object.entries({ auto: 2, bakkie: 2, bus: 2, vrachtwagen: 2, trekker: 2, politie: 2, taxi: 2, motor: 2, scooter: 2, boot: 2, skutsje: 2, heli: 2, fiets: 1, step: 1, trein: 1 })) registerCoop('voertuig', id, { stoelen });

@@ -1,6 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { polygonBounds } from './util.js';
 import { onSettingsChange } from './settings.js';
+import { WATER_TONES as TONES, WATER_SHARED_GLSL } from './watertones.js';
 
 // Stylised canal water: a grid-filled surface clipped exactly to each water
 // polygon, low-poly faceted swell (derivative normals), a per-vertex
@@ -79,58 +80,25 @@ varying vec2 vFlow;
 
 #include <fog_pars_fragment>
 
-float hash2(vec2 p) {
-  p = fract(p * vec2(123.34, 456.21));
-  p += dot(p, p + 45.32);
-  return fract(p.x * p.y);
-}
-
-float valueNoise(vec2 p) {
-  vec2 i = floor(p);
-  vec2 f = fract(p);
-  vec2 u = f * f * (3.0 - 2.0 * f);
-  return mix(mix(hash2(i), hash2(i + vec2(1.0, 0.0)), u.x),
-             mix(hash2(i + vec2(0.0, 1.0)), hash2(i + vec2(1.0, 1.0)), u.x), u.y);
-}
-
-vec2 rainRipple(vec2 p, float speed) {
-  vec2 cell = floor(p), f = fract(p) - 0.5;
-  float h = hash2(cell);
-  float t = fract(uTime * speed + h);
-  vec2 d = f - (vec2(hash2(cell + 1.7), hash2(cell + 5.3)) - 0.5) * 0.5;
-  float r = length(d);
-  float ring = sin((r - t * 0.5) * 55.0) * smoothstep(0.12, 0.0, abs(r - t * 0.5)) * (1.0 - t);
-  return d / max(r, 1e-3) * ring;
-}
+${WATER_SHARED_GLSL}
+#define hash2 wtrHash
+#define valueNoise wtrNoise
 
 void main() {
   vec2 p = vWorldPos.xz;
   vec3 v = normalize(cameraPosition - vWorldPos);
 
-#if WATER_Q > 0
   vec3 n = normalize(cross(dFdx(vWorldPos), dFdy(vWorldPos)));
   if (n.y < 0.0) n = -n;
-  float ph0 = fract(uTime * 0.05), ph1 = fract(uTime * 0.05 + 0.5);
-  float fw = abs(ph0 * 2.0 - 1.0);
-  vec2 drift0 = vFlow * ph0 * 6.0, drift1 = vFlow * ph1 * 6.0;
-  float r0 = valueNoise((p - drift0) * 0.9), r1 = valueNoise((p - drift1) * 0.9 + 17.0);
-  float rq = mix(r0, r1, fw);
-  float rq2 = valueNoise((p + vec2(uTime * 0.21, -uTime * 0.17)) * 2.3);
-  n = normalize(n + vec3(rq - 0.5, 0.0, rq2 - 0.5) * 0.035);
-  if (uRain > 0.01) {
-    vec2 rip = rainRipple(p * 1.4, 0.9) + rainRipple(p * 2.1 + 7.0, 1.1);
-    n = normalize(n + vec3(rip.x, 0.0, rip.y) * 0.35 * uRain);
-  }
-#else
-  vec3 n = vec3(0.0, 1.0, 0.0);
-  float fw = 0.0, rq = 0.5;
-  vec2 drift0 = vec2(0.0), drift1 = vec2(0.0);
-#endif
+  WtrFlow fl;
+  n = wtrNormal(n, p, vFlow, uTime, uRain, fl);
+  float fw = fl.fw, rq = fl.rq;
+  vec2 drift0 = fl.drift0, drift1 = fl.drift1;
 
   float cosV = clamp(dot(n, v), 0.0, 1.0);
   float fresnel = 0.03 + 0.97 * pow(1.0 - cosV, 5.0);
 
-  float deep = smoothstep(0.3, 9.0, vEdge);
+  float deep = wtrDeep(vEdge);
   vec3 body = mix(uShallowColor, uDeepColor, deep) * uLight;
 #if WATER_Q > 0
   vec2 lxz = normalize(uSunDir.xz + vec2(1e-3));
@@ -178,8 +146,7 @@ void main() {
   float alpha = uOpacity + fresnel * 0.1;
 
 #if WATER_Q > 0
-  float fn = valueNoise(p * 1.1 - drift0 * 0.5 + uTime * 0.15);
-  float foam = (1.0 - smoothstep(0.0, 0.45 + 0.5 * fn, vEdge)) * (0.25 + 0.2 * fn);
+  float foam = wtrFoam(p, vEdge, fl, uTime);
   color = mix(color, uFoamColor * (0.35 + 0.65 * uLight), foam);
 
   vec3 litCol = vec3(uLight) * 0.45 + uSunColor * uSunStrength * max(uSunDir.y, 0.0) * 0.3;
@@ -208,15 +175,23 @@ void main() {
 }
 `;
 
+// Another material that draws water by the same profile (the terrain's far
+// water, countryfield.js) follows the quality setting through its WATER_Q define.
+export function followWaterQuality(material) {
+  material.defines = { ...(material.defines || {}), WATER_Q: quality };
+  materials.add(material);
+  return material;
+}
+
 export function createWaterMaterial(sky = null) {
   const m = new THREE.ShaderMaterial({
     uniforms: {
       uTime: { value: 0 },
-      uWave: { value: 0.12 },
-      uDeepColor: { value: new THREE.Color(0x0b2420) },
-      uShallowColor: { value: new THREE.Color(0x2c4a38) },
-      uFoamColor: { value: new THREE.Color(0xb9c2b0) },
-      uDuckweedColor: { value: new THREE.Color(0x5d7f2c) },
+      uWave: { value: TONES.wave },
+      uDeepColor: { value: new THREE.Color(TONES.deep) },
+      uShallowColor: { value: new THREE.Color(TONES.shallow) },
+      uFoamColor: { value: new THREE.Color(TONES.foam) },
+      uDuckweedColor: { value: new THREE.Color(TONES.duckweed) },
       uFacadeColor: { value: new THREE.Color(0x5e4034) },
       uWindowColor: { value: new THREE.Color(0xffc877) },
       uLampColor: { value: new THREE.Color(0xffa84a) },
@@ -225,7 +200,7 @@ export function createWaterMaterial(sky = null) {
       uSunColor: sky ? sky.uSunColor : { value: new THREE.Color(0xffd49a) },
       uSunDir: sky ? sky.uSunDir : { value: new THREE.Vector3(0.6, 0.6, 0.4).normalize() },
       uSunStrength: sky ? sky.uSunStrength : { value: 1 },
-      uOpacity: { value: 0.88 },
+      uOpacity: { value: TONES.opacity },
       uRain: { value: 0 },
       uLight: { value: 1 },
       uNight: { value: 0 },
@@ -243,20 +218,36 @@ export function createWaterMaterial(sky = null) {
   return m;
 }
 
+// Audit: every water polygon's surface mesh (a Group named 'water' whose first
+// child is the surface; banks and quays follow) must wear the one shared
+// material. Returns { total, shared, stray: [group names/positions] }.
+export function auditWaterMeshes(root, material) {
+  let total = 0, shared = 0;
+  const stray = [];
+  root.traverse((o) => {
+    if (o.name !== 'water' || !o.children || !o.children.length) return;
+    total++;
+    const surface = o.children[0];
+    if (surface && surface.material === material) shared++;
+    else stray.push(`${o.name}@${Math.round(o.position.x)},${Math.round(o.position.z)}`);
+  });
+  return { total, shared, stray };
+}
+
 // The one water material the city canals and the Ommeland water share.
 let shared = null;
 export function sharedWaterMaterial(sky = null) {
   return shared || (shared = createWaterMaterial(sky));
 }
 
-let swellAmp = 0.12;
+let swellAmp = TONES.wave;
 export function updateWaterMaterial(material, time, rain = 0, night = 0) {
   const u = material.uniforms;
   u.uTime.value = time;
   u.uRain.value = rain;
   u.uNight.value = night;
   u.uLight.value = (0.14 + 0.86 * (1 - night)) * (1 - 0.3 * Math.min(1, rain));
-  u.uWave.value = swellAmp = 0.12 + 0.08 * Math.min(1, rain);
+  u.uWave.value = swellAmp = TONES.wave + TONES.waveRain * Math.min(1, rain);
 }
 
 // The vertex shader's swell at world (x, z) on the CPU, for floating things

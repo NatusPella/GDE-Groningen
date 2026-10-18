@@ -7,9 +7,14 @@
 // pri: who wins a collision; keep: never dropped by a collision
 const CATS = {
   player: { min: 0, pri: 1000, keep: true },
+  partner: { min: 0, pri: 950, keep: true }, // medespelers (samen spelen, #95)
   goal: { min: 0, pri: 900, keep: true },
   mission: { min: 0, pri: 800, keep: true },
   police: { min: 0, pri: 700, keep: true },
+  gevaar: { min: 0, pri: 650, keep: true },
+  rival: { min: 0, pri: 640, keep: true },
+  halte: { min: 0, pri: 620, keep: true },
+  subdoel: { min: 0, pri: 590 },
   home: { min: 0, pri: 600, keep: true },
   own: { min: 0.6, pri: 560 },
   station: { min: 0, pri: 520 },
@@ -29,7 +34,13 @@ const CATS = {
 
 export function mapCategory(kind) {
   if (kind === 'player') return 'player';
+  if (kind === 'partner') return 'partner';
   if (kind === 'userWaypoint' || kind === 'sj-target' || kind === 'missionActive' || kind.startsWith('ma-')) return 'goal';
+  // mission layers (missionmap.js)
+  if (kind === 'mm-gevaar') return 'gevaar';
+  if (kind === 'mm-rival') return 'rival';
+  if (kind === 'mm-halte' || kind === 'mm-ring' || kind === 'mm-pad' || kind === 'mm-brug') return 'halte';
+  if (kind === 'mm-subdoel' || kind === 'mm-hulp') return 'subdoel';
   if (kind === 'waypoint' || kind === 'sj-dot') return 'mission';
   if (kind === 'missionIdle' || kind.startsWith('mi-')) return 'mission';
   if (kind === 'cash' || kind.startsWith('police')) return 'police';
@@ -84,7 +95,7 @@ export const iconGapPx = (scale) => Math.round(ICON_UNITS * scale * ICON_GAP_FAC
 // The rim colour of an icon's disc per category, so the kinds read apart at a glance
 const CAT_RIM = {
   zorg: '#ff5a5a', politiebureau: '#5a8bff', garage: '#ffb23f', station: '#9a7bff', job: '#4fd6c4',
-  shop: '#ff8ad0', fun: '#a6e04f', horeca: '#ff9a4f', own: '#f5e04f', ommeland: '#7fd0ff',
+  shop: '#ff8ad0', gevaar: '#ff5a5a', rival: '#ffb23f', halte: '#ffd84a', subdoel: '#4fd6c4', fun: '#a6e04f', horeca: '#ff9a4f', own: '#f5e04f', ommeland: '#7fd0ff',
 };
 export function mapRimColor(kind) {
   return CAT_RIM[mapCategory(kind)] || 'rgba(240, 237, 228, 0.92)';
@@ -116,4 +127,33 @@ export function placeIcons(items, gap) {
   }
   // drawn lowest first, so the important ones lie on top
   return out.reverse();
+}
+
+// --- contrast of the icon's halo (#114) ----------------------------------------
+// An icon sits on whatever the map is: meadow, water, a building, the night
+// palette. Three rings from the outside in guarantee it is outlined on any of
+// them: a dark outline, a cream ring, then the category rim on the dark disc.
+// The ground is either dark (the cream ring stands out) or light (the dark
+// outline does), so one of the two outer rings reaches GRAPHIC_CONTRAST (WCAG
+// 2.1 non-text, 3:1) on every palette; mapicons_test checks that on all of them.
+export const HALO_DARK = '#0c140e';
+export const HALO_LIGHT = '#f0ede4';
+export const GRAPHIC_CONTRAST = 3;
+const chan = (v) => { const c = v / 255; return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; };
+// relative luminance of '#rrggbb'
+export function hexLuminance(hex) {
+  return 0.2126 * chan(parseInt(hex.slice(1, 3), 16)) + 0.7152 * chan(parseInt(hex.slice(3, 5), 16)) + 0.0722 * chan(parseInt(hex.slice(5, 7), 16));
+}
+export function hexContrast(a, b) {
+  const [hi, lo] = [hexLuminance(a), hexLuminance(b)].sort((x, y) => y - x);
+  return (hi + 0.05) / (lo + 0.05);
+}
+// the rim of the category, unless it would vanish on the dark disc
+export function haloRim(kind) {
+  const rim = mapRimColor(kind);
+  return rim[0] === '#' && hexContrast(rim, HALO_DARK) >= GRAPHIC_CONTRAST ? rim : HALO_LIGHT;
+}
+// the ring that outlines an icon on a given ground ('#rrggbb'): the better of cream and dark
+export function haloOutline(ground) {
+  return hexContrast(HALO_LIGHT, ground) >= hexContrast(HALO_DARK, ground) ? HALO_LIGHT : HALO_DARK;
 }

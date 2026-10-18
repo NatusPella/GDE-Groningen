@@ -6,15 +6,13 @@
 import './node3d.mjs';
 import fs from 'node:fs';
 
-const { GameMap, applyMapExtras } = await import('../game/js/mapdata.js');
+import { loadCityWorld } from './lib/loadworld.mjs';
 const { Vehicle, pushCircleOutOfVehicle } = await import('../game/js/vehicle.js');
 const { Player } = await import('../game/js/player.js');
 const { vehicleHeight } = await import('../game/js/vaultkit.js');
 
 const root = new URL('../game/', import.meta.url);
-const data = JSON.parse(fs.readFileSync(new URL('citymap.json', root)));
-applyMapExtras(data, JSON.parse(fs.readFileSync(new URL('mapextras.json', root))));
-const map = new GameMap(data);
+const map = (await loadCityWorld()).map;
 
 let fails = 0;
 const check = (name, ok, extra = '') => { if (!ok) { fails++; console.log('FAIL', name, extra); } else console.log('ok  ', name); };

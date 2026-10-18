@@ -51,15 +51,33 @@ geen `node_modules` in git.
 | Vaste clips: `audio/npc`, `audio/police`, `audio/nieuws`, `audio/gmusic/jingles` | Gemini TTS via OpenRouter, `google/gemini-3.8-flash-tts` (`scripts/tts_barks_lines.mjs`, stemmen in `tts_cast.mjs` `CLIP_CAST`) | zie §4 | **opgelost** (3 okt): waren gemaakt met een previewmodel zonder log; nu opnieuw ingesproken en per map gelogd in `tts.json` |
 | App-icoon `desktop/resources/icon.svg/png` | eigen ontwerp (GDE-logo) met ingebedde subset van Big Shoulders Display | OFL staat inbedden toe | ok |
 
+### Herkomst van geluid en muziek (stand 18 okt 2026, #62)
+
+Er zijn drie soorten geluid in het spel, met elk een eigen herkomst:
+
+| Soort | Waar | Herkomst | Samples? |
+|---|---|---|---|
+| **Geluidseffecten**: motoren, voetstappen, foley, omgeving, interface, claxon, sirene | `game/js/sfx/*.js`, `game/js/audio.js` | in het spel zelf gesynthetiseerd (Web Audio: oscillatoren, ruis, filters), tijdens het spelen; er staan geen opnamen van effecten in de repo | **nee**, geen externe samples |
+| **Muziek**: 14 G-Music-nummers, 2 scenario-loops, titelnummer | `game/audio/gmusic`, `scenario`, `theme` | gemaakt met Google Gemini (AI), niet door de eigenaar gecomponeerd of gesynthetiseerd; zie §4 | n.v.t. (AI-output) |
+| **Stemmen**: ~3.400 regels plus vaste clips (`npc`, `police`, `nieuws`, jingles) | `game/audio/voicelines` e.a. | Gemini TTS via OpenRouter (`google/gemini-3.8-flash-tts`), per map gelogd in `tts.json` | n.v.t. (AI-output) |
+
+Let op: "alles zelf gesynthetiseerd, geen samples" geldt dus **alleen voor de
+geluidseffecten**, niet voor muziek en stemmen. README, NOTICE en de
+aftiteling zeggen dat ook zo. **Nog open voor de eigenaar:** welk muziekproduct
+precies is gebruikt (Gemini-app/Lyria of API, gratis of betaald abonnement),
+zie §4.3 en §9 punt 8. Zonder die vastlegging kan dit document het
+muziekproduct niet noemen.
+
 ## 3. Inventaris: kaart en andere data
 
 | Onderdeel | Bron | Licentie | Wat moet |
 |---|---|---|---|
 | `game/citymap.json`, `game/mapextras.json`, `scripts/world/cityroutes_src.json`, de kaarttegels (`game/world/`) | OpenStreetMap via Overpass (`scripts/fetch_osm.py`, `fetch_ommeland.py`, `add_*.py`, `build_map.py`) | [ODbL 1.0](https://opendatacommons.org/licenses/odbl/1-0/) | naamsvermelding; deze **afgeleide databases** blijven ODbL als je ze verspreidt (share-alike) |
 | `data/*_raw.json(.gz)`, `data/*.overpass` | Overpass-extracten van OSM | ODbL | idem |
-| Hoogtes van de ring (`add_elevation.py`) | berekend uit OSM-tags (layer, bridge, tunnel) | ODbL | idem; geen AHN- of andere hoogtedata gebruikt |
+| Hoogtes van de ring (`add_elevation.py`) | berekend uit OSM-tags (layer, bridge, tunnel) | ODbL | idem; de terreinhoogte komt uit de AHN (volgende rij) |
 | `data/world/3dbag.json.gz`, de gebouwhoogtes (`h`, `hsrc`, `roof`) in `game/citymap.json` en de tegels | 3DBAG (TU Delft, 3DGI), officiële tegeldownloads van data.3dbag.nl (`scripts/world/fetch_3dbag.py`); de ruwe tegels staan alleen lokaal in `data/cache/` | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) | naamsvermelding: Over, aftiteling, NOTICE.md ("3DBAG door de 3D geoinformation onderzoeksgroep (TU Delft) en 3DGI") |
-| AHN-hoogteraster (nog niet gedownload; `scripts/world/fetch_ahn.py`) | AHN via PDOK | CC0 | geen verplichting; netjes vermelden |
+| AHN-hoogteraster (`scripts/world/fetch_ahn.py`: per kilometertegel een GeoTIFF van PDOK's AHN-WCS, ruwe bestanden lokaal in `data/cache/ahn/`, afgeleide rasters in `data/world/ahn/` en de kaarttegels; `game/js/terrainraster.js` leest ze) | Actueel Hoogtebestand Nederland (AHN, Rijkswaterstaat e.a.) via PDOK | CC0 (publiek domein) | geen verplichting; vermeld in NOTICE.md en de aftiteling |
+| Padel-, golf- en pitch-and-putt-banen (`scripts/world/echteplekken.py`, `data/extras_padel_raw.json`, `game/echteplekken.json`) en de horeca- en winkelextracten (`data/horeca_raw.json`, `data/shops_raw.json`) | Overpass-extracten van OSM | ODbL | idem als de rest van de kaartdata; namen van ketens en cafés komen niet in de speltekst (zie hieronder) |
 | Overpass-servers (overpass-api.de, kumi.systems, private.coffee, maps.mail.ru) | alleen bij het bouwen van de kaart | [gebruiksvoorwaarden](https://dev.overpass-api.de/overpass-doc/en/preface/commons.html): redelijk gebruik | niets voor de speler |
 
 **OSM-vermelding** ([Attribution Guidelines](https://osmfoundation.org/wiki/Licence/Attribution_Guidelines)):

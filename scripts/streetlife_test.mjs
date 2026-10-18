@@ -7,7 +7,7 @@ import './node3d.mjs';
 import fs from 'node:fs';
 
 const D = await import('../game/js/streetlifedata.js');
-const { GameMap, applyMapExtras } = await import('../game/js/mapdata.js');
+import { loadCityWorld } from './lib/loadworld.mjs';
 const T = await import('../game/js/trafficfleet.js');
 const B = await import('../game/js/boattypes.js');
 const S = await import('../game/js/streetlife.js');
@@ -16,9 +16,7 @@ let fails = 0, n = 0;
 const ok = (c, name) => { n++; if (!c) { fails++; console.log('FAIL', name); } };
 
 const root = new URL('../game/', import.meta.url);
-const data = JSON.parse(fs.readFileSync(new URL('citymap.json', root)));
-applyMapExtras(data, JSON.parse(fs.readFileSync(new URL('mapextras.json', root))));
-const map = new GameMap(data);
+const map = (await loadCityWorld()).map;
 
 // a seeded rng so the checks are repeatable
 const seeded = (seed) => () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };

@@ -70,6 +70,10 @@ const CSS = `
 #pause-menu .vh-clue b em { font-style: normal; color: #3fc97a; margin-right: 4px; }
 #pause-menu .vh-clue p { font-size: 18px; line-height: 1.35; color: rgba(240,237,228,0.85); }
 #pause-menu .vh-clue[data-unknown] b { color: var(--mut); }
+#pause-menu .vh-plakje[data-state="gered"] b::after { content: ' · gered'; color: #3fc97a; }
+#pause-menu .vh-plakje[data-state="verloren"] b::after { content: ' · verloren'; color: #e0604a; }
+#pause-menu .vh-plakje[data-state="geblokkeerd"] b::after { content: ' · geblokkeerd'; color: #e8b84a; }
+#pause-menu .vh-plakje[data-state="open"] b::after { content: ' · nog open'; color: var(--mut); }
 #pause-menu .vh-clue[data-new] b::after { content: ' nieuw'; font-family: 'Arial Narrow', Arial, sans-serif; font-size: 18px; letter-spacing: 0; color: #3fc97a; }
 `;
 
@@ -166,12 +170,21 @@ function peopleHtml() {
   return `<div class="vh-layout"><div class="vh-left"><div class="m-gh"><span>Personages</span><span>${n} van ${CHARACTERS.length} ontmoet · wie je spreekt, komt erbij</span></div><div class="vh-grid">${CHARACTERS.map(charCard).join('')}</div></div><aside class="vh-viewer m-pane" aria-live="polite" aria-label="Personage"></aside></div>`;
 }
 
+// The plakjesbord of the new story: Jelle buys Grunn up slice by slice; each slice shows how it ended.
+function plakjesHtml(list) {
+  if (!list || !list.length) return '';
+  const count = (s) => list.filter((p) => p.state === s).length;
+  const tally = [['gered', 'gered'], ['verloren', 'verloren'], ['geblokkeerd', 'geblokkeerd']].map(([s, w]) => (count(s) ? `${count(s)} ${w}` : '')).filter(Boolean).join(' · ');
+  return `<section class="vh-part"><div class="m-gh"><span>De plakjes van Jelle</span><span>${esc(tally || 'allemaal nog open')}</span></div>` +
+    '<div class="vh-clues">' + list.map((p) => `<div class="vh-clue vh-plakje" data-state="${p.state}"><b>${p.n} · ${esc(p.name)}</b><p>${esc(p.text)}</p></div>`).join('') + '</div></section>';
+}
+
 function cluesHtml() {
   const steps = getStorySteps();
   const jr = getStoryJournal();
   const found = new Map(jr.found.map((c) => [c.title, c]));
   const cur = steps.find((s) => s.current);
-  return '<div class="vh-parts">' + Object.keys(PARTS).map((part) => {
+  return '<div class="vh-parts">' + plakjesHtml(jr.plakjes) + Object.keys(PARTS).map((part) => {
     const list = steps.filter((s) => s.part === part);
     const clues = CLUES.filter((c) => list.some((s) => s.id === c.step));
     if (!clues.length) return '';
