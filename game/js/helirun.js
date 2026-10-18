@@ -97,7 +97,7 @@ function runPads(w) {
 const RING_GEO = new THREE.TorusGeometry(P.RING_R, 0.5, 8, 44);
 const RING_MATS = {
   next: new THREE.MeshBasicMaterial({ color: 0xffc21a, transparent: true, opacity: 0.95, fog: false }),
-  later: new THREE.MeshBasicMaterial({ color: 0xffe9a0, transparent: true, opacity: 0.35, fog: false }),
+  later: new THREE.MeshBasicMaterial({ color: 0xffe9a0, transparent: true, opacity: 0.55, fog: false }),
   done: new THREE.MeshBasicMaterial({ color: 0x5dff7a, transparent: true, opacity: 0.8, fog: false }),
   miss: new THREE.MeshBasicMaterial({ color: 0xff5a3c, transparent: true, opacity: 0.5, fog: false }),
 };
@@ -715,6 +715,9 @@ function updateRingMeshes() {
     q.state = state;
     if (q.mesh.material !== RING_MATS[state]) q.mesh.material = RING_MATS[state];
     q.mesh.visible = state === 'next' || state === 'later' || (active && i >= run.st.ring - 1);
+    // far rings grow so they stay readable from a distance (#166)
+    const s = P.ringScale(Math.hypot(q.x - run.v.x, q.y - run.v.y, q.z - run.v.z));
+    q.mesh.scale.setScalar(state === 'next' ? s : Math.min(s, 2));
   });
 }
 

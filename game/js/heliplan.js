@@ -22,7 +22,9 @@ import { PA } from './worldframe.js';
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
 
-export const RING_R = 11;
+export const RING_R = 13;
+// from afar the rings grow so they stay visible: scale = ringScale(distance)
+export const ringScale = (d) => clamp(d / 260, 1, 4);
 // Jelle's balloon stands in the Oosterpark (storyarc.js H14 radio) and drifts towards Ten Boer
 export const BALLOON_AT = { x: 1587.59, y: -495.01 };
 const BALLOON_A = PA(1593, -466, Math.atan2(-0.5, 0.86));
@@ -113,12 +115,26 @@ export function legTarget(plan, st, b, pads, pos) {
 
 // A ring is hit by flying through its hoop; it is missed once the heli is
 // past it (beyond its plane) or already close to the ring after it.
+// Through the hoop: the heli crosses the ring's plane inside the hoop (HOOP_SLACK
+// over its radius); hanging still in the middle of it counts too. Flying past the
+// side of the sphere no longer counts as a hit (#166). st.prev: last step's position.
+export const HOOP_SLACK = 1.15;
 export function passRing(leg, st, pos) {
   const r = leg.rings[st.ring];
   if (!r) return null;
   const d = Math.hypot(pos.x - r.x, pos.y - r.y, pos.z - r.z);
-  if (d <= RING_R) return 'hit';
   const along = (pos.x - r.x) * Math.cos(r.yaw) + (pos.y - r.y) * Math.sin(r.yaw);
+  const prev = st.prev;
+  st.prev = { x: pos.x, y: pos.y, z: pos.z };
+  if (d <= RING_R * 0.45) return 'hit';
+  if (prev) {
+    const pa = (prev.x - r.x) * Math.cos(r.yaw) + (prev.y - r.y) * Math.sin(r.yaw);
+    if (pa < 0 && along >= 0) {
+      const t = pa / (pa - along);
+      const cx = prev.x + (pos.x - prev.x) * t, cy = prev.y + (pos.y - prev.y) * t, cz = prev.z + (pos.z - prev.z) * t;
+      if (Math.hypot(cx - r.x, cy - r.y, cz - r.z) <= RING_R * HOOP_SLACK) return 'hit';
+    }
+  }
   const nxt = leg.rings[st.ring + 1];
   if (Math.hypot(pos.x - r.x, pos.y - r.y) < 45 && along > 6) return 'miss';
   if (nxt && Math.hypot(pos.x - nxt.x, pos.y - nxt.y) < Math.hypot(pos.x - r.x, pos.y - r.y) * 0.5 && along > 0) return 'miss';
@@ -253,6 +269,7 @@ export function nextLeg(st) {
   st.legT = 0;
   st.catchP = 0;
   st.check = null;
+  st.prev = null;
 }
 
 export const legMode = (leg) => (!leg ? null : leg.kind === 'catch' ? 'catch' : leg.kind === 'rings' ? 'rings' : 'pad');
