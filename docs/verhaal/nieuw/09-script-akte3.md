@@ -128,7 +128,7 @@ TAMMO: Dat is de wind. [NIEUW]
 JELLE: Durk, Douwe, hoe vaak moet ik het zeggen? Contract is contract. Wij komen terug. [NIEUW]
 
 ## [M14.4] De dijk: herhaling – Eemsdelta, dijkweg – auto van Lammert
-JELLE: Weer een rondje? Dat neem ik jullie niet kwalijk. [NIEUW]
+JELLE: Een rondje meer of minder. Dat neem ik jullie niet kwalijk. [NIEUW]
 
 ## [R3.1] Nachtstreek na de dijk – Stad – radio
 RIKUS (radio): Wind uit het noordwesten. Op de Eemsdijk zijn zeventien schapen gered van een deurwaarder. Ik weet niet hoe. [NIEUW]

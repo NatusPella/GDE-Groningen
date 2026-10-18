@@ -4,7 +4,7 @@
 
 ## [M17.1] Open, dicht: intro – Veenkoloniën, Veendam, Oosterdiep – sloep
 (regie: maandag 24 augustus, ochtend. Een brug, een kanaal, een fanfare in de verte. Naamkaart: WUBBO. Gameplay: met een sloep door elf bruggen varen, voor Jelles mosterdschip, op het ritme van de bruggen.)
-WUBBO: Open of dicht. Nooit allebei. Dat is mijn hele werkfilosofie. Ik ben Wubbo, brugwachter, en Oma Trijntje belde. [NIEUW]
+WUBBO: Open of dicht. Nooit allebei. Dat is mijn hele werkfilosofie. Trijntje zocht iemand die kan wachten, en ik ben brugwachter. [NIEUW]
 TESSA: Durk zei dat Jelle vandaag in Veendam de mosterd haalt. Zijn mosterdschip moet door elf van jouw bruggen, en de bal reist met hem mee. Die mosterd is plakje zeven. [NIEUW]
 TAMMO: Hoe weten we wanneer? [NIEUW]
 WUBBO: Elf bruggen. Ik open ze op het ritme van de fanfare. Mis je de maat, dan wacht je. [NIEUW]

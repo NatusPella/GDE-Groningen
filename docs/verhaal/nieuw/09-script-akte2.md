@@ -216,7 +216,7 @@ BUSCHAUFFEUR: Uitstappen bij de haven, jongens. Dan zie je het water. [NIEUW]
 
 ## [M11.1] Geleend van de Friezen: intro – Lauwersmeer, Zoutkamp – rubberboot
 (regie: donderdag 20 augustus, middag. Zoutkamp, de haven. Naamkaart: KAPITEIN KLAAS. Gameplay: met de rubberboot een skûtsje inhalen en aan boord springen; later, bij laag water, zout halen van de kwelder en onopgemerkt blijven voor de kustwacht.)
-KAPITEIN KLAAS: Trijntje belde. Ik viste dertig jaar fietsen uit de Diepenring. Nu vis ik ze uit het Reitdiep. Bijna niemand mist ze. [NIEUW]
+KAPITEIN KLAAS: Van Trijntje, hè? Ik viste dertig jaar fietsen uit de Diepenring. Nu vis ik ze uit het Reitdiep. Bijna niemand mist ze. [NIEUW]
 KAPITEIN KLAAS: Wil je weten wat de vissers hier echt zeggen, ga dan op het Leugenbankje zitten. Daar liegen ze allemaal, behalve ik. [NIEUW]
 KAPITEIN KLAAS: Het havenkantoor meldt dat Jelle een skûtsje heeft met een gouden bal in de kist. Hij vaart naar Lauwersoog, voor de pers. [NIEUW]
 TESSA: Dat klinkt als een val. [NIEUW]
