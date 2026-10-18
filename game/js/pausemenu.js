@@ -9,7 +9,7 @@ import { getSettings, setSetting, resetSettings, QUALITY_PRESETS } from './setti
 import { logoHtml } from './logo.js';
 import { PRESET_ORDER, presetLabel, describePreset, describeChanges, currentPreset, applyPreset, getBenchResult, dismissBenchBanner, GEAR_SVG } from './gfxprofile.js';
 import { mountMapView, setMapActive, setMapCloseHandler, setMapView, getDiscoveredRatio, setMapTeleport } from './mapview.js';
-import { renderCheatsPanel, cheatsClick, cheatsInput, resetCheatsPanel, cheatsFocus } from './cheatsui.js';
+import { renderCheatsPanel, cheatsClick, resetCheatsPanel, cheatsFocus } from './cheatsui.js';
 import { skipCurrent, getStoryJournal, markCluesSeen } from './story.js';
 import { saveGame, hasSave, loadLatestSave, clearSave, getSaveSummary } from './savegame.js';
 import { getClockText } from './hud_panel.js';
@@ -527,11 +527,6 @@ export function initPauseMenu(w) {
     if (e.target.dataset && 'radioSwitch' in e.target.dataset) { setRadio(e.target.checked, { announce: false }); syncControls(); return; }
     if (DESKTOP && e.target.dataset && e.target.dataset.desktop === 'fullscreen') {
       DESKTOP.setFullscreen(e.target.checked);
-      return;
-    }
-    if (e.target.dataset && e.target.dataset.cheat) {
-      cheatsInput(e.target);
-      renderCheats(`[data-cheat="${e.target.dataset.cheat}"]`);
       return;
     }
     const k = e.target.dataset && e.target.dataset.setting;
