@@ -15,7 +15,7 @@
 //    roads, buildings and water (countryedge.js setExtraBlocked), and stay
 //    away from a tile that has not streamed in yet.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { BLOCK, COUNTRY_UNIFORMS, setProvinceBlocks } from './countryfield.js';
+import { BLOCK, COUNTRY_UNIFORMS, setProvinceBlocks, setProvinceDitches } from './countryfield.js';
 import { setExtraBlocked } from './countryedge.js';
 import { tileIndexOf, tileKey } from './gdt.js';
 import { pointInPolygon } from './util.js';
@@ -169,6 +169,7 @@ export function initProvince(tiles) {
   const layer = tiles && tiles.index.layers && tiles.index.layers.provincie;
   S.layer = layer && layer.global ? layer.global : null;
   S.cover = S.layer && tiles.index ? tileCoverOf(tiles.index) : null;
+  setProvinceDitches(!!(S.layer && S.layer.osmDitches));
   if (!S.layer) { S.has = null; S.map = null; setProvinceBlocks(null); setProvinceMap(null); return { layer: S.layer, tiles: 0, blocks: 0 }; }
   // the full map's base layer (provincemap.js)
   setProvinceMap(S.layer.map || null);
