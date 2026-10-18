@@ -14,6 +14,7 @@ import { recordStat } from './achievements.js';
 import { startCall } from './phonefeed.js';
 import { facilitiesOf, countryFacilities } from './facilities.js';
 import { nearestWorldPlace } from './worldplaces.js';
+import { noteMoney } from './finance.js';
 
 // Garages: every Garage Knalpot branch (from the OSM car repair shops) and
 // every Pomp & Poets gas station has a workshop with a roller door by the
@@ -240,6 +241,7 @@ export function repairVehicle(v) {
 function pay(w, price) {
   if (!Number.isFinite(price) || price < 0) { console.warn('prijs zonder waarde', price); return false; }
   if (w.money < price) return false;
+  noteMoney('Garage');
   w.money -= price;
   recordStat(w, 'purchases');
   recordStat(w, 'spent', price);

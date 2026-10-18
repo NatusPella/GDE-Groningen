@@ -11,6 +11,7 @@ import { getStorySave, applyStorySave } from './story.js';
 import { getPostgameSave, applyPostgameSave } from './postgame.js';
 import { applyHomeOnLoad, homeSaveContext, getHomeSave } from './home.js';
 import { getFurnitureSave, applyFurnitureSave } from './furniture.js';
+import { getFinanceSave, applyFinanceSave } from './finance.js';
 import { abortHeliRun } from './helirun.js';
 import { quitPadel } from './padel.js';
 import { stopVillageMini } from './dorpsuitjes.js';
@@ -206,6 +207,7 @@ function serialize(w) {
     bijbaan: getSideJobSave(),
     postgame: getPostgameSave(),
     meubels: getFurnitureSave(),
+    financien: getFinanceSave(),
     thuis: getHomeSave(),
     doel: getGoalSave(),
     // the radio, 'on' or 'off'; a save without it starts with the radio on
@@ -347,6 +349,7 @@ export function applySave(w, d) {
     applySideJobSave(w, d.bijbaan);
     applyPostgameSave(d.postgame);
     applyFurnitureSave(d.meubels);
+    applyFinanceSave(d.financien, w.money);
     applyGoalSave(d.doel);
     applyRadioSave(d.radio);
     applyCheatSave(d.streken, d);
