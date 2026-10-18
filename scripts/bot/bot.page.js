@@ -21,7 +21,7 @@ const MAX_WALL = (CFG.maxWallS || 1800) * 1000;
 const wall0 = performance.now();
 const detector = new L.StuckDetector({ windowS: CFG.stuckS || 30 });
 const wedge = new L.WedgeDetector();
-const mem = { boardTries: 0 };
+const mem = { boardTries: 0, pressTries: 0 };
 const ladder = {}, fails = {}, scenes = {};
 let lastCine = false;
 let wedgeOut = false, wedgeDir = 1;
@@ -45,14 +45,14 @@ function plan(s, mode, tgt) {
 }
 
 // aim for the target over the planned route; returns the distance left
-function steerTowards(s, mode, tgt, stopAt) {
+function steerTowards(s, mode, tgt, stopAt, top = 24) {
   const key = mode + ':' + Math.round(tgt.x / 5) + ',' + Math.round(tgt.y / 5);
   if (!follower || key !== followKey || s.t - planAt > 12) { followKey = key; planAt = s.t; plan(s, mode, tgt); }
   const me = { x: s.player.x, y: s.player.y };
   const direct = L.distance(me, tgt);
   const aim = direct < 25 ? tgt : follower.next(me) || tgt;
   if (mode === 'drive' && s.player.vehicle) {
-    const c = L.carControls({ x: me.x, y: me.y, angle: s.player.vehicle.angle, speed: s.player.vehicle.speed }, aim, { stopAt, top: 24 });
+    const c = L.carControls({ x: me.x, y: me.y, angle: s.player.vehicle.angle, speed: s.player.vehicle.speed }, aim, { stopAt, top });
     B.stick(c.steer, c.throttle > 0 ? -1 : c.throttle < 0 ? 1 : 0);
     if (!c.reverse && wedge.update(s.t, s.player.vehicle.speed, c.throttle)) wedge.reset(), wedgeOut = true;
     if (B.input.isDown('shift')) B.up('shift');
@@ -100,7 +100,8 @@ async function rescue(s, stepKey, info) {
   let ok = false;
   if (rung === 'teleport') ok = B.cheat.teleport();
   else if (rung === 'objective') ok = m ? B.cheat.objective() : B.cheat.complete();
-  else ok = m ? B.cheat.win() : B.cheat.complete() || B.cheat.skip();
+  else if (rung === 'win') ok = m ? B.cheat.win() : B.cheat.complete() || B.cheat.skip();
+  else ok = B.cheat.skip();
   let state = null;
   try { state = window.__story.mission(); } catch (e) { /* none */ }
   B.log('cheat', { rung, ok: !!ok, step: stepKey, why: `${Math.round(info.idleFor)} s zonder voortgang`, mission: state && { phase: state.phase, stage: state.stage }, blocking: Object.keys(s.blocking).filter((k) => s.blocking[k] && k !== 'dialog') });
@@ -114,7 +115,7 @@ function track(s) {
     if (lastStep) B.log('step', { event: 'end', id: lastStep, outcome: 'klaar' });
     B.log('step', { event: 'begin', id, label: s.story.title || '', part: s.story.part });
     lastStep = id; lastPhase = '';
-    mem.boardTries = 0;
+    mem.boardTries = 0; mem.pressTries = 0;
     shot(`${id}-begin`);
   }
   const ph = s.mission.active ? 'active' : 'idle';
@@ -169,7 +170,7 @@ while (true) {
   const gd = s.target ? s.target.distance : null;
   const st = detector.update(s.t, { x: s.player.x, y: s.player.y, goalDist: gd, key: stepKey });
   if (st.stuck) { await rescue(s, stepKey, st); continue; }
-  if (act.type === 'press') { B.stick(0, 0); await B.press(act.key); continue; }
+  if (act.type === 'press') { B.stick(0, 0); if (act.interact) { mem.pressTries++; B.log('handeling', { key: act.key, prompt: s.hud.prompt }); } await B.press(act.key); await sleep(act.interact ? 900 : 0); continue; }
   if (act.type === 'enter') {
     const v = act.vehicle;
     const d = steerTowards(s, 'walk', v, false);
@@ -178,7 +179,7 @@ while (true) {
   }
   if (act.type === 'goto') {
     if (!s.target) continue;
-    steerTowards(s, act.mode, s.target, s.mission.phase !== 'active' && s.target.source === 'missiestart');
+    steerTowards(s, act.mode, s.target, !act.stunt && s.mission.phase !== 'active' && s.target.source === 'missiestart', act.top || 24);
     if (wedgeOut) {
       wedgeOut = false;
       B.log('klem', { x: s.player.x, y: s.player.y });

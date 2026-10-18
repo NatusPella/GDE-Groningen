@@ -72,6 +72,9 @@ import { initTrafficLights, updateTrafficLights, trafficSignalsNear, trafficLigh
 import { initRailway, updateRailway, setRailExtraWorld, getTrains, getRoutes, routePoint } from './railway.js';
 import { updateZeilvaren } from './zeilvaren.js';
 import { updateEvenementen } from './evenementenlive.js';
+import { routePenalty } from './evenementen.js';
+import { setRouteClosures } from './routing.js';
+let routeSigDone = '';
 import { updateStationLife } from './stationlife.js';
 import { createBoard as createStationBoard } from './minigamekit.js';
 import { applyCityRoutes, loadLandData } from './corridorrail.js';
@@ -148,7 +151,7 @@ import { makeDip, triggerDip, dipScale } from './gamefeel.js';
 import { effectsFor } from './a11ylogic.js';
 import { reducedMotion } from './motion.js';
 import { initCheats, updateCheats } from './cheats.js';
-import { updateRegioLeven } from './regiolevenrt.js';
+import { updateRegioLeven, setNieuwsBronnen } from './regiolevenrt.js';
 import { syncLedger, getLedger } from './finance.js';
 
 // breakables.js calls these every stream interval (it does not import them)
@@ -466,7 +469,8 @@ async function boot() {
   // the title screen already sounds like the city (quieter, no music)
   setMenuAudio(true);
   initAudio(world);
-  setSfxLinks({ bridges: getMovableBridges, trains: getTrains });
+  setNieuwsBronnen({ bridges: getMovableBridges });
+  setSfxLinks({ bridges: getMovableBridges, trains: getTrains, vehicles: () => world.vehicles });
   await waitForStart(world);
   await countryPlaced;
   document.body.classList.add('game-started');
@@ -679,6 +683,12 @@ async function boot() {
     tickBurningVehicles(world, dt);
     updateRailway(dt, world);
     updateEvenementen(dt, world, calendarToday(world));
+    // de routeplanner mijdt dichte afsluitingen van evenementen (#203)
+    if (world.eventRouteSig !== routeSigDone) {
+      routeSigDone = world.eventRouteSig;
+      const n = calendarToday(world), hour = ((world.clock % 24) + 24) % 24;
+      setRouteClosures(routeSigDone ? (x, y) => routePenalty(x, y, n, hour) : null, routeSigDone || '');
+    }
     updateZeilvaren(dt, world, calendarToday(world));
     updateStationLife(dt, world, { routes: getRoutes(), point: routePoint, day: calendarToday(world), createBoard: createStationBoard, driving: getTrains().some((t) => t.state === 'player') });
     updateMovableBridges(dt, world);

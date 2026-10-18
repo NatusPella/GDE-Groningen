@@ -223,13 +223,19 @@ function tileClearance(map, x, y, maxR, st) {
     const t = Math.max(0, Math.min(1, ((x - idx.ax[s.i]) * ex + (y - idx.ay[s.i]) * ey) / l2));
     const qx = idx.ax[s.i] + ex * t, qy = idx.ay[s.i] + ey * t;
     const dx = qx - x, dy = qy - y, k = Math.hypot(dx, dy) || 1;
-    if (other && other.inWater(qx + (dx / k) * 0.7, qy + (dy / k) * 0.7)) return;
+    const bx = qx + (dx / k) * 0.7, by = qy + (dy / k) * 0.7;
+    if ((other && other.inWater(bx, by)) || (seaFn && seaFn(bx, by, 0.5) !== null)) return;
     d = Math.min(d, s.d);
   };
   if (sIn) near(st, ti);
   if (ti) near(ti, st);
   return d;
 }
+
+// The open sea (seawater.js createSeaClearance, set by regions.js): (x, y, maxR) -> free
+// sea round the point, null on land. The sea carries on from a water row's edge.
+let seaFn = null;
+export function setSeaClearance(fn) { seaFn = fn || null; }
 
 // --- clearance from the shore ----------------------------------------------
 // Boats and swimmers keep off the quay walls, banks and moored houseboats: the
@@ -320,6 +326,8 @@ export function insideWaterObstacle(map, x, y) {
 export function waterClearance(map, x, y, maxR = 4) {
   const idx = getWaterIndex(map);
   let d = tileClearance(map, x, y, maxR, idx);
+  // no water row: the open sea, which OSM has no polygon for (seawater.js), else land
+  if (d === null && seaFn) d = seaFn(x, y, maxR);
   if (d === null) return -1;
   const list = obstacleGrid(map).query(x, y, x, y);
   if (list) {
