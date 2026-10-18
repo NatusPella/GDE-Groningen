@@ -1244,13 +1244,14 @@ export function stopStoryVoice() {
   releaseEl(v.el);
 }
 
-// radio: Rikus on Nachtstreek (recaps, the studio shots): a gentle
-// broadcast band (no deep lows, rounded highs, a little presence).
-export function playStoryVoice(src, { radio = false } = {}) {
-  stopStoryVoice();
-  if (!ctx || muted) return;
+// The shared body of the one-at-a-time voices (story, banter, contact): own
+// handle (get/set/stop), straight into the voice bus (radio: the broadcast
+// band), channel token from speech.js, ducking once the length is known.
+// strict: no token (the channel is taken) means no clip.
+function playExclusive(src, { cls, owner, radio = false, duck, strict, get, set, stop }) {
   const v = { el: newVoiceEl(src), node: null, tok: null };
-  v.tok = speech.begin('story', 3, { owner: 'story', stop: () => { if (storyVoice === v) stopStoryVoice(); } });
+  v.tok = speech.begin(cls, 3, { owner, stop: () => { if (get() === v) stop(); } });
+  if (strict && !v.tok) { releaseEl(v.el); return null; }
   try {
     v.node = ctx.createMediaElementSource(v.el);
     if (radio) {
@@ -1262,16 +1263,25 @@ export function playStoryVoice(src, { radio = false } = {}) {
   } catch (e) {
     // ignore - plays without the Web Audio graph
   }
-  storyVoice = v;
-  const done = () => { if (storyVoice === v) stopStoryVoice(); };
+  set(v);
+  const done = () => { if (get() === v) stop(); };
   v.el.addEventListener('ended', done, { once: true });
   v.el.addEventListener('error', done, { once: true });
   v.el.addEventListener('loadedmetadata', () => {
     const d = Number.isFinite(v.el.duration) ? v.el.duration : 3;
     speech.extend(v.tok, d);
-    duckAmbience(0.5, d + 0.4);
+    duckAmbience(duck, d + 0.4);
   }, { once: true });
   v.el.play().catch(done);
+  return v;
+}
+
+// radio: Rikus on Nachtstreek (recaps, the studio shots): a gentle
+// broadcast band (no deep lows, rounded highs, a little presence).
+export function playStoryVoice(src, { radio = false } = {}) {
+  stopStoryVoice();
+  if (!ctx || muted) return;
+  playExclusive(src, { cls: 'story', owner: 'story', radio, duck: 0.5, strict: false, get: () => storyVoice, set: (x) => { storyVoice = x; }, stop: stopStoryVoice });
 }
 
 // Speech-bubble lines (linevoice.js): from the speaker's spot, lowest but
@@ -1326,26 +1336,7 @@ export function voiceBusy() {
 export function playBanterVoice(src) {
   stopBanterVoice();
   if (!ctx || muted || storyScene) return false;
-  const v = { el: newVoiceEl(src), node: null, tok: null };
-  v.tok = speech.begin('banter', 3, { owner: 'banter', stop: () => { if (banterVoice === v) stopBanterVoice(); } });
-  if (!v.tok) { releaseEl(v.el); return false; }
-  try {
-    v.node = ctx.createMediaElementSource(v.el);
-    v.node.connect(voiceBus);
-  } catch (e) {
-    // ignore - plays without the Web Audio graph
-  }
-  banterVoice = v;
-  const done = () => { if (banterVoice === v) stopBanterVoice(); };
-  v.el.addEventListener('ended', done, { once: true });
-  v.el.addEventListener('error', done, { once: true });
-  v.el.addEventListener('loadedmetadata', () => {
-    const d = Number.isFinite(v.el.duration) ? v.el.duration : 3;
-    speech.extend(v.tok, d);
-    duckAmbience(0.3, d + 0.4);
-  }, { once: true });
-  v.el.play().catch(done);
-  return true;
+  return !!playExclusive(src, { cls: 'banter', owner: 'banter', duck: 0.3, strict: true, get: () => banterVoice, set: (x) => { banterVoice = x; }, stop: stopBanterVoice });
 }
 
 // Story contacts (storycontact.js: Jelle's calls, voicemails, livestreams):
@@ -1374,31 +1365,7 @@ export function pauseContactVoice(paused) {
 export function playContactVoice(src, { radio = false } = {}) {
   stopContactVoice();
   if (!ctx || muted) return false;
-  const v = { el: newVoiceEl(src), node: null, tok: null };
-  v.tok = speech.begin('call', 3, { owner: 'contact', stop: () => { if (contactVoice === v) stopContactVoice(); } });
-  if (!v.tok) { releaseEl(v.el); return false; }
-  try {
-    v.node = ctx.createMediaElementSource(v.el);
-    if (radio) {
-      const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 240;
-      const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 4600;
-      const pk = ctx.createBiquadFilter(); pk.type = 'peaking'; pk.frequency.value = 1900; pk.Q.value = 0.8; pk.gain.value = 3;
-      v.node.connect(hp); hp.connect(pk); pk.connect(lp); lp.connect(voiceBus);
-    } else v.node.connect(voiceBus);
-  } catch (e) {
-    // ignore - plays without the Web Audio graph
-  }
-  contactVoice = v;
-  const done = () => { if (contactVoice === v) stopContactVoice(); };
-  v.el.addEventListener('ended', done, { once: true });
-  v.el.addEventListener('error', done, { once: true });
-  v.el.addEventListener('loadedmetadata', () => {
-    const d = Number.isFinite(v.el.duration) ? v.el.duration : 3;
-    speech.extend(v.tok, d);
-    duckAmbience(0.4, d + 0.4);
-  }, { once: true });
-  v.el.play().catch(done);
-  return true;
+  return !!playExclusive(src, { cls: 'call', owner: 'contact', radio, duck: 0.4, strict: true, get: () => contactVoice, set: (x) => { contactVoice = x; }, stop: stopContactVoice });
 }
 
 // true when the contact got the channel (false: a story scene or a call has it)
