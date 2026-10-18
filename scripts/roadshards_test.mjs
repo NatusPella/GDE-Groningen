@@ -1,0 +1,20 @@
+// Glasscherven en lekke banden (#41): node scripts/roadshards_test.mjs
+import { createShards, dropShards, shardPuncture, SHARD_LIFE } from '../game/js/roadshards.js';
+let bad = 0;
+const check = (n, c) => { if (!c) { bad++; console.log('FAIL', n); } };
+const st = createShards();
+dropShards(st, 10, 10, 0);
+const car = (x, y, speed) => ({ x, y, speed });
+check('ver weg is veilig', !shardPuncture(st, car(50, 50, 10), 1, () => 0));
+check('stapvoets is veilig', !shardPuncture(st, car(10, 10, 1), 1, () => 0));
+check('geluk: geen lek', !shardPuncture(st, car(10, 10, 10), 1, () => 0.99));
+check('een veld raakt maar één keer', !shardPuncture(st, car(10, 10, 10), 2, () => 0));
+dropShards(st, 20, 20, 0);
+check('pech: lek', shardPuncture(st, car(20.5, 20, 10), 3, () => 0));
+check('al lek: niet nog eens', !shardPuncture(st, { ...car(20, 20, 10), flat: true }, 3, () => 0));
+dropShards(st, 30, 30, 0);
+check('veegwagen ruimt op', !shardPuncture(st, car(30, 30, 10), SHARD_LIFE + 1, () => 0) && st.fields.length === 0);
+for (let i = 0; i < 100; i++) dropShards(st, i, 0, 0);
+check('begrensd aantal', st.fields.length <= 24);
+if (bad) process.exit(1);
+console.log('roadshards: all passed');

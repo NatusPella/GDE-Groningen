@@ -12,3 +12,10 @@ export function canvasTex(w, h, draw, { anisotropy = 0, repeat = null } = {}) {
   if (repeat) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(repeat[0], repeat[1]); }
   return t;
 }
+
+// Sets g.font so that `text` fits maxW: starts at `size` px and steps down by 2
+// until it fits or reaches `min`. Draw the text afterwards.
+export function fitText(g, text, maxW, size, weight = 'bold', font = 'sans-serif', min = 10) {
+  let s = size;
+  do { g.font = `${weight} ${s}px ${font}`; s -= 2; } while (g.measureText(text).width > maxW && s > min);
+}

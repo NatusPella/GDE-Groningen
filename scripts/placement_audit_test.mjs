@@ -105,6 +105,12 @@ const bld = (pts, o = {}) => ({ pts, type: 'house', ...o });
   assert.ok(PW.realBlockedAt(map, isTile, 501, 510, 2), 'on the water');
   assert.ok(PW.realBlockedAt(map, isTile, 499.5, 510, 2), '0.5 m off the bank counts as the water');
   assert.ok(!PW.realBlockedAt(map, isTile, 497.5, 510, 2), '2.5 m off the bank is land');
+  // an annotated row (kind, nav) lives in the water grid, not the flat one: it blocks as well (issue #185)
+  const lakeRow = { pts: rect(600, 600, 200, 200), bounds: [600, 600, 800, 800], kind: 'meer', nav: 3 };
+  const [li, lj] = G.tileIndexOf(700, 700);
+  const map2 = { resident: new Set([`${li},${lj}`]), buildingsNear: () => [], roadsNear: () => [], waterNear: () => [lakeRow], flatWaterNear: () => [] };
+  assert.ok(PW.realBlockedAt(map2, isTile, 700, 700, 1), 'in a lake of the water grid');
+  assert.ok(!PW.realBlockedAt(map2, isTile, 900, 700, 1), 'beside it');
 }
 
 // --- landing stages
@@ -145,5 +151,18 @@ const bld = (pts, o = {}) => ({ pts, type: 'house', ...o });
     assert.equal(rep.placed.over.length, 0, `no placed fence or hedge over a way or water (${JSON.stringify(rep.placed.over.slice(0, 3))})`);
     assert.ok(rep.buildingsInWater.length <= A.THRESHOLDS.city, `buildings in water within the baseline (${rep.buildingsInWater.length})`);
   } else console.log('SKIP the city map is not there');
+}
+// --- green outlines in open water and the countryside's props, on the built province tiles
+{
+  const g = { pts: rect(10, 10, 20, 20), kind: 'grass' };
+  const bank = { pts: rect(0, 0, 100, 100) };
+  const rep = A.auditPlacement({ water: [bank], green: [g, { pts: rect(150, 10, 20, 20), kind: 'grass' }, { pts: rect(90, 10, 30, 20), kind: 'park' }] });
+  assert.equal(rep.greenInWater.length, 1, 'only the outline wholly in the lake counts');
+  if (fs.existsSync(new URL('../game/world/index-provincie.json', import.meta.url))) {
+    const PA = await import('./world/prop_water_audit.mjs');
+    const out = fs.readFileSync(new URL('../game/world/index-provincie.json', import.meta.url), 'utf8');
+    const r = PA.auditSpot(new URL('../game/world', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1'), JSON.parse(out), PA.SPOTS[0]);
+    assert.ok(r.inWater <= PA.MAX_IN_WATER, `props in the Reitdiep water at Electra: ${JSON.stringify(r.counts)}`);
+  } else console.log('SKIP no province tiles for the prop audit');
 }
 console.log('placement_audit_test ok');

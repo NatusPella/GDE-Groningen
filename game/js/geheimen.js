@@ -489,7 +489,7 @@ function prompt(w) {
   const id = nearUse(w);
   if (!id) return null;
   if (id === 'kamer') return { id: 'geheim-kamer', x: DOOR.x, y: DOOR.y, h: 1.6, key: 'E', label: 'Deurtje', sub: found('kamer') ? 'Het kamertje' : 'Zit er nog een deur in de Martinitoren?', ring: true };
-  if (id === 'automaat') return { id: 'geheim-automaat', x: VENDING.x, y: VENDING.y, h: 2.1, key: 'E', label: 'Eierbal uit de muur', sub: w.money >= 2 ? '€2 · +35 gezondheid' : 'Te weinig geld (€2)', ring: true, dim: w.money < 2 };
+  if (id === 'automaat') return { id: 'geheim-automaat', x: VENDING.x, y: VENDING.y, h: 2.1, key: 'E', label: 'Eierbal pakken', sub: w.money >= 2 ? '€2 · +35 gezondheid' : 'Te weinig geld (€2)', ring: true, dim: w.money < 2 };
   if (id === 'bankje') return { id: 'geheim-bankje', x: BENCH.x, y: BENCH.y, h: 1.3, key: 'E', label: 'Plaatje lezen', sub: 'Er zit een koperen plaatje op dit bankje', ring: true };
   if (id === 'jelle') return { id: 'geheim-jelle', x: JELLE_AT.x, y: JELLE_AT.y, h: 1.2, key: 'E', label: 'Bekijken', sub: 'Een tuintje met een vlaggetje', ring: true };
   if (id === 'eendjes') {
