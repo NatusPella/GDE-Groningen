@@ -148,7 +148,7 @@ import { makeDip, triggerDip, dipScale } from './gamefeel.js';
 import { effectsFor } from './a11ylogic.js';
 import { reducedMotion } from './motion.js';
 import { initCheats, updateCheats } from './cheats.js';
-import { updateRegioLeven } from './regiolevenrt.js';
+import { updateRegioLeven, setNieuwsBronnen } from './regiolevenrt.js';
 import { syncLedger, getLedger } from './finance.js';
 
 // breakables.js calls these every stream interval (it does not import them)
@@ -466,6 +466,7 @@ async function boot() {
   // the title screen already sounds like the city (quieter, no music)
   setMenuAudio(true);
   initAudio(world);
+  setNieuwsBronnen({ bridges: getMovableBridges });
   setSfxLinks({ bridges: getMovableBridges, trains: getTrains, vehicles: () => world.vehicles });
   await waitForStart(world);
   await countryPlaced;
