@@ -79,6 +79,57 @@ gradient, no roman numeral, no small word stacked over a big word in the
 same style (see docs/LICENTIES.md §8.2). Big Shoulders Display is for the
 logo only; all other UI stays Bebas Neue.
 
+## Beeldstijl (laadschermen, kanaal- en winkelbeelden)
+
+Alle losse beelden buiten het spel (laad- en startscherm, YouTube-kanaal,
+Steam) zien eruit als het spel zelf. Eén huisstijl; wie een eigen
+illustratiestijl bedenkt, breekt hem (zie #182: een eigen SVG-scène paste niet).
+
+**Basis: echte spelrenders.** Achtergronden zijn schermafbeeldingen van het
+spel, 16:9, in `game/img/laad/` (de goedgekeurde set, zie `game/js/loadscene.js`):
+vismarkt (dag, de markt), luchtfoto en duif (Grunn van boven), rondvaart
+(gracht bij zonsondergang), kermis (nacht, reuzenrad), ringrace (ringweg),
+achtervolging (straat bij nacht met politie). Een nieuwe achtergrond is een
+render van het spel, geen tekening, en komt in die set.
+
+**Vormtaal.** Low-poly, vlakke facetten, geen omlijning. Gebouwen zijn blokken
+met puntdaken en trapgevels; bomen zijn gefacetteerde bollen; mensen en
+voertuigen zijn kantig. De Martinitoren is het herkenningspunt. Geen ronde
+glanzende iconen, geen cartoon-contouren, geen fotorealisme.
+
+**Palet in beeld** (bij benadering van de renders afgelezen). Baksteenrood `#a8442c` tot `#c9876a`, donkere daken
+`#2b2a38`, crème kozijnen en stoepen `#f0ede4`, boomgroen `#3f8f3a`,
+grachtwater groenblauw `#2c7790`. Lucht: bleekblauw overdag, oranje bij
+zonsondergang (`#e8975a`), nachtblauw `#0d1b2f` met sterren. Chrome eroverheen
+blijft het groen en donkergroen van hierboven (`#1e9e56`, `#3fc97a`, `#0c140e`).
+
+**Belichting.** Zachte zon, mist in de verte, warme lantaarns en gele
+raamlichten bij nacht, lange schaduwen bij zonsondergang. Altijd zomer: geen
+sneeuw, geen kaal winterlicht.
+
+**Beeld en tekst.** Over een render ligt een donkergroene sluier
+(`linear-gradient` van `rgba(12,20,14,.92)` links naar `rgba(12,20,14,.1)`
+rechts), zodat tekst leesbaar blijft; zie `.ls-shade` in loadscreen.css.
+Lettertypen: het logo in Big Shoulders Display, rest in Bebas Neue; ondertitel
+cursief in Arial Narrow. Alleen Nederlands.
+
+**Logo-gebruik.** Het echte logo is de HTML-lockup (`logoHtml()`, `.gde-logo`),
+nooit nagetekend of in een andere letter. Op beelden zonder HTML (YouTube-
+avatar, banner) komt het uit de echte opmaak gerenderd
+(`scripts/youtube_images.mjs`). Niet doen: een eigen mascotte of toren-icoon
+als logo, een gele zon-cirkel, GDE in Bebas Neue, de plaatnaam zonder bord,
+een slagzin die niet in het spel staat, echte merken.
+
+**Per missiesoort een achtergrond** (`MISSION_PICTURE` in loadscene.js):
+verhaal en winkel vismarkt, rondvaart rondvaart, race ringrace, achtervolging
+achtervolging, kermis kermis, duif duif, overzicht luchtfoto.
+
+**Kanaalbeelden:** `docs/youtube/kanaalbeelden/avatar.svg` en `banner.svg`
+omlijsten de renders in `docs/youtube/beelden/` (profielfoto: GDE op de
+donkergroene radiale achtergrond; banner: luchtbeeld van Grunn met logo,
+ondertitel en een label in de veilige zone). Exporteren:
+`node scripts/export_kanaalbeelden.mjs --out=<map buiten de repo>`.
+
 ## Chrome (the crime-poster look)
 
 - Dark backgrounds are a **radial gradient**, not flat: center `#17301f`
