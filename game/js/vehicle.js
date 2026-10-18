@@ -2446,7 +2446,7 @@ export const vehicleContacts = {
   list: Array.from({ length: CONTACT_CAP }, () => ({ a: null, b: null, x: 0, y: 0, nx: 0, ny: 0, impact: 0, slide: 0 })),
 };
 
-function recordContact(a, b, x, y, nx, ny, impact, slide) {
+export function recordContact(a, b, x, y, nx, ny, impact, slide) {
   const c = vehicleContacts.list[vehicleContacts.head % CONTACT_CAP];
   vehicleContacts.head++;
   c.a = a; c.b = b; c.x = x; c.y = y; c.nx = nx; c.ny = ny; c.impact = impact; c.slide = slide;

@@ -32,7 +32,7 @@ import { Player } from './player.js';
 import { World } from './world.js';
 import { initCompanion, updateCompanion } from './companion.js';
 import { tickRowingCoaches } from './roeicoach.js';
-import { updateTrafficAI, resolveVehicleBuildingCollision, resolveVehicleVehicleCollisions, manageTrafficPopulation, manageBikePopulation, manageBusPopulation, manageScooterPopulation, manageMotorPopulation, manageBoatPopulation, updateBoatAI, checkVehicleWater, spawnHeroCarNear, tickBurningVehicles, setGroundMap } from './vehicle.js';
+import { updateTrafficAI, resolveVehicleBuildingCollision, resolveVehicleVehicleCollisions, manageTrafficPopulation, manageBikePopulation, manageBusPopulation, manageScooterPopulation, manageMotorPopulation, manageBoatPopulation, updateBoatAI, recordContact, checkVehicleWater, spawnHeroCarNear, tickBurningVehicles, setGroundMap } from './vehicle.js';
 import { spawnPedestriansNear, updatePedestrians, CITY_CENTRE } from './pedestrians.js';
 import { updateCombat, updateBullets } from './combat.js';
 import { updatePolice } from './police.js';
@@ -662,7 +662,8 @@ async function boot() {
     updateRailway(dt, world);
     updateStationLife(dt, world, { routes: getRoutes(), point: routePoint, day: calendarToday(world), createBoard: createStationBoard, driving: getTrains().some((t) => t.state === 'player') });
     updateMovableBridges(dt, world);
-    updateBridgeHits(dt, world);
+    // a ship against a bridge deck: the crash sound of a car contact, by how hard the deck was hit (audio.js updateContactAudio)
+    for (const h of updateBridgeHits(dt, world)) recordContact(h.boat, null, h.boat.x, h.boat.y, 0, 0, 4 + h.severity * 4, 0);
     if (FLAGS.brugbotsing) {
       bridgeDemoT += dt;
       if (bridgeDemoT > 6 && !bridgeDemoDone) bridgeDemoDone = !!startBridgeCrashDemo(world);
