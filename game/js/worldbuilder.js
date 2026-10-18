@@ -17,15 +17,6 @@ import { hash2 } from './greenery.js';
 export const WB_VERSION = 1;
 export const LEVEL_M = 3.1;
 
-// The world builder is the default (its audits: scripts/worldbuilder_test.mjs);
-// ?wb=0 (or window.__wb = false) runs the old per-zone code where it still
-// exists, for an A/B.
-export function worldBuilderOn() {
-  if (typeof window !== 'undefined' && typeof window.__wb === 'boolean') return window.__wb;
-  if (typeof location !== 'undefined' && /[?&]wb=0\b/.test(location.search || '')) return false;
-  return true;
-}
-
 // ------------------------------------------------------------------ roads
 
 // highway -> class defaults (the same table process_osm.py builds the city with)

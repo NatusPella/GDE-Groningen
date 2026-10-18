@@ -3,6 +3,7 @@ import { defaultArcId } from './storyflag.js';
 import { migrateSettings, SETTINGS_VERSION } from './savemigrate.js';
 import { VIEW_DISTANCES } from './viewdist.js';
 import { KEYS } from './storagekeys.js';
+import { FLAGS } from './devflags.js';
 
 // Player settings, persisted per browser. Modules read getSettings() and
 // subscribe with onSettingsChange() to apply changes live.
@@ -121,9 +122,8 @@ function load() {
 // ?preset=quality:laag,drawDistance:kort (desktop --preset=...): settings for
 // this run only, for perf runs on a throwaway profile
 function urlOverrides(out) {
-  const m = typeof location !== 'undefined' && /[?&]preset=([^&]+)/.exec(location.search);
-  if (!m) return out;
-  for (const pair of decodeURIComponent(m[1]).split(',')) {
+  if (!FLAGS.preset) return out;
+  for (const pair of FLAGS.preset.split(',')) {
     const [k, v] = pair.split(':');
     if (!(k in DEFAULTS) || v === undefined) continue;
     const t = typeof DEFAULTS[k];
