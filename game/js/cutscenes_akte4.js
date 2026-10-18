@@ -15,7 +15,7 @@ S['M17.intro'] = {
   open: [{ actor: 'tessa', face: 'actor:wubbo' }, { actor: 'tammo', face: 'actor:wubbo' }],
   beats: [
     { on: 0, dt: 0.4, actor: 'wubbo', walk: [[2, 0.4]], speed: 0.8 },
-    { on: 'Jelle heeft een mosterdschip', actor: 'tessa', anim: 'point' },
+    { on: 'Durk zei dat Jelle', actor: 'tessa', anim: 'point' },
     { on: 'Hoe weten we wanneer', actor: 'tammo', anim: 'shrug' },
     { on: 'Elf bruggen', actor: 'wubbo', anim: 'point' },
     { on: 'De brug draait op tijd', actor: 'wubbo', anim: 'hips' },
@@ -172,7 +172,7 @@ S['M22.intro'] = {
     { on: 0, dt: 0.4, actor: 'henk', walk: [[2.2, -1.0]], speed: 0.8 },
     { on: 'Tinus, trekkertrekker', actor: 'tinus', anim: 'wave' },
     { on: 'Henk, Garage Knalpot', actor: 'henk', anim: 'point' },
-    { on: 'We maken van de Escapade', actor: 'tessa', anim: 'point' },
+    { on: 'De bal is weer weg', actor: 'tessa', anim: 'point' },
     { on: 'De Escapade is van mij', actor: 'tammo', anim: 'hips' },
     { on: 'Hij is van ons, Tammo', actor: 'tessa', face: 'actor:tammo' },
     { on: 'Jullie praten niet', actor: 'henk', anim: 'shake' },
@@ -299,11 +299,12 @@ S['M26.intro'] = {
     { on: 'Moi, Grunn', actor: 'rikus', anim: 'wave' },
     { on: 'Grunn! Geef je over', actor: 'berend', anim: 'point' },
     { on: 'Nee!', actor: 'kind', anim: 'cheer' },
+    { on: 'Vandaag is het Ontzet', actor: 'tessa', anim: 'point' },
     { on: 'Tammo bakt', actor: 'tessa', anim: 'point' },
     { on: 'Ik bak nooit onder druk', actor: 'tammo', anim: 'shake' },
     { on: 'Je doet alles onder druk', actor: 'tessa', anim: 'shrug' },
   ],
-  shots: [],
+  shots: [{ on: 'Vandaag is het Ontzet', dt: 4, shot: 'follow', target: 'tessa', dist: 3.2, side: 0.8, h: 1.55, fov: 42 }],
   wide: WIDE([-5.5, 4.5, 3.4], [-3.5, 3.2, 2.5], 'mid:berend,tessa@1'),
 };
 S['M26.outro'] = {
