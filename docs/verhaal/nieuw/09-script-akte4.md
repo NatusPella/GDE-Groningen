@@ -59,7 +59,7 @@ ACCOUNTMANAGER: Ik maak een offerte. Dat duurt een uur. Ik haal koffie. [NIEUW]
 TESSA: Neem de tijd. [NIEUW]
 ACCOUNTMANAGER: De serverkamer is niet voor klanten. De koffieautomaat staat in de andere gang. [NIEUW]
 TAMMO: Dat ging makkelijk. [NIEUW]
-TESSA: Zeg dat niet hardop. [NIEUW]
+TESSA: Wacht tot we binnen zijn. [NIEUW]
 
 ## [M18.6] Wie draaide de camera's uit?: de accountmanager twijfelt – Veenkoloniën, Veendam, Wiebelwerk – te voet
 (regie: afloop bij één fout antwoord. De accountmanager kijkt van zijn tablet naar hen en blijft staan.)
@@ -67,16 +67,14 @@ ACCOUNTMANAGER: Interessant. Bijna alle antwoorden klopten. Eén niet. [NIEUW]
 TESSA: Wij zijn nieuw. [NIEUW]
 ACCOUNTMANAGER: Iedereen is nieuw bij een intake. Ik loop even mee naar de koffieautomaat. In de gang. [NIEUW]
 TAMMO: Die staat bij de serverdeur. [NIEUW]
-ACCOUNTMANAGER: Dan staat u er mooi bij. [NIEUW]
+ACCOUNTMANAGER: Dan is dat uw route. [NIEUW]
 
 ## [M18.7] Wie draaide de camera's uit?: de beveiliging loopt mee – Veenkoloniën, Veendam, Wiebelwerk – te voet
 (regie: afloop bij twee foute antwoorden. De accountmanager pakt zijn telefoon. Achter hem komt een beveiliger in de deuropening staan, met zijn armen over elkaar.)
 ACCOUNTMANAGER: Twee antwoorden die geen klant geeft. Ik nodig u uit voor een rondleiding. Met de beveiliging. [NIEUW]
 TAMMO: Is dat gratis? [NIEUW]
 ACCOUNTMANAGER: Bij Wiebelwerk is alles gratis, behalve de website. [NIEUW]
-TESSA: Loop maar voor, wij volgen. [NIEUW]
-TAMMO: Waarom zei je dat? [NIEUW]
-TESSA: Zo houden we ze in beeld. [NIEUW]
+TESSA: Loop maar voor. Wij volgen. [NIEUW]
 
 ## [M18.3] Wie draaide de camera's uit?: de servers – Veenkoloniën, Veendam, Wiebelwerk – te voet
 TAMMO: De update. Altijd 00:00, drie minuten. [NIEUW]
