@@ -11,6 +11,7 @@ import { wijkProfileAt } from './trafficfleet.js';
 import { slotChance } from './streetlifedata.js';
 import { crateGeometry, cartGeometry } from './streetlife3d.js';
 import { decorateScenePed } from './streetlife.js';
+import { dayState } from './daynight.js';
 
 // Ambient city life: benches, bins, bike racks, café terraces, market stalls,
 // canal anglers. Streamed per CELL around the player; each cell merges all its
@@ -736,9 +737,7 @@ function removeSlotPed(slot) {
   if (i >= 0) world.pedestrians.splice(i, 1);
 }
 
-function isNight() {
-  return (world.dayNight?.night ?? 0) > 0.5;
-}
+const isNight = () => dayState(world).isNight;
 
 function slotWanted(slot, night) {
   if (slot.propKey && isPropBroken(slot.propKey)) return false;

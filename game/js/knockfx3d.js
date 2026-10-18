@@ -3,6 +3,7 @@ import { isInWater, WATER_Y } from './util.js';
 import { spawnFxPuff } from './fx3d.js';
 import { ragdollHead } from './ragdoll.js';
 import { scareAnimal } from './wildlife.js';
+import { rand } from './rng.js';
 
 // Slapstick feedback for the knockdowns that stay non-lethal (H3's stunt
 // evening, pedestrians.js stuntKnock): a puff of dust where someone goes
@@ -35,7 +36,6 @@ const _s = new THREE.Vector3();
 const _c = new THREE.Color();
 const ZERO = new THREE.Matrix4().makeScale(0, 0, 0);
 
-function rand(a, b) { return a + Math.random() * (b - a); }
 
 function sfx(world, kind, x, y, strength) {
   const q = world.audioEvents || (world.audioEvents = []);

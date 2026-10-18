@@ -1,4 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { canvasTex as sharedCanvasTex } from './canvastex.js';
 import { getScene } from './scene3d.js';
 import { buildPersonMesh, animatePersonWalk, TAMMO_APPEARANCE, ANITA_APPEARANCE, PERSON_RIG } from './models3d_people.js';
 import { DURK_LOOK, DOUWE_LOOK } from './storycast.js';
@@ -14,6 +15,7 @@ import { currentStep } from './story.js';
 import { PADEL_PAIR, PADEL_TWINS } from './padellines.js';
 import { bubbleVoiceFor } from './linevoice.js';
 import { playLineVoice } from './audio.js';
+import { rand } from './rng.js';
 
 // Padel courts where OSM has them (game/mapextras.json "padel", built by
 // scripts/add_map_extras.py): a glass cage with blue turf, a net and lights
@@ -67,7 +69,6 @@ let lastNight = -1;
 let hud = null;
 let mats = null;
 
-const rand = (a, b) => a + Math.random() * (b - a);
 
 // --- court geometry ------------------------------------------------------------
 
@@ -180,16 +181,7 @@ function placeSite(map, def, idx) {
 
 // --- 3D ------------------------------------------------------------------------------
 
-function canvasTex(w, h, draw, repeat = null) {
-  const c = document.createElement('canvas');
-  c.width = w; c.height = h;
-  draw(c.getContext('2d'));
-  const t = new THREE.CanvasTexture(c);
-  t.colorSpace = THREE.SRGBColorSpace;
-  t.anisotropy = 4;
-  if (repeat) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(repeat[0], repeat[1]); }
-  return t;
-}
+const canvasTex = (w, h, draw, repeat = null) => sharedCanvasTex(w, h, draw, { anisotropy: 4, repeat });
 
 function materials() {
   if (mats) return mats;
