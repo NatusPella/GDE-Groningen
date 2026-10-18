@@ -183,6 +183,7 @@ if (!app.requestSingleInstanceLock()) {
   ipcMain.handle('gde:coop-join', (e, code) => coopFor(e.sender).join(String(code || '').slice(0, 80)));
   ipcMain.on('gde:coop-send', (e, id, bytes) => { if (coop && Number.isInteger(id) && bytes && bytes.length <= 8192) coop.send(id, new Uint8Array(bytes)); });
   ipcMain.on('gde:coop-close', (e, id) => { if (coop && Number.isInteger(id)) coop.close(id); });
+  ipcMain.on('gde:coop-max', (e, n) => { if (coop && Number.isInteger(n)) coop.setMax(n); });
   ipcMain.handle('gde:coop-stop', () => (coop ? coop.stop() : null));
   app.on('before-quit', () => { if (coop) coop.stop(); }); // sluit de poort op de router weer
   ipcMain.handle('gde:save-text', async (e, name, text) => {

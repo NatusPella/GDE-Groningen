@@ -1,8 +1,9 @@
-// Samen spelen (#95): het scherm als de andere speler wegvalt. Het spel
-// pauzeert en wacht (world.uiPaused); de speler kan opnieuw verbinden, en de
-// host kan 'Alleen verder' kiezen (de NPC-metgezel neemt de plek over).
+// Samen spelen (#95): het scherm als een andere speler wegvalt. Het spel pauzeert en
+// wacht (world.uiPaused) als dat nodig is: altijd voor Tessa (de eerste gast), voor een
+// extra speler alleen als de opdracht hem nodig heeft (coopplayers.holdBeleid). De speler
+// kan opnieuw verbinden; de host kan kiezen niet te wachten (die speler wordt verwijderd).
 // Tekst en keuzes komen uit lobby.js (stap 'verbroken'); tekenen via lobbyui.js.
-import { stopCoopNet } from './coopnet.js';
+import { stopCoopNet, removeGuest } from './coopnet.js';
 
 let overlay = null, view = null;
 
@@ -14,8 +15,8 @@ export function closeHold(world) {
   world.uiPaused = false;
 }
 
-// role: 'host' | 'client' (zoals HostSession/ClientSession); de sessie en de route staan in world.coopNet
-export async function openHold(world, role) {
+// role: 'host' | 'client'; slot: de plek die is weggevallen (host) of onze eigen plek (gast)
+export async function openHold(world, role, slot = 1, reden = '') {
   if (overlay || !world.coopNet) return;
   world.uiPaused = true;
   overlay = document.createElement('div');
@@ -28,11 +29,17 @@ export async function openHold(world, role) {
   overlay.appendChild(panel);
   document.body.appendChild(overlay);
   const { mountLobby } = await import('./lobbyui.js');
+  const host = role === 'host';
+  const naam = host ? ((world.coopRoster || []).find((r) => r.slot === slot) || {}).naam || '' : '';
   view = mountLobby(panel, {
     resumed: () => closeHold(world),
     disconnect: (a) => {
-      if (a !== 'verbreek') return; // 'Alleen verder' (host) of 'Stoppen' (gast)
-      stopCoopNet(world); closeHold(world);
+      if (a !== 'verbreek') return; // 'Niet wachten' (host) of 'Stoppen' (gast)
+      if (host) removeGuest(world, slot); else stopCoopNet(world);
+      closeHold(world);
     },
-  }, { start: 'verbroken', rol: role === 'host' ? 'host' : 'gast', route: world.coopNet.route, session: world.coopNet.session });
+  }, {
+    start: 'verbroken', rol: host ? 'host' : 'gast', route: world.coopNet.route,
+    session: host ? null : world.coopNet.session, hub: host ? world.coopNet.hub : null, holdSlot: host ? slot : null, holdNaam: naam,
+  });
 }
