@@ -15,21 +15,21 @@ import { wgsToWorld } from './rdnew.js';
 // places [lat, lon]
 export const PLACES = {
   veendamBoot: [53.1050, 6.8570],     // the Oosterdiep at the western edge of Veendam (the route is still an estimate, not checked on the tiles)
-  veendamA: [53.1054, 6.8660],
-  veendamB: [53.1057, 6.8750],
-  veendamC: [53.1060, 6.8830],
-  veendamD: [53.1063, 6.8900],        // bridge eleven
+  veendamA: [53.1054, 6.86585],
+  veendamB: [53.10539, 6.87446],
+  veendamC: [53.10662, 6.88408],
+  veendamD: [53.10546, 6.89134],        // bridge eleven
   wiebelwerk: [53.1040, 6.8765],      // the invented web agency in an office building by a roundabout
   wiebelwerkServers: [53.1042, 6.8769],
-  wiebelwerkUit: [53.1038, 6.8761],
+  wiebelwerkUit: [53.1038, 6.87595],
   veendamPerron: [53.1033, 6.8830],   // the station of the museum line; the ride ends at Wildervank, 2.3 km on
-  bourtangeWalB: [53.0068, 7.1894],
-  bourtangeKruitB: [53.0074, 7.1932],
+  bourtangeWalB: [53.00693, 7.1892],
+  bourtangeKruitB: [53.0074, 7.19305],
   bourtangeKruitC: [53.0070, 7.1934],
-  bourtangeWal: [53.0066, 7.1900],
-  bourtangeGracht: [53.0083, 7.1927],
-  bourtangeKruit: [53.0072, 7.1928],
-  bourtangePoort: [53.0050, 7.1905],
+  bourtangeWal: [53.00669, 7.1900],
+  bourtangeGracht: [53.0083, 7.19285],
+  bourtangeKruit: [53.00711, 7.1928],
+  bourtangePoort: [53.005, 7.19065],
   zuidhornOverweg: [53.2486, 6.4087],
   tinusSchuur: [53.2506, 6.4110],   // the barn on the north edge of Zuidhorn (the same spot as SCHUUR in missions_akte5.js)
 };

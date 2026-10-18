@@ -481,7 +481,7 @@ export async function runStoryTest(world) {
     if (window.__ommeland) await window.__ommeland.prepare();
     const spots = await validateSpots(world);
     for (const b of spots.bad) console.log('[spotcheck]', b.kind, b.id, b.x, b.y, b.why);
-    check(`all ${spots.total} spots reachable`, !spots.bad.length, spots.bad.map((b) => `${b.kind} ${b.id} (${b.x}, ${b.y}): ${b.why}`).join('; '));
+    check(`all ${spots.total} spots reachable`, !spots.bad.length, spots.bad.map((b) => `${b.kind} ${b.id} (${b.x}, ${b.y}): ${b.why}${b.fix ? ` -> vrij op (${b.fix.x}, ${b.fix.y}), ${b.fix.d} m` : ''}`).join('; '));
     // no street, cycleway or footway runs through a solid wall or an invisible hole
     const pa = auditPassages(world.map);
     for (const e of pa.bad) console.log('[passagecheck]', e.cls, e.road, e.building, e.x, e.y, 'depth', e.depth, 'len', e.len);

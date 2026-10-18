@@ -254,15 +254,15 @@ export function applyNieuw(list) {
     kerm.timeUp = 'tijd op. De tenten sluiten, Durk en Douwe zingen door zonder jullie';
     kerm.checkpointBonus = 25;
     kerm.drunk = 0.25;
-    kerm.crowds = [W(-30, 25), W(20, 10), W(60, 30), W(70, 10), W(25, -35)];
+    kerm.crowds = [W(-20, 25), W(20, 10), W(60, 30), W(63, 3), W(25, -45)];
     kerm.start = W(-55, 45);
     kerm.waypoints = [
       via(-20, 30),
-      tent('Tent De Gouden Aar', 5, 8, { glass: 'beer', variant: 0, lines: [['A', 'Proost!']] }),
+      tent('Tent De Gouden Aar', 15, 8, { glass: 'beer', variant: 0, lines: [['A', 'Proost!']] }),
       via(45, 28),
       tent('Tent Het Scheve Rad', 85, 40, { glass: 'wine', variant: 1, lines: [['student', 'Proost! Nog ééntje dan!'], ['A', 'Wie is dat?'], ['T', 'Een eerstejaars. Ze zijn overal.'], ['student', 'Ik hou van jullie allemaal!'], ['T', 'Dat geloof ik.']] }),
-      via(65, -5),
-      tent('Tent De Laatste Zweefmolen', 25, -55, { glass: 'jenever', variant: 2, lines: [] }),
+      via(72, -12),
+      tent('Tent De Laatste Zweefmolen', 35, -55, { glass: 'jenever', variant: 2, lines: [] }),
     ];
     kerm.costRow = ['Ontdekt', 'Durk en Douwe zijn moe genoeg voor een rit'];
   }

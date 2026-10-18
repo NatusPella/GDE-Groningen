@@ -22,7 +22,7 @@ const AT = (i, r, v = 0.6) => (i.dist ?? 99) < r && (i.speed ?? 99) < v;
 // 1. Museumbus: een oude bus van het Nationaal Busmuseum rustig naar twee tentoonstellingen rijden.
 const museumbus = {
   id: 'museumbus', naam: 'Museumbus', bedrijf: 'Busmuseum Oostermoer', regio: 'veenkolonien', voertuig: 'oudebus',
-  plek: { wgs: [53.1649654, 6.7292514] },
+  plek: { wgs: [53.16496, 6.72935] },
   blurb: 'Een oude museumbus voorzichtig naar de tentoonstelling rijden',
   tagline: 'Zacht optrekken, zacht remmen: de bus is ouder dan jij.',
   intro: ['Busmuseum Oostermoer heeft een bus uit lang geleden die vandaag mee mag naar twee dorpsfeesten.', 'Rijd rustig: harde remmen en scherpe bochten kosten kleur en lak. Bij elke stop even blijven staan voor de foto.'],
