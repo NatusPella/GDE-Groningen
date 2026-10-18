@@ -16,7 +16,7 @@ import {
 import { updateFarProps, farPropsStats } from './farprops.js';
 import { updateCountryLife, lifeStats } from './countrylife.js';
 import { buildSign, disposeSign } from './countrysigns.js';
-import { EDGE, edgeBlocked, edgeSpanBlocked, roadGap, nearRail, landUseAt } from './countryedge.js';
+import { EDGE, edgeBlocked, edgeSpanBlocked, roadGap, nearRail, landUseAt, hedgeMapped } from './countryedge.js';
 import { ensureCountryEdge } from './countryplan.js';
 import { thinDitchOn, ditchRamp, provinceBlock, countrySurface, osmDitchesAt } from './countryfield.js';
 import { urbanWeight } from './provinceworld.js';
@@ -559,12 +559,15 @@ function fenceLine(tile, P, t0, t1, step, ok, postUntil = t1) {
   });
 }
 
+// a mapped hedge this near makes the hash's own hedge stay out (m)
+const HEDGE_KEEP = 6;
 // a hedge, with a tree every treeStep m standing treeOff behind it (houtwal)
 function hedgeLine(tile, P, t0, t1, ok, treeStep, treeOff) {
   const ang = angOf(P, t0);
   for (let t = t0 + 1.1; t < t1; t += 2.2) {
     const [x, y] = P(t, 0);
-    if (!ok(x, y)) continue;
+    if (!ok(x, y) || hedgeMapped(x, y, HEDGE_KEEP)) continue; // OSM maps a hedge here: it is the real one
+
     const h = chash(Math.round(x * 3), Math.round(y * 3) + 7);
     push(tile, 'hedge', x, y, ang + (h - 0.5) * 0.3, 2.6, 0.9 + h * 0.4, 1.3, 0xffffff, 0.08);
     if (treeStep && Math.floor(t / treeStep) !== Math.floor((t + 2.2) / treeStep)) {

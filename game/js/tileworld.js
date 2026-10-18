@@ -145,6 +145,8 @@ export class TileWorld extends GameMap {
           if (grid) (this[grid] || (this[grid] = new SpatialGrid(64))).insert(obj, boundsOfObj(kind, obj));
           // a streamed tile's mapped furniture joins the list streetfurniture3d.js reads
           if (kind === 'furniture' && this.furniture) this.furniture.push(obj);
+          // the mapped hedges (OSM barrier=hedge): the countryside draws none of its own beside them (hedgeNear)
+          if (kind === 'furniture' && obj.k === 'hedge' && obj.pts) (this.hedgeGrid || (this.hedgeGrid = new SpatialGrid(64))).insert(obj, polygonBounds(obj.pts));
         }
         e.tiles.add(tk);
       }
@@ -179,6 +181,11 @@ export class TileWorld extends GameMap {
   // The track of the streamed tiles (the city's own is map.rails): realBlockedAt keeps the countryside's props off it (#124)
   railNear(x, y, r) {
     return this.railGrid ? this.railGrid.query(x - r, y - r, x + r, y + r) : [];
+  }
+
+  // The mapped hedges of the streamed tiles within r of (x, y) (their bounds): the countryside keeps its own hedges off them (#124)
+  hedgeNear(x, y, r) {
+    return this.hedgeGrid ? this.hedgeGrid.query(x - r, y - r, x + r, y + r) : [];
   }
 
   // The OSM land use of the streamed tiles at (x, y): 'akker' | 'weide' | 'boomgaard' or null (the countryside's fences and herds, #124)
@@ -218,6 +225,7 @@ export class TileWorld extends GameMap {
         const grid = gridOf(kind, e.obj);
         if (grid && this[grid]) this[grid].remove(e.obj, boundsOfObj(kind, e.obj));
         if (kind === 'furniture' && this.furniture) { const q = this.furniture.indexOf(e.obj); if (q >= 0) this.furniture.splice(q, 1); }
+        if (kind === 'furniture' && e.obj.k === 'hedge' && e.obj.pts && this.hedgeGrid) this.hedgeGrid.remove(e.obj, polygonBounds(e.obj.pts));
       }
     }
     return true;
