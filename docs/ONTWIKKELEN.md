@@ -236,6 +236,7 @@ Debug hooks on `window` (`window.__x`, read by scripts/perf, the story test and 
 | `?simlagen` | Verkeer volgens simulatielagen per streek en afstand (simlagen.js) |
 | `?zwartcheck` | Controleer op zwarte beelden (blackframe) |
 | `?reizen` | Reisbeats in het nieuwe verhaal: keuze Meerijden, Zelf rijden of Overslaan bij een sprong (#97) |
+| `?preview` | Trailer-voorbeeld in echte tijd met geluid (cut=teaser of hoofd); houd Spatie ingedrukt om over te slaan |
 | `?testmenu` | Testmenu op F10 met alle schakelaars en snelkoppelingen; eigen opslag (gde-dev:), raakt de echte save niet |
 | `?brugbotsing` | Stuurt na een paar seconden een binnenvaartschip tegen de dichtstbijzijnde brug (#9) |
 | `?sfxtest` | Geluidstest: paneel met alle effecten, een afstandsschuif en een afspeelknop per effect; F8 verbergt het (#173) |
