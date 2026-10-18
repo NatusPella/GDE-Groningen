@@ -74,6 +74,8 @@ import { initNightLights, setNightLightQuality, updateNightLights, isLightRigOn,
 import { createFarLOD } from './farlod.js';
 import { SECTION, TILE_M, tileOrigin } from './gdt.js';
 import { initRailway3D, updateRailway3D, prewarmRailAt } from './railway3d.js';
+import { updateStationCrowd3D } from './stationlife3d.js';
+import { railZ } from './railway.js';
 import { cameraFocus } from './tilefocus.js';
 import { initMovableBridges3D, updateMovableBridges3D, openBridgeRoads } from './movablebridges3d.js';
 import { getMovableBridges } from './movablebridges.js';
@@ -2013,6 +2015,7 @@ export function update3D(dt, world) {
   syncTrees(world, focus.x, focus.y);
   probe.mark('3d:trees');
   updateRailway3D(dt, world, focus, viewDist);
+  updateStationCrowd3D(scene, world, railZ);
   updateCountryside(dt, world, scene, cam, viewDist);
   updateOmmelandLandmarks(world, scene, focus);
   probe.mark('3d:rail+country');
