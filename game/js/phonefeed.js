@@ -1,4 +1,5 @@
 import { dualHtml, dutchFor } from './subtitles.js';
+import { isStale } from './validity.js';
 import { paintSpeaker } from './speakers.js';
 import { noteSpoken } from './characters.js';
 import { getClockText } from './hud_panel.js';
@@ -352,6 +353,12 @@ export function updatePhoneFeed(dt, w) {
       // story texts go ahead of the news and app texts that wait
       const at = n.story ? notes.findIndex((q) => !q.story) : -1;
       if (at >= 0) notes.splice(at, 0, n); else notes.push(n);
+    }
+    // refs #171: a text that no longer applies (the step or mission moved on, too late) is not shown, only logged
+    for (let i = notes.length - 1; i >= 0; i--) {
+      if (!isStale(notes[i])) continue;
+      const [n] = notes.splice(i, 1);
+      remember(w, n.from ? `${n.from}: ${n.text}` : n.text, n.from || '', n.text);
     }
     while (notes.length > 6) {
       const i = notes.findIndex((q) => !q.story);
