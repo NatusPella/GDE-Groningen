@@ -228,6 +228,10 @@ export { placeCars as placeTrain };
 
 function placeCars(t) {
   const { route } = t;
+  // a train standing still (dwell, parked) is already where its arc length puts it
+  if (t.placedAt === t.c && t.placedRoute === route) return;
+  t.placedAt = t.c;
+  t.placedRoute = route;
   for (const car of t.cars) {
     const at = t.c + car.off;
     const bogie = car.len * 0.36;
