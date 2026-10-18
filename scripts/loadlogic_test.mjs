@@ -45,5 +45,13 @@ ok(buildLines('snel', ['Onderweg', 'x'], p).length === 0, 'snel has no lines');
 const bl = buildLines('travel', ['Onderweg', 'Een lijn'], p);
 ok(bl.length === 4 && bl[0][0] === 'Onderweg' && bl[1][0] === 'Wist je dat', 'lead then tips');
 ok(buildLines('travel', ['Onderweg', ''], p).length === 3, 'empty lead skipped');
+import { sceneSvg, SCENES, sceneFor, SCENE_FOR } from '../game/js/loadscene.js';
+for (const v of SCENES) {
+  const svg = sceneSvg(v);
+  ok(svg.startsWith('<svg') && svg.endsWith('</svg>') && !/NaN|undefined/.test(svg), `scene ${v} is clean svg`);
+  ok(!/<text|<image/.test(svg), `scene ${v} has no text or photo`);
+}
+ok(sceneSvg('x') === sceneSvg('dag'), 'unknown scene falls back to dag');
+ok(Object.values(SCENE_FOR).every((v) => SCENES.includes(v)) && sceneFor('nope') === 'dag', 'every picture has a scene');
 console.log(`${n - fails}/${n} loadlogic`);
 process.exit(fails ? 1 : 0);
