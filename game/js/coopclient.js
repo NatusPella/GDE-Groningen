@@ -49,15 +49,18 @@ export function setFixedCharacters(world, me, char = null) {
 }
 
 // Toestand van de host op deze wereld zetten. sample = net/session.js ClientSession.world(); roster = lijst met spelers.
-export function applyHostState(world, me, sample, roster = null) {
+export function applyHostState(world, me, sample, roster = null, dt = 0) {
   if (!sample) return 0;
   let n = 0;
   for (const p of sample.players) {
     if (!Number.isFinite(p.x) || !Number.isFinite(p.y)) continue;
     let b = bodyFor(world, me, p.slot);
     if (!b) { const r = roster && roster.find((x) => x.slot === p.slot); b = ensureFigure(world, p.slot, r && r.char); }
+    // snelheid uit de verplaatsing, zodat het model loopt (de gast simuleert zelf niets)
+    const vx = dt > 0 && Number.isFinite(b.x) ? (p.x - b.x) / dt : 0, vy = dt > 0 && Number.isFinite(b.y) ? (p.y - b.y) / dt : 0;
+    const ok = Math.hypot(vx, vy) < 40; // een sprong (teleport) is geen rennen
     b.x = p.x; b.y = p.y; b.angle = p.angle;
-    if (b.vx !== undefined) { b.vx = 0; b.vy = 0; }
+    if (b.vx !== undefined) { b.vx = ok ? vx : 0; b.vy = ok ? vy : 0; }
     n++;
   }
   // alleen wanted is gedeeld; het geld, de spullen en de prestaties van de gast blijven zijn eigen

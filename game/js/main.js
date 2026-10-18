@@ -5,7 +5,8 @@ import { DEV, STORY_TEST, FLAGS } from './devflags.js';
 import { bindCoop } from './coopglue.js';
 import { tickCoopNet } from './coopnet.js';
 import { updatePartnerChip } from './coophud.js';
-import { syncFigures, hasFigureMeshes } from './coopfigures3d.js';
+import { syncFigures, hasFigureMeshes, clearFigures } from './coopfigures3d.js';
+import { syncHostEntities, hasHostEntities, clearHostEntities } from './coopentities3d.js';
 import { loadMap } from './mapdata.js';
 import { loadTileWorld } from './tileworld.js';
 import { tileFocus } from './tilefocus.js';
@@ -508,6 +509,7 @@ async function boot() {
     if (world.coopNet) tickCoopNet(world, dt); // samen spelen (#95), alleen na een bewuste uitnodiging
     if (world.coopNet || world.coopPartner !== undefined) updatePartnerChip(world);
     if (world.coopNet || hasFigureMeshes()) syncFigures(world, dt); // de figuren van de andere spelers (#95)
+    if (world.coopRole === 'client') syncHostEntities(world); else if (hasHostEntities()) clearHostEntities(); // voertuigen en doel van de host bij een gast
     probe.mark('phone+save');
     updateSafety(dt, world);
     // a padel match owns the camera (cinematics.js resets cameraOverride each frame)
@@ -529,6 +531,8 @@ async function boot() {
 
   function updateGameplay(dt) {
     world.time += dt;
+    // samen spelen (#95): een gast draait de wereld van de host niet zelf; die komt via het net (coopnet.js, coopworld.js)
+    if (world.coopRole === 'client' && world.coopNet && world.coopNet.joined) return;
     // money must stay a number: a NaN from any price or reward is undone
     if (Number.isFinite(world.money)) world._goodMoney = world.money;
     else {
