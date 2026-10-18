@@ -213,7 +213,7 @@ export const problems = (rep) => rep.steep.length + rep.joints.length + rep.clea
 const ROOF = 0.7, COVER = 0.5;
 export const TUNNEL_DEPTH = 4.6 + ROOF + COVER;
 const UNDER_WATER = -8.2;   // a road under a canal (aqueduct) stays under its bed
-const STEP = 8;             // vertex spacing of a road that gets a new profile
+export const STEP = 8;             // vertex spacing of a road that gets a new profile
 const COUPLE_TOL = 0.05;
 // an untagged way's prior dip under the terrain shallower than this is taken
 // for the terrain (what the old per-way solve left where nothing asks for one)
@@ -559,7 +559,7 @@ function mover(s) {
   return 'up';
 }
 
-function densify(P, step) {
+export function densify(P, step) {
   const out = [P[0]];
   for (let i = 0; i < P.length - 1; i++) {
     const a = P[i], b = P[i + 1], L = Math.hypot(b[0] - a[0], b[1] - a[1]);

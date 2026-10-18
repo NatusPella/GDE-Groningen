@@ -120,11 +120,31 @@ export function joinAttrs(buildings, attrs) {
   return { fields: out, stats: { ...stats, src } };
 }
 
-export function loadSources(game = path.join(ROOT, 'game')) {
+function readData(game) {
   const data = JSON.parse(fs.readFileSync(path.join(game, 'citymap.json'), 'utf8'));
   applyMapExtras(data, JSON.parse(fs.readFileSync(path.join(game, 'mapextras.json'), 'utf8')));
-  const map = new GameMap(data);
-  return { map };
+  return data;
+}
+export function loadSources(game = path.join(ROOT, 'game')) {
+  return { map: new GameMap(readData(game)) };
+}
+
+// STAD_LAAG=water[,...] (#90): de genoemde lagen van de stad komen uit de gedeelde OSM-tegelbouw (stad_laag.mjs)
+export async function loadSourcesLaag(game = path.join(ROOT, 'game'), lagen = parseLagen(process.env.STAD_LAAG)) {
+  const data = readData(game);
+  if (lagen.length) {
+    const { osmCityLayers } = await import('./stad_laag.mjs');
+    // de stadstegels: alles wat de stadsdata raakt
+    const keys = new Set();
+    for (const kind of ['buildings', 'roads', 'water', 'green', 'rails']) for (const o of data[kind] || []) for (const [i, j] of tilesOf(boundsOf(kind, o))) keys.add(G.tileKey(i, j));
+    const rows = await osmCityLayers(keys, data.meta.bounds, lagen);
+    for (const l of lagen) data[l] = rows[l];
+  }
+  return { map: new GameMap(data), lagen };
+}
+export function parseLagen(raw) {
+  const ok = ['water'];
+  return String(raw || '').split(/[,\s]+/).map((w) => w.trim().toLowerCase()).filter((w) => ok.includes(w));
 }
 
 // the per-tile kinds, in the order the GameMap keeps them
@@ -301,7 +321,7 @@ async function main() {
   const out = path.resolve(ROOT, args.includes('--out') ? args[args.indexOf('--out') + 1] : 'game/world');
   const game = args.includes('--game') ? path.resolve(args[args.indexOf('--game') + 1]) : undefined;
   const t0 = performance.now();
-  const src = loadSources(game);
+  const src = await loadSourcesLaag(game);
   const t1 = performance.now();
   const built = build(src);
   const city = new Set(built.blobs.keys());
@@ -312,6 +332,7 @@ async function main() {
   console.log(`${Object.keys(index.tiles).length} tiles in ${Object.keys(index.packs).length} packs, ${(size / 1e6).toFixed(2)} MB (${(raw / 1e6).toFixed(2)} MB raw), index ${(fs.statSync(path.join(out, 'index.json')).size / 1e3).toFixed(0)} kB`);
   const a = built.attrStats;
   console.log(`building attributes: ${a.matched}/${a.buildings} matched to OSM tags, height from ${Object.entries(a.src).map(([k, v]) => `${k} ${v}`).join(', ')}`);
+  if (src.lagen.length) console.log('stadslagen uit de OSM-bouw: ' + src.lagen.join(', '));
   console.log(`load + derive ${((t1 - t0) / 1000).toFixed(1)} s, tile + pack ${((t2 - t1) / 1000).toFixed(1)} s -> ${path.relative(ROOT, out)}`);
 }
 
