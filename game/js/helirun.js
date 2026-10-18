@@ -992,7 +992,7 @@ function nearSpot(w) {
 export function heliSpotPrompt(w) {
   if (!nearSpot(w)) return null;
   const why = blockReason(w);
-  return { id: 'heli-umcg', x: spot.x, y: spot.y, h: 2.75, key: 'E', label: 'Ballonjacht met de heli', sub: why || 'Dokter Dijkstra laat je meevliegen', ring: true, dim: !!why };
+  return { id: 'heli-umcg', x: spot.x, y: spot.y, h: 2.75, key: 'E', label: 'Ballonjacht', sub: why || 'Dokter Dijkstra laat je meevliegen', ring: true, dim: !!why };
 }
 
 export function heliSpotSecondary(w) {

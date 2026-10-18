@@ -30,7 +30,7 @@ const AFTER_SCENE = 4;
 const AFTER_MISSION = 8;
 // everything the narrative scheduler watches has been quiet this long
 const QUIET = 4;
-const SKIP_NOTE = 'Ken je dit soort games? {ESC} › Instellingen › Weergave zet de uitleg uit.';
+const SKIP_NOTE = 'Uitleg uit: {ESC} › Instellingen.';
 
 // {E} in a card is a key glyph (prompts.js glyphHtml): the rebound key, or the
 // controller button when a controller was used last (glyphs.js).
