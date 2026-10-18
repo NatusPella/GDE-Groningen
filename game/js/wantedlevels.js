@@ -11,11 +11,11 @@
 // of sight before the search begins; cooldown: s inside the circle for one
 // star to drop (outside the circle it runs twice as fast).
 const LEVELS = [
-  { searchRadius: 70, shrink: 1.4, loseAfter: 4, cooldown: 10, roadblockEvery: 0, roadblockLife: 0, copPeds: 1 },
-  { searchRadius: 85, shrink: 1.3, loseAfter: 4.5, cooldown: 12, roadblockEvery: 0, roadblockLife: 0, copPeds: 2 },
-  { searchRadius: 100, shrink: 1.2, loseAfter: 5, cooldown: 14, roadblockEvery: 22, roadblockLife: 45, copPeds: 3 },
-  { searchRadius: 115, shrink: 1.1, loseAfter: 6, cooldown: 17, roadblockEvery: 18, roadblockLife: 50, copPeds: 5 },
-  { searchRadius: 130, shrink: 1.0, loseAfter: 7, cooldown: 20, roadblockEvery: 14, roadblockLife: 55, copPeds: 5 },
+  { searchRadius: 70, shrink: 1.4, loseAfter: 4, cooldown: 10, roadblockEvery: 0, roadblockLife: 0, copPeds: 1, spikes: false },
+  { searchRadius: 85, shrink: 1.3, loseAfter: 4.5, cooldown: 12, roadblockEvery: 0, roadblockLife: 0, copPeds: 2, spikes: false },
+  { searchRadius: 100, shrink: 1.2, loseAfter: 5, cooldown: 14, roadblockEvery: 22, roadblockLife: 45, copPeds: 3, spikes: false },
+  { searchRadius: 115, shrink: 1.1, loseAfter: 6, cooldown: 17, roadblockEvery: 18, roadblockLife: 50, copPeds: 5, spikes: true },
+  { searchRadius: 130, shrink: 1.0, loseAfter: 7, cooldown: 20, roadblockEvery: 14, roadblockLife: 55, copPeds: 5, spikes: true },
 ];
 
 export function levelOf(stars) {

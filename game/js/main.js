@@ -95,6 +95,7 @@ import { initWorldEvents, updateWorldEvents } from './worldevents.js';
 import { initMuggings, updateMuggings } from './muggings.js';
 import { initRoadRage, updateRoadRage } from './roadrage.js';
 import { updateClearZones } from './clearzonesweep.js';
+import { updateSpikeStrips3D } from './spikestrips3d.js';
 import { tryWeaponDropInteract, updateWeaponDrops3D } from './weapondrops.js';
 import { initFlitspaal, updateFlitspaal } from './flitspaal.js';
 import { initWildlife, updateWildlife } from './wildlife.js';
@@ -214,6 +215,7 @@ function waitForStart(world) {
     updateGore3D(fxDt, world, getScene());
     updateKnockFx3D(fxDt, world, getScene());
     updateWeaponDrops3D(fxDt, world, getScene());
+    updateSpikeStrips3D(fxDt, world, getScene());
     updateGunFx3D(fxDt, world, getScene());
     update3D(dt, world);
   };
@@ -531,6 +533,7 @@ async function boot() {
     updateGore3D(animDt, world, getScene());
     updateKnockFx3D(animDt, world, getScene());
     updateWeaponDrops3D(animDt, world, getScene());
+    updateSpikeStrips3D(animDt, world, getScene());
     updateGunFx3D(animDt, world, getScene());
     probe.mark('fx+gore');
     updateCityProps(animDt, world, getScene());

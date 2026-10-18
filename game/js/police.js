@@ -10,6 +10,7 @@ import { isKnockedDown } from './ragdoll.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { decayFactor, profileOf } from './signalement.js';
 import { levelOf, markSeen, stepUnseen } from './wantedlevels.js';
+import { createShards, dropSpikes } from './roadshards.js';
 import { makeBeamGeometry, makeBeamMaterial, requestSearchlight } from './nightlights3d.js';
 import { trySpawnMounts, tryDeployCrew, adoptThrownRider, holdUnit, updateCrews, ejectMountRider, maybeBolt, updateBolting } from './policemounts.js';
 
@@ -768,6 +769,8 @@ function tryRoadblock(world, state) {
   }
   if (cars.length < 2) return;
   world.vehicles.push(...cars);
+  // from 4 stars a spike strip lies on the road in front of the block (a flat tyre, nothing worse)
+  if (levelOf(world.wanted).spikes) dropSpikes(world.shards || (world.shards = createShards()), rp.x + fx * towardPlayer * 9, rp.y + fy * towardPlayer * 9, segA, world.time || 0);
   const cops = spawnCopPedestriansNear(world.map, rp.x, rp.y, 2, Math.random);
   cops.forEach((c, i) => {
     const side = i === 0 ? 1 : -1;
