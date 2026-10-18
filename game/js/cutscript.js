@@ -18,7 +18,7 @@
 // below must equal its ANIMS (scripts/cutscript_test.mjs checks that).
 
 export const ACTOR_ANIMS = ['idle', 'walk', 'run', 'talk', 'wave', 'point', 'shrug', 'nod', 'shake', 'laugh', 'carry', 'lean', 'hips', 'phone', 'cheer', 'look', 'ride'];
-export const PROP_KINDS = ['doos', 'tas', 'bestelbus', 'fiets', 'duif', 'radio', 'bord', 'koffer', 'bal', 'auto', 'matras'];
+export const PROP_KINDS = ['doos', 'tas', 'bestelbus', 'fiets', 'duif', 'radio', 'bord', 'koffer', 'bal', 'auto', 'matras', 'bakkie', 'automaat', 'aanhanger', 'trekker', 'politie', 'duiventil', 'zuil', 'klembord'];
 export const VERBS = ['walk', 'anim', 'face', 'gaze', 'carry', 'drop', 'move', 'path', 'spin', 'bob', 'show', 'hide'];
 export const SHOTS = ['cut', 'dolly', 'orbit', 'follow'];
 export const WALK_SPEED = 1.4;
@@ -160,7 +160,7 @@ export function compileScene(def, opts = {}) {
   // per actor: movement segments [{t0, t1, pts}], anim/gaze/face/carry events
   const track = {};
   for (const [id, a] of Object.entries(actors)) {
-    track[id] = { pos0: [a.at[0], a.at[1]], face0: a.face, segs: [], anims: [{ t: 0, v: a.anim || 'idle' }], gazes: [{ t: 0, v: a.gaze ?? null }], faces: [], carries: [] };
+    track[id] = { pos0: [a.at[0], a.at[1]], face0: a.face, segs: [], anims: [{ t: 0, v: a.anim || 'idle' }], gazes: [{ t: 0, v: a.gaze ?? null }], faces: [], carries: [], vis: [] };
   }
   const drops = [];
   const ptrack = {};
@@ -181,6 +181,9 @@ export function compileScene(def, opts = {}) {
       if (c.gaze !== undefined) k.gazes.push({ t: c.t, v: c.gaze });
       if (c.face !== undefined) k.faces.push({ t: c.t, v: c.face });
       if (c.carry !== undefined) k.carries.push({ t: c.t, v: c.carry });
+      // show/hide: someone gets into a vehicle (still tracked, so the camera can follow the cab)
+      if (c.show !== undefined) k.vis.push({ t: c.t, v: true });
+      if (c.hide !== undefined) k.vis.push({ t: c.t, v: false });
       if (c.drop !== undefined) { k.carries.push({ t: c.t, v: null }); drops.push({ t: c.t, actor: c.actor, prop: c.drop }); }
     } else if (c.prop) {
       const k = ptrack[c.prop];
@@ -363,7 +366,7 @@ export function compileScene(def, opts = {}) {
         const o = pointOf(gt, t);
         gaze = Math.max(-1.0, Math.min(1.0, angDiff(actorFacing(id, t), Math.atan2(o.s - p.s, o.f - p.f))));
       }
-      outA[id] = { x: w.x, y: w.y, h: anchor.z || 0, a, anim, speed: p.moving ? p.moving.speed : 0, gaze, look: actors[id].look, speaking: id === speakId, carrying };
+      outA[id] = { x: w.x, y: w.y, h: anchor.z || 0, a, anim, speed: p.moving ? p.moving.speed : 0, gaze, look: actors[id].look, speaking: id === speakId, carrying, visible: last([{ t: 0, v: true }, ...k.vis], t).v };
     }
     for (const id of Object.keys(ptrack)) {
       const s = propState(id, t);
@@ -387,7 +390,7 @@ export function compileScene(def, opts = {}) {
     let from = null;
     for (let i = 0; i + 1 < ts.length; i++) {
       const mid = (ts[i] + ts[i + 1]) / 2;
-      const alive = actorPos(id, mid).moving || last(k.anims, mid).v !== 'idle' || last(k.gazes, mid).v === 'speaker' && !!lines.length || (lines.length && actorOfSpeaker(speakerAt(mid)) === id);
+      const alive = actorPos(id, mid).moving || last([{ t: 0, v: true }, ...k.vis], mid).v === false || last(k.anims, mid).v !== 'idle' || last(k.gazes, mid).v === 'speaker' && !!lines.length || (lines.length && actorOfSpeaker(speakerAt(mid)) === id);
       if (alive) { if (from != null) out.push([from, ts[i]]); from = null; } else if (from == null) from = ts[i];
     }
     if (from != null) out.push([from, duration]);
