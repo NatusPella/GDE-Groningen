@@ -8,6 +8,7 @@ import { gearboxReadout } from './gearbox.js';
 import { createBank, buildImpulse, variantsOf, bufferNames } from './sfx/dsp.js';
 import { FX_INFO } from './sfx/fxbank.js';
 import { plan as mixPlan, speechDuckFactor } from './sfx/mixplan.js';
+import { createLinkups } from './sfx/linkups.js';
 import { initAmbience, updateAmbience, ambienceStats, getPlace } from './sfx/ambience.js';
 import { initFoley, updateFoley, propHit, foleyStats } from './sfx/foley.js';
 import { initUiSfx, uiWorldInit, updateUiSfx, uiDomEvent, isUiGestureTarget } from './sfx/ui.js';
@@ -730,9 +731,14 @@ function playExplosion(x, y) {
 // One effect of sfx/fxbank.js at a place: mixer category level, a random
 // variant, the speed-of-sound delay and an air low pass from sfx/mixplan.js
 // (the panner does the distance gain). false while the sample still renders.
+const fxLastAt = new Map();
+const FX_MIN_GAP = 0.12;
 function playFx(name, x, y, opts = {}) {
   const info = FX_INFO[name] || FX_INFO[`${name}_0`];
   if (!ctx || !bank || !info) return false;
+  // the same effect twice within a blink (two events for one thing) is one
+  if (ctx.currentTime - (fxLastAt.get(name) ?? -1) < FX_MIN_GAP) return true;
+  fxLastAt.set(name, ctx.currentTime);
   const names = bufferNames().includes(name) ? [name] : variantsOf(name);
   const buf = names[Math.floor(Math.random() * names.length)];
   const d = distToListener(x, y);
@@ -3177,6 +3183,7 @@ export function updateAudio(dt, world) {
   lastWorld = world;
   // a busy frame (shots, footsteps, birds) used to swallow everything past the
   // first eight (rockets, the jachtgeweer): the rest now plays next frame
+  guarded('linkups', () => runLinkups(world));
   let played = events.length;
   if (!muted) guarded('events', () => { played = playAudioEvents(world); });
   events.splice(0, played);
@@ -3435,6 +3442,16 @@ if (typeof window !== 'undefined') {
   };
 }
 let lastWorld = null;
+
+// What sfx/linkups.js watches (set once by main.js): bridges, trains and the listener.
+const linkups = createLinkups();
+let linkEnv = null;
+export function setSfxLinks(env) { linkEnv = env; }
+function runLinkups(world) {
+  if (!linkEnv || world.paused) return;
+  const q = world.audioEvents;
+  for (const e of linkups.step(world, { ...linkEnv, listener: () => world.player })) if (q.length < 64) q.push({ ...e });
+}
 
 const warmList = ['glass', 'crunch_0', 'crunch_1', 'crunch_2', 'bikebell', 'ric_whine', 'prop_metal', 'bell_big', 'bell_carillon', 'thunder_0', 'thunder_1', 'thunder_2', 'bird_0', 'bird_1', 'bird_2', 'bird_3', 'bird_4',
   'gull_0', 'gull_1', 'clink', 'cow', 'sheep', 'duck', 'pigeon', 'flutter', 'dog', 'cat', 'step_gras_2', 'step_gras_3', 'step_wood_2', 'step_wood_3', 'step_wet_2', 'step_wet_3', 'poof', 'dizzy', 'gore_splat', 'squelch_2', 'squelch_1', 'squelch_0',
