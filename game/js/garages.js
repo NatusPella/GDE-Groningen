@@ -16,6 +16,7 @@ import { facilitiesOf, countryFacilities } from './facilities.js';
 import { nearestWorldPlace } from './worldplaces.js';
 import { noteMoney } from './finance.js';
 import { zoneTotals, losseOnderdelen, onderdelenPrijs, schadeTekst } from './vehicledamage.js';
+import { deelPrijs } from './vehicledoors.js';
 
 // Garages: every Garage Knalpot branch (from the OSM car repair shops) and
 // every Pomp & Poets gas station has a workshop with a roller door by the
@@ -219,7 +220,7 @@ function twoWheel(v) {
 function repairPrice(v) {
   const dmg = 100 - Math.max(0, Math.min(100, v.health ?? 100));
   const dents = v.damage ? Math.min(3, v.damage.total || 0) : 0;
-  return repairCost(dmg, dents, twoWheel(v)) + (v.flat ? (twoWheel(v) ? 3 : 15) : 0) + onderdelenPrijs(losseOnderdelen(zoneTotals(v.dentLog, v.model.len, v.model.wid)));
+  return repairCost(dmg, dents, twoWheel(v)) + (v.flat ? (twoWheel(v) ? 3 : 15) : 0) + onderdelenPrijs(losseOnderdelen(zoneTotals(v.dentLog, v.model.len, v.model.wid))) + deelPrijs(v);
 }
 
 // Health back to 100 and every dent, crack and hanging bumper gone:

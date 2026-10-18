@@ -30,6 +30,9 @@ export const BOAT_KINDS = {
   spits: { kind: 'binnenvaart', name: 'boat', len: 38.5, wid: 5.05, playerTop: 6, playerAccel: 0.5, maxSpeed: 5.5, accel: 0.35, brake: 0.5, turnRate: 0.3, color: '#2b3f55', cabin: '#e8e6e0' },
   kempenaar: { kind: 'binnenvaart', name: 'boat', len: 50, wid: 6.6, playerTop: 6, playerAccel: 0.45, maxSpeed: 5.8, accel: 0.3, brake: 0.45, turnRate: 0.26, color: '#6b2a24', cabin: '#d8d4c8' },
   // Frisian sailing barge (Jelle's): not in the ambient mix
+  // Watersport (#197, zeilrules.js): de roeiboot gaat op de roei-romp, de zeilboot op de bijboot-romp met wind als aandrijving (zeilvaren.js)
+  roeiboot: { kind: 'skiff', soort: 'roeiboot', name: 'boat', len: 4.4, wid: 1.3, playerTop: 5, playerAccel: 1.6, maxSpeed: 3.2, accel: 1.1, brake: 1.8, turnRate: 1.1, color: '#8a5a2c', cabin: '#f2f0ea' },
+  zeilboot: { kind: 'dinghy', soort: 'zeilboot', zeil: true, name: 'boat', len: 5.2, wid: 1.9, playerTop: 9, playerAccel: 1.4, maxSpeed: 6.5, accel: 0.7, brake: 0.9, turnRate: 0.9, color: '#f2f0ea', cabin: '#1f4f9a' },
   skutsje: { kind: 'skutsje', name: 'boat', sail: true, len: 15, wid: 3.6, maxSpeed: 7, accel: 0.9, brake: 1.3, turnRate: 0.8, color: '#1b1d1f', cabin: '#8a5a2c' },
 };
 
@@ -180,5 +183,6 @@ export function boatCrewCount(v) {
 // and pedal craft only a white all-round lamp.
 export function boatIsMotorised(v) {
   const k = boatKind(v);
+  if (v && v.model && v.model.zeil) return false;
   return k !== 'kano' && k !== 'kajak' && k !== 'waterfiets' && k !== 'sup' && k !== 'skiff' && k !== 'acht';
 }

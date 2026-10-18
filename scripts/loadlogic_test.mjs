@@ -1,5 +1,5 @@
 // Pure logic of the load screens (game/js/loadlogic.js):  node scripts/loadlogic_test.mjs
-import { loadKind, stepProgress, startProgress, litTiles, pickTips, buildLines, tipText, TILE_COUNT, TIP_MAX_CHARS, MAX_S, SNEL_M } from '../game/js/loadlogic.js';
+import { loadKind, stepProgress, startProgress, pickTips, buildLines, tipText, barsFor, BAR_PHASES, TIP_MAX_CHARS, MAX_S, SNEL_M } from '../game/js/loadlogic.js';
 let n = 0, fails = 0;
 const ok = (c, name, info = '') => { n++; if (!c) { fails++; console.log(`FAIL ${name}${info !== '' ? ` (${info})` : ''}`); } };
 
@@ -29,7 +29,17 @@ let z = startProgress();
 z = stepProgress(z, 50, MAX_S + 0.1, 'travel');
 ok(z.done && z.bar === 1, 'timeout finishes');
 
-ok(litTiles(0) === 0 && litTiles(1) === TILE_COUNT && litTiles(0.5) === TILE_COUNT / 2 && litTiles(2) === TILE_COUNT && litTiles(-1) === 0, 'tiles');
+for (const ph of BAR_PHASES) ok(barsFor(ph) === 1, 'one bar in phase ' + ph);
+{
+  const ls = fs.readFileSync(new URL('../game/js/loadscreen.js', import.meta.url), 'utf8');
+  const css = fs.readFileSync(new URL('../game/js/loadscreen.css', import.meta.url), 'utf8');
+  const html = fs.readFileSync(new URL('../game/index.html', import.meta.url), 'utf8');
+  ok((ls.match(/class="ls-bar"/g) || []).length === 1, 'load screen draws one bar element');
+  ok(!/ls-tiles/.test(ls + css), 'no second (tile) bar on the load screen');
+  ok(!/ls-snel[^{]*\.ls-bar[^{]*\{[^}]*display:\s*none/.test(css), 'snel keeps its single bar');
+  ok(/classList\.add\('ls-over'\)/.test(ls) && /#loading\.ls-over \.bt-load/.test(html), 'boot bar hides when the load screen opens');
+  ok((html.match(/class="ld-bar"/g) || []).length === 1 && !/<div id="loading"[^>]*role="progressbar"/.test(html), 'boot screen has one progressbar');
+}
 
 // tips
 const tips = ['Tip: loop met V. Dan kom je verder.', 'Tip: ' + 'x'.repeat(80), 'Tip: pauze met Esc.', 'Tip: pauze met Esc.', 'Tip: kaart met M!'];

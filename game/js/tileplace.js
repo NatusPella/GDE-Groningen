@@ -4,7 +4,7 @@
 // map.roadsNear), so they answer for the tiles that are in. A place that is
 // fixed ahead of the player (a shop door, a village's uitje) asks for its tiles
 // first (withTiles) and then runs on what is resident.
-import { pointInPolygon, closestPointOnSegment } from './util.js';
+import { pointInPolygon, closestPointOnSegment, nearestOnRoadList } from './util.js';
 
 // A polygon's distance to a point, 0 inside it.
 function polyDist(x, y, pts) {
@@ -143,16 +143,7 @@ export function roadNear(map, x, y, R = 40, ok = null) {
 // null. The plain point question ("where is the road") for callers that need
 // no class, width or graph rules; roadNear is the one with road classes.
 export function nearestOnRoads(map, x, y, R = 60, ok = null) {
-  let best = null;
-  for (const road of map.roadsNear(x, y, R)) {
-    if (ok && !ok(road)) continue;
-    const P = road.pts;
-    for (let i = 0; i < P.length - 1; i++) {
-      const cp = closestPointOnSegment(x, y, P[i][0], P[i][1], P[i + 1][0], P[i + 1][1]);
-      if (!best || cp.dist2 < best.d2) best = { d2: cp.dist2, x: cp.x, y: cp.y, road, i, dx: P[i + 1][0] - P[i][0], dy: P[i + 1][1] - P[i][1] };
-    }
-  }
-  return best;
+  return nearestOnRoadList(map.roadsNear(x, y, R), x, y, ok);
 }
 
 // The name of the road within ~15 m of (x, y), or ''.

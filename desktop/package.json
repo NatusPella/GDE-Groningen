@@ -36,6 +36,8 @@
       "trailervideo.js",
       "userdata.js",
       "envcompat.js",
+      "resources/window-icon.png",
+      "resources/icon.ico",
       "package.json"
     ],
     "extraResources": [
@@ -52,7 +54,7 @@
         }
       ],
       "category": "public.app-category.games",
-      "icon": "resources/icon.png",
+      "icon": "resources/icon.icns",
       "identity": null,
       "hardenedRuntime": false,
       "gatekeeperAssess": false
@@ -71,7 +73,7 @@
         }
       ],
       "signExecutable": false,
-      "icon": "resources/icon.png",
+      "icon": "resources/icon.ico",
       "legalTrademarks": "GDE Groningen"
     },
     "portable": {
@@ -111,7 +113,7 @@
     "afterPack": "scripts/adhoc-sign.cjs"
   },
   "devDependencies": {
-    "electron": "^44.4.5",
+    "electron": "^44.9.0",
     "electron-builder": "^26.15.3"
   },
   "overrides": {

@@ -190,3 +190,20 @@ html.reduce-motion .gm, html.reduce-motion .gm *, html.reduce-motion .gm *::befo
 .gm .m-tab:focus-visible { outline-offset: 8px; border-radius: 2px; }
 .m-pane > .m-acts.td-acts { position: sticky; bottom: 0; padding-top: 12px; background: linear-gradient(180deg, transparent, rgba(14, 26, 18, 0.96) 28%); }
 @media (max-height: 820px) { .m-tablist { gap: 0 28px; } .m-tab { font-size: 24px; } }
+
+/* Fotomodus (#199, fotomodusui.js) */
+#foto-ui { position: fixed; inset: 0; z-index: 60; pointer-events: none; font-family: inherit; color: #fff; }
+#foto-ui .foto-grid { position: absolute; inset: 0; background:
+  linear-gradient(to right, transparent 33.2%, rgba(255,255,255,.45) 33.3%, transparent 33.5%, transparent 66.5%, rgba(255,255,255,.45) 66.6%, transparent 66.8%),
+  linear-gradient(to bottom, transparent 33.2%, rgba(255,255,255,.45) 33.3%, transparent 33.5%, transparent 66.5%, rgba(255,255,255,.45) 66.6%, transparent 66.8%); }
+#foto-ui .foto-bar { position: absolute; left: 50%; bottom: calc(16px * var(--ui, 1)); transform: translateX(-50%); display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: center; max-width: 94vw; padding: 8px 14px; border-radius: 14px; background: rgba(20,24,30,.72); pointer-events: auto; font-size: calc(14px * var(--ui, 1)); }
+#foto-ui .foto-info { opacity: .85; margin-right: 6px; }
+#foto-ui kbd { display: inline-block; min-width: 1.6em; padding: 2px 7px; border-radius: 6px; background: #fff; color: #1b2027; font: inherit; font-weight: 700; text-align: center; box-shadow: 0 2px 0 rgba(0,0,0,.35); }
+#foto-ui .foto-btn { pointer-events: auto; border: 0; border-radius: 10px; padding: 8px 14px; min-height: 44px; font: inherit; font-weight: 700; background: #fff; color: #1b2027; cursor: pointer; }
+#foto-ui .foto-note { position: absolute; top: calc(18px * var(--ui, 1)); left: 50%; transform: translateX(-50%); padding: 6px 14px; border-radius: 10px; background: rgba(20,24,30,.72); font-size: calc(15px * var(--ui, 1)); }
+#foto-ui .foto-note:empty { display: none; }
+.foto-panel { padding: 8px 4px; }
+.foto-gal { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; }
+.foto-gal figure { margin: 0; }
+.foto-gal img, .foto-leeg { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 8px; background: rgba(128,128,128,.2); display: grid; place-items: center; }
+.foto-gal figcaption { font-size: .85em; margin-top: 4px; }

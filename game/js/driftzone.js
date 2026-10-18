@@ -96,6 +96,7 @@ function finalize(w, why) {
   const ghostSaved = saveGhost(ghostStore(), id, finishGhost(rec0, pts, { higher: true }), KEYS.ghosts);
   recordStat(w, 'driftRuns');
   if (medal >= 3) unlockAchievement(w, 'drift_goud');
+  if (pts >= 5000) unlockAchievement(w, 'drift_5000');
   const prize = Math.max(0, (PRIZE[medal] || 0) - (PRIZE[prev] || 0));
   if (prize) w.money += prize;
   const lines = [`${pts} punten${medal ? ' · ' + MEDALS[medal].toLowerCase() : ''}`];

@@ -18,7 +18,7 @@ export const PLEKKEN = {
 // Welke meubels verplaatsbaar zijn, waarheen, en wat de standaardplek is.
 // half: halve breedte van het blokje waar je niet doorheen loopt.
 export const VERPLAATSBAAR = {
-  lamp: { opties: ['h1', 'h2', 'h3'], standaard: 'h1', half: 0.22 },
+  lamp: { opties: ['h1', 'h2', 'h3', 'h4', 'h5'], standaard: 'h1', half: 0.22 },
   plant: { opties: ['h4', 'h1', 'h2', 'h3', 'h5'], standaard: 'h4', half: 0.32 },
 };
 

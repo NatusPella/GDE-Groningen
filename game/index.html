@@ -3,7 +3,12 @@
 <head>
 <meta charset="utf-8">
 <title>GDE Groningen – Zomer vol misdaad</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="icon" href="img/icons/favicon.ico" sizes="16x16 32x32 48x48">
+<link rel="icon" type="image/png" sizes="32x32" href="img/icons/favicon-32.png">
+<link rel="apple-touch-icon" href="img/icons/apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0c140e">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Big+Shoulders+Display:wght@700;800;900&display=swap" rel="stylesheet">
@@ -36,6 +41,7 @@
     background: radial-gradient(ellipse at center, #17301f 0%, #0c140e 75%);
     font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.04em; transition: opacity 0.7s ease;
   }
+  #loading.ls-over .bt-load { opacity: 0; transition: opacity 0.2s; }
   #loading.done { opacity: 0; pointer-events: none; }
   #loading .bt-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; animation: bt-drift 26s ease-in-out infinite alternate, bt-bgin 1.6s 0.2s ease forwards; }
   #loading .bt-veil { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(12,20,14,0.55) 0%, rgba(12,20,14,0.3) 40%, rgba(12,20,14,0.5) 70%, rgba(12,20,14,0.9) 100%); }
@@ -132,7 +138,7 @@
 <body>
 <canvas id="game3d"></canvas>
 <div id="hud"></div>
-<div id="loading" role="progressbar" aria-label="GDE wordt geladen">
+<div id="loading">
   <img class="bt-bg" src="img/laad/rondvaart.jpg" alt="" decoding="async">
   <div class="bt-veil"></div>
   <div class="bt">

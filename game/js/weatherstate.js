@@ -56,6 +56,7 @@ export function regionAt(x, y) {
 }
 
 import { mulberry32 } from './rng.js';
+import { mistMag, mistWeg, onweerMag } from './weerdag.js';
 export { mulberry32 };
 
 const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
@@ -64,10 +65,10 @@ const approach = (v, target, step) => (target > v ? Math.min(target, v + step) :
 function span(rng, [lo, hi]) { return lo + rng() * (hi - lo); }
 
 // Next kind for a region that just finished `prev`, given the hour and the front.
-export function nextKind(prev, hour, front, wet, rng) {
+export function nextKind(prev, hour, front, wet, rng, id = 'stad') {
   const f = (0.4 + front * 1.2) * wet;           // 0.4..1.6 wetter or drier
-  const morning = hour >= 4 && hour < 8.5;
-  const afternoon = hour >= 12 && hour < 22;     // warm air: thunder
+  const morning = mistMag(id, hour);             // by the sun (weerdag.js), as dayState
+  const afternoon = onweerMag(id, hour);         // warm air: thunder
   let w;
   if (prev === 'motregen' || prev === 'regenbui' || prev === 'onweer') {
     w = { helder: 40, bewolkt: 55, mist: 0, motregen: 5 * f, regenbui: 0, onweer: 0 };
@@ -103,8 +104,6 @@ export function createWeatherState(seed = 1) {
   return { rng, front: 0.35 + rng() * 0.3, windAngle: rng() * Math.PI * 2, regions };
 }
 
-// Mist burns off in the sun, whatever its roll said.
-const mistGone = (hour) => hour >= 9.5 && hour < 20;
 
 export function stepWeather(ws, dt, hour) {
   const rng = ws.rng;
@@ -114,8 +113,8 @@ export function stepWeather(ws, dt, hour) {
   for (const id of REGION_IDS) {
     const r = ws.regions[id];
     r.age += dt;
-    if (r.age >= r.duration || (r.kind === 'mist' && mistGone(hour))) {
-      const kind = nextKind(r.kind, hour, ws.front, REGIONS[id].wet, rng);
+    if (r.age >= r.duration || (r.kind === 'mist' && mistWeg(id, hour))) {
+      const kind = nextKind(r.kind, hour, ws.front, REGIONS[id].wet, rng, id);
       r.kind = kind;
       r.age = 0;
       r.duration = span(rng, DURATION[kind]);

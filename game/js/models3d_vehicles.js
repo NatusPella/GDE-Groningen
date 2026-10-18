@@ -5,6 +5,7 @@ import { boatKind, boatHasCabin } from './boattypes.js';
 import { buildHeliMesh } from './heli3d.js';
 import { buildPlaneMesh } from './plane3d.js';
 import { hash2, hash3 } from './rng.js';
+import { zoneTotals, losseOnderdelen } from './vehicledamage.js';
 
 // Low-poly vehicles. Group origin = vehicle centre at ground level (y=0),
 // facing local +X, right-hand side on +Z; sized off v.model.len/wid.
@@ -224,7 +225,6 @@ function buildCarGeometry(type, L, W, paint, opts) {
   const f1 = vcount();
   B.box(-hl - 0.02, 0.4, 0, 0.12, 0.14, W - 0.04, bumper);
   const r1 = vcount();
-  B.box(hl + 0.005, P.nose - 0.12, 0, 0.03, 0.11, W * 0.42, TRIM);
   B.box(-hl - 0.008, P.van ? 0.62 : Math.min(0.6, P.tail - 0.22), 0, 0.012, 0.1, 0.48, PLATE);
   const lampY = P.nose - 0.06;
   for (const s of [1, -1]) {
@@ -233,9 +233,6 @@ function buildCarGeometry(type, L, W, paint, opts) {
     const tailY = P.van ? 0.95 : P.tail - 0.1;
     B.box(-hl - 0.006, tailY, s * (hw - 0.18), 0.03, P.van ? 0.3 : 0.12, P.van ? 0.14 : 0.3, TAIL, G_LAMP);
     B.box((P.fw + P.rw) / 2, sill + 0.08, s * (hw + 0.005), (P.fw - P.rw) - R * 2 - 0.1, 0.1, 0.02, TRIM);
-    const mx = P.van ? P.xA - 0.12 : P.xA - 0.08;
-    B.box(mx, P.belt + 0.1, s * (hw + 0.08), 0.1, 0.09, 0.14, paint);
-    B.box(mx + 0.02, P.belt + 0.05, s * (hw + 0.02), 0.05, 0.04, 0.06, TRIM);
     if (!P.van) {
       for (const dx of [P.xA - 0.04, (P.xB + P.xC) / 2 + 0.15]) B.box(dx, (sill + P.belt) / 2 + 0.1, s * (hw + 0.003), 0.012, P.belt - sill - 0.25, 0.01, shadeHex(paint, 0.6));
       B.box((P.xB + P.xC) / 2 + 0.05, P.belt - 0.08, s * (hw + 0.006), 0.12, 0.025, 0.012, shadeHex(paint, 0.7));
@@ -396,6 +393,8 @@ function assembleCar(type, L, W, paint, { police = false, ambulance = false, wre
   group.add(body);
   group.userData.body = body;
   const P = carProfile(type, L / 2);
+  // grille and mirrors are their own meshes, so they can come off in a crash (#205)
+  group.userData.loose = looseCarParts(type, L, W, color, P, mats, group);
   const wgeo = carWheelGeometry(wheelR, WHEEL_W);
   const wheels = [];
   for (const x of [P.fw, P.rw]) for (const s of [1, -1]) addWheel(group, wgeo, mats[0], x, wheelR, s * (W / 2 - WHEEL_W / 2 - 0.04), wheels);
@@ -416,6 +415,34 @@ function assembleCar(type, L, W, paint, { police = false, ambulance = false, wre
     group.userData.policeLamps = lamps;
   }
   return group;
+}
+
+function looseCarParts(type, L, W, paint, P, mats, group) {
+  const hl = L / 2, hw = W / 2;
+  const parts = {};
+  const make = (id, build) => {
+    const geo = cached(`loose|${id}|${type}|${L}|${W}|${paint}`, () => { const B = new GeoBuilder(3); build(B); return B.build(); });
+    const m = new THREE.Mesh(geo, mats);
+    group.add(m);
+    parts[id] = m;
+  };
+  make('grille', (B) => B.box(hl + 0.005, P.nose - 0.12, 0, 0.03, 0.11, W * 0.42, TRIM));
+  make('spiegels', (B) => {
+    const mx = P.van ? P.xA - 0.12 : P.xA - 0.08;
+    for (const s of [1, -1]) {
+      B.box(mx, P.belt + 0.1, s * (hw + 0.08), 0.1, 0.09, 0.14, paint);
+      B.box(mx + 0.02, P.belt + 0.05, s * (hw + 0.02), 0.05, 0.04, 0.06, TRIM);
+    }
+  });
+  return parts;
+}
+
+// Hides the parts that vehicledamage.js says are loose (grille, mirrors) on a car mesh.
+export function syncLooseParts(mesh, v) {
+  const parts = mesh && mesh.userData.loose;
+  if (!parts) return;
+  const los = new Set(losseOnderdelen(zoneTotals(v.dentLog, v.model.len, v.model.wid)));
+  for (const id of Object.keys(parts)) parts[id].visible = !los.has(id);
 }
 
 function carType(v) {
@@ -2351,6 +2378,7 @@ export function buildVehicleMesh(v) {
   meshRegistry.set(v.id, group);
   if (v.damage) restoreDamage(group, v);
   else if (v.dentLog && v.dentLog.length && !v.wrecked) replayDents(group, v);
+  if (v.dentLog && v.dentLog.length) syncLooseParts(group, v);
   return group;
 }
 
@@ -2689,6 +2717,7 @@ export function applyVehicleDamage(mesh, v, lx, lz, strength) {
     if (!v.dentLog) v.dentLog = [];
     v.dentLog.push([lx, lz, strength]);
     if (v.dentLog.length > 12) v.dentLog.shift();
+    syncLooseParts(mesh, v);
   }
   return dropped;
 }

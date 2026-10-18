@@ -5,7 +5,6 @@
 export const JUMP_M = 700;
 export const SNEL_M = 3000;
 export const MAX_S = 12;
-export const TILE_COUNT = 12;
 export const TIP_MAX_CHARS = 70;
 export const LINE_S = { save: 4.5, travel: 3.5, snel: 0 };
 const MIN_S = { save: 2.2, travel: 1.4, snel: 0.6 };
@@ -37,8 +36,10 @@ export function stepProgress(state, pending, elapsedS, kind) {
 }
 export const startProgress = () => ({ total: 0, shown: 0, calm: 0, frames: 0 });
 
-// How many of the TILE_COUNT tiles are lit for a bar value.
-export const litTiles = (bar) => Math.max(0, Math.min(TILE_COUNT, Math.floor(bar * TILE_COUNT + 1e-9)));
+// Exactly one progress bar is visible per phase: the boot screen's during the
+// boot, the load screen's afterwards (the boot bar is hidden once it opens).
+export const BAR_PHASES = ['boot', 'save', 'travel', 'snel'];
+export const barsFor = (phase) => (BAR_PHASES.includes(phase) ? 1 : 0);
 
 const firstSentence = (t) => (t.match(/^.*?[.!?](\s|$)/) || [t])[0].trim();
 export const tipText = (t) => firstSentence(String(t).replace(/^Tip: /, '')).replace(/^./, (c) => c.toUpperCase());
