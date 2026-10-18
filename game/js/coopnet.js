@@ -63,7 +63,7 @@ function endCoop(world) {
   world.coopPartner = null;
 }
 
-export function startHost(world, transport, info, seed = 1, { onHold = null, fade = null } = {}) {
+export function startHost(world, transport, info, seed = 1, { onHold = null, fade = null, route = null } = {}) {
   const session = new HostSession(transport, { info, seed, sim: hostSim(world), caps: CAPS });
   prepareCoop(world);
   world.coop.prevLocal = world.coop.local !== false; world.coop.local = false; // in een sessie stuurt de gast, niet het toetsenbord
@@ -74,11 +74,11 @@ export function startHost(world, transport, info, seed = 1, { onHold = null, fad
   session.onevent = (b) => handleEvent(world, b);
   setFixedCharacters(world, 'host');
   world.coopRole = 'host';
-  world.coopNet = { role: 'host', session, fade };
+  world.coopNet = { role: 'host', session, fade, route };
   return session;
 }
 
-export function startClient(world, transport, info, { onHold = null, fade = null } = {}) {
+export function startClient(world, transport, info, { onHold = null, fade = null, route = null } = {}) {
   const ok = canJoin(world);
   if (!ok.ok) throw new Error(ok.reason);
   const session = new ClientSession(transport, { info, caps: CAPS });
@@ -91,7 +91,7 @@ export function startClient(world, transport, info, { onHold = null, fade = null
   session.onevent = (b) => handleEvent(world, b);
   setFixedCharacters(world, 'client');
   world.coopRole = 'client';
-  world.coopNet = { role: 'client', session, stash, fade, joined: false };
+  world.coopNet = { role: 'client', session, stash, fade, joined: false, route };
   return session;
 }
 

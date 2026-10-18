@@ -1,10 +1,5 @@
 import { FLAGS } from './devflags.js';
 import { hasSave, readSave, applySave, clearSave, getSaveSummary } from './savegame.js';
-import { startHost, startClient, stopCoopNet, tickCoopNet, handshakeInfo } from './coopnet.js';
-import { readSession, writeSession, toSession } from './coopsave.js';
-import { setFixedCharacters } from './coopclient.js';
-import { bindCoop } from './coopglue.js';
-import { openHold } from './coophold.js';
 import { VERSION } from './version.js';
 import { checkWhatsNew, markVersionSeen, compareVersions } from './whatsnew.js';
 import { pointInPolygon } from './util.js';
@@ -520,27 +515,22 @@ export function runStartScreen(world, { render, relocate, tick }) {
       fade.remove();
       resolve(mode);
     };
-    const doNew = () => {
+    const startNew = () => {
       startTheme();
       restoreWorld();
       clearSave();
-      finish('game');
-    };
-    // met ?coop kiest de speler per sessie Alleen of Samen (chooseMode, verderop)
-    const startNew = () => (FLAGS.coop ? chooseMode('nieuw', doNew) : doNew());
-    const doContinue = () => {
-      startTheme();
-      restoreWorld();
-      applySave(world, readSave());
-      // the load screen covers the menu until the city round the save has streamed in
-      startLoadScreen(world, { kind: 'save' });
       finish('game');
     };
     const activate = (i) => {
       const it = items[i];
       if (it.act !== 'news' && it.act !== 'about') news.hidden = true;
       if (it.act === 'continue') {
-        if (FLAGS.coop) chooseMode('doorgaan', doContinue); else doContinue();
+        startTheme();
+        restoreWorld();
+        applySave(world, readSave());
+        // the load screen covers the menu until the city round the save has streamed in
+        startLoadScreen(world, { kind: 'save' });
+        finish('game');
       } else if (it.act === 'new') {
         if (!arcForced()) { openChoice(); return; }
         if (save && !confirmNew) { setConfirm(true); return; }
@@ -570,45 +560,6 @@ export function runStartScreen(world, { render, relocate, tick }) {
     const openNews = () => {
       showPanel('Wat is er nieuw');
       loadChangelog().then((html) => { if (!news.hidden && newsTitle.textContent === 'Wat is er nieuw') newsBody.innerHTML = html; });
-    };
-    // Alleen of Samen (#95), alleen met ?coop: lobby.js (logica) en lobbyui.js (tekenen).
-    // Eén save: de host (of een lokaal duo) speelt en bewaart zoals altijd; een gast bewaart het
-    // verhaal niet (savegame.js: world.coopRole) en start in een lege wereld die de host overneemt.
-    let lobby = null, lobbyIv = null;
-    const stopLobbyTick = () => { if (lobbyIv) { clearInterval(lobbyIv); lobbyIv = null; } };
-    const coopStore = () => { try { return localStorage; } catch (e) { return null; } };
-    const remember = (modus, rol, code) => { const ls = coopStore(); if (ls) writeSession(ls, toSession(readSession(ls), { modus, rol, code })); };
-    const doGuest = () => { startTheme(); restoreWorld(); finish('game'); };
-    const enterGame = (rol, run) => {
-      stopLobbyTick(); // vanaf nu tikt de hoofdlus de sessie (main.js)
-      if (rol === 'alleen') { world.coop = null; world.coopRole = null; remember('alleen', null); run(); return; }
-      if (!world.coop) bindCoop(world, world.input);
-      if (rol === 'gast') doGuest(); else run();
-      if (rol !== 'gast') setFixedCharacters(world, 'host'); // Tammo; na het laden van de save
-      if (rol === 'lokaal') remember('samen', 'lokaal');
-    };
-    const chooseMode = (actie, run) => {
-      showPanel(actie === 'nieuw' ? 'Nieuw spel' : 'Doorgaan');
-      import('./lobbyui.js').then(({ mountLobby }) => {
-        if (lobby) lobby.close();
-        const ls = coopStore();
-        const sess = ls ? readSession(ls) : null;
-        lobby = mountLobby(newsBody, {
-          actie,
-          laatsteCode: sess ? sess.laatsteCode : '',
-          start: (modus) => enterGame(modus, run),
-          onSession: (role, tr) => {
-            const info = handshakeInfo({ tiles: '-', story: ARC_ID });
-            const onHold = (r) => openHold(world, r);
-            const s2 = role === 'host' ? startHost(world, tr, info, 1, { onHold }) : startClient(world, tr, info, { onHold });
-            stopLobbyTick(); lobbyIv = setInterval(() => tickCoopNet(world, 0.05), 50); // het startscherm tikt de sessie zelf
-            return s2;
-          },
-          onCode: (code) => remember('samen', 'gast', code),
-          enter: (role) => { remember('samen', role === 'host' ? 'host' : 'gast', ''); enterGame(role === 'host' ? 'host' : 'gast', run); },
-          disconnect: () => { stopLobbyTick(); stopCoopNet(world); },
-        });
-      });
     };
     const openAbout = () => {
       showPanel('Over GDE');
