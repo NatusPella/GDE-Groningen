@@ -11,6 +11,7 @@ import zlib from 'node:zlib';
 
 const root = new URL('../game/', import.meta.url);
 const WB = await import('../game/js/worldbuilder.js');
+const { capBuilding } = await import('../game/js/buildingcap.js');
 let fails = 0;
 const fail = (m) => { fails++; console.log('FAIL ' + m); };
 const eq = (a, b) => JSON.stringify(a) === JSON.stringify(b);
@@ -103,7 +104,8 @@ const eq = (a, b) => JSON.stringify(a) === JSON.stringify(b);
     fb++;
     if (o.type !== b.type) { dt++; const k = b.type + '>' + o.type; tdiff[k] = (tdiff[k] || 0) + 1; }
     // (the city's measured heights come from the 3D BAG, which this run of the adapter does not read)
-    if (o.h !== b.h && b.hsrc !== '3dbag') { dh++; const k = b.h + '>' + o.h; hdiff[k] = (hdiff[k] || 0) + 1; }
+    // (buildingcap.js trims what a footprint cannot carry on purpose, #179: expect the old row through the same cap)
+    if (o.h !== b.h && b.hsrc !== '3dbag' && o.h !== capBuilding({ ...b }).h) { dh++; const k = b.h + '>' + o.h; hdiff[k] = (hdiff[k] || 0) + 1; }
   }
   console.log(`city buildings: ${fb}/${nb} matched by outline, type differs ${dt}, levels differ ${dh}`);
   const top = (o) => Object.entries(o).sort((a, b) => b[1] - a[1]).slice(0, 8).map(([k, v]) => `${k} ${v}`).join(', ');
