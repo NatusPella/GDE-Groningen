@@ -236,7 +236,8 @@ Debug hooks on `window` (`window.__x`, read by scripts/perf, the story test and 
 | `?hitch` | Meet haperingen (hitchprobe) |
 | `?simlagen` | Standaard aan; `?zonderlagen` zet de simulatielagen uit (simlagen.js, #18) en valt terug op de vaste doelaantallen |
 | `?zwartcheck` | Controleer op zwarte beelden (blackframe) |
-| `?reizen` | Reisbeats in het nieuwe verhaal: keuze Meerijden, Zelf rijden of Overslaan bij een sprong (#97) |
+| `?reizen` | Reisbeats in het nieuwe verhaal: keuze Meerijden, Zelf rijden of Overslaan bij een sprong (#97); staat standaard aan, uit met zonderreizen en in de testmodi |
+| `?zonderreizen` | Zet de reisbeats uit (zie reizen) |
 | `?preview` | Trailer-voorbeeld in echte tijd met geluid (cut=teaser of hoofd); houd Spatie ingedrukt om over te slaan |
 | `?testmenu` | Testmenu op F10 met alle schakelaars en snelkoppelingen; eigen opslag (gde-dev:), raakt de echte save niet |
 | `?brugbotsing` | Stuurt na een paar seconden een binnenvaartschip tegen de dichtstbijzijnde brug (#9) |
@@ -245,7 +246,7 @@ Debug hooks on `window` (`window.__x`, read by scripts/perf, the story test and 
 Every switch above is **off by default**: nothing changes for a player unless the name is in the URL. Value switches (`?shot=3`, `?marker=vorm`, `?stadlaag=gebouwen,wegen`, `?touch=1`, `?preset=quality:laag`, `?gpu=<renderer>`, `?benchmark=<rounds>`) are null when absent. The ones to reach for most often:
 
 - Testing without touching your save: `?dev` (F9 panel) or `?storytest`; both use `gde-dev:` storage or memory.
-- Features still in trial, off by default so the game stays as it was: `?coop`, `?reizen`, `?stadlaag`.
+- Features still in trial, off by default so the game stays as it was: `?coop`, `?stadlaag`.
 - Diagnosis: `?pixeldebug` (NaN/Inf pixels magenta), `?hitch`, `?zwartcheck`, `?shaderdebug`, `?noworker`, `?nobatch`.
 - `?marker=vorm` brings back the old fixed 3D marker shapes. A new switch is added to `FLAGS` and `FLAG_DOCS` only, and to the table above; `devflags_test.mjs` fails otherwise.
 

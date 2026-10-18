@@ -245,15 +245,15 @@ function find(map, v) {
 // Labels per controller family. Xbox and the Steam Deck share letters; the
 // PlayStation face buttons are shapes (drawn by glyphs.js).
 export const PAD_LAYOUTS = {
-  xbox: { a: 'A', b: 'B', x: 'X', y: 'Y', lb: 'LB', rb: 'RB', lt: 'LT', rt: 'RT', view: 'View', start: 'Menu', ls: 'L3', rs: 'R3', lstick: 'L', rstick: 'R' },
-  ps: { a: 'cross', b: 'circle', x: 'square', y: 'triangle', lb: 'L1', rb: 'R1', lt: 'L2', rt: 'R2', view: 'Create', start: 'Options', ls: 'L3', rs: 'R3', lstick: 'L', rstick: 'R' },
+  xbox: { a: 'A', b: 'B', x: 'X', y: 'Y', lb: 'LB', rb: 'RB', lt: 'LT', rt: 'RT', view: 'Overzicht', start: 'Menu', ls: 'L3', rs: 'R3', lstick: 'L', rstick: 'R' },
+  ps: { a: 'cross', b: 'circle', x: 'square', y: 'triangle', lb: 'L1', rb: 'R1', lt: 'L2', rt: 'R2', view: 'Delen', start: 'Opties', ls: 'L3', rs: 'R3', lstick: 'L', rstick: 'R' },
   // Switch: dezelfde plekken, andere letters (de onderste knop is B)
   switch: { a: 'B', b: 'A', x: 'Y', y: 'X', lb: 'L', rb: 'R', lt: 'ZL', rt: 'ZR', view: '−', start: '+', ls: 'L3', rs: 'R3', lstick: 'L', rstick: 'R' },
-  deck: { a: 'A', b: 'B', x: 'X', y: 'Y', lb: 'L1', rb: 'R1', lt: 'L2', rt: 'R2', view: 'View', start: 'Menu', ls: 'L3', rs: 'R3', lstick: 'L', rstick: 'R' },
+  deck: { a: 'A', b: 'B', x: 'X', y: 'Y', lb: 'L1', rb: 'R1', lt: 'L2', rt: 'R2', view: 'Overzicht', start: 'Menu', ls: 'L3', rs: 'R3', lstick: 'L', rstick: 'R' },
 };
 export const PAD_SLOT_NAMES = {
   a: 'Onderste knop', b: 'Rechter knop', x: 'Linker knop', y: 'Bovenste knop', lb: 'Linker bumper', rb: 'Rechter bumper',
-  lt: 'Linker trigger', rt: 'Rechter trigger', view: 'View/Select', start: 'Menu/Start', ls: 'Linker stick indrukken', rs: 'Rechter stick indrukken',
+  lt: 'Linker trigger', rt: 'Rechter trigger', view: 'Overzicht/Terug', start: 'Menu/Start', ls: 'Linker stick indrukken', rs: 'Rechter stick indrukken',
   up: 'D-pad omhoog', down: 'D-pad omlaag', left: 'D-pad links', right: 'D-pad rechts',
 };
 
@@ -273,13 +273,13 @@ export function padInfo(id, mapping = '') {
   const s = String(id || '').toLowerCase();
   const family = padFamily(id);
   const standard = mapping === 'standard' || /standard gamepad/.test(s);
-  let name = { xbox: 'Letterknoppen (A B X Y)', ps: 'Vormknoppen', switch: 'Wisselende letters', deck: 'Handheld' }[family];
-  if (/steam controller/.test(s) || (/28de/.test(s) && /product:\s*(1102|1142)/.test(s))) name = 'Ouder pad';
-  else if (/joy-?con/.test(s)) name = 'Los klein pad';
-  else if (/pro controller/.test(s)) name = 'Wisselende letters, groot pad';
+  let name = { xbox: 'Controller met letterknoppen', ps: 'Controller met vormknoppen', switch: 'Controller met wisselende letters', deck: 'Handheld' }[family];
+  if (/steam controller/.test(s) || (/28de/.test(s) && /product:\s*(1102|1142)/.test(s))) name = 'Controller met trackpads';
+  else if (/joy-?con/.test(s)) name = 'Losse controllerhelft';
+  else if (/pro controller/.test(s)) name = 'Controller met wisselende letters';
   let note = '';
   if (!id) note = 'Geen controller gevonden. Druk op een knop.';
-  else if (!standard) note = 'Dit pad meldt geen standaardindeling: de knoppen kunnen verkeerd liggen. Zet de controller in de standaardstand of kies bij Knoppen tonen als de juiste indeling.';
+  else if (!standard) note = 'Dit pad meldt geen standaardindeling: de knoppen kunnen verkeerd liggen. Zet de controller in de standaardmodus (letterknoppen), of kies bij Knoppen tonen als de juiste indeling.';
   return { family, name: id ? name : '', standard, note };
 }
 

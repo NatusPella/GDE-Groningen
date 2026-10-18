@@ -224,31 +224,31 @@ export const KEUZE_JOBS = {
 
   bernard: {
     id: 'bernard',
-    name: 'Bernard en zijn karretje',
-    boss: 'Bernard',
+    name: 'Bernhard en zijn karretje',
+    boss: 'Bernhard',
     building: 'Groninger Museum',
     color: '#9a7a4a',
-    blurb: 'Help Bernard, de verzonnen zwerver met het karretje, door een rustige dag in het centrum',
-    tagline: 'Drie vragen onderweg. Bernard vraagt weinig, maar hij vraagt het vriendelijk.',
+    blurb: 'Help Bernhard, de verzonnen zwerver met het karretje, door een rustige dag in het centrum',
+    tagline: 'Drie vragen onderweg. Bernhard vraagt weinig, maar hij vraagt het vriendelijk.',
     intro: [
-      'Bernard is een verzonnen zwerver met een karretje vol verhalen en één grote paraplu.',
+      'Bernhard is een verzonnen zwerver met een karretje vol verhalen en één grote paraplu.',
       'Hij vraagt of jij hem helpt met een paar kleine dingen. Droog en menselijk, nooit spot met hem.',
     ],
     say: {
-      arrive: 'Bernard tikt tegen zijn pet. "Goedemorgen. Ik zoek niets, maar als u iets vindt, is het van mij."',
-      quit: 'Je groet Bernard en loopt verder. Hij zwaait met zijn paraplu, alsof hij je uitzwaait.',
+      arrive: 'Bernhard tikt tegen zijn pet. "Goedemorgen. Ik zoek niets, maar als u iets vindt, is het van mij."',
+      quit: 'Je groet Bernhard en loopt verder. Hij zwaait met zijn paraplu, alsof hij je uitzwaait.',
       deskTitle: 'BERNARD · KARRETJE',
     },
     cases: [
-      C('Bernard zegt dat zijn karretje te zwaar is. Wat doe je?', 'Je vraagt of je kunt helpen en tilt het samen met hem', ['Je pakt het karretje en rijdt weg', 'Je zegt dat hij het gewoon moet laten staan']),
-      C('Hij wil weten hoe laat het is. Wat zeg je?', 'Je kijkt op je horloge en zegt de tijd', ['Dat het een mooie dag is voor een paraplu', 'Dat tijd niet bestaat']),
+      C('Bernhard zegt dat zijn karretje te zwaar is. Wat doe je?', 'Je vraagt of je kunt helpen en tilt het samen met hem', ['Je pakt het karretje en rijdt weg', 'Je zegt dat hij het gewoon moet laten staan']),
+      C('Hij wil weten hoe laat het is. Wat zeg je?', 'Je kijkt op je horloge en zegt de tijd', ['Dat het een mooie dag is voor een paraplu', 'Dat de tijd niet bestaat']),
       C('Een voorbijganger kijkt boos naar Bernards karretje. Wat doe je?', 'Je zegt vriendelijk dat het karretje er mag staan', ['Je kijkt net zo boos terug', 'Je duwt het karretje in de gracht']),
-      C('Bernard vertelt over een vis die kon fietsen. Wat doe je?', 'Je luistert en lacht op de goede plekken', ['Je onderbreekt hem met je eigen vis', 'Je zegt dat vissen niet kunnen fietsen']),
+      C('Bernhard vertelt over een vis die kon fietsen. Wat doe je?', 'Je luistert en lacht op de goede plekken', ['Je onderbreekt hem met je eigen vis', 'Je zegt dat vissen niet kunnen fietsen']),
       C('Hij biedt je een appel uit zijn karretje aan. Wat zeg je?', '"Dank u, die houd ik voor later."', ['"Doe maar vijf, ik heb honger."', '"Appels zijn voor de gracht."']),
-      C('Bernard zoekt een bankje in de schaduw. Wat doe je?', 'Je wijst hem het bankje bij de bomen', ['Je wijst het bankje in de volle zon', 'Je zegt dat bankjes verboden zijn']),
+      C('Bernhard zoekt een bankje in de schaduw. Wat doe je?', 'Je wijst hem het bankje bij de bomen', ['Je wijst het bankje in de volle zon', 'Je zegt dat bankjes verboden zijn']),
     ],
     pay: { base: 22, perRight: 13, tipAll: 16 },
-    verdicts: ['Bernard knikt dankbaar. De paraplu gaat open, uit pure vreugde.', 'Een paar dingen gelukt. Bernard doet alsof het precies zo bedoeld was.', 'Bernard zwaait vriendelijk. Hij heeft het toch nooit zo precies genomen.'],
+    verdicts: ['Bernhard knikt dankbaar. De paraplu gaat open, uit pure vreugde.', 'Een paar dingen gelukt. Bernhard doet alsof het precies zo bedoeld was.', 'Bernhard zwaait vriendelijk. Hij heeft het toch nooit zo precies genomen.'],
   },
 };
 

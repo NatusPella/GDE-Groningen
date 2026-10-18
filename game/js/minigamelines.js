@@ -43,8 +43,8 @@ export const SKATE_LINES = {
 };
 
 export const KART_LINES = {
-  who: 'Wubbe',
-  start: ['Welkom bij de kartbaan. Drie ronden, drie tegenstanders, geen ghosts.', 'Gas op de rechte stukken, handrem in de bochten.'],
+  who: 'Wubbo',
+  start: ['Welkom bij de kartbaan. Drie ronden, drie tegenstanders, geen spookrijders.', 'Gas op de rechte stukken, handrem in de bochten.'],
   lights: ['Startlichten...'],
   go: ['Daar gaan ze!'],
   last: ['Laatste ronde!'],
