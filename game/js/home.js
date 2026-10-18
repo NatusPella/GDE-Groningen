@@ -1309,6 +1309,22 @@ export function inHomeFlat() {
   return !!inside;
 }
 
+// Where a cutscene in the flat is staged (cutscenehost.js playScript, #149): the middle of the living room, along the
+// flat's long axis, and the space it may use: people stay inside the outer walls, the camera too and above the cutaway
+// (the same height the follow camera keeps). null when the player is not upstairs.
+export function flatStage() {
+  if (!inside || !home) return null;
+  const f = home.flat;
+  const [ax, ay] = f.fl(Math.min(3.4, f.w / 2), Math.min(2.8, f.d / 2));
+  const clamp = (x, y, z, kind) => {
+    const { lx, lz } = toFlat(x, y);
+    const m = kind === 'camera' ? 0.45 : 0.6;
+    const [cx, cy] = f.fl(Math.max(m, Math.min(f.w - m, lx)), Math.max(m, Math.min(f.d - m, lz)));
+    return { x: cx, y: cy, z: kind === 'camera' ? Math.max(z, FLOOR_TOP + CAM_ABOVE_FLOOR) : z };
+  };
+  return { anchor: { x: ax, y: ay, facing: Math.atan2(f.X[1], f.X[0]), z: FLOOR_TOP }, env: { clamp } };
+}
+
 // Every frame upstairs: walls and furniture, the floor, the companion on the sofa.
 function keepInFlat(dt, w) {
   const p = w.player;
