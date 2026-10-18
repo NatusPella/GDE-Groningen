@@ -163,5 +163,43 @@ ok(A.planModeFor('ov', 'lopen') === 'ov' && A.planModeFor('boot', 'auto') === 'b
   for (const f of hud) ok(!/prestaties? (wachten|wacht)/.test(readFileSync(new URL(f, dir), 'utf8')), 'no achievement counter notice in ' + f);
   ok(!/unseenAchievementCount/.test(readFileSync(new URL('hudcards.js', dir), 'utf8')), 'hudcards.js does not count unseen achievements');
 }
+// --- HUD text budget (#92): hudtext.js and scripts/hud_text_audit.mjs ---------
+{
+  const T = await import('../game/js/hudtext.js');
+  const AU = await import('./hud_text_audit.mjs');
+  ok(T.wordCount('') === 0 && T.wordCount('Brug open') === 2 && T.wordCount('  een   twee  ') === 2 && T.wordCount('<b>Ga</b> {E} nu') === 3, 'wordCount');
+  ok(T.wordCount('km/u · 30') === 3 && T.wordCount(null) === 0, 'wordCount separators and null');
+  ok(T.trimWords('Dit is een lange zin hier', 3) === 'Dit is een' && T.trimWords('kort', 3) === 'kort', 'trimWords');
+  ok(T.trimWords('Te weinig geld, even wachten', 3) === 'Te weinig geld', 'trimWords drops a trailing comma');
+  // the seen counter: an explanation shows EXPLAIN_TIMES times, then never
+  let seen = T.emptySeen();
+  ok(T.wantsExplain(seen, 'a'), 'new explanation wanted');
+  for (let i = 0; i < T.EXPLAIN_TIMES; i++) seen = T.markSeen(seen, 'a');
+  ok(!T.wantsExplain(seen, 'a') && T.wantsExplain(seen, 'b'), 'explanation gone after its times, others unaffected');
+  ok(T.markSeen(T.emptySeen(), 'a') !== T.emptySeen() && T.seenCount(T.markSeen({ a: 9 }, 'a'), 'a') === 9, 'markSeen is pure and capped');
+  ok(JSON.stringify(T.parseSeen('{"a":2,"b":"x","c":-1,"d":1.5}')) === '{"a":2}' && Object.keys(T.parseSeen('kapot')).length === 0 && Object.keys(T.parseSeen('[1]')).length === 0, 'parseSeen drops junk');
+  ok(T.withExplain('kort', 'lang uitleg', {}, 'x') === 'lang uitleg' && T.withExplain('kort', 'lang uitleg', { x: 5 }, 'x') === 'kort', 'withExplain');
+  // hints: a long explanation only the first times; blocked reasons stay short; short subs stay
+  const long = { label: 'Binnenlopen', sub: 'Een lange uitleg over wat hier kan en waarom dat leuk is' };
+  ok(T.promptSub(long, {}) === long.sub && T.promptSub(long, { 'hint:Binnenlopen': 2 }) === '', 'long hint sub only the first times');
+  ok(T.promptSub({ label: 'X', sub: 'Fiets 2/5' }, { 'hint:X': 9 }) === 'Fiets 2/5', 'short sub always');
+  ok(T.promptSub({ label: 'X', sub: 'Te weinig geld voor dit ding hier', dim: true }, { 'hint:X': 9 }) === 'Te weinig geld', 'blocked reason cut to 3 words');
+  ok(T.promptSub({ label: 'X', sub: 'Lange tekst met veel woorden erin hier', learn: true }, { 'hint:X': 9 }) !== '', 'learning hint keeps its text');
+  ok(T.explains(long, {}) && !T.explains(long, { 'hint:Binnenlopen': 2 }) && !T.explains({ label: 'X', sub: 'kort' }, {}), 'explains() counts only long first-time subs');
+  // the inventory: nothing over its budget (lower the ceilings in hud_text_audit.mjs when texts shrink)
+  const rows = AU.auditHudText();
+  ok(rows.length > 100, 'the audit finds the HUD texts', rows.length);
+  const over = AU.overBudget(rows);
+  const byKind = {};
+  for (const r of over) byKind[r.kind] = (byKind[r.kind] || 0) + 1;
+  for (const [k, lim] of Object.entries(AU.LIMITS)) ok((byKind[k] || 0) <= lim, `HUD text over budget: ${k}`, over.filter((r) => r.kind === k).map((r) => `${r.where} ${r.words}/${r.budget}`).join('; '));
+  ok(!over.some((r) => !(r.kind in AU.LIMITS)), 'every audited kind has a ceiling', over.map((r) => r.kind).join());
+  // the one place that stays long on purpose: the first-time travel help is shown, then gone
+  const RV = await import('../game/js/reisview.js');
+  const beat = { to: 'Winsum', length: 9000, ride: 'bus', lines: ['a'] };
+  ok(RV.panelState(beat, null, {}).help === 'Kies hoe je gaat' && RV.panelState(beat, null, { [RV.TRAVEL_HELP_ID]: 2 }).help === '', 'travel help only the first times');
+  ok(RV.panelState(beat).rule === '9,0 km', 'travel rule is the distance');
+}
+
 console.log(`${n} checks, ${fails} failed`);
 process.exit(fails ? 1 : 0);

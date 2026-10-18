@@ -356,7 +356,7 @@ export function stationPrompt(w) {
   const s = nearestStation(w);
   if (!s) return null;
   const why = blockReason(w);
-  return { id: 'trein-' + s.short, x: s.x, y: s.y, h: 2.9, key: 'E', label: 'Reizen met de trein', sub: why || `Kaartautomaat ${s.short}`, ring: true, dim: !!why };
+  return { id: 'trein-' + s.short, x: s.x, y: s.y, h: 2.9, key: 'E', label: 'Met de trein', sub: why || `Kaartautomaat ${s.short}`, ring: true, dim: !!why };
 }
 
 export function stationSecondary(w) {
