@@ -6,6 +6,9 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Nieuw
+- **Binnenin-camera in de auto:** druk op V tot 'Binnenin': je zit achter het stuur, met dashboard, stuur dat meedraait, instrumenten, stoelen en een achterbank in laag-poly stijl. Alleen voor personenauto's; bussen, vrachtwagens en trekkers houden de gewone camera.
+
 ## [0.35.0] - 2026-10-18
 
 ### Nieuw

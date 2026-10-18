@@ -15,6 +15,7 @@ import { DEAD_DURATION } from './pedestrians.js';
 import { attachCarry, carryPose } from './streetlife3d.js';
 import { buildPersonMesh, animatePersonWalk, applyAttackPose, applyHitReaction, setHeldWeapon, seatPose, seatedY, waveOverlay, carryOverlay, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { vehicleSeat, placeSeated, makeSeatTracker, trackSeat, drawTransition, syncBoatCrew } from './seating3d.js';
+import { updateCarInterior } from './carinterior.js';
 import { updateSwimmers3D } from './swimmers3d.js';
 import { driveRagdoll, syncBikeRider } from './ragdoll.js';
 import { applyWeatherToScene3D } from './weather.js';
@@ -2314,6 +2315,7 @@ export function update3D(dt, world) {
   const pv = player.inVehicle;
   const hidePlayers = (world.pigeonMode && !world.pigeonIntro) || world.menuCam || world.cinematicHidePlayers || !!world.trainDriving;
   const pvMesh = pv ? vehicleMeshes.get(pv.id) : null;
+  const inCabin = !!pv && updateCarInterior(pvMesh, pv, !!(world.cameraOverride && world.cameraOverride.interior));
   const pAnim = trackSeat(playerSeatTr, player, animDt, true);
   syncPlayerRider(pv, pvMesh, hidePlayers || (pAnim && pAnim.kind === 'enter'), world.time);
   if (pAnim && !hidePlayers) {
@@ -2323,7 +2325,7 @@ export function update3D(dt, world) {
   } else if (pv) {
     // on a horse the player sits astride the saddle (seating3d horse seat)
     const seated = (!pv.isBike && !pv.isScooter) || pv._mount === 'horse';
-    playerMesh.visible = seated && !hidePlayers;
+    playerMesh.visible = seated && !hidePlayers && !inCabin;
     if (seated) {
       playerMesh.scale.y = 1;
       placeSeated(playerMesh, pvMesh, pv, vehicleSeat(pv, true), world.time);
