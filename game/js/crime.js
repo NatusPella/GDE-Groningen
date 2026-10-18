@@ -42,6 +42,3 @@ export function reportCrime(world, kind, opts = {}) {
   return serious;
 }
 
-export function crimeHeat() {
-  return heat;
-}

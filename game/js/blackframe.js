@@ -104,4 +104,3 @@ function report(what, state, now) {
   logError('warn', `${what} · ${st}${ev.length ? ' · net ervoor: ' + events.filter((e) => now - e[0] < EVENT_WINDOW_MS).map((e) => e[1]).join(', ') : ''}`);
 }
 
-export const blackFramesSeen = () => seen;

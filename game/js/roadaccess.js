@@ -69,6 +69,14 @@ export function northUp(setting, mode) {
 
 // The routers' mode names (routing.js) and these.
 export const ROUTE_MODE = { lopen: 'walk', fiets: 'bike', auto: 'drive', boot: 'boat', ov: 'ov', lucht: 'fly' };
+// What the map plans for (#169): the way you travel now. The loose mode switches
+// are gone; another way (riding along, public transport) comes from the
+// destination card (ovopties.js), not from a map mode. choice: null, 'zelf' or
+// a mode name; the planner gets null (= your own way) unless the choice differs.
+export function planModeFor(choice, current) {
+  if (!choice || choice === 'zelf' || choice === current || !ROUTE_MODE[choice]) return null;
+  return ROUTE_MODE[choice];
+}
 export const MODE_OF_ROUTE = { walk: 'lopen', bike: 'fiets', drive: 'auto', boat: 'boot', ov: 'ov', fly: 'lucht' };
 
 // Roads where cyclists may ride against the one-way (OSM oneway:bicycle=no is
