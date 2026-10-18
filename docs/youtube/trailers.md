@@ -102,3 +102,13 @@ GDE staat voor Grootste Diefstal Ever. Een gratis, niet-commerciële parodie, ni
 - [ ] Hoofdstuktijden controleren tegen de echte opname.
 - [ ] Leeftijdsinstelling en AI-melding invullen zoals hierboven.
 - [ ] Pas na jouw akkoord: Niet vermeld, dan Openbaar (repo en link kloppen met #37).
+
+## Kanaalafbeeldingen (het kanaal bestaat al)
+
+Bronnen in [kanaalbeelden/](kanaalbeelden/): `avatar.svg` (800×800, Martinitoren met zomerzon, "GDE", leesbaar als klein rondje) en `banner.svg` (2048×1152; naam, "Zomer vol misdaad" en de tagline staan in de veilige zone van 1546×423 in het midden, x 251–1797, y 364–788). Export naar PNG in een scratchmap buiten de repo (headless Chrome of Edge, geen dependencies):
+
+```bash
+node scripts/export_kanaalbeelden.mjs            # %TEMP%/gde-kanaalbeelden/avatar.png en banner.png
+```
+
+Kanaal-ID en Studio-link staan bewust niet in de repo. Zelf uploaden onder Aanpassen › Branding.
