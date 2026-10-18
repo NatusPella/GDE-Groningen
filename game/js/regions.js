@@ -10,6 +10,7 @@ import { worldToWgs, wgsToWorld } from './rdnew.js';
 import { FALLBACK } from './regiondata.js';
 import { MAP_PALETTE, seaStyle } from './mapstyle.js';
 import { worldPlaceAt } from './worldplaces.js';
+import { coastKinds, borderByData } from './worldedge.js';
 
 export const REGIONS = {
   groningen: { name: 'Groningen', land: true },
@@ -85,9 +86,10 @@ function seaPolygon(coast) {
   return chain.concat([[we[0] - 30000, we[1]], [we[0] - 30000, -80000], [ea[0] + 400, -80000], [ea[0] + 400, ea[1]]]);
 }
 
+// tileHas(x, y): is there a data tile there (the border turn-back keeps to it).
 // layer: index-provincie.json global ({ outline, edge: { coast, border } }) or
 // nothing for the fallback
-export function setRegionData(layer) {
+export function setRegionData(layer, tileHas = null) {
   const have = layer && layer.outline && layer.outline.length && layer.edge && layer.edge.coast && layer.edge.coast.length;
   let outline, coast, islands, border;
   if (have) {
@@ -108,6 +110,8 @@ export function setRegionData(layer) {
   S.seaBox = S.sea ? bboxOf(S.sea) : null;
   S.islandBoxes = islands.map(bboxOf);
   S.path = null;
+  // the raw edge layer for worldedge.js / edgeguard.js (the Eems told apart from the Wadden)
+  S.edgeLayer = have ? borderByData(coastKinds(layer.edge), tileHas) : null;
 }
 setRegionData(null);
 
