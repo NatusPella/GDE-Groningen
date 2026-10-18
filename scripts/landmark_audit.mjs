@@ -35,7 +35,23 @@ console.log(`herkenbaar: ${total} van ${data.items.length}; met de hand: ${looks
 const big = ['church', 'chapel', 'mill', 'tower', 'castle', 'watertower', 'lighthouse'].reduce((a, k) => a + (rows[k]?.kit || 0), 0);
 console.log(`kerken, molens, torens, borgen: ${big} (doel 500-600)`);
 console.log('verschillende uiterlijken:', Object.entries(variety).sort().map(([k, v]) => `${k} ${v.size}`).join(', '));
+// per soort en streek (#164, #198): herkenbaar en zonder kit, getoetst aan scripts/landmark_drempels.json
+// (min = herkenbaar, kan alleen stijgen; max = zonder kit, kan alleen dalen). --drempels schrijft het bestand opnieuw.
+const { telKandidaten, STREEK_IDS, checkDrempels } = await import('../game/js/streekplekken.js');
+const tel = telKandidaten(data.items, K.landmarkParams);
+console.log('herkenbaar per streek:'.padEnd(14) + STREEK_IDS.map((s) => s.slice(0, 9).padStart(10)).join(''));
+for (const k of Object.keys(rows).sort()) console.log(k.padEnd(22) + STREEK_IDS.map((s) => String(tel.herkenbaar[k]?.[s] || 0).padStart(10)).join(''));
+const drempelFile = new URL('./landmark_drempels.json', import.meta.url);
+let drempelFout = [];
+if (process.argv.includes('--drempels')) {
+  fs.writeFileSync(drempelFile, JSON.stringify({ v: 1, min: tel.herkenbaar, max: tel.zonderKit }, null, 1) + '\n');
+  console.log('drempels geschreven');
+} else if (fs.existsSync(drempelFile)) {
+  const d = JSON.parse(fs.readFileSync(drempelFile, 'utf8'));
+  drempelFout = checkDrempels(tel.herkenbaar, { min: d.min }).concat(checkDrempels(tel.zonderKit, { max: d.max }));
+  console.log(drempelFout.length ? 'DREMPELS GESCHONDEN:\n  ' + drempelFout.join('\n  ') : 'drempels per streek ok');
+}
 if (missing.length) console.log('Zonder kit:\n  ' + missing.join('\n  '));
 if (stale.length) console.log('Handwerk zonder kandidaat:\n  ' + stale.map((q) => q.n).join('\n  '));
 if (process.argv.includes('--list')) for (const it of data.items) if (!it.n) console.log('naamloos', it.k, it.x, it.y);
-if (K.LANDMARK_LOOKS.length < 30 || big < 500 || big > 600 || stale.length || (variety.church?.size || 0) < 20 || (variety.mill?.size || 0) < 6) process.exit(1);
+if (drempelFout.length || K.LANDMARK_LOOKS.length < 30 || big < 500 || big > 600 || stale.length || (variety.church?.size || 0) < 20 || (variety.mill?.size || 0) < 6) process.exit(1);
