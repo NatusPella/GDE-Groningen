@@ -1,5 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene, prewarmStreamAt } from './scene3d.js';
+import { basketRiderPose } from './basketrider.js';
 import { buildPersonMesh, animatePersonWalk, TAMMO_APPEARANCE } from './models3d_people.js';
 import { helipadInfo, scriptHeli, landHeliOnPad } from './skyprops.js';
 import { isMissionActive, getActiveRace } from './missions.js';
@@ -65,7 +66,7 @@ const VARIANTS = {
   },
   traumaduif: {
     title: 'Het staat niet in het rooster', sub: 'Rotor Roelfs demoheli: op naar Stad', timeLimit: 0, ringBonus: 0,
-    doneText: 'Geland, met de Eierbal!', failText: 'De ballon verdwijnt richting de Ommelanden…', catchText: 'Tammo hangt aan de lier: blijf naast de mand',
+    doneText: 'Geland, met de Eierbal!', failText: 'De ballon verdwijnt richting de Ommelanden…', catchText: 'Tammo staat in de mand: blijf naast de mand',
   },
 };
 
@@ -721,13 +722,27 @@ function updateProps(dt) {
   const hang = r.variant === 'traumaduif' && cur && (cur.kind === 'catch' || (cur.kind === 'pad' && cur.why === 'home' && !v.onGround && v.z - (v.groundZ ?? 0) > 12));
   r.hanger.visible = !!hang;
   if (hang) {
-    const L = cur.kind === 'catch' ? 9 : 4;
     const { rope, man } = r.hanger.userData;
-    r.hanger.position.set(v.x, v.z, v.y);
-    rope.scale.y = L;
-    rope.position.y = -L / 2;
-    man.position.y = -L - 1.7;
-    man.rotation.y = -v.angle + Math.PI / 2;
+    if (cur.kind === 'catch') {
+      // Tammo stands in the basket (its floor, heading and swing), not at the heli's height
+      const b = r.b;
+      const pose = basketRiderPose(b, 0, Math.atan2(v.y - b.y, v.x - b.x));
+      rope.visible = false;
+      r.hanger.position.set(pose.x, pose.z, pose.y);
+      r.hanger.rotation.z = pose.sway;
+      man.position.y = 0;
+      man.rotation.y = -pose.heading + Math.PI / 2;
+    } else {
+      // with the Eierbal on the lier under the heli
+      const L = 4;
+      rope.visible = true;
+      r.hanger.rotation.z = 0;
+      r.hanger.position.set(v.x, v.z, v.y);
+      rope.scale.y = L;
+      rope.position.y = -L / 2;
+      man.position.y = -L - 1.7;
+      man.rotation.y = -v.angle + Math.PI / 2;
+    }
     animatePersonWalk(man, 0, dt);
   }
 }
