@@ -4171,7 +4171,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Vet, eieren, zout, bloem, mosterd. Vijf vrienden, vijf ingrediënten. Het vet hebben we al. Dan kunnen we meedoen, ook als Jelle de rest opkoopt.",
+     "text": "Lammert het vet, Geesje de eieren, Klaas het zout, Roelfien de bloem, Wubbo de mosterd. Vijf vrienden, vijf ingrediënten. Het vet hebben we al. Dan kunnen we meedoen, ook als Jelle de rest opkoopt.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -5733,7 +5733,7 @@
     {
      "speaker": "Kapitein Klaas",
      "key": "klaas",
-     "text": "En daarna naar de Eemshaven. Dat is Lammerts haven. Hij danste met Trijntje in 1953.",
+     "text": "En daarna naar de Eemshaven. Dat is Lammerts haven. Zijn vader danste met Trijntje in 1953.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -6050,6 +6050,15 @@
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Ik heb drie lessen gehad en een jaar gegamed. Dat is meer dan Tammo.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
     },
     {
      "speaker": "Tammo",
@@ -6389,7 +6398,7 @@
     {
      "speaker": "Lammert",
      "key": "lammert",
-     "text": "Ik ben Lammert, havenmeester. Ik danste in 1953 met Trijntje. Dat vergeet ze niet.",
+     "text": "Ik ben Lammert, havenmeester. Mijn vader danste in 1953 met Trijntje. Dat vergeet zij niet.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -6642,12 +6651,12 @@
    "title": "De dijk: intro",
    "act": 3,
    "region": "Eemsdelta, Bierum, de dijk",
-   "vehicle": "Escapade",
+   "vehicle": "auto van Lammert",
    "step": "M14",
    "kind": "intro",
    "gameplay": "een race over de dijk naar de sluis van Delfzijl, met zijwind en schapen.",
    "regie": [
-    "zaterdag 22 augustus, zonsopgang. Jelles trekker-limo staat naast de Escapade, op de dijk bij Bierum. Jelle is droog en keurig, naast hem zit een deurwaarder met een map. Gameplay: een race over de dijk naar de sluis van Delfzijl, met zijwind en schapen."
+    "zaterdag 22 augustus, zonsopgang. Jelles trekker-limo staat naast de auto van Lammert, op de dijk bij Bierum. Jelle is droog en keurig, naast hem zit een deurwaarder met een map. Gameplay: een race over de dijk naar de sluis van Delfzijl, met zijwind en schapen."
    ],
    "lines": [
     {
@@ -6754,7 +6763,7 @@
    "title": "De dijk: tijdens de race",
    "act": 3,
    "region": "Eemsdelta, dijkweg",
-   "vehicle": "Escapade",
+   "vehicle": "auto van Lammert",
    "step": "M14",
    "kind": "key",
    "regie": [],
@@ -6826,11 +6835,11 @@
    "title": "De dijk: na de finish",
    "act": 3,
    "region": "Eemsdelta, sluis Delfzijl",
-   "vehicle": "Escapade",
+   "vehicle": "auto van Lammert",
    "step": "M14",
    "kind": "outro",
    "regie": [
-    "de Escapade en de limo bij de sluis. Tammo is eerst."
+    "de auto van Lammert en de limo bij de sluis. Tammo is eerst."
    ],
    "lines": [
     {
@@ -6923,7 +6932,7 @@
    "title": "De dijk: herhaling",
    "act": 3,
    "region": "Eemsdelta, dijkweg",
-   "vehicle": "Escapade",
+   "vehicle": "auto van Lammert",
    "step": "M14",
    "kind": "replay",
    "regie": [],
@@ -7250,7 +7259,7 @@
     {
      "speaker": "Roelfien",
      "key": "roelfien",
-     "text": "Twee van de vijf juryleden zijn weggelopen. De rest zit nog bij Jelle.",
+     "text": "Twee van de vier andere juryleden zijn weggelopen. De andere twee zitten nog bij Jelle.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -7415,7 +7424,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Het plan: Durk en Douwe weten waar de bal is. We volgen ze langs drie tenten tot ze moe zijn, dan vragen we het ze in de botsauto's.",
+     "text": "Het plan: Durk en Douwe weten waar Jelle morgen heen gaat. We volgen ze langs drie tenten tot ze moe zijn, dan vragen we het ze in de botsauto's.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -7688,7 +7697,7 @@
     {
      "speaker": "Durk",
      "key": "durk",
-     "text": "De bal… zit in baas zijn koffer. Hik. Onder het kussen van de limo. Baas rijdt maandag naar Veendam, voor de mosterd.",
+     "text": "Baas rijdt maandag naar Veendam, voor de mosterd. Hik. De bal gaat mee, in de koffer onder het kussen van de limo.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
