@@ -85,7 +85,7 @@ export const QUAKE_BARKS = [
 export const QUAKE_NEWS = [
   'Lichte aardbeving in het Hogeland, kracht {m}. Geen schade gemeld. Delfstof Noord volgt de metingen.',
   'Even getril in Grunn en omgeving: aardbeving van {m}. Geen schade of gewonden gemeld.',
-  'Kort rommelen onder de Stad, kracht {m}. Alles in orde, laat de meldkamer weten.',
+  'Kort getril onder de Stad, kracht {m}. Alles in orde, laat de meldkamer weten.',
 ];
 export const quakeNewsText = (m, rng = Math.random) => QUAKE_NEWS[Math.floor(rng() * QUAKE_NEWS.length)].replace('{m}', String(m).replace('.', ','));
 
@@ -200,20 +200,20 @@ export function touristTarget({ market, hour, nearCentre }) {
 }
 
 export const GERMAN_LINES = [
-  'Entschuldigung, wo ist hier der Turm?',
-  'So viele Blumen! Und überall Fahrräder.',
-  'Noch eine Pflanze? Der Koffer ist schon voll.',
-  'Schau mal, ein Eierball. Das probieren wir.',
-  'Wo steht unser Bus nochmal?',
-  'Herrlich, dieses Wetter. Hier ist immer Sommer!',
-  'Zwei Kaffee, bitte. Und ein Stück Kuchen.',
-  'Wie sagt man hier "Guten Tag"? Moi?',
-  'Die Straßen sind ja voller Räder!',
-  'Ich habe nur eine Blume kaufen wollen.',
-  'Wunderschön hier. Und so gemütlich.',
-  'Dürfen wir ein Foto machen?',
+  'Pardon, waar is hier de toren? Wij zijn uit Duitsland.',
+  'Zoveel bloemen! En overal fietsen.',
+  'Nog een plantje? De koffer is al vol.',
+  'Kijk, een eierbal. Die proberen we.',
+  'Waar staat onze bus ook alweer?',
+  'Heerlijk, dit weer. Hier is het altijd zomer!',
+  'Twee koffie, alsjeblieft. En een stuk taart.',
+  'Hoe zeg je hier "goedendag"? Moi?',
+  'Wat zijn de straten vol fietsen!',
+  'Ik wilde maar één bloem kopen.',
+  'Prachtig hier. En zo gezellig.',
+  'Mogen we een foto maken?',
 ];
-export const GERMAN_HELLO = ['Guten Tag! Sprechen Sie Deutsch?', 'Moi! Haben wir das richtig gesagt?', 'Entschuldigung, gibt es hier Pfannkuchen?'];
+export const GERMAN_HELLO = ['Goedendag! Spreekt u Duits?', 'Moi! Zeiden we dat goed?', 'Pardon, hebben jullie hier pannenkoeken?'];
 export const TOURIST_SHIRTS = ['#e8d84a', '#4aa0d8', '#e8643a', '#7ac060', '#f0f0e8', '#d86aa0'];
 export const TOURIST_HATS = [0xd8c060, 0xe8e8e0, 0x5a8ac0, 0xc0603a];
 

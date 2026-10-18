@@ -603,7 +603,7 @@ export function initMissions(world) {
   setMuseumCaseStolen(() => isMissionCompleted(missionIndexById('museumkraak')));
   syncPub(world);
   world.onRespawn.push((w, { busted }) => {
-    failActiveMission(w, busted ? 'Missie mislukt: opgepakt' : 'Missie mislukt: je bent dood', busted ? 'Opgepakt door de politie' : 'Je bent dood');
+    failActiveMission(w, busted ? 'Missie mislukt: opgepakt' : 'Missie mislukt: knock-out', busted ? 'Opgepakt door de politie' : 'Je bent knock-out');
   });
 }
 
