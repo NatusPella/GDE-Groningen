@@ -1,6 +1,6 @@
 // Eén commando dat alles test en een leesbaar rapport maakt (#186, #5, #4). Zie docs/TESTEN.md.
 //   node scripts/test_all.mjs [--fase=licht|zwaar|electron|alles] [--rapport=<map>]
-//        [--only=<tekst>] [--jobs=2] [--test-timeout=120] [--issues [--create]] [--force] [--list]
+//        [--only=<tekst>] [--jobs=2] [--test-timeout=120] [--issues [--create]] [--force] [--locks=<map>] [--list]
 // Fasen (standaard licht):
 //   licht     module-check, import_check, voice_coverage, text_audit, dode-code-bewaking en alle
 //             scripts/*_test.mjs (met duur en tijdslimiet; import_cycles_test bewaakt de cycli)
@@ -28,6 +28,7 @@ const opt = (n, d) => { const a = argv.find((v) => v.startsWith('--' + n + '='))
 const FASE = opt('fase', 'licht');
 const BASE = path.resolve(opt('rapport', path.join(os.tmpdir(), 'gde-testall')));
 const ONLY = opt('only', '');
+const LOCKS = opt('locks', fs.existsSync('C:/Users/abuis/gde-locks') ? 'C:/Users/abuis/gde-locks' : '');
 const JOBS = Math.max(1, Number(opt('jobs', 2)));
 const TEST_MS = Number(opt('test-timeout', 120)) * 1000;
 const STAMP = new Date().toISOString().replace(/[-:]/g, '').replace(/\..*$/, '').replace('T', '-');
@@ -93,6 +94,9 @@ const wilDit = (id) => !ONLY || id.includes(ONLY);
 
 // ---------------------------------------------------------------- fase licht
 
+// Tests die minuten kosten (city_*, tegelwerelden): ruime limiet zodat ze echt uitkomen.
+const ZWARE_TESTS = /^(city_|corridor|tileworld|world_tiles|navgraph|minigames|overlap|road_route|water_look|mode_route|swim_escape|barge|import_cycles)/;
+
 async function faseLicht(prev) {
   const items = [];
   // 1. module-check van alle JS (module-aware, zie lib/syntaxcheck.mjs)
@@ -137,7 +141,7 @@ async function faseLicht(prev) {
   // 4. alle scripts/*_test.mjs (zonder de zware: die staan in fase zwaar)
   const tests = fs.readdirSync(path.join(ROOT, 'scripts')).filter((n) => /_test\.mjs$/.test(n) && !EXCLUDED.has(n)).filter((n) => wilDit(n)).sort();
   const taken = tests.map((t) => async () => {
-    const ms = SLOW.has(t) ? TEST_MS * 2 : TEST_MS;
+    const ms = ZWARE_TESTS.test(t) ? TEST_MS * 15 : SLOW.has(t) ? TEST_MS * 4 : TEST_MS;
     const r = await runCmd(process.execPath, [path.join('scripts', t)], { ms });
     const it = itemUitRes('licht', 'test:' + t, t, r, ms);
     log(`${it.status.padEnd(7)} ${t} ${it.secs}s`);
@@ -195,6 +199,24 @@ async function faseZwaar() {
 
 // ---------------------------------------------------------------- fase electron
 
+// Slotenprotocol (--locks=<map>, zie C:/Users/abuis/gde-locks/README.txt): maximaal 3 Electron-slots, mkdir faalt als bezet.
+const slaap = (ms) => new Promise((r) => setTimeout(r, ms));
+async function neemSlot(max = 3, wachtMs = 90 * 60e3) {
+  if (!LOCKS) return null;
+  const t0 = Date.now();
+  for (;;) {
+    for (let i = 1; i <= max; i++) {
+      const d = path.join(LOCKS, 'electron-' + i);
+      try { fs.mkdirSync(d); return d; } catch { /* bezet */ }
+      try { if (Date.now() - fs.statSync(d).mtimeMs > 90 * 60e3) fs.rmdirSync(d); } catch { /* weg */ }
+    }
+    if (Date.now() - t0 > wachtMs) throw new Error('geen Electron-slot vrijgekomen');
+    log('wacht op een Electron-slot...');
+    await slaap(60e3);
+  }
+}
+const geefSlot = (d) => { if (d) try { fs.rmdirSync(d); } catch { /* al weg */ } };
+
 function electronExe() {
   if (process.env.ELECTRON_EXE) return process.env.ELECTRON_EXE;
   return path.join(ROOT, 'desktop', 'node_modules', 'electron', 'dist', process.platform === 'win32' ? 'electron.exe' : (process.platform === 'darwin' ? 'Electron.app/Contents/MacOS/Electron' : 'electron'));
@@ -243,7 +265,7 @@ async function faseElectron(prev, staat) {
   const exe = electronExe();
   const reden = !fs.existsSync(exe) ? `Electron ontbreekt (${exe}); cd desktop && npm install, of zet ELECTRON_EXE`
     : !heeftWereld() ? 'game/world ontbreekt (cd desktop && npm run stage)'
-      : (!flag('force') && elektronDraait() > 0) ? 'er draait al een Electron-instantie (de eigenaar speelt?); niets is gestart. Gebruik --force om toch te draaien'
+      : (!flag('force') && !LOCKS && elektronDraait() > 0) ? 'er draait al een Electron-instantie (de eigenaar speelt?); niets is gestart. Gebruik --force om toch te draaien'
         : null;
   const STAPPEN = ['smoke', 'verhaaltest', 'geocheck', 'bot-missies', 'bot-minigames', 'qa-provincie-1', 'qa-provincie-2', 'qa-features', 'qa-visueel', 'ui-shots'];
   if (reden) { for (const s of STAPPEN.filter(wilDit)) items.push(skip('electron', 'electron:' + s, s, reden)); return { items, sigs: {} }; }
@@ -251,14 +273,15 @@ async function faseElectron(prev, staat) {
   const prevSigs = (staat.fases && staat.fases.electron && staat.fases.electron.sigs) || {};
   const sigs = {};
   const profielen = [];
-  const env = (stap) => { const p = `gde-testall-${process.pid}-${stap}`; profielen.push(p); return { GDE_TEST_PROFILE: p, ELECTRON_EXE: exe, GDE_ELECTRON: exe }; };
+  const env = (stap) => { const p = `gde-testall-${process.pid}-${stap}`; profielen.push(p); return { GDE_TEST_PROFILE: p, ELECTRON_EXE: exe, GDE_ELECTRON: exe, GDE_MAX_ELECTRON: '3' }; };
   const stapDir = (s) => { const d = path.join(RUN, s); fs.mkdirSync(d, { recursive: true }); return d; };
   const desktop = path.join(ROOT, 'desktop');
   const basis = ['.', '--windowed', '--stil', '--force-device-scale-factor=1', '--window-size=1280x720'];
 
   const stap = async (naam, fn) => {
     if (!wilDit(naam)) return;
-    try { items.push(...(await fn())); } catch (e) { items.push(R.maakItem('electron', 'electron:' + naam, naam, 'FAIL', 0, 'stap crashte: ' + (e && e.stack || e))); }
+    let slot = null;
+    try { slot = await neemSlot(); items.push(...(await fn())); } catch (e) { items.push(R.maakItem('electron', 'electron:' + naam, naam, 'FAIL', 0, 'stap crashte: ' + (e && e.stack || e))); } finally { geefSlot(slot); }
     for (const it of items.filter((i) => i.fase === 'electron' && i.id.startsWith('electron:' + naam))) log(`${it.status.padEnd(7)} ${it.id} ${it.secs}s`);
   };
 
@@ -301,7 +324,7 @@ async function faseElectron(prev, staat) {
 
   const botSweep = (naam, mode) => stap(naam, async () => {
     const d = stapDir(naam), ms = 45 * 60e3;
-    const r = await runCmd(process.execPath, ['scripts/bot/run.mjs', `--mode=${mode}`, `--out=${d}`], { ms, env: env(naam) });
+    const r = await runCmd(process.execPath, ['scripts/bot/run.mjs', `--mode=${mode}`, `--out=${d}`, '--force'], { ms, env: env(naam) });
     fs.writeFileSync(path.join(d, 'sweep.log'), r.out);
     let analyse = '';
     if (fs.existsSync(path.join(d, 'events.jsonl'))) {
