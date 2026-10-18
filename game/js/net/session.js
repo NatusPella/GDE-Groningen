@@ -63,7 +63,7 @@ export class HostSession extends Base {
   // cfg: { info:{game,proto,version,tiles,story}, seed, sim:{ applyInput(slot,input), snapshot(), fullState() } }
   constructor(link, cfg, rand) {
     super(link, 'host', rand);
-    this.cfg = cfg; this.caps = []; this.slot = 1; // de gast is altijd slot 1 (host = speler 1 = slot 0)
+    this.cfg = cfg; this.caps = []; this.slot = 1; this.extra = {}; // zonder hub is de gast altijd slot 1 (host = slot 0); een hub wijst plekken toe (cfg.assign)
     this.guest = null;             // { token, lastInputSeq, input, lastInputAt, joined }
     this.snapAcc = 0; this.snapSeq = 0; this.lostAt = null;
     this.onlost = null; this.onjoin = null; this.onrelease = null; this.rejected = [];
@@ -89,20 +89,25 @@ export class HostSession extends Base {
     if (this.guest && tok && tok === this.guest.token) { // hervatten of herhaalde hello
       const resumed = this.status === 'lost';
       this.lastRecv = this.now; this.lostAt = null; this._setStatus('ok');
-      reply({ ok: true, slot: this.slot, token: this.guest.token, seed: this.cfg.seed, resumed, caps: this.caps });
+      reply({ ok: true, slot: this.slot, token: this.guest.token, seed: this.cfg.seed, resumed, caps: this.caps, ...this.extra });
       if (resumed) { this.rel.reset(); this._sendResync(); }
       return;
     }
     if (this.guest && !tok && this.guest.lastInputSeq == null) { // welkom ging verloren: herhaal
       this.lastRecv = this.now; this._setStatus('ok');
-      return reply({ ok: true, slot: this.slot, token: this.guest.token, seed: this.cfg.seed, resumed: false, caps: this.caps });
+      return reply({ ok: true, slot: this.slot, token: this.guest.token, seed: this.cfg.seed, resumed: false, caps: this.caps, ...this.extra });
     }
     if (this.guest && this.status !== 'lost') { this.rejected.push('vol'); return reply({ ok: false, reason: 'vol' }); }
     if (this.guest && tok !== this.guest.token) { this.rejected.push('token'); if (tok) return reply({ ok: false, reason: 'token' }); }
+    if (this.cfg.assign) { // meerdere spelers: de hub wijst een plek en een figuur toe, of zegt dat het vol is
+      const a = this.cfg.assign(m.body);
+      if (!a) { this.rejected.push('vol'); return reply({ ok: false, reason: 'vol' }); }
+      this.slot = a.slot; this.extra = a.extra || {};
+    }
     this.guest = { token: makeToken(this.rand), lastInputSeq: null, input: neutral(), lastInputAt: this.now };
     this.lastRecv = this.now; this.lostAt = null; this.rel.reset(); this._setStatus('ok');
     this.caps = negotiate(this.cfg.caps, m.body.caps);
-    reply({ ok: true, slot: this.slot, token: this.guest.token, seed: this.cfg.seed, resumed: false, caps: this.caps });
+    reply({ ok: true, slot: this.slot, token: this.guest.token, seed: this.cfg.seed, resumed: false, caps: this.caps, ...this.extra });
     this._sendResync();
     if (this.onjoin) this.onjoin(this.slot);
   }
@@ -116,6 +121,7 @@ export class HostSession extends Base {
   }
   _sendResync() { this.sendEvent({ k: 'resync', state: this.cfg.sim.fullState() }); }
   _release(why) {
+    if (this.guest && this.cfg.onRelease) this.cfg.onRelease(this.slot, why);
     this.guest = null; this.lostAt = null; this._setStatus('verbinden');
     if (this.onrelease) this.onrelease(this.slot, why);
   }
@@ -217,6 +223,7 @@ export class ClientSession extends Base {
     if (h.type === T.WELCOME) {
       const m = decodeJson(buf); if (!m) return;
       if (!m.body.ok) { this.rejected = m.body.reason; this._setStatus('geweigerd'); return; }
+      this.welcome = m.body; // inclusief wat de hub meegaf: personage, lijst van spelers
       this.slot = m.body.slot; this.seed = m.body.seed; this.caps = Array.isArray(m.body.caps) ? m.body.caps : []; this.token = m.body.token; this.joined = true;
       if (m.body.resumed) { this.rel.reset(); this.buf.clear(); }
       this._setStatus('ok');
