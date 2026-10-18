@@ -222,5 +222,15 @@ ok(D.skaterChance('student', 300, 3) === 0 && D.skaterChance('standaard', 3000, 
   ok(D.SKATER_PACE > 1 && D.SKATER_LINES.length >= 4, 'skaters are quick and have lines');
 }
 
+// --- batch 3: the kennismakingsweek parody
+ok(D.ontgroeningChance('student', 300, 14) > 0 && D.ontgroeningChance('student', 300, 23) === 0 && D.ontgroeningChance('standaard', 3000, 14) === 0, 'initiation groups by day in student districts only');
+ok(D.ONTGROENING.club.startsWith('Dispuut') && D.LEADER_LINES.length >= 4 && D.FRESHMAN_LINES.length >= 4, 'invented dispuut with lines');
+{
+  let g = 0;
+  const r = seeded(5);
+  for (let i = 0; i < 2000; i++) if (S.pickOrientation(map, centre.x, centre.y, 14, r)) g++;
+  ok(g > 0 && g < 800, `initiation groups are occasional (${g})`);
+}
+
 console.log(`${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

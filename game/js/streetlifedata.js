@@ -242,3 +242,36 @@ export const SKATER_LINES = [
   'Bij het Forum mag het nog niet, zeggen ze.',
   'Kijk, zonder handen! ...Oeps.',
 ];
+
+// --- the kennismakingsweek: a parody of student initiation (batch 3) --------------------
+// A group of first-years in matching yellow shirts, a plush goose under the arm,
+// led by an older member of the invented dispuut "De Gulle Gans" with a megaphone.
+// Light and harmless: silly errands only, nobody is hurt or shamed.
+
+export const ONTGROENING = { club: 'Dispuut De Gulle Gans', shirt: '#f2c400', leaderShirt: '#1f3a52' };
+
+// Late morning to early evening, in the student districts and the centre.
+export function ontgroeningChance(profileKey, d, hour) {
+  const dens = lifeDensity(profileKey, d);
+  if (dens <= 0 || hour < 10 || hour >= 19) return 0;
+  const base = profileKey === 'student' ? 0.03 : profileKey === 'centrum' ? 0.025 : profileKey === 'bakfiets' ? 0.006 : 0;
+  return base * dens;
+}
+
+export const ONTGROENING_MAX = 1;
+export const LEADER_LINES = [
+  'Eerstejaars, in de rij! Dit is geen wandeling, dit is een traditie!',
+  'Vandaag: elke fietsenstalling een compliment geven!',
+  'Dispuut De Gulle Gans heet jullie welkom. Verplicht gezellig!',
+  'Niet vragen waarom. Ganzen vragen ook nooit waarom.',
+  'Wie de eend laat vallen, trakteert op koffie.',
+  'Jullie doen het geweldig. Echt. Loop maar door.',
+];
+export const FRESHMAN_LINES = [
+  'Mijn eend heet Gerrit. Dat moest.',
+  'Ik moet iemand een gedicht over fietsenrekken voorlezen.',
+  'Het is wel leuk, eigenlijk.',
+  'Hebben jullie ook zo veel zin in de rest van de week?',
+  'We moeten de Martinitoren groeten. Elke keer.',
+  'Quak. Sorry, dat is de opdracht.',
+];
