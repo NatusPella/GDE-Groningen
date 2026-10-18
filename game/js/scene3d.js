@@ -73,6 +73,7 @@ import { createPostFX } from './postfx3d.js';
 import { noteGfxEvent, watchContext } from './blackframe.js';
 import { spawnExplosionFx, setFxCamera } from './fx3d.js';
 import { litFraction, moonPhase, STAR_SHARE } from './nightrules.js';
+import { qualityLook } from './weatherlook.js';
 import { initNightLights, setNightLightQuality, updateNightLights, isLightRigOn, setLightRigVisible } from './nightlights3d.js';
 import { createFarLOD } from './farlod.js';
 import { SECTION, TILE_M, tileOrigin } from './gdt.js';
@@ -3145,7 +3146,7 @@ function applyTimeOfDay(dt, world) {
 
   renderer.toneMappingExposure = L.exp;
   setStarOpacity(skyDome, L.night * (1 - storm));
-  setNightFactor(1.5 * L.night, litFraction('wonen', L.hour), litFraction('winkel', L.hour));
+  setNightFactor(1.5 * L.night, litFraction('wonen', L.hour), litFraction('winkel', L.hour), litFraction('kantoor', L.hour));
   farLod.setNight(1.5 * L.night, litFraction('wonen', L.hour));
   setCountryNight(1.5 * L.night, litFraction('wonen', L.hour));
   scene.fog.near = lightBase.fogNear;
@@ -3160,6 +3161,7 @@ function applyTimeOfDay(dt, world) {
   for (const m of PAVED_MATS) m.envMapIntensity = envBoost;
   terrainMesh.material.envMapIntensity = envBoost;
   WET_UNIFORMS.uRainTime.value = world.time;
+  WET_UNIFORMS.uPuddle.value = qualityLook(getSettings().quality).puddles;
 
   postfx.apply(L, storm);
 }
