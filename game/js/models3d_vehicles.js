@@ -4,7 +4,7 @@ import { buildPersonMesh, PERSON_RIG, holdPhoneRiding } from './models3d_people.
 import { boatKind, boatHasCabin } from './boattypes.js';
 import { buildHeliMesh } from './heli3d.js';
 import { buildPlaneMesh } from './plane3d.js';
-import { hash2 } from './rng.js';
+import { hash2, hash3 } from './rng.js';
 
 // Low-poly vehicles. Group origin = vehicle centre at ground level (y=0),
 // facing local +X, right-hand side on +Z; sized off v.model.len/wid.
@@ -2376,10 +2376,7 @@ const CRAZED_GLASS = [0.62, 0.66, 0.68];
 const BROKEN_LAMP = [0.05, 0.05, 0.05];
 const DENT_Y = 0.55;
 
-function posHash(x, y, z) {
-  const h = Math.sin(x * 127.1 + y * 311.7 + z * 74.7) * 43758.5453;
-  return h - Math.floor(h);
-}
+function posHash(x, y, z) { return hash3(x, y, z); }
 
 // Per corner: x y z (current), bx by bz (undamaged), r g b, u v.
 const ST = 11;
