@@ -39,6 +39,7 @@ ok(gen.quiet === true, 'active mission quiets the minimap');
 // --- pigeon
 const pig = buildMissionLayer({ player: P, pigeon: { targets: [{ x: 300, y: 0, label: 'Park' }, { x: 900, y: 0 }], threats: [{ x: 20, y: 0, kind: 'kat' }], noFly: [{ x: 100, y: 100, r: 50 }] } });
 ok(pig.kind === 'duif' && pig.items.some((i) => i.role === 'threat') && pig.areas.length === 1 && pig.lines[0].style === 'crow', 'pigeon layer');
+ok(buildMissionLayer({ player: P, pigeon: { targets: [{ x: 300, y: 0 }], threats: [{ x: 20, y: 0, kind: 'meeuw', label: 'Meeuw' }] } }).items.some((i) => i.role === 'threat' && i.sub === 'Meeuw'), 'gull shows as a named threat');
 ok(pig.info.target.x === 300, 'pigeon info points at the next target');
 
 // --- kart
