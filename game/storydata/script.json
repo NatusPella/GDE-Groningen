@@ -697,7 +697,8 @@
    "step": "M01",
    "kind": "key",
    "regie": [
-    "avond. Een hijskraan, zoals altijd. Een terras vol mensen in de avondzon. Jelmer staat met zijn telefoon op een statief."
+    "avond. Een hijskraan, zoals altijd. Een terras vol mensen in de avondzon. Jelmer staat met zijn telefoon op een statief.",
+    "de torenwachter van de Martinitoren belt. Hij kijkt de hele dag over Stad en meldt wat hij ziet."
    ],
    "lines": [
     {
@@ -6393,6 +6394,15 @@
      "voice": "Anita"
     },
     {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "En als wij winnen, staat de Fjord Frituur op de Vismarkt. Dat vergeet ik niet, Tammo.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
      "speaker": "Dokter Dijkstra",
      "key": "dijkstra",
      "text": "Die Fries is geland in een weiland bij Winschoten. Tussen de koeien. Hij was niet blij. De koeien ook niet.",
@@ -11340,25 +11350,6 @@
      "channel": "stem",
      "textOnly": true,
      "voice": "Anita"
-    },
-    {
-     "speaker": "Tammo",
-     "key": "T",
-     "text": "Kon minder.",
-     "tag": "BEHOUDEN",
-     "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
-    },
-    {
-     "speaker": "Tessa",
-     "key": "A",
-     "text": "Kon veel minder.",
-     "tag": "BEHOUDEN",
-     "channel": "stem",
-     "textOnly": false,
-     "rec": "lines",
-     "voice": "Anita"
     }
    ]
   },
@@ -13251,6 +13242,23 @@
      "channel": "telefoon",
      "textOnly": false,
      "rec": "lines"
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Wij komen. Met de frituur.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Jelle Terpstra",
+     "key": "jelle",
+     "text": "Dan wil ik een rekening. Voor het parkeren.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true
     },
     {
      "speaker": "Tammo",
