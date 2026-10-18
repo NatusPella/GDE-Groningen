@@ -401,6 +401,9 @@ function updateRam(v, dt, world, pv, d, ps) {
   return true;
 }
 
+// Patrol cars shoot from three stars (owner's decision, #43); cartoon shots, no one
+// is shown hit, damage is small and a bust still ends it.
+const FIRE_WANTED = 3;
 function maybeFire(v, dt, world) {
   if (v._fireCd === undefined) v._fireCd = 1 + Math.random();
   v._fireCd -= dt;
@@ -896,7 +899,7 @@ export function updatePolice(dt, world) {
     if (chasing) {
       updateChase(v, dt, world);
       if (tryDeployCrew(v, world, state)) continue;
-      if (!v._mount && world.wanted >= 3 && seen && v._sees) maybeFire(v, dt, world);
+      if (!v._mount && world.wanted >= FIRE_WANTED && seen && v._sees) maybeFire(v, dt, world);
     } else if (v._motor) {
       v._motor = false;
       v.isPolice = false;
