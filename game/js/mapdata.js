@@ -651,6 +651,7 @@ export function applyMapExtras(data, ex) {
     data.roads.push({
       pts: br.pts.map((q) => q.slice()), type: 'busway', cat: 'normal', width: br.width || 6.5, speed: 11,
       oneway: !!br.oneway, roundabout: false, name: br.name || '', bridge: !!br.bridge, busOnly: true,
+      ...(br.z && br.z.length === br.pts.length ? { z: br.z.slice() } : {}),
     });
   }
   for (const bl of ex.busLanes || []) {
