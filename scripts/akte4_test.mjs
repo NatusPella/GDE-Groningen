@@ -67,7 +67,7 @@ for (const d of mine) {
 ok(mine[0].boatAt && mine[0].boatModel === 'sloep' && mine[0].stages[0].kind === 'board', 'bruggen: a sloep to board');
 ok(mine[1].stages.map((q) => q.kind).join() === 'goto,choice,goto,hold,goto', 'wiebelwerk: walk in, intake, servers, logbook, out');
 ok(mine[2].stages.some((q) => q.kind === 'rit' && q.exit), 'stoom: a train ride that ends outside the train');
-ok(mine[3].stages.filter((q) => q.kind === 'hold' && q.fireworks).length === 2, 'beleg: the walls and the cellar are held against the bangs');
+ok(mine[3].stages.filter((q) => q.kind === 'hold' && q.fireworks).length >= 5, 'beleg: two walls and three cellar doors are held against the bangs, with a run in between');
 const list = [{ label: 'Iedereen heeft een rode auto gezien', stages: [], start: {} }];
 applyAkte4(list);
 const fj = list[0];
@@ -101,7 +101,7 @@ ok(run(wieb, ['1', '1']).r && run(wieb, ['1', '1']).r.fail, 'intake: two wrong a
 ok(run(wieb, ['1', '2']).r === 'done', 'intake: one wrong answer is forgiven');
 const wagon = fj.stages.find((q) => q.kind === 'choice' && q.kicker === 'Op de wagon');
 ok(run(wagon, ['1']).r === 'done', 'wagon: the car passes');
-ok(run(wagon, ['2']).r && /Escapade/.test(run(wagon, ['2']).r.fail), 'wagon: keeping the ball loses the Escapade (fail)');
+ok(run(wagon, ['2']).r === 'done', 'wagon: keeping the ball does not restart the mission (the reply tells the consequence)');
 const friends = fj.stages.find((q) => q.kind === 'choice' && /vrienden/.test(q.kicker));
 for (const combo of [['1', '1', '1', '1'], ['2', '2', '2', '2'], ['3', '3', '3', '3'], ['1', '2', '3', '1']]) ok(run(friends, combo).r === 'done', `friends: ${combo.join('')} always ends the mission, never a fail`);
 ok(friends.rounds.length === 4 && friends.rounds.every((r) => r.options.every((o) => o.ok !== false || o.reply)), 'friends: four friends, every answer has a reply');
