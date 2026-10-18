@@ -135,6 +135,10 @@ export function landmarkParams(item, fit = null) {
   else if (item.k === 'mill') p = millParams(item, t, h);
   else if (item.k === 'tower' || item.k === 'lighthouse') p = towerParams(item, t, h);
   else if (item.k === 'castle') p = borgParams(item, t, box, h);
+  else if (item.k === 'farm') p = farmParams(item, t, box, h);
+  else if (item.k === 'silo' || item.k === 'factory') p = industryParams(item, t, box, h);
+  else if (item.k === 'flat') p = flatParams(item, t, box, h);
+  else if (['townhall', 'station', 'school', 'museum'].includes(item.k)) p = hallParams(item, t, box, h);
   if (!p) return null;
   return { ...base, ...p, ...(look ? look.p : {}) };
 }
@@ -195,6 +199,10 @@ export function landmarkGeometry(p, lod = LOD_FULL) {
   else if (p.kit === 'mill') mill(B, sails, p, lod);
   else if (p.kit === 'tower') tower(B, p, lod);
   else if (p.kit === 'borg') borg(B, p, lod);
+  else if (p.kit === 'farm') farm(B, p, lod);
+  else if (p.kit === 'industry') industry(B, p, lod);
+  else if (p.kit === 'flat') flat(B, p, lod);
+  else if (p.kit === 'hall') hall(B, p, lod);
   const geo = B.build();
   if (p.lean && p.kit === 'church') leanTower(geo, p.leanBox, p.lean);
   return { geometry: geo, sails: sails ? sails.build() : null, sailsAt: p.sailsAt || null, height: p.top || 20 };
@@ -514,4 +522,217 @@ function borg(B, p, lod) {
   }
   B.box(0, 1.5, W / 2 + 0.1, 1.6, 3, 0.12, 0x2f4a3a);
   B.box(0, 3.3, W / 2 + 0.35, 0.3, 0.3, 0.3, 0xf2ead4, G_GLOW);
+}
+
+// --- everyday landmarks (issue #164): farms, silos and factories, flats, town halls, stations, schools ---
+// Same data in / parameters out as above; a box from the outline (or the
+// footprint fit), the type picked by the tags, the name and a hash.
+
+const FARM_WALL = { brick: 0xa5523a, white: 0xe6e0d4, yellow: 0xc4a066 };
+const FARM_ROOF = { tile: 0xa04a34, pan: 0x3e4449, reed: 0x7a6a4a };
+
+// Farm types: kop-hals-romp (head, neck, big barn), langhuis (house and barn under
+// one long roof), stolp (square, pyramid roof), T-boerderij (barn across the house).
+export const FARM_TYPES = ['kophalsromp', 'langhuis', 'stolp', 'tvorm'];
+
+function farmParams(item, t, box, h) {
+  const n = item.n || '';
+  const len = clamp(box ? box.len : 34, 14, 70), wid = clamp(box ? box.wid : 18, 9, 36);
+  let type;
+  if (/stolp/i.test(n) || t['farm:type'] === 'stolp') type = 'stolp';
+  else if (/langhuis/i.test(n)) type = 'langhuis';
+  else if (/kop[- ]?hals/i.test(n)) type = 'kophalsromp';
+  else if (FARM_TYPES.includes(t['farm:type'])) type = t['farm:type'];
+  else if (len / wid < 1.35) type = h < 0.5 ? 'stolp' : 'tvorm';
+  else if (len / wid < 2.0) type = h < 0.6 ? 'kophalsromp' : 'tvorm';
+  else type = h < 0.55 ? 'langhuis' : 'kophalsromp';
+  const w = hash(h, 3), r = hash(h, 5);
+  return {
+    kit: 'farm', type, len: type === 'stolp' ? Math.min(len, wid * 1.2) : len, wid,
+    wall: w < 0.2 ? 'white' : w < 0.9 ? 'brick' : 'yellow', roof: r < 0.55 ? 'tile' : r < 0.8 ? 'pan' : 'reed', barnH: 5.5 + hash(h, 7) * 2.5,
+  };
+}
+
+function farm(B, p, lod) {
+  const L = p.len, W = p.wid, wall = FARM_WALL[p.wall], roof = FARM_ROOF[p.roof];
+  const he = 3.2;
+  const house = (x0, x1, w, hh) => {
+    B.box((x0 + x1) / 2, he / 2, 0, x1 - x0, he, w, wall);
+    gableRoof(B, x0, x1, w / 2, he, he + hh, roof, wall);
+    if (lod === LOD_FULL) {
+      const n = Math.max(2, Math.floor((x1 - x0) / 3));
+      for (let i = 0; i < n; i++) for (const s of [-1, 1]) B.box(x0 + ((x1 - x0) * (i + 0.5)) / n, 1.7, s * (w / 2 + 0.05), 1.0, 1.3, 0.08, 0x1c2228, G_GLASS);
+    }
+  };
+  const barn = (x0, x1, w) => {
+    const be = p.barnH * 0.55, br = p.barnH + w * 0.32;
+    B.box((x0 + x1) / 2, be / 2, 0, x1 - x0, be, w, wall);
+    gableRoof(B, x0, x1, w / 2, be, br, roof, wall);
+    if (lod === LOD_FULL) B.box(x1 + 0.05, 2, 0, 0.1, 4, Math.min(5, w * 0.4), 0x3a2a22);
+    return br;
+  };
+  if (p.type === 'langhuis') {
+    house(-L / 2, -L / 2 + L * 0.3, W * 0.8, W * 0.35);
+    p.top = Math.max(barn(-L / 2 + L * 0.3, L / 2, W), 8);
+  } else if (p.type === 'kophalsromp') {
+    // head: the house across the front; neck: a low link; romp: the big barn behind
+    const hx = L * 0.2, nx = L * 0.1;
+    house(-L / 2, -L / 2 + hx, W * 0.7, W * 0.3);
+    B.box(-L / 2 + hx + nx / 2, he * 0.4, 0, nx, he * 0.8, W * 0.42, wall);
+    B.box(-L / 2 + hx + nx / 2, he * 0.8 + 0.2, 0, nx, 0.4, W * 0.5, roof);
+    p.top = barn(-L / 2 + hx + nx, L / 2, W);
+  } else if (p.type === 'tvorm') {
+    house(-L / 2, -L * 0.1, W * 0.8, W * 0.3);
+    // the barn crosses the house: its ridge runs along z
+    const bw = W, bl = L * 0.4, bx = L * 0.1 + bl / 2, be = p.barnH * 0.55, br = p.barnH + bl * 0.25;
+    B.box(bx, be / 2, 0, bl, be, bw, wall);
+    B.quadOut([bx - bl / 2 - 0.4, be, bw / 2 + 0.4], [bx, br, bw / 2 + 0.4], [bx, br, -bw / 2 - 0.4], [bx - bl / 2 - 0.4, be, -bw / 2 - 0.4], [-1, 1, 0], roof);
+    B.quadOut([bx + bl / 2 + 0.4, be, bw / 2 + 0.4], [bx + bl / 2 + 0.4, be, -bw / 2 - 0.4], [bx, br, -bw / 2 - 0.4], [bx, br, bw / 2 + 0.4], [1, 1, 0], roof);
+    p.top = br;
+  } else {
+    // stolp: a square body under a pyramid roof with a ridge cap
+    const s = Math.min(L, W), he2 = he + 0.8;
+    B.box(0, he2 / 2, 0, s, he2, s, wall);
+    B.geo(new THREE.ConeGeometry(s * 0.78, s * 0.62, 4, 1, true).rotateY(Math.PI / 4), composeMatrix(0, he2 + s * 0.31, 0), roof);
+    if (lod !== LOD_SKY) B.box(0, he2 + s * 0.62 + 0.3, 0, 0.5, 0.8, 0.5, roof);
+    if (lod === LOD_FULL) for (const s2 of [-1, 1]) B.box(0, 1.7, s2 * (s / 2 + 0.05), 1.2, 1.4, 0.08, 0x1c2228, G_GLASS);
+    p.top = he2 + s * 0.62 + 0.7;
+  }
+  // two trees on the yard make it a farm and not a shed
+  if (lod === LOD_FULL) {
+    for (const [dx, dz] of [[-L / 2 - 3, W / 2 + 3], [L / 2 + 3, -W / 2 - 3]]) {
+      B.geo(new THREE.CylinderGeometry(0.2, 0.28, 3, 6), composeMatrix(dx, 1.5, dz), 0x4a3a2a);
+      B.geo(new THREE.IcosahedronGeometry(2.2, 0), composeMatrix(dx, 4.4, dz), 0x3f6a32);
+    }
+  }
+}
+
+function industryParams(item, t, box, h) {
+  const n = item.n || '';
+  const silo = item.k === 'silo' || t.man_made === 'silo' || t.building === 'silo' || /silo|graan/i.test(n);
+  const hv = metres(t.height);
+  if (silo) return { kit: 'industry', type: 'silo', len: clamp(box ? box.len : 16, 8, 30), wid: clamp(box ? box.wid : 10, 6, 20), height: clamp(hv || 18 + h * 14, 12, 45), count: 2 + Math.floor(h * 3) };
+  return { kit: 'industry', type: 'factory', len: clamp(box ? box.len : 40, 16, 90), wid: clamp(box ? box.wid : 22, 10, 40), height: clamp(hv || 9 + h * 5, 7, 20), chimney: h < 0.7 || /fabriek|suiker|zout|mout/i.test(n) };
+}
+
+function industry(B, p, lod) {
+  const L = p.len, W = p.wid;
+  if (p.type === 'silo') {
+    // a row of cylinders on a low plant, a gallery on top, a lift tower
+    const r = Math.min(W / 2, L / (p.count * 2)) * 0.95;
+    B.box(0, 1.5, 0, L, 3, W, 0x8a8a86);
+    for (let i = 0; i < p.count; i++) {
+      const x = -L / 2 + (L * (i + 0.5)) / p.count;
+      B.geo(new THREE.CylinderGeometry(r, r, p.height, 10), composeMatrix(x, 3 + p.height / 2, 0), i % 2 ? 0xcfcdc6 : 0xb9b7b0);
+      if (lod !== LOD_SKY) B.geo(new THREE.ConeGeometry(r * 1.02, r * 0.5, 10), composeMatrix(x, 3 + p.height + r * 0.25, 0), 0x6e6c68);
+    }
+    if (lod !== LOD_SKY) B.box(0, 3 + p.height + r * 0.8, 0, L * 0.9, 1.2, 1.4, 0x6e6c68);
+    B.box(-L / 2 - 1.2, (3 + p.height + 4) / 2, 0, 2.4, 3 + p.height + 4, 2.4, 0x7a7a76);
+    p.top = 3 + p.height + 4;
+    return;
+  }
+  // factory: a long brick hall under sawtooth roofs, a tall chimney
+  const he = p.height;
+  B.box(0, he / 2, 0, L, he, W, 0x9a5a40);
+  const n = Math.max(2, Math.round(L / 9));
+  for (let i = 0; i < n; i++) {
+    const x0 = -L / 2 + (L * i) / n, x1 = -L / 2 + (L * (i + 1)) / n;
+    // each tooth: a steep glazed north face, a gentle slope south
+    B.quadOut([x0, he, -W / 2], [x0, he + 2.6, -W / 2], [x1, he + 2.6, -W / 2], [x1, he, -W / 2], [0, 0, -1], 0x6e6a66);
+    B.quadOut([x0, he, W / 2], [x1, he, W / 2], [x1, he + 2.6, W / 2], [x0, he + 2.6, W / 2], [0, 0, 1], 0x6e6a66);
+    B.quadOut([x0, he + 2.6, -W / 2], [x0, he + 2.6, W / 2], [x1, he, W / 2], [x1, he, -W / 2], [0, 1, 0], 0x4e5a60);
+    if (lod === LOD_FULL) B.box((x0 + x1) / 2, he + 1.3, W / 2 + 0.06, (x1 - x0) * 0.7, 1.4, 0.06, 0xbfd0d6, G_GLASS);
+  }
+  p.top = he + 2.6;
+  if (p.chimney) {
+    const ch = he * 2.4 + 8, cx = L / 2 - 4;
+    B.geo(new THREE.CylinderGeometry(0.9, 1.5, ch, 8), composeMatrix(cx, ch / 2, -W / 2 + 3), 0x8a4a36);
+    if (lod !== LOD_SKY) B.box(cx, ch - 0.1, -W / 2 + 3, 2.2, 0.4, 2.2, 0x2c2c2e);
+    p.top = Math.max(p.top, ch);
+  }
+  if (lod === LOD_FULL) {
+    B.box(0, he * 0.4, W / 2 + 0.05, L * 0.8, 1.2, 0.08, 0x1c2228, G_GLASS);
+    B.box(-L / 2 + 3, 2, W / 2 + 0.06, 4, 4, 0.12, 0x4a5258);
+  }
+}
+
+function flatParams(item, t, box, h) {
+  const levels = clamp(Number(t['building:levels']) || Math.round(4 + h * 8), 4, 16);
+  return { kit: 'flat', len: clamp(box ? box.len : 48, 20, 90), wid: clamp(box ? box.wid : 14, 9, 22), levels, brick: h < 0.45 ? 'red' : h < 0.8 ? 'yellow' : 'white', balcony: h > 0.3 };
+}
+
+function flat(B, p, lod) {
+  const L = p.len, W = p.wid, lv = 3, H = p.levels * lv;
+  const wall = BRICK[p.brick] || BRICK.red;
+  B.box(0, H / 2, 0, L, H, W, wall);
+  B.box(0, H + 0.25, 0, L + 0.4, 0.5, W + 0.4, 0xb8b4aa);
+  B.box(L / 2 - 4, H + 1.5, 0, 5, 2, 4, wall); // stair and lift top
+  p.top = H + 2.5;
+  if (lod === LOD_SKY) return;
+  const bays = Math.max(4, Math.floor(L / 3.2));
+  for (let f = 0; f < p.levels; f++) {
+    if (lod === LOD_FULL) {
+      for (let i = 0; i < bays; i++) {
+        const x = -L / 2 + (L * (i + 0.5)) / bays;
+        for (const s of [-1, 1]) B.box(x, f * lv + 1.8, s * (W / 2 + 0.05), 1.4, 1.5, 0.08, 0x1c2228, G_GLASS);
+        if (p.balcony && f > 0 && i % 2 === 0) B.box(x, f * lv + 0.1, W / 2 + 0.7, 2.4, 0.18, 1.4, 0xd6d2c8);
+      }
+    }
+    B.box(0, f * lv + 0.05, 0, L + 0.1, 0.12, W + 0.1, 0xb8b4aa);
+  }
+}
+
+function hallParams(item, t, box, h) {
+  const n = item.n || '';
+  const type = item.k === 'townhall' || t.amenity === 'townhall' ? 'townhall'
+    : item.k === 'station' || t.railway === 'station' || t.building === 'train_station' ? 'station'
+      : item.k === 'museum' || t.tourism === 'museum' || /museum/i.test(n) ? 'museum' : 'school';
+  const dims = { townhall: [26, 14, 2], station: [32, 12, 1], museum: [30, 16, 2], school: [38, 14, 2] }[type];
+  return {
+    kit: 'hall', type, len: clamp(box ? box.len : dims[0], 14, 70), wid: clamp(box ? box.wid : dims[1], 8, 28),
+    floors: clamp(Number(t['building:levels']) || dims[2], 1, 4), brick: type === 'museum' && h > 0.5 ? 'white' : h < 0.55 ? 'red' : 'yellow',
+    roof: type === 'school' ? 'flat' : h < 0.5 ? 'slate' : 'tile',
+  };
+}
+
+function hall(B, p, lod) {
+  const L = p.len, W = p.wid, he = p.floors * 3.6 + 0.4;
+  const wall = BRICK[p.brick] || BRICK.red, roof = p.roof === 'flat' ? 0x6e6a66 : ROOF[p.roof];
+  B.box(0, he / 2, 0, L, he, W, wall);
+  let top;
+  if (p.roof === 'flat') {
+    B.box(0, he + 0.2, 0, L + 0.4, 0.4, W + 0.4, 0xb8b4aa);
+    top = he + 0.4;
+  } else {
+    // a gable for a station, a low hipped roof (a pyramid squashed onto the box) for a hall
+    const rh = Math.min(5, W * 0.4);
+    if (p.type === 'station') gableRoof(B, -L / 2, L / 2, W / 2, he, he + rh, roof, wall);
+    else {
+      const cone = new THREE.ConeGeometry(0.5 * Math.SQRT2, rh, 4, 1, true).rotateY(Math.PI / 4);
+      cone.scale(L * 1.04, 1, W * 1.04);
+      B.geo(cone, composeMatrix(0, he + rh / 2, 0), roof);
+    }
+    top = he + rh;
+  }
+  // the clock tower: a town hall's centre, a station's end
+  if (p.type === 'townhall' || p.type === 'station') {
+    const tw = clamp(W * 0.3, 3, 5), tx = p.type === 'station' ? L / 2 - tw : 0, th = he + 7 + tw;
+    const crown = p.type === 'townhall' ? 'spire' : 'saddle';
+    towerBody(B, tx, 0, tw, th, crown, wall, roof, lod);
+    top = crownTop(crown, th, tw);
+  } else if (p.type === 'museum') {
+    for (let i = 0; i < 4; i++) B.box(-L * 0.18 + i * L * 0.12, he / 2, W / 2 + 0.6, 0.7, he, 0.7, 0xe6e0d4);
+    B.box(0, he + 0.4, W / 2 + 0.6, L * 0.5, 0.8, 1.2, 0xe6e0d4);
+  }
+  if (p.type === 'station' && lod !== LOD_SKY) B.box(0, he - 0.5, W / 2 + 2, L * 0.9, 0.3, 4, 0x4a5258); // platform canopy
+  p.top = top;
+  if (lod !== LOD_FULL) return;
+  const bays = Math.max(3, Math.floor(L / 3.4));
+  for (let f = 0; f < p.floors; f++) {
+    for (let i = 0; i < bays; i++) {
+      const x = -L / 2 + (L * (i + 0.5)) / bays;
+      for (const s of [-1, 1]) B.box(x, f * 3.6 + 2.2, s * (W / 2 + 0.05), 1.3, 1.9, 0.08, 0x1c2228, G_GLASS);
+    }
+  }
+  B.box(0, 1.3, W / 2 + 0.08, 2.2, 2.6, 0.12, 0x3a2a22);
 }
