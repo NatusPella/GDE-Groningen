@@ -29,7 +29,7 @@ const teleport = (x, y) => {
   p.gz = map.groundHeightAt ? map.groundHeightAt(x, y, 0) || 0 : 0;
 };
 const shot = async (name, wait = 1200) => { await sleep(wait); console.log('[capture] ' + name); await sleep(600); };
-const done = [];
+const done = [`viewport ${innerWidth}x${innerHeight} dpr ${devicePixelRatio} ui ${getComputedStyle(document.documentElement).getPropertyValue('--ui')}`];
 if (want('voet')) { teleport(...P(100, 77)); await shot('hud-voet', 4000); done.push('hud-voet'); }
 if (want('gezocht')) { w.wanted = 3; await shot('hud-gezocht', 1500); w.wanted = 0; done.push('hud-gezocht'); }
 // the player in a vehicle: speed, gear and revs only show with someone driving
