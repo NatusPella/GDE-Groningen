@@ -155,7 +155,7 @@ function createWindow() {
     if (input.key === 'F12' || (input.control && input.shift && input.key.toLowerCase() === 'i')) win.webContents.toggleDevTools();
   });
   // debug harness (test switches, benchmark, smoke/story test): not in a packaged install
-  const query = [/^(1|true|ja|aan|on)$/i.test(process.env.GDE_NIEUW_VERHAAL || '') && 'nieuwverhaal', ...(devtools ? devtools.queryParts() : [])].filter(Boolean).join('&');
+  const query = [...(devtools ? devtools.queryParts() : [])].filter(Boolean).join('&');
   if (devtools) devtools.attach(win, { gameDir: GAME_DIR });
   win.loadURL(`${SCHEME}://${HOST}/index.html${query ? '?' + query : ''}`);
 }

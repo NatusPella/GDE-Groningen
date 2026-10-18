@@ -37,12 +37,14 @@ import rechtbank from './sidejob_rechtbank.js';
 import cabaret from './sidejob_cabaret.js';
 import vracht from './sidejob_vracht.js';
 import lijn from './sidejob_lijn.js';
-import { loket, studiestaat, vigilantia } from './sidejob_keuze.js';
+import { BIJBAAN_JOBS } from './sidejob_bijbaan.js';
+import { loket, studiestaat, vigilantia, kamerkoning, wolkenhal, helix, niemeyer, bernard } from './sidejob_keuze.js';
 import { SIDEJOB_PAY_MULT, SIDEJOB_LEVEL_BONUS, SIDEJOB_ACCIDENT_FINE } from './economy.js';
 import { furnitureJobBonus } from './furniture.js';
 import { playerBusy } from './busy.js';
+import { noteMoney } from './finance.js';
 
-export const SIDE_JOBS = [bezorger, taxi, bus, rondvaart, fietsdepot, verhuizing, rondvaarttour, boa, rechtbank, cabaret, vracht, loket, studiestaat, vigilantia, lijn];
+export const SIDE_JOBS = [bezorger, taxi, bus, rondvaart, fietsdepot, verhuizing, rondvaarttour, boa, rechtbank, cabaret, vracht, loket, studiestaat, vigilantia, kamerkoning, wolkenhal, helix, niemeyer, bernard, lijn, ...BIJBAAN_JOBS];
 const BY_ID = new Map(SIDE_JOBS.map((j) => [j.id, j]));
 
 export const JOB_TARGET_COLOR = '#ff9a3c';
@@ -64,7 +66,7 @@ let seen = new Set();
 let hintAt = -Infinity;
 let lastEnd = null;
 let debugApi = null;
-const pub = { active: false, id: null, label: '', color: JOB_TARGET_COLOR, marker: null, dots: [], progress: '', timeLeft: null, goal: null };
+const pub = { active: false, id: null, label: '', color: JOB_TARGET_COLOR, marker: null, dots: [], progress: '', timeLeft: null, goal: null, bus: null };
 
 // --- levels -----------------------------------------------------------------
 
@@ -92,7 +94,7 @@ export function getSideJobList() {
 }
 
 // Rough pay per round for the phone's job app until the player has own figures.
-const PAY_GUESS = { lijn: [60, 120], bezorger: [27, 55], taxi: [25, 60], bus: [90, 140], rondvaart: [55, 105], rondvaarttour: [40, 80], fietsdepot: [45, 90], verhuizing: [80, 180], boa: [38, 60], rechtbank: [60, 105], cabaret: [25, 85], vracht: [70, 130], loket: [52, 90], studiestaat: [62, 110], vigilantia: [56, 98] };
+const PAY_GUESS = { lijn: [60, 120], bezorger: [27, 55], taxi: [25, 60], bus: [90, 140], rondvaart: [55, 105], rondvaarttour: [40, 80], fietsdepot: [45, 90], verhuizing: [80, 180], boa: [38, 60], rechtbank: [60, 105], cabaret: [25, 85], vracht: [70, 130], loket: [52, 90], studiestaat: [62, 110], vigilantia: [56, 98], kamerkoning: [52, 92], wolkenhal: [58, 100], helix: [54, 92], niemeyer: [54, 94], bernard: [48, 84] };
 
 // Phone job app: every job with pay, distance and why it can't start now.
 export function getSideJobOffers(w) {
@@ -238,6 +240,7 @@ function completeRound(c, res = {}) {
   const pay = payFor(c, base);
   const tip = Math.max(0, Math.round(res.tip || 0));
   const total = pay + tip;
+  noteMoney('Bijbaantjes');
   world.money += total;
   c.earned += total;
   c.streak++;
@@ -392,6 +395,7 @@ function forgiveAccident(c, w) {
   c.streak = 0;
   c.flawless = false;
   const fine = Math.min(ACCIDENT_FINE * c.accidents, Math.max(0, w.money));
+  noteMoney('Boetes');
   w.money -= fine;
   w.wanted = 0;
   w.addMessage(`Aanrijding! De baas sust het met de politie, maar je reeks is weg${fine ? ` en het kost je €${fine}` : ''}.`, 4);
@@ -520,7 +524,7 @@ function publish() {
   const c = ctx;
   pub.active = !!c;
   if (!c) {
-    pub.id = null; pub.label = ''; pub.marker = null; pub.dots = []; pub.progress = ''; pub.timeLeft = null; pub.goal = null;
+    pub.id = null; pub.label = ''; pub.marker = null; pub.dots = []; pub.progress = ''; pub.timeLeft = null; pub.goal = null; pub.bus = null;
     return;
   }
   let v = {};
@@ -533,6 +537,7 @@ function publish() {
   pub.progress = v.progress || '';
   pub.timeLeft = c.timeLeft;
   pub.goal = v.goal || null;
+  pub.bus = v.bus || null;
   if (c.betweenRounds) {
     pub.marker = null;
     pub.dots = [];

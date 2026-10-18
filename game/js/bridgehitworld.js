@@ -94,6 +94,8 @@ export function updateBridgeHits(dt, world) {
     v.bridgeDents = (v.bridgeDents || 0) + 1;
     syncBarriers();
     out.push({ boat: v, road: e.rec.r, severity: hit.severity, line: hull.line });
+    // the one-liner, when the player is at the spot (boats are only simulated this near)
+    if (hull.line && p && world.addMessage) world.addMessage(hull.line, 5, { kind: 'tip' });
   }
   return out;
 }

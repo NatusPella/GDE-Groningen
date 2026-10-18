@@ -109,8 +109,13 @@ export function mapPhase(hour) {
   return h >= NIGHT_FROM || h < NIGHT_TO ? 'nacht' : 'dag';
 }
 
-const DAY = { map: { ...MAP_PALETTE }, mini: { ...MINI_PALETTE } };
 let phase = 'dag';
+// The province base map is a pre-rendered pyramid in day colours: at night it
+// is drawn through this canvas filter instead (roughly the palette's land factor).
+export const NIGHT_BASE_FILTER = 'brightness(0.6) saturate(0.9)';
+export function baseFilter() { return phase === 'nacht' ? NIGHT_BASE_FILTER : 'none'; }
+
+const DAY = { map: { ...MAP_PALETTE }, mini: { ...MINI_PALETTE } };
 export function currentMapPhase() { return phase; }
 // switch both palettes in place; true when it changed
 export function applyMapPhase(next) {

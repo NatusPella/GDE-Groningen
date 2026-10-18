@@ -22,21 +22,6 @@
       "why": "verzonnen naam (woordspeling op de supermarkt), geen merk"
     },
     {
-      "rule": "naam",
-      "term": "Henk van Garage",
-      "why": "verzonnen garagehouder"
-    },
-    {
-      "rule": "naam",
-      "term": "Femke van Noorderzon",
-      "why": "verzonnen personage"
-    },
-    {
-      "rule": "naam",
-      "term": "Sjoerd van de KEI-commissie",
-      "why": "verzonnen personage"
-    },
-    {
       "rule": "merk",
       "term": "GTA",
       "file": "credits.js",
@@ -65,13 +50,6 @@
       "file": "banterlines.js",
       "ctx": "in de winter wel terug",
       "why": "vergelijking/zegswijze, geen winterscène; ingesproken"
-    },
-    {
-      "rule": "winter",
-      "term": "winter",
-      "file": "storyarc_oud.js",
-      "ctx": "Van de winter ook niet",
-      "why": "bewuste grap over 'spijt van de zomer'; ingesproken"
     },
     {
       "rule": "winter",
@@ -184,6 +162,24 @@
       "file": "winkelkit.js",
       "ctx": "Oliebol",
       "why": "kermiskraam in de zomer: oliebollen worden op de kermis het hele jaar verkocht; geen winterverwijzing"
+    },
+    {
+      "rule": "winter",
+      "term": "oliebollenkraam",
+      "file": "evenementen.js",
+      "why": "grap: de kermis staat bewust in augustus; geen winterbeeld"
+    },
+    {
+      "rule": "naam",
+      "term": "Sjoerd Zoutkamp",
+      "file": "nieuwsticker.js",
+      "why": "verzonnen lezer (Kiekdoar Nieuws)"
+    },
+    {
+      "rule": "naam",
+      "term": "Piet Peilbuis",
+      "file": "nieuwsticker.js",
+      "why": "verzonnen lezer (Kiekdoar Nieuws)"
     }
   ]
 }

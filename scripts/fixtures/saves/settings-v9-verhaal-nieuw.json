@@ -1,5 +1,5 @@
 {
   "_era": "settings v9 (0.35): the player chose Nieuw (proefversie) under Verhaal; it stays",
-  "_expect": { "verhaal": "nieuw" },
+  "_expect": { "verhaal": null },
   "settings": { "v": 9, "quality": "hoog", "verhaal": "nieuw" }
 }

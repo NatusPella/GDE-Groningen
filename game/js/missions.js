@@ -42,7 +42,6 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { addDrunk } from './drunk.js';
 import { klusloon, medalBonus } from './economy.js';
 import { startStunt, updateStunt, stopStunt, stuntStatus } from './stuntavond.js';
-import { nieuwVerhaal } from './storyflag.js';
 import { storyLines, talkLines, storyDataReady, readingTime } from './storytext.js';
 import { playTalk, stopTalk } from './storytalk.js';
 import { buildNieuwDefs, applyNieuw } from './missions_nieuw.js';
@@ -56,6 +55,7 @@ import { withValidity } from './validity.js';
 const MISSION_RADIO_VALID = { ttl: 600 };
 import { registerBusyProbe } from './busy.js';
 import { playerBusy } from './busy.js';
+import { noteMoney } from './finance.js';
 
 // radio fragments a stage puts on Nachtstreek (storycontact.js, loaded lazily: it imports the UI)
 let contactMod = null;
@@ -103,6 +103,10 @@ function roadSpot(map, x, y, drivable = false) {
 // route on the road graph: car legs on the drivable network (the inner city
 // is largely one-way and car-free, so straight-line distance lies), foot legs
 // on the walk network, boat legs through the Diepenring's water polygon.
+// A mission of the old story that the story no longer plays (#187). Its id keeps its place in MISSION_IDS
+// (saves and medal records index by it), so the slot stays; nothing starts or lists it (ARC_BUILT).
+const retiredDef = (id) => ({ type: 'stages', label: id, retired: true, reward: 0, start: { x: 0, y: 0, road: null }, stages: [] });
+
 function buildDefs(world) {
   const { map } = world;
   const drive = (x, y) => roadSpot(map, x, y, true);
@@ -121,33 +125,8 @@ function buildDefs(world) {
   const laneLegs = [findWalkPath(map, fatStart.x, fatStart.y, fatBridge.x, fatBridge.y), findWalkPath(map, fatBridge.x, fatBridge.y, fatEnd.x, fatEnd.y)];
   const lanePts = laneLegs.every(Boolean) ? [...laneLegs[0].pts, ...laneLegs[1].pts.slice(1)] : [[fatStart.x, fatStart.y], [fatBridge.x, fatBridge.y], [fatEnd.x, fatEnd.y]];
   const list = [
-    {
-      type: 'deliver',
-      label: 'Berend telt de krassen',
-      intro: ['Berend Bos wil zijn bakkie bij zijn zus aan het Boterdiep. Hij staat bij het Martinikerkhof.', 'Rij hem heel naar het Boterdiep, om het centrum heen: daar mag je sinds 1977 niet meer door. Berend telt de krassen.'],
-      outro: 'Berend zei goud. En moi. Tegen Tessa.',
-      timeLimit: 94,
-      reward: 50,
-      // Berend takes 50 cents off per percent of damage, down to a quarter of the fee
-      scratchFine: 0.5,
-      vehicleName: 'Berends bakkie',
-      destName: 'het Boterdiep',
-      handBack: { how: 'drive', say: 'Berend pakt zijn sleutels terug en rijdt weg. Wij lopen, Tessa.' },
-      start: drive(223.17, -30.52),
-      dest: drive(-22.92, -491.56),
-      say: 'De navigatie stuurt je om, via de Diepenring. Sectoren, sinds 1977. Berend heeft er een brief over gestuurd.',
-    },
-    {
-      type: 'stunt',
-      label: 'Iets met de Grote Markt',
-      intro: ['Kiekdoar kopt: \'Grote Markt saaier dan een lege mensa\'. Jelmer wil een zomeravond vol content.', 'Met de auto over de Grote Markt: parasols, kliko\'s en borden omver, duiven de lucht in, de waterwagen laten sproeien. Niemand raken.'],
-      outro: 'De Grote Markt is weer wakker. Nul gewonden, veel natte mensen.',
-      timeLimit: 120,
-      reward: 150,
-      // stuntavond.js: the points to reach, on the square round `center`
-      stunt: { center: { x: 168.69, y: 70.04 }, radius: 46, target: 1500 },
-      start: walk(205.44, 110.71),
-    },
+    retiredDef('berend'),
+    retiredDef('chaos'),
     {
       type: 'checkpoint',
       label: 'Wind tegen, beide kanten op',
@@ -168,35 +147,8 @@ function buildDefs(world) {
       start: kei(0),
       waypoints: [...KEI_CHECKPOINTS.slice(1).map(kei), kei(0)],
     },
-    {
-      type: 'deliver',
-      label: 'Heel aankomen is ook een kunst',
-      intro: ['Noorderzon mist een auto vol breekbaar decor, en de acteurs staan nog bij de Stadsschouwburg.', 'Eerst de acteurs oppikken aan de Turfsingel, dan door naar het Noorderplantsoen. Elke klap en het decor ligt in scherven.'],
-      outro: 'Het decor staat. Het publiek dacht dat de gierende banden bij de show hoorden.',
-      timeLimit: 120,
-      reward: 850,
-      fragile: { label: 'Decor', per: 1.8, failAt: 30, fail: 'het decor ligt in scherven. Het wordt moderne dans' },
-      stops: [{ ...drive(90.11, -321.27), name: 'de Stadsschouwburg', bonus: 25, arrive: 'De acteurs springen achterin, tussen het decor. "Rustig rijden, hè!"' }],
-      vehicleName: 'de decorauto',
-      destName: 'het Noorderplantsoen',
-      handBack: { how: 'park', say: 'De decorauto blijft hier, Femke laadt hem uit. Wij gaan te voet verder.' },
-      start: drive(786.19, -108.24),
-      dest: drive(178.81, -596.53),
-    },
-    {
-      type: 'checkpoint',
-      label: 'Ring Zuid, laatste fase',
-      intro: ['De Zuidelijke Ringweg is af. Echt. Er staat zelfs een bordje.', 'Eén rondje om de stad over de ringweg, tegen vier gekken. Alleen het podium telt.'],
-      outro: 'Podium op de ringweg! Hij ligt er nog. Op een paar pionnen na.',
-      race: 'ring',
-      requires: 'racecar',
-      ride: 'racecar',
-      timeLimit: 60,
-      checkpointBonus: 16,
-      reward: 1200,
-      start: ring(0),
-      waypoints: [...RING_CHECKPOINTS.slice(1).map(ring), ring(0)],
-    },
+    retiredDef('noorderzon'),
+    retiredDef('ringweg'),
     {
       type: 'checkpoint',
       label: 'Nog eentje dan',
@@ -234,20 +186,7 @@ function buildDefs(world) {
       start: fatStart,
       dest: fatEnd,
     },
-    {
-      type: 'boat',
-      label: 'Alles klopt, behalve de papieren',
-      intro: ['Aan de kade bij de Spilsluizen ligt een rondvaartboot die \'even van niemand\' is. Vraag maar niet hoe.', 'Eén heel rondje Diepenring, vol toeristen. Rustig varen, vertellen, wijzen. En hou je achterkant in de gaten.'],
-      outro: 'Rondje Diepenring voltooid. Niemand vroeg naar je papieren.',
-      timeLimit: 90,
-      checkpointBonus: 45,
-      reward: 750,
-      start: berth.start,
-      boatAt: berth.boat,
-      ride: 'quay',
-      handBack: { how: 'moor', say: 'De rondvaartboot blijft aan de kade. Wiebe haalt hem zelf wel op.' },
-      waypoints: rondvaartWaypoints(),
-    },
+    retiredDef('rondvaart'),
     // --- Kop story missions (storyarc.js H2, H4, H6): 'stages' missions,
     // a list of small objectives run by the stage runner below
     {
@@ -624,10 +563,8 @@ function buildDefs(world) {
       ],
     },
   ];
-  if (nieuwVerhaal()) {
-    list.push(...buildNieuwDefs({ map, walk, drive, models: { tractor: TRACTOR_MODEL, quad: QUAD_MODEL } }));
-    applyNieuw(list);
-  }
+  list.push(...buildNieuwDefs({ map, walk, drive, models: { tractor: TRACTOR_MODEL, quad: QUAD_MODEL } }));
+  applyNieuw(list);
   return list;
 }
 
@@ -716,7 +653,7 @@ export function getMissionList() {
     index: i, id: d.id, code: missionCode(i), order: storyOrder(i), label: d.label, type: d.type, reward: d.reward, status: statusOf(i), skipped: !!hooks.skipped(i), start: { x: d.start.x, y: d.start.y },
     needs: w ? requirementText(w, d) : null, done: chain.completed.has(i), klusloon: klusloon(d.reward), medalPaid: chain.medalPaid[i] || 0,
     pay: chain.completed.has(i) ? klusloon(d.reward) : d.reward,
-  })).filter((m) => !nieuwVerhaal() || ARC_BUILT.has(m.index));
+  })).filter((m) => ARC_BUILT.has(m.index));
 }
 
 // --- requirements ------------------------------------------------------------
@@ -1403,6 +1340,7 @@ function succeed(world, def) {
   const adj = rewardAdjust(def, base);
   const reward = base + tip + adj.amount;
   const reason = def.type === 'boat' ? rondvaartOutro() : def.outro || def.label;
+  noteMoney('Missies');
   world.money += reward;
   world.stats.missionsDone++;
   world.addMessage(`${def.label} geklaard! ${replay ? 'Klusloon ' : ''}+€${base}${tip ? ` en €${tip} fooi` : ''}${adj.text}`, 4);
@@ -1439,7 +1377,7 @@ export function payMedalBonus(world, i, medal) {
   if (medal <= from) return 0;
   const bonus = medalBonus(d.reward, from, medal);
   chain.medalPaid[i] = medal;
-  if (bonus > 0) world.money += bonus;
+  if (bonus > 0) { noteMoney('Missies'); world.money += bonus; }
   return bonus;
 }
 
@@ -1455,7 +1393,7 @@ export function medalBonusLeft(i) {
 // After mission i: the next unfinished one in story order, else the next
 // one after it (story.js may override with setNextMission).
 function nextOpenMission(i) {
-  const order = [...MISSION_STORY_ORDER, ...(nieuwVerhaal() ? [] : chain.defs.map((d, j) => j).filter((j) => !MISSION_STORY_ORDER.includes(j)))];
+  const order = MISSION_STORY_ORDER;
   const open = order.find((j) => !chain.completed.has(j));
   if (open != null) return open;
   const k = order.indexOf(i);
@@ -2961,7 +2899,7 @@ function updateHeliStage(dt, world, def, st, S) {
   if (p.inVehicle && !p.inVehicle.storyDemo) { hint(world, 'Uitstappen: Rotor Roelf wacht bij zijn heli.'); return; }
   if (S.target && dist(p.x, p.y, S.target.x, S.target.y) > 30) { hint(world, st.hint || 'Naar het helidek van Rotor Roelf, op Eelde.'); return; }
   S.started = startHeliRun({ variant: st.variant, onFinish: (res) => { S.result = res; } });
-  if (!S.started && S.t > 10) { world.addMessage('De heli wil niet opstijgen. Rotor Roelf vliegt zelf, en Dokter Dijkstra brengt de Eierbal.', 4); nextStage(world, def); }
+  if (!S.started && S.t > 10) { world.addMessage('Rotor Roelf vliegt zelf. Dijkstra brengt de Eierbal.', 4); nextStage(world, def); }
 }
 
 // --- M14 (new story): a race to a spot against a rival on the road network. Whoever is first at `finish` wins; the
@@ -3076,7 +3014,7 @@ function playStageScene(world, st, S) {
   const name = (who) => (who === 'T' ? 'Tammo' : who === 'A' ? 'Anita' : storySpeakerName(who));
   let at = st.reveal ? REVEAL.card : 0.6;
   const lines = (st.lines || []).map(([who, text]) => {
-    const dur = nieuwVerhaal() ? readingTime(text) : Math.max(1.8, Math.min(3.8, 0.95 + text.length * 0.042));
+    const dur = readingTime(text);
     const l = { speaker: name(who), text, at, dur };
     at += dur + 0.1;
     return l;
@@ -3304,7 +3242,7 @@ function updateStages(dt, world, def) {
       repaintVehicle(world, v, RESPRAY_COLORS[Math.floor(Math.random() * RESPRAY_COLORS.length)]);
       world.wanted = 0;
       world.wantedDecayTimer = 0;
-      world.addMessage('Spuit & Klaar: "Nieuwe kleur, nieuwe kans." Gratis, voor deze ene keer. De pliesie kent hem niet meer.', 4);
+      world.addMessage('Nieuwe kleur, nieuwe kans. Gratis. De pliesie kent hem niet meer.', 4);
       nextStage(world, def);
       break;
     }
@@ -3631,21 +3569,25 @@ export function updateMissionMarker3D(group, time, phase) {
   updateWorldMarker3D(group, time);
 }
 
-const waypointDotGeometry = new THREE.SphereGeometry(1.1, 12, 10);
+const waypointRingGeometry = new THREE.RingGeometry(1.0, 1.35, 28).rotateX(-Math.PI / 2);
+const waypointColumnGeometry = new THREE.CylinderGeometry(0.05, 0.1, 9, 8, 1, true).translate(0, 4.5, 0);
 const waypointDotMaterial = new THREE.MeshBasicMaterial({
   color: MARKER_COLOR_ACTIVE,
   transparent: true,
-  opacity: 0.6,
+  opacity: 0.45,
   depthWrite: false,
   blending: THREE.AdditiveBlending,
+  side: THREE.DoubleSide,
 });
 
-// Cheap translucent preview dot for one entry of world.mission.remainingWaypoints
-// (checkpoint/boat missions only). Geometry and material are shared module-
-// scope singletons per-file convention here, since several of these can be
-// live at once - callers must NOT call .dispose() on an individual dot
-// mesh's material when tearing one down (every dot mesh shares the same
-// material instance); just remove the mesh from the scene.
+// Quiet preview of one entry of world.mission.remainingWaypoints (checkpoint/
+// boat missions only): a thin ring on the ground with a short soft column,
+// in place of the old balls (#115). Geometry and material are shared
+// module-scope singletons, since several of these can be live at once -
+// callers must NOT call .dispose() on an individual dot's material; just
+// remove the group from the scene.
 export function buildWaypointDotMesh3D() {
-  return new THREE.Mesh(waypointDotGeometry, waypointDotMaterial);
+  const g = new THREE.Group();
+  g.add(new THREE.Mesh(waypointRingGeometry, waypointDotMaterial), new THREE.Mesh(waypointColumnGeometry, waypointDotMaterial));
+  return g;
 }

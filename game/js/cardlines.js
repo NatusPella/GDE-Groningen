@@ -29,7 +29,6 @@ export const CARD_LINES = [
 // is left off). scripts/voicelines_collect.mjs checks each is still in the
 // game source.
 export const COMPANION_CARDS = [
-  'Hij valt!',
   'Chocola?!',
   'Hij slingert! Durk krijgt de zenuwen.',
   'Tammo fluit. Een zwerm duiven valt over het vuurwerk heen op de voorruit van de trekker!',

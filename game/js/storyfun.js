@@ -130,7 +130,7 @@ function updateDemo(w, st, dt) {
         const again = !!old;
         if (old) { const i = w.vehicles.indexOf(old); if (i >= 0 && old.driver !== 'player') w.vehicles.splice(i, 1); }
         placeDemo(w, st);
-        if (again) w.addMessage('Rotor Roelf zet een nieuwe Wieken Wubbo op zijn pad op Eelde. "De leste, hè."', 4.5, { kind: 'tip' });
+        if (again) w.addMessage('Rotor Roelf zet een nieuwe Wieken Wubbo klaar.', 4.5, { kind: 'tip' });
       }
     }
   } else if (demo) {
@@ -378,7 +378,7 @@ function trainHideout(b) {
   const arr = lastTrainArrival();
   if (!arr || !arr.village) {
     b.trips = getTrainTripCount();
-    world.addMessage('Dat is nog gewoon Stad. Verder weg, een dorp in het Ommeland: die staan bovenaan op de kaartautomaat.', 5);
+    world.addMessage('Dat is nog Stad. Kies een dorp in het Ommeland.', 5);
     return false;
   }
   if (!stroll || stroll.village !== arr.name) {

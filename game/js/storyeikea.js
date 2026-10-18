@@ -71,7 +71,7 @@ function load(w, st, b, v) {
   b.hitAt = -Infinity;
   b.lastHit = w.lastImpact || null;
   v.roofBoxes = b.boxes.length;
-  w.addMessage('Drie dozen op het dak. Rij rustig naar huis: bij een flinke klap valt er een af', 6, { kind: 'missie', key: 'story-eikea' });
+  w.addMessage('Drie dozen op het dak. Rij rustig.', 6, { kind: 'missie', key: 'story-eikea' });
 }
 
 function knock(w, b) {

@@ -677,6 +677,15 @@
    ],
    "lines": [
     {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Dit is de Grote Markt, Tammo. Jelmer betaalt voor stunts met spullen, niet met mensen. Haal die vijftienhonderd punten, dan hebben we de honderdvijftig voor het Loket.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
      "speaker": "Jelmer",
      "key": "jelmer",
      "text": "Moi moi chat! Zomeravond op de Grote Markt! En kijk: verse content!",
@@ -1328,7 +1337,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "In die pas zit het geld van Jelmer. Het Loket neemt alleen contant. Zonder pas geen inschrijving.",
+     "text": "In die pas zit de honderdvijftig euro van Jelmer, voor de inschrijving van de Snackprijs. Het Loket neemt alleen contant. Zonder pas geen inschrijving.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -2044,6 +2053,15 @@
     "Tammo fluit. Een duif landt op zijn pet."
    ],
    "lines": [
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Bert belde gisteren over een zwarte trekker die elke nacht bij het museum staat. Daarom zijn we bij zijn duiventil.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
     {
      "speaker": "Duivenmelker Bert",
      "key": "bert",
@@ -4016,7 +4034,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Durk en Douwe. Dat hoef je niet te weten.",
+     "text": "Durk en Douwe. Zij werken voor Jelle. Dat hoef je nu nog niet te snappen.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -4998,6 +5016,15 @@
    "regie": [],
    "lines": [
     {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Oma Trijntje stuurt ons naar Kapitein Klaas in Zoutkamp. Hij heeft een boot, en Jelle heeft daar een skûtsje.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
      "speaker": "Buschauffeur",
      "key": "buschauffeur",
      "text": "Zoutkamp? Dat is de laatste halte. Daarna is er alleen nog water.",
@@ -5260,6 +5287,15 @@
      "tag": "NIEUW",
      "channel": "telefoon",
      "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Dus de bal is hier niet. Dan halen we het zout voor Oma's recept, dat is plakje vier.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
     }
    ]
   },
@@ -5601,7 +5637,7 @@
     {
      "speaker": "Dokter Dijkstra",
      "key": "dijkstra",
-     "text": "Dijkstra, UMCG. Ik heb een heli. Ik haal jullie op. Dit stond niet in het rooster.",
+     "text": "Dijkstra, UMCG. Morgen vliegt Jelle met zijn koopboek in een ballon boven de Dollard. Ik heb een heli en ik haal jullie op. Dit stond niet in het rooster.",
      "tag": "NIEUW",
      "channel": "telefoon",
      "textOnly": true
@@ -5609,7 +5645,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Naar de Eemshaven?",
+     "text": "Een koopboek met alles wat hij wil kopen. Dat moeten we hebben.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -5618,7 +5654,7 @@
     {
      "speaker": "Kapitein Klaas",
      "key": "klaas",
-     "text": "Dat is Lammerts haven. Hij danste met Trijntje in 1953.",
+     "text": "En daarna naar de Eemshaven. Dat is Lammerts haven. Hij danste met Trijntje in 1953.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -6263,6 +6299,15 @@
    ],
    "lines": [
     {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Wij komen van Oma Trijntje. In Jelles koopboek staat dat zijn schip vannacht met de voorraad van haar vrienden uit de Eemshaven vertrekt.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
      "speaker": "Lammert",
      "key": "lammert",
      "text": "Ik ben Lammert, havenmeester. Ik danste in 1953 met Trijntje. Dat vergeet ze niet.",
@@ -6859,7 +6904,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "We nemen de trein naar Winschoten. Daar is een kermis.",
+     "text": "We nemen de trein naar Winschoten. Jelle geeft de juryleden daar een proeverij op de kermis. Dat staat in zijn koopboek.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -6933,7 +6978,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Jelle geeft de juryleden een gratis proeverij op de kermis. Daar koopt hij ze.",
+     "text": "Oma Trijntje stuurt ons. Jelle geeft de juryleden een gratis proeverij op de kermis. Daar koopt hij ze.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -7108,7 +7153,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Plakje zes is voor de helft gevallen.",
+     "text": "Dan is plakje zes voor de helft gevallen: de jury.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -7125,7 +7170,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Dat is plakje zes. De bloem is van hem.",
+     "text": "Dan heeft Jelle de fijne bloem.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -7138,6 +7183,15 @@
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Dan is ook de bloem gered, en daarmee plakje zes.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
     },
     {
      "speaker": "Tammo",
@@ -7256,7 +7310,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Het plan: Durk en Douwe langs drie tenten volgen, tot ze moe zijn. Dan een rit in de botsauto's.",
+     "text": "Het plan: Durk en Douwe weten waar de bal is. We volgen ze langs drie tenten tot ze moe zijn, dan vragen we het ze in de botsauto's.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -7942,7 +7996,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Jelle heeft een mosterdschip. Dat moet door elf van jouw bruggen. Die mosterd is plakje zeven.",
+     "text": "Durk zei dat Jelle vandaag in Veendam de mosterd haalt. Zijn mosterdschip moet door elf van jouw bruggen, en de bal reist met hem mee. Die mosterd is plakje zeven.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -7975,7 +8029,7 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Over zaterdag.",
+     "text": "Over zaterdag. In de botsauto.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -8533,7 +8587,7 @@
      "speaker": "Mem",
      "from": "MEM",
      "to": "TESSA",
-     "text": "Ze zoeken je. Kom naar Bourtange. – M.",
+     "text": "Kom dinsdag naar Bourtange, voor het Beleg. Jelle komt ook. – M.",
      "tag": "NIEUW",
      "channel": "app-stil",
      "textOnly": true,
@@ -8699,7 +8753,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Meneer de jurylid, wilt u nog een eierbal?",
+     "text": "Meneer, wilt u nog een eierbal?",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -8830,7 +8884,7 @@
     {
      "speaker": "Berend Bos",
      "key": "berend",
-     "text": "Goidag. Ik heb een bus nodig voor het Beleg. Kom naar Ter Apel.",
+     "text": "Goidag. Jelle komt dinsdag naar het Beleg van Bourtange, met zijn beleggers. Ik heb een bus nodig. Kom naar Ter Apel.",
      "tag": "NIEUW",
      "channel": "telefoon",
      "textOnly": true
@@ -8880,7 +8934,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Wij rijden. Ter Apel-bos naar de vesting.",
+     "text": "Wij rijden. Ter Apel-bos naar de vesting, en de Escapade komt achter ons aan.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -9077,6 +9131,15 @@
    "kind": "outro",
    "regie": [],
    "lines": [
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "De Escapade staat op de parkeerplaats bij de poort. Henks zender zit er nog in.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
     {
      "speaker": "Berend Bos",
      "key": "berend",
@@ -9980,6 +10043,14 @@
    ],
    "lines": [
     {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Woensdagochtend, Tinus' schuur. Oma heeft al haar vrienden met hun ingrediënten laten komen. Zonder hen is er geen recept voor de Snackprijs.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
      "speaker": "Oma Trijntje",
      "key": "trijntje",
      "text": "Houd mijn vrienden bij elkaar, jong. Zonder hen is er geen recept.",
@@ -10325,7 +10396,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "We maken van de Escapade de Fjord Frituur.",
+     "text": "De bal is weer weg, maar de Snackprijs kunnen we nog winnen, met een eerlijk recept. Daarvoor maken we van de Escapade de Fjord Frituur.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -10790,7 +10861,7 @@
     {
      "speaker": "Mem Terpstra",
      "key": "mem",
-     "text": "Famke. Trijntje en ik hebben ze gebeld. Ze komen.",
+     "text": "Famke. Trijntje en ik hebben ze na gisteren nog eens gebeld. Ze zeiden nee tegen Jelles advocaten. Ze komen.",
      "tag": "NIEUW",
      "channel": "telefoon",
      "textOnly": true
@@ -10798,7 +10869,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Dit is de colonne. Wij voorop, de rest erachter, en niemand valt weg.",
+     "text": "Dit is de colonne, naar de Grote Markt. Wij voorop, de rest erachter, en niemand valt weg.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -11494,6 +11565,15 @@
    ],
    "lines": [
     {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Morgen is het Ontzet. Vannacht bakken we een proefronde, met alle vijf de ingrediënten van Oma's recept.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
      "speaker": "Oma Trijntje",
      "key": "trijntje",
      "text": "Mosterd, eieren, zout en vet. Grove mosterd, niet dat zoete spul. En het meel van Roelfien. Grof, zoals vroeger.",
@@ -11958,6 +12038,15 @@
      "textOnly": false,
      "manner": "uit de rol",
      "rec": "lines"
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Vandaag is het Ontzet. We winnen met een eerlijke eierbal, en de Gouden Eierbal gaat terug naar het museum. Om drie uur schrijft Jelle zich in bij de notaris: dat moeten we tegenhouden.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
     },
     {
      "speaker": "Tessa",

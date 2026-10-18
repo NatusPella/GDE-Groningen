@@ -422,7 +422,7 @@ function weatherEvents(world) {
   const t = now();
   if (flash > 0.9 && lastFlash < 0.5) {
     lastFlashAt = t;
-    thunder(rnd(250, 3200));
+    thunder(sc.userData.lightningDistance || rnd(250, 3200));
   }
   lastFlash = flash;
   const w = world.weather;
@@ -443,7 +443,7 @@ const ANIMALS = {
   dog: { buf: 'dog', gap: [4, 14], gain: 0.22, rate: [0.8, 1.25], h: 0.5, range: 70, double: true },
   cat: { buf: 'cat', gap: [10, 30], gain: 0.14, rate: [0.9, 1.15], h: 0.3, range: 35 },
 };
-const ALIASES = { gull: 'seagull', meeuw: 'seagull', eend: 'duck', duif: 'pigeon', hond: 'dog', kat: 'cat', koe: 'cow', schaap: 'sheep' };
+const ALIASES = { gans: 'duck', gull: 'seagull', meeuw: 'seagull', eend: 'duck', duif: 'pigeon', hond: 'dog', kat: 'cat', koe: 'cow', schaap: 'sheep' };
 
 function animalDef(kind) {
   if (typeof kind !== 'string') return null;

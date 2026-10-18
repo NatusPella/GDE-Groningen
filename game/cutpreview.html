@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cutscene-preview</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #12141a; color: #eee; font: 14px/1.4 system-ui, sans-serif; }
+  #app { display: grid; grid-template-columns: minmax(260px, 340px) 1fr; height: 100%; }
+  #list { overflow: auto; border-right: 1px solid #2b2e38; padding: 8px; }
+  #list h2 { margin: 10px 0 4px; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: #9aa3b5; }
+  #list button { display: flex; width: 100%; gap: 8px; align-items: center; text-align: left; background: #1b1e26; color: #eee; border: 1px solid #333; border-radius: 6px; padding: 5px 8px; margin: 2px 0; font: inherit; cursor: pointer; }
+  #list button.sel { border-color: #3fc97a; }
+  .dot { width: 10px; height: 10px; border-radius: 2px; flex: none; }
+  .dot.ok { background: #3fc97a; } .dot.waarschuwing { background: #e8c93a; transform: rotate(45deg); } .dot.fout { background: #d93f3f; border-radius: 50%; }
+  #main { display: flex; flex-direction: column; min-width: 0; padding: 10px; gap: 8px; }
+  #cv { width: 100%; flex: 1; min-height: 240px; background: #1a2a1c; border: 1px solid #333; }
+  #bar { display: flex; gap: 8px; align-items: center; }
+  #bar input[type=range] { flex: 1; }
+  #bar button { background: #23262d; color: #eee; border: 1px solid #555; border-radius: 6px; padding: 4px 10px; font: inherit; cursor: pointer; }
+  #info { color: #cfd3da; min-height: 3em; }
+  #issues { color: #f3a0a0; margin: 0; padding-left: 18px; }
+  #issues .w { color: #e8c93a; }
+  .mut { color: #9aa3b5; font-size: 12px; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="list"><div class="mut">Laden…</div></div>
+  <div id="main">
+    <div id="title"><b>Cutscene-preview</b> <span class="mut">Bovenaanzicht zonder het spel. Rood = acteur, blauw = prop, geel = camera.</span></div>
+    <canvas id="cv" width="900" height="560"></canvas>
+    <div id="bar"><button id="play">Speel</button><input id="t" type="range" min="0" max="100" step="0.1" value="0"><span id="clock" class="mut"></span><button id="exp">Bewaar beelden per shot</button></div>
+    <div id="info"></div>
+    <ul id="issues"></ul>
+  </div>
+</div>
+<script type="module" src="js/cutpreviewui.js"></script>
+</body>
+</html>

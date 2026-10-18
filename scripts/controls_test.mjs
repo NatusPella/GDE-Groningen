@@ -3,6 +3,7 @@
 // tables and the glyph lookup.
 //   node scripts/controls_test.mjs
 import * as C from '../game/js/controls.js';
+import { BELL_KEYS } from '../game/js/carillonrules.js';
 
 let fails = 0, n = 0;
 const ok = (c, name, extra) => { n++; if (!c) { fails++; console.log('FAIL', name, extra !== undefined ? JSON.stringify(extra) : ''); } };
@@ -74,7 +75,9 @@ ok(JSON.stringify(C.normalizeKeyBinds({ b: 'y', n: 'y' })) === '{"n":"y"}', 'a s
 
 // every situation maps every game key it needs to some button
 const need = { foot: [' ', 'control', 'e', 'f', 'k', 'm', 'escape', 'shift', 'tab', 'o'], vehicle: [' ', 'e', 'h', 'l', 'q', 'v', 'm', 'escape', 'n', 'shift', '@fire'],
-  heli: [' ', 'control', 'e', 'shift'], pigeon: [' ', 'control', 'f', 'e', 'c', 'q', 'x', 'shift'], menu: ['enter', 'escape', 'q', 'e'], minigame: [' ', 'backspace', 'e'], foodtruck: ['1', '2', '3', '4', '5', '6', ' ', 'backspace'] };
+  heli: [' ', 'control', 'e', 'shift'], pigeon: [' ', 'control', 'f', 'e', 'c', 'q', 'x', 'shift'], menu: ['enter', 'escape', 'q', 'e'], minigame: [' ', 'backspace', 'e'], foodtruck: ['1', '2', '3', '4', '5', '6', ' ', 'backspace'],
+  pannenkoek: ['q', 'w', 'e', 'r', '1', '2', '3', 'backspace', 'escape'],
+  klokken: ['a', 's', 'd', 'f', 'j', 'k', 'l', ';', ' ', 'backspace', 'q', 'e', 'escape'] };
 for (const [ctx, keys] of Object.entries(need)) {
   for (const k of keys) {
     const has = Object.values(C.PAD_MAPS[ctx]).includes(k) || (C.PAD_MAPS[ctx].stick === 'arrows' && false);
@@ -129,6 +132,10 @@ ok(C.PAD_MAPS.vehicleManual.rb === '.' && C.PAD_MAPS.vehicleManual.lb === ',' &&
 ok(C.PAD_MAPS.vehicleManual.rt === '@gas' && C.PAD_MAPS.vehicleManual.lt === '@brake' && C.PAD_MAPS.vehicleManual.stick === 'steer', 'gas, brake and steering stay as in the automatic vehicle map');
 ok(C.PAD_MAPS.vehicleManual.up === 'n', 'the radio moves to the D-pad when the bumpers shift');
 ok(new Set(C.KEY_ACTIONS.map(([k]) => C.physicalKey({}, k))).size === C.KEY_ACTIONS.length, 'no two actions share a default key');
+
+// the carillon: all eight bell keys sit on the pad, each on its own button
+ok(BELL_KEYS.every((k) => Object.values(C.PAD_MAPS.klokken).includes(k)), 'klokken: every bell key has a button');
+ok(new Set(BELL_KEYS.map((k) => C.padSlotFor(k, 'klokken'))).size === BELL_KEYS.length, 'klokken: each bell is its own button');
 
 console.log(`${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

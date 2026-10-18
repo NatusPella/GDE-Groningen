@@ -5,9 +5,11 @@
 import { getBusLines } from './vehicle.js';
 import { startAt, nearestLine } from './busroutes.js';
 import { spawnJobVehicle, pick } from './sidejobkit.js';
-import { makeRide, startRide, updateRide, rideStop, stopPos } from './busride.js';
+import { makeRide, planRide, startRide, updateRide, rideStop, stopPos } from './busride.js';
 
 const COACH = { name: 'bus', len: 11.5, wid: 2.55, maxSpeed: 22, accel: 2.6, brake: 9, turnRate: 1.1, color: '#2e8b6a' };
+
+const MAX_STOPS = 8; // haltes per rit: een lijn van 40 km hoeft niet in één keer
 
 const WORDS = {
   hardbrake: ['Voorzichtig remmen, de passagiers vallen om!', 'Rustig aan, staan ze niet allemaal?'],
@@ -42,7 +44,8 @@ export default {
     if (!lines.length) return 'Geen buslijn in de buurt';
     const line = nearestLine(lines, c.spot.x, c.spot.y, 3000) || lines[0];
     c.data.line = line;
-    const p = startAt(line, line.stops[0].s, 1);
+    const plan = planRide(line, c.spot.x, c.spot.y);
+    const p = startAt(line, line.stops[plan.dir > 0 ? plan.first : line.stops.length - 1 - plan.first].s, plan.dir);
     const v = spawnJobVehicle(c.world, p.x, p.y, { kind: 'bus', model: COACH, angle: p.angle });
     if (!v) return 'Geen bus beschikbaar';
     c.vehicle = v;
@@ -53,8 +56,8 @@ export default {
 
   round(c) {
     const d = c.data;
-    d.dir = (d.dir || 1) * -1 || 1;
-    d.ride = makeRide(d.line, { dir: d.dir > 0 ? 1 : -1 });
+    const plan = planRide(d.line, c.vehicle.x, c.vehicle.y);
+    d.ride = makeRide(d.line, { ...plan, max: MAX_STOPS });
     const first = startRide(d.ride);
     const last = d.ride.table[d.ride.table.length - 1];
     c.timeLeft = last.arrive + 120;
@@ -89,6 +92,8 @@ export default {
     return {
       marker: { x: p.x, y: p.y },
       progress: `${d.line.name} · ${r.onBoard} reizigers`,
+      // voor de kaart (missionmaplive.js): de route en de haltes in rijrichting
+      bus: { route: r.table.map((t) => stopPos(r, t)), stops: r.table.map((t, i) => ({ ...stopPos(r, t), name: t.name, next: i === r.next, done: i < r.next })) },
       goal: { label: `Naar ${row.name}`, desc: r.phase === 'dwell' ? 'Wacht op het vertrek' : 'Halteer netjes' },
     };
   },

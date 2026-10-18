@@ -1,5 +1,6 @@
 import { waterClearance } from './waterindex.js';
 import { waterPolyAt } from './waterlevels.js';
+import { pointInPolygon } from './polygon.js';
 // Uploads only the first `count` instances of an instanced attribute: a
 // pool sized for thousands would otherwise send its whole array each time.
 export function markInstancesDirty(attr, count) {
@@ -41,18 +42,7 @@ export function segDist(px, py, ax, ay, bx, by) {
 }
 
 // Ray-casting point-in-polygon. poly: [[x,y],...] (closed or open, ok either way).
-export function pointInPolygon(px, py, poly) {
-  let inside = false;
-  const n = poly.length;
-  for (let i = 0, j = n - 1; i < n; j = i++) {
-    const xi = poly[i][0], yi = poly[i][1];
-    const xj = poly[j][0], yj = poly[j][1];
-    const intersect = ((yi > py) !== (yj > py)) &&
-      (px < (xj - xi) * (py - yi) / (yj - yi) + xi);
-    if (intersect) inside = !inside;
-  }
-  return inside;
-}
+export { pointInPolygon };
 
 export { pointInStaticPolygon } from './waterlevels.js';
 

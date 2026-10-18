@@ -106,6 +106,7 @@ De builds staan bij de [Releases](../../releases) van deze repo, per versie:
 Het spel slaat vanzelf op (en met **Opslaan** in het menu), op je eigen
 apparaat. Vanaf versie 1.0 blijft een save werken in elke latere versie:
 oudere saves worden bij het laden bijgewerkt (`game/js/savemigrate.js`).
+Een save van het oude verhaal (dat niet meer bestaat) gaat door in het nieuwe verhaal: geld, spullen, voertuigen, prestaties en instellingen blijven, het verhaal begint opnieuw. Je oude save blijft ongemoeid op je apparaat staan.
 
 Er is geen account, geen tracking en geen statistiek; de desktopapp
 gebruikt geen internet. Fouten komen in een logboek op je eigen apparaat

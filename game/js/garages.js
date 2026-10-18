@@ -4,6 +4,8 @@ import { addStaticCollider } from './breakables.js';
 import { getScene } from './scene3d.js';
 import { openShopMenu, isShopOpen } from './shopui.js';
 import { isCinematicActive } from './cinematics.js';
+import { tuningKind, optionsFor, PARTS, PART_LABELS, tuningEffects, installPrice, withOption, loadTuning, saveTuning, optionById } from './tuningplan.js';
+import { KEYS } from './storagekeys.js';
 import { vehicleUpgradeItems, paintItems, getOwnedEntries, spawnOwnedEntry, replacementFee, getHeroLook, vehiclePreviewOf } from './shops.js';
 import { repairCost, platesCost, HERO_REPLACE_FEE } from './economy.js';
 import { spawnHeroCarNear } from './vehicle.js';
@@ -12,6 +14,8 @@ import { recordStat } from './achievements.js';
 import { startCall } from './phonefeed.js';
 import { facilitiesOf, countryFacilities } from './facilities.js';
 import { nearestWorldPlace } from './worldplaces.js';
+import { noteMoney } from './finance.js';
+import { zoneTotals, losseOnderdelen, onderdelenPrijs, schadeTekst } from './vehicledamage.js';
 
 // Garages: every Garage Knalpot branch (from the OSM car repair shops) and
 // every Pomp & Poets gas station has a workshop with a roller door by the
@@ -215,7 +219,7 @@ function twoWheel(v) {
 function repairPrice(v) {
   const dmg = 100 - Math.max(0, Math.min(100, v.health ?? 100));
   const dents = v.damage ? Math.min(3, v.damage.total || 0) : 0;
-  return repairCost(dmg, dents, twoWheel(v)) + (v.flat ? (twoWheel(v) ? 3 : 15) : 0);
+  return repairCost(dmg, dents, twoWheel(v)) + (v.flat ? (twoWheel(v) ? 3 : 15) : 0) + onderdelenPrijs(losseOnderdelen(zoneTotals(v.dentLog, v.model.len, v.model.wid)));
 }
 
 // Health back to 100 and every dent, crack and hanging bumper gone:
@@ -238,10 +242,48 @@ export function repairVehicle(v) {
 function pay(w, price) {
   if (!Number.isFinite(price) || price < 0) { console.warn('prijs zonder waarde', price); return false; }
   if (w.money < price) return false;
+  noteMoney('Garage');
   w.money -= price;
   recordStat(w, 'purchases');
   recordStat(w, 'spent', price);
   return true;
+}
+
+// Onderdelen (tuningplan.js): banden, uitlaat, stoel, verlichting en geluid per eigen voertuig,
+// bewaard onder KEYS.tuning (los van de save). v.tuning krijgt de gesommeerde effecten.
+function tuningId(v) {
+  if (v.isHeroCar) return 'hero';
+  const o = getOwnedEntries().find((e) => e.v === v);
+  return o ? o.key : null;
+}
+
+function tuningItems(w, v) {
+  const id = tuningId(v);
+  if (!id) return [];
+  const kind = tuningKind(v);
+  const store = typeof localStorage !== 'undefined' ? localStorage : null;
+  const all = loadTuning(store, KEYS.tuning);
+  const items = [];
+  for (const part of PARTS) {
+    for (const o of optionsFor(part, kind)) {
+      const price = installPrice(all[id], o.id);
+      const on = price === null;
+      items.push({
+        id: 'o-' + o.id, label: PART_LABELS[part] + ': ' + o.label, desc: o.desc, price: on ? 0 : price,
+        tag: on ? 'Zit erop' : '',
+        disabled: on ? 'Zit erop' : w.money < price ? 'Te weinig geld' : '',
+        buy() {
+          const next = withOption(all[id], o.id, kind);
+          if (!next || !pay(w, price)) return null;
+          all[id] = next;
+          saveTuning(store, KEYS.tuning, all);
+          v.tuning = tuningEffects(next);
+          return o.label + ' erop. Henk knikt goedkeurend';
+        },
+      });
+    }
+  }
+  return items;
 }
 
 function exitSpot(site) {
@@ -259,7 +301,7 @@ function garageMenu(w, site) {
       const items = [{
         id: 'g-fix', label: twoWheel(v) ? 'Rechtzetten en plakken' : 'Deuken eruit, alles heel', price,
         preview: vehiclePreviewOf(v), stats: [{ label: 'Staat', v: (v.health ?? 100) / 100, to: 1, text: `${Math.round(v.health ?? 100)} → 100%` }],
-        desc: broken ? `Staat nu op ${Math.round(v.health ?? 100)}%${v.flat ? ', met een lekke band' : ''}. Henk maakt hem weer als nieuw` : 'Mankeert niks, zegt Henk',
+        desc: broken ? `Staat nu op ${Math.round(v.health ?? 100)}%${v.flat ? ', met een lekke band' : ''}. ${schadeTekst(v, v.model.len, v.model.wid)}. Henk maakt hem weer als nieuw` : 'Mankeert niks, zegt Henk',
         disabled: broken ? (w.money < price ? 'Te weinig geld' : '') : 'Mankeert niks',
         buy() {
           if (!pay(w, price)) return null;
@@ -296,6 +338,10 @@ function garageMenu(w, site) {
       if (paint.length) out.push({ title: 'Spuit & Klaar: nieuwe lak', note: w.wanted > 0 ? 'Een nieuwe kleur en de politie is je kwijt' : '', items: paint.map((it) => ({ ...it, buy() { const r = it.buy(); if (r != null) markDirty('lak'); return r; } })) });
       const up = vehicleUpgradeItems(w, v);
       if (up.length) out.push({ title: twoWheel(v) ? 'Opvoeren' : 'Tuning', items: up.map((it) => ({ ...it, buy() { const r = it.buy(); if (r != null) markDirty('upgrade'); return r; } })) });
+    }
+    if (serviceable(v) && isOwn(v)) {
+      const parts = tuningItems(w, v);
+      if (parts.length) out.push({ title: 'Onderdelen', note: 'Banden, uitlaat, stoel, verlichting en geluid', items: parts });
     }
     const wrecks = [];
     const look = getHeroLook();

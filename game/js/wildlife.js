@@ -7,6 +7,9 @@ import { pushCircleOutOfVehicle, vehicleHitBody } from './vehicle.js';
 import { splatterAnimal, GIB_SPEED } from './gore3d.js';
 import { MODS } from './cheatmods.js';
 import { buildingAt } from './tileplace.js';
+import { streekAt } from './regioleven.js';
+import { wildlifeLimits, grazerPick } from './dierenplan.js';
+import { getSettings } from './settings.js';
 
 // Ambient trailer-parody wildlife: seagulls over the Diepenring,
 // ducks and geese on the canals, pigeon flocks on the squares, the odd
@@ -21,7 +24,7 @@ const MAINTAIN_INTERVAL = 2.5;
 const BIAS_SEARCH_RADIUS = 100;
 const CANAL_Y = WATER_Y;
 
-const LIMITS = { seagull: 7, grazer: 3, duck: 6, pigeon: 14, cat: 2, dog: 3 };
+const BASE_LIMITS = { seagull: 7, grazer: 3, duck: 6, pigeon: 14, cat: 2, dog: 3 };
 
 const SEAGULL_SPEED_MIN = 3.4;
 const SEAGULL_SPEED_MAX = 4.6;
@@ -42,12 +45,8 @@ const PIGEON_STAND_Y = 0.1;
 
 let maintainTimer = 0;
 
-function insideBuilding(map, x, y) {
-  return !!buildingAt(map, x, y);
-}
-
 function openGround(map, x, y) {
-  return !insideBuilding(map, x, y) && !isInWater(map, x, y);
+  return !buildingAt(map, x, y) && !isInWater(map, x, y);
 }
 
 function randomOpenPointNear(map, x, y, rMin, rMax, rng = Math.random) {
@@ -174,7 +173,7 @@ function spawnCat(map, px, py, rng) {
     const t = 0.2 + rng() * 0.6;
     let nx = -(b[1] - a[1]) / len, ny = (b[0] - a[0]) / len;
     const mx = a[0] + (b[0] - a[0]) * t, my = a[1] + (b[1] - a[1]) * t;
-    if (insideBuilding(map, mx + nx * 0.5, my + ny * 0.5)) { nx = -nx; ny = -ny; }
+    if (buildingAt(map, mx + nx * 0.5, my + ny * 0.5)) { nx = -nx; ny = -ny; }
     const x = mx + nx * 0.35, y = my + ny * 0.35;
     const d = dist(x, y, px, py);
     if (d < 12 || d > 55 || !openGround(map, x, y)) continue;
@@ -221,6 +220,9 @@ function maintain(world) {
       list.splice(i, 1);
     }
   }
+  const streek = streekAt(player.x, player.y);
+  const streekId = streek ? streek.id : 'stad';
+  const LIMITS = wildlifeLimits(streekId, getSettings().quality, BASE_LIMITS);   // #193
   const count = { seagull: 0, grazer: 0, duck: 0, pigeon: 0, cat: 0, dog: 0 };
   for (const a of list) count[a.kind === 'cow' || a.kind === 'sheep' ? 'grazer' : a.kind]++;
   const rng = Math.random;
@@ -238,7 +240,7 @@ function maintain(world) {
   const green = greenPolys.length && count.grazer < LIMITS.grazer && rng() < 0.3 ? layerPointNear(map, 'greenNear', player.x, player.y, rng, 15, SPAWN_RADIUS) : null;
   if (green) {
     const hx = green.x, hy = green.y;
-    const kind = rng() < 0.5 ? 'cow' : 'sheep';
+    const kind = grazerPick(streekId, rng());
     const herd = kind === 'sheep' ? 1 + Math.floor(rng() * 2) : 1;
     for (let k = 0; k < herd && count.grazer + k < LIMITS.grazer; k++) list.push(newGrazer(kind, hx + k * 1.5, hy + k * 0.8, rng));
   }

@@ -4,7 +4,6 @@
 import fs from 'node:fs';
 import { buildAkte5Defs, applyAkte5 } from '../game/js/missions_akte5.js';
 
-process.env.GDE_NIEUW_VERHAAL = '1';
 const { STEPS, NEW_MISSION_IDS, PARTS } = await import('../game/js/storyarc_nieuw.js');
 const data = JSON.parse(fs.readFileSync(new URL('../game/storydata/script.json', import.meta.url), 'utf8'));
 const scene = new Map(data.scenes.map((s) => [s.id, s]));

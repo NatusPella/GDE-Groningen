@@ -12,6 +12,7 @@ import { setUserWaypoint } from './routing.js';
 import { getStoryJournal } from './story.js';
 import { getSaveSet, EIERBAL_TOTAL } from './achievements.js';
 import { SECRETS_TOTAL } from './geheimen.js';
+import { getLedger, summary } from './finance.js';
 
 const ICON = {
   geld: '<rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.6"/><path d="M6 9.5v5M18 9.5v5"/>',
@@ -39,6 +40,21 @@ const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&l
 const euro = (v) => '€' + Math.round(v).toLocaleString('nl-NL');
 const svg = (id) => `<svg class="pm-ic" viewBox="0 0 24 24" aria-hidden="true">${ICON[id] || ICON.kaart}</svg>`;
 
+// Inkomsten en uitgaven (finance.js, #206): vandaag, deze week, totaal en de grootste posten.
+function financeRows() {
+  const s = summary(getLedger());
+  if (!s.inTotal && !s.outTotal) return [['Kasboek', 'Nog leeg. Verdien of geef iets uit']];
+  const post = (list) => list.map(([k, v]) => `${k} ${euro(v)}`).join(', ');
+  return [
+    ['Vandaag', `+${euro(s.todayIn)} / -${euro(s.todayOut)}`],
+    ['Deze week', `+${euro(s.weekIn)} / -${euro(s.weekOut)}`],
+    ['Totaal verdiend', euro(s.inTotal)],
+    ['Totaal uitgegeven', euro(s.outTotal)],
+    ...(s.topIn.length ? [['Meeste inkomsten', post(s.topIn)]] : []),
+    ...(s.topOut.length ? [['Meeste uitgaven', post(s.topOut)]] : []),
+  ];
+}
+
 // Items: { key, cat, icon, title, sub, side, how, perk, rows, act: { label, run } }
 function collect(w) {
   const out = [];
@@ -46,7 +62,7 @@ function collect(w) {
   const shop = inventoryShopState();
   const ch = w.player.character === 'anita' ? 'anita' : 'tammo';
 
-  out.push({ key: 'geld', cat: 'geld', icon: 'geld', title: euro(Math.max(0, Math.floor(w.money))), sub: 'Contant, in je zak', how: 'Verdiend met klussen, missies en bijbaantjes', perk: 'Gepakt worden kost een boete per ster' });
+  out.push({ key: 'geld', cat: 'geld', icon: 'geld', title: euro(Math.max(0, Math.floor(w.money))), sub: 'Contant, in je zak', how: 'Verdiend met klussen, missies en bijbaantjes', perk: 'Gepakt worden kost een boete per ster', rows: financeRows() });
 
   const stock = new Map(WEAPON_STOCK.map((s) => [s.key, s]));
   const guns = Object.keys(WEAPONS).filter((k) => k !== 'fists' && !['throw', 'rocket'].includes(WEAPONS[k].kind));

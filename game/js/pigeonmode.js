@@ -1673,7 +1673,7 @@ export function stopPigeonMode(w = world) {
     const who = pl.character === 'anita' ? 'Tessa' : 'Tammo';
     const wijk = wijkAt(map, spot.x, spot.y);
     // a flight without points (a mission's, or a short hop) needs no score card
-    if (score > 0) w.addMessage(`${who} doet de ogen weer open${wijk ? ' in ' + wijk : ''}. ${score} poeppunten deze vlucht (totaal ${store.total}).`, 4.5);
+    if (score > 0) w.addMessage(`${who} landt${wijk ? ' in ' + wijk : ''}: ${score} poeppunten (totaal ${store.total})`, 4.5);
     sfx('flap', P.x, P.y, 0.8);
     saveGame(w);
   } else {
@@ -1756,6 +1756,11 @@ export function isPigeonActive() {
 export function getPigeonFlight() {
   if (!active) return null;
   return { x: P.x, y: P.y, z: P.z, ground: surfaceAt(P.x, P.y, false).h, mode: P.mode, score, intro: !!intro };
+}
+
+// Read-only: where the gull is (for the mission map), or null.
+export function getPigeonThreats() {
+  return active && gull ? [{ x: gull.x, y: gull.y, kind: 'meeuw', label: 'Meeuw' }] : [];
 }
 
 export { buildBird as buildPigeonBird, poseBird as posePigeonBird };

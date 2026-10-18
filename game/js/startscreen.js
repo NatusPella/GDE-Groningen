@@ -1,5 +1,6 @@
 import { FLAGS } from './devflags.js';
-import { hasSave, readSave, applySave, clearSave, getSaveSummary } from './savegame.js';
+import { hasSave, readSave, applySave, startNewSlot, getSaveSummary, ensureActiveSlot } from './savegame.js';
+import { openSaveSlots, isSaveSlotsOpen } from './saveslotsui.js';
 import { VERSION } from './version.js';
 import { checkWhatsNew, markVersionSeen, compareVersions } from './whatsnew.js';
 import { pointInPolygon } from './util.js';
@@ -13,8 +14,6 @@ import { MENU_FRAME_S, getRenderer } from './scene3d.js';
 import { isAdvisorSampling, startGfxAdvisor } from './gfxprofile.js';
 import { ABOUT_HTML } from './credits.js';
 import { startLoadScreen, setLoadTips } from './loadscreen.js';
-import { ARC_ID, arcForced } from './storyflag.js';
-import { arcName, otherArc, chooseArc, classicSaveExists } from './storychoice.js';
 
 export const TIPS = [
   'Tip: in Grunn neemt een fietser altijd voorrang, of hij die nou heeft of niet.',
@@ -398,19 +397,19 @@ export function runStartScreen(world, { render, relocate, tick }) {
   return new Promise((resolve) => {
     const screen = el('start-screen');
     const menu = screen.querySelector('.ss-menu');
+    ensureActiveSlot();
     const save = hasSave() ? getSaveSummary() : null;
     const items = [];
     if (save) items.push({ act: 'continue', label: 'Doorgaan', sub: summaryText(save) });
-    // the new story is the default: a released save stays untouched under Klassiek, so point to it
-    else if (!arcForced() && ARC_ID === 'nieuw' && classicSaveExists()) items.push({ act: 'story', label: 'Doorgaan met Klassiek', sub: 'Je oude save staat nog klaar. Het nieuwe verhaal is nog in aanbouw' });
-    items.push({ act: 'new', label: 'Nieuw spel', sub: arcForced() ? (save ? 'Begin opnieuw in Grunn' : 'Moi! Stap in en rij') : 'Kies je verhaal: nieuw of klassiek' });
+    items.push({ act: 'new', label: 'Nieuw spel', sub: save ? 'Begin opnieuw in Grunn' : 'Moi! Stap in en rij' });
+    items.push({ act: 'saves', label: 'Saves', sub: 'Kies, hernoem, exporteer of verwijder je saves' });
     items.push({ act: 'news', label: 'Wat is er nieuw', sub: 'Alle versies en wijzigingen' });
     items.push({ act: 'settings', label: 'Instellingen', sub: 'Geluid, beeld en camera' });
     items.push({ act: 'about', label: 'Over', sub: 'Credits, licenties en privacy' });
     if (window.gdeDesktop && window.gdeDesktop.isDesktop) items.push({ act: 'exit', label: 'Afsluiten', sub: 'Tot de volgende keer. Hou dij goud!' });
     const pct = getAchievementSummary().pct;
     const st = save && save.story;
-    const heroSub = st ? [arcName(save.arc), st.part, st.ended ? 'verhaal uit' : '', pct > 0 ? `${pct}% prestaties` : ''].filter(Boolean).join(' · ') : save ? summaryText(save) : '';
+    const heroSub = st ? [save.name, st.part, st.ended ? 'verhaal uit' : '', pct > 0 ? `${pct}% prestaties` : ''].filter(Boolean).join(' · ') : save ? summaryText(save) : '';
     const itemHtml = (it, i) => {
       if (it.act === 'continue') {
         const prog = st && st.total ? Math.round((st.done / st.total) * 100) : null;
@@ -513,25 +512,32 @@ export function runStartScreen(world, { render, relocate, tick }) {
     const startNew = () => {
       startTheme();
       restoreWorld();
-      clearSave();
+      startNewSlot();
+      finish('game');
+    };
+    const continueGame = () => {
+      startTheme();
+      restoreWorld();
+      applySave(world, readSave());
+      // the load screen covers the menu until the city round the save has streamed in
+      startLoadScreen(world, { kind: 'save' });
       finish('game');
     };
     const activate = (i) => {
       const it = items[i];
       if (it.act !== 'news' && it.act !== 'about') news.hidden = true;
       if (it.act === 'continue') {
-        startTheme();
-        restoreWorld();
-        applySave(world, readSave());
-        // the load screen covers the menu until the city round the save has streamed in
-        startLoadScreen(world, { kind: 'save' });
-        finish('game');
+        continueGame();
+      } else if (it.act === 'saves') {
+        openSaveSlots({ mode: 'start', onLoad: continueGame, onNew: () => startNew(), onClose: () => {
+          // Doorgaan shows the save as it was when the menu opened: rebuild the menu when saves changed
+          const now = hasSave() ? getSaveSummary() : null;
+          if (!done && JSON.stringify(now && [now.slot, now.savedAt, now.name]) !== JSON.stringify(save && [save.slot, save.savedAt, save.name])) location.reload();
+          else focus(sel);
+        } });
       } else if (it.act === 'new') {
-        if (!arcForced()) { openChoice(); return; }
         if (save && !confirmNew) { setConfirm(true); return; }
         startNew();
-      } else if (it.act === 'story') {
-        chooseArc(otherArc());
       } else if (it.act === 'news') {
         openNews();
       } else if (it.act === 'about') {
@@ -560,61 +566,15 @@ export function runStartScreen(world, { render, relocate, tick }) {
       showPanel('Over GDE');
       newsBody.innerHTML = ABOUT_HTML;
     };
-    // Nieuw spel: two cards, one per story. The page's own story starts at once (after a confirm when
-    // it would wipe a save); the other one restarts the game with that story first (storychoice.js).
-    let choiceOpen = false, choiceSure = false;
-    const choiceCards = () => [...newsBody.querySelectorAll('.ss-choice')];
-    const openChoice = () => {
-      choiceOpen = true;
-      choiceSure = false;
-      showPanel('Kies je verhaal');
-      const card = (arc, text) => {
-        const here = arc === ARC_ID;
-        const note = here ? (save ? 'Je huidige save van dit verhaal wordt gewist.' : 'Hier begin je nu mee.') : 'Het spel start opnieuw op met dit verhaal. Kies daarna Nieuw spel.';
-        return `<button type="button" class="ss-choice${here ? ' here' : ''}" data-arc="${arc}"><b>${arcName(arc)}</b><span>${text}</span><small>${note}</small></button>`;
-      };
-      newsBody.innerHTML = '<p class="ss-choice-lead">Er zijn twee verhalen. Je saves blijven per verhaal bewaard.</p>' +
-        card('nieuw', 'Alles voor één eierbal: het nieuwe verhaal in vijf aktes. Nog in aanbouw, het begin is speelbaar.') +
-        card('oud', 'Het uitgebrachte verhaal, helemaal af. Een oude save van Klassiek staat hier klaar.');
-      choiceCards()[0].focus({ preventScroll: true });
-    };
-    const pickChoice = (arc) => {
-      if (arc !== ARC_ID) { chooseArc(arc); return; }
-      const c = choiceCards().find((b) => b.dataset.arc === arc);
-      if (save && !choiceSure) {
-        choiceSure = true;
-        c.classList.add('confirm');
-        c.querySelector('small').textContent = 'Zeker weten? Kies nog een keer: je save van dit verhaal wordt gewist.';
-        return;
-      }
-      choiceOpen = false;
-      startNew();
-    };
-    newsBody.addEventListener('click', (e) => {
-      const c = e.target.closest('.ss-choice');
-      if (c && choiceOpen && !done) pickChoice(c.dataset.arc);
-    });
     const closeNews = () => {
-      choiceOpen = false;
       news.hidden = true;
       focus(sel);
     };
     news.querySelector('.ss-news-close').addEventListener('click', closeNews);
     const onKey = (e) => {
-      if (isPauseMenuOpen() || done || trailerOn) return;
+      if (isPauseMenuOpen() || isSaveSlotsOpen() || done || trailerOn) return;
       if (e.target && e.target.closest && e.target.closest('#gfx-advice')) return;
       const k = e.key;
-      if (!news.hidden && choiceOpen) {
-        const cards = choiceCards(), at = cards.indexOf(document.activeElement);
-        if (k === 'Escape' || k === 'Backspace') closeNews();
-        else if (k === 'ArrowDown' || k === 's' || k === 'S') cards[(at + 1) % cards.length].focus();
-        else if (k === 'ArrowUp' || k === 'w' || k === 'W') cards[(at + cards.length - 1) % cards.length].focus();
-        else if (k === 'Enter' || k === ' ') { if (!e.repeat && at >= 0) pickChoice(cards[at].dataset.arc); }
-        else return;
-        e.preventDefault();
-        e.stopPropagation();
-        return;
-      }
       if (!news.hidden) {
         const page = newsBody.clientHeight * 0.85;
         if (k === 'Escape' || k === 'Backspace' || k === 'Enter') closeNews();
