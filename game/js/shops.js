@@ -70,7 +70,7 @@ export const WEAPON_STOCK = [
   { key: 'shotgun', label: 'Hagelgeweer "Boerenbuks"', desc: 'Van de boer uit Ten Boer. Dichtbij: weg is weg', gun: 400, ammoPrice: 35, ammo: 12, cap: 80 },
   { key: 'jachtgeweer', label: 'Jachtgeweer "Hogelandse Havik"', desc: 'Met kijker: rechtermuisknop vasthouden. Van ver, één keer raak', gun: 650, ammoPrice: 40, ammo: 10, cap: 60 },
   { key: 'waterpistool', label: 'Waterpistool "Spetter"', desc: 'Doet geen pijn, maar niemand wil nat worden. Blust ook een brandende bak', gun: 25, ammoPrice: 5, ammo: 150, cap: 600, unit: 'water' },
-  { key: 'carbidbus', label: 'Carbidbus "Oudjoar"', desc: 'Melkbus met carbid, zoals op het Hogeland met oud en nieuw. Gooien, of bukken en neerzetten', gun: 90, ammoPrice: 30, ammo: 3, cap: 15, unit: 'bussen' },
+  { key: 'carbidbus', label: 'Carbidbus "Knalbus"', desc: 'Melkbus met carbid, zoals op het Hogeland met de carbidschietwedstrijd. Gooien, of bukken en neerzetten', gun: 90, ammoPrice: 30, ammo: 3, cap: 15, unit: 'bussen' },
   { key: 'vuurwerk', label: 'Vuurwerkpijlen "Sterrenregen"', desc: 'Het hele jaar oud en nieuw. Fluit, knalt en spat', gun: 60, ammoPrice: 25, ammo: 6, cap: 40, unit: 'pijlen' },
   { key: 'knuppel', label: 'Honkbalknuppel "Stadjer Slugger"', desc: 'Essenhout. Zwaai, tok, klaar', gun: 60, melee: true },
   { key: 'hockeystick', label: 'Hockeystick "Helpman"', desc: 'Haakt benen weg, mensen gaan plat', gun: 45, melee: true },

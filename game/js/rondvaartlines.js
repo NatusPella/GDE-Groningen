@@ -77,7 +77,6 @@ export const TOUR_STOPS = [
     ['T', 'We varen nu over het Verbindingskanaal. Een kanaal dat dingen verbindt. Daar hebben ze lang over nagedacht.'],
   ] },
   { at: [115.11, 837.98], name: 'het Groninger Museum', lines: [
-    ['T', 'Links het Groninger Museum, geopend in 1994, op een eiland in het kanaal. Ontworpen door Alessandro Mendini, met paviljoens van onder anderen Philippe Starck en Coop Himmelb(l)au. Ja, het hoort zo scheef.'],
     ['A', 'In die gouden toren zit het depot. Daar staat de kunst die even niet aan de muur hangt.'],
     ['T', 'Net als mijn fiets in de schuur.'],
   ] },

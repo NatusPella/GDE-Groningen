@@ -57,8 +57,8 @@ const REGELS = {
   },
   kermis: {
     overig: [
-      'Kermis in {plaats}: de draaimolens draaien, de suikerspin plakt en de rij voor de oliebollen groeit.',
-      'In {plaats} staat de kermis. Verwacht drukte, muziek en een lange rij voor de oliebollen.',
+      'Kermis in {plaats}: de draaimolens draaien, de suikerspin plakt en de rij voor de poffertjes groeit.',
+      'In {plaats} staat de kermis. Verwacht drukte, muziek en een lange rij voor de poffertjes.',
     ],
   },
   evenement: {
