@@ -199,3 +199,17 @@ export function markSeen(storage, seen, id, key = SEEN_KEY) {
   try { storage && storage.setItem(key, JSON.stringify(out)); } catch (e) { /* vol: het is maar een hint */ }
   return out;
 }
+
+// --- activiteitenkind (activities.js) --------------------------------------------------------
+// Plekken voor kaart en spotcheck: alle evenementen van vandaag (nu bezig of nog te komen), of met
+// `all` de hele agenda. { id, name, x, y, live, sub }
+export function activitySpotsFor(n, hour, all = false) {
+  const out = [];
+  for (const ev of AGENDA) {
+    const today = n >= ev.from && n <= ev.to;
+    if (!all && !today) continue;
+    const c = centreOf(ev), live = today && isActive(ev, n, hour);
+    out.push({ id: ev.id, name: ev.naam, x: c.x, y: c.y, live, sub: `${ev.plaats} · ${timeLabel(ev)}${live ? ' · nu bezig' : ''}` });
+  }
+  return out;
+}

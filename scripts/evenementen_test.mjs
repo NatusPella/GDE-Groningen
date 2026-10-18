@@ -106,5 +106,16 @@ check('opslagsleutel geregistreerd', BASE_KEYS.eventsSeen === V.SEEN_KEY);
   check('worldevents laat de agenda-show op en knallen (sub firework)', /showFor\(today\(w\)/.test(we) && /sub: 'firework'/.test(we) && /makeShell\(Math\.random, where/.test(we));
 }
 
+// activiteitenkind: plekken voor de kaart
+{
+  const ev = AGENDA[0], all = V.activitySpotsFor(0, 12, true);
+  check('activiteitsplekken: hele agenda met all', all.length === AGENDA.length && all.every((s) => Number.isFinite(s.x) && s.name && s.sub));
+  const mid = (ev.hours[0] + ev.hours[1]) / 2;
+  const today = V.activitySpotsFor(ev.from, mid);
+  check('activiteitsplekken: vandaag bevat het evenement, live', today.some((s) => s.id === ev.id && s.live));
+  check('activiteitsplekken: zonder all alleen vandaag', today.length < AGENDA.length || AGENDA.every((e) => e.from <= ev.from && e.to >= ev.from));
+  check('activiteitsplekken: nette tekst', today.every((s) => !/[A-Z]{4,}/.test(s.sub.replace(/[A-Z]./g, ''))));
+}
+
 console.log(bad ? `${bad} van ${n} mislukt` : `evenementen_test ok (${n} checks)`);
 process.exit(bad ? 1 : 0);
