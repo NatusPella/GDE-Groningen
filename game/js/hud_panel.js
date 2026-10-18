@@ -23,8 +23,8 @@ import { cinematicAllowsDamageFx, isBannerUp, isCinematicActive, wijkBlurb } fro
 import { isMuted, engineReadout } from './audio.js';
 import { gearboxReadout } from './gearbox.js';
 import { drawRailsOnMap, drawTrainsOnMap } from './railway.js';
-import { drawCountryMinimap, villageLabels } from './countrymap.js';
-import { MINI_PALETTE as MINI_STYLE, EMPHASIS, seaStyle } from './mapstyle.js';
+import { drawCountryMinimap, villageLabels, syncMapPhase } from './countrymap.js';
+import { MINI_PALETTE as MINI_STYLE, EMPHASIS, seaStyle, miniRoadStyle } from './mapstyle.js';
 import { drawSea, drawOutside, regionLabels, areaNameAt, REGIONS } from './regions.js';
 import { worldPlaceLabels, worldPlacesReady } from './worldplaces.js';
 import { provinceMapOn } from './provincemap.js';
@@ -1994,6 +1994,7 @@ function drawVillageNames(ctx, player, radius, toScreen) {
 }
 
 function drawMinimap(dt, world) {
+  syncMapPhase(world);
   const ctx = els.mmCtx;
   const dpr = hudPixelRatio();
   sizeSquareCanvas(els.mmCanvas, Math.round(MINIMAP_SIZE * dpr));
@@ -2058,8 +2059,10 @@ function drawMinimap(dt, world) {
     ctx.moveTo(r.pts[0][0], r.pts[0][1]);
     for (let i = 1; i < r.pts.length; i++) ctx.lineTo(r.pts[i][0], r.pts[i][1]);
     let color = r.cat === 'major' ? MINI_STYLE.major : r.cat === 'cycle' ? MINI_STYLE.cycle : MINI_STYLE.road;
-    let w = Math.max(r.width, 3);
-    let a = landAlpha;
+    const rs = miniRoadStyle(r.cat, r.width, mmScale);
+    if (rs.alpha <= 0.02) continue;
+    let w = rs.widthM;
+    let a = landAlpha * rs.alpha;
     if (emph === 'foot') { if (r.cat === 'foot') { color = EMPHASIS.foot; w = Math.max(w, 3.4); } }
     else if (emph === 'cycle') { if (r.cat === 'cycle') { color = EMPHASIS.cycle; w = Math.max(w, 4); } else if (r.cat === 'foot') a *= 0.4; }
     else if (emph === 'major') { if (r.cat === 'major') w = Math.max(w, r.width * 1.1); else if (r.cat === 'foot' || r.cat === 'cycle') a *= 0.35; }
