@@ -11,8 +11,8 @@ import { PAD_BUTTONS, PAD_MAPS, buttonSlots, padFamily } from './controls.js';
 import { getSettings, onSettingsChange } from './settings.js';
 import { sendKey } from './input.js';
 import { playerBusy } from './busy.js';
+import { radialDeadzone, pickPad, spatialNext, DEAD } from './padlogic.js';
 
-const DEAD = 0.2;
 const TRIGGER_ON = 0.35;
 const TRIGGER_OFF = 0.2;
 const STICK_KEY_ON = 0.5;
@@ -204,18 +204,16 @@ function menuFallback(a, ev) {
   const list = [...scope.querySelectorAll(FOCUSABLE)].filter((b) => b.getClientRects().length && !b.closest('[hidden]'));
   if (!list.length) return;
   const i = list.indexOf(el);
-  const dir = a === 'arrowup' || a === 'arrowleft' ? -1 : 1;
-  const next = list[i < 0 ? 0 : (i + dir + list.length) % list.length];
+  // eerst de buur in die richting op het scherm, anders door de lijst heen
+  const rects = list.map((b) => { const r = b.getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height }; });
+  let j = spatialNext(rects, i, a.slice(5));
+  if (j < 0) j = i < 0 ? 0 : (i + (a === 'arrowup' || a === 'arrowleft' ? -1 : 1) + list.length) % list.length;
+  const next = list[j];
   next.focus({ preventScroll: true });
   next.scrollIntoView({ block: 'nearest' });
 }
 
-function dz(x, y) {
-  const m = Math.hypot(x, y);
-  if (m < DEAD) return [0, 0];
-  const k = Math.min(1, (m - DEAD) / (1 - DEAD)) / m;
-  return [x * k, y * k];
-}
+const dz = (x, y) => radialDeadzone(x, y, DEAD);
 
 function holdStick(k, on) {
   if (on === stickKeys.has(k)) return;
@@ -339,12 +337,9 @@ function poll(now) {
   const dt = Math.min(0.05, Math.max(0, (now - (lastT || now)) / 1000));
   lastT = now;
   const pads = navigator.getGamepads ? navigator.getGamepads() : [];
-  let pad = null;
-  for (const p of pads) {
-    if (!p || !p.connected) continue;
-    if (anyInput(p) && p.index !== padIndex) { padIndex = p.index; }
-    if (p.index === padIndex) pad = p;
-  }
+  // coop: speler 1 houdt zijn pad, ook als speler 2 op de andere drukt
+  padIndex = pickPad([...pads].filter(Boolean).map((p) => ({ index: p.index, connected: p.connected, active: anyInput(p) })), padIndex, { sticky: !!(world && world.coop) });
+  const pad = padIndex >= 0 ? pads[padIndex] : null;
   if (!pad) { if (active) setActive(false); return; }
   if (!active) {
     if (!anyInput(pad)) return;
