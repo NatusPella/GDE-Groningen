@@ -145,7 +145,7 @@ function filterControls(q) {
   const panel = root.querySelector('[data-panel="controls"]');
   const words = q.toLowerCase().trim().split(/\s+/).filter(Boolean);
   let any = false;
-  for (const g of panel.querySelectorAll('.pm-cgroup')) {
+  for (const g of panel.querySelectorAll('.pm-cgroup:not(.pm-help)')) {
     let n = 0;
     for (const r of g.querySelectorAll('.pm-crow')) {
       const hit = words.every((w) => r.dataset.search.includes(w));
