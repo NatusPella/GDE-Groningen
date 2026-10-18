@@ -625,6 +625,7 @@ function contextRows(world, primary) {
     rows.push(tut('drive', ['W', 'S'], 'Gas & remmen', 'W optrekken, S remmen en stilstaand achteruit'));
     rows.push(tut('handbrake', [' '], 'Noodrem', 'Stopt sneller, maar niet meteen', true));
     rows.push(tut('horn', ['H'], 'Toeter', 'Van het spoor af!'));
+    rows.push(tut('dienst', ['G'], 'Dienst rijden', 'Halte voor halte, op tijd en op de streep: Backspace stopt'));
   } else if (p.inVehicle && p.inVehicle.isHeli) {
     rows.push(tut('heliUp', [' ', 'CTRL'], 'Omhoog & omlaag', `Spatie omhoog, ${downKey()} omlaag: landen doe je laag en langzaam`));
     rows.push(tut('heliFly', ['W', 'S'], 'Vooruit & remmen', 'W vooruit, S remt af tot je stilhangt, dan achteruit'));

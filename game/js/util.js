@@ -32,6 +32,13 @@ export function closestPointOnSegment(px, py, ax, ay, bx, by) {
   return { x: cx, y: cy, t, dist2: dist2(px, py, cx, cy) };
 }
 
+// Distance from (px, py) to the segment (ax, ay)-(bx, by).
+export function segDist(px, py, ax, ay, bx, by) {
+  const dx = bx - ax, dy = by - ay, L2 = dx * dx + dy * dy;
+  const t = L2 ? Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / L2)) : 0;
+  return Math.hypot(px - ax - dx * t, py - ay - dy * t);
+}
+
 // Ray-casting point-in-polygon. poly: [[x,y],...] (closed or open, ok either way).
 export function pointInPolygon(px, py, poly) {
   let inside = false;

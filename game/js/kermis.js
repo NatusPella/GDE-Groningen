@@ -1,4 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { canvasTex } from './canvastex.js';
 import { getScene } from './scene3d.js';
 import { buildPersonMesh, animatePersonWalk, seatPerson, seatedY, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { showBanner } from './cinematics.js';
@@ -13,6 +14,7 @@ import { activityBlock, iconDisc } from './activitykit.js';
 import { KERMIS_LINES, BOTS_BUMPED, BOTS_HIT, KERMIS_NEWS, KERMIS_TWINS } from './funlines.js';
 import { DURK_LOOK, DOUWE_LOOK } from './storycast.js';
 import { isToday } from './calendarday.js';
+import { rand } from './rng.js';
 
 // Kermis op de Grote Markt. The botsautotent of kermisbaas Jan stands on
 // the south side of the square all the time (always open, €3 a ride);
@@ -58,7 +60,6 @@ let organ = null;
 let lastKermisDay = -1;
 let announced = false;
 
-const rand = (a, b) => a + Math.random() * (b - a);
 const C = Math.cos(K.rot), S = Math.sin(K.rot);
 const toW = (u, v) => ({ x: K.x + C * u - S * v, y: K.y + S * u + C * v });
 const toL = (x, y) => ({ u: (x - K.x) * C + (y - K.y) * S, v: -(x - K.x) * S + (y - K.y) * C });
@@ -104,14 +105,7 @@ function addColliders() {
 // --- meshes ------------------------------------------------------------------------------
 
 let mats = null;
-function canvasTex(w, h, draw) {
-  const c = document.createElement('canvas');
-  c.width = w; c.height = h;
-  draw(c.getContext('2d'), w, h);
-  const t = new THREE.CanvasTexture(c);
-  t.colorSpace = THREE.SRGBColorSpace;
-  return t;
-}
+
 function materials() {
   if (mats) return mats;
   const std = (color, o = {}) => new THREE.MeshStandardMaterial({ color, roughness: 0.7, ...o });

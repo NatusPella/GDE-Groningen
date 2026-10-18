@@ -1242,7 +1242,7 @@ function releaseMissionVehicle(world) {
     clearSkutsjeSail();
   }
   const chased = chain.stage && chain.stage.target;
-  if (chased && chased.chaseTarget) { chased.missionCar = false; chased.chaseTarget = false; chased.aiOpts = null; }
+  if (chased && chased.chaseTarget) { chased.missionCar = false; chased.chaseTarget = false; chased.chaseDodge = false; chased.aiOpts = null; }
   releaseLaneBikes(world);
   releaseCrowd(world);
   stopStunt(world);
@@ -2381,6 +2381,9 @@ function spawnChaseVehicle(world, def, st) {
   }
   v.missionCar = true;
   v.chaseTarget = true;
+  // een vluchtende wagen remt niet voor de speler (dan kaap je hem te makkelijk door ervoor te gaan
+  // rijden): hij rijdt door en moet worden ingehaald of stukgeschoten. Alleen `block` laat hem staan.
+  v.chaseDodge = !st.block;
   v.label = st.name || '';
   const first = st.route && st.route[0];
   const goal = (st.toTrain && fjordLoadPoint()) || (first ? { x: first.at[0], y: first.at[1] } : { x: st.flee[0], y: st.flee[1] });
