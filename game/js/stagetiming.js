@@ -19,7 +19,11 @@ export function closeTiming() {
   if (panel) panel.hide();
 }
 
-export function enterTiming(S) {
+export function enterTiming(S, st, on) {
+  // a round with zoneIf gets a wider zone when that choice was made (M26: the ally of M23 closes the street the surest)
+  S.rounds = on && st && st.rounds.some((r) => r.zoneIf)
+    ? st.rounds.map((r) => (r.zoneIf && on(r.zoneIf) ? { ...r, zone: [r.zone[0] - 0.09, r.zone[1] + 0.09], ok: r.okIf || r.ok } : r))
+    : null;
   S.ti = 0;
   S.hits = 0;
   S.miss = 0;
@@ -36,7 +40,7 @@ export const inZone = (round, v) => v >= round.zone[0] && v <= round.zone[1];
 // The rules, without the panel: one frame. `press` is true when a key was hit this frame.
 // Returns 'done', { fail: reason } or null; S.tphase is 'ask' or 'reply' (S.treply is the line to show).
 export function stepTiming(st, S, press, dt) {
-  const round = st.rounds[Math.min(S.ti, st.rounds.length - 1)];
+  const round = (S.rounds || st.rounds)[Math.min(S.ti, st.rounds.length - 1)];
   if (S.tphase === 'ask') {
     S.needleT += dt;
     if (!press) return null;
@@ -88,6 +92,6 @@ export function updateTiming(dt, world, st, S) {
   }
   const r = stepTiming(st, S, press, dt);
   if (r) { closeTiming(); return r; }
-  paint(st, S, st.rounds[Math.min(S.ti, st.rounds.length - 1)]);
+  paint(st, S, (S.rounds || st.rounds)[Math.min(S.ti, st.rounds.length - 1)]);
   return null;
 }

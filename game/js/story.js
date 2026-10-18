@@ -1139,6 +1139,14 @@ export function storyFlag(name) {
   return state.flags.has(name);
 }
 
+// A choice that must outlive its mission (M23's ally, read again in M26): a 'keuze:<naam>' flag, saved with the rest.
+export function rememberStoryChoice(name) {
+  // one answer per group ('bond-bus' replaces 'bond-trekker'): a replay of the mission can choose again
+  const group = 'keuze:' + name.split('-')[0] + '-';
+  for (const f of [...state.flags]) if (f.startsWith(group)) state.flags.delete(f);
+  state.flags.add('keuze:' + name);
+}
+
 // --- views for the pause menu, phone and dev tools ------------------------------------------
 
 // "Wat weten we?": the clues and turning points of the steps done so far

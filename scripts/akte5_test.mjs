@@ -73,7 +73,20 @@ for (const s of akte5) for (const id of s.scenes) ok(played.has(id), `${s.id}: s
 
 // the finale: bake -> stall -> board -> block -> fall -> Mem -> jury's question -> jury, then the outro of the step
 const fin = byLabel('Ontzet, net als in 1672');
-ok(fin.stages.map((q) => q.kind).join() === 'bake,hold,board,timing,chase,scene,scene,choice,scene,scene,scene', 'the finale runs in order');
+ok(fin.stages.map((q) => q.kind).join() === 'bake,hold,board,timing,timing,scene,chase,scene,scene,choice,scene,scene,scene', 'the finale runs in order (the column closes the streets before the limo chase)');
+{
+  // M23 ally: one remembered choice, read again in M26 (chase time, wider zone, the street scene)
+  const col = byLabel('De colonne');
+  ok(col.stages[0].kind === 'choice' && col.stages[0].rounds[0].options.map((o) => o.tag).join() === 'bond-bus,bond-trekker,bond-scooter', 'M23: choose the ally next to the Fjord Frituur');
+  ok(col.remember.join() === 'bond-bus,bond-trekker,bond-scooter', 'M23: the ally is remembered for M26');
+  ok(col.stages[1].scriptIf.map((q) => q.tag).join() === 'bond-bus,bond-trekker,bond-scooter', 'M23: a scene per ally');
+  ok(col.stages.find((q) => q.kind === 'convoy').limoAfterIf['bond-bus'] > 30, 'M23: the bus holds the limo back');
+  const lim = fin.stages.find((q) => q.kind === 'chase');
+  ok(lim.timeIf['bond-trekker'] > lim.time && lim.timeIf['bond-bus'] > lim.time, 'M26: the ally gives the chase more time');
+  const streets = fin.stages.filter((q) => q.kind === 'timing')[1];
+  ok(streets.rounds.length === 3 && streets.rounds.every((r) => r.zoneIf), 'M26: the column closes three streets, the ally the surest');
+  ok(fin.stages.filter((q) => q.kind === 'scene')[0].scriptIf.length === 3, 'M26: the street scene has a line per ally');
+}
 ok(fin.stages.find((q) => q.kind === 'chase').keep === true, 'the limo is not adopted as a mission car');
 ok(byLabel('Een luik erin').stages.filter((q) => q.mud).length === 4, 'the mud is a slalom of two stages, the drive in and the wait for the tractor');
 ok(fresh.every((d) => d.heroCar), 'the new defs use the Escapade');

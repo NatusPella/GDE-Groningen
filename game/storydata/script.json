@@ -3371,7 +3371,7 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Dat is de Apenrots.",
+     "text": "Dat is de Kiekdeuse.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -3395,18 +3395,9 @@
      "rec": "banter"
     },
     {
-     "speaker": "Tessa",
-     "key": "A",
-     "text": "Daar gaat Tessa, de wandelende encyclopedie van Stad.",
-     "tag": "NIEUW",
-     "channel": "stem",
-     "textOnly": true,
-     "voice": "Anita"
-    },
-    {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Dat zeg ik. Jij zegt het alleen niet.",
+     "text": "Daar gaat Tessa, de wandelende encyclopedie van Stad.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -3436,6 +3427,14 @@
      "channel": "stem",
      "textOnly": true,
      "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Reken op een rondleiding.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
     },
     {
      "speaker": "Tammo",
@@ -3615,7 +3614,7 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Plakje voor plakje.",
+     "text": "Salamitactiek. Plakje voor plakje.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -3623,7 +3622,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Jelle koopt het vet van heel Grunn. Zonder vet geen oefenronde, en zonder oefenronde geen Snackprijs. Dit is plakje twee, Tammo.",
+     "text": "Jelle koopt het vet van heel Grunn. Zonder vet geen oefenronde, en zonder oefenronde geen Snackprijs.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -3632,7 +3631,7 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Plakje twee.",
+     "text": "En de bal?",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -3640,7 +3639,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Plakje één kregen we niet terug. Dit plakje kunnen we nog winnen.",
+     "text": "Die kregen we niet terug. Het vet kunnen we nog winnen.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -4492,7 +4491,7 @@
     {
      "speaker": "Geesje",
      "key": "geesje",
-     "text": "Ik ben Geesje, kosteres van de kerk hier in Warffum. Trijntje belde.",
+     "text": "Jullie zijn van Trijntje. Het zijn eieren, geen relikwieën. Maar ik ben kosteres, dus ik behandel ze zo.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -4828,7 +4827,7 @@
     {
      "speaker": "Geesje",
      "key": "geesje",
-     "text": "De kippen leggen weer. Dat is jullie schuld.",
+     "text": "Weer eieren? De kippen sturen een kaartje.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -5205,7 +5204,15 @@
     {
      "speaker": "Kapitein Klaas",
      "key": "klaas",
-     "text": "Ik ben Klaas. Ik viste dertig jaar fietsen uit de Diepenring, nu vis ik ze uit het Reitdiep. Oma Trijntje belde.",
+     "text": "Trijntje belde. Ik viste dertig jaar fietsen uit de Diepenring. Nu vis ik ze uit het Reitdiep. Bijna niemand mist ze.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Kapitein Klaas",
+     "key": "klaas",
+     "text": "Wil je weten wat de vissers hier echt zeggen, ga dan op het Leugenbankje zitten. Daar liegen ze allemaal, behalve ik.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -5651,6 +5658,23 @@
      "voice": "Anita"
     },
     {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Nog steeds lang?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Kijk naar de sterren.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
      "speaker": "Mem",
      "from": "MEM",
      "to": "TESSA",
@@ -5964,6 +5988,32 @@
      "speaker": "Tessa",
      "key": "A",
      "text": "Dat helpt niet.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Knooppunt negenentachtig, dan negentig. Daar gaan we naar rechts.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Ik navigeer op gevoel.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Daarom staan we hier.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -6458,7 +6508,15 @@
     {
      "speaker": "Lammert",
      "key": "lammert",
-     "text": "Ik ben Lammert, havenmeester. Mijn vader danste in 1953 met Trijntje. Dat vergeet zij niet.",
+     "text": "Lammert, havenmeester. Hier vaart de Borkum-veerboot en daar zoemt het datacenter. Een schip dat leeg blijft, en een kabel die vol zit.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Lammert",
+     "key": "lammert",
+     "text": "Mijn vader danste in 1953 met Trijntje. Dat vergeet zij niet.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -7962,7 +8020,7 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Dat is een windmolen.",
+     "text": "Wat draait daar?",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -7970,7 +8028,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Dat is een windturbine. Hij is honderd meter hoog.",
+     "text": "Een windturbine. Honderd meter hoog.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -7979,7 +8037,7 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Dan is het een grote windmolen.",
+     "text": "Dan is het een grote molen.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -7987,16 +8045,25 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Dat was geen compliment.",
+     "text": "Nee.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": true,
+     "textOnly": false,
+     "rec": "banter",
      "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Wel.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
     },
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Dat is Loppersum. Daar schudde vroeger de grond.",
+     "text": "Daar, Appingedam. Die keukens hangen boven het Damsterdiep.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -8005,7 +8072,7 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Zeg dat dan zachtjes.",
+     "text": "Balkons.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -8013,7 +8080,24 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Dat doe ik.",
+     "text": "Keukens. Wie daar kookt, kijkt naar water.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Dan zet ik mijn friteuse daar.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Dan krijgt het Damsterdiep een vetlaag.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -8030,7 +8114,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Dat is een inham.",
+     "text": "Een inham.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -8039,24 +8123,7 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Dat is ook een bocht.",
-     "tag": "NIEUW",
-     "channel": "stem",
-     "textOnly": true
-    },
-    {
-     "speaker": "Tessa",
-     "key": "A",
-     "text": "Dat is het niet.",
-     "tag": "NIEUW",
-     "channel": "stem",
-     "textOnly": true,
-     "voice": "Anita"
-    },
-    {
-     "speaker": "Tammo",
-     "key": "T",
-     "text": "Dat is het wel.",
+     "text": "Een bocht met ambitie.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -8516,26 +8583,20 @@
   },
   {
    "id": "M18.2",
-   "title": "Wie draaide de camera's uit?: de intake",
+   "title": "Wie draaide de camera's uit?: de intake gehaald",
    "act": 4,
    "region": "Veenkoloniën, Veendam, Wiebelwerk",
    "vehicle": "te voet",
    "step": "M18",
    "kind": "key",
-   "regie": [],
+   "regie": [
+    "de speler beantwoordt de intake met drie antwoorden; dit is de afloop als alles klopt. De accountmanager knikt tevreden en tikt op een tablet."
+   ],
    "lines": [
     {
      "speaker": "Accountmanager",
      "key": "accountmanager",
-     "text": "Wat is uw merkpersoonlijkheid?",
-     "tag": "NIEUW",
-     "channel": "stem",
-     "textOnly": true
-    },
-    {
-     "speaker": "Tammo",
-     "key": "T",
-     "text": "Friet.",
+     "text": "Warm, droog en een beetje Gronings. Sinds deze zomer, jong maar eerlijk. Ik zie het voor me.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -8543,7 +8604,7 @@
     {
      "speaker": "Accountmanager",
      "key": "accountmanager",
-     "text": "Dat is een product, geen persoonlijkheid.",
+     "text": "Ik maak een offerte. Dat duurt een uur. Ik haal koffie.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -8551,7 +8612,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Warm, droog en een beetje Gronings.",
+     "text": "Neem de tijd.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -8560,7 +8621,7 @@
     {
      "speaker": "Accountmanager",
      "key": "accountmanager",
-     "text": "Dat noteer ik. Wilt u een chatbot?",
+     "text": "De serverkamer is niet voor klanten. De koffieautomaat staat in de andere gang.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -8568,16 +8629,55 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Nee.",
+     "text": "Dat ging makkelijk.",
      "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "story"
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Zeg dat niet hardop.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    }
+   ]
+  },
+  {
+   "id": "M18.6",
+   "title": "Wie draaide de camera's uit?: de accountmanager twijfelt",
+   "act": 4,
+   "region": "Veenkoloniën, Veendam, Wiebelwerk",
+   "vehicle": "te voet",
+   "step": "M18",
+   "kind": "key",
+   "regie": [
+    "afloop bij één fout antwoord. De accountmanager kijkt van zijn tablet naar hen en blijft staan."
+   ],
+   "lines": [
+    {
+     "speaker": "Accountmanager",
+     "key": "accountmanager",
+     "text": "Interessant. Bijna alle antwoorden klopten. Eén niet.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Wij zijn nieuw.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
     },
     {
      "speaker": "Accountmanager",
      "key": "accountmanager",
-     "text": "Iedereen wil een chatbot.",
+     "text": "Iedereen is nieuw bij een intake. Ik loop even mee naar de koffieautomaat. In de gang.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -8585,7 +8685,7 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Ik niet.",
+     "text": "Die staat bij de serverdeur.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -8593,10 +8693,74 @@
     {
      "speaker": "Accountmanager",
      "key": "accountmanager",
-     "text": "Dan doen wij hem toch.",
+     "text": "Dan staat u er mooi bij.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
+    }
+   ]
+  },
+  {
+   "id": "M18.7",
+   "title": "Wie draaide de camera's uit?: de beveiliging loopt mee",
+   "act": 4,
+   "region": "Veenkoloniën, Veendam, Wiebelwerk",
+   "vehicle": "te voet",
+   "step": "M18",
+   "kind": "key",
+   "regie": [
+    "afloop bij twee foute antwoorden. De accountmanager pakt zijn telefoon. Achter hem komt een beveiliger in de deuropening staan, met zijn armen over elkaar."
+   ],
+   "lines": [
+    {
+     "speaker": "Accountmanager",
+     "key": "accountmanager",
+     "text": "Twee antwoorden die geen klant geeft. Ik nodig u uit voor een rondleiding. Met de beveiliging.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Is dat gratis?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Accountmanager",
+     "key": "accountmanager",
+     "text": "Bij Wiebelwerk is alles gratis, behalve de website.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Loop maar voor, wij volgen.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Waarom zei je dat?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Zo houden we ze in beeld.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
     }
    ]
   },
@@ -8791,7 +8955,7 @@
     {
      "speaker": "Accountmanager",
      "key": "accountmanager",
-     "text": "Weer een intake? Wij zijn altijd open.",
+     "text": "Nog een intake? De koffie is nog warm.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -9087,7 +9251,7 @@
     {
      "speaker": "Durk",
      "key": "durk",
-     "text": "Weer een trein? Net fertelle, hè?",
+     "text": "Douwe. De trein staat weer stil. Net fertelle, hè?",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -9481,6 +9645,14 @@
      "tag": "BEHOUDEN",
      "channel": "stem",
      "textOnly": true
+    },
+    {
+     "speaker": "Berend Bos",
+     "key": "berend",
+     "text": "Fierljepen doen wij ook, jong. In Grijpskerk hebben ze er een vereniging voor. Dat is Grunn.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
     }
    ]
   },
@@ -9529,6 +9701,14 @@
      "channel": "stem",
      "textOnly": false,
      "rec": "lines"
+    },
+    {
+     "speaker": "Durk",
+     "key": "durk",
+     "text": "Douwe. Dat was ook geheim.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
     },
     {
      "speaker": "Tammo",
@@ -9961,7 +10141,7 @@
     {
      "speaker": "Berend Bos",
      "key": "berend",
-     "text": "Weer een beleg? Wat mout, dat mout.",
+     "text": "Het Beleg verliest nooit van mij. Ik verlies er elk jaar van. Wat mout, dat mout.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -10491,7 +10671,7 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Dat is Veendam. Groter dan Grunn.",
+     "text": "Dat is Veendam. Bijna net zo groot als Grunn.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -11130,7 +11310,7 @@
     {
      "speaker": "Henk",
      "key": "henk",
-     "text": "Weer een luik? Dit is een karaktertrek.",
+     "text": "Het luik zit er al. Een deuk meer kan geen kwaad.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -11198,6 +11378,15 @@
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Eén van jullie rijdt vlak naast ons en houdt Jelle bezig. Wie dat is, kiezen wij zo.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
     },
     {
      "speaker": "Tessa",
@@ -11433,6 +11622,172 @@
    ]
   },
   {
+   "id": "M23.6",
+   "title": "De colonne: de bus rijdt naast jullie",
+   "act": 5,
+   "region": "Westerkwartier, Tinus' schuur, vertrek",
+   "vehicle": "bus",
+   "step": "M23",
+   "kind": "key",
+   "regie": [
+    "afloop van de keuze voor Wubbo. De bus rijdt naast de Fjord Frituur. Wubbo hangt uit het raam."
+   ],
+   "lines": [
+    {
+     "speaker": "Wubbo",
+     "key": "wubbo",
+     "text": "Ik rijd naast jullie. Een bus is breed. Ik zet elke zijstraat dicht waar Jelle langs wil.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "En de bruggen?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Wubbo",
+     "key": "wubbo",
+     "text": "Die draai ik zelf. Open of dicht, nooit allebei.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "En Jelle?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Wubbo",
+     "key": "wubbo",
+     "text": "Die komt een minuut later. Zijn vergunningen hebben een loket. Mijn brug niet.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    }
+   ]
+  },
+  {
+   "id": "M23.7",
+   "title": "De colonne: de trekker rijdt naast jullie",
+   "act": 5,
+   "region": "Westerkwartier, Tinus' schuur, vertrek",
+   "vehicle": "trekker",
+   "step": "M23",
+   "kind": "key",
+   "regie": [
+    "afloop van de keuze voor Tinus. De trekker ratelt naast de Fjord Frituur."
+   ],
+   "lines": [
+    {
+     "speaker": "Tinus",
+     "key": "tinus",
+     "text": "Ik rij naast jullie, met de trekker. Hier kijk je niet ver: houtwallen. Maar ik trek alles weg wat Jelle neerzet.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Ook een limo?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tinus",
+     "key": "tinus",
+     "text": "Ook een limo. Aan de trekhaak, als het moet.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Hij zegt dit elke keer.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "En elke keer klopt het.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    }
+   ]
+  },
+  {
+   "id": "M23.8",
+   "title": "De colonne: de scooter rijdt naast jullie",
+   "act": 5,
+   "region": "Westerkwartier, Tinus' schuur, vertrek",
+   "vehicle": "scooter",
+   "step": "M23",
+   "kind": "key",
+   "regie": [
+    "afloop van de keuze voor Geesje. De scooter zoemt naast de Fjord Frituur, Geesje met een helm op haar bun."
+   ],
+   "lines": [
+    {
+     "speaker": "Geesje",
+     "key": "geesje",
+     "text": "Ik rij naast jullie, op mijn scooter. Ik ken elk steegje van hier tot de Grote Markt.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Een scooter tegen een limo?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Geesje",
+     "key": "geesje",
+     "text": "Een limo past niet in een steegje, famke.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Sneller dan hij lijkt.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Geesje",
+     "key": "geesje",
+     "text": "Dat zeg ik altijd.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    }
+   ]
+  },
+  {
    "id": "M23.4",
    "title": "De colonne: outro",
    "act": 5,
@@ -11502,7 +11857,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Weer een colonne? Rijden. Niet praten.",
+     "text": "De colonne wacht niet. Rijden. Niet praten.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -12642,6 +12997,165 @@
    ]
   },
   {
+   "id": "M26.14",
+   "title": "Ontzet, net als in 1672: de straten dicht, de bus",
+   "act": 5,
+   "region": "Stad, rond de Oude Boteringestraat",
+   "vehicle": "Fjord Frituur",
+   "step": "M26",
+   "kind": "key",
+   "regie": [
+    "de colonne van donderdag komt terug. Wubbo zet de bus dwars; over de portofoon klinkt hij door de Fjord Frituur."
+   ],
+   "lines": [
+    {
+     "speaker": "Wubbo",
+     "key": "wubbo",
+     "text": "Herestraat dicht. Bus dwars. De deuren heb ik open gelaten, voor de sfeer.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Dank je, Wubbo.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Wubbo",
+     "key": "wubbo",
+     "text": "Open of dicht, Tessa. Nooit allebei.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Hij herhaalt zichzelf.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Dat heet een werkfilosofie.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    }
+   ]
+  },
+  {
+   "id": "M26.15",
+   "title": "Ontzet, net als in 1672: de straten dicht, de trekker",
+   "act": 5,
+   "region": "Stad, rond de Oude Boteringestraat",
+   "vehicle": "Fjord Frituur",
+   "step": "M26",
+   "kind": "key",
+   "regie": [
+    "Tinus trekt zijn trekker dwars voor de Gedempte Zuiderdiep, midden tussen de terrassen."
+   ],
+   "lines": [
+    {
+     "speaker": "Tinus",
+     "key": "tinus",
+     "text": "Zuiderdiep dicht. Trekker dwars. Wie er langs wil, moet eerst met mij praten.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Je trekker past er net in.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tinus",
+     "key": "tinus",
+     "text": "Ik trek hem weg. De limo, niet de trekker.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "In de stad ziet hij er nog groter uit.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Dat is de trekker.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    }
+   ]
+  },
+  {
+   "id": "M26.16",
+   "title": "Ontzet, net als in 1672: de straten dicht, de scooter",
+   "act": 5,
+   "region": "Stad, rond de Oude Boteringestraat",
+   "vehicle": "Fjord Frituur",
+   "step": "M26",
+   "kind": "key",
+   "regie": [
+    "Geesje zet de scooter dwars in de steeg naast de notaris."
+   ],
+   "lines": [
+    {
+     "speaker": "Geesje",
+     "key": "geesje",
+     "text": "De steeg bij de notaris is dicht. Scooter dwars. Ik zit erop te breien.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Je zit te breien?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Geesje",
+     "key": "geesje",
+     "text": "Wie blijft staan, mag breien.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Dat is een goede regel.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    }
+   ]
+  },
+  {
    "id": "M26.5",
    "title": "Ontzet, net als in 1672: Mem",
    "act": 5,
@@ -13285,7 +13799,7 @@
     {
      "speaker": "Berend Bos",
      "key": "berend",
-     "text": "Weer een Ontzet? Elk jaar hetzelfde. Ik verlies graag.",
+     "text": "Elk jaar hetzelfde Ontzet. Ik verlies graag.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -13463,6 +13977,14 @@
      "speaker": "Rikus",
      "key": "rikus",
      "text": "Mevrouw Tuinstra stapt in Wildervank uit de trein. Met volpension.",
+     "tag": "NIEUW",
+     "channel": "radio",
+     "textOnly": true
+    },
+    {
+     "speaker": "Rikus",
+     "key": "rikus",
+     "text": "De Krolbrug staat nu open. Niemand weet waarom. Dat is verdacht.",
      "tag": "NIEUW",
      "channel": "radio",
      "textOnly": true
