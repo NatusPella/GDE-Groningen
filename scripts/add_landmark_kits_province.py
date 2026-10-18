@@ -8,7 +8,7 @@ their outline, mills, lighthouses, borgen; mosques and nameless sheds are left o
 the file modest (--cap items outside the Ommeland box). Rerunnable: it keeps
 what lies inside the box and replaces the rest.
 
-    python3 scripts/add_landmark_kits_province.py [--cap 300] [--data GLOB] [--list]
+    python3 scripts/add_landmark_kits_province.py [--cap 300] [--data GLOB] [--everyday] [--list]
 """
 import glob
 import gzip

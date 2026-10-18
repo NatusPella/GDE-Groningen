@@ -4,6 +4,7 @@ import { pointInPolygon, closestPointOnSegment } from './util.js';
 import { MUSEUM_ROOMS, rectCorners } from './museumplan.js';
 import { paddepoelBlock, setPaddepoelNight } from './paddepoel3d.js';
 import { P } from './worldframe.js';
+import { kitItemFromBuilding, landmarkParams, landmarkGeometry, LOD_FULL } from './landmarkkit.js';
 
 // Procedural models for the named Groningen landmarks, one merged
 // vertex-coloured geometry per building (five shared materials). Geometry is
@@ -1134,7 +1135,32 @@ export const LM = {
 const MODELS = {};
 export function registerBuildingModel(key, fn) { MODELS[key] = fn; }
 export const modelKit = { obox, fbox, walls, cap, extrude, ebox, edgesOf, partyTester, minAreaFrame, frameFrom, cyl, slots, band, clipRing, grown, triangulate, C, G: { PLAIN: G_PLAIN, BRICK: G_BRICK, GLASS: G_GLASS, METAL: G_METAL, TILE: G_TILE } };
-const builderOf = (b) => (b.model && MODELS[b.model]) || (b.landmark && BUILDERS[b.landmark]) || (b.name && NAMED[b.name]) || null;
+// The everyday kits (landmarkkit.js: farm, silo, factory, flat, school, station, town hall,
+// museum) for tile buildings the data says they fit (issue #164); the kit's own geometry
+// (its long axis along +x) is turned and moved onto the footprint.
+const KIT_GROUP = [G_PLAIN, G_PLAIN, G_GLASS]; // body, glow (no glow here), glass
+function kitBuilder(B, b, ring) {
+  const item = b._kitItem;
+  const p = landmarkParams(item);
+  if (!p) return false;
+  const src = landmarkGeometry(p, LOD_FULL).geometry;
+  const pos = src.attributes.position, col = src.attributes.color, uv = src.attributes.uv;
+  const ca = Math.cos(p.angle), sa = Math.sin(p.angle);
+  const at = (i) => { const x = pos.getX(i), z = pos.getZ(i); return [p.x + x * ca - z * sa, pos.getY(i) - 0.05, p.y + x * sa + z * ca]; };
+  for (const g of src.groups) {
+    for (let i = g.start; i < g.start + g.count; i += 3) {
+      const rgb = [col.getX(i), col.getY(i), col.getZ(i)];
+      B._push(KIT_GROUP[g.materialIndex] ?? G_PLAIN, at(i), at(i + 1), at(i + 2), rgb, uv ? [uv.getX(i), uv.getY(i), uv.getX(i + 1), uv.getY(i + 1), uv.getX(i + 2), uv.getY(i + 2)] : null);
+    }
+  }
+  src.dispose();
+}
+const kitFor = (b) => {
+  if (b._kitItem !== undefined) return b._kitItem ? kitBuilder : null;
+  b._kitItem = b.pts && b.pts.length >= 3 ? kitItemFromBuilding(b) : null;
+  return b._kitItem ? kitBuilder : null;
+};
+const builderOf = (b) => (b.model && MODELS[b.model]) || (b.landmark && BUILDERS[b.landmark]) || (b.name && NAMED[b.name]) || kitFor(b) || null;
 
 export function hasLandmarkModel(b) {
   return !!builderOf(b);

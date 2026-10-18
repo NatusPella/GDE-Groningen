@@ -736,3 +736,42 @@ function hall(B, p, lod) {
   }
   B.box(0, 1.3, W / 2 + 0.08, 2.2, 2.6, 0.12, 0x3a2a22);
 }
+
+// --- kits for the tiles' own buildings (issue #164) ---------------------------
+// A tile building row (type from the OSM tag, name, hm in metres from 3D BAG or
+// OSM, pts) that one of the everyday kits fits. Cheap to reject: most rows are
+// houses. Returns an item for landmarkParams, or null.
+const KIT_TYPES = new Set(['farm', 'silo', 'industrial', 'apartments', 'school', 'college', 'university', 'train_station', 'civic', 'public']);
+const FARM_NAMED = new Set(['farm', 'house', 'yes', 'industrial', 'detached', 'farm_auxiliary', 'barn', 'residential']);
+const outlineArea = (o) => { let a = 0; for (let i = 0; i < o.length; i += 2) { const j = (i + 2) % o.length; a += o[i] * o[j + 1] - o[j] * o[i + 1]; } return Math.abs(a / 2); };
+
+export function kitItemFromBuilding(b, ring = null) {
+  const type = b.type, name = b.name || '';
+  // a name that says what it is: a museum, a town hall, a farm mapped as a house or a shed
+  const named = name && (/museum/i.test(name) ? 'museum' : /stadhuis|gemeentehuis/i.test(name) ? 'townhall'
+    : /boerderij|stolp|hoeve/i.test(name) && FARM_NAMED.has(type) ? 'farm' : null);
+  if (!named && !KIT_TYPES.has(type)) return null;
+  const pts = ring || b.pts;
+  if (!pts || pts.length < 3) return null;
+  const o = [];
+  for (const p of pts) o.push(p[0], p[1]);
+  const area = outlineArea(o);
+  const hm = b.hm || 0;
+  let k = named || null;
+  if (!k) {
+    if (type === 'farm') k = area >= 80 ? 'farm' : null;
+    else if (type === 'silo') k = area >= 20 ? 'silo' : null;
+    else if (type === 'industrial') k = /gemaal|gemeentewerken|transformator|zendmast|zuivering/i.test(name) ? null : area >= 2500 || (name && area >= 800) ? 'factory' : null;
+    else if (type === 'apartments') k = hm >= 22 && area >= 300 ? 'flat' : null;
+    else if (type === 'school' || type === 'college' || type === 'university') k = area >= 500 ? 'school' : null;
+    else if (type === 'train_station') k = area >= 60 ? 'station' : null;
+    else if ((type === 'civic' || type === 'public') && /stadhuis|gemeentehuis/i.test(name)) k = 'townhall';
+  }
+  if (!k || area < 40 || area > 60000) return null;
+  let x = 0, y = 0;
+  for (const p of pts) { x += p[0]; y += p[1]; }
+  const t = { building: type };
+  if (hm) t.height = String(hm);
+  if (k === 'flat') t['building:levels'] = String(Math.round(hm / 3));
+  return { k, n: name, x: x / pts.length, y: y / pts.length, o, t };
+}
