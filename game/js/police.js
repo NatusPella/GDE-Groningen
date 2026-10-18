@@ -8,6 +8,7 @@ import { pushOutOfPlan } from './countryplan.js';
 import { roadNetReady, snapRoad, roadPathNear, nodeXY } from './roadgraph.js';
 import { isKnockedDown } from './ragdoll.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { decayFactor, profileOf } from './signalement.js';
 import { makeBeamGeometry, makeBeamMaterial, requestSearchlight } from './nightlights3d.js';
 import { trySpawnMounts, tryDeployCrew, adoptThrownRider, holdUnit, updateCrews, ejectMountRider, maybeBolt, updateBolting } from './policemounts.js';
 
@@ -400,6 +401,9 @@ function updateRam(v, dt, world, pv, d, ps) {
   return true;
 }
 
+// Patrol cars shoot from three stars (owner's decision, #43); cartoon shots, no one
+// is shown hit, damage is small and a bust still ends it.
+const FIRE_WANTED = 3;
 function maybeFire(v, dt, world) {
   if (v._fireCd === undefined) v._fireCd = 1 + Math.random();
   v._fireCd -= dt;
@@ -681,6 +685,7 @@ function updateSearch(dt, world, state, escalated) {
     pol.unseenFor = 0;
     world.wantedDecayTimer = 0;
     world.policeTip = null;
+    world.wantedProfile = null;
     return;
   }
   const tip = world.policeTip;
@@ -704,6 +709,7 @@ function updateSearch(dt, world, state, escalated) {
     state.seen = anyUnitSees(world);
   }
   if (state.seen || escalated) {
+    world.wantedProfile = profileOf(world);
     pol.lastSeen = { x: p.x, y: p.y };
     pol.unseenFor = 0;
     pol.seenRecently = true;
@@ -726,7 +732,7 @@ function updateSearch(dt, world, state, escalated) {
   }
   pol.searchRadius = Math.max(SEARCH_MIN_RADIUS, pol.searchRadius - SEARCH_SHRINK * dt);
   const outside = Math.hypot(p.x - pol.searchCenter.x, p.y - pol.searchCenter.y) > pol.searchRadius;
-  world.wantedDecayTimer += dt * (outside ? 2 : 1);
+  world.wantedDecayTimer += dt * (outside ? 2 : 1) * decayFactor(world.wantedProfile, world);
   if (world.wantedDecayTimer >= DECAY_TIME) {
     world.wanted = Math.max(0, world.wanted - 1);
     world.wantedDecayTimer = 0;
@@ -893,7 +899,7 @@ export function updatePolice(dt, world) {
     if (chasing) {
       updateChase(v, dt, world);
       if (tryDeployCrew(v, world, state)) continue;
-      if (!v._mount && world.wanted >= 3 && seen && v._sees) maybeFire(v, dt, world);
+      if (!v._mount && world.wanted >= FIRE_WANTED && seen && v._sees) maybeFire(v, dt, world);
     } else if (v._motor) {
       v._motor = false;
       v.isPolice = false;

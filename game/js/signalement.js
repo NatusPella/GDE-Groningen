@@ -1,0 +1,27 @@
+// Signalement (#43, steps 4 and 5): what the police are told about you. A
+// witness' call (pedestrians.js) or a seen crime notes the vehicle you are in
+// (which one, what colour) or, on foot, that you are on foot. When you are
+// out of sight and in something else (another car, a new coat of paint, on
+// foot), the units no longer know what to look for: the search gives up
+// faster. Pure logic; police.js applies the factor.
+export const MISMATCH_DECAY = 2.5;
+
+export function profileOf(world) {
+  const v = world && world.player && world.player.inVehicle;
+  if (!v) return { vehicle: null, color: null };
+  return { vehicle: v.id ?? v.uid ?? v.name ?? (v.model && v.model.name) ?? 'voertuig', color: v.color || (v.model && v.model.color) || null, ref: v };
+}
+
+// Does what you are in now still fit the description? No description: it fits.
+export function fitsProfile(profile, world) {
+  if (!profile) return true;
+  const now = profileOf(world);
+  if (profile.ref && now.ref && profile.ref !== now.ref) return false;
+  if ((profile.vehicle === null) !== (now.vehicle === null)) return false;
+  return profile.color === now.color;
+}
+
+// Multiplier on the search's decay timer while out of sight.
+export function decayFactor(profile, world) {
+  return fitsProfile(profile, world) ? 1 : MISMATCH_DECAY;
+}

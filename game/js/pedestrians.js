@@ -1,4 +1,5 @@
 import { scaledTarget, farAIDist, skipFar, takeDt } from './simload.js';
+import { profileOf } from './signalement.js';
 import { dist, pointInPolygon, closestPointOnSegment, isInWater } from './util.js';
 import { resolveBuildingCollisions, findExitSpot } from './player.js';
 import { resolveWalker } from './collision.js';
@@ -713,6 +714,7 @@ function updateWitnessCall(world) {
   if (world.time < ped.stateUntil) return;
   world.wanted = 1;
   world.policeTip = { x: activeCall.x, y: activeCall.y, time: world.time };
+  world.wantedProfile = profileOf(world);
   world.addMessage('Een getuige heeft de politie gebeld!', 3);
   say(ped, world, 'Ze komen der aan!', 2.2, null);
   startFlee(ped, world, world.player.x, world.player.y, true);

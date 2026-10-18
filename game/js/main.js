@@ -27,6 +27,7 @@ import { spawnPedestriansNear, updatePedestrians, CITY_CENTRE } from './pedestri
 import { updateCombat, updateBullets } from './combat.js';
 import { updatePolice } from './police.js';
 import { updateTrafficLaw } from './trafficlaw.js';
+import { updateOffences } from './offences.js';
 import { initMissions, updateMissions } from './missions.js';
 import { initStory, updateStory, currentStep } from './story.js';
 import { initGoal, updateGoal } from './goal.js';
@@ -50,7 +51,7 @@ import { updateBanter } from './banter.js';
 import { updateNarrative } from './narrative.js';
 import { initStoryContact, updateStoryContact } from './storycontact.js';
 import { initTheme } from './theme.js';
-import { initTrafficLights, updateTrafficLights } from './trafficlights.js';
+import { initTrafficLights, updateTrafficLights, trafficSignalsNear, trafficLightPhaseFor } from './trafficlights.js';
 import { initRailway, updateRailway, setRailExtraWorld } from './railway.js';
 import { applyCityRoutes, loadLandData } from './corridorrail.js';
 import { setFarProps } from './farprops.js';
@@ -589,6 +590,7 @@ async function boot() {
 
     if (!world.pigeonMode && !world.heliRun) updatePolice(dt, world);
     updateTrafficLaw(dt, world);
+    updateOffences(dt, world, { signalsNear: trafficSignalsNear, phaseFor: trafficLightPhaseFor });
     resolveVehicleVehicleCollisions(world.vehicles, world);
     tickBurningVehicles(world, dt);
     updateRailway(dt, world);
