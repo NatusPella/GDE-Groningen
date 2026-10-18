@@ -5,6 +5,7 @@
 // van de haltes onderweg zijn verzonnen. Tests: scripts/busboard_test.mjs.
 
 import { stopName } from './busservice.js';
+import { project, pointAt } from './busroutes.js';
 
 export const OPERATOR = 'Hunzedal Vervoer';
 export const BOARD_COLS = 16;      // tekens op het bord
@@ -87,4 +88,13 @@ export function stopAnnouncement(info) {
 
 export function roundDist(m) {
   return m >= 950 ? `${(m / 1000).toFixed(1).replace('.', ',')} km` : `${Math.max(10, Math.round(m / 10) * 10)} m`;
+}
+
+// Welke kant op rijdt een bus (x, y, angle) over deze lijn: +1 of -1, of 0 als
+// hij niet op de lijn rijdt (verder dan maxD).
+export function lineDirection(line, x, y, angle, maxD = 40) {
+  const pr = project(line, x, y);
+  if (pr.d > maxD) return 0;
+  const h = pointAt(line, pr.s).heading;
+  return Math.cos(angle - h) >= 0 ? 1 : -1;
 }
