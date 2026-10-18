@@ -16,6 +16,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **Lekke band:** na een harde klap kan een band van je eigen auto, fiets of scooter lek gaan. Je rijdt dan trager en de wagen trekt scheef. De garage (of fietsenmaker) plakt hem, tegen een kleine meerprijs. Een lekke band blijft bewaard in je save.
 
 ### Opgelost
+- **Viaducten bij het Emmaviaduct:** het viaduct en de Brailleweg gaan nu hoog genoeg over de Zaanstraat-busbaan (die lag eerder bijna onder het dek). Schuine kruisingen met fietspaden houden de vrije hoogte over de hele breedte van het pad.
 - De meldingen van de politie dat je ergens niet mag rijden, lopen of fietsen zijn weg. Blijf je lang op zo'n plek, dan krijg je nog wel een ster.
 - **Verkeersruzie:** na een harde botsing of lang getoeter stapt een boze bestuurder soms uit, scheldt en deelt kleine klappen uit (nooit het laatste stukje gezondheid, geen bloed). Sommigen hebben een klomp, hockeystick, bezem, fietspomp, knuppel of waterpistool bij zich. Een agent te voet in de buurt komt erop af. Instelbaar onder Instellingen › Meer opties › Verkeersruzie (uit, weinig, normaal, veel).
 - **Wapens oppakken:** sla een ruziemaker neer, of tot hij het opgeeft, dan laat hij zijn spullen vallen. Loop erheen en pak ze op met E.
