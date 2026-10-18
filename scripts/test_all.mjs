@@ -1,6 +1,6 @@
 // Eén commando dat alles test en een leesbaar rapport maakt (#186, #5, #4). Zie docs/TESTEN.md.
 //   node scripts/test_all.mjs [--fase=licht|zwaar|electron|alles] [--rapport=<map>]
-//        [--only=<tekst>] [--jobs=2] [--test-timeout=120] [--issues [--create]] [--force] [--locks=<map>] [--list]
+//        [--only=<tekst>] [--jobs=2] [--test-timeout=120] [--issues [--create]] [--force] [--locks=<map>] [--stage [--cache=<map>]] [--list]
 // Fasen (standaard licht):
 //   licht     module-check, import_check, voice_coverage, text_audit, dode-code-bewaking en alle
 //             scripts/*_test.mjs (met duur en tijdslimiet; import_cycles_test bewaakt de cycli)
@@ -53,7 +53,7 @@ export function runCmd(cmd, args, { ms = TEST_MS, env = {}, cwd = ROOT } = {}) {
     const t0 = Date.now();
     let out = '', timedOut = false, done = false;
     let child;
-    try { child = spawn(cmd, args, { cwd, env: { ...process.env, ...env }, windowsHide: true }); } catch (e) { resolve({ code: -1, timedOut: false, out: 'starten mislukt: ' + e.message, secs: 0 }); return; }
+    try { child = spawn(cmd, args, { cwd, env: { ...process.env, ...env }, windowsHide: true, shell: /\.(cmd|bat)$/i.test(cmd) }); } catch (e) { resolve({ code: -1, timedOut: false, out: 'starten mislukt: ' + e.message, secs: 0 }); return; }
     const add = (d) => { out += d; if (out.length > 8e6) out = out.slice(-4e6); };
     child.stdout.on('data', add); child.stderr.on('data', add);
     const fin = (code) => { if (done) return; done = true; clearTimeout(timer); resolve({ code, timedOut, out, secs: (Date.now() - t0) / 1000 }); };
@@ -91,6 +91,24 @@ function itemUitRes(fase, id, naam, res, ms) {
 const heeftWereld = () => fs.existsSync(path.join(ROOT, 'game', 'world', 'index-provincie.json'));
 const skip = (fase, id, naam, reden) => R.maakItem(fase, id, naam, 'SKIP', 0, 'niet gedraaid: ' + reden);
 const wilDit = (id) => !ONLY || id.includes(ONLY);
+
+// ---------------------------------------------------------------- stage (--stage)
+
+// Bouwt game/world als die ontbreekt: hergebruikt een wereld-cache (--cache=<map>, standaard die van GDE-merge),
+// neemt het exclusieve stage-slot en draait `npm run stage` in desktop/.
+async function stageWereld() {
+  if (fs.existsSync(path.join(ROOT, 'desktop', 'build', 'game', 'world', 'index-provincie.json'))) return 'gestagede provinciewereld is er al';
+  const cache = opt('cache', 'C:/Users/abuis/GIT/GDE-merge/desktop/.world-cache');
+  const doel = path.join(ROOT, 'desktop', '.world-cache');
+  if (!fs.existsSync(doel) && fs.existsSync(cache)) fs.cpSync(cache, doel, { recursive: true });
+  const slot = LOCKS ? path.join(LOCKS, 'stage') : null;
+  while (slot) { try { fs.mkdirSync(slot); break; } catch { log('wacht op het stage-slot...'); await slaap(30e3); } }
+  try {
+    if (!fs.existsSync(path.join(ROOT, 'desktop', 'node_modules'))) await runCmd(process.platform === 'win32' ? 'npm.cmd' : 'npm', ['install', '--no-audit', '--no-fund'], { ms: 15 * 60e3, cwd: path.join(ROOT, 'desktop') });
+    const r = await runCmd(process.platform === 'win32' ? 'npm.cmd' : 'npm', ['run', 'stage'], { ms: 45 * 60e3, cwd: path.join(ROOT, 'desktop') });
+    return r.code === 0 ? 'gestaged' : 'stage mislukte: ' + tail(r.out, 4);
+  } finally { if (slot) try { fs.rmdirSync(slot); } catch { /* al weg */ } }
+}
 
 // ---------------------------------------------------------------- fase licht
 
@@ -397,6 +415,7 @@ async function main() {
   const fasen = FASE === 'alles' ? R.FASEN : FASE.split(',').filter((f) => R.FASEN.includes(f));
   if (!fasen.length) { console.error('Onbekende fase: ' + FASE + ' (kies licht, zwaar, electron of alles)'); return 2; }
   fs.mkdirSync(RUN, { recursive: true });
+  if (flag('stage')) log('stage: ' + await stageWereld());
   const stateFile = path.join(BASE, 'state.json');
   let staat = {};
   try { staat = JSON.parse(fs.readFileSync(stateFile, 'utf8')); } catch { /* eerste run */ }
