@@ -114,6 +114,16 @@ export function applyNieuw(list) {
     vet.costRow = ['Gered', 'Plakje twee: het vet blijft in Grunn'];
     vet.vehicleFail = { gone: 'Femkes auto is foetsie, en de tankwagen rijdt door', wrecked: 'de auto is total loss. Femke wil hem niet zo terug', left: 'je liet de auto staan. Zonder auto geen tankwagen' };
   }
+  const fat = by('Fatbikes tellen niet als fiets');
+  if (fat) {
+    // the goal said aloud (#93, #147): through the fatbikes to Oma, who then tells about the ball
+    fat.intro = ['Oma Trijntje belt: kom naar de Noorderhaven, ze heeft iets over die bal. Maar de Oude Ebbingestraat zit vol fatbikes, over de stoep.', 'Loop heelhuids door de fatbikes naar Oma Trijntje, dan vertelt ze iets over die bal. Geschept worden kost een tel.'];
+    fat.say = 'Loop heelhuids door de fatbikes naar Oma Trijntje, dan vertelt ze iets over die bal.';
+    fat.talk = { ids: ['M08.2'], delay: 7 };
+    fat.outro = 'Heelhuids bij Oma Trijntje. Nu vertelt ze over de bal.';
+    fat.timeUp = 'tijd op. Oma Trijntje heeft de krentjebrij alleen opgegeten';
+    fat.costRow = ['Gekregen', "Oma's lijstje: vijf vrienden, vijf ingrediënten"];
+  }
   const mus = by('Het museum stond er al zo');
   if (mus) {
     // the black clothes and the boat are in the intro now (08 §2): only the dark is needed, and the call from home

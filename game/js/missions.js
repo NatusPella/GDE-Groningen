@@ -1900,6 +1900,8 @@ function startMission(world, def) {
   // H13: after the intro on the quay, a shot of the boat with the two of them aboard
   if (def.type === 'boat' && chain.vehicle) playRondvaartBoarding(world, chain.vehicle);
   if (def.say) world.addMessage(def.say, 5);
+  // the new story: the remarks between the pair while a lane or delivery mission runs (stages carry their own talk)
+  if (def.talk && storyDataReady()) playTalk(talkLines(def.talk.ids, def.talk), { id: `${def.label}:talk`, delay: def.talk.delay || 1 });
   chain.seen.add(i);
 }
 

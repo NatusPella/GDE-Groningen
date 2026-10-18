@@ -119,8 +119,12 @@ export const STEPS = [
   M('M07', 'romp', 'Al het vet van Grunn', 'vetgekaapt', { built: true, reward: 950,
     story: { intro: ['M07.1'], outro: ['M07.3'], replay: ['M07.5'] }, scenes: ['M07.1', 'M07.2', 'M07.3', 'M07.4', 'M07.5'],
     lead: ['T', 'De tankwagen van Us Mem Vet rijdt over de Europaweg. Tijd voor banden.'] }),
-  M('M08', 'romp', 'Fatbikes tellen niet als fiets', 'fatbike', { reward: 500, scenes: ['M08.1', 'M08.2', 'M08.3', 'M08.4', 'M08.5'] }),
-  A('T1', 'romp', 'De trein naar Winsum', { type: 'train' }, { scenes: ['T1'] }),
+  M('M08', 'romp', 'Fatbikes tellen niet als fiets', 'fatbike', { built: true, reward: 500,
+    story: { intro: ['M08.1'], outro: ['M08.3'], replay: ['M08.5'] }, scenes: ['M08.1', 'M08.2', 'M08.3', 'M08.4', 'M08.5'],
+    lead: ['T', 'Oma Trijntje belde: kom naar de Noorderhaven. Ze heeft iets over die bal.'] }),
+  // travel steps: the goal is the place (storyreis.js); the lines of the trip itself are the travel beat's (reisbeats.js)
+  A('T1', 'romp', 'De trein naar Winsum', { type: 'reis', to: 'Winsum', at: [53.3318, 6.5164], r: 350, scene: 'T1', from: 4 }, { built: true, scenes: ['T1'],
+    lead: ['A', 'Met de trein naar Winsum. Daar begint het Hogeland, en Geesje woont in Warffum.'] }),
   M('M09', 'romp', 'Heel aankomen is ook een kunst', 'eieren', { scenes: ['M09.1', 'M09.2', 'M09.3', 'M09.4', 'M09.5'] }),
   M('M10', 'romp', 'Een trekker-limo op de wierde', 'wierde', { scenes: ['M10.1', 'M10.2', 'M10.3', 'M10.4'] }),
   A('T2', 'romp', 'De streekbus naar Zoutkamp', { type: 'bus' }, { scenes: ['T2'] }),
@@ -175,4 +179,7 @@ export const CLUES = [
   { step: 'M06', kind: 'clue', title: 'De lege vitrine', text: 'Iemand was ons voor. Op het kussen: "Tige tank! – J." Jelle Terpstra belde live naar Nachtstreek: de bal is bij hem.' },
   { step: 'M06', kind: 'hart', title: 'Voor de grip', text: 'Tessa pakte zijn hand. "Voor de grip." Allebei zeiden ze het.' },
   { step: 'M07', kind: 'hart', title: 'Iemand uit Friesland', text: 'Tessa kreeg weer een appje van iemand uit Friesland. Tammo vroeg of hij lang is.' },
+  { step: 'M08', kind: 'clue', title: 'Gerda Terpstra, 1953', text: 'Oma Trijntje won in 1953. Tweede werd een Fries meisje: Gerda Terpstra, de mem van Jelle. Haar eierbal was beter. De jury wist het niet.' },
+  { step: 'M08', kind: 'clue', title: 'Het lijstje van Oma', text: 'Het recept van 1953 had vijf dingen van vijf vrienden: vet, eieren, zout, bloem en mosterd. Geesje, Klaas, Lammert, Roelfien en Wubbo. Jelle koopt ze allemaal op.' },
+  { step: 'M08', kind: 'hart', title: 'Niet tegen haar', text: 'Oma Trijntje: "Jij: één zin, hè. Niet zeventig jaar." Tammo zegt dat hij wel iets zegt. Oma: "Niet tegen haar."' },
 ];
