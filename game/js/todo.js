@@ -8,6 +8,7 @@
 // 'later' | 'slot' | ''), medal (0-3, or null without medals), record, x, y,
 // dist, goal (a goal.js spec, 'story' for the current story step, or null),
 // mission (index), detail: { kicker, text, rows: [[label, value]], medals } }.
+import { wasHelped } from './assistlive.js';
 import { getSettings } from './settings.js';
 import { getMissionList, getMissionDefs, trackMission, isMissionActive, activeMissionIndex, medalBonusLeft } from './missions.js';
 import { getStorySteps, storyMissionAhead } from './story.js';
@@ -124,6 +125,7 @@ function missionItems(world) {
     else if (status === 'nu') meta = ['Missie', play, euro(m.reward), place && `start ${place}`].filter(Boolean).join(' · ');
     else if (status === 'later') meta = 'Later in het verhaal · vooruit spelen kan, met waarschuwing';
     else meta = `${TYPE_LABEL[m.type] || 'Missie'} · ${euro(m.reward)}`;
+    if (step && wasHelped(step.id)) meta += ' · met hulp';
     const record = [rec && rec.best != null ? `Record ${formatMissionTime(rec.best)}` : '', m.done && leftSum ? `${MEDALS[left[left.length - 1].medal].toLowerCase()} nog te halen: +${euro(leftSum)}` : ''].filter(Boolean).join(' · ');
     const next = k >= 0 ? steps.slice(k + 1).find((s) => s.available) : null;
     const rows = [['Start', place || '—']];
