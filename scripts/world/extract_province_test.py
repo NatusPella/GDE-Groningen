@@ -67,6 +67,7 @@ if osmium:
     sq = [node(0, 0), node(0, 0.0002), node(0.0001, 0.0002), node(0.0001, 0)]
     r = [node(0.001, 0), node(0.001, 0.002)]
     lk = [node(0.002, 0), node(0.002, 0.001), node(0.003, 0.001), node(0.003, 0)]
+    isl = [node(0.0025, 0.0003), node(0.0025, 0.0006), node(0.0027, 0.0006), node(0.0027, 0.0003)]
     stop = node(0.0011, 0.001, {"highway": "bus_stop", "name": "Halte"})
     node(0.0005, 0.0005, {"railway": "station", "name": "Teststad"})
     node(0.0006, 0.0006, {"place": "village", "name": "Teststad", "population": "1200"})
@@ -76,7 +77,8 @@ if osmium:
     w.add_way(osmium.osm.mutable.Way(id=2, nodes=r, tags={"highway": "tertiary", "name": "Teststraat", "maxspeed": "50"}))
     w.add_way(osmium.osm.mutable.Way(id=3, nodes=[lk[0], lk[1], lk[2]], tags={}))
     w.add_way(osmium.osm.mutable.Way(id=4, nodes=[lk[2], lk[3], lk[0]], tags={}))
-    w.add_relation(osmium.osm.mutable.Relation(id=1, members=[("w", 3, "outer"), ("w", 4, "outer")], tags={"type": "multipolygon", "natural": "water", "name": "Testmeer"}))
+    w.add_way(osmium.osm.mutable.Way(id=5, nodes=isl + [isl[0]], tags={}))
+    w.add_relation(osmium.osm.mutable.Relation(id=1, members=[("w", 3, "outer"), ("w", 4, "outer"), ("w", 5, "inner")], tags={"type": "multipolygon", "natural": "water", "name": "Testmeer"}))
     w.add_relation(osmium.osm.mutable.Relation(id=2, members=[("n", stop, "stop"), ("w", 2, "")], tags={"type": "route", "route": "bus", "ref": "61"}))
     w.close()
     ex = X.Extract()
@@ -86,8 +88,11 @@ if osmium:
     kinds = {(e["type"], e["id"]) for e in els}
     check(("way", 1) in kinds and ("way", 2) in kinds, "building and road in a pack")
     lake = [e for e in els if e["type"] == "relation" and e["id"] == 1]
-    check(lake and len(lake[0]["members"]) == 1 and lake[0]["members"][0]["g"][0] == lake[0]["members"][0]["g"][-1], "the lake is one closed ring")
-    check(("way", 3) not in kinds, "an untagged member way is no element of its own")
+    outer = [m for m in lake[0]["members"] if m["role"] == "outer"] if lake else []
+    inner = [m for m in lake[0]["members"] if m["role"] == "inner"] if lake else []
+    check(len(outer) == 1 and outer[0]["g"][0] == outer[0]["g"][-1], "the lake is one closed ring")
+    check(len(inner) == 1 and inner[0]["g"][0] == inner[0]["g"][-1], "its island is kept as an inner ring (issue #124)")
+    check(("way", 3) not in kinds and ("way", 5) not in kinds, "an untagged member way is no element of its own")
     road = next(e for e in els if e["type"] == "way" and e["id"] == 2)
     check(road["tags"].get("maxspeed") == "50" and len(road["g"]) == 2, "road keeps its tags and geometry")
     check(any(e.get("tags", {}).get("amenity") == "bench" for e in els), "street furniture is kept")
