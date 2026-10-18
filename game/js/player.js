@@ -20,6 +20,8 @@ import { vaultDecision, vehicleHeight, roofSpot, onRoof, localToWorld, worldToLo
 
 import { inHomeFlat } from './home.js';
 import { flyHeli, heliExitBlock } from './heliflight.js';
+import { flyPlane } from './planeflight.js';
+import { planeExitBlock } from './planecontrol.js';
 import { MODS } from './cheatmods.js';
 import { reportCrime } from './crime.js';
 import { shift as shiftGear } from './gearbox.js';
@@ -742,7 +744,7 @@ export class Player {
   tryEnterExit(map, vehicles, world = null) {
     if (this.inVehicle) {
       if (this.inVehicle.sinking && this.inVehicle.sinking.phase === 'fall') return;
-      const why = heliExitBlock(this.inVehicle);
+      const why = heliExitBlock(this.inVehicle) || planeExitBlock(this.inVehicle);
       if (why) { if (world) world.addMessage(why, 2.5, { kind: 'tip' }); return; }
       this.exitVehicle(map, world);
       return;
@@ -828,6 +830,11 @@ export class Player {
 
   driveVehicle(dt, input, map, world = null) {
     const v = this.inVehicle;
+    if (v.isPlane && world) {
+      flyPlane(v, dt, world);
+      this.x = v.x; this.y = v.y; this.angle = v.angle;
+      return;
+    }
     if (v.isHeli && world) {
       flyHeli(v, dt, world);
       this.x = v.x; this.y = v.y; this.angle = v.angle;

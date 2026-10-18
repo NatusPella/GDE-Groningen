@@ -1063,6 +1063,7 @@ export function manageMotorPopulation(world, { target = null, spawnMin = 50, spa
 let busLines = [];
 // de voorbereide lijnen (busroutes.js prepareLines); leeg = bussen rijden vrij zoals voorheen
 export function setBusLines(lines) { busLines = lines || []; }
+export function getBusLines() { return busLines; }
 
 export function manageBusPopulation(world, { target = 4, spawnMin = 90, spawnMax = 220, despawnDist = 300 } = {}) {
   const { map, player, vehicles } = world;
