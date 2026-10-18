@@ -92,7 +92,7 @@ async function frameStats(ms) {
 
 const results = { dpr: devicePixelRatio, css: [innerWidth, innerHeight], plekken: {} };
 let lastHour = null;
-const COMBO = (tijd, weer) => CFG.matrix.find((c) => c.tijd === tijd && c.weer === weer);
+const COMBO = (tijd, weer) => (CFG.combos || CFG.matrix).find((c) => c.tijd === tijd && c.weer === weer);
 for (const S of CFG.plekken) {
   try {
   setNow(COMBO('middag', 'helder'));
@@ -137,6 +137,7 @@ for (const S of CFG.plekken) {
       await sleep(250);
     }
   }
+  await sleep(2500);
   for (const pf of CFG.perf) {
     const c = COMBO(pf.tijd, pf.weer);
     if (!c) continue;
@@ -146,7 +147,7 @@ for (const S of CFG.plekken) {
     await sleep(3000);
     info.perf[`${pf.tijd}-${pf.weer}`] = await frameStats(CFG.perfMs || 4000);
   }
-  info.elev = Object.fromEntries([...new Set(CFG.matrix.map((c) => c.tijd))].map((t) => [t, +DN.sunElevationDeg(CFG.matrix.find((c) => c.tijd === t).hour).toFixed(1)]));
+  info.elev = Object.fromEntries([...new Set((CFG.combos || CFG.matrix).map((c) => c.tijd))].map((t) => [t, +DN.sunElevationDeg((CFG.combos || CFG.matrix).find((c) => c.tijd === t).hour).toFixed(1)]));
   // console.error: alleen fouten komen in de uitvoer van de desktop-app; zo overleeft het resultaat een latere crash
   console.error('[wn-result] ' + JSON.stringify({ naam: S.naam, at: info.at, street: info.street, elev: info.elev, perf: info.perf }));
   } catch (e) { console.error('[wn-result] ' + JSON.stringify({ naam: S.naam, fout: String(e && e.message || e) })); }
