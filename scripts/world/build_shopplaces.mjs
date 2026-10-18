@@ -130,12 +130,14 @@ const out = {};
 const types = [];
 const tIdx = (t) => { let i = types.indexOf(t); if (i < 0) { i = types.length; types.push(t); } return i; };
 const kept = [];
+const placeTab = [''];
+const pIdx = (n) => { let i = placeTab.indexOf(n); if (i < 0) { i = placeTab.length; placeTab.push(n); } return i; };
 for (const k of [...byTile.keys()].sort()) {
   const all = byTile.get(k);
   const pick = applyBudget(all, BUDGET);
   dropped += all.length - pick.length;
   pick.sort((a, b) => a.key.localeCompare(b.key));
-  out[k] = pick.map((f) => [+f.lat.toFixed(5), +f.lon.toFixed(5), tIdx(f.type), inventName(f.group, f.type, seedOf(f.key)), f.bid || 0, (f.chain ? 1 : 0) | (f.inside ? 2 : 0)]);
+  out[k] = pick.map((f) => [+f.lat.toFixed(5), +f.lon.toFixed(5), tIdx(f.type), inventName(f.group, f.type, seedOf(f.key)), f.bid || 0, (f.chain ? 1 : 0) | (f.inside ? 2 : 0), pIdx(f.place)]);
   kept.push(...pick);
 }
 
@@ -162,7 +164,7 @@ const full = Object.entries(out).filter(([, v]) => v.length >= BUDGET).map(([k])
 console.log(`tegels aan het budget: ${full.length}${full.length ? ' (' + full.slice(0, 8).join(', ') + ')' : ''}`);
 
 if (!AUDIT_ONLY) {
-  const doc = { v: 1, src: 'OpenStreetMap contributors (ODbL): alleen type en plek', crs: 'EPSG:4326', budget: BUDGET, types, row: ['lat', 'lon', 'type', 'naam', 'gebouw', 'vlaggen (1 keten, 2 binnen gebouw)'], tiles: out };
+  const doc = { v: 1, src: 'OpenStreetMap contributors (ODbL): alleen type en plek', crs: 'EPSG:4326', budget: BUDGET, types, places: placeTab, row: ['lat', 'lon', 'type', 'naam', 'gebouw', 'vlaggen (1 keten, 2 binnen gebouw)', 'plaats'], tiles: out };
   fs.writeFileSync(DST, JSON.stringify(doc));
   console.log(`\n${path.relative(ROOT, DST)}: ${Math.round(fs.statSync(DST).size / 1024)} KB`);
 }
