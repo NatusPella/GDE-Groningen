@@ -199,7 +199,7 @@ export const STEPS = [
   M('M01', 'kop', 'Nul krassen, vijftienhonderd punten', 'bakkiestunt', { built: true, reward: 200, minReward: 50,
     story: { intro: ['M01.1', 'M01.2'], outro: ['M01.6'], replay: ['M01.7'] },
     scenes: ['M01.1', 'M01.2', 'M01.3', 'M01.4', 'M01.5', 'M01.6', 'M01.7'],
-    lead: ['A', 'Berend wacht bij het Martinikerkhof met zijn bakkie. Nul krassen, hè.'] }),
+    lead: ['A', 'Honderdvijftig euro verdienen: Berend wacht bij het Martinikerkhof met zijn bakkie. Nul krassen, hè.'] }),
   M('M02', 'kop', 'Even pinnen', 'pinautomaat', { built: true, reward: 400,
     story: { intro: ['M02.1'], outro: ['M02.3', 'M02.5'], replay: ['M02.4'] }, scenes: ['M02.1', 'M02.2', 'M02.3', 'M02.4', 'M02.5'],
     lead: ['A', 'De Herestraat, half acht. Mijn pas zit in een automaat.'] }),
@@ -208,15 +208,15 @@ export const STEPS = [
     lead: ['A', 'Het Loket bij de Grote Markt. Open tot twaalf uur, contant.'] }),
   M('M04', 'kop', 'Kieken van boven', 'duifverkenning', { built: true, reward: 350,
     story: { intro: ['M04.1'], outro: ['M04.3'], replay: ['M04.4'] }, scenes: ['M04.1', 'M04.2', 'M04.3', 'M04.4', 'M04.5'],
-    lead: ['T', 'Bert zit bij het Stationsplein. Zijn duiven zijn nerveus.'] }),
+    lead: ['T', 'Naar Bert op het Stationsplein: een duif fotografeert het museum.'] }),
   M('M05', 'kop', 'Wind tegen, beide kanten op', 'kei', { built: true, reward: 550,
     story: { intro: ['M05.1'], outro: ['M05.3'], replay: ['M05.4'] }, scenes: ['M05.1', 'M05.2', 'M05.3', 'M05.4'],
-    lead: ['A', 'Sjoerd wacht bij het Academiegebouw. Hij praat alleen met wie meerijdt.'] }),
+    lead: ['A', 'Sjoerd wacht bij het Academiegebouw. Haal het podium, dan praat hij.'] }),
   M('M06', 'kop', 'Het museum stond er al zo', 'museumkraak', { built: true, reward: 400,
     // Henk's call while they wait (M06.0) plays at home; the escape and the radio are stage scenes of the mission (missions.js)
     homeScene: { id: 'M06.0', big: 'Wachten tot middernacht…' },
     story: { intro: ['M06.1'], outro: null, replay: ['M06.4'] }, scenes: ['M06.0', 'M06.1', 'M06.2', 'M06.3', 'M06.4'],
-    lead: ['A', 'Om twaalf uur gaan de camera\'s drie minuten uit. We wachten thuis.'] }),
+    lead: ['A', 'Vannacht om twaalf uur: de bal pakken. Tot die tijd wachten we thuis.'] }),
 
   // --- Akte 2: Het Noorden is groot (Stad, Hogeland, Waddenzee, di 18 - do 20 augustus) -----
   M('M07', 'romp', 'Al het vet van Grunn', 'vetgekaapt', { built: true, reward: 950,
@@ -307,7 +307,7 @@ export const STEPS = [
 
 // what Tammo and Tessa are after, per part ("Wat weten we?")
 export const WHY = {
-  kop: 'Inschrijven voor de Noordelijke Snackprijs, en uitzoeken wat die Fries bij het museum doet.',
+  kop: 'Inschrijven voor de Noordelijke Snackprijs, en de Gouden Eierbal eerder pakken dan Jelle.',
   romp: 'Jelles plakjes tegenhouden en uitzoeken waar de bal is.',
   staart: 'De haven, het graan en de jury: Jelle koopt alles op.',
   zuid: 'Bewijs dat Jelle de bal nam, en de bal terughalen.',
@@ -318,14 +318,14 @@ export const WHY = {
 export const CLUES = [
   { step: 'M01', kind: 'taal', title: 'De complimentenladder', text: 'Een Stadjer geeft geen complimenten, hij klimt een ladder. Zes treden: Ow, Goud, Valt mie nait of, Braid noar de zin, Kon minder en bovenaan niks meer. Berend zei "Goud": trede twee.' },
   { step: 'M01', kind: 'clue', title: 'Een Fries met een klomp', text: 'Berend: een Fries in een blauw colbert wilde zijn bakkie kopen. Contant, uit een klomp. In augustus.' },
-  { step: 'M01', kind: 'clue', title: 'JelleWâld', text: 'In Jelmers chat: "Groot Loug. Moai foar in wykein." En: "dat famke yn it read: sa\'n leaf gesicht." Tammo vond het niet leuk.' },
-  { step: 'M02', kind: 'clue', title: 'De reuzen en het museum', text: 'Sjabbe: twee reuzen kochten alles wat met frituren te maken heeft. Hun baas vroeg waar het museum alarmen heeft.' },
-  { step: 'M02', kind: 'hart', title: 'De bal van Grunn', text: 'Tammo\'s opa stond in 1953 op de Grote Markt toen we hem wonnen. Hij huilde, en hij huilde nooit. Tammo zegt niks. Dat is ook een antwoord.' },
+  { step: 'M01', kind: 'clue', title: 'JelleWâld', text: 'In de chat typte JelleWâld: "dat famke yn it read: sa\'n leaf gesicht" (dat meisje in het rood, zo\'n lief gezicht). Tammo vond het niet leuk.' },
+  { step: 'M02', kind: 'clue', title: 'De reuzen en de klomp', text: 'Sjabbe: de reuzen werken voor Jelle Terpstra, de Fries in het blauwe colbert. Hij betaalt alles contant uit een klomp, en een klomp is snel leeg: daarom halen ze pinautomaten uit de muur. Hij vroeg ook waar het museum alarmen heeft.' },
+  { step: 'M03', kind: 'hart', title: 'De bal van Grunn', text: 'Tammo\'s opa stond in 1953 op de Grote Markt toen we hem wonnen. Hij huilde, en hij huilde nooit. Tammo zegt niks. Dat is ook een antwoord.' },
   { step: 'M03', kind: 'clue', title: 'Salamitactiek', text: 'Jelle kocht de rij, en alle vrije standplaatsen van het jaar. Alleen die van de winnaar blijft vrij. Plakje voor plakje, tot hij alles heeft.' },
-  { step: 'M03', kind: 'clue', title: 'Artikel 4 en 9', text: 'De bewaarder van de Gouden Eierbal zit de jury voor. Bij verhindering het oudste jurylid. Mevrouw Tuinstra vertrekt maandag met Jelle op een treinreis met volpension.' },
+  { step: 'M03', kind: 'clue', title: 'Artikel 4 en 9', text: 'Wie de Gouden Eierbal bewaart, zit de jury voor. Bij verhindering het oudste jurylid, meneer Bos. De bewaarder en de jury gaan maandag met Jelle op treinreis, en de bal hangt onder een doek.' },
   { step: 'M04', kind: 'clue', title: 'Bewaker twee', text: 'Bewaker twee krijgt een eierbal voor zijn koekje. Een Fries in een blauw colbert telt de alarmen.' },
   { step: 'M05', kind: 'clue', title: 'Drie minuten', text: 'Sjoerd: om twaalf uur \'s nachts gaan de camera\'s van het museum drie minuten uit voor een update. Al sinds 2019.' },
-  { step: 'M05', kind: 'hart', title: 'Eerst pakken, als bewaking', text: 'Als een ander hem pakt, is hij weg uit Stad. Dus pakken Tessa en Tammo hem eerst, en brengen ze hem terug na het Ontzet.' },
+  { step: 'M03', kind: 'hart', title: 'Eerst pakken, als bewaking', text: 'Als een ander hem pakt, is hij weg uit Stad. Dus pakken Tessa en Tammo hem eerst, en brengen ze hem terug na het Ontzet.' },
   { step: 'M06', kind: 'clue', title: 'De lege vitrine', text: 'Iemand was ons voor. Op het kussen: "Tige tank! – J." Jelle Terpstra belde live naar Nachtstreek: de bal is bij hem.' },
   { step: 'M06', kind: 'hart', title: 'Voor de grip', text: 'Tessa pakte zijn hand. "Voor de grip." Allebei zeiden ze het.' },
   { step: 'M07', kind: 'hart', title: 'Iemand uit Friesland', text: 'Tessa kreeg weer een appje van iemand uit Friesland. Tammo vroeg of hij lang is.' },
