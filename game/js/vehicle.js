@@ -928,7 +928,7 @@ export function manageTrafficPopulation(world, { target = 30, spawnMin = 70, spa
   for (let i = vehicles.length - 1; i >= 0; i--) {
     const v = vehicles[i];
     if (v.road && !v.homeStored && v.driver !== 'player' && !v.missionCar && !v.isBoat && inPrivateGarage(map, v.x, v.y)) { vehicles.splice(i, 1); continue; }
-    if (v.driver === 'player' || v.isPolice || v.isHeroCar || v.missionCar || v.isBike || v.isBus || v.parked) continue;
+    if (v.driver === 'player' || v.isPolice || v.isHeroCar || v.missionCar || v.isBike || v.isBus || v.parked || v.homeStored || (v.isBoat && v.playerOwned)) continue;
     // Wrecked cars have speed=0 forever and would otherwise almost never
     // reach the distance despawn, silently eating the traffic quota. A
     // vehicle stuck bouncing off the same dead end (isolated stub with no
@@ -1115,12 +1115,13 @@ export function manageBoatPopulation(world, { target = 4, spawnMin = 20, spawnMa
   const { map, player, vehicles } = world;
   for (let i = vehicles.length - 1; i >= 0; i--) {
     const v = vehicles[i];
-    if (!v.isBoat || v.isPolice || v.driver === 'player') continue;
+    // your own boat at the jetty is home.js's to stash, not ours to sweep away
+    if (!v.isBoat || v.isPolice || v.driver === 'player' || v.playerOwned || v.homeStored) continue;
     if (Math.hypot(v.x - player.x, v.y - player.y) > despawnDist) vehicles.splice(i, 1);
   }
 
   let count = 0;
-  for (const v of vehicles) if (v.isBoat && !v.wrecked && !v.isPolice && v.driver !== 'player') count++;
+  for (const v of vehicles) if (v.isBoat && !v.wrecked && !v.isPolice && v.driver !== 'player' && !v.playerOwned && !v.homeStored) count++;
 
   const candidates = map.waterNear(player.x, player.y, spawnMax);
   const have = { skiff: 0, acht: 0, sup: 0 };
