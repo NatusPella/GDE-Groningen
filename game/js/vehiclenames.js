@@ -33,6 +33,9 @@ const BOATS = {
   dinghy: [['Bijbootje', 'Woonbootje'], ['Roeiboot', 'Kleine Jan']],
   skutsje: [['Skûtsje', 'Us Heit'], ['Skûtsje', 'Snackkening']],
 };
+// elektrisch en opgevoerd (de tokkie-auto), twee soorten uit het verkeer
+const EV_NAMES = [['Wadden', 'Stroomer'], ['Hunze', 'Zoemer'], ['Reitdiep', 'Voltje']];
+const TOKKIE_NAMES = [['Dollard', 'Dreunbak'], ['Eemshaven', 'Knalpot'], ['Hunze', 'Bonkerd']];
 const HORSES = ['Bles', 'Dappere Dodo', 'Ome Willem', 'Bolle Berend'];
 const BIKES = [['Fiets', 'Omafiets'], ['Fiets', 'Transportfiets'], ['Fiets', 'Stadsfiets']];
 
@@ -54,6 +57,14 @@ export function vehicleDisplayName(v) {
     return { make, model };
   }
   if (v.isAmbulance) return { make: 'Ambulance', model: 'Spoedrit' };
+  if (name === 'hatch' && v.model.electric) {
+    const [make, model] = pick(EV_NAMES, v.id);
+    return { make, model };
+  }
+  if (name === 'hatch' && v.model.tokkie) {
+    const [make, model] = pick(TOKKIE_NAMES, v.id);
+    return { make, model };
+  }
   if (name === 'hatch' && v.model.rusty) return { make: 'Dollard', model: 'Roestbak' };
   if (name === 'van' && v.model.livery === 'nieuws') return { make: 'Noord-Nieuws', model: 'Verslaggeversbus' };
   if (name === 'van' && v.model.livery === 'pakket') return { make: 'Pakkie Nou', model: 'Bezorgbus' };

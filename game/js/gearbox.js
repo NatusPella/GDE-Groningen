@@ -48,6 +48,7 @@ export function profileFor(v) {
   if (v.isBus || m.name === 'bus' || m.name === 'midibus') return 'bus';
   const n = m.name;
   if (n === 'quad') return null;
+  if (m.electric) return null; // elektrisch: geen versnellingsbak
   if (n === 'tractor') return 'tractor';
   if (n === 'truck' || n === 'foodtruck' || n === 'cashvan') return 'truck';
   if (n === 'van') return 'van';
