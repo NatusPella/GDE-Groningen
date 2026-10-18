@@ -43,6 +43,11 @@ de kaarttegels (`game/world/`, bij het bouwen gemaakt) en de Overpass-extracten 
 `*_raw.json.gz`, `*.overpass`-resultaten). Ze zijn gemaakt met de scripts in
 `scripts/` (`fetch_osm.py`, `fetch_ommeland.py`, `build_map.py`, `add_*.py`).
 
+Daaronder vallen ook de plekken voor padel, golf en pitch and putt
+(`game/echteplekken.json`, `data/extras_padel_raw.json`), de horeca- en
+winkellocaties (`data/horeca_raw.json`, `data/shops_raw.json`) en de overige
+`data/*_raw.json`. In het spel krijgen ketens en cafés een verzonnen naam.
+
 ## Gebouwhoogtes — 3DBAG
 
 Gebouwhoogtes en dakvormen: 3DBAG door de 3D geoinformation onderzoeksgroep
@@ -53,6 +58,16 @@ officiële tegeldownloads (`scripts/world/fetch_3dbag.py`), samengevat in
 `data/world/3dbag.json.gz` en in de hoogtes van `game/citymap.json` en de
 tegels. De 3DBAG is zelf gemaakt uit de BAG (Kadaster, publiek domein) en de
 AHN (CC0).
+
+## Terreinhoogte — AHN (PDOK)
+
+Hoogte van het terrein (dijken, wierden, de Hondsrug, hellingen): Actueel
+Hoogtebestand Nederland (AHN), via de WCS-dienst van PDOK, onder
+[CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) (publiek
+domein). Een vermelding is niet verplicht maar wordt gegeven:
+<https://www.ahn.nl>, <https://www.pdok.nl>. Opgehaald met
+`scripts/world/fetch_ahn.py`; de afgeleide rasters (`data/world/ahn/`) zitten
+in de kaarttegels (`game/world/`, bij het bouwen gemaakt).
 
 ## Software
 
