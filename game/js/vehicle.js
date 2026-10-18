@@ -874,6 +874,10 @@ function lineOfSight(map, ax, ay, bx, by) {
   return true;
 }
 
+// Tammo and Tessa's private garage (home.js sets map.homeGarageAt): no traffic
+// spawns in it and none stays in it, whichever road still runs into the plinth.
+const inPrivateGarage = (map, x, y, pad = 0) => !!(map.homeGarageAt && map.homeGarageAt(x, y, pad));
+
 function spawnSpotFree(vehicles, v, clearance = 9) {
   const own = v.model.trailer || 0;
   for (const o of vehicles) {
@@ -923,6 +927,7 @@ export function manageTrafficPopulation(world, { target = 30, spawnMin = 70, spa
   manageParkedCars(world);
   for (let i = vehicles.length - 1; i >= 0; i--) {
     const v = vehicles[i];
+    if (v.road && !v.homeStored && v.driver !== 'player' && !v.missionCar && !v.isBoat && inPrivateGarage(map, v.x, v.y)) { vehicles.splice(i, 1); continue; }
     if (v.driver === 'player' || v.isPolice || v.isHeroCar || v.missionCar || v.isBike || v.isBus || v.parked) continue;
     // Wrecked cars have speed=0 forever and would otherwise almost never
     // reach the distance despawn, silently eating the traffic quota. A
@@ -951,7 +956,7 @@ export function manageTrafficPopulation(world, { target = 30, spawnMin = 70, spa
     if (!canUseRoad({ model: pick.model }, road)) continue;
     const v = spawnVehicleOnRoad(map, road, false, Math.random, false, false, null, false, pick.model);
     const d = Math.hypot(v.x - player.x, v.y - player.y);
-    if (d < spawnMin || d > spawnMax || !spawnSpotFree(vehicles, v) || spawnWouldPop(world, v)) continue;
+    if (d < spawnMin || d > spawnMax || !spawnSpotFree(vehicles, v) || inPrivateGarage(map, v.x, v.y, 2) || spawnWouldPop(world, v)) continue;
     applyFleetFlags(v, pick.kind);
     if (pick.kind in have) have[pick.kind]++;
     vehicles.push(v);
@@ -983,7 +988,7 @@ export function manageBikePopulation(world, { target = 16, spawnMin = 40, spawnM
     if (variant && variant.cargo && road.cat === 'minor' && road.width < 3) continue;
     const v = spawnVehicleOnRoad(map, road, false, Math.random, true, false, null, false, variant);
     const d = Math.hypot(v.x - player.x, v.y - player.y);
-    if (d < spawnMin || d > spawnMax || !spawnSpotFree(vehicles, v) || spawnWouldPop(world, v)) continue;
+    if (d < spawnMin || d > spawnMax || !spawnSpotFree(vehicles, v) || inPrivateGarage(map, v.x, v.y, 2) || spawnWouldPop(world, v)) continue;
     vehicles.push(v);
     count++;
   }
@@ -1009,7 +1014,7 @@ export function manageScooterPopulation(world, { target = 10, spawnMin = 40, spa
     const road = candidates[Math.floor(Math.random() * candidates.length)];
     const v = spawnVehicleOnRoad(map, road, false, Math.random, false, false, null, true);
     const d = Math.hypot(v.x - player.x, v.y - player.y);
-    if (d < spawnMin || d > spawnMax || !spawnSpotFree(vehicles, v) || spawnWouldPop(world, v)) continue;
+    if (d < spawnMin || d > spawnMax || !spawnSpotFree(vehicles, v) || inPrivateGarage(map, v.x, v.y, 2) || spawnWouldPop(world, v)) continue;
     vehicles.push(v);
     count++;
   }
@@ -1037,7 +1042,7 @@ export function manageBusPopulation(world, { target = 4, spawnMin = 90, spawnMax
     const midi = road.cat === 'normal' || Math.random() < 0.25;
     const v = spawnVehicleOnRoad(map, road, false, Math.random, false, true, null, false, midi ? { ...MIDIBUS_MODEL } : null);
     const d = Math.hypot(v.x - player.x, v.y - player.y);
-    if (d < spawnMin || d > spawnMax || !spawnSpotFree(vehicles, v) || spawnWouldPop(world, v)) continue;
+    if (d < spawnMin || d > spawnMax || !spawnSpotFree(vehicles, v) || inPrivateGarage(map, v.x, v.y, 2) || spawnWouldPop(world, v)) continue;
     vehicles.push(v);
     count++;
   }
@@ -1130,7 +1135,7 @@ export function manageBoatPopulation(world, { target = 4, spawnMin = 20, spawnMa
     const lifeKind = pickWaterLife(Math.random, life);
     const v = spawnBoatOnWater(map, poly, Math.random, { near: [player.x, player.y], min: spawnMin, max: spawnMax, budget: 3, model: lifeKind ? BOAT_KINDS[lifeKind] : undefined });
     if (v && lifeKind) have[lifeKind]++;
-    if (!v || !spawnSpotFree(vehicles, v) || spawnWouldPop(world, v)) continue;
+    if (!v || !spawnSpotFree(vehicles, v) || inPrivateGarage(map, v.x, v.y, 2) || spawnWouldPop(world, v)) continue;
     vehicles.push(v);
     count++;
   }
