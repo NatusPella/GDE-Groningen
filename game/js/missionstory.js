@@ -22,6 +22,7 @@ import { openBank } from './voicebank.js';
 
 let sceneMod = null;
 import('./scene3d.js').then((m) => { sceneMod = m; }).catch(() => {});
+import { bridgeWithin } from './vaultkit.js';
 let fjMod = null;
 import('./fierljep.js').then((m) => { fjMod = m; }).catch(() => {});
 
@@ -1393,6 +1394,9 @@ export function playStoryFail(w, i, { reason = '', stats = [] } = {}) {
 
 // The nearest canal crossing from (x, y): the dry bank before the water and
 // a landing spot on the far side, at most `maxSpan` metres of water.
+// Jelle only vaults where walking round is no option: no bridge this close to the crossing.
+const BRIDGE_NEAR = 45;
+
 function waterCrossing(w, x, y, maxR = 90, maxSpan = 34) {
   let best = null;
   for (let k = 0; k < 24; k++) {
@@ -1419,8 +1423,9 @@ export function playVaultScene(w, { at, lines = [], landing = 'Moai! Oant sjen, 
   if (run) return false;
   const scene = sceneMod && sceneMod.getScene();
   if (!scene) return false;
-  const spot = fjMod ? fjMod.findVaultSpot(w.map, at.x, at.y, 95, { maxWidth: 26 }) : null;
+  const spot = fjMod ? fjMod.findVaultSpot(w.map, at.x, at.y, 95, { maxWidth: 26, bridgeNear: BRIDGE_NEAR }) : null;
   let c = spot ? { a: spot.from, b: spot.to } : waterCrossing(w, at.x, at.y);
+  if (!spot && c && bridgeWithin(w.map, (c.a.x + c.b.x) / 2, (c.a.y + c.b.y) / 2, BRIDGE_NEAR)) return false; // a bridge is close: walk round (the caller skips the vault)
   if (spot) {
     const D = Math.hypot(c.b.x - c.a.x, c.b.y - c.a.y) || 1;
     c.dx = (c.b.x - c.a.x) / D; c.dy = (c.b.y - c.a.y) / D;

@@ -4,6 +4,7 @@ import { buildPersonMesh, animatePersonWalk, swimPose, PERSON_RIG } from './mode
 import { pushAudioEvent } from './pedestrians.js';
 import { pointInPolygon as inPoly, isInWater, clamp, WATER_Y } from './util.js';
 import { playCinematic, isCinematicActive, skipCinematic } from './cinematics.js';
+import { bridgeWithin } from './vaultkit.js';
 import { getWaterIndex, waterWet, insideWaterObstacle } from './waterindex.js';
 import { rand } from './rng.js';
 
@@ -34,6 +35,8 @@ import { rand } from './rng.js';
 //     the nearest straight-across canal crossing (5-22 m of water) around a
 //     point: from on the near bank, to on the opposite bank.
 //     why: optional {} that counts the reasons candidates were rejected.
+//     bridgeNear: metres; a crossing with a bridge that close is refused.
+//   bridgeWithin(map, x, y, r) -> bool.
 //   isVaulting(npc), updatePoleVaults(dt, world) (main.js, every frame).
 
 export const JELLE_LOOK = { shirt: 0x1d4f9c, skin: 0xe9c29c, hair: 0xe0bd62, variant: 'male', pants: 0xf2f0ea, shoes: 0x1c1c1e, hairStyle: 'short', seed: 1581 };
@@ -573,7 +576,9 @@ const CROSS_SWEEP = 30 * Math.PI / 180;
 const CROSS_STEPS = 6;
 const FAR_PARALLEL = Math.cos(35 * Math.PI / 180);
 
-export function findVaultSpot(map, x, y, radius = 60, { minWidth = 5, maxWidth = 22, why = null } = {}) {
+// bridgeNear: refuse a crossing with a bridge within that many metres (a walk
+// round beats a vault); 0 keeps every crossing.
+export function findVaultSpot(map, x, y, radius = 60, { minWidth = 5, maxWidth = 22, why = null, bridgeNear = 0 } = {}) {
   const no = (k) => { if (why) why[k] = (why[k] || 0) + 1; };
   const wi = getWaterIndex(map);
   const wet = (px, py) => waterWet(map, px, py);
