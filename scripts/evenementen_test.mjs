@@ -1,5 +1,6 @@
 // Agenda van zomerevenementen (evenementen.js, #203). Puur, geen browser.
 //   node scripts/evenementen_test.mjs
+import fs from 'node:fs';
 import * as V from '../game/js/evenementen.js';
 import { KINDS, AGENDA } from '../game/js/evenementen.js';
 import { REGIO_EVENTS } from '../game/js/regioleven.js';
@@ -94,6 +95,16 @@ check('kapotte opslag geeft leeg', V.loadSeen(st).length === 0);
 check('onbekende id\'s weggefilterd', (st.setItem(V.SEEN_KEY, JSON.stringify(['onbekend', zl.id])), V.loadSeen(st).length === 1));
 check('volle opslag crasht niet', V.markSeen({ setItem() { throw new Error('vol'); } }, [], zl.id).length === 1);
 check('opslagsleutel geregistreerd', BASE_KEYS.eventsSeen === V.SEEN_KEY);
+
+// vuurwerk gaat echt omhoog en klinkt (#131): showFor voedt de schoten van worldevents.js
+{
+  const f0 = V.showFor(vw.from, 22.0), f1 = V.showFor(vw.from, 23.0), fN = V.showFor(vw.from, 12);
+  check('showFor: aan tijdens het vuurwerk met het hart van de plaats', f0.on && f0.id === vw.id && f0.at.x === vc.x && f0.at.y === vc.y);
+  check('showFor: voortgang loopt op tussen begin en eind', f0.progress === 0 && f1.progress > 0.5 && f1.progress < 1);
+  check('showFor: uit buiten het venster of op een andere dag', !fN.on && !V.showFor(vw.from + 1, 22.5).on && !V.showFor(1, 22.5).on);
+  const we = fs.readFileSync(new URL('../game/js/worldevents.js', import.meta.url), 'utf8');
+  check('worldevents laat de agenda-show op en knallen (sub firework)', /showFor\(today\(w\)/.test(we) && /sub: 'firework'/.test(we) && /makeShell\(Math\.random, where/.test(we));
+}
 
 console.log(bad ? `${bad} van ${n} mislukt` : `evenementen_test ok (${n} checks)`);
 process.exit(bad ? 1 : 0);

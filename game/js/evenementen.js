@@ -74,6 +74,15 @@ export function isActive(ev, n, hour) {
 
 export const activeEvents = (n, hour) => AGENDA.filter((ev) => isActive(ev, n, hour));
 
+// De vuurwerkshow die nu loopt (#131): { on, progress (0..1 door het venster), at: { x, y }, id },
+// of { on: false }. De wereldlaag (worldevents.js) laat er schoten en knallen van opgaan.
+export function showFor(n, hour) {
+  const ev = activeEvents(n, hour).find((e) => e.kind === 'vuurwerk');
+  if (!ev) return { on: false, progress: 0 };
+  const [a, b] = ev.hours, h = hour < a && a > b ? hour + 24 : hour, end = b < a ? b + 24 : b;
+  return { on: true, progress: Math.max(0, Math.min(1, (h - a) / (end - a))), at: centreOf(ev), id: ev.id };
+}
+
 // Wat er vandaag nog komt (en wat loopt), op tijd gesorteerd: voor de agenda in het menu.
 export function agendaOn(n) {
   return AGENDA.filter((ev) => n >= ev.from && n <= ev.to)
