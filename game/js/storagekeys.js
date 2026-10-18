@@ -49,6 +49,10 @@ export const BASE_KEYS = {
   ghosts: 'gde-ghosts-v1',
   // the Kroketkoning snack-bar chain (snackrules.js), new in 0.36: no legacy name
   snackChain: 'gde-snackketen-v1',
+  // photo mode gallery (fotomodus.js, #199): metadata and small thumbnails only, local
+  gallery: 'gde-galerij-v1',
+  // which summer events the player has seen (evenementen.js, #203)
+  eventsSeen: 'gde-evenementen-v1',
   // co-op (#95): only what a session needs (last mode and connection code); the story stays in the one save
   coopSession: 'gde-coop-sessie',
   // hidden setting: play the new story arc (storyflag.js)
