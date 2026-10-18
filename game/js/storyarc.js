@@ -60,7 +60,8 @@ export function nextStoryStep(doneId, missionPassed) {
   let lastPart = 'kop';
   for (let k = 0; k < STEPS.length; k++) {
     const s = STEPS[k];
-    if (!stepAvailable(s)) return { end: lastPart, next: s };
+    // a step that is not built blocks the story, unless the save has it done (a dev jump, or the acts built side by side)
+    if (!stepAvailable(s) && !stepDone(k, doneId, missionPassed)) return { end: lastPart, next: s };
     lastPart = s.part;
     if (!stepDone(k, doneId, missionPassed)) return s;
   }

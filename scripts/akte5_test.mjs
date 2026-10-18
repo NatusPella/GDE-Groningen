@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import { buildAkte5Defs, applyAkte5 } from '../game/js/missions_akte5.js';
 
 process.env.GDE_NIEUW_VERHAAL = '1';
-const { STEPS, NEW_MISSION_IDS } = await import('../game/js/storyarc_nieuw.js');
+const { STEPS, NEW_MISSION_IDS, PARTS } = await import('../game/js/storyarc_nieuw.js');
 const data = JSON.parse(fs.readFileSync(new URL('../game/storydata/script.json', import.meta.url), 'utf8'));
 const scene = new Map(data.scenes.map((s) => [s.id, s]));
 
@@ -77,6 +77,12 @@ ok(fin.stages.map((q) => q.kind).join() === 'bake,hold,board,chase,scene,scene,s
 ok(fin.stages.find((q) => q.kind === 'chase').keep === true, 'the limo is not adopted as a mission car');
 ok(byLabel('Een luik erin').stages.filter((q) => q.mud).length === 2, 'the mud is two stages');
 ok(fresh.every((d) => d.heroCar), 'the new defs use the Escapade');
+
+// the finale card (story.js playFinale) is the epilogue and the studio of the script, word for word
+const E = ['E1', 'E2'].flatMap((id) => scene.get(id).lines).map((l) => [l.key === 'rikus' ? 'Rikus' : l.speaker, l.text]);
+ok(JSON.stringify(PARTS.ontzet.card) === JSON.stringify(E), 'PARTS.ontzet.card is E1 + E2 of the script');
+ok(PARTS.ontzet.finale === true && STEPS[STEPS.length - 1].id === 'E' && STEPS[STEPS.length - 1].built, 'the epilogue step is built and last');
+ok(PARTS.ontzet.card[PARTS.ontzet.card.length - 1][0] === 'Rikus', 'the card ends in the studio (Rikus)');
 
 console.log(`${n - bad}/${n} act 5 checks passed`);
 process.exit(bad ? 1 : 0);

@@ -83,8 +83,24 @@ export const PARTS = {
     card: [['Tessa', 'Akte 3 volgt.'], ['Tammo', 'Aan de Eems.']] },
   zuid: { title: 'Akte 4: Zuidwaarts', name: 'Zuidwaarts', date: '24 augustus', open: true, end: 'Akte 4 volgt',
     card: [['Tessa', 'Akte 4 volgt.'], ['Tammo', 'Zuidwaarts.']] },
+  // the finale card: the epilogue (E1, vrijdag 11 september) and Rikus in the studio (E2); the text of the script, kept in sync by scripts/akte5_test.mjs
   ontzet: { title: 'Akte 5: Ontzet', name: 'Ontzet', date: '26 augustus', open: true, end: 'Einde', finale: true,
-    card: [['Tessa', 'Akte 5 volgt.'], ['Tammo', 'Ontzet.']] },
+    card: [
+      ['Rikus', "Het ruikt naar suiker. Dat komt uit Hoogkerk. De zomer is nog lang niet op."],
+      ['Tessa', "Het is tweeëntwintig graden."],
+      ['Tammo', "Het is Grunn."],
+      ['Tessa', "Spijt van de zomer?"],
+      ['Tammo', "Nee. Van de volgende ook niet. Alvast."],
+      ['Rikus', "Moi. Nachtstreek, het laatste kwartier."],
+      ['Rikus', "De Gouden Eierbal staat weer in het museum, met een alarm dat het doet en met twee namen op het bordje."],
+      ['Rikus', "Bij de Vismarkt staat een blauwe frietwagen op een rode Escapade. De rij loopt tot de Korenbeurs."],
+      ['Rikus', "In Paddepoel, op de elfde verdieping, brandt 's avonds nog maar in één slaapkamer licht. Ik zeg niks."],
+      ['Rikus', "Berend stuurde een brief: hij wil volgend jaar weer de bisschop zijn. Omdat hij zo goed kan verliezen."],
+      ['Rikus', "Jelle gaf drie plakjes terug, uit eigen beweging. De standplaatsen en de molen hield hij. Hij zei dat hij het \"gezellig\" vond."],
+      ['Rikus', "Het jurylid met het contract eet nog steeds gratis eierballen. In Ljouwert."],
+      ['Rikus', "En ik heb de tweede friet. Hij heeft betaald, zegt hij. Hij heeft niet betaald."],
+      ['Rikus', "Dit is voor twee Stadjers. Ze zeggen nooit wat. Vandaag wel. Moi."],
+    ] },
 };
 
 const M = (id, part, title, def, o = {}) => ({ id, part, kind: 'mission', mission: def, title, built: false, silent: true, ...o });
@@ -158,7 +174,7 @@ export const STEPS = [
   M('M26', 'ontzet', 'Ontzet, net als in 1672', 'ontzet', { built: true, reward: 4000,
     story: { intro: ['M26.1', 'M26.2'], outro: ['M26.7', 'M26.8'], replay: ['M26.9'] }, scenes: ['M26.1', 'M26.2', 'M26.3', 'M26.4', 'M26.5', 'M26.6', 'M26.7', 'M26.8', 'M26.9'],
     lead: ['A', 'De Grote Markt, vrijdag. Gronings Ontzet. Bak, hou de kraam heel en stop Jelle bij de notaris.'] }),
-  A('E', 'ontzet', 'Epiloog en slot', { type: 'epilogue' }, { scenes: ['E1', 'E2'] }),
+  A('E', 'ontzet', 'Epiloog en slot', { type: 'epilogue' }, { built: true, scenes: ['E1', 'E2'] }),
 ];
 
 // what Tammo and Tessa are after, per part ("Wat weten we?")
@@ -185,4 +201,9 @@ export const CLUES = [
   { step: 'M06', kind: 'clue', title: 'De lege vitrine', text: 'Iemand was ons voor. Op het kussen: "Tige tank! – J." Jelle Terpstra belde live naar Nachtstreek: de bal is bij hem.' },
   { step: 'M06', kind: 'hart', title: 'Voor de grip', text: 'Tessa pakte zijn hand. "Voor de grip." Allebei zeiden ze het.' },
   { step: 'M07', kind: 'hart', title: 'Iemand uit Friesland', text: 'Tessa kreeg weer een appje van iemand uit Friesland. Tammo vroeg of hij lang is.' },
+  { step: 'M22', kind: 'hart', title: 'Zeven plekken', text: 'Tessa woonde op zeven plekken voor haar tiende, en elke zomer in Ljouwert naast Mem. "Ik ging niet weg. Ik ben gebleven." Tammo beloofde het op het Ontzet te zeggen. Voor iedereen.' },
+  { step: 'M22', kind: 'clue', title: 'Het horloge van opa', text: 'Tammo verpandde het horloge van zijn opa bij Sjabbe, voor het luik. Een thuis, zei hij.' },
+  { step: 'M23', kind: 'clue', title: 'Jelles bruggenvergunningen', text: 'Jelle gaf elke brug op de route een evenementenvergunning om de colonne te splitsen. Wubbo opende ze met zijn eigen sleutel. De colonne is een evenement zonder vergunning: Jelle stuurt een rekening.' },
+  { step: 'M25', kind: 'clue', title: 'Plakje acht: de notaris', text: 'Morgen om drie uur schrijft Jelle zich in bij de notaris in de Oude Boteringestraat, met de bal. Dan is de wedstrijd nietig. Wie eerst is, heeft het.' },
+  { step: 'M26', kind: 'hart', title: 'Vijf woorden', text: '"Ik wil bij jou blijven." "Dat bedoelde ik ook." Het duurde twaalf jaar. Kon minder.' },
 ];
