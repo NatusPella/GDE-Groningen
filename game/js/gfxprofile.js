@@ -4,6 +4,7 @@
 import { getSettings, setSetting } from './settings.js';
 import { DRAW_DISTANCE_LABELS } from './viewdist.js';
 import { KEYS } from './storagekeys.js';
+import { FLAGS } from './devflags.js';
 
 export const GFX_PRESETS = {
   laag: { quality: 'laag', shadows: false, drawDistance: 'kort', resolution: 0.75, autoResolution: true },
@@ -114,8 +115,7 @@ export function readGpu(gl) {
     renderer = String(gl.getParameter(ext ? ext.UNMASKED_RENDERER_WEBGL : gl.RENDERER) || '');
   } catch (e) { /* masked */ }
   // ?gpu=<renderer string>: test the advice as if on that GPU
-  const fake = typeof location !== 'undefined' && /[?&]gpu=([^&]+)/.exec(location.search);
-  if (fake) renderer = decodeURIComponent(fake[1]);
+  if (FLAGS.gpu) renderer = FLAGS.gpu;
   const nav = typeof navigator !== 'undefined' ? navigator : {};
   return { renderer, maxTexture: gl.getParameter(gl.MAX_TEXTURE_SIZE) || 0, cores: nav.hardwareConcurrency || 0, memory: nav.deviceMemory || 0 };
 }
@@ -226,9 +226,8 @@ export function hideAdvice() {
 // frame times plus the GPU string. Asks once; never when the player already
 // picked graphics settings of their own.
 export function startGfxAdvisor(gl) {
-  const q = location.search;
-  if (!/[?&]gfxadvies\b/.test(q)) {
-    if (readAdvice() || /[?&](noattract|storytest|trailer|benchmark|stil)\b/.test(q)) return;
+  if (!FLAGS.gfxadvies) {
+    if (readAdvice() || (FLAGS.noattract || FLAGS.storytest || FLAGS.trailer || FLAGS.benchmark || FLAGS.stil)) return;
     if (currentPreset() !== 'hoog' && !isDefaultGfx()) return;
   }
   const gpu = classifyGpu(readGpu(gl));

@@ -19,14 +19,14 @@ import { renderAchievementsPanel } from './achievementsui.js';
 import { renderGaragePanel, selectGarageVehicle, disposeGarageViewer } from './garageui.js';
 import { deliverOwnedVehicle, locateOwnedVehicle } from './ownedvehicles.js';
 import { isShopOpen, closeShopMenu } from './shopui.js';
-import { benchmarkViaReload } from './trailer.js';
+import { benchmarkViaReload } from './trailerstate.js';
 import { radioIsOn, setRadio } from './radio.js';
 import { glyphHtml } from './prompts.js';
 import { KEY_ACTIONS, KEY_GROUPS, PAD_REMAPPABLE, PAD_SLOT_NAMES, bindKey, bindButton, physicalKey, defaultKey, physicalButton, isBindableKey, keyName, slotUses } from './controls.js';
 import { capturePadButton, isPadActive, onPadChange } from './gamepad.js';
 import { padGlyphInner } from './glyphs.js';
 import { getUiScale } from './uiscale.js';
-import { DEV } from './devflags.js';
+import { DEV, FLAGS } from './devflags.js';
 import { renderOverview, renderTodo, todoClick, todoFocus, todoEnter, todoSummary, selectTodo, foldNote } from './todoui.js';
 import { isPlayAheadOpen } from './todo.js';
 import { renderVerhaal, verhaalClick, verhaalSummary, disposeVerhaalViewer } from './verhaalui.js';
@@ -576,7 +576,7 @@ export function initPauseMenu(w) {
   // key the menu uses (Backspace, arrows in the rail) does nothing else
   window.addEventListener('keydown', onKey, true);
   // ?stil marks an automated test session, whose tab is often hidden
-  if (!new URLSearchParams(location.search).has('stil')) {
+  if (!FLAGS.stil) {
     document.addEventListener('visibilitychange', () => { if (document.hidden && started()) setOpen(true, HOME); });
   }
 }

@@ -4,7 +4,7 @@ import { HABBO_PALETTE } from './pixelart3d.js';
 import { playCinematic, roofAt, showBanner } from './cinematics.js';
 import { isInWater, WATER_Y } from './util.js';
 import { spawnFxPuff, spawnFxSpark } from './fx3d.js';
-import { makeBirds, updateBirds } from './intromontage.js';
+import { makeBirds, updateBirds } from './birds.js';
 import { playStoryVoice, stopStoryVoice, setStoryScene, playClueSting, playGlassClink, playTextMumble } from './audio.js';
 import { buildVehicleMesh, updateVehicleWheelSpin } from './models3d_vehicles.js';
 import { JELLE_LOOK, DURK_LOOK, DOUWE_LOOK, RIKUS_LOOK, MEM_LOOK, ROTOR_LOOK, ROELF_LOOK, HILJE_LOOK } from './storycast.js';
