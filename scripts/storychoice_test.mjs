@@ -5,7 +5,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { migrateSettings, migrateSave, savedArc, SETTINGS_VERSION } from '../game/js/savemigrate.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -19,7 +19,7 @@ function arcWith({ env, search = '', settings = null, flag = null, save = false 
     `const store = new Map(${JSON.stringify(entries)});`,
     'globalThis.localStorage = { getItem: (k) => (store.has(k) ? store.get(k) : null) };',
     search ? `globalThis.location = { search: ${JSON.stringify(search)} };` : '',
-    `const m = await import(${JSON.stringify(path.join(ROOT, 'game/js/storyflag.js'))});`,
+    `const m = await import(${JSON.stringify(pathToFileURL(path.join(ROOT, 'game/js/storyflag.js')).href)});`,
     "console.log(m.ARC_ID + ' ' + m.arcForced());",
   ].join('\n');
   const e = { ...process.env };

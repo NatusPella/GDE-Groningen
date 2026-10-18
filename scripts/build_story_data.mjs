@@ -106,7 +106,7 @@ export function parseScripts() {
   for (const f of files) {
     const act = Number(/akte(\d)/.exec(f)[1]);
     let scene = null;
-    for (const raw of fs.readFileSync(path.join(SRC, f), 'utf8').split('\n')) {
+    for (const raw of fs.readFileSync(path.join(SRC, f), 'utf8').split(/\r?\n/)) {
       const h = raw.match(/^## \[([^\]]+)\] (.*)$/);
       if (h) {
         const parts = h[2].split(' – ');
