@@ -142,7 +142,7 @@ export const STEPS = [
     story: { intro: ['M15.1'], outro: ['M15.3'], replay: ['M15.4'] }, scenes: ['M15.1', 'M15.2', 'M15.3', 'M15.4'],
     lead: ['A', 'Roelfien wacht bij haar graanveld bij Winschoten. Haar vliegtuig sleept al twintig jaar een spandoek voor de kermis.'] }),
   M('M16', 'staart', 'Nog eentje dan', 'kroegentocht', { reward: 600,
-    story: { intro: ['M16.1'], outro: ['M16.5'], replay: ['M16.7'] }, scenes: ['M16.1', 'M16.2', 'M16.3', 'M16.4', 'M16.5', 'M16.6', 'M16.7'],
+    story: { intro: ['M16.1'], outro: ['M16.3', 'M16.4', 'M16.5', 'M16.6'], replay: ['M16.7'] }, scenes: ['M16.1', 'M16.2', 'M16.3', 'M16.4', 'M16.5', 'M16.6', 'M16.7'],
     lead: ['T', 'Geert heeft drie tenten op de kermis in Winschoten. Durk en Douwe zingen aan zijn bar.'] }),
 
   // --- Akte 4: Zuidwaarts (Veenkoloniën en Westerwolde, zo 23 - wo 26 augustus) ----------

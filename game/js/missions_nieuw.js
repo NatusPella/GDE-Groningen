@@ -4,6 +4,11 @@
 // Kept out of missions.js so the old arc's voice coverage (scripts/voicelines_collect.mjs reads that
 // file) does not see their hint texts, which are text only.
 
+import { wgsToWorld } from './rdnew.js';
+
+// A spot in the province by latitude/longitude plus metres east/south (province roads are not in the city map: no road snapping).
+const spotAt = (lat, lon, dx = 0, dy = 0) => { const [x, y] = wgsToWorld(lat, lon); return { x: x + dx, y: y + dy, road: null }; };
+
 // The def pieces: walk(x, y) / drive(x, y) are missions.js's road spots.
 export function buildNieuwDefs({ map, walk, drive }) {
   const list = [];
@@ -113,6 +118,29 @@ export function applyNieuw(list) {
     vet.outro = 'Het vet is terug in Grunn. Plakje twee is gered.';
     vet.costRow = ['Gered', 'Plakje twee: het vet blijft in Grunn'];
     vet.vehicleFail = { gone: 'Femkes auto is foetsie, en de tankwagen rijdt door', wrecked: 'de auto is total loss. Femke wil hem niet zo terug', left: 'je liet de auto staan. Zonder auto geen tankwagen' };
+  }
+  // M16 Nog eentje dan: the kroegentocht moves to the kermis of Winschoten (Sat 22 Aug): three tents on foot
+  const kerm = by('Nog eentje dan');
+  if (kerm) {
+    const W = (dx, dy) => spotAt(53.1444, 7.0356, dx, dy);
+    const via = (dx, dy) => ({ ...W(dx, dy), via: true });
+    const tent = (name, dx, dy, toast) => ({ ...W(dx, dy), name, toast });
+    kerm.intro = ['De kermis van Winschoten, zaterdagavond. Geert heeft drie tenten, en Durk en Douwe zingen aan zijn bar.', 'Te voet langs drie tenten, hè. Elke tent een drankje, en de dronken menigte duwt je zo omver.'];
+    kerm.outro = 'Drie tenten gehaald. Durk en Douwe zijn moe genoeg voor de botsauto's.';
+    kerm.timeLimit = 100;
+    kerm.checkpointBonus = 25;
+    kerm.drunk = 0.25;
+    kerm.crowds = [W(-30, 25), W(20, 10), W(60, 30), W(70, 10), W(25, -35)];
+    kerm.start = W(-55, 45);
+    kerm.waypoints = [
+      via(-20, 30),
+      tent('Tent De Gouden Aar', 5, 8, { glass: 'beer', variant: 0, lines: [['A', 'Proost!']] }),
+      via(45, 28),
+      tent('Tent Het Scheve Rad', 85, 40, { glass: 'wine', variant: 1, lines: [['student', 'Proost! Nog ééntje dan!'], ['A', 'Wie is dat?'], ['T', 'Een eerstejaars. Ze zijn overal.'], ['student', 'Ik hou van jullie allemaal!'], ['T', 'Dat geloof ik.']] }),
+      via(65, -5),
+      tent('Tent De Laatste Zweefmolen', 25, -55, { glass: 'jenever', variant: 2, lines: [] }),
+    ];
+    kerm.costRow = ['Ontdekt', 'Durk en Douwe zijn moe genoeg voor een rit'];
   }
   const mus = by('Het museum stond er al zo');
   if (mus) {

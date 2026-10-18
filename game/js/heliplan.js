@@ -18,6 +18,7 @@
 // pilotKeys(v, tgt, mode) -> Set   a simple pilot for the test and the debug autopilot
 
 import { PA } from './worldframe.js';
+import { wgsToWorld } from './rdnew.js';
 
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
@@ -34,6 +35,13 @@ export const CATCH = { near: 9, far: 24, dz: 4.5, rel: 4, need: 4, bump: 7.5 };
 export const CRUISE_S = 9;
 // where the cut after the cruise puts the heli: this far south of the UMCG, at this height
 export const ENTRY = { back: 1000, z: 70 };
+const P_CUT = ENTRY.back;
+
+// The places of the new story's M12 (variant 'rooster'): the harbour platform of Lauwersoog, where Dijkstra lands,
+// Jelle's balloon over the Dollard, and the quay at the Eemshaven where the flight ends (the heli is parked there).
+const wp = ([lat, lon]) => { const [x, y] = wgsToWorld(lat, lon); return { x, y }; };
+export const ROOSTER = { lauwersoog: wp([53.4047, 6.2058]), dollard: wp([53.28, 7.15]), eemshaven: wp([53.4395, 6.835]) };
+const behind = (p, a, d, z) => ({ x: p.x - Math.cos(a) * d, y: p.y - Math.sin(a) * d, z, angle: a });
 
 // the standalone Ballonjacht: a tour over Stad first, as before (heights in m)
 const TOUR = [[553.34, -431.56, 62], [289.2, -648.68, 55], [120.57, -725.44, 45], [-130.29, -561.28, 60], [-195.34, -248.15, 72], [-144.66, -29.53, 58], [38.91, -20.45, 52], [300.43, 35.66, 66], [618.27, -140.7, 60], [976.17, -317.74, 64], [1294.79, -443.83, 66]];
@@ -70,6 +78,21 @@ export function makePlan(variant, pads) {
         { kind: 'rings', rings, label: 'Door de ringen, naar de ballon' },
         { kind: 'catch', label: 'Naast de mand: Tammo aan het touw' },
         { kind: 'pad', pad: 'umcg', why: 'home', label: 'Terug naar het UMCG: land op de H' },
+      ],
+    };
+  }
+  if (variant === 'rooster') {
+    // Lauwersoog -> UMCG (the lunch) -> the balloon over the Dollard; the long stretches are cruises with a cut
+    const L = pads.lauwersoog, D = ROOSTER.dollard;
+    const a1 = Math.atan2(umcg.y - L.y, umcg.x - L.x), a2 = Math.atan2(D.y - umcg.y, D.x - umcg.x);
+    return {
+      variant,
+      legs: [
+        { kind: 'cruise', heading: a1, cut: behind(umcg, a1, P_CUT, ENTRY.z), label: 'Op weg naar het UMCG', fadeText: 'Even later, boven het UMCG' },
+        { kind: 'pad', pad: 'umcg', why: 'spoed', label: 'Spoedje: land op de H van het UMCG' },
+        { kind: 'pickup' },
+        { kind: 'cruise', heading: a2, cut: behind(D, a2, P_CUT, ENTRY.z), label: 'Op weg naar de Dollard', fadeText: 'Even later, boven de Dollard' },
+        { kind: 'catch', label: 'Naast de mand: Tammo aan het touw' },
       ],
     };
   }
