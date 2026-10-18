@@ -651,6 +651,32 @@ function updateHud() {
   board.set({ row, meter, flash, bad: !!(g.flash && g.flash.bad), help });
 }
 
+// Read-only race state for the map layer (missionmap.js): the track in world
+// coordinates, four sector gates, the karts and the lap; null outside a race.
+let kartLine = null;
+export function getKartMapState() {
+  const g = game;
+  if (!g) return null;
+  if (!kartLine) kartLine = Array.from({ length: Math.ceil(TRACK.N / 8) }, (_, i) => { const j = i * 8; const q = FR.toW(TRACK.u[j], TRACK.v[j]); return [q.x, q.y]; });
+  const me = g.karts[0];
+  const at = (s) => { const p = pointAt(TRACK, s); return FR.toW(p.x, p.y); };
+  const lapPos = ((me.prog % TRACK.length) + TRACK.length) % TRACK.length;
+  const gates = [0, 1, 2, 3].map((i) => (i * TRACK.length) / 4);
+  const next = gates.findIndex((gs) => gs > lapPos);
+  const rank = rankKarts(g.karts);
+  return {
+    line: kartLine,
+    checkpoints: gates.map((gs) => at(gs)),
+    nextCheckpoint: next < 0 ? 0 : next,
+    karts: g.karts.map((k) => { const q = FR.toW(k.u, k.v); return { x: q.x, y: q.y, name: k.name, player: !!k.player, lap: Math.min(LAPS, Math.floor(k.prog / TRACK.length) + 1) }; }),
+    lap: Math.max(0, Math.floor(me.prog / TRACK.length)),
+    laps: LAPS,
+    lapTime: g.phase === 'grid' ? 0 : g.raceT - me.lapStart,
+    bestLap: bestLap(me),
+    position: rank.indexOf(me) + 1,
+  };
+}
+
 // --- the activity ---------------------------------------------------------------------------------------------------
 
 export const KARTBAAN = {

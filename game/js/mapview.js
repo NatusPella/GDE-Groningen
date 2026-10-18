@@ -35,6 +35,9 @@ import { ensureCountryEdge } from './countryplan.js';
 import { getSettings, onSettingsChange } from './settings.js';
 import { DEV } from './devflags.js';
 import { getGoal, setGoal, clearGoal, missionOnMap } from './goal.js';
+import { getMissionLayer } from './missionmaplive.js';
+import { selectMapItems } from './missionmap.js';
+import { drawLayerAreas, drawLayerLines, layerCaption } from './missionmapdraw.js';
 import { getTodoItems, chooseTodo, mapIconUrl } from './todo.js';
 import { getMissionList } from './missions.js';
 import { MEDALS } from './achievements.js';
@@ -1126,6 +1129,20 @@ function drawDynamicMarkers(ctx, world) {
   if (search) {
     const [sx, sy] = toScreen(search.x, search.y);
     drawSearchArea(ctx, sx, sy, search.r * state.scale, t);
+  }
+  // the running mission's own layer: area, lines and what counts for it (missionmap.js)
+  const layer = getMissionLayer(world);
+  if (layer) {
+    drawLayerAreas(ctx, layer, toScreen, state.scale, t);
+    drawLayerLines(ctx, layer, toScreen, Math.max(3, Math.min(6, 2 + z * 0.5)));
+    if (layer.kind !== 'heli') for (const it of selectMapItems(layer, z, { skipDrawn: true })) icon(null, it.kind, it.x, it.y, it.label, {}, it.sub);
+    const cap = layerCaption(layer);
+    if (cap) {
+      ctx.save();
+      ctx.font = 'bold 14px sans-serif';
+      drawLabel(ctx, `${layer.title ? layer.title + ': ' : ''}${cap}`, state.cw / 2, 56, '#f0ede4', 'center');
+      ctx.restore();
+    }
   }
   forEachCashTarget(world, (x, y, loot) => icon(null, 'cash', x, y, loot ? 'Geldbuit' : 'Geldwagen'));
   forEachPoliceUnit(world, (x, y, kind) => icon(null, kind, x, y, kind === 'policeHorse' ? 'Bereden politie' : kind === 'policeBike' ? 'Politie op de fiets' : 'Politie'));

@@ -1,4 +1,7 @@
 import { wantedPhase } from './wantedstate.js';
+import { getMissionLayer, updateMissionNotices } from './missionmaplive.js';
+import { missionMinimapScale, selectMiniItems } from './missionmap.js';
+import { drawMissionLayerIcon, drawLayerAreas, drawLayerLines } from './missionmapdraw.js';
 import { pointInPolygon as pointInPoly } from './util.js';
 import { dualHtml } from './subtitles.js';
 import { simLevel } from './simload.js';
@@ -1655,6 +1658,7 @@ export function drawMapIcon(ctx, kind, x, y, s = 1, opts = {}) {
       else if (kind === 'station') drawStationMapIcon(ctx, s);
       else if (kind.startsWith('sj-')) drawSideJobMapIcon(ctx, kind, s, opts);
       else if (kind.startsWith('mi-') || kind.startsWith('ma-')) drawMissionMapIcon(ctx, kind, s, opts, t);
+      else if (kind.startsWith('mm-')) drawMissionLayerIcon(ctx, kind, s);
   }
   ctx.restore();
 }
@@ -2005,7 +2009,10 @@ function drawMinimap(dt, world) {
   mmMode = travelModeOf(world);
   const mode = MINIMAP_MODE[mmMode] || MINIMAP_MODE.lopen;
   const st = getSettings();
-  const targetScale = minimapScale(mmMode, speed, st.minimapZoom || 1);
+  // a running mission zooms the minimap in on its area (missionmap.js)
+  const layer = getMissionLayer(world);
+  updateMissionNotices(world, layer);
+  const targetScale = missionMinimapScale(layer, minimapScale(mmMode, speed, st.minimapZoom || 1), MINIMAP_SIZE);
   mmScale += (targetScale - mmScale) * Math.min(1, dt * 1.6);
   const MM_RADIUS_M = MINIMAP_SIZE / 2 * 1.42 / mmScale;
 
@@ -2142,7 +2149,19 @@ function drawMinimap(dt, world) {
   const storyShop = busyGame ? null : storyTargetShop(world);
   const storyAt = storyShop && inRange(storyShop.x, storyShop.y) ? toScreen(storyShop.x, storyShop.y) : null;
   if (storyAt) placed.push(storyAt[0], storyAt[1]);
-  drawMinimapPois(ctx, world, job, placed, inRange, toScreen, t);
+  // a mission layer quiets the places that do not count for it
+  if (!(layer && layer.quiet)) drawMinimapPois(ctx, world, job, placed, inRange, toScreen, t);
+  if (layer) {
+    drawLayerAreas(ctx, layer, toScreen, mmScale, t);
+    drawLayerLines(ctx, layer, toScreen, 3);
+    if (layer.kind !== 'heli') for (const it of selectMiniItems(layer, player, undefined, { skipDrawn: true })) {
+      if (!inRange(it.x, it.y)) continue;
+      const [sx, sy] = toScreen(it.x, it.y);
+      drawMapIconHalo(ctx, it.kind, sx, sy, MM_ICON);
+      drawMapIcon(ctx, it.kind, sx, sy, MM_ICON, { t });
+      placed.push(sx, sy);
+    }
+  }
   if (storyAt) {
     drawStoryShopRing(ctx, storyAt[0], storyAt[1], 11, t);
     drawMapIcon(ctx, 'shop-' + storyShop.type, storyAt[0], storyAt[1], MM_ICON, { t });
