@@ -219,8 +219,10 @@ export function handleEvent(world, body, van = 0) {
       if (!n || n.role !== 'client') return false;
       const geld = Math.floor(Number(body.geld));
       if (!Number.isFinite(geld) || geld <= 0) return false;
-      world.money = (world.money || 0) + Math.min(geld, MAX_REWARD);
-      if (world.addMessage) world.addMessage(`Beloning: €${Math.min(geld, MAX_REWARD).toLocaleString('nl-NL')}`, 4);
+      const betaald = Math.min(geld, MAX_REWARD);
+      world.money = (world.money || 0) + betaald;
+      world.coopVerdiend = (world.coopVerdiend || 0) + betaald; // savegame.js zet dit in de eigen save van de gast
+      if (world.addMessage) world.addMessage(`Beloning: €${betaald.toLocaleString('nl-NL')}`, 4);
       return true;
     }
     case 'weg': // de host heeft deze speler verwijderd
