@@ -1,0 +1,30 @@
+// Spelbot (#186): bouwt een rapport per akte uit geanalyseerde runmappen (analyse.mjs maakte analysis.json).
+//   node scripts/bot/akte_rapport.mjs --out=docs/SPELBOT-RAPPORT.md akte1=<map> akte2=<map> ... [minigames=<map>] [--notes=<bestand>]
+// Elke naam=map wordt een kopje met de tabel per stap (tijd, uitkomst, mislukt, vast, cheats) en de bevindingen
+// van die run. --notes: een Markdown-bestand dat onderaan komt (duiding door een mens of agent).
+import fs from 'node:fs';
+import path from 'node:path';
+
+const arg = (k, d) => { const a = process.argv.find((v) => v.startsWith(`--${k}=`)); return a ? a.slice(k.length + 3) : d; };
+const OUT = arg('out');
+const runs = process.argv.slice(2).filter((a) => !a.startsWith('--') && a.includes('=')).map((a) => [a.slice(0, a.indexOf('=')), a.slice(a.indexOf('=') + 1)]);
+const fmt = (s) => (s == null ? 'niet af' : `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, '0')}`);
+const out = ['# Spelbot-rapport', '', `Gemaakt door \`scripts/bot/akte_rapport.mjs\` uit de runs van de Spelbot (epic #186). De bot beoordeelt niet of het leuk is of hoe de besturing voelt; een vastzit- of cheatmelding kan aan de bot liggen in plaats van aan het spel.`, ''];
+for (const [name, dir] of runs) {
+  const aFile = path.join(dir, 'analysis.json');
+  if (!fs.existsSync(aFile)) { out.push(`## ${name}`, '', `Geen analysis.json in ${dir}.`, ''); continue; }
+  const a = JSON.parse(fs.readFileSync(aFile, 'utf8'));
+  const reportMd = fs.existsSync(path.join(dir, 'report.md')) ? fs.readFileSync(path.join(dir, 'report.md'), 'utf8') : '';
+  out.push(`## ${name}`, '', `Run ${a.run} (${a.date || 'datum onbekend'}), uitkomst ${a.metrics.result || 'onbekend'}, speltijd ${fmt(a.metrics.gameSeconds)}.`, '');
+  const table = reportMd.split(/\r?\n/);
+  const i = table.findIndex((l) => l.startsWith('| Stap |')), j = table.findIndex((l, k) => k > i && !l.startsWith('|'));
+  if (i >= 0) out.push(...table.slice(i, j < 0 ? undefined : j), '');
+  const m = table.findIndex((l) => l.startsWith('| Minigame |'));
+  if (m >= 0) { const e = table.findIndex((l, k) => k > m && !l.startsWith('|')); out.push(...table.slice(m, e < 0 ? undefined : e), ''); }
+  out.push(`Vastgezeten ${a.metrics.stuck}, cheat nodig ${a.metrics.cheats}, mislukt ${a.metrics.fails}, consolefouten ${a.metrics.consoleErrors}, NaN-waarschuwingen ${a.metrics.nan}.`, '');
+  if (a.findings.length) { out.push('Bevindingen:', ''); for (const f of a.findings) out.push(`- [${f.severity}] ${f.title}${f.detail ? ` (${String(f.detail).slice(0, 140)})` : ''}`); out.push(''); }
+}
+const notes = arg('notes');
+if (notes && fs.existsSync(notes)) out.push(fs.readFileSync(notes, 'utf8'));
+const text = out.join('\n');
+if (OUT) { fs.mkdirSync(path.dirname(path.resolve(OUT)), { recursive: true }); fs.writeFileSync(OUT, text); console.log(`geschreven: ${OUT}`); } else console.log(text);
