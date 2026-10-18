@@ -2,10 +2,10 @@ import { showBanner } from './cinematics.js';
 import { unlockAchievement, recordChallengeResult, getChallengeRecord, recordStat, setStatMax, MEDALS } from './achievements.js';
 import { showCard } from './hudcards.js';
 import { standActivity, recLine } from './standactivity.js';
-import { createBoard, key, bubble, clearBubbles, pick, stopPressed, geo } from './minigamekit.js';
+import { createBoard, key, bubble, clearBubbles, pick, stopPressed } from './minigamekit.js';
 import { CARILLON_LINES } from './minigamelines3.js';
 import { pushAudioEvent } from './pedestrians.js';
-import { BELL_KEYS, BELL_NAMES, TUNES, CARILLON, MEDAL_AT, createCarillon, stepCarillon, bellHz, carillonMedal, accuracy } from './carillonrules.js';
+import { TOWER, CARILLON_STAND, BELL_KEYS, BELL_NAMES, TUNES, CARILLON, MEDAL_AT, createCarillon, stepCarillon, bellHz, carillonMedal, accuracy } from './carillonrules.js';
 
 // Carillon in de Martinitoren: at the foot of the tower on the Grote Markt the
 // carillonneur lets you play the bells. Pick a tune with Q/E, press Spatie, then
@@ -15,8 +15,8 @@ import { BELL_KEYS, BELL_NAMES, TUNES, CARILLON, MEDAL_AT, createCarillon, stepC
 // the pitch of the 'bell_carillon' sample (sfx/dsp.js)
 const BELL_REF_HZ = 523.25;
 const ACCENT = '#d9b44a';
-const ORIGIN = geo(53.21917, 6.56806);
-const STAND = { x: ORIGIN.x + 6, y: ORIGIN.y - 4 };
+const ORIGIN = TOWER;
+const STAND = CARILLON_STAND;
 
 let game = null;
 let board = null;
