@@ -5,7 +5,8 @@ import { BOAT_KINDS, boatSeats } from './boattypes.js';
 import { JELLE_LOOK } from './storycast.js';
 import { routeAt, prepareDiepenringRoute, diepenringProgress } from './rondvaartchase.js';
 import { getChallengeRecord } from './achievements.js';
-import { pointInPolygon, isInWater, boatDryPoints, clamp } from './util.js';
+import { isInWater, boatDryPoints, clamp } from './util.js';
+import { waterPolyAt } from './waterlevels.js';
 import { finish, jelle, setTarget } from './postgame.js';
 
 // Skûtsje-sprint: two skûtsjes, no motors, from the Oosterhaven along the
@@ -80,10 +81,6 @@ function bridgeAhead(map, v, reach = 11) {
   const c = Math.cos(v.angle), s = Math.sin(v.angle);
   for (let k = -3; k <= reach; k += 2) if (map.isOnBridge(v.x + c * k, v.y + s * k)) return true;
   return false;
-}
-
-function waterPolyAt(map, x, y) {
-  return map.waterNear(x, y, 1).find((q) => pointInPolygon(x, y, q.pts)) || null;
 }
 
 function removeBoat(w, v) {
