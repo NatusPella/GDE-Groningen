@@ -81,6 +81,7 @@ import { init3D, update3D, resize3D, getScene, getRenderer, setMenuCover, MENU_F
 import { checkFrame } from './blackframe.js';
 import { noteFrame, hideAdvice, classifyGpu, readGpu, dynamicScale, cpuLevel } from './gfxprofile.js';
 import { updateStreetSigns } from './streetsigns.js';
+import { updatePhotoMode, wireFotoKey } from './fotomodusui.js';
 import { initPauseMenu, isPauseMenuOpen, openPauseMenu, pauseMenuCover } from './pausemenu.js';
 import { initDayNight, updateDayNight } from './daynight.js';
 import { initCalendar, updateCalendar, today as calendarToday } from './calendarday.js';
@@ -470,6 +471,7 @@ async function boot() {
   // a benchmark started from a game: its result waits in Instellingen > Beeld
   if (world.openSettingsOnStart) { openPauseMenu('settings', { sub: world.openSettingsOnStart }); world.openSettingsOnStart = null; }
 
+  wireFotoKey(world, () => !isMapOpen() && !isPauseMenuOpen() && !isShopOpen() && !isCinematicActive() && !world.pigeonMode);
   let last = performance.now();
   let menuDt = 0;
   let trafficTimer = 0;
@@ -564,6 +566,7 @@ async function boot() {
       update3D(Math.min(0.1, menuDt), world);
       menuDt = 0;
     }
+    updatePhotoMode(dt, world);
     updateHud(dt, world);
     // a long jump (fast travel, teleport): the load screen while the city streams in
     watchJumps(world, { swallow: world.pigeonMode || !!world.pendingRespawn || isCinematicActive() || sinceCinematic() < 2 || !!world.cameraOverride, hold: world.paused && !world.uiPaused });
