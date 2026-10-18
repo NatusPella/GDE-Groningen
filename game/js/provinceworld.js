@@ -82,6 +82,17 @@ export function realBlockedAt(map, isTile, x, y, m) {
       if ((x - ax - dx * t) ** 2 + (y - ay - dy * t) ** 2 < hw * hw) return true;
     }
   }
+  // the track (a rail row is a line; the ballast is 4.2 m wide): no fence, hedge or herd on it
+  if (map.railNear) {
+    for (const r of map.railNear(x, y, m + 4)) {
+      const hw = RAIL_HALF + m, P = r.pts;
+      for (let k = 0; k < P.length - 1; k++) {
+        const ax = P[k][0], ay = P[k][1], dx = P[k + 1][0] - ax, dy = P[k + 1][1] - ay, L2 = dx * dx + dy * dy || 1;
+        const t = Math.max(0, Math.min(1, ((x - ax) * dx + (y - ay) * dy) / L2));
+        if ((x - ax - dx * t) ** 2 + (y - ay - dy * t) ** 2 < hw * hw) return true;
+      }
+    }
+  }
   // both grids: an annotated row (kind, nav) is in the water grid, an older flat one in the flat grid (issue #185)
   for (const w of map.waterNear(x, y, m + 1).concat(map.flatWaterNear ? map.flatWaterNear(x, y, m + 1) : [])) {
     const q = w.bounds;
@@ -90,6 +101,8 @@ export function realBlockedAt(map, isTile, x, y, m) {
   return false;
 }
 
+// Half the width of the track's ballast (railway3d.js: 4.2 m)
+const RAIL_HALF = 2.1;
 // Props keep this far from a shore (more would clear the banks of trees and willows that stand there).
 const WATER_VERGE = 1;
 // Is (x, y) within d of the polygon's outline? (A ditch is a strip a few metres wide: a point on its bank is outside it.)

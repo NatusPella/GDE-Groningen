@@ -196,7 +196,7 @@ export function setExtraBlocked(fn) { extraBlocked = fn; }
 export function edgeBlocked(x, y, margin = 3) {
   if (extraBlocked && extraBlocked(x, y, margin)) return true;
   if (!EDGE.ready) return false;
-  if (edgeDistance(x, y) > 5000) return false;
+  // the rails of the province too, far from the city: the cells hold all of provincie-land.json's track (#124)
   return nearRail(x, y);
 }
 
