@@ -558,7 +558,7 @@ TESSA
 Achter Jelle staat een kleine, oude dame met een hoed, een gouden speldje en een stempel.
 
 BEWAARDER  
-Mevrouw Tuinstra. Ik bewaar de Gouden Eierbal, al sinds 1998. Wie de bal bewaart, zit de jury voor. Dat is artikel 4.
+Mevrouw Tuinstra. Ik bewaar de Gouden Eierbal, de wisselprijs van de Snackprijs, al sinds 1998. Wie de bal bewaart, zit de jury voor. Dat is artikel 4.
 
 LOKETBEDIENDE  
 Artikel 9: is de bewaarder verhinderd, dan zit het oudste jurylid voor. Dat is meneer Bos, jurylid sinds 1982.
