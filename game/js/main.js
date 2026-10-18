@@ -5,6 +5,7 @@ import { DEV, STORY_TEST, FLAGS } from './devflags.js';
 import { bindCoop } from './coopglue.js';
 import { tickCoopNet } from './coopnet.js';
 import { updatePartnerChip } from './coophud.js';
+import { syncFigures, hasFigureMeshes } from './coopfigures3d.js';
 import { loadMap } from './mapdata.js';
 import { loadTileWorld } from './tileworld.js';
 import { tileFocus } from './tilefocus.js';
@@ -506,6 +507,7 @@ async function boot() {
     }
     if (world.coopNet) tickCoopNet(world, dt); // samen spelen (#95), alleen na een bewuste uitnodiging
     if (world.coopNet || world.coopPartner !== undefined) updatePartnerChip(world);
+    if (world.coopNet || hasFigureMeshes()) syncFigures(world, dt); // de figuren van de andere spelers (#95)
     probe.mark('phone+save');
     updateSafety(dt, world);
     // a padel match owns the camera (cinematics.js resets cameraOverride each frame)
