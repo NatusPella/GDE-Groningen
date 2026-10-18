@@ -215,7 +215,7 @@ function twoWheel(v) {
 function repairPrice(v) {
   const dmg = 100 - Math.max(0, Math.min(100, v.health ?? 100));
   const dents = v.damage ? Math.min(3, v.damage.total || 0) : 0;
-  return repairCost(dmg, dents, twoWheel(v));
+  return repairCost(dmg, dents, twoWheel(v)) + (v.flat ? (twoWheel(v) ? 3 : 15) : 0);
 }
 
 // Health back to 100 and every dent, crack and hanging bumper gone:
@@ -229,6 +229,7 @@ export function repairVehicle(v) {
   v.blewUp = false;
   v.fireWarned = false;
   v.riderOff = false;
+  v.flat = false;
   v.damage = null;
   v.dentLog = [];
   v.meshDirty = true;
@@ -254,11 +255,11 @@ function garageMenu(w, site) {
     const out = [];
     if (serviceable(v)) {
       const price = repairPrice(v);
-      const broken = (v.health ?? 100) < 100 || (v.damage && v.damage.total > 0) || v.riderOff;
+      const broken = (v.health ?? 100) < 100 || (v.damage && v.damage.total > 0) || v.riderOff || v.flat;
       const items = [{
         id: 'g-fix', label: twoWheel(v) ? 'Rechtzetten en plakken' : 'Deuken eruit, alles heel', price,
         preview: vehiclePreviewOf(v), stats: [{ label: 'Staat', v: (v.health ?? 100) / 100, to: 1, text: `${Math.round(v.health ?? 100)} → 100%` }],
-        desc: broken ? `Staat nu op ${Math.round(v.health ?? 100)}%. Henk maakt hem weer als nieuw` : 'Mankeert niks, zegt Henk',
+        desc: broken ? `Staat nu op ${Math.round(v.health ?? 100)}%${v.flat ? ', met een lekke band' : ''}. Henk maakt hem weer als nieuw` : 'Mankeert niks, zegt Henk',
         disabled: broken ? (w.money < price ? 'Te weinig geld' : '') : 'Mankeert niks',
         buy() {
           if (!pay(w, price)) return null;

@@ -549,6 +549,7 @@ function stash(w, o) {
   const v = o.v;
   if (!v || v.driver === 'player') return;
   if ((v.health ?? 100) < 100) o.health = v.health;
+  o.flat = !!v.flat;
   if (v.dentLog && v.dentLog.length) o.dents = v.dentLog.slice(0, 12);
   o.upgrades = [...(v.upgrades || o.upgrades || [])];
   const i = w.vehicles.indexOf(v);
