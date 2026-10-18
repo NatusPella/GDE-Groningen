@@ -1,3 +1,5 @@
+import { openBank } from './voicebank.js';
+
 // Who reads a phone message aloud, and what they say. phonefeed.js voices
 // every notification card in the sender's voice from the sms manifest
 // (audio/voicelines/sms, "<speaker>|<text>", falling back to the lines
@@ -71,16 +73,8 @@ export const SMS_SAY = {
 // news feed and the app texts sparingly
 export const smsKind = (speaker) => (speaker === SMS_NEWS ? 'news' : speaker === SMS_SYSTEM ? 'system' : 'story');
 
-let voices = null;
-let hints = null;
-let DIR = '';
-let HINT_DIR = '';
-if (typeof window !== 'undefined' && typeof fetch === 'function') {
-  DIR = new URL('../audio/voicelines/sms/', import.meta.url).href;
-  HINT_DIR = new URL('../audio/voicelines/hints/', import.meta.url).href;
-  fetch(DIR + 'manifest.json').then((r) => (r.ok ? r.json() : {})).then((m) => { voices = m || {}; }).catch(() => { voices = {}; });
-  fetch(HINT_DIR + 'manifest.json').then((r) => (r.ok ? r.json() : {})).then((m) => { hints = m || {}; }).catch(() => { hints = {}; });
-}
+const smsBank = openBank('sms');
+const hintBank = openBank('hints');
 
 // HUD cards phrased as someone talking (mission stage lines, hints, side-job
 // instructions; hudcards.js) are said by the companion from the hints
@@ -89,8 +83,7 @@ if (typeof window !== 'undefined' && typeof fetch === 'function') {
 export const cardSpoken = (text) => String(text || '').trim().replace(/\s*\([^()]*\d[^()]*\)$/, '').trim();
 
 export function hintVoiceFor(speaker, text) {
-  const v = hints && hints[speaker + '|' + text];
-  return v ? { src: HINT_DIR + v.src, dur: v.dur } : null;
+  return hintBank.lookup(speaker, text);
 }
 
 // { speaker, text, src, dur } of the recording for this card, or null.
@@ -99,8 +92,8 @@ export function smsVoiceFor(n, lineVoice = null) {
   const speaker = smsSpeaker(n.from || (/^KIEKDOAR/i.test(n.text || '') ? 'Kiekdoar' : n.from));
   const text = n.say || smsSpoken(n.text);
   if (!text) return null;
-  const v = voices && voices[speaker + '|' + text];
-  if (v) return { speaker, text, src: DIR + v.src, dur: v.dur };
+  const v = smsBank.lookup(speaker, text);
+  if (v) return { speaker, text, src: v.src, dur: v.dur };
   const l = lineVoice && lineVoice(speaker, text);
   return l ? { speaker, text, src: l.src, dur: l.dur } : null;
 }
