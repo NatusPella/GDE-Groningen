@@ -80,6 +80,7 @@ ok(/def\.timeUp \? def\.timeUp/.test(missionsSrc) && /vf\.wrecked/.test(missions
 ok(Array.isArray(loket.costRow) && /150/.test(loket.costRow[1]), 'loket: the card shows the entry fee (reward is 0)');
 ok((msrc.match(/\.costRow = \[/g) || []).length === 4, 'M02, M04, M05, M06 show what they leave you with');
 ok(/def\.costRow && !replay/.test(missionsSrc), 'missions.js adds costRow to the success card');
+ok(/vet.costRow/.test(msrc) && /vet.vehicleFail/.test(msrc), 'M07: consequence row and own vehicle messages');
 void byId;
 console.log(`${n - fails}/${n} act-1 goal checks passed`);
 process.exit(fails ? 1 : 0);

@@ -111,6 +111,8 @@ export function applyNieuw(list) {
     const to = stageOf(vet, 'goto', 0);
     to.talk = { ids: ['M07.2'], delay: 3 };
     vet.outro = 'Het vet is terug in Grunn. Plakje twee is gered.';
+    vet.costRow = ['Gered', 'Plakje twee: het vet blijft in Grunn'];
+    vet.vehicleFail = { gone: 'Femkes auto is foetsie, en de tankwagen rijdt door', wrecked: 'de auto is total loss. Femke wil hem niet zo terug', left: 'je liet de auto staan. Zonder auto geen tankwagen' };
   }
   const mus = by('Het museum stond er al zo');
   if (mus) {
