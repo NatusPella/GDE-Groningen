@@ -2,9 +2,8 @@ import { STORY_TEST, FLAGS } from './devflags.js';
 import { MSG, validateMessage, unpackSnapshot } from './simcontract.js';
 import { createSimKernel } from './simkernel.js';
 
-// Main-thread side of the simulation worker (issue #58). Off by default:
-// nothing here runs unless ?simworker is in the URL (or a host is created
-// directly, as the tests do), so the existing simulation is untouched. The
+// Main-thread side of the simulation worker (issue #58), driven by
+// simbridge.js (on by default, ?zonderworker turns it off). The
 // same path serves Electron and web. Without module workers, under the story
 // test or with ?noworker the kernel runs right here and the snapshot is
 // available straight after step(); if the worker fails, its state is rebuilt
@@ -14,7 +13,7 @@ import { createSimKernel } from './simkernel.js';
 // opts.workerFactory: () => Worker-like ({postMessage, terminate, onmessage, onerror}); default builds simworker.js.
 // opts.useWorker: false forces the main-thread fallback.
 export function createSimHost(opts = {}) {
-  const useWorker = opts.useWorker !== undefined ? opts.useWorker : (!!opts.workerFactory || typeof Worker !== 'undefined');
+  const useWorker = opts.useWorker !== undefined ? opts.useWorker : (!!opts.workerFactory || (typeof Worker !== 'undefined' && !STORY_TEST && !FLAGS.noworker));
   const factory = opts.workerFactory || (() => new Worker(new URL('./simworker.js', import.meta.url), { type: 'module' }));
   let worker = null;
   let kernel = null; // main-thread fallback
