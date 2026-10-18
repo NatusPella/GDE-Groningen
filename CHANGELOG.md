@@ -6,6 +6,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+- **Politie let op opgevoerde brommers in het verkeer (niet in beeld bekeken):** rijdt een opgevoerde AI-brommer langs een politiewagen, dan staat er één keer per bestuurder een korte melding in de berichten. Geen ster en geen boete. (Refs #17)
 ### Nieuw
 - **Bord voor het verlaten van de plaats, aanvaringsmelding en schepen op de grote wateren (nog niet in beeld bekeken):** bij het uitrijden van een plaats staat een bord met de naam doorgestreept, plaatsnamen staan gecentreerd, een schip dat een brug raakt geeft een korte melding, en het Eemskanaal, het Reitdiep, de Dollard en de Waddenzee zijn vaarwater voor binnenvaartschepen.
 - **Laadschermen scherper en rustiger (#188):** de achtergrond is niet meer vervaagd of te donker, de beelden zoomen minder, de overlay is rustiger en bij het laden van een missie kan het beeld van die missiesoort worden gekozen. Op het allereerste laadscherm staat nu alleen het 18-pictogram, zonder tekst.
