@@ -1,7 +1,7 @@
 import { nearestLine, project as projectOnLine, makeRunner, stepRunner, startAt } from './busroutes.js';
 import { closestPointOnSegment, normalizeAngle, clamp, lerp, pointInPolygon, inWaterPoly, inMapWater, WATER_Y, keepBoatOffShore, boatDryPoints } from './util.js';
 import { waterClearance, waterChannelPoints } from './waterindex.js';
-import { shallowWater } from './waterlevels.js';
+import { shallowWater, waterAt, airDraftOf, passesUnder } from './waterlevels.js';
 import { trafficSignalsNear, trafficLightPhaseMove } from './trafficlights.js';
 import { resolvePropCollisions } from './breakables.js';
 import { inPassage } from './collision.js';
@@ -1096,6 +1096,11 @@ export function spawnBoatOnWater(map, waterPoly, rng = Math.random, opts = {}) {
     for (const turn of [0, Math.PI, 0.3, -0.3]) {
       const angle = normalizeAngle(q.a + flip + turn);
       if (boatDryPoints(map, probe, q.x, q.y, angle) > 0) continue;
+      // a barge does not start under a bridge it does not clear
+      if (model.kind === 'binnenvaart') {
+        const hx = Math.cos(angle) * model.len / 2, hy = Math.sin(angle) * model.len / 2;
+        if (lowBridgeRay(map, probe, q.x - hx, q.y - hy, q.x + hx, q.y + hy)) continue;
+      }
       const v = new Vehicle(q.x, q.y, angle, model);
       v.isBoat = true;
       v.waterPoly = waterPoly;
@@ -1192,6 +1197,20 @@ function countryBoatSpot(v, rng, map, ch) {
   return rectOutside(x, y) > 0 && waterClearance(map, x, y, 3) >= 3 ? { x, y, d: 3 } : null;
 }
 
+// A barge (class 4) must not sail under a fixed bridge it does not clear:
+// the city's low bridges (1.8 m) stop it; an open movable bridge has no deck.
+function lowBridgeAt(map, v, x, y) {
+  const w = waterAt(map, x, y);
+  return !!w && !passesUnder(airDraftOf(v), w.clearanceAbove);
+}
+const isBarge = (v) => v.model.kind === 'binnenvaart';
+// ...along a line, sampled every 3 m (a deck is 5 m or more wide)
+function lowBridgeRay(map, v, x0, y0, x1, y1) {
+  const d = Math.hypot(x1 - x0, y1 - y0), n = Math.max(1, Math.ceil(d / 3));
+  for (let i = 0; i <= n; i++) if (lowBridgeAt(map, v, x0 + (x1 - x0) * i / n, y0 + (y1 - y0) * i / n)) return true;
+  return false;
+}
+
 function pickBoatWaypoint(v, rng, map) {
   const ch = waterChannelPoints(map, v.waterPoly, 2), pts = ch.pts;
   let fallback = null;
@@ -1203,6 +1222,7 @@ function pickBoatWaypoint(v, rng, map) {
     let clear = q.d >= 3;
     for (let t = 3; t < d && clear; t += 3) {
       if (waterClearance(map, v.x + (x - v.x) * t / d, v.y + (y - v.y) * t / d, 3) < 1.8) clear = false;
+      else if (isBarge(v) && lowBridgeAt(map, v, v.x + (x - v.x) * t / d, v.y + (y - v.y) * t / d)) clear = false;
     }
     if (clear) return [x, y];
     if (!fallback) fallback = [x, y];
@@ -1240,7 +1260,18 @@ export function updateBoatAI(v, dt, map, world, rng = Math.random) {
   // three feelers ahead of the bow: ease off and turn toward the side with
   // more open water well before the hull reaches a quay, bank or houseboat
   const reach = v.model.len * 0.5 + 2 + Math.abs(v.speed) * 0.9;
-  const feel = (a) => waterClearance(map, v.x + Math.cos(v.angle + a) * reach, v.y + Math.sin(v.angle + a) * reach, 5);
+  const barge = isBarge(v);
+  const feel = (a) => {
+    const fx = v.x + Math.cos(v.angle + a) * reach, fy = v.y + Math.sin(v.angle + a) * reach;
+    // a bridge too low for a barge counts as a bank
+    if (barge) {
+      // from the bow, far enough to stop in front of the bridge
+      const bx = v.x + Math.cos(v.angle) * v.model.len / 2, by = v.y + Math.sin(v.angle) * v.model.len / 2;
+      const look = 6 + Math.abs(v.speed) * 2.5 + v.speed * v.speed / (2 * (v.model.brake || 0.5));
+      if (lowBridgeRay(map, v, bx, by, bx + Math.cos(v.angle + a) * look, by + Math.sin(v.angle + a) * look)) return 0;
+    }
+    return waterClearance(map, fx, fy, 5);
+  };
   const cF = feel(0);
   if (cF < 3) {
     const cL = feel(0.5), cR = feel(-0.5);
@@ -1258,6 +1289,15 @@ export function updateBoatAI(v, dt, map, world, rng = Math.random) {
     v.speed *= -0.3;
     v.driftX = 0; v.driftY = 0;
     if (!chasing) { v.waypoint = pickBoatWaypoint(v, rng, map); v.waypointTimer = BOAT_WAYPOINT_MIN; }
+  }
+  // hard stop for a barge at a bridge it does not clear (the feelers brake it
+  // in time; this catches a turn that swings the hull into the deck)
+  if (barge && (v.x !== px || v.y !== py || v.angle !== pa)) {
+    const hull = (x, y, a) => lowBridgeRay(map, v, x - Math.cos(a) * v.model.len / 2, y - Math.sin(a) * v.model.len / 2, x + Math.cos(a) * v.model.len / 2, y + Math.sin(a) * v.model.len / 2);
+    if (hull(v.x, v.y, v.angle) && !hull(px, py, pa)) {
+      v.x = px; v.y = py; v.angle = pa; v.speed = 0; v.driftX = 0; v.driftY = 0;
+      if (!chasing) { v.waypoint = pickBoatWaypoint(v, rng, map); v.waypointTimer = BOAT_WAYPOINT_MIN; }
+    }
   }
 }
 
