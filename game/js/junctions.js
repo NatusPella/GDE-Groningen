@@ -9,6 +9,8 @@
 //   yieldArms(map)         arms that must give way (haaientanden + B6 sign)
 //   yieldAt(map, road, i)  whether `road` gives way at its vertex i
 
+import { SpatialGrid } from './spatialgrid.js';
+
 const CAR_CATS = new Set(['major', 'normal', 'minor']);
 const TYPE_RANK = {
   motorway: 7, trunk: 7, primary: 6, secondary: 5, tertiary: 4,
@@ -144,20 +146,13 @@ const SIGNAL_REACH = 30;
 function signalised(map, x, y) {
   const s = store(map);
   if (!s.sigGrid) {
-    s.sigGrid = new Map();
+    s.sigGrid = new SpatialGrid(50);
     for (const l of allSignals(map)) {
       if (l.bike) continue;
-      const k = Math.floor(l.x / 50) + ',' + Math.floor(l.y / 50);
-      if (!s.sigGrid.has(k)) s.sigGrid.set(k, []);
-      s.sigGrid.get(k).push(l);
+      s.sigGrid.insertPoint(l, l.x, l.y);
     }
   }
-  const cx = Math.floor(x / 50), cy = Math.floor(y / 50);
-  for (let i = cx - 1; i <= cx + 1; i++) {
-    for (let j = cy - 1; j <= cy + 1; j++) {
-      for (const l of s.sigGrid.get(i + ',' + j) || []) if (Math.hypot(l.x - x, l.y - y) < SIGNAL_REACH) return true;
-    }
-  }
+  for (const l of s.sigGrid.queryRadius(x, y, SIGNAL_REACH)) if (Math.hypot(l.x - x, l.y - y) < SIGNAL_REACH) return true;
   return false;
 }
 
