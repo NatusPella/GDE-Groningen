@@ -196,6 +196,9 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 #pause-menu .m-pane .red { color: var(--redtx); }
 #pause-menu .m-pane .g { color: var(--g); }
 #pause-menu .m-pane p:empty { display: none; }
+#pause-menu .cheat-ic { display: inline-flex; flex: none; }
+#pause-menu .cheat-ic svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+#pause-menu .cheat-sum { margin: 0; padding: 10px 24px 6px; }
 #pause-menu .st-pick { display: flex; flex-wrap: wrap; gap: 8px; padding: 4px 24px 16px; }
 #pause-menu .st-pick .m-chip { box-shadow: inset 0 0 0 1px var(--line2); }
 
