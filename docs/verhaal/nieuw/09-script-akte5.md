@@ -21,8 +21,8 @@ HENK: Een karaktergat. [NIEUW]
 TESSA: Het is klaar. [NIEUW]
 TAMMO: Het is blauw. Dat was niet afgesproken. [NIEUW]
 TESSA: Het is de kleur van de naam. [NIEUW]
-HENK: Het luik is betaald. Niet door jullie. [NIEUW]
-SJABBE (telefoon): Tessa. Sjabbe. Tammo belde gisteren. Hij heeft het horloge van zijn opa bij mij gebracht, voor het luik. Ik heb niks gevraagd. [NIEUW]
+HENK: Het luik is betaald. Sjabbe vertelt wel hoe. [NIEUW]
+SJABBE (telefoon): Tessa. Sjabbe. Tammo belde vannacht, via Berend. Bert bracht het horloge van zijn opa bij mij, voor het luik. Ik heb niks gevraagd. [NIEUW]
 TESSA: Het horloge van je opa? [NIEUW]
 TAMMO: Een horloge. Dit is een thuis. [NIEUW]
 
@@ -68,20 +68,20 @@ HENK: Weer een luik? Dit is een karaktertrek. [NIEUW]
 
 ## [M23.1] De colonne: intro – Westerkwartier, Tinus' schuur, vertrek – Fjord Frituur
 (regie: donderdag 27 augustus, ochtend. Alle vrienden van Oma staan met hun voertuigen: een scooter, een bus, een trekker, een bakkie, een aanhanger met een sloep. Gameplay: één colonne naar de Grote Markt; de groep bij elkaar houden terwijl Jelles limo en zijn vergunningen proberen de colonne te splitsen.)
-MEM (telefoon): Famke. Trijntje en ik hebben ze na gisteren nog eens gebeld. Ze zeiden nee tegen Jelles advocaten. Ze komen. [NIEUW]
+MEM (telefoon): Famke. Trijntje en ik hebben ze na gisteren nog eens gebeld. Tammo deed het niet slecht. Ze zeiden nee tegen Jelles advocaten. Ze komen. [NIEUW]
 TESSA: Dit is de colonne, naar de Grote Markt. Wij voorop, de rest erachter, en niemand valt weg. [NIEUW]
 GEESJE: Ik rij op mijn scooter. Hij is sneller dan hij lijkt. [NIEUW]
 WUBBO: Ik heb de bus. De brug draait op tijd. De colonne liever ook. [NIEUW]
-KAPITEIN KLAAS: Ik ben mijn boot op een aanhanger. Ik praat tegen hem. [NIEUW]
+KAPITEIN KLAAS: Ik heb mijn boot terug: de moeder van Jelle belde de beslaglegger. Hij ligt op een aanhanger en ik praat tegen hem. [NIEUW]
 BEREND: Ik rij achteraan, met vijftien kanonnen en een doos vuurwerk voor het Ontzet. Dan zie ik alles. [NIEUW]
 TESSA: Rijden. Niet praten. [NIEUW]
 
 ## [M23.2] De colonne: onderweg – Westerkwartier, Zuidhorn naar Aduard – Fjord Frituur
-LAMMERT (telefoon): Ik zie jullie vanaf de dijk. Dit is de mooiste optocht van de provincie. [NIEUW]
+LAMMERT (telefoon): Ik zit achterin bij Wubbo in de bus. Dit is de mooiste optocht van de provincie. [NIEUW]
 ROELFIEN (telefoon): Ik vlieg boven jullie. Mijn vergunning is ingetrokken, maar ze kunnen me niet vinden. [NIEUW]
 JELLE (telefoon): Mevrouw. Elke brug op uw route heeft vandaag een evenementenvergunning van mij. Veel plezier. [NIEUW]
 TESSA: Jelle probeert ons te splitsen. Blijf bij elkaar. [NIEUW]
-WUBBO: Brug open. Ga maar. [NIEUW]
+WUBBO (telefoon): Brug open. Ga maar. [NIEUW]
 TINUS: Ik trek hem weg. [NIEUW]
 
 ## [B5] Autogesprek in de colonne (donderdag 27 augustus, onderweg van Zuidhorn naar Stad; samen, zonder het dieptepunt te herhalen) – Westerkwartier, Stad – Fjord Frituur
@@ -214,6 +214,7 @@ OMA TRIJNTJE: Eieren heel? Dan komt het goud. [BEHOUDEN]
 RIKUS (radio): Achtentwintig augustus. Gronings Ontzet. In 1672 hield Stad een bisschop buiten. [BEHOUDEN]
 RIKUS (radio): Vandaag staat er weer een Berend op de Grote Markt, in kostuum, en hij verliest weer. Net als in 1672. [BEHOUDEN]
 RIKUS (radio): De fietstunnel-update: 2031. Hij is bijna klaar. En ik sta straks vooraan. Eerste friet is voor mij. [BEHOUDEN]
+RIKUS (radio): De peiling staat al twee weken open: zeggen die twee Stadjers ooit wat ze voelen? Drie procent zegt ja. [NIEUW]
 
 ## [M26.1] Ontzet, net als in 1672: de uitzending – Stad, Grote Markt – te voet
 (regie: vrijdag 28 augustus. Kramen, vlaggen, kartonnen kanonnen. Rikus achter een tafeltje naast de jury. Berend in bisschopsmantel op een houten paard. Op de markt staat de Fjord Frituur, blauw, met een luik; naast hem de kraam van Us Mem Snacks, waar Mem met een schort naast Jelle staat. Vijf juryleden achter een lange tafel. Gameplay: de Groningse eierbal bakken in drie rondes en de kraam heel houden, Jelles laatste plakje stoppen met de wagen, en de jury laten proeven en stemmen.)
@@ -230,7 +231,7 @@ TESSA: Je doet alles onder druk. Daarom werkt het. [BEHOUDEN]
 (regie: Tessa legt het geprinte logboek van Wiebelwerk op de jurytafel. Berend staat op en klopt met zijn bisschopsstaf.)
 BEREND: Voor iedereen. De beste eierbal wint de standplaats. De Gouden Eierbal zelf gaat terug naar het museum. Dat zijn twee aparte dingen. [NIEUW]
 TESSA: Berend, dit is het logboek van Wiebelwerk. Twaalf augustus. Jelle nam de bal vijf dagen vóór ons. [NIEUW]
-BEREND: Eén: wie de bal nam, zit niet voor. Dat is Jelle. [NIEUW]
+BEREND: Eén: wie partij is, zit niet voor. Dat is Jelle. [NIEUW]
 BEREND: Twee: mevrouw Tuinstra zit nog in de trein, met volpension. Artikel negen: dan zit het oudste jurylid voor. Dat ben ik. Ik heb nog nooit iets gewonnen en nu moet ik oordelen. [NIEUW]
 BEREND: Drie: vijf juryleden, drie van de vijf beslist. Mijn mening is niet het hele oordeel. [NIEUW]
 JELLE: Een notaris gaat boven een bisschop. Om drie uur schrijf ik mij in als de nieuwe bewaarder. Dan is de wedstrijd nietig en de standplaats van mij. [NIEUW]
@@ -353,7 +354,10 @@ RIKUS (radio): De Gouden Eierbal staat weer in het museum, met een alarm dat het
 RIKUS (radio): Bij de Vismarkt staat een blauwe frietwagen op een rode Escapade. De rij loopt tot de Korenbeurs. [BEHOUDEN]
 RIKUS (radio): In Paddepoel, op de elfde verdieping, brandt 's avonds nog maar in één slaapkamer licht. Ik zeg niks. [BEHOUDEN]
 RIKUS (radio): Berend stuurde een brief: hij wil volgend jaar weer de bisschop zijn. Omdat hij zo goed kan verliezen. [BEHOUDEN]
-RIKUS (radio): Jelle gaf drie plakjes terug, uit eigen beweging. De standplaatsen en de molen hield hij. Hij zei dat hij het "gezellig" vond. [NIEUW]
+RIKUS (radio): Jelle gaf zes plakjes terug, uit eigen beweging. De standplaatsen en de molen hield hij. Hij zei dat hij het "gezellig" vond. [NIEUW]
+RIKUS (radio): Oldenhuis Bakt sluit alle eenenveertig snackbars. Het was een dekmantel van Us Mem Snacks. [NIEUW]
+RIKUS (radio): Mevrouw Tuinstra stapt in Wildervank uit de trein. Met volpension. [NIEUW]
+RIKUS (radio): De politie sloot de zaak van de twee Stadjers in het zwart. Op de band staat vooral de pas van Jelle. [NIEUW]
 RIKUS (radio): Het jurylid met het contract eet nog steeds gratis eierballen. In Ljouwert. [NIEUW]
 RIKUS (radio): En ik heb de tweede friet. Hij heeft betaald, zegt hij. Hij heeft niet betaald. [BEHOUDEN]
 RIKUS (radio): Dit is voor twee Stadjers. Ze zeggen nooit wat. Vandaag wel. Moi. [BEHOUDEN]
