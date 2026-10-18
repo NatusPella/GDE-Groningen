@@ -2,7 +2,7 @@
 // hop / vault / climb / block, no accidental vault into the canal, and the
 // car-roof helpers.
 //   node scripts/vault_test.mjs
-import { vaultDecision, vehicleHeight, standable, roofSpot, onRoof, localToWorld, worldToLocal, CLIMB_MAX_H } from '../game/js/vaultkit.js';
+import { bridgeWithin, vaultDecision, vehicleHeight, standable, roofSpot, onRoof, localToWorld, worldToLocal, CLIMB_MAX_H } from '../game/js/vaultkit.js';
 
 let fails = 0;
 const check = (name, ok) => { if (!ok) { fails++; console.log('FAIL', name); } else console.log('ok  ', name); };
@@ -48,5 +48,16 @@ for (const [fx, fy] of [[-3, 0], [3, 0], [0, 1.4], [0, -1.4], [2.5, 1.2]]) {
 check('past the bonnet you step off', !onRoof(v, 2.2, 0));
 check('past the side you step off', !onRoof(v, 0, 0.9));
 
+
+// Jelle's polsstok: not over a canal with a bridge close by (bridgeWithin)
+{
+  const bridgeAt = (bx, by, r = 3) => ({ isOnBridge: (x, y) => Math.hypot(x - bx, y - by) < r });
+  check('bridge 20 m away is within 45 m', bridgeWithin(bridgeAt(20, 0), 0, 0, 45));
+  check('bridge diagonal 30 m away is within 45 m', bridgeWithin(bridgeAt(21, 21), 0, 0, 45));
+  check('bridge 80 m away is not within 45 m', !bridgeWithin(bridgeAt(80, 0), 0, 0, 45));
+  check('standing on the bridge counts', bridgeWithin(bridgeAt(0, 0), 0, 0, 10));
+  check('no bridges: false', !bridgeWithin({ isOnBridge: () => false }, 0, 0, 100));
+  check('radius 0 disables the check', !bridgeWithin(bridgeAt(0, 0), 0, 0, 0));
+}
 console.log(fails ? `${fails} failed` : 'all passed');
 process.exit(fails ? 1 : 0);
