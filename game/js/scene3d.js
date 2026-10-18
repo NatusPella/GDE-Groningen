@@ -1995,7 +1995,7 @@ export function update3D(dt, world) {
   syncRoads(world, focus.x, focus.y);
   // movable bridges (movablebridges3d.js): the static road of a span that is
   // not lying closed is hidden and left out of the road batches
-  if (getMovableBridges().length && !bridgeViews) { initMovableBridges3D(scene); bridgeViews = true; }
+  if (getMovableBridges().length && !bridgeViews) { initMovableBridges3D(scene, world.map); bridgeViews = true; }
   openBridgeRoads(openSpans);
   if (!NO_BATCH) roadBatcher.update({ scene, meshes: roadMeshes, hidden: openSpans.size ? openSpans : null, px: focus.x, py: focus.y, detailR: DRAW_DIST, drawDist: DRAW_DIST, withDetail: true, budgetMs: 1 });
   for (const b of getMovableBridges()) { const m = roadMeshes.get(b.r); if (m) m.visible = !openSpans.has(b.r); }
