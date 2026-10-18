@@ -1,7 +1,7 @@
 // first: copies the pre-0.29 'gte-*' storage keys before any module reads them
 import './storagekeys.js';
 import { setErrorContext } from './errorlog.js';
-import { DEV, STORY_TEST } from './devflags.js';
+import { DEV, STORY_TEST, FLAGS } from './devflags.js';
 import { loadMap } from './mapdata.js';
 import { loadTileWorld } from './tileworld.js';
 import { setWorldPlaces } from './worldplaces.js';
@@ -240,7 +240,7 @@ async function boot() {
   // (index-corridor.json) name the places and stream their tiles in
   // (provinceworld.js). The province's tiles win.
   const extra = [{ name: 'index-provincie.json' }, { name: 'index-corridor.json' }];
-  const tiles = /[?&]legacymap\b/.test(location.search) ? null : await loadTileWorld('world/', { onProgress: onMapProgress, extra });
+  const tiles = FLAGS.legacymap ? null : await loadTileWorld('world/', { onProgress: onMapProgress, extra });
   const corridor = !!tiles;
   const layers = (tiles && tiles.index.layers) || {};
   const corLayer = (layers.provincie && layers.provincie.global ? layers.provincie : null) || layers.corridor;

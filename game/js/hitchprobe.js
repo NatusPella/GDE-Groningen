@@ -5,10 +5,12 @@
 // in the second usually belongs to GPU work submitted by the first, so a
 // slow gap reports the previous frame's breakdown. Read window.__hitch.
 
+import { FLAGS } from './devflags.js';
+
 const SLOW_MS = 40;
 const KEEP = 300;
 
-const enabled = typeof location !== 'undefined' && (/[?&]hitch\b/.test(location.search) || !!globalThis.__hitchOn);
+const enabled = FLAGS.hitch || !!globalThis.__hitchOn;
 
 let t0 = 0;
 let tLast = 0;

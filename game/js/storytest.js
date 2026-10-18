@@ -488,7 +488,7 @@ export async function runStoryTest(world) {
 
     // desktop --validate-spots: only the spot check
     story: {
-      if (new URLSearchParams(location.search).has('spotsonly')) break story;
+      if (FLAGS.spotsonly) break story;
       // money timeline over the whole arc, planned steps included
       const tl = computeMoneyTimeline();
       check('money timeline never below zero', tl.low >= 0, `laagste marge €${tl.low}, eind €${tl.end}`);

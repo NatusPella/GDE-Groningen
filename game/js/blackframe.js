@@ -8,6 +8,7 @@
 // to finish the frame (40-80 ms at Hoog on an M1), so it samples every frame
 // right after an event and otherwise one frame every 2 s.
 import { logError } from './errorlog.js';
+import { FLAGS } from './devflags.js';
 
 const EVENT_WINDOW_MS = 1500;
 const EVERY = 120;
@@ -15,7 +16,7 @@ const events = [];
 let n = 0, seen = 0;
 const px = new Uint8Array(4 * 4 * 4);
 
-const enabledByUrl = typeof location !== 'undefined' && /[?&]zwartcheck\b/.test(location.search);
+const enabledByUrl = FLAGS.zwartcheck;
 const enabled = () => enabledByUrl || (typeof window !== 'undefined' && !!window.__blackCheck);
 
 // Lost WebGL contexts show as a black or frozen view; the error log keeps

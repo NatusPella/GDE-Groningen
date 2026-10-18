@@ -149,6 +149,34 @@ generate 3D models.
 
 ## Hidden test switches
 
+All URL switches live in one register, `FLAGS` in `game/js/devflags.js` (parsed once, with a description in `FLAG_DOCS`). A module imports `FLAGS.x` and never reads `location.search` itself. (`?nieuwverhaal` in `storyflag.js` is the one exception, to avoid an import cycle.)
+
+| Switch | What it does |
+| --- | --- |
+| `?dev` | Verhaalpaneel op F9; eigen opslag (gde-dev:), raakt de echte save niet |
+| `?storytest` | Geautomatiseerde verhaaltest; opslag alleen in het geheugen |
+| `?stil` | Geen audio en geen pauze bij verborgen tabblad (testsessies) |
+| `?audiograf` | Met stil: de audiograaf draait wel, maar eindigt in een gedempte uitgang |
+| `?noattract` | Geen aantrekkingsfilmpje op het titelscherm; door naar het menu |
+| `?attract` | Speel het aantrekkingsfilmpje (trailer.js) |
+| `?perf` | Prestatierun: titelscherm automatisch voorbij |
+| `?spotsonly` | Verhaaltest: alleen de plekkenronde |
+| `?trailer` | Trailer-opnamemodus |
+| `?benchmark` | Benchmarkrun; de waarde is het aantal rondes |
+| `?shot` | Trailer: neem alleen die shot |
+| `?cut` | Trailer: montagevariant (vol, kort, ...) |
+| `?frames` | Trailer: sla beeld voor beeld op |
+| `?video` | Trailer: neem video op (alleen desktop) |
+| `?legacymap` | Laad de oude kaart in plaats van de tegelwereld |
+| `?nobatch` | Zet het samenvoegen van meshes uit (scene3d) |
+| `?shaderdebug` | Laat three.js shaderfouten controleren |
+| `?noworker` | Geometrie op de hoofdthread in plaats van in de worker |
+| `?gfxadvies` | Toon het grafische advies ook als de speler al koos |
+| `?gpu` | Doe alsof de GPU deze renderer-tekst heeft (test van het advies) |
+| `?preset` | Instellingen alleen voor deze run, bv. quality:laag,drawDistance:kort |
+| `?hitch` | Meet haperingen (hitchprobe) |
+| `?zwartcheck` | Controleer op zwarte beelden (blackframe) |
+
 - `?dev` (desktop `--dev`): story dev panel on F9. Chapter select (jumps to
   any story step with the money, belongings and progress a player would have
   there), complete objective, win/lose mission, teleport to the next

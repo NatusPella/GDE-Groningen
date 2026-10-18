@@ -1,3 +1,4 @@
+import { FLAGS } from './devflags.js';
 import { hasSave, readSave, applySave, clearSave, getSaveSummary } from './savegame.js';
 import { VERSION } from './version.js';
 import { checkWhatsNew, markVersionSeen, compareVersions } from './whatsnew.js';
@@ -101,7 +102,7 @@ export function yieldToPaint() {
 
 // A run that no person sits at (the story test, the smoke test, recordings,
 // the benchmark) goes straight on to the menu.
-const AUTO = /[?&](noattract|storytest|stil|trailer|benchmark|perf|spotsonly)\b/.test(typeof location !== 'undefined' ? location.search : '');
+const AUTO = FLAGS.noattract || FLAGS.storytest || FLAGS.stil || FLAGS.trailer || FLAGS.benchmark || FLAGS.perf || FLAGS.spotsonly;
 
 // Fills the bar to 100%, says "Druk op een toets" and waits for the key. The
 // boot screen stays up until the menu is there (dismissLoading), so there is
@@ -644,7 +645,7 @@ export function runStartScreen(world, { render, relocate, tick }) {
     const onBenchmark = () => benchmark(false);
     window.addEventListener('gde-benchmark', onBenchmark);
     // after an update the menu opens on "Wat is er nieuw"
-    const update = /[?&]storytest/.test(location.search) ? null : checkWhatsNew(VERSION);
+    const update = FLAGS.storytest ? null : checkWhatsNew(VERSION);
     if (update) { newsSince = update.since; changelogCache = null; }
     markVersionSeen(VERSION);
     const intro = pendingTrailer();
