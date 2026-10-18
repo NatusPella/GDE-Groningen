@@ -1,8 +1,9 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene } from './scene3d.js';
-import { buildPersonMesh, animatePersonWalk, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
+import { buildPersonMesh, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { playCinematic } from './cinematics.js';
-import { compileScene, loadAnimator, makeStubAnimator } from './cutscript.js';
+import { compileScene } from './cutscript.js';
+import { animateActor } from './actoranim.js';
 
 // The game side of the cutscene direction language (cutscript.js): puts the
 // sampled actors and props on meshes, feeds the camera pose to cinematics.js
@@ -84,7 +85,7 @@ function disposeTree(o) {
   });
 }
 
-export function buildScriptRun(def, scene, anchor, animator) {
+export function buildScriptRun(def, scene, anchor) {
   const group = new THREE.Group();
   group.name = 'cutscript-' + def.id;
   const actors = {}, props = {};
@@ -108,7 +109,7 @@ export function buildScriptRun(def, scene, anchor, animator) {
         m.visible = true;
         m.position.set(st.x, st.h + (st.anim === 'ride' ? 0.4 : 0), st.y);
         m.rotation.set(0, -st.a, 0);
-        animator.animateActor(m, { anim: st.anim, speed: st.speed, gaze: st.gaze, t, dt });
+        animateActor(m, { anim: st.anim, speed: st.speed, gaze: st.gaze, t, dt });
       }
       for (const [id, m] of Object.entries(props)) {
         const st = s.props[id];
@@ -127,8 +128,6 @@ export function buildScriptRun(def, scene, anchor, animator) {
 }
 
 let current = null;
-// the stub until the animation layer (actoranim.js) has loaded
-let animator = makeStubAnimator(animatePersonWalk);
 
 export function scriptActive() {
   return !!current;
@@ -152,8 +151,9 @@ export function playScript(w, def, { lines, duration, anchor, cine = {} } = {}) 
     priority: 4, pause: true, letterbox: true, skippable: true, hideHud: true,
     ...cine, id: cine.id || def.id, duration, lines,
     onStart() {
+      if (cine.onStart) cine.onStart();
       try {
-        run = buildScriptRun(def, scene, a, animator);
+        run = buildScriptRun(def, scene, a);
         root.add(run.group);
         current = run;
         w.cinematicHidePlayers = true;
@@ -179,6 +179,3 @@ export function playScript(w, def, { lines, duration, anchor, cine = {} } = {}) 
   });
   return ok;
 }
-
-// The animator is loaded once; scenes that start before it arrives use the stub.
-loadAnimator(animatePersonWalk).then((a) => { animator = a; }).catch(() => {});

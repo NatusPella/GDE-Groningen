@@ -13,11 +13,9 @@
 // `t` is seconds, or 'L<n>' / 'L<n>+1.5' (relative to the start of spoken line n), or 'end'.
 // The spoken lines themselves are never part of a scene: they come from the story data.
 //
-// Animation contract with the animation layer (actoranim.js, built next to this):
-//   export const ANIMS = [...]                 names the layer can play
-//   export function animateActor(mesh, { anim, speed, gaze, t, dt })
-// Until that file exists the host uses makeStubAnimator (below), which poses the
-// arms and head through mesh.userData (armL/armR/elbowL/elbowR/head/chest).
+// Animation layer: actoranim.js (animateActor(mesh, { anim, speed, gaze, t, dt }),
+// gaze = head yaw in rad, positive = target to the left of the body). The names
+// below must equal its ANIMS (scripts/cutscript_test.mjs checks that).
 
 export const ACTOR_ANIMS = ['idle', 'walk', 'run', 'talk', 'wave', 'point', 'shrug', 'nod', 'shake', 'laugh', 'carry', 'lean', 'hips', 'phone', 'cheer', 'look', 'ride'];
 export const PROP_KINDS = ['doos', 'tas', 'bestelbus', 'fiets', 'duif', 'radio', 'bord', 'koffer', 'bal', 'auto', 'matras'];
@@ -245,7 +243,7 @@ export function compileScene(def, opts = {}) {
   function pointOf(ref, t, raw = false) {
     if (isVec(ref, 3)) return { f: ref[0], s: ref[1], h: ref[2] };
     if (isVec(ref, 2)) return { f: ref[0], s: ref[1], h: 0 };
-    if (ref === 'speaker') { const id = actorOfSpeaker(speakerAt(t)); return pointOf(id || Object.keys(actors)[0], t, raw); }
+    if (ref === 'speaker') { const id = actorOfSpeaker(speakerAt(t)); if (id) return pointOf(id, t, raw); const ids = Object.keys(actors); return ids.length > 1 ? pointOf(`mid:${ids[0]},${ids[1]}`, t, raw) : pointOf(ids[0], t, raw); }
     const mid = MID.exec(ref);
     if (mid) { const a = pointOf(mid[1], t, raw), b = pointOf(mid[2], t, raw); return { f: (a.f + b.f) / 2, s: (a.s + b.s) / 2, h: mid[3] ? +mid[3] : (a.h + b.h) / 2 }; }
     const hm = /@([\d.]+)$/.exec(ref);
@@ -434,51 +432,4 @@ function along3(pts, u) {
     acc += seg;
   }
   return { ...q, h };
-}
-
-// --- animation layer: contract + stub -------------------------------------------
-
-// Poses a person mesh through mesh.userData only (no THREE). The real layer
-// (actoranim.js, same signature) replaces this; `walk` is the host's walk-cycle
-// function (models3d_people animatePersonWalk).
-export function makeStubAnimator(walk = null) {
-  const arm = (a, e, z, ez, x = 0) => { if (!a) return; a.rotation.set(x, 0, z); if (e) e.rotation.z = ez; };
-  return {
-    name: 'stub',
-    anims: ACTOR_ANIMS,
-    animateActor(m, { anim = 'idle', speed = 0, gaze = 0, t = 0, dt = 0 }) {
-      const u = m.userData || {};
-      if (u.armL && u.armR) for (const k of ['armL', 'armR']) { u[k].rotation.x = 0; u[k].rotation.y = 0; u[k].rotation.z = 0; }
-      if (u.chest) u.chest.rotation.z = 0;
-      if (u.head) { u.head.rotation.y = gaze; u.head.rotation.z = 0; }
-      if (walk) walk(m, anim === 'ride' ? 0 : speed, dt);
-      const s = Math.sin(t * 5);
-      switch (anim) {
-        case 'ride': arm(u.armL, u.elbowL, 0.15, 0.3, -1.1); arm(u.armR, u.elbowR, 0.15, 0.3, -1.1); break;
-        case 'wave': arm(u.armR, u.elbowR, 2.5 + Math.sin(t * 9) * 0.3, 0.5, -0.2); break;
-        case 'point': arm(u.armR, u.elbowR, 1.5, 0.1, -0.35); break;
-        case 'shrug': arm(u.armL, u.elbowL, 0.6, 1.1, 0.2); arm(u.armR, u.elbowR, 0.6, 1.1, -0.2); break;
-        case 'talk': arm(u.armR, u.elbowR, 0.5 + s * 0.2, 1.0 + s * 0.2, -0.2); if (u.head) u.head.rotation.z = Math.sin(t * 3) * 0.06; break;
-        case 'nod': if (u.head) u.head.rotation.z = Math.sin(t * 6) * 0.14; break;
-        case 'shake': if (u.head) u.head.rotation.y = gaze + Math.sin(t * 8) * 0.35; break;
-        case 'laugh': if (u.chest) u.chest.rotation.z = Math.sin(t * 14) * 0.05; if (u.head) u.head.rotation.z = -0.15; break;
-        case 'cheer': arm(u.armL, u.elbowL, 2.9, 0.15, 0.1); arm(u.armR, u.elbowR, 2.9, 0.15, -0.1); break;
-        case 'carry': arm(u.armL, u.elbowL, 0.25, 1.35, 0.1); arm(u.armR, u.elbowR, 0.25, 1.35, -0.1); break;
-        case 'hips': arm(u.armL, u.elbowL, -0.35, 1.9, 0.55); arm(u.armR, u.elbowR, -0.35, 1.9, -0.55); break;
-        case 'phone': arm(u.armR, u.elbowR, 0.3, 2.0, -0.4); break;
-        case 'lean': m.rotation.z = 0.1; break;
-        case 'look': if (u.head) u.head.rotation.y = gaze + Math.sin(t * 0.9) * 0.4; break;
-        default: break;
-      }
-    },
-  };
-}
-
-// Loads the real animation layer when it exists, else the stub.
-export async function loadAnimator(walk) {
-  try {
-    const mod = await import('./actoranim.js');
-    if (mod && typeof mod.animateActor === 'function') return { name: 'actoranim', anims: mod.ANIMS || ACTOR_ANIMS, animateActor: mod.animateActor };
-  } catch (e) { /* not there (yet) */ }
-  return makeStubAnimator(walk);
 }
