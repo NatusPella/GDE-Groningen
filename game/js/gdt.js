@@ -57,6 +57,7 @@ export const SECTION = {
   META: 20, // JSON: anything global that has no table yet
   RASTER: 21, // u16 w, u16 h, f32 cell, f64 x0, f64 y0, u8 codec (0 u8, 1 int16 cm, 2 f32), then the cells (terrainraster.js: the AHN terrain per tile)
   BLOB: 22, // named raw bytes
+  PARCELS: 16, // land use from OSM landuse: pts, use ('akker' | 'weide' | 'boomgaard'); the countryside's fences and herds follow it (#124)
 };
 
 // --------------------------------------------------------------- bytes

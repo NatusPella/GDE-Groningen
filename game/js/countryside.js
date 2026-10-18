@@ -16,7 +16,7 @@ import {
 import { updateFarProps, farPropsStats } from './farprops.js';
 import { updateCountryLife, lifeStats } from './countrylife.js';
 import { buildSign, disposeSign } from './countrysigns.js';
-import { EDGE, edgeBlocked, edgeSpanBlocked, roadGap, nearRail } from './countryedge.js';
+import { EDGE, edgeBlocked, edgeSpanBlocked, roadGap, nearRail, landUseAt } from './countryedge.js';
 import { ensureCountryEdge } from './countryplan.js';
 import { thinDitchOn, ditchRamp, provinceBlock, countrySurface, osmDitchesAt } from './countryfield.js';
 import { urbanWeight } from './provinceworld.js';
@@ -499,8 +499,11 @@ function parcelGate(R, a0, b0, b1) {
 const parcelRng = (seed) => mulberry(chash(Math.floor(seed * 1e7), 91));
 
 // pastures (and some mown strips) kept in by barbed wire
-function fencedParcel(seed) {
-  const use = parcelUse(seed), h = chash(Math.floor(seed * 1e6), 5);
+// (x, y): where the tiles give the land use (OSM landuse: arable has no barbed wire, a meadow keeps it), they decide; else the hash does
+function fencedParcel(seed, x, y) {
+  const real = x === undefined ? null : landUseAt(x, y);
+  if (real === 'akker') return false;
+  const use = real === 'weide' ? 'pasture' : parcelUse(seed), h = chash(Math.floor(seed * 1e6), 5);
   return use === 'pasture' ? h < 0.8 : use === 'mown' && h < 0.25;
 }
 
@@ -584,7 +587,7 @@ function genFieldEdges(tile, bx, by, rot, aMin, bMin, W) {
     if (g === undefined) gates.set(p.seed, g = parcelGate(parcelRng(p.seed), p.a0, p.b0, p.b1));
     return g;
   };
-  const fenceOk = (x, y) => fadeKeep(x, y) && okSpot(x, y, 1.4) && fencedParcel(parcelAt(x, y).seed);
+  const fenceOk = (x, y) => fadeKeep(x, y) && okSpot(x, y, 1.4) && fencedParcel(parcelAt(x, y).seed, x, y);
   // across: a cross ditch, its bank running along a
   const bankOk = (x, y, across) => {
     if (!openLand(x, y) || farmAt(x, y, 1) || inVillage(x, y, 2) || edgeBlocked(x, y, 1)) return false;
@@ -626,7 +629,7 @@ function genFieldEdges(tile, bx, by, rot, aMin, bMin, W) {
         if (!fenceOk(x, y)) return false;
         if (sd === pick) return true;
         const [ox, oy] = W(a - sd * 1.9, t);
-        return !fencedParcel(parcelAt(ox, oy).seed);
+        return !fencedParcel(parcelAt(ox, oy).seed, ox, oy);
       }, t1);
     }
   }
@@ -692,7 +695,10 @@ function genFieldEdges(tile, bx, by, rot, aMin, bMin, W) {
 const HERD_STEP = 8;
 function genParcel(tile, bx, by, rot, col, row, a0, a1, b0, b1, W, lineAng) {
   const seed = chash(col * 7 + bx * 1009, row * 13 + by * 2003 + 1);
-  const use = parcelUse(seed);
+  const [cx0, cy0] = W((a0 + a1) / 2, (b0 + b1) / 2);
+  // the tiles' land use (OSM landuse) over the hash: arable is not grazed, a meadow is
+  const real = landUseAt(cx0, cy0);
+  const use = real === 'akker' ? 'crop' : real === 'weide' ? 'pasture' : parcelUse(seed);
   const R = parcelRng(seed);
   const [cx, cy] = W((a0 + a1) / 2, (b0 + b1) / 2);
   if (!openLand(cx, cy) || inVillage(cx, cy, -10)) return;
@@ -719,7 +725,7 @@ function genParcel(tile, bx, by, rot, col, row, a0, a1, b0, b1, W, lineAng) {
     if (okSpot(gx, gy, 0.5)) {
       const across = rot ? -Math.PI / 2 : 0;
       push(tile, 'gate', gx, gy, across + (R() < 0.3 ? 0.5 : 0), 1, 1, 1, 0xffffff, 0.04);
-      for (const s of fieldLow || !fencedParcel(seed) ? [-1, 1] : []) {
+      for (const s of fieldLow || !fencedParcel(seed, gx, gy) ? [-1, 1] : []) {
         for (let k = 1; k <= 2; k++) {
           const [px, py] = W(ga + s * (2.1 + k * 2.2), endB);
           if (okSpot(px, py, 0.5)) push(tile, 'post', px, py, 0, 1, 1, 1, 0xffffff, 0.12);

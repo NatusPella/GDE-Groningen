@@ -127,5 +127,17 @@ const eq = (a, b) => JSON.stringify(a) === JSON.stringify(b);
   if (line({ waterway: 'canal' })[0].row.hw !== 7) fail('a canal keeps its guessed 14 m');
 }
 
+// OSM landuse becomes parcels for the countryside (#124): arable, meadow, orchard; small ones and other uses not
+{
+  const sq = (n) => [[53.2, 6.5], [53.2, 6.5 + n], [53.2 + n, 6.5 + n], [53.2 + n, 6.5], [53.2, 6.5]];
+  const poly = (landuse, n) => WB.fromOsm({ type: 'way', id: 3, tags: { landuse }, g: sq(n) }).filter((f) => f.kind === 'parcels');
+  const f = poly('farmland', 0.004);
+  if (f.length !== 1 || f[0].row.use !== 'akker') fail('farmland is arable');
+  if (poly('meadow', 0.004)[0].row.use !== 'weide' || poly('orchard', 0.004)[0].row.use !== 'boomgaard') fail('meadow and orchard');
+  if (poly('farmland', 0.00005).length !== 0) fail('a plot under 2000 m2 is no parcel');
+  if (poly('residential', 0.004).length !== 0) fail('other land use is no parcel');
+  if (WB.fromOsm({ type: 'way', id: 4, tags: { landuse: 'farmland' }, g: sq(0.004) }, { parcels: false }).some((q) => q.kind === 'parcels')) fail('parcels can be left out');
+}
+
 console.log(fails ? `${fails} failure(s)` : 'worldbuilder: ok');
 process.exit(fails ? 1 : 0);

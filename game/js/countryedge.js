@@ -192,6 +192,12 @@ export function roadGap(x, y, reach = 6) {
 let extraBlocked = null;
 export function setExtraBlocked(fn) { extraBlocked = fn; }
 
+// What the tiles say the land is used for at a point (OSM landuse, provinceworld.js): 'akker' | 'weide' | 'boomgaard' | null.
+// The countryside's fences and herds follow it where it speaks; the hash decides where it does not.
+let extraUse = null;
+export function setExtraUse(fn) { extraUse = fn; }
+export const landUseAt = (x, y) => (extraUse ? extraUse(x, y) : null);
+
 // Kept clear of props, farms and turbines: what the tiles hold, and the rails.
 export function edgeBlocked(x, y, margin = 3) {
   if (extraBlocked && extraBlocked(x, y, margin)) return true;
