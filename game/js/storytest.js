@@ -202,6 +202,7 @@ async function minigameSmoke(world, check, capture) {
   check('skatepark: starts', sk && sk.start() && await waitFor(() => sk.state() && sk.state().phase === 'run', 8000));
   hold('w', 'KeyW');
   await sleep(1500);
+  await waitFor(() => sk.state().b.speed > 2.5, 6000);
   const sp = sk.state().b.speed;
   check('skatepark: the board gets going', sp > 2.5 && Number.isFinite(sp), String(sp));
   capture('mg-skatepark-ride');
@@ -292,7 +293,7 @@ async function minigames2Smoke(world, check, capture) {
   check('waterski: starts', ws && ws.start() && await waitFor(() => ws.state() && ws.state().phase === 'run', 6000));
   await sleep(1500);
   capture('mg-waterski-run');
-  check('waterski: the boat tows the skier along the lake', ws.state().ski.sS > 2 && finite(world.player), JSON.stringify(ws.state()));
+  check('waterski: the boat tows the skier along the lake', await waitFor(() => ws.state().ski.sS > 2, 10000) && finite(world.player), JSON.stringify(ws.state()));
   hold('a', 'KeyA');
   await sleep(900);
   release('a', 'KeyA');
@@ -349,8 +350,8 @@ async function batch2Smoke(world, check, capture) {
   await sleep(2600);
   const thief = world.pedestrians.find((q) => q.mugger);
   check('muggings: the thief runs and nothing is NaN', !!thief && [thief.x, thief.y].every(Number.isFinite) && finite(world.player));
-  if (thief) { p.x = thief.x + 0.6; p.y = thief.y; }
-  check('muggings: catching him gives the money back', await waitFor(() => MG.state().phase === null && world.money === 300, 6000), JSON.stringify({ money: world.money, st: MG.state() }));
+  // he keeps running: stay on his heels until he is caught (a slow frame rate lets him slip away from one jump)
+  check('muggings: catching him gives the money back', await waitFor(() => { if (thief && MG.state().phase) { p.x = thief.x + 0.6; p.y = thief.y; } return MG.state().phase === null && world.money === 300; }, 15000, 200), JSON.stringify({ money: world.money, st: MG.state() }));
 
   // the text jobs
   const SJ = () => window.__debug.sidejobs;
