@@ -26,10 +26,12 @@ const teleport = (x, y) => {
   p.gz = map.groundHeightAt ? map.groundHeightAt(x, y, 0) || 0 : 0;
 };
 let hold = null, done = false;
+const holds = []; // vehicles that must stay where the shot wants them
 const tick = () => {
   if (PM.isPauseMenuOpen()) PM.closePauseMenu();
   D.input.mouse.y = innerHeight * 0.4;
   if (hold) { p.x = hold.x; p.y = hold.y; p.vx = p.vy = 0; p.angle = hold.a; w.camYaw = hold.a; w.clock = window.__viClock || 14; }
+  for (const h of holds) { const v = h.v; v.x = h.x; v.y = h.y; v.angle = h.a; v.speed = 0; v.vx = 0; v.vy = 0; if (v.doors && h.open) for (const id of h.open) { if (!v.doors.loose[id]) { v.doors.want[id] = 1; v.doors.hold[id] = 5; } } }
   if (!done) requestAnimationFrame(tick);
 };
 requestAnimationFrame(tick);
@@ -105,6 +107,8 @@ function nearestRow(hx, hy, kind) {
 }
 
 const LS = await imp('loadscreen');
+const VD = await imp('vehicledoors');
+const VHC = await imp('vehicle');
 const WPL = await imp('worldplaces');
 const results = {};
 for (const S of window.__vi.spots) {
@@ -276,6 +280,43 @@ for (const S of window.__vi.spots) {
         await sleep(1500);
         console.log('[capture] ' + S.name + '-erin');
         if (p.inVehicle) p.exitVehicle(map, w);
+      }
+    } else if (S.type === 'voertuigdelen') {
+      // #225: doors, bonnet and boot of a car, a bus, a van and a tractor: closed, doors open, bent
+      // (dent log 0.8) and torn off (2.0), each from a 3/4 view; vehicles are spawned in front of the lens
+      // and held still. The dent log is the game's own damage record ([lx, lz, strength] per blow).
+      await go(S.x, S.y, 0, 6000);
+      const road = snapRoad(S.x, S.y, 200, null);
+      const bx = road ? road.x : S.x, by = road ? road.y : S.y, ba = road ? road.a : 0;
+      const all = VHC.TRAFFIC_MODELS();
+      const pick = (name) => all.find((m) => m.name === name);
+      const MODELS = [['auto', pick('wagon')], ['bus', pick('bus')], ['bestelbus', pick('van')], ['tractor', VHC.TRACTOR_MODEL]];
+      info.at = [Math.round(bx), Math.round(by)]; info.modellen = MODELS.map(([n, m]) => n + ':' + (m ? m.name : 'ontbreekt'));
+      const g = gh(bx, by);
+      for (const [label, model] of MODELS) {
+        if (!model) { info[label] = 'model niet gevonden'; continue; }
+        const v = new VHC.Vehicle(bx, by, ba, { ...model });
+        w.vehicles.push(v);
+        const defs = VD.doorsFor(v);
+        info[label] = { deuren: defs.map((d) => d.id) };
+        const hold = { v, x: bx, y: by, a: ba, open: [] };
+        holds.push(hold);
+        await sleep(600);
+        const cam = Math.max(7, model.len * 1.4), ca = ba + 0.7;
+        const pose = { position: { x: bx + Math.cos(ca) * cam, y: by + Math.sin(ca) * cam, z: g + 2.4 + (model.len > 8 ? 1.5 : 0) }, lookAt: { x: bx, y: by, z: g + 1.1 }, cut: true };
+        const dent = (level, reps = 1) => { v.dentLog = []; for (let r = 0; r < reps; r++) for (const d of defs) { if (d.side === 0) v.dentLog.push([(d.zone === 'voor' ? 1 : -1) * model.len * 0.4, 0, level * 2.6]); else v.dentLog.push([d.x * model.len, d.side * model.wid * 0.4, level * 2.6]); } };
+        hold.open = [];
+        await shot(S.name + '-' + label + '-dicht', pose, 1600);
+        hold.open = defs.map((d) => d.id); VD.ensureDoors(v);
+        await shot(S.name + '-' + label + '-open', pose, 1600);
+        hold.open = []; for (const d of defs) { v.doors.want[d.id] = 0; }
+        dent(0.4); v.health = 70;
+        await shot(S.name + '-' + label + '-scheef', pose, 1900);
+        dent(0.85, 2); v.health = 25;
+        await shot(S.name + '-' + label + '-los', pose, 2200);
+        info[label].status = { ...v.doors.dmg, loose: Object.keys(v.doors.loose) };
+        holds.splice(holds.indexOf(hold), 1);
+        w.vehicles.splice(w.vehicles.indexOf(v), 1);
       }
     } else if (S.type === 'raillod') {
       // #158: the player stays at the station; the cutscene camera stands ON the line at arc
