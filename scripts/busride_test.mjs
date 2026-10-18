@@ -1,6 +1,6 @@
 import assert from 'node:assert';
 import { prepareLine, pointAt } from '../game/js/busroutes.js';
-import { makeRide, startRide, updateRide, rideStop, stopPos } from '../game/js/busride.js';
+import { makeRide, planRide, startRide, updateRide, rideStop, stopPos } from '../game/js/busride.js';
 
 const line = prepareLine({ id: 'x', ref: '5', pts: [[0, 0], [1500, 0]], stops: [{ x: 0, y: 0 }, { x: 500, y: 0 }, { x: 1000, y: 0 }, { x: 1500, y: 0 }] });
 const mk = () => { let s = 3; return () => (s = (s * 16807) % 2147483647) / 2147483647; };
@@ -42,4 +42,16 @@ const g2 = drive(8.5);
 const dep = g2.evs.filter((e) => e.type === 'depart');
 assert.ok(dep.length >= 2);
 assert.deepStrictEqual(stopPos(g2.ride, g2.ride.table[1]), { x: 500, y: 0 });
+// stuk van een lange lijn: begint bij de dichtstbijzijnde halte, tijden vanaf 0
+{
+  const L = prepareLine({ id: 9, ref: '7', pts: [[0, 0], [10000, 0]], stops: Array.from({ length: 21 }, (_, k) => ({ x: k * 500, y: 0 })) });
+  const a = planRide(L, 480, 5);
+  assert.deepStrictEqual(a, { dir: 1, first: 1 });
+  const b = planRide(L, 9900, 0);
+  assert.deepStrictEqual(b, { dir: -1, first: 0 }, 'aan het eind keert de rit om');
+  const r = makeRide(L, { ...a, max: 8 });
+  assert.strictEqual(r.table.length, 8);
+  assert.strictEqual(r.table[0].arrive, 0);
+  assert.ok(r.table[0].index === 1 && stopPos(r, r.table[0]).x === 500, 'eerste rij is halte 1');
+}
 console.log('busride_test ok');
