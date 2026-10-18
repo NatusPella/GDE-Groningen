@@ -3,7 +3,8 @@
 // railway.js.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getTrains, getLevelCrossings, nearLevelCrossing, railZ, isOffMap, TRAIN_HALF_WIDTH, FLAT_DECK_Z } from './railway.js';
-import { pointInPolygon, WATER_Y } from './util.js';
+import { WATER_Y } from './util.js';
+import { waterPolyAt } from './waterlevels.js';
 import { addStaticCollider } from './breakables.js';
 
 const CHUNK = 250;
@@ -78,11 +79,7 @@ function chunkOf(x, y) {
 }
 
 function overWater(x, y) {
-  for (const w of map.waterNear(x, y, 2)) {
-    const [minx, miny, maxx, maxy] = w.bounds;
-    if (x >= minx && x <= maxx && y >= miny && y <= maxy && pointInPolygon(x, y, w.pts)) return true;
-  }
-  return false;
+  return !!waterPolyAt(map, x, y);
 }
 
 function samplePolyline(pts) {
