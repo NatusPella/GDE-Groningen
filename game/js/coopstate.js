@@ -85,12 +85,14 @@ export function clearWanted(st) { st.shared.wanted = 0; }
 
 // --- voertuigen delen: wie het eerst instapt stuurt; de ander is bijrijder ---
 // vehicles: { [id]: { driver: slot|null, passenger: slot|null } }
-export function enterVehicle(st, vehicles, slot, id, want = null) {
+// stoelen: 1 = alleen een bestuurder (fiets, step), standaard 2 (zie cooproles.js coopRegel('voertuig'))
+export function enterVehicle(st, vehicles, slot, id, want = null, stoelen = 2) {
   const p = st.players[slot];
   if (!p.alive || p.vehicle) return null;
   const v = vehicles[id] || (vehicles[id] = { driver: null, passenger: null });
-  let seat = want && v[want] == null ? want : null;
-  if (!seat) seat = v.driver == null ? 'driver' : v.passenger == null ? 'passenger' : null;
+  if (stoelen < 2 && v.driver != null) return null;
+  let seat = want && v[want] == null && (want === 'driver' || stoelen >= 2) ? want : null;
+  if (!seat) seat = v.driver == null ? 'driver' : v.passenger == null && stoelen >= 2 ? 'passenger' : null;
   if (!seat) return null;
   v[seat] = slot; p.vehicle = id; p.seat = seat;
   return seat;

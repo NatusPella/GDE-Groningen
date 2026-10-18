@@ -61,4 +61,29 @@ t('cutscene: start bij beiden klaar of time-out, overslaan vraagt beide', () => 
   const c = R.createCutscene('z', rule); assert.equal(R.holdSkip(c, 0, true, 1), true, 'alleen: één stem');
   assert.deepEqual(R.cutsceneCast(1, R.coopRule(STEPS[0], 1)), ['mens', 'npc']);
 });
+t('registry: nieuwe functies registreren hun regel; onbekende krijgen een veilige standaard', () => {
+  assert.deepEqual(R.coopRegel('scene', 'nog-niet-bestaand'), { spelers: 'een', wacht: false });
+  assert.equal(R.isGeregistreerd('minigame', 'padel'), true);
+  R.registerCoop('minigame', 'pg_nieuw', { spelers: 'twee' });
+  assert.equal(R.coopRegel('minigame', 'pg_nieuw').spelers, 'twee');
+  assert.deepEqual(R.minigameSpelers('pg_nieuw', 1), { spelers: [0, 1], kijkers: [] });
+  assert.deepEqual(R.minigameSpelers('pg_nieuw', 1, 1), { spelers: [1], kijkers: [] });
+  assert.deepEqual(R.minigameSpelers('carbid', 0), { spelers: [0], kijkers: [1] });
+  assert.deepEqual(R.minigameSpelers('onbekend', 1), { spelers: [1], kijkers: [0] });
+});
+t('registry: ongeldige regels worden geweigerd', () => {
+  assert.throws(() => R.registerCoop('rommel', 'x', {}));
+  assert.throws(() => R.registerCoop('minigame', '', { spelers: 'een' }));
+  assert.throws(() => R.registerCoop('minigame', 'x', { spelers: 'drie' }));
+  assert.throws(() => R.registerCoop('voertuig', 'x', { stoelen: 0 }));
+});
+t('alle voertuigen: fiets en step hebben een stoel, de rest twee; de stoelen gelden bij het instappen', () => {
+  assert.equal(R.coopRegel('voertuig', 'fiets').stoelen, 1);
+  assert.equal(R.coopRegel('voertuig', 'heli').stoelen, 2);
+  assert.equal(R.coopRegel('voertuig', 'nieuw-voertuig').stoelen, 2);
+  const st = S.createCoopState(), v = {};
+  assert.equal(S.enterVehicle(st, v, 0, 'f', null, R.coopRegel('voertuig', 'fiets').stoelen), 'driver');
+  assert.equal(S.enterVehicle(st, v, 1, 'f', null, 1), null, 'op een fiets past er een');
+  assert.equal(S.enterVehicle(st, v, 1, 'a', 'passenger', 1), 'driver', 'een eenzitter heeft geen bijrijdersplek: wie instapt stuurt');
+});
 console.log(`cooproles_test: ${n}/${n} ok`);
