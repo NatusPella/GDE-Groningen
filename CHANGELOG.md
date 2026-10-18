@@ -16,6 +16,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **Wapens oppakken:** sla een ruziemaker neer, of tot hij het opgeeft, dan laat hij zijn spullen vallen. Loop erheen en pak ze op met E.
 
 - **Meer leven op straat:** skateboarders rollen door de studentenwijken en het centrum. Een kennismakingsweek-groepje (Dispuut De Gulle Gans) loopt met pluche ganzen door de stad. Wijken hebben nu ook eigen kleding en tassen voor voetgangers. Er zijn meer bezorgers op de fiets, een vierde keten (Pakkie Pronto) en bezorgers te voet met een grote tas.
+- Het weer is nu per streek van de provincie verschillend: zon, bewolking, mist in de ochtend, motregen, buien en onweer. Altijd zomer.
 
 ## [0.35.0] - 2026-10-18
 
