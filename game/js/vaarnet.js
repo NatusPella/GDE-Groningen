@@ -96,6 +96,7 @@ export function patchRows(fixes) {
   };
   for (const l of (fixes && fixes.links) || []) rows.push(row(linkPolygon(l), 4, l.name));
   for (const g of (fixes && fixes.gaten) || []) rows.push(row(gatPolygon(g), g[5] || 3, ''));
+  for (const g of (fixes && fixes.verbindingen) || []) rows.push(row(gatPolygon(g), g[5] || 2, ''));
   // the sea off a coast the map draws no water at: the open water of the Wadden and the Eems
   for (const g of (fixes && fixes.zee) || []) { const r = row(gatPolygon(g), 4, SEA_NAMES[g[6]] || 'Zee'); r.kind = 'zee'; r.dp = WATER_KINDS.zee.depth; rows.push(r); }
   return rows;
@@ -176,10 +177,10 @@ export function routeVaar(net, from, to, kind) {
 
 // The nearest point of the net's edges to (x, y) within maxD: { edge, i (the segment, from
 // vertex i to i + 1), x, y (the point on it), d }; the edges' bounds are kept on the net.
-export function nearestOnNet(net, x, y, maxD = 150) {
+export function nearestOnNet(net, x, y, maxD = 150, accept = null) {
   let best = null;
   for (const e of net.edges) {
-    if (!e.pts) continue;
+    if (!e.pts || (accept && !accept(e))) continue;
     if (!e.box) { let a = Infinity, b = Infinity, c = -Infinity, d = -Infinity; for (const p of e.pts) { if (p[0] < a) a = p[0]; if (p[0] > c) c = p[0]; if (p[1] < b) b = p[1]; if (p[1] > d) d = p[1]; } e.box = [a, b, c, d]; }
     if (x < e.box[0] - maxD || x > e.box[2] + maxD || y < e.box[1] - maxD || y > e.box[3] + maxD) continue;
     for (let i = 0; i + 1 < e.pts.length; i++) {
@@ -266,4 +267,96 @@ export function routeAhead(net, x, y, vx, vy, dist = 3000, maxD = 120) {
     px = node.x; py = node.y;
   }
   return out;
+}
+
+// ------------------------------------------------------- the net for everyone
+
+// The narrowest channel (m, bank to bank) a boat kind sails: about twice its beam and room to
+// turn. The water's class (waterlevels.js: 1 ponds and ditches, 2 vaarten of 4 m and up,
+// 3 canals of 9 m and up, 4 shipping canals of 30 m and up, or by name) is where it comes from.
+// Narrower water is not in the net on purpose: a ditch is waded or paddled, nothing plans a route there.
+export const MIN_WIDTH = { kano: 2, kajak: 2, sup: 2, waterfiets: 4, dinghy: 3, sloep: 4, rubberboot: 4, skiff: 4, acht: 9, rondvaart: 9, skutsje: 9, binnenvaart: 24 };
+export const minWidthOf = (k) => MIN_WIDTH[kindOf(k)] ?? 4;
+
+// the net the game loaded (vaarload.js), for the GPS and the boats
+let shared = null;
+export const setSharedNet = (n) => { shared = n; };
+export const getSharedNet = () => shared;
+
+const lenOf = (pts, i0, i1) => { let s = 0; for (let i = i0; i < i1; i++) s += Math.hypot(pts[i + 1][0] - pts[i][0], pts[i + 1][1] - pts[i][1]); return s; };
+
+// where a point on an edge lies along it: metres from node a and from node b (by the polyline)
+function split(at) {
+  const P = at.edge.pts, total = lenOf(P, 0, P.length - 1);
+  const toA = lenOf(P, 0, at.i) + Math.hypot(at.x - P[at.i][0], at.y - P[at.i][1]);
+  return { toA, toB: Math.max(0, total - toA) };
+}
+// the polyline from node a to the point (a=true) or from the point to node b (a=false)
+function part(at, a) {
+  const P = at.edge.pts;
+  return a ? P.slice(0, at.i + 1).concat([[at.x, at.y]]) : [[at.x, at.y]].concat(P.slice(at.i + 1));
+}
+
+// nearest edge a boat kind can sail
+function snapOpen(net, x, y, kind, maxD) {
+  let best = null;
+  for (let r = 60; r <= maxD && !best; r *= 2.5) {
+    // nearestOnNet takes the nearest of all edges: ask again with a wider reach until one is open
+    const at = nearestOnNet(net, x, y, Math.min(r, maxD), (e) => edgeOpen(e, kind));
+    if (at) best = at;
+  }
+  return best;
+}
+
+// The route for a boat kind (or the player's boat) between two points over the net: A* over the
+// edges it can sail, from the point nearest `from` to the point nearest `to` (within snapMax m
+// of the net, a longer way is a straight last bit the caller draws). Locks and movable bridges cost
+// their waiting time. -> { pts, length, wait, etaS, nodes } or null when the net does not join them.
+export function planVaarRoute(net, from, to, kind, { snapMax = 500, speed = 5 } = {}) {
+  const s = snapOpen(net, from[0], from[1], kind, snapMax), t = snapOpen(net, to[0], to[1], kind, snapMax);
+  if (!s || !t) return null;
+  const S = split(s), T = split(t);
+  // both on one edge: along it
+  if (s.edge === t.edge) {
+    const a = S.toA, b = T.toA, pts = a <= b
+      ? [[s.x, s.y]].concat(s.edge.pts.slice(s.i + 1, t.i + 1), [[t.x, t.y]])
+      : [[s.x, s.y]].concat(s.edge.pts.slice(t.i + 1, s.i + 1).reverse(), [[t.x, t.y]]);
+    const length = Math.abs(a - b);
+    return { pts, length: Math.round(length), wait: 0, etaS: Math.round(length / speed), nodes: [] };
+  }
+  const N = net.nodes.length, g = new Float64Array(N).fill(Infinity), prev = new Int32Array(N).fill(-1), via = new Array(N).fill(null), done = new Uint8Array(N);
+  const tx = t.x, ty = t.y, h = (id) => Math.hypot(net.nodes[id].x - tx, net.nodes[id].y - ty);
+  const heap = [];
+  const push = (it) => { heap.push(it); let i = heap.length - 1; while (i > 0) { const p = (i - 1) >> 1; if (heap[p][0] <= heap[i][0]) break; [heap[p], heap[i]] = [heap[i], heap[p]]; i = p; } };
+  const pop = () => { const top = heap[0], last = heap.pop(); if (heap.length) { heap[0] = last; let i = 0; for (;;) { const l = 2 * i + 1, r = l + 1; let m = i; if (l < heap.length && heap[l][0] < heap[m][0]) m = l; if (r < heap.length && heap[r][0] < heap[m][0]) m = r; if (m === i) break; [heap[m], heap[i]] = [heap[i], heap[m]]; i = m; } } return top; };
+  const seed = (id, c) => { if (c < g[id]) { g[id] = c; prev[id] = -1; via[id] = null; push([c + h(id), id]); } };
+  seed(s.edge.a, S.toA); seed(s.edge.b, S.toB);
+  // the goal: the edge ends of t's edge, with the way along t's edge as the last leg
+  const goal = new Map([[t.edge.a, T.toA], [t.edge.b, T.toB]]);
+  let bestEnd = -1, bestCost = Infinity;
+  while (heap.length) {
+    const [f, u] = pop();
+    if (done[u]) continue;
+    if (f >= bestCost) break;
+    done[u] = 1;
+    if (goal.has(u) && g[u] + goal.get(u) < bestCost) { bestCost = g[u] + goal.get(u); bestEnd = u; }
+    for (const e of net.nodes[u].edges) {
+      if (!edgeOpen(e, kind)) continue;
+      const v = e.a === u ? e.b : e.a, nd = g[u] + e.len + LOCK_COST(net.nodes[v].type);
+      if (nd < g[v]) { g[v] = nd; prev[v] = u; via[v] = e; push([nd + h(v), v]); }
+    }
+  }
+  if (bestEnd < 0) return null;
+  const ids = [], es = [];
+  for (let v = bestEnd; v !== -1; v = prev[v]) { ids.push(v); if (via[v]) es.push(via[v]); }
+  ids.reverse(); es.reverse();
+  // start point -> first node, the edges, last node -> end point
+  const pts = ids[0] === s.edge.a ? part(s, true).reverse() : part(s, false);
+  es.forEach((e, k) => { for (const p of (e.a === ids[k] ? e.pts : e.pts.slice().reverse())) pts.push(p); });
+  const last = ids[ids.length - 1];
+  for (const p of last === t.edge.a ? part(t, true) : part(t, false).reverse()) pts.push(p);
+  let wait = 0;
+  for (const id of ids) { const kindN = net.nodes[id].type; if (kindN === 'sluis') wait += SLUICE_WAIT; else if (kindN === 'brug') wait += 15; }
+  const length = Math.round(lenOf(pts, 0, pts.length - 1));
+  return { pts, length, wait, etaS: Math.round(length / speed + wait), nodes: ids };
 }
