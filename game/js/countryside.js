@@ -16,7 +16,7 @@ import {
 import { updateFarProps, farPropsStats } from './farprops.js';
 import { updateCountryLife, lifeStats } from './countrylife.js';
 import { buildSign, disposeSign } from './countrysigns.js';
-import { EDGE, edgeBlocked, edgeSpanBlocked, roadGap } from './countryedge.js';
+import { EDGE, edgeBlocked, edgeSpanBlocked, roadGap, nearRail } from './countryedge.js';
 import { ensureCountryEdge } from './countryplan.js';
 import { thinDitchOn, ditchRamp, provinceBlock, countrySurface } from './countryfield.js';
 import { urbanWeight } from './provinceworld.js';
@@ -532,11 +532,20 @@ function spanOnDitch(ax, ay, bx, by) {
 // tile seam has no hole in the fence (a post and 5-10 m of wire were missing on every 160 m, #124)
 function fenceLine(tile, P, t0, t1, step, ok, postUntil = t1) {
   let prev = null; // the sample before: the wire to it must not cross a ditch, lane or house of the tiles
+  let afterRail = false; // the fence was cut by the track: a field gate stands at each end of the cut (an overweghek)
+  const railGate = (x, y, t) => { if (!fieldLow) push(tile, 'gate', x, y, angOf(P, t), 1, 1, 1, 0xffffff, 0.04); };
   lineRuns(t0, t1, step, (t) => {
     const [x, y] = P(t);
-    if (!ok(x, y, t)) { prev = null; return false; }
+    if (!ok(x, y, t)) {
+      const onRail = nearRail(x, y);
+      if (prev && onRail) railGate(prev[0], prev[1], t);
+      afterRail = onRail;
+      prev = null;
+      return false;
+    }
     const last = prev;
     prev = [x, y];
+    if (afterRail) { railGate(x, y, t); afterRail = false; }
     if (last && (edgeSpanBlocked(last[0], last[1], x, y, 0.5) || spanOnDitch(last[0], last[1], x, y))) return false;
     if (t > postUntil) return true; // the neighbour tile's first post stands here
     const h = chash(Math.round(x * 5), Math.round(y * 5));

@@ -31,7 +31,7 @@ const SF = await import('../../game/js/streetfurniture.js');
 export const ZERO = [
   'postOnRail', 'wireOnRail', 'hedgeOnRail', 'postOnRoad', 'wireOnRoad', 'hedgeOnRoad',
   'postInWater', 'wireInWater', 'hedgeInWater', 'postInBuilding', 'wireInBuilding', 'hedgeInBuilding',
-  'cattleInWater', 'cattleOnRoad', 'cattleOnRail', 'osmOnRail', 'osmOnRoad', 'osmInWater', 'osmInBuilding',
+  'cattleInWater', 'cattleOnRoad', 'cattleOnRail', 'osmOnRail', 'osmOnRoad', 'osmInWater', 'osmInBuilding', 'gateOnRail',
 ];
 export const RATE = [
   ['seamGaps', 'posts', 0.002], ['doublePosts', 'posts', 0.025], ['postOnDitch', 'posts', 0.001],
@@ -105,6 +105,7 @@ function judge(map) {
   const { roads, rails, water, buildings } = map.all;
   const nr = near(roads), nl = near(rails), nw = near(water), nb = near(buildings);
   return {
+    nearRail: (x, y, d) => nl(x, y, d).some((r) => { for (let i = 0; i < r.pts.length - 1; i++) if (segDist(x, y, r.pts[i][0], r.pts[i][1], r.pts[i + 1][0], r.pts[i + 1][1]) < d) return true; return false; }),
     onRail: (x, y) => nl(x, y, 3).some((r) => { for (let i = 0; i < r.pts.length - 1; i++) if (segDist(x, y, r.pts[i][0], r.pts[i][1], r.pts[i + 1][0], r.pts[i + 1][1]) < 2.1) return true; return false; }),
     onRoad: (x, y) => nr(x, y, 12).some((r) => {
       // alleen wegen op maaiveld (geen brug), zoals de generator ze kent
@@ -175,6 +176,8 @@ export function auditWindow(out, index, key, { rails = [] } = {}) {
           if (pts.some(([x, y]) => CF.countrySurface(x, y) === 'sloot')) add(N + 'OnDitch');
         }
       }
+      // field gates: those at the track are the overweghekken of a fence the track cut; none may stand on it
+      { const m = tile.items.gate && tile.items.gate.m; for (let q = 0; m && q < m.length; q += 16) { const gx = m[q + 12], gy = m[q + 14]; if (gx < ox || gx > ox + 1000 || gy < oy || gy > oy + 1000) continue; add('gates'); if (J.onRail(gx, gy)) add('gateOnRail'); if (J.nearRail(gx, gy, 30)) add('gateAtRail'); } }
       // grazing animals (a goose or a duck belongs in the water)
       for (const a of (tile.animals || []).filter((q) => q.kind !== 'goose' && q.kind !== 'duck')) {
         add('cattle');
@@ -271,7 +274,7 @@ async function main() {
   const total = sumWindows(rows.map((r) => r.c));
   const perStreek = {};
   for (const r of rows) { const s = perStreek[r.streek] || (perStreek[r.streek] = []); s.push(r.c); }
-  const keys = ['posts', 'wires', 'hedges', 'cattle', 'postOnRail', 'wireOnRail', 'hedgeOnRail', 'postOnRoad', 'wireOnRoad', 'hedgeOnRoad', 'postInWater', 'wireInWater', 'hedgeInWater', 'postInBuilding', 'wireInBuilding', 'hedgeInBuilding', 'postOnDitch', 'wireOnDitch', 'hedgeOnDitch', 'doublePosts', 'seamGaps', 'osmPieces', 'osmOnRail', 'osmOnRoad', 'osmInWater', 'osmInBuilding', 'cattleInWater', 'cattleOnRoad', 'cattleOnRail'];
+  const keys = ['posts', 'wires', 'hedges', 'cattle', 'postOnRail', 'wireOnRail', 'hedgeOnRail', 'postOnRoad', 'wireOnRoad', 'hedgeOnRoad', 'postInWater', 'wireInWater', 'hedgeInWater', 'postInBuilding', 'wireInBuilding', 'hedgeInBuilding', 'postOnDitch', 'wireOnDitch', 'hedgeOnDitch', 'doublePosts', 'seamGaps', 'gates', 'gateAtRail', 'gateOnRail', 'osmPieces', 'osmOnRail', 'osmOnRoad', 'osmInWater', 'osmInBuilding', 'cattleInWater', 'cattleOnRoad', 'cattleOnRail'];
   if (args.includes('--json')) { console.log(JSON.stringify({ total, perStreek: Object.fromEntries(Object.entries(perStreek).map(([s, l]) => [s, sumWindows(l)])) })); }
   else {
     console.log(`${all.length} vensters (${W.rail.length} met spoor, ${W.random.length} willekeurig), seed ${opt('seed', 7)}`);
