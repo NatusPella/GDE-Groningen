@@ -9,6 +9,8 @@ import { isShopOpen } from './shopui.js';
 import { pushAudioEvent } from './pedestrians.js';
 import { unlockAchievement, setStatMax, recordStat, recordChallengeResult } from './achievements.js';
 import { makeHeli, flyHeli, helipadById, HELI_MODEL } from './heliflight.js';
+import { findClearSpot } from './helispawn.js';
+import { ringCounter, landingGuide } from './heligrade.js';
 import { lineVoiceFor } from './linevoice.js';
 import { playLineVoice } from './audio.js';
 import { SPEAKERS, STEP_BY_ID } from './storyarc.js';
@@ -97,7 +99,7 @@ function runPads(w) {
 const RING_GEO = new THREE.TorusGeometry(P.RING_R, 0.5, 8, 44);
 const RING_MATS = {
   next: new THREE.MeshBasicMaterial({ color: 0xffc21a, transparent: true, opacity: 0.95, fog: false }),
-  later: new THREE.MeshBasicMaterial({ color: 0xffe9a0, transparent: true, opacity: 0.35, fog: false }),
+  later: new THREE.MeshBasicMaterial({ color: 0xffe9a0, transparent: true, opacity: 0.55, fog: false }),
   done: new THREE.MeshBasicMaterial({ color: 0x5dff7a, transparent: true, opacity: 0.8, fog: false }),
   miss: new THREE.MeshBasicMaterial({ color: 0xff5a3c, transparent: true, opacity: 0.5, fog: false }),
 };
@@ -348,7 +350,7 @@ function updateHud(dt) {
     setVal('time', `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`, t < 20 ? 'low' : '');
   }
   setVal('speed', `${Math.round(Math.hypot(v.vx || 0, v.vy || 0) * 3.6)} km/u`);
-  setVal('rings', `${r.st.ringsHit}/${r.ringsTotal}`);
+  setVal('rings', ringCounter(r.st, r.ringsTotal).text);
   setVal('dist', b.phase === 'ground' ? 'nog aan de grond' : fmtDist(Math.hypot(b.x - v.x, b.y - v.y)));
   setVal('score', String(Math.max(0, Math.round(r.score))));
   hud.altMe.style.top = altY(v.z);
@@ -367,7 +369,8 @@ function updateHud(dt) {
     hud.arrow.style.transform = `rotate(${(rel * 180 / Math.PI + 90).toFixed(1)}deg)`;
     const d = Math.hypot(tgt.x - v.x, tgt.y - v.y);
     const dz = tgt.z - v.z;
-    const hint = tgt.kind === 'pad' ? (d < 20 && !v.onGround ? `<span class="down">▼ ${downKey()}: landen</span>` : '') :
+    const lg = tgt.kind === 'pad' ? landingGuide(v, { x: tgt.x, y: tgt.y, r: tgt.r, deck: tgt.z }) : null;
+    const hint = lg ? (d < 60 && !v.onGround ? `<span class="${lg.ok ? 'down' : 'up'}">${lg.text} · ${Math.round(lg.alt)} m · ${(Math.round(lg.vs * 10) / 10).toString().replace('.', ',')} m/s</span>` : '') :
       dz > 4 ? '<span class="up">▲ hoger</span>' : dz < -4 ? '<span class="down">▼ lager</span>' : 'hoogte goed';
     const html = `${r.legLabel}<small>${tgt.label ? tgt.label + ' · ' : ''}${fmtDist(d)}${hint ? ' · ' + hint : ''}</small>`;
     if (hud.cache.goal !== html) { hud.cache.goal = html; hud.goal.innerHTML = html; }
@@ -419,16 +422,24 @@ function blockReason(w) {
 }
 
 // The demo heli Rotor Roelf parked on the pad (storyfun.js), or a new one.
-function heliOn(w, pad) {
+// Where the run's heli may stand: the pad itself, or on open ground beside it when
+// another heli (the player's own) is in the way; null on a deck that is taken (#166).
+function clearSpotFor(w, pad) {
+  const demo = w.vehicles.find((q) => q.isHeli && q.storyDemo && !q.wrecked && !q.sinking && Math.hypot(q.x - pad.x, q.y - pad.y) < 20);
+  const blockers = w.vehicles.filter((q) => q !== demo && q.isHeli && !q.wrecked && !q.sinking).map((q) => ({ x: q.x, y: q.y, z: q.z }));
+  return findClearSpot(pad, blockers, { deck: pad.id === 'umcg' });
+}
+
+function heliOn(w, pad, spot = null) {
   let v = w.vehicles.find((q) => q.isHeli && q.storyDemo && !q.wrecked && !q.sinking && Math.hypot(q.x - pad.x, q.y - pad.y) < 20);
   if (!v) {
-    v = makeHeli(pad.x, pad.y, pad.deck, pad.angle, { ...HELI_MODEL, color: '#e8e6e0' });
+    v = makeHeli(spot ? spot.x : pad.x, spot ? spot.y : pad.y, pad.deck, pad.angle, { ...HELI_MODEL, color: '#e8e6e0' });
     v.missionCar = true;
     w.vehicles.push(v);
   }
-  v.x = pad.x; v.y = pad.y; v.z = pad.deck; v.angle = pad.angle;
+  v.x = spot ? spot.x : pad.x; v.y = spot ? spot.y : pad.y; v.z = pad.deck; v.angle = pad.angle;
   v.vx = 0; v.vy = 0; v.vz = 0; v.speed = 0; v.driftX = 0; v.driftY = 0; v.yawRate = 0;
-  v.onGround = true; v.groundZ = pad.deck; v.landKind = 'pad'; v.landPad = helipadById(pad.id);
+  v.onGround = true; v.groundZ = pad.deck; v.landKind = spot && spot.moved ? 'ground' : 'pad'; v.landPad = spot && spot.moved ? null : helipadById(pad.id);
   v.health = 100;
   v.disabled = false;
   v.heliRun = true;
@@ -452,8 +463,11 @@ export function startHeliRun(opts = {}) {
     // no Eelde pad: start on the UMCG deck with Dijkstra already aboard
     else st.leg = plan.legs.findIndex((l) => l.kind === 'rings');
   }
+  // no heli through the player's own heli: a free spot, or wait until it is moved (#166)
+  const spot = clearSpotFor(w, startPad);
+  if (!spot) { w.addMessage('Het helidek is bezet: zet je eigen heli eerst ergens anders neer', 4, { kind: 'tip', key: 'helirun-bezet' }); return false; }
   if (pl.inVehicle) pl.inVehicle.driver = null;
-  const v = heliOn(w, startPad);
+  const v = heliOn(w, startPad, spot);
   // the yellow trauma heli is in for a service meanwhile (it would sit on the deck)
   const sky = scriptHeli(w);
   if (sky) Object.assign(sky, { x: startPad.x, y: startPad.y, z: -400, rotor: 0 });
@@ -704,6 +718,9 @@ function updateRingMeshes() {
     q.state = state;
     if (q.mesh.material !== RING_MATS[state]) q.mesh.material = RING_MATS[state];
     q.mesh.visible = state === 'next' || state === 'later' || (active && i >= run.st.ring - 1);
+    // far rings grow so they stay readable from a distance (#166)
+    const s = P.ringScale(Math.hypot(q.x - run.v.x, q.y - run.v.y, q.z - run.v.z));
+    q.mesh.scale.setScalar(state === 'next' ? s : Math.min(s, 2));
   });
 }
 

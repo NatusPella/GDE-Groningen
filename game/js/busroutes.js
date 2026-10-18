@@ -40,7 +40,7 @@ export function prepareLine(raw) {
   for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + dist(pts[i], pts[i - 1]));
   const length = cum[cum.length - 1];
   if (length < MIN_LENGTH) return null;
-  const line = { id: raw.id, ref: raw.ref || '', name: lineName(raw.ref || raw.id), pts, cum, length, loop: dist(pts[0], pts[pts.length - 1]) < LOOP_GAP, stops: [] };
+  const line = { id: raw.id, ref: raw.ref || '', from: raw.from || '', to: raw.to || '', name: lineName(raw.ref || raw.id), pts, cum, length, loop: dist(pts[0], pts[pts.length - 1]) < LOOP_GAP, stops: [] };
   const found = [];
   for (const st of raw.stops || []) {
     const pr = project(line, st.x, st.y);
@@ -167,4 +167,19 @@ function aheadGoal(r) {
 export function startAt(line, s, dir = 1) {
   const p = pointAt(line, s);
   return { x: p.x, y: p.y, angle: dir < 0 ? p.heading + Math.PI : p.heading };
+}
+
+// Het busbestand van de provincie (provincie-bus.json, global.busFile van de
+// index): { bus: [...] } naar voorbereide lijnen, of [] als het ontbreekt.
+export async function loadBusLines(base = 'world/', file) {
+  if (!file) return [];
+  try {
+    const r = await fetch(base + file);
+    if (!r.ok) return [];
+    const j = await r.json();
+    return prepareLines(j && j.bus);
+  } catch (e) {
+    console.warn('bus lines not loaded', e);
+    return [];
+  }
 }
