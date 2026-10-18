@@ -31,7 +31,7 @@ import { startPigeonMode, stopPigeonMode, getPigeonFlight, summonDiveGull } from
 import { getPigeonSpotsForRender } from './pigeonspots.js';
 import { MISSION_IDS, MISSION_STORY_ORDER, missionCode, STEPS, missionIndexOf } from './storyarc.js';
 import { requestRespawn } from './world.js';
-import { getMissionRecord } from './achievements.js';
+import { getMissionRecord, recordStat } from './achievements.js';
 import { BOAT_KINDS } from './boattypes.js';
 import { animateSkutsjeRig } from './models3d_vehicles.js';
 import { setMuseumCaseStolen } from './museum3d.js';
@@ -2182,6 +2182,7 @@ function updateRetry(dt, world, def) {
     r.fade -= dt;
     if (r.fade > 0) return;
     chain.retry = null;
+    recordStat(world, 'missionRetries');
     placeParty(world, def.start);
     chain.armed = true;
     chain.phase = 'idle';
