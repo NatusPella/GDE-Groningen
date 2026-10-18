@@ -8,7 +8,7 @@ import { pushOutOfPlan } from './countryplan.js';
 import { roadNetReady, snapRoad, roadPathNear, nodeXY } from './roadgraph.js';
 import { isKnockedDown } from './ragdoll.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { decayFactor, profileOf } from './signalement.js';
+import { decayFactor, profileOf, hintFor } from './signalement.js';
 import { levelOf, markSeen, stepUnseen } from './wantedlevels.js';
 import { createShards, dropSpikes } from './roadshards.js';
 import { makeBeamGeometry, makeBeamMaterial, requestSearchlight } from './nightlights3d.js';
@@ -707,10 +707,13 @@ function updateSearch(dt, world, state, escalated) {
   if (state.seen || escalated) {
     world.wantedProfile = profileOf(world);
     markSeen(pol, world, p.x, p.y);
+    pol.hinted = false;
     return;
   }
 
   if (stepUnseen(pol, world, dt, p.x, p.y, decayFactor(world.wantedProfile, world))) world.addMessage('Je bent de politie kwijt', 3);
+  const hint = pol.searching ? hintFor(world.wantedProfile, world, pol.hinted) : null;
+  if (hint) { pol.hinted = true; world.addMessage(hint, 4); }
 }
 
 // --- roadblocks (3+ stars) -------------------------------------------------
