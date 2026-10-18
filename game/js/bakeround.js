@@ -18,7 +18,7 @@ export const RECIPE_PRACTICE = ['ei', 'zout', 'meel', 'vet', 'mosterd'];
 export const RECIPE_CONTEST = ['ei', 'zout', 'meel', 'vet'];
 
 export function createBake({ order = RECIPE_CONTEST, rounds = 3, maxMisses = 3 } = {}) {
-  return { order: [...order], rounds, maxMisses, round: 0, step: 0, misses: 0, redos: 0, done: false, last: '' };
+  return { order: [...order], rounds, maxMisses, round: 0, step: 0, misses: 0, wrongs: 0, redos: 0, done: false, last: '' };
 }
 
 // Een ingrediënt toevoegen. Geeft 'ok' (goed ingrediënt), 'round' (een bal klaar), 'done' (alle rondes
@@ -27,6 +27,7 @@ export function bakeAdd(b, id) {
   if (b.done) return 'done';
   if (id !== b.order[b.step]) {
     b.misses++;
+    b.wrongs++;
     b.step = 0;
     b.last = id === 'bloem' ? 'Fijne bloem? Dat is Fries. Een gladde bal, geen eierbal van hier.' : 'Mis. Dat was de verkeerde volgorde: die bal is mislukt.';
     if (b.misses >= b.maxMisses) {

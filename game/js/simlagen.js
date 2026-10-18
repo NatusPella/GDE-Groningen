@@ -98,10 +98,11 @@ export function plan(soort, streek, speler, items, uur = 12) {
 }
 
 // Spawnring voor nieuwe echte entiteiten: buiten het directe zicht, binnen de
-// vereenvoudigde laag, zodat ze er al zijn als de speler dichterbij komt.
+// vereenvoudigde laag, zodat ze er al zijn als de speler dichterbij komt. De buitenrand
+// blijft dicht bij de vollaag (1,15x), zodat het aantal ontmoetingen dicht bij het oude pad ligt (simambient_test).
 export function spawnRing(soort) {
   const [a, b] = RANDEN[soort] || RANDEN.auto;
-  return { min: Math.round(a * 0.5), max: b };
+  return { min: Math.round(a * 0.5), max: Math.min(b, Math.round(a * 1.15)) };
 }
 
 // Despawn-afstand: voorbij de abstracte rand, zodat niemand op de grens hapert.

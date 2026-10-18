@@ -1,0 +1,31 @@
+name: Rechten, merk of naam
+description: Een echte naam, merk, persoon of eigen werk staat er onterecht in
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Dank dat je het meldt. GDE gebruikt geen echte merken, bedrijven of personen in speltekst of beeld.
+        Plaats geen persoonsgegevens in dit issue; gaat het om iets gevoeligs, meld het dan privé via SECURITY.md.
+  - type: textarea
+    id: wat
+    attributes:
+      label: Wat staat er?
+      description: De tekst, het beeld of het geluid, en waar je het tegenkomt (plek, missie, bestand).
+    validations:
+      required: true
+  - type: dropdown
+    id: soort
+    attributes:
+      label: Wat is het probleem?
+      options:
+        - Een echt merk of bedrijf
+        - Een echte persoon
+        - Materiaal van een ander zonder vermelding
+        - Anders
+    validations:
+      required: true
+  - type: textarea
+    id: extra
+    attributes:
+      label: Verder nog iets?

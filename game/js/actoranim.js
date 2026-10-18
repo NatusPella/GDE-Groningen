@@ -31,6 +31,8 @@
 // heading = atan2(dz, dx) in wereldcoordinaten; mesh.rotation.y = -heading.
 // Gebruik per frame OF animatePersonWalk OF deze laag voor dezelfde mesh.
 
+import { zwemStand, klimStand, sprongStand } from './bewegingrules.js';
+
 const TAU = Math.PI * 2;
 export const HIP_Y = 0.93;
 export const CHEST_Y = 1.07;
@@ -622,7 +624,7 @@ export function createStage(opts = {}) {
 
 // ---- contract met cutscript.js (cutscenehost): per mesh een eigen acteur ----------------------
 // De host zet positie en rotatie; deze functie poseert alleen botten (kop, romp, ledematen).
-export const ANIMS = ['idle', 'walk', 'run', 'talk', 'wave', 'point', 'shrug', 'nod', 'shake', 'laugh', 'carry', 'lean', 'hips', 'phone', 'cheer', 'look', 'ride'];
+export const ANIMS = ['idle', 'walk', 'run', 'talk', 'wave', 'point', 'shrug', 'nod', 'shake', 'laugh', 'carry', 'lean', 'hips', 'phone', 'cheer', 'look', 'ride', 'zwem', 'klim', 'sprong'];
 const LOOPED = { wave: 'zwaai', point: 'wijs', shrug: 'schouders', nod: 'knik', shake: 'schud', laugh: 'lach', cheer: 'juich' };
 const meshActors = new WeakMap();
 
@@ -651,6 +653,11 @@ export function animateActor(mesh, o = {}) {
     p.legL.z = 0.9; p.legR.z = 0.5; p.legL.k = -1.1; p.legR.k = -0.5;
     p.armL.z = 1.0; p.armR.z = 1.0; p.armL.e = 0.4; p.armR.e = 0.4; p.chest.z = -0.15;
   }
+  // bewegingsvormen (bewegingrules.js, #207): de host zet positie en kanteling, hier alleen de botten
+  const tt = finite(o.t);
+  if (anim === 'zwem') blendPose(p, zwemStand(tt), 1);
+  else if (anim === 'klim') blendPose(p, klimStand(tt), 1);
+  else if (anim === 'sprong') blendPose(p, sprongStand((tt % 1.2) / 1.2), 1);
   applyPose(ud, p);
   a.events.length = 0;
   return true;

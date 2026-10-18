@@ -11,7 +11,7 @@ const scene = new Map(data.scenes.map((s) => [s.id, s]));
 let n = 0, bad = 0;
 const ok = (c, m) => { n++; if (!c) { bad++; console.log('FAIL ' + m); } };
 
-const KINDS = new Set(['board', 'goto', 'hold', 'scene', 'pigeon', 'chase', 'bake', 'convoy']);
+const KINDS = new Set(['board', 'goto', 'hold', 'scene', 'pigeon', 'chase', 'bake', 'convoy', 'choice']);
 const spot = (x, y) => ({ x, y, road: { pts: [] } });
 const fresh = buildAkte5Defs({ map: {}, walk: spot, drive: spot });
 ok(fresh.length === 2 && fresh.map((d) => d.mid).join() === 'luik,colonne', 'two new defs: luik and colonne');
@@ -70,9 +70,9 @@ for (const d of defs) for (const st of d.stages) {
 }
 for (const s of akte5) for (const id of s.scenes) ok(played.has(id), `${s.id}: scene ${id} is played by the step or a stage`);
 
-// the finale: bake -> stall -> board -> block -> fall -> Mem -> jury, then the outro of the step
+// the finale: bake -> stall -> board -> block -> fall -> Mem -> jury's question -> jury, then the outro of the step
 const fin = byLabel('Ontzet, net als in 1672');
-ok(fin.stages.map((q) => q.kind).join() === 'bake,hold,board,chase,scene,scene,scene', 'the finale runs in order');
+ok(fin.stages.map((q) => q.kind).join() === 'bake,hold,board,chase,scene,scene,choice,scene', 'the finale runs in order');
 ok(fin.stages.find((q) => q.kind === 'chase').keep === true, 'the limo is not adopted as a mission car');
 ok(byLabel('Een luik erin').stages.filter((q) => q.mud).length === 2, 'the mud is two stages');
 ok(fresh.every((d) => d.heroCar), 'the new defs use the Escapade');

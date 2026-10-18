@@ -36,6 +36,7 @@ export const totalIncomePerMin = (c) => Object.keys(c.outlets).reduce((a, id) =>
 
 // seconds of play pass
 export function accrue(c, seconds) {
+  if (!(seconds > 0) || !Number.isFinite(seconds)) return; // NaN of negatief zou de kassa blijvend vergiftigen
   for (const id of Object.keys(c.outlets)) {
     const o = c.outlets[id];
     o.till = Math.min(capOf(c, id), o.till + incomePerMin(c, id) * seconds / 60);

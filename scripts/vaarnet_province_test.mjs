@@ -25,6 +25,14 @@ const file = JSON.parse(fs.readFileSync(new URL('../game/vaarnet_fixes.json', im
 const gaten = W.clusterGaps(R);
 ok(JSON.stringify(gaten) === JSON.stringify(file.gaten), 'game/vaarnet_fixes.json lists the gaps the audit finds (run vaarnet.mjs --fixes)', `${gaten.length} vs ${file.gaten.length}`);
 ok(JSON.stringify(W.seaTongues(built)) === JSON.stringify(file.zee), 'and the sea access it makes');
+const comp = W.components(built.R, 2);
+ok(JSON.stringify(W.autoLinks(built.R, comp, 2)) === JSON.stringify(file.verbindingen), 'and the small links between water pieces');
+
+// the components of all navigable water: the inner city's piece is the big one, the net holds many pieces
+const rep0 = W.componentReport(built, { log: () => {} });
+ok(rep0.net.length > 300, 'the province has hundreds of navigable water pieces', String(rep0.net.length));
+ok(rep0.net[0].id === rep0.main && rep0.net[0].cells > 1e6, 'the biggest is the inner city piece, over a million cells', String(rep0.net[0].cells));
+ok(rep0.ditches > 1000, 'the ditches and ponds of class 1 are counted as deliberately not navigable', String(rep0.ditches));
 
 // the route: tour boat, class 3
 const rep = W.audit(built, { classes: [3, 4], log: () => {} });

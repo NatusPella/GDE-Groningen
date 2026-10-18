@@ -137,7 +137,7 @@ export function buildRaster({ worldDir, city = true, fixesOn = !process.argv.inc
   // de verbindingen die een gat in het water dichten (game/vaarnet_fixes.json); met --no-fixes weggelaten
   const fixFile = fixesOn ? JSON.parse(fs.readFileSync(new URL('../../game/vaarnet_fixes.json', import.meta.url))) : { links: [], gaten: [] };
   for (const l of fixFile.links || []) fillPolygon(R, linkPolygon(l), 4 | 32);
-  if (gatenOn) for (const g of [...(fixFile.gaten || []), ...(fixFile.zee || [])]) fillPolygon(R, gatPolygon(g), g[5] | 32);
+  if (gatenOn) for (const g of [...(fixFile.gaten || []), ...(fixFile.verbindingen || []), ...(fixFile.zee || [])]) fillPolygon(R, gatPolygon(g), g[5] | 32);
   // bruggen over water
   const roads = [...P.bridges, ...cityMap.roads.filter((r) => r && r.bridge).map((r) => ({ pts: r.pts, z: null, width: r.width || 4, movable: r.movable || '', name: r.name || '', type: r.type || '', city: true }))];
   for (const b of roads) {
@@ -375,7 +375,7 @@ function obstacleCost(ob, kind) {
 
 // Dijkstra over de open cellen van een klasse. targets: (cx, cy) => label | null.
 // Geeft per label de eerste (goedkoopste) cel die het bereikt, plus de totale reikwijdte.
-export function sail(R, starts, cls, kind, targets, { stopWhenAll = null } = {}) {
+export function sail(R, starts, cls, kind, targets, { stopWhenAll = null, navCost = null } = {}) {
   const dist = new Map(), par = new Map(); // brok -> Float32Array / Uint8Array
   const dch = (cx, cy) => { const k = (cy >> 8) * NCX + (cx >> 8); let c = dist.get(k); if (!c) { c = new Float32Array(CS * CS).fill(Infinity); dist.set(k, c); par.set(k, new Uint8Array(CS * CS)); } return k; };
   const heap = new Heap();
@@ -386,7 +386,7 @@ export function sail(R, starts, cls, kind, targets, { stopWhenAll = null } = {})
   while (heap.n) {
     const u = heap.pop(), d = heap.popKey, cx = u % GW, cy = (u - cx) / GW;
     const k = dch(cx, cy), di = ((cy & 255) << 8) | (cx & 255);
-    if (d > dist.get(k)[di]) continue;
+    if (d > dist.get(k)[di] + 0.01) continue;
     reached++;
     const lab = targets(cx, cy);
     if (lab && !found.has(lab)) { found.set(lab, { cx, cy, cost: d }); if (stopWhenAll && found.size >= stopWhenAll) break; }
@@ -395,7 +395,7 @@ export function sail(R, starts, cls, kind, targets, { stopWhenAll = null } = {})
       const nx = cx + DX[s], ny = cy + DY[s];
       if (!open(nx, ny)) continue;
       // een diagonaal mag geen hoek afsnijden door gesloten water
-      let c = DC[s];
+      let c = navCost ? DC[s] * navCost[R.nav(nx, ny)] : DC[s];
       // dicht bij de oever kost meer: de route houdt het midden van de vaargeul
       let shore = 0;
       for (let q = 0; q < 8; q += 2) if (!open(nx + DX[q], ny + DY[q])) shore++;
@@ -403,7 +403,7 @@ export function sail(R, starts, cls, kind, targets, { stopWhenAll = null } = {})
       const nid = id(nx, ny), ob = R.obs.get(nid);
       if (ob !== undefined && ob !== ob0) c += obstacleCost(R.list[ob], kind);
       const nk = dch(nx, ny), ni = ((ny & 255) << 8) | (nx & 255), nd = d + c;
-      if (nd < dist.get(nk)[ni]) { dist.get(nk)[ni] = nd; par.get(nk)[ni] = s + 1; heap.push(nd, nid); }
+      if (nd < dist.get(nk)[ni] - 0.01) { dist.get(nk)[ni] = nd; par.get(nk)[ni] = s + 1; heap.push(nd, nid); }
     }
   }
   const trace = (cx, cy) => {
@@ -416,7 +416,12 @@ export function sail(R, starts, cls, kind, targets, { stopWhenAll = null } = {})
     }
     return path.reverse();
   };
-  return { found, reached, trace, cost: (cx, cy) => { const k = (cy >> 8) * NCX + (cx >> 8), c = dist.get(k); return c ? c[((cy & 255) << 8) | (cx & 255)] : Infinity; } };
+  // de cel waar de goedkoopste route naar (cx, cy) vandaan komt, of null bij een wortel
+  const parent = (cx, cy) => {
+    const k = (cy >> 8) * NCX + (cx >> 8), p = par.get(k), d = p ? p[((cy & 255) << 8) | (cx & 255)] : 0;
+    return d ? [cx - DX[d - 1], cy - DY[d - 1]] : null;
+  };
+  return { found, reached, trace, parent, cost: (cx, cy) => { const k = (cy >> 8) * NCX + (cx >> 8), c = dist.get(k); return c ? c[((cy & 255) << 8) | (cx & 255)] : Infinity; } };
 }
 
 // de obstakels langs een pad: [{ ...obstakel, at (m langs de route), ok }]
@@ -659,6 +664,79 @@ export function audit({ R, P, places }, { classes = [3, 4], start = [0, -350], l
   return report;
 }
 
+// ------------------------------------------------------------------ componenten
+
+// Het water per klasse in samenhangende stukken: grootte, plaats en of het in het net zit.
+// Klasse 1 (sloten en vijvers) en stukken onder minCells cellen horen er met opzet niet in.
+// Geeft { net: [...stukken in het net, grootste eerst], small, ditch, main } en schrijft een samenvatting.
+export function componentReport({ R, places, water }, { minCells = 200, start = [0, -350], log = console.log, cls = 2 } = {}) {
+  const comp = components(R, cls);
+  const acc = new Map();
+  for (let ci = 0; ci < R.chunks.length; ci++) {
+    const ch = R.chunks[ci];
+    if (!ch) continue;
+    const bx = (ci % NCX) * CS, by = Math.floor(ci / NCX) * CS;
+    for (let i = 0; i < ch.length; i++) {
+      if ((ch[i] & 7) < cls) continue;
+      const cx = bx + (i & 255), cy = by + (i >> 8), l = comp.label(cx, cy);
+      let a = acc.get(l);
+      if (!a) acc.set(l, a = { l, n: 0, sx: 0, sy: 0, n3: 0, n4: 0 });
+      a.n++; a.sx += cx; a.sy += cy;
+      if ((ch[i] & 7) >= 3) a.n3++;
+      if ((ch[i] & 7) >= 4) a.n4++;
+    }
+  }
+  const place = (x, y) => { let b = null, bd = 8000; for (const p of places) { if (p.kind === 'hamlet' && !p.pop) continue; const d = Math.hypot(p.x - x, p.y - y); if (d < bd) { bd = d; b = p; } } return b ? b.name : '?'; };
+  const list = [...acc.values()].sort((a, b) => b.n - a.n).map((a) => {
+    const [x, y] = cellXY(a.sx / a.n, a.sy / a.n);
+    return { id: a.l, cells: a.n, ha: Math.round(a.n * CELL * CELL / 1e4), x: Math.round(x), y: Math.round(y), near: place(x, y), wide: a.n3 / a.n, barge: a.n4 / a.n };
+  });
+  const net = list.filter((c) => c.cells >= minCells), small = list.filter((c) => c.cells < minCells);
+  const s = nearestOpenCell(R, start[0], start[1], cls);
+  const main = s ? comp.label(...s) : 0;
+  // water van klasse 1 staat niet in het raster: uit de polygonen zelf
+  let ditchCells = 0, ditches = 0;
+  for (const w of water || []) { if ((w.nav ?? 0) >= 2 || w.pts.length < 3) continue; ditches++; ditchCells += polyArea(w.pts) / (CELL * CELL); }
+  const sum = (a, f) => a.reduce((n, c) => n + f(c), 0);
+  log(`klasse ${cls}: ${list.length} waterstukken; ${net.length} in het net (${Math.round(sum(net, (c) => c.ha))} ha), ${small.length} kleiner dan ${minCells} cellen (${Math.round(sum(small, (c) => c.ha))} ha) niet`);
+  log(`water van klasse 1 (sloten en vijvers smaller dan 4 m of kleiner dan een vijver, bewust niet bevaarbaar): ${ditches} polygonen, ${Math.round(ditchCells * CELL * CELL / 1e4)} ha`);
+  const mainRow = net.find((c) => c.id === main);
+  log(`het stuk van de binnenstad: ${mainRow ? mainRow.cells + ' cellen, ' + mainRow.ha + ' ha' : 'niet gevonden'}`);
+  log('de grootste stukken (cellen, ha, bij, dat deel breder dan 9 m, deel voor binnenvaart):');
+  for (const c of net.slice(0, 25)) log(`  ${c.id === main ? '* ' : '  '}${c.cells} cellen, ${c.ha} ha bij ${c.near} (${c.x},${c.y}), ${Math.round(c.wide * 100)}% klasse 3, ${Math.round(c.barge * 100)}% klasse 4`);
+  return { comp, list, net, small, main, ditches, ditchCells };
+}
+
+// Verbindingen waar een kanaal in de kaart onderbroken lijkt: twee stukken van minCells cellen
+// of meer, hooguit maxGap m uit elkaar, waarvan de oevers elkaar over de breedte van het
+// gat niet overal raken (een gat in het kanaal, niet twee evenwijdige sloten): vanaf het ene
+// uiteinde zijn het stuk aan de overkant en het open land aan beide kanten hooguit 3 van de 16
+// richtingen het andere stuk. Geeft rechthoeken [x, y, lengte, breedte, hoek, nav] zoals gaten.
+export function autoLinks(R, comp, cls, { minCells = 300, maxGap = 25, width = 8 } = {}) {
+  const out = [];
+  const gaps = findGaps(R, comp, cls, { minCells, maxGap });
+  const used = new Set();
+  for (const g of gaps) {
+    const [fx, fy] = cellOf(g.from[0], g.from[1]);
+    let hits = 0;
+    for (let k = 0; k < 16; k++) {
+      const a = (k / 16) * Math.PI * 2, dx = Math.cos(a), dy = Math.sin(a);
+      for (let r = 1; r <= Math.ceil(maxGap * 3 / CELL); r++) {
+        const nx = Math.round(fx + dx * r), ny = Math.round(fy + dy * r);
+        if (R.nav(nx, ny) < cls) continue;
+        if (comp.label(nx, ny) === g.a || comp.label(nx, ny) === g.b) { if (comp.label(nx, ny) !== comp.label(fx, fy)) hits++; break; }
+      }
+    }
+    if (hits > 3) continue;
+    const key = Math.min(g.a, g.b) + ',' + Math.max(g.a, g.b);
+    if (used.has(key)) continue;
+    used.add(key);
+    const [x0, y0] = g.from, [x1, y1] = g.to, r1 = (v) => Math.round(v * 10) / 10;
+    out.push([r1((x0 + x1) / 2), r1((y0 + y1) / 2), r1(Math.hypot(x1 - x0, y1 - y0) + CELL), width, Math.round(Math.atan2(y1 - y0, x1 - x0) * 1000) / 1000, cls]);
+  }
+  return out;
+}
+
 if (process.argv[1] && process.argv[1].endsWith('vaarnet.mjs')) {
   const arg = (n, d) => { const i = process.argv.indexOf(n); return i >= 0 ? process.argv[i + 1] : d; };
   const classes = arg('--class', '3,4').split(',').map(Number);
@@ -668,10 +746,12 @@ if (process.argv[1] && process.argv[1].endsWith('vaarnet.mjs')) {
   console.log(`raster: ${built.water.length} waterpolygonen, ${built.R.list.length} obstakels, open cellen klasse 2/3/4: ${open.join('/')} (${((Date.now() - t) / 1000).toFixed(1)} s)`);
   if (process.argv.includes('--fixes')) {
     const gaten = clusterGaps(built.R), zee = seaTongues(built);
+    const verbindingen = autoLinks(built.R, components(built.R, 2), 2);
     const file = new URL('../../game/vaarnet_fixes.json', import.meta.url);
     const cur = JSON.parse(fs.readFileSync(file));
     cur.gaten = gaten;
     cur.zee = zee;
+    cur.verbindingen = verbindingen;
     const line = (x) => '    ' + JSON.stringify(x);
     const out = [
       '{',
@@ -680,13 +760,27 @@ if (process.argv[1] && process.argv[1].endsWith('vaarnet.mjs')) {
       '  "links": [', cur.links.map(line).join(',\n'), '  ],',
       '  "gatenUitleg": ' + JSON.stringify('gaten: [x, y, lengte, breedte, hoek (rad), nav], waterstukjes onder bruggen en sluizen waar de kaart het water onderbreekt; gemaakt door scripts/world/vaarnet.mjs --fixes') + ',',
       '  "gaten": [', gaten.map(line).join(',\n'), '  ],',
+      '  "verbindingenUitleg": ' + JSON.stringify('verbindingen: kleine stukken water waar een kanaal of vaart in de kaart onderbroken lijkt (hooguit 25 m, [x, y, lengte, breedte, hoek (rad), nav]); gemaakt door scripts/world/vaarnet.mjs --fixes. Nog niet in beeld bekeken.') + ',',
+      '  "verbindingen": [', verbindingen.map(line).join(',\n'), '  ],',
       '  "zeeUitleg": ' + JSON.stringify('zee: verbinding en tong zee bij een zeetoegang zonder water aan de zeekant, [x, y, lengte, breedte, hoek (rad), nav, naam]; de tong loopt tot voorbij de omkeerlijn van het eind van de wereld (worldedge.js). Nog niet in beeld bekeken.') + ',',
       '  "zee": [', zee.map(line).join(',\n'), '  ]',
       '}', '',
     ].join('\n');
     fs.writeFileSync(file, out);
-    console.log(gaten.length + ' gaten en ' + zee.length + ' stukken zee geschreven in game/vaarnet_fixes.json');
+    console.log(gaten.length + ' gaten, ' + verbindingen.length + ' verbindingen en ' + zee.length + ' stukken zee geschreven in game/vaarnet_fixes.json');
     for (const z of zee) console.log('  zee bij ' + z[6] + ': ' + z.slice(0, 5).join(', '));
+    process.exit(0);
+  }
+  if (process.argv.includes('--components')) {
+    const rep = componentReport(built);
+    const links = autoLinks(built.R, rep.comp, 2);
+    console.log(links.length + ' verbindingen van hooguit 25 m gevonden tussen waterstukken (vaarnet.mjs --fixes schrijft ze)');
+    // de plaatsen die geen water in het net hebben
+    const miss = built.places.filter((p) => p.kind === 'town').filter((p) => { const c = nearestOpenCell(built.R, p.x, p.y, 2, 140); return !c || rep.net.every((n) => n.id !== rep.comp.label(c[0], c[1])); });
+    const gapRows = linkCandidates(built.R, rep.comp, 2, rep.main, { minCells: 2000, maxM: 3000 });
+    console.log('grote waterstukken die niet bij het stuk van de binnenstad horen, met het kortste gat daartoe (tot 3 km):');
+    for (const c of gapRows.slice(0, 20)) console.log('  ' + c.cells + ' cellen, ' + Math.round(c.d) + ' m van ' + c.from.map(Math.round) + ' naar ' + c.to.map(Math.round) + nearObs(built.R, c.from, 200));
+    console.log('steden zonder vaarwater van het net binnen 700 m: ' + (miss.map((p) => p.name).join(', ') || 'geen'));
     process.exit(0);
   }
   if (process.argv.includes('--links')) {
