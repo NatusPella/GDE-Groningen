@@ -178,6 +178,7 @@ All URL switches live in one register, `FLAGS` in `game/js/devflags.js` (parsed 
 | `?touch` | Raakbediening aan (touch=1) of uit (touch=0), ook zonder touchscherm |
 | `?hitch` | Meet haperingen (hitchprobe) |
 | `?zwartcheck` | Controleer op zwarte beelden (blackframe) |
+| `?reizen` | Reisbeats in het nieuwe verhaal: keuze Meerijden, Zelf rijden of Overslaan bij een sprong (#97) |
 
 - `?dev` (desktop `--dev`): story dev panel on F9. Chapter select (jumps to
   any story step with the money, belongings and progress a player would have

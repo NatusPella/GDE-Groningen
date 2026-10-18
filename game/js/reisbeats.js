@@ -26,12 +26,13 @@ export const REISBEATS = {
   M23: { act: 5, from: 'Schuur', to: 'Grote Markt', length: 20000, ride: 'lift', selfMode: 'auto' },
 };
 
-// the beat in front of a step, as reiskeuze.js wants it (lines from the script)
+// the beat in front of a step, as reiskeuze.js wants it (lines from the script:
+// the parsed script.json, or a lookup function id -> scene such as storytext.js scene())
 export function beatFor(stepId, script) {
   const b = REISBEATS[stepId];
   if (!b) return null;
   const out = { ...b, stepId };
-  const sc = b.scene && script?.scenes?.find((s) => s.id === b.scene);
+  const sc = b.scene && (typeof script === 'function' ? script(b.scene) : script?.scenes?.find((s) => s.id === b.scene));
   if (sc) out.lines = (sc.lines || []).filter((l) => l.text).slice(0, 4).map((l) => `${l.speaker}: ${l.text}`);
   return out;
 }
