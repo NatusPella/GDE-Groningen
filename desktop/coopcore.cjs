@@ -74,9 +74,12 @@ function realIo(localIp) {
 }
 
 // opts: { gameDir, emit(kind, payload), localIp?, upnp? (false = geen router benaderen), io? (test) }
+// Events: 'conn' {id} (een verbinding is geldig), 'msg' {id, data}, 'state' {id, state: 'open'|'closed'}.
+// De host kan tot max-1 gasten tegelijk hebben (elk een eigen id); een gast heeft altijd id 0.
 function createCoopCore(opts) {
   const emit = opts.emit || (() => {});
-  let mods = null, server = null, sock = null, mapping = null, key = null, decoder = null, hostSide = false;
+  let mods = null, server = null, mapping = null, key = null, hostSide = false, nextId = 1, max = 4;
+  const socks = new Map(); // id -> socket
 
   async function load() {
     if (mods) return mods;
@@ -84,34 +87,34 @@ function createCoopCore(opts) {
     const [upnp, pairing] = await Promise.all([import(pathToFileURL(path.join(dir, 'upnp.js')).href), import(pathToFileURL(path.join(dir, 'pairing.js')).href)]);
     mods = { upnp, pairing }; return mods;
   }
-  const state = (s, extra) => emit('state', { state: s, ...extra });
 
-  function attach(s, needKey) {
-    sock = s; s.setNoDelay(true);
-    decoder = new mods.pairing.FrameDecoder();
+  function attach(id, s, needKey) {
+    socks.set(id, s); s.setNoDelay(true);
+    const decoder = new mods.pairing.FrameDecoder();
     let authed = !needKey;
     const timer = needKey ? setTimeout(() => { if (!authed) s.destroy(); }, KEY_TIMEOUT_MS) : null;
     s.on('data', (chunk) => {
       for (const f of decoder.push(new Uint8Array(chunk))) {
         if (!authed) {
-          if (mods.pairing.checkKeyFrame(f, key)) { authed = true; clearTimeout(timer); state('open'); } else { s.destroy(); return; }
-        } else emit('msg', f);
+          if (mods.pairing.checkKeyFrame(f, key)) { authed = true; clearTimeout(timer); emit('conn', { id }); emit('state', { id, state: 'open' }); } else { s.destroy(); return; }
+        } else emit('msg', { id, data: f });
       }
       if (decoder.broken) s.destroy();
     });
-    s.on('close', () => { clearTimeout(timer); if (sock === s) { sock = null; state('closed'); } });
+    s.on('close', () => { clearTimeout(timer); if (socks.get(id) === s) { socks.delete(id); if (authed) emit('state', { id, state: 'closed' }); } });
     s.on('error', () => { /* close volgt */ });
   }
 
-  async function host() {
+  async function host(o = {}) {
     const m = await load();
     await stop();
+    max = Math.min(8, Math.max(2, o.max || 4));
     key = m.pairing.makeKey();
-    hostSide = true;
+    hostSide = true; nextId = 1;
     let port = 0;
     server = net.createServer((s) => {
-      if (sock) { s.destroy(); return; } // één gast tegelijk
-      attach(s, true);
+      if (socks.size >= max - 1) { s.destroy(); return; } // vol
+      attach(nextId++, s, true);
     });
     for (let p = PORT_MIN; p <= PORT_MAX && !port; p += Math.floor(Math.random() * 7) + 1) {
       try { await new Promise((res, rej) => { server.once('error', rej); server.listen(p, '0.0.0.0', () => { server.removeListener('error', rej); res(); }); }); port = p; } catch (e) { /* bezet */ }
@@ -140,26 +143,29 @@ function createCoopCore(opts) {
       let settled = false;
       s.once('connect', () => {
         s.setTimeout(0); settled = true;
-        attach(s, false);
+        attach(0, s, false);
         s.write(Buffer.from(m.pairing.frame(m.pairing.encodeKeyFrame(key))));
-        state('open'); resolve({ ok: true });
+        emit('conn', { id: 0 }); emit('state', { id: 0, state: 'open' }); resolve({ ok: true });
       });
       const fail = () => { if (!settled) { settled = true; s.destroy(); resolve({ ok: false, reason: 'Geen verbinding met de host. Controleer de code en of de host het spel open heeft.' }); } };
       s.once('timeout', fail); s.once('error', fail);
     });
   }
 
-  function send(bytes) {
-    if (!sock || sock.destroyed || !mods) return false;
-    try { sock.write(Buffer.from(mods.pairing.frame(bytes))); return true; } catch (e) { return false; }
+  function send(id, bytes) {
+    const s = socks.get(id);
+    if (!s || s.destroyed || !mods) return false;
+    try { s.write(Buffer.from(mods.pairing.frame(bytes))); return true; } catch (e) { return false; }
   }
+  function close(id) { const s = socks.get(id); if (s) { try { s.destroy(); } catch (e) { /* weg */ } } }
 
   async function stop() {
-    if (sock) { try { sock.destroy(); } catch (e) { /* weg */ } sock = null; }
+    for (const s of [...socks.values()]) { try { s.destroy(); } catch (e) { /* weg */ } }
+    socks.clear();
     if (server) { try { server.close(); } catch (e) { /* weg */ } server = null; }
     if (mapping) { const mp = mapping; mapping = null; try { await mp.close(); } catch (e) { /* router weg */ } }
   }
-  return { host, join, send, stop, isConnected: () => !!sock };
+  return { host, join, send, close, stop, isConnected: () => socks.size > 0, count: () => socks.size };
 }
 
 module.exports = { createCoopCore, isLanHost, lanIp };
