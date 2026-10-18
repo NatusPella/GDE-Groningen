@@ -26,6 +26,7 @@ import { RULES } from '../../game/js/junctions.js';
 registerBuilderHooks();
 import { wgsToWorld, worldToWgs } from '../../game/js/rdnew.js';
 import { edgeRows } from '../../game/js/navgraph.js';
+import { ribbon } from './derive_tiles.mjs';
 import { edgeFromOsm } from '../../game/js/worldedge.js';
 import { LINES, TOWNS, loadPlaces, corridorTiles, tileSources, packOf } from './corridor.mjs';
 import { bakeCityRoutes, railLines } from './cityroutes.mjs';
@@ -124,20 +125,6 @@ export function cutIslands(outer, islands) {
     }
   }
   return ring;
-}
-
-// a waterway line as a polygon strip of half width hw
-function ribbon(P, hw) {
-  const L = [], R = [];
-  for (let i = 0; i < P.length; i++) {
-    const a = P[Math.max(0, i - 1)], b = P[Math.min(P.length - 1, i + 1)];
-    const dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy) || 1;
-    const nx = -dy / l, ny = dx / l;
-    L.push([r2(P[i][0] + nx * hw), r2(P[i][1] + ny * hw)]);
-    R.push([r2(P[i][0] - nx * hw), r2(P[i][1] - ny * hw)]);
-  }
-  const ring = [...L, ...R.reverse()];
-  return [...ring, ring[0]];
 }
 
 const centroid = (P) => { const n = P.length - (P[0][0] === P[P.length - 1][0] && P[0][1] === P[P.length - 1][1] ? 1 : 0); let x = 0, y = 0; for (let i = 0; i < n; i++) { x += P[i][0]; y += P[i][1]; } return [x / n, y / n]; };
