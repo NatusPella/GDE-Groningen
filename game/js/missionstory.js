@@ -574,6 +574,22 @@ const STORY = [
     replay: [['N', 'Weer nul krassen. Ik begin het je bijna te gunnen.']],
     fail: [['A', 'Dit vertellen we Berend dus niet.'], ['T', 'Hij schrijft er vast een brief over.']],
   },
+  {
+    // 20: M13 Het containerlabyrint (new story; the lines are the script's, see entryFor)
+    npc: 'lammert', outroPose: 'hips', ask: 0, textOnly: true,
+    intro: [['N', 'Ik ben Lammert, havenmeester.']],
+    outro: [['N', 'Het schip vaart leeg weg.']],
+    replay: [['N', 'Weer een container? Mijn kranen zeggen dank.']],
+    fail: [['A', 'Gezien. Sikkom.'], ['T', 'De nacht begint opnieuw.']],
+  },
+  {
+    // 21: M14 De dijk (new story; the lines are the script's, see entryFor)
+    npc: 'jelle', outroNpcKey: 'lammert', outroPose: 'hips', ask: 0, textOnly: true,
+    intro: [['N', 'Goedemorgen.']],
+    outro: [['N', 'Het beslag mislukt.']],
+    replay: [['N', 'Weer een rondje? Dat neem ik jullie niet kwalijk.']],
+    fail: [['A', 'Jelle was eerder. Sikkom.'], ['T', 'Opnieuw, en nu zonder schapen.']],
+  },
 ];
 
 // Tammo/Tessa lines for when a mission is played before the ones leading up

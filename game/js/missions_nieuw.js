@@ -10,6 +10,10 @@ import { ROOSTER } from './heliplan.js';
 // A spot in the province by latitude/longitude plus metres east/south (province roads are not in the city map: no road snapping).
 const spotAt = (lat, lon, dx = 0, dy = 0) => { const [x, y] = wgsToWorld(lat, lon); return { x: x + dx, y: y + dy, road: null }; };
 
+// M14: the finish at the sluis of Delfzijl and the start 8 km back along the line to the Eemshaven
+const DIJK_SLUIS = spotAt(53.3245, 6.9270);
+const DIJK_START = (() => { const e = spotAt(53.4395, 6.8350), L = Math.hypot(e.x - DIJK_SLUIS.x, e.y - DIJK_SLUIS.y), k = 8000 / L; return { x: DIJK_SLUIS.x + (e.x - DIJK_SLUIS.x) * k, y: DIJK_SLUIS.y + (e.y - DIJK_SLUIS.y) * k, road: null }; })();
+
 // The def pieces: walk(x, y) / drive(x, y) are missions.js's road spots.
 export function buildNieuwDefs({ map, walk, drive }) {
   const list = [];
@@ -68,6 +72,59 @@ export function buildNieuwDefs({ map, walk, drive }) {
       start: drive(223.17, -30.52),
       dest: drive(-22.92, -491.56),
       say: 'Eerst de Grote Markt: vijftienhonderd stuntpunten, zonder krassen. Daarna het Boterdiep.',
+    },
+    {
+      // M13 Het containerlabyrint: a sneak between the containers of the Noorderterminal (Eemshaven) on the heist watchers;
+      // the crane cabin is a place to keep still, no crane to drive. The places are guesses until the Eemshaven tiles are seen.
+      type: 'stages',
+      label: 'Het containerlabyrint',
+      intro: ["De Eemshaven, vannacht. Lammert, de havenmeester, wacht aan de kade van de Noorderterminal.", "Container 4471 staat tussen drieduizend anderen. Sluip langs de bewakers en camera's, vind hem en verwissel de papieren voor het schip om zes uur vertrekt."],
+      outro: 'De papieren zijn verwisseld. Het schip van Jelle vaart leeg weg.',
+      timeLimit: null,
+      reward: 900,
+      onFoot: true,
+      heist: { bare: true },
+      start: spotAt(53.4440, 6.8560),
+      stages: [
+        { kind: 'goto', watch: { guards: 1, cameras: 1 }, target: { ...spotAt(53.4440, 6.8560, 120, -55), label: 'De kraan van de Noorderterminal' }, mode: 'foot', radius: 7,
+          label: 'Sluip naar de kraan van de Noorderterminal', say: "Eerst de kraan: daarvan zien we welke container blauw is. Blijf uit de lichtbundels en de camera's." },
+        { kind: 'hold', target: { ...spotAt(53.4440, 6.8560, 120, -55), label: 'De kraankooi' }, radius: 8, time: 9, mode: 'foot', ticks: ['Het eerste piepje. Niet bewegen.', 'Het tweede piepje. De bewaker kijkt omhoog.'],
+          label: 'Blijf stil in de kraankooi tot de bewaker wegloopt', say: 'In de kooi van de kraan. Lammert belt: de bewaker kijkt bij het tweede piepje omhoog. Niet bewegen.', talk: { ids: ['M13.2'], delay: 1.5 } },
+        { kind: 'goto', watch: { guards: 2, cameras: 1 }, target: { ...spotAt(53.4440, 6.8560, 260, 40), label: 'Container 4471' }, mode: 'foot', radius: 6,
+          label: 'Zoek container 4471, de blauwe naast de rode', say: 'Van boven zag je hem: de blauwe, naast de rode. Container 4471.' },
+        { kind: 'hold', target: { ...spotAt(53.4440, 6.8560, 260, 40), label: 'Container 4471' }, radius: 6, time: 6, mode: 'foot', ticks: ['De oude papieren eruit.', 'De nieuwe erin, naar het adres van Lammert.'],
+          label: 'Verwissel de papieren van container 4471', say: 'Papieren eruit, papieren erin. Even rustig staan.' },
+        { kind: 'goto', watch: { guards: 1, cameras: 0 }, target: { ...spotAt(53.4440, 6.8560, 10, 5), label: 'Lammert, aan de kade' }, mode: 'foot', radius: 7,
+          label: 'Terug naar Lammert aan de kade', say: 'Klaar. Terug naar de kade, voor het schip vertrekt.' },
+      ],
+    },
+    {
+      // M14 De dijk: a race to the sluis of Delfzijl against Jelle's trekker-limo (with the deurwaarder). The limo follows the roads
+      // like a chase vehicle (missions.js updateChaseRace); the places are guesses until the Eemsdelta tiles are seen.
+      type: 'stages',
+      label: 'De dijk',
+      intro: ["Zaterdag, zonsopgang. Om acht uur legt Jelles deurwaarder beslag op de ligplaats van Lammerts woonschip in Delfzijl, met al het vet, de eieren en het zout van de vrienden van Oma erin.", "Wees eerder bij de sluis van Delfzijl dan de trekker-limo met de deurwaarder. De dijk is lang en er staan schapen op de weg."],
+      outro: 'De sluis van Delfzijl, eerst. Het beslag mislukt: de voorraden zijn veilig.',
+      timeLimit: null,
+      reward: 1000,
+      vehicle: 'car',
+      snapStart: true,
+      vehicleName: 'de auto van Lammert',
+      handBack: { how: 'park', say: 'De auto blijft bij de sluis, Lammert regelt de rest. Wij gaan te voet verder.' },
+      start: DIJK_START,
+      stages: [
+        { kind: 'board', label: 'Stap in de auto naast de trekker-limo', say: 'Instappen. De trekker-limo van Jelle staat al te ronken.' },
+        {
+          kind: 'chase', race: true, label: 'Wees eerder bij de sluis van Delfzijl dan Jelles deurwaarder',
+          say: 'Naar de sluis van Delfzijl, over de dijk. Eerste aan de sluis houdt de voorraden. Let op de zijwind en de schapen.',
+          finish: { ...DIJK_SLUIS, label: 'De sluis van Delfzijl' }, flee: [DIJK_SLUIS.x, DIJK_SLUIS.y], radius: 18, rivalRadius: 45,
+          name: 'Jelles trekker-limo', lead: 30, cruise: 24, health: 400,
+          vehicle: { name: 'trekkerlimo', len: 5.6, wid: 2.0, maxSpeed: 27, accel: 5, brake: 12, turnRate: 1.5, color: '#141414' },
+          talk: { ids: ['M14.2'], delay: 8 },
+          won: 'Eerst bij de sluis! De deurwaarder staat met zijn map in de wind.',
+          lost: 'Jelles deurwaarder was eerder bij de sluis. Het beslag is gelegd',
+        },
+      ],
     },
   );
   return list;
