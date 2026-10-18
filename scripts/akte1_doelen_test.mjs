@@ -76,6 +76,10 @@ const bak = byId('bakkiestunt');
 ok(/kattenfilmpje/.test(bak.timeUp) && bak.vehicleFail.gone && bak.vehicleFail.wrecked && bak.vehicleFail.left, 'bakkiestunt: time-up and lost-bakkie messages');
 ok(/vehicleFail = \{ gone/.test(msrc) && /duif\.timeUp/.test(msrc) && /kei\.timeUp/.test(msrc), 'pinautomaat, duif and kei have own failure messages');
 ok(/def\.timeUp \? def\.timeUp/.test(missionsSrc) && /vf\.wrecked/.test(missionsSrc), 'missions.js honours timeUp and vehicleFail');
+// rewards and consequences are visible on the success card (#147)
+ok(Array.isArray(loket.costRow) && /150/.test(loket.costRow[1]), 'loket: the card shows the entry fee (reward is 0)');
+ok((msrc.match(/\.costRow = \[/g) || []).length === 4, 'M02, M04, M05, M06 show what they leave you with');
+ok(/def\.costRow && !replay/.test(missionsSrc), 'missions.js adds costRow to the success card');
 void byId;
 console.log(`${n - fails}/${n} act-1 goal checks passed`);
 process.exit(fails ? 1 : 0);
