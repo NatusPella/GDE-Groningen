@@ -6,8 +6,9 @@
 // verwijderen, en wat er gebeurt als iemand wegvalt. Geen DOM, geen netwerk.
 
 export const MIN_MAX = 4;   // de online modus laat minimaal 4 spelers toe
-export const ABS_MAX = 8;   // harde bovengrens van het protocol
-export const DEFAULT_MAX = 4;
+export const ABS_MAX = 16;  // bovengrens van het protocol (plekken in de codec); in de praktijk bepaalt de verbinding van de host het
+export const DEFAULT_MAX = 8;
+export const ADVIES_VANAF = 4; // vanaf dit aantal spelers waarschuwt de lobby voor prestaties en bandbreedte
 
 // De vaste personages van de eerste twee plekken.
 export const MAIN_CHARS = [
@@ -16,18 +17,42 @@ export const MAIN_CHARS = [
 ];
 // Extra figuren: NPC-achtig, met een eigen uiterlijk (kleur/kleding) en naam. Verzonnen namen (constitution 2).
 export const EXTRA_CHARS = [
-  { id: 'rik', naam: 'Rik', kleur: '#f2b134', vorm: 'vierkant', kleding: 'geel overhemd' },
-  { id: 'sanne', naam: 'Sanne', kleur: '#5bd6a0', vorm: 'cirkel', kleding: 'groene jas' },
-  { id: 'bram', naam: 'Bram', kleur: '#b78cff', vorm: 'vijfhoek', kleding: 'paarse trui' },
-  { id: 'lotte', naam: 'Lotte', kleur: '#ff9a62', vorm: 'ster', kleding: 'oranje regenjas' },
-  { id: 'daan', naam: 'Daan', kleur: '#6fd3e0', vorm: 'plus', kleding: 'lichtblauwe pet' },
-  { id: 'fenna', naam: 'Fenna', kleur: '#e86a6a', vorm: 'kruis', kleding: 'rode sjaal' },
+  { id: 'rik', naam: 'Rik', kleur: '#f2b134', vorm: 'vierkant', kleding: 'geel overhemd', huid: 0xe0b48a, seed: 101, variant: 'male' },
+  { id: 'sanne', naam: 'Sanne', kleur: '#5bd6a0', vorm: 'cirkel', kleding: 'groene jas', huid: 0xf1c9a5, seed: 102, variant: 'female' },
+  { id: 'bram', naam: 'Bram', kleur: '#b78cff', vorm: 'vijfhoek', kleding: 'paarse trui', huid: 0xc68863, seed: 103, variant: 'male' },
+  { id: 'lotte', naam: 'Lotte', kleur: '#ff9a62', vorm: 'ster', kleding: 'oranje regenjas', huid: 0xe0b48a, seed: 104, variant: 'female' },
+  { id: 'daan', naam: 'Daan', kleur: '#6fd3e0', vorm: 'plus', kleding: 'lichtblauwe pet', huid: 0x8d5a3b, seed: 105, variant: 'male' },
+  { id: 'fenna', naam: 'Fenna', kleur: '#e86a6a', vorm: 'kruis', kleding: 'rode sjaal', huid: 0xf1c9a5, seed: 106, variant: 'female' },
+  { id: 'jelmer', naam: 'Jelmer', kleur: '#8fd14f', vorm: 'maan', kleding: 'lichtgroen shirt', huid: 0xc68863, seed: 107, variant: 'male' },
+  { id: 'noor', naam: 'Noor', kleur: '#f08bd0', vorm: 'hart', kleding: 'roze hoodie', huid: 0xe0b48a, seed: 108, variant: 'female' },
+  { id: 'sem', naam: 'Sem', kleur: '#d9c26a', vorm: 'bliksem', kleding: 'okergele jas', huid: 0xf1c9a5, seed: 109, variant: 'male' },
+  { id: 'iris', naam: 'Iris', kleur: '#7a9cf0', vorm: 'druppel', kleding: 'blauwe regenjas', huid: 0x8d5a3b, seed: 110, variant: 'female' },
+  { id: 'tijn', naam: 'Tijn', kleur: '#c9774a', vorm: 'blok', kleding: 'bruine werkjas', huid: 0xe0b48a, seed: 111, variant: 'male' },
+  { id: 'liv', naam: 'Liv', kleur: '#59c9c0', vorm: 'golf', kleding: 'turquoise trui', huid: 0xc68863, seed: 112, variant: 'female' },
+  { id: 'gijs', naam: 'Gijs', kleur: '#a58f7a', vorm: 'schild', kleding: 'beige jas', huid: 0xf1c9a5, seed: 113, variant: 'male' },
+  { id: 'maud', naam: 'Maud', kleur: '#e5a0a0', vorm: 'bloem', kleding: 'zachtroze jas', huid: 0xe0b48a, seed: 114, variant: 'female' },
 ];
+
+// Uiterlijk voor het model (models3d_people.buildPersonMesh): vaste seed, dus iedereen ziet dezelfde figuur.
+const hexInt = (k) => parseInt(String(k).replace('#', ''), 16);
+export function figuurLook(id) {
+  const c = charInfo(id);
+  if (!c) return null;
+  if (id === 'tammo' || id === 'anita') return { karakter: id, shirt: hexInt(c.kleur), skin: 0xe0b48a, opts: { character: id } };
+  return { karakter: null, shirt: hexInt(c.kleur), skin: c.huid, opts: { seed: c.seed, variant: c.variant } };
+}
 const ALL = [...MAIN_CHARS, ...EXTRA_CHARS];
 export const charInfo = (id) => ALL.find((c) => c.id === id) || null;
 export const slotChar = (slot) => (slot < MAIN_CHARS.length ? MAIN_CHARS[slot].id : null);
 
 export const clampMax = (n) => Math.min(ABS_MAX, Math.max(MIN_MAX, Number.isInteger(n) ? n : DEFAULT_MAX));
+
+// Nederlands advies in de lobby bij meer dan 4 spelers (prestaties, en voor de host uploadbandbreedte).
+export function advies(aantal, rol = 'host') {
+  if (aantal <= ADVIES_VANAF) return '';
+  const basis = `Met ${aantal} spelers kan het spel trager worden, vooral op wat oudere computers.`;
+  return rol === 'host' ? `${basis} Als host stuur je alles naar iedereen; een trage internetverbinding (uploaden) kan het spel laten haperen.` : basis;
+}
 
 export function createRoster(max = DEFAULT_MAX) {
   return { max: clampMax(max), spelers: [{ slot: 0, char: 'tammo', rol: 'host', verbinding: 'ok' }] };

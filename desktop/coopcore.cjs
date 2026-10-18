@@ -78,7 +78,7 @@ function realIo(localIp) {
 // De host kan tot max-1 gasten tegelijk hebben (elk een eigen id); een gast heeft altijd id 0.
 function createCoopCore(opts) {
   const emit = opts.emit || (() => {});
-  let mods = null, server = null, mapping = null, key = null, hostSide = false, nextId = 1, max = 4;
+  let mods = null, server = null, mapping = null, key = null, hostSide = false, nextId = 1, max = 8;
   const socks = new Map(); // id -> socket
 
   async function load() {
@@ -108,7 +108,7 @@ function createCoopCore(opts) {
   async function host(o = {}) {
     const m = await load();
     await stop();
-    max = Math.min(8, Math.max(2, o.max || 4));
+    max = Math.min(16, Math.max(2, o.max || 8));
     key = m.pairing.makeKey();
     hostSide = true; nextId = 1;
     let port = 0;
@@ -165,7 +165,7 @@ function createCoopCore(opts) {
     if (server) { try { server.close(); } catch (e) { /* weg */ } server = null; }
     if (mapping) { const mp = mapping; mapping = null; try { await mp.close(); } catch (e) { /* router weg */ } }
   }
-  const setMax = (n) => { max = Math.min(8, Math.max(2, n | 0 || 4)); return max; };
+  const setMax = (n) => { max = Math.min(16, Math.max(2, n | 0 || 8)); return max; };
   return { host, join, send, close, stop, setMax, isConnected: () => socks.size > 0, count: () => socks.size };
 }
 

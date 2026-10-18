@@ -14,7 +14,7 @@
 import { REASON_TEXT } from './net/protocol.js';
 import { parseRoom } from './net/sigcrypto.js';
 import { parseCode } from './net/pairing.js';
-import { EXTRA_CHARS, DEFAULT_MAX, ABS_MAX } from './coopplayers.js';
+import { EXTRA_CHARS, DEFAULT_MAX, MIN_MAX, ABS_MAX, advies } from './coopplayers.js';
 
 export const ROLES = { HOST: 'host', GAST: 'gast' };
 export const ROUTES = { KAMER: 'kamer', DIRECT: 'direct' };
@@ -83,7 +83,7 @@ export function reduce(s, ev) {
       n.wens = EXTRA_CHARS.some((c) => c.id === ev.char) ? ev.char : null; return n;
     case 'hold': n.holdSlot = ev.slot ?? null; n.holdNaam = ev.naam || ''; return n;
     case 'spelers': { // de lijst met spelers is veranderd (host: uit de hub; gast: van de host)
-      n.spelers = Array.isArray(ev.lijst) ? ev.lijst : []; n.max = Math.min(ABS_MAX, Math.max(DEFAULT_MAX, ev.max | 0 || DEFAULT_MAX));
+      n.spelers = Array.isArray(ev.lijst) ? ev.lijst : []; n.max = Math.min(ABS_MAX, Math.max(MIN_MAX, ev.max | 0 || DEFAULT_MAX));
       if (s.rol === ROLES.HOST) {
         if (n.spelers.length > 1 && (s.step === 'host-wacht' || s.step === 'host-maakt-code')) n.step = 'verbonden';
         else if (n.spelers.length <= 1 && s.step === 'verbonden') n.step = 'host-wacht'; // iedereen weg: de code blijft geldig
@@ -161,10 +161,11 @@ export function view(s) {
       const namen = lijst.map((p) => p.naam + (p.slot === 0 ? ' (host)' : '') + (p.verbinding === 'lost' ? ' · verbinding weg' : p.verbinding === 'lag' ? ' · haperend' : ''));
       const lines = [lijst.length ? `Spelers (${lijst.length} van ${s.max}): ${namen.join(', ')}.` : `Je speelt met ${PARTNER_NAME[s.rol] || 'je medespeler'}.`];
       if (lag) lines.push('De verbinding haperde even; we wachten op de ander.');
+      const tip = advies(lijst.length, host ? 'host' : 'gast'); if (tip) lines.push(tip);
       const buttons = [];
       if (host) {
         for (const p of lijst) if (p.slot !== 0) buttons.push({ act: 'kick-' + p.slot, label: `${p.naam} verwijderen` });
-        for (const m of [4, 6, 8]) if (m !== s.max && m >= lijst.length && !(m < DEFAULT_MAX)) buttons.push({ act: 'max-' + m, label: `Tot ${m} spelers` });
+        for (const m of [4, 8, 12, 16]) if (m !== s.max && m >= lijst.length) buttons.push({ act: 'max-' + m, label: `Tot ${m} spelers` });
         lines.push(s.code && lijst.length < s.max ? 'Er is nog plek: geef de code aan de volgende speler.' : 'Je kunt een speler er elk moment uit halen.');
         buttons.push({ act: 'verbreek', label: 'Iedereen stoppen' });
       } else {
