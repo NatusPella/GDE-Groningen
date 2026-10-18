@@ -422,8 +422,7 @@ export function runStartScreen(world, { render, relocate, tick }) {
         return `<button type="button" role="menuitem" class="ss-item ss-hero" data-act="continue" data-i="${i}"><span class="ss-label">${it.label}</span><small>${heroSub}</small>` +
           (prog != null ? `<span class="ss-prog"><span class="m-bar"><i style="width:${prog}%"></i></span><span class="bebas">${prog}%</span></span>` : '') + '</button>';
       }
-      const extra = it.act === 'news' && VERSION && VERSION !== 'dev' ? `<span class="ss-ver2">${esc(String(VERSION).replace(/^v/, '').split('.').slice(0, 2).join('.'))}</span>` : '';
-      return `<button type="button" role="menuitem" class="ss-item" data-act="${it.act}" data-i="${i}"><span class="ss-label">${it.label}</span>${extra}<small>${it.sub}</small></button>`;
+      return `<button type="button" role="menuitem" class="ss-item" data-act="${it.act}" data-i="${i}"><span class="ss-label">${it.label}</span><small>${it.sub}</small></button>`;
     };
     menu.innerHTML = items.map(itemHtml).join('');
     // where the save picks up, right of the menu
