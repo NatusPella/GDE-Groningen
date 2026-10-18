@@ -23,6 +23,7 @@ import { getEierbalTips } from './furniture.js';
 import { drawRailsOnMap } from './railway.js';
 import { drawCountryBase, drawCountryDetail, villageLabels, MAP_STYLE } from './countrymap.js';
 import { drawProvinceBase, provinceMapOn, provinceMapBounds, onProvinceMapLoad } from './provincemap.js';
+import { ROAD_ORDER, ZOOM, EMPHASIS, roadWidthPx } from './mapstyle.js';
 import { drawSea, drawOutside, regionLabels, areaNameAt } from './regions.js';
 import { worldPlaceLabels, worldPlacesReady } from './worldplaces.js';
 import { tileIndexOf, tileOrigin, TILE_M } from './gdt.js';
@@ -56,9 +57,9 @@ const TILE_BUDGET_MS = 3.5;
 const L_BASE = 6;
 const LEVEL_COUNT = 14;
 const levelZoom = (L) => Math.SQRT2 ** (L - L_BASE);
-const MID_ZOOM = 2;
-const NEAR_ZOOM = 4;
-const BUILDING_ZOOM = 2.8;
+const MID_ZOOM = ZOOM.mid;
+const NEAR_ZOOM = ZOOM.near;
+const BUILDING_ZOOM = ZOOM.building;
 const DRAG_PX = 4;
 const HOVER_PX = 12;
 const FOG_CELL = 50;
@@ -70,20 +71,12 @@ const FOG_FEATHER = 16; // cells
 const LAND = MAP_STYLE.meadow;
 const GREEN = MAP_STYLE.park;
 const COUNTRY = MAP_STYLE.meadow;
-const WATER = '#2d6a86';
-const WATER_EDGE = '#4a8fae';
-const BUILDING = 'rgba(160, 156, 146, 0.62)';
-const BUILDING_LANDMARK = 'rgba(214, 205, 180, 0.8)';
+const WATER = MAP_STYLE.water;
+const WATER_EDGE = MAP_STYLE.waterEdge;
+const BUILDING = MAP_STYLE.building;
+const BUILDING_LANDMARK = MAP_STYLE.church;
 
-const ROAD_COLORS = {
-  major: '#f0ede4',
-  normal: '#c7c7c2',
-  minor: '#8f9095',
-  cycle: '#b8703a',
-  foot: '#6d6f66',
-};
-const ROAD_WIDTH_PX = { major: 2.4, normal: 1.4, minor: 1.0, cycle: 0.9, foot: 0.6 };
-const ROAD_ORDER = { foot: 0, cycle: 1, minor: 2, normal: 3, major: 4 };
+const ROAD_COLORS = { major: MAP_STYLE.major, normal: MAP_STYLE.road, minor: MAP_STYLE.minor, cycle: MAP_STYLE.cycle, foot: MAP_STYLE.foot };
 
 let state = null;
 let stylesInjected = false;
@@ -584,13 +577,12 @@ function renderTile(L, tx, ty) {
   }).sort((a, b) => ROAD_ORDER[a.cat] - ROAD_ORDER[b.cat]);
   c.lineCap = 'round';
   for (const r of roads) {
-    const base = ROAD_WIDTH_PX[r.cat] || 1;
-    const wpx = z >= NEAR_ZOOM ? Math.max(base, (r.width || 4) * cssPerM * 0.85) : z < MID_ZOOM && r.cat === 'normal' ? 0.9 : base;
+    const wpx = roadWidthPx(r.cat, z, r.width, cssPerM);
     c.beginPath();
     c.moveTo(r.pts[0][0], r.pts[0][1]);
     for (let i = 1; i < r.pts.length; i++) c.lineTo(r.pts[i][0], r.pts[i][1]);
     if (r.bridge && z >= MID_ZOOM) {
-      c.strokeStyle = '#0c140e';
+      c.strokeStyle = EMPHASIS.bridgeCasing;
       c.lineWidth = px(wpx + 2);
       c.stroke();
     }
@@ -599,8 +591,8 @@ function renderTile(L, tx, ty) {
     let a = z < MID_ZOOM && r.cat === 'normal' ? 0.6 : 1;
     a *= landA;
     let wpx2 = wpx, col = ROAD_COLORS[r.cat] || ROAD_COLORS.normal;
-    if (mode === 'lopen' && r.cat === 'foot') { col = '#d9d4c4'; wpx2 = wpx * 1.4; }
-    else if (mode === 'fiets' && r.cat === 'cycle') { col = '#ff8a5c'; wpx2 = wpx * 1.6; }
+    if (mode === 'lopen' && r.cat === 'foot') { col = EMPHASIS.foot; wpx2 = wpx * 1.4; }
+    else if (mode === 'fiets' && r.cat === 'cycle') { col = EMPHASIS.cycle; wpx2 = wpx * 1.6; }
     else if (mode === 'auto' && r.cat === 'major') wpx2 = wpx * 1.2;
     if (allowed === false && r.cat !== 'major') a *= 0.35;
     c.strokeStyle = col;
@@ -611,7 +603,7 @@ function renderTile(L, tx, ty) {
     // "niet voor jou": a trunk road you may not walk or cycle on, red and dashed
     if (allowed === false && r.cat === 'major') {
       c.setLineDash([px(6), px(4)]);
-      c.strokeStyle = '#d93f3f';
+      c.strokeStyle = EMPHASIS.forbidden;
       c.lineWidth = px(Math.max(1.4, wpx * 0.5));
       c.stroke();
       c.setLineDash([]);
