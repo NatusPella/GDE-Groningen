@@ -36,10 +36,11 @@ import boa from './sidejob_boa.js';
 import rechtbank from './sidejob_rechtbank.js';
 import cabaret from './sidejob_cabaret.js';
 import vracht from './sidejob_vracht.js';
+import { loket, studiestaat, vigilantia } from './sidejob_keuze.js';
 import { SIDEJOB_PAY_MULT, SIDEJOB_LEVEL_BONUS, SIDEJOB_ACCIDENT_FINE } from './economy.js';
 import { furnitureJobBonus } from './furniture.js';
 
-export const SIDE_JOBS = [bezorger, taxi, bus, rondvaart, fietsdepot, verhuizing, rondvaarttour, boa, rechtbank, cabaret, vracht];
+export const SIDE_JOBS = [bezorger, taxi, bus, rondvaart, fietsdepot, verhuizing, rondvaarttour, boa, rechtbank, cabaret, vracht, loket, studiestaat, vigilantia];
 const BY_ID = new Map(SIDE_JOBS.map((j) => [j.id, j]));
 
 export const JOB_TARGET_COLOR = '#ff9a3c';
@@ -89,7 +90,7 @@ export function getSideJobList() {
 }
 
 // Rough pay per round for the phone's job app until the player has own figures.
-const PAY_GUESS = { bezorger: [27, 55], taxi: [25, 60], bus: [90, 140], rondvaart: [55, 105], rondvaarttour: [40, 80], fietsdepot: [45, 90], verhuizing: [80, 180], boa: [38, 60], rechtbank: [60, 105], cabaret: [25, 85], vracht: [70, 130] };
+const PAY_GUESS = { bezorger: [27, 55], taxi: [25, 60], bus: [90, 140], rondvaart: [55, 105], rondvaarttour: [40, 80], fietsdepot: [45, 90], verhuizing: [80, 180], boa: [38, 60], rechtbank: [60, 105], cabaret: [25, 85], vracht: [70, 130], loket: [52, 90], studiestaat: [62, 110], vigilantia: [56, 98] };
 
 // Phone job app: every job with pay, distance and why it can't start now.
 export function getSideJobOffers(w) {
