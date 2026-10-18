@@ -17,6 +17,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 - **Meer leven op straat:** skateboarders rollen door de studentenwijken en het centrum. Een kennismakingsweek-groepje (Dispuut De Gulle Gans) loopt met pluche ganzen door de stad. Wijken hebben nu ook eigen kleding en tassen voor voetgangers. Er zijn meer bezorgers op de fiets, een vierde keten (Pakkie Pronto) en bezorgers te voet met een grote tas.
 - Het weer is nu per streek van de provincie verschillend: zon, bewolking, mist in de ochtend, motregen, buien en onweer. Altijd zomer.
+- **Binnenin-camera in de auto:** druk op V tot 'Binnenin': je zit achter het stuur, met dashboard, stuur dat meedraait, instrumenten, stoelen en een achterbank in laag-poly stijl. Alleen voor personenauto's; bussen, vrachtwagens en trekkers houden de gewone camera.
 
 ## [0.35.0] - 2026-10-18
 
