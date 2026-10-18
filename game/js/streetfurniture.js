@@ -17,6 +17,7 @@
 // neighbouring tiles never repeat one; rules walk whole roads, so a guardrail
 // carries on across a tile edge without a seam.
 import { wgsToWorld } from './rdnew.js';
+import { pointInPolygon, polygonBounds } from './util.js';
 
 const MAIN = new Set(['motorway', 'trunk']);
 const LINK = new Set(['motorway_link', 'trunk_link']);
@@ -244,7 +245,7 @@ function nearestRoad(roads, x, y, filter = () => true) {
 
 // opts: lamps (emit lamps; the game draws its own, nightlights3d.js),
 // bollards (cycle path entrances), livingBumps (plateaus in woonerven)
-export function furnitureForTile({ x0, y0, size = 1000, roads = [], mapped = [], places = DESTINATIONS, opts = {} }) {
+export function furnitureForTile({ x0, y0, size = 1000, roads = [], mapped = [], water = [], places = DESTINATIONS, opts = {} }) {
   const items = [];
   const inTile = (x, y) => x >= x0 && x < x0 + size && y >= y0 && y < y0 + size;
   const add = (it) => { if (inTile(it.x, it.y)) { it.key = itemKey(it.k, it.x, it.y); items.push(it); } };
@@ -275,12 +276,31 @@ export function furnitureForTile({ x0, y0, size = 1000, roads = [], mapped = [],
     return false;
   };
 
+  // water polygons (with .bounds or not) holding a point
+  const wet = (x, y) => {
+    for (const w of water) {
+      const q = w.bounds || (w.bounds = polygonBounds(w.pts));
+      if (x >= q[0] && x <= q[2] && y >= q[1] && y <= q[3] && pointInPolygon(x, y, w.pts)) return true;
+    }
+    return false;
+  };
+  // a piece of s m at (x, y) along a: its middle or either end on a carriageway or in water
+  const pieceOnWayOrWater = (x, y, a, s) => {
+    const hx = Math.cos(a) * s / 2, hy = Math.sin(a) * s / 2;
+    for (const [px, py] of [[x, y], [x - hx, y - hy], [x + hx, y + hy]]) if (onOtherRoad(null, px, py) || wet(px, py)) return true;
+    return false;
+  };
+
   // mapped objects (OSM)
   for (const m of mapped) {
     if (m.pts && m.pts.length > 1) {
       const k = m.k === 'guard_rail' ? 'guardrail' : m.k === 'noise_barrier' ? 'noise' : m.k === 'wall' ? 'noise' : m.k;
       if (!['guardrail', 'fence', 'noise', 'hedge'].includes(k)) continue;
-      for (const [x, y, a, s] of pieces(m.pts, k === 'guardrail' ? RULES.guardrailPiece : 3)) add({ k, x, y, a, s, h: k === 'noise' ? (m.h || 4) : k === 'hedge' ? (m.h || 1.4) : undefined, src: 'osm' });
+      for (const [x, y, a, s] of pieces(m.pts, k === 'guardrail' ? RULES.guardrailPiece : 3)) {
+        // a mapped fence or hedge that OSM draws over a carriageway or into water is a gap in the data, not a barrier to put there (issue #124)
+        if ((k === 'fence' || k === 'hedge') && pieceOnWayOrWater(x, y, a, s)) continue;
+        add({ k, x, y, a, s, h: k === 'noise' ? (m.h || 4) : k === 'hedge' ? (m.h || 1.4) : undefined, src: 'osm' });
+      }
       continue;
     }
     const x = m.x ?? (m.pts && m.pts[0][0]), y = m.y ?? (m.pts && m.pts[0][1]);

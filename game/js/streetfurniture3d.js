@@ -200,7 +200,10 @@ function tileItems(i, j) {
     const p = m.pts ? m.pts : [[m.x, m.y]];
     return p.some((q) => q[0] >= x0 - 50 && q[0] < x0 + TILE_M + 50 && q[1] >= y0 - 50 && q[1] < y0 + TILE_M + 50);
   });
-  const res = furnitureForTile({ x0, y0, size: TILE_M, roads, mapped, places: worldSignPlaces() || DESTINATIONS, opts: GAME_OPTS });
+  // (the tiles' flat water too: a fence is not drawn across it)
+  const wx = x0 + TILE_M / 2, wy = y0 + TILE_M / 2, wr = TILE_M * 0.71 + 60;
+  const water = map.waterNear(wx, wy, wr).concat(map.flatWaterNear ? map.flatWaterNear(wx, wy, wr) : []);
+  const res = furnitureForTile({ x0, y0, size: TILE_M, roads, mapped, water, places: worldSignPlaces() || DESTINATIONS, opts: GAME_OPTS });
   tiles.set(key, t = { items: res.items, colliders: res.colliders });
   return t.items;
 }

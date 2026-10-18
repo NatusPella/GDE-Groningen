@@ -84,7 +84,21 @@ export function realBlockedAt(map, isTile, x, y, m) {
   }
   for (const w of map.flatWaterNear ? map.flatWaterNear(x, y, m + 1) : map.waterNear(x, y, m + 1)) {
     const q = w.bounds;
-    if (q && x >= q[0] - m && x <= q[2] + m && y >= q[1] - m && y <= q[3] + m && pointInPolygon(x, y, w.pts)) return true;
+    if (q && x >= q[0] - m && x <= q[2] + m && y >= q[1] - m && y <= q[3] + m && (pointInPolygon(x, y, w.pts) || nearRing(x, y, w.pts, Math.min(m, WATER_VERGE)))) return true;
+  }
+  return false;
+}
+
+// Props keep this far from a shore (more would clear the banks of trees and willows that stand there).
+const WATER_VERGE = 1;
+// Is (x, y) within d of the polygon's outline? (A ditch is a strip a few metres wide: a point on its bank is outside it.)
+export function nearRing(x, y, P, d) {
+  if (!(d > 0)) return false;
+  const d2 = d * d;
+  for (let i = 0; i < P.length - 1; i++) {
+    const ax = P[i][0], ay = P[i][1], dx = P[i + 1][0] - ax, dy = P[i + 1][1] - ay, L2 = dx * dx + dy * dy || 1e-9;
+    const t = Math.max(0, Math.min(1, ((x - ax) * dx + (y - ay) * dy) / L2));
+    if ((x - ax - dx * t) ** 2 + (y - ay - dy * t) ** 2 < d2) return true;
   }
   return false;
 }
