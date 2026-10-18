@@ -346,7 +346,12 @@ class Extract:
             if facility(t, "way") and t.get("amenity") == "parking" and self.fac_box(*bounds_world(lats, lons)):
                 self.facilities.append({"type": "relation", "id": rid, "tags": t,
                                         "bounds": {"minlat": min(lats), "minlon": min(lons), "maxlat": max(lats), "maxlon": max(lons)}})
-            el = {"type": "relation", "id": rid, "tags": slim_tags(t), "members": [{"type": "way", "ref": 0, "role": "outer", "g": r} for r in rings]}
+            members_out = [{"type": "way", "ref": 0, "role": "outer", "g": r} for r in rings]
+            # the islands of a lake (a farm on its terp in the water): build_corridor.mjs cuts them out of the water
+            if t.get("natural") == "water" or t.get("waterway") == "riverbank":
+                inner = [self.way_geom[ref] for typ, ref, role in members if typ == "w" and role == "inner" and ref in self.way_geom]
+                members_out += [{"type": "way", "ref": 0, "role": "inner", "g": r} for r in join_rings(inner)]
+            el = {"type": "relation", "id": rid, "tags": slim_tags(t), "members": members_out}
             self.put(el, lats, lons)
             return
         # a bus or train route: its ways chained by build_corridor.mjs busLines, its stops in order

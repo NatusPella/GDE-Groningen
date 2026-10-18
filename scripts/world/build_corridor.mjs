@@ -90,6 +90,42 @@ export function clipPoly(P, [x0, y0, x1, y1]) {
   return [...ring, ring[0]];
 }
 
+// Islands of a lake cut out of its outline (OSM multipolygon, role inner). The
+// water rows have no holes, so each island is joined to the outline by a slit
+// of no width (a keyhole polygon): even-odd containment and triangulation see
+// the hole, a farm on its terp in the water stands on land. Islands that do not
+// lie wholly inside the outline are left out. -> the closed ring
+const segX = (a, b, c, d) => {
+  const o = (p, q, r) => (q[0] - p[0]) * (r[1] - p[1]) - (q[1] - p[1]) * (r[0] - p[0]);
+  return o(a, b, c) * o(a, b, d) < 0 && o(c, d, a) * o(c, d, b) < 0;
+};
+const ringHas = (x, y, P) => {
+  let c = false;
+  for (let i = 0, j = P.length - 1; i < P.length; j = i++) if ((P[i][1] > y) !== (P[j][1] > y) && x < ((P[j][0] - P[i][0]) * (y - P[i][1])) / (P[j][1] - P[i][1]) + P[i][0]) c = !c;
+  return c;
+};
+export function cutIslands(outer, islands) {
+  let ring = outer;
+  for (const isl of islands) {
+    if (!isl || isl.length < 4 || !isl.every((q) => ringHas(q[0], q[1], ring))) continue;
+    const n = ring.length - 1, m = isl.length - 1; // (closed rings: the last point repeats the first)
+    const pairs = [];
+    for (let i = 0; i < n; i++) for (let j = 0; j < m; j++) pairs.push([Math.hypot(ring[i][0] - isl[j][0], ring[i][1] - isl[j][1]), i, j]);
+    pairs.sort((a, b) => a[0] - b[0]);
+    for (const [, i, j] of pairs.slice(0, 40)) {
+      let crosses = false;
+      for (let k = 0; k < n && !crosses; k++) if (k !== i && (k + 1) % n !== i && segX(ring[i], isl[j], ring[k], ring[k + 1])) crosses = true;
+      for (let k = 0; k < m && !crosses; k++) if (k !== j && (k + 1) % m !== j && segX(ring[i], isl[j], isl[k], isl[k + 1])) crosses = true;
+      if (crosses) continue;
+      const hole = [];
+      for (let k = 0; k <= m; k++) hole.push(isl[(j + k) % m]);
+      ring = [...ring.slice(0, i + 1), ...hole, ring[i], ...ring.slice(i + 1)];
+      break;
+    }
+  }
+  return ring;
+}
+
 // a waterway line as a polygon strip of half width hw
 function ribbon(P, hw) {
   const L = [], R = [];
@@ -156,9 +192,13 @@ export function features(els, ctx) {
     seen.add(id);
     const t = el.tags || {};
     if (el.type === 'relation' && t.natural === 'water') {
+      const islands = (el.members || []).filter((m) => m.role === 'inner' && m.g && m.g.length >= 4).map((m) => m.g.map((q) => wgsToWorld(q[0], q[1]).map(r2)));
       for (const m of el.members || []) {
         if (m.role !== 'outer' || !m.g || m.g.length < 4) continue;
-        for (const f of WB.fromOsm({ type: 'way', id: el.id, tags: { natural: 'water', name: t.name }, g: m.g }, ctx)) out.push(f);
+        for (const f of WB.fromOsm({ type: 'way', id: el.id, tags: { natural: 'water', name: t.name }, g: m.g }, ctx)) {
+          if (f.kind === 'water' && islands.length) f.row.pts = cutIslands(f.row.pts, islands);
+          out.push(f);
+        }
       }
       continue;
     }

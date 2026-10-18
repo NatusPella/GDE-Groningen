@@ -69,7 +69,7 @@ export function generateAll(data, opts = GAME_OPTS) {
   const out = [];
   for (const t of tilesOf(data).values()) {
     const x0 = GRID_X0 + t.i * TILE_M, y0 = GRID_Y0 + t.j * TILE_M;
-    const res = furnitureForTile({ x0, y0, size: TILE_M, roads: [...t.roads], mapped: t.mapped, opts });
+    const res = furnitureForTile({ x0, y0, size: TILE_M, roads: [...t.roads], mapped: t.mapped, water: data.water || [], opts });
     out.push({ key: t.key, ...res });
   }
   return out;
