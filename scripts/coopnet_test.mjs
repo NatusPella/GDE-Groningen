@@ -199,4 +199,13 @@ t('een extra speler hoort dat hij in de open wereld meeloopt', () => {
   assert.match(s.gs[0].gw.messages.join(' '), /Doe mee waar het kan/);
   assert.match(s.gs[1].gw.messages.join(' '), /Jij loopt mee in de open wereld/);
 });
+t('gedeelde camera: alleen de eerste twee delen hem; extra spelers hebben hun eigen camera', () => {
+  const s = sessie(2); s.step(3, () => { s.hw.player.x = 0; s.hw.companion.x = 10; s.hw.companion.y = 0; });
+  const [tessa, bram] = s.gs.map((g) => g.gw);
+  assert.ok(s.hw.coopCam && Math.abs(s.hw.coopCam.x - 5) < 6, 'de host deelt met Tessa');
+  assert.ok(tessa.coopCam, 'Tessa deelt met Tammo');
+  assert.equal(bram.coopCam, null, 'plek 2 heeft een eigen camera');
+  s.step(1, () => { s.hw.companion.x = 400; });
+  assert.equal(s.hw.coopCam, null, 'te ver uit elkaar: ieder zijn eigen camera');
+});
 console.log(`coopnet_test: ${n}/${n} ok`);

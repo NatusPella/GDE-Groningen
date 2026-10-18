@@ -2467,10 +2467,12 @@ export function update3D(dt, world) {
   // bus's rear unit too)
   const veh = camVeh;
   const camScale = veh ? (veh.isHeli ? 4.4 : veh._mount === 'horse' ? 1.7 : veh.isBus ? (veh.model.trailer ? 5.2 : Math.min(4.4, Math.max(3.2, veh.model.len / 2.5))) : Math.min(3.2, Math.max(1.35, veh.model.len / 2.4))) : 1;
-  const radius = orbitRadius * camScale;
+  // samen spelen (#95): de eerste twee spelers delen één camera op het midden tussen hen (coop.js sharedCamera)
+  const share = !camVeh && world.coopCam ? world.coopCam : null;
+  const radius = orbitRadius * camScale * (share ? share.zoom : 1);
   // height of whatever the camera follows: on a viaduct, down in a cutting (elevation.js)
   const baseH = veh ? veh.z || 0 : (player.gz || 0) + Math.max(0, player.z || 0);
-  const eyeX = player.x, eyeY = baseH + (veh ? (veh._mount === 'horse' ? 2.2 : 1.3 + (camScale - 1) * 0.55) : 1.3), eyeZ = player.y;
+  const eyeX = share ? share.x : player.x, eyeY = baseH + (veh ? (veh._mount === 'horse' ? 2.2 : 1.3 + (camScale - 1) * 0.55) : 1.3), eyeZ = share ? share.y : player.y;
   const horizDist = Math.cos(followPitch) * radius;
   const orbitHeight = eyeY + Math.sin(followPitch) * radius;
   let desiredX = player.x - Math.cos(camAngle) * horizDist;
