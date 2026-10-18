@@ -1,3 +1,5 @@
+import { KEYS } from './storagekeys.js';
+import { loadTuning, tuningEffects } from './tuningplan.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { dist, closestPointOnSegment, isInWater, pointInPolygon, boatDryPoints } from './util.js';
 import { waterPolyAt } from './waterlevels.js';
@@ -1555,6 +1557,14 @@ function spawnOwnedHeli(world, o, x, y, angle, z) {
   return v;
 }
 
+// Onderdelen uit de garage (tuningplan.js) komen mee terug als het voertuig opnieuw verschijnt.
+function applyTuningTo(v, key) {
+  try {
+    const all = loadTuning(typeof localStorage !== 'undefined' ? localStorage : null, KEYS.tuning);
+    if (key && all[key]) v.tuning = tuningEffects(all[key]);
+  } catch (e) { /* zonder opslag geen onderdelen */ }
+}
+
 function spawnOwned(world, o, x, y, angle = null, z = null) {
   const sp = o.spec;
   if (sp.kind === 'boat') return spawnOwnedBoat(world, o, x, y, angle);
@@ -1570,6 +1580,7 @@ function spawnOwned(world, o, x, y, angle = null, z = null) {
   v.playerOwned = true;
   v.upgrades = [...(o.upgrades || [])];
   applyUpgrades(v);
+  applyTuningTo(v, o.key);
   setRider(v);
   if (Number.isFinite(o.health)) v.health = Math.max(5, Math.min(100, o.health));
   if (Array.isArray(o.dents)) v.dentLog = o.dents.slice(0, 12);
