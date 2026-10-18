@@ -83,6 +83,7 @@ async function frameStats(ms) {
   const t = []; let last = performance.now(); const t0 = last;
   await new Promise((res) => { const f = () => { const n = performance.now(); t.push(n - last); last = n; if (n - t0 < ms) requestAnimationFrame(f); else res(); }; requestAnimationFrame(f); });
   t.shift();
+  if (t.length < 3) return { fps: 0, p50: null, p95: null, max: null, hapert: null, opmerking: `te weinig frames (${t.length}) in ${ms} ms` };
   t.sort((a, b) => a - b);
   const avg = t.reduce((a, b) => a + b, 0) / t.length;
   const r = sc && sc.renderer ? sc.renderer.info.render : null;
@@ -93,6 +94,7 @@ const results = { dpr: devicePixelRatio, css: [innerWidth, innerHeight], plekken
 let lastHour = null;
 const COMBO = (tijd, weer) => CFG.matrix.find((c) => c.tijd === tijd && c.weer === weer);
 for (const S of CFG.plekken) {
+  try {
   setNow(COMBO('middag', 'helder'));
   let s = { x: S.x, y: S.y, a: S.a || 0, street: '' };
   teleport(S.x, S.y);
@@ -118,6 +120,8 @@ for (const S of CFG.plekken) {
     console.log('[capture] ' + name);
     info.shots.push(name);
     await sleep(350);
+    // flikkercontrole: twee extra beelden kort na elkaar bij vaste instellingen
+    if (c.weer === 'helder' && (c.tijd === 'middag' || c.tijd === 'nacht')) for (const suf of ['b', 'c']) { console.log('[capture] ' + name + '-' + suf); await sleep(450); }
     // de lucht: de camera een stuk omhoog (sterren, maan, banding, kleurverloop); de HUD gaat dan weg
     {
       const gz = (map.groundHeightAt ? map.groundHeightAt(s.x, s.y, 0) : 0) || 0, cx = Math.cos(s.a), cy = Math.sin(s.a);
@@ -132,8 +136,6 @@ for (const S of CFG.plekken) {
       ownShot = false;
       await sleep(250);
     }
-    // flikkercontrole: twee extra beelden kort na elkaar bij vaste instellingen
-    if (c.weer === 'helder' && (c.tijd === 'middag' || c.tijd === 'nacht')) for (const suf of ['b', 'c']) { console.log('[capture] ' + name + '-' + suf); await sleep(450); }
   }
   for (const pf of CFG.perf) {
     const c = COMBO(pf.tijd, pf.weer);
@@ -145,7 +147,9 @@ for (const S of CFG.plekken) {
     info.perf[`${pf.tijd}-${pf.weer}`] = await frameStats(CFG.perfMs || 4000);
   }
   info.elev = Object.fromEntries([...new Set(CFG.matrix.map((c) => c.tijd))].map((t) => [t, +DN.sunElevationDeg(CFG.matrix.find((c) => c.tijd === t).hour).toFixed(1)]));
-  console.log('[wn-plek] ' + S.naam + ' ' + JSON.stringify({ at: info.at, perf: info.perf }));
+  // console.error: alleen fouten komen in de uitvoer van de desktop-app; zo overleeft het resultaat een latere crash
+  console.error('[wn-result] ' + JSON.stringify({ naam: S.naam, at: info.at, street: info.street, elev: info.elev, perf: info.perf }));
+  } catch (e) { console.error('[wn-result] ' + JSON.stringify({ naam: S.naam, fout: String(e && e.message || e) })); }
 }
 done = true;
 hold = null; now = null;
