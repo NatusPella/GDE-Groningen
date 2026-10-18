@@ -8,7 +8,7 @@
 // see the lock protocol of the night rounds). 1920x1080 CSS px at dpr 1, silent,
 // throwaway profile. Output: $PERF_OUT/<name>.json (routes, also those that finished
 // before a crash) and <name>.log; prints the table.
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -30,7 +30,7 @@ async function takeSlot() {
       try { fs.mkdirSync(path.join(dir, 'electron-' + n)); slot = path.join(dir, 'electron-' + n); return; } catch { /* taken */ }
     }
     console.error('no electron slot free, waiting 60 s');
-    await sleep(60000);
+    await sleep(Number(process.env.PERF_LOCK_POLL) || 60000);
   }
 }
 const release = () => { if (slot) { try { fs.rmdirSync(slot); } catch { /* gone */ } slot = null; } };
@@ -53,6 +53,9 @@ const args = ['.', '--windowed', '--stil', '--force-device-scale-factor=1', '--w
 const logFile = path.join(OUT, name + '.log');
 const log = fs.createWriteStream(logFile);
 console.error(`start ${new Date().toTimeString().slice(0, 8)} load ${os.loadavg().map((x) => x.toFixed(2)).join(' ')}`);
+// other Electron instances (other agents) and the CPU they take disturb the numbers: count them around the run
+const others = () => { try { const o = spawnSync(process.platform === 'win32' ? 'tasklist' : 'pgrep', process.platform === 'win32' ? ['/FI', 'IMAGENAME eq electron.exe', '/NH'] : ['-c', 'electron'], { encoding: 'utf8' }).stdout; return process.platform === 'win32' ? (o.match(/electron.exe/g) || []).length : Number(o) || 0; } catch { return null; } };
+const before = others();
 const t0 = Date.now();
 const child = spawn(electron, args, { cwd: desktop, env: { ...process.env, GDE_TEST_PROFILE: profile }, stdio: ['ignore', 'pipe', 'pipe'] });
 child.stdout.pipe(log, { end: false });
@@ -76,7 +79,7 @@ if (!result) {
   }
 }
 result.errors = lines.filter((l) => l.startsWith('[renderer] [perf-route-error]'));
-result.machine = { load: os.loadavg(), cpus: os.cpus().length, cpu: os.cpus()[0].model, memGB: Math.round(os.totalmem() / 1e9) };
+result.machine = { electronProcsBefore: before, electronProcsAfter: others(), load: os.loadavg(), cpus: os.cpus().length, cpu: os.cpus()[0].model, memGB: Math.round(os.totalmem() / 1e9) };
 fs.writeFileSync(path.join(OUT, name + '.json'), JSON.stringify(result));
 
 const COLS = [['avg', 'avg'], ['p95', 'p95'], ['p99', 'p99'], ['max', 'max'], ['cpuAvg', 'cpu'], ['cpuP95', 'cpu95'], ['gpuAvg', 'gpu'], ['callsPerFrame', 'calls'], ['trisPerFrame', 'tris'], ['longTasks', 'long'], ['longMax', 'lmax'], ['over50', '>50'], ['heapMB', 'heap']];
