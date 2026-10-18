@@ -50,6 +50,7 @@ import { startConvoy, spawnLimo, updateConvoy, convoyStatus, disposeConvoy } fro
 import { wgsToWorld } from './rdnew.js';
 import { enterChoice, updateChoice, closeChoice } from './stagechoice.js';
 import { enterRit, updateRit } from './stagerit.js';
+import { enterTiming, updateTiming, closeTiming, timingTag } from './stagetiming.js';
 import { withValidity } from './validity.js';
 // a radio fragment of a stage that never got played within ten minutes is moot (refs #171; not tied to the mission: the clue in it must not be lost)
 const MISSION_RADIO_VALID = { ttl: 600 };
@@ -1360,6 +1361,7 @@ function succeed(world, def) {
   const replay = chain.completed.has(i);
   const base = replay ? klusloon(def.reward) : def.reward;
   closeChoice();
+  closeTiming();
   const tip = def.type === 'boat' ? rondvaartTip() : 0;
   const adj = rewardAdjust(def, base);
   const cons = consequenceAdjust(def);
@@ -1438,6 +1440,7 @@ function endInFailure(world, text) {
   world.addMessage(text, 3.5);
   stopTalk();
   closeChoice();
+  closeTiming();
   clearStoryProps();
   // H6 failed: out of the black again (startMission puts it back on)
   if (chain.defs[chain.index] && chain.defs[chain.index].heist) setStoryOutfit(null);
@@ -2295,6 +2298,7 @@ function raceCarProblem() {
 //           mission vehicle (board it next). Fails when it gets `escape` metres
 //           away, runs out of `time` or burns out.
 //   choice  (akte 4, stagechoice.js) a conversation puzzle: rounds of up to three answers (keys 1-3), wrong answers can fail
+//   timing  (akte 4, stagetiming.js) a few timing presses on a bar: the sluip past the cameras, the fierljep duel, the wagon jumps
 //   rit     (akte 4, stagerit.js) drive the stopped train to the next platform with gas and brake
 //   vault   Jelle's polsstok escape over the nearest canal (missionstory.js); fail: he misses
 //   boatchase  Jelle's skûtsje sails the Diepenring from `lead` metres ahead of you; stay
@@ -2694,6 +2698,7 @@ function enterStage(world, def, k) {
   if (st.kind === 'boatchase' && S.boat) S.target = S.boat.v;
   if (st.kind === 'hold' && st.fireworks) { S.fwT = 1.5; S.fw = []; }
   if (st.kind === 'choice') enterChoice(S);
+  if (st.kind === 'timing') enterTiming(S);
   if (st.kind === 'rit') enterRit(world, st, S);
   if (def.eggs && k === def.eggs.from) { chain.eggs = 100; chain.eggWarn = 100; chain.eggVeh = null; }
   chain.stage = S;
@@ -3369,6 +3374,15 @@ function updateStages(dt, world, def) {
       const r = updateRit(dt, world, st, S, hint);
       if (r === 'done') nextStage(world, def);
       else if (r && r.fail) fail(world, def, r.fail);
+      break;
+    }
+    case 'timing': {
+      const r = updateTiming(dt, world, st, S);
+      if (r === 'done') {
+        const tag = timingTag(st, S);
+        if (tag) (chain.tags = chain.tags || new Set()).add(tag);
+        nextStage(world, def);
+      } else if (r && r.fail) fail(world, def, r.fail);
       break;
     }
     case 'choice': {
