@@ -1,4 +1,4 @@
-// Draait de standaardtests: node --check op alle JS, voice_coverage en alle
+// Draait de standaardtests: syntaxcheck (modules via --input-type=module) op alle JS, voice_coverage en alle
 // scripts/*_test.mjs met gewone node. Gebruik: node scripts/run_tests.mjs
 //   --quick          snelle subset (geen check van alle JS, geen trage tests)
 //   --timeout=<sec>  per test (standaard 120, bij --quick 30)
@@ -11,6 +11,7 @@ import { spawnSync } from 'node:child_process';
 import { existsSync, readdirSync, statSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { checkSyntax } from './lib/syntaxcheck.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const args = process.argv.slice(2);
@@ -90,8 +91,8 @@ function main() {
     let bad = 0;
     const t0 = Date.now();
     for (const f of files) {
-      const r = run(process.execPath, ['--check', f], 30000);
-      if (r.code !== 0) { bad++; console.log(`FAIL    node --check ${relative(ROOT, f)}\n` + tail(r.out, 8).replace(/^/gm, '    ')); }
+      const r = checkSyntax(f);
+      if (!r.ok) { bad++; console.log(`FAIL    syntaxcheck ${relative(ROOT, f)}\n` + tail(r.out, 8).replace(/^/gm, '    ')); }
     }
     results.push({ name: `node --check (${files.length} bestanden)`, status: bad ? 'FAIL' : 'PASS', secs: (Date.now() - t0) / 1000, out: '' });
     console.log(`${bad ? 'FAIL   ' : 'PASS   '} node --check op ${files.length} bestanden, ${bad} fout`);
