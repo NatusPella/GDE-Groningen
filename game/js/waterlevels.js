@@ -234,8 +234,9 @@ export function classifyWater(poly, onBoezem, w = null) {
 // Annotates the polygons (body, kind, lv, dp, nav) and returns the bodies:
 // [{ id, polys, kind, level, nap, area, nav }]. The largest body is the
 // boezem; every other keeps its own peil (drawn at the boezem height for now).
-export function annotateWater(water, cell = 2.5) {
-  const { body, count } = waterBodies(water);
+// focus(x, y): the boezem is the body with most water where focus holds (the city's tiles), not the largest of all
+export function annotateWater(water, cell = 2.5, apart = null, focus = null) {
+  const { body, count } = waterBodies(water, 1.0, apart);
   // channel width per polygon from each body's distance field
   const width = new Float64Array(water.length);
   const lists = Array.from({ length: count }, () => []);
@@ -261,8 +262,13 @@ export function annotateWater(water, cell = 2.5) {
   water.forEach((w, i) => { if (!width[i]) width[i] = 2 * polyArea(w.pts) / (polyPerimeter(w.pts) || 1); });
   const area = new Float64Array(count);
   water.forEach((w, i) => { area[body[i]] += polyArea(w.pts); });
+  let score = area;
+  if (focus) {
+    score = new Float64Array(count);
+    water.forEach((w, i) => { const c = polyCentre(w.pts); if (focus(c[0], c[1])) score[body[i]] += polyArea(w.pts); });
+  }
   let boezem = 0;
-  for (let b = 1; b < count; b++) if (area[b] > area[boezem]) boezem = b;
+  for (let b = 1; b < count; b++) if (score[b] > score[boezem]) boezem = b;
   const rank = { sloot: 0, vijver: 1, vaart: 2, diep: 3, meer: 3.5, kanaal: 4 };
   const bodies = Array.from({ length: count }, (_, id) => ({ id, polys: [], kind: 'sloot', level: BOEZEM_Y, nap: id === boezem ? BOEZEM_NAP : null, area: Math.round(area[id]), nav: 0, boezem: id === boezem }));
   water.forEach((w, i) => {
@@ -288,10 +294,8 @@ export function annotateWater(water, cell = 2.5) {
 // city water, so waterAt, boats, swimmers and the heli read it alike. A wide
 // or large polygon counts as open water (the boezem's rule), a narrow one
 // with a ditch name is a sloot.
-export function annotateProvinceWater(rows, { base = 0, village = null, locks = [] } = {}) {
-  // A lock splits the water: the polygon with a lock in it (the chamber) joins
-  // neither side, so the waters either side of it are bodies of their own and
-  // keep their own peil; the chamber is flagged `lock`.
+// the polygons (indexes) a lock sits in
+function lockChambers(rows, locks) {
   const chambers = new Set();
   rows.forEach((w, i) => {
     const b = boundsOf(w.pts);
@@ -300,6 +304,32 @@ export function annotateProvinceWater(rows, { base = 0, village = null, locks = 
       if (inPolygon(k.x, k.y, w.pts) || distToOutline(w.pts, k.x, k.y) < LOCK_NEAR) { chambers.add(i); break; }
     }
   });
+  return chambers;
+}
+
+// The city profile of the province build (#90 phase 3): the water of the city's tiles is classified as
+// the city map does (annotateWater: the channel width from each body's distance field, the largest body is
+// the boezem), not polygon by polygon, so a canal mapped in pieces is still a kanaal. Same fields as
+// annotateProvinceWater; a lock chamber is flagged `lock` but does not split the body (the city has one
+// boezem); `focus(x, y)` says where the city is, so its water is the boezem and not a lake of the pack.
+// `base` offsets the body ids.
+export function annotateCityWater(rows, { base = 0, village = null, locks = [], focus = null } = {}) {
+  const chambers = lockChambers(rows, locks);
+  rows.forEach((w, i) => { if (chambers.has(i)) w.lock = true; });
+  const bodies = annotateWater(rows, 2.5, null, focus);
+  rows.forEach((w) => {
+    w.body += base;
+    const c = polyCentre(w.pts);
+    w.bank = (w.kind === 'kanaal' || w.kind === 'diep' || w.kind === 'vaart') && village && village(c[0], c[1]) ? 'kade' : 'oever';
+  });
+  return { rows, bodies: bodies.length };
+}
+
+export function annotateProvinceWater(rows, { base = 0, village = null, locks = [] } = {}) {
+  // A lock splits the water: the polygon with a lock in it (the chamber) joins
+  // neither side, so the waters either side of it are bodies of their own and
+  // keep their own peil; the chamber is flagged `lock`.
+  const chambers = lockChambers(rows, locks);
   // bodies within the rows given (a pack): polygons whose shores touch share a
   // body, its area decides open water (a lake keeps its own peil) and whether
   // a thin sliver is part of a canal
