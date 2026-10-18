@@ -2497,7 +2497,7 @@ export function tickBurningVehicles(world, dt) {
   for (const v of world.vehicles) {
     if (world.shards && v.driver === 'player' && shardPuncture(world.shards, v, world.time || 0)) {
       v.flat = true;
-      world.addMessage('Door de glasscherven! Lekke band', 3);
+      world.addMessage(world.shards.lastKind === 'spijkers' ? 'Spijkermat van de politie! Lekke band' : 'Door de glasscherven! Lekke band', 3);
     }
     if (v.flat && !v.flatWarned && v.driver === 'player') {
       v.flatWarned = true;
