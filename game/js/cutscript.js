@@ -7,7 +7,8 @@
 //   const a = fitAnchor(scene, anchor, env);                // the anchor (turned) where nothing stands in a wall
 //
 // A scene def (all coordinates are LOCAL to the anchor: f = forward, s = left, h = up in m):
-//   id, actors: { <id>: { look, at: [f, s], face: deg | 'actor:<id>', anim, speaker, gaze } }
+//   id, actors: { <id>: { look, at: [f, s], face: deg | 'actor:<id>', anim, speaker, gaze, sit: seat height in m } }
+//   set: 'keuken' (the kitchen set of the opening, built by the host), fx: [{ t, fx: 'buzz' | 'door' | 'cups' | 'tablecups' | 'sfx' | 'pulse', ... }] (host effects, see cutscenehost.js)
 //   props:  { <id>: { kind, at: [f, s, h], face: deg, hidden } }
 //   cues:   [{ t, actor | prop, ...verb }]   verbs, see VERBS
 //   shots:  [{ t, shot: 'cut' | 'dolly' | 'orbit' | 'follow', ... }]
@@ -19,8 +20,8 @@
 // below must equal its ANIMS (scripts/cutscript_test.mjs checks that).
 
 export const ACTOR_ANIMS = ['idle', 'walk', 'run', 'talk', 'wave', 'point', 'shrug', 'nod', 'shake', 'laugh', 'carry', 'lean', 'hips', 'phone', 'cheer', 'look', 'ride'];
-export const PROP_KINDS = ['doos', 'tas', 'bestelbus', 'fiets', 'duif', 'radio', 'bord', 'koffer', 'bal', 'auto', 'matras', 'bakkie', 'automaat', 'aanhanger', 'trekker', 'politie', 'duiventil', 'zuil', 'klembord'];
-export const VERBS = ['walk', 'anim', 'face', 'gaze', 'carry', 'drop', 'move', 'path', 'spin', 'bob', 'show', 'hide'];
+export const PROP_KINDS = ['doos', 'tas', 'bestelbus', 'fiets', 'duif', 'radio', 'bord', 'koffer', 'bal', 'auto', 'matras', 'bakkie', 'automaat', 'aanhanger', 'trekker', 'politie', 'duiventil', 'zuil', 'klembord', 'kat'];
+export const VERBS = ['walk', 'anim', 'face', 'gaze', 'carry', 'drop', 'move', 'path', 'spin', 'bob', 'show', 'hide', 'sit'];
 export const SHOTS = ['cut', 'dolly', 'orbit', 'follow'];
 export const WALK_SPEED = 1.4;
 export const EYE_H = 1.55;
@@ -60,6 +61,7 @@ export function validateScene(def, opts = {}) {
     if (!a.look) err(`acteur ${id} zonder look`);
     if (!isVec(a.at, 2)) err(`acteur ${id}: at moet [f, s] zijn`);
     if (a.anim && !ACTOR_ANIMS.includes(a.anim)) err(`acteur ${id}: onbekende anim ${a.anim}`);
+    if (a.sit !== undefined && a.sit !== false && !(isNum(a.sit) && a.sit > 0)) err(`acteur ${id}: sit is een zithoogte in m`);
     if (typeof a.face === 'string' && !refOk(a.face, actors, props)) err(`acteur ${id}: face verwijst nergens heen: ${a.face}`);
   }
   for (const [id, p] of Object.entries(props)) {
@@ -87,6 +89,8 @@ export function validateScene(def, opts = {}) {
     if (c.ride !== undefined && c.walk === undefined) err(`${what}: ride hoort bij walk`);
     if (c.speed !== undefined && !(isNum(c.speed) && c.speed > 0)) err(`${what}: speed moet > 0 zijn`);
     if (c.anim !== undefined && !ACTOR_ANIMS.includes(c.anim)) err(`${what}: onbekende anim ${c.anim}`);
+    if (c.sit !== undefined && !c.actor) err(`${what}: sit hoort bij een acteur`);
+    if (c.sit !== undefined && typeof c.sit !== 'boolean' && !(isNum(c.sit) && c.sit > 0)) err(`${what}: sit is true, false of een zithoogte`);
     if (typeof c.face === 'string' && !refOk(c.face, actors, props)) err(`${what}: face verwijst nergens heen: ${c.face}`);
     if (typeof c.gaze === 'string' && !['speaker', 'camera'].includes(c.gaze) && !refOk(c.gaze, actors, props)) err(`${what}: gaze verwijst nergens heen: ${c.gaze}`);
     if (c.drop !== undefined && !props[c.drop]) err(`${what}: drop wijst naar onbekende prop ${c.drop}`);
@@ -161,7 +165,7 @@ export function compileScene(def, opts = {}) {
   // per actor: movement segments [{t0, t1, pts}], anim/gaze/face/carry events
   const track = {};
   for (const [id, a] of Object.entries(actors)) {
-    track[id] = { pos0: [a.at[0], a.at[1]], face0: a.face, segs: [], anims: [{ t: 0, v: a.anim || 'idle' }], gazes: [{ t: 0, v: a.gaze ?? null }], faces: [], carries: [], vis: [] };
+    track[id] = { pos0: [a.at[0], a.at[1]], face0: a.face, segs: [], anims: [{ t: 0, v: a.anim || 'idle' }], gazes: [{ t: 0, v: a.gaze ?? null }], faces: [], carries: [], vis: [], sits: [{ t: 0, v: a.sit || 0 }] };
   }
   const drops = [];
   const ptrack = {};
@@ -183,6 +187,7 @@ export function compileScene(def, opts = {}) {
       if (c.face !== undefined) k.faces.push({ t: c.t, v: c.face });
       if (c.carry !== undefined) k.carries.push({ t: c.t, v: c.carry });
       // show/hide: someone gets into a vehicle (still tracked, so the camera can follow the cab)
+      if (c.sit !== undefined) k.sits.push({ t: c.t, v: c.sit === true ? (actors[c.actor].sit || 0.46) : c.sit || 0 });
       if (c.show !== undefined) k.vis.push({ t: c.t, v: true });
       if (c.hide !== undefined) k.vis.push({ t: c.t, v: false });
       if (c.drop !== undefined) { k.carries.push({ t: c.t, v: null }); drops.push({ t: c.t, actor: c.actor, prop: c.drop }); }
@@ -368,7 +373,7 @@ export function compileScene(def, opts = {}) {
         const o = pointOf(gt, t);
         gaze = Math.max(-1.0, Math.min(1.0, angDiff(actorFacing(id, t), Math.atan2(o.s - p.s, o.f - p.f))));
       }
-      outA[id] = { x: w.x, y: w.y, h: anchor.z || 0, a, anim, speed: p.moving ? p.moving.speed : 0, gaze, look: actors[id].look, speaking: id === speakId, carrying, visible: last([{ t: 0, v: true }, ...k.vis], t).v };
+      outA[id] = { x: w.x, y: w.y, h: anchor.z || 0, a, anim, speed: p.moving ? p.moving.speed : 0, gaze, look: actors[id].look, speaking: id === speakId, carrying, sit: p.moving ? 0 : last(k.sits, t).v, visible: last([{ t: 0, v: true }, ...k.vis], t).v };
     }
     for (const id of Object.keys(ptrack)) {
       const s = propState(id, t);
@@ -384,7 +389,7 @@ export function compileScene(def, opts = {}) {
     const k = track[id];
     const marks = new Set([0, duration]);
     for (const s of k.segs) { marks.add(s.t0); marks.add(s.t1); }
-    for (const e of [...k.anims, ...k.gazes, ...k.faces, ...k.carries]) if (e.t > 0) marks.add(e.t);
+    for (const e of [...k.anims, ...k.gazes, ...k.faces, ...k.carries, ...k.sits]) if (e.t > 0) marks.add(e.t);
     for (const c of cues) if (c.actor === id) marks.add(c.t);
     // speaking counts as life (the talk anim runs), so cut stretches at line edges
     const ts = [...marks].filter((x) => x >= 0 && x <= duration).sort((a, b) => a - b);
