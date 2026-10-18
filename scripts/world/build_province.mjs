@@ -364,7 +364,7 @@ function fillOldExtent({ root, fill, gid, stats, blobs, roadNet, roadSeen, railR
 
 // ------------------------------------------------------------- build
 
-export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(src), cityKeys = new Set(), buffer = BUFFER_M, onPack = null, map = true, cityCover = null, fillOld = false, bag = loadProvinceBag(), derive = true, junctions = true, terrain = null } = {}) {
+export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(src), cityKeys = new Set(), buffer = BUFFER_M, onPack = null, map = true, cityCover = null, fillOld = false, bag = loadProvinceBag(), derive = true, junctions = true, terrain = null, only = null } = {}) {
   const prov = gunzipJson(path.join(src, 'province.json.gz'));
   // the neighbours' strips: their places, stations and built-up cells join the province's
   const dirs = [src, ...extra];
@@ -395,6 +395,7 @@ export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(s
   for (const k of keys) {
     const t = tiles.get(k);
     if (t.fill) continue;
+    if (only && !only.has(k)) continue; // a shadow build of some tiles (city_diff.mjs)
     if (cityKeys.has(k)) {
       city.push(k);
       // a city tile the city's data leaves partly empty gets an overlay for the rest
