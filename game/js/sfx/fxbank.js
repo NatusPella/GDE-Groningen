@@ -13,7 +13,7 @@ export const FX_INFO = {
   carbid_boom_0: { cat: 'explosie', label: 'Carbidknal (A)', gain: 1.0, ref: 22, range: 3000 },
   carbid_boom_1: { cat: 'explosie', label: 'Carbidknal (B)', gain: 1.0, ref: 22, range: 3000 },
   carbid_boom_2: { cat: 'explosie', label: 'Carbidknal (C)', gain: 1.0, ref: 22, range: 3000 },
-  carbid_fuse: { cat: 'wapen', label: 'Carbid: lont sist', gain: 0.35, ref: 3, range: 60 },
+  carbid_fuse: { cat: 'wapen', label: 'Carbid: lont sist', gain: 0.6, ref: 3, range: 60 },
   explosion_boom_0: { cat: 'explosie', label: 'Explosie (A)', gain: 1.0, ref: 16, range: 2500 },
   explosion_boom_1: { cat: 'explosie', label: 'Explosie (B)', gain: 1.0, ref: 16, range: 2500 },
   shop_bell: { cat: 'winkel', label: 'Winkelbel bij de deur', gain: 0.45, ref: 3, range: 40 },
@@ -199,7 +199,7 @@ defSample('tyre_screech', 1.4, (c, sr, R) => {
 // in sfx/linkups.js from the door state of vehicledoors.js.
 FX_INFO.part_rip = { cat: 'voertuig', label: 'Deur of kap scheurt los', gain: 0.8, ref: 10, range: 250 };
 FX_INFO.hood_thump = { cat: 'voertuig', label: 'Kap of kofferbak slaat dicht', gain: 0.55, ref: 4, range: 60 };
-FX_INFO.bus_door_hiss = { cat: 'voertuig', label: 'Busdeur sist open of dicht', gain: 0.4, ref: 6, range: 80 };
+FX_INFO.bus_door_hiss = { cat: 'voertuig', label: 'Busdeur sist open of dicht', gain: 0.7, ref: 6, range: 80 };
 
 defSample('part_rip', 1.8, (c, sr, R) => {
   const d = c[0];

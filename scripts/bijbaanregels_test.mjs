@@ -129,3 +129,14 @@ process.exitCode = fails ? 1 : 0;
   if (!m || !LINE[+m[1]] || !LINE[+m[2]] || +m[1] === +m[2]) { console.log('FAIL veerdienst-lijnindices'); process.exitCode = 1; }
   else console.log('veerdienst-adapter ok');
 }
+
+// paneel-adapter (sidejob_paneel.js): strandpost, kermisdraai, brugdienst in SIDE_JOBS
+{
+  const fs = await import('node:fs');
+  const p = fs.readFileSync(new URL('../game/js/sidejob_paneel.js', import.meta.url), 'utf8');
+  const s = fs.readFileSync(new URL('../game/js/sidejobs.js', import.meta.url), 'utf8');
+  let bad = 0;
+  for (const id of ['strandpost', 'kermisdraai', 'brugdienst']) if (!p.includes(`'${id}'`)) { console.log('FAIL paneel mist', id); bad++; }
+  if (!/PANEEL_JOBS/.test(s.split(/\r?\n/).find((l) => l.startsWith('export const SIDE_JOBS')))) { console.log('FAIL PANEEL_JOBS niet in SIDE_JOBS'); bad++; }
+  if (bad) process.exitCode = 1; else console.log('paneel-adapter ok');
+}

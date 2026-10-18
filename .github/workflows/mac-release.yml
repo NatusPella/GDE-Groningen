@@ -1,0 +1,72 @@
+# De macOS-dmg van een bestaande release bouwen op een Mac-runner (de release.sh op Windows maakt
+# alleen de exe). Alleen met de hand te starten (workflow_dispatch); niets start hem vanzelf.
+#
+# De provinciekaart (de tegels in game/world) wordt gebouwd uit data/cache, en die staat niet in git
+# en niet op een runner. Daarom bouwt deze workflow de wereld niet zelf: hij haalt de gestagede
+# tegels op uit de release, als asset gde-world.tgz (de release maakt die met
+# `npm run release -- ... --world`, of los: `tar czf gde-world.tgz -C desktop/build/game world` en
+# `gh release upload <tag> gde-world.tgz`). desktop/build.mjs neemt die map over via
+# GDE_PREBUILT_WORLD. three.js en de lettertypen haalt de stage-stap zelf op, zoals elke build.
+# De dmg is niet ondertekend (zie de releasenotities) en gaat met GITHUB_TOKEN naar dezelfde release.
+name: macOS-dmg
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag van de bestaande release, bijvoorbeeld v0.36.0'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: mac-release-${{ inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  dmg:
+    runs-on: macos-latest
+    timeout-minutes: 60
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TAG: ${{ inputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: npm
+          cache-dependency-path: desktop/package-lock.json
+
+      - name: De gestagede wereld van de release
+        run: |
+          mkdir -p "$RUNNER_TEMP/gde-world"
+          gh release download "$TAG" --pattern gde-world.tgz --dir "$RUNNER_TEMP/gde-world" \
+            || { echo "Geen gde-world.tgz bij $TAG: maak hem met 'npm run release -- ... --world' of upload hem met gh release upload."; exit 1; }
+          tar xzf "$RUNNER_TEMP/gde-world/gde-world.tgz" -C "$RUNNER_TEMP/gde-world"
+          test -f "$RUNNER_TEMP/gde-world/world/index.json"
+
+      - name: npm ci
+        working-directory: desktop
+        run: npm ci
+
+      - name: Stage en dmg
+        working-directory: desktop
+        env:
+          GDE_PREBUILT_WORLD: ${{ runner.temp }}/gde-world/world
+        run: |
+          npm run stage
+          npx electron-builder --mac --universal --publish never
+
+      - name: Naar de release
+        working-directory: desktop
+        run: |
+          VERSION="${TAG#v}"
+          DMG="dist/GDE-Groningen-$VERSION-mac.dmg"
+          test -f "$DMG"
+          gh release upload "$TAG" "$DMG" --clobber
