@@ -17,6 +17,8 @@ export function buildNieuwDefs({ map, walk, drive }) {
       intro: ['Het Loket bij de Grote Markt: om twaalf uur sluit de inschrijving voor de Noordelijke Snackprijs, en het loket neemt alleen contant.', 'Trek een wachtnummer, haal formulier 7B en de stempel, en schrijf in. Voor twaalf uur.'],
       outro: 'Ingeschreven voor de Noordelijke Snackprijs. De Fjord Frituur doet mee.',
       timeLimit: 180,
+      costRow: ['Inschrijfgeld', '-€150, contant betaald'],
+      timeUp: 'het Loket is dicht. Om twaalf uur sloot de inschrijving',
       reward: 0,
       onFoot: true,
       start: loketAt(8, 14),
@@ -49,6 +51,8 @@ export function buildNieuwDefs({ map, walk, drive }) {
       intro: ['Berend Bos wil zijn bakkie bij zijn zus aan het Boterdiep. Eerst een klus voor Jelmer op de Grote Markt: vijftienhonderd stuntpunten.', 'Stunt zonder krassen: parasols en kliko\'s mogen, mensen niet. Daarna het bakkie heel naar het Boterdiep.'],
       outro: 'Berend zei goud. En moi. Tegen Tessa.',
       timeLimit: 240,
+      timeUp: 'tijd op. Jelmers chat is al naar een kattenfilmpje en Berend wacht nog',
+      vehicleFail: { gone: 'Berends bakkie is foetsie', wrecked: 'Berends bakkie is total loss. Hij telde nul krassen, nu telt hij niks meer', left: 'je liet Berends bakkie staan. Hij telde nul krassen, geen parkeerbonnen' },
       reward: 200,
       scratchFine: 0.5,
       vehicleName: 'Berends bakkie',
@@ -78,8 +82,24 @@ export function applyNieuw(list) {
     pin.stages[2].label = 'Breng de automaat naar Sjabbe (Pand & Poen)';
   }
   const duif = by('Kieken van boven');
-  if (duif) duif.stages[0].talk = { ids: ['M04.2'], delay: 6 };
+  if (duif) {
+    duif.stages[0].talk = { ids: ['M04.2'], delay: 6 };
+    // the goal said aloud, and the fuse box too (09-script: three cameras, two guards, a fuse box)
+    duif.stages[0].label = 'Fotografeer 3 camera\'s, 2 bewakers en de stroomkast';
+    duif.stages[0].targets.push({ landmark: 'Groninger Museum', off: [-29, -38], label: 'De stroomkast achter de fietsenstalling' });
+    duif.timeLimit = 230;
+    duif.timeUp = 'tijd op. Bert fluit de duif terug naar de duiventil';
+  }
   const kei = by('Wind tegen, beide kanten op');
+  // what each mission leaves you with, on the success card (#147): the clue or the consequence
+  if (duif) duif.costRow = ['Ontdekt', 'Bewaker twee krijgt een eierbal voor zijn koekje'];
+  if (kei) kei.costRow = ['Tip van Sjoerd', 'Om twaalf uur gaan de camera\'s drie minuten uit'];
+  if (pin) pin.costRow = ['Ontdekt', 'Een baas vroeg waar het museum alarmen heeft'];
+  const kraak = by('Het museum stond er al zo');
+  if (kraak) kraak.costRow = ['Gevolg', 'De politie zoekt twee mensen in het zwart'];
+  if (kei) kei.timeUp = 'tijd op. De eerstejaars zitten al aan de bar';
+  if (pin) pin.vehicleFail = { gone: 'de auto met de automaat is foetsie, en de pas ook', wrecked: 'de auto met de automaat is total loss. Sjabbe kan alleen openen wat heel is', left: 'je liet de automaat staan. Zonder automaat geen pas' };
+  if (kei) kei.say = 'Podium in de Kiezelrace, dan vertelt Sjoerd over het museum. Altijd tegenwind, op een eigen fiets.';
   if (kei) kei.moment = { at: 3, text: kei.moment.text, talk: { ids: ['M05.2'] } };
   const vet = by('Al het vet van Grunn');
   if (vet) {
@@ -91,6 +111,8 @@ export function applyNieuw(list) {
     const to = stageOf(vet, 'goto', 0);
     to.talk = { ids: ['M07.2'], delay: 3 };
     vet.outro = 'Het vet is terug in Grunn. Plakje twee is gered.';
+    vet.costRow = ['Gered', 'Plakje twee: het vet blijft in Grunn'];
+    vet.vehicleFail = { gone: 'Femkes auto is foetsie, en de tankwagen rijdt door', wrecked: 'de auto is total loss. Femke wil hem niet zo terug', left: 'je liet de auto staan. Zonder auto geen tankwagen' };
   }
   const mus = by('Het museum stond er al zo');
   if (mus) {

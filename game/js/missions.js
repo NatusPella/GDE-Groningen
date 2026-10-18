@@ -1380,6 +1380,8 @@ function succeed(world, def) {
   world.stats.missionsDone++;
   world.addMessage(`${def.label} geklaard! ${replay ? 'Klusloon ' : ''}+€${base}${tip ? ` en €${tip} fooi` : ''}${adj.text}`, 4);
   const stats = runStats(world, def);
+  // what the mission cost on the way (Het Loket: the entry fee), so the card is honest about a reward of 0
+  if (def.costRow && !replay) stats.push(def.costRow);
   // a flawless run earns the highest compliment there is (flavour.js has an NPC say it too)
   const r = chain.run;
   if (r && r.hurt < 0.5 && (!r.vehicleUsed || r.vehDamage < 3) && (!r.racePos || r.racePos === 1)) {
@@ -1943,11 +1945,13 @@ function hint(world, text, say = undefined) {
 function vehicleProblem(world, def) {
   const v = chain.vehicle;
   const p = world.player;
-  if (!v || !world.vehicles.includes(v)) return def.type === 'boat' ? 'de boot is foetsie' : 'de auto is foetsie';
-  if (v.wrecked || v.disabled) return def.type === 'boat' ? 'de boot ligt nu tussen de fietsen op de bodem' : 'de auto is total loss, Kiekdoar heeft al foto\'s';
+  const vf = def.vehicleFail || {};
+  if (!v || !world.vehicles.includes(v)) return vf.gone || (def.type === 'boat' ? 'de boot is foetsie' : 'de auto is foetsie');
+  if (v.wrecked || v.disabled) return vf.wrecked || (def.type === 'boat' ? 'de boot ligt nu tussen de fietsen op de bodem' : 'de auto is total loss, Kiekdoar heeft al foto\'s');
   if (p.inVehicle === v) { chain.boarded = true; return null; }
   if (dist(p.x, p.y, v.x, v.y) > ABANDON_DIST) {
     const what = def.type === 'boat' ? 'de boot' : 'de auto';
+    if (vf.left) return vf.left;
     return chain.boarded ? `je liet ${what} gewoon achter` : `je liet ${what} staan. Parkeren kost hier meer dan de auto`;
   }
   return null;
@@ -2101,7 +2105,7 @@ export function updateMissions(dt, world) {
   // the clock starts at the race's GO, not while the grid waits
   if ((!chain.race || chain.race.phase === 'race') && !isCinematicActive()) chain.timeLeft -= dt * (chain.clockRate || 1);
   if (chain.timeLeft <= 0) {
-    fail(world, def, def.type === 'boat' ? 'tijd op. De toeristen missen hun trein naar Zwolle' : def.type === 'stunt' || chain.stuntPhase ?'tijd op. Chat is al naar een kattenfilmpje' : 'tijd op. Zelfs de bus was sneller');
+    fail(world, def, def.timeUp ? def.timeUp : def.type === 'boat' ? 'tijd op. De toeristen missen hun trein naar Zwolle' : def.type === 'stunt' || chain.stuntPhase ?'tijd op. Chat is al naar een kattenfilmpje' : 'tijd op. Zelfs de bus was sneller');
     syncPub(world);
     return;
   }
