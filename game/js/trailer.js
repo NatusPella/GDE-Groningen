@@ -5,7 +5,9 @@ import { speakerHtml } from './speakers.js';
 import { getSettings, QUALITY_PRESETS, withTempSettings } from './settings.js';
 import { PRESET_ORDER, GFX_PRESETS, currentPreset, describePreset, presetLabel, applyPreset, setBenchResult } from './gfxprofile.js';
 import { refreshDayNight } from './daynight.js';
-import { makeActor, stage, seat, makeBirds, scatterBirds, updateBirds } from './intromontage.js';
+import { makeActor, stage, seat } from './intromontage.js';
+import { makeBirds, scatterBirds, updateBirds } from './birds.js';
+import { setTrailerRunning } from './trailerstate.js';
 import { buildAtm, buildVitrineRoom, buildFlag, waveFlag } from './trailerprops.js';
 import { TAMMO_APPEARANCE, ANITA_APPEARANCE, seatPose, seatPerson, seatedY } from './models3d_people.js';
 import { JELLE_LOOK, DURK_LOOK, DOUWE_LOOK } from './storycast.js';
@@ -55,38 +57,10 @@ import { KEYS, SESSION_KEYS } from './storagekeys.js';
 // the title screen's tick/render/relocate.
 
 const Q = FLAGS;
-const BENCH_KEY = SESSION_KEYS.benchmarkPending;
 const SKIP_HOLD_S = 0.9;
 const STEP = 1 / 60;
 const MEASURE_AFTER_CUT_S = 0.3;
 const BENCH_RUNS = Q.benchmark ? Math.max(1, Number(Q.benchmarkRuns) || 1) : 0;
-const CUTS = ['vol', 'kort', 'verhaal', 'gameplay'];
-
-// What should play before the title menu shows, if anything.
-export function pendingTrailer() {
-  if (Q.trailer) {
-    const n = Number(Q.shot);
-    return { mode: 'opname', cut: CUTS.includes(Q.cut) ? Q.cut : 'vol', shot: Number.isFinite(n) && n > 0 ? n : null, frames: Q.frames };
-  }
-  // ?attract (desktop --attract) plays the attract intro on request, also in a test run
-  if (Q.attract) return { mode: 'attract', cut: 'kort' };
-  // ?benchmark=N (desktop --benchmark=N): N benchmark runs in a row, logged
-  if (Q.benchmark) return { mode: 'benchmark', cut: 'vol' };
-  let bench = null;
-  try { bench = sessionStorage.getItem(BENCH_KEY); sessionStorage.removeItem(BENCH_KEY); } catch (e) { /* ignore */ }
-  if (bench) return { mode: 'benchmark', cut: 'vol', fromGame: true };
-  // no intro before the menu: the title screen's live city is the attract,
-  // and Nieuw spel opens with its own trailer-style opening
-  return null;
-}
-
-// In a running game the benchmark starts from a fresh load of the title
-// screen (after saving), and "Terug" continues that save.
-export function benchmarkViaReload() {
-  try { sessionStorage.setItem(BENCH_KEY, '1'); } catch (e) { return false; }
-  location.reload();
-  return true;
-}
 
 // --- small helpers ------------------------------------------------------------
 
@@ -1851,10 +1825,6 @@ function clearShot(r) {
 let running = null;
 const trailerProps = new Map();
 
-export function isTrailerRunning() {
-  return !!running;
-}
-
 function snapshot(w) {
   const scalars = (o) => Object.fromEntries(Object.entries(o).filter(([, v]) => v === null || typeof v !== 'object'));
   return {
@@ -2174,6 +2144,7 @@ export function runTrailer(world, { mode = 'opname', cut = 'vol', shot = null, f
     world.menuCam = true;
     world.cinematicHideNav = true;
     running = r;
+    setTrailerRunning(true);
     const ren = window.__scene3d && window.__scene3d.renderer;
     let nativeRender = null;
     if (BENCH_RUNS && ren) {
@@ -2266,6 +2237,7 @@ export function runTrailer(world, { mode = 'opname', cut = 'vol', shot = null, f
       ui.black.style.opacity = '';
       ui.black.style.transition = '';
       running = null;
+      setTrailerRunning(false);
       const stats = mode === 'benchmark' ? computeStats(r) : null;
       if (stats) console.log('[trailer] benchmark', JSON.stringify({ avg: +stats.avg.toFixed(1), low: +stats.low.toFixed(1), spikesPerMin: stats.spikes, shots: stats.shots.map((x) => `${x.label}: ${x.fps.toFixed(1)}`) }));
       if (window.__trailer) window.__trailer.lastStats = stats;

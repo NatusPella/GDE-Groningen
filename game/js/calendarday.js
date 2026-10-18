@@ -10,7 +10,7 @@ import { setSunDeclination } from './daynight.js';
 import { showCard, cardsBusy } from './hudcards.js';
 import { narrativeBusy } from './narrative.js';
 import { isCinematicActive } from './cinematics.js';
-import { isTrailerRunning } from './trailer.js';
+import { isTrailerRunning } from './trailerstate.js';
 
 const NIGHT_JUMP = 4;
 const CARD_FROM = 6, CARD_UNTIL = 22;

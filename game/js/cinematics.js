@@ -10,7 +10,7 @@ import { respawnPlayer } from './world.js';
 import { V, W, clamp01, easeInOut, easeOut, pathShot, roofAt, clearKeys, wijkStreetShot } from './camerapath.js';
 import { startRespawnScene, respawnFade } from './respawn.js';
 import { playStoryVoice, setStoryScene, setStoryProbe } from './audio.js';
-import { isIntroPlaying } from './intromontage.js';
+import { isIntroPlaying } from './trailerstate.js';
 import { logoHtml, GAME_NAME, SUBTITLE } from './logo.js';
 import { mayInterrupt, noteMoment } from './attention.js';
 import { registerNarrative } from './narrative.js';
