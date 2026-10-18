@@ -125,6 +125,22 @@ function driveService(label, pilot, maxS = 1800) {
   for (let i = 1; i < a.plan.length; i++) if (!(a.plan[i].due > a.plan[i - 1].due + R.DOORS_S)) fail('timetable does not leave time for the doors');
 }
 
+// --- 6. the cab board's figures
+{
+  const stops = [{ name: 'A', s: 1000 }, { name: 'B', s: 2000 }];
+  const svc = R.startService({ stops, c: 0, dir: 1, vmax: 30, time: 0 });
+  R.stepService(svc, dt, { c: 0, v: 20, time: 1, emergency: false });
+  const v = R.boardView(svc, { v: 20, time: 1 });
+  if (v.name !== 'A' || v.toStop !== 1000 || v.kmh !== 72) fail(`board figures ${JSON.stringify(v)}`);
+  if (v.brakeM !== Math.round(R.brakeDist(20)) || !(v.brakeFrac > 0 && v.brakeFrac < 1)) fail('board braking distance');
+  R.stepService(svc, dt, { c: 960, v: 20, time: 2, emergency: false });
+  if (!(R.boardView(svc, { v: 20, time: 2 }).brakeFrac > 1)) fail('board does not warn when the train cannot stop any more');
+  if (R.delayText(5) !== 'op tijd' || R.delayText(75) !== '+1:15' || R.delayText(-30) !== '-0:30') fail('delay text');
+  if (v.cells.length !== 2 || v.cells[0].t !== '▶') fail('board cells');
+  R.abandonService(svc);
+  if (!R.boardView(svc, { v: 0, time: 3 }).done) fail('board is not done after abandoning');
+}
+
 // --- 5. several stops on a synthetic straight track (the real drivable range holds one halte)
 {
   const stops = [1000, 3200, 5600, 7400].map((x, i) => ({ name: 'H' + i, s: x }));

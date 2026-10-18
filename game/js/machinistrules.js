@@ -161,3 +161,37 @@ export function autopilot(svc, v, toStop) {
   if (toStop <= need || v > lim + 0.3) return { throttle: false, brake: v > 0.3 };
   return { throttle: v < lim - 0.8, brake: false };
 }
+
+// --- what the cab board shows (machinist.js draws it) ----------------------------
+
+export const kmh = (v) => Math.round(v * 3.6);
+
+// "+0:42" late, "-0:10" early; the first 10 s either way count as on time.
+export function delayText(lateS) {
+  const a = Math.abs(Math.round(lateS));
+  if (a <= 10) return 'op tijd';
+  return `${lateS > 0 ? '+' : '-'}${Math.floor(a / 60)}:${String(a % 60).padStart(2, '0')}`;
+}
+
+// The figures for one frame of a running service. s: { v, time }.
+// brakeFrac: braking distance over the distance to the platform mark (>= 1 means
+// the train cannot stop any more at the service brake).
+export function boardView(svc, s) {
+  const st = currentStop(svc);
+  const open = doorsOpen(svc, s.time);
+  const cells = svc.plan.map((p, i) => ({
+    t: p.score == null ? (i === svc.i && !svc.finished ? '▶' : '·') : String(p.score),
+    cls: p.score == null ? (i === svc.i && !svc.finished ? 'now' : '') : p.score >= MEDAL_AT[0] ? 'ok' : 'bad',
+  }));
+  if (!st) return { done: true, cells, flash: svc.flash, bad: svc.flashBad, result: svc.result };
+  const toStop = svc.toStop;
+  const bd = brakeDist(s.v);
+  const frac = toStop > 0 ? bd / toStop : (s.v > STOPPED_V ? 2 : 0);
+  return {
+    done: false, doors: open, cells,
+    name: st.name, toStop: Math.round(toStop), kmh: kmh(s.v), limitKmh: kmh(svc.limit),
+    tooFast: s.v > svc.limit + 1 && !open, brakeM: Math.round(bd), brakeFrac: frac,
+    delayS: s.time - st.due, delay: delayText(s.time - st.due),
+    flash: s.time < svc.flashUntil ? svc.flash : '', bad: svc.flashBad,
+  };
+}
