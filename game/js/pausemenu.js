@@ -30,6 +30,7 @@ import { glyphHtml } from './prompts.js';
 import { KEY_ACTIONS, KEY_GROUPS, PAD_REMAPPABLE, PAD_SLOT_NAMES, bindKey, bindButton, physicalKey, defaultKey, physicalButton, isBindableKey, keyName, slotUses } from './controls.js';
 import { capturePadButton, isPadActive, onPadChange } from './gamepad.js';
 import { padGlyphInner } from './glyphs.js';
+import { openPadTest } from './padtest.js';
 import { getUiScale } from './uiscale.js';
 import { helpHtml } from './helpoverview.js';
 import { DEV, FLAGS } from './devflags.js';
@@ -63,6 +64,7 @@ const CONTROL_GROUPS = [
     [['.', ','], 'Handmatig schakelen: hoger, lager (Instellingen › Schakelen)'],
     [['J'], 'Handmatig met koppeling: koppeling indrukken bij het schakelen'],
     [['SHIFT'], 'Op de fiets: even flink doortrappen; op een motor: wheelie met gas, stoppie met remmen'],
+    [['CTRL'], 'Op de fiets: wheelie (vasthouden en trappen)'],
     [['E', 'F'], 'Uitstappen'],
     [['Q', 'WHEEL'], 'Achterom kijken (vasthouden; middelste muisknop)'],
     [['H'], 'Toeteren'],
@@ -360,7 +362,8 @@ function settingsHtml() {
       ${picker('padLayout', 'Knoppen tonen als', [['auto', 'Automatisch'], ['xbox', 'Letterknoppen (A B X Y)'], ['ps', 'Vormknoppen'], ['switch', 'Wisselende letters'], ['deck', 'Handheld']], 'Automatisch kiest wat er aangesloten is')}
       ${slider('padLookSensitivity', 'Camera met de rechterstick', 0.3, 2.5, 0.05)}
       ${toggle('rumble', 'Trillen', 'Bij klappen, schoten en botsingen, als je controller dat kan')}
-      <div class="m-li pm-row">${rowName('Knoppen indelen', 'Onder Besturing › Controller')}<button type="button" class="m-bg" data-goto-sub="controls:knoppen">Indelen</button></div>`, `${pane('Camera & controller', 'Meekijken', '<p>Alle gangbare controllers werken meteen. De hints in beeld wisselen vanzelf tussen toetsen en knoppen, naar wat je het laatst gebruikte.</p><p class="mut">De camera-afstand en beeldhoek gelden te voet en in elk voertuig.</p>')}`)}
+      <div class="m-li pm-row">${rowName('Knoppen indelen', 'Onder Besturing › Controller')}<button type="button" class="m-bg" data-goto-sub="controls:knoppen">Indelen</button></div>
+      <div class="m-li pm-row">${rowName('Controller testen', 'Welk pad wordt herkend en welke knop doet wat')}<button type="button" class="m-bg" data-pad-test>Testen</button></div>`, `${pane('Camera & controller', 'Meekijken', '<p>Alle gangbare controllers werken meteen. De hints in beeld wisselen vanzelf tussen toetsen en knoppen, naar wat je het laatst gebruikte.</p><p class="mut">De camera-afstand en beeldhoek gelden te voet en in elk voertuig.</p>')}`)}
     ${tab('display', `
       ${picker('hudMode', 'HUD', [['slim', 'Slim'], ['alles', 'Altijd alles'], ['minimaal', 'Minimaal']], 'Slim toont alleen wat nu telt')}
       ${toggle('showMinimap', 'Minimap')}
@@ -507,6 +510,7 @@ export function initPauseMenu(w) {
     if (fold) { toggleFold(fold); return; }
     const pick = e.target.closest('[data-pick]');
     if (pick) { stepPicker(pick.closest('.m-pk'), Number(pick.dataset.pick)); return; }
+    if (e.target.closest('[data-pad-test]')) { openPadTest(); return; }
     const gsub = e.target.closest('[data-goto-sub]');
     if (gsub) { const [sec, sub] = gsub.dataset.gotoSub.split(':'); pref.sub[sec] = sub; enterSection(sec); return; }
     const rk = e.target.closest('[data-rebind-key]');

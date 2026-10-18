@@ -21,13 +21,21 @@ for (const it of data.items) {
 }
 const stale = K.LANDMARK_LOOKS.filter((q) => !data.items.some((i) => i.n === q.n && Math.hypot(q.x - i.x, q.y - i.y) < 80));
 looksUsed = K.LANDMARK_LOOKS.length - stale.length;
+// how varied each kind is: distinct looks (tower/choir/brick/roof/type/floors) among its kits
+const variety = {};
+for (const it of data.items) {
+  const p = K.landmarkParams(it);
+  if (!p) continue;
+  (variety[it.k] ||= new Set()).add([p.kit, p.tower, p.choir, p.brick, p.roof, p.type, p.crown, p.floors, p.windows, p.body].join('/'));
+}
 const total = Object.values(rows).reduce((a, r) => a + r.kit, 0);
 console.log('soort'.padEnd(12), 'kandidaten kit  naam  omtrek');
 for (const [k, r] of Object.entries(rows).sort()) console.log(k.padEnd(12), String(r.items).padStart(9), String(r.kit).padStart(4), String(r.named).padStart(5), String(r.outline).padStart(7));
 console.log(`herkenbaar: ${total} van ${data.items.length}; met de hand: ${looksUsed} van ${K.LANDMARK_LOOKS.length}`);
 const big = ['church', 'chapel', 'mill', 'tower', 'castle', 'watertower', 'lighthouse'].reduce((a, k) => a + (rows[k]?.kit || 0), 0);
 console.log(`kerken, molens, torens, borgen: ${big} (doel 500-600)`);
+console.log('verschillende uiterlijken:', Object.entries(variety).sort().map(([k, v]) => `${k} ${v.size}`).join(', '));
 if (missing.length) console.log('Zonder kit:\n  ' + missing.join('\n  '));
 if (stale.length) console.log('Handwerk zonder kandidaat:\n  ' + stale.map((q) => q.n).join('\n  '));
 if (process.argv.includes('--list')) for (const it of data.items) if (!it.n) console.log('naamloos', it.k, it.x, it.y);
-if (K.LANDMARK_LOOKS.length < 30 || big < 500 || big > 600 || stale.length) process.exit(1);
+if (K.LANDMARK_LOOKS.length < 30 || big < 500 || big > 600 || stale.length || (variety.church?.size || 0) < 20 || (variety.mill?.size || 0) < 6) process.exit(1);

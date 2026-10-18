@@ -99,3 +99,19 @@ for (let k = 0; k < 400 && !e.over; k++) stapRonde(e, { lat: 9, dist: 500 }, 0.1
 ok(e.over === 'fail' && stapRonde(e, { dist: 0 }, 0.1).length === 0, 'na fail geen events meer');
 console.log(`bijbaanregels_test: ${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);
+
+// adapter-gegevens: doelen per rijdende baan (sidejob_bijbaan.js gebruikt DOELEN)
+{
+  const { DOELEN, startRonde: sr } = await import('../game/js/bijbaanregels.js');
+  for (const id of Object.keys(DOELEN)) {
+    for (const lvl of [1, 3, 5]) {
+      const r = sr(id, lvl);
+      const total = DOELEN[id].total(r.s), at = DOELEN[id].at(r.s);
+      if (!(total >= 1 && at >= 0 && at < total)) { console.log('FAIL doelen', id, lvl, total, at); process.exitCode = 1; }
+    }
+  }
+  const src = (await import('node:fs')).readFileSync(new URL('../game/js/sidejobs.js', import.meta.url), 'utf8');
+  if (!/BIJBAAN_JOBS\]/.test(src) && !/\.\.\.BIJBAAN_JOBS/.test(src)) { console.log('FAIL bijbanen staan niet in SIDE_JOBS'); process.exitCode = 1; }
+  const ad = (await import('node:fs')).readFileSync(new URL('../game/js/sidejob_bijbaan.js', import.meta.url), 'utf8');
+  for (const id of Object.keys(DOELEN)) if (!ad.includes(`maak('${id}'`)) { console.log('FAIL adapter mist', id); process.exitCode = 1; }
+}

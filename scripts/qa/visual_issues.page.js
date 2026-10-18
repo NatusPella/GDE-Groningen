@@ -103,6 +103,7 @@ function nearestRow(hx, hy, kind) {
   return best;
 }
 
+const LS = await imp('loadscreen');
 const results = {};
 for (const S of window.__vi.spots) {
   if (ONLY.length && !ONLY.includes(S.name)) continue;
@@ -152,6 +153,30 @@ for (const S of window.__vi.spots) {
       await shot(S.name + '-warm', along(S.cx, S.cy, S.a, 15, 6, 120, 1), 4500);
       await shot(S.name, along(S.cx, S.cy, S.a, 15, 6, 120, 1), 3500);
       await shot(S.name + '-lang', along(S.cx, S.cy, S.a, 15, 4, 500, 2), 2500);
+    } else if (S.type === 'kart') {
+      // #189: road surface transitions (concrete between asphalt) at the kart track
+      await go(S.x, S.y, 0);
+      info.at = [Math.round(S.x), Math.round(S.y)];
+      for (const [n, dx, dy, up] of [['a', 0, 0, 90], ['b', 40, 40, 30], ['c', -40, 40, 12]]) {
+        const g = gh(S.x, S.y);
+        await shot(S.name + '-' + n, { position: { x: S.x + dx, y: S.y + dy, z: g + up }, lookAt: { x: S.x - dx * 0.2, y: S.y - dy * 0.2, z: g }, cut: true });
+      }
+    } else if (S.type === 'loadscreen') {
+      // #188: the load screen of a new game / travel / fast travel
+      await go(S.x, S.y, 0, 5000);
+      hold = null;
+      for (const kind of ['save', 'travel', 'snel']) {
+        try {
+          const h = LS.startLoadScreen(w, { kind, name: S.name });
+          await sleep(1800);
+          console.log('[capture] ' + S.name + '-' + kind);
+          await sleep(600);
+          info[kind] = !!(h && h.el);
+          if (h && h.done) { await Promise.race([h.done, sleep(9000)]); }
+          const el = document.getElementById('load-screen'); if (el) el.remove();
+          await sleep(500);
+        } catch (e) { info[kind] = 'fout: ' + e.message; }
+      }
     } else if (S.type === 'raillod') {
       // #158: the player at S; views of the line from 40 / 150 / 400 / 900 m
       await go(S.x, S.y, S.a);

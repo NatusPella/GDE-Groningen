@@ -6,6 +6,7 @@ import { playCinematic } from './cinematics.js';
 import { compileScene, fitAnchor, resolveTime } from './cutscript.js';
 import { roofAt } from './camerapath.js';
 import { animateActor } from './actoranim.js';
+import { audioPlan } from './cutaudio.js';
 
 // The game side of the cutscene direction language (cutscript.js): puts the
 // sampled actors and props on meshes, feeds the camera pose to cinematics.js
@@ -160,7 +161,10 @@ export function buildScriptRun(def, scene, anchor, env = null, w = null) {
   }
   // the kitchen set and its effects
   let kit = null;
-  const fx = (def.fx || []).map((f) => ({ ...f, t0: resolveTime(f.t, scene.lines, scene.duration) ?? 0 })).sort((a, b) => a.t0 - b.t0);
+  const authored = (def.fx || []).map((f) => ({ ...f, t0: resolveTime(f.t, scene.lines, scene.duration) ?? 0 }));
+  // vehicles, bikes and pigeons that move get their sound from the plan (cutaudio.js, #117)
+  const planned = audioPlan(def, scene.lines, scene.duration).map((p) => ({ t: p.t, t0: p.t, fx: 'sfx', kind: p.kind, name: p.name }));
+  const fx = [...authored, ...planned].sort((a, b) => a.t0 - b.t0);
   const fired = new Set();
   const cupState = {}, cupKey = {};
   if (def.set === 'keuken') {
@@ -169,12 +173,12 @@ export function buildScriptRun(def, scene, anchor, env = null, w = null) {
     kit.reset();
   }
   const doorFx = fx.filter((f) => f.fx === 'door');
-  const sfx = (kind) => { if (w) (w.audioEvents || (w.audioEvents = [])).push({ kind, x: anchor.x, y: anchor.y }); };
+  const sfx = (kind, name) => { if (w) (w.audioEvents || (w.audioEvents = [])).push(name ? { kind, name, x: anchor.x, y: anchor.y } : { kind, x: anchor.x, y: anchor.y }); };
   const kitchenFrame = (t) => {
     let buzz = false;
     for (const f of fx) {
       if (f.t0 > t) break;
-      if (f.fx === 'sfx' && !fired.has(f)) { fired.add(f); sfx(f.kind); }
+      if (f.fx === 'sfx' && !fired.has(f)) { fired.add(f); sfx(f.kind, f.name); }
       if (!kit) continue;
       if (f.fx === 'buzz' && t < f.t0 + (f.dur ?? 2)) buzz = true;
       if (f.fx === 'pulse' && t < f.t0 + (f.dur ?? 2)) kit.radio.rotation.z = Math.sin(t * 9) * 0.05;
