@@ -1,5 +1,9 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { GRID_CONVERGENCE } from './rdnew.js';
+import { setSunDeclination, sunElevationDeg, nightFactor, nightAtHour, smoothstep, hourAngle } from './sunrules.js';
+
+// the sun and the night live in sunrules.js (one definition of night, #107)
+export { setSunDeclination, sunElevationDeg, nightFactor, nightAtHour };
 
 // world.clock: in-game hours 0..24. Advanced only from updateGameplay, so
 // the pause menu and map freeze time. world.dayNight is the derived,
@@ -7,14 +11,6 @@ import { GRID_CONVERGENCE } from './rdnew.js';
 
 export const DAY_LENGTH_S = 24 * 60;
 const START_HOUR = 17.5;
-const LATITUDE = 53.2 * Math.PI / 180;
-// the sun's declination: calendarday.js sets it per date (setSunDeclination);
-// null (the trailer, the intro, before a game runs) is the look they were shot with
-const DEFAULT_DECLINATION = 15 * Math.PI / 180;
-let DECLINATION = DEFAULT_DECLINATION;
-export function setSunDeclination(deg) {
-  DECLINATION = Number.isFinite(deg) ? deg * Math.PI / 180 : DEFAULT_DECLINATION;
-}
 // Horizontal sun bearing at solar noon, in three.js x/z space: chosen for
 // the look against true north, turned onto the RD grid (rdnew.js).
 const NOON_BEARING = -60 * Math.PI / 180 + GRID_CONVERGENCE;
@@ -42,24 +38,6 @@ export function refreshDayNight(world) {
   const h = Math.floor(hour), m = Math.floor((hour - h) * 60);
   dn.label = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
   return dn;
-}
-
-function hourAngle(hour) {
-  return (hour - 12) * 15 * Math.PI / 180;
-}
-
-export function sunElevationDeg(hour) {
-  const s = Math.sin(LATITUDE) * Math.sin(DECLINATION) + Math.cos(LATITUDE) * Math.cos(DECLINATION) * Math.cos(hourAngle(hour));
-  return Math.asin(Math.max(-1, Math.min(1, s))) * 180 / Math.PI;
-}
-
-export function nightFactor(elevDeg) {
-  return smoothstep(4, -8, elevDeg);
-}
-
-function smoothstep(a, b, x) {
-  const t = Math.max(0, Math.min(1, (x - a) / (b - a)));
-  return t * t * (3 - 2 * t);
 }
 
 function dirFromAngles(out, bearing, elevRad) {
@@ -119,8 +97,8 @@ export function computeLighting(hour, out = {}) {
 // The one answer to "what time of day is it" for everything that reads
 // world.clock/world.dayNight: hour (0..24), night (0..1, from the sun),
 // isNight (night > 0.5, the street lights are on) and phase
-// ('dag' | 'schemering' | 'nacht'). Systems with their own hour windows
-// (muggingrules, musicpick, missions, streetlifedata) stay on those on purpose.
+// ('dag' | 'schemering' | 'nacht'). Rules that only know an hour (musicpick,
+// muggingrules, streetlifedata) ask sunrules.js nightAtHour: the same sun.
 export function dayState(world) {
   const dn = world && world.dayNight;
   const raw = dn && Number.isFinite(dn.hour) ? dn.hour : world && world.clock;

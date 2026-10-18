@@ -9,13 +9,14 @@ import './node3d.mjs';
 const P = await import('./world/pack_tiles.mjs');
 const G = await import('../game/js/gdt.js');
 const N = await import('../game/js/navgraph.js');
+const { NavGraph } = await import('./lib/navgraph_check.mjs');
 
 let n = 0, fails = 0;
 const ok = (cond, name, info = '') => { n++; if (!cond) { fails++; console.log(`FAIL ${name}${info ? ' (' + info + ')' : ''}`); } };
 
 const src = P.loadSources();
 const built = P.build(src);
-const whole = N.NavGraph.from(N.edgeRows(src.map.roads));
+const whole = NavGraph.from(N.edgeRows(src.map.roads));
 
 // tile graph: every tile's nav rows
 const rows = [];
@@ -27,7 +28,7 @@ for (const [, b] of built.blobs) {
   tilesWithNav++;
   for (const r of s.rows) { const { p, ...rest } = r; rows.push({ ...rest, a: p[0], b: p[1] }); }
 }
-const tileGraph = N.NavGraph.from(rows);
+const tileGraph = NavGraph.from(rows);
 ok(rows.length === whole.edges && tileGraph.edges === whole.edges, `${rows.length} edges in ${tilesWithNav} tiles = the ${whole.edges} of the whole map`, `${rows.length}/${whole.edges}`);
 ok(tileGraph.xy.length === whole.xy.length, 'same number of nodes', `${tileGraph.xy.length}/${whole.xy.length}`);
 
@@ -69,7 +70,7 @@ for (const mode of ['car', 'bike', 'foot']) {
 // the global layer
 {
   const chains = G.decodeBlob(built.global).sections.filter((s) => s.type === G.SECTION.META).map((s) => s.json).find((j) => j.nav).nav;
-  const g = N.NavGraph.from(chains.map((c) => ({ a: c.a, b: c.b, len: c.len, spd: c.spd, ow: c.ow, acc: c.acc })));
+  const g = NavGraph.from(chains.map((c) => ({ a: c.a, b: c.b, len: c.len, spd: c.spd, ow: c.ow, acc: c.acc })));
   const majors = src.map.roads.filter((r) => r.cat === 'major').reduce((a, r) => a + r.pts.length - 1, 0);
   ok(chains.length > 100 && chains.length < majors / 2, `global layer: ${chains.length} chains for ${majors} main-road segments`);
   const km = chains.reduce((a, c) => a + c.len, 0) / 1000;

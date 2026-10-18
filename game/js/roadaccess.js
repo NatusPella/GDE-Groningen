@@ -8,6 +8,8 @@
 // cyclists off footways and steps. Real access tags (foot/bicycle/
 // motor_vehicle=no, bus only, private) come with the province tiles (F0/F1).
 
+import { ACC } from './navgraph.js';
+
 export const MODES = ['lopen', 'fiets', 'auto', 'boot', 'ov', 'lucht'];
 export const MODE_LABEL = { lopen: 'Lopen', fiets: 'Fiets', auto: 'Auto', boot: 'Boot', ov: 'OV', lucht: 'Lucht' };
 
@@ -30,10 +32,10 @@ export function travelModeOf(world) {
   return 'auto';
 }
 
-// Access bits per road (navgraph.js ACC: voet 1, fiets 2, auto 4, bus 8). A
+// Access bits per road (navgraph.js ACC). A
 // road carries `acc` when the OSM tags (foot/bicycle/motor_vehicle/access/
 // motorroad) differ from what its class implies (scripts/process_osm.py).
-export const ACC_BIT = { lopen: 1, fiets: 2, auto: 4 };
+export const ACC_BIT = { lopen: ACC.FOOT, fiets: ACC.BIKE, auto: ACC.CAR };
 
 // true: the road is for this mode; false: "niet voor jou"; null: no roads in this mode.
 export function roadAllowed(road, mode) {

@@ -3,6 +3,7 @@ import { assistTime } from './assistlive.js';
 import { buildWorldMarker3D, setWorldMarkerKind, updateWorldMarker3D } from './worldmarker3d.js';
 import { dist, pointInPolygon, closestPointOnSegment, boatDryPoints, clamp, isInWater } from './util.js';
 import { waterPolyAt } from './waterlevels.js';
+import { isNightAtHour } from './sunrules.js';
 import { PERFECT_VERDICT } from './flavourlines.js';
 import { spawnVehicleOnRoad, Vehicle, makeTwoWheeler, spawnHeroCarNear, attachToNearestRoad, TRACTOR_MODEL, QUAD_MODEL } from './vehicle.js';
 import { placeOwnedVehicleNear } from './ownedvehicles.js';
@@ -778,9 +779,10 @@ export function setMissionHooks(h) {
   Object.assign(hooks, h);
 }
 
+// night by the sun (sunrules.js): the same answer as the street lights
 export function isNight(w) {
   const h = w.dayNight ? w.dayNight.hour : w.clock;
-  return Number.isFinite(h) && (h >= 21 || h < 5);
+  return isNightAtHour(h);
 }
 
 const reqList = (def) => (Array.isArray(def.requires) ? def.requires : def.requires ? [def.requires] : []);

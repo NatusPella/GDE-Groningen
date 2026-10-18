@@ -8,14 +8,13 @@
 //
 import { narrativeBusy } from './narrative.js';
 
-import { LEVEL, CARD_PRIORITY as CARDS, MOMENTS, RATION, VOICE_GAP, decideMoment } from './hudbus.js';
+import { LEVEL, CARD_PRIORITY as CARDS, MOMENTS, mayShow } from './hudbus.js';
 import { playerBusy } from './busy.js';
 
 // Priority: story > wanted/danger > money/achievement > discovery/flavour > tips.
 // The tables (levels, card categories, moments, gaps) are in hudbus.js.
 export const PRIORITY = LEVEL;
 export const CARD_PRIORITY = CARDS;
-const { TIP_GAP } = RATION;
 
 let clock = () => (typeof performance !== 'undefined' ? performance.now() : Date.now()) / 1000;
 const last = { any: -Infinity, level: 0, groups: {}, tip: -Infinity };
@@ -31,7 +30,8 @@ function busy(w) {
 export function mayInterrupt(kind, w) {
   if (!MOMENTS[kind]) return true;
   const v = w && w.player && w.player.inVehicle;
-  return decideMoment(kind, {
+  return mayShow('moment', {
+    kind,
     now: clock(),
     busy: busy(w),
     callOn: typeof document !== 'undefined' && !!document.body && document.body.classList.contains('hud-call-on'),
@@ -50,9 +50,9 @@ export function noteMoment(kind) {
   if (m) last.groups[m.group] = now;
 }
 
-// Tip cards: at most one per TIP_GAP seconds.
+// Tip cards: at most one per TIP_GAP seconds (hudbus.js).
 export function mayShowTip() {
-  return clock() - last.tip >= TIP_GAP;
+  return mayShow('tip', { now: clock(), last: last.tip });
 }
 export function noteTip() { last.tip = clock(); }
 
@@ -61,8 +61,7 @@ export function noteTip() { last.tip = clock(); }
 // only get the ping.
 const voicedAt = {};
 export function mayVoiceText(kind) {
-  const gap = VOICE_GAP[kind];
-  return !gap || clock() - (voicedAt[kind] ?? -Infinity) >= gap;
+  return mayShow('voice', { kind, now: clock(), voicedAt });
 }
 export function noteVoiceText(kind) { voicedAt[kind] = clock(); }
 

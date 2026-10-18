@@ -8,6 +8,8 @@
 // there: the crowds at the station and in the nightlife streets (pickpockets)
 // and the empty business parks (nobody around).
 
+import { nightAtHour } from './sunrules.js';
+
 export const RISKY = {
   Stationsgebied: { tier: 2, why: 'veel drukte rond het station' },
   Binnenstad: { tier: 2, why: 'uitgaansdrukte in de binnenstad' },
@@ -43,15 +45,8 @@ export const MUG = {
   warnFrom: 0.35,
 };
 
-// 0..1: how dark it is for this purpose. Quiet after 22:00 until 05:00, a bit before and after.
-export function nightFactor(hour) {
-  if (!Number.isFinite(hour)) return 0;
-  const h = ((hour % 24) + 24) % 24;
-  if (h >= 22 || h < 5) return 1;
-  if (h >= 20 && h < 22) return 0.6;
-  if (h >= 5 && h < 6) return 0.5;
-  return 0;
-}
+// 0..1: how dark it is, by the sun of today's date (sunrules.js): quiet streets from dusk, deepest at night.
+export const nightFactor = (hour) => nightAtHour(hour);
 
 export const isNight = (hour) => nightFactor(hour) > 0;
 
