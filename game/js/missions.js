@@ -1329,6 +1329,30 @@ function rewardAdjust(def, base) {
   return { amount: 0, text: '' };
 }
 
+// the jury's tier: the baking score, one level lower when both answers to the jury were wrong
+function juryTier() {
+  const order = ['top', 'goed', 'mager'];
+  let i = order.indexOf(chain.bakeTier || 'goed');
+  if (chain.tags && chain.tags.has('fout1') && chain.tags.has('fout2')) i = Math.min(2, i + 1);
+  return order[i];
+}
+
+// what a choice or the baking score added to the reward: { amount, text, rows }
+function consequenceAdjust(def) {
+  let amount = 0;
+  const rows = [];
+  if (def.bakeBonus && chain.bakeTier) {
+    const tier = juryTier();
+    amount += def.bakeBonus[tier] || 0;
+    if (def.bakeRows && def.bakeRows[tier]) rows.push(def.bakeRows[tier]);
+  }
+  for (const tag of chain.tags || []) {
+    amount += (def.tagAdjust && def.tagAdjust[tag]) || 0;
+    if (def.tagRows && def.tagRows[tag]) rows.push(def.tagRows[tag]);
+  }
+  return { amount, text: amount ? (amount > 0 ? ` en €${amount} bonus` : ` (€${-amount} ingehouden)`) : '', rows };
+}
+
 function succeed(world, def) {
   const i = chain.index;
   stopTalk();
@@ -1338,15 +1362,17 @@ function succeed(world, def) {
   closeChoice();
   const tip = def.type === 'boat' ? rondvaartTip() : 0;
   const adj = rewardAdjust(def, base);
-  const reward = base + tip + adj.amount;
+  const cons = consequenceAdjust(def);
+  const reward = Math.max(0, base + tip + adj.amount + cons.amount);
   const reason = def.type === 'boat' ? rondvaartOutro() : def.outro || def.label;
   noteMoney('Missies');
   world.money += reward;
   world.stats.missionsDone++;
-  world.addMessage(`${def.label} geklaard! ${replay ? 'Klusloon ' : ''}+€${base}${tip ? ` en €${tip} fooi` : ''}${adj.text}`, 4);
+  world.addMessage(`${def.label} geklaard! ${replay ? 'Klusloon ' : ''}+€${base}${tip ? ` en €${tip} fooi` : ''}${adj.text}${cons.text}`, 4);
   const stats = runStats(world, def);
   // what the mission cost on the way (Het Loket: the entry fee), so the card is honest about a reward of 0
   if (def.costRow && !replay) stats.push(def.costRow);
+  if (!replay) stats.push(...consequenceAdjust(def).rows);
   // a flawless run earns the highest compliment there is (flavour.js has an NPC say it too)
   const r = chain.run;
   if (r && r.hurt < 0.5 && (!r.vehicleUsed || r.vehDamage < 3) && (!r.racePos || r.racePos === 1)) {
@@ -1821,6 +1847,8 @@ function releaseCrowd() {
 
 function startMission(world, def) {
   removeLeftover(world);
+  chain.tags = new Set();
+  chain.bakeTier = null;
   // a start out in the province has no road data until the player is there (the tiles stream in): find the road now
   if (def.lazyStart && !def.start.road) {
     const spot = roadSpot(world.map, def.start.x, def.start.y, true);
@@ -3009,6 +3037,9 @@ function modeOk(p, mode) {
 
 function playStageScene(world, st, S) {
   // the new arc's stage scenes say the script's lines (storytext.js)
+  // a consequence picks the scene: the baking score (scriptTier) or an answer's tag (scriptIf)
+  if (st.scriptTier && st.script) st = { ...st, script: { ...st.script, ids: st.scriptTier[juryTier()] || st.script.ids } };
+  if (st.scriptIf && st.script) { const hit = st.scriptIf.find((q) => chain.tags && chain.tags.has(q.tag)); if (hit) st = { ...st, script: { ...st.script, ids: hit.ids } }; }
   if (st.script && storyDataReady()) st = { ...st, lines: storyLines(st.script.ids, st.script) };
   const c = S.target || { x: world.player.x, y: world.player.y };
   const name = (who) => (who === 'T' ? 'Tammo' : who === 'A' ? 'Anita' : storySpeakerName(who));
@@ -3342,8 +3373,12 @@ function updateStages(dt, world, def) {
     }
     case 'choice': {
       const r = updateChoice(dt, world, st, S);
-      if (r === 'done') nextStage(world, def);
-      else if (r && r.fail) fail(world, def, r.fail);
+      if (r === 'done') {
+        // an answer can carry a tag: the mission pays and tells its consequence (def.tagAdjust, def.tagRows, st.scriptIf)
+        (chain.tags = chain.tags || new Set());
+        st.rounds.forEach((rd, k) => { const o = rd.options[S.picks[k]]; if (o && o.tag) chain.tags.add(o.tag); });
+        nextStage(world, def);
+      } else if (r && r.fail) fail(world, def, r.fail);
       break;
     }
     default:
@@ -3376,6 +3411,7 @@ function updateBakeStage(dt, world, def, st, S) {
   if (res === 'done') {
     hideBake();
     const bad = S.bake.wrongs + S.bake.redos * 3;
+    if (st.recipe === 'contest') chain.bakeTier = bad === 0 ? 'top' : bad < 3 ? 'goed' : 'mager';
     world.addMessage(st.recipe === 'contest' ? (bad === 0 ? 'Alle eierballen zijn goud, geen enkele mislukt. De jury gaat dit proeven.' : bad < 3 ? 'De eierballen zijn goud. Een paar mislukten, de jury merkt het niet.' : 'De eierballen zijn goud, na veel gedoe. De jury heeft het gezien.') : 'Alle eierballen zijn goud.', 3);
     return true;
   }

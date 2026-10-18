@@ -67,12 +67,13 @@ const played = new Set();
 for (const s of akte5) for (const k of ['intro', 'outro', 'replay']) for (const id of (s.story && s.story[k]) || []) played.add(id);
 for (const d of defs) for (const st of d.stages) {
   for (const r of [st.script, st.talk, st.swarm && st.swarm.script]) if (r) r.ids.forEach((id) => played.add(id));
+  for (const alt of [...Object.values(st.scriptTier || {}), ...(st.scriptIf || []).map((q) => q.ids)]) alt.forEach((id) => played.add(id));
 }
 for (const s of akte5) for (const id of s.scenes) ok(played.has(id), `${s.id}: scene ${id} is played by the step or a stage`);
 
 // the finale: bake -> stall -> board -> block -> fall -> Mem -> jury's question -> jury, then the outro of the step
 const fin = byLabel('Ontzet, net als in 1672');
-ok(fin.stages.map((q) => q.kind).join() === 'bake,hold,board,chase,scene,scene,choice,scene', 'the finale runs in order');
+ok(fin.stages.map((q) => q.kind).join() === 'bake,hold,board,chase,scene,scene,choice,scene,scene,scene', 'the finale runs in order');
 ok(fin.stages.find((q) => q.kind === 'chase').keep === true, 'the limo is not adopted as a mission car');
 ok(byLabel('Een luik erin').stages.filter((q) => q.mud).length === 2, 'the mud is two stages');
 ok(fresh.every((d) => d.heroCar), 'the new defs use the Escapade');
