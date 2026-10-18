@@ -1,0 +1,128 @@
+{
+  "note": "Bewust toegestane gevallen voor scripts/text_audit.mjs. Elke regel heeft een reden (why). term = het gevonden woord (hoofdletterongevoelig), file/ctx maken het smaller.",
+  "allow": [
+    {
+      "rule": "naam",
+      "term": "Gerrit Krolbrug",
+      "why": "echte brug in Groningen (echte plaatsen en gebouwen mogen); geen persoon"
+    },
+    {
+      "rule": "naam",
+      "term": "Hendrik Werkman",
+      "file": "rondvaartlines.js",
+      "why": "brugnaam in de rondvaart; zie de lijst voor de eigenaar in #150 (ingesproken, historische persoon)"
+    },
+    {
+      "rule": "naam",
+      "term": "Aaltje Wiebel",
+      "why": "verzonnen personage/bootnaam (Wiebelwerk-universum)"
+    },
+    {
+      "rule": "naam",
+      "term": "Harm Occasions",
+      "why": "verzonnen autohandel"
+    },
+    {
+      "rule": "naam",
+      "term": "Albert Hijgt",
+      "why": "verzonnen naam (woordspeling op de supermarkt), geen merk"
+    },
+    {
+      "rule": "naam",
+      "term": "Henk van Garage",
+      "why": "verzonnen garagehouder"
+    },
+    {
+      "rule": "naam",
+      "term": "Femke van Noorderzon",
+      "why": "verzonnen personage"
+    },
+    {
+      "rule": "naam",
+      "term": "Sjoerd van de KEI-commissie",
+      "why": "verzonnen personage"
+    },
+    {
+      "rule": "merk",
+      "term": "GTA",
+      "file": "credits.js",
+      "why": "de parodie-disclaimer noemt het bronwerk bewust"
+    },
+    {
+      "rule": "merk",
+      "term": "Google",
+      "file": "credits.js",
+      "why": "bronvermelding/credits (Google Gemini voor de stemmen), feitelijk vereist"
+    },
+    {
+      "rule": "winter",
+      "term": "oud en nieuw",
+      "why": "bewuste grap: de carbidbus 'het hele jaar oud en nieuw', in de zomer"
+    },
+    {
+      "rule": "winter",
+      "term": "Elfstedentocht",
+      "file": "banterlines.js",
+      "why": "bewuste grap in een gesprek over de tocht, geen winterscène"
+    },
+    {
+      "rule": "winter",
+      "term": "winter",
+      "file": "banterlines.js",
+      "ctx": "in de winter wel terug",
+      "why": "vergelijking/zegswijze, geen winterscène; ingesproken"
+    },
+    {
+      "rule": "winter",
+      "term": "winter",
+      "file": "storyarc_oud.js",
+      "ctx": "Van de winter ook niet",
+      "why": "bewuste grap over 'spijt van de zomer'; ingesproken"
+    },
+    {
+      "rule": "winter",
+      "term": "ijsbaan",
+      "file": "rondvaartchase.js",
+      "why": "vergelijking in een grap van de schipper; ingesproken"
+    },
+    {
+      "rule": "winter",
+      "term": "ijs",
+      "why": "ijs als ijsje/consumptie (zomer): ijssalon, patat en limonade"
+    },
+    {
+      "rule": "engels",
+      "file": "rondvaartlines.js",
+      "why": "Engelse toeristen op de rondvaartboot praten bewust Engels (ondertiteld)"
+    },
+    {
+      "rule": "engels",
+      "file": "subtitles.js",
+      "why": "Nederlandse ondertitels van de Engelse toeristen"
+    },
+    {
+      "rule": "engels",
+      "file": "rondvaartchase.js",
+      "ctx": "Is this part of the tour?",
+      "why": "toerist roept in het Engels"
+    },
+    {
+      "rule": "engels",
+      "file": "sidejob_rondvaart.js",
+      "ctx": "Is this part of the tour?",
+      "why": "toerist roept in het Engels"
+    },
+    {
+      "rule": "engels",
+      "file": "sidejob_taxi.js",
+      "ctx": "Martinitoren please",
+      "why": "toerist in de taxi praat Engels, met Nederlandse vertaling erachter"
+    },
+    {
+      "rule": "merk",
+      "term": "Wikipedia",
+      "ctx": "wandelende Wikipedia van Stad",
+      "why": "ECHT MERK, maar ingesproken (banter + script.json): alleen melden; vervangen vraagt herinspreken en dus akkoord van de eigenaar (#150)"
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+# Tests (#140): node --check, voice_coverage, alle scripts/*_test.mjs en de
+# Python-tests, op Linux en Windows. Lokaal: node scripts/run_tests.mjs
+# Geen geheimen of externe diensten; alleen de standaard Actions. De stage-stap
+# haalt three.js en lettertypen op bij jsDelivr/Google Fonts (zoals elke build).
+name: Tests
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: npm
+          cache-dependency-path: desktop/package-lock.json
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      # --ignore-scripts: de Electron-binary is voor de tests niet nodig.
+      - name: npm ci
+        working-directory: desktop
+        run: npm ci --ignore-scripts
+
+      # Haalt three.js binnen voor de 3D-tests en bouwt de beschikbare tegels.
+      - name: npm run stage
+        working-directory: desktop
+        run: npm run stage
+
+      - name: Node-tests
+        run: node scripts/run_tests.mjs
+
+      - name: Python-tests
+        shell: bash
+        run: |
+          python -I scripts/world/rdnew_test.py
+          python -I scripts/world/extract_province_test.py
