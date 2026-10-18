@@ -68,15 +68,18 @@ export function inspectRaw(raw) {
   try { d = JSON.parse(raw); } catch (e) { return { ok: false, why: 'kapot' }; }
   if (!isObj(d)) return { ok: false, why: 'kapot' };
   if (Number.isInteger(d.v) && d.v > SAVE_VERSION) return { ok: false, why: 'nieuwer' };
-  const m = migrateSave(d);
+  let m;
+  try { m = migrateSave(d); } catch (e) { return { ok: false, why: 'kapot' }; } // e.g. nested too deep to copy
   if (!m) return { ok: false, why: 'kapot' };
   if (savedArc(m.data) !== ARC_ID) return { ok: false, why: 'ander-verhaal' };
   return { ok: true, data: m.data, from: m.from };
 }
 
-// a text that parses to an object: worth keeping as the recovery copy, also one from a newer game
+// a text worth keeping as the recovery copy: a save this game can load, or one from a newer game
+// (not junk that merely parses: that would replace a good copy)
 function isSaveText(t) {
-  try { return isObj(JSON.parse(t)); } catch (e) { return false; }
+  const r = inspectRaw(t);
+  return r.ok || r.why === 'nieuwer';
 }
 
 // The state of one slot: { n, state, data, from, raw, why }
@@ -171,11 +174,13 @@ export function writeSlotRaw(ls, n, text) {
   if (prev != null && prev !== text && isSaveText(prev)) {
     try { s.setItem(slotRecoveryKey(n), prev); } catch (e) { /* full: the recovery copy of this round is skipped */ }
   }
+  const put = () => { s.setItem(key, text); if (s.getItem(key) !== text) throw new Error('read-back differs'); };
   try {
-    s.setItem(key, text);
-    if (s.getItem(key) === text) return true;
-    throw new Error('read-back differs');
+    put();
+    return true;
   } catch (e) {
+    // full: the recovery copy takes as much room as the save, so give it up before giving up the save
+    try { s.removeItem(slotRecoveryKey(n)); put(); return true; } catch (e1) { /* still no room */ }
     try { if (prev != null) s.setItem(key, prev); } catch (e2) { /* nothing more to do */ }
     return false;
   }
@@ -245,7 +250,8 @@ export function parseImport(text) {
   } else if (!Number.isInteger(d.v) || !('money' in d || 'missions' in d || 'story' in d)) {
     return { ok: false, why: 'geen-save' };
   }
-  const r = inspectRaw(JSON.stringify(save));
+  let r;
+  try { r = inspectRaw(JSON.stringify(save)); } catch (e) { return { ok: false, why: 'kapot' }; }
   if (!r.ok) return { ok: false, why: r.why === 'leeg' ? 'kapot' : r.why };
   return { ok: true, name, data: r.data, from: r.from };
 }

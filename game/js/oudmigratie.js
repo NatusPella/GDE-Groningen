@@ -12,6 +12,7 @@
 import { BASE_KEYS, KEYS } from './storagekeys.js';
 
 const isObj = (o) => !!o && typeof o === 'object' && !Array.isArray(o);
+const own = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
 const parse = (raw) => { try { return JSON.parse(raw); } catch (e) { return null; } };
 
 // The lifetime record of prestaties (achievements.js blankLife shape) of two keys folded into one: unlocks and
@@ -20,20 +21,20 @@ export function mergeLife(a, b) {
   const out = { v: 1, unlocked: {}, stats: {}, sets: {}, missions: {}, challenges: {}, fresh: [] };
   for (const d of [a, b]) {
     if (!isObj(d)) continue;
-    if (isObj(d.unlocked)) for (const [id, t] of Object.entries(d.unlocked)) if (!out.unlocked[id] || (Number(t) || 1) < out.unlocked[id]) out.unlocked[id] = Number(t) || 1;
-    if (isObj(d.stats)) for (const [k, v] of Object.entries(d.stats)) if (Number.isFinite(v) && !(out.stats[k] >= v)) out.stats[k] = v;
+    if (isObj(d.unlocked)) for (const [id, t] of Object.entries(d.unlocked)) if (id !== '__proto__' && (!out.unlocked[id] || (Number(t) || 1) < out.unlocked[id])) out.unlocked[id] = Number(t) || 1;
+    if (isObj(d.stats)) for (const [k, v] of Object.entries(d.stats)) if (k !== '__proto__' && Number.isFinite(v) && !(out.stats[k] >= v)) out.stats[k] = v;
     if (isObj(d.sets)) {
       for (const [k, list] of Object.entries(d.sets)) {
-        if (!Array.isArray(list)) continue;
-        const cur = out.sets[k] || (out.sets[k] = []);
+        if (!Array.isArray(list) || k === '__proto__') continue;
+        const cur = own(out.sets, k) ? out.sets[k] : (out.sets[k] = []);
         for (const s of list) if (typeof s === 'string' && !cur.includes(s)) cur.push(s);
       }
     }
     for (const [section, lower] of [['missions', true], ['challenges', null]]) {
       if (!isObj(d[section])) continue;
       for (const [i, r] of Object.entries(d[section])) {
-        if (!isObj(r)) continue;
-        const cur = out[section][i];
+        if (!isObj(r) || i === '__proto__') continue;
+        const cur = own(out[section], i) ? out[section][i] : null;
         if (!cur) { out[section][i] = { ...r }; continue; }
         const isLower = lower || r.lower;
         if (Number.isFinite(r.best) && (!Number.isFinite(cur.best) || (isLower ? r.best < cur.best : r.best > cur.best))) cur.best = r.best;
