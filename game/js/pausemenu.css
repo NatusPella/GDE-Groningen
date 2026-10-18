@@ -211,8 +211,10 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 #pause-menu .gar-dot { display: inline-block; width: 16px; height: 16px; margin-right: 8px; border-radius: 50%; box-shadow: 0 0 0 1px rgba(240, 237, 228, 0.5); vertical-align: -2px; }
 #pause-menu .gar-msg { font-size: 18px; }
 #pause-menu .gar-viewer { width: auto; }
-#pause-menu .m-main > .m-list.gar-list { width: 700px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; align-content: start; }
+#pause-menu .m-main > .m-list.gar-list { width: 700px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-rows: min-content; gap: 12px; align-content: start; }
 #pause-menu .gar-list .m-gh, #pause-menu .gar-list .m-note { grid-column: 1 / -1; }
+/* 720p and 1366: two columns, so the viewer keeps room for the name and the button */
+@media (max-width: 1400px) { #pause-menu .m-main > .m-list.gar-list { width: 470px; grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 #pause-menu .gar-card { flex-direction: column; align-items: stretch; gap: 8px; padding: 12px; min-height: 0; text-align: left; background: rgba(240, 237, 228, 0.04); }
 #pause-menu .gar-card .gar-ph { display: flex; align-items: center; justify-content: center; height: 88px; border-radius: 6px; background: radial-gradient(ellipse at 50% 85%, rgba(240, 237, 228, 0.12), rgba(240, 237, 228, 0) 70%); }
 #pause-menu .gar-card .gar-ph svg { width: 76px; height: 76px; }
