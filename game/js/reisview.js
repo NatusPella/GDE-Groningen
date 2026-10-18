@@ -3,6 +3,7 @@
 // draws them, hudbus.js (kind 'reis') decides when they may show.
 import { travelOptions, RIDES } from './reiskeuze.js';
 import { travelSeconds, classOf } from './reistijd.js';
+import { wantsExplain } from './hudtext.js';
 
 const km = (m) => (m < 10000 ? (m / 1000).toFixed(1).replace('.', ',') : String(Math.round(m / 1000)));
 const mins = (s) => Math.max(1, Math.round(s / 60));
@@ -16,7 +17,9 @@ export function briefingLine(beat) {
 }
 
 // state for createChoicePanel().set(); `pick` is the highlighted option id
-export function panelState(beat, pick) {
+// seen (hudtext.js): the help line shows the first times only; the rule is the distance.
+export const TRAVEL_HELP_ID = 'reis:help';
+export function panelState(beat, pick, seen = {}) {
   const r = travelOptions(beat);
   const keys = { meerijden: '1', zelf: '2', overslaan: '3' };
   const options = r.options.map((o) => ({
@@ -25,9 +28,9 @@ export function panelState(beat, pick) {
   return {
     kicker: 'REIZEN',
     text: `Naar ${beat.to}`,
-    rule: briefingLine(beat),
+    rule: `${km(beat.length)} km`,
     options,
-    help: r.required ? 'Kies hoe je gaat' : 'Kies hoe je gaat, of rij gewoon zelf',
+    help: wantsExplain(seen, TRAVEL_HELP_ID) ? 'Kies hoe je gaat' : '',
   };
 }
 
@@ -35,6 +38,13 @@ export function panelState(beat, pick) {
 export function pickFromKey(beat, key) {
   const id = { 1: 'meerijden', 2: 'zelf', 3: 'overslaan' }[key];
   return travelOptions(beat).options.some((o) => o.id === id) ? id : null;
+}
+
+// gamepad: d-pad up/down moves the pick through the options the beat has
+export function cyclePick(beat, pick, dir) {
+  const ids = travelOptions(beat).options.map((o) => o.id);
+  const i = Math.max(0, ids.indexOf(pick));
+  return ids[(i + (dir < 0 ? -1 : 1) + ids.length) % ids.length];
 }
 
 // the HUD line while driving: remaining distance and ETA

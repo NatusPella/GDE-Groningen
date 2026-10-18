@@ -15,7 +15,6 @@ import { smsVoiceFor, SMS_SAY } from './smsvoice.js';
 import { NACHTSTREEK, KROLBRUG_FAULTS, COW_FEED, PLANTSOEN_NEWS, EVENT_DAYS } from './flavourlines.js';
 import { RADIO_HOST, RADIO_GRUNN, KERMIS_NEWS } from './funlines.js';
 import { STATION_NAME, programmeAt, normalizeRadio } from './musicpick.js';
-import { nieuwVerhaal } from './storyflag.js';
 import { talkActive } from './storytalk.js';
 import { playerBusy } from './busy.js';
 
@@ -84,7 +83,7 @@ function announce(w) {
 
 // The new story keeps the radio to the world: Rikus does not talk while a mission or a conversation
 // runs (a story scene, a call, the pair talking), and stays quiet until the mission is over.
-const ducked = (w) => nieuwVerhaal() && !!((w.mission && w.mission.phase === 'active') || talkActive() || w.storyContact || (typeof document !== 'undefined' && document.body.classList.contains('cine-hide-hud')));
+const ducked = (w) => !!((w.mission && w.mission.phase === 'active') || talkActive() || w.storyContact || (typeof document !== 'undefined' && document.body.classList.contains('cine-hide-hud')));
 const busy = (w) => w.paused || playerBusy(w, ['activityGame', 'padel', 'heliRun', 'pigeon']).busy || ducked(w);
 
 export function updateRadio(dt, w) {

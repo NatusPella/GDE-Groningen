@@ -9,6 +9,7 @@
 import { PAD_LAYOUTS, PAD_MAPS, padSlotFor, physicalKey, tokenKey, keyName } from './controls.js';
 import { getSettings, onSettingsChange } from './settings.js';
 import { onPadChange, padState } from './gamepad.js';
+import { touchLabelForToken } from './touchlogic.js';
 
 const SEL = '[data-gk], kbd, .hud-key';
 const orig = new WeakMap();
@@ -67,7 +68,11 @@ function render(el) {
   let html = base;
   let hide = false;
   let slot = '';
-  if (pad.active && token) {
+  if (token && document.documentElement.classList.contains('touch-play') && !pad.active) {
+    // touch: say which on-screen button does it (no label: no button, hide)
+    const label = touchLabelForToken(token, document.documentElement.dataset.touchCtx || 'foot');
+    if (label) { html = label; slot = ''; } else hide = true;
+  } else if (pad.active && token) {
     const ctx = ctxOf(el);
     slot = padSlotFor(token, ctx) || '';
     if (slot) html = padGlyphInner(slot, pad.family);

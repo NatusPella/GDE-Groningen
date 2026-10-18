@@ -1,8 +1,8 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { vehicleContacts, surfaceUnder } from './vehicle.js';
-import { getCamera } from './scene3d.js';
 import { getVehicleMesh, pruneVehicleMeshes, applyVehicleDamage, vehicleDamageParts } from './models3d_vehicles.js';
 import { rand } from './rng.js';
+import { nieuwLos } from './vehicledamage.js';
 
 // Vehicle feel effects: skid marks, tyre smoke/dust/spray/exhaust, sparks,
 // debris and progressive body damage. Everything is pooled up front; the
@@ -244,10 +244,14 @@ export function spawnFxChip(x, y, z, vx, vy, vz, size, color, life) {
 
 const _camQ = new THREE.Quaternion();
 
+// scene3d.js hands over its camera when it makes it (no import back)
+let fxCamera = null;
+export function setFxCamera(c) { fxCamera = c; }
+
 // Uploads only while puffs live (plus one frame to clear the last ones):
 // re-sending idle instance buffers every frame can stall on a busy GPU.
 function updateSmoke(dt) {
-  const cam = getCamera();
+  const cam = fxCamera;
   if (cam) cam.getWorldQuaternion(_camQ);
   const mesh = smoke.mesh;
   let live = 0;
@@ -651,6 +655,22 @@ function nearPlayer(world, x, y, r) {
   return dx * dx + dy * dy < r * r;
 }
 
+// Parts that came loose with this hit (vehicledamage.js, #205) fly off as small bits of trim.
+const PART_SPOT = { grille: [0.5, 0], spiegels: [0.15, 1], sierdoppen: [0, 1], uitlaat: [-0.5, 0.3] };
+const PART_COLOR = { grille: 0x2b2b2b, spiegels: 0x1d1e20, sierdoppen: 0xb9bec4, uitlaat: 0x6a6d70 };
+function looseParts(v, ids, ca, sa) {
+  for (const id of ids) {
+    const [fx, side] = PART_SPOT[id] || [0, 0];
+    for (let k = 0; k < (id === 'sierdoppen' ? 2 : 1); k++) {
+      const sgn = side ? (k % 2 ? -1 : 1) : 0;
+      const lx = fx * v.model.len, lz = sgn * v.model.wid * 0.5;
+      const bx = v.x + lx * ca - lz * sa, by = v.y + lx * sa + lz * ca;
+      const out = sgn ? 2 : 0.6;
+      spawnDebris(chunks, bx, 0.7 + (v.z || 0), by, -sa * sgn * out + rand(-1, 1), rand(1.5, 3), ca * sgn * out + rand(-1, 1), 0.16, 0.1, 0.12, PART_COLOR[id] || 0x2b2b2b, rand(14, 20), v.z || 0);
+    }
+  }
+}
+
 function dentVehicle(v, x, y, strength, world) {
   if (v.wrecked || v.isBike || v.isScooter || v.isBoat) return;
   if (simTime - (v._dentT || -1) < 0.12) return;
@@ -660,7 +680,9 @@ function dentVehicle(v, x, y, strength, world) {
   const dx = x - v.x, dy = y - v.y;
   const ca = Math.cos(v.angle), sa = Math.sin(v.angle);
   const lx = dx * ca + dy * sa, lz = -dx * sa + dy * ca;
+  const before = v.dentLog ? v.dentLog.map((d) => d.slice()) : [];
   const dropped = applyVehicleDamage(mesh, v, lx, lz, strength);
+  looseParts(v, nieuwLos(before, v.dentLog, v.model.len, v.model.wid), ca, sa);
   if (!dropped) return;
   const parts = vehicleDamageParts(mesh);
   const part = parts[dropped];

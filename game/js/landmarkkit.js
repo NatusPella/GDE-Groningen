@@ -80,7 +80,7 @@ export const LANDMARK_LOOKS = [
   { n: 'Kloosterkerk', x: 8356.13, y: -6452.57, p: { tower: 'ridge', choir: 'poly', windows: 'pointed', buttress: true } },
   { n: 'Torenkerk', x: -3382.27, y: -12300.22, p: { tower: 'saddle', towerH: 30, wierde: true } },
   { n: 'Sebastiaan/Fabius', x: -10576.47, y: -2374.99, p: { tower: 'spire', towerH: 42 } },
-  { n: 'Abdijkerk', x: -7145.44, y: -3990.13, p: { tower: 'ridge', windows: 'pointed', buttress: true, choir: 'poly' } },
+  { n: 'Abdijkerk', x: -7065.4, y: -4004.9, p: { tower: 'ridge', windows: 'pointed', buttress: true, choir: 'poly' } },
   { n: 'Petrus en Pauluskerk', x: 11990.7, y: -12735.0, p: { tower: 'saddle', towerH: 36, choir: 'poly', wierde: true, buttress: true } },
   { n: 'Bartholomeuskerk', x: 8395.1, y: -11586.0, p: { tower: 'saddle', towerH: 31, choir: 'apse', wierde: true, windows: 'round' } },
   { n: 'Jacobskerk', x: 12564.1, y: -14320.4, p: { tower: 'saddle', towerH: 28, choir: 'poly', wierde: true, buttress: true, windows: 'pointed' } },
@@ -125,6 +125,7 @@ export const LANDMARK_LOOKS = [
 // item: { k, n, x, y, o?, t } (scripts/add_landmark_kits.py), fit: an
 // optional box { x, y, len, wid, angle } when there is no outline.
 export function landmarkParams(item, fit = null) {
+  if (item.n === 'Excalibur') return null; // has its own hand model (landmarks3d.js)
   const t = item.t || {};
   const box = (item.o && item.o.length >= 6 && outlineBox(item.o)) || fit;
   const h = hash(Math.round(item.x), Math.round(item.y));
@@ -133,7 +134,7 @@ export function landmarkParams(item, fit = null) {
   let p = null;
   if (item.k === 'church' || item.k === 'chapel') p = churchParams(item, t, box, h);
   else if (item.k === 'mill') p = millParams(item, t, h);
-  else if (item.k === 'tower' || item.k === 'lighthouse') p = towerParams(item, t, h);
+  else if (item.k === 'tower' || item.k === 'lighthouse' || item.k === 'watertower') p = towerParams(item, t, h);
   else if (item.k === 'castle') p = borgParams(item, t, box, h);
   else if (item.k === 'farm') p = farmParams(item, t, box, h);
   else if (item.k === 'silo' || item.k === 'factory') p = industryParams(item, t, box, h);
@@ -175,19 +176,29 @@ function millParams(item, t, h) {
   if (/windmotor/i.test(n)) type = 'motor';
   if (!type) type = t.building === 'industrial' || /korenmolen/i.test(n) ? 'stelling' : h < 0.6 ? 'ground' : 'stelling';
   const white = /wit|widde|witte/i.test(n);
+  const y = year(t);
+  // a recent build is a compact replica; a listed brick mill keeps its old, taller stage
+  if (y && y >= 1950 && type !== 'motor') return { kit: 'mill', type: 'ground', body: white || h < 0.5 ? 'white' : 'reed', height: 10 + h * 2 };
+  if (t.heritage && type === 'ground' && y && y < 1900 && h > 0.5) type = 'stelling';
   return { kit: 'mill', type, body: white ? 'white' : h < 0.25 ? 'black' : 'reed', height: type === 'stelling' ? 17 + h * 6 : 12 + h * 3 };
 }
 
 function towerParams(item, t, h) {
   const tt = t['tower:type'] || '';
+  if (item.k === 'watertower' || t.man_made === 'water_tower') return { kit: 'tower', type: 'water', height: clamp(metres(t.height) || 30 + h * 10, 18, 70), brick: h < 0.5 ? 'red' : 'yellow' };
   if (item.k === 'lighthouse' || t.man_made === 'lighthouse') return { kit: 'tower', type: 'lighthouse', height: metres(t.height) || 14 + h * 8 };
   if (tt === 'observation' || tt === 'watchtower' || t.tourism === 'viewpoint') return { kit: 'tower', type: 'lookout', height: metres(t.height) || 12 + h * 8 };
   if (tt === 'bell_tower') return { kit: 'tower', type: 'bell', height: 14 + h * 8, total: metres(t.height), crown: h < 0.6 ? 'saddle' : 'spire', brick: 'mop' };
+  if (tt === 'defensive' || t.historic === 'fort') return { kit: 'tower', type: 'defensive', height: 8 + h * 3, brick: 'mop' };
+  // a bare man_made=tower: a plain brick tower, flat-topped
+  if (t.man_made === 'tower') return { kit: 'tower', type: 'bell', height: 12 + h * 6, total: metres(t.height), crown: 'flat', brick: h < 0.5 ? 'mop' : 'yellow' };
   return null;
 }
 
 function borgParams(item, t, box, h) {
-  return { kit: 'borg', len: clamp(box ? box.len : 22, 12, 40), wid: clamp(box ? box.wid : 13, 8, 24), floors: (Number(t['building:levels']) || 2), brick: h < 0.7 ? 'red' : 'white', stair: h < 0.6 };
+  // a palace is a long, three-storey house with a stair tower; a manor from the 1800s is white-plastered
+  const palace = t.castle_type === 'palace', y = year(t);
+  return { kit: 'borg', len: clamp(box ? box.len : palace ? 34 : 22, 12, 40), wid: clamp(box ? box.wid : 13, 8, 24), floors: Number(t['building:levels']) || (palace ? 3 : 2), brick: y && y >= 1800 ? 'white' : h < 0.7 ? 'red' : 'white', stair: palace || h < 0.6 };
 }
 
 // --- geometry --------------------------------------------------------------
@@ -408,6 +419,29 @@ function tower(B, p, lod) {
     B.box(0, h, 0, s * 2 + 1, 0.3, s * 2 + 1, 0x5a4a38);
     B.geo(new THREE.ConeGeometry(s * 1.9, 2.4, 4, 1, true).rotateY(Math.PI / 4), composeMatrix(0, h + 3, 0), ROOF.slate);
     p.top = h + 4.2;
+    return;
+  }
+  if (p.type === 'water') {
+    // a water tower: a brick shaft, a gallery and a wide tank under a cone
+    const r = clamp(h * 0.1, 2.6, 5), tank = h * 0.28, ys = h - tank;
+    B.geo(new THREE.CylinderGeometry(r * 0.85, r, ys, 10), composeMatrix(0, ys / 2, 0), BRICK[p.brick] || BRICK.red);
+    B.geo(new THREE.CylinderGeometry(r * 1.45, r * 1.15, tank, 10), composeMatrix(0, ys + tank / 2, 0), 0xb8b2a2);
+    if (lod !== LOD_SKY) B.geo(new THREE.CylinderGeometry(r * 1.6, r * 1.6, 0.3, 10), composeMatrix(0, ys, 0), 0x5a5e60);
+    B.geo(new THREE.ConeGeometry(r * 1.55, tank * 0.55, 10), composeMatrix(0, h + tank * 0.275, 0), ROOF.slate);
+    p.top = h + tank * 0.55;
+    return;
+  }
+  if (p.type === 'defensive') {
+    // a squat round fort tower: a battered drum, a machicolation ring, merlons
+    const r = clamp(h * 0.4, 2.6, 4.2), wall = BRICK[p.brick] || BRICK.mop;
+    B.geo(new THREE.CylinderGeometry(r * 0.92, r, h, 10), composeMatrix(0, h / 2, 0), wall);
+    B.geo(new THREE.CylinderGeometry(r * 1.2, r * 1.2, 0.7, 10), composeMatrix(0, h + 0.35, 0), 0x6e6a60);
+    if (lod !== LOD_SKY) for (let i = 0; i < 8; i++) {
+      const a = (i / 8) * Math.PI * 2;
+      B.box(Math.cos(a) * r * 1.1, h + 1.1, Math.sin(a) * r * 1.1, 0.7, 0.8, 0.7, 0x6e6a60, 0, 0, a, 0);
+    }
+    if (lod === LOD_FULL) B.box(r * 0.98, 1.3, 0, 0.14, 2.6, 1.3, 0x3a2a22);
+    p.top = h + 1.6;
     return;
   }
   if (p.type === 'lighthouse') {

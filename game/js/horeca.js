@@ -2,6 +2,7 @@ import { dist } from './util.js';
 import { countryFacilities, countryDoor } from './facilities.js';
 import { recordUnique } from './achievements.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { noteMoney } from './finance.js';
 
 const TRIGGER_RADIUS = 4;
 const USE_COOLDOWN = 60;
@@ -107,6 +108,7 @@ export function tryHorecaInteract(world) {
   }
   spot.lastUsed = world.time;
   const amount = Math.min(world.money, MIN_SPEND + Math.floor(Math.random() * (MAX_SPEND - MIN_SPEND + 1)));
+  noteMoney('Eten en drinken');
   world.money = Math.max(0, world.money - amount);
   world.health = Math.min(100, world.health + HEAL_AMOUNT);
   const toast = TOASTS[Math.floor(Math.random() * TOASTS.length)];

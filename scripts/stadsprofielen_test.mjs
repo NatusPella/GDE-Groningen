@@ -6,14 +6,14 @@ import { wgsToWorld } from '../game/js/rdnew.js';
 let n = 0, bad = 0;
 const ok = (c, name) => { n++; if (!c) { bad++; console.log('FAIL', name); } };
 
-ok(TOWN_PROFILES.length === 7, 'seven towns');
+ok(TOWN_PROFILES.length === 10, 'ten towns');
 const names = TOWN_PROFILES.map((t) => t.name);
-for (const want of ['Delfzijl', 'Appingedam', 'Veendam', 'Winschoten', 'Hoogezand-Sappemeer', 'Leek', 'Uithuizen']) ok(names.includes(want), `${want} has a profile`);
-ok(new Set(TOWN_PROFILES.map((t) => t.id)).size === 7, 'unique ids');
+for (const want of ['Delfzijl', 'Appingedam', 'Veendam', 'Winschoten', 'Hoogezand-Sappemeer', 'Leek', 'Uithuizen', 'Stadskanaal', 'Zoutkamp', 'Winsum']) ok(names.includes(want), `${want} has a profile`);
+ok(new Set(TOWN_PROFILES.map((t) => t.id)).size === TOWN_PROFILES.length, 'unique ids');
 
 const BANNED = /\b(de Grunn|winter|sneeuw|ijs)\b/i;
 for (const t of TOWN_PROFILES) {
-  ok(t.at[0] > 53 && t.at[0] < 53.5 && t.at[1] > 6.2 && t.at[1] < 7.3, `${t.id}: inside the province`);
+  ok(t.at[0] > 52.9 && t.at[0] < 53.5 && t.at[1] > 6.2 && t.at[1] < 7.3, `${t.id}: inside the province`);
   ok(t.teaser && t.teaser.length > 20, `${t.id}: teaser`);
   ok(t.streets.length >= 4 && new Set(t.streets).size === t.streets.length, `${t.id}: at least four distinct streets`);
   ok(DAYPARTS.every((d) => Array.isArray(t.sfeer[d]) && t.sfeer[d].length >= 2), `${t.id}: two sfeer lines per daypart`);

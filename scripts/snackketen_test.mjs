@@ -64,5 +64,15 @@ check('upgrades cost more per level', S.upgradeCost(1) > S.upgradeCost(0) && S.u
   check('hacked values are clamped', hacked.outlets.z.level === 3 && hacked.outlets.z.till <= S.capOf(hacked, 'z') && !hacked.outlets.y);
 }
 
+{
+  const door = { x: 10, y: 20 };
+  const first = S.counterSpot(door, () => true);
+  check('the counter stays left of the door when the ground is open', first.x === 6.6 && Math.abs(first.y - 20.6) < 1e-9);
+  const next = S.counterSpot(door, (x) => x > 8);
+  check('a blocked spot gives the next free one, never the machine side', next.x > 8 && !S.COUNTER_OFFSETS.some(([dx]) => dx > 0));
+  const none = S.counterSpot(door, () => false);
+  check('with no free ground the door itself is the counter', none.x === 10 && none.y === 20);
+}
+
 console.log(bad ? `${bad} of ${n} checks failed` : `snackketen_test: ${n} checks ok`);
 process.exit(bad ? 1 : 0);

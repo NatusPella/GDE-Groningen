@@ -1,7 +1,7 @@
 // The new story arc's missions (storyarc_nieuw.js, docs/verhaal/nieuw): its own defs, appended after the
 // old ones in the order of MISSION_IDS (append-only: indices live in saves), and how the arc stages the
-// defs it shares with the old one. Only used with the feature flag `nieuwverhaal` (storyflag.js).
-// Kept out of missions.js so the old arc's voice coverage (scripts/voicelines_collect.mjs reads that
+// defs it shares with the old one.
+// Kept out of missions.js so the voice coverage (scripts/voicelines_collect.mjs reads that
 // file) does not see their hint texts, which are text only.
 
 import { buildAkte5Defs, applyAkte5 } from './missions_akte5.js';

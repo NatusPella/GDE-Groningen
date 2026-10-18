@@ -1,4 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { fitText as sharedFitText } from './canvastex.js';
 import { GeoBuilder, composeMatrix, tubeGeometry, HABBO_PALETTE } from './pixelart3d.js';
 import { isInsideBuilding, isOnRoad } from './pedestrians.js';
 import { isInWater, closestPointOnSegment } from './util.js';
@@ -87,8 +88,7 @@ function bikeGlyph(g, x, y, s, color) {
 }
 
 function fitText(g, text, x, y, maxW, px, weight = 'bold') {
-  let size = px;
-  do { g.font = `${weight} ${size}px sans-serif`; size -= 2; } while (g.measureText(text).width > maxW && size > 8);
+  sharedFitText(g, text, maxW, px, weight, 'sans-serif', 8);
   g.fillText(text, x, y);
 }
 

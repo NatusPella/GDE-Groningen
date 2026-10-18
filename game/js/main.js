@@ -1,5 +1,11 @@
 // first: copies the pre-0.29 'gte-*' storage keys before any module reads them
 import './storagekeys.js';
+import './oudmigratie.js';
+import { streamTreeProps } from './treeprops.js';
+import { streamTrafficLightProps } from './trafficlights.js';
+import { streamFlitspaalProps } from './flitspaal.js';
+import { addPropStreamer } from './breakables.js';
+import './geokernels.js'; // registers the geometry kernels with geojobs.js
 import { setErrorContext } from './errorlog.js';
 import { DEV, STORY_TEST, FLAGS } from './devflags.js';
 import { bindCoop } from './coopglue.js';
@@ -32,10 +38,12 @@ import { updateCombat, updateBullets } from './combat.js';
 import { updatePolice } from './police.js';
 import { updateTrafficLaw } from './trafficlaw.js';
 import { updateOffences } from './offences.js';
+import { updateMotorPolice } from './motorpolice.js';
 import { initMissions, updateMissions } from './missions.js';
 import { initStory, updateStory, currentStep } from './story.js';
 import { initGoal, updateGoal } from './goal.js';
 import { updateOnboarding } from './onboarding.js';
+import { updateContextHints } from './contexthints.js';
 import { initMotion } from './motion.js';
 import { initHud, updateHud } from './hud_panel.js';
 import { initGarages, initCountryGarages, updateGarages, tryGarageInteract } from './garages.js';
@@ -48,6 +56,7 @@ import { wijkProfileAt } from './trafficfleet.js';
 import { motorTarget } from './motortraffic.js';
 import { updateParkingLots3D } from './parkinglots3d.js';
 import { updateMarinas3D } from './marinas3d.js';
+import { loadVaarnet, vaarPrefetch } from './vaarload.js';
 import { isShopOpen } from './shopui.js';
 import { initMapView, updateMapView, isMapOpen } from './mapview.js';
 import { initAudio, updateAudio, setMenuAudio, setSfxLinks } from './audio.js';
@@ -126,6 +135,12 @@ import { getSettings } from './settings.js';
 import { MODS } from './cheatmods.js';
 import { initCheats, updateCheats } from './cheats.js';
 import { updateRegioLeven } from './regiolevenrt.js';
+import { syncLedger, getLedger } from './finance.js';
+
+// breakables.js calls these every stream interval (it does not import them)
+addPropStreamer(streamTreeProps);
+addPropStreamer(streamTrafficLightProps);
+addPropStreamer(streamFlitspaalProps);
 
 // What the player can do on the map, as one registry (activityhub.js): each
 // module is a kind with its init, interact slot and tick phase.
@@ -296,6 +311,8 @@ async function boot() {
   const map = tiles ? tiles.world : await loadMap('citymap.json', onMapProgress);
   tileWorldStats = tiles ? tiles.store : null;
   markLoad('map');
+  // the waterway network's fixes and route graph (#184), small files read while the rest loads
+  loadVaarnet(map);
   const land = await landData;
   applyCityRoutes(map, land);
   setFarProps(land);
@@ -410,6 +427,7 @@ async function boot() {
   initCheats(world);
   if (DEV) import('./storydev.js').then((m) => m.initStoryDev(world)).catch((e) => console.error('storydev', e));
   if (FLAGS.sfxtest) import('./sfx/sfxtest.js').then((m) => m.initSfxTest(world)).catch((e) => console.error('sfxtest', e));
+  if (FLAGS.autoplay) import('./playerapi.js').then((m) => m.initPlayerApi(world, input)).catch((e) => console.error('playerapi', e));
   if (FLAGS.testmenu) import('./testmenu.js').then((m) => m.initTestMenu(world)).catch((e) => console.error('testmenu', e));
   if (DEV) import('./profileoverlay.js').then((m) => m.initProfileOverlay(world)).catch((e) => console.error('profileoverlay', e));
   if (STORY_TEST) import('./storytest.js').then((m) => m.runStoryTest(world)).catch((e) => console.error('storytest', e));
@@ -484,6 +502,8 @@ async function boot() {
     // the tiles follow the camera or the player (speed and heading prefetch)
     if (world.map.follow) {
       const tf = tileFocus(world.player, world.cameraOverride, tileFollow, dt);
+      // a boat on the waterway network: the tiles of its route ahead come early (#184)
+      if (tf && world.player.inVehicle && world.player.inVehicle.isBoat && !world.cameraOverride) tf.opts = vaarPrefetch(tf.opts, tf.x, tf.y);
       if (tf) world.map.follow(tf.x, tf.y, tf.opts, 1.5);
     }
     updateAudio(dt, world);
@@ -542,6 +562,7 @@ async function boot() {
       console.warn('geld was geen getal meer, hersteld', world.money);
       world.money = Number.isFinite(world._goodMoney) ? world._goodMoney : 250;
     }
+    syncLedger(getLedger(), world.money, world.clock);
 
     trafficTimer -= dt;
     if (trafficTimer <= 0) {
@@ -621,6 +642,7 @@ async function boot() {
     if (!world.pigeonMode && !world.heliRun) updatePolice(dt, world);
     updateTrafficLaw(dt, world);
     updateOffences(dt, world, { signalsNear: trafficSignalsNear, phaseFor: trafficLightPhaseFor });
+    updateMotorPolice(dt, world);
     resolveVehicleVehicleCollisions(world.vehicles, world);
     tickBurningVehicles(world, dt);
     updateRailway(dt, world);
@@ -668,6 +690,7 @@ async function boot() {
     updateStory(dt, world);
     updateGoal(dt, world);
     updateOnboarding(dt, world);
+    updateContextHints(dt, world);
     tickActivityKinds(dt, world, 'late');
     updateWeather(dt, world);
     updateWorldEvents(dt, world);

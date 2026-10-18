@@ -23,6 +23,9 @@ export const ACTOR_ANIMS = ['idle', 'walk', 'run', 'talk', 'wave', 'point', 'shr
 export const PROP_KINDS = ['doos', 'tas', 'bestelbus', 'fiets', 'duif', 'radio', 'bord', 'koffer', 'bal', 'auto', 'matras', 'bakkie', 'automaat', 'aanhanger', 'trekker', 'politie', 'duiventil', 'zuil', 'klembord', 'kat'];
 export const VERBS = ['walk', 'anim', 'face', 'gaze', 'carry', 'drop', 'move', 'path', 'spin', 'bob', 'show', 'hide', 'sit'];
 export const SHOTS = ['cut', 'dolly', 'orbit', 'follow'];
+// The host can scale or remove camera shake (a11y.js: Beweging beperken).
+let shakeFilter = (a) => a;
+export function setShakeFilter(fn) { shakeFilter = typeof fn === 'function' ? fn : (a) => a; }
 export const WALK_SPEED = 1.4;
 export const EYE_H = 1.55;
 
@@ -337,8 +340,8 @@ export function compileScene(def, opts = {}) {
         break;
       }
     }
-    if (sh.shake) {
-      const a = sh.shake;
+    if (sh.shake && shakeFilter(sh.shake) > 0) {
+      const a = shakeFilter(sh.shake);
       pos = { f: pos.f + Math.sin(t * 1.3) * a, s: pos.s + Math.sin(t * 1.9 + 2) * a, h: pos.h + Math.sin(t * 1.7 + 1) * a * 0.6 };
     }
     const P = world(anchor, pos.f, pos.s), L = world(anchor, look.f, look.s);

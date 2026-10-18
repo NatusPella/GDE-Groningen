@@ -1,9 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { reportImpact, disableVehicle, vehicleContacts, CRASH_DAMAGE_SCALE, speedCap } from './vehicle.js';
-import { clamp, closestPointOnSegment, pointInPolygon, isInWater } from './util.js';
-import { streamTreeProps } from './treeprops.js';
-import { streamTrafficLightProps } from './trafficlights.js';
-import { streamFlitspaalProps } from './flitspaal.js';
+import { clamp, closestPointOnSegment, isInWater } from './util.js';
 import { setWallBrokenTest } from './elevation.js';
 import { rand as rnd } from './rng.js';
 import { SpatialGrid } from './spatialgrid.js';
@@ -415,10 +412,6 @@ function removeBody(b) {
   }
 }
 
-function insideBuilding(x, y) {
-  return !!buildingAt(world.map, x, y);
-}
-
 function lowestCorner(b) {
   let min = Infinity;
   const h = b.half;
@@ -433,7 +426,7 @@ function stepFree(b, dt) {
   const ox = b.x, oz = b.z;
   b.vy -= G * dt;
   b.x += b.vx * dt; b.y += b.vy * dt; b.z += b.vz * dt;
-  if ((b.vx || b.vz) && insideBuilding(b.x, b.z)) {
+  if ((b.vx || b.vz) && buildingAt(world.map, b.x, b.z)) {
     b.x = ox; b.z = oz;
     b.vx *= -0.3; b.vz *= -0.3;
   }
@@ -495,7 +488,7 @@ function stepTopple(b, dt) {
   const f = Math.exp(-(b.theta >= b.thetaMax ? 5 : 1.5) * dt);
   b.vx *= f; b.vz *= f;
   b.x += b.vx * dt; b.z += b.vz * dt;
-  if (insideBuilding(b.x, b.z)) { b.x = ox; b.z = oz; b.vx = b.vz = 0; }
+  if (buildingAt(world.map, b.x, b.z)) { b.x = ox; b.z = oz; b.vx = b.vz = 0; }
   if (b.theta >= b.thetaMax && b.omega === 0 && Math.hypot(b.vx, b.vz) < 0.05) b.sleep = true;
   b.obj.position.set(b.x, b.sinkDepth ? -b.sinkDepth * (b.theta / b.thetaMax) : 0, b.z);
   b.obj.quaternion.setFromAxisAngle(b.axis, b.theta);
@@ -506,7 +499,7 @@ function stepSlide(b, dt) {
   const f = Math.exp(-2.6 * dt);
   b.vx *= f; b.vz *= f;
   b.x += b.vx * dt; b.z += b.vz * dt;
-  if (insideBuilding(b.x, b.z)) { b.x = ox; b.z = oz; b.vx *= -0.2; b.vz *= -0.2; }
+  if (buildingAt(world.map, b.x, b.z)) { b.x = ox; b.z = oz; b.vx *= -0.2; b.vz *= -0.2; }
   const wl = Math.abs(b.w.y);
   if (wl > 1e-3) {
     _q.setFromAxisAngle(_v2.set(0, 1, 0), b.w.y * dt);
@@ -781,9 +774,6 @@ export function updateBreakables(dt, w, sc) {
   if (streamTimer <= 0) {
     streamTimer = STREAM_INTERVAL;
     const { x, y } = w.player.inVehicle || w.player;
-    streamTreeProps(w, x, y);
-    streamTrafficLightProps(w, x, y);
-    streamFlitspaalProps(w, x, y);
     for (const fn of streamers) fn(w, x, y);
   }
   if (w.paused || !root) return;

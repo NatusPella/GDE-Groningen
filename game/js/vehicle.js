@@ -4,6 +4,7 @@ import { waterClearance, waterChannelPoints } from './waterindex.js';
 import { shallowWater, waterAt, airDraftOf, passesUnder } from './waterlevels.js';
 import { trafficSignalsNear, trafficLightPhaseMove } from './trafficlights.js';
 import { resolvePropCollisions } from './breakables.js';
+import { createShards, dropShards, shardPuncture } from './roadshards.js';
 import { inPassage } from './collision.js';
 import { elevWallContact } from './elevation.js';
 import { crossingSpeedLimit, loweredBoomsNear, snapBoom } from './railway.js';
@@ -20,6 +21,7 @@ import { pickWaterLife, newsVanWanted, distToCentre, hourOf } from './streetlife
 import { sirenYield } from './emergency.js';
 import { manageParkedCars, tickParkedCars } from './parkedcars.js';
 import { pickBoatModel, BOAT_KINDS } from './boattypes.js';
+import { pickTrip } from './vaarnet.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { MODS } from './cheatmods.js';
 import { laneLayout } from './lanes.js';
@@ -29,6 +31,8 @@ import { MOPED_LEGAL_SPEED } from './motomodels.js';
 import { pickMotor, motorRoadAllowed, motorTarget } from './motortraffic.js';
 import { FLAGS } from './devflags.js';
 import { verkeerOpties } from './simlagen.js';
+import { SMOKE_HEALTH } from './vehicledamage.js';
+import { createWheelie, stepWheelie } from './bewegingrules.js';
 export { MOTORBIKE_MODELS, GEARED_MOPED_MODEL, MOPED_LEGAL_SPEED } from './motomodels.js';
 
 // every traffic model, for warming their meshes before they first spawn
@@ -203,6 +207,15 @@ export class Vehicle {
     this.wheelie = this.pitch > 0.2;
   }
 
+  // Pedal bike (player only): Ctrl held while pedalling lifts the front wheel (bewegingrules.js, #207).
+  rideFiets(dt, throttle, top) {
+    const w = this.wheelieState || (this.wheelieState = createWheelie());
+    stepWheelie(w, { trick: !!this.trick && !this.disabled, throttle, speed: this.speed, top, dt });
+    this.pitch = w.pitch;
+    this.wheelie = w.up;
+    if (w.up) this.speed *= w.slow;
+  }
+
   // Player/AI driving physics shared by both control sources. brakeInput may
   // be a boolean or a 0..1 pedal amount; throttle against the direction of
   // travel brakes first and only then reverses.
@@ -327,6 +340,7 @@ export class Vehicle {
       }
     }
 
+    if (isPlayer && this.isBike && !m.motorbike) this.rideFiets(dt, throttle, top);
     if (isPlayer && m.motorbike) this.rideMotorbike(dt, throttle, gb, top, absSpeed, normalizeAngle(this.angle - oldAngle) / (dt || 1));
 
     this.x += Math.cos(this.angle) * this.speed * dt;
@@ -1308,6 +1322,33 @@ function pickBoatWaypoint(v, rng, map) {
   return fallback || [v.x, v.y];
 }
 
+// The waterway network (vaarnet.js, game/vaarnet.json): a barge that lies on it sails a trip
+// to one of its hubs, over the edges it clears (no low bridge, a lock or a movable bridge
+// costs time) instead of wandering in its polygon. The trip is a list of points the boat
+// follows as waypoints; a boat that gets stuck, or a net that is out of reach, falls back
+// to the wander.
+let vaarNet = null;
+export function setVaarNet(net) { vaarNet = net; }
+const VAAR_REACH = 150, VAAR_RETRY_S = 45, VAAR_ARRIVE = 14;
+
+function followVaarTrip(v, dt, rng, map) {
+  if (!vaarNet || !isBarge(v)) return false;
+  v._vaarWait = Math.max(0, (v._vaarWait || 0) - dt);
+  if (v.stuckCount >= 2) { v._vaar = null; v._vaarWait = VAAR_RETRY_S; }
+  if (!v._vaar) {
+    if (v._vaarWait > 0) return false;
+    const trip = pickTrip(vaarNet, v.x, v.y, v.angle, v, rng, VAAR_REACH);
+    if (!trip) { v._vaarWait = VAAR_RETRY_S; return false; }
+    v._vaar = { pts: trip.pts, i: 0, name: trip.name };
+  }
+  const T = v._vaar;
+  while (T.i < T.pts.length - 1 && Math.hypot(T.pts[T.i][0] - v.x, T.pts[T.i][1] - v.y) < VAAR_ARRIVE) T.i++;
+  if (T.i >= T.pts.length - 1 && Math.hypot(T.pts[T.i][0] - v.x, T.pts[T.i][1] - v.y) < VAAR_ARRIVE * 2) { v._vaar = null; v._vaarWait = VAAR_RETRY_S; return false; }
+  v.waypoint = [T.pts[T.i][0], T.pts[T.i][1]];
+  v.waypointTimer = BOAT_WAYPOINT_MAX;
+  return true;
+}
+
 const BOAT_WAYPOINT_MIN = 4;
 const BOAT_WAYPOINT_MAX = 9;
 
@@ -1372,7 +1413,7 @@ export function updateBoatAI(v, dt, map, world, rng = Math.random) {
   if (!v.waterPoly || v.missionCar || v.playerOwned || v.homeStored) { v.applyControls(dt, 0, 0, true); return; }
   if (chasing) {
     v.waypoint = [world.player.x, world.player.y];
-  } else {
+  } else if (!followVaarTrip(v, dt, rng, map)) {
     v.waypointTimer = (v.waypointTimer || 0) - dt;
     if (!v.waypoint || v.waypointTimer <= 0 || Math.hypot(v.waypoint[0] - v.x, v.waypoint[1] - v.y) < 4) {
       v.waypoint = pickBoatWaypoint(v, rng, map);
@@ -2437,6 +2478,7 @@ const BLAST_REACH = 9;
 export function disableVehicle(v, byPlayer, world = null) {
   if (v.wrecked || v.disabled) return;
   v.health = 0;
+  if (world && !v.isBoat && !v.isHeli) dropShards(world.shards || (world.shards = createShards()), v.x, v.y, world.time || 0);
   if (byPlayer) markWreckedByPlayer(v, world);
   if (v.isBike || v.isScooter || v.isBoat) {
     v.wrecked = true;
@@ -2453,6 +2495,10 @@ export function disableVehicle(v, byPlayer, world = null) {
 
 export function tickBurningVehicles(world, dt) {
   for (const v of world.vehicles) {
+    if (world.shards && v.driver === 'player' && shardPuncture(world.shards, v, world.time || 0)) {
+      v.flat = true;
+      world.addMessage('Door de glasscherven! Lekke band', 3);
+    }
     if (v.flat && !v.flatWarned && v.driver === 'player') {
       v.flatWarned = true;
       world.addMessage(v.isBike || v.isScooter ? 'Lekke band! Naar de fietsenmaker of de garage' : 'Lekke band! Je auto trekt scheef. Naar de garage', 4);
@@ -3042,7 +3088,14 @@ export const WRECK_FIRE_S = 25;
 
 export function vehicleNeedsFireEffect(v, time = 0) {
   if (v.wrecked) return !v.isBike && !v.isBoat && !v.sinking && v.wreckedAt !== undefined && time - v.wreckedAt < WRECK_FIRE_S;
-  return v.health <= VEHICLE_FIRE_HEALTH_THRESHOLD;
+  if (v.health <= VEHICLE_FIRE_HEALTH_THRESHOLD) return true;
+  return smokes(v);
+}
+
+// Damaged but not yet burning (vehicledamage.js, #205): only the smoke of the effect, no flames.
+const smokes = (v) => !v.isBike && !v.isScooter && !v.isBoat && !v.isHeli && !v.sinking && v.health <= SMOKE_HEALTH;
+export function vehicleSmokeOnly(v) {
+  return !v.wrecked && !v.disabled && v.health > VEHICLE_FIRE_HEALTH_THRESHOLD && smokes(v);
 }
 
 export function buildVehicleFireMesh3D() {

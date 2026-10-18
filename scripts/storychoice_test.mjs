@@ -1,72 +1,108 @@
-// The choice of story arc (game/js/storyflag.js, storychoice.js, settings.js, savegame.js):
+// There is one story (#187): the first version is gone and so is the choice between the two.
 //   node scripts/storychoice_test.mjs
-// - the arc follows the environment, the URL and the setting, in that order; default 'oud'
-// - the setting `verhaal` defaults to 'oud' and migrates; a save records its arc and keeps it
+// - no switch, setting, environment variable or title-screen card is left that chooses a story;
+//   ARC_ID is 'nieuw'; the settings migration drops `verhaal`
+// - a player of the first version keeps playing (oudmigratie.js + savemigrate.js): the save and the
+//   prestaties are copied once, nothing old is removed, the story starts at its beginning
 import fs from 'node:fs';
 import path from 'node:path';
-import { spawnSync } from 'node:child_process';
-import { fileURLToPath, pathToFileURL } from 'node:url';
-import { migrateSettings, migrateSave, savedArc, SETTINGS_VERSION } from '../game/js/savemigrate.js';
+import { fileURLToPath } from 'node:url';
+import { migrateSettings, migrateSave, savedArc, SETTINGS_VERSION, SAVE_VERSION } from '../game/js/savemigrate.js';
+import { migrateOudeOpslag, mergeLife } from '../game/js/oudmigratie.js';
+import { ARC_ID, STEPS, MISSION_IDS } from '../game/js/storyarc.js';
+import { BASE_KEYS, KEYS } from '../game/js/storagekeys.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 let n = 0, fails = 0;
 const ok = (cond, name, info = '') => { n++; if (!cond) { fails++; console.log(`FAIL ${name}${info ? ' (' + info + ')' : ''}`); } };
-
-// the arc a fresh page load picks, in a child process (the flag is decided once at import)
-function arcWith({ env, search = '', settings = null, flag = null, save = false }) {
-  const entries = Object.entries({ ...(settings ? { 'gde-settings': JSON.stringify(settings) } : {}), ...(flag ? { 'gde-nieuwverhaal': flag } : {}), ...(save ? { 'gde-save-v1': '{}' } : {}) });
-  const code = [
-    `const store = new Map(${JSON.stringify(entries)});`,
-    'globalThis.localStorage = { getItem: (k) => (store.has(k) ? store.get(k) : null) };',
-    search ? `globalThis.location = { search: ${JSON.stringify(search)} };` : '',
-    `const m = await import(${JSON.stringify(pathToFileURL(path.join(ROOT, 'game/js/storyflag.js')).href)});`,
-    "console.log(m.ARC_ID + ' ' + m.arcForced());",
-  ].join('\n');
-  const e = { ...process.env };
-  delete e.GDE_NIEUW_VERHAAL;
-  if (env !== undefined) e.GDE_NIEUW_VERHAAL = env;
-  const r = spawnSync(process.execPath, ['--input-type=module', '-e', code], { env: e, encoding: 'utf8' });
-  return r.stdout.trim() || r.stderr.trim();
-}
-ok(arcWith({}) === 'nieuw false', 'every profile (nothing chosen) plays the new arc, not forced', arcWith({}));
-ok(arcWith({ save: true }) === 'nieuw false', 'a profile with a released save also gets the new arc by default (the save stays under Klassiek)', arcWith({ save: true }));
-ok(arcWith({ save: true, settings: { verhaal: 'nieuw' } }) === 'nieuw false', 'a chosen new arc beats the save');
-ok(arcWith({ settings: { verhaal: 'oud' } }) === 'oud false', 'setting oud: the old arc');
-ok(arcWith({ settings: { verhaal: 'nieuw' } }) === 'nieuw false', 'setting nieuw: the new arc, not forced (the setting can change it)');
-ok(arcWith({ env: '1' }) === 'nieuw true', 'GDE_NIEUW_VERHAAL=1 forces the new arc');
-ok(arcWith({ env: '1', settings: { verhaal: 'oud' } }) === 'nieuw true', 'the environment beats the setting');
-ok(arcWith({ env: '0', settings: { verhaal: 'nieuw' } }) === 'oud true', 'GDE_NIEUW_VERHAAL=0 forces the old arc');
-ok(arcWith({ search: '?nieuwverhaal' }) === 'nieuw true', '?nieuwverhaal forces the new arc');
-ok(arcWith({ search: '?stil&nieuwverhaal=1' }) === 'nieuw true', '?nieuwverhaal=1 too');
-ok(arcWith({ search: '?nieuwverhaal=0', settings: { verhaal: 'nieuw' } }) === 'oud true', '?nieuwverhaal=0 forces the old arc');
-ok(arcWith({ flag: '1' }) === 'nieuw false', 'the hidden localStorage flag still works');
-ok(arcWith({ settings: { verhaal: 'iets' } }) === 'nieuw false', 'an unknown setting value counts as never chosen: a fresh profile gets the new arc');
-ok(arcWith({ settings: { verhaal: 'iets' }, save: true }) === 'nieuw false', 'an unknown setting value with a released save is the new arc');
-
-// the setting: default per profile (defaultArcId), migration
 const src = (f) => fs.readFileSync(path.join(ROOT, 'game/js', f), 'utf8');
-ok(/verhaal: defaultArcId\(\),/.test(src('settings.js')), 'settings.js: Verhaal defaults to defaultArcId() (the new arc)');
-ok(/KEEP_ON_RESET = new Set\([^)]*'verhaal'/.test(src('settings.js')), 'settings.js: "Standaard herstellen" does not switch story');
-ok(SETTINGS_VERSION >= 9, 'settings v9 added the Verhaal choice');
-for (const [from, want] of [[{ v: 8 }, 'nieuw'], [{ v: 8, verhaal: 'oud' }, 'oud'], [{ v: 8, verhaal: 'rommel' }, 'nieuw'], [{ v: 3, quality: 'laag' }, 'nieuw'], [{ v: 9, verhaal: 'nieuw' }, 'nieuw']]) {
-  const m = migrateSettings(from);
-  ok(m && m.data.verhaal === want, `settings ${JSON.stringify(from)} -> verhaal ${want}`, m && m.data.verhaal);
-}
-ok(/picker\('verhaal'/.test(src('pausemenu.js')) && /\['oud', 'Klassiek'\], \['nieuw'/.test(src('pausemenu.js')), 'Instellingen has the Verhaal row (Klassiek / Nieuw)');
-ok(/act: 'story'/.test(src('startscreen.js')) && /arcName\(save\.arc\)/.test(src('startscreen.js')), 'the title screen shows the story and the arc of the save');
+const fixture = (f) => JSON.parse(fs.readFileSync(path.join(ROOT, 'scripts/fixtures/saves', f), 'utf8'));
 
-// the save records its arc and a loaded save keeps it
+class MemStorage {
+  constructor(init = {}) { this.m = new Map(Object.entries(init)); }
+  getItem(k) { return this.m.has(k) ? this.m.get(k) : null; }
+  setItem(k, v) { this.m.set(k, String(v)); }
+  removeItem(k) { this.m.delete(k); }
+}
+
+// the choice is gone
+ok(ARC_ID === 'nieuw', 'ARC_ID is nieuw');
+for (const f of ['storyflag.js', 'storychoice.js', 'storyarc_oud.js']) ok(!fs.existsSync(path.join(ROOT, 'game/js', f)), `${f} is gone`);
+const used = fs.readdirSync(path.join(ROOT, 'game/js')).filter((f) => f.endsWith('.js')).filter((f) => /storyflag|storychoice|storyarc_oud|nieuwVerhaal\(\)|arcForced|GDE_NIEUW_VERHAAL|\?nieuwverhaal/.test(src(f).replace(/\/\/.*$/gm, '')));
+ok(used.length === 0, 'no module in game/js still uses the story switch', used.join(','));
+ok(!/GDE_NIEUW_VERHAAL/.test(fs.readFileSync(path.join(ROOT, 'desktop/main.js'), 'utf8')), 'the desktop app has no GDE_NIEUW_VERHAAL');
+ok(!/verhaal/.test(src('settings.js').replace(/\/\/.*$/gm, '')), 'settings.js has no Verhaal choice');
+ok(!/picker\('verhaal'/.test(src('pausemenu.js')), 'Instellingen has no Verhaal row');
+ok(!/ss-choice|openChoice|Kies je verhaal/.test(src('startscreen.js')), 'the title screen has no story cards');
 const sg = src('savegame.js');
-ok(/arc: ARC_ID,/.test(sg), 'serialize writes arc: ARC_ID');
-ok(/if \(savedArc\(m\.data\) !== ARC_ID\) return null;/.test(sg), 'readSave never returns a save of the other arc');
-ok(/if \(savedArc\(d\) !== ARC_ID\) return false;/.test(sg), 'applySave never loads a save of the other arc');
-ok(/arc: savedArc\(d\)/.test(sg), 'the save summary names the arc');
-const keys = src('storagekeys.js');
-ok(/ARC_KEYS = \[[^\]]*'save'[^\]]*'saveBackup'/.test(keys) && /'-nieuw'/.test(keys), 'the new arc has its own save and backup key');
-for (const [save, arc] of [[{ v: 9, arc: 'nieuw' }, 'nieuw'], [{ v: 9, arc: 'oud' }, 'oud'], [{ v: 8 }, 'oud'], [{ v: 4, story: { v: 1, done: [] } }, 'oud']]) {
-  const m = migrateSave(save);
-  ok(m && savedArc(m.data) === arc && m.data.arc === arc, `a save ${JSON.stringify(save)} keeps/gets arc ${arc}`);
+ok(!/savedArc\(m\.data\) !== ARC_ID/.test(sg) && !/savedArc\(d\) !== ARC_ID/.test(sg), 'readSave and applySave have no arc gate');
+ok(/OUD_GEMIGREERD_TEKST/.test(sg) && /d\.oudGemigreerd/.test(sg), 'applySave says so once when the first version is migrated');
+ok(/import '\.\/oudmigratie\.js'/.test(src('main.js')), 'main.js runs the storage migration first');
+ok(/ARC_SUFFIX = '-nieuw'/.test(src('storagekeys.js')) && KEYS.save === 'gde-save-v1-nieuw' && BASE_KEYS.save === 'gde-save-v1', 'the keys: the old stay, the story that is left keeps its -nieuw keys');
+
+// the settings migration
+ok(SETTINGS_VERSION >= 10, 'settings v10 dropped the Verhaal choice');
+for (const from of [{ v: 8 }, { v: 8, verhaal: 'oud' }, { v: 9, verhaal: 'nieuw', nieuwverhaal: true }, { v: 3, quality: 'laag' }]) {
+  const m = migrateSettings(from);
+  ok(m && !('verhaal' in m.data) && !('nieuwverhaal' in m.data), `settings ${JSON.stringify(from)}: no Verhaal choice`, m && JSON.stringify(m.data));
 }
 
-console.log(`${n - fails}/${n} story choice checks passed`);
+// a player of the first version, storage side then save side
+for (const f of ['0.37-oud-verhaal-met-voortgang.json', '0.37-oud-verhaal-zonder-voortgang.json']) {
+  const before = fixture(f).save;
+  const raw = JSON.stringify(before);
+  const ls = new MemStorage({ [BASE_KEYS.save]: raw });
+  const report = migrateOudeOpslag(ls);
+  ok(report.save && !report.skipped, `${f}: the save is copied`);
+  ok(ls.getItem(BASE_KEYS.save) === raw, `${f}: the old save is untouched`);
+  ok(ls.getItem(KEYS.save) === raw, `${f}: copied as it was, readSave migrates it`);
+  ok(ls.getItem(BASE_KEYS.oudGemigreerd) === '1', `${f}: marked as done`);
+  const m = migrateSave(JSON.parse(ls.getItem(KEYS.save)));
+  ok(m && m.data.v === SAVE_VERSION && savedArc(m.data) === 'nieuw', `${f}: a save of the story that is left`);
+  ok(m && m.data.money === before.money && JSON.stringify(m.data.shops) === JSON.stringify(before.shops) && JSON.stringify(m.data.prestaties) === JSON.stringify(before.prestaties), `${f}: money, shops and prestaties stay`);
+  ok(m && !m.data.story && !m.data.missions && m.data.oudGemigreerd === true, `${f}: the story starts over`);
+  // second boot: nothing again, and a new game is not undone
+  ls.removeItem(KEYS.save);
+  ok(migrateOudeOpslag(ls).skipped && ls.getItem(KEYS.save) === null, `${f}: after Nieuw spel the old save does not come back`);
+}
+{
+  // a save of the story that is left is never replaced
+  const mine = JSON.stringify({ v: 10, arc: 'nieuw', money: 7 });
+  const ls = new MemStorage({ [BASE_KEYS.save]: JSON.stringify(fixture('0.37-oud-verhaal-met-voortgang.json').save), [KEYS.save]: mine });
+  const r = migrateOudeOpslag(ls);
+  ok(!r.save && ls.getItem(KEYS.save) === mine, 'a save of the story that is left stays');
+}
+{
+  // nothing to migrate: still marked, nothing written
+  const ls = new MemStorage({});
+  const r = migrateOudeOpslag(ls);
+  ok(!r.save && !r.prestaties && ls.getItem(KEYS.save) === null && ls.getItem(BASE_KEYS.oudGemigreerd) === '1', 'a fresh profile: nothing copied');
+  ok(migrateOudeOpslag(null).skipped && migrateOudeOpslag(undefined).skipped, 'no storage: skipped');
+}
+{
+  // prestaties: copied when there are none yet, merged otherwise, the old key stays
+  const oud = { v: 1, unlocked: { m1_klaar: 5 }, stats: { km: 10 }, sets: { s: ['a'] }, missions: { 0: { best: 60, medal: 1, runs: 2 } }, challenges: {}, fresh: [] };
+  const nieuw = { v: 1, unlocked: { m1_klaar: 9, andere: 3 }, stats: { km: 4 }, sets: { s: ['b'] }, missions: { 0: { best: 50, medal: 0, runs: 1 } }, challenges: {}, fresh: [] };
+  const a = new MemStorage({ [BASE_KEYS.achievements]: JSON.stringify(oud) });
+  const ra = migrateOudeOpslag(a);
+  ok(ra.prestaties && a.getItem(KEYS.achievements) === JSON.stringify(oud) && a.getItem(BASE_KEYS.achievements) === JSON.stringify(oud), 'prestaties: copied, the old key stays');
+  const b = new MemStorage({ [BASE_KEYS.achievements]: JSON.stringify(oud), [KEYS.achievements]: JSON.stringify(nieuw) });
+  migrateOudeOpslag(b);
+  const mixed = JSON.parse(b.getItem(KEYS.achievements));
+  ok(mixed.unlocked.m1_klaar === 5 && mixed.unlocked.andere === 3 && mixed.stats.km === 10 && mixed.sets.s.join() === 'a,b' && mixed.missions[0].best === 50 && mixed.missions[0].runs === 2, 'prestaties: merged, the best of both', JSON.stringify(mixed));
+  ok(mergeLife(null, null).v === 1 && Object.keys(mergeLife('x', 5).unlocked).length === 0, 'mergeLife: rubbish in, an empty record out');
+}
+{
+  // a full storage: nothing marked, the next boot tries again
+  const ls = new MemStorage({ [BASE_KEYS.save]: '{"v":9,"arc":"oud"}' });
+  ls.setItem = () => { const e = new Error('full'); e.name = 'QuotaExceededError'; throw e; };
+  const r = migrateOudeOpslag(ls);
+  ok(!r.save && ls.getItem(BASE_KEYS.oudGemigreerd) === null, 'a full storage: not marked, tried again next time');
+}
+
+// ids only grow
+ok(MISSION_IDS.slice(0, 18).join() === 'berend,chaos,kei,noorderzon,ringweg,kroegentocht,fatbike,rondvaart,pinautomaat,duifverkenning,museumkraak,vetgekaapt,vlag,skutsje,traumaduif,fjord,bod,ontzet', 'MISSION_IDS: the ids of the first version keep their places');
+ok(STEPS[0].id === 'M00', 'the story starts at M00');
+
+console.log(`${n - fails}/${n} story checks passed`);
 process.exit(fails ? 1 : 0);

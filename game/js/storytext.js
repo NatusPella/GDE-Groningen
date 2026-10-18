@@ -1,6 +1,5 @@
 // The new story's text (game/storydata/script.json, built from docs/verhaal/nieuw/09-script-akte*.md
-// by scripts/build_story_data.mjs) as the game plays it. Only used with the feature flag
-// `nieuwverhaal` (storyflag.js): the released arc never reads this.
+// by scripts/build_story_data.mjs) as the game plays it.
 //
 // A line is `textOnly` when no recording exists for its exact text: it is shown (subtitle, talk
 // line, phone card, radio card) with the speaker's name and colour for a readable time and
@@ -16,7 +15,6 @@
 //   readingTime(text)          how long a line is up when nothing is played
 // Pure apart from the fetch of the data; Node tests call setStoryData().
 
-import { nieuwVerhaal } from './storyflag.js';
 import { openBank } from './voicebank.js';
 
 const BASE = typeof document !== 'undefined' || typeof location !== 'undefined' ? new URL('../', import.meta.url).href : '';
@@ -34,7 +32,7 @@ export function setStoryData(d, m = null) {
 
 export const storyDataReady = () => !!data;
 
-if (nieuwVerhaal() && typeof fetch === 'function' && BASE) {
+if (typeof fetch === 'function' && BASE) {
   fetch(BASE + 'storydata/script.json').then((r) => (r.ok ? r.json() : null)).then((d) => { if (d) setStoryData(d); }).catch(() => {});
   for (const k of Object.keys(DIRS)) manifests[k] = openBank(k).entries;
 }

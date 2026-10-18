@@ -86,7 +86,7 @@ t('minigames voor N: padel dubbel met vier, kartrace met acht, de rest kijkt', (
   assert.deepEqual(minigameSpelers('pg_koe', 1, 1), { spelers: [1], kijkers: [] });
 });
 t('hoofdverhaal: extra spelers doen niet mee en houden niets op; de hoofdpersonen volgen de regel', () => {
-  const beide = coopRule(STEPS.find((s) => s.id === 'H3'), 2), solo = coopRule(STEPS.find((s) => s.id === 'H16'), 2);
+  const beide = coopRule(STEPS.find((s) => s.id === 'M03'), 2), solo = coopRule(STEPS.find((s) => s.id === 'M21'), 2);
   assert.deepEqual(rolVoorSlot(beide, 0), { rol: 'speelt', speelt: true, houdtOp: true });
   assert.deepEqual(rolVoorSlot(beide, 3), { rol: 'wereld', speelt: false, houdtOp: false });
   assert.deepEqual(rolVoorSlot(solo, 1), { rol: 'speelt', speelt: true, houdtOp: true });

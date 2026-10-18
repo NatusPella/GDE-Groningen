@@ -35,7 +35,7 @@ const lastHitWith = new Map();
 const seenKiss = new WeakSet();
 let lastPos = null;
 let prevWater = null;
-const acc = { driven: 0, walked: 0, swum: 0 };
+const acc = { driven: 0, walked: 0, swum: 0, sailed: 0, coopTime: 0 };
 let accT = 0;
 let slowT = 0;
 let wantedStreak = 0;
@@ -173,12 +173,13 @@ function trackMovement(dt, w, p, pv) {
   if (lastPos) {
     const d = Math.hypot(p.x - lastPos.x, p.y - lastPos.y);
     if (d > 0 && d < 60 * dt + 1) {
-      if (pv) { if (!pv.isBoat) acc.driven += d; }
+      if (pv) { if (pv.isBoat) acc.sailed += d; else acc.driven += d; }
       else if (p.swimming) acc.swum += d;
       else acc.walked += d;
     }
   }
   lastPos = { x: p.x, y: p.y };
+  if (w.coop && w.coop.remote) acc.coopTime += dt;
   accT += dt;
   if (accT > 1) {
     accT = 0;

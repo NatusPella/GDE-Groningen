@@ -25,7 +25,8 @@ for (const s of SELF_PUSHED) ok(FX_INFO[s.fx], `self-pushed ${s.fx} exists`);
 const linked = new Set([...LINK_RULES.map((r) => r.fx), ...SELF_PUSHED.map((s) => s.fx)]);
 // carbid and explosion are played by audio.js for their own events; door, fuse and
 // the splash come from events that already exist
-const OTHER = new Set(['carbid_boom_0', 'carbid_boom_1', 'carbid_boom_2', 'carbid_fuse', 'explosion_boom_0', 'explosion_boom_1']);
+// siren_pass, car_pass and tyre_screech: played by cutscenes via cutaudio.js (scripts/cutscene_audio_test.mjs)
+const OTHER = new Set(['carbid_boom_0', 'carbid_boom_1', 'carbid_boom_2', 'carbid_fuse', 'explosion_boom_0', 'explosion_boom_1', 'siren_pass', 'car_pass', 'tyre_screech']);
 // still only in ?sfxtest: no game event for a wooden building door yet (the door_open event is the car/secret door of playDoor)
 const PENDING = new Set(['door_wood_open', 'door_wood_close']);
 for (const name of Object.keys(FX_INFO)) ok(linked.has(name) || OTHER.has(name) || PENDING.has(name), `${name}: has a source`);

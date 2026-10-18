@@ -157,3 +157,22 @@ export function haloRim(kind) {
 export function haloOutline(ground) {
   return hexContrast(HALO_LIGHT, ground) >= hexContrast(HALO_DARK, ground) ? HALO_LIGHT : HALO_DARK;
 }
+
+// --- one icon, one colour (#114) -----------------------------------------------
+// Like the maps of GTA or Watch Dogs: every place is a flat silhouette in the
+// colour of its category with a dark outline and its detail in dark ink. The
+// colour is the category (red care, blue police, orange garage ...), so the
+// colour alone says what kind of place it is. hud_panel.js draws it from the
+// glyphs; the pairs below are checked by mapicons_test (fill/ink 3:1, and on
+// every ground at least one of the two reaches 3:1).
+export const FLAT_FILL = {
+  zorg: '#ff5a5a', politiebureau: '#5a8bff', garage: '#ffb23f', station: '#9a7bff', job: '#4fd6c4',
+  shop: '#ff8ad0', fun: '#a6e04f', horeca: '#ff9a4f', ommeland: '#7fd0ff',
+  flitspaal: '#ffe14a', tip: '#e8b060', other: '#f5f0e6',
+};
+export const FLAT_INK = HALO_DARK;
+// the colour of the category, or null when this kind keeps its own look (you, goals, missions,
+// police, mission-layer marks, your own vehicles and home)
+export function mapFillColor(kind) {
+  return FLAT_FILL[mapCategory(kind)] || null;
+}
