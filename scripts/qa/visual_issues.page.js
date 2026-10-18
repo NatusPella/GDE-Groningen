@@ -29,12 +29,12 @@ let hold = null, done = false;
 const tick = () => {
   if (PM.isPauseMenuOpen()) PM.closePauseMenu();
   D.input.mouse.y = innerHeight * 0.4;
-  if (hold) { p.x = hold.x; p.y = hold.y; p.vx = p.vy = 0; p.angle = hold.a; w.camYaw = hold.a; w.clock = 14; }
+  if (hold) { p.x = hold.x; p.y = hold.y; p.vx = p.vy = 0; p.angle = hold.a; w.camYaw = hold.a; w.clock = window.__viClock || 14; }
   if (!done) requestAnimationFrame(tick);
 };
 requestAnimationFrame(tick);
 const fixWorld = () => {
-  w.clock = 14;
+  w.clock = window.__viClock || 14;
   w.weather = { active: false, timer: 1e9, kind: 'helder', peak: 0, intensity: 0, wet: 0, overcast: 0, mist: 0, windAngle: 0.9, elapsed: 0, duration: Infinity };
   if (DN.refreshDayNight) DN.refreshDayNight(w);
 };
@@ -184,25 +184,33 @@ for (const S of window.__vi.spots) {
       const cnt = {}; let n = 0;
       for (let dx = -S.rx; dx <= S.rx; dx += S.step) for (let dy = -S.ry; dy <= S.ry; dy += S.step) {
         const at = WPL.worldPlaceAt(S.x + dx, S.y + dy);
-        const k = at ? (at.place ? at.place.name : '?') + (at.district ? ' / ' + at.district.name : '') + (at.near ? ' (dichtbij)' : '') : 'geen';
+        const k = at ? (at.place || '?') + (at.district ? ' / ' + at.district : '') + (at.near ? ' (dichtbij)' : '') : 'geen';
         cnt[k] = (cnt[k] || 0) + 1; n++;
       }
       info.points = n; info.labels = cnt;
       await shot(S.name, { position: { x: S.x, y: S.y + 250, z: gh(S.x, S.y) + 320 }, lookAt: { x: S.x, y: S.y, z: gh(S.x, S.y) }, cut: true }, 4500);
     } else if (S.type === 'marker') {
-      // #115: the first mission's marker by day, close (35 m), mid (120 m) and far (400 m)
-      const St = window.__story; const first = St && St.steps.find((x) => x.kind === 'mission');
-      if (!first) { info.error = 'geen missie'; results[S.name] = info; continue; }
-      St.jump(first.id);
-      await sleep(6000);
-      const g = window.__goal && window.__goal.target && window.__goal.target();
-      if (!g) { info.error = 'geen doel van de missie'; results[S.name] = info; continue; }
-      info.goal = [Math.round(g.x), Math.round(g.y)]; info.step = first.id;
+      // #115: one world marker of every kind (worldmarker3d.js, the same builder the game uses) in a
+      // row on open ground, seen at 35 m, 120 m and 400 m by day, and once at night
+      const WM = await imp('worldmarker3d');
+      const kinds = Object.keys(WM.MARKER_KINDS);
+      info.kinds = kinds;
+      const sc3 = window.__scene3d;
+      await go(S.x, S.y, 0, 5000);
+      const row = kinds.map((k, i) => { const g = WM.buildWorldMarker3D(k); g.position.set(S.x + (i - (kinds.length - 1) / 2) * 7, gh(S.x, S.y), S.y); sc3.scene.add(g); return g; });
+      let raf = true;
+      const spin = () => { for (const g of row) WM.updateWorldMarker3D(g, performance.now() / 1000); if (raf) requestAnimationFrame(spin); };
+      requestAnimationFrame(spin);
+      const z = gh(S.x, S.y);
       for (const [n, d] of [['dichtbij', 35], ['midden', 120], ['ver', 400]]) {
-        await go(g.x - d, g.y, 0, 5000);
-        const z = gh(g.x, g.y);
-        await shot(S.name + '-' + n, { position: { x: g.x - d, y: g.y, z: z + 3 }, lookAt: { x: g.x, y: g.y, z: z + 3 }, cut: true }, 2500);
+        await go(S.x, S.y + d, 0, 3000);
+        await shot(S.name + '-' + n, { position: { x: S.x, y: S.y + d, z: z + 3 }, lookAt: { x: S.x, y: S.y, z: z + 4 }, cut: true }, 2500);
       }
+      window.__viClock = 22; hold = { x: S.x, y: S.y + 60, a: 0 }; fixWorld();
+      await sleep(2500);
+      await shot(S.name + '-nacht', { position: { x: S.x, y: S.y + 60, z: z + 3 }, lookAt: { x: S.x, y: S.y, z: z + 4 }, cut: true }, 2500);
+      raf = false; window.__viClock = 0;
+      for (const g of row) sc3.scene.remove(g);
     } else if (S.type === 'cutsound') {
       // #117: which world sounds the cutscenes of the first missions queue (cutaudio.js plan ->
       // world.audioEvents, drained by audio.js). The page spies on the queue; the run is muted
