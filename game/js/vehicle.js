@@ -384,9 +384,30 @@ function offroadDrag(v, dt) {
   v.angle += Math.sin(v._wob * 13.7 + v.x * 0.9) * Math.sin(v._wob * 5.3 + v.y) * dt * 0.18 * Math.min(1, sp / 15);
 }
 
+// Is (x, y) on the surface of a mapped road for cars (not a foot or cycle way,
+// not the span of a movable bridge that is up)? Same width test as surfaceUnder.
+export function carRoadAt(map, x, y) {
+  if (!map || !map.roadsNear) return false;
+  for (const r of map.roadsNear(x, y, 8)) {
+    if (r.cat === 'foot' || r.cat === 'cycle' || (r.bridge && r._open)) continue;
+    const half = r.width / 2 + 0.3, pts = r.pts;
+    for (let i = 0; i < pts.length - 1; i++) {
+      const ax = pts[i][0], ay = pts[i][1], abx = pts[i + 1][0] - ax, aby = pts[i + 1][1] - ay, l2 = abx * abx + aby * aby;
+      const t = l2 > 1e-9 ? clamp(((x - ax) * abx + (y - ay) * aby) / l2, 0, 1) : 0;
+      const dx = ax + abx * t - x, dy = ay + aby * t - y;
+      if (dx * dx + dy * dy <= half * half) return true;
+    }
+  }
+  return false;
+}
+
 // 'gras', 'wade', 'ditch' (the tiles' shallow water, else countryedge.js countryWater) or null where the
 // tyres are on a road, farm yard paving or the city's own surfaces.
 export function offroadGround(map, x, y) {
+  // a road lies over whatever the land use or the water polygons under it say
+  // (#165): a meadow, a ditch or the countryside's grass never makes a car on
+  // a mapped road wade or drag
+  if (carRoadAt(map, x, y)) return null;
   const sw = shallowWater(map, x, y);
   if (sw) return sw.kind === 'sloot' ? 'ditch' : 'wade';
   if (edgeDistance(x, y) < -80) return null;

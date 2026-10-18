@@ -167,7 +167,7 @@ export const PLANTSOEN_BARKS = [
 ];
 export const PLANTSOEN_NEWS = 'Eerste zon: het Noorderplantsoen ligt vol kleedjes, speakers en wegwerpbarbecues.';
 
-// Peerd van Ome Loeks: somewhere else every night; `{w}` = wijk
+// Peerd van Ome Loeks: always on the same roundabout (flavour.js PEERD_SPOT); `{w}` = wijk
 export const PEERD_NEWS = [
   'Peerd van Ome Loeks gezien op een rotonde in {w}. Gemeente: “Het beeld staat gewoon op zijn plek.”',
   'Weer meldingen van het Peerd op een rotonde in {w}. Gemeente: “Wij verplaatsen geen paarden.”',
