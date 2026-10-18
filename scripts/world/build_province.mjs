@@ -34,6 +34,7 @@ import { loadProvinceBag, bagMatcher } from './bag3d.mjs';
 import { deriveFeatures } from './derive_tiles.mjs';
 import { waterIndex, wetFraction } from './placement_audit.mjs';
 import { snapSignals, junctionsOf } from './junction_tiles.mjs';
+import { profileFeats, cutZ } from './province_profile.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 export const PROVINCE_BUILDER = 1;
@@ -255,7 +256,7 @@ export function outsideCover(list, inside) {
     if (f.kind === 'furniture') { if (keep(r.pts[0][0], r.pts[0][1])) out.push(f); continue; }
     // roads, rails
     let run = null;
-    const flush = () => { if (run && run.length > 1) out.push({ ...f, row: { ...r, pts: run } }); run = null; };
+    const flush = () => { if (run && run.length > 1) out.push({ ...f, row: { ...r, pts: run, ...(r.z ? { z: cutZ(r, run) } : null) } }); run = null; };
     const P = r.pts;
     for (let i = 0; i < P.length - 1; i++) {
       const [ax, ay] = P[i], [bx, by] = P[i + 1];
@@ -368,7 +369,7 @@ function fillOldExtent({ root, fill, gid, stats, blobs, roadNet, roadSeen, railR
 
 // ------------------------------------------------------------- build
 
-export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(src), cityKeys = new Set(), buffer = BUFFER_M, onPack = null, map = true, cityCover = null, fillOld = false, bag = loadProvinceBag(), derive = true, junctions = true, terrain = null, only = null, profile = null } = {}) {
+export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(src), cityKeys = new Set(), buffer = BUFFER_M, onPack = null, map = true, cityCover = null, fillOld = false, bag = loadProvinceBag(), derive = true, junctions = true, terrain = null, only = null, profile = null, viaducts = false } = {}) {
   const prov = gunzipJson(path.join(src, 'province.json.gz'));
   // the neighbours' strips: their places, stations and built-up cells join the province's
   const dirs = [src, ...extra];
@@ -470,6 +471,14 @@ export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(s
       const dry = feats.filter((f) => f.kind !== 'green' || f.row.pts.length < 4 || wetFraction(f.row.pts, wet) < DROWNED_FRAC);
       stats.derived.drowned += feats.length - dry.length;
       feats = dry;
+    }
+    // the height profiles of the bridges and viaducts (province_profile.mjs, #235): opt-in, the game
+    // does not carry profiles of streamed tiles into its elevation model yet
+    if (viaducts) {
+      const pr = profileFeats(feats);
+      stats.viaducts = stats.viaducts || { packs: 0, profiled: 0, densified: 0, clearanceBefore: 0, clearanceAfter: 0 };
+      const v = stats.viaducts;
+      v.packs++; v.profiled += pr.profiled; v.densified += pr.densified; v.clearanceBefore += pr.before.clearance; v.clearanceAfter += pr.after.clearance;
     }
     // the traffic lights snapped onto their roads, the city's junction model over the pack's roads
     // (junction_tiles.mjs: the nodes by the tile they lie in)
@@ -628,7 +637,7 @@ async function main() {
   const cityKeys = await cityKeysOf(opt('--city') || path.join(out, 'index.json'));
   const t1 = performance.now();
   const cityCover = args.includes('--no-overlay') ? null : await cityCoverOf();
-  const built = buildProvince({ src, cityKeys, cityCover, fillOld: !args.includes('--no-fill'), terrain: args.includes('--terrain') ? (await import('./terrain.mjs')).loadTerrainRasters() : null, onPack: args.includes('--verbose') ? (pk, s) => console.log(`  pack ${pk}: ${s.tiles} tiles so far`) : null });
+  const built = buildProvince({ src, cityKeys, cityCover, fillOld: !args.includes('--no-fill'), viaducts: args.includes('--viaducts'), terrain: args.includes('--terrain') ? (await import('./terrain.mjs')).loadTerrainRasters() : null, onPack: args.includes('--verbose') ? (pk, s) => console.log(`  pack ${pk}: ${s.tiles} tiles so far`) : null });
   const t2 = performance.now();
   const { index, size } = writeProvince(out, built);
   const raw = Object.values(index.tiles).reduce((a, t) => a + t.raw, 0);
