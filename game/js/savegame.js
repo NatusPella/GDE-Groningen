@@ -25,6 +25,7 @@ import { quitTrainDrive } from './traindrive.js';
 import { statsFromSave } from './world.js';
 import { getRadioSave, applyRadioSave } from './radio.js';
 import { KEYS, slotKey } from './storagekeys.js';
+import { applyGuestEarnings } from './coopsave.js';
 import { readSlot, writeSlotRaw, activeSlot, setActive, createSlot, deleteSlot, nameOf, pickActive } from './saveslots.js';
 import { STEPS, PARTS, stepDone, stepAvailable, nextStoryStep, ARC_ID } from './storyarc.js';
 
@@ -228,8 +229,9 @@ function serialize(w) {
 
 export function saveGame(w = world, { toast = true } = {}) {
   if (!w) return false;
-  // coöp (#95): één save, de host bewaart zoals altijd; een gast bewaart het verhaal niet (alleen lifetime-prestaties, lokaal)
-  if (w.coopRole === 'client') return false;
+  // coöp (#95): de host bewaart zoals altijd; een gast bewaart het verhaal van de host niet,
+  // alleen wat hij zelf verdiende komt in zijn eigen save (saveGuestEarnings)
+  if (w.coopRole === 'client') return saveGuestEarnings(w);
   keepNewerSave();
   try {
     if (!writeSlotRaw(null, saveTarget(), JSON.stringify(serialize(w)))) throw new Error('write failed');
@@ -241,6 +243,19 @@ export function saveGame(w = world, { toast = true } = {}) {
   lastSig = stateSignature(w);
   if (toast) showToast();
   return true;
+}
+
+// Een gast: de verdiende beloningen erbij in de actieve slot, de rest van die save blijft zoals hij was.
+function saveGuestEarnings(w) {
+  const earned = w.coopVerdiend || 0;
+  if (!(earned > 0)) return false;
+  try {
+    const r = readSlot(null, saveTarget());
+    const next = r.state === 'ok' || r.state === 'hersteld' ? applyGuestEarnings(r.data, earned) : null;
+    if (!next || !writeSlotRaw(null, saveTarget(), JSON.stringify(next))) return false;
+    w.coopVerdiend = 0;
+    return true;
+  } catch (e) { return false; }
 }
 
 export function markDirty() {
@@ -420,6 +435,7 @@ export function updateSaveGame(dt, w) {
     w.addMessage(`We hebben je geld hersteld: €${restoredMoney.toLocaleString('nl-NL')}`, 6, { key: 'money-restored' });
     restoredMoney = -1;
   }
+  if (w.coopRole === 'client' && w.coopVerdiend > 0 && !w.paused) saveGuestEarnings(w);
   playSeconds += dt;
   const busy = isCinematicActive() || w.pendingRespawn || w.health <= 0;
 
