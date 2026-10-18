@@ -62,5 +62,11 @@ ok(qu.filter((c) => c.key === 'geld').length === 1, 'same key replaces, never st
 ok(B.enqueueCard(qu, card('x', B.LEVEL.tip, { at: 99 }), 3).length === 3, 'queue is capped');
 ok(B.enqueueCard(qu, card('x', B.LEVEL.story, { at: 99 }), 3)[0].key === 'x', 'a story card survives the cap');
 
+// tips and read-aloud messages go through the same question
+ok(B.mayShow('tip', { now: 100, last: -Infinity }) && !B.mayShow('tip', { now: 110, last: 100 }) && B.mayShow('tip', { now: 100 + B.RATION.TIP_GAP, last: 100 }), 'tips: one per gap');
+ok(B.mayShow('voice', { kind: 'character', now: 5, voicedAt: { character: 4 } }), 'a character text is always read');
+ok(B.mayShow('voice', { kind: 'news', now: 50, voicedAt: {} }) && !B.mayShow('voice', { kind: 'news', now: 60, voicedAt: { news: 50 } }) && B.mayShow('voice', { kind: 'news', now: 50 + B.VOICE_GAP.news, voicedAt: { news: 50 } }), 'news: once per gap');
+ok(B.mayShow('onbekend', {}) === true, 'an unknown channel never blocks');
+
 console.log(`${n - bad}/${n} hudbus rules ok`);
 process.exit(bad ? 1 : 0);

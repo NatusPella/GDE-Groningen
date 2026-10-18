@@ -33,7 +33,7 @@
 // - Toasts also wait while any subtitle shows (a Rikus line, car talk), and
 //   phone and HUD cards that are already up step aside meanwhile (heldBack).
 
-import { NARRATIVE, decideStart } from './hudbus.js';
+import { NARRATIVE, mayShow } from './hudbus.js';
 
 const { TALK } = NARRATIVE;
 
@@ -92,14 +92,18 @@ export function narrativeBusy() {
 export function mayStart(kind, { urgent = false } = {}) {
   updateNarrative();
   const now = sampledAt;
-  return decideStart(kind, {
-    isOn,
-    pending: (k) => probe(k, 'pending'),
-    since: (k) => since(k, now),
-    sinceAny: (ks) => sinceAny(ks, now),
-    subtitle: subtitleOn(),
-    toastAgo: now - lastToast,
-  }, { urgent });
+  return mayShow('narrative', {
+    kind,
+    urgent,
+    view: {
+      isOn,
+      pending: (k) => probe(k, 'pending'),
+      since: (k) => since(k, now),
+      sinceAny: (ks) => sinceAny(ks, now),
+      subtitle: subtitleOn(),
+      toastAgo: now - lastToast,
+    },
+  });
 }
 
 // A story contact or call is ready and waits: car banter wraps up after its line.
