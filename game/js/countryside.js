@@ -521,7 +521,9 @@ const segOf = (A, B) => [(A[0] + B[0]) / 2, (A[1] + B[1]) / 2, Math.hypot(B[0] -
 const angOf = (P, t) => { const A = P(t, 0), B = P(t + 1, 0); return -Math.atan2(B[1] - A[1], B[0] - A[0]); };
 
 // barbed wire: weathered posts, three dull strands
-function fenceLine(tile, P, t0, t1, step, ok) {
+// postUntil: the posts stop here (default t1); the last wire span runs on to t1, the first post of the next tile, so a
+// tile seam has no hole in the fence (a post and 5-10 m of wire were missing on every 160 m, #124)
+function fenceLine(tile, P, t0, t1, step, ok, postUntil = t1) {
   let prev = null; // the sample before: the wire to it must not cross a ditch, lane or house of the tiles
   lineRuns(t0, t1, step, (t) => {
     const [x, y] = P(t);
@@ -529,6 +531,7 @@ function fenceLine(tile, P, t0, t1, step, ok) {
     const last = prev;
     prev = [x, y];
     if (last && edgeSpanBlocked(last[0], last[1], x, y, 0.5)) return false;
+    if (t > postUntil) return true; // the neighbour tile's first post stands here
     const h = chash(Math.round(x * 5), Math.round(y * 5));
     return push(tile, 'post', x, y, h * 6.28, 1, 0.92 + h * 0.16, 1, 0xa89a86, 0.12);
   }, 48, (a, b) => {
@@ -597,15 +600,17 @@ function genFieldEdges(tile, bx, by, rot, aMin, bMin, W) {
     const lh = chash(col + bx * 131 + 900, by * 977 + (rot ? 7 : 3));
     const pick = chash(col + bx * 7, by * 5 + 33) < 0.5 ? -1 : 1;
     const t0 = Math.max(bMin, 0) + 1.25, t1 = Math.min(bMax, BLOCK) - 0.01;
+    // the fences run from the tile's own edge to the next tile's first post
+    const f0 = Math.ceil(Math.max(bMin, 0) / step) * step, f1 = Math.min(bMax, BLOCK);
     for (const sd of [-1, 1]) {
       bank((t, o) => W(a + sd * o, t), t0, t1, false);
       if (lh < (fieldLow ? 0.67 : WIRE_ROW_P)) continue;
-      fenceLine(tile, (t) => W(a + sd * 1.9, t), Math.ceil(t0 / step) * step, t1, step, (x, y, t) => {
+      fenceLine(tile, (t) => W(a + sd * 1.9, t), f0, f1, step, (x, y, t) => {
         if (!fenceOk(x, y)) return false;
         if (sd === pick) return true;
         const [ox, oy] = W(a - sd * 1.9, t);
         return !fencedParcel(parcelAt(ox, oy).seed);
-      });
+      }, t1);
     }
   }
 
@@ -667,6 +672,7 @@ function genFieldEdges(tile, bx, by, rot, aMin, bMin, W) {
   }
 }
 
+const HERD_STEP = 8;
 function genParcel(tile, bx, by, rot, col, row, a0, a1, b0, b1, W, lineAng) {
   const seed = chash(col * 7 + bx * 1009, row * 13 + by * 2003 + 1);
   const use = parcelUse(seed);
@@ -679,9 +685,12 @@ function genParcel(tile, bx, by, rot, col, row, a0, a1, b0, b1, W, lineAng) {
   const c0 = W(a0 + inset, b0 + inset), c1 = W(a1 - inset, b1 - inset);
   const rect = [Math.min(c0[0], c1[0]), Math.min(c0[1], c1[1]), Math.max(c0[0], c1[0]), Math.max(c0[1], c1[1])];
   let herdsOk = openLand(rect[0], rect[1]) && openLand(rect[2], rect[1]) && openLand(rect[0], rect[3]) && openLand(rect[2], rect[3]);
-  // real roads, water or houses through the strip: no herd grazing on them
-  if (herdsOk && inReal) {
-    for (let i = 0; i <= 4 && herdsOk; i++) for (let j = 0; j <= 4; j++) if (edgeBlocked(rect[0] + ((rect[2] - rect[0]) * i) / 4, rect[1] + ((rect[3] - rect[1]) * j) / 4, 3)) { herdsOk = false; break; }
+  // real roads, water, the track or houses through the strip: no herd grazing on them (also in a block the tiles cover
+  // only in part: realBlockedAt answers for the tiles that are in, and false for the rest)
+  if (herdsOk) {
+    // (every HERD_STEP m: the herd grazes over the whole strip; a 5 x 5 grid let a pond, a ditch or the track through, #210)
+    const nx = Math.max(2, Math.ceil((rect[2] - rect[0]) / HERD_STEP)), ny = Math.max(2, Math.ceil((rect[3] - rect[1]) / HERD_STEP));
+    for (let i = 0; i <= nx && herdsOk; i++) for (let j = 0; j <= ny; j++) if (edgeBlocked(rect[0] + ((rect[2] - rect[0]) * i) / nx, rect[1] + ((rect[3] - rect[1]) * j) / ny, 3)) { herdsOk = false; break; }
   }
 
   // gate at one end of the strip, with short fence wings (a fenced

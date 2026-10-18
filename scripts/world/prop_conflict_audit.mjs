@@ -165,9 +165,10 @@ export function auditWindow(out, index, key, { rails = [] } = {}) {
           if (kind !== 'wire' && CF.countrySurface(px, py) === 'sloot') add(N + 'OnDitch');
         }
       }
-      for (const a of tile.animals || []) {
+      // grazing animals (a goose or a duck belongs in the water)
+      for (const a of (tile.animals || []).filter((q) => q.kind !== 'goose' && q.kind !== 'duck')) {
         add('cattle');
-        if (J.inWater(a.x, a.y)) add('cattleInWater');
+        if (J.inWater(a.x, a.y)) { add('cattleInWater'); if (process.env.AUDIT_DEBUG) console.error('inWater', a.kind, Math.round(a.x), Math.round(a.y), map.all.water.filter((w) => inPoly(a.x, a.y, w.pts)).map((w) => w.kind + '/' + w.nav + '/' + (w.flat ? 'flat' : ''))); }
         if (J.onRoad(a.x, a.y)) add('cattleOnRoad');
         if (J.onRail(a.x, a.y)) add('cattleOnRail');
       }
@@ -181,11 +182,18 @@ export function auditWindow(out, index, key, { rails = [] } = {}) {
     for (let a = -1; a <= 1 && !dup; a++) for (let b = -1; b <= 1 && !dup; b++) for (const [qx, qy] of cell.get((Math.floor(x / 2) + a) * 100003 + Math.floor(y / 2) + b) || []) if ((qx !== x || qy !== y) && Math.hypot(qx - x, qy - y) < 1.5) { dup = true; break; }
     if (dup) add('doublePosts');
   }
-  // gaten op de tegelnaden: twee opeenvolgende palen van één rij met de naad ertussen en meer dan 6 m uit elkaar
-  const seams = new Map();
-  for (const [x, y] of posts) {
-    const k = Math.round(y * 2) + ':' + 'r';
-    (seams.get(k) || seams.set(k, []).get(k)).push(x);
+  // gaten op de tegelnaden: twee opeenvolgende palen van één rij (zelfde x of zelfde y) met een naad van 160 m
+  // ertussen en meer dan 6,5 m (en minder dan 13 m) uit elkaar: de draad en een paal ontbreken er
+  for (const axis of [0, 1]) {
+    const rows = new Map();
+    for (const p of posts) { const k = Math.round(p[axis] * 20); (rows.get(k) || rows.set(k, []).get(k)).push(p[1 - axis]); }
+    for (const list of rows.values()) {
+      list.sort((u, v) => u - v);
+      for (let i = 1; i < list.length; i++) {
+        const gap = list[i] - list[i - 1];
+        if (gap > 6.5 && gap < 13 && Math.floor(list[i - 1] / 160) !== Math.floor(list[i] / 160)) add('seamGaps');
+      }
+    }
   }
   CE.setExtraBlocked(null);
   CF.setProvinceBlocks(null);
@@ -235,7 +243,7 @@ async function main() {
   const total = sumWindows(rows.map((r) => r.c));
   const perStreek = {};
   for (const r of rows) { const s = perStreek[r.streek] || (perStreek[r.streek] = []); s.push(r.c); }
-  const keys = ['posts', 'wires', 'hedges', 'cattle', 'postOnRail', 'wireOnRail', 'hedgeOnRail', 'postOnRoad', 'wireOnRoad', 'hedgeOnRoad', 'postInWater', 'wireInWater', 'hedgeInWater', 'postInBuilding', 'wireInBuilding', 'hedgeInBuilding', 'postOnDitch', 'hedgeOnDitch', 'doublePosts', 'cattleInWater', 'cattleOnRoad', 'cattleOnRail'];
+  const keys = ['posts', 'wires', 'hedges', 'cattle', 'postOnRail', 'wireOnRail', 'hedgeOnRail', 'postOnRoad', 'wireOnRoad', 'hedgeOnRoad', 'postInWater', 'wireInWater', 'hedgeInWater', 'postInBuilding', 'wireInBuilding', 'hedgeInBuilding', 'postOnDitch', 'hedgeOnDitch', 'doublePosts', 'seamGaps', 'cattleInWater', 'cattleOnRoad', 'cattleOnRail'];
   if (args.includes('--json')) { console.log(JSON.stringify({ total, perStreek: Object.fromEntries(Object.entries(perStreek).map(([s, l]) => [s, sumWindows(l)])) })); }
   else {
     console.log(`${all.length} vensters (${W.rail.length} met spoor, ${W.random.length} willekeurig), seed ${opt('seed', 7)}`);
