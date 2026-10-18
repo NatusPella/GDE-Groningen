@@ -3,6 +3,7 @@ import { seatPose, SEAT_CONTACT, SEAT_CAR, blendSeatPose, standBehindPose, supPo
 import { boatSeats, boatCrewCount, boatKind } from './boattypes.js';
 import { WATER_Y } from './util.js';
 import { tractorCab } from './models3d_vehicles.js';
+import { hash2 as hash } from './rng.js';
 
 // Where people sit in and on vehicles, and the short enter/exit animations
 // (walk to the door, sit down; swing a leg over a bike; a carjack yank),
@@ -299,10 +300,6 @@ const GREET_DIST = 16;
 const GREET_LINES = ['Moi!', 'Ahoi!', 'Hoi hoi!', 'Goeie vaart!', 'Mooi weer, hè!', 'Moi, schipper!', 'Goeiemiddag!'];
 const GREET_FAST = ['Rustig an, jong!', 'Hé! Golven!', 'Kiek uut!'];
 
-function hash(a, b) {
-  const h = Math.sin(a * 127.1 + b * 311.7) * 43758.5453;
-  return h - Math.floor(h);
-}
 
 // Skipper and passengers as children of the boat mesh (they bob and roll
 // with it for free). Built one person per call within `deadline` since a

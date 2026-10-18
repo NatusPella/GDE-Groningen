@@ -9,6 +9,7 @@ import { getWaterIndex, addWaterObstacle, onTileCut } from './waterindex.js';
 import { pointInPolygon, closestPointOnSegment } from './util.js';
 import { surfaceHalfWidth } from './elevation.js';
 import { P } from './worldframe.js';
+import { hash2 as hash } from './rng.js';
 
 // Canal edges built per water polygon: brick quay walls with a stone coping,
 // wet band and algae line, a paving apron hiding the terrain hole edge, and
@@ -30,10 +31,6 @@ function lin(hex, mul = 1) {
   return [_c.r * mul, _c.g * mul, _c.b * mul];
 }
 function mixc(a, b, t) { return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t]; }
-function hash(x, y) {
-  const s = Math.sin(x * 127.1 + y * 311.7) * 43758.5453;
-  return s - Math.floor(s);
-}
 function rng(seed) {
   let s = (seed >>> 0) || 1;
   return () => { s ^= s << 13; s ^= s >>> 17; s ^= s << 5; s >>>= 0; return s / 4294967296; };
