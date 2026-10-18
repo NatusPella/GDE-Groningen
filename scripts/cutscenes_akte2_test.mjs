@@ -102,5 +102,5 @@ ok(missionScene('X99.intro', [{ speaker: 'Tammo', text: 'x', at: 1, dur: 2 }], {
   ok(end.actors.tammo.visible === false && end.actors.tessa.visible === false, 'M02: they get into the car');
 }
 
-console.log(fails ? `${fails} of ${n} failed` : `cutscenes_akte1_test: ${n} checks ok`);
+console.log(fails ? `${fails} of ${n} failed` : `cutscenes_akte2_test: ${n} checks ok`);
 process.exit(fails ? 1 : 0);

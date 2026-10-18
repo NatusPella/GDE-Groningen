@@ -117,5 +117,25 @@ const stand = L.stepExposure(0, 0.5, true, false, lt), crouch = L.stepExposure(0
 ok(stand > crouch * 3, 'light: crouching in the grass fills the "gezien" meter far slower', `${stand} vs ${crouch}`);
 ok(L.stepExposure(0, 1, true, false, lt) === 1 && L.stepExposure(1, 1, false, false, lt) === 0.7, 'light: a second in the beam standing is the end; outside it the meter empties');
 
+// --- the saves of act 2 (scripts/fixtures/saves): the steps they carry exist in the new arc and the story continues where they say ---
+{
+  const dir = new URL('../scripts/fixtures/saves/', import.meta.url);
+  const fixtures = fs.readdirSync(dir).filter((f) => /nieuw-verhaal-akte2/.test(f));
+  ok(fixtures.length >= 2, 'save fixtures for act 2 exist', String(fixtures.length));
+  for (const f of fixtures) {
+    const fx = JSON.parse(fs.readFileSync(new URL(f, dir), 'utf8'));
+    const done = new Set(fx.save.story.done);
+    ok([...done].every((id) => STEPS.some((s) => s.id === id)), `${f}: every done step is a step of the new arc`);
+    const next = STEPS.find((s) => !done.has(s.id));
+    ok(next && next.id === fx._expect.step && next.built, `${f}: continues at the built step ${fx._expect.step}`, next && next.id);
+    // the missions it counts as completed are the defs of the done mission steps
+    const { MISSION_IDS } = await import('../game/js/storyarc.js');
+    const completed = new Set(fx.save.missions.completed);
+    for (const s of STEPS.filter((q) => q.kind === 'mission' && done.has(q.id))) ok(completed.has(MISSION_IDS.indexOf(s.mission)), `${f}: ${s.id} (${s.mission}) is a completed mission`);
+    const [x, y] = [fx.save.pos.x, fx.save.pos.y];
+    ok(x > 150000 && x < 280000 && y > 560000 && y < 620000, `${f}: the player stands in the province (RD New)`);
+  }
+}
+
 console.log(`${n - fails}/${n} act-2 goal checks passed`);
 process.exit(fails ? 1 : 0);
