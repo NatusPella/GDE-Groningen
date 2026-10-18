@@ -133,11 +133,12 @@ export function companionMode(rule, humans) {
 // Wat niet geregistreerd is krijgt een veilige standaard: één speelt, de ander
 // kijkt mee (scène/minigame), of twee stoelen (voertuig). De regel is data:
 //   { spelers: 'een' | 'twee', rollen?: {...}, wacht?: bool, stoelen?: n }
-export const REGISTRY = { scene: new Map(), minigame: new Map(), voertuig: new Map() };
+export const REGISTRY = { scene: new Map(), minigame: new Map(), voertuig: new Map(), activiteit: new Map() };
 const DEFAULTS = {
   scene: { spelers: 'een', wacht: false },
   minigame: { spelers: 'een', wacht: false },
   voertuig: { stoelen: 2 },
+  activiteit: { spelers: 'twee', beloning: 0 },
 };
 
 export function registerCoop(soort, id, regel) {
@@ -145,6 +146,7 @@ export function registerCoop(soort, id, regel) {
   if (typeof id !== 'string' || !id) throw new Error('id ontbreekt');
   if (!regel || typeof regel !== 'object') throw new Error('regel ontbreekt');
   if (soort !== 'voertuig' && !['een', 'twee'].includes(regel.spelers)) throw new Error('spelers moet een of twee zijn');
+  if (soort === 'activiteit' && !(Number.isFinite(regel.beloning) && regel.beloning >= 0)) throw new Error('beloning moet een getal van 0 of meer zijn');
   if (soort === 'voertuig' && !(Number.isInteger(regel.stoelen) && regel.stoelen >= 1 && regel.stoelen <= 8)) throw new Error('stoelen moet 1 tot 8 zijn');
   REGISTRY[soort].set(id, Object.freeze({ ...regel }));
 }
