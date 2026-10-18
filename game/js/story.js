@@ -29,6 +29,8 @@ import { getGaragesForRender } from './garages.js';
 import { inHomeFlat, getHomeForRender } from './home.js';
 import { isShopOpen } from './shopui.js';
 import { playCinematic, isCinematicActive, sinceCinematic, isBannerUp } from './cinematics.js';
+import { playScript } from './cutscenehost.js';
+import { OPENING, END_CARD } from './cutscenes.js';
 import { refreshDayNight } from './daynight.js';
 import { getTrainTripCount, getStationsForRender } from './stationtravel.js';
 import { getEierballen } from './achievementtracker.js';
@@ -450,6 +452,14 @@ function playOpening(b) {
   }
   const p = world.player;
   const kop = PARTS.kop;
+  // the staged version (cutscenes.js OPENING): people and props move, the camera cuts; the orbit below stays as the fallback
+  const v0 = p.inVehicle;
+  const staged = playScript(world, OPENING, {
+    lines, duration: at + 1,
+    anchor: { x: v0 ? v0.x : p.x, y: v0 ? v0.y : p.y, facing: v0 ? v0.angle : p.angle || 0, z: 0 },
+    cine: { id: 'story-opening', kicker: `${partNumber('kop')} · ${kop.date}`, title: kop.name, cardFor: 3.2, onEnd: () => { b.phase = 'done'; } },
+  });
+  if (staged) return true;
   const ok = playCinematic({
     id: 'story-opening', priority: 4, duration: at + 1, pause: true, letterbox: true, skippable: true, hideHud: true,
     kicker: `${partNumber('kop')} · ${kop.date}`, title: kop.name, cardFor: 3.2, lines,
@@ -645,11 +655,17 @@ function updateCredits(dt, w) {
 
 function playEndCard(part) {
   if (PARTS[part] && PARTS[part].finale && currentStep().finale) return playFinale(part);
-  const ok = playCinematic({
-    id: 'story-card', priority: 2, duration: 6.5, pause: true, letterbox: true, skippable: true, hideHud: true,
+  const card = {
     kicker: PARTS[part] ? PARTS[part].end : '', title: 'Alles voor één eierbal', cardFor: 2.4, big: 'Wordt vervolgd…',
     lines: ((PARTS[part] && PARTS[part].card) || []).map(([speaker, text], k) => ({ speaker, text, at: 2.6 + k * 2, dur: 1.9 })),
-  });
+  };
+  const pl = world.player, vh = pl.inVehicle;
+  // staged (cutscenes.js END_CARD), the plain card as the fallback
+  const ok = playScript(world, END_CARD, {
+    lines: card.lines, duration: 6.5,
+    anchor: { x: vh ? vh.x : pl.x, y: vh ? vh.y : pl.y, facing: vh ? vh.angle : pl.angle || 0, z: 0 },
+    cine: { id: 'story-card', priority: 2, kicker: card.kicker, title: card.title, cardFor: card.cardFor, big: card.big },
+  }) || playCinematic({ id: 'story-card', priority: 2, duration: 6.5, pause: true, letterbox: true, skippable: true, hideHud: true, ...card });
   if (!ok) return false;
   state.cards.add(part);
   phone(SERIES, nieuwVerhaal() ? `${PARTS[part].end}. Dit stuk van het nieuwe verhaal is nog niet gebouwd. Tot die tijd is Grunn van jou: alle missies staan in je telefoon, onder Te doen.` : 'Het verhaal gaat verder in een volgende versie. Tot die tijd is Grunn van jou: alle missies staan in je telefoon, onder Te doen.', 8, undefined, nieuwVerhaal());
