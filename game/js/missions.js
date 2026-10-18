@@ -9,7 +9,7 @@ import { spawnVehicleOnRoad, Vehicle, makeTwoWheeler, spawnHeroCarNear, attachTo
 import { placeOwnedVehicleNear } from './ownedvehicles.js';
 import { findWalkPath } from './routing.js';
 import { setGoal } from './goal.js';
-import { playMissionIntro, playMissionFailed, isCinematicActive, playCinematic } from './cinematics.js';
+import { playMissionIntro, playMissionFailed, isCinematicActive, playCinematic, skipCinematic } from './cinematics.js';
 import { playStoryIntro, playStoryOutro, playStoryFail, playVaultScene, playCastScene, playEyeContact, playPigeonSwarm, playToast, storySpeakerName } from './missionstory.js';
 import { showTowerFlag, cutFlagRope, dropFlag, updateStoryProps, clearStoryProps, clearSkutsjeSail, hasTowerFlag, flagFocus, flagKnotsFocus } from './storyprops3d.js';
 import { RING_ROUTE, RING_CHECKPOINTS } from './ringroute.js';
@@ -3639,10 +3639,15 @@ export const missionDebug = {
     syncPub(world);
     return true;
   },
+  // wins whatever stage the mission is in (a scene, a vault, the intro still pending): independent of the path
+  // the player took, so the spelbot's cheat ladder ends here (#186)
   win(world) {
     if (!chain || chain.phase !== 'active') return false;
     const def = chain.defs[chain.index];
     if (world.pigeonMode) stopPigeonMode(world);
+    chain.stagePending = false;
+    chain.resume = null;
+    if (isCinematicActive()) skipCinematic();
     succeed(world, def);
     syncPub(world);
     return true;
