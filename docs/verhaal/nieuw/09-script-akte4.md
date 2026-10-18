@@ -283,6 +283,15 @@ TESSA: Zonder wagen kunnen we niet bakken. Dan wint Jelle zonder wedstrijd. [NIE
 TESSA: Henks tweede sleutel zat onder de bumper. Die van Tammo zit nog in zijn jas. [NIEUW]
 HENK (telefoon): Henk. Tinus' schuur is hier vlakbij. Ik heb morgen iets voor jullie. Eén koekje. [NIEUW]
 
+## [M21.6] Iedereen heeft een rode auto gezien: Tessa, de overweg, de bal vastgehouden – Westerkwartier, de overweg – te voet
+(regie: Tessa hield de rugzak vast. De beleggers trokken hem los en de wagon rolde door. Berend stopte de Escapade met zijn bakkie, met één kras.)
+TESSA: "Tige tank foar de bal. – J." [NIEUW]
+BEREND: Eén kras op de auto. Eén bal kwijt. Ik tel allebei. [NIEUW]
+TESSA: Dat is mijn schuld. [NIEUW]
+BEREND: Dat is een kras. Henk heeft er verf voor, en een koekje. [NIEUW]
+TESSA: Zonder wagen kunnen we niet bakken. Dan wint Jelle zonder wedstrijd. [NIEUW]
+HENK (telefoon): Henk. Tinus' schuur is hier vlakbij. Ik heb morgen iets voor jullie. Eén koekje. [NIEUW]
+
 ## [M21.4] Iedereen heeft een rode auto gezien: Tammo, de vrienden – Westerkwartier, Tinus' schuur bij Zuidhorn – te voet
 (regie: woensdag 26 augustus, vroege ochtend, bij Tinus' schuur in Zuidhorn. Tammo is 's nachts met Tinus en Berend uit Bourtange gekomen. Oma heeft alle vrienden met hun ingrediënten naar de schuur geroepen. Gameplay: zijn deel: de vrienden bij elkaar houden terwijl Jelles advocaten ze een voor een terugroepen.)
 TAMMO: Woensdagochtend, Tinus' schuur. Oma heeft al haar vrienden met hun ingrediënten laten komen. Zonder hen is er geen recept voor de Snackprijs. [NIEUW]
