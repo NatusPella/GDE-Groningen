@@ -16,7 +16,7 @@ import { laneLayout } from '../../game/js/lanes.js';
 
 const CAR = new Set(['major', 'normal', 'minor']);
 const key = (p) => Math.round(p[0] * 100) + ',' + Math.round(p[1] * 100);
-const level = (r) => (r.tunnel ? -1 : r.layer ?? (r.bridge ? 1 : 0));
+const level = (r) => r.layer ?? (r.tunnel ? -1 : r.bridge ? 1 : 0);
 const len = (r) => r.pts.reduce((s, p, i) => (i ? s + Math.hypot(p[0] - r.pts[i - 1][0], p[1] - r.pts[i - 1][1]) : 0), 0);
 
 function segDist(px, py, a, b) {
