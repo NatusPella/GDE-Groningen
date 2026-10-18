@@ -1158,7 +1158,7 @@ function drawDynamicMarkers(ctx, world) {
   }
 
   icon(null, 'player', world.player.x, world.player.y, 'Jij', { angle: world.player.angle });
-  for (const q of placeIcons(queue, 11 * sc)) {
+  for (const q of placeIcons(queue, 12 * sc)) {
     drawMapIconHalo(ctx, q.kind, q.sx, q.sy, sc);
     drawMapIcon(ctx, q.kind, q.sx, q.sy, sc, { t, ...q.opts });
     if (q.name) hover.push({ sx: q.sx, sy: q.sy, name: q.name, sub: q.sub, x: q.x, y: q.y, kind: q.kind, ...q.pick });
