@@ -49,6 +49,7 @@ import { nextTurn, turnText, etaText } from './hudgps.js';
 import { travelModeOf, roadAllowed, minimapScale, northUp, MINIMAP_MODE } from './roadaccess.js';
 import { hudDate } from './hudcalendar.js';
 import { LANDMARK_LINES } from './placelines.js';
+import { townProfile } from './stadsprofielen.js';
 import { getSettings } from './settings.js';
 import { heldBack } from './narrative.js';
 import { isPauseMenuOpen } from './pausemenu.js';
@@ -586,7 +587,7 @@ export function placeLabel(world, x, y) {
     const a = areaNameAt(x, y);
     const name = a.near ? a.name : a.sub && a.region === 'groningen' ? a.sub : a.name;
     const v = VILLAGES[name];
-    return { name, country: true, district: name, line: v && v.teaser ? v.teaser : '' };
+    return { name, country: true, district: name, line: v && v.teaser ? v.teaser : townTeaser(name) };
   }
   for (const l of world.map.meta.landmarks || []) {
     if (Math.hypot(l.x - x, l.y - y) <= 90) return { name: l.name, country: false, district: '', line: LANDMARK_LINES[l.name] || '' };
@@ -598,6 +599,9 @@ export function placeLabel(world, x, y) {
   }
   return { name: best || 'Grunn', country: false, district: best || '', line: best ? wijkBlurb(best) : '' };
 }
+
+// the line of a town of the province (stadsprofielen.js), where a village has none
+const townTeaser = (name) => { const t = townProfile(name); return t ? t.teaser : ''; };
 
 let locationTimer = 0;
 let locWhere = { district: '', country: false, region: '' };
@@ -644,7 +648,7 @@ function placeCandidate(world) {
     if (d === 'Ommeland') return null;
     const v = VILLAGES[d];
     const rn = locWhere.region && locWhere.region !== 'groningen' ? REGIONS[locWhere.region].name : '';
-    if (rn) return { key: 'v:' + d, kick: rn === d ? '' : rn, name: d, line: v && v.teaser ? v.teaser : '' };
+    if (rn) return { key: 'v:' + d, kick: rn === d ? '' : rn, name: d, line: v && v.teaser ? v.teaser : townTeaser(d) };
     return { key: 'v:' + d, kick: v && v.gro ? `Ommeland · ${v.gro}` : 'Ommeland', name: d, line: v && v.teaser ? v.teaser : '' };
   }
   return { key: 'w:' + d, kick: 'Grunn', name: d, line: wijkBlurb(d) };
