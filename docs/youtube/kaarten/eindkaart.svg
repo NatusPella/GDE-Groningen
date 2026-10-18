@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080">
+<defs><radialGradient id="bg" cx="50%" cy="45%" r="75%"><stop offset="0" stop-color="#17301f"/><stop offset="1" stop-color="#0c140e"/></radialGradient></defs>
+<rect width="1920" height="1080" fill="url(#bg)"/>
+<rect x="60" y="60" width="1800" height="960" fill="none" stroke="#1e9e56" stroke-width="4"/>
+<text x="960" y="400" text-anchor="middle" font-family="'Bebas Neue','Arial Narrow',Arial,sans-serif" font-size="210" textLength="1500" lengthAdjust="spacingAndGlyphs" fill="#3fc97a">GDE GRONINGEN</text>
+<text x="960" y="500" text-anchor="middle" font-family="'Bebas Neue','Arial Narrow',Arial,sans-serif" font-size="84" letter-spacing="4" fill="#f0ede4">Zomer vol misdaad</text>
+<text x="960" y="600" text-anchor="middle" font-family="'Bebas Neue','Arial Narrow',Arial,sans-serif" font-size="56" letter-spacing="3" fill="#f0ede4" opacity="0.85">Heel Groningen. Voor één eierbal.</text>
+<text x="960" y="760" text-anchor="middle" font-family="'Bebas Neue','Arial Narrow',Arial,sans-serif" font-size="64" letter-spacing="3" fill="#f2f2f2">Gratis · Windows en Mac · [datum]</text>
+<text x="960" y="850" text-anchor="middle" font-family="'Bebas Neue','Arial Narrow',Arial,sans-serif" font-size="52" letter-spacing="2" fill="#3fc97a">[downloadlink]</text>
+<text x="960" y="960" text-anchor="middle" font-family="'Bebas Neue','Arial Narrow',Arial,sans-serif" font-size="34" letter-spacing="2" fill="#f0ede4" opacity="0.6">Kaartdata © OpenStreetMap-bijdragers · 3D BAG · AHN · three.js · NatusPella</text>
+</svg>
