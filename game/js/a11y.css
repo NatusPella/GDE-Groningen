@@ -93,3 +93,9 @@ html:is(.cb-deuteranopie, .cb-protanopie, .cb-tritanopie) #hud .hud-speedo.redli
 html:is(.cb-deuteranopie, .cb-protanopie, .cb-tritanopie) #hud .hud-meter.veh:not(.hurt) .hud-bar-fill.vehicle { background: var(--mk-ok); }
 html:is(.cb-deuteranopie, .cb-protanopie, .cb-tritanopie) #hud .hud-meter.veh.hurt .hud-bar-fill.vehicle { background: repeating-linear-gradient(135deg, var(--mk-danger) 0 5px, rgba(12, 20, 14, 0.85) 5px 8px); }
 html:is(.cb-deuteranopie, .cb-protanopie, .cb-tritanopie) #hud .hud-search > i > i { background: var(--mk-danger); }
+/* round 2: the remaining red accents follow the palette, and a low race time carries a mark */
+html:is(.cb-deuteranopie, .cb-protanopie, .cb-tritanopie) #hud .hud-minimap-wrap.wanted { box-shadow: 0 0 0 2px var(--mk-danger), 0 14px 32px rgba(0, 0, 0, 0.5); }
+html:is(.cb-deuteranopie, .cb-protanopie, .cb-tritanopie) #hud .gps-timer b { color: var(--mk-danger); }
+html:is(.cb-deuteranopie, .cb-protanopie, .cb-tritanopie) #hud .hud-race .hr-row[data-state="low"] b { color: var(--mk-danger); }
+html:is(.cb-deuteranopie, .cb-protanopie, .cb-tritanopie) #hud .hud-race .hr-row[data-state="low"] b::before { content: '! '; }
+html:is(.cb-deuteranopie, .cb-protanopie, .cb-tritanopie) #hud .hud-wanted svg.on { fill: var(--mk-mission); stroke: #f0ede4; stroke-width: 1.4; }
