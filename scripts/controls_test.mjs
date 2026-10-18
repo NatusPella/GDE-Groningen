@@ -76,6 +76,7 @@ ok(JSON.stringify(C.normalizeKeyBinds({ b: 'y', n: 'y' })) === '{"n":"y"}', 'a s
 // every situation maps every game key it needs to some button
 const need = { foot: [' ', 'control', 'e', 'f', 'k', 'm', 'escape', 'shift', 'tab', 'o'], vehicle: [' ', 'e', 'h', 'l', 'q', 'v', 'm', 'escape', 'n', 'shift', '@fire'],
   heli: [' ', 'control', 'e', 'shift'], pigeon: [' ', 'control', 'f', 'e', 'c', 'q', 'x', 'shift'], menu: ['enter', 'escape', 'q', 'e'], minigame: [' ', 'backspace', 'e'], foodtruck: ['1', '2', '3', '4', '5', '6', ' ', 'backspace'],
+  pannenkoek: ['q', 'w', 'e', 'r', '1', '2', '3', 'backspace', 'escape'],
   klokken: ['a', 's', 'd', 'f', 'j', 'k', 'l', ';', ' ', 'backspace', 'q', 'e', 'escape'] };
 for (const [ctx, keys] of Object.entries(need)) {
   for (const k of keys) {
