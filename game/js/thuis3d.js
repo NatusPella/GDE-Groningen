@@ -3,6 +3,7 @@ import { registerBuildingModel, modelKit, LANDMARK_MATERIALS } from './landmarks
 import { GeoBuilder } from './pixelart3d.js';
 import { pointInPolygon, closestPointOnSegment } from './util.js';
 import { hash2 as hash } from './rng.js';
+import { nearestOnRoads } from './tileplace.js';
 
 // The real look of Tammo and Tessa's two homes, as models for the buildings
 // home.js tags (b.model):
@@ -322,15 +323,8 @@ export function buildPeutCanopy(c, map) {
 }
 
 function nearestStreet(map, x, y) {
-  let best = null;
-  for (const r of map.roadsNear(x, y, 60)) {
-    if (r.cat !== 'major' && r.cat !== 'normal') continue;
-    for (let i = 0; i < r.pts.length - 1; i++) {
-      const q = closestPointOnSegment(x, y, r.pts[i][0], r.pts[i][1], r.pts[i + 1][0], r.pts[i + 1][1]);
-      if (!best || q.dist2 < best.d2) best = { d2: q.dist2, p: [q.x, q.y], w: r.width || 6 };
-    }
-  }
-  return best && best.p;
+  const q = nearestOnRoads(map, x, y, 60, (r) => r.cat === 'major' || r.cat === 'normal');
+  return q && [q.x, q.y];
 }
 
 // The shop: white panels, a green band along the top, glass facing the pumps.

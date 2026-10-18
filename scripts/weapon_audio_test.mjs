@@ -30,7 +30,7 @@ const NEEDS = {
   gun: [['shot', combat], ['empty', combat]],
   water: [['squirt', throwables]],
   throw: [['fuse', throwables], ['carbid', throwables]],
-  rocket: [['launch', throwables], ['burst', throwables]],
+  rocket: [['launch', throwables], ['firework', throwables]],
 };
 for (const w of weapons) {
   const need = NEEDS[w.kind];

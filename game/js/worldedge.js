@@ -3,7 +3,7 @@
 // Germany. The rules are pure functions over an edge layer (index-corridor
 // .json global.edge, scripts/world/build_corridor.mjs: the coastline from
 // OSM, the border lines where the data has them); the turn-back scenes
-// themselves come with F3. Nothing here runs without that layer.
+// are edgescene.js. Nothing here runs without that layer.
 //
 //  - Sea: a boat or a swimmer may go out to `seaM` past the coast; from
 //    `seaM - WARN_M` the coast guard radio warns, past it the current and
@@ -52,7 +52,8 @@ export function outsideDist(px, py, lines) {
 // What the edge does at (x, y). ctx: { mode: 'boat' | 'swim' | 'car' | 'bike'
 // | 'foot' | 'heli' | 'plane', onDeck, bridgeDist (m to the nearest bridge
 // end), heading }. -> null | { action: 'warn' | 'back', edge, text, face }
-// where face is the heading back inside.
+// where face is the heading back inside, at the nearest point of the edge
+// line, d the distance past it and warnAt where the warning starts.
 export function edgeRule(x, y, edge, ctx = {}) {
   if (!edge) return null;
   const mode = ctx.mode || 'foot';
@@ -61,8 +62,8 @@ export function edgeRule(x, y, edge, ctx = {}) {
     const q = outsideDist(x, y, (edge.coast || []).concat(edge.border || []));
     if (!q) return null;
     const lim = (edge.airM || 3000);
-    if (q.d > lim) return { action: 'back', edge: 'lucht', text: EDGE_GAGS.lucht.back, face: face(q) };
-    if (q.d > lim - WARN_M * 2) return { action: 'warn', edge: 'lucht', text: EDGE_GAGS.lucht.warn, face: face(q) };
+    if (q.d > lim) return { action: 'back', edge: 'lucht', text: EDGE_GAGS.lucht.back, face: face(q), at: { x: q.x, y: q.y }, d: q.d, warnAt: lim - WARN_M * 2 };
+    if (q.d > lim - WARN_M * 2) return { action: 'warn', edge: 'lucht', text: EDGE_GAGS.lucht.warn, face: face(q), at: { x: q.x, y: q.y }, d: q.d, warnAt: lim - WARN_M * 2 };
     return null;
   }
   if (mode === 'boat' || mode === 'swim') {
@@ -70,8 +71,8 @@ export function edgeRule(x, y, edge, ctx = {}) {
     if (sea && sea.d > 0) {
       const kind = sea.line.kind || 'wad';
       const lim = sea.line.seaM !== undefined ? sea.line.seaM : edge.seaM || 3000;
-      if (sea.d > lim) return { action: 'back', edge: kind, text: EDGE_GAGS[kind].back, face: face(sea) };
-      if (sea.d > lim - WARN_M) return { action: 'warn', edge: kind, text: EDGE_GAGS[kind].warn, face: face(sea) };
+      if (sea.d > lim) return { action: 'back', edge: kind, text: EDGE_GAGS[kind].back, face: face(sea), at: { x: sea.x, y: sea.y }, d: sea.d, warnAt: lim - WARN_M };
+      if (sea.d > lim - WARN_M) return { action: 'warn', edge: kind, text: EDGE_GAGS[kind].warn, face: face(sea), at: { x: sea.x, y: sea.y }, d: sea.d, warnAt: lim - WARN_M };
     }
   }
   const b = outsideDist(x, y, edge.border);
@@ -80,8 +81,8 @@ export function edgeRule(x, y, edge, ctx = {}) {
   if (ctx.onDeck || (ctx.bridgeDist !== undefined && ctx.bridgeDist < BRIDGE_M)) return null;
   const kind = b.line.kind || 'duitsland';
   const buf = b.line.bufferM !== undefined ? b.line.bufferM : 300;
-  if (b.d > buf) return { action: 'back', edge: kind, text: EDGE_GAGS[kind].back, face: face(b) };
-  if (b.d > buf - WARN_M) return { action: 'warn', edge: kind, text: EDGE_GAGS[kind].warn, face: face(b) };
+  if (b.d > buf) return { action: 'back', edge: kind, text: EDGE_GAGS[kind].back, face: face(b), at: { x: b.x, y: b.y }, d: b.d, warnAt: buf - WARN_M };
+  if (b.d > buf - WARN_M) return { action: 'warn', edge: kind, text: EDGE_GAGS[kind].warn, face: face(b), at: { x: b.x, y: b.y }, d: b.d, warnAt: buf - WARN_M };
   return null;
 }
 
