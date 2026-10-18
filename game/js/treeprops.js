@@ -10,7 +10,8 @@ import { hash2 as treeHash } from './rng.js';
 const STREAM_RADIUS = 70;
 const DROP_RADIUS = 80;
 
-let buildTree = null;
+// var, no initializer: scene3d.js calls setTreeMeshBuilder while it loads, which can be before this module's body ran (import cycle)
+var buildTree;
 const live = new Map();
 
 export function setTreeMeshBuilder(fn) {
