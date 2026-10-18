@@ -418,31 +418,7 @@ const gauss = (rng) => (rng() + rng() + rng() + rng() - 2) / 0.58;
   // the skatepark: its floor, in the park's frame (skatepark.js)
   const sk = frame(geo(53.204169, 6.547889), -0.448);
   for (const [u, v] of [[-26, 0], [-29, 0], [25, 12], [25, -12], [-25, 12], [-25, -12], [0, 0]]) { const q = sk.toW(u, v); place(`skatepark ${u},${v}`, q.x, q.y, 1); }
-  // the kart track: every sample and both sides of the tyre wall, in the track's frame (kartbaan.js)
-  const kf = frame(geo(53.240572, 6.600072), 0.45);
-  const T = KR.buildTrack();
-  let spots = 0;
-  for (let i = 0; i < T.N; i += 4) for (const lane of [-1, 0, 1]) {
-    const off = lane * (T.hw + KR.RUNOFF + 2);
-    const q = kf.toW(T.u[i] - Math.sin(T.ang[i]) * off, T.v[i] + Math.cos(T.ang[i]) * off);
-    if (near(bb, q.x, q.y, 2) || near(wb, q.x, q.y, 2)) spots++;
-  }
-  check('the kart track and its run-off are clear of buildings and water', spots === 0, `${spots} blocked samples`);
-  const stand = kf.toW(6, -15);
-  place('kart booth', stand.x, stand.y, 2);
-  // clear of roads too: the nearest mapped road is further than the track is wide
-  let nearestRoad = 1e9;
-  for (const r of map.roads) {
-    if (r.pts.length < 2) continue;
-    const rb = bounds(r.pts);
-    const cx = (rb[0] + rb[2]) / 2, cy = (rb[1] + rb[3]) / 2;
-    if (Math.hypot(cx - kf.origin.x, cy - kf.origin.y) > 600 + Math.hypot(rb[2] - rb[0], rb[3] - rb[1])) continue;
-    for (let i = 0; i < T.N; i += 6) {
-      const q = kf.toW(T.u[i], T.v[i]);
-      for (const p of r.pts) nearestRoad = Math.min(nearestRoad, Math.hypot(p[0] - q.x, p[1] - q.y));
-    }
-  }
-  check('no mapped road runs over the kart track', nearestRoad > 15, nearestRoad.toFixed(1));
+  // the kart track lies at Ulrum, outside the city map: scripts/kartbaan_test.mjs checks it against the OSM ring
 }
 
 if (bad) process.exit(1);
