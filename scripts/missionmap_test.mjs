@@ -1,5 +1,6 @@
 // Mission map layers (game/js/missionmap.js): the layer per kind of mission,
 // the minimap's scale and selection, the notices. Run: node scripts/missionmap_test.mjs
+import { bridgesAhead } from '../game/js/boatahead.js';
 import { buildMissionLayer, layerKindOf, missionMinimapScale, selectMiniItems, selectMapItems, layerNotices, compassOf, relativeBearing, distLabel, MINI_MAX_ITEMS, MINI_ZOOM, ROLES } from '../game/js/missionmap.js';
 import { mapCategory, mapPriority, mapRimColor, mapKindVisible } from '../game/js/mapicons.js';
 import { drawMissionLayerIcon, layerCaption } from '../game/js/missionmapdraw.js';
@@ -108,6 +109,19 @@ for (const k of ['mm-gevaar', 'mm-rival', 'mm-halte', 'mm-ring', 'mm-pad', 'mm-b
   const ctx = new Proxy({}, { get: (_, p) => (p === 'canvas' ? {} : (...a) => { calls.push(p); }), set: () => true });
   drawMissionLayerIcon(ctx, k, 2);
   ok(calls.length > 2, 'glyph draws ' + k);
+}
+
+// the boat layer's live source: bridges on the heading (boatahead.js)
+{
+  const deck = (x0, x1, h) => (x, y) => (x >= x0 && x <= x1 ? h : Infinity);
+  const b = bridgesAhead({ x: 0, y: 0, angle: 0 }, deck(60, 80, 2.4));
+  ok(b.length === 1 && b[0].x >= 60 && b[0].x <= 80 && b[0].clearance === 2.4, 'one deck ahead is one bridge');
+  ok(bridgesAhead({ x: 0, y: 0, angle: 0 }, () => Infinity).length === 0, 'open water has no bridge');
+  ok(bridgesAhead({ x: 0, y: 0, angle: Math.PI }, deck(60, 80, 2.4)).length === 0, 'a bridge behind the boat is not ahead');
+  const two = bridgesAhead({ x: 0, y: 0, angle: 0 }, (x) => (x > 48 && x < 72 ? 3 : x > 150 && x < 170 ? 1.9 : Infinity));
+  ok(two.length === 2 && two[1].clearance === 1.9, 'two decks are two bridges');
+  const low = buildMissionLayer({ player: { x: 0, y: 0, angle: 0, speed: 5 }, boat: { airDraught: 2.5, bridges: [{ x: 90, y: 0, clearance: 2.4, name: 'Brug' }, { x: 180, y: 0, clearance: 4, name: 'Brug' }] } });
+  ok(low && low.kind === 'boot' && low.items.some((i) => i.role === 'hazard') && low.items.some((i) => i.role === 'bridge'), 'a bridge too low is a hazard, one that fits is a bridge');
 }
 
 console.log(`${n - fails}/${n} ok`);
