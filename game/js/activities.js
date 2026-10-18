@@ -27,6 +27,7 @@ import { KLIMTOREN } from './klimtoren.js';
 import { WATERSKI } from './waterski.js';
 import { isShopOpen } from './shopui.js';
 import { isCinematicActive } from './cinematics.js';
+import { registerBusyProbe } from './busy.js';
 export { activityBlock, iconDisc } from './activitykit.js';
 
 const LIST = [CARBID, KERMIS, GEHEIMEN, DRIFT_ZONE, DISCGOLF, PITCHPUTT, SKATEPARK, KARTBAAN, ZWEMBAD, KLIMTOREN, WATERSKI];
@@ -49,6 +50,7 @@ function current() {
 export function isActivityActive() {
   return !!current();
 }
+registerBusyProbe('activity', isActivityActive);
 
 // A loaded save ends a running minigame (savegame.js).
 export function quitActivity(w) {

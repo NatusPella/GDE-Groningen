@@ -42,6 +42,7 @@ import { nieuwVerhaal } from './storyflag.js';
 import { storyLines, talkLines, storyDataReady, readingTime } from './storytext.js';
 import { playTalk, stopTalk } from './storytalk.js';
 import { buildNieuwDefs, applyNieuw } from './missions_nieuw.js';
+import { registerBusyProbe } from './busy.js';
 
 // radio fragments a stage puts on Nachtstreek (storycontact.js, loaded lazily: it imports the UI)
 let contactMod = null;
@@ -960,6 +961,8 @@ export function getActiveRace() {
 export function isMissionActive() {
   return !!chain && chain.phase === 'active';
 }
+registerBusyProbe('mission', isMissionActive);
+registerBusyProbe('activeRace', () => !!getActiveRace());
 
 // Makes mission i the next one in the chain and the player's goal (goal.js).
 // Callers that offer story missions ahead of the story go through todo.js

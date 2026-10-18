@@ -18,6 +18,7 @@ import { lineVoiceFor } from './linevoice.js';
 import { nieuwVerhaal } from './storyflag.js';
 import { getFollowPose, prewarmStreamAt } from './scene3d.js';
 import { KEYS } from './storagekeys.js';
+import { registerBusyProbe } from './busy.js';
 
 // world.cameraOverride poses use map coordinates: x/y on the map, z = height in metres.
 // world.timeScale (0..1) slows gameplay; main.js multiplies the gameplay dt by it.
@@ -164,6 +165,7 @@ export function initCinematics(w) {
 export function isCinematicActive(id) {
   return !!active && (id == null || active.id === id);
 }
+registerBusyProbe('cinematic', () => isCinematicActive());
 
 // The red damage vignette stays off during cutscenes unless the scene asks
 // for it (spec.blood) or it is the death scene itself.
