@@ -43,7 +43,7 @@ export const FURNITURE = [
   { id: 'bank', short: 'Zitmoi', label: 'Bank "Zitmoi"', price: 299, desc: 'Zit als een Grunneger: stug maar trouw',
     perk: 'Zitten (E): snel weer gezond', stat: ['Herstel op de bank', '+10 gezondheid per seconde'], replaces: true,
     at: { x: 3.7, z: 3.95, rot: Math.PI, fit: 'w', size: 2.5 }, use: { x: 5.45, z: 3.75 } },
-  { id: 'lamp', short: 'Lichtje Tjoek', label: 'Lamp "Lichtje Tjoek"', price: 15, desc: 'Voor lange winteravonden in Stad',
+  { id: 'lamp', short: 'Lichtje Tjoek', label: 'Lamp "Lichtje Tjoek"', price: 15, desc: 'Voor lange avonden in Stad',
     perk: "'s Avonds echt licht in de flat", stat: ['Gezelligheid', 'Warm licht, elke avond'],
     at: { x: 0.6, z: 4.7, rot: 0, fit: 'h', size: 1.6 }, solid: [0.38, 4.48, 0.82, 4.92] },
   { id: 'bed', short: 'Sloapstee', label: 'Bedden "Sloapstee" (twee)', price: 349, desc: 'Twee eenpersoons, dekbedden zo dik als pap. Huisgenoten, hè',
