@@ -211,3 +211,13 @@ html.reduce-motion .gm, html.reduce-motion .gm *, html.reduce-motion .gm *::befo
 .foto-gal figure { margin: 0; }
 .foto-gal img, .foto-leeg { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 8px; background: rgba(128,128,128,.2); display: grid; place-items: center; }
 .foto-gal figcaption { font-size: .85em; margin-top: 4px; }
+
+#windwijzer { position: fixed; right: calc(20px * var(--ui, 1)); bottom: calc(150px * var(--ui, 1)); z-index: 40; display: grid; grid-template-columns: auto auto; gap: 4px 10px; align-items: center; padding: 8px 12px; border-radius: 14px; background: rgba(20,24,30,.72); color: #fff; font-size: calc(14px * var(--ui, 1)); pointer-events: none; }
+#windwijzer[hidden] { display: none; }
+#windwijzer svg { width: calc(44px * var(--ui, 1)); height: calc(44px * var(--ui, 1)); grid-row: span 2; }
+#windwijzer .ww-ring { fill: none; stroke: rgba(255,255,255,.5); stroke-width: 1.5; }
+#windwijzer .ww-pijl { fill: #fff; transform-origin: 0 0; }
+#windwijzer .ww-trim { height: 6px; border-radius: 3px; background: rgba(255,255,255,.25); overflow: hidden; }
+#windwijzer .ww-trim i { display: block; height: 100%; background: #fff; }
+#windwijzer .ww-keys { grid-column: 1 / -1; font-size: .85em; opacity: .9; }
+#windwijzer .hud-key { display: inline-block; min-width: 1.5em; padding: 1px 6px; border-radius: 5px; background: #fff; color: #1b2027; font-weight: 700; text-align: center; }
