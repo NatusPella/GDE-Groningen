@@ -38,6 +38,7 @@ import { updateCombat, updateBullets } from './combat.js';
 import { updatePolice } from './police.js';
 import { updateTrafficLaw } from './trafficlaw.js';
 import { updateOffences } from './offences.js';
+import { updateMotorPolice } from './motorpolice.js';
 import { initMissions, updateMissions } from './missions.js';
 import { initStory, updateStory, currentStep } from './story.js';
 import { initGoal, updateGoal } from './goal.js';
@@ -641,6 +642,7 @@ async function boot() {
     if (!world.pigeonMode && !world.heliRun) updatePolice(dt, world);
     updateTrafficLaw(dt, world);
     updateOffences(dt, world, { signalsNear: trafficSignalsNear, phaseFor: trafficLightPhaseFor });
+    updateMotorPolice(dt, world);
     resolveVehicleVehicleCollisions(world.vehicles, world);
     tickBurningVehicles(world, dt);
     updateRailway(dt, world);
