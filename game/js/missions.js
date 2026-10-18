@@ -3567,21 +3567,25 @@ export function updateMissionMarker3D(group, time, phase) {
   updateWorldMarker3D(group, time);
 }
 
-const waypointDotGeometry = new THREE.SphereGeometry(1.1, 12, 10);
+const waypointRingGeometry = new THREE.RingGeometry(1.0, 1.35, 28).rotateX(-Math.PI / 2);
+const waypointColumnGeometry = new THREE.CylinderGeometry(0.05, 0.1, 9, 8, 1, true).translate(0, 4.5, 0);
 const waypointDotMaterial = new THREE.MeshBasicMaterial({
   color: MARKER_COLOR_ACTIVE,
   transparent: true,
-  opacity: 0.6,
+  opacity: 0.45,
   depthWrite: false,
   blending: THREE.AdditiveBlending,
+  side: THREE.DoubleSide,
 });
 
-// Cheap translucent preview dot for one entry of world.mission.remainingWaypoints
-// (checkpoint/boat missions only). Geometry and material are shared module-
-// scope singletons per-file convention here, since several of these can be
-// live at once - callers must NOT call .dispose() on an individual dot
-// mesh's material when tearing one down (every dot mesh shares the same
-// material instance); just remove the mesh from the scene.
+// Quiet preview of one entry of world.mission.remainingWaypoints (checkpoint/
+// boat missions only): a thin ring on the ground with a short soft column,
+// in place of the old balls (#115). Geometry and material are shared
+// module-scope singletons, since several of these can be live at once -
+// callers must NOT call .dispose() on an individual dot's material; just
+// remove the group from the scene.
 export function buildWaypointDotMesh3D() {
-  return new THREE.Mesh(waypointDotGeometry, waypointDotMaterial);
+  const g = new THREE.Group();
+  g.add(new THREE.Mesh(waypointRingGeometry, waypointDotMaterial), new THREE.Mesh(waypointColumnGeometry, waypointDotMaterial));
+  return g;
 }
