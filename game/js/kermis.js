@@ -566,6 +566,7 @@ function collide(w, cars) {
         const pts = Math.max(1, Math.round(into * 1.3 * (flank === 'flank' ? 1.8 : flank === 'kont' ? 1.4 : 0.7) * (1 + Math.min(4, g.combo - 1) * 0.25)));
         g.score += pts;
         g.hits++;
+        { const q = toW(me.u, me.v); pushAudioEvent(w, { kind: 'fx', name: 'kermis_ding', x: q.x, y: q.y }); }
         g.best = Math.max(g.best, g.combo);
         g.flash = { text: `${flank === 'flank' ? 'In de flank' : flank === 'kont' ? 'Van achteren' : 'Kop op kop'}! +${pts}${g.combo > 1 ? ` · combo ${g.combo}` : ''}`, t: 1.3 };
         w.lastImpact = { strength: Math.min(0.5, 0.12 + into * 0.07), time: w.time, x: w.player.x, y: w.player.y };

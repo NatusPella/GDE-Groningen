@@ -4,13 +4,16 @@ import { setErrorContext } from './errorlog.js';
 import { DEV, STORY_TEST, FLAGS } from './devflags.js';
 import { bindCoop } from './coopglue.js';
 import { tickCoopNet } from './coopnet.js';
+import { updatePartnerChip } from './coophud.js';
+import { syncFigures, hasFigureMeshes } from './coopfigures3d.js';
+import { syncHostEntities, hasHostEntities, clearHostEntities } from './coopentities3d.js';
 import { loadMap } from './mapdata.js';
 import { loadTileWorld } from './tileworld.js';
 import { tileFocus } from './tilefocus.js';
 import { setWorldPlaces } from './worldplaces.js';
 import { setRegionData } from './regions.js';
 import { tileIndexOf, tileKey } from './gdt.js';
-import { loadFacilities, initFacilities, setExtraBuiltWorld, placeWithTiles } from './facilities.js';
+import { loadFacilities, initFacilities, loadShopPlaces, initShopPlaces, setExtraBuiltWorld, placeWithTiles } from './facilities.js';
 import { ensureCountryEdge } from './countryplan.js';
 import { warmCountryMaps } from './countrymap.js';
 import { Input } from './input.js';
@@ -47,18 +50,18 @@ import { updateParkingLots3D } from './parkinglots3d.js';
 import { updateMarinas3D } from './marinas3d.js';
 import { isShopOpen } from './shopui.js';
 import { initMapView, updateMapView, isMapOpen } from './mapview.js';
-import { initAudio, updateAudio, setMenuAudio } from './audio.js';
+import { initAudio, updateAudio, setMenuAudio, setSfxLinks } from './audio.js';
 import { updateBanter } from './banter.js';
 import { updateNarrative } from './narrative.js';
 import { initStoryContact, updateStoryContact } from './storycontact.js';
 import { initTheme } from './theme.js';
 import { initTrafficLights, updateTrafficLights, trafficSignalsNear, trafficLightPhaseFor } from './trafficlights.js';
-import { initRailway, updateRailway, setRailExtraWorld } from './railway.js';
+import { initRailway, updateRailway, setRailExtraWorld, getTrains } from './railway.js';
 import { applyCityRoutes, loadLandData } from './corridorrail.js';
 import { setFarProps } from './farprops.js';
 import { initProvince } from './provinceworld.js';
 import { loadRoadNet, setRoadNet } from './roadgraph.js';
-import { buildMovableBridges, updateMovableBridges } from './movablebridges.js';
+import { buildMovableBridges, updateMovableBridges, getMovableBridges } from './movablebridges.js';
 import { updateBridgeHits, resetBridgeDamage, startBridgeCrashDemo, stepBridgeCrashDemo } from './bridgehitworld.js';
 import { geoWorkerActive } from './geojobs.js';
 import { init3D, update3D, resize3D, getScene, getRenderer, setMenuCover, MENU_FRAME_S, refreshRenderScale, terrainReady, canvasFrameCount, prewarmStreamAt } from './scene3d.js';
@@ -289,6 +292,7 @@ async function boot() {
   // the city's train routes on over the layer's track, the countryside's rails, turbines and pylons (corridorrail.js)
   const landData = corLayer && corLayer.global ? loadLandData('world/', corLayer.global.landFile) : null;
   const facilities = loadFacilities('citymap.json');
+  const shopPlaces = loadShopPlaces('citymap.json');
   const map = tiles ? tiles.world : await loadMap('citymap.json', onMapProgress);
   tileWorldStats = tiles ? tiles.store : null;
   markLoad('map');
@@ -296,6 +300,7 @@ async function boot() {
   applyCityRoutes(map, land);
   setFarProps(land);
   initFacilities(map, await facilities);
+  initShopPlaces(map, await shopPlaces);
   markLoad('ommeland');
   prepareHomeMap(map);
   setLoadProgress(0.55);
@@ -428,6 +433,7 @@ async function boot() {
   // the title screen already sounds like the city (quieter, no music)
   setMenuAudio(true);
   initAudio(world);
+  setSfxLinks({ bridges: getMovableBridges, trains: getTrains });
   await waitForStart(world);
   await countryPlaced;
   document.body.classList.add('game-started');
@@ -503,7 +509,10 @@ async function boot() {
       updatePhone(dt, world);
       updateSaveGame(dt, world);
     }
-    if (world.coopNet) tickCoopNet(world, dt); // coöp online (#95), alleen na een bewuste koppeling
+    if (world.coopNet) tickCoopNet(world, dt); // samen spelen (#95), alleen na een bewuste uitnodiging
+    if (world.coopNet || world.coopPartner !== undefined) updatePartnerChip(world);
+    if (world.coopNet || hasFigureMeshes()) syncFigures(world, dt); // de figuren van de andere spelers (#95)
+    if (world.coopRole === 'client') syncHostEntities(world); else if (hasHostEntities()) clearHostEntities(); // voertuigen en doel van de host bij een gast
     probe.mark('phone+save');
     updateSafety(dt, world);
     // a padel match owns the camera (cinematics.js resets cameraOverride each frame)
@@ -525,6 +534,8 @@ async function boot() {
 
   function updateGameplay(dt) {
     world.time += dt;
+    // samen spelen (#95): een gast draait de wereld van de host niet zelf; die komt via het net (coopnet.js, coopworld.js)
+    if (world.coopRole === 'client' && world.coopNet && world.coopNet.joined) return;
     // money must stay a number: a NaN from any price or reward is undone
     if (Number.isFinite(world.money)) world._goodMoney = world.money;
     else {
