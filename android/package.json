@@ -1,0 +1,19 @@
+{
+  "name": "gde-groningen-android",
+  "private": true,
+  "version": "0.35.0",
+  "description": "Android-testversie (debug-APK) van GDE Groningen: Capacitor-WebView rond de webversie",
+  "license": "GPL-3.0-or-later",
+  "scripts": {
+    "stage": "node scripts/stage.mjs",
+    "sync": "node scripts/stage.mjs --sync",
+    "build": "node scripts/build.mjs",
+    "smoke": "node scripts/smoke.mjs"
+  },
+  "dependencies": {
+    "@capacitor/android": "8.5.3",
+    "@capacitor/app": "8.1.2",
+    "@capacitor/cli": "8.5.3",
+    "@capacitor/core": "8.5.3"
+  }
+}
