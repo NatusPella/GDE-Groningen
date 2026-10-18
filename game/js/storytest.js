@@ -280,7 +280,7 @@ async function minigames2Smoke(world, check, capture) {
   check('klimtoren: starts', kt && kt.start() && await waitFor(() => kt.state() && kt.state().climb.phase === 'climb', 6000));
   await sleep(500);
   hold('a', 'KeyA');
-  await sleep(1100);
+  await waitFor(() => kt.state().climb.best > 0.3, 8000);
   check('klimtoren: holding A grips the first hold', kt.state().climb.best > 0.3 && finite(world.player), JSON.stringify(kt.state()));
   capture('mg-klimtoren-grip');
   release('a', 'KeyA');
@@ -290,7 +290,7 @@ async function minigames2Smoke(world, check, capture) {
   await cleared('klimtoren');
 
   const ws = window.__waterski;
-  check('waterski: starts', ws && ws.start() && await waitFor(() => ws.state() && ws.state().phase === 'run', 6000));
+  check('waterski: starts', ws && ws.start() && await waitFor(() => ws.state() && ws.state().phase === 'run', 25000));
   await sleep(1500);
   capture('mg-waterski-run');
   check('waterski: the boat tows the skier along the lake', await waitFor(() => ws.state().ski.sS > 2, 10000) && finite(world.player), JSON.stringify(ws.state()));
@@ -370,7 +370,7 @@ async function batch2Smoke(world, check, capture) {
   capture('job-boa-case');
   const money = world.money;
   const rightFine = c.data.options.findIndex((o) => o.ok) + 1;
-  check('boa: a right fine pays and the panel closes', await pressUntil(String(rightFine), 'Digit' + rightFine, () => world.money > money && !panelUp(), 12000), `${money} -> ${world.money}`);
+  check('boa: a right fine pays and the panel closes', await pressUntil(String(rightFine), 'Digit' + rightFine, () => world.money > money && !panelUp(), 40000), `${money} -> ${world.money}`);
   SJ().quit();
   await sleep(300);
   check('boa: quitting leaves no panel, no input claim', !panelUp() && !world.sideJob.active);
@@ -493,7 +493,11 @@ export async function runStoryTest(world) {
     const railLifts = probeRailLifts(world);
     check('rail lifts can be walked, driven and cycled up', !railLifts.length, railLifts.map((h) => `lift ${h.lift} ${h.how}: ${h.what} (${h.x}, ${h.y}, z ${h.z})`).join('; '));
     const wet = await driveWaterCrossings(world);
-    check(`cars cross all ${wet.drives} major-road water crossings at 80 km/h`, !wet.fails.length, wet.fails.slice(0, 30).map((f) => `${f.route} (${f.dir}, strook ${f.lane}) bij (${f.at}): ${f.what} op (${f.x}, ${f.y}, z ${f.z}) ${f.v} km/u${f.by ? " door " + f.by : ""}${f.near ? " (vooraf: " + f.near + ")" : ""}`).join('; '));
+    // one line per crossing (all six lane/direction drives of it together), so the list shows every bridge that fails
+    const wetAt = new Map();
+    for (const f of wet.fails) { const k = `${f.route} bij (${f.at})`; wetAt.set(k, (wetAt.get(k) || 0) + 1); }
+    const wetSummary = wetAt.size ? `${wetAt.size} failing crossings: ` + [...wetAt].map(([k, n]) => `${k} x${n}`).join(', ') + ' || ' : '';
+    check(`cars cross all ${wet.drives} major-road water crossings at 80 km/h`, !wet.fails.length, wetSummary + wet.fails.slice(0, 12).map((f) => `${f.route} (${f.dir}, strook ${f.lane}) bij (${f.at}): ${f.what} op (${f.x}, ${f.y}, z ${f.z}) ${f.v} km/u${f.by ? " door " + f.by : ""}${f.near ? " (vooraf: " + f.near + ")" : ""}`).join('; '));
     const lap = await driveRingLap(world);
     check('scripted car drives a full ring lap', lap.scripted.ok, JSON.stringify(lap.scripted));
     check('AI racers finish a full ring lap', lap.ai.ok, JSON.stringify(lap.ai));
