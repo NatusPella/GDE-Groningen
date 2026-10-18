@@ -1,3 +1,5 @@
+import { SpatialGrid } from './spatialgrid.js';
+
 // The vertical design rules for track (docs/PROVINCIE-PLAN.md 2.11, "Spoor")
 // and the one height query the game, the solver and the audits share. Pure
 // data and geometry: no scene, no DOM.
@@ -57,7 +59,7 @@ export function railHeightIndex(rails, cell = 32) {
   const stamp = stampOf(rails);
   let idx = cache.get(rails);
   if (idx && idx.stamp === stamp) return idx;
-  const grid = new Map();
+  const grid = new SpatialGrid(cell);
   let any = false;
   for (const r of rails) {
     const P = r.pts || r, Z = r.z;
@@ -65,14 +67,10 @@ export function railHeightIndex(rails, cell = 32) {
     if (!Z.some((z) => Math.abs(z) > 0.005)) continue;
     any = true;
     for (let i = 0; i < P.length - 1; i++) {
-      const gx0 = Math.floor((Math.min(P[i][0], P[i + 1][0]) - 4) / cell), gx1 = Math.floor((Math.max(P[i][0], P[i + 1][0]) + 4) / cell);
-      const gy0 = Math.floor((Math.min(P[i][1], P[i + 1][1]) - 4) / cell), gy1 = Math.floor((Math.max(P[i][1], P[i + 1][1]) + 4) / cell);
-      for (let gx = gx0; gx <= gx1; gx++) for (let gy = gy0; gy <= gy1; gy++) {
-        const k = gx * 65536 + gy;
-        let c = grid.get(k);
-        if (!c) grid.set(k, (c = []));
-        c.push(P[i][0], P[i][1], P[i + 1][0], P[i + 1][1], Z[i], Z[i + 1]);
-      }
+      grid.insert(
+        { ax: P[i][0], ay: P[i][1], bx: P[i + 1][0], by: P[i + 1][1], za: Z[i], zb: Z[i + 1] },
+        [Math.min(P[i][0], P[i + 1][0]) - 4, Math.min(P[i][1], P[i + 1][1]) - 4, Math.max(P[i][0], P[i + 1][0]) + 4, Math.max(P[i][1], P[i + 1][1]) + 4],
+      );
     }
   }
   idx = { grid, cell, any, stamp };
@@ -82,15 +80,13 @@ export function railHeightIndex(rails, cell = 32) {
 
 export function railHeightAt(idx, x, y, reach = 3.5) {
   if (!idx || !idx.any) return 0;
-  const c = idx.grid.get(Math.floor(x / idx.cell) * 65536 + Math.floor(y / idx.cell));
-  if (!c) return 0;
   let bd = reach * reach, bz = 0;
-  for (let k = 0; k < c.length; k += 6) {
-    const ax = c[k], ay = c[k + 1], dx = c[k + 2] - ax, dy = c[k + 3] - ay;
+  for (const g of idx.grid.query(x, y, x, y)) {
+    const dx = g.bx - g.ax, dy = g.by - g.ay;
     const L2 = dx * dx + dy * dy || 1e-9;
-    const t = Math.max(0, Math.min(1, ((x - ax) * dx + (y - ay) * dy) / L2));
-    const ex = ax + dx * t - x, ey = ay + dy * t - y, d = ex * ex + ey * ey;
-    if (d < bd) { bd = d; bz = c[k + 4] + (c[k + 5] - c[k + 4]) * t; }
+    const t = Math.max(0, Math.min(1, ((x - g.ax) * dx + (y - g.ay) * dy) / L2));
+    const ex = g.ax + dx * t - x, ey = g.ay + dy * t - y, d = ex * ex + ey * ey;
+    if (d < bd) { bd = d; bz = g.za + (g.zb - g.za) * t; }
   }
   return bz;
 }
