@@ -1506,8 +1506,8 @@ export function updatePigeonMode(dt, w) {
     world.addMessage('Gerucht: ergens in n tuin woont n duivenmelker…', 4);
   }
 
+  pl.x = lastSet.x = P.x;
   world.pigeonAlt = P.z; // absolute height: breakables.js footKicks lets props below it be
-  world.pigeonAlt = Math.max(0, P.z - P.groundH);
   pl.y = lastSet.y = P.y;
   pl.angle = P.yaw;
   pl.vx = 0; pl.vy = 0;
