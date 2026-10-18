@@ -17,6 +17,7 @@ export const CHAINS = [
   { id: 'happie', name: 'Happie', color: '#9bd630', trim: '#2b3a12' },
   { id: 'flitsmaal', name: 'Flitsmaal', color: '#d6336c', trim: '#3a0f1f' },
   { id: 'gauw', name: 'Gauw Gebracht', color: '#6a3fb5', trim: '#1c1030' },
+  { id: 'pronto', name: 'Pakkie Pronto', color: '#e8812a', trim: '#3a1f0a' },
 ];
 // Wisselwiel bike-share: the front wheel is tinted coral (not blue)
 export const SHARE_TINT = '#ff6a4d';
@@ -67,10 +68,10 @@ export const isNight = (h) => h >= 22.5 || h < 6;
 export function deliveryChance(profileKey, d, hour) {
   const dens = lifeDensity(profileKey, d);
   if (dens <= 0) return 0;
-  let k = 0.05;
-  if (isDinnerTime(hour)) k = 0.2;
-  else if (isLunchTime(hour)) k = 0.1;
-  else if (hour >= 21.5 && hour < 23.5) k = 0.1;
+  let k = 0.08;
+  if (isDinnerTime(hour)) k = 0.32;
+  else if (isLunchTime(hour)) k = 0.16;
+  else if (hour >= 21.5 && hour < 23.5) k = 0.16;
   else if (isNight(hour) || hour < 10) k = 0.02;
   return k * dens;
 }
@@ -220,3 +221,104 @@ export const BERNARD_LINES = [
 
 export const GRENADE_FOUND = 'Een oude granaat! Niet aan komen. Meld het bij de politie.';
 export const GRENADE_REPORTED = 'De politie sluit het gebied af en neemt de granaat mee. Dankjewel voor het melden!';
+
+// --- skateboarders (batch 3) --------------------------------------------------------
+
+// Young people rolling along the pavement: the student districts and the centre,
+// afternoons and evenings, never at night, never in the polders.
+export function skaterChance(profileKey, d, hour) {
+  const dens = lifeDensity(profileKey, d);
+  if (dens <= 0 || hour < 11 || hour >= 22) return 0;
+  const base = profileKey === 'student' ? 0.05 : profileKey === 'centrum' ? 0.03 : profileKey === 'bakfiets' ? 0.02 : 0.005;
+  return base * dens * (hour >= 15 && hour < 20 ? 1.6 : 1);
+}
+
+export const SKATER_MAX = 2;
+export const SKATER_PACE = 2.1;
+export const SKATER_LINES = [
+  'Pas op, ik rol!',
+  'Ollie! ...Nee, dat was een stoeptegel.',
+  'Mijn bord, mijn regels.',
+  'Dit gaat veel sneller dan fietsen, hoor.',
+  'Bij het Forum mag het nog niet, zeggen ze.',
+  'Kijk, zonder handen! ...Oeps.',
+];
+
+// --- the kennismakingsweek: a parody of student initiation (batch 3) --------------------
+// A group of first-years in matching yellow shirts, a plush goose under the arm,
+// led by an older member of the invented dispuut "De Gulle Gans" with a megaphone.
+// Light and harmless: silly errands only, nobody is hurt or shamed.
+
+export const ONTGROENING = { club: 'Dispuut De Gulle Gans', shirt: '#f2c400', leaderShirt: '#1f3a52' };
+
+// Late morning to early evening, in the student districts and the centre.
+export function ontgroeningChance(profileKey, d, hour) {
+  const dens = lifeDensity(profileKey, d);
+  if (dens <= 0 || hour < 10 || hour >= 19) return 0;
+  const base = profileKey === 'student' ? 0.03 : profileKey === 'centrum' ? 0.025 : profileKey === 'bakfiets' ? 0.006 : 0;
+  return base * dens;
+}
+
+export const ONTGROENING_MAX = 1;
+export const LEADER_LINES = [
+  'Eerstejaars, in de rij! Dit is geen wandeling, dit is een traditie!',
+  'Vandaag: elke fietsenstalling een compliment geven!',
+  'Dispuut De Gulle Gans heet jullie welkom. Verplicht gezellig!',
+  'Niet vragen waarom. Ganzen vragen ook nooit waarom.',
+  'Wie de eend laat vallen, trakteert op koffie.',
+  'Jullie doen het geweldig. Echt. Loop maar door.',
+];
+export const FRESHMAN_LINES = [
+  'Mijn eend heet Gerrit. Dat moest.',
+  'Ik moet iemand een gedicht over fietsenrekken voorlezen.',
+  'Het is wel leuk, eigenlijk.',
+  'Hebben jullie ook zo veel zin in de rest van de week?',
+  'We moeten de Martinitoren groeten. Elke keer.',
+  'Quak. Sorry, dat is de opdracht.',
+];
+
+// --- district profiles for the people on foot (batch 3) ---------------------------------
+// Clothes follow the wijk the walker is in: faded and sporty with students, calm
+// and tidy in the villa streets, hi-vis orange in the industrial parts.
+
+export const WIJK_CLOTHING = {
+  student: ['#6b7a8a', '#8a5a3c', '#c94b3a', '#3f5c8a', '#5a6a46', '#a8a29a', '#c9a227'],
+  chic: ['#e8e6e0', '#c9b79a', '#1f3a52', '#2b2f36', '#a8b8c8', '#d8c0b0'],
+  bakfiets: ['#4a6a46', '#c9a227', '#7a4a6a', '#3f5c8a', '#a85a3a', '#6b6b6b'],
+  industrie: ['#e0701a', '#2f3b4a', '#e0701a', '#54463c', '#6b6b6b'],
+  centrum: ['#2b2f36', '#c94b3a', '#e8e6e0', '#3f5c8a', '#c9a227', '#4a3a54'],
+};
+
+// A clothing colour for this district, or null to keep the default mix.
+export function wijkClothing(profileKey, rng = Math.random) {
+  const list = WIJK_CLOTHING[profileKey];
+  if (!list || rng() > 0.7) return null;
+  return list[Math.floor(rng() * list.length)];
+}
+
+// Share of walkers with a bag: students carry a rucksack, the industrial parts hardly any.
+export function wijkBagChance(profileKey) {
+  switch (profileKey) {
+    case 'student': return 0.55;
+    case 'centrum': return 0.4;
+    case 'chic': return 0.3;
+    case 'industrie': return 0.1;
+    default: return 0.3;
+  }
+}
+
+// --- delivery on foot (batch 3) -----------------------------------------------------------
+// In the pedestrian centre a courier walks with a big square bag on the back.
+
+export function footCourierChance(profileKey, d, hour) {
+  const dens = lifeDensity(profileKey, d);
+  if (dens < 0.5 || !(isDinnerTime(hour) || isLunchTime(hour))) return 0;
+  return (profileKey === 'centrum' ? 0.05 : profileKey === 'student' ? 0.04 : 0.015) * dens;
+}
+export const COURIER_MAX = 2;
+export const COURIER_LINES = [
+  'Bestelling onderweg, nog warm!',
+  'Wie woont er op nummer 14? Er hangt geen bordje.',
+  'Vijf sterren graag, ik heb ook gelopen.',
+  'Lopend is sneller dan de brug open.',
+];

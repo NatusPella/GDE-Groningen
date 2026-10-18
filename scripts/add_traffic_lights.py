@@ -15,19 +15,14 @@ the box it covers; it is fetched again when the map outgrows it or with
 import json
 import math
 import os
-import subprocess
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from osmfetch import overpass  # noqa: E402
 from world.rdnew import meta_frame, meta_bbox  # noqa: E402
 
 MAP_PATH = "game/citymap.json"
 CACHE_PATH = "data/traffic_signals_raw.json"
-OVERPASS_URLS = [
-    "https://overpass.private.coffee/api/interpreter",
-    "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
-    "https://overpass-api.de/api/interpreter",
-]
 CAR_CATS = {"major", "normal", "minor"}
 SNAP_CAR = 2.5
 SNAP_CYCLE = 1.5
@@ -42,16 +37,7 @@ def fetch(bbox):
         f'node["crossing"="traffic_signals"]{area};'
         ");out;"
     )
-    for url in OVERPASS_URLS:
-        result = subprocess.run(
-            ["curl", "-s", "-m", "120", "-A", "Mozilla/5.0", "--data-urlencode", f"data={query}", url],
-            capture_output=True, text=True,
-        )
-        try:
-            return json.loads(result.stdout)
-        except json.JSONDecodeError:
-            print(f"overpass {url} failed, trying next", file=sys.stderr)
-    raise SystemExit("all overpass endpoints failed")
+    return overpass(query)
 
 
 def nearest_on(roads, x, y):

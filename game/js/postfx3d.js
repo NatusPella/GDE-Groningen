@@ -6,6 +6,7 @@ import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { getSettings } from './settings.js';
 import { drunkVisual } from './drunk.js';
 import { noteGfxEvent } from './blackframe.js';
+import { PIXEL_DEBUG } from './devflags.js';
 
 // Post chain per quality preset: 'laag' renders straight to the screen
 // (through an MSAA target + output pass when the canvas has no native AA),
@@ -99,7 +100,15 @@ const SanitizeShader = {
   fragmentShader: `uniform sampler2D tDiffuse; varying vec2 vUv;
 void main() {
   vec4 c = texture2D(tDiffuse, vUv);
-  if (any(isnan(c)) || any(isinf(c))) c = vec4(0.0, 0.0, 0.0, 1.0);
+  if (any(isnan(c)) || any(isinf(c))) {
+    c = vec4(0.0, 0.0, 0.0, 1.0);
+#ifdef PIXEL_DEBUG
+    c = vec4(1.0, 0.0, 1.0, 1.0);
+#endif
+  }
+#ifdef PIXEL_DEBUG
+  if (any(lessThan(c.rgb, vec3(0.0)))) c = vec4(0.0, 1.0, 1.0, 1.0);
+#endif
   gl_FragColor = vec4(clamp(c.rgb, 0.0, 64.0), c.a);
 }`,
 };
@@ -111,7 +120,14 @@ const OutputShader = {
   fragmentShader: `uniform sampler2D tDiffuse; uniform float uBright, uFxSat, uFxCon, uFlash; varying vec2 vUv;
 #include <tonemapping_pars_fragment>
 void main() {
-  vec3 c = ACESFilmicToneMapping(texture2D(tDiffuse, vUv).rgb);
+  vec4 s = texture2D(tDiffuse, vUv);
+  // same guard as SanitizeShader: a NaN/Inf/negative channel in the HDR
+  // buffer would tone-map into one odd-coloured pixel
+  if (any(isnan(s)) || any(isinf(s))) s = vec4(0.0, 0.0, 0.0, 1.0);
+#ifdef PIXEL_DEBUG
+  if (any(lessThan(s.rgb, vec3(0.0)))) s = vec4(0.0, 1.0, 1.0, 1.0);
+#endif
+  vec3 c = ACESFilmicToneMapping(clamp(s.rgb, 0.0, 64.0));
   c = pow(max(sRGBTransferOETF(vec4(c, 1.0)).rgb, vec3(0.0)), vec3(1.0 / uBright));
   c = mix(vec3(dot(c, vec3(0.2126, 0.7152, 0.0722))), c, uFxSat);
   c = (c - 0.5) * uFxCon + 0.5;
@@ -176,6 +192,7 @@ class SceneMSAAPass extends Pass {
       uniforms: THREE.UniformsUtils.clone(shader.uniforms),
       vertexShader: shader.vertexShader,
       fragmentShader: shader.fragmentShader,
+      defines: PIXEL_DEBUG ? { PIXEL_DEBUG: '' } : {},
     });
     this.material.toneMapped = false;
     this.uniforms = this.material.uniforms;

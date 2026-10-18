@@ -5,7 +5,7 @@ import { playCinematic, roofAt, showBanner } from './cinematics.js';
 import { isInWater, WATER_Y } from './util.js';
 import { spawnFxPuff, spawnFxSpark } from './fx3d.js';
 import { makeBirds, updateBirds } from './intromontage.js';
-import { playStoryVoice, stopStoryVoice, setStoryScene, playClueSting, playGlassClink } from './audio.js';
+import { playStoryVoice, stopStoryVoice, setStoryScene, playClueSting, playGlassClink, playTextMumble } from './audio.js';
 import { buildVehicleMesh, updateVehicleWheelSpin } from './models3d_vehicles.js';
 import { JELLE_LOOK, DURK_LOOK, DOUWE_LOOK, RIKUS_LOOK, MEM_LOOK, ROTOR_LOOK, ROELF_LOOK, HILJE_LOOK } from './storycast.js';
 import { showLiveFrame } from './storycontact.js';
@@ -14,6 +14,7 @@ import { showNameCard } from './namecard.js';
 import { nieuwVerhaal } from './storyflag.js';
 import { STEPS, MISSION_IDS } from './storyarc.js';
 import { storyLines, storyDataReady, readingTime, storyDirRecording } from './storytext.js';
+import { openBank } from './voicebank.js';
 
 // Story cutscenes around the mission chain: who asks and why (start), the
 // payoff (success) and a short sting (fail). Tammo and Tessa's relationship
@@ -21,14 +22,14 @@ import { storyLines, storyDataReady, readingTime, storyDirRecording } from './st
 
 let sceneMod = null;
 import('./scene3d.js').then((m) => { sceneMod = m; }).catch(() => {});
+import { bridgeWithin } from './vaultkit.js';
 let fjMod = null;
 import('./fierljep.js').then((m) => { fjMod = m; }).catch(() => {});
 
 // Recorded dialogue, keyed "<speaker>|<text>" so an edited line simply goes
 // silent instead of playing the wrong recording.
-const VOICE_DIR = new URL('../audio/voicelines/story/', import.meta.url).href;
-let voices = {};
-fetch(VOICE_DIR + 'manifest.json').then((r) => (r.ok ? r.json() : {})).then((m) => { voices = m || {}; }).catch(() => {});
+const VOICE_DIR = openBank('story').dir;
+const voices = openBank('story').entries;
 const voiceFor = (speaker, text) => voices[speaker + '|' + text] || storyLineVoice(speaker, text) || (nieuwVerhaal() ? storyDirRecording(speaker, text) : null);
 
 const SKIN = HABBO_PALETTE;
@@ -1191,7 +1192,7 @@ function runScene(r, tl, { id, kicker = '', title = '', cardFor = 3, camera, pos
         r.voiced = cur;
         // Rikus is always on the radio: his voice in the broadcast band
         if (cur.voice) playStoryVoice(VOICE_DIR + cur.voice.src, { radio: cur.who === 'V' || cur.who === 'rikus' || cur.radio });
-        else stopStoryVoice();
+        else { stopStoryVoice(); if (nieuwVerhaal()) playTextMumble(cur.who, cur.text, cur.dur); }
         if (cur.clue) playClueSting();
         if (cur.card) showNameCard(cur.card);
       }
@@ -1393,6 +1394,9 @@ export function playStoryFail(w, i, { reason = '', stats = [] } = {}) {
 
 // The nearest canal crossing from (x, y): the dry bank before the water and
 // a landing spot on the far side, at most `maxSpan` metres of water.
+// Jelle only vaults where walking round is no option: no bridge this close to the crossing.
+const BRIDGE_NEAR = 45;
+
 function waterCrossing(w, x, y, maxR = 90, maxSpan = 34) {
   let best = null;
   for (let k = 0; k < 24; k++) {
@@ -1419,8 +1423,9 @@ export function playVaultScene(w, { at, lines = [], landing = 'Moai! Oant sjen, 
   if (run) return false;
   const scene = sceneMod && sceneMod.getScene();
   if (!scene) return false;
-  const spot = fjMod ? fjMod.findVaultSpot(w.map, at.x, at.y, 95, { maxWidth: 26 }) : null;
+  const spot = fjMod ? fjMod.findVaultSpot(w.map, at.x, at.y, 95, { maxWidth: 26, bridgeNear: BRIDGE_NEAR }) : null;
   let c = spot ? { a: spot.from, b: spot.to } : waterCrossing(w, at.x, at.y);
+  if (!spot && c && bridgeWithin(w.map, (c.a.x + c.b.x) / 2, (c.a.y + c.b.y) / 2, BRIDGE_NEAR)) return false; // a bridge is close: walk round (the caller skips the vault)
   if (spot) {
     const D = Math.hypot(c.b.x - c.a.x, c.b.y - c.a.y) || 1;
     c.dx = (c.b.x - c.a.x) / D; c.dy = (c.b.y - c.a.y) / D;

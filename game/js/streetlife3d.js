@@ -54,6 +54,33 @@ const CARRY = {
       B.geo(new THREE.IcosahedronGeometry(0.28, 0), composeMatrix(0.12, 0.6, 0.18), 0x4f9a46);
     },
   },
+  eend: {
+    pos: [0.4, 0.86, 0], arms: 'front',
+    build(B) {
+      B.box(0, 0, 0, 0.3, 0.2, 0.2, 0xf2ead0);
+      B.box(0.14, 0.18, 0, 0.12, 0.16, 0.12, 0xf2ead0);
+      B.box(0.23, 0.2, 0, 0.1, 0.05, 0.08, 0xe0922a);
+      B.box(-0.17, 0.08, 0, 0.08, 0.1, 0.1, 0xe3dcc0);
+    },
+  },
+  bezorgtas: {
+    pos: [-0.3, 1.0, 0], arms: null,
+    build(B) {
+      B.box(0, 0, 0, 0.34, 0.5, 0.5, 0x2fb5a8);
+      B.box(0, 0.26, 0, 0.36, 0.04, 0.52, 0x14403b);
+      B.box(0.18, 0.05, 0, 0.02, 0.2, 0.3, 0xe8e4da);
+    },
+  },
+  skateboard: {
+    pos: [0, 0.07, 0], arms: null,
+    build(B) {
+      B.box(0, 0.04, 0, 0.82, 0.03, 0.2, 0xd8b04a);
+      B.box(0.42, 0.065, 0, 0.1, 0.02, 0.18, 0xd8b04a);
+      B.box(-0.42, 0.065, 0, 0.1, 0.02, 0.18, 0xd8b04a);
+      B.box(0, 0.015, 0, 0.82, 0.012, 0.19, 0x2a2a2b);
+      for (const x of [-0.27, 0.27]) for (const s of [1, -1]) B.box(x, -0.01, s * 0.1, 0.07, 0.07, 0.04, 0xe8e4da);
+    },
+  },
   paper: {
     pos: [0.28, 0.92, 0.22], arms: null,
     build(B) {

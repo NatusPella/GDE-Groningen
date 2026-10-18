@@ -306,6 +306,8 @@ export function prepareHomeMap(map) {
     if (i >= 0) map.roads.splice(i, 1);
     regrid(map.roadGrid, r, null);
   }
+  // the garage itself, for traffic and police spawns (vehicle.js, police.js)
+  map.homeGarageAt = (x, y, pad = 0) => Math.abs(x - c.x) < 120 && Math.abs(y - c.y) < 120 && inPoly(PLINTH, x, y, pad);
   const lob = home.lobby, T = home.tower;
   const rackZone = [0, 1, 2, 3].map((k) => {
     const x = [0.5, T.w - 0.5][k === 1 || k === 2 ? 1 : 0], y = k < 2 ? T.d + 3.2 : T.d - 0.2;
@@ -549,6 +551,7 @@ function stash(w, o) {
   const v = o.v;
   if (!v || v.driver === 'player') return;
   if ((v.health ?? 100) < 100) o.health = v.health;
+  o.flat = !!v.flat;
   if (v.dentLog && v.dentLog.length) o.dents = v.dentLog.slice(0, 12);
   o.upgrades = [...(v.upgrades || o.upgrades || [])];
   const i = w.vehicles.indexOf(v);

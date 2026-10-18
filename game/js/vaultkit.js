@@ -77,3 +77,17 @@ export function worldToLocal(v, x, y) {
   const dx = x - v.x, dy = y - v.y;
   return [dx * c + dy * s, -dx * s + dy * c];
 }
+
+// Is there a bridge within r metres of (x, y)? Rings of samples round the point.
+export function bridgeWithin(map, x, y, r) {
+  if (!(r > 0)) return false;
+  if (map.isOnBridge(x, y)) return true;
+  for (let d = 4; d <= r + 1e-6; d += 4) {
+    const n = Math.max(8, Math.round(d * 0.8));
+    for (let k = 0; k < n; k++) {
+      const a = (k / n) * Math.PI * 2;
+      if (map.isOnBridge(x + Math.cos(a) * d, y + Math.sin(a) * d)) return true;
+    }
+  }
+  return false;
+}

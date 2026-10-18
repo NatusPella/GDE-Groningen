@@ -1,6 +1,7 @@
 import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
 import { clamp, lerp } from './util.js';
 import { playSikkomLine } from './audio.js';
+import { createWeatherState, stepWeather, regionWeather, regionAt } from './weatherstate.js';
 
 const STORM_FOG_COLOR = new THREE.Color(0.35, 0.38, 0.42);
 const LIGHTNING_COLOR = new THREE.Color(0.85, 0.88, 0.95);
@@ -177,6 +178,31 @@ export function initWeather(world) {
     duration: 0,
     elapsed: 0,
   };
+  // The province's weather (weatherstate.js, pure): one machine for all
+  // regions; the player's region drives world.weather. Not saved.
+  world.weatherState = createWeatherState((Math.random() * 0x7fffffff) | 0);
+}
+
+// Forced weather (trailer shots, the storm cheat) keeps the hand-set path below.
+const forcedWeather = (w) => w.timer >= 1e8 || (w.active && w.kind === 'storm');
+
+function followRegionWeather(dt, world, w) {
+  if (!world.weatherState) world.weatherState = createWeatherState((Math.random() * 0x7fffffff) | 0);
+  const p = world.player;
+  const region = p ? regionAt(p.x, p.y) : 'stad';
+  stepWeather(world.weatherState, dt, typeof world.clock === 'number' ? world.clock : 12);
+  const r = regionWeather(world.weatherState, region);
+  const was = w.kind;
+  const step = dt / RAMP_TIME;
+  w.intensity = r.rain > w.intensity ? Math.min(r.rain, w.intensity + step) : Math.max(r.rain, w.intensity - step);
+  w.kind = r.kind;
+  w.peak = r.rain;
+  w.active = w.intensity > 0.02;
+  w.overcast = r.overcast;
+  w.mist = r.mist;
+  w.windAngle = r.windAngle;
+  w.timer = 60;
+  if (r.kind === 'onweer' && was !== 'onweer' && region === 'stad') world.addMessage('Onweer boven Grunn', 3);
 }
 
 // --- wet roads for the driving model -----------------------------------------
@@ -221,6 +247,8 @@ export function updateWeather(dt, world) {
   const w = world.weather;
   const rainK = clamp(w.intensity, 0, 1);
   w.wet = (w.wet || 0) + (rainK - (w.wet || 0)) * Math.min(1, dt / (rainK > (w.wet || 0) ? 6 : 40));
+
+  if (!forcedWeather(w)) { followRegionWeather(dt, world, w); return; }
 
   if (!w.active) {
     w.intensity = Math.max(0, w.intensity - dt / RAMP_TIME);

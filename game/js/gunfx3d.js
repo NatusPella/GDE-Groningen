@@ -1,9 +1,11 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { canvasTex } from './canvastex.js';
 import { spawnFxPuff, spawnFxSpark, spawnFxChip } from './fx3d.js';
 import { getVehicleMesh } from './models3d_vehicles.js';
 import { flashMuzzleLight } from './nightlights3d.js';
 import { markShared } from './pixelart3d.js';
 import { updateThrowables3D } from './throwables.js';
+import { rand } from './rng.js';
 
 // Gunfire effects: muzzle flashes (with a light pop), tracers, impacts that
 // depend on what was hit (brick dust, glass, sparks, dirt, splashes) and
@@ -34,18 +36,10 @@ export function gunImpactFx(hit) {
   if (hits.length < 48) hits.push(hit);
 }
 
-function rand(a, b) { return a + Math.random() * (b - a); }
 
 // --- textures -------------------------------------------------------------
 
-function canvasTexture(size, draw) {
-  const c = document.createElement('canvas');
-  c.width = c.height = size;
-  draw(c.getContext('2d'), size);
-  const t = new THREE.CanvasTexture(c);
-  t.colorSpace = THREE.SRGBColorSpace;
-  return t;
-}
+const canvasTexture = (size, draw) => canvasTex(size, size, draw);
 
 // Four-pointed star with a hot core: reads as a gun flash from any side.
 function flashTexture() {

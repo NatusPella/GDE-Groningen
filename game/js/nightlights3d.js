@@ -3,6 +3,7 @@ import { pointInPolygon, WATER_Y } from './util.js';
 import { makeProp, addProp, removeProp, isPropBroken, propKey } from './breakables.js';
 import { policeFlash } from './models3d_vehicles.js';
 import { lampRule } from './streetfurniture.js';
+import { hash2 as hash } from './rng.js';
 
 // Night lighting: instanced street lamps along road edges with additive
 // light-pool decals, a small pool of real PointLights handed to the lamps
@@ -277,10 +278,6 @@ function updatePoliceLights(world, vehicleMeshes, px, py, night) {
   }
 }
 
-function hash(x, y) {
-  const h = Math.sin(x * 127.1 + y * 311.7) * 43758.5453;
-  return h - Math.floor(h);
-}
 
 function insideBuilding(map, x, y) {
   for (const b of map.buildingsNear(x, y, 1.5)) {
