@@ -59,7 +59,9 @@ export const FLAGS = Object.freeze({
   hitch: has('hitch'),
   simlagen: !has('zonderlagen'),
   zwartcheck: has('zwartcheck'),
-  reizen: has('reizen'),
+  // on by default (#219); off in the automated tests, which cannot answer the prompt, and with ?zonderreizen
+  reizen: has('reizen') || !(has('zonderreizen') || STORY_TEST || AUTOPLAY),
+  zonderreizen: has('zonderreizen'),
   testmenu: has('testmenu'),
   brugbotsing: has('brugbotsing'),
   sfxtest: has('sfxtest'),
@@ -103,7 +105,8 @@ export const FLAG_DOCS = Object.freeze({
   testmenu: 'Testmenu op F10 met alle schakelaars en snelkoppelingen; eigen opslag (gde-dev:), raakt de echte save niet',
   sfxtest: 'Geluidstest: paneel met alle effecten, een afstandsschuif en een afspeelknop per effect; F8 verbergt het (#173)',
   brugbotsing: 'Stuurt na een paar seconden een binnenvaartschip tegen de dichtstbijzijnde brug (#9)',
-  reizen: 'Reisbeats in het nieuwe verhaal: keuze Meerijden, Zelf rijden of Overslaan bij een sprong (#97)',
+  reizen: 'Reisbeats in het nieuwe verhaal: keuze Meerijden, Zelf rijden of Overslaan bij een sprong (#97); staat standaard aan, uit met zonderreizen en in de testmodi',
+  zonderreizen: 'Zet de reisbeats uit (zie reizen)',
 });
 
 

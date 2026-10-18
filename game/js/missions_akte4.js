@@ -196,6 +196,9 @@ export function applyAkte4(list) {
   fj.intro = ['De Escapade staat op een wagon van een goederentrein, op weg naar Ljouwert. Mem appte waar hij stopt: de overweg bij Zuidhorn.', 'Haal hem terug, alleen. En daarna houdt Tammo Oma\'s vrienden bij elkaar bij Tinus\' schuur.'];
   fj.outro = 'De Escapade is terug. De bal is weg. En de vrienden zijn weg.';
   fj.costRow = ['Gevolg', 'De bal is van Jelle; de vrienden gingen weg'];
+  // the wagon choice has a consequence: the car saves a scratch, the ball costs one (Berend counts)
+  fj.tagAdjust = { bal: -150 };
+  fj.tagRows = { auto: ['Gekozen', 'De auto: geen kras'], bal: ['Gekozen', 'De bal: een kras op de Escapade, Berend telt'] };
   fj.fjordTrain = false;
   delete fj.vehicle;
   fj.start = spot('zuidhornOverweg');
@@ -206,12 +209,12 @@ export function applyAkte4(list) {
       kind: 'choice', kicker: 'Op de wagon', label: 'Kies: de auto of de bal', say: 'De beleggers staan op de wagon. Jelle belt: de auto redden of de bal houden. Niet allebei.',
       rounds: [
         { who: 'Jelle', text: 'U kunt de auto redden of de bal houden. Beide tegelijk is juridisch niet mogelijk.', options: [
-          { label: 'De auto: de Escapade redden', reply: 'Tessa laat de rugzak vallen. De beleggers springen met de bal naar een limo.' },
-          { label: 'De bal: de rugzak vasthouden', ok: false, reply: 'Tessa houdt de bal tot een belegger hem uit haar handen trekt. Dan springt ze terug naar de Escapade: de wagon rolt, maar ze haalt hem in.' },
+          { label: 'De auto: de Escapade redden', tag: 'auto', reply: 'Tessa laat de rugzak vallen. De beleggers springen met de bal naar een limo.' },
+          { label: 'De bal: de rugzak vasthouden', ok: false, tag: 'bal', reply: 'Tessa houdt de bal tot een belegger hem uit haar handen trekt. Dan springt ze terug naar de Escapade: de wagon rolt, maar ze haalt hem in.' },
         ] },
       ],
     },
-    { kind: 'scene', target: ll('zuidhornOverweg', { label: 'De overweg' }), label: 'De klomp', kicker: 'De overweg bij Zuidhorn', script: { ids: ['M21.3'] }, cast: [{ key: 'berend', pose: 'arms', at: [3.2, 0.8] }] },
+    { kind: 'scene', target: ll('zuidhornOverweg', { label: 'De overweg' }), label: 'De klomp', kicker: 'De overweg bij Zuidhorn', script: { ids: ['M21.3'] }, scriptIf: [{ tag: 'bal', ids: ['M21.6'] }], cast: [{ key: 'berend', pose: 'arms', at: [3.2, 0.8] }] },
     { kind: 'scene', target: ll('tinusSchuur', { label: 'Tinus\' schuur' }), label: 'Tammo', kicker: 'Woensdag 26 augustus', big: 'Tammo, bij Tinus\' schuur', solo: true, lines: [] },
     { kind: 'goto', target: ll('tinusSchuur', { label: 'Tinus\' schuur' }), mode: 'any', radius: 25, label: 'Naar Tinus\' schuur bij Zuidhorn', say: 'Oma heeft alle vrienden met hun ingrediënten naar de schuur geroepen. Jelles advocaten bellen ze terug.' },
     {
