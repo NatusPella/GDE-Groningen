@@ -1,6 +1,6 @@
-# Issue-stand
+| 237 |undefined| deels (wacht-beeld) | beeld || 228 |undefined| deels (wacht-beeld) | beeld || 226 |undefined| deels (wacht-beeld) | beeld || 230 |undefined| deels (wacht-beeld) | beeld || 224 |undefined| deels (wacht-beeld) | beeld || 231 |undefined| deels (wacht-beeld) | beeld || 232 |undefined| deels (wacht-beeld) | beeld || 233 |undefined| deels (wacht-beeld) | beeld || 236 |undefined| deels (wacht-beeld) | beeld |# Issue-stand
 
-Stand van het bord op 2026-10-18 (#220, ronde 2): per open issue vergeleken met wat in main staat. Status: **gesloten** (aantoonbaar klaar, bewijs in de sluitcomment), **deels** (afvinklijst in het issue) of **open** (nog nauwelijks gebouwd). Blokkade: wat het volgende punt tegenhoudt: code, beeld (in beeld bevestigen of Electron), eigenaar (besluit of handmatig) of extern. `eigenaar`-issues zijn niet gesloten. Werk dit bestand bij als een issue verandert; de afvinklijsten staan in de issues zelf.
+Stand van het bord op 2026-10-18 (#220, ronde 2): per open issue vergeleken met wat in main staat. Status: **gesloten** (aantoonbaar klaar, bewijs in de sluitcomment), **deels** (afvinklijst in het issue) of **open** (nog nauwelijks gebouwd). Blokkade: wat het volgende punt tegenhoudt: code, beeld (in beeld bevestigen of Electron), eigenaar (besluit of handmatig) of extern. `eigenaar`-issues zijn niet gesloten. Label `wacht-beeld`: gebouwd en getest, wacht op bevestiging in beeld. Werk dit bestand bij als een issue verandert; de afvinklijsten staan in de issues zelf.
 
 Telling: 122 deels, 13 open, 3 gesloten.
 
