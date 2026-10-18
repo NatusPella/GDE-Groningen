@@ -4,7 +4,14 @@
 // gedeeld geheim voor deze sessie: de host weigert verbindingen zonder.
 // Pure logica; geen DOM, geen sockets.
 
-import { crc16 } from './signal.js';
+export function crc16(str) {
+  let c = 0xffff;
+  for (let i = 0; i < str.length; i++) {
+    c ^= str.charCodeAt(i) << 8;
+    for (let k = 0; k < 8; k++) c = c & 0x8000 ? ((c << 1) ^ 0x1021) & 0xffff : (c << 1) & 0xffff;
+  }
+  return c.toString(16).padStart(4, '0');
+}
 
 export const CODE_PREFIX = 'GDE2';
 const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // geen 0/O, 1/I
