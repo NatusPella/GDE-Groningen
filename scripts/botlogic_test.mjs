@@ -97,7 +97,7 @@ const near = (a, b, e = 1e-6) => Math.abs(a - b) < e;
   h.update(0, { x: 0, y: 0, goalDist: 50, key: 'k' });
   for (let t = 1; t <= 30; t++) h.hold(t);
   ok(!h.update(31, { x: 0, y: 0, goalDist: 50, key: 'k' }).stuck, 'hold pauzeert de klok');
-  ok(L.rescueFor(0) === 'nudge' && L.rescueFor(1) === 'teleport' && L.rescueFor(2) === 'objective' && L.rescueFor(9) === 'win', 'redding loopt op');
+  ok(L.rescueFor(0) === 'nudge' && L.rescueFor(1) === 'teleport' && L.rescueFor(2) === 'objective' && L.rescueFor(3) === 'win' && L.rescueFor(4) === 'skip' && L.rescueFor(9) === 'skip', 'redding loopt op, laatste sport is skip');
   ok(!L.isCheat('nudge') && L.isCheat('teleport'), 'een duwtje is geen cheat');
 }
 
@@ -116,6 +116,33 @@ const near = (a, b, e = 1e-6) => Math.abs(a - b) < e;
   const inCar = { ...far, player: { ...far.player, vehicle: { kind: 'auto', speed: 0, angle: 0 } } };
   ok(L.decide(inCar).mode === 'drive', 'in de auto: rijden');
   ok(L.decide({ ...inCar, mission: { onFoot: true } }).key === 'e', 'te voet-missie: uitstappen');
+}
+
+// --- stunts, pinnen, loket, minigame-start ---------------------------------------------------
+{
+  const b = () => ({ v: 1, t: 1, player: { x: 0, y: 0, angle: 0, camYaw: 0, vehicle: null }, story: {}, mission: { active: true, stage: 'goto' }, hud: { messages: [], prompt: '' }, blocking: {}, nearby: { vehicles: [] }, target: { x: 50, y: 0, distance: 50, source: 'missie' } });
+  const car = { kind: 'auto', speed: 0, angle: 0 };
+  ok(L.isStunt({ ...b(), mission: { label: 'Bakkie-stunt' } }) && L.isStunt({ ...b(), mission: { stage: 'stunt' } }) && !L.isStunt(b()), 'stunt herkend aan label of stage');
+  const st = L.decide({ ...b(), player: { ...b().player, vehicle: car }, mission: { active: true, label: 'Nul krassen: stunt' } });
+  ok(st.mode === 'drive' && st.stunt === true && st.top === 30, 'stunt: snel rijden');
+  ok(!L.decide({ ...b(), player: { ...b().player, vehicle: car } }).stunt, 'geen stunt: normaal rijden');
+  const atm = { ...b(), target: { x: 2, y: 0, distance: 2 }, hud: { messages: [], prompt: 'E: pinnen' } };
+  const pin = L.decide(atm);
+  ok(pin.type === 'press' && pin.key === 'e' && pin.interact, 'prompt bij het doel: E drukken');
+  ok(L.decide(atm, { pressTries: 4 }).type === 'goto', 'na vier pogingen weer lopen');
+  ok(L.decide({ ...atm, target: { x: 90, y: 0, distance: 90 } }).type === 'goto', 'prompt ver van het doel telt niet');
+  const board = { ...b(), mission: { active: true, stage: 'board' }, target: { x: 300, y: 0, distance: 300 }, nearby: { vehicles: [{ x: 20, y: 0, distance: 20, free: true, drivable: true, kind: 'auto' }] } };
+  ok(L.decide(board).type === 'enter', 'board-stage: instappen, ook ver van het doel');
+  ok(L.decide(board, { boardTries: 4 }).type === 'goto', 'board-stage: opgeven na vier keer');
+  ok(L.decide({ ...b(), mission: { active: true, stage: 'hold' }, target: { x: 1, y: 0, distance: 1 } }).type === 'wait', 'hold-stage: stilstaan in de ring');
+  for (const id of ['drift', 'hengelen', 'wandeling', 'pitchputt', 'hoogvlieger', 'geheimen', 'snackketen', 'onbekend']) {
+    const a = L.startAttempts(id);
+    ok(a.length >= 4 && a[0] === 'e' && a.includes('interact') && a.includes('jitter'), 'start-opening ' + id);
+  }
+  const a1 = L.startAttempts('drift'); a1.pop();
+  ok(L.startAttempts('drift').length === a1.length + 1, 'startAttempts geeft een kopie');
+  const o0 = L.jitterOffset(0), o2 = L.jitterOffset(2);
+  ok(o0.dx === 3 && o0.dy === 0 && near(o2.dx, 0, 0.01) && o2.dy === 3 && L.jitterOffset(8).dx === 3, 'jitter loopt rond');
 }
 
 // --- statusschema ---------------------------------------------------------------------------

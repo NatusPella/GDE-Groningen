@@ -109,6 +109,7 @@ function realPairs(course, parts) {
 // Zes holes in een rooster over de omhullende van de baan (lengte-as = rot), een blok van
 // hooguit 260 x 150 m om het midden, zo dat alle tees en greens binnen de omtrek vallen.
 function gridHoles(course) {
+  if (![course.x, course.y, course.rot, course.l, course.w].every(Number.isFinite)) return [];
   const c = Math.cos(course.rot), s = Math.sin(course.rot);
   const at = (cx, cy, u, v) => ({ x: cx + c * u - s * v, y: cy + s * u + c * v });
   const layouts = [[3, 2], [2, 3], [6, 1], [1, 6], [2, 2], [3, 1], [1, 3]];
@@ -143,7 +144,8 @@ export function golfVenues(data = echtePlekken(), { maxHa = 400 } = {}) {
     let holes = realPairs(course, parts), real = true;
     if (holes.length < 3) { holes = gridHoles(course); real = false; }
     if (holes.length < 3) continue;
-    holes = holes.slice(0, HOLES_WANTED);
+    holes = holes.filter((h) => [h.tee.x, h.tee.y, h.cup.x, h.cup.y].every(Number.isFinite)).slice(0, HOLES_WANTED);
+    if (holes.length < 3) continue;
     const seed = Math.round(Math.abs(course.x) * 3 + Math.abs(course.y));
     holes = holes.map((h, i) => ({ ...h, ...holeFlavour(i, seed) }));
     const [cx, cy] = centroid(holes.flatMap((h) => [[h.tee.x, h.tee.y], [h.cup.x, h.cup.y]]));

@@ -1,5 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { reportImpact, disableVehicle, vehicleContacts, CRASH_DAMAGE_SCALE, speedCap } from './vehicle.js';
+import { disableVehicle } from './vehiclewreck.js';
+import { reportImpact, vehicleContacts, CRASH_DAMAGE_SCALE, speedCap } from './vehicle.js';
 import { clamp, closestPointOnSegment, isInWater } from './util.js';
 import { setWallBrokenTest } from './elevation.js';
 import { rand as rnd } from './rng.js';

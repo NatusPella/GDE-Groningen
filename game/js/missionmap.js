@@ -106,6 +106,13 @@ function nextTarget(kind, s, items) {
   return first(['goal', 'next']) || items.find((i) => i.role === 'checkpoint') || null;
 }
 
+// The game has no flight ban for the pigeon; the one thing to stay away from
+// in the air is a helicopter pad (rotor wash, dust): its area on the pigeon
+// layer, drawn as a hazard. pads: heliflight getHelipads(); r defaults to 8 m.
+export function heliZones(pads, { factor = 6, min = 60 } = {}) {
+  return (pads || []).filter(ok).map((p) => ({ x: p.x, y: p.y, r: Math.max(min, factor * (p.r > 0 ? p.r : 8)), label: 'Helikopterplek' }));
+}
+
 // Where to run to: wantedlevels.stepUnseen counts the cool-down twice as fast
 // outside the search circle, so the escape area lies just outside it, on the
 // player's side of the centre. Nothing is shown with no circle; a player at
@@ -153,7 +160,7 @@ export function buildMissionLayer(s) {
     const p = s.pigeon;
     (p.targets || []).filter(ok).forEach((t, i) => items.push(item(i === 0 ? 'next' : 'goal', t, { id: 'pt' + i, label: t.label || 'Voerplek', sub: i === 0 ? 'Volgend doel' : 'Voerplek', state: i === 0 ? 'next' : 'later', focus: i === 0 })));
     (p.threats || []).filter(ok).forEach((t, i) => items.push(item('threat', t, { id: 'th' + i, label: t.label || 'Bedreiging', sub: t.kind === 'kat' ? 'Kat' : t.kind === 'auto' ? 'Auto' : t.kind === 'meeuw' ? 'Meeuw' : 'Gevaar' })));
-    (p.noFly || []).filter(ok).forEach((z, i) => areas.push({ id: 'nofly' + i, role: 'hazard', x: z.x, y: z.y, r: z.r || 60, color: 'danger', label: 'Vliegverbod' }));
+    (p.noFly || []).filter(ok).forEach((z, i) => areas.push({ id: 'nofly' + i, role: 'hazard', x: z.x, y: z.y, r: z.r || 60, color: 'danger', label: z.label || 'Vliegverbod' }));
     const t0 = items.find((i) => i.state === 'next');
     if (t0) lines.push(line('crow', 'route', [s.player, t0], LINE_STYLES.crow));
   } else if (kind === 'kart') {

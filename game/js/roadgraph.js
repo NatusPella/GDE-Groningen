@@ -73,6 +73,9 @@ const CELL = 200;
 // a piece cut off from the network further than this stays out of it
 const STITCH_M = 1000;
 const STITCH_COST = 4;
+// a big piece (a village's worth of roads, #223) may hang on the network across a wider gap in the data
+const STITCH_BIG_NODES = 100;
+const STITCH_BIG_M = 6000;
 
 function build(roads) {
   const t0 = performance.now();
@@ -192,12 +195,12 @@ function stitchPass(xs, ys, flat) {
     c.push(i);
   }
   const best = new Map();
-  const R = Math.ceil(STITCH_M / CELL);
   for (let i = 0; i < N; i++) {
     const r = find(i);
     if (r === main) continue;
     let b = best.get(r);
-    if (!b) best.set(r, (b = { d: STITCH_M, a: -1, n: -1 }));
+    if (!b) best.set(r, (b = { d: size[r] >= STITCH_BIG_NODES ? STITCH_BIG_M : STITCH_M, a: -1, n: -1 }));
+    const R = Math.ceil(b.d / CELL);
     const cx = Math.floor(xs[i] / CELL), cy = Math.floor(ys[i] / CELL);
     for (let u = -R; u <= R; u++) {
       for (let v = -R; v <= R; v++) {
