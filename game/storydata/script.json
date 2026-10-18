@@ -298,11 +298,10 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "…Dat is het liefste wat iemand ooit tegen mijn papieren heeft gezegd.",
-     "tag": "BEHOUDEN",
+     "text": "…Dat is het liefste wat iemand ooit over mijn plannen heeft gezegd.",
+     "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines",
+     "textOnly": true,
      "voice": "Anita"
     },
     {
@@ -325,7 +324,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Op 28 augustus, op Gronings Ontzet. Wij winnen, wij krijgen die standplaats. Dan heeft de Fjord Frituur een thuis.",
+     "text": "Op 28 augustus, op Gronings Ontzet. Dan spelen ze na hoe Stad in 1672 de bisschop buiten hield. Wij winnen, wij krijgen die standplaats. Dan heeft de Fjord Frituur een thuis.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -351,11 +350,10 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "En waar moet hij staan? Jij kunt hier niet eens rechtop staan.",
-     "tag": "BEHOUDEN",
+     "text": "En waar moet hij dan staan? Wij kunnen hier zelf niet eens rechtop staan.",
+     "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true
     },
     {
      "speaker": "Tessa",
@@ -451,7 +449,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Eerst geld. Honderdvijftig euro voor de inschrijving van de Snackprijs, en vijftig voor een klusje. Dat is stap één van een plan met acht stappen.",
+     "text": "Eerst geld. Honderdvijftig euro voor de inschrijving van de Snackprijs, en vijftig voor een klusje. Dat is stap één van mijn plan.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -460,7 +458,7 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Acht stappen.",
+     "text": "Je hebt een plan.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -546,7 +544,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Wij lenen hem eerst even voor een klus op de Grote Markt. Daarna rijd ik hem naar uw zus, om het centrum heen.",
+     "text": "Wij lenen hem eerst even voor een klus. Daarna rijd ik hem naar uw zus, om het centrum heen.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -559,6 +557,32 @@
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Let op, Tammo. Berend deelt complimenten uit op een ladder. Trede één is \"Goidag\", daarna komen \"Goud\", \"Valt mie nait of\", \"Braid noar de zin\" en \"Kon minder\".",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "En boven \"Kon minder\"?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Dat heeft nog niemand gehoord.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
     },
     {
      "speaker": "Tammo",
@@ -823,7 +847,7 @@
     {
      "speaker": "Jelmer",
      "key": "jelmer",
-     "text": "Chat vindt dat niet leuk! Een mens! Min honderd!",
+     "text": "Chat vindt dat niet leuk! Een terrasstoel met een hoed erop! Min honderd!",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -840,7 +864,7 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Een hoed. Met een mens eronder.",
+     "text": "Een hoed. Die ging zelf op pad.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -997,11 +1021,10 @@
     {
      "speaker": "Berend Bos",
      "key": "berend",
-     "text": "Wat moet een Fries met ons? Ze kopen altijd wat. Hier, vijftig euro. …Moi.",
-     "tag": "BEHOUDEN",
+     "text": "Ik zei nee, want nul krassen. Hier, jullie vijftig euro, voor de rit. …Moi.",
+     "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines"
+     "textOnly": true
     },
     {
      "speaker": "Tammo",
@@ -1480,7 +1503,7 @@
     {
      "speaker": "Sjabbe",
      "key": "sjabbe",
-     "text": "Dan moet je groter denken. Die reuzen kwamen hier vorige week met een klomp vol geld. Ze kochten alles wat met frituren te maken heeft. En hun baas vroeg waar het museum alarmen heeft.",
+     "text": "Dan moet je groter denken. Die reuzen kwamen hier vorige week met een klomp vol geld. Ze kochten alles wat met frituren te maken heeft. En hun baas, een Fries in een blauw colbert, Jelle Terpstra, vroeg waar het museum alarmen heeft.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -1538,13 +1561,15 @@
   },
   {
    "id": "M02.5",
-   "title": "Autogesprek: de weigering",
+   "title": "Slot: de weigering",
    "act": 1,
-   "region": "Stad",
+   "region": "Stad, Pand & Poen",
    "vehicle": "Escapade",
    "step": "M02",
-   "kind": "banter",
-   "regie": [],
+   "kind": "key",
+   "regie": [
+    "ze zitten in de Escapade voor de winkel, de motor tikt af."
+   ],
    "lines": [
     {
      "speaker": "Tessa",
@@ -1554,6 +1579,23 @@
      "channel": "stem",
      "textOnly": false,
      "rec": "banter",
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Waarom bellen we niet de politie?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "De bewaker krijgt koekjes en de politie ziet twee Stadjers zonder papieren. Wie waarschuw je dan?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
      "voice": "Anita"
     },
     {
@@ -1583,6 +1625,15 @@
      "channel": "stem",
      "textOnly": false,
      "rec": "banter"
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Wij nemen hem alleen om hem te bewaken. Daarna brengen we hem terug.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
     },
     {
      "speaker": "Tessa",
@@ -1746,7 +1797,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Jelle Terpstra. U staat in de rij.",
+     "text": "Jelle Terpstra. JelleWâld uit de chat, het colbert van Berend, de baas van de reuzen. U staat in de rij.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -1779,7 +1830,7 @@
     {
      "speaker": "Loketbediende",
      "key": "loketbediende",
-     "text": "Artikel 4 van het reglement: de bewaarder van de Gouden Eierbal zit de jury voor. Artikel 9: bij verhindering van de bewaarder zit het oudste jurylid voor.",
+     "text": "Artikel 4 van het reglement: de bewaarder van de Gouden Eierbal zit de jury voor. Artikel 9: bij verhindering van de bewaarder zit het oudste jurylid voor. Dat is meneer Bos, jurylid sinds 1982.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -1845,7 +1896,7 @@
     {
      "speaker": "Mevrouw Tuinstra",
      "key": "bewaarder",
-     "text": "Meneer Terpstra heeft de jury en mij uitgenodigd voor een treinreis met volpension, vanaf maandag, tot na het Ontzet. Een bijzonder aardige man.",
+     "text": "Meneer Terpstra heeft de vijf juryleden en mij uitgenodigd voor een treinreis met volpension, vanaf maandag, tot na het Ontzet. Een bijzonder aardige man.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -2268,11 +2319,10 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Pompeblêden. Een Fries. Hij gaat het echt doen.",
-     "tag": "BEHOUDEN",
+     "text": "Pompeblêden. Een Fries. Hij telt de alarmen alsof hij iets controleert. Of voorbereidt.",
+     "tag": "NIEUW",
      "channel": "stem",
-     "textOnly": false,
-     "rec": "lines",
+     "textOnly": true,
      "voice": "Anita"
     },
     {
@@ -2633,7 +2683,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Als een ander hem pakt, is hij weg uit Stad. Dan pakken wij hem eerst, als bewaking, en brengen we hem terug na het Ontzet.",
+     "text": "Als hij hem nog niet heeft, is hij straks weg uit Stad. Bellen helpt niet, de bewaker krijgt koekjes. Dan pakken wij hem eerst, als bewaking, en brengen we hem terug na het Ontzet.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
