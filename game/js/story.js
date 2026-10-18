@@ -42,6 +42,7 @@ import { THIRD_PARTY_CARDS } from './credits.js';
 import { SERIES, GAME_TITLE } from './logo.js';
 import { registerNarrative, mayStart, narrativeBusy, narrativeState } from './narrative.js';
 import { nieuwVerhaal } from './storyflag.js';
+import { REIS_GOALS, initStoryReis } from './storyreis.js';
 import './storychoice.js';
 import { storyLines, talkLines, radioContacts, appsAt, storyDataReady, readingTime } from './storytext.js';
 import { updateStoryTalk, stopTalk } from './storytalk.js';
@@ -911,7 +912,8 @@ function onGated() {
 export function initStory(w) {
   world = w;
   setMissionHooks({ waived: (key) => state.waived.has(key), skipped: (i) => STEPS.some((s) => s.kind === 'mission' && missionIdx(s) === i && state.skipped.has(s.id)), passed: onPassed, failed: onFailed, gated: onGated, canStart: swapDone });
-  Object.assign(GOALS, FUN_GOALS, EIKEA_GOALS);
+  Object.assign(GOALS, FUN_GOALS, EIKEA_GOALS, REIS_GOALS);
+  initStoryReis(w);
   setMeetHook(meet);
   initStoryFun(w);
   initStoryEikea(w, () => (rt.cur && !rt.cur.end && rt.cur.goal && rt.cur.goal.type === 'eikea' ? rt.base : null));
