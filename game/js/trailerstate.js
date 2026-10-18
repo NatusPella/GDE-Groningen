@@ -5,7 +5,7 @@ import { FLAGS } from './devflags.js';
 import { SESSION_KEYS } from './storagekeys.js';
 
 const BENCH_KEY = SESSION_KEYS.benchmarkPending;
-const CUTS = ['vol', 'kort', 'verhaal', 'gameplay'];
+const CUTS = ['vol', 'kort', 'verhaal', 'gameplay', 'teaser', 'hoofd'];
 
 let trailerRunning = false;
 let introPlaying = false;
@@ -20,6 +20,8 @@ export function pendingTrailer() {
     const n = Number(FLAGS.shot);
     return { mode: 'opname', cut: CUTS.includes(FLAGS.cut) ? FLAGS.cut : 'vol', shot: Number.isFinite(n) && n > 0 ? n : null, frames: FLAGS.frames };
   }
+  // ?preview[&cut=teaser|hoofd]: the script trailer in real time, with sound; hold Space to skip
+  if (FLAGS.preview) return { mode: 'preview', cut: CUTS.includes(FLAGS.cut) ? FLAGS.cut : 'teaser' };
   // ?attract (desktop --attract) plays the attract intro on request, also in a test run
   if (FLAGS.attract) return { mode: 'attract', cut: 'kort' };
   // ?benchmark=N (desktop --benchmark=N): N benchmark runs in a row, logged

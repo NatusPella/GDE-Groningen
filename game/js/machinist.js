@@ -18,8 +18,6 @@ let board = null;
 const HELP_IDLE = `${key('G')} dienst rijden: halte voor halte, op tijd en op de streep`;
 const HELP_RUN = `${key('W')} gas &middot; ${key('S')} rem &middot; ${key('Spatie')} noodrem &middot; ${key('H')} toeter &middot; ${key('Backspace')} stoppen`;
 
-export const serviceActive = () => !!svc && !svc.finished;
-export const getService = () => svc;
 
 export function endService(world) {
   svc = null;

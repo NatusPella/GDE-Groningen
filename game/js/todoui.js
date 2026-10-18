@@ -47,9 +47,6 @@ function refresh(world) {
   byKey = new Map(items.map((it) => [it.key, it]));
 }
 
-export function todoItem(key) {
-  return byKey.get(key) || null;
-}
 
 export const isFolded = (id) => ui.folds.has(id);
 

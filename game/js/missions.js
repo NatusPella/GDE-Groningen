@@ -46,6 +46,9 @@ import { buildNieuwDefs, applyNieuw } from './missions_nieuw.js';
 import { wgsToWorld } from './rdnew.js';
 import { enterChoice, updateChoice, closeChoice } from './stagechoice.js';
 import { enterRit, updateRit } from './stagerit.js';
+import { withValidity } from './validity.js';
+// a radio fragment of a stage that never got played within ten minutes is moot (refs #171; not tied to the mission: the clue in it must not be lost)
+const MISSION_RADIO_VALID = { ttl: 600 };
 import { registerBusyProbe } from './busy.js';
 import { playerBusy } from './busy.js';
 
@@ -2424,7 +2427,7 @@ function updateChaseRoute(world, st, S, t, dt = 0) {
   S.wpWait = dw < 50 && Math.abs(t.speed) < 1 ? (S.wpWait || 0) + dt : 0;
   if (dw > (wp.r || 22) && S.wpWait < 2) return;
   S.wpWait = 0;
-  if (wp.radio && contactMod) contactMod.queueStoryContact({ via: 'radio', from: 'rikus', mood: 'night', ...wp.radio });
+  if (wp.radio && contactMod) contactMod.queueStoryContact(withValidity({ via: 'radio', from: 'rikus', mood: 'night', ...wp.radio }, MISSION_RADIO_VALID));
   if (wp.say) world.addMessage(wp.say, 3);
   S.leg = leg + 1;
   const next = st.route[S.leg];
@@ -2632,11 +2635,11 @@ function enterStage(world, def, k) {
   if (st.bonus) chain.timeLeft += st.bonus;
   const say = chain.hijacked && st.sayHijacked ? st.sayHijacked : st.say;
   if (say) world.addMessage(say, 4.5);
-  if (st.radio && contactMod) contactMod.queueStoryContact({ via: 'radio', from: 'rikus', mood: 'night', ...st.radio });
+  if (st.radio && contactMod) contactMod.queueStoryContact(withValidity({ via: 'radio', from: 'rikus', mood: 'night', ...st.radio }, MISSION_RADIO_VALID));
   // the new arc: a radio fragment and talk from the script, and the clock that runs faster (Het Loket)
   if (st.radioScript && contactMod && storyDataReady()) {
     const lines = storyLines(st.radioScript.ids, { from: st.radioScript.from, to: st.radioScript.to }).map(([who, text, o]) => [who === 'V' ? 'rikus' : who, text, { tag: o.tag, ...(who === 'jelle' ? { card: 'jelle' } : {}) }]);
-    if (lines.length) contactMod.queueStoryContact({ via: 'radio', from: 'rikus', mood: 'night', caller: st.radioScript.caller || '', lines });
+    if (lines.length) contactMod.queueStoryContact(withValidity({ via: 'radio', from: 'rikus', mood: 'night', caller: st.radioScript.caller || '', lines }, MISSION_RADIO_VALID));
   }
   if (st.talk && storyDataReady()) playTalk(talkLines(st.talk.ids, st.talk), { id: `${def.id || def.label}:${k}`, delay: st.talk.delay || 1 });
   if (st.clock) { chain.clockRate = st.clock; world.addMessage('De klok loopt harder: Jelle heeft de rij gekocht.', 4, { kind: 'gevaar', key: 'loket-klok' }); }
@@ -3273,7 +3276,6 @@ export const missionDebug = {
 // cooldown (i.e. showing where to go to START the next mission).
 
 export const MARKER_COLOR_ACTIVE = 0x3fd0ff;
-export const MARKER_COLOR_IDLE = 0xffd23f;
 
 // The start (idle) and the objective (active) of a mission: the shared world
 // marker (worldmarker3d.js), a diamond for the start, an arrow for the goal.

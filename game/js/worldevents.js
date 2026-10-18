@@ -295,9 +295,6 @@ function updateAlgae(dt, w) {
   }
 }
 
-export function algaeSwimEffect(x, y) {
-  return algaeEffect(!!algaeAt(x, y));
-}
 
 // --- the Ontzet fireworks ---------------------------------------------------------------------------
 

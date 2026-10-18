@@ -297,4 +297,3 @@ export const KLIMTOREN = standActivity({
     quit: () => { if (!game) return false; end(w, { quit: true }); return true; },
   }),
 });
-export const KLIMTOREN_MEDALS = MEDAL_AT;
