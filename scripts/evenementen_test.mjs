@@ -117,5 +117,13 @@ check('opslagsleutel geregistreerd', BASE_KEYS.eventsSeen === V.SEEN_KEY);
   check('activiteitsplekken: nette tekst', today.every((s) => !/[A-Z]{4,}/.test(s.sub.replace(/[A-Z]./g, ''))));
 }
 
+// routeplanner: extra meters in een dichte afsluiting, niets daarbuiten
+{
+  const ev = AGENDA.find((e) => KINDS[e.kind].traffic === 0), c = V.centreOf(ev), mid = (ev.hours[0] + ev.hours[1]) / 2;
+  check('routestraf: midden maximaal', V.routePenalty(c.x, c.y, ev.from, mid) === V.ROUTE_PENALTY_M);
+  check('routestraf: ver weg nul', V.routePenalty(c.x + 9000, c.y, ev.from, mid) === 0);
+  check('routestraf: buiten de uren nul', V.routePenalty(c.x, c.y, ev.from, (ev.hours[1] + 1) % 24) === 0 || ev.hours[1] >= 24);
+}
+
 console.log(bad ? `${bad} van ${n} mislukt` : `evenementen_test ok (${n} checks)`);
 process.exit(bad ? 1 : 0);
