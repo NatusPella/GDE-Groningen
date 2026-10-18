@@ -140,3 +140,9 @@ export function grazerPick(streek, roll) {
   const k = (mix.koe || 0) + 0.0001, s = (mix.schaap || 0) + 0.0001;
   return roll < k / (k + s) ? 'cow' : 'sheep';
 }
+
+// Kans dat een nieuwe weide een ganzenvlucht krijgt in plaats van vee: naar de gans-factor van de streek.
+export function gansKans(streek) {
+  const mix = STREEK_MIX[streek] || STREEK_MIX.stad;
+  return Math.min(0.6, (mix.gans || 0) * 0.3);
+}
