@@ -29,6 +29,7 @@ import { mayStart, noteToast, heldBack } from './narrative.js';
 import { missionIconInner } from './missionicons.js';
 import { isPauseMenuOpen } from './pausemenu.js';
 import { zones, mayShow, cardPrio, cardZone, hudNow } from './hudrules.js';
+import { enqueueCard } from './hudbus.js';
 import { CAL_ICONS } from './calendar.js';
 
 // the HUD's attention budget: one prominent card at a time
@@ -229,10 +230,8 @@ export function showCard(w, spec) {
   card.important = kind === 'tip' && (!!spec.important || teaches(all));
   const up = visible.find((c) => c.key === card.key && !c.leaving);
   if (up) { refresh(up, card); return; }
-  queue = queue.filter((q) => q.key !== card.key);
-  queue.push(card);
-  queue.sort((a, b) => CARD_KINDS[b.spec.kind].rank - CARD_KINDS[a.spec.kind].rank || b.important - a.important || a.at - b.at);
-  while (queue.length > MAX_QUEUE) queue.pop();
+  card.rank = CARD_KINDS[card.spec.kind].rank;
+  queue = enqueueCard(queue, card, MAX_QUEUE);
 }
 
 // A mission card shows its mission's icon: the one that runs, else the one
