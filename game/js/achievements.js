@@ -558,7 +558,7 @@ export function getLifetimeStats() {
 // --- toast ------------------------------------------------------------------
 
 const CSS = `
-#hud .ach-toast { position: absolute; top: calc(11vh / var(--ui, 1)); left: max(50%, 700px); z-index: 6; display: flex; align-items: center; gap: 14px;
+#hud .ach-toast { position: absolute; top: max(calc(11vh / var(--ui, 1)), calc(var(--hud-top, 34px) + 74px)); left: max(50%, 700px); z-index: 6; display: flex; align-items: center; gap: 14px;
   min-width: 300px; max-width: calc(100vw / var(--ui, 1) - 32px); box-sizing: border-box; padding: 10px 22px 10px 12px;
   background: linear-gradient(90deg, rgba(12,20,14,0.94) 0%, rgba(12,20,14,0.86) 70%, rgba(12,20,14,0.6) 100%);
   border-left: 4px solid #3fc97a; box-shadow: 0 8px 28px rgba(0,0,0,0.55), 0 0 22px rgba(63,201,122,0.18);
