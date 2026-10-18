@@ -1,0 +1,64 @@
+// HUD layout on 720p, 1080p and 4K without a browser (#92, #33): the scale the
+// HUD gets, the edge, the smallest text and the contrast of the HUD colours on
+// its card, for every colour-blind palette. The pictures are ui_shots.mjs.
+//   node scripts/hud_layout_test.mjs
+import fs from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
+import { uiScaleFor, hudViewport, hudEdge, READABLE_MIN, contrast, HUD_CARD_BG, TEXT_CONTRAST, GRAPHIC_CONTRAST, EDGE_MIN, EDGE_MAX } from '../game/js/hudlook.js';
+import { PALETTES } from '../game/js/a11y.js';
+
+let fails = 0;
+const ok = (c, name, extra) => { if (!c) { fails++; console.log('FAIL', name, extra !== undefined ? JSON.stringify(extra) : ''); } };
+const css = (f) => fs.readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'game', 'js', f), 'utf8');
+
+const SIZES = [[1280, 720], [1366, 768], [1920, 1080], [2560, 1440], [3840, 2160], [2560, 1080]];
+for (const [w, h] of SIZES) {
+  const s = uiScaleFor(w, h);
+  const v = hudViewport(w, h);
+  const tag = `${w}x${h}`;
+  ok(s >= 1 && s <= 4, `${tag}: schaal ${s} binnen 1..4`);
+  // the HUD box is the window divided by the scale: 16:9 from 1080p up is always 1600x900
+  ok(Math.abs(v.w * s - w) < 1 && Math.abs(v.h * s - h) < 1, `${tag}: HUD-vlak maal schaal is het venster`, v);
+  const e = hudEdge(w, h, s);
+  ok(e >= EDGE_MIN && e <= EDGE_MAX, `${tag}: rand ${e} binnen ${EDGE_MIN}..${EDGE_MAX}`);
+  // the edge in device px stays in the title-safe 3.5%..8% of the short side
+  const dev = e * s;
+  ok(dev >= Math.min(w, h) * 0.035 - 1, `${tag}: rand ${dev}px is title-safe`);
+  ok(dev <= Math.min(w, h) * 0.1, `${tag}: rand ${dev}px is niet te ruim`);
+  // minimap and the edge leave room: the left column (minimap) and the right column (speedo) never touch
+  ok(250 + 2 * e + 2 * 120 < v.w, `${tag}: minimap en snelheidsmeter passen naast elkaar`);
+}
+ok(uiScaleFor(3840, 2160) === 2.4 && uiScaleFor(1920, 1080) === 1.2, 'schaal 1.2 op 1080p en 2.4 op 4K');
+ok(uiScaleFor(1280, 720) === 1, '720p krijgt schaal 1 (HUD 1280x720, niet kleiner)');
+ok(uiScaleFor(1920, 1080, 1.3) > uiScaleFor(1920, 1080), 'Grootte interface werkt door');
+ok(uiScaleFor(10, 10, 0.1) >= 0.8 && uiScaleFor(99999, 99999, 9) <= 4, 'schaal blijft tussen 0.8 en 4');
+
+// text: no HUD font below READABLE_MIN device px unless it floors itself on --hud-min
+const FLOOR = /max\(\s*[\d.]+px\s*,\s*var\(--hud-min\)\s*\)/;
+const ALLOW = [/hud-wasd .hud-key/]; // the key caps of the WASD cluster are glyphs, not words
+let small = 0;
+for (const f of ['hud_panel.css', 'hudcards.css', 'prompts.css', 'phonefeed.css']) {
+  const lines = css(f).split(/\r?\n/);
+  lines.forEach((line, i) => {
+    const m = /font-size:\s*([\d.]+)px/.exec(line);
+    if (!m || Number(m[1]) >= READABLE_MIN || FLOOR.test(line)) return;
+    // the rule's own selector may sit on an earlier line when the rule is multi-line
+    let sel = line;
+    for (let j = i; j >= 0 && !/[{]/.test(lines[j]); j--) sel = lines[j] + sel;
+    if (ALLOW.some((a) => a.test(sel))) return;
+    small++;
+    ok(false, `${f}:${i + 1}: font-size ${m[1]}px < ${READABLE_MIN}px zonder --hud-min`);
+  });
+}
+ok(/--hud-min:\s*calc\(13px \/ var\(--ui/.test(css('hud_panel.css')), '--hud-min staat op #hud');
+ok(READABLE_MIN === 13, 'READABLE_MIN is 13');
+
+// contrast on the HUD card for every palette: signal colours are graphics (3:1), the text colour is text (4.5:1)
+ok(contrast('#f0ede4', HUD_CARD_BG) >= TEXT_CONTRAST, 'HUD-tekst op de kaart');
+for (const [mode, p] of Object.entries(PALETTES)) {
+  for (const k of ['ok', 'danger', 'mission', 'missionActive']) ok(contrast(p[k], HUD_CARD_BG) >= GRAPHIC_CONTRAST, `${mode}: ${k} op de HUD-kaart`, contrast(p[k], HUD_CARD_BG));
+}
+
+if (fails) { console.log(`${fails} mislukt`); process.exit(1); }
+console.log(`hud_layout_test: ok (${SIZES.length} formaten, ${Object.keys(PALETTES).length} paletten)`);
