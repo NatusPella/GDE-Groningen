@@ -7,6 +7,11 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 - Bijrijders: sommige auto's hebben een passagier naast de bestuurder; bij autodiefstal stappen zij uit en rennen weg. In een enkele geparkeerde auto wacht iemand, die bij diefstal uit de auto wordt gehaald.
+### Nieuw
+- **Keuzes met gevolg in akte 4 en 5 (nog niet in beeld bekeken):** in M23 kies je wie naast de Fjord Frituur rijdt (Wubbo's bus, Tinus' trekker of Geesjes scooter); dat bepaalt hoe lang Jelles limo wegblijft en keert terug in de finale, met meer tijd bij de limo en een bredere timing voor zijn straat. De intake bij Wiebelwerk (M18) heeft drie vragen: elk fout antwoord maakt de accountmanager argwanender, tot de camerahal sneller wordt en de beveiliging meeloopt. In de finale sluit de colonne van M23 eerst de straten af, daarna volgt de jacht op de limo.
+- **Verhaalteksten gevarieerd (nog niet in beeld bekeken):** replay-regels en binnenkomsten per persoon in plaats van één formule, de Krolbrug-grap krijgt een slot in de epiloog, geen gasregel meer bij Loppersum, fietsknooppunten, het Leugenbankje en Appingedam in de autogesprekken.
+### Intern
+- **Stijlgids en gelijkenistest voor het verhaal:** `docs/verhaal/STIJLGIDS.md` (stemmen, verboden zinsbouw, feitenblad) en `scripts/story_similarity_test.mjs`, die identieke en bijna-identieke regels en de verboden zinsbouw vlagt.
 
 ## [0.36.0] - 2026-10-18
 

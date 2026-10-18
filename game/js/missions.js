@@ -69,6 +69,11 @@ import { noteMoney } from './finance.js';
 // radio fragments a stage puts on Nachtstreek (storycontact.js, loaded lazily: it imports the UI)
 let contactMod = null;
 import('./storycontact.js').then((m) => { contactMod = m; }).catch(() => {});
+// story.js stays a lazy import (it sits in the import cycle): it holds the choices that outlive a mission
+let storyMod = null;
+import('./story.js').then((m) => { storyMod = m; }).catch(() => {});
+// a choice of this mission (tag) or of an earlier one (remembered as 'keuze:<tag>')
+const choiceOn = (tag) => !!(chain.tags && chain.tags.has(tag)) || !!(storyMod && storyMod.storyFlag('keuze:' + tag));
 
 const TRIGGER_RADIUS = 4;
 const CHECKPOINT_RADIUS = 6;
@@ -1383,7 +1388,9 @@ function succeed(world, def) {
   const base = replay ? klusloon(def.reward) : def.reward;
   closeChoice();
   closeTiming();
-  const tip = def.type === 'boat' ? rondvaartTip() : 0;
+  // choices that matter later in the story (M23's ally, read again in M26)
+  if (def.remember && storyMod) for (const tag of def.remember) if (chain.tags && chain.tags.has(tag)) storyMod.rememberStoryChoice(tag);
+  const tip =def.type === 'boat' ? rondvaartTip() : 0;
   const adj = rewardAdjust(def, base);
   const cons = consequenceAdjust(def);
   const reward = Math.max(0, base + tip + adj.amount + cons.amount);
@@ -2547,6 +2554,12 @@ function spawnChaseVehicle(world, def, st) {
   return v;
 }
 
+// the seconds a chase may take; timeIf: { tag: seconds } gives the ones who helped (M26: the ally of M23 closes a street) more
+function chaseTime(st) {
+  const help = st.timeIf && Object.entries(st.timeIf).find(([tag]) => choiceOn(tag));
+  return help ? help[1] : st.time || 180;
+}
+
 // A chase `route` ({ at, radio }): the fleeing vehicle drives from point to point;
 // reaching one puts its radio report on air, after the last it heads for `flee`.
 function updateChaseRoute(world, st, S, t, dt = 0) {
@@ -2727,7 +2740,9 @@ function enterStage(world, def, k) {
   chain.stageIndex = k;
   const st = def.stages[k];
   if (!st) { succeed(world, def); return; }
-  const from = { x: world.player.x, y: world.player.y };
+  // a stage that belongs to one answer: ifTag / unlessTag (a choice of this mission or a remembered one)
+  if ((st.ifTag && !choiceOn(st.ifTag)) || (st.unlessTag && choiceOn(st.unlessTag))) { enterStage(world, def, k + 1); return; }
+  const from ={ x: world.player.x, y: world.player.y };
   const S = { t: 0, hold: 0, here: from, target: resolveTarget(world, st.target, from), spotted: new Set(), holds: [], started: false, flying: false, said: 0 };
   if (st.kind === 'pigeon') {
     S.targets = st.targets.map((t) => resolveTarget(world, t, from));
@@ -2775,7 +2790,7 @@ function enterStage(world, def, k) {
   if (st.kind === 'boatchase' && S.boat) S.target = S.boat.v;
   if (st.kind === 'hold' && st.fireworks) { S.fwT = 1.5; S.fw = []; }
   if (st.kind === 'choice') enterChoice(S);
-  if (st.kind === 'timing') enterTiming(S);
+  if (st.kind === 'timing') enterTiming(S, st, choiceOn);
   if (st.kind === 'rit') enterRit(world, st, S);
   if (def.eggs && k === def.eggs.from) { chain.eggs = 100; chain.eggWarn = 100; chain.eggVeh = null; }
   chain.stage = S;
@@ -3155,7 +3170,7 @@ function playStageScene(world, st, S) {
   // the new arc's stage scenes say the script's lines (storytext.js)
   // a consequence picks the scene: the baking score (scriptTier) or an answer's tag (scriptIf)
   if (st.scriptTier && st.script) st = { ...st, script: { ...st.script, ids: st.scriptTier[juryTier()] || st.script.ids } };
-  if (st.scriptIf && st.script) { const hit = st.scriptIf.find((q) => chain.tags && chain.tags.has(q.tag)); if (hit) st = { ...st, script: { ...st.script, ids: hit.ids } }; }
+  if (st.scriptIf && st.script) { const hit = st.scriptIf.find((q) => choiceOn(q.tag)); if (hit) st = { ...st, script: { ...st.script, ids: hit.ids } }; }
   if (st.script && storyDataReady()) st = { ...st, lines: storyLines(st.script.ids, st.script) };
   const c = S.target || { x: world.player.x, y: world.player.y };
   const name = (who) => (who === 'T' ? 'Tammo' : who === 'A' ? 'Anita' : storySpeakerName(who));
@@ -3434,7 +3449,7 @@ function updateStages(dt, world, def) {
       if (st.swarm && (S.hp0 - t.health >= st.hits / 3 || (S.closeT || 0) >= (st.swarm.closeFor || Infinity) || (S.routeDone && d < (st.swarm.near || 150)))) { startSwarm(world, def, st, S, t); break; }
       if (S.hp0 - t.health >= st.hits) { stopChaseVehicle(world, def, st); break; }
       if (st.toTrain && chaseReachedTrain(world, def, st, S, t, dt)) break;
-      if (d > (st.escape || 380) || S.t - (S.goAt || 0) > (st.time || 180)) { fail(world, def, st.lost || 'de tankwagen is ontsnapt, richting Friesland'); break; }
+      if (d > (st.escape || 380) || S.t - (S.goAt || 0) > chaseTime(st)) { fail(world, def, st.lost || 'de tankwagen is ontsnapt, richting Friesland'); break; }
       if (S.hp0 - t.health >= st.hits / 2 && !S.half && !st.swarm) { S.half = true; world.addMessage(st.half || 'Hij slingert! Nog even, de banden zijn bijna op.', 2.5); }
       break;
     }
@@ -3504,6 +3519,8 @@ function updateStages(dt, world, def) {
         // an answer can carry a tag: the mission pays and tells its consequence (def.tagAdjust, def.tagRows, st.scriptIf)
         (chain.tags = chain.tags || new Set());
         st.rounds.forEach((rd, k) => { const o = rd.options[S.picks[k]]; if (o && o.tag) chain.tags.add(o.tag); });
+        // the number of wrong answers as tags ('<countTag>1' from one wrong answer, '<countTag>2' from two): the intake of M18 gets warier with each
+        for (let w = 1; w <= S.wrong; w++) if (st.countTag) chain.tags.add(st.countTag + w);
         nextStage(world, def);
       } else if (r && r.fail) fail(world, def, r.fail);
       break;
@@ -3550,7 +3567,10 @@ function updateBakeStage(dt, world, def, st, S) {
 function updateConvoyStage(dt, world, def, st, S) {
   if (!chain.convoy) chain.convoy = startConvoy(world);
   const c = chain.convoy;
-  if (!S.limoDone && st.limoAfter && S.t > st.limoAfter) { S.limoDone = true; if (spawnLimo(world, c)) world.addMessage('Jelles limo komt op de colonne af.', 3.5); }
+  // the ally chosen at the start (M23) can hold Jelle's limo back for a while (limoAfterIf: { tag: seconds })
+  const held = st.limoAfterIf && Object.entries(st.limoAfterIf).find(([tag]) => choiceOn(tag));
+  const limoAfter = held ? held[1] : st.limoAfter;
+  if (!S.limoDone && limoAfter && S.t > limoAfter) { S.limoDone = true; if (spawnLimo(world, c)) world.addMessage('Jelles limo komt op de colonne af.', 3.5); }
   const r = updateConvoy(dt, world, c, (text) => world.addMessage(text, 2.5, { key: 'colonne-lag' }));
   if (r && r.split) { world.addMessage(`${r.split} is te ver achter: de colonne valt uiteen.`, 3.5); return 'fail'; }
   const v = chain.vehicle;
