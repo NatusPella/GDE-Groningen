@@ -5,7 +5,7 @@
 // quaywalls) stand for the bridge while it is closed; while it moves the road
 // is hidden (scene3d.js passes openBridgeRoads() to the road batcher).
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { getMovableBridges, boomsOf } from './movablebridges.js';
+import { getMovableBridges, boomsOf, boatSignal } from './movablebridges.js';
 import { mergeGeometries, tint } from './geomerge.js';
 import { roadSurfaceGeometries, getMarkingMaterial } from './roadsurface.js';
 
@@ -21,6 +21,8 @@ const POST_MAT = new THREE.MeshStandardMaterial({ color: 0xd8d8d2, roughness: 0.
 // the leaf only needs drawing while it is not lying in the static road's place
 const LAMP_OFF = new THREE.MeshBasicMaterial({ color: 0x3a1210 });
 const LAMP_ON = new THREE.MeshBasicMaterial({ color: 0xff2a1a });
+const GREEN_OFF = new THREE.MeshBasicMaterial({ color: 0x0f2a14 });
+const GREEN_ON = new THREE.MeshBasicMaterial({ color: 0x2aff58 });
 let BOOM_MAT = null;
 
 function stripeTexture() {
@@ -105,6 +107,23 @@ function markingMesh(b, s0, L, dir, geo) {
   return mesh;
 }
 
+// The boat signal beside the span (#154), one on each side of the water: a post
+// with a red lamp over a green one. Red until the span lies open.
+function buildSignal(b, side) {
+  const root = new THREE.Group();
+  const nx = -b.uy * side, ny = b.ux * side;
+  root.position.set(b.x + nx * (b.half + 1.2), 0, b.y + ny * (b.half + 1.2));
+  root.add(new THREE.Mesh(new THREE.BoxGeometry(0.16, 3.2, 0.16).translate(0, 1.6, 0), POST_MAT));
+  const lamps = [];
+  for (const y of [3.0, 2.6]) {
+    const lamp = new THREE.Mesh(new THREE.SphereGeometry(0.15, 8, 6), LAMP_OFF);
+    lamp.position.set(0, y, 0);
+    root.add(lamp);
+    lamps.push(lamp);
+  }
+  return { root, red: lamps[0], green: lamps[1] };
+}
+
 function buildBoom(bm) {
   const root = new THREE.Group();
   root.position.set(bm.px, 0, bm.py);
@@ -156,8 +175,9 @@ export function initMovableBridges3D(sceneRef) {
       leaves.push({ pivot, leaf, L, dir, base: pivot.rotation.y, ex, ey });
     }
     const booms = boomsOf(b).map((bm) => { const v = buildBoom(bm); group.add(v.root); return v; });
+    const signals = [1, -1].map((side) => { const s = buildSignal(b, side); group.add(s.root); return s; });
     scene.add(group);
-    views.push({ b, group, leaves, booms });
+    views.push({ b, group, leaves, booms, signals });
   }
 }
 
@@ -171,6 +191,7 @@ export function openBridgeRoads(out = new Set()) {
 export function updateMovableBridges3D(px, py, night = 0) {
   if (!scene) return;
   LAMP_ON.color.setHex(0xff2a1a).multiplyScalar(1 + 2.5 * night);
+  GREEN_ON.color.setHex(0x2aff58).multiplyScalar(1 + 2.5 * night);
   for (const v of views) {
     const { b } = v;
     const near = Math.abs(b.x - px) < VIEW && Math.abs(b.y - py) < VIEW;
@@ -196,6 +217,11 @@ export function updateMovableBridges3D(px, py, night = 0) {
       } else {
         L.leaf.rotation.z = e * (MAX_ANGLE[b.kind] || MAX_ANGLE.bascule);
       }
+    }
+    const green = boatSignal(b) === 'green';
+    for (const s of v.signals) {
+      s.red.material = green ? LAMP_OFF : LAMP_ON;
+      s.green.material = green ? GREEN_ON : GREEN_OFF;
     }
     const phase = b.warn ? Math.floor(b.flash * 1.9) % 2 : -1;
     const ease = b.boom * b.boom * (3 - 2 * b.boom);
