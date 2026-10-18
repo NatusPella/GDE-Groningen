@@ -11,6 +11,7 @@ import { wijkProfileAt } from './trafficfleet.js';
 import { slotChance } from './streetlifedata.js';
 import { crateGeometry, cartGeometry } from './streetlife3d.js';
 import { decorateScenePed } from './streetlife.js';
+import { pannenkoekenschipGeometry } from './pannenkoekenschip.js';
 
 // Ambient city life: benches, bins, bike racks, café terraces, market stalls,
 // canal anglers. Streamed per CELL around the player; each cell merges all its
@@ -45,6 +46,7 @@ let world = null;
 let studentTimer = 20;
 let slotTimer = 0;
 let hauler = null;
+let pancakeBoat = null;
 
 function hash(cx, cy) {
   return ((cx * 73856093) ^ (cy * 19349663) ^ 0x5bd1e995) >>> 0;
@@ -442,6 +444,10 @@ function generateCell(map, cx, cy) {
     slots.push({ kind: 'hauler', x, y, angle, pose: 'haul', occ: 0 });
   }
 
+  if (pancakeBoat && pancakeBoat.x >= cx0 && pancakeBoat.x < cx0 + CELL && pancakeBoat.y >= cy0 && pancakeBoat.y < cy0 + CELL) {
+    items.push({ geo: pancakeBoatGeo(), m: place(pancakeBoat.x, pancakeBoat.y, pancakeBoat.angle) });
+  }
+
   generateClutter({ map, rng, cx0, cy0, CELL, centreD, roads, items, clear, take, horeca });
 
   // nothing street-level on the ring's viaducts, embankments and cuttings,
@@ -586,6 +592,32 @@ function findBernardSpot(map) {
         bestD = d;
         best = { x, y, angle: Math.atan2(-ny, -nx) };
       }
+    }
+  }
+  return best;
+}
+
+// Het Pannenkoekenschip (#23): moored along the first long quay near the
+// Noorderhaven, parallel to it, a little out into the water.
+let pancakeGeoCache = null;
+const pancakeBoatGeo = () => pancakeGeoCache || (pancakeGeoCache = whiteUV(pannenkoekenschipGeometry({ len: 24, wid: 6 })));
+function findPancakeBoatSpot(map) {
+  const rng = new SeededRng(2323);
+  const target = { x: -420, y: -40 };
+  const len = 24, wid = 6;
+  let best = null, bestD = Infinity;
+  for (let gx = -4; gx <= 4; gx++) {
+    for (let gy = -4; gy <= 4; gy++) {
+      const cx0 = Math.floor(target.x / CELL + gx) * CELL, cy0 = Math.floor(target.y / CELL + gy) * CELL;
+      const s = findQuaySpot(map, cx0, cy0, rng);
+      if (!s) continue;
+      // s.angle points from the quay into the water
+      const ux = Math.cos(s.angle), uy = Math.sin(s.angle), off = wid / 2 + 1.2;
+      const x = s.x + ux * off, y = s.y + uy * off, ax = -uy, ay = ux;
+      const water = [[0, 0], [len / 2, 0], [-len / 2, 0], [len / 2, wid / 2], [-len / 2, -wid / 2], [len / 2, -wid / 2], [-len / 2, wid / 2]];
+      if (!water.every(([a, b]) => isInWater(map, x + ax * a + ux * b, y + ay * a + uy * b))) continue;
+      const d = Math.hypot(x - target.x, y - target.y);
+      if (d < bestD) { bestD = d; best = { x, y, angle: Math.atan2(ay, ax) }; }
     }
   }
   return best;
@@ -845,6 +877,7 @@ export function initCityProps(w) {
   initProtos();
   material = vcMaterial({ roughness: 0.9, map: atlas });
   hauler = findHaulerSpot(w.map);
+  pancakeBoat = findPancakeBoatSpot(w.map);
   bernard = w.map.centreDist ? null : findBernardSpot(w.map);
 }
 
