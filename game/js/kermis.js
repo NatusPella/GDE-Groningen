@@ -15,6 +15,7 @@ import { KERMIS_LINES, BOTS_BUMPED, BOTS_HIT, KERMIS_NEWS, KERMIS_TWINS } from '
 import { DURK_LOOK, DOUWE_LOOK } from './storycast.js';
 import { isToday } from './calendarday.js';
 import { rand } from './rng.js';
+import { WHEEL_AT, R, AX as WHEEL_AX, N, OMEGA } from './reuzenradrules.js';
 
 // Kermis op de Grote Markt. The botsautotent of kermisbaas Jan stands on
 // the south side of the square all the time (always open, €3 a ride);
@@ -35,7 +36,7 @@ const MEDAL_AT = [0, 60, 110, 160];
 const USE_RADIUS = 2.4;
 const DETAIL_M = 230;
 const ACCENT = '#e0457a';
-const WHEEL = { u: -26, v: -50 };
+const WHEEL = WHEEL_AT;
 const STALLS = [
   { u: -9, v: -12.5, sign: 'EIERBALLEN', c: 0xc8261e },
   { u: -1.5, v: -12.5, sign: 'SUIKERSPIN', c: 0xe0457a },
@@ -66,6 +67,14 @@ const toL = (x, y) => ({ u: (x - K.x) * C + (y - K.y) * S, v: -(x - K.x) * S + (
 const BOOTH = toW(-HU - 1.6, 3.2);
 const STAND = toW(-HU - 2.8, 0.8);
 const JAN = toW(-HU - 1, 2.4);
+
+// The kermis frame, for reuzenrad.js: kermis-local (u, v) to map and back, and the frame's turn.
+export const kermisFrame = { toW, toL, rot: K.rot };
+
+// The reuzenrad (reuzenrad.js rides it): its turn angle, or null while the fair is not standing.
+export function kermisWheel() {
+  return fair && fair.root.visible ? { rot: fair.wheel.rotation.z } : null;
+}
 
 // The kermis is in town this evening (or all day in the Zomerkermis).
 export function kermisOn(w) {
@@ -259,7 +268,7 @@ function buildFair() {
   root.rotation.y = -K.rot;
   // reuzenrad: A-frame legs, two rims, spokes, gondolas
   const wheel = new THREE.Group();
-  const R = 8.5, AX = 10;
+  const AX = WHEEL_AX;
   wheel.position.set(WHEEL.u, AX, WHEEL.v);
   root.add(wheel);
   for (const s of [-1, 1]) {
@@ -270,7 +279,7 @@ function buildFair() {
     mesh(new THREE.TorusGeometry(R, 0.09, 6, 48), M.steel, 0, 0, s * 1.2, wheel, false);
   }
   mesh(new THREE.CylinderGeometry(0.3, 0.3, 3.2, 10).rotateX(Math.PI / 2), M.steel, 0, 0, 0, wheel);
-  const spokes = 12;
+  const spokes = N;
   const gondolas = [];
   const rimPts = [];
   for (let i = 0; i < spokes; i++) {
@@ -720,7 +729,7 @@ function sync3D(w, dt) {
     animatePersonWalk(built.jan.mesh, 0, dt);
   }
   if (fair && fair.root.visible) {
-    fair.wheel.rotation.z += dt * 0.12;
+    fair.wheel.rotation.z += dt * OMEGA;
     for (const gd of fair.gondolas) gd.rotation.z = -fair.wheel.rotation.z;
     fair.wheelA.material = lit && blink ? mats.bulbA : lit ? mats.bulbOff : mats.bulbA;
     fair.wheelB.material = lit && !blink ? mats.bulbB : lit ? mats.bulbOff : mats.bulbB;
