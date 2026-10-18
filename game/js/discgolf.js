@@ -8,6 +8,8 @@ import { isInWater, pointInPolygon } from './util.js';
 import { activityBlock, iconDisc } from './activitykit.js';
 import { createBoard, key, bubble, clearBubbles, pick, stopPressed, easeCamera, windText, clamp, makeRng } from './minigamekit.js';
 import { DISC_LINES } from './minigamelines.js';
+import { DISCEXT_LINES } from './minigamelines3.js';
+import { fullRound, roundMedal, ctpPoints, ctpRound, CTP } from './discgolfext.js';
 import {
   courseHoles, simulateFlight, DISCS, DISC_ORDER, RELEASES, suggestDisc, newCard, finishHole, cardTotals, courseMedal, holeName, relText,
   MAX_OVER_PAR, CIRCLE_M,
@@ -25,9 +27,28 @@ import {
 const ACCENT = '#f08a2e';
 const USE_RADIUS = 2.8;
 const DETAIL_M = 520;
-const COURSE = courseHoles();
-const CENTER = { x: COURSE.reduce((a, h) => a + h.tee.x + h.basket.x, 0) / (COURSE.length * 2), y: COURSE.reduce((a, h) => a + h.tee.y + h.basket.y, 0) / (COURSE.length * 2) };
-const FIRST = COURSE[0];
+// The nine holes of the park, the back nine (the same baskets the other way round,
+// played from hole 9 back to 1) and the list of the holes of this round: COURSE
+// is refilled when a round starts (setCourse), the meshes cover all eighteen.
+const BASE = courseHoles();
+const BACK = fullRound(BASE).slice(BASE.length);
+const MESH_HOLES = [...BASE, ...BACK];
+const COURSE = [...BASE];
+// the closest-to-the-basket contest is thrown at the hole nearest 70 m
+const CTP_HOLE = BASE.reduce((a, h) => (Math.abs(h.len - 70) < Math.abs(a.len - 70) ? h : a), BASE[0]);
+const MODES = [
+  { id: 'negen', name: 'Negen holes', rec: 'discgolf', note: 'de ronde van het Stadspark' },
+  { id: 'achterkant', name: 'De achterkant', rec: 'discgolf-achterkant', note: 'dezelfde manden, de andere kant op' },
+  { id: 'achttien', name: 'Achttien holes', rec: 'discgolf-achttien', note: 'heen en terug, de volle ronde' },
+  { id: 'dichtbij', name: 'Dichtbij', rec: 'discgolf-dichtbij', note: 'drie worpen op één mand' },
+];
+function setCourse(list) {
+  COURSE.length = 0;
+  COURSE.push(...list);
+  if (built) built.holes.forEach((hg, i) => { hg.group.visible = list.includes(MESH_HOLES[i]); });
+}
+const CENTER = { x: BASE.reduce((a, h) => a + h.tee.x + h.basket.x, 0) / (BASE.length * 2), y: BASE.reduce((a, h) => a + h.tee.y + h.basket.y, 0) / (BASE.length * 2) };
+const FIRST = BASE[0];
 const STAND = { x: FIRST.tee.x - Math.cos(FIRST.heading) * 3.2 + Math.cos(FIRST.heading + Math.PI / 2) * 1.2, y: FIRST.tee.y - Math.sin(FIRST.heading) * 3.2 + Math.sin(FIRST.heading + Math.PI / 2) * 1.2 };
 const HOLE_COLORS = [0xe0452e, 0xf2c230, 0x2f6fd0, 0x2fa04a, 0xe07ab0, 0xf08a2e, 0x8a3ac8, 0x3fb8c8, 0xd8d4cc];
 const CHARGE_S = 1.0;
@@ -56,7 +77,7 @@ const lieOk = (map, x, y) => {
 function guardTrees(map) {
   const rng = makeRng(4242);
   const out = [];
-  COURSE.forEach((h, i) => {
+  MESH_HOLES.forEach((h, i) => {
     const c = Math.cos(h.heading), s = Math.sin(h.heading);
     const at = (t, lat) => ({ x: h.tee.x + c * h.len * t + Math.cos(h.heading + Math.PI / 2) * lat, y: h.tee.y + s * h.len * t + Math.sin(h.heading + Math.PI / 2) * lat });
     const sign = i % 2 ? 1 : -1;
@@ -109,7 +130,7 @@ function holeSign(h, i, M) {
   mesh(new THREE.CylinderGeometry(0.04, 0.04, 1.5, 6), M.pole, 0, 0.75, 0, g);
   const tex = textTex(256, 128, (c, w, hh) => {
     c.fillStyle = '#f2ede0'; c.fillRect(0, 0, w, hh);
-    c.fillStyle = '#' + HOLE_COLORS[i].toString(16).padStart(6, '0'); c.fillRect(0, 0, w, 34);
+    c.fillStyle = '#' + HOLE_COLORS[i % HOLE_COLORS.length].toString(16).padStart(6, '0'); c.fillRect(0, 0, w, 34);
     c.fillStyle = '#fff'; c.font = 'bold 26px Arial'; c.textAlign = 'center'; c.fillText(`HOLE ${h.n}`, w / 2, 27);
     c.fillStyle = TEXT_FILL; c.font = 'bold 40px Arial'; c.fillText(`PAR ${h.par}`, w / 2, 80);
     c.font = '24px Arial'; c.fillText(`${Math.round(h.len)} m`, w / 2, 112);
@@ -160,7 +181,7 @@ function treeMesh(M) {
 function buildCourse(w) {
   const M = materials();
   const root = new THREE.Group();
-  const holes = COURSE.map((h, i) => {
+  const holes = MESH_HOLES.map((h, i) => {
     const hg = new THREE.Group();
     const pad = mesh(new THREE.BoxGeometry(2.6, 0.05, 1.3), M.rubber, 0, 0.025, 0, hg);
     pad.position.set(h.tee.x, 0.03, h.tee.y);
@@ -171,10 +192,11 @@ function buildCourse(w) {
     sign.position.set(sx, 0, sy);
     sign.rotation.y = -h.heading - Math.PI / 2;
     hg.add(sign);
-    const basket = basketMesh(HOLE_COLORS[i], h.n, M);
+    const basket = basketMesh(HOLE_COLORS[i % HOLE_COLORS.length], h.n, M);
     basket.position.set(h.basket.x, 0, h.basket.y);
     basket.rotation.y = -h.heading;
     hg.add(basket);
+    hg.visible = COURSE.includes(h);
     root.add(hg);
     return { group: hg, basket };
   });
@@ -245,7 +267,7 @@ function recText() {
 function prompt(w) {
   if (!nearStand(w)) return null;
   const why = activityBlock(w);
-  return { id: 'discgolf', x: STAND.x, y: STAND.y, h: 2.2, key: 'E', label: 'Discgolf', sub: why || recText() || 'Negen holes in het Stadspark · gratis', ring: true, dim: !!why };
+  return { id: 'discgolf', x: STAND.x, y: STAND.y, h: 2.2, key: 'E', label: 'Discgolf', sub: why || recText() || 'Kies je ronde in het Stadspark · gratis', ring: true, dim: !!why };
 }
 
 function secondary(w) {
@@ -276,14 +298,29 @@ function start(w, { force = false } = {}) {
   ensureBoard();
   board.show();
   runs++;
+  setCourse(BASE);
   game = {
+    mode: 'negen', pickMode: 0, ctp: null,
     t: 0, hole: 0, strokes: 0, phase: 'aim', phaseT: 0, card: newCard(COURSE), lie: null, lastLie: null, yaw: 0, loft: 0.15, release: 0, disc: 'driver',
     charge: 0, charging: false, wind: newHoleWind(), flight: null, flash: null, cam: null, said: 0, trees: built.trees, rng: Math.random,
   };
   beginHole(w);
-  showCard(w, { kind: 'tip', kicker: 'Discgolf', title: 'Het Stadspark, negen holes', body: '[A] [D] richten, [W] [S] hoek, [E] release, [F] disc, houd [Spatie] om te laden en laat los om te gooien.', duration: 9, key: 'discgolf-help', voice: false });
+  game.phase = 'mode';
+  showCard(w, { kind: 'tip', kicker: 'Discgolf', title: 'Het Stadspark, kies je ronde', body: 'Kies eerst een ronde met [A] [D] en [Spatie]: negen holes, de achterkant, achttien holes of drie worpen op één mand. Daarna: [A] [D] richten, [W] [S] hoek, [E] release, [F] disc, houd [Spatie] om te laden en laat los om te gooien.', duration: 9, key: 'discgolf-help', voice: false });
   say(w, 'start', true);
   return true;
+}
+
+// The round is picked: refill COURSE, start a fresh card and tee off.
+function chooseMode(w, id) {
+  const g = game;
+  g.mode = id;
+  setCourse(id === 'achterkant' ? BACK : id === 'achttien' ? fullRound(BASE) : id === 'dichtbij' ? [CTP_HOLE] : BASE);
+  g.card = newCard(COURSE);
+  g.hole = 0;
+  g.ctp = id === 'dichtbij' ? { dists: [] } : null;
+  say(w, id === 'achterkant' ? 'back' : id === 'achttien' ? 'full' : id === 'dichtbij' ? 'ctp' : 'start', true);
+  beginHole(w);
 }
 
 function beginHole(w) {
@@ -356,6 +393,7 @@ function afterFlight(w) {
   const res = g.flight.res;
   g.flight = null;
   if (built) built.disc.visible = false;
+  if (g.ctp) { ctpThrown(w, res, h); return; }
   if (res.holed) { holeDone(w, g.strokes, res.reason); return; }
   const bad = res.reason === 'water';
   if (bad) {
@@ -371,6 +409,19 @@ function afterFlight(w) {
     else g.flash = { text: `Nog ${Math.round(left)} m naar de mand`, t: 2.4 };
   }
   if (g.strokes >= h.par + MAX_OVER_PAR) { holeDone(w, g.strokes, 'opgepakt'); return; }
+  g.phase = 'landed';
+  g.phaseT = 0;
+}
+
+// Closest to the basket: note how close the disc came, then tee off again.
+function ctpThrown(w, res, h) {
+  const g = game;
+  const d = res.holed ? 0 : res.reason === 'water' ? null : Math.hypot(h.basket.x - res.end.x, h.basket.y - res.end.y);
+  g.ctp.dists.push(d);
+  const pts = ctpPoints(d);
+  g.flash = { text: d == null ? 'Plons: nul punten' : d === 0 ? `In de mand! ${pts} punten` : `${d.toFixed(1).replace('.', ',')} m van de mand: ${pts} punten`, t: 2.6, bad: d == null };
+  if (g.ctp.dists.length >= CTP.throws) { end(w); return; }
+  g.lie = { x: h.tee.x, y: h.tee.y };
   g.phase = 'landed';
   g.phaseT = 0;
 }
@@ -430,6 +481,12 @@ function updateGame(w, dt) {
   const p = w.player;
   p.speed = 0; p.moving = false; p.vx = 0; p.vy = 0; p.z = 0;
   const h = COURSE[g.hole];
+  if (g.phase === 'mode') {
+    if (input.wasPressed('a') || input.wasPressed('arrowleft')) { input.consume('a'); input.consume('arrowleft'); g.pickMode = (g.pickMode + MODES.length - 1) % MODES.length; }
+    if (input.wasPressed('d') || input.wasPressed('arrowright')) { input.consume('d'); input.consume('arrowright'); g.pickMode = (g.pickMode + 1) % MODES.length; }
+    if (input.wasPressed(' ') || input.wasPressed('enter')) { input.consume(' '); input.consume('enter'); chooseMode(w, MODES[g.pickMode].id); }
+    return;
+  }
   if (g.phase === 'aim') {
     const slow = input.isDown('shift') ? 0.3 : 1;
     const ax = (input.isDown('d') || input.isDown('arrowright') ? 1 : 0) - (input.isDown('a') || input.isDown('arrowleft') ? 1 : 0);
@@ -469,10 +526,14 @@ function end(w, { quit = false } = {}) {
   if (built) { built.line.visible = false; built.marker.visible = false; built.disc.visible = false; built.lie.visible = false; built.caddie.visible = !quit; built.caddieUntil = w.time + 14; }
   const p = w.player;
   if (!lieOk(w.map, p.x, p.y)) { p.x = STAND.x; p.y = STAND.y; }
-  if (quit) { w.addMessage('Discgolf gestopt', 2.5); return; }
+  if (quit) { setCourse(BASE); w.addMessage('Discgolf gestopt', 2.5); return; }
+  if (g.ctp) { endCtp(w, g); setCourse(BASE); return; }
   const t = cardTotals(g.card);
-  const medal = courseMedal(t.rel);
-  const rec = recordChallengeResult(w, 'discgolf', { value: t.rel, medal, lower: true });
+  const mode = MODES.find((m) => m.id === g.mode) || MODES[0];
+  const medal = g.mode === 'negen' ? courseMedal(t.rel) : roundMedal(t.rel, COURSE.length);
+  const rec = recordChallengeResult(w, mode.rec, { value: t.rel, medal, lower: true });
+  if (g.mode === 'achterkant') unlockAchievement(w, 'discgolf_achterkant');
+  if (g.mode === 'achttien') unlockAchievement(w, 'discgolf_achttien');
   recordStat(w, 'discgolfRounds');
   unlockAchievement(w, 'discgolf_klaar');
   if (medal >= 3) unlockAchievement(w, 'discgolf_goud');
@@ -480,14 +541,28 @@ function end(w, { quit = false } = {}) {
   if (g.card.aces) stats.push(['Aces', String(g.card.aces)]);
   if (medal) stats.push(['Medaille', MEDALS[medal]]);
   if (rec && rec.newBest) stats.push(['Record', 'Nieuw!']);
-  showBanner({ kind: medal ? 'pass' : 'fail', title: medal >= 3 ? 'ONDER PAR IN HET STADSPARK' : medal ? 'NETTE RONDE' : 'DE EENDEN HEBBEN GEWONNEN', reason: medal ? `${relText(t.rel)} t.o.v. par over negen holes` : 'Probeer het nog eens: kijk naar de wind en de vlag', reward: 0, stats });
+  showBanner({ kind: medal ? 'pass' : 'fail', title: medal >= 3 ? 'ONDER PAR IN HET STADSPARK' : medal ? 'NETTE RONDE' : 'DE EENDEN HEBBEN GEWONNEN', reason: medal ? `${relText(t.rel)} t.o.v. par over ${COURSE.length === 9 ? 'negen' : COURSE.length} holes` : 'Probeer het nog eens: kijk naar de wind en de vlag', reward: 0, stats });
   say(w, medal >= 2 ? 'endGood' : 'endPoor', true, true);
+  setCourse(BASE);
+}
+
+function endCtp(w, g) {
+  const r = ctpRound(g.ctp.dists.map((d) => (d == null ? NaN : d)));
+  const rec = recordChallengeResult(w, 'discgolf-dichtbij', { value: r.points, medal: r.medal });
+  recordStat(w, 'discgolfCtp');
+  unlockAchievement(w, 'discgolf_klaar');
+  if (r.medal >= 3) unlockAchievement(w, 'discgolf_dichtbij_goud');
+  const stats = [['Punten', String(r.points)], ['Dichtstbij', Number.isFinite(r.best) ? `${r.best.toFixed(1).replace('.', ',')} m` : 'geen']];
+  if (r.medal) stats.push(['Medaille', MEDALS[r.medal]]);
+  if (rec && rec.newBest) stats.push(['Record', 'Nieuw!']);
+  showBanner({ kind: r.medal ? 'pass' : 'fail', title: r.medal >= 3 ? 'RECHT OP DE MAND' : r.medal ? 'NET ERNAAST' : 'TE VER VAN DE MAND', reason: r.medal ? `${r.points} punten over drie worpen` : 'Gooi zacht en vlak: dichtbij telt meer dan ver', reward: 0, stats });
+  say(w, r.medal >= 2 ? 'endGood' : 'endPoor', true, true);
 }
 
 // --- speech -----------------------------------------------------------------------------------------------------
 
 function say(w, kind, force = false, after = false) {
-  const list = DISC_LINES[kind];
+  const list = DISC_LINES[kind] || DISCEXT_LINES[kind];
   if (!list || !built) return;
   const g = game;
   if (g && !force && g.t - g.said < 8) return;
@@ -572,9 +647,20 @@ function ensureBoard() {
 function updateHud() {
   const g = game;
   if (!g || !board) return;
+  if (g.phase === 'mode') {
+    const m = MODES[g.pickMode];
+    board.set({ row: `<span>Ronde <b>${m.name}</b></span><span>${m.note}</span>`, flash: '', help: `${key('A')}${key('D')} kiezen · ${key('SPATIE')} beginnen · ${key('BACKSPACE')} stoppen` });
+    return;
+  }
   const h = COURSE[g.hole];
   const dist = Math.hypot(h.basket.x - g.lie.x, h.basket.y - g.lie.y);
   const t = cardTotals(g.card);
+  if (g.ctp) {
+    const ds = g.ctp.dists.map((d) => (d == null ? 'plons' : `${d.toFixed(1).replace('.', ',')} m`)).join(' · ') || 'nog niets';
+    const info = g.phase === 'aim' ? `${DISCS[g.disc].name} · ${RELEASES.find((r) => r.id === g.release).name} · hoek ${Math.round(g.loft * 57.3)}°` : '';
+    board.set({ row: `<span>Worp <b>${Math.min(CTP.throws, g.ctp.dists.length + 1)}/${CTP.throws}</b></span><span>Mand <b>${Math.round(dist)} m</b></span><span>${windText(g.wind)} ${windArrow(g)}</span><span>${ds}</span>`, meter: g.phase === 'aim' ? { v: g.charge, color: '#f08a2e' } : null, flash: g.flash ? g.flash.text : info, bad: !!(g.flash && g.flash.bad), help: g.phase === 'aim' ? `${key('A')}${key('D')} richten · ${key('W')}${key('S')} hoek · ${key('E')} release · ${key('F')} disc · houd ${key('SPATIE')} en laat los · ${key('BACKSPACE')} stoppen` : key('BACKSPACE') + ' stoppen' });
+    return;
+  }
   const row = `<span>Hole <b>${h.n}</b>/${COURSE.length}</span><span>Par <b>${h.par}</b></span><span>Worp <b>${g.phase === 'aim' ? g.strokes + 1 : g.strokes}</b></span><span>Mand <b>${Math.round(dist)} m</b></span><span>${windText(g.wind)} ${windArrow(g)}</span>`;
   const cells = g.card.holes.map((c, i) => ({ t: c.done ? String(c.strokes) : i === g.hole ? `${g.strokes || '·'}` : String(c.n), cls: `${i === g.hole ? 'on' : ''} ${c.done ? (c.strokes <= c.par ? 'good' : 'bad') : ''}` }));
   const disc = DISCS[g.disc];
@@ -598,6 +684,8 @@ export const DISCGOLF = {
       spot: () => ({ ...STAND }),
       holes: () => COURSE.map((h) => ({ n: h.n, par: h.par, len: Math.round(h.len), tee: { ...h.tee }, basket: { ...h.basket } })),
       start: (force = true) => start(w, { force }),
+      mode: (id) => (game && game.phase === 'mode' ? (chooseMode(w, id), true) : false),
+      modes: () => MODES.map((m) => m.id),
       state: () => (game ? { phase: game.phase, hole: game.hole, strokes: game.strokes, lie: { ...game.lie }, yaw: game.yaw, card: cardTotals(game.card), wind: { ...game.wind }, disc: game.disc } : null),
       throwAt: (power = 0.8, over = {}) => (game && game.phase === 'aim' ? (throwDisc(w, power, over), true) : false),
       sink: () => { if (!game) return false; if (game.phase === 'flight') afterFlight(w); if (game && game.phase !== 'holeDone') holeDone(w, Math.max(1, game.strokes + 1), 'chains'); return true; },
