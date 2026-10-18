@@ -9,12 +9,11 @@ import { startRonde, stapRonde, rondeResultaat, bijbaanById, DOELEN } from './bi
 import { STREKEN } from './regioleven.js';
 import { wgsToWorld } from './rdnew.js';
 import { spawnJobVehicle, randomStreetPoint, vehicleSpeed } from './sidejobkit.js';
-import { TRACTOR_MODEL } from './vehicle.js';
 
 const MODELS = {
   fiets: { kind: 'bike' },
   auto: { kind: 'car', model: { name: 'sedan', len: 4.3, wid: 1.8, maxSpeed: 33, accel: 9, brake: 24, turnRate: 2.6, color: '#1b1c1f' } },
-  trekker: { kind: 'car', model: { ...TRACTOR_MODEL, color: '#3f7d3a' } },
+  trekker: { kind: 'car', model: { name: 'tractor', len: 4.3, wid: 2.3, maxSpeed: 11, accel: 6.5, brake: 11, turnRate: 1.9, color: '#3f7d3a', offroad: 0.9 } },
   sleepwagen: { kind: 'car', model: { name: 'van', len: 5.4, wid: 2.1, maxSpeed: 26, accel: 6, brake: 18, turnRate: 1.9, color: '#c9541e' } },
   bus: { kind: 'bus', model: { name: 'bus', len: 11.2, wid: 2.55, maxSpeed: 18, accel: 3.4, brake: 10, turnRate: 1.1, color: '#e0b020' } },
   tankwagen: { kind: 'car', model: { name: 'van', len: 6.2, wid: 2.2, maxSpeed: 24, accel: 5, brake: 16, turnRate: 1.7, color: '#e8e6e0' } },
