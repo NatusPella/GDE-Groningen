@@ -1202,7 +1202,7 @@ export function manageBoatPopulation(world, { target = 4, spawnMin = 20, spawnMa
   for (let i = vehicles.length - 1; i >= 0; i--) {
     const v = vehicles[i];
     // your own boat at the jetty is home.js's to stash, not ours to sweep away
-    if (!v.isBoat || v.isPolice || v.driver === 'player' || v.playerOwned || v.homeStored || v.moored) continue;
+    if (!v.isBoat || v.isPolice || v.driver === 'player' || v.playerOwned || v.homeStored || v.moored || v.missionCar) continue;
     const away = Math.hypot(v.x - player.x, v.y - player.y);
     // a boat that could not get free after three tries goes once the player cannot see it
     if (away > despawnDist || (v.stuckAway && away > BOAT_SWEEP_DIST)) vehicles.splice(i, 1);
