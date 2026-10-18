@@ -220,3 +220,25 @@ export const BERNARD_LINES = [
 
 export const GRENADE_FOUND = 'Een oude granaat! Niet aan komen. Meld het bij de politie.';
 export const GRENADE_REPORTED = 'De politie sluit het gebied af en neemt de granaat mee. Dankjewel voor het melden!';
+
+// --- skateboarders (batch 3) --------------------------------------------------------
+
+// Young people rolling along the pavement: the student districts and the centre,
+// afternoons and evenings, never at night, never in the polders.
+export function skaterChance(profileKey, d, hour) {
+  const dens = lifeDensity(profileKey, d);
+  if (dens <= 0 || hour < 11 || hour >= 22) return 0;
+  const base = profileKey === 'student' ? 0.05 : profileKey === 'centrum' ? 0.03 : profileKey === 'bakfiets' ? 0.02 : 0.005;
+  return base * dens * (hour >= 15 && hour < 20 ? 1.6 : 1);
+}
+
+export const SKATER_MAX = 2;
+export const SKATER_PACE = 2.1;
+export const SKATER_LINES = [
+  'Pas op, ik rol!',
+  'Ollie! ...Nee, dat was een stoeptegel.',
+  'Mijn bord, mijn regels.',
+  'Dit gaat veel sneller dan fietsen, hoor.',
+  'Bij het Forum mag het nog niet, zeggen ze.',
+  'Kijk, zonder handen! ...Oeps.',
+];

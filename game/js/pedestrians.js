@@ -1201,11 +1201,11 @@ export function updatePedestrians(dt, world) {
         }
         if (ped.waypoint && dist(ped.x, ped.y, ped.waypoint[0], ped.waypoint[1]) >= 1.5) {
           ped.angle = Math.atan2(ped.waypoint[1] - ped.y, ped.waypoint[0] - ped.x);
-          ped.speed = ped.anchor ? WANDER_SPEED * 0.6 : WANDER_SPEED;
+          ped.speed = ped.anchor ? WANDER_SPEED * 0.6 : WANDER_SPEED * (ped.paceMul || 1);
         } else if (ped.anchor) {
           moving = false;
         } else {
-          ped.speed = WANDER_SPEED;
+          ped.speed = WANDER_SPEED * (ped.paceMul || 1);
         }
       }
     }

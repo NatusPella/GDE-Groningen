@@ -211,5 +211,16 @@ const flags = {};
 T.applyFleetFlags(flags, 'newsvan');
 ok(flags.isNewsVan === true, 'the news van is flagged');
 
+// --- batch 3: skateboarders
+ok(D.skaterChance('student', 300, 17) > D.skaterChance('chic', 700, 17), 'skaters prefer the student districts');
+ok(D.skaterChance('student', 300, 3) === 0 && D.skaterChance('standaard', 3000, 17) === 0, 'no skaters at night or in the polders');
+{
+  let sk = 0;
+  const r = seeded(11);
+  for (let i = 0; i < 2000; i++) if (S.pickSkater(map, centre.x, centre.y, 17, r)) sk++;
+  ok(sk > 0 && sk < 1000, `some skaters now and then in the centre (${sk})`);
+  ok(D.SKATER_PACE > 1 && D.SKATER_LINES.length >= 4, 'skaters are quick and have lines');
+}
+
 console.log(`${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);
