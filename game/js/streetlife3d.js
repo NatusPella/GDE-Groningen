@@ -63,6 +63,14 @@ const CARRY = {
       B.box(-0.17, 0.08, 0, 0.08, 0.1, 0.1, 0xe3dcc0);
     },
   },
+  bezorgtas: {
+    pos: [-0.3, 1.0, 0], arms: null,
+    build(B) {
+      B.box(0, 0, 0, 0.34, 0.5, 0.5, 0x2fb5a8);
+      B.box(0, 0.26, 0, 0.36, 0.04, 0.52, 0x14403b);
+      B.box(0.18, 0.05, 0, 0.02, 0.2, 0.3, 0xe8e4da);
+    },
+  },
   skateboard: {
     pos: [0, 0.07, 0], arms: null,
     build(B) {
