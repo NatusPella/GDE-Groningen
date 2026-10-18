@@ -249,6 +249,7 @@ export function applyNieuw(list) {
     const tent = (name, dx, dy, toast) => ({ ...W(dx, dy), name, toast });
     kerm.intro = ['De kermis van Winschoten, zaterdagavond. Geert heeft drie tenten, en Durk en Douwe zingen aan zijn bar.', 'Te voet langs drie tenten, hè. Elke tent een drankje, en de dronken menigte duwt je zo omver.'];
     kerm.outro = 'Drie tenten gehaald. Durk en Douwe zijn moe genoeg voor de botsauto\'s.';
+    kerm.say = 'Loop langs drie tenten en drink in elke tent mee. De menigte duwt, dus blijf overeind en wees binnen de honderd seconden klaar.';
     kerm.timeLimit = 100;
     kerm.timeUp = 'tijd op. De tenten sluiten, Durk en Douwe zingen door zonder jullie';
     kerm.checkpointBonus = 25;
