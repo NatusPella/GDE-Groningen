@@ -188,7 +188,7 @@ html.reduce-motion .gm, html.reduce-motion .gm *, html.reduce-motion .gm *::befo
   .m-li { min-height: 48px; } .m-bp, .m-bg { height: 48px; }
 }
 .gm .m-tab:focus-visible { outline-offset: 8px; border-radius: 2px; }
-.m-pane > .m-acts.td-acts { position: sticky; bottom: 0; padding-top: 12px; background: linear-gradient(180deg, transparent, rgba(14, 26, 18, 0.96) 28%); }
+.m-pane > .m-acts.td-acts { position: sticky; bottom: 0; padding-top: 16px; background: linear-gradient(180deg, rgba(14, 26, 18, 0), rgba(14, 26, 18, 0.97) 14px); }
 @media (max-height: 820px) { .m-tablist { gap: 0 28px; } .m-tab { font-size: 24px; } }
 
 /* Fotomodus (#199, fotomodusui.js) */
