@@ -124,8 +124,14 @@ export function shabbyHasLight(profileKey, rng = Math.random) {
 // --- water ----------------------------------------------------------------------
 
 // What the boat spawner should pick instead of the default mix, or null.
-// ctx: { hour, d (to centre), profile, wide (a broad channel), width (mean, m, optional), have: {skiff, acht, sup} }
+// ctx: { hour, d (to centre), profile, wide (a broad channel), width (mean, m, optional), nav (largest boat class of the water, optional), have: {skiff, acht, sup, binnenvaart} }
 export function pickWaterLife(rng, ctx) {
+  // inland barges sail the shipping canals (class 4, at least 24 m wide) in
+  // the polders too and at night (their lights are on); at most two near
+  const have0 = ctx.have || {};
+  if (ctx.nav >= 4 && ctx.width !== undefined && ctx.width >= 24 && (have0.binnenvaart || 0) < 2 && rng() < 0.45) {
+    return rng() < 0.55 ? 'spits' : 'kempenaar';
+  }
   const dens = lifeDensity(ctx.profile, ctx.d);
   if (dens <= 0 || isNight(ctx.hour)) return null;
   const have = ctx.have || {};

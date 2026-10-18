@@ -24,6 +24,11 @@ export const BOAT_KINDS = {
   // streetlifedata.pickWaterLife, not part of the everyday mix.
   skiff: { kind: 'skiff', name: 'boat', len: 8, wid: 0.5, playerTop: 6, playerAccel: 1.6, maxSpeed: 4.6, accel: 0.9, brake: 1.2, turnRate: 0.9, color: '#f2f0ea', cabin: '#c8502a' },
   acht: { kind: 'acht', name: 'boat', len: 17, wid: 0.62, playerTop: 7, playerAccel: 1.4, maxSpeed: 5.4, accel: 0.8, brake: 1.0, turnRate: 0.5, color: '#e7eef2', cabin: '#1f4f9a' },
+  // Inland shipping (class 4, waterlevels.js): the invented fleet of the
+  // canals. Only on the broad shipping canals (streetlifedata.pickWaterLife),
+  // never in the everyday mix; slow to start, slow to stop, wide to turn.
+  spits: { kind: 'binnenvaart', name: 'boat', len: 38.5, wid: 5.05, playerTop: 6, playerAccel: 0.5, maxSpeed: 5.5, accel: 0.35, brake: 0.5, turnRate: 0.3, color: '#2b3f55', cabin: '#e8e6e0' },
+  kempenaar: { kind: 'binnenvaart', name: 'boat', len: 50, wid: 6.6, playerTop: 6, playerAccel: 0.45, maxSpeed: 5.8, accel: 0.3, brake: 0.45, turnRate: 0.26, color: '#6b2a24', cabin: '#d8d4c8' },
   // Frisian sailing barge (Jelle's): not in the ambient mix
   skutsje: { kind: 'skutsje', name: 'boat', sail: true, len: 15, wid: 3.6, maxSpeed: 7, accel: 0.9, brake: 1.3, turnRate: 0.8, color: '#1b1d1f', cabin: '#8a5a2c' },
 };
@@ -39,6 +44,17 @@ export function pickBoatModel(rng = Math.random) {
   let r = rng() * TRAFFIC_TOTAL;
   for (const [k, w] of TRAFFIC) { r -= w; if (r <= 0) return BOAT_KINDS[k]; }
   return BOAT_KINDS.sloep;
+}
+
+// Invented names of the inland barges; the hull gets one by vehicle id.
+export const BINNENVAART_NAMES = [
+  'Vrouwe Antje', 'Goede Verwachting', 'Zuiderzon', 'Twee Gebroeders', 'Noorderlicht',
+  'Hoop op Zegen', 'Trouwe Wacht', 'Aaltje Wiebel', 'Zomerwind', 'De Drie Zusters',
+  'Kanaalkoning', 'Eendracht Noord', 'Vaar Wel', 'Grunneger Trots', 'Stille Waters',
+];
+export function binnenvaartName(v) {
+  const h = Math.sin((v.id || 0) * 78.233 + 1.7) * 43758.5453;
+  return BINNENVAART_NAMES[Math.floor((h - Math.floor(h)) * BINNENVAART_NAMES.length)];
 }
 
 export function boatKind(v) {
@@ -68,6 +84,9 @@ export function boatSeats(v) {
       }
       return s;
     }
+    case 'binnenvaart':
+      // the skipper stands at the wheel in the wheelhouse aft
+      return [{ x: -hl + 3.6, z: 0, y: 1.9, face: 0, pose: { recline: 0.04, ...LEGS_BENCH, arms: 'wheel' } }];
     case 'skutsje':
       // skipper at the tiller, the rest on the hatch covers
       return [
@@ -149,6 +168,7 @@ export function boatCrewCount(v) {
     case 'kajak': return 1;
     case 'skiff': return 1;
     case 'acht': return 9;
+    case 'binnenvaart': return 1;
     case 'sup': return 1;
     case 'waterfiets': return r < 0.7 ? 2 : 1;
     case 'dinghy': return r < 0.5 ? 2 : 1;
