@@ -1,17 +1,16 @@
 import { playJobVoice } from './audio.js';
+import { openBank } from './voicebank.js';
 
 // Voiced bijbaantje lines. Recordings live in audio/voicelines/jobs and are
 // keyed "<speaker>|<text>" like the story dialogue, so an edited line goes
 // silent instead of playing the wrong recording. `tag` is only the delivery
 // note the recording was made with.
 
-export const JOB_VOICE_DIR = new URL('../audio/voicelines/jobs/', import.meta.url).href;
-let voices = {};
-fetch(JOB_VOICE_DIR + 'manifest.json').then((r) => (r.ok ? r.json() : {})).then((m) => { voices = m || {}; }).catch(() => {});
+const bank = openBank('jobs');
+export const JOB_VOICE_DIR = bank.dir;
 
 export function jobVoiceFor(speaker, text) {
-  const v = voices[speaker + '|' + text];
-  return v ? { src: JOB_VOICE_DIR + v.src, dur: v.dur } : null;
+  return bank.lookup(speaker, text);
 }
 
 // Per job: greet (a shift after the first), done (a finished round), fail,
