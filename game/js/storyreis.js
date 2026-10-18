@@ -12,12 +12,13 @@
 import { placePoint } from './deel4places.js';
 import { REISBEATS } from './reisbeats.js';
 import { arrival, selfReward } from './reiskeuze.js';
-import { askTravel } from './reispanel.js';
+import { askTravel, travelPromptOpen, closeTravel } from './reispanel.js';
 import { shouldPrompt, arrivalMessage } from './reisview.js';
 import { talkLines, storyDataReady } from './storytext.js';
 import { playTalk, talkActive } from './storytalk.js';
 import { teleport, blockedReason } from './cheats.js';
-import { isMissionActive } from './missions.js';
+import { isMissionActive, getMissionDefs } from './missions.js';
+import { missionIndexOf } from './storyarc.js';
 import { isCinematicActive, sinceCinematic } from './cinematics.js';
 import { narrativeBusy } from './narrative.js';
 
@@ -26,6 +27,8 @@ export const ARRIVE_M = 800;
 const ROAD_FACTOR = 1.25;
 
 let world = null;
+// the step the open travel panel is for
+let promptFor = null;
 export const initStoryReis = (w) => { world = w; };
 
 const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
@@ -67,6 +70,7 @@ export const REIS_GOALS = {
           const beat = beatOf(st, p, to);
           if (!shouldPrompt(beat.length)) { b.phase = 'drive'; b.reward = 0; return false; }
           b.phase = 'ask';
+          promptFor = st.id;
           askTravel(beat).then((choice) => {
             b.choice = choice;
             if (choice === 'zelf') { b.phase = 'drive'; b.reward = arrival(beat, 'zelf').money; return; }
@@ -100,5 +104,36 @@ export const REIS_GOALS = {
     place: () => null,
   },
 };
+
+// A mission step whose start is a jump away (> 6.5 km): the same travel panel once, before the mission.
+// Called every frame by story.js for the current step; `base` is the step's runtime state (reset per step).
+export function updateStoryReis(w, step, base) {
+  if (promptFor && travelPromptOpen() && (!step || step.id !== promptFor)) closeTravel();
+  if (world && step && step.kind === 'mission' && base.reisAsked && promptFor === step.id && travelPromptOpen()) {
+    // they got there by themselves while the panel was open
+    const d0 = step.mission && getMissionDefs()[missionIndexOf(step.mission)];
+    if (d0 && d0.start && !shouldPrompt(Math.round(dist(w.player, d0.start) * ROAD_FACTOR))) closeTravel();
+  }
+  if (!world || !step || step.kind !== 'mission' || !step.built || base.reisAsked || !step.mission) return;
+  const def = getMissionDefs()[missionIndexOf(step.mission)];
+  if (!def || !def.start || !ready()) return;
+  const from = w.player, to = def.start;
+  const length = Math.round(dist(from, to) * ROAD_FACTOR);
+  if (!shouldPrompt(length)) return;
+  base.reisAsked = true;
+  promptFor = step.id;
+  const b = REISBEATS[step.id] || {};
+  const scene = b.scene;
+  const lines = storyDataReady() && scene ? talkLines(scene).slice(0, 4).map((l) => `${l.speaker}: ${l.text}`) : [];
+  const beat = { ...b, stepId: step.id, to: step.title, length, lines };
+  askTravel(beat).then((choice) => {
+    if (choice === 'zelf') return;
+    const a = arrival(beat, choice);
+    if (typeof world.clock === 'number') world.clock = (world.clock + a.clockMinutes / 60) % 24;
+    teleport(world, to.x, to.y, step.title);
+    if (a.subtitles.length) world.addMessage(a.subtitles[0], 4, { kind: 'reis' });
+    if (scene) say(scene, `${step.id}:reis`);
+  });
+}
 
 export { selfReward };

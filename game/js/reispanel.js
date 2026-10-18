@@ -36,3 +36,6 @@ export function askTravel(beat) {
 }
 
 export const travelPromptOpen = () => !!open;
+
+// closes the panel as if the player chose to drive themself (the step moved on, or they got there)
+export function closeTravel() { if (open) open.finish('zelf'); }

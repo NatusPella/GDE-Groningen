@@ -75,10 +75,9 @@ export function buildDeel4Defs({ walk }) {
       outro: 'Het beslag mislukt: het woonschip staat sinds vanochtend op naam van Trijntje.',
       timeLimit: 900,
       reward: 500,
-      vehicle: 'car',
       start: at('Eemshaven', [-300, 400]),
       stages: [
-        go('Delfzijl', [-2700, -6000], 'De dijk langs de Eems', 'De dijk op. Schaap links, Tammo.', { mode: 'vehicle', radius: 60, talk: { ids: ['M14.2'], delay: 6 } }),
+        go('Delfzijl', [-2700, -6000], 'De dijk langs de Eems', 'De dijk op. Schaap links, Tammo.', { radius: 60, talk: { ids: ['M14.2'], delay: 6 } }),
         go('Delfzijl', [0, 0], 'De sluis van Delfzijl', 'Door naar de sluis. De deurwaarder komt vast ook net aan.', { mode: 'any', radius: 40, stop: 0.6 }),
       ],
     },
@@ -172,11 +171,11 @@ export function buildDeel4Defs({ walk }) {
       timeLimit: null,
       reward: 600,
       onFoot: true,
-      start: at('Zuidhorn', [2300, 700]),
+      start: at('Zuidhorn', [-1500, -900]),
       stages: [
-        go('Zuidhorn', [2300, 740], 'De garage in de schuur', 'Naar de werkplaats achterin de schuur.', { mode: 'foot', radius: 14 }),
+        go('Zuidhorn', [-1500, -880], 'De garage in de schuur', 'Naar de werkplaats achterin de schuur.', { mode: 'foot', radius: 14 }),
         sc('M22.2', 'De garage', 'Het Westerkwartier', { cast: [{ key: 'henk', pose: 'hips', at: [2.2, 0.6] }] }),
-        hold('Zuidhorn', [2500, 900], 'Blijf in de modder, Tinus trekt', 'In de modder. Tinus trekt je eruit.', 14, ['De as piept.', 'Het luik houdt het.'], { talk: { ids: ['M22.3'], delay: 1 } }),
+        hold('Zuidhorn', [-1300, -700], 'Blijf in de modder, Tinus trekt', 'In de modder. Tinus trekt je eruit.', 14, ['De as piept.', 'Het luik houdt het.'], { talk: { ids: ['M22.3'], delay: 1 } }),
       ],
     },
     {
@@ -187,11 +186,11 @@ export function buildDeel4Defs({ walk }) {
       outro: 'We zijn er. Allemaal.',
       timeLimit: null,
       reward: 800,
-      vehicle: 'car',
-      start: at('Zuidhorn', [2300, 700]),
+      // a little way from the barn of M22, so the colonne does not start by itself on the spot where M22 ends
+      start: at('Zuidhorn', [-1430, -900]),
       stages: [
-        go('Zuidhorn', [-2500, 600], 'De colonne rijdt weg', 'De colonne rijdt weg. Blijf voorop, hou ze bij elkaar.', { mode: 'vehicle', radius: 60, talk: { ids: ['M23.2'], delay: 4 } }),
-        go('Hoogkerk', [0, 0], 'Hoogkerk, bij de brug', 'Door Hoogkerk, naar de stad.', { mode: 'vehicle', radius: 60 }),
+        go('Zuidhorn', [-2500, 600], 'De colonne rijdt weg', 'De colonne rijdt weg. Blijf voorop, hou ze bij elkaar.', { radius: 60, talk: { ids: ['M23.2'], delay: 4 } }),
+        go('Hoogkerk', [0, 0], 'Hoogkerk, bij de brug', 'Door Hoogkerk, naar de stad.', { radius: 60 }),
         sc('M23.3', 'Durk en Douwe lopen over', 'Hoogkerk', { cast: [{ key: 'durk', pose: 'arms', at: [3, 1] }, { key: 'douwe', pose: 'arms', at: [3, -1] }] }),
         { kind: 'goto', target: { landmark: 'Grote Markt', off: [20, -5], snap: 'walk' }, mode: 'any', radius: 25, stop: 0.8, label: 'De Grote Markt', say: 'De Grote Markt. Allemaal samen.' },
       ],

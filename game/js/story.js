@@ -42,7 +42,7 @@ import { THIRD_PARTY_CARDS } from './credits.js';
 import { SERIES, GAME_TITLE } from './logo.js';
 import { registerNarrative, mayStart, narrativeBusy, narrativeState } from './narrative.js';
 import { nieuwVerhaal } from './storyflag.js';
-import { REIS_GOALS, initStoryReis } from './storyreis.js';
+import { REIS_GOALS, initStoryReis, updateStoryReis } from './storyreis.js';
 import './storychoice.js';
 import { storyLines, talkLines, radioContacts, appsAt, storyDataReady, readingTime } from './storytext.js';
 import { updateStoryTalk, stopTalk } from './storytalk.js';
@@ -964,6 +964,7 @@ export function updateStory(dt, w) {
   updateStoryFun(dt, w, step, rt.base);
   updateStoryEikea(dt, w, step, rt.base);
   if (!step) return;
+  if (nieuwVerhaal() && !step.end) updateStoryReis(w, step, rt.base);
   if (step.end) {
     if (rt.cardPending && !isMissionActive() && !isCinematicActive() && !narrativeBusy() && !w.pigeonMode && playEndCard(rt.cardPending)) rt.cardPending = null;
     else if (!rt.cardPending && step.finale && state.cards.has(step.end)) updateCredits(dt, w);

@@ -818,8 +818,11 @@ export async function runStoryTest(world) {
         const ending = S().ending();
         const open = ending.missions.map((m) => m.code);
         check('ending: all challenges count as done', ending.finale && ending.challenges.length === 0, JSON.stringify(ending.challenges));
-        check('ending: skipped missions keep the credits back', !ending.done && !ending.credits && open.includes('H15') && open.includes('H17') && open.every((c) => ['H3', 'H15', 'H17'].includes(c)), JSON.stringify(ending.missions));
-        check('ending: Overzicht counts down to the end', /^Nog .* tot het einde$/.test(S().view().title), S().view().title);
+        if (NEW) check('ending: every mission of the new arc is passed, none keeps the credits back', ending.finale && ending.missions.length === 0, JSON.stringify(ending.missions));
+        else {
+          check('ending: skipped missions keep the credits back', !ending.done && !ending.credits && open.includes('H15') && open.includes('H17') && open.every((c) => ['H3', 'H15', 'H17'].includes(c)), JSON.stringify(ending.missions));
+          check('ending: Overzicht counts down to the end', /^Nog .* tot het einde$/.test(S().view().title), S().view().title);
+        }
         if (world.player.inVehicle) world.player.exitVehicle(world.map, world);
       }
 
