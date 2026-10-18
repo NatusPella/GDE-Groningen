@@ -111,7 +111,7 @@ export function createSimKernel() {
         for (const id of msg.ids) agents.delete(id);
         return null;
       case MSG.STEP: {
-        const dt = Math.max(0, Math.min(MAX_DT, msg.dt));
+        const dt = Number.isFinite(msg.dt) ? Math.max(0, Math.min(MAX_DT, msg.dt)) : 0; // NaN zou de klok en alle posities voorgoed vergiften
         clock += dt;
         advance(dt);
         return packSnapshot([...agents.values()].map((a) => ({ ...a, speed: a.v })), msg.tick);
