@@ -18,7 +18,9 @@
     "release": "sh release.sh",
     "web": "node ../web/build.mjs",
     "web:zip": "node ../web/build.mjs --zip",
-    "web:serve": "node ../web/serve.mjs"
+    "web:serve": "node ../web/serve.mjs",
+    "android:stage": "npm --prefix ../android run stage",
+    "android:build": "npm --prefix ../android run build"
   },
   "build": {
     "appId": "nl.natuspella.gde-groningen",
