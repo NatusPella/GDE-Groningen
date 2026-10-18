@@ -7,6 +7,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Nieuw
+- **Radio valt niet meer stil:** als de muziek hoort te spelen maar stil staat (vastgelopen nummer, een gemist einde, een pauze die nooit eindigt), probeert de radio het eerst opnieuw en kiest daarna zelf het volgende nummer; N hoeft niet meer.
 - **Zeven nieuwe radionummers:** G-Music draait nu ook donkere drill, post-punk, hardstyle, phonk, een levenslied, smooth R&B en een zomerhit, helemaal door het spel zelf gemaakt. Ze verschijnen een paar seconden na het opstarten één voor één in de afspeellijst.
 - **Brommers en motoren in het verkeer:** er rijden nu brommers en motoren rond, meer in studentenwijken en het centrum, minder 's nachts. Ze blijven op de weg en nooit op het fietspad; een gewone brommer houdt zich aan 45 km/u, een enkele is opgevoerd.
 - **Spookrijder op de kartbaan en in de driftzones:** je beste race bij Kardinge en je beste run per driftzone worden bewaard en rijden de volgende keer als doorzichtige spook mee.
