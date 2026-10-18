@@ -47,7 +47,7 @@ ok(pig.info.target.x === 300, 'pigeon info points at the next target');
 const track = Array.from({ length: 40 }, (_, i) => [Math.cos(i / 40 * 6.283) * 150, Math.sin(i / 40 * 6.283) * 150]);
 const kart = buildMissionLayer({ player: { x: 150, y: 0, angle: 0, speed: 10 }, kart: { line: track, checkpoints: [{ x: 0, y: 150 }, { x: -150, y: 0 }], nextCheckpoint: 1, karts: [{ x: 150, y: 0, player: true }, { x: 140, y: 5, name: 'Wubbe', lap: 2 }], lap: 1, laps: 3, lapTime: 31.2, bestLap: 40.1, position: 2 } });
 ok(kart.kind === 'kart' && kart.lines[0].style === 'track' && kart.items.filter((i) => i.role === 'rival').length === 1, 'kart layer');
-ok(kart.items.find((i) => i.state === 'next').label === 'Checkpoint 2', 'kart next checkpoint in order');
+ok(kart.items.find((i) => i.state === 'next').label === 'Controlepunt 2', 'kart next checkpoint in order');
 ok(kart.info.lap === 1 && kart.info.position === 2 && /Ronde 2\/3/.test(layerCaption(kart)), 'kart caption ' + layerCaption(kart));
 ok(kart.focus.r >= 150, 'kart focus covers the whole track');
 

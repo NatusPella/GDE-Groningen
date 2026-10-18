@@ -129,7 +129,7 @@ t('host verwijdert één speler: bericht, dan verbreken; de rest speelt door', (
   assert.equal(N.removeGuest(s.hw, 2), true); assert.equal(N.removeGuest(s.hw, 9), false);
   s.step(2);
   assert.equal(b.coopNet, null); assert.equal(b.player.x, 5); assert.equal(b.coopRole, null);
-  assert.match(b.messages.join(' '), /uit het spel van de host gehaald/);
+  assert.match(b.messages.join(' '), /uit het spel van de gastheer gehaald/);
   assert.equal(a.coopNet.session.status, 'ok'); assert.deepEqual(s.hw.coopRoster.map((r) => r.slot), [0, 1]);
 });
 t('pings: komen bij iedereen aan met de afzender; cooldown; ongeldige of onbekende worden genegeerd', () => {
@@ -188,7 +188,7 @@ t('de wereld van de host: voertuigen en doel komen bij de gasten aan, en de opdr
   const gw = s.gs[0].gw;
   assert.deepEqual(gw.coopHost.voertuigen.map((v) => v.soort), ['bus'], 'alleen wat dicht bij een speler is');
   assert.equal(gw.coopHost.doelen.length, 1); assert.ok(Math.abs(gw.coopHost.doelen[0].x - 50) < 0.01);
-  assert.match(gw.messages.join(' '), /De host speelt: Berend telt de krassen\. Doe mee waar het kan/);
+  assert.match(gw.messages.join(' '), /De gastheer speelt: Berend telt de krassen\. Doe mee waar het kan/);
   assert.equal(gw.coopHostMissie.label, 'Berend telt de krassen');
   s.hw.mission = { phase: 'idle' }; s.step(1);
   assert.equal(gw.coopHostMissie.actief, false);
