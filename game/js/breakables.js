@@ -5,6 +5,7 @@ import { streamTreeProps } from './treeprops.js';
 import { streamTrafficLightProps } from './trafficlights.js';
 import { streamFlitspaalProps } from './flitspaal.js';
 import { setWallBrokenTest } from './elevation.js';
+import { rand as rnd } from './rng.js';
 
 // Breakable street props. Owning modules register colliders near the player
 // (addProp/removeProp); vehicles test against them each frame. Below a prop's
@@ -690,7 +691,6 @@ const WOOD = [0x8a6a3a, 0x6e4a2f, 0x9a7048];
 const GLASS = [0xe8f0f0, 0xd0e4ea, 0xfff4c8];
 const SIGNAL = [0xe74c3c, 0xf1c40f, 0x2ecc40, 0x1b1d1f];
 
-function rnd(a, b) { return a + Math.random() * (b - a); }
 function pick(a) { return a[Math.floor(Math.random() * a.length)]; }
 
 function burstLeaves(p, n, vx = 0, vy = 0, axis = null, len = 0) {

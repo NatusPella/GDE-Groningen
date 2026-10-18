@@ -13,6 +13,7 @@ import { activityBlock, iconDisc } from './activitykit.js';
 import { addStaticCollider } from './breakables.js';
 import { CARBID_LINES } from './funlines.js';
 import { ROELF_LOOK, HILJE_LOOK } from './storycast.js';
+import { rand } from './rng.js';
 
 // Carbid schieten, the Groningen New Year's bang, on a meadow off the
 // Beijumerweg between Beijum and Zuidwolde. Boer Roelf and Hilje have a
@@ -51,7 +52,6 @@ let hud = null;
 let lodT = 0;
 let runs = 0;
 
-const rand = (a, b) => a + Math.random() * (b - a);
 const C = Math.cos(FIELD.rot), S = Math.sin(FIELD.rot);
 const toW = (u, v) => ({ x: FIELD.x + C * u - S * v, y: FIELD.y + S * u + C * v });
 const STAND = toW(-1.4, 1.7);

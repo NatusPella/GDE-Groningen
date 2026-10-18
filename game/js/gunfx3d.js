@@ -5,6 +5,7 @@ import { getVehicleMesh } from './models3d_vehicles.js';
 import { flashMuzzleLight } from './nightlights3d.js';
 import { markShared } from './pixelart3d.js';
 import { updateThrowables3D } from './throwables.js';
+import { rand } from './rng.js';
 
 // Gunfire effects: muzzle flashes (with a light pop), tracers, impacts that
 // depend on what was hit (brick dust, glass, sparks, dirt, splashes) and
@@ -35,7 +36,6 @@ export function gunImpactFx(hit) {
   if (hits.length < 48) hits.push(hit);
 }
 
-function rand(a, b) { return a + Math.random() * (b - a); }
 
 // --- textures -------------------------------------------------------------
 

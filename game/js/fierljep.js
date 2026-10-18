@@ -5,6 +5,7 @@ import { pushAudioEvent } from './pedestrians.js';
 import { pointInPolygon as inPoly, isInWater, clamp, WATER_Y } from './util.js';
 import { playCinematic, isCinematicActive, skipCinematic } from './cinematics.js';
 import { getWaterIndex, waterWet, insideWaterObstacle } from './waterindex.js';
+import { rand } from './rng.js';
 
 // Fierljeppen: an NPC sprints to a canal, jumps onto a pole standing in the
 // water, climbs it while it tips over and drops onto the far bank - or the
@@ -49,7 +50,6 @@ const SAY_FAIL = ['Wiet! Hielendal wiet!', 'Nee nee nee…', 'Dit heeft niemand 
 
 let world = null;
 const vaults = [];
-const rand = (a, b) => a + Math.random() * (b - a);
 const pick = (l) => l[Math.floor(Math.random() * l.length)];
 const smooth = (t) => { t = clamp(t, 0, 1); return t * t * (3 - 2 * t); };
 

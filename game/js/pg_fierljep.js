@@ -6,6 +6,7 @@ import { playCinematic, isCinematicActive, skipCinematic } from './cinematics.js
 import { pushAudioEvent } from './pedestrians.js';
 import { pointInPolygon as inPoly, isInWater, clamp } from './util.js';
 import { finish, jelle } from './postgame.js';
+import { rand } from './rng.js';
 
 // Fierljep-duel: Jelle sets a mark over a canal (fierljep.js poleVault), the
 // player gets three jumps with a timing minigame (run-up, the grab, the
@@ -29,7 +30,6 @@ const CLIMB_S = 2.2;
 const CLIMB_TAPS = 13;
 
 const fmtM = (m) => `${m.toFixed(2).replace('.', ',')} m`;
-const rand = (a, b) => a + Math.random() * (b - a);
 
 function solid(map, x, y) {
   return map.buildingsNear(x, y, 1).some((b) => x >= b.bounds[0] && x <= b.bounds[2] && y >= b.bounds[1] && y <= b.bounds[3] && inPoly(x, y, b.pts));
