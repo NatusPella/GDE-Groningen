@@ -26,6 +26,7 @@ export function enterChoice(S) {
   S.wrong = 0;
   S.picks = [];
   S.replyT = 0;
+  S.askT = 0;
 }
 
 function paint(st, S, round) {
@@ -34,7 +35,7 @@ function paint(st, S, round) {
   ensure().set({
     kicker: `${st.kicker || 'Gesprek'}${total > 1 ? ` · ${Math.min(S.ci + 1, total)} VAN ${total}` : ''}`,
     text: (round.who ? `${round.who}: ` : '') + round.text,
-    rule: round.rule || '',
+    rule: round.time && S.cphase === 'ask' ? `${round.rule ? round.rule + ' · ' : ''}nog ${Math.max(0, Math.ceil(round.time - (S.askT || 0)))} s` : round.rule || '',
     options: round.options.map((o, i) => ({ key: String(i + 1), label: o.label, cls: reply ? (i === S.pickedI ? (o.ok === false ? 'bad' : 'pick') : '') : '' })),
     flash: reply ? reply.text : '',
     bad: !!reply && reply.bad,
@@ -46,6 +47,11 @@ function paint(st, S, round) {
 // Returns 'done', { fail: reason } or null; S.cphase is 'ask' or 'reply' (S.reply is the line to show).
 export function stepChoice(st, S, key, dt) {
   const round = st.rounds[Math.min(S.ci, st.rounds.length - 1)];
+  if (S.cphase === 'ask' && round.time) {
+    // an answer under time pressure: the clock picks `timeoutPick` (default the last answer) when it runs out
+    S.askT = (S.askT || 0) + dt;
+    if (!key && S.askT > round.time) key = String(round.timeoutPick || round.options.length);
+  }
   if (S.cphase === 'ask') {
     const i = key ? Number(key) - 1 : -1;
     if (i >= 0 && i < round.options.length) {
@@ -64,6 +70,7 @@ export function stepChoice(st, S, key, dt) {
   if (S.replyT > 0) return null;
   if (S.pendingFail) return { fail: S.pendingFail };
   S.ci++;
+  S.askT = 0;
   S.cphase = 'ask';
   return S.ci >= st.rounds.length ? 'done' : null;
 }
