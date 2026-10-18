@@ -3,6 +3,7 @@ import { polygonBounds } from './util.js';
 import { createWaterIndex } from './waterindex.js';
 import { COUNTRY_GLSL, COUNTRY_UNIFORMS, setCountryBounds } from './countryfield.js';
 import { applyCutMask } from './cutmask3d.js';
+import { followWaterQuality } from './water3d.js';
 
 // Replaces the old flat 2-triangle "fallback floor" PlaneGeometry(6000,6000)
 // + single-color MeshLambertMaterial that used to live in scene3d.js's
@@ -125,10 +126,11 @@ function wetOnBeforeCompile(shader, surf) {
     .replace('#include <common>', '#include <common>\n' + WET_GLSL + (shader.__terrain ? ALBEDO_GLSL + COUNTRY_GLSL : '') + (surf ? surf.fragmentCommon : ''))
     .replace('#include <color_fragment>', `#include <color_fragment>
       float sDip = 0.0, sRough = 0.0, sHeight = 0.0;
+      vec2 sWaterN = vec2(0.0);
       ${shader.__terrain ? `vec2 tFw = fwidth(vWetXZ);
       float cw = countryWeight(vWetXZ);
       if (cw < 1.0) diffuseColor.rgb *= terrainAlbedo(vWetXZ, tFw);
-      if (cw > 0.0) diffuseColor.rgb = mix(diffuseColor.rgb, countryAlbedo(vWetXZ, cw, sRough, sDip), cw);` : ''}
+      if (cw > 0.0) diffuseColor.rgb = mix(diffuseColor.rgb, countryAlbedo(vWetXZ, cw, sRough, sDip, sWaterN), cw);` : ''}
       ${surf ? surf.color : ''}
       float wetP = uWet > 0.001 ? wNoise(vWetXZ * 0.21) * 0.7 + wNoise(vWetXZ * 0.83) * 0.3 + sDip * 0.35 : 0.0;
       float puddle = smoothstep(0.74 - 0.12 * uWet, 0.8 - 0.12 * uWet, wetP) * uWet;
@@ -139,6 +141,7 @@ function wetOnBeforeCompile(shader, surf) {
       roughnessFactor = mix(roughnessFactor, 0.04, puddle);`)
     .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
       ${surf ? surf.normal : ''}
+      if (dot(sWaterN, sWaterN) > 1e-8) normal = normalize(normal + vec3(sWaterN.x, sWaterN.y, 0.0) * 2.0);
       if (puddle > 0.01) {
         vec2 rip = wRipple(vWetXZ * 1.6) + wRipple(vWetXZ * 2.3 + 11.0);
         normal = normalize(normal + vec3(rip.x, rip.y, 0.0) * 0.25 * puddle);
@@ -154,7 +157,7 @@ export function applyWetGround(material, surf) {
 // Standard (not Lambert) so wet ground can drop its roughness and pick up
 // sky reflections from scene.environment.
 export function createTerrainMaterial() {
-  const material = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.95, side: THREE.DoubleSide });
+  const material = followWaterQuality(new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.95, side: THREE.DoubleSide }));
   const uniforms = {
     uColorA: { value: new THREE.Color(TERRAIN_COLOR_A) },
     uColorB: { value: new THREE.Color(TERRAIN_COLOR_B) },

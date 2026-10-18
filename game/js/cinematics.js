@@ -15,7 +15,6 @@ import { logoHtml, GAME_NAME, SUBTITLE } from './logo.js';
 import { mayInterrupt, noteMoment } from './attention.js';
 import { registerNarrative } from './narrative.js';
 import { lineVoiceFor } from './linevoice.js';
-import { nieuwVerhaal } from './storyflag.js';
 import { getFollowPose, prewarmStreamAt } from './scene3d.js';
 import { KEYS } from './storagekeys.js';
 import { registerBusyProbe } from './busy.js';
@@ -216,9 +215,9 @@ function poseFocus(pose) {
   return { x: ex + dx * k, y: ey + dy * k };
 }
 
-// Cutscene camera poses off the world (city plus Ommeland extent) or NaN:
+// Cutscene camera poses off the world (the whole province, outline plus a margin) or NaN:
 // one entry per cinematic id, for the story test.
-const WORLD_EXTENT = [-12312, -13608, 12830, 10952];
+const WORLD_EXTENT = [-28000, -41000, 46000, 43000];
 const poseIssues = new Map();
 function notePose(id, pose) {
   const P = pose.position, L = pose.lookAt;
@@ -626,8 +625,6 @@ function playGameStart(w) {
   const here = currentWijk(w);
   if (here) markWijk(here);
   w.messages = w.messages.filter((m) => !m.text.startsWith('Je begint bij'));
-  // every new game opens with the montage (continuing a save doesn't)
-  if (!w.loadedFromSave && !w.pigeonMode && introMod && !nieuwVerhaal() && playIntro(w)) return;
   const mp = w._menuCamPose;
   const first = mp && mp.position && mp.lookAt
     ? { pos: V(mp.position.x, mp.position.y, mp.position.z), look: V(mp.lookAt.x, mp.lookAt.y, mp.lookAt.z) }

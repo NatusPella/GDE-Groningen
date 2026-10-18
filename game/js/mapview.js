@@ -27,7 +27,7 @@ import { getEierbalTips } from './furniture.js';
 import { drawRailsOnMap } from './railway.js';
 import { drawCountryBase, drawCountryDetail, villageLabels, syncMapPhase, MAP_STYLE } from './countrymap.js';
 import { drawProvinceBase, provinceMapOn, provinceMapBounds, onProvinceMapLoad } from './provincemap.js';
-import { ROAD_ORDER, ZOOM, EMPHASIS, roadWidthPx } from './mapstyle.js';
+import { ROAD_ORDER, ZOOM, EMPHASIS, roadWidthPx, baseFilter } from './mapstyle.js';
 import { drawSea, drawOutside, regionLabels, areaNameAt } from './regions.js';
 import { worldPlaceLabels, worldPlacesReady } from './worldplaces.js';
 import { tileIndexOf, tileOrigin, TILE_M } from './gdt.js';
@@ -523,6 +523,8 @@ function renderTile(L, tx, ty) {
   const prov = provinceMapOn();
   if (prov) drawSea(c, (n) => n / (state.baseScale * z));
   if (prov) {
+    c.save();
+    c.filter = baseFilter(); // the pyramid is drawn in day colours
     // up close the vectors of the streamed tiles replace the base map's coarse pixels there
     const res = z >= MID_ZOOM ? residentRects(wx0, wy0, wx0 + tws, wy0 + tws) : null;
     if (res && res.length) {
@@ -534,6 +536,7 @@ function renderTile(L, tx, ty) {
       drawProvinceBase(c, wx0, wy0, wx0 + tws, wy0 + tws, state.baseScale * z * state.tileDpr);
       c.restore();
     } else drawProvinceBase(c, wx0, wy0, wx0 + tws, wy0 + tws, state.baseScale * z * state.tileDpr);
+    c.restore();
   }
 
   // the city data only exists inside the real bounds (with the province on:
@@ -1165,6 +1168,8 @@ function drawDynamicMarkers(ctx, world) {
   }
 
   icon(null, 'player', world.player.x, world.player.y, 'Jij', { angle: world.player.angle });
+  // medespelers (samen spelen, #95): eigen kleur en vorm, naam en status bij de aanwijzer
+  for (const p of world.coopPartners || []) if (p.zichtbaar) icon(null, 'partner', p.x, p.y, p.naam, { angle: p.heading, kleur: p.kleur, vorm: p.vorm }, p.tekst);
   for (const q of placeIcons(queue, iconGapPx(sc))) {
     drawMapIconHalo(ctx, q.kind, q.sx, q.sy, sc);
     drawMapIcon(ctx, q.kind, q.sx, q.sy, sc, { t, ...q.opts });

@@ -2,44 +2,28 @@ import { showBanner } from './cinematics.js';
 import { unlockAchievement, recordChallengeResult, getChallengeRecord, recordStat, setStatMax, MEDALS } from './achievements.js';
 import { showCard } from './hudcards.js';
 import { standActivity, recLine } from './standactivity.js';
-import { createBoard, key, bubble, clearBubbles, pick, stopPressed, geo } from './minigamekit.js';
+import { createBoard, key, bubble, clearBubbles, pick, stopPressed } from './minigamekit.js';
 import { CARILLON_LINES } from './minigamelines3.js';
-import { BELL_KEYS, BELL_NAMES, TUNES, CARILLON, MEDAL_AT, createCarillon, stepCarillon, bellHz, carillonMedal, accuracy } from './carillonrules.js';
+import { pushAudioEvent } from './pedestrians.js';
+import { TOWER, CARILLON_STAND, BELL_KEYS, BELL_NAMES, TUNES, CARILLON, MEDAL_AT, createCarillon, stepCarillon, bellHz, carillonMedal, accuracy } from './carillonrules.js';
 
 // Carillon in de Martinitoren: at the foot of the tower on the Grote Markt the
 // carillonneur lets you play the bells. Pick a tune with Q/E, press Spatie, then
 // strike the bell that lights up (A S D F J K L ;) on the beat. Only old folk
-// tunes; the bell sounds are made here with WebAudio (no samples). Free.
+// tunes; the bell sound is the tower's sample from the sfx layer. Free.
 // Rules: carillonrules.js. `window.__carillon` debug.
+// the pitch of the 'bell_carillon' sample (sfx/dsp.js)
+const BELL_REF_HZ = 523.25;
 const ACCENT = '#d9b44a';
-const ORIGIN = geo(53.21917, 6.56806);
-const STAND = { x: ORIGIN.x + 6, y: ORIGIN.y - 4 };
+const ORIGIN = TOWER;
+const STAND = CARILLON_STAND;
 
 let game = null;
 let board = null;
-let ac = null;
 
-// A bell: a few inharmonic sine partials with a long decay.
-export function playBell(bell, vel = 1) {
-  if (typeof window === 'undefined') return;
-  try {
-    const AC = window.AudioContext || window.webkitAudioContext;
-    if (!AC) return;
-    ac = ac || new AC();
-    if (ac.state === 'suspended') ac.resume();
-    const f = bellHz(bell), t0 = ac.currentTime;
-    const out = ac.createGain();
-    out.gain.setValueAtTime(0.0001, t0);
-    out.gain.exponentialRampToValueAtTime(0.28 * vel, t0 + 0.01);
-    out.gain.exponentialRampToValueAtTime(0.0001, t0 + 1.8);
-    out.connect(ac.destination);
-    for (const [mul, amp] of [[1, 1], [2.0, 0.5], [2.76, 0.28], [5.4, 0.12]]) {
-      const o = ac.createOscillator(), g = ac.createGain();
-      o.type = 'sine'; o.frequency.value = f * mul; g.gain.value = amp;
-      o.connect(g); g.connect(out);
-      o.start(t0); o.stop(t0 + 1.9);
-    }
-  } catch (e) { /* no audio: the game still plays */ }
+// A bell: the tower's own bell sample (sfx layer) at the pitch of this bell.
+export function playBell(w, bell, vel = 1) {
+  pushAudioEvent(w, { kind: 'bell_note', x: w.player.x, y: w.player.y, rate: bellHz(bell) / BELL_REF_HZ, gain: vel });
 }
 
 function say(w, kind, ttl = 0) {
@@ -85,7 +69,7 @@ function updateGame(w, dt) {
   }
   const presses = [];
   BELL_KEYS.forEach((k, i) => { if (input.wasPressed(k)) { input.consume(k); presses.push(i); } });
-  for (const b of presses) playBell(b);
+  for (const b of presses) playBell(w, b);
   const ev = stepCarillon(g.s, presses, dt);
   for (const e of ev) {
     if (e.type === 'hit') g.flash = { text: e.grade === 'perfect' ? `Precies! +${e.points}` : e.grade === 'good' ? `Goed +${e.points}` : `Laat +${e.points}`, bad: false };
@@ -110,7 +94,7 @@ function updateHud() {
   const cells = BELL_NAMES.map((nm, i) => {
     const lit = next && next.bell === i && next.t - s.t < 0.9;
     const cls = lit ? (Math.abs(next.t - s.t) <= CARILLON.good ? 'on good' : 'on') : '';
-    return { t: `${nm}<br>${BELL_KEYS[i].toUpperCase()}`, cls };
+    return { t: `${nm}<br>${BELL_KEYS[i].toUpperCase()}`, cls, key: BELL_KEYS[i] };
   });
   const row = `<span>Score <b>${s.score}</b></span><span>Reeks <b>${s.combo}</b></span><span>Gemist <b>${s.miss}</b></span>`;
   const left = next ? Math.max(0, next.t - s.t) : 0;

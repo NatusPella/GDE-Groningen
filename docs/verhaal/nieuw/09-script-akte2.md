@@ -71,7 +71,7 @@ TESSA: Links! [NIEUW]
 TAMMO: Een fatbike. [NIEUW]
 TESSA: Twee. Op één. [NIEUW]
 TAMMO: Op één fatbike? [NIEUW]
-TESSA: Durk en Douwe. Dat hoef je niet te weten. [NIEUW]
+TESSA: Durk en Douwe. Zij werken voor Jelle. Dat hoef je nu nog niet te snappen. [NIEUW]
 TAMMO: Wat? [NIEUW]
 
 ## [M08.3] Fatbikes tellen niet als fiets: Oma's kamer – Stad, Noorderhaven – te voet
@@ -199,6 +199,7 @@ TESSA: Hij is niet dom. Hij wil dat we hem onderschatten. [NIEUW]
 APP MEM→TESSA (stil): Is mijn jongen droog? Zeg niks tegen jouw jongen. – M. [NIEUW]
 
 ## [T2] De streekbus naar Zoutkamp – Hogeland, Uithuizen naar Zoutkamp – bus (meerijden)
+TESSA: Oma Trijntje stuurt ons naar Kapitein Klaas in Zoutkamp. Hij heeft een boot, en Jelle heeft daar een skûtsje. [NIEUW]
 BUSCHAUFFEUR: Zoutkamp? Dat is de laatste halte. Daarna is er alleen nog water. [NIEUW]
 TAMMO: Dat klinkt als thuis. [NIEUW]
 TESSA: Dat is een compliment, hè. [NIEUW]
@@ -233,6 +234,7 @@ TAMMO: Hij is romantischer dan ik. [BEHOUDEN]
 TESSA: Iedereen is romantischer dan jij. [BEHOUDEN]
 KAPITEIN KLAAS (telefoon): Jongens. Ik heb net twee reuzen uit de haven gevist. Ze zwommen synchroon. [BEHOUDEN]
 JELLE (telefoon): Die twee mogen de chocola houden. De echte is bij mij, en daar blijft hij. [NIEUW]
+TESSA: Dus de bal is hier niet. Dan halen we het zout voor Oma's recept, dat is plakje vier. [NIEUW]
 
 ## [M11.4] Geleend van de Friezen: het zout – Waddenzee, Lauwersmeer en kwelder – rubberboot
 KAPITEIN KLAAS: Het zout van Oma ligt bij Noordpolderzijl. Maar je moet het halen als het water weg is. Jelle kocht de zoutstekers. [NIEUW]
@@ -279,9 +281,9 @@ TESSA: Rennen, Tammo. [NIEUW]
 ## [M11.8] Geleend van de Friezen: outro – Waddenzee, Lauwersoog – rubberboot
 (regie: de rubberboot ligt weer aan de steiger. Plakje vier, het zout, is van hen.)
 KAPITEIN KLAAS: Dat zout is van Oma. Jelle heeft het nakijken. [NIEUW]
-DOKTER DIJKSTRA (telefoon): Dijkstra, UMCG. Ik heb een heli. Ik haal jullie op. Dit stond niet in het rooster. [NIEUW]
-TESSA: Naar de Eemshaven? [NIEUW]
-KAPITEIN KLAAS: Dat is Lammerts haven. Hij danste met Trijntje in 1953. [NIEUW]
+DOKTER DIJKSTRA (telefoon): Dijkstra, UMCG. Morgen vliegt Jelle met zijn koopboek in een ballon boven de Dollard. Ik heb een heli en ik haal jullie op. Dit stond niet in het rooster. [NIEUW]
+TESSA: Een koopboek met alles wat hij wil kopen. Dat moeten we hebben. [NIEUW]
+KAPITEIN KLAAS: En daarna naar de Eemshaven. Dat is Lammerts haven. Hij danste met Trijntje in 1953. [NIEUW]
 
 ## [R2.3] Nachtstreek, donderdagnacht – Stad – radio
 RIKUS (radio): Het Plantsoenfestijn opent vandaag in het Noorderplantsoen. Elf dagen theater en muziek. Het is er druk. [NIEUW]

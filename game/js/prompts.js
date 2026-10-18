@@ -10,6 +10,7 @@ import { findRideableProp } from './rideprops.js';
 import { getSettings } from './settings.js';
 import { physicalKey, tokenKey, keyName, keyWord, PAD_LAYOUTS } from './controls.js';
 import { KEYS } from './storagekeys.js';
+import { promptSub, explains, explainId, markSeen, parseSeen } from './hudtext.js';
 const downKey = () => keyWord(getSettings().keyBinds, 'control');
 import { isPadActive, padState } from './gamepad.js';
 import { getUiScale } from './uiscale.js';
@@ -139,6 +140,7 @@ export function setHoldProgress(el, p) {
 
 export function initPrompts(hudRoot) {
   loadUses();
+  loadSeen();
   const link = document.createElement('link');
   link.rel = 'stylesheet';
   link.href = new URL('./prompts.css', import.meta.url).href;
@@ -487,9 +489,20 @@ function project(x, y, h) {
   return { sx, sy };
 }
 
+// how often each long explanation has shown (hudtext.js): after a couple of times only the label stays
+let hudSeen = {};
+function loadSeen() {
+  try { hudSeen = parseSeen(localStorage.getItem(KEYS.hudSeen)); } catch (e) { hudSeen = {}; }
+}
+function noteExplained(id) {
+  hudSeen = markSeen(hudSeen, id);
+  try { localStorage.setItem(KEYS.hudSeen, JSON.stringify(hudSeen)); } catch (e) { /* ignore */ }
+}
+
 function chipHtml(c, primary) {
+  const sub = promptSub(c, hudSeen);
   const glyph = primary && c.key ? '<span class="wp-glyph">' + glyphHtml(c.key, { ring: c.ring }) + '</span>' : '<i class="wp-tick"></i>';
-  return glyph + '<span class="wp-text"><b>' + esc(c.label) + '</b>' + (c.sub ? '<small>' + esc(c.sub) + '</small>' : '') + '</span>';
+  return glyph + '<span class="wp-text"><b>' + esc(c.label) + '</b>' + (sub ? '<small>' + esc(sub) + '</small>' : '') + '</span>';
 }
 
 function placeWp(slot, c, primary, hold = null) {
@@ -505,6 +518,7 @@ function placeWp(slot, c, primary, hold = null) {
   const key = c.id + '|' + c.label + '|' + c.sub + '|' + (c.learn ? 1 : 0);
   if (key !== slot.key) {
     slot.key = key;
+    if (explains(c, hudSeen)) noteExplained(explainId(c));
     slot.chip.innerHTML = chipHtml(c, primary);
     slot.el.dataset.kind = c.kind || (c.danger ? 'danger' : c.steal ? 'steal' : 'act');
     slot.el.classList.toggle('wp-learn', !!c.learn);

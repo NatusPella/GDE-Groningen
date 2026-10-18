@@ -13,7 +13,7 @@ function build() {
   el.className = 'reisrit';
   el.style.cssText = 'position:fixed;inset:0;z-index:9000;background:#05080a;color:#f0ede4;font:20px Arial,sans-serif;display:grid;grid-template-rows:12% 1fr 12%;pointer-events:none';
   el.innerHTML = '<div></div><div class="rr-mid" style="display:grid;place-items:center;text-align:center;padding:0 8%"><div><div class="rr-lijn" style="font:14px Arial,sans-serif;letter-spacing:3px;color:#9aa3ad"></div><div class="rr-tekst" style="font-size:34px;margin-top:10px"></div><div class="rr-balk" style="margin:26px auto 0;width:280px;height:4px;background:#1c2a30"><div class="rr-vul" style="height:100%;width:0;background:#5fb4d9"></div></div></div></div>' +
-    '<div style="display:flex;justify-content:center;align-items:center"><span class="rr-hint" style="display:none;font:15px Arial,sans-serif"><kbd style="background:#fff;color:#111;border-radius:4px;padding:2px 9px;font:bold 14px Arial,sans-serif;margin-right:8px">Spatie</kbd>overslaan</span></div>';
+    '<div style="display:flex;justify-content:center;align-items:center"><span class="rr-hint" style="display:none;font:15px Arial,sans-serif"><kbd style="background:#fff;color:#111;border-radius:4px;padding:2px 9px;font:bold 14px Arial,sans-serif;margin-right:8px">Spatie</kbd>overslaan (of tik, A)</span></div>';
   return el;
 }
 
@@ -36,6 +36,10 @@ export function startMeerijden(world, optie, dest) {
   let skipKey = false;
   const down = (e) => { if (e.key === SKIP_KEY) { skipKey = true; e.preventDefault(); e.stopPropagation(); } };
   const up = (e) => { if (e.key === SKIP_KEY) { skipKey = false; e.preventDefault(); e.stopPropagation(); } };
+  // touch and gamepad A skip too (a phone has no space bar)
+  const tap = () => { skipKey = true; setTimeout(() => { skipKey = false; }, 120); };
+  el.style.pointerEvents = 'auto';
+  el.addEventListener('pointerdown', tap);
   document.addEventListener('keydown', down, true);
   document.addEventListener('keyup', up, true);
   return new Promise((resolve) => {
@@ -63,7 +67,9 @@ export function startMeerijden(world, optie, dest) {
     const tick = (now) => {
       const dt = Math.min(0.1, (now - last) / 1000);
       last = now;
-      stepRit(rit, dt, { skip: skipKey });
+      let padA = false;
+      try { const pad = (navigator.getGamepads ? [...navigator.getGamepads()] : []).find((g) => g && g.connected); padA = !!(pad && pad.buttons[0]?.pressed); } catch (e) { /* none */ }
+      stepRit(rit, dt, { skip: skipKey || padA });
       q('.rr-lijn').textContent = (plan.lines[0] || optie.label).toUpperCase();
       q('.rr-tekst').textContent = ondertitel(rit);
       q('.rr-vul').style.width = `${Math.round(voortgang(rit) * 100)}%`;

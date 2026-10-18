@@ -45,13 +45,26 @@ ok(buildLines('snel', ['Onderweg', 'x'], p).length === 0, 'snel has no lines');
 const bl = buildLines('travel', ['Onderweg', 'Een lijn'], p);
 ok(bl.length === 4 && bl[0][0] === 'Onderweg' && bl[1][0] === 'Wist je dat', 'lead then tips');
 ok(buildLines('travel', ['Onderweg', ''], p).length === 3, 'empty lead skipped');
-import { sceneSvg, SCENES, sceneFor, SCENE_FOR } from '../game/js/loadscene.js';
-for (const v of SCENES) {
-  const svg = sceneSvg(v);
-  ok(svg.startsWith('<svg') && svg.endsWith('</svg>') && !/NaN|undefined/.test(svg), `scene ${v} is clean svg`);
-  ok(!/<text|<image/.test(svg), `scene ${v} has no text or photo`);
-}
-ok(sceneSvg('x') === sceneSvg('dag'), 'unknown scene falls back to dag');
-ok(Object.values(SCENE_FOR).every((v) => SCENES.includes(v)) && sceneFor('nope') === 'dag', 'every picture has a scene');
+import { PICTURES, APPROVED, MISSION_PICTURE, missionPicture, pictureHtml, pictureOk } from '../game/js/loadscene.js';
+import fs from 'node:fs';
+ok(APPROVED.length === 7 && APPROVED.every((p) => fs.existsSync(new URL('../game/img/laad/' + p + '.jpg', import.meta.url))), 'every approved picture exists');
+ok(Object.values(MISSION_PICTURE).every(pictureOk) && missionPicture('nope') === 'vismarkt', 'every mission kind has an approved picture');
+ok(APPROVED.every((p) => { const h = pictureHtml(p); return h.includes('img/laad/' + p + '.jpg') && h.includes('alt="' + PICTURES[p] + '"'); }), 'picture html uses the render and its alt');
+ok(pictureHtml('x').includes('img/laad/vismarkt.jpg') && !/<svg/.test(pictureHtml('duif', 'bt-bg')), 'unknown falls back, no own svg style');
+// every load screen picks from the approved set (loadscreen.js imports the DOM-free parts only at call time)
+const src = fs.readFileSync(new URL('../game/js/loadscreen.js', import.meta.url), 'utf8');
+const pickBody = src.slice(src.indexOf('export function pickImage'), src.indexOf('function recapText'));
+const used = [...pickBody.matchAll(/'([a-z]+)'/g)].map((x) => x[1]).filter((w) => !['haven', 'kade', 'diep', 'gracht', 'water', 'markt', 'binnenstad', 'forum', 'toren', 'kerk'].includes(w));
+ok(used.length >= 5 && used.every(pictureOk), 'pickImage only names approved pictures', used.join());
+const cityList = [...src.slice(src.indexOf('CITY_IMAGES'), src.indexOf(']', src.indexOf('CITY_IMAGES'))).matchAll(/'([a-z]+)'/g)].map((x) => x[1]);
+ok(cityList.every(pictureOk), 'city images are approved');
+ok(!/sceneSvg|ls-scene/.test(src), 'load screen has no own svg scene');
+// the first load screen (index.html #loading): only the age sign, no words, and a sharp picture
+const html = fs.readFileSync(new URL('../game/index.html', import.meta.url), 'utf8');
+const boot = html.slice(html.indexOf('<div id="loading"'), html.indexOf('<div id="start-screen"'));
+ok(boot.includes('bt-pegi') && boot.includes('>18<') && !/bt-desc|Geweld|verzonnen|Kaartdata|goedgekeurd/.test(boot), 'boot screen shows only the 18 sign');
+ok(!/blur\(/.test(html.slice(html.indexOf('#loading .bt-bg'), html.indexOf('#loading .bt-veil'))), 'boot picture is not blurred');
+ok(!/blur\(/.test(fs.readFileSync(new URL('../game/js/loadscreen.css', import.meta.url), 'utf8').split(/\r?\n/).filter((l) => /ls-bg/.test(l)).join('')), 'load picture is not blurred');
+ok(/pickImage\(world, place, mission\)\s*\{\s*if \(mission\) return missionPicture\(mission\)/.test(src), 'a mission picks its own picture');
 console.log(`${n - fails}/${n} loadlogic`);
 process.exit(fails ? 1 : 0);

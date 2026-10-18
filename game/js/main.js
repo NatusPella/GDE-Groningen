@@ -1,9 +1,18 @@
 // first: copies the pre-0.29 'gte-*' storage keys before any module reads them
 import './storagekeys.js';
+import './oudmigratie.js';
+import { streamTreeProps } from './treeprops.js';
+import { streamTrafficLightProps } from './trafficlights.js';
+import { streamFlitspaalProps } from './flitspaal.js';
+import { addPropStreamer } from './breakables.js';
+import './geokernels.js'; // registers the geometry kernels with geojobs.js
 import { setErrorContext } from './errorlog.js';
 import { DEV, STORY_TEST, FLAGS } from './devflags.js';
 import { bindCoop } from './coopglue.js';
 import { tickCoopNet } from './coopnet.js';
+import { updatePartnerChip } from './coophud.js';
+import { syncFigures, hasFigureMeshes } from './coopfigures3d.js';
+import { syncHostEntities, hasHostEntities, clearHostEntities } from './coopentities3d.js';
 import { loadMap } from './mapdata.js';
 import { loadTileWorld } from './tileworld.js';
 import { tileFocus } from './tilefocus.js';
@@ -33,6 +42,7 @@ import { initMissions, updateMissions } from './missions.js';
 import { initStory, updateStory, currentStep } from './story.js';
 import { initGoal, updateGoal } from './goal.js';
 import { updateOnboarding } from './onboarding.js';
+import { updateContextHints } from './contexthints.js';
 import { initMotion } from './motion.js';
 import { initHud, updateHud } from './hud_panel.js';
 import { initGarages, initCountryGarages, updateGarages, tryGarageInteract } from './garages.js';
@@ -45,6 +55,7 @@ import { wijkProfileAt } from './trafficfleet.js';
 import { motorTarget } from './motortraffic.js';
 import { updateParkingLots3D } from './parkinglots3d.js';
 import { updateMarinas3D } from './marinas3d.js';
+import { loadVaarnet, vaarPrefetch } from './vaarload.js';
 import { isShopOpen } from './shopui.js';
 import { initMapView, updateMapView, isMapOpen } from './mapview.js';
 import { initAudio, updateAudio, setMenuAudio, setSfxLinks } from './audio.js';
@@ -123,6 +134,12 @@ import { getSettings } from './settings.js';
 import { MODS } from './cheatmods.js';
 import { initCheats, updateCheats } from './cheats.js';
 import { updateRegioLeven } from './regiolevenrt.js';
+import { syncLedger, getLedger } from './finance.js';
+
+// breakables.js calls these every stream interval (it does not import them)
+addPropStreamer(streamTreeProps);
+addPropStreamer(streamTrafficLightProps);
+addPropStreamer(streamFlitspaalProps);
 
 // What the player can do on the map, as one registry (activityhub.js): each
 // module is a kind with its init, interact slot and tick phase.
@@ -293,6 +310,8 @@ async function boot() {
   const map = tiles ? tiles.world : await loadMap('citymap.json', onMapProgress);
   tileWorldStats = tiles ? tiles.store : null;
   markLoad('map');
+  // the waterway network's fixes and route graph (#184), small files read while the rest loads
+  loadVaarnet(map);
   const land = await landData;
   applyCityRoutes(map, land);
   setFarProps(land);
@@ -482,6 +501,8 @@ async function boot() {
     // the tiles follow the camera or the player (speed and heading prefetch)
     if (world.map.follow) {
       const tf = tileFocus(world.player, world.cameraOverride, tileFollow, dt);
+      // a boat on the waterway network: the tiles of its route ahead come early (#184)
+      if (tf && world.player.inVehicle && world.player.inVehicle.isBoat && !world.cameraOverride) tf.opts = vaarPrefetch(tf.opts, tf.x, tf.y);
       if (tf) world.map.follow(tf.x, tf.y, tf.opts, 1.5);
     }
     updateAudio(dt, world);
@@ -507,7 +528,10 @@ async function boot() {
       updatePhone(dt, world);
       updateSaveGame(dt, world);
     }
-    if (world.coopNet) tickCoopNet(world, dt); // coöp online (#95), alleen na een bewuste koppeling
+    if (world.coopNet) tickCoopNet(world, dt); // samen spelen (#95), alleen na een bewuste uitnodiging
+    if (world.coopNet || world.coopPartner !== undefined) updatePartnerChip(world);
+    if (world.coopNet || hasFigureMeshes()) syncFigures(world, dt); // de figuren van de andere spelers (#95)
+    if (world.coopRole === 'client') syncHostEntities(world); else if (hasHostEntities()) clearHostEntities(); // voertuigen en doel van de host bij een gast
     probe.mark('phone+save');
     updateSafety(dt, world);
     // a padel match owns the camera (cinematics.js resets cameraOverride each frame)
@@ -529,12 +553,15 @@ async function boot() {
 
   function updateGameplay(dt) {
     world.time += dt;
+    // samen spelen (#95): een gast draait de wereld van de host niet zelf; die komt via het net (coopnet.js, coopworld.js)
+    if (world.coopRole === 'client' && world.coopNet && world.coopNet.joined) return;
     // money must stay a number: a NaN from any price or reward is undone
     if (Number.isFinite(world.money)) world._goodMoney = world.money;
     else {
       console.warn('geld was geen getal meer, hersteld', world.money);
       world.money = Number.isFinite(world._goodMoney) ? world._goodMoney : 250;
     }
+    syncLedger(getLedger(), world.money, world.clock);
 
     trafficTimer -= dt;
     if (trafficTimer <= 0) {
@@ -661,6 +688,7 @@ async function boot() {
     updateStory(dt, world);
     updateGoal(dt, world);
     updateOnboarding(dt, world);
+    updateContextHints(dt, world);
     tickActivityKinds(dt, world, 'late');
     updateWeather(dt, world);
     updateWorldEvents(dt, world);

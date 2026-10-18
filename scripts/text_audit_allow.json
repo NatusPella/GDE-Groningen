@@ -27,16 +27,6 @@
       "why": "verzonnen garagehouder"
     },
     {
-      "rule": "naam",
-      "term": "Femke van Noorderzon",
-      "why": "verzonnen personage"
-    },
-    {
-      "rule": "naam",
-      "term": "Sjoerd van de KEI-commissie",
-      "why": "verzonnen personage"
-    },
-    {
       "rule": "merk",
       "term": "GTA",
       "file": "credits.js",
@@ -65,13 +55,6 @@
       "file": "banterlines.js",
       "ctx": "in de winter wel terug",
       "why": "vergelijking/zegswijze, geen winterscène; ingesproken"
-    },
-    {
-      "rule": "winter",
-      "term": "winter",
-      "file": "storyarc_oud.js",
-      "ctx": "Van de winter ook niet",
-      "why": "bewuste grap over 'spijt van de zomer'; ingesproken"
     },
     {
       "rule": "winter",

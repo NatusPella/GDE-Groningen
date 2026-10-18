@@ -25,6 +25,8 @@ export function travelModeOf(world) {
   if (v.isHeli) return 'lucht';
   if (v.isBoat) return 'boot';
   if (v.isBike || v._mount) return 'fiets';
+  // een e-step is geen brommer: fietspad mag, dus geen fietspadwaarschuwing (#17)
+  if (v.isScooter && v.model && !v.model.moped && !v.model.motorbike && !v.model.geared) return 'fiets';
   return 'auto';
 }
 

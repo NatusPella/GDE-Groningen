@@ -1,10 +1,10 @@
 import { normalizeKeyBinds, normalizePadBinds } from './controls.js';
-import { defaultArcId } from './storyflag.js';
 import { migrateSettings, SETTINGS_VERSION } from './savemigrate.js';
 import { VIEW_DISTANCES } from './viewdist.js';
 import { KEYS } from './storagekeys.js';
 import { FLAGS } from './devflags.js';
 import { RAGE_CHOICES } from './roadragerules.js';
+import { SUBTITLE_CONTRASTS, TEXT_SIZES } from './a11ylogic.js';
 
 // Player settings, persisted per browser. Modules read getSettings() and
 // subscribe with onSettingsChange() to apply changes live.
@@ -32,6 +32,8 @@ const DEFAULTS = {
   showHints: true,
   // which glyphs every hint shows: 'auto' (what you used last), 'keys' or 'pad'
   hintSource: 'auto',
+  // touch buttons: 'auto' (on a touch device), 'aan' or 'uit' (touchlogic.js)
+  touchControls: 'auto',
   // HUD: 'slim' (default: only what matters now), 'alles', 'minimaal' (hudrules.js)
   hudMode: 'slim',
   // minimap: zoom factor and north-up ('nooit', 'lucht' only flying, 'altijd')
@@ -45,8 +47,6 @@ const DEFAULTS = {
   // a new wijk: false = a name card with a spoken line, true = the full flyover
   wijkFilm: false,
   gore: true,
-  // the story a new game plays: 'oud' (Klassiek) or 'nieuw' (proefversie); read at load by storyflag.js, changed by storychoice.js
-  verhaal: defaultArcId(),
   // Zichtafstand (viewdist.js): 'ver', not Hoog's 'heelver', so a first
   // launch on an iGPU laptop stays at 600 m
   drawDistance: 'ver',
@@ -73,18 +73,23 @@ const DEFAULTS = {
   rumble: true,
   subtitleSize: 'normaal',
   subtitleBox: false,
+  // ondertitels op wit-op-zwart met een zwaardere letter ('normaal' | 'hoog'), kaart- en meldingstekst ('normaal' | 'groot' | 'extragroot') en geen schermflitsen (a11y.js)
+  subtitleContrast: 'normaal',
+  textSize: 'normaal',
+  reduceFlash: false,
   colorBlind: 'uit',
   // unused since the attract intro plays at every launch; kept so old
   // settings files load unchanged
   attractSeen: false,
 };
 // the Besturing screen has its own "Standaard herstellen" for the bindings
-const KEEP_ON_RESET = new Set(['attractSeen', 'keyBinds', 'padBinds', 'verhaal']);
+const KEEP_ON_RESET = new Set(['attractSeen', 'keyBinds', 'padBinds']);
 export const SHIFT_CHOICES = ['auto', 'manual', 'clutch'];
 export const SUBTITLE_SIZES = { klein: 0.85, normaal: 1, groot: 1.25, extragroot: 1.5 };
 export const COLOR_BLIND_MODES = ['uit', 'deuteranopie', 'protanopie', 'tritanopie'];
 const PAD_LAYOUT_CHOICES = ['auto', 'xbox', 'ps', 'switch', 'deck'];
 const HINT_SOURCE_CHOICES = ['auto', 'keys', 'pad'];
+const TOUCH_CONTROLS_CHOICES = ['auto', 'aan', 'uit'];
 
 function load() {
   if (typeof localStorage === 'undefined') return { ...DEFAULTS };
@@ -103,16 +108,18 @@ function load() {
     if (!(out.resolution >= 0.5 && out.resolution <= 1)) out.resolution = DEFAULTS.resolution;
     out.keyBinds = normalizeKeyBinds(out.keyBinds);
     out.padBinds = normalizePadBinds(out.padBinds);
+    if (!SUBTITLE_CONTRASTS.includes(out.subtitleContrast)) out.subtitleContrast = DEFAULTS.subtitleContrast;
+    if (!(out.textSize in TEXT_SIZES)) out.textSize = DEFAULTS.textSize;
     if (!(out.subtitleSize in SUBTITLE_SIZES)) out.subtitleSize = DEFAULTS.subtitleSize;
     if (!['slim', 'alles', 'minimaal'].includes(out.hudMode)) out.hudMode = DEFAULTS.hudMode;
     if (!['nooit', 'lucht', 'altijd'].includes(out.minimapNorth)) out.minimapNorth = DEFAULTS.minimapNorth;
     if (!(out.minimapZoom >= 0.6 && out.minimapZoom <= 1.6)) out.minimapZoom = DEFAULTS.minimapZoom;
-    if (out.verhaal !== 'oud' && out.verhaal !== 'nieuw') out.verhaal = DEFAULTS.verhaal;
     if (!SHIFT_CHOICES.includes(out.shiftMode)) out.shiftMode = DEFAULTS.shiftMode;
     if (!RAGE_CHOICES.includes(out.ruzie)) out.ruzie = DEFAULTS.ruzie;
     if (!COLOR_BLIND_MODES.includes(out.colorBlind)) out.colorBlind = DEFAULTS.colorBlind;
     if (!PAD_LAYOUT_CHOICES.includes(out.padLayout)) out.padLayout = DEFAULTS.padLayout;
     if (!HINT_SOURCE_CHOICES.includes(out.hintSource)) out.hintSource = DEFAULTS.hintSource;
+    if (!TOUCH_CONTROLS_CHOICES.includes(out.touchControls)) out.touchControls = DEFAULTS.touchControls;
     if (!(out.padLookSensitivity >= 0.3 && out.padLookSensitivity <= 2.5)) out.padLookSensitivity = DEFAULTS.padLookSensitivity;
     if (stored && mig && mig.from < SETTINGS_VERSION) {
       try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...out, v: SETTINGS_VERSION })); } catch (e) { /* ignore */ }

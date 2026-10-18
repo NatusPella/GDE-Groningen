@@ -8,7 +8,7 @@
 // already near its start is marked as handled without asking.
 import { REISBEATS, beatFor } from './reisbeats.js';
 import { needsBeat } from './reistijd.js';
-import { arrival } from './reiskeuze.js';
+import { arrival, travelOptions, RIDES } from './reiskeuze.js';
 
 export const REIS_FLAG = (id) => `reis:${id}`;
 
@@ -29,6 +29,8 @@ export function applyTravel(w, beat, choice, dest) {
   if (choice !== 'zelf' && dest) {
     const p = w.player;
     p.x = dest.x; p.y = dest.y; p.vx = 0; p.vy = 0;
+    // the vehicle comes along (#97): it stands at the goal with you
+    if (p.inVehicle) { p.inVehicle.x = dest.x; p.inVehicle.y = dest.y; p.inVehicle.speed = 0; }
     const c = w.companion;
     if (c && c.state !== 'dead') { c.x = dest.x + 1.5; c.y = dest.y; c.vx = 0; c.vy = 0; }
   }
@@ -44,7 +46,18 @@ export function selfArrivalMoney(a, dist) {
 let asking = false;
 const pendingSelf = new Map();
 
-// per frame. ctx: { on, step, state.flags, busy, world, ask(beat)->Promise, script, fade(on) }
+// The scene option for riding along: reisrit.js plays it (skip with space).
+// Without a stops list the subtitles say "Instappen"/"Onderweg" only.
+export function rideOption(beat) {
+  const o = travelOptions(beat).options.find((x) => x.id === 'meerijden');
+  const ride = RIDES[beat.ride] || RIDES.lift;
+  return {
+    id: ride.mode === 'auto' ? 'auto' : beat.ride, label: ride.label, etaS: o.clockS, price: 0, lines: [],
+    stops: [{ name: beat.from || '', kind: 'halte' }, { name: beat.to || '', kind: 'halte' }],
+  };
+}
+
+// per frame. ctx: { on, step, state.flags, busy, world, ask(beat)->Promise, ride(optie,dest)->Promise, script }
 export function tickStoryTravel(ctx) {
   const { on, step, flags, world: w, ask, script } = ctx;
   if (!on || !step || step.end) return;
@@ -65,6 +78,13 @@ export function tickStoryTravel(ctx) {
   asking = true;
   Promise.resolve(ask(beat)).then((choice) => {
     flags.add(REIS_FLAG(step.id));
+    if (choice === 'meerijden' && ctx.ride) {
+      return Promise.resolve(ctx.ride(rideOption(beat), { x: g.x, y: g.y, name: beat.to })).then((r) => {
+        if (r && r.aangekomen) return;
+        applyTravel(w, beat, choice, g); // no scene possible: arrive directly
+        w.addMessage(`Aangekomen in ${beat.to}`, 4, { kind: 'reis' });
+      });
+    }
     const a = applyTravel(w, beat, choice, g);
     if (!a) return;
     if (choice === 'zelf') pendingSelf.set(step.id, a);

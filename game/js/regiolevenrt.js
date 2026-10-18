@@ -5,8 +5,11 @@ import { streekAt, rollEncounter, rollGap, findNear, findsOf, SET_VERZAMEL, SET_
 import { recordUnique, hasUnique } from './achievements.js';
 import { playerBusy } from './busy.js';
 import { showCard } from './hudcards.js';
+import { areaOf, partOf, wetOf, rollGebabbel, AREA_NAMES } from './gebabbel.js';
 
 const recent = [];
+const recentTalk = [];
+let talkNext = false;   // om en om: een ontmoeting, dan opgevangen gebabbel
 let gapT = 60, scanT = 0;
 
 const isFound = (f) => hasUnique(f.kind === 'geheim' ? SET_GEHEIM : SET_VERZAMEL, f.id);
@@ -32,6 +35,18 @@ export function updateRegioLeven(dt, w) {
   gapT = rollGap();
   const hour = Number.isFinite(w.clock) ? w.clock : 12;
   const s = streekAt(p.x, p.y);
+  talkNext = !talkNext;
+  if (talkNext) {
+    const area = areaOf(s ? s.id : null, p.y);
+    const kind = w.weather && w.weather.kind;
+    const g = rollGebabbel(area, partOf(hour), wetOf(kind), Math.random, recentTalk);
+    if (g) {
+      recentTalk.push(g.id);
+      if (recentTalk.length > 6) recentTalk.shift();
+      showCard(w, { kind: 'tip', kicker: 'Opgevangen in ' + AREA_NAMES[area], title: g.lines[0][0], body: g.lines.map(([who, t]) => (g.lines.length > 1 ? who + ': ' : '') + t).join(' '), duration: 6, key: 'gebabbel-' + g.id, voice: false });
+      return;
+    }
+  }
   const e = rollEncounter(s ? s.id : null, hour, Math.random, recent);
   if (!e) return;
   recent.push(e.id);

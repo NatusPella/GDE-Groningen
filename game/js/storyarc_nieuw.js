@@ -1,21 +1,88 @@
-// The new story arc "Alles voor één eierbal" in five acts (docs/verhaal/nieuw,
+// The story "Alles voor één eierbal" in five acts (docs/verhaal/nieuw,
 // 00-OVERZICHT and 08-IMPLEMENTATIE): 26 main missions (M01-M26), four travel
-// beats (T1-T4), the opening (M00) and the epilogue (E). It lives NEXT TO the
-// released arc (storyarc_oud.js) and is only played with the feature flag
-// `nieuwverhaal` (storyflag.js); storyarc.js picks one of the two per page
-// load. Nothing here imports game code, only the old arc's tables to extend.
+// beats (T1-T4), the opening (M00) and the epilogue (E). It is the only story
+// (the first version was removed in #187); storyarc.js is what the rest of the
+// game imports. Nothing here imports game code, only the cast tables of storyarc_basis.js to extend.
 //
 // What is built: act 1 (M00-M06) and M07 (the first mission of act 2). Every
 // other step has `built: false`: the story stops at the first one with the
 // part's "volgt" card (PARTS.*.card), so the game never dead-ends or breaks.
-// The step fields are those of storyarc_oud.js (see its header) plus:
+//
+// Step fields
+//   id       unique, stable (saved): 'H1'..'H18' for missions, 'k-*', 'r-*', 's-*' for activities
+//   part     'kop' | 'romp' | 'staart'
+//   kind     'mission' | 'activity'
+//   player   'tammo' | 'anita': who the player controls in this step (story.js switches
+//            at the start of the step; the other one is the companion). lead, done
+//            and after lines come from the other one: you don't text yourself.
+//   solo     (mission) the companion stays home: the player is on their own (H16)
+//   why      what the step's character says to the other one when they take over
+//            (story.js playHandover; voiced as that character)
+//   title    shown in the pause menu and dev panel
+//   mission  (mission) id of a def in missions.js (MISSION_IDS below)
+//   reward   (mission) story payout; must equal the missions.js reward for built missions
+//   minReward (mission) worst case payout (e.g. Berend's scratch fines), for the money timeline
+//   goal     (activity) what completes it, see GOAL TYPES
+//   cost     money the step needs (a purchase), for the money timeline and the voorschot
+//   optional (activity) a recommended purchase: left out of the skip-everything money check
+//   voorschot { from, text }: when the player is short of `cost`, this character tops it up once
+//   lead     [who, text]: phone message when the step becomes the next one (who: 'T'/'A' or a name)
+//   say      [who, text]: (activity) what the companion says out loud when the step starts
+//   done     [who, text]: phone message when an activity is done (ties it back to the plot)
+//   waive    what skipping a requirement step hands out (shops.js grantStoryItem) or 'night'
+//   after    [[from, text], ...]: phone messages after the mission is passed (or skipped)
+//   unlocks  story flag set after the step (e.g. 'jelle' adds Jelle to the phone contacts)
+//   beat     [[from, text], ...]: (activity) story-critical phone messages, sent even when the
+//            activity is made moot by starting the next mission early (its `done` line is not)
+//   contact  [{ via, from, on, lines, ... }]: how people reach them, played by storycontact.js
+//            (voiced, shown on the phone): via 'radio' (Radio Nachtstreek: "Bel Rikus" before a
+//            mission, the rubrieken after it; `caller` is the caller's line on the radio card) |
+//            'call' | 'voicemail' | 'live' | 'post' | 'card' | 'scene' (3D livestream);
+//            from a SPEAKERS key; on 'after' (default: when the step is done) or 'lead' (with
+//            the lead message); caller: caller ID instead of the name ('Onbekend nummer');
+//            mood: portrait ('angry', 'smug', 'wet', 'greide', 'night'); title/sign (card),
+//            handle/viewers (live), caption/likes (post). lines: [who, text, { tag, clue, card }]
+//            with tag the TTS delivery, card a CHARACTERS key whose name card shows with the line;
+//            a Frisian line's Dutch subtitle comes from subtitles.js FY (keyed by the text).
+//   scene    { kicker, lines, cast, props }: (activity) a short cutscene where the step is done
+//            (storyfun.js); lines [who, text, { tag, clue }], who 'T' | 'A' | a missionstory.js NPC key
+//   dock     { kicker, lines }: (eikea goal) the scene at EIKEA's loading dock (storyeikea.js)
+//   homeScene { big, clock, lines }: (night/home/eikea goal) a short scene a moment after the player is up in
+//            the flat (story.js updateHomeWait); clock: the hour it plays at; lines [who, text, { tag }]
+//   meet     the same, played once when the player reaches the step's starting spot
+//            (Rotor Roelf by his demo heli for a flight goal; Durk & Douwe at the court for padel)
+//
+// GOAL TYPES (story.js GOALS)
+//   { type: 'shop', shop }            enter a shop of that type (shops.js SHOP_TYPES key)
+//     + buy, what, have               buy one of the item ids `buy` there instead (storyshop.js; `what`
+//                                     names it, `have`: walking in with that weapon also counts,
+//                                     `prefer`: listed first in the shop)
+//   { type: 'require', req, shop }    missions.js requirement met; route to the nearest `shop`
+//                                     (an array routes to the nearest of several types)
+//   { type: 'pigeon', spot, score }   poop score >= score in one flight (spot: pigeonspots.js id)
+//   { type: 'sideJob', job }          one more round of that side job (sidejobs.js id, or an array: any of them)
+//   { type: 'night' }                 wait at home until it's dark (with a homeScene: until that scene played)
+//   { type: 'home' }                  go home and up to the flat: the step's homeScene plays there
+//   { type: 'eikea' }                 drive to EIKEA, three boxes on the roof, bring them home, up to the flat (storyeikea.js)
+//   { type: 'train' }                 one train trip (stationtravel.js), routed to the nearest station
+//   { type: 'hideout', options }      one of HIDEOUTS, the player's pick: a train trip or walking up to
+//                                     a spot; its scene and done text follow (storyfun.js)
+//   { type: 'egg' }                   find one more hidden eierbal (achievementtracker), routed to the nearest
+//   { type: 'padel' }                 play one padel match, won or lost (padel.js), routed to the nearest court
+//   { type: 'kermis' }                one bumper-car ride on the Grote Markt (kermis.js), free, with Durk & Douwe in it
+//   { type: 'flight', heli, pad }     meet Rotor Roelf at his demo heli, parked at `heli` on helipad `pad`
+//                                     (storyfun.js); walking up (his `meet` scene) completes it, the flight is H15
+//   { type: 'carbid', lift }          one round of carbid schieten at boer Roelf's (carbid.js); lift [from, text]: far out
+//                                     and without a car, your own Escapade is dropped off for free with that text
+//
+// Fields added by this story:
 //   goal { type: 'opening' }   (M00) the opening scenes of the script (storytext.js) play once
 //   def                        id of the missions.js def; null for a step without a def yet
 //   scenes                     the script.json scene ids that belong to the step (documentation, checked by scripts/storydata_test.mjs)
 //   silent                     phone texts of the step are never read aloud
 // MISSION_IDS only ever grows at the end (storyarc.js): the new defs are
 // 'loket' and 'bakkiestunt', the other missions get their id when they are built.
-import { SPEAKERS as OUD_SPEAKERS, CHARACTERS as OUD_CHARACTERS } from './storyarc_oud.js';
+import { SPEAKERS as OUD_SPEAKERS, CHARACTERS as OUD_CHARACTERS } from './storyarc_basis.js';
 
 // ids appended to MISSION_IDS (indices live in saves: append only, never reorder)
 export const NEW_MISSION_IDS = ['loket', 'bakkiestunt', 'containers', 'dijk', 'graan', 'bruggen', 'wiebelwerk', 'stoom', 'beleg', 'luik', 'colonne', 'eieren', 'wierde'];
@@ -32,8 +99,7 @@ export const SPEAKERS = {
 delete SPEAKERS.roelf;
 delete SPEAKERS.hilje;
 
-// Old steps that do not exist in this arc: a save never carries them (a save
-// belongs to one arc), but a loader may drop them without complaint.
+// Old steps that do not exist in this story: a loader may drop them without complaint.
 export const RETIRED_STEPS = ['r-avond', 's-boot', 's-proefvlucht', 's-carbid', 's-padel', 'k-fiets', 'H7', 'H9', 'H13', 'H3'];
 
 // Old step ids (banterlines.js needs/until, cheatlist, ...) -> the step of this arc that stands for them.
@@ -68,7 +134,7 @@ export const CHARACTERS = {
 };
 
 // Parts: the ids kop/romp/staart stay (saves, kalender); zuid and ontzet are new.
-// title/name/date as in PARTS of storyarc_oud.js; `card` is the "volgt" card where the built story stops.
+// title/name/date as the first version's PARTS had them; `card` is the "volgt" card where the built story stops.
 export const PARTS = {
   kop: { title: 'Akte 1: Moi, Grunn', name: 'Moi, Grunn', date: '14 augustus', open: true, end: 'Einde van akte 1',
     card: [['Tessa', 'Dat was akte 1.'], ['Tammo', 'Er komt meer.']] },

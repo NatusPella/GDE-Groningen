@@ -30,6 +30,7 @@ const DRIVE_CATS = ['major', 'normal', 'minor', 'cycle'];
 const MARKETS = [
   { name: 'Grote Markt', x: 162.77, y: 76.17, r: 34 },
   { name: 'Vismarkt', x: 21.21, y: 245.59, r: 38 },
+  { name: 'Nieuwe Markt', x: 290, y: 74, r: 24 },
 ];
 
 const VENDOR_LINES = ['Verse haring, moi!', 'Kom moar kieken!', 'Twee kilo appels, twee euro!', 'Lekker stoet, vers van vandoag!', 'Grunneger metworst! Wie wil der nog ain?', 'Kom moar, t is hail goud spul!', 'Dank joe wel, tot kiek!'];

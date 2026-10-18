@@ -15,7 +15,6 @@ import { getGoal, goalTarget } from './goal.js';
 import { isCinematicActive, isBannerUp } from './cinematics.js';
 import { talkState, talkActive } from './storytalk.js';
 import { isPauseMenuOpen } from './pausemenu.js';
-import { nieuwVerhaal } from './storyflag.js';
 import { isShopOpen } from './shopui.js';
 import { installAudioTap } from './botaudio.js';
 
@@ -95,7 +94,7 @@ export function initPlayerApi(world, input) {
       shop: !!isShopOpen(), dialog: dlg,
     };
     const s = {
-      v: STATUS_VERSION, t: r1(T()), wall: Math.round(performance.now()), arc: nieuwVerhaal() ? 'nieuw' : 'oud',
+      v: STATUS_VERSION, t: r1(T()), wall: Math.round(performance.now()), arc: 'nieuw',
       player: {
         x: r1(player.x), y: r1(player.y), z: r1((player.gz || 0) + (player.z || 0)), angle: Math.round(player.angle * 1000) / 1000,
         camYaw: Math.round((world.camYaw ?? player.angle) * 1000) / 1000, health: player.health, money: world.money, character: player.character || '',

@@ -2,6 +2,7 @@
 // so ES modules, fetch, AudioWorklet and localStorage behave exactly like
 // on http://localhost, without a server or an internet connection.
 const { app, BrowserWindow, Menu, protocol, shell, ipcMain, dialog } = require('electron');
+const { createCoopCore } = require('./coopcore.cjs');
 const path = require('path');
 const fs = require('fs/promises');
 const fsSync = require('fs');
@@ -154,7 +155,7 @@ function createWindow() {
     if (input.key === 'F12' || (input.control && input.shift && input.key.toLowerCase() === 'i')) win.webContents.toggleDevTools();
   });
   // debug harness (test switches, benchmark, smoke/story test): not in a packaged install
-  const query = [/^(1|true|ja|aan|on)$/i.test(process.env.GDE_NIEUW_VERHAAL || '') && 'nieuwverhaal', ...(devtools ? devtools.queryParts() : [])].filter(Boolean).join('&');
+  const query = [...(devtools ? devtools.queryParts() : [])].filter(Boolean).join('&');
   if (devtools) devtools.attach(win, { gameDir: GAME_DIR });
   win.loadURL(`${SCHEME}://${HOST}/index.html${query ? '?' + query : ''}`);
 }
@@ -175,6 +176,16 @@ if (!app.requestSingleInstanceLock()) {
     if (w) w.setFullScreen(!!on);
   });
   ipcMain.on('gde:quit', () => app.quit());
+  // Coöp online (#95): TCP + UPnP in het main-proces (coopcore.cjs); alleen op verzoek van het spel (?coop)
+  let coop = null;
+  const coopFor = (sender) => (coop = coop || createCoopCore({ gameDir: GAME_DIR, emit: (kind, payload) => { if (!sender.isDestroyed()) sender.send('gde:coop-event', kind, payload); } }));
+  ipcMain.handle('gde:coop-host', (e, max) => coopFor(e.sender).host({ max: Number(max) || 8 }));
+  ipcMain.handle('gde:coop-join', (e, code) => coopFor(e.sender).join(String(code || '').slice(0, 80)));
+  ipcMain.on('gde:coop-send', (e, id, bytes) => { if (coop && Number.isInteger(id) && bytes && bytes.length <= 8192) coop.send(id, new Uint8Array(bytes)); });
+  ipcMain.on('gde:coop-close', (e, id) => { if (coop && Number.isInteger(id)) coop.close(id); });
+  ipcMain.on('gde:coop-max', (e, n) => { if (coop && Number.isInteger(n)) coop.setMax(n); });
+  ipcMain.handle('gde:coop-stop', () => (coop ? coop.stop() : null));
+  app.on('before-quit', () => { if (coop) coop.stop(); }); // sluit de poort op de router weer
   ipcMain.handle('gde:save-text', async (e, name, text) => {
     const w = BrowserWindow.fromWebContents(e.sender);
     const res = await dialog.showSaveDialog(w, {

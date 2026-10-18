@@ -3,7 +3,7 @@
 // verbreken, hervatten, vastzittende toets, weigering.
 import assert from 'node:assert/strict';
 import { createLink, makeRng } from '../game/js/net/memtransport.js';
-import { HostSession, ClientSession, SnapBuffer, LAG_AFTER, LOST_AFTER, SNAP_HZ } from '../game/js/net/session.js';
+import { HostSession, ClientSession, SnapBuffer, LAG_AFTER, LOST_AFTER, SNAP_HZ, negotiate } from '../game/js/net/session.js';
 
 let n = 0;
 const t = (name, f) => { f(); n++; };
@@ -134,5 +134,15 @@ t('SnapBuffer interpoleert tussen twee toestanden en houdt bij sprong vast', () 
   b.renderT = 1.05; assert.ok(Math.abs(b.sample().players[0].x - 5) < 1e-9);
   b.renderT = 1.15; assert.equal(b.sample().players[0].x, 30, 'geen glijden door het instappen');
   assert.equal(SNAP_HZ, 20);
+});
+t('uitbreidbaar: gebruikte mogelijkheden zijn wat beide kennen; onbekende gebeurtenissen schaden niet', () => {
+  assert.deepEqual(negotiate(['scene', 'spelers>2'], ['scene', 'iets-nieuws']), ['scene']);
+  assert.deepEqual(negotiate(['scene'], undefined), []);
+  const s = setup(); s.host.cfg.caps = ['scene', 'spelers>2']; s.client.cfg.caps = ['scene'];
+  s.step(2);
+  assert.deepEqual(s.host.caps, ['scene']); assert.deepEqual(s.client.caps, ['scene']);
+  const got = []; s.client.onevent = (b) => got.push(b.k);
+  s.host.announce({ k: 'toekomstig-ding', x: 1 }); s.host.announce({ k: 'stage', n: 1 }); s.step(1);
+  assert.deepEqual(got, ['toekomstig-ding', 'stage'], 'komt aan; de verwerker negeert wat hij niet kent');
 });
 console.log(`net_hostmodel_test: ${n}/${n} ok`);

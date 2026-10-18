@@ -1,6 +1,6 @@
 // Mini-coöp (#95): spelerslots, invoer-toewijzing, band en camera (game/js/coop.js).
 import assert from 'node:assert/strict';
-import { assignDevices, keyAxis, padAxis, readP2, velocityFor, leash, cameraFocus, stepSlot2, remoteP2, P2_WALK, P2_RUN, LEASH_DIST, CAM_ZOOM_MAX } from '../game/js/coop.js';
+import { assignDevices, keyAxis, padAxis, readP2, velocityFor, leash, cameraFocus, stepSlot2, remoteP2, sharedCamera, SHARE_MAX_DIST, P2_WALK, P2_RUN, LEASH_DIST, CAM_ZOOM_MAX } from '../game/js/coop.js';
 
 let n = 0;
 const t = (name, f) => { f(); n++; };
@@ -69,5 +69,12 @@ t('online: invoer van de gast wordt P2-invoer, genormaliseerd en begrensd', () =
   const r = remoteP2({ mx: 1, my: 1, buttons: 1 });
   near(Math.hypot(r.x, r.y), 1); assert.equal(r.run, true);
   assert.deepEqual(remoteP2({ mx: NaN, my: 0.5, buttons: 0 }), { x: 0, y: 0.5, run: false, active: true });
+});
+t('gedeelde camera: midden tussen twee spelers te voet en dichtbij; anders eigen camera', () => {
+  const c = sharedCamera({ x: 0, y: 0 }, { x: 20, y: 10 });
+  assert.deepEqual([c.x, c.y], [10, 5]); assert.ok(c.zoom > 1 && c.zoom <= CAM_ZOOM_MAX);
+  assert.equal(sharedCamera({ x: 0, y: 0 }, { x: SHARE_MAX_DIST + 1, y: 0 }), null, 'te ver uit elkaar');
+  assert.equal(sharedCamera({ x: 0, y: 0, inVehicle: {} }, { x: 1, y: 1 }), null, 'in een voertuig');
+  assert.equal(sharedCamera(null, { x: 1, y: 1 }), null); assert.equal(sharedCamera({ x: NaN, y: 0 }, { x: 1, y: 1 }), null);
 });
 console.log(`coop_test: ${n}/${n} ok`);
