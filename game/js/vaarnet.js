@@ -97,6 +97,8 @@ export function patchRows(fixes) {
   for (const l of (fixes && fixes.links) || []) rows.push(row(linkPolygon(l), 4, l.name));
   for (const g of (fixes && fixes.gaten) || []) rows.push(row(gatPolygon(g), g[5] || 3, ''));
   for (const g of (fixes && fixes.verbindingen) || []) rows.push(row(gatPolygon(g), g[5] || 2, ''));
+  // the chamber of a lock the map draws no water in (scripts/world/sluizen.mjs finds them)
+  for (const g of (fixes && fixes.sluisgaten) || []) rows.push(row(gatPolygon(g), g[5] || 3, ''));
   // the sea off a coast the map draws no water at: the open water of the Wadden and the Eems
   for (const g of (fixes && fixes.zee) || []) { const r = row(gatPolygon(g), 4, SEA_NAMES[g[6]] || 'Zee'); r.kind = 'zee'; r.dp = WATER_KINDS.zee.depth; rows.push(r); }
   return rows;
