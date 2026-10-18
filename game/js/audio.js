@@ -2122,6 +2122,8 @@ const ENGINE_SPECS = [
   { idle: 1300, red: 13000, shift: 0.08, level: 0.4 },
   { idle: 1200, red: 10000, shift: 0.1, level: 0.4 },
   { idle: 1000, red: 7500, shift: 0.16, level: 0.38 },
+  { idle: 1800, red: 12000, shift: 0, level: 0.2 }, // 11: elektrische auto
+  { idle: 900, red: 7500, shift: 0.14, level: 0.5 }, // 12: opgevoerde tokkie-auto
 ];
 
 // Canoes, kayaks and pedalos have no engine: paddle strokes or the pedalo's
@@ -2241,6 +2243,8 @@ function engineKind(v) {
   if (v.isBoat) return 4;
   if (v.isBus) return 2;
   if (v.isHeroCar) return 1;
+  if (v.model && v.model.electric) return 11;
+  if (v.model && v.model.tokkie) return 12;
   const name = v.model && v.model.name;
   if (name === 'sport' || name === 'police' || v.isPolice) return 5;
   if (name === 'van') return 6;
@@ -2257,6 +2261,7 @@ function engineRpm(v, st, kind, throttle, t) {
   const frac = speed / (v.model.maxSpeed || 30);
   let shifted = 0;
   if (kind === 3) return { rpm: throttle > 0 ? 3800 + 3400 * Math.min(1, frac) : S.idle + 1800 * Math.min(1, frac), shifted };
+  if (kind === 11) return { rpm: 1800 + 9500 * Math.min(1, speed / ((v.model.maxSpeed || 34) * 0.7)), shifted };
   if (kind === 7) return { rpm: 2400 + 42000 * Math.min(1, speed / 10), shifted };
   if (kind === 4) return { rpm: S.idle + (S.red - S.idle) * (throttle !== 0 ? 0.35 + 0.6 * Math.min(1, frac) : frac * 0.4), shifted };
   if (v.speed < -0.2) { st.gear = 0; return { rpm: S.idle + (S.red * 0.7 - S.idle) * clamp(speed / (v.model.maxSpeed * 0.25), 0, 1), shifted }; }
@@ -2343,7 +2348,7 @@ function updateEngineSynth(dt, world) {
   S.rpm = rpm;
 
   // an electric motor is silent standing still and whines up with speed
-  const gain = spec.level * (world.paused ? 0.5 : 1) * (S.kind === 7 ? clamp(speed / 2.5, 0, 1) * (0.6 + 0.4 * (thr > 0 ? 1 : 0)) : 1);
+  const gain = spec.level * (world.paused ? 0.5 : 1) * (S.kind === 7 || S.kind === 11 ? clamp(speed / 2.5, 0, 1) * (0.6 + 0.4 * (thr > 0 ? 1 : 0)) : 1);
   S.gain += (clamp(0.15 + 0.35 * load * rpm / spec.red, 0, 0.5) - S.gain) * Math.min(1, dt * 4);
   const camD = distToListener(v.x, v.y, 0.7);
   const muffle = clamp(16000 / (1 + Math.max(0, camD - 5) / 6), 1200, 16000);
@@ -2361,7 +2366,7 @@ export function engineReadout() {
   if (!S.vehicle) return null;
   const spec = ENGINE_SPECS[S.kind];
   const gb = S.vehicle.gb;
-  const geared = !!gb || (S.kind !== 3 && S.kind !== 4 && S.kind !== 7);
+  const geared = !!gb || (S.kind !== 3 && S.kind !== 4 && S.kind !== 7 && S.kind !== 11);
   const out = { rpm: S.rpm || spec.idle, red: spec.red, gear: geared ? S.gear : -1, reverse: S.vehicle.speed < -0.2, gears: gb ? gb.p.tops.length : geared ? (S.kind === 2 ? BUS_GEAR_TOPS : GEAR_TOPS).length : 0 };
   if (gb) out.gb = gearboxReadout(gb);
   return out;
@@ -2914,7 +2919,7 @@ function updateTrafficAudio(dt, world) {
       placeVoice(voice, v.x, v.y, v.isBoat ? 0.5 : 0.7);
       const d = distToListener(v.x, v.y, 0.7);
       voice.distLp.frequency.setTargetAtTime(clamp(2400 / (1 + d / 10), 250, 2400), t, 0.15);
-      const level = v.isBus ? 0.42 : v.isBoat ? 0.38 : v.isScooter ? (p.kind === 7 ? 0.16 * clamp(Math.abs(v.speed) / 2.5, 0, 1) : 0.18) : 0.28 + p.load * 0.1;
+      const level = v.isBus ? 0.42 : v.isBoat ? 0.38 : v.isScooter ? (p.kind === 7 ? 0.16 * clamp(Math.abs(v.speed) / 2.5, 0, 1) : 0.18) : p.kind === 11 ? 0.12 * clamp(Math.abs(v.speed) / 2.5, 0, 1) : p.kind === 12 ? 0.42 + p.load * 0.12 : 0.28 + p.load * 0.1;
       fadeVoice(voice, level, dt, 3);
       msg.push({ i, kind: p.kind, rpm: p.rpm, load: p.load, gain: voice.level, pitch, snap: p.snap });
     });
