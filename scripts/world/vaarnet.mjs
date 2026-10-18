@@ -137,7 +137,7 @@ export function buildRaster({ worldDir, city = true, fixesOn = !process.argv.inc
   // de verbindingen die een gat in het water dichten (game/vaarnet_fixes.json); met --no-fixes weggelaten
   const fixFile = fixesOn ? JSON.parse(fs.readFileSync(new URL('../../game/vaarnet_fixes.json', import.meta.url))) : { links: [], gaten: [] };
   for (const l of fixFile.links || []) fillPolygon(R, linkPolygon(l), 4 | 32);
-  if (gatenOn) for (const g of [...(fixFile.gaten || []), ...(fixFile.verbindingen || []), ...(fixFile.zee || [])]) fillPolygon(R, gatPolygon(g), g[5] | 32);
+  if (gatenOn) for (const g of [...(fixFile.gaten || []), ...(fixFile.verbindingen || []), ...(fixFile.sluisgaten || []), ...(fixFile.zee || [])]) fillPolygon(R, gatPolygon(g), g[5] | 32);
   // bruggen over water
   const roads = [...P.bridges, ...cityMap.roads.filter((r) => r && r.bridge).map((r) => ({ pts: r.pts, z: null, width: r.width || 4, movable: r.movable || '', name: r.name || '', type: r.type || '', city: true }))];
   for (const b of roads) {
@@ -769,6 +769,8 @@ if (process.argv[1] && process.argv[1].endsWith('vaarnet.mjs')) {
       '  "gaten": [', gaten.map(line).join(',\n'), '  ],',
       '  "verbindingenUitleg": ' + JSON.stringify('verbindingen: kleine stukken water waar een kanaal of vaart in de kaart onderbroken lijkt (hooguit 25 m, [x, y, lengte, breedte, hoek (rad), nav]); gemaakt door scripts/world/vaarnet.mjs --fixes. Nog niet in beeld bekeken.') + ',',
       '  "verbindingen": [', verbindingen.map(line).join(',\n'), '  ],',
+      '  "sluisgatenUitleg": ' + JSON.stringify('sluisgaten: de kolk van een sluis waar de kaart geen water tekent, [x, y, lengte, breedte, hoek (rad), nav]; gemaakt met scripts/world/sluizen.mjs (#236), blijft staan bij --fixes') + ',',
+      '  "sluisgaten": [', (cur.sluisgaten || []).map(line).join(',\n'), '  ],',
       '  "zeeUitleg": ' + JSON.stringify('zee: verbinding en tong zee bij een zeetoegang zonder water aan de zeekant, [x, y, lengte, breedte, hoek (rad), nav, naam]; de tong loopt tot voorbij de omkeerlijn van het eind van de wereld (worldedge.js). Nog niet in beeld bekeken.') + ',',
       '  "zee": [', zee.map(line).join(',\n'), '  ]',
       '}', '',

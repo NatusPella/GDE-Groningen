@@ -12,6 +12,7 @@ import { inPassage } from './collision.js';
 import { elevWallContact } from './elevation.js';
 import { crossingSpeedLimit, loweredBoomsNear, snapBoom } from './railway.js';
 import { bridgeSpeedLimit, loweredBridgeBoomsNear } from './movablebridges.js';
+import { lockGateStop } from './sluizen.js';
 import { zebraSpeedLimit } from './pedroutes.js';
 import { countrySurface, countryRect, rectOutside, countryWeight, edgeDistance } from './countryfield.js';
 import { countryWater } from './countryedge.js';
@@ -469,6 +470,13 @@ export function drivePlayerBoat(v, map, dt, throttle, steer, brake) {
     resolveVehicleBuildingCollision(v, map, dt / n);
     if (!keepBoatOffShore(map, v, sx, sy, sa)) {
       v.speed *= -0.25;
+      v.driftX = 0; v.driftY = 0;
+      return false;
+    }
+    // a lock gate that is shut or swinging is a wall (sluizen.js)
+    if (lockGateStop(v, sx, sy, sa)) {
+      v.x = sx; v.y = sy; v.angle = sa;
+      v.speed *= -0.15;
       v.driftX = 0; v.driftY = 0;
       return false;
     }
@@ -1465,6 +1473,8 @@ export function updateBoatAI(v, dt, map, world, rng = Math.random) {
     v.driftX = 0; v.driftY = 0;
     if (!chasing) { v.waypoint = pickBoatWaypoint(v, rng, map); v.waypointTimer = BOAT_WAYPOINT_MIN; }
   }
+  // a shut lock gate: wait in front of it, the lock opens for a boat that asks (sluizen.js)
+  if (lockGateStop(v, px, py, pa)) { v.x = px; v.y = py; v.angle = pa; v.speed = 0; v.driftX = 0; v.driftY = 0; }
   // hard stop for a barge at a bridge it does not clear (the feelers brake it
   // in time; this catches a turn that swings the hull into the deck)
   if (barge && (v.x !== px || v.y !== py || v.angle !== pa)) {

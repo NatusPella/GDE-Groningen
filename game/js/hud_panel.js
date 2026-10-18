@@ -29,7 +29,8 @@ import { gearboxReadout } from './gearbox.js';
 import { drawRailsOnMap, drawTrainsOnMap } from './railway.js';
 import { drawCountryMinimap, villageLabels, syncMapPhase } from './countrymap.js';
 import { MINI_PALETTE as MINI_STYLE, EMPHASIS, seaStyle, miniRoadStyle } from './mapstyle.js';
-import { drawSea, drawOutside, regionLabels, areaNameAt, REGIONS } from './regions.js';
+import { drawSea, drawOutside, regionLabels, regionEdgeLabels, areaNameAt, REGIONS } from './regions.js';
+import { borderPlaceLabels } from './borderplaces.js';
 import { worldPlaceLabels, worldPlacesReady } from './worldplaces.js';
 import { provinceMapOn } from './provincemap.js';
 import { edgeDistance } from './countryfield.js';
@@ -2053,7 +2054,7 @@ function drawMinimapPois(ctx, world, job, placed, inRange, toScreen, t) {
 // the player has moved a bit), upright over the rotating map; a name just
 // off the map keeps to the rim, towards it.
 const VILLAGE_KINDS = new Set(['town', 'village', 'hamlet', undefined]);
-let villageCache = { x: Infinity, y: Infinity, list: [], regions: [] };
+let villageCache = { x: Infinity, y: Infinity, list: [], regions: [], edge: [], neighbours: [] };
 function drawVillageNames(ctx, player, radius, toScreen) {
   if (Math.hypot(player.x - villageCache.x, player.y - villageCache.y) > 25) {
     const r = radius * 3;
@@ -2061,7 +2062,12 @@ function drawVillageNames(ctx, player, radius, toScreen) {
     const list = own
       ? worldPlaceLabels(player.x - r, player.y - r, player.x + r, player.y + r).filter((v) => v.rank < 5 && (v.rank <= 1 || (v.x - player.x) ** 2 + (v.y - player.y) ** 2 < (radius * 1.5) ** 2))
       : villageLabels(player.x - radius * 1.5, player.y - radius * 1.5, player.x + radius * 1.5, player.y + radius * 1.5).filter((v) => VILLAGE_KINDS.has(v.kind));
-    villageCache = { x: player.x, y: player.y, list, regions: provinceMapOn() ? regionLabels(player.x - radius, player.y - radius, player.x + radius, player.y + radius, 0.1).filter((q) => q.id !== 'groningen') : [] };
+    const regions = provinceMapOn() ? regionLabels(player.x - radius, player.y - radius, player.x + radius, player.y + radius, 0.1).filter((q) => q.id !== 'groningen') : [];
+    // what lies beyond the border or the coast in view (#237): the region's name just outside the line, and a few neighbour villages
+    const named = new Set(regions.map((q) => q.id));
+    const edge = provinceMapOn() ? regionEdgeLabels(player.x - radius * 0.8, player.y - radius * 0.8, player.x + radius * 0.8, player.y + radius * 0.8, radius * 0.2).filter((q) => !named.has(q.id)) : [];
+    const neighbours = provinceMapOn() ? borderPlaceLabels(player.x - radius, player.y - radius, player.x + radius, player.y + radius, [...regions, ...edge].map((q) => [q.x, q.y]), { zoom: 1, max: 3, gap: radius * 0.45 }) : [];
+    villageCache = { x: player.x, y: player.y, list, regions, edge, neighbours };
   }
   const rim = MINIMAP_SIZE / 2 - 20;
   const [cx, cy] = toScreen(player.x, player.y);
@@ -2074,6 +2080,23 @@ function drawVillageNames(ctx, player, radius, toScreen) {
     const [sx, sy] = toScreen(q.x, q.y);
     ctx.fillStyle = q.land ? 'rgba(240, 237, 228, 0.5)' : 'rgba(190, 225, 245, 0.65)';
     ctx.fillText(q.name.toUpperCase().split('').join(' '), sx, sy);
+  }
+  // the names beyond the border and the dimmed neighbour villages, kept inside the frame so nothing is cut off
+  const keep = (name, sx, sy) => {
+    const w = ctx.measureText(name).width;
+    return [Math.max(w / 2 + 6, Math.min(MINIMAP_SIZE - w / 2 - 6, sx)), Math.max(10, Math.min(MINIMAP_SIZE - 10, sy))];
+  };
+  for (const q of villageCache.edge) {
+    const name = q.name.toUpperCase().split('').join(' ');
+    const [sx, sy] = keep(name, ...toScreen(q.x, q.y));
+    ctx.fillStyle = q.land ? 'rgba(240, 237, 228, 0.42)' : 'rgba(190, 225, 245, 0.55)';
+    ctx.fillText(name, sx, sy);
+  }
+  for (const q of villageCache.neighbours) {
+    const name = q.name.toUpperCase();
+    const [sx, sy] = keep(name, ...toScreen(q.x, q.y));
+    ctx.fillStyle = 'rgba(240, 237, 228, 0.36)';
+    ctx.fillText(name, sx, sy);
   }
   ctx.font = "15px 'Bebas Neue', 'Arial Narrow', Arial, sans-serif";
   ctx.lineWidth = 3;

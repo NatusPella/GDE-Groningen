@@ -11,6 +11,7 @@ import { FALLBACK } from './regiondata.js';
 import { MAP_PALETTE, seaStyle } from './mapstyle.js';
 import { worldPlaceAt } from './worldplaces.js';
 import { coastKinds, borderByData } from './worldedge.js';
+import { edgeLabels } from './mapedge.js';
 import { setSeaClearance } from './waterindex.js';
 import { createSeaClearance } from './seawater.js';
 
@@ -38,6 +39,7 @@ export const REGION_ANCHORS = [
   { id: 'dollard', at: [53.29, 7.1] },
 ];
 
+let dataVersion = 0;
 const S = { outline: null, coast: null, islands: [], border: [], sea: null, seaBox: null, outlineBox: null, path: null };
 
 const bboxOf = (P) => {
@@ -108,12 +110,14 @@ export function setRegionData(layer, tileHas = null) {
   S.coast = coast;
   S.islands = islands;
   S.border = border;
+  dataVersion++;
   S.sea = seaPolygon(coast);
   S.seaBox = S.sea ? bboxOf(S.sea) : null;
   S.islandBoxes = islands.map(bboxOf);
   // boats sail the sea where the map has no water row (#233)
   setSeaClearance(S.sea ? createSeaClearance(seaAt, [coast].concat(islands)) : null);
   S.path = null;
+  S.landMask = null;
   // the raw edge layer for worldedge.js / edgeguard.js (the Eems told apart from the Wadden)
   S.edgeLayer = have ? borderByData(coastKinds(layer.edge), tileHas) : null;
 }
@@ -121,12 +125,51 @@ setRegionData(null);
 
 // the raw edge layer ({ coast, border, seaM, airM }) for worldedge.js; null without the province layer
 export const regionEdgeLayer = () => S.edgeLayer || null;
+// counts the data loads, so what is worked out from the regions can be redone (mapedge users)
+export const regionVersion = () => dataVersion;
+
+// Names of the regions beyond the border and the coast, for a window of the map: one per
+// region whose border is in view, `off` m outside it (mapedge.js)
+export const regionEdgeLabels = (x0, y0, x1, y1, off) => edgeLabels({ border: S.border, coast: S.coast }, [x0, y0, x1, y1], regionAt, off);
 export const seaRing = () => S.sea;
 
 export function seaAt(x, y) {
   if (!S.sea || !inRing(x, y, S.sea, S.seaBox)) return false;
   for (let i = 0; i < S.islands.length; i++) if (inRing(x, y, S.islands[i], S.islandBoxes[i])) return false;
   return true;
+}
+
+// Land of the province: inside its outline and not at sea (the islands are land), as a raster of LAND_CELL m built on the
+// first question. The countryside (a hash grid of ditches, fences, farms and trees) is only drawn and placed on it: the
+// map and the 3D world draw no polder over the Wadden Sea, the North Sea, the Eems and Dollard, nor beyond the border (#233).
+const LAND_CELL = 100;
+function fillRing(mask, W, H, x0, y0, ring, value) {
+  let a = Infinity, b = -Infinity;
+  for (const p of ring) { if (p[1] < a) a = p[1]; if (p[1] > b) b = p[1]; }
+  for (let j = Math.max(0, Math.floor((a - y0) / LAND_CELL)); j <= Math.min(H - 1, Math.floor((b - y0) / LAND_CELL)); j++) {
+    const y = y0 + (j + 0.5) * LAND_CELL, xs = [];
+    for (let k = 0, q = ring.length - 1; k < ring.length; q = k++) if ((ring[k][1] > y) !== (ring[q][1] > y)) xs.push(ring[k][0] + ((ring[q][0] - ring[k][0]) * (y - ring[k][1])) / (ring[q][1] - ring[k][1]));
+    xs.sort((m, n) => m - n);
+    for (let t = 0; t + 1 < xs.length; t += 2) for (let i = Math.max(0, Math.ceil((xs[t] - x0) / LAND_CELL - 0.5)); i <= Math.min(W - 1, Math.floor((xs[t + 1] - x0) / LAND_CELL - 0.5)); i++) mask[j * W + i] = value;
+  }
+}
+function buildLandMask() {
+  const B = S.outlineBox;
+  if (!B || !S.outline) return null;
+  const x0 = B[0] - LAND_CELL, y0 = B[1] - LAND_CELL, W = Math.ceil((B[2] - B[0]) / LAND_CELL) + 3, H = Math.ceil((B[3] - B[1]) / LAND_CELL) + 3;
+  const inside = new Uint8Array(W * H), sea = new Uint8Array(W * H), isl = new Uint8Array(W * H);
+  fillRing(inside, W, H, x0, y0, S.outline, 1);
+  if (S.sea) fillRing(sea, W, H, x0, y0, S.sea, 1);
+  for (const r of S.islands) fillRing(isl, W, H, x0, y0, r, 1);
+  const land = new Uint8Array(W * H);
+  for (let k = 0; k < land.length; k++) land[k] = inside[k] && (!sea[k] || isl[k]) ? 1 : 0;
+  return { x0, y0, W, H, land };
+}
+export function provinceLandAt(x, y) {
+  const M = S.landMask || (S.landMask = buildLandMask());
+  if (!M) return true;
+  const i = Math.floor((x - M.x0) / LAND_CELL), j = Math.floor((y - M.y0) / LAND_CELL);
+  return i >= 0 && j >= 0 && i < M.W && j < M.H && M.land[j * M.W + i] === 1;
 }
 
 function landKind(la, lo) {

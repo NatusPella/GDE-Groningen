@@ -1014,7 +1014,7 @@ Alle drie staan op de kaart; de route gaat naar de dichtstbijzijnde. Elke keuze 
 **Verhaal en teksten**
 - Alle cutscènes, leads, telefoontjes en Kiekdoar-berichten volgens dit script. Daarna worden ze ingesproken met de nieuwe stemmen, en dat kost een paar euro.
 - De naamkaarten en de trailer-opening (de intromontage wordt herschreven).
-- "Bel Rikus" vóór elke missie: een kort radiofragment. Dit kan via de bestaande radiostudio en de Nachtstreek-functies (`radiostudio.js`, `playRadioSting`).
+- "Bel Rikus" vóór elke missie: een kort radiofragment. Dit kan via de bestaande radiostudio en de Nachtstreek-functies (`radiostudio.js`).
 - Een korte outro bij herhaling voor elke missie, als klus.
 - Rubrieken op Nachtstreek: de fietstunnel-update, het storingsbericht, de torenwachter en de peiling "Woist ja wel?".
 - Het "Sikkom."-scherm bij een missie die net mislukt.

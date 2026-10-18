@@ -1362,6 +1362,12 @@
     [29755,26805,40.4,8,2.356,2],
     [35145,38265,40.4,8,0.785,2]
   ],
+  "sluisgatenUitleg": "sluisgaten: de kolk van een sluis waar de kaart geen water tekent, [x, y, lengte, breedte, hoek (rad), nav]; gemaakt met scripts/world/sluizen.mjs (#236), blijft staan bij --fixes",
+  "sluisgaten": [
+    [-2937.7,-2888.4,18.5,8,0.28,3],
+    [-2607.5,-2042.5,17,8,0.622,3],
+    [-24849.3,-20669.8,79,11.6,-0.98,3]
+  ],
   "zeeUitleg": "zee: verbinding en tong zee bij een zeetoegang zonder water aan de zeekant, [x, y, lengte, breedte, hoek (rad), nav, naam]; de tong loopt tot voorbij de omkeerlijn van het eind van de wereld (worldedge.js). Nog niet in beeld bekeken.",
   "zee": [
     [23847.5,-12399.8,267.9,40,-0.971,4,"zee eems"],

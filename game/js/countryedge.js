@@ -198,6 +198,9 @@ let extraUse = null;
 export function setExtraUse(fn) { extraUse = fn; }
 export const landUseAt = (x, y) => (extraUse ? extraUse(x, y) : null);
 
+// The land mask of the province (countryfield.js setLandMask / landOk): the hash-grid countryside exists only there (#233).
+export { setLandMask, landOk } from './countryfield.js';
+
 // Is a mapped hedge (OSM barrier=hedge, in the tiles) within r of a point? The countryside's own hedges keep off it: the data wins
 // where it speaks, the hash only where it is silent (#124).
 let extraHedge = null;
