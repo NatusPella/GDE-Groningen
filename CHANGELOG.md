@@ -6,6 +6,9 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Nieuw
+- **Meer leven op straat:** skateboarders rollen door de studentenwijken en het centrum. Een kennismakingsweek-groepje (Dispuut De Gulle Gans) loopt met pluche ganzen door de stad. Wijken hebben nu ook eigen kleding en tassen voor voetgangers. Er zijn meer bezorgers op de fiets, een vierde keten (Pakkie Pronto) en bezorgers te voet met een grote tas.
+
 ## [0.35.0] - 2026-10-18
 
 ### Nieuw
