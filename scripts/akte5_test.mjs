@@ -75,7 +75,7 @@ for (const s of akte5) for (const id of s.scenes) ok(played.has(id), `${s.id}: s
 const fin = byLabel('Ontzet, net als in 1672');
 ok(fin.stages.map((q) => q.kind).join() === 'bake,hold,board,chase,scene,scene,choice,scene,scene,scene', 'the finale runs in order');
 ok(fin.stages.find((q) => q.kind === 'chase').keep === true, 'the limo is not adopted as a mission car');
-ok(byLabel('Een luik erin').stages.filter((q) => q.mud).length === 2, 'the mud is two stages');
+ok(byLabel('Een luik erin').stages.filter((q) => q.mud).length === 4, 'the mud is a slalom of two stages, the drive in and the wait for the tractor');
 ok(fresh.every((d) => d.heroCar), 'the new defs use the Escapade');
 
 // the finale card (story.js playFinale) is the epilogue and the studio of the script, word for word
