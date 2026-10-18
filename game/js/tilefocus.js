@@ -14,13 +14,22 @@
 
 // 80 m: a wide shot keeps full detail at its far side, not only at the lens
 export const LOOK_MAX = 80;
+export const FOCUS_CAP = 300;
 export const MAX_SPEED = 80;
 export const CUT_M = 150;
+
+// an aerial shot (eye high above the ground) sees further than a street shot: its reach grows with the height
+function aerialReach(o) {
+  const z = o.position.z;
+  return Number.isFinite(z) ? Math.min(FOCUS_CAP, Math.max(LOOK_MAX, z)) : LOOK_MAX;
+}
 
 export function cameraFocus(o) {
   if (!o || !o.position || !o.lookAt) return null;
   const ex = o.position.x, ey = o.position.y, dx = o.lookAt.x - ex, dy = o.lookAt.y - ey;
-  const d = Math.hypot(dx, dy), k = d > LOOK_MAX ? LOOK_MAX / d : 1;
+  // a shot can set its own reach (o.focusDist, a close-up needs less, a wide aerial more)
+  const max = Number.isFinite(o.focusDist) && o.focusDist > 0 ? Math.min(o.focusDist, FOCUS_CAP) : aerialReach(o);
+  const d = Math.hypot(dx, dy), k = d > max ? max / d : 1;
   const x = ex + dx * k, y = ey + dy * k;
   return Number.isFinite(x) && Number.isFinite(y) ? { x, y } : null;
 }
