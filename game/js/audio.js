@@ -11,7 +11,7 @@ import { initFoley, updateFoley, propHit, foleyStats } from './sfx/foley.js';
 import { initUiSfx, uiWorldInit, updateUiSfx, uiDomEvent, isUiGestureTarget } from './sfx/ui.js';
 import { updateSkySfx } from './sfx/sky.js';
 import { createScenarioDirector, loopPoints } from './scenariomusic.js';
-import { normalizeTrack, pickTrack, pushHistory, pickJingle, STATION_NAME } from './musicpick.js';
+import { MIN_TRACK_S, normalizeTrack, pickTrack, pushHistory, pickJingle, STATION_NAME } from './musicpick.js';
 import { SYNTH_TRACKS, synthRecords, renderTrack, toWav } from './synthmusic.js';
 import { createMusicWatch } from './musicwatch.js';
 import * as speech from './speech.js';
@@ -1723,6 +1723,13 @@ export function trackArtist(title) {
 function wireGmusicEl(el) {
   try { ctx.createMediaElementSource(el).connect(musicBus); } catch (e) { /* ignore */ }
   el.addEventListener('ended', onGmusicEnded);
+  // a stub or silent file is no record: never picked again, and if it is the current one, on to the next
+  el.addEventListener('loadedmetadata', () => {
+    if (el.gmusicTrack && Number.isFinite(el.duration) && el.duration < MIN_TRACK_S) {
+      el.gmusicBad = true;
+      if (el === gmusicCurrentEl && !inBreak) advanceGmusicQueue();
+    }
+  });
   el.addEventListener('playing', onGmusicPlaying);
   return el;
 }
@@ -1757,7 +1764,8 @@ function randomAmbientJingleEl(chance = 1) {
 
 // the next record from the programme's pool
 function nextTrackEl() {
-  const t = pickTrack(gmusicTracks.map((el) => el.gmusicTrack), gmusicHistory, { station: radioProg.music, hour: musicHour });
+  const good = gmusicTracks.filter((x) => !x.gmusicBad);
+  const t = pickTrack((good.length ? good : gmusicTracks).map((el) => el.gmusicTrack), gmusicHistory, { station: radioProg.music, hour: musicHour });
   const el = gmusicTracks.find((x) => x.gmusicTrack === t) || gmusicTracks[0];
   pushHistory(gmusicHistory, el.gmusicTrack.id);
   try { localStorage.setItem(GMUSIC_HISTORY_KEY, JSON.stringify(gmusicHistory)); } catch (e) { /* private mode */ }

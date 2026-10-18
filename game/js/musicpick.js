@@ -22,9 +22,15 @@ export const MIN_POOL = 6;
 const BORROWED = 0.35;
 const HISTORY_MAX = 60;
 
+// a record that is no music: a silence / empty placeholder never reaches the pool
+export const NOT_MUSIC = /(^|[^a-z])(stilte|silence|silent|leeg|empty|blank|placeholder)([^a-z]|$)/i;
+// a record shorter than this (seconds) is a stub, not a song; jingles are exempt
+export const MIN_TRACK_S = 20;
+export const isRealTrack = (t) => !!t && !NOT_MUSIC.test(t.file + ' ' + (t.title || ''));
+
 export function normalizeTrack(entry) {
   const e = typeof entry === 'string' ? { file: entry } : entry && typeof entry === 'object' ? entry : null;
-  if (!e || typeof e.file !== 'string' || !e.file) return null;
+  if (!e || typeof e.file !== 'string' || !e.file || NOT_MUSIC.test(e.file + ' ' + (typeof e.title === 'string' ? e.title : ''))) return null;
   const stations = Array.isArray(e.stations) ? e.stations.filter((s) => MUSIC_STATIONS.includes(s)) : [];
   const w = Number(e.weight);
   return {

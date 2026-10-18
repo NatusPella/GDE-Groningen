@@ -74,5 +74,9 @@ ok(M.pickTrack([], [], { station: 'gmusic' }) === null, 'empty pool answers null
 const one = [files[0]];
 ok(M.pickTrack(one, [one[0].id], { station: 'gmusic' }) === one[0], 'a single record repeats rather than silence');
 
+// silence / empty items never enter the pool
+ok(M.normalizeTrack('Stilte.mp3') === null && M.normalizeTrack({ file: 'x.mp3', title: 'Even stilte' }) === null && M.normalizeTrack('silence_30s.mp3') === null && M.normalizeTrack('leeg.mp3') === null, 'silence items are dropped');
+ok(M.normalizeTrack('Stilteloos_dansen.mp3') !== null && M.normalizeTrack('Staal_op_staal.mp3') !== null, 'real titles survive');
+ok(S.synthRecords().every((r) => M.isRealTrack(r)), 'synth records are real tracks');
 console.log(`${n} checks, ${fails} failed`);
 process.exit(fails ? 1 : 0);
