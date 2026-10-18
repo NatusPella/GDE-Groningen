@@ -132,5 +132,3 @@ export const HENGELEN = standActivity({
     quit: () => { if (!game) return false; end(w, { quit: true }); return true; },
   }),
 });
-export const HENGEL_MEDALS = MEDAL_AT;
-export const HENGEL_SECONDS = HENGEL.duration;
