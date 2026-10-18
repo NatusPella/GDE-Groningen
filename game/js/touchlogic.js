@@ -55,7 +55,7 @@ export function stickKeys(vec, held = new Set()) {
 }
 
 const LABELS = {
-  ' ': { foot: 'Spring', minigame: 'Spring', vehicle: 'Handrem', vehicleManual: 'Handrem', skutsje: 'Handrem', heli: 'Omhoog', pigeon: 'Vlieg', train: 'Fluit', foodtruck: 'OK' },
+  ' ': { foot: 'Spring', minigame: 'Spring', vehicle: 'Handrem', vehicleManual: 'Handrem', skutsje: 'Handrem', heli: 'Omhoog', pigeon: 'Vlieg', train: 'Fluit', foodtruck: 'OK', klokken: 'Start' },
   control: { heli: 'Omlaag', pigeon: 'Pikken', foot: 'Bukken', minigame: 'Bukken' },
   e: 'Gebruik', f: 'Instappen', h: 'Toeter', l: 'Sirene', q: 'Achterom', n: 'Radio', m: 'Kaart', o: 'Overslaan', k: 'Kusje',
   shift: 'Rennen', tab: 'Doel', c: 'Koer', x: 'Mens', v: 'Film', r: 'Lak', z: 'Zeil vieren', '[': 'Links', ']': 'Rechts', p: 'Alarm',
@@ -109,6 +109,7 @@ export function touchContext(w, { started = true, menuOpen = false, shiftMode = 
   if (w.pigeonMode) return 'pigeon';
   if (w.trainDriving) return 'train';
   if (w.challenge && w.challenge.id === 'fjord') return 'foodtruck';
+  if (w.activityGame === 'carillon') return 'klokken';
   if (playerBusy(w, ['padel', 'activityGame']).busy) return 'minigame';
   const v = w.player && w.player.inVehicle;
   if (v) return v.isHeli ? 'heli' : w.noLookBack ? 'skutsje' : v.gb && shiftMode !== 'auto' ? 'vehicleManual' : 'vehicle';
