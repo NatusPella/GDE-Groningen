@@ -95,6 +95,8 @@ ok(turnText({ dist: 10, dir: 'linksaf' }) === 'Nu linksaf', 'close: Nu');
 // travel modes and access
 ok(A.travelModeOf({ player: {} }) === 'lopen', 'on foot');
 ok(A.travelModeOf({ player: { inVehicle: { isBike: true } } }) === 'fiets' && A.travelModeOf({ player: { inVehicle: { isBoat: true } } }) === 'boot' && A.travelModeOf({ player: { inVehicle: { isHeli: true } } }) === 'lucht' && A.travelModeOf({ player: { inVehicle: {} } }) === 'auto', 'bike, boat, heli, car');
+ok(A.travelModeOf({ player: { inVehicle: { isScooter: true, model: {} } } }) === 'fiets', 'e-step is fiets');
+ok(A.travelModeOf({ player: { inVehicle: { isScooter: true, model: { moped: true } } } }) === 'auto' && A.travelModeOf({ player: { inVehicle: { isScooter: true, model: { motorbike: true } } } }) === 'auto', 'brommer en motor blijven auto');
 ok(A.travelModeOf({ player: {}, trainDriving: true }) === 'ov', 'train is OV');
 ok(A.roadAllowed({ type: 'trunk', cat: 'major' }, 'lopen') === false && A.roadAllowed({ type: 'trunk', cat: 'major' }, 'fiets') === false && A.roadAllowed({ type: 'trunk', cat: 'major' }, 'auto') === true, 'no walking or cycling on a trunk road');
 ok(A.roadAllowed({ type: 'footway', cat: 'foot' }, 'auto') === false && A.roadAllowed({ type: 'cycleway', cat: 'cycle' }, 'auto') === false && A.roadAllowed({ type: 'cycleway', cat: 'cycle' }, 'fiets') === true, 'no cars on cycleways and footways');
