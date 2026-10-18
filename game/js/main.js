@@ -311,6 +311,7 @@ async function boot() {
   const tiles = FLAGS.legacymap ? null : await loadTileWorld('world/', { onProgress: onMapProgress, extra });
   const corridor = !!tiles;
   if (tiles && FLAGS.terrain) tiles.world.terrainOn = true;
+  if (tiles && FLAGS.viaducten) tiles.world.streamProfiles = true;
   const layers = (tiles && tiles.index.layers) || {};
   const corLayer = (layers.provincie && layers.provincie.global ? layers.provincie : null) || layers.corridor;
   if (corLayer && corLayer.global) setWorldPlaces(corLayer.global.places);

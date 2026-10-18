@@ -56,7 +56,7 @@ function storyTest() {
 // --- 2. Spelbot (verhaal of minigames) ---
 function botRun(name, extra) {
   const dir = path.join(RUN, name);
-  const r = spawnSync(process.execPath, [path.join(ROOT, 'scripts', 'bot', 'run.mjs'), `--out=${dir}`, `--seed=${arg('seed', 1)}`, ...extra], { stdio: 'inherit' });
+  const r = spawnSync(process.execPath, [path.join(ROOT, 'scripts', 'bot', 'run.mjs'), `--out=${dir}`, `--seed=${arg('seed', 1)}`, ...(flag('force') ? ['--force'] : []), ...extra], { stdio: 'inherit' });
   if (r.status === 3) { console.error('Er draait al een Electron; gestopt.'); process.exit(3); }
   if (!fs.existsSync(path.join(dir, 'events.jsonl'))) return { name, dir, findings: [{ fp: `leeg:${name}`, kind: 'run', severity: 'bug', step: name, title: `De ${name}-run leverde niets op (exit ${r.status})`, detail: '' }], metrics: {} };
   const a = analyseRun(dir, { base: path.join(BASE, `vorige-${name}`) });

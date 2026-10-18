@@ -1,0 +1,1307 @@
+{
+  "_uitleg": "Prestatie-ID van het spel naar de API-naam in Steamworks (Stats & Achievements). Leeg tot er een app-id is; vul steamApiNaam in zoals je hem in Steamworks aanmaakt (hoofdletters, cijfers en _, tot 128 tekens). Gegenereerd door steam/make-steam-files.mjs.",
+  "prestaties": [
+    {
+      "id": "m1_klaar",
+      "titel": "Berend telt de krassen",
+      "omschrijving": "Klaar missie 1",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "m1_goud",
+      "titel": "Berend telt de krassen: goud",
+      "omschrijving": "Goud: binnen 0:55, weinig schade, hooguit 1 ster",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "m1_extra",
+      "titel": "Geen schampje",
+      "omschrijving": "Lever Berends bakkie af zonder ook maar één tikje",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "m2_klaar",
+      "titel": "Iets met de Grote Markt",
+      "omschrijving": "Klaar missie 2",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "m2_goud",
+      "titel": "Iets met de Grote Markt: goud",
+      "omschrijving": "Goud: binnen 0:28, weinig schade",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "m2_extra",
+      "titel": "Kijkcijferrecord",
+      "omschrijving": "Haal de uitzending binnen 20 seconden: Jelmer breekt alle records",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "m3_klaar",
+      "titel": "Wind tegen, beide kanten op",
+      "omschrijving": "Klaar missie 3",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "m3_goud",
+      "titel": "Wind tegen, beide kanten op: goud",
+      "omschrijving": "Goud: binnen 4:08, weinig schade, hooguit 1 ster",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "m3_extra",
+      "titel": "Achterlichten",
+      "omschrijving": "Win de KEI-weekrace met minstens een minuut voorsprong op de klok",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "m4_klaar",
+      "titel": "Heel aankomen is ook een kunst",
+      "omschrijving": "Klaar missie 4",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "m4_goud",
+      "titel": "Heel aankomen is ook een kunst: goud",
+      "omschrijving": "Goud: binnen 1:55, weinig schade, hooguit 1 ster",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "m4_extra",
+      "titel": "Decor in één stuk",
+      "omschrijving": "Bezorg het Noorderzon-decor zonder één harde klap",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "m5_klaar",
+      "titel": "Ring Zuid, laatste fase",
+      "omschrijving": "Klaar missie 5",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "m5_goud",
+      "titel": "Ring Zuid, laatste fase: goud",
+      "omschrijving": "Goud: win de race als eerste",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "m5_extra",
+      "titel": "Netjes ingehaald",
+      "omschrijving": "Win de ringweg-race zonder een rivaal te raken",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "m6_klaar",
+      "titel": "Nog eentje dan",
+      "omschrijving": "Klaar missie 6",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "m6_goud",
+      "titel": "Nog eentje dan: goud",
+      "omschrijving": "Goud: binnen 1:50, weinig schade, zonder politie",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "m6_extra",
+      "titel": "Laatste ronde",
+      "omschrijving": "Haal alle vier de kroegen met nog een volle minuut op de klok",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "m7_klaar",
+      "titel": "Fatbikes tellen niet als fiets",
+      "omschrijving": "Klaar missie 7",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "m7_goud",
+      "titel": "Fatbikes tellen niet als fiets: goud",
+      "omschrijving": "Goud: binnen 1:50, weinig schade, zonder politie",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "m7_extra",
+      "titel": "Geen bandafdruk",
+      "omschrijving": "Kom van de Grote Markt tot de Noorderhaven zonder één keer geschept te worden",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "m8_klaar",
+      "titel": "Alles klopt, behalve de papieren",
+      "omschrijving": "Klaar missie 8",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "m8_goud",
+      "titel": "Alles klopt, behalve de papieren: goud",
+      "omschrijving": "Goud: binnen 11:00, toeristen minstens 80% tevreden, zonder politie",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "m8_extra",
+      "titel": "Glad water",
+      "omschrijving": "Vaar de hele Diepenring rond zonder één tik: geen kade, geen woonboot, en ontwijk elke ramkoers van Wiebe",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "alle_missies",
+      "titel": "Grunn is van jou",
+      "omschrijving": "Klaar alle acht missies",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "alle_zilver",
+      "titel": "Zilveren Stadjer",
+      "omschrijving": "Minstens zilver op elke missie",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "alle_goud",
+      "titel": "Gouden Eierbal",
+      "omschrijving": "Goud op alle acht missies",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "snel_100",
+      "titel": "Honderd op de teller",
+      "omschrijving": "Rij 100 km/u",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "snel_140",
+      "titel": "Harder dan de flitspaal kan tellen",
+      "omschrijving": "Rij 140 km/u",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "rijden_25",
+      "titel": "Rondje Grunn",
+      "omschrijving": "Rij in totaal 25 km",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "bijna_10",
+      "titel": "Scheer-rijder",
+      "omschrijving": "10 keer rakelings langs een ander voertuig",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "bijna_50",
+      "titel": "Zijspiegels ingeklapt",
+      "omschrijving": "50 keer rakelings langs een ander voertuig",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "wrakken_25",
+      "titel": "Sloopkampioen",
+      "omschrijving": "Schrijf 25 voertuigen af",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "gejat_10",
+      "titel": "Even lenen",
+      "omschrijving": "Jat 10 voertuigen",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "gejat_50",
+      "titel": "Autohandel Ome Stadjer",
+      "omschrijving": "Jat 50 voertuigen",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "bus",
+      "titel": "Lijn 5 rijdt vandaag anders",
+      "omschrijving": "Jat een stadsbus",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "alle_typen",
+      "titel": "Van fiets tot rondvaartboot",
+      "omschrijving": "Rij in elk soort voertuig: auto, bus, fiets, fatbike, scooter, boot en politieauto",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "politieauto",
+      "titel": "Zwaailicht erop",
+      "omschrijving": "Kaap een politieauto",
+      "verborgen": true,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "drift_1",
+      "titel": "Eerste slip",
+      "omschrijving": "Rond een driftrun af op een rotonde",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "drift_10",
+      "titel": "Rubber op de rotonde",
+      "omschrijving": "Rond 10 driftruns af",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "drift_goud",
+      "titel": "Koning van de rotonde",
+      "omschrijving": "Haal goud in een driftzone",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "geflitst",
+      "titel": "Smile!",
+      "omschrijving": "Word geflitst",
+      "verborgen": true,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "lopen_5",
+      "titel": "Wandelen op de Diepenring",
+      "omschrijving": "Loop in totaal 5 km",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "zwemmen",
+      "titel": "Kanaalzwemmer",
+      "omschrijving": "Zwem in totaal 250 meter",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "kade_klim",
+      "titel": "Kadeklimmer",
+      "omschrijving": "Klim uit de Diepenring de kade op",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "ster_3",
+      "titel": "Bekend bij de politie",
+      "omschrijving": "Haal drie sterren",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "ster_5",
+      "titel": "Heel Grunn zoekt je",
+      "omschrijving": "Haal vijf sterren",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "ontsnapt_5",
+      "titel": "Foetsie",
+      "omschrijving": "Raak de politie kwijt na vijf sterren",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "gezocht_3m",
+      "titel": "Kat en muis",
+      "omschrijving": "Blijf drie minuten achter elkaar gezocht",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "opgepakt",
+      "titel": "Even brommen",
+      "omschrijving": "Word opgepakt",
+      "verborgen": true,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "wasted",
+      "titel": "Even plat",
+      "omschrijving": "Ga een keer neer",
+      "verborgen": true,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "wijken_10",
+      "titel": "Stadjer in wording",
+      "omschrijving": "Ontdek 10 wijken",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "wijken_33",
+      "titel": "Halve Stadjer",
+      "omschrijving": "Ontdek 33 wijken",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "wijken_alle",
+      "titel": "Kenner van Grunn",
+      "omschrijving": "Ontdek alle 66 wijken",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "landmarks",
+      "titel": "Toerist in eigen stad",
+      "omschrijving": "Bezoek alle 14 bezienswaardigheden",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "ommelanden",
+      "titel": "Ommelander",
+      "omschrijving": "Trek de stad uit, De Ommelanden in",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "umcg_heli",
+      "titel": "Traumaduif",
+      "omschrijving": "Land op het helidek van het UMCG",
+      "verborgen": true,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "ballonjacht",
+      "titel": "Ballonjacht",
+      "omschrijving": "Haal met de traumaheli een heteluchtballon in",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "ballonjacht_goud",
+      "titel": "Gouden rotor",
+      "omschrijving": "Haal goud bij de ballonjacht",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "eigen_vleugels",
+      "titel": "Eigen vleugels",
+      "omschrijving": "Stijg op met je eigen helikopter",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "helidak",
+      "titel": "Thuis op het dak",
+      "omschrijving": "Parkeer je heli op het helidek van jullie flat",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "weiland",
+      "titel": "Boer zoekt landing",
+      "omschrijving": "Land je heli in een weiland in De Ommelanden",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "padel_klaar",
+      "titel": "Glazen kooi",
+      "omschrijving": "Speel een potje padel",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "padel_winst",
+      "titel": "Tegen het glas",
+      "omschrijving": "Win een potje padel",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "padel_goud",
+      "titel": "Padelkoning van Grunn",
+      "omschrijving": "Win een potje padel met 2-0",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "carbid_klaar",
+      "titel": "Knal in de polder",
+      "omschrijving": "Schiet carbid bij boer Roelf",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "carbid_goud",
+      "titel": "Carbidknaller",
+      "omschrijving": "Haal goud bij het carbid schieten",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "botsauto_klaar",
+      "titel": "Kermisklant",
+      "omschrijving": "Rij een ritje in de botsauto's op de Grote Markt",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "botsauto_goud",
+      "titel": "Koning van de kermis",
+      "omschrijving": "Haal goud in de botsauto's",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "discgolf_klaar",
+      "titel": "Disc in de mand",
+      "omschrijving": "Speel een ronde discgolf in het Stadspark",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "discgolf_goud",
+      "titel": "Onder par in het park",
+      "omschrijving": "Haal goud bij discgolf",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "discgolf_ace",
+      "titel": "Ace in het Stadspark",
+      "omschrijving": "Gooi een hole in één bij discgolf",
+      "verborgen": true,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "putt_klaar",
+      "titel": "Korte gras",
+      "omschrijving": "Speel zes holes pitch & putt",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "putt_goud",
+      "titel": "Groene vingers",
+      "omschrijving": "Haal goud bij pitch & putt",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "skate_klaar",
+      "titel": "Vier wielen en een plank",
+      "omschrijving": "Skate een ronde in het Stadspark",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "skate_goud",
+      "titel": "Koning van het skatepark",
+      "omschrijving": "Haal goud in het skatepark",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "skate_combo",
+      "titel": "Keten van toeren",
+      "omschrijving": "Sla een keten van 2.000 punten op in het skatepark",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "kart_klaar",
+      "titel": "Ronde na ronde",
+      "omschrijving": "Rij drie ronden op de kartbaan in Ulrum",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "kart_goud",
+      "titel": "Eerst over de streep",
+      "omschrijving": "Win de race op de kartbaan",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "kart_snel",
+      "titel": "Snelle ronde",
+      "omschrijving": "Rijd een ronde van 31,5 seconden of sneller",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "zwem_klaar",
+      "titel": "Baantjes trekken",
+      "omschrijving": "Zwem honderd meter in Zwembad Het Natte Papier",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "zwem_goud",
+      "titel": "Snelste van het bad",
+      "omschrijving": "Haal goud in het zwembad",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "zwem_keer",
+      "titel": "Keerpunt als een profi",
+      "omschrijving": "Draai drie keer perfect om aan de muur",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "klim_klaar",
+      "titel": "Naar de top",
+      "omschrijving": "Klim naar de top van de klimtoren op Zernike",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "klim_goud",
+      "titel": "Koning van de klimtoren",
+      "omschrijving": "Haal goud op de klimtoren",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "klim_foutloos",
+      "titel": "Niet één keer gevallen",
+      "omschrijving": "Klim de toren zonder te vallen",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "ski_klaar",
+      "titel": "Achter de boot",
+      "omschrijving": "Skie een ronde bij het Grunopark",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "ski_goud",
+      "titel": "Koning van het meer",
+      "omschrijving": "Haal goud bij het waterskiën",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "carillon_klaar",
+      "titel": "Klokkenspeler",
+      "omschrijving": "Speel een deuntje op de klokken van de Martinitoren",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "carillon_goud",
+      "titel": "Stadsbeiaardier",
+      "omschrijving": "Haal goud op het klokkenspel",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "snackketen_eerste",
+      "titel": "Eigen snackbar",
+      "omschrijving": "Koop je eerste Kroketkoning-snackbar",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "snackketen_keten",
+      "titel": "Een keten",
+      "omschrijving": "Bezit drie snackbars van Kroketkoning",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "snackketen_rijk",
+      "titel": "Kroketkoning-rijk",
+      "omschrijving": "Twaalf vestigingen, drie vlaggenschepen",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "pannenkoek_klaar",
+      "titel": "Kok aan boord",
+      "omschrijving": "Bak een dienst op het pannenkoekenschip",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "pannenkoek_goud",
+      "titel": "Kok van het schip",
+      "omschrijving": "Haal goud op het pannenkoekenschip",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "hengel_klaar",
+      "titel": "Aan de waterkant",
+      "omschrijving": "Hengel een ronde aan het meer in Meerstad",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "hengel_karper",
+      "titel": "De dikke karper",
+      "omschrijving": "Vang een karper",
+      "verborgen": true,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "wandel_klaar",
+      "titel": "Pieterpadganger",
+      "omschrijving": "Loop alle stempelposten bij Winsum af",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "wandel_goud",
+      "titel": "Snelste wandelaar",
+      "omschrijving": "Haal goud op de wandeling bij Winsum",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "discgolf_achterkant",
+      "titel": "Andersom",
+      "omschrijving": "Speel de achterkant van de discgolfbaan",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "discgolf_achttien",
+      "titel": "Heen en terug",
+      "omschrijving": "Speel alle achttien holes discgolf",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "discgolf_dichtbij_goud",
+      "titel": "Recht op de mand",
+      "omschrijving": "Haal goud bij discgolf dichtbij",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "ski_sprong",
+      "titel": "Hoog en schoon",
+      "omschrijving": "Land een sprong met een draai en een grab",
+      "verborgen": true,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "geheimen_alle",
+      "titel": "Stadjer met geheimen",
+      "omschrijving": "Vind alle 8 geheimpjes van Grunn in één spel",
+      "verborgen": true,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "streek_verzameld",
+      "titel": "Streekverzamelaar",
+      "omschrijving": "Vind alle vierentwintig streekvondsten van de provincie",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "streek_geheimen",
+      "titel": "Kenner van de streek",
+      "omschrijving": "Vind het geheim van elke streek in de provincie",
+      "verborgen": true,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "zonsopgang",
+      "titel": "Vroege vogel",
+      "omschrijving": "Zie de zon opkomen boven Grunn",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "wereldeinde_1",
+      "titel": "Rand van de kaart",
+      "omschrijving": "Vind een plek waar een weg van het Ommeland ophoudt",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "wereldeinde_alle",
+      "titel": "Einde van de wereld",
+      "omschrijving": "Vind alle 12 plekken waar de wegen van het Ommeland ophouden",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "dorpen_alle",
+      "titel": "Ommelander in hart en nieren",
+      "omschrijving": "Doe in elk van de 8 dorpen langs het spoor waar je daar voor komt",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "bruggen_klaar",
+      "titel": "Elf bruggen",
+      "omschrijving": "Vaar de Elf Bruggenrace tegen Jelle uit",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "bruggen_goud",
+      "titel": "Brêgekening",
+      "omschrijving": "Goud bij de Elf Bruggenrace",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "fierljep_klaar",
+      "titel": "Polsstokhoogte",
+      "omschrijving": "Land een sprong bij het fierljep-duel",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "fierljep_goud",
+      "titel": "Fierljepkening",
+      "omschrijving": "Goud bij het fierljep-duel",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "skutsje_klaar",
+      "titel": "Wind in de zeilen",
+      "omschrijving": "Zeil de skûtsje-sprint tegen Jelle uit",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "skutsje_goud",
+      "titel": "Skûtsjekening",
+      "omschrijving": "Goud bij de skûtsje-sprint",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "jelle_alles",
+      "titel": "Better as ús",
+      "omschrijving": "Versla Jelle in alle drie de uitdagingen",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "fjord_klaar",
+      "titel": "Luik open",
+      "omschrijving": "Draai een dienst met de Fjord Frituur",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "fjord_goud",
+      "titel": "Kon minder",
+      "omschrijving": "Goud in een dienst van de Fjord Frituur",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "koe_klaar",
+      "titel": "Geertje is thuis",
+      "omschrijving": "Breng de prijskoe van Ome Jan terug naar zijn boerderij",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "koe_goud",
+      "titel": "Koeienfluisteraar",
+      "omschrijving": "Goud bij De Koe van Ome Jan",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "fjord_1000",
+      "titel": "Frituurbaron",
+      "omschrijving": "Verdien €1000 met de Fjord Frituur",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "trein_stations",
+      "titel": "Alle haltes af",
+      "omschrijving": "Stap uit op 5 verschillende stations of haltes",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "trein_dorp",
+      "titel": "Dorpsstation",
+      "omschrijving": "Reis met de trein naar een dorpshalte",
+      "verborgen": true,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "treinen",
+      "titel": "Treinspotter",
+      "omschrijving": "Zie alle soorten treinen: stoptrein, sprinter en intercity",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "trein_race",
+      "titel": "Sneller dan de sprinter",
+      "omschrijving": "Rij een rijdende trein voorbij",
+      "verborgen": true,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "trein_1",
+      "titel": "Instappen, deuren sluiten",
+      "omschrijving": "Reis met de trein naar een ander station",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "forens",
+      "titel": "Forens",
+      "omschrijving": "Reis 10 keer met de trein",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "overweg",
+      "titel": "Netjes gewacht",
+      "omschrijving": "Wacht keurig voor een dichte overweg tot de trein voorbij is",
+      "verborgen": true,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "storm",
+      "titel": "Code Rood",
+      "omschrijving": "Rij een halve minuut door een storm",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "onweer",
+      "titel": "Donder en bliksem",
+      "omschrijving": "Maak een onweersbui mee",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "kusje_1",
+      "titel": "Moi schat",
+      "omschrijving": "Geef Tammo of Tessa een kusje",
+      "verborgen": true,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "kusje_25",
+      "titel": "Tortelduifjes",
+      "omschrijving": "Geef 25 kusjes",
+      "verborgen": true,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "horeca_5",
+      "titel": "Kroegtijger",
+      "omschrijving": "Eet of drink iets bij 5 verschillende zaken",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "horeca_25",
+      "titel": "Bitterbal-sommelier",
+      "omschrijving": "Eet of drink iets bij 25 verschillende zaken",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "rijk",
+      "titel": "Groninger koopman",
+      "omschrijving": "Heb €10.000 op zak",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "koop_1",
+      "titel": "Klant is koning",
+      "omschrijving": "Koop iets in een winkel",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "koop_10",
+      "titel": "Winkelverslaafde",
+      "omschrijving": "Doe 10 aankopen",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "ingericht",
+      "titel": "Helemaal ingericht",
+      "omschrijving": "Zet alle EIKEA-meubels in jullie flat",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "schroefje",
+      "titel": "Eén schroefje te weinig",
+      "omschrijving": "Zet de Buukenkaas zelf in elkaar",
+      "verborgen": true,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "spaarkaart",
+      "titel": "Stempeltje erbij",
+      "omschrijving": "Lever een volle spaarkaart in bij Rook & Geluk",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "uitgaven",
+      "titel": "Geld moet rollen",
+      "omschrijving": "Geef in winkels in totaal €2.500 uit",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "eierbal_1",
+      "titel": "Eerste eierbal",
+      "omschrijving": "Vind een verstopte eierbal",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "eierbal_15",
+      "titel": "Halve portie",
+      "omschrijving": "Vind 15 van de 30 eierballen",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "eierbal_alle",
+      "titel": "Eierbalkoning",
+      "omschrijving": "Vind alle 30 eierballen in één spel",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "dorpseierbal_alle",
+      "titel": "Eierballen van het Ommeland",
+      "omschrijving": "Vind de verstopte eierbal in elk van de 8 dorpen langs het spoor",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "duif_martini",
+      "titel": "Hoogste duif van Grunn",
+      "omschrijving": "Land boven op de Martinitoren",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "duif_forum",
+      "titel": "Uitzicht vanaf het Forum",
+      "omschrijving": "Land op het dak van het Forum",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "duif_station",
+      "titel": "Stationsduif",
+      "omschrijving": "Land op het Hoofdstation",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "duif_aakerk",
+      "titel": "Kerkduif",
+      "omschrijving": "Land op de Der Aa-kerk",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "duif_bus",
+      "titel": "Zwartrijder",
+      "omschrijving": "Lift mee op een bus",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "duif_boot",
+      "titel": "Grachtenduif",
+      "omschrijving": "Vaar mee op een boot",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "duif_auto",
+      "titel": "Liftduif",
+      "omschrijving": "Rij mee op een auto",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "duif_loft",
+      "titel": "Thuis bij de duivenmelker",
+      "omschrijving": "Vind het hok van duivenmelker Harm",
+      "verborgen": true,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "duif_meeuw",
+      "titel": "Meeuw te slim af",
+      "omschrijving": "Laat een meeuw met lege snavel achter",
+      "verborgen": true,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "sj_eerste",
+      "titel": "Eerste loonstrookje",
+      "omschrijving": "Rond een klus af bij een bijbaantje",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "sj_50",
+      "titel": "Harde werker",
+      "omschrijving": "Rond 50 klussen af bij bijbaantjes",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "sj_alle",
+      "titel": "Duizendpoot",
+      "omschrijving": "Rond bij alle zes bijbaantjes een klus af",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "sj_geld",
+      "titel": "Eerlijk verdiend",
+      "omschrijving": "Verdien in totaal €5.000 met bijbaantjes",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "sj_bezorger",
+      "titel": "Nog warm!",
+      "omschrijving": "Bezorg 8 bestellingen op rij in één dienst",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "sj_taxi",
+      "titel": "Moi, waar mag het heen?",
+      "omschrijving": "Rijd 6 taxiritten op rij in één dienst",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "sj_bus",
+      "titel": "Keurig op tijd",
+      "omschrijving": "Rijd een hele buslijn zonder één keer te laat te zijn",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "sj_rondvaart",
+      "titel": "Links ziet u...",
+      "omschrijving": "Vaar een rondvaart zonder één stukje uitleg te missen",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "sj_fietsdepot",
+      "titel": "Stationsplein leeg",
+      "omschrijving": "Ruim 5 rondes foutgeparkeerde fietsen op in één dienst",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "sj_verhuizing",
+      "titel": "Niks gebroken",
+      "omschrijving": "Verhuis een student zonder dat er iets sneuvelt",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "sj_legende",
+      "titel": "Legende van Grunn",
+      "omschrijving": "Haal niveau 5 bij een bijbaantje",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "sj_kots",
+      "titel": "Kotszakje vergeten",
+      "omschrijving": "Een student kotst je taxi onder",
+      "verborgen": true,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "coop_uur",
+      "titel": "Samen is beter",
+      "omschrijving": "Speel een uur online samen met een tweede speler",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "reuzenrad_1",
+      "titel": "Boven de kermis",
+      "omschrijving": "Draai een ronde mee in het reuzenrad",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "reuzenrad_5",
+      "titel": "Rad van avontuur",
+      "omschrijving": "Draai vijf keer mee in het reuzenrad",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "botsauto_10",
+      "titel": "Kermisvaste",
+      "omschrijving": "Rij tien ritjes in de botsauto's",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "kart_5",
+      "titel": "Kartvaste",
+      "omschrijving": "Rij vijf kartraces op de baan in Ulrum",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "drift_5",
+      "titel": "Dwars door de bocht",
+      "omschrijving": "Rond vijf driftruns af",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "padel_10",
+      "titel": "Padelvaste",
+      "omschrijving": "Speel tien potjes padel",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "varen_5",
+      "titel": "Zeebenen",
+      "omschrijving": "Vaar in totaal 5 km over het water",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "varen_25",
+      "titel": "Kapitein van de Diepenring",
+      "omschrijving": "Vaar in totaal 25 km over het water",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "ster_5_lang",
+      "titel": "Op de vlucht",
+      "omschrijving": "Blijf tien minuten achter elkaar gezocht",
+      "verborgen": true,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "reizen_25",
+      "titel": "Vaste klant op het spoor",
+      "omschrijving": "Reis 25 keer met de trein",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "slapen_5",
+      "titel": "Goed uitgerust",
+      "omschrijving": "Slaap vijf keer in je eigen bed",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "hengel_5",
+      "titel": "Geduldige visser",
+      "omschrijving": "Hengel vijf rondes in Meerstad",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "skate_10",
+      "titel": "Skatepark-vaste",
+      "omschrijving": "Skate tien rondes in het Stadspark",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "drift_5000",
+      "titel": "Rookwolk",
+      "omschrijving": "Haal 5000 punten in één driftronde",
+      "verborgen": true,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "trein_meerijden_5",
+      "titel": "Raampje open",
+      "omschrijving": "Kijk vijf treinritten helemaal uit zonder over te slaan",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "oefenronde_klaar",
+      "titel": "Eerst oefenen",
+      "omschrijving": "Rond de oefenronde in het menu af",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "opnieuw_3",
+      "titel": "Nog een keertje",
+      "omschrijving": "Begin na een mislukte missie drie keer opnieuw met Enter",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
+      "id": "heli_10",
+      "titel": "Piloot van Grunn",
+      "omschrijving": "Maak tien helikoptervluchten",
+      "verborgen": false,
+      "steamApiNaam": ""
+    }
+  ]
+}
