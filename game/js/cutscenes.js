@@ -31,7 +31,9 @@ export const OPENING = {
     fiets1: { kind: 'fiets', at: [-30, -4.2, 0], face: 0 },
     fiets2: { kind: 'fiets', at: [-34, -3.4, 0], face: 0 },
     duif: { kind: 'duif', at: [-20, 8, 8], face: 0 },
+    duif2: { kind: 'duif', at: [14, 7, 7], face: 180, hidden: true },
   },
+
   cues: [
     // the trailer: two cyclists and a gull cross the street
     { t: 0, prop: 'fiets1', path: [[-30, -4.2], [900, -4.2]], speed: 5 },
@@ -76,11 +78,20 @@ export const OPENING = {
     { t: 'L22', actor: 'tessa', anim: 'shrug' },
     { t: 'L23', actor: 'tammo', anim: 'nod' },
     { t: 'L24', actor: 'tessa', anim: 'talk' },
+    // her phone buzzes (C00.2): a glance, then 'Kom. Werk.'
+    { t: 'L24+1.3', actor: 'tessa', anim: 'phone' },
+    { t: 'L24+1.3', actor: 'tammo', face: 'actor:tessa' },
     // "Kom. Werk.": the matras goes on the roof, Tammo takes the suitcase
     { t: 'L25', actor: 'tessa', drop: 'tekening' },
     { t: 'L25', actor: 'tessa', walk: [[5, 1.2]], speed: 1.8 },
     { t: 'L25+1', actor: 'tammo', walk: [[5.2, -2.3]], speed: 1.7 },
     { t: 'L26', prop: 'matras', show: true },
+    { t: 'L26', prop: 'matras', bob: 0.16 },
+    { t: 'L26', prop: 'escapade', bob: 0.05 },
+    { t: 'L26+0.9', prop: 'matras', bob: 0 },
+    { t: 'L26+0.9', prop: 'escapade', bob: 0 },
+    { t: 'L27', prop: 'duif2', show: true },
+    { t: 'L27', prop: 'duif2', path: [[14, 7, 7], [8, 3, 5], [3, -4, 4], [-12, -10, 12]], speed: 5.5 },
     { t: 'L26', actor: 'tessa', face: 'prop:escapade' },
     { t: 'L26', actor: 'tessa', anim: 'cheer' },
     { t: 'L26+0.6', actor: 'tammo', carry: 'koffer' },
@@ -107,13 +118,15 @@ export const OPENING = {
     { t: 'L11', shot: 'cut', at: [7.6, 0.2, 1.4], look: 'speaker', fov: 32 },
     { t: 'L13', shot: 'cut', at: [-2.4, 3.2, 1.5], look: 'speaker', fov: 28 },
     { t: 'L14', shot: 'orbit', target: 'mid:tammo,tessa', radius: 5.5, start: 60, sweep: -50, h0: 1.7, h1: 2.4, look: 'speaker', fov: 38 },
+    { t: 'L16', shot: 'dolly', from: [1.2, -0.4, 1.35], to: [1.35, -0.9, 1.3], look: 'tekening@0.1', fov: 28 },
     { t: 'L17', shot: 'dolly', from: [3.4, -1.4, 1.6], to: [2.7, -0.9, 1.5], look: 'speaker', fov: 30 },
     { t: 'L19', shot: 'dolly', from: [-1.6, 0.4, 1.5], to: [-0.9, 0.2, 1.45], look: 'speaker', fov: 30 },
     { t: 'L21', shot: 'dolly', from: [-4, 2, 1.3], to: [-1, 1.6, 1.5], look: 'mid:tammo,tessa@1.3', fov: 36 },
     { t: 'L24', shot: 'dolly', from: [3.6, -1.6, 1.6], to: [2.8, -1.1, 1.55], look: 'speaker', fov: 30 },
     // moving day: out to the car, then away down the street
+    { t: 'L24+1.3', shot: 'cut', at: [1.2, 0.2, 1.5], look: 'tessa@1.35', fov: 24 },
     { t: 'L25', shot: 'follow', target: 'tessa', dist: 3.6, side: -0.8, h: 1.6, fov: 44 },
-    { t: 'L26', shot: 'orbit', target: 'escapade', radius: 7.5, start: 250, sweep: -70, h0: 1.3, h1: 3.4, fov: 42 },
+    { t: 'L26', shot: 'orbit', target: 'escapade', radius: 7.5, start: 250, sweep: -70, h0: 0.7, h1: 3.4, fov: 40, shake: 0.04 },
     { t: 'L28', shot: 'dolly', from: [3.4, -5.8, 1.5], to: [4.6, -4.6, 1.6], look: 'speaker', fov: 32 },
     { t: 'L30', shot: 'dolly', from: [4, 2, 1.6], to: [10, 4.5, 4.6], look: 'tessa', fov: 42 },
   ],
