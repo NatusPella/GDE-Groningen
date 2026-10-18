@@ -1,11 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2048 1152" width="2048" height="1152">
-<defs><radialGradient id="bg" cx="50%" cy="40%" r="80%"><stop offset="0" stop-color="#17301f"/><stop offset="1" stop-color="#0c140e"/></radialGradient></defs>
-<rect width="2048" height="1152" fill="url(#bg)"/>
-<circle cx="1880" cy="220" r="100" fill="#e8c93a" opacity="0.9"/>
-<rect x="0" y="980" width="2048" height="172" fill="#0f5c30"/><rect x="0" y="1070" width="2048" height="82" fill="#1e9e56"/>
-<g transform="translate(300,870) scale(0.9)"><g fill="#0c140e"><rect x="-60" y="-10" width="120" height="260"/><rect x="-46" y="-120" width="92" height="115"/><polygon points="-52,-120 0,-330 52,-120"/><rect x="-5" y="-380" width="10" height="55"/><rect x="-34" y="-70" width="16" height="40" fill="#3fc97a"/><rect x="18" y="-70" width="16" height="40" fill="#3fc97a"/></g></g>
-<!-- veilige zone 1546x423, midden: x 251..1797, y 364..788 -->
-<text x="1024" y="580" text-anchor="middle" font-family="'Bebas Neue','Arial Narrow',Arial,sans-serif" font-size="230" textLength="1400" lengthAdjust="spacingAndGlyphs" fill="#3fc97a">GDE GRONINGEN</text>
-<text x="1024" y="680" text-anchor="middle" font-family="'Bebas Neue','Arial Narrow',Arial,sans-serif" font-size="90" letter-spacing="4" fill="#f0ede4">Zomer vol misdaad</text>
-<text x="1024" y="760" text-anchor="middle" font-family="'Bebas Neue','Arial Narrow',Arial,sans-serif" font-size="60" letter-spacing="3" fill="#f0ede4" opacity="0.85">Heel Groningen. Voor één eierbal.</text>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 2048 1152" width="2048" height="1152">
+<!-- Spelrender van Grunn met het echte logo (zie DESIGN_SYSTEM.md "Beeldstijl"); de bron is docs/youtube/beelden/banner.jpg. Logo en tekst staan in de veilige zone. -->
+<image href="../beelden/banner.jpg" xlink:href="../beelden/banner.jpg" width="2048" height="1152" preserveAspectRatio="xMidYMid slice"/>
 </svg>

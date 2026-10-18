@@ -11,7 +11,7 @@ import { hudDate } from './hudcalendar.js';
 import { streamPending } from './scene3d.js';
 import { placeLabel } from './hud_panel.js';
 import { LANDMARK_LINES } from './placelines.js';
-import { sceneSvg, sceneFor } from './loadscene.js';
+import { pictureHtml } from './loadscene.js';
 import { JUMP_M as JM, loadKind, stepProgress, startProgress, litTiles, pickTips, buildLines, TILE_COUNT, LINE_S } from './loadlogic.js';
 
 const CITY_IMAGES = ['vismarkt', 'luchtfoto', 'rondvaart', 'duif'];
@@ -54,10 +54,6 @@ function ensureCss() {
   link.rel = 'stylesheet';
   link.href = new URL('./loadscreen.css', import.meta.url).href;
   document.head.appendChild(link);
-  const scene = document.createElement('link');
-  scene.rel = 'stylesheet';
-  scene.href = new URL('./loadscene.css', import.meta.url).href;
-  document.head.appendChild(scene);
 }
 
 // opts: { kind: 'save' | 'travel' | 'snel', x, y, name, instant, from }
@@ -88,7 +84,7 @@ export function startLoadScreen(world, opts = {}) {
   el.setAttribute('role', 'progressbar');
   el.setAttribute('aria-label', 'Laden');
   el.innerHTML =
-    sceneSvg(sceneFor(img)) +
+    pictureHtml(img) +
     '<div class="ls-shade"></div><div class="ls-foot-shade"></div>' +
     '<div class="ls-stage">' +
       '<div class="ls-brand"><div class="gde-logo" aria-hidden="true"><span class="gde-mark">GDE</span><span class="gde-sign">Groningen</span><span class="gde-sub">Zomer vol misdaad</span></div></div>' +
