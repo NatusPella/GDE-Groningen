@@ -49,6 +49,10 @@ const SPOTS = [
   water('w124-eemshaven', off(place('Eemshaven'), 0, -1500), 3000),
   water('w124-lauwersmeer', off(place('Zoutkamp'), -3000, -2500), 3500),
   water('w124-westerkwartier', place('Leek'), 2000),
+  // #189: wegdek-overgangen op de kartbaan Ulrum
+  { name: 'u189-kartbaan', type: 'kart', issue: 189, x: -15101, y: -15598 },
+  // #188: het laadscherm
+  { name: 'l188-laadscherm', type: 'loadscreen', issue: 188, ...gm },
   // #130: kruisingen, op- en afritten, samenkomende rijstroken
   { name: 'k130-stad', type: 'junction', issue: 130, ...gm, R: 400, n: 3 },
   { name: 'k130-haren', type: 'junction', issue: 130, ...place('Haren', 'town'), R: 500, n: 2 },
