@@ -2,7 +2,7 @@
 // ways of getting to the next step. Thin DOM layer; the text and the keys come
 // from reisview.js. askTravel(beat) resolves with 'meerijden' | 'zelf' | 'overslaan'.
 import { createChoicePanel } from './choicepanel.js';
-import { panelState, pickFromKey, TRAVEL_HELP_ID } from './reisview.js';
+import { panelState, pickFromKey, cyclePick, TRAVEL_HELP_ID } from './reisview.js';
 import { markSeen, parseSeen } from './hudtext.js';
 import { KEYS } from './storagekeys.js';
 import { travelOptions } from './reiskeuze.js';
@@ -32,6 +32,7 @@ export function askTravel(beat) {
   return new Promise((resolve) => {
     const finish = (id) => {
       document.removeEventListener('keydown', onKey, true);
+      cancelAnimationFrame(raf);
       p.root.removeEventListener('pointerdown', onTap);
       p.root.style.pointerEvents = '';
       p.hide();
@@ -51,6 +52,21 @@ export function askTravel(beat) {
       else if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); finish(pick); }
     };
     document.addEventListener('keydown', onKey, true);
+    // gamepad: d-pad up/down picks, A confirms (a button already down on opening does nothing)
+    let raf = 0;
+    const held = { up: true, down: true, a: true };
+    const poll = () => {
+      raf = requestAnimationFrame(poll);
+      let pad = null;
+      try { pad = (navigator.getGamepads ? [...navigator.getGamepads()] : []).find((g) => g && g.connected); } catch (e) { /* none */ }
+      if (!pad) return;
+      const now = { up: pad.buttons[12]?.pressed || (pad.axes[1] || 0) < -0.6, down: pad.buttons[13]?.pressed || (pad.axes[1] || 0) > 0.6, a: pad.buttons[0]?.pressed };
+      if (now.up && !held.up) { pick = cyclePick(beat, pick, -1); p.set(panelState(beat, pick, loadSeen())); }
+      if (now.down && !held.down) { pick = cyclePick(beat, pick, 1); p.set(panelState(beat, pick, loadSeen())); }
+      if (now.a && !held.a) { finish(pick); return; }
+      held.up = !!now.up; held.down = !!now.down; held.a = !!now.a;
+    };
+    raf = requestAnimationFrame(poll);
     p.root.style.pointerEvents = 'auto';
     p.root.addEventListener('pointerdown', onTap);
     open = { finish };
