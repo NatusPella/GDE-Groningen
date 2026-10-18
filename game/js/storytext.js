@@ -11,6 +11,7 @@
 //   talkLines(id)              lines for storytalk.js, the subtitle talk that runs during a mission
 //   radioContacts(step, at)    Radio Nachtstreek fragments for storycontact.js (anchor at 'start' or 'after' a step)
 //   appTexts(id)               the silent app texts of a scene
+//   appSchedule()/appsAt(step, at)   the silent app texts and the step they arrive on
 //   banterExchanges()          banter.js exchanges (the autogesprekken)
 //   readingTime(text)          how long a line is up when nothing is played
 // Pure apart from the fetch of the data; Node tests call setStoryData().
@@ -139,26 +140,45 @@ export function appTexts(id) {
   return sc ? sc.lines.filter((l) => l.channel === 'app-stil') : [];
 }
 
-// An app scene's texts normally all arrive after the step it hangs on; some are spread over the steps
-// they are about: scene id -> per line [step, 'start' | 'after'] (A1.1: the Loket, Sjoerd's podium, Henk's tracker).
+// The silent app texts reach the player on the step they are about. Two sources:
+//  - app-stil lines inside a mission scene (Mem's texts in M07.3, M10.4, M11.6, M16.6, M18.4, M21.2, Tammo's in T1):
+//    on the scene's own step, after it (EMBEDDED_AT: 'start' where the text opens the step);
+//  - the app scenes (A1.1-A5.2, anchored after a step): normally all after that step, but spread over the steps
+//    they are about with APP_SCHEDULE: scene id -> per line [step, 'start' | 'after'].
+// An app line whose text is already delivered from a mission scene is dropped, so nothing arrives twice.
+const EMBEDDED_AT = { 'M21.2': 'start' };
 const APP_SCHEDULE = {
-  'A1.1': [['M03', 'start'], ['M03', 'after'], ['M05', 'start'], ['M06', 'start'], ['M03', 'start']],
+  'A1.1': [['M02', 'after'], ['M03', 'after'], ['M05', 'start'], ['M06', 'start'], ['M03', 'start']],
+  'A2.1': [['M07', 'after'], ['M10', 'after'], ['M11', 'after'], ['M11', 'after'], ['M08', 'start']],
+  'A3.1': [['M15', 'after'], ['M15', 'after'], ['M16', 'after'], ['M16', 'after'], ['M16', 'after']],
+  'A4.1': [['M19', 'after'], ['M19', 'after'], ['M19', 'after'], ['M19', 'after']],
 };
 const NAMES = { TESSA: 'Tessa', TAMMO: 'Tammo', MEM: 'Mem', RIKUS: 'Rikus', JELLE: 'Jelle', SJOERD: 'Sjoerd', SJABBE: 'Sjabbe', HENK: 'Henk', BEREND: 'Berend' };
 
-// The silent app texts due at `step` ('start' or 'after'): [{ from: 'Tessa', text }]. Never read aloud.
-export function appsAt(step, at) {
+// Every silent app text of the script with the step and moment it is due: [{ step, at, from, text }]
+export function appSchedule() {
   if (!data) return [];
   const out = [];
+  const embedded = new Set();
+  for (const s of data.scenes) {
+    if (s.kind === 'app') continue;
+    for (const l of s.lines) if (l.channel === 'app-stil' && s.step) { embedded.add(l.text); out.push({ step: s.step, at: EMBEDDED_AT[s.id] || 'after', from: NAMES[l.from] || l.from, text: l.text }); }
+  }
   for (const s of data.scenes) {
     if (s.kind !== 'app') continue;
     s.lines.filter((l) => l.channel === 'app-stil').forEach((l, k) => {
+      if (embedded.has(l.text)) return;
       const sched = APP_SCHEDULE[s.id];
       const [st, when] = sched ? sched[k] || [] : [s.anchor && s.anchor.step, s.anchor && s.anchor.at];
-      if (st === step && when === at) out.push({ from: NAMES[l.from] || l.from, text: l.text });
+      if (st && when) out.push({ step: st, at: when, from: NAMES[l.from] || l.from, text: l.text });
     });
   }
   return out;
+}
+
+// The silent app texts due at `step` ('start' or 'after'): [{ from: 'Tessa', text }]. Never read aloud.
+export function appsAt(step, at) {
+  return appSchedule().filter((a) => a.step === step && a.at === at).map((a) => ({ from: a.from, text: a.text }));
 }
 
 // --- banter -----------------------------------------------------------------------------------------
