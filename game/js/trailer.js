@@ -6,6 +6,7 @@ import { getScene, prewarmStreamAt } from './scene3d.js';
 import { speakerHtml } from './speakers.js';
 import { getSettings, QUALITY_PRESETS, withTempSettings } from './settings.js';
 import { PRESET_ORDER, GFX_PRESETS, currentPreset, describePreset, presetLabel, applyPreset, setBenchResult } from './gfxprofile.js';
+import { BENCH_ROUTE, BENCH_CATEGORIES, frameStats, categoryStats, weakestCategory, recommendProfile, profileWord, compareRuns, compareText, packRun, readLastRun, writeLastRun } from './benchstats.js';
 import { refreshDayNight } from './daynight.js';
 import { makeActor, stage, seat } from './intromontage.js';
 import { makeBirds, scatterBirds, updateBirds } from './birds.js';
@@ -173,15 +174,25 @@ const CSS = `
 #trailer .tr-skip.holding { color: #f0ede4; }
 #trailer .tr-fps { right: 2.2vw; bottom: 1.6vh; font: 13px 'Arial Narrow', Arial, sans-serif; letter-spacing: 1.5px; color: rgba(240, 237, 228, 0.55); display: none; }
 #trailer.bench .tr-fps { display: block; }
+#trailer .tr-cancel { display: none; left: 3vw; bottom: calc(var(--bar) * 0.5); transform: translateY(50%); align-items: center; gap: 8px; font: 16px 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.3px; color: rgba(240, 237, 228, 0.92); text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8); }
+#trailer.bench .tr-cancel { display: flex; }
+#trailer .tr-cancel .key { display: inline-flex; align-items: center; justify-content: center; height: 22px; padding: 0 8px; background: linear-gradient(180deg, #ffffff, #d9d6cc); border: 1px solid rgba(0, 0, 0, 0.4); border-bottom: 2px solid rgba(0, 0, 0, 0.55); border-radius: 4px; color: #1a1d18; font: 12px 'Bebas Neue', 'Arial Narrow', sans-serif; letter-spacing: 1px; }
 #trailer-result { position: fixed; inset: 0; z-index: 30; display: flex; align-items: center; justify-content: center; background: rgba(4, 8, 6, 0.55); font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; color: #f0ede4; animation: tr-res-in 0.35s ease both; }
 #trailer-result[hidden] { display: none; }
 @keyframes tr-res-in { from { opacity: 0; } to { opacity: 1; } }
 #trailer-result .tr-res { width: min(520px, calc(100vw - 32px)); background: rgba(8, 14, 10, 0.88); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); border: 1px solid rgba(63, 201, 122, 0.4); border-radius: 6px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5); padding: 22px 26px 20px; box-sizing: border-box; }
 #trailer-result h2 { margin: 0; font-size: 38px; letter-spacing: 2px; font-weight: normal; color: #3fc97a; }
 #trailer-result .tr-meta { margin: 2px 0 14px; font: 14px 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.3px; color: rgba(240, 237, 228, 0.65); }
-#trailer-result .tr-nums { display: flex; gap: 34px; margin-bottom: 12px; }
+#trailer-result .tr-nums { display: flex; flex-wrap: wrap; gap: 14px 30px; margin-bottom: 12px; }
 #trailer-result .tr-nums div { display: flex; flex-direction: column; }
 #trailer-result .tr-nums b { font-size: 56px; line-height: 1; font-weight: normal; }
+#trailer-result .tr-nums b small { font-size: 20px; color: rgba(240, 237, 228, 0.7); }
+#trailer-result .tr-cmp { color: rgba(240, 237, 228, 0.8); }
+#trailer-result .tr-cmp.sneller { color: #3fc97a; } #trailer-result .tr-cmp.trager { color: #e8a24a; }
+#trailer-result .tr-cats { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 4px; }
+#trailer-result .tr-cats span { display: flex; flex-direction: column; min-width: 84px; padding: 5px 9px; border: 1px solid rgba(240, 237, 228, 0.18); border-radius: 4px; font: 12px 'Arial Narrow', Arial, sans-serif; letter-spacing: 1px; text-transform: uppercase; color: rgba(240, 237, 228, 0.7); }
+#trailer-result .tr-cats span.weak { border-color: #e8a24a; }
+#trailer-result .tr-cats b { font: 20px 'Bebas Neue', 'Arial Narrow', sans-serif; letter-spacing: 1px; color: #f0ede4; }
 #trailer-result .tr-nums span { font: 13px 'Arial Narrow', Arial, sans-serif; letter-spacing: 1px; color: rgba(240, 237, 228, 0.7); text-transform: uppercase; }
 #trailer-result p { margin: 6px 0; font: 16px/1.4 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.2px; }
 #trailer-result .tr-advice { color: #f0ede4; border-left: 3px solid #3fc97a; padding-left: 10px; margin-top: 12px; }
@@ -216,6 +227,7 @@ function ensureUi() {
     '<div class="tr-freeze"></div><div class="tr-card"></div><div class="tr-name"></div><div class="tr-sub"></div><div class="tr-bar top"></div><div class="tr-bar bottom"></div>' +
     '<div class="tr-skip"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle class="fill" cx="12" cy="12" r="10"/></svg>' +
     '<span>Houd</span><span class="key">SPATIE</span><span>ingedrukt om over te slaan</span></div>' +
+    '<div class="tr-cancel"><span class="key">ESC</span><span>Benchmark stoppen</span></div>' +
     '<div class="tr-fps"></div>';
   document.body.appendChild(root);
   const q = (s) => root.querySelector(s);
@@ -616,6 +628,9 @@ const CUT_ORDER = {
     ['hudHeli', 2.4], ['hudChase', 2.2], ['gH18', 2.2], ['kermis', 2.2], ['gTwins', 1.8], ['ommeland', 2.4], ['hudJob', 2.2],
     ['hudPhone', 2.4], ['timelapse', 2.2], ['storm', 1.8], ['vismarkt', 2.2], ['aerial', 2.4], ['logo', 4.0]],
 };
+
+// The benchmark route (benchstats.js): the same shots on every run.
+CUT_ORDER.bench = BENCH_ROUTE.map(([id, d]) => [id, d]);
 
 // Shot fields: label (benchmark results), cuts ('vol' and/or 'kort';
 // verhaal and gameplay take theirs from CUT_ORDER), dur (seconds in the full
@@ -1931,7 +1946,7 @@ function enterShot(r, i) {
     forceWeather(w, s.weather);
   }
   if (s.enter) { try { s.enter(r, r.state); } catch (e) { console.error('trailer enter', s.label, e && e.stack); } }
-  r.stats[i] = r.stats[i] || { label: s.label, ms: [] };
+  r.stats[i] = r.stats[i] || { label: s.label, id: s.id, ms: [] };
 }
 
 // ?benchmark: one line per shot with its fps, draw calls and GPU memory
@@ -2081,7 +2096,9 @@ function computeStats(r) {
   shots.sort((a, b) => a.fps - b.fps);
   const min = all.reduce((a, b) => a + b, 0) / 60000;
   const spikes = [50, 100, 200].map((ms) => +(all.filter((x) => x > ms).length / Math.max(min, 1e-6)).toFixed(1));
-  return { avg: 1000 / mean, low: 1000 / worst, heaviest: shots[0] || null, frames: all.length, shots, spikes };
+  const fs = frameStats(all);
+  const heap = typeof performance !== 'undefined' && performance.memory ? performance.memory.usedJSHeapSize / 1048576 : 0;
+  return { avg: 1000 / mean, low: 1000 / worst, low1: fs.low1, p95: fs.p95, cats: categoryStats(r.stats.filter(Boolean)), memory: heap, heaviest: shots[0] || null, frames: all.length, shots, spikes };
 }
 
 // runTrailer(world, { mode, cut, shot, frames, env: { tick, render, relocate } })
@@ -2296,7 +2313,7 @@ export function runTrailer(world, { mode = 'opname', cut = 'vol', shot = null, f
 // fps is the full run's average times its measured speed-up on those shots.
 export async function runBenchmarkSuite(world, env) {
   const cur = currentPreset();
-  const res = await runTrailer(world, { mode: 'benchmark', cut: 'vol', env });
+  const res = await runTrailer(world, { mode: 'benchmark', cut: BENCH_RUNS ? 'vol' : 'bench', env });
   if (res.aborted || !res.stats || BENCH_RUNS) return res;
   const probe = res.stats.shots.slice(0, 2);
   const fps = {};
@@ -2307,7 +2324,7 @@ export async function runBenchmarkSuite(world, env) {
     let ratio = 0, n = 0, aborted = false;
     try {
       for (const s of probe) {
-        const r = await runTrailer(world, { mode: 'benchmark', cut: 'vol', shot: s.idx + 1, env, label: presetLabel(name) });
+        const r = await runTrailer(world, { mode: 'benchmark', cut: 'bench', shot: s.idx + 1, env, label: presetLabel(name) });
         if (r.aborted) { aborted = true; break; }
         if (r.stats) { ratio += r.stats.avg / s.fps; n++; }
       }
@@ -2360,19 +2377,15 @@ export function fadeOutTrailer(handOff, atBlack = null) {
 
 // --- benchmark results ----------------------------------------------------------------
 
-// One recommended preset (gfxprofile.js) that sets everything at once.
+// One recommended preset (gfxprofile.js, advice in benchstats.js) that sets everything at once.
 function advise(stats) {
   const st = getSettings();
   const cur = currentPreset(st);
-  const i = PRESET_ORDER.indexOf(cur || st.quality);
-  const rec = (name, why) => ({ text: `${why} Aanbevolen: <b>${presetLabel(name)}</b>`, what: describePreset(name), apply: name });
-  if (stats.avg < 40 || stats.low < 22) {
-    if (i > 0) return rec(PRESET_ORDER[i - 1], 'Grunn hapert hier en daar.');
-    if (cur !== 'laag') return rec('laag', 'Grunn hapert hier en daar.');
-    return { text: 'Alles staat al zo licht mogelijk. Sluit andere programma’s en tabbladen voor wat extra lucht.', apply: null };
-  }
-  if (stats.avg >= 75 && stats.low >= 45 && i < PRESET_ORDER.length - 1) return rec(PRESET_ORDER[i + 1], 'Er is ruimte over.');
-  return { text: `${cur ? `Stand ${presetLabel(cur)}` : 'Je eigen instellingen'} draait prima. ${cur === 'hoog' ? 'Genieten maar.' : 'Niks aan veranderen.'}`, apply: null };
+  const rec = recommendProfile(stats, cur);
+  const word = profileWord(rec.profile);
+  const lead = rec.change === 'up' ? 'Er is ruimte over.' : rec.change === 'down' ? 'Grunn hapert hier en daar.' : '';
+  const apply = rec.change !== 'same' || (!cur && rec.profile) ? rec.profile : null;
+  return { text: `${lead ? lead + ' ' : ''}Aanbevolen: <b>${word}</b>`, what: `${rec.text} ${describePreset(rec.profile)}.`, apply, same: rec.change === 'same' && !!cur };
 }
 
 let resultEl = null;
@@ -2380,11 +2393,11 @@ let resultEl = null;
 // Shows the results card; resolves with 'again' or 'back'.
 export function showBenchmarkResults(res) {
   const stats = res && res.stats;
-  // a player's run: the result goes to Instellingen > Beeld (gfxprofile.js)
-  if (!BENCH_RUNS) {
-    setBenchResult(stats, res.preset, res.presetFps || {});
-    return Promise.resolve('settings');
-  }
+  // the result also waits in Instellingen > Beeld (gfxprofile.js)
+  if (!BENCH_RUNS) setBenchResult(stats, res.preset, res.presetFps || {});
+  const prev = stats && !BENCH_RUNS ? readLastRun() : null;
+  const diff = stats ? compareRuns(prev, stats) : null;
+  if (stats && !BENCH_RUNS) writeLastRun(packRun({ stats, cats: stats.cats, preset: res.preset, memory: stats.memory }));
   if (!resultEl) {
     resultEl = document.createElement('div');
     resultEl.id = 'trailer-result';
@@ -2406,12 +2419,14 @@ export function showBenchmarkResults(res) {
   resultEl.innerHTML = `<div class="tr-res">
     <h2 id="tr-res-title">Benchmark</h2>
     <div class="tr-meta">${meta}</div>
-    ${stats ? `<div class="tr-nums"><div><b>${r(stats.avg)}</b><span>fps gemiddeld</span></div><div><b>${r(stats.low)}</b><span>1%-low</span></div></div>
-    ${stats.heaviest ? `<p>Zwaarste shot: ${stats.heaviest.label}: ${r(stats.heaviest.fps)} fps</p>` : ''}` : ''}
+    ${stats ? `<div class="tr-nums"><div><b>${r(stats.avg)}</b><span>fps gemiddeld</span></div><div><b>${r(stats.p95)}<small> ms</small></b><span>p95-frametijd</span></div><div><b>${r(stats.low1)}</b><span>laagste 1%</span></div>${stats.memory > 0 ? `<div><b>${r(stats.memory)}<small> MB</small></b><span>geheugen</span></div>` : ''}</div>
+    <p class="tr-cmp ${diff ? diff.verdict : ''}">${compareText(diff)}</p>
+    ${Object.keys(stats.cats).length ? `<div class="tr-cats">${Object.entries(stats.cats).map(([c, v]) => `<span class="${c === weakestCategory(stats.cats) && stats.cats[c].avg < 60 ? 'weak' : ''}">${BENCH_CATEGORIES[c]}<b>${r(v.avg)} fps</b></span>`).join('')}</div>` : ''}` : ''}
     <p class="tr-advice">${adv.text}${adv.what ? `<small>${adv.what}</small>` : ''}</p>
     <div class="tr-actions">
       <button type="button" class="primary" data-act="apply"${adv.apply ? '' : ' hidden'}>Toepassen</button>
       <button type="button" data-act="again">Nog een keer</button>
+      <button type="button" data-act="settings">Instellingen</button>
       <button type="button"${adv.apply ? '' : ' class="primary"'} data-act="back">Terug</button>
     </div></div>`;
   resultEl.hidden = false;
@@ -2430,7 +2445,7 @@ export function showBenchmarkResults(res) {
         resultEl.querySelector('.tr-advice').textContent = 'Toegepast. Draai de benchmark nog een keer om het verschil te zien.';
         btn.hidden = true;
         buttons()[0].focus({ preventScroll: true });
-      } else if (a === 'again' || a === 'back') close(a);
+      } else if (a === 'again' || a === 'back' || a === 'settings') close(a);
     };
     const onClick = (e) => {
       const b = e.target.closest('button[data-act]');
