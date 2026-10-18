@@ -40,12 +40,12 @@ import { setGhostBar, ring, pop } from './motion.js';
 import { renderSnapshot, PORTRAIT_ANGLE } from './vehiclepreview.js';
 import { TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { initPrompts, updatePrompts, hintCount } from './prompts.js';
-import { hudPixelRatio, sizeSquareCanvas } from './uiscale.js';
+import { hudPixelRatio, sizeSquareCanvas, getUiScale, onUiScaleChange } from './uiscale.js';
 import { initCards, updateCards } from './hudcards.js';
 import { markerColors, onPaletteChange } from './a11y.js';
 import { drawMissionGlyph } from './missionicons.js';
 import { decideHud, zones, hudNow, P3, PLACE_SHOW, E_SHOW, DEFER_MAX, GPS_NEAR } from './hudrules.js';
-import { vehicleKind, speedoLook, meterLevel } from './hudlook.js';
+import { vehicleKind, speedoLook, meterLevel, hudEdge, distanceOwner, vehicleLabelOwner } from './hudlook.js';
 import { nextTurn, turnText, etaText } from './hudgps.js';
 import { travelModeOf, roadAllowed, minimapScale, northUp, MINIMAP_MODE } from './roadaccess.js';
 import { hudDate } from './hudcalendar.js';
@@ -301,8 +301,15 @@ export function initHud(world) {
     vis: {},
   };
   initPrompts(root);
+  fitEdge(root);
+  onUiScaleChange(() => fitEdge(root));
   watchRightStack(root, topRight, race);
   watchInput();
+}
+
+// The HUD's margin to the screen edge: title-safe on a TV, tight on 720p (hudlook.js)
+function fitEdge(root) {
+  root.style.setProperty('--hud-edge', hudEdge(window.innerWidth, window.innerHeight, getUiScale()) + 'px');
 }
 
 // The right column flows under the top-right block: the race panel sits just
@@ -361,6 +368,7 @@ function updateVehicleName(dt, world) {
       vehNameTimer = 0;
     }
   }
+  els.vehRow.classList.toggle('no-label', vehicleLabelOwner({ nameCardVisible: vehNameTimer > 0 }) === 'card');
   if (vehNameTimer > 0) {
     vehNameTimer -= dt;
     if (vehNameTimer <= 0) els.vehName.classList.remove('on');
@@ -1185,7 +1193,7 @@ function updateMission(world) {
   const r = getActiveRoute();
   // the turn card already carries the distance of the route
   const gpsShows = !els.gps.hidden && !els.gps.classList.contains('no-turn') && !els.gps.classList.contains('hv-off');
-  setText(els.missionDist, r && r.remaining > 12 && o.kind !== 'job' && !gpsShows ? formatDistance(r.remaining) : '');
+  setText(els.missionDist, r && r.remaining > 12 && o.kind !== 'job' && distanceOwner({ gps: gpsShows, objective: true }) === 'objective' ? formatDistance(r.remaining) : '');
   if (key !== els.objKey) {
     els.objKey = key;
     els.mission.dataset.kind = o.kind;

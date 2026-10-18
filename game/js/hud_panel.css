@@ -229,6 +229,7 @@ body.pigeon-mode #hud .hud-mission.in-mission:not([hidden]) { display: flex !imp
 #hud .hud-bar-fill.stamina { background: #f0ede4; opacity: 0.7; width: 100%; }
 #hud .hud-meter.veh .veh-name { font-size: 14px; width: 54px; color: rgba(240, 237, 228, 0.7); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #hud .hud-meter.veh .hud-bar { width: 121px; }
+#hud .hud-meter.veh.no-label .veh-name { visibility: hidden; }
 #hud .hud-bar-fill.vehicle { background: linear-gradient(90deg, #d93f3f, #f07a5a); }
 #hud .hud-meter.veh:not(.hurt) .hud-bar-fill.vehicle { background: linear-gradient(90deg, #1e9e56, #3fc97a); }
 #hud .hud-meter.low .hud-bar { animation: hud-low 0.9s ease-in-out infinite alternate; }
