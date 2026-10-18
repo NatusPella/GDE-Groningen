@@ -812,6 +812,17 @@ function playWeaponSfx(e, x, y) {
       for (let i = 0; i < 10; i++) playNoiseBurst({ duration: 0.05, freq: 900 + Math.random() * 900, q: 2, gain: 0.03, type: 'bandpass', delay: 0.4 + Math.random() * (dur * 0.7), bus: worldBus || undefined });
       break;
     }
+    case 'firework': {
+      // a shell opening: a sharp crack, a soft low thump, then the glitter crackling down
+      const out = spatialOut(x, y, e.far ? { ref: 120, rolloff: 0.5, range: 3200, h: Number.isFinite(e.z) ? e.z : undefined, prio: 2 } : { ref: 12, rolloff: 0.7, range: 300, h: Number.isFinite(e.z) ? e.z : undefined, prio: 2 });
+      if (!out) return;
+      playNoiseBurst({ duration: 0.07, freq: 4200 * r, freqEnd: 1500, q: 0.7, gain: 0.5, type: 'highpass', out, prio: 2 });
+      playNoiseBurst({ duration: 0.35, freq: 900, freqEnd: 150, q: 0.6, gain: 0.35, type: 'lowpass', out, prio: 2 });
+      playTone({ freq: 95 * r, freqEnd: 45, type: 'sine', duration: 0.3, gain: 0.25, out, prio: 2 });
+      const n = 10 + Math.floor(Math.random() * 8);
+      for (let i = 0; i < n; i++) playNoiseBurst({ duration: 0.02 + Math.random() * 0.03, freq: 3000 + Math.random() * 3500, q: 2, gain: 0.05 + Math.random() * 0.05, type: 'bandpass', delay: 0.12 + Math.random() * 1.2, out });
+      break;
+    }
     case 'burst': {
       const out = spatialOut(x, y, e.far ? { ref: 120, rolloff: 0.5, range: 3200, h: Number.isFinite(e.z) ? e.z : undefined, prio: 2 } : { ref: 10, rolloff: 0.7, range: 250, h: Number.isFinite(e.z) ? e.z : undefined, prio: 2 });
       if (!out) return;
