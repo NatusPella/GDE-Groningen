@@ -219,6 +219,7 @@ Debug hooks on `window` (`window.__x`, read by scripts/perf, the story test and 
 | `?frames` | Trailer: sla beeld voor beeld op |
 | `?video` | Trailer: neem video op (alleen desktop) |
 | `?legacymap` | Laad de oude kaart in plaats van de tegelwereld |
+| `?terrain` | Hoogtes volgen het AHN-terrein (dijken, wierden; het terrein wordt nog niet getekend) |
 | `?stadlaag` | Stad per laag uit de gedeelde tegelbouw (gebouwen, wegen, water, spoor, groen, meubilair, poi, objecten, namen, of alle); #90, standaard uit |
 | `?nobatch` | Zet het samenvoegen van meshes uit (scene3d) |
 | `?shaderdebug` | Laat three.js shaderfouten controleren |
@@ -529,3 +530,20 @@ added to `citymap.json` are carried over by `build_map.py`.
 - Squares mapped as OSM multipolygon relations (such as the Grote Markt
   paving) and some named canals are not in the data yet, because
   `process_osm.py` only fetches ways.
+
+## AHN-hoogtes (issue #78)
+
+Hoogtes voor dijken, wierden, de Hondsrug en opritten komen uit het AHN (PDOK WCS, CC0):
+
+```bash
+python scripts/world/fetch_ahn.py --province                 # plan, geen netwerk
+python scripts/world/fetch_ahn.py --province --fetch --detail  # 25 m overal, 10 m bij dijken/wierden
+python scripts/world/fetch_ahn.py --province --fetch --limit 20  # een steekproef
+```
+
+Hervatbaar (gedownloade tegels staan in `data/cache/ahn`, mislukte worden 3x herhaald en genoemd),
+resultaat in `data/world/ahn` (ongecommit; `pack_tiles.mjs` zet het in de RASTER-sectie). De provincie
+is in m NAP (één nulpunt voor alle tegels), gaten (water, onder viaducten) worden uit de omgeving gevuld.
+AHN heeft onder viaducten geen data: daar gelden de viaducthoogteregels van #8. Het spel tekent nog geen
+terrein; met `?terrain` volgen `groundHeightAt`/`surfaceAt` het terrein (profielen zijn relatief aan het
+terrein, `profile.mjs --terrain`). Zonder de vlag verandert er niets. Tests: `terrain_test.mjs`, `scripts/world/fetch_ahn_test.py`.

@@ -35,6 +35,21 @@ export function decodeTerrainRaster(r) {
   return { ...r, z };
 }
 
+// A raster of metres relative to something other than the datum, moved by
+// `m` (the city's rasters are relative to their tile's street level, the
+// province's are m NAP): the field of #78 is one datum everywhere.
+export function shiftRaster(r, m) {
+  if (!m || r.codec !== RASTER_CODEC.i16cm) return r;
+  const data = new Uint8Array(r.data);
+  const dv = new DataView(data.buffer);
+  const d = Math.round(m * 100);
+  for (let k = 0; k < r.w * r.h; k++) {
+    const v = dv.getInt16(k * 2, true);
+    if (v !== NODATA) dv.setInt16(k * 2, Math.max(-32767, Math.min(32767, v + d)), true);
+  }
+  return { ...r, data };
+}
+
 // bilinear height at (x, y) in metres, or null outside the raster or on no data
 export function sampleRaster(R, x, y) {
   const u = (x - R.x0) / R.cell - 0.5, v = (y - R.y0) / R.cell - 0.5;
