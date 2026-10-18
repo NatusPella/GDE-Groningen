@@ -1,3 +1,4 @@
+import { hash2 } from './rng.js';
 // De winkelkit (issue #156): per winkeltype een eigen inrichting en uiterlijk,
 // als data. Geen scene en geen kaart: gewone parameters in (type, seed), gewone
 // waarden uit. Wie het gebruikt:
@@ -108,24 +109,20 @@ export function typeOfLevel(level) {
 }
 export const typeOfRank = (rank) => typeOfLevel(Math.floor(Math.min(0.999, Math.max(0, rank)) * SHOP_LEVELS));
 
-function h01(seed, k) {
-  const v = Math.sin(seed * 127.1 + k * 311.7) * 43758.5453;
-  return v - Math.floor(v);
-}
 
 // Verzonnen winkelnamen: voorvoegsel + achtervoegsel per type.
 export function winkelNaam(type, seed = 0) {
   const t = WINKEL[type];
   if (!t) return '';
   const [a, b] = t.names;
-  return `${a[Math.floor(h01(seed, 6) * a.length)]} ${b[Math.floor(h01(seed, 7) * b.length)]}`;
+  return `${a[Math.floor(hash2(seed, 6) * a.length)]} ${b[Math.floor(hash2(seed, 7) * b.length)]}`;
 }
 
 // Variatie binnen een type: dezelfde seed geeft altijd dezelfde winkel.
 export function winkelLook(type, seed = 0) {
   const t = WINKEL[type];
   if (!t) return null;
-  const shift = [1, 0.82, 1.12][Math.floor(h01(seed, 2) * 3)];
+  const shift = [1, 0.82, 1.12][Math.floor(hash2(seed, 2) * 3)];
   const clamp01 = (v) => Math.min(1, Math.max(0, v));
   return {
     type,
@@ -133,10 +130,10 @@ export function winkelLook(type, seed = 0) {
     floor: hex(t.floor),
     floorPattern: t.floorPattern,
     accent: hex(t.accent).map((c) => Math.min(1, c * shift)),
-    drukte: h01(seed, 1), // 0 leeg ... 1 propvol
-    items: clamp01(t.items + (h01(seed, 3) - 0.5) * 0.2),
-    row: clamp01(t.row + (h01(seed, 4) - 0.5) * 0.2),
-    island: t.island.map((v) => (v ? v * (0.85 + h01(seed, 5) * 0.3) : 0)),
+    drukte: hash2(seed, 1), // 0 leeg ... 1 propvol
+    items: clamp01(t.items + (hash2(seed, 3) - 0.5) * 0.2),
+    row: clamp01(t.row + (hash2(seed, 4) - 0.5) * 0.2),
+    island: t.island.map((v) => (v ? v * (0.85 + hash2(seed, 5) * 0.3) : 0)),
     sign: t.sign,
     awning: t.awning,
     name: winkelNaam(type, seed),

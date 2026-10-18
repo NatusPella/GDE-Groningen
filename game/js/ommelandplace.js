@@ -1,4 +1,4 @@
-import { buildingAt, roadNear, waterGap } from './tileplace.js';
+import { buildingAt, roadNear, waterGap, segDist } from './tileplace.js';
 import { edgeDistance } from './countryfield.js';
 import { isInWater } from './util.js';
 import { worldPlaceAt, worldPlaceNamed } from './worldplaces.js';
@@ -7,13 +7,6 @@ import { inProvinceData } from './provinceworld.js';
 // Placement queries for the countryside extras (worldends.js, dorpsuitjes.js,
 // pg_koe.js): open ground out in the province (the tiles' buildings and roads),
 // water and shore. Read-only, deterministic; the tiles round it must be in (tileplace.js withTiles).
-
-function segDist(x, y, a, b) {
-  const dx = b[0] - a[0], dy = b[1] - a[1];
-  const t = Math.max(0, Math.min(1, ((x - a[0]) * dx + (y - a[1]) * dy) / (dx * dx + dy * dy || 1)));
-  const px = a[0] + dx * t, py = a[1] + dy * t;
-  return [Math.hypot(px - x, py - y), px, py, t];
-}
 
 // The place (x, y) is in out in the country, for the location chip and the
 // garage: { place, near: false } in a village (or a town's built-up part), out
