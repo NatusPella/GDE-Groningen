@@ -5,6 +5,7 @@ import { nearestRepairSite } from './garages.js';
 import { getGoal, setGoal, clearGoal, goalTarget, missionOnMap } from './goal.js';
 import { roadAllowed, oneWayFor } from './roadaccess.js';
 import { boatRoute, trainTrip, airRoute, etaSeconds, polyLength } from './travelroute.js';
+import { getSharedNet, planVaarRoute } from './vaarnet.js';
 import { getWaterIndex, waterClearance } from './waterindex.js';
 import { roadZAt } from './elevation.js';
 import { isInWater, WATER_Y } from './util.js';
@@ -661,9 +662,22 @@ function computeRoute(world, target, mode, start = world.player) {
   const p = start;
   let pts = null, extra = null;
   if (mode === 'boat') {
-    const r = planBoatRoute(map, [p.x, p.y], [target.x, target.y], { height: 2.2 });
-    pts = r ? r.pts : [[p.x, p.y]];
-    if (r) extra = { etaS: r.etaS, dock: r.dock };
+    // over the waterway network (vaarnet.js: all navigable water, bridges, locks) for the boat kind the player sails;
+    // the local grid search stays for a short hop or a spot the net does not reach
+    const net = getSharedNet(), pv = p.inVehicle;
+    const kind = pv && pv.isBoat ? pv : 'sloep';
+    const nr = net ? planVaarRoute(net, [p.x, p.y], [target.x, target.y], kind) : null;
+    if (nr && nr.length > 150) {
+      pts = nr.pts;
+      const first = pts[0], last = pts[pts.length - 1];
+      if (Math.hypot(first[0] - p.x, first[1] - p.y) > 2) pts = [[p.x, p.y]].concat(pts);
+      if (Math.hypot(last[0] - target.x, last[1] - target.y) > 2) pts.push([target.x, target.y]);
+      extra = { etaS: nr.etaS, net: true };
+    } else {
+      const r = planBoatRoute(map, [p.x, p.y], [target.x, target.y], { height: 2.2 });
+      pts = r ? r.pts : [[p.x, p.y]];
+      if (r) extra = { etaS: r.etaS, dock: r.dock };
+    }
   } else if (mode === 'fly') {
     const plane = !!(world.player.inVehicle && world.player.inVehicle.isPlane);
     const r = planAirRoute(map, [p.x, p.y], [target.x, target.y], { plane });
