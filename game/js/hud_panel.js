@@ -5,7 +5,7 @@ import { simLevel } from './simload.js';
 import { getGaragesForRender } from './garages.js';
 import { getHomeForRender, getHomeGarageForRender, getHomeMooringForRender, getHomeHelipadForRender } from './home.js';
 import { minimapShows } from './mapfilters.js';
-import { mapCategory, mapRimColor } from './mapicons.js';
+import { mapCategory, mapRimColor, mapPriority, miniIconScale, iconGapPx } from './mapicons.js';
 import { facilitiesOf } from './facilities.js';
 import { getHorecaForRender } from './horeca.js';
 import { getShopsForRender, drawShopMapIcon, drawShopGlyph, SHOP_TYPES, storyTargetShop, drawStoryShopRing } from './shops.js';
@@ -1858,12 +1858,13 @@ export function forEachPoliceUnit(world, fn) {
   if (world.policeHeli) fn(world.policeHeli.x, world.policeHeli.y, 'police');
 }
 
-const MM_ICON = 1.7;
+// icon sizes come from mapicons.js: a floor in HUD px, bigger than on the full map in proportion (#114)
+const MM_ICON = miniIconScale(MINIMAP_SIZE, true);
 // Static places: only the categories switched on in the map legend
 // (mapfilters.js, shared with the full map), only the nearest few, only close by, drawn smaller and
 // skipped where they would overlap something more important.
-const MM_POI_ICON = 1.45;
-const MM_POI_GAP_PX = 21;
+const MM_POI_ICON = miniIconScale(MINIMAP_SIZE);
+const MM_POI_GAP_PX = iconGapPx(MM_POI_ICON);
 const MM_POI_NEAR_M = 150;
 const MM_POI_FAR_M = 250;
 const SHOP_GROUPS = ['shopsWapens', 'shops', 'shopsVoertuigen'];
@@ -1923,6 +1924,8 @@ function drawMinimapPois(ctx, world, job, placed, inRange, toScreen, t) {
   add('horeca', getHorecaForRender(), 'horeca', 1);
   add('landmark', world.map.meta.landmarks || [], 'landmark', 2);
 
+  // the most important place wins where two would touch
+  pois.sort((a, b) => mapPriority(b[0]) - mapPriority(a[0]));
   const gap2 = MM_POI_GAP_PX * MM_POI_GAP_PX;
   const drawn = [];
   for (const [kind, x, y] of pois) {
