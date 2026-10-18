@@ -93,6 +93,7 @@ import { updatePoleVaults } from './fierljep.js';
 import { initPostgame, updatePostgame, tryPostgameInteract } from './postgame.js';
 import { initStationTravel, tryStationInteract } from './stationtravel.js';
 import { initOmmelandFun, updateOmmelandFun, tryOmmelandInteract } from './ommelandfun.js';
+import { registerActivityKind, initActivityKinds, interactActivityKinds, tickActivityKinds } from './activityhub.js';
 import { tryTrainInteract, updateTrainDriving } from './traindrive.js';
 import { dist } from './util.js';
 import { updateEmergency } from './emergency.js';
@@ -110,6 +111,13 @@ import { scaledTarget, simLevel, nextSimFrame, farAIDist, skipFar, takeDt, keepV
 import { getSettings } from './settings.js';
 import { MODS } from './cheatmods.js';
 import { initCheats, updateCheats } from './cheats.js';
+
+// What the player can do on the map, as one registry (activityhub.js): each
+// module is a kind with its init, interact slot and tick phase.
+registerActivityKind({ id: 'activities', init: initActivities, slot: 'act', interact: tryActivityInteract, tickPhase: 'world', tick: updateActivitiesWorld });
+registerActivityKind({ id: 'postgame', initPhase: 'late', tickRank: 0, init: initPostgame, slot: 'pre', interact: tryPostgameInteract, tickPhase: 'late', tick: updatePostgame });
+registerActivityKind({ id: 'sidejobs', initPhase: 'late', tickRank: -1, init: initSideJobs, slot: 'job', interact: trySideJobInteract, tickPhase: 'late', tick: updateSideJobs });
+registerActivityKind({ id: 'ommeland', initPhase: 'early', init: initOmmelandFun, slot: 'uitje', interact: tryOmmelandInteract, tickPhase: 'late', tick: updateOmmelandFun });
 
 // More life on the water: small paddle and pedal craft make up most of the
 // mix (boattypes.js), cheap meshes; Laag keeps a smaller fleet.
@@ -313,7 +321,7 @@ async function boot() {
   initRailway(world);
   buildMovableBridges(world.map);
   initStationTravel(world);
-  initOmmelandFun(world);
+  initActivityKinds(world, 'early');
   initWeather(world);
   initWorldEvents(world);
   initMuggings(world);
@@ -327,10 +335,9 @@ async function boot() {
   initPigeonSpots(world);
   initHeliRun(world);
   initPadel(world);
-  initActivities(world);
+  initActivityKinds(world, 'main');
   initRadio(world);
-  initPostgame(world);
-  initSideJobs(world);
+  initActivityKinds(world, 'late');
   initStory(world);
   let gpuClass = '';
   setErrorContext(() => {
@@ -525,11 +532,11 @@ async function boot() {
     else if (world.padelGame) { updatePadel(dt, world); updateCompanion(dt, world); }
     else if (isActivityActive()) { updateActivityGame(dt, world); updateCompanion(dt, world); }
     else {
-      tryPostgameInteract(world);
+      interactActivityKinds(world, 'pre');
       tryPadelInteract(world);
-      tryActivityInteract(world);
+      interactActivityKinds(world, 'act');
       tryTrainInteract(world);
-      trySideJobInteract(world);
+      interactActivityKinds(world, 'job');
       tryHeliSpotInteract(world);
       updateCashVan(dt, world);
       tryGarageInteract(world);
@@ -538,7 +545,7 @@ async function boot() {
       tryStreetLifeInteract(world);
       tryShopInteract(world);
       tryPigeonSpotInteract(world);
-      tryOmmelandInteract(world);
+      interactActivityKinds(world, 'uitje');
       tryStationInteract(world);
       tryHomeInteract(world);
       tryHorecaInteract(world);
@@ -598,7 +605,7 @@ async function boot() {
     updatePigeonSpots(dt, world);
     updateHeliSpot(dt);
     updatePadelWorld(dt, world);
-    updateActivitiesWorld(dt, world);
+    tickActivityKinds(dt, world, 'world');
     updatePoleVaults(dt, world);
     probe.mark('wildlife');
     if (!world.pigeonMode && !world.heliRun) {
@@ -615,9 +622,7 @@ async function boot() {
     updateStory(dt, world);
     updateGoal(dt, world);
     updateOnboarding(dt, world);
-    updateSideJobs(dt, world);
-    updatePostgame(dt, world);
-    updateOmmelandFun(dt, world);
+    tickActivityKinds(dt, world, 'late');
     updateWeather(dt, world);
     updateWorldEvents(dt, world);
     updateMuggings(dt, world);
