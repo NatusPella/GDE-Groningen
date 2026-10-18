@@ -3,7 +3,8 @@
 // puts the sampled state on meshes, the tests run it in plain node.
 //
 //   const scene = compileScene(def, { lines, duration });   // throws on a broken scene
-//   const s = scene.sample(t, anchor);                      // { actors, props, camera, speaker }
+//   const s = scene.sample(t, anchor, env);                 // { actors, props, camera, speaker }
+//   const a = fitAnchor(scene, anchor, env);                // the anchor (turned) where nothing stands in a wall
 //
 // A scene def (all coordinates are LOCAL to the anchor: f = forward, s = left, h = up in m):
 //   id, actors: { <id>: { look, at: [f, s], face: deg | 'actor:<id>', anim, speaker, gaze } }
@@ -18,7 +19,7 @@
 // below must equal its ANIMS (scripts/cutscript_test.mjs checks that).
 
 export const ACTOR_ANIMS = ['idle', 'walk', 'run', 'talk', 'wave', 'point', 'shrug', 'nod', 'shake', 'laugh', 'carry', 'lean', 'hips', 'phone', 'cheer', 'look', 'ride'];
-export const PROP_KINDS = ['doos', 'tas', 'bestelbus', 'fiets', 'duif', 'radio', 'bord', 'koffer', 'bal', 'auto', 'matras'];
+export const PROP_KINDS = ['doos', 'tas', 'bestelbus', 'fiets', 'duif', 'radio', 'bord', 'koffer', 'bal', 'auto', 'matras', 'bakkie', 'automaat', 'aanhanger', 'trekker', 'politie', 'duiventil', 'zuil', 'klembord'];
 export const VERBS = ['walk', 'anim', 'face', 'gaze', 'carry', 'drop', 'move', 'path', 'spin', 'bob', 'show', 'hide'];
 export const SHOTS = ['cut', 'dolly', 'orbit', 'follow'];
 export const WALK_SPEED = 1.4;
@@ -160,7 +161,7 @@ export function compileScene(def, opts = {}) {
   // per actor: movement segments [{t0, t1, pts}], anim/gaze/face/carry events
   const track = {};
   for (const [id, a] of Object.entries(actors)) {
-    track[id] = { pos0: [a.at[0], a.at[1]], face0: a.face, segs: [], anims: [{ t: 0, v: a.anim || 'idle' }], gazes: [{ t: 0, v: a.gaze ?? null }], faces: [], carries: [] };
+    track[id] = { pos0: [a.at[0], a.at[1]], face0: a.face, segs: [], anims: [{ t: 0, v: a.anim || 'idle' }], gazes: [{ t: 0, v: a.gaze ?? null }], faces: [], carries: [], vis: [] };
   }
   const drops = [];
   const ptrack = {};
@@ -181,6 +182,9 @@ export function compileScene(def, opts = {}) {
       if (c.gaze !== undefined) k.gazes.push({ t: c.t, v: c.gaze });
       if (c.face !== undefined) k.faces.push({ t: c.t, v: c.face });
       if (c.carry !== undefined) k.carries.push({ t: c.t, v: c.carry });
+      // show/hide: someone gets into a vehicle (still tracked, so the camera can follow the cab)
+      if (c.show !== undefined) k.vis.push({ t: c.t, v: true });
+      if (c.hide !== undefined) k.vis.push({ t: c.t, v: false });
       if (c.drop !== undefined) { k.carries.push({ t: c.t, v: null }); drops.push({ t: c.t, actor: c.actor, prop: c.drop }); }
     } else if (c.prop) {
       const k = ptrack[c.prop];
@@ -291,7 +295,7 @@ export function compileScene(def, opts = {}) {
     return { x: anchor.x + f * c - s * n, y: anchor.y + f * n + s * c };
   };
 
-  function cameraAt(t, anchor) {
+  function cameraAt(t, anchor, env) {
     let i = 0;
     while (i + 1 < shots.length && shots[i + 1].t <= t + 1e-9) i++;
     const sh = shots[i];
@@ -334,20 +338,21 @@ export function compileScene(def, opts = {}) {
     }
     const P = world(anchor, pos.f, pos.s), L = world(anchor, look.f, look.s);
     const z0 = anchor.z || 0;
+    const cam = fitCamera({ x: P.x, y: P.y, z: z0 + pos.h }, { x: L.x, y: L.y, z: z0 + look.h }, env);
     return {
-      position: { x: P.x, y: P.y, z: z0 + pos.h }, lookAt: { x: L.x, y: L.y, z: z0 + look.h },
+      position: cam, lookAt: { x: L.x, y: L.y, z: z0 + look.h },
       fov: sh.fov ?? 46, cut: u === 0 || (t - sh.t) < 1 / 30, shotIndex: i,
     };
   }
 
   // the director: everything the host needs to draw frame t
-  function sample(t, anchor) {
+  function sample(t, anchor, env) {
     const speaker = speakerAt(t);
     const speakId = actorOfSpeaker(speaker);
     const outA = {}, outP = {};
     for (const [id, k] of Object.entries(track)) {
       const p = actorPos(id, t);
-      const w = world(anchor, p.f, p.s);
+      const w = fit(world(anchor, p.f, p.s), env);
       const a = actorFacing(id, t) + anchor.facing;
       let anim = last(k.anims, t).v;
       if (p.moving) anim = p.moving.ride ? 'ride' : p.moving.run ? 'run' : 'walk';
@@ -363,14 +368,14 @@ export function compileScene(def, opts = {}) {
         const o = pointOf(gt, t);
         gaze = Math.max(-1.0, Math.min(1.0, angDiff(actorFacing(id, t), Math.atan2(o.s - p.s, o.f - p.f))));
       }
-      outA[id] = { x: w.x, y: w.y, h: anchor.z || 0, a, anim, speed: p.moving ? p.moving.speed : 0, gaze, look: actors[id].look, speaking: id === speakId, carrying };
+      outA[id] = { x: w.x, y: w.y, h: anchor.z || 0, a, anim, speed: p.moving ? p.moving.speed : 0, gaze, look: actors[id].look, speaking: id === speakId, carrying, visible: last([{ t: 0, v: true }, ...k.vis], t).v };
     }
     for (const id of Object.keys(ptrack)) {
       const s = propState(id, t);
-      const w = world(anchor, s.f, s.s);
+      const w = fit(world(anchor, s.f, s.s), env);
       outP[id] = { x: w.x, y: w.y, h: (anchor.z || 0) + s.h, a: s.a + anchor.facing, visible: s.visible, kind: props[id].kind };
     }
-    return { actors: outA, props: outP, camera: cameraAt(t, anchor), speaker, speakerActor: speakId };
+    return { actors: outA, props: outP, camera: cameraAt(t, anchor, env), speaker, speakerActor: speakId };
   }
 
   // [t0, t1] stretches where an actor neither moves nor changes anim nor gaze
@@ -387,7 +392,7 @@ export function compileScene(def, opts = {}) {
     let from = null;
     for (let i = 0; i + 1 < ts.length; i++) {
       const mid = (ts[i] + ts[i + 1]) / 2;
-      const alive = actorPos(id, mid).moving || last(k.anims, mid).v !== 'idle' || last(k.gazes, mid).v === 'speaker' && !!lines.length || (lines.length && actorOfSpeaker(speakerAt(mid)) === id);
+      const alive = actorPos(id, mid).moving || last([{ t: 0, v: true }, ...k.vis], mid).v === false || last(k.anims, mid).v !== 'idle' || last(k.gazes, mid).v === 'speaker' && !!lines.length || (lines.length && actorOfSpeaker(speakerAt(mid)) === id);
       if (alive) { if (from != null) out.push([from, ts[i]]); from = null; } else if (from == null) from = ts[i];
     }
     if (from != null) out.push([from, duration]);
@@ -395,6 +400,61 @@ export function compileScene(def, opts = {}) {
   }
 
   return { id: def.id, duration, lines, sample, stillStretches, shots, cues };
+}
+
+// --- clipping: keep the set out of buildings -------------------------------------
+// env (all optional, supplied by the host from the world):
+//   solid(x, y, z) -> true when the point is inside a building or wall
+//   clamp(x, y, z, kind) -> { x, y, z } the point moved into the allowed space; kind 'actor' | 'prop' | 'camera'
+//                           (the flat upstairs: inside its walls and above the cutaway)
+function fit(p, env) {
+  if (!env || !env.clamp) return p;
+  const q = env.clamp(p.x, p.y, 0, 'actor');
+  return q ? { x: q.x, y: q.y } : p;
+}
+
+// A camera that sits in a wall is moved into free space: clamped, then pulled towards what it
+// looks at, then lifted over the roof. Returns {x, y, z}.
+export function fitCamera(pos, look, env) {
+  if (!env) return pos;
+  let p = pos;
+  if (env.clamp) { const q = env.clamp(p.x, p.y, p.z, 'camera'); if (q) p = { x: q.x, y: q.y, z: q.z ?? p.z }; }
+  if (env.solid && env.solid(p.x, p.y, p.z)) {
+    let found = null;
+    for (let k = 1; k <= 8 && !found; k++) {
+      const u = k / 8 * 0.85;
+      const c = { x: p.x + (look.x - p.x) * u, y: p.y + (look.y - p.y) * u, z: p.z + (look.z - p.z) * u * 0.5 };
+      if (!env.solid(c.x, c.y, c.z)) found = c;
+    }
+    if (!found) { found = { ...p }; for (let k = 0; k < 12 && env.solid(found.x, found.y, found.z); k++) found.z += 1.5; }
+    p = found;
+  }
+  return p;
+}
+
+// The anchor, turned in steps of 30 degrees (the smallest turn that is clean), so that no actor, prop or
+// camera of the scene stands inside a building. Without env.solid the anchor stays.
+export function fitAnchor(scene, anchor, env) {
+  if (!env || !env.solid || env.clamp) return anchor;
+  const score = (a) => {
+    let bad = 0;
+    for (let t = 0; t <= scene.duration; t += 0.6) {
+      const s = scene.sample(t, a);
+      for (const o of Object.values(s.actors)) if (o.visible !== false && env.solid(o.x, o.y, (a.z || 0) + 0.9)) bad += 2;
+      for (const o of Object.values(s.props)) if (o.visible && env.solid(o.x, o.y, o.h + 0.4)) bad += 1;
+      const c = s.camera.position;
+      if (env.solid(c.x, c.y, c.z)) bad += 1;
+    }
+    return bad;
+  };
+  let best = anchor, bestScore = score(anchor);
+  for (const k of [1, -1, 2, -2, 3, -3, 4, -4, 5, -5, 6]) {
+    if (bestScore === 0) break;
+    const a = { ...anchor, facing: anchor.facing + k * Math.PI / 6 };
+    const sc = score(a) + Math.abs(k) * 0.01;
+    if (sc < bestScore) { best = a; bestScore = sc; }
+  }
+  return best;
 }
 
 // --- geometry helpers ---------------------------------------------------------
