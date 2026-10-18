@@ -3,6 +3,7 @@ import { wallAhead } from './countrywalls.js';
 import { waterClearance, pushOutOfWaterObstacles, insideWaterObstacle, swimmerCanLeave } from './waterindex.js';
 import { findEnterableVehicle, distToVehicleBody, resolveBoomCollisions, resolveVehicleBuildingCollision, drivePlayerBoat, pushCircleOutOfVehicle, reportImpact, tickSinkingVehicles, speedCap } from './vehicle.js';
 import { hornAt } from './movablebridges.js';
+import { hornSluis } from './sluizen.js';
 import { waterAt } from './waterlevels.js';
 import { MOPED_LEGAL_SPEED } from './motomodels.js';
 import { findRideableProp, rideProp } from './rideprops.js';
@@ -894,7 +895,7 @@ export class Player {
     }
     if (v.isBoat) {
       // the horn in front of a movable bridge: it opens (movablebridges.js)
-      if (v.horn && !v._hornWas) hornAt(v.x, v.y, v);
+      if (v.horn && !v._hornWas) { hornAt(v.x, v.y, v); hornSluis(v); }
       v._hornWas = v.horn;
       drivePlayerBoat(v, map, dt, throttle, steerIn, brake && v.speed !== 0);
     }

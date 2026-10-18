@@ -89,6 +89,8 @@ import { railZ } from './railway.js';
 import { cameraFocus } from './tilefocus.js';
 import { initMovableBridges3D, updateMovableBridges3D, openBridgeRoads } from './movablebridges3d.js';
 import { getMovableBridges } from './movablebridges.js';
+import { sluisLiftAt } from './sluizen.js';
+import { updateSluizen3D } from './sluizen3d.js';
 import { initStreetFurniture3D, updateStreetFurniture3D } from './streetfurniture3d.js';
 import { treeDims, treeColor, SPECIES, TREE_FLAG } from './greenery.js';
 import { buildCanopies, streamCanopies } from './canopies3d.js';
@@ -2052,6 +2054,7 @@ export function update3D(dt, world) {
   if (!NO_BATCH) roadBatcher.update({ scene, meshes: roadMeshes, hidden: openSpans.size ? openSpans : null, px: focus.x, py: focus.y, detailR: DRAW_DIST, drawDist: DRAW_DIST, withDetail: true, budgetMs: 1 });
   for (const b of getMovableBridges()) { const m = roadMeshes.get(b.r); if (m) m.visible = !openSpans.has(b.r); }
   updateMovableBridges3D(focus.x, focus.y, waterNight);
+  updateSluizen3D(scene, focus.x, focus.y, waterNight);
   updateStreetFurniture3D(focus.x, focus.y);
   probe.mark('3d:roads');
   syncTrees(world, focus.x, focus.y);
@@ -2086,7 +2089,7 @@ export function update3D(dt, world) {
       mesh = null;
     }
     if (mesh) {
-      mesh.position.set(v.x, v.isBoat ? WATER_Y : v.z || 0, v.y);
+      mesh.position.set(v.x, v.isBoat ? WATER_Y + sluisLiftAt(v.x, v.y) : v.z || 0, v.y);
       mesh.rotation.y = -v.angle;
       if (!v.sinking && !v.isBoat) {
         // terrain pitch/roll on the whole car, spring motion on the body only
