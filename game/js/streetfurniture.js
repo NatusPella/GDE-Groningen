@@ -12,11 +12,15 @@
 // hedge (a section of s m, h high; greenery.mjs puts the mapped ones in),
 // lamp (by road class: v the lamp type, h its height), speedbump (across a
 // road of s m), fence and noise (a section of s m, noise h m high), bollard,
-// bench, bin, bikerack, shelter. src: 'osm' for mapped objects, 'rule' for
+// bench, bin, bikerack, shelter, placesign (a place name board, `text` the
+// name) and wegwijzer (a junction signpost, `text` its lines). src: 'osm' for mapped objects, 'rule' for
 // the builder's. An item belongs to the tile its position falls in, so
 // neighbouring tiles never repeat one; rules walk whole roads, so a guardrail
 // carries on across a tile edge without a seam.
 import { wgsToWorld } from './rdnew.js';
+import { pointInPolygon, polygonBounds } from './util.js';
+import { hash2 as hash } from './rng.js';
+import { placeSignItems } from './placesigns.js';
 
 const MAIN = new Set(['motorway', 'trunk']);
 const LINK = new Set(['motorway_link', 'trunk_link']);
@@ -67,10 +71,6 @@ export const RULES = {
 
 // --------------------------------------------------------------- helpers
 
-function hash(a, b) {
-  const h = Math.sin(a * 127.1 + b * 311.7) * 43758.5453;
-  return h - Math.floor(h);
-}
 export const itemKey = (k, x, y) => `${k}@${Math.round(x * 10)},${Math.round(y * 10)}`;
 const nodeKey = (p) => Math.round(p[0] * 100) * 1e7 + Math.round(p[1] * 100);
 const len = (P) => { let s = 0; for (let i = 1; i < P.length; i++) s += Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]); return s; };
@@ -242,9 +242,11 @@ function nearestRoad(roads, x, y, filter = () => true) {
 
 // --------------------------------------------------------------- the tile
 
-// opts: lamps (emit lamps; the game draws its own, nightlights3d.js),
+// opts: towns (province places [{ n, x, y, kind }]: place name boards and
+// junction signposts, placesigns.js),
+// lamps (emit lamps; the game draws its own, nightlights3d.js),
 // bollards (cycle path entrances), livingBumps (plateaus in woonerven)
-export function furnitureForTile({ x0, y0, size = 1000, roads = [], mapped = [], places = DESTINATIONS, opts = {} }) {
+export function furnitureForTile({ x0, y0, size = 1000, roads = [], mapped = [], water = [], places = DESTINATIONS, opts = {} }) {
   const items = [];
   const inTile = (x, y) => x >= x0 && x < x0 + size && y >= y0 && y < y0 + size;
   const add = (it) => { if (inTile(it.x, it.y)) { it.key = itemKey(it.k, it.x, it.y); items.push(it); } };
@@ -275,12 +277,31 @@ export function furnitureForTile({ x0, y0, size = 1000, roads = [], mapped = [],
     return false;
   };
 
+  // water polygons (with .bounds or not) holding a point
+  const wet = (x, y) => {
+    for (const w of water) {
+      const q = w.bounds || (w.bounds = polygonBounds(w.pts));
+      if (x >= q[0] && x <= q[2] && y >= q[1] && y <= q[3] && pointInPolygon(x, y, w.pts)) return true;
+    }
+    return false;
+  };
+  // a piece of s m at (x, y) along a: its middle or either end on a carriageway or in water
+  const pieceOnWayOrWater = (x, y, a, s) => {
+    const hx = Math.cos(a) * s / 2, hy = Math.sin(a) * s / 2;
+    for (const [px, py] of [[x, y], [x - hx, y - hy], [x + hx, y + hy]]) if (onOtherRoad(null, px, py) || wet(px, py)) return true;
+    return false;
+  };
+
   // mapped objects (OSM)
   for (const m of mapped) {
     if (m.pts && m.pts.length > 1) {
       const k = m.k === 'guard_rail' ? 'guardrail' : m.k === 'noise_barrier' ? 'noise' : m.k === 'wall' ? 'noise' : m.k;
       if (!['guardrail', 'fence', 'noise', 'hedge'].includes(k)) continue;
-      for (const [x, y, a, s] of pieces(m.pts, k === 'guardrail' ? RULES.guardrailPiece : 3)) add({ k, x, y, a, s, h: k === 'noise' ? (m.h || 4) : k === 'hedge' ? (m.h || 1.4) : undefined, src: 'osm' });
+      for (const [x, y, a, s] of pieces(m.pts, k === 'guardrail' ? RULES.guardrailPiece : 3)) {
+        // a mapped fence or hedge that OSM draws over a carriageway or into water is a gap in the data, not a barrier to put there (issue #124)
+        if ((k === 'fence' || k === 'hedge') && pieceOnWayOrWater(x, y, a, s)) continue;
+        add({ k, x, y, a, s, h: k === 'noise' ? (m.h || 4) : k === 'hedge' ? (m.h || 1.4) : undefined, src: 'osm' });
+      }
       continue;
     }
     const x = m.x ?? (m.pts && m.pts[0][0]), y = m.y ?? (m.pts && m.pts[0][1]);
@@ -396,6 +417,10 @@ export function furnitureForTile({ x0, y0, size = 1000, roads = [], mapped = [],
       }
     }
   }
+  // place name boards and junction signposts (only with the province's places)
+  if (opts.towns && opts.towns.length) {
+    for (const it of placeSignItems({ roads, towns: opts.towns, inTile, blocked: onOtherRoad })) add(it);
+  }
   items.sort((a, b) => (a.key < b.key ? -1 : a.key > b.key ? 1 : 0));
   // a narrow central reserve gets one rail, not one from each carriageway;
   // one item per key
@@ -434,6 +459,7 @@ export function furnitureColliders(items) {
         for (const s of [1, -1]) out.push({ kind: 'mast', x: it.x + nx * s * it.s / 2, y: it.y + ny * s * it.s / 2, r: 0.32, key: `${it.key}/${s}`, static: true, top: it.h + 2 });
         break;
       }
+      case 'placesign': case 'wegwijzer': out.push({ kind: 'paal', x: it.x, y: it.y, r: 0.1, key: it.key, static: true, top: 2.2 }); break;
       case 'bench': out.push({ kind: 'bench', x: it.x, y: it.y, r: 0.32, half: 0.7, angle: it.a, key: it.key }); break;
       case 'bin': out.push({ kind: 'bin', x: it.x, y: it.y, r: 0.3, key: it.key }); break;
       case 'bikerack': out.push({ kind: 'rail', x: it.x, y: it.y, r: 0.14, half: 1, angle: it.a, key: it.key }); break;

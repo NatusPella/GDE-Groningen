@@ -9,7 +9,7 @@
 
 import { spawnJobBoat, vehicleSpeed } from './sidejobkit.js';
 import { TOUR_BOAT, rondvaartBerth, startRondvaart, updateRondvaart, stopRondvaart, rondvaartProgress, routeAt } from './rondvaartchase.js';
-import { inWaterPoly, pointInPolygon } from './util.js';
+import { inMapWater, pointInPolygon } from './util.js';
 
 const MOOR_R = 14;
 const END_SLACK = 30; // m short of the route's end that counts as round
@@ -39,7 +39,7 @@ export default {
     const a = b.boat.angle;
     for (const back of [10, 14, 7, -8]) {
       const x = b.start.x - Math.cos(a) * back, y = b.start.y - Math.sin(a) * back;
-      if (inWaterPoly(map, x, y) || map.buildingsNear(x, y, 1).some((q) => pointInPolygon(x, y, q.pts))) continue;
+      if (inMapWater(map, x, y) || map.buildingsNear(x, y, 1).some((q) => pointInPolygon(x, y, q.pts))) continue;
       return { x, y };
     }
     return { x: b.start.x, y: b.start.y };

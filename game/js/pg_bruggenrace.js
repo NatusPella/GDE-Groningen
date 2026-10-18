@@ -5,7 +5,8 @@ import { boatSeats } from './boattypes.js';
 import { JELLE_LOOK } from './storycast.js';
 import { routeAt, ROUTE_LENGTH, rondvaartWaypoints, rondvaartBerth, prepareDiepenringRoute, diepenringProgress } from './rondvaartchase.js';
 import { getChallengeRecord } from './achievements.js';
-import { pointInPolygon, clamp, isInWater } from './util.js';
+import { clamp, isInWater } from './util.js';
+import { waterPolyAt } from './waterlevels.js';
 import { finish, jelle, setTarget } from './postgame.js';
 
 // Elf Bruggenrace: one lap of the Diepenring from the Spilsluizen, under its
@@ -27,10 +28,6 @@ function removeBoat(w, v) {
   if (!v) return;
   const i = w.vehicles.indexOf(v);
   if (i >= 0 && v.driver !== 'player') w.vehicles.splice(i, 1);
-}
-
-function waterPolyAt(map, x, y) {
-  return map.waterNear(x, y, 1).find((q) => pointInPolygon(x, y, q.pts)) || null;
 }
 
 function jelleFigure(v) {

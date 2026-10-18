@@ -9,6 +9,13 @@
 //               as canopies, bridge machinery and footprints on a ring
 //               carriageway dropped, houseboats moored
 //   roof steps  a footprint inside another of the same height lifts 0.4 m
+//   waterways   a canal or river of unmapped width (a guess of 14 / 10 m) is
+//               narrowed, down to 3 m, where a footprint stands on the bank
+//               (issue #124: farms in the water)
+//   afloat      a footprint 20 % or more in the water (the compact boxes of the
+//               Ommeland sit a few metres off the bank, OSM's water areas run
+//               under quays) slides at most 12 m to dry land, as the houseboats
+//               slide onto water; further in it stays and the audit counts it
 //   clipped     footways and cycleways through a solid block end at its
 //               facade (passages.js clipWaysInBuildings)
 //
@@ -18,6 +25,120 @@ import { SpatialGrid } from '../../game/js/spatialgrid.js';
 import { clipWaysInBuildings } from '../../game/js/passages.js';
 import { polygonBounds } from '../../game/js/util.js';
 import { clearFootprints } from './building_clearance.mjs';
+import { waterIndex, wetFraction, isLandingStage as landingStage, WET_FRAC } from './placement_audit.mjs';
+
+const MIN_HW = 1.5; // a trimmed waterway stays 3 m wide
+const BANK = 0.6; // and keeps this far from a footprint
+
+const segDist2 = (x, y, a, b) => {
+  const dx = b[0] - a[0], dy = b[1] - a[1], L2 = dx * dx + dy * dy || 1e-9;
+  const t = Math.max(0, Math.min(1, ((x - a[0]) * dx + (y - a[1]) * dy) / L2));
+  return (a[0] + dx * t - x) ** 2 + (a[1] + dy * t - y) ** 2;
+};
+const inRing = (x, y, P) => {
+  let c = false;
+  for (let i = 0, j = P.length - 1; i < P.length; j = i++) {
+    if ((P[i][1] > y) !== (P[j][1] > y) && x < ((P[j][0] - P[i][0]) * (y - P[i][1])) / (P[j][1] - P[i][1]) + P[i][0]) c = !c;
+  }
+  return c;
+};
+
+const MAX_SLIDE = 12;
+
+
+// Footprints in the water slid the shortest way onto dry land (12 m at most, steps of 0.5 m
+// over 16 directions), clear of other footprints; none is dropped. Houseboats and landmarks stay.
+// -> the number moved
+export function slideOutOfWater(feats) {
+  const water = feats.filter((f) => f.kind === 'water').map((f) => f.row);
+  const blds = feats.filter((f) => f.kind === 'buildings').map((f) => f.row);
+  if (!water.length || !blds.length) return 0;
+  const wet = waterIndex(water);
+  const grid = new SpatialGrid(60);
+  const box = new Map();
+  const boundsOf = (b) => box.get(b) || box.set(b, polygonBounds(b.pts)).get(b);
+  for (const b of blds) grid.insert(b, boundsOf(b));
+  let moved = 0;
+  for (const b of blds) {
+    if (b.type === 'houseboat' || b.landmark || b.landmarkKind || b.landmarkPart || b.helipad || b.parts || landingStage(b.pts)) continue;
+    if (wetFraction(b.pts, wet) < WET_FRAC) continue;
+    const q = boundsOf(b);
+    const others = grid.query(q[0] - MAX_SLIDE, q[1] - MAX_SLIDE, q[2] + MAX_SLIDE, q[3] + MAX_SLIDE).filter((o) => o !== b);
+    const clear = (ox, oy) => !others.some((o) => {
+      const ob = boundsOf(o);
+      if (ob[0] > q[2] + ox || ob[2] < q[0] + ox || ob[1] > q[3] + oy || ob[3] < q[1] + oy) return false;
+      return b.pts.some(([x, y]) => inRing(x + ox, y + oy, o.pts)) || o.pts.some(([x, y]) => inRing(x - ox, y - oy, b.pts));
+    });
+    let best = null;
+    for (let d = 0.5; d <= MAX_SLIDE && !best; d += 0.5) {
+      for (let a = 0; a < 16 && !best; a++) {
+        const ox = Math.cos((a * Math.PI) / 8) * d, oy = Math.sin((a * Math.PI) / 8) * d;
+        const P = b.pts.map(([x, y]) => [Math.round((x + ox) * 100) / 100, Math.round((y + oy) * 100) / 100]);
+        if (wetFraction(P, wet) < 0.03 && clear(ox, oy)) best = P;
+      }
+    }
+    if (!best) continue;
+    grid.remove(b, q);
+    b.pts = best;
+    box.delete(b);
+    grid.insert(b, boundsOf(b));
+    moved++;
+  }
+  return moved;
+}
+
+// Water features that came from a waterway line (f.line) without a mapped width
+// get their ribbon again with the half width cut to the nearest footprint
+// (houseboats are meant to float and do not count). -> the number trimmed
+export function trimWaterways(feats) {
+  const lines = feats.filter((f) => f.kind === 'water' && f.line && !f.line.fixed);
+  const blds = feats.filter((f) => f.kind === 'buildings' && f.row.type !== 'houseboat');
+  if (!lines.length || !blds.length) return 0;
+  const grid = new SpatialGrid(60);
+  for (const f of blds) { f.row._wb = polygonBounds(f.row.pts); grid.insert(f.row, f.row._wb); }
+  let trimmed = 0;
+  for (const f of lines) {
+    const hw = f.line.hw;
+    // the centreline in pieces of at most 4 m
+    const P = [];
+    for (let i = 0; i < f.line.pts.length; i++) {
+      const a = f.line.pts[i];
+      P.push(a);
+      const c = f.line.pts[i + 1];
+      if (!c) break;
+      const n = Math.ceil(Math.hypot(c[0] - a[0], c[1] - a[1]) / 4);
+      for (let k = 1; k < n; k++) P.push([a[0] + ((c[0] - a[0]) * k) / n, a[1] + ((c[1] - a[1]) * k) / n]);
+    }
+    const hws = P.map(() => hw);
+    let any = false;
+    P.forEach((p, i) => {
+      let best = hw + BANK;
+      for (const b of grid.query(p[0] - hw - 1, p[1] - hw - 1, p[0] + hw + 1, p[1] + hw + 1)) {
+        const q = b._wb;
+        if (p[0] < q[0] - hw - 1 || p[0] > q[2] + hw + 1 || p[1] < q[1] - hw - 1 || p[1] > q[3] + hw + 1) continue;
+        if (inRing(p[0], p[1], b.pts)) { best = 0; break; }
+        for (let k = 0; k < b.pts.length - 1; k++) best = Math.min(best, Math.sqrt(segDist2(p[0], p[1], b.pts[k], b.pts[k + 1])));
+      }
+      if (best < hw + BANK) { hws[i] = Math.max(MIN_HW, best - BANK); any = true; }
+    });
+    if (!any) continue;
+    // (a narrowing is eased over the neighbouring pieces: no sawtooth of the bank)
+    const eased = hws.map((h, i) => Math.min(h, (hws[i - 1] ?? h) + 2, (hws[i + 1] ?? h) + 2));
+    const L = [], R = [];
+    for (let i = 0; i < P.length; i++) {
+      const a = P[Math.max(0, i - 1)], b = P[Math.min(P.length - 1, i + 1)];
+      const dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy) || 1;
+      const nx = -dy / l, ny = dx / l, h = eased[i];
+      L.push([Math.round((P[i][0] + nx * h) * 100) / 100, Math.round((P[i][1] + ny * h) * 100) / 100]);
+      R.push([Math.round((P[i][0] - nx * h) * 100) / 100, Math.round((P[i][1] - ny * h) * 100) / 100]);
+    }
+    const ring = [...L, ...R.reverse()];
+    f.row.pts = [...ring, ring[0]];
+    trimmed++;
+  }
+  for (const f of blds) delete f.row._wb;
+  return trimmed;
+}
 
 // feats: [{ kind, row }] of a pack (build_corridor.mjs features()) ->
 // { feats, stats }: the buildings are the derived ones, canopies come as
@@ -27,7 +148,10 @@ export function deriveFeatures(feats, { clear = true, clip = true } = {}) {
   const bFeats = of('buildings'), rFeats = of('roads');
   const buildings = bFeats.map((f) => f.row);
   const roads = rFeats.map((f) => f.row);
-  const stats = { buildings: buildings.length, moved: 0, merged: 0, canopies: 0, lifted: 0, clipped: 0 };
+  const stats = { buildings: buildings.length, moved: 0, merged: 0, canopies: 0, lifted: 0, clipped: 0, trimmed: 0, afloat: 0 };
+  // (before the clearance: the footprints settle on dry land first, then keep off the roads)
+  stats.trimmed = trimWaterways(feats);
+  stats.afloat = slideOutOfWater(feats);
   if (clear && buildings.length && roads.length) {
     const was = buildings.map((b) => b.pts);
     clearFootprints({ roads, buildings });

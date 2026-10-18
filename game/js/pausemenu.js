@@ -33,8 +33,6 @@ import { renderVerhaal, verhaalClick, verhaalSummary, disposeVerhaalViewer } fro
 import { anyFresh } from './characters.js';
 import { renderSpullen, spullenClick, spullenFocus } from './spullen.js';
 import { renderPhonePanel, phoneClick, phoneUnread, selectPhoneThread, PHONE_NAME } from './phone.js';
-import { recentNotice } from './phonefeed.js';
-import { storyContactCaller } from './storycontact.js';
 import { getErrorLog, errorReport, clearErrorLog, onErrorLogChange } from './errorlog.js';
 import { KEYS } from './storagekeys.js';
 // Running inside the desktop app (desktop/preload.js): window mode + quit.
@@ -99,7 +97,7 @@ const CONTROL_GROUPS = [
     [['X'], 'Weer mens worden'],
   ]],
   ['menu', 'Telefoon & menu', [
-    [['ESC'], 'Telefoon openvouwen (pauzemenu); in het menu: terug. Bij een binnenkomend bericht of gesprek: dat gesprek'],
+    [['ESC'], 'Pauzemenu openen; in het menu: terug'],
     [['M'], 'Kaart'],
     [['ARROWS'], 'In het menu: kiezen, Enter: ok'],
     [['Q', 'E'], 'In het menu: vorige of volgende sectie'],
@@ -370,6 +368,7 @@ function settingsHtml() {
         ${toggle('cinematicMoments', 'Filmische momenten', 'Bij bezienswaardigheden, crashes en vijf sterren; intro’s, missies en de filmcamera (V) staan altijd aan')}
         ${toggle('wijkFilm', 'Filmpje bij nieuwe wijken', 'Uit: een korte naamkaart met wat er te zien is; aan: de volledige rondvlucht')}
         ${picker('drunkFx', 'Dronken effecten', [['aan', 'Aan'], ['mild', 'Mild'], ['uit', 'Uit']])}
+        ${picker('ruzie', 'Verkeersruzie', [['uit', 'Uit'], ['weinig', 'Weinig'], ['normaal', 'Normaal'], ['veel', 'Veel']], 'Hoe vaak een boze bestuurder uitstapt na een botsing of getoeter. Zonder bloed; sommigen hebben iets in de hand')}
         ${picker('shiftMode', 'Schakelen', [['auto', 'Automaat'], ['manual', 'Handmatig'], ['clutch', 'Handmatig + koppeling']], 'Automaat is de standaard; handmatig schakel je met . en , (of de bumpers), met koppeling houd je ook J ingedrukt')}
         ${toggle('driftAssist', 'Driften met hulp', 'Helpt tegensturen en houdt een slip beheersbaar; uit is realistischer')}
         ${toggle('bikeAssist', 'Motor met hulp', 'Houdt een motor of brommer rechtop in bochten; uit is realistischer')}
@@ -643,10 +642,7 @@ function onKey(e) {
     if (k === 'Escape' && document.body.classList.contains('mg-board')) return;
     if (k === 'Escape' || (lower === 'm' && !isCinematicActive())) {
       e.preventDefault();
-      // a call, a story contact or a text on screen: Esc opens its thread
-      const from = k === 'Escape' ? storyContactCaller() || (!isCinematicActive() ? recentNotice() : null) : null;
-      if (from) { selectPhoneThread(from); pref.sub.telefoon = 'berichten'; }
-      setOpen(true, k === 'Escape' ? (from ? 'telefoon' : HOME) : 'map', 'direct');
+      setOpen(true, k === 'Escape' ? HOME : 'map', 'direct');
     }
     return;
   }
@@ -890,6 +886,12 @@ function focusEl(el) {
   el.scrollIntoView({ block: 'nearest', inline: 'nearest' });
 }
 
+// the nearest ancestor of el that can scroll (the controls list is one), else the panel
+function scrollerOf(el, panel) {
+  for (let n = el && el.parentElement; n && n !== panel; n = n.parentElement) if (n.scrollHeight > n.clientHeight + 1 && /auto|scroll/.test(getComputedStyle(n).overflowY)) return n;
+  return panel;
+}
+
 function activePanel() {
   return root.querySelector(`[data-panel="${tab}"]`);
 }
@@ -987,7 +989,7 @@ function moveFocus(dir) {
   }
   if (!best && vert) {
     if (inRail) best = dir === 'down' ? railList[0] : railList[railList.length - 1];
-    else if (panel) { panel.scrollBy({ top: (dir === 'down' ? 1 : -1) * panel.clientHeight * 0.4, behavior: 'smooth' }); return; }
+    else if (panel) { const sc = scrollerOf(cur, panel); sc.scrollBy({ top: (dir === 'down' ? 1 : -1) * panel.clientHeight * 0.4, behavior: 'smooth' }); return; }
   }
   if (!best) return;
   const prevSub = cur.dataset && cur.dataset.subtab && cur.dataset.of;

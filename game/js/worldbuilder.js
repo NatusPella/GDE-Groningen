@@ -13,6 +13,7 @@ import { wgsToWorld } from './rdnew.js';
 import { mappedFromOsm, mappedSignsFromOsm } from './streetfurniture.js';
 import { heightOf, levelsFor } from './buildingheights.js';
 import { hash2 } from './greenery.js';
+import { segDist } from './util.js';
 
 export const WB_VERSION = 1;
 export const LEVEL_M = 3.1;
@@ -192,11 +193,6 @@ export function buildRoad(src, ctx = {}) {
 }
 
 const CAR = new Set(['major', 'normal', 'minor']);
-function segDist(px, py, ax, ay, bx, by) {
-  const dx = bx - ax, dy = by - ay, L2 = dx * dx + dy * dy;
-  const t = L2 ? Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / L2)) : 0;
-  return Math.hypot(px - ax - dx * t, py - ay - dy * t);
-}
 
 // The one-way rows that are one carriageway of a dual road: a one-way way of
 // the same name or ref runs the other way within 40 m (lanes.py duals).
@@ -498,7 +494,8 @@ export function fromOsm(el, ctx = {}) {
   }
   if (tags.waterway === 'canal' || tags.waterway === 'river') {
     const w = parseFloat(String(tags.width || '').replace(',', '.'));
-    out.push({ kind: 'waterways', row: { pts: P, hw: (Number.isFinite(w) && w > 0 ? w : tags.waterway === 'canal' ? 14 : 10) / 2, name: tags.name || null } });
+    // (fixed: the width is mapped; else it is a guess that derive_tiles.mjs trims round the footprints on the bank)
+    out.push({ kind: 'waterways', row: { pts: P, hw: (Number.isFinite(w) && w > 0 ? w : tags.waterway === 'canal' ? 14 : 10) / 2, name: tags.name || null, fixed: Number.isFinite(w) && w > 0 } });
     return out;
   }
   const gk = tags.leisure || tags.landuse;

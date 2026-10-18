@@ -8,7 +8,13 @@ import { PREFIX, DEV_PREFIX } from './storagekeys.js';
 
 const q = typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams();
 export const STORY_TEST = q.has('storytest');
+// ?pixeldebug (issue #35, the odd green pixel): the post chain paints NaN/Inf
+// pixels magenta and negative HDR values cyan, so a stray pixel can be
+// identified by colour. Off by default.
+export const PIXEL_DEBUG = q.has('pixeldebug');
 export const DEV = q.has('dev') || STORY_TEST;
+// ?marker=vorm: the solid 3D shapes of the world marker (worldmarker3d.js); else the soft glowing glyph
+export const MARKER_SOLID = q.get('marker') === 'vorm';
 
 // Every URL switch the game reads, parsed once. Modules import FLAGS.x instead
 // of reading location.search themselves. Boolean flags are on when the name is
@@ -41,6 +47,7 @@ export const FLAGS = Object.freeze({
   gfxadvies: has('gfxadvies'),
   gpu: val('gpu'),
   preset: val('preset'),
+  touch: val('touch'),
   hitch: has('hitch'),
   zwartcheck: has('zwartcheck'),
 });
@@ -67,6 +74,7 @@ export const FLAG_DOCS = Object.freeze({
   gfxadvies: 'Toon het grafische advies ook als de speler al koos',
   gpu: 'Doe alsof de GPU deze renderer-tekst heeft (test van het advies)',
   preset: 'Instellingen alleen voor deze run, bv. quality:laag,drawDistance:kort',
+  touch: 'Raakbediening aan (touch=1) of uit (touch=0), ook zonder touchscherm',
   hitch: 'Meet haperingen (hitchprobe)',
   zwartcheck: 'Controleer op zwarte beelden (blackframe)',
 });

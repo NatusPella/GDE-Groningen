@@ -18,6 +18,8 @@ import { lineVoiceFor } from './linevoice.js';
 import { nieuwVerhaal } from './storyflag.js';
 import { getFollowPose, prewarmStreamAt } from './scene3d.js';
 import { KEYS } from './storagekeys.js';
+import { registerBusyProbe } from './busy.js';
+import { interiorEyePose } from './carinterior.js';
 
 // world.cameraOverride poses use map coordinates: x/y on the map, z = height in metres.
 // world.timeScale (0..1) slows gameplay; main.js multiplies the gameplay dt by it.
@@ -29,7 +31,7 @@ const BANNER_TIME = 3.8;
 const FAIL_BANNER_TIME = 2.8;
 // after this long, playing on (moving, a click, a key) takes the banner away
 const BANNER_GRACE = 0.9;
-const CAM_MODES = ['', 'BUMPER', 'ZIJKANT', 'HELIKOPTER', 'TELELENS'];
+const CAM_MODES = ['', 'BUMPER', 'ZIJKANT', 'HELIKOPTER', 'TELELENS', 'BINNENIN'];
 const WIJK_KEY = KEYS.wijkenSeen;
 // cinematics that book their own attention.js moment
 const OWN_MOMENTS = new Set(['wijk', 'landmark', 'crash', 'wanted5']);
@@ -164,6 +166,7 @@ export function initCinematics(w) {
 export function isCinematicActive(id) {
   return !!active && (id == null || active.id === id);
 }
+registerBusyProbe('cinematic', () => isCinematicActive());
 
 // The red damage vignette stays off during cutscenes unless the scene asks
 // for it (spec.blood) or it is the death scene itself.
@@ -519,7 +522,6 @@ function playOmmelanden(w) {
   ];
   playCinematic({
     id: 'landmark', priority: 1, duration: 8, pause: true,
-    kicker: 'Bezienswaardigheid', title: OMMELANDEN,
     lines: [{ speaker: '', text: 'Koeien, sloten en een horizon. Verder niks. Heerlijk.' }],
     shot: pathShot(clearKeys(w, keys)),
   });
@@ -861,7 +863,7 @@ function playWijk(w, wijk) {
   if (!shot) return false;
   return playCinematic({
     id: 'wijk', priority: 1, duration: 11, pause: true, keepMotion: true,
-    kicker: 'Nieuwe wijk', title: wijk.name, lines: [{ speaker: '', text: wijkLine(wijk.name) }],
+    lines: [{ speaker: '', text: wijkLine(wijk.name) }],
     shot,
   });
 }
@@ -976,7 +978,6 @@ function playLandmark(w, lm) {
   const start = Math.atan2(p.y - lm.y, p.x - lm.x);
   playCinematic({
     id: 'landmark', priority: 1, duration: 3.8, pause: true,
-    kicker: 'Ontdekt', title: lm.name,
     shot: orbitShot(w, { fixed: lm, radius: Math.min(60, Math.max(28, h * 0.6)), height: h * 0.45 + 9, lookY: h * 0.42, sweep: 1.3, start }),
   });
 }
@@ -1090,6 +1091,13 @@ function cinemaCamPose(w) {
     case 2: return { position: W(x + nx * 6.5 - fx * 1.2, 1.3, y + ny * 6.5 - fy * 1.2), lookAt: W(x + fx * 1.5, 0.9, y + fy * 1.5), fov: 55, cut: true };
     case 3: return { position: W(x - fx * 16 + nx * 6, 24, y - fy * 16 + ny * 6), lookAt: W(x + fx * 8, 0, y + fy * 8), fov: 50, cut: true };
     case 4: return { position: W(x - fx * 22 + nx * 5, 4, y - fy * 22 + ny * 5), lookAt: W(x + fx * 5, 1, y + fy * 5), fov: 34, cut: true };
+    case 5: {
+      // driver's eyes inside the cabin; the car's raw heading, so wheel and dash stay put
+      const e = interiorEyePose(v);
+      if (!e) return { position: W(x + fx * 2.8, 0.85, y + fy * 2.8), lookAt: W(x + fx * 30, 1, y + fy * 30), fov: 68, cut: true };
+      const ca = v.angle != null ? v.angle : w.player.angle, cx = Math.cos(ca), cy = Math.sin(ca);
+      return { position: W(e.x, e.z, e.y), lookAt: W(e.x + cx * 30, e.z - 0.4, e.y + cy * 30), fov: 74, cut: true, interior: true };
+    }
     default: return null;
   }
 }

@@ -75,6 +75,21 @@ ok(D.pickWaterLife(rng, { hour: 8, d: 3000, profile: 'standaard', wide: true, ha
 let narrowAcht = 0;
 for (let i = 0; i < 2000; i++) if (wl(8, { skiff: 0, acht: 0, sup: 0 }, { wide: false }) === 'acht') narrowAcht++;
 ok(narrowAcht === 0, 'an eight only on wide water');
+// inland barges: only on broad shipping canals, capped, also in the polders and at night
+let barges = 0;
+for (let i = 0; i < 2000; i++) { const k = D.pickWaterLife(rng, { hour: 3, d: 3000, profile: 'standaard', wide: true, width: 40, nav: 4, have: { binnenvaart: 0 } }); if (k === 'spits' || k === 'kempenaar') barges++; }
+ok(barges > 500, `barges on a shipping canal, polders and night included (${barges})`);
+ok(D.pickWaterLife(rng, { hour: 12, d: 600, profile: 'student', wide: true, width: 40, nav: 3, have: { binnenvaart: 0 } }) !== 'spits', 'no barge on class 3 water');
+let narrowBarge = 0;
+for (let i = 0; i < 500; i++) if (['spits', 'kempenaar'].includes(D.pickWaterLife(rng, { hour: 12, d: 3000, profile: 'standaard', wide: false, width: 12, nav: 4, have: {} }))) narrowBarge++;
+ok(narrowBarge === 0, 'no barge on a canal under 24 m wide');
+ok(D.pickWaterLife(rng, { hour: 12, d: 3000, profile: 'standaard', wide: true, width: 40, nav: 4, have: { binnenvaart: 2 } }) === null, 'cap: two barges near');
+for (const k of ['spits', 'kempenaar']) {
+  const m = B.BOAT_KINDS[k];
+  ok(m && m.kind === 'binnenvaart' && m.name === 'boat' && m.len > 30 && m.wid > 4.5 && m.maxSpeed > 0, `${k} is a usable barge model`);
+  ok(B.boatSeats({ model: m, id: 3 }).length >= 1 && B.boatIsMotorised({ model: m }), `${k} has a skipper's seat and lights`);
+}
+ok(B.BINNENVAART_NAMES.length >= 10 && B.BINNENVAART_NAMES.every((x) => typeof x === 'string') && typeof B.binnenvaartName({ id: 5 }) === 'string', 'invented barge names');
 for (const k of ['skiff', 'acht']) {
   const m = B.BOAT_KINDS[k];
   ok(m && m.name === 'boat' && Number.isFinite(m.len) && Number.isFinite(m.wid) && m.maxSpeed > 0, `${k} is a usable boat model`);
@@ -210,6 +225,49 @@ ok(nv.livery === 'nieuws' && Number.isFinite(nv.len) && nv.color === '#f2f0ea', 
 const flags = {};
 T.applyFleetFlags(flags, 'newsvan');
 ok(flags.isNewsVan === true, 'the news van is flagged');
+
+// --- batch 3: skateboarders
+ok(D.skaterChance('student', 300, 17) > D.skaterChance('chic', 700, 17), 'skaters prefer the student districts');
+ok(D.skaterChance('student', 300, 3) === 0 && D.skaterChance('standaard', 3000, 17) === 0, 'no skaters at night or in the polders');
+{
+  let sk = 0;
+  const r = seeded(11);
+  for (let i = 0; i < 2000; i++) if (S.pickSkater(map, centre.x, centre.y, 17, r)) sk++;
+  ok(sk > 0 && sk < 1000, `some skaters now and then in the centre (${sk})`);
+  ok(D.SKATER_PACE > 1 && D.SKATER_LINES.length >= 4, 'skaters are quick and have lines');
+}
+
+// --- batch 3: the kennismakingsweek parody
+ok(D.ontgroeningChance('student', 300, 14) > 0 && D.ontgroeningChance('student', 300, 23) === 0 && D.ontgroeningChance('standaard', 3000, 14) === 0, 'initiation groups by day in student districts only');
+ok(D.ONTGROENING.club.startsWith('Dispuut') && D.LEADER_LINES.length >= 4 && D.FRESHMAN_LINES.length >= 4, 'invented dispuut with lines');
+{
+  let g = 0;
+  const r = seeded(5);
+  for (let i = 0; i < 2000; i++) if (S.pickOrientation(map, centre.x, centre.y, 14, r)) g++;
+  ok(g > 0 && g < 800, `initiation groups are occasional (${g})`);
+}
+
+// --- batch 3: district profiles on foot
+ok(D.wijkBagChance('student') > D.wijkBagChance('industrie'), 'students carry more bags than the industrial parts');
+{
+  const r = seeded(3);
+  let hi = 0, cols = 0;
+  for (let i = 0; i < 500; i++) { const c = D.wijkClothing('industrie', r); if (c) { cols++; if (c === '#e0701a') hi++; } }
+  ok(hi > cols * 0.3 && D.wijkClothing('standaard', r) === null, 'hi-vis orange in the industrial parts, default elsewhere');
+  const w = { player: { x: centre.x, y: centre.y }, map, pedestrians: [{ x: centre.x + 5, y: centre.y, clothing: '#000000', hasBag: true }, { x: centre.x, y: centre.y + 2, isCop: true, clothing: '#123456' }] };
+  S.dressWalkers(w, seeded(8));
+  ok(w.pedestrians[0]._wijkDressed && w.pedestrians[1].clothing === '#123456', 'walkers get dressed once, officers keep their uniform');
+}
+
+// --- batch 3: more couriers
+ok(D.CHAINS.length >= 4 && new Set(D.CHAINS.map((c) => c.color)).size === D.CHAINS.length, 'four invented chains, each with its own colour');
+ok(D.footCourierChance('centrum', 100, 19) > 0 && D.footCourierChance('centrum', 100, 4) === 0 && D.footCourierChance('standaard', 3000, 19) === 0, 'couriers on foot at meal times in town only');
+{
+  let c = 0;
+  const r = seeded(21);
+  for (let i = 0; i < 2000; i++) if (S.pickFootCourier(map, centre.x, centre.y, 19, r)) c++;
+  ok(c > 0 && c < 1000, `couriers on foot are occasional (${c})`);
+}
 
 console.log(`${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

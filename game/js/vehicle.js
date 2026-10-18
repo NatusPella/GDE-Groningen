@@ -1,6 +1,7 @@
-import { closestPointOnSegment, normalizeAngle, clamp, lerp, pointInPolygon, inWaterPoly, inMapWater, WATER_Y, keepBoatOffShore, boatDryPoints } from './util.js';
+import { nearestLine, project as projectOnLine, makeRunner, stepRunner, startAt } from './busroutes.js';
+import { closestPointOnSegment, normalizeAngle, clamp, lerp, pointInPolygon, inMapWater, WATER_Y, keepBoatOffShore, boatDryPoints } from './util.js';
 import { waterClearance, waterChannelPoints } from './waterindex.js';
-import { shallowWater } from './waterlevels.js';
+import { shallowWater, waterAt, airDraftOf, passesUnder } from './waterlevels.js';
 import { trafficSignalsNear, trafficLightPhaseMove } from './trafficlights.js';
 import { resolvePropCollisions } from './breakables.js';
 import { inPassage } from './collision.js';
@@ -25,6 +26,7 @@ import { laneLayout } from './lanes.js';
 import { profileFor, createGearbox, stepGearbox } from './gearbox.js';
 import { slipAngle } from './drift.js';
 import { MOPED_LEGAL_SPEED } from './motomodels.js';
+import { pickMotor, motorRoadAllowed, motorTarget } from './motortraffic.js';
 export { MOTORBIKE_MODELS, GEARED_MOPED_MODEL, MOPED_LEGAL_SPEED } from './motomodels.js';
 
 // every traffic model, for warming their meshes before they first spawn
@@ -206,7 +208,8 @@ export class Vehicle {
     const m = this.model;
     const isPlayer = this.driver === 'player';
     const tune = isPlayer ? playerTune(this) : null;
-    const top = tune ? tune.top : m.maxSpeed;
+    // een lekke band (v.flat): trager en de auto trekt scheef
+    const top = (tune ? tune.top : m.maxSpeed) * (this.flat ? FLAT_TOP_FACTOR : 1);
     // wet road / puddle grip (0..1), set each frame for the player's vehicle
     const grip = isPlayer ? this.gripK ?? 1 : 1;
     const brakeMax = (tune ? tune.brake : m.brake) * (0.4 + 0.6 * grip);
@@ -258,7 +261,8 @@ export class Vehicle {
     const sailing = isPlayer && this.isBoat && this.sailTop != null;
     this.speed = clamp(this.speed, -top * REVERSE_FACTOR, sailing ? Math.max(top, absSpeed - SAIL_GLIDE_DECEL * dt) : top);
 
-    const target = clamp(steerInput, -1, 1);
+    const pull = isPlayer && this.flat ? FLAT_PULL * (this.id % 2 ? 1 : -1) * Math.min(1, absSpeed / 10) : 0;
+    const target = clamp(steerInput + pull, -1, 1);
     if (isPlayer) {
       const returning = Math.abs(target) < Math.abs(this.steer) || target * this.steer < 0;
       const rate = (returning ? PLAYER_STEER_RETURN : PLAYER_STEER_RATE) * (this.isBus ? 0.7 : 1) * dt;
@@ -874,6 +878,10 @@ function lineOfSight(map, ax, ay, bx, by) {
   return true;
 }
 
+// Tammo and Tessa's private garage (home.js sets map.homeGarageAt): no traffic
+// spawns in it and none stays in it, whichever road still runs into the plinth.
+const inPrivateGarage = (map, x, y, pad = 0) => !!(map.homeGarageAt && map.homeGarageAt(x, y, pad));
+
 function spawnSpotFree(vehicles, v, clearance = 9) {
   const own = v.model.trailer || 0;
   for (const o of vehicles) {
@@ -923,7 +931,8 @@ export function manageTrafficPopulation(world, { target = 30, spawnMin = 70, spa
   manageParkedCars(world);
   for (let i = vehicles.length - 1; i >= 0; i--) {
     const v = vehicles[i];
-    if (v.driver === 'player' || v.isPolice || v.isHeroCar || v.missionCar || v.isBike || v.isBus || v.parked) continue;
+    if (v.road && !v.homeStored && v.driver !== 'player' && !v.missionCar && !v.isBoat && inPrivateGarage(map, v.x, v.y)) { vehicles.splice(i, 1); continue; }
+    if (v.driver === 'player' || v.isPolice || v.isHeroCar || v.missionCar || v.isBike || v.isBus || v.parked || v.homeStored || (v.isBoat && v.playerOwned)) continue;
     // Wrecked cars have speed=0 forever and would otherwise almost never
     // reach the distance despawn, silently eating the traffic quota. A
     // vehicle stuck bouncing off the same dead end (isolated stub with no
@@ -951,7 +960,7 @@ export function manageTrafficPopulation(world, { target = 30, spawnMin = 70, spa
     if (!canUseRoad({ model: pick.model }, road)) continue;
     const v = spawnVehicleOnRoad(map, road, false, Math.random, false, false, null, false, pick.model);
     const d = Math.hypot(v.x - player.x, v.y - player.y);
-    if (d < spawnMin || d > spawnMax || !spawnSpotFree(vehicles, v) || spawnWouldPop(world, v)) continue;
+    if (d < spawnMin || d > spawnMax || !spawnSpotFree(vehicles, v) || inPrivateGarage(map, v.x, v.y, 2) || spawnWouldPop(world, v)) continue;
     applyFleetFlags(v, pick.kind);
     if (pick.kind in have) have[pick.kind]++;
     vehicles.push(v);
@@ -983,7 +992,7 @@ export function manageBikePopulation(world, { target = 16, spawnMin = 40, spawnM
     if (variant && variant.cargo && road.cat === 'minor' && road.width < 3) continue;
     const v = spawnVehicleOnRoad(map, road, false, Math.random, true, false, null, false, variant);
     const d = Math.hypot(v.x - player.x, v.y - player.y);
-    if (d < spawnMin || d > spawnMax || !spawnSpotFree(vehicles, v) || spawnWouldPop(world, v)) continue;
+    if (d < spawnMin || d > spawnMax || !spawnSpotFree(vehicles, v) || inPrivateGarage(map, v.x, v.y, 2) || spawnWouldPop(world, v)) continue;
     vehicles.push(v);
     count++;
   }
@@ -995,12 +1004,12 @@ export function manageScooterPopulation(world, { target = 10, spawnMin = 40, spa
   const { map, player, vehicles } = world;
   for (let i = vehicles.length - 1; i >= 0; i--) {
     const v = vehicles[i];
-    if (!v.isScooter || v.driver === 'player') continue;
+    if (!v.isScooter || v.isMotor || v.driver === 'player') continue;
     if ((!v.wrecked && ((v.deadEndBounces || 0) > 2 || (v.stuckFor || 0) > 25 || ((v.waitFor || 0) > 45 && Math.hypot(v.x - player.x, v.y - player.y) > 70))) || Math.hypot(v.x - player.x, v.y - player.y) > despawnDist) vehicles.splice(i, 1);
   }
 
   let count = 0;
-  for (const v of vehicles) if (v.isScooter && !v.wrecked && v.driver !== 'player' && v.road) count++;
+  for (const v of vehicles) if (v.isScooter && !v.isMotor && !v.wrecked && v.driver !== 'player' && v.road) count++;
 
   const candidates = map.roadsNear(player.x, player.y, spawnMax)
     .filter((r) => r.cat === 'cycle' || r.cat === 'normal' || r.cat === 'minor');
@@ -1008,6 +1017,35 @@ export function manageScooterPopulation(world, { target = 10, spawnMin = 40, spa
   while (count < target && candidates.length && guard++ < target * 4) {
     const road = candidates[Math.floor(Math.random() * candidates.length)];
     const v = spawnVehicleOnRoad(map, road, false, Math.random, false, false, null, true);
+    const d = Math.hypot(v.x - player.x, v.y - player.y);
+    if (d < spawnMin || d > spawnMax || !spawnSpotFree(vehicles, v) || inPrivateGarage(map, v.x, v.y, 2) || spawnWouldPop(world, v)) continue;
+    vehicles.push(v);
+    count++;
+  }
+}
+
+// Brommers and motorbikes in the everyday traffic (motortraffic.js): they ride
+// the normal roads only, never the fietspad, and a legal brommer stays at 45.
+export function manageMotorPopulation(world, { target = null, spawnMin = 50, spawnMax = 150, despawnDist = 230 } = {}) {
+  const { map, player, vehicles } = world;
+  for (let i = vehicles.length - 1; i >= 0; i--) {
+    const v = vehicles[i];
+    if (!v.isMotor || v.driver === 'player') continue;
+    if ((!v.wrecked && ((v.deadEndBounces || 0) > 2 || (v.stuckFor || 0) > 25 || ((v.waitFor || 0) > 45 && Math.hypot(v.x - player.x, v.y - player.y) > 70))) || Math.hypot(v.x - player.x, v.y - player.y) > despawnDist) vehicles.splice(i, 1);
+  }
+  const prof = wijkProfileAt(map, player.x, player.y).key;
+  const want = target ?? motorTarget(prof, hourOf(world));
+  let count = 0;
+  for (const v of vehicles) if (v.isMotor && !v.wrecked && v.driver !== 'player' && v.road) count++;
+  const candidates = map.roadsNear(player.x, player.y, spawnMax).filter((r) => (r.cat === 'normal' || r.cat === 'minor') && r.width >= 3 && !r.busOnly);
+  let guard = 0;
+  while (count < want && candidates.length && guard++ < want * 5) {
+    const road = candidates[Math.floor(Math.random() * candidates.length)];
+    const mid = road.pts[Math.floor(road.pts.length / 2)];
+    const pick = pickMotor(wijkProfileAt(map, mid[0], mid[1]).key);
+    const v = spawnVehicleOnRoad(map, road, false, Math.random, false, false, null, true, pick.model);
+    v.isMotor = true;
+    v.tunedMoped = pick.tuned;
     const d = Math.hypot(v.x - player.x, v.y - player.y);
     if (d < spawnMin || d > spawnMax || !spawnSpotFree(vehicles, v) || spawnWouldPop(world, v)) continue;
     vehicles.push(v);
@@ -1017,6 +1055,10 @@ export function manageScooterPopulation(world, { target = 10, spawnMin = 40, spa
 
 // A handful of regional buses on the bigger through-roads only - real bus
 // frequency is much lower than car/bike density.
+let busLines = [];
+// de voorbereide lijnen (busroutes.js prepareLines); leeg = bussen rijden vrij zoals voorheen
+export function setBusLines(lines) { busLines = lines || []; }
+
 export function manageBusPopulation(world, { target = 4, spawnMin = 90, spawnMax = 220, despawnDist = 300 } = {}) {
   const { map, player, vehicles } = world;
   for (let i = vehicles.length - 1; i >= 0; i--) {
@@ -1028,6 +1070,23 @@ export function manageBusPopulation(world, { target = 4, spawnMin = 90, spawnMax
   let count = 0;
   for (const v of vehicles) if (v.isBus && !v.wrecked && v.driver !== 'player') count++;
 
+  // echte lijnen (busroutes.js, zodra de lijndata geladen is): een bus begint op zijn lijn en rijdt hem
+  const line = busLines.length ? nearestLine(busLines, player.x, player.y, spawnMax) : null;
+  for (let tries = 0; line && count < target && tries < 4; tries++) {
+    const pr = projectOnLine(line, player.x, player.y);
+    const dir = Math.random() < 0.5 ? 1 : -1;
+    const at = startAt(line, Math.max(0, Math.min(line.length, pr.s + dir * (spawnMin + Math.random() * (spawnMax - spawnMin) * 0.6))), dir);
+    const rp = map.nearestRoadPoint(at.x, at.y, 25, true);
+    if (!rp || rp.road.cat === 'foot' || rp.road.width < 2.55 + 1.1) continue;
+    const v = spawnVehicleOnRoad(map, rp.road, false, Math.random, false, true, rp);
+    if (Math.abs(normalizeAngle(v.angle - at.angle)) > Math.PI / 2) continue;
+    const d = Math.hypot(v.x - player.x, v.y - player.y);
+    if (d < spawnMin || d > spawnMax || !spawnSpotFree(vehicles, v) || spawnWouldPop(world, v)) continue;
+    v.busRun = makeRunner(line, projectOnLine(line, v.x, v.y).s, dir);
+    vehicles.push(v);
+    count++;
+  }
+
   const candidates = map.roadsNear(player.x, player.y, spawnMax).filter((r) => r.cat === 'major' || r.cat === 'normal' || r.busOnly);
   let guard = 0;
   while (count < target && candidates.length && guard++ < target * 6) {
@@ -1037,7 +1096,7 @@ export function manageBusPopulation(world, { target = 4, spawnMin = 90, spawnMax
     const midi = road.cat === 'normal' || Math.random() < 0.25;
     const v = spawnVehicleOnRoad(map, road, false, Math.random, false, true, null, false, midi ? { ...MIDIBUS_MODEL } : null);
     const d = Math.hypot(v.x - player.x, v.y - player.y);
-    if (d < spawnMin || d > spawnMax || !spawnSpotFree(vehicles, v) || spawnWouldPop(world, v)) continue;
+    if (d < spawnMin || d > spawnMax || !spawnSpotFree(vehicles, v) || inPrivateGarage(map, v.x, v.y, 2) || spawnWouldPop(world, v)) continue;
     vehicles.push(v);
     count++;
   }
@@ -1067,6 +1126,11 @@ export function spawnBoatOnWater(map, waterPoly, rng = Math.random, opts = {}) {
     for (const turn of [0, Math.PI, 0.3, -0.3]) {
       const angle = normalizeAngle(q.a + flip + turn);
       if (boatDryPoints(map, probe, q.x, q.y, angle) > 0) continue;
+      // a barge does not start under a bridge it does not clear
+      if (model.kind === 'binnenvaart') {
+        const hx = Math.cos(angle) * model.len / 2, hy = Math.sin(angle) * model.len / 2;
+        if (lowBridgeRay(map, probe, q.x - hx, q.y - hy, q.x + hx, q.y + hy)) continue;
+      }
       const v = new Vehicle(q.x, q.y, angle, model);
       v.isBoat = true;
       v.waterPoly = waterPoly;
@@ -1110,15 +1174,16 @@ export function manageBoatPopulation(world, { target = 4, spawnMin = 20, spawnMa
   const { map, player, vehicles } = world;
   for (let i = vehicles.length - 1; i >= 0; i--) {
     const v = vehicles[i];
-    if (!v.isBoat || v.isPolice || v.driver === 'player') continue;
+    // your own boat at the jetty is home.js's to stash, not ours to sweep away
+    if (!v.isBoat || v.isPolice || v.driver === 'player' || v.playerOwned || v.homeStored || v.moored) continue;
     if (Math.hypot(v.x - player.x, v.y - player.y) > despawnDist) vehicles.splice(i, 1);
   }
 
   let count = 0;
-  for (const v of vehicles) if (v.isBoat && !v.wrecked && !v.isPolice && v.driver !== 'player') count++;
+  for (const v of vehicles) if (v.isBoat && !v.wrecked && !v.isPolice && v.driver !== 'player' && !v.playerOwned && !v.homeStored && !v.moored) count++;
 
   const candidates = map.waterNear(player.x, player.y, spawnMax);
-  const have = { skiff: 0, acht: 0, sup: 0 };
+  const have = { skiff: 0, acht: 0, sup: 0, binnenvaart: 0 };
   for (const v of vehicles) if (v.isBoat && !v.wrecked && v.model.kind in have) have[v.model.kind]++;
   const life = { hour: hourOf(world), d: distToCentre(player.x, player.y), profile: wijkProfileAt(map, player.x, player.y).key, have };
   let guard = 0;
@@ -1127,10 +1192,11 @@ export function manageBoatPopulation(world, { target = 4, spawnMin = 20, spawnMa
     // rowers, an eight and stand-up paddlers on the wider city water
     life.width = waterMeanWidth(poly);
     life.wide = life.width >= 24;
+    life.nav = poly.nav || 0;
     const lifeKind = pickWaterLife(Math.random, life);
     const v = spawnBoatOnWater(map, poly, Math.random, { near: [player.x, player.y], min: spawnMin, max: spawnMax, budget: 3, model: lifeKind ? BOAT_KINDS[lifeKind] : undefined });
-    if (v && lifeKind) have[lifeKind]++;
-    if (!v || !spawnSpotFree(vehicles, v) || spawnWouldPop(world, v)) continue;
+    if (v && lifeKind) have[BOAT_KINDS[lifeKind].kind === 'binnenvaart' ? 'binnenvaart' : lifeKind]++;
+    if (!v || !spawnSpotFree(vehicles, v) || inPrivateGarage(map, v.x, v.y, 2) || spawnWouldPop(world, v)) continue;
     vehicles.push(v);
     count++;
   }
@@ -1161,6 +1227,20 @@ function countryBoatSpot(v, rng, map, ch) {
   return rectOutside(x, y) > 0 && waterClearance(map, x, y, 3) >= 3 ? { x, y, d: 3 } : null;
 }
 
+// A barge (class 4) must not sail under a fixed bridge it does not clear:
+// the city's low bridges (1.8 m) stop it; an open movable bridge has no deck.
+function lowBridgeAt(map, v, x, y) {
+  const w = waterAt(map, x, y);
+  return !!w && !passesUnder(airDraftOf(v), w.clearanceAbove);
+}
+const isBarge = (v) => v.model.kind === 'binnenvaart';
+// ...along a line, sampled every 3 m (a deck is 5 m or more wide)
+function lowBridgeRay(map, v, x0, y0, x1, y1) {
+  const d = Math.hypot(x1 - x0, y1 - y0), n = Math.max(1, Math.ceil(d / 3));
+  for (let i = 0; i <= n; i++) if (lowBridgeAt(map, v, x0 + (x1 - x0) * i / n, y0 + (y1 - y0) * i / n)) return true;
+  return false;
+}
+
 function pickBoatWaypoint(v, rng, map) {
   const ch = waterChannelPoints(map, v.waterPoly, 2), pts = ch.pts;
   let fallback = null;
@@ -1172,6 +1252,7 @@ function pickBoatWaypoint(v, rng, map) {
     let clear = q.d >= 3;
     for (let t = 3; t < d && clear; t += 3) {
       if (waterClearance(map, v.x + (x - v.x) * t / d, v.y + (y - v.y) * t / d, 3) < 1.8) clear = false;
+      else if (isBarge(v) && lowBridgeAt(map, v, v.x + (x - v.x) * t / d, v.y + (y - v.y) * t / d)) clear = false;
     }
     if (clear) return [x, y];
     if (!fallback) fallback = [x, y];
@@ -1209,7 +1290,18 @@ export function updateBoatAI(v, dt, map, world, rng = Math.random) {
   // three feelers ahead of the bow: ease off and turn toward the side with
   // more open water well before the hull reaches a quay, bank or houseboat
   const reach = v.model.len * 0.5 + 2 + Math.abs(v.speed) * 0.9;
-  const feel = (a) => waterClearance(map, v.x + Math.cos(v.angle + a) * reach, v.y + Math.sin(v.angle + a) * reach, 5);
+  const barge = isBarge(v);
+  const feel = (a) => {
+    const fx = v.x + Math.cos(v.angle + a) * reach, fy = v.y + Math.sin(v.angle + a) * reach;
+    // a bridge too low for a barge counts as a bank
+    if (barge) {
+      // from the bow, far enough to stop in front of the bridge
+      const bx = v.x + Math.cos(v.angle) * v.model.len / 2, by = v.y + Math.sin(v.angle) * v.model.len / 2;
+      const look = 6 + Math.abs(v.speed) * 2.5 + v.speed * v.speed / (2 * (v.model.brake || 0.5));
+      if (lowBridgeRay(map, v, bx, by, bx + Math.cos(v.angle + a) * look, by + Math.sin(v.angle + a) * look)) return 0;
+    }
+    return waterClearance(map, fx, fy, 5);
+  };
   const cF = feel(0);
   if (cF < 3) {
     const cL = feel(0.5), cR = feel(-0.5);
@@ -1227,6 +1319,15 @@ export function updateBoatAI(v, dt, map, world, rng = Math.random) {
     v.speed *= -0.3;
     v.driftX = 0; v.driftY = 0;
     if (!chasing) { v.waypoint = pickBoatWaypoint(v, rng, map); v.waypointTimer = BOAT_WAYPOINT_MIN; }
+  }
+  // hard stop for a barge at a bridge it does not clear (the feelers brake it
+  // in time; this catches a turn that swings the hull into the deck)
+  if (barge && (v.x !== px || v.y !== py || v.angle !== pa)) {
+    const hull = (x, y, a) => lowBridgeRay(map, v, x - Math.cos(a) * v.model.len / 2, y - Math.sin(a) * v.model.len / 2, x + Math.cos(a) * v.model.len / 2, y + Math.sin(a) * v.model.len / 2);
+    if (hull(v.x, v.y, v.angle) && !hull(px, py, pa)) {
+      v.x = px; v.y = py; v.angle = pa; v.speed = 0; v.driftX = 0; v.driftY = 0;
+      if (!chasing) { v.waypoint = pickBoatWaypoint(v, rng, map); v.waypointTimer = BOAT_WAYPOINT_MIN; }
+    }
   }
 }
 
@@ -1358,6 +1459,7 @@ function canUseRoad(v, r) {
   if (r.cat === 'foot') return false;
   const small = v.isBike || v.isScooter;
   if (r.cat === 'cycle' && !small) return false;
+  if (v.isMotor && !motorRoadAllowed(v.model, r)) return false; // brommers and motors keep off the fietspad
   if (r.busOnly && !busLaneUser(v)) return false;
   return small || r.width >= v.model.wid + 1.1;
 }
@@ -1706,6 +1808,7 @@ function followSpeedLimit(v, path, world, decel, chase) {
   const creeping = world.time < (v.creepUntil || 0);
   for (const o of world.vehicles) {
     if (o === v || o.isBoat || o.sinking || o.id === ignoring) continue;
+    if (chase && v.chaseDodge && o.driver === 'player') continue;
     const dx = o.x - v.x, dy = o.y - v.y;
     if (dx * dx + dy * dy > (PATH_LEN + 5) ** 2) continue;
     const rel = Math.cos(o.angle - v.angle);
@@ -1942,6 +2045,11 @@ export function updateTrafficAI(v, dt, map, world, rng = Math.random, opts = nul
   }
   if (!v.plan) v.plan = [];
   if (!opts) opts = v.aiOpts || null;
+  if (v.busRun && v.driver !== 'player') {
+    const out = stepRunner(v.busRun, v.x, v.y, dt);
+    if (out.atStop) v.waitTimer = Math.max(v.waitTimer || 0, out.hold);
+    opts = { goal: out.goal };
+  }
   const goal = (opts && opts.goal) || null;
   const chase = !!(opts && opts.chase);
   const small0 = v.isBike || v.isScooter;
@@ -2104,6 +2212,10 @@ const MAX_IMPACT_DAMAGE = 30;
 // Cars should survive a fair amount of reckless driving: every collision
 // (cars, walls, props) does this fraction of its raw damage.
 export const CRASH_DAMAGE_SCALE = 0.4;
+const FLAT_MIN_DAMAGE = 8; // een klap van minstens zoveel schade kan een band lek slaan
+const FLAT_MAX_CHANCE = 0.5;
+const FLAT_TOP_FACTOR = 0.7; // lekke band: topsnelheid
+const FLAT_PULL = 0.12; // lekke band: de auto trekt scheef (stuurbias)
 const WALL_DAMAGE_SPEED = 7;
 const MAX_WALL_DAMAGE = 20;
 const SCRAPE_SPEED = 3;
@@ -2185,6 +2297,7 @@ function applyImpactDamage(v, dmg, playerInvolved, world) {
   if (dmg <= 0 || v.wrecked) return;
   if (v.disabled) { v.burnLeft -= dmg * 0.06; return; }
   v.health = Math.max(0, v.health - dmg * CRASH_DAMAGE_SCALE);
+  if (playerInvolved && v.driver === 'player' && !v.flat && !v.isBoat && !v.isHeli && !v.isBus && dmg >= FLAT_MIN_DAMAGE && v.health > 0 && Math.random() < Math.min(FLAT_MAX_CHANCE, dmg / 60)) v.flat = true;
   if (v.health <= 0) disableVehicle(v, playerInvolved, world);
 }
 
@@ -2216,6 +2329,10 @@ export function disableVehicle(v, byPlayer, world = null) {
 
 export function tickBurningVehicles(world, dt) {
   for (const v of world.vehicles) {
+    if (v.flat && !v.flatWarned && v.driver === 'player') {
+      v.flatWarned = true;
+      world.addMessage(v.isBike || v.isScooter ? 'Lekke band! Naar de fietsenmaker of de garage' : 'Lekke band! Je auto trekt scheef. Naar de garage', 4);
+    } else if (!v.flat && v.flatWarned) v.flatWarned = false;
     if (!v.disabled || v.wrecked) continue;
     if (v.sinking) { v.disabled = false; continue; }
     if (v.driver === 'player' && !v.fireWarned) {
@@ -3027,7 +3144,7 @@ function onCarRoad(map, x, y) {
 }
 
 export function overOpenWater(map, x, y, z) {
-  if (!inWaterPoly(map, x, y) || map.isOnBridge(x, y)) return false;
+  if (!inMapWater(map, x, y) || map.isOnBridge(x, y)) return false;
   // over the canal on a viaduct, or under it through the aqueduct
   if (z > 1.5 || (z < -3 && map.coveredAt && map.coveredAt(x, y))) return false;
   // water reaching over the edge of a dry road (a polygon's corner, the countryside's water field) is its embankment
@@ -3067,7 +3184,7 @@ export function tickSinkingVehicles(world) {
 
 function driftOnWater(v, s, dt, map) {
   const nx = v.x + s.vx * dt, ny = v.y + s.vy * dt;
-  if (inWaterPoly(map, nx, ny)) { v.x = nx; v.y = ny; } else { s.vx = 0; s.vy = 0; }
+  if (inMapWater(map, nx, ny)) { v.x = nx; v.y = ny; } else { s.vx = 0; s.vy = 0; }
 }
 
 function updateSinking(v, dt, world) {

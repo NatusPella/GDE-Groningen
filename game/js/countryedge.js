@@ -199,3 +199,13 @@ export function edgeBlocked(x, y, margin = 3) {
   if (edgeDistance(x, y) > 5000) return false;
   return nearRail(x, y);
 }
+
+// A line prop (a fence span, a hedge piece) from (ax, ay) to (bx, by): blocked
+// when any point along it is (checked every `step` m, both ends included). The
+// posts of a fence are tested one by one, the wire between them is not: a
+// ditch or a lane narrower than the post spacing was crossed (issue #124).
+export function edgeSpanBlocked(ax, ay, bx, by, margin = 0.5, step = 1) {
+  const n = Math.max(1, Math.ceil(Math.hypot(bx - ax, by - ay) / step));
+  for (let k = 0; k <= n; k++) if (edgeBlocked(ax + ((bx - ax) * k) / n, ay + ((by - ay) * k) / n, margin)) return true;
+  return false;
+}

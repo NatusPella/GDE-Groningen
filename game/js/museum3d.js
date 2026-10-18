@@ -10,11 +10,11 @@ import { pointInPolygon } from './util.js';
 import { MUSEUM_ROOMS, MUSEUM_CASE, rectDist } from './museumplan.js';
 import { registerPortalBoxes, registerInterior } from './portalcut3d.js';
 
-const G_SOLID = 0, G_LAMP = 1;
+export const G_SOLID = 0, G_LAMP = 1;
 const SHOW_RADIUS = 95;
 
-const interiorMat = vcMaterial({ side: THREE.DoubleSide, emissive: 0x2e2a24, emissiveIntensity: 1 });
-const lampMat = new THREE.MeshBasicMaterial({ color: 0xfff1d6 });
+export const interiorMat = vcMaterial({ side: THREE.DoubleSide, emissive: 0x2e2a24, emissiveIntensity: 1 });
+export const lampMat = new THREE.MeshBasicMaterial({ color: 0xfff1d6 });
 const glassMat = new THREE.MeshStandardMaterial({ color: 0xd6ecff, transparent: true, opacity: 0.2, roughness: 0.05, metalness: 0.1, depthWrite: false });
 const goldMat = new THREE.MeshStandardMaterial({ color: 0xf0c24e, roughness: 0.25, metalness: 0.85, emissive: 0x3a2800 });
 for (const m of [interiorMat, lampMat, glassMat, goldMat]) m.userData.shared = true;
@@ -34,20 +34,21 @@ const STYLE = {
 };
 
 // world point of room r at local (a, c), height y -> [x, y, z]
-const at = (r, a, c, y) => [r.cx + a * r.ux - c * r.uy, y, r.cy + a * r.uy + c * r.ux];
+export const at = (r, a, c, y) => [r.cx + a * r.ux - c * r.uy, y, r.cy + a * r.uy + c * r.ux];
 
-function openAt(b, r, x, y) {
+function openAt(b, r, x, y, rooms) {
   if (!pointInPolygon(x, y, b.pts)) return { open: true, top: 0 };
   let top = null;
-  for (const o of MUSEUM_ROOMS) {
+  for (const o of rooms) {
     if (o === r || rectDist(o, x, y) > -0.05) continue;
     top = Math.max(top ?? 0, o.h);
   }
   return top === null ? null : { open: true, top };
 }
 
-function roomShell(B, b, r, i) {
-  const st = STYLE[r.id];
+// `rooms`/`r.style` let interieur3d.js shell the other buildings the same way
+export function roomShell(B, b, r, i, rooms = MUSEUM_ROOMS) {
+  const st = r.style || STYLE[r.id];
   const [A, Bc, Cc, D] = [at(r, -r.hl, -r.hw, 0), at(r, r.hl, -r.hw, 0), at(r, r.hl, r.hw, 0), at(r, -r.hl, r.hw, 0)];
   const fy = 0.03 + i * 0.004;
   const lift = (p, y) => [p[0], y, p[2]];
@@ -71,7 +72,7 @@ function roomShell(B, b, r, i) {
       const t = k / n;
       const pa = a0 + (a1 - a0) * t, pc = c0 + (c1 - c0) * t;
       const [x, , y] = at(r, pa, pc, 0);
-      const o = openAt(b, r, x, y);
+      const o = openAt(b, r, x, y, rooms);
       const kind = !o ? 'wall' : o.top === 0 ? 'outside' : o.top;
       if (runKind === null) { runKind = kind; runStart = t; continue; }
       if (kind !== runKind || k === n) {
@@ -94,7 +95,7 @@ function roomShell(B, b, r, i) {
 const R = (id) => MUSEUM_ROOMS.find((q) => q.id === id);
 
 // a framed painting on the wall of room r at local a (along) on side c = +-hw
-function painting(B, r, a, side, w, h, color, seed) {
+export function painting(B, r, a, side, w, h, color, seed) {
   const c = side * (r.hw - 0.06);
   const y = 1.25 + h / 2;
   const rot = Math.atan2(r.uy, r.ux);
@@ -119,7 +120,7 @@ function plinth(B, r, a, c, top) {
   }
 }
 
-function bench(B, r, a, c) {
+export function bench(B, r, a, c) {
   const [x, , z] = at(r, a, c, 0);
   const rot = Math.atan2(r.uy, r.ux);
   B.box(x, 0.42, z, 2.0, 0.08, 0.5, 0x6b4a2e, G_SOLID, 0, -rot, 0);
@@ -141,7 +142,7 @@ function signTexture(lines, bg, fg) {
 }
 
 // a sign flat on the wall of room r (side c = +-hw), text facing into the room
-function sign(group, r, a, side, y, w, lines, bg = '#1c1c1c', fg = '#f4efe2') {
+export function sign(group, r, a, side, y, w, lines, bg = '#1c1c1c', fg = '#f4efe2') {
   const mat = new THREE.MeshBasicMaterial({ map: signTexture(lines, bg, fg) });
   const m = new THREE.Mesh(new THREE.PlaneGeometry(w, w / 4), mat);
   const [x, , z] = at(r, a, side * (r.hw - 0.05), 0);

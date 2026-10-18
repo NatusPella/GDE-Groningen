@@ -1,5 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { GeoBuilder, composeMatrix } from './pixelart3d.js';
+import { hash2 as hash } from './rng.js';
 
 // Landmark kits (docs/PROVINCIE-PLAN.md 3b, LK1): a recognisable building
 // for a place from its OSM data. Data in (kind, name, outline, tags), plain
@@ -26,10 +27,6 @@ const G_BODY = 0, G_GLOW = 1, G_GLASS = 2;
 
 // --- small helpers ---------------------------------------------------------
 
-function hash(a, b) {
-  const h = Math.sin(a * 127.1 + b * 311.7) * 43758.5453;
-  return h - Math.floor(h);
-}
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 function year(t) {
   const m = /(\d{4})/.exec((t && t.start_date) || '');
@@ -84,6 +81,45 @@ export const LANDMARK_LOOKS = [
   { n: 'Torenkerk', x: -3382.27, y: -12300.22, p: { tower: 'saddle', towerH: 30, wierde: true } },
   { n: 'Sebastiaan/Fabius', x: -10576.47, y: -2374.99, p: { tower: 'spire', towerH: 42 } },
   { n: 'Abdijkerk', x: -7145.44, y: -3990.13, p: { tower: 'ridge', windows: 'pointed', buttress: true, choir: 'poly' } },
+  { n: 'Petrus en Pauluskerk', x: 11990.7, y: -12735.0, p: { tower: 'saddle', towerH: 36, choir: 'poly', wierde: true, buttress: true } },
+  { n: 'Bartholomeuskerk', x: 8395.1, y: -11586.0, p: { tower: 'saddle', towerH: 31, choir: 'apse', wierde: true, windows: 'round' } },
+  { n: 'Jacobskerk', x: 12564.1, y: -14320.4, p: { tower: 'saddle', towerH: 28, choir: 'poly', wierde: true, buttress: true, windows: 'pointed' } },
+  { n: 'Mariakerk', x: 18617.7, y: -15419.3, p: { tower: 'ridge', choir: 'flat', wierde: true, brick: 'tuf', roof: 'tile', windows: 'round' } },
+  { n: 'Jacobikerk', x: 6885.8, y: -21029.7, p: { tower: 'saddle', towerH: 30, choir: 'poly', wierde: true } },
+  { n: 'Petruskerk', x: -12952.8, y: -15393.4, p: { tower: 'saddle', towerH: 27, choir: 'apse', brick: 'tuf', wierde: true, windows: 'round' } },
+  { n: 'Sebastiaankerk', x: -582.1, y: -19200.3, p: { tower: 'ridge', choir: 'flat', roof: 'slate' } },
+  { n: 'St-Hippolytuskerk', x: 4843.7, y: -14362.8, p: { tower: 'saddle', towerH: 40, choir: 'poly', wierde: true, windows: 'pointed' } },
+  { n: 'Ursuskerk', x: 31955.0, y: -9375.8, p: { tower: 'saddle', towerH: 24, brick: 'tuf', wierde: true, choir: 'apse', windows: 'round' } },
+  { n: 'Nicolaikerk', x: 19328.2, y: -11524.5, p: { tower: 'needle', towerH: 38, choir: 'poly', windows: 'pointed', buttress: true } },
+  { n: 'Kerk van Ezinge', x: -8533.2, y: -10083.8, p: { tower: 'saddle', towerH: 24, wierde: true } },
+  { n: 'Petruskerk', x: -7906.3, y: -19937.6, p: { tower: 'saddle', towerH: 22, wierde: true, brick: 'tuf', choir: 'apse' } },
+  { n: 'Petrus en Pauluskerk', x: 2769.7, y: -20431.3, p: { tower: 'saddle', towerH: 33, wierde: true, choir: 'poly' } },
+  { n: 'Laurentiuskerk', x: -3687.9, y: -15890.9, p: { tower: 'saddle', towerH: 26, wierde: true, choir: 'apse' } },
+  { n: 'Kerk van Holwierde', x: 20102.6, y: -15744.7, p: { tower: 'saddle', towerH: 24, wierde: true, brick: 'tuf', choir: 'apse' } },
+  { n: 'Kerk van Bourtange', x: 42416.8, y: 22773.3, p: { tower: 'ridge', choir: 'flat', roof: 'slate' } },
+  { n: 'Menkemaborg', x: 7565.8, y: -20770.8, p: { brick: 'red', floors: 3, stair: true } },
+  { n: 'Fraeylemaborg', x: 16345.1, y: 153.1, p: { brick: 'white', floors: 2, stair: true } },
+  { n: 'Borg Verhildersum', x: -11707.2, y: -15744.0, p: { brick: 'white', floors: 2, stair: false } },
+  { n: 'Borg Ewsum', x: 5173.0, y: -15001.1, p: { brick: 'red', floors: 2, stair: true } },
+  { n: 'Ennemaborg', x: 29081.6, y: 2453.8, p: { brick: 'white', floors: 2, stair: true } },
+  { n: 'Piloersemaborg', x: -9974.7, y: -6165.1, p: { brick: 'red', floors: 2, stair: false } },
+  { n: 'Allersmaborg', x: -7650.6, y: -10970.4, p: { brick: 'white', floors: 2, stair: true } },
+  { n: 'Adam', x: 23844.0, y: -12839.8, p: { type: 'stelling', body: 'black', height: 22 } },
+  { n: 'Fraeylemamolen', x: 15091.8, y: -474.2, p: { type: 'ground', body: 'reed', height: 13 } },
+  { n: 'Vestingmolen Bourtange', x: 42441.9, y: 22704.1, p: { type: 'stelling', body: 'white', height: 20 } },
+  { n: 'Kerkje van Oostum', x: -4590, y: -6702.9, p: { tower: 'ridge', choir: 'apse', brick: 'tuf', roof: 'tile', wierde: true, windows: 'round' } },
+  { n: 'Sint-Jozefkathedraal', x: 522.4, y: 503.2, p: { tower: 'spire', towerH: 56, choir: 'poly', brick: 'red', roof: 'slate', windows: 'pointed', buttress: true } },
+  { n: 'Kerk van Den Andel', x: -3942.9, y: -18385, p: { tower: 'saddle', towerH: 22, wierde: true, brick: 'tuf', choir: 'apse' } },
+  { n: 'Sint-Georgiuskerk', x: 1980.2, y: -15798.4, p: { tower: 'saddle', towerH: 26, wierde: true, choir: 'poly', brick: 'tuf' } },
+  { n: 'Mariakerk', x: 9297.4, y: -21176.2, p: { tower: 'ridge', choir: 'flat', wierde: true, brick: 'tuf', windows: 'round' } },
+  { n: 'Kerk van Nieuw Scheemda', x: 25237.3, y: 564.3, p: { tower: 'saddle', towerH: 24, choir: 'flat', roof: 'slate' } },
+  { n: 'Sint Vituskerk', x: 31614.6, y: 7620.8, p: { tower: 'spire', towerH: 40, choir: 'poly', windows: 'pointed', buttress: true } },
+  { n: 'Burcht Wedde', x: 34315.7, y: 16258.4, p: { brick: 'red', floors: 2, stair: true } },
+  { n: 'Korenmolen Hunsingo', x: 1504.4, y: -12886.4, p: { type: 'ground', body: 'white', height: 14 } },
+  { n: 'De Noordstar', x: 20541.3, y: 1731.3, p: { type: 'stelling', body: 'black', height: 20 } },
+  { n: 'De Noordermolen', x: 22797.8, y: 210.5, p: { type: 'ground', body: 'reed', height: 13 } },
+  { n: 'Westmole', x: 40422.7, y: -13625.4, p: { type: 'lighthouse', height: 12, total: 12 } },
+  { n: 'Ostmole', x: 40806.2, y: -13610.5, p: { type: 'lighthouse', height: 14, total: 14 } },
 ];
 
 // item: { k, n, x, y, o?, t } (scripts/add_landmark_kits.py), fit: an
@@ -97,7 +133,7 @@ export function landmarkParams(item, fit = null) {
   let p = null;
   if (item.k === 'church' || item.k === 'chapel') p = churchParams(item, t, box, h);
   else if (item.k === 'mill') p = millParams(item, t, h);
-  else if (item.k === 'tower') p = towerParams(item, t, h);
+  else if (item.k === 'tower' || item.k === 'lighthouse') p = towerParams(item, t, h);
   else if (item.k === 'castle') p = borgParams(item, t, box, h);
   if (!p) return null;
   return { ...base, ...p, ...(look ? look.p : {}) };
@@ -140,6 +176,7 @@ function millParams(item, t, h) {
 
 function towerParams(item, t, h) {
   const tt = t['tower:type'] || '';
+  if (item.k === 'lighthouse' || t.man_made === 'lighthouse') return { kit: 'tower', type: 'lighthouse', height: metres(t.height) || 14 + h * 8 };
   if (tt === 'observation' || tt === 'watchtower' || t.tourism === 'viewpoint') return { kit: 'tower', type: 'lookout', height: metres(t.height) || 12 + h * 8 };
   if (tt === 'bell_tower') return { kit: 'tower', type: 'bell', height: 14 + h * 8, total: metres(t.height), crown: h < 0.6 ? 'saddle' : 'spire', brick: 'mop' };
   return null;
@@ -363,6 +400,19 @@ function tower(B, p, lod) {
     B.box(0, h, 0, s * 2 + 1, 0.3, s * 2 + 1, 0x5a4a38);
     B.geo(new THREE.ConeGeometry(s * 1.9, 2.4, 4, 1, true).rotateY(Math.PI / 4), composeMatrix(0, h + 3, 0), ROOF.slate);
     p.top = h + 4.2;
+    return;
+  }
+  if (p.type === 'lighthouse') {
+    // a tapering shaft in red and white bands, a gallery and a glowing lantern under a cap
+    const r0 = Math.max(1.6, h * 0.17), r1 = r0 * 0.62, bands = 4, bh = h / bands;
+    for (let i = 0; i < bands; i++) {
+      const ra = r0 + (r1 - r0) * (i / bands), rb = r0 + (r1 - r0) * ((i + 1) / bands);
+      B.geo(new THREE.CylinderGeometry(rb, ra, bh, 8), composeMatrix(0, bh * (i + 0.5), 0), i % 2 ? 0xe8e4da : 0xa8322a);
+    }
+    B.box(0, h + 0.1, 0, r1 * 2 + 1.2, 0.25, r1 * 2 + 1.2, 0x2c2e30);
+    B.geo(new THREE.CylinderGeometry(r1 * 0.75, r1 * 0.75, 1.6, 8), composeMatrix(0, h + 1, 0), 0xfff2c0, G_GLOW);
+    B.geo(new THREE.ConeGeometry(r1 * 0.95, 1.2, 8), composeMatrix(0, h + 2.4, 0), 0x2c2e30);
+    p.top = h + 3;
     return;
   }
   const tw = clamp((p.total || h) * 0.2, 4, 7);

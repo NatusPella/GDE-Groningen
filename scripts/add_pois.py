@@ -11,7 +11,6 @@ import json
 import math
 import os
 import random
-import subprocess
 import sys
 import time
 
@@ -21,11 +20,6 @@ from world.rdnew import meta_frame  # noqa: E402
 
 MAP_PATH = "game/citymap.json"
 CACHE_PATH = "data/pois_raw.json"
-OVERPASS_URLS = [
-    "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
-    "https://overpass-api.de/api/interpreter",
-    "https://overpass.kumi.systems/api/interpreter",
-]
 QUERY_TEMPLATE = (
     "[out:json][timeout:120];("
     'nwr["amenity"~"^(hospital|clinic|doctors|pharmacy|dentist)$"]{b};'

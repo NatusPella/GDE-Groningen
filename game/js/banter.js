@@ -21,6 +21,7 @@ import { hold as holdChannel, release as releaseChannel } from './speech.js';
 import { KEYS } from './storagekeys.js';
 import { nieuwVerhaal } from './storyflag.js';
 import { banterExchanges, storyDataReady } from './storytext.js';
+import { openBank } from './voicebank.js';
 
 const GLOBAL_CD = 75;
 const PLACE_CD = 600;
@@ -43,9 +44,8 @@ const LINE_GAP = 0.3;
 const REPEAT_AFTER_MS = 3 * 3600 * 1000;
 const HEARD_KEY = KEYS.banter;
 
-const VOICE_DIR = new URL('../audio/voicelines/banter/', import.meta.url).href;
-let voices = {};
-fetch(VOICE_DIR + 'manifest.json').then((r) => (r.ok ? r.json() : {})).then((m) => { voices = m || {}; }).catch(() => {});
+const VOICE_DIR = openBank('banter').dir;
+const voices = openBank('banter').entries;
 
 let BY_TRIGGER = new Map();
 let BY_ID = new Map();

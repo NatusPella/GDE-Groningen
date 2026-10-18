@@ -25,11 +25,17 @@ import { KARTBAAN } from './kartbaan.js';
 import { ZWEMBAD } from './zwembad.js';
 import { KLIMTOREN } from './klimtoren.js';
 import { WATERSKI } from './waterski.js';
+import { CARILLON_GAME } from './carillon.js';
+import { PANNENKOEK } from './pannenkoek.js';
+import { HENGELEN } from './hengelen.js';
+import { WANDELING } from './wandeling.js';
+import { SNACKKETEN } from './snackketen.js';
 import { isShopOpen } from './shopui.js';
 import { isCinematicActive } from './cinematics.js';
+import { registerBusyProbe } from './busy.js';
 export { activityBlock, iconDisc } from './activitykit.js';
 
-const LIST = [CARBID, KERMIS, GEHEIMEN, DRIFT_ZONE, DISCGOLF, PITCHPUTT, SKATEPARK, KARTBAAN, ZWEMBAD, KLIMTOREN, WATERSKI];
+const LIST = [CARBID, KERMIS, GEHEIMEN, DRIFT_ZONE, DISCGOLF, PITCHPUTT, SKATEPARK, KARTBAAN, ZWEMBAD, KLIMTOREN, WATERSKI, CARILLON_GAME, PANNENKOEK, HENGELEN, WANDELING, SNACKKETEN];
 
 export function initActivities(w) {
   for (const a of LIST) {
@@ -49,6 +55,7 @@ function current() {
 export function isActivityActive() {
   return !!current();
 }
+registerBusyProbe('activity', isActivityActive);
 
 // A loaded save ends a running minigame (savegame.js).
 export function quitActivity(w) {

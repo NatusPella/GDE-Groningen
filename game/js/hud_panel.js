@@ -1,9 +1,10 @@
+import { pointInPolygon as pointInPoly } from './util.js';
 import { dualHtml } from './subtitles.js';
 import { simLevel } from './simload.js';
 import { getGaragesForRender } from './garages.js';
 import { getHomeForRender, getHomeGarageForRender, getHomeMooringForRender, getHomeHelipadForRender } from './home.js';
 import { minimapShows } from './mapfilters.js';
-import { mapCategory } from './mapicons.js';
+import { mapCategory, mapRimColor } from './mapicons.js';
 import { facilitiesOf } from './facilities.js';
 import { getHorecaForRender } from './horeca.js';
 import { getShopsForRender, drawShopMapIcon, drawShopGlyph, SHOP_TYPES, storyTargetShop, drawStoryShopRing } from './shops.js';
@@ -549,14 +550,6 @@ function updateRouteChip(world) {
   els.routeChip.dataset.kind = kind;
 }
 
-function pointInPoly(px, py, pts) {
-  let inside = false;
-  for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
-    const xi = pts[i][0], yi = pts[i][1], xj = pts[j][0], yj = pts[j][1];
-    if (((yi > py) !== (yj > py)) && (px < (xj - xi) * (py - yi) / (yj - yi) + xi)) inside = !inside;
-  }
-  return inside;
-}
 
 function currentDistrict(world) {
   const { x, y } = world.player;
@@ -667,8 +660,9 @@ function updatePlace(dt, world) {
   if (!c || c.key === placeState.last) return;
   // a mission timer, a cutscene or a busy moment: the place is just taken in
   const timer = !!gpsState.timer;
-  if (timer || isCinematicActive() || world.pigeonMode || world.heliRun || !document.body.classList.contains('game-started')) { placeState.last = c.key; return; }
-  if (isBusy(world) || isDialogue()) {
+  if (timer || world.pigeonMode || world.heliRun || !document.body.classList.contains('game-started')) { placeState.last = c.key; return; }
+  // a flyover (wijk, landmark) names its place in this card once it ends
+  if (isCinematicActive() || isBusy(world) || isDialogue()) {
     if (!placeState.pending || placeState.pending.key !== c.key) { placeState.pending = c; placeState.pendingAt = now; }
     if (now - placeState.pendingAt > DEFER_MAX) { placeState.last = c.key; placeState.pending = null; }
     return;
@@ -1137,7 +1131,7 @@ function currentObjective(world) {
   }
   // the player's own goal (goal.js): the story waits meanwhile
   const goal = world.goal;
-  if (goal && !world.padelGame && !world.activityGame && !world.heliRun && !world.challenge && !(m && m.phase === 'active')) {
+  if (goal && !playerBusy(world, ['padel', 'activityGame', 'heliRun', 'challenge']).busy && !(m && m.phase === 'active')) {
     const r = getActiveRoute();
     const d = r && r.kind === 'user' ? r.remaining : Math.hypot(goal.x - world.player.x, goal.y - world.player.y);
     const wait = storyWaiting(world);
@@ -1148,7 +1142,7 @@ function currentObjective(world) {
   }
   // between missions: the next story step, so it is always clear where to go
   const g = world.storyGuide;
-  if (g && g.name && !world.storyFreePlay && !world.padelGame && !world.activityGame && !world.heliRun && !(m && m.phase === 'active')) {
+  if (g && g.name && !world.storyFreePlay && !gameBusy(world) && !(m && m.phase === 'active')) {
     const atMarker = m && (m.phase === 'idle' || m.phase === 'cooldown') && Math.hypot(m.marker.x - g.x, m.marker.y - g.y) < 4;
     const near = Math.hypot(g.x - world.player.x, g.y - world.player.y) < 40;
     const inside = atMarker && !m.armed && m.distanceToMarker < (m.triggerRadius || 4);
@@ -1681,8 +1675,8 @@ export function drawMapIconHalo(ctx, kind, x, y, s = 1) {
   ctx.arc(x, y, 6.6 * s, 0, Math.PI * 2);
   ctx.fillStyle = 'rgba(12, 20, 14, 0.78)';
   ctx.fill();
-  ctx.lineWidth = Math.max(1.2, 0.9 * s);
-  ctx.strokeStyle = 'rgba(240, 237, 228, 0.92)';
+  ctx.lineWidth = Math.max(1.6, 0.7 * s);
+  ctx.strokeStyle = mapRimColor(kind);
   ctx.stroke();
   ctx.restore();
 }
@@ -1847,6 +1841,8 @@ export function declutter(items, cellM) {
 }
 
 import { forEachCashTarget } from './cashvan.js';
+import { gameBusy } from './busy.js';
+import { playerBusy } from './busy.js';
 
 export function getHeroCar(world) {
   return world.vehicles.find((v) => v.isHeroCar && !v.wrecked) || null;
@@ -2119,7 +2115,7 @@ function drawMinimap(dt, world) {
   const heliMarks = getHeliRunMarks();
   if (heliMarks) drawHeliRunMarks(ctx, heliMarks, toScreen, inRange, mmScale, t);
   // a minigame on the spot (padel, carbid, the kermis) or a heli run: no other mission or story marks
-  const busyGame = !!(world.padelGame || world.activityGame || world.heliRun);
+  const busyGame = gameBusy(world);
   const placed = [];
   const icon = (kind, x, y, opts) => {
     if (!inRange(x, y)) return false;
