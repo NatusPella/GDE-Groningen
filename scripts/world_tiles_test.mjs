@@ -98,6 +98,7 @@ for (const [key, e] of Object.entries(index.tiles)) {
   const again = G.encodeBlob({ i: d.i, j: d.j, flags: d.flags, builder: d.builder, sections: d.sections.map((s) => ({ ...s, tuple: false })) });
   if (!sameBytes(again, raw)) reenc++;
   for (const s of d.sections) {
+    if (s.type === G.SECTION.RASTER) continue; // the AHN terrain (fetch_ahn.py), checked by terrain_test.mjs
     if (s.type === G.SECTION.NAV) continue;
     if (s.type === G.SECTION.JUNCTIONS) { for (const row of s.rows) junctionsBack.set(row.k, row); continue; }
     if (s.type === G.SECTION.HEIGHTS) {

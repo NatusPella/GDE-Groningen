@@ -48,7 +48,7 @@ export function prepareLandmarks(items, map) {
       const twin = mills.find((m) => near(m, it, 20));
       if (twin) { if (!twin.n && it.n) twin.n = it.n; twin.t = { ...it.t, ...twin.t }; continue; }
       mills.push({ ...it, t: { ...it.t } });
-    } else if (it.k === 'tower' || it.k === 'castle') other.push(it);
+    } else if (['tower', 'castle', 'farm', 'silo', 'factory', 'flat', 'townhall', 'station', 'school', 'museum'].includes(it.k)) other.push(it);
   }
   const out = [];
   for (const c of churches) {
@@ -91,6 +91,3 @@ export function updateOmmelandLandmarks(world, scene, focus) {
   S.layer.update(focus.x, focus.y, night, flood, world.time || 0);
 }
 
-export function ommelandLandmarkStats() {
-  return S && S.layer ? { ...S.layer.stats(), kits: S.list.reduce((a, p) => { a[p.kit] = (a[p.kit] || 0) + 1; return a; }, {}) } : null;
-}

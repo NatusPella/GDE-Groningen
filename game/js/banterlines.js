@@ -697,7 +697,7 @@ export const BANTER = [
     ['A', 'Om daarna heel blij terug te komen.', 'cheerful']] },
   { id: 'pl-station-peerd', trigger: 'place:Hoofdstation Groningen', lines: [
     ['T', 'Stond dat paard gisteren niet ergens anders?', 'suspicious'],
-    ['A', 'Het Peerd van Ome Loeks staat altijd ergens anders.', 'knowing'],
+    ['A', 'Het Peerd van Ome Loeks staat op de rotonde bij het Mesdagplein. Nee, echt.', 'knowing'],
     ['T', 'Een paard met een eigen agenda.', 'impressed, dry']] },
   { id: 'pl-station-perron', trigger: 'place:Hoofdstation Groningen', needs: 'H16', lines: [
     ['A', 'Perron drie.', 'soft, fond'],

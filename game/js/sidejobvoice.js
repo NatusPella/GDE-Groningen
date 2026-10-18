@@ -7,7 +7,6 @@ import { openBank } from './voicebank.js';
 // note the recording was made with.
 
 const bank = openBank('jobs');
-export const JOB_VOICE_DIR = bank.dir;
 
 export function jobVoiceFor(speaker, text) {
   return bank.lookup(speaker, text);
