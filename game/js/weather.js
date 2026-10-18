@@ -3,6 +3,7 @@ import { clamp, lerp } from './util.js';
 import { playSikkomLine } from './audio.js';
 import { getSettings } from './settings.js';
 import { regenDruppels } from './weerlook.js';
+import { streekZonHoogte } from './weerdag.js';
 import { createWeatherState, stepWeather, regionWeather, regionAt } from './weatherstate.js';
 import { qualityLook, regionHaze, sunGlow, createStormPlanner, stepStorm, flashAt } from './weatherlook.js';
 
@@ -360,7 +361,7 @@ export function applyWeatherToScene3D(scene, renderer, world, dt, px, py, cam = 
     const u = sky.uniforms;
     u.uZenith.value.copy(base.zenith).lerp(_stormZenith, cloud * 0.9).lerp(_mist, mist * 0.85).lerp(LIGHTNING_COLOR, flash * 0.6);
     u.uHorizon.value.copy(base.horizon).lerp(_stormFog, cloud * 0.9).lerp(_mist, mist).lerp(LIGHTNING_COLOR, flash * 0.5);
-    const glow = sunGlow(world.dayNight ? world.dayNight.sunElevation : 30, cloud);
+    const glow = sunGlow(world.dayNight ? streekZonHoogte(region, world.dayNight.hour) : 30, cloud);
     if (glow.strength > 0.01) {
       _glow.setRGB(glow.color[0], glow.color[1], glow.color[2]);
       u.uHorizon.value.lerp(_glow, glow.strength * 0.35);

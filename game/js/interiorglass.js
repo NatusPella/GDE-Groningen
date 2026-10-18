@@ -37,6 +37,7 @@ const uniforms = {
   uNightGlow: { value: 0 },
   uLitFrac: { value: 0 },
   uShopFrac: { value: 0 },
+  uOfficeFrac: { value: 0 },
   uStorm: { value: 0 },
   uTime: { value: 0 },
   uRoomDepth: { value: 1.0 },
@@ -53,10 +54,11 @@ onSettingsChange((st) => {
 });
 glassMaterial.customProgramCacheKey = () => (interiorOn ? 'glass-interior' : 'glass-plain');
 
-export function setGlassNight(glow, litFrac, shopFrac) {
+export function setGlassNight(glow, litFrac, shopFrac, officeFrac = litFrac) {
   uniforms.uNightGlow.value = glow;
   uniforms.uLitFrac.value = litFrac;
   uniforms.uShopFrac.value = shopFrac;
+  uniforms.uOfficeFrac.value = officeFrac;
   uniforms.uTime.value = performance.now() / 1000;
   const w = typeof window !== 'undefined' && window.__debug && window.__debug.world && window.__debug.world.weather;
   const storm = w ? Math.min(1, Math.max(0, w.intensity || 0)) : 0;
@@ -70,7 +72,7 @@ const DECODE = /* glsl */`
 varying vec2 vWinUv;
 varying vec3 vWPos;
 varying vec3 vWNrm;
-uniform float uNightGlow, uLitFrac, uShopFrac, uStorm, uTime, uRoomDepth;
+uniform float uNightGlow, uLitFrac, uShopFrac, uOfficeFrac, uStorm, uTime, uRoomDepth;
 uniform vec4 uShopWall[${SHOP_KINDS.length}];
 uniform vec4 uShopFloor[${SHOP_KINDS.length}];
 uniform vec4 uShopAccent[${SHOP_KINDS.length}];
@@ -155,7 +157,7 @@ vec3 igInterior(IgPane q, vec3 N, vec3 V, float dist, out float fres) {
   vec3 ird = 1.0 / rd;
 
   float night = clamp(uNightGlow / 1.5, 0.0, 1.0);
-  float lit = step(q.rank, shop ? uShopFrac : uLitFrac) * (shop ? mix(0.5, 1.0, night) : night);
+  float lit = step(q.rank, shop ? uShopFrac : office ? uOfficeFrac : uLitFrac) * (shop ? mix(0.5, 1.0, night) : night);
   vec3 lampCol = igLampColor(q);
   float lampI = lit * (shop ? 1.3 : office ? 1.0 : 0.8) * mix(0.8, 1.05, fract(q.rank * 3.3));
   // TV glow: a slow, gentle drift - fast flicker read as flashing lights
@@ -359,7 +361,7 @@ glassMaterial.onBeforeCompile = (shader) => {
       #else
         if (uNightGlow > 0.0) {
           bool shop = abs(q.kind - 2.0) < 0.5;
-          float on = step(q.rank, shop ? uShopFrac : uLitFrac);
+          float on = step(q.rank, shop ? uShopFrac : (q.kind > 2.5 ? uOfficeFrac : uLitFrac));
           float v = clamp(q.p.y / max(q.size.y, 0.1), 0.0, 1.0);
           totalEmissiveRadiance += igLampColor(q) * on * uNightGlow * mix(0.7, 1.0, v) * (shop ? 1.5 : 1.0);
         }

@@ -12,7 +12,7 @@ import { streamPending } from './scene3d.js';
 import { placeLabel } from './hud_panel.js';
 import { LANDMARK_LINES } from './placelines.js';
 import { pictureHtml, missionPicture } from './loadscene.js';
-import { JUMP_M as JM, loadKind, stepProgress, startProgress, litTiles, pickTips, buildLines, TILE_COUNT, LINE_S } from './loadlogic.js';
+import { JUMP_M as JM, loadKind, stepProgress, startProgress, pickTips, buildLines, LINE_S } from './loadlogic.js';
 
 const CITY_IMAGES = ['vismarkt', 'luchtfoto', 'rondvaart', 'duif'];
 let tips = [];
@@ -59,7 +59,7 @@ function ensureCss() {
 
 // opts: { kind: 'save' | 'travel' | 'snel', x, y, name, instant, from, mission }
 // mission (a key of MISSION_PICTURE) picks that mission's own picture.
-// snel is the small hop (fast travel nearby): only the place and the tiles.
+// snel is the small hop (fast travel nearby): only the place and the bar.
 // Returns { done: Promise, el }. One at a time.
 export function startLoadScreen(world, opts = {}) {
   if (active) return active;
@@ -97,10 +97,13 @@ export function startLoadScreen(world, opts = {}) {
       '</div>' +
       '<div class="ls-bottom">' +
         '<div class="ls-tip"><span class="ls-tip-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.8.8 1 1.5 1 2.5h6c0-1 .2-1.7 1-2.5A6 6 0 0 0 12 3z"/></svg></span><div><span></span><p></p></div></div>' +
-        '<div class="ls-prog"><div class="ls-tiles" aria-hidden="true">' + '<i></i>'.repeat(TILE_COUNT) + '</div><div class="ls-bar"><i></i></div></div>' +
+        '<div class="ls-prog"><div class="ls-bar"><i></i></div></div>' +
       '</div>' +
     '</div>';
   document.body.appendChild(el);
+  // the boot screen may still be fading underneath: one bar at a time
+  const boot = document.getElementById('loading');
+  if (boot) boot.classList.add('ls-over');
   requestAnimationFrame(() => el.classList.add('on'));
 
   const wasPaused = !!world.uiPaused;
@@ -109,7 +112,6 @@ export function startLoadScreen(world, opts = {}) {
   const lineKick = el.querySelector('.ls-tip div span');
   const lineText = el.querySelector('.ls-tip p');
   const tipBox = el.querySelector('.ls-tip');
-  const tiles = [...el.querySelectorAll('.ls-tiles i')];
   let lineI = -1, lineAt = -1e9;
   const lineS = LINE_S[kind];
   const nextLine = (now) => {
@@ -140,8 +142,6 @@ export function startLoadScreen(world, opts = {}) {
     const st = streamPending();
     prog = stepProgress(prog, st.buildings + st.roads, (now - t0) / 1000, kind);
     fill.style.transform = `scaleX(${prog.bar.toFixed(3)})`;
-    const lit = litTiles(prog.bar);
-    tiles.forEach((t, i) => t.classList.toggle('lit', i < lit));
     el.setAttribute('aria-valuenow', String(Math.round(prog.bar * 100)));
     if (now - lineAt >= lineS * 1000) nextLine(now);
     if (prog.done) { finish(); return; }

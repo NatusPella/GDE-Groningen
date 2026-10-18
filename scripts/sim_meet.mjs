@@ -28,3 +28,26 @@ const heap1 = process.memoryUsage().heapUsed;
 tijden.sort((x, y) => x - y);
 const q = (p) => tijden[Math.min(tijden.length - 1, Math.floor(tijden.length * p))].toFixed(3);
 console.log(JSON.stringify({ autos: nCars, voetgangers: nPeds, ticks, ms_gem: (tijden.reduce((s, x) => s + x, 0) / ticks).toFixed(3), ms_p50: q(0.5), ms_p95: q(0.95), ms_max: q(1), heap_delta_MB: ((heap1 - heap0) / 1048576).toFixed(1), rss_MB: (process.memoryUsage().rss / 1048576).toFixed(0), tip: 'node --expose-gc voor een zuivere heapmeting' }));
+
+// Wat de hoofdthread echt betaalt: step() versturen + snapshot uitpakken, met de
+// kern in een echte node-worker (zelfde shim als simworker_equiv_test.mjs).
+const { Worker } = await import('node:worker_threads');
+const { createSimHost } = await import('../game/js/simhost.js');
+const shim = new URL('./sim_node_worker.mjs', import.meta.url);
+const w = new Worker(shim);
+const api = { onmessage: null, onerror: null, postMessage: (m) => w.postMessage(m), terminate: () => w.terminate() };
+w.on('message', (data) => api.onmessage && api.onmessage({ data }));
+const host = createSimHost({ workerFactory: () => api });
+host.init(roads, 1); host.spawn(agents);
+const main = [];
+let verstuurd = 0;
+const t0 = Date.now();
+while (Date.now() - t0 < 4000) {
+  const a = process.hrtime.bigint();
+  if (host.step(verstuurd, 1 / 60)) verstuurd++;
+  main.push(Number(process.hrtime.bigint() - a) / 1e6);
+  await new Promise((r) => setTimeout(r, 4)); // de rest van het frame
+}
+host.dispose();
+main.sort((x, y) => x - y);
+console.log(JSON.stringify({ hoofdthread_step_ms_gem: (main.reduce((s, x) => s + x, 0) / main.length).toFixed(3), p95: main[Math.floor(main.length * 0.95)].toFixed(3), stappen: verstuurd, overgeslagen: host.stats.dropped, modus: host.stats.mode }));

@@ -316,6 +316,7 @@ export class Player {
     const e = u * u * (3 - 2 * u);
     this.moving = true;
     this.airPose = Math.sin(Math.PI * u);
+    this.vaultU = u;
     if (V.climb) {
       const v = V.climb;
       if (v.wrecked || v.sinking || v.driver === 'player' || Math.abs(v.speed) > PERCH_SLIP_SPEED || !world.vehicles.includes(v)) {

@@ -1,7 +1,7 @@
 // Samen spelen (#95): alle openbare servers die de kamercode-route kan gebruiken,
 // in één bestand. De eigenaar heeft dit goedgekeurd (comment op #95): het IP-adres
 // gaat naar een openbare STUN-server en versleutelde signalering naar openbare
-// brokers, alleen na een bevestiging van de speler (net/consent.js). Er is geen
+// brokers, alleen na een bevestiging van de speler (toestemmingsscherm in lobby.js). Er is geen
 // telemetrie en geen account. Pas de lijsten hier aan; tests gebruiken ze nooit.
 // Controleer de adressen vóór een release: openbare diensten komen en gaan.
 

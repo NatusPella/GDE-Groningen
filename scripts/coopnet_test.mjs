@@ -99,6 +99,11 @@ t('eigen voortgang voor ieder: het geld van elke gast blijft van hem; beloningen
   N.payGuest(s.hw, 5); s.step(1);
   assert.deepEqual([s.gs[0].gw.money, s.gs[1].gw.money], [145, 42], 'zonder plek krijgt iedereen het');
 });
+t('een beloning wordt ook bijgehouden voor de eigen save van de gast', () => {
+  const s = sessie(2, { hostExtra: { money: 0 }, gastExtra: [{ money: 40 }] });
+  s.step(2); N.payGuest(s.hw, 100, 1); s.step(1); N.payGuest(s.hw, 20, 1); s.step(1);
+  assert.equal(s.gs[0].gw.coopVerdiend, 120); assert.equal(s.hw.coopVerdiend, undefined, 'de host krijgt zijn geld gewoon in zijn save');
+});
 t('beloningen worden begrensd en alleen gasten ontvangen ze', () => {
   const s = sessie(1); s.step(1);
   const gw = s.gs[0].gw;

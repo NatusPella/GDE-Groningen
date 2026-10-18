@@ -25,7 +25,7 @@ check('alleen lamp en plant', isVerplaatsbaar('lamp') && isVerplaatsbaar('plant'
 
 // schoon opslaan
 check('rommel wordt leeg', Object.keys(schoonPlekken(null)).length === 0 && Object.keys(schoonPlekken('x')).length === 0);
-check('onbekende plek valt weg', !schoonPlekken({ lamp: 'h4' }).lamp, 'h4 is niet voor de lamp');
+check('onbekende plek valt weg', !schoonPlekken({ lamp: 'h9' }).lamp, 'h9 bestaat niet');
 check('onbekend meubel valt weg', !schoonPlekken({ bank: 'h1' }).bank);
 check('dubbele plek valt weg', Object.keys(schoonPlekken({ lamp: 'h1', plant: 'h1' })).length === 1);
 check('goede plek blijft', schoonPlekken({ plant: 'h5' }).plant === 'h5');
@@ -46,7 +46,7 @@ const veel = volgendePlek(pl, new Set(['lamp', 'plant']), 'lamp');
 check('lamp slaat bezette plek over', veel !== 'h4' && veel !== null);
 let cyc = {}; const seen = new Set();
 for (let i = 0; i < 12; i++) { const x = volgendePlek(cyc, new Set(['lamp']), 'lamp'); cyc.lamp = x; seen.add(x); }
-check('alleen lamp: loopt alle plekken door', seen.size === 3);
+check('alleen lamp: loopt alle plekken door', seen.size === 5);
 check('geen meubel, geen plek', volgendePlek({}, eigen, 'bank') === null);
 
 const o = opPlek('plant', 'h5');

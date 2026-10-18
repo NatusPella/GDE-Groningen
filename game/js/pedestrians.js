@@ -21,6 +21,7 @@ import { hash2 } from './rng.js';
 import { dayState } from './daynight.js';
 import { FLAGS } from './devflags.js';
 import { voetgangerOpties, stapSlaOver } from './simlagen.js';
+import { getSimBridge } from './simbridge.js';
 import { wijkProfileAt } from './trafficfleet.js';
 import { hourOf } from './streetlifedata.js';
 import { buildingAt } from './tileplace.js';
@@ -1081,9 +1082,13 @@ export function updatePedestrians(dt, world) {
   const dodgeVehicle = pv && !pv.isBoat && pv.speed > -0.5 ? pv : null;
   const frameDt = dt;
   const farAI = farAIDist();
+  // ver weg lopende wandelaars worden door de simulatieworker gestuurd (simbridge.js, #58)
+  const simBridge = FLAGS.simworker && map.roads ? getSimBridge(map) : null;
+  if (simBridge) simBridge.update(dt, player, peds, world.time);
   for (let i = peds.length - 1; i >= 0; i--) {
     const ped = peds[i];
     if (ped.scripted) continue; // posed by its owner (fierljep.js)
+    if (simBridge && simBridge.drive(ped)) continue;
     // far plain walkers think less often on a CPU-bound machine (simload.js)
     if (farAI < Infinity && ped.state === 'wander' && !ped.isCop && !ped.scene && !ped.ragdoll && !ped.missionCrowd && !ped.jobPed &&
       skipFar(ped, i, Math.abs(ped.x - player.x) + Math.abs(ped.y - player.y), frameDt)) continue;
