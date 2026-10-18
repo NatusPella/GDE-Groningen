@@ -244,9 +244,6 @@ body.pigeon-mode #hud .hud-mission.in-mission:not([hidden]) { display: flex !imp
 #hud .hud-saved span { text-transform: lowercase; }
 #hud .hud-saved.visible { opacity: 1; transform: none; }
 
-/* the route's distance is in the objective and the GPS card now */
-#hud .hud-route { display: none; }
-
 /* --- zone H: speed, gear, revs; the key hints above ----------------------- */
 #hud .hud-speedo {
   position: absolute; right: var(--hud-edge); bottom: var(--hud-edge); display: none; align-items: flex-end; gap: 14px; color: #f0ede4;
@@ -270,9 +267,6 @@ body.pigeon-mode #hud .hud-mission.in-mission:not([hidden]) { display: flex !imp
 #hud .rpm-zone { stroke: rgba(217, 63, 63, 0.55); }
 #hud .rpm-fill { stroke: #3fc97a; transition: stroke 0.2s; }
 #hud .hud-speedo.redline .rpm-fill { stroke: #ff6f61; }
-#hud .rpm-t, #hud .rpm-u { display: none; }
-#hud .rpm-t { font-size: 26px; fill: #f0ede4; font-family: 'Bebas Neue', 'Arial Narrow', sans-serif; }
-#hud .rpm-u { font-size: 18px; fill: rgba(240, 237, 228, 0.6); font-family: 'Bebas Neue', 'Arial Narrow', sans-serif; }
 #hud .hud-speedo.no-rpm .sp-rpm { display: none; }
 #hud .hud-speedo.no-gears .sp-gears { display: none; }
 @media (prefers-reduced-motion: reduce) { #hud .hud-speedo.visible { animation: none; } }
