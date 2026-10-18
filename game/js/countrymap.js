@@ -197,13 +197,15 @@ export function drawCountryDetail(ctx, x0, y0, x1, y1, pxPerM, st) {
 
   // main ditches and maaren; faint when zoomed far out, so the polder grid
   // doesn't turn the Ommelanden into a blue pattern next to the city
-  ctx.globalAlpha = Math.min(1, Math.max(0.35, pxPerM * 1.6));
+  ctx.globalAlpha = Math.min(1, Math.max(0.5, pxPerM * 1.6));
   ctx.strokeStyle = st.ditch;
   ctx.lineWidth = Math.max(px(0.9), MAIN_HW * 1.6);
   ctx.beginPath();
   for (let bx = bx0; bx <= bx1 + 1; bx++) segOut(bx * BLOCK, y0, bx * BLOCK, y1);
   for (let by = by0; by <= by1 + 1; by++) segOut(x0, by * BLOCK, x1, by * BLOCK);
   ctx.stroke();
+  // open water (maaren) as solid as the city's water; only the ditch grid fades
+  ctx.globalAlpha = 1;
   ctx.strokeStyle = st.water;
   ctx.lineWidth = Math.max(px(1.6), MAAR_WATER * 2);
   ctx.beginPath();
