@@ -8,6 +8,7 @@
 // saves it and drives the HUD). node scripts/calendar_test.mjs tests it.
 import { STEPS, PARTS } from './storyarc.js';
 import { nieuwVerhaal } from './storyflag.js';
+import { REGIO_EVENTS } from './regioleven.js';
 
 export const YEAR = 2026;
 const AUG = 7;
@@ -206,13 +207,16 @@ const SPECIAL_NIEUW = {
   noorderzon: { name: 'Plantsoenfestijn', card: ['Plantsoenfestijn', 'Elf dagen theater en muziek in het Noorderplantsoen. Tot laat lampjes in de bomen.'] },
   oldambtkermis: { from: day(8, 22), to: day(8, 23), open: true },
 };
+// the regional summer events (regioleven.js), as month/date turned into day numbers
+const REGIO_SPECIALS = REGIO_EVENTS.map((e) => ({ id: e.id, name: e.name, from: day(e.month, e.date), to: day(e.toMonth || e.month, e.toDate || e.date), rank: e.rank, icon: e.icon, card: e.card }));
 export const SPECIAL_DAYS = nieuwVerhaal()
   ? [
     ...SPECIAL_BASE.map((s) => (SPECIAL_NIEUW[s.id] ? { ...s, ...SPECIAL_NIEUW[s.id] } : s)),
+    ...REGIO_SPECIALS,
     { id: 'beleg', name: 'Beleg van Bourtange', from: day(8, 25), to: day(8, 25), rank: 9, icon: 'vlag',
       card: ['Beleg van Bourtange', 'De vesting speelt het beleg na, met kartonnen kanonnen op de wallen. Om negen uur begint het.'] },
   ]
-  : SPECIAL_BASE;
+  : [...SPECIAL_BASE, ...REGIO_SPECIALS];
 const SPECIAL_BY_ID = new Map(SPECIAL_DAYS.map((s) => [s.id, s]));
 export const specialById = (id) => SPECIAL_BY_ID.get(id) || null;
 

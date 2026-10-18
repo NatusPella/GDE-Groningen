@@ -115,6 +115,7 @@ import { scaledTarget, simLevel, nextSimFrame, farAIDist, skipFar, takeDt, keepV
 import { getSettings } from './settings.js';
 import { MODS } from './cheatmods.js';
 import { initCheats, updateCheats } from './cheats.js';
+import { updateRegioLeven } from './regiolevenrt.js';
 
 // What the player can do on the map, as one registry (activityhub.js): each
 // module is a kind with its init, interact slot and tick phase.
@@ -640,6 +641,7 @@ async function boot() {
     updateDayNight(dt, world);
     updateCalendar(dt, world);
     updateCheats(dt, world);
+    updateRegioLeven(dt, world);
     updateAchievementTracker(dt, world);
     updateRadio(dt, world);
     probe.mark('systems');
