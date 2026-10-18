@@ -69,5 +69,15 @@ for (const { d, q } of timings) {
 const beleg = defs.find((d) => d.label === 'Het beleg van Bourtange');
 ok(beleg.stages.some((q) => q.kind === 'timing' && q.tagGood === 'duel-won' && q.tagLow === 'duel-lost') && beleg.tagAdjust['duel-won'] > 0, 'the fierljep duel has a result that pays');
 
+// zoneIf: a round gets a wider zone and its own reply when that choice was made (M26: the ally of M23)
+{
+  const stI = { rounds: [{ text: 'a', speed: 1, zone: [0.4, 0.6], zoneIf: 'bond-bus', ok: 'ja', okIf: 'mooi', bad: 'nee' }, { text: 'b', speed: 1, zone: [0.4, 0.6], ok: 'ja', bad: 'nee' }] };
+  const S1 = {}; enterTiming(S1, stI, (t) => t === 'bond-bus');
+  ok(S1.rounds[0].zone[1] - S1.rounds[0].zone[0] > 0.3 && S1.rounds[0].ok === 'mooi' && S1.rounds[1].zone[0] === 0.4, 'zoneIf: the chosen ally widens his round only');
+  const S2 = {}; enterTiming(S2, stI, () => false);
+  ok(S2.rounds[0].zone[0] === 0.4 && S2.rounds[0].ok === 'ja', 'zoneIf: without the choice the rounds stay as they were');
+  const S3 = {}; enterTiming(S3);
+  ok(S3.rounds === null, 'enterTiming without arguments still works');
+}
 console.log(fails ? `${fails} of ${n} failed` : `stagetiming_test: ${n} checks ok`);
 process.exit(fails ? 1 : 0);

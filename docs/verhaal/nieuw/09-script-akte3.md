@@ -56,7 +56,8 @@ DOKTER DIJKSTRA: Weer een spoedje? Ik zet het deze keer in het rooster. [BEHOUDE
 ## [M13.1] Het containerlabyrint: intro – Eemsdelta, Eemshaven, de kade – te voet
 (regie: vrijdagnacht 21 augustus. Windmolenbladen, kabelhaspels, kolenbergen, een paar containers, een kraan, schijnwerpers. Naamkaart: LAMMERT. Gameplay: een sluipmissie tussen de opslag; container 4471 vinden en de papieren verwisselen.)
 TESSA: Wij komen van Oma Trijntje. In Jelles koopboek staat dat zijn schip vannacht met de voorraad van haar vrienden uit de Eemshaven vertrekt. [NIEUW]
-LAMMERT: Ik ben Lammert, havenmeester. Mijn vader danste in 1953 met Trijntje. Dat vergeet zij niet. [NIEUW]
+LAMMERT: Lammert, havenmeester. Hier vaart de Borkum-veerboot en daar zoemt het datacenter. Een schip dat leeg blijft, en een kabel die vol zit. [NIEUW]
+LAMMERT: Mijn vader danste in 1953 met Trijntje. Dat vergeet zij niet. [NIEUW]
 TESSA: Jelles tweede partij staat in container 4471: alles wat de vrienden van Oma niet in veiligheid konden brengen. Het schip vertrekt om zes uur. [NIEUW]
 LAMMERT: Hier zijn de papieren. Jullie wisselen ze om. Dan blijft alles hier. [NIEUW]
 TAMMO: Eén container tussen alle windmolenbladen en kabelhaspels? [NIEUW]
@@ -127,7 +128,7 @@ TAMMO: Dat is de wind. [NIEUW]
 JELLE: Durk, Douwe, hoe vaak moet ik het zeggen? Contract is contract. Wij komen terug. [NIEUW]
 
 ## [M14.4] De dijk: herhaling – Eemsdelta, dijkweg – auto van Lammert
-JELLE: Weer een rondje? Dat neem ik jullie niet kwalijk. [NIEUW]
+JELLE: Een rondje meer of minder. Dat neem ik jullie niet kwalijk. [NIEUW]
 
 ## [R3.1] Nachtstreek na de dijk – Stad – radio
 RIKUS (radio): Wind uit het noordwesten. Op de Eemsdijk zijn zeventien schapen gered van een deurwaarder. Ik weet niet hoe. [NIEUW]
@@ -253,18 +254,19 @@ RIKUS (radio): Zondag. Het is stil in Winschoten. Dat is ook een kermis. [NIEUW]
 RIKUS (radio): Storingsbericht: achttien bruggen in storing. Niemand merkt verschil. [BEHOUDEN]
 
 ## [B3] Autogesprekken akte 3 (pool; haven, dijk, graan; Moffel-en-Piertje) – Eemsdelta, Oldambt – auto, trein, heli
-TAMMO: Dat is een windmolen. [NIEUW]
-TESSA: Dat is een windturbine. Hij is honderd meter hoog. [NIEUW]
-TAMMO: Dan is het een grote windmolen. [NIEUW]
-TESSA: Dat was geen compliment. [NIEUW]
-TESSA: Dat is Loppersum. Daar schudde vroeger de grond. [NIEUW]
-TAMMO: Zeg dat dan zachtjes. [NIEUW]
-TESSA: Dat doe ik. [NIEUW]
+TAMMO: Wat draait daar? [NIEUW]
+TESSA: Een windturbine. Honderd meter hoog. [NIEUW]
+TAMMO: Dan is het een grote molen. [NIEUW]
+TESSA: Nee. [NIEUW]
+TAMMO: Wel. [NIEUW]
+TESSA: Daar, Appingedam. Die keukens hangen boven het Damsterdiep. [NIEUW]
+TAMMO: Balkons. [NIEUW]
+TESSA: Keukens. Wie daar kookt, kijkt naar water. [NIEUW]
+TAMMO: Dan zet ik mijn friteuse daar. [NIEUW]
+TESSA: Dan krijgt het Damsterdiep een vetlaag. [NIEUW]
 TAMMO: De Dollard. Een bocht in de zee. [NIEUW]
-TESSA: Dat is een inham. [NIEUW]
-TAMMO: Dat is ook een bocht. [NIEUW]
-TESSA: Dat is het niet. [NIEUW]
-TAMMO: Dat is het wel. [NIEUW]
+TESSA: Een inham. [NIEUW]
+TAMMO: Een bocht met ambitie. [NIEUW]
 TESSA: Je geeft nooit toe. [NIEUW]
 TAMMO: Jij ook niet. [NIEUW]
 
