@@ -89,6 +89,11 @@ const SPOTS = [
   { name: 'm115-markers', type: 'marker', issue: 115, x: gm.x + 120, y: gm.y + 380 },
   // #117: cutscene-geluid (welke geluiden de eerste missies in de rij zetten)
   { name: 's117-cutscenes', type: 'cutsound', issue: 117, ...gm, n: 4 },
+  // nacht en weer, stad en dorp
+  { name: 'x-weer-stad', type: 'weer', issue: 0, ...gm, a: 0.3 },
+  { name: 'x-weer-winsum', type: 'weer', issue: 0, ...place('Winsum'), a: 0 },
+  // voertuigen: deuren, kap, uiterlijk
+  { name: 'x-voertuigen', type: 'voertuigen', issue: 0, ...off(gm, 150, 100) },
   // #130: kruisingen, op- en afritten, samenkomende rijstroken
   { name: 'k130-stad', type: 'junction', issue: 130, ...gm, R: 400, n: 3 },
   { name: 'k130-haren', type: 'junction', issue: 130, ...place('Haren', 'town'), R: 500, n: 2 },
