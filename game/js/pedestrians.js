@@ -19,6 +19,7 @@ import { walkRoute, processPedPlanQueue, buildPedAvoidGrid, separatePeds, makeCo
 import { reportCrime } from './crime.js';
 import { npcBudget, bystanderReaction } from './wantedlevels.js';
 import { hash2 } from './rng.js';
+import { seatedOf, clearSeated, reactSeated, exitOrder } from './occupants.js';
 import { dayState } from './daynight.js';
 import { FLAGS } from './devflags.js';
 import { voetgangerOpties, stapSlaOver } from './simlagen.js';
@@ -422,13 +423,40 @@ function gatherEvents(world) {
   if (v && v !== prevInVehicle) {
     // the job's own car/boat/bike is handed to you, never stolen
     if (!v.isHeroCar && !v.missionCar && !v.playerOwned && !ownedVehicles.has(v)) {
-      const hadDriver = !!v.carjacked || world.time - (aiDrivenAt.get(v) ?? -Infinity) < 1.5;
+      const hadDriver = !!v.carjacked || world.time - (aiDrivenAt.get(v) ?? -Infinity) < 1.5 || seatedOf(v).driver === 'waiting';
       events.push({ kind: 'theft', x: v.x, y: v.y, r: 30, crime: hadDriver || !v.petty, vehicle: v, hadDriver });
     }
     ownedVehicles.add(v);
   }
   prevInVehicle = v || null;
   return events;
+}
+
+// Bijrijders (occupants.js) stappen na een autodiefstal aan de andere kant uit en rennen weg;
+// ze komen met een kleine vertraging, de bestuurder is al uit de auto.
+export function ejectPassengers(world, ev) {
+  const v = ev.vehicle;
+  if (v.isBoat || v._mount) return [];
+  const occ = seatedOf(v);
+  const plan = exitOrder(reactSeated(occ, { kind: 'theft' })).filter((e) => e.who !== 'driver');
+  const out = [];
+  for (const e of plan) {
+    const [x, y] = findExitSpot(v, 0.3, world.map, [1, -1]);
+    const ped = new Pedestrian(x, y, Math.atan2(v.y - y, v.x - x));
+    const seed = (v.id || 0) * 7.1 + (e.who === 'front' ? 3 : 8);
+    ped._lookSeed = seed;
+    ped.clothing = '#7a6a8a';
+    ped.skin = SKIN_TONES[Math.floor(hash2(seed, 2.1) * SKIN_TONES.length)];
+    ped.hasBag = false;
+    ped.health = 40;
+    ped.noFade = true;
+    ped.x += (e.who === 'rear' ? 0.5 : 0); // achterin stapt iets verder naar achteren uit
+    world.pedestrians.push(ped);
+    startFlee(ped, world, v.x, v.y);
+    out.push(ped);
+  }
+  clearSeated(v, { driver: false });
+  return out;
 }
 
 export function ejectDriver(world, ev) {
@@ -759,7 +787,7 @@ function processEvents(world, events) {
     screamsThisEvent = 0;
     if (ev.kind === 'theft') {
       let victim = null;
-      if (ev.hadDriver) victim = ejectDriver(world, ev);
+      if (ev.hadDriver) { victim = ejectDriver(world, ev); ejectPassengers(world, ev); clearSeated(ev.vehicle); }
       if (!victim) {
         let bestD = 14;
         for (const p of world.pedestrians) {
