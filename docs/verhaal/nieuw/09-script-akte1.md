@@ -21,13 +21,13 @@ TESSA: Een frietwagen is een auto met een luik, Tammo. En ik heb geen auto. [BEH
 TAMMO: Ik wel. De Escapade. [BEHOUDEN]
 TESSA: Die rijdt nauwelijks. [BEHOUDEN]
 TAMMO: Dan rijdt hij nauwelijks voor jou. De Fjord Frituur, op een Fjord. Dan klopt de naam ook. [BEHOUDEN]
-TESSA: …Dat is het liefste wat iemand ooit tegen mijn papieren heeft gezegd. [BEHOUDEN]
+TESSA: …Dat is het liefste wat iemand ooit over mijn plannen heeft gezegd. [NIEUW]
 TESSA: Luister. De Fjord Frituur heeft ook een plek nodig. In Grunn is er maar één vrije standplaats, en die gaat naar de winnaar van de Noordelijke Snackprijs. [NIEUW]
 TAMMO: De Snackprijs. Met de Gouden Eierbal. [NIEUW]
-TESSA: Op 28 augustus, op Gronings Ontzet. Wij winnen, wij krijgen die standplaats. Dan heeft de Fjord Frituur een thuis. [NIEUW]
+TESSA: Op 28 augustus, op Gronings Ontzet. Dan spelen ze na hoe Stad in 1672 de bisschop buiten hield. Wij winnen, wij krijgen die standplaats. Dan heeft de Fjord Frituur een thuis. [NIEUW]
 TAMMO: Een thuis. [NIEUW]
 TESSA: Een thuis met wielen. Dat kan ik aan. [NIEUW]
-TAMMO: En waar moet hij staan? Jij kunt hier niet eens rechtop staan. [BEHOUDEN]
+TAMMO: En waar moet hij dan staan? Wij kunnen hier zelf niet eens rechtop staan. [NIEUW]
 TESSA: Daarom. Paddepoel, elfde verdieping. Twee kamers en een garage, voor de Fjord. [BEHOUDEN]
 TAMMO: Paddepoel? Dat is buitenland. [BEHOUDEN]
 TESSA: Alleen kan ik de huur niet betalen. Jij ook niet. Samen net. [BEHOUDEN]
@@ -40,8 +40,8 @@ TESSA: Kom. Werk. [BEHOUDEN]
 (regie: dag. De House of Groningen, elf hoog. De Escapade met een matras op het dak en een lekke band.)
 TAMMO: Elf hoog. Met een lift. Ik voel me rijk. [BEHOUDEN]
 TESSA: Je bent niet rijk, Tammo. Je bent huisgenoot. [BEHOUDEN]
-TESSA: Eerst geld. Honderdvijftig euro voor de inschrijving van de Snackprijs, en vijftig voor een klusje. Dat is stap één van een plan met acht stappen. [NIEUW]
-TAMMO: Acht stappen. [NIEUW]
+TESSA: Eerst geld. Honderdvijftig euro voor de inschrijving van de Snackprijs, en vijftig voor een klusje. Dat is stap één van mijn plan. [NIEUW]
+TAMMO: Je hebt een plan. [NIEUW]
 TESSA: Ik heb het uitgetekend. Rijden, niet praten. [NIEUW]
 
 ## [M01.1] Nul krassen, vijftienhonderd punten: intro – Stad, Martinikerkhof – Berends bakkie
@@ -52,8 +52,11 @@ BEREND: Mijn bakkie moet naar het Boterdiep, naar mijn zus. Je mag er met de aut
 BEREND: Ik heb gisteren alle krassen geteld. Nul. Zo blijft het. [BEHOUDEN]
 TAMMO: Jij bent toch Bommen Berend? Van het Ontzet? [BEHOUDEN]
 BEREND: Niet zo hard. Veertig jaar speel ik hem. Elk jaar val ik de stad aan, en elk jaar verlies ik. Dat doet wat met een mens. [BEHOUDEN]
-TESSA: Wij lenen hem eerst even voor een klus op de Grote Markt. Daarna rijd ik hem naar uw zus, om het centrum heen. [NIEUW]
+TESSA: Wij lenen hem eerst even voor een klus. Daarna rijd ik hem naar uw zus, om het centrum heen. [NIEUW]
 BEREND: Nul krassen. Of ik tel ze. [NIEUW]
+TESSA: Let op, Tammo. Berend deelt complimenten uit op een ladder. Trede één is "Goidag", daarna komen "Goud", "Valt mie nait of", "Braid noar de zin" en "Kon minder". [NIEUW]
+TAMMO: En boven "Kon minder"? [NIEUW]
+TESSA: Dat heeft nog niemand gehoord. [NIEUW]
 TAMMO: Jij rijdt als een fietser met een deadline. [BEHOUDEN]
 TESSA: En jij als een fietser zonder fiets. Sleutels, Berend. [BEHOUDEN]
 TESSA: Vijftig euro, Tammo. Dat is ons eerste ventieldopje voor de Fjord Frituur. [NIEUW]
@@ -87,9 +90,9 @@ TAMMO: Alleen spullen. [NIEUW]
 BEREND (telefoon): Goidag. Ik hoor een parasol kraken. Dat is een kras. [NIEUW]
 TESSA: Het is een parasol, Berend. [NIEUW]
 BEREND (telefoon): Dat is een kras met een parasol. [NIEUW]
-JELMER: Chat vindt dat niet leuk! Een mens! Min honderd! [NIEUW]
+JELMER: Chat vindt dat niet leuk! Een terrasstoel met een hoed erop! Min honderd! [NIEUW]
 TESSA: Dat was een mens, Tammo. [NIEUW]
-TAMMO: Een hoed. Met een mens eronder. [NIEUW]
+TAMMO: Een hoed. Die ging zelf op pad. [NIEUW]
 
 ## [M01.5] Nul krassen, vijftienhonderd punten: de chat – Stad, Grote Markt – Berends bakkie
 (regie: parasols op hun kant, een kliko in de fontein, een terras dat applaudisseert, nat van de sproeiwagen.)
@@ -110,7 +113,7 @@ BEREND: …Goud. [BEHOUDEN]
 TESSA: Trede twee van de complimentenladder, Tammo. [BEHOUDEN]
 BEREND: Overdrijf niet. Er was hier trouwens al een Fries die mijn bakkie wilde kopen. Contant, uit een klomp. Een blauw colbert, in augustus. [BEHOUDEN]
 TAMMO: Wat moet een Fries met jouw bakkie? [BEHOUDEN]
-BEREND: Wat moet een Fries met ons? Ze kopen altijd wat. Hier, vijftig euro. …Moi. [BEHOUDEN]
+BEREND: Ik zei nee, want nul krassen. Hier, jullie vijftig euro, voor de rit. …Moi. [NIEUW]
 (regie: Berend gaat naar binnen.)
 TAMMO: Hij zei moi. [BEHOUDEN]
 TESSA: Tegen mij. [BEHOUDEN]
@@ -171,7 +174,7 @@ TESSA: Dat zeg je zelden. [NIEUW]
 (regie: Sjabbe wrikt de klep open en geeft Tessa haar pas. Naamkaart: SJABBE.)
 SJABBE: Braid noar de zin. Vierhonderd, voor de onderdelen. [NIEUW]
 TESSA: Daar koop je nog geen halve frietwagen van. [BEHOUDEN]
-SJABBE: Dan moet je groter denken. Die reuzen kwamen hier vorige week met een klomp vol geld. Ze kochten alles wat met frituren te maken heeft. En hun baas vroeg waar het museum alarmen heeft. [NIEUW]
+SJABBE: Dan moet je groter denken. Die reuzen kwamen hier vorige week met een klomp vol geld. Ze kochten alles wat met frituren te maken heeft. En hun baas, een Fries in een blauw colbert, Jelle Terpstra, vroeg waar het museum alarmen heeft. [NIEUW]
 TESSA: Het museum. De Gouden Eierbal. [BEHOUDEN]
 SJABBE: Achttien karaat. Ik vraag niks. Ik zeg alleen: wie hem eerst heeft, heeft hem. [BEHOUDEN]
 (regie: Tessa pint bij de automaat naast de winkel honderdvijftig euro.)
@@ -180,11 +183,15 @@ TESSA: Contant. Het Loket gaat om tien uur open. Nu hoeven we alleen nog in te s
 ## [M02.4] Even pinnen: herhaling – Stad, Pand & Poen – Escapade
 SJABBE: Weer een automaat? Dit wordt een gewoonte. Een goede. [BEHOUDEN]
 
-## [M02.5] Autogesprek: de weigering – Stad – Escapade
+## [M02.5] Slot: de weigering – Stad, Pand & Poen – Escapade
+(regie: ze zitten in de Escapade voor de winkel, de motor tikt af.)
 TESSA: Als iemand die bal steelt, Tammo, dan liever wij. Dan is hij tenminste nog in Stad. [BEHOUDEN]
+TAMMO: Waarom bellen we niet de politie? [NIEUW]
+TESSA: De bewaker krijgt koekjes en de politie ziet twee Stadjers zonder papieren. Wie waarschuw je dan? [NIEUW]
 TAMMO: Mijn opa stond in 1953 op de Grote Markt toen we hem wonnen. Hij huilde. Hij huilde nooit. [BEHOUDEN]
 TESSA: Je opa huilde bij elke voetbalwedstrijd. [BEHOUDEN]
 TAMMO: Dat was verlies. Dit was anders. [BEHOUDEN]
+TESSA: Wij nemen hem alleen om hem te bewaken. Daarna brengen we hem terug. [NIEUW]
 TESSA: …Je mag nee zeggen. [BEHOUDEN]
 TAMMO: Ik zeg niks. Dat is ook een antwoord. [BEHOUDEN]
 
@@ -207,11 +214,11 @@ SJABBE (telefoon): Tessa. Sjabbe. Loket C heeft een zijdeur bij de kopieermachin
 ## [M03.2] Het Loket: Jelle – Stad, Het Loket – te voet
 (regie: een man in een blauw colbert staat vooraan en telt contant geld uit een klomp. Naamkaart: JELLE TERPSTRA. Het scherm springt van 4093 naar 4140.)
 JELLE: Goedemorgen. Jelle Terpstra, Us Mem Snacks. Mijn juristen hebben dit loket vanochtend vooruit betaald. [NIEUW]
-TESSA: Jelle Terpstra. U staat in de rij. [NIEUW]
+TESSA: Jelle Terpstra. JelleWâld uit de chat, het colbert van Berend, de baas van de reuzen. U staat in de rij. [NIEUW]
 JELLE: Ik heb de rij gekocht. Vanaf nu is uw nummer 4140. Dat staat in de overeenkomst. [NIEUW]
 TAMMO: Hij kocht onze plek. [NIEUW]
 JELLE: Tevens koop ik alle vrije standplaatsen van het jaar. Contant, uit een klomp, definitief. [NIEUW]
-LOKETBEDIENDE: Artikel 4 van het reglement: de bewaarder van de Gouden Eierbal zit de jury voor. Artikel 9: bij verhindering van de bewaarder zit het oudste jurylid voor. [NIEUW]
+LOKETBEDIENDE: Artikel 4 van het reglement: de bewaarder van de Gouden Eierbal zit de jury voor. Artikel 9: bij verhindering van de bewaarder zit het oudste jurylid voor. Dat is meneer Bos, jurylid sinds 1982. [NIEUW]
 JELLE: Een uitstekend reglement. Wij hebben het zorgvuldig gelezen. [NIEUW]
 TESSA: Salamitactiek. Plakje voor plakje, tot hij alles heeft. [NIEUW]
 JELLE: Dat noemen wij ondernemen. Oant sjen. [NIEUW]
@@ -221,7 +228,7 @@ TAMMO: Wat zei hij? [NIEUW]
 TESSA: "Voor mem." Voor zijn moeder. [NIEUW]
 (regie: achter Jelle staat een kleine, oude dame met een hoed, een gouden speldje en een stempel. Naamkaart: MEVROUW TUINSTRA, DE BEWAARDER.)
 BEWAARDER: Mevrouw Tuinstra. Bewaarder van de Gouden Eierbal, sinds 1998. Ik zit de jury voor, dat is artikel 4. Ik teken uw inschrijving af. [NIEUW]
-BEWAARDER: Meneer Terpstra heeft de jury en mij uitgenodigd voor een treinreis met volpension, vanaf maandag, tot na het Ontzet. Een bijzonder aardige man. [NIEUW]
+BEWAARDER: Meneer Terpstra heeft de vijf juryleden en mij uitgenodigd voor een treinreis met volpension, vanaf maandag, tot na het Ontzet. Een bijzonder aardige man. [NIEUW]
 TESSA: En wie let dan op de bal? [NIEUW]
 BEWAARDER: Het museum. De koepel hangt sinds woensdag onder een doek, wegens restauratie. [NIEUW]
 
@@ -275,7 +282,7 @@ TESSA (telefoon): Hij geeft bewaker twee een eierbal. Voor het koekje. [NIEUW]
 ## [M04.3] Kieken van boven: outro – Stad, Stationsplein – te voet
 TESSA: Drie camera's, twee bewakers, en een stroomkast achter de fietsenstalling. [BEHOUDEN]
 TAMMO: En die trekker-limo. Vlaggetjes met rode blaadjes. En een man in een blauw colbert die de alarmen telt. [BEHOUDEN]
-TESSA: Pompeblêden. Een Fries. Hij gaat het echt doen. [BEHOUDEN]
+TESSA: Pompeblêden. Een Fries. Hij telt de alarmen alsof hij iets controleert. Of voorbereidt. [NIEUW]
 TAMMO: Hoe weet jij wat pompeblêden zijn? [BEHOUDEN]
 TESSA: Dat weet je gewoon. [BEHOUDEN]
 TAMMO: Dat weet niemand. Behalve Friezen. [BEHOUDEN]
@@ -320,7 +327,7 @@ SJOERD: Precies. Proost. [BEHOUDEN]
 TESSA: Drie minuten. [BEHOUDEN]
 TAMMO: Ik heb in drie minuten nog nooit iets goeds gedaan. [BEHOUDEN]
 TESSA: Dan wordt het tijd. [BEHOUDEN]
-TESSA: Als een ander hem pakt, is hij weg uit Stad. Dan pakken wij hem eerst, als bewaking, en brengen we hem terug na het Ontzet. [NIEUW]
+TESSA: Als hij hem nog niet heeft, is hij straks weg uit Stad. Bellen helpt niet, de bewaker krijgt koekjes. Dan pakken wij hem eerst, als bewaking, en brengen we hem terug na het Ontzet. [NIEUW]
 TAMMO: Terugbrengen. [NIEUW]
 TESSA: Terugbrengen. Zeg ik. [NIEUW]
 

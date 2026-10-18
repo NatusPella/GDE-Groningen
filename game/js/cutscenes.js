@@ -163,6 +163,7 @@ const ACT_KEUKEN = {
     // the beat: the plan, close on the drawing, then on Tessa
     { t: 'L13', shot: 'dolly', from: [-0.85, -0.1, 1.1], to: [-0.55, 0.15, 1.0], look: [-0.28, 0.06, 0.78], fov: 26 },
     { t: 'L13+2.8', shot: 'cut', at: [0.5, 0.3, 1.35], look: 'tessa@1.15', fov: 24 },
+    { t: 'L13+6.0', shot: 'dolly', from: [0.5, 0.3, 1.35], to: [0.3, 0.2, 1.3], look: 'tessa@1.15', fov: 22 },
     { t: 'L14', shot: 'dolly', from: [-0.5, 0.5, 1.3], to: [-0.3, 0.4, 1.28], look: 'tammo@1.2', fov: 24 },
     { t: 'L15', shot: 'cut', at: [0.6, -0.5, 1.3], look: 'tessa@1.15', fov: 26 },
     { t: 'L16', shot: 'cut', at: [0.0, -1.45, 1.4], look: 'mid:tammo,tessa@1.1', fov: 46 },

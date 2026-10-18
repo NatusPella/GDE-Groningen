@@ -187,7 +187,7 @@ export const STEPS = [
     scenes: ['M01.1', 'M01.2', 'M01.3', 'M01.4', 'M01.5', 'M01.6', 'M01.7'],
     lead: ['A', 'Berend wacht bij het Martinikerkhof met zijn bakkie. Nul krassen, hè.'] }),
   M('M02', 'kop', 'Even pinnen', 'pinautomaat', { built: true, reward: 400,
-    story: { intro: ['M02.1'], outro: ['M02.3'], replay: ['M02.4'] }, scenes: ['M02.1', 'M02.2', 'M02.3', 'M02.4', 'M02.5'],
+    story: { intro: ['M02.1'], outro: ['M02.3', 'M02.5'], replay: ['M02.4'] }, scenes: ['M02.1', 'M02.2', 'M02.3', 'M02.4', 'M02.5'],
     lead: ['A', 'De Herestraat, half acht. Mijn pas zit in een automaat.'] }),
   M('M03', 'kop', 'Het Loket', 'loket', { built: true, reward: 0, cost: 150,
     story: { intro: ['M03.1'], outro: ['M03.4'], replay: ['M03.5'] }, scenes: ['M03.1', 'M03.2', 'M03.3', 'M03.4', 'M03.5'],
