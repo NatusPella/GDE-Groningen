@@ -29,8 +29,8 @@ What works where. "Git Bash" means a POSIX shell on Windows (Git Bash or WSL), n
 
 | Script | macOS | Windows | Linux |
 | --- | --- | --- | --- |
-| `node scripts/*_test.mjs`, `voice_coverage.mjs` | yes | ja | yes |
-| `desktop/` `npm start`, `npm run stage` | yes | ja | yes |
+| `node scripts/*_test.mjs`, `voice_coverage.mjs` | yes | yes | yes |
+| `desktop/` `npm start`, `npm run stage` | yes | yes | yes |
 | `desktop/release.sh` (`npm run release`) | yes | Git Bash | yes (add `--linux` for the Linux build) |
 | `scripts/make_windows_zip.sh` | yes | Git Bash | yes |
 | `scripts/play_local.sh` | yes | Git Bash | yes |
