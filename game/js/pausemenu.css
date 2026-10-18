@@ -41,6 +41,7 @@ body:has(#pause-menu.prestart.visible) #start-screen .ss-foot { visibility: hidd
 #pause-menu .pm-rail-acts .m-bt { justify-content: flex-start; }
 #pause-menu .pm-rail-foot { display: flex; flex-direction: column; padding: 16px 0 0 24px; }
 #pause-menu .pm-rail-foot .m-bt { align-self: flex-start; }
+#pause-menu .pm-ver { margin: 0; padding: 12px 0 0 24px; font-size: 16px; letter-spacing: 1px; color: var(--mut); }
 #pause-menu .pm-status { margin: 0; font-size: 18px; color: var(--mut); min-height: 0; }
 #pause-menu .pm-status:empty { display: none; }
 #pause-menu .pm-game .pm-confirm { margin-top: 8px; margin-right: 8px; }
