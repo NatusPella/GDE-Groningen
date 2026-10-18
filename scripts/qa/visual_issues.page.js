@@ -61,6 +61,17 @@ const along = (x, y, a, back, up, ahead, lookUp = 1) => {
   const c = Math.cos(a), s = Math.sin(a), g = gh(x, y);
   return { position: { x: x - c * back, y: y - s * back, z: g + up }, lookAt: { x: x + c * ahead, y: y + s * ahead, z: g + lookUp }, cut: true };
 };
+// the nearest road segment within R m of (x, y): its middle and heading
+function snapRoad(x, y, R) {
+  let best = null;
+  for (const rd of (map.roadsNear ? map.roadsNear(x, y, R) : [])) for (let i = 0; i < rd.pts.length - 1; i++) {
+    const a = rd.pts[i], b = rd.pts[i + 1];
+    if (Math.hypot(b[0] - a[0], b[1] - a[1]) < 8) continue;
+    const mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2, d = Math.hypot(mx - x, my - y);
+    if (!best || d < best.d) best = { d, x: mx, y: my, a: Math.atan2(b[1] - a[1], b[0] - a[0]) };
+  }
+  return best;
+}
 function findWater(hx, hy, R) {
   for (let r = 0; r <= R; r += 25) {
     const n = r === 0 ? 1 : Math.max(8, Math.round(r / 12));
@@ -317,6 +328,52 @@ for (const S of window.__vi.spots) {
         info[label].status = { ...v.doors.dmg, loose: Object.keys(v.doors.loose) };
         holds.splice(holds.indexOf(hold), 1);
         w.vehicles.splice(w.vehicles.indexOf(v), 1);
+      }
+    } else if (S.type === 'cutscenes') {
+      // #224, #117, #157: real story scenes, played through the game: the step is jumped to, the player is teleported to the
+      // mission start and E is pressed there; while a cinematic runs, a screenshot every 3 s (up to 5) and the world sounds
+      // the scene queues (world.audioEvents) and, with --audio, the level on the audio tap (window.__qaAudio) are logged.
+      clearInterval(skipper);
+      const St = window.__story;
+      const AQ = window.__qaAudio;
+      const log = [];
+      let arr = w.audioEvents || [];
+      const wrap = (a) => { const p = a.push.bind(a); a.push = (...x) => { for (const e of x) log.push({ t: Math.round(performance.now()), k: e.kind + (e.name ? ':' + e.name : '') }); return p(...x); }; return a; };
+      arr = wrap(arr);
+      Object.defineProperty(w, 'audioEvents', { configurable: true, get() { return arr; }, set(v) { arr = wrap(v); } });
+      info.scenes = {};
+      for (const id of S.ids) {
+        const rec = { cinematic: false, shots: 0 };
+        try {
+          const l0 = log.length, a0 = AQ ? AQ.rms.length : 0;
+          hold = null;
+          St.jump(id);
+          await sleep(2500);
+          if (S.direct) {
+            // play the intro of the step straight where the player stands (missionstory.playStoryIntro), not via the mission start
+            const MS = await imp('missionstory'); const SA = await imp('storyarc');
+            const idx = SA.missionIndexOf(id);
+            rec.index = idx;
+            if (S.at) { await go(S.at.x, S.at.y, 0, 5000); hold = null; }
+            rec.played = !!MS.playStoryIntro(w, idx, { kicker: 'Missie ' + id, title: id });
+          } else {
+            if (St.teleport) St.teleport();
+            await sleep(4000);
+            for (const t of [window, document]) { t.dispatchEvent(new KeyboardEvent('keydown', { key: 'e', code: 'KeyE', bubbles: true })); t.dispatchEvent(new KeyboardEvent('keyup', { key: 'e', code: 'KeyE', bubbles: true })); }
+          }
+          let t0 = null;
+          for (let i = 0; i < (S.maxI || 80); i++) {
+            await sleep(500);
+            if (cine.isCinematicActive()) { if (t0 === null) { t0 = i; rec.started = i * 0.5; } rec.cinematic = true; if ((i - t0) % (S.every || 6) === 2 && rec.shots < (S.max || 5)) { console.log('[capture] ' + S.name + '-' + id + '-' + rec.shots++); } }
+            else if (t0 !== null) { rec.endedAfter = (i - t0) * 0.5; break; }
+          }
+          if (cine.isCinematicActive()) cine.skipCinematic();
+          rec.events = log.slice(l0).map((e) => e.k);
+          if (AQ) { const seg = AQ.rms.slice(a0); rec.audio = seg.length ? { samples: seg.length, maxRms: Math.max(...seg.map((x) => x.rms)), maxPeak: Math.max(...seg.map((x) => x.peak)), silent: seg.filter((x) => x.rms < 0.0005).length } : 'geen tap'; }
+          rec.mission = !!(w.mission && w.mission.phase);
+        } catch (e) { rec.fout = String(e && e.message || e).slice(0, 160); }
+        info.scenes[id] = rec;
+        await sleep(1500);
       }
     } else if (S.type === 'raillod') {
       // #158: the player stays at the station; the cutscene camera stands ON the line at arc
