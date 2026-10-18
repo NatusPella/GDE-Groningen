@@ -1,5 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { dist, closestPointOnSegment, isInWater, pointInPolygon, boatDryPoints } from './util.js';
+import { waterPolyAt } from './waterlevels.js';
 import { clearOfBuildings, withTiles } from './tileplace.js';
 import { countryFacilities, countryDoor } from './facilities.js';
 import { edgeDistance } from './countryfield.js';
@@ -1058,7 +1059,7 @@ function fitBerth(map, v, shop) {
 
 function rentBoat(world, shop, r) {
   const map = world.map;
-  const poly = map.waterNear(shop.water.x, shop.water.y, 2).find((w) => pointInPolygon(shop.water.x, shop.water.y, w.pts));
+  const poly = waterPolyAt(map, shop.water.x, shop.water.y);
   if (!poly) return null;
   const v = spawnBoatOnWater(map, poly);
   if (!v) return null;
@@ -1522,7 +1523,7 @@ function spawnOwnedBoat(world, o, x, y, angle) {
   const jetty = nearestJetty(x, y);
   const at = isInWater(map, x, y) ? { x, y, angle: angle ?? 0 } : jetty ? jetty.water : null;
   if (!at) return null;
-  const poly = map.waterNear(at.x, at.y, 2).find((w) => pointInPolygon(at.x, at.y, w.pts));
+  const poly = waterPolyAt(map, at.x, at.y);
   if (!poly) return null;
   const v = spawnBoatOnWater(map, poly);
   if (!v) return null;

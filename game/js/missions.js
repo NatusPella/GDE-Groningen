@@ -1,6 +1,7 @@
 import { SMS_SAY } from './smsvoice.js';
 import { buildWorldMarker3D, setWorldMarkerKind, updateWorldMarker3D } from './worldmarker3d.js';
 import { dist, pointInPolygon, closestPointOnSegment, boatDryPoints, clamp, isInWater } from './util.js';
+import { waterPolyAt } from './waterlevels.js';
 import { PERFECT_VERDICT } from './flavourlines.js';
 import { spawnVehicleOnRoad, Vehicle, makeTwoWheeler, spawnHeroCarNear, attachToNearestRoad } from './vehicle.js';
 import { placeOwnedVehicleNear } from './ownedvehicles.js';
@@ -1252,7 +1253,7 @@ function releaseMissionVehicle(world) {
   const v = chain.vehicle;
   if (!v) return;
   v.missionCar = false;
-  if (v.isBoat) v.waterPoly = world.map.waterNear(v.x, v.y, 1).find((w) => pointInPolygon(v.x, v.y, w.pts)) || null;
+  if (v.isBoat) v.waterPoly = waterPolyAt(world.map, v.x, v.y);
   chain.leftover = v;
   chain.vehicle = null;
 }
