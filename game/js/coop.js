@@ -4,6 +4,8 @@
 // Dit bestand is pure logica (geen DOM, geen netwerk); de koppeling met de
 // invoer staat in coopglue.js, de aanroep in companion.js.
 
+import { radialDeadzone } from './padlogic.js';
+
 export const SLOT_P1 = 0;
 export const SLOT_P2 = 1;
 
@@ -46,11 +48,7 @@ export function keyAxis(isDown) {
 // Beweging uit een gamepad (axes[0], axes[1]) met dode zone.
 export function padAxis(axes) {
   if (!axes) return [0, 0];
-  const x = axes[0] || 0, y = axes[1] || 0;
-  const m = Math.hypot(x, y);
-  if (m < PAD_DEADZONE) return [0, 0];
-  const s = (Math.min(1, m) - PAD_DEADZONE) / (1 - PAD_DEADZONE) / m;
-  return [x * s, y * s];
+  return radialDeadzone(axes[0] || 0, axes[1] || 0, PAD_DEADZONE);
 }
 
 // Kiest de invoer van speler 2: pad wint van toetsen als het pad beweegt.
