@@ -17,7 +17,7 @@ ok(S.decideTravel({ on: true, beat: null, handled: false, busy: false, dist: 200
 
 const mkWorld = (x) => {
   const msgs = [];
-  return { time: 0, clock: 10, money: 100, player: { x, y: 0 }, companion: { x, y: 0, state: 'ok' }, storyGuide: { x: 28000, y: 0 }, addMessage: (t) => msgs.push(t), msgs };
+  return { time: 0, clock: 10, money: 100, player: { x, y: 0 }, companion: { x, y: 0, state: 'ok' }, storyGuide: { x: 17000, y: 0 }, addMessage: (t) => msgs.push(t), msgs };
 };
 const step = { id: 'T1' };
 
@@ -26,7 +26,7 @@ const step = { id: 'T1' };
   const w = mkWorld(0), flags = new Set();
   S.tickStoryTravel({ on: true, step, flags, world: w, busy: false, script: lookup, ask: async () => 'overslaan' });
   await tick(); await tick();
-  ok(w.player.x === 28000 && w.companion.x > 16999, 'skip teleports both');
+  ok(w.player.x === 17000 && w.companion.x > 16999, 'skip teleports both');
   ok(w.clock > 10.2, 'clock moved', w.clock);
   ok(flags.has('reis:T1'), 'flag set');
   ok(w.msgs.some((m) => m.startsWith('Tessa: ')) && w.msgs.some((m) => m === 'Aangekomen in Warffum'), 'lines and arrival', JSON.stringify(w.msgs));
@@ -51,7 +51,7 @@ const step = { id: 'T1' };
 }
 // near the start: handled without asking
 {
-  const w = mkWorld(27000), flags = new Set();
+  const w = mkWorld(16000), flags = new Set();
   let asked = 0;
   S.tickStoryTravel({ on: true, step, flags, world: w, busy: false, script: lookup, ask: async () => { asked++; return 'zelf'; } });
   ok(asked === 0 && flags.has('reis:T1'), 'near: marked, not asked');
@@ -71,7 +71,7 @@ const step = { id: 'T1' };
   S.tickStoryTravel({ on: true, step, flags, world: w, busy: false, script: lookup, ask: async () => 'meerijden',
     ride: async (o, d) => { got = { o, d }; w.player.x = d.x; return { aangekomen: true }; } });
   await tick(); await tick();
-  ok(got && got.o.id === 'trein' && got.d.x === 28000 && got.d.name === 'Warffum', 'ride scene gets option and goal', JSON.stringify(got));
+  ok(got && got.o.id === 'trein' && got.d.x === 17000 && got.d.name === 'Warffum', 'ride scene gets option and goal', JSON.stringify(got));
   ok(got && got.o.etaS > 60 && got.o.stops.length === 2, 'ride option has real eta and stops');
   ok(w.msgs.length === 0, 'scene does the arrival, no double message');
 }
@@ -79,14 +79,14 @@ const step = { id: 'T1' };
   const w = mkWorld(0), flags = new Set();
   S.tickStoryTravel({ on: true, step, flags, world: w, busy: false, script: lookup, ask: async () => 'meerijden', ride: async () => ({ aangekomen: false }) });
   await tick(); await tick(); await tick();
-  ok(w.player.x === 28000, 'scene refused (no money): arrive directly');
+  ok(w.player.x === 17000, 'scene refused (no money): arrive directly');
 }
 {
   const w = mkWorld(0), flags = new Set();
   w.player.inVehicle = { x: 5, y: 5, speed: 9 };
   S.tickStoryTravel({ on: true, step, flags, world: w, busy: false, script: lookup, ask: async () => 'overslaan' });
   await tick(); await tick();
-  ok(w.player.inVehicle.x === 28000 && w.player.inVehicle.speed === 0, 'vehicle comes along');
+  ok(w.player.inVehicle.x === 17000 && w.player.inVehicle.speed === 0, 'vehicle comes along');
 }
 console.log(`${n - fails}/${n} storytravel`);
 process.exit(fails ? 1 : 0);

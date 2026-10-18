@@ -57,16 +57,6 @@
     },
     {
       "rule": "engels",
-      "file": "rondvaartlines.js",
-      "why": "Engelse toeristen op de rondvaartboot praten bewust Engels (ondertiteld)"
-    },
-    {
-      "rule": "engels",
-      "file": "subtitles.js",
-      "why": "Nederlandse ondertitels van de Engelse toeristen"
-    },
-    {
-      "rule": "engels",
       "file": "rondvaartchase.js",
       "ctx": "Is this part of the tour?",
       "why": "toerist roept in het Engels"
@@ -173,6 +163,36 @@
       "term": "Piet Peilbuis",
       "file": "nieuwsticker.js",
       "why": "verzonnen lezer (Kiekdoar Nieuws)"
+    },
+    {
+      "rule": "engels",
+      "ctx": "Four in the morning? I'm in!",
+      "why": "Engelse toerist op de rondvaartboot of Nederlandse ondertitel erbij"
+    },
+    {
+      "rule": "engels",
+      "ctx": "Is that the station or a palace?",
+      "why": "Engelse toerist op de rondvaartboot of Nederlandse ondertitel erbij"
+    },
+    {
+      "rule": "duits",
+      "ctx": "Das ist wie in Amsterdam, nur ruhiger.",
+      "why": "Duitse toerist op de rondvaartboot, ondertiteld; eigenaar kan dit schrappen"
+    },
+    {
+      "rule": "engels",
+      "ctx": "Is this included in the ticket?",
+      "why": "Engelse toerist op de rondvaartboot of Nederlandse ondertitel erbij"
+    },
+    {
+      "rule": "engels",
+      "ctx": "Is this part of the tour?",
+      "why": "Engelse toerist op de rondvaartboot of Nederlandse ondertitel erbij"
+    },
+    {
+      "rule": "duits",
+      "ctx": "Wer ist dieser Mann?",
+      "why": "Duitse toerist op de rondvaartboot, ondertiteld; eigenaar kan dit schrappen"
     }
   ]
 }

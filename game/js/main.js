@@ -136,6 +136,9 @@ import { setBusLines } from './vehicle.js';
 import { scaledTarget, simLevel, nextSimFrame, farAIDist, skipFar, takeDt, keepVehicle } from './simload.js';
 import { getSettings } from './settings.js';
 import { MODS } from './cheatmods.js';
+import { makeDip, triggerDip, dipScale } from './gamefeel.js';
+import { effectsFor } from './a11ylogic.js';
+import { reducedMotion } from './motion.js';
 import { initCheats, updateCheats } from './cheats.js';
 import { updateRegioLeven } from './regiolevenrt.js';
 import { syncLedger, getLedger } from './finance.js';
@@ -493,12 +496,20 @@ async function boot() {
     return `${st.quality}, schaal ${dynamicScale()}, cpu ${cpuLevel()}, ${c.width}x${c.height}@${r.getPixelRatio().toFixed(2)}${world.paused ? ', pauze' : ''}${world.cameraOverride ? ', camera-override' : ''}`;
   }
 
+  const feelDip = makeDip(), dipSeen = { imp: null, mh: null };
   function frameBody(dt) {
     updateMapView(dt, world);
     world.paused = isMapOpen() || isPauseMenuOpen() || isShopOpen() || !!world.uiPaused;
     if (document.pointerLockElement && (isMapOpen() || isPauseMenuOpen() || isPhoneOpen())) document.exitPointerLock();
     // world.timeScale: slow-motion for cinematic moments (1 = normal)
-    const gameDt = dt * Math.max(0, Math.min(1, world.timeScale ?? 1)) * MODS.slow;
+    // hit-stop (#216): 60-90 ms dip bij een zware klap of een melee-raak
+    const nowS = performance.now() / 1000;
+    const imp = world.lastImpact, mh = world.lastMeleeHit;
+    if ((imp && imp !== dipSeen.imp) || (mh && mh !== dipSeen.mh)) {
+      triggerDip(feelDip, nowS, { strength: imp && imp !== dipSeen.imp ? imp.strength : 0, melee: !!(mh && mh !== dipSeen.mh) }, effectsFor({ reduceMotion: reducedMotion() }));
+      dipSeen.imp = imp; dipSeen.mh = mh;
+    }
+    const gameDt = dt * Math.max(0, Math.min(1, world.timeScale ?? 1)) * MODS.slow * dipScale(feelDip, nowS);
     // dev mode time scale (storydev.js): whole extra gameplay steps per frame
     const reps = world.devTimeScale > 1 ? Math.min(8, Math.round(world.devTimeScale)) : 1;
     if (!world.paused) for (let r = 0; r < reps; r++) updateGameplay(gameDt);

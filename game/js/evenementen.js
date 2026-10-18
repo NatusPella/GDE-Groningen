@@ -47,7 +47,7 @@ export const AGENDA = [
     'Vuurwerk boven de haven. De boten hangen vol lampjes en de meeuwen zijn er niet blij mee.'),
   E('ev-ronde-appingedam', 'wielerronde', 'Ronde van Appingedam', 'Appingedam', [53.3195, 6.8586], 9, 6, 6, 12, 17,
     'Renners over de kasseien langs de hangende keukens. De omgeving is dicht, ook voor jou.'),
-  E('ev-kermis-leek', 'kermis', 'Najaarskermis Leek', 'Leek', [53.1625, 6.3817], 9, 18, 20, 14, 24,
+  E('ev-kermis-leek', 'kermis', 'Nazomerkermis Leek', 'Leek', [53.1625, 6.3817], 9, 18, 20, 14, 24,
     'Botsauto\'s en een rad van fortuin met alleen prijzen. Het gaat om het idee.'),
   E('ev-optocht-winschoten', 'optocht', 'Molenoptocht Winschoten', 'Winschoten', [53.1431, 7.0356], 9, 19, 19, 13, 16,
     'Wagens in de vorm van molens, met echte wieken. De wind werkt mee.'),

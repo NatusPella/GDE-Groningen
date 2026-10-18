@@ -26,15 +26,18 @@ export function applyTravel(w, beat, choice, dest) {
   if (!a) return null;
   // driving yourself runs on the game clock; the others add the real time
   if (choice !== 'zelf' && typeof w.clock === 'number') w.clock = (w.clock + a.clockMinutes / 60) % 24;
-  if (choice !== 'zelf' && dest) {
-    const p = w.player;
-    p.x = dest.x; p.y = dest.y; p.vx = 0; p.vy = 0;
-    // the vehicle comes along (#97): it stands at the goal with you
-    if (p.inVehicle) { p.inVehicle.x = dest.x; p.inVehicle.y = dest.y; p.inVehicle.speed = 0; }
-    const c = w.companion;
-    if (c && c.state !== 'dead') { c.x = dest.x + 1.5; c.y = dest.y; c.vx = 0; c.vy = 0; }
-  }
+  if (choice !== 'zelf' && dest) placeParty(w, dest);
   return a;
+}
+
+// The player, their vehicle and the companion stand at dest (travel beats, and the retry prompt of missions.js, #214).
+export function placeParty(w, dest) {
+  const p = w.player;
+  p.x = dest.x; p.y = dest.y; p.vx = 0; p.vy = 0;
+  // the vehicle comes along (#97): it stands at the goal with you
+  if (p.inVehicle) { p.inVehicle.x = dest.x; p.inVehicle.y = dest.y; p.inVehicle.speed = 0; }
+  const c = w.companion;
+  if (c && c.state !== 'dead') { c.x = dest.x + 1.5; c.y = dest.y; c.vx = 0; c.vy = 0; }
 }
 
 // reward for driving yourself is paid on arrival (within `AT_M` of the start)
