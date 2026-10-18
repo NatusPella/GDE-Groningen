@@ -624,6 +624,14 @@ function findPancakeBoatSpot(map) {
   return best;
 }
 
+// Where the boat lies, and the quay spot opposite it where the pancake minigame
+// (pannenkoek.js) starts: a few metres back from the water's edge.
+export function getPancakeBoatSpot() {
+  if (!pancakeBoat) return null;
+  const ux = Math.sin(pancakeBoat.angle), uy = -Math.cos(pancakeBoat.angle);
+  return { ...pancakeBoat, quay: { x: pancakeBoat.x - ux * 5.2, y: pancakeBoat.y - uy * 5.2 } };
+}
+
 function findHaulerSpot(map) {
   const rng = new SeededRng(4242);
   const target = { x: 15.27, y: 372.53 };
