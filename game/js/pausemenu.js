@@ -885,6 +885,12 @@ function focusEl(el) {
   el.scrollIntoView({ block: 'nearest', inline: 'nearest' });
 }
 
+// the nearest ancestor of el that can scroll (the controls list is one), else the panel
+function scrollerOf(el, panel) {
+  for (let n = el && el.parentElement; n && n !== panel; n = n.parentElement) if (n.scrollHeight > n.clientHeight + 1 && /auto|scroll/.test(getComputedStyle(n).overflowY)) return n;
+  return panel;
+}
+
 function activePanel() {
   return root.querySelector(`[data-panel="${tab}"]`);
 }
@@ -982,7 +988,7 @@ function moveFocus(dir) {
   }
   if (!best && vert) {
     if (inRail) best = dir === 'down' ? railList[0] : railList[railList.length - 1];
-    else if (panel) { panel.scrollBy({ top: (dir === 'down' ? 1 : -1) * panel.clientHeight * 0.4, behavior: 'smooth' }); return; }
+    else if (panel) { const sc = scrollerOf(cur, panel); sc.scrollBy({ top: (dir === 'down' ? 1 : -1) * panel.clientHeight * 0.4, behavior: 'smooth' }); return; }
   }
   if (!best) return;
   const prevSub = cur.dataset && cur.dataset.subtab && cur.dataset.of;
