@@ -1,7 +1,7 @@
 // The shared map style (game/js/mapstyle.js): both palettes complete, zoom
 // rules, and the three renderers reading it. Run: node scripts/mapstyle_test.mjs
 import fs from 'node:fs';
-import { MAP_PALETTE, MINI_PALETTE, ROAD_ORDER, ROAD_WIDTH_PX, ZOOM, layersAtZoom, roadWidthPx, roadColor, seaStyle, toRgba } from '../game/js/mapstyle.js';
+import { mapPhase, applyMapPhase, currentMapPhase, nightPalette, shade, miniRoadStyle, MAP_PALETTE, MINI_PALETTE, ROAD_ORDER, ROAD_WIDTH_PX, ZOOM, layersAtZoom, roadWidthPx, roadColor, seaStyle, toRgba } from '../game/js/mapstyle.js';
 
 let n = 0, fails = 0;
 const ok = (c, m) => { n++; if (!c) { fails++; console.log('FAIL', m); } };
@@ -18,6 +18,23 @@ ok(roadWidthPx('major', 8, 12, 1) > 2.4, 'real width up close');
 
 ok(seaStyle().fill === MAP_PALETTE.water && seaStyle(MINI_PALETTE).edge === '#5aa0c0', 'sea per palette');
 ok(toRgba('#2d6a86').join() === '45,106,134,255' && toRgba('rgba(160, 156, 146, 0.62)')[3] === 158, 'toRgba');
+
+// day and night
+ok(mapPhase(12) === 'dag' && mapPhase(23) === 'nacht' && mapPhase(3) === 'nacht' && mapPhase(6) === 'dag' && mapPhase(20.4) === 'dag' && mapPhase(20.5) === 'nacht', 'phase by hour');
+ok(mapPhase(undefined) === 'dag' && mapPhase(27) === 'nacht', 'phase edge cases');
+ok(shade('#ffffff', 0.5) === '#80808f' && shade('rgba(100, 100, 100, 0.5)', 0.5).startsWith('rgba(50, 50, 56, 0.5'), 'shade');
+const lum = (c) => { const [r, g, b] = toRgba(c); return r + g + b; };
+const night = nightPalette(MAP_PALETTE);
+for (const k of ['meadow', 'water', 'road', 'major', 'building']) ok(lum(night[k]) < lum(MAP_PALETTE[k]), 'night darker: ' + k);
+ok(lum(night.major) > lum(night.meadow) * 2 && lum(night.road) > lum(night.park), 'roads stay readable at night');
+ok(night.roadMin === MAP_PALETTE.roadMin && nightPalette(MINI_PALETTE).buildings.length === 5, 'numbers and lists kept');
+const dayWater = MAP_PALETTE.water;
+ok(applyMapPhase('nacht') && MAP_PALETTE.water !== dayWater && currentMapPhase() === 'nacht' && !applyMapPhase('nacht'), 'palette turns in place');
+ok(applyMapPhase('dag') && MAP_PALETTE.water === dayWater, 'and back to day');
+
+// minimap lines
+ok(miniRoadStyle('major', 12, 1.5).widthM === 12 && miniRoadStyle('minor', 3, 0.5).widthM >= 1.4 / 0.5, 'min px width at small scale');
+ok(miniRoadStyle('foot', 2, 1.5).alpha === 1 && miniRoadStyle('foot', 2, 0.6).alpha === 0 && miniRoadStyle('foot', 2, 0.8).alpha > 0 && miniRoadStyle('normal', 6, 0.3).alpha === 1, 'footpaths fade when zoomed out');
 
 // the renderers take their colours from here
 const src = (f) => fs.readFileSync(new URL('../' + f, import.meta.url), 'utf8');

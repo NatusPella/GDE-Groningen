@@ -5,7 +5,7 @@ import {
 import { provinceMapBounds } from './provincemap.js';
 import { FARM_TYPES, blockPlanCached, blockPlan, villagePlan, ROAD_ROW, TREE_ROW_P } from './countryplan.js';
 import { farPropsIn } from './farprops.js';
-import { MAP_PALETTE, MINI_PALETTE } from './mapstyle.js';
+import { MAP_PALETTE, MINI_PALETTE, mapPhase, applyMapPhase, currentMapPhase } from './mapstyle.js';
 
 // The procedural countryside on the 2D maps (minimap and full map), drawn from
 // the same plan as the 3D world: meadows fading in past the city edge, the
@@ -333,6 +333,13 @@ const MINI_IDLE_MS = 6;
 const miniTiles = new Map();
 const miniQueue = new Map();
 let miniIdle = 0;
+
+// Day or night colours for both maps from the game clock; the minimap's
+// tiles are rebuilt when it flips. Returns the phase ('dag' or 'nacht').
+export function syncMapPhase(world) {
+  if (applyMapPhase(mapPhase(world && world.dayNight ? world.dayNight.hour : undefined))) { miniTiles.clear(); miniQueue.clear(); }
+  return currentMapPhase();
+}
 
 function buildMiniTile(key, tx, ty, T, scale, pxPerM) {
   const pad = MINI_PAD_PX / scale;
