@@ -50,7 +50,9 @@ import { registerNarrative, mayStart, narrativeBusy, narrativeState } from './na
 import { nieuwVerhaal } from './storyflag.js';
 import './storychoice.js';
 import { storyLines, talkLines, radioContacts, appsAt, storyDataReady, readingTime, scene as storyScene } from './storytext.js';
-import { updateStoryTalk, stopTalk } from './storytalk.js';
+import { updateStoryTalk, stopTalk, playTalk } from './storytalk.js';
+import { makeReisGoals } from './storyreis.js';
+import { plakjesState } from './plakjes.js';
 
 // Rikus' Radio Nachtstreek studio (radiostudio.js, three.js from the CDN) for the
 // recaps and the epilogue; loaded lazily so Node checks can import this file.
@@ -739,6 +741,7 @@ function swapCharacter(w, want) {
 // (s-proefvlucht) comes first too: H15's trigger lies beside Roelf's demo heli,
 // so walking up to him must not start the flight before he has had his say.
 function swapDone(w, i) {
+  if (w.coop && w.coop.fixedChars) return true; // coöp (#95): vaste personages, geen wissel
   const step = currentStep();
   if (step && !step.end && step.kind === 'activity' && step.goal && step.goal.type === 'flight' && !step.goal.over && !rt.base.met) return false;
   if (!step || step.end || step.kind !== 'mission' || missionIdx(step) !== i || !step.player) return true;
@@ -762,6 +765,7 @@ function updateCharacter(w) {
   const step = rt.cur;
   const want = step && !step.end ? step.player : rt.lastPlayer;
   if (step && !step.end && step.player) rt.lastPlayer = step.player;
+  if (w.coop && w.coop.fixedChars) return; // coöp (#95): de host is Tammo, de gast Tessa
   const calm = calmForSwap();
   if (!want || w.player.character === want) { rt.swapWaitAt = 0; return; }
   if (isCinematicActive() || w.pigeonMode || isMissionActive() || w.player.ragdoll || w.pendingRespawn) return;
@@ -972,7 +976,9 @@ export function initStory(w) {
   world = w;
   setValidityContext(validityNow);
   setMissionHooks({ waived: (key) => state.waived.has(key), skipped: (i) => STEPS.some((s) => s.kind === 'mission' && missionIdx(s) === i && state.skipped.has(s.id)), passed: onPassed, failed: onFailed, gated: onGated, canStart: swapDone });
-  Object.assign(GOALS, FUN_GOALS, EIKEA_GOALS);
+  // travel steps (storyreis.js): at the place the trip goes to, however you got there
+  const busyNow = () => isMissionActive() || isCinematicActive() || narrativeBusy() || !!w.pigeonMode || !!w.pendingRespawn;
+  Object.assign(GOALS, FUN_GOALS, EIKEA_GOALS, makeReisGoals({ getWorld: () => world, busy: busyNow, playLines: (id, from) => playTalk(talkLines(id, { from }), { id: 'reis:' + id, delay: 1.5 }) }));
   setMeetHook(meet);
   initStoryFun(w);
   initStoryEikea(w, () => (rt.cur && !rt.cur.end && rt.cur.goal && rt.cur.goal.type === 'eikea' ? rt.base : null));
@@ -1134,7 +1140,9 @@ export function getStoryJournal() {
   const part = step && (step.part || step.end) || 'kop';
   const done = new Set(STEPS.filter((s, k) => isDone(s, k)).map((s) => s.id));
   const found = CLUES.filter((c) => done.has(c.step)).map((c) => ({ ...c, isNew: rt.newClues.has(c.title) })).reverse();
-  return { why: step && step.finale ? 'Grunn is van jou. En de Fjord Frituur staat op de Vismarkt.' : WHY[part] || '', found, total: CLUES.length };
+  // the new story: Jelle's plakjes, and how each one ended (plakjes.js)
+  const plakjes = nieuwVerhaal() ? plakjesState(done, step && step.id) : [];
+  return { why: step && step.finale ? 'Grunn is van jou. En de Fjord Frituur staat op de Vismarkt.' : WHY[part] || '', found, total: CLUES.length, plakjes };
 }
 
 // The clues per part, for a later "Verhaal" menu: { kop: [...], romp, staart }, each

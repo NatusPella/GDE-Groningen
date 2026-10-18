@@ -411,6 +411,9 @@ const COUNTRY_SHOPS = {
   auto: ['car'], tuning: ['car_parts', 'tyres'], pand: ['pawnbroker', 'second_hand'], wapens: ['outdoor'],
 };
 const COUNTRY_SPACING = 900;
+// the real places of shopplaces.json (#175): more of them per village, each with its invented name
+const SP_SPACING = 160;
+const SP_PER_PLACE = 3;
 // every kind whose real facilities get a shop door (main.js loads their tiles first)
 export const COUNTRY_SHOP_KINDS = [...new Set(Object.values(COUNTRY_SHOPS).flat())];
 
@@ -423,12 +426,14 @@ export function placeCountryShops(map, horeca = [], taken = []) {
     const cands = countryFacilities(kinds).filter((f) => !used.has(f))
       .sort((a, b) => kinds.indexOf(a.kind) - kinds.indexOf(b.kind) || a.x - b.x || a.y - b.y);
     for (const f of cands) {
-      if (mine.some((q) => dist(q.x, q.y, f.x, f.y) < COUNTRY_SPACING) || mine.some((q) => q.wijk === f.place)) continue;
+      if (f.sp ? mine.some((q) => dist(q.x, q.y, f.x, f.y) < SP_SPACING) || mine.filter((q) => q.wijk === f.place).length >= SP_PER_PLACE
+        : mine.some((q) => dist(q.x, q.y, f.x, f.y) < COUNTRY_SPACING) || mine.some((q) => q.wijk === f.place)) continue;
       const p = countryDoor(map, f.x, f.y, (x, y) => doorClear(x, y, horeca, [...taken, ...out]));
       const wijk = f.place || (p && p.street);
       if (!p || !wijk) continue;
       used.add(f);
       const shop = { ...p, type, wijk, street: p.street || f.street, country: true };
+      if (f.sp) { shop.fixedName = f.own; shop.building = f.bid; }
       mine.push(shop);
       out.push(shop);
     }
@@ -449,7 +454,7 @@ function nameBranches(list) {
       used.add(suffix);
       b.id = type + '-' + i;
       b.suffix = suffix;
-      b.name = `${SHOP_TYPES[type].chain} ${suffix}`;
+      b.name = b.fixedName || `${SHOP_TYPES[type].chain} ${suffix}`;
       b.tagline = SHOP_TYPES[type].tagline;
     });
   }
@@ -709,6 +714,7 @@ export function tryShopInteract(world) {
   }
   shopVisits[s.type] = (shopVisits[s.type] || 0) + 1;
   prepareStoryShop();
+  if (world.audioEvents && world.audioEvents.length < 64) world.audioEvents.push({ kind: 'fx', name: 'shop_bell', x: s.x, y: s.y });
   openShopMenu(world, shopMenu(world, s));
   return true;
 }

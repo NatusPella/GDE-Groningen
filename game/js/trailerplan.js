@@ -39,7 +39,7 @@ export function sliceTimes(dur) {
 }
 const plakjes = (at, dur) => ({ kind: 'plakjes', at, dur, title: 'Acht plakjes.', kicker: 'Eén man.', strike: sliceTimes(dur) });
 const plakjesTicks = (at, dur) => sliceTimes(dur).map((t) => [+(at + t).toFixed(3), 'tik']);
-const eind = (at, dur, small = 'Gratis · Windows en Mac') => ({ kind: 'eind', at, dur, title: 'GDE Groningen – Zomer vol misdaad', tagline: 'Heel Groningen. Voor één eierbal.', small });
+const eind = (at, dur, small = 'Gratis · voor pc en Mac') => ({ kind: 'eind', at, dur, title: 'GDE Groningen – Zomer vol misdaad', tagline: 'Heel Groningen. Voor één eierbal.', small });
 
 export const PLAN = {
   teaser: {

@@ -1,0 +1,156 @@
+{
+ "_era": "0.35, nieuwe verhaallijn, akte 2: M07 en M08 gedaan en de trein naar Winsum genomen (T1), de speler staat op het station van Winsum. Volgende stap M09 (Geesjes eieren). Hoort bij het andere verhaal: wordt in het oude spel niet geladen.",
+ "_expect": {
+  "arc": "nieuw",
+  "step": "M09",
+  "money": 3350,
+  "radio": "on",
+  "pos": [
+   230489.9,
+   594334.6
+  ]
+ },
+ "save": {
+  "v": 9,
+  "arc": "nieuw",
+  "savedAt": 1760700000000,
+  "money": 3350,
+  "moneyBackup": 3350,
+  "health": 100,
+  "armor": 0,
+  "weapon": "fists",
+  "ammo": {
+   "fists": "inf"
+  },
+  "stats": {
+   "kills": 0,
+   "pedKills": 0,
+   "copKills": 0,
+   "missionsDone": 8,
+   "playerWrecks": 0,
+   "spent": 0
+  },
+  "character": "tammo",
+  "pos": {
+   "x": 230489.9,
+   "y": 594334.6
+  },
+  "ctx": "world",
+  "missions": {
+   "index": 20,
+   "completed": [
+    19,
+    8,
+    18,
+    9,
+    2,
+    10,
+    11,
+    6
+   ],
+   "seen": [
+    19,
+    8,
+    18,
+    9,
+    2,
+    10,
+    11,
+    6
+   ],
+   "medals": {}
+  },
+  "story": {
+   "v": 1,
+   "done": [
+    "M00",
+    "M01",
+    "M02",
+    "M03",
+    "M04",
+    "M05",
+    "M06",
+    "M07",
+    "M08",
+    "T1"
+   ],
+   "skipped": [],
+   "fails": {},
+   "waived": [],
+   "voorschot": [],
+   "cards": [],
+   "flags": [
+    "met:berend",
+    "met:durk",
+    "met:trijntje",
+    "reis:T1",
+    "script:M07:after",
+    "script:M08:start"
+   ]
+  },
+  "visitedLandmarks": [],
+  "shops": {
+   "hero": {},
+   "outfit": {
+    "tammo": "incognito",
+    "anita": "incognito"
+   },
+   "ownedOutfits": [
+    "incognito"
+   ],
+   "storyOutfit": null,
+   "hair": {
+    "tammo": {
+     "color": "naturel",
+     "style": "short"
+    },
+    "anita": {
+     "color": "naturel",
+     "style": "bob"
+    }
+   },
+   "heroColor": null,
+   "heroUpgrades": [],
+   "stamps": 0,
+   "vehicles": []
+  },
+  "prestaties": {
+   "eierballen": [],
+   "geheimen": [],
+   "unlocked": []
+  },
+  "duif": {
+   "ach": []
+  },
+  "bijbaan": {
+   "v": 1,
+   "jobs": {},
+   "seen": []
+  },
+  "postgame": {},
+  "meubels": {
+   "owned": [],
+   "pending": [],
+   "built": [],
+   "day": 0,
+   "read": 0,
+   "stek": 0,
+   "tips": [],
+   "moment": 0
+  },
+  "doel": null,
+  "radio": "on",
+  "streken": {
+   "v": 1,
+   "unlocked": [],
+   "on": [],
+   "used": []
+  },
+  "kalender": {
+   "v": 1,
+   "dag": 5,
+   "gezien": []
+  },
+  "frame": "rd-new"
+ }
+}

@@ -65,7 +65,7 @@ if (fs.existsSync(url)) {
     check(/^\d+_\d+$/.test(k) && rows.length <= d.budget, `bestand: tegel ${k} binnen budget`);
     for (const r of rows) {
       n++;
-      check(r.length === 6 && typeof r[3] === 'string' && !S.isChain({ name: r[3] }), `bestand: rij ${k} heeft een verzonnen naam (${r[3]})`);
+      check(r.length === 7 && typeof r[3] === 'string' && !S.isChain({ name: r[3] }), `bestand: rij ${k} heeft een verzonnen naam (${r[3]})`);
       if (fails > 10) break;
     }
   }

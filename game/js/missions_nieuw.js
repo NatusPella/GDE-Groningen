@@ -23,8 +23,9 @@ const AIRSTRIP = makeStrip(AIRSTRIP_SPEC);
 
 // The def pieces: walk(x, y) / drive(x, y) are missions.js's road spots.
 import { buildAkte4Defs, applyAkte4 } from './missions_akte4.js';
+import { buildAkte2Defs, applyAkte2 } from './missions_akte2.js';
 
-export function buildNieuwDefs({ map, walk, drive }) {
+export function buildNieuwDefs({ map, walk, drive, models = {} }) {
   const list = [];
   const lm = (map.meta.landmarks || []).find((l) => l.name === 'Goudkantoor') || { x: 86.5, y: 111.7 };
   const loketAt = (dx, dy) => walk(lm.x + dx, lm.y + dy);
@@ -169,6 +170,8 @@ export function buildNieuwDefs({ map, walk, drive }) {
   // akte 4 (missions_akte4.js): bruggen, wiebelwerk, stoom, beleg, in the order of NEW_MISSION_IDS
   list.push(...buildAkte4Defs());
   list.push(...buildAkte5Defs({ map, walk, drive }));
+  // akte 2 (missions_akte2.js): eieren, wierde, after the ids of acts 3 to 5 in NEW_MISSION_IDS
+  list.push(...buildAkte2Defs({ models }));
   return list;
 }
 
@@ -179,6 +182,7 @@ export function buildNieuwDefs({ map, walk, drive }) {
 export function applyNieuw(list) {
   const by = (label) => list.find((d) => d.label === label);
   applyAkte4(list);
+  applyAkte2(list);
   const stageOf = (def, kind, n = 0) => def.stages.filter((q) => q.kind === kind)[n];
   const pin = by('Even pinnen');
   if (pin) {
