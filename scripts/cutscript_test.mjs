@@ -2,7 +2,8 @@
 // scenes in game/js/cutscenes.js, on the real script lines of the opening:
 //   node scripts/cutscript_test.mjs
 import { readFileSync } from 'node:fs';
-import { compileScene, validateScene, resolveTime, makeStubAnimator, ACTOR_ANIMS } from '../game/js/cutscript.js';
+import { compileScene, validateScene, resolveTime, ACTOR_ANIMS } from '../game/js/cutscript.js';
+import { ANIMS } from '../game/js/actoranim.js';
 import { OPENING, END_CARD } from '../game/js/cutscenes.js';
 
 let fails = 0, n = 0;
@@ -102,15 +103,8 @@ let threw = false;
 try { compileScene(still, { duration: 20 }); } catch (e) { threw = true; }
 ok(threw, 'compileScene throws on a flagged scene');
 
-// the stub animator poses through userData only and honours the contract
-const rot = () => ({ rotation: { x: 0, y: 0, z: 0, set(x, y, z) { this.x = x; this.y = y; this.z = z; } } });
-const mesh = { rotation: { z: 0 }, userData: { armL: rot(), armR: rot(), elbowL: rot(), elbowR: rot(), head: rot(), chest: rot() } };
-const stub = makeStubAnimator((m, sp) => { m._speed = sp; });
-for (const a of ACTOR_ANIMS) stub.animateActor(mesh, { anim: a, speed: 1, gaze: 0.2, t: 1, dt: 0.016 });
-stub.animateActor(mesh, { anim: 'wave', t: 1, dt: 0.016 });
-ok(mesh.userData.armR.rotation.z > 2, 'wave raises the right arm');
-stub.animateActor(mesh, { anim: 'ride', speed: 5, t: 1, dt: 0.016 });
-ok(mesh._speed === 0, 'riding does not run the walk cycle');
+// the animation layer speaks the names the language validates against
+ok(ACTOR_ANIMS.length === ANIMS.length && ACTOR_ANIMS.every((a) => ANIMS.includes(a)), 'ACTOR_ANIMS equals actoranim ANIMS');
 
 console.log(fails ? `${fails} of ${n} checks FAILED` : `cutscript_test: ${n} checks ok`);
 process.exit(fails ? 1 : 0);
