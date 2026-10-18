@@ -3,7 +3,7 @@ import { simLevel } from './simload.js';
 import { getGaragesForRender } from './garages.js';
 import { getHomeForRender, getHomeGarageForRender, getHomeMooringForRender, getHomeHelipadForRender } from './home.js';
 import { minimapShows } from './mapfilters.js';
-import { mapCategory } from './mapicons.js';
+import { mapCategory, mapRimColor } from './mapicons.js';
 import { facilitiesOf } from './facilities.js';
 import { getHorecaForRender } from './horeca.js';
 import { getShopsForRender, drawShopMapIcon, drawShopGlyph, SHOP_TYPES, storyTargetShop, drawStoryShopRing } from './shops.js';
@@ -1681,8 +1681,8 @@ export function drawMapIconHalo(ctx, kind, x, y, s = 1) {
   ctx.arc(x, y, 6.6 * s, 0, Math.PI * 2);
   ctx.fillStyle = 'rgba(12, 20, 14, 0.78)';
   ctx.fill();
-  ctx.lineWidth = Math.max(1.2, 0.9 * s);
-  ctx.strokeStyle = 'rgba(240, 237, 228, 0.92)';
+  ctx.lineWidth = Math.max(1.6, 0.7 * s);
+  ctx.strokeStyle = mapRimColor(kind);
   ctx.stroke();
   ctx.restore();
 }
