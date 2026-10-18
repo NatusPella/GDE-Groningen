@@ -23,6 +23,7 @@ import { flyHeli, heliExitBlock } from './heliflight.js';
 import { MODS } from './cheatmods.js';
 import { reportCrime } from './crime.js';
 import { shift as shiftGear } from './gearbox.js';
+import { buildingAt } from './tileplace.js';
 export { resolveBuildingCollisions };
 
 const BIKE_SPRINT_S = 2.5;
@@ -978,12 +979,7 @@ export function findClimbSpot(map, x, y, angle, reach = CLIMB_REACH) {
 }
 
 function isInsideBuilding(map, x, y) {
-  for (const b of map.buildingsNear(x, y, 0.5)) {
-    const [minx, miny, maxx, maxy] = b.bounds;
-    if (x < minx || x > maxx || y < miny || y > maxy) continue;
-    if (pointInPolygon(x, y, b.pts)) return true;
-  }
-  return false;
+  return !!buildingAt(map, x, y);
 }
 
 // Sides as multipliers of the vehicle's (-sin, cos) normal, which is its
