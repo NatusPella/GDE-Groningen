@@ -67,5 +67,7 @@ export class SpatialGrid {
     this.remove(item, oldBounds);
     this.insert(item, newBounds);
   }
+  // The raw item list of one cell (not a copy), or undefined.
+  cellItems(cx, cy) { return this.map.get(this.key(cx, cy)); }
   clear() { this.map.clear(); }
 }

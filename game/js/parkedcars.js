@@ -7,6 +7,7 @@ import { buildingAt, boxOf, waterGap } from './tileplace.js';
 import { blockPlan, farmDetail, farmWorld, pushOutOfPlan, FARM_TYPES } from './countryplan.js';
 import { roadGap } from './countryedge.js';
 import { baysIn } from './parkinglots.js';
+import { SpatialGrid } from './spatialgrid.js';
 
 // Kerbside parking along residential streets: half a car length up on the
 // stoep, clear of the traffic lane. Slots are deterministic per road segment
@@ -42,7 +43,7 @@ const states = new WeakMap();
 function stateOf(world) {
   let st = states.get(world);
   if (!st) {
-    st = { cells: new Map(), active: new Set(), sleeping: new Set(), grid: new Map(), genQueue: [], roadIdx: new Map() };
+    st = { cells: new Map(), active: new Set(), sleeping: new Set(), grid: new SpatialGrid(GRID), genQueue: [], roadIdx: new Map() };
     world.map.roads.forEach((r, i) => st.roadIdx.set(r, i));
     states.set(world, st);
   }
@@ -257,35 +258,18 @@ function vehicleInTheWay(world, x, y, m) {
   return false;
 }
 
-const gridKey = (x, y) => Math.floor(x / GRID) + ',' + Math.floor(y / GRID);
-
 function gridAdd(st, v) {
-  const k = gridKey(v.x, v.y);
-  let list = st.grid.get(k);
-  if (!list) st.grid.set(k, list = []);
-  list.push(v);
-  v._gridKey = k;
+  st.grid.insertPoint(v, v.x, v.y);
+  v._gridKey = [v.x, v.y, v.x, v.y]; // where it went in: the car moves once woken
 }
 
 function gridRemove(st, v) {
-  const list = st.grid.get(v._gridKey);
-  if (list) {
-    const i = list.indexOf(v);
-    if (i >= 0) list.splice(i, 1);
-    if (!list.length) st.grid.delete(v._gridKey);
-  }
+  if (v._gridKey) st.grid.remove(v, v._gridKey);
   v._gridKey = null;
 }
 
 function sleepersNear(st, x, y, r, out) {
-  const x0 = Math.floor((x - r) / GRID), x1 = Math.floor((x + r) / GRID);
-  const y0 = Math.floor((y - r) / GRID), y1 = Math.floor((y + r) / GRID);
-  for (let gx = x0; gx <= x1; gx++) {
-    for (let gy = y0; gy <= y1; gy++) {
-      const list = st.grid.get(gx + ',' + gy);
-      if (list) for (const v of list) out.push(v);
-    }
-  }
+  for (const v of st.grid.queryRadius(x, y, r)) out.push(v);
   return out;
 }
 
