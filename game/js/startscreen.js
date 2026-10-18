@@ -5,7 +5,8 @@ import { checkWhatsNew, markVersionSeen, compareVersions } from './whatsnew.js';
 import { pointInPolygon } from './util.js';
 import { openPauseMenu, isPauseMenuOpen } from './pausemenu.js';
 import { getAchievementSummary } from './achievements.js';
-import { pendingTrailer, runTrailer, runBenchmarkSuite, fadeOutTrailer, showBenchmarkResults } from './trailer.js';
+import { pendingTrailer } from './trailerstate.js';
+// trailer.js (2500 lines) is only loaded when a trailer or benchmark really runs
 import { startTheme, stopTheme } from './theme.js';
 import { COW_LOADING } from './flavourlines.js';
 import { MENU_FRAME_S, getRenderer } from './scene3d.js';
@@ -622,14 +623,15 @@ export function runStartScreen(world, { render, relocate, tick }) {
       trailerOn = true;
       screen.classList.remove('visible');
       news.hidden = true;
+      const T = await import('./trailer.js');
       let next = 'back';
       for (;;) {
-        const res = await runBenchmarkSuite(world, env);
+        const res = await T.runBenchmarkSuite(world, env);
         if (res.aborted) break;
-        next = await showBenchmarkResults(res);
+        next = await T.showBenchmarkResults(res);
         if (next !== 'again') break;
       }
-      await fadeOutTrailer(false, backHome);
+      await T.fadeOutTrailer(false, backHome);
       stopTheme();
       trailerOn = false;
       const cont = items.findIndex((it) => it.act === 'continue');
@@ -653,7 +655,8 @@ export function runStartScreen(world, { render, relocate, tick }) {
       trailerOn = true;
       dismissLoading();
       if (intro.mode === 'benchmark') { trailerOn = false; benchmark(!!intro.fromGame); return; }
-      const res = await runTrailer(world, { ...intro, env });
+      const T = await import('./trailer.js');
+      const res = await T.runTrailer(world, { ...intro, env });
       if (intro.mode === 'opname' && !res.aborted && window.gdeDesktop && window.gdeDesktop.isDesktop) { window.gdeDesktop.quit(); return; }
       if (res.continuation) {
         shot = res.continuation;
@@ -663,9 +666,9 @@ export function runStartScreen(world, { render, relocate, tick }) {
         pose = shot(0);
         trailerOn = false;
         showMenu(true);
-        await fadeOutTrailer(true);
+        await T.fadeOutTrailer(true);
       } else {
-        await fadeOutTrailer(false, backHome);
+        await T.fadeOutTrailer(false, backHome);
         trailerOn = false;
         showMenu(true);
       }

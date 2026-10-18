@@ -19,7 +19,7 @@ import { renderAchievementsPanel } from './achievementsui.js';
 import { renderGaragePanel, selectGarageVehicle, disposeGarageViewer } from './garageui.js';
 import { deliverOwnedVehicle, locateOwnedVehicle } from './ownedvehicles.js';
 import { isShopOpen, closeShopMenu } from './shopui.js';
-import { benchmarkViaReload } from './trailer.js';
+import { benchmarkViaReload } from './trailerstate.js';
 import { radioIsOn, setRadio } from './radio.js';
 import { glyphHtml } from './prompts.js';
 import { KEY_ACTIONS, KEY_GROUPS, PAD_REMAPPABLE, PAD_SLOT_NAMES, bindKey, bindButton, physicalKey, defaultKey, physicalButton, isBindableKey, keyName, slotUses } from './controls.js';
