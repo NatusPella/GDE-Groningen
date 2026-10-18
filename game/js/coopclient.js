@@ -3,7 +3,7 @@
 // - de host speelt Tammo (slot 0), de gast Tessa ('anita', slot 1), geen keuze en geen wissel;
 // - op de gast staat het eigen lichaam in world.player (de camera volgt dat),
 //   het lichaam van de host in world.companion; op de host andersom;
-// - de gast toont de toestand van de host (posities, geld, wanted) en stuurt alleen invoer.
+// - de gast toont de toestand van de host (posities, wanted) en stuurt alleen invoer; geld en spullen blijven van de gast.
 // Niet in een echt spel gezien; zie #95.
 
 export const CHAR_OF_SLOT = ['tammo', 'anita'];
@@ -32,7 +32,8 @@ export function applyHostState(world, role, sample) {
     if (b.vx !== undefined) { b.vx = 0; b.vy = 0; }
     n++;
   }
-  if (sample.shared) { world.money = sample.shared.money; world.wanted = sample.shared.wanted; }
+  // alleen wanted is gedeeld; het geld, de spullen en de prestaties van de gast blijven zijn eigen
+  if (sample.shared) world.wanted = sample.shared.wanted;
   return n;
 }
 
