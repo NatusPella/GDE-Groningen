@@ -10,6 +10,9 @@ import { createDrift, stepDrift, driftMedal } from './drift.js';
 import { recordChallengeResult, getChallengeRecord, recordStat, MEDALS } from './achievements.js';
 import { showCard } from './hudcards.js';
 import { activityBlock, iconDisc } from './activitykit.js';
+import { createRecorder, recordGhost, finishGhost, ghostAt, loadGhost, saveGhost } from './ghostreplay.js';
+import { showGhostCar } from './ghostmesh.js';
+import { KEYS } from './storagekeys.js';
 
 export const DRIFT_ZONES = [
   { id: 'oost', name: 'Rotonde Oost', x: 1997, y: 666, r: 78, spot: { x: 2016.3, y: 722.6 } },
@@ -62,8 +65,13 @@ function best(zone) {
   return r && r.best != null ? r : null;
 }
 
+// localStorage can be blocked (tests, private windows): then there is no ghost
+function ghostStore() {
+  try { return localStorage; } catch { return { getItem: () => null, setItem: () => {} }; }
+}
+
 function startRun(w, zone) {
-  run = { zone, score: 0, time: 0 };
+  run = { zone, score: 0, time: 0, rec: createRecorder(), ghost: loadGhost(ghostStore(), 'drift-' + zone.id, KEYS.ghosts) };
   outside = 0;
   w.driftRun = zone.id;
   const rec = best(zone);
@@ -75,7 +83,9 @@ function finalize(w, why) {
   let pts = run.score;
   if (drift.chain) { pts += Math.round(drift.cur); }
   const zone = run.zone;
+  const rec0 = run.rec;
   run = null;
+  showGhostCar(null);
   w.driftRun = null;
   drift.cur = 0; drift.chain = false; drift.mult = 1; drift.t = 0; drift.flips = 0; drift.sign = 0; drift.active = false;
   if (pts < 50) return;
@@ -83,11 +93,13 @@ function finalize(w, why) {
   const prev = (getChallengeRecord(id) || {}).medal || 0;
   const medal = driftMedal(pts, DRIFT_MEDAL_AT);
   const rec = recordChallengeResult(w, id, { value: pts, medal });
+  const ghostSaved = saveGhost(ghostStore(), id, finishGhost(rec0, pts, { higher: true }), KEYS.ghosts);
   recordStat(w, 'driftRuns');
   const prize = Math.max(0, (PRIZE[medal] || 0) - (PRIZE[prev] || 0));
   if (prize) w.money += prize;
   const lines = [`${pts} punten${medal ? ' · ' + MEDALS[medal].toLowerCase() : ''}`];
   if (rec && rec.newBest) lines.push('nieuw record');
+  if (ghostSaved) lines.push('spookauto bewaard');
   if (prize) lines.push(`+€${prize}`);
   showCard(w, { kind: why === 'crash' ? 'fail' : 'prestatie', kicker: 'Driftzone: ' + zone.name, title: why === 'crash' ? 'Tegen de muur, maar wel gepunt' : 'Mooie slip', body: lines.join(' · '), duration: 6, key: 'drift-end-' + zone.id + '-' + pts, voice: false });
 }
@@ -109,6 +121,9 @@ function tick(dt, w) {
   if (run) {
     run.score += res.banked;
     run.time += dt;
+    recordGhost(run.rec, run.time, v.x, v.y, v.angle);
+    const gp = run.ghost ? ghostAt(run.ghost, run.time) : null;
+    showGhostCar(gp ? { x: gp.x, y: gp.y, z: v.z, a: gp.a } : null);
     const here = zoneAt(v.x, v.y);
     outside = here && here === run.zone ? 0 : outside + dt;
     if (activityBlock(w) || w.pendingRespawn) finalize(w, 'uit');
