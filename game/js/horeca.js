@@ -10,6 +10,7 @@ const MAX_SPEND = 35;
 const HEAL_AMOUNT = 15;
 const TOAST_DURATION = 3.2;
 const COUNTRY_SPACING = 250;
+const SP_SPACING = 90; // the real cafés of shopplaces.json (#175)
 
 let spots = [];
 
@@ -33,11 +34,11 @@ export function initHoreca(world) {
 export function initCountryHoreca(world) {
   const map = world.map;
   for (const f of countryFacilities('horeca')) {
-    if (spots.some((s) => dist(s.x, s.y, f.x, f.y) < COUNTRY_SPACING)) continue;
+    if (spots.some((s) => dist(s.x, s.y, f.x, f.y) < (f.sp ? SP_SPACING : COUNTRY_SPACING))) continue;
     const d = countryDoor(map, f.x, f.y);
     if (!d) continue;
     const h = { x: d.x, y: d.y };
-    spots.push({ x: d.x, y: d.y, name: cafeName(h), osmName: `${f.place} ${Math.round(f.x)},${Math.round(f.y)}`, place: f.place, lastUsed: -Infinity });
+    spots.push({ x: d.x, y: d.y, name: f.own || cafeName(h), osmName: `${f.place} ${Math.round(f.x)},${Math.round(f.y)}`, place: f.place, lastUsed: -Infinity });
   }
 }
 
