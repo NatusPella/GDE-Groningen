@@ -115,6 +115,61 @@ ok(V.routeVaar(net, H['Eems bij Delfzijl'], H['Dollard bij Termunterzijl'], 'slo
 const sea = V.routeVaar(net, city, H['Eems bij Delfzijl'], 'rondvaart');
 ok(sea && sea.wait > 0 && sea.wait < 600, 'a route has a waiting time for its movable bridges', sea && String(sea.wait));
 
+// ---------------------------------------------------------------- the route planner (A*) for boats and the player
+
+ok(V.minWidthOf('kano') < V.minWidthOf('sloep') && V.minWidthOf('sloep') < V.minWidthOf('rondvaart') && V.minWidthOf('rondvaart') < V.minWidthOf('binnenvaart'), 'the narrowest channel grows with the boat');
+ok(V.minWidthOf('binnenvaart') >= 2 * 5.05, 'a barge needs at least twice its beam');
+{
+  // from a point on the short edge (under the low bridge) to a point beside node B
+  const pr = V.planVaarRoute(mini, [120, 5], [1010, -5], 'sloep');
+  ok(pr && pr.length > 850 && pr.length < 1000, 'a sloep goes straight under the low bridge', pr && String(pr.length));
+  const pb = V.planVaarRoute(mini, [120, 5], [1010, -5], 'binnenvaart');
+  ok(pb === null || pb.length > 1400, 'a barge goes the long way round or finds nothing, never under the bridge', pb && String(pb.length));
+  const same = V.planVaarRoute(mini, [200, 3], [700, 3], 'sloep');
+  ok(same && Math.abs(same.length - 500) < 5 && same.pts.length >= 2, 'two points on one edge are sailed along it', same && String(same.length));
+  const back = V.planVaarRoute(mini, [700, 3], [200, 3], 'sloep');
+  ok(back && Math.abs(back.length - 500) < 5 && back.pts[0][0] > back.pts[back.pts.length - 1][0], 'and the other way round');
+  ok(V.planVaarRoute(mini, [0, 9000], [1000, 0], 'sloep') === null, 'a start far from the net has no route');
+  const lock = V.planVaarRoute(mini, [1200, 4], [1900, 4], 'rondvaart');
+  ok(lock && lock.wait >= 40 && lock.nodes.includes(4), 'a route through a lock counts its waiting time', lock && String(lock.wait));
+  ok(V.planVaarRoute(mini, [10, 0], [1990, 0], 'binnenvaart') === null, 'a barge does not take the class 3 canal');
+  // the first and last point lie on the net, the line is connected
+  const long = V.planVaarRoute(mini, [60, 2], [1950, -3], 'kano');
+  ok(long && long.pts.every((p, i) => i === 0 || Math.hypot(p[0] - long.pts[i - 1][0], p[1] - long.pts[i - 1][1]) < 2100), 'the route is one connected line');
+  // the sea and the net by name
+  ok(V.getSharedNet() === null, 'no shared net before the game loads one');
+  V.setSharedNet(mini);
+  ok(V.getSharedNet() === mini, 'the game shares its net with the GPS');
+  V.setSharedNet(null);
+}
+
+// ---------------------------------------------------------------- the real net as a whole
+
+{
+  const real = V.createVaarNet(JSON.parse(fs.readFileSync(new URL('../game/vaarnet.json', import.meta.url), 'utf8')));
+  ok(real.nodes.length > 10000 && real.edges.length > 10000, 'the net covers the province', `${real.nodes.length} nodes`);
+  const km = real.edges.reduce((s, e) => s + e.len, 0) / 1000;
+  ok(km > 2000 && km < 6000, 'a few thousand km of waterways', String(Math.round(km)));
+  // every edge class is 1..4 and a lake or the sea is in the net
+  ok(real.edges.every((e) => e.cls >= 1 && e.cls <= 4), 'edge classes are 1 to 4');
+  const types = new Set(real.nodes.map((q) => q.type));
+  ok(['haven', 'zee', 'meer', 'sluis', 'brug', 'kruising'].every((t) => types.has(t)), 'harbours, sea, lake, locks, bridges and junctions are nodes');
+  // the net is one big piece for the sloep: most nodes can be reached from the inner city
+  const seen = new Set([real.hubs['Binnenstad Groningen']]), st = [...seen];
+  while (st.length) { const u = st.pop(); for (const e of real.nodes[u].edges) { if (!V.edgeOpen(e, 'sloep')) continue; const w = e.a === u ? e.b : e.a; if (!seen.has(w)) { seen.add(w); st.push(w); } } }
+  ok(seen.size > real.nodes.length * 0.5, 'more than half of the net can be sailed from the inner city by sloep', `${seen.size}/${real.nodes.length}`);
+  // A* over the whole net between two spots, a boat and the player's GPS alike
+  const A = real.nodes[real.hubs['Binnenstad Groningen']], Z = real.nodes[real.hubs['Dollard bij Termunterzijl']];
+  const t0 = Date.now();
+  const r = V.planVaarRoute(real, [A.x + 40, A.y + 15], [Z.x - 20, Z.y + 10], 'sloep');
+  ok(!!r && r.length > 15000 && r.length < 90000, 'A* plans the inner city to the Dollard', r && String(r.length));
+  ok(Date.now() - t0 < 1500, 'and quickly', `${Date.now() - t0} ms`);
+  const r2 = V.routeVaar(real, real.hubs['Binnenstad Groningen'], real.hubs['Dollard bij Termunterzijl'], 'sloep');
+  ok(r && r2 && Math.abs(r.length - r2.length) < r2.length * 0.08, 'A* from points agrees with the route between nodes', r && r2 ? `${r.length} vs ${r2.length}` : '');
+  // a kano reaches at least what a sloep reaches
+  ok(V.planVaarRoute(real, [A.x, A.y], [Z.x, Z.y], 'kano') !== null, 'a canoe sails there too');
+}
+
 // ---------------------------------------------------------------- a barge follows a trip
 
 const seeded = (seed) => () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };

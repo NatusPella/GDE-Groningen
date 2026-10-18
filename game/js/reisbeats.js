@@ -13,11 +13,12 @@
 //   scene    script.json scene whose lines are the core of the trip talk (optional)
 //   act      1..5, for the act budget
 export const REISBEATS = {
-  T1: { act: 2, from: 'Station Grunn', to: 'Winsum', length: 17000, ride: 'trein', scene: 'T1' },
-  M09: { act: 2, from: 'Winsum', to: 'Warffum', length: 12000, ride: 'lift' },
+  T1: { act: 2, from: 'Station Grunn', to: 'Warffum', length: 28000, ride: 'trein', scene: 'T1' },
   T2: { act: 2, from: 'Uithuizen', to: 'Zoutkamp', length: 30000, ride: 'bus', scene: 'T2' },
-  M13: { act: 3, from: 'Delfzijl', to: 'Eemshaven', length: 30000, ride: 'lift' },
-  T3: { act: 3, from: 'Delfzijl', to: 'Winschoten', length: 35000, ride: 'trein', scene: 'T3' },
+  // M12 ends at the Eemshaven; the dike race of M14 starts at Bierum, about 22 km on
+  M14: { act: 3, from: 'Eemshaven', to: 'Bierum', length: 22000, ride: 'lift' },
+  // by rail Delfzijl to Winschoten goes by way of Station Grunn: about 80 km
+  T3: { act: 3, from: 'Delfzijl', to: 'Winschoten', length: 80000, ride: 'trein', scene: 'T3' },
   M19: { act: 4, from: 'Veendam', to: 'Veendam', length: 800, ride: 'lift' },
   // Wildervank to Bourtange by way of Ter Apel (about 45 km): the beat sits on the step that ends at Bourtange
   T4: { act: 4, from: 'Wildervank', to: 'Bourtange', length: 45000, ride: 'bus', scene: 'T4.1' },

@@ -413,7 +413,7 @@ const nowS = () => performance.now() / 1000;
 
 function watchInput() {
   const poke = () => { S.lastInput = nowS(); };
-  for (const t of ['keydown', 'mousedown', 'wheel']) window.addEventListener(t, poke, { capture: true, passive: true });
+  for (const t of ['keydown', 'mousedown', 'pointerdown', 'wheel']) window.addEventListener(t, poke, { capture: true, passive: true });
   let mv = 0;
   window.addEventListener('mousemove', (e) => { if (Math.abs(e.movementX) + Math.abs(e.movementY) > 6 && ++mv % 4 === 0) poke(); }, { capture: true, passive: true });
   S.lastInput = nowS();

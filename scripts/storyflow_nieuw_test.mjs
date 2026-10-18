@@ -236,5 +236,21 @@ for (const [id, b] of Object.entries(REISBEATS)) {
   ok(!/mag niet|mag je niet/i.test(JSON.stringify(defs)), 'no failure line says "mag niet"');
 }
 
+// --- acts 2 and 3: goal in the HUD, failure lines without 'dat mag niet' (#147)
+{
+  const A23 = ['Al het vet van Grunn', 'Fatbikes tellen niet als fiets', 'Heel aankomen is ook een kunst', 'Een trekker-limo op de wierde', 'Geleend van de Friezen',
+    'Het staat niet in het rooster', 'Het containerlabyrint', 'De dijk', 'Laag over het graan', 'Nog eentje dan'];
+  for (const label of A23) {
+    const d = defs.find((q) => q.label === label);
+    ok(!!d, 'act 2/3 def: ' + label);
+    if (!d) continue;
+    ok(typeof d.say === 'string' && d.say.length > 20 || (d.stages || []).some((q) => q.say && q.say.length > 20), label + ': the goal said aloud');
+    if (Number.isFinite(d.timeLimit)) ok(typeof d.timeUp === 'string' && d.timeUp.length > 15, label + ': a time limit has its own failure line');
+    if (d.vehicle === 'car') ok(d.vehicleFail && d.vehicleFail.gone && d.vehicleFail.wrecked && d.vehicleFail.left, label + ': a vehicle mission has vehicle failure lines');
+    const lines = [d.timeUp, ...Object.values(d.vehicleFail || {})].filter(Boolean).join(' | ');
+    ok(!/mag niet|niet toegestaan|verboden/i.test(lines), label + ': failure lines never scold', lines);
+  }
+}
+
 console.log(fails ? `${fails} of ${n} failed` : `${n}/${n} story flow checks passed`);
 process.exit(fails ? 1 : 0);

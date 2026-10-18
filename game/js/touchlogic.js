@@ -169,3 +169,14 @@ export function touchLabelForToken(token, ctx) {
   for (const b of [...touchPlan(ctx), ...touchMore(ctx)]) if (b.action === key) return b.label;
   return '';
 }
+
+// Two fingers on the map: the zoom factor since the last step and the
+// midpoint the zoom turns around. A zero distance changes nothing.
+export function pinchStep(prev, cur) {
+  const d0 = Math.hypot(prev[0].x - prev[1].x, prev[0].y - prev[1].y);
+  const d1 = Math.hypot(cur[0].x - cur[1].x, cur[0].y - cur[1].y);
+  return {
+    factor: d0 > 1 && d1 > 1 ? d1 / d0 : 1,
+    mid: { x: (cur[0].x + cur[1].x) / 2, y: (cur[0].y + cur[1].y) / 2 },
+  };
+}

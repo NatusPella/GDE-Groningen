@@ -14,7 +14,7 @@ import { TRACTOR_MODEL } from './vehicle.js';
 const MODELS = {
   fiets: { kind: 'bike' },
   auto: { kind: 'car', model: { name: 'sedan', len: 4.3, wid: 1.8, maxSpeed: 33, accel: 9, brake: 24, turnRate: 2.6, color: '#1b1c1f' } },
-  // getter: vehicle.js may still be loading when this module is evaluated (import cycle via sidejobs.js)
+  // getter: vehicle.js importeert (via een kring) dit bestand, TRACTOR_MODEL bestaat bij het laden nog niet
   get trekker() { return { kind: 'car', model: { ...TRACTOR_MODEL, color: '#3f7d3a' } }; },
   sleepwagen: { kind: 'car', model: { name: 'van', len: 5.4, wid: 2.1, maxSpeed: 26, accel: 6, brake: 18, turnRate: 1.9, color: '#c9541e' } },
   bus: { kind: 'bus', model: { name: 'bus', len: 11.2, wid: 2.55, maxSpeed: 18, accel: 3.4, brake: 10, turnRate: 1.1, color: '#e0b020' } },
@@ -38,7 +38,7 @@ const MELDING = {
 function maak(id, glyph, kleur, baas) {
   const regel = bijbaanById(id);
   const doelen = DOELEN[id];
-  const model = () => MODELS[regel.voertuig];
+  const voertuig = () => MODELS[regel.voertuig];
   return {
     id, name: regel.naam, color: kleur, glyph, boss: baas, vehicleWord: 'je voertuig',
     blurb: regel.blurb, tagline: regel.bedrijf, intro: regel.intro,
@@ -46,12 +46,12 @@ function maak(id, glyph, kleur, baas) {
 
     anchor(map) {
       const p = regioPunt(regel.regio);
-      const rp = map.nearestRoadPoint(p.x, p.y, 400, model().kind !== 'bike');
+      const rp = map.nearestRoadPoint(p.x, p.y, 400, voertuig().kind !== 'bike');
       return rp ? { x: rp.x, y: rp.y } : p;
     },
 
     start(c) {
-      const v = spawnJobVehicle(c.world, c.spot.x, c.spot.y, model());
+      const v = spawnJobVehicle(c.world, c.spot.x, c.spot.y, voertuig());
       if (!v) return 'Geen voertuig beschikbaar';
       c.vehicle = v;
       return true;
@@ -66,7 +66,7 @@ function maak(id, glyph, kleur, baas) {
       const n = doelen.total(d.ronde.s);
       let x = c.vehicle.x, y = c.vehicle.y;
       for (let k = 0; k < n; k++) {
-        const p = randomStreetPoint(c.world.map, x, y, 220, 520, { drivable: model().kind !== 'bike' }) || { x: x + 260, y };
+        const p = randomStreetPoint(c.world.map, x, y, 220, 520, { drivable: voertuig().kind !== 'bike' }) || { x: x + 260, y };
         d.doelen.push({ x: p.x, y: p.y });
         x = p.x; y = p.y;
       }
