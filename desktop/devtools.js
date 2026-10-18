@@ -9,7 +9,8 @@ const { argValue, hasFlag, findArg } = require('./args.cjs');
 
 // --trailer[=WxH] plays the trailer for recordings (js/trailer.js), also on a
 // throwaway profile; --trailer-shot=N one shot, --trailer-cut=kort the short
-// cut, --trailer-frames=<dir> saves every frame as a png,
+// cut (teaser = 40 s, hoofd = 90 s: the script cuts), --trailer-preview plays
+// the cut in real time with sound (hold Space to skip), --trailer-frames=<dir> saves every frame as a png,
 // --trailer-video[=<file.mp4>] encodes the run straight to an MP4 with sound
 // (trailervideo.js; default ~/Downloads, 1920x1080 unless --trailer=WxH)
 const VIDEO = findArg('--trailer-video');
@@ -47,8 +48,8 @@ function queryParts() {
   return [(silent || storyTest) && 'stil', hasFlag('--audio-graph') && 'audiograf', hasFlag('--hitch') && 'hitch', hasFlag('--zwartcheck') && 'zwartcheck', hasFlag('--dev') && 'dev', storyTest && 'storytest', spotsOnly && 'spotsonly',
     // automated runs never get the first-launch attract intro
     (smoke !== null || storyTest || hasFlag('--perf-test')) && !TRAILER && 'noattract',
-    TRAILER && 'trailer', TRAILER && trailerShot && `shot=${encodeURIComponent(trailerShot)}`, TRAILER && trailerCut && `cut=${encodeURIComponent(trailerCut)}`,
-    TRAILER && (trailerFrames || video) && 'frames', video && 'video', video && 'stil', hasFlag('--attract') && 'attract',
+    TRAILER && 'trailer', TRAILER && trailerShot && `shot=${encodeURIComponent(trailerShot)}`, (TRAILER || hasFlag('--trailer-preview')) && trailerCut && `cut=${encodeURIComponent(trailerCut)}`,
+    TRAILER && (trailerFrames || video) && 'frames', video && 'video', video && 'stil', hasFlag('--attract') && 'attract', hasFlag('--trailer-preview') && 'preview',
     !TRAILER && BENCH && `benchmark=${argValue('--benchmark') || 1}`,
     // --preset=laag: that graphics preset for this run only (not saved)
     argValue('--preset') && `preset=${encodeURIComponent(argValue('--preset'))}`,

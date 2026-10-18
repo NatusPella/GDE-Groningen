@@ -50,7 +50,7 @@ import { pointInPolygon, polygonBounds, WATER_Y } from './util.js';
 import { preloadLandmarkModels, onLandmarkModelLoaded } from './landmarkmodels.js';
 import { onSettingsChange, getSettings, QUALITY_PRESETS } from './settings.js';
 import { dynamicScale, cpuLevel } from './gfxprofile.js';
-import { VIEW_DISTANCES, viewDistanceFor } from './viewdist.js';
+import { VIEW_DISTANCES, viewDistanceFor, detailDistanceFor, DETAIL_BASE } from './viewdist.js';
 import { buildingBatcher, roadBatcher, facadeBatcher } from './staticbatch3d.js';
 import { simLevel } from './simload.js';
 import { beginWheels, addVehicleWheels, endWheels } from './wheelinstances3d.js';
@@ -72,7 +72,8 @@ import { spawnExplosionFx } from './fx3d.js';
 import { initNightLights, setNightLightQuality, updateNightLights, isLightRigOn, setLightRigVisible } from './nightlights3d.js';
 import { createFarLOD } from './farlod.js';
 import { SECTION, TILE_M, tileOrigin } from './gdt.js';
-import { initRailway3D, updateRailway3D } from './railway3d.js';
+import { initRailway3D, updateRailway3D, prewarmRailAt } from './railway3d.js';
+import { cameraFocus } from './tilefocus.js';
 import { initMovableBridges3D, updateMovableBridges3D, openBridgeRoads } from './movablebridges3d.js';
 import { getMovableBridges } from './movablebridges.js';
 import { initStreetFurniture3D, updateStreetFurniture3D } from './streetfurniture3d.js';
@@ -110,7 +111,7 @@ import { gameBusy } from './busy.js';
 })();
 
 const LEVEL_HEIGHT = 3.1;
-const DRAW_DIST = 140;
+let DRAW_DIST = DETAIL_BASE; // the high-detail radius (viewdist.js detailDistanceFor)
 // Canals/Diepenring sit visibly below street level (a real quay is a step
 // down, not flush with the road) - also keeps water from ever competing
 // with the ground/road planes for the same depth-buffer range. Was -0.35,
@@ -979,6 +980,7 @@ function applyViewSettings(st) {
 // view distance, camera far plane and fog; 'heel ver' follows adaptive quality
 function applyViewDistance(st) {
   viewDist = viewDistanceFor(st.drawDistance, dynamicScale(), cpuLevel());
+  DRAW_DIST = detailDistanceFor(st.quality, viewDist);
   cam.far = Math.max(DRAW_DIST * 1.4, viewDist * 1.4, landmarkDist() * 1.1);
   lightBase.fogNear = DRAW_DIST * 0.45 + (viewDist - 150) * 0.25;
   lightBase.fogFar = viewDist * 1.02;
@@ -1419,21 +1421,17 @@ function noteStreamJump(px, py) {
 // Where the world streams in and keeps its detail (buildings, roads, water,
 // trees, the far LOD, shadows): the player, or while a camera override is up
 // (cutscenes, the trailer, the title screen) the point the camera looks at,
-// no further out than STREAM_LOOK_MAX from the eye so what is near the lens
+// no further out than tilefocus.js LOOK_MAX from the eye so what is near the lens
 // stays detailed too. world.streamFocus carries it for grass.js and
 // countryside.js.
-const STREAM_LOOK_MAX = 50;
 const streamFocus = { x: 0, y: 0 };
 const lastOverrideFocus = { x: 0, y: 0 };
 function updateStreamFocus(world) {
   const o = world.cameraOverride, p = world.player;
-  if (o && o.position && o.lookAt) {
-    const ex = o.position.x, ey = o.position.y;
-    const dx = o.lookAt.x - ex, dy = o.lookAt.y - ey;
-    const d = Math.hypot(dx, dy);
-    const k = d > STREAM_LOOK_MAX ? STREAM_LOOK_MAX / d : 1;
-    streamFocus.x = lastOverrideFocus.x = ex + dx * k;
-    streamFocus.y = lastOverrideFocus.y = ey + dy * k;
+  const cf = cameraFocus(o);
+  if (cf) {
+    streamFocus.x = lastOverrideFocus.x = cf.x;
+    streamFocus.y = lastOverrideFocus.y = cf.y;
   } else if (overrideBlend > 0) {
     // easing back out of a cutscene: follow the camera home
     const t = overrideBlend * overrideBlend * (3 - 2 * overrideBlend);
@@ -1458,6 +1456,7 @@ export function prewarmStreamAt(x, y, secs = 4) {
   const until = performance.now() + secs * 1000;
   prewarmSpots = prewarmSpots.filter((s) => Math.hypot(s.x - x, s.y - y) > 25 && s.until > performance.now());
   prewarmSpots.push({ x, y, until, list: null });
+  prewarmRailAt(x, y);
 }
 function nearPrewarm(b) {
   for (const s of prewarmSpots) if (Math.hypot((b.bounds[0] + b.bounds[2]) / 2 - s.x, (b.bounds[1] + b.bounds[3]) / 2 - s.y) <= PREWARM_R + 10) return true;
@@ -2005,7 +2004,7 @@ export function update3D(dt, world) {
   probe.mark('3d:roads');
   syncTrees(world, focus.x, focus.y);
   probe.mark('3d:trees');
-  updateRailway3D(dt, world);
+  updateRailway3D(dt, world, focus, viewDist);
   updateCountryside(dt, world, scene, cam, viewDist);
   updateOmmelandLandmarks(world, scene, focus);
   probe.mark('3d:rail+country');
