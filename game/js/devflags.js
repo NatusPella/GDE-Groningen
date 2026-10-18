@@ -18,8 +18,6 @@ export const SEARCH = typeof location !== 'undefined' ? location.search : '';
 // of reading location.search themselves. Boolean flags are on when the name is
 // in the URL; value flags hold the string (or null). FLAG_DOCS lists them all
 // (also in docs/ONTWIKKELEN.md). A switch is added or removed here only.
-// storyflag.js (?nieuwverhaal) is the exception: storagekeys.js needs it and
-// this module imports storagekeys.js, so it would be a cycle.
 const has = (k) => q.has(k);
 const val = (k) => (q.has(k) ? q.get(k) : null);
 export const FLAGS = Object.freeze({

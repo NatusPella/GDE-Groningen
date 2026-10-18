@@ -80,13 +80,14 @@ export function estimateLostMoney(d) {
   return Math.max(MIN_RESTORE, Math.round((earned - spent) / 10) * 10);
 }
 
+// shown once when a save of the first version of the story is opened (#187)
+export const OUD_GEMIGREERD_TEKST = 'Het oude verhaal is vervangen door het nieuwe. Je geld, spullen, voertuigen, prestaties en instellingen zijn bewaard; het verhaal begint opnieuw bij het begin.';
+
 export function readSave() {
   try {
     const raw = localStorage.getItem(KEY);
     const m = migrateSave(JSON.parse(raw || 'null'));
     if (!m) return null;
-    // a save belongs to one story arc and never loads into the other (the new arc has its own key too)
-    if (savedArc(m.data) !== ARC_ID) return null;
     if (m.from !== VERSION) backupOnce(raw, m.from);
     return m.data;
   } catch (e) {
@@ -271,7 +272,6 @@ export function applySave(w, d) {
   if (!w || !d) return false;
   const m = d.v !== VERSION && migrateSave(d);
   if (m) d = m.data;
-  if (savedArc(d) !== ARC_ID) return false;
   try {
     // a running scene (train trip, intro) would otherwise finish against the loaded state
     skipAllCinematics();
@@ -324,6 +324,11 @@ export function applySave(w, d) {
     applyHomeOnLoad(w, d);
     w.loadedFromSave = true;
     w.loadCount = (w.loadCount || 0) + 1;
+    // a save of the first version of the story (savemigrate.js, migration 9): say what stayed and what starts over
+    if (d.oudGemigreerd) {
+      w.addMessage(OUD_GEMIGREERD_TEKST, 14);
+      saveSoon(3);
+    }
     w.messages = w.messages.filter((m) => !m.text.startsWith('Je begint bij'));
     restoredMoney = lost ? w.money : -1;
     if (lost) saveSoon(3);

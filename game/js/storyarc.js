@@ -1,34 +1,25 @@
-// The story arc as data: this file picks one of the two arcs per page load
-// (storyflag.js) and holds what both share. 'oud' (storyarc_oud.js) is the
-// released story "Alles voor één eierbal" in three parts, H1-H18; 'nieuw'
-// (storyarc_nieuw.js) is the five-act story of docs/verhaal/nieuw, only
-// played with the feature flag `nieuwverhaal`. Every module imports the arc
-// from here, so the rest of the game never has to know which one is on.
-// The field reference is the header of storyarc_oud.js.
+// The story arc as data: the five-act story of docs/verhaal/nieuw (storyarc_nieuw.js, field reference in its
+// header), plus what older saves still need from the first version (storyarc_basis.js). Every module
+// imports the arc from here.
 //
-// MISSION_IDS is shared and append-only: its indices are in the saves and
-// medal records of both arcs. Missions of the new arc come after the old
-// ones; missions.js only builds the defs the active arc uses.
-import { nieuwVerhaal, ARC_ID } from './storyflag.js';
-import * as OUD from './storyarc_oud.js';
+// MISSION_IDS is append-only: its indices are in the saves and medal records. The ids of the first
+// version come first (storyarc_basis.js), the missions of the current story come after them.
 import * as NIEUW from './storyarc_nieuw.js';
+import { MISSION_IDS as BASIS_MISSION_IDS, RETIRED_STEPS as BASIS_RETIRED_STEPS } from './storyarc_basis.js';
 
-export { ARC_ID };
+// kept for the modules that ask which story a save or a handshake belongs to (there is only one now)
+export const ARC_ID = 'nieuw';
 
-const A = nieuwVerhaal() ? NIEUW : OUD;
-
-export const SPEAKERS = A.SPEAKERS;
-export const CHARACTERS = A.CHARACTERS;
-export const PARTS = A.PARTS;
-export const STEPS = A.STEPS;
-export const WHY = A.WHY;
-export const CLUES = A.CLUES;
-export const HIDEOUTS = OUD.HIDEOUTS;
-export const MISSION_IDS = [...OUD.MISSION_IDS, ...NIEUW.NEW_MISSION_IDS];
-// Steps the 0.22 script retired; migration 1 of savemigrate.js drops them from old saves, whatever the arc.
-export const RETIRED_STEPS = OUD.RETIRED_STEPS;
-// Old step id -> step of the active arc that stands for it (the old arc: itself).
-export const STEP_ALIAS = nieuwVerhaal() ? NIEUW.STEP_ALIAS : {};
+export const SPEAKERS = NIEUW.SPEAKERS;
+export const CHARACTERS = NIEUW.CHARACTERS;
+export const PARTS = NIEUW.PARTS;
+export const STEPS = NIEUW.STEPS;
+export const WHY = NIEUW.WHY;
+export const CLUES = NIEUW.CLUES;
+export const MISSION_IDS = [...BASIS_MISSION_IDS, ...NIEUW.NEW_MISSION_IDS];
+// Steps the 0.22 script retired; migration 1 of savemigrate.js drops them from old saves.
+export const RETIRED_STEPS = BASIS_RETIRED_STEPS;
+export const STEP_ALIAS = NIEUW.STEP_ALIAS;
 
 // "Deel 1" for the date cards.
 export const partNumber = (part) => (PARTS[part] ? PARTS[part].title.split(':')[0] : '');

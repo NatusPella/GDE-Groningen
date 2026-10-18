@@ -1,5 +1,6 @@
 // first: copies the pre-0.29 'gte-*' storage keys before any module reads them
 import './storagekeys.js';
+import './oudmigratie.js';
 import { setErrorContext } from './errorlog.js';
 import { DEV, STORY_TEST, FLAGS } from './devflags.js';
 import { bindCoop } from './coopglue.js';

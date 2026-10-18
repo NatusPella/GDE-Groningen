@@ -16,8 +16,8 @@ import { cheatUnlocksFromSave, RETIRED_CHEATS } from './cheatlist.js';
 import { dayForSavedStep } from './calendar.js';
 import { legacyToWorld, legacyAngleToWorld } from './rdnew.js';
 
-export const SAVE_VERSION = 9;
-export const SETTINGS_VERSION = 9;
+export const SAVE_VERSION = 10;
+export const SETTINGS_VERSION = 10;
 
 const isObj = (o) => !!o && typeof o === 'object' && !Array.isArray(o);
 
@@ -131,10 +131,29 @@ export const SAVE_MIGRATIONS = {
     if (d.arc !== 'nieuw') d.arc = 'oud';
     return d;
   },
+  // 0.38: the old story is gone, the new one is the only story (#187). A save of the old
+  // arc keeps everything that is the player's own (money, things, vehicles, prestaties, streken,
+  // settings-like state, the world) and starts the story at its beginning.
+  9(d) {
+    if (d.arc !== 'nieuw') oudToNieuw(d);
+    return d;
+  },
 };
 
-// The arc a (migrated) save belongs to.
-export const savedArc = (d) => (isObj(d) && d.arc === 'nieuw' ? 'nieuw' : 'oud');
+// What belongs to the story of the old arc and starts over in the new one.
+const OUD_STORY_KEYS = ['story', 'missions', 'kalender', 'doel', 'ctx'];
+
+// Turns a save of the old arc into one of the new arc, in place. `oudGemigreerd` makes the game
+// say so once at load (savegame.js) and is not written again.
+export function oudToNieuw(d) {
+  for (const k of OUD_STORY_KEYS) delete d[k];
+  d.arc = 'nieuw';
+  d.oudGemigreerd = true;
+  return d;
+}
+
+// The arc a (migrated) save belongs to: always the new one.
+export const savedArc = () => 'nieuw';
 
 // A save with no `v` never existed (every save since 0.2 had v: 1).
 export function migrateSave(d) {
@@ -173,6 +192,8 @@ export const SETTINGS_MIGRATIONS = {
   7(s) { if ('gore' in s && typeof s.gore !== 'boolean') delete s.gore; return s; },
   // 9: the Verhaal choice (storychoice.js): 'nieuw' (the default) unless the file says 'oud' (Klassiek)
   8(s) { s.verhaal = s.verhaal === 'oud' ? 'oud' : 'nieuw'; return s; },
+  // 10: the old story is gone (#187), so the Verhaal choice goes with it
+  9(s) { delete s.verhaal; delete s.nieuwverhaal; return s; },
 };
 
 // Settings files before v2 had no `v`.

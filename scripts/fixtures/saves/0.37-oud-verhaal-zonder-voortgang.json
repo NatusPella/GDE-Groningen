@@ -1,0 +1,139 @@
+{
+ "_era": "0.37 (save v9, arc 'oud'): een pas begonnen speler van het oude verhaal, nog niets gedaan. Wordt een save van het nieuwe verhaal met dezelfde spullen, begin van het verhaal.",
+ "_expect": {
+  "arc": "nieuw",
+  "money": 1500,
+  "radio": "on"
+ },
+ "save": {
+  "v": 9,
+  "savedAt": 1760600000000,
+  "money": 1500,
+  "moneyBackup": 1500,
+  "health": 100,
+  "armor": 0,
+  "weapon": "fists",
+  "ammo": {
+   "fists": "inf"
+  },
+  "stats": {
+   "kills": 0,
+   "pedKills": 0,
+   "copKills": 0,
+   "missionsDone": 0,
+   "playerWrecks": 0,
+   "spent": 0
+  },
+  "character": "anita",
+  "pos": {
+   "x": 233405.2,
+   "y": 582310.7
+  },
+  "ctx": "home",
+  "missions": {
+   "index": 0,
+   "completed": [],
+   "seen": [],
+   "medals": {}
+  },
+  "story": {
+   "v": 1,
+   "done": [],
+   "skipped": [],
+   "voorschot": [],
+   "fails": {},
+   "flags": [],
+   "cards": []
+  },
+  "visitedLandmarks": [
+   "martinitoren",
+   "museum"
+  ],
+  "shops": {
+   "hero": {},
+   "outfit": {
+    "tammo": "incognito",
+    "anita": "incognito"
+   },
+   "ownedOutfits": [
+    "incognito"
+   ],
+   "storyOutfit": null,
+   "hair": {
+    "tammo": {
+     "color": "naturel",
+     "style": "short"
+    },
+    "anita": {
+     "color": "naturel",
+     "style": "bob"
+    }
+   },
+   "heroColor": null,
+   "heroUpgrades": [
+    "turbo"
+   ],
+   "stamps": 3,
+   "vehicles": [
+    {
+     "key": "omafiets",
+     "color": "#2a6ab0",
+     "upgrades": [],
+     "x": 233100.0,
+     "y": 582000.0,
+     "angle": 1.5
+    },
+    {
+     "key": "raket",
+     "color": "#c8261e",
+     "upgrades": [],
+     "garage": true
+    }
+   ]
+  },
+  "prestaties": {
+   "eierballen": [],
+   "geheimen": [],
+   "unlocked": [
+    "m1_klaar",
+    "m2_klaar"
+   ]
+  },
+  "duif": {
+   "ach": []
+  },
+  "bijbaan": {
+   "v": 1,
+   "jobs": {},
+   "seen": []
+  },
+  "postgame": {},
+  "meubels": {
+   "owned": [],
+   "pending": [],
+   "built": [],
+   "day": 0,
+   "read": 0,
+   "stek": 0,
+   "tips": [],
+   "moment": 0
+  },
+  "radio": "on",
+  "streken": {
+   "v": 1,
+   "unlocked": [
+    "teleport",
+    "slowmo"
+   ],
+   "on": [],
+   "used": []
+  },
+  "kalender": {
+   "v": 1,
+   "dag": 1,
+   "gezien": []
+  },
+  "frame": "rd-new",
+  "arc": "oud"
+ }
+}

@@ -8,7 +8,7 @@
 
 import { setDualText } from './subtitles.js';
 import { paintSpeaker } from './speakers.js';
-import { BANTER, REACTIONS, SPEAKERS } from './banterlines.js';
+import { REACTIONS, SPEAKERS } from './banterlines.js';
 import { STEPS, missionIndexOf } from './storyarc.js';
 import { currentStep, getStorySave } from './story.js';
 import { isMissionActive, isMissionCompleted } from './missions.js';
@@ -19,7 +19,6 @@ import { isPhoneOpen } from './phone.js';
 import { playBanterVoice, stopBanterVoice, pauseBanterVoice, voiceBusy } from './audio.js';
 import { hold as holdChannel, release as releaseChannel } from './speech.js';
 import { KEYS } from './storagekeys.js';
-import { nieuwVerhaal } from './storyflag.js';
 import { banterExchanges, storyDataReady } from './storytext.js';
 import { openBank } from './voicebank.js';
 
@@ -61,10 +60,9 @@ function indexPool(pool) {
   PLACE_NAMES = new Set(pool.filter((ex) => ex.trigger.startsWith('place:')).map((ex) => ex.trigger.slice(6)));
   WIJK_NAMES = new Set(pool.filter((ex) => ex.trigger.startsWith('wijk:')).map((ex) => ex.trigger.slice(5)));
 }
-// The new arc talks from the script (storytext.js banterExchanges), not from the old pools whose lines
-// belong to the old story; they are indexed once the script data has loaded.
-let poolReady = !nieuwVerhaal();
-indexPool(nieuwVerhaal() ? [] : BANTER);
+// The story talks from the script (storytext.js banterExchanges); the pool is indexed once the script data has loaded.
+let poolReady = false;
+indexPool([]);
 
 let world = null;
 let heard = loadHeard();
@@ -435,6 +433,6 @@ const api = {
   interrupt: (kind = 'crash') => { if (!st.talk) return false; interrupt(kind); return true; },
   eligible: (trigger) => { refreshProgress(); return (BY_TRIGGER.get(trigger) || []).filter(gateOk).map((ex) => ex.id); },
   resetHeard: () => { heard = {}; saveHeard(); },
-  count: () => ({ exchanges: BANTER.length, lines: BANTER.reduce((a, ex) => a + ex.lines.length, 0) }),
+  count: () => ({ exchanges: BY_ID.size, lines: [...BY_ID.values()].reduce((a, ex) => a + ex.lines.length, 0) }),
 };
 if (typeof window !== 'undefined') window.__banter = api;

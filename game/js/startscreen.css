@@ -75,11 +75,3 @@
 }
 @media (prefers-reduced-motion: reduce) { #start-screen, #start-screen * { animation: none !important; transition: none !important; } }
 html.reduce-motion #start-screen, html.reduce-motion #start-screen * { animation: none !important; transition: none !important; }
-#start-screen .ss-choice-lead { margin: 0 0 20px; }
-#start-screen .ss-choice { display: block; width: 100%; text-align: left; margin: 0 0 16px; padding: 18px 22px; font: inherit; color: var(--ink); background: rgba(240, 237, 228, 0.06); border: 2px solid rgba(240, 237, 228, 0.18); border-radius: 12px; cursor: pointer; }
-#start-screen .ss-choice b { display: block; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-weight: normal; font-size: 36px; letter-spacing: 0.04em; }
-#start-screen .ss-choice span { display: block; margin: 2px 0 8px; }
-#start-screen .ss-choice small { display: block; font-size: 17px; color: var(--mut); }
-#start-screen .ss-choice.here { border-color: var(--g); }
-#start-screen .ss-choice:hover, #start-screen .ss-choice:focus-visible { background: rgba(240, 237, 228, 0.14); border-color: var(--ink); }
-#start-screen .ss-choice.confirm small { color: var(--g); }
