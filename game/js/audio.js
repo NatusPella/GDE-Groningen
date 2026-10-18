@@ -800,6 +800,7 @@ function playWeaponSfx(e, x, y) {
       break;
     }
     case 'fuse': {
+      if (playFx('carbid_fuse', x, y)) break; // the rendered hiss; the noise bursts below are the fallback
       const out = spatialOut(x, y, { ref: 3, rolloff: 1.2, range: 40 });
       if (!out) return;
       for (let i = 0; i < 4; i++) playNoiseBurst({ duration: 0.55, freq: 5200, freqEnd: 4600, q: 0.7, gain: 0.05, type: 'highpass', delay: 0.2 + i * 0.5, out });
@@ -2728,8 +2729,11 @@ function playAudioEvents(world) {
       case 'hiccup': playHiccup(x, y, !!e.female); break;
       case 'weapon': playWeaponSfx(e, x, y); break;
       case 'giggle': playGiggle(x, y, !!e.female); break;
-      case 'door_open': playDoor(x, y, true); doorDelay = 0.3; break;
-      case 'door_close': playDoor(x, y, false); break;
+      case 'door_open': if (!(e.wood && playFx('door_wood_open', x, y))) playDoor(x, y, true); doorDelay = 0.3; break;
+      case 'door_close': if (!(e.wood && playFx('door_wood_close', x, y))) playDoor(x, y, false); break;
+      // a minigame foot on the run-up (pg_fierljep.js) and a boat hitting a bridge (rondvaartchase.js)
+      case 'step': playBuf('prop_wood', { out: spatialOut(x, y, { ref: 4, range: 50 }) || undefined, gain: 0.12 + clamp(e.strength ?? 0.5, 0, 1) * 0.2, rate: 0.9 + Math.random() * 0.2 }); break;
+      case 'impact': propHit({ strength: e.strength ?? 0.7, material: e.material || 'wood' }, x, y); playFx('splash_big', x, y); break;
       case 'engine_start':
         if (synth.player) { engineState.startDelay = doorDelay; break; }
         playEngineStart(x, y, doorDelay);
