@@ -2,7 +2,7 @@ import { scaledTarget, farAIDist, skipFar, takeDt } from './simload.js';
 import { inClearZone } from './clearzone.js';
 import { openDriverDoor } from './vehicledoors.js';
 import { profileOf } from './signalement.js';
-import { createVictim, stepVictim, victimDone, VICTIM } from './carjackvictim.js';
+import { createVictim, stepVictim, victimDone, VICTIM, stepOutPlan, stepOutPos } from './carjackvictim.js';
 import { dist, pointInPolygon, closestPointOnSegment, isInWater } from './util.js';
 import { resolveBuildingCollisions, findExitSpot } from './player.js';
 import { resolveWalker } from './collision.js';
@@ -453,7 +453,12 @@ export function ejectDriver(world, ev) {
   ped.noFade = true;
   world.pedestrians.push(ped);
   openDriverDoor(v); // the driver's door swings open (vehicledoors3d.js draws it)
-  if (ev.calm) return ped; // roadrage.js: he steps out on his own, nobody pulled him
+  if (ev.calm) {
+    // he slides out of the seat through the door to his spot (carjackvictim.js stepOutPlan)
+    ped.stepOut = stepOutPlan(v, { x, y });
+    ped.x = ped.stepOut.fx; ped.y = ped.stepOut.fy;
+    return ped;
+  } // roadrage.js: he steps out on his own, nobody pulled him
   const ox = x - v.x, oy = y - v.y, ol = Math.hypot(ox, oy) || 1;
   if (Math.abs(v.speed) > 2.5) {
     // yanked out of a moving car: tumbles along the road for a bit
@@ -1090,6 +1095,14 @@ export function updatePedestrians(dt, world) {
   for (let i = peds.length - 1; i >= 0; i--) {
     const ped = peds[i];
     if (ped.scripted) continue; // posed by its owner (fierljep.js)
+    if (ped.stepOut) {
+      // stepping out of a car (ejectDriver calm): slide seat -> door, nothing else thinks meanwhile
+      ped.stepOut.t += frameDt;
+      const so = stepOutPos(ped.stepOut, ped.stepOut.t);
+      ped.x = so.x; ped.y = so.y; ped.speed = so.done ? 0 : 1.4;
+      if (so.done) ped.stepOut = null;
+      continue;
+    }
     if (simBridge && simBridge.drive(ped)) continue;
     // far plain walkers think less often on a CPU-bound machine (simload.js)
     if (farAI < Infinity && ped.state === 'wander' && !ped.isCop && !ped.scene && !ped.ragdoll && !ped.missionCrowd && !ped.jobPed &&

@@ -159,7 +159,7 @@ export function updateRoadRage(dt, w) {
       f.ped = ped;
       ped.rager = true;
       ped.state = 'guard';
-      ped.guard = { x: ped.x, y: ped.y, angle: Math.atan2(p.y - ped.y, p.x - ped.x) };
+      ped.guard = { x: ped.stepOut ? ped.stepOut.tx : ped.x, y: ped.stepOut ? ped.stepOut.ty : ped.y, angle: Math.atan2(p.y - ped.y, p.x - ped.x) };
       ped.heldWeapon = f.weapon;
       v.driverOut = true;
       f.phase = 'out';
