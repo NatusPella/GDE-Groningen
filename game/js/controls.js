@@ -245,15 +245,15 @@ function find(map, v) {
 // Labels per controller family. Xbox and the Steam Deck share letters; the
 // PlayStation face buttons are shapes (drawn by glyphs.js).
 export const PAD_LAYOUTS = {
-  xbox: { a: 'A', b: 'B', x: 'X', y: 'Y', lb: 'LB', rb: 'RB', lt: 'LT', rt: 'RT', view: 'View', start: 'Menu', ls: 'L3', rs: 'R3', lstick: 'L', rstick: 'R' },
-  ps: { a: 'cross', b: 'circle', x: 'square', y: 'triangle', lb: 'L1', rb: 'R1', lt: 'L2', rt: 'R2', view: 'Create', start: 'Options', ls: 'L3', rs: 'R3', lstick: 'L', rstick: 'R' },
+  xbox: { a: 'A', b: 'B', x: 'X', y: 'Y', lb: 'LB', rb: 'RB', lt: 'LT', rt: 'RT', view: 'Overzicht', start: 'Menu', ls: 'L3', rs: 'R3', lstick: 'L', rstick: 'R' },
+  ps: { a: 'cross', b: 'circle', x: 'square', y: 'triangle', lb: 'L1', rb: 'R1', lt: 'L2', rt: 'R2', view: 'Delen', start: 'Opties', ls: 'L3', rs: 'R3', lstick: 'L', rstick: 'R' },
   // Switch: dezelfde plekken, andere letters (de onderste knop is B)
   switch: { a: 'B', b: 'A', x: 'Y', y: 'X', lb: 'L', rb: 'R', lt: 'ZL', rt: 'ZR', view: '−', start: '+', ls: 'L3', rs: 'R3', lstick: 'L', rstick: 'R' },
-  deck: { a: 'A', b: 'B', x: 'X', y: 'Y', lb: 'L1', rb: 'R1', lt: 'L2', rt: 'R2', view: 'View', start: 'Menu', ls: 'L3', rs: 'R3', lstick: 'L', rstick: 'R' },
+  deck: { a: 'A', b: 'B', x: 'X', y: 'Y', lb: 'L1', rb: 'R1', lt: 'L2', rt: 'R2', view: 'Overzicht', start: 'Menu', ls: 'L3', rs: 'R3', lstick: 'L', rstick: 'R' },
 };
 export const PAD_SLOT_NAMES = {
   a: 'Onderste knop', b: 'Rechter knop', x: 'Linker knop', y: 'Bovenste knop', lb: 'Linker bumper', rb: 'Rechter bumper',
-  lt: 'Linker trigger', rt: 'Rechter trigger', view: 'View/Select', start: 'Menu/Start', ls: 'Linker stick indrukken', rs: 'Rechter stick indrukken',
+  lt: 'Linker trigger', rt: 'Rechter trigger', view: 'Overzicht/Terug', start: 'Menu/Start', ls: 'Linker stick indrukken', rs: 'Rechter stick indrukken',
   up: 'D-pad omhoog', down: 'D-pad omlaag', left: 'D-pad links', right: 'D-pad rechts',
 };
 
