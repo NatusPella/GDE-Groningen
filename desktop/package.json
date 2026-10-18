@@ -37,6 +37,7 @@
       "userdata.js",
       "envcompat.js",
       "resources/window-icon.png",
+      "resources/icon.ico",
       "package.json"
     ],
     "extraResources": [

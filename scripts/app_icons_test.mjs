@@ -89,7 +89,8 @@ ok(b.files.includes('resources/window-icon.png'), 'window-icon.png zit in build.
 
 // ---- main.js and the web page
 const main = rd('desktop/main.js').toString('utf8');
-ok(/icon:\s*path\.join\(__dirname,\s*'resources',\s*'window-icon\.png'\)/.test(main), 'main.js geeft het BrowserWindow een icoon');
+ok(b.files.includes('resources/icon.ico'), 'icon.ico zit in build.files (venstericoon op Windows)');
+ok(/icon:\s*path\.join\(__dirname,\s*'resources',\s*process\.platform === 'win32' \? 'icon\.ico' : 'window-icon\.png'\)/.test(main),'main.js geeft het BrowserWindow een icoon');
 ok(/process\.platform === 'darwin' && !app\.isPackaged && app\.dock/.test(main), 'dock.setIcon voor macOS-dev staat er nog');
 const html = rd('game/index.html').toString('utf8');
 for (const re of [/rel="icon"[^>]*favicon\.ico/, /rel="apple-touch-icon"[^>]*apple-touch-icon\.png/, /rel="manifest"[^>]*manifest\.webmanifest/]) ok(re.test(html), `index.html: ${re.source.slice(0, 30)}`);
@@ -97,25 +98,34 @@ const man = JSON.parse(rd('game/manifest.webmanifest'));
 for (const i of man.icons) ok(fs.existsSync(path.join(ROOT, 'game', i.src)), `manifest-icoon ${i.src} bestaat`);
 
 // ---- a finished build, when there is one
-function peHasIcon(buf) { // top-level resource directory has RT_ICON (3) and RT_GROUP_ICON (14)
-  if (buf.toString('latin1', 0, 2) !== 'MZ') return false;
+// RT_ICON (3) images inside a PE file's resource section, by walking the resource tree
+function peIconImages(buf) {
+  if (buf.toString('latin1', 0, 2) !== 'MZ') return null;
   const pe = buf.readUInt32LE(0x3c);
-  if (buf.readUInt32LE(pe) !== 0x4550) return false;
+  if (buf.readUInt32LE(pe) !== 0x4550) return null;
   const nsec = buf.readUInt16LE(pe + 6), optSize = buf.readUInt16LE(pe + 20), opt = pe + 24;
-  const magic = buf.readUInt16LE(opt), ddOff = opt + (magic === 0x20b ? 112 : 96);
+  const ddOff = opt + (buf.readUInt16LE(opt) === 0x20b ? 112 : 96);
   const rva = buf.readUInt32LE(ddOff + 2 * 8);
-  if (!rva) return false;
-  let off = -1;
-  for (let i = 0; i < nsec; i++) {
-    const s = opt + optSize + 40 * i, va = buf.readUInt32LE(s + 12), raw = buf.readUInt32LE(s + 20), sz = buf.readUInt32LE(s + 8);
-    if (rva >= va && rva < va + Math.max(sz, buf.readUInt32LE(s + 16))) off = raw + (rva - va);
+  if (!rva) return null;
+  const secs = [];
+  for (let i = 0; i < nsec; i++) { const o = opt + optSize + 40 * i; secs.push({ va: buf.readUInt32LE(o + 12), vs: Math.max(buf.readUInt32LE(o + 8), buf.readUInt32LE(o + 16)), raw: buf.readUInt32LE(o + 20) }); }
+  const toOff = (r) => { const s = secs.find((x) => r >= x.va && r < x.va + x.vs); return s ? s.raw + r - s.va : -1; };
+  const base = toOff(rva);
+  if (base < 0) return null;
+  const entries = (dirOff) => {
+    const n = buf.readUInt16LE(dirOff + 12) + buf.readUInt16LE(dirOff + 14), out = [];
+    for (let i = 0; i < n; i++) { const o = dirOff + 16 + 8 * i, off = buf.readUInt32LE(o + 4); out.push({ id: buf.readUInt32LE(o) & 0x7fffffff, sub: off & 0x80000000 ? base + (off & 0x7fffffff) : null, leaf: off & 0x80000000 ? null : base + off }); }
+    return out;
+  };
+  const leaves = (e) => { if (e.leaf !== null) return [e.leaf]; return entries(e.sub).flatMap(leaves); };
+  const images = [];
+  for (const t of entries(base)) {
+    if (t.id !== 3 || t.sub === null) continue;
+    for (const l of leaves(t)) { const dataRva = buf.readUInt32LE(l), size = buf.readUInt32LE(l + 4), o = toOff(dataRva); if (o >= 0) images.push(buf.subarray(o, o + size)); }
   }
-  if (off < 0) return false;
-  const n = buf.readUInt16LE(off + 12) + buf.readUInt16LE(off + 14), ids = new Set();
-  for (let i = 0; i < n; i++) ids.add(buf.readUInt32LE(off + 16 + 8 * i) & 0x7fffffff);
-  return ids.has(3) && ids.has(14);
+  return { images, hasGroup: entries(base).some((e) => e.id === 14) };
 }
-const dist = path.join(DESK, 'dist');
+const dist = process.argv[2] ? path.resolve(process.argv[2]) : path.join(DESK, 'dist'); // node scripts/app_icons_test.mjs [build-map]
 let built = 0;
 if (fs.existsSync(dist)) {
   const walk = (d, depth = 0) => fs.readdirSync(d, { withFileTypes: true }).flatMap((e) => {
@@ -125,7 +135,12 @@ if (fs.existsSync(dist)) {
   });
   for (const p of walk(dist)) {
     built++;
-    if (p.endsWith('.exe')) ok(peHasIcon(fs.readFileSync(p)), `${path.relative(DESK, p)} bevat een icoon-resource`);
+    if (p.endsWith('.exe')) {
+      const r = peIconImages(fs.readFileSync(p)), rel = path.relative(DESK, p);
+      ok(r && r.hasGroup && r.images.length > 0, `${rel} bevat een icoon-resource`);
+      // the default Electron icon is not ours: the exe must hold our 256 px image byte for byte
+      ok(r && ico.filter((e) => e.size === 256).every((e) => r.images.some((im) => im.equals(e.png))), `${rel} bevat ons icon.ico (niet het standaard Electron-icoon)`);
+    }
     else {
       const plist = fs.readFileSync(path.join(p, 'Contents', 'Info.plist'), 'utf8');
       const name = (plist.match(/<key>CFBundleIconFile<\/key>\s*<string>([^<]+)<\/string>/) || [])[1];

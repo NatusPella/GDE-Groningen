@@ -120,8 +120,9 @@ function createWindow() {
       : { width: 1600, height: 900, minWidth: 960, minHeight: 600 }),
     backgroundColor: '#0c140e',
     title: APP_NAME,
-    // Windows/Linux window and taskbar icon (macOS takes the .icns from the bundle); inside the asar when packaged
-    ...(process.platform !== 'darwin' ? { icon: path.join(__dirname, 'resources', 'window-icon.png') } : {}),
+    // Windows/Linux window and taskbar icon (macOS takes the .icns from the bundle); both files are inside the asar when packaged.
+    // The .ico carries hand-tuned 16-48 px images for the taskbar and title bar.
+    ...(process.platform !== 'darwin' ? { icon: path.join(__dirname, 'resources', process.platform === 'win32' ? 'icon.ico' : 'window-icon.png') } : {}),
     autoHideMenuBar: true,
     show: false,
     fullscreen: !rec && !hasFlag('--windowed') && loadWindowState().fullscreen,
