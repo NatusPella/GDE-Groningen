@@ -101,7 +101,9 @@ async function rescue(s, stepKey, info) {
   if (rung === 'teleport') ok = B.cheat.teleport();
   else if (rung === 'objective') ok = m ? B.cheat.objective() : B.cheat.complete();
   else ok = m ? B.cheat.win() : B.cheat.complete() || B.cheat.skip();
-  B.log('cheat', { rung, ok: !!ok, step: stepKey, why: `${Math.round(info.idleFor)} s zonder voortgang` });
+  let state = null;
+  try { state = window.__story.mission(); } catch (e) { /* none */ }
+  B.log('cheat', { rung, ok: !!ok, step: stepKey, why: `${Math.round(info.idleFor)} s zonder voortgang`, mission: state && { phase: state.phase, stage: state.stage }, blocking: Object.keys(s.blocking).filter((k) => s.blocking[k] && k !== 'dialog') });
   follower = null;
   detector.acknowledge(s.t);
 }
@@ -143,6 +145,9 @@ while (true) {
   track(s);
   const stepKey = (s.story.id || '?') + (s.mission.active ? ':' + (s.mission.stage || 'm') : '');
   if (ticks++ % 100 === 0) B.log('status', { x: s.player.x, y: s.player.y, step: stepKey, dist: s.target ? s.target.distance : null, veh: s.player.vehicle ? s.player.vehicle.kind : 'te voet', wanted: s.wanted, money: s.player.money, msgs: s.hud.messages.slice(0, 2), sub: s.hud.subtitle && s.hud.subtitle.text });
+  // a mission that asks for it ('Uitstappen, jong. Fatbikes ontwijk je te voet.'): out of the vehicle
+  if (s.hud.messages.some((m) => /uitstappen|te voet/i.test(m))) mem.onFootUntil = s.t + 60;
+  s.mission.onFoot = s.t < (mem.onFootUntil || 0);
   const act = L.decide(s, mem);
   if (act.type === 'wait' || act.type === 'skip' || act.type === 'choose' || act.type === 'closemenu') detector.hold(s.t);
   if (act.type === 'closemenu') { await B.press('escape'); continue; }
