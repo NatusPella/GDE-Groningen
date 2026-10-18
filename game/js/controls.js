@@ -7,13 +7,13 @@
 // Keyboard keys the player may rebind: [canonical key, what it does, group].
 // Escape, Enter, the arrows and the mouse stay fixed.
 export const KEY_ACTIONS = [
-  ['w', 'Vooruit, gas geven; heli: vooruit', 'beweging'],
-  ['s', 'Achteruit, remmen; heli: remmen, achteruit', 'beweging'],
-  ['a', 'Links, sturen; heli: draaien', 'beweging'],
-  ['d', 'Rechts, sturen; heli: draaien', 'beweging'],
-  [' ', 'Springen, over hek of auto klimmen, uit het water klimmen, handrem, klapwieken; heli: omhoog', 'beweging'],
-  ['shift', 'Rennen, boost, duiken; heli: sneller', 'beweging'],
-  ['control', 'Bukken; duif: pikken en landen; heli: omlaag', 'beweging'],
+  ['w', 'Vooruit, gas geven; heli: vooruit; vliegtuig: gas; trein: gas', 'beweging'],
+  ['s', 'Achteruit, remmen; heli: remmen, achteruit; vliegtuig: gas terug; trein: rem', 'beweging'],
+  ['a', 'Links, sturen; heli: draaien; vliegtuig: links rollen', 'beweging'],
+  ['d', 'Rechts, sturen; heli: draaien; vliegtuig: rechts rollen', 'beweging'],
+  [' ', 'Springen, over hek of auto klimmen, uit het water klimmen, handrem, klapwieken; heli: omhoog; vliegtuig: neus omhoog; trein: noodrem', 'beweging'],
+  ['shift', 'Rennen, boost, duiken; heli: sneller; vliegtuig: remmen', 'beweging'],
+  ['control', 'Bukken; duif: pikken en landen; heli: omlaag; vliegtuig: neus omlaag', 'beweging'],
   ['.', 'Rijden, handmatig schakelen: een versnelling hoger', 'beweging'],
   [',', 'Rijden, handmatig schakelen: een versnelling lager', 'beweging'],
   ['j', 'Rijden, handmatig met koppeling: koppeling indrukken', 'beweging'],
