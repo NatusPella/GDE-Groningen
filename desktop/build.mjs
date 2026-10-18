@@ -9,8 +9,8 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-// the GTE_* names from before 0.29 still work
-for (const [k, v] of Object.entries(process.env)) if (k.startsWith('GTE_') && process.env['GDE_' + k.slice(4)] === undefined) process.env['GDE_' + k.slice(4)] = v;
+import { createRequire } from 'module';
+createRequire(import.meta.url)('./envcompat.js'); // GTE_* -> GDE_*
 // GDE_STAGE_SRC / GDE_STAGE_OUT stage another checkout (perf runs against main)
 const SRC = process.env.GDE_STAGE_SRC || path.join(HERE, '..', 'game');
 const OUT = process.env.GDE_STAGE_OUT || path.join(HERE, 'build', 'game');
