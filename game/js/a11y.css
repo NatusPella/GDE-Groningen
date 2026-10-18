@@ -87,3 +87,9 @@ html:is(.cb-deuteranopie, .cb-protanopie, .cb-tritanopie) #hud .hud-speedo.hurt 
 .pm-pad-g { display: inline-flex; align-items: center; margin: 0 2px; vertical-align: middle; }
 .pm-pad-g .pad-g { height: 22px; min-width: 22px; }
 .pm-pad-g .pad-face, .pm-pad-g .pad-stick { width: 22px; }
+
+/* round 2: the revs and the damage meter read by shape too, not by colour alone */
+html:is(.cb-deuteranopie, .cb-protanopie, .cb-tritanopie) #hud .hud-speedo.redline .rpm-fill { stroke: var(--mk-danger); stroke-dasharray: 6 4; }
+html:is(.cb-deuteranopie, .cb-protanopie, .cb-tritanopie) #hud .hud-meter.veh:not(.hurt) .hud-bar-fill.vehicle { background: var(--mk-ok); }
+html:is(.cb-deuteranopie, .cb-protanopie, .cb-tritanopie) #hud .hud-meter.veh.hurt .hud-bar-fill.vehicle { background: repeating-linear-gradient(135deg, var(--mk-danger) 0 5px, rgba(12, 20, 14, 0.85) 5px 8px); }
+html:is(.cb-deuteranopie, .cb-protanopie, .cb-tritanopie) #hud .hud-search > i > i { background: var(--mk-danger); }

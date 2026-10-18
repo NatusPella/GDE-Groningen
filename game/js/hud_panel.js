@@ -43,6 +43,7 @@ import { initCards, updateCards } from './hudcards.js';
 import { markerColors, onPaletteChange } from './a11y.js';
 import { drawMissionGlyph } from './missionicons.js';
 import { decideHud, zones, hudNow, P3, PLACE_SHOW, E_SHOW, DEFER_MAX, GPS_NEAR } from './hudrules.js';
+import { vehicleKind, speedoLook, meterLevel } from './hudlook.js';
 import { nextTurn, turnText, etaText } from './hudgps.js';
 import { travelModeOf, roadAllowed, minimapScale, northUp, MINIMAP_MODE } from './roadaccess.js';
 import { hudDate } from './hudcalendar.js';
@@ -811,7 +812,9 @@ function updateBars(world) {
     setGhostBar(els.healthFill, els.healthFill.previousElementSibling, hp);
     els.hpNum.textContent = hp;
     els.hpRow.setAttribute('aria-valuenow', hp);
-    els.hpRow.classList.toggle('low', hp < 30 && hp > 0);
+    const lvl = meterLevel(hp / 100);
+    els.hpRow.classList.toggle('low', lvl !== 'ok' && hp > 0);
+    els.hpRow.classList.toggle('crit', lvl === 'crit' && hp > 0);
     els.portrait.classList.toggle('low', hp < 30);
   }
   if (ar !== els.arKey) {
@@ -975,7 +978,10 @@ function updateSpeedo(world) {
   }
   els.speedo.classList.toggle('shiftlight', !!gbm && gbm.shiftLight && !gbm.limiter);
   els.speedo.classList.toggle('limiter', !!gbm && gbm.limiter);
-  els.speedo.classList.toggle('no-rpm', !eng);
+  // a vehicle shows only what it has (hudlook.js): no gears on a bike, no revs on a boat
+  const look = speedoLook(vehicleKind(v, { train: isTrain }), !!eng);
+  els.speedo.classList.toggle('no-rpm', !look.rpm);
+  els.speedo.classList.toggle('no-gears', !look.gears);
   if (eng) {
     const pct = Math.max(0, Math.min(100, Math.round((eng.rpm / (eng.red / (RPM_RED_AT / 100))) * 100)));
     const k = String(pct);
