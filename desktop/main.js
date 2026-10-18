@@ -29,8 +29,7 @@ const MIME = {
   '.wasm': 'application/wasm', '.txt': 'text/plain; charset=utf-8',
 };
 
-// the GTE_* names from before 0.29 still work
-for (const [k, v] of Object.entries(process.env)) if (k.startsWith('GTE_') && process.env['GDE_' + k.slice(4)] === undefined) process.env['GDE_' + k.slice(4)] = v;
+require('./envcompat.js'); // GTE_* -> GDE_*
 
 // the name everywhere, also when run unpackaged (npm start): menu, About
 // panel, Dock, Windows taskbar grouping
