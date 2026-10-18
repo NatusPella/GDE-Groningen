@@ -217,6 +217,7 @@ export class TileWorld extends GameMap {
   // held (pinned) until releaseShots, so the cut never shows a hole.
   // Resolves when every tile is in; shotsReady() asks without waiting.
   registerShots(shots, { radius = 350, token = 'shots' } = {}) {
+    this.releaseShots(); // (pins are counted: a second registration must not leak the first)
     this._shotKeys = new Set();
     for (const s of shots) for (const [x, y] of [s.at, s.look].filter(Boolean)) for (const k of this.store.keysAround(x, y, radius)) this._shotKeys.add(k);
     for (const k of this._shotKeys) this.store.pin(k);
