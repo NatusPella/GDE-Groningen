@@ -36,6 +36,7 @@ import { getPadelSpotsForRender } from './padel.js';
 import { getTrainTripCount, getStationsForRender, lastTrainArrival } from './stationtravel.js';
 import { villageStroll } from './dorpsuitjes.js';
 import { refreshDayNight } from './daynight.js';
+import { playerBusy } from './busy.js';
 
 const MEET_R = 9;
 const HIDEOUT_R = 14;
@@ -252,7 +253,7 @@ function updateMeet(w, st, base) {
 function updateCourtMeet(w, st, base) {
   if (base.met || !st.meet) return;
   const p = w.player;
-  if (p.inVehicle || p.swimming || w.padelGame || isCinematicActive() || isMissionActive() || isActivityActive() || w.pigeonMode) return;
+  if (p.inVehicle || p.swimming || playerBusy(w, ['padel', 'cinematic', 'mission', 'activity', 'pigeon']).busy) return;
   let site = null, bd = COURT_MEET_R;
   for (const s of getPadelSpotsForRender()) {
     const d = Math.hypot(s.x - p.x, s.y - p.y);
