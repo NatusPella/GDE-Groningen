@@ -19,17 +19,23 @@ const scenes = path.resolve(arg('scenes', path.join(root, 'scripts', 'ui', 'shot
 const bin = process.env.GDE_ELECTRON || path.join(root, 'desktop', 'node_modules', '.bin', process.platform === 'win32' ? 'electron.cmd' : 'electron');
 if (!fs.existsSync(bin)) { console.error('Geen electron gevonden op', bin, '(zie de kop van dit bestand)'); process.exit(2); }
 
-// one Electron at a time (AGENTS.md): wait while another one runs
-const busy = () => {
-  const r = process.platform === 'win32'
-    ? spawnSync('tasklist', ['/FI', 'IMAGENAME eq electron.exe', '/NH'], { encoding: 'utf8' })
-    : spawnSync('pgrep', ['-x', 'Electron'], { encoding: 'utf8' });
-  return process.platform === 'win32' ? /electron\.exe/i.test(r.stdout || '') : !!(r.stdout || '').trim();
+// at most GDE_MAX_ELECTRON (default 2) other Electron apps at once, so a run
+// stays inside the three that the machine allows: only the main processes
+// count (Windows: no --type= on the command line; macOS: the exact name)
+const MAX_OTHERS = Number(process.env.GDE_MAX_ELECTRON || 2);
+const others = () => {
+  if (process.platform === 'win32') {
+    const r = spawnSync('powershell', ['-NoProfile', '-Command', "(Get-CimInstance Win32_Process -Filter \"Name='electron.exe'\" | Where-Object { $_.CommandLine -notmatch '--type=' } | Measure-Object).Count"], { encoding: 'utf8' });
+    return Number((r.stdout || '').trim()) || 0;
+  }
+  const r = spawnSync('pgrep', ['-x', 'Electron'], { encoding: 'utf8' });
+  return (r.stdout || '').split(/\r?\n/).filter(Boolean).length;
 };
+const busy = () => others() >= MAX_OTHERS;
 fs.mkdirSync(out, { recursive: true });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 for (let i = 0; busy(); i++) {
-  if (i === 0) console.log('Er draait al een Electron; wacht.');
+  if (i === 0) console.log('Er draaien al genoeg Electron-apps; wacht.');
   if (i > 240) { console.error('Electron bleef bezet; gestopt.'); process.exit(3); }
   await sleep(5000);
 }
