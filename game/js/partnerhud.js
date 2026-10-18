@@ -3,6 +3,8 @@
 // voertuig of erbij springen. Geen DOM; de HUD tekent wat hier uitkomt.
 // Kleur is nooit het enige signaal: de marker heeft een vorm en een naam.
 
+import { charInfo } from './coopplayers.js';
+
 export const PARTNER = {
   host: { naam: 'Tessa', kleur: '#ff7ab8', vorm: 'ruit' },   // de host ziet de gast als Tessa
   gast: { naam: 'Tammo', kleur: '#4fb3ff', vorm: 'driehoek' }, // de gast ziet de host als Tammo
@@ -46,14 +48,14 @@ export function projectMarker(info, view) {
 }
 
 // ----------------------------------------------------------- pings
-export function createPings() { return { lijst: [], laatste: { eigen: -1e9, ander: -1e9 } }; }
+export function createPings() { return { lijst: [], laatste: {} }; }
 
 // van: 'eigen' | 'ander'. Geeft de nieuwe ping of null (te snel, ongeldig of te veel).
 export function addPing(p, { x, y, van = 'eigen', soort = 'hier' }, nu) {
   if (!Number.isFinite(x) || !Number.isFinite(y) || Math.abs(x) > WORLD_LIMIT || Math.abs(y) > WORLD_LIMIT) return null;
   if (!['hier', 'gevaar', 'doel'].includes(soort)) soort = 'hier';
-  const key = van === 'ander' ? 'ander' : 'eigen';
-  if (nu - p.laatste[key] < PING_COOLDOWN) return null;
+  const key = String(van === undefined || van === null ? 'eigen' : van); // 'eigen', 'ander' of de plek van een speler
+  if (nu - (p.laatste[key] ?? -1e9) < PING_COOLDOWN) return null;
   p.laatste[key] = nu;
   const ping = { x, y, van: key, soort, tot: nu + PING_TTL };
   p.lijst.push(ping);
@@ -79,3 +81,19 @@ export function voertuigActie(me, partner, vehicles, eigen = null) {
   if (eigen) return { actie: 'roep', id: eigen, tekst: 'Je voertuig komt naar je medespeler.' };
   return { actie: 'geen', tekst: 'Je hebt geen voertuig om te roepen.' };
 }
+
+// ----------------------------------------------------------- N spelers
+// Alle andere spelers met naam, kleur en vorm uit de lijst met spelers (coopplayers.js).
+// players = lichamen uit de snapshot; roster = [{ slot, char, verbinding }]; mySlot = onze plek.
+export function partnersInfo(mySlot, players, roster, naam = (id) => charInfo(id)) {
+  const out = [];
+  for (const r of roster || []) {
+    if (r.slot === mySlot) continue;
+    const c = naam(r.char) || {};
+    const sample = (players || []).find((p) => p.slot === r.slot) || null;
+    const st = partnerInfo('host', sample, r.verbinding || 'ok');
+    out.push({ ...st, slot: r.slot, naam: c.naam || st.naam, kleur: c.kleur || st.kleur, vorm: c.vorm || st.vorm });
+  }
+  return out;
+}
+export function projectMarkers(infos, view) { return infos.map((i) => ({ slot: i.slot, ...projectMarker(i, view) })).filter((m) => m.x !== undefined); }

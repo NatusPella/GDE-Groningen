@@ -1,20 +1,24 @@
-// Samen spelen (#95): koppelt de netwerksessie (net/session.js) aan de wereld, in
-// de stijl van Watch Dogs 2. Je kunt op elk moment iemand uitnodigen (host) of
-// aansluiten (gast), zonder keuze per save. De host simuleert en bewaart zijn
-// eigen spel zoals altijd; de gast houdt zijn EIGEN voortgang: zijn geld, spullen
-// en prestaties blijven van hem, de sessie schrijft zijn save niet, en bij
-// vertrek komt hij terug op de plek waar hij was. Vaste personages: host =
-// Tammo, gast = Tessa. Alleen actief na startHost()/startClient(), dus alleen
-// na een bewuste uitnodiging. NIET in een echt spel gezien; het verhaal, de
-// missies en de voertuigen van de host zijn er voor de gast nog niet bij.
+// Samen spelen (#95): koppelt de netwerksessie (net/hub.js, net/session.js) aan de
+// wereld, in de stijl van Watch Dogs 2, voor N spelers (minimaal 4, tot 8). Je kunt
+// op elk moment iemand uitnodigen (host) of aansluiten (gast). De host (Tammo)
+// simuleert en bewaart zijn eigen spel zoals altijd; de eerste gast is Tessa;
+// extra spelers zijn eigen figuren zonder hoofdrol in het verhaal. Iedere gast
+// houdt zijn EIGEN voortgang: zijn geld, spullen en prestaties blijven van hem,
+// de sessie schrijft zijn save niet en bij vertrek komt hij terug op zijn eigen
+// plek. NIET in een echt spel gezien: het verhaal, de missies en de voertuigen
+// van de host zijn er voor gasten nog niet bij, en extra figuren hebben nog geen
+// model in de wereld (ze bestaan als gegevens en in de snapshots).
 
-import { HostSession, ClientSession } from './net/session.js';
+import { ClientSession } from './net/session.js';
+import { HostHub } from './net/hub.js';
 import { VERSION } from './version.js';
-import { setFixedCharacters, applyHostState, makeClientInput } from './coopclient.js';
+import { setFixedCharacters, applyHostState, makeClientInput, ensureFigure, removeFigure, figures } from './coopclient.js';
 import { bindCoop } from './coopglue.js';
-import { partnerInfo, createPings, addPing, tickPings, pingEvent } from './partnerhud.js';
+import { partnersInfo, createPings, addPing, tickPings, pingEvent } from './partnerhud.js';
+import { holdBeleid, leesLijstEvent, lijst } from './coopplayers.js';
+import { cameraRelative, stepSlot2 } from './coop.js';
 
-export const CAPS = ['scene']; // wat dit spel kent; uitbreidbaar (net/session.js negotiate)
+export const CAPS = ['scene', 'spelers']; // wat dit spel kent; uitbreidbaar (net/session.js negotiate)
 export const REMOVE_DELAY = 0.5; // s tussen "je bent verwijderd" en het verbreken
 export const MAX_REWARD = 1000000;
 
@@ -33,18 +37,21 @@ export function canJoin(world) {
   return { ok: true };
 }
 
-// sim-adapter voor de host
-export function hostSim(world) {
+// sim-adapter voor de host: plek 0 = world.player, plek 1 = world.companion, plek 2+ = figuren
+export function hostSim(world, roster) {
   return {
     applyInput(slot, input) {
-      if (slot !== 1 || !world.coop) return;
-      world.coop.remote = true; world.coop.remoteInput = input;
+      if (!world.coop || slot < 1) return;
+      if (slot === 1) { world.coop.remote = true; world.coop.remoteInput = input; return; }
+      const f = ensureFigure(world, slot, null); f.input = input;
     },
     snapshot() {
       const p = world.player, c = world.companion;
       const body = (b, slot) => b && ({ slot, x: b.x, y: b.y, z: b.z || 0, angle: b.angle || 0, alive: true, inVeh: !!b.inVehicle, driver: false, run: false, health: 100, vehicle: null });
+      const players = [body(p, 0), body(c, 1)];
+      for (const s of roster().spelers) if (s.slot >= 2) players.push(body(figures(world)[s.slot], s.slot));
       return {
-        players: [body(p, 0), body(c, 1)].filter(Boolean),
+        players: players.filter(Boolean),
         shared: { money: world.money || 0, wanted: world.wanted | 0, clock: Number(world.time) || 0 },
         mission: { stage: 0, state: 'none', present: 3 },
         entities: [],
@@ -60,75 +67,134 @@ function prepareCoop(world) {
 }
 function endCoop(world) {
   if (world.coop) { world.coop.remote = false; world.coop.remoteInput = null; world.coop.fixedChars = false; if (world.coop.prevLocal !== undefined) { world.coop.local = world.coop.prevLocal; world.coop.prevLocal = undefined; } }
-  world.coopPartner = null;
+  world.coopPartner = null; world.coopPartners = []; world.coopRoster = null; world.coopFigures = {};
 }
+const now = (world) => (Number.isFinite(world.time) ? world.time : Date.now() / 1000);
 
-export function startHost(world, transport, info, seed = 1, { onHold = null, fade = null, route = null } = {}) {
-  const session = new HostSession(transport, { info, seed, sim: hostSim(world), caps: CAPS });
+// ---------------------------------------------------------------- host
+// opts: { seed, max (4 tot 8), onHold(rol, slot, reden), fade, route, onChange(roster) }
+export function startHost(world, info, opts = {}) {
   prepareCoop(world);
-  world.coop.prevLocal = world.coop.local !== false; world.coop.local = false; // in een sessie stuurt de gast, niet het toetsenbord
-  // verbinding weg: het spel pauzeert en wacht (onHold toont het scherm met 'Opnieuw verbinden' en 'Alleen verder')
-  session.onlost = () => { world.coop.remote = false; world.coop.remoteInput = null; if (onHold) onHold('host'); };
-  session.onrelease = () => { world.coop.remote = false; world.coop.remoteInput = null; };
-  session.onjoin = () => { if (fade) fade('in'); }; // de gast komt met een korte fade naast je staan
-  session.onevent = (b) => handleEvent(world, b);
-  setFixedCharacters(world, 'host');
+  world.coop.prevLocal = world.coop.local !== false; world.coop.local = false; // in een sessie sturen de gasten, niet het toetsenbord
+  const { onHold = null, fade = null, route = null, onChange = null } = opts;
+  let hub;
+  hub = new HostHub({
+    info, seed: opts.seed ?? 1, max: opts.max, caps: CAPS, rand: opts.rand,
+    sim: hostSim(world, () => hub.roster),
+    onJoin: (slot, char) => {
+      if (slot >= 2) { const f = ensureFigure(world, slot, char); f.x = world.player.x + 1.5 * (slot - 1); f.y = world.player.y + 1.5; }
+      if (fade) fade('in'); // de gast komt met een korte fade naast je staan
+    },
+    onLeave: (slot) => {
+      if (slot === 1 && world.coop) { world.coop.remote = false; world.coop.remoteInput = null; }
+      if (slot >= 2) removeFigure(world, slot);
+    },
+    onLost: (slot) => {
+      if (slot === 1 && world.coop) { world.coop.remote = false; world.coop.remoteInput = null; }
+      const f = slot >= 2 ? figures(world)[slot] : null; if (f) f.input = null;
+      // pauze per speler: Tessa houdt het spel op, een extra speler pas als de opdracht hem nodig heeft
+      const beleid = holdBeleid(slot, { vereist: world.coopVereist || [] });
+      if (beleid.pauze && onHold) onHold('host', slot, beleid.reden);
+    },
+    onEvent: (slot, body) => {
+      handleEvent(world, body, slot);
+      if (body && body.k === 'ping') for (const s of hub.roster.spelers) if (s.slot !== 0 && s.slot !== slot) hub.announce({ ...body, van: slot }, s.slot); // iedereen ziet elke ping
+    },
+  });
+  hub.onchange = (roster) => { world.coopRoster = lijst(roster); if (onChange) onChange(roster); };
+  setFixedCharacters(world, 0);
   world.coopRole = 'host';
-  world.coopNet = { role: 'host', session, fade, route };
-  return session;
+  world.coopRoster = lijst(hub.roster);
+  world.coopNet = { role: 'host', hub, fade, route, removing: {} };
+  return hub;
 }
 
-export function startClient(world, transport, info, { onHold = null, fade = null, route = null } = {}) {
+// Een nieuwe gast op een geopend transport (kamercode of IP-adres).
+export function addGuest(world, transport) {
+  const n = world.coopNet; if (!n || n.role !== 'host') throw new Error('Er is geen uitnodiging open.');
+  return n.hub.accept(transport);
+}
+
+// ---------------------------------------------------------------- gast
+// opts: { onHold, fade, route, wens (gewenste figuur voor plek 2 en hoger) }
+export function startClient(world, transport, info, opts = {}) {
   const ok = canJoin(world);
   if (!ok.ok) throw new Error(ok.reason);
-  const session = new ClientSession(transport, { info, caps: CAPS });
+  const { onHold = null, fade = null, route = null, wens = null } = opts;
+  const session = new ClientSession(transport, { info: { ...info, char: wens || undefined }, caps: CAPS });
   prepareCoop(world);
   const p = world.player;
   // eigen toestand bewaren: bij vertrek komt de gast hier weer terug
-  const stash = { x: p.x, y: p.y, angle: p.angle, vx: 0, vy: 0, wanted: world.wanted | 0, character: p.character, companion: world.companion ? { x: world.companion.x, y: world.companion.y, character: world.companion.character } : null, prevLocal: world.coop.local !== false };
+  const stash = { x: p.x, y: p.y, angle: p.angle, wanted: world.wanted | 0, character: p.character, coopChar: p.coopChar, companion: world.companion ? { x: world.companion.x, y: world.companion.y, character: world.companion.character } : null, prevLocal: world.coop.local !== false };
   world.coop.local = false;
-  session.onlost = () => { if (onHold) onHold('client'); };
-  session.onevent = (b) => handleEvent(world, b);
-  setFixedCharacters(world, 'client');
+  session.onlost = () => { if (onHold) onHold('client', session.slot, 'De verbinding met de host is weg.'); };
+  session.onevent = (b) => handleEvent(world, b, 0);
   world.coopRole = 'client';
-  world.coopNet = { role: 'client', session, stash, fade, joined: false, route };
+  world.coopNet = { role: 'client', session, stash, fade, joined: false, fixed: false, route };
   return session;
 }
 
-// Per frame vanuit de hoofdlus (alleen als world.coopNet bestaat).
+// ---------------------------------------------------------------- elke frame
+function stepFigures(world, dt) {
+  const f = figures(world);
+  for (const slot of Object.keys(f)) {
+    const fig = f[slot];
+    if (!fig.input) { fig.vx *= Math.max(0, 1 - 10 * dt); fig.vy *= Math.max(0, 1 - 10 * dt); continue; }
+    const m = fig.input;
+    const len = Math.hypot(m.mx, m.my), sx = len > 1 ? 1 / len : 1;
+    const dir = cameraRelative({ x: m.mx * sx, y: m.my * sx, run: !!((m.buttons || 0) & 1), active: !!(m.mx || m.my) }, m.yaw || 0);
+    stepSlot2(fig, dir, dt, null);
+    if (world.coopMove) world.coopMove(fig, dt, world); // botsingen met gebouwen: companion.js zet deze haak
+    else { fig.x += fig.vx * dt; fig.y += fig.vy * dt; }
+  }
+}
+
 export function tickCoopNet(world, dt) {
-  const n = world.coopNet; if (!n || !n.session) return;
+  const n = world.coopNet; if (!n) return;
   if (world.coopPings) tickPings(world.coopPings, now(world));
-  if (n.removing != null) { n.removing -= dt; if (n.removing <= 0) { stopCoopNet(world); return; } }
   if (n.role === 'client') {
+    const s = n.session;
     const inp = world.input;
-    const axis = inp && inp.axis ? inp.axis() : [0, 0];
-    const run = !!(inp && inp.isDown && inp.isDown('shift'));
-    const m = makeClientInput(axis, run, world.camYaw);
-    n.session.setInput(m.mx, m.my, m.buttons, m.yaw);
-    n.session.tick(dt);
-    if (n.session.status === 'ok' || n.session.status === 'lag') {
-      const sample = n.session.world();
+    const m = makeClientInput(inp && inp.axis ? inp.axis() : [0, 0], !!(inp && inp.isDown && inp.isDown('shift')), world.camYaw);
+    s.setInput(m.mx, m.my, m.buttons, m.yaw);
+    s.tick(dt);
+    if (s.joined && !n.fixed) { // eerst weten we welke plek en figuur we hebben
+      n.fixed = true; setFixedCharacters(world, s.slot, s.welcome && s.welcome.char);
+      if (s.welcome && Array.isArray(s.welcome.lijst)) world.coopRoster = s.welcome.lijst;
+    }
+    if (n.fixed && (s.status === 'ok' || s.status === 'lag')) {
+      const sample = s.world();
       if (sample && !n.joined) { n.joined = true; if (n.fade) n.fade('in'); }
-      applyHostState(world, 'client', sample);
-      world.coopPartner = partnerInfo('gast', sample && sample.players.find((p) => p.slot === 0), n.session.status);
+      applyHostState(world, s.slot, sample, world.coopRoster);
+      world.coopPartners = partnersInfo(s.slot, sample ? sample.players : [], world.coopRoster || []);
+      world.coopPartner = world.coopPartners[0] || null;
     }
     return;
   }
-  n.session.tick(dt);
+  for (const [slot, t] of Object.entries(n.removing)) { n.removing[slot] = t - dt; if (n.removing[slot] <= 0) { delete n.removing[slot]; n.hub.release(+slot); } }
+  n.hub.tick(dt);
+  stepFigures(world, dt);
   const c = world.companion;
-  world.coopPartner = partnerInfo('host', c ? { x: c.x, y: c.y, angle: c.angle, alive: true, inVeh: !!c.inVehicle } : null, n.session.status === 'ok' ? 'ok' : n.session.status);
+  const players = [c ? { slot: 1, x: c.x, y: c.y, angle: c.angle, alive: true, inVeh: !!c.inVehicle } : null, ...Object.values(figures(world)).map((f) => ({ slot: f.slot, x: f.x, y: f.y, angle: f.angle, alive: true }))].filter(Boolean);
+  world.coopPartners = partnersInfo(0, players, world.coopRoster || []);
+  world.coopPartner = world.coopPartners[0] || null;
 }
 
-const now = (world) => (Number.isFinite(world.time) ? world.time : Date.now() / 1000);
-
-// ---------------------------------------------------------------- gebeurtenissen tussen de twee spelers
-// Alles wat van de ander komt wordt gecontroleerd; onbekende soorten worden genegeerd (uitbreidbaar).
-export function handleEvent(world, body) {
+// ---------------------------------------------------------------- gebeurtenissen tussen de spelers
+// van = plek van de afzender (0 = host). Alles wat binnenkomt wordt gecontroleerd; onbekende soorten worden genegeerd.
+export function handleEvent(world, body, van = 0) {
   if (!body || typeof body !== 'object') return false;
   const n = world.coopNet;
   switch (body.k) {
-    case 'ping': return !!(world.coopPings && addPing(world.coopPings, { x: body.x, y: body.y, soort: body.soort, van: 'ander' }, now(world)));
+    case 'ping': { // de host stuurt door met 'van'; een gast stuurt zonder
+      const afz = n && n.role === 'client' && Number.isInteger(body.van) ? body.van : van;
+      return !!(world.coopPings && addPing(world.coopPings, { x: body.x, y: body.y, soort: body.soort, van: afz }, now(world)));
+    }
+    case 'spelers': { // alleen de host stuurt de lijst
+      if (!n || n.role !== 'client') return false;
+      const l = leesLijstEvent(body); if (!l) return false;
+      world.coopRoster = l.spelers.map((s) => ({ ...s })); return true;
+    }
     case 'beloning': { // alleen de host mag de gast betalen; het geld is van de gast
       if (!n || n.role !== 'client') return false;
       const geld = Math.floor(Number(body.geld));
@@ -137,7 +203,7 @@ export function handleEvent(world, body) {
       if (world.addMessage) world.addMessage(`Beloning: €${Math.min(geld, MAX_REWARD).toLocaleString('nl-NL')}`, 4);
       return true;
     }
-    case 'weg': // de host heeft de gast verwijderd
+    case 'weg': // de host heeft deze speler verwijderd
       if (!n || n.role !== 'client') return false;
       if (world.addMessage) world.addMessage('Je bent uit het spel van de host gehaald.', 4);
       stopCoopNet(world);
@@ -148,30 +214,34 @@ export function handleEvent(world, body) {
 export function sendPing(world, x, y, soort = 'hier') {
   const n = world.coopNet; if (!n || !world.coopPings) return false;
   if (!addPing(world.coopPings, { x, y, soort, van: 'eigen' }, now(world))) return false;
-  return n.role === 'host' ? n.session.announce(pingEvent(x, y, soort)) : n.session.sendEvent(pingEvent(x, y, soort));
+  return n.role === 'host' ? n.hub.announce({ ...pingEvent(x, y, soort), van: 0 }) : n.session.sendEvent(pingEvent(x, y, soort));
 }
-// Host: beloning voor de gast na een samen gedane opdracht; de gast bewaart hem in zijn eigen save.
-export function payGuest(world, geld) {
+// Host: beloning voor één gast (slot) of voor alle gasten; elk bewaart hem in zijn eigen save.
+export function payGuest(world, geld, slot = null) {
   const n = world.coopNet; if (!n || n.role !== 'host') return false;
-  return n.session.announce({ k: 'beloning', geld: Math.max(0, Math.floor(geld)) });
+  return n.hub.announce({ k: 'beloning', geld: Math.max(0, Math.floor(geld)) }, slot);
 }
-// Host: gast verwijderen (eerst een bericht, dan verbreken).
-export function removeGuest(world) {
+// Host: een speler verwijderen (eerst een bericht, dan verbreken).
+export function removeGuest(world, slot = 1) {
   const n = world.coopNet; if (!n || n.role !== 'host') return false;
-  n.session.announce({ k: 'weg', reden: 'verwijderd' });
-  n.removing = REMOVE_DELAY; return true;
+  if (!n.hub.kick(slot)) return false;
+  n.removing[slot] = REMOVE_DELAY; return true;
+}
+export function setMaxPlayers(world, max) {
+  const n = world.coopNet; if (!n || n.role !== 'host') return null;
+  return n.hub.setMax(max);
 }
 
-// Verlaten. Gast: terug naar de eigen plek en eigen toestand, saven mag weer. Host: alleen verder.
+// Verlaten. Gast: terug naar de eigen plek en eigen toestand, saven mag weer. Host: alleen verder; alle gasten gaan eruit.
 export function stopCoopNet(world) {
   const n = world.coopNet; if (!n) return;
-  try { n.session.leave(); } catch (e) { /* al weg */ }
+  if (n.role === 'host') { try { n.hub.announce({ k: 'weg', reden: 'host gestopt' }); n.hub.closeAll(); } catch (e) { /* al weg */ } } else { try { n.session.leave(); } catch (e) { /* al weg */ } }
   world.coopNet = null;
   if (n.role === 'client' && n.stash) {
     const s = n.stash, p = world.player;
     p.x = s.x; p.y = s.y; p.angle = s.angle; if (p.vx !== undefined) { p.vx = 0; p.vy = 0; }
     world.wanted = s.wanted;
-    p.character = s.character;
+    p.character = s.character; p.coopChar = s.coopChar;
     if (world.companion && s.companion) { world.companion.x = s.companion.x; world.companion.y = s.companion.y; world.companion.character = s.companion.character; }
     if (world.coop) world.coop.prevLocal = s.prevLocal;
     if (n.fade) n.fade('uit');
