@@ -1,7 +1,8 @@
 // De Spelbot-driver (#186): start één Electron-instantie met wegwerpprofiel, laat
 // bot.page.js de game spelen en bouwt uit de gebeurtenissen het rapport.
-//   node scripts/bot/run.mjs [--out=<map>] [--part=kop] [--seed=1] [--stuck=30]
-//        [--max-game=3600] [--max-wall=1800] [--shots=80] [--invuln] [--force]
+//   node scripts/bot/run.mjs [--out=<map>] [--part=kop|all] [--seed=1] [--stuck=30]
+//        [--max-game=3600] [--max-wall=1800] [--shots=80] [--invuln] [--audio] [--force]
+//   node scripts/bot/run.mjs --mode=minigames [--only=kartbaan,duif] [--play=40]   (fase 3: elke minigame kort spelen)
 //   node scripts/bot/run.mjs --report=<map>           (rapport opnieuw uit events.jsonl)
 //   node scripts/bot/run.mjs --replay=<events.jsonl> [--out=<map>]   (invoer terugspelen)
 // ELECTRON_EXE=<pad> als desktop/node_modules/electron/dist ontbreekt. Vereist
@@ -61,13 +62,13 @@ const seed = Number(arg('seed', 1)) || 1;
 const replayFile = arg('replay');
 const profile = `gde-test-spelbot-${process.pid}`;
 const script = path.join(OUT, '_page.js');
-const cfg = { part: arg('part', 'kop'), maxGameS: Number(arg('max-game', 3600)), maxWallS: Number(arg('max-wall', 1800)), stuckS: Number(arg('stuck', 30)), shots: Number(arg('shots', 80)), invulnerable: flag('invuln') };
+const cfg = { part: arg('part', 'kop'), maxGameS: Number(arg('max-game', 3600)), maxWallS: Number(arg('max-wall', 1800)), stuckS: Number(arg('stuck', 30)), only: arg('only', ''), playS: Number(arg('play', 40)), mode: arg('mode', 'story'), shots: Number(arg('shots', 80)), invulnerable: flag('invuln') };
 let pre = `window.__botCfg = ${JSON.stringify(cfg)};\n`;
 if (replayFile) {
   const rl = L.RunLog.parse(fs.readFileSync(path.resolve(replayFile), 'utf8'));
   pre += `window.__botReplay = ${JSON.stringify(rl.inputs())};\n`;
 }
-fs.writeFileSync(script, pre + fs.readFileSync(path.join(HERE, replayFile ? 'replay.page.js' : 'bot.page.js'), 'utf8'));
+fs.writeFileSync(script, pre + fs.readFileSync(path.join(HERE, replayFile ? 'replay.page.js' : cfg.mode === 'minigames' ? 'minigames.page.js' : 'bot.page.js'), 'utf8'));
 const events = path.join(OUT, 'events.jsonl');
 fs.writeFileSync(events, JSON.stringify({ type: 'meta', replay: L.REPLAY_VERSION, seed, ...cfg, started: new Date().toISOString() }) + '\n');
 
@@ -75,7 +76,7 @@ const electron = process.env.ELECTRON_EXE || path.join(ROOT, 'desktop', 'node_mo
 const env = { ...process.env, GDE_TEST_PROFILE: profile, GDE_NIEUW_VERHAAL: '1' };
 delete env.ELECTRON_RUN_AS_NODE;
 const t0 = Date.now();
-const r = spawnSync(electron, ['.', '--windowed', '--stil', '--force-device-scale-factor=1', '--window-size=1280x720', `--autoplay=${seed}`,
+const r = spawnSync(electron, ['.', '--windowed', '--stil', '--force-device-scale-factor=1', '--window-size=1280x720', `--autoplay=${seed}`, ...(flag('audio') ? ['--audio-graph'] : []),
   `--smoke-test=${path.join(OUT, 'shots.png')}`, `--perf-script=${script}`, `--bot-events=${events}`],
 { cwd: path.join(ROOT, 'desktop'), env, encoding: 'utf8', maxBuffer: 1 << 28, timeout: (cfg.maxWallS + 240) * 1000, killSignal: 'SIGKILL' });
 if (r.error) console.error('Electron starten mislukt (niet geïnstalleerd? zet ELECTRON_EXE):', r.error.message);

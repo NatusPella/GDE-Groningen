@@ -259,6 +259,7 @@ export function summarise(events) {
     missions, consoleErrors, nan, warnings: warnings.length,
     stuck: events.filter((e) => e.type === 'stuck'),
     cheats: events.filter((e) => e.type === 'cheat'),
+    minigames: events.filter((e) => e.type === 'minigame'),
     shots: events.filter((e) => e.type === 'shot').map((e) => e.name),
     unbalanced: unbalancedKeys(events),
   };
@@ -293,6 +294,10 @@ export function buildReport(events, meta = {}) {
   if (S.consoleErrors.length > 40) out.push(`- ... en nog ${S.consoleErrors.length - 40}`);
   out.push('', '## NaN-waarschuwingen', '', S.nan ? `**${S.nan}** (computeBoundingSphere): de verhaaltest zou falen.` : 'Geen.');
   out.push('', `Overige console-waarschuwingen: ${S.warnings}.`);
+  if (S.minigames.length) {
+    out.push('', '## Minigames', '', '| Minigame | Gestart | Gespeeld (s) | Geld | Vast | Gestopt | Fouten |', '|---|---|---|---|---|---|---|');
+    for (const m of S.minigames) out.push(`| ${m.id} | ${m.started ? 'ja' : '**nee**'} | ${m.playedS ?? 0} | ${m.moneyDelta ?? 0} | ${m.stuck ? '**ja**' : 'nee'} | ${m.quit || '-'} | ${m.errors ?? 0} |`);
+  }
   out.push('', '## Invoer', '', S.unbalanced.length ? `**Toetsen zonder keyup:** ${S.unbalanced.join(', ')}` : 'Elke keydown heeft zijn keyup.');
   out.push('', '## Screenshots', '');
   if (!S.shots.length) out.push('Geen.');
