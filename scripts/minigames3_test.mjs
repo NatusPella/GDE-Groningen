@@ -129,6 +129,12 @@ const check = (name, ok, info = '') => { n++; if (!ok) { bad++; console.log('FAI
     for (const m of src.matchAll(/unlockAchievement\(w, '([a-z_]+)'/g)) used.add(m[1]);
   }
   const missing = [...used].filter((id) => !ach.includes(`id: '${id}'`));
+  const reg = fs.readFileSync(path.join(here, '../game/js/activities.js'), 'utf8');
+  const at = reg.indexOf('const LIST = [');
+  const list = reg.slice(at, reg.indexOf(']', at));
+  check('the new games are in the activity list (the activityhub kind)', ['CARILLON_GAME', 'PANNENKOEK', 'HENGELEN', 'WANDELING', 'SNACKKETEN'].every((n) => list.includes(n)), list);
+  const goal = fs.readFileSync(path.join(here, '../game/js/goal.js'), 'utf8');
+  check('goal.js knows the exclusive minigames', ['carillon', 'pannenkoek', 'hengelen'].every((id) => goal.includes(id + ': (w) =>')));
   check('every achievement the new games unlock exists', used.size > 10 && !missing.length, missing.join());
   const map = JSON.parse(fs.readFileSync(path.join(here, '../game/citymap.json'), 'utf8'));
   const inPoly = (x, y, p) => { let r = false; for (let i = 0, j = p.length - 1; i < p.length; j = i++) { if ((p[i][1] > y) !== (p[j][1] > y) && x < ((p[j][0] - p[i][0]) * (y - p[i][1])) / (p[j][1] - p[i][1]) + p[i][0]) r = !r; } return r; };

@@ -8,6 +8,9 @@
 // built story the last step's character stays.
 
 import { STEPS, STEP_BY_ID, PARTS, CLUES, WHY, CHARACTERS, SPEAKERS, stepAvailable, missionIndexOf, computeMoneyTimeline, partNumber, stepDone, nextStoryStep } from './storyarc.js';
+import { tickStoryTravel } from './storytravel.js';
+import { askTravel, travelPromptOpen } from './reispanel.js';
+import { FLAGS } from './devflags.js';
 import { setMeetHook } from './namecard.js';
 import { displayName } from './speakers.js';
 import { queueStoryContact } from './storycontact.js';
@@ -29,6 +32,8 @@ import { getGaragesForRender } from './garages.js';
 import { inHomeFlat, getHomeForRender } from './home.js';
 import { isShopOpen } from './shopui.js';
 import { playCinematic, isCinematicActive, sinceCinematic, isBannerUp } from './cinematics.js';
+import { playScript } from './cutscenehost.js';
+import { OPENING, END_CARD, flatScene } from './cutscenes.js';
 import { refreshDayNight } from './daynight.js';
 import { getTrainTripCount, getStationsForRender } from './stationtravel.js';
 import { getEierballen } from './achievementtracker.js';
@@ -43,7 +48,7 @@ import { SERIES, GAME_TITLE } from './logo.js';
 import { registerNarrative, mayStart, narrativeBusy, narrativeState } from './narrative.js';
 import { nieuwVerhaal } from './storyflag.js';
 import './storychoice.js';
-import { storyLines, talkLines, radioContacts, appsAt, storyDataReady, readingTime } from './storytext.js';
+import { storyLines, talkLines, radioContacts, appsAt, storyDataReady, readingTime, scene as storyScene } from './storytext.js';
 import { updateStoryTalk, stopTalk } from './storytalk.js';
 
 // Rikus' Radio Nachtstreek studio (radiostudio.js, three.js from the CDN) for the
@@ -416,13 +421,18 @@ function updateHomeWait(step) {
     at += dur + 0.25;
     return l;
   });
-  const ok = playCinematic({
+  const cine = {
     id: 'story-wait', priority: 2, duration: lines.length ? at + 0.4 : 3.6, pause: true, letterbox: true, skippable: true, hideHud: true,
     big: (scene && scene.big) || (night ? 'Wachten tot het donker is…' : ''),
     lines,
     onStart: () => { if (scene && scene.clock != null) setClock(scene.clock); },
     onEnd: done,
-  });
+  };
+  // staged in the flat (cutscenes.js flatScene), the plain scene as the fallback
+  const pl = world.player;
+  const ok = (lines.length > 2 && playScript(world, flatScene(scene && scene.clock != null ? 'avond' : 'wachten', lines), {
+    lines, duration: cine.duration, anchor: { x: pl.x, y: pl.y, facing: pl.angle || 0, z: pl.gz || 0 }, cine,
+  })) || playCinematic(cine);
   if (!ok) done();
 }
 
@@ -450,6 +460,14 @@ function playOpening(b) {
   }
   const p = world.player;
   const kop = PARTS.kop;
+  // the staged version (cutscenes.js OPENING): people and props move, the camera cuts; the orbit below stays as the fallback
+  const v0 = p.inVehicle;
+  const staged = playScript(world, OPENING, {
+    lines, duration: at + 1,
+    anchor: { x: v0 ? v0.x : p.x, y: v0 ? v0.y : p.y, facing: v0 ? v0.angle : p.angle || 0, z: 0 },
+    cine: { id: 'story-opening', kicker: `${partNumber('kop')} · ${kop.date}`, title: kop.name, cardFor: 3.2, onEnd: () => { b.phase = 'done'; } },
+  });
+  if (staged) return true;
   const ok = playCinematic({
     id: 'story-opening', priority: 4, duration: at + 1, pause: true, letterbox: true, skippable: true, hideHud: true,
     kicker: `${partNumber('kop')} · ${kop.date}`, title: kop.name, cardFor: 3.2, lines,
@@ -645,11 +663,17 @@ function updateCredits(dt, w) {
 
 function playEndCard(part) {
   if (PARTS[part] && PARTS[part].finale && currentStep().finale) return playFinale(part);
-  const ok = playCinematic({
-    id: 'story-card', priority: 2, duration: 6.5, pause: true, letterbox: true, skippable: true, hideHud: true,
+  const card = {
     kicker: PARTS[part] ? PARTS[part].end : '', title: 'Alles voor één eierbal', cardFor: 2.4, big: 'Wordt vervolgd…',
     lines: ((PARTS[part] && PARTS[part].card) || []).map(([speaker, text], k) => ({ speaker, text, at: 2.6 + k * 2, dur: 1.9 })),
-  });
+  };
+  const pl = world.player, vh = pl.inVehicle;
+  // staged (cutscenes.js END_CARD), the plain card as the fallback
+  const ok = playScript(world, END_CARD, {
+    lines: card.lines, duration: 6.5,
+    anchor: { x: vh ? vh.x : pl.x, y: vh ? vh.y : pl.y, facing: vh ? vh.angle : pl.angle || 0, z: 0 },
+    cine: { id: 'story-card', priority: 2, kicker: card.kicker, title: card.title, cardFor: card.cardFor, big: card.big },
+  }) || playCinematic({ id: 'story-card', priority: 2, duration: 6.5, pause: true, letterbox: true, skippable: true, hideHud: true, ...card });
   if (!ok) return false;
   state.cards.add(part);
   phone(SERIES, nieuwVerhaal() ? `${PARTS[part].end}. Dit stuk van het nieuwe verhaal is nog niet gebouwd. Tot die tijd is Grunn van jou: alle missies staan in je telefoon, onder Te doen.` : 'Het verhaal gaat verder in een volgende versie. Tot die tijd is Grunn van jou: alle missies staan in je telefoon, onder Te doen.', 8, undefined, nieuwVerhaal());
@@ -993,6 +1017,11 @@ export function updateStory(dt, w) {
   if (rt.sayAt >= 0 && w.time >= rt.sayAt && !isCinematicActive() && !isCallActive() && mayStart('say')) {
     rt.sayAt = -1;
     if (step.say) companionSays(w, step.say[1]);
+  }
+  // travel beats (#97): the choice ride along / drive / skip before a long jump, behind ?reizen
+  if (FLAGS.reizen && nieuwVerhaal() && rt.leadAt < 0) {
+    tickStoryTravel({ on: true, step, flags: state.flags, world: w, ask: askTravel, script: storyScene,
+      busy: isMissionActive() || isCinematicActive() || narrativeBusy() || !!w.pigeonMode || !!w.pendingRespawn || travelPromptOpen() });
   }
   // the voorschot follows the lead that says what it is for
   if (rt.leadAt < 0 && (rt.voorschotT -= dt) <= 0) { rt.voorschotT = 2; checkVoorschot(step); }

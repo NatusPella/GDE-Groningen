@@ -29,9 +29,12 @@
     },
     "files": [
       "main.js",
+      "args.cjs",
+      "devtools.js",
       "preload.js",
       "trailervideo.js",
       "userdata.js",
+      "envcompat.js",
       "package.json"
     ],
     "extraResources": [

@@ -21,8 +21,9 @@ import { ommelandMapSpots } from './ommelandmap.js';
 import { getSideJobSpotsForRender } from './sidejobs.js';
 import { getEierbalTips } from './furniture.js';
 import { drawRailsOnMap } from './railway.js';
-import { drawCountryBase, drawCountryDetail, villageLabels, MAP_STYLE } from './countrymap.js';
+import { drawCountryBase, drawCountryDetail, villageLabels, syncMapPhase, MAP_STYLE } from './countrymap.js';
 import { drawProvinceBase, provinceMapOn, provinceMapBounds, onProvinceMapLoad } from './provincemap.js';
+import { ROAD_ORDER, ZOOM, EMPHASIS, roadWidthPx } from './mapstyle.js';
 import { drawSea, drawOutside, regionLabels, areaNameAt } from './regions.js';
 import { worldPlaceLabels, worldPlacesReady } from './worldplaces.js';
 import { tileIndexOf, tileOrigin, TILE_M } from './gdt.js';
@@ -56,9 +57,9 @@ const TILE_BUDGET_MS = 3.5;
 const L_BASE = 6;
 const LEVEL_COUNT = 14;
 const levelZoom = (L) => Math.SQRT2 ** (L - L_BASE);
-const MID_ZOOM = 2;
-const NEAR_ZOOM = 4;
-const BUILDING_ZOOM = 2.8;
+const MID_ZOOM = ZOOM.mid;
+const NEAR_ZOOM = ZOOM.near;
+const BUILDING_ZOOM = ZOOM.building;
 const DRAG_PX = 4;
 const HOVER_PX = 12;
 const FOG_CELL = 50;
@@ -67,23 +68,8 @@ const FOG_KEY = KEYS.fog;
 const FOG_FEATHER = 16; // cells
 
 // city ground and the endless meadows past it share one colour (countrymap.js)
-const LAND = MAP_STYLE.meadow;
-const GREEN = MAP_STYLE.park;
-const COUNTRY = MAP_STYLE.meadow;
-const WATER = '#2d6a86';
-const WATER_EDGE = '#4a8fae';
-const BUILDING = 'rgba(160, 156, 146, 0.62)';
-const BUILDING_LANDMARK = 'rgba(214, 205, 180, 0.8)';
-
-const ROAD_COLORS = {
-  major: '#f0ede4',
-  normal: '#c7c7c2',
-  minor: '#8f9095',
-  cycle: '#b8703a',
-  foot: '#6d6f66',
-};
-const ROAD_WIDTH_PX = { major: 2.4, normal: 1.4, minor: 1.0, cycle: 0.9, foot: 0.6 };
-const ROAD_ORDER = { foot: 0, cycle: 1, minor: 2, normal: 3, major: 4 };
+// (read live: the palette turns to its night colours, see mapstyle.js)
+const roadColors = (cat) => (cat === 'normal' ? MAP_STYLE.road : MAP_STYLE[cat] || MAP_STYLE.road);
 
 let state = null;
 let stylesInjected = false;
@@ -522,7 +508,7 @@ function renderTile(L, tx, ty) {
   c.clearRect(0, 0, TILE_PX, TILE_PX);
   c.setTransform(s, 0, 0, s, -wx0 * s, -wy0 * s);
   const [rx0, ry0, rx1, ry1] = state.real;
-  c.fillStyle = LAND;
+  c.fillStyle = MAP_STYLE.meadow;
   if (wx0 < rx1 && wx0 + tws > rx0 && wy0 < ry1 && wy0 + tws > ry0) {
     c.fillRect(Math.max(rx0, wx0), Math.max(ry0, wy0), Math.min(rx1, wx0 + tws) - Math.max(rx0, wx0), Math.min(ry1, wy0 + tws) - Math.max(ry0, wy0));
   }
@@ -553,14 +539,14 @@ function renderTile(L, tx, ty) {
   const cssPerM = state.baseScale * z;
   const px = (n) => n / cssPerM;
 
-  c.fillStyle = GREEN;
+  c.fillStyle = MAP_STYLE.park;
   for (const g of view.green) fillPoly(c, g.pts);
 
   const mode = state.mode || 'lopen';
   // per travel mode: the water stands out for a boat, the land steps back
   const landA = mode === 'boot' ? 0.4 : mode === 'lucht' ? 0.55 : mode === 'ov' ? 0.6 : 1;
-  c.fillStyle = WATER;
-  c.strokeStyle = WATER_EDGE;
+  c.fillStyle = MAP_STYLE.water;
+  c.strokeStyle = MAP_STYLE.waterEdge;
   c.lineWidth = px((z < MID_ZOOM ? 1.2 : 0.8) * (mode === 'boot' ? 2 : 1));
   c.lineJoin = 'round';
   for (const w of view.water) {
@@ -571,7 +557,7 @@ function renderTile(L, tx, ty) {
   if (z >= BUILDING_ZOOM && layerOn('buildings')) {
     c.globalAlpha = landA;
     for (const b of view.buildings) {
-      c.fillStyle = b.landmark ? BUILDING_LANDMARK : BUILDING;
+      c.fillStyle = b.landmark ? MAP_STYLE.church : MAP_STYLE.building;
       fillPoly(c, b.pts);
     }
     c.globalAlpha = 1;
@@ -584,13 +570,12 @@ function renderTile(L, tx, ty) {
   }).sort((a, b) => ROAD_ORDER[a.cat] - ROAD_ORDER[b.cat]);
   c.lineCap = 'round';
   for (const r of roads) {
-    const base = ROAD_WIDTH_PX[r.cat] || 1;
-    const wpx = z >= NEAR_ZOOM ? Math.max(base, (r.width || 4) * cssPerM * 0.85) : z < MID_ZOOM && r.cat === 'normal' ? 0.9 : base;
+    const wpx = roadWidthPx(r.cat, z, r.width, cssPerM);
     c.beginPath();
     c.moveTo(r.pts[0][0], r.pts[0][1]);
     for (let i = 1; i < r.pts.length; i++) c.lineTo(r.pts[i][0], r.pts[i][1]);
     if (r.bridge && z >= MID_ZOOM) {
-      c.strokeStyle = '#0c140e';
+      c.strokeStyle = EMPHASIS.bridgeCasing;
       c.lineWidth = px(wpx + 2);
       c.stroke();
     }
@@ -598,9 +583,9 @@ function renderTile(L, tx, ty) {
     // the roads for your way of travel stand out; the ones that are not for you step back
     let a = z < MID_ZOOM && r.cat === 'normal' ? 0.6 : 1;
     a *= landA;
-    let wpx2 = wpx, col = ROAD_COLORS[r.cat] || ROAD_COLORS.normal;
-    if (mode === 'lopen' && r.cat === 'foot') { col = '#d9d4c4'; wpx2 = wpx * 1.4; }
-    else if (mode === 'fiets' && r.cat === 'cycle') { col = '#ff8a5c'; wpx2 = wpx * 1.6; }
+    let wpx2 = wpx, col = roadColors(r.cat);
+    if (mode === 'lopen' && r.cat === 'foot') { col = EMPHASIS.foot; wpx2 = wpx * 1.4; }
+    else if (mode === 'fiets' && r.cat === 'cycle') { col = EMPHASIS.cycle; wpx2 = wpx * 1.6; }
     else if (mode === 'auto' && r.cat === 'major') wpx2 = wpx * 1.2;
     if (allowed === false && r.cat !== 'major') a *= 0.35;
     c.strokeStyle = col;
@@ -611,7 +596,7 @@ function renderTile(L, tx, ty) {
     // "niet voor jou": a trunk road you may not walk or cycle on, red and dashed
     if (allowed === false && r.cat === 'major') {
       c.setLineDash([px(6), px(4)]);
-      c.strokeStyle = '#d93f3f';
+      c.strokeStyle = EMPHASIS.forbidden;
       c.lineWidth = px(Math.max(1.4, wpx * 0.5));
       c.stroke();
       c.setLineDash([]);
@@ -981,7 +966,7 @@ function compose() {
   const c = state.composeCtx;
   c.setTransform(1, 0, 0, 1, 0, 0);
   c.clearRect(0, 0, state.compose.width, state.compose.height);
-  c.fillStyle = COUNTRY;
+  c.fillStyle = MAP_STYLE.meadow;
   c.fillRect(0, 0, state.compose.width, state.compose.height);
   c.imageSmoothingEnabled = true;
 
@@ -1658,7 +1643,7 @@ function drawLegendIcon(ctx, kind) {
     ctx.fillStyle = kind === 'text-wijk' ? 'rgba(240, 237, 228, 0.6)' : '#f0ede4';
     ctx.fillText(kind === 'text-wijk' ? 'WIJK' : 'Abc', 12, 13);
   } else if (kind === 'buildings') {
-    ctx.fillStyle = BUILDING;
+    ctx.fillStyle = MAP_STYLE.building;
     ctx.fillRect(5, 6, 8, 7);
     ctx.fillRect(14, 9, 6, 10);
     ctx.fillRect(4, 15, 8, 5);
@@ -2172,6 +2157,7 @@ export function updateMapView(dt, world) {
   updateFog(world);
   updateRouting(dt, world);
   if (!state.open) return;
+  if (syncMapPhase(world) !== state.phase) { state.phase = syncMapPhase(world); clearTiles(); }
   handleKeys(dt, world);
   render(world);
 }

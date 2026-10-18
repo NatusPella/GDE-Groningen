@@ -1,6 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { FLAGS } from './devflags.js';
 import { canvasTex as canvasTexture } from './canvastex.js';
+import { mulberry32 } from './rng.js';
 import { getScene, prewarmStreamAt } from './scene3d.js';
 import { speakerHtml } from './speakers.js';
 import { getSettings, QUALITY_PRESETS, withTempSettings } from './settings.js';
@@ -70,15 +71,6 @@ const lerp = (a, b, t) => a + (b - a) * t;
 const clamp01 = (t) => (t < 0 ? 0 : t > 1 ? 1 : t);
 const smooth = (t) => { t = clamp01(t); return t * t * (3 - 2 * t); };
 const lerpP = (a, b, t) => P(lerp(a.x, b.x, t), lerp(a.y, b.y, t), lerp(a.z, b.z, t));
-
-function mulberry32(a) {
-  return () => {
-    a = (a + 0x6d2b79f5) | 0;
-    let t = Math.imul(a ^ (a >>> 15), 1 | a);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
 
 function polyline(pts) {
   const cum = [0];

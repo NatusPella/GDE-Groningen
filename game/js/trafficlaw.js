@@ -59,8 +59,7 @@ const STAR_TEXT = 'Een agent heeft je gezien. Politie! Je hebt een ster';
 
 export function exempt(world, v) {
   if (!world.player || world.health <= 0 || world.pendingRespawn || world.pigeonMode || world.heliRun || world.trainDriving || world.trainCam) return true;
-  if (playerBusy(world, ['padel', 'activityGame', 'challenge']).busy || world.cameraOverride) return true;
-  if (world.sideJob && world.sideJob.active) return true;
+  if (playerBusy(world, ['padel', 'activityGame', 'challenge', 'sideJob']).busy || world.cameraOverride) return true;
   if (world.mission && world.mission.phase === 'active') return true;
   if (v && (v.isPolice || v.isAmbulance || v.sirenOn || v.isBus)) return true;
   return false;
