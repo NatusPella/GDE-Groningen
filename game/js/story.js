@@ -898,7 +898,7 @@ function initSkipUi() {
     '#story-skip button{zoom:var(--ui,1);display:flex;gap:10px;align-items:center;font:18px/1.1 \'Bebas Neue\',\'Arial Narrow\',Arial,sans-serif;letter-spacing:1px;color:#f0ede4;' +
     'background:radial-gradient(ellipse at center,rgba(23,48,31,.94),rgba(12,20,14,.94));border:1px solid rgba(63,201,122,.6);border-radius:4px;padding:9px 16px;cursor:pointer;box-shadow:0 6px 24px rgba(0,0,0,.4)}' +
     '#story-skip button:hover,#story-skip button:focus-visible{border-color:#3fc97a;box-shadow:0 0 0 1px #3fc97a,0 6px 24px rgba(0,0,0,.4);outline:none}' +
-    '#story-skip .hud-key{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 6px;background:#fbfaf5;border:0;border-radius:5px;color:#0c140e;font:bold 13px/1 'Bebas Neue','Arial Narrow',Arial,sans-serif;letter-spacing:1px;' +
+    '#story-skip .hud-key{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 6px;background:#fbfaf5;border:0;border-radius:5px;color:#0c140e;font:bold 13px/1 \'Bebas Neue\',\'Arial Narrow\',Arial,sans-serif;letter-spacing:1px;' +
     'box-shadow:0 2px 0 #a9a69b,0 0 0 1px rgba(0,0,0,.18)}' +
     'body.cine-hide-hud #story-skip{display:none}';
   document.head.appendChild(style);

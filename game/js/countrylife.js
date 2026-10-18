@@ -297,8 +297,18 @@ export function setRealRoadBlocks(list) {
 
 // Carry on at the end of a road: another road touching this point (not
 // against its one-way direction), else turn round.
+// How much of its speed a road user keeps when it moves on from one way to the
+// next at a turn of `turn` rad (#165): all of it where the road simply carries on
+// into the next way (OSM cuts a road at every junction, so a straight road is
+// many ways), 0.7 for a right-angle corner, 0.4 turning back.
+export function turnSpeedFactor(turn) {
+  const t = Math.abs(((turn + Math.PI * 3) % (Math.PI * 2)) - Math.PI);
+  return 1 - 0.6 * Math.min(1, t / Math.PI);
+}
+
 function realJunction(a) {
   const r = a.road;
+  const h0 = headingOf(a);
   const end = a.dir > 0 ? r.pts[r.pts.length - 1] : r.pts[0];
   const opts = [];
   for (const o of L.map.roadsNear(end[0], end[1], 3)) {
@@ -321,7 +331,7 @@ function realJunction(a) {
   const o = opts[Math.floor(Math.random() * opts.length)];
   a.road = o.road; a.si = o.si; a.dir = o.dir;
   a.t = o.dir > 0 ? 0 : segDir(a)[2];
-  a.speed *= 0.7;
+  a.speed *= turnSpeedFactor(headingOf(a) - h0);
   return true;
 }
 
