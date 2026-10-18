@@ -1736,6 +1736,7 @@ function followSpeedLimit(v, path, world, decel, chase) {
   const creeping = world.time < (v.creepUntil || 0);
   for (const o of world.vehicles) {
     if (o === v || o.isBoat || o.sinking || o.id === ignoring) continue;
+    if (chase && v.chaseDodge && o.driver === 'player') continue;
     const dx = o.x - v.x, dy = o.y - v.y;
     if (dx * dx + dy * dy > (PATH_LEN + 5) ** 2) continue;
     const rel = Math.cos(o.angle - v.angle);
