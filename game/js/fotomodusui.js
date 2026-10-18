@@ -111,8 +111,8 @@ function renderBar() {
   const p = photo.p;
   const bar = overlay.querySelector('.foto-bar');
   bar.innerHTML =
-    `<span class="foto-info">${esc(F.hourLabel(p.hour))} · ${esc(F.weatherLabel(p))} · ${esc(F.FILTERS.find((f) => f.id === p.filter).naam)} · zoom ${Math.round(p.fov)}°</span>` +
-    KEYBTN('Enter', 'Foto') + KEYBTN('F', 'Filter') + KEYBTN('T', 'Weer') + KEYBTN(', .', 'Tijd') + KEYBTN('[ ]', 'Zoom') + KEYBTN('G', 'Raster') +
+    `<span class="foto-info">${esc(F.hourLabel(p.hour))} · ${esc(F.weatherLabel(p))} · ${esc(F.FILTERS.find((f) => f.id === p.filter).naam)} · beeldhoek ${Math.round(p.fov)}°</span>` +
+    KEYBTN('Enter', 'Foto') + KEYBTN('F', 'Filter') + KEYBTN('T', 'Weer') + KEYBTN(', .', 'Tijd') + KEYBTN('[ ]', 'Inzoomen') + KEYBTN('G', 'Raster') +
     '<button type="button" class="foto-btn" data-foto-shoot>Foto maken</button><button type="button" class="foto-btn" data-foto-stop>Terug</button>';
   overlay.querySelector('.foto-grid').hidden = !p.grid;
   const n = overlay.querySelector('.foto-note');
