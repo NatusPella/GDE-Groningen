@@ -122,6 +122,7 @@ for (const ratio of [0.8, 1, 1.2, 1.25, 1.5, 2, 2.4, 3, 4.8]) {
 ok(L.vehicleKind(null) === null && L.vehicleKind({ isBike: true }) === 'bike' && L.vehicleKind({ isBoat: true }) === 'boat' && L.vehicleKind({ isHeli: true }) === 'heli' && L.vehicleKind({ isScooter: true }) === 'scooter' && L.vehicleKind({}) === 'car' && L.vehicleKind({}, { train: true }) === 'train', 'vehicle kinds');
 for (const k of L.VEHICLE_KINDS) ok(L.VEHICLE_HUD[k].speed && L.speedoLook(k, true).visible, 'every vehicle shows its speed: ' + k);
 ok(L.speedoLook('car', true).gears && L.speedoLook('car', true).rpm && !L.speedoLook('car', false).rpm, 'a car with an engine shows gears and revs');
+ok(L.vehicleKind({ isScooter: true, model: { motorbike: 'sport' } }) === 'motor' && L.vehicleKind({ isScooter: true, model: { moped: true, geared: true } }) === 'motor' && L.vehicleKind({ isScooter: true, model: { moped: true } }) === 'scooter', 'motor en brommer met versnellingen zijn motor'); ok(L.speedoLook('motor', true).gears && L.speedoLook('motor', true).rpm && !L.speedoLook('motor', false).gears, 'motor toont versnelling en toeren met een motor');
 for (const k of ['bike', 'boat', 'heli', 'train', 'scooter']) ok(!L.speedoLook(k, true).gears && !L.speedoLook(k, true).rpm, 'no gears or revs on ' + k);
 ok(!L.speedoLook('bike').damage && !L.speedoLook('train').damage && L.speedoLook('boat').damage, 'damage meter only where a vehicle can break');
 ok(!L.speedoLook('onbekend').visible, 'unknown vehicle: nothing');

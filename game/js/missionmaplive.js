@@ -11,6 +11,9 @@ import { getKartMapState } from './kartbaan.js';
 import { getUserWaypoint } from './routing.js';
 import { getGaragesForRender } from './garages.js';
 import { showCard } from './hudcards.js';
+import { bridgesAhead } from './boatahead.js';
+import { getServiceMapState } from './machinist.js';
+import { clearanceOver, waterAt, airDraftOf } from './waterlevels.js';
 
 let cache = { at: -1, world: null, layer: null };
 let prevLayer = null;
@@ -42,6 +45,14 @@ function snapshot(world) {
   }
   const sj = world.sideJob;
   if (sj && sj.active && sj.bus) s.bus = sj.bus;
+  // a boat under way: the bridges ahead and whether this boat fits under them
+  const boat = p.inVehicle && p.inVehicle.isBoat ? p.inVehicle : null;
+  if (boat) {
+    const level = (w) => (w ? w.level : undefined);
+    s.boat = { airDraught: airDraftOf(boat), bridges: bridgesAhead(boat, (x, y) => clearanceOver(world.map, x, y, level(waterAt(world.map, x, y)))) };
+  }
+  const train = getServiceMapState(world);
+  if (train) s.train = train;
   const hm = getHeliRunMarks();
   if (hm) s.heli = { rings: hm.rings, pad: hm.pad, balloon: hm.balloon };
 

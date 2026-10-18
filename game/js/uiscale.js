@@ -6,9 +6,7 @@
 // OS/retina scaling already shrinks innerHeight, so devicePixelRatio only
 // matters for canvas backing stores (hudPixelRatio).
 import { getSettings, onSettingsChange } from './settings.js';
-
-const BASE_W = 1440;
-const BASE_H = 900;
+import { uiScaleFor } from './hudlook.js';
 
 let scale = 0;
 const listeners = new Set();
@@ -38,9 +36,7 @@ export function onUiScaleChange(cb) {
 }
 
 function compute() {
-  const auto = Math.max(1, Math.min(window.innerHeight / BASE_H, window.innerWidth / BASE_W));
-  const user = Number(getSettings().uiScale) || 1;
-  return Math.round(Math.min(4, Math.max(0.8, auto * user)) * 1000) / 1000;
+  return uiScaleFor(window.innerWidth, window.innerHeight, getSettings().uiScale);
 }
 
 // The pause card (about 600 px tall) must fit between the top and the
