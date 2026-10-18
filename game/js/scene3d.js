@@ -15,9 +15,12 @@ import {
 import { DEAD_DURATION } from './pedestrians.js';
 import { attachCarry, carryPose } from './streetlife3d.js';
 import { buildPersonMesh, animatePersonWalk, applyAttackPose, applyHitReaction, setHeldWeapon, seatPose, seatedY, waveOverlay, carryOverlay, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
+import { syncDoorsNear, vraagVoorAnim } from './vehicledoors3d.js';
 import { vehicleSeat, placeSeated, makeSeatTracker, trackSeat, drawTransition, syncBoatCrew } from './seating3d.js';
 import { updateCarInterior } from './carinterior.js';
 import { updateSwimmers3D } from './swimmers3d.js';
+import { neutralPose, blendPose, applyPose } from './actoranim.js';
+import { sprongStand } from './bewegingrules.js';
 import { driveRagdoll, syncBikeRider } from './ragdoll.js';
 import { applyWeatherToScene3D } from './weather.js';
 import { quakeJitter } from './eventrules.js';
@@ -73,11 +76,14 @@ import { createPostFX } from './postfx3d.js';
 import { noteGfxEvent, watchContext } from './blackframe.js';
 import { spawnExplosionFx, setFxCamera } from './fx3d.js';
 import { litFraction, moonPhase, STAR_SHARE } from './nightrules.js';
+import { qualityLook } from './weatherlook.js';
 import { initNightLights, setNightLightQuality, updateNightLights, isLightRigOn, setLightRigVisible } from './nightlights3d.js';
 import { createFarLOD } from './farlod.js';
 import { SECTION, TILE_M, tileOrigin } from './gdt.js';
 import { initRailway3D, updateRailway3D, prewarmRailAt } from './railway3d.js';
 import { updateStationCrowd3D } from './stationlife3d.js';
+import { updateEvenementen3D } from './evenementen3d.js';
+import { today as calendarTodayEv } from './calendarday.js';
 import { railZ } from './railway.js';
 import { cameraFocus } from './tilefocus.js';
 import { initMovableBridges3D, updateMovableBridges3D, openBridgeRoads } from './movablebridges3d.js';
@@ -195,6 +201,7 @@ const vehicleFireMeshes = new Map();
 let impactSparkEffects = [];
 let vehicleExplosionEffects = [];
 const vehicleMeshes = new Map();
+const doorAsk = new Map(); // voertuig -> deurvraag uit de in-/uitstapanimatie (vehicledoors3d.js)
 const pedMeshes = new Map();
 const wildlifeMeshes = new Map();
 const speechBubbleEls = new Map();
@@ -222,6 +229,13 @@ const kissMeshes = new Map();
 // Kiss heart: a camera-facing sprite from a canvas heart (bezier outline,
 // glossy gradient, white rim), so it reads as a heart from every angle.
 let kissHeartTex = null;
+// Over een hek of hindernis: de sprongstand uit bewegingrules.js (#207) op de botten van de speler.
+function vaultPose(mesh, u) {
+  const p = neutralPose();
+  blendPose(p, sprongStand(u), 1);
+  applyPose(mesh.userData, p);
+}
+
 function kissHeartTexture() {
   if (kissHeartTex) return kissHeartTex;
   const S = 128;
@@ -2019,6 +2033,7 @@ export function update3D(dt, world) {
   probe.mark('3d:trees');
   updateRailway3D(dt, world, focus, viewDist);
   updateStationCrowd3D(scene, world, railZ);
+  updateEvenementen3D(scene, world, calendarTodayEv(world), (x, y) => (world.map.spawnZ ? world.map.spawnZ(x, y) : 0));
   updateCountryside(dt, world, scene, cam, viewDist);
   updateOmmelandLandmarks(world, scene, focus);
   probe.mark('3d:rail+country');
@@ -2341,6 +2356,8 @@ export function update3D(dt, world) {
   const pvMesh = pv ? vehicleMeshes.get(pv.id) : null;
   const inCabin = !!pv && updateCarInterior(pvMesh, pv, !!(world.cameraOverride && world.cameraOverride.interior));
   const pAnim = trackSeat(playerSeatTr, player, animDt, true);
+  doorAsk.clear();
+  if (pAnim) doorAsk.set(pAnim.v, vraagVoorAnim(pAnim, 'bestuurder'));
   syncPlayerRider(pv, pvMesh, hidePlayers || (pAnim && pAnim.kind === 'enter'), world.time);
   if (pAnim && !hidePlayers) {
     // enter/exit animation (visual only; any input skips it)
@@ -2368,6 +2385,7 @@ export function update3D(dt, world) {
       playerMesh.userData.air = player.vault ? player.airPose || 0 : !player.perch && !player.swimming && player.z > 0.25 ? 0.45 : 0;
       playerMesh.userData.shadow.position.y = 0.02 - (player.z || 0) / playerMesh.scale.y;
       animatePersonWalk(playerMesh, Math.hypot(player.vx, player.vy), animDt);
+      if (player.vault && Number.isFinite(player.vaultU)) vaultPose(playerMesh, player.vaultU);
       if (player.sofaSeat != null) { seatPose(playerMesh); playerMesh.position.y = seatedY(playerMesh, (player.gz || 0) + player.sofaSeat); }
       if (player.carrying) carryOverlay(playerMesh);
       const gun = isRangedWeapon(world.weapon) && (world.ammo[world.weapon] || 0) > 0 ? world.weapon : null;
@@ -2400,6 +2418,7 @@ export function update3D(dt, world) {
     }
     const cv = comp.inVehicle;
     const cAnim = trackSeat(companionSeatTr, comp, animDt, false);
+    if (cAnim && !doorAsk.has(cAnim.v)) doorAsk.set(cAnim.v, vraagVoorAnim(cAnim, 'bijrijder'));
     if (cAnim && !hidePlayers) {
       drawTransition(cAnim, companionMesh, vehicleMeshes.get(cAnim.v.id), comp, vehicleSeat(cAnim.v, false), animDt, world.time);
     } else if (cv) {
@@ -2426,6 +2445,7 @@ export function update3D(dt, world) {
   // pull-in so the camera never ends up clipped inside a building, and an
   // instant snap on teleport (respawn/mission warp) instead of a long lerp
   // that would otherwise glide the camera straight through geometry
+  syncDoorsNear(world, vehicleMeshes, player.x, player.y, animDt, doorAsk);
   probe.mark('3d:players');
   // a stolen train (traindrive.js) is followed like a very long vehicle
   const camVeh = player.inVehicle || world.trainCam || null;
@@ -3145,7 +3165,7 @@ function applyTimeOfDay(dt, world) {
 
   renderer.toneMappingExposure = L.exp;
   setStarOpacity(skyDome, L.night * (1 - storm));
-  setNightFactor(1.5 * L.night, litFraction('wonen', L.hour), litFraction('winkel', L.hour));
+  setNightFactor(1.5 * L.night, litFraction('wonen', L.hour), litFraction('winkel', L.hour), litFraction('kantoor', L.hour));
   farLod.setNight(1.5 * L.night, litFraction('wonen', L.hour));
   setCountryNight(1.5 * L.night, litFraction('wonen', L.hour));
   scene.fog.near = lightBase.fogNear;
@@ -3160,6 +3180,7 @@ function applyTimeOfDay(dt, world) {
   for (const m of PAVED_MATS) m.envMapIntensity = envBoost;
   terrainMesh.material.envMapIntensity = envBoost;
   WET_UNIFORMS.uRainTime.value = world.time;
+  WET_UNIFORMS.uPuddle.value = qualityLook(getSettings().quality).puddles;
 
   postfx.apply(L, storm);
 }

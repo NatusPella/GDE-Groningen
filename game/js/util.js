@@ -25,6 +25,23 @@ export function normalizeAngle(a) {
 }
 
 // Closest point on segment [a,b] to point p. Returns {x,y,t,dist2}.
+// Nearest point on the centre line of any road of the list that passes ok(road): the one plain
+// scan under tileplace.nearestOnRoads and the tile generator's nearestRoad (#102). -> { road, i (segment),
+// t, x, y, d2, d, dx, dy (the segment's direction), ux, uy (unit) } or null.
+export function nearestOnRoadList(roads, x, y, ok = null) {
+  let best = null;
+  for (const road of roads) {
+    if (ok && !ok(road)) continue;
+    const P = road.pts;
+    for (let i = 0; i < P.length - 1; i++) {
+      const cp = closestPointOnSegment(x, y, P[i][0], P[i][1], P[i + 1][0], P[i + 1][1]);
+      if (!best || cp.dist2 < best.d2) best = { road, i, t: cp.t, x: cp.x, y: cp.y, d2: cp.dist2, dx: P[i + 1][0] - P[i][0], dy: P[i + 1][1] - P[i][1] };
+    }
+  }
+  if (best) { best.d = Math.sqrt(best.d2); const L = Math.hypot(best.dx, best.dy) || 1e-9; best.ux = best.dx / L; best.uy = best.dy / L; }
+  return best;
+}
+
 export function closestPointOnSegment(px, py, ax, ay, bx, by) {
   const abx = bx - ax, aby = by - ay;
   const len2 = abx * abx + aby * aby;

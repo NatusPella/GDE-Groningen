@@ -227,7 +227,7 @@ export class Vehicle {
     // een lekke band (v.flat): trager en de auto trekt scheef
     const top = (tune ? tune.top : m.maxSpeed) * (this.flat ? FLAT_TOP_FACTOR : 1);
     // wet road / puddle grip (0..1), set each frame for the player's vehicle
-    const grip = isPlayer ? this.gripK ?? 1 : 1;
+    const grip = isPlayer ? Math.min(1, (this.gripK ?? 1) * (this.tuning ? this.tuning.grip : 1)) : 1;
     const brakeMax = (tune ? tune.brake : m.brake) * (0.4 + 0.6 * grip);
     if (this.disabled) throttle = 0;
     const brake = brakeInput === true ? 1 : brakeInput || 0;

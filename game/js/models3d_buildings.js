@@ -158,8 +158,8 @@ const FLAT_ROOF_TONES = [0x747478, 0x5e5f63, 0x7e7a73, 0x6c6e6a];
 const flatRoofMaterials = FLAT_ROOF_TONES.map((c) => habboMaterial(c, { map: flatRoofTexture }));
 const detailMaterial = vcMaterial({ side: THREE.DoubleSide });
 
-export function setNightFactor(glow, litFrac, shopFrac = litFrac) {
-  setGlassNight(glow, litFrac, shopFrac);
+export function setNightFactor(glow, litFrac, shopFrac = litFrac, officeFrac = litFrac) {
+  setGlassNight(glow, litFrac, shopFrac, officeFrac);
   setLandmarkNight(glow);
 }
 
