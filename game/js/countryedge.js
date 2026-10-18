@@ -198,6 +198,12 @@ let extraUse = null;
 export function setExtraUse(fn) { extraUse = fn; }
 export const landUseAt = (x, y) => (extraUse ? extraUse(x, y) : null);
 
+// Is a mapped hedge (OSM barrier=hedge, in the tiles) within r of a point? The countryside's own hedges keep off it: the data wins
+// where it speaks, the hash only where it is silent (#124).
+let extraHedge = null;
+export function setExtraHedge(fn) { extraHedge = fn; }
+export const hedgeMapped = (x, y, r) => (extraHedge ? extraHedge(x, y, r) : false);
+
 // Kept clear of props, farms and turbines: what the tiles hold, and the rails.
 export function edgeBlocked(x, y, margin = 3) {
   if (extraBlocked && extraBlocked(x, y, margin)) return true;

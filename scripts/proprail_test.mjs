@@ -125,5 +125,28 @@ CE.EDGE.ready = false;
   ok(PW.realUseAt({ resident: new Set(), landUseAt: () => 'akker' }, isT, 500, 500) === null, 'and is silent for a tile that is not in');
 }
 
+// a mapped OSM hedge keeps the hash's own hedges out (#124)
+{
+  const CS = await import('../game/js/countryside.js');
+  const CF = await import('../game/js/countryfield.js');
+  const PW2 = await import('../game/js/provinceworld.js');
+  CF.setCountryBounds([-2000, -2000, 2000, 2000]);
+  const hedges = (hook) => {
+    CE.setExtraHedge(hook);
+    let h = 0;
+    for (let tx = 40; tx < 48; tx++) for (let ty = 40; ty < 48; ty++) h += ((CS.countryTileItems(tx, ty).items.hedge || { m: [] }).m.length) / 16;
+    CE.setExtraHedge(null);
+    return h;
+  };
+  const free = hedges(null), mapped = hedges(() => true);
+  ok(free > 50, 'the hash makes hedges', String(free));
+  ok(free - mapped >= 50, 'the hash grid hedges (cross ditches, road verges) stay out where OSM maps a hedge; the farm and village ones are not the grid', free + ' vs ' + mapped);
+  const row = { pts: [[0, 0], [100, 0]] };
+  const m = { hedgeNear: (x, y, r) => (Math.abs(y) <= r + 1 ? [row] : []) };
+  ok(PW2.realHedgeNear(m, 50, 3, 6) && !PW2.realHedgeNear(m, 50, 9, 6) && !PW2.realHedgeNear({}, 50, 1, 6), 'a mapped hedge within r, not beyond, not without a world query');
+  const { TileWorld } = await import('../game/js/tileworld.js');
+  ok(TileWorld.prototype.hedgeNear.call({}, 0, 0, 5).length === 0, 'a world without mapped hedges is silent');
+}
+
 console.log(`${n} checks, ${fails} failed`);
 process.exit(fails ? 1 : 0);
