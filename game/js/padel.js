@@ -16,6 +16,7 @@ import { PADEL_PAIR, PADEL_TWINS } from './padellines.js';
 import { bubbleVoiceFor } from './linevoice.js';
 import { playLineVoice } from './audio.js';
 import { rand } from './rng.js';
+import { SET_GAMES, scorePoint, pointCall, judgeServeHit, serveInBox, serveFault, wallKind, judgeWall } from './padelrules.js';
 import { loadEchtePlekken, padelDefs } from './echteplekken.js';
 import { tilesIn, withTiles } from './tileplace.js';
 
@@ -27,8 +28,10 @@ import { tilesIn, withTiles } from './tileplace.js';
 // when the ball is in reach (the ring under you turns green; A/D/W/S at the
 // swing aim the shot). Simplified rules: the ball must bounce once in the
 // other half before it may hit a wall there; two bounces, a ball into the
-// net or straight into the far glass lose the point. Padel counting with a
-// golden point at 40-40, first to two games; after MATCH_CAP s the next
+// net or straight into the far glass lose the point. The serve is underhand
+// (padelrules.js): the ball bounces, you hit it below the waist into the diagonal
+// box, two faults lose the point; glass and fence ring differently. Padel
+// counting with a golden point at 40-40, a short set of four games; after MATCH_CAP s the next
 // point ends it. Afterwards: full health and PADELFIT (health regenerates
 // for a few minutes), a little money for a win, a medal record and a
 // cooldown on that court.
@@ -48,8 +51,8 @@ const REACH = 1.45, REACH_Z = 2.4;
 const LATE_S = 0.15;
 const ME_SPEED = 5.8, MATE_SPEED = 3.2;
 const SWING_T = 0.32, SWING_BUFFER = 0.24;
-const GAMES_TO_WIN = 2;
-const MATCH_CAP = 150;
+const GAMES_TO_WIN = SET_GAMES; // a short set: first to four games (padelrules.js)
+const MATCH_CAP = 240;
 const INTRO_S = 2.6, POINT_S = 1.5, OUTRO_S = 1.2;
 const COOLDOWN_S = 240;
 const FIT_WIN_S = 300, FIT_LOSE_S = 180, FIT_RATE = 1.2;
@@ -513,12 +516,20 @@ function look(opts) {
   if (hand) {
     const r = new THREE.Group();
     const m2 = materials();
-    const head = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.035, 16), m2.racket);
+    // a pala: a stringless, solid blade with holes, a short handle
+    const head = new THREE.Mesh(new THREE.CylinderGeometry(0.17, 0.17, 0.045, 18), m2.racket);
     head.rotation.z = Math.PI / 2;
-    head.position.y = -0.38;
+    head.scale.set(1, 1, 1.15);
+    head.position.y = -0.34;
     r.add(head);
-    const grip = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.2, 0.035), m2.grip);
-    grip.position.y = -0.13;
+    for (let k = 0; k < 6; k++) {
+      const hole = new THREE.Mesh(new THREE.CircleGeometry(0.018, 8), m2.grip);
+      hole.position.set(0.024, -0.3 - (k % 3) * 0.05, Math.floor(k / 3) ? 0.05 : -0.05);
+      hole.rotation.y = Math.PI / 2;
+      r.add(hole);
+    }
+    const grip = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.14, 0.035), m2.grip);
+    grip.position.y = -0.1;
     r.add(grip);
     r.position.y = -(PERSON_RIG.FOREARM || 0.26) - 0.02;
     hand.add(r);
@@ -621,7 +632,7 @@ function hitBall(g, who, side, ut, vt, T, fault = false, q = 0.5) {
   g.rally++;
   g.bestRally = Math.max(g.bestRally, g.rally);
   predictLanding(g);
-  pushAudioEvent(g.w || { audioEvents: [] }, { kind: 'bonk', strength: 0.35 });
+  pushAudioEvent(g.w || { audioEvents: [] }, { kind: 'pala', strength: 0.35 + q * 0.4 });
 }
 
 function sideOf(v) { return v < 0 ? 0 : 1; }
@@ -633,20 +644,31 @@ function pointTo(w, team, why = '') {
   g.lastWinner = team;
   g.ball.live = false;
   if (team === 0) g.pointsWon++;
-  const [a, b] = g.points;
-  const golden = a >= 3 && b >= 3;
-  g.points[team]++;
-  const gameWon = golden || g.points[team] >= 4;
-  if (gameWon) {
-    g.games[team]++;
-    g.points = [0, 0];
-    g.serveSide = -g.serveSide;
-  }
-  const over = g.games[team] >= GAMES_TO_WIN || g.capped;
+  const r = scorePoint({ points: g.points, games: g.games }, team, GAMES_TO_WIN);
+  const gameWon = r.gameWon;
+  g.points = r.points;
+  g.games = r.games;
+  g.faults = 0;
+  if (gameWon) g.serveSide = -g.serveSide;
+  const over = r.over || g.capped;
   oppSay(w, Math.random() < 0.5 ? 0 : 1, team === 1 ? 'score' : 'lose');
-  g.flash = { text: over ? '' : gameWon ? `Game ${team === 0 ? 'voor jullie' : 'voor hen'}` : team === 0 ? 'Punt voor jullie' : 'Punt voor hen', why, t: POINT_S };
+  g.flash = { text: over ? (team === 0 ? 'Set voor jullie' : 'Set voor hen') : gameWon ? `Game ${team === 0 ? 'voor jullie' : 'voor hen'}` : team === 0 ? 'Punt voor jullie' : 'Punt voor hen', why, t: POINT_S };
   g.phase = over ? 'outro' : 'point';
   g.phaseT = over ? OUTRO_S : POINT_S;
+}
+
+// A fault on the serve: a second serve, or after two a point for the receivers.
+function fault(w, why) {
+  const g = game;
+  const f = serveFault(g.faults || 0);
+  g.ball.live = false;
+  if (f.double) { pointTo(w, 1 - g.server, 'Dubbele fout'); return; }
+  g.faults = f.faults;
+  g.flash = { text: 'Fout: tweede serve', why, t: POINT_S };
+  g.ball = null;
+  g.phase = 'serve';
+  g.phaseT = g.server === 0 ? 6 : rand(0.9, 1.4);
+  g.rally = 0;
 }
 
 function stepBall(w, dt) {
@@ -661,6 +683,7 @@ function stepBall(w, dt) {
     // net
     if ((v0 < 0) !== (b.v < 0)) {
       const into = sideOf(b.v);
+      if (b.z < NET_H && b.serve && !b.serveOk) { fault(w, 'Serve in het net'); return; }
       if (b.z < NET_H) {
         b.v = v0 < 0 ? -0.06 : 0.06;
         b.vv *= -0.2; b.vu *= 0.5; b.vz = Math.min(b.vz, 0);
@@ -675,6 +698,11 @@ function stepBall(w, dt) {
         b.vz = -b.vz * 0.7; b.vu *= 0.86; b.vv *= 0.86;
         pushAudioEvent(w, { kind: 'plop', x: toMap(g.f, b.u, b.v).x, y: toMap(g.f, b.u, b.v).y, strength: 0.25 });
         const s = sideOf(b.v);
+        if (b.serve && !b.serveOk) {
+          // the serve has to land in the diagonal box on the far side
+          if (s !== b.hitter && serveInBox(b.serveU, b.hitter, b.u, b.v)) b.serveOk = true;
+          else { fault(w, s === b.hitter ? 'Serve in het net' : 'Serve buiten het vak'); return; }
+        }
         if (s === b.hitter) { pointTo(w, 1 - b.hitter, b.crossed ? '' : 'In het net'); return; }
         if (++b.bounces >= 2) { pointTo(w, b.hitter, 'Twee keer gestuit'); return; }
       }
@@ -683,10 +711,16 @@ function stepBall(w, dt) {
     const wallU = Math.abs(b.u) > W2 - BALL_R, wallV = Math.abs(b.v) > L2 - BALL_R;
     if (wallU || wallV) {
       const s = sideOf(b.v);
-      if (b.z > WALL_H) { pointTo(w, b.bounces ? b.hitter : 1 - b.hitter, b.bounces ? 'Over het glas' : 'Uit'); return; }
-      if (s !== b.hitter && b.bounces === 0) { pointTo(w, 1 - b.hitter, 'Direct tegen het glas'); return; }
-      if (wallU) { b.u = Math.sign(b.u) * (W2 - BALL_R); b.vu *= -0.72; b.vv *= 0.9; }
-      if (wallV) { b.v = Math.sign(b.v) * (L2 - BALL_R); b.vv *= -0.72; b.vu *= 0.9; }
+      const j = judgeWall({ z: b.z, side: s, hitter: b.hitter, bounces: b.bounces });
+      if (!j.play) {
+        if (b.serve && !b.serveOk) { fault(w, 'Serve buiten het vak'); return; }
+        pointTo(w, j.point, j.why); return;
+      }
+      const wk = wallKind(b.z);
+      const mp = toMap(g.f, b.u, b.v);
+      pushAudioEvent(w, { kind: wk.kind === 'glas' ? 'padelglas' : 'padelgaas', x: mp.x, y: mp.y, strength: Math.min(1, Math.hypot(b.vu, b.vv) / 12) });
+      if (wallU) { b.u = Math.sign(b.u) * (W2 - BALL_R); b.vu *= -wk.rest; b.vv *= 0.9; }
+      if (wallV) { b.v = Math.sign(b.v) * (L2 - BALL_R); b.vv *= -wk.rest; b.vu *= 0.9; }
       g.predictAt = 0;
     }
   }
@@ -824,18 +858,35 @@ function updateMatch(w, dt) {
     if (g.phaseT <= 0) serveSetup();
   } else if (g.phase === 'serve') {
     const server = g.server === 0 ? me : g.opp[(g.points[0] + g.points[1]) % 2];
-    const zs = 1.0;
-    g.ball = newBall(server.u + (g.server === 0 ? 0.4 : -0.4), server.v + (g.server === 0 ? 0.3 : -0.3), zs);
-    if (g.server === 0) {
-      if (g.buffer > 0 || g.phaseT <= 0) {
-        g.buffer = 0;
-        const ut = -Math.sign(me.u || 1) * 2.6 + ((input.isDown('a') ? -1 : 0) + (input.isDown('d') ? 1 : 0)) * 1.2;
-        hitBall(g, me, 0, ut, rand(3.5, 6), 1.2);
-        g.phase = 'rally';
+    // underhand: the ball is held at the waist, dropped and hit after its bounce
+    if (!g.ball) {
+      g.ball = newBall(server.u + (g.server === 0 ? 0.4 : -0.4), server.v + (g.server === 0 ? 0.3 : -0.3), 1.0);
+      g.ball.toss = { wait: 0.5, bounced: false };
+    }
+    const tb = g.ball;
+    if (tb.toss) {
+      if ((tb.toss.wait -= dt) <= 0) {
+        tb.vz -= G * dt; tb.z += tb.vz * dt;
+        if (tb.z <= BALL_R) {
+          tb.z = BALL_R; tb.vz = Math.abs(tb.vz) * 0.75;
+          if (!tb.toss.bounced) pushAudioEvent(w, { kind: 'plop', x: toMap(g.f, tb.u, tb.v).x, y: toMap(g.f, tb.u, tb.v).y, strength: 0.3 });
+          tb.toss.bounced = true;
+        }
       }
-    } else if (g.phaseT <= 0) {
-      hitBall(g, server, 1, -Math.sign(server.u || 1) * 2.6, rand(-6, -3.5), 1.25);
-      g.phase = 'rally';
+      const ready = judgeServeHit({ bounced: tb.toss.bounced, z: tb.z }) === 'ok';
+      if (g.server === 0) {
+        if (g.buffer > 0 && !ready) g.buffer = 0;
+        if (ready && (g.buffer > 0 || g.phaseT <= 0)) {
+          g.buffer = 0;
+          const ut = -Math.sign(me.u || 1) * 2.6 + ((input.isDown('a') ? -1 : 0) + (input.isDown('d') ? 1 : 0)) * 3.0;
+          hitBall(g, me, 0, ut, rand(3.5, 6.4), 1.2);
+          g.ball.serve = true; g.ball.serveU = me.u; g.phase = 'rally';
+        }
+      } else if (ready && g.phaseT <= 0) {
+        const slip = Math.random() < 0.04;
+        hitBall(g, server, 1, -Math.sign(server.u || 1) * 2.6 + (slip ? Math.sign(server.u || 1) * 4 : 0), rand(-6.4, -3.5), 1.25);
+        g.ball.serve = true; g.ball.serveU = server.u; g.phase = 'rally';
+      }
     }
   } else if (g.phase === 'rally') {
     stepBall(w, dt);
@@ -1072,9 +1123,7 @@ function ensureHud() {
 }
 
 function callOf(g, team) {
-  const [a, b] = g.points;
-  if (a >= 3 && b >= 3) return 'GP';
-  return CALL[Math.min(3, g.points[team])];
+  return pointCall(g.points, team);
 }
 
 function updateHud(w) {
