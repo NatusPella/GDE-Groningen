@@ -58,7 +58,7 @@ const LABELS = {
   control: { heli: 'Omlaag', pigeon: 'Pikken', foot: 'Bukken', minigame: 'Bukken' },
   e: 'Gebruik', f: 'Instappen', h: 'Toeter', l: 'Sirene', q: 'Achterom', n: 'Radio', m: 'Kaart', o: 'Overslaan', k: 'Kusje',
   shift: 'Rennen', tab: 'Doel', c: 'Koer', x: 'Mens', v: 'Film', r: 'Lak', z: 'Zeil vieren', '[': 'Links', ']': 'Rechts', p: 'Alarm',
-  backspace: 'Stop', j: 'Koppeling', ',': 'Lager', '.': 'Hoger', s: 'Rem', w: 'Gas',
+  backspace: 'Stop', g: 'Dienst', j: 'Koppeling', ',': 'Lager', '.': 'Hoger', s: 'Rem', w: 'Gas',
   '@fire': 'Vuur', '@aim': 'Richt', '@gas': 'Gas', '@brake': 'Rem', '@wheel+': 'Wapen', '@wheel-': 'Wapen',
 };
 
