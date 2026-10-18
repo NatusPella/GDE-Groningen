@@ -329,7 +329,49 @@ function buildDefs(world) {
         },
       ],
     },
-    retiredDef('vlag'),
+    {
+      type: 'stages',
+      label: "Er hangt iets Fries aan d'Olle Grieze",
+      intro: ['Jelle heeft een reuzenvlag aan de Martinitoren gehangen. Heel Grunn kijkt ernaar.', 'Fluit een duif bij de toren en pik de vijf touwen los. Pas op voor de Fryske meeuwen.'],
+      outro: 'De vlag ligt op de keien. Heel Grunn klapte voor een duif.',
+      timeLimit: 240,
+      reward: 600,
+      // moved onto the Martinitoren pigeon spot once that exists (resolveSpotStarts)
+      start: walk(205.43, 49.3),
+      startSpot: 'martini',
+      stages: [
+        {
+          kind: 'scene', label: 'De vlag aan de toren', target: { landmark: 'Martinitoren', off: [0, 70], snap: 'walk' }, showFlag: true,
+          cam: { r: 58, h: 30, lookZ: 57, crane: true, at: { landmark: 'Martinitoren', off: [0, 14] } },
+          kicker: "d'Olle Grieze", title: 'Een Friese vlag',
+          cast: [{ key: 'jelle', pose: 'self', at: [3.4, 1.4] }], knots: true,
+          lines: [
+            ['V', 'Dertig meter Fries doek, aan de trots van Grunn. Onderaan, in grote letters: foar mem.'],
+            ['jelle', 'Moai, Grinzers! Kijk eens omhoog. Foar mem.'],
+            ['A', 'Zie je die vijf gele knopen, Tammo? Die houden hem vast.', { clue: true, look: 'knots' }],
+            ['T', 'Vijf knopen. Vijf keer fluiten.'],
+          ],
+        },
+        {
+          kind: 'pigeon', spot: 'martini', label: 'Pik de vijf touwen los', say: 'Vlieg naar de gele knopen van de vlag en blijf er even bij hangen: pik, pik, los.',
+          spotTime: 0.6, gulls: [6, 10], gullText: 'Een Fryske meeuw duikt op je af!', verb: 'Pik! %s is los',
+          flag: { landmark: 'Martinitoren', off: [0, 12], z0: 42, z1: 72, width: 14 },
+          targets: [
+            { landmark: 'Martinitoren', off: [-7, 12], z: 72, r: 6, label: 'Touw linksboven' },
+            { landmark: 'Martinitoren', off: [7, 12], z: 72, r: 6, label: 'Touw rechtsboven' },
+            { landmark: 'Martinitoren', off: [-7, 12], z: 57, r: 6, label: 'Touw links' },
+            { landmark: 'Martinitoren', off: [7, 12], z: 57, r: 6, label: 'Touw rechts' },
+            { landmark: 'Martinitoren', off: [0, 12], z: 43, r: 6, label: 'Touw onderaan' },
+          ],
+        },
+        {
+          kind: 'scene', label: 'De vlag valt', target: { landmark: 'Martinitoren', off: [0, 70], snap: 'walk' }, dropFlag: true, shotLines: 2,
+          cam: { r: 34, h: 9, lookZ: 34, at: { landmark: 'Martinitoren', off: [0, 14] } },
+          kicker: "d'Olle Grieze", big: 'Hij valt!',
+          lines: [['A', 'Daar gaat hij. Kopje onder, Jelle.'], ['T', 'Dertig meter vlag. Losgepikt. Door mijn duif.'], ['A', 'Ja, ja. Jouw duif.']],
+        },
+      ],
+    },
     // --- Staart story missions (storyarc.js H14-H18) ---------------------------
     {
       type: 'stages',
