@@ -62,7 +62,7 @@ export class HostSession extends Base {
   // cfg: { info:{game,proto,version,tiles,story}, seed, sim:{ applyInput(slot,input), snapshot(), fullState() } }
   constructor(link, cfg, rand) {
     super(link, 'host', rand);
-    this.cfg = cfg; this.slot = 1; // de gast is altijd slot 1 (host = speler 1 = slot 0)
+    this.cfg = cfg; this.caps = []; this.slot = 1; // de gast is altijd slot 1 (host = speler 1 = slot 0)
     this.guest = null;             // { token, lastInputSeq, input, lastInputAt, joined }
     this.snapAcc = 0; this.snapSeq = 0; this.lostAt = null;
     this.onlost = null; this.onjoin = null; this.onrelease = null; this.rejected = [];
@@ -88,19 +88,20 @@ export class HostSession extends Base {
     if (this.guest && tok && tok === this.guest.token) { // hervatten of herhaalde hello
       const resumed = this.status === 'lost';
       this.lastRecv = this.now; this.lostAt = null; this._setStatus('ok');
-      reply({ ok: true, slot: this.slot, token: this.guest.token, seed: this.cfg.seed, resumed });
+      reply({ ok: true, slot: this.slot, token: this.guest.token, seed: this.cfg.seed, resumed, caps: this.caps });
       if (resumed) { this.rel.reset(); this._sendResync(); }
       return;
     }
     if (this.guest && !tok && this.guest.lastInputSeq == null) { // welkom ging verloren: herhaal
       this.lastRecv = this.now; this._setStatus('ok');
-      return reply({ ok: true, slot: this.slot, token: this.guest.token, seed: this.cfg.seed, resumed: false });
+      return reply({ ok: true, slot: this.slot, token: this.guest.token, seed: this.cfg.seed, resumed: false, caps: this.caps });
     }
     if (this.guest && this.status !== 'lost') { this.rejected.push('vol'); return reply({ ok: false, reason: 'vol' }); }
     if (this.guest && tok !== this.guest.token) { this.rejected.push('token'); if (tok) return reply({ ok: false, reason: 'token' }); }
     this.guest = { token: makeToken(this.rand), lastInputSeq: null, input: neutral(), lastInputAt: this.now };
     this.lastRecv = this.now; this.lostAt = null; this.rel.reset(); this._setStatus('ok');
-    reply({ ok: true, slot: this.slot, token: this.guest.token, seed: this.cfg.seed, resumed: false });
+    this.caps = negotiate(this.cfg.caps, m.body.caps);
+    reply({ ok: true, slot: this.slot, token: this.guest.token, seed: this.cfg.seed, resumed: false, caps: this.caps });
     this._sendResync();
     if (this.onjoin) this.onjoin(this.slot);
   }
@@ -142,6 +143,12 @@ export class HostSession extends Base {
   // gebeurtenis voor de gast (missie, cutscene-start, geld): betrouwbaar
   announce(body) { return this.guest ? this.sendEvent(body) : false; }
   leave() { this._emit(encodeSimple(T.BYE, 0, 0, 0)); this._release('weg'); }
+}
+// Uitbreidbaar: elke kant noemt wat hij kan (bijv. 'scene', 'spelers>2'); gebruikt wordt
+// wat beide kennen. Onbekende gebeurtenissen (k) worden door de ontvanger genegeerd.
+export function negotiate(mine, theirs) {
+  const a = Array.isArray(mine) ? mine : [], b = Array.isArray(theirs) ? theirs : [];
+  return a.filter((c) => typeof c === 'string' && b.includes(c)).slice(0, 16);
 }
 const neutral = () => ({ mx: 0, my: 0, buttons: 0, yaw: 0 });
 
@@ -198,7 +205,7 @@ export class ClientSession extends Base {
   // cfg: { info, token? }
   constructor(link, cfg, rand) {
     super(link, 'client', rand);
-    this.cfg = cfg; this.slot = null; this.seed = null; this.token = cfg.token || null;
+    this.cfg = cfg; this.slot = null; this.seed = null; this.caps = []; this.token = cfg.token || null;
     this.buf = new SnapBuffer(); this.inputSeq = 0; this.inputAcc = 0; this.pendingInput = neutral();
     this.helloAt = -1; this.rejected = null; this.lastSnapSeq = null; this.onlost = null; this.onresync = null; this.joined = false;
   }
@@ -209,7 +216,7 @@ export class ClientSession extends Base {
     if (h.type === T.WELCOME) {
       const m = decodeJson(buf); if (!m) return;
       if (!m.body.ok) { this.rejected = m.body.reason; this._setStatus('geweigerd'); return; }
-      this.slot = m.body.slot; this.seed = m.body.seed; this.token = m.body.token; this.joined = true;
+      this.slot = m.body.slot; this.seed = m.body.seed; this.caps = Array.isArray(m.body.caps) ? m.body.caps : []; this.token = m.body.token; this.joined = true;
       if (m.body.resumed) { this.rel.reset(); this.buf.clear(); }
       this._setStatus('ok');
     } else if (h.type === T.SNAP && this.joined) {
@@ -233,7 +240,7 @@ export class ClientSession extends Base {
     if (!this.joined) {
       if (this.status !== 'geweigerd' && this.status !== 'verbroken' && this.now - this.helloAt >= 1) {
         this.helloAt = this.now;
-        this._emit(encodeJson(T.HELLO, 0, this.tickN, 0, { ...this.cfg.info, token: this.token || undefined }));
+        this._emit(encodeJson(T.HELLO, 0, this.tickN, 0, { ...this.cfg.info, caps: this.cfg.caps || [], token: this.token || undefined }));
       }
       return;
     }
@@ -244,7 +251,7 @@ export class ClientSession extends Base {
       this._setStatus('lost'); if (this.onlost) this.onlost();
     }
     if (this.status === 'lost') { // blijf proberen te hervatten met hetzelfde token
-      if (this.now - this.helloAt >= 2) { this.helloAt = this.now; this._emit(encodeJson(T.HELLO, 0, this.tickN, 0, { ...this.cfg.info, token: this.token })); }
+      if (this.now - this.helloAt >= 2) { this.helloAt = this.now; this._emit(encodeJson(T.HELLO, 0, this.tickN, 0, { ...this.cfg.info, caps: this.cfg.caps || [], token: this.token })); }
       return;
     }
     this.inputAcc += dt;

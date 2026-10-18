@@ -733,6 +733,7 @@ function swapCharacter(w, want) {
 // (s-proefvlucht) comes first too: H15's trigger lies beside Roelf's demo heli,
 // so walking up to him must not start the flight before he has had his say.
 function swapDone(w, i) {
+  if (w.coop && w.coop.fixedChars) return true; // coöp (#95): vaste personages, geen wissel
   const step = currentStep();
   if (step && !step.end && step.kind === 'activity' && step.goal && step.goal.type === 'flight' && !step.goal.over && !rt.base.met) return false;
   if (!step || step.end || step.kind !== 'mission' || missionIdx(step) !== i || !step.player) return true;
@@ -756,6 +757,7 @@ function updateCharacter(w) {
   const step = rt.cur;
   const want = step && !step.end ? step.player : rt.lastPlayer;
   if (step && !step.end && step.player) rt.lastPlayer = step.player;
+  if (w.coop && w.coop.fixedChars) return; // coöp (#95): de host is Tammo, de gast Tessa
   const calm = calmForSwap();
   if (!want || w.player.character === want) { rt.swapWaitAt = 0; return; }
   if (isCinematicActive() || w.pigeonMode || isMissionActive() || w.player.ragdoll || w.pendingRespawn) return;

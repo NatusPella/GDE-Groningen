@@ -27,7 +27,7 @@ export function coopStep(c, dt, world, move) {
   if (!world.coop) return false;
   // online: de gast stuurt de metgezel via het net (net/session.js), anders het eigen toetsenbord of pad
   const inp = world.coop.remote ? remoteP2(world.coop.remoteInput) : readP2(snapshot(world.coop));
-  const yaw = world.camYaw || 0, cs = Math.cos(yaw), sn = Math.sin(yaw);
+  const yaw = (world.coop.remote ? (world.coop.remoteInput && world.coop.remoteInput.yaw) : world.camYaw) || 0, cs = Math.cos(yaw), sn = Math.sin(yaw);
   stepSlot2(c, { ...inp, x: cs * -inp.y - sn * inp.x, y: sn * -inp.y + cs * inp.x }, dt, null);
   move(c, dt, world);
   const l = leash(world.player, c);
