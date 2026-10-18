@@ -38,6 +38,7 @@ import cabaret from './sidejob_cabaret.js';
 import vracht from './sidejob_vracht.js';
 import { SIDEJOB_PAY_MULT, SIDEJOB_LEVEL_BONUS, SIDEJOB_ACCIDENT_FINE } from './economy.js';
 import { furnitureJobBonus } from './furniture.js';
+import { playerBusy } from './busy.js';
 
 export const SIDE_JOBS = [bezorger, taxi, bus, rondvaart, fietsdepot, verhuizing, rondvaarttour, boa, rechtbank, cabaret, vracht];
 const BY_ID = new Map(SIDE_JOBS.map((j) => [j.id, j]));
@@ -142,7 +143,7 @@ export function getSideJobSpotsForRender() {
 function blockReason(w) {
   if (ctx) return 'Je bent al aan het werk';
   if (w.wanted > 0) return 'Niet nu: eerst de politie kwijt';
-  if (isMissionActive() || getActiveRace()) return 'Niet nu: maak eerst je missie af';
+  if (playerBusy(w, ['mission', 'activeRace']).busy) return 'Niet nu: maak eerst je missie af';
   if (w.time < cooldownUntil) return 'Even op adem komen...';
   return null;
 }

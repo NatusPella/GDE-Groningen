@@ -13,6 +13,7 @@ import { buildingAt, withTiles } from './tileplace.js';
 import { addStaticCollider } from './breakables.js';
 import { VILLAGES } from './ommelandlines.js';
 import { setStoryOutfit, storyOutfit } from './shops.js';
+import { playerBusy } from './busy.js';
 
 // Fast travel by train between the on-map stations (map.stations): a ticket
 // machine at each, a small menu, a short skippable ride cinematic.
@@ -335,8 +336,8 @@ export function initStationTravel(w) {
 
 function blockReason(w) {
   if (w.wanted > 0) return 'Kaartje? Met die sterren boven je hoofd?';
-  if (isMissionActive() || getActiveRace() || (w.mission && w.mission.phase === 'active')) return 'Niet nu: maak eerst je missie af';
-  if (w.sideJob && w.sideJob.active) return 'Niet nu: eerst je klusje afmaken';
+  if (playerBusy(w, ['mission', 'activeRace', 'missionPhase']).busy) return 'Niet nu: maak eerst je missie af';
+  if (playerBusy(w, ['sideJob']).busy) return 'Niet nu: eerst je klusje afmaken';
   return null;
 }
 

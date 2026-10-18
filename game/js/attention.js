@@ -9,6 +9,7 @@
 import { narrativeBusy } from './narrative.js';
 
 import { LEVEL, CARD_PRIORITY as CARDS, MOMENTS, RATION, VOICE_GAP, decideMoment } from './hudbus.js';
+import { playerBusy } from './busy.js';
 
 // Priority: story > wanted/danger > money/achievement > discovery/flavour > tips.
 // The tables (levels, card categories, moments, gaps) are in hudbus.js.
@@ -23,7 +24,7 @@ export function setAttentionClock(fn) { clock = fn; }
 export function resetAttention() { last.any = -Infinity; last.level = 0; last.groups = {}; last.tip = -Infinity; for (const k in voicedAt) delete voicedAt[k]; }
 
 function busy(w) {
-  return !!(w && ((w.mission && w.mission.phase === 'active') || (w.sideJob && w.sideJob.active) || w.challenge || w.race));
+  return !!w && playerBusy(w, ['missionPhase', 'sideJob', 'challenge', 'race']).busy;
 }
 
 // May a cinematic moment of `kind` play now? Doesn't book it (noteMoment does).
