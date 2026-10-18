@@ -4,6 +4,7 @@ import { setErrorContext } from './errorlog.js';
 import { DEV, STORY_TEST } from './devflags.js';
 import { loadMap } from './mapdata.js';
 import { loadTileWorld } from './tileworld.js';
+import { tileFocus } from './tilefocus.js';
 import { setWorldPlaces } from './worldplaces.js';
 import { setRegionData } from './regions.js';
 import { tileIndexOf, tileKey } from './gdt.js';
@@ -437,13 +438,8 @@ async function boot() {
     if (!world.paused) for (let r = 0; r < reps; r++) updateGameplay(gameDt);
     // the tiles follow the camera or the player (speed and heading prefetch)
     if (world.map.follow) {
-      const f = world.cameraOverride || world.player;
-      const dtp = Math.max(dt, 1e-3);
-      const vx = f.x !== undefined ? (f.x - (tileFollow.x ?? f.x)) / dtp : 0, vy = f.y !== undefined ? (f.y - (tileFollow.y ?? f.y)) / dtp : 0;
-      tileFollow.x = f.x; tileFollow.y = f.y;
-      // a camera cut is a jump, not a speed: no heading prefetch from it
-      const cut = Math.hypot(vx, vy) * dtp > 150;
-      if (f.x !== undefined) world.map.follow(f.x, f.y, cut ? {} : { vx: Math.min(80, Math.max(-80, vx)), vy: Math.min(80, Math.max(-80, vy)) }, 1.5);
+      const tf = tileFocus(world.player, world.cameraOverride, tileFollow, dt);
+      if (tf) world.map.follow(tf.x, tf.y, tf.opts, 1.5);
     }
     updateAudio(dt, world);
     updateNarrative();
