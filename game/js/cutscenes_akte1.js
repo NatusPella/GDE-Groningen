@@ -629,5 +629,27 @@ export function missionScene(key, lines, { looks = {} } = {}) {
   const wend = spec.wide ? { shot: 'dolly', from: [spec.wide.to[0] + 0.5, spec.wide.to[1], spec.wide.to[2] + 0.3], to: [spec.wide.to[0] + 2.2, spec.wide.to[1] * 0.9, spec.wide.to[2] + 1.2], look: spec.wide.look, fov: spec.wide.fov || 48 } : null;
   const lastLine = lines[lines.length - 1];
   if (wend && lastLine.dur > 1.6) shots.push({ t: tspec(lines.length - 1, Math.max(0.6, lastLine.dur - 1.4)), ...wend });
+  drift(shots, lines, endT + 1);
   return { id: 'story-' + key, actors, props, cues, shots };
+}
+
+// Rhythm rule (#136): a camera never holds still longer than ~6 s. A fixed cut that runs long gets a slow push-in
+// (0.4 m toward the middle and a touch lower), so the shot keeps its frame but is never a still photo.
+const DRIFT_AFTER = 6;
+function drift(shots, lines, total) {
+  const at = (t) => {
+    if (typeof t === 'number') return t;
+    const m = /^L(\d+)(?:([+-])([\d.]+))?$/.exec(t);
+    if (!m || !lines[+m[1]]) return null;
+    return lines[+m[1]].at + (m[2] ? (m[2] === '-' ? -1 : 1) * parseFloat(m[3]) : 0);
+  };
+  shots.forEach((s, i) => {
+    if (s.shot !== 'cut' || !Array.isArray(s.at) || s.at.length !== 3) return;
+    const a = at(s.t), b = i + 1 < shots.length ? at(shots[i + 1].t) : total;
+    if (a == null || b == null || b - a <= DRIFT_AFTER) return;
+    const [f, l, h] = s.at;
+    const k = 0.4 / Math.max(0.5, Math.hypot(f, l));
+    const { at: _at, ...rest } = s;
+    shots[i] = { ...rest, shot: 'dolly', from: [f, l, h], to: [f - f * k, l - l * k, h - 0.08] };
+  });
 }
