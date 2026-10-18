@@ -20,7 +20,10 @@ const MAX_GAME = CFG.maxGameS || 3600;
 const MAX_WALL = (CFG.maxWallS || 1800) * 1000;
 const wall0 = performance.now();
 const detector = new L.StuckDetector({ windowS: CFG.stuckS || 30 });
+const wedge = new L.WedgeDetector();
 const mem = { boardTries: 0 };
+const ladder = {}, fails = {};
+let wedgeOut = false, wedgeDir = 1;
 let follower = null, followKey = '', planAt = -99, lastStep = null, lastPhase = '', shots = 0;
 const MAX_SHOTS = CFG.shots || 80;
 const shot = (name) => { if (shots < MAX_SHOTS) { shots++; B.shot(name); } };
@@ -50,6 +53,7 @@ function steerTowards(s, mode, tgt, stopAt) {
   if (mode === 'drive' && s.player.vehicle) {
     const c = L.carControls({ x: me.x, y: me.y, angle: s.player.vehicle.angle, speed: s.player.vehicle.speed }, aim, { stopAt, top: 24 });
     B.stick(c.steer, c.throttle > 0 ? -1 : c.throttle < 0 ? 1 : 0);
+    if (!c.reverse && wedge.update(s.t, s.player.vehicle.speed, c.throttle)) wedge.reset(), wedgeOut = true;
     if (B.input.isDown('shift')) B.up('shift');
   } else {
     const radius = (s.mission.triggerRadius || 8) * 0.6;
@@ -85,7 +89,9 @@ async function nudge(s) {
 }
 
 async function rescue(s, stepKey, info) {
-  const rung = L.rescueFor(detector.stuckCount);
+  // the ladder counts per story step (a failed mission restarts the detector, not the ladder); every fail is a rung higher
+  const sid = s.story.id || '?';
+  const rung = L.rescueFor((ladder[sid] = (ladder[sid] || 0) + 1) - 1 + (fails[sid] || 0));
   B.log('stuck', { step: stepKey, x: s.player.x, y: s.player.y, idleFor: info.idleFor, goalDist: s.target ? s.target.distance : null, rung });
   shot(`${stepKey}-vast`);
   if (rung === 'nudge') { await nudge(s); detector.acknowledge(s.t); return; }
@@ -111,7 +117,7 @@ function track(s) {
   const ph = s.mission.active ? 'active' : 'idle';
   if (ph !== lastPhase && lastPhase) {
     if (ph === 'active') B.log('mission', { event: 'start', id, label: s.mission.label });
-    else B.log('mission', { event: 'fail', id, label: s.mission.label });
+    else { fails[id] = (fails[id] || 0) + 1; B.log('mission', { event: 'fail', id, label: s.mission.label }); }
   } else if (ph === 'active' && !lastPhase) B.log('mission', { event: 'start', id, label: s.mission.label });
   lastPhase = ph;
 }
@@ -149,6 +155,15 @@ while (true) {
   if (act.type === 'goto') {
     if (!s.target) continue;
     steerTowards(s, act.mode, s.target, s.mission.phase !== 'active' && s.target.source === 'missiestart');
+    if (wedgeOut) {
+      wedgeOut = false;
+      B.log('klem', { x: s.player.x, y: s.player.y });
+      wedgeDir = -wedgeDir;
+      B.stick(0.6 * wedgeDir, 1);
+      await sleep(1300);
+      B.stick(0, 0);
+      follower = null;
+    }
   }
 }
 
