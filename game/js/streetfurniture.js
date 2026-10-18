@@ -236,7 +236,7 @@ function nearestRoad(roads, x, y, filter = () => true) {
 // junction signposts, placesigns.js),
 // lamps (emit lamps; the game draws its own, nightlights3d.js),
 // bollards (cycle path entrances), livingBumps (plateaus in woonerven)
-export function furnitureForTile({ x0, y0, size = 1000, roads = [], mapped = [], water = [], places = DESTINATIONS, opts = {} }) {
+export function furnitureForTile({ x0, y0, size = 1000, roads = [], mapped = [], water = [], rails = [], buildings = [], places = DESTINATIONS, opts = {} }) {
   const items = [];
   const inTile = (x, y) => x >= x0 && x < x0 + size && y >= y0 && y < y0 + size;
   const add = (it) => { if (inTile(it.x, it.y)) { it.key = itemKey(it.k, it.x, it.y); items.push(it); } };
@@ -275,10 +275,22 @@ export function furnitureForTile({ x0, y0, size = 1000, roads = [], mapped = [],
     }
     return false;
   };
-  // a piece of s m at (x, y) along a: its middle or either end on a carriageway or in water
+  // the track (its ballast is 4.2 m wide), a footway's own width and a house: a fence or hedge is not drawn through them (#124)
+  const segNear = (P, x, y, d) => {
+    for (let i = 0; i < P.length - 1; i++) {
+      const dx = P[i + 1][0] - P[i][0], dy = P[i + 1][1] - P[i][1], L2 = dx * dx + dy * dy || 1e-9;
+      const t = Math.max(0, Math.min(1, ((x - P[i][0]) * dx + (y - P[i][1]) * dy) / L2));
+      if (Math.hypot(P[i][0] + dx * t - x, P[i][1] + dy * t - y) < d) return true;
+    }
+    return false;
+  };
+  const onRail = (x, y) => rails.some((r) => r.pts && segNear(r.pts, x, y, 2.1 + 0.4));
+  const onFoot = (x, y) => roads.some((r) => r.cat === 'foot' && r.pts && !r.bridge && segNear(r.pts, x, y, Math.max(0.6, (r.width || 1.5) / 2)));
+  const inHouse = (x, y) => buildings.some((b) => { const q = b.bounds || (b.bounds = polygonBounds(b.pts)); return x >= q[0] && x <= q[2] && y >= q[1] && y <= q[3] && pointInPolygon(x, y, b.pts); });
+  // a piece of s m at (x, y) along a: its middle or either end on a carriageway, a track, a footway, in a house or in water
   const pieceOnWayOrWater = (x, y, a, s) => {
     const hx = Math.cos(a) * s / 2, hy = Math.sin(a) * s / 2;
-    for (const [px, py] of [[x, y], [x - hx, y - hy], [x + hx, y + hy]]) if (onOtherRoad(null, px, py) || wet(px, py)) return true;
+    for (const [px, py] of [[x, y], [x - hx, y - hy], [x + hx, y + hy]]) if (onOtherRoad(null, px, py) || wet(px, py) || onRail(px, py) || onFoot(px, py) || inHouse(px, py)) return true;
     return false;
   };
 
