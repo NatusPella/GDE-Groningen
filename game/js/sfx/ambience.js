@@ -280,7 +280,7 @@ function setTargets(world) {
   beds.wind.target = (0.03 + place.open * 0.04 + place.green * 0.015 + rain * 0.26) * (closed ? 0.35 : 1) * paused;
   beds.rain.target = rain * (closed ? 0.1 : 0.28) * paused;
   beds.roof.target = closed ? rain * 0.32 * paused : 0;
-  beds.crowd.target = Math.max(place.square * (0.2 * day + 0.08 * night), place.peds * 0.08) * (1 - rain * 0.7) * cabin * paused;
+  beds.crowd.target = Math.max(place.square * (0.2 * day + 0.08 * night), place.peds * 0.08, world.eventSound ? world.eventSound.gain * 0.22 : 0) * (1 - rain * 0.7) * cabin * paused;
   beds.terrace.target = place.horeca * (0.05 * day + evening * 0.16) * (1 - rain * 0.85) * cabin * paused;
   beds.crickets.target = night * Math.max(place.green, place.trees * 0.7) * 0.13 * (1 - rain) * cabin * paused;
   beds.lap.target = clamp(1 - place.waterD / 28, 0, 1) * (v && v.isBoat ? 0.32 : 0.2) * paused;
