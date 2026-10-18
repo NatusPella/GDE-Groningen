@@ -1,7 +1,7 @@
 // first: copies the pre-0.29 'gte-*' storage keys before any module reads them
 import './storagekeys.js';
 import { setErrorContext } from './errorlog.js';
-import { DEV, STORY_TEST, COOP, FLAGS } from './devflags.js';
+import { DEV, STORY_TEST, FLAGS } from './devflags.js';
 import { bindCoop } from './coopglue.js';
 import { loadMap } from './mapdata.js';
 import { loadTileWorld } from './tileworld.js';
@@ -308,7 +308,7 @@ async function boot() {
 
   const world = new World(map, input, player);
   initCompanion(world);
-  if (COOP) bindCoop(world, input);
+  if (FLAGS.coop) bindCoop(world, input);
   const hero = spawnHeroCarNear(map, sx, sy);
   if (hero) world.vehicles.push(hero);
   manageTrafficPopulation(world);

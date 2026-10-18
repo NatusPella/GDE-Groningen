@@ -6,7 +6,7 @@ import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { getSettings } from './settings.js';
 import { drunkVisual } from './drunk.js';
 import { noteGfxEvent } from './blackframe.js';
-import { PIXEL_DEBUG } from './devflags.js';
+import { FLAGS } from './devflags.js';
 
 // Post chain per quality preset: 'laag' renders straight to the screen
 // (through an MSAA target + output pass when the canvas has no native AA),
@@ -192,7 +192,7 @@ class SceneMSAAPass extends Pass {
       uniforms: THREE.UniformsUtils.clone(shader.uniforms),
       vertexShader: shader.vertexShader,
       fragmentShader: shader.fragmentShader,
-      defines: PIXEL_DEBUG ? { PIXEL_DEBUG: '' } : {},
+      defines: FLAGS.pixeldebug ? { PIXEL_DEBUG: '' } : {},
     });
     this.material.toneMapped = false;
     this.uniforms = this.material.uniforms;

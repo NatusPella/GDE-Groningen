@@ -168,6 +168,8 @@ generate 3D models.
 
 All URL switches live in one register, `FLAGS` in `game/js/devflags.js` (parsed once, with a description in `FLAG_DOCS`). A module imports `FLAGS.x` and never reads `location.search` itself. (`?nieuwverhaal` in `storyflag.js` is the one exception, to avoid an import cycle.)
 
+Debug hooks on `window` (`window.__x`, read by scripts/perf, the story test and the dev panel; not for players): `__activities`, `__audio`, `__banter`, `__blackCheck`, `__blackFrames`, `__calendar`, `__carbid`, `__cards`, `__carillon`, `__countrylife`, `__countryside`, `__debug`, `__discgolf`, `__drift`, `__farprops`, `__fierljep`, `__flavour`, `__furniture`, `__gdeRespawn`, `__gdeSky`, `__geheimen`, `__gfxAdvice`, `__gfxDyn`, `__goal`, `__heist`, `__heli`, `__heliRun`, `__hengelen`, `__hitch`, `__hitchOn`, `__home`, `__kartbaan`, `__kermis`, `__klimtoren`, `__landmarkKits`, `__loadMarks`, `__muggings`, `__narrative`, `__noLandmarkKits`, `__noPrepare`, `__ommeland`, `__onboarding`, `__padel`, `__pannenkoek`, `__phonefeed`, `__pitchputt`, `__postgame`, `__profileOverlay`, `__radio`, `__roadrage`, `__scene3d`, `__simLoad`, `__skatepark`, `__snackketen`, `__speech`, `__story`, `__storyContact`, `__storyEikea`, `__storyFun`, `__storyTestReport`, `__storytalk`, `__storytext`, `__tileWindows`, `__trailer`, `__wandeling`, `__waterski`, `__worldevents`, `__zwembad`. Find the module with `grep -rn "window.__x" game/js`. They are not moved into a namespace yet (#113).
+
 | Switch | What it does |
 | --- | --- |
 | `?dev` | Verhaalpaneel op F9; eigen opslag (gde-dev:), raakt de echte save niet |
@@ -193,6 +195,9 @@ All URL switches live in one register, `FLAGS` in `game/js/devflags.js` (parsed 
 | `?gfxadvies` | Toon het grafische advies ook als de speler al koos |
 | `?gpu` | Doe alsof de GPU deze renderer-tekst heeft (test van het advies) |
 | `?preset` | Instellingen alleen voor deze run, bv. quality:laag,drawDistance:kort |
+| `?pixeldebug` | Nabewerking verft NaN/Inf-pixels magenta en negatieve HDR-waarden cyaan (issue #35) |
+| `?coop` | Lokale co-op voor twee spelers: speler 2 stuurt de metgezel (coop.js, issue #95) |
+| `?marker` | `?marker=vorm`: de vaste 3D-vormen van de wereldmarker in plaats van het zachte glyph |
 | `?touch` | Raakbediening aan (touch=1) of uit (touch=0), ook zonder touchscherm |
 | `?hitch` | Meet haperingen (hitchprobe) |
 | `?simlagen` | Verkeer volgens simulatielagen per streek en afstand (simlagen.js) |
