@@ -181,3 +181,13 @@ Bevindingen:
 **Geluid.** De audiotap werkt (RMS, piek, 28 effecten per buffergrootte), maar onder `--stil` is de uitgang gedempt: de gemeten stilte (434 s) zegt niets. Geluid per gebeurtenis is nog niet beoordeeld.
 
 **Niet gedaan.** Geen volledige run van akte 1 tot en met 5 in één keer met de nieuwste bot; geen vergelijking met een vorige dag (er was nog geen vorige dagelijkse run); de dagelijkse run is niet ingepland; versnelbare tijd is niet gebouwd; screenshots zijn alleen automatisch gecontroleerd (zwart, leeg, NaN-pixels), nog door niemand bekeken.
+
+## Wat er sinds de eerste runs is aangepast en nog te meten is
+
+Deze wijzigingen zijn nog **niet in een Electron-run bekeken**; er is alleen met pure tests gecontroleerd (`botlogic_test`, `botanalysis_test`, `botstoryhaken_test`). Alles hieronder is dus een hypothese tot de volgende run.
+
+- **Id-mismatch (qa-provincie).** `missionIndexOf('M02')` gaf -1 omdat `storyarc.js` alleen def-id's (`pinautomaat`) kende en de haken stap-id's (`M02`) geven. `missionIndexOf` accepteert nu beide. Te meten: `playStoryIntro` en de cutscene-preview in `visual_issues.page.js` moeten voor elke missiestap een index vinden (`rec.index >= 0`, `rec.played`).
+- **Win-cheat M09/M10.** `missionDebug.win` zet nu `stagePending` en `resume` uit en slaat een lopende cutscene over voor het afrondt. Er is een vijfde sport `skip` bijgekomen (`forceer overslaan`) voor als win niet blijft hangen. Te meten: hooguit één `win` per stap in het cheat-overzicht van M09 en M10 (eerst 9 tot 12), en geen `skip` nodig.
+- **Botlogic.** Stunts rijden met topsnelheid 30 zonder remmen voor het doel (herkend aan label of stage); een prompt bij het doel levert maximaal vier keer E op (pinautomaat, loket); een `board`-stage stapt in de dichtstbijzijnde vrije auto; een `hold`-stage blijft in de ring staan. Te meten: minder cheats bij M01, M02 en M03 (nu `teleport, objective, win`) en `handeling`-regels in de events.
+- **Minigame-starts.** Per minigame een eigen opening (`startAttempts`), eerst wachten op de prompt, en bij niets een zijstap van 3 m (`jitterOffset`) rondom de plek. Te meten voor drift, hengelen, wandeling, pitchputt, hoogvlieger, geheimen en snackketen: `started` in drie runs op rij. Snackketen meldde "geen plek"; dat is een gebrek van de plekkenlijst (`a.spots()`), niet iets wat de bot kan oplossen.
+- **Nog open om te meten:** de volledige run akte 1 tot en met 5 achter elkaar; of de nieuwe rung `skip` de score van "cheat nodig" eerlijk laat (een skip telt als cheat); akte 4 en 5 met het wachtbudget; M08 (te voet) na de `onFoot`-herkenning; geluid per gebeurtenis zonder `--stil`.
