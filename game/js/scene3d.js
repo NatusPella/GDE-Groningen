@@ -78,6 +78,8 @@ import { createFarLOD } from './farlod.js';
 import { SECTION, TILE_M, tileOrigin } from './gdt.js';
 import { initRailway3D, updateRailway3D, prewarmRailAt } from './railway3d.js';
 import { updateStationCrowd3D } from './stationlife3d.js';
+import { updateEvenementen3D } from './evenementen3d.js';
+import { today as calendarTodayEv } from './calendarday.js';
 import { railZ } from './railway.js';
 import { cameraFocus } from './tilefocus.js';
 import { initMovableBridges3D, updateMovableBridges3D, openBridgeRoads } from './movablebridges3d.js';
@@ -2019,6 +2021,7 @@ export function update3D(dt, world) {
   probe.mark('3d:trees');
   updateRailway3D(dt, world, focus, viewDist);
   updateStationCrowd3D(scene, world, railZ);
+  updateEvenementen3D(scene, world, calendarTodayEv(world), (x, y) => (world.map.spawnZ ? world.map.spawnZ(x, y) : 0));
   updateCountryside(dt, world, scene, cam, viewDist);
   updateOmmelandLandmarks(world, scene, focus);
   probe.mark('3d:rail+country');
