@@ -12,7 +12,8 @@
 //   plan.quay     { ax, ay, bx, by, nx, ny }  the quay edge used (normal into the water)
 
 // Invented marina names (no real clubs or harbours).
-export const MARINA_NAMES = ['Jachthaven Zuiderstrand', 'Watersportvereniging De Kolk', 'Jachthaven Noorderhoek', 'Haven De Wiebelhoek'];
+// (names: one per marina; scripts/world/marinas.mjs hands them out in order)
+export const MARINA_NAMES = ['Jachthaven Zuiderstrand', 'Watersportvereniging De Kolk', 'Jachthaven Noorderhoek', 'Haven De Wiebelhoek', 'Jachthaven De Zwaan', 'Watersportvereniging Eendracht', 'Jachthaven Het Hoofd', 'Jachthaven De Brede Vaart']; // invented
 
 // Pleasure craft that lie in a marina: kind (boattypes.js key), weight.
 export const MARINA_FLEET = [['sloep', 34], ['sloepGrijs', 18], ['dinghy', 14], ['rubberboot', 8], ['kano', 10], ['waterfiets', 6], ['kajak', 10]];

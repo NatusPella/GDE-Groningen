@@ -1,7 +1,10 @@
 // Logic test for the marina planner (game/js/marinas.js, #7): finger piers and
 // berths on synthetic water, room to the quay and the fairway, no overlaps.
 //   node scripts/marinas_test.mjs
-import { planMarina, quayEdges } from '../game/js/marinas.js';
+import './node3d.mjs';
+import fs from 'node:fs';
+
+const { planMarina, quayEdges, MARINA_NAMES } = await import('../game/js/marinas.js');
 
 let fails = 0, n = 0;
 const ok = (c, name) => { n++; if (!c) { fails++; console.log('FAIL', name); } };
@@ -42,6 +45,30 @@ const blockedPlan = planMarina(wide.pts, wide.clear, { rng: seeded(7), blocked: 
 ok(blockedPlan === null, 'everything blocked: none');
 const again = planMarina(wide.pts, wide.clear, { rng: seeded(7) });
 ok(JSON.stringify(again) === JSON.stringify(plan), 'same seed, same plan');
+
+// the city: game/marinas.json is what the planner makes of the real water (run
+// `node scripts/world/marinas.mjs --write` after changing the planner or the map)
+{
+  const { GameMap, applyMapExtras } = await import('../game/js/mapdata.js');
+  const { waterClearance } = await import('../game/js/waterindex.js');
+  const { buildMarinas } = await import('./world/marinas.mjs');
+  const root = new URL('../game/', import.meta.url);
+  const data = JSON.parse(fs.readFileSync(new URL('citymap.json', root)));
+  applyMapExtras(data, JSON.parse(fs.readFileSync(new URL('mapextras.json', root))));
+  const map = new GameMap(data);
+  const file = JSON.parse(fs.readFileSync(new URL('marinas.json', root))).marinas;
+  ok(file.length >= 3 && file.length <= MARINA_NAMES.length, `marinas in the city (${file.length})`);
+  ok(JSON.stringify(buildMarinas(map)) === JSON.stringify(file), 'marinas.json is what the planner makes of the map');
+  ok(new Set(file.map((m) => m.name)).size === file.length, 'every marina has its own invented name');
+  for (const m of file) {
+    ok(m.berths.length >= 8 && m.fingers.length >= m.berths.length, `${m.name}: berths between the fingers`);
+    for (const b of m.berths) {
+      const hx = Math.cos(b.a) * 2, hy = Math.sin(b.a) * 2;
+      ok(waterClearance(map, b.x - hx, b.y - hy, 3) >= 0.8, `${m.name}: berth stern in open water`);
+      ok(!map.isOnBridge(b.x, b.y), `${m.name}: no berth on a bridge`);
+    }
+  }
+}
 
 console.log(fails ? `${fails} of ${n} failed` : `marinas: ${n} checks ok`);
 process.exit(fails ? 1 : 0);
