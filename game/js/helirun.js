@@ -10,7 +10,8 @@ import { pushAudioEvent } from './pedestrians.js';
 import { unlockAchievement, setStatMax, recordStat, recordChallengeResult } from './achievements.js';
 import { makeHeli, flyHeli, helipadById, HELI_MODEL } from './heliflight.js';
 import { findClearSpot } from './helispawn.js';
-import { ringCounter, landingGuide } from './heligrade.js';
+import { ringCounter, landingGuide, guideColor } from './heligrade.js';
+import { chaseTarget, followCam } from './helicam.js';
 import { lineVoiceFor } from './linevoice.js';
 import { playLineVoice } from './audio.js';
 import { SPEAKERS, STEP_BY_ID } from './storyarc.js';
@@ -733,7 +734,11 @@ function updateProps(dt) {
     const p = r.pads[cur.pad || 'umcg'];
     r.beacon.position.set(p.x, p.deck, p.y);
     const k = 1 + Math.sin(r.t * 4) * 0.08;
-    r.beacon.userData.ring.scale.set(k, 1, k);
+    const rr = (p.r || 6) / 5.1;
+    r.beacon.userData.ring.scale.set(k * rr, 1, k * rr);
+    // the landing circle shows how the landing goes: green good, yellow line up, red too fast (#166)
+    const gs = landingGuide(v, { x: p.x, y: p.y, r: p.r, deck: p.deck }).state;
+    r.beacon.userData.ring.material.color.setHex(guideColor(gs));
   }
   // Tammo on the lier from the catch until the heli is low over the H
   const hang = r.variant === 'traumaduif' && cur && (cur.kind === 'catch' || (cur.kind === 'pad' && cur.why === 'home' && !v.onGround && v.z - (v.groundZ ?? 0) > 12));
@@ -915,6 +920,13 @@ function updateCamera(dt) {
     const mx = near ? (v.x + b.x) / 2 : v.x, my = near ? (v.y + b.y) / 2 : v.y, mz = (near ? (v.z + b.z) / 2 : v.z) + 4;
     pos = { x: mx + Math.cos(a) * 45, y: my + Math.sin(a) * 45, z: mz + 12 };
     look = { x: mx, y: my, z: mz };
+  } else if (r.phase === 'fly' && !v.wrecked) {
+    // behind the heli, a little ahead along where it really goes (helicam.js, #166)
+    const T = chaseTarget(v);
+    r.cam = followCam(r.cam, T, dt);
+    world.cameraOverride = { position: { ...r.cam }, lookAt: T.look, fov: T.fov, cut: true };
+    world.camYaw = T.dir;
+    return;
   }
   if (!pos) { r.cam = null; world.cameraOverride = null; return; }
   if (!r.cam) r.cam = { ...pos };
