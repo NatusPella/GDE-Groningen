@@ -10,6 +10,8 @@ RIKUS (radio): Storingsbericht: de Krolbrug is in storing. [BEHOUDEN]
 
 ## [M07.1] Al het vet van Grunn: intro – Stad, Bornholmstraat – tankwagen
 (regie: dinsdag 18 augustus, ochtend, de dag na de kraak. Tessa en Tammo schuilen achter een muur. Op het terrein staat de tankwagen "Us Mem Vet" tussen twee bewakingswagens. Op de snackbars in de buurt hangen gele stickers: US MEM SNACKS, EXCLUSIEF LEVERANCIER. De hele stad staat in de rij met lege pannen. Gameplay: banden van de bewakingswagens doorsteken, de tankwagen kapen en naar de Oosterpoort rijden.)
+TESSA: De bal is weg en wij staan op de camera. Eerlijk winnen kan nog: we bakken zelf, met Oma's recept. Dan moet Jelle eerst ergens gestopt worden. [NIEUW]
+TAMMO: Plakje voor plakje. [NIEUW]
 TESSA: Jelle koopt het vet van heel Grunn. Zonder vet geen oefenronde, en zonder oefenronde geen Snackprijs. Dit is plakje twee, Tammo. [NIEUW]
 TAMMO: Plakje twee. [NIEUW]
 TESSA: Plakje één kregen we niet terug. Dit plakje kunnen we nog winnen. [NIEUW]
@@ -51,7 +53,7 @@ TAMMO: Fierljepper zeker. [BEHOUDEN]
 TESSA: Rijden, niet praten. [BEHOUDEN]
 
 ## [M07.5] Al het vet van Grunn: herhaling – Stad, Oosterpoort – tankwagen
-SNACKBARHOUDER: Weer vet? Mijn pannen zeggen dank. [NIEUW]
+SNACKBARHOUDER: Nog een tank? Voor jou zet ik de friteuse open. [NIEUW]
 
 ## [R2.2] Nachtstreek, dinsdagochtend, Oma – Stad – radio
 OMA TRIJNTJE (radio): Rikus. Trijntje. Die fatbikes rijden over de stoep alsof Stad van hen is. Stuur die twee. [BEHOUDEN]
@@ -82,8 +84,12 @@ OMA TRIJNTJE: Dan eet je hem al vierendertig jaar te weinig. [BEHOUDEN]
 OMA TRIJNTJE: 1953. Dat ik won, weet je. Wat je niet weet: tweede werd een Fries meisje. Gerda Terpstra. Haar eierbal was beter. Ik wist het, zij wist het. De jury wist het niet. [NIEUW]
 TESSA: Terpstra? Van Jelle? [BEHOUDEN]
 OMA TRIJNTJE: Haar zoon, zeker. Ik heb het nooit gezegd. Zeventig jaar trots. Dat is lang voor iets wat in één zin past. [BEHOUDEN]
+TESSA: Gerda. [NIEUW]
+TAMMO: Je kijkt raar. [NIEUW]
+TESSA: Ik kijk altijd zo. [NIEUW]
 OMA TRIJNTJE: Het recept van 1953 had vijf dingen van vijf vrienden: vet, eieren, zout, bloem en mosterd. Jelle koopt ze allemaal. Hier is het lijstje. [NIEUW]
-TESSA: We halen de ingrediënten voor Oma's recept bij haar vrienden. Dan kunnen we meedoen, ook als Jelle de voorraad van iedereen opkoopt. [NIEUW]
+TESSA: Vet, eieren, zout, bloem, mosterd. Vijf vrienden, vijf ingrediënten. Het vet hebben we al. Dan kunnen we meedoen, ook als Jelle de rest opkoopt. [NIEUW]
+TESSA: En als we winnen, staat de Fjord Frituur op de Vismarkt. [NIEUW]
 TESSA: Weet u waar de bal is, oma? [NIEUW]
 OMA TRIJNTJE: Ik weet waar hij was. In een vitrine. [NIEUW]
 TAMMO: Jelle zegt: bij hem. [NIEUW]
@@ -102,24 +108,24 @@ TAMMO: Rijden, niet praten. Dat zeg jij altijd. [BEHOUDEN]
 ## [M08.5] Fatbikes tellen niet als fiets: herhaling – Stad, Noorderhaven – te voet
 OMA TRIJNTJE: Hest weer veur 'n ander? Dat was geen compliment, jong. [BEHOUDEN]
 
-## [T1] De trein naar Winsum – Stad, Station Grunn naar Winsum – trein (meerijden)
+## [T1] De trein naar Warffum – Stad, Station Grunn naar Warffum – trein (meerijden)
 (regie: de keuze: trein, zelf rijden of skippen. Bij de trein: een korte scène.)
 TESSA: Een kaartje naar maakt niet uit waar. Jij kijkt te schuldig voor een conducteur. [BEHOUDEN]
 TESSA: Weet je nog? Met de trein naar Delfzijl, om naar de zee te kijken. [BEHOUDEN]
 TAMMO: Er was geen zee. Alleen een dijk. [BEHOUDEN]
 TESSA: Jij zei dat de zee achter de dijk lag. Ik heb het twintig jaar geloofd. [BEHOUDEN]
 TAMMO: Hij ligt er ook. Een beetje. [BEHOUDEN]
-TESSA: We stappen uit in Winsum. Daar begint het Hogeland. Geesje woont in Warffum. [NIEUW]
-TAMMO: Winsum. Is dat nog Grunn? [NIEUW]
+TESSA: We stappen uit in Warffum. Daar begint het Hogeland, en Geesje woont in de pastorie. [NIEUW]
+TAMMO: Warffum. Is dat nog Grunn? [NIEUW]
 TESSA: Dat is het Hogeland, Tammo. Dat is groter dan je denkt. [NIEUW]
 APP TAMMO→RIKUS (stil): Iedereen kijkt naar Kiekdoar. Niemand naar ons. [BEHOUDEN]
 
 ## [M09.1] Heel aankomen is ook een kunst: intro – Hogeland, Warffum, Geesjes pastorie – trekker
 (regie: woensdag 19 augustus, ochtend. Een pastorie bij een wierdekerk. Geesje, 84, in een schort. Naamkaart: GEESJE. Gameplay: breekbare eieren heel naar de kerkkelder brengen, over wierdepaden.)
-GEESJE: Ik ben Geesje, kosteres van de wierdekerk in Usquert. Trijntje belde. [NIEUW]
+GEESJE: Ik ben Geesje, kosteres van de kerk hier in Warffum. Trijntje belde. [NIEUW]
 TESSA: Oma Trijntje stuurt ons voor de eieren. Het recept van 1953 heeft er zestig nodig. [NIEUW]
 GEESJE: Jelle Terpstra heeft alle eieren van het Hogeland gekocht, behalve de mijne. Mijn kippen hebben geen contract. [NIEUW]
-GEESJE: Jullie brengen ze heel naar de kerkkelder. Daar is het koel, en daar komt Jelle niet. [NIEUW]
+GEESJE: Jullie brengen ze heel naar de kerkkelder in Usquert. Daar is het koel, en daar komt Jelle niet. [NIEUW]
 TESSA: Heel, Tammo. Niet rap. Heel. [NIEUW]
 TAMMO: Ik rij nooit rap. [NIEUW]
 TESSA: Je hebt twee keer een kar gekanteld. [NIEUW]
@@ -139,16 +145,17 @@ TAMMO: Die koe kijkt naar me. [NIEUW]
 TESSA: Koeien kijken altijd. Dat is hun hobby. [NIEUW]
 TAMMO: In Grunn kijkt niemand zo lang. [NIEUW]
 TESSA: In Grunn kijkt niemand omhoog. Dit is een wierde, Tammo. Mensen bouwden hem zelf, tegen het water. [NIEUW]
-TAMMO: Dat wist ik. [NIEUW]
-TESSA: Dat wist je niet. [NIEUW]
-TAMMO: Alweer gelijk. [NIEUW]
+TAMMO: Zelf gebouwd? Met de hand? [NIEUW]
+TESSA: Met de hand en tweeduizend jaar geduld. [NIEUW]
+TAMMO: Ik kan geen kast in elkaar zetten. [NIEUW]
+TESSA: Dat weet ik. [NIEUW]
 TESSA: Een bult. Rustig. [NIEUW]
 TAMMO: Een ei. [NIEUW]
 TESSA: Twee. [NIEUW]
 
 ## [M09.4] Heel aankomen is ook een kunst: de kerkkelder – Hogeland, Usquert – trekker
 GEESJE: De kratten staan heel. Dat is een kerkelijk wonder. [NIEUW]
-TESSA: Zes kratten, zestig eieren, alle heel. [NIEUW]
+TESSA: Zes kratten, zestig eieren, alle heel. Vet en eieren: twee van vijf. [NIEUW]
 GEESJE: Dat is meer dan de pastoor ooit haalde. [NIEUW]
 DURK: Douwe. De eieren zijn weg. [NIEUW]
 DOUWE: …weg. [NIEUW]
@@ -158,9 +165,9 @@ GEESJE: Dan koopt u een eierkoek. [NIEUW]
 DOUWE: …Hè. [BEHOUDEN]
 
 ## [M09.5] Heel aankomen is ook een kunst: herhaling – Hogeland, Usquert – trekker
-GEESJE: Weer eieren? De kippen zeggen dank. [NIEUW]
+GEESJE: De kippen leggen weer. Dat is jullie schuld. [NIEUW]
 
-## [M10.1] Een trekker-limo op de wierde: intro – Hogeland, Geesjes erf – quad
+## [M10.1] Een trekker-limo op de wierde: intro – Hogeland, Usquert, de kerk – quad
 (regie: woensdag 19 augustus, middag. Een zwarte trekker-limo rijdt het erf op, met vlaggetjes. Jelle stapt uit met een gouden koffer in zijn hand, Durk en Douwe achter hem. Gameplay: met een quad over wierdepaden en door een kerktuin, de limo van je afhouden.)
 JELLE: Goedemiddag. Jelle Terpstra, Us Mem Snacks. Ik ben hier niet voor de eieren. Ik ben hier voor u. [NIEUW]
 JELLE: U bent in het museum geweest. Mijn bewaker heeft beelden. Ik stel een overeenkomst voor: u verlaat Grunn en de Snackprijs, en de beelden verdwijnen. [NIEUW]
@@ -185,48 +192,50 @@ JELLE: Mem is eenennegentig. Zeventig jaar heeft ze tweede gestaan, Grinzers. [N
 JELLE: Ik laat haar niet nog een jaar tweede staan. [NIEUW]
 TESSA: Wil je mem dat wel? [NIEUW]
 JELLE: Mem wil niks. Daarom doe ik het. [NIEUW]
+TESSA: Dat klonk bekend. [NIEUW]
 JELLE: Oant sjen! [BEHOUDEN]
 (regie: hij belandt in de sloot en houdt de koffer boven water. Durk en Douwe waden erheen en pakken hem aan.)
 DOUWE: …Plons. [NIEUW]
 
 ## [M10.4] Autogesprek: hij heeft hem echt – Hogeland, bushalte Uithuizen – te voet
-TESSA: Hij hield de koffer boven water. [NIEUW]
-TAMMO: Boven zichzelf. [NIEUW]
+TESSA: Hij kijkt eerst of de koffer droog is. Dan pas of hij zelf nat is. [NIEUW]
+TAMMO: Dat is een prioriteit. [NIEUW]
 TESSA: Dat is liefde of een contract. [NIEUW]
 TAMMO: Bij hem is dat hetzelfde. [NIEUW]
 TAMMO: Of hij is dom. [NIEUW]
 TESSA: Hij is niet dom. Hij wil dat we hem onderschatten. [NIEUW]
+TESSA: Hij heeft de bal. Wij hebben de eieren. Oma stuurt ons naar Zoutkamp. [NIEUW]
 APP MEM→TESSA (stil): Is mijn jongen droog? Zeg niks tegen jouw jongen. – M. [NIEUW]
 
 ## [T2] De streekbus naar Zoutkamp – Hogeland, Uithuizen naar Zoutkamp – bus (meerijden)
 TESSA: Oma Trijntje stuurt ons naar Kapitein Klaas in Zoutkamp. Hij heeft een boot, en Jelle heeft daar een skûtsje. [NIEUW]
-BUSCHAUFFEUR: Zoutkamp? Dat is de laatste halte. Daarna is er alleen nog water. [NIEUW]
+BUSCHAUFFEUR: Ik rijd tot Winsum. Daar stapt u over op de lijn naar Zoutkamp. Dat is de laatste halte, daarna is er alleen nog water. [NIEUW]
 TAMMO: Dat klinkt als thuis. [NIEUW]
 TESSA: Dat is een compliment, hè. [NIEUW]
-BUSCHAUFFEUR: Uitstappen bij de sluis, jongens. Dan zie je het water. [NIEUW]
+BUSCHAUFFEUR: Uitstappen bij de haven, jongens. Dan zie je het water. [NIEUW]
 
-## [M11.1] Geleend van de Friezen: intro – Waddenzee, Zoutkamp – rubberboot
+## [M11.1] Geleend van de Friezen: intro – Lauwersmeer, Zoutkamp – rubberboot
 (regie: donderdag 20 augustus, middag. Zoutkamp, de haven. Naamkaart: KAPITEIN KLAAS. Gameplay: met de rubberboot een skûtsje inhalen en aan boord springen; later, bij laag water, zout halen van de kwelder en onopgemerkt blijven voor de kustwacht.)
-KAPITEIN KLAAS: Ik ben Klaas. Ik viste dertig jaar fietsen uit de Diepenring, nu viss ik ze uit het Reitdiep. Oma Trijntje belde. [NIEUW]
+KAPITEIN KLAAS: Ik ben Klaas. Ik viste dertig jaar fietsen uit de Diepenring, nu vis ik ze uit het Reitdiep. Oma Trijntje belde. [NIEUW]
 KAPITEIN KLAAS: Het havenkantoor meldt dat Jelle een skûtsje heeft met een gouden bal in de kist. Hij vaart naar Lauwersoog, voor de pers. [NIEUW]
 TESSA: Dat klinkt als een val. [NIEUW]
 KAPITEIN KLAAS: Het is een val. Maar het is ook de enige bal die we kunnen bereiken. [NIEUW]
-KAPITEIN KLAAS: Hier. Een snelle boot. Ik zit bovenin, ik kijk de andere kant op. Tot de sluis. Daarna is het open water en ben je voor eigen rekening. [NIEUW]
+KAPITEIN KLAAS: Hier. Een snelle boot. Ik zit bovenin, ik kijk de andere kant op. Tot de sluizen bij Lauwersoog. Daarna is het open water en ben je voor eigen rekening. [NIEUW]
 TAMMO: Springen. Van een boot. Op een andere boot. [BEHOUDEN]
 TESSA: Jij stuurt, ik zeg wanneer. [BEHOUDEN]
 KAPITEIN KLAAS: Praat tegen je boot, jongens. Dat helpt. [NIEUW]
 TAMMO: Hij luistert niet. [NIEUW]
 KAPITEIN KLAAS: Hij luistert wel. Alleen niet naar jou. [NIEUW]
 
-## [M11.2] Geleend van de Friezen: de achtervolging – Waddenzee, Reitdiep naar Lauwersmeer – rubberboot
-TESSA: Het skûtsje. Links van de zandbank. [NIEUW]
+## [M11.2] Geleend van de Friezen: de achtervolging – Lauwersmeer, Reitdiep naar Lauwersmeer – rubberboot
+TESSA: Het skûtsje. Links van de zandplaat. [NIEUW]
 TAMMO: Groter dan ik dacht. [NIEUW]
 TESSA: Het is een skûtsje. Dat is groter dan alles. [NIEUW]
-KAPITEIN KLAAS (telefoon): Niet voorbij de sluis, jongens. Daarachter is het de Waddenzee, en daar vaar ik niet met een rubberboot. [NIEUW]
+KAPITEIN KLAAS (telefoon): Niet voorbij de sluizen, jongens. Daarachter is het de Waddenzee, en daar vaar ik niet met een rubberboot. [NIEUW]
 JELLE (telefoon): Mevrouw. U vaart op de vaargeul van Us Mem Snacks. Daar staat een tarief op. [NIEUW]
 TESSA: Nu, Tammo. Spring. [NIEUW]
 
-## [M11.3] Geleend van de Friezen: aan boord – Waddenzee, Lauwersmeer, skûtsje – skûtsje
+## [M11.3] Geleend van de Friezen: aan boord – Lauwersmeer, skûtsje – skûtsje
 (regie: in een kist ligt een gouden bal, het goudpapier knispert. Er hangt een kaartje aan: "Foar mem.")
 TAMMO: Chocola. We hebben een boot gekaapt voor chocola. [BEHOUDEN]
 TESSA: Een oefenbal. Hij oefent hoe hij hem aan zijn moeder geeft. [BEHOUDEN]
@@ -234,27 +243,27 @@ TAMMO: Hij is romantischer dan ik. [BEHOUDEN]
 TESSA: Iedereen is romantischer dan jij. [BEHOUDEN]
 KAPITEIN KLAAS (telefoon): Jongens. Ik heb net twee reuzen uit de haven gevist. Ze zwommen synchroon. [BEHOUDEN]
 JELLE (telefoon): Die twee mogen de chocola houden. De echte is bij mij, en daar blijft hij. [NIEUW]
-TESSA: Dus de bal is hier niet. Dan halen we het zout voor Oma's recept, dat is plakje vier. [NIEUW]
+TESSA: Dus de bal is hier niet. Dan halen we het zout voor Oma's recept. [NIEUW]
 
-## [M11.4] Geleend van de Friezen: het zout – Waddenzee, Lauwersmeer en kwelder – rubberboot
-KAPITEIN KLAAS: Het zout van Oma ligt bij Noordpolderzijl. Maar je moet het halen als het water weg is. Jelle kocht de zoutstekers. [NIEUW]
-TESSA: Dus we varen met laag water en lopen op het wad. [NIEUW]
-KAPITEIN KLAAS: Tot de zandplaat vaar ik. Daarachter is het open water, daar kom ik niet. Jullie lopen langs de kwelder. [NIEUW]
+## [M11.4] Geleend van de Friezen: het zout – Lauwersmeer en Waddenkust – rubberboot
+KAPITEIN KLAAS: Het zout van Oma ligt bij Noordpolderzijl. Maar je moet het halen als het wad droog ligt. Jelle kocht de zoutstekers. [NIEUW]
+TESSA: Dus we wachten tot het water weg is en lopen over de kwelder. [NIEUW]
+KAPITEIN KLAAS: Tot de zandplaat vaar ik. De wind duwt het water hier uit het meer, dan zit je een uur vast. Daarna breng ik jullie langs de dijk naar de kwelder. [NIEUW]
 TAMMO: Waarom zout? [NIEUW]
 KAPITEIN KLAAS: Oma's eierbal van 1953 had zout dat nog naar zee smaakte. [NIEUW]
 
-## [M11.5] Geleend van de Friezen: de zandplaat – Waddenzee, zandbank – rubberboot
-(regie: de avond valt. De boot loopt vast op een zandplaat. Klaas wacht op het getij.)
-KAPITEIN KLAAS: Wij zitten vast, jongens. Dat is geen ramp. Het water komt over een uur terug. [NIEUW]
-TESSA: Een uur. Op een zandbank. [NIEUW]
-KAPITEIN KLAAS: Kijk omhoog. Dat is Lauwersmeer. Het donkerste stuk van het land. [NIEUW]
+## [M11.5] Geleend van de Friezen: de zandplaat – Lauwersmeer, zandplaat – rubberboot
+(regie: de avond valt. De boot loopt vast op een zandplaat. Het meer heeft geen getij, maar de wind duwt het water weg. Klaas wacht tot het weer opkomt.)
+KAPITEIN KLAAS: Wij zitten vast, jongens. Dat is geen ramp. De wind duwt het water weg, over een uur komt het terug. [NIEUW]
+TESSA: Een uur. Op een zandplaat. [NIEUW]
+KAPITEIN KLAAS: Kijk omhoog. Boven het Lauwersmeer is het donkerste stuk van het land. [NIEUW]
 TAMMO: Dat zie ik. [NIEUW]
 TESSA: Dat is de Melkweg, Tammo. [NIEUW]
 TAMMO: Ik dacht dat dat een vlek was. [NIEUW]
 TESSA: Het is een vlek van een miljard sterren. [NIEUW]
 TAMMO: …Groter dan een vlek. [NIEUW]
 
-## [M11.6] Geleend van de Friezen: de lange blik – Waddenzee, zandbank – te voet
+## [M11.6] Geleend van de Friezen: de lange blik – Lauwersmeer, zandplaat – te voet
 (regie: de sterren. Ze zitten naast elkaar. Ze kijken elkaar te lang aan.)
 TAMMO: Hier zat ik vroeger. Als het thuis te druk was. [BEHOUDEN]
 TESSA: Alleen? [BEHOUDEN]
@@ -267,7 +276,7 @@ TAMMO: Is hij lang? [BEHOUDEN]
 TESSA: Tammo. [BEHOUDEN]
 APP MEM→TESSA (stil): Nog acht dagen. Hou Jelle bezig. – M. [NIEUW]
 
-## [M11.7] Geleend van de Friezen: de kwelder – Waddenzee, kwelder bij Noordpolderzijl – te voet
+## [M11.7] Geleend van de Friezen: de kwelder – Waddenkust, kwelder bij Noordpolderzijl – te voet
 (regie: nacht. Over het wad zwaait het zoeklicht van een kustwachtboot.)
 KUSTWACHTER: Kustwacht. Melding van twee mensen in zwarte kleding op het wad. Waarschijnlijk een zeehond. [NIEUW]
 TAMMO: Ik ben geen zeehond. [NIEUW]
@@ -278,10 +287,10 @@ TESSA: Er komt water. [NIEUW]
 KAPITEIN KLAAS (telefoon): Nu terug, jongens. Het water denkt niet na. [NIEUW]
 TESSA: Rennen, Tammo. [NIEUW]
 
-## [M11.8] Geleend van de Friezen: outro – Waddenzee, Lauwersoog – rubberboot
+## [M11.8] Geleend van de Friezen: outro – Waddenkust, Lauwersoog – rubberboot
 (regie: de rubberboot ligt weer aan de steiger. Plakje vier, het zout, is van hen.)
-KAPITEIN KLAAS: Dat zout is van Oma. Jelle heeft het nakijken. [NIEUW]
-DOKTER DIJKSTRA (telefoon): Dijkstra, UMCG. Morgen vliegt Jelle met zijn koopboek in een ballon boven de Dollard. Ik heb een heli en ik haal jullie op. Dit stond niet in het rooster. [NIEUW]
+KAPITEIN KLAAS: Dat zout is van Oma. Vet, eieren, zout: drie van vijf. Jelle heeft het nakijken. [NIEUW]
+DOKTER DIJKSTRA (telefoon): Dijkstra, UMCG. Trijntje kookte vroeger voor mijn afdeling, dus ik bel terug. Morgen vliegt Jelle met zijn koopboek in een ballon boven de Dollard. Ik heb een heli en ik haal jullie op. Dit stond niet in het rooster. [NIEUW]
 TESSA: Een koopboek met alles wat hij wil kopen. Dat moeten we hebben. [NIEUW]
 KAPITEIN KLAAS: En daarna naar de Eemshaven. Dat is Lammerts haven. Hij danste met Trijntje in 1953. [NIEUW]
 
@@ -292,7 +301,7 @@ JELLE (radio): Rikus. Ik ga naar de haven. De Eemshaven is van mij. Plakje vijf.
 RIKUS (radio): Storingsbericht: de Krolbrug is in storing. Niemand merkt verschil. [NIEUW]
 RIKUS (radio): De torenwachter belde niet. Dat is ook nieuws. [NIEUW]
 
-## [B2] Autogesprekken akte 2 (pool; Tessa laat Tammo de provincie zien, Tammo baalt van haar gelijk) – Hogeland, Wad – auto, bus, trein
+## [B2] Autogesprekken akte 2 (pool; Tessa laat Tammo de provincie zien, Tammo baalt van haar gelijk) – Hogeland, Waddenkust – auto, bus, trein
 TESSA: Kijk. Dat is de Waddenzee. [NIEUW]
 TAMMO: Een groot nat veld. [NIEUW]
 TESSA: Het is werelderfgoed. [NIEUW]
