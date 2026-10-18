@@ -149,12 +149,12 @@ function kustDef() {
     timeUp: 'het water kwam terug. Jullie zitten vast op het wad',
     reward: 1300,
     costRow: ['Gered', 'Plakje vier: het zout van Oma, van de kwelder'],
-    // Zoutkamp, the quay of the harbour (service road, 53.33785 N 6.29714 E); the boat lies in the water 80 m off
+    // Zoutkamp, the quay of the harbour (service road, 53.33785 N 6.29714 E); the boat lies moored at the water's edge a few metres off
     start: { x: -18057.6, y: -12911.0, road: null },
-    boatStart: { x: -18134, y: -12881, angle: -2.3693, kind: 'rubberboot' },
+    boatStart: { x: -18075, y: -12902, angle: 2.8, kind: 'rubberboot' },
     say: 'Haal Jelles skûtsje in en spring aan boord. Daarna het zout: blijf uit het licht van de kustwacht en wees terug voor het water komt.',
     stages: [
-      { kind: 'goto', target: { storyBoat: true }, mode: 'any', radius: 9, label: 'Stap in de rubberboot van Klaas', say: 'Klaas zit bovenin en kijkt de andere kant op. Instappen, Tammo stuurt.' },
+      { kind: 'goto', target: { storyBoat: true }, mode: 'any', radius: 14, label: 'Stap in de rubberboot van Klaas', say: 'Klaas zit bovenin en kijkt de andere kant op. Instappen, Tammo stuurt.' },
       {
         kind: 'boatchase', label: 'Ga langszij bij het skûtsje', name: 'Skûtsje van Jelle', path: SKUTSJE_PATH, lead: 140, board: 9, boardTime: 2.5, escape: 420, time: 240,
         say: 'Daar vaart hij, het Reitdiep af! Zwart skûtsje, rood zeil. Ga er vlak naast varen, dan spring je aan boord. Tot de sluis, zei Klaas.',

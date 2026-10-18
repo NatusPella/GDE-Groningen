@@ -93,7 +93,7 @@ const path = kust.stages[1].path;
 let plen = 0;
 for (let i = 1; i < path.length; i++) plen += Math.hypot(path[i][0] - path[i - 1][0], path[i][1] - path[i - 1][1]);
 ok(plen > 8000 && plen < 20000 && path.every(([x, y]) => inProvince({ x, y })), 'kust: the skûtsje route over the Reitdiep and the Lauwersmeer is 8 to 20 km', String(Math.round(plen)));
-ok(Math.hypot(kust.boatStart.x - path[0][0], kust.boatStart.y - path[0][1]) < 60, 'kust: the rubber boat lies at the start of the route');
+ok(Math.hypot(kust.boatStart.x - path[0][0], kust.boatStart.y - path[0][1]) < 80, 'kust: the rubber boat lies at the start of the route');
 const holds = kust.stages.filter((q) => q.kind === 'hold');
 ok(holds.length === 3 && holds.every((q) => q.light && q.time >= 2 && q.ticks.length === 2), 'kust: three zoutkuipen, each with the searchlight over it');
 ok(kust.stages[kust.stages.length - 1].light, 'kust: the light is still on the way back');
@@ -116,6 +116,18 @@ ok(!L.inBeam(lt, 2, Math.cos(2) * 800, Math.sin(2) * 800), 'light: nor one beyon
 const stand = L.stepExposure(0, 0.5, true, false, lt), crouch = L.stepExposure(0, 0.5, true, true, lt);
 ok(stand > crouch * 3, 'light: crouching in the grass fills the "gezien" meter far slower', `${stand} vs ${crouch}`);
 ok(L.stepExposure(0, 1, true, false, lt) === 1 && L.stepExposure(1, 1, false, false, lt) === 0.7, 'light: a second in the beam standing is the end; outside it the meter empties');
+
+// --- the plakjesbord: what Jelle bought, and how each slice ended ---
+{
+  const { plakjesState, PLAKJES } = await import('../game/js/plakjes.js');
+  ok(PLAKJES.length === 8 && PLAKJES.every((p, i) => p.n === i + 1 && p.open && p.ended && ['gered', 'verloren', 'geblokkeerd'].includes(p.result)), 'plakjes: eight slices, each with a text for open and ended');
+  ok(PLAKJES.every((p) => STEPS.some((s) => s.id === p.step) && STEPS.some((s) => s.id === p.reveal)), 'plakjes: every slice is settled and revealed by a step of the arc');
+  ok(plakjesState(new Set(), 'M01').length === 0, 'plakjes: nothing on the board before the Loket');
+  const a = plakjesState(new Set(['M00', 'M01', 'M02', 'M03', 'M04', 'M05', 'M06']), 'M07');
+  ok(a.map((p) => p.n + p.state).join() === '1verloren,2open', 'plakjes: after the Loket the standplaatsen are lost, the vet is open', a.map((p) => p.n + p.state).join());
+  const b = plakjesState(new Set(['M03', 'M07', 'M09', 'M11']), 'M12');
+  ok(b.map((p) => p.n + p.state).join() === '1verloren,2gered,3gered,4gered,5open,6open,7open,8open', 'plakjes: after act 2 the first four are settled and the koopboek of M12 shows the rest', b.map((p) => p.n + p.state).join());
+}
 
 // --- the saves of act 2 (scripts/fixtures/saves): the steps they carry exist in the new arc and the story continues where they say ---
 {
