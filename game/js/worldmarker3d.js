@@ -10,7 +10,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { markerColors } from './a11y.js';
 import { FLAGS } from './devflags.js';
-import { iconScale, iconLift, columnWidth, columnOpacity, discOpacity, glyphPulse, showLabel, labelText } from './markerlook.js';
+import { iconScale, iconLift, columnWidth, columnHeight, columnOpacity, discOpacity, glyphPulse, showLabel, labelText } from './markerlook.js';
 
 const MARKER_SOLID = FLAGS.marker === 'vorm';
 
@@ -194,6 +194,9 @@ export function updateWorldMarker3D(group, time) {
   wm.top.scale.setScalar(iconScale(d));
   wm.top.position.y = ICON_Y + iconLift(d) + Math.sin(time * 2.2) * 0.2;
   wm.column.scale.x = wm.column.scale.z = columnWidth(d);
+  const ch = columnHeight(d);
+  wm.column.scale.y = ch / COLUMN_H;
+  wm.column.position.y = ch / 2;
   if (wm.kind === 'checkpoint' && markerCam) ic.rotation.y = Math.atan2(markerCam.position.x - group.position.x, markerCam.position.z - group.position.z);
   else ic.rotation.y = time * 1.4;
   wm.ground.scale.setScalar(1 + Math.sin(time * 3) * 0.05);

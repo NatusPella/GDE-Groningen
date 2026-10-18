@@ -38,6 +38,7 @@ Alleen één Electron-instantie tegelijk en geen nieuwe agents tijdens een relea
 
 ## Testen
 
+- Alles in één keer, met rapport: `node scripts/test_all.mjs --fase=licht|zwaar|electron|alles` (zie [docs/TESTEN.md](docs/TESTEN.md)).
 - Vóór elke merge: `node --check` op gewijzigde JS, `node scripts/voice_coverage.mjs --quiet`, en alle `scripts/*_test.mjs` met gewone `node` (macOS en Windows hebben geen `timeout`).
 - Vóór elke release: één Electron-verhaaltest (`--story-test=<dir>`). NaN-waarschuwingen in geometrie laten die falen.
 - Zware wereldchecks: `ring_probe`, `seat_audit`, `scripts/world/prop_conflict_audit.mjs --strict` (weilandranden en vee tegen spoor, weg, water en huis), `scripts/perf/geocheck.sh`, `drive_audit`, `junction_sim_test`, `network_drive_test`, spoor- en wateraudits.

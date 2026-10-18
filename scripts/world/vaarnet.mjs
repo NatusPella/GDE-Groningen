@@ -184,6 +184,13 @@ export function widenWideWater(R) {
 // kaart ontbreekt, tot MAIN_GAP_M m) groeien aan elkaar. Geeft het aantal cellen.
 const AXES = [[1, 0], [0, 1], [1, 1], [1, -1]];
 export const MAIN_NEAR_M = 40, MAIN_GAP_M = 35;
+// ...but only water a barge has room in (#234): a side diep or ditch next to the canal stays class 3
+export const MAIN_ROOM_M = 8;
+function roomRound(R, cx, cy) {
+  const q = Math.ceil(MAIN_ROOM_M / CELL) - 1;
+  for (let a = -q; a <= q; a++) for (let b = -q; b <= q; b++) if (R.nav(cx + a, cy + b) < 3) return false;
+  return true;
+}
 export function widenMainWaterways(R) {
   const r = Math.ceil(MAIN_NEAR_M / CELL), up = [];
   for (let ci = 0; ci < R.chunks.length; ci++) {
@@ -193,7 +200,7 @@ export function widenMainWaterways(R) {
     for (let i = 0; i < ch.length; i++) {
       if (!(ch[i] & 32)) continue;
       const cx = bx + (i & 255), cy = by + (i >> 8);
-      for (let a = -r; a <= r; a++) for (let b = -r; b <= r; b++) if (a * a + b * b <= r * r && R.nav(cx + a, cy + b) === 3) up.push([cx + a, cy + b]);
+      for (let a = -r; a <= r; a++) for (let b = -r; b <= r; b++) if (a * a + b * b <= r * r && R.nav(cx + a, cy + b) === 3 && roomRound(R, cx + a, cy + b)) up.push([cx + a, cy + b]);
     }
   }
   for (const [x, y] of up) R.put(x, y, 4 | 32);

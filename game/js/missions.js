@@ -9,7 +9,7 @@ import { spawnVehicleOnRoad, Vehicle, makeTwoWheeler, spawnHeroCarNear, attachTo
 import { placeOwnedVehicleNear } from './ownedvehicles.js';
 import { findWalkPath } from './routing.js';
 import { setGoal } from './goal.js';
-import { playMissionIntro, playMissionFailed, isCinematicActive, playCinematic } from './cinematics.js';
+import { playMissionIntro, playMissionFailed, isCinematicActive, playCinematic, skipCinematic } from './cinematics.js';
 import { playStoryIntro, playStoryOutro, playStoryFail, playVaultScene, playCastScene, playEyeContact, playPigeonSwarm, playToast, storySpeakerName } from './missionstory.js';
 import { showTowerFlag, cutFlagRope, dropFlag, updateStoryProps, clearStoryProps, clearSkutsjeSail, hasTowerFlag, flagFocus, flagKnotsFocus } from './storyprops3d.js';
 import { RING_ROUTE, RING_CHECKPOINTS } from './ringroute.js';
@@ -31,7 +31,7 @@ import { startPigeonMode, stopPigeonMode, getPigeonFlight, summonDiveGull } from
 import { getPigeonSpotsForRender } from './pigeonspots.js';
 import { MISSION_IDS, MISSION_STORY_ORDER, missionCode, STEPS, missionIndexOf } from './storyarc.js';
 import { requestRespawn } from './world.js';
-import { getMissionRecord } from './achievements.js';
+import { getMissionRecord, recordStat } from './achievements.js';
 import { BOAT_KINDS } from './boattypes.js';
 import { animateSkutsjeRig } from './models3d_vehicles.js';
 import { setMuseumCaseStolen } from './museum3d.js';
@@ -1880,12 +1880,14 @@ function releaseCrowd() {
   chain.crowd.length = 0;
 }
 
+// the dev cheat starts a lazyStart mission without road data (the tiles may not stream in headless)
+let forceStart = false;
 function startMission(world, def) {
   removeLeftover(world);
   chain.tags = new Set();
   chain.bakeTier = null;
   // a start out in the province has no road data until the player is there (the tiles stream in): find the road now
-  if (def.lazyStart && !def.start.road) {
+  if (def.lazyStart && !def.start.road && !forceStart) {
     const spot = roadSpot(world.map, def.start.x, def.start.y, true);
     if (spot.road) Object.assign(def.start, spot);
     else {
@@ -2180,6 +2182,7 @@ function updateRetry(dt, world, def) {
     r.fade -= dt;
     if (r.fade > 0) return;
     chain.retry = null;
+    recordStat(world, 'missionRetries');
     placeParty(world, def.start);
     chain.armed = true;
     chain.phase = 'idle';
@@ -3635,14 +3638,25 @@ export const missionDebug = {
     chain.index = i;
     const p = world.player;
     if (!p.inVehicle && dist(p.x, p.y, def.start.x, def.start.y) > 30) { p.x = def.start.x; p.y = def.start.y; }
-    startMission(world, def);
+    // a lazyStart mission needs road data the streaming has not brought yet: look wider for it, the cheat has the player on the spot
+    if (def.lazyStart && !def.start.road) {
+      const far = world.map.nearestRoadPoint(def.start.x, def.start.y, 600, true);
+      if (far && far.road) Object.assign(def.start, far);
+    }
+    forceStart = true;
+    try { startMission(world, def); } finally { forceStart = false; }
     syncPub(world);
-    return true;
+    return chain.phase === 'active';
   },
+  // wins whatever stage the mission is in (a scene, a vault, the intro still pending): independent of the path
+  // the player took, so the spelbot's cheat ladder ends here (#186)
   win(world) {
     if (!chain || chain.phase !== 'active') return false;
     const def = chain.defs[chain.index];
     if (world.pigeonMode) stopPigeonMode(world);
+    chain.stagePending = false;
+    chain.resume = null;
+    if (isCinematicActive()) skipCinematic();
     succeed(world, def);
     syncPub(world);
     return true;

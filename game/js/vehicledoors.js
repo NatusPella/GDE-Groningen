@@ -31,10 +31,13 @@ const cab = (x, w, y0, h) => [
 const kap = (x, w, y0) => ({ id: 'kap', side: 0, x, w, y0, h: 0.04, soort: 'kap', zone: 'voor', seat: null, scheefAt: 0.7, losAt: 1.8 });
 const klep = (x, w, y0) => ({ id: 'klep', side: 0, x, w, y0, h: 0.04, soort: 'klep', zone: 'achter', seat: null, scheefAt: 0.6, losAt: 1.6 });
 const laadklep = (y0, h) => ({ id: 'klep', side: 0, x: -0.49, w: 1.5, y0, h, soort: 'achterdeur', zone: 'achter', seat: null, scheefAt: 0.7, losAt: 1.7 });
-const dubbel = (id, side, x) => [
-  { id: id + 'a', side, x: x + 0.035, w: 0.55, y0: 0.35, h: 1.9, soort: 'schuif', seat: 'bijrijder', dir: 1 },
-  { id: id + 'b', side, x: x - 0.035, w: 0.55, y0: 0.35, h: 1.9, soort: 'schuif', seat: 'bijrijder', dir: -1 },
+const dubbel = (id, side, x, w = 0.55, y0 = 0.35, h = 1.9, dx = 0.035) => [
+  { id: id + 'a', side, x: x + dx, w, y0, h, soort: 'schuif', seat: 'bijrijder', dir: 1 },
+  { id: id + 'b', side, x: x - dx, w, y0, h, soort: 'schuif', seat: 'bijrijder', dir: -1 },
 ];
+// Stadsbus: de deuropening in busSection (models3d_vehicles.js) loopt van de dorpel (0.42 m) tot de
+// raamlijn (2.6 m), 1,25 m breed, op hl-1.05 en midden tussen de assen van de voorste eenheid (11,2 m).
+const busDeur = (id, x, len) => dubbel(id, 1, x, 0.6, 0.42, 2.15, 0.3 / len);
 
 // Per modelnaam (zie vehicle.js MODELS en models3d_vehicles.js carType). null = geen logische deur.
 export const DEUR_DEFS = {
@@ -60,8 +63,8 @@ export const DEUR_DEFS = {
   foodtruck: cab(0.33, 0.8, 0.5, 1.2),
   tractor: [{ id: 'vr', side: 1, x: -0.17, w: 0.9, y0: 1.0, h: 1.65, soort: 'scharnier', seat: 'bijrijder' },
     { id: 'vl', side: -1, x: -0.17, w: 0.9, y0: 1.0, h: 1.65, soort: 'scharnier', seat: 'bestuurder' }],
-  bus: [...dubbel('d1', 1, 0.4), ...dubbel('d2', 1, 0.0)],
-  midibus: [...dubbel('d1', 1, 0.36)],
+  bus: [...busDeur('d1', 0.406, 11.2), ...busDeur('d2', -0.04, 11.2)],
+  midibus: busDeur('d1', 0.375, 8.4),
   tram: [...dubbel('d1', 1, 0.36), ...dubbel('d2', 1, 0.05), ...dubbel('d3', 1, -0.28)],
   train: [...dubbel('d1', 1, 0.3), ...dubbel('d2', 1, -0.3)],
 };
