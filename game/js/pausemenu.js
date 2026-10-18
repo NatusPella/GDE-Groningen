@@ -33,8 +33,6 @@ import { renderVerhaal, verhaalClick, verhaalSummary, disposeVerhaalViewer } fro
 import { anyFresh } from './characters.js';
 import { renderSpullen, spullenClick, spullenFocus } from './spullen.js';
 import { renderPhonePanel, phoneClick, phoneUnread, selectPhoneThread, PHONE_NAME } from './phone.js';
-import { recentNotice } from './phonefeed.js';
-import { storyContactCaller } from './storycontact.js';
 import { getErrorLog, errorReport, clearErrorLog, onErrorLogChange } from './errorlog.js';
 import { KEYS } from './storagekeys.js';
 // Running inside the desktop app (desktop/preload.js): window mode + quit.
@@ -99,7 +97,7 @@ const CONTROL_GROUPS = [
     [['X'], 'Weer mens worden'],
   ]],
   ['menu', 'Telefoon & menu', [
-    [['ESC'], 'Telefoon openvouwen (pauzemenu); in het menu: terug. Bij een binnenkomend bericht of gesprek: dat gesprek'],
+    [['ESC'], 'Pauzemenu openen; in het menu: terug'],
     [['M'], 'Kaart'],
     [['ARROWS'], 'In het menu: kiezen, Enter: ok'],
     [['Q', 'E'], 'In het menu: vorige of volgende sectie'],
@@ -643,10 +641,7 @@ function onKey(e) {
     if (k === 'Escape' && document.body.classList.contains('mg-board')) return;
     if (k === 'Escape' || (lower === 'm' && !isCinematicActive())) {
       e.preventDefault();
-      // a call, a story contact or a text on screen: Esc opens its thread
-      const from = k === 'Escape' ? storyContactCaller() || (!isCinematicActive() ? recentNotice() : null) : null;
-      if (from) { selectPhoneThread(from); pref.sub.telefoon = 'berichten'; }
-      setOpen(true, k === 'Escape' ? (from ? 'telefoon' : HOME) : 'map', 'direct');
+      setOpen(true, k === 'Escape' ? HOME : 'map', 'direct');
     }
     return;
   }
