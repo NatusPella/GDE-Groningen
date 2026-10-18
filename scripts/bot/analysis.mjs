@@ -187,7 +187,7 @@ export function nlSummary({ title, date, metrics: m, cmp, findings: fs, issues =
     out.push('', '## Ten opzichte van de vorige run', '', `- Nieuw: ${cmp.nieuw.length}${cmp.nieuw.length ? ' (' + cmp.nieuw.map((f) => f.title).slice(0, 5).join('; ') + ')' : ''}`, `- Opgelost: ${cmp.opgelost.length}${cmp.opgelost.length ? ' (' + cmp.opgelost.map((f) => f.title).slice(0, 5).join('; ') + ')' : ''}`);
     out.push(`- Regressies: ${cmp.regressies.length ? cmp.regressies.map((r) => `${r.metric} ${r.was} naar ${r.nu}`).join('; ') : 'geen'}`);
   } else out.push('', 'Dit is de eerste run: er is nog niets om mee te vergelijken.');
-  if (audio) out.push('', `Geluid: ${audio.samples ? `langste stilte ${audio.longestSilent} s, ${audio.clips} keer clipping, ${Object.keys(audio.sfx).length} verschillende effecten` : 'niet gemeten (start met --audio)'}.`);
+  if (audio) out.push('', `Geluid: ${audio.samples ? `langste stilte ${audio.longestSilent} s, ${audio.clips} keer clipping, ${Object.keys(audio.sfx).length} verschillende effecten (onder --stil is de uitgang gedempt: lange stilte zegt dan weinig)` : 'niet gemeten (start met --audio)'}.`);
   out.push('', '## Bevindingen', '');
   if (!fs.length) out.push('Geen.');
   for (const f of fs) { const i = issues.find((x) => x.f.fp === f.fp); out.push(`- [${f.severity}] ${f.title}${i ? ` (${i.action === 'nieuw' ? 'nieuw issue' : 'issue #' + i.number}${i.created ? ' ' + i.created : ''})` : ''}`); }
