@@ -140,6 +140,8 @@ export const ACHIEVEMENTS = [
   { id: 'discgolf_dichtbij_goud', cat: 'verkennen', title: 'Recht op de mand', desc: 'Haal goud bij discgolf dichtbij', medal: true },
   { id: 'ski_sprong', cat: 'verkennen', title: 'Hoog en schoon', desc: 'Land een sprong met een draai en een grab', hidden: true },
   { id: 'geheimen_alle', cat: 'verkennen', title: 'Stadjer met geheimen', desc: 'Vind alle 8 geheimpjes van Grunn in één spel', save: 'geheimen', goal: 8, hidden: true },
+  { id: 'streek_verzameld', cat: 'verzamelen', title: 'Streekverzamelaar', desc: 'Vind alle vijftien streekvondsten van de provincie', set: 'streekverzamel', goal: 15 },
+  { id: 'streek_geheimen', cat: 'verkennen', title: 'Kenner van de streek', desc: 'Vind het geheim van elke streek in de provincie', set: 'streekgeheimen', goal: 5, hidden: true },
   { id: 'zonsopgang', cat: 'verkennen', title: 'Vroege vogel', desc: 'Zie de zon opkomen boven Grunn' },
   // the Ommeland extras (worldends.js, dorpsuitjes.js): progress only, never where
   { id: 'wereldeinde_1', cat: 'verkennen', title: 'Rand van de kaart', desc: 'Vind een plek waar een weg van het Ommeland ophoudt', set: 'wereldeinden', goal: 1 },
