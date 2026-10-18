@@ -772,6 +772,8 @@ function trackProgress(r, x, y) {
 function updateSlot(world, slot, target, mode) {
   if (!target || !mode) { slot.route = null; slot.key = ''; return; }
   const p = world.player;
+  // already there: no line left to follow (it stayed on the map, #118)
+  if (Math.hypot(target.x - p.x, target.y - p.y) < REACH_M * 2) { slot.route = null; slot.key = ''; return; }
   const key = `${target.kind}:${Math.round(target.x)}:${Math.round(target.y)}:${mode}:${prefs.avoidMotorways ? 1 : 0}`;
   const now = performance.now() / 1000;
   if (key !== slot.key || !slot.route) {
