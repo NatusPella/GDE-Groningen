@@ -7,12 +7,13 @@ import { showCard } from './hudcards.js';
 import { activityBlock, iconDisc } from './activitykit.js';
 import { createBoard, key, bubble, clearBubbles, pick, stopPressed, easeCamera, clamp } from './minigamekit.js';
 import { PUTT_LINES } from './minigamelines.js';
+import { loadEchtePlekken, golfVenues, nearestOf } from './echteplekken.js';
 import {
-  ppHoles, slopeAt, onGreen, inBunker, pitch, putt, straightPower, powerForCarry, finishHole, newCard, cardTotals, courseMedal, holeName, relText,
+  ppHoles, holesFromWorld, slopeAt, onGreen, inBunker, pitch, putt, straightPower, powerForCarry, finishHole, newCard, cardTotals, courseMedal, holeName, relText,
   GREEN_R, CUP_R, MAX_OVER_PAR, PITCH_MAX,
 } from './puttinglogic.js';
 
-// Pitch & putt aan de Concourslaan: six short holes laid out on the open
+// Pitch & putt on the real courses of the province (#174; at the Concourslaan without that data): six short holes laid out on the open
 // ground inside the Concours oval at the Stadspark (no pitch & putt course is
 // mapped in Groningen, so this is the nearest big meadow). From the tee you pitch
 // to the green, there you putt. A/D aim (Shift: fine), hold Space to charge
@@ -25,10 +26,39 @@ import {
 const ACCENT = '#46b36a';
 const USE_RADIUS = 2.8;
 const DETAIL_M = 520;
-const HOLES = ppHoles();
-const CENTER = { x: HOLES.reduce((a, h) => a + h.tee.x + h.cup.x, 0) / (HOLES.length * 2), y: HOLES.reduce((a, h) => a + h.tee.y + h.cup.y, 0) / (HOLES.length * 2) };
-const FIRST = HOLES[0];
-const STAND = { x: FIRST.tee.x - Math.cos(FIRST.heading) * 3 + Math.cos(FIRST.heading + Math.PI / 2) * 1.3, y: FIRST.tee.y - Math.sin(FIRST.heading) * 3 + Math.sin(FIRST.heading + Math.PI / 2) * 1.3 };
+// The course in use: the Concours oval (the fallback) until game/echteplekken.json has real
+// golf courses (#174); then the nearest of those, six holes laid out on the real course.
+let HOLES, CENTER, FIRST, STAND;
+function layout(holes) {
+  HOLES = holes;
+  CENTER = { x: HOLES.reduce((a, h) => a + h.tee.x + h.cup.x, 0) / (HOLES.length * 2), y: HOLES.reduce((a, h) => a + h.tee.y + h.cup.y, 0) / (HOLES.length * 2) };
+  FIRST = HOLES[0];
+  STAND = { x: FIRST.tee.x - Math.cos(FIRST.heading) * 3 + Math.cos(FIRST.heading + Math.PI / 2) * 1.3, y: FIRST.tee.y - Math.sin(FIRST.heading) * 3 + Math.sin(FIRST.heading + Math.PI / 2) * 1.3 };
+}
+const CONCOURS = ppHoles();
+layout(CONCOURS);
+let venues = [{ id: 'concours', name: 'Pitch & putt', plaats: 'de Concourslaan', holes: CONCOURS }];
+for (const v of venues) { layout(v.holes); v.stand = STAND; v.center = CENTER; v.x = STAND.x; v.y = STAND.y; }
+let venue = venues[0];
+
+function setVenues(list) {
+  if (game) return;
+  venues = list.map((v) => { layout(v.holes); return { ...v, holes: HOLES, stand: STAND, center: CENTER, x: STAND.x, y: STAND.y }; });
+  venue = null;
+}
+
+// The venue the player is at (the nearest); a new one drops the old course meshes.
+function focus(w) {
+  if (game) return;
+  const n = nearestOf(venues, w.player.x, w.player.y);
+  if (!n || n.item === venue) return;
+  venue = n.item;
+  layout(venue.holes);
+  if (built) {
+    getScene().remove(built.root, built.ball, built.line, built.ring, built.keeper);
+    built = null;
+  }
+}
 const BALL_R = 0.16;
 const CHARGE_PITCH = 1.5, CHARGE_PUTT = 1.7;
 
@@ -139,6 +169,7 @@ function buildCourse(w) {
 }
 
 function updateLod(w) {
+  focus(w);
   const d = Math.hypot(w.player.x - CENTER.x, w.player.y - CENTER.y);
   if (!built && d < DETAIL_M) built = buildCourse(w);
   if (!built) return;
@@ -163,6 +194,7 @@ function drawIcon(ctx, s) {
 // --- prompt and start ------------------------------------------------------------------------------
 
 function nearStand(w) {
+  focus(w);
   const p = w.player;
   if (game || w.pigeonMode || w.heliRun || p.inVehicle || p.swimming) return false;
   return Math.hypot(p.x - STAND.x, p.y - STAND.y) < USE_RADIUS;
@@ -176,11 +208,12 @@ function recText() {
 function prompt(w) {
   if (!nearStand(w)) return null;
   const why = activityBlock(w);
-  return { id: 'pitchputt', x: STAND.x, y: STAND.y, h: 2.2, key: 'E', label: 'Pitch & putt', sub: why || recText() || 'Zes holes bij de Concourslaan · gratis', ring: true, dim: !!why };
+  return { id: 'pitchputt', x: STAND.x, y: STAND.y, h: 2.2, key: 'E', label: 'Pitch & putt', sub: why || recText() || `Zes holes · ${venue.plaats} · gratis`, ring: true, dim: !!why };
 }
 
 function secondary(w) {
   if (game || w.player.inVehicle) return [];
+  focus(w);
   if (Math.hypot(w.player.x - CENTER.x, w.player.y - CENTER.y) > 220) return [];
   return [{ id: 'pitchputt-2', x: STAND.x, y: STAND.y, h: 2.2, label: 'Pitch & putt', sub: 'Loop naar de eerste tee en druk E', kind: 'place' }];
 }
@@ -196,6 +229,7 @@ function interact(w) {
 function start(w, { force = false } = {}) {
   if (game) return false;
   if (!force && activityBlock(w)) return false;
+  focus(w);
   if (!built) built = buildCourse(w);
   const p = w.player;
   if (p.inVehicle) p.exitVehicle(w.map, w);
@@ -495,9 +529,12 @@ function updateHud() {
 export const PITCHPUTT = {
   id: 'pitchputt',
   layer: 'pitchputt',
-  legend: { kind: 'act-pitchputt', label: 'Pitch & putt', note: 'zes korte holes bij de Concourslaan: pitchen en putten' },
+  legend: { kind: 'act-pitchputt', label: 'Pitch & putt', note: 'zes korte holes op de echte golfbanen: pitchen en putten' },
   init(w) {
+    // the real courses (scripts/world/echteplekken.py): used as soon as the data is in
+    loadEchtePlekken().then((data) => { const v = golfVenues(data); if (v.length) setVenues(v); });
     window.__pitchputt = {
+      venues: () => venues.map((v) => ({ id: v.id, name: v.name, x: Math.round(v.x), y: Math.round(v.y), holes: v.holes.length })),
       spot: () => ({ ...STAND }),
       holes: () => HOLES.map((h) => ({ n: h.n, par: h.par, len: Math.round(h.len), tee: { ...h.tee }, cup: { ...h.cup } })),
       start: (force = true) => start(w, { force }),
@@ -509,7 +546,7 @@ export const PITCHPUTT = {
       quit: () => { if (!game) return false; end(w, { quit: true }); return true; },
     };
   },
-  spots: () => [{ id: 'pitchputt', name: 'Pitch & putt', x: STAND.x, y: STAND.y }],
+  spots: () => venues.map((v, i) => ({ id: i ? 'pitchputt-' + v.id : 'pitchputt', name: v.name, x: v.x, y: v.y })),
   prompt,
   secondary,
   interact,
@@ -529,9 +566,10 @@ export const PITCHPUTT = {
   icon: drawIcon,
   mapSub: () => recText() || 'Pitch & putt: zes korte holes',
   ubbo(w) {
+    focus(w);
     const d = Math.hypot(STAND.x - w.player.x, STAND.y - w.player.y);
     const rec = getChallengeRecord('pitchputt');
-    return { name: 'Pitch & putt', sub: rec && rec.medal ? `record: ${MEDALS[rec.medal].toLowerCase()}` : 'zes holes, gratis', dist: d, x: STAND.x, y: STAND.y, play: 'pitchputt', where: 'de eerste tee bij de Concourslaan', hint: 'loop naar de tee en druk E' };
+    return { name: 'Pitch & putt', sub: rec && rec.medal ? `record: ${MEDALS[rec.medal].toLowerCase()}` : 'zes holes, gratis', dist: d, x: STAND.x, y: STAND.y, play: 'pitchputt', where: `de eerste tee bij ${venue.plaats}`, hint: 'loop naar de tee en druk E' };
   },
   runs: () => runs,
 };

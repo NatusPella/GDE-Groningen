@@ -109,8 +109,6 @@ export function carryPose(mesh, kind) {
   }
 }
 
-export const CARRY_KINDS = Object.keys(CARRY);
-export const carryHoldsArms = (kind) => !!(CARRY[kind] && CARRY[kind].arms);
 
 // Adds the carried thing to a pedestrian's mesh (once).
 export function attachCarry(mesh, kind) {

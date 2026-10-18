@@ -368,4 +368,3 @@ export function flatScene(variant, lines) {
   return { id: 'story-' + variant, actors, props: V.props, cues, shots };
 }
 
-export const CUTSCENES = { END_CARD };

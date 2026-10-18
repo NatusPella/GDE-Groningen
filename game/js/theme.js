@@ -83,9 +83,6 @@ export function cueTheme(at = 0) {
   return true;
 }
 
-export function isThemePlaying() {
-  return state !== 'done' && !SILENT_MODE && !!el && (state === 'playing' || !el.paused);
-}
 
 // Has the theme claimed the music slot? True from load until it ends, so
 // G-Music never starts on top of it while the first gesture is pending.

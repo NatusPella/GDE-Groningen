@@ -91,6 +91,3 @@ export function updateEdgeGuard(dt, w) {
   else if (ev.type === 'scene') showScene(w, ev.plan);
 }
 
-export function edgeGuardDebug() {
-  return { phase: watch.phase, rule, props: props.length };
-}

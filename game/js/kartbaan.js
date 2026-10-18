@@ -12,14 +12,17 @@ import { activityBlock, iconDisc } from './activitykit.js';
 import { createBoard, key, bubble, clearBubbles, pick, stopPressed, easeCamera, geo, frame, fmtTime, angDiff, clamp } from './minigamekit.js';
 import { KART_LINES, KART_RIVALS } from './minigamelines.js';
 import {
-  buildTrack, createKart, stepKart, updateProgress, collideKarts, aiInput, rankKarts, positionMedal, bestLap, pointAt, locate, KART, LAPS, RUNOFF, TRACK_W,
+  buildTrack, createKart, stepKart, updateProgress, collideKarts, aiInput, rankKarts, positionMedal, bestLap, pointAt, locate, KART, LAPS, RUNOFF,
 } from './kartrace.js';
 import { createRecorder, recordGhost, finishGhost, ghostAt, loadGhost, saveGhost } from './ghostreplay.js';
 import { KEYS } from './storagekeys.js';
+import { addClearZone, corridorPoints } from './clearzone.js';
+import { ULRUM_RING, ringToLocal, startOnLongestStraight } from './kartbaandata.js';
 
-// Karten bij Kardinge: a kart track on the open ground north of the Kardinge
-// sports centre (the OSM data has only an indoor karting hall there, so the
-// outdoor track sits on the empty field next to it). Three laps against three
+// Karten in Ulrum: the real outdoor kart track of Ulrum (OSM way "Kartbaan
+// Ulrum", kartbaandata.js), laid out exactly as mapped, 330 m with the start
+// on its longest straight. The indoor hall in the city is not used. The track
+// is a clear zone (clearzone.js): no walkers, traffic or props. Three laps against three
 // drivers, no ghosts. W/S gas and brake (the mouse buttons too), A/D steer,
 // Space is the handbrake: hold it into a bend to drift, and a long enough
 // drift ends in a boost. The grass slows you, the tyre wall bounces you back.
@@ -27,17 +30,30 @@ import { KEYS } from './storagekeys.js';
 // the best lap. Money-neutral. Rules, the kart and the drivers: kartrace.js.
 // `window.__kartbaan` debug.
 const ACCENT = '#f2b82a';
-const ORIGIN = geo(53.240572, 6.600072);
-const ROT = 0.45;
+const RING0 = ringToLocal(ULRUM_RING);
+const ORIGIN = geo(RING0.lat0, RING0.lon0);
+const ROT = 0;
 const FR = frame(ORIGIN, ROT);
-const TRACK = buildTrack();
-const CENTER = FR.toW(17, 40);
-const STAND = FR.toW(6, -15);
+const WIDTH = 7;
+// the mapped ring in the game's own frame (its y runs south), started mid-straight
+const TRACK = buildTrack(startOnLongestStraight(ULRUM_RING.map(([la, lo]) => { const q = geo(la, lo); return [q.x - ORIGIN.x, q.y - ORIGIN.y]; })), WIDTH);
+const CENTER = FR.toW(0, 0);
+// nobody walks or drives across the track, and no props stand on it (clearzone.js, issue #176)
+addClearZone('kartbaan', corridorPoints(TRACK, FR.toW), WIDTH / 2 + RUNOFF + 3);
+// the start straight: which side is outside the loop, and where the booth and the stand go
+const SP = pointAt(TRACK, 0);
+const loopHas = (x, y) => { let r = false; for (let i = 0, j = TRACK.N - 1; i < TRACK.N; j = i++) { if ((TRACK.v[i] > y) !== (TRACK.v[j] > y) && x < ((TRACK.u[j] - TRACK.u[i]) * (y - TRACK.v[i])) / (TRACK.v[j] - TRACK.v[i]) + TRACK.u[i]) r = !r; } return r; };
+const OUT_LEFT = !loopHas(SP.x - Math.sin(SP.ang) * 6, SP.y + Math.cos(SP.ang) * 6);
+const DEC_ROT = -SP.ang + (OUT_LEFT ? Math.PI : 0);
+// a point in the decor frame (x along the straight, z away from the track as -z) in track coordinates
+const decAt = (px, pz) => ({ u: SP.x + px * Math.cos(DEC_ROT) + pz * Math.sin(DEC_ROT), v: SP.y - px * Math.sin(DEC_ROT) + pz * Math.cos(DEC_ROT) });
+const STAND_Z = -(TRACK.hw + RUNOFF + 3.3);
+const STAND = ((q) => FR.toW(q.u, q.v))(decAt(-8, STAND_Z));
 const USE_RADIUS = 3;
 const DETAIL_M = 700;
 const LIGHTS_AT = [1.2, 2.2, 3.2], GO_AT = 4.2;
 const FINISH_WAIT = 7, OUTRO = 4.5, RACE_CAP = 260;
-const LAP_SNEL = 31.5;
+const LAP_SNEL = 33;
 
 let game = null;
 let built = null;
@@ -175,7 +191,7 @@ function buildTrackScene() {
   root.add(im);
   // the start and finish line, the grid and the gantry with the start lights
   const sp = pointAt(T, 0);
-  const line = new THREE.Mesh(new THREE.PlaneGeometry(1.2, TRACK_W - 0.8).rotateX(-Math.PI / 2), M.checker);
+  const line = new THREE.Mesh(new THREE.PlaneGeometry(1.2, WIDTH - 0.8).rotateX(-Math.PI / 2), M.checker);
   line.position.set(sp.x, 0.05, sp.y);
   line.rotation.y = -sp.ang;
   root.add(line);
@@ -185,7 +201,7 @@ function buildTrackScene() {
   gantry.rotation.y = -sp.ang;
   for (const s of [-1, 1]) mesh(new THREE.BoxGeometry(0.3, 5.4, 0.3), M.gantry, 0, 2.7, s * (T.hw + 1.4), gantry);
   mesh(new THREE.BoxGeometry(0.5, 0.9, (T.hw + 1.4) * 2 + 0.6), M.gantry, 0, 5.4, 0, gantry);
-  const bannerTex = canvasTex(512, 96, (g, w, h) => { g.fillStyle = '#16181c'; g.fillRect(0, 0, w, h); g.fillStyle = '#f2b82a'; g.font = 'bold 54px Arial'; g.textAlign = 'center'; g.fillText('KARTBAAN KARDINGE', w / 2, 64); });
+  const bannerTex = canvasTex(512, 96, (g, w, h) => { g.fillStyle = '#16181c'; g.fillRect(0, 0, w, h); g.fillStyle = '#f2b82a'; g.font = 'bold 54px Arial'; g.textAlign = 'center'; g.fillText('KARTBAAN ULRUM', w / 2, 64); });
   const banner = new THREE.Mesh(new THREE.PlaneGeometry(8.4, 1.5), new THREE.MeshBasicMaterial({ map: bannerTex, side: THREE.DoubleSide }));
   banner.rotation.y = Math.PI / 2;
   banner.position.set(0.28, 6.2, 0);
@@ -207,9 +223,12 @@ function buildTrackScene() {
     root.add(slot);
   }
   // the booth with the kassa, a grandstand and a few flags on the north side
+  const dec = new THREE.Group();
+  dec.position.set(SP.x, 0, SP.y);
+  dec.rotation.y = DEC_ROT;
+  root.add(dec);
   const booth = new THREE.Group();
-  const bp = FR.toL(STAND.x, STAND.y);
-  booth.position.set(bp.u, 0, bp.v - 5);
+  booth.position.set(-8, 0, STAND_Z - 5);
   mesh(new THREE.BoxGeometry(11, 3, 4.2), M.booth, 0, 1.5, 0, booth);
   mesh(new THREE.BoxGeometry(11.8, 0.3, 5), M.roof, 0, 3.15, 0, booth);
   mesh(new THREE.BoxGeometry(5, 1.2, 0.1), M.glass, 0, 1.7, 2.15, booth);
@@ -218,14 +237,14 @@ function buildTrackScene() {
   booth.add(kas);
   for (const x of [-4, 4]) mesh(new THREE.CylinderGeometry(0.05, 0.05, 6, 6), M.metal, x, 3, 2.9, booth);
   for (let i = 0; i < 3; i++) for (const x of [-4, 4]) mesh(new THREE.PlaneGeometry(1.1, 0.7), new THREE.MeshBasicMaterial({ color: [0xe0452e, 0xf2c230, 0x2f6fd0][i], side: THREE.DoubleSide }), x + 0.6, 5.5 - i * 0.9, 2.9, booth, false);
-  root.add(booth);
+  dec.add(booth);
   const gs = new THREE.Group();
-  gs.position.set(28, 0, -T.hw - RUNOFF - 4);
+  gs.position.set(22, 0, -T.hw - RUNOFF - 4);
   for (let r = 0; r < 4; r++) {
     mesh(new THREE.BoxGeometry(16, 0.5, 1.1), M.stand, 0, 0.25 + r * 0.5, -r * 1.1, gs);
     mesh(new THREE.BoxGeometry(15, 0.18, 0.6), r % 2 ? M.seat : M.seat2, 0, 0.6 + r * 0.5, -r * 1.1 + 0.1, gs, false);
   }
-  root.add(gs);
+  dec.add(gs);
   // the baanwacht with the flag
   const wubbe = buildPersonMesh(0x2a2e36, 0xe2b48c, { variant: 'male', seed: 8830, look: { age: 'adult', hat: null, bag: null, umbrella: null } });
   const wp = pointAt(T, 3, T.hw + 1.8);
@@ -282,13 +301,13 @@ function recText() {
 function prompt(w) {
   if (!nearStand(w)) return null;
   const why = activityBlock(w);
-  return { id: 'kartbaan', x: STAND.x, y: STAND.y, h: 2.2, key: 'E', label: 'Karten bij Kardinge', sub: why || recText() || 'Drie ronden tegen drie rijders · gratis', ring: true, dim: !!why };
+  return { id: 'kartbaan', x: STAND.x, y: STAND.y, h: 2.2, key: 'E', label: 'Karten in Ulrum', sub: why || recText() || 'Drie ronden tegen drie rijders · gratis', ring: true, dim: !!why };
 }
 
 function secondary(w) {
   if (game || w.player.inVehicle) return [];
   if (Math.hypot(w.player.x - CENTER.x, w.player.y - CENTER.y) > 260) return [];
-  return [{ id: 'kartbaan-2', x: STAND.x, y: STAND.y, h: 2.2, label: 'Kartbaan Kardinge', sub: 'Loop naar de kassa en druk E', kind: 'place' }];
+  return [{ id: 'kartbaan-2', x: STAND.x, y: STAND.y, h: 2.2, label: 'Kartbaan Ulrum', sub: 'Loop naar de kassa en druk E', kind: 'place' }];
 }
 
 function interact(w) {
@@ -325,11 +344,11 @@ function start(w, { force = false } = {}) {
   ensureBoard();
   board.show();
   runs++;
-  const ghostRun = loadGhost(ghostStore(), 'kart', KEYS.ghosts);
+  const ghostRun = loadGhost(ghostStore(), 'kart-ulrum', KEYS.ghosts);
   game = { ghostRun, rec: createRecorder(), t: 0, phase: 'grid', karts, raceT: 0, flash: null, cam: null, camA: karts[0].a, said: 0, lights: 0, result: null, finishAt: 0, hits: 0, outro: 0, lastLap: -1, boostFx: 0, exit: { ...STAND }, gapSay: 0 };
   syncKarts(w, 0);
   w.companionHold = { x: STAND.x + 2, y: STAND.y + 1, face: ROT };
-  showCard(w, { kind: 'tip', kicker: 'Karten bij Kardinge', title: 'Drie ronden, drie rijders', body: '[W] gas, [S] rem, [A] [D] sturen. Houd [Spatie] (handrem) in een bocht voor een drift: een lange drift geeft een boost.', duration: 10, key: 'kart-help', voice: false });
+  showCard(w, { kind: 'tip', kicker: 'Karten in Ulrum', title: 'Drie ronden, drie rijders', body: '[W] gas, [S] rem, [A] [D] sturen. Houd [Spatie] (handrem) in een bocht voor een drift: een lange drift geeft een boost.', duration: 10, key: 'kart-help', voice: false });
   say(w, 'start', true);
   return true;
 }
@@ -475,7 +494,7 @@ function end(w, { quit = false } = {}) {
     const rec = recordChallengeResult(w, 'kart-race', { value: total, medal, lower: true });
     newBest = !!(rec && rec.newBest);
   }
-  if (total != null && saveGhost(ghostStore(), 'kart', finishGhost(g.rec, total), KEYS.ghosts)) w.addMessage('Je beste race is bewaard: de spookkart rijdt hem de volgende keer mee', 4);
+  if (total != null && saveGhost(ghostStore(), 'kart-ulrum', finishGhost(g.rec, total), KEYS.ghosts)) w.addMessage('Je beste race is bewaard: de spookkart rijdt hem de volgende keer mee', 4);
   if (lap != null) recordChallengeResult(w, 'kart-lap', { value: lap, medal: 0, lower: true });
   recordStat(w, 'kartRaces');
   if (me.finished) unlockAchievement(w, 'kart_klaar');
@@ -609,7 +628,7 @@ function camera(w) {
 }
 
 function ensureBoard() {
-  if (!board) board = createBoard('KARTEN BIJ KARDINGE', ACCENT);
+  if (!board) board = createBoard('KARTEN IN ULRUM', ACCENT);
   return board;
 }
 
@@ -637,7 +656,7 @@ function updateHud() {
 export const KARTBAAN = {
   id: 'kartbaan',
   layer: 'kartbaan',
-  legend: { kind: 'act-kartbaan', label: 'Kartbaan', note: 'karten bij Kardinge: drie ronden tegen drie rijders' },
+  legend: { kind: 'act-kartbaan', label: 'Kartbaan', note: 'karten in Ulrum: drie ronden tegen drie rijders' },
   init(w) {
     window.__kartbaan = {
       spot: () => ({ ...STAND }),
@@ -649,7 +668,7 @@ export const KARTBAAN = {
       quit: () => { if (!game) return false; end(w, { quit: true }); return true; },
     };
   },
-  spots: () => [{ id: 'kartbaan', name: 'Kartbaan Kardinge', x: STAND.x, y: STAND.y }],
+  spots: () => [{ id: 'kartbaan', name: 'Kartbaan Ulrum', x: STAND.x, y: STAND.y }],
   prompt,
   secondary,
   interact,
@@ -668,11 +687,11 @@ export const KARTBAAN = {
   },
   camera,
   icon: drawIcon,
-  mapSub: () => recText() || 'Karten bij Kardinge: drie ronden tegen drie rijders',
+  mapSub: () => recText() || 'Karten in Ulrum: drie ronden tegen drie rijders',
   ubbo(w) {
     const d = Math.hypot(STAND.x - w.player.x, STAND.y - w.player.y);
     const rec = getChallengeRecord('kart-race');
-    return { name: 'Karten bij Kardinge', sub: rec && rec.medal ? `record: ${MEDALS[rec.medal].toLowerCase()}` : 'drie ronden, gratis', dist: d, x: STAND.x, y: STAND.y, play: 'kartbaan', where: 'de kartbaan bij Kardinge', hint: 'loop naar de kassa en druk E' };
+    return { name: 'Karten in Ulrum', sub: rec && rec.medal ? `record: ${MEDALS[rec.medal].toLowerCase()}` : 'drie ronden, gratis', dist: d, x: STAND.x, y: STAND.y, play: 'kartbaan', where: 'de kartbaan in Ulrum', hint: 'loop naar de kassa en druk E' };
   },
   runs: () => runs,
 };

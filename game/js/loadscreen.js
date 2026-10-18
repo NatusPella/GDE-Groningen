@@ -154,7 +154,6 @@ export function startLoadScreen(world, opts = {}) {
   return active;
 }
 
-export const loadScreenActive = () => !!active;
 
 // A jump of the player (fast travel, teleport) far from where he was: show
 // the screen while the city streams in. main.js calls this every frame.

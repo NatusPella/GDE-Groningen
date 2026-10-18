@@ -1,5 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene, prewarmStreamAt } from './scene3d.js';
+import { basketRiderPose } from './basketrider.js';
 import { buildPersonMesh, animatePersonWalk, TAMMO_APPEARANCE } from './models3d_people.js';
 import { helipadInfo, scriptHeli, landHeliOnPad } from './skyprops.js';
 import { isMissionActive, getActiveRace } from './missions.js';
@@ -8,6 +9,9 @@ import { isShopOpen } from './shopui.js';
 import { pushAudioEvent } from './pedestrians.js';
 import { unlockAchievement, setStatMax, recordStat, recordChallengeResult } from './achievements.js';
 import { makeHeli, flyHeli, helipadById, HELI_MODEL } from './heliflight.js';
+import { findClearSpot } from './helispawn.js';
+import { ringCounter, landingGuide, guideColor } from './heligrade.js';
+import { chaseTarget, followCam } from './helicam.js';
 import { lineVoiceFor } from './linevoice.js';
 import { playLineVoice } from './audio.js';
 import { SPEAKERS, STEP_BY_ID } from './storyarc.js';
@@ -15,6 +19,7 @@ import { speakerHtml } from './speakers.js';
 import { dualHtml } from './subtitles.js';
 import { clamp } from './util.js';
 import * as P from './heliplan.js';
+import { storyLines } from './storytext.js';
 import { getSettings } from './settings.js';
 import { keyWord, keyName, physicalKey } from './controls.js';
 import { playerBusy } from './busy.js';
@@ -65,7 +70,12 @@ const VARIANTS = {
   },
   traumaduif: {
     title: 'Het staat niet in het rooster', sub: 'Rotor Roelfs demoheli: op naar Stad', timeLimit: 0, ringBonus: 0,
-    doneText: 'Geland, met de Eierbal!', failText: 'De ballon verdwijnt richting de Ommelanden…', catchText: 'Tammo hangt aan de lier: blijf naast de mand',
+    doneText: 'Geland, met de Eierbal!', failText: 'De ballon verdwijnt richting de Ommelanden…', catchText: 'Tammo staat in de mand: blijf naast de mand',
+  },
+  // the new story's M12: Lauwersoog, the lunch at the UMCG, then the aktetas from Jelle's balloon over the Dollard
+  rooster: {
+    title: 'Het staat niet in het rooster', sub: 'Dijkstra vliegt: eerst het UMCG, dan de ballon boven de Dollard', timeLimit: 0, ringBonus: 0,
+    doneText: 'Tammo heeft de aktetas met het koopboek!', failText: 'De ballon verdwijnt over de Dollard…', catchText: 'Tammo hangt aan de lier: blijf naast de mand',
   },
 };
 
@@ -82,10 +92,18 @@ function sfx(kind, strength = 0.6) {
 
 // --- pads -------------------------------------------------------------------
 
+// direction from a point to the UMCG deck (the platform at Lauwersoog faces it)
+function umcgDir(w, from) {
+  const u = helipadInfo(w.map);
+  return u ? { x: u.x - from.x, y: u.y - from.y } : { x: 1, y: 0 };
+}
+
 function runPads(w) {
   const u = helipadInfo(w.map);
   const out = {};
   if (u) out.umcg = { id: 'umcg', x: u.x, y: u.y, deck: u.deck, r: u.r, angle: u.angle };
+  const lw = P.ROOSTER.lauwersoog;
+  out.lauwersoog = { id: 'lauwersoog', x: lw.x, y: lw.y, deck: w.map.groundHeightAt ? w.map.groundHeightAt(lw.x, lw.y, 0) : 0, r: 6, angle: Math.atan2(umcgDir(w, lw).y, umcgDir(w, lw).x) };
   const e = helipadById('eelde');
   if (e) out.eelde = { id: 'eelde', x: e.x, y: e.y, deck: e.z, r: e.r, angle: -Math.PI / 2 };
   return out;
@@ -96,7 +114,7 @@ function runPads(w) {
 const RING_GEO = new THREE.TorusGeometry(P.RING_R, 0.5, 8, 44);
 const RING_MATS = {
   next: new THREE.MeshBasicMaterial({ color: 0xffc21a, transparent: true, opacity: 0.95, fog: false }),
-  later: new THREE.MeshBasicMaterial({ color: 0xffe9a0, transparent: true, opacity: 0.35, fog: false }),
+  later: new THREE.MeshBasicMaterial({ color: 0xffe9a0, transparent: true, opacity: 0.55, fog: false }),
   done: new THREE.MeshBasicMaterial({ color: 0x5dff7a, transparent: true, opacity: 0.8, fog: false }),
   miss: new THREE.MeshBasicMaterial({ color: 0xff5a3c, transparent: true, opacity: 0.5, fog: false }),
 };
@@ -347,7 +365,7 @@ function updateHud(dt) {
     setVal('time', `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`, t < 20 ? 'low' : '');
   }
   setVal('speed', `${Math.round(Math.hypot(v.vx || 0, v.vy || 0) * 3.6)} km/u`);
-  setVal('rings', `${r.st.ringsHit}/${r.ringsTotal}`);
+  setVal('rings', ringCounter(r.st, r.ringsTotal).text);
   setVal('dist', b.phase === 'ground' ? 'nog aan de grond' : fmtDist(Math.hypot(b.x - v.x, b.y - v.y)));
   setVal('score', String(Math.max(0, Math.round(r.score))));
   hud.altMe.style.top = altY(v.z);
@@ -366,7 +384,8 @@ function updateHud(dt) {
     hud.arrow.style.transform = `rotate(${(rel * 180 / Math.PI + 90).toFixed(1)}deg)`;
     const d = Math.hypot(tgt.x - v.x, tgt.y - v.y);
     const dz = tgt.z - v.z;
-    const hint = tgt.kind === 'pad' ? (d < 20 && !v.onGround ? `<span class="down">▼ ${downKey()}: landen</span>` : '') :
+    const lg = tgt.kind === 'pad' ? landingGuide(v, { x: tgt.x, y: tgt.y, r: tgt.r, deck: tgt.z }) : null;
+    const hint = lg ? (d < 60 && !v.onGround ? `<span class="${lg.ok ? 'down' : 'up'}">${lg.text} · ${Math.round(lg.alt)} m · ${(Math.round(lg.vs * 10) / 10).toString().replace('.', ',')} m/s</span>` : '') :
       dz > 4 ? '<span class="up">▲ hoger</span>' : dz < -4 ? '<span class="down">▼ lager</span>' : 'hoogte goed';
     const html = `${r.legLabel}<small>${tgt.label ? tgt.label + ' · ' : ''}${fmtDist(d)}${hint ? ' · ' + hint : ''}</small>`;
     if (hud.cache.goal !== html) { hud.cache.goal = html; hud.goal.innerHTML = html; }
@@ -375,14 +394,23 @@ function updateHud(dt) {
 
 // --- lines over the headsets (storyarc.js H15, contacts `on: 'flight:*'`) -------
 
+// the new story's M12 says its flight lines from the script (scenes M12.2 and M12.3, text only)
+const ROOSTER_LINES = { pickup: { ids: ['M12.2'] }, hang: { ids: ['M12.3'], to: 8 }, caught: { ids: ['M12.3'], from: 8 } };
+
+const withLier = (variant) => variant === 'traumaduif' || variant === 'rooster';
+
 function flightLines(key) {
+  if (run && run.variant === 'rooster') {
+    const q = ROOSTER_LINES[key];
+    return q ? storyLines(q.ids, { from: q.from || 0, to: q.to ?? Infinity }) : [];
+  }
   const st = STEP_BY_ID.get('H15');
   const c = st && (st.contact || []).find((q) => q.on === 'flight:' + key);
   return c ? c.lines : [];
 }
 
 function sayLines(key) {
-  if (!run || run.variant !== 'traumaduif' || run.said.has(key)) return;
+  if (!run || !withLier(run.variant) || run.said.has(key)) return;
   run.said.add(key);
   for (const l of flightLines(key)) run.say.queue.push(l);
 }
@@ -418,16 +446,24 @@ function blockReason(w) {
 }
 
 // The demo heli Rotor Roelf parked on the pad (storyfun.js), or a new one.
-function heliOn(w, pad) {
+// Where the run's heli may stand: the pad itself, or on open ground beside it when
+// another heli (the player's own) is in the way; null on a deck that is taken (#166).
+function clearSpotFor(w, pad) {
+  const demo = w.vehicles.find((q) => q.isHeli && q.storyDemo && !q.wrecked && !q.sinking && Math.hypot(q.x - pad.x, q.y - pad.y) < 20);
+  const blockers = w.vehicles.filter((q) => q !== demo && q.isHeli && !q.wrecked && !q.sinking).map((q) => ({ x: q.x, y: q.y, z: q.z }));
+  return findClearSpot(pad, blockers, { deck: pad.id === 'umcg' });
+}
+
+function heliOn(w, pad, spot = null) {
   let v = w.vehicles.find((q) => q.isHeli && q.storyDemo && !q.wrecked && !q.sinking && Math.hypot(q.x - pad.x, q.y - pad.y) < 20);
   if (!v) {
-    v = makeHeli(pad.x, pad.y, pad.deck, pad.angle, { ...HELI_MODEL, color: '#e8e6e0' });
+    v = makeHeli(spot ? spot.x : pad.x, spot ? spot.y : pad.y, pad.deck, pad.angle, { ...HELI_MODEL, color: '#e8e6e0' });
     v.missionCar = true;
     w.vehicles.push(v);
   }
-  v.x = pad.x; v.y = pad.y; v.z = pad.deck; v.angle = pad.angle;
+  v.x = spot ? spot.x : pad.x; v.y = spot ? spot.y : pad.y; v.z = pad.deck; v.angle = pad.angle;
   v.vx = 0; v.vy = 0; v.vz = 0; v.speed = 0; v.driftX = 0; v.driftY = 0; v.yawRate = 0;
-  v.onGround = true; v.groundZ = pad.deck; v.landKind = 'pad'; v.landPad = helipadById(pad.id);
+  v.onGround = true; v.groundZ = pad.deck; v.landKind = spot && spot.moved ? 'ground' : 'pad'; v.landPad = spot && spot.moved ? null : helipadById(pad.id);
   v.health = 100;
   v.disabled = false;
   v.heliRun = true;
@@ -446,20 +482,25 @@ export function startHeliRun(opts = {}) {
   const plan = P.makePlan(variant, pads);
   const st = P.newRunState();
   let startPad = pads.umcg;
+  if (variant === 'rooster') startPad = pads.lauwersoog;
   if (variant === 'traumaduif') {
     if (pads.eelde) startPad = pads.eelde;
     // no Eelde pad: start on the UMCG deck with Dijkstra already aboard
     else st.leg = plan.legs.findIndex((l) => l.kind === 'rings');
   }
+  // no heli through the player's own heli: a free spot, or wait until it is moved (#166)
+  const spot = clearSpotFor(w, startPad);
+  if (!spot) { w.addMessage('Het helidek is bezet: zet je eigen heli eerst ergens anders neer', 4, { kind: 'tip', key: 'helirun-bezet' }); return false; }
   if (pl.inVehicle) pl.inVehicle.driver = null;
-  const v = heliOn(w, startPad);
+  const v = heliOn(w, startPad, spot);
   // the yellow trauma heli is in for a service meanwhile (it would sit on the deck)
   const sky = scriptHeli(w);
   if (sky) Object.assign(sky, { x: startPad.x, y: startPad.y, z: -400, rotor: 0 });
 
-  const gz = w.map.groundHeightAt ? w.map.groundHeightAt(P.BALLOON_AT.x, P.BALLOON_AT.y, 0) : 0;
+  const bAt = variant === 'rooster' ? P.ROOSTER.dollard : P.BALLOON_AT;
+  const gz = w.map.groundHeightAt ? w.map.groundHeightAt(bAt.x, bAt.y, 0) : 0;
   const b = {
-    x: P.BALLOON_AT.x, y: P.BALLOON_AT.y, z: gz, ground: gz, phase: 'ground', vz: 0, spin: 0.01, yaw: 0.4, seed: BALLOON_SEED,
+    x: bAt.x, y: bAt.y, z: gz, ground: gz, phase: 'ground', vz: 0, spin: 0.01, yaw: 0.4, seed: BALLOON_SEED,
     timer: 0, burn: 0, burnLeft: 0, nextBurn: 2, burnSeq: 0, burnDur: 0, age: 0, scripted: true,
   };
   if (!w.balloons) w.balloons = [];
@@ -569,7 +610,10 @@ function cleanup(aborted) {
   pl.inVehicle = null;
   // back on the street by the UMCG (a run given up at Eelde stays at Eelde)
   const atEelde = r.startPad.id === 'eelde' && Math.hypot(v.x - r.startPad.x, v.y - r.startPad.y) < 400;
-  const back = atEelde ? { x: r.startPad.x - 7, y: r.startPad.y + 5 } : spot || r.start;
+  // the new M12 ends on the quay of the Eemshaven, where Dijkstra sets them down
+  const back = r.variant === 'rooster' && r.result && r.result.success ? { x: P.ROOSTER.eemshaven.x, y: P.ROOSTER.eemshaven.y }
+    : r.variant === 'rooster' ? { x: r.startPad.x - 7, y: r.startPad.y + 5 }
+    : atEelde ? { x: r.startPad.x - 7, y: r.startPad.y + 5 } : spot || r.start;
   pl.x = back.x; pl.y = back.y;
   pl.angle = r.start.angle;
   pl.vx = 0; pl.vy = 0; pl.z = 0; pl.vz = 0;
@@ -636,6 +680,19 @@ function flyWith(dt, keys) {
   return keys;
 }
 
+// the autopilot flight of a cruise leg (the first of the old story, the long stretches of the new M12)
+function beginCruise(leg) {
+  const r = run;
+  r.phase = 'cruise';
+  r.phaseT = 0;
+  r.faded = false;
+  r.legLabel = (leg && leg.label) || 'Op weg naar Stad';
+  sayLines('call');
+  const c = leg && leg.cut;
+  prewarmStreamAt(c ? c.x : r.pads.umcg.x, c ? c.y : r.pads.umcg.y + P.ENTRY.back * 0.5);
+  if (!c) prewarmStreamAt(r.pads.umcg.x, r.pads.umcg.y);
+}
+
 function legStarted(leg) {
   const r = run;
   r.legLabel = leg ? leg.label || '' : '';
@@ -643,7 +700,7 @@ function legStarted(leg) {
   if (leg.kind === 'rings') {
     if (r.b.phase === 'ground') P.launchBalloon(r.b);
     sayLines('spot');
-    flash(r.variant === 'traumaduif' ? 'De ballon stijgt op!' : 'Door de ringen!', 2);
+    flash(withLier(r.variant) ? 'De ballon stijgt op!' : 'Door de ringen!', 2);
   } else if (leg.kind === 'catch') {
     if (r.b.phase === 'ground') P.launchBalloon(r.b);
     hud.catchEl.hidden = false;
@@ -653,6 +710,8 @@ function legStarted(leg) {
   } else if (leg.kind === 'pad') {
     hud.catchEl.hidden = true;
     flash(leg.why === 'spoed' ? 'Spoedje: naar het UMCG' : 'Terug naar het UMCG', 2);
+  } else if (leg.kind === 'cruise') {
+    beginCruise(leg);
   } else if (leg.kind === 'pickup') {
     r.phase = 'pickup';
     r.phaseT = 0;
@@ -681,8 +740,10 @@ function onEvents(events) {
     } else if (e === 'caught') {
       r.score += CATCH_SCORE;
       sfx('prestatie', 0.7);
-      flash(r.variant === 'traumaduif' ? 'Tammo heeft de Eierbal!' : 'Gekoppeld!', 2.2);
+      flash(r.variant === 'rooster' ? 'Tammo heeft de aktetas!' : r.variant === 'traumaduif' ? 'Tammo heeft de Eierbal!' : 'Gekoppeld!', 2.2);
       sayLines('caught');
+      // the new M12 ends at the basket: the flight on to the Eemshaven is the scene after it
+      if (r.variant === 'rooster') { r.finishAt = r.t + 7; }
     } else if (e === 'landed' && d === 'home') {
       finish(true);
       return;
@@ -703,6 +764,9 @@ function updateRingMeshes() {
     q.state = state;
     if (q.mesh.material !== RING_MATS[state]) q.mesh.material = RING_MATS[state];
     q.mesh.visible = state === 'next' || state === 'later' || (active && i >= run.st.ring - 1);
+    // far rings grow so they stay readable from a distance (#166)
+    const s = P.ringScale(Math.hypot(q.x - run.v.x, q.y - run.v.y, q.z - run.v.z));
+    q.mesh.scale.setScalar(state === 'next' ? s : Math.min(s, 2));
   });
 }
 
@@ -715,29 +779,48 @@ function updateProps(dt) {
     const p = r.pads[cur.pad || 'umcg'];
     r.beacon.position.set(p.x, p.deck, p.y);
     const k = 1 + Math.sin(r.t * 4) * 0.08;
-    r.beacon.userData.ring.scale.set(k, 1, k);
+    const rr = (p.r || 6) / 5.1;
+    r.beacon.userData.ring.scale.set(k * rr, 1, k * rr);
+    // the landing circle shows how the landing goes: green good, yellow line up, red too fast (#166)
+    const gs = landingGuide(v, { x: p.x, y: p.y, r: p.r, deck: p.deck }).state;
+    r.beacon.userData.ring.material.color.setHex(guideColor(gs));
   }
   // Tammo on the lier from the catch until the heli is low over the H
-  const hang = r.variant === 'traumaduif' && cur && (cur.kind === 'catch' || (cur.kind === 'pad' && cur.why === 'home' && !v.onGround && v.z - (v.groundZ ?? 0) > 12));
+  const hang = withLier(r.variant) && cur && (cur.kind === 'catch' || (cur.kind === 'pad' && cur.why === 'home' && !v.onGround && v.z - (v.groundZ ?? 0) > 12));
   r.hanger.visible = !!hang;
   if (hang) {
-    const L = cur.kind === 'catch' ? 9 : 4;
     const { rope, man } = r.hanger.userData;
-    r.hanger.position.set(v.x, v.z, v.y);
-    rope.scale.y = L;
-    rope.position.y = -L / 2;
-    man.position.y = -L - 1.7;
-    man.rotation.y = -v.angle + Math.PI / 2;
+    if (cur.kind === 'catch') {
+      // Tammo stands in the basket (its floor, heading and swing), not at the heli's height
+      const b = r.b;
+      const pose = basketRiderPose(b, 0, Math.atan2(v.y - b.y, v.x - b.x));
+      rope.visible = false;
+      r.hanger.position.set(pose.x, pose.z, pose.y);
+      r.hanger.rotation.z = pose.sway;
+      man.position.y = 0;
+      man.rotation.y = -pose.heading + Math.PI / 2;
+    } else {
+      // with the Eierbal on the lier under the heli
+      const L = 4;
+      rope.visible = true;
+      r.hanger.rotation.z = 0;
+      r.hanger.position.set(v.x, v.z, v.y);
+      rope.scale.y = L;
+      rope.position.y = -L / 2;
+      man.position.y = -L - 1.7;
+      man.rotation.y = -v.angle + Math.PI / 2;
+    }
     animatePersonWalk(man, 0, dt);
   }
 }
 
 // After the cruise: the cut to the city, south of the UMCG, nose north.
-function cutToCity() {
+function cutToCity(leg) {
   const r = run, v = r.v, u = r.pads.umcg;
-  v.x = u.x; v.y = u.y + P.ENTRY.back; v.z = P.ENTRY.z;
-  v.angle = -Math.PI / 2;
-  v.vx = 0; v.vy = -22; v.vz = 0; v.speed = 22; v.driftX = 0; v.driftY = 0; v.yawRate = 0;
+  const c = leg && leg.cut;
+  v.x = c ? c.x : u.x; v.y = c ? c.y : u.y + P.ENTRY.back; v.z = c ? c.z : P.ENTRY.z;
+  v.angle = c ? c.angle : -Math.PI / 2;
+  v.vx = c ? Math.cos(v.angle) * 22 : 0; v.vy = c ? Math.sin(v.angle) * 22 : -22; v.vz = 0; v.speed = 22; v.driftX = 0; v.driftY = 0; v.yawRate = 0;
   v.onGround = false;
   v.rotor = 1;
   r.cam = null;
@@ -765,12 +848,7 @@ export function updateHeliRun(dt, w) {
     v.rotor = Math.min(1, 0.35 + r.phaseT * 0.4);
     if (r.phaseT >= INTRO_S) {
       if (leg && leg.kind === 'cruise') {
-        r.phase = 'cruise';
-        r.phaseT = 0;
-        r.legLabel = 'Op weg naar Stad';
-        sayLines('call');
-        prewarmStreamAt(r.pads.umcg.x, r.pads.umcg.y + P.ENTRY.back * 0.5);
-        prewarmStreamAt(r.pads.umcg.x, r.pads.umcg.y);
+        beginCruise(leg);
       } else { r.phase = 'fly'; r.phaseT = 0; legStarted(leg); }
     }
   } else if (r.phase === 'cruise') {
@@ -778,12 +856,13 @@ export function updateHeliRun(dt, w) {
     PILOT_CRUISE.clear();
     if (v.z - (v.groundZ ?? 0) < 45) PILOT_CRUISE.add(' ');
     if (r.phaseT > 2) { PILOT_CRUISE.add('w'); PILOT_CRUISE.add('shift'); }
-    const err = Math.atan2(Math.sin(-Math.PI / 2 - v.angle), Math.cos(-Math.PI / 2 - v.angle));
+    const head = leg && leg.heading != null ? leg.heading : -Math.PI / 2;
+    const err = Math.atan2(Math.sin(head - v.angle), Math.cos(head - v.angle));
     if (Math.abs(err) > 0.1) PILOT_CRUISE.add(err > 0 ? 'd' : 'a');
     flyWith(dt, PILOT_CRUISE);
-    if (r.phaseT > P.CRUISE_S - FADE_S && !r.faded) { r.faded = true; hud.fadeText.textContent = 'Even later, boven Stad'; hud.fade.classList.add('on'); }
+    if (r.phaseT > P.CRUISE_S - FADE_S && !r.faded) { r.faded = true; hud.fadeText.textContent = (leg && leg.fadeText) || 'Even later, boven Stad'; hud.fade.classList.add('on'); }
     if (r.phaseT >= P.CRUISE_S + 0.5) {
-      cutToCity();
+      cutToCity(leg);
       hud.fade.classList.remove('on');
       P.nextLeg(r.st);
       r.phase = 'fly';
@@ -813,9 +892,10 @@ export function updateHeliRun(dt, w) {
       if (r.lastHp !== undefined && hp < r.lastHp - 2) { r.hits++; r.score -= HIT_PENALTY; }
       r.lastHp = v.health;
       updateCatchHud();
-      const far = r.b.phase !== 'ground' && Math.hypot(r.b.x - v.x, r.b.y - v.y) > BALLOON_GONE_M && (leg.kind === 'rings' || leg.kind === 'catch');
+      const far = r.b.phase !== 'ground' && Math.hypot(r.b.x - v.x, r.b.y - v.y) > BALLOON_GONE_M && !!leg && (leg.kind === 'rings' || leg.kind === 'catch');
       if (v.wrecked || v.health <= 0) finish(false, 'De Wieken Wubbo is neergestort. Rotor Roelf is niet blij.');
       else if (far) finish(false, r.V.failText);
+      else if (r.finishAt && r.t >= r.finishAt && !r.say.cur && !r.say.queue.length) finish(true);
       else if (r.V.timeLimit && r.timeLeft <= 0) finish(false);
     }
   } else if (r.phase === 'result') {
@@ -883,6 +963,13 @@ function updateCamera(dt) {
     const mx = near ? (v.x + b.x) / 2 : v.x, my = near ? (v.y + b.y) / 2 : v.y, mz = (near ? (v.z + b.z) / 2 : v.z) + 4;
     pos = { x: mx + Math.cos(a) * 45, y: my + Math.sin(a) * 45, z: mz + 12 };
     look = { x: mx, y: my, z: mz };
+  } else if (r.phase === 'fly' && !v.wrecked) {
+    // behind the heli, a little ahead along where it really goes (helicam.js, #166)
+    const T = chaseTarget(v);
+    r.cam = followCam(r.cam, T, dt);
+    world.cameraOverride = { position: { ...r.cam }, lookAt: T.look, fov: T.fov, cut: true };
+    world.camYaw = T.dir;
+    return;
   }
   if (!pos) { r.cam = null; world.cameraOverride = null; return; }
   if (!r.cam) r.cam = { ...pos };

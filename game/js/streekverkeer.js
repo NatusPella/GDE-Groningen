@@ -26,8 +26,6 @@ export const TRAFFIC_STREKEN = [
   { id: 'minimobielen', mix: { cars: 1.6, bikes: 1, scooters: 1, motors: 1 }, look: { palette: KOEK, size: 0.7 } },
   { id: 'reuzenwagens', mix: { cars: 0.6, bikes: 1, scooters: 1, motors: 1 }, look: { palette: null, size: 1.35 } },
 ];
-export const TRAFFIC_BY_ID = new Map(TRAFFIC_STREKEN.map((s) => [s.id, s]));
-export const TRAFFIC_IDS = TRAFFIC_STREKEN.map((s) => s.id);
 
 // The target mix of whichever verkeer streek is on (the first one found), else normal.
 export function targetMix(isOn) {

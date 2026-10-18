@@ -54,6 +54,28 @@ const raised = RP.solve(mk(), { terrain: () => 2 });
 const zf = [...flat.rails.values()][0], zr = [...raised.rails.values()][0];
 ok(zf && zr && zf.every((z, i) => Math.abs(z - zr[i]) < 0.02), 'over a raised terrain the profile is the same above it');
 
+// ?terrain (#78): a dyke of 5 m across a polder; the ground, a road on it and one on a viaduct follow
+{
+  const dx0 = 0, dy0 = 0, dcell = 10, dw = 40, dh = 10;
+  const vals = [];
+  for (let j = 0; j < dh; j++) for (let i = 0; i < dw; i++) { const d = Math.abs((i + 0.5) * dcell - 200); vals.push(d < 20 ? 5 - d / 20 * 5 + 0 : -1 + (d < 60 ? (60 - d) / 40 * 0 : 0)); }
+  const crest = T.encodeTerrainRaster({ x0: dx0, y0: dy0, cell: dcell, w: dw, h: dh, values: vals });
+  const dm = new GameMap({ meta: { bounds: [0, 0, 400, 100] }, roads: [
+    { pts: [[0, 50], [400, 50]], cat: 'normal', type: 'residential', width: 6 },
+    { pts: [[100, 80], [300, 80]], cat: 'normal', type: 'primary', width: 8, z: [4, 4], bridge: true },
+  ], buildings: [], water: [], green: [], trees: [] });
+  dm.terrain = new T.TerrainField(); dm.terrain.add('d', crest);
+  const flatZ = dm.groundHeightAt(200, 20, 0);
+  ok(flatZ === 0 && dm.surfaceAt(200, 20, { z: 0, ribbon: null }).z === 0, 'terrain off: the dyke does not exist');
+  dm.terrainOn = true;
+  const top = dm.groundHeightAt(200, 20, 0), foot = dm.groundHeightAt(100, 20, 0);
+  ok(top > 3.5 && foot < -0.8, 'terrain on: the ground is the dyke crest and the polder', `${top} ${foot}`);
+  const st = dm.surfaceAt(200, 20, { z: 3.9, ribbon: null });
+  ok(Math.abs(st.z - top) < 0.01, 'surfaceAt: a walker at the crest stays on it', st.z);
+  const under = dm.surfaceAt(200, 80, { z: 7.7, ribbon: null });
+  ok(Math.abs(under.z - (3.75 + 4)) < 0.05 && under.kind === "road", 'a road with z 4 on the terrain: terrain + 4', `${under.z} ${under.kind}`);
+}
+
 // fetched rasters (optional)
 const idx = new URL('../data/world/ahn/index.json', import.meta.url);
 if (fs.existsSync(idx)) {
@@ -62,6 +84,13 @@ if (fs.existsSync(idx)) {
   const [key, t] = Object.entries(JSON.parse(fs.readFileSync(idx, 'utf8')).tiles)[0];
   const z = F.at(t.x0 + 500, t.y0 + 500);
   ok(Number.isFinite(z) && Math.abs(z) < 15, `AHN tile ${key}: a height near street level`, z);
+  // the sample dyke tile (Reitdiepdijk, 229_586 at 10 m): a crest well above the polder beside it
+  const dk = JSON.parse(fs.readFileSync(idx, 'utf8')).tiles['229_586'];
+  if (dk && dk.abs) {
+    let hi = -1e9, lo = 1e9;
+    for (let y = dk.y0 + 5; y < dk.y0 + 1000; y += 10) for (let x = dk.x0 + 5; x < dk.x0 + 1000; x += 10) { const v = F.at(x, y); hi = Math.max(hi, v); lo = Math.min(lo, v); }
+    ok(hi - lo > 4, 'AHN 229_586: the dyke stands 4+ m above the polder', `${lo} ${hi}`);
+  }
 } else console.log('(no AHN rasters fetched: scripts/world/fetch_ahn.py --fetch)');
 
 console.log(`${n - fails}/${n} terrain checks passed`);
