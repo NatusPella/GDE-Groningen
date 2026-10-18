@@ -67,6 +67,30 @@ met akkoord van de eigenaar.
 - **Merkenregister:** zie [MERKENCHECK.md](MERKENCHECK.md); de registers zijn
   niet bevraagbaar zonder browser en moeten met de hand (15 minuten).
 
+## Tweede ronde voorbereiding (18 okt 2026, #37, #62, #83)
+
+- **Merkenregister:** [MERKENREGISTER.md](MERKENREGISTER.md) (naam, verzonnen
+  namen, bewust afwezige merken, audit). De audit `scripts/text_audit.mjs`
+  geeft nu 0 bevindingen (13 detectielijsten en platformnamen op de allowlist,
+  met reden).
+- **Geluid en muziek:** herkomst vastgelegd in
+  [LICENTIES.md](LICENTIES.md) (§2): effecten zelf gesynthetiseerd zonder
+  samples; muziek en stemmen komen van Google Gemini. Het precieze muziekproduct
+  is nog niet vastgelegd (eigenaar).
+- **Secrets en historie:** opnieuw gescand over boom en alle commits (bestanden
+  en regelnummers, geen waarden): geen treffers, geen `.env`, sleutel- of
+  certificaatbestanden ooit gecommit.
+- **Persoonsgegevens:** een echte voornaam in een kopregel van
+  `FEEDBACK-SPEELTEST-1.md` is vervangen. De OSM-extracten in `data/` bevatten
+  zakelijke e-mailadressen en telefoonnummers uit OSM-tags (ook enkele
+  gmail.com/home.nl-adressen van kleine bedrijven); de eigenaar beslist of die
+  tags eruit gaan voordat de repo publiek wordt (ze zitten ook in de historie).
+- **Auteursnaam in de historie:** 558 commits hebben nog "Alexander Buist" als
+  naam (zelfde noreply-adres); zie hierboven.
+- **Licenties van derden:** three.js, Bebas Neue en Big Shoulders Display staan
+  met tekst in `licenses/`; AHN/PDOK (CC0) is nu ook in NOTICE en de aftiteling
+  vermeld; OSM, 3DBAG ongewijzigd.
+
 ## Procedures voor later
 
 - **Historie opnieuw herschrijven** (alleen na akkoord, bijv. voor #76): in een
