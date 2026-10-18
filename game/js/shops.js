@@ -709,6 +709,7 @@ export function tryShopInteract(world) {
   }
   shopVisits[s.type] = (shopVisits[s.type] || 0) + 1;
   prepareStoryShop();
+  if (world.audioEvents && world.audioEvents.length < 64) world.audioEvents.push({ kind: 'fx', name: 'shop_bell', x: s.x, y: s.y });
   openShopMenu(world, shopMenu(world, s));
   return true;
 }
