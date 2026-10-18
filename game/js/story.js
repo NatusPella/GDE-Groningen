@@ -14,6 +14,7 @@ import { FLAGS } from './devflags.js';
 import { setMeetHook } from './namecard.js';
 import { displayName } from './speakers.js';
 import { queueStoryContact } from './storycontact.js';
+import { withValidity, setValidityContext } from './validity.js';
 import { isCallActive } from './phonefeed.js';
 import { SMS_SAY } from './smsvoice.js';
 import { playClueSting, playRadioSting } from './audio.js';
@@ -95,10 +96,12 @@ function freshRuntime() {
   return { gifts: {}, cur: undefined, enteredAt: 0, leadAt: -1, sayAt: -1, reminded: false, base: {}, guideT: 0, skipUntil: -1, cardPending: null, nightWait: false, flatSince: -1, voorschotT: 0, lastPlayer: null, recapPending: null, newClues: new Set(), clueToasts: [] };
 }
 
+const STORY_VALID = { ttl: 300, step: true };
 const who = (k) => (k === 'T' ? 'Tammo' : k === 'A' ? 'Anita' : k);
 
 function phone(from, text, duration = 6, say = undefined, silent = false) {
-  if (world && world.phoneNotifications) world.phoneNotifications.push({ from, text, duration, say, story: true, ...(silent ? { silent: true } : {}) });
+  // refs #171: a story text that waits for the player is dropped once its step is over or it is five minutes late
+  if (world && world.phoneNotifications) world.phoneNotifications.push(withValidity({ from, text, duration, say, story: true, ...(silent ? { silent: true } : {}) }, STORY_VALID));
 }
 
 // The new arc (storyarc_nieuw.js, storytext.js): the Nachtstreek fragments and the silent app texts of the
@@ -110,7 +113,7 @@ function sendScript(step, at) {
   if (state.flags.has(key)) return;
   state.flags.add(key);
   for (const c of radioContacts(step.id, at)) {
-    if (c.lines.length) queueStoryContact({ via: 'radio', from: 'rikus', on: 'after', mood: 'night', caller: '', lines: c.lines });
+    if (c.lines.length) queueStoryContact(withValidity({ via: 'radio', from: 'rikus', on: 'after', mood: 'night', caller: '', lines: c.lines }, { ttl: 600, step: true }));
   }
   for (const a of appsAt(step.id, at)) phone(a.from, a.text, 7, undefined, true);
 }
@@ -298,7 +301,7 @@ function markDone(step, { skipped = false, quiet = false } = {}) {
 function queueContacts(step, on) {
   for (const c of step.contact || []) {
     if ((c.on || 'after') !== on) continue;
-    queueStoryContact({ ...c, onDone: () => { for (const [from, text] of c.after || []) phone(who(from), text, 6); } });
+    queueStoryContact(withValidity({ ...c, onDone: () => { for (const [from, text] of c.after || []) phone(who(from), text, 6); } }, { ttl: 600, step: true }));
   }
 }
 
@@ -951,8 +954,17 @@ function onGated() {
 
 // --- init / update ------------------------------------------------------------------------
 
+// what the validity of a queued message is judged against (validity.js)
+function validityNow() {
+  if (!world) return null;
+  const s = currentStep();
+  const m = world.mission;
+  return { time: world.time, stepIndex: s && !s.end ? STEPS.indexOf(s) : STEPS.length, mission: m ? { phase: m.phase, index: m.index } : null, player: world.player ? { x: world.player.x, y: world.player.y } : null };
+}
+
 export function initStory(w) {
   world = w;
+  setValidityContext(validityNow);
   setMissionHooks({ waived: (key) => state.waived.has(key), skipped: (i) => STEPS.some((s) => s.kind === 'mission' && missionIdx(s) === i && state.skipped.has(s.id)), passed: onPassed, failed: onFailed, gated: onGated, canStart: swapDone });
   Object.assign(GOALS, FUN_GOALS, EIKEA_GOALS);
   setMeetHook(meet);

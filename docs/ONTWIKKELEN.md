@@ -236,6 +236,7 @@ Debug hooks on `window` (`window.__x`, read by scripts/perf, the story test and 
 | `?simlagen` | Verkeer volgens simulatielagen per streek en afstand (simlagen.js) |
 | `?zwartcheck` | Controleer op zwarte beelden (blackframe) |
 | `?reizen` | Reisbeats in het nieuwe verhaal: keuze Meerijden, Zelf rijden of Overslaan bij een sprong (#97) |
+| `?testmenu` | Testmenu op F10 met alle schakelaars en snelkoppelingen; eigen opslag (gde-dev:), raakt de echte save niet |
 | `?brugbotsing` | Stuurt na een paar seconden een binnenvaartschip tegen de dichtstbijzijnde brug (#9) |
 
 Every switch above is **off by default**: nothing changes for a player unless the name is in the URL. Value switches (`?shot=3`, `?marker=vorm`, `?stadlaag=gebouwen,wegen`, `?touch=1`, `?preset=quality:laag`, `?gpu=<renderer>`, `?benchmark=<rounds>`) are null when absent. The ones to reach for most often:

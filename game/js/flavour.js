@@ -60,13 +60,12 @@ export function initFlavour(w) {
     day: 0, night: s.night | 0, event: null, eventDay: -9, sunny: true,
     billboardStage: 0, plantsoen: false, plantsoenNewsDay: -1,
     krolPasses: s.krol | 0, krolInside: false, krolText: '',
-    peerdIdx: 0, peerd: null, islands: null,
+    peerd: null,
     coaches: [], crowd: 0, farFromGrieze: false,
     stolen: null, resurface: null,
     lastChaosAt: 0, radioNight: -1,
   };
   F.krolText = KROLBRUG_FAULTS[Math.max(0, F.krolPasses - 1) % KROLBRUG_FAULTS.length];
-  F.islands = findIslands(w.map);
   placePeerd();
   F.sunny = Math.random() < 0.7;
   F.billboardStage = storyStage();
@@ -448,32 +447,14 @@ function keiCrowd(p, here) {
 
 // --- Peerd van Ome Loeks --------------------------------------------------------------
 
-// Roundabout islands: the middle of every roundabout ring that is not road,
-// water or building and has room for a statue.
-function findIslands(map) {
-  const rings = map.roads.filter((r) => r.roundabout && !r.z);
-  const out = [];
-  for (const r of rings) {
-    let x = 0, y = 0;
-    for (const q of r.pts) { x += q[0]; y += q[1]; }
-    x /= r.pts.length; y /= r.pts.length;
-    if (out.some((o) => Math.hypot(o.x - x, o.y - y) < 60)) continue;
-    const rad = r.pts.reduce((s, q) => s + Math.hypot(q[0] - x, q[1] - y), 0) / r.pts.length;
-    if (rad < 7 || rad > 60) continue;
-    if (isOnRoad(map, x, y, 1, ['major', 'normal', 'minor']) || isInsideBuilding(map, x, y) || isInWater(map, x, y)) continue;
-    out.push({ x, y, r: rad });
-  }
-  out.sort((a, b) => a.x - b.x || a.y - b.y);
-  return out;
-}
+// The statue stands on one fixed island, the roundabout of the H.W. Mesdagplein
+// (the middle of its ring in the map): the same spot every night, in every build,
+// whatever tiles are loaded (issue #172). scripts/peerd_test.mjs checks it is
+// still the middle of a roundabout of citymap.json.
+export const PEERD_SPOT = { x: -944.1, y: 377.6, angle: 0.6 };
 
 function placePeerd() {
-  const list = F.islands;
-  if (!list || !list.length) return;
-  const i = ((F.night * 7919 + 13) >>> 0) % list.length;
-  F.peerdIdx = i === F.peerdIdx && list.length > 1 ? (i + 1) % list.length : i;
-  const s = list[F.peerdIdx];
-  F.peerd = { x: s.x, y: s.y, angle: ((F.night * 2.39996) % (Math.PI * 2)) };
+  F.peerd = { ...PEERD_SPOT };
 }
 
 function peerd(p) {
