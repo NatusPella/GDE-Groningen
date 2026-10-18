@@ -21,7 +21,6 @@ class Mem {
   removeItem(k) { this.m.delete(k); }
 }
 const save = (money, extra = {}) => ({ v: SAVE_VERSION, arc: ARC_ID, savedAt: 1000 + money, money, speeltijd: 3725, missions: { index: 1, completed: [0, 1], seen: [0, 1] }, character: 'tammo', ...extra });
-const otherArc = ARC_ID === 'nieuw' ? 'oud' : 'nieuw';
 
 // keys
 ok(slotKey(1) === KEYS.save, 'slot 1 is the old save key');
@@ -162,7 +161,10 @@ ok(S.exportFileName('Mijn Grunn-save!', new Date('2026-08-01T10:00:00Z')) === 'g
   ok(S.parseImport(JSON.stringify({ kind: 'GDE-save', save: 'x' })).why === 'geen-save', 'envelope without save');
   ok(S.parseImport(JSON.stringify({ kind: 'GDE-save', save: { v: SAVE_VERSION + 3, money: 1 } })).why === 'nieuwer', 'newer save refused');
   ok(S.parseImport('x'.repeat(S.MAX_IMPORT_CHARS + 1)).why === 'groot', 'too big');
-  ok(S.parseImport(JSON.stringify({ kind: 'GDE-save', save: { v: SAVE_VERSION, arc: otherArc, money: 1 } })).ok === false, 'save of the other arc refused');
+  { // a save of the first version is not refused (#187): it carries on in the story that is left
+    const r = S.parseImport(JSON.stringify({ kind: 'GDE-save', save: { v: 9, arc: 'oud', money: 1 } }));
+    ok(r.ok === true, 'save of the first version accepted (migrated)', JSON.stringify(r).slice(0, 80));
+  }
   const hostile = S.parseImport(JSON.stringify({ kind: 'GDE-save', name: '<img src=x onerror=1>', save: save(1) }));
   ok(hostile.ok && !/[<>]/.test(hostile.name), 'imported name is cleaned');
   ok(S.exportSlot(new Mem(), 3).ok === false, 'export of an empty slot');
