@@ -9,6 +9,8 @@ import { PREFIX, DEV_PREFIX } from './storagekeys.js';
 const q = typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams();
 export const STORY_TEST = q.has('storytest');
 export const DEV = q.has('dev') || STORY_TEST;
+// ?marker=vorm: the solid 3D shapes of the world marker (worldmarker3d.js); else the soft glowing glyph
+export const MARKER_SOLID = q.get('marker') === 'vorm';
 
 if (DEV && typeof Storage !== 'undefined' && typeof localStorage !== 'undefined') {
   const mem = new Map();
