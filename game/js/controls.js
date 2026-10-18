@@ -265,6 +265,24 @@ export function padFamily(id) {
   return 'xbox';
 }
 
+// Wat de controllertest en de hints van een pad weten, puur uit de id-tekst en
+// `mapping` van de Gamepad API: soort, indeling en of de knoppen standaard
+// liggen. Zonder 'standard' mapping (oude Steam Controller, losse Joy-Cons)
+// klopt de knoppositie niet: dan zegt `note` wat de speler kan doen.
+export function padInfo(id, mapping = '') {
+  const s = String(id || '').toLowerCase();
+  const family = padFamily(id);
+  const standard = mapping === 'standard' || /standard gamepad/.test(s);
+  let name = { xbox: 'Xbox', ps: 'PlayStation', switch: 'Nintendo Switch', deck: 'Steam Deck' }[family];
+  if (/steam controller/.test(s) || (/28de/.test(s) && /product:\s*(1102|1142)/.test(s))) name = 'Steam Controller';
+  else if (/joy-?con/.test(s)) name = 'Joy-Con';
+  else if (/pro controller/.test(s)) name = 'Switch Pro Controller';
+  let note = '';
+  if (!id) note = 'Geen controller gevonden. Druk op een knop.';
+  else if (!standard) note = 'Dit pad meldt geen standaardindeling: de knoppen kunnen verkeerd liggen. Zet Steam Input of de controller in Xbox-modus, of kies bij Knoppen tonen als de juiste indeling.';
+  return { family, name: id ? name : '', standard, note };
+}
+
 // What a button does on foot and in a vehicle, for the remap list.
 export function slotUses(slot) {
   const words = [];
