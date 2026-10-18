@@ -8,7 +8,7 @@ import { simLevel } from './simload.js';
 import { getGaragesForRender } from './garages.js';
 import { getHomeForRender, getHomeGarageForRender, getHomeMooringForRender, getHomeHelipadForRender } from './home.js';
 import { minimapShows } from './mapfilters.js';
-import { mapCategory, haloRim, HALO_DARK, HALO_LIGHT, mapPriority, miniIconScale, iconGapPx } from './mapicons.js';
+import { mapCategory, mapFillColor, FLAT_INK, haloRim, HALO_DARK, HALO_LIGHT, mapPriority, miniIconScale, iconGapPx } from './mapicons.js';
 import { facilitiesOf } from './facilities.js';
 import { getHorecaForRender } from './horeca.js';
 import { getShopsForRender, drawShopMapIcon, drawShopGlyph, SHOP_TYPES, storyTargetShop, drawStoryShopRing } from './shops.js';
@@ -1318,6 +1318,7 @@ const PARTNER_VORMEN = {
   golf: { n: 7, star: true }, schild: { n: 3, rot: Math.PI / 2 }, bloem: { n: 8, star: true },
 };
 export function drawMapIcon(ctx, kind, x, y, s = 1, opts = {}) {
+  if (!opts.raw && drawFlatMapIcon(ctx, kind, x, y, s, opts)) return;
   const t = opts.t ?? performance.now() / 1000;
   ctx.save();
   ctx.translate(x, y);
@@ -1686,12 +1687,80 @@ export function drawMapIcon(ctx, kind, x, y, s = 1, opts = {}) {
   ctx.restore();
 }
 
+// One icon, one colour (#114): the glyph drawn above, rasterised once per kind and
+// size, becomes a flat silhouette in its category colour (mapicons.js FLAT_FILL)
+// with a dark outline; its light details turn into dark ink. Returns false when
+// this kind keeps its own look (or there is no canvas), so the caller draws it as before.
+const flatCache = new Map();
+let flatBroken = false; // no canvas readback here: the old disc and rings take over
+function flatSprite(kind, s, a, opts) {
+  const { t: _t, angle: _a, raw: _r, ...rest } = opts;
+  const key = kind + '|' + s + '|' + a + '|' + JSON.stringify(rest);
+  if (flatCache.has(key)) return flatCache.get(key);
+  let sprite = null;
+  try {
+    const half = Math.ceil(13 * s + 6);
+    const n = Math.ceil(half * 2 * a);
+    const src = document.createElement('canvas');
+    src.width = src.height = n;
+    const sc = src.getContext('2d', { willReadFrequently: true });
+    sc.scale(a, a);
+    drawMapIcon(sc, kind, half, half, s, { ...opts, t: 0, raw: true });
+    const img = sc.getImageData(0, 0, n, n);
+    const d = img.data;
+    const maskA = new Uint8ClampedArray(n * n), ink = new Uint8ClampedArray(n * n);
+    let area = 0, light = 0;
+    for (let i = 0; i < n * n; i++) {
+      if (d[i * 4 + 3] < 90) continue;
+      maskA[i] = 255; area++;
+      if (Math.min(d[i * 4], d[i * 4 + 1], d[i * 4 + 2]) > 185) { ink[i] = 255; light++; }
+    }
+    const keepInk = area > 0 && light / area < 0.5;
+    const plane = (arr, color) => {
+      const c = document.createElement('canvas');
+      c.width = c.height = n;
+      const x = c.getContext('2d');
+      const o = x.createImageData(n, n);
+      const rgb = [parseInt(color.slice(1, 3), 16), parseInt(color.slice(3, 5), 16), parseInt(color.slice(5, 7), 16)];
+      for (let i = 0; i < n * n; i++) if (arr[i]) { o.data[i * 4] = rgb[0]; o.data[i * 4 + 1] = rgb[1]; o.data[i * 4 + 2] = rgb[2]; o.data[i * 4 + 3] = 255; }
+      x.putImageData(o, 0, 0);
+      return c;
+    };
+    const fill = plane(maskA, mapFillColor(kind)), dark = plane(maskA, FLAT_INK), rim = plane(maskA, HALO_LIGHT);
+    const out = document.createElement('canvas');
+    out.width = out.height = n;
+    const oc = out.getContext('2d');
+    const r = Math.max(1.5, 0.42 * s) * a;
+    // a thin light line outside the dark outline keeps the icon apart from mid-tone ground
+    const r2 = r + Math.max(1, 0.2 * s) * a;
+    for (let i = 0; i < 16; i++) oc.drawImage(rim, Math.cos(i * Math.PI / 8) * r2, Math.sin(i * Math.PI / 8) * r2);
+    for (let i = 0; i < 16; i++) oc.drawImage(dark, Math.cos(i * Math.PI / 8) * r, Math.sin(i * Math.PI / 8) * r);
+    oc.drawImage(fill, 0, 0);
+    if (keepInk) oc.drawImage(plane(ink, FLAT_INK), 0, 0);
+    sprite = { canvas: out, size: n / a };
+  } catch (e) { sprite = null; flatBroken = true; }
+  flatCache.set(key, sprite);
+  return sprite;
+}
+function drawFlatMapIcon(ctx, kind, x, y, s, opts) {
+  if (flatBroken || typeof document === 'undefined' || !mapFillColor(kind) || !ctx.getTransform) return false;
+  const a = Math.round(ctx.getTransform().a * 100) / 100 || 1;
+  // sprites come in quarter steps of the scale (zooming is continuous); drawn at the exact size
+  const sq = Math.max(0.5, Math.round(s * 4) / 4);
+  if (flatCache.size > 300) flatCache.clear();
+  const sp = flatSprite(kind, sq, a, opts);
+  if (!sp) return false;
+  const w = sp.size * s / sq;
+  ctx.drawImage(sp.canvas, x - w / 2, y - w / 2, w, w);
+  return true;
+}
+
 // A dark disc with a cream rim under an icon, so it reads on sea, meadow and
 // the darker land outside the province alike. Goals, missions, police and the
 // player carry their own rings and get none.
 const NO_HALO = new Set(['player', 'goal', 'mission', 'police']);
 export function drawMapIconHalo(ctx, kind, x, y, s = 1) {
-  if (NO_HALO.has(mapCategory(kind))) return;
+  if (NO_HALO.has(mapCategory(kind)) || (mapFillColor(kind) && !flatBroken)) return;
   ctx.save();
   ctx.beginPath();
   ctx.arc(x, y, 6.6 * s, 0, Math.PI * 2);
