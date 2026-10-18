@@ -6,6 +6,7 @@
 // emergency services are left alone. Pure logic apart from reading the world.
 import { travelModeOf, offenceOf, marktFietsHint, MARKT } from './roadaccess.js';
 import { weekdayOf } from './calendar.js';
+import { playerBusy } from './busy.js';
 
 // Two money fines when an agent is watching: the phone in your hand while
 // riding or driving, and cycling after dark without a light.
@@ -63,7 +64,7 @@ const STAR_TEXT = 'Een agent heeft je gezien. Politie! Je hebt een ster';
 
 function exempt(world, v) {
   if (!world.player || world.health <= 0 || world.pendingRespawn || world.pigeonMode || world.heliRun || world.trainDriving || world.trainCam) return true;
-  if (world.padelGame || world.activityGame || world.challenge || world.cameraOverride) return true;
+  if (playerBusy(world, ['padel', 'activityGame', 'challenge']).busy || world.cameraOverride) return true;
   if (world.sideJob && world.sideJob.active) return true;
   if (world.mission && world.mission.phase === 'active') return true;
   if (v && (v.isPolice || v.isAmbulance || v.sirenOn || v.isBus)) return true;
