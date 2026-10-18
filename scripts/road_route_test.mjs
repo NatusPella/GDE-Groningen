@@ -18,12 +18,10 @@ const arg = (k, d) => { const a = process.argv.find((x) => x.startsWith(`--${k}=
 const root = new URL('../game/', import.meta.url);
 const roadFile = new URL('world/provincie-roads.json.gz', root);
 if (!fs.existsSync(roadFile)) { console.log('SKIP no game/world with the province road net (scripts/world/build_province.mjs)'); process.exit(0); }
-const { GameMap, applyMapExtras } = await import('../game/js/mapdata.js');
+import { loadCityWorld } from './lib/loadworld.mjs';
 const R = await import('../game/js/routing.js');
 const RG = await import('../game/js/roadgraph.js');
-const data = JSON.parse(fs.readFileSync(new URL('citymap.json', root)));
-applyMapExtras(data, JSON.parse(fs.readFileSync(new URL('mapextras.json', root))));
-const map = new GameMap(data);
+const map = (await loadCityWorld()).map;
 const roadNet = RG.decodeRoadNet(JSON.parse(zlib.gunzipSync(fs.readFileSync(roadFile)).toString('utf8')));
 RG.setRoadNet(roadNet);
 const stats = RG.roadGraphStats();
