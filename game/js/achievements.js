@@ -131,6 +131,8 @@ export const ACHIEVEMENTS = [
   { id: 'snackketen_rijk', cat: 'verkennen', title: 'Kroketkoning-rijk', desc: 'Twaalf vestigingen, drie vlaggenschepen' },
   { id: 'pannenkoek_klaar', cat: 'verkennen', title: 'Kok aan boord', desc: 'Bak een dienst op het pannenkoekenschip' },
   { id: 'pannenkoek_goud', cat: 'verkennen', title: 'Kok van het schip', desc: 'Haal goud op het pannenkoekenschip', medal: true },
+  { id: 'hengel_klaar', cat: 'verkennen', title: 'Aan de waterkant', desc: 'Hengel een ronde aan het meer in Meerstad' },
+  { id: 'hengel_karper', cat: 'verkennen', title: 'De dikke karper', desc: 'Vang een karper', hidden: true },
   { id: 'ski_sprong', cat: 'verkennen', title: 'Hoog en schoon', desc: 'Land een sprong met een draai en een grab', hidden: true },
   { id: 'geheimen_alle', cat: 'verkennen', title: 'Stadjer met geheimen', desc: 'Vind alle 8 geheimpjes van Grunn in één spel', save: 'geheimen', goal: 8, hidden: true },
   { id: 'zonsopgang', cat: 'verkennen', title: 'Vroege vogel', desc: 'Zie de zon opkomen boven Grunn' },
