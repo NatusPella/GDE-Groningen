@@ -1,4 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { canvasTex } from './canvastex.js';
 import { getScene } from './scene3d.js';
 import { buildPersonMesh, animatePersonWalk } from './models3d_people.js';
 import { showBanner } from './cinematics.js';
@@ -37,15 +38,11 @@ const boaterLook = { shirt: 0x2f6fb0, skin: 0xd8a47c, variant: 'male', seed: 661
 // --- meshes ---------------------------------------------------------------------------------------
 
 function signTexture() {
-  const c = document.createElement('canvas');
-  c.width = 384; c.height = 128;
-  const g = c.getContext('2d');
-  g.fillStyle = '#27b0b8'; g.fillRect(0, 0, 384, 128);
-  g.fillStyle = '#fff'; g.font = 'bold 34px Arial'; g.textAlign = 'center';
-  g.fillText('WATERSKIBAAN', 192, 54); g.font = 'bold 30px Arial'; g.fillText('Grunopark', 192, 96);
-  const t = new THREE.CanvasTexture(c);
-  t.colorSpace = THREE.SRGBColorSpace;
-  return t;
+  return canvasTex(384, 128, (g) => {
+    g.fillStyle = '#27b0b8'; g.fillRect(0, 0, 384, 128);
+    g.fillStyle = '#fff'; g.font = 'bold 34px Arial'; g.textAlign = 'center';
+    g.fillText('WATERSKIBAAN', 192, 54); g.font = 'bold 30px Arial'; g.fillText('Grunopark', 192, 96);
+  });
 }
 
 function buildBoat() {

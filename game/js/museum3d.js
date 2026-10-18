@@ -5,6 +5,7 @@
 // inside them and at the passage ends, and the whole interior is only drawn
 // while the player is near.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { canvasTex } from './canvastex.js';
 import { GeoBuilder, vcMaterial } from './pixelart3d.js';
 import { pointInPolygon } from './util.js';
 import { MUSEUM_ROOMS, MUSEUM_CASE, rectDist } from './museumplan.js';
@@ -128,17 +129,13 @@ export function bench(B, r, a, c) {
 }
 
 function signTexture(lines, bg, fg) {
-  const c = document.createElement('canvas');
-  c.width = 512; c.height = 128;
-  const g = c.getContext('2d');
-  g.fillStyle = bg; g.fillRect(0, 0, 512, 128);
-  g.fillStyle = fg; g.textAlign = 'center'; g.textBaseline = 'middle';
-  g.font = '800 52px system-ui, sans-serif';
-  g.fillText(lines[0], 256, lines[1] ? 44 : 64);
-  if (lines[1]) { g.font = '600 30px system-ui, sans-serif'; g.fillText(lines[1], 256, 96); }
-  const t = new THREE.CanvasTexture(c);
-  t.colorSpace = THREE.SRGBColorSpace;
-  return t;
+  return canvasTex(512, 128, (g) => {
+    g.fillStyle = bg; g.fillRect(0, 0, 512, 128);
+    g.fillStyle = fg; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.font = '800 52px system-ui, sans-serif';
+    g.fillText(lines[0], 256, lines[1] ? 44 : 64);
+    if (lines[1]) { g.font = '600 30px system-ui, sans-serif'; g.fillText(lines[1], 256, 96); }
+  });
 }
 
 // a sign flat on the wall of room r (side c = +-hw), text facing into the room

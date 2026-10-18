@@ -1,4 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { canvasTex } from './canvastex.js';
 import { getScene } from './scene3d.js';
 import { WATER_Y, isInWater } from './util.js';
 import { getWaterIndex } from './waterindex.js';
@@ -193,18 +194,15 @@ function patchTexture() {
 let signTex = null;
 function signTexture() {
   if (signTex) return signTex;
-  const c = document.createElement('canvas');
-  c.width = 256; c.height = 192;
-  const g = c.getContext('2d');
-  g.fillStyle = '#f4f2ea'; g.fillRect(0, 0, 256, 192);
-  g.strokeStyle = '#c9342b'; g.lineWidth = 12; g.strokeRect(6, 6, 244, 180);
-  g.fillStyle = '#c9342b'; g.font = 'bold 34px Arial'; g.textAlign = 'center';
-  g.fillText(ALGAE_SIGN[0], 128, 70);
-  g.beginPath(); g.moveTo(40, 100); g.lineTo(216, 100); g.lineWidth = 5; g.stroke();
-  g.fillStyle = '#1d3a24'; g.font = 'bold 22px Arial';
-  g.fillText(ALGAE_SIGN[1], 128, 140);
-  signTex = new THREE.CanvasTexture(c);
-  signTex.colorSpace = THREE.SRGBColorSpace;
+  signTex = canvasTex(256, 192, (g) => {
+    g.fillStyle = '#f4f2ea'; g.fillRect(0, 0, 256, 192);
+    g.strokeStyle = '#c9342b'; g.lineWidth = 12; g.strokeRect(6, 6, 244, 180);
+    g.fillStyle = '#c9342b'; g.font = 'bold 34px Arial'; g.textAlign = 'center';
+    g.fillText(ALGAE_SIGN[0], 128, 70);
+    g.beginPath(); g.moveTo(40, 100); g.lineTo(216, 100); g.lineWidth = 5; g.stroke();
+    g.fillStyle = '#1d3a24'; g.font = 'bold 22px Arial';
+    g.fillText(ALGAE_SIGN[1], 128, 140);
+  });
   return signTex;
 }
 

@@ -1,4 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { canvasTex } from './canvastex.js';
 import { buildBuildingMesh } from './models3d_buildings.js';
 import { GeoBuilder } from './pixelart3d.js';
 import { LANDMARK_MATERIALS } from './landmarks3d.js';
@@ -55,24 +56,20 @@ function flatShape(pts, y, mat, group, thick = 0) {
 }
 
 function signTexture(text, sub) {
-  const c = document.createElement('canvas');
-  c.width = 512; c.height = 128;
-  const g = c.getContext('2d');
-  g.fillStyle = '#1b1c1f';
-  g.fillRect(0, 0, 512, 128);
-  g.fillStyle = '#2f6fb0';
-  g.fillRect(0, 112, 512, 16);
-  g.fillStyle = '#f4f2ec';
-  g.textAlign = 'center';
-  g.textBaseline = 'middle';
-  g.font = 'bold 54px sans-serif';
-  g.fillText(text, 256, 46);
-  g.font = '26px sans-serif';
-  g.fillStyle = 'rgba(244,242,236,0.75)';
-  g.fillText(sub, 256, 92);
-  const tex = new THREE.CanvasTexture(c);
-  tex.colorSpace = THREE.SRGBColorSpace;
-  return tex;
+  return canvasTex(512, 128, (g) => {
+    g.fillStyle = '#1b1c1f';
+    g.fillRect(0, 0, 512, 128);
+    g.fillStyle = '#2f6fb0';
+    g.fillRect(0, 112, 512, 16);
+    g.fillStyle = '#f4f2ec';
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.font = 'bold 54px sans-serif';
+    g.fillText(text, 256, 46);
+    g.font = '26px sans-serif';
+    g.fillStyle = 'rgba(244,242,236,0.75)';
+    g.fillText(sub, 256, 92);
+  });
 }
 
 // --- garage + lobby ------------------------------------------------------------
