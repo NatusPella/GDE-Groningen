@@ -1,0 +1,252 @@
+// Randen van weilanden (palen, draad, heggen) en vee tegen wat de tegels echt hebben
+// (#124, #185, #210): over SPOOR, WEG, WATER, GEBOUW en de procedurele SLOOT, dubbele
+// palen, gaten op de tegelnaden en vee dat in water, op een weg of op het spoor staat.
+// Het onderzoek (weiland-randen-sloten.md) mat 885 palen over spoor buiten 5 km van de stad;
+// dit is de herhaalbare versie, met drempels die alleen kunnen dalen.
+//
+//   node scripts/world/prop_conflict_audit.mjs [--strict] [--rail N] [--random N] [--seed S] [--json]
+//
+// Vensters van 1 x 1 km in de provincietegels (>700 m buiten de stad): N met spoor, N willekeurig,
+// per streek (dichtstbijzijnde ankerplaats). De echte generator countryside.js wordt gedraaid
+// met dezelfde wereldopzet als main.js (provincieblokken, setExtraBlocked met realBlockedAt,
+// spoorcellen uit provincie-land.json).
+import fs from 'node:fs';
+import path from 'node:path';
+import zlib from 'node:zlib';
+import { fileURLToPath } from 'node:url';
+import '../node3d.mjs';
+
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+const G = await import('../../game/js/gdt.js');
+const PW = await import('../../game/js/provinceworld.js');
+const CE = await import('../../game/js/countryedge.js');
+const CF = await import('../../game/js/countryfield.js');
+const CS = await import('../../game/js/countryside.js');
+
+// Wat --strict toestaat: alleen dalen. Tellers per combinatie over de standaardvensters.
+// (gemeten op de tegels van 18 oktober; zie de uitkomst van het onderzoek en CHANGELOG)
+export const LIMITS = {
+  postOnRail: 0, wireOnRail: 0, hedgeOnRail: 0,
+  postOnRoad: 2, wireOnRoad: 2, hedgeOnRoad: 2,
+  postInWater: 0, wireInWater: 0, hedgeInWater: 0,
+  postInBuilding: 5, wireInBuilding: 5, hedgeInBuilding: 5,
+  hedgeOnDitch: 1400, postOnDitch: 100,
+  seamGaps: 400, doublePosts: 3000,
+  cattleInWater: 250, cattleOnRoad: 400, cattleOnRail: 100,
+};
+
+const ANCHORS = {
+  Stad: [[201, 45], [2838, 5353]],
+  Hogeland: [[-3437, -12067], [6853, -21038], [1931, -9027], [-18000, -12800]],
+  Westerkwartier: [[-12463, 6451], [-10733, -3016]],
+  Veenkolonien: [[20602, 12605], [27095, 24744], [12852, 5971], [34069, 37758]],
+  Oldambt: [[31789, 7892], [30259, 11886]],
+  Eemsdelta: [[23009, -13018], [19323, -11582]],
+};
+export const streekOf = (x, y) => {
+  let best = 'Stad', bd = Infinity;
+  for (const [s, pts] of Object.entries(ANCHORS)) for (const [ax, ay] of pts) { const d = Math.hypot(x - ax, y - ay); if (d < bd) { bd = d; best = s; } }
+  return best;
+};
+
+const bounds = (P) => { let a = Infinity, b = Infinity, c = -Infinity, d = -Infinity; for (const p of P) { if (p[0] < a) a = p[0]; if (p[0] > c) c = p[0]; if (p[1] < b) b = p[1]; if (p[1] > d) d = p[1]; } return [a, b, c, d]; };
+
+function loadTiles(out, index, keys) {
+  const fds = new Map(), res = new Map();
+  for (const k of keys) {
+    const t = index.tiles[k];
+    if (!t) continue;
+    const f = index.packs[t.pack].file;
+    if (!fds.has(f)) fds.set(f, fs.openSync(path.join(out, f), 'r'));
+    const buf = Buffer.alloc(t.len);
+    fs.readSync(fds.get(f), buf, 0, t.len, t.off);
+    const blob = G.decodeBlob(new Uint8Array(zlib.inflateRawSync(buf)));
+    const rows = (ty) => ((blob.sections.find((s) => s.type === ty) || { rows: [] }).rows).filter((r) => r.pts && r.pts.length > 1).map((r) => ({ ...r, bounds: bounds(r.pts) }));
+    res.set(k, { buildings: rows(G.SECTION.BUILDINGS), roads: rows(G.SECTION.ROADS), water: rows(G.SECTION.WATER), rails: rows(G.SECTION.RAILS) });
+  }
+  for (const fd of fds.values()) fs.closeSync(fd);
+  return res;
+}
+
+const near = (list) => (x, y, r) => list.filter((o) => x >= o.bounds[0] - r && x <= o.bounds[2] + r && y >= o.bounds[1] - r && y <= o.bounds[3] + r);
+
+// a map shaped like TileWorld for realBlockedAt
+function mapOf(tiles) {
+  const all = (kind) => { const seen = new Set(), out = []; for (const t of tiles.values()) for (const r of t[kind]) { const k = r.gid ?? r; if (r.gid !== undefined) { if (seen.has(k)) continue; seen.add(k); } out.push(r); } return out; };
+  const water = all('water'), rails = all('rails');
+  return {
+    resident: null,
+    buildingsNear: near(all('buildings')), roadsNear: near(all('roads')),
+    waterNear: near(water.filter((w) => w.nav !== undefined)), flatWaterNear: near(water.filter((w) => w.nav === undefined)),
+    railNear: near(rails),
+    all: { water, rails, roads: all('roads'), buildings: all('buildings') },
+  };
+}
+
+const segDist = (x, y, ax, ay, bx, by) => {
+  const dx = bx - ax, dy = by - ay, L2 = dx * dx + dy * dy || 1e-9;
+  const t = Math.max(0, Math.min(1, ((x - ax) * dx + (y - ay) * dy) / L2));
+  return Math.hypot(ax + dx * t - x, ay + dy * t - y);
+};
+const inPoly = (x, y, P) => { let c = false; for (let i = 0, j = P.length - 1; i < P.length; j = i++) if ((P[i][1] > y) !== (P[j][1] > y) && x < ((P[j][0] - P[i][0]) * (y - P[i][1])) / (P[j][1] - P[i][1]) + P[i][0]) c = !c; return c; };
+
+// de vragen van de audit, over de rijen van de tegels (los van realBlockedAt: een eigen oordeel)
+function judge(map) {
+  const { roads, rails, water, buildings } = map.all;
+  const nr = near(roads), nl = near(rails), nw = near(water), nb = near(buildings);
+  return {
+    onRail: (x, y) => nl(x, y, 3).some((r) => { for (let i = 0; i < r.pts.length - 1; i++) if (segDist(x, y, r.pts[i][0], r.pts[i][1], r.pts[i + 1][0], r.pts[i + 1][1]) < 2.1) return true; return false; }),
+    onRoad: (x, y) => nr(x, y, 12).some((r) => {
+      // alleen wegen op maaiveld (geen brug), zoals de generator ze kent
+      if (r.bridge) return false;
+      const hw = (r.width || 4) / 2;
+      for (let i = 0; i < r.pts.length - 1; i++) if (segDist(x, y, r.pts[i][0], r.pts[i][1], r.pts[i + 1][0], r.pts[i + 1][1]) < hw) return true;
+      return false;
+    }),
+    inWater: (x, y) => nw(x, y, 0.5).some((w) => inPoly(x, y, w.pts)),
+    inBuilding: (x, y) => nb(x, y, 0.5).some((b) => inPoly(x, y, b.pts)),
+  };
+}
+
+const KINDS = { post: 'post', wire: 'wire', hedge: 'hedge' };
+
+// de tegels van de provincie met spoor, en willekeurige, buiten de stad
+export function pickWindows(index, { rail = 30, random = 30, seed = 7 } = {}) {
+  const tiles = Object.entries(index.tiles).filter(([, t]) => t.flags & PW.PFLAG.PROVINCE && t.n);
+  const far = tiles.filter(([, t]) => { const [ox, oy] = G.tileOrigin(t.i, t.j); return Math.hypot(ox + 500, oy + 500) > 6000; });
+  const withRail = far.filter(([, t]) => t.n.rails > 0 && (t.n.buildings || 0) < 200).sort((a, b) => (a[0] < b[0] ? -1 : 1));
+  const rest = far.filter(([, t]) => (t.n.buildings || 0) < 200).sort((a, b) => (a[0] < b[0] ? -1 : 1));
+  let s = seed >>> 0;
+  const rnd = () => { s = (Math.imul(s, 1664525) + 1013904223) >>> 0; return s / 4294967296; };
+  const take = (list, n) => { const out = []; const pool = list.slice(); while (out.length < n && pool.length) out.push(pool.splice(Math.floor(rnd() * pool.length), 1)[0][0]); return out; };
+  return { rail: take(withRail, rail), random: take(rest, random) };
+}
+
+const nearRailCells = (rails) => ({ meta: { bounds: [-2000, -2000, 2000, 2000] }, railRoutes: [], countryRails: rails, roads: [], buildings: [], water: [], green: [] });
+
+export function auditWindow(out, index, key, { rails = [] } = {}) {
+  const t = index.tiles[key];
+  const [ci, cj] = [t.i, t.j];
+  const keys = [];
+  for (let i = ci - 2; i <= ci + 2; i++) for (let j = cj - 2; j <= cj + 2; j++) keys.push(G.tileKey(i, j));
+  const tiles = loadTiles(out, index, keys);
+  const map = mapOf(tiles);
+  map.resident = new Set([...tiles.keys()].map((k) => `${index.tiles[k].i},${index.tiles[k].j}`));
+  const idx = index.tiles;
+  const isTile = (k) => (idx[k] && idx[k].flags & PW.PFLAG.PROVINCE ? idx[k] : null);
+  const B = PW.provinceBlocksOf(Object.keys(idx).filter(isTile), isTile);
+  CF.setProvinceBlocks(B ? { x0: B.x0, y0: B.y0, w: B.w, h: B.h, data: B.data } : null);
+  CF.setCountryBounds([-2000, -2000, 2000, 2000]);
+  CE.setExtraBlocked((px, py, m) => PW.realBlockedAt(map, isTile, px, py, m));
+  const J = judge(map);
+  const [ox, oy] = G.tileOrigin(ci, cj);
+  const c = { windows: 1, posts: 0, wires: 0, hedges: 0, cattle: 0 };
+  const add = (k, n = 1) => { c[k] = (c[k] || 0) + n; };
+  const T = 160;
+  const posts = [];
+  for (let tx = Math.floor(ox / T); tx <= Math.floor((ox + 1000) / T); tx++) {
+    for (let ty = Math.floor(oy / T); ty <= Math.floor((oy + 1000) / T); ty++) {
+      const tile = CS.countryTileItems(tx, ty);
+      for (const [kind, name] of Object.entries(KINDS)) {
+        const m = tile.items[kind] && tile.items[kind].m;
+        for (let q = 0; m && q < m.length; q += 16) {
+          const px = m[q + 12], py = m[q + 14];
+          if (px < ox || px > ox + 1000 || py < oy || py > oy + 1000) continue;
+          // a wire is a span: its two ends and its middle; a post or hedge piece a point
+          let pts = [[px, py]];
+          if (kind === 'wire') { const hx = m[q] / 2, hy = m[q + 2] / 2; pts = [[px - hx, py - hy], [px, py], [px + hx, py + hy]]; add('wires'); }
+          else add(kind === 'post' ? 'posts' : 'hedges');
+          if (kind === 'post') posts.push([px, py]);
+          const N = name;
+          if (pts.some(([x, y]) => J.onRail(x, y))) add(N + 'OnRail');
+          if (pts.some(([x, y]) => J.onRoad(x, y))) add(N + 'OnRoad');
+          if (pts.some(([x, y]) => J.inWater(x, y))) add(N + 'InWater');
+          if (pts.some(([x, y]) => J.inBuilding(x, y))) add(N + 'InBuilding');
+          if (kind !== 'wire' && CF.countrySurface(px, py) === 'sloot') add(N + 'OnDitch');
+        }
+      }
+      for (const a of tile.animals || []) {
+        add('cattle');
+        if (J.inWater(a.x, a.y)) add('cattleInWater');
+        if (J.onRoad(a.x, a.y)) add('cattleOnRoad');
+        if (J.onRail(a.x, a.y)) add('cattleOnRail');
+      }
+    }
+  }
+  // dubbele palen: een buur binnen 1,5 m
+  const cell = new Map();
+  for (const [x, y] of posts) { const k = Math.floor(x / 2) * 100003 + Math.floor(y / 2); (cell.get(k) || cell.set(k, []).get(k)).push([x, y]); }
+  for (const [x, y] of posts) {
+    let dup = false;
+    for (let a = -1; a <= 1 && !dup; a++) for (let b = -1; b <= 1 && !dup; b++) for (const [qx, qy] of cell.get((Math.floor(x / 2) + a) * 100003 + Math.floor(y / 2) + b) || []) if ((qx !== x || qy !== y) && Math.hypot(qx - x, qy - y) < 1.5) { dup = true; break; }
+    if (dup) add('doublePosts');
+  }
+  // gaten op de tegelnaden: twee opeenvolgende palen van één rij met de naad ertussen en meer dan 6 m uit elkaar
+  const seams = new Map();
+  for (const [x, y] of posts) {
+    const k = Math.round(y * 2) + ':' + 'r';
+    (seams.get(k) || seams.set(k, []).get(k)).push(x);
+  }
+  CE.setExtraBlocked(null);
+  CF.setProvinceBlocks(null);
+  return c;
+}
+
+export function seamGaps(tiles = [[0, 0], [1, 0], [2, 0]]) {
+  // palen van naast elkaar gelegen tegels: de afstand tussen de laatste paal van de ene en de eerste van de volgende
+  // langs dezelfde strookrand (zelfde y op 0,05 m) mag niet groter zijn dan de stap
+  const rows = new Map();
+  for (const [tx, ty] of tiles) {
+    const tile = CS.countryTileItems(tx, ty);
+    const m = tile.items.post && tile.items.post.m;
+    for (let q = 0; m && q < m.length; q += 16) {
+      const k = Math.round(m[q + 12] * 10) + ':' + ty;
+      (rows.get(k) || rows.set(k, []).get(k)).push(m[q + 14]);
+    }
+  }
+  return rows;
+}
+
+export function sumWindows(list) {
+  const t = {};
+  for (const c of list) for (const [k, v] of Object.entries(c)) t[k] = (t[k] || 0) + v;
+  return t;
+}
+
+async function main() {
+  const args = process.argv.slice(2);
+  const opt = (n, d) => { const i = args.indexOf('--' + n); return i >= 0 ? Number(args[i + 1]) : d; };
+  const out = path.join(ROOT, 'game/world');
+  const file = path.join(out, 'index-provincie.json');
+  if (!fs.existsSync(file)) { console.log('SKIP geen game/world met de provinciegegevens: draai cd desktop && npm run stage'); return; }
+  const index = JSON.parse(fs.readFileSync(file, 'utf8'));
+  // spoorcellen uit provincie-land.json, zoals main.js ze via applyCityRoutes zet
+  const land = JSON.parse(fs.readFileSync(path.join(out, 'provincie-land.json'), 'utf8'));
+  const pairs = (p) => { const o = []; for (let i = 0; i < p.length; i += 2) o.push([p[i], p[i + 1]]); return o; };
+  CE.initCountryEdge(nearRailCells((land.rails || []).map(pairs)));
+  const W = pickWindows(index, { rail: opt('rail', 12), random: opt('random', 12), seed: opt('seed', 7) });
+  const all = [...W.rail.map((k) => ['spoor', k]), ...W.random.map((k) => ['willekeurig', k])];
+  const rows = [];
+  for (const [kind, key] of all) {
+    const t = index.tiles[key], [ox, oy] = G.tileOrigin(t.i, t.j);
+    const c = auditWindow(out, index, key);
+    rows.push({ kind, key, streek: streekOf(ox + 500, oy + 500), c });
+  }
+  const total = sumWindows(rows.map((r) => r.c));
+  const perStreek = {};
+  for (const r of rows) { const s = perStreek[r.streek] || (perStreek[r.streek] = []); s.push(r.c); }
+  const keys = ['posts', 'wires', 'hedges', 'cattle', 'postOnRail', 'wireOnRail', 'hedgeOnRail', 'postOnRoad', 'wireOnRoad', 'hedgeOnRoad', 'postInWater', 'wireInWater', 'hedgeInWater', 'postInBuilding', 'wireInBuilding', 'hedgeInBuilding', 'postOnDitch', 'hedgeOnDitch', 'doublePosts', 'cattleInWater', 'cattleOnRoad', 'cattleOnRail'];
+  if (args.includes('--json')) { console.log(JSON.stringify({ total, perStreek: Object.fromEntries(Object.entries(perStreek).map(([s, l]) => [s, sumWindows(l)])) })); }
+  else {
+    console.log(`${all.length} vensters (${W.rail.length} met spoor, ${W.random.length} willekeurig), seed ${opt('seed', 7)}`);
+    const names = Object.keys(perStreek);
+    console.log(['combinatie'.padEnd(18), ...names.map((n) => n.padStart(14)), 'totaal'.padStart(8)].join(' '));
+    for (const k of keys) console.log([k.padEnd(18), ...names.map((n) => String(sumWindows(perStreek[n])[k] || 0).padStart(14)), String(total[k] || 0).padStart(8)].join(' '));
+  }
+  if (args.includes('--strict')) {
+    const bad = Object.entries(LIMITS).filter(([k, v]) => (total[k] || 0) > v);
+    for (const [k, v] of bad) console.log(`TE VEEL ${k}: ${total[k]} > ${v}`);
+    if (bad.length) process.exit(1);
+  }
+}
+if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) await main();

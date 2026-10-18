@@ -24,7 +24,7 @@ const KIND_OF = new Map([
   [SECTION.TREES, 'trees'], [SECTION.RAILS, 'rails'], [SECTION.CANOPIES, 'canopies'], [SECTION.PASSAGES, 'passageWays'],
   [SECTION.FURNITURE, 'furniture'],
 ]);
-const GRID_OF = { buildings: 'buildingGrid', roads: 'roadGrid', water: 'waterGrid', green: 'greenGrid', trees: 'treeGrid' };
+const GRID_OF = { buildings: 'buildingGrid', roads: 'roadGrid', water: 'waterGrid', green: 'greenGrid', trees: 'treeGrid', rails: 'railGrid' };
 // A province tile's water row carries kind, lv, dp and nav (waterlevels.js
 // annotateProvinceWater): it joins the water grid like the city's, so boats,
 // swimmers and waterAt see it. An older tile has `flat` only: it stays out of
@@ -138,7 +138,7 @@ export class TileWorld extends GameMap {
           e = { obj, tiles: new Set() };
           this._res[kind].set(gid, e);
           if (kind !== 'trees') this._gidOf.set(obj, gid);
-          if (kind === 'buildings' || kind === 'roads' || kind === 'water' || kind === 'green') obj.bounds = boundsOfObj(kind, obj);
+          if (kind === 'buildings' || kind === 'roads' || kind === 'water' || kind === 'green' || kind === 'rails') obj.bounds = boundsOfObj(kind, obj);
           if (kind === 'water') { promoteMainWaterway(obj); this._waterVer = (this._waterVer || 0) + 1; newWater.push(obj); }
           if (kind === 'roads') newRoads.push(obj);
           const grid = gridOf(kind, obj);
@@ -175,6 +175,11 @@ export class TileWorld extends GameMap {
   // fn(kind, tile, key): 'add' (the decoded tile, its rows as the grids hold
   // them) once a streamed tile is in the grids, 'drop' (tile null) once it left
   onTiles(fn) { (this._tileListeners || (this._tileListeners = [])).push(fn); }
+
+  // The track of the streamed tiles (the city's own is map.rails): realBlockedAt keeps the countryside's props off it (#124)
+  railNear(x, y, r) {
+    return this.railGrid ? this.railGrid.query(x - r, y - r, x + r, y + r) : [];
+  }
 
   // Water rows that come with no tile: the fixes of the waterway network (vaarnet.js
   // patchRows): the holes the map leaves under bridges and in locks, a canal it lacks.
