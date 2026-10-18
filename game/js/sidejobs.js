@@ -37,13 +37,14 @@ import rechtbank from './sidejob_rechtbank.js';
 import cabaret from './sidejob_cabaret.js';
 import vracht from './sidejob_vracht.js';
 import lijn from './sidejob_lijn.js';
+import { BIJBAAN_JOBS } from './sidejob_bijbaan.js';
 import { loket, studiestaat, vigilantia, kamerkoning, wolkenhal, helix, niemeyer, bernard } from './sidejob_keuze.js';
 import { SIDEJOB_PAY_MULT, SIDEJOB_LEVEL_BONUS, SIDEJOB_ACCIDENT_FINE } from './economy.js';
 import { furnitureJobBonus } from './furniture.js';
 import { playerBusy } from './busy.js';
 import { noteMoney } from './finance.js';
 
-export const SIDE_JOBS = [bezorger, taxi, bus, rondvaart, fietsdepot, verhuizing, rondvaarttour, boa, rechtbank, cabaret, vracht, loket, studiestaat, vigilantia, kamerkoning, wolkenhal, helix, niemeyer, bernard, lijn];
+export const SIDE_JOBS = [bezorger, taxi, bus, rondvaart, fietsdepot, verhuizing, rondvaarttour, boa, rechtbank, cabaret, vracht, loket, studiestaat, vigilantia, kamerkoning, wolkenhal, helix, niemeyer, bernard, lijn, ...BIJBAAN_JOBS];
 const BY_ID = new Map(SIDE_JOBS.map((j) => [j.id, j]));
 
 export const JOB_TARGET_COLOR = '#ff9a3c';
