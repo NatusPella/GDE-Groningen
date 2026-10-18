@@ -54,6 +54,9 @@ for (const f of ['hud_panel.css', 'hudcards.css', 'prompts.css', 'phonefeed.css'
 ok(/--hud-min:\s*calc\(13px \/ var\(--ui/.test(css('hud_panel.css')), '--hud-min staat op #hud');
 ok(READABLE_MIN === 13, 'READABLE_MIN is 13');
 
+// the achievement toast sits under the route banner (top centre, ends about --hud-top + 62), not over it
+ok(/\.ach-toast \{[^}]*top: max\([^;]*var\(--hud-top, 34px\) \+ 74px\)/.test(fs.readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'game', 'js', 'achievements.js'), 'utf8')), 'prestatiemelding staat onder de routebanner');
+
 // contrast on the HUD card for every palette: signal colours are graphics (3:1), the text colour is text (4.5:1)
 ok(contrast('#f0ede4', HUD_CARD_BG) >= TEXT_CONTRAST, 'HUD-tekst op de kaart');
 for (const [mode, p] of Object.entries(PALETTES)) {
