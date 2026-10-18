@@ -137,5 +137,14 @@ ok(L.textPx(11, 1) === L.READABLE_MIN && L.textPx(18, 2) === 36 && L.textPx(18, 
 ok(L.distanceOwner({ gps: true, objective: true }) === 'gps' && L.distanceOwner({ objective: true }) === 'objective' && L.distanceOwner() === null, 'one owner per distance');
 ok(L.vehicleLabelOwner({ nameCardVisible: true }) === 'card' && L.vehicleLabelOwner() === 'meter', 'one owner per vehicle name');
 
+// contrast: marks and meters stay readable on the HUD card in every palette
+ok(Math.abs(L.contrast('#000000', '#ffffff') - 21) < 0.01 && L.contrast('#123456', '#123456') === 1, 'contrast maths');
+ok(L.contrast('#f0ede4', L.HUD_CARD_BG) >= L.TEXT_CONTRAST, 'HUD text on the card');
+for (const [name, pal] of Object.entries(PALETTES)) {
+  for (const k of ['ok', 'danger', 'mission', 'user', 'job', 'police']) {
+    if (name === 'uit' && k === 'police') continue; // the map's blue, drawn on a light ring
+    ok(L.contrast(pal[k], L.HUD_CARD_BG) >= L.GRAPHIC_CONTRAST, 'contrast of ' + k + ' in ' + name + ': ' + L.contrast(pal[k], L.HUD_CARD_BG).toFixed(2));
+  }
+}
 console.log(`${n} checks, ${fails} failed`);
 process.exit(fails ? 1 : 0);

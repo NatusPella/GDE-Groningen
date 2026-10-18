@@ -65,6 +65,22 @@ export function mapIconScale(zoom) {
   return Math.max(2.1, Math.min(3.2, 2.1 + Math.log2(Math.max(1, zoom)) * 0.4));
 }
 
+// Icon size floors (#114). The base icon is ICON_UNITS wide; a floor is in
+// HUD px, so it grows with the HUD scale (uiscale.js zoom) by itself. The
+// minimap is small and read at a glance: its icons are bigger in proportion.
+export const ICON_UNITS = 10;
+export const MIN_ICON_PX = 21; // full map and minimap, at any zoom
+export const MINI_ICON_FRAC = 0.095; // minimap icon / minimap size
+export const MINI_YOU_FACTOR = 1.15; // goals and routes a little bigger than places
+export function miniIconScale(mapPx, you = false) {
+  const px = Math.max(MIN_ICON_PX, (mapPx || 0) * MINI_ICON_FRAC) * (you ? MINI_YOU_FACTOR : 1);
+  return Math.round(px / ICON_UNITS * 100) / 100;
+}
+// Two icons never closer than this (centre to centre, px) for a scale: a
+// little more than one icon width, so rims never touch.
+export const ICON_GAP_FACTOR = 1.45;
+export const iconGapPx = (scale) => Math.round(ICON_UNITS * scale * ICON_GAP_FACTOR);
+
 // The rim colour of an icon's disc per category, so the kinds read apart at a glance
 const CAT_RIM = {
   zorg: '#ff5a5a', politiebureau: '#5a8bff', garage: '#ffb23f', station: '#9a7bff', job: '#4fd6c4',

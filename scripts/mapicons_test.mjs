@@ -1,6 +1,6 @@
 // Map icon rules (game/js/mapicons.js): categories by zoom, size by zoom, and
 // the thinning where icons would overlap. Run: node scripts/mapicons_test.mjs
-import { mapCategory, mapKindVisible, mapIconScale, placeIcons, mapPriority } from '../game/js/mapicons.js';
+import { mapCategory, mapKindVisible, mapIconScale, placeIcons, mapPriority, mapRimColor, miniIconScale, iconGapPx, MIN_ICON_PX, ICON_UNITS } from '../game/js/mapicons.js';
 
 let n = 0, fails = 0;
 const ok = (c, m) => { n++; if (!c) { fails++; console.log('FAIL', m); } };
@@ -31,5 +31,28 @@ ok(has('hospital') && !has('flitspaal'), 'a hospital beats a speed camera');
 ok(has('ma-1') && has('home'), 'goal and home are never dropped');
 ok(mapPriority(placed[placed.length - 1].kind) >= mapPriority(placed[0].kind), 'drawn last = highest priority');
 
+// minimum sizes (#114): a floor in HUD px at every zoom, the minimap bigger in proportion
+for (const z of [0.1, 0.3, 1, 4, 12, 60]) ok(mapIconScale(z) * ICON_UNITS >= MIN_ICON_PX, 'full map icon above the floor at zoom ' + z);
+for (const size of [150, 190, 250, 320]) {
+  ok(miniIconScale(size) * ICON_UNITS >= MIN_ICON_PX - 0.5, 'minimap icon above the floor at ' + size);
+  ok(miniIconScale(size, true) > miniIconScale(size), 'goals a little bigger than places at ' + size);
+}
+ok(miniIconScale(250) * ICON_UNITS / 250 > mapIconScale(1) * ICON_UNITS / 900, 'minimap icons are bigger in proportion than on the full map (a 900 px view)');
+ok(miniIconScale(0) * ICON_UNITS >= MIN_ICON_PX - 0.5, 'a missing size still gets the floor');
+for (const sc of [miniIconScale(250), mapIconScale(1), mapIconScale(12)]) ok(iconGapPx(sc) > ICON_UNITS * sc, 'icons never closer than one icon width');
+// no overlap: with the real gap, no two placed icons are closer than one icon
+{
+  const sc = miniIconScale(250), gap = iconGapPx(sc), items = [];
+  for (let i = 0; i < 60; i++) items.push({ kind: ['shop-snack', 'hospital', 'horeca', 'ma-1'][i % 4], sx: (i * 37) % 200, sy: (i * 53) % 200 });
+  const out = placeIcons(items, gap);
+  let close = 0;
+  for (let i = 0; i < out.length; i++) for (let j = i + 1; j < out.length; j++) {
+    if (mapCategory(out[i].kind) === 'goal' || mapCategory(out[j].kind) === 'goal') continue;
+    if (Math.hypot(out[i].sx - out[j].sx, out[i].sy - out[j].sy) < gap) close++;
+  }
+  ok(close === 0, 'placed icons keep their distance (' + close + ' too close)');
+}
+// the rim is in the category colour
+ok(mapRimColor('hospital') !== mapRimColor('politiebureau') && mapRimColor('garage') !== mapRimColor('station'), 'rims differ per category');
 console.log(`${n} checks, ${fails} failed`);
 process.exit(fails ? 1 : 0);
