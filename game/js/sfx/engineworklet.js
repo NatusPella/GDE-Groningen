@@ -36,6 +36,10 @@ const PROFILES = [
   { fpr: 2, idle: 1200, red: 10000, odd: 0.3, tilt: 0.8, fc: [500, 1800], body: [140, 100, 1.0], exh: [360, 200, 1.0], exhRise: 200, rasp: 0.24, intake: 0.1, mech: 0.012, jit: 0.006, wobble: 0.02, out: 0.5, crank: 0.6 },
   // 10: old-timer single, a slow thump with mechanical clatter
   { fpr: 1, idle: 1000, red: 7500, odd: 0.35, tilt: 0.65, fc: [380, 1200], body: [110, 90, 1.1], exh: [300, 180, 0.8], exhRise: 120, rasp: 0.12, intake: 0.05, mech: 0.02, jit: 0.01, wobble: 0.03, out: 0.5, crank: 0.9 },
+  // 11: elektrische auto: een zachtere, lagere whine dan de e-step, geen verbranding
+  { fpr: 2, idle: 1800, red: 12000, odd: 0.3, tilt: 1.5, fc: [1200, 2400], body: [400, 250, 0.4], exh: [900, 400, 0.4], exhRise: 200, rasp: 0, intake: 0, mech: 0.003, jit: 0, wobble: 0, out: 0.3, crank: 0.05 },
+  // 12: opgevoerde tokkie-auto: hoog, schel en rauw, veel uitlaat
+  { fpr: 2, idle: 900, red: 7500, odd: 0.3, tilt: 0.6, fc: [600, 2200], body: [160, 110, 0.8], exh: [450, 260, 1.5], exhRise: 260, rasp: 0.5, intake: 0.12, mech: 0.01, jit: 0.006, wobble: 0.015, out: 0.5, crank: 0.5 },
 ];
 
 class Rng {
