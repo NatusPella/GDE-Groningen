@@ -20,7 +20,21 @@ export class HostHub {
   }
 
   // Een nieuwe verbinding van een gast. Er is nog geen plek: die komt bij zijn eerste geldige hello.
+  // Een gast die terugkomt met zijn token (nieuwe verbinding na wegvallen) krijgt zijn eigen plek terug.
   accept(link) {
+    link.onmessage = (buf) => {
+      const h = readHeader(buf);
+      if (!h || h.type !== T.HELLO) return;
+      const m = decodeJson(buf);
+      const tok = m && m.body && m.body.token;
+      const old = tok && [...this.sessions.values()].find((x) => x.guest && x.guest.token === tok);
+      if (old) { old.rebind(link); old._raw(buf); return; }
+      this._nieuweSessie(link)._raw(buf);
+    };
+    return link;
+  }
+
+  _nieuweSessie(link) {
     const hub = this;
     let ses = null;
     const cfg = {

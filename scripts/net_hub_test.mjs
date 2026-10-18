@@ -112,6 +112,17 @@ t('een extra speler valt weg: de anderen merken niets, alleen zijn plek staat op
   assert.equal(b.status, 'ok'); assert.equal(b.token, token); assert.deepEqual(r.log.resumed, [2]);
   assert.equal(r.hub.roster.spelers.find((s) => s.slot === 2).verbinding, 'ok');
 });
+t('hervatten over een NIEUWE verbinding (nieuwe code): dezelfde speler krijgt dezelfde plek terug', () => {
+  const r = room(); const a = r.add(), b = r.add('bram'); r.step(2);
+  const token = b.token;
+  r.links[1].cut(); r.step(6);
+  assert.equal(r.hub.roster.spelers.find((x) => x.slot === 2).verbinding, 'lost');
+  const l2 = createLink({ latency: 0.03, seed: 77 }); r.hub.accept(l2.a); r.links.push(l2);
+  b.reconnect(l2.b); r.step(4);
+  assert.equal(b.status, 'ok'); assert.equal(b.slot, 2); assert.equal(b.token, token);
+  assert.deepEqual(r.hub.roster.spelers.map((x) => x.slot), [0, 1, 2]);
+  assert.equal(r.hub.roster.spelers.find((x) => x.slot === 2).verbinding, 'ok'); assert.equal(a.status, 'ok');
+});
 t('verwijderen: de gast krijgt een bericht en kan weg; de rest speelt door', () => {
   const r = room(); const a = r.add(), b = r.add('bram'); const got = []; b.onevent = (x) => got.push(x.k);
   r.step(2);
