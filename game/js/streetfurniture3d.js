@@ -207,7 +207,15 @@ function drawBoard(ctx, col, row, it) {
   ctx.textBaseline = 'middle';
   const n = it.text.length, h = (BOARD_H - 10) / n;
   ctx.font = `bold ${Math.min(34, Math.floor(h * 0.7))}px sans-serif`;
-  it.text.forEach((t, i) => ctx.fillText(t, x + 14, y + 5 + h * (i + 0.5) + 1, BOARD_W - 26));
+  // a place name stands in the middle; signpost lines run from the left
+  if (!sign) ctx.textAlign = 'center';
+  it.text.forEach((t, i) => ctx.fillText(t, sign ? x + 14 : x + BOARD_W / 2, y + 5 + h * (i + 0.5) + 1, BOARD_W - 26));
+  ctx.textAlign = 'left';
+  if (it.end) { // "einde bebouwde kom": a red diagonal across the name
+    ctx.strokeStyle = '#c4282d';
+    ctx.lineWidth = 9;
+    ctx.beginPath(); ctx.moveTo(x + 14, y + BOARD_H - 12); ctx.lineTo(x + BOARD_W - 14, y + 12); ctx.stroke();
+  }
 }
 
 function rebuildBoards(boards) {

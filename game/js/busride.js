@@ -11,10 +11,28 @@ export const BOARD_TIME = 3;       // s minimaal halteren
 export const LATE_FAIL = 75;       // s: zo ver achter dat de rit mislukt
 export const HARD_BRAKE = 6;       // m/s snelheidsverlies per stap dat als harde rem telt
 
-export function makeRide(line, { dir = 1, rng = Math.random, demand = 1 } = {}) {
+// Een stuk van de lijn: ritlengte in haltes (max) vanaf halte `first` in rijrichting;
+// een lijn van 40 km hoeft niet in één bijbaanrit. De tijden beginnen weer bij 0.
+export function sliceTable(table, first = 0, max = Infinity) {
+  const rows = table.slice(first, first + max);
+  const t0 = rows.length ? rows[0].arrive : 0;
+  return rows.map((r) => ({ ...r, arrive: r.arrive - t0, depart: r.depart - t0 }));
+}
+
+// Waar en welke kant op een rit begint voor een bus op (x, y): de dichtstbijzijnde
+// halte, richting de kant met de meeste haltes voor je. Geeft { dir, first } voor makeRide.
+export function planRide(line, x, y) {
+  const st = line.stops;
+  let i = 0, best = Infinity;
+  st.forEach((p, k) => { const d = Math.hypot(p.x - x, p.y - y); if (d < best) { best = d; i = k; } });
+  const dir = st.length - 1 - i >= i ? 1 : -1;
+  return { dir, first: dir > 0 ? i : st.length - 1 - i };
+}
+
+export function makeRide(line, { dir = 1, rng = Math.random, demand = 1, first = 0, max = Infinity } = {}) {
   return {
     line, dir, rng, demand,
-    table: buildTimetable(line, { dir }),
+    table: sliceTable(buildTimetable(line, { dir }), first, max),
     next: 1,              // index in table van de volgende halte
     t: 0, phase: 'drive', dwellLeft: 0, onBoard: 0, passengers: 0,
     deltas: [], hardBrakes: 0, prevSpeed: 0, earlyFlag: false, done: false, failed: null,

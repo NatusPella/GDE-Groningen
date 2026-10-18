@@ -9,21 +9,18 @@ import { roadNetReady, snapRoad, roadPathNear, nodeXY } from './roadgraph.js';
 import { isKnockedDown } from './ragdoll.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { decayFactor, profileOf } from './signalement.js';
+import { levelOf } from './wantedlevels.js';
 import { makeBeamGeometry, makeBeamMaterial, requestSearchlight } from './nightlights3d.js';
 import { trySpawnMounts, tryDeployCrew, adoptThrownRider, holdUnit, updateCrews, ejectMountRider, maybeBolt, updateBolting } from './policemounts.js';
 
-const DECAY_TIME = 14;
-const LOSE_AFTER = 5;
+// search area, cooldown and roadblock timing per star: wantedlevels.js
 const SEE_RANGE_CAR = 55;
 const SEE_RANGE_FOOT = 32;
 const HELI_SEE_RADIUS = 14;
 const HELI_SPOT_SPEED = 7.5;
-const SEARCH_SHRINK = 1.2;
 const SEARCH_MIN_RADIUS = 25;
 
 const ROADBLOCK_WANTED = 3;
-const ROADBLOCK_COOLDOWN = 22;
-const ROADBLOCK_LIFETIME = 45;
 const ROADBLOCK_WAKE_DIST = 14;
 const ROADBLOCK_CAR_SPACING = 4.2;
 const ROADBLOCK_WIDE = 12;
@@ -93,7 +90,6 @@ const CAR_BUST_TIME = 2;
 // spawnCopPedestriansNear in pedestrians.js), grown only once there's
 // something to respond to.
 const COP_PED_WANTED_THRESHOLD = 1;
-const COP_PED_TARGET_PER_WANTED = 1;
 const COP_PED_TARGET_MAX = 3;
 const COP_PED_TARGET_MAX_HIGH = 5;
 const COP_PED_SPAWN_STAGGER = 2.2;
@@ -500,7 +496,7 @@ function trySpawnCopPeds(world, state) {
   if (world.wanted < COP_PED_WANTED_THRESHOLD || world.time < state.nextCopPedSpawnAt) return;
   const alive = world.pedestrians.filter((p) => p.isCop && p.state !== 'dead');
   const max = world.wanted >= MOTOR_WANTED ? COP_PED_TARGET_MAX_HIGH : COP_PED_TARGET_MAX;
-  const target = Math.min(max, Math.ceil(world.wanted * COP_PED_TARGET_PER_WANTED * (world.wanted >= MOTOR_WANTED ? 1.5 : 1)));
+  const target = Math.min(max, levelOf(world.wanted).copPeds);
   if (alive.length >= target) return;
   const pol = world.police;
   const p = world.player;
@@ -694,9 +690,9 @@ function updateSearch(dt, world, state, escalated) {
     pol.lastSeen = { x: tip.x, y: tip.y };
     pol.searching = true;
     pol.seenRecently = false;
-    pol.unseenFor = LOSE_AFTER;
+    pol.unseenFor = levelOf(world.wanted).loseAfter;
     pol.searchCenter = { x: tip.x, y: tip.y };
-    pol.searchRadius = 70;
+    pol.searchRadius = levelOf(1).searchRadius;
     world.wantedDecayTimer = 0;
     state.seen = false;
     state.seeTimer = 1;
@@ -719,7 +715,8 @@ function updateSearch(dt, world, state, escalated) {
   }
 
   pol.unseenFor += dt;
-  if (pol.unseenFor < LOSE_AFTER && !pol.searching) {
+  const lvl = levelOf(world.wanted);
+  if (pol.unseenFor < lvl.loseAfter && !pol.searching) {
     pol.seenRecently = true;
     return;
   }
@@ -727,13 +724,13 @@ function updateSearch(dt, world, state, escalated) {
   if (!pol.searching) {
     pol.searching = true;
     pol.searchCenter = pol.lastSeen ? { ...pol.lastSeen } : { x: p.x, y: p.y };
-    pol.searchRadius = 55 + world.wanted * 15;
+    pol.searchRadius = lvl.searchRadius;
     world.wantedDecayTimer = 0;
   }
-  pol.searchRadius = Math.max(SEARCH_MIN_RADIUS, pol.searchRadius - SEARCH_SHRINK * dt);
+  pol.searchRadius = Math.max(SEARCH_MIN_RADIUS, pol.searchRadius - lvl.shrink * dt);
   const outside = Math.hypot(p.x - pol.searchCenter.x, p.y - pol.searchCenter.y) > pol.searchRadius;
   world.wantedDecayTimer += dt * (outside ? 2 : 1) * decayFactor(world.wantedProfile, world);
-  if (world.wantedDecayTimer >= DECAY_TIME) {
+  if (world.wantedDecayTimer >= lvl.cooldown) {
     world.wanted = Math.max(0, world.wanted - 1);
     world.wantedDecayTimer = 0;
     if (world.wanted === 0) world.addMessage('Je bent de politie kwijt', 3);
@@ -787,7 +784,7 @@ function tryRoadblock(world, state) {
     v.angle = Math.atan2(ny * side, nx * side) + side * (back ? 0.6 : 0.35) * towardPlayer;
     v.speed = 0;
     v.road = null;
-    v._roadblock = { until: world.time + ROADBLOCK_LIFETIME };
+    v._roadblock = { until: world.time + levelOf(world.wanted).roadblockLife };
     const ex = Math.cos(v.angle) * v.halfLen, ey = Math.sin(v.angle) * v.halfLen;
     if (solidAt(world.map, v.x, v.y) || solidAt(world.map, v.x + ex, v.y + ey) || solidAt(world.map, v.x - ex, v.y - ey)) continue;
     if (!vehicleClearance(world, v.x, v.y, 2.5)) continue;
@@ -808,7 +805,7 @@ function tryRoadblock(world, state) {
   });
   world.pedestrians.push(...cops);
   pol.roadblocks = [{ x: rp.x, y: rp.y }];
-  state.nextRoadblockAt = world.time + ROADBLOCK_COOLDOWN;
+  state.nextRoadblockAt = world.time + levelOf(world.wanted).roadblockEvery;
 }
 
 function updateRoadblocks(world) {

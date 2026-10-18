@@ -6,7 +6,7 @@
 
 // Switches that make no sense to flip from the menu (they start a mode of
 // their own, or are the menu itself).
-export const MENU_SKIP = new Set(['testmenu', 'dev', 'storytest', 'spotsonly', 'trailer', 'shot', 'cut', 'frames', 'video', 'benchmark', 'perf']);
+export const MENU_SKIP = new Set(['testmenu', 'dev', 'storytest', 'autoplay', 'spotsonly', 'trailer', 'shot', 'cut', 'frames', 'video', 'benchmark', 'perf']);
 
 // Switches that take a value, with a few useful values to offer.
 export const VALUE_FLAGS = {

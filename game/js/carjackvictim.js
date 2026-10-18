@@ -1,3 +1,4 @@
+import { hash2 } from './rng.js';
 // Autodiefstal (#49): wat de bestuurder doet nadat hij uit zijn auto is gehaald.
 // Eerst boos zwaaien met de vuist, dan een stukje achter de auto aan (alleen
 // als hij hem terug wil en je dichtbij bent), bij een stilstaande auto op het
@@ -26,7 +27,7 @@ export const VICTIM_LINES = {
   away: ['Wat een dag...', 'En ik moest nog naar de bakker.'],
 };
 
-const hash = (a, b = 0) => { const s = Math.sin(a * 127.1 + b * 311.7) * 43758.5453; return s - Math.floor(s); };
+const hash = (a, b = 0) => hash2(a, b);
 const lineOf = (key, seed) => { const l = VICTIM_LINES[key]; return l[Math.floor(hash(seed, key.length) * l.length) % l.length]; };
 
 // plan per bestuurder: de ene wil terug, de andere pakt direct zijn telefoon

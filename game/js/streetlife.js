@@ -115,7 +115,7 @@ export function streetLifePrompt(world) {
     return { id, x: ped.x, y: ped.y, h: 1.9, key: 'E', label: NAMES.paper, sub: money < PAPER_PRICE ? `Te weinig geld (€${PAPER_PRICE})` : `Koop een krant, €${PAPER_PRICE}`, ring: true, dim: money < PAPER_PRICE || wait };
   }
   if (k === 'beggar') {
-    return { id, x: ped.x, y: ped.y, h: 1.5, key: 'E', label: 'Vraagt om een muntje', sub: money < COIN ? 'Geen kleingeld bij je' : `Geef €${COIN}`, ring: true, dim: money < COIN || wait };
+    return { id, x: ped.x, y: ped.y, h: 1.5, key: 'E', label: 'Muntje geven', sub: money < COIN ? 'Geen kleingeld bij je' : `Geef €${COIN}`, ring: true, dim: money < COIN || wait };
   }
   if (k === 'bernard') {
     return { id, x: ped.x, y: ped.y, h: 1.9, key: 'E', label: NAMES.bernard, sub: money < COIN ? 'Een praatje maken' : `Een praatje, €${COIN} erbij`, ring: true, dim: wait };

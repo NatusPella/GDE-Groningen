@@ -218,6 +218,9 @@ EXT. GROTE MARKT, GRUNN - AVOND [M01]
 
 Avond. Een hijskraan, zoals altijd. Een terras vol mensen in de avondzon. Jelmer staat met zijn telefoon op een statief.
 
+TESSA  
+Dit is de Grote Markt, Tammo. Jelmer betaalt voor stunts met spullen, niet met mensen. Haal die vijftienhonderd punten, dan hebben we de honderdvijftig voor het Loket.
+
 JELMER  
 Moi moi chat! Zomeravond op de Grote Markt! En kijk: verse content!
 
@@ -364,7 +367,7 @@ TESSA
 Mijn pas zit in die automaat. En die automaat zit op die aanhanger. En die aanhanger is van niemand.
 
 TESSA  
-In die pas zit het geld van Jelmer. Het Loket neemt alleen contant. Zonder pas geen inschrijving.
+In die pas zit de honderdvijftig euro van Jelmer, voor de inschrijving van de Snackprijs. Het Loket neemt alleen contant. Zonder pas geen inschrijving.
 
 TAMMO  
 Dus we pinnen even.
@@ -598,6 +601,9 @@ EXT. STATIONSPLEIN, GRUNN - OCHTEND [M04]
 Zondag 16 augustus, ochtend. Bert op het Stationsplein bij zijn duiventil. Naamkaart: DUIVENMELKER BERT.
 
 Gameplay: Tammo is de duif en fotografeert camera's, bewakers en de stroomkast bij het museum.
+
+TESSA  
+Bert belde gisteren over een zwarte trekker die elke nacht bij het museum staat. Daarom zijn we bij zijn duiventil.
 
 BERT  
 Niemand kijkt naar een duif. Behalve als hij op je jas poept.
@@ -986,7 +992,7 @@ TAMMO
 Dat bedoelde ik ook.
 
 TESSA  
-Daar gaat Tessa, de wandelende Wikipedia van Stad.
+Daar gaat Tessa, de wandelende encyclopedie van Stad.
 
 TAMMO  
 Dat zeg ik. Jij zegt het alleen niet.
@@ -1200,7 +1206,7 @@ TAMMO
 Op één fatbike?
 
 TESSA  
-Durk en Douwe. Dat hoef je niet te weten.
+Durk en Douwe. Zij werken voor Jelle. Dat hoef je nu nog niet te snappen.
 
 TAMMO  
 Wat?
@@ -1514,6 +1520,9 @@ Is mijn jongen droog? Zeg niks tegen jouw jongen. – M.
 
 INT. UITHUIZEN NAAR ZOUTKAMP, HOGELAND - OCHTEND [T2] (REISBEAT)
 
+TESSA  
+Oma Trijntje stuurt ons naar Kapitein Klaas in Zoutkamp. Hij heeft een boot, en Jelle heeft daar een skûtsje.
+
 BUSCHAUFFEUR  
 Zoutkamp? Dat is de laatste halte. Daarna is er alleen nog water.
 
@@ -1603,6 +1612,9 @@ Jongens. Ik heb net twee reuzen uit de haven gevist. Ze zwommen synchroon.
 
 JELLE (V.O. telefoon)  
 Die twee mogen de chocola houden. De echte is bij mij, en daar blijft hij.
+
+TESSA  
+Dus de bal is hier niet. Dan halen we het zout voor Oma's recept, dat is plakje vier.
 
 EXT. LAUWERSMEER EN KWELDER, WADDENZEE - MIDDAG [M11]
 
@@ -1718,13 +1730,13 @@ KAPITEIN KLAAS
 Dat zout is van Oma. Jelle heeft het nakijken.
 
 DOKTER DIJKSTRA (V.O. telefoon)  
-Dijkstra, UMCG. Ik heb een heli. Ik haal jullie op. Dit stond niet in het rooster.
+Dijkstra, UMCG. Morgen vliegt Jelle met zijn koopboek in een ballon boven de Dollard. Ik heb een heli en ik haal jullie op. Dit stond niet in het rooster.
 
 TESSA  
-Naar de Eemshaven?
+Een koopboek met alles wat hij wil kopen. Dat moeten we hebben.
 
 KAPITEIN KLAAS  
-Dat is Lammerts haven. Hij danste met Trijntje in 1953.
+En daarna naar de Eemshaven. Dat is Lammerts haven. Hij danste met Trijntje in 1953.
 
 INT. NACHTSTREEK, STUDIO - NACHT [R2]
 
@@ -1934,6 +1946,9 @@ Vrijdagnacht 21 augustus. Drieduizend containers, een kraan, schijnwerpers. Naam
 
 Gameplay: een sluipmissie tussen de containers; container 4471 vinden en de papieren verwisselen.
 
+TESSA  
+Wij komen van Oma Trijntje. In Jelles koopboek staat dat zijn schip vannacht met de voorraad van haar vrienden uit de Eemshaven vertrekt.
+
 LAMMERT  
 Ik ben Lammert, havenmeester. Ik danste in 1953 met Trijntje. Dat vergeet ze niet.
 
@@ -2121,7 +2136,7 @@ Kiekdoar meldt dat Oldenhuis Bakt in Delfzijl een vestiging opent, naast de visb
 INT. DELFZIJL NAAR WINSCHOTEN, EEMSDELTA - OCHTEND [T3] (REISBEAT)
 
 TESSA  
-We nemen de trein naar Winschoten. Daar is een kermis.
+We nemen de trein naar Winschoten. Jelle geeft de juryleden daar een proeverij op de kermis. Dat staat in zijn koopboek.
 
 TAMMO  
 Een kermis. In de provincie.
@@ -2148,7 +2163,7 @@ ROELFIEN
 Ik ben Roelfien. Graanboerin. Oma Trijntje is mijn nicht.
 
 TESSA  
-Jelle geeft de juryleden een gratis proeverij op de kermis. Daar koopt hij ze.
+Oma Trijntje stuurt ons. Jelle geeft de juryleden een gratis proeverij op de kermis. Daar koopt hij ze.
 
 ROELFIEN  
 Dan laten we de hele kermis zien wat hij doet. Mijn gewasspuiter sleept al twintig jaar een spandoek voor de kermis.
@@ -2208,16 +2223,19 @@ ROELFIEN
 Twee juryleden zijn weggelopen. Twee zitten nog bij Jelle.
 
 TESSA  
-Plakje zes is voor de helft gevallen.
+Dan is plakje zes voor de helft gevallen: de jury.
 
 ROELFIEN  
 De molen in Oostwold is van Jelle. Het fijne bloem krijg je daar niet meer. Ik heb mijn eigen graan. Dat is grof.
 
 TESSA  
-Dat is plakje zes. De bloem is van hem.
+Dan heeft Jelle de fijne bloem.
 
 ROELFIEN  
 Oma's recept lust grof. Hier is het meel. Voor Trijntje.
+
+TESSA  
+Dan is ook de bloem gered, en daarmee plakje zes.
 
 TAMMO  
 Dank je, Roelfien.
@@ -2253,7 +2271,7 @@ TESSA
 Jaloers? Jij? Wat heb je met Tammo gedaan?
 
 TESSA  
-Het plan: Durk en Douwe langs drie tenten volgen, tot ze moe zijn. Dan een rit in de botsauto's.
+Het plan: Durk en Douwe weten waar de bal is. We volgen ze langs drie tenten tot ze moe zijn, dan vragen we het ze in de botsauto's.
 
 TAMMO  
 Ik drink maar één.
@@ -2475,7 +2493,7 @@ WUBBO
 Ik ben Wubbo, brugwachter. Open of dicht. Nooit allebei. Oma Trijntje belde.
 
 TESSA  
-Jelle heeft een mosterdschip. Dat moet door elf van jouw bruggen. Die mosterd is plakje zeven.
+Durk zei dat Jelle vandaag in Veendam de mosterd haalt. Zijn mosterdschip moet door elf van jouw bruggen, en de bal reist met hem mee. Die mosterd is plakje zeven.
 
 TAMMO  
 Hoe weten we wanneer?
@@ -2487,7 +2505,7 @@ WUBBO
 De brug draait op tijd. Jullie boot liever ook.
 
 TAMMO  
-Over zaterdag.
+Over zaterdag. In de botsauto.
 
 TESSA  
 Welke zaterdag?
@@ -2672,7 +2690,7 @@ TESSA
 Dan is het Jelle, en iemand van binnen.
 
 MEM (app, stil)  
-Ze zoeken je. Kom naar Bourtange. – M.
+Kom dinsdag naar Bourtange, voor het Beleg. Jelle komt ook. – M.
 
 EXT. STADSKANAAL, PERRON, VEENKOLONIËN - MIDDAG [M19]
 
@@ -2722,7 +2740,7 @@ TAMMO
 Die ook.
 
 TESSA  
-Meneer de jurylid, wilt u nog een eierbal?
+Meneer, wilt u nog een eierbal?
 
 JURYLID  
 Heerlijk. Wie is die mevrouw?
@@ -2766,7 +2784,7 @@ TESSA
 Je hebt hem in een station gezet. Dat is meer dan de machinist.
 
 BEREND (V.O. telefoon)  
-Goidag. Ik heb een bus nodig voor het Beleg. Kom naar Ter Apel.
+Goidag. Jelle komt dinsdag naar het Beleg van Bourtange, met zijn beleggers. Ik heb een bus nodig. Kom naar Ter Apel.
 
 EXT. TER APEL-BOS, WESTERWOLDE - AVOND [T4] (REISBEAT)
 
@@ -2776,7 +2794,7 @@ BEREND
 Goidag. Ik heb veertig man, vijftien kanonnen van karton, en een bus die niet start.
 
 TESSA  
-Wij rijden. Ter Apel-bos naar de vesting.
+Wij rijden. Ter Apel-bos naar de vesting, en de Escapade komt achter ons aan.
 
 BEREND  
 Op tijd. Het Beleg begint om negen uur. Ik ben de bisschop.
@@ -2843,6 +2861,9 @@ BEREND
 Ik heb niks gezien. Ik ben belegeraar, geen getuige.
 
 EXT. BOURTANGE, POORT, WESTERWOLDE - AVOND [T4] (REISBEAT)
+
+TESSA  
+De Escapade staat op de parkeerplaats bij de poort. Henks zender zit er nog in.
 
 BEREND  
 Op tijd. Dat is één minuut te vroeg.
@@ -3158,6 +3179,9 @@ Woensdag 26 augustus, vroege ochtend, bij Tinus' schuur in Zuidhorn. Tammo is 's
 
 Gameplay: zijn deel: de vrienden bij elkaar houden terwijl Jelles advocaten ze een voor een terugroepen.
 
+TAMMO  
+Woensdagochtend, Tinus' schuur. Oma heeft al haar vrienden met hun ingrediënten laten komen. Zonder hen is er geen recept voor de Snackprijs.
+
 OMA TRIJNTJE (V.O. telefoon)  
 Houd mijn vrienden bij elkaar, jong. Zonder hen is er geen recept.
 
@@ -3270,7 +3294,7 @@ HENK
 Henk, Garage Knalpot. Ik heb een luik, een uitlaat en een koekje. Eén.
 
 TESSA  
-We maken van de Escapade de Fjord Frituur.
+De bal is weer weg, maar de Snackprijs kunnen we nog winnen, met een eerlijk recept. Daarvoor maken we van de Escapade de Fjord Frituur.
 
 TAMMO  
 De Escapade is van mij.
@@ -3424,10 +3448,10 @@ Donderdag 27 augustus, ochtend. Alle vrienden van Oma staan met hun voertuigen: 
 Gameplay: één colonne naar de Grote Markt; de groep bij elkaar houden terwijl Jelles limo en zijn vergunningen proberen de colonne te splitsen.
 
 MEM (V.O. telefoon)  
-Famke. Trijntje en ik hebben ze gebeld. Ze komen.
+Famke. Trijntje en ik hebben ze na gisteren nog eens gebeld. Ze zeiden nee tegen Jelles advocaten. Ze komen.
 
 TESSA  
-Dit is de colonne. Wij voorop, de rest erachter, en niemand valt weg.
+Dit is de colonne, naar de Grote Markt. Wij voorop, de rest erachter, en niemand valt weg.
 
 GEESJE  
 Ik rij op mijn scooter. Hij is sneller dan hij lijkt.
@@ -3641,6 +3665,9 @@ Donderdagnacht. Oma's keuken met deeg, mosterd, eieren, zout, grof meel en een p
 
 Gameplay: een oefenronde eierballen bakken met alle vijf ingrediënten, daarna Jelles bod afwijzen.
 
+TESSA  
+Morgen is het Ontzet. Vannacht bakken we een proefronde, met alle vijf de ingrediënten van Oma's recept.
+
 OMA TRIJNTJE  
 Mosterd, eieren, zout en vet. Grove mosterd, niet dat zoete spul. En het meel van Roelfien. Grof, zoals vroeger.
 
@@ -3789,6 +3816,9 @@ Nee!
 
 BEREND (uit de rol)  
 Elk jaar hetzelfde. Straks zit ik in de jury. Ik proef, ik tel, ik oordeel.
+
+TESSA  
+Vandaag is het Ontzet. We winnen met een eerlijke eierbal, en de Gouden Eierbal gaat terug naar het museum. Om drie uur schrijft Jelle zich in bij de notaris: dat moeten we tegenhouden.
 
 TESSA  
 Tammo bakt. Ik hou de kraam heel.

@@ -16,14 +16,13 @@ export const REISBEATS = {
   T1: { act: 2, from: 'Station Grunn', to: 'Winsum', length: 17000, ride: 'trein', scene: 'T1' },
   M09: { act: 2, from: 'Winsum', to: 'Warffum', length: 12000, ride: 'lift' },
   T2: { act: 2, from: 'Uithuizen', to: 'Zoutkamp', length: 30000, ride: 'bus', scene: 'T2' },
-  M11: { act: 2, from: 'Zoutkamp', to: 'Lauwersoog', length: 9000, ride: 'boot' },
   M13: { act: 3, from: 'Delfzijl', to: 'Eemshaven', length: 30000, ride: 'lift' },
   T3: { act: 3, from: 'Delfzijl', to: 'Winschoten', length: 35000, ride: 'trein', scene: 'T3' },
-  M18: { act: 4, from: 'Veendam', to: 'Stadskanaal', length: 20000, ride: 'lift' },
-  M19: { act: 4, from: 'Stadskanaal', to: 'Ter Apel', length: 22000, ride: 'bus' },
-  T4: { act: 4, from: 'Ter Apel', to: 'Bourtange', length: 12000, ride: 'bus', scene: 'T4.1' },
+  M19: { act: 4, from: 'Veendam', to: 'Stadskanaal', length: 20000, ride: 'lift' },
+  // Stadskanaal to Bourtange by way of Ter Apel (22 + 12 km): the beat sits on the step that ends at Bourtange
+  T4: { act: 4, from: 'Stadskanaal', to: 'Bourtange', length: 34000, ride: 'bus', scene: 'T4.1' },
   M21: { act: 4, from: 'Bourtange', to: 'Zuidhorn', length: 65000, ride: 'lift' },
-  M23: { act: 5, from: 'Schuur', to: 'Grote Markt', length: 20000, ride: 'lift', selfMode: 'auto' },
+  M23: { act: 5, from: 'Grote Markt', to: 'Zuidhorn', length: 25000, ride: 'lift', selfMode: 'auto' },
 };
 
 // the beat in front of a step, as reiskeuze.js wants it (lines from the script:

@@ -19,7 +19,8 @@
 // the game places them (`placed`, which the thresholds hold to zero).
 //
 // With --world the tiles are read one by one from index-provincie.json:
-// water and ways that lie in another tile than the building are not seen.
+// water and ways that lie in another tile than the building are not seen. The countryside's props
+// (fences, hedges, reeds, banks) are not in the tiles: scripts/world/prop_water_audit.mjs counts those.
 import fs from 'node:fs';
 import path from 'node:path';
 import zlib from 'node:zlib';
@@ -34,7 +35,10 @@ export const LINE_MIN_M = 2;
 // mapped as building=yes on a harbour or river polygon; counted 2026-10-18),
 // so 110; for the province 0.1 % of the buildings until the first run over
 // the built tiles has given a real baseline (nothing to measure it on here).
-export const THRESHOLDS = { city: 110, worldRatio: 0.001, placedOver: 0 };
+// Green outlines (grass, park, forest) that lie nearly wholly in water draw a green strip across
+// the open water (issue #185): build_province.mjs drops them (DROWNED_FRAC); the city's map has one.
+export const GREEN_WET_FRAC = 0.8;
+export const THRESHOLDS = { city: 110, worldRatio: 0.001, placedOver: 0, greenInWater: 1 };
 
 const CELL = 64;
 const cellKey = (i, j) => i * 100003 + j;
@@ -155,7 +159,7 @@ export function lineOver(pts, wet, way) {
 export function auditPlacement(data) {
   const wet = waterIndex(data.water || []);
   const way = wayIndex(data.roads, data.rails);
-  const rep = { buildings: (data.buildings || []).length, buildingsInWater: [], stagesOnRoad: [], mapped: { lines: 0, over: [] }, placed: { lines: 0, over: [] } };
+  const rep = { buildings: (data.buildings || []).length, buildingsInWater: [], greenInWater: [], stagesOnRoad: [], mapped: { lines: 0, over: [] }, placed: { lines: 0, over: [] } };
   for (const b of data.buildings || []) {
     if (!b.pts || b.pts.length < 4 || b.type === 'houseboat') continue;
     const bb = bounds(b.pts);
@@ -169,6 +173,11 @@ export function auditPlacement(data) {
     if (f >= WET_FRAC) rep.buildingsInWater.push({ at: [Math.round((bb[0] + bb[2]) / 2), Math.round((bb[1] + bb[3]) / 2)], frac: Math.round(f * 100) / 100, type: b.type || '', name: b.name || '' });
   }
   rep.buildingsInWater.sort((a, b) => b.frac - a.frac);
+  for (const g of data.green || []) {
+    if (!g.pts || g.pts.length < 4) continue;
+    const f = wetFraction(g.pts, wet);
+    if (f >= GREEN_WET_FRAC) { const bb = bounds(g.pts); rep.greenInWater.push({ at: [Math.round((bb[0] + bb[2]) / 2), Math.round((bb[1] + bb[3]) / 2)], frac: Math.round(f * 100) / 100, kind: g.kind || '' }); }
+  }
   for (const [name, lines] of [['mapped', data.mapped || []], ['placed', data.placed || []]]) {
     for (const l of lines) {
       if (!l.pts || l.pts.length < 2) continue;
@@ -183,12 +192,14 @@ export function auditPlacement(data) {
 
 export const problems = (rep, world = false) => {
   const max = world ? Math.floor(rep.buildings * THRESHOLDS.worldRatio) : THRESHOLDS.city;
-  return rep.stagesOnRoad.length + Math.max(0, rep.buildingsInWater.length - max) + Math.max(0, rep.placed.over.length - THRESHOLDS.placedOver);
+  return rep.stagesOnRoad.length + Math.max(0, rep.buildingsInWater.length - max) + Math.max(0, rep.placed.over.length - THRESHOLDS.placedOver) + Math.max(0, rep.greenInWater.length - THRESHOLDS.greenInWater);
 };
 
 export function printAudit(rep, limit = 8) {
   console.log(`buildings in water (>= ${Math.round(WET_FRAC * 100)} % of the footprint): ${rep.buildingsInWater.length} of ${rep.buildings}`);
   for (const q of rep.buildingsInWater.slice(0, limit)) console.log(`  ${q.type || 'building'}${q.name ? ' ' + q.name : ''} ${Math.round(q.frac * 100)} % at ${q.at}`);
+  console.log(`green outlines in open water (>= ${Math.round(GREEN_WET_FRAC * 100)} %): ${rep.greenInWater.length}`);
+  for (const q of rep.greenInWater.slice(0, limit)) console.log(`  ${q.kind || 'green'} ${Math.round(q.frac * 100)} % at ${q.at}`);
   console.log(`landing stages (long narrow buildings) over a carriageway: ${rep.stagesOnRoad.length}`);
   for (const q of rep.stagesOnRoad.slice(0, limit)) console.log(`  ${q.name || 'stage'} ${q.m2} m2 on a road at ${q.at}`);
   for (const name of ['mapped', 'placed']) {
@@ -223,7 +234,7 @@ async function worldData(out) {
   if (!fs.existsSync(file)) return null;
   const index = JSON.parse(fs.readFileSync(file, 'utf8'));
   const fds = new Map();
-  const data = { buildings: [], roads: [], water: [], rails: [], mapped: [], placed: [] };
+  const data = { buildings: [], roads: [], water: [], rails: [], green: [], mapped: [], placed: [] };
   for (const t of Object.values(index.tiles)) {
     const f = index.packs[t.pack].file;
     if (!fds.has(f)) fds.set(f, fs.openSync(path.join(out, f), 'r'));
@@ -235,6 +246,7 @@ async function worldData(out) {
     for (const r of rows(G.SECTION.ROADS)) data.roads.push(r);
     for (const w of rows(G.SECTION.WATER)) data.water.push(w);
     for (const r of rows(G.SECTION.RAILS)) data.rails.push(r);
+    for (const r of rows(G.SECTION.GREEN)) data.green.push(r);
   }
   for (const fd of fds.values()) fs.closeSync(fd);
   return data;
@@ -251,7 +263,7 @@ async function main() {
     console.log(`${data.buildings.length} buildings, ${data.water.length} water rows, ${data.roads.length} roads in the tiles (fences and hedges of the tiles are the countryside's: see countryside.js)`);
   } else {
     const city = JSON.parse(fs.readFileSync(path.join(ROOT, 'game/citymap.json'), 'utf8'));
-    data = { buildings: city.buildings, roads: city.roads, water: city.water, rails: city.rails, ...(await cityLines(city)) };
+    data = { buildings: city.buildings, roads: city.roads, water: city.water, rails: city.rails, green: city.green, ...(await cityLines(city)) };
   }
   const t0 = performance.now();
   const rep = auditPlacement(data);

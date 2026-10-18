@@ -8,6 +8,7 @@ import {
   MISSION_GOALS, MEDALS, EIERBAL_TOTAL, getStat, unseenAchievementCount, isAchievementFresh, markAchievementsSeen,
 } from './achievements.js';
 import { SIDE_JOBS } from './sidejobs.js';
+import { iconSvg } from './achievementicons.js';
 import { fillBars, countTo } from './motion.js';
 import { achPct as pctOf, achNear, achDone, achCategoryOrder, achCategoryPct, achWhen, ringDash } from './menumodels.js';
 
@@ -43,7 +44,7 @@ function row(it, catLabel) {
   else if (it.hidden) end = LOCK;
   else if (it.progress && it.progress.cur > 0) end = `<span class="v">${fmtAmount(it.progress.cur, it.progress.unit)}/${fmtAmount(it.progress.goal, it.progress.unit)}</span>`;
   return `<button type="button" class="m-li${it.unlocked ? '' : ' off'}${sel === it.id ? ' sel' : ''}" data-ach="${esc(it.id)}" data-cat-label="${esc(catLabel)}"${sel === it.id ? ' aria-current="true"' : ''}>` +
-    `<span class="nm"><span class="one">${title}</span>${it.unlocked && it.at ? `<span class="mut one">${whenText(it.at)}</span>` : ''}</span>${end}</button>`;
+    `<span class="pa-ico">${iconSvg(it)}</span><span class="nm"><span class="one">${title}</span>${it.unlocked && it.at ? `<span class="mut one">${whenText(it.at)}</span>` : ''}</span>${end}</button>`;
 }
 
 function disc(id, title, hintHtml, inner, open, attr) {
@@ -92,7 +93,7 @@ function detailHtml(it, catLabel) {
     const { cur, goal, unit } = it.progress;
     prog = `<div class="pa-prog">${ring(pctOf(it), null, 120)}<span class="m-num">${fmtAmount(cur, unit)} <span class="mut">/ ${fmtAmount(goal, unit)}</span></span><span class="m-bar on"><i data-bar="d-${esc(it.id)}" data-w="${pctOf(it).toFixed(1)}"></i></span></div>`;
   }
-  return `<div class="pm-pane-top"><span class="m-eb">${esc(catLabel || 'Prestatie')}</span><h2 class="m-h2 td-h2">${title}</h2></div><p>${desc}</p>${prog}` +
+  return `<div class="pm-pane-top"><span class="m-eb">${esc(catLabel || 'Prestatie')}</span><h2 class="m-h2 td-h2"><span class="pa-ico big">${iconSvg(it)}</span>${title}</h2></div><p>${desc}</p>${prog}` +
     (it.unlocked ? `<p class="g">Behaald${it.at ? ` · ${whenText(it.at)}` : ''}</p>` : '') +
     (it.hidden ? '' : !it.unlocked && !it.progress ? '<p class="mut">Nog niet behaald.</p>' : '');
 }

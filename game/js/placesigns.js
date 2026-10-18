@@ -7,7 +7,8 @@
 //
 // towns: [{ n, x, y, kind }] (worldplaces.js worldTownSigns). Items:
 //   placesign: the board where a road enters a place's built-up area, on the
-//     right of the traffic coming in; text: [name]; a: the travel direction
+//     right of the traffic coming in; text: [name]; a: the travel direction;
+//     `end: true` is the board for the traffic leaving (name struck through)
 //   wegwijzer: a signpost before a junction of three or more roads, on the
 //     right of the traffic arriving; text: ['↑ Name', '← Name', ...] (up to 3,
 //     by the way each arm leads, ahead first), a: the travel direction
@@ -67,17 +68,23 @@ function placeBoards(roads, towns, add, blocked) {
       let near = false;
       for (const p of r.pts) if (Math.abs(p[0] - t.x) < R + 400 && Math.abs(p[1] - t.y) < R + 400) { near = true; break; }
       if (!near) continue;
-      for (const e of entries(r, t.x, t.y, R)) {
-        if (r.oneway && !e.fwd) continue;
-        if (Math.abs(zAt(r, e.i, e.t)) > 1.5) continue;
+      for (const e0 of entries(r, t.x, t.y, R)) {
+        if (Math.abs(zAt(r, e0.i, e0.t)) > 1.5) continue;
         // inside a bigger place's own circle the board would be a second one
-        if (circles.some((o) => RANK[o.kind] < rank && Math.hypot(o.x - e.x, o.y - e.y) < ENTRY[o.kind])) continue;
-        if (seen.some((s) => Math.hypot(s.x - e.x, s.y - e.y) < 30 && s.ux * e.ux + s.uy * e.uy > 0.5)) continue;
-        seen.push(e);
-        const off = r.width / 2 + 2.2;
-        const x = e.x - e.uy * off, y = e.y + e.ux * off;
-        if (blocked && blocked(r, x, y)) continue;
-        add({ k: 'placesign', x, y, a: Math.atan2(e.uy, e.ux), text: [placeName(t)], v: t.kind, src: 'rule' });
+        if (circles.some((o) => RANK[o.kind] < rank && Math.hypot(o.x - e0.x, o.y - e0.y) < ENTRY[o.kind])) continue;
+        // in: the way into the place; out: the same spot the other way, the
+        // "einde bebouwde kom" board (the name struck through)
+        for (const out of [false, true]) {
+          // the entry's direction runs inward; a one-way road only serves its own direction
+          if (r.oneway && (out ? e0.fwd : !e0.fwd)) continue;
+          const e = out ? { ...e0, ux: -e0.ux, uy: -e0.uy } : e0;
+          if (seen.some((s) => Math.hypot(s.x - e.x, s.y - e.y) < 30 && s.ux * e.ux + s.uy * e.uy > 0.5)) continue;
+          seen.push(e);
+          const off = r.width / 2 + 2.2;
+          const x = e.x - e.uy * off, y = e.y + e.ux * off;
+          if (blocked && blocked(r, x, y)) continue;
+          add({ k: 'placesign', x, y, a: Math.atan2(e.uy, e.ux), text: [placeName(t)], v: t.kind, end: out, src: 'rule' });
+        }
       }
     }
   }
