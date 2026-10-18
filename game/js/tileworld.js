@@ -151,7 +151,9 @@ export class TileWorld extends GameMap {
         e.tiles.add(tk);
       }
     }
-    attachProfiles(tile, (gid) => { const e = this._res.roads.get(gid); return e && e.obj; });
+    // the profiles of streamed bridges and viaducts (build_province.mjs --viaducts, #235): the elevation model
+    // keeps to the pinned set, so they only count with ?viaducten, for a look at the ribbons
+    if (this.streamProfiles) attachProfiles(tile, (gid) => { const e = this._res.roads.get(gid); return e && e.obj; });
     // a road over water without a bridge tag is a culvert or a dry deck (mapdata.js markDryRoad)
     for (const r of newRoads) markDryRoad(this, r);
     for (const w of newWater) {
