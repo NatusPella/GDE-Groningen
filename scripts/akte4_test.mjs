@@ -38,6 +38,7 @@ for (const id of ids) {
 }
 ok(STEPS.find((s) => s.id === 'T4').goal.type === 'reis' && STEPS.find((s) => s.id === 'T4').goal.at.length === 2, 'T4: a travel goal with a place');
 ok(STEPS.find((s) => s.id === 'M21').story.outro === null, 'M21: no outro scene (the last stage tells it)');
+ok(STEPS.find((s) => s.id === 'M21').solo === true && STEPS.find((s) => s.id === 'M21').player === 'anita', 'M21: solo, Tessa starts');
 ok(PARTS.zuid.open && PARTS.zuid.recap.length === 3 && PARTS.zuid.card.length === 2, 'the zuid part: open, a recap, an end card');
 for (const id of ['M17', 'M18', 'M19', 'M20', 'M21']) ok(CLUES.filter((c) => c.step === id).length >= 2, `${id}: clues for Wat weten we?`);
 ok(CLUES.some((c) => c.step === 'M18' && /12 augustus/.test(c.text)), 'M18: the 12 August clue');

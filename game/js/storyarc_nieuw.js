@@ -155,7 +155,7 @@ export const STEPS = [
   M('M20', 'zuid', 'Het beleg van Bourtange', 'beleg', { built: true, reward: 1200,
     story: { intro: ['M20.1'], outro: ['M20.5'], replay: ['M20.6'] }, scenes: ['M20.1', 'M20.2', 'M20.3', 'M20.4', 'M20.5', 'M20.6'],
     lead: ['A', 'Het Beleg van Bourtange begint om negen uur. Mem wacht in de kruitkelder.'] }),
-  M('M21', 'zuid', 'Iedereen heeft een rode auto gezien', 'fjord', { built: true, reward: 1100,
+  M('M21', 'zuid', 'Iedereen heeft een rode auto gezien', 'fjord', { built: true, reward: 1100, player: 'anita', solo: true, why: 'Ik haal hem terug. Niks aanraken.',
     story: { intro: ['M21.1'], outro: null, replay: ['M21.5'] }, scenes: ['M21.1', 'M21.2', 'M21.3', 'M21.4', 'M21.5'],
     lead: ['A', 'De Escapade staat op een goederentrein richting Ljouwert. Ik haal hem terug. Alleen.'] }),
 
