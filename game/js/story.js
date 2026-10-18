@@ -33,7 +33,7 @@ import { inHomeFlat, getHomeForRender, flatStage } from './home.js';
 import { isShopOpen } from './shopui.js';
 import { playCinematic, isCinematicActive, sinceCinematic, isBannerUp } from './cinematics.js';
 import { playScript } from './cutscenehost.js';
-import { OPENING, END_CARD, flatScene } from './cutscenes.js';
+import { openingActs, END_CARD, flatScene } from './cutscenes.js';
 import { refreshDayNight } from './daynight.js';
 import { getTrainTripCount, getStationsForRender } from './stationtravel.js';
 import { getEierballen } from './achievementtracker.js';
@@ -446,6 +446,9 @@ function setClock(h) {
   refreshDayNight(world);
 }
 
+// the kitchen of the opening hangs this high above the street (the set is a closed room)
+const KITCHEN_Z = 345;
+
 // The opening of the new story (M00): the trailer parody, the kitchen and moving day of the script,
 // as a letterboxed cutscene over the player's new home. Recorded lines play, the others are text.
 function playOpening(b) {
@@ -461,13 +464,28 @@ function playOpening(b) {
   }
   const p = world.player;
   const kop = PARTS.kop;
-  // the staged version (cutscenes.js OPENING): people and props move, the camera cuts; the orbit below stays as the fallback
+  // the staged version (cutscenes.js openingActs): people and props move, the camera cuts; the orbit below stays as the fallback
   const v0 = p.inVehicle;
-  const staged = playScript(world, OPENING, {
-    lines, duration: at + 1,
-    anchor: { x: v0 ? v0.x : p.x, y: v0 ? v0.y : p.y, facing: v0 ? v0.angle : p.angle || 0, z: 0 },
-    cine: { id: 'story-opening', kicker: `${partNumber('kop')} · ${kop.date}`, title: kop.name, cardFor: 3.2, onEnd: () => { b.phase = 'done'; } },
-  });
+  const spot = { x: v0 ? v0.x : p.x, y: v0 ? v0.y : p.y, facing: v0 ? v0.angle : p.angle || 0, z: 0 };
+  // three acts after each other: the trailer in the street, Tessa's kitchen (high above it), moving day.
+  // Skipping (hold Space) ends the whole opening.
+  const acts = openingActs(lines);
+  const playAct = (i) => {
+    const act = acts[i];
+    const last = i === acts.length - 1;
+    return playScript(world, act.def, {
+      lines: act.lines, duration: act.duration,
+      anchor: act.def.set === 'keuken' ? { x: spot.x, y: spot.y, facing: 0, z: KITCHEN_Z } : { ...spot },
+      cine: {
+        id: 'story-opening',
+        ...(i === 0 ? { kicker: `${partNumber('kop')} · ${kop.date}`, title: kop.name, cardFor: 3.2 } : {}),
+        onEnd: (skipped, replaced) => {
+          if (last || skipped || replaced || !playAct(i + 1)) b.phase = 'done';
+        },
+      },
+    });
+  };
+  const staged = acts.length === 3 && playAct(0);
   if (staged) return true;
   const ok = playCinematic({
     id: 'story-opening', priority: 4, duration: at + 1, pause: true, letterbox: true, skippable: true, hideHud: true,
