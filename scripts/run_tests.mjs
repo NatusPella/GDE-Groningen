@@ -42,7 +42,7 @@ export function listFiles(dir, re, out = []) {
     const p = join(dir, name);
     let st;
     try { st = statSync(p); } catch { continue; }
-    if (name === 'audio_check.js') continue; // snippet voor de browserconsole (top-level await)
+    if (name === 'audio_check.js' || /\.page\.js$/.test(name)) continue; // snippets voor de browserconsole/CDP (top-level await)
     if (st.isDirectory()) {
       if (['build', 'dist', 'vendor', '.claude', 'perf'].includes(name)) continue;
       listFiles(p, re, out);
