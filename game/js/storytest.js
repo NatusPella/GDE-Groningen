@@ -835,8 +835,8 @@ export async function runStoryTest(world) {
         check(`every Ommeland station has its dorpsuitjes (${vs.length})`, vs.length === 8 && vs.every((v) => v.acts.length === 2 && v.egg), JSON.stringify(vs.filter((v) => v.acts.length < 2 || !v.egg).map((v) => v.name)));
         if (world.player.inVehicle) world.player.exitVehicle(world.map, world);
         const before = om.endsFound();
-        om.go(ends[0].x, ends[0].y);
-        check('a wereldeinde is found by walking up to it', await waitFor(() => om.endsFound() > before || ends[0].found, 6000), JSON.stringify(ends[0]));
+        if (ends[0]) om.go(ends[0].x, ends[0].y);
+        check('a wereldeinde is found by walking up to it', await waitFor(() => om.endsFound() > before || (ends[0] && ends[0].found), 6000), JSON.stringify(ends[0]));
         await sleep(600);
         capture('om-wereldeinde');
         await drain(world, 700);
