@@ -109,3 +109,14 @@ export function cameraRelative(inp, yaw = 0) {
   const cs = Math.cos(yaw), sn = Math.sin(yaw);
   return { ...inp, x: cs * -inp.y - sn * inp.x, y: sn * -inp.y + cs * inp.x };
 }
+
+// Gedeelde camera (#95): staan de eerste twee spelers te voet en dicht bij elkaar, dan kijkt de
+// camera naar het midden tussen hen (en zoomt een stukje uit); anders volgt iedereen zijn eigen
+// figuur. Extra spelers (plek 2 en hoger) gebruiken dit niet. a en b: { x, y, inVehicle? }.
+export const SHARE_MAX_DIST = 60;
+export function sharedCamera(a, b, maxDist = SHARE_MAX_DIST) {
+  if (!a || !b || a.inVehicle || b.inVehicle) return null;
+  if (![a.x, a.y, b.x, b.y].every(Number.isFinite)) return null;
+  if (Math.hypot(a.x - b.x, a.y - b.y) > maxDist) return null;
+  return cameraFocus(a, b);
+}

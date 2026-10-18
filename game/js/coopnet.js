@@ -16,7 +16,7 @@ import { setFixedCharacters, applyHostState, makeClientInput, ensureFigure, remo
 import { bindCoop } from './coopglue.js';
 import { partnersInfo, createPings, addPing, tickPings, pingEvent } from './partnerhud.js';
 import { holdBeleid, leesLijstEvent, lijst } from './coopplayers.js';
-import { cameraRelative, stepSlot2 } from './coop.js';
+import { cameraRelative, stepSlot2, sharedCamera } from './coop.js';
 import { verzamelEntiteiten, leesEntiteiten, missieBericht, leesMissieBericht, missieTekst } from './coopworld.js';
 import { verhaalRol } from './coopplayers.js';
 
@@ -70,7 +70,7 @@ function prepareCoop(world) {
 }
 function endCoop(world) {
   if (world.coop) { world.coop.remote = false; world.coop.remoteInput = null; world.coop.fixedChars = false; if (world.coop.prevLocal !== undefined) { world.coop.local = world.coop.prevLocal; world.coop.prevLocal = undefined; } }
-  world.coopPartner = null; world.coopPartners = []; world.coopRoster = null; world.coopFigures = {}; world.coopHost = null; world.coopHostMissie = null;
+  world.coopPartner = null; world.coopPartners = []; world.coopRoster = null; world.coopFigures = {}; world.coopHost = null; world.coopHostMissie = null; world.coopCam = null;
 }
 const now = (world) => (Number.isFinite(world.time) ? world.time : Date.now() / 1000);
 
@@ -173,6 +173,7 @@ export function tickCoopNet(world, dt) {
       world.coopHost = sample ? leesEntiteiten(sample.entities) : { voertuigen: [], doelen: [] };
       world.coopPartners = partnersInfo(s.slot, sample ? sample.players : [], world.coopRoster || []);
       world.coopPartner = world.coopPartners[0] || null;
+      world.coopCam = s.slot === 1 ? sharedCamera(world.player, world.companion) : null; // alleen Tessa deelt de camera met Tammo
     }
     return;
   }
@@ -185,6 +186,9 @@ export function tickCoopNet(world, dt) {
   const players = [c ? { slot: 1, x: c.x, y: c.y, angle: c.angle, alive: true, inVeh: !!c.inVehicle } : null, ...Object.values(figures(world)).map((f) => ({ slot: f.slot, x: f.x, y: f.y, angle: f.angle, alive: true }))].filter(Boolean);
   world.coopPartners = partnersInfo(0, players, world.coopRoster || []);
   world.coopPartner = world.coopPartners[0] || null;
+  // gedeelde camera met Tessa (plek 1) zolang zij echt meespeelt; extra spelers hebben hun eigen camera
+  const tessa = n.hub.roster.spelers.find((x) => x.slot === 1);
+  world.coopCam = tessa && tessa.verbinding === 'ok' && world.coop && world.coop.remote ? sharedCamera(world.player, world.companion) : null;
 }
 
 // ---------------------------------------------------------------- gebeurtenissen tussen de spelers
