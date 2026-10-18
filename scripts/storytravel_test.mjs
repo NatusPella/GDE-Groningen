@@ -64,5 +64,29 @@ const step = { id: 'T1' };
   await tick();
   ok(w.player.x === 0 && flags.size === 0, 'no beat / end step: nothing');
 }
+// meerijden: the ride scene gets the option and the goal; skip/overslaan bring the vehicle along
+{
+  const w = mkWorld(0), flags = new Set();
+  let got = null;
+  S.tickStoryTravel({ on: true, step, flags, world: w, busy: false, script: lookup, ask: async () => 'meerijden',
+    ride: async (o, d) => { got = { o, d }; w.player.x = d.x; return { aangekomen: true }; } });
+  await tick(); await tick();
+  ok(got && got.o.id === 'trein' && got.d.x === 17000 && got.d.name === 'Winsum', 'ride scene gets option and goal', JSON.stringify(got));
+  ok(got && got.o.etaS > 60 && got.o.stops.length === 2, 'ride option has real eta and stops');
+  ok(w.msgs.length === 0, 'scene does the arrival, no double message');
+}
+{
+  const w = mkWorld(0), flags = new Set();
+  S.tickStoryTravel({ on: true, step, flags, world: w, busy: false, script: lookup, ask: async () => 'meerijden', ride: async () => ({ aangekomen: false }) });
+  await tick(); await tick(); await tick();
+  ok(w.player.x === 17000, 'scene refused (no money): arrive directly');
+}
+{
+  const w = mkWorld(0), flags = new Set();
+  w.player.inVehicle = { x: 5, y: 5, speed: 9 };
+  S.tickStoryTravel({ on: true, step, flags, world: w, busy: false, script: lookup, ask: async () => 'overslaan' });
+  await tick(); await tick();
+  ok(w.player.inVehicle.x === 17000 && w.player.inVehicle.speed === 0, 'vehicle comes along');
+}
 console.log(`${n - fails}/${n} storytravel`);
 process.exit(fails ? 1 : 0);
