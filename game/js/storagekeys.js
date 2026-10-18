@@ -49,6 +49,8 @@ export const BASE_KEYS = {
   ghosts: 'gde-ghosts-v1',
   // the Kroketkoning snack-bar chain (snackrules.js), new in 0.36: no legacy name
   snackChain: 'gde-snackketen-v1',
+  // context hints for new vehicles and minigames, each shown once (contexthints.js, #201): new, no legacy name
+  hintsGezien: 'gde-hints-gezien',
   // photo mode gallery (fotomodus.js, #199): metadata and small thumbnails only, local
   gallery: 'gde-galerij-v1',
   // which summer events the player has seen (evenementen.js, #203)
