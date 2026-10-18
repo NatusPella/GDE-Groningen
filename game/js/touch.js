@@ -3,7 +3,7 @@
 // input.js the way gamepad.js does (padAxis, padHold, mouse), so every
 // action works unchanged. Does nothing on a desktop; ?touch=1 forces it on
 // and ?touch=0 off. Menus and the phone stay plain taps.
-import { detectTouch, stickVector, knobOffset, lookDelta, stickKeys, touchPlan, touchContext, touchUiActive, STICK_RADIUS } from './touchlogic.js';
+import { detectTouch, stickVector, knobOffset, lookDelta, stickKeys, touchPlan, touchContext, stickless, touchUiActive, STICK_RADIUS } from './touchlogic.js';
 import { getSettings } from './settings.js';
 import { FLAGS } from './devflags.js';
 import { sendKey } from './input.js';
@@ -159,7 +159,7 @@ export function initTouch(input, world, hooks = {}) {
     // steering keeps only the sideways part; gas and brake are buttons
     const steer = ctx === 'vehicle' || ctx === 'vehicleManual' || ctx === 'skutsje';
     input.padAxis = steer ? [v[0], 0] : v;
-    const next = stickKeys(steer ? [v[0], 0] : v, held);
+    const next = stickless(ctx) ? new Set() : stickKeys(steer ? [v[0], 0] : v, held);
     for (const k of held) if (!next.has(k)) hold(k, false);
     for (const k of next) if (!held.has(k)) hold(k, true);
     held = next;

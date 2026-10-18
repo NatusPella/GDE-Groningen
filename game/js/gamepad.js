@@ -136,7 +136,7 @@ function context() {
   if (w.pigeonMode) return 'pigeon';
   if (w.trainDriving) return 'train';
   if (w.challenge && w.challenge.id === 'fjord') return 'foodtruck';
-  if (w.activityGame === 'carillon') return 'klokken';
+  if (GAME_PAD_CTX[w.activityGame]) return GAME_PAD_CTX[w.activityGame];
   if (playerBusy(w, ['padel', 'activityGame']).busy) return 'minigame';
   const v = w.player && w.player.inVehicle;
   if (v) return v.isHeli || v.isPlane ? 'heli' : w.noLookBack ? 'skutsje' : v.gb && getSettings().shiftMode !== 'auto' ? 'vehicleManual' : 'vehicle';
