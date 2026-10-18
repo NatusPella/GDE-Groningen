@@ -5,7 +5,7 @@
 //   node scripts/bot/run.mjs --report=<map>           (rapport opnieuw uit events.jsonl)
 //   node scripts/bot/run.mjs --replay=<events.jsonl> [--out=<map>]   (invoer terugspelen)
 // ELECTRON_EXE=<pad> als desktop/node_modules/electron/dist ontbreekt. Vereist
-// `cd desktop && npm run stage` (game/world). Geen netwerkpoorten: de pagina wordt
+// `cd desktop && npm run stage` (game/world; stage opnieuw na elke wijziging aan game/js, de app draait de gestagede kopie). Geen netwerkpoorten: de pagina wordt
 // aangestuurd via --perf-script (executeJavaScript) en de uitvoer loopt via
 // console-regels naar <out>/events.jsonl. Start niet als er al een Electron loopt (--force).
 // Uitvoer in <out>: events.jsonl (tijdlijn en invoer), replay.jsonl (alleen invoer),
@@ -84,6 +84,8 @@ fs.rmSync(path.join(os.tmpdir(), profile), { recursive: true, force: true });
 
 let res = { result: r.status === 0 ? 'ONBEKEND' : 'ELECTRON-FOUT', reason: `exit ${r.status}${r.signal ? ' ' + r.signal : ''}` };
 for (const l of (r.stdout || '').split(/\r?\n/)) { const m = l.match(/^\[perf-script\] (.*)$/); if (m) try { res = JSON.parse(m[1]); } catch { /* geen JSON */ } }
+const smokeErr = (r.stdout || '').split(/\r?\n/).find((l) => l.startsWith('[smoke error]'));
+if (smokeErr &&!['KLAAR', 'TIMEOUT', 'REPLAY'].includes(res.result)) res = { result: 'FOUT', reason: smokeErr.slice(14) };
 res.seed = seed;
 res.wallSeconds = res.wallSeconds ?? Math.round((Date.now() - t0) / 1000);
 res.arc = 'nieuw';

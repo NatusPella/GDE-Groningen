@@ -44,10 +44,25 @@ export function carControls(car, target, opts = {}) {
   let want = top * clamp(1.15 - Math.abs(err) * 0.9, 0.18, 1);
   if (opts.stopAt) want = Math.min(want, Math.max(2, d * 0.5));
   const speed = car.speed || 0;
+  // the target is behind us and we are slow: back up with the wheel turned the other way, so the nose swings round
+  if (Math.abs(err) > 2.0 && Math.abs(speed) < 6 && d > 8) return { steer: -steer, throttle: -1, err, dist: d, want: -3, reverse: true };
   let throttle = 0;
   if (speed < want - 1) throttle = 1;
   else if (speed > want + 3) throttle = -1;
   return { steer, throttle, err, dist: d, want };
+}
+
+// Wedged: the pedals are pushed but the car does not move (a wall, a kerb, another car).
+// update(t, speed, throttle) is true once that has lasted `afterS` seconds; the caller
+// backs off and calls reset().
+export class WedgeDetector {
+  constructor({ afterS = 2.5, minSpeed = 0.6 } = {}) { Object.assign(this, { afterS, minSpeed }); this.since = null; }
+  reset() { this.since = null; }
+  update(t, speed, throttle) {
+    if (!throttle || Math.abs(speed || 0) >= this.minSpeed) { this.since = null; return false; }
+    if (this.since == null) this.since = t;
+    return t - this.since >= this.afterS;
+  }
 }
 
 // Walks a polyline: next(pos) gives the point to aim for, dropping points that are reached

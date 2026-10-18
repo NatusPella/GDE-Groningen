@@ -43,8 +43,22 @@ const near = (a, b, e = 1e-6) => Math.abs(a - b) < e;
   ok(fast.throttle === -1, 'te snel: remmen');
   const behind = L.carControls({ ...car, speed: 10 }, { x: -50, y: 1 });
   ok(behind.want < 6, 'scherpe bocht: langzamer');
+  const rev = L.carControls({ ...car, speed: 0 }, { x: -50, y: 20 });
+  ok(rev.reverse && rev.throttle === -1 && rev.steer < 0, 'doel achter ons: achteruit met omgekeerd stuur');
+  ok(!L.carControls({ ...car, speed: 15 }, { x: -50, y: 20 }).reverse, 'met vaart niet in de achteruit');
   const stop = L.carControls({ ...car, speed: 12 }, { x: 8, y: 0 }, { stopAt: true });
   ok(stop.throttle === -1, 'bij het doel afremmen');
+}
+
+// --- klem ---------------------------------------------------------------------------------
+{
+  const w = new L.WedgeDetector({ afterS: 2 });
+  ok(!w.update(0, 0, 1) && !w.update(1.9, 0.1, 1), 'nog niet lang genoeg klem');
+  ok(w.update(2.1, 0.2, 1), 'gas zonder beweging: klem');
+  w.reset();
+  ok(!w.update(3, 0, 1), 'reset begint opnieuw');
+  ok(!w.update(9, 0, 0), 'zonder gas is stilstaan geen klem');
+  ok(!w.update(10, 5, 1) && !w.update(11, 0, 1), 'rijden zet de klok terug');
 }
 
 // --- pad volgen -------------------------------------------------------------------------
