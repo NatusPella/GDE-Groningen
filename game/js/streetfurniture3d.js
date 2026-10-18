@@ -13,6 +13,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { furnitureForTile, DESTINATIONS } from './streetfurniture.js';
 import { worldSignPlaces, worldTownSigns } from './worldplaces.js';
+import { boardQuads } from './boardquad.js';
 import { mergeGeometries, tint } from './geomerge.js';
 import { makeProp, addProp, removeProp, isPropBroken, addStaticCollider, addPropStreamer } from './breakables.js';
 import { TILE_M, GRID_X0, GRID_Y0, tileIndexOf } from './gdt.js';
@@ -228,21 +229,21 @@ function rebuildBoards(boards) {
     boardAtlas.width = BOARD_W * BOARD_COLS; boardAtlas.height = BOARD_H * BOARD_ROWS;
     boardTex = new THREE.CanvasTexture(boardAtlas);
     boardTex.colorSpace = THREE.SRGBColorSpace;
-    boardMat = new THREE.MeshBasicMaterial({ map: boardTex, side: THREE.DoubleSide });
+    boardMat = new THREE.MeshBasicMaterial({ map: boardTex, side: THREE.FrontSide });
   }
   const ctx = boardAtlas.getContext('2d');
   ctx.clearRect(0, 0, boardAtlas.width, boardAtlas.height);
   const pos = [], uv = [];
-  boards.slice(0, BOARD_COLS * BOARD_ROWS).forEach((b, slot) => {
+  // the last cell of the atlas is the plain back of every board (boardquad.js), so the text is not seen mirrored from behind
+  const BACK_CELL = BOARD_COLS * BOARD_ROWS - 1;
+  ctx.fillStyle = '#7d848a';
+  ctx.fillRect((BACK_CELL % BOARD_COLS) * BOARD_W, Math.floor(BACK_CELL / BOARD_COLS) * BOARD_H, BOARD_W, BOARD_H);
+  boards.slice(0, BACK_CELL).forEach((b, slot) => {
     const col = slot % BOARD_COLS, row = Math.floor(slot / BOARD_COLS);
     drawBoard(ctx, col, row, b);
-    const ca = Math.cos(b.a), sa = Math.sin(b.a);
-    // across the travel direction: (-sa, ca); the board faces the oncoming traffic
-    const rx = -sa, ry = ca, w = b.k === 'wegwijzer' ? 1.8 : 1.5, hh = b.k === 'wegwijzer' ? 0.3 * b.text.length + 0.15 : 0.5;
-    const z = (b.z || 0) + 2.2 - hh / 2;
-    const corners = [[-w / 2, -hh / 2], [w / 2, -hh / 2], [w / 2, hh / 2], [-w / 2, hh / 2]].map(([u, v]) => [b.x + rx * u - ca * 0.06, z + v + hh / 2, b.y + ry * u - sa * 0.06]);
-    const u0 = col / BOARD_COLS, u1 = (col + 1) / BOARD_COLS, v0 = 1 - (row + 1) / BOARD_ROWS, v1 = 1 - row / BOARD_ROWS;
-    for (const [i, u, v] of [[0, u0, v0], [1, u1, v0], [2, u1, v1], [0, u0, v0], [2, u1, v1], [3, u0, v1]]) { pos.push(...corners[i]); uv.push(u, v); }
+    const w = b.k === 'wegwijzer' ? 1.8 : 1.5, hh = b.k === 'wegwijzer' ? 0.3 * b.text.length + 0.15 : 0.5;
+    const q = boardQuads(b, slot, BACK_CELL, BOARD_COLS, BOARD_ROWS, w, hh, (b.z || 0) + 2.2 - hh / 2);
+    pos.push(...q.pos); uv.push(...q.uv);
   });
   boardTex.needsUpdate = true;
   if (boardMesh) { scene.remove(boardMesh); boardMesh.geometry.dispose(); boardMesh = null; }
