@@ -599,6 +599,77 @@ const EDGE_BUILD = {
 export const EDGE_PROP_KINDS = Object.keys(EDGE_BUILD);
 Object.assign(BUILD, EDGE_BUILD);
 
+// Street furniture of the province towns (stadsprofielen.js, stadsplan.js, stadsleven.js, #67).
+// Small, low-poly, one per spot; `stad_bord` carries a shop's made-up name.
+const TOWN_BUILD = {
+  stad_bank(k) { bench(k, 0, 0, 0); k.solid(0, 0, 0.9); },
+  stad_bolder(k) { k.cyl(0, 0.35, 0, 0.28, 0.7, DARK, 8, 0.2); k.cyl(0, 0.75, 0, 0.3, 0.12, DARK, 8); k.solid(0, 0, 0.35); },
+  stad_container(k) {
+    const c = [0x2f6fb0, 0xc8202a, 0x3a8a4a, 0xd8a020][Math.floor(Math.random() * 4)];
+    k.box(0, 1.3, 0, 6.1, 2.6, 2.4, c);
+    k.box(0, 2.62, 0, 6.1, 0.06, 2.4, DARK);
+    k.solid(-2, 0, 1.4).solid(2, 0, 1.4);
+  },
+  stad_bloembak(k) {
+    k.box(0, 0.35, 0, 1.4, 0.7, 0.6, WOOD);
+    for (let i = 0; i < 5; i++) k.box(-0.55 + i * 0.275, 0.82, 0, 0.22, 0.22, 0.3, [RED, ORANGE, 0xe8d040, 0xe070a0, WHITE][i]);
+    k.solid(0, 0, 0.7);
+  },
+  stad_fietsenrek(k) {
+    k.box(0, 0.45, 0, 0.1, 0.06, 3.2, GREY);
+    for (let i = 0; i < 4; i++) { const b = buildBike([0x2f6fb0, 0xc8202a, 0xf2c230, 0x3a8a4a][i]); b.position.set(0.5, 0, -1.2 + i * 0.8); b.rotation.y = Math.PI / 2; k.add(b); }
+    k.solid(0.3, 0, 1.2);
+  },
+  stad_vlaggenmast(k) {
+    k.post(0, 0, 7, WHITE, 0.06);
+    const f = new THREE.Group();
+    const g = new GeoBuilder();
+    g.box(0.7, 0, 0, 1.4, 0.45, 0.02, 0x1d4f9c);
+    g.box(0.7, -0.45, 0, 1.4, 0.45, 0.02, WHITE);
+    const m = new THREE.Mesh(g.build(), MAT);
+    k.own.push(m.geometry);
+    f.add(m);
+    f.position.set(0.06, 6.7, 0);
+    k.add(f);
+    k.ticks.push((dt, t) => { f.rotation.y = Math.sin(t * 2.1) * 0.12; });
+    k.solid(0, 0, 0.3);
+  },
+  stad_aardappelkist(k) { for (let i = 0; i < 3; i++) k.box(0, 0.25 + i * 0.5, 0, 1.2 - i * 0.1, 0.5, 0.8, [WOOD, 0x9a7448, WOOD][i]); k.box(0, 1.55, 0, 1.0, 0.1, 0.6, 0xc8a050); k.solid(0, 0, 0.8); },
+  stad_graanbaal(k) { k.cyl(0, 0.7, 0, 0.8, 1.4, 0xd8c060, 10); k.cyl(0, 1.42, 0, 0.8, 0.05, 0xb89c40, 10); k.solid(0, 0, 0.85); },
+  stad_visnet(k) {
+    k.post(-1.3, 0, 2.2, WOOD, 0.07); k.post(1.3, 0, 2.2, WOOD, 0.07);
+    k.box(0, 1.2, 0, 2.5, 1.7, 0.03, 0x5a7a7a);
+    k.box(0, 2.15, 0, 2.7, 0.06, 0.06, WOOD);
+    k.solid(-1.3, 0, 0.3).solid(1.3, 0, 0.3);
+  },
+  stad_wasdraad(k) {
+    k.post(-1.6, 0, 2.2, GREY, 0.04); k.post(1.6, 0, 2.2, GREY, 0.04);
+    k.box(0, 2.1, 0, 3.3, 0.02, 0.02, DARK);
+    for (let i = 0; i < 4; i++) k.box(-1.1 + i * 0.75, 1.75, 0, 0.45, 0.65, 0.03, [WHITE, 0xe8a0b0, 0x7aa0d0, 0xe8d880][i]);
+  },
+  stad_boom(k) { k.cyl(0, 1.2, 0, 0.18, 2.4, WOOD, 6); k.cyl(0, 3.4, 0, 1.6, 2.6, 0x3d7a3a, 7, 0.2); k.solid(0, 0, 0.4); },
+  stad_schaap(k) {
+    for (const [x, z, r] of [[0, 0, 0], [1.6, 0.9, 0.6], [-1.2, 1.4, -0.4]]) {
+      k.box(x, 0.5, z, 0.9, 0.55, 0.5, 0xeeeadd, r);
+      k.box(x + 0.55 * Math.cos(r), 0.62, z - 0.55 * Math.sin(r) * 0.3, 0.25, 0.28, 0.25, DARK, r);
+      for (const dx of [-0.3, 0.3]) for (const dz of [-0.15, 0.15]) k.box(x + dx, 0.12, z + dz, 0.07, 0.25, 0.07, DARK);
+    }
+  },
+  stad_vuurtoren(k) {
+    k.cyl(0, 3.5, 0, 1.5, 7, WHITE, 10, 1.0);
+    k.cyl(0, 7.4, 0, 1.15, 0.3, DARK, 10);
+    k.cyl(0, 8.2, 0, 0.7, 1.3, 0xe8d880, 10);
+    k.cyl(0, 9.3, 0, 0.9, 0.9, RED, 10, 0.1);
+    k.solid(0, 0, 1.6);
+  },
+  stad_bord(k, o, def) {
+    k.sign(0, 0, [def.name || 'Winkel', def.sub || ''], { w: 1.8, h: 0.8, y: 1.6, ry: Math.PI / 2, style: { bg: '#f4f1e6', fg: '#1b2a44', border: '#1b2a44', big: 0.26, small: 0.18 } });
+    k.solid(0, 0, 0.5);
+  },
+};
+export const TOWN_PROP_KINDS = Object.keys(TOWN_BUILD);
+Object.assign(BUILD, TOWN_BUILD);
+
 // kind: a WORLD_ENDS prop or a village/mission prop; def: its text entry.
 export function buildProp(kind, opts = {}, def = {}) {
   const k = new Kit();

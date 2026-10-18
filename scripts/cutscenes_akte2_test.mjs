@@ -20,7 +20,7 @@ ok(looks.geesje && looks.geesje.name === 'Geesje' && looks.klaas && looks.jelle,
 
 // spec key -> script scene ids (storyarc_nieuw.js `story`)
 const SCENES = {
-  'M08.intro': ['M08.1'], 'M08.outro': ['M08.3'], 'M09.intro': ['M09.1'], 'M09.outro': ['M09.4'],
+  'M07.intro': ['M07.1'], 'M07.outro': ['M07.3'], 'M08.intro': ['M08.1'], 'M08.outro': ['M08.3'], 'M09.intro': ['M09.1'], 'M09.outro': ['M09.4'],
   'M10.intro': ['M10.1'], 'M11.intro': ['M11.1'], 'M11.outro': ['M11.8'],
 };
 const NAME = { T: 'Tammo', A: 'Anita' };

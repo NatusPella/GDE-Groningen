@@ -43,7 +43,7 @@ Rond de 70 branches zijn in één dag op `main` gemerged. Wat je moet weten (det
 - **Eén poort voor "is de speler bezig":** `busy.js` (`playerBusy`) en `activityhub.js` (register voor activiteiten, bijbanen, postgame en uitjes). Nieuwe code vraagt de poort, maakt geen eigen lijst met `world.xxx`-vlaggen.
 - **Eén planner voor wat de aandacht vraagt:** `hudbus.js`; `hudlook.js` is de visuele taal van de HUD; `voicebank.js` is de ene loader voor voice-manifesten.
 - **Cutscenes zijn data:** `cutscript.js` (regietaal) + `cutscenehost.js` + `actoranim.js` + `cutscenes.js`.
-- **Wanted, verkeer, simulatie:** `wantedstate.js` (rustig, achtervolging, zoeken), `simlagen.js` (`?simlagen`), simulatie-worker `simhost.js`/`simkernel.js`/`simworker.js` (`?simworker`, proef), `spatialgrid.js` onder alle ruimtelijke indexen (#111).
+- **Wanted, verkeer, simulatie:** `wantedstate.js` (rustig, achtervolging, zoeken), `simlagen.js` (standaard aan, `?zonderlagen`), simulatie-worker `simhost.js`/`simkernel.js`/`simworker.js` (standaard aan, `?zonderworker`; nog niet aan `main.js` gekoppeld), `spatialgrid.js` onder alle ruimtelijke indexen (#111).
 - **Kaart:** `mapstyle.js` is de ene stijltabel voor minimap, grote kaart, provinciepiramide en zee; `regions.js` en `regiondata.js` kennen de provincie en wat eromheen ligt.
 - **Laden, invoer, mobiel:** `loadlogic.js` (laadschermen), `padlogic.js` en `glyphs.js` (controller), `touchlogic.js` (raakbediening).
 - **Verhaal:** reisbeats (`reisbeats.js`, `reiskeuze.js`, `reistijd.js`, achter `?reizen`), drie keuze-zijmissies; `?coop` (`coop.js`) voor twee spelers. De stad op tegels staat achter `?stadlaag` (#90) en is standaard uit.

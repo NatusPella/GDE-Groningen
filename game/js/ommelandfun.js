@@ -7,9 +7,12 @@ import { updateTalk } from './ommelandtalk.js';
 import { prepareCountryStations } from './stationtravel.js';
 import { prepareShopDoors } from './shops.js';
 import { setExtraSolids } from './countryplan.js';
+import { updateStadsleven, townSolids, townDebug } from './stadsleven.js';
 
 // The Ommeland extras in one place for main.js, prompts.js and spotcheck.js:
-// the wereldeinden (worldends.js), the dorpsuitjes (dorpsuitjes.js) and the
+// the wereldeinden (worldends.js), the dorpsuitjes (dorpsuitjes.js), the street
+// life of the profile towns (stadsleven.js, #67), the turn-back scenes at the edge
+// of the world (edgeguard.js, #6) and the
 // solid bits of their props. De Koe van Ome Jan runs as a post-game
 // challenge (pg_koe.js). Debug: window.__ommeland.
 
@@ -37,7 +40,7 @@ export function initOmmelandFun(w) {
     window.__ommeland = {
       prepare: () => prepareOmmeland(world),
       ends: () => worldEndDebug(), endsFound: () => worldEndCount(),
-      villages: () => villageDebug(), use: (name, role) => villageUse(name, role),
+      towns: () => townDebug(), villages: () => villageDebug(), use: (name, role) => villageUse(name, role),
       koe: () => { const s = getKoeSites(world.map); return s ? { farm: [Math.round(s.farm.x), Math.round(s.farm.y)], hide: [Math.round(s.hide.x), Math.round(s.hide.y)], dist: Math.round(s.dist) } : null; },
       koeCow: (x, y) => koeCowTo(x, y),
       go: (x, y) => { const p = world.player; if (p.inVehicle) p.exitVehicle(world.map, world); p.x = x; p.y = y; return true; },
@@ -51,6 +54,7 @@ function refreshSolids() {
   solids.length = 0;
   worldEndSolids(solids);
   villageSolids(solids);
+  townSolids(solids);
 }
 
 export function updateOmmelandFun(dt, w) {
@@ -60,6 +64,8 @@ export function updateOmmelandFun(dt, w) {
   updateWorldEnds(dt, w);
   updateVillages(dt, w);
   updateTalk(w);
+  updateStadsleven(dt, w);
+  updateEdgeGuard(dt, w);
   refreshSolids();
 }
 

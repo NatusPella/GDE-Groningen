@@ -22,13 +22,13 @@ let n = 0, fails = 0;
 const ok = (cond, name, info = '') => { n++; if (!cond) { fails++; console.log(`FAIL ${name}${info ? ' (' + info + ')' : ''}`); } };
 const bb = (pts) => [Math.min(...pts.map((p) => p[0])), Math.min(...pts.map((p) => p[1])), Math.max(...pts.map((p) => p[0])), Math.max(...pts.map((p) => p[1]))];
 const KINDS = ['bank', 'kast', 'balie', 'zuil', 'kraam', 'doek', 'scherm', 'pad', 'altaar', 'kansel', 'vont', 'orgel', 'stoelen', 'kaars', 'plant', 'tafel'];
-const wanted = ['forum', 'martinikerk', 'aakerk', 'korenbeurs'];
+const wanted = ['forum', 'martinikerk', 'aakerk', 'korenbeurs', 'hoofdstation', 'jozefkathedraal', 'schouwburg', 'remonstrants', 'goudkantoor'];
 // English words on a sign would be a bug: the game is Dutch only
 const ENGLISH = /\b(the|and|welcome|library|entrance|church|market|exit|room)\b/i;
 // real brands and companies must not appear (AGENTS.md); a few likely slips
 const BRANDS = /\b(albert heijn|jumbo|coca|starbucks|mcdonald|ikea|nike|gasunie|shell)\b/i;
 
-ok(INTERIEUREN.length === wanted.length && wanted.every((id) => INTERIEUREN.some((i) => i.id === id)), 'plans for forum, martinikerk, aakerk, korenbeurs');
+ok(INTERIEUREN.length === wanted.length && wanted.every((id) => INTERIEUREN.some((i) => i.id === id)), 'plans for all wanted interiors');
 ok(new Set(INTERIEUREN.map((i) => i.id)).size === INTERIEUREN.length, 'plan ids unique');
 
 const water = city.water.filter((w) => w.kind === 'kanaal' || w.kind === 'diep' || w.kind === 'vaart');

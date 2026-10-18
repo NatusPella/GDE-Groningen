@@ -34,3 +34,4 @@ data/cache/
 data/world/ahn/
 data/world/corridor.partial-pack/
 docs/verhaal/nieuw/export/
+.publish-names.local
