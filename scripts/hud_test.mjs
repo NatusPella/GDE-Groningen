@@ -4,6 +4,8 @@ import * as R from '../game/js/hudrules.js';
 import { nextTurn, turnText } from '../game/js/hudgps.js';
 import * as A from '../game/js/roadaccess.js';
 import * as U from '../game/js/uiscale.js';
+import * as L from '../game/js/hudlook.js';
+import { PALETTES } from '../game/js/a11y.js';
 
 let fails = 0, n = 0;
 const ok = (c, name) => { n++; if (!c) { fails++; console.log('FAIL', name); } };
@@ -112,6 +114,28 @@ for (const ratio of [0.8, 1, 1.2, 1.25, 1.5, 2, 2.4, 3, 4.8]) {
   const c = { width: 300, height: 300 };
   ok(!U.sizeSquareCanvas(c, 300) && U.sizeSquareCanvas(c, 600) && c.height === 600, 'minimap canvas resized only when needed');
 }
+
+// hudlook.js: one visual language
+ok(L.vehicleKind(null) === null && L.vehicleKind({ isBike: true }) === 'bike' && L.vehicleKind({ isBoat: true }) === 'boat' && L.vehicleKind({ isHeli: true }) === 'heli' && L.vehicleKind({ isScooter: true }) === 'scooter' && L.vehicleKind({}) === 'car' && L.vehicleKind({}, { train: true }) === 'train', 'vehicle kinds');
+for (const k of L.VEHICLE_KINDS) ok(L.VEHICLE_HUD[k].speed && L.speedoLook(k, true).visible, 'every vehicle shows its speed: ' + k);
+ok(L.speedoLook('car', true).gears && L.speedoLook('car', true).rpm && !L.speedoLook('car', false).rpm, 'a car with an engine shows gears and revs');
+for (const k of ['bike', 'boat', 'heli', 'train', 'scooter']) ok(!L.speedoLook(k, true).gears && !L.speedoLook(k, true).rpm, 'no gears or revs on ' + k);
+ok(!L.speedoLook('bike').damage && !L.speedoLook('train').damage && L.speedoLook('boat').damage, 'damage meter only where a vehicle can break');
+ok(!L.speedoLook('onbekend').visible, 'unknown vehicle: nothing');
+ok(L.meterLevel(1) === 'ok' && L.meterLevel(0.3) === 'low' && L.meterLevel(0.15) === 'crit' && L.meterLevel(NaN) === 'crit' && L.meterLevel(0.9, { invert: true }) === 'crit', 'meter levels');
+for (const [name, pal] of Object.entries(PALETTES)) {
+  const okL = L.meterLook('ok', pal), lowL = L.meterLook('low', pal), critL = L.meterLook('crit', pal);
+  ok(okL.color !== lowL.color, 'ok and low differ in colour in ' + name);
+  ok(okL.pattern !== lowL.pattern && lowL.glyph && critL.pulse && !lowL.pulse, 'low differs by shape too in ' + name);
+}
+for (const w of [[1280, 720], [1920, 1080], [2560, 1440], [3840, 2160]]) {
+  const e = L.hudEdge(w[0], w[1], 1);
+  ok(e >= L.EDGE_MIN && e <= L.EDGE_MAX, 'edge in range at ' + w[1] + 'p: ' + e);
+}
+ok(L.hudEdge(1280, 720) <= L.hudEdge(3840, 2160, 1), 'edge grows with the screen');
+ok(L.textPx(11, 1) === L.READABLE_MIN && L.textPx(18, 2) === 36 && L.textPx(18, 0.8) === 18, 'text never below the readable minimum');
+ok(L.distanceOwner({ gps: true, objective: true }) === 'gps' && L.distanceOwner({ objective: true }) === 'objective' && L.distanceOwner() === null, 'one owner per distance');
+ok(L.vehicleLabelOwner({ nameCardVisible: true }) === 'card' && L.vehicleLabelOwner() === 'meter', 'one owner per vehicle name');
 
 console.log(`${n} checks, ${fails} failed`);
 process.exit(fails ? 1 : 0);
