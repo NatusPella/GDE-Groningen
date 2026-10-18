@@ -68,7 +68,7 @@ import { createSkyUniforms, buildSkyDome, createEnvironmentUpdater, setStarOpaci
 import { computeLighting } from './daynight.js';
 import { createPostFX } from './postfx3d.js';
 import { noteGfxEvent, watchContext } from './blackframe.js';
-import { spawnExplosionFx } from './fx3d.js';
+import { spawnExplosionFx, setFxCamera } from './fx3d.js';
 import { initNightLights, setNightLightQuality, updateNightLights, isLightRigOn, setLightRigVisible } from './nightlights3d.js';
 import { createFarLOD } from './farlod.js';
 import { SECTION, TILE_M, tileOrigin } from './gdt.js';
@@ -828,6 +828,7 @@ export function init3D(map) {
   // vs. road/water/green y-offsets into the same depth bucket at range,
   // which read as "roads just don't render" (ground always won the z-test)
   cam = new THREE.PerspectiveCamera(64, innerWidth / innerHeight, 0.5, DRAW_DIST * 1.4);
+  setFxCamera(cam);
 
   // Hemisphere ground stays a muted warm grey: a saturated ground colour
   // bleeds onto every downward-facing surface (car undersides, eaves).
