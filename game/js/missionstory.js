@@ -14,6 +14,7 @@ import { showNameCard } from './namecard.js';
 import { nieuwVerhaal } from './storyflag.js';
 import { STEPS, MISSION_IDS } from './storyarc.js';
 import { storyLines, storyDataReady, readingTime, storyDirRecording } from './storytext.js';
+import { openBank } from './voicebank.js';
 
 // Story cutscenes around the mission chain: who asks and why (start), the
 // payoff (success) and a short sting (fail). Tammo and Tessa's relationship
@@ -26,9 +27,8 @@ import('./fierljep.js').then((m) => { fjMod = m; }).catch(() => {});
 
 // Recorded dialogue, keyed "<speaker>|<text>" so an edited line simply goes
 // silent instead of playing the wrong recording.
-const VOICE_DIR = new URL('../audio/voicelines/story/', import.meta.url).href;
-let voices = {};
-fetch(VOICE_DIR + 'manifest.json').then((r) => (r.ok ? r.json() : {})).then((m) => { voices = m || {}; }).catch(() => {});
+const VOICE_DIR = openBank('story').dir;
+const voices = openBank('story').entries;
 const voiceFor = (speaker, text) => voices[speaker + '|' + text] || storyLineVoice(speaker, text) || (nieuwVerhaal() ? storyDirRecording(speaker, text) : null);
 
 const SKIN = HABBO_PALETTE;
