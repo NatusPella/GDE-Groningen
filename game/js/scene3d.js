@@ -16,6 +16,7 @@ import { DEAD_DURATION } from './pedestrians.js';
 import { attachCarry, carryPose } from './streetlife3d.js';
 import { buildPersonMesh, animatePersonWalk, applyAttackPose, applyHitReaction, setHeldWeapon, seatPose, seatedY, waveOverlay, carryOverlay, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { syncDoorsNear, vraagVoorAnim } from './vehicledoors3d.js';
+import { seatedOf } from './occupants.js';
 import { vehicleSeat, placeSeated, makeSeatTracker, trackSeat, drawTransition, syncBoatCrew } from './seating3d.js';
 import { updateCarInterior } from './carinterior.js';
 import { updateSwimmers3D } from './swimmers3d.js';
@@ -708,7 +709,8 @@ const crewCtx = {
 // Parked, abandoned and bailed-out cars are empty. Must be a real boolean:
 // an undefined .visible does not hide an Object3D.
 function hasAiDriver(v) {
-  if (v.wrecked || v.parked || v.driver === 'player' || v.castDriver || v.driverOut) return false;
+  if (v.wrecked || v.driver === 'player' || v.castDriver || v.driverOut) return false;
+  if (v.parked) return seatedOf(v).driver === 'waiting'; // iemand wacht in zijn geparkeerde auto (occupants.js)
   if (v.driver) return true;
   if (v.isPolice) return !v.hijacked && !v.disabled && !v._roadblock;
   return !!(v.road || v.racer || v.countryDrive);
@@ -730,6 +732,29 @@ function ensureDriverFigure(mesh, v, dist, deadline) {
   const casters = mesh.userData.shadowCasters;
   const castNear = mesh.userData.castNear;
   for (const o of enableShadows(driver, false).userData.shadowCasters) {
+    if (castNear !== undefined) o.castShadow = castNear;
+    if (casters) casters.push(o);
+  }
+}
+
+// The front passenger (occupants.js): same recipe as the driver, one seat over.
+function ensurePassengerFigure(mesh, v, dist, deadline) {
+  const ud = mesh.userData;
+  if (ud.passengerChecked || !ud.driverFigure) return;
+  if (dist >= DRIVER_FIGURE_DIST && (dist >= DRIVER_PREFETCH_DIST || performance.now() > deadline)) return;
+  ud.passengerChecked = true;
+  const front = seatedOf(v).passengers.find((p) => p.slot === 'front');
+  if (!front) return;
+  const person = buildPersonMesh(0x7a6a8a, 0xd9aa82, { seed: (v.id || 0) * 7.1 + 3 });
+  const seat = vehicleSeat(v, false);
+  seatPose(person, seat.pose);
+  person.position.set(seat.x, seatedY(person, seat.y), seat.z);
+  person.visible = false;
+  (ud.body || mesh).add(person);
+  ud.passengerFigure = person;
+  const casters = ud.shadowCasters;
+  const castNear = ud.castNear;
+  for (const o of enableShadows(person, false).userData.shadowCasters) {
     if (castNear !== undefined) o.castShadow = castNear;
     if (casters) casters.push(o);
   }
@@ -2098,6 +2123,9 @@ export function update3D(dt, world) {
       ensureDriverFigure(mesh, v, driverDist, driverDeadline);
       const df = mesh.userData.driverFigure;
       if (df) df.visible = hasAiDriver(v) && driverDist < DRIVER_FIGURE_DIST;
+      ensurePassengerFigure(mesh, v, driverDist, driverDeadline);
+      const pf = mesh.userData.passengerFigure;
+      if (pf) pf.visible = df ? df.visible && seatedOf(v).passengers.length > 0 : false;
       if (v.isBike || v.isScooter) syncBikeRider(mesh, v, world.time);
       if (v._mount || v._riderAway) syncPoliceMount(mesh, v, animDt);
     }
