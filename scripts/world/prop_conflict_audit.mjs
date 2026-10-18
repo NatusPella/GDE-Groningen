@@ -118,7 +118,8 @@ function judge(map) {
     }),
     inWater: (x, y) => nw(x, y, 0.5).some((w) => inPoly(x, y, w.pts)),
     // OSM landuse=farmland at a point (only in a world built with PARCELS, global.osmParcels)
-    onFarmland: (x, y) => np(x, y, 0.5).some((p) => p.use === 'akker' && inPoly(x, y, p.pts)),
+    // a post on the border is the neighbour's fence: only 2 m inside the polygon counts
+    onFarmland: (x, y) => np(x, y, 2).some((p) => p.use === 'akker' && inPoly(x, y, p.pts) && !p.pts.some((q, i) => segDist(x, y, q[0], q[1], p.pts[(i + 1) % p.pts.length][0], p.pts[(i + 1) % p.pts.length][1]) < 2)),
     inBuilding: (x, y) => nb(x, y, 0.5).some((b) => inPoly(x, y, b.pts)),
   };
 }
@@ -153,12 +154,18 @@ export function auditWindow(out, index, key, { rails = [] } = {}) {
   CF.setProvinceBlocks(B ? { x0: B.x0, y0: B.y0, w: B.w, h: B.h, data: B.data } : null);
   CF.setCountryBounds([-2000, -2000, 2000, 2000]);
   CE.setExtraBlocked((px, py, m) => PW.realBlockedAt(map, isTile, px, py, m));
+  // like provinceworld.js: the OSM land use steers where the generator fences and herds (a world built with PARCELS)
+  const npar = near(map.parcels);
+  map.landUseAt = (x, y) => { let best = null, ba = Infinity; for (const q of npar(x, y, 0.5)) { const b = q.bounds; if (x < b[0] || x > b[2] || y < b[1] || y > b[3] || !inPoly(x, y, q.pts)) continue; const ar = (b[2] - b[0]) * (b[3] - b[1]); if (ar < ba) { ba = ar; best = q.use; } } return best; };
+  CF.setProvinceDitches(!!(index.global && index.global.osmDitches));
+  CE.setExtraHedge((px, py, r) => PW.realHedgeNear(map, px, py, r));
+  CE.setExtraUse(index.global && index.global.osmParcels ? (px, py) => PW.realUseAt(map, isTile, px, py) : null);
   const J = judge(map);
   const [ox, oy] = G.tileOrigin(ci, cj);
   const c = { windows: 1, posts: 0, wires: 0, hedges: 0, cattle: 0 };
   const add = (k, n = 1) => { c[k] = (c[k] || 0) + n; };
   const T = 160;
-  const posts = [];
+  const posts = [], farmPosts = [], gatePts = [];
   for (let tx = Math.floor(ox / T); tx <= Math.floor((ox + 1000) / T); tx++) {
     for (let ty = Math.floor(oy / T); ty <= Math.floor((oy + 1000) / T); ty++) {
       const tile = CS.countryTileItems(tx, ty);
@@ -177,12 +184,12 @@ export function auditWindow(out, index, key, { rails = [] } = {}) {
           if (pts.some(([x, y]) => J.onRoad(x, y))) add(N + 'OnRoad');
           if (pts.some(([x, y]) => J.inWater(x, y))) add(N + 'InWater');
           if (pts.some(([x, y]) => J.inBuilding(x, y))) add(N + 'InBuilding');
-          if (kind === 'post' && J.onFarmland(px, py)) add('postOnFarmland');
+          if (kind === 'post' && J.onFarmland(px, py)) farmPosts.push([px, py]);
           if (pts.some(([x, y]) => CF.countrySurface(x, y) === 'sloot')) add(N + 'OnDitch');
         }
       }
       // field gates: those at the track are the overweghekken of a fence the track cut; none may stand on it
-      { const m = tile.items.gate && tile.items.gate.m; for (let q = 0; m && q < m.length; q += 16) { const gx = m[q + 12], gy = m[q + 14]; if (gx < ox || gx > ox + 1000 || gy < oy || gy > oy + 1000) continue; add('gates'); if (J.onRail(gx, gy)) add('gateOnRail'); if (J.nearRail(gx, gy, 30)) add('gateAtRail'); } }
+      { const m = tile.items.gate && tile.items.gate.m; for (let q = 0; m && q < m.length; q += 16) { const gx = m[q + 12], gy = m[q + 14]; if (gx < ox || gx > ox + 1000 || gy < oy || gy > oy + 1000) continue; add('gates'); gatePts.push([gx, gy]); if (J.onRail(gx, gy)) add('gateOnRail'); if (J.nearRail(gx, gy, 30)) add('gateAtRail'); } }
       // grazing animals (a goose or a duck belongs in the water)
       for (const a of (tile.animals || []).filter((q) => q.kind !== 'goose' && q.kind !== 'duck')) {
         add('cattle');
@@ -193,6 +200,8 @@ export function auditWindow(out, index, key, { rails = [] } = {}) {
       }
     }
   }
+  // the short wings of a field gate in arable land are meant: only a post with no gate within 7 m counts
+  for (const [fx, fy] of farmPosts) if (!gatePts.some(([gx, gy]) => Math.hypot(gx - fx, gy - fy) < 7)) add('postOnFarmland');
   // de gemapte OSM-hekken en -heggen (streetfurniture.js, zoals streetfurniture3d.js ze per tegel zet): over spoor, weg, gebouw, water
   {
     const wr = 1000 * 0.71 + 60, wx = ox + 500, wy = oy + 500;
