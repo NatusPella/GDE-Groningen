@@ -70,6 +70,30 @@ export function promoteMainWaterway(poly) {
   if (poly.kind === 'diep') { poly.kind = 'kanaal'; poly.dp = WATER_KINDS.kanaal.depth; }
   return true;
 }
+// Waterway class per water (#234): where a boat kind belongs. 'hoofd' the main waterways
+// (shipping canals, rivers, the sea and the great lakes: nav 4 and wide enough for a
+// barge), 'haven' a harbour basin that takes a barge, 'klein' everything else (diepen,
+// vaarten, ditches, ponds, city canals): sloepen, tour boats and paddlers, no barge. Inland
+// shipping (class 4) spawns and sails on hoofd and haven only.
+export const BARGE_MIN_WIDTH = 24;   // m, mean channel width (2 A / P) of the water a barge belongs on
+export const BARGE_MIN_CLEAR = 8;    // m of open water round a barge's spawn or wander spot (beam 6.6 m plus room)
+export const SMALL_WATER = /sloot|greppel|wetering|leidijk|beek|spui|droogmakerij/i;
+export function meanWidth(poly) {
+  if (poly._meanW === undefined) poly._meanW = 2 * polyArea(poly.pts) / (polyPerimeter(poly.pts) || 1);
+  return poly._meanW;
+}
+export function waterwayClass(poly) {
+  if (!poly) return 'klein';
+  const nav = poly.nav ?? (WATER_KINDS[poly.kind] || WATER_KINDS.diep).nav, w = poly.pts ? meanWidth(poly) : Infinity;
+  if (poly.kind === 'sloot' || poly.kind === 'vijver' || poly.kind === 'vaart' || nav < 3) return 'klein';
+  if (poly.name && SMALL_WATER.test(poly.name)) return 'klein';
+  if (w < BARGE_MIN_WIDTH) return 'klein';
+  if (nav >= 4) return 'hoofd';
+  return poly.name && /haven|dok/i.test(poly.name) ? 'haven' : 'klein';
+}
+export const bargeWater = (poly) => { const c = waterwayClass(poly); return c === 'hoofd' || c === 'haven'; };
+// the same by what waterAt returns (no width there): a ditch, pond or vaart is never barge water
+export const bargeWaterAt = (w) => !!w && w.navigable >= 4 && w.kind !== 'sloot' && w.kind !== 'vijver' && w.kind !== 'vaart';
 // the deck of a city bridge: its top at the road, its soffit this far below
 export const BRIDGE_DECK_T = 0.5;
 
