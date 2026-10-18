@@ -570,6 +570,8 @@ export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(s
   const rail = { ...bakeCityRoutes({ stations: stationList, routes }, { province: true, root }), rails: railLines(railRows, cityCover ? cityCover.inside : () => false, cityCover ? cityCover.rails : []), ...far };
   const global = {
     builder: PROVINCE_BUILDER, source: prov.source, places,
+    // the tiles carry the real ditches (worldbuilder.js fromOsm waterway=ditch|drain|stream): the game turns its painted ones off (countryfield.js)
+    osmDitches: true,
     stations: [...stations.entries()].map(([key, s]) => ({ key, ...s })).sort((a, b) => (a.key < b.key ? -1 : 1)),
     routes, bus: bus.map(({ id, ref, name, from, to, pts, stops }) => ({ id, ref, name, from, to, pts, stops })),
     edge, outline: rings.map((R) => simplify(R, 60).map(([x, y]) => [Math.round(x), Math.round(y)])),

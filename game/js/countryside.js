@@ -18,7 +18,7 @@ import { updateCountryLife, lifeStats } from './countrylife.js';
 import { buildSign, disposeSign } from './countrysigns.js';
 import { EDGE, edgeBlocked, edgeSpanBlocked, roadGap, nearRail } from './countryedge.js';
 import { ensureCountryEdge } from './countryplan.js';
-import { thinDitchOn, ditchRamp, provinceBlock, countrySurface } from './countryfield.js';
+import { thinDitchOn, ditchRamp, provinceBlock, countrySurface, osmDitchesAt } from './countryfield.js';
 import { urbanWeight } from './provinceworld.js';
 import { setTileWalls, clearTileWalls, pushOutOfWalls, setTileTrunks, clearTileTrunks, pushOutOfTrunks } from './countrywalls.js';
 import { glowMaterial, poolGeometry } from './countryglow.js';
@@ -589,6 +589,7 @@ function genFieldEdges(tile, bx, by, rot, aMin, bMin, W) {
   const bankOk = (x, y, across) => {
     if (!openLand(x, y) || farmAt(x, y, 1) || inVillage(x, y, 2) || edgeBlocked(x, y, 1)) return false;
     const p = parcelAt(x, y);
+    if (osmDitchesAt(p.bx, p.by)) return false; // no painted ditch here, so no bank
     if (p.road || p.dMain < MAIN_HW + 0.8 || p.dMaar < MAAR_HW + 1 || !thinDitchOn(p)) return false;
     const other = across ? Math.min(p.a - p.a0, p.a1 - p.a) : Math.min(p.b - p.b0, p.b1 - p.b);
     return other >= 1.8 && clearOfRoad(x, y, 0.8);
