@@ -13,7 +13,7 @@
   transition: transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 /* one prominent thing at a time: the now-playing card steps aside for a card */
-body.hud-card-on #hud .hud-nowplaying, body.hud-chip-on #hud .hud-nowplaying { opacity: 0; transform: translateX(-24px); }
+body.hud-card-on #hud .hud-nowplaying { opacity: 0; transform: translateX(-24px); }
 body.hud-call-on #hud .hud-nowplaying, body.hud-call-on #hud .hud-vehname, body.hud-call-on #hud .hud-ctx, body.hud-call-on #hud .wp-secondary { opacity: 0 !important; }
 #hud .hud-cards.paused .hc-timer { animation-play-state: paused; }
 
@@ -119,17 +119,6 @@ body.hud-call-on #hud .hud-nowplaying, body.hud-call-on #hud .hud-vehname, body.
 body.pigeon-mode #hud .hud-cards { top: 300px; }
 #hud .hc-text kbd.hud-key, #hud .hc-text .hud-key { height: 1.15em; min-width: 1.15em; margin: 0 2px; padding: 0 4px; font: bold 0.72em/1 system-ui, sans-serif; vertical-align: 0.08em; }
 
-/* "2 meldingen wachten" / "1 prestatie wacht": brief notices under the cards (hudcards.js tickChips) */
-#hud .hc-chips { order: 99; display: flex; gap: 6px; }
-#hud .hc-chips:not(:has(> :not([hidden]))) { display: none; }
-#hud .hc-wait { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px; border-radius: 13px; background: rgba(10, 19, 13, 0.85); border: 1px solid rgba(63, 201, 122, 0.16);
-  font-family: 'Arial Narrow', Arial, sans-serif; font-size: 13px; color: #f0ede4; animation: hc-wait-in var(--dur-base, 200ms) var(--ease-out, ease-out); }
-#hud .hc-wait[hidden] { display: none; }
-#hud .hc-wait { transition: opacity var(--dur-slow, 320ms) var(--ease-out, ease-out); }
-#hud .hc-wait.out { opacity: 0; }
-#hud .hc-wait i { width: 7px; height: 7px; border-radius: 50%; background: #3fc97a; }
-#hud .hc-award svg { width: 14px; height: 14px; fill: none; stroke: #3fc97a; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-@keyframes hc-wait-in { from { opacity: 0; transform: translateY(-4px); } }
 
 /* narrative.js: steps aside while a cutscene, story call or subtitle is up */
 #hud .hud-cards.hc-held { opacity: 0; transition: opacity 0.2s; }
@@ -138,5 +127,5 @@ body.pigeon-mode #hud .hud-cards { top: 300px; }
 #hud .hud-cards-e { position: absolute; top: 330px; left: var(--hud-edge, 46px); width: min(calc(30vw / var(--ui, 1)), 320px); pointer-events: none; }
 #hud .hud-cards .hud-card { border-radius: 10px; border-left: 0; box-shadow: 0 0 0 1px color-mix(in srgb, var(--hc) 45%, transparent), 0 10px 26px rgba(0, 0, 0, 0.35); background: var(--hud-card); }
 #hud .hud-cards-e .hud-card { position: relative; border-radius: 10px; border-left: 0; background: var(--hud-card); box-shadow: 0 0 0 1px rgba(232, 201, 58, 0.4); }
-body.hud-card-on #hud .hud-nowplaying, body.hud-chip-on #hud .hud-nowplaying { opacity: 0; }
+body.hud-card-on #hud .hud-nowplaying { opacity: 0; }
 body.pigeon-mode #hud .hud-cards { top: 300px; }
