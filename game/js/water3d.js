@@ -1,6 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { polygonBounds } from './util.js';
 import { onSettingsChange } from './settings.js';
+import { WATER_TONES as TONES } from './watertones.js';
 
 // Stylised canal water: a grid-filled surface clipped exactly to each water
 // polygon, low-poly faceted swell (derivative normals), a per-vertex
@@ -110,7 +111,7 @@ void main() {
 #if WATER_Q > 0
   vec3 n = normalize(cross(dFdx(vWorldPos), dFdy(vWorldPos)));
   if (n.y < 0.0) n = -n;
-  float ph0 = fract(uTime * 0.05), ph1 = fract(uTime * 0.05 + 0.5);
+  float ph0 = fract(uTime * ${TONES.flowRate.toFixed(3)}), ph1 = fract(uTime * ${TONES.flowRate.toFixed(3)} + 0.5);
   float fw = abs(ph0 * 2.0 - 1.0);
   vec2 drift0 = vFlow * ph0 * 6.0, drift1 = vFlow * ph1 * 6.0;
   float r0 = valueNoise((p - drift0) * 0.9), r1 = valueNoise((p - drift1) * 0.9 + 17.0);
@@ -130,7 +131,7 @@ void main() {
   float cosV = clamp(dot(n, v), 0.0, 1.0);
   float fresnel = 0.03 + 0.97 * pow(1.0 - cosV, 5.0);
 
-  float deep = smoothstep(0.3, 9.0, vEdge);
+  float deep = smoothstep(${TONES.deepFrom.toFixed(1)}, ${TONES.deepTo.toFixed(1)}, vEdge);
   vec3 body = mix(uShallowColor, uDeepColor, deep) * uLight;
 #if WATER_Q > 0
   vec2 lxz = normalize(uSunDir.xz + vec2(1e-3));
@@ -212,11 +213,11 @@ export function createWaterMaterial(sky = null) {
   const m = new THREE.ShaderMaterial({
     uniforms: {
       uTime: { value: 0 },
-      uWave: { value: 0.12 },
-      uDeepColor: { value: new THREE.Color(0x0b2420) },
-      uShallowColor: { value: new THREE.Color(0x2c4a38) },
-      uFoamColor: { value: new THREE.Color(0xb9c2b0) },
-      uDuckweedColor: { value: new THREE.Color(0x5d7f2c) },
+      uWave: { value: TONES.wave },
+      uDeepColor: { value: new THREE.Color(TONES.deep) },
+      uShallowColor: { value: new THREE.Color(TONES.shallow) },
+      uFoamColor: { value: new THREE.Color(TONES.foam) },
+      uDuckweedColor: { value: new THREE.Color(TONES.duckweed) },
       uFacadeColor: { value: new THREE.Color(0x5e4034) },
       uWindowColor: { value: new THREE.Color(0xffc877) },
       uLampColor: { value: new THREE.Color(0xffa84a) },
@@ -225,7 +226,7 @@ export function createWaterMaterial(sky = null) {
       uSunColor: sky ? sky.uSunColor : { value: new THREE.Color(0xffd49a) },
       uSunDir: sky ? sky.uSunDir : { value: new THREE.Vector3(0.6, 0.6, 0.4).normalize() },
       uSunStrength: sky ? sky.uSunStrength : { value: 1 },
-      uOpacity: { value: 0.88 },
+      uOpacity: { value: TONES.opacity },
       uRain: { value: 0 },
       uLight: { value: 1 },
       uNight: { value: 0 },
@@ -243,20 +244,36 @@ export function createWaterMaterial(sky = null) {
   return m;
 }
 
+// Audit: every water polygon's surface mesh (a Group named 'water' whose first
+// child is the surface; banks and quays follow) must wear the one shared
+// material. Returns { total, shared, stray: [group names/positions] }.
+export function auditWaterMeshes(root, material) {
+  let total = 0, shared = 0;
+  const stray = [];
+  root.traverse((o) => {
+    if (o.name !== 'water' || !o.children || !o.children.length) return;
+    total++;
+    const surface = o.children[0];
+    if (surface && surface.material === material) shared++;
+    else stray.push(`${o.name}@${Math.round(o.position.x)},${Math.round(o.position.z)}`);
+  });
+  return { total, shared, stray };
+}
+
 // The one water material the city canals and the Ommeland water share.
 let shared = null;
 export function sharedWaterMaterial(sky = null) {
   return shared || (shared = createWaterMaterial(sky));
 }
 
-let swellAmp = 0.12;
+let swellAmp = TONES.wave;
 export function updateWaterMaterial(material, time, rain = 0, night = 0) {
   const u = material.uniforms;
   u.uTime.value = time;
   u.uRain.value = rain;
   u.uNight.value = night;
   u.uLight.value = (0.14 + 0.86 * (1 - night)) * (1 - 0.3 * Math.min(1, rain));
-  u.uWave.value = swellAmp = 0.12 + 0.08 * Math.min(1, rain);
+  u.uWave.value = swellAmp = TONES.wave + TONES.waveRain * Math.min(1, rain);
 }
 
 // The vertex shader's swell at world (x, z) on the CPU, for floating things

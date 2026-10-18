@@ -29,7 +29,7 @@ import { syncTrafficLights3D, setTrafficLightGlow } from './trafficlights.js';
 import { getCombatEffect, isRangedWeapon } from './combat.js';
 import { scopeEye } from './scopeaim.js';
 import { alignPlayerFlash } from './gunfx3d.js';
-import { sharedWaterMaterial, updateWaterMaterial, buildWaterGeometry, waterSwellAt, waterSwellAmp } from './water3d.js';
+import { sharedWaterMaterial, updateWaterMaterial, buildWaterGeometry, waterSwellAt, waterSwellAmp, auditWaterMeshes } from './water3d.js';
 import { syncBoatWakes3D } from './boatwake3d.js';
 import { sleepingParkedCars } from './parkedcars.js';
 import { syncParkedLayer } from './parked3d.js';
@@ -1129,6 +1129,8 @@ function buildPolyGeometry(pts) {
 // One shared animated ShaderMaterial for every water polygon (uTime updated
 // once per frame in update3D) instead of a flat MeshLambertMaterial per poly.
 let waterMaterial = null;
+// Water polygons in the scene that do not wear the shared material (#181): {total, shared, stray}
+export function auditWater() { return auditWaterMeshes(scene, waterMaterial); }
 function buildWaterMesh(poly, y, map) {
   if (!poly._geoWater) poly._geoWater = buildWaterGeometry(poly, getWaterIndex(map, poly), null);
   const group = new THREE.Group();
