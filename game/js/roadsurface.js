@@ -276,8 +276,21 @@ function surfaceMaterial(layerName, surf) {
   return m;
 }
 
+// The materials road r is drawn with (buildRoadGroup): the carriageway's and,
+// on a road with pavements, the pavement's. A movable bridge's leaf wears the
+// same ones, so the deck does not change look when it opens.
+export function roadSurfaceMaterials(r) {
+  const net = ownNet(r);
+  try {
+    const layer = GROUND_LAYER[r.cat] ? r.cat : 'normal';
+    return { road: surfaceMaterial(layer, roadSurface(r)), sidewalk: SIDEWALK_CATS.has(r.cat) ? surfaceMaterial('sidewalk', 'tiles') : null };
+  } finally {
+    restoreNet(net);
+  }
+}
+
 let markingMaterial = null;
-function getMarkingMaterial() {
+export function getMarkingMaterial() {
   if (!markingMaterial) {
     markingMaterial = makeMaterial(0xffffff, GROUND_LAYER.marking, 0.62, { SURF_MARKING: '' }, { map: buildAtlas(), alphaTest: 0.5 });
   }
