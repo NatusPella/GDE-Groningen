@@ -1521,6 +1521,20 @@ export function playClueSting() {
   playTone({ freq: 329.6, type: 'triangle', duration: 1.4, gain: 0.035, bus: stingBus, prio: 2 });
 }
 
+// A line without a recording (the new story's text-only lines): a soft mumble under the
+// subtitle, one voiced "syllable" per few letters over the line's reading time, higher for
+// Tessa and the radio, lower for Tammo. No speech, only a sound that the scene is talking.
+export function playTextMumble(who = '', text = '', dur = 2.5) {
+  if (!ctx || muted || !stingBus) return;
+  const n = Math.max(3, Math.min(14, Math.round(String(text).length / 4)));
+  const base = who === 'A' ? 235 : who === 'T' ? 118 : who === 'V' ? 160 : 150;
+  const step = Math.min(0.32, Math.max(0.12, (dur * 0.85) / n));
+  for (let i = 0; i < n; i++) {
+    const f = base * (0.9 + ((i * 7 + text.length) % 5) * 0.06);
+    playTone({ freq: f, freqEnd: f * 0.93, type: 'triangle', duration: step * 0.8, gain: 0.018, delay: i * step + (i % 4 === 3 ? 0.08 : 0), filterFreq: 900 + ((i * 3) % 4) * 220, bus: stingBus, prio: 2 });
+  }
+}
+
 // One heartbeat when badly hurt (lowhealth.js): a low "lub-dub", louder the closer to death.
 export function playHeartbeat(strength = 0.5) {
   if (!ctx || muted || !uiBus) return;

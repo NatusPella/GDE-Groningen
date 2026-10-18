@@ -5,7 +5,7 @@ import { playCinematic, roofAt, showBanner } from './cinematics.js';
 import { isInWater, WATER_Y } from './util.js';
 import { spawnFxPuff, spawnFxSpark } from './fx3d.js';
 import { makeBirds, updateBirds } from './intromontage.js';
-import { playStoryVoice, stopStoryVoice, setStoryScene, playClueSting, playGlassClink } from './audio.js';
+import { playStoryVoice, stopStoryVoice, setStoryScene, playClueSting, playGlassClink, playTextMumble } from './audio.js';
 import { buildVehicleMesh, updateVehicleWheelSpin } from './models3d_vehicles.js';
 import { JELLE_LOOK, DURK_LOOK, DOUWE_LOOK, RIKUS_LOOK, MEM_LOOK, ROTOR_LOOK, ROELF_LOOK, HILJE_LOOK } from './storycast.js';
 import { showLiveFrame } from './storycontact.js';
@@ -1191,7 +1191,7 @@ function runScene(r, tl, { id, kicker = '', title = '', cardFor = 3, camera, pos
         r.voiced = cur;
         // Rikus is always on the radio: his voice in the broadcast band
         if (cur.voice) playStoryVoice(VOICE_DIR + cur.voice.src, { radio: cur.who === 'V' || cur.who === 'rikus' || cur.radio });
-        else stopStoryVoice();
+        else { stopStoryVoice(); if (nieuwVerhaal()) playTextMumble(cur.who, cur.text, cur.dur); }
         if (cur.clue) playClueSting();
         if (cur.card) showNameCard(cur.card);
       }
