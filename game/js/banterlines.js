@@ -500,8 +500,8 @@ export const BANTER = [
     ['T', 'Waarom niet allebei?', 'flirty, dry']] },
   { id: 'st-nacht', trigger: 'story:k-nacht', lines: [
     ['T', 'We wachten op het donker. Voelt heel filmisch.', 'dramatic whisper'],
-    ['A', 'In november is het hier om vier uur donker.', 'dry'],
-    ['T', 'Dan hadden we in november moeten kraken.', 'regretful']] },
+    ['A', 'In september is het hier om negen uur donker.', 'dry'],
+    ['T', 'Dan hadden we in augustus moeten kraken.', 'regretful']] },
   { id: 'st-h6', trigger: 'story:H6', lines: [
     ['A', 'Vannacht. Het museum. Geen zaklamp.', 'tense, serious'],
     ['T', 'Ook niet een klein beetje zaklamp?', 'pleading'],
@@ -727,7 +727,7 @@ export const BANTER = [
   { id: 'pl-noorderplantsoen-zon', trigger: 'place:Noorderplantsoen', lines: [
     ['T', 'Eén straaltje zon en het hele Noorderplantsoen ligt vol kleedjes.', 'amazed'],
     ['A', 'En overal zo\'n klein barbecuetje.', 'laughing'],
-    ['T', 'In februari. In je jas.', 'dry']] },
+    ['T', 'In augustus. In je jas.', 'dry']] },
   { id: 'pl-paddepoel', trigger: 'place:Winkelcentrum Paddepoel', lines: [
     ['T', 'Paddepoel. Dit is buitenland.', 'alarmed'],
     ['A', 'Je woont hier, Tammo.', 'dry'],
@@ -1023,7 +1023,7 @@ export const BANTER = [
     ['T', '"Nu echt de laatste fase", staat op het bord.', 'reading aloud, dry'],
     ['A', 'Dat bord is ouder dan jij.', 'laughing']] },
   { id: 'id-bloemetjesmarkt', trigger: 'idle', lines: [
-    ['A', 'Volgend voorjaar is het weer Bloemetjesmarkt. De hele binnenstad vol plantjes.', 'excited'],
+    ['A', 'Volgende zomer is het weer Bloemetjesmarkt. De hele binnenstad vol plantjes.', 'excited'],
     ['T', 'En vol touringcars uit Duitsland.', 'dry'],
     ['A', 'Die kopen alles. Zelfs die cactus waar jij bang voor bent.', 'teasing'],
     ['T', 'Die cactus keek raar.', 'defensive']] },
