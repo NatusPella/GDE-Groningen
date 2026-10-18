@@ -5,7 +5,8 @@ import { attachMuseumPlan } from './museumplan.js';
 import { attachInteriorPlans } from './interieurplan.js';
 import { SpatialGrid } from './spatialgrid.js';
 import { deriveBuildings, liftNestedRoofs, isRingRoad } from './derive.js';
-import { buildElevation, groundHeightAt, surfaceAt, ribbonAt, ribbonZAt, roadZAt, ceilingAt, coveredAt, surfaceHalfWidth, offLevelAt } from './elevation.js';
+import { deckTerrainAt, isDeckRoad } from './deckterrain.js';
+import { buildElevation, pickedRibbon, groundHeightAt, surfaceAt, ribbonAt, ribbonZAt, roadZAt, ceilingAt, coveredAt, surfaceHalfWidth, offLevelAt } from './elevation.js';
 
 const CELL = 80; // meters per grid cell
 
@@ -216,21 +217,45 @@ export class GameMap {
   groundHeightAt(x, y, zHint = 0) {
     if (!this.terrainOn) return groundHeightAt(this.elev, x, y, zHint);
     const t = this.terrainAt(x, y);
-    return groundHeightAt(this.elev, x, y, zHint - t) + t;
+    // a bridge or tunnel deck is measured from its own terrain (deckterrain.js): try the
+    // decks here first, the ground and the rest after
+    const list = this.elev.has ? this.elev.grid.at(x, y) : null;
+    if (list) {
+      for (const s of list) {
+        if (!isDeckRoad(s.r)) continue;
+        const dt = this.deckTerrainAt(s.r, x, y, t);
+        if (Math.abs(dt - t) < 0.02) continue;
+        const z = groundHeightAt(this.elev, x, y, zHint - dt);
+        if (pickedRibbon() === s.r) return z + dt;
+      }
+    }
+    const z = groundHeightAt(this.elev, x, y, zHint - t);
+    const pr = pickedRibbon();
+    return z + (isDeckRoad(pr) ? this.deckTerrainAt(pr, x, y, t) : t);
+  }
+
+  // what the profile of ribbon r (null: the ground) is relative to at (x, y), m
+  terrainBase(r, x, y) {
+    const t = this.terrainAt(x, y);
+    return isDeckRoad(r) ? this.deckTerrainAt(r, x, y, t) : t;
+  }
+
+  deckTerrainAt(r, x, y, ground) {
+    return deckTerrainAt(r, x, y, this.terrain.at, ground, this.terrain.size);
   }
 
   // The one height query (elevation.js surfaceAt) for whoever keeps `state`
   // = { z, ribbon }: it stays on the road or rail deck it is on. Driving,
   // walking, AI and the paths of cutscenes and races use it.
   // With terrainOn (?terrain, #78) the profiles are relative to the AHN
-  // terrain under them (profile.mjs --terrain): the query runs on the
+  // terrain under them (profile.mjs --terrain; bridges and tunnels to the
+  // line between their ends, deckterrain.js): the query runs on the
   // relative heights and the terrain is put back on the answer.
   surfaceAt(x, y, state) {
     if (!this.terrainOn) return surfaceAt(this.elev, x, y, state, this._ground || (this._ground = (gx, gy, gz) => this.groundHeightAt(gx, gy, gz)));
-    const t = this.terrainAt(x, y);
-    state.z = (state.z || 0) - t;
+    state.z = (state.z || 0) - this.terrainBase(state.ribbon, x, y);
     surfaceAt(this.elev, x, y, state, this._groundRel || (this._groundRel = (gx, gy, gz) => groundHeightAt(this.elev, gx, gy, gz)));
-    state.z += t;
+    state.z += this.terrainBase(state.ribbon, x, y);
     return state;
   }
 
@@ -238,7 +263,7 @@ export class GameMap {
   // for probes around a vehicle or a walker)
   surfaceZ(x, y, z, ribbon) {
     if (ribbon) {
-      const t = this.terrainOn ? this.terrainAt(x, y) : 0;
+      const t = this.terrainOn ? this.terrainBase(ribbon, x, y) : 0;
       const zr = ribbonZAt(this.elev, ribbon, x, y);
       if (zr !== null && Math.abs(zr + t - z) <= 1.1) return zr + t;
       // past its end: the way that carries on (as surfaceAt), not a
