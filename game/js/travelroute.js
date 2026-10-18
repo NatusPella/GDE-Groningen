@@ -7,10 +7,13 @@
 // A trip: { mode, pts, length, etaS, legs: [{ kind, pts, length, label }], ... }
 
 // typical speeds in m/s, for the ETA when standing still
+import { CRUISE } from './reistijd.js';
+const LONG_TRIP = 4000;
 export const SPEED = { lopen: 1.5, fiets: 5, auto: 11, boot: 6, ov: 22, lucht: 35 };
 
 export function etaSeconds(length, mode, speed = 0) {
-  const typical = SPEED[mode] || SPEED.auto;
+  // a long trip by car averages the cruise speed, not the standing-start 11 m/s (#97)
+  const typical = (mode === 'auto' && length > LONG_TRIP) ? CRUISE.auto : (SPEED[mode] || SPEED.auto);
   const v = Math.max(typical * 0.6, Math.abs(speed) > 1.5 ? Math.abs(speed) : typical);
   return length / v;
 }
