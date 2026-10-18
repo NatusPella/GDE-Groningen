@@ -47,6 +47,7 @@ TAMMO: En het laatste plakje? [NIEUW]
 TESSA: "De bewaarder." Daarbij staat: notaris, 28 augustus. Meer niet. [NIEUW]
 TAMMO: Container 4471. Dat staat bij plakje vijf. [NIEUW]
 TESSA: Dan weten we waar we moeten zijn. De Eemshaven. [NIEUW]
+TESSA: En als wij winnen, staat de Fjord Frituur op de Vismarkt. Dat vergeet ik niet, Tammo. [NIEUW]
 DOKTER DIJKSTRA: Die Fries is geland in een weiland bij Winschoten. Tussen de koeien. Hij was niet blij. De koeien ook niet. [NIEUW]
 
 ## [M12.5] Het staat niet in het rooster: herhaling – Eemsdelta, Eemshaven, helidek – helikopter

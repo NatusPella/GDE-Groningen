@@ -93,8 +93,6 @@ TAMMO: Ik heb nooit ergens anders gewoond. [NIEUW]
 TESSA: Dan is dit een goed begin. [NIEUW]
 TAMMO: Een tegeltje. [NIEUW]
 TESSA: Een goed tegeltje. [NIEUW]
-TAMMO: Kon minder. [BEHOUDEN]
-TESSA: Kon veel minder. [BEHOUDEN]
 
 ## [M23.3] De colonne: Durk en Douwe lopen over – Westerkwartier, Aduard – fatbike
 (regie: Durk en Douwe op één fatbike, naast de colonne.)
@@ -353,6 +351,8 @@ RIKUS (radio): Peiling gesloten. [BEHOUDEN]
 
 ## [M26.8] Ontzet, net als in 1672: Jelle 's avonds – Stad – telefoon
 JELLE (telefoon): Moai dien, Grinzers. Volgend jaar weer? Dan mogen jullie naar Ljouwert komen. [BEHOUDEN]
+TESSA (telefoon): Wij komen. Met de frituur. [NIEUW]
+JELLE (telefoon): Dan wil ik een rekening. Voor het parkeren. [NIEUW]
 APP TAMMO→JELLE (stil): Wij tweeën vóór Grunn. Kon minder, hè? [BEHOUDEN]
 
 ## [M26.9] Ontzet, net als in 1672: herhaling – Stad, Grote Markt – te voet
