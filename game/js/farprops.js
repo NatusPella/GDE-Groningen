@@ -204,7 +204,7 @@ export function updateFarProps(dt, world, scene, cam) {
   if (!D.turbines.length && !D.pylons.length) return;
   if (!K) init(scene);
   const t0 = performance.now();
-  const p = world.player;
+  const p = world.streamFocus || world.player; // the camera focus in a cutscene (tilefocus.js)
   const ed = edgeDistance(p.x, p.y);
   // a horizon trick: hidden deep inside the city's data
   const fadeT = smooth(-2600, -700, ed);
