@@ -104,6 +104,13 @@ function attach(win, { gameDir }) {
       return true;
     });
   }
+  // --emulate-view=WxH[@scale]: the page lays out in a WxH viewport (a 4K layout on a smaller screen),
+  // shown at `scale` (default 0.5) in the window; for the screenshot script (scripts/ui_shots.mjs)
+  const emu = /^(\d+)x(\d+)(?:@([\d.]+))?$/.exec(argValue('--emulate-view') || '');
+  if (emu) {
+    const apply = () => win.webContents.enableDeviceEmulation({ screenPosition: 'desktop', screenSize: { width: +emu[1], height: +emu[2] }, viewPosition: { x: 0, y: 0 }, viewSize: { width: +emu[1], height: +emu[2] }, deviceScaleFactor: 1, scale: Number(emu[3]) || 0.5 });
+    win.webContents.on('did-finish-load', apply);
+  }
   if (storyTest) runStoryTest(win, storyTest.includes('=') ? storyTest.slice(storyTest.indexOf('=') + 1) : path.join(require('os').tmpdir(), 'gde-story-test'));
   if (smoke !== null) {
     win.webContents.on('console-message', function (e, legacyLevel, legacyMessage) {
