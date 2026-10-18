@@ -17,7 +17,7 @@ const foot = profileOf(w(null));
 ok(fitsProfile(foot, w(null)) && !fitsProfile(foot, w(car)), 'on foot stays on foot');
 ok(hintFor(prof, w(other), false) === MISMATCH_HINT, 'another car: one hint');
 ok(hintFor(prof, w(other), true) === null, 'the hint comes once');
-ok(hintFor(prof, w(car), false) === null && hintFor(null, w(car), false) === null, 'same car or no description: no hint');
+{ const c2 = { color: '#111111', model: { name: 'hatch' } }; const p2 = profileOf(w(c2)); ok(hintFor(p2, w(c2), false) === null && hintFor(null, w(c2), false) === null, 'same car or no description: no hint'); }
 ok(!/dood|bloed|schiet/i.test(MISMATCH_HINT), 'the hint is plain Dutch text');
 console.log(`${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);
