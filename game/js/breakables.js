@@ -6,6 +6,7 @@ import { streamTrafficLightProps } from './trafficlights.js';
 import { streamFlitspaalProps } from './flitspaal.js';
 import { setWallBrokenTest } from './elevation.js';
 import { rand as rnd } from './rng.js';
+import { SpatialGrid } from './spatialgrid.js';
 
 // Breakable street props. Owning modules register colliders near the player
 // (addProp/removeProp); vehicles test against them each frame. Below a prop's
@@ -46,7 +47,8 @@ export const PROP_DEFAULTS = {
   hek: { r: 0.08, half: 1, h: 1.1, mass: 40, material: 'metal', breakSpeed: 3.4, breakCost: 0.6, glance: 0.25, minBreakKg: 400 },
 };
 
-const grid = new Map();
+const grid = new SpatialGrid(GRID);
+let propCount = 0;
 const broken = new Map();
 setWallBrokenTest((key) => broken.has(key));
 const bodies = [];
@@ -98,29 +100,19 @@ export function makeProp(kind, x, y, opts = {}) {
   return p;
 }
 
-function cellKey(cx, cy) {
-  return cx + ',' + cy;
-}
-
 export function addProp(p) {
   if (p.cell || broken.has(p.key)) return false;
-  const k = cellKey(Math.floor(p.x / GRID), Math.floor(p.y / GRID));
-  let list = grid.get(k);
-  if (!list) grid.set(k, list = []);
-  list.push(p);
-  p.cell = k;
+  grid.insertPoint(p, p.x, p.y);
+  p.cell = [p.x, p.y, p.x, p.y]; // where it went in, so removeProp finds it even if x/y moved
+  propCount++;
   return true;
 }
 
 export function removeProp(p) {
   if (!p.cell) return;
-  const list = grid.get(p.cell);
-  if (list) {
-    const i = list.indexOf(p);
-    if (i >= 0) list.splice(i, 1);
-    if (!list.length) grid.delete(p.cell);
-  }
+  grid.remove(p, p.cell);
   p.cell = null;
+  propCount--;
 }
 
 export function propsNearInto(x, y, r, out) {
@@ -129,14 +121,7 @@ export function propsNearInto(x, y, r, out) {
 
 function propsNear(x, y, r, out) {
   out.length = 0;
-  const x0 = Math.floor((x - r) / GRID), x1 = Math.floor((x + r) / GRID);
-  const y0 = Math.floor((y - r) / GRID), y1 = Math.floor((y + r) / GRID);
-  for (let gx = x0; gx <= x1; gx++) {
-    for (let gy = y0; gy <= y1; gy++) {
-      const list = grid.get(cellKey(gx, gy));
-      if (list) for (const p of list) if (!p.off) out.push(p);
-    }
-  }
+  for (const p of grid.queryRadius(x, y, r)) if (!p.off) out.push(p);
   return out;
 }
 
@@ -825,9 +810,7 @@ export function findProps(x, y, r) {
 }
 
 export function breakablesStats() {
-  let n = 0;
-  for (const l of grid.values()) n += l.length;
-  return { props: n, bodies: bodies.length, broken: broken.size, recent: [...broken.keys()].slice(-4),
+  return { props: propCount, bodies: bodies.length, broken: broken.size, recent: [...broken.keys()].slice(-4),
     list: bodies.map((b) => ({ kind: b.p.kind, x: +b.obj.position.x.toFixed(1), y: +b.obj.position.y.toFixed(2), z: +b.obj.position.z.toFixed(1), theta: b.topple ? +b.theta.toFixed(2) : undefined, sleep: b.sleep })) };
 }
 
@@ -848,7 +831,7 @@ const _walk = [];
 // hop: how high the walker's feet are off the ground (a jump); props lower
 // than that are cleared.
 export function resolveWalkerProps(x, y, radius, vx = 0, vy = 0, opts = null, hop = 0, z = 0) {
-  if (!grid.size) return [x, y];
+  if (!propCount) return [x, y];
   const near = propsNear(x, y, radius + 2, _walk);
   if (!near.length) return [x, y];
   const kick = world && (!opts || opts.kick !== false);
@@ -880,7 +863,7 @@ export const HOP_MARGIN = 0.15;
 // First prop a bullet flying from (x0, y0) to (x1, y1) at height z runs into:
 // { prop, t, x, y, nx, ny } (t: 0..1 along the path) or null.
 export function propOnBulletPath(x0, y0, x1, y1, z) {
-  if (!grid.size) return null;
+  if (!propCount) return null;
   const mx = (x0 + x1) / 2, my = (y0 + y1) / 2;
   const len = Math.hypot(x1 - x0, y1 - y0);
   const near = propsNear(mx, my, len / 2 + 1.5, _ahead);
@@ -928,7 +911,7 @@ export function shootProp(p, dx, dy, byPlayer, weight = 1) {
 // Nearest prop a walker at (x, y) heading along unit (dx, dy) would run into
 // within `reach` metres: { dist, h, prop } or null. Used for vaulting.
 export function propAhead(x, y, dx, dy, reach, radius = 0.3) {
-  if (!grid.size) return null;
+  if (!propCount) return null;
   const near = propsNear(x + dx * reach * 0.5, y + dy * reach * 0.5, reach * 0.5 + 1.5, _ahead);
   let best = null;
   for (const p of near) {
