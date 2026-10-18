@@ -4,7 +4,7 @@
 // are machinistrules.js, the physics railway.js (state 'player'), the boarding
 // and keys traindrive.js. Pays per halte plus a medal bonus (payFor).
 import { createBoard, key } from './minigamekit.js';
-import { driveRange } from './railway.js';
+import { driveRange, routePoint } from './railway.js';
 import {
   startService, stepService, abandonService, boardView, doorsOpen, MEDAL_NAMES, STOPPED_V, payFor,
 } from './machinistrules.js';
@@ -18,6 +18,26 @@ let board = null;
 const HELP_IDLE = `${key('G')} dienst rijden: halte voor halte, op tijd en op de streep`;
 const HELP_RUN = `${key('W')} gas &middot; ${key('S')} rem &middot; ${key('Spatie')} noodrem &middot; ${key('H')} toeter &middot; ${key('Backspace')} stoppen`;
 
+
+// The service as the map layer reads it (missionmaplive.js, #180): the halten
+// of the timetable with the next one marked, and the track ahead of the train.
+// Read only; null when no service runs.
+export function getServiceMapState(world) {
+  const t = world && world.trainDriving;
+  if (!svc || !t || !t.route) return null;
+  const stops = svc.plan.map((st, i) => {
+    const [x, y] = routePoint(t.route, st.s);
+    return { x, y, name: st.name, next: !svc.finished && i === svc.i, done: st.score != null };
+  });
+  const last = svc.plan.length ? svc.plan[svc.plan.length - 1].s : t.c;
+  const route = [];
+  const n = 24;
+  for (let k = 0; k <= n; k++) {
+    const [x, y] = routePoint(t.route, t.c + (last - t.c) * (k / n));
+    route.push({ x, y });
+  }
+  return { stops, route };
+}
 
 export function endService(world) {
   svc = null;

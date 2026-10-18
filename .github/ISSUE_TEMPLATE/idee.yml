@@ -1,6 +1,6 @@
 name: Idee of wens
 description: Een nieuwe functie, missie, plek of verbetering voorstellen
-labels: [idee]
+labels: [wens]
 body:
   - type: textarea
     id: wat

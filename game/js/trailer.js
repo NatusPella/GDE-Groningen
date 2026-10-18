@@ -6,7 +6,7 @@ import { getScene, prewarmStreamAt } from './scene3d.js';
 import { speakerHtml } from './speakers.js';
 import { getSettings, QUALITY_PRESETS, withTempSettings } from './settings.js';
 import { PRESET_ORDER, GFX_PRESETS, currentPreset, describePreset, presetLabel, applyPreset, setBenchResult } from './gfxprofile.js';
-import { BENCH_ROUTE, BENCH_CATEGORIES, frameStats, categoryStats, weakestCategory, recommendProfile, profileWord, compareRuns, compareText, packRun, readLastRun, writeLastRun } from './benchstats.js';
+import { BENCH_ROUTE, BENCH_CATEGORIES, frameStats, categoryStats, routeHitches, weakestCategory, recommendProfile, profileWord, compareRuns, compareText, packRun, readLastRun, writeLastRun } from './benchstats.js';
 import { refreshDayNight } from './daynight.js';
 import { makeActor, stage, seat } from './intromontage.js';
 import { makeBirds, scatterBirds, updateBirds } from './birds.js';
@@ -2154,7 +2154,7 @@ function computeStats(r) {
   const spikes = [50, 100, 200].map((ms) => +(all.filter((x) => x > ms).length / Math.max(min, 1e-6)).toFixed(1));
   const fs = frameStats(all);
   const heap = typeof performance !== 'undefined' && performance.memory ? performance.memory.usedJSHeapSize / 1048576 : 0;
-  return { avg: 1000 / mean, low: 1000 / worst, low1: fs.low1, p95: fs.p95, cats: categoryStats(r.stats.filter(Boolean)), memory: heap, heaviest: shots[0] || null, frames: all.length, shots, spikes };
+  return { avg: 1000 / mean, low: 1000 / worst, low1: fs.low1, p95: fs.p95, slow33: fs.slow33, hitches: routeHitches(r.stats.filter(Boolean)), cats: categoryStats(r.stats.filter(Boolean)), memory: heap, heaviest: shots[0] || null, frames: all.length, shots, spikes };
 }
 
 // runTrailer(world, { mode, cut, shot, frames, env: { tick, render, relocate } })

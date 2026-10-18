@@ -5,6 +5,7 @@ import { KEYS } from './storagekeys.js';
 import { FLAGS } from './devflags.js';
 import { RAGE_CHOICES } from './roadragerules.js';
 import { SUBTITLE_CONTRASTS, TEXT_SIZES } from './a11ylogic.js';
+import { cleanHelpSetting } from './assist.js';
 
 // Player settings, persisted per browser. Modules read getSettings() and
 // subscribe with onSettingsChange() to apply changes live.
@@ -77,6 +78,11 @@ const DEFAULTS = {
   subtitleContrast: 'normaal',
   textSize: 'normaal',
   reduceFlash: false,
+  // hulp (assist.js, #215): meer tijd, minder voertuigschade, ruimere vliegpoorten, en het aanbod na twee mislukkingen
+  helpTime: 'uit',
+  helpDamage: 'normaal',
+  helpGates: 'normaal',
+  helpOffer: true,
   colorBlind: 'uit',
   // unused since the attract intro plays at every launch; kept so old
   // settings files load unchanged
@@ -116,6 +122,7 @@ function load() {
     if (!(out.minimapZoom >= 0.6 && out.minimapZoom <= 1.6)) out.minimapZoom = DEFAULTS.minimapZoom;
     if (!SHIFT_CHOICES.includes(out.shiftMode)) out.shiftMode = DEFAULTS.shiftMode;
     if (!RAGE_CHOICES.includes(out.ruzie)) out.ruzie = DEFAULTS.ruzie;
+    for (const k of ['helpTime', 'helpDamage', 'helpGates']) out[k] = cleanHelpSetting(k, out[k]);
     if (!COLOR_BLIND_MODES.includes(out.colorBlind)) out.colorBlind = DEFAULTS.colorBlind;
     if (!PAD_LAYOUT_CHOICES.includes(out.padLayout)) out.padLayout = DEFAULTS.padLayout;
     if (!HINT_SOURCE_CHOICES.includes(out.hintSource)) out.hintSource = DEFAULTS.hintSource;

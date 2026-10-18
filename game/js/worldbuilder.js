@@ -15,6 +15,7 @@ import { mappedFromOsm, mappedSignsFromOsm } from './streetfurniture.js';
 import { heightOf, levelsFor } from './buildingheights.js';
 import { hash2 } from './greenery.js';
 import { segDist } from './util.js';
+import { ACC } from './navgraph.js';
 
 export const WB_VERSION = 1;
 export const LEVEL_M = 3.1;
@@ -123,24 +124,23 @@ export function laneFields(hw, tags, defaultWidth, dual = true) {
   return out;
 }
 
-// Legal access per mode (navgraph.js ACC: foot 1, bike 2, car 4, bus 8);
-// null when the class default holds.
+// Legal access per mode (the navgraph.js ACC bits); null when the class default holds.
 export function accessMask(hw, cat, tags) {
   let def;
-  if (hw === 'motorway' || hw === 'motorway_link' || hw === 'trunk' || hw === 'trunk_link') def = 4 | 8;
-  else if (cat === 'cycle') def = 2;
-  else if (cat === 'foot') def = hw === 'pedestrian' ? 1 | 2 : 1;
-  else def = 1 | 2 | 4 | 8;
+  if (hw === 'motorway' || hw === 'motorway_link' || hw === 'trunk' || hw === 'trunk_link') def = ACC.CAR | ACC.BUS;
+  else if (cat === 'cycle') def = ACC.BIKE;
+  else if (cat === 'foot') def = hw === 'pedestrian' ? ACC.FOOT | ACC.BIKE : ACC.FOOT;
+  else def = ACC.FOOT | ACC.BIKE | ACC.CAR | ACC.BUS;
   let mask = def;
   const NO = ['no', 'private', 'customers', 'delivery'], YES = ['yes', 'designated', 'permissive'];
-  if (tags.motorroad === 'yes') mask &= ~(1 | 2);
-  for (const [key, bit] of [['access', 15], ['vehicle', 2 | 4 | 8]]) if (NO.includes(tags[key])) mask &= ~bit;
-  for (const [key, bit] of [['foot', 1], ['bicycle', 2], ['motor_vehicle', 4 | 8], ['motorcar', 4]]) {
+  if (tags.motorroad === 'yes') mask &= ~(ACC.FOOT | ACC.BIKE);
+  for (const [key, bit] of [['access', ACC.FOOT | ACC.BIKE | ACC.CAR | ACC.BUS], ['vehicle', ACC.BIKE | ACC.CAR | ACC.BUS]]) if (NO.includes(tags[key])) mask &= ~bit;
+  for (const [key, bit] of [['foot', ACC.FOOT], ['bicycle', ACC.BIKE], ['motor_vehicle', ACC.CAR | ACC.BUS], ['motorcar', ACC.CAR]]) {
     const v = tags[key];
     if (NO.includes(v)) mask &= ~bit;
     else if (YES.includes(v) && hw !== 'motorway' && hw !== 'motorway_link') mask |= bit;
   }
-  if (YES.includes(tags.bus) || YES.includes(tags.psv)) mask |= 8;
+  if (YES.includes(tags.bus) || YES.includes(tags.psv)) mask |= ACC.BUS;
   return mask === def ? null : mask;
 }
 

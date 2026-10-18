@@ -1,4 +1,5 @@
 import { nearestLine, project as projectOnLine, makeRunner, stepRunner, startAt } from './busroutes.js';
+import { assistDamage } from './assistlive.js';
 import { closestPointOnSegment, normalizeAngle, clamp, lerp, pointInPolygon, inMapWater, WATER_Y, keepBoatOffShore, boatDryPoints } from './util.js';
 import { waterClearance, waterChannelPoints } from './waterindex.js';
 import { shallowWater, waterAt, airDraftOf, passesUnder } from './waterlevels.js';
@@ -2446,7 +2447,7 @@ export const vehicleContacts = {
   list: Array.from({ length: CONTACT_CAP }, () => ({ a: null, b: null, x: 0, y: 0, nx: 0, ny: 0, impact: 0, slide: 0 })),
 };
 
-function recordContact(a, b, x, y, nx, ny, impact, slide) {
+export function recordContact(a, b, x, y, nx, ny, impact, slide) {
   const c = vehicleContacts.list[vehicleContacts.head % CONTACT_CAP];
   vehicleContacts.head++;
   c.a = a; c.b = b; c.x = x; c.y = y; c.nx = nx; c.ny = ny; c.impact = impact; c.slide = slide;
@@ -2461,6 +2462,7 @@ function tangentialSpeed(a, b, nx, ny) {
 function applyImpactDamage(v, dmg, playerInvolved, world) {
   if (dmg <= 0 || v.wrecked) return;
   if (v.disabled) { v.burnLeft -= dmg * 0.06; return; }
+  if (v.driver === 'player') dmg = assistDamage(dmg);
   v.health = Math.max(0, v.health - dmg * CRASH_DAMAGE_SCALE);
   if (playerInvolved && v.driver === 'player' && !v.flat && !v.isBoat && !v.isHeli && !v.isBus && dmg >= FLAT_MIN_DAMAGE && v.health > 0 && Math.random() < Math.min(FLAT_MAX_CHANCE, dmg / 60)) v.flat = true;
   if (v.health <= 0) disableVehicle(v, playerInvolved, world);
@@ -2497,7 +2499,7 @@ export function tickBurningVehicles(world, dt) {
   for (const v of world.vehicles) {
     if (world.shards && v.driver === 'player' && shardPuncture(world.shards, v, world.time || 0)) {
       v.flat = true;
-      world.addMessage('Door de glasscherven! Lekke band', 3);
+      world.addMessage(world.shards.lastKind === 'spijkers' ? 'Spijkermat van de politie! Lekke band' : 'Door de glasscherven! Lekke band', 3);
     }
     if (v.flat && !v.flatWarned && v.driver === 'player') {
       v.flatWarned = true;

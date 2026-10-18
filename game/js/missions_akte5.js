@@ -10,10 +10,14 @@
 // Places: Zuidhorn and Aduard are the real villages (game coordinates from their lat/lon, AANNAME ±60 m,
 // snapped to the road at run time); Tinus' schuur is a spot on the edge of Zuidhorn, not a real farm.
 
+import { wgsToWorld } from './rdnew.js';
 const ZUIDHORN = [-10732.8, -3017.02];
 const SCHUUR = [ZUIDHORN[0] + 250, ZUIDHORN[1] - 150];
 const MODDER = [ZUIDHORN[0] + 430, ZUIDHORN[1] - 240];
-const ADUARD = [-6074, -2658];
+// the drive test: a slalom through the mud, left of the straight line and then right of it
+const SLALOM = [[SCHUUR[0] + 79, SCHUUR[1] - 0], [SCHUUR[0] + 110, SCHUUR[1] - 94]];
+const HOOGKERK = wgsToWorld(53.2106, 6.4930);   // the bridge on the way to the city: Wubbo's moment
+const ADUARD = wgsToWorld(53.256, 6.460);   // the village node (it was an estimate 1.6 km off)
 const MARKT = { landmark: 'Grote Markt', off: [20, -5], snap: 'walk' };
 // Oma Trijntje's kitchen at the Noorderhaven (the end of the old H12 lane)
 const KEUKEN = [-289.25, -106.7];
@@ -49,6 +53,14 @@ export function buildAkte5Defs({ map, walk, drive }) {
           cast: [{ key: 'henk', pose: 'hips', at: [2.8, 1.0] }, { key: 'tinus', pose: 'arms', at: [3.4, -1.6] }],
         },
         { kind: 'board', label: 'Stap in de Escapade', say: 'Instappen. Tinus wijst naar het weiland: de modder wacht.' },
+        {
+          kind: 'goto', target: { at: SLALOM[0], snap: 'drive', label: 'Eerste bocht' }, mode: 'vehicle', radius: 20, stop: 0, mud: true,
+          label: 'Rijproef: slalom door de modder, eerst links', say: 'Gas, sturen, niet vastlopen. Henk wil zien dat de as het houdt.',
+        },
+        {
+          kind: 'goto', target: { at: SLALOM[1], snap: 'drive', label: 'Tweede bocht' }, mode: 'vehicle', radius: 20, stop: 0, mud: true,
+          label: 'Rijproef: nu rechts, en niet vastlopen', say: 'Houd de snelheid erin. In de modder zakt hij weg als je stilstaat.',
+        },
         {
           kind: 'goto', target: { at: MODDER, snap: 'drive', label: 'De modder' }, mode: 'vehicle', radius: 24, stop: 0,
           label: 'Rij de Escapade de modder in: laat zien dat de as het houdt', say: 'Rij hem de modder in. Als de as het houdt, houdt hij het ook op de Grote Markt.',
@@ -93,8 +105,12 @@ export function buildAkte5Defs({ map, walk, drive }) {
           cast: [{ key: 'durk', pose: 'arms', at: [3.4, 1.4] }, { key: 'douwe', pose: 'arms', at: [3.4, -1.4] }],
         },
         {
+          kind: 'convoy', carHint: 'Stap weer in de Fjord Frituur: de colonne volgt de wagen.', target: { at: HOOGKERK, snap: 'drive', label: 'Hoogkerk' }, radius: 45, mode: 'vehicle',
+          label: 'Rij met de colonne naar Hoogkerk: Wubbo draait de brug open', say: 'Wubbo staat bij de brug en draait hem voor de colonne open. Niet te hard, de sloep moet er ook onderdoor.', lost: 'de colonne is uiteengevallen',
+        },
+        {
           kind: 'convoy', carHint: 'Stap weer in de Fjord Frituur: de colonne volgt de wagen.', target: { landmark: 'Grote Markt', off: [20, -5], snap: 'drive' }, radius: 30, mode: 'vehicle',
-          label: 'Rij met de colonne de Grote Markt op', say: 'Nog acht kilometer. De hele colonne, de Grote Markt op.', lost: 'de colonne is uiteengevallen',
+          label: 'Rij met de colonne de Grote Markt op', say: 'Nog vijf kilometer. De hele colonne, de Grote Markt op.', lost: 'de colonne is uiteengevallen',
         },
       ],
     },
@@ -102,6 +118,8 @@ export function buildAkte5Defs({ map, walk, drive }) {
 }
 
 // How act 5 stages the defs it shares with the old arc (called at the end of applyNieuw).
+const JURY = [{ key: 'berend', pose: 'hips', at: [3.0, 1.5] }, { key: 'mem', pose: 'hips', at: [2.2, -1.4] }, { key: 'trijntje', pose: 'arms', at: [1.6, -2.6] }, { key: 'jelle', pose: 'hips', at: [3.6, -0.6] }, { key: 'jurylid', pose: 'arms', at: [4.2, 1.0] }];
+
 export function applyAkte5(list) {
   const by = (label) => list.find((d) => d.label === label);
   const walkAt = (at) => ({ at, snap: 'walk' });
@@ -115,7 +133,19 @@ export function applyAkte5(list) {
     pig.talk = { ids: ['M24.2'], delay: 14 };
     drop.script = { ids: ['M24.3'] };
     drop.lines = [];
-    vlag.stages = [pig, drop];
+    // the pigeon's twist: the last rope is pulled on the wind (three gusts), so the flag lands beside the stall and not on it
+    const wind = {
+      kind: 'timing', kicker: 'De laatste touwen', help: 'pik op de windvlaag', goodAt: 2, tagGood: 'vlag-top', tagLow: 'vlag-raak',
+      label: 'Pik de laatste touwen door op de windvlaag', say: 'De vlag hangt aan drie touwen. Pik door als de wind meewerkt: de streep in het groen.',
+      rounds: [
+        { text: 'Een windvlaag uit het westen.', speed: 0.8, zone: [0.36, 0.64], ok: 'Het touw geeft mee.', bad: 'De duif slipt langs het touw.' },
+        { text: 'De vlag draait naar de kraam toe.', speed: 1.0, zone: [0.4, 0.6], ok: 'De vlag draait weg van de kraam.', bad: 'De vlag zwiept richting de kraam.' },
+        { text: 'Het laatste touw: de hele Grote Markt kijkt.', speed: 1.15, zone: [0.43, 0.57], ok: 'Doorgepikt, precies op tijd.', bad: 'Net te laat: het touw trilt nog.' },
+      ],
+    };
+    vlag.stages = [pig, wind, drop];
+    vlag.tagAdjust = { 'vlag-top': 100 };
+    vlag.tagRows = { 'vlag-top': ['Wind', 'De vlag viel naast de kraam'], 'vlag-raak': ['Wind', 'De vlag raakte de rand van de kraam: Jelle zag het'] };
     vlag.timeLimit = null;
     vlag.intro = ['Er hangt een reuzenvlag aan de Martinitoren, precies boven de plek van de Fjord Frituur.', 'Fluit een duif bij de toren en pik de vijf touwen los.'];
     vlag.outro = 'De vlag ligt op de keien. Heel Grunn klapte voor een duif.';
@@ -154,6 +184,11 @@ export function applyAkte5(list) {
     ontzet.outro = 'De jury koos de Groningse eierbal: vier tegen één. De Fjord Frituur krijgt de standplaats.';
     ontzet.costRow = ['Gewonnen', 'De standplaats op de Vismarkt, en Gerda Terpstra op het bordje'];
     ontzet.heroCar = true;
+    // the baking score decides how the jury votes (M26.10-12) and pays a bonus on the 4000
+    ontzet.bakeBonus = { top: 600, goed: 200, mager: 0 };
+    ontzet.tagAdjust = { 'duiven-top': 200 };
+    ontzet.tagRows = { 'duiven-top': ['Duiven', 'De wolk stond precies voor de voorruit'], 'duiven-los': ['Duiven', 'De duiven gingen een eigen weg'] };
+    ontzet.bakeRows = { top: ['Jury', 'Vijf van de vijf: foutloos gebakken'], goed: ['Jury', 'Vier van de vijf'], mager: ['Jury', 'Drie van de vijf: rommelig gebakken'] };
     ontzet.start = { ...ontzet.start };
     fire.label = 'Houd de kraam heel tegen het vuurwerk van Durk en Douwe';
     fire.talk = { ids: ['M26.3'], from: 5, delay: 2 };
@@ -181,9 +216,18 @@ export function applyAkte5(list) {
       },
       fire,
       { kind: 'board', label: 'Stap in de Fjord Frituur', say: 'Kwart voor drie. Instappen: de limo rijdt naar de notaris.' },
+      {
+        kind: 'timing', kicker: 'Berts duiven', help: 'fluit op de maat', goodAt: 2, tagGood: 'duiven-top', tagLow: 'duiven-los',
+        label: 'Fluit Berts duiven op, voor de limo uit', say: 'Tammo fluit, Bert stuurt de duiven. Fluit op de maat: de streep in het groen.',
+        rounds: [
+          { text: 'Eerste fluit: de duiven stijgen op van het dak.', speed: 0.9, zone: [0.38, 0.62], ok: 'De duiven komen als één wolk.', bad: 'Twee duiven nemen een omweg.' },
+          { text: 'Tweede fluit: richting de Oude Boteringestraat.', speed: 1.1, zone: [0.41, 0.59], ok: 'De wolk draait de straat in.', bad: 'De duiven gaan een kerktoren in.' },
+          { text: 'Derde fluit: voor de voorruit van de limo.', speed: 1.25, zone: [0.43, 0.57], ok: 'Een muur van veren. De limo remt.', bad: 'De duiven zijn te vroeg: de limo rijdt erdoor.' },
+        ],
+      },
       chase,
       {
-        kind: 'scene', label: 'Jelle in de gracht', target: walkAt(NOTARIS), kicker: 'Oude Boteringestraat', script: { ids: ['M26.4'], from: 7, to: 14 },
+        kind: 'scene', label: 'Jelle in het water', target: walkAt(NOTARIS), kicker: 'Oude Boteringestraat', script: { ids: ['M26.4'], from: 7, to: 14 },
         cast: [{ key: 'jelle', pose: 'hips', at: [3.0, 1.2] }, { key: 'durk', pose: 'arms', at: [-3.2, 1.4] }, { key: 'douwe', pose: 'arms', at: [-3.2, -1.4] }],
       },
       {
@@ -191,8 +235,31 @@ export function applyAkte5(list) {
         cast: [{ key: 'mem', pose: 'hips', at: [2.6, 0.4] }, { key: 'jelle', pose: 'hips', at: [3.4, -1.0] }],
       },
       {
-        kind: 'scene', label: 'De jury', target: stalls, kicker: 'Gronings Ontzet', title: 'Vier van de vijf', script: { ids: ['M26.6'] },
-        cast: [{ key: 'berend', pose: 'hips', at: [3.0, 1.5] }, { key: 'mem', pose: 'hips', at: [2.2, -1.4] }, { key: 'trijntje', pose: 'arms', at: [1.6, -2.6] }, { key: 'jelle', pose: 'hips', at: [3.6, -0.6] }, { key: 'jurylid', pose: 'arms', at: [4.2, 1.0] }],
+        kind: 'choice', kicker: 'De jury op de Vismarkt', label: 'Beantwoord de vraag van de jury over de eierbal', say: 'Berend proeft voor het laatst. Zeg wat jullie bal Gronings maakt: 1 tot en met 3.',
+        rounds: [
+          { who: 'Berend', text: 'Wat maakt deze eierbal Gronings? Eén zin, en nog niet zeuren.', options: [
+            { label: 'De korrel van het grove meel.', reply: 'Berend knikt langzaam. Hij schrijft niks op, dat is een goed teken.' },
+            { label: 'De fijne bloem, heel glad.', ok: false, tag: 'fout1', reply: 'Berend: "Dat is Fries." Tessa schuift de bloem snel weg.' },
+            { label: 'Wij hebben een luik.', ok: false, tag: 'fout1', reply: 'Berend: "Een luik is geen smaak." Henk, achterin, knikt toch.' },
+          ] },
+          { who: 'Berend', text: 'En waarom moet de standplaats naar jullie?', options: [
+            { label: 'Omdat Oma het zo maakt, en Mem er ook bij was.', reply: 'Mem kucht. Trijntje kijkt de andere kant op, tevreden.' },
+            { label: 'Omdat Jelle een notaris heeft.', ok: false, tag: 'fout2', reply: 'Berend: "Daar stem ik niet op." Jelle slikt.' },
+            { label: 'Omdat de friet erbij komt.', reply: 'Berend: "Friet erbij. Dat noteer ik." Het is een beetje een gok.' },
+          ] },
+        ],
+      },
+      {
+        kind: 'scene', label: 'De jury', target: stalls, kicker: 'Gronings Ontzet', script: { ids: ['M26.6'] },
+        cast: JURY,
+      },
+      {
+        kind: 'scene', label: 'De stemming', target: stalls, kicker: 'Gronings Ontzet', script: { ids: ['M26.11'] },
+        scriptTier: { top: ['M26.10'], goed: ['M26.11'], mager: ['M26.12'] }, cast: JURY,
+      },
+      {
+        kind: 'scene', label: 'De uitslag', target: stalls, kicker: 'Gronings Ontzet', script: { ids: ['M26.13'] },
+        cast: JURY,
       },
     ];
   }

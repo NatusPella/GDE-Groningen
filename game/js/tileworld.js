@@ -45,7 +45,7 @@ function rowsOf(kind, section) {
 
 // The heights section (pack_tiles.mjs, roadprofile.js heightRows): a road's
 // vertical profile `z`, its network `pnet` (not `net`: that is the road
-// network realmap.js gives its roads), the structure per segment `st`
+// network the tile roads carry), the structure per segment `st`
 // (STRUCT) and the grade order per segment `ly`, joined to the road by gid.
 // Render meshes, colliders and the height query all read this one profile.
 function attachProfiles(tile, roadOf) {
@@ -217,6 +217,7 @@ export class TileWorld extends GameMap {
   // held (pinned) until releaseShots, so the cut never shows a hole.
   // Resolves when every tile is in; shotsReady() asks without waiting.
   registerShots(shots, { radius = 350, token = 'shots' } = {}) {
+    this.releaseShots(); // (pins are counted: a second registration must not leak the first)
     this._shotKeys = new Set();
     for (const s of shots) for (const [x, y] of [s.at, s.look].filter(Boolean)) for (const k of this.store.keysAround(x, y, radius)) this._shotKeys.add(k);
     for (const k of this._shotKeys) this.store.pin(k);

@@ -65,6 +65,8 @@ export const BASE_KEYS = {
   tuning: 'gde-tuning-v1',
   // how often each HUD explanation has been shown (hudtext.js), new in 0.38: no legacy name
   hudSeen: 'gde-hud-gezien',
+  // which steps were cleared with help on, and for which steps the help offer was shown (assistlive.js, #215): new, no legacy name
+  help: 'gde-hulp-v1',
 };
 
 export const KEYS = Object.fromEntries(Object.entries(BASE_KEYS).map(([k, v]) => [k, ARC_KEYS.includes(k) ? v + ARC_SUFFIX : v]));

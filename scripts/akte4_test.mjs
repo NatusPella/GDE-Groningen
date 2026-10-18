@@ -53,7 +53,7 @@ const map = { meta: { landmarks: [] } };
 const all = buildNieuwDefs({ map, walk: (x, y) => ({ x, y, road: null }), drive: (x, y) => ({ x, y, road: null }) });
 ok(all.length === NEW_MISSION_IDS.length, 'buildNieuwDefs returns one def per new mission id', `${all.length}/${NEW_MISSION_IDS.length}`);
 ok(all[base].label === 'Open, dicht' && all[base + 3].label === 'Het beleg van Bourtange', 'the defs are in the order of the ids');
-const KINDS = new Set(['board', 'goto', 'hold', 'scene', 'choice', 'rit', 'garage', 'escape', 'chase', 'boatchase', 'train', 'heli', 'vault', 'pigeon']);
+const KINDS = new Set(['board', 'goto', 'hold', 'scene', 'choice', 'rit', 'timing', 'garage', 'escape', 'chase', 'boatchase', 'train', 'heli', 'vault', 'pigeon']);
 const src = fs.readFileSync(new URL('js/missions.js', root), 'utf8');
 for (const d of mine) {
   ok(Number.isFinite(d.start.x) && Number.isFinite(d.start.y), `${d.label}: start`);
@@ -65,9 +65,9 @@ for (const d of mine) {
   for (const q of d.stages) for (const kind of [q.kind]) ok(new RegExp(`case '${kind}'`).test(src) || kind === 'board', `${d.label}: missions.js handles ${kind}`);
 }
 ok(mine[0].boatAt && mine[0].boatModel === 'sloep' && mine[0].stages[0].kind === 'board', 'bruggen: a sloep to board');
-ok(mine[1].stages.map((q) => q.kind).join() === 'goto,choice,goto,hold,goto', 'wiebelwerk: walk in, intake, servers, logbook, out');
+ok(mine[1].stages.map((q) => q.kind).join() === 'goto,choice,goto,timing,hold,goto', 'wiebelwerk: walk in, intake, servers (sneak past the cameras), logbook, out');
 ok(mine[2].stages.some((q) => q.kind === 'rit' && q.exit), 'stoom: a train ride that ends outside the train');
-ok(mine[3].stages.filter((q) => q.kind === 'hold' && q.fireworks).length === 2, 'beleg: the walls and the cellar are held against the bangs');
+ok(mine[3].stages.filter((q) => q.kind === 'hold' && q.fireworks).length >= 5, 'beleg: two walls and three cellar doors are held against the bangs, with a run in between');
 const list = [{ label: 'Iedereen heeft een rode auto gezien', stages: [], start: {} }];
 applyAkte4(list);
 const fj = list[0];
@@ -101,7 +101,7 @@ ok(run(wieb, ['1', '1']).r && run(wieb, ['1', '1']).r.fail, 'intake: two wrong a
 ok(run(wieb, ['1', '2']).r === 'done', 'intake: one wrong answer is forgiven');
 const wagon = fj.stages.find((q) => q.kind === 'choice' && q.kicker === 'Op de wagon');
 ok(run(wagon, ['1']).r === 'done', 'wagon: the car passes');
-ok(run(wagon, ['2']).r && /Escapade/.test(run(wagon, ['2']).r.fail), 'wagon: keeping the ball loses the Escapade (fail)');
+ok(run(wagon, ['2']).r === 'done', 'wagon: keeping the ball does not restart the mission (the reply tells the consequence)');
 const friends = fj.stages.find((q) => q.kind === 'choice' && /vrienden/.test(q.kicker));
 for (const combo of [['1', '1', '1', '1'], ['2', '2', '2', '2'], ['3', '3', '3', '3'], ['1', '2', '3', '1']]) ok(run(friends, combo).r === 'done', `friends: ${combo.join('')} always ends the mission, never a fail`);
 ok(friends.rounds.length === 4 && friends.rounds.every((r) => r.options.every((o) => o.ok !== false || o.reply)), 'friends: four friends, every answer has a reply');

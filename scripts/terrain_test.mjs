@@ -73,7 +73,7 @@ ok(zf && zr && zf.every((z, i) => Math.abs(z - zr[i]) < 0.02), 'over a raised te
   const st = dm.surfaceAt(200, 20, { z: 3.9, ribbon: null });
   ok(Math.abs(st.z - top) < 0.01, 'surfaceAt: a walker at the crest stays on it', st.z);
   const under = dm.surfaceAt(200, 80, { z: 7.7, ribbon: null });
-  ok(Math.abs(under.z - (3.75 + 4)) < 0.05 && under.kind === "road", 'a road with z 4 on the terrain: terrain + 4', `${under.z} ${under.kind}`);
+  ok(Math.abs(under.z - (3.75 - 0.3 + 4)) < 0.05 && under.kind === "road", 'a bridge with z 4 over a dyke: follows the crest (less the deadband) + 4', `${under.z} ${under.kind}`);
 }
 
 // the province build puts the raster in the tile (build_province.mjs --terrain)

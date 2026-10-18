@@ -15,7 +15,7 @@ for (let i = 0; i < 600 && !window.__bot; i++) await sleep(100);
 const B = window.__bot;
 if (!B) return JSON.stringify({ result: 'FOUT', reason: 'window.__bot ontbreekt (?autoplay niet aan?)' });
 const world = B.world, player = B.player;
-const PART = CFG.part || 'kop';
+const PART = CFG.sweep && CFG.sweep.length ? 'all' : CFG.part || 'kop';
 const MAX_GAME = CFG.maxGameS || 3600;
 const MAX_WALL = (CFG.maxWallS || 1800) * 1000;
 const wall0 = performance.now();

@@ -11,6 +11,7 @@ import { isMissionActive } from './missions.js';
 import { isActivityActive } from './activities.js';
 import { inHomeFlat } from './home.js';
 import { GROTE_MARKT } from './flavour.js';
+import { showFor } from './evenementen.js';
 import { updateMarktSigns } from './marktfiets.js';
 import {
   QUAKE, rollQuakeGap, mayQuake, rollQuake, quakeEnvelope, quakeStrength, bikeWobble, QUAKE_BARKS, quakeNewsText,
@@ -299,9 +300,12 @@ function updateAlgae(dt, w) {
 function updateFireworks(dt, w) {
   const F = S.fw;
   const forced = S.force.fireworks;
-  const st = forced != null ? { on: true, progress: forced } : showState(hourOf(w), isToday('ontzet', w));
+  let st = forced != null ? { on: true, progress: forced } : showState(hourOf(w), isToday('ontzet', w));
+  // no Ontzet show: a firework show of the summer agenda (evenementen.js, #131) goes up over its own town
+  if (!st.on) st = showFor(today(w), hourOf(w));
+  const where = st.at || GROTE_MARKT;
   const p = w.player;
-  const d = dist(p, GROTE_MARKT);
+  const d = dist(p, where);
   // shells already in the air finish their flight
   for (let i = F.shells.length - 1; i >= 0; i--) {
     const s = F.shells[i];
@@ -324,7 +328,7 @@ function updateFireworks(dt, w) {
   F.gap -= dt;
   if (F.gap > 0) return;
   F.gap = shellGap(st.progress);
-  const shell = makeShell(Math.random, GROTE_MARKT, st.progress);
+  const shell = makeShell(Math.random, where, st.progress);
   shell.t = 0;
   F.shells.push(shell);
   pushAudioEvent(w, { kind: 'weapon', sub: 'launch', x: shell.x, y: shell.y });

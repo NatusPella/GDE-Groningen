@@ -10,6 +10,7 @@ import { playAutoGejatLine } from './audio.js';
 import { requestRespawn } from './world.js';
 import { roadGrip } from './weather.js';
 import { getSettings } from './settings.js';
+import { makeJumpAssist, jumpStep } from './gamefeel.js';
 import { ALGAE } from './eventrules.js';
 import { knockDown, isKnockedDown } from './ragdoll.js';
 import { resolveBuildingCollisions, resolveWalker } from './collision.js';
@@ -180,7 +181,9 @@ export class Player {
     // down and plays the crouch pose; collision stays 2D (x/y) anyway
     // a minigame (fuse box, padel…) can claim Space for itself
     const spaceFree = !(world.minigameUntil > world.time);
-    if (input.wasPressed(' ') && this.z <= 0 && spaceFree) {
+    // sprongbuffer en coyote time (#216): iets te vroeg gedrukt of net van de rand telt nog
+    const jumpNow = spaceFree && jumpStep(this.jumpAssist || (this.jumpAssist = makeJumpAssist()), world.time, input.wasPressed(' '), this.z <= 0);
+    if (jumpNow) {
       if (this.tryVault(world, true)) return;
       this.vz = JUMP_SPEED;
       this.jumpAt = world.time;

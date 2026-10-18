@@ -54,7 +54,7 @@ const FARES = [
   {
     who: 'Een muzikant met een gitaarkoffer', from: 'oosterpoort', to: ['station', 'forum'],
     hail: 'Taxi! Voorzichtig met de gitaar!',
-    board: 'Ik speel op Eurosonic! Nou ja, in het voorprogramma van het voorprogramma. Naar {to}.',
+    board: 'Ik speel op Eurosoniek! Nou ja, in het voorprogramma van het voorprogramma. Naar {to}.',
     done: 'Als ik beroemd word, noem ik mijn album naar jouw taxi.',
   },
   {

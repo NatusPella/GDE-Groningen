@@ -105,7 +105,7 @@
 #hud .wp[data-kind="act"] .wp-text b, #hud .wp[data-kind="steal"] .wp-text b { color: #f0ede4; }
 #hud .wp-text small {
   margin-top: 2px;
-  font-size: 12px;
+  font-size: max(12px, var(--hud-min));
   letter-spacing: 0.5px;
   font-family: 'Arial Narrow', Arial, sans-serif;
   color: rgba(240, 237, 228, 0.78);
@@ -114,7 +114,7 @@
 
 #hud .wp-secondary .wp-chip { padding: 2px 8px 2px 6px; gap: 6px; }
 #hud .wp-secondary .wp-text b { font-size: 14px; letter-spacing: 1px; }
-#hud .wp-secondary .wp-text small { font-size: 10.5px; }
+#hud .wp-secondary .wp-text small { font-size: max(10.5px, var(--hud-min)); }
 #hud .wp-secondary.in { opacity: 0.78; }
 #hud .wp-secondary .wp-dot { width: 6px; height: 6px; left: -3px; top: -3px; }
 #hud .wp-secondary .wp-line { width: 22px; opacity: 0.7; }

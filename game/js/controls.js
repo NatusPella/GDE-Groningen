@@ -7,13 +7,13 @@
 // Keyboard keys the player may rebind: [canonical key, what it does, group].
 // Escape, Enter, the arrows and the mouse stay fixed.
 export const KEY_ACTIONS = [
-  ['w', 'Vooruit, gas geven; heli: vooruit', 'beweging'],
-  ['s', 'Achteruit, remmen; heli: remmen, achteruit', 'beweging'],
-  ['a', 'Links, sturen; heli: draaien', 'beweging'],
-  ['d', 'Rechts, sturen; heli: draaien', 'beweging'],
-  [' ', 'Springen, over hek of auto klimmen, uit het water klimmen, handrem, klapwieken; heli: omhoog', 'beweging'],
-  ['shift', 'Rennen, boost, duiken; heli: sneller', 'beweging'],
-  ['control', 'Bukken; duif: pikken en landen; heli: omlaag', 'beweging'],
+  ['w', 'Vooruit, gas geven; heli: vooruit; vliegtuig: gas; trein: gas', 'beweging'],
+  ['s', 'Achteruit, remmen; heli: remmen, achteruit; vliegtuig: gas terug; trein: rem', 'beweging'],
+  ['a', 'Links, sturen; heli: draaien; vliegtuig: links rollen', 'beweging'],
+  ['d', 'Rechts, sturen; heli: draaien; vliegtuig: rechts rollen', 'beweging'],
+  [' ', 'Springen, over hek of auto klimmen, uit het water klimmen, handrem, klapwieken; heli: omhoog; vliegtuig: neus omhoog; trein: noodrem', 'beweging'],
+  ['shift', 'Rennen, boost, duiken; heli: sneller; vliegtuig: remmen', 'beweging'],
+  ['control', 'Bukken; duif: pikken en landen; heli: omlaag; vliegtuig: neus omlaag', 'beweging'],
   ['.', 'Rijden, handmatig schakelen: een versnelling hoger', 'beweging'],
   [',', 'Rijden, handmatig schakelen: een versnelling lager', 'beweging'],
   ['j', 'Rijden, handmatig met koppeling: koppeling indrukken', 'beweging'],
@@ -245,15 +245,15 @@ function find(map, v) {
 // Labels per controller family. Xbox and the Steam Deck share letters; the
 // PlayStation face buttons are shapes (drawn by glyphs.js).
 export const PAD_LAYOUTS = {
-  xbox: { a: 'A', b: 'B', x: 'X', y: 'Y', lb: 'LB', rb: 'RB', lt: 'LT', rt: 'RT', view: 'View', start: 'Menu', ls: 'L3', rs: 'R3', lstick: 'L', rstick: 'R' },
-  ps: { a: 'cross', b: 'circle', x: 'square', y: 'triangle', lb: 'L1', rb: 'R1', lt: 'L2', rt: 'R2', view: 'Create', start: 'Options', ls: 'L3', rs: 'R3', lstick: 'L', rstick: 'R' },
+  xbox: { a: 'A', b: 'B', x: 'X', y: 'Y', lb: 'LB', rb: 'RB', lt: 'LT', rt: 'RT', view: 'Overzicht', start: 'Menu', ls: 'L3', rs: 'R3', lstick: 'L', rstick: 'R' },
+  ps: { a: 'cross', b: 'circle', x: 'square', y: 'triangle', lb: 'L1', rb: 'R1', lt: 'L2', rt: 'R2', view: 'Delen', start: 'Opties', ls: 'L3', rs: 'R3', lstick: 'L', rstick: 'R' },
   // Switch: dezelfde plekken, andere letters (de onderste knop is B)
   switch: { a: 'B', b: 'A', x: 'Y', y: 'X', lb: 'L', rb: 'R', lt: 'ZL', rt: 'ZR', view: '−', start: '+', ls: 'L3', rs: 'R3', lstick: 'L', rstick: 'R' },
-  deck: { a: 'A', b: 'B', x: 'X', y: 'Y', lb: 'L1', rb: 'R1', lt: 'L2', rt: 'R2', view: 'View', start: 'Menu', ls: 'L3', rs: 'R3', lstick: 'L', rstick: 'R' },
+  deck: { a: 'A', b: 'B', x: 'X', y: 'Y', lb: 'L1', rb: 'R1', lt: 'L2', rt: 'R2', view: 'Overzicht', start: 'Menu', ls: 'L3', rs: 'R3', lstick: 'L', rstick: 'R' },
 };
 export const PAD_SLOT_NAMES = {
   a: 'Onderste knop', b: 'Rechter knop', x: 'Linker knop', y: 'Bovenste knop', lb: 'Linker bumper', rb: 'Rechter bumper',
-  lt: 'Linker trigger', rt: 'Rechter trigger', view: 'View/Select', start: 'Menu/Start', ls: 'Linker stick indrukken', rs: 'Rechter stick indrukken',
+  lt: 'Linker trigger', rt: 'Rechter trigger', view: 'Overzicht/Terug', start: 'Menu/Start', ls: 'Linker stick indrukken', rs: 'Rechter stick indrukken',
   up: 'D-pad omhoog', down: 'D-pad omlaag', left: 'D-pad links', right: 'D-pad rechts',
 };
 
@@ -263,6 +263,24 @@ export function padFamily(id) {
   if (/057e|nintendo|switch|pro controller|joy-?con/.test(s)) return 'switch';
   if (/054c|dualsense|dualshock|playstation/.test(s) || (/wireless controller/.test(s) && !/xbox|045e/.test(s))) return 'ps';
   return 'xbox';
+}
+
+// Wat de controllertest en de hints van een pad weten, puur uit de id-tekst en
+// `mapping` van de Gamepad API: soort, indeling en of de knoppen standaard
+// liggen. Zonder 'standard' mapping (oude Steam Controller, losse Joy-Cons)
+// klopt de knoppositie niet: dan zegt `note` wat de speler kan doen.
+export function padInfo(id, mapping = '') {
+  const s = String(id || '').toLowerCase();
+  const family = padFamily(id);
+  const standard = mapping === 'standard' || /standard gamepad/.test(s);
+  let name = { xbox: 'Controller met letterknoppen', ps: 'Controller met vormknoppen', switch: 'Controller met wisselende letters', deck: 'Handheld' }[family];
+  if (/steam controller/.test(s) || (/28de/.test(s) && /product:\s*(1102|1142)/.test(s))) name = 'Controller met trackpads';
+  else if (/joy-?con/.test(s)) name = 'Losse controllerhelft';
+  else if (/pro controller/.test(s)) name = 'Controller met wisselende letters';
+  let note = '';
+  if (!id) note = 'Geen controller gevonden. Druk op een knop.';
+  else if (!standard) note = 'Dit pad meldt geen standaardindeling: de knoppen kunnen verkeerd liggen. Zet de controller in de standaardmodus (letterknoppen), of kies bij Knoppen tonen als de juiste indeling.';
+  return { family, name: id ? name : '', standard, note };
 }
 
 // What a button does on foot and in a vehicle, for the remap list.

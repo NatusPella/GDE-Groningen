@@ -146,6 +146,16 @@ export function updateStuntHud(dt, s, paused) {
 // One popup: kind 'pts' ("+120 parasol"), 'combo' ("combo x3") or 'bad' ("-250 ...").
 export function stuntPopup(text, kind = 'pts') {
   if (!state || !els) return;
+  popup(text, kind);
+}
+
+// Losse chip buiten de stuntavond ("+€8 Rakelings", #216): zelfde popup, geen stuntpaneel nodig.
+export function chipPopup(text, kind = 'pts') {
+  if (!ensure()) return;
+  popup(text, kind);
+}
+
+function popup(text, kind) {
   const d = document.createElement('div');
   d.className = 'stunt-pop' + (kind === 'pts' ? '' : ' ' + kind);
   const m = /^([+-]\d+)(.*)$/.exec(text);

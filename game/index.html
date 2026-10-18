@@ -98,19 +98,19 @@
   .mo-shine::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.75), transparent); animation: mo-shine 520ms var(--ease-out) forwards; pointer-events: none; }
 
   /* "H9 nu al spelen?" (todo.js) */
-  #gde-ahead { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; background: rgba(12,20,14,0.6); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); font-family: 'Arial Narrow', Arial, sans-serif; }
-  #gde-ahead[hidden] { display: none; }
-  #gde-ahead .ga-box { zoom: calc(var(--ui, 1.2) / 1.2); width: min(600px, calc(100vw / var(--ui, 1.2) * 1.2 - 32px)); box-sizing: border-box; display: flex; flex-direction: column; gap: 20px; padding: 40px; border-radius: 16px; background: linear-gradient(180deg, rgba(20,40,27,0.96), rgba(12,20,14,0.98)); box-shadow: 0 0 0 1px rgba(240,237,228,0.08), 0 32px 64px rgba(0,0,0,0.4); color: #f0ede4; animation: mo-in var(--dur-slow) var(--ease-out); }
-  #gde-ahead b { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-weight: normal; font-size: 48px; line-height: 0.95; letter-spacing: 0.03em; }
-  #gde-ahead p { margin: 0; font-size: 20px; line-height: 1.45; color: rgba(240,237,228,0.88); }
-  #gde-ahead .ga-now { font-size: 18px; color: rgba(240,237,228,0.68); }
-  #gde-ahead .ga-btns { display: flex; flex-direction: column; gap: 12px; margin-top: 8px; }
-  #gde-ahead button { min-height: 56px; padding: 8px 24px; border-radius: 8px; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 24px; letter-spacing: 0.06em; cursor: pointer; transition: background 0.2s; text-align: center; }
-  #gde-ahead .ga-primary { background: #3fc97a; color: #0c140e; border: 0; }
-  #gde-ahead .ga-primary:hover { background: #62d792; }
-  #gde-ahead .ga-secondary { background: transparent; color: #f0ede4; border: 0; box-shadow: inset 0 0 0 1px rgba(240,237,228,0.24); }
-  #gde-ahead .ga-secondary:hover { background: rgba(240,237,228,0.06); }
-  #gde-ahead button:focus-visible { outline: 2px solid #f0ede4; outline-offset: 4px; }
+  #gde-ahead , #hulpaanbod { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; background: rgba(12,20,14,0.6); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); font-family: 'Arial Narrow', Arial, sans-serif; }
+  #gde-ahead[hidden] , #hulpaanbod[hidden] { display: none; }
+  #gde-ahead .ga-box , #hulpaanbod .ga-box { zoom: calc(var(--ui, 1.2) / 1.2); width: min(600px, calc(100vw / var(--ui, 1.2) * 1.2 - 32px)); box-sizing: border-box; display: flex; flex-direction: column; gap: 20px; padding: 40px; border-radius: 16px; background: linear-gradient(180deg, rgba(20,40,27,0.96), rgba(12,20,14,0.98)); box-shadow: 0 0 0 1px rgba(240,237,228,0.08), 0 32px 64px rgba(0,0,0,0.4); color: #f0ede4; animation: mo-in var(--dur-slow) var(--ease-out); }
+  #gde-ahead b , #hulpaanbod b { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-weight: normal; font-size: 48px; line-height: 0.95; letter-spacing: 0.03em; }
+  #gde-ahead p , #hulpaanbod p { margin: 0; font-size: 20px; line-height: 1.45; color: rgba(240,237,228,0.88); }
+  #gde-ahead .ga-now , #hulpaanbod .ga-now { font-size: 18px; color: rgba(240,237,228,0.68); }
+  #gde-ahead .ga-btns , #hulpaanbod .ga-btns { display: flex; flex-direction: column; gap: 12px; margin-top: 8px; }
+  #gde-ahead button , #hulpaanbod button { min-height: 56px; padding: 8px 24px; border-radius: 8px; font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 24px; letter-spacing: 0.06em; cursor: pointer; transition: background 0.2s; text-align: center; }
+  #gde-ahead .ga-primary , #hulpaanbod .ga-primary { background: #3fc97a; color: #0c140e; border: 0; }
+  #gde-ahead .ga-primary:hover , #hulpaanbod .ga-primary:hover { background: #62d792; }
+  #gde-ahead .ga-secondary , #hulpaanbod .ga-secondary { background: transparent; color: #f0ede4; border: 0; box-shadow: inset 0 0 0 1px rgba(240,237,228,0.24); }
+  #gde-ahead .ga-secondary:hover , #hulpaanbod .ga-secondary:hover { background: rgba(240,237,228,0.06); }
+  #gde-ahead button:focus-visible , #hulpaanbod button:focus-visible { outline: 2px solid #f0ede4; outline-offset: 4px; }
 
   #pause-menu .hud-mouse { width: 19px; height: 27px; flex: none; overflow: visible; }
   #pause-menu .hud-mouse .m-body { fill: rgba(42,46,40,0.9); stroke: rgba(255,255,255,0.55); stroke-width: 1.2; }
