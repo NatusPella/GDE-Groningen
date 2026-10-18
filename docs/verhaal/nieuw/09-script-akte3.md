@@ -53,6 +53,7 @@ DOKTER DIJKSTRA: Weer een spoedje? Ik zet het deze keer in het rooster. [BEHOUDE
 
 ## [M13.1] Het containerlabyrint: intro – Eemsdelta, Eemshaven, de kade – te voet
 (regie: vrijdagnacht 21 augustus. Drieduizend containers, een kraan, schijnwerpers. Naamkaart: LAMMERT. Gameplay: een sluipmissie tussen de containers; container 4471 vinden en de papieren verwisselen.)
+TESSA: Wij komen van Oma Trijntje. In Jelles koopboek staat dat zijn schip vannacht met de voorraad van haar vrienden uit de Eemshaven vertrekt. [NIEUW]
 LAMMERT: Ik ben Lammert, havenmeester. Ik danste in 1953 met Trijntje. Dat vergeet ze niet. [NIEUW]
 TESSA: Jelles ingekochte voorraden staan in container 4471. Het schip vertrekt om zes uur. [NIEUW]
 LAMMERT: Hier zijn de papieren. Jullie wisselen ze om. Dan blijft alles hier. [NIEUW]
@@ -131,7 +132,7 @@ RIKUS (radio): Wind uit het noordwesten. Op de Eemsdijk zijn zeventien schapen g
 RIKUS (radio): Kiekdoar meldt dat Oldenhuis Bakt in Delfzijl een vestiging opent, naast de visboer. De visboer lacht niet. [NIEUW]
 
 ## [T3] De trein naar Winschoten – Eemsdelta, Delfzijl naar Winschoten – trein (meerijden)
-TESSA: We nemen de trein naar Winschoten. Daar is een kermis. [NIEUW]
+TESSA: We nemen de trein naar Winschoten. Jelle geeft de juryleden daar een proeverij op de kermis. Dat staat in zijn koopboek. [NIEUW]
 TAMMO: Een kermis. In de provincie. [NIEUW]
 TESSA: Ze hebben hier ook botsauto's. [NIEUW]
 TAMMO: Dat wist ik. [NIEUW]
@@ -141,7 +142,7 @@ TAMMO: Een beetje. [NIEUW]
 ## [M15.1] Laag over het graan: intro – Oldambt, Roelfiens boerderij bij Winschoten – klein vliegtuig
 (regie: zaterdag 22 augustus, middag. Een landingsstrook naast een graanveld, een rode gewasspuiter. Naamkaart: ROELFIEN. Gameplay: laag over het graan vliegen, een spandoek oppikken en door een poortcorridor over de kermis slepen.)
 ROELFIEN: Ik ben Roelfien. Graanboerin. Oma Trijntje is mijn nicht. [NIEUW]
-TESSA: Jelle geeft de juryleden een gratis proeverij op de kermis. Daar koopt hij ze. [NIEUW]
+TESSA: Oma Trijntje stuurt ons. Jelle geeft de juryleden een gratis proeverij op de kermis. Daar koopt hij ze. [NIEUW]
 ROELFIEN: Dan laten we de hele kermis zien wat hij doet. Mijn gewasspuiter sleept al twintig jaar een spandoek voor de kermis. [NIEUW]
 ROELFIEN: Vlieg laag, houd de molen rechts en trek pas op na de kermis. [NIEUW]
 TAMMO: Ik heb nog nooit gevlogen. [NIEUW]
@@ -164,10 +165,11 @@ JELLE: Het is een proeverij. Er wordt geproefd en er wordt gesteld. [NIEUW]
 JURYLID: Ik stap eruit. [NIEUW]
 JURYLID: Ik ook. [NIEUW]
 ROELFIEN: Twee juryleden zijn weggelopen. Twee zitten nog bij Jelle. [NIEUW]
-TESSA: Plakje zes is voor de helft gevallen. [NIEUW]
+TESSA: Dan is plakje zes voor de helft gevallen: de jury. [NIEUW]
 ROELFIEN: De molen in Oostwold is van Jelle. Het fijne bloem krijg je daar niet meer. Ik heb mijn eigen graan. Dat is grof. [NIEUW]
-TESSA: Dat is plakje zes. De bloem is van hem. [NIEUW]
+TESSA: Dan heeft Jelle de fijne bloem. [NIEUW]
 ROELFIEN: Oma's recept lust grof. Hier is het meel. Voor Trijntje. [NIEUW]
+TESSA: Dan is ook de bloem gered, en daarmee plakje zes. [NIEUW]
 TAMMO: Dank je, Roelfien. [NIEUW]
 ROELFIEN: Doe de groeten aan mijn nicht. En zeg dat de kermis mooi is. [NIEUW]
 TESSA: Vol, tenminste. [NIEUW]
@@ -183,7 +185,7 @@ TAMMO: Die barman heeft het druk. [BEHOUDEN]
 TESSA: O ja? Sinds wanneer bepaal jij dat? [BEHOUDEN]
 TAMMO: Sinds nu. [BEHOUDEN]
 TESSA: Jaloers? Jij? Wat heb je met Tammo gedaan? [BEHOUDEN]
-TESSA: Het plan: Durk en Douwe langs drie tenten volgen, tot ze moe zijn. Dan een rit in de botsauto's. [NIEUW]
+TESSA: Het plan: Durk en Douwe weten waar de bal is. We volgen ze langs drie tenten tot ze moe zijn, dan vragen we het ze in de botsauto's. [NIEUW]
 TAMMO: Ik drink maar één. [NIEUW]
 
 ## [M16.2] Nog eentje dan: tussen de tenten – Oldambt, Winschoten, de kermis – te voet

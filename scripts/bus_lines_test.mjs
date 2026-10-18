@@ -1,6 +1,7 @@
 // Buslijnmodel (game/js/busroutes.js, #80): puur, met een synthetische lijn.
 //   node scripts/bus_lines_test.mjs
 import * as B from '../game/js/busroutes.js';
+import fs from 'node:fs';
 
 const fails = [];
 const ok = (c, m) => { if (!c) fails.push(m); };
@@ -43,6 +44,30 @@ ok(narrow.length === 1 && narrow[0].from >= 290 && narrow[0].to <= 410, `smal st
 ok(B.narrowSpans(line, () => null).length === 1, 'geen weg = één smal stuk');
 
 ok(B.nearestLine([line, lus], 600, 40) === line && B.nearestLine([line], 600, 900) === null, 'nearestLine');
+
+// de echte provincielijnen (alleen als de wereld gebouwd is)
+const real = new URL('../game/world/provincie-bus.json', import.meta.url);
+if (fs.existsSync(real)) {
+  const j = JSON.parse(fs.readFileSync(real, 'utf8'));
+  const all = B.prepareLines(j.bus);
+  ok(j.bus.length >= 200, `${j.bus.length} lijnen in de data`);
+  ok(all.length >= 200, `${all.length} bruikbare lijnen`);
+  const names = new Set(all.map((l) => l.name));
+  ok(all.every((l) => l.name.startsWith('Lijn ') && l.stops.length >= 2 && l.length >= B.MIN_LENGTH), 'elke lijn heeft naam, haltes, lengte');
+  ok(names.size > 5, 'lijnnamen verschillen');
+  // elke lijn laat zich van begin tot eind rijden zonder vast te lopen
+  let stuck = 0;
+  for (const l of all) {
+    const rr = B.makeRunner(l, 0, 1);
+    let x = l.pts[0][0], y = l.pts[0][1], n = 0;
+    while (rr.trips < 1 && rr.dir > 0 && n++ < 20000) {
+      const o = B.stepRunner(rr, x, y, 0.5);
+      if (o.hold === 0) { x = o.goal.x; y = o.goal.y; }
+    }
+    if (n >= 20000) stuck++;
+  }
+  ok(stuck === 0, `${stuck} lijnen lopen vast`);
+}
 
 if (fails.length) { console.log('FAIL\n' + fails.join('\n')); process.exit(1); }
 console.log('bus lines ok');

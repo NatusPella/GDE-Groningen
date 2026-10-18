@@ -1673,7 +1673,7 @@ export function stopPigeonMode(w = world) {
     const who = pl.character === 'anita' ? 'Tessa' : 'Tammo';
     const wijk = wijkAt(map, spot.x, spot.y);
     // a flight without points (a mission's, or a short hop) needs no score card
-    if (score > 0) w.addMessage(`${who} doet de ogen weer open${wijk ? ' in ' + wijk : ''}. ${score} poeppunten deze vlucht (totaal ${store.total}).`, 4.5);
+    if (score > 0) w.addMessage(`${who} landt${wijk ? ' in ' + wijk : ''}: ${score} poeppunten (totaal ${store.total})`, 4.5);
     sfx('flap', P.x, P.y, 0.8);
     saveGame(w);
   } else {

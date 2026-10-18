@@ -23,11 +23,12 @@ import { closeShopMenu } from './shopui.js';
 import { quitTrainDrive } from './traindrive.js';
 import { statsFromSave } from './world.js';
 import { getRadioSave, applyRadioSave } from './radio.js';
-import { KEYS } from './storagekeys.js';
+import { KEYS, slotKey } from './storagekeys.js';
+import { readSlot, writeSlotRaw, activeSlot, setActive, createSlot, deleteSlot, nameOf, pickActive } from './saveslots.js';
 import { STEPS, PARTS, stepDone, stepAvailable, nextStoryStep, ARC_ID } from './storyarc.js';
 
-// the key keeps its old name; the version inside the save is what counts (savemigrate.js)
-const KEY = KEYS.save;
+// Several saves (saveslots.js): slot 1 is the old single save under its old key, the version inside
+// the save is what counts (savemigrate.js). All reads and writes here go to the active slot.
 const VERSION = SAVE_VERSION;
 // a copy of the save as it was before its first migration, and of a save
 // from a newer game before this one overwrites it
@@ -50,6 +51,8 @@ let missionSaveIn = -1;
 let toastEl = null;
 let toastTimer = 0;
 let restoredMoney = -1;
+// seconds played in this save; counted while the game runs, stored in the save
+let playSeconds = 0;
 
 const num = (v, d) => (typeof v === 'number' && Number.isFinite(v) ? v : d);
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -80,14 +83,16 @@ export function estimateLostMoney(d) {
   return Math.max(MIN_RESTORE, Math.round((earned - spent) / 10) * 10);
 }
 
-export function readSave() {
+// The save of a slot (the active one by default), migrated; null when it is empty, broken,
+// from a newer game or from the other story arc (readSlot). A broken slot with a recovery
+// copy gives the recovery copy.
+export function readSave(n = activeSlot()) {
   try {
-    const raw = localStorage.getItem(KEY);
-    const m = migrateSave(JSON.parse(raw || 'null'));
-    if (!m) return null;
+    const m = readSlot(null, n);
+    if (!m.data) return null;
     // a save belongs to one story arc and never loads into the other (the new arc has its own key too)
     if (savedArc(m.data) !== ARC_ID) return null;
-    if (m.from !== VERSION) backupOnce(raw, m.from);
+    if (m.from !== VERSION) backupOnce(m.raw, m.from);
     return m.data;
   } catch (e) {
     return null;
@@ -106,7 +111,7 @@ function backupOnce(raw, v) {
 // version writes its own.
 function keepNewerSave() {
   try {
-    const raw = localStorage.getItem(KEY);
+    const raw = localStorage.getItem(slotKey(activeSlot()));
     const d = JSON.parse(raw || 'null');
     if (d && Number.isInteger(d.v) && d.v > VERSION) backupOnce(raw, d.v);
   } catch (e) { /* ignore */ }
@@ -137,12 +142,36 @@ export function getSaveSummary() {
   const d = readSave();
   if (!d) return null;
   const done = d.missions && Array.isArray(d.missions.completed) ? d.missions.completed.length : 0;
-  return { arc: savedArc(d), money: num(d.money, 0), missionsDone: done, savedAt: num(d.savedAt, 0), character: d.character === 'anita' ? 'Tessa' : 'Tammo', story: storySummary(d), goal: d.doel && typeof d.doel.name === 'string' ? d.doel.name : '' };
+  return { slot: activeSlot(), name: nameOf(null, activeSlot()), playSeconds: Math.max(0, num(d.speeltijd, 0)), arc: savedArc(d), money: num(d.money, 0), missionsDone: done, savedAt: num(d.savedAt, 0), character: d.character === 'anita' ? 'Tessa' : 'Tammo', story: storySummary(d), goal: d.doel && typeof d.doel.name === 'string' ? d.doel.name : '' };
 }
 
 export function clearSave() {
   keepNewerSave();
-  try { localStorage.removeItem(KEY); } catch (e) { /* ignore */ }
+  try { localStorage.removeItem(slotKey(activeSlot())); } catch (e) { /* ignore */ }
+}
+
+// "Nieuw spel": the old saves stay. A new slot is made and becomes the active one; with every
+// slot in use the active one is cleared, as before (its recovery copy stays).
+export function startNewSlot(name) {
+  if (!createSlot(null, name)) clearSave();
+}
+
+// Switches to another slot and loads it. false (and the old slot stays active) when the slot cannot be loaded.
+export function loadSlot(w, n) {
+  const d = readSave(n);
+  if (!d || !w) return false;
+  const was = activeSlot();
+  setActive(null, n);
+  if (!applySave(w, d)) { setActive(null, was); return false; }
+  return true;
+}
+
+export function ensureActiveSlot() {
+  return pickActive(null);
+}
+
+export function removeSlot(n) {
+  return deleteSlot(null, n);
 }
 
 function serialize(w) {
@@ -154,6 +183,7 @@ function serialize(w) {
     v: VERSION,
     arc: ARC_ID,
     savedAt: Date.now(),
+    speeltijd: Math.round(playSeconds),
     money: Math.max(0, Math.floor(num(w.money, num(w._goodMoney, 0)))),
     moneyBackup: Math.max(0, Math.floor(num(w._goodMoney, num(w.money, 0)))),
     health: clamp(num(w.health, 100), 1, 100),
@@ -192,7 +222,7 @@ export function saveGame(w = world, { toast = true } = {}) {
   if (w.coopRole === 'client') return false;
   keepNewerSave();
   try {
-    localStorage.setItem(KEY, JSON.stringify(serialize(w)));
+    if (!writeSlotRaw(null, activeSlot(), JSON.stringify(serialize(w)))) throw new Error('write failed');
   } catch (e) {
     if (toast) w.addMessage('Opslaan mislukt', 2.5);
     return false;
@@ -322,6 +352,7 @@ export function applySave(w, d) {
     applyCheatSave(d.streken, d);
     applyCalendarSave(w, d.kalender);
     applyHomeOnLoad(w, d);
+    playSeconds = Math.max(0, num(d.speeltijd, 0));
     w.loadedFromSave = true;
     w.loadCount = (w.loadCount || 0) + 1;
     w.messages = w.messages.filter((m) => !m.text.startsWith('Je begint bij'));
@@ -373,6 +404,7 @@ export function updateSaveGame(dt, w) {
     w.addMessage(`We hebben je geld hersteld: €${restoredMoney.toLocaleString('nl-NL')}`, 6, { key: 'money-restored' });
     restoredMoney = -1;
   }
+  playSeconds += dt;
   const busy = isCinematicActive() || w.pendingRespawn || w.health <= 0;
 
   if (w.stats.missionsDone > lastMissionsDone) {

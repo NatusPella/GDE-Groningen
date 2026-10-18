@@ -153,3 +153,25 @@ export function verkeerOpties(profielKey, uur) {
   const ring = spawnRing('auto');
   return { target: doel.vol + doel.vereenvoudigd, spawnMin: ring.min, spawnMax: ring.max, despawnDist: despawnAfstand('auto') };
 }
+
+// Voetgangers: dezelfde koppeling als verkeerOpties. De vol-laag blijft de
+// echte kring; de vereenvoudigde laag telt mee voor het doel maar denkt
+// minder vaak (zie stapSlaOver).
+export function voetgangerOpties(profielKey, uur) {
+  const doel = doelPerLaag('voetganger', streekVanProfiel(profielKey), uur);
+  return { target: doel.vol + doel.vereenvoudigd, volTarget: doel.vol, despawnDist: despawnAfstand('voetganger'), ring: spawnRing('voetganger') };
+}
+
+// Vereenvoudigde updatestap: per laag hoeveel frames een entiteit overslaat
+// (de overgeslagen dt wordt opgespaard door simload.takeDt). Vol = elk frame;
+// ver weg blijft traag doorlopen, zodat niemand bevriest.
+const STAP = { vol: 1, vereenvoudigd: 3, abstract: 6, weg: 6 };
+export const stapInterval = (laag) => STAP[laag] ?? 1;
+
+// true als dit item dit frame zijn stap overslaat. index + frame spreidt de
+// lasten, zodat niet alles tegelijk denkt. Ver weg denkt zelden.
+export function stapSlaOver(soort, afstand, index, frame) {
+  const n = stapInterval(laagVoorAfstand(soort, afstand));
+  if (n <= 1) return false;
+  return (index + frame) % n !== 0;
+}
