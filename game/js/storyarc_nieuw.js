@@ -275,7 +275,7 @@ export const STEPS = [
     story: { intro: ['M20.1'], outro: ['M20.5'], replay: ['M20.6'] }, scenes: ['M20.1', 'M20.2', 'M20.3', 'M20.4', 'M20.5', 'M20.6'],
     lead: ['A', 'Het Beleg van Bourtange begint om negen uur. Berend zegt dat er een vriendin wacht.'] }),
   M('M21', 'zuid', 'Iedereen heeft een rode auto gezien', 'fjord', { built: true, reward: 1100, player: 'anita', solo: true,
-    story: { intro: ['M21.1'], outro: null, replay: ['M21.5'] }, scenes: ['M21.1', 'M21.2', 'M21.3', 'M21.4', 'M21.5'],
+    story: { intro: ['M21.1'], outro: null, replay: ['M21.5'] }, scenes: ['M21.1', 'M21.2', 'M21.3', 'M21.4', 'M21.5', 'M21.6'],
     lead: ['A', 'De Escapade staat op een goederentrein richting Ljouwert. Ik haal hem terug. Alleen.'] }),
 
   // --- Akte 5: Ontzet (Westerkwartier en Stad, wo 26 - vr 28 augustus, epiloog 11 september) --
@@ -292,7 +292,7 @@ export const STEPS = [
     story: { intro: ['M25.1'], outro: ['M25.4'], replay: ['M25.5'] }, scenes: ['M25.1', 'M25.2', 'M25.3', 'M25.4', 'M25.5'],
     lead: ['A', "Oma's keuken aan de Noorderhaven. Een oefenronde met alle ingrediënten, voor morgen."] }),
   M('M26', 'ontzet', 'Ontzet, net als in 1672', 'ontzet', { built: true, reward: 4000,
-    story: { intro: ['M26.1', 'M26.2'], outro: ['M26.7', 'M26.8'], replay: ['M26.9'] }, scenes: ['M26.1', 'M26.2', 'M26.3', 'M26.4', 'M26.5', 'M26.6', 'M26.7', 'M26.8', 'M26.9'],
+    story: { intro: ['M26.1', 'M26.2'], outro: ['M26.7', 'M26.8'], replay: ['M26.9'] }, scenes: ['M26.1', 'M26.2', 'M26.3', 'M26.4', 'M26.5', 'M26.6', 'M26.10', 'M26.11', 'M26.12', 'M26.13', 'M26.7', 'M26.8', 'M26.9'],
     lead: ['A', 'De Grote Markt, vrijdag. Gronings Ontzet. Bak, hou de kraam heel en stop Jelle bij de notaris.'] }),
   A('E', 'ontzet', 'Epiloog en slot', { type: 'epilogue' }, { built: true, scenes: ['E1', 'E2'] }),
 ];

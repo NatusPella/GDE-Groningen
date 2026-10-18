@@ -108,6 +108,8 @@ export function buildAkte5Defs({ map, walk, drive }) {
 }
 
 // How act 5 stages the defs it shares with the old arc (called at the end of applyNieuw).
+const JURY = [{ key: 'berend', pose: 'hips', at: [3.0, 1.5] }, { key: 'mem', pose: 'hips', at: [2.2, -1.4] }, { key: 'trijntje', pose: 'arms', at: [1.6, -2.6] }, { key: 'jelle', pose: 'hips', at: [3.6, -0.6] }, { key: 'jurylid', pose: 'arms', at: [4.2, 1.0] }];
+
 export function applyAkte5(list) {
   const by = (label) => list.find((d) => d.label === label);
   const walkAt = (at) => ({ at, snap: 'walk' });
@@ -160,6 +162,9 @@ export function applyAkte5(list) {
     ontzet.outro = 'De jury koos de Groningse eierbal: vier tegen één. De Fjord Frituur krijgt de standplaats.';
     ontzet.costRow = ['Gewonnen', 'De standplaats op de Vismarkt, en Gerda Terpstra op het bordje'];
     ontzet.heroCar = true;
+    // the baking score decides how the jury votes (M26.10-12) and pays a bonus on the 4000
+    ontzet.bakeBonus = { top: 600, goed: 200, mager: 0 };
+    ontzet.bakeRows = { top: ['Jury', 'Vijf van de vijf: foutloos gebakken'], goed: ['Jury', 'Vier van de vijf'], mager: ['Jury', 'Drie van de vijf: rommelig gebakken'] };
     ontzet.start = { ...ontzet.start };
     fire.label = 'Houd de kraam heel tegen het vuurwerk van Durk en Douwe';
     fire.talk = { ids: ['M26.3'], from: 5, delay: 2 };
@@ -201,19 +206,27 @@ export function applyAkte5(list) {
         rounds: [
           { who: 'Berend', text: 'Wat maakt deze eierbal Gronings? Eén zin, en nog niet zeuren.', options: [
             { label: 'De korrel van het grove meel.', reply: 'Berend knikt langzaam. Hij schrijft niks op, dat is een goed teken.' },
-            { label: 'De fijne bloem, heel glad.', ok: false, reply: 'Berend: "Dat is Fries." Tessa schuift de bloem snel weg.' },
-            { label: 'Wij hebben een luik.', ok: false, reply: 'Berend: "Een luik is geen smaak." Henk, achterin, knikt toch.' },
+            { label: 'De fijne bloem, heel glad.', ok: false, tag: 'fout1', reply: 'Berend: "Dat is Fries." Tessa schuift de bloem snel weg.' },
+            { label: 'Wij hebben een luik.', ok: false, tag: 'fout1', reply: 'Berend: "Een luik is geen smaak." Henk, achterin, knikt toch.' },
           ] },
           { who: 'Berend', text: 'En waarom moet de standplaats naar jullie?', options: [
             { label: 'Omdat Oma het zo maakt, en Mem er ook bij was.', reply: 'Mem kucht. Trijntje kijkt de andere kant op, tevreden.' },
-            { label: 'Omdat Jelle een notaris heeft.', ok: false, reply: 'Berend: "Daar stem ik niet op." Jelle slikt.' },
+            { label: 'Omdat Jelle een notaris heeft.', ok: false, tag: 'fout2', reply: 'Berend: "Daar stem ik niet op." Jelle slikt.' },
             { label: 'Omdat de friet erbij komt.', reply: 'Berend: "Friet erbij. Dat noteer ik." Het is een beetje een gok.' },
           ] },
         ],
       },
       {
-        kind: 'scene', label: 'De jury', target: stalls, kicker: 'Gronings Ontzet', title: 'Vier van de vijf', script: { ids: ['M26.6'] },
-        cast: [{ key: 'berend', pose: 'hips', at: [3.0, 1.5] }, { key: 'mem', pose: 'hips', at: [2.2, -1.4] }, { key: 'trijntje', pose: 'arms', at: [1.6, -2.6] }, { key: 'jelle', pose: 'hips', at: [3.6, -0.6] }, { key: 'jurylid', pose: 'arms', at: [4.2, 1.0] }],
+        kind: 'scene', label: 'De jury', target: stalls, kicker: 'Gronings Ontzet', script: { ids: ['M26.6'] },
+        cast: JURY,
+      },
+      {
+        kind: 'scene', label: 'De stemming', target: stalls, kicker: 'Gronings Ontzet', script: { ids: ['M26.11'] },
+        scriptTier: { top: ['M26.10'], goed: ['M26.11'], mager: ['M26.12'] }, cast: JURY,
+      },
+      {
+        kind: 'scene', label: 'De uitslag', target: stalls, kicker: 'Gronings Ontzet', script: { ids: ['M26.13'] },
+        cast: JURY,
       },
     ];
   }

@@ -289,11 +289,34 @@ RIKUS (radio): Berend zegt niks meer. Hij heeft een kloet in de strotte. Dat is 
 (regie: Berend schraapt zijn keel.)
 BEREND: Eén verschil, dan stemmen we. De Friese bal is glad, van fijn bloem. De Groninger heeft een korrel van grof meel. Die korrel proef je. Dat is een eierbal die ergens vandaan komt. [NIEUW]
 BEREND: Stemmen. Jurylid één. [NIEUW]
+
+## [M26.10] Ontzet, net als in 1672: de stemming, vijf van de vijf – Stad, Grote Markt – te voet
+(regie: de bak was foutloos. De jury stemt zonder te aarzelen.)
+JURYLID: Fjord Frituur. [NIEUW]
+JURYLID: Fjord Frituur. [NIEUW]
+JURYLID: Fjord Frituur. [NIEUW]
+JURYLID: Fjord Frituur. [NIEUW]
+BEREND: Fjord Frituur. Vijf van de vijf. Mijn stem was niet eens nodig. [NIEUW]
+JELLE: Vijf van de vijf. Dat is geen jury, dat is een volksopstand. [NIEUW]
+
+## [M26.11] Ontzet, net als in 1672: de stemming, vier van de vijf – Stad, Grote Markt – te voet
+(regie: de bak had een paar mislukte ballen, maar de goede waren goed.)
 JURYLID: Fjord Frituur. [NIEUW]
 JURYLID: Fjord Frituur. [NIEUW]
 JURYLID: Fjord Frituur. [NIEUW]
 JURYLID: Us Mem Snacks. Ik heb een contract. [NIEUW]
 BEREND: Fjord Frituur. Vier van de vijf. Mijn stem was de laatste, niet de enige. [NIEUW]
+
+## [M26.12] Ontzet, net als in 1672: de stemming, drie van de vijf – Stad, Grote Markt – te voet
+(regie: de bak was rommelig, en de jury merkt het.)
+JURYLID: Fjord Frituur. [NIEUW]
+JURYLID: Us Mem Snacks. Ik heb een contract. [NIEUW]
+JURYLID: Fjord Frituur. [NIEUW]
+JURYLID: Us Mem Snacks. Ik heb een contract. [NIEUW]
+BEREND: Fjord Frituur. Drie van de vijf. Het is krap. Mijn stem was de zwaarste, niet de enige. [NIEUW]
+JELLE: Drie tegen twee. Dat is geen vonnis, dat is een beroepszaak. [NIEUW]
+
+## [M26.13] Ontzet, net als in 1672: de uitslag – Stad, Grote Markt – te voet
 (regie: Oma Trijntje en Mem komen samen naar voren.)
 OMA TRIJNTJE: Gerda. Jouw eierbal was beter. In 1953. [BEHOUDEN]
 MEM: Trijntje. Dat duurde lang. [BEHOUDEN]

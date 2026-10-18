@@ -10180,6 +10180,71 @@
    ]
   },
   {
+   "id": "M21.6",
+   "title": "Iedereen heeft een rode auto gezien: Tessa, de overweg, de bal vastgehouden",
+   "act": 4,
+   "region": "Westerkwartier, de overweg",
+   "vehicle": "te voet",
+   "step": "M21",
+   "kind": "key",
+   "regie": [
+    "Tessa hield de rugzak vast. De beleggers trokken hem los en de wagon rolde door. Berend stopte de Escapade met zijn bakkie, met één kras."
+   ],
+   "lines": [
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "\"Tige tank foar de bal. – J.\"",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Berend Bos",
+     "key": "berend",
+     "text": "Eén kras op de auto. Eén bal kwijt. Ik tel allebei.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Dat is mijn schuld.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Berend Bos",
+     "key": "berend",
+     "text": "Dat is een kras. Henk heeft er verf voor, en een koekje.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Zonder wagen kunnen we niet bakken. Dan wint Jelle zonder wedstrijd.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Henk",
+     "key": "henk",
+     "text": "Henk. Tinus' schuur is hier vlakbij. Ik heb morgen iets voor jullie. Eén koekje.",
+     "tag": "NIEUW",
+     "channel": "telefoon",
+     "textOnly": true
+    }
+   ]
+  },
+  {
    "id": "M21.4",
    "title": "Iedereen heeft een rode auto gezien: Tammo, de vrienden",
    "act": 4,
@@ -12602,8 +12667,7 @@
    "regie": [
     "Mem zet de Gouden Eierbal op de jurytafel en stapt uit de kraam van haar zoon. Berend proeft en loopt hardop de complimentenladder af.",
     "hij zegt niks meer. Hij slikt.",
-    "Berend schraapt zijn keel.",
-    "Oma Trijntje en Mem komen samen naar voren."
+    "Berend schraapt zijn keel."
    ],
    "lines": [
     {
@@ -12658,7 +12722,83 @@
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
+    }
+   ]
+  },
+  {
+   "id": "M26.10",
+   "title": "Ontzet, net als in 1672: de stemming, vijf van de vijf",
+   "act": 5,
+   "region": "Stad, Grote Markt",
+   "vehicle": "te voet",
+   "step": "M26",
+   "kind": "key",
+   "regie": [
+    "de bak was foutloos. De jury stemt zonder te aarzelen."
+   ],
+   "lines": [
+    {
+     "speaker": "Jurylid",
+     "key": "jurylid",
+     "text": "Fjord Frituur.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
     },
+    {
+     "speaker": "Jurylid",
+     "key": "jurylid",
+     "text": "Fjord Frituur.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Jurylid",
+     "key": "jurylid",
+     "text": "Fjord Frituur.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Jurylid",
+     "key": "jurylid",
+     "text": "Fjord Frituur.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Berend Bos",
+     "key": "berend",
+     "text": "Fjord Frituur. Vijf van de vijf. Mijn stem was niet eens nodig.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Jelle Terpstra",
+     "key": "jelle",
+     "text": "Vijf van de vijf. Dat is geen jury, dat is een volksopstand.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    }
+   ]
+  },
+  {
+   "id": "M26.11",
+   "title": "Ontzet, net als in 1672: de stemming, vier van de vijf",
+   "act": 5,
+   "region": "Stad, Grote Markt",
+   "vehicle": "te voet",
+   "step": "M26",
+   "kind": "key",
+   "regie": [
+    "de bak had een paar mislukte ballen, maar de goede waren goed."
+   ],
+   "lines": [
     {
      "speaker": "Jurylid",
      "key": "jurylid",
@@ -12698,7 +12838,83 @@
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
+    }
+   ]
+  },
+  {
+   "id": "M26.12",
+   "title": "Ontzet, net als in 1672: de stemming, drie van de vijf",
+   "act": 5,
+   "region": "Stad, Grote Markt",
+   "vehicle": "te voet",
+   "step": "M26",
+   "kind": "key",
+   "regie": [
+    "de bak was rommelig, en de jury merkt het."
+   ],
+   "lines": [
+    {
+     "speaker": "Jurylid",
+     "key": "jurylid",
+     "text": "Fjord Frituur.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
     },
+    {
+     "speaker": "Jurylid",
+     "key": "jurylid",
+     "text": "Us Mem Snacks. Ik heb een contract.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Jurylid",
+     "key": "jurylid",
+     "text": "Fjord Frituur.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Jurylid",
+     "key": "jurylid",
+     "text": "Us Mem Snacks. Ik heb een contract.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Berend Bos",
+     "key": "berend",
+     "text": "Fjord Frituur. Drie van de vijf. Het is krap. Mijn stem was de zwaarste, niet de enige.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Jelle Terpstra",
+     "key": "jelle",
+     "text": "Drie tegen twee. Dat is geen vonnis, dat is een beroepszaak.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    }
+   ]
+  },
+  {
+   "id": "M26.13",
+   "title": "Ontzet, net als in 1672: de uitslag",
+   "act": 5,
+   "region": "Stad, Grote Markt",
+   "vehicle": "te voet",
+   "step": "M26",
+   "kind": "key",
+   "regie": [
+    "Oma Trijntje en Mem komen samen naar voren."
+   ],
+   "lines": [
     {
      "speaker": "Oma Trijntje",
      "key": "trijntje",
