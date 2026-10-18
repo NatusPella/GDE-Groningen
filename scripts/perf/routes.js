@@ -98,15 +98,19 @@ let done = false;
 requestAnimationFrame(tick);
 
 const DN = await imp('daynight');
-// the same light and weather on every run: 14:00, clear
+// the same light and weather on every run: 14:00, clear (a route can ask for another hour or rain)
+let LOOK = { clock: 14, rain: false };
 const fixWorld = () => {
-  w.clock = 14;
-  w.weather = { active: false, timer: 1e9, kind: 'helder', peak: 0, intensity: 0, wet: 0, overcast: 0, mist: 0, windAngle: 0.9, elapsed: 0, duration: Infinity };
+  w.clock = LOOK.clock;
+  w.weather = LOOK.rain ? { active: true, timer: 1e9, kind: 'regenbui', peak: 0.6, intensity: 0.6, wet: 1, overcast: 0.6, mist: 0, windAngle: 0.9, elapsed: 30, duration: Infinity }
+    : { active: false, timer: 1e9, kind: 'helder', peak: 0, intensity: 0, wet: 0, overcast: 0, mist: 0, windAngle: 0.9, elapsed: 0, duration: Infinity };
   if (DN.refreshDayNight) DN.refreshDayNight(w);
 };
 
-async function run(name, setup, move, teardown) {
+async function run(name, setup, move, teardown, opts = {}) {
   if (ONLY.length && !ONLY.includes(name)) return null;
+  LOOK = { clock: opts.clock ?? 14, rain: !!opts.rain };
+  const DURR = opts.dur || DUR;
   fixWorld();
   const ctx = await setup();
   let t0 = performance.now() + 6000;
@@ -118,8 +122,8 @@ async function run(name, setup, move, teardown) {
   const f0 = frameCount();
   H.start();
   if (window.__hitch) window.__hitch.reset();
-  if ((window.__perfProfile || '').split(',').includes(name)) console.log('[profile] ' + Math.min(DUR - 2000, 15000));
-  await sleep(DUR);
+  if ((window.__perfProfile || '').split(',').includes(name)) console.log('[profile] ' + Math.min(DURR - 2000, 15000));
+  await sleep(DURR);
   const res = H.stop();
   const frames = Math.max(1, res.frames);
   mover = null;
@@ -137,7 +141,7 @@ async function run(name, setup, move, teardown) {
   console.log('[capture] ' + name);
   await sleep(400);
   if (teardown) await teardown(ctx);
-  console.log('[perf-route]', name, JSON.stringify(out));
+  console.error('[perf-route-data]', name, JSON.stringify(out)); // error level: the desktop log keeps only errors, and a crashed run still has its finished routes
   return out;
 }
 
@@ -203,6 +207,105 @@ results.routes.village = ONLY.includes('village') ? await run('village', async (
   v.onGround = false; v.airborne = true; v.rotor = 1; v.vx = v.vy = v.vz = 0; v.speed = 0;
   w.camYaw = a + Math.PI;
 }, async (c) => { c.v.z = c.v.groundZ || 0; c.v.onGround = true; c.v.airborne = false; await sleep(300); p.exitVehicle(map, w); w.vehicles.splice(w.vehicles.indexOf(c.v), 1); }) : null;
+
+// --- province routes (whole province on): named places from worldplaces.js, straight legs between them
+const WPL = await imp('worldplaces');
+const PLACES = WPL.worldPlaceLabels(-1e7, -1e7, 1e7, 1e7);
+const placeAt = (n) => { const q = PLACES.find((x) => x.name === n); if (!q) throw new Error('no place ' + n); return [q.x, q.y]; };
+const safe = async (name, fn) => { try { return await fn(); } catch (e) { console.log('[perf-route-error]', name, String((e && e.stack) || e)); mover = null; return { error: String((e && e.message) || e) }; } };
+// a car on a polyline at a fixed speed: the same shape as the ring route
+const carRoute = (name, pts, speed, opts = {}) => safe(name, () => run(name, async () => {
+  teleport(pts[0][0], pts[0][1]);
+  let pt = null;
+  for (let k = 0; k < 10 && !pt; k++) { await sleep(1500); pt = map.nearestRoadPoint(p.x, p.y, 400, true, true); }
+  if (!pt) throw new Error('no road near the start of ' + name);
+  const v = VEH.spawnVehicleOnRoad(map, pt.road, false, Math.random, false, false, pt);
+  v.road = null; v.speed = 0; v.perfTemp = true;
+  w.vehicles.push(v);
+  p.enterVehicle(v, w);
+  return { v, len: pathLen(pts) };
+}, (c, t) => {
+  const q = at(pts, (Math.max(0, t) * speed) % c.len);
+  const v = c.v;
+  v.x = q.x; v.y = q.y; v.angle = q.ang; v.speed = t > 0 ? speed : 0; v.vx = Math.cos(q.ang) * v.speed; v.vy = Math.sin(q.ang) * v.speed;
+  w.camYaw = q.ang;
+}, async (c) => { p.exitVehicle(map, w); w.vehicles.splice(w.vehicles.indexOf(c.v), 1); }, opts));
+const A7 = ['Groningen', 'Hoogezand', 'Zuidbroek', 'Scheemda', 'Winschoten', 'Bad Nieuweschans'].map(placeAt);
+results.routes.a7 = await carRoute('a7', A7, 33, { dur: 60000 });
+const LAND = ['Loppersum', 'Appingedam', 'Delfzijl'].map(placeAt);
+results.routes.platteland = await carRoute('platteland', LAND, 20, { dur: 40000 });
+// the rail line to Roodeschool/Eemshaven, flown low at train speed (a stand-in for the train: same streaming and rail drawing, a higher camera)
+const RAIL = ['Groningen', 'Winsum', 'Warffum', 'Uithuizen', 'Roodeschool', 'Eemshaven'].map(placeAt);
+results.routes.spoor = await safe('spoor', () => run('spoor', async () => {
+  teleport(RAIL[0][0], RAIL[0][1]);
+  await sleep(2000);
+  const gz = map.groundHeightAt(p.x, p.y, 0) || 0;
+  const v = HF.makeHeli(p.x, p.y, gz, 0);
+  v.perfTemp = true;
+  w.vehicles.push(v);
+  p.enterVehicle(v, w);
+  return { v, len: pathLen(RAIL) };
+}, (c, t) => {
+  const q = at(RAIL, (Math.max(0, t) * 39) % c.len);
+  const v = c.v;
+  v.x = q.x; v.y = q.y; v.z = 14; v.angle = q.ang; v.onGround = false; v.airborne = true; v.rotor = 1;
+  const sp = t > 0 ? 39 : 0;
+  v.vx = Math.cos(q.ang) * sp; v.vy = Math.sin(q.ang) * sp; v.vz = 0; v.speed = sp;
+  w.camYaw = q.ang;
+}, async (c) => { c.v.z = c.v.groundZ || 0; c.v.vx = c.v.vy = 0; c.v.onGround = true; c.v.airborne = false; await sleep(300); p.exitVehicle(map, w); w.vehicles.splice(w.vehicles.indexOf(c.v), 1); }, { dur: 45000 }));
+// by boat: from Zoutkamp out over the water (the first clear water point on a ray)
+results.routes.varen = await safe('varen', () => run('varen', async () => {
+  const SK = await imp('sidejobkit');
+  const [zx, zy] = placeAt('Zoutkamp');
+  teleport(zx, zy);
+  await sleep(3000);
+  const model = { name: 'boat', len: 6, wid: 2.2, maxSpeed: 14, accel: 3, brake: 6, turnRate: 1.2, color: '#d0d0d0' };
+  let boat = null;
+  for (const [dx, dy] of [[0, -1], [1, -1], [-1, -1], [0, 1], [1, 0], [-1, 0]]) {
+    for (let d = 200; d <= 3000 && !boat; d += 200) boat = SK.spawnJobBoat(w, zx + dx * d, zy + dy * d, Math.atan2(dy, dx), model);
+    if (boat) break;
+  }
+  if (!boat) throw new Error('no water to launch a boat near Zoutkamp');
+  boat.perfTemp = true;
+  w.vehicles.push(boat);
+  p.enterVehicle(boat, w);
+  return { v: boat, a: boat.angle, x0: boat.x, y0: boat.y };
+}, (c, t) => {
+  const v = c.v, s = Math.max(0, t) * 7;
+  v.x = c.x0 + Math.cos(c.a) * s; v.y = c.y0 + Math.sin(c.a) * s; v.angle = c.a; v.speed = t > 0 ? 7 : 0; v.vx = Math.cos(c.a) * v.speed; v.vy = Math.sin(c.a) * v.speed;
+  w.camYaw = c.a;
+}, async (c) => { p.exitVehicle(map, w); w.vehicles.splice(w.vehicles.indexOf(c.v), 1); }, { dur: 40000 }));
+// the busy city on foot (the foot route's path at rush hour), at night, and in the rain
+const walkFoot = (c, t) => { const q = at(FOOT, Math.max(0, t) * 6); p.x = q.x; p.y = q.y; p.angle = q.ang; w.camYaw = q.ang; };
+results.routes.druk = await safe('druk', () => run('druk', async () => { teleport(FOOT[0][0], FOOT[0][1]); return {}; }, walkFoot, null, { clock: 17.5 }));
+results.routes.nacht = await safe('nacht', () => run('nacht', async () => { teleport(FOOT[0][0], FOOT[0][1]); return {}; }, walkFoot, null, { clock: 23 }));
+results.routes.regen = await safe('regen', () => run('regen', async () => { teleport(FOOT[0][0], FOOT[0][1]); return {}; }, walkFoot, null, { rain: true }));
+// the ring again for three minutes (only with PERF_ONLY=lek): heap, geometries and textures every 15 s; a leak shows as a climb
+results.routes.lek = await safe('lek', async () => {
+  if (!ONLY.includes('lek')) return null;
+  const samples = [];
+  const t0 = performance.now();
+  const iv = setInterval(() => samples.push([Math.round((performance.now() - t0) / 1000), performance.memory ? Math.round(performance.memory.usedJSHeapSize / 1e6) : null, r.info.memory.geometries, r.info.memory.textures, w.vehicles.length, w.pedestrians.length]), 15000);
+  const o = await run('lek', async () => { teleport(RING[0][0], RING[0][1]); const pt = map.nearestRoadPoint(p.x, p.y, 60, true, true); const v = VEH.spawnVehicleOnRoad(map, pt.road, false, Math.random, false, false, pt); v.road = null; v.speed = 0; v.perfTemp = true; w.vehicles.push(v); p.enterVehicle(v, w); return { v }; },
+    (c, t) => { const q = at(RING, (Math.max(0, t) * 22) % RING_LEN); const v = c.v; v.x = q.x; v.y = q.y; v.angle = q.ang; v.speed = t > 0 ? 22 : 0; v.vx = Math.cos(q.ang) * v.speed; v.vy = Math.sin(q.ang) * v.speed; w.camYaw = q.ang; },
+    async (c) => { clearInterval(iv); p.exitVehicle(map, w); w.vehicles.splice(w.vehicles.indexOf(c.v), 1); }, { dur: 180000 });
+  return { ...o, samples };
+});
+// input to image: a synthetic W keydown to the first frame whose state moved (a software estimate: add one frame of display, no photodiode)
+results.routes.latentie = await safe('latentie', async () => {
+  if (ONLY.length && !ONLY.includes('latentie')) return null;
+  fixWorld(); teleport(FOOT[0][0], FOOT[0][1]); await sleep(5000);
+  const key = (type) => { for (const t of [window, document]) t.dispatchEvent(new KeyboardEvent(type, { key: 'w', code: 'KeyW', bubbles: true })); };
+  const lat = [];
+  for (let i = 0; i < 20; i++) {
+    const x0 = p.x, y0 = p.y;
+    const hit = await new Promise((res) => { key('keydown'); const t1 = performance.now(); const f = () => { if (Math.hypot(p.x - x0, p.y - y0) > 0.001) res(performance.now() - t1); else if (performance.now() - t1 > 1000) res(null); else requestAnimationFrame(f); }; requestAnimationFrame(f); });
+    key('keyup'); await sleep(400);
+    if (hit != null) lat.push(+hit.toFixed(1));
+  }
+  const s = [...lat].sort((a, b) => a - b);
+  return { n: lat.length, p50: s[Math.floor(s.length / 2)] ?? null, max: s[s.length - 1] ?? null, note: 'keydown to first frame whose player position changed, ms; add one frame of display' };
+});
 
 results.routes.pause = await run('pause', async () => { teleport(...P(100, 77)); await sleep(4000); wantMenu = true; PM.openPauseMenu('game'); return {}; }, () => {}, async () => { wantMenu = false; PM.closePauseMenu(); });
 results.routes.sheet = await run('sheet', async () => { teleport(...P(100, 77)); await sleep(4000); wantMenu = true; PM.openPauseMenu('settings'); return {}; }, () => {}, async () => { wantMenu = false; PM.closePauseMenu(); });
