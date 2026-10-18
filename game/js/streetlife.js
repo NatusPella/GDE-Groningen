@@ -13,7 +13,7 @@ import { wijkProfileAt } from './trafficfleet.js';
 import {
   NAMES, SELLER_LINES, SELLER_BUY, BEGGAR_ASK, BEGGAR_THANKS, BEGGAR_NO_COIN, BERNARD_LINES,
   GRENADE_REWARD, GRENADE_FOUND, GRENADE_REPORTED, CARRIED, SKATER_MAX, SKATER_PACE, SKATER_LINES, skaterChance,
-  wijkClothing, wijkBagChance,
+  wijkClothing, wijkBagChance, COURIER_MAX, COURIER_LINES, footCourierChance,
   ONTGROENING, ONTGROENING_MAX, LEADER_LINES, FRESHMAN_LINES, ontgroeningChance, rollMagnet, moverWalkerChance, distToCentre, hourOf, finite,
 } from './streetlifedata.js';
 
@@ -32,6 +32,7 @@ let moverTimer = 20;
 let lineAt = -Infinity;
 let skateTimer = 25;
 let groupTimer = 50;
+let courierTimer = 35;
 let groupLineAt = -Infinity;
 
 export function getStreetLifeState() {
@@ -44,6 +45,7 @@ export function resetStreetLife() {
   lineAt = -Infinity;
   skateTimer = 25;
   groupTimer = 50;
+  courierTimer = 35;
   groupLineAt = -Infinity;
 }
 
@@ -205,7 +207,7 @@ export function pickSkater(map, x, y, hour, rng = Math.random) {
 }
 
 function isMoverCarry(ped) {
-  return ped.carry && ped.carry !== 'paper' && ped.carry !== 'skateboard' && ped.carry !== 'eend';
+  return ped.carry && ped.carry !== 'paper' && ped.carry !== 'skateboard' && ped.carry !== 'eend' && ped.carry !== 'bezorgtas';
 }
 
 function spawnSkater(world, p, hour) {
@@ -274,6 +276,29 @@ export function dressWalkers(world, rng = Math.random) {
   }
 }
 
+// A courier on foot with a big bag on the back, at lunch and dinner time.
+export function pickFootCourier(map, x, y, hour, rng = Math.random) {
+  const prof = wijkProfileAt(map, x, y);
+  return rng() < footCourierChance(prof.key, distToCentre(x, y), hour) * 6;
+}
+
+function spawnCourier(world, p, hour) {
+  let couriers = 0;
+  for (const ped of world.pedestrians) if (ped.carry === 'bezorgtas' && ped.state !== 'dead') couriers++;
+  if (couriers >= COURIER_MAX || !pickFootCourier(world.map, p.x, p.y, hour)) return;
+  for (const ped of spawnPedestriansNear(world.map, p.x, p.y, 1, Math.random)) {
+    if (!finite(ped.x, ped.y)) continue;
+    ped.carry = 'bezorgtas';
+    ped.hasBag = false;
+    ped.paceMul = 1.5;
+    ped.clothing = '#2fb5a8';
+    ped.look = { top: 'jacket', hat: 'cap', hatColor: 0x14403b };
+    ped.speechText = pick(COURIER_LINES);
+    ped.speechUntil = world.time + 3;
+    world.pedestrians.push(ped);
+  }
+}
+
 export function updateStreetLife(dt, world) {
   if (!dt || world.paused || !world.player) return;
   const p = world.player;
@@ -296,6 +321,11 @@ export function updateStreetLife(dt, world) {
     skateTimer = 30 + Math.random() * 30;
     const h = hourOf(world);
     if (!(world.dayNight && world.dayNight.night > 0.5)) spawnSkater(world, p, h);
+  }
+  courierTimer -= dt;
+  if (courierTimer <= 0) {
+    courierTimer = 25 + Math.random() * 25;
+    if (!(world.dayNight && world.dayNight.night > 0.5)) spawnCourier(world, p, hourOf(world));
   }
   groupTimer -= dt;
   if (groupTimer <= 0) {

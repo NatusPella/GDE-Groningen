@@ -244,5 +244,15 @@ ok(D.wijkBagChance('student') > D.wijkBagChance('industrie'), 'students carry mo
   ok(w.pedestrians[0]._wijkDressed && w.pedestrians[1].clothing === '#123456', 'walkers get dressed once, officers keep their uniform');
 }
 
+// --- batch 3: more couriers
+ok(D.CHAINS.length >= 4 && new Set(D.CHAINS.map((c) => c.color)).size === D.CHAINS.length, 'four invented chains, each with its own colour');
+ok(D.footCourierChance('centrum', 100, 19) > 0 && D.footCourierChance('centrum', 100, 4) === 0 && D.footCourierChance('standaard', 3000, 19) === 0, 'couriers on foot at meal times in town only');
+{
+  let c = 0;
+  const r = seeded(21);
+  for (let i = 0; i < 2000; i++) if (S.pickFootCourier(map, centre.x, centre.y, 19, r)) c++;
+  ok(c > 0 && c < 1000, `couriers on foot are occasional (${c})`);
+}
+
 console.log(`${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

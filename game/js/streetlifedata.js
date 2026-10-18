@@ -17,6 +17,7 @@ export const CHAINS = [
   { id: 'happie', name: 'Happie', color: '#9bd630', trim: '#2b3a12' },
   { id: 'flitsmaal', name: 'Flitsmaal', color: '#d6336c', trim: '#3a0f1f' },
   { id: 'gauw', name: 'Gauw Gebracht', color: '#6a3fb5', trim: '#1c1030' },
+  { id: 'pronto', name: 'Pakkie Pronto', color: '#e8812a', trim: '#3a1f0a' },
 ];
 // Wisselwiel bike-share: the front wheel is tinted coral (not blue)
 export const SHARE_TINT = '#ff6a4d';
@@ -67,10 +68,10 @@ export const isNight = (h) => h >= 22.5 || h < 6;
 export function deliveryChance(profileKey, d, hour) {
   const dens = lifeDensity(profileKey, d);
   if (dens <= 0) return 0;
-  let k = 0.05;
-  if (isDinnerTime(hour)) k = 0.2;
-  else if (isLunchTime(hour)) k = 0.1;
-  else if (hour >= 21.5 && hour < 23.5) k = 0.1;
+  let k = 0.08;
+  if (isDinnerTime(hour)) k = 0.32;
+  else if (isLunchTime(hour)) k = 0.16;
+  else if (hour >= 21.5 && hour < 23.5) k = 0.16;
   else if (isNight(hour) || hour < 10) k = 0.02;
   return k * dens;
 }
@@ -305,3 +306,19 @@ export function wijkBagChance(profileKey) {
     default: return 0.3;
   }
 }
+
+// --- delivery on foot (batch 3) -----------------------------------------------------------
+// In the pedestrian centre a courier walks with a big square bag on the back.
+
+export function footCourierChance(profileKey, d, hour) {
+  const dens = lifeDensity(profileKey, d);
+  if (dens < 0.5 || !(isDinnerTime(hour) || isLunchTime(hour))) return 0;
+  return (profileKey === 'centrum' ? 0.05 : profileKey === 'student' ? 0.04 : 0.015) * dens;
+}
+export const COURIER_MAX = 2;
+export const COURIER_LINES = [
+  'Bestelling onderweg, nog warm!',
+  'Wie woont er op nummer 14? Er hangt geen bordje.',
+  'Vijf sterren graag, ik heb ook gelopen.',
+  'Lopend is sneller dan de brug open.',
+];
