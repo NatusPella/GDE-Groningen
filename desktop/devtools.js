@@ -59,6 +59,8 @@ function queryParts() {
     hasFlag('--nobatch') && 'nobatch',
     // --url-flags=simauto,zonderworker: extra ?-switches of devflags.js for this run (A/B metingen, scripts/perf/run.mjs)
     ...(argValue('--url-flags') || '').split(',').filter(Boolean),
+    // --viaducten: the bridge and viaduct profiles of streamed tiles (#235)
+    hasFlag('--viaducten') && 'viaducten',
     argValue('--gfx-advice') && `gpu=${encodeURIComponent(argValue('--gfx-advice'))}`].filter(Boolean);
 }
 
@@ -371,7 +373,7 @@ function runStoryTest(win, dir) {
       done(report.result === 'PASS' && !nanWarnings ? 0 : 1);
     } else if (level === 'error' || level === 3) console.log('[renderer]', message);
   });
-  setTimeout(() => { console.log('[story-test] timeout'); done(2); }, 15 * 60 * 1000);
+  setTimeout(() => { console.log('[story-test] timeout'); done(2); }, (+process.env.GDE_STORY_TIMEOUT_MIN || 15) * 60 * 1000);
 }
 
 module.exports = { isTestRun, trailerSize: TRAILER_SIZE, queryParts, attach };

@@ -15,7 +15,7 @@ const MELDING = { harbourSpeed: 'In de haven stapvoets!' };
 const regel = bijbaanById('veerdienst');
 
 export const veerdienst = {
-  id: 'veerdienst', name: regel.naam, color: '#2f6a4f', glyph: 'rondvaart', boss: 'Kapitein Lauwers', vehicleWord: 'de veerboot',
+  id: 'veerdienst', name: regel.naam, color: '#2f6a4f', glyph: 'rondvaart', boss: 'Kapitein Lauwers', vehicleWord: 'de veerboot', boardText: 'Ga aan boord van de veerboot',
   blurb: regel.blurb, tagline: regel.bedrijf, intro: regel.intro,
   sikkom: (c) => `${regel.naam} (${regel.bedrijf}): ${c.streak} overtochten op tijd`,
 

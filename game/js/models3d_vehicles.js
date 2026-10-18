@@ -1482,7 +1482,10 @@ function busSection(B, x0, x1, W, { front, rear, wheelXs, doorXs }) {
     B.box((inner0 + inner1) / 2, winY0 - 0.02, s * (zs + 0.004), inner1 - inner0, 0.04, 0.01, TRIM);
     if (s === 1) {
       for (const dx of doorXs) {
-        B.box(dx, (BUS_SILL + 0.1 + winY1) / 2, s * (zs + 0.008), 1.25, winY1 - BUS_SILL - 0.05, 0.012, 0x3a4550, G_GLASS);
+        // gesloten deurblad: lichtblauw glas boven een witte onderkant, dicht en dus niet door te kijken
+        // (vroeger donker doorzichtig glas voor een lege romp: een dichte bus zag er open uit)
+        B.box(dx, (BUS_SILL + 0.1 + 1.05) / 2, s * (zs + 0.008), 1.25, 1.05 - BUS_SILL - 0.1, 0.012, BUS_WHITE);
+        B.box(dx, (1.05 + winY1) / 2, s * (zs + 0.008), 1.25, winY1 - 1.05, 0.012, 0x5f8299);
         B.box(dx, (BUS_SILL + 0.1 + winY1) / 2, s * (zs + 0.014), 0.05, winY1 - BUS_SILL - 0.05, 0.01, TRIM);
         for (const e of [-0.64, 0.64]) B.box(dx + e, (BUS_SILL + 0.1 + winY1) / 2, s * (zs + 0.014), 0.06, winY1 - BUS_SILL, 0.012, TRIM);
       }

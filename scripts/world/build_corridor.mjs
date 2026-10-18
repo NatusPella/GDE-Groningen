@@ -32,6 +32,8 @@ import { LINES, TOWNS, loadPlaces, corridorTiles, tileSources, packOf } from './
 import { bakeCityRoutes, railLines } from './cityroutes.mjs';
 import { collectFarNodes, finishFarProps } from './farprops.mjs';
 import { dropDuplicateBridges } from './bridgededupe.mjs';
+import { cutZ, isFlat } from './province_profile.mjs';
+import { segmentStructures, gradeOrder } from '../../game/js/roadprofile.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 export const CORRIDOR_BUILDER = 1;
@@ -383,7 +385,7 @@ export function tileBlob(i, j, list, gid, flags, builder, stats = null, extras =
   const [ox, oy] = G.tileOrigin(i, j);
   const box = [ox, oy, ox + G.TILE_M, oy + G.TILE_M];
   const rows = Object.fromEntries(PER_TILE.map((q) => [q, []]));
-  const mapped = [];
+  const mapped = [], heights = [];
   const pieces = extras && extras.junctions ? new Map() : null;
   for (const f of list) {
     // mapped furniture: in every tile one of its points lies in, one id for it
@@ -400,8 +402,17 @@ export function tileBlob(i, j, list, gid, flags, builder, stats = null, extras =
       continue;
     }
     for (const piece of clipLine(f.row.pts, box)) {
-      const r = { gid: gid[f.kind]++, ...f.row, pts: piece };
+      // a road's height profile (province_profile.mjs) goes into the heights section, cut to the piece
+      const { z: wayZ, ...flatRow } = f.row;
+      const r = { gid: gid[f.kind]++, ...flatRow, pts: piece };
       rows[f.kind].push(r);
+      if (wayZ && f.kind === 'roads') {
+        const z = cutZ(f.row, piece);
+        if (!isFlat(z)) {
+          const st = segmentStructures({ ...r, z }), o = gradeOrder(r);
+          heights.push({ gid: r.gid, pnet: 0, z, st, ly: st.map(() => o) });
+        }
+      }
       if (pieces && f.kind === 'roads') (pieces.get(f.row) || pieces.set(f.row, []).get(f.row)).push(r);
     }
   }
@@ -430,6 +441,7 @@ export function tileBlob(i, j, list, gid, flags, builder, stats = null, extras =
     // a tree: its point, and species, height (dm) and flags (greenery.js)
     type: SECTION_OF[q], rows: q === 'trees' ? rows[q].map((r) => ({ g: r.gid, p: [[r[0], r[1]]], ...(r[2] !== undefined ? { s: r[2], h: r[3], ...(r[4] ? { f: r[4] } : null) } : null) })) : rows[q].map(cleanRow),
   }));
+  if (heights.length) sections.push({ type: G.SECTION.HEIGHTS, rows: heights });
   if (junctions.length) sections.push({ type: G.SECTION.JUNCTIONS, rows: junctions });
   if (nav.length) sections.push({ type: G.SECTION.NAV, rows: nav });
   if (extra.length) sections.push({ type: G.SECTION.FURNITURE, rows: extra });
@@ -443,6 +455,7 @@ export function tileBlob(i, j, list, gid, flags, builder, stats = null, extras =
     for (const q of PER_TILE) if (rows[q].length || q !== 'canopies') stats[q] = (stats[q] || 0) + rows[q].length;
     if (mapped.length) stats.furniture = (stats.furniture || 0) + mapped.length;
     if (junctions.length) stats.junctions = (stats.junctions || 0) + junctions.length;
+    if (heights.length) stats.heights = (stats.heights || 0) + heights.length;
     for (const b of rows.buildings) stats.hsrc[b.hsrc] = (stats.hsrc[b.hsrc] || 0) + 1;
     stats.tiles++;
   }

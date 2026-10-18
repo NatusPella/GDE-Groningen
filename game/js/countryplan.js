@@ -3,7 +3,7 @@ import {
   chash, countryWeight, countryRect, edgeDistance, edgeRoad, maarX, maarY, villageOf, parcelAt,
 } from './countryfield.js';
 import { worldPlaceNames } from './worldplaces.js';
-import { EDGE, initCountryEdge, edgeBlocked } from './countryedge.js';
+import { EDGE, initCountryEdge, edgeBlocked, landOk } from './countryedge.js';
 import { farSolidsNear } from './farprops.js';
 
 // Deterministic layout of everything built on the polder grid past the
@@ -27,7 +27,7 @@ export function ROAD_ROW(bx, by, s) {
 }
 
 export function openLand(x, y) {
-  return edgeDistance(x, y) > EDGE_CLEAR && countryWeight(x, y) >= 0.92;
+  return edgeDistance(x, y) > EDGE_CLEAR && countryWeight(x, y) >= 0.92 && landOk(x, y);
 }
 
 // ------------------------------------------------------------------ farms
