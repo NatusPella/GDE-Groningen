@@ -12,6 +12,7 @@ import { initUiSfx, uiWorldInit, updateUiSfx, uiDomEvent, isUiGestureTarget } fr
 import { updateSkySfx } from './sfx/sky.js';
 import { createScenarioDirector, loopPoints } from './scenariomusic.js';
 import { normalizeTrack, pickTrack, pushHistory, pickJingle, STATION_NAME } from './musicpick.js';
+import { SYNTH_TRACKS, synthRecords, renderTrack, toWav } from './synthmusic.js';
 import * as speech from './speech.js';
 import { drunkLevel } from './drunk.js';
 import { KEYS } from './storagekeys.js';
@@ -1624,6 +1625,28 @@ async function loadGMusicManifest() {
   } catch (e) {
     // no manifest yet / bad JSON / fetch blocked - G-Music just stays silent
   }
+  scheduleSynthRecords();
+}
+
+// The self-made records (synthmusic.js): rendered one at a time in the
+// background, a few seconds apart, and only picked once they are ready.
+function scheduleSynthRecords() {
+  const todo = synthRecords().map(normalizeTrack).filter(Boolean);
+  const next = () => {
+    const t = todo.shift();
+    if (!t) return;
+    try {
+      const tr = SYNTH_TRACKS.find((x) => x.id === t.id);
+      const wav = toWav(renderTrack(tr, 22050), 22050);
+      const el = wireGmusicEl(new Audio(URL.createObjectURL(new Blob([wav], { type: 'audio/wav' }))));
+      el.preload = 'auto';
+      el.gmusicTitle = tr.title;
+      el.gmusicTrack = t;
+      gmusicTracks.push(el);
+    } catch (e) { /* this record is skipped, the radio goes on */ }
+    setTimeout(next, 4000);
+  };
+  setTimeout(next, 6000);
 }
 
 // Station-style playback: jingle, shuffled track, jingle, track, ... all through
