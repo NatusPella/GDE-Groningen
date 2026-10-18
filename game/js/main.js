@@ -69,6 +69,8 @@ import { initSaveGame, updateSaveGame, hasSave, readSave } from './savegame.js';
 import { initWeather, updateWeather } from './weather.js';
 import { initWorldEvents, updateWorldEvents } from './worldevents.js';
 import { initMuggings, updateMuggings } from './muggings.js';
+import { initRoadRage, updateRoadRage } from './roadrage.js';
+import { tryWeaponDropInteract, updateWeaponDrops3D } from './weapondrops.js';
 import { initFlitspaal, updateFlitspaal } from './flitspaal.js';
 import { initWildlife, updateWildlife } from './wildlife.js';
 import { initSkyProps, updateSkyProps } from './skyprops.js';
@@ -161,6 +163,7 @@ function waitForStart(world) {
     updateFx3D(fxDt, world, getScene());
     updateGore3D(fxDt, world, getScene());
     updateKnockFx3D(fxDt, world, getScene());
+    updateWeaponDrops3D(fxDt, world, getScene());
     updateGunFx3D(fxDt, world, getScene());
     update3D(dt, world);
   };
@@ -311,6 +314,7 @@ async function boot() {
   initWeather(world);
   initWorldEvents(world);
   initMuggings(world);
+  initRoadRage(world);
   initFlitspaal(world);
   initWildlife(world);
   initSkyProps(world);
@@ -455,6 +459,7 @@ async function boot() {
     updateFx3D(animDt, world, getScene());
     updateGore3D(animDt, world, getScene());
     updateKnockFx3D(animDt, world, getScene());
+    updateWeaponDrops3D(animDt, world, getScene());
     updateGunFx3D(animDt, world, getScene());
     probe.mark('fx+gore');
     updateCityProps(animDt, world, getScene());
@@ -529,6 +534,7 @@ async function boot() {
       updateCashVan(dt, world);
       tryGarageInteract(world);
       tryMachineInteract(world);
+      tryWeaponDropInteract(world);
       tryStreetLifeInteract(world);
       tryShopInteract(world);
       tryPigeonSpotInteract(world);
@@ -615,6 +621,7 @@ async function boot() {
     updateWeather(dt, world);
     updateWorldEvents(dt, world);
     updateMuggings(dt, world);
+    updateRoadRage(dt, world);
     updateDayNight(dt, world);
     updateCalendar(dt, world);
     updateCheats(dt, world);

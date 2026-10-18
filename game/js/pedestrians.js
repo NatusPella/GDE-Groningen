@@ -405,7 +405,7 @@ function gatherEvents(world) {
   for (const ped of world.pedestrians) {
     if (ped._hp !== undefined && ped.health < ped._hp && world.time - lastPlayerAttackAt < 1.2) {
       if (ped.isCop) { if (world.wanted === 0) world.wanted = 1; }
-      else events.push({ kind: 'hit', x: ped.x, y: ped.y, r: 25, crime: true, victim: ped });
+      else events.push({ kind: 'hit', x: ped.x, y: ped.y, r: 25, crime: !ped.rager, victim: ped }); // hitting a road-rager is self-defence
     }
     ped._hp = ped.health;
   }
@@ -422,7 +422,7 @@ function gatherEvents(world) {
   return events;
 }
 
-function ejectDriver(world, ev) {
+export function ejectDriver(world, ev) {
   const v = ev.vehicle;
   if (v.isBoat || v._mount) return null;
   const [x, y] = findExitSpot(v, 0.3, world.map, [-1, 1]);
@@ -443,6 +443,7 @@ function ejectDriver(world, ev) {
   ped.health = 40;
   ped.noFade = true;
   world.pedestrians.push(ped);
+  if (ev.calm) return ped; // roadrage.js: he steps out on his own, nobody pulled him
   const ox = x - v.x, oy = y - v.y, ol = Math.hypot(ox, oy) || 1;
   if (Math.abs(v.speed) > 2.5) {
     // yanked out of a moving car: tumbles along the road for a bit
