@@ -7,6 +7,7 @@
 import { paintSpeaker } from './speakers.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { boatDryPoints, inWaterPoly, keepBoatOffShore, normalizeAngle, pointInPolygon, clamp } from './util.js';
+import { waterPolyAt } from './waterlevels.js';
 import { Vehicle, resolveVehicleBuildingCollision, vehicleContacts } from './vehicle.js';
 import { getVehicleMesh } from './models3d_vehicles.js';
 import { buildPersonMesh, seatPose, SEAT_CONTACT } from './models3d_people.js';
@@ -535,7 +536,7 @@ export function stopRondvaart(world, only = null) {
   if (w && w.v) {
     const v = w.v;
     v.scripted = false;
-    v.waterPoly = world.map.waterNear(v.x, v.y, 1).find((q) => pointInPolygon(v.x, v.y, q.pts)) || null;
+    v.waterPoly = waterPolyAt(world.map, v.x, v.y);
     if (w.out) v.speed = 0;
   }
   dropDecor(st.boat, 'rvTourists');
