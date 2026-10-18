@@ -451,7 +451,7 @@ export function fromOsm(el, ctx = {}) {
   }
   if (!g || g.length < 2) return out;
   if ((tags.barrier || tags.traffic_calming) && tags.building === undefined && !tags.highway) {
-    for (const row of mappedFromOsm([{ ...el, geometry: g.map(([lat, lon]) => ({ lat, lon })) }])) out.push({ kind: 'furniture', row });
+    for (const row of mappedFromOsm([{ ...el, geometry: g.map(([lat, lon]) => ({ lat, lon })) }], { hedges: true })) out.push({ kind: 'furniture', row });
     if (tags.barrier !== 'hedge') return out;
   }
   const P = project(g);

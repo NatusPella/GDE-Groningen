@@ -38,5 +38,28 @@ ok(CE.edgeBlocked(30002, 30002, 2), 'a rail cell 30 km from the city blocks');
 ok(!CE.edgeBlocked(30200, 30200, 2), 'and its neighbour does not');
 CE.EDGE.ready = false;
 
+// the fences across a tile seam (#124): no hole of 10 m in a row of posts on the border of two 160 m tiles
+{
+  const CS = await import('../game/js/countryside.js');
+  const CF = await import('../game/js/countryfield.js');
+  CF.setCountryBounds([-2000, -2000, 2000, 2000]);
+  const posts = [];
+  for (let tx = 40; tx < 46; tx++) for (let ty = 40; ty < 46; ty++) {
+    const m = (CS.countryTileItems(tx, ty).items.post || { m: [] }).m;
+    for (let q = 0; q < m.length; q += 16) posts.push([m[q + 12], m[q + 14]]);
+  }
+  let seam = 0;
+  for (const axis of [0, 1]) {
+    const rows = new Map();
+    for (const p of posts) { const k = Math.round(p[axis] * 20); (rows.get(k) || rows.set(k, []).get(k)).push(p[1 - axis]); }
+    for (const list of rows.values()) {
+      list.sort((u, v) => u - v);
+      for (let i = 1; i < list.length; i++) { const gap = list[i] - list[i - 1]; if (gap > 6.5 && gap < 13 && Math.floor(list[i - 1] / 160) !== Math.floor(list[i] / 160)) seam++; }
+    }
+  }
+  ok(posts.length > 500, 'the test area has fences', String(posts.length));
+  ok(seam <= posts.length * 0.004, 'a seam gap in less than 0.4% of the posts', `${seam} of ${posts.length}`);
+}
+
 console.log(`${n} checks, ${fails} failed`);
 process.exit(fails ? 1 : 0);

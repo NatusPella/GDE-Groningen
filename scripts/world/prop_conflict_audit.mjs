@@ -22,6 +22,7 @@ const PW = await import('../../game/js/provinceworld.js');
 const CE = await import('../../game/js/countryedge.js');
 const CF = await import('../../game/js/countryfield.js');
 const CS = await import('../../game/js/countryside.js');
+const SF = await import('../../game/js/streetfurniture.js');
 
 // Wat --strict toestaat: alleen dalen. Tellers per combinatie over de standaardvensters.
 // (gemeten op de tegels van 18 oktober; zie de uitkomst van het onderzoek en CHANGELOG)
@@ -62,7 +63,7 @@ function loadTiles(out, index, keys) {
     fs.readSync(fds.get(f), buf, 0, t.len, t.off);
     const blob = G.decodeBlob(new Uint8Array(zlib.inflateRawSync(buf)));
     const rows = (ty) => ((blob.sections.find((s) => s.type === ty) || { rows: [] }).rows).filter((r) => r.pts && r.pts.length > 1).map((r) => ({ ...r, bounds: bounds(r.pts) }));
-    res.set(k, { buildings: rows(G.SECTION.BUILDINGS), roads: rows(G.SECTION.ROADS), water: rows(G.SECTION.WATER), rails: rows(G.SECTION.RAILS) });
+    res.set(k, { buildings: rows(G.SECTION.BUILDINGS), roads: rows(G.SECTION.ROADS), water: rows(G.SECTION.WATER), rails: rows(G.SECTION.RAILS), furniture: rows(G.SECTION.FURNITURE) });
   }
   for (const fd of fds.values()) fs.closeSync(fd);
   return res;
@@ -79,6 +80,7 @@ function mapOf(tiles) {
     buildingsNear: near(all('buildings')), roadsNear: near(all('roads')),
     waterNear: near(water.filter((w) => w.nav !== undefined)), flatWaterNear: near(water.filter((w) => w.nav === undefined)),
     railNear: near(rails),
+    furniture: all('furniture'),
     all: { water, rails, roads: all('roads'), buildings: all('buildings') },
   };
 }
@@ -162,15 +164,34 @@ export function auditWindow(out, index, key, { rails = [] } = {}) {
           if (pts.some(([x, y]) => J.onRoad(x, y))) add(N + 'OnRoad');
           if (pts.some(([x, y]) => J.inWater(x, y))) add(N + 'InWater');
           if (pts.some(([x, y]) => J.inBuilding(x, y))) add(N + 'InBuilding');
-          if (kind !== 'wire' && CF.countrySurface(px, py) === 'sloot') add(N + 'OnDitch');
+          if (pts.some(([x, y]) => CF.countrySurface(x, y) === 'sloot')) add(N + 'OnDitch');
         }
       }
-      for (const a of tile.animals || []) {
+      // grazing animals (a goose or a duck belongs in the water)
+      for (const a of (tile.animals || []).filter((q) => q.kind !== 'goose' && q.kind !== 'duck')) {
         add('cattle');
-        if (J.inWater(a.x, a.y)) add('cattleInWater');
+        if (J.inWater(a.x, a.y)) { add('cattleInWater'); if (process.env.AUDIT_DEBUG) console.error('inWater', a.kind, Math.round(a.x), Math.round(a.y), map.all.water.filter((w) => inPoly(a.x, a.y, w.pts)).map((w) => w.kind + '/' + w.nav + '/' + (w.flat ? 'flat' : ''))); }
         if (J.onRoad(a.x, a.y)) add('cattleOnRoad');
         if (J.onRail(a.x, a.y)) add('cattleOnRail');
       }
+    }
+  }
+  // de gemapte OSM-hekken en -heggen (streetfurniture.js, zoals streetfurniture3d.js ze per tegel zet): over spoor, weg, gebouw, water
+  {
+    const wr = 1000 * 0.71 + 60, wx = ox + 500, wy = oy + 500;
+    const mapped = map.furniture.filter((m) => m.pts && m.pts.some((q) => q[0] >= ox - 50 && q[0] < ox + 1050 && q[1] >= oy - 50 && q[1] < oy + 1050));
+    const res = SF.furnitureForTile({
+      x0: ox, y0: oy, size: 1000, roads: map.roadsNear(wx, wy, 1000 * 0.71 + 220), mapped,
+      water: map.waterNear(wx, wy, wr).concat(map.flatWaterNear(wx, wy, wr)), rails: map.railNear(wx, wy, wr), buildings: map.buildingsNear(wx, wy, wr),
+      opts: { towns: [] },
+    });
+    for (const it of res.items) {
+      if ((it.k !== 'fence' && it.k !== 'hedge') || it.src !== 'osm') continue;
+      add('osmPieces');
+      if (J.onRail(it.x, it.y)) add('osmOnRail');
+      if (J.onRoad(it.x, it.y)) add('osmOnRoad');
+      if (J.inWater(it.x, it.y)) add('osmInWater');
+      if (J.inBuilding(it.x, it.y)) add('osmInBuilding');
     }
   }
   // dubbele palen: een buur binnen 1,5 m
@@ -181,11 +202,18 @@ export function auditWindow(out, index, key, { rails = [] } = {}) {
     for (let a = -1; a <= 1 && !dup; a++) for (let b = -1; b <= 1 && !dup; b++) for (const [qx, qy] of cell.get((Math.floor(x / 2) + a) * 100003 + Math.floor(y / 2) + b) || []) if ((qx !== x || qy !== y) && Math.hypot(qx - x, qy - y) < 1.5) { dup = true; break; }
     if (dup) add('doublePosts');
   }
-  // gaten op de tegelnaden: twee opeenvolgende palen van één rij met de naad ertussen en meer dan 6 m uit elkaar
-  const seams = new Map();
-  for (const [x, y] of posts) {
-    const k = Math.round(y * 2) + ':' + 'r';
-    (seams.get(k) || seams.set(k, []).get(k)).push(x);
+  // gaten op de tegelnaden: twee opeenvolgende palen van één rij (zelfde x of zelfde y) met een naad van 160 m
+  // ertussen en meer dan 6,5 m (en minder dan 13 m) uit elkaar: de draad en een paal ontbreken er
+  for (const axis of [0, 1]) {
+    const rows = new Map();
+    for (const p of posts) { const k = Math.round(p[axis] * 20); (rows.get(k) || rows.set(k, []).get(k)).push(p[1 - axis]); }
+    for (const list of rows.values()) {
+      list.sort((u, v) => u - v);
+      for (let i = 1; i < list.length; i++) {
+        const gap = list[i] - list[i - 1];
+        if (gap > 6.5 && gap < 13 && Math.floor(list[i - 1] / 160) !== Math.floor(list[i] / 160)) add('seamGaps');
+      }
+    }
   }
   CE.setExtraBlocked(null);
   CF.setProvinceBlocks(null);
@@ -235,7 +263,7 @@ async function main() {
   const total = sumWindows(rows.map((r) => r.c));
   const perStreek = {};
   for (const r of rows) { const s = perStreek[r.streek] || (perStreek[r.streek] = []); s.push(r.c); }
-  const keys = ['posts', 'wires', 'hedges', 'cattle', 'postOnRail', 'wireOnRail', 'hedgeOnRail', 'postOnRoad', 'wireOnRoad', 'hedgeOnRoad', 'postInWater', 'wireInWater', 'hedgeInWater', 'postInBuilding', 'wireInBuilding', 'hedgeInBuilding', 'postOnDitch', 'hedgeOnDitch', 'doublePosts', 'cattleInWater', 'cattleOnRoad', 'cattleOnRail'];
+  const keys = ['posts', 'wires', 'hedges', 'cattle', 'postOnRail', 'wireOnRail', 'hedgeOnRail', 'postOnRoad', 'wireOnRoad', 'hedgeOnRoad', 'postInWater', 'wireInWater', 'hedgeInWater', 'postInBuilding', 'wireInBuilding', 'hedgeInBuilding', 'postOnDitch', 'wireOnDitch', 'hedgeOnDitch', 'doublePosts', 'seamGaps', 'osmPieces', 'osmOnRail', 'osmOnRoad', 'osmInWater', 'osmInBuilding', 'cattleInWater', 'cattleOnRoad', 'cattleOnRail'];
   if (args.includes('--json')) { console.log(JSON.stringify({ total, perStreek: Object.fromEntries(Object.entries(perStreek).map(([s, l]) => [s, sumWindows(l)])) })); }
   else {
     console.log(`${all.length} vensters (${W.rail.length} met spoor, ${W.random.length} willekeurig), seed ${opt('seed', 7)}`);

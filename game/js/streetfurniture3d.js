@@ -271,7 +271,10 @@ function tileItems(i, j) {
   // (the tiles' flat water too: a fence is not drawn across it)
   const wx = x0 + TILE_M / 2, wy = y0 + TILE_M / 2, wr = TILE_M * 0.71 + 60;
   const water = map.waterNear(wx, wy, wr).concat(map.flatWaterNear ? map.flatWaterNear(wx, wy, wr) : []);
-  const res = furnitureForTile({ x0, y0, size: TILE_M, roads, mapped, water, places: worldSignPlaces() || DESTINATIONS, opts: { ...GAME_OPTS, towns: worldTownSigns() } });
+  // the track and the houses of the tiles round it: a mapped fence is not drawn through them (#124)
+  const rails = (map.railNear ? map.railNear(wx, wy, wr) : []).concat(map.rails || []);
+  const buildings = map.buildingsNear ? map.buildingsNear(wx, wy, wr) : [];
+  const res = furnitureForTile({ x0, y0, size: TILE_M, roads, mapped, water, rails, buildings, places: worldSignPlaces() || DESTINATIONS, opts: { ...GAME_OPTS, towns: worldTownSigns() } });
   tiles.set(key, t = { items: res.items, colliders: res.colliders });
   return t.items;
 }

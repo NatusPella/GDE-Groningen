@@ -80,6 +80,10 @@ const rows = SF.mappedFromOsm([
 ]);
 ok(rows.length === 4 && rows.find((r) => r.k === 'noise_barrier').h === 5, 'OSM rows', JSON.stringify(rows.map((r) => r.k)));
 
+// a mapped hedge is a row only where asked (the province); the city keeps its own
+const hedgeEl = { type: 'way', id: 9, tags: { barrier: 'hedge' }, geometry: [{ lat: 53.22, lon: 6.56 }, { lat: 53.2201, lon: 6.5605 }] };
+ok(SF.mappedFromOsm([hedgeEl]).length === 0 && SF.mappedFromOsm([hedgeEl], { hedges: true }).map((r) => r.k).join() === 'hedge', 'barrier=hedge is a row for the province only');
+
 // the map
 const root = new URL('../game/', import.meta.url);
 const data = JSON.parse(fs.readFileSync(new URL('citymap.json', root)));
@@ -101,6 +105,24 @@ const gantry = rep.counts.gantry ? FA.generateAll(data).flatMap((t) => t.items).
 F3.updateStreetFurniture3D(gantry.x, gantry.y, true);
 const st = F3.furnitureStats();
 ok(st.drawn > 50 && st.kinds >= 3 && st.kinds <= 10, 'drawn: a handful of instanced meshes', JSON.stringify(st));
+
+// a mapped fence is not drawn over the track, a footway or a house (#124)
+{
+  const SF = await import('../game/js/streetfurniture.js');
+  const fence = { k: 'fence', pts: [[10, 500], [990, 500]] };
+  const base = { x0: 0, y0: 0, size: 1000, roads: [], mapped: [fence], water: [], opts: { towns: [] } };
+  const count = (extra) => SF.furnitureForTile({ ...base, ...extra }).items.filter((i) => i.k === 'fence').length;
+  const free = count({});
+  ok(free > 300, 'a free fence is 3 m pieces all along', String(free));
+  const rail = count({ rails: [{ pts: [[500, 400], [500, 600]] }] });
+  ok(rail < free && free - rail >= 1 && free - rail <= 4, 'the pieces on a track are left out', free + ' vs ' + rail);
+  const foot = count({ roads: [{ cat: 'foot', width: 2, pts: [[300, 400], [300, 600]], name: '', type: 'footway' }] });
+  ok(foot < free && free - foot <= 3, 'and on a footway', free + ' vs ' + foot);
+  const house = count({ buildings: [{ pts: [[600, 490], [640, 490], [640, 510], [600, 510]] }] });
+  ok(house < free && free - house >= 10, 'and in a house', free + ' vs ' + house);
+  const past = count({ rails: [{ pts: [[500, 560], [500, 700]] }] });
+  ok(past === free, 'a track that does not touch the fence leaves it whole', free + ' vs ' + past);
+}
 
 console.log(`${n - fails}/${n} furniture checks passed`);
 process.exit(fails ? 1 : 0);
