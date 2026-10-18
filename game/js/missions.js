@@ -2697,7 +2697,7 @@ function updateHeliStage(dt, world, def, st, S) {
   }
   if (S.started || isCinematicActive()) return;
   if (p.inVehicle && !p.inVehicle.storyDemo) { hint(world, 'Uitstappen: Rotor Roelf wacht bij zijn heli.'); return; }
-  if (S.target && dist(p.x, p.y, S.target.x, S.target.y) > 30) { hint(world, 'Naar het helidek van Rotor Roelf, op Eelde.'); return; }
+  if (S.target && dist(p.x, p.y, S.target.x, S.target.y) > 30) { hint(world, st.hint || 'Naar het helidek van Rotor Roelf, op Eelde.'); return; }
   S.started = startHeliRun({ variant: st.variant, onFinish: (res) => { S.result = res; } });
   if (!S.started && S.t > 10) { world.addMessage('De heli wil niet opstijgen. Rotor Roelf vliegt zelf, en Dokter Dijkstra brengt de Eierbal.', 4); nextStage(world, def); }
 }
