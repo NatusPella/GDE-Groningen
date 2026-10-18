@@ -11,17 +11,15 @@ import { hudDate } from './hudcalendar.js';
 import { streamPending } from './scene3d.js';
 import { placeLabel } from './hud_panel.js';
 import { LANDMARK_LINES } from './placelines.js';
-import { getSettings } from './settings.js';
+import { JUMP_M as JM, loadKind, stepProgress, startProgress, litTiles, pickTips, buildLines, TILE_COUNT, LINE_S } from './loadlogic.js';
 
 const IMAGES = { vismarkt: 'Vismarkt in Groningen, overdag', luchtfoto: 'Luchtfoto van de binnenstad', rondvaart: 'Een rondvaartboot op de gracht', kermis: 'De kermis bij avond', ringrace: 'De ringweg', achtervolging: 'Een straat bij nacht', duif: 'Grunn van boven' };
 const CITY_IMAGES = ['vismarkt', 'luchtfoto', 'rondvaart', 'duif'];
 let tips = [];
-export const setLoadTips = (list) => { tips = list.filter((t) => !/^Tip: (Esc|V |M )/.test(t) || true); };
+export const setLoadTips = (list) => { tips = [...list]; };
+let lastTip = '';
 
-const MIN_SAVE_S = 2.2;
-const MIN_TRAVEL_S = 1.4;
-const MAX_S = 12;
-export const JUMP_M = 700;
+export const JUMP_M = JM;
 
 let css = false;
 let active = null;
@@ -58,31 +56,31 @@ function ensureCss() {
   document.head.appendChild(link);
 }
 
-// opts: { kind: 'save' | 'travel', x, y, name, instant }
+// opts: { kind: 'save' | 'travel' | 'snel', x, y, name, instant, from }
+// snel is the small hop (fast travel nearby): only the place and the tiles.
 // Returns { done: Promise, el }. One at a time.
 export function startLoadScreen(world, opts = {}) {
   if (active) return active;
   ensureCss();
-  const kind = opts.kind === 'save' ? 'save' : 'travel';
   const p = world.player;
   const x = Number.isFinite(opts.x) ? opts.x : p.x, y = Number.isFinite(opts.y) ? opts.y : p.y;
+  const kind = ['save', 'travel', 'snel'].includes(opts.kind) ? opts.kind : 'travel';
   let place = { name: opts.name || '', country: false, district: '' };
   try { place = { ...place, ...placeLabel(world, x, y) }; } catch (e) { /* the label is a nicety */ }
   const view = (() => { try { return getStoryView(); } catch (e) { return null; } })();
   const date = hudDate(world);
   const img = pickImage(world, place);
   const line = place.line || LANDMARK_LINES[place.name] || '';
-  const tipText = (t) => t.replace(/^Tip: /, '').replace(/^./, (c) => c.toUpperCase());
-  const firstSentence = (t) => (t.match(/^.*?[.!?](\s|$)/) || [t])[0].trim();
   // one short line at a time: where you are going or the story so far, then tips
-  const lead = kind === 'save' ? ['Eerder in het verhaal', firstSentence(recapText(view))] : ['Onderweg', line || 'Even geduld, de stad bouwt zich op.'];
-  const pool = [lead];
-  const shuffled = [...tips].sort(() => Math.random() - 0.5).slice(0, 4);
-  for (const t of shuffled) pool.push(['Wist je dat', firstSentence(tipText(t))]);
+  const firstSentence = (t) => (t.match(/^.*?[.!?](\s|$)/) || [t])[0].trim();
+  const lead = kind === 'save' ? ['Eerder in het verhaal', firstSentence(recapText(view))] : ['Onderweg', line];
+  const picked = kind === 'snel' ? [] : pickTips(tips, 3, Math.random, lastTip);
+  if (picked.length) lastTip = picked[picked.length - 1];
+  const pool = buildLines(kind, lead, picked);
 
   const el = document.createElement('div');
   el.id = 'load-screen';
-  el.className = 'ls' + (opts.instant || kind === 'save' ? ' instant' : '');
+  el.className = 'ls ls-' + kind + ' instant';
   el.setAttribute('role', 'progressbar');
   el.setAttribute('aria-label', 'Laden');
   el.innerHTML =
@@ -97,7 +95,7 @@ export function startLoadScreen(world, opts = {}) {
       '</div>' +
       '<div class="ls-bottom">' +
         '<div class="ls-tip"><span class="ls-tip-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.8.8 1 1.5 1 2.5h6c0-1 .2-1.7 1-2.5A6 6 0 0 0 12 3z"/></svg></span><div><span></span><p></p></div></div>' +
-        '<div class="ls-prog"><div class="ls-bar"><i></i></div></div>' +
+        '<div class="ls-prog"><div class="ls-tiles" aria-hidden="true">' + '<i></i>'.repeat(TILE_COUNT) + '</div><div class="ls-bar"><i></i></div></div>' +
       '</div>' +
     '</div>';
   document.body.appendChild(el);
@@ -109,9 +107,11 @@ export function startLoadScreen(world, opts = {}) {
   const lineKick = el.querySelector('.ls-tip div span');
   const lineText = el.querySelector('.ls-tip p');
   const tipBox = el.querySelector('.ls-tip');
+  const tiles = [...el.querySelectorAll('.ls-tiles i')];
   let lineI = -1, lineAt = -1e9;
-  const LINE_S = 4.5;
+  const lineS = LINE_S[kind];
   const nextLine = (now) => {
+    if (!pool.length) { tipBox.hidden = true; lineAt = Infinity; return; }
     lineI = (lineI + 1) % pool.length;
     lineAt = now;
     lineKick.textContent = pool[lineI][0];
@@ -121,15 +121,14 @@ export function startLoadScreen(world, opts = {}) {
     tipBox.classList.add('swap');
   };
   const t0 = performance.now();
-  const min = (kind === 'save' ? MIN_SAVE_S : MIN_TRAVEL_S) * 1000;
-  let total = 0, shown = 0, calm = 0, frames = 0;
+  let prog = startProgress();
   let res;
   const done = new Promise((r) => { res = r; });
   const finish = () => {
     world.uiPaused = wasPaused;
     el.classList.remove('on');
     el.classList.add('out');
-    setTimeout(() => { el.remove(); }, 700);
+    setTimeout(() => { el.remove(); }, kind === 'snel' ? 450 : 700);
     active = null;
     res();
   };
@@ -137,19 +136,13 @@ export function startLoadScreen(world, opts = {}) {
     if (!el.isConnected) return;
     const now = performance.now();
     const st = streamPending();
-    const pending = st.buildings + st.roads;
-    frames++;
-    // the first frames have not looked at the new place yet
-    if (frames > 3) total = Math.max(total, pending);
-    const k = frames <= 3 ? 0 : total ? 1 - pending / total : 1;
-    shown = Math.max(shown, Math.min(1, k));
-    const timeK = Math.min(1, (now - t0) / min);
-    const bar = Math.min(shown, 0.04 + timeK * 0.96);
-    fill.style.transform = `scaleX(${bar.toFixed(3)})`;
-    el.setAttribute('aria-valuenow', String(Math.round(bar * 100)));
-    if (now - lineAt >= LINE_S * 1000) nextLine(now);
-    calm = frames > 3 && pending === 0 ? calm + 1 : 0;
-    if ((now - t0 >= min && calm >= 12) || now - t0 > MAX_S * 1000) { fill.style.transform = 'scaleX(1)'; finish(); return; }
+    prog = stepProgress(prog, st.buildings + st.roads, (now - t0) / 1000, kind);
+    fill.style.transform = `scaleX(${prog.bar.toFixed(3)})`;
+    const lit = litTiles(prog.bar);
+    tiles.forEach((t, i) => t.classList.toggle('lit', i < lit));
+    el.setAttribute('aria-valuenow', String(Math.round(prog.bar * 100)));
+    if (now - lineAt >= lineS * 1000) nextLine(now);
+    if (prog.done) { finish(); return; }
     requestAnimationFrame(step);
   };
   requestAnimationFrame(step);
@@ -169,6 +162,6 @@ export function watchJumps(world, { swallow = false, hold = false } = {}) {
   const moved = lastX == null ? 0 : Math.hypot(p.x - lastX, p.y - lastY);
   lastX = p.x; lastY = p.y;
   if (swallow || active || moved < JUMP_M) return;
-  startLoadScreen(world, { kind: 'travel', x: p.x, y: p.y });
+  startLoadScreen(world, { kind: loadKind(moved), x: p.x, y: p.y });
 }
 export function resetJumpWatch() { lastX = null; }
