@@ -32,3 +32,10 @@ export function landingGuide(v, pad) {
   else { state = 'goed'; text = 'Zo is het goed: rustig zakken'; }
   return { state, text, dist, alt, hs, vs, inCircle, ok: state === 'goed' || state === 'zakken' };
 }
+
+// kleur van de landingscirkel op de grond bij de stand van de landing
+export function guideColor(state) {
+  if (state === 'goed' || state === 'geland') return 0x5dff7a;
+  if (state === 'te snel' || state === 'te hard') return 0xff5a3c;
+  return 0xffc21a;
+}
