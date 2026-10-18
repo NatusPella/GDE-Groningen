@@ -50,5 +50,12 @@ ok(!r2.skipped && M.aankomst(r2, { x: 0, y: 0 }, 99).aankomstS === M.PLAYED_ARRI
 const t0 = r2.t;
 M.stepRit(r2, 5, { skip: true });
 ok(r2.t === t0, 'done stays done');
+// ondertitels
+const r3 = M.startRit(plan);
+ok(/Instappen bij Grunn/.test(M.ondertitel(r3)), 'subtitle: boarding', M.ondertitel(r3));
+r3.t = plan.playS * 0.5;
+ok(/Overstappen op Zuid/.test(M.ondertitel(r3)), 'subtitle: transfer', M.ondertitel(r3));
+r3.t = plan.playS - 0.1;
+ok(/Volgende halte: Winsum/.test(M.ondertitel(r3)), 'subtitle: arriving', M.ondertitel(r3));
 console.log(`${n - fails}/${n} meerijden`);
 process.exit(fails ? 1 : 0);
