@@ -28,6 +28,7 @@ export const WATER_KINDS = {
   diep: { depth: 2.4, nav: 3 },     // city canals, diepen, havens: tour boats
   vaart: { depth: 1.4, nav: 2 },    // narrow canals and vaarten: sloepen
   vijver: { depth: 1.5, nav: 1 },   // ponds and park lakes: canoes, pedalos
+  zee: { depth: 8.0, nav: 4 },      // the sea off the coast (vaarnet.js patches: Eems, Dollard)
   meer: { depth: 3.0, nav: 3, level: -1.0 }, // open lakes (province): their own peil, a tour boat sails
   sloot: { depth: 0.6, nav: 1, level: -0.8 }, // ditches: waded, a canoe at most
 };
@@ -58,6 +59,17 @@ export const DRAFT = {
 };
 // a walker stands in water up to this deep (wades); deeper, he swims
 export const WADE_MAX = 1.2;
+// The shipping waterways of the province by name (CEMT class III and up: barges
+// of 4.2 m air draft sail them). The map cuts a canal into strips whose width
+// (2 A / P) says 'diep', so nav alone keeps a barge in the city: a polygon with
+// one of these names is a canal of class 4 (vaarnet.js, scripts/world/vaarnet.mjs).
+export const MAIN_WATERWAYS = /^(Eemskanaal|Van Starkenborghkanaal|Winschoterdiep|Noord-Willemskanaal|Reitdiep|Lauwers)/;
+export function promoteMainWaterway(poly) {
+  if (!poly || poly.nav === undefined || poly.nav < 3 || poly.nav >= 4 || !poly.name || !MAIN_WATERWAYS.test(poly.name)) return false;
+  poly.nav = 4;
+  if (poly.kind === 'diep') { poly.kind = 'kanaal'; poly.dp = WATER_KINDS.kanaal.depth; }
+  return true;
+}
 // the deck of a city bridge: its top at the road, its soffit this far below
 export const BRIDGE_DECK_T = 0.5;
 
