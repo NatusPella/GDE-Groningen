@@ -1,7 +1,7 @@
 // Headless screenshots of the HUD and the menus at 720p, 1080p and 4K (#92,
 // #34, #33). One Electron at a time, a throwaway profile that is removed again,
 // and the process is closed when the run ends or times out.
-//   node scripts/ui_shots.mjs [--out=<map>] [--sizes=1280x720,1920x1080,3840x2160] [--only=voet,auto,garage]
+//   node scripts/ui_shots.mjs [--out=<map>] [--sizes=1280x720,1920x1080,3840x2160] [--only=voet,auto,garage] [--scenes=<eigen scenebestand>]
 // Needs `cd desktop && npm install && npm run stage` once. GDE_ELECTRON=<pad>
 // points at another electron binary (a worktree has no node_modules of its own).
 import { spawn, spawnSync } from 'node:child_process';
@@ -15,6 +15,7 @@ const arg = (n, d) => { const a = process.argv.find((x) => x.startsWith('--' + n
 const out = path.resolve(arg('out', path.join(os.tmpdir(), 'gde-ui-shots')));
 const sizes = arg('sizes', '1280x720,1920x1080,3840x2160').split(',');
 const only = arg('only', '');
+const scenes = path.resolve(arg('scenes', path.join(root, 'scripts', 'ui', 'shots_scenes.js')));
 const bin = process.env.GDE_ELECTRON || path.join(root, 'desktop', 'node_modules', '.bin', process.platform === 'win32' ? 'electron.cmd' : 'electron');
 if (!fs.existsSync(bin)) { console.error('Geen electron gevonden op', bin, '(zie de kop van dit bestand)'); process.exit(2); }
 
@@ -39,7 +40,7 @@ for (const size of sizes) {
   const profDir = path.join(os.tmpdir(), profile);
   fs.rmSync(profDir, { recursive: true, force: true });
   const script = path.join(out, `_scenes-${size}.js`);
-  fs.writeFileSync(script, `window.__shotsOnly = ${JSON.stringify(only)};\n` + fs.readFileSync(path.join(root, 'scripts', 'ui', 'shots_scenes.js'), 'utf8'));
+  fs.writeFileSync(script, `window.__shotsOnly = ${JSON.stringify(only)};\n` + fs.readFileSync(scenes, 'utf8'));
   // devtools adds -<scene> to the name for every capture
   const png = path.join(out, size + '.png');
   const args = ['.', '--windowed', '--stil', '--force-device-scale-factor=1', '--window-size=' + size, '--smoke-test=' + png, '--perf-script=' + script];
