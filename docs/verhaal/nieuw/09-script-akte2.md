@@ -11,10 +11,10 @@ RIKUS (radio): Storingsbericht: de Krolbrug is in storing. [BEHOUDEN]
 ## [M07.1] Al het vet van Grunn: intro – Stad, Bornholmstraat – tankwagen
 (regie: dinsdag 18 augustus, ochtend, de dag na de kraak. Tessa en Tammo schuilen achter een muur. Op het terrein staat de tankwagen "Us Mem Vet" tussen twee bewakingswagens. Op de snackbars in de buurt hangen gele stickers: US MEM SNACKS, EXCLUSIEF LEVERANCIER. De hele stad staat in de rij met lege pannen. Gameplay: banden van de bewakingswagens doorsteken, de tankwagen kapen en naar de Oosterpoort rijden.)
 TESSA: De bal is weg en wij staan op de camera. Eerlijk winnen kan nog: we bakken zelf, met Oma's recept. Dan moet Jelle eerst ergens gestopt worden. [NIEUW]
-TAMMO: Plakje voor plakje. [NIEUW]
-TESSA: Jelle koopt het vet van heel Grunn. Zonder vet geen oefenronde, en zonder oefenronde geen Snackprijs. Dit is plakje twee, Tammo. [NIEUW]
-TAMMO: Plakje twee. [NIEUW]
-TESSA: Plakje één kregen we niet terug. Dit plakje kunnen we nog winnen. [NIEUW]
+TAMMO: Salamitactiek. Plakje voor plakje. [NIEUW]
+TESSA: Jelle koopt het vet van heel Grunn. Zonder vet geen oefenronde, en zonder oefenronde geen Snackprijs. [NIEUW]
+TAMMO: En de bal? [NIEUW]
+TESSA: Die kregen we niet terug. Het vet kunnen we nog winnen. [NIEUW]
 TESSA: Banden stuk, tankwagen pakken, naar de Oosterpoort. [BEHOUDEN]
 TAMMO: En de Krolbrug? [BEHOUDEN]
 TESSA: Zie je. Daar kun je op rekenen. [BEHOUDEN]
@@ -122,7 +122,7 @@ APP TAMMO→RIKUS (stil): Iedereen kijkt naar Kiekdoar. Niemand naar ons. [BEHOU
 
 ## [M09.1] Heel aankomen is ook een kunst: intro – Hogeland, Warffum, Geesjes pastorie – trekker
 (regie: woensdag 19 augustus, ochtend. Een pastorie bij een wierdekerk. Geesje, 84, in een schort. Naamkaart: GEESJE. Gameplay: breekbare eieren heel naar de kerkkelder brengen, over wierdepaden.)
-GEESJE: Ik ben Geesje, kosteres van de kerk hier in Warffum. Trijntje belde. [NIEUW]
+GEESJE: Jullie zijn van Trijntje. Het zijn eieren, geen relikwieën. Maar ik ben kosteres, dus ik behandel ze zo. [NIEUW]
 TESSA: Oma Trijntje stuurt ons voor de eieren. Het recept van 1953 heeft er zestig nodig. [NIEUW]
 GEESJE: Jelle Terpstra heeft alle eieren van het Hogeland gekocht, behalve de mijne. Mijn kippen hebben geen contract. [NIEUW]
 GEESJE: Jullie brengen ze heel naar de kerkkelder in Usquert. Daar is het koel, en daar komt Jelle niet. [NIEUW]
@@ -165,7 +165,7 @@ GEESJE: Dan koopt u een eierkoek. [NIEUW]
 DOUWE: …Hè. [BEHOUDEN]
 
 ## [M09.5] Heel aankomen is ook een kunst: herhaling – Hogeland, Usquert – trekker
-GEESJE: De kippen leggen weer. Dat is jullie schuld. [NIEUW]
+GEESJE: Weer eieren? De kippen sturen een kaartje. [NIEUW]
 
 ## [M10.1] Een trekker-limo op de wierde: intro – Hogeland, Usquert, de kerk – quad
 (regie: woensdag 19 augustus, middag. Een zwarte trekker-limo rijdt het erf op, met vlaggetjes. Jelle stapt uit met een gouden koffer in zijn hand, Durk en Douwe achter hem. Gameplay: met een quad over wierdepaden en door een kerktuin, de limo van je afhouden.)
@@ -216,7 +216,8 @@ BUSCHAUFFEUR: Uitstappen bij de haven, jongens. Dan zie je het water. [NIEUW]
 
 ## [M11.1] Geleend van de Friezen: intro – Lauwersmeer, Zoutkamp – rubberboot
 (regie: donderdag 20 augustus, middag. Zoutkamp, de haven. Naamkaart: KAPITEIN KLAAS. Gameplay: met de rubberboot een skûtsje inhalen en aan boord springen; later, bij laag water, zout halen van de kwelder en onopgemerkt blijven voor de kustwacht.)
-KAPITEIN KLAAS: Ik ben Klaas. Ik viste dertig jaar fietsen uit de Diepenring, nu vis ik ze uit het Reitdiep. Oma Trijntje belde. [NIEUW]
+KAPITEIN KLAAS: Trijntje belde. Ik viste dertig jaar fietsen uit de Diepenring. Nu vis ik ze uit het Reitdiep. Bijna niemand mist ze. [NIEUW]
+KAPITEIN KLAAS: Wil je weten wat de vissers hier echt zeggen, ga dan op het Leugenbankje zitten. Daar liegen ze allemaal, behalve ik. [NIEUW]
 KAPITEIN KLAAS: Het havenkantoor meldt dat Jelle een skûtsje heeft met een gouden bal in de kist. Hij vaart naar Lauwersoog, voor de pers. [NIEUW]
 TESSA: Dat klinkt als een val. [NIEUW]
 KAPITEIN KLAAS: Het is een val. Maar het is ook de enige bal die we kunnen bereiken. [NIEUW]
@@ -274,6 +275,8 @@ TAMMO: Die gaan toch niet onder. [NIEUW]
 TESSA: Niks. Iemand uit Friesland. [BEHOUDEN]
 TAMMO: Is hij lang? [BEHOUDEN]
 TESSA: Tammo. [BEHOUDEN]
+TAMMO: Nog steeds lang? [NIEUW]
+TESSA: Kijk naar de sterren. [NIEUW]
 APP MEM→TESSA (stil): Nog acht dagen. Hou Jelle bezig. – M. [NIEUW]
 
 ## [M11.7] Geleend van de Friezen: de kwelder – Waddenkust, kwelder bij Noordpolderzijl – te voet
@@ -315,6 +318,9 @@ TAMMO: Waarom ken je dit allemaal? [NIEUW]
 TESSA: Ik heb veel gelezen. [NIEUW]
 TAMMO: En je bent Nederlandse. [NIEUW]
 TESSA: Dat helpt niet. [NIEUW]
+TESSA: Knooppunt negenentachtig, dan negentig. Daar gaan we naar rechts. [NIEUW]
+TAMMO: Ik navigeer op gevoel. [NIEUW]
+TESSA: Daarom staan we hier. [NIEUW]
 
 ## [A2.1] Appjes akte 2 (stil, geen stem) – alle regio's – telefoon
 APP MEM→TESSA (stil): Pas op dysels, famke. – M. [BEHOUDEN]

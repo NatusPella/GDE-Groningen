@@ -65,7 +65,7 @@ for (const d of mine) {
   for (const q of d.stages) for (const kind of [q.kind]) ok(new RegExp(`case '${kind}'`).test(src) || kind === 'board', `${d.label}: missions.js handles ${kind}`);
 }
 ok(mine[0].boatAt && mine[0].boatModel === 'sloep' && mine[0].stages[0].kind === 'board', 'bruggen: a sloep to board');
-ok(mine[1].stages.map((q) => q.kind).join() === 'goto,choice,goto,timing,hold,goto', 'wiebelwerk: walk in, intake, servers (sneak past the cameras), logbook, out');
+ok(mine[1].stages.map((q) => q.kind).join() === 'goto,choice,scene,goto,timing,timing,hold,goto', 'wiebelwerk: walk in, intake, how wary the manager got, servers (sneak past the cameras, harder when he is wary), logbook, out');
 ok(mine[2].stages.some((q) => q.kind === 'rit' && q.exit), 'stoom: a train ride that ends outside the train');
 ok(mine[3].stages.filter((q) => q.kind === 'hold' && q.fireworks).length >= 5, 'beleg: two walls and three cellar doors are held against the bangs, with a run in between');
 const list = [{ label: 'Iedereen heeft een rode auto gezien', stages: [], start: {} }];
@@ -96,9 +96,16 @@ const run = (st, keys) => {
   for (const k of keys) { r = stepChoice(st, S, k, 0.1); for (let i = 0; i < 40 && !r && S.cphase === 'reply'; i++) r = stepChoice(st, S, null, 0.1); if (r) break; }
   return { r, S };
 };
-ok(run(wieb, ['2', '2']).r === 'done', 'intake: the right answers pass');
-ok(run(wieb, ['1', '1']).r && run(wieb, ['1', '1']).r.fail, 'intake: two wrong answers fail');
-ok(run(wieb, ['1', '2']).r === 'done', 'intake: one wrong answer is forgiven');
+ok(run(wieb, ['2', '2', '1']).r === 'done' && run(wieb, ['2', '2', '1']).S.wrong === 0, 'intake: the right answers pass');
+ok(run(wieb, ['1', '1', '2']).r && run(wieb, ['1', '1', '2']).r.fail, 'intake: three wrong answers fail');
+ok(run(wieb, ['1', '1', '1']).r === 'done' && run(wieb, ['1', '1', '1']).S.wrong === 2, 'intake: two wrong answers are survived, with a wary manager (argwaan2)');
+ok(run(wieb, ['1', '2', '1']).r === 'done' && run(wieb, ['1', '2', '1']).S.wrong === 1, 'intake: one wrong answer is forgiven (argwaan1)');
+ok(wieb.countTag === 'argwaan' && wieb.rounds.length === 3, 'intake: three questions, the wrong answers are counted as argwaan1/argwaan2');
+const wary = mine[1].stages.find((q) => q.kind === 'scene');
+ok(wary.scriptIf.map((q) => q.tag).join() === 'argwaan2,argwaan1' && wary.scriptIf.every((q) => scenes.has(q.ids[0])), 'wiebelwerk: the manager scene has an outcome per number of wrong answers');
+const sneaks = mine[1].stages.filter((q) => q.kind === 'timing');
+ok(sneaks.length === 2 && sneaks[0].ifTag === 'argwaan1' && sneaks[1].unlessTag === 'argwaan1', 'wiebelwerk: a wary manager gets the harder hall, the others the plain one');
+ok(sneaks[0].rounds.every((r, k) => r.speed > sneaks[1].rounds[k].speed && r.zone[1] - r.zone[0] < sneaks[1].rounds[k].zone[1] - sneaks[1].rounds[k].zone[0]), 'wiebelwerk: the harder hall is faster and its dark zone narrower');
 const wagon = fj.stages.find((q) => q.kind === 'choice' && q.kicker === 'Op de wagon');
 ok(run(wagon, ['1']).r === 'done', 'wagon: the car passes');
 ok(run(wagon, ['2']).r === 'done', 'wagon: keeping the ball does not restart the mission (the reply tells the consequence)');
