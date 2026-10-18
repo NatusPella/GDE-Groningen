@@ -4,8 +4,9 @@
 // Source of truth: docs/verhaal/nieuw/09-script-akte1..5.md. The tags [BEHOUDEN]/[NIEUW] are dropped.
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const root = new URL('../docs/verhaal/nieuw/', import.meta.url).pathname;
+const root = fileURLToPath(new URL('../docs/verhaal/nieuw/', import.meta.url));
 
 const LEESWIJZER = `LEESWIJZER
 
@@ -124,7 +125,7 @@ let lastDay = 'DAG';
 let sceneCount = 0;
 
 for (let act = 1; act <= 5; act++) {
-  const src = fs.readFileSync(path.join(root, `09-script-akte${act}.md`), 'utf8').split('\n');
+  const src = fs.readFileSync(path.join(root, `09-script-akte${act}.md`), 'utf8').split(/\r?\n/);
   out += `\n# AKTE ${act}: ${AKTE[act][0]}\n\n${AKTE[act][1]}\n`;
   let i = 0;
   let skip = false;

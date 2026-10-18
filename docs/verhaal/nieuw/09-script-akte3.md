@@ -3,7 +3,7 @@
 > Formaat zoals in [09-script-akte1.md](09-script-akte1.md): kopregel `## [ID] Titel – regio/plaats – voertuig`, `(regie: ...)` (met dagdeel en `Gameplay:`), dialoog `SPREKER: tekst [BEHOUDEN|NIEUW]`, kanalen `(radio)` alleen wereld, `(telefoon)` voor briefings en hints, appjes `APP VAN→NAAR (stil): ...`. Hoort bij [03-akte3.md](03-akte3.md). Missie-id's: M12-M16 (M16 is de samengevoegde kermismissie: kroegentocht en botsauto's, met de kus).
 
 ## [M12.1] Het staat niet in het rooster: intro – Waddenzee, Lauwersoog, helikopterplatform – helikopter
-(regie: vrijdag 21 augustus, ochtend. Dijkstra komt met Rotor Roelfs heli van het pad bij Eelde aanvliegen en landt op het havenplatform. Naamkaart: DOKTER DIJKSTRA. Gameplay: de route is één keten, Lauwersoog, UMCG (lunch), de Dollard en Delfzijl, zonder terug te vliegen; Tessa houdt de heli stil naast de ballonmand terwijl Tammo aan de lier de aktetas pakt en losknipt.)
+(regie: vrijdag 21 augustus, ochtend. Dijkstra komt met Rotor Roelfs heli van het UMCG-dak aanvliegen en landt op het havenplatform. Naamkaart: DOKTER DIJKSTRA. Gameplay: de route is één keten, Lauwersoog, UMCG (lunch), de Dollard en de Eemshaven, zonder terug te vliegen; Tessa houdt de heli stil naast de ballonmand terwijl Tammo aan de lier de aktetas pakt en losknipt.)
 DOKTER DIJKSTRA: Ik ben Dokter Dijkstra, UMCG. Mijn traumaheli staat in onderhoud, en de nachtdienst heeft honger. [NIEUW]
 TESSA: Wij zoeken Jelles ballon. Hij vliegt boven de Dollard, met zijn koopboek in een aktetas. Daarin staat welk plakje hij als volgende koopt. [NIEUW]
 DOKTER DIJKSTRA: Eerst de lunch. Achterin staat een koeltas. Die hebben twaalf uur niks gehad. [NIEUW]
@@ -15,7 +15,7 @@ TESSA: Ik vraag het, Tammo. Wil je hangen? [BEHOUDEN]
 TAMMO: …Ja. Dank je dat je het vraagt. [BEHOUDEN]
 
 ## [M12.2] Het staat niet in het rooster: de lunch – Stad, UMCG, helidek – helikopter
-ROTOR ROELF (telefoon): Moi! Rotor Roelf, van Eelde. Die heli is van mij, maar de lunch is van Dijkstra. Nait tegen d'Olle Grieze aan, hè? [NIEUW]
+ROTOR ROELF (telefoon): Moi! Rotor Roelf. Die heli is van mij, ik heb hem gisteren op het UMCG-dak gezet. Maar de lunch is van Dijkstra. Nait tegen d'Olle Grieze aan, hè? [NIEUW]
 DOKTER DIJKSTRA: Eierballen. Nog warm. Jullie zijn mijn helden. [BEHOUDEN]
 TAMMO: Een gewone vrijdag. [NIEUW]
 DOKTER DIJKSTRA: En nu de ballon. Naar de Dollard. [NIEUW]
@@ -37,7 +37,7 @@ TAMMO: Ik had hoogtevrees. [BEHOUDEN]
 TESSA: Je zei "doe bist schier" tegen de ballon. [NIEUW]
 TAMMO: …Hij was mooi. [BEHOUDEN]
 
-## [M12.4] Het staat niet in het rooster: outro – Eemsdelta, Delfzijl, helidek – helikopter
+## [M12.4] Het staat niet in het rooster: outro – Eemsdelta, Eemshaven, helidek – helikopter
 (regie: in de aktetas ligt een boek met acht bladzijden, elk met een plakje salami erop getekend.)
 TESSA: Het koopboek van Jelle. Acht plakjes. [NIEUW]
 TAMMO: Standplaatsen. Vet. Eieren. Zout. [NIEUW]
@@ -48,7 +48,7 @@ TAMMO: Container 4471. Dat staat bij plakje vijf. [NIEUW]
 TESSA: Dan weten we waar we moeten zijn. De Eemshaven. [NIEUW]
 DOKTER DIJKSTRA: Die Fries is geland in een weiland bij Winschoten. Tussen de koeien. Hij was niet blij. De koeien ook niet. [NIEUW]
 
-## [M12.5] Het staat niet in het rooster: herhaling – Eemsdelta, Delfzijl, helidek – helikopter
+## [M12.5] Het staat niet in het rooster: herhaling – Eemsdelta, Eemshaven, helidek – helikopter
 DOKTER DIJKSTRA: Weer een spoedje? Ik zet het deze keer in het rooster. [BEHOUDEN]
 
 ## [M13.1] Het containerlabyrint: intro – Eemsdelta, Eemshaven, de kade – te voet
@@ -76,9 +76,9 @@ TESSA: Hij loopt weg. Nu. [NIEUW]
 ## [M13.3] Het containerlabyrint: outro – Eemsdelta, Eemshaven, kade – te voet
 LAMMERT: Het schip vaart leeg weg. Dat is plakje vijf. [NIEUW]
 TESSA: De voorraden blijven hier. [NIEUW]
-LAMMERT: Mijn woonschip in Delfzijl is van jullie. Voor de nacht, en voor de voorraden. [NIEUW]
-TAMMO: Een woonschip? [NIEUW]
-LAMMERT: Een schuilplaats met een bed. Twee bedden. [NIEUW]
+LAMMERT: Mijn vrachtwagen brengt de voorraden vannacht naar mijn woonschip in Delfzijl. Jullie slapen in mijn havenkantoor. [NIEUW]
+TAMMO: Een kantoor? [NIEUW]
+LAMMERT: Met een bed. Twee bedden. [NIEUW]
 TESSA: Twee bedden. [NIEUW]
 (regie: Tammo zegt niets. Hij kijkt naar zijn schoenen.)
 TESSA: Dat gezicht betekent: prima. [NIEUW]
@@ -128,6 +128,7 @@ JELLE: Weer een rondje? Dat neem ik jullie niet kwalijk. [NIEUW]
 
 ## [R3.1] Nachtstreek na de dijk – Stad – radio
 RIKUS (radio): Wind uit het noordwesten. Op de Eemsdijk zijn zeventien schapen gered van een deurwaarder. Ik weet niet hoe. [NIEUW]
+RIKUS (radio): Kiekdoar meldt dat Oldenhuis Bakt in Delfzijl een vestiging opent, naast de visboer. De visboer lacht niet. [NIEUW]
 
 ## [T3] De trein naar Winschoten – Eemsdelta, Delfzijl naar Winschoten – trein (meerijden)
 TESSA: We nemen de trein naar Winschoten. Daar is een kermis. [NIEUW]
@@ -235,7 +236,7 @@ TESSA: Dat was omdat je bleef. [NIEUW]
 (regie: Tammo zegt niets. Hij kijkt naar het water.)
 TESSA: Dat gezicht betekent: ik leef nog. [NIEUW]
 TAMMO: Klopt. [NIEUW]
-APP MEM→TESSA (stil): Nog vijf dagen. Zeg het hem niet. – M. [NIEUW]
+APP MEM→TESSA (stil): Nog zes dagen. Zeg het hem niet. – M. [NIEUW]
 
 ## [M16.7] Nog eentje dan: herhaling – Oldambt, Winschoten, de kermis – te voet
 GEERT: Drie tenten? Nog eentje dan. [NIEUW]
@@ -261,7 +262,7 @@ TESSA: Je geeft nooit toe. [NIEUW]
 TAMMO: Jij ook niet. [NIEUW]
 
 ## [A3.1] Appjes akte 3 (stil, geen stem) – alle regio's – telefoon
-APP MEM→TESSA (stil): Nog zes dagen. Hou Jelle bezig. – M. [NIEUW]
+APP MEM→TESSA (stil): Nog zeven dagen. Hou Jelle bezig. – M. [NIEUW]
 APP MEM→TESSA (stil): Zeg het hem niet. Hij praat met Rikus. – M. [NIEUW]
 APP TESSA→MEM (stil): Ik vertel niks. Maar hij vraagt het steeds. [NIEUW]
 APP TAMMO→TESSA (stil): Alles goed? [NIEUW]

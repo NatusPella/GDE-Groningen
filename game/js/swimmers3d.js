@@ -2,6 +2,7 @@ import { buildPersonMesh, swimPose, floatPose, seatPose, seatedY } from './model
 import { waterClearance } from './waterindex.js';
 import { bankSeatsNear } from './quaywalls.js';
 import { WATER_Y } from './util.js';
+import { hash2 as hash } from './rng.js';
 
 // Ambient swimmers on warm, dry days, in swimwear (trunks, swimsuits,
 // bikinis): a few people near the canal bridges doing a lazy breaststroke,
@@ -35,10 +36,6 @@ export function niceSwimWeather(world) {
   return true;
 }
 
-function hash(a, b) {
-  const h = Math.sin(a * 127.1 + b * 311.7) * 43758.5453;
-  return h - Math.floor(h);
-}
 
 function swimDepth(tilt, time, phase, sy) {
   return WATER_Y + 0.22 - 1.6 * Math.cos(tilt) * sy + Math.sin(time * 2.4 + phase) * 0.04;

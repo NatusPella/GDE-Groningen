@@ -1,5 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { FLAGS } from './devflags.js';
+import { canvasTex as canvasTexture } from './canvastex.js';
 import { getScene, prewarmStreamAt } from './scene3d.js';
 import { speakerHtml } from './speakers.js';
 import { getSettings, QUALITY_PRESETS, withTempSettings } from './settings.js';
@@ -398,14 +399,7 @@ function propMat(color, opts = {}) {
   return PROP_MATS.get(k);
 }
 
-function canvasTexture(w, h, draw) {
-  const c = document.createElement('canvas');
-  c.width = w; c.height = h;
-  draw(c.getContext('2d'), w, h);
-  const t = new THREE.CanvasTexture(c);
-  t.colorSpace = THREE.SRGBColorSpace;
-  return t;
-}
+
 
 const SHIRTS = [0x3f6ea8, 0xc8261e, 0x2f8a4a, 0xe0a526, 0x6a4a8a, 0xe8e4da, 0x2a9ab0, 0xe07ab0, 0x26262a, 0xf2e050];
 const SKINS = [0xe2b48c, 0xd9a57c, 0x9a6a4a, 0xc89070, 0xf0c8a8];

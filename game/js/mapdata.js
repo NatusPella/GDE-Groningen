@@ -1,6 +1,8 @@
-import { polygonBounds, closestPointOnSegment, pointInPolygon, pointInStaticPolygon, isInWater } from './util.js';
+import { polygonBounds, closestPointOnSegment, pointInPolygon, isInWater } from './util.js';
+import { waterPolyAt } from './waterlevels.js';
 import { inPassage, clipWaysInBuildings } from './passages.js';
 import { attachMuseumPlan } from './museumplan.js';
+import { attachInteriorPlans } from './interieurplan.js';
 import { SpatialGrid } from './spatialgrid.js';
 import { deriveBuildings, liftNestedRoofs, isRingRoad } from './derive.js';
 import { buildElevation, groundHeightAt, surfaceAt, ribbonAt, ribbonZAt, roadZAt, ceilingAt, coveredAt, surfaceHalfWidth, offLevelAt } from './elevation.js';
@@ -24,10 +26,7 @@ export function markDryRoad(map, r) {
     const steps = Math.max(1, Math.ceil(Math.hypot(bx - ax, by - ay) / 2));
     for (let k = 0; k <= steps; k++) {
       const x = ax + ((bx - ax) * k) / steps, y = ay + ((by - ay) * k) / steps;
-      for (const w of map.waterNear(x, y, 0.5)) {
-        const [minx, miny, maxx, maxy] = w.bounds;
-        if (x >= minx && x <= maxx && y >= miny && y <= maxy && pointInStaticPolygon(x, y, w.pts)) { r.bridge = true; r.dryCrossing = true; return true; }
-      }
+      if (waterPolyAt(map, x, y)) { r.bridge = true; r.dryCrossing = true; return true; }
     }
   }
   return false;
@@ -123,6 +122,7 @@ export class GameMap {
     liftNestedRoofs(this.buildings, this.buildingGrid);
     // the Groninger Museum's walkable ground floor
     attachMuseumPlan(this.buildings);
+    attachInteriorPlans(this.buildings);
 
     const indexRoads = () => {
       this.roadGrid = new SpatialGrid(CELL);
@@ -187,6 +187,7 @@ export class GameMap {
       m.buildingGrid.insert(b, b.bounds);
     }
     attachMuseumPlan(m.buildings);
+    attachInteriorPlans(m.buildings);
     m.roadGrid = new SpatialGrid(CELL);
     for (const r of m.roads) {
       r.bounds = polygonBounds(r.pts);
@@ -313,12 +314,7 @@ export class GameMap {
   }
 
   inWaterRaw(x, y) {
-    for (const w of this.waterNear(x, y, 0.5)) {
-      const [minx, miny, maxx, maxy] = w.bounds;
-      if (x < minx || x > maxx || y < miny || y > maxy) continue;
-      if (pointInPolygon(x, y, w.pts)) return true;
-    }
-    return false;
+    return !!waterPolyAt(this, x, y);
   }
 
   buildingsNear(x, y, r) {

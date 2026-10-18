@@ -1,4 +1,4 @@
-import { closestPointOnSegment, normalizeAngle, pointInPolygon, isInWater, inWaterPoly, WATER_Y, clamp } from './util.js';
+import { closestPointOnSegment, normalizeAngle, pointInPolygon, isInWater, inMapWater, WATER_Y, clamp } from './util.js';
 import { wallAhead } from './countrywalls.js';
 import { waterClearance, pushOutOfWaterObstacles, insideWaterObstacle, swimmerCanLeave } from './waterindex.js';
 import { findEnterableVehicle, distToVehicleBody, resolveBoomCollisions, resolveVehicleBuildingCollision, drivePlayerBoat, pushCircleOutOfVehicle, reportImpact, tickSinkingVehicles, speedCap } from './vehicle.js';
@@ -496,7 +496,7 @@ export class Player {
     this.x = v.x; this.y = v.y;
     for (const s of EXIT_LEFT_FIRST) {
       const ex = v.x + nx * off * s, ey = v.y + ny * off * s;
-      if (inWaterPoly(world.map, ex, ey)) { this.x = ex; this.y = ey; break; }
+      if (inMapWater(world.map, ex, ey)) { this.x = ex; this.y = ey; break; }
     }
     this.angle = v.angle;
     this.z = v.sinking ? v.sinking.z : WATER_Y;
@@ -505,13 +505,13 @@ export class Player {
 
   updateWater(dt, world) {
     const { map, input } = world;
-    if (this.water !== 'climb' && !inWaterPoly(map, this.x, this.y)) { this.leaveWater(); return; }
+    if (this.water !== 'climb' && !inMapWater(map, this.x, this.y)) { this.leaveWater(); return; }
 
     if (this.water === 'fall') {
       this.vz -= GRAVITY * dt;
       this.z += this.vz * dt;
       const nx = this.x + this.vx * dt, ny = this.y + this.vy * dt;
-      if (inWaterPoly(map, nx, ny) && !insideWaterObstacle(map, nx, ny)) { this.x = nx; this.y = ny; } else { this.vx = 0; this.vy = 0; }
+      if (inMapWater(map, nx, ny) && !insideWaterObstacle(map, nx, ny)) { this.x = nx; this.y = ny; } else { this.vx = 0; this.vy = 0; }
       if (this.z <= WATER_Y) {
         world.particles.push({ kind: 'splash', x: this.x, y: this.y, until: world.time + SPLASH_LIFE });
         const keepZ = this.z;
@@ -603,7 +603,7 @@ export class Player {
       if (push) { x = push.x; y = push.y; }
     }
     [x, y] = resolveBuildingCollisions(x, y, this.radius, map);
-    if (inWaterPoly(map, x, y)) { this.x = x; this.y = y; }
+    if (inMapWater(map, x, y)) { this.x = x; this.y = y; }
   }
 
   swimInteract(world) {
@@ -963,9 +963,9 @@ export function findClimbSpot(map, x, y, angle, reach = CLIMB_REACH) {
       const a = (i / CLIMB_DIRS) * Math.PI * 2;
       const cx = Math.cos(a), cy = Math.sin(a);
       const sx = x + cx * r, sy = y + cy * r;
-      if (inWaterPoly(map, sx, sy)) continue;
+      if (inMapWater(map, sx, sy)) continue;
       const lx = sx + cx * 0.5, ly = sy + cy * 0.5;
-      if (inWaterPoly(map, lx, ly) || isInsideBuilding(map, lx, ly)) continue;
+      if (inMapWater(map, lx, ly) || isInsideBuilding(map, lx, ly)) continue;
       const score = Math.cos(normalizeAngle(a - angle));
       if (score > bestScore) { bestScore = score; best = { x: lx, y: ly }; }
     }

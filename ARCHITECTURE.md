@@ -766,6 +766,7 @@ boezem height until the water renderer takes a level per polygon (F2).
   rest narrower than its beam); a barge (class 4) is stopped by 70 fixed
   bridges at 1.8 m: the big canals' bridges need their real heights in the
   road solver (corridor work).
+- Inland barges and marinas (#7): `spits` and `kempenaar` (boattypes.js, class 4) are picked by `pickWaterLife` on kanaal water 24 m or wider; `updateBoatAI` keeps a barge from sailing under a deck it does not clear (`waterAt().clearanceAbove`, feelers from the bow, a hard stop in the hull); `scripts/barge_test.mjs`. Marinas: `marinas.js` (pure planner: finger piers and berths from a quay edge, with a fairway left open) -> `scripts/world/marinas.mjs --write` -> `game/marinas.json` -> `marinas3d.js` (piers and moored boats near the player, `v.moored`); `scripts/marinas_test.mjs`.
 - Movable bridges (`movablebridges.js`, drawn by `movablebridges3d.js`): a
   fixed cycle per bridge (`BRIDGE_TIMING`: warn 4 s, barriers 4 s, wait for a
   clear span, 9 s up, at least 14 s open, 9 s down, barriers 4 s;

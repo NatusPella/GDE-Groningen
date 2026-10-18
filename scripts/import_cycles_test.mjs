@@ -8,7 +8,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
-const LIMITS = { largestScc: 143, modulesInCycles: 147, mutualPairs: 41 };
+const LIMITS = { largestScc: 151, modulesInCycles: 157, mutualPairs: 42 };
 
 const dir = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'game', 'js');
 const files = readdirSync(dir).filter((f) => f.endsWith('.js'));

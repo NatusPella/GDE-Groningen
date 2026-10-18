@@ -813,6 +813,17 @@ function playWeaponSfx(e, x, y) {
       for (let i = 0; i < 10; i++) playNoiseBurst({ duration: 0.05, freq: 900 + Math.random() * 900, q: 2, gain: 0.03, type: 'bandpass', delay: 0.4 + Math.random() * (dur * 0.7), bus: worldBus || undefined });
       break;
     }
+    case 'firework': {
+      // a shell opening: a sharp crack, a soft low thump, then the glitter crackling down
+      const out = spatialOut(x, y, e.far ? { ref: 120, rolloff: 0.5, range: 3200, h: Number.isFinite(e.z) ? e.z : undefined, prio: 2 } : { ref: 12, rolloff: 0.7, range: 300, h: Number.isFinite(e.z) ? e.z : undefined, prio: 2 });
+      if (!out) return;
+      playNoiseBurst({ duration: 0.07, freq: 4200 * r, freqEnd: 1500, q: 0.7, gain: 0.5, type: 'highpass', out, prio: 2 });
+      playNoiseBurst({ duration: 0.35, freq: 900, freqEnd: 150, q: 0.6, gain: 0.35, type: 'lowpass', out, prio: 2 });
+      playTone({ freq: 95 * r, freqEnd: 45, type: 'sine', duration: 0.3, gain: 0.25, out, prio: 2 });
+      const n = 10 + Math.floor(Math.random() * 8);
+      for (let i = 0; i < n; i++) playNoiseBurst({ duration: 0.02 + Math.random() * 0.03, freq: 3000 + Math.random() * 3500, q: 2, gain: 0.05 + Math.random() * 0.05, type: 'bandpass', delay: 0.12 + Math.random() * 1.2, out });
+      break;
+    }
     case 'burst': {
       const out = spatialOut(x, y, e.far ? { ref: 120, rolloff: 0.5, range: 3200, h: Number.isFinite(e.z) ? e.z : undefined, prio: 2 } : { ref: 10, rolloff: 0.7, range: 250, h: Number.isFinite(e.z) ? e.z : undefined, prio: 2 });
       if (!out) return;
@@ -1179,6 +1190,17 @@ function speakClip(cls, src, { pos = null, guess = 2, owner = null, onEnd = null
   return el;
 }
 
+// The one way to speak (every play*Voice below is a wrapper that adds its own
+// gate): asks speech.js for the channel, plays src (pos = in the world, else
+// plain stereo), ducks the ambience for duck = [level, seconds] and reports
+// the clip's end through onEnd. Returns the element, or null when the channel
+// is taken or nothing can play.
+export function playVoice(src, { cls = 'react', owner = null, pos = null, dur = 2, onEnd = null, duck = null } = {}) {
+  const el = speakClip(cls, src, { pos, guess: dur, owner, onEnd });
+  if (el && duck) duckAmbience(duck[0], duck[1]);
+  return el;
+}
+
 // Voicelines/police/Kiekdoar - the event-driven reactions - also keep a
 // short cooldown of their own so a burst of events can't chain them.
 const SPOKEN_MIN_GAP = 1.4;
@@ -1188,9 +1210,8 @@ function playSpokenClip(src, pos = null, cls = 'react') {
   if (!ctx) return false;
   const now = ctx.currentTime;
   if (cls === 'react' && now - lastSpokenAt < SPOKEN_MIN_GAP) return false;
-  if (!speakClip(cls, src, { pos, guess: SPOKEN_MIN_GAP })) return false;
+  if (!playVoice(src, { cls, pos, dur: SPOKEN_MIN_GAP, duck: [0.45, 2.2] })) return false;
   lastSpokenAt = now;
-  duckAmbience(0.45, 2.2);
   return true;
 }
 
@@ -1205,7 +1226,7 @@ function playNpcSpokenClip(src, pos) {
   if (!ctx) return false;
   const now = ctx.currentTime;
   if (now - lastNpcSpokenAt < NPC_SPOKEN_MIN_GAP) return false;
-  if (!speakClip('ambient', src, { pos, guess: 1.2 })) return false;
+  if (!playVoice(src, { cls: 'ambient', pos, dur: 1.2 })) return false;
   lastNpcSpokenAt = now;
   return true;
 }
@@ -1245,13 +1266,14 @@ export function stopStoryVoice() {
   releaseEl(v.el);
 }
 
-// radio: Rikus on Nachtstreek (recaps, the studio shots): a gentle
-// broadcast band (no deep lows, rounded highs, a little presence).
-export function playStoryVoice(src, { radio = false } = {}) {
-  stopStoryVoice();
-  if (!ctx || muted) return;
+// The shared body of the one-at-a-time voices (story, banter, contact): own
+// handle (get/set/stop), straight into the voice bus (radio: the broadcast
+// band), channel token from speech.js, ducking once the length is known.
+// strict: no token (the channel is taken) means no clip.
+function playExclusive(src, { cls, owner, radio = false, duck, strict, get, set, stop }) {
   const v = { el: newVoiceEl(src), node: null, tok: null };
-  v.tok = speech.begin('story', 3, { owner: 'story', stop: () => { if (storyVoice === v) stopStoryVoice(); } });
+  v.tok = speech.begin(cls, 3, { owner, stop: () => { if (get() === v) stop(); } });
+  if (strict && !v.tok) { releaseEl(v.el); return null; }
   try {
     v.node = ctx.createMediaElementSource(v.el);
     if (radio) {
@@ -1263,16 +1285,25 @@ export function playStoryVoice(src, { radio = false } = {}) {
   } catch (e) {
     // ignore - plays without the Web Audio graph
   }
-  storyVoice = v;
-  const done = () => { if (storyVoice === v) stopStoryVoice(); };
+  set(v);
+  const done = () => { if (get() === v) stop(); };
   v.el.addEventListener('ended', done, { once: true });
   v.el.addEventListener('error', done, { once: true });
   v.el.addEventListener('loadedmetadata', () => {
     const d = Number.isFinite(v.el.duration) ? v.el.duration : 3;
     speech.extend(v.tok, d);
-    duckAmbience(0.5, d + 0.4);
+    duckAmbience(duck, d + 0.4);
   }, { once: true });
   v.el.play().catch(done);
+  return v;
+}
+
+// radio: Rikus on Nachtstreek (recaps, the studio shots): a gentle
+// broadcast band (no deep lows, rounded highs, a little presence).
+export function playStoryVoice(src, { radio = false } = {}) {
+  stopStoryVoice();
+  if (!ctx || muted) return;
+  playExclusive(src, { cls: 'story', owner: 'story', radio, duck: 0.5, strict: false, get: () => storyVoice, set: (x) => { storyVoice = x; }, stop: stopStoryVoice });
 }
 
 // Speech-bubble lines (linevoice.js): from the speaker's spot, lowest but
@@ -1280,9 +1311,7 @@ export function playStoryVoice(src, { radio = false } = {}) {
 export function playBubbleVoice(src, dur, pos = null) {
   if (!ctx || muted || storyScene) return false;
   if (pos && distToListener(pos.x, pos.y) > SPEECH_RANGE) return false;
-  if (!speakClip('ambient', src, { pos, guess: dur })) return false;
-  duckAmbience(0.3, dur);
-  return true;
+  return !!playVoice(src, { cls: 'ambient', pos, dur, duck: [0.3, dur] });
 }
 
 // Narration in front of the player (the rondvaart guide, navigation, cows,
@@ -1291,9 +1320,8 @@ export function playBubbleVoice(src, dur, pos = null) {
 // it plays or can't play at all (muted), so the caller moves on.
 export function playLineVoice(src, dur, cls = 'job') {
   if (!ctx || muted || storyScene) return true;
-  if (!speakClip(cls, src, { guess: dur })) return false;
+  if (!playVoice(src, { cls, dur, duck: [0.45, dur + 0.3] })) return false;
   if (cls !== 'radio') lastSpokenAt = ctx.currentTime;
-  duckAmbience(0.45, dur + 0.3);
   return true;
 }
 
@@ -1327,26 +1355,7 @@ export function voiceBusy() {
 export function playBanterVoice(src) {
   stopBanterVoice();
   if (!ctx || muted || storyScene) return false;
-  const v = { el: newVoiceEl(src), node: null, tok: null };
-  v.tok = speech.begin('banter', 3, { owner: 'banter', stop: () => { if (banterVoice === v) stopBanterVoice(); } });
-  if (!v.tok) { releaseEl(v.el); return false; }
-  try {
-    v.node = ctx.createMediaElementSource(v.el);
-    v.node.connect(voiceBus);
-  } catch (e) {
-    // ignore - plays without the Web Audio graph
-  }
-  banterVoice = v;
-  const done = () => { if (banterVoice === v) stopBanterVoice(); };
-  v.el.addEventListener('ended', done, { once: true });
-  v.el.addEventListener('error', done, { once: true });
-  v.el.addEventListener('loadedmetadata', () => {
-    const d = Number.isFinite(v.el.duration) ? v.el.duration : 3;
-    speech.extend(v.tok, d);
-    duckAmbience(0.3, d + 0.4);
-  }, { once: true });
-  v.el.play().catch(done);
-  return true;
+  return !!playExclusive(src, { cls: 'banter', owner: 'banter', duck: 0.3, strict: true, get: () => banterVoice, set: (x) => { banterVoice = x; }, stop: stopBanterVoice });
 }
 
 // Story contacts (storycontact.js: Jelle's calls, voicemails, livestreams):
@@ -1375,31 +1384,7 @@ export function pauseContactVoice(paused) {
 export function playContactVoice(src, { radio = false } = {}) {
   stopContactVoice();
   if (!ctx || muted) return false;
-  const v = { el: newVoiceEl(src), node: null, tok: null };
-  v.tok = speech.begin('call', 3, { owner: 'contact', stop: () => { if (contactVoice === v) stopContactVoice(); } });
-  if (!v.tok) { releaseEl(v.el); return false; }
-  try {
-    v.node = ctx.createMediaElementSource(v.el);
-    if (radio) {
-      const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 240;
-      const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 4600;
-      const pk = ctx.createBiquadFilter(); pk.type = 'peaking'; pk.frequency.value = 1900; pk.Q.value = 0.8; pk.gain.value = 3;
-      v.node.connect(hp); hp.connect(pk); pk.connect(lp); lp.connect(voiceBus);
-    } else v.node.connect(voiceBus);
-  } catch (e) {
-    // ignore - plays without the Web Audio graph
-  }
-  contactVoice = v;
-  const done = () => { if (contactVoice === v) stopContactVoice(); };
-  v.el.addEventListener('ended', done, { once: true });
-  v.el.addEventListener('error', done, { once: true });
-  v.el.addEventListener('loadedmetadata', () => {
-    const d = Number.isFinite(v.el.duration) ? v.el.duration : 3;
-    speech.extend(v.tok, d);
-    duckAmbience(0.4, d + 0.4);
-  }, { once: true });
-  v.el.play().catch(done);
-  return true;
+  return !!playExclusive(src, { cls: 'call', owner: 'contact', radio, duck: 0.4, strict: true, get: () => contactVoice, set: (x) => { contactVoice = x; }, stop: stopContactVoice });
 }
 
 // true when the contact got the channel (false: a story scene or a call has it)
@@ -1412,7 +1397,7 @@ export function holdContactChannel(on, alive = null) {
 // line plays through here; onEnd fires when the clip is done (or failed).
 export function playCallVoice(src, onEnd) {
   if (!ctx || muted) return false;
-  return !!speakClip('call', src, { owner: 'call', guess: 3, onEnd });
+  return !!playVoice(src, { cls: 'call', owner: 'call', dur: 3, onEnd });
 }
 
 // Phone messages read aloud (phonefeed.js): the 'call' class under its own
@@ -1422,8 +1407,7 @@ export function playCallVoice(src, onEnd) {
 export function playSmsVoice(src, dur, onEnd) {
   if (!ctx || muted) return 'off';
   if (storyScene || speech.clipPlaying() || !speech.canSpeak('call', 'sms')) return 'wait';
-  if (!speakClip('call', src, { owner: 'sms', guess: dur || 3, onEnd })) return 'wait';
-  duckAmbience(0.4, (dur || 3) + 0.4);
+  if (!playVoice(src, { cls: 'call', owner: 'sms', dur: dur || 3, onEnd, duck: [0.4, (dur || 3) + 0.4] })) return 'wait';
   return 'play';
 }
 
@@ -1520,6 +1504,20 @@ export function playClueSting() {
   [[659.25, 0, 0.9], [987.77, 0.11, 0.9], [1318.5, 0.22, 1.2]].forEach(([freq, delay, duration]) =>
     playTone({ freq, type: 'sine', duration, gain: 0.05, delay, bus: stingBus, prio: 2 }));
   playTone({ freq: 329.6, type: 'triangle', duration: 1.4, gain: 0.035, bus: stingBus, prio: 2 });
+}
+
+// A line without a recording (the new story's text-only lines): a soft mumble under the
+// subtitle, one voiced "syllable" per few letters over the line's reading time, higher for
+// Tessa and the radio, lower for Tammo. No speech, only a sound that the scene is talking.
+export function playTextMumble(who = '', text = '', dur = 2.5) {
+  if (!ctx || muted || !stingBus) return;
+  const n = Math.max(3, Math.min(14, Math.round(String(text).length / 4)));
+  const base = who === 'A' ? 235 : who === 'T' ? 118 : who === 'V' ? 160 : 150;
+  const step = Math.min(0.32, Math.max(0.12, (dur * 0.85) / n));
+  for (let i = 0; i < n; i++) {
+    const f = base * (0.9 + ((i * 7 + text.length) % 5) * 0.06);
+    playTone({ freq: f, freqEnd: f * 0.93, type: 'triangle', duration: step * 0.8, gain: 0.018, delay: i * step + (i % 4 === 3 ? 0.08 : 0), filterFreq: 900 + ((i * 3) % 4) * 220, bus: stingBus, prio: 2 });
+  }
 }
 
 // One heartbeat when badly hurt (lowhealth.js): a low "lub-dub", louder the closer to death.
@@ -2108,6 +2106,8 @@ const ENGINE_SPECS = [
   { idle: 1300, red: 13000, shift: 0.08, level: 0.4 },
   { idle: 1200, red: 10000, shift: 0.1, level: 0.4 },
   { idle: 1000, red: 7500, shift: 0.16, level: 0.38 },
+  { idle: 1800, red: 12000, shift: 0, level: 0.2 }, // 11: elektrische auto
+  { idle: 900, red: 7500, shift: 0.14, level: 0.5 }, // 12: opgevoerde tokkie-auto
 ];
 
 // Canoes, kayaks and pedalos have no engine: paddle strokes or the pedalo's
@@ -2227,6 +2227,8 @@ function engineKind(v) {
   if (v.isBoat) return 4;
   if (v.isBus) return 2;
   if (v.isHeroCar) return 1;
+  if (v.model && v.model.electric) return 11;
+  if (v.model && v.model.tokkie) return 12;
   const name = v.model && v.model.name;
   if (name === 'sport' || name === 'police' || v.isPolice) return 5;
   if (name === 'van') return 6;
@@ -2243,6 +2245,7 @@ function engineRpm(v, st, kind, throttle, t) {
   const frac = speed / (v.model.maxSpeed || 30);
   let shifted = 0;
   if (kind === 3) return { rpm: throttle > 0 ? 3800 + 3400 * Math.min(1, frac) : S.idle + 1800 * Math.min(1, frac), shifted };
+  if (kind === 11) return { rpm: 1800 + 9500 * Math.min(1, speed / ((v.model.maxSpeed || 34) * 0.7)), shifted };
   if (kind === 7) return { rpm: 2400 + 42000 * Math.min(1, speed / 10), shifted };
   if (kind === 4) return { rpm: S.idle + (S.red - S.idle) * (throttle !== 0 ? 0.35 + 0.6 * Math.min(1, frac) : frac * 0.4), shifted };
   if (v.speed < -0.2) { st.gear = 0; return { rpm: S.idle + (S.red * 0.7 - S.idle) * clamp(speed / (v.model.maxSpeed * 0.25), 0, 1), shifted }; }
@@ -2329,7 +2332,7 @@ function updateEngineSynth(dt, world) {
   S.rpm = rpm;
 
   // an electric motor is silent standing still and whines up with speed
-  const gain = spec.level * (world.paused ? 0.5 : 1) * (S.kind === 7 ? clamp(speed / 2.5, 0, 1) * (0.6 + 0.4 * (thr > 0 ? 1 : 0)) : 1);
+  const gain = spec.level * (world.paused ? 0.5 : 1) * (S.kind === 7 || S.kind === 11 ? clamp(speed / 2.5, 0, 1) * (0.6 + 0.4 * (thr > 0 ? 1 : 0)) : 1);
   S.gain += (clamp(0.15 + 0.35 * load * rpm / spec.red, 0, 0.5) - S.gain) * Math.min(1, dt * 4);
   const camD = distToListener(v.x, v.y, 0.7);
   const muffle = clamp(16000 / (1 + Math.max(0, camD - 5) / 6), 1200, 16000);
@@ -2347,7 +2350,7 @@ export function engineReadout() {
   if (!S.vehicle) return null;
   const spec = ENGINE_SPECS[S.kind];
   const gb = S.vehicle.gb;
-  const geared = !!gb || (S.kind !== 3 && S.kind !== 4 && S.kind !== 7);
+  const geared = !!gb || (S.kind !== 3 && S.kind !== 4 && S.kind !== 7 && S.kind !== 11);
   const out = { rpm: S.rpm || spec.idle, red: spec.red, gear: geared ? S.gear : -1, reverse: S.vehicle.speed < -0.2, gears: gb ? gb.p.tops.length : geared ? (S.kind === 2 ? BUS_GEAR_TOPS : GEAR_TOPS).length : 0 };
   if (gb) out.gb = gearboxReadout(gb);
   return out;
@@ -2900,7 +2903,7 @@ function updateTrafficAudio(dt, world) {
       placeVoice(voice, v.x, v.y, v.isBoat ? 0.5 : 0.7);
       const d = distToListener(v.x, v.y, 0.7);
       voice.distLp.frequency.setTargetAtTime(clamp(2400 / (1 + d / 10), 250, 2400), t, 0.15);
-      const level = v.isBus ? 0.42 : v.isBoat ? 0.38 : v.isScooter ? (p.kind === 7 ? 0.16 * clamp(Math.abs(v.speed) / 2.5, 0, 1) : 0.18) : 0.28 + p.load * 0.1;
+      const level = v.isBus ? 0.42 : v.isBoat ? 0.38 : v.isScooter ? (p.kind === 7 ? 0.16 * clamp(Math.abs(v.speed) / 2.5, 0, 1) : 0.18) : p.kind === 11 ? 0.12 * clamp(Math.abs(v.speed) / 2.5, 0, 1) : p.kind === 12 ? 0.42 + p.load * 0.12 : 0.28 + p.load * 0.1;
       fadeVoice(voice, level, dt, 3);
       msg.push({ i, kind: p.kind, rpm: p.rpm, load: p.load, gain: voice.level, pitch, snap: p.snap });
     });

@@ -4,6 +4,7 @@ import { migrateSettings, SETTINGS_VERSION } from './savemigrate.js';
 import { VIEW_DISTANCES } from './viewdist.js';
 import { KEYS } from './storagekeys.js';
 import { FLAGS } from './devflags.js';
+import { RAGE_CHOICES } from './roadragerules.js';
 
 // Player settings, persisted per browser. Modules read getSettings() and
 // subscribe with onSettingsChange() to apply changes live.
@@ -57,6 +58,8 @@ const DEFAULTS = {
   invertY: false,
   autoAim: true,
   drunkFx: 'aan',
+  // verkeersruzie (roadrage.js): hoe vaak boze bestuurders uitstappen; 'uit', 'weinig', 'normaal' of 'veel'
+  ruzie: 'normaal',
   // driving (gearbox.js, drift.js): 'auto' | 'manual' | 'clutch'; the arcade helps are on by default
   shiftMode: 'auto',
   driftAssist: true,
@@ -106,6 +109,7 @@ function load() {
     if (!(out.minimapZoom >= 0.6 && out.minimapZoom <= 1.6)) out.minimapZoom = DEFAULTS.minimapZoom;
     if (out.verhaal !== 'oud' && out.verhaal !== 'nieuw') out.verhaal = DEFAULTS.verhaal;
     if (!SHIFT_CHOICES.includes(out.shiftMode)) out.shiftMode = DEFAULTS.shiftMode;
+    if (!RAGE_CHOICES.includes(out.ruzie)) out.ruzie = DEFAULTS.ruzie;
     if (!COLOR_BLIND_MODES.includes(out.colorBlind)) out.colorBlind = DEFAULTS.colorBlind;
     if (!PAD_LAYOUT_CHOICES.includes(out.padLayout)) out.padLayout = DEFAULTS.padLayout;
     if (!HINT_SOURCE_CHOICES.includes(out.hintSource)) out.hintSource = DEFAULTS.hintSource;

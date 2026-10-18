@@ -2,6 +2,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { vehicleContacts, surfaceUnder } from './vehicle.js';
 import { getCamera } from './scene3d.js';
 import { getVehicleMesh, pruneVehicleMeshes, applyVehicleDamage, vehicleDamageParts } from './models3d_vehicles.js';
+import { rand } from './rng.js';
 
 // Vehicle feel effects: skid marks, tyre smoke/dust/spray/exhaust, sparks,
 // debris and progressive body damage. Everything is pooled up front; the
@@ -27,7 +28,6 @@ let simTime = 0;
 let contactCursor = 0;
 let pruneTimer = 0;
 
-function rand(a, b) { return a + Math.random() * (b - a); }
 
 // --- skid marks ----------------------------------------------------------------
 

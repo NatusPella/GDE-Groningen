@@ -3,11 +3,13 @@ import { HABBO_PALETTE, habboMaterial, vcMaterial, GeoBuilder, createBrickDetail
 import { getLandmarkModel } from './landmarkmodels.js';
 import { hasLandmarkModel, buildLandmarkGeometry, LANDMARK_MATERIALS, setLandmarkNight } from './landmarks3d.js';
 import { glassMaterial, setGlassNight, paneUV, PANE_HOME, PANE_GROUND, PANE_SHOP, PANE_OFFICE } from './interiorglass.js';
-import { pointInPolygon, WATER_Y } from './util.js';
+import { pointInPolygon, segDist as segDistXY, WATER_Y } from './util.js';
 import { passagesOf, doorsOf } from './passages.js';
 import { applyPortalCut, buildPassageTunnels } from './portalcut3d.js';
 import { buildMuseumInterior } from './museum3d.js';
+import { buildInteriorOf } from './interieur3d.js';
 import { marktKind, buildMarktGroup } from './marktgebouwen.js';
+import { hash2 } from './rng.js';
 
 // Procedural Groningen buildings. Geometry bakes absolute world coordinates
 // (x, height, map-y) and is cached per building on b._geo3dParts: the wall
@@ -30,10 +32,6 @@ const CITY_CENTRE_R = 650;
 const PART_CACHE_MAX = 800;
 const MAX_WINDOWS = 420;
 
-function hash2(x, y) {
-  const h = Math.sin(x * 127.1 + y * 311.7) * 43758.5453;
-  return h - Math.floor(h);
-}
 
 function shade(hex, f) {
   const r = Math.min(255, Math.round(((hex >> 16) & 0xff) * f));
@@ -189,7 +187,7 @@ for (const m of [...flatRoofMaterials, detailMaterial, glassMaterial, ...LANDMAR
 // The lined passages through `b` (portalcut3d.js), cached with its parts.
 function addPassages(group, b, parts, depth) {
   if (b.rooms) {
-    if (!parts.interior) parts.interior = buildMuseumInterior(b);
+    if (!parts.interior) parts.interior = b.interior ? buildInteriorOf(b) : buildMuseumInterior(b);
     group.add(parts.interior);
     return;
   }
@@ -709,11 +707,7 @@ function addPitchedRoof(B, R, baseY, H, S, opts) {
 
 const ROOF_PATCH = [0x4e4f53, 0x7a7a7d, 0x5f5b56, 0x6a6c6e];
 
-function segDist(x, z, e) {
-  const dx = e.bx - e.ax, dz = e.by - e.ay;
-  const t = Math.max(0, Math.min(1, ((x - e.ax) * dx + (z - e.ay) * dz) / (dx * dx + dz * dz || 1)));
-  return Math.hypot(x - e.ax - dx * t, z - e.ay - dz * t);
-}
+const segDist = (x, z, e) => segDistXY(x, z, e.ax, e.ay, e.bx, e.by);
 
 // Everything sits on a base below the roof top (yb) so nothing is coplanar with
 // it; loose surface quads float >= 3.5 cm above it.

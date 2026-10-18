@@ -174,6 +174,7 @@ All URL switches live in one register, `FLAGS` in `game/js/devflags.js` (parsed 
 | `?gfxadvies` | Toon het grafische advies ook als de speler al koos |
 | `?gpu` | Doe alsof de GPU deze renderer-tekst heeft (test van het advies) |
 | `?preset` | Instellingen alleen voor deze run, bv. quality:laag,drawDistance:kort |
+| `?touch` | Raakbediening aan (touch=1) of uit (touch=0), ook zonder touchscherm |
 | `?hitch` | Meet haperingen (hitchprobe) |
 | `?zwartcheck` | Controleer op zwarte beelden (blackframe) |
 

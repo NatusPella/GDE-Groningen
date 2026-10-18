@@ -12,7 +12,7 @@
 // posts, mapped fences, noise barriers and speed tables.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { furnitureForTile, DESTINATIONS } from './streetfurniture.js';
-import { worldSignPlaces } from './worldplaces.js';
+import { worldSignPlaces, worldTownSigns } from './worldplaces.js';
 import { mergeGeometries, tint } from './geomerge.js';
 import { makeProp, addProp, removeProp, isPropBroken, addStaticCollider, addPropStreamer } from './breakables.js';
 import { TILE_M, GRID_X0, GRID_Y0, tileIndexOf } from './gdt.js';
@@ -21,8 +21,8 @@ import { markInstancesDirty } from './util.js';
 // the game draws its own lamps and path bollards (see above)
 export const GAME_OPTS = { lamps: false, bollards: false, livingBumps: false };
 // draw distance per kind (m)
-const LOD = { guardrail: 220, fence: 160, hedge: 160, noise: 420, hectometer: 120, gantry: 650, speedbump: 120, bench: 110, bin: 90, bikerack: 100, shelter: 140, bollard: 90, lamp: 200 };
-const CAP = { guardrail: 2600, fence: 600, hedge: 600, noise: 400, hectometer: 120, gantry: 24, speedbump: 60, bench: 120, bin: 120, bikerack: 120, shelter: 40, bollard: 200, lamp: 400 };
+const LOD = { guardrail: 220, fence: 160, hedge: 160, noise: 420, hectometer: 120, gantry: 650, placesign: 260, wegwijzer: 200, speedbump: 120, bench: 110, bin: 90, bikerack: 100, shelter: 140, bollard: 90, lamp: 200 };
+const CAP = { guardrail: 2600, fence: 600, hedge: 600, noise: 400, hectometer: 120, gantry: 24, placesign: 60, wegwijzer: 60, speedbump: 60, bench: 120, bin: 120, bikerack: 120, shelter: 40, bollard: 200, lamp: 400 };
 const TILE_REACH = 900;     // tiles whose square comes this near are generated
 const PROP_REACH = 70;      // colliders near the player
 const REBUILD_MOVE = 12;
@@ -32,6 +32,7 @@ let map = null;
 const tiles = new Map();    // key -> { items }
 const meshes = new Map();   // kind -> InstancedMesh
 let signMesh = null, signKey = '';
+let boardMesh = null, boardKey = '';
 let lastX = Infinity, lastY = Infinity, dirty = true;
 const liveProps = new Map(); // item key -> prop
 
@@ -105,9 +106,11 @@ function shelterGeo() {
     tint(new THREE.BoxGeometry(0.06, 2.4, 0.06).translate(1.55, 1.2, -0.7), 0x2b3a4a),
   ]);
 }
+// the post of a place name board or signpost (the board is drawn apart, see rebuildBoards)
+function postGeo() { return mergeGeometries([tint(new THREE.BoxGeometry(0.08, 2.2, 0.08).translate(0, 1.1, 0), 0x8a9196)]); }
 function bollardGeo() { return mergeGeometries([tint(new THREE.CylinderGeometry(0.08, 0.1, 0.9, 6).translate(0, 0.45, 0), 0x8c2a2a)]); }
 
-const GEOS = { guardrail: guardrailGeo, fence: fenceGeo, hedge: hedgeGeo, noise: noiseGeo, hectometer: hectometerGeo, speedbump: speedbumpGeo, gantry: gantryGeo, beam: beamGeo, bench: benchGeo, bin: binGeo, bikerack: rackGeo, shelter: shelterGeo, bollard: bollardGeo };
+const GEOS = { guardrail: guardrailGeo, fence: fenceGeo, hedge: hedgeGeo, noise: noiseGeo, hectometer: hectometerGeo, speedbump: speedbumpGeo, gantry: gantryGeo, beam: beamGeo, bench: benchGeo, bin: binGeo, bikerack: rackGeo, shelter: shelterGeo, bollard: bollardGeo, placesign: postGeo, wegwijzer: postGeo };
 const MAT = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.75, metalness: 0.15 });
 
 function meshOf(kind) {
@@ -188,6 +191,63 @@ function rebuildSigns(gantries) {
   scene.add(signMesh);
 }
 
+// --- place name boards and signposts: one mesh over a canvas atlas
+
+const BOARD_W = 256, BOARD_H = 96, BOARD_COLS = 4, BOARD_ROWS = 16;
+let boardAtlas = null, boardTex = null, boardMat = null;
+function drawBoard(ctx, col, row, it) {
+  const x = col * BOARD_W, y = row * BOARD_H, sign = it.k === 'wegwijzer';
+  // a place name board is white with black letters, a signpost is blue
+  ctx.fillStyle = sign ? '#1f4fa0' : '#f4f4f0';
+  ctx.fillRect(x, y, BOARD_W, BOARD_H);
+  ctx.strokeStyle = sign ? '#f4f4f0' : '#202428';
+  ctx.lineWidth = 4;
+  ctx.strokeRect(x + 3, y + 3, BOARD_W - 6, BOARD_H - 6);
+  ctx.fillStyle = sign ? '#f4f4f0' : '#202428';
+  ctx.textBaseline = 'middle';
+  const n = it.text.length, h = (BOARD_H - 10) / n;
+  ctx.font = `bold ${Math.min(34, Math.floor(h * 0.7))}px sans-serif`;
+  it.text.forEach((t, i) => ctx.fillText(t, x + 14, y + 5 + h * (i + 0.5) + 1, BOARD_W - 26));
+}
+
+function rebuildBoards(boards) {
+  const key = boards.map((g) => g.key).join('|');
+  if (key === boardKey) return;
+  boardKey = key;
+  if (typeof document === 'undefined') return;
+  if (!boardAtlas) {
+    boardAtlas = document.createElement('canvas');
+    boardAtlas.width = BOARD_W * BOARD_COLS; boardAtlas.height = BOARD_H * BOARD_ROWS;
+    boardTex = new THREE.CanvasTexture(boardAtlas);
+    boardTex.colorSpace = THREE.SRGBColorSpace;
+    boardMat = new THREE.MeshBasicMaterial({ map: boardTex, side: THREE.DoubleSide });
+  }
+  const ctx = boardAtlas.getContext('2d');
+  ctx.clearRect(0, 0, boardAtlas.width, boardAtlas.height);
+  const pos = [], uv = [];
+  boards.slice(0, BOARD_COLS * BOARD_ROWS).forEach((b, slot) => {
+    const col = slot % BOARD_COLS, row = Math.floor(slot / BOARD_COLS);
+    drawBoard(ctx, col, row, b);
+    const ca = Math.cos(b.a), sa = Math.sin(b.a);
+    // across the travel direction: (-sa, ca); the board faces the oncoming traffic
+    const rx = -sa, ry = ca, w = b.k === 'wegwijzer' ? 1.8 : 1.5, hh = b.k === 'wegwijzer' ? 0.3 * b.text.length + 0.15 : 0.5;
+    const z = (b.z || 0) + 2.2 - hh / 2;
+    const corners = [[-w / 2, -hh / 2], [w / 2, -hh / 2], [w / 2, hh / 2], [-w / 2, hh / 2]].map(([u, v]) => [b.x + rx * u - ca * 0.06, z + v + hh / 2, b.y + ry * u - sa * 0.06]);
+    const u0 = col / BOARD_COLS, u1 = (col + 1) / BOARD_COLS, v0 = 1 - (row + 1) / BOARD_ROWS, v1 = 1 - row / BOARD_ROWS;
+    for (const [i, u, v] of [[0, u0, v0], [1, u1, v0], [2, u1, v1], [0, u0, v0], [2, u1, v1], [3, u0, v1]]) { pos.push(...corners[i]); uv.push(u, v); }
+  });
+  boardTex.needsUpdate = true;
+  if (boardMesh) { scene.remove(boardMesh); boardMesh.geometry.dispose(); boardMesh = null; }
+  if (!pos.length) return;
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  geo.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  geo.computeBoundingSphere();
+  boardMesh = new THREE.Mesh(geo, boardMat);
+  boardMesh.name = 'furniture:boards';
+  scene.add(boardMesh);
+}
+
 // --- tiles ---------------------------------------------------------------------
 
 function tileItems(i, j) {
@@ -200,7 +260,10 @@ function tileItems(i, j) {
     const p = m.pts ? m.pts : [[m.x, m.y]];
     return p.some((q) => q[0] >= x0 - 50 && q[0] < x0 + TILE_M + 50 && q[1] >= y0 - 50 && q[1] < y0 + TILE_M + 50);
   });
-  const res = furnitureForTile({ x0, y0, size: TILE_M, roads, mapped, places: worldSignPlaces() || DESTINATIONS, opts: GAME_OPTS });
+  // (the tiles' flat water too: a fence is not drawn across it)
+  const wx = x0 + TILE_M / 2, wy = y0 + TILE_M / 2, wr = TILE_M * 0.71 + 60;
+  const water = map.waterNear(wx, wy, wr).concat(map.flatWaterNear ? map.flatWaterNear(wx, wy, wr) : []);
+  const res = furnitureForTile({ x0, y0, size: TILE_M, roads, mapped, water, places: worldSignPlaces() || DESTINATIONS, opts: { ...GAME_OPTS, towns: worldTownSigns() } });
   tiles.set(key, t = { items: res.items, colliders: res.colliders });
   return t.items;
 }
@@ -238,7 +301,7 @@ export function updateStreetFurniture3D(px, py, force = false) {
   lastX = px; lastY = py; dirty = false;
   for (const m of meshes.values()) m.count = 0;
   const near = itemsNear(px, py, LOD.gantry);
-  const gantries = [];
+  const gantries = [], boards = [];
   const ground = (it) => (it.z !== undefined ? it.z : map.groundHeightAt ? map.groundHeightAt(it.x, it.y, 0) : 0);
   for (const it of near) {
     const lod = LOD[it.k];
@@ -259,10 +322,15 @@ export function updateStreetFurniture3D(px, py, force = false) {
         gantries.push(it);
         break;
       }
+      case 'placesign': case 'wegwijzer':
+        put(it.k, it.x, z, it.y, it.a);
+        boards.push({ ...it, z });
+        break;
       default: if (GEOS[it.k]) put(it.k, it.x, z, it.y, it.a);
     }
   }
   for (const m of meshes.values()) { m.instanceMatrix.needsUpdate = true; markInstancesDirty(m.instanceMatrix, m.count); }
+  rebuildBoards(boards.sort((a, b) => Math.hypot(a.x - px, a.y - py) - Math.hypot(b.x - px, b.y - py)).slice(0, BOARD_COLS * BOARD_ROWS));
   rebuildSigns(gantries.sort((a, b) => Math.hypot(a.x - px, a.y - py) - Math.hypot(b.x - px, b.y - py)).slice(0, 16));
 }
 

@@ -16,7 +16,7 @@ import {
 import { updateFarProps, farPropsStats } from './farprops.js';
 import { updateCountryLife, lifeStats } from './countrylife.js';
 import { buildSign, disposeSign } from './countrysigns.js';
-import { EDGE, edgeBlocked, roadGap } from './countryedge.js';
+import { EDGE, edgeBlocked, edgeSpanBlocked, roadGap } from './countryedge.js';
 import { ensureCountryEdge } from './countryplan.js';
 import { thinDitchOn, ditchRamp, provinceBlock } from './countryfield.js';
 import { urbanWeight } from './provinceworld.js';
@@ -247,6 +247,11 @@ function push(tile, type, x, y, rotY, sx, sy, sz, color = 0xffffff, jitter = 0.0
   const clear = ROAD_CLEAR[type];
   if (clear !== undefined) {
     if (!clearOfRoad(x, y, clear)) return false;
+    // a hedge piece lies over the tiles' water, roads or houses at its ends or in between (issue #124)
+    if (type === 'hedge') {
+      const hx = Math.cos(rotY) * sx * 0.5, hy = -Math.sin(rotY) * sx * 0.5;
+      if (edgeSpanBlocked(x - hx, y - hy, x + hx, y + hy, 0.5, 1.3)) return false;
+    }
     if (type === 'wire') {
       // the span's ends too: a wire may not cross a lane
       const hx = Math.cos(rotY) * sx * 0.5, hy = -Math.sin(rotY) * sx * 0.5;
@@ -515,9 +520,13 @@ const angOf = (P, t) => { const A = P(t, 0), B = P(t + 1, 0); return -Math.atan2
 
 // barbed wire: weathered posts, three dull strands
 function fenceLine(tile, P, t0, t1, step, ok) {
+  let prev = null; // the sample before: the wire to it must not cross a ditch, lane or house of the tiles
   lineRuns(t0, t1, step, (t) => {
     const [x, y] = P(t);
-    if (!ok(x, y, t)) return false;
+    if (!ok(x, y, t)) { prev = null; return false; }
+    const last = prev;
+    prev = [x, y];
+    if (last && edgeSpanBlocked(last[0], last[1], x, y, 0.5)) return false;
     const h = chash(Math.round(x * 5), Math.round(y * 5));
     return push(tile, 'post', x, y, h * 6.28, 1, 0.92 + h * 0.16, 1, 0xa89a86, 0.12);
   }, 48, (a, b) => {

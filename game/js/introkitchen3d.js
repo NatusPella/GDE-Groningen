@@ -1,4 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { canvasTex as sharedCanvasTex } from './canvastex.js';
 
 // Tessa's kitchen in the Oosterparkwijk at dawn, for the opening of a new
 // game: a closed room staged high above the street (only its inside is ever
@@ -17,15 +18,7 @@ export const KITCHEN = {
   phone: { u: -0.46, v: -0.3 },
 };
 
-function canvasTex(w, h, draw) {
-  const c = document.createElement('canvas');
-  c.width = w; c.height = h;
-  draw(c.getContext('2d'), w, h);
-  const t = new THREE.CanvasTexture(c);
-  t.colorSpace = THREE.SRGBColorSpace;
-  t.anisotropy = 4;
-  return t;
-}
+const canvasTex = (w, h, draw) => sharedCanvasTex(w, h, draw, { anisotropy: 4 });
 
 function wallTex() {
   return canvasTex(256, 256, (g, w, h) => {

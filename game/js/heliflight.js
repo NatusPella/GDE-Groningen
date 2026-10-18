@@ -253,7 +253,19 @@ export function flyHeli(v, dt, w) {
 
   const hspeed0 = Math.hypot(vx, vy);
   let hitH = 0, rotorHit = false;
-  const probeTop = (lx, lz, x, y) => { const [px, py] = local(v, lx, lz, x, y); const r = roofAt(map, px, py); return r ? r.top : -Infinity; };
+  // each probe's roof is looked up once per position this frame (the new
+  // position is asked again by the resting pass below)
+  const topMemo = new Map();
+  const probeTop = (lx, lz, x, y) => {
+    const key = lx * 1009 + lz;
+    const m = topMemo.get(key);
+    if (m && m.x === x && m.y === y) return m.top;
+    const [px, py] = local(v, lx, lz, x, y);
+    const r = roofAt(map, px, py);
+    const top = r ? r.top : -Infinity;
+    if (!m || x === nx) topMemo.set(key, { x, y, top });
+    return top;
+  };
   // a probe moving into a building blocks; one that already overlapped (a
   // spawn or a takeoff right next to a wall) may move out again
   const enters = (lx, lz, h) => probeTop(lx, lz, nx, ny) > oz + h + 0.05 && probeTop(lx, lz, ox, oy) <= oz + h + 0.05;

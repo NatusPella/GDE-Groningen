@@ -1,5 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { WATER_Y, inWaterPoly } from './util.js';
+import { WATER_Y, inMapWater } from './util.js';
 
 // Boat wakes: foam laid down in the world behind the stern (so it stays where
 // the boat was, not glued to the hull), spreading into a Kelvin V with two
@@ -154,7 +154,7 @@ function updateBow(mesh, v, time, light, spd) {
 // Free water beside (x, y) along (nx, ny), in whole metres up to MAX_SPREAD.
 function reachToShore(map, x, y, nx, ny) {
   for (let d = 1; d <= MAX_SPREAD; d++) {
-    if (!inWaterPoly(map, x + nx * d, y + ny * d)) return d - 0.6;
+    if (!inMapWater(map, x + nx * d, y + ny * d)) return d - 0.6;
   }
   return MAX_SPREAD + 2;
 }
