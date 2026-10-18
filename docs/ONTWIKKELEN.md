@@ -176,6 +176,7 @@ All URL switches live in one register, `FLAGS` in `game/js/devflags.js` (parsed 
 | `?preset` | Instellingen alleen voor deze run, bv. quality:laag,drawDistance:kort |
 | `?touch` | Raakbediening aan (touch=1) of uit (touch=0), ook zonder touchscherm |
 | `?hitch` | Meet haperingen (hitchprobe) |
+| `?simlagen` | Verkeer volgens simulatielagen per streek en afstand (simlagen.js) |
 | `?zwartcheck` | Controleer op zwarte beelden (blackframe) |
 
 - `?dev` (desktop `--dev`): story dev panel on F9. Chapter select (jumps to
