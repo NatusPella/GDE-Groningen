@@ -445,6 +445,8 @@ export function tileBlob(i, j, list, gid, flags, builder, stats = null, extras =
   if (nav.length) sections.push({ type: G.SECTION.NAV, rows: nav });
   if (extra.length) sections.push({ type: G.SECTION.FURNITURE, rows: extra });
   if (!sections.length) return null;
+  // the AHN terrain of the tile (build_province.mjs --terrain; #78)
+  if (extras && extras.terrain) sections.push({ type: G.SECTION.RASTER, raster: extras.terrain });
   const n = Object.fromEntries(PER_TILE.filter((q) => rows[q].length).map((q) => [q, rows[q].length]));
   if (mapped.length) n.furniture = mapped.length;
   if (junctions.length) n.junctions = junctions.length;

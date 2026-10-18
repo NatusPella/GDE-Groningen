@@ -18,6 +18,7 @@ import { AKTE5_STORY } from './missionstory_akte5.js';
 import { openBank } from './voicebank.js';
 import { playScript } from './cutscenehost.js';
 import { missionScene } from './cutscenes_akte1.js';
+import { STORY_AKTE4 } from './missionstory_akte4.js';
 import './cutscenes_akte3.js';
 
 // Story cutscenes around the mission chain: who asks and why (start), the
@@ -1341,7 +1342,10 @@ function playStaged(w, key, tl, { anchor, facing, kicker = '', title = '', cardF
   return ok;
 }
 
-function stageLines(i, stage, kind, entry = STORY[i]) {
+// the entry of mission index i: the main table, or an act's own table keyed by mission id (missionstory_akte4.js)
+const storyOf = (i) => STORY[i] || STORY_AKTE4[MISSION_IDS[i]];
+
+function stageLines(i, stage, kind, entry = storyOf(i)) {
   const s = entry;
   const base = s[kind];
   if (stage >= i) return base;
@@ -1370,7 +1374,7 @@ function onFootAnchor(w) {
 // The new arc plays the script's text (script.json, storytext.js) in the staging of the mission's STORY entry:
 // intro, outro and replay come from the step's `story` scene ids (storyarc_nieuw.js); the fail lines stay.
 function entryFor(i) {
-  const s = STORY[i];
+  const s = storyOf(i);
   if (!s || !nieuwVerhaal() || !storyDataReady()) return s;
   const step = STEPS.find((q) => q.kind === 'mission' && q.story && MISSION_IDS.indexOf(q.mission) === i);
   if (!step) return s;
@@ -1464,7 +1468,7 @@ function outroNow(w, i, { stage = i, short = false, reward = 0, stats = [], reas
 }
 
 export function playStoryFail(w, i, { reason = '', stats = [] } = {}) {
-  const s = STORY[i];
+  const s = storyOf(i);
   // sikkom: Gronings for "almost, but not quite" (the dialect word, not the news site)
   const banner = { kind: 'fail', title: 'Sikkom.', reason, stats };
   if (!s || run) { showBanner(banner); return false; }
@@ -2363,7 +2367,7 @@ export function playToast(w, { at, facing = 0, lines = [], variant = 0, glass = 
 // A finished mission's intro and outro as plain lines, for Kiekdoar TV in the
 // flat (furniture.js): { speaker, text, src (voice URL or null), dur }.
 export function storyReplayLines(i) {
-  const s = STORY[i];
+  const s = storyOf(i);
   if (!s) return [];
   const npc = NPC[s.npc], outNpc = NPC[s.outroNpcKey || s.npc];
   const n = (s.intro || []).length;
