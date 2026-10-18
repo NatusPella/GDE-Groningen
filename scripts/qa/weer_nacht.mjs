@@ -1,6 +1,6 @@
 // Weer, dag en nacht in beeld (#19, #194, #195): per plek een screenshot voor elk tijdstip (helder) en voor elk weer op
 // middag, avond en nacht, plus frametijden met de effecten aan, in één Electron-instantie met wegwerpprofiel.
-//   node scripts/qa/weer_nacht.mjs [--out=<map>] [--only=naam,naam] [--settle=<ms>] [--index=<index-provincie.json>] [--slot]
+//   node scripts/qa/weer_nacht.mjs [--out=<map>] [--only=naam,naam] [--settle=<ms>] [--perf-only] [--index=<index-provincie.json>] [--slot]
 //   node scripts/qa/weer_nacht_analyse.mjs <map>          (beeldcontroles, contactbladen, rapport)
 // ELECTRON_EXE=<pad naar electron.exe> als desktop/node_modules/electron/dist ontbreekt. Vereist een gestagede game/.
 // --slot: neemt een Electron-slot volgens C:/Users/abuis/gde-locks/README.txt (mkdir electron-1..3) en geeft het vrij.
@@ -42,6 +42,7 @@ const cfg = {
   plekken: PLEKKEN, matrix: L.matrix(), settle: SETTLE, perfMs: 4000,
   perf: [['middag', 'helder'], ['middag', 'regenbui'], ['middag', 'onweer'], ['middag', 'mist'], ['avond', 'helder'], ['nacht', 'helder'], ['nacht', 'regenbui']].map(([tijd, weer]) => ({ tijd, weer })),
 };
+if (process.argv.includes('--perf-only')) { cfg.combos = cfg.matrix; cfg.matrix = []; }
 if (process.argv.includes('--list')) { console.log(JSON.stringify({ plekken: PLEKKEN, shots: PLEKKEN.length * cfg.matrix.length })); process.exit(0); }
 
 // een Electron-slot (alleen met --slot)
