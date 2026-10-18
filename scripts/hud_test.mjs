@@ -4,6 +4,7 @@ import * as R from '../game/js/hudrules.js';
 import { nextTurn, turnText } from '../game/js/hudgps.js';
 import * as A from '../game/js/roadaccess.js';
 import * as U from '../game/js/uiscale.js';
+import { readFileSync, readdirSync } from 'node:fs';
 import * as L from '../game/js/hudlook.js';
 import { PALETTES } from '../game/js/a11y.js';
 
@@ -145,6 +146,14 @@ for (const [name, pal] of Object.entries(PALETTES)) {
     if (name === 'uit' && k === 'police') continue; // the map's blue, drawn on a light ring
     ok(L.contrast(pal[k], L.HUD_CARD_BG) >= L.GRAPHIC_CONTRAST, 'contrast of ' + k + ' in ' + name + ': ' + L.contrast(pal[k], L.HUD_CARD_BG).toFixed(2));
   }
+}
+// #168: 'x prestaties wachten' is not in the HUD any more; the count is a quiet dot in the pause menu
+{
+  const dir = new URL('../game/js/', import.meta.url);
+  const hud = readdirSync(dir).filter((f) => /^(hud.*|prompts|narrative|attention).(js|css)$/.test(f));
+  ok(hud.length > 3, 'found the HUD sources');
+  for (const f of hud) ok(!/prestaties? (wachten|wacht)/.test(readFileSync(new URL(f, dir), 'utf8')), 'no achievement counter notice in ' + f);
+  ok(!/unseenAchievementCount/.test(readFileSync(new URL('hudcards.js', dir), 'utf8')), 'hudcards.js does not count unseen achievements');
 }
 console.log(`${n} checks, ${fails} failed`);
 process.exit(fails ? 1 : 0);

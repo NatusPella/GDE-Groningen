@@ -7,6 +7,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Nieuw
+- **Rustigere HUD:** de melding "x prestaties wachten" is weg uit beeld. Nieuwe prestaties zie je als stille stip bij Prestaties in het pauzemenu.
 - **Betere benchmark:** de benchmark rijdt nu een vaste route van ongeveer een halve minuut door stad, provincie, water, een drukke scène en een cutscene. De resultaatkaart toont gemiddelde fps, p95-frametijd, laagste 1% en geheugen (als je computer dat geeft), per situatie, de vergelijking met de vorige keer en een aanbevolen stand (Laag, Gem. of Hoog) met uitleg. Esc stopt de benchmark; de knop staat in beeld.
 - **Reizen met het openbaar vervoer:** kies je op de kaart een bestemming, dan zie je naast zelf rijden ook de trein-, bus- en bootopties, met lijnkleuren, haltes, overstappen, prijs en reistijd, en de lijnen op de kaart. Meerijden speelt een korte reisscène; houd je niet van wachten, dan sla je hem over met Spatie en sta je meteen op je bestemming.
 - **Geen magisch snelreizen meer:** Shift-klikken op de kaart om te teleporteren is weg. Reizen kan zelf rijden of meerijden.
