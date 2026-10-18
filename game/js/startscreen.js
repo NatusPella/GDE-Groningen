@@ -13,7 +13,6 @@ import { MENU_FRAME_S, getRenderer } from './scene3d.js';
 import { isAdvisorSampling, startGfxAdvisor } from './gfxprofile.js';
 import { ABOUT_HTML } from './credits.js';
 import { startLoadScreen, setLoadTips } from './loadscreen.js';
-import { sceneSvg } from './loadscene.js';
 import { ARC_ID, arcForced } from './storyflag.js';
 import { arcName, otherArc, chooseArc, classicSaveExists } from './storychoice.js';
 
@@ -38,9 +37,6 @@ let tipTimer = 0;
 let fakeTimer = 0;
 let progress = 0;
 let shown = 0;
-
-// the boot screen's picture: the same low-poly canal scene as the load screens
-{ const bg = document.getElementById('bt-scene'); if (bg) bg.innerHTML = sceneSvg('water'); }
 
 function el(id) {
   return document.getElementById(id);
