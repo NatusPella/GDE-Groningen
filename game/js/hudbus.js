@@ -19,6 +19,7 @@ export const LEVEL = { story: 5, danger: 4, reward: 3, discovery: 2, tip: 1 };
 export const KINDS = {
   missie: { level: 'story', p: P1, zone: 'A' },
   bijbaan: { level: 'story', p: P1, zone: 'A' },
+  reis: { level: 'story', p: P1, zone: 'A' },
   politie: { level: 'danger', p: P0, zone: 'A' },
   gevaar: { level: 'danger', p: P0, zone: 'A' },
   geld: { level: 'reward', p: P2, zone: 'A' },
