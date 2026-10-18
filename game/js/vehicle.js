@@ -4,6 +4,7 @@ import { waterClearance, waterChannelPoints } from './waterindex.js';
 import { shallowWater, waterAt, airDraftOf, passesUnder } from './waterlevels.js';
 import { trafficSignalsNear, trafficLightPhaseMove } from './trafficlights.js';
 import { resolvePropCollisions } from './breakables.js';
+import { createShards, dropShards, shardPuncture } from './roadshards.js';
 import { inPassage } from './collision.js';
 import { elevWallContact } from './elevation.js';
 import { crossingSpeedLimit, loweredBoomsNear, snapBoom } from './railway.js';
@@ -2437,6 +2438,7 @@ const BLAST_REACH = 9;
 export function disableVehicle(v, byPlayer, world = null) {
   if (v.wrecked || v.disabled) return;
   v.health = 0;
+  if (world && !v.isBoat && !v.isHeli) dropShards(world.shards || (world.shards = createShards()), v.x, v.y, world.time || 0);
   if (byPlayer) markWreckedByPlayer(v, world);
   if (v.isBike || v.isScooter || v.isBoat) {
     v.wrecked = true;
@@ -2453,6 +2455,10 @@ export function disableVehicle(v, byPlayer, world = null) {
 
 export function tickBurningVehicles(world, dt) {
   for (const v of world.vehicles) {
+    if (world.shards && v.driver === 'player' && shardPuncture(world.shards, v, world.time || 0)) {
+      v.flat = true;
+      world.addMessage('Door de glasscherven! Lekke band', 3);
+    }
     if (v.flat && !v.flatWarned && v.driver === 'player') {
       v.flatWarned = true;
       world.addMessage(v.isBike || v.isScooter ? 'Lekke band! Naar de fietsenmaker of de garage' : 'Lekke band! Je auto trekt scheef. Naar de garage', 4);
