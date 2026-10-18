@@ -8,6 +8,7 @@ import { passagesOf, doorsOf } from './passages.js';
 import { applyPortalCut, buildPassageTunnels } from './portalcut3d.js';
 import { buildMuseumInterior } from './museum3d.js';
 import { marktKind, buildMarktGroup } from './marktgebouwen.js';
+import { hash2 } from './rng.js';
 
 // Procedural Groningen buildings. Geometry bakes absolute world coordinates
 // (x, height, map-y) and is cached per building on b._geo3dParts: the wall
@@ -30,10 +31,6 @@ const CITY_CENTRE_R = 650;
 const PART_CACHE_MAX = 800;
 const MAX_WINDOWS = 420;
 
-function hash2(x, y) {
-  const h = Math.sin(x * 127.1 + y * 311.7) * 43758.5453;
-  return h - Math.floor(h);
-}
 
 function shade(hex, f) {
   const r = Math.min(255, Math.round(((hex >> 16) & 0xff) * f));

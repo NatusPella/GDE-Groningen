@@ -3,6 +3,7 @@ import { HABBO_PALETTE, habboMaterial, GeoBuilder, vcMaterial, markShared, compo
 import { buildPersonMesh, PERSON_RIG, holdPhoneRiding } from './models3d_people.js';
 import { boatKind, boatHasCabin } from './boattypes.js';
 import { buildHeliMesh } from './heli3d.js';
+import { hash2 } from './rng.js';
 
 // Low-poly vehicles. Group origin = vehicle centre at ground level (y=0),
 // facing local +X, right-hand side on +Z; sized off v.model.len/wid.
@@ -11,10 +12,6 @@ import { buildHeliMesh } from './heli3d.js';
 // per vehicle so scene3d can dispose them on despawn; police lamps need their
 // own anyway since updatePoliceLamps animates them.
 
-function hash2(x, y) {
-  const h = Math.sin(x * 127.1 + y * 311.7) * 43758.5453;
-  return h - Math.floor(h);
-}
 
 const WHEEL_R = 0.32;
 const WHEEL_W = 0.22;
