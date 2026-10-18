@@ -16,6 +16,7 @@
 // mouse buttons, number keys and Space through `world.minigameUntil`.
 import { CARBID } from './carbid.js';
 import { KERMIS } from './kermis.js';
+import { HOOGVLIEGER } from './reuzenrad.js';
 import { GEHEIMEN } from './geheimen.js';
 import { DRIFT_ZONE } from './driftzone.js';
 import { DISCGOLF } from './discgolf.js';
@@ -35,7 +36,7 @@ import { isCinematicActive } from './cinematics.js';
 import { registerBusyProbe } from './busy.js';
 export { activityBlock, iconDisc } from './activitykit.js';
 
-const LIST = [CARBID, KERMIS, GEHEIMEN, DRIFT_ZONE, DISCGOLF, PITCHPUTT, SKATEPARK, KARTBAAN, ZWEMBAD, KLIMTOREN, WATERSKI, CARILLON_GAME, PANNENKOEK, HENGELEN, WANDELING, SNACKKETEN];
+const LIST = [CARBID, KERMIS, HOOGVLIEGER, GEHEIMEN, DRIFT_ZONE, DISCGOLF, PITCHPUTT, SKATEPARK, KARTBAAN, ZWEMBAD, KLIMTOREN, WATERSKI, CARILLON_GAME, PANNENKOEK, HENGELEN, WANDELING, SNACKKETEN];
 
 export function initActivities(w) {
   for (const a of LIST) {
