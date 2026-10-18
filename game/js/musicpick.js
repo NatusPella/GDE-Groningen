@@ -1,5 +1,7 @@
 // Which record the radio plays next (audio.js). Node-safe, no DOM.
 //
+import { isNightAtHour } from './sunrules.js';
+
 // A track: { id, stations: ['gmusic', ...] (its pools: 'gmusic' for the day
 // programmes, 'nachtstreek' for the night one), time: 'any' | 'day' | 'night',
 // weight, artist }. The manifest (audio/gmusic/manifest.json) may list a
@@ -44,7 +46,7 @@ export function normalizeTrack(entry) {
 }
 
 export function isNight(hour) {
-  return Number.isFinite(hour) && (hour >= 22 || hour < 6);
+  return isNightAtHour(hour);
 }
 
 // The station's own records, topped up with the others when it has fewer
