@@ -45,6 +45,7 @@ import { wijkProfileAt } from './trafficfleet.js';
 import { motorTarget } from './motortraffic.js';
 import { updateParkingLots3D } from './parkinglots3d.js';
 import { updateMarinas3D } from './marinas3d.js';
+import { loadVaarnet, vaarPrefetch } from './vaarload.js';
 import { isShopOpen } from './shopui.js';
 import { initMapView, updateMapView, isMapOpen } from './mapview.js';
 import { initAudio, updateAudio, setMenuAudio, setSfxLinks } from './audio.js';
@@ -293,6 +294,8 @@ async function boot() {
   const map = tiles ? tiles.world : await loadMap('citymap.json', onMapProgress);
   tileWorldStats = tiles ? tiles.store : null;
   markLoad('map');
+  // the waterway network's fixes and route graph (#184), small files read while the rest loads
+  loadVaarnet(map);
   const land = await landData;
   applyCityRoutes(map, land);
   setFarProps(land);
@@ -481,6 +484,8 @@ async function boot() {
     // the tiles follow the camera or the player (speed and heading prefetch)
     if (world.map.follow) {
       const tf = tileFocus(world.player, world.cameraOverride, tileFollow, dt);
+      // a boat on the waterway network: the tiles of its route ahead come early (#184)
+      if (tf && world.player.inVehicle && world.player.inVehicle.isBoat && !world.cameraOverride) tf.opts = vaarPrefetch(tf.opts, tf.x, tf.y);
       if (tf) world.map.follow(tf.x, tf.y, tf.opts, 1.5);
     }
     updateAudio(dt, world);
