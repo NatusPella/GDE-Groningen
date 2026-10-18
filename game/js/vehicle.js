@@ -2,7 +2,7 @@ import { nearestLine, project as projectOnLine, makeRunner, stepRunner, startAt 
 import { assistDamage } from './assistlive.js';
 import { closestPointOnSegment, normalizeAngle, clamp, lerp, pointInPolygon, inMapWater, WATER_Y, keepBoatOffShore, boatDryPoints } from './util.js';
 import { waterClearance, waterChannelPoints } from './waterindex.js';
-import { shallowWater, waterAt, airDraftOf, passesUnder } from './waterlevels.js';
+import { shallowWater, waterAt, airDraftOf, passesUnder, bargeWater, bargeWaterAt, meanWidth, BARGE_MIN_CLEAR } from './waterlevels.js';
 import { trafficSignalsNear, trafficLightPhaseMove } from './trafficlights.js';
 import { resolvePropCollisions } from './breakables.js';
 import { createShards, dropShards, shardPuncture } from './roadshards.js';
@@ -1153,6 +1153,8 @@ export function manageBusPopulation(world, { target = 4, spawnMin = 90, spawnMax
 // frame; the default finishes the scan). Returns null when no spot fits yet.
 export function spawnBoatOnWater(map, waterPoly, rng = Math.random, opts = {}) {
   const model = opts.model || pickBoatModel(rng);
+  // inland shipping only on main waterways and harbours (#234), never on a ditch or a small canal
+  if (model.kind === 'binnenvaart' && !bargeWater(waterPoly)) return null;
   const ch = waterChannelPoints(map, waterPoly, opts.budget ?? Infinity);
   let pts = ch.pts;
   if (opts.near) {
@@ -1168,6 +1170,7 @@ export function spawnBoatOnWater(map, waterPoly, rng = Math.random, opts = {}) {
     for (const turn of [0, Math.PI, 0.3, -0.3]) {
       const angle = normalizeAngle(q.a + flip + turn);
       if (boatDryPoints(map, probe, q.x, q.y, angle) > 0) continue;
+      if (model.kind === 'binnenvaart' && waterClearance(map, q.x, q.y, BARGE_MIN_CLEAR + 1) < BARGE_MIN_CLEAR) continue;
       // a barge does not start under a bridge it does not clear
       if (model.kind === 'binnenvaart') {
         const hx = Math.cos(angle) * model.len / 2, hy = Math.sin(angle) * model.len / 2;
@@ -1192,20 +1195,7 @@ export function spawnPoliceBoatOnWater(map, waterPoly, rng = Math.random, opts =
   return v;
 }
 
-// Mean width of a (long) water polygon: twice its area over its perimeter.
-function waterMeanWidth(poly) {
-  if (poly._meanW === undefined) {
-    const p = poly.pts;
-    let a = 0, per = 0;
-    for (let i = 0; i < p.length; i++) {
-      const q = p[(i + 1) % p.length];
-      a += p[i][0] * q[1] - q[0] * p[i][1];
-      per += Math.hypot(q[0] - p[i][0], q[1] - p[i][1]);
-    }
-    poly._meanW = per > 0 ? Math.abs(a) / per : 0;
-  }
-  return poly._meanW;
-}
+const waterMeanWidth = meanWidth;
 
 // Mirrors manageBikePopulation's despawn/spawn-quota shape, but candidates
 // are water bodies near the player instead of roads. Police boats are
@@ -1251,7 +1241,7 @@ export function manageBoatPopulation(world, { target = 4, spawnMin = 20, spawnMa
   // starts where no other boat lies within a few hull lengths, so it never
   // boxes in a tour boat or the player
   if (have.binnenvaart < BARGE_MAX) {
-    const wide = candidates.filter((w) => (w.nav || 0) >= 4 && waterMeanWidth(w) >= 24);
+    const wide = candidates.filter((w) => bargeWater(w));
     for (let tries = 0; tries < 4 && wide.length && have.binnenvaart < BARGE_MAX; tries++) {
       const poly = wide[Math.floor(Math.random() * wide.length)];
       const v = spawnBoatOnWater(map, poly, Math.random, { near: [player.x, player.y], min: spawnMin + 20, max: spawnMax, budget: 3, model: BOAT_KINDS[Math.random() < 0.55 ? 'spits' : 'kempenaar'] });
@@ -1315,7 +1305,7 @@ function pickBoatWaypoint(v, rng, map) {
     let clear = q.d >= 3;
     for (let t = 3; t < d && clear; t += 3) {
       if (waterClearance(map, v.x + (x - v.x) * t / d, v.y + (y - v.y) * t / d, 3) < 1.8) clear = false;
-      else if (isBarge(v) && lowBridgeAt(map, v, v.x + (x - v.x) * t / d, v.y + (y - v.y) * t / d)) clear = false;
+      else if (isBarge(v) && (lowBridgeAt(map, v, v.x + (x - v.x) * t / d, v.y + (y - v.y) * t / d) || waterClearance(map, v.x + (x - v.x) * t / d, v.y + (y - v.y) * t / d, BARGE_MIN_CLEAR + 1) < BARGE_MIN_CLEAR)) clear = false;
     }
     if (clear) return [x, y];
     if (!fallback) fallback = [x, y];
@@ -1344,6 +1334,9 @@ function followVaarTrip(v, dt, rng, map) {
   }
   const T = v._vaar;
   while (T.i < T.pts.length - 1 && Math.hypot(T.pts[T.i][0] - v.x, T.pts[T.i][1] - v.y) < VAAR_ARRIVE) T.i++;
+  // the next point lies in a ditch, pond or vaart (the net is wider than the barge can sail): drop the trip (#234)
+  const nw = waterAt(map, T.pts[T.i][0], T.pts[T.i][1]);
+  if (nw && !bargeWaterAt(nw)) { v._vaar = null; v._vaarWait = VAAR_RETRY_S; return false; }
   if (T.i >= T.pts.length - 1 && Math.hypot(T.pts[T.i][0] - v.x, T.pts[T.i][1] - v.y) < VAAR_ARRIVE * 2) { v._vaar = null; v._vaarWait = VAAR_RETRY_S; return false; }
   v.waypoint = [T.pts[T.i][0], T.pts[T.i][1]];
   v.waypointTimer = BOAT_WAYPOINT_MAX;
