@@ -12,6 +12,7 @@ import { Vehicle, resolveVehicleBuildingCollision, vehicleContacts } from './veh
 import { getVehicleMesh } from './models3d_vehicles.js';
 import { buildPersonMesh, seatPose, SEAT_CONTACT } from './models3d_people.js';
 import { boatSeats, BOAT_KINDS } from './boattypes.js';
+import { decorVisible } from './decorrules.js';
 import { HABBO_PALETTE } from './pixelart3d.js';
 import { LINE as GIDS_LINE } from './sidejob_rondvaart.js';
 import { isCinematicActive, playCinematic } from './cinematics.js';
@@ -1214,12 +1215,13 @@ export function updateRondvaart(dt, world) {
 
   const tg = ensureDecor(v, 'rvTourists', touristGroup);
   if (tg) {
+    tg.visible = decorVisible(v);
     seatTourists(tg);
     animateTourists(tg, st, st.t);
   }
   if (st.wiebe) {
     const wg = ensureDecor(st.wiebe.v, 'rvWiebe', wiebeGroup);
-    if (wg) animateWiebe(wg, st.wiebe, st.t);
+    if (wg) { wg.visible = decorVisible(st.wiebe.v); animateWiebe(wg, st.wiebe, st.t); }
   }
 
   if (st.relaxed) return null;
