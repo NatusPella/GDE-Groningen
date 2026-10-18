@@ -1,11 +1,12 @@
 // Roads that are not for you (roadaccess.js): walking or cycling on the
 // motorway and the ring, a car on a cycle path or a footway, a bike on a
-// footway. Physically possible, but an offence: a warning card at once, and
-// after a grace period on it the police take an interest (one star, once per
+// footway. Physically possible, but an offence: no warning card (removed, #125),
+// but after a grace period on it the police take an interest (one star, once per
 // stretch; never more than one from this alone). Missions, jobs and the
 // emergency services are left alone. Pure logic apart from reading the world.
 import { travelModeOf, offenceOf, marktFietsHint, MARKT } from './roadaccess.js';
 import { weekdayOf } from './calendar.js';
+import { playerBusy } from './busy.js';
 
 // Two money fines when an agent is watching: the phone in your hand while
 // riding or driving, and cycling after dark without a light.
@@ -54,16 +55,11 @@ export function roadUnder(map, x, y, z = 0) {
   return best;
 }
 
-const WARN = {
-  snelweg: { lopen: 'Lopen op de snelweg? Dat mag niet. Ga er snel vanaf', fiets: 'Fietsen op de snelweg mag niet. Ga er snel vanaf' },
-  fietspad: { auto: 'Een auto op het fietspad mag niet. Rijd door naar de weg' },
-  voetpad: { auto: 'Een auto op het voetpad mag niet. Rijd door naar de weg', fiets: 'Fietsen op het voetpad mag niet. Stap af of pak de weg' },
-};
 const STAR_TEXT = 'Een agent heeft je gezien. Politie! Je hebt een ster';
 
 function exempt(world, v) {
   if (!world.player || world.health <= 0 || world.pendingRespawn || world.pigeonMode || world.heliRun || world.trainDriving || world.trainCam) return true;
-  if (world.padelGame || world.activityGame || world.challenge || world.cameraOverride) return true;
+  if (playerBusy(world, ['padel', 'activityGame', 'challenge']).busy || world.cameraOverride) return true;
   if (world.sideJob && world.sideJob.active) return true;
   if (world.mission && world.mission.phase === 'active') return true;
   if (v && (v.isPolice || v.isAmbulance || v.sirenOn || v.isBus)) return true;
@@ -108,11 +104,6 @@ export function updateTrafficLaw(dt, world) {
     return;
   }
   state.on += dt;
-  if (!state.warned && state.rearm <= 0) {
-    state.warned = true;
-    const text = (WARN[kind] || {})[state.mode];
-    if (text) world.addMessage(text, 5, { kind: 'politie', key: 'roadlaw' });
-  }
   if (!state.fined && state.on >= GRACE_S) {
     state.fined = true;
     state.rearm = REARM_S;

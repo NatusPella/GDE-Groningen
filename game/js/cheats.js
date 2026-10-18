@@ -29,6 +29,7 @@ import { inDoorRange } from './facilities.js';
 import { edgeDistance } from './countryfield.js';
 import { roadNear, tilesIn, withTiles } from './tileplace.js';
 import { getGarageCatalog, deliverOwnedVehicle } from './ownedvehicles.js';
+import { playerBusy } from './busy.js';
 
 const CLOCK = { zomeravond: 20.5, nachtstad: 0.5 };
 const FAST_CLOCK = 4; // extra days per day: five times as fast in all
@@ -72,8 +73,7 @@ export function achievementsBlocked() {
 // Missions, cutscenes and the like, where only the cosmetic streken run.
 export function cheatsBusy(w = world) {
   if (!w) return true;
-  return isMissionActive() || isCinematicActive() || !!w.challenge || !!(w.sideJob && w.sideJob.active) || !!w.heliRun ||
-    !!w.pigeonMode || !!w.padelGame || isActivityActive() || !!w.trainDriving || !!w.pendingRespawn;
+  return playerBusy(w, ['mission', 'cinematic', 'challenge', 'sideJob', 'heliRun', 'pigeon', 'padel', 'activity', 'train', 'respawn']).busy;
 }
 
 export function setCheat(id, value) {

@@ -46,6 +46,27 @@ met akkoord van de eigenaar.
   "niet ondertekend"-waarschuwing; Linux-build optioneel met `--linux`.
   De webzip wordt lokaal gemaakt en nergens heen geüpload (keuze: #57).
 
+## Voorbereiding publiek maken (18 okt 2026, #62 en #83)
+
+- **Secrets-scan** (lokaal, zonder gitleaks, die niet is geïnstalleerd): `git grep`
+  op de boom en `git log --all -G<patroon>` over alle 1424 commits en
+  branches, op patronen voor OpenRouter/OpenAI-, Google (`AIza`), GitHub-,
+  AWS- en Slack-sleutels, privésleutelblokken en `sleutel/secret/token/
+  wachtwoord = "waarde"`. **Geen treffers**; geen `.env`, `.pem`, `.p12`,
+  `.keystore` of `id_rsa` ooit in de historie. Alleen de naam
+  `OPENROUTER_API_KEY` komt voor (scripts lezen hem uit de omgeving, en
+  deze docs). Dit vervangt gitleaks niet: draai `gitleaks detect` nog
+  een keer vlak voor Public.
+- **Auteursnamen:** alle commits hebben het noreply-adres; als weergavenaam
+  staan "NatusPella" en "Alexander Buist" (de eigen echte naam van de
+  eigenaar, nog in een deel van de historie). Beslissing voor de eigenaar of
+  dat blijft (Constitution 4 noemt alleen credits) of met `--mailmap` wordt
+  herschreven.
+- **Dependabot:** `.github/dependabot.yml` (npm, `/desktop`, wekelijks)
+  toegevoegd; alerts en security updates zet de eigenaar aan in de settings.
+- **Merkenregister:** zie [MERKENCHECK.md](MERKENCHECK.md); de registers zijn
+  niet bevraagbaar zonder browser en moeten met de hand (15 minuten).
+
 ## Procedures voor later
 
 - **Historie opnieuw herschrijven** (alleen na akkoord, bijv. voor #76): in een

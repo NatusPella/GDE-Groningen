@@ -4,6 +4,7 @@ import { setErrorContext } from './errorlog.js';
 import { DEV, STORY_TEST } from './devflags.js';
 import { loadMap } from './mapdata.js';
 import { loadTileWorld } from './tileworld.js';
+import { tileFocus } from './tilefocus.js';
 import { setWorldPlaces } from './worldplaces.js';
 import { setRegionData } from './regions.js';
 import { tileIndexOf, tileKey } from './gdt.js';
@@ -12,12 +13,14 @@ import { ensureCountryEdge } from './countryplan.js';
 import { warmCountryMaps } from './countrymap.js';
 import { Input } from './input.js';
 import { initGamepad } from './gamepad.js';
+import { initTouch } from './touch.js';
 import { initGlyphs } from './glyphs.js';
 import { initA11y } from './a11y.js';
 import { isPlayAheadOpen } from './todo.js';
 import { Player } from './player.js';
 import { World } from './world.js';
 import { initCompanion, updateCompanion } from './companion.js';
+import { tickRowingCoaches } from './roeicoach.js';
 import { updateTrafficAI, resolveVehicleBuildingCollision, resolveVehicleVehicleCollisions, manageTrafficPopulation, manageBikePopulation, manageBusPopulation, manageScooterPopulation, manageBoatPopulation, updateBoatAI, checkVehicleWater, spawnHeroCarNear, tickBurningVehicles, setGroundMap } from './vehicle.js';
 import { spawnPedestriansNear, updatePedestrians, CITY_CENTRE } from './pedestrians.js';
 import { updateCombat, updateBullets } from './combat.js';
@@ -69,6 +72,8 @@ import { initSaveGame, updateSaveGame, hasSave, readSave } from './savegame.js';
 import { initWeather, updateWeather } from './weather.js';
 import { initWorldEvents, updateWorldEvents } from './worldevents.js';
 import { initMuggings, updateMuggings } from './muggings.js';
+import { initRoadRage, updateRoadRage } from './roadrage.js';
+import { tryWeaponDropInteract, updateWeaponDrops3D } from './weapondrops.js';
 import { initFlitspaal, updateFlitspaal } from './flitspaal.js';
 import { initWildlife, updateWildlife } from './wildlife.js';
 import { initSkyProps, updateSkyProps } from './skyprops.js';
@@ -161,6 +166,7 @@ function waitForStart(world) {
     updateFx3D(fxDt, world, getScene());
     updateGore3D(fxDt, world, getScene());
     updateKnockFx3D(fxDt, world, getScene());
+    updateWeaponDrops3D(fxDt, world, getScene());
     updateGunFx3D(fxDt, world, getScene());
     update3D(dt, world);
   };
@@ -311,6 +317,7 @@ async function boot() {
   initWeather(world);
   initWorldEvents(world);
   initMuggings(world);
+  initRoadRage(world);
   initFlitspaal(world);
   initWildlife(world);
   initSkyProps(world);
@@ -350,6 +357,7 @@ async function boot() {
   const menuOpen = () => isPauseMenuOpen() || isMapOpen() || isPhoneOpen() || isShopOpen() || !!world.devPanelOpen;
   input.canLock = () => document.body.classList.contains('game-started') && !menuOpen() && !world.uiPaused;
   initGamepad(input, world, { menuOpen: () => menuOpen() || isPlayAheadOpen(), phoneOpen: isPhoneOpen, pauseOpen: isPauseMenuOpen, mapOpen: () => isMapOpen() });
+  initTouch(input, world, { menuOpen: () => menuOpen() || isPlayAheadOpen() });
   document.addEventListener('pointerlockchange', () => {
     if (!document.pointerLockElement && document.body.classList.contains('game-started') && !menuOpen()) openPauseMenu();
   });
@@ -437,13 +445,8 @@ async function boot() {
     if (!world.paused) for (let r = 0; r < reps; r++) updateGameplay(gameDt);
     // the tiles follow the camera or the player (speed and heading prefetch)
     if (world.map.follow) {
-      const f = world.cameraOverride || world.player;
-      const dtp = Math.max(dt, 1e-3);
-      const vx = f.x !== undefined ? (f.x - (tileFollow.x ?? f.x)) / dtp : 0, vy = f.y !== undefined ? (f.y - (tileFollow.y ?? f.y)) / dtp : 0;
-      tileFollow.x = f.x; tileFollow.y = f.y;
-      // a camera cut is a jump, not a speed: no heading prefetch from it
-      const cut = Math.hypot(vx, vy) * dtp > 150;
-      if (f.x !== undefined) world.map.follow(f.x, f.y, cut ? {} : { vx: Math.min(80, Math.max(-80, vx)), vy: Math.min(80, Math.max(-80, vy)) }, 1.5);
+      const tf = tileFocus(world.player, world.cameraOverride, tileFollow, dt);
+      if (tf) world.map.follow(tf.x, tf.y, tf.opts, 1.5);
     }
     updateAudio(dt, world);
     updateNarrative();
@@ -455,6 +458,7 @@ async function boot() {
     updateFx3D(animDt, world, getScene());
     updateGore3D(animDt, world, getScene());
     updateKnockFx3D(animDt, world, getScene());
+    updateWeaponDrops3D(animDt, world, getScene());
     updateGunFx3D(animDt, world, getScene());
     probe.mark('fx+gore');
     updateCityProps(animDt, world, getScene());
@@ -506,6 +510,7 @@ async function boot() {
       manageBusPopulation(world);
       manageScooterPopulation(world, { target: scaledTarget(10) });
       manageBoatPopulation(world, { target: boatTarget() });
+      tickRowingCoaches(world);
       if (simLevel()) thinTraffic(world);
     }
     pedTimer -= dt;
@@ -529,6 +534,7 @@ async function boot() {
       updateCashVan(dt, world);
       tryGarageInteract(world);
       tryMachineInteract(world);
+      tryWeaponDropInteract(world);
       tryStreetLifeInteract(world);
       tryShopInteract(world);
       tryPigeonSpotInteract(world);
@@ -615,6 +621,7 @@ async function boot() {
     updateWeather(dt, world);
     updateWorldEvents(dt, world);
     updateMuggings(dt, world);
+    updateRoadRage(dt, world);
     updateDayNight(dt, world);
     updateCalendar(dt, world);
     updateCheats(dt, world);

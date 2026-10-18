@@ -226,5 +226,48 @@ const flags = {};
 T.applyFleetFlags(flags, 'newsvan');
 ok(flags.isNewsVan === true, 'the news van is flagged');
 
+// --- batch 3: skateboarders
+ok(D.skaterChance('student', 300, 17) > D.skaterChance('chic', 700, 17), 'skaters prefer the student districts');
+ok(D.skaterChance('student', 300, 3) === 0 && D.skaterChance('standaard', 3000, 17) === 0, 'no skaters at night or in the polders');
+{
+  let sk = 0;
+  const r = seeded(11);
+  for (let i = 0; i < 2000; i++) if (S.pickSkater(map, centre.x, centre.y, 17, r)) sk++;
+  ok(sk > 0 && sk < 1000, `some skaters now and then in the centre (${sk})`);
+  ok(D.SKATER_PACE > 1 && D.SKATER_LINES.length >= 4, 'skaters are quick and have lines');
+}
+
+// --- batch 3: the kennismakingsweek parody
+ok(D.ontgroeningChance('student', 300, 14) > 0 && D.ontgroeningChance('student', 300, 23) === 0 && D.ontgroeningChance('standaard', 3000, 14) === 0, 'initiation groups by day in student districts only');
+ok(D.ONTGROENING.club.startsWith('Dispuut') && D.LEADER_LINES.length >= 4 && D.FRESHMAN_LINES.length >= 4, 'invented dispuut with lines');
+{
+  let g = 0;
+  const r = seeded(5);
+  for (let i = 0; i < 2000; i++) if (S.pickOrientation(map, centre.x, centre.y, 14, r)) g++;
+  ok(g > 0 && g < 800, `initiation groups are occasional (${g})`);
+}
+
+// --- batch 3: district profiles on foot
+ok(D.wijkBagChance('student') > D.wijkBagChance('industrie'), 'students carry more bags than the industrial parts');
+{
+  const r = seeded(3);
+  let hi = 0, cols = 0;
+  for (let i = 0; i < 500; i++) { const c = D.wijkClothing('industrie', r); if (c) { cols++; if (c === '#e0701a') hi++; } }
+  ok(hi > cols * 0.3 && D.wijkClothing('standaard', r) === null, 'hi-vis orange in the industrial parts, default elsewhere');
+  const w = { player: { x: centre.x, y: centre.y }, map, pedestrians: [{ x: centre.x + 5, y: centre.y, clothing: '#000000', hasBag: true }, { x: centre.x, y: centre.y + 2, isCop: true, clothing: '#123456' }] };
+  S.dressWalkers(w, seeded(8));
+  ok(w.pedestrians[0]._wijkDressed && w.pedestrians[1].clothing === '#123456', 'walkers get dressed once, officers keep their uniform');
+}
+
+// --- batch 3: more couriers
+ok(D.CHAINS.length >= 4 && new Set(D.CHAINS.map((c) => c.color)).size === D.CHAINS.length, 'four invented chains, each with its own colour');
+ok(D.footCourierChance('centrum', 100, 19) > 0 && D.footCourierChance('centrum', 100, 4) === 0 && D.footCourierChance('standaard', 3000, 19) === 0, 'couriers on foot at meal times in town only');
+{
+  let c = 0;
+  const r = seeded(21);
+  for (let i = 0; i < 2000; i++) if (S.pickFootCourier(map, centre.x, centre.y, 19, r)) c++;
+  ok(c > 0 && c < 1000, `couriers on foot are occasional (${c})`);
+}
+
 console.log(`${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);
