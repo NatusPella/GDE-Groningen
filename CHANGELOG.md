@@ -8,6 +8,8 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ### Nieuw
 - **Betere benchmark:** de benchmark rijdt nu een vaste route van ongeveer een halve minuut door stad, provincie, water, een drukke scène en een cutscene. De resultaatkaart toont gemiddelde fps, p95-frametijd, laagste 1% en geheugen (als je computer dat geeft), per situatie, de vergelijking met de vorige keer en een aanbevolen stand (Laag, Gem. of Hoog) met uitleg. Esc stopt de benchmark; de knop staat in beeld.
+- **Reizen met het openbaar vervoer:** kies je op de kaart een bestemming, dan zie je naast zelf rijden ook de trein-, bus- en bootopties, met lijnkleuren, haltes, overstappen, prijs en reistijd, en de lijnen op de kaart. Meerijden speelt een korte reisscène; houd je niet van wachten, dan sla je hem over met Spatie en sta je meteen op je bestemming.
+- **Geen magisch snelreizen meer:** Shift-klikken op de kaart om te teleporteren is weg. Reizen kan zelf rijden of meerijden.
 - **Beweegbare bruggen met stoplicht:** bij elke brug die open kan staat nu aan beide waterkanten een bootstoplicht (rood tot de brug open ligt, dan groen), en je krijgt een korte melding als de brug open gaat en als hij openligt. Ook de wegmarkering gaat nu mee met het brugdek.
 - **Drie nieuwe zijmissies in de stad:** "Het Loket" (formulier, wachtrij en stempel), de "StudieStaat-balie" (rekenen aan een verzonnen studieloket) en "Borrel bij Vigilantia" (tafelspeech van een verzonnen studentenvereniging). Telkens drie vragen aan een balie; een fout antwoord betaalt alleen minder.
 - **Low-poly beeld op de laadschermen:** het startscherm en alle laadschermen tonen nu een rustige low-poly scène (stad, nacht, platteland of gracht met boot) met langzame wolken, zon en een draaiende molen, in plaats van een foto.
