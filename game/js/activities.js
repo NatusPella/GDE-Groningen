@@ -25,11 +25,12 @@ import { KARTBAAN } from './kartbaan.js';
 import { ZWEMBAD } from './zwembad.js';
 import { KLIMTOREN } from './klimtoren.js';
 import { WATERSKI } from './waterski.js';
+import { CARILLON_GAME } from './carillon.js';
 import { isShopOpen } from './shopui.js';
 import { isCinematicActive } from './cinematics.js';
 export { activityBlock, iconDisc } from './activitykit.js';
 
-const LIST = [CARBID, KERMIS, GEHEIMEN, DRIFT_ZONE, DISCGOLF, PITCHPUTT, SKATEPARK, KARTBAAN, ZWEMBAD, KLIMTOREN, WATERSKI];
+const LIST = [CARBID, KERMIS, GEHEIMEN, DRIFT_ZONE, DISCGOLF, PITCHPUTT, SKATEPARK, KARTBAAN, ZWEMBAD, KLIMTOREN, WATERSKI, CARILLON_GAME];
 
 export function initActivities(w) {
   for (const a of LIST) {

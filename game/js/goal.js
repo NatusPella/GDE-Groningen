@@ -32,6 +32,7 @@ const BUSY = {
     zwembad: (w) => w.activityGame === 'zwembad',
     klimtoren: (w) => w.activityGame === 'klimtoren',
     waterski: (w) => w.activityGame === 'waterski',
+    carillon: (w) => w.activityGame === 'carillon',
     heli: (w) => !!w.heliRun,
     duif: (w) => !!w.pigeonMode,
   },
