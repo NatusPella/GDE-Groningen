@@ -4,6 +4,8 @@
 // scrubbing returns finite frames, and the stills cover every shot.
 import { readFileSync } from 'node:fs';
 import { buildCatalog, frameAt, stillTimes, stillName, sceneBounds, summary, linesOf, sceneIdsFor, npcNamesFromSource, STATUS } from '../game/js/cutpreview.js';
+import { MAX_CAMERA_STILL } from '../game/js/cutpreview.js';
+import { STEPS } from '../game/js/storyarc_nieuw.js';
 import { SPECS, MORE_SPECS } from '../game/js/cutscenes_akte1.js';
 
 let fails = 0, n = 0;
@@ -34,6 +36,18 @@ for (const e of cat) {
   ok(b && b.x1 > b.x0 && b.y1 > b.y0, e.id + ' has bounds');
 }
 ok(summary(cat).fout === 0, 'summary counts');
+// rhythm rule (#136): no camera holds still longer than MAX_CAMERA_STILL seconds, in every act
+for (const e of cat) if (e.scene) ok(e.rhythm && e.rhythm.longestStill <= MAX_CAMERA_STILL, e.id + ' camera rhythm', e.rhythm && String(e.rhythm.longestStill));
+// coverage: every intro/outro of the new story has a staged scene (M21 is a solo scene in the car and stays plain)
+{
+  const SOLO = new Set(['M21.intro']);
+  const bare = [];
+  for (const s of STEPS) for (const k of ['intro', 'outro']) {
+    const ids = (s.story && s.story[k]) || [];
+    if (ids.length && !SOLO.has(s.id + '.' + k) && !keys.has(s.id + '.' + k) && !ids.some((i) => keys.has(i))) bare.push(s.id + '.' + k);
+  }
+  ok(bare.length === 0, 'no bare intro/outro scenes', bare.join(', '));
+}
 ok(stillName('M01.intro', 3, 12.44) === 'M01.intro-shot03-t12.4.png', 'still file name');
 
 // a broken scene is reported, not thrown
