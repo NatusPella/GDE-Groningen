@@ -7,6 +7,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Nieuw
+- **Nieuw verhaal, akte 4 (Zuidwaarts, proefversie):** elf bruggen in Veendam met de sloep, een intake bij een webbureau en het logboek van 12 augustus, een stilstaande stoomtrein bij Stadskanaal, het Beleg van Bourtange met de kruitkelder, en de twee solodelen bij Zuidhorn (Tessa en de wagon, Tammo en de vrienden). De plekken zijn nog niet in beeld bekeken; de akte is pas speelbaar als akte 2 en 3 zijn gebouwd.
 - **Padel voelt als padel:** je serveert nu onderhands (bal laten stuiteren, onder de heup raken, schuin in het servicevak; twee fouten zijn een punt), de bal mag tegen glas en gaas terugspelen met eigen geluid, je speelt met een pala en een potje is een korte set tot vier games met 15-30-40 en een golden point.
 - **Padel en Pitch & putt op de echte plekken:** padelbanen staan nu waar ze echt zitten, in de stad en in het Ommeland, met de echte stand van de banen. Pitch & putt heeft zes holes op de echte golfbanen (onder meer Pitch & Putt Groningen bij het Hunzepark); loop naar de eerste tee en druk E. Alles staat ook als icoon op de kaart.
 - **Tammo in de mand:** bij de ballonvlucht in het verhaal staat Tammo nu op de vloer van de mand, kijkt naar de heli en schommelt mee met de ballon, in plaats van op heli-hoogte te hangen.

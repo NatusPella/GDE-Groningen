@@ -11,6 +11,8 @@
 // the tile's north-west corner as y grows south), codec, data } with codec 1:
 // int16 LE cm per cell, row by row from y0.
 
+const TILE = 1000, GRID_X0 = 330, GRID_Y0 = 75; // gdt.js: the tile grid
+
 export const RASTER_CODEC = { u8: 0, i16cm: 1, f32: 2 };
 export const NODATA = -32768;
 
@@ -65,12 +67,24 @@ export function sampleRaster(R, x, y) {
 // height (m, 0 where no raster covers it: flat). The `terrain` sampler the
 // height solvers take is field.at.
 export class TerrainField {
-  constructor() { this.rasters = new Map(); this.at = this.at.bind(this); }
-  add(key, raster) { this.rasters.set(key, decodeTerrainRaster(raster)); }
-  drop(key) { this.rasters.delete(key); }
+  constructor() { this.rasters = new Map(); this.byTile = new Map(); this.at = this.at.bind(this); }
+  add(key, raster) {
+    const R = decodeTerrainRaster(raster);
+    this.rasters.set(key, R);
+    // a raster that is a whole 1 km tile is found by its place, the province has thousands
+    if (R.w * R.cell === TILE) this.byTile.set(`${Math.floor((R.x0 - GRID_X0 + 1) / TILE)},${Math.floor((R.y0 - GRID_Y0 + 1) / TILE)}`, R);
+  }
+  drop(key) {
+    const R = this.rasters.get(key);
+    if (R) this.byTile.delete(`${Math.floor((R.x0 - GRID_X0 + 1) / TILE)},${Math.floor((R.y0 - GRID_Y0 + 1) / TILE)}`);
+    this.rasters.delete(key);
+  }
   get size() { return this.rasters.size; }
   at(x, y) {
+    const T = this.byTile.get(`${Math.floor((x - GRID_X0) / TILE)},${Math.floor((y - GRID_Y0) / TILE)}`);
+    if (T) { const z = sampleRaster(T, x, y); if (z !== null) return z; }
     for (const R of this.rasters.values()) {
+      if (R === T) continue;
       if (x < R.x0 || y < R.y0 || x > R.x0 + R.w * R.cell || y > R.y0 + R.h * R.cell) continue;
       const z = sampleRaster(R, x, y);
       if (z !== null) return z;
