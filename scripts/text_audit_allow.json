@@ -2,6 +2,12 @@
   "note": "Bewust toegestane gevallen voor scripts/text_audit.mjs. Elke regel heeft een reden (why). term = het gevonden woord (hoofdletterongevoelig), file/ctx maken het smaller.",
   "allow": [
     {
+      "rule": "anglicisme",
+      "term": "holes",
+      "file": "minigamelines",
+      "why": "al ingesproken regels van de golfmaatjes: veranderen niet zonder akkoord van de eigenaar en een nieuwe opname (docs/WOORDENLIJST.md, Uitzonderingen)"
+    },
+    {
       "rule": "naam",
       "term": "Gerrit Krolbrug",
       "why": "echte brug in Groningen (echte plaatsen en gebouwen mogen); geen persoon"
