@@ -2475,6 +2475,7 @@ function updateEngine(dt, world) {
     if (t < engineState.startAt) targetGain = 0;
     if (t < engineState.shiftUntil) { targetGain *= 0.35; targetFreq *= 0.8; }
   }
+  if (motor && v.tuning) targetGain *= v.tuning.geluid; // uitlaat uit tuningplan.js (#196)
   const k = Math.min(1, dt * (t < engineState.shiftUntil ? 14 : 6));
   engineState.gain += (targetGain - engineState.gain) * k;
   engineState.freq += (targetFreq - engineState.freq) * k;
@@ -2652,12 +2653,28 @@ function updatePlayerHorn(world) {
   const bell = v && (v.isBike || (v.isScooter && !v.isPolice)); // an e-step has a bell too
   if (pressing && bell) {
     if (t >= bellReadyAt && v._mount === 'horse') { playWhinny(v.x, v.y); bellReadyAt = t + 1.6; }
-    else if (t >= bellReadyAt) { playBell(v.x, v.y); bellReadyAt = t + 0.45; }
+    else if (t >= bellReadyAt) {
+      playBell(v.x, v.y);
+      // tuning (#196): de dubbele bel is een tweede, hogere tik net na de eerste
+      if (v.tuning && v.tuning.claxon === 'bel2') setTimeout(() => playBell(v.x, v.y), 140);
+      bellReadyAt = t + 0.45;
+    }
   } else if (!pressing) bellReadyAt = 0;
   const on = pressing && !bell;
   if (on && !hornVoice.on) {
-    const low = v.isScooter ? 1.55 : hornPitch(v);
+    let low = v.isScooter ? 1.55 : hornPitch(v);
     const single = v.isScooter || v.isHeroCar;
+    // tuning (#196): de toeter klinkt hoger en vrolijker, de melodietoeter loopt drie noten omhoog
+    const claxon = v.tuning && v.tuning.claxon;
+    if (claxon === 'toeter') low *= 1.18;
+    if (claxon === 'melodie') {
+      low *= 1.12;
+      for (const [i, m] of [1.26, 1.5].entries()) {
+        const at = t + 0.16 * (i + 1);
+        hornVoice.a.frequency.setValueAtTime(415 * low * m, at);
+        hornVoice.b.frequency.setValueAtTime(498 * low * m * 1.004, at);
+      }
+    }
     hornVoice.a.frequency.setValueAtTime(415 * low, t);
     hornVoice.b.frequency.setValueAtTime(498 * low * 1.004, t);
     hornVoice.bGain.gain.setValueAtTime(single ? 0 : 0.85, t);

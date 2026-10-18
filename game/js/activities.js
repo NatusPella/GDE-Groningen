@@ -31,12 +31,13 @@ import { PANNENKOEK } from './pannenkoek.js';
 import { HENGELEN } from './hengelen.js';
 import { WANDELING } from './wandeling.js';
 import { SNACKKETEN } from './snackketen.js';
+import { EVENEMENTEN } from './evenementenact.js';
 import { isShopOpen } from './shopui.js';
 import { isCinematicActive } from './cinematics.js';
 import { registerBusyProbe } from './busy.js';
 export { activityBlock, iconDisc } from './activitykit.js';
 
-const LIST = [CARBID, KERMIS, HOOGVLIEGER, GEHEIMEN, DRIFT_ZONE, DISCGOLF, PITCHPUTT, SKATEPARK, KARTBAAN, ZWEMBAD, KLIMTOREN, WATERSKI, CARILLON_GAME, PANNENKOEK, HENGELEN, WANDELING, SNACKKETEN];
+const LIST = [CARBID, KERMIS, HOOGVLIEGER, GEHEIMEN, DRIFT_ZONE, DISCGOLF, PITCHPUTT, SKATEPARK, KARTBAAN, ZWEMBAD, KLIMTOREN, WATERSKI, CARILLON_GAME, PANNENKOEK, HENGELEN, WANDELING, SNACKKETEN, EVENEMENTEN];
 
 export function initActivities(w) {
   for (const a of LIST) {
