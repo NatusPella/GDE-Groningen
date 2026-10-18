@@ -1,0 +1,117 @@
+{
+ "v": 1,
+ "min": {
+  "perron": {
+   "eemsdelta": 4,
+   "veenkolonien": 11,
+   "oldambt": 3,
+   "westerkwartier": 4,
+   "hogeland": 6,
+   "westerwolde": 4,
+   "lauwerskust": 0,
+   "hunsingo": 6,
+   "elders": 26
+  },
+  "schoorsteen": {
+   "eemsdelta": 5,
+   "veenkolonien": 1,
+   "oldambt": 1,
+   "westerkwartier": 0,
+   "hogeland": 2,
+   "westerwolde": 2,
+   "lauwerskust": 0,
+   "hunsingo": 1,
+   "elders": 14
+  },
+  "mast": {
+   "eemsdelta": 45,
+   "veenkolonien": 28,
+   "oldambt": 34,
+   "westerkwartier": 38,
+   "hogeland": 55,
+   "westerwolde": 30,
+   "lauwerskust": 27,
+   "hunsingo": 96,
+   "elders": 84
+  },
+  "monument": {
+   "eemsdelta": 12,
+   "veenkolonien": 13,
+   "oldambt": 12,
+   "westerkwartier": 10,
+   "hogeland": 29,
+   "westerwolde": 13,
+   "lauwerskust": 10,
+   "hunsingo": 23,
+   "elders": 113
+  },
+  "park": {
+   "eemsdelta": 42,
+   "veenkolonien": 17,
+   "oldambt": 23,
+   "westerkwartier": 59,
+   "hogeland": 14,
+   "westerwolde": 8,
+   "lauwerskust": 21,
+   "hunsingo": 28,
+   "elders": 120
+  }
+ },
+ "max": {
+  "perron": {
+   "eemsdelta": 0,
+   "veenkolonien": 0,
+   "oldambt": 0,
+   "westerkwartier": 0,
+   "hogeland": 0,
+   "westerwolde": 0,
+   "lauwerskust": 0,
+   "hunsingo": 0,
+   "elders": 0
+  },
+  "schoorsteen": {
+   "eemsdelta": 0,
+   "veenkolonien": 0,
+   "oldambt": 0,
+   "westerkwartier": 0,
+   "hogeland": 0,
+   "westerwolde": 0,
+   "lauwerskust": 0,
+   "hunsingo": 0,
+   "elders": 0
+  },
+  "mast": {
+   "eemsdelta": 0,
+   "veenkolonien": 0,
+   "oldambt": 0,
+   "westerkwartier": 0,
+   "hogeland": 19,
+   "westerwolde": 0,
+   "lauwerskust": 0,
+   "hunsingo": 31,
+   "elders": 1
+  },
+  "monument": {
+   "eemsdelta": 0,
+   "veenkolonien": 0,
+   "oldambt": 0,
+   "westerkwartier": 0,
+   "hogeland": 0,
+   "westerwolde": 0,
+   "lauwerskust": 0,
+   "hunsingo": 0,
+   "elders": 43
+  },
+  "park": {
+   "eemsdelta": 12,
+   "veenkolonien": 0,
+   "oldambt": 0,
+   "westerkwartier": 5,
+   "hogeland": 0,
+   "westerwolde": 0,
+   "lauwerskust": 0,
+   "hunsingo": 0,
+   "elders": 12
+  }
+ }
+}

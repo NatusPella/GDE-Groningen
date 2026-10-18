@@ -1,0 +1,118 @@
+{
+ "v": 1,
+ "min": {
+  "castle": {
+   "elders": 10,
+   "westerkwartier": 3,
+   "hunsingo": 1,
+   "lauwerskust": 1,
+   "hogeland": 3,
+   "eemsdelta": 3,
+   "veenkolonien": 1,
+   "oldambt": 1,
+   "westerwolde": 1
+  },
+  "chapel": {
+   "westerkwartier": 1,
+   "hunsingo": 1,
+   "hogeland": 1,
+   "oldambt": 1
+  },
+  "church": {
+   "lauwerskust": 26,
+   "westerkwartier": 58,
+   "elders": 94,
+   "hunsingo": 46,
+   "veenkolonien": 34,
+   "hogeland": 33,
+   "eemsdelta": 38,
+   "westerwolde": 30,
+   "oldambt": 32
+  },
+  "mill": {
+   "lauwerskust": 5,
+   "westerkwartier": 13,
+   "hunsingo": 22,
+   "elders": 20,
+   "veenkolonien": 6,
+   "hogeland": 10,
+   "eemsdelta": 8,
+   "oldambt": 10,
+   "westerwolde": 4
+  },
+  "tower": {
+   "westerkwartier": 9,
+   "lauwerskust": 1,
+   "hunsingo": 16,
+   "elders": 23,
+   "veenkolonien": 1
+  },
+  "watertower": {
+   "elders": 2
+  },
+  "factory": {
+   "lauwerskust": 8,
+   "westerkwartier": 2,
+   "hogeland": 5,
+   "hunsingo": 1,
+   "elders": 4,
+   "eemsdelta": 16,
+   "oldambt": 4
+  },
+  "farm": {
+   "elders": 4,
+   "lauwerskust": 2,
+   "hogeland": 8,
+   "eemsdelta": 4,
+   "veenkolonien": 2,
+   "oldambt": 2
+  },
+  "flat": {
+   "veenkolonien": 4,
+   "westerwolde": 1,
+   "oldambt": 1
+  },
+  "lighthouse": {
+   "elders": 2
+  },
+  "museum": {
+   "lauwerskust": 1,
+   "westerkwartier": 1,
+   "hogeland": 1,
+   "oldambt": 2
+  },
+  "school": {
+   "westerkwartier": 3,
+   "elders": 2,
+   "lauwerskust": 2,
+   "veenkolonien": 4,
+   "eemsdelta": 3,
+   "westerwolde": 4,
+   "oldambt": 5
+  },
+  "silo": {
+   "lauwerskust": 1,
+   "hogeland": 1,
+   "veenkolonien": 1,
+   "eemsdelta": 4,
+   "oldambt": 4,
+   "westerwolde": 3,
+   "elders": 2
+  },
+  "station": {
+   "elders": 3,
+   "hunsingo": 1,
+   "hogeland": 5,
+   "veenkolonien": 7,
+   "eemsdelta": 3,
+   "westerwolde": 1,
+   "oldambt": 2
+  }
+ },
+ "max": {
+  "tower": {
+   "elders": 1,
+   "hunsingo": 1
+  }
+ }
+}

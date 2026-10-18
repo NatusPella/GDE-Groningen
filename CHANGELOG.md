@@ -12,6 +12,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **Verhaalteksten gevarieerd (nog niet in beeld bekeken):** replay-regels en binnenkomsten per persoon in plaats van één formule, de Krolbrug-grap krijgt een slot in de epiloog, geen gasregel meer bij Loppersum, fietsknooppunten, het Leugenbankje en Appingedam in de autogesprekken.
 ### Intern
 - **Stijlgids en gelijkenistest voor het verhaal:** `docs/verhaal/STIJLGIDS.md` (stemmen, verboden zinsbouw, feitenblad) en `scripts/story_similarity_test.mjs`, die identieke en bijna-identieke regels en de verboden zinsbouw vlagt.
+- **Perrons, schoorstenen, zendmasten, monumenten en parken uit de kaartdata:** bij stations liggen perrons met lantaarns, bankjes en overkappingen, fabrieksschoorstenen en zendmasten steken boven het land uit, wegkruisen en monumenten staan op hun plek en parken hebben bomen, een zandpad en banken. Per cel is er een vast budget.
 
 ## [0.36.0] - 2026-10-18
 
