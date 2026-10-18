@@ -72,6 +72,9 @@ import { initTrafficLights, updateTrafficLights, trafficSignalsNear, trafficLigh
 import { initRailway, updateRailway, setRailExtraWorld, getTrains, getRoutes, routePoint } from './railway.js';
 import { updateZeilvaren } from './zeilvaren.js';
 import { updateEvenementen } from './evenementenlive.js';
+import { routePenalty } from './evenementen.js';
+import { setRouteClosures } from './routing.js';
+let routeSigDone = '';
 import { updateStationLife } from './stationlife.js';
 import { createBoard as createStationBoard } from './minigamekit.js';
 import { applyCityRoutes, loadLandData } from './corridorrail.js';
@@ -679,6 +682,12 @@ async function boot() {
     tickBurningVehicles(world, dt);
     updateRailway(dt, world);
     updateEvenementen(dt, world, calendarToday(world));
+    // de routeplanner mijdt dichte afsluitingen van evenementen (#203)
+    if (world.eventRouteSig !== routeSigDone) {
+      routeSigDone = world.eventRouteSig;
+      const n = calendarToday(world), hour = ((world.clock % 24) + 24) % 24;
+      setRouteClosures(routeSigDone ? (x, y) => routePenalty(x, y, n, hour) : null, routeSigDone || '');
+    }
     updateZeilvaren(dt, world, calendarToday(world));
     updateStationLife(dt, world, { routes: getRoutes(), point: routePoint, day: calendarToday(world), createBoard: createStationBoard, driving: getTrains().some((t) => t.state === 'player') });
     updateMovableBridges(dt, world);

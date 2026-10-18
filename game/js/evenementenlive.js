@@ -4,7 +4,7 @@
 // sfx/ambience.js), en het autoverkeer dat in een afgesloten gebied staat (weg, buiten beeld).
 // Het deel dat geen wereld nodig heeft staat in evenementen.js (scripts/evenementen_test.mjs);
 // de regels hier in scripts/evenementenlive_test.mjs.
-import { eventHere, soundAt, trafficFactor, loadSeen, markSeen, activeEvents, centreOf, KINDS } from './evenementen.js';
+import { eventHere, soundAt, trafficFactor, loadSeen, markSeen, activeEvents, centreOf, KINDS, routePenalty } from './evenementen.js';
 
 export const TICK_S = 1.5;
 export const CLEAR_MIN_PLAYER_D = 40; // m: wat dichterbij staat, laten we staan (geen pop-in)
@@ -72,6 +72,7 @@ export function updateEvenementen(dt, world, n) {
   const snd = soundAt(p.x, p.y, n, hour);
   world.eventSound = snd && !world.paused ? snd : null;
   world.eventsNow = activeEvents(n, hour);
+  world.eventRouteSig = world.eventsNow.map((e) => e.id).join('|');
   const here = eventHere(p.x, p.y, n, hour, 0);
   if (here && here.live && !told.has(here.ev.id)) {
     told.add(here.ev.id);

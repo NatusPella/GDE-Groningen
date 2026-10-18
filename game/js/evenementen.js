@@ -139,6 +139,10 @@ export const roadClosed = (x, y, n, hour) => trafficFactor(x, y, n, hour) <= 0;
 // Een routeplanner die afsluitingen mijdt: is dit punt te mijden?
 export const avoidPoint = (x, y, n, hour) => trafficFactor(x, y, n, hour) < 0.5;
 
+// Extra meters voor de routeplanner op (x, y): 0 vrij, oplopend tot ROUTE_PENALTY_M in een dichte afsluiting.
+export const ROUTE_PENALTY_M = 600;
+export const routePenalty = (x, y, n, hour) => (1 - trafficFactor(x, y, n, hour)) * ROUTE_PENALTY_M;
+
 // Menigte (0..1) op (x, y): dichtheid van voetgangers voor de spawnlaag.
 export function crowdAt(x, y, n, hour) {
   let best = 0;
