@@ -1,6 +1,6 @@
 // Simulatielagen voor verkeer en voetgangers (zuivere logica, synthetische invoer).
 //   node scripts/simlagen_test.mjs
-import { laagVoorAfstand, doelPerLaag, plan, AbstractPool, spawnRing, despawnAfstand, tijdFactor, verkeerOpties, streekVanProfiel, randen } from '../game/js/simlagen.js';
+import { voetgangerOpties, stapSlaOver, stapInterval, laagVoorAfstand, doelPerLaag, plan, AbstractPool, spawnRing, despawnAfstand, tijdFactor, verkeerOpties, streekVanProfiel, randen } from '../game/js/simlagen.js';
 
 let bad = 0;
 const check = (name, ok, info = '') => { if (!ok) { bad++; console.log('FAIL', name, info); } };
@@ -52,4 +52,14 @@ for (const s of ['auto', 'voetganger']) {
   check('profiel -> streek', streekVanProfiel('centrum') === 'centrum' && streekVanProfiel('x') === 'stad');
 }
 console.log(bad ? bad + ' mislukt' : 'simlagen_test: alles goed');
-process.exit(bad ? 1 : 0);
+process.exit(bad ? 1 : 0);{
+  const o = voetgangerOpties('centrum', 14), l = voetgangerOpties('standaard', 14);
+  check('voetgangerdoel centrum > stad', o.target > l.target, JSON.stringify([o, l]));
+  check('voetganger volTarget <= target', o.volTarget <= o.target);
+  check('dichtbij nooit overslaan', [0, 1, 2, 3].every((f) => !stapSlaOver('voetganger', 10, 0, f)));
+  const n = stapInterval('vereenvoudigd');
+  const denkt = [...Array(n * 4).keys()].filter((f) => !stapSlaOver('voetganger', 100, 0, f)).length;
+  check('vereenvoudigd denkt 1 op n', denkt === 4, String(denkt));
+  check('ver weg denkt toch af en toe', [...Array(12).keys()].some((f) => !stapSlaOver('voetganger', 2000, 0, f)));
+}
+

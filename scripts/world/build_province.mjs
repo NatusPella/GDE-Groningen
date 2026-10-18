@@ -32,6 +32,7 @@ import { bakeCityRoutes, railLines } from './cityroutes.mjs';
 import { collectFarNodes, finishFarProps } from './farprops.mjs';
 import { loadProvinceBag, bagMatcher } from './bag3d.mjs';
 import { deriveFeatures } from './derive_tiles.mjs';
+import { waterIndex, wetFraction } from './placement_audit.mjs';
 import { snapSignals, junctionsOf } from './junction_tiles.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
@@ -233,6 +234,9 @@ export function trainLines(trains, railRows, stations) {
 }
 
 
+// the share of a green outline's samples in water from which it is dropped
+export const DROWNED_FRAC = 0.8;
+
 // What of a tile's features lies outside the city's data (cityCover.inside):
 // buildings, trees, furniture and areas by their middle, roads and rails cut
 // into the runs that lie outside (sampled every 10 m).
@@ -414,7 +418,7 @@ export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(s
     raster = new Raster(x0, y0, Math.ceil(((i1 - i0 + 1) * G.TILE_M) / FINE_M), Math.ceil(((j1 - j0 + 1) * G.TILE_M) / FINE_M), FINE_M);
   }
   const gid = { buildings: GID0, roads: GID0, water: GID0, green: GID0, trees: GID0, rails: GID0, canopies: GID0, furniture: GID0 };
-  const stats = { tiles: 0, buildings: 0, roads: 0, water: 0, rails: 0, green: 0, trees: 0, furniture: 0, junctions: 0, signals: 0, autoSignals: 0, hsrc: {}, packs: 0, sourceMB: 0, bag: bag3d ? bag3d.stats : null, derived: { moved: 0, merged: 0, canopies: 0, lifted: 0, clipped: 0, trimmed: 0, afloat: 0 } };
+  const stats = { tiles: 0, buildings: 0, roads: 0, water: 0, rails: 0, green: 0, trees: 0, furniture: 0, junctions: 0, signals: 0, autoSignals: 0, hsrc: {}, packs: 0, sourceMB: 0, bag: bag3d ? bag3d.stats : null, derived: { moved: 0, merged: 0, canopies: 0, lifted: 0, clipped: 0, trimmed: 0, afloat: 0, drowned: 0 } };
   const blobs = new Map();
   const empty = [], noPack = [];
   const railRows = [];
@@ -456,6 +460,14 @@ export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(s
       const d = deriveFeatures(feats);
       feats = d.feats;
       for (const k of Object.keys(stats.derived)) stats.derived[k] += d.stats[k];
+    }
+    // a grass, park or forest outline that lies (nearly) wholly in water is a mapped bank that the
+    // water polygon covers: drawn, it is a green strip across the open water (issue #185)
+    {
+      const wet = waterIndex(feats.filter((f) => f.kind === 'water').map((f) => f.row));
+      const dry = feats.filter((f) => f.kind !== 'green' || f.row.pts.length < 4 || wetFraction(f.row.pts, wet) < DROWNED_FRAC);
+      stats.derived.drowned += feats.length - dry.length;
+      feats = dry;
     }
     // the traffic lights snapped onto their roads, the city's junction model over the pack's roads
     // (junction_tiles.mjs: the nodes by the tile they lie in)
@@ -625,7 +637,7 @@ async function main() {
   console.log(`  ${Object.keys(index.packs).length} packs ${(size / 1e6).toFixed(1)} MB (${(raw / 1e6).toFixed(1)} MB raw, ${Math.round(size / Math.max(1, s.tiles))} B/tile), index ${(idxSize / 1e6).toFixed(2)} MB; source ${s.sourceMB.toFixed(1)} MB gzip in ${s.packs} packs`);
   console.log(`  ${s.buildings} buildings (height ${Object.entries(s.hsrc).map(([k, v]) => `${k} ${v}`).join(', ')}), ${s.roads} road pieces, ${s.water} water, ${s.green} green, ${s.rails} rail pieces, ${s.trees} trees, ${s.furniture} furniture`);
   if (s.junctions) console.log(`  junction model: ${s.junctions} junction rows, ${s.signals} traffic lights from OSM snapped onto their road, ${s.autoSignals} more by the city's rule for busy crossings`);
-  if (s.derived) console.log(`  derived like the city: ${s.derived.moved} footprints pushed 1.5 m off a road, ${s.derived.merged} doubled or bridge-part footprints dropped, ${s.derived.canopies} canopies, ${s.derived.lifted} roof steps, ${s.derived.clipped} ways cut at a wall, ${s.derived.trimmed} waterways of guessed width narrowed at a footprint`);
+  if (s.derived) console.log(`  derived like the city: ${s.derived.moved} footprints pushed 1.5 m off a road, ${s.derived.merged} doubled or bridge-part footprints dropped, ${s.derived.canopies} canopies, ${s.derived.lifted} roof steps, ${s.derived.clipped} ways cut at a wall, ${s.derived.trimmed} waterways of guessed width narrowed at a footprint, ${s.derived.drowned} green outlines in open water dropped`);
   if (s.bag) console.log(`  3D BAG: ${s.bag.id} buildings by BAG id, ${s.bag.centre} by centre and area, ${s.bag.none} without a match; ${((100 * (s.hsrc['3dbag'] || 0)) / Math.max(1, s.buildings)).toFixed(1)} % of the buildings have a measured height`);
   console.log(`  ${g.places.length} places, ${g.stations.length} stations, ${g.routes.length} train lines (${g.routes.filter((r) => r.reached).length} complete), ${g.bus.length} bus lines, ${g.edge.coast.length} coast pieces, ${g.edge.border.length} border lines`);
   if (s.mapMB !== undefined) console.log(`  base map: ${g.map ? '' : ''}${s.mapMB} MB of PNG tiles (z0-z3, ${index.global.map.levels.map((L) => `${L.m} m/px ${L.tiles.length}`).join(', ')})`);

@@ -10,6 +10,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { markerColors } from './a11y.js';
 import { FLAGS } from './devflags.js';
+import { iconScale, iconLift, columnWidth, columnOpacity, discOpacity, glyphPulse, showLabel, labelText } from './markerlook.js';
 
 const MARKER_SOLID = FLAGS.marker === 'vorm';
 
@@ -28,6 +29,9 @@ const COLUMN_H = 28;
 const ICON_Y = 5.5;
 let markerCam = null;
 export function setMarkerCamera(cam) { markerCam = cam; }
+// night and rain (0..1): the column glows a little stronger when the light is poor
+let markerEnv = { night: 0, rain: 0 };
+export function setMarkerEnv(night, rain) { markerEnv = { night: night || 0, rain: rain || 0 }; }
 
 let columnTex = null;
 function columnTexture() {
@@ -186,24 +190,23 @@ export function updateWorldMarker3D(group, time) {
   ic.userData.solid.material.color.copy(hex);
   let d = 30;
   if (markerCam) d = Math.hypot(markerCam.position.x - group.position.x, markerCam.position.z - group.position.z);
-  // 1 up close, up to 4.5 far off: the apparent size stays about the same
-  const k = Math.max(1, Math.min(4.5, d / 40));
-  wm.top.scale.setScalar(k);
-  wm.top.position.y = ICON_Y + (k - 1) * 0.9 + Math.sin(time * 2.2) * 0.2;
-  wm.column.scale.x = wm.column.scale.z = Math.max(1, Math.min(3, d / 90));
+  // 1 up close, up to 4.5 far off: the apparent size stays about the same (markerlook.js)
+  wm.top.scale.setScalar(iconScale(d));
+  wm.top.position.y = ICON_Y + iconLift(d) + Math.sin(time * 2.2) * 0.2;
+  wm.column.scale.x = wm.column.scale.z = columnWidth(d);
   if (wm.kind === 'checkpoint' && markerCam) ic.rotation.y = Math.atan2(markerCam.position.x - group.position.x, markerCam.position.z - group.position.z);
   else ic.rotation.y = time * 1.4;
   wm.ground.scale.setScalar(1 + Math.sin(time * 3) * 0.05);
   // soft style: the glyph and the column breathe slowly
   if (ic.userData.soft) {
-    const br = 0.5 + 0.5 * Math.sin(time * 1.8);
-    ic.scale.setScalar(1 + br * 0.06);
-    wm.column.material.opacity = 0.32 + br * 0.14;
-    wm.disc.material.opacity = 0.1 + br * 0.08;
+    const br = Math.sin(time * 1.8);
+    ic.scale.setScalar(glyphPulse(br));
+    wm.column.material.opacity = columnOpacity(br, d, markerEnv);
+    wm.disc.material.opacity = discOpacity(br, markerEnv);
   }
-  wm.label.visible = d > 14;
+  wm.label.visible = showLabel(d);
   if (wm.label.visible) {
-    const text = d < 100 ? `${Math.round(d)} m` : d < 1000 ? `${Math.round(d / 10) * 10} m` : `${(d / 1000).toFixed(1).replace('.', ',')} km`;
+    const text = labelText(d);
     if (text !== wm.shown) {
       wm.shown = text;
       drawLabel(wm.label, text);

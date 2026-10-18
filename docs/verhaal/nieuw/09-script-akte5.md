@@ -6,7 +6,7 @@
 (regie: woensdag 26 augustus, ochtend. Een boerderijschuur, een trekker, Henk met een luik onder de arm. Naamkaart: TINUS. Tessa en Tammo staan aan weerszijden van de Escapade zonder elkaar aan te kijken. Gameplay: een luik in de Escapade inbouwen, de wagen de modder in rijden om te bewijzen dat de as het houdt, en hem met Tinus' trekker eruit trekken.)
 TINUS: Tinus, trekkertrekker, van de bus. Welkom in mijn schuur. Henk belde. Jullie zoeken een luik. [NIEUW]
 HENK: Henk, Garage Knalpot. Ik heb een luik, een uitlaat en een koekje. Eén. [NIEUW]
-TESSA: We maken van de Escapade de Fjord Frituur. [NIEUW]
+TESSA: De bal is weer weg, maar de Snackprijs kunnen we nog winnen, met een eerlijk recept. Daarvoor maken we van de Escapade de Fjord Frituur. [NIEUW]
 TAMMO: De Escapade is van mij. [NIEUW]
 TESSA: Hij is van ons, Tammo. [NIEUW]
 TAMMO: Hij is van ons. Hij weet het alleen nog niet. [BEHOUDEN]
@@ -66,8 +66,8 @@ HENK: Weer een luik? Dit is een karaktertrek. [NIEUW]
 
 ## [M23.1] De colonne: intro – Westerkwartier, Tinus' schuur, vertrek – Fjord Frituur
 (regie: donderdag 27 augustus, ochtend. Alle vrienden van Oma staan met hun voertuigen: een scooter, een bus, een trekker, een bakkie, een aanhanger met een sloep. Gameplay: één colonne naar de Grote Markt; de groep bij elkaar houden terwijl Jelles limo en zijn vergunningen proberen de colonne te splitsen.)
-MEM (telefoon): Famke. Trijntje en ik hebben ze gebeld. Ze komen. [NIEUW]
-TESSA: Dit is de colonne. Wij voorop, de rest erachter, en niemand valt weg. [NIEUW]
+MEM (telefoon): Famke. Trijntje en ik hebben ze na gisteren nog eens gebeld. Ze zeiden nee tegen Jelles advocaten. Ze komen. [NIEUW]
+TESSA: Dit is de colonne, naar de Grote Markt. Wij voorop, de rest erachter, en niemand valt weg. [NIEUW]
 GEESJE: Ik rij op mijn scooter. Hij is sneller dan hij lijkt. [NIEUW]
 WUBBO: Ik heb de bus. De brug draait op tijd. De colonne liever ook. [NIEUW]
 KAPITEIN KLAAS: Ik ben mijn boot op een aanhanger. Ik praat tegen hem. [NIEUW]
@@ -159,6 +159,7 @@ APP TESSA→TAMMO (stil): Ik wacht. [NIEUW]
 
 ## [M25.1] Het bod viel tegen: intro – Stad, Oma's keuken aan de Noorderhaven – Fjord Frituur
 (regie: donderdagnacht. Oma's keuken met deeg, mosterd, eieren, zout, grof meel en een pan met vet. Gameplay: een oefenronde eierballen bakken met alle vijf ingrediënten, daarna Jelles bod afwijzen.)
+TESSA: Morgen is het Ontzet. Vannacht bakken we een proefronde, met alle vijf de ingrediënten van Oma's recept. [NIEUW]
 OMA TRIJNTJE: Mosterd, eieren, zout en vet. Grove mosterd, niet dat zoete spul. En het meel van Roelfien. Grof, zoals vroeger. [NIEUW]
 TAMMO: Oma… hoe zei opa het eigenlijk? Tegen jou. [BEHOUDEN]
 OMA TRIJNTJE: Niet. Hij zei: "Woist ja wel." [BEHOUDEN]
@@ -219,6 +220,7 @@ RIKUS (radio): Moi, Grunn. Nachtstreek, in het daglicht. Ik voel me een vleermui
 BEREND (in de rol): Grunn! Geef je over! [BEHOUDEN]
 KIND IN HET PUBLIEK: Nee! [BEHOUDEN]
 BEREND (uit de rol): Elk jaar hetzelfde. Straks zit ik in de jury. Ik proef, ik tel, ik oordeel. [BEHOUDEN]
+TESSA: Vandaag is het Ontzet. We winnen met een eerlijke eierbal, en de Gouden Eierbal gaat terug naar het museum. Om drie uur schrijft Jelle zich in bij de notaris: dat moeten we tegenhouden. [NIEUW]
 TESSA: Tammo bakt. Ik hou de kraam heel. [BEHOUDEN]
 TAMMO: Ik bak nooit onder druk. [BEHOUDEN]
 TESSA: Je doet alles onder druk. Daarom werkt het. [BEHOUDEN]
