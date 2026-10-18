@@ -17,6 +17,7 @@ import { clamp } from './util.js';
 import * as P from './heliplan.js';
 import { getSettings } from './settings.js';
 import { keyWord, keyName, physicalKey } from './controls.js';
+import { playerBusy } from './busy.js';
 const downKey = () => keyWord(getSettings().keyBinds, 'control');
 // the key help under the heli HUD, in the player's own key bindings
 const kbd = (k) => `<kbd>${k === 'backspace' ? '⌫' : keyName(physicalKey(getSettings().keyBinds, k))}</kbd>`;
@@ -411,8 +412,8 @@ function updateSay(dt) {
 
 function blockReason(w) {
   if (w.wanted > 0) return 'Niet nu: eerst de politie kwijt';
-  if (isMissionActive() || getActiveRace()) return 'Niet nu: maak eerst je missie af';
-  if (w.sideJob && w.sideJob.active) return 'Niet nu: je bent aan het werk';
+  if (playerBusy(w, ['mission', 'activeRace']).busy) return 'Niet nu: maak eerst je missie af';
+  if (playerBusy(w, ['sideJob']).busy) return 'Niet nu: je bent aan het werk';
   return null;
 }
 

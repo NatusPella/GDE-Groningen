@@ -26,6 +26,7 @@ import { PG_PRIZE, FJORD_DAY_PAY, FJORD_DAY_HOUR } from './economy.js';
 import { getOwnedEntries, spawnOwnedEntry } from './shops.js';
 import { findParkingSpot } from './ownedvehicles.js';
 import { Vehicle } from './vehicle.js';
+import { playerBusy } from './busy.js';
 
 // The post-game: once the story's ending card has played (story.js, read
 // only), Jelle Terpstra challenges Tammo and Tessa to three replayable duels
@@ -196,8 +197,8 @@ export function getPostgameSpotsForRender() {
 
 function blockReason(w) {
   if (w.wanted > 0) return 'Niet nu: eerst de politie kwijt';
-  if (isMissionActive() || getActiveRace()) return 'Niet nu: maak eerst je missie af';
-  if (w.sideJob && w.sideJob.active) return 'Niet nu: je bent aan het werk';
+  if (playerBusy(w, ['mission', 'activeRace']).busy) return 'Niet nu: maak eerst je missie af';
+  if (playerBusy(w, ['sideJob']).busy) return 'Niet nu: je bent aan het werk';
   return null;
 }
 
@@ -577,7 +578,7 @@ function guideCandidates(w) {
 
 function pickGuide(w) {
   if (!open || !spots || run || state.guideOff || !(state.revealed || state.invited)) return null;
-  if (w.challenge || w.pigeonMode || w.heliRun || isMissionActive() || (w.sideJob && w.sideJob.active)) return null;
+  if (playerBusy(w, ['challenge', 'pigeon', 'heliRun', 'mission', 'sideJob']).busy) return null;
   const list = guideCandidates(w);
   if (!list.length) return null;
   let pick = list.find((c) => !guideSkip.has(c.id));
