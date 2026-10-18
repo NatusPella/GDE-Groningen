@@ -34,6 +34,8 @@ export const SPEAKER_TABLE = {
   SJOERD: sp('sjoerd', 'Sjoerd'),
   HENK: sp('henk', 'Henk'),
   JELMER: sp('jelmer', 'Jelmer'),
+  // the streamer of M01 has no name in the opening (#93, too close to Jelle); the recordings keep the voice name Jelmer
+  STREAMER: sp('jelmer', 'Streamer', 'Jelmer'),
   GEERT: sp('geert', 'Geert'),
   'KAPITEIN KLAAS': sp('klaas', 'Kapitein Klaas'),
   'DOKTER DIJKSTRA': sp('dijkstra', 'Dokter Dijkstra'),
