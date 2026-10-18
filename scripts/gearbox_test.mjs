@@ -38,6 +38,26 @@ check('torque curve: weak low, full mid, none on the limiter', torqueCurve(0.1) 
   check('auto never uses neutral', autoGear(PROFILES.car, 0, 1) === 1);
 }
 
+// automatic: speed hovering on a shift point (#126) must not make the gear hunt
+for (const id of Object.keys(PROFILES)) {
+  const p = PROFILES[id];
+  for (let g = 1; g < p.tops.length; g++) {
+    const top = 40;
+    const gb = createGearbox(id);
+    let shifts = 0, last = -1;
+    // 20 s at constant gas, speed wobbling +-3% of top around the up-shift point and the down-shift point
+    for (const base of [p.tops[g - 1] + 0.005, p.tops[g - 1] - 0.02]) {
+      for (let i = 0; i < 20 / DT; i++) {
+        const frac = base + 0.03 * Math.sin(i * DT * 2 * Math.PI * 0.7);
+        stepGearbox(gb, { speed: frac * top, top, throttle: 1, mode: 'auto' }, DT);
+        if (last >= 0 && gb.gear !== last) shifts++;
+        last = gb.gear;
+      }
+    }
+    check(id + ' gear ' + g + '/' + (g + 1) + ' does not hunt (' + shifts + ' shifts in 40 s)', shifts <= 40 / 1.2 * 0.5);
+  }
+}
+
 // manual: shifts walk the layout, the cut and the protections
 {
   const gb = createGearbox('car');

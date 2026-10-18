@@ -1,0 +1,9 @@
+# Dependabot version updates (#83). Alerts and security updates are switched on
+# in the repository settings by the owner; this file adds the weekly npm check.
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/desktop"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5

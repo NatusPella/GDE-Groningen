@@ -348,7 +348,7 @@ function burst(s, playerDist) {
       0.45 * scale, 1.4 * scale, r, g, b, 0.95, 1.7, s.kind === 'willow' ? -3.2 : -1.6);
     if (k % 3 === 0) spawnFxSpark(s.x, s.h, s.y, Math.cos(a) * sp * 1.1, Math.sin(tilt) * sp, Math.sin(a) * sp * 1.1, 1.1);
   }
-  S.fw.sounds.push({ t: soundLag(playerDist), ev: { kind: 'weapon', sub: 'burst', x: s.x, y: s.y, z: s.h, far: true } });
+  S.fw.sounds.push({ t: soundLag(playerDist), ev: { kind: 'weapon', sub: 'firework', x: s.x, y: s.y, z: s.h, far: true } });
 }
 
 // --- German tourists on the bloemetjesmarkt ------------------------------------------------------------

@@ -12,19 +12,14 @@ projection as add_horeca.py). shops.js snaps it to the building front.
 import json
 import math
 import os
-import subprocess
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from osmfetch import overpass  # noqa: E402
 from world.rdnew import meta_frame, meta_bbox  # noqa: E402
 
 MAP_PATH = "game/citymap.json"
 CACHE = "data/shops_raw.json"
-OVERPASS_URLS = [
-    "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
-    "https://overpass-api.de/api/interpreter",
-    "https://overpass.kumi.systems/api/interpreter",
-]
 
 # game type -> (branch count, [(osm kind, weight)])
 CHAINS = {
@@ -61,13 +56,7 @@ def overpass_query(bbox):
 
 
 def fetch(bbox):
-    q = overpass_query(bbox)
-    for url in OVERPASS_URLS:
-        r = subprocess.run(["curl", "-s", "-m", "120", "-A", "gde-groningen-mapbuilder/1.0", "--data-urlencode", f"data={q}", url],
-                           capture_output=True, text=True)
-        if r.stdout.lstrip().startswith("{"):
-            return json.loads(r.stdout)
-    sys.exit("Overpass: no server answered with JSON, try again later")
+    return overpass(overpass_query(bbox))
 
 
 def kind_of(tags):

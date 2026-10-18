@@ -50,6 +50,37 @@ export function currentPreset(st = getSettings()) {
 export const GFX_DEFAULT = { ...GFX_PRESETS.hoog, drawDistance: 'ver' };
 export const isDefaultGfx = (st = getSettings()) => Object.entries(GFX_DEFAULT).every(([k, v]) => st[k] === v);
 
+// --- phones and tablets --------------------------------------------------
+
+// Touch devices start lighter than a desktop: the same settings as a preset,
+// tuned for a small screen with a shared GPU and a battery.
+export const MOBILE_PROFILES = {
+  telefoon: { quality: 'laag', shadows: false, drawDistance: 'kort', resolution: 0.6, autoResolution: true },
+  tablet: { quality: 'laag', shadows: false, drawDistance: 'normaal', resolution: 0.75, autoResolution: true },
+  tabletKrachtig: { quality: 'middel', shadows: true, drawDistance: 'normaal', resolution: 0.8, autoResolution: true },
+};
+
+// Pure: which profile a touch device gets from its screen (CSS px) and
+// machine. A phone has a short side under 600 px; a strong tablet has
+// plenty of memory and cores.
+export function mobileProfileFor({ width = 0, height = 0, cores = 0, memory = 0 } = {}) {
+  const short = Math.min(width, height) || Math.max(width, height);
+  if (short && short < 600) return 'telefoon';
+  if (cores >= 8 && memory >= 6) return 'tabletKrachtig';
+  return 'tablet';
+}
+
+// First start on a touch device: apply the profile once, and only while the
+// graphics are still the out-of-the-box ones. Remembered in the same key the
+// desktop advice uses, so that card doesn't follow. Returns the profile name.
+export function applyMobileProfile(info = {}) {
+  if (readAdvice() || !isDefaultGfx()) return null;
+  const name = mobileProfileFor(info);
+  for (const [k, v] of Object.entries(MOBILE_PROFILES[name])) setSetting(k, v);
+  writeAdvice('mobiel:' + name);
+  return name;
+}
+
 // --- benchmark result ---------------------------------------------------
 
 // trailer.js runBenchmarkSuite: the full run on the current settings plus

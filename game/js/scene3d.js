@@ -15,6 +15,7 @@ import { DEAD_DURATION } from './pedestrians.js';
 import { attachCarry, carryPose } from './streetlife3d.js';
 import { buildPersonMesh, animatePersonWalk, applyAttackPose, applyHitReaction, setHeldWeapon, seatPose, seatedY, waveOverlay, carryOverlay, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { vehicleSeat, placeSeated, makeSeatTracker, trackSeat, drawTransition, syncBoatCrew } from './seating3d.js';
+import { updateCarInterior } from './carinterior.js';
 import { updateSwimmers3D } from './swimmers3d.js';
 import { driveRagdoll, syncBikeRider } from './ragdoll.js';
 import { applyWeatherToScene3D } from './weather.js';
@@ -86,6 +87,7 @@ import { speakBubble } from './linevoice.js';
 import { applyDrunkCamera } from './drunk.js';
 import { GROUND_LAYER, SIDEWALK_EXTRA, PAVED_MATS, buildRoadGroup, setRoadNetwork, getRoadQualityVersion, roadFarColor, roadGeometryReady } from './roadsurface.js';
 import { lookBackActive, chaseFollowLerp } from './controls.js';
+import { gameBusy } from './busy.js';
 
 // A genuine WebGL 3D view of the exact same world state the 2D canvas game
 // draws - same x/y meters, same b.h building heights, same vehicle/pedestrian
@@ -682,7 +684,7 @@ const crewCtx = {
 // Parked, abandoned and bailed-out cars are empty. Must be a real boolean:
 // an undefined .visible does not hide an Object3D.
 function hasAiDriver(v) {
-  if (v.wrecked || v.parked || v.driver === 'player' || v.castDriver) return false;
+  if (v.wrecked || v.parked || v.driver === 'player' || v.castDriver || v.driverOut) return false;
   if (v.driver) return true;
   if (v.isPolice) return !v.hijacked && !v.disabled && !v._roadblock;
   return !!(v.road || v.racer || v.countryDrive);
@@ -1868,6 +1870,9 @@ function syncPedestrianMeshes(world, player, animDt) {
       ud.animAcc = 0;
     } else animatePersonWalk(mesh, p.speed || 0, animDt);
     if (p.carry && !p.pose) carryPose(mesh, p.carry);
+    // a road-rager (roadrage.js) holds what he brought and swings it
+    if ((p.heldWeapon || null) !== (ud.pedHeld || null)) { ud.pedHeld = p.heldWeapon || null; setHeldWeapon(mesh, ud.pedHeld); }
+    if (p.heldWeapon || p.attackFx) applyAttackPose(mesh, p.attackFx, world.time, null);
     if (p.greetUntil > world.time) {
       const left = p.greetUntil - world.time;
       waveOverlay(mesh, world.time + (p._lookSeed || 0), Math.min(1, left / 0.3, (2.4 - left) / 0.3));
@@ -2237,7 +2242,7 @@ export function update3D(dt, world) {
   // no mission beacon, route or waypoint in the title screen / pigeon mode / cutscenes
   const navVisible = document.body.classList.contains('game-started') && !world.pigeonMode && !world.cinematicHideNav;
   // a minigame on the spot (padel, carbid, the kermis) or a heli run: no mission beacon meanwhile
-  const gameBusy = !!(world.padelGame || world.activityGame || world.heliRun);
+  const gameBusy = gameBusy(world);
   // a running bijbaantje (sidejobs.js) has its own beacon; missions wait
   const jobBusy = !!(world.sideJob && world.sideJob.active);
   if (missionMarkerMesh) missionMarkerMesh.visible = navVisible && !jobBusy && !gameBusy;
@@ -2314,6 +2319,7 @@ export function update3D(dt, world) {
   const pv = player.inVehicle;
   const hidePlayers = (world.pigeonMode && !world.pigeonIntro) || world.menuCam || world.cinematicHidePlayers || !!world.trainDriving;
   const pvMesh = pv ? vehicleMeshes.get(pv.id) : null;
+  const inCabin = !!pv && updateCarInterior(pvMesh, pv, !!(world.cameraOverride && world.cameraOverride.interior));
   const pAnim = trackSeat(playerSeatTr, player, animDt, true);
   syncPlayerRider(pv, pvMesh, hidePlayers || (pAnim && pAnim.kind === 'enter'), world.time);
   if (pAnim && !hidePlayers) {
@@ -2323,7 +2329,7 @@ export function update3D(dt, world) {
   } else if (pv) {
     // on a horse the player sits astride the saddle (seating3d horse seat)
     const seated = (!pv.isBike && !pv.isScooter) || pv._mount === 'horse';
-    playerMesh.visible = seated && !hidePlayers;
+    playerMesh.visible = seated && !hidePlayers && !inCabin;
     if (seated) {
       playerMesh.scale.y = 1;
       placeSeated(playerMesh, pvMesh, pv, vehicleSeat(pv, true), world.time);
@@ -3402,7 +3408,7 @@ function keepRight(pts, map) {
 }
 
 function updateRouteRibbon3D(dt, world) {
-  const wp = world.padelGame || world.activityGame || world.heliRun ? null : getUserWaypoint();
+  const wp = gameBusy(world) ? null : getUserWaypoint();
   if (wp) {
     if (!waypointBeacon) {
       waypointBeacon = buildWorldMarker3D('user');
