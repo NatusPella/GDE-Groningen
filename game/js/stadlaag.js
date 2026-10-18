@@ -1,3 +1,4 @@
+import { FLAGS } from './devflags.js';
 // ?stadlaag=<laag>[,<laag>] (Node: STAD_LAAG=...): de stad per laag uit de
 // gedeelde tegelbouw in plaats van uit citymap.json (issue #90,
 // docs/ARCHITECTUUR-STAD-NAAR-TEGELS.md, fase B). Standaard uit: zonder de
@@ -17,7 +18,7 @@ export function parseStadLagen(raw) {
 }
 
 // De lagen die in deze run uit de tegelbouw komen (browser: ?stadlaag, Node: STAD_LAAG)
-export function stadLagen(search = typeof location !== 'undefined' ? location.search : '', env = typeof process !== 'undefined' ? process.env : {}) {
+export function stadLagen(search = FLAGS.stadlaag === null ? '' : '?stadlaag=' + encodeURIComponent(FLAGS.stadlaag), env = typeof process !== 'undefined' ? process.env : {}) {
   const q = new URLSearchParams(search || '');
   return parseStadLagen(q.has('stadlaag') ? q.get('stadlaag') : (env && env.STAD_LAAG) || null);
 }

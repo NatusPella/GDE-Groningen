@@ -8,15 +8,7 @@ import { PREFIX, DEV_PREFIX } from './storagekeys.js';
 
 const q = typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams();
 export const STORY_TEST = q.has('storytest');
-// ?pixeldebug (issue #35, the odd green pixel): the post chain paints NaN/Inf
-// pixels magenta and negative HDR values cyan, so a stray pixel can be
-// identified by colour. Off by default.
-export const PIXEL_DEBUG = q.has('pixeldebug');
-// ?coop (issue #95): local two-player mini co-op, player 2 steers the companion (coop.js)
-export const COOP = q.has('coop');
 export const DEV = q.has('dev') || STORY_TEST;
-// ?marker=vorm: the solid 3D shapes of the world marker (worldmarker3d.js); else the soft glowing glyph
-export const MARKER_SOLID = q.get('marker') === 'vorm';
 
 // Every URL switch the game reads, parsed once. Modules import FLAGS.x instead
 // of reading location.search themselves. Boolean flags are on when the name is
@@ -52,6 +44,10 @@ export const FLAGS = Object.freeze({
   gpu: val('gpu'),
   preset: val('preset'),
   touch: val('touch'),
+  pixeldebug: has('pixeldebug'),
+  coop: has('coop'),
+  marker: val('marker'),
+  stadlaag: val('stadlaag'),
   hitch: has('hitch'),
   simlagen: has('simlagen'),
   zwartcheck: has('zwartcheck'),
@@ -82,6 +78,10 @@ export const FLAG_DOCS = Object.freeze({
   gfxadvies: 'Toon het grafische advies ook als de speler al koos',
   gpu: 'Doe alsof de GPU deze renderer-tekst heeft (test van het advies)',
   preset: 'Instellingen alleen voor deze run, bv. quality:laag,drawDistance:kort',
+  pixeldebug: 'Nabewerking verft NaN/Inf-pixels magenta en negatieve HDR-waarden cyaan (issue #35)',
+  coop: 'Lokale co-op voor twee spelers: speler 2 stuurt de metgezel (coop.js, issue #95)',
+  marker: 'marker=vorm: de vaste 3D-vormen van de wereldmarker in plaats van het zachte glyph',
+  stadlaag: 'Welke stadslagen uit de tegelbouw komen (lagen gescheiden door komma, of alle)',
   touch: 'Raakbediening aan (touch=1) of uit (touch=0), ook zonder touchscherm',
   hitch: 'Meet haperingen (hitchprobe)',
   simlagen: 'Verkeer volgens simulatielagen per streek en afstand (simlagen.js)',

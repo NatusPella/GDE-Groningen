@@ -9,7 +9,9 @@
 // yellow start, light blue objective, orange job, purple own goal).
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { markerColors } from './a11y.js';
-import { MARKER_SOLID } from './devflags.js';
+import { FLAGS } from './devflags.js';
+
+const MARKER_SOLID = FLAGS.marker === 'vorm';
 
 export const MARKER_KINDS = {
   start: { color: 'mission' },
