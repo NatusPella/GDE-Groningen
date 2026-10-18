@@ -1,5 +1,6 @@
 import { scaledTarget, farAIDist, skipFar, takeDt } from './simload.js';
 import { profileOf } from './signalement.js';
+import { createVictim, stepVictim, victimDone, VICTIM } from './carjackvictim.js';
 import { dist, pointInPolygon, closestPointOnSegment, isInWater } from './util.js';
 import { resolveBuildingCollisions, findExitSpot } from './player.js';
 import { resolveWalker } from './collision.js';
@@ -691,13 +692,13 @@ function startWitnessCall(world, ev) {
   if (activeCall || world.wanted > 0) return;
   let best = null, bestD = Infinity;
   for (const p of world.pedestrians) {
-    if (p.isCop || p.state === 'dead' || p === ev.victim || p.state === 'film') continue;
+    if (p.isCop || p.state === 'dead' || p === ev.victim || p.state === 'film' || p._vic) continue;
     const d = dist(p.x, p.y, ev.x, ev.y);
     if (d > WITNESS_RADIUS || d < 4 || d >= bestD) continue;
     if (!lineOfSight(world.map, p.x, p.y, ev.x, ev.y)) continue;
     best = p; bestD = d;
   }
-  if (!best && ev.witness) best = ev.witness;
+  if (!best && ev.witness && !ev.witness._vic) best = ev.witness;
   if (!best) return;
   releaseFromScene(best);
   setState(best, 'call', world.time + CALL_MIN + Math.random() * (CALL_MAX - CALL_MIN), 'call');
@@ -721,6 +722,26 @@ function updateWitnessCall(world) {
   activeCall = null;
 }
 
+// the nearest police unit (on foot or in a car) that can see the ped, or null
+function copInSight(world, ped) {
+  for (const c of world.pedestrians) {
+    if (c.isCop && c.state !== 'dead' && dist(c.x, c.y, ped.x, ped.y) < VICTIM.agentNear && lineOfSight(world.map, c.x, c.y, ped.x, ped.y)) return c;
+  }
+  for (const v of world.vehicles) {
+    if (v.isPolice && !v.hijacked && !v.wrecked && dist(v.x, v.y, ped.x, ped.y) < VICTIM.agentNear) return v;
+  }
+  return null;
+}
+
+// the stolen car is known: the police get its description (signalement.js)
+function reportCarTheft(world, ped, car) {
+  if (world.wanted > 0 || world.player.inVehicle !== car) return;
+  world.wanted = 1;
+  world.policeTip = { x: ped.x, y: ped.y, time: world.time };
+  world.wantedProfile = profileOf(world);
+  world.addMessage('De bestuurder heeft de diefstal gemeld!', 3);
+}
+
 function processEvents(world, events) {
   for (const ev of events) {
     ev.id = ++eventSeq;
@@ -742,6 +763,8 @@ function processEvents(world, events) {
         say(victim, world, pick(ev.vehicle.isBike ? BIKE_THEFT_LINES : THEFT_LINES), 3, 'shout', 1);
         ev.witness = victim;
         ev.victimPed = victim;
+        // the driver pulled out of his car follows his own script (carjackvictim.js)
+        if (ev.hadDriver && victim.noFade) { victim._vic = createVictim(ev.vehicle.id || 1, { isBike: !!(ev.vehicle.isBike || ev.vehicle.isScooter) }); victim._vicCar = ev.vehicle; }
       }
     }
     for (const ped of world.pedestrians) {
@@ -1084,7 +1107,8 @@ export function updatePedestrians(dt, world) {
     }
     if (ped.gotUpAt) {
       ped.gotUpAt = 0;
-      if (!ped.isCop) startFlee(ped, world, player.x, player.y, true);
+      if (ped._vic && !victimDone(ped._vic)) setState(ped, 'jackvic');
+      else if (!ped.isCop) startFlee(ped, world, player.x, player.y, true);
     }
 
     const dPlayer = dist(ped.x, ped.y, player.x, player.y);
@@ -1120,6 +1144,23 @@ export function updatePedestrians(dt, world) {
         if (dPlayer < 5) startFlee(ped, world, player.x, player.y, true);
         else if (t > ped.stateUntil) setState(ped, 'wander');
         break;
+      case 'jackvic': {
+        moving = false;
+        const car = ped._vicCar;
+        const o = stepVictim(ped._vic, dt, {
+          dCar: car ? dist(ped.x, ped.y, car.x, car.y) : 99, carSpeed: car ? car.speed : 0,
+          copNear: copInSight(world, ped),
+        });
+        setPedPose(ped, o.pose);
+        if (o.say) say(ped, world, o.say, 2.6, null);
+        if (o.report) reportCarTheft(world, ped, car);
+        if (o.move === 'chase' && car) { faceToward(ped, car.x, car.y); ped.speed = VICTIM.chaseSpeed; moving = true; }
+        else if (o.move === 'away') { const a = Math.atan2(ped.y - (car ? car.y : player.y), ped.x - (car ? car.x : player.x)); ped.angle = steerClear(map, ped, a); ped.speed = WANDER_SPEED * 1.4; moving = true; }
+        else if (o.face === 'cop') { const c = copInSight(world, ped); if (c) faceToward(ped, c.x, c.y); }
+        else if (car) faceToward(ped, car.x, car.y);
+        if (victimDone(ped._vic)) { ped._vic = null; ped._vicCar = null; setState(ped, 'wander'); }
+        break;
+      }
       case 'call':
         moving = false;
         if (ped.fleeFrom) faceToward(ped, ped.fleeFrom.x, ped.fleeFrom.y);
