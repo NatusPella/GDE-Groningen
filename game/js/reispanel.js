@@ -20,9 +20,17 @@ export function askTravel(beat) {
   return new Promise((resolve) => {
     const finish = (id) => {
       document.removeEventListener('keydown', onKey, true);
+      p.root.removeEventListener('pointerdown', onTap);
+      p.root.style.pointerEvents = '';
       p.hide();
       open = null;
       resolve(id || travelOptions(beat).def);
+    };
+    // touch and mouse: tap an option (a phone has no 1/2/3 keys)
+    const onTap = (e) => {
+      const row = e.target.closest && e.target.closest('.cw-opt[data-key]');
+      const id = row && pickFromKey(beat, row.dataset.key);
+      if (id) { e.preventDefault(); finish(id); }
     };
     const onKey = (e) => {
       if (e.repeat) return;
@@ -31,6 +39,8 @@ export function askTravel(beat) {
       else if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); finish(pick); }
     };
     document.addEventListener('keydown', onKey, true);
+    p.root.style.pointerEvents = 'auto';
+    p.root.addEventListener('pointerdown', onTap);
     open = { finish };
   });
 }
