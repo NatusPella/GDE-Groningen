@@ -187,6 +187,26 @@ export function planeStageProgress(st, S) {
   return null;
 }
 
+// dev cheat / story test: finish the current plane stage the way a pilot would (board, fly all gates, land); true when it did something
+export function debugCompletePlaneStage(world, st, S) {
+  if (!S0 || !S0.plane) return false;
+  const v = S0.plane;
+  if (st.kind === 'plane') { world.player.enterVehicle(v, world); return true; }
+  if (st.kind === 'airgates' && S.air) {
+    if (S.air.rings) S.air.rings.forEach((r) => r.material.color.setHex(0x5dff7a));
+    if (st.banner) setBanner(world, st.banner);
+    S.air.i = st.gates.length;
+    return true;
+  }
+  if (st.kind === 'landplane') {
+    const at = S0.strip.point(S0.strip.length * 0.45);
+    v.x = at.x; v.y = at.y; v.z = ground(world.map, at.x, at.y); v.speed = 0;
+    if (v.plane) { v.plane.onGround = true; v.plane.speed = 0; }
+    return true;
+  }
+  return false;
+}
+
 // the stage is left (or the mission ended): gates and banner go, the strip of Eelde is put back
 export function disposePlaneStage(world, { keepPlane = true } = {}) {
   if (!S0) return;
