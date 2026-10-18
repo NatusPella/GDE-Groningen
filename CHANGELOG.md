@@ -7,6 +7,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Nieuw
+- **Zeven nieuwe radionummers:** G-Music draait nu ook donkere drill, post-punk, hardstyle, phonk, een levenslied, smooth R&B en een zomerhit, helemaal door het spel zelf gemaakt. Ze verschijnen een paar seconden na het opstarten één voor één in de afspeellijst.
 - **Brommers en motoren in het verkeer:** er rijden nu brommers en motoren rond, meer in studentenwijken en het centrum, minder 's nachts. Ze blijven op de weg en nooit op het fietspad; een gewone brommer houdt zich aan 45 km/u, een enkele is opgevoerd.
 - **Spookrijder op de kartbaan en in de driftzones:** je beste race bij Kardinge en je beste run per driftzone worden bewaard en rijden de volgende keer als doorzichtige spook mee.
 - **Machinist:** in een gekaapte of geparkeerde trein start G een dienst: halte voor halte stoppen op de streep, op tijd en onder de snelheidsborden. Het bord toont snelheid, maximum, remweg en je vertraging; je krijgt punten en een medaille. Backspace stopt de dienst.
