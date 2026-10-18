@@ -11,6 +11,7 @@ import { FALLBACK } from './regiondata.js';
 import { MAP_PALETTE, seaStyle } from './mapstyle.js';
 import { worldPlaceAt } from './worldplaces.js';
 import { coastKinds, borderByData } from './worldedge.js';
+import { edgeLabels } from './mapedge.js';
 import { setSeaClearance } from './waterindex.js';
 import { createSeaClearance } from './seawater.js';
 
@@ -38,6 +39,7 @@ export const REGION_ANCHORS = [
   { id: 'dollard', at: [53.29, 7.1] },
 ];
 
+let dataVersion = 0;
 const S = { outline: null, coast: null, islands: [], border: [], sea: null, seaBox: null, outlineBox: null, path: null };
 
 const bboxOf = (P) => {
@@ -108,6 +110,7 @@ export function setRegionData(layer, tileHas = null) {
   S.coast = coast;
   S.islands = islands;
   S.border = border;
+  dataVersion++;
   S.sea = seaPolygon(coast);
   S.seaBox = S.sea ? bboxOf(S.sea) : null;
   S.islandBoxes = islands.map(bboxOf);
@@ -121,6 +124,12 @@ setRegionData(null);
 
 // the raw edge layer ({ coast, border, seaM, airM }) for worldedge.js; null without the province layer
 export const regionEdgeLayer = () => S.edgeLayer || null;
+// counts the data loads, so what is worked out from the regions can be redone (mapedge users)
+export const regionVersion = () => dataVersion;
+
+// Names of the regions beyond the border and the coast, for a window of the map: one per
+// region whose border is in view, `off` m outside it (mapedge.js)
+export const regionEdgeLabels = (x0, y0, x1, y1, off) => edgeLabels({ border: S.border, coast: S.coast }, [x0, y0, x1, y1], regionAt, off);
 export const seaRing = () => S.sea;
 
 export function seaAt(x, y) {
