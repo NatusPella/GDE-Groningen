@@ -4,7 +4,7 @@
 import { readFileSync } from 'node:fs';
 import { compileScene, validateScene, resolveTime, ACTOR_ANIMS } from '../game/js/cutscript.js';
 import { ANIMS } from '../game/js/actoranim.js';
-import { OPENING, END_CARD } from '../game/js/cutscenes.js';
+import { OPENING, END_CARD, flatScene } from '../game/js/cutscenes.js';
 
 let fails = 0, n = 0;
 const ok = (c, name, extra = '') => { n++; if (!c) { fails++; console.log('FAIL', name, extra); } };
@@ -102,6 +102,24 @@ ok(sv.some((m) => /staat .* stil/.test(m)) && sv.some((m) => /zonder camerabeweg
 let threw = false;
 try { compileScene(still, { duration: 20 }); } catch (e) { threw = true; }
 ok(threw, 'compileScene throws on a flagged scene');
+
+// evenings at home: generated from the lines, valid for any length, with real movement
+for (const variant of ['eikea', 'wachten', 'avond']) {
+  for (const n of [3, 8, 9, 14]) {
+    const ls = [];
+    let a = 2.2;
+    for (let i = 0; i < n; i++) { const dur = 2 + (i % 3); ls.push({ speaker: ['Anita', 'Tammo', 'Henk'][i % 3 === 2 && i % 2 ? 2 : i % 2], text: 'x', at: a, dur }); a += dur + 0.25; }
+    const dur2 = a + 0.4;
+    const iss = validateScene(flatScene(variant, ls), { lines: ls, duration: dur2 });
+    ok(iss.length === 0, `flatScene ${variant} (${n} regels) valideert`, iss.join(' | '));
+    if (n === 14) {
+      const sc = compileScene(flatScene(variant, ls), { lines: ls, duration: dur2 });
+      let moved = 0, p0 = null;
+      for (let t = 0; t <= dur2; t += 0.2) { const s = sc.sample(t, anchor); if (p0) for (const k of ['tammo', 'tessa']) moved += Math.hypot(s.actors[k].x - p0.actors[k].x, s.actors[k].y - p0.actors[k].y); p0 = s; }
+      ok(moved > 4, `flatScene ${variant}: mensen lopen`, String(moved));
+    }
+  }
+}
 
 // the animation layer speaks the names the language validates against
 ok(ACTOR_ANIMS.length === ANIMS.length && ACTOR_ANIMS.every((a) => ANIMS.includes(a)), 'ACTOR_ANIMS equals actoranim ANIMS');
