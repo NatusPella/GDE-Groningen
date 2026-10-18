@@ -17,6 +17,7 @@ import { walkRoute, processPedPlanQueue, buildPedAvoidGrid, separatePeds, makeCo
 import { reportCrime } from './crime.js';
 import { hash2 } from './rng.js';
 import { dayState } from './daynight.js';
+import { buildingAt } from './tileplace.js';
 
 const WANDER_SPEED = 1.3;
 const FLEE_SPEED = 3.6;
@@ -255,12 +256,7 @@ export function makeCopPedestrian(x, y, angle, lookSeed = null) {
 }
 
 export function isInsideBuilding(map, x, y) {
-  for (const b of map.buildingsNear(x, y, 0.5)) {
-    const [minx, miny, maxx, maxy] = b.bounds;
-    if (x < minx || x > maxx || y < miny || y > maxy) continue;
-    if (pointInPolygon(x, y, b.pts)) return true;
-  }
-  return false;
+  return !!buildingAt(map, x, y);
 }
 
 export function isOnRoad(map, x, y, margin = 0, cats = null) {
