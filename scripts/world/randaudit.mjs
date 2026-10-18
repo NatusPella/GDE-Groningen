@@ -33,6 +33,7 @@ for (const [k, v] of Object.entries(A.scenes)) console.log(`  ${k.padEnd(10)} ${
 const b = A.stats.border, c = A.stats.coast;
 console.log(`grens: ${b.samples} monsters; waarschuwing ${b.warnOk}, omkeren ${b.backOk}, zonder data erachter ${b.noData}, scène-props zonder tegel ${b.plansOutside}`);
 console.log(`kust: ${c.samples} monsters; waarschuwing ${c.warnOk}, omkeren ${c.backOk}`);
+console.log(`kustzijde: ${A.stats.side.good} goed, ${A.stats.side.wrong} omgekeerd, ${A.stats.side.unsure} onduidelijk (slik, eilandjes)`);
 for (const s of A.issues) console.log('FOUT ' + s);
 console.log(`${A.issues.length} harde fouten`);
 process.exit(A.issues.length ? 1 : 0);

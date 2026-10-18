@@ -104,5 +104,17 @@ export function auditEdge(edge, opts = {}) {
       if (r && r.action === 'back') c.backOk++;
     }
   }
-  return { coast, border, scenes, issues, stats: { border: b, coast: c } };
+  // the side of the coast lines: the outside (where the sea rules fire) should hold no data
+  // tile where the inside does; the Wadden's mud flats and islets muddy it, so only a clear
+  // majority the wrong way is an error
+  const o = { good: 0, wrong: 0, unsure: 0 };
+  for (const L of edge.coast || []) {
+    for (const s of walkLine(L.pts, 600)) {
+      const out = outwards(s, L.out || 1, 700), inn = outwards(s, -(L.out || 1), 700);
+      const a = tileHas(out.x, out.y), i = tileHas(inn.x, inn.y);
+      if (!a && i) o.good++; else if (a && !i) o.wrong++; else o.unsure++;
+    }
+  }
+  if (o.wrong > o.good * 0.5) issues.push(`kust: ${o.wrong} van ${o.good + o.wrong} monsters hebben de zee aan de verkeerde kant`);
+  return { coast, border, scenes, issues, stats: { border: b, coast: c, side: o } };
 }
