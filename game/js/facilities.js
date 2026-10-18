@@ -12,6 +12,7 @@ import { inProvinceData } from './provinceworld.js';
 import { pushOutOfPlan } from './countryplan.js';
 import { buildingAt, boxOf, pushOutOfBuildings, roadNear, roadKind, withTiles, waterGap } from './tileplace.js';
 import { isInWater } from './util.js';
+import { SpatialGrid } from './spatialgrid.js';
 
 // how far an emergency-capable post may be before the nearest doctor wins
 export const MEDICAL_REACH = 4500;
@@ -137,12 +138,8 @@ export function facilitiesIn(kind, x0, y0, x1, y1) {
 function grid(key, list) {
   let g = grids.get(key);
   if (g) return g;
-  g = new Map();
-  for (const f of list) {
-    const k = Math.floor(f.x / CELL) * 65536 + Math.floor(f.y / CELL);
-    if (!g.has(k)) g.set(k, []);
-    g.get(k).push(f);
-  }
+  g = new SpatialGrid(CELL);
+  for (const f of list) g.insertPoint(f, f.x, f.y);
   g.list = list;
   grids.set(key, g);
   return g;
@@ -161,7 +158,7 @@ function nearestIn(key, list, x, y, maxD) {
     for (let i = -r; i <= r; i++) {
       const edge = Math.abs(i) === r;
       for (let j = -r; j <= r; j += edge ? 1 : 2 * r) {
-        const L = g.get((cx + i) * 65536 + (cy + j));
+        const L = g.cellItems(cx + i, cy + j);
         if (!L) continue;
         for (const f of L) {
           const d = Math.hypot(f.x - x, f.y - y);
