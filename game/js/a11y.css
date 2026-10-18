@@ -115,3 +115,8 @@ html:is(.text-groot, .text-extragroot) :is(#hud .hc-text, #hud .ctx-row, #hud .s
 
 /* --- no screen flashes (Flitsen beperken): the white flashes of montage and trailer, and light pulses, stay off --- */
 html.reduce-flash :is(#intro-montage .im-flash, #trailer .tr-flash, #hud .hud-flash, #screen-flash) { display: none !important; animation: none !important; }
+
+/* --- Hulp (helpoverview.js): the help tab under Besturing --- */
+#pause-menu .pm-csub[data-sub="hulp"]:not([hidden]) { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+#pause-menu .pm-csub[data-sub="hulp"] > .m-main { flex: 1; min-height: 0; padding-top: 32px; }
+#pause-menu .pm-hline { margin: 4px 0; line-height: 1.5; }
