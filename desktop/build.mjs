@@ -72,6 +72,10 @@ function packWorld() {
   const h = crypto.createHash('sha1');
   for (const f of ['citymap.json', 'mapextras.json', 'js/gdt.js', 'js/mapdata.js', 'js/elevation.js', 'js/passages.js', 'js/museumplan.js', 'js/util.js', 'js/worldbuilder.js', 'js/derive.js', 'js/spatialgrid.js']) h.update(fs.readFileSync(path.join(SRC, f)));
   h.update(fs.readFileSync(packer));
+  // STAD_LAAG (#90): de stadslagen uit de OSM-bouw maken een andere wereld
+  h.update(String(process.env.STAD_LAAG || ''));
+  const stadLaag = path.join(root, 'scripts', 'world', 'stad_laag.mjs');
+  if (fs.existsSync(stadLaag)) h.update(fs.readFileSync(stadLaag));
   // what else goes into the rows when the checkout has it: the height chain,
   // the profiles, junctions and routes, the building attributes, the 3D BAG
   // extract and fetched AHN rasters
