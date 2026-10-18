@@ -7,6 +7,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getMovableBridges, boomsOf } from './movablebridges.js';
 import { mergeGeometries, tint } from './geomerge.js';
+import { roadSurfaceGeometries, getMarkingMaterial } from './roadsurface.js';
 
 const VIEW = 180;
 const BOOM_VIEW = 90;
@@ -53,6 +54,57 @@ function buildLeaf(L, h, wide) {
   return m;
 }
 
+// The road's paint (lane lines, edge lines, arrows: roadsurface.js markings, in
+// world coordinates along the road) cut to one leaf and put in the leaf's frame,
+// so it turns, lifts and slides with the deck instead of staying behind when the
+// static road is hidden. `pos`/`uv` are the marking geometry's arrays; the leaf
+// is L long, hinged at s0 and running on (dir 1) or back (dir -1, the
+// second half of a double bascule, whose frame runs the other way). Triangles go
+// to the leaf their centre is over. Returns { pos, nrm, uv } for a Mesh.
+export function leafMarkings(pos, uv, b, s0, L, dir, lift = 0.03) {
+  let low = Infinity;
+  for (let i = 1; i < pos.length; i += 3) low = Math.min(low, pos[i]);
+  const frame = (k) => {
+    const dx = pos[k * 3] - b.ax, dz = pos[k * 3 + 2] - b.ay;
+    const lx = dx * b.ux + dz * b.uy, lz = -dx * b.uy + dz * b.ux;
+    return dir > 0 ? [lx - s0, lz] : [s0 - lx, -lz];
+  };
+  const out = { pos: [], nrm: [], uv: [] };
+  for (let t = 0; t + 2 < pos.length / 3; t += 3) {
+    const f = [frame(t), frame(t + 1), frame(t + 2)];
+    const cx = (f[0][0] + f[1][0] + f[2][0]) / 3;
+    if (cx < 0 || cx >= L) continue;
+    for (let k = 0; k < 3; k++) {
+      out.pos.push(f[k][0], pos[(t + k) * 3 + 1] - low + lift, f[k][1]);
+      out.nrm.push(0, 1, 0);
+      out.uv.push(uv[(t + k) * 2], uv[(t + k) * 2 + 1]);
+    }
+  }
+  return out;
+}
+
+function markingMesh(b, s0, L, dir, geo) {
+  const pos = geo.getAttribute('position'), uv = geo.getAttribute('uv');
+  const idx = geo.index;
+  // un-index: three vertices per triangle
+  const P = [], U = [];
+  const n = idx ? idx.count : pos.count;
+  for (let i = 0; i < n; i++) {
+    const v = idx ? idx.getX(i) : i;
+    P.push(pos.getX(v), pos.getY(v), pos.getZ(v));
+    U.push(uv.getX(v), uv.getY(v));
+  }
+  const m = leafMarkings(P, U, b, s0, L, dir);
+  if (!m.pos.length) return null;
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(m.pos, 3));
+  g.setAttribute('normal', new THREE.Float32BufferAttribute(m.nrm, 3));
+  g.setAttribute('uv', new THREE.Float32BufferAttribute(m.uv, 2));
+  const mesh = new THREE.Mesh(g, getMarkingMaterial());
+  mesh.receiveShadow = true;
+  return mesh;
+}
+
 function buildBoom(bm) {
   const root = new THREE.Group();
   root.position.set(bm.px, 0, bm.py);
@@ -87,6 +139,7 @@ export function initMovableBridges3D(sceneRef) {
     const yaw = -Math.atan2(b.uy, b.ux);
     const leaves = [];
     const double = b.kind === 'bascule' && b.len > 26;
+    let marks;
     const pieces = double ? [[0, b.len / 2, 1], [b.len, b.len / 2, -1]] : [[0, b.len, 1]];
     for (const [s0, L, dir] of pieces) {
       const pivot = new THREE.Group();
@@ -95,6 +148,10 @@ export function initMovableBridges3D(sceneRef) {
       pivot.rotation.y = dir > 0 ? yaw : yaw + Math.PI;
       const leaf = buildLeaf(L, b.half, wide);
       pivot.add(leaf);
+      // the paint rides on the leaf (#153)
+      if (marks === undefined) { try { marks = roadSurfaceGeometries(b.r).mark; } catch { marks = null; } }
+      const paint = marks ? markingMesh(b, s0, L, dir, marks) : null;
+      if (paint) leaf.add(paint);
       group.add(pivot);
       leaves.push({ pivot, leaf, L, dir, base: pivot.rotation.y, ex, ey });
     }

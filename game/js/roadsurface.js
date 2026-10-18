@@ -277,7 +277,7 @@ function surfaceMaterial(layerName, surf) {
 }
 
 let markingMaterial = null;
-function getMarkingMaterial() {
+export function getMarkingMaterial() {
   if (!markingMaterial) {
     markingMaterial = makeMaterial(0xffffff, GROUND_LAYER.marking, 0.62, { SURF_MARKING: '' }, { map: buildAtlas(), alphaTest: 0.5 });
   }
