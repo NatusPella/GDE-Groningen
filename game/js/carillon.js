@@ -169,4 +169,3 @@ export const CARILLON_GAME = standActivity({
     quit: () => { if (!game) return false; end(w, { quit: true }); return true; },
   }),
 });
-export const CARILLON_MEDALS = MEDAL_AT;

@@ -22,6 +22,7 @@ const G = await import('../../game/js/gdt.js');
 const { edgeRows, globalChains } = await import('../../game/js/navgraph.js');
 const { heightRows } = await import('../../game/js/roadprofile.js');
 const { junctionRows } = await import('../../game/js/junctions.js');
+const { shiftRaster } = await import('../../game/js/terrainraster.js');
 const { polygonBounds } = await import('../../game/js/util.js');
 const { heightOf, bagKey, pitchedFits } = await import('../../game/js/buildingheights.js');
 
@@ -174,7 +175,8 @@ export function loadTerrainRasters(root = ROOT) {
   for (const [key, t] of Object.entries(idx.tiles || {})) {
     const bin = path.join(dir, key + '.bin');
     if (!fs.existsSync(bin)) continue;
-    out.set(key, { w: t.w, h: t.h, cell: t.cell, x0: t.x0, y0: t.y0, codec: 1, data: new Uint8Array(fs.readFileSync(bin)) });
+    // one datum: a city raster (relative to its tile's street level) moves to m NAP, the province's already is
+    out.set(key, shiftRaster({ w: t.w, h: t.h, cell: t.cell, x0: t.x0, y0: t.y0, codec: 1, data: new Uint8Array(fs.readFileSync(bin)) }, t.abs === false ? t.street_nap : 0));
   }
   return out;
 }

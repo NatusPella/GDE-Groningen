@@ -6,6 +6,7 @@ import { getScene, prewarmStreamAt } from './scene3d.js';
 import { speakerHtml } from './speakers.js';
 import { getSettings, QUALITY_PRESETS, withTempSettings } from './settings.js';
 import { PRESET_ORDER, GFX_PRESETS, currentPreset, describePreset, presetLabel, applyPreset, setBenchResult } from './gfxprofile.js';
+import { BENCH_ROUTE, BENCH_CATEGORIES, frameStats, categoryStats, weakestCategory, recommendProfile, profileWord, compareRuns, compareText, packRun, readLastRun, writeLastRun } from './benchstats.js';
 import { refreshDayNight } from './daynight.js';
 import { makeActor, stage, seat } from './intromontage.js';
 import { makeBirds, scatterBirds, updateBirds } from './birds.js';
@@ -38,6 +39,7 @@ import { showStuntHud, hideStuntHud, updateStuntHud } from './stunthud.js';
 import { heliTrailerKit } from './helirun.js';
 import { trailerPhone } from './phone.js';
 import { KEYS, SESSION_KEYS } from './storagekeys.js';
+import { PLAN, PLAN_CUTS, SLICES } from './trailerplan.js';
 
 // Trailer mode: "GDE Groningen - Een zomer in Grunn" (shot list in
 // docs/verhaal/E-trailer.md), one list of staged shots through Grunn, played
@@ -51,6 +53,9 @@ import { KEYS, SESSION_KEYS } from './storagekeys.js';
 //              trailer (~85 s) with voiced lines from the game
 //   gameplay   ?trailer&cut=gameplay: the Steam gameplay trailer (~60 s),
 //              the logo first, the systems with the real HUD (hud: true)
+//   teaser     ?trailer&cut=teaser: the 40 s teaser, hoofd: the 90 s main trailer
+//              (trailerplan.js, docs/verhaal/nieuw/TRAILER-SCRIPT.md); ?preview&cut=teaser
+//              plays them in real time with sound, hold Space to skip
 //   attract    ?attract: the short cut ('kort', ~38 s, with the Tessa and
 //              Tammo name cards); hold Space to skip; hands its last camera
 //              pose over to the title screen
@@ -166,6 +171,7 @@ const CSS = `
 #trailer .tr-sub b { color: #3fc97a; margin-right: 6px; }
 #trailer .tr-skip { right: 3vw; bottom: calc(var(--bar) * 0.5); transform: translateY(50%); display: flex; align-items: center; gap: 6px; font: 16px 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.3px; color: rgba(240, 237, 228, 0.92); text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8); opacity: 0; transition: opacity 0.25s; }
 #trailer.skippable .tr-skip { opacity: 1; }
+body.trailer-rec #trailer .tr-skip, body.trailer-rec #trailer .tr-fps { display: none; }
 #trailer .tr-skip .key { display: inline-flex; align-items: center; justify-content: center; height: 20px; padding: 0 5px; background: linear-gradient(180deg, #4a4f47, #2a2e28); border: 1px solid rgba(255, 255, 255, 0.35); border-bottom: 2px solid rgba(0, 0, 0, 0.6); border-radius: 4px; color: #3fc97a; font: 11px 'Bebas Neue', 'Arial Narrow', sans-serif; letter-spacing: 1px; }
 #trailer .tr-skip svg { width: 20px; height: 20px; transform: rotate(-90deg); }
 #trailer .tr-skip circle { fill: none; stroke: rgba(240, 237, 228, 0.25); stroke-width: 3; }
@@ -173,15 +179,25 @@ const CSS = `
 #trailer .tr-skip.holding { color: #f0ede4; }
 #trailer .tr-fps { right: 2.2vw; bottom: 1.6vh; font: 13px 'Arial Narrow', Arial, sans-serif; letter-spacing: 1.5px; color: rgba(240, 237, 228, 0.55); display: none; }
 #trailer.bench .tr-fps { display: block; }
+#trailer .tr-cancel { display: none; left: 3vw; bottom: calc(var(--bar) * 0.5); transform: translateY(50%); align-items: center; gap: 8px; font: 16px 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.3px; color: rgba(240, 237, 228, 0.92); text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8); }
+#trailer.bench .tr-cancel { display: flex; }
+#trailer .tr-cancel .key { display: inline-flex; align-items: center; justify-content: center; height: 22px; padding: 0 8px; background: linear-gradient(180deg, #ffffff, #d9d6cc); border: 1px solid rgba(0, 0, 0, 0.4); border-bottom: 2px solid rgba(0, 0, 0, 0.55); border-radius: 4px; color: #1a1d18; font: 12px 'Bebas Neue', 'Arial Narrow', sans-serif; letter-spacing: 1px; }
 #trailer-result { position: fixed; inset: 0; z-index: 30; display: flex; align-items: center; justify-content: center; background: rgba(4, 8, 6, 0.55); font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; color: #f0ede4; animation: tr-res-in 0.35s ease both; }
 #trailer-result[hidden] { display: none; }
 @keyframes tr-res-in { from { opacity: 0; } to { opacity: 1; } }
 #trailer-result .tr-res { width: min(520px, calc(100vw - 32px)); background: rgba(8, 14, 10, 0.88); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); border: 1px solid rgba(63, 201, 122, 0.4); border-radius: 6px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5); padding: 22px 26px 20px; box-sizing: border-box; }
 #trailer-result h2 { margin: 0; font-size: 38px; letter-spacing: 2px; font-weight: normal; color: #3fc97a; }
 #trailer-result .tr-meta { margin: 2px 0 14px; font: 14px 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.3px; color: rgba(240, 237, 228, 0.65); }
-#trailer-result .tr-nums { display: flex; gap: 34px; margin-bottom: 12px; }
+#trailer-result .tr-nums { display: flex; flex-wrap: wrap; gap: 14px 30px; margin-bottom: 12px; }
 #trailer-result .tr-nums div { display: flex; flex-direction: column; }
 #trailer-result .tr-nums b { font-size: 56px; line-height: 1; font-weight: normal; }
+#trailer-result .tr-nums b small { font-size: 20px; color: rgba(240, 237, 228, 0.7); }
+#trailer-result .tr-cmp { color: rgba(240, 237, 228, 0.8); }
+#trailer-result .tr-cmp.sneller { color: #3fc97a; } #trailer-result .tr-cmp.trager { color: #e8a24a; }
+#trailer-result .tr-cats { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 4px; }
+#trailer-result .tr-cats span { display: flex; flex-direction: column; min-width: 84px; padding: 5px 9px; border: 1px solid rgba(240, 237, 228, 0.18); border-radius: 4px; font: 12px 'Arial Narrow', Arial, sans-serif; letter-spacing: 1px; text-transform: uppercase; color: rgba(240, 237, 228, 0.7); }
+#trailer-result .tr-cats span.weak { border-color: #e8a24a; }
+#trailer-result .tr-cats b { font: 20px 'Bebas Neue', 'Arial Narrow', sans-serif; letter-spacing: 1px; color: #f0ede4; }
 #trailer-result .tr-nums span { font: 13px 'Arial Narrow', Arial, sans-serif; letter-spacing: 1px; color: rgba(240, 237, 228, 0.7); text-transform: uppercase; }
 #trailer-result p { margin: 6px 0; font: 16px/1.4 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.2px; }
 #trailer-result .tr-advice { color: #f0ede4; border-left: 3px solid #3fc97a; padding-left: 10px; margin-top: 12px; }
@@ -193,6 +209,13 @@ const CSS = `
 #trailer-result button:hover, #trailer-result button:focus-visible { border-color: #5fe39a; color: #5fe39a; outline: none; }
 #trailer-result button.primary:hover, #trailer-result button.primary:focus-visible { color: #0c140e; box-shadow: 0 0 0 2px #f0ede4; }
 #trailer-result button[hidden] { display: none; }
+body.trailer-on, body.trailer-on * { cursor: none !important; }
+#trailer .tr-slices { display: flex; gap: 1.1vw; margin-top: 1.4vh; }
+#trailer .tr-slices i { display: block; width: 5.2vw; height: 2.6vw; border-radius: 0.5vw; background: #f0ede4; position: relative; transition: none; }
+#trailer .tr-slices i.x { background: rgba(240, 237, 228, 0.28); }
+#trailer .tr-slices i.x::after { content: ''; position: absolute; left: -8%; right: -8%; top: 46%; height: 0.35vw; background: #3fc97a; transform: rotate(-6deg); }
+#trailer .tr-title.tr-tagline.tight { letter-spacing: 0.06em; }
+#trailer .tr-info { margin-top: 2.4vh; font: clamp(16px, 1.7vw, 30px) 'Arial Narrow', Arial, sans-serif; letter-spacing: 3px; text-transform: uppercase; color: rgba(240, 237, 228, 0.85); }
 body.trailer-on:not(.trailer-hud) #hud, body.trailer-on .prompts, body.trailer-on #cine { display: none !important; }
 /* gameplay shots (hud: true): the real HUD, no bars or vignette over it */
 body.trailer-on.trailer-hud #hud { visibility: visible; }
@@ -216,6 +239,7 @@ function ensureUi() {
     '<div class="tr-freeze"></div><div class="tr-card"></div><div class="tr-name"></div><div class="tr-sub"></div><div class="tr-bar top"></div><div class="tr-bar bottom"></div>' +
     '<div class="tr-skip"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle class="fill" cx="12" cy="12" r="10"/></svg>' +
     '<span>Houd</span><span class="key">SPATIE</span><span>ingedrukt om over te slaan</span></div>' +
+    '<div class="tr-cancel"><span class="key">ESC</span><span>Benchmark stoppen</span></div>' +
     '<div class="tr-fps"></div>';
   document.body.appendChild(root);
   const q = (s) => root.querySelector(s);
@@ -247,6 +271,11 @@ function showCard(cap, p = 0) {
   ui.card.style.opacity = String(p < 0.16 ? p / 0.16 : p > 0.84 ? (1 - p) / 0.16 : 1);
   ui.card.style.transform = `scale(${(1.14 - 0.14 * e).toFixed(4)})`;
   ui.card.style.letterSpacing = `${(0.02 + 0.08 * e).toFixed(3)}em`;
+  // the slice board: a slice is struck out on every tick of the snare
+  if (cap.strike) {
+    const n = cap.strike.filter((x) => x <= cap.ap).length;
+    ui.card.querySelectorAll('.tr-slices i').forEach((el, i) => el.classList.toggle('x', i < n));
+  }
 }
 
 // The name card over a freeze frame, driven by trailer time (p = 0..1 from
@@ -299,17 +328,39 @@ function stopVoices() {
   voices.clear();
 }
 let sfxCtx = null;
+// Every sound is synthesised (noise and sine tones); desktop/trailervideo.js
+// builds the same four for the video with ffmpeg.
+const SFX_SYNTH = {
+  knal: { t: 0.9, noise: 'brown', decay: 0.12, lp: 900, gain: 0.9 },
+  tik: { t: 0.12, noise: 'white', decay: 0.02, hp: 2200, lp: 9000, gain: 0.5 },
+  stoot: { t: 0.9, tone: 52, decay: 0.2, gain: 0.9 },
+  riser: { t: 1.6, noise: 'white', rise: true, bp: 1800, gain: 0.5 },
+};
 function playSfx(kind) {
   const v = audible() * ((getSettings().sfxVolume ?? 0.75) / (getSettings().voiceVolume || 1));
-  if (SILENT || !v || kind !== 'knal') return;
+  const k = SFX_SYNTH[kind];
+  if (SILENT || !v || !k) return;
   try {
     sfxCtx = sfxCtx || new AudioContext();
-    const c = sfxCtx, n = Math.floor(c.sampleRate * 0.9);
+    const c = sfxCtx, n = Math.floor(c.sampleRate * k.t);
     const buf = c.createBuffer(1, n, c.sampleRate), d = buf.getChannelData(0);
-    for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (c.sampleRate * 0.12));
-    const src = c.createBufferSource(), lp = c.createBiquadFilter(), g = c.createGain();
-    src.buffer = buf; lp.type = 'lowpass'; lp.frequency.value = 900; g.gain.value = 0.9 * Math.min(1, v);
-    src.connect(lp); lp.connect(g); g.connect(c.destination);
+    let lastOut = 0;
+    for (let i = 0; i < n; i++) {
+      const x = i / c.sampleRate;
+      let a = k.tone ? Math.sin(Math.PI * 2 * k.tone * x) : Math.random() * 2 - 1;
+      if (k.noise === 'brown') { lastOut = (lastOut + 0.02 * a) / 1.02; a = lastOut * 3.5; }
+      d[i] = a * (k.rise ? Math.min(1, x / (k.t - 0.1)) ** 2 * (x > k.t - 0.1 ? 0 : 1) : Math.exp(-x / k.decay));
+    }
+    const src = c.createBufferSource(), g = c.createGain();
+    src.buffer = buf; g.gain.value = k.gain * Math.min(1, v);
+    let node = src;
+    for (const [type, f] of [['highpass', k.hp], ['lowpass', k.lp], ['bandpass', k.bp]]) {
+      if (!f) continue;
+      const bq = c.createBiquadFilter();
+      bq.type = type; bq.frequency.value = f;
+      node.connect(bq); node = bq;
+    }
+    node.connect(g); g.connect(c.destination);
     src.start();
   } catch (e) { /* no audio */ }
 }
@@ -616,6 +667,9 @@ const CUT_ORDER = {
     ['hudHeli', 2.4], ['hudChase', 2.2], ['gH18', 2.2], ['kermis', 2.2], ['gTwins', 1.8], ['ommeland', 2.4], ['hudJob', 2.2],
     ['hudPhone', 2.4], ['timelapse', 2.2], ['storm', 1.8], ['vismarkt', 2.2], ['aerial', 2.4], ['logo', 4.0]],
 };
+
+// The benchmark route (benchstats.js): the same shots on every run.
+CUT_ORDER.bench = BENCH_ROUTE.map(([id, d]) => [id, d]);
 
 // Shot fields: label (benchmark results), cuts ('vol' and/or 'kort';
 // verhaal and gameplay take theirs from CUT_ORDER), dur (seconds in the full
@@ -1282,8 +1336,8 @@ function buildShots(w) {
   };
   const aerial = {
     label: 'Luchtfoto bij zonsondergang', cuts: ['vol', 'kort'], dur: 5.6, kort: 4.6, clock: 19.1, weather: 'helder', focus: tower,
-    voice: [[0.5, 'audio/voicelines/lines/oma_trijntje/die_bal_is_gien_geld_jong_die_ba_400b492d.mp3', ['verhaal'], 5.7]],
-    lines: [[0.5, 5.1, 'Oma Trijntje', 'Die bal is gien geld, jong. Die bal is Grunn. En Grunn geeft nooit op.', ['verhaal']]],
+    voice: [[0.5, 'audio/voicelines/lines/oma_trijntje/die_bal_is_gien_geld_jong_die_ba_c28dcac6.mp3', ['verhaal'], 6.0]],
+    lines: [[0.5, 5.5, 'Oma Trijntje', 'Die bal is gien geld, jong. Die bal is Grunn. En jij: één zin, hè. Niet zeventig jaar.', ['verhaal']]],
     caps: [[0.6, 4.2, 'Er gaat niets boven Grunn.', null, ['vol', 'kort', 'gameplay']], [0, 0, null, null, ['verhaal']]],
     thumb: 2.6,
     cam(u) { return aerialPose(u * 5.6); },
@@ -1834,6 +1888,20 @@ function restore(w, s) {
   refreshDayNight(w);
 }
 
+// The script cuts (trailerplan.js) bring their own captions, lines, voices and
+// sounds per beat; the shot's own stay silent there. A beat in the shape the
+// frame loop reads: caps [at, dur, title, kicker, cuts, html, fx].
+function planBeat(b) {
+  const caps = (b.caps || []).map((c) => {
+    if (c.kind === 'plakjes') return [c.at, c.dur, null, null, null, `<div class="tr-kicker">${c.kicker}</div><div class="tr-title">${c.title}</div><div class="tr-slices">${'<i></i>'.repeat(SLICES)}</div>`, { strike: c.strike }];
+    if (c.kind === 'radio') return [c.at, c.dur, null, null, null, `<div class="tr-kicker">${c.kicker}</div><div class="tr-radio">${c.title}</div>`];
+    if (c.kind === 'eind') return [c.at, c.dur, null, null, null, `${logoHtml()}<div class="tr-title small tr-tagline tight">${c.tagline}</div>${c.small ? `<div class="tr-info">${c.small}</div>` : ''}`];
+    return [c.at, c.dur, c.title, c.kicker];
+  });
+  return { plain: !!b.plain, caps, lines: b.lines || [], voice: (b.voice || []).map(([at, src, dur]) => [at, src, null, dur]), sfx: b.sfx || [] };
+}
+const beatOf = (r, s) => (r.beats && r.beats.get(s)) || null;
+
 // a cut's own length (kort: 3.0, or from CUT_ORDER) plays the same motion faster or slower
 function shotDur(r, s) {
   return (r.durs && r.durs.get(s)) || (r.cut === 'kort' && s.kort) || s.dur;
@@ -1931,7 +1999,7 @@ function enterShot(r, i) {
     forceWeather(w, s.weather);
   }
   if (s.enter) { try { s.enter(r, r.state); } catch (e) { console.error('trailer enter', s.label, e && e.stack); } }
-  r.stats[i] = r.stats[i] || { label: s.label, ms: [] };
+  r.stats[i] = r.stats[i] || { label: s.label, id: s.id, ms: [] };
 }
 
 // ?benchmark: one line per shot with its fps, draw calls and GPU memory
@@ -1962,14 +2030,16 @@ function frame(r, dt, realMs) {
   const u = clamp01(st / s.dur);
   // a name card holds the picture from freezeAt on: world, actors and camera
   // stay at that moment (wt), the card runs on trailer time
-  const frozen = s.freezeAt != null && st >= s.freezeAt;
-  const wt = frozen ? s.freezeAt : st;
+  const ov = beatOf(r, s);
+  const freezeAt = ov && ov.plain ? null : s.freezeAt;
+  const frozen = freezeAt != null && st >= freezeAt;
+  const wt = frozen ? freezeAt : st;
   const slow = frozen ? 0 : s.slow ? s.slow(st) : 1;
   const sdt = dt * slow;
   const w = r.w;
   if (frozen && !r.state.froze) { r.state.froze = true; flash(); }
-  for (const [at, key, cuts] of s.voice || []) if ((!cuts || cuts.includes(r.cut)) && st >= at && !r.state['v' + at]) { r.state['v' + at] = true; if (!r.video) playVoice(key); }
-  for (const [at, kind] of s.sfx || []) if (st >= at && !r.state['x' + at]) { r.state['x' + at] = true; if (!r.video) playSfx(kind); }
+  for (const [at, key, cuts] of ov ? ov.voice : s.voice || []) if ((!cuts || cuts.includes(r.cut)) && st >= at && !r.state['v' + at]) { r.state['v' + at] = true; if (!r.video) playVoice(key); }
+  for (const [at, kind] of ov ? ov.sfx : s.sfx || []) if (st >= at && !r.state['x' + at]) { r.state['x' + at] = true; if (!r.video) playSfx(kind); }
   // fadeOut: the shot ends on black, and the next location streams in there
   if (s.fadeOut && !r.state.faded && st > s.dur - s.fadeOut) { r.state.faded = true; setBlack(r, 1, 0.4); }
   ui.black.style.opacity = blackAt(r).toFixed(3);
@@ -1986,14 +2056,14 @@ function frame(r, dt, realMs) {
   if (s.tick && !frozen) { try { s.tick(r, r.state, st, sdt * k); } catch (e) { if (!r.warned) { r.warned = true; console.error('trailer shot', s.label, e && e.stack); } } }
 
   let cap = null, capP = 0;
-  for (const c of s.caps || []) {
-    const [at, d, title, kicker, cuts, html] = c;
+  for (const c of ov ? ov.caps : s.caps || []) {
+    const [at, d, title, kicker, cuts, html, fx] = c;
     if (cuts && !cuts.includes(r.cut)) continue;
-    if (st >= at && st < at + d && (title || html)) { cap = { title: title || '', kicker, html, small: (title || '').length > 18 }; capP = (st - at) / d; if (html) cap.title = html; }
+    if (st >= at && st < at + d && (title || html)) { cap = { title: title || '', kicker, html, small: (title || '').length > 18 }; capP = (st - at) / d; if (html) cap.title = html; if (fx) { cap.strike = fx.strike; cap.ap = st - at; } }
   }
   showCard(cap, capP);
-  if (s.lines) setSub(s.lines.find(([at, d, , , cuts]) => (!cuts || cuts.includes(r.cut)) && st >= at && st < at + d) || null);
-  if (s.name) showName(st >= s.name.at ? s.name : null, (st - s.name.at) / Math.max(0.1, s.dur - s.name.at));
+  if (ov ? ov.lines.length : s.lines) setSub((ov ? ov.lines : s.lines).find(([at, d, , , cuts]) => (!cuts || cuts.includes(r.cut)) && st >= at && st < at + d) || null);
+  if (s.name && !(ov && ov.plain)) showName(st >= s.name.at ? s.name : null, (st - s.name.at) / Math.max(0.1, s.dur - s.name.at));
 
   let pose = null;
   if (s.black) pose = r.blackPose || r.pose;
@@ -2050,13 +2120,14 @@ function soundSheet(r) {
   r.shots.forEach((s, i) => {
     const t0 = r.starts[i], k = s.dur / shotDur(r, s);
     if (sheet.themeAt == null && !s.preTheme) sheet.themeAt = t0;
-    for (const [at, key, cuts, dur] of s.voice || []) {
+    const ov = beatOf(r, s);
+    for (const [at, key, cuts, dur] of ov ? ov.voice : s.voice || []) {
       if (cuts && !cuts.includes(r.cut)) continue;
       sheet.voices.push({ src: TRAILER_VOICE[key] || key, at: t0 + at / k });
       // the theme dips under a story line (not as deep as under the boat)
       if (dur) sheet.duck.push([t0 + at / k - 0.15, t0 + at / k + dur + 0.2, 0.5]);
     }
-    for (const [at, kind] of s.sfx || []) sheet.sfx.push({ kind, at: t0 + at / k });
+    for (const [at, kind] of ov ? ov.sfx : s.sfx || []) sheet.sfx.push({ kind, at: t0 + at / k });
     if (s.duck) sheet.duck.push([t0, t0 + shotDur(r, s)]);
     if (s.thumb != null && sheet.thumbAt == null) sheet.thumbAt = t0 + s.thumb / k;
   });
@@ -2081,7 +2152,9 @@ function computeStats(r) {
   shots.sort((a, b) => a.fps - b.fps);
   const min = all.reduce((a, b) => a + b, 0) / 60000;
   const spikes = [50, 100, 200].map((ms) => +(all.filter((x) => x > ms).length / Math.max(min, 1e-6)).toFixed(1));
-  return { avg: 1000 / mean, low: 1000 / worst, heaviest: shots[0] || null, frames: all.length, shots, spikes };
+  const fs = frameStats(all);
+  const heap = typeof performance !== 'undefined' && performance.memory ? performance.memory.usedJSHeapSize / 1048576 : 0;
+  return { avg: 1000 / mean, low: 1000 / worst, low1: fs.low1, p95: fs.p95, cats: categoryStats(r.stats.filter(Boolean)), memory: heap, heaviest: shots[0] || null, frames: all.length, shots, spikes };
 }
 
 // runTrailer(world, { mode, cut, shot, frames, env: { tick, render, relocate } })
@@ -2092,11 +2165,13 @@ export function runTrailer(world, { mode = 'opname', cut = 'vol', shot = null, f
   return new Promise((resolve) => {
     const built = buildShots(world);
     const durs = new Map();
-    const all = CUT_ORDER[cut] ? CUT_ORDER[cut].map(([id, d]) => { const s = built.find((b) => b.id === id); durs.set(s, d); return s; }) : built.filter((s) => s.cuts.includes(cut));
+    const beats = new Map();
+    const planned = PLAN_CUTS.includes(cut) ? PLAN[cut].beats : null;
+    const all = planned ? planned.map((b) => { const s = built.find((x) => x.id === b.shot); if (!s) throw new Error(`trailer: onbekende shot ${b.shot}`); durs.set(s, b.dur); beats.set(s, planBeat(b)); return s; }) : CUT_ORDER[cut] ? CUT_ORDER[cut].map(([id, d]) => { const s = built.find((b) => b.id === id); durs.set(s, d); return s; }) : built.filter((s) => s.cuts.includes(cut));
     const shots = shot != null && all[shot - 1] ? [all[shot - 1]] : all;
     const starts = [];
     let total = 0;
-    const r = { w: world, env, mode, cut, durs, shots, starts, idx: -1, state: {}, cars: [], T: 0, pose: null, stats: [], fpsAcc: 0, fpsN: 0, done: false, camIdx: 0, black: { from: 1, to: 1, t0: 0, dur: 0 } };
+    const r = { w: world, env, mode, cut, durs, beats, shots, starts, idx: -1, state: {}, cars: [], T: 0, pose: null, stats: [], fpsAcc: 0, fpsN: 0, done: false, camIdx: 0, black: { from: 1, to: 1, t0: 0, dur: 0 } };
     const pl = world.player;
     r.savedPlayer = { x: pl.x, y: pl.y, angle: pl.angle, inVehicle: pl.inVehicle || null };
     r.savedCamYaw = world.camYaw;
@@ -2147,7 +2222,9 @@ export function runTrailer(world, { mode = 'opname', cut = 'vol', shot = null, f
     if (pfx && pfx.hasGrade) { pfx.look = 1; document.body.classList.add('trailer-gpu-look'); }
     ui.root.classList.remove('handoff', 'skippable', 'bench');
     ui.root.classList.toggle('bench', mode === 'benchmark');
-    ui.root.classList.toggle('skippable', mode === 'attract');
+    ui.root.classList.toggle('skippable', mode === 'attract' || mode === 'preview');
+    // recordings: nothing of the app in the picture (no cursor, no skip hint, no counter)
+    document.body.classList.toggle('trailer-rec', mode === 'opname');
     ui.skip.style.setProperty('--hold', '0');
     ui.skip.classList.remove('holding');
     ui.fps.textContent = 'BENCHMARK' + (label ? ` · ${label}` : '');
@@ -2176,7 +2253,7 @@ export function runTrailer(world, { mode = 'opname', cut = 'vol', shot = null, f
         if (e.type === 'keyup') { holdSince = null; swallow = false; return; }
         if (e.repeat || swallow) return;
         swallow = true;
-        if (mode === 'attract') holdSince = performance.now();
+        if (mode === 'attract' || mode === 'preview') holdSince = performance.now();
       } else if (e.key === 'Escape' && e.type === 'keydown' && mode !== 'attract') {
         e.preventDefault();
         e.stopImmediatePropagation();
@@ -2217,7 +2294,7 @@ export function runTrailer(world, { mode = 'opname', cut = 'vol', shot = null, f
       setSub(null);
       ui.root.classList.remove('skippable', 'bench', 'hudshot');
       if (r.hudTouched) endHudShot(r);
-      document.body.classList.remove('trailer-hud');
+      document.body.classList.remove('trailer-hud', 'trailer-rec');
       ui.black.classList.remove('dim', 'fade');
       ui.black.classList.toggle('on', blackAt(r) > 0.5);
       ui.black.style.opacity = '';
@@ -2296,7 +2373,7 @@ export function runTrailer(world, { mode = 'opname', cut = 'vol', shot = null, f
 // fps is the full run's average times its measured speed-up on those shots.
 export async function runBenchmarkSuite(world, env) {
   const cur = currentPreset();
-  const res = await runTrailer(world, { mode: 'benchmark', cut: 'vol', env });
+  const res = await runTrailer(world, { mode: 'benchmark', cut: BENCH_RUNS ? 'vol' : 'bench', env });
   if (res.aborted || !res.stats || BENCH_RUNS) return res;
   const probe = res.stats.shots.slice(0, 2);
   const fps = {};
@@ -2307,7 +2384,7 @@ export async function runBenchmarkSuite(world, env) {
     let ratio = 0, n = 0, aborted = false;
     try {
       for (const s of probe) {
-        const r = await runTrailer(world, { mode: 'benchmark', cut: 'vol', shot: s.idx + 1, env, label: presetLabel(name) });
+        const r = await runTrailer(world, { mode: 'benchmark', cut: 'bench', shot: s.idx + 1, env, label: presetLabel(name) });
         if (r.aborted) { aborted = true; break; }
         if (r.stats) { ratio += r.stats.avg / s.fps; n++; }
       }
@@ -2360,19 +2437,15 @@ export function fadeOutTrailer(handOff, atBlack = null) {
 
 // --- benchmark results ----------------------------------------------------------------
 
-// One recommended preset (gfxprofile.js) that sets everything at once.
+// One recommended preset (gfxprofile.js, advice in benchstats.js) that sets everything at once.
 function advise(stats) {
   const st = getSettings();
   const cur = currentPreset(st);
-  const i = PRESET_ORDER.indexOf(cur || st.quality);
-  const rec = (name, why) => ({ text: `${why} Aanbevolen: <b>${presetLabel(name)}</b>`, what: describePreset(name), apply: name });
-  if (stats.avg < 40 || stats.low < 22) {
-    if (i > 0) return rec(PRESET_ORDER[i - 1], 'Grunn hapert hier en daar.');
-    if (cur !== 'laag') return rec('laag', 'Grunn hapert hier en daar.');
-    return { text: 'Alles staat al zo licht mogelijk. Sluit andere programma’s en tabbladen voor wat extra lucht.', apply: null };
-  }
-  if (stats.avg >= 75 && stats.low >= 45 && i < PRESET_ORDER.length - 1) return rec(PRESET_ORDER[i + 1], 'Er is ruimte over.');
-  return { text: `${cur ? `Stand ${presetLabel(cur)}` : 'Je eigen instellingen'} draait prima. ${cur === 'hoog' ? 'Genieten maar.' : 'Niks aan veranderen.'}`, apply: null };
+  const rec = recommendProfile(stats, cur);
+  const word = profileWord(rec.profile);
+  const lead = rec.change === 'up' ? 'Er is ruimte over.' : rec.change === 'down' ? 'Grunn hapert hier en daar.' : '';
+  const apply = rec.change !== 'same' || (!cur && rec.profile) ? rec.profile : null;
+  return { text: `${lead ? lead + ' ' : ''}Aanbevolen: <b>${word}</b>`, what: `${rec.text} ${describePreset(rec.profile)}.`, apply, same: rec.change === 'same' && !!cur };
 }
 
 let resultEl = null;
@@ -2380,11 +2453,11 @@ let resultEl = null;
 // Shows the results card; resolves with 'again' or 'back'.
 export function showBenchmarkResults(res) {
   const stats = res && res.stats;
-  // a player's run: the result goes to Instellingen > Beeld (gfxprofile.js)
-  if (!BENCH_RUNS) {
-    setBenchResult(stats, res.preset, res.presetFps || {});
-    return Promise.resolve('settings');
-  }
+  // the result also waits in Instellingen > Beeld (gfxprofile.js)
+  if (!BENCH_RUNS) setBenchResult(stats, res.preset, res.presetFps || {});
+  const prev = stats && !BENCH_RUNS ? readLastRun() : null;
+  const diff = stats ? compareRuns(prev, stats) : null;
+  if (stats && !BENCH_RUNS) writeLastRun(packRun({ stats, cats: stats.cats, preset: res.preset, memory: stats.memory }));
   if (!resultEl) {
     resultEl = document.createElement('div');
     resultEl.id = 'trailer-result';
@@ -2406,12 +2479,14 @@ export function showBenchmarkResults(res) {
   resultEl.innerHTML = `<div class="tr-res">
     <h2 id="tr-res-title">Benchmark</h2>
     <div class="tr-meta">${meta}</div>
-    ${stats ? `<div class="tr-nums"><div><b>${r(stats.avg)}</b><span>fps gemiddeld</span></div><div><b>${r(stats.low)}</b><span>1%-low</span></div></div>
-    ${stats.heaviest ? `<p>Zwaarste shot: ${stats.heaviest.label}: ${r(stats.heaviest.fps)} fps</p>` : ''}` : ''}
+    ${stats ? `<div class="tr-nums"><div><b>${r(stats.avg)}</b><span>fps gemiddeld</span></div><div><b>${r(stats.p95)}<small> ms</small></b><span>p95-frametijd</span></div><div><b>${r(stats.low1)}</b><span>laagste 1%</span></div>${stats.memory > 0 ? `<div><b>${r(stats.memory)}<small> MB</small></b><span>geheugen</span></div>` : ''}</div>
+    <p class="tr-cmp ${diff ? diff.verdict : ''}">${compareText(diff)}</p>
+    ${Object.keys(stats.cats).length ? `<div class="tr-cats">${Object.entries(stats.cats).map(([c, v]) => `<span class="${c === weakestCategory(stats.cats) && stats.cats[c].avg < 60 ? 'weak' : ''}">${BENCH_CATEGORIES[c]}<b>${r(v.avg)} fps</b></span>`).join('')}</div>` : ''}` : ''}
     <p class="tr-advice">${adv.text}${adv.what ? `<small>${adv.what}</small>` : ''}</p>
     <div class="tr-actions">
       <button type="button" class="primary" data-act="apply"${adv.apply ? '' : ' hidden'}>Toepassen</button>
       <button type="button" data-act="again">Nog een keer</button>
+      <button type="button" data-act="settings">Instellingen</button>
       <button type="button"${adv.apply ? '' : ' class="primary"'} data-act="back">Terug</button>
     </div></div>`;
   resultEl.hidden = false;
@@ -2430,7 +2505,7 @@ export function showBenchmarkResults(res) {
         resultEl.querySelector('.tr-advice').textContent = 'Toegepast. Draai de benchmark nog een keer om het verschil te zien.';
         btn.hidden = true;
         buttons()[0].focus({ preventScroll: true });
-      } else if (a === 'again' || a === 'back') close(a);
+      } else if (a === 'again' || a === 'back' || a === 'settings') close(a);
     };
     const onClick = (e) => {
       const b = e.target.closest('button[data-act]');

@@ -94,3 +94,11 @@ export function stepSlot2(state, inp, dt, p1) {
   if (inp.active) state.angle = Math.atan2(vy, vx);
   return { moving: Math.hypot(state.vx, state.vy) > 0.15, leashed: p1 ? leash(p1, state) : null };
 }
+
+// Online (#95): invoer van de gast zoals de host die ontvangt ({ mx, my, buttons })
+// wordt dezelfde vorm als readP2: x naar rechts, y naar beneden, bit 0 = rennen.
+export function remoteP2(r) {
+  if (!r) return { x: 0, y: 0, run: false, active: false };
+  const [x, y] = norm(Number.isFinite(r.mx) ? r.mx : 0, Number.isFinite(r.my) ? r.my : 0);
+  return { x, y, run: !!((r.buttons || 0) & 1), active: !!(x || y) };
+}
