@@ -70,6 +70,7 @@ JELMER (telefoon): Niemand raken! Alleen spullen. Spullen zijn content. [BEHOUDE
 
 ## [M01.3] Nul krassen, vijftienhonderd punten: de Grote Markt – Stad, Grote Markt – Berends bakkie
 (regie: avond. Een hijskraan, zoals altijd. Een terras vol mensen in de avondzon. Jelmer staat met zijn telefoon op een statief.)
+TESSA: Dit is de Grote Markt, Tammo. Jelmer betaalt voor stunts met spullen, niet met mensen. Haal die vijftienhonderd punten, dan hebben we de honderdvijftig voor het Loket. [NIEUW]
 JELMER: Moi moi chat! Zomeravond op de Grote Markt! En kijk: verse content! [BEHOUDEN]
 TAMMO: Ik ben geen content. Ik ben Tammo. [BEHOUDEN]
 TESSA: Spreek voor jezelf. Ik ben heel veel content. [BEHOUDEN]
@@ -151,7 +152,7 @@ DOUWE: …los. [BEHOUDEN]
 (regie: de trekker rijdt weg, de aanhanger blijft achter een paal haken en schiet los. Ze rijden door zonder hem.)
 TAMMO: Moi. Wat is er gebeurd? [BEHOUDEN]
 TESSA: Mijn pas zit in die automaat. En die automaat zit op die aanhanger. En die aanhanger is van niemand. [BEHOUDEN]
-TESSA: In die pas zit het geld van Jelmer. Het Loket neemt alleen contant. Zonder pas geen inschrijving. [NIEUW]
+TESSA: In die pas zit de honderdvijftig euro van Jelmer, voor de inschrijving van de Snackprijs. Het Loket neemt alleen contant. Zonder pas geen inschrijving. [NIEUW]
 TAMMO: Dus we pinnen even. [BEHOUDEN]
 TESSA: Sjabbe van Pand & Poen koopt wat niemand wil en opent wat niemand kan. We brengen hem de automaat, en we schudden de politie af. [NIEUW]
 TESSA: Er komt een politieauto aan. Instappen. [BEHOUDEN]
@@ -248,6 +249,7 @@ LOKETBEDIENDE: Weer bij ons? Loket B is nog steeds Loket C. [NIEUW]
 
 ## [M04.1] Kieken van boven: intro – Stad, Stationsplein – duif
 (regie: zondag 16 augustus, ochtend. Bert op het Stationsplein bij zijn duiventil. Naamkaart: DUIVENMELKER BERT. Gameplay: Tammo is de duif en fotografeert camera's, bewakers en de stroomkast bij het museum.)
+TESSA: Bert belde gisteren over een zwarte trekker die elke nacht bij het museum staat. Daarom zijn we bij zijn duiventil. [NIEUW]
 BERT: Niemand kijkt naar een duif. Behalve als hij op je jas poept. [BEHOUDEN]
 TAMMO: Hoe stuur je een duif? [BEHOUDEN]
 BERT: Diep in de ogen kieken. Fluiten. Ogen dicht. [BEHOUDEN]
