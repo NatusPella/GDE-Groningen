@@ -1,0 +1,63 @@
+// Samen spelen (#95): signaleringsberichten (SDP/ICE) end-to-end versleutelen met
+// de kamercode als sleutelmateriaal (WebCrypto: PBKDF2 → AES-GCM), zodat een
+// openbare broker alleen blobs ziet. Ook de afgeleide onderwerpnaam (topic) komt
+// uit de kamercode via SHA-256, dus de code zelf gaat nooit over de lijn.
+// Werkt in browser, Electron en Node (globalThis.crypto).
+
+export const ITERATIONS = 100000;
+const SALT = 'gde-coop-signal-v1';
+const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // geen 0/O, 1/I
+export const ROOM_LEN = 10;
+
+const enc = new TextEncoder(), dec = new TextDecoder();
+const subtle = () => { const c = globalThis.crypto; if (!c || !c.subtle) throw new Error('Versleutelen is hier niet beschikbaar.'); return c.subtle; };
+
+// Kamercode: 10 tekens, getoond als XXXXX-XXXXX. rand moet cryptografisch zijn buiten tests.
+export function makeRoom(rand) {
+  const bytes = new Uint8Array(ROOM_LEN);
+  if (rand) for (let i = 0; i < ROOM_LEN; i++) bytes[i] = Math.floor(rand() * 256);
+  else globalThis.crypto.getRandomValues(bytes);
+  let s = ''; for (let i = 0; i < ROOM_LEN; i++) s += ALPHABET[bytes[i] % ALPHABET.length];
+  return s;
+}
+export const formatRoom = (room) => `${room.slice(0, 5)}-${room.slice(5)}`;
+export function parseRoom(text) {
+  const r = String(text || '').toUpperCase().replace(/[\s-]/g, '').replace(/0/g, 'O').replace(/1/g, 'I');
+  if (!r) return { ok: false, reason: 'Er is niets ingevoerd.' };
+  if (r.length !== ROOM_LEN || [...r].some((c) => !ALPHABET.includes(c))) return { ok: false, reason: 'Dit is geen kamercode. Een kamercode heeft 10 tekens, zoals K3J9D-8F2MN.' };
+  return { ok: true, room: r };
+}
+
+const b64u = (u8) => btoa(String.fromCharCode(...u8)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+const unb64u = (s) => { const t = s.replace(/-/g, '+').replace(/_/g, '/'); const bin = atob(t + '==='.slice((t.length + 3) % 4)); return Uint8Array.from(bin, (c) => c.charCodeAt(0)); };
+
+const keyCache = new Map();
+async function keyFor(room) {
+  if (keyCache.has(room)) return keyCache.get(room);
+  const base = await subtle().importKey('raw', enc.encode(room), 'PBKDF2', false, ['deriveKey']);
+  const key = await subtle().deriveKey({ name: 'PBKDF2', salt: enc.encode(SALT), iterations: ITERATIONS, hash: 'SHA-256' }, base, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+  keyCache.set(room, key); return key;
+}
+
+// Versleutelt tekst; geeft één base64url-blob (12 bytes iv + versleutelde data + tag).
+export async function encryptBlob(room, text) {
+  const iv = globalThis.crypto.getRandomValues(new Uint8Array(12));
+  const ct = new Uint8Array(await subtle().encrypt({ name: 'AES-GCM', iv }, await keyFor(room), enc.encode(text)));
+  const out = new Uint8Array(12 + ct.length); out.set(iv); out.set(ct, 12);
+  return b64u(out);
+}
+// Geeft de tekst terug, of null bij een verkeerde code of een geknoeide blob.
+export async function decryptBlob(room, blob) {
+  try {
+    const raw = unb64u(String(blob));
+    if (raw.length < 12 + 16) return null;
+    const pt = await subtle().decrypt({ name: 'AES-GCM', iv: raw.slice(0, 12) }, await keyFor(room), raw.slice(12));
+    return dec.decode(pt);
+  } catch (e) { return null; }
+}
+
+// Onderwerp afgeleid van de kamercode: hex van SHA-256, afgekapt. `bytes` = 20 voor een tracker (info_hash).
+export async function topicFor(room, bytes = 20) {
+  const h = new Uint8Array(await subtle().digest('SHA-256', enc.encode('gde-coop-topic:' + room)));
+  return [...h.slice(0, bytes)].map((b) => b.toString(16).padStart(2, '0')).join('');
+}
