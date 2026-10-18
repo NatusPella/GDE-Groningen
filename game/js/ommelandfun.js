@@ -1,3 +1,4 @@
+import { updateEdgeGuard } from './edgeguard.js';
 import { ensureWorldEnds, updateWorldEnds, worldEndSolids, getWorldEndSpots, worldEndDebug, worldEndCount } from './worldends.js';
 import { setExtraEggs } from './furniture.js';
 import { initVillages, updateVillages, villageSolids, getVillageEggs, villagePrompt, villageSecondary, tryVillageInteract, getVillageSpots, ensureVillages, prepareVillages, villageDebug, villageUse } from './dorpsuitjes.js';
