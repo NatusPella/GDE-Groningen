@@ -9,7 +9,7 @@
 // along x or along y; parcels are PW wide and PL long, with the cross
 // ditches staggered per strip. Some block edges carry a straight polder road.
 
-import { WATER_TONES, glslTone } from './watertones.js';
+import { WATER_TONES, glslTone, WATER_SHARED_GLSL } from './watertones.js';
 
 export const BLOCK = 960;
 export const PW = 40;
@@ -290,6 +290,7 @@ export function countrySurface(x, y) {
 // countryWeight. Expects vec2 world xz; may adjust sRough (roughness delta)
 // and sDip (puddle bias) declared by terrain3d's wet-ground code.
 export const COUNTRY_GLSL = `
+${WATER_SHARED_GLSL}
 uniform vec4 uCountryRect;
 uniform sampler2D uMaskTex;
 uniform vec4 uMaskRect;
@@ -412,7 +413,13 @@ float countryWeight(vec2 p) {
   return cw;
 }
 
-vec3 countryAlbedo(vec2 p, float cw, inout float sRough, inout float sDip) {
+// the tiles' water, 0..1, from the near mask or else the wide one (0 where neither covers)
+float cWaterMask(vec2 q) {
+  float a = cTileWater(q);
+  return a >= 0.0 ? smoothstep(0.35, 0.6, a) : smoothstep(0.35, 0.6, max(cTileWaterFar(q), 0.0));
+}
+
+vec3 countryAlbedo(vec2 p, float cw, inout float sRough, inout float sDip, inout vec2 sWaterN) {
   float px = length(fwidth(p));
   float detail = 1.0 - smoothstep(0.05, 0.6, px);
   vec2 bf = floor(p / C_BLOCK);
@@ -571,7 +578,29 @@ vec3 countryAlbedo(vec2 p, float cw, inout float sRough, inout float sDip) {
   if (tw > 0.35 && max(qR.x, qR.y) > 0.0 && length(p - uWaterNear.xy) < uWaterNear.z) discard;
   // the city water's shallow / deep tones (water3d.js), glossy so the sky
   // reflects in it; a slow drifting sheen where it is not weed
-  vec3 wc = mix(${glslTone(WATER_TONES.shallow)}, ${glslTone(WATER_TONES.deep)}, 0.35 + 0.4 * n2 + 0.25 * wQ);
+  // the same surface maths as the water mesh (WATER_SHARED_GLSL): depth by the
+  // distance to the bank, drifting ripples on the normal, the foam line. The
+  // bank distance of ditches is their profile; of the tiles' water it is
+  // probed in the mask (4 taps at 6 m, 4 at 26 m, only where there is water).
+  bool fromMask = tiled || tf >= 0.0;
+  float wEdge = max(max(hw * 0.72 - dD, C_MAIN * 0.8 - dM), C_MAAR_WATER - dQ);
+  WtrFlow wf;
+  if (water > 0.01) {
+    if (fromMask) {
+#if WATER_Q > 0
+      wEdge = 40.0;
+      if (detail > 0.2) {
+        float e1 = min(min(cWaterMask(p + vec2(6.0, 0.0)), cWaterMask(p - vec2(6.0, 0.0))), min(cWaterMask(p + vec2(0.0, 6.0)), cWaterMask(p - vec2(0.0, 6.0))));
+        float e2 = min(min(cWaterMask(p + vec2(26.0, 0.0)), cWaterMask(p - vec2(26.0, 0.0))), min(cWaterMask(p + vec2(0.0, 26.0)), cWaterMask(p - vec2(0.0, 26.0))));
+        wEdge = e1 * 6.0 + e1 * e2 * 26.0;
+      }
+#endif
+    }
+    vec3 wn = wtrNormal(vec3(0.0, 1.0, 0.0), p, vec2(0.0), uWaterNear.w, uWet, wf);
+    sWaterN = wn.xz * water;
+  }
+  float deepAmt = fromMask ? clamp(wtrDeep(wEdge) * 0.9 + 0.25 * n2, 0.0, 1.0) : 0.35 + 0.4 * n2 + 0.25 * wQ;
+  vec3 wc = mix(${glslTone(WATER_TONES.shallow)}, ${glslTone(WATER_TONES.deep)}, deepAmt);
   float weed = smoothstep(0.62, 0.8, cNoise(p * 0.35 + 40.0) * 0.7 + n3 * 0.3) * (1.0 - wQ * 0.8);
   wc = mix(wc, ${glslTone(WATER_TONES.duckweed)} * 0.8, weed * 0.75);
   float sheen = cNoise(p * 0.45 + vec2(uWaterNear.w * ${WATER_TONES.sheen[0].toFixed(2)}, uWaterNear.w * ${WATER_TONES.sheen[1].toFixed(2)})) * cNoise(p * 0.9 - uWaterNear.w * 0.13);
@@ -579,6 +608,7 @@ vec3 countryAlbedo(vec2 p, float cw, inout float sRough, inout float sDip) {
   // darker towards the middle of a ditch: the water has depth
   float deepT = max(wD * (1.0 - smoothstep(0.0, hw * 0.72, dD)), wM * (1.0 - smoothstep(0.0, C_MAIN * 0.8, dM)));
   wc *= 1.0 - 0.36 * deepT * (1.0 - wQ);
+  if (water > 0.01) wc = mix(wc, ${glslTone(WATER_TONES.foam)} * 0.8, wtrFoam(p, wEdge, wf, uWaterNear.w) * detail);
   c = mix(c, wc, water);
   sRough -= water * (1.0 - weed) * 0.86;
   sDip -= water;

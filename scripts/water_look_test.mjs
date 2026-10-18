@@ -34,7 +34,14 @@ ok(rgb[0] === 44 && rgb[1] === 74 && rgb[2] === 56, 'rgb255');
 
 // the shader source reads the shared timing too
 const src = fs.readFileSync(new URL('../game/js/water3d.js', import.meta.url), 'utf8');
-ok(src.includes('TONES.flowRate') && src.includes('TONES.deepFrom'), 'the mesh shader takes flow rate and depth range from watertones');
+ok(T.WATER_SHARED_GLSL.includes(TONES.flowRate.toFixed(3)) && T.WATER_SHARED_GLSL.includes(TONES.deepTo.toFixed(3)), 'the shared GLSL takes flow rate and depth range from the tones');
+
+// the surface maths is one chunk of GLSL, included by the mesh shader and the terrain's far water
+ok(glsl.includes(T.WATER_SHARED_GLSL), 'the terrain shader includes the shared water GLSL');
+ok(/WATER_SHARED_GLSL/.test(src) && !/float hash2\(vec2 p\) \{|vec2 rainRipple\(/.test(src), 'the mesh shader includes it and has no copy of the noise or ripples');
+for (const fn of ['wtrNormal(', 'wtrFoam(', 'wtrDeep(']) ok(glsl.includes(fn) && src.includes(fn), `both shaders call ${fn}`);
+ok(/followWaterQuality\(/.test(fs.readFileSync(new URL('../game/js/terrain3d.js', import.meta.url), 'utf8')), 'the terrain material follows the water quality profile');
+ok(glsl.includes('#ifndef WATER_Q'), 'the far water has a default profile');
 
 // quality profiles: the one material's WATER_Q define
 ok(m.defines.WATER_Q === 2, 'high quality is the default profile of the shared material');
@@ -47,6 +54,15 @@ ok(m.defines.WATER_Q === 2, 'high quality is the default profile of the shared m
   const a = W.auditWaterMeshes(root, m);
   ok(a.total === 3 && a.shared === 2 && a.stray.length === 1 && a.stray[0] === 'water@20,0', 'the audit finds the polygon with its own material', JSON.stringify(a));
   ok(W.auditWaterMeshes(new THREE.Group(), m).total === 0, 'an empty scene audits clean');
+}
+
+// and they compile (headless Chrome, all three profiles) when Chrome is there
+{
+  const { spawnSync } = await import('node:child_process');
+  const r = spawnSync(process.execPath, [new URL('./shader_check.mjs', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1')], { encoding: 'utf8', timeout: 120000 });
+  const outp = (r.stdout || '').trim();
+  if (/^SKIP/m.test(outp)) console.log('shader compile: ' + outp.split(/\r?\n/)[0]);
+  else ok(r.status === 0 && /shaders compile/.test(outp), 'both shaders compile at Laag, Gem. and Hoog', outp.slice(-300));
 }
 
 console.log(fails ? `${fails} of ${n} FAILED` : `${n} water look checks passed`);
