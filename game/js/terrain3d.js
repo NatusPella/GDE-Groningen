@@ -87,11 +87,13 @@ vec3 terrainAlbedo(vec2 p, vec2 fwp) {
 export const WET_UNIFORMS = {
   uWet: { value: 0 },
   uRainTime: { value: 0 },
+  uPuddle: { value: 1 },   // 0..1 per kwaliteitsprofiel (weatherlook.js)
 };
 
 const WET_GLSL = `
 uniform float uWet;
 uniform float uRainTime;
+uniform float uPuddle;
 varying vec2 vWetXZ;
 // scaled down first so large map coordinates keep float precision (no stripes)
 float wHash(vec2 p) {
@@ -133,7 +135,7 @@ function wetOnBeforeCompile(shader, surf) {
       if (cw > 0.0) diffuseColor.rgb = mix(diffuseColor.rgb, countryAlbedo(vWetXZ, cw, sRough, sDip, sWaterN), cw);` : ''}
       ${surf ? surf.color : ''}
       float wetP = uWet > 0.001 ? wNoise(vWetXZ * 0.21) * 0.7 + wNoise(vWetXZ * 0.83) * 0.3 + sDip * 0.35 : 0.0;
-      float puddle = smoothstep(0.74 - 0.12 * uWet, 0.8 - 0.12 * uWet, wetP) * uWet;
+      float puddle = smoothstep(0.74 - 0.12 * uWet, 0.8 - 0.12 * uWet, wetP) * uWet * uPuddle;
       diffuseColor.rgb *= mix(1.0, 0.58, uWet) * mix(1.0, 0.5, puddle);`)
     .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
       roughnessFactor = clamp(roughnessFactor + sRough, 0.03, 1.0);
