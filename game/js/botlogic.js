@@ -1,0 +1,288 @@
+// Pure logic of the Spelbot (issue #186): the status schema, the goal
+// follower's steering, stuck detection, the replay format and the run report.
+// No imports and no DOM, so scripts/botlogic_test.mjs runs it in plain Node;
+// playerapi.js (the page side) and scripts/bot/ (the Node driver) share it.
+
+export const STATUS_VERSION = 1;
+export const REPLAY_VERSION = 1;
+
+// --- seeded random (a fixed seed for the run, mulberry32) ---------------------
+export function seededRandom(seed = 1) {
+  let a = (Number(seed) || 1) >>> 0;
+  return () => {
+    a = (a + 0x6D2B79F5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+// --- geometry ---------------------------------------------------------------
+// World angles: atan2(dy, dx) with y to the south; +90 degrees is the right-hand side.
+export const normAngle = (a) => { while (a > Math.PI) a -= 2 * Math.PI; while (a < -Math.PI) a += 2 * Math.PI; return a; };
+export const headingTo = (from, to) => Math.atan2(to.y - from.y, to.x - from.x);
+export const distance = (a, b) => Math.hypot(b.x - a.x, b.y - a.y);
+const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+
+// The stick (input.padAxis: x right, y down) that walks `heading` when the
+// camera looks along camYaw (player.js cameraRelativeMove is the inverse).
+export function footStick(heading, camYaw) {
+  const r = normAngle(heading - camYaw);
+  return [Math.sin(r), -Math.cos(r)];
+}
+
+// Steering and pedals for a car at `car` ({x, y, angle, speed}) heading for `target`.
+// steer: -1..1 (positive turns right, like D); throttle: 1 gas, -1 brake/reverse, 0 coast.
+// opts.stopAt: true to come to rest at the target; opts.top: speed limit in m/s.
+export function carControls(car, target, opts = {}) {
+  const top = opts.top ?? 22;
+  const err = normAngle(headingTo(car, target) - car.angle);
+  const d = distance(car, target);
+  const steer = clamp(err * 1.6, -1, 1);
+  // slow for sharp turns and for the end of the route
+  let want = top * clamp(1.15 - Math.abs(err) * 0.9, 0.18, 1);
+  if (opts.stopAt) want = Math.min(want, Math.max(2, d * 0.5));
+  const speed = car.speed || 0;
+  let throttle = 0;
+  if (speed < want - 1) throttle = 1;
+  else if (speed > want + 3) throttle = -1;
+  return { steer, throttle, err, dist: d, want };
+}
+
+// Walks a polyline: next(pos) gives the point to aim for, dropping points that are reached
+// or already behind. reach: metres at which a point counts as reached.
+export class PathFollower {
+  constructor(pts, { reach = 6 } = {}) {
+    this.pts = (pts || []).map((p) => (Array.isArray(p) ? { x: p[0], y: p[1] } : { x: p.x, y: p.y }));
+    this.reach = reach;
+    this.i = 0;
+  }
+  get done() { return this.i >= this.pts.length; }
+  get length() { return this.pts.length; }
+  next(pos) {
+    // drop points that are reached, or that the next point is already nearer than (a corner cut)
+    while (this.i < this.pts.length - 1) {
+      const d = distance(pos, this.pts[this.i]);
+      if (d <= this.reach || (d <= this.reach * 4 && distance(pos, this.pts[this.i + 1]) < d)) this.i++;
+      else break;
+    }
+    if (this.i >= this.pts.length - 1 && this.pts.length && distance(pos, this.pts[this.pts.length - 1]) <= this.reach) { this.i = this.pts.length; return null; }
+    return this.pts[this.i] || null;
+  }
+  remaining(pos) {
+    if (this.done) return 0;
+    let d = distance(pos, this.pts[this.i]);
+    for (let k = this.i; k < this.pts.length - 1; k++) d += distance(this.pts[k], this.pts[k + 1]);
+    return d;
+  }
+}
+
+// --- stuck detection ------------------------------------------------------------
+// Progress = the distance to the goal got `minGain` metres smaller than the best so far
+// (or, without a goal distance, the position moved `minMove` metres from where it
+// was). No progress for `windowS` seconds is "stuck". hold(t) pauses the clock for
+// cutscenes, talks and menus; a changed `key` (another mission step) starts over.
+export class StuckDetector {
+  constructor({ windowS = 30, minGain = 3, minMove = 4 } = {}) {
+    Object.assign(this, { windowS, minGain, minMove });
+    this.reset(0);
+  }
+  reset(t = 0, key = null) {
+    this.key = key;
+    this.best = Infinity;
+    this.tBest = t;
+    this.anchor = null;
+    this.stuckCount = 0;
+  }
+  hold(t) { this.tBest = Math.max(this.tBest, t); }
+  // acknowledge: after a rescue, wait another window before the next one
+  acknowledge(t) { this.tBest = t; this.best = Infinity; this.anchor = null; this.stuckCount++; }
+  update(t, { x, y, goalDist = null, key = null }) {
+    if (key !== this.key) this.reset(t, key);
+    if (Number.isFinite(goalDist)) {
+      if (goalDist < this.best - this.minGain) { this.best = goalDist; this.tBest = t; }
+    } else {
+      if (!this.anchor || Math.hypot(x - this.anchor.x, y - this.anchor.y) >= this.minMove) { this.anchor = { x, y }; this.tBest = t; }
+    }
+    const idleFor = t - this.tBest;
+    return { stuck: idleFor >= this.windowS, idleFor };
+  }
+}
+
+// The rescue ladder once stuck: first a nudge that a player would also try,
+// then the cheats of the test menu API. Every rung beyond 'nudge' is logged as
+// "had een cheat nodig". Returns the rung for the nth rescue of one step.
+export const RESCUES = ['nudge', 'teleport', 'objective', 'win'];
+export const rescueFor = (count) => RESCUES[Math.min(count, RESCUES.length - 1)];
+export const isCheat = (rung) => rung !== 'nudge';
+
+// --- the brain: what to do now, from a status --------------------------------------
+// Pure. `s` is a status (validateStatus), `mem` the follower's memory
+// ({ boardTries }). Returns { type, ... }:
+//   wait            something owns the screen that resolves itself
+//   skip            a cutscene: skip it
+//   choose  key     a choice panel: press its first option
+//   closemenu       the pause menu is open
+//   enter   vehicle walk to the vehicle and press the enter key
+//   goto    mode    'drive' | 'walk' to s.target
+//   press   key     one key
+export function decide(s, mem = {}) {
+  const b = s.blocking || {};
+  if (b.pauseMenu) return { type: 'closemenu' };
+  if (b.dialog && b.dialog.options && b.dialog.options.length) return { type: 'choose', key: b.dialog.options[0].key };
+  if (b.cinematic || b.banner) return { type: 'skip' };
+  if (b.respawn || b.loading) return { type: 'wait', why: b.respawn ? 'respawn' : 'laden' };
+  if (b.talk) return { type: 'wait', why: 'gesprek' };
+  if (!s.target) return { type: 'wait', why: 'geen doel' };
+  const t = s.target;
+  const veh = s.player.vehicle;
+  const onFootOnly = !!(s.mission && s.mission.onFoot);
+  if (veh) {
+    if (onFootOnly) return { type: 'press', key: 'e', why: 'uitstappen' };
+    return { type: 'goto', mode: veh.boat ? 'boat' : veh.heli ? 'fly' : 'drive' };
+  }
+  // on foot: a vehicle close by is worth it for a long way
+  if (t.distance > 140 && !onFootOnly && (mem.boardTries || 0) < 3) {
+    const v = (s.nearby && s.nearby.vehicles || []).find((c) => c.free && c.drivable && c.distance < 60);
+    if (v) return { type: 'enter', vehicle: v };
+  }
+  return { type: 'goto', mode: 'walk' };
+}
+
+// --- status schema -------------------------------------------------------------------
+const need = (obj, path, kind, problems) => {
+  let v = obj;
+  for (const k of path.split('.')) { v = v == null ? undefined : v[k]; }
+  const ok = kind === 'number' ? Number.isFinite(v) : kind === 'array' ? Array.isArray(v) : kind === 'object' ? v && typeof v === 'object' : typeof v === kind;
+  if (!ok) problems.push(`${path}: verwacht ${kind}`);
+};
+export function validateStatus(s) {
+  const p = [];
+  if (!s || typeof s !== 'object') return ['status ontbreekt'];
+  if (s.v !== STATUS_VERSION) p.push(`v: verwacht ${STATUS_VERSION}`);
+  need(s, 't', 'number', p);
+  need(s, 'player', 'object', p);
+  for (const k of ['x', 'y', 'angle', 'camYaw']) need(s, 'player.' + k, 'number', p);
+  need(s, 'story', 'object', p);
+  need(s, 'mission', 'object', p);
+  need(s, 'hud', 'object', p);
+  need(s, 'hud.messages', 'array', p);
+  need(s, 'blocking', 'object', p);
+  need(s, 'nearby', 'object', p);
+  need(s, 'nearby.vehicles', 'array', p);
+  if (s.target != null) { need(s, 'target.x', 'number', p); need(s, 'target.y', 'number', p); need(s, 'target.distance', 'number', p); }
+  return p;
+}
+
+// --- replay format -------------------------------------------------------------------
+// One JSON line per event: { t, type, ... }. t = seconds of game time. Input events
+// ('key' down/up, 'axis') are enough to play a run back; the others are the timeline
+// ('mission', 'stuck', 'cheat', 'step', 'shot', 'console', 'status').
+export class RunLog {
+  constructor(meta = {}) { this.meta = { replay: REPLAY_VERSION, ...meta }; this.events = []; }
+  add(t, type, data = {}) { const e = { t: Math.round(t * 1000) / 1000, type, ...data }; this.events.push(e); return e; }
+  toJsonl() { return [JSON.stringify({ type: 'meta', ...this.meta }), ...this.events.map((e) => JSON.stringify(e))].join('\n') + '\n'; }
+  static parse(text) {
+    const log = new RunLog();
+    for (const line of String(text).split(/\r?\n/)) {
+      if (!line.trim()) continue;
+      let e;
+      try { e = JSON.parse(line); } catch (err) { continue; }
+      if (e.type === 'meta') { const { type, ...m } = e; log.meta = m; } else log.events.push(e);
+    }
+    return log;
+  }
+  inputs() { return replayInputs(this.events); }
+}
+
+// The input events of a run in order, and balanced: every keydown has its keyup
+// (a held key at the end of the log gets a release appended).
+export function replayInputs(events) {
+  const ins = events.filter((e) => e.type === 'key' || e.type === 'axis').sort((a, b) => a.t - b.t);
+  const down = new Map();
+  for (const e of ins) {
+    if (e.type !== 'key') continue;
+    if (e.down) down.set(e.key, e); else down.delete(e.key);
+  }
+  const last = ins.length ? ins[ins.length - 1].t : 0;
+  for (const [key] of down) ins.push({ t: last, type: 'key', key, down: false, auto: true });
+  return ins;
+}
+
+// Keys that are down without their keyup (the AGENTS.md rule: never).
+export function unbalancedKeys(events) {
+  const down = new Set();
+  for (const e of events) if (e.type === 'key') { if (e.down) down.add(e.key); else down.delete(e.key); }
+  return [...down];
+}
+
+// --- the run report ------------------------------------------------------------------
+const fmtS = (s) => { s = Math.round(s); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
+
+// Per mission: start/end time, outcome, fails, restarts, stuck moments, cheats.
+export function summarise(events) {
+  const missions = [];
+  let cur = null;
+  const open = (e, id) => { cur = { id, label: e.label || '', start: e.t, end: null, outcome: null, fails: 0, starts: 0, stuck: 0, cheats: [] }; missions.push(cur); return cur; };
+  const forId = (e) => { const id = e.id || (cur && cur.id) || '?'; return cur && cur.id === id ? cur : missions.find((m) => m.id === id && m.end == null) || open(e, id); };
+  for (const e of events) {
+    if (e.type === 'mission') {
+      if (e.event === 'start') { const m = forId(e); m.starts++; m.label = e.label || m.label; }
+      else if (e.event === 'fail') { const m = forId(e); m.fails++; }
+      else if (e.event === 'done') { const m = forId(e); m.end = e.t; m.outcome = 'klaar'; cur = null; }
+    } else if (e.type === 'step') {
+      if (e.event === 'begin') open(e, e.id);
+      else if (e.event === 'end') { const m = forId(e); m.end = e.t; m.outcome = m.outcome || e.outcome || 'klaar'; cur = null; }
+    } else if (e.type === 'stuck' && cur) cur.stuck++;
+    else if (e.type === 'cheat' && cur) cur.cheats.push(e.rung);
+  }
+  const consoleErrors = events.filter((e) => e.type === 'console' && (e.level === 'error' || e.level === 3));
+  const nan = events.filter((e) => e.type === 'console' && /Computed radius is NaN/.test(e.msg || '')).length;
+  const warnings = events.filter((e) => e.type === 'console' && (e.level === 'warning' || e.level === 2));
+  return {
+    missions, consoleErrors, nan, warnings: warnings.length,
+    stuck: events.filter((e) => e.type === 'stuck'),
+    cheats: events.filter((e) => e.type === 'cheat'),
+    shots: events.filter((e) => e.type === 'shot').map((e) => e.name),
+    unbalanced: unbalancedKeys(events),
+  };
+}
+
+export function buildReport(events, meta = {}) {
+  const S = summarise(events);
+  const out = [];
+  out.push(`# Spelbot-rapport${meta.title ? `: ${meta.title}` : ''}`, '');
+  if (meta.seed != null) out.push(`- Seed: ${meta.seed}`);
+  if (meta.arc) out.push(`- Verhaal: ${meta.arc}`);
+  if (meta.started) out.push(`- Gestart: ${meta.started}`);
+  if (meta.result) out.push(`- Uitkomst: **${meta.result}**`);
+  if (meta.gameSeconds != null) out.push(`- Speltijd: ${fmtS(meta.gameSeconds)}`);
+  if (meta.wallSeconds != null) out.push(`- Echte tijd: ${fmtS(meta.wallSeconds)}`);
+  out.push('', '## Tijd per missie', '', '| Stap | Titel | Tijd | Uitkomst | Mislukt | Vast | Cheats |', '|---|---|---|---|---|---|---|');
+  for (const m of S.missions) {
+    const dur = m.end != null ? fmtS(m.end - m.start) : 'niet af';
+    out.push(`| ${m.id} | ${m.label} | ${dur} | ${m.outcome || 'niet af'} | ${m.fails} | ${m.stuck} | ${m.cheats.length ? m.cheats.join(', ') : '-'} |`);
+  }
+  if (!S.missions.length) out.push('| (geen) | | | | | | |');
+  out.push('', '## Vastzitten', '');
+  if (!S.stuck.length) out.push('Niet vastgezeten.');
+  for (const e of S.stuck) out.push(`- ${fmtS(e.t)} bij ${e.step || '?'} op (${Math.round(e.x)}, ${Math.round(e.y)}), ${Math.round(e.idleFor || 0)} s zonder voortgang, afstand tot doel ${e.goalDist != null ? Math.round(e.goalDist) + ' m' : 'onbekend'}`);
+  out.push('', '## Had een cheat nodig', '');
+  const real = S.cheats.filter((c) => isCheat(c.rung));
+  if (!real.length) out.push('Geen cheats nodig.');
+  for (const e of real) out.push(`- ${fmtS(e.t)} bij ${e.step || '?'}: ${e.rung}${e.why ? ` (${e.why})` : ''}`);
+  out.push('', '## Consolefouten', '');
+  if (!S.consoleErrors.length) out.push('Geen.');
+  for (const e of S.consoleErrors.slice(0, 40)) out.push(`- ${fmtS(e.t)} ${String(e.msg).slice(0, 200)}`);
+  if (S.consoleErrors.length > 40) out.push(`- ... en nog ${S.consoleErrors.length - 40}`);
+  out.push('', '## NaN-waarschuwingen', '', S.nan ? `**${S.nan}** (computeBoundingSphere): de verhaaltest zou falen.` : 'Geen.');
+  out.push('', `Overige console-waarschuwingen: ${S.warnings}.`);
+  out.push('', '## Invoer', '', S.unbalanced.length ? `**Toetsen zonder keyup:** ${S.unbalanced.join(', ')}` : 'Elke keydown heeft zijn keyup.');
+  out.push('', '## Screenshots', '');
+  if (!S.shots.length) out.push('Geen.');
+  for (const n of S.shots) out.push(`- ${meta.shotPrefix || 'shots-'}${n}.png`);
+  if (meta.notes && meta.notes.length) { out.push('', '## Opmerkingen', ''); for (const n of meta.notes) out.push(`- ${n}`); }
+  out.push('', 'Niet beoordeeld door de bot: of het leuk is en hoe de besturing voelt.', '');
+  return out.join('\n');
+}
