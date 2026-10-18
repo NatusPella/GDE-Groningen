@@ -99,4 +99,3 @@ export function endWheels() {
   }
 }
 
-export const wheelStats = () => [...pools.values()].map((p) => p.n);
