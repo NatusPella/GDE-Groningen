@@ -422,6 +422,96 @@ export const SPECS = {};
   };
 }
 
+// --- stage scenes in the missions (missions.js 'scene' stages, played by playCastScene) ---------------------
+
+{
+  // M01.3: the Grote Markt on a summer evening, Jelmer films himself on the terrace
+  const terras = merge(
+    { cast: { gast1: { key: 'terras', at: [4.6, 3.8], face: 200, anim: 'laugh', bg: true }, gast2: { key: 'toerist', at: [5.8, -3.6], face: 170, anim: 'phone', bg: true }, gast3: { key: 'geert', at: [6.4, 0.8], face: 180, anim: 'idle', bg: true } } },
+    passer('ober', 'snackbar', [8, 6], [1, 5], 1, 1.2, 'carry'),
+    cyclist('fietser', 'harm', [-16, 9], [40, 9], 0.3, 3.8),
+  );
+  SPECS['M01.3'] = {
+    cast: { jelmer: { key: 'jelmer', at: [3.4, 1.2], face: 195, anim: 'phone', gest: ['cheer', 'point', 'talk', 'wave'] }, ...terras.cast },
+    props: { statief: { kind: 'bord', at: [2.4, 0.2, 0], face: 180 }, ...terras.props },
+    open: [{ actor: 'jelmer', gaze: 'camera' }, ...terras.cues],
+    beats: [
+      { on: 0, actor: 'jelmer', anim: 'wave' },
+      { on: 'Ik ben geen content', actor: 'jelmer', gaze: 'actor:tammo' },
+      { on: 'Spreek voor jezelf', actor: 'tessa', anim: 'hips' },
+      { on: 'En die terrassen', actor: 'tammo', anim: 'point' },
+      { on: 'En die terrassen', dt: 0.2, actor: 'tammo', face: 'actor:gast1' },
+      { on: 'Die zijn het publiek', actor: 'jelmer', anim: 'point' },
+      { on: 'Die zijn het publiek', dt: 0.1, actor: 'jelmer', face: 'actor:gast1' },
+      { on: 'Die zijn het publiek', dt: 2.0, actor: 'jelmer', anim: 'cheer' },
+      { on: 'Tammo. Torenwachter', actor: 'tammo', anim: 'phone' },
+      { on: 'Tammo. Torenwachter', actor: 'tessa', face: 'actor:tammo' },
+      { on: 'Het is de Grote Markt', actor: 'tammo', face: 'actor:gast1' },
+      { on: 'Ik meld alleen', actor: 'tammo', anim: 'shrug' },
+    ],
+    shots: [{ on: 'Die zijn het publiek', dt: 0.3, shot: 'cut', at: [1.0, 3.4, 2.1], look: 'gast1@1.2', fov: 42 }],
+    wide: { from: [-4.6, 5.6, 3.8], to: [-2.6, 4.0, 3.0], look: 'mid:jelmer,gast1@1.4', fov: 50, until: 1 },
+  };
+
+  // M01.5: the stunt is over, the terrace applauds
+  const applaus = { cast: { gast1: { key: 'terras', at: [4.4, 3.8], face: 200, anim: 'cheer', bg: true }, gast2: { key: 'toerist', at: [5.6, -3.4], face: 170, anim: 'cheer', bg: true }, gast3: { key: 'geert', at: [6.6, 0.6], face: 180, anim: 'laugh', bg: true } } };
+  SPECS['M01.5'] = {
+    cast: { jelmer: { key: 'jelmer', at: [3.4, 1.2], face: 195, anim: 'cheer', gest: ['cheer', 'point', 'talk', 'wave'] }, terras: { key: 'terras', at: [4.8, -1.4], face: 185, anim: 'cheer', gest: ['cheer', 'laugh'] }, ...applaus.cast },
+    props: {},
+    open: [{ actor: 'jelmer', gaze: 'camera' }, { actor: 'tessa', anim: 'shake' }, { actor: 'tammo', anim: 'shake' }],
+    beats: [
+      { on: 'Tienduizend', actor: 'jelmer', anim: 'cheer' },
+      { on: 'Groot Loug', actor: 'tessa', anim: 'hips' },
+      { on: 'En dat famke', actor: 'jelmer', anim: 'point' },
+      { on: 'Wie is die man', actor: 'tammo', face: 'actor:tessa' },
+      { on: 'Wie is die man', dt: 0.3, actor: 'tammo', anim: 'look' },
+      { on: 'Is dat een vraag', actor: 'tessa', anim: 'point' },
+      { on: 'Nee.', actor: 'tammo', anim: 'shrug' },
+      { on: 'Tienduizend', dt: 1.0, actor: 'jelmer', walk: [[3.0, 2.0]], speed: 0.8 },
+      { on: 'Is dat een vraag', dt: 0.2, actor: 'tessa', walk: [[1.2, -0.2]], speed: 1.2 },
+      { on: 'Honderdvijftig euro', actor: 'jelmer', anim: 'wave' },
+      { on: 'Op mijn pas', actor: 'tessa', anim: 'phone' },
+    ],
+    shots: [],
+    wide: { from: [-4.6, 5.6, 3.8], to: [-2.6, 4.0, 3.0], look: 'mid:jelmer,terras@1.4', fov: 50, until: 1 },
+  };
+
+  // M03.2: Jelle buys the queue, the Bewaarder stamps
+  SPECS['M03.2'] = {
+    cast: {
+      jelle: { key: 'jelle', at: [3.0, 0.6], face: 190, anim: 'idle', gest: ['talk', 'point', 'hips'] },
+      bewaarder: { key: 'bewaarder', at: [5.6, -1.6], face: 190, anim: 'idle', gest: ['talk', 'point', 'hips'] },
+      loketbediende: { key: 'loketbediende', at: [6.8, 0.2], face: 180, anim: 'idle', gest: ['point', 'talk'] },
+      wachter1: { key: 'femke', at: [4.2, -3.4], face: 200, anim: 'phone', bg: true },
+      wachter2: { key: 'harm', at: [5.4, 3.4], face: 170, anim: 'lean', bg: true },
+    },
+    props: { klomp: { kind: 'tas', at: [3.0, 0.6, 1] }, scherm: { kind: 'bord', at: [7.2, -0.4, 0], face: 180 }, stempel: { kind: 'klembord', at: [5.6, -1.6, 1] } },
+    open: [{ actor: 'jelle', carry: 'klomp' }, { actor: 'bewaarder', carry: 'stempel' }],
+    beats: [
+      { on: 'Goedemorgen', actor: 'jelle', anim: 'hips' },
+      { on: 'Jelle Terpstra. U staat', actor: 'tessa', anim: 'point' },
+      { on: 'Ik heb de rij gekocht', actor: 'jelle', anim: 'point' },
+      { on: 'Ik heb de rij gekocht', dt: 2.4, prop: 'scherm', bob: 0.04 },
+      { on: 'Hij kocht onze plek', actor: 'tammo', anim: 'shake' },
+      { on: 'Tevens koop ik', actor: 'jelle', anim: 'talk' },
+      { on: 'Artikel 4', actor: 'jelle', face: 'actor:loketbediende' },
+      { on: 'Salamitactiek', actor: 'tessa', anim: 'hips' },
+      { on: 'Dat noemen wij', actor: 'jelle', anim: 'shrug' },
+      { on: 'Dat noemen wij', dt: 1.2, actor: 'jelle', walk: [[5.6, 3.0], [8.6, 3.4]], speed: 1.3 },
+      { on: 'Foar mem', actor: 'jelle', anim: 'look' },
+      { on: 'Wat zei hij', actor: 'tammo', face: 'actor:jelle' },
+      { on: 'Wat zei hij', dt: 0.2, actor: 'tammo', anim: 'shrug' },
+      { on: 'Mevrouw Tuinstra', actor: 'bewaarder', walk: [[3.0, -0.6]], speed: 1.0 },
+      { on: 'Mevrouw Tuinstra', dt: 0.1, actor: 'bewaarder', face: 'actor:tessa' },
+      { on: 'Meneer Terpstra', actor: 'bewaarder', anim: 'point' },
+      { on: 'En wie let', actor: 'tessa', anim: 'shake' },
+      { on: 'Het museum', actor: 'bewaarder', anim: 'hips' },
+    ],
+    shots: [{ on: 'Foar mem', shot: 'follow', target: 'jelle', dist: 2.6, side: 0.8, h: 1.6, fov: 38 }],
+    wide: { from: [-3.2, 4.6, 3.4], to: [-1.2, 3.2, 2.7], look: 'mid:jelle,bewaarder@1.2', fov: 52, until: 1 },
+  };
+}
+
 // ------------------------------------------------------------------------------------------------
 // the director
 
