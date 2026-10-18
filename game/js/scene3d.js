@@ -42,6 +42,7 @@ import { applyCutMask, initCutMask, setCutMaskCenter } from './cutmask3d.js';
 import { updatePortals } from './portalcut3d.js';
 import { inPassage } from './passages.js';
 import { buildRailDecks } from './roadstructures3d.js';
+import { snapShadowCenter, shadowPassSkipped } from './shadowsnap.js';
 import { buildPoliceHeliMesh3D, updatePoliceHeliMesh3D } from './police.js';
 import { updateSkyProps3D, buildBalloonWarmup } from './skyprops3d.js';
 import { pointInPolygon, polygonBounds, WATER_Y } from './util.js';
@@ -1405,6 +1406,7 @@ let facadeDetailDist = Infinity, facadeDetailCulled = false, facadeQualityDist =
 // gfxprofile.js cpuLevel (a busy machine): fewer facade details
 const CPU_FACADE_DIST = [Infinity, 100, 70];
 let shadowFrame = 0;
+let focusSpeed = 0, focusPrevX = null, focusPrevY = 0;
 let roadDetailR = DRAW_DIST;
 let buildingsStaged = false;
 function noteStreamJump(px, py) {
@@ -2597,7 +2599,7 @@ export function update3D(dt, world) {
   applyCameraOverride(dt, world, lookX, lookY, lookZ);
 
   probe.mark('3d:camera');
-  updateSunAndSky(focus);
+  updateSunAndSky(focus, dt);
   limitActorShadows(pedMeshes, focus.x, focus.y);
   limitActorShadows(vehicleMeshes, focus.x, focus.y);
   limitActorShadows(wildlifeMeshes, focus.x, focus.y);
@@ -2616,7 +2618,7 @@ export function update3D(dt, world) {
   // behind a menu the world stands still: the shadow map from the first
   // frame is reused
   // a busy CPU (cpuLevel 1+) renders the shadow map every other frame
-  renderer.shadowMap.autoUpdate = !(menuCover && menuShadowDone) && !(cpuLevel() > 0 && (shadowFrame++ & 1));
+  renderer.shadowMap.autoUpdate = !(menuCover && menuShadowDone) && !shadowPassSkipped(cpuLevel(), shadowFrame++, focusSpeed);
   if (menuCover) menuShadowDone = true;
   if (sizeDirty) applyRenderSize();
   postfx.render();
@@ -3160,7 +3162,10 @@ function updateEnvironment(dt) {
 
 // Shadow frustum centred a little ahead of the camera, snapped to whole
 // shadow-map texels in light space so edges don't crawl as the player moves.
-function updateSunAndSky(player) {
+function updateSunAndSky(player, dt) {
+  // how fast the focus moves: a fast one must not skip shadow passes
+  if (focusPrevX !== null && dt > 0) focusSpeed = Math.hypot(player.x - focusPrevX, player.y - focusPrevY) / dt;
+  focusPrevX = player.x; focusPrevY = player.y;
   _lightRight.crossVectors(_yAxis, sunDir);
   if (_lightRight.lengthSq() < 1e-8) _lightRight.set(1, 0, 0);
   _lightRight.normalize();
@@ -3169,10 +3174,8 @@ function updateSunAndSky(player) {
   const fl = Math.hypot(fx, fz) || 1;
   _shadowCenter.set(player.x + (fx / fl) * shadowHalf * 0.4, 0, player.y + (fz / fl) * shadowHalf * 0.4);
   const texel = (shadowHalf * 2) / sun.shadow.mapSize.x;
-  const r = Math.round(_shadowCenter.dot(_lightRight) / texel) * texel;
-  const u = Math.round(_shadowCenter.dot(_lightUp) / texel) * texel;
-  const d = _shadowCenter.dot(sunDir);
-  _shadowCenter.copy(_lightRight).multiplyScalar(r).addScaledVector(_lightUp, u).addScaledVector(sunDir, d);
+  const sc = snapShadowCenter(_shadowCenter, _lightRight, _lightUp, sunDir, texel);
+  _shadowCenter.set(sc.x, sc.y, sc.z);
   sun.target.position.copy(_shadowCenter);
   sun.position.copy(_shadowCenter).addScaledVector(sunDir, SUN_DIST);
   skyDome.position.copy(cam.position);
