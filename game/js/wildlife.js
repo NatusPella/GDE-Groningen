@@ -8,7 +8,7 @@ import { splatterAnimal, GIB_SPEED } from './gore3d.js';
 import { MODS } from './cheatmods.js';
 import { buildingAt } from './tileplace.js';
 import { streekAt } from './regioleven.js';
-import { wildlifeLimits, grazerPick } from './dierenplan.js';
+import { wildlifeLimits, grazerPick, gansKans } from './dierenplan.js';
 import { getSettings } from './settings.js';
 
 // Ambient trailer-parody wildlife: seagulls over the Diepenring,
@@ -224,7 +224,7 @@ function maintain(world) {
   const streekId = streek ? streek.id : 'stad';
   const LIMITS = wildlifeLimits(streekId, getSettings().quality, BASE_LIMITS);   // #193
   const count = { seagull: 0, grazer: 0, duck: 0, pigeon: 0, cat: 0, dog: 0 };
-  for (const a of list) count[a.kind === 'cow' || a.kind === 'sheep' ? 'grazer' : a.kind]++;
+  for (const a of list) count[a.kind === 'cow' || a.kind === 'sheep' || a.kind === 'gans' ? 'grazer' : a.kind]++;
   const rng = Math.random;
   const waterPolys = map.waterNear(player.x, player.y, BIAS_SEARCH_RADIUS);
   const greenPolys = map.greenNear(player.x, player.y, BIAS_SEARCH_RADIUS);
@@ -240,6 +240,11 @@ function maintain(world) {
   const green = greenPolys.length && count.grazer < LIMITS.grazer && rng() < 0.3 ? layerPointNear(map, 'greenNear', player.x, player.y, rng, 15, SPAWN_RADIUS) : null;
   if (green) {
     const hx = green.x, hy = green.y;
+    if (count.grazer + 3 <= LIMITS.grazer && rng() < gansKans(streekId)) {   // #193: ganzen op het land
+      const n = 3 + Math.floor(rng() * 3);
+      for (let k = 0; k < n && count.grazer + k < LIMITS.grazer; k++) list.push(newGrazer('gans', hx + (rng() - 0.5) * 3, hy + (rng() - 0.5) * 3, rng));
+      return;
+    }
     const kind = grazerPick(streekId, rng());
     const herd = kind === 'sheep' ? 1 + Math.floor(rng() * 2) : 1;
     for (let k = 0; k < herd && count.grazer + k < LIMITS.grazer; k++) list.push(newGrazer(kind, hx + k * 1.5, hy + k * 0.8, rng));
@@ -313,6 +318,19 @@ function takeOff(a) {
   a.takeoffAt = performance.now() / 1000;
   const ang = Math.random() * Math.PI * 2;
   a.wanderTarget = { x: a.x + Math.cos(ang) * 25, y: a.y + Math.sin(ang) * 25 };
+}
+
+// Gans op het land: loopt rustig rond, rent weg (geen vlucht) als de speler of een voertuig te dichtbij komt.
+function updateGans(a, dt, world) {
+  const pl = world.player;
+  if (!(a.fleeT > 0) && dist(a.x, a.y, pl.x, pl.y) < (pl.inVehicle ? 12 : 5) && (pl.inVehicle || playerSpeed(pl) > 1)) scareOff(a, world, pl.x, pl.y);
+  if (a.fleeT > 0) {
+    a.fleeT -= dt;
+    a.speed = 3.2;
+    steer(a, a.wanderTarget.x, a.wanderTarget.y, 6, dt);
+    return;
+  }
+  updateGrazer(a, dt);
 }
 
 function updateGrazer(a, dt) {
@@ -512,6 +530,7 @@ export function updateWildlife(dt, world) {
       case 'pigeon': updatePigeon(a, dt, world); break;
       case 'cat': updateCat(a, dt, world); break;
       case 'dog': updateDog(a, dt, world); break;
+      case 'gans': updateGans(a, dt, world); break;
       default: updateGrazer(a, dt);
     }
     groundContacts(a, world);
@@ -520,7 +539,7 @@ export function updateWildlife(dt, world) {
 
 // Animals on the ground are bodies like any walker: walls and posts stop
 // them, cars shove them aside (and scare them off), the player bumps them.
-const GROUND_RADIUS = { grazer: 0.5, cat: 0.2, dog: 0.25, pigeon: 0.1, seagull: 0.15 };
+const GROUND_RADIUS = { grazer: 0.5, gans: 0.22, cat: 0.2, dog: 0.25, pigeon: 0.1, seagull: 0.15 };
 function groundContacts(a, world) {
   if (a.kind === 'duck' || a.gone) return;
   if ((a.kind === 'pigeon' || a.kind === 'seagull') && a.state !== 'ground') return;
@@ -616,7 +635,11 @@ export function poseDeadAnimal(mesh, a) {
 
 function scareOff(a, world, fromX, fromY) {
   if (a.kind === 'seagull') takeOff(a);
-  else if (a.kind === 'pigeon' && a.flock) a.flock.scaredAt = world.time;
+  else if (a.kind === 'gans' && !(a.fleeT > 0)) {
+    a.fleeT = 3;
+    const away = Math.atan2(a.y - fromY, a.x - fromX);
+    a.wanderTarget = { x: a.x + Math.cos(away) * 14, y: a.y + Math.sin(away) * 14 };
+  } else if (a.kind === 'pigeon' && a.flock) a.flock.scaredAt = world.time;
   else if (a.kind === 'cat' && a.state !== 'flee') {
     a.state = 'flee';
     a.stateTimer = 2.5;
@@ -1203,6 +1226,7 @@ export function buildWildlifeMesh3D(a) {
     case 'seagull': return buildSeagullMesh3D();
     case 'sheep': return buildSheepMesh3D();
     case 'duck': return buildDuckMesh3D(a.variant);
+    case 'gans': return buildDuckMesh3D('goose');
     case 'pigeon': return buildPigeonMesh3D(Math.floor((a.bobSeed || 0) * 10) % 4);
     case 'cat': return buildCatMesh3D(a.variant || 0);
     case 'dog': return buildDogMesh3D(a.breed || 0, a.color || 0);
@@ -1212,7 +1236,7 @@ export function buildWildlifeMesh3D(a) {
 
 // Blob-shadow footprint [length, width] per kind (null: none, e.g. birds in flight).
 export function wildlifeShadowSize(kind) {
-  return { cow: [1.3, 0.75], sheep: [0.9, 0.6], cat: [0.45, 0.2], dog: [0.8, 0.35], pigeon: [0.2, 0.12], duck: [0.35, 0.2] }[kind] || null;
+  return { cow: [1.3, 0.75], sheep: [0.9, 0.6], gans: [0.5, 0.3], cat: [0.45, 0.2], dog: [0.8, 0.35], pigeon: [0.2, 0.12], duck: [0.35, 0.2] }[kind] || null;
 }
 
 // --- animation ---------------------------------------------------------------
@@ -1286,6 +1310,18 @@ function animatePigeon(mesh, a, time) {
   const glide = a.state === 'land' && a.z < 1.5 ? 0.5 : 0;
   setWings(ud, 1, f * 0.9 * (1 - glide) + 0.1, Math.sin(time * 18 + a.bobSeed * 5 - 0.8) * 0.4 * (1 - glide));
   b.body.rotation.set(0, 0, a.state === 'land' ? 0.3 : 0.05);
+}
+
+function animateGans(mesh, a, time) {
+  const b = mesh.userData.bones;
+  const seed = a.bobSeed || 0;
+  const walking = a.speed > 0.05;
+  mesh.visible = true;
+  mesh.position.y = walking ? Math.abs(Math.sin(time * (a.fleeT > 0 ? 9 : 4) + seed)) * 0.02 : 0;
+  const graze = walking ? 0 : Math.max(0, Math.sin(time * 0.3 + seed * 3)) ** 0.5;
+  b.head.rotation.set(0, (1 - graze) * Math.sin(time * 0.5 + seed) * 0.5, -0.9 * graze);
+  b.tail.rotation.set(0, walking ? Math.sin(time * 6 + seed) * 0.2 : 0, 0);
+  b.body.rotation.set(0, 0, walking ? 0 : -0.15 * graze);
 }
 
 function animateDuck(mesh, a, time) {
@@ -1382,6 +1418,7 @@ export function animateWildlifeMesh3D(mesh, a, time) {
     case 'seagull': animateSeagull(mesh, a, time); return;
     case 'pigeon': animatePigeon(mesh, a, time); return;
     case 'duck': animateDuck(mesh, a, time); return;
+    case 'gans': animateGans(mesh, a, time); return;
     case 'cat': animateQuad(mesh, a, time); return;
     case 'dog': animateQuad(mesh, a, time); updateLeash(mesh, a); return;
   }
