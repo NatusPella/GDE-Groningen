@@ -16,6 +16,7 @@ import {
 } from './kartrace.js';
 import { createRecorder, recordGhost, finishGhost, ghostAt, loadGhost, saveGhost } from './ghostreplay.js';
 import { KEYS } from './storagekeys.js';
+import { addClearZone, corridorPoints } from './clearzone.js';
 
 // Karten bij Kardinge: a kart track on the open ground north of the Kardinge
 // sports centre (the OSM data has only an indoor karting hall there, so the
@@ -32,6 +33,8 @@ const ROT = 0.45;
 const FR = frame(ORIGIN, ROT);
 const TRACK = buildTrack();
 const CENTER = FR.toW(17, 40);
+// nobody walks or drives across the track, and no props stand on it (clearzone.js, issue #176)
+addClearZone('kartbaan', corridorPoints(TRACK, FR.toW), TRACK_W / 2 + RUNOFF + 3);
 const STAND = FR.toW(6, -15);
 const USE_RADIUS = 3;
 const DETAIL_M = 700;

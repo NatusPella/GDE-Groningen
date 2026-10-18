@@ -48,7 +48,6 @@ if (typeof window !== 'undefined') {
     talk: (id) => talkLines(id),
   };
 }
-export const scenesOfStep = (step, kind = null) => (data ? data.scenes.filter((s) => s.step === step && !s.anchor && (!kind || s.kind === kind)) : []);
 
 // How long a line stays up when nothing is spoken: reading time, a bit slower than the recorded pace.
 export function readingTime(text) {
@@ -62,14 +61,6 @@ export function lineVoice(l) {
   return v ? { src: DIRS[l.rec] + v.src, dur: v.dur } : null;
 }
 
-// the same lookup for a speaker id + text, in any of the three manifests (the cutscene's own voice lookup misses banter)
-export function recordingFor(speaker, text) {
-  for (const k of ['banter']) {
-    const v = manifests[k][speaker + '|' + text];
-    if (v) return { src: DIRS[k] + v.src, dur: v.dur };
-  }
-  return null;
-}
 
 // The banter manifest's recording of "<speaker>|<text>" with its src relative to the story voice folder
 // (audio/voicelines/story/), for a cutscene that only knows story and lines.

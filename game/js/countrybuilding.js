@@ -242,23 +242,4 @@ export function setCountryFacadeLevel(level) {
   for (const m of facadeMats) m.needsUpdate = true;
 }
 
-export function applyFacade(m, key, extra = null) {
-  textures();
-  facadeMats.push(m);
-  m.onBeforeCompile = (sh) => {
-    if (extra) extra(sh);
-    Object.assign(sh.uniforms, U);
-    if (facadeLow) sh.fragmentShader = '#define FACADE_LOW\n' + sh.fragmentShader;
-    sh.vertexShader = sh.vertexShader
-      .replace('#include <common>', `#include <common>\n${VERT_HEAD}`)
-      .replace('#include <begin_vertex>', `#include <begin_vertex>\n${VERT_BEGIN}`)
-      .replace('#include <color_vertex>', VERT_COLOR);
-    sh.fragmentShader = sh.fragmentShader
-      .replace('#include <common>', `#include <common>\n${FRAG_HEAD}`)
-      .replace('#include <color_fragment>', `#include <color_fragment>\n${FRAG_FACADE}`)
-      .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance += bGlow;');
-  };
-  m.customProgramCacheKey = () => 'country-bld-' + key + (facadeLow ? '-low' : '');
-  return m;
-}
 

@@ -25,9 +25,6 @@ const state = {
   flickAcc: 0, flickT: 0, free: false, wasAiming: false,
 };
 
-export function getAimLock() {
-  return state.target ? state : null;
-}
 
 // Distance to the locked target this frame (throwables aim their arc at it), else null.
 export function aimedTargetDistance(world) {

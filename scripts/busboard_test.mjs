@@ -1,0 +1,48 @@
+import assert from 'node:assert';
+import { prepareLine } from '../game/js/busroutes.js';
+import { boardText, ledText, placeOf, lineColor, nextStopInfo, stopAnnouncement, lineEnds, stopLabel, roundDist, BOARD_COLS, LINE_COLORS } from '../game/js/busboard.js';
+
+const raw = { id: 1, ref: '75', from: 'Groningen, Hoofdstation', to: 'Winsum, Busstation', pts: [[0, 0], [2000, 0]], stops: [{ x: 0, y: 0 }, { x: 600, y: 0 }, { x: 1300, y: 0 }, { x: 2000, y: 0 }] };
+const line = prepareLine(raw);
+assert.strictEqual(placeOf('Winsum, Busstation'), 'Winsum');
+assert.strictEqual(placeOf('', 'X'), 'X');
+assert.strictEqual(ledText('Hoogkerk-Noord Ommelanden Zuid'), 'HOOGKERK-NOORD.');
+assert.ok(ledText('Café Ünïcode').length <= BOARD_COLS && ledText('Café') === 'CAFE');
+const f = boardText(line, 1), b = boardText(line, -1);
+assert.deepStrictEqual([f.ref, f.dest], ['75', 'WINSUM']);
+assert.strictEqual(b.dest, 'GRONINGEN');
+assert.notStrictEqual(f.key, b.key);
+assert.strictEqual(lineColor('75'), lineColor('75'));
+assert.ok(LINE_COLORS.includes(f.color));
+assert.deepStrictEqual(lineEnds(line, -1), { from: 'Winsum', to: 'Groningen' });
+assert.strictEqual(stopLabel(line, 0), 'Groningen');
+
+let n = nextStopInfo(line, 1, 100);
+assert.strictEqual(n.index, 1); assert.ok(Math.abs(n.dist - 500) < 1e-6 && !n.last);
+assert.strictEqual(stopAnnouncement(n), `Volgende halte: ${n.name}`);
+n = nextStopInfo(line, 1, 520);
+assert.ok(stopAnnouncement(n).startsWith('Straks'));
+n = nextStopInfo(line, 1, 1500);
+assert.ok(n.last && n.name === 'Winsum');
+assert.ok(stopAnnouncement(n).includes('(eindhalte)'));
+n = nextStopInfo(line, 1, 1900);
+assert.ok(stopAnnouncement(n).startsWith('Eindhalte'));
+// terug
+n = nextStopInfo(line, -1, 1000);
+assert.strictEqual(n.index, 1);
+n = nextStopInfo(line, -1, 300);
+assert.ok(n.last && n.name === 'Groningen');
+
+// ronde lijn: wrap-around
+const ring = prepareLine({ id: 2, ref: '3', pts: [[0, 0], [1000, 0], [1000, 600], [50, 600], [0, 100]], stops: [{ x: 0, y: 0 }, { x: 1000, y: 300 }, { x: 400, y: 600 }] });
+assert.ok(ring.loop);
+const tail = nextStopInfo(ring, 1, ring.length - 30);
+assert.ok(tail.wrapped && !tail.last && tail.index === 0 && tail.dist > 30 - 1e-6 && tail.dist < 80);
+assert.strictEqual(roundDist(340), '340 m');
+assert.strictEqual(roundDist(1500), '1,5 km');
+console.log('busboard_test ok');
+import { lineDirection } from '../game/js/busboard.js';
+assert.strictEqual(lineDirection(line, 500, 3, 0), 1);
+assert.strictEqual(lineDirection(line, 500, 3, Math.PI), -1);
+assert.strictEqual(lineDirection(line, 500, 300, 0), 0);
+console.log('busboard direction ok');

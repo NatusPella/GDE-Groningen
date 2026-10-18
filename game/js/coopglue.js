@@ -1,6 +1,6 @@
 // Dunne koppeling tussen coop.js (pure logica) en het spel (#95). Alleen
 // actief na bindCoop(), dus alleen met ?coop; zonder blijft world.coop leeg.
-import { readP2, stepSlot2, assignDevices, leash } from './coop.js';
+import { readP2, remoteP2, stepSlot2, assignDevices, leash } from './coop.js';
 import { activePadIndex } from './gamepad.js';
 
 export function bindCoop(world, input) {
@@ -25,7 +25,8 @@ function snapshot(coop) {
 // Speler 2 stuurt de metgezel; beweging is camerarelatief zoals bij speler 1.
 export function coopStep(c, dt, world, move) {
   if (!world.coop) return false;
-  const inp = readP2(snapshot(world.coop));
+  // online: de gast stuurt de metgezel via het net (net/session.js), anders het eigen toetsenbord of pad
+  const inp = world.coop.remote ? remoteP2(world.coop.remoteInput) : readP2(snapshot(world.coop));
   const yaw = world.camYaw || 0, cs = Math.cos(yaw), sn = Math.sin(yaw);
   stepSlot2(c, { ...inp, x: cs * -inp.y - sn * inp.x, y: sn * -inp.y + cs * inp.x }, dt, null);
   move(c, dt, world);
