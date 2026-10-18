@@ -52,51 +52,6 @@ export function buildDeel4Defs({ walk }) {
       ],
     },
     {
-      // M13 Het containerlabyrint (id containers): Eemshaven, swap the papers of container 4471 before the ship leaves
-      type: 'stages',
-      label: 'Het containerlabyrint',
-      intro: ['Lammert, havenmeester van de Eemshaven, wijst naar de stapels: Jelles schip vertrekt om zes uur, met de voorraad van Oma\'s vrienden aan boord.', 'Vind container 4471 en verwissel de papieren. De kraan piept: bij het tweede piepje kijkt de bewaker omhoog.'],
-      outro: 'De papieren zijn verwisseld. Het schip vaart leeg weg.',
-      timeLimit: 420,
-      reward: 600,
-      onFoot: true,
-      start: at('Eemshaven', [0, 0]),
-      stages: [
-        go('Eemshaven', [120, -60], 'Naar de kraankooi', 'Naar de kraankooi. Blijf uit het zicht van de bewaker.', { mode: 'foot', radius: 14, talk: { ids: ['M13.2'], delay: 1.5 } }),
-        hold('Eemshaven', [120, -60], 'Wacht in de kraankooi op het tweede piepje', 'Wacht tot de kraan het tweede piepje geeft.', 9, ['Eén piepje. De bewaker kijkt nog niet.', 'Twee piepjes. Nu kijkt hij omhoog.']),
-        go('Eemshaven', [-90, 150], 'Container 4471', 'Container 4471, rij vier. Verwissel de papieren.', { mode: 'foot', radius: 12, stop: 2 }),
-      ],
-    },
-    {
-      // M14 De dijk (id dijk): the race along the dyke to the lock at Delfzijl before the bailiff
-      type: 'stages',
-      label: 'De dijk',
-      intro: ['Jelles deurwaarder legt om acht uur beslag op de ligplaats van het woonschip van Oma\'s vrienden bij de sluis van Delfzijl.', 'Wees eerder aan de sluis dan de deurwaarder. Over de dijk, voorbij de schapen.'],
-      outro: 'Het beslag mislukt: het woonschip staat sinds vanochtend op naam van Trijntje.',
-      timeLimit: 900,
-      reward: 500,
-      start: at('Eemshaven', [-300, 400]),
-      stages: [
-        go('Delfzijl', [-2700, -6000], 'De dijk langs de Eems', 'De dijk op. Schaap links, Tammo.', { radius: 60, talk: { ids: ['M14.2'], delay: 6 } }),
-        go('Delfzijl', [0, 0], 'De sluis van Delfzijl', 'Door naar de sluis. De deurwaarder komt vast ook net aan.', { mode: 'any', radius: 40, stop: 0.6 }),
-      ],
-    },
-    {
-      // M15 Laag over het graan (id graan): the banner over the kermis of Winschoten (no plane yet: on the ground)
-      type: 'stages',
-      label: 'Laag over het graan',
-      intro: ['Roelfien, graanboerin en vlieger, is Oma\'s nicht. Op de kermis in Winschoten koopt Jelle de juryleden met een gratis proeverij.', 'Sleep een spandoek over de kermis, zodat iedereen het ziet. Het vliegtuig is er nog niet: Roelfien hangt het spandoek met jullie op.'],
-      outro: 'Het hele Oldambt las het spandoek. De jury kijkt naar Jelle.',
-      timeLimit: 600,
-      reward: 500,
-      start: at('Winschoten', [-1200, 300]),
-      stages: [
-        go('Winschoten', [-200, 40], 'Naar de kermis in Winschoten', 'Naar de kermis, met het spandoek.', { radius: 40 }),
-        hold('Winschoten', [0, 0], 'Hang het spandoek over de kermis', 'Blijf bij de mast tot het spandoek hangt.', 10, ['Het ene touw zit vast.', 'Nog één knoop.']),
-        sc('M15.2', 'Boven de kermis', 'Winschoten', { cast: [{ key: 'roelfien', pose: 'point', at: [3, 1.2] }, { key: 'jelle', pose: 'self', at: [4.5, -1.5] }] }),
-      ],
-    },
-    {
       // M17 Open, dicht (id bruggen): eleven bridges at the beat of the fanfare, Veendam
       type: 'stages',
       label: 'Open, dicht',
@@ -230,43 +185,6 @@ export function applyDeel4(list, { walk }) {
       hold('Noordpolderzijl', [60, 20], 'Schep het zout uit de drie kuipen', 'Schep het zout, en blijf uit het zoeklicht.', 12, ['De eerste kuip is vol.', 'De tweede. Het licht gaat langs.']),
       sc('M11.7', 'De kwelder', 'Noordpolderzijl', { cast: [{ key: 'kustwachter', pose: 'hips', at: [3.5, 1.5] }] }),
       go('Noordpolderzijl', [-300, 40], 'Terug voor de vloed', 'Terug naar de boot, voor het water komt.', { mode: 'foot', radius: 20, stop: 0.6 }),
-    ],
-  });
-
-  // M12 Het staat niet in het rooster: from the UMCG roof to the balloon over the Dollard (the helicopter run stays out of it)
-  put('Het staat niet in het rooster', {
-    type: 'stages',
-    intro: ['Dokter Dijkstra van het UMCG heeft zijn traumaheli in onderhoud en een lunch die niet op tijd komt. Rotor Roelf leent zijn demoheli.', 'Vlieg naar de Dollard, houd de heli stil naast Jelles ballon en pak de aktetas met zijn koopboek.'],
-    outro: 'Het koopboek van Jelle: acht plakjes, en welke hij als volgende koopt.',
-    timeLimit: null,
-    reward: 1500,
-    // the start moves to the UMCG helipad once the pads exist (resolveSpotStarts)
-    start: walk(-26.58, 878.55),
-    startSpot: 'umcg',
-    stages: [
-      sc('M12.2', 'De lunch', 'Het UMCG', { cast: [{ key: 'rotor', pose: 'hips', at: [2.4, 0.8] }, { key: 'dijkstra', pose: 'point', at: [3, -1.2] }] }),
-      go('Dollard', [0, 0], 'Naar de Dollard', 'Naar de Dollard, achter de gele ballon aan.', { radius: 80 }),
-      hold('Dollard', [0, 0], 'Blijf stil naast de mand', 'Stil houden naast de mand. Tammo pakt de aktetas.', 14, ['De ballon schommelt.', 'De riem van de aktetas gaat los.'], { mode: 'any', radius: 60, talk: { ids: ['M12.3'], delay: 1 } }),
-    ],
-  });
-
-  // M16 Nog eentje dan: three tents of the kermis in Winschoten, the bumper-car ride, the answer
-  put('Nog eentje dan', {
-    type: 'stages',
-    intro: ['Geert van de Poelestraat belde: twee Friese reuzen zitten aan zijn bar en ze zingen al. Ze zitten nu op de kermis in Winschoten.', 'Loop drie kermistenten af om Durk en Douwe bij te houden, en win dan een rit botsauto\'s: wie wint, krijgt een antwoord.'],
-    outro: 'Een antwoord, een kus op de dijk, en een kater.',
-    timeLimit: null,
-    reward: 600,
-    onFoot: true,
-    start: at('Winschoten', [-80, 40]),
-    stages: [
-      go('Winschoten', [0, 0], 'De eerste tent', 'De eerste tent. Proost!', { mode: 'foot', radius: 14, stop: 1 }),
-      sc('M16.2', 'Tussen de tenten', 'De kermis', { cast: [{ key: 'student', pose: 'cheer', at: [2.6, 0.8] }] }),
-      go('Winschoten', [90, 60], 'De tweede tent', 'De tweede tent. Nog eentje dan.', { mode: 'foot', radius: 14, stop: 1 }),
-      go('Winschoten', [-70, 110], 'De derde tent', 'De derde tent. Durk en Douwe zijn al bij de botsauto\'s.', { mode: 'foot', radius: 14, stop: 1 }),
-      sc('M16.3', 'De botsauto\'s', 'De kermis', { cast: [{ key: 'durk', pose: 'arms', at: [3, 1] }, { key: 'douwe', pose: 'arms', at: [3, -1] }] }),
-      sc('M16.4', 'De rit en de kus', 'De kermis', { cast: [{ key: 'kermisexploitant', pose: 'hips', at: [3.4, 1.4] }, { key: 'durk', pose: 'arms', at: [3, -1.6] }] }),
-      sc('M16.5', 'Het antwoord', 'Op de dijk', { cast: [{ key: 'durk', pose: 'shrug', at: [2.8, 0.8] }, { key: 'douwe', pose: 'shrug', at: [2.8, -0.8] }] }),
     ],
   });
 

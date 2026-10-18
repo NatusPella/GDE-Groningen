@@ -20,6 +20,7 @@ import { getFollowPose, prewarmStreamAt } from './scene3d.js';
 import { KEYS } from './storagekeys.js';
 import { registerBusyProbe } from './busy.js';
 import { interiorEyePose } from './carinterior.js';
+import { playerBusy } from './busy.js';
 
 // world.cameraOverride poses use map coordinates: x/y on the map, z = height in metres.
 // world.timeScale (0..1) slows gameplay; main.js multiplies the gameplay dt by it.
@@ -753,7 +754,7 @@ function markWijk(p) {
 }
 
 function busyWithJob(w) {
-  return !!((w.mission && w.mission.phase === 'active') || (w.sideJob && w.sideJob.active) || w.challenge);
+  return playerBusy(w, ['missionPhase', 'sideJob', 'challenge']).busy;
 }
 
 function checkWijk(dt, w) {

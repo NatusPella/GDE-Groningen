@@ -12,7 +12,8 @@
 // `state` is the caller's own { x, y } of last frame; it is updated here.
 // A non-finite pose falls back to the player.
 
-export const LOOK_MAX = 50;
+// 80 m: a wide shot keeps full detail at its far side, not only at the lens
+export const LOOK_MAX = 80;
 export const MAX_SPEED = 80;
 export const CUT_M = 150;
 

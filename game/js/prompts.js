@@ -732,10 +732,3 @@ function renderRows(world, primary, dt = 0) {
 // the key hints on screen (hudrules.js: at most two, gone after 3 uses)
 export const hintCount = () => rowsEl ? rowsEl.querySelectorAll('.ctx-row:not(.gone)').length : 0;
 
-export function resetHintProgress() {
-  uses = {};
-  saveUses();
-  rowsKey = '';
-  for (const el of rowEls.values()) el.remove();
-  rowEls.clear();
-}

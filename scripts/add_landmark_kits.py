@@ -33,7 +33,7 @@ BBOX = (53.124, 6.385, 53.339, 6.753)
 
 KEEP = ("name", "amenity", "building", "religion", "denomination", "heritage", "start_date", "height", "building:levels",
         "roof:shape", "roof:height", "building:material", "man_made", "windmill:type", "mill:type", "tower:type",
-        "tower:construction", "historic", "ruins", "tourism", "castle_type", "wikidata", "colour", "building:colour")
+        "tower:construction", "railway", "farm:type", "historic", "ruins", "tourism", "castle_type", "wikidata", "colour", "building:colour")
 
 
 def query(b):

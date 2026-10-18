@@ -6,6 +6,10 @@ export const MODS = {
   slow: 1, // extra gameplay time scale (slow-mo after a crash)
   cars: 1, // car traffic target
   bikes: 1, // bike traffic target
+  scooters: 1, // scooter traffic target
+  motors: 1, // brommer and motorbike traffic target
+  look: null, // 3D look of new traffic cars (streekverkeer.js)
+  fading: false, // a traffic factor is still on its way (the traffic dies out)
   pigeons: 1, // pigeon limit
   turbo: false, // the Escapade's top speed and acceleration
   bounce: false, // the player's car bounces on landing

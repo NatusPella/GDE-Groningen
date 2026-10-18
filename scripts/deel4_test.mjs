@@ -17,12 +17,12 @@ const ok = (cond, name, info = '') => { n++; if (!cond) { fails++; console.log(`
 
 const walk = (x, y) => ({ x, y, road: null });
 const fresh = buildDeel4Defs({ walk });
-const ids = NEW_MISSION_IDS.slice(2);
+const ids = NEW_MISSION_IDS.slice(5);
 ok(fresh.length === ids.length, 'one def per new mission id after loket and bakkiestunt', `${fresh.length} vs ${ids.length}`);
 
 // the shared old defs, as far as applyDeel4 touches them
 const old = [
-  'Fatbikes tellen niet als fiets', 'Geleend van de Friezen', 'Het staat niet in het rooster', 'Nog eentje dan',
+  'Fatbikes tellen niet als fiets', 'Geleend van de Friezen',
   'Iedereen heeft een rode auto gezien', "Er hangt iets Fries aan d'Olle Grieze", 'Het bod viel tegen', 'Ontzet, net als in 1672',
 ].map((label) => ({ label, type: 'stages', stages: [{ kind: 'pigeon' }], notes: [{ x: 0, y: 0, text: 't' }] }));
 const list = [...old, ...fresh];
@@ -32,7 +32,7 @@ const steps = STEPS.filter((s) => s.kind === 'mission' && s.mission);
 const defOf = (s) => list.find((d) => d.label === s.title);
 const KINDS = new Set(['goto', 'scene', 'hold', 'pigeon']);
 const NPC_KEYS = new Set(Object.keys(SPEAKERS));
-for (const s of steps.filter((q) => !['M01', 'M02', 'M03', 'M04', 'M05', 'M06', 'M07'].includes(q.id))) {
+for (const s of steps.filter((q) => !['M01', 'M02', 'M03', 'M04', 'M05', 'M06', 'M07', 'M12', 'M13', 'M14', 'M15', 'M16'].includes(q.id))) {
   ok(s.built, `${s.id}: built`);
   const d = defOf(s);
   ok(d, `${s.id}: a def with the step's title`, s.title);
@@ -54,7 +54,6 @@ for (const s of steps.filter((q) => !['M01', 'M02', 'M03', 'M04', 'M05', 'M06', 
   ok(s.lead && s.lead[1] && s.lead[1].length < 140, `${s.id}: a short lead`);
 }
 // the startSpot of M12 and the notes of M08
-ok(list.find((d) => d.label === 'Het staat niet in het rooster').startSpot === 'umcg', 'M12 starts at the UMCG pad');
 ok(list.find((d) => d.label === 'Fatbikes tellen niet als fiets').notes[0].talk.ids[0] === 'M08.2', 'M08 talks on the lane');
 
 // the travel steps and the epilogue

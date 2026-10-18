@@ -113,7 +113,7 @@ export const ACHIEVEMENTS = [
   { id: 'skate_klaar', cat: 'verkennen', title: 'Vier wielen en een plank', desc: 'Skate een run in het Stadspark' },
   { id: 'skate_goud', cat: 'verkennen', title: 'Koning van het skatepark', desc: 'Haal goud in het skatepark', medal: true },
   { id: 'skate_combo', cat: 'verkennen', title: 'Keten van tricks', desc: 'Sla een keten van 2.000 punten op in het skatepark' },
-  { id: 'kart_klaar', cat: 'verkennen', title: 'Ronde na ronde', desc: 'Rij drie ronden op de kartbaan bij Kardinge' },
+  { id: 'kart_klaar', cat: 'verkennen', title: 'Ronde na ronde', desc: 'Rij drie ronden op de kartbaan in Ulrum' },
   { id: 'kart_goud', cat: 'verkennen', title: 'Eerst over de streep', desc: 'Win de race op de kartbaan', medal: true },
   { id: 'kart_snel', cat: 'verkennen', title: 'Snelle ronde', desc: 'Rijd een ronde van 31,5 seconden of sneller' },
   { id: 'zwem_klaar', cat: 'verkennen', title: 'Baantjes trekken', desc: 'Zwem honderd meter in Zwembad Het Natte Papier' },
@@ -140,6 +140,8 @@ export const ACHIEVEMENTS = [
   { id: 'discgolf_dichtbij_goud', cat: 'verkennen', title: 'Recht op de mand', desc: 'Haal goud bij discgolf dichtbij', medal: true },
   { id: 'ski_sprong', cat: 'verkennen', title: 'Hoog en schoon', desc: 'Land een sprong met een draai en een grab', hidden: true },
   { id: 'geheimen_alle', cat: 'verkennen', title: 'Stadjer met geheimen', desc: 'Vind alle 8 geheimpjes van Grunn in één spel', save: 'geheimen', goal: 8, hidden: true },
+  { id: 'streek_verzameld', cat: 'verzamelen', title: 'Streekverzamelaar', desc: 'Vind alle vijftien streekvondsten van de provincie', set: 'streekverzamel', goal: 15 },
+  { id: 'streek_geheimen', cat: 'verkennen', title: 'Kenner van de streek', desc: 'Vind het geheim van elke streek in de provincie', set: 'streekgeheimen', goal: 5, hidden: true },
   { id: 'zonsopgang', cat: 'verkennen', title: 'Vroege vogel', desc: 'Zie de zon opkomen boven Grunn' },
   // the Ommeland extras (worldends.js, dorpsuitjes.js): progress only, never where
   { id: 'wereldeinde_1', cat: 'verkennen', title: 'Rand van de kaart', desc: 'Vind een plek waar een weg van het Ommeland ophoudt', set: 'wereldeinden', goal: 1 },

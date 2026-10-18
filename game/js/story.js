@@ -8,9 +8,13 @@
 // built story the last step's character stays.
 
 import { STEPS, STEP_BY_ID, PARTS, CLUES, WHY, CHARACTERS, SPEAKERS, stepAvailable, missionIndexOf, computeMoneyTimeline, partNumber, stepDone, nextStoryStep } from './storyarc.js';
+import { tickStoryTravel } from './storytravel.js';
+import { askTravel, travelPromptOpen } from './reispanel.js';
+import { FLAGS } from './devflags.js';
 import { setMeetHook } from './namecard.js';
 import { displayName } from './speakers.js';
 import { queueStoryContact } from './storycontact.js';
+import { withValidity, setValidityContext } from './validity.js';
 import { isCallActive } from './phonefeed.js';
 import { SMS_SAY } from './smsvoice.js';
 import { playClueSting, playRadioSting } from './audio.js';
@@ -26,9 +30,11 @@ import { purchaseCount, storyBuyLabel } from './storyshop.js';
 import { getPigeonSpotsForRender } from './pigeonspots.js';
 import { getSideJobList } from './sidejobs.js';
 import { getGaragesForRender } from './garages.js';
-import { inHomeFlat, getHomeForRender } from './home.js';
+import { inHomeFlat, getHomeForRender, flatStage } from './home.js';
 import { isShopOpen } from './shopui.js';
 import { playCinematic, isCinematicActive, sinceCinematic, isBannerUp } from './cinematics.js';
+import { playScript } from './cutscenehost.js';
+import { openingActs, END_CARD, flatScene } from './cutscenes.js';
 import { refreshDayNight } from './daynight.js';
 import { getTrainTripCount, getStationsForRender } from './stationtravel.js';
 import { getEierballen } from './achievementtracker.js';
@@ -44,7 +50,7 @@ import { registerNarrative, mayStart, narrativeBusy, narrativeState } from './na
 import { nieuwVerhaal } from './storyflag.js';
 import { REIS_GOALS, initStoryReis, updateStoryReis } from './storyreis.js';
 import './storychoice.js';
-import { storyLines, talkLines, radioContacts, appsAt, storyDataReady, readingTime } from './storytext.js';
+import { storyLines, talkLines, radioContacts, appsAt, storyDataReady, readingTime, scene as storyScene } from './storytext.js';
 import { updateStoryTalk, stopTalk } from './storytalk.js';
 
 // Rikus' Radio Nachtstreek studio (radiostudio.js, three.js from the CDN) for the
@@ -91,10 +97,12 @@ function freshRuntime() {
   return { gifts: {}, cur: undefined, enteredAt: 0, leadAt: -1, sayAt: -1, reminded: false, base: {}, guideT: 0, skipUntil: -1, cardPending: null, nightWait: false, flatSince: -1, voorschotT: 0, lastPlayer: null, recapPending: null, newClues: new Set(), clueToasts: [] };
 }
 
+const STORY_VALID = { ttl: 300, step: true };
 const who = (k) => (k === 'T' ? 'Tammo' : k === 'A' ? 'Anita' : k);
 
 function phone(from, text, duration = 6, say = undefined, silent = false) {
-  if (world && world.phoneNotifications) world.phoneNotifications.push({ from, text, duration, say, story: true, ...(silent ? { silent: true } : {}) });
+  // refs #171: a story text that waits for the player is dropped once its step is over or it is five minutes late
+  if (world && world.phoneNotifications) world.phoneNotifications.push(withValidity({ from, text, duration, say, story: true, ...(silent ? { silent: true } : {}) }, STORY_VALID));
 }
 
 // The new arc (storyarc_nieuw.js, storytext.js): the Nachtstreek fragments and the silent app texts of the
@@ -106,7 +114,7 @@ function sendScript(step, at) {
   if (state.flags.has(key)) return;
   state.flags.add(key);
   for (const c of radioContacts(step.id, at)) {
-    if (c.lines.length) queueStoryContact({ via: 'radio', from: 'rikus', on: 'after', mood: 'night', caller: '', lines: c.lines });
+    if (c.lines.length) queueStoryContact(withValidity({ via: 'radio', from: 'rikus', on: 'after', mood: 'night', caller: '', lines: c.lines }, { ttl: 600, step: true }));
   }
   for (const a of appsAt(step.id, at)) phone(a.from, a.text, 7, undefined, true);
 }
@@ -294,7 +302,7 @@ function markDone(step, { skipped = false, quiet = false } = {}) {
 function queueContacts(step, on) {
   for (const c of step.contact || []) {
     if ((c.on || 'after') !== on) continue;
-    queueStoryContact({ ...c, onDone: () => { for (const [from, text] of c.after || []) phone(who(from), text, 6); } });
+    queueStoryContact(withValidity({ ...c, onDone: () => { for (const [from, text] of c.after || []) phone(who(from), text, 6); } }, { ttl: 600, step: true }));
   }
 }
 
@@ -417,13 +425,19 @@ function updateHomeWait(step) {
     at += dur + 0.25;
     return l;
   });
-  const ok = playCinematic({
+  const cine = {
     id: 'story-wait', priority: 2, duration: lines.length ? at + 0.4 : 3.6, pause: true, letterbox: true, skippable: true, hideHud: true,
     big: (scene && scene.big) || (night ? 'Wachten tot het donker is…' : ''),
     lines,
     onStart: () => { if (scene && scene.clock != null) setClock(scene.clock); },
     onEnd: done,
-  });
+  };
+  // staged in the flat (cutscenes.js flatScene), the plain scene as the fallback
+  const pl = world.player;
+  const stage = flatStage();
+  const ok = (lines.length > 2 && playScript(world, flatScene(scene && scene.clock != null ? 'avond' : 'wachten', lines), {
+    lines, duration: cine.duration, anchor: stage ? stage.anchor : { x: pl.x, y: pl.y, facing: pl.angle || 0, z: pl.gz || 0 }, env: stage ? stage.env : null, cine,
+  })) || playCinematic(cine);
   if (!ok) done();
 }
 
@@ -435,6 +449,9 @@ function setClock(h) {
   world.clock = h;
   refreshDayNight(world);
 }
+
+// the kitchen of the opening hangs this high above the street (the set is a closed room)
+const KITCHEN_Z = 345;
 
 // The opening of the new story (M00): the trailer parody, the kitchen and moving day of the script,
 // as a letterboxed cutscene over the player's new home. Recorded lines play, the others are text.
@@ -451,6 +468,29 @@ function playOpening(b) {
   }
   const p = world.player;
   const kop = PARTS.kop;
+  // the staged version (cutscenes.js openingActs): people and props move, the camera cuts; the orbit below stays as the fallback
+  const v0 = p.inVehicle;
+  const spot = { x: v0 ? v0.x : p.x, y: v0 ? v0.y : p.y, facing: v0 ? v0.angle : p.angle || 0, z: 0 };
+  // three acts after each other: the trailer in the street, Tessa's kitchen (high above it), moving day.
+  // Skipping (hold Space) ends the whole opening.
+  const acts = openingActs(lines);
+  const playAct = (i) => {
+    const act = acts[i];
+    const last = i === acts.length - 1;
+    return playScript(world, act.def, {
+      lines: act.lines, duration: act.duration,
+      anchor: act.def.set === 'keuken' ? { x: spot.x, y: spot.y, facing: 0, z: KITCHEN_Z } : { ...spot },
+      cine: {
+        id: 'story-opening',
+        ...(i === 0 ? { kicker: `${partNumber('kop')} · ${kop.date}`, title: kop.name, cardFor: 3.2 } : {}),
+        onEnd: (skipped, replaced) => {
+          if (last || skipped || replaced || !playAct(i + 1)) b.phase = 'done';
+        },
+      },
+    });
+  };
+  const staged = acts.length === 3 && playAct(0);
+  if (staged) return true;
   const ok = playCinematic({
     id: 'story-opening', priority: 4, duration: at + 1, pause: true, letterbox: true, skippable: true, hideHud: true,
     kicker: `${partNumber('kop')} · ${kop.date}`, title: kop.name, cardFor: 3.2, lines,
@@ -646,11 +686,17 @@ function updateCredits(dt, w) {
 
 function playEndCard(part) {
   if (PARTS[part] && PARTS[part].finale && currentStep().finale) return playFinale(part);
-  const ok = playCinematic({
-    id: 'story-card', priority: 2, duration: 6.5, pause: true, letterbox: true, skippable: true, hideHud: true,
+  const card = {
     kicker: PARTS[part] ? PARTS[part].end : '', title: 'Alles voor één eierbal', cardFor: 2.4, big: 'Wordt vervolgd…',
     lines: ((PARTS[part] && PARTS[part].card) || []).map(([speaker, text], k) => ({ speaker, text, at: 2.6 + k * 2, dur: 1.9 })),
-  });
+  };
+  const pl = world.player, vh = pl.inVehicle;
+  // staged (cutscenes.js END_CARD), the plain card as the fallback
+  const ok = playScript(world, END_CARD, {
+    lines: card.lines, duration: 6.5,
+    anchor: { x: vh ? vh.x : pl.x, y: vh ? vh.y : pl.y, facing: vh ? vh.angle : pl.angle || 0, z: 0 },
+    cine: { id: 'story-card', priority: 2, kicker: card.kicker, title: card.title, cardFor: card.cardFor, big: card.big },
+  }) || playCinematic({ id: 'story-card', priority: 2, duration: 6.5, pause: true, letterbox: true, skippable: true, hideHud: true, ...card });
   if (!ok) return false;
   state.cards.add(part);
   phone(SERIES, nieuwVerhaal() ? `${PARTS[part].end}. Dit stuk van het nieuwe verhaal is nog niet gebouwd. Tot die tijd is Grunn van jou: alle missies staan in je telefoon, onder Te doen.` : 'Het verhaal gaat verder in een volgende versie. Tot die tijd is Grunn van jou: alle missies staan in je telefoon, onder Te doen.', 8, undefined, nieuwVerhaal());
@@ -853,8 +899,8 @@ function initSkipUi() {
     '#story-skip button{zoom:var(--ui,1);display:flex;gap:10px;align-items:center;font:18px/1.1 \'Bebas Neue\',\'Arial Narrow\',Arial,sans-serif;letter-spacing:1px;color:#f0ede4;' +
     'background:radial-gradient(ellipse at center,rgba(23,48,31,.94),rgba(12,20,14,.94));border:1px solid rgba(63,201,122,.6);border-radius:4px;padding:9px 16px;cursor:pointer;box-shadow:0 6px 24px rgba(0,0,0,.4)}' +
     '#story-skip button:hover,#story-skip button:focus-visible{border-color:#3fc97a;box-shadow:0 0 0 1px #3fc97a,0 6px 24px rgba(0,0,0,.4);outline:none}' +
-    '#story-skip .hud-key{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 5px;background:linear-gradient(180deg,#4a4f47,#2a2e28);' +
-    'border:1px solid rgba(255,255,255,.35);border-bottom:2px solid rgba(0,0,0,.6);border-radius:4px;color:#3fc97a;font-size:12px}' +
+    '#story-skip .hud-key{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 6px;background:#fbfaf5;border:0;border-radius:5px;color:#0c140e;font:bold 13px/1 \'Bebas Neue\',\'Arial Narrow\',Arial,sans-serif;letter-spacing:1px;' +
+    'box-shadow:0 2px 0 #a9a69b,0 0 0 1px rgba(0,0,0,.18)}' +
     'body.cine-hide-hud #story-skip{display:none}';
   document.head.appendChild(style);
   document.body.appendChild(root);
@@ -909,8 +955,17 @@ function onGated() {
 
 // --- init / update ------------------------------------------------------------------------
 
+// what the validity of a queued message is judged against (validity.js)
+function validityNow() {
+  if (!world) return null;
+  const s = currentStep();
+  const m = world.mission;
+  return { time: world.time, stepIndex: s && !s.end ? STEPS.indexOf(s) : STEPS.length, mission: m ? { phase: m.phase, index: m.index } : null, player: world.player ? { x: world.player.x, y: world.player.y } : null };
+}
+
 export function initStory(w) {
   world = w;
+  setValidityContext(validityNow);
   setMissionHooks({ waived: (key) => state.waived.has(key), skipped: (i) => STEPS.some((s) => s.kind === 'mission' && missionIdx(s) === i && state.skipped.has(s.id)), passed: onPassed, failed: onFailed, gated: onGated, canStart: swapDone });
   Object.assign(GOALS, FUN_GOALS, EIKEA_GOALS, REIS_GOALS);
   initStoryReis(w);
@@ -996,6 +1051,11 @@ export function updateStory(dt, w) {
   if (rt.sayAt >= 0 && w.time >= rt.sayAt && !isCinematicActive() && !isCallActive() && mayStart('say')) {
     rt.sayAt = -1;
     if (step.say) companionSays(w, step.say[1]);
+  }
+  // travel beats (#97): the choice ride along / drive / skip before a long jump, behind ?reizen
+  if (FLAGS.reizen && nieuwVerhaal() && rt.leadAt < 0) {
+    tickStoryTravel({ on: true, step, flags: state.flags, world: w, ask: askTravel, script: storyScene,
+      busy: isMissionActive() || isCinematicActive() || narrativeBusy() || !!w.pigeonMode || !!w.pendingRespawn || travelPromptOpen() });
   }
   // the voorschot follows the lead that says what it is for
   if (rt.leadAt < 0 && (rt.voorschotT -= dt) <= 0) { rt.voorschotT = 2; checkVoorschot(step); }

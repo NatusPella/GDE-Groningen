@@ -18,7 +18,7 @@
 import { SPEAKERS as OUD_SPEAKERS, CHARACTERS as OUD_CHARACTERS } from './storyarc_oud.js';
 
 // ids appended to MISSION_IDS (indices live in saves: append only, never reorder)
-export const NEW_MISSION_IDS = ['loket', 'bakkiestunt', 'eieren', 'wierde', 'containers', 'dijk', 'graan', 'bruggen', 'wiebelwerk', 'stoom', 'beleg', 'luik', 'colonne'];
+export const NEW_MISSION_IDS = ['loket', 'bakkiestunt', 'containers', 'dijk', 'graan', 'eieren', 'wierde', 'bruggen', 'wiebelwerk', 'stoom', 'beleg', 'luik', 'colonne'];
 
 // The new cast (storytext.js maps the script's speakers to these keys).
 export const SPEAKERS = {
@@ -139,23 +139,22 @@ export const STEPS = [
 
   // --- Akte 3: Aan de Eems (Eemsdelta en Oldambt, vr 21 - zo 23 augustus) ----------------
   M('M12', 'staart', 'Het staat niet in het rooster', 'traumaduif', { built: true, reward: 1500,
-    story: { intro: ['M12.1'], outro: ['M12.4'], replay: ['M12.5'], entry: { npc: 'dijkstra', outroNpcKey: 'dijkstra', ...CLEAN } },
-    scenes: ['M12.1', 'M12.2', 'M12.3', 'M12.4', 'M12.5'],
-    lead: ['T', 'Dokter Dijkstra belt vanaf het UMCG-dak. Er is een heli, en een gele ballon bij de Dollard.'] }),
-  M('M13', 'staart', 'Het containerlabyrint', 'containers', { built: true, reward: 600,
+    story: { intro: ['M12.1'], outro: ['M12.4'], replay: ['M12.5'] }, scenes: ['M12.1', 'M12.2', 'M12.3', 'M12.4', 'M12.5'],
+    lead: ['A', 'Dokter Dijkstra wacht in Lauwersoog met een heli. Hij heeft honger, en Jelle vliegt met zijn koopboek boven de Dollard.'] }),
+  M('M13', 'staart', 'Het containerlabyrint', 'containers', { built: true, reward: 900,
     story: { intro: ['M13.1'], outro: ['M13.3'], replay: ['M13.4'] }, scenes: ['M13.1', 'M13.2', 'M13.3', 'M13.4'],
-    lead: ['A', 'Lammert wacht in de Eemshaven. Jelles schip vertrekt om zes uur.'] }),
-  M('M14', 'staart', 'De dijk', 'dijk', { built: true, reward: 500,
+    lead: ['A', 'De Eemshaven, vannacht. Lammert wacht aan de kade: container 4471 moet leeg uitvaren.'] }),
+  M('M14', 'staart', 'De dijk', 'dijk', { built: true, reward: 1000,
     story: { intro: ['M14.1'], outro: ['M14.3'], replay: ['M14.4'] }, scenes: ['M14.1', 'M14.2', 'M14.3', 'M14.4'],
-    lead: ['T', 'Jelle laat om acht uur beslag leggen bij de sluis van Delfzijl. We moeten er eerder zijn.'] }),
-  A('T3', 'staart', 'De trein naar Winschoten', { type: 'travel', to: 'Winschoten', beat: 'T3' }, { built: true, scenes: ['T3'] }),
-  M('M15', 'staart', 'Laag over het graan', 'graan', { built: true, reward: 500,
+    lead: ['T', 'Zonsopgang op de kade. Om acht uur legt Jelles deurwaarder beslag in Delfzijl. Wij zijn eerder bij de sluis.'] }),
+  A('T3', 'staart', 'De trein naar Winschoten', { type: 'train' }, { built: true, scenes: ['T3'],
+    lead: ['A', 'Van Delfzijl met de trein naar Winschoten. Daar is een kermis.'] }),
+  M('M15', 'staart', 'Laag over het graan', 'graan', { built: true, reward: 900,
     story: { intro: ['M15.1'], outro: ['M15.3'], replay: ['M15.4'] }, scenes: ['M15.1', 'M15.2', 'M15.3', 'M15.4'],
-    lead: ['A', 'Roelfien wacht bij Winschoten. Ze heeft een spandoek en een graanveld.'] }),
+    lead: ['A', 'Roelfien wacht bij haar graanveld bij Winschoten. Haar vliegtuig sleept al twintig jaar een spandoek voor de kermis.'] }),
   M('M16', 'staart', 'Nog eentje dan', 'kroegentocht', { built: true, reward: 600,
-    story: { intro: ['M16.1'], outro: ['M16.6'], replay: ['M16.7'], entry: { npc: 'geert', ...CLEAN } },
-    scenes: ['M16.1', 'M16.2', 'M16.3', 'M16.4', 'M16.5', 'M16.6', 'M16.7'],
-    lead: ['T', 'Geert belt: Durk en Douwe zitten op de kermis in Winschoten en ze zingen.'] }),
+    story: { intro: ['M16.1'], outro: ['M16.3', 'M16.4', 'M16.5', 'M16.6'], replay: ['M16.7'] }, scenes: ['M16.1', 'M16.2', 'M16.3', 'M16.4', 'M16.5', 'M16.6', 'M16.7'],
+    lead: ['T', 'Geert heeft drie tenten op de kermis in Winschoten. Durk en Douwe zingen aan zijn bar.'] }),
 
   // --- Akte 4: Zuidwaarts (Veenkoloniën en Westerwolde, zo 23 - wo 26 augustus) ----------
   M('M17', 'zuid', 'Open, dicht', 'bruggen', { built: true, reward: 500,

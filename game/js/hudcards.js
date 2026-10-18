@@ -24,11 +24,10 @@ import { playLineVoice } from './audio.js';
 import { CARD_LINES } from './cardlines.js';
 import { cardSpoken, hintVoiceFor } from './smsvoice.js';
 import { CARD_PRIORITY, mayShowTip, noteTip } from './attention.js';
-import { unseenAchievementCount } from './achievements.js';
 import { mayStart, noteToast, heldBack } from './narrative.js';
 import { missionIconInner } from './missionicons.js';
-import { isPauseMenuOpen } from './pausemenu.js';
 import { zones, mayShow, cardPrio, cardZone, hudNow } from './hudrules.js';
+import { enqueueCard } from './hudbus.js';
 import { CAL_ICONS } from './calendar.js';
 
 // the HUD's attention budget: one prominent card at a time
@@ -93,8 +92,6 @@ let world = null;
 let stackEl = null;
 let stackE = null;
 let countEl = null;
-let awardEl = null;
-let awardN = 0;
 let visible = [];
 let queue = [];
 let countT = 0;
@@ -120,13 +117,6 @@ export function initCards(w, root) {
   stackE.className = 'hud-cards-e';
   stackE.setAttribute('aria-live', 'polite');
   root.appendChild(stackE);
-  const chips = document.createElement('div');
-  chips.className = 'hc-chips';
-  stackEl.appendChild(chips);
-  awardEl = document.createElement('div');
-  awardEl.className = 'hc-wait hc-award';
-  awardEl.hidden = true;
-  chips.append(awardEl);
   countEl = document.createElement('div');
   countEl.className = 'hud-count';
   countEl.setAttribute('aria-live', 'assertive');
@@ -136,42 +126,6 @@ export function initCards(w, root) {
   w.cardSink = (text, dur, opts) => fromMessage(text, dur, opts);
   if (typeof window !== 'undefined') window.__cards = { show: (spec) => showCard(world, spec), state: () => ({ visible: visible.map((c) => c.spec), queue: queue.map((q) => q.spec) }), classify };
   return stackEl;
-}
-
-// The two chips under the cards ("2 meldingen wachten", "1 prestatie wacht")
-// are short notices, not fixtures: each shows for CHIP_SECS when its count
-// goes up, fades and hides. The award chip comes back once, briefly, when a
-// pause ends while something is still unseen.
-const CHIP_SECS = 5;
-const CHIP_FADE = 0.6;
-const CHIP_AFTER_PAUSE = 3.5;
-let awardT = 0;
-let wasInMenu = false;
-
-function setChip(el, t) {
-  el.hidden = t <= 0;
-  el.classList.toggle('out', t > 0 && t < CHIP_FADE);
-}
-
-// Unlocked but not yet looked at in Prestaties; information only.
-const AWARD_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 20h8"/></svg>';
-function syncAward() {
-  const n = unseenAchievementCount();
-  if (n === awardN) return;
-  if (n > awardN) awardT = CHIP_SECS;
-  if (!n) awardT = 0;
-  awardN = n;
-  if (n) awardEl.innerHTML = `${AWARD_SVG}${n} ${n === 1 ? 'prestatie wacht' : 'prestaties wachten'}`;
-}
-
-function tickChips(dt, frozen, menuOpen) {
-  if (menuOpen) wasInMenu = true;
-  else if (wasInMenu && !frozen) {
-    wasInMenu = false;
-    if (awardN > 0) awardT = Math.max(awardT, CHIP_AFTER_PAUSE);
-  }
-  if (!frozen) awardT = Math.max(0, awardT - dt);
-  setChip(awardEl, frozen ? 0 : awardT);
 }
 
 // For a running mission/bijbaan the default category is that.
@@ -229,10 +183,8 @@ export function showCard(w, spec) {
   card.important = kind === 'tip' && (!!spec.important || teaches(all));
   const up = visible.find((c) => c.key === card.key && !c.leaving);
   if (up) { refresh(up, card); return; }
-  queue = queue.filter((q) => q.key !== card.key);
-  queue.push(card);
-  queue.sort((a, b) => CARD_KINDS[b.spec.kind].rank - CARD_KINDS[a.spec.kind].rank || b.important - a.important || a.at - b.at);
-  while (queue.length > MAX_QUEUE) queue.pop();
+  card.rank = CARD_KINDS[card.spec.kind].rank;
+  queue = enqueueCard(queue, card, MAX_QUEUE);
 }
 
 // A mission card shows its mission's icon: the one that runs, else the one
@@ -367,10 +319,7 @@ export function updateCards(dt, w) {
   stackEl.classList.toggle('hc-held', held);
   const frozen = hudHidden() || w.paused || w.uiPaused || held || !mayStart('card', { urgent: true });
   stackEl.classList.toggle('paused', !!frozen);
-  syncAward();
-  tickChips(dt, !!frozen, isPauseMenuOpen());
   document.body.classList.toggle('hud-card-on', visible.some((c) => !c.leaving));
-  document.body.classList.toggle('hud-chip-on', awardT > 0);
   if (frozen) return;
   // during a phone call only dangers and the police get a card
   const calling = document.body.classList.contains('hud-call-on');

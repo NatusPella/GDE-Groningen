@@ -83,7 +83,7 @@ const KEEP_ON_RESET = new Set(['attractSeen', 'keyBinds', 'padBinds', 'verhaal']
 export const SHIFT_CHOICES = ['auto', 'manual', 'clutch'];
 export const SUBTITLE_SIZES = { klein: 0.85, normaal: 1, groot: 1.25, extragroot: 1.5 };
 export const COLOR_BLIND_MODES = ['uit', 'deuteranopie', 'protanopie', 'tritanopie'];
-const PAD_LAYOUT_CHOICES = ['auto', 'xbox', 'ps', 'deck'];
+const PAD_LAYOUT_CHOICES = ['auto', 'xbox', 'ps', 'switch', 'deck'];
 const HINT_SOURCE_CHOICES = ['auto', 'keys', 'pad'];
 
 function load() {

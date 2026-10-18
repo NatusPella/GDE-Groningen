@@ -214,22 +214,33 @@ export class GameMap {
   // viaduct decks, trench floors and embankments of the ring roads, street
   // level (0) everywhere else. See elevation.js.
   groundHeightAt(x, y, zHint = 0) {
-    return groundHeightAt(this.elev, x, y, zHint);
+    if (!this.terrainOn) return groundHeightAt(this.elev, x, y, zHint);
+    const t = this.terrainAt(x, y);
+    return groundHeightAt(this.elev, x, y, zHint - t) + t;
   }
 
   // The one height query (elevation.js surfaceAt) for whoever keeps `state`
   // = { z, ribbon }: it stays on the road or rail deck it is on. Driving,
   // walking, AI and the paths of cutscenes and races use it.
+  // With terrainOn (?terrain, #78) the profiles are relative to the AHN
+  // terrain under them (profile.mjs --terrain): the query runs on the
+  // relative heights and the terrain is put back on the answer.
   surfaceAt(x, y, state) {
-    return surfaceAt(this.elev, x, y, state, this._ground || (this._ground = (gx, gy, gz) => this.groundHeightAt(gx, gy, gz)));
+    if (!this.terrainOn) return surfaceAt(this.elev, x, y, state, this._ground || (this._ground = (gx, gy, gz) => this.groundHeightAt(gx, gy, gz)));
+    const t = this.terrainAt(x, y);
+    state.z = (state.z || 0) - t;
+    surfaceAt(this.elev, x, y, state, this._groundRel || (this._groundRel = (gx, gy, gz) => groundHeightAt(this.elev, gx, gy, gz)));
+    state.z += t;
+    return state;
   }
 
   // Height at (x, y) for something at z on `ribbon` (stateless surfaceAt,
   // for probes around a vehicle or a walker)
   surfaceZ(x, y, z, ribbon) {
     if (ribbon) {
+      const t = this.terrainOn ? this.terrainAt(x, y) : 0;
       const zr = ribbonZAt(this.elev, ribbon, x, y);
-      if (zr !== null && Math.abs(zr - z) <= 1.1) return zr;
+      if (zr !== null && Math.abs(zr + t - z) <= 1.1) return zr + t;
       // past its end: the way that carries on (as surfaceAt), not a
       // carriageway alongside
       const st = this._probe || (this._probe = { z: 0, ribbon: null, kind: 'ground' });
@@ -651,6 +662,7 @@ export function applyMapExtras(data, ex) {
     data.roads.push({
       pts: br.pts.map((q) => q.slice()), type: 'busway', cat: 'normal', width: br.width || 6.5, speed: 11,
       oneway: !!br.oneway, roundabout: false, name: br.name || '', bridge: !!br.bridge, busOnly: true,
+      ...(br.z && br.z.length === br.pts.length ? { z: br.z.slice() } : {}),
     });
   }
   for (const bl of ex.busLanes || []) {

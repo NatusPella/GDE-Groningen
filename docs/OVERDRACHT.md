@@ -1,4 +1,4 @@
-# Overdracht (stand 18 oktober 2026, release 0.35.0)
+# Overdracht (stand 18 oktober 2026, laatste release 0.35.0, daarna veel op main)
 
 Voor wie het project overneemt (een andere AI of machine). Lees dit eerst, daarna `AGENTS.md` (regels en werkwijze), `README.md` en `ARCHITECTURE.md`.
 
@@ -38,8 +38,48 @@ Voor wie het project overneemt (een andere AI of machine). Lees dit eerst, daarn
 - **Issues:** bekijk de milestones: Tegelwereld werkt, Levende open wereld, Verhaal Deel 4 en missies, Provincie leeft, Publiceren en 1.0, Afwerking en menu's. Open vragen aan de eigenaar: #92 (UI-smaakvragen), #81 (teleport-fout bij het Lauwersmeer: retest in 0.35.0), #93 (verhaal).
 - **Bekende gaten:** zichtbare Waddenzee/Noordzee in de wereld, het vliegtuig als nieuw voertuig (spawn op echte vliegvelden), `building:part` ontbreekt in de OSM-extract, de game leest de kruispunt- en lichtgegevens van de provincie nog niet, #114 en #115 en #2 en #3 wachten op een beeldcheck.
 
+## 4b. Nieuw sinds 0.35.0 (alleen onder `[Unreleased]`, nog niet vrijgegeven)
+Rond de 70 branches zijn in één dag op `main` gemerged. Wat je moet weten (details per module in `ARCHITECTURE.md`, "Modules sinds 0.35"):
+- **Eén poort voor "is de speler bezig":** `busy.js` (`playerBusy`) en `activityhub.js` (register voor activiteiten, bijbanen, postgame en uitjes). Nieuwe code vraagt de poort, maakt geen eigen lijst met `world.xxx`-vlaggen.
+- **Eén planner voor wat de aandacht vraagt:** `hudbus.js`; `hudlook.js` is de visuele taal van de HUD; `voicebank.js` is de ene loader voor voice-manifesten.
+- **Cutscenes zijn data:** `cutscript.js` (regietaal) + `cutscenehost.js` + `actoranim.js` + `cutscenes.js`.
+- **Wanted, verkeer, simulatie:** `wantedstate.js` (rustig, achtervolging, zoeken), `simlagen.js` (`?simlagen`), simulatie-worker `simhost.js`/`simkernel.js`/`simworker.js` (`?simworker`, proef), `spatialgrid.js` onder alle ruimtelijke indexen (#111).
+- **Kaart:** `mapstyle.js` is de ene stijltabel voor minimap, grote kaart, provinciepiramide en zee; `regions.js` en `regiondata.js` kennen de provincie en wat eromheen ligt.
+- **Laden, invoer, mobiel:** `loadlogic.js` (laadschermen), `padlogic.js` en `glyphs.js` (controller), `touchlogic.js` (raakbediening).
+- **Verhaal:** reisbeats (`reisbeats.js`, `reiskeuze.js`, `reistijd.js`, achter `?reizen`), drie keuze-zijmissies; `?coop` (`coop.js`) voor twee spelers. De stad op tegels staat achter `?stadlaag` (#90) en is standaard uit.
+- **Wereld en leven:** machinist, vrachtbijbaan met oplegger, bus-sim, binnenvaart en jachthavens, motoren in het verkeer, lekke band, verkeersruzie, weer per streek, spookauto's, Kroketkoning, stadsprofielen en streekleven. Zie `CHANGELOG.md`.
+- **Gereedschap:** `scripts/run_tests.mjs` (alle tests in één keer, `--quick`), `scripts/text_audit.mjs` (constitution-controle op speltekst), `.github/workflows/test.yml` (CI op Linux en Windows), `scripts/lib/loadworld.mjs` (`WORLD_SRC=json|tiles`), `desktop/devtools.js` (debug-harnas, alleen unpackaged of `GDE_DEV=1`) en `desktop/args.cjs`/`envcompat.js`.
+- **Nog niet vrijgegeven:** `[Unreleased]` in `CHANGELOG.md` is de lijst voor de volgende release; het versienummer kiest de coördinator.
+- **Nog niet in beeld bekeken** (agents draaiden vooral code en tests): laadschermen, nieuwe HUD, binnenin-camera, jachthavens en binnenvaart, skateboarders en kennismakingsgroep, touchbediening. Zie de comments in de issues.
+
 ## 5. Valkuilen
 - Test nooit met een symlink als `desktop/vendor-cache`; maak nooit een symlink in een map die al bestaat.
 - `MISSION_IDS` in `storyarc*.js` en de opslagsleutels: alleen toevoegen, nooit herordenen of hernoemen zonder migratie; saves hebben een arc-id ('oud' of 'nieuw').
 - Spreekregels die al zijn opgenomen mogen niet wijzigen (`voice_coverage` bewaakt dat); het briefje "Tige tank! – J." blijft zoals het is.
 - Zet geen persoonlijke gegevens in de repo; alleen NatusPella in credits.
+- **Windows en regeleinden:** `core.autocrlf=true` zet bestanden in de werkmap op CRLF; `.gitattributes` zet `*.sh`, `*.mjs` en `*.js` vast op LF (#144). Tests die tekstbestanden lezen of vergelijken moeten daar tegen kunnen (`\r?\n`); importeer met `pathToFileURL` voor `file://`-URL's. Bewerk je een CRLF-bestand met een tool die LF verwacht, controleer dan met `git diff --stat` dat niet het hele bestand veranderde.
+- **Nieuwe opslagsleutel (`gde-*`):** altijd registreren in `game/js/storagekeys.js` (`BASE_KEYS`; een sleutel die per verhaallijn verschilt ook in `ARC_KEYS`) en laat `scripts/storage_migration_test.mjs` en `save_migration_test.mjs` slagen. Tests blokkeren `localStorage` voor `gde-save-v1`, `gde-settings` en `gde-prestaties-v1`.
+- **Nieuwe URL-schakelaar:** alleen in `FLAGS` en `FLAG_DOCS` van `devflags.js` (`devflags_test` bewaakt de lijst) en in `docs/ONTWIKKELEN.md`; een nieuwe `window.__x`-hook ook daar noteren.
+- **"Bezig"-controles:** gebruik `playerBusy` uit `busy.js`; voeg een reden toe in plaats van een nieuwe lijst. `busy_test` dekt de redenen.
+- **Hulpjes die al bestaan:** `rng.js` (`hash2`, `mulberry32`, `rand`), `util` (meetkunde), `canvastex.js` (canvas-texturen), `SpatialGrid` (ruimtelijke opzoeking), `tileplace.nearestOnRoads` (dichtstbijzijnde weg), `waterPolyAt` (waterpolygoon). Geen lokale kopieën.
+- **Voice en tekst:** wat is ingesproken blijft tekengelijk (de sleutel is `spreker|tekst`); een bewerkte regel wordt stil. `scripts/text_audit.mjs` markeert zulke regels als `ingesproken`: rapporteer, wijzig niet. Nooit de TTS-scripts draaien.
+- **Zware tests zitten niet in `run_tests.mjs`:** `province_test`, `province_detail_test`, `network_drive_test`, `junction_sim_test`, `ring_probe` en `drive_audit` draait de coördinator apart.
+
+## 6. De provincie lokaal bouwen
+Nodig voor een volledige tegelbouw (`game/world/` staat niet in git; `npm run stage` doet de gewone bouw uit de ingecheckte data). Wat hieronder staat is een download of een zwaar proces: vraag eerst akkoord van de eigenaar (AGENTS.md).
+1. **Python.** Op de dev-machine stond Python niet in `PATH`. Installeer een Python met `uv` (`uv python install`) of met `winget`, en maak een venv in `data/cache/venv` (`python -m venv data/cache/venv`; installeer wat de imports bovenaan `extract_province.py` en `fetch_3dbag.py` vragen). `data/cache` staat niet in git.
+2. **OSM-extract:** haal het Geofabrik-extract voor Noord-Nederland binnen (zie de kop van het script voor het bestand en de buurgebieden). `data/cache/venv/Scripts/python scripts/world/extract_province.py` maakt er de pack-caches in `data/cache/province` van.
+3. **3D BAG (hoogtes en daken):** `data/cache/venv/Scripts/python scripts/world/fetch_3dbag.py --province` (tijdelijk enkele GB, CC BY-vermelding #70).
+4. **Bouwen:** `node scripts/world/build_province.mjs` (opties bovenaan het script). Controleer daarna met `node scripts/world/placement_audit.mjs`, `node scripts/world/province_water_audit.mjs` en `node scripts/province_test.mjs` (de timingdrempel "decode p95" kan onder belasting falen: herhalen).
+5. Op macOS en Linux is de interpreter `data/cache/venv/bin/python`. Zie `docs/PROVINCIE-PLAN.md` en `docs/ARCHITECTUUR-STAD-NAAR-TEGELS.md` voor het waarom en de tegel-indeling.
+
+## 7. Sessies en worktrees
+Elke agent-sessie werkt in een eigen git-worktree (`.claude/worktrees/<naam>`) op een eigen branch (`claude/<naam>`), in kleine commits met `Refs #n` of `Closes #n`. Agents pushen, mergen, taggen en releasen niet; de coördinator merget in `main` na de tests. Alle worktrees delen één stash: gebruik geen kale `git stash`, zet werk weg in een WIP-commit. Ruim worktrees van gemergde branches op om schijf vrij te houden. Notities tussen sessies staan buiten de repo, niet in git. Eén Electron-instantie tegelijk.
+
+## 8. Wat de coördinator nog moet doen bij een release
+1. De gewenste branches mergen in `main` (conflicten zitten meestal in `CHANGELOG.md` en `FLAGS`); `node --check` op gewijzigde JS.
+2. `node scripts/run_tests.mjs` (volledig), `node scripts/voice_coverage.mjs --quiet`, `node scripts/text_audit.mjs`, en apart `junction_sim_test` (17/17), `province_test`, `drive_audit` (ongeveer 2 botsingen) en de andere zware wereldchecks.
+3. Eén Electron-verhaaltest (`--story-test=<dir>`, wegwerpprofiel via `GDE_TEST_PROFILE`); NaN-waarschuwingen in geometrie laten die falen.
+4. `[Unreleased]` in `CHANGELOG.md` omzetten naar `## [X.Y.Z] - datum` en nalopen dat alles erin staat wat spelerzichtbaar is; schone werkboom.
+5. `cd desktop && npm run release -- minor|patch` (zonder Linux). Daarna issues op het bord naar Klaar, `Closes #n` nalopen en de testers laten vermelden in #116.
+6. Niets openbaar maken zonder akkoord van de eigenaar.

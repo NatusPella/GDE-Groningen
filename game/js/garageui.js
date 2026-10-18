@@ -5,6 +5,10 @@
 // WebGL context of its own.
 import { getGarageCatalog, whereText } from './ownedvehicles.js';
 import { createSharedPreview } from './vehiclepreview.js';
+import {
+  GARAGE_FILTERS as FILTERS, GARAGE_SORTS as SORTS, garageGroup as groupOf, garagePrice as priceOf,
+  garageShown, garageSections, garageTabCounts, cycleOption, keepSelection,
+} from './menumodels.js';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
@@ -29,20 +33,6 @@ export function initGarageStyles() {}
 const LOCK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 11h10a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM8 11V8a4 4 0 0 1 8 0v3"/></svg>';
 const PIN = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-6.5-6-6.5-11a6.5 6.5 0 0 1 13 0c0 5-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.3"/></svg>';
 
-const CATS = [
-  ['all', 'Alles'],
-  ['autos', "Auto's"],
-  ['bussen', 'Bussen'],
-  ['fietsen', 'Fietsen'],
-  ['scooters', 'Scooters'],
-  ['boten', 'Boten'],
-  ['luchtvaart', 'Lucht'],
-  ['speciaal', 'Speciaal'],
-];
-const FILTERS = [['all', 'alles'], ['owned', 'van jou'], ['sale', 'te koop'], ['locked', 'op slot']];
-const SORTS = [['naam', 'Op naam'], ['prijs', 'Op prijs'], ['snelheid', 'Op snelheid']];
-const BIG_TYPES = new Set(['Bestelbus', 'Vrachtwagen', 'Midibus', 'Stadsbus', 'Tankwagen', 'Geldwagen']);
-const GROUPS = ['owned', 'sale', 'locked'];
 const GROUP_LABEL = { owned: 'van jou', sale: 'te koop', locked: 'op slot' };
 const GROUP_HEAD = { owned: 'Van jou', sale: 'Te koop', locked: 'Op slot' };
 const view = { cat: 'all', filter: 'all', sort: 'naam' };
@@ -51,36 +41,15 @@ let viewer = null;
 let selected = null;
 let lastList = [];
 
-// Story/achievement unlocks are "Speciaal", whatever they drive like.
-function categoryOf(e) {
-  const spec = e.spec || {};
-  if (spec.kind === 'heli') return 'luchtvaart';
-  if (spec.unlock) return 'speciaal';
-  if (spec.kind === 'boat') return 'boten';
-  if (spec.kind === 'bike') return 'fietsen';
-  if (spec.kind === 'scooter') return 'scooters';
-  if (e.kind === 'bus' || e.kind === 'truck' || BIG_TYPES.has(spec.type)) return 'bussen';
-  return 'autos';
-}
-const groupOf = (e) => e.owned ? 'owned' : e.locked ? 'locked' : 'sale';
-const priceOf = (e) => e.price || (e.spec && e.spec.price) || 0;
 const euro = (n) => `€${Number(n).toLocaleString('nl-NL')}`;
-const SORTERS = {
-  naam: (a, b) => String(a.model).localeCompare(String(b.model), 'nl'),
-  prijs: (a, b) => priceOf(a) - priceOf(b) || SORTERS.naam(a, b),
-  snelheid: (a, b) => b.topSpeed - a.topSpeed || SORTERS.naam(a, b),
-};
-const inCat = (e) => view.cat === 'all' || categoryOf(e) === view.cat;
-// yours first, then for sale, then locked; within each the chosen order
-const shownList = (list) => list.filter((e) => inCat(e) && (view.filter === 'all' || groupOf(e) === view.filter))
-  .sort((a, b) => GROUPS.indexOf(groupOf(a)) - GROUPS.indexOf(groupOf(b)) || (SORTERS[view.sort] || SORTERS.naam)(a, b));
+const shownList = (list) => garageShown(list, view);
 
 function previewSpec(e) {
   if (!e || !e.spec || !e.spec.model) return null;
   return { kind: e.spec.kind === 'scooter' ? 'scooter' : e.spec.kind, model: e.spec.model, color: e.color, nameIdx: e.spec.nameIdx || 0, flags: e.hero ? { isHeroCar: true } : e.spec.flags || null };
 }
 
-// the end of a row: where it is, its price, or the lock
+// the card's status line: where it is, its price, or the lock
 function endHtml(e) {
   if (e.locked) return `${LOCK}<span class="t">${esc(e.unlockShort || 'Op slot')}</span>`;
   if (!e.owned && e.spec && e.spec.unlock) return '<span class="t g">Vrijgespeeld</span>';
@@ -90,9 +59,11 @@ function endHtml(e) {
   return `<span class="t${e.status === 'driving' ? ' g' : ''}">${label}</span>`;
 }
 
+// a card of the grid: the vehicle's silhouette in its own paint, name, status
 function row(e) {
   return `<button type="button" class="m-li gar-card${e.locked ? ' off' : ''}${e.id === selected ? ' sel' : ''}" data-garage-select="${esc(e.id)}" data-group="${groupOf(e)}"${e.id === selected ? ' aria-current="true"' : ''}>` +
-    `<span class="nm"><span class="one">${esc(e.model)}</span><span class="mut one">${esc([e.make, e.kindLabel].filter(Boolean).join(' · '))}</span></span>${endHtml(e)}</button>`;
+    `<span class="gar-ph">${vehicleGlyph(e.kind, e.locked ? '#6d756d' : e.color)}</span>` +
+    `<span class="nm"><span class="one">${esc(e.model)}</span><span class="gar-st">${endHtml(e)}</span></span></button>`;
 }
 
 function viewerHtml(e, msg) {
@@ -139,11 +110,7 @@ function tabsHtml(list) {
   const sort = (SORTS.find(([id]) => id === view.sort) || SORTS[0])[1];
   const filt = (FILTERS.find(([id]) => id === view.filter) || FILTERS[0])[1];
   return '<nav class="m-tablist" role="tablist" aria-label="Soort voertuig">' +
-    CATS.map(([id, label]) => {
-      const all = list.filter((e) => id === 'all' || categoryOf(e) === id);
-      if (!all.length) return '';
-      return `<button type="button" role="tab" class="m-tab" data-garage-cat="${id}" aria-selected="${view.cat === id}">${esc(label)}<small>${all.filter((e) => e.owned).length}</small></button>`;
-    }).join('') + '</nav><span class="m-grow"></span>' +
+    garageTabCounts(list).map((t) => `<button type="button" role="tab" class="m-tab" data-garage-cat="${t.id}" aria-selected="${view.cat === t.id}">${esc(t.label)}<small>${t.owned}</small></button>`).join('') + '</nav><span class="m-grow"></span>' +
     `<button type="button" class="m-bt" data-garage-filter>Toon: ${filt}</button>` +
     `<button type="button" class="m-bt" data-garage-sort>${sort}</button>`;
 }
@@ -152,18 +119,14 @@ function listHtml(list) {
   const shown = shownList(list);
   if (!shown.length) return '<p class="m-note">Niks in deze selectie. Kies een andere soort of toon alles.</p>';
   let out = '';
-  for (const g of GROUPS) {
-    const mine = shown.filter((e) => groupOf(e) === g);
-    if (mine.length) out += `<div class="m-gh"><span>${GROUP_HEAD[g]}</span><span>${mine.length}</span></div>${mine.map(row).join('')}`;
-  }
+  for (const { group, items } of garageSections(shown)) out += `<div class="m-gh"><span>${GROUP_HEAD[group]}</span><span>${items.length}</span></div>${items.map(row).join('')}`;
   return out;
 }
 
 function pickShown(el) {
-  const rows = [...el.querySelectorAll('.gar-card')];
-  const keep = rows.find((c) => c.dataset.garageSelect === selected) || rows[0];
-  if (!keep) { disposeGarageViewer(); const box = el.querySelector('.gar-viewer'); if (box) box.innerHTML = ''; return; }
-  selectGarageVehicle(el, keep.dataset.garageSelect);
+  const keepId = keepSelection(shownList(lastList), selected);
+  if (keepId == null) { disposeGarageViewer(); const box = el.querySelector('.gar-viewer'); if (box) box.innerHTML = ''; return; }
+  selectGarageVehicle(el, keepId);
 }
 
 function refreshList(el) {
@@ -183,8 +146,8 @@ function bindToolbar(el) {
     const f = ev.target.closest('[data-garage-filter]');
     if (!c && !s && !f) return;
     if (c) view.cat = c.dataset.garageCat;
-    if (s) view.sort = SORTS[(SORTS.findIndex(([id]) => id === view.sort) + 1) % SORTS.length][0];
-    if (f) view.filter = FILTERS[(FILTERS.findIndex(([id]) => id === view.filter) + 1) % FILTERS.length][0];
+    if (s) view.sort = cycleOption(SORTS, view.sort);
+    if (f) view.filter = cycleOption(FILTERS, view.filter);
     refreshList(el);
     const again = el.querySelector(c ? `[data-garage-cat="${view.cat}"]` : s ? '[data-garage-sort]' : '[data-garage-filter]');
     if (again) again.focus({ preventScroll: true });

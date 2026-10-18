@@ -1,10 +1,11 @@
+import { wantedPhase } from './wantedstate.js';
 import { pointInPolygon as pointInPoly } from './util.js';
 import { dualHtml } from './subtitles.js';
 import { simLevel } from './simload.js';
 import { getGaragesForRender } from './garages.js';
 import { getHomeForRender, getHomeGarageForRender, getHomeMooringForRender, getHomeHelipadForRender } from './home.js';
 import { minimapShows } from './mapfilters.js';
-import { mapCategory, mapRimColor } from './mapicons.js';
+import { mapCategory, mapRimColor, mapPriority, miniIconScale, iconGapPx } from './mapicons.js';
 import { facilitiesOf } from './facilities.js';
 import { getHorecaForRender } from './horeca.js';
 import { getShopsForRender, drawShopMapIcon, drawShopGlyph, SHOP_TYPES, storyTargetShop, drawStoryShopRing } from './shops.js';
@@ -23,7 +24,8 @@ import { cinematicAllowsDamageFx, isBannerUp, isCinematicActive, wijkBlurb } fro
 import { isMuted, engineReadout } from './audio.js';
 import { gearboxReadout } from './gearbox.js';
 import { drawRailsOnMap, drawTrainsOnMap } from './railway.js';
-import { drawCountryMinimap, villageLabels, MINI_STYLE } from './countrymap.js';
+import { drawCountryMinimap, villageLabels, syncMapPhase } from './countrymap.js';
+import { MINI_PALETTE as MINI_STYLE, EMPHASIS, seaStyle, miniRoadStyle } from './mapstyle.js';
 import { drawSea, drawOutside, regionLabels, areaNameAt, REGIONS } from './regions.js';
 import { worldPlaceLabels, worldPlacesReady } from './worldplaces.js';
 import { provinceMapOn } from './provincemap.js';
@@ -38,15 +40,17 @@ import { setGhostBar, ring, pop } from './motion.js';
 import { renderSnapshot, PORTRAIT_ANGLE } from './vehiclepreview.js';
 import { TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { initPrompts, updatePrompts, hintCount } from './prompts.js';
-import { hudPixelRatio, sizeSquareCanvas } from './uiscale.js';
+import { hudPixelRatio, sizeSquareCanvas, getUiScale, onUiScaleChange } from './uiscale.js';
 import { initCards, updateCards } from './hudcards.js';
 import { markerColors, onPaletteChange } from './a11y.js';
 import { drawMissionGlyph } from './missionicons.js';
 import { decideHud, zones, hudNow, P3, PLACE_SHOW, E_SHOW, DEFER_MAX, GPS_NEAR } from './hudrules.js';
+import { vehicleKind, speedoLook, meterLevel, hudEdge, distanceOwner, vehicleLabelOwner } from './hudlook.js';
 import { nextTurn, turnText, etaText } from './hudgps.js';
 import { travelModeOf, roadAllowed, minimapScale, northUp, MINIMAP_MODE } from './roadaccess.js';
 import { hudDate } from './hudcalendar.js';
 import { LANDMARK_LINES } from './placelines.js';
+import { townProfile } from './stadsprofielen.js';
 import { getSettings } from './settings.js';
 import { heldBack } from './narrative.js';
 import { isPauseMenuOpen } from './pausemenu.js';
@@ -124,7 +128,7 @@ export function initHud(world) {
   speedo.className = 'hud-speedo';
   speedo.innerHTML = '<div class="sp-main"><div class="sp-gears" role="img" aria-label="Versnelling"></div><b class="sp-val">0</b><span class="sp-unit">km/u</span></div>' +
     `<svg class="sp-rpm" viewBox="0 0 200 200" role="img" aria-label="Toerental"><path class="rpm-bg" d="${RPM_ARC}"/><path class="rpm-zone" d="${RPM_ARC}" pathLength="100" stroke-dasharray="${100 - RPM_RED_AT} 100" stroke-dashoffset="${-RPM_RED_AT}"/>` +
-    `<path class="rpm-fill" d="${RPM_ARC}" pathLength="100" stroke-dasharray="0 100"/><text x="100" y="112" text-anchor="middle" class="rpm-t">TOEREN</text><text x="100" y="138" text-anchor="middle" class="rpm-u">x1000</text></svg>`;
+    `<path class="rpm-fill" d="${RPM_ARC}" pathLength="100" stroke-dasharray="0 100"/></svg>`;
   root.appendChild(speedo);
 
   const vehName = document.createElement('div');
@@ -211,12 +215,6 @@ export function initHud(world) {
     '</div>';
   fcol.appendChild(topLeft);
 
-  // the route's distance lives in the objective and the GPS card now
-  const routeChip = document.createElement('div');
-  routeChip.className = 'hud-route';
-  routeChip.setAttribute('aria-live', 'off');
-  root.appendChild(routeChip);
-
   els = {
     root,
     character: topLeft.querySelector('.hud-character'),
@@ -290,16 +288,21 @@ export function initHud(world) {
     npArtist: nowPlaying.querySelector('.np-artist'),
     npTitle: nowPlaying.querySelector('.np-title'),
     npShown: null,
-    routeChip,
-    routeText: '',
     mmWrap,
     mmCanvas,
     mmCtx: mmCanvas.getContext('2d'),
     vis: {},
   };
   initPrompts(root);
+  fitEdge(root);
+  onUiScaleChange(() => fitEdge(root));
   watchRightStack(root, topRight, race);
   watchInput();
+}
+
+// The HUD's margin to the screen edge: title-safe on a TV, tight on 720p (hudlook.js)
+function fitEdge(root) {
+  root.style.setProperty('--hud-edge', hudEdge(window.innerWidth, window.innerHeight, getUiScale()) + 'px');
 }
 
 // The right column flows under the top-right block: the race panel sits just
@@ -358,6 +361,7 @@ function updateVehicleName(dt, world) {
       vehNameTimer = 0;
     }
   }
+  els.vehRow.classList.toggle('no-label', vehicleLabelOwner({ nameCardVisible: vehNameTimer > 0 }) === 'card');
   if (vehNameTimer > 0) {
     vehNameTimer -= dt;
     if (vehNameTimer <= 0) els.vehName.classList.remove('on');
@@ -384,7 +388,6 @@ export function updateHud(dt, world) {
   updateNowPlaying(dt, world);
   updateLocation(dt, world);
   updatePrompts(dt, world);
-  updateRouteChip(world);
   updateVisibility(dt, world);
   // very CPU-bound (simload.js level 2): the minimap redraws every second
   // frame, its zoom easing over the time in between. It turns with the
@@ -533,23 +536,6 @@ function staminaOf(world) {
   return st;
 }
 
-function updateRouteChip(world) {
-  const route = getActiveRoute();
-  let text = '', kind = '';
-  if (route && route.remaining > 12) {
-    kind = route.kind;
-    text = `${routeLabel(route)}: ${formatDistance(route.remaining)}`;
-  } else if (!route && getUserWaypoint()) {
-    const wp = getUserWaypoint();
-    kind = 'user';
-    text = `Doel: ${formatDistance(Math.hypot(wp.x - world.player.x, wp.y - world.player.y))}`;
-  }
-  if (text === els.routeText) return;
-  els.routeText = text;
-  els.routeChip.textContent = text;
-  els.routeChip.dataset.kind = kind;
-}
-
 
 function currentDistrict(world) {
   const { x, y } = world.player;
@@ -584,7 +570,7 @@ export function placeLabel(world, x, y) {
     const a = areaNameAt(x, y);
     const name = a.near ? a.name : a.sub && a.region === 'groningen' ? a.sub : a.name;
     const v = VILLAGES[name];
-    return { name, country: true, district: name, line: v && v.teaser ? v.teaser : '' };
+    return { name, country: true, district: name, line: v && v.teaser ? v.teaser : townTeaser(name) };
   }
   for (const l of world.map.meta.landmarks || []) {
     if (Math.hypot(l.x - x, l.y - y) <= 90) return { name: l.name, country: false, district: '', line: LANDMARK_LINES[l.name] || '' };
@@ -596,6 +582,9 @@ export function placeLabel(world, x, y) {
   }
   return { name: best || 'Grunn', country: false, district: best || '', line: best ? wijkBlurb(best) : '' };
 }
+
+// the line of a town of the province (stadsprofielen.js), where a village has none
+const townTeaser = (name) => { const t = townProfile(name); return t ? t.teaser : ''; };
 
 let locationTimer = 0;
 let locWhere = { district: '', country: false, region: '' };
@@ -642,7 +631,7 @@ function placeCandidate(world) {
     if (d === 'Ommeland') return null;
     const v = VILLAGES[d];
     const rn = locWhere.region && locWhere.region !== 'groningen' ? REGIONS[locWhere.region].name : '';
-    if (rn) return { key: 'v:' + d, kick: rn === d ? '' : rn, name: d, line: v && v.teaser ? v.teaser : '' };
+    if (rn) return { key: 'v:' + d, kick: rn === d ? '' : rn, name: d, line: v && v.teaser ? v.teaser : townTeaser(d) };
     return { key: 'v:' + d, kick: v && v.gro ? `Ommeland · ${v.gro}` : 'Ommeland', name: d, line: v && v.teaser ? v.teaser : '' };
   }
   return { key: 'w:' + d, kick: 'Grunn', name: d, line: wijkBlurb(d) };
@@ -811,7 +800,9 @@ function updateBars(world) {
     setGhostBar(els.healthFill, els.healthFill.previousElementSibling, hp);
     els.hpNum.textContent = hp;
     els.hpRow.setAttribute('aria-valuenow', hp);
-    els.hpRow.classList.toggle('low', hp < 30 && hp > 0);
+    const lvl = meterLevel(hp / 100);
+    els.hpRow.classList.toggle('low', lvl !== 'ok' && hp > 0);
+    els.hpRow.classList.toggle('crit', lvl === 'crit' && hp > 0);
     els.portrait.classList.toggle('low', hp < 30);
   }
   if (ar !== els.arKey) {
@@ -853,7 +844,8 @@ let wantedKey = '';
 let wantedShown = 0;
 function updateWanted(world) {
   const pol = world.police;
-  const searching = !!(pol && pol.searching);
+  const phase = wantedPhase(world);
+  const searching = phase === 'zoeken';
   // the search box: how far you are out of the search area (and how long until a star drops)
   if (searching && world.wanted > 0 && pol.searchCenter) {
     const d = Math.hypot(world.player.x - pol.searchCenter.x, world.player.y - pol.searchCenter.y);
@@ -874,7 +866,7 @@ function updateWanted(world) {
   wantedShown = world.wanted;
   els.wanted.classList.toggle('searching', searching && world.wanted > 0);
   els.wanted.classList.toggle('chase', world.wanted > 0 && !searching);
-  els.wanted.setAttribute('aria-label', `Gezocht: ${world.wanted} van 5${searching ? ', politie zoekt je' : ''}`);
+  els.wanted.setAttribute('aria-label', `Gezocht: ${world.wanted} van 5, ${wantedPhase(world) === 'zoeken' ? 'politie zoekt je' : 'achtervolging'}`);
 }
 
 export function getClockText(world) {
@@ -975,7 +967,10 @@ function updateSpeedo(world) {
   }
   els.speedo.classList.toggle('shiftlight', !!gbm && gbm.shiftLight && !gbm.limiter);
   els.speedo.classList.toggle('limiter', !!gbm && gbm.limiter);
-  els.speedo.classList.toggle('no-rpm', !eng);
+  // a vehicle shows only what it has (hudlook.js): no gears on a bike, no revs on a boat
+  const look = speedoLook(vehicleKind(v, { train: isTrain }), !!eng);
+  els.speedo.classList.toggle('no-rpm', !look.rpm);
+  els.speedo.classList.toggle('no-gears', !look.gears);
   if (eng) {
     const pct = Math.max(0, Math.min(100, Math.round((eng.rpm / (eng.red / (RPM_RED_AT / 100))) * 100)));
     const k = String(pct);
@@ -1177,7 +1172,7 @@ function updateMission(world) {
   const r = getActiveRoute();
   // the turn card already carries the distance of the route
   const gpsShows = !els.gps.hidden && !els.gps.classList.contains('no-turn') && !els.gps.classList.contains('hv-off');
-  setText(els.missionDist, r && r.remaining > 12 && o.kind !== 'job' && !gpsShows ? formatDistance(r.remaining) : '');
+  setText(els.missionDist, r && r.remaining > 12 && o.kind !== 'job' && distanceOwner({ gps: gpsShows, objective: true }) === 'objective' ? formatDistance(r.remaining) : '');
   if (key !== els.objKey) {
     els.objKey = key;
     els.mission.dataset.kind = o.kind;
@@ -1863,12 +1858,13 @@ export function forEachPoliceUnit(world, fn) {
   if (world.policeHeli) fn(world.policeHeli.x, world.policeHeli.y, 'police');
 }
 
-const MM_ICON = 1.7;
+// icon sizes come from mapicons.js: a floor in HUD px, bigger than on the full map in proportion (#114)
+const MM_ICON = miniIconScale(MINIMAP_SIZE, true);
 // Static places: only the categories switched on in the map legend
 // (mapfilters.js, shared with the full map), only the nearest few, only close by, drawn smaller and
 // skipped where they would overlap something more important.
-const MM_POI_ICON = 1.45;
-const MM_POI_GAP_PX = 21;
+const MM_POI_ICON = miniIconScale(MINIMAP_SIZE);
+const MM_POI_GAP_PX = iconGapPx(MM_POI_ICON);
 const MM_POI_NEAR_M = 150;
 const MM_POI_FAR_M = 250;
 const SHOP_GROUPS = ['shopsWapens', 'shops', 'shopsVoertuigen'];
@@ -1928,6 +1924,8 @@ function drawMinimapPois(ctx, world, job, placed, inRange, toScreen, t) {
   add('horeca', getHorecaForRender(), 'horeca', 1);
   add('landmark', world.map.meta.landmarks || [], 'landmark', 2);
 
+  // the most important place wins where two would touch
+  pois.sort((a, b) => mapPriority(b[0]) - mapPriority(a[0]));
   const gap2 = MM_POI_GAP_PX * MM_POI_GAP_PX;
   const drawn = [];
   for (const [kind, x, y] of pois) {
@@ -1993,6 +1991,7 @@ function drawVillageNames(ctx, player, radius, toScreen) {
 }
 
 function drawMinimap(dt, world) {
+  syncMapPhase(world);
   const ctx = els.mmCtx;
   const dpr = hudPixelRatio();
   sizeSquareCanvas(els.mmCanvas, Math.round(MINIMAP_SIZE * dpr));
@@ -2033,7 +2032,7 @@ function drawMinimap(dt, world) {
   ctx.fillRect(player.x - MM_RADIUS_M, player.y - MM_RADIUS_M, MM_RADIUS_M * 2, MM_RADIUS_M * 2);
   drawCountryMinimap(ctx, player.x - MM_RADIUS_M, player.y - MM_RADIUS_M, player.x + MM_RADIUS_M, player.y + MM_RADIUS_M, mmScale);
   const province = provinceMapOn();
-  if (province) drawSea(ctx, (n) => n / mmScale, { fill: MINI_STYLE.water, edge: '#5aa0c0' });
+  if (province) drawSea(ctx, (n) => n / mmScale, seaStyle(MINI_STYLE));
 
   const view = world.map.queryView(
     player.x - MM_RADIUS_M, player.y - MM_RADIUS_M,
@@ -2056,11 +2055,13 @@ function drawMinimap(dt, world) {
     ctx.beginPath();
     ctx.moveTo(r.pts[0][0], r.pts[0][1]);
     for (let i = 1; i < r.pts.length; i++) ctx.lineTo(r.pts[i][0], r.pts[i][1]);
-    let color = r.cat === 'major' ? '#f0ede4' : r.cat === 'cycle' ? '#c9603f' : '#a8ada2';
-    let w = Math.max(r.width, 3);
-    let a = landAlpha;
-    if (emph === 'foot') { if (r.cat === 'foot') { color = '#d9d4c4'; w = Math.max(w, 3.4); } }
-    else if (emph === 'cycle') { if (r.cat === 'cycle') { color = '#ff8a5c'; w = Math.max(w, 4); } else if (r.cat === 'foot') a *= 0.4; }
+    let color = r.cat === 'major' ? MINI_STYLE.major : r.cat === 'cycle' ? MINI_STYLE.cycle : MINI_STYLE.road;
+    const rs = miniRoadStyle(r.cat, r.width, mmScale);
+    if (rs.alpha <= 0.02) continue;
+    let w = rs.widthM;
+    let a = landAlpha * rs.alpha;
+    if (emph === 'foot') { if (r.cat === 'foot') { color = EMPHASIS.foot; w = Math.max(w, 3.4); } }
+    else if (emph === 'cycle') { if (r.cat === 'cycle') { color = EMPHASIS.cycle; w = Math.max(w, 4); } else if (r.cat === 'foot') a *= 0.4; }
     else if (emph === 'major') { if (r.cat === 'major') w = Math.max(w, r.width * 1.1); else if (r.cat === 'foot' || r.cat === 'cycle') a *= 0.35; }
     if (allowed === false && r.cat !== 'major') a *= 0.45;
     ctx.globalAlpha = a;
@@ -2071,7 +2072,7 @@ function drawMinimap(dt, world) {
     if (allowed === false && r.cat === 'major') {
       ctx.globalAlpha = 1;
       ctx.setLineDash([5, 4]);
-      ctx.strokeStyle = '#d93f3f';
+      ctx.strokeStyle = EMPHASIS.forbidden;
       ctx.lineWidth = Math.max(2, w * 0.4);
       ctx.stroke();
       ctx.setLineDash([]);
@@ -2081,9 +2082,9 @@ function drawMinimap(dt, world) {
   drawRailsOnMap(ctx, world.map, player.x - MM_RADIUS_M, player.y - MM_RADIUS_M, player.x + MM_RADIUS_M, player.y + MM_RADIUS_M, 3.2);
   drawTrainsOnMap(ctx);
 
-  const MM_BUILDING_COLORS = ['#b98a6a', '#9a8a7a', '#c9a876', '#8a96a0', '#a88a9a'];
+  const MM_BUILDING_COLORS = MINI_STYLE.buildings;
   for (const b of view.buildings) {
-    ctx.fillStyle = b.landmark ? '#8a8474' : MM_BUILDING_COLORS[Math.floor(mmHash(b.pts[0][0], b.pts[0][1]) * MM_BUILDING_COLORS.length)];
+    ctx.fillStyle = b.landmark ? MINI_STYLE.church : MM_BUILDING_COLORS[Math.floor(mmHash(b.pts[0][0], b.pts[0][1]) * MM_BUILDING_COLORS.length)];
     fillPoly(ctx, b.pts);
   }
   ctx.globalAlpha = 1;

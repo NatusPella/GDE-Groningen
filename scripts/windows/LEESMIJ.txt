@@ -10,8 +10,7 @@ Spelen op Windows:
 3. De game opent vanzelf in je standaardbrowser.
    Laat het zwarte venster open zolang je speelt; sluit het om te stoppen.
 
-De eerste keer wordt (als je nog geen Python hebt) een portable Python van
-python.org gedownload, ongeveer 11 MB. Daarna start alles meteen.
+Er is niets extra nodig: de game draait op een kleine server van Windows zelf.
 
 Tips:
 - Je hebt internet nodig tijdens het spelen.

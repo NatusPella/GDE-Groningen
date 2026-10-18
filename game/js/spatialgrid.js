@@ -55,4 +55,19 @@ export class SpatialGrid {
     }
     return out;
   }
+  // Items whose cells overlap the square around (x, y) with half-side r: a
+  // superset of the items within r, the caller does the exact distance test.
+  queryRadius(x, y, r) { return this.query(x - r, y - r, x + r, y + r); }
+  insertPoint(item, x, y) { this.insert(item, [x, y, x, y]); }
+  removePoint(item, x, y) { this.remove(item, [x, y, x, y]); }
+  // Moves an item whose bounds changed; a no-op when the cells stay the same.
+  update(item, oldBounds, newBounds) {
+    const a = this.cellRange(...oldBounds), b = this.cellRange(...newBounds);
+    if (a.cx0 === b.cx0 && a.cy0 === b.cy0 && a.cx1 === b.cx1 && a.cy1 === b.cy1) return;
+    this.remove(item, oldBounds);
+    this.insert(item, newBounds);
+  }
+  // The raw item list of one cell (not a copy), or undefined.
+  cellItems(cx, cy) { return this.map.get(this.key(cx, cy)); }
+  clear() { this.map.clear(); }
 }

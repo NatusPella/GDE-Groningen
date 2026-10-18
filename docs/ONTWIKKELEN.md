@@ -23,6 +23,23 @@ Python from python.org into `.python\` next to the game (once, no admin rights
 needed). It then picks a free port, starts the server on 127.0.0.1 and opens
 the game in the browser.
 
+## Scripts per platform
+
+What works where. "Git Bash" means a POSIX shell on Windows (Git Bash or WSL), not PowerShell or cmd.
+
+| Script | macOS | Windows | Linux |
+| --- | --- | --- | --- |
+| `node scripts/*_test.mjs`, `voice_coverage.mjs` | yes | yes | yes |
+| `desktop/` `npm start`, `npm run stage` | yes | yes | yes |
+| `desktop/release.sh` (`npm run release`) | yes | Git Bash | yes (add `--linux` for the Linux build) |
+| `scripts/make_windows_zip.sh` | yes | Git Bash | yes |
+| `scripts/play_local.sh` | yes | Git Bash | yes |
+| `scripts/perf/*.sh`, `scripts/bughunt/run.sh` | yes | Git Bash | yes |
+| `scripts/steam_images.mjs` | yes | only with `CHROME=<path to chrome.exe>` | only with `CHROME=<path>` (the default path is macOS) |
+| `start.bat` | no | yes | no |
+
+Shell scripts and `.mjs`/`.js` stay LF (see `.gitattributes`); only `.bat` is CRLF.
+
 ## Tests
 
 Plain Node.js scripts, no test framework (a current Node.js release):
@@ -34,6 +51,38 @@ node scripts/voice_coverage.mjs --quiet  # every subtitle has a recording
 cd desktop && npm run stage && cd ..     # once: vendors three.js for the 3D tests
 for t in scripts/*_test.mjs; do node "$t" || echo "FAIL $t"; done   # includes rdnew, world_tiles, tileworld, floatingorigin
 ```
+
+### Test runner and audits
+
+`scripts/run_tests.mjs` runs the standard set in one go: `node --check` on all JS, `voice_coverage`, every `scripts/*_test.mjs` and the Python tests, with plain `node` (no `timeout` needed, it has its own). CI (`.github/workflows/test.yml`) runs the same on Linux and Windows for every pull request.
+
+```bash
+node scripts/run_tests.mjs --quick        # fast subset: no full syntax sweep, no slow tests (30 s per test)
+node scripts/run_tests.mjs                # everything standard (120 s per test)
+node scripts/run_tests.mjs --only=busy    # tests whose name contains "busy"
+node scripts/run_tests.mjs --list         # show what would run
+node scripts/run_tests.mjs --timeout=300  # per-test limit in seconds
+node scripts/text_audit.mjs               # player-facing text against the constitution (Dutch only, no real brands, "Grunn", summer); --all, --json
+```
+
+Tests that need `game/world` or `data/cache` and do not find it are skipped with a SKIP line. The heavy world checks are deliberately not in the runner and are run by the coordinator before a release: `province_test`, `province_detail_test`, `network_drive_test`, `junction_sim_test` (17/17), `scripts/world/ring_probe`, `scripts/world/drive_audit` (about 2 collisions), the rail and water audits and the Electron story test.
+
+Newer helpers and tests worth knowing:
+
+| Script | What it is |
+| --- | --- |
+| `scripts/lib/loadworld.mjs` | The city map for tests and audits. `WORLD_SRC=json` (default) loads `citymap.json`; `WORLD_SRC=tiles` builds the same city from tiles in memory (#90). `loadworld_test.mjs` |
+| `scripts/devflags_test.mjs` | Guards the `FLAGS` register: every switch has a description and is listed here |
+| `scripts/storage_migration_test.mjs`, `save_migration_test.mjs` | Old keys and old saves keep loading; run these after adding any `gde-*` key (register it in `storagekeys.js`) |
+| `scripts/busy_test.mjs`, `activityhub_test.mjs`, `hudbus_test.mjs`, `hud_test.mjs` | The player-busy gate, the activity registry, the attention planner and the HUD rules |
+| `scripts/cutscript_test.mjs`, `actoranim_test.mjs` | The cutscene language (validator, sampler) and the actor animation layer |
+| `scripts/spatialgrid_test.mjs`, `nearest_road_test.mjs` | The shared grid and the nearest-road query |
+| `scripts/mapstyle_test.mjs`, `regions_test.mjs`, `loadlogic_test.mjs` | Map style table, regions and load-screen logic |
+| `scripts/simlagen_test.mjs`, `simworker_test.mjs` | Simulation layers and the simulation worker kernel |
+| `scripts/padlogic_test.mjs`, `touch_test.mjs` | Controller and touch logic without hardware |
+| `scripts/akte1_doelen_test.mjs`, `reisbeats_test.mjs`, `reiskeuze_test.mjs`, `reistijd_test.mjs` | Every act-1 mission goal exists on the map; travel beats |
+| `scripts/placement_audit_test.mjs`, `road_seams_test.mjs`, `clearance_audit.mjs` | Placement of footprints, road seams and viaduct clearance |
+| `scripts/desktop_args_test.mjs` | The desktop argument parser (`desktop/args.cjs`) |
 
 ## Controls
 
@@ -151,6 +200,8 @@ generate 3D models.
 
 All URL switches live in one register, `FLAGS` in `game/js/devflags.js` (parsed once, with a description in `FLAG_DOCS`). A module imports `FLAGS.x` and never reads `location.search` itself. (`?nieuwverhaal` in `storyflag.js` is the one exception, to avoid an import cycle.)
 
+Debug hooks on `window` (`window.__x`, read by scripts/perf, the story test and the dev panel; not for players): `__activities`, `__audio`, `__banter`, `__blackCheck`, `__blackFrames`, `__calendar`, `__carbid`, `__cards`, `__carillon`, `__countrylife`, `__countryside`, `__debug`, `__discgolf`, `__drift`, `__farprops`, `__fierljep`, `__flavour`, `__furniture`, `__gdeRespawn`, `__gdeSky`, `__geheimen`, `__gfxAdvice`, `__gfxDyn`, `__goal`, `__heist`, `__heli`, `__heliRun`, `__hengelen`, `__hitch`, `__hitchOn`, `__home`, `__kartbaan`, `__kermis`, `__klimtoren`, `__landmarkKits`, `__loadMarks`, `__muggings`, `__narrative`, `__noLandmarkKits`, `__noPrepare`, `__ommeland`, `__onboarding`, `__padel`, `__pannenkoek`, `__phonefeed`, `__pitchputt`, `__postgame`, `__profileOverlay`, `__radio`, `__roadrage`, `__scene3d`, `__simLoad`, `__skatepark`, `__snackketen`, `__speech`, `__story`, `__storyContact`, `__storyEikea`, `__storyFun`, `__storyTestReport`, `__storytalk`, `__storytext`, `__tileWindows`, `__trailer`, `__wandeling`, `__waterski`, `__worldevents`, `__zwembad`. Find the module with `grep -rn "window.__x" game/js`. They are not moved into a namespace yet (#113).
+
 | Switch | What it does |
 | --- | --- |
 | `?dev` | Verhaalpaneel op F9; eigen opslag (gde-dev:), raakt de echte save niet |
@@ -168,15 +219,33 @@ All URL switches live in one register, `FLAGS` in `game/js/devflags.js` (parsed 
 | `?frames` | Trailer: sla beeld voor beeld op |
 | `?video` | Trailer: neem video op (alleen desktop) |
 | `?legacymap` | Laad de oude kaart in plaats van de tegelwereld |
+| `?terrain` | Hoogtes volgen het AHN-terrein (dijken, wierden; het terrein wordt nog niet getekend) |
+| `?stadlaag` | Stad per laag uit de gedeelde tegelbouw (gebouwen, wegen, water, spoor, groen, meubilair, poi, objecten, namen, of alle); #90, standaard uit |
 | `?nobatch` | Zet het samenvoegen van meshes uit (scene3d) |
 | `?shaderdebug` | Laat three.js shaderfouten controleren |
 | `?noworker` | Geometrie op de hoofdthread in plaats van in de worker |
+| `?simworker` | Simulatie-worker (simhost.js, #58): proefstadium, doet niets aan het spel zelf |
 | `?gfxadvies` | Toon het grafische advies ook als de speler al koos |
 | `?gpu` | Doe alsof de GPU deze renderer-tekst heeft (test van het advies) |
 | `?preset` | Instellingen alleen voor deze run, bv. quality:laag,drawDistance:kort |
+| `?pixeldebug` | Nabewerking verft NaN/Inf-pixels magenta en negatieve HDR-waarden cyaan (issue #35) |
+| `?coop` | Lokale co-op voor twee spelers: speler 2 stuurt de metgezel (coop.js, issue #95) |
+| `?marker` | `?marker=vorm`: de vaste 3D-vormen van de wereldmarker in plaats van het zachte glyph |
 | `?touch` | Raakbediening aan (touch=1) of uit (touch=0), ook zonder touchscherm |
 | `?hitch` | Meet haperingen (hitchprobe) |
+| `?simlagen` | Verkeer volgens simulatielagen per streek en afstand (simlagen.js) |
 | `?zwartcheck` | Controleer op zwarte beelden (blackframe) |
+| `?reizen` | Reisbeats in het nieuwe verhaal: keuze Meerijden, Zelf rijden of Overslaan bij een sprong (#97) |
+| `?testmenu` | Testmenu op F10 met alle schakelaars en snelkoppelingen; eigen opslag (gde-dev:), raakt de echte save niet |
+| `?brugbotsing` | Stuurt na een paar seconden een binnenvaartschip tegen de dichtstbijzijnde brug (#9) |
+| `?sfxtest` | Geluidstest: paneel met alle effecten, een afstandsschuif en een afspeelknop per effect; F8 verbergt het (#173) |
+
+Every switch above is **off by default**: nothing changes for a player unless the name is in the URL. Value switches (`?shot=3`, `?marker=vorm`, `?stadlaag=gebouwen,wegen`, `?touch=1`, `?preset=quality:laag`, `?gpu=<renderer>`, `?benchmark=<rounds>`) are null when absent. The ones to reach for most often:
+
+- Testing without touching your save: `?dev` (F9 panel) or `?storytest`; both use `gde-dev:` storage or memory.
+- Features still in trial, off by default so the game stays as it was: `?coop`, `?reizen`, `?simlagen`, `?simworker`, `?stadlaag`.
+- Diagnosis: `?pixeldebug` (NaN/Inf pixels magenta), `?hitch`, `?zwartcheck`, `?shaderdebug`, `?noworker`, `?nobatch`.
+- `?nieuwverhaal` (in `storyflag.js`, not in `FLAGS`) forces the new story line for a page load (`?nieuwverhaal=0` forces it off; also the setting Verhaal and `GDE_NIEUW_VERHAAL=1` in Node). `?marker=vorm` brings back the old fixed 3D marker shapes. A new switch is added to `FLAGS` and `FLAG_DOCS` only, and to the table above; `devflags_test.mjs` fails otherwise.
 
 - `?dev` (desktop `--dev`): story dev panel on F9. Chapter select (jumps to
   any story step with the money, belongings and progress a player would have
@@ -462,3 +531,20 @@ added to `citymap.json` are carried over by `build_map.py`.
 - Squares mapped as OSM multipolygon relations (such as the Grote Markt
   paving) and some named canals are not in the data yet, because
   `process_osm.py` only fetches ways.
+
+## AHN-hoogtes (issue #78)
+
+Hoogtes voor dijken, wierden, de Hondsrug en opritten komen uit het AHN (PDOK WCS, CC0):
+
+```bash
+python scripts/world/fetch_ahn.py --province                 # plan, geen netwerk
+python scripts/world/fetch_ahn.py --province --fetch --detail  # 25 m overal, 10 m bij dijken/wierden
+python scripts/world/fetch_ahn.py --province --fetch --limit 20  # een steekproef
+```
+
+Hervatbaar (gedownloade tegels staan in `data/cache/ahn`, mislukte worden 3x herhaald en genoemd),
+resultaat in `data/world/ahn` (ongecommit; `pack_tiles.mjs` zet het in de RASTER-sectie). De provincie
+is in m NAP (één nulpunt voor alle tegels), gaten (water, onder viaducten) worden uit de omgeving gevuld.
+AHN heeft onder viaducten geen data: daar gelden de viaducthoogteregels van #8. Het spel tekent nog geen
+terrein; met `?terrain` volgen `groundHeightAt`/`surfaceAt` het terrein (profielen zijn relatief aan het
+terrein, `profile.mjs --terrain`). Zonder de vlag verandert er niets. Tests: `terrain_test.mjs`, `scripts/world/fetch_ahn_test.py`.

@@ -10,6 +10,7 @@
 //    and the canal bed discard fragments there, see cutmask3d.js).
 // Pure data, built once per map (map.elev).
 import { closestPointOnSegment } from './util.js';
+import { SpatialGrid } from './spatialgrid.js';
 
 export const DECK_T = 1.0;           // viaduct deck thickness below the road surface
 export const EMB_SLOPE = 0.6;        // embankment side slope (rise per metre)
@@ -35,22 +36,10 @@ export function surfaceHalfWidth(r) {
   return r.width / 2 + (SIDEWALK_CATS.has(r.cat) ? SHOULDER : 0.3);
 }
 
-function cellKey(cx, cy) { return cx * 65536 + cy; }
-
-class Grid {
-  constructor(cell) { this.cell = cell; this.map = new Map(); }
-  insert(item, x0, y0, x1, y1) {
-    const c = this.cell;
-    for (let cx = Math.floor(x0 / c); cx <= Math.floor(x1 / c); cx++) {
-      for (let cy = Math.floor(y0 / c); cy <= Math.floor(y1 / c); cy++) {
-        const k = cellKey(cx, cy);
-        let a = this.map.get(k);
-        if (!a) this.map.set(k, a = []);
-        a.push(item);
-      }
-    }
-  }
-  at(x, y) { return this.map.get(cellKey(Math.floor(x / this.cell), Math.floor(y / this.cell))); }
+// SpatialGrid with the (item, x0, y0, x1, y1) and at(x, y) calls this module uses.
+class Grid extends SpatialGrid {
+  insert(item, x0, y0, x1, y1) { super.insert(item, [x0, y0, x1, y1]); }
+  at(x, y) { return this.cellItems(Math.floor(x / this.cell), Math.floor(y / this.cell)); }
 }
 
 const EMPTY = { segs: [], walls: [], skirts: [], floors: [], cuts: [], has: false };
@@ -90,7 +79,7 @@ export function buildElevation(map) {
       if (Z && (Math.abs(Z[i]) >= 0.02 || Math.abs(Z[i + 1]) >= 0.02)) continue;
       const ax = P[i][0], ay = P[i][1], bx = P[i + 1][0], by = P[i + 1][1];
       if (!near(ax, ay) && !near(bx, by) && !near((ax + bx) / 2, (ay + by) / 2)) continue;
-      elev.flatGrid.insert({ ax, ay, bx, by, hs }, Math.min(ax, bx) - hs, Math.min(ay, by) - hs, Math.max(ax, bx) + hs, Math.max(ay, by) + hs);
+      elev.flatGrid.insert({ ax, ay, bx, by, hs, r }, Math.min(ax, bx) - hs, Math.min(ay, by) - hs, Math.max(ax, bx) + hs, Math.max(ay, by) + hs);
     }
   }
   addRailLifts(elev, map);
@@ -108,24 +97,17 @@ export function buildElevation(map) {
 // to the nearest loose end nearby.
 function joinWallEnds(elev) {
   const open = (w) => w.kind === 'cut' && w.low && !w.parapet;
-  const CELL = 4, grid = new Map(), ends = [];
-  const key = (x, y) => Math.floor(x / CELL) * 65536 + Math.floor(y / CELL);
+  const CELL = 4, grid = new SpatialGrid(CELL), ends = [];
   for (const w of elev.walls) {
     if (!open(w)) continue;
     for (const [x, y, z] of [[w.ax, w.ay, w.za], [w.bx, w.by, w.zb]]) {
       const e = { w, x, y, z, loose: true };
       ends.push(e);
-      const k = key(x, y);
-      if (!grid.has(k)) grid.set(k, []);
-      grid.get(k).push(e);
+      grid.insertPoint(e, x, y);
     }
   }
   const around = (e, r, fn) => {
-    for (let cx = Math.floor((e.x - r) / CELL); cx <= Math.floor((e.x + r) / CELL); cx++) {
-      for (let cy = Math.floor((e.y - r) / CELL); cy <= Math.floor((e.y + r) / CELL); cy++) {
-        for (const f of grid.get(cx * 65536 + cy) || []) if (f.w !== e.w) fn(f, Math.hypot(f.x - e.x, f.y - e.y));
-      }
-    }
+    for (const f of grid.queryRadius(e.x, e.y, r)) if (f.w !== e.w) fn(f, Math.hypot(f.x - e.x, f.y - e.y));
   };
   for (const e of ends) around(e, 0.3, (f, d) => { if (d < 0.3) e.loose = false; });
   for (const e of ends) {

@@ -133,9 +133,6 @@ export function applyPigeonSaveData(d) {
   store = { best: Math.max(store.best, s.best), total: Math.max(store.total, s.total), ach: [...new Set([...store.ach, ...s.ach])], home: store.home || s.home };
 }
 
-export function isPigeonIntro() {
-  return !!intro;
-}
 
 // --- helpers ---------------------------------------------------------------
 
@@ -1147,9 +1144,6 @@ export function summonDiveGull(text = 'Een meeuw duikt op je af!') {
   return true;
 }
 
-export function getGullDiveHits() {
-  return gullDiveHits;
-}
 
 function updateGull(dt) {
   gullCd -= dt;
@@ -1512,7 +1506,8 @@ export function updatePigeonMode(dt, w) {
     world.addMessage('Gerucht: ergens in n tuin woont n duivenmelker…', 4);
   }
 
-  pl.x = lastSet.x = P.x;
+  world.pigeonAlt = P.z; // absolute height: breakables.js footKicks lets props below it be
+  world.pigeonAlt = Math.max(0, P.z - P.groundH);
   pl.y = lastSet.y = P.y;
   pl.angle = P.yaw;
   pl.vx = 0; pl.vy = 0;

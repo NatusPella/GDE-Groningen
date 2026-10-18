@@ -5,6 +5,8 @@
 // delivery vans in the centre. Pure data and picks: vehicle.js spawns them.
 // The street-life layer (streetlifedata.js) adds delivery riders with a big
 // bag, bike-share bikes, students moving house and unlit shabby bikes.
+import { MODS } from './cheatmods.js';
+import { lookModel } from './streekverkeer.js';
 import { pickStreetBike, shabbyHasLight, distToCentre, SHARE_TINT } from './streetlifedata.js';
 
 const CAR = {
@@ -92,7 +94,7 @@ function weighted(rng, table) {
 export function pickTrafficCar(map, x, y, rng = Math.random) {
   const prof = wijkProfileAt(map, x, y).def;
   const kind = weighted(rng, prof.car);
-  return { kind, model: carModel(kind, rng, prof.colors) };
+  return { kind, model: lookModel(carModel(kind, rng, prof.colors), MODS.look, rng) };
 }
 
 export function carModel(kind, rng = Math.random, colors = GREYS) {

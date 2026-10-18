@@ -16,11 +16,16 @@ import { askTravel, travelPromptOpen, closeTravel } from './reispanel.js';
 import { shouldPrompt, arrivalMessage } from './reisview.js';
 import { talkLines, storyDataReady } from './storytext.js';
 import { playTalk, talkActive } from './storytalk.js';
-import { teleport, blockedReason } from './cheats.js';
 import { isMissionActive, getMissionDefs } from './missions.js';
 import { missionIndexOf } from './storyarc.js';
 import { isCinematicActive, sinceCinematic } from './cinematics.js';
 import { narrativeBusy } from './narrative.js';
+
+// cheats.js is loaded late: a static import would join the big import cycle (import_cycles_test)
+let cheats = null;
+import('./cheats.js').then((m) => { cheats = m; }).catch(() => {});
+const teleport = (...a) => (cheats ? cheats.teleport(...a) : false);
+const blockedReason = (w) => (cheats ? cheats.blockedReason(w) : 'wacht');
 
 export const ARRIVE_M = 800;
 // a road is longer than the line through the air

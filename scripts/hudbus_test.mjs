@@ -48,5 +48,19 @@ ok(!mo('wijk', { last: { any: 990, level: 0, groups: {} } }), 'global gap');
 ok(!mo('wijk', { last: { any: 950, level: B.LEVEL.danger, groups: {} } }) && mo('crash', { last: { any: 950, level: B.LEVEL.discovery, groups: {} } }), 'lower level waits after a higher one');
 ok(!mo('crash', { last: { any: 0, level: 0, groups: { crash: 970 } } }), 'group cooldown');
 
+// the message queue: one at a time, ranked, same key replaces
+const card = (key, rank, o = {}) => ({ key, rank, important: 0, at: 0, ...o });
+let qu = [];
+qu = B.enqueueCard(qu, card('tip1', B.LEVEL.tip, { at: 1 }));
+qu = B.enqueueCard(qu, card('geld', B.LEVEL.reward, { at: 2 }));
+qu = B.enqueueCard(qu, card('politie', B.LEVEL.danger, { at: 3 }));
+ok(qu.map((c) => c.key).join() === 'politie,geld,tip1', 'queue ranks danger > reward > tip');
+qu = B.enqueueCard(qu, card('tip2', B.LEVEL.tip, { at: 0, important: 1 }));
+ok(qu[qu.length - 2].key === 'tip2', 'an important tip goes before a plain one');
+qu = B.enqueueCard(qu, card('geld', B.LEVEL.reward, { at: 9 }));
+ok(qu.filter((c) => c.key === 'geld').length === 1, 'same key replaces, never stacks');
+ok(B.enqueueCard(qu, card('x', B.LEVEL.tip, { at: 99 }), 3).length === 3, 'queue is capped');
+ok(B.enqueueCard(qu, card('x', B.LEVEL.story, { at: 99 }), 3)[0].key === 'x', 'a story card survives the cap');
+
 console.log(`${n - bad}/${n} hudbus rules ok`);
 process.exit(bad ? 1 : 0);

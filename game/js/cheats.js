@@ -14,6 +14,7 @@
 //   Teleporting, Voertuig hier and the cosmetic ones leave them on.
 import { CHEATS, CHEAT_BY_ID, storyCheatUnlocks, cheatUnlocksFromSave } from './cheatlist.js';
 import { MODS } from './cheatmods.js';
+import { targetMix, stepMix } from './streekverkeer.js';
 import { setAchievementGate, isUnlocked, hasUnique, markLifetime } from './achievements.js';
 import { getStorySave } from './story.js';
 import { getMissionProgress, isMissionActive } from './missions.js';
@@ -118,8 +119,10 @@ export function updateCheats(dt, w) {
   MODS.grip = live('frituurvet') ? 0.3 : 1;
   MODS.turbo = live('turbo');
   MODS.bounce = live('stuiter');
-  MODS.cars = live('geenverkeer') || live('fietsenstad') ? 0 : 1;
-  MODS.bikes = live('geenverkeer') ? 0 : live('fietsenstad') ? 3 : 1;
+  // traffic: the target mix of the verkeer streek that is on; the factors ramp there, so it dies out
+  const tm = targetMix((id) => live(id));
+  MODS.fading = stepMix(MODS, tm.mix, dt);
+  MODS.look = tm.look;
   MODS.pigeons = live('duivenstorm') ? 5 : 1;
   MODS.gronings = live('gronings');
   setHeadScale(live('grotekoppen') ? 2.1 : 1);

@@ -38,10 +38,12 @@ ok(count([road([[0, 0], [100, 0]]), road([[50, -30], [50, 30]])], 'crossNoNode')
 ok(count([road([[0, 0], [50, 0], [100, 0]]), road([[50, -30], [50, 0], [50, 30]])], 'crossNoNode') === 0, 'with a shared node it is a junction');
 ok(count([road([[0, 0], [100, 0]]), road([[50, -30], [50, 30]], { tunnel: true })], 'crossNoNode') === 0, 'a tunnel below is no crossing');
 
+ok(count([road([[0, 0], [100, 0]], { tunnel: true, layer: -1 }), road([[50, -30], [50, 30]], { tunnel: true, layer: -2 })], 'crossNoNode') === 0, 'two tunnels at different depths do not cross')
+
 // the city map: today's counts are the ceiling
 const data = JSON.parse(fs.readFileSync(new URL('../game/citymap.json', import.meta.url)));
 const f = auditSeams(data.roads);
-const CEIL = { laneJump: 230, widthJump: 12, gap: 24, overlap: 135, crossNoNode: 2 };
+const CEIL = { laneJump: 230, widthJump: 7, gap: 24, overlap: 135, crossNoNode: 0 };
 for (const [k, max] of Object.entries(CEIL)) ok(f[k].length <= max, `map: ${k} not above ${max}`, f[k].length);
 
 console.log(`${n - fails}/${n} ok`);

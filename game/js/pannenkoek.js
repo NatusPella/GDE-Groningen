@@ -3,17 +3,20 @@ import { unlockAchievement, recordChallengeResult, getChallengeRecord, recordSta
 import { showCard } from './hudcards.js';
 import { standActivity, recLine } from './standactivity.js';
 import { createBoard, key, bubble, clearBubbles, pick, stopPressed, geo } from './minigamekit.js';
+import { getPancakeBoatSpot } from './cityprops.js';
 import { PANNENKOEK_LINES } from './minigamelines3.js';
 import { PAN, TOPPINGS, MEDAL_AT, createPan, usePan, serve, stepPan, goldenNow, pannenkoekMedal } from './pannenkoekrules.js';
 
-// Pannenkoekenschip De Gouden Pan (an invented boat at the Oosterhaven quay):
+// Pannenkoekenschip De Gouden Pan (the moored boat of the city props, #23):
 // you are the cook for two minutes. [1] [2] [3] pour batter, flip and plate
 // (flip inside the golden window); [Q] [W] [E] [R] serve the plate to the guest
 // who wants stroop, spek, appel or kaas. Not golden is worth half. Free.
 // Rules: pannenkoekrules.js. `window.__pannenkoek` debug.
 const ACCENT = '#e8a23a';
-const ORIGIN = geo(53.2188, 6.582);
-const STAND = { x: ORIGIN.x, y: ORIGIN.y };
+// the quay opposite the moored boat of the city props (#23); until the props are
+// placed, or when no quay was found, the Oosterhaven quay
+const FALLBACK = geo(53.2188, 6.582);
+const place = () => { const b = getPancakeBoatSpot(); return b ? b.quay : FALLBACK; };
 const PAN_KEYS = ['1', '2', '3'];
 const TOP_KEYS = ['q', 'w', 'e', 'r'];
 
@@ -22,7 +25,7 @@ let board = null;
 
 function say(w, kind, ttl = 0) {
   const list = PANNENKOEK_LINES[kind];
-  if (list) bubble(w, { x: STAND.x, y: STAND.y, name: PANNENKOEK_LINES.who, text: pick(list), h: 2.3, tag: 'pannenkoek', ttl });
+  if (list) bubble(w, { x: place().x, y: place().y, name: PANNENKOEK_LINES.who, text: pick(list), h: 2.3, tag: 'pannenkoek', ttl });
 }
 
 function end(w, { quit = false } = {}) {
@@ -124,16 +127,16 @@ export const PANNENKOEK = standActivity({
   id: 'pannenkoek',
   name: 'Pannenkoekenschip De Gouden Pan',
   label: 'Pannenkoekenschip',
-  note: 'pannenkoekenschip aan de Oosterhaven: bak en serveer, tegen de klok',
+  note: 'pannenkoekenschip bij het pannenkoekenschip: bak en serveer, tegen de klok',
   accent: ACCENT,
-  stand: () => STAND,
-  origin: () => ORIGIN,
+  stand: () => place(),
+  origin: () => place(),
   useRadius: 3,
   labelRadius: 140,
   sub: 'Bak pannenkoeken op het schip · gratis',
   hint: 'Loop naar de loopplank en druk E',
   ubboSub: 'pannenkoeken bakken op het schip, gratis',
-  where: 'het pannenkoekenschip bij de Oosterhaven',
+  where: 'het pannenkoekenschip aan de kade',
   recText,
   glyph,
   isActive: () => !!game,
@@ -143,11 +146,10 @@ export const PANNENKOEK = standActivity({
   tick: () => updateHud(),
   camera: () => {},
   debug: (w) => ({
-    spot: () => ({ ...STAND }),
+    spot: () => ({ ...place() }),
     start: () => start(w),
     state: () => (game ? { points: game.s.points, left: game.s.left, served: game.s.served } : null),
     finish: () => { if (!game) return false; game.s.phase = 'done'; game.s.points = 500; return true; },
     quit: () => { if (!game) return false; end(w, { quit: true }); return true; },
   }),
 });
-export const PANNENKOEK_MEDALS = MEDAL_AT;

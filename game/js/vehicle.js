@@ -27,6 +27,8 @@ import { profileFor, createGearbox, stepGearbox } from './gearbox.js';
 import { slipAngle } from './drift.js';
 import { MOPED_LEGAL_SPEED } from './motomodels.js';
 import { pickMotor, motorRoadAllowed, motorTarget } from './motortraffic.js';
+import { FLAGS } from './devflags.js';
+import { verkeerOpties } from './simlagen.js';
 export { MOTORBIKE_MODELS, GEARED_MOPED_MODEL, MOPED_LEGAL_SPEED } from './motomodels.js';
 
 // every traffic model, for warming their meshes before they first spawn
@@ -382,9 +384,30 @@ function offroadDrag(v, dt) {
   v.angle += Math.sin(v._wob * 13.7 + v.x * 0.9) * Math.sin(v._wob * 5.3 + v.y) * dt * 0.18 * Math.min(1, sp / 15);
 }
 
+// Is (x, y) on the surface of a mapped road for cars (not a foot or cycle way,
+// not the span of a movable bridge that is up)? Same width test as surfaceUnder.
+export function carRoadAt(map, x, y) {
+  if (!map || !map.roadsNear) return false;
+  for (const r of map.roadsNear(x, y, 8)) {
+    if (r.cat === 'foot' || r.cat === 'cycle' || (r.bridge && r._open)) continue;
+    const half = r.width / 2 + 0.3, pts = r.pts;
+    for (let i = 0; i < pts.length - 1; i++) {
+      const ax = pts[i][0], ay = pts[i][1], abx = pts[i + 1][0] - ax, aby = pts[i + 1][1] - ay, l2 = abx * abx + aby * aby;
+      const t = l2 > 1e-9 ? clamp(((x - ax) * abx + (y - ay) * aby) / l2, 0, 1) : 0;
+      const dx = ax + abx * t - x, dy = ay + aby * t - y;
+      if (dx * dx + dy * dy <= half * half) return true;
+    }
+  }
+  return false;
+}
+
 // 'gras', 'wade', 'ditch' (the tiles' shallow water, else countryedge.js countryWater) or null where the
 // tyres are on a road, farm yard paving or the city's own surfaces.
 export function offroadGround(map, x, y) {
+  // a road lies over whatever the land use or the water polygons under it say
+  // (#165): a meadow, a ditch or the countryside's grass never makes a car on
+  // a mapped road wade or drag
+  if (carRoadAt(map, x, y)) return null;
   const sw = shallowWater(map, x, y);
   if (sw) return sw.kind === 'sloot' ? 'ditch' : 'wade';
   if (edgeDistance(x, y) < -80) return null;
@@ -925,8 +948,11 @@ function pruneWrecks(world) {
   for (const v of wrecks.slice(0, wrecks.length - MAX_WRECKS)) vehicles.splice(vehicles.indexOf(v), 1);
 }
 
-export function manageTrafficPopulation(world, { target = 30, spawnMin = 70, spawnMax = 170, despawnDist = 260 } = {}) {
+export function manageTrafficPopulation(world, opts = {}) {
   const { map, player, vehicles } = world;
+  // ?simlagen (issue #18): doelaantal en afstanden per streek uit simlagen.js
+  const lagen = FLAGS.simlagen ? verkeerOpties(wijkProfileAt(map, player.x, player.y).key, hourOf(world)) : null;
+  const { target = lagen ? lagen.target : 30, spawnMin = lagen ? lagen.spawnMin : 70, spawnMax = lagen ? lagen.spawnMax : 170, despawnDist = lagen ? lagen.despawnDist : 260 } = opts;
   pruneWrecks(world);
   manageParkedCars(world);
   for (let i = vehicles.length - 1; i >= 0; i--) {
@@ -1058,6 +1084,7 @@ export function manageMotorPopulation(world, { target = null, spawnMin = 50, spa
 let busLines = [];
 // de voorbereide lijnen (busroutes.js prepareLines); leeg = bussen rijden vrij zoals voorheen
 export function setBusLines(lines) { busLines = lines || []; }
+export function getBusLines() { return busLines; }
 
 export function manageBusPopulation(world, { target = 4, spawnMin = 90, spawnMax = 220, despawnDist = 300 } = {}) {
   const { map, player, vehicles } = world;
@@ -1176,11 +1203,14 @@ export function manageBoatPopulation(world, { target = 4, spawnMin = 20, spawnMa
     const v = vehicles[i];
     // your own boat at the jetty is home.js's to stash, not ours to sweep away
     if (!v.isBoat || v.isPolice || v.driver === 'player' || v.playerOwned || v.homeStored || v.moored) continue;
-    if (Math.hypot(v.x - player.x, v.y - player.y) > despawnDist) vehicles.splice(i, 1);
+    const away = Math.hypot(v.x - player.x, v.y - player.y);
+    // a boat that could not get free after three tries goes once the player cannot see it
+    if (away > despawnDist || (v.stuckAway && away > BOAT_SWEEP_DIST)) vehicles.splice(i, 1);
   }
 
+  // the barges are a fleet of their own: they do not use up the everyday boat quota
   let count = 0;
-  for (const v of vehicles) if (v.isBoat && !v.wrecked && !v.isPolice && v.driver !== 'player' && !v.playerOwned && !v.homeStored && !v.moored) count++;
+  for (const v of vehicles) if (v.isBoat && !v.wrecked && !v.isPolice && v.driver !== 'player' && !v.playerOwned && !v.homeStored && !v.moored && !isBarge(v)) count++;
 
   const candidates = map.waterNear(player.x, player.y, spawnMax);
   const have = { skiff: 0, acht: 0, sup: 0, binnenvaart: 0 };
@@ -1197,10 +1227,28 @@ export function manageBoatPopulation(world, { target = 4, spawnMin = 20, spawnMa
     const v = spawnBoatOnWater(map, poly, Math.random, { near: [player.x, player.y], min: spawnMin, max: spawnMax, budget: 3, model: lifeKind ? BOAT_KINDS[lifeKind] : undefined });
     if (v && lifeKind) have[BOAT_KINDS[lifeKind].kind === 'binnenvaart' ? 'binnenvaart' : lifeKind]++;
     if (!v || !spawnSpotFree(vehicles, v) || inPrivateGarage(map, v.x, v.y, 2) || spawnWouldPop(world, v)) continue;
+    if (vehicles.some((o) => o.isBoat && !o.wrecked && Math.hypot(o.x - v.x, o.y - v.y) < (isBarge(v) ? BARGE_ROOM : isBarge(o) ? BARGE_ROOM * 0.6 : 0) + o.halfLen)) continue;
     vehicles.push(v);
     count++;
   }
+
+  // inland shipping on the broad canals, several at a time (#7); a barge only
+  // starts where no other boat lies within a few hull lengths, so it never
+  // boxes in a tour boat or the player
+  if (have.binnenvaart < BARGE_MAX) {
+    const wide = candidates.filter((w) => (w.nav || 0) >= 4 && waterMeanWidth(w) >= 24);
+    for (let tries = 0; tries < 4 && wide.length && have.binnenvaart < BARGE_MAX; tries++) {
+      const poly = wide[Math.floor(Math.random() * wide.length)];
+      const v = spawnBoatOnWater(map, poly, Math.random, { near: [player.x, player.y], min: spawnMin + 20, max: spawnMax, budget: 3, model: BOAT_KINDS[Math.random() < 0.55 ? 'spits' : 'kempenaar'] });
+      if (!v || !spawnSpotFree(vehicles, v) || inPrivateGarage(map, v.x, v.y, 2) || spawnWouldPop(world, v)) continue;
+      if (vehicles.some((o) => o.isBoat && !o.wrecked && Math.hypot(o.x - v.x, o.y - v.y) < BARGE_ROOM + o.halfLen)) continue;
+      if (Math.hypot(v.x - player.x, v.y - player.y) < 40 + v.halfLen) continue;
+      vehicles.push(v);
+      have.binnenvaart++;
+    }
+  }
 }
+const BARGE_MAX = 4, BARGE_ROOM = 50;
 
 // A wander target with room around it that the boat can reach in a straight
 // line through open water (sampled every 3 m), so the route doesn't cut
@@ -1263,6 +1311,55 @@ function pickBoatWaypoint(v, rng, map) {
 const BOAT_WAYPOINT_MIN = 4;
 const BOAT_WAYPOINT_MAX = 9;
 
+// Right of way on the water: the player's boat, then the big inland barges,
+// then by length; the lower one gives way (equal: the younger vehicle).
+const boatRank = (o) => (o.driver === 'player' ? 100 : 0) + (isBarge(o) ? 50 : 0) + o.model.len;
+
+// The other boat in the way ahead of v: its gap (m, bow to the nearest point
+// of the other hull) and whether v has to give way. The other hull is sampled
+// along its axis and has to lie in a corridor as wide as both boats. null when clear.
+export function boatInTheWay(v, others, look) {
+  const c = Math.cos(v.angle), s = Math.sin(v.angle);
+  let best = null;
+  for (const o of others) {
+    if (o === v || !o.isBoat || o.wrecked || o.sinking) continue;
+    const dx = o.x - v.x, dy = o.y - v.y, reach = look + v.halfLen + o.halfLen;
+    if (dx * dx + dy * dy > reach * reach) continue;
+    const oc = Math.cos(o.angle), os = Math.sin(o.angle), lat = v.halfWid + o.halfWid + 1.2;
+    for (let k = -2; k <= 2; k++) {
+      const px = o.x + oc * o.halfLen * k / 2, py = o.y + os * o.halfLen * k / 2;
+      const fx = (px - v.x) * c + (py - v.y) * s - v.halfLen, ly = -(px - v.x) * s + (py - v.y) * c;
+      if (fx < -0.5 || fx > look || Math.abs(ly) > lat) continue;
+      if (!best || fx < best.gap) best = { o, gap: fx, side: ly, head: oc * c + os * s };
+    }
+  }
+  if (!best) return null;
+  const a = boatRank(v), b = boatRank(best.o);
+  best.yield = a < b || (a === b && v.id > best.o.id);
+  return best;
+}
+
+// Boats that have not moved a metre in this long are stuck (a quay corner, a
+// bridge pier, a boat in the way): back out and pick another heading; after
+// a third try the boat is flagged for removal once it is out of the player's sight.
+const BOAT_STUCK_S = 6, BOAT_STUCK_M = 1.2, BOAT_BACK_S = 3, BOAT_STUCK_GIVEUP = 3;
+export const BOAT_SWEEP_DIST = 70;
+
+function boatWatchdog(v, dt, rng, map, chasing) {
+  v._wdT = (v._wdT || 0) + dt;
+  if (!v._wdAt) v._wdAt = [v.x, v.y];
+  const moved = Math.hypot(v.x - v._wdAt[0], v.y - v._wdAt[1]);
+  if (moved >= BOAT_STUCK_M * 6) { v.stuckCount = 0; v.stuckAway = false; }
+  if (moved >= BOAT_STUCK_M) { v._wdAt = [v.x, v.y]; v._wdT = 0; return; }
+  if (v._wdT < BOAT_STUCK_S || v._backT > 0) return;
+  v._wdT = 0;
+  v.stuckCount = (v.stuckCount || 0) + 1;
+  v._backT = BOAT_BACK_S;
+  v._backSteer = rng() < 0.5 ? 1 : -1;
+  if (v.stuckCount >= BOAT_STUCK_GIVEUP) v.stuckAway = true;
+  if (!chasing) { v.waypoint = pickBoatWaypoint(v, rng, map); v.waypointTimer = BOAT_WAYPOINT_MIN; }
+}
+
 // Simple wander/patrol on the water body the boat spawned in (and out into
 // the country where its canal carries on past the map edge; v.waterPoly,
 // set by spawnBoatOnWater) - no road graph involved, so this
@@ -1311,6 +1408,33 @@ export function updateBoatAI(v, dt, map, world, rng = Math.random) {
     throttle = cF < 1.2 ? 0.2 : 1 - urgency * 0.6;
     brake = cF < 0.5 && Math.abs(v.speed) > 1;
     if (!chasing && cF < 1.5) { v.waypoint = pickBoatWaypoint(v, rng, map); v.waypointTimer = BOAT_WAYPOINT_MIN; }
+  }
+
+  // other boats: slow down behind one, give way to the bigger or the player's
+  // by keeping to the same side, never sail into a hull
+  const look = 8 + Math.abs(v.speed) * 3.5 + v.speed * v.speed / (2 * (v.model.brake || 0.5));
+  const nb = world && world.vehicles ? boatInTheWay(v, world.vehicles, look) : null;
+  if (nb) {
+    const room = clamp((nb.gap - 2) / Math.max(4, look - 2), 0, 1);
+    if (nb.head > 0.3 && !nb.yield && nb.o.speed < v.speed) throttle = Math.min(throttle, room);
+    else if (nb.yield || nb.gap < 4) {
+      throttle = Math.min(throttle, nb.head > 0.3 ? room : room * 0.6);
+      // pass on the open side (the right one when both are equal), mirrored for the oncoming boat
+      const rightClear = waterClearance(map, v.x + Math.cos(v.angle - 1.2) * (v.halfWid + 4), v.y + Math.sin(v.angle - 1.2) * (v.halfWid + 4), 4);
+      const leftClear = waterClearance(map, v.x + Math.cos(v.angle + 1.2) * (v.halfWid + 4), v.y + Math.sin(v.angle + 1.2) * (v.halfWid + 4), 4);
+      const side = rightClear >= 2.5 || rightClear >= leftClear ? -1 : 1;
+      const k = clamp(1 - nb.gap / look, 0.2, 1);
+      steer = clamp(steer * (1 - k) + side * k, -1, 1);
+    }
+    brake = brake || (nb.gap < 2.5 && v.speed > Math.max(0.3, nb.o.speed));
+  }
+
+  if (!chasing) {
+    boatWatchdog(v, dt, rng, map, chasing);
+    if (v._backT > 0) {
+      v._backT -= dt;
+      throttle = -0.8; steer = v._backSteer; brake = false;
+    }
   }
 
   const px = v.x, py = v.y, pa = v.angle;

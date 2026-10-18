@@ -17,6 +17,7 @@ import { RADIO_HOST, RADIO_GRUNN, KERMIS_NEWS } from './funlines.js';
 import { STATION_NAME, programmeAt, normalizeRadio } from './musicpick.js';
 import { nieuwVerhaal } from './storyflag.js';
 import { talkActive } from './storytalk.js';
+import { playerBusy } from './busy.js';
 
 // the recorded Kiekdoar headlines in audio/nieuws (text from its tts.json)
 const NEWS_CLIPS = [
@@ -42,9 +43,6 @@ const pick = (a) => a[Math.floor(Math.random() * a.length)];
 
 export function radioIsOn() {
   return on;
-}
-export function radioProgramme() {
-  return prog;
 }
 
 // The save (savegame.js): 'on' or 'off'; anything else is on.
@@ -87,11 +85,11 @@ function announce(w) {
 // The new story keeps the radio to the world: Rikus does not talk while a mission or a conversation
 // runs (a story scene, a call, the pair talking), and stays quiet until the mission is over.
 const ducked = (w) => nieuwVerhaal() && !!((w.mission && w.mission.phase === 'active') || talkActive() || w.storyContact || (typeof document !== 'undefined' && document.body.classList.contains('cine-hide-hud')));
-const busy = (w) => w.paused || w.activityGame || w.padelGame || w.heliRun || w.pigeonMode || ducked(w);
+const busy = (w) => w.paused || playerBusy(w, ['activityGame', 'padel', 'heliRun', 'pigeon']).busy || ducked(w);
 
 export function updateRadio(dt, w) {
   if (!busy(w) && w.input.wasPressed('n')) setRadio(!on);
-  const want = on || !!(w.activityGame || w.heliRun || w.pigeonMode);
+  const want = on || playerBusy(w, ['activityGame', 'heliRun', 'pigeon']).busy;
   if (want !== playing) { playing = want; setRadioOn(want); }
   const next = programmeAt(w.clock);
   if (next !== prog) {

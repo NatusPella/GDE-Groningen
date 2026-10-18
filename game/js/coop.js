@@ -4,6 +4,8 @@
 // Dit bestand is pure logica (geen DOM, geen netwerk); de koppeling met de
 // invoer staat in coopglue.js, de aanroep in companion.js.
 
+import { radialDeadzone } from './padlogic.js';
+
 export const SLOT_P1 = 0;
 export const SLOT_P2 = 1;
 
@@ -46,11 +48,7 @@ export function keyAxis(isDown) {
 // Beweging uit een gamepad (axes[0], axes[1]) met dode zone.
 export function padAxis(axes) {
   if (!axes) return [0, 0];
-  const x = axes[0] || 0, y = axes[1] || 0;
-  const m = Math.hypot(x, y);
-  if (m < PAD_DEADZONE) return [0, 0];
-  const s = (Math.min(1, m) - PAD_DEADZONE) / (1 - PAD_DEADZONE) / m;
-  return [x * s, y * s];
+  return radialDeadzone(axes[0] || 0, axes[1] || 0, PAD_DEADZONE);
 }
 
 // Kiest de invoer van speler 2: pad wint van toetsen als het pad beweegt.
@@ -95,4 +93,12 @@ export function stepSlot2(state, inp, dt, p1) {
   state.vy += (vy - state.vy) * acc;
   if (inp.active) state.angle = Math.atan2(vy, vx);
   return { moving: Math.hypot(state.vx, state.vy) > 0.15, leashed: p1 ? leash(p1, state) : null };
+}
+
+// Online (#95): invoer van de gast zoals de host die ontvangt ({ mx, my, buttons })
+// wordt dezelfde vorm als readP2: x naar rechts, y naar beneden, bit 0 = rennen.
+export function remoteP2(r) {
+  if (!r) return { x: 0, y: 0, run: false, active: false };
+  const [x, y] = norm(Number.isFinite(r.mx) ? r.mx : 0, Number.isFinite(r.my) ? r.my : 0);
+  return { x, y, run: !!((r.buttons || 0) & 1), active: !!(x || y) };
 }

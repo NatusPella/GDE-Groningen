@@ -1,7 +1,7 @@
 // Cutscene-acteuranimatie (game/js/actoranim.js): gebaren-planning, lopen,
 // zitten, kijkrichting, reacties, routines en het stage-contract.
 //   node scripts/actoranim_test.mjs
-import { createStage, planGestures, pointAt, pathLength, applyPose, wrapAngle, makeRng, REACTIONS, HIP_Y, SEAT_CONTACT } from '../game/js/actoranim.js';
+import { ANIMS, animateActor, createStage, planGestures, pointAt, pathLength, applyPose, wrapAngle, makeRng, REACTIONS, HIP_Y, SEAT_CONTACT } from '../game/js/actoranim.js';
 
 let bad = 0;
 const check = (name, ok, info = '') => { if (!ok) { bad++; console.log('FAIL', name, info); } };
@@ -141,6 +141,31 @@ s7.cue('n', 'loop', { pad: [{ x: NaN, z: 1 }] });
 s7.cue('n', 'kijk', { naar: { x: NaN, z: NaN } });
 for (const dt of [0, -1, NaN, 5, 0.016]) s7.update(dt);
 check('eindig na rare invoer', allFinite(s7.pose('n')));
+
+// contract animateActor (cutscript.js)
+const expected = 'idle walk run talk wave point shrug nod shake laugh carry lean hips phone cheer look ride'.split(' ');
+check('ANIMS dekt alle namen', expected.every((n) => ANIMS.includes(n)));
+for (const anim of [...expected, 'onbekend']) {
+  const m = mkMesh();
+  let ok = true;
+  for (let t = 0; t < 4; t += 1 / 30) {
+    ok = animateActor(m, { anim, speed: anim === 'walk' ? 1.4 : anim === 'run' ? 4 : 0, gaze: 0.5, t, dt: 1 / 30 }) && ok;
+    const u = m.userData;
+    for (const b of Object.values(u)) if (![b.rotation.x, b.rotation.y, b.rotation.z, b.position.y].every(Number.isFinite)) ok = false;
+  }
+  check('animateActor ' + anim, ok);
+}
+const wm = mkMesh();
+for (let t = 0; t < 2; t += 1 / 30) animateActor(wm, { anim: 'walk', speed: 1.4, gaze: 0, dt: 1 / 30 });
+check('walk zwaait benen', Math.abs(wm.userData.legL.rotation.z) > 0.05 || Math.abs(wm.userData.legR.rotation.z) > 0.05);
+const gm = mkMesh();
+for (let t = 0; t < 1; t += 1 / 30) animateActor(gm, { anim: 'idle', gaze: 0.8, dt: 1 / 30 });
+check('gaze draait de kop', Math.abs(gm.userData.head.rotation.y) > 0.5, gm.userData.head.rotation.y);
+check('animateActor zonder rig', animateActor({ userData: {} }, { anim: 'idle' }) === false);
+const wv = mkMesh();
+let up = 0;
+for (let t = 0; t < 3; t += 1 / 30) { animateActor(wv, { anim: 'wave', dt: 1 / 30 }); up = Math.max(up, wv.userData.armR.rotation.z); }
+check('wave tilt arm', up > 2, up);
 
 console.log(bad ? `${bad} MISLUKT` : 'actoranim: alles ok');
 process.exit(bad ? 1 : 0);

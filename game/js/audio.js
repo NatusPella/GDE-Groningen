@@ -5,13 +5,17 @@ import { getSettings, onSettingsChange } from './settings.js';
 import { isThemeActive } from './theme.js';
 import { vehicleContacts } from './vehicle.js';
 import { gearboxReadout } from './gearbox.js';
-import { createBank, buildImpulse } from './sfx/dsp.js';
+import { createBank, buildImpulse, variantsOf, bufferNames } from './sfx/dsp.js';
+import { FX_INFO } from './sfx/fxbank.js';
+import { plan as mixPlan, speechDuckFactor } from './sfx/mixplan.js';
 import { initAmbience, updateAmbience, ambienceStats, getPlace } from './sfx/ambience.js';
 import { initFoley, updateFoley, propHit, foleyStats } from './sfx/foley.js';
 import { initUiSfx, uiWorldInit, updateUiSfx, uiDomEvent, isUiGestureTarget } from './sfx/ui.js';
 import { updateSkySfx } from './sfx/sky.js';
 import { createScenarioDirector, loopPoints } from './scenariomusic.js';
-import { normalizeTrack, pickTrack, pushHistory, pickJingle, STATION_NAME } from './musicpick.js';
+import { MIN_TRACK_S, normalizeTrack, pickTrack, pushHistory, pickJingle, STATION_NAME } from './musicpick.js';
+import { SYNTH_TRACKS, synthRecords, renderTrack, toWav } from './synthmusic.js';
+import { createMusicWatch } from './musicwatch.js';
 import * as speech from './speech.js';
 import { drunkLevel } from './drunk.js';
 import { KEYS } from './storagekeys.js';
@@ -715,11 +719,30 @@ function playExplosion(x, y) {
   const out = spatialOut(x, y, { ref: 10, rolloff: 0.7, prio: 2 });
   if (!out) return;
   duckAmbience(0.75, 1.6);
+  playFx('explosion_boom', x, y);
   playNoiseBurst({ duration: 1.1, freq: 1400, freqEnd: 70, q: 0.5, gain: 0.85, type: 'lowpass', out, prio: 2 });
   playTone({ freq: 90, freqEnd: 28, type: 'sine', duration: 0.9, gain: 0.55, out, prio: 2 });
   playNoiseBurst({ duration: 1.7, freq: 500, freqEnd: 60, q: 0.6, gain: 0.25, type: 'lowpass', delay: 0.2, out, prio: 2 });
   playBuf('glass', { out, gain: 0.2, rate: 0.8, delay: 0.03 });
   for (let i = 0; i < 5; i++) playBuf('prop_metal', { out, gain: 0.05, rate: 0.6 + Math.random() * 0.8, delay: 0.5 + Math.random() * 1.4 });
+}
+
+// One effect of sfx/fxbank.js at a place: mixer category level, a random
+// variant, the speed-of-sound delay and an air low pass from sfx/mixplan.js
+// (the panner does the distance gain). false while the sample still renders.
+function playFx(name, x, y, opts = {}) {
+  const info = FX_INFO[name] || FX_INFO[`${name}_0`];
+  if (!ctx || !bank || !info) return false;
+  const names = bufferNames().includes(name) ? [name] : variantsOf(name);
+  const buf = names[Math.floor(Math.random() * names.length)];
+  const d = distToListener(x, y);
+  if (d > info.range) return true;
+  const out = spatialOut(x, y, { ref: info.ref, rolloff: 0.6, range: info.range, prio: 2 });
+  if (!out) return true;
+  const p = mixPlan(info, d, Math.floor(Math.random() * 1e9));
+  const speaking = voiceBusy() ? speechDuckFactor(info.cat, 1) : 1;
+  const src = playBuf(buf, { out, gain: info.gain * p.gain * (opts.gain ?? 1) * speaking, rate: p.rate * (opts.rate ?? 1), delay: p.delay, lp: p.lp, prio: 2 });
+  return !!src;
 }
 
 // The odd weapons (combat.js / throwables.js): swings, what they hit, the
@@ -777,9 +800,18 @@ function playWeaponSfx(e, x, y) {
       break;
     }
     case 'carbid': {
+      // sampled boom (tik, crack, sub thump, reflections) first; the old
+      // synthesized version stays as the fallback while it still renders
+      duckAmbience(0.85, 2.4);
+      if (playFx('carbid_boom', x, y)) {
+        if (e.water) {
+          const wet = spatialOut(x, y, { ref: 14, rolloff: 0.6, prio: 2 });
+          if (wet) playBuf('step_wet_0', { out: wet, gain: 0.5, rate: 0.5, delay: 0.1 });
+        }
+        break;
+      }
       const out = spatialOut(x, y, { ref: 14, rolloff: 0.6, prio: 2 });
       if (!out) return;
-      duckAmbience(0.85, 2);
       playTone({ freq: 70, freqEnd: 22, type: 'sine', duration: 1.3, gain: 0.7, out, prio: 2 });
       playNoiseBurst({ duration: 1.4, freq: 1100, freqEnd: 50, q: 0.5, gain: 0.9, type: 'lowpass', out, prio: 2 });
       playBuf('gun_echo', { out, gain: 0.5, rate: 0.5, delay: 0.08, lp: 1400 });
@@ -1624,6 +1656,28 @@ async function loadGMusicManifest() {
   } catch (e) {
     // no manifest yet / bad JSON / fetch blocked - G-Music just stays silent
   }
+  scheduleSynthRecords();
+}
+
+// The self-made records (synthmusic.js): rendered one at a time in the
+// background, a few seconds apart, and only picked once they are ready.
+function scheduleSynthRecords() {
+  const todo = synthRecords().map(normalizeTrack).filter(Boolean);
+  const next = () => {
+    const t = todo.shift();
+    if (!t) return;
+    try {
+      const tr = SYNTH_TRACKS.find((x) => x.id === t.id);
+      const wav = toWav(renderTrack(tr, 22050), 22050);
+      const el = wireGmusicEl(new Audio(URL.createObjectURL(new Blob([wav], { type: 'audio/wav' }))));
+      el.preload = 'auto';
+      el.gmusicTitle = tr.title;
+      el.gmusicTrack = t;
+      gmusicTracks.push(el);
+    } catch (e) { /* this record is skipped, the radio goes on */ }
+    setTimeout(next, 4000);
+  };
+  setTimeout(next, 6000);
 }
 
 // Station-style playback: jingle, shuffled track, jingle, track, ... all through
@@ -1699,6 +1753,13 @@ export function trackArtist(title) {
 function wireGmusicEl(el) {
   try { ctx.createMediaElementSource(el).connect(musicBus); } catch (e) { /* ignore */ }
   el.addEventListener('ended', onGmusicEnded);
+  // a stub or silent file is no record: never picked again, and if it is the current one, on to the next
+  el.addEventListener('loadedmetadata', () => {
+    if (el.gmusicTrack && Number.isFinite(el.duration) && el.duration < MIN_TRACK_S) {
+      el.gmusicBad = true;
+      if (el === gmusicCurrentEl && !inBreak) advanceGmusicQueue();
+    }
+  });
   el.addEventListener('playing', onGmusicPlaying);
   return el;
 }
@@ -1733,7 +1794,8 @@ function randomAmbientJingleEl(chance = 1) {
 
 // the next record from the programme's pool
 function nextTrackEl() {
-  const t = pickTrack(gmusicTracks.map((el) => el.gmusicTrack), gmusicHistory, { station: radioProg.music, hour: musicHour });
+  const good = gmusicTracks.filter((x) => !x.gmusicBad);
+  const t = pickTrack((good.length ? good : gmusicTracks).map((el) => el.gmusicTrack), gmusicHistory, { station: radioProg.music, hour: musicHour });
   const el = gmusicTracks.find((x) => x.gmusicTrack === t) || gmusicTracks[0];
   pushHistory(gmusicHistory, el.gmusicTrack.id);
   try { localStorage.setItem(GMUSIC_HISTORY_KEY, JSON.stringify(gmusicHistory)); } catch (e) { /* private mode */ }
@@ -2678,8 +2740,9 @@ function playAudioEvents(world) {
       case 'engine_stall': playTone({ freq: 90, freqEnd: 35, type: 'sawtooth', duration: 0.35, gain: 0.12, filterFreq: 500, bus: uiBus }); break;
       case 'prop_hit': propHit(e, x, y); break;
       case 'bullet_hit': playBulletHit(x, y, e.material, clamp(e.strength ?? 0.5, 0, 1)); break;
-      case 'coo': case 'flap': case 'bonk': case 'poop': case 'splat': case 'plop': playCritterEvent(e.kind, x, y, clamp(e.strength ?? 0.5, 0, 1)); break;
+      case 'coo': case 'flap': case 'bonk': case 'poop': case 'splat': case 'plop': case 'pala': case 'padelglas': case 'padelgaas': playCritterEvent(e.kind, x, y, clamp(e.strength ?? 0.5, 0, 1)); break;
       case 'splash': playSplash(x, y); break;
+      case 'fx': playFx(e.name, x, y, e); break;
       case 'whistle': playWhistle(); break;
       case 'gore': case 'gore_splat': case 'ko': case 'poof': playGoreEvent(e.kind, x, y, clamp(e.strength ?? 0.5, 0, 1)); break;
       case 'animal_hit': {
@@ -2769,6 +2832,9 @@ function playCritterEvent(kind, x, y, k) {
   if (kind === 'coo') playBuf('pigeon', { out, gain: 0.12 + k * 0.12, rate: r });
   else if (kind === 'flap') playBuf('flutter', { out, gain: 0.08 + k * 0.14, rate: r * 1.1 });
   else if (kind === 'bonk') { playBuf('punch', { out, gain: 0.2 + k * 0.15, rate: 1.4 * r }); playTone({ freq: 700, freqEnd: 380, type: 'triangle', duration: 0.12, gain: 0.05, out }); }
+  else if (kind === 'pala') { playBuf('punch', { out, gain: 0.12 + k * 0.12, rate: 1.9 * r }); playTone({ freq: 520, freqEnd: 300, type: 'triangle', duration: 0.08, gain: 0.05, out }); }
+  else if (kind === 'padelglas') { playTone({ freq: 1500 * r, freqEnd: 900, type: 'triangle', duration: 0.1, gain: 0.05 + k * 0.08, out }); playNoiseBurst({ duration: 0.06, freq: 4200, freqEnd: 2600, q: 2, gain: 0.05 + k * 0.06, type: 'bandpass', out }); }
+  else if (kind === 'padelgaas') playNoiseBurst({ duration: 0.14, freq: 1800, freqEnd: 700, q: 0.8, gain: 0.05 + k * 0.07, type: 'bandpass', out });
   else if (kind === 'poop') playNoiseBurst({ duration: 0.09, freq: 500, freqEnd: 180, q: 1.2, gain: 0.12, type: 'bandpass', out });
   else if (kind === 'splat') playBuf('step_wet_' + Math.floor(Math.random() * 4), { out, gain: 0.25 + k * 0.1, rate: 0.75 * r });
   else if (kind === 'plop') playTone({ freq: 700, freqEnd: 240, type: 'sine', duration: 0.07, gain: 0.08 + k * 0.08, out });
@@ -3253,6 +3319,7 @@ function applyOutputGains(tc) {
 // replaces a dead music element and notices a NaN in the mix.
 const WATCHDOG_S = 2;
 let watchdogAt = 0;
+const musicWatch = createMusicWatch();
 const watch = { runs: 0, fixes: 0, nan: 0, lastFix: null };
 let meterBuf = null;
 
@@ -3283,6 +3350,20 @@ function watchdog(world, force = false) {
   if (gmusicHeld && !scenarioNow && !radioHolds()) { gmusicHeld = false; gmusicRetryAt = 0; playGmusicCurrent(); fix('gmusic-held'); }
   const el = gmusicCurrentEl;
   if (el && el.error && gmusicPendingSince === null) { reviveGmusicEl(el); fix('gmusic-dead'); }
+  // silence while the radio should play: nudge, then the next record
+  const mw = musicWatch.step(now, {
+    active: gmusicStarted && radioOn && !gmusicHeld && !gmusicSuspended && gmusicPendingSince === null && !document.hidden && gmusicTracks.length > 0,
+    hasEl: !!gmusicCurrentEl, ended: !!(gmusicCurrentEl && gmusicCurrentEl.ended),
+    currentTime: gmusicCurrentEl ? gmusicCurrentEl.currentTime : 0, inBreak,
+  });
+  if (mw === 'resume') {
+    if (gmusicCurrentEl) gmusicCurrentEl.gmusicPlayInFlight = false;
+    gmusicRetryAt = 0; resumeCtx('musicwatch'); playGmusicCurrent(); fix('music-resume');
+  } else if (mw === 'advance') {
+    gmusicRetryAt = 0; resumeCtx('musicwatch'); advanceGmusicQueue(); fix('music-advance');
+  } else if (mw === 'endBreak') {
+    inBreak = false; breakId++; advanceGmusicQueue(); fix('music-break');
+  }
   if (meter) {
     if (!meterBuf) meterBuf = new Float32Array(meter.fftSize);
     meter.getFloatTimeDomainData(meterBuf);
@@ -3360,8 +3441,3 @@ const warmList = ['glass', 'crunch_0', 'crunch_1', 'crunch_2', 'bikebell', 'ric_
   'imp_water', 'imp_wood', 'imp_dirt', 'imp_metal_2', 'imp_metal_1', 'imp_metal_0', 'imp_stone_2', 'imp_stone_1', 'imp_stone_0',
   'gun_echo', 'gun_shotgun_1', 'gun_shotgun_0', 'gun_uzi_2', 'gun_uzi_1', 'gun_uzi_0', 'gun_pistol_2', 'gun_pistol_1', 'gun_pistol_0'];
 
-export function getAudioStats() {
-  if (!ctx) return null;
-  const engineSynth = synth.player ? { kind: engineState.kind, gear: engineState.gear, level: +engineState.gain.toFixed(3), traffic: engineVoices.filter((voice) => voice.target).length } : null;
-  return { activeVoices, buffers: bank ? bank.size() : 0, duck: duckState.level, engineSynth, ...ambienceStats(), ...foleyStats() };
-}

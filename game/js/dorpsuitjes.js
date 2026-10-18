@@ -17,6 +17,7 @@ import { findOpenSpot, openGround, waterNear, shoreFrom } from './ommelandplace.
 import { buildProp, disposeProp, animateProp, eierbalMesh, personMesh } from './ommelandprops3d.js';
 import { speak, duoSpeaker } from './ommelandtalk.js';
 import { VILLAGES, QUIZ, DUO } from './ommelandlines.js';
+import { playerBusy } from './busy.js';
 
 // Dorpsuitjes: a reason to take the train out to each countryside station
 // (map.countryStations, stationtravel.js halts). Per village one thing
@@ -339,8 +340,8 @@ function dropEgg(e) {
 
 function blockReason(w) {
   if (w.wanted > 0) return 'Niet nu: eerst de politie kwijt';
-  if (isMissionActive() || getActiveRace() || w.challenge) return 'Niet nu: maak eerst je missie af';
-  if (w.sideJob && w.sideJob.active) return 'Niet nu: eerst je klusje afmaken';
+  if (playerBusy(w, ['mission', 'activeRace', 'challenge']).busy) return 'Niet nu: maak eerst je missie af';
+  if (playerBusy(w, ['sideJob']).busy) return 'Niet nu: eerst je klusje afmaken';
   return null;
 }
 

@@ -1,8 +1,9 @@
 // first: copies the pre-0.29 'gte-*' storage keys before any module reads them
 import './storagekeys.js';
 import { setErrorContext } from './errorlog.js';
-import { DEV, STORY_TEST, COOP, FLAGS } from './devflags.js';
+import { DEV, STORY_TEST, FLAGS } from './devflags.js';
 import { bindCoop } from './coopglue.js';
+import { tickCoopNet } from './coopnet.js';
 import { loadMap } from './mapdata.js';
 import { loadTileWorld } from './tileworld.js';
 import { tileFocus } from './tilefocus.js';
@@ -58,6 +59,7 @@ import { setFarProps } from './farprops.js';
 import { initProvince } from './provinceworld.js';
 import { loadRoadNet, setRoadNet } from './roadgraph.js';
 import { buildMovableBridges, updateMovableBridges } from './movablebridges.js';
+import { updateBridgeHits, resetBridgeDamage, startBridgeCrashDemo, stepBridgeCrashDemo } from './bridgehitworld.js';
 import { geoWorkerActive } from './geojobs.js';
 import { init3D, update3D, resize3D, getScene, getRenderer, setMenuCover, MENU_FRAME_S, refreshRenderScale, terrainReady, canvasFrameCount, prewarmStreamAt } from './scene3d.js';
 import { checkFrame } from './blackframe.js';
@@ -77,6 +79,7 @@ import { initWeather, updateWeather } from './weather.js';
 import { initWorldEvents, updateWorldEvents } from './worldevents.js';
 import { initMuggings, updateMuggings } from './muggings.js';
 import { initRoadRage, updateRoadRage } from './roadrage.js';
+import { updateClearZones } from './clearzonesweep.js';
 import { tryWeaponDropInteract, updateWeaponDrops3D } from './weapondrops.js';
 import { initFlitspaal, updateFlitspaal } from './flitspaal.js';
 import { initWildlife, updateWildlife } from './wildlife.js';
@@ -111,16 +114,23 @@ import { initFlavour3D, updateFlavour3D } from './flavour3d.js';
 import { prepareHomeMap, initHome, updateHome, updateHomeExterior, tryHomeInteract, homeSpawnPoint, parkHeroAtHome } from './home.js';
 import { updateDrunk } from './drunk.js';
 import { updateHelis } from './heliflight.js';
+import { planeKind } from './planeflight.js';
+import { busBoardKind } from './busboard3d.js';
+import { loadBusLines } from './busroutes.js';
+import { setBusLines } from './vehicle.js';
 import { scaledTarget, simLevel, nextSimFrame, farAIDist, skipFar, takeDt, keepVehicle } from './simload.js';
 import { getSettings } from './settings.js';
 import { MODS } from './cheatmods.js';
 import { initCheats, updateCheats } from './cheats.js';
+import { updateRegioLeven } from './regiolevenrt.js';
 
 // What the player can do on the map, as one registry (activityhub.js): each
 // module is a kind with its init, interact slot and tick phase.
 registerActivityKind({ id: 'activities', init: initActivities, slot: 'act', interact: tryActivityInteract, tickPhase: 'world', tick: updateActivitiesWorld });
 registerActivityKind({ id: 'postgame', initPhase: 'late', tickRank: 0, init: initPostgame, slot: 'pre', interact: tryPostgameInteract, tickPhase: 'late', tick: updatePostgame });
 registerActivityKind({ id: 'sidejobs', initPhase: 'late', tickRank: -1, init: initSideJobs, slot: 'job', interact: trySideJobInteract, tickPhase: 'late', tick: updateSideJobs });
+registerActivityKind(planeKind);
+registerActivityKind(busBoardKind);
 registerActivityKind({ id: 'ommeland', initPhase: 'early', init: initOmmelandFun, slot: 'uitje', interact: tryOmmelandInteract, tickPhase: 'late', tick: updateOmmelandFun });
 
 // More life on the water: small paddle and pedal craft make up most of the
@@ -186,6 +196,7 @@ function waitForStart(world) {
   return runStartScreen(world, { render, relocate, tick });
 }
 
+let bridgeDemoT = 0, bridgeDemoDone = false; // ?brugbotsing
 let errorShown = false;
 function showFrameError(err) {
   console.error(err);
@@ -204,7 +215,7 @@ const PED_TARGET = 45;
 // cyclists out of sight go first (simload.js)
 function thinTraffic(world) {
   const { player, vehicles } = world;
-  const want = { car: scaledTarget(30), bike: scaledTarget(16), scooter: scaledTarget(10) };
+  const want = { car: Math.round(scaledTarget(30) * MODS.cars), bike: Math.round(scaledTarget(16) * MODS.bikes), scooter: Math.round(scaledTarget(10) * MODS.scooters) };
   const kindOf = (v) => (v.isBike ? 'bike' : v.isScooter ? 'scooter' : v.isBus || v.isBoat || v.parked || v.wrecked ? null : 'car');
   const have = { car: [], bike: [], scooter: [] };
   for (const v of vehicles) {
@@ -216,7 +227,7 @@ function thinTraffic(world) {
   for (const k in have) {
     const all = have[k];
     let excess = vehicles.reduce((n, v) => n + (kindOf(v) === k && !keepVehicle(v) ? 1 : 0), 0) - want[k];
-    if (excess <= 2) continue;
+    if (MODS.fading ? excess <= 0 : excess <= 2) continue;
     all.sort((a, b) => b[0] - a[0]);
     for (const [, v] of all) {
       if (excess <= 0) break;
@@ -261,6 +272,7 @@ async function boot() {
   const extra = [{ name: 'index-provincie.json' }, { name: 'index-corridor.json' }];
   const tiles = FLAGS.legacymap ? null : await loadTileWorld('world/', { onProgress: onMapProgress, extra });
   const corridor = !!tiles;
+  if (tiles && FLAGS.terrain) tiles.world.terrainOn = true;
   const layers = (tiles && tiles.index.layers) || {};
   const corLayer = (layers.provincie && layers.provincie.global ? layers.provincie : null) || layers.corridor;
   if (corLayer && corLayer.global) setWorldPlaces(corLayer.global.places);
@@ -271,6 +283,9 @@ async function boot() {
   // the tiles' car roads for the GPS and the police (roadgraph.js), read while the rest loads
   const roadsFile = layers.provincie && layers.provincie.global && layers.provincie.global.roadsFile;
   if (tiles && roadsFile) loadRoadNet('world/', roadsFile).then((r) => r && setRoadNet(r));
+  // the real bus lines for the buses' routes, boards and next stop (busroutes.js, #80, #160)
+  const busFile = layers.provincie && layers.provincie.global && layers.provincie.global.busFile;
+  if (tiles && busFile) loadBusLines('world/', busFile).then(setBusLines);
   // the city's train routes on over the layer's track, the countryside's rails, turbines and pylons (corridorrail.js)
   const landData = corLayer && corLayer.global ? loadLandData('world/', corLayer.global.landFile) : null;
   const facilities = loadFacilities('citymap.json');
@@ -307,7 +322,7 @@ async function boot() {
 
   const world = new World(map, input, player);
   initCompanion(world);
-  if (COOP) bindCoop(world, input);
+  if (FLAGS.coop) bindCoop(world, input);
   const hero = spawnHeroCarNear(map, sx, sy);
   if (hero) world.vehicles.push(hero);
   manageTrafficPopulation(world);
@@ -327,6 +342,7 @@ async function boot() {
   initTrafficLights(world);
   initRailway(world);
   buildMovableBridges(world.map);
+  resetBridgeDamage();
   initStationTravel(world);
   initActivityKinds(world, 'early');
   initWeather(world);
@@ -388,6 +404,8 @@ async function boot() {
   initSafety(world);
   initCheats(world);
   if (DEV) import('./storydev.js').then((m) => m.initStoryDev(world)).catch((e) => console.error('storydev', e));
+  if (FLAGS.sfxtest) import('./sfx/sfxtest.js').then((m) => m.initSfxTest(world)).catch((e) => console.error('sfxtest', e));
+  if (FLAGS.testmenu) import('./testmenu.js').then((m) => m.initTestMenu(world)).catch((e) => console.error('testmenu', e));
   if (DEV) import('./profileoverlay.js').then((m) => m.initProfileOverlay(world)).catch((e) => console.error('profileoverlay', e));
   if (STORY_TEST) import('./storytest.js').then((m) => m.runStoryTest(world)).catch((e) => console.error('storytest', e));
   markLoad('systems');
@@ -485,6 +503,7 @@ async function boot() {
       updatePhone(dt, world);
       updateSaveGame(dt, world);
     }
+    if (world.coopNet) tickCoopNet(world, dt); // coöp online (#95), alleen na een bewuste koppeling
     probe.mark('phone+save');
     updateSafety(dt, world);
     // a padel match owns the camera (cinematics.js resets cameraOverride each frame)
@@ -522,11 +541,11 @@ async function boot() {
       const rush = bikeBoost(wijkProfileAt(world.map, world.player.x, world.player.y).key, Math.hypot(world.player.x - CITY_CENTRE.x, world.player.y - CITY_CENTRE.y), hourOf(world));
       manageBikePopulation(world, { target: Math.round((scaledTarget(16) + (inCentre ? scaledTarget(8) : 0) + (rush ? scaledTarget(rush) : 0)) * MODS.bikes) });
       manageBusPopulation(world);
-      manageScooterPopulation(world, { target: scaledTarget(10) });
-      manageMotorPopulation(world, { target: scaledTarget(motorTarget(wijkProfileAt(world.map, world.player.x, world.player.y).key, hourOf(world))) });
+      manageScooterPopulation(world, { target: Math.round(scaledTarget(10) * MODS.scooters) });
+      manageMotorPopulation(world, { target: Math.round(scaledTarget(motorTarget(wijkProfileAt(world.map, world.player.x, world.player.y).key, hourOf(world))) * MODS.motors) });
       manageBoatPopulation(world, { target: boatTarget() });
       tickRowingCoaches(world);
-      if (simLevel()) thinTraffic(world);
+      if (simLevel() || MODS.fading) thinTraffic(world);
     }
     pedTimer -= dt;
     if (pedTimer <= 0) {
@@ -595,6 +614,12 @@ async function boot() {
     tickBurningVehicles(world, dt);
     updateRailway(dt, world);
     updateMovableBridges(dt, world);
+    updateBridgeHits(dt, world);
+    if (FLAGS.brugbotsing) {
+      bridgeDemoT += dt;
+      if (bridgeDemoT > 6 && !bridgeDemoDone) bridgeDemoDone = !!startBridgeCrashDemo(world);
+      stepBridgeCrashDemo(dt, world);
+    }
     for (const v of world.vehicles) {
       if (!v.wrecked) checkVehicleWater(v, map, world);
     }
@@ -637,9 +662,11 @@ async function boot() {
     updateWorldEvents(dt, world);
     updateMuggings(dt, world);
     updateRoadRage(dt, world);
+    updateClearZones(dt, world);
     updateDayNight(dt, world);
     updateCalendar(dt, world);
     updateCheats(dt, world);
+    updateRegioLeven(dt, world);
     updateAchievementTracker(dt, world);
     updateRadio(dt, world);
     probe.mark('systems');

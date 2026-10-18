@@ -6,6 +6,7 @@ import { resolveWalker } from './collision.js';
 import { pushCircleOutOfVehicle, vehicleHitBody } from './vehicle.js';
 import { splatterAnimal, GIB_SPEED } from './gore3d.js';
 import { MODS } from './cheatmods.js';
+import { buildingAt } from './tileplace.js';
 
 // Ambient trailer-parody wildlife: seagulls over the Diepenring,
 // ducks and geese on the canals, pigeon flocks on the squares, the odd
@@ -42,11 +43,7 @@ const PIGEON_STAND_Y = 0.1;
 let maintainTimer = 0;
 
 function insideBuilding(map, x, y) {
-  for (const b of map.buildingsNear(x, y, 1)) {
-    const [minx, miny, maxx, maxy] = b.bounds;
-    if (x >= minx && x <= maxx && y >= miny && y <= maxy && pointInPolygon(x, y, b.pts)) return true;
-  }
-  return false;
+  return !!buildingAt(map, x, y);
 }
 
 function openGround(map, x, y) {
@@ -102,30 +99,6 @@ function newGrazer(kind, hx, hy, rng) {
   };
 }
 
-export function spawnWildlifeNear(map, px, py, count, rng = Math.random) {
-  const animals = [];
-  const waterPolys = map.waterNear(px, py, BIAS_SEARCH_RADIUS);
-  const greenPolys = map.greenNear(px, py, BIAS_SEARCH_RADIUS);
-  for (let i = 0; i < count; i++) {
-    const green = greenPolys.length && rng() < 1 / 6 ? layerPointNear(map, 'greenNear', px, py, rng, 10, SPAWN_RADIUS) : null;
-    if (green) {
-      animals.push(newGrazer(rng() < 0.5 ? 'cow' : 'sheep', green.x, green.y, rng));
-      continue;
-    }
-    let sx, sy;
-    const spot = waterPolys.length ? waterPointNear(map, px, py, rng, 0, SPAWN_RADIUS) : null;
-    if (spot) {
-      sx = spot.x;
-      sy = spot.y;
-    } else {
-      const ang = rng() * Math.PI * 2, rad = rng() * SPAWN_RADIUS;
-      sx = px + Math.cos(ang) * rad;
-      sy = py + Math.sin(ang) * rad;
-    }
-    animals.push(newSeagull(sx, sy, rng));
-  }
-  return animals;
-}
 
 // Random point near (px, py) inside a water/green polygon; the OSM polygons
 // can span kilometres, so sample around the player instead of the polygon.

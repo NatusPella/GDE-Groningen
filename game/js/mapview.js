@@ -1,8 +1,8 @@
 import { onPaletteChange } from './a11y.js';
-import { MODES, MODE_LABEL, ROUTE_MODE, roadAllowed, travelModeOf } from './roadaccess.js';
+import { MODES, roadAllowed, travelModeOf } from './roadaccess.js';
 import { forEachCashTarget } from './cashvan.js';
 import { facilitiesOf } from './facilities.js';
-import { mapIconScale, mapKindVisible, placeIcons } from './mapicons.js';
+import { mapIconScale, mapKindVisible, placeIcons, iconGapPx } from './mapicons.js';
 import { drawMapIcon, drawMapIconHalo, drawRoute, drawRoadRoute, forEachPoliceUnit, declutter, ROUTE_COLORS, routeLabel, drawSearchArea, getPoliceSearch, missionMapKind } from './hud_panel.js';
 import { getGaragesForRender } from './garages.js';
 import { getHomeForRender, getHomeGarageForRender, getHomeMooringForRender, getHomeHelipadForRender } from './home.js';
@@ -16,13 +16,18 @@ import { getPadelSpotsForRender } from './padel.js';
 import { activityMapIcons, ACTIVITY_LEGEND } from './activities.js';
 import { getPostgameSpotsForRender } from './postgame.js';
 import { getStationsForRender } from './stationtravel.js';
+import { reisOptiesVoor, tekenLijnen, lijnLagen } from './reiskaart.js';
+import { kaartRijen } from './ovkaart.js';
+import { optieRegel } from './ovopties.js';
+import { startMeerijden } from './reisrit.js';
 import { VILLAGES } from './ommelandlines.js';
 import { ommelandMapSpots } from './ommelandmap.js';
 import { getSideJobSpotsForRender } from './sidejobs.js';
 import { getEierbalTips } from './furniture.js';
 import { drawRailsOnMap } from './railway.js';
-import { drawCountryBase, drawCountryDetail, villageLabels, MAP_STYLE } from './countrymap.js';
+import { drawCountryBase, drawCountryDetail, villageLabels, syncMapPhase, MAP_STYLE } from './countrymap.js';
 import { drawProvinceBase, provinceMapOn, provinceMapBounds, onProvinceMapLoad } from './provincemap.js';
+import { ROAD_ORDER, ZOOM, EMPHASIS, roadWidthPx } from './mapstyle.js';
 import { drawSea, drawOutside, regionLabels, areaNameAt } from './regions.js';
 import { worldPlaceLabels, worldPlacesReady } from './worldplaces.js';
 import { tileIndexOf, tileOrigin, TILE_M } from './gdt.js';
@@ -56,9 +61,9 @@ const TILE_BUDGET_MS = 3.5;
 const L_BASE = 6;
 const LEVEL_COUNT = 14;
 const levelZoom = (L) => Math.SQRT2 ** (L - L_BASE);
-const MID_ZOOM = 2;
-const NEAR_ZOOM = 4;
-const BUILDING_ZOOM = 2.8;
+const MID_ZOOM = ZOOM.mid;
+const NEAR_ZOOM = ZOOM.near;
+const BUILDING_ZOOM = ZOOM.building;
 const DRAG_PX = 4;
 const HOVER_PX = 12;
 const FOG_CELL = 50;
@@ -67,23 +72,8 @@ const FOG_KEY = KEYS.fog;
 const FOG_FEATHER = 16; // cells
 
 // city ground and the endless meadows past it share one colour (countrymap.js)
-const LAND = MAP_STYLE.meadow;
-const GREEN = MAP_STYLE.park;
-const COUNTRY = MAP_STYLE.meadow;
-const WATER = '#2d6a86';
-const WATER_EDGE = '#4a8fae';
-const BUILDING = 'rgba(160, 156, 146, 0.62)';
-const BUILDING_LANDMARK = 'rgba(214, 205, 180, 0.8)';
-
-const ROAD_COLORS = {
-  major: '#f0ede4',
-  normal: '#c7c7c2',
-  minor: '#8f9095',
-  cycle: '#b8703a',
-  foot: '#6d6f66',
-};
-const ROAD_WIDTH_PX = { major: 2.4, normal: 1.4, minor: 1.0, cycle: 0.9, foot: 0.6 };
-const ROAD_ORDER = { foot: 0, cycle: 1, minor: 2, normal: 3, major: 4 };
+// (read live: the palette turns to its night colours, see mapstyle.js)
+const roadColors = (cat) => (cat === 'normal' ? MAP_STYLE.road : MAP_STYLE[cat] || MAP_STYLE.road);
 
 let state = null;
 let stylesInjected = false;
@@ -128,11 +118,6 @@ function injectStyles() {
       pointer-events: auto;
     }
     .mapview-title { font-size: 20px; white-space: nowrap; }
-    .mapview-modes { display: inline-flex; gap: 3px; padding: 3px; border-radius: 10px; background: rgba(0,0,0,0.3); border: 1px solid rgba(63,201,122,0.3); }
-    .mapview-modes button { font: 16px 'Bebas Neue', 'Arial Narrow', sans-serif; letter-spacing: 1px; padding: 5px 11px 3px; border: 0; border-radius: 7px; background: transparent; color: rgba(240,237,228,0.75); cursor: pointer; }
-    .mapview-modes button:hover { color: #fff; background: rgba(30,158,86,0.2); }
-    .mapview-modes button[aria-checked="true"] { background: linear-gradient(180deg, #3fc97a, #1e9e56); color: #0c140e; }
-    .mapview-modes button:focus-visible { outline: 2px solid #f0ede4; }
     .mv-modenote { color: #f0ede4 !important; font-size: 14px !important; padding: 6px 4px 8px; }
     .mapview-search { position: relative; flex: 1; max-width: 340px; min-width: 140px; }
     .mapview-search input {
@@ -274,6 +259,10 @@ function injectStyles() {
     .mapview-card > div { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
     .mapview-card b { font-weight: normal; font-size: 22px; letter-spacing: 1px; line-height: 1.05; }
     .mapview-card small, .mapview-card .mv-rec { font: 13px 'Arial Narrow', Arial, sans-serif; color: rgba(240, 237, 228, 0.65); letter-spacing: 0.2px; }
+    .mapview-card .mv-reis { display: flex; flex-direction: column; gap: 3px; margin: 4px 0; }
+    .mapview-card .mv-reisrij { text-align: left; font: 13px Arial, sans-serif; color: #f0ede4; background: rgba(255, 255, 255, 0.05); border: 0; border-radius: 4px; padding: 5px 8px; cursor: pointer; }
+    .mapview-card .mv-reisrij.sel { background: rgba(95, 180, 217, 0.22); }
+    .mapview-card .mv-reisrij[aria-disabled] { opacity: 0.55; }
     .mapview-card .mv-rec { display: flex; align-items: center; gap: 8px; }
     .mapview-card .mv-pips { display: inline-flex; gap: 4px; }
     .mapview-card .mv-pip { display: inline-grid; place-items: center; width: 18px; height: 18px; box-sizing: border-box; border-radius: 50%; border: 1.5px solid; font: 12px 'Bebas Neue', sans-serif; padding-top: 1px; }
@@ -522,7 +511,7 @@ function renderTile(L, tx, ty) {
   c.clearRect(0, 0, TILE_PX, TILE_PX);
   c.setTransform(s, 0, 0, s, -wx0 * s, -wy0 * s);
   const [rx0, ry0, rx1, ry1] = state.real;
-  c.fillStyle = LAND;
+  c.fillStyle = MAP_STYLE.meadow;
   if (wx0 < rx1 && wx0 + tws > rx0 && wy0 < ry1 && wy0 + tws > ry0) {
     c.fillRect(Math.max(rx0, wx0), Math.max(ry0, wy0), Math.min(rx1, wx0 + tws) - Math.max(rx0, wx0), Math.min(ry1, wy0 + tws) - Math.max(ry0, wy0));
   }
@@ -553,14 +542,14 @@ function renderTile(L, tx, ty) {
   const cssPerM = state.baseScale * z;
   const px = (n) => n / cssPerM;
 
-  c.fillStyle = GREEN;
+  c.fillStyle = MAP_STYLE.park;
   for (const g of view.green) fillPoly(c, g.pts);
 
   const mode = state.mode || 'lopen';
   // per travel mode: the water stands out for a boat, the land steps back
   const landA = mode === 'boot' ? 0.4 : mode === 'lucht' ? 0.55 : mode === 'ov' ? 0.6 : 1;
-  c.fillStyle = WATER;
-  c.strokeStyle = WATER_EDGE;
+  c.fillStyle = MAP_STYLE.water;
+  c.strokeStyle = MAP_STYLE.waterEdge;
   c.lineWidth = px((z < MID_ZOOM ? 1.2 : 0.8) * (mode === 'boot' ? 2 : 1));
   c.lineJoin = 'round';
   for (const w of view.water) {
@@ -571,7 +560,7 @@ function renderTile(L, tx, ty) {
   if (z >= BUILDING_ZOOM && layerOn('buildings')) {
     c.globalAlpha = landA;
     for (const b of view.buildings) {
-      c.fillStyle = b.landmark ? BUILDING_LANDMARK : BUILDING;
+      c.fillStyle = b.landmark ? MAP_STYLE.church : MAP_STYLE.building;
       fillPoly(c, b.pts);
     }
     c.globalAlpha = 1;
@@ -584,13 +573,12 @@ function renderTile(L, tx, ty) {
   }).sort((a, b) => ROAD_ORDER[a.cat] - ROAD_ORDER[b.cat]);
   c.lineCap = 'round';
   for (const r of roads) {
-    const base = ROAD_WIDTH_PX[r.cat] || 1;
-    const wpx = z >= NEAR_ZOOM ? Math.max(base, (r.width || 4) * cssPerM * 0.85) : z < MID_ZOOM && r.cat === 'normal' ? 0.9 : base;
+    const wpx = roadWidthPx(r.cat, z, r.width, cssPerM);
     c.beginPath();
     c.moveTo(r.pts[0][0], r.pts[0][1]);
     for (let i = 1; i < r.pts.length; i++) c.lineTo(r.pts[i][0], r.pts[i][1]);
     if (r.bridge && z >= MID_ZOOM) {
-      c.strokeStyle = '#0c140e';
+      c.strokeStyle = EMPHASIS.bridgeCasing;
       c.lineWidth = px(wpx + 2);
       c.stroke();
     }
@@ -598,9 +586,9 @@ function renderTile(L, tx, ty) {
     // the roads for your way of travel stand out; the ones that are not for you step back
     let a = z < MID_ZOOM && r.cat === 'normal' ? 0.6 : 1;
     a *= landA;
-    let wpx2 = wpx, col = ROAD_COLORS[r.cat] || ROAD_COLORS.normal;
-    if (mode === 'lopen' && r.cat === 'foot') { col = '#d9d4c4'; wpx2 = wpx * 1.4; }
-    else if (mode === 'fiets' && r.cat === 'cycle') { col = '#ff8a5c'; wpx2 = wpx * 1.6; }
+    let wpx2 = wpx, col = roadColors(r.cat);
+    if (mode === 'lopen' && r.cat === 'foot') { col = EMPHASIS.foot; wpx2 = wpx * 1.4; }
+    else if (mode === 'fiets' && r.cat === 'cycle') { col = EMPHASIS.cycle; wpx2 = wpx * 1.6; }
     else if (mode === 'auto' && r.cat === 'major') wpx2 = wpx * 1.2;
     if (allowed === false && r.cat !== 'major') a *= 0.35;
     c.strokeStyle = col;
@@ -611,7 +599,7 @@ function renderTile(L, tx, ty) {
     // "niet voor jou": a trunk road you may not walk or cycle on, red and dashed
     if (allowed === false && r.cat === 'major') {
       c.setLineDash([px(6), px(4)]);
-      c.strokeStyle = '#d93f3f';
+      c.strokeStyle = EMPHASIS.forbidden;
       c.lineWidth = px(Math.max(1.4, wpx * 0.5));
       c.stroke();
       c.setLineDash([]);
@@ -981,7 +969,7 @@ function compose() {
   const c = state.composeCtx;
   c.setTransform(1, 0, 0, 1, 0, 0);
   c.clearRect(0, 0, state.compose.width, state.compose.height);
-  c.fillStyle = COUNTRY;
+  c.fillStyle = MAP_STYLE.meadow;
   c.fillRect(0, 0, state.compose.width, state.compose.height);
   c.imageSmoothingEnabled = true;
 
@@ -1032,6 +1020,8 @@ function drawDynamicMarkers(ctx, world) {
   };
 
   for (const r of getRoutes()) drawFullRoute(ctx, world, t, r);
+  // de OV-lijnen van de bestemming waar de kaartkaart open voor staat (#97)
+  if (state.reis) tekenLijnen(ctx, state.reis.lagen, toScreen, 1);
 
   for (const g of getGaragesForRender()) icon('garage', 'garage', g.x, g.y, g.name || 'Garage');
   for (const f of facilitiesOf(['hospital', 'gppost'])) icon('zorg', 'hospital', f.x, f.y, f.name, {}, f.kind === 'hospital' ? 'Ziekenhuis' : 'Huisartsenpost');
@@ -1158,7 +1148,7 @@ function drawDynamicMarkers(ctx, world) {
   }
 
   icon(null, 'player', world.player.x, world.player.y, 'Jij', { angle: world.player.angle });
-  for (const q of placeIcons(queue, 12 * sc)) {
+  for (const q of placeIcons(queue, iconGapPx(sc))) {
     drawMapIconHalo(ctx, q.kind, q.sx, q.sy, sc);
     drawMapIcon(ctx, q.kind, q.sx, q.sy, sc, { t, ...q.opts });
     if (q.name) hover.push({ sx: q.sx, sy: q.sy, name: q.name, sub: q.sub, x: q.x, y: q.y, kind: q.kind, ...q.pick });
@@ -1458,38 +1448,21 @@ function updateTooltip(sx, sy) {
   tip.style.display = 'block';
 }
 
+// Alleen nog de cheat Overal en nergens (Streken, cheats.js) teleporteert vanaf de
+// kaart; het magische snelreizen is geen reisoptie meer (#97): reizen kan zelf
+// rijden of meerijden.
 function teleportTo(world, target) {
-  // the Streken teleport (cheats.js): nearest road, city or Ommeland, car and all
-  if (world.cheatActions && state.teleport) {
-    if (!world.cheatActions.teleport(target.x, target.y, target.name)) return;
-    setMapTeleport(false);
-    if (closeHandler) closeHandler();
-    else closeMap();
-    return;
-  }
-  const vehicle = world.player.inVehicle;
-  if (vehicle && vehicle.isBoat) {
-    world.addMessage('Met een boot kun je niet teleporteren', 2.5);
-    return;
-  }
-  const spot = world.map.findOpenSpawn(target.x, target.y, 400) || { x: target.x, y: target.y };
-  const sx = spot.x, sy = spot.y;
-  if (vehicle) {
-    vehicle.x = sx;
-    vehicle.y = sy;
-    vehicle.speed = 0;
-  }
-  world.player.x = sx;
-  world.player.y = sy;
-  world.addMessage(`Geteleporteerd naar ${target.name}`, 3);
+  if (!world.cheatActions || !state.teleport) return;
+  if (!world.cheatActions.teleport(target.x, target.y, target.name)) return;
+  setMapTeleport(false);
   if (closeHandler) closeHandler();
   else closeMap();
 }
 
-function handleClick(world, sx, sy, shift) {
+function handleClick(world, sx, sy) {
   const h = nearestHover(sx, sy);
   const [wx, wy] = toWorld(sx, sy);
-  if (shift || state.teleport) {
+  if (state.teleport) {
     if (h && h.teleport) teleportTo(world, h.teleport);
     else teleportTo(world, { x: wx, y: wy, name: streetAt(wx, wy, 60) || wijkAt(wx, wy) || 'deze plek' });
     return;
@@ -1528,12 +1501,27 @@ function showCard(world, h, sx, sy) {
   if (h.isGoal) btn = '<button type="button" class="mapview-btn ghost" data-card="clear">Doel wissen</button>';
   else if (h.story) btn = goal ? '<button type="button" class="mapview-btn" data-card="story">Terug naar het verhaal</button>' : '';
   else btn = '<button type="button" class="mapview-btn" data-card="goal">Zet als doel</button>';
+  // reisopties: meerijden of zelf rijden, met de lijnen op de kaart (#97)
+  let reisHtml = '';
+  state.reis = null;
+  if (!h.isGoal && !h.story) {
+    const opts = reisOptiesVoor(world, { x: h.x, y: h.y });
+    if (opts.some((o) => o.ride)) {
+      const keep = state.card && state.card.h === h ? state.card.gekozen : null;
+      const gekozen = (opts.find((o) => o.id === keep) || opts.find((o) => o.aanbevolen) || opts.find((o) => o.ride)).id;
+      const rows = kaartRijen(opts, optieRegel, gekozen);
+      state.reis = { opts, gekozen, lagen: lijnLagen(opts, gekozen), dest: { x: h.x, y: h.y, name: h.name } };
+      reisHtml = '<div class="mv-reis">' + rows.map((r) => `<button type="button" class="mv-reisrij${r.selected ? ' sel' : ''}" data-card="kies:${r.id}"${r.disabled ? ' aria-disabled="true"' : ''} style="border-left:6px solid ${r.color}">${escHtml(r.tekst)}${r.aanbevolen ? ' · aanbevolen' : ''}${r.disabled ? ` · ${escHtml(r.disabled)}` : ''}</button>`).join('') + '</div>';
+      const sel = opts.find((o) => o.id === gekozen);
+      btn = (sel.ride ? `<button type="button" class="mapview-btn" data-card="rij"${sel.afford ? '' : ' disabled'}>Meerijden</button>` : '') + btn.replace('Zet als doel', sel.ride ? 'Zelf rijden' : 'Zet als doel');
+    }
+  }
   const el = state.cardEl;
   el.innerHTML = `<span class="mv-ico">${h.kind ? `<img src="${mapIconUrl(h.kind)}" alt="">` : ''}</span><div><b>${escHtml(it ? (it.code ? it.code + ' · ' : '') + it.title : h.name)}</b>` +
-    `<small>${meta}</small>${pips || (it && it.record) ? `<span class="mv-rec">${pips}${escHtml(it ? it.record : '')}</span>` : ''}` +
+    `<small>${meta}</small>${pips || (it && it.record) ? `<span class="mv-rec">${pips}${escHtml(it ? it.record : '')}</span>` : ''}${reisHtml}` +
     `<div class="mv-btns">${btn}<button type="button" class="mapview-btn ghost" data-card="close">Sluiten</button></div></div>`;
   el.hidden = false;
-  state.card = { h, it };
+  state.card = { h, it, gekozen: state.reis ? state.reis.gekozen : null };
 }
 
 // The menu is zoomed with the interface (menu.css): CSS px of the overlay are
@@ -1564,12 +1552,29 @@ function toggleLegend(open) {
 
 function hideCard() {
   state.card = null;
+  state.reis = null;
   if (state.cardEl) state.cardEl.hidden = true;
 }
 
 function cardAction(world, act) {
   const c = state.card;
   if (!c) return;
+  if (act.startsWith('kies:') && state.reis) {
+    // een andere optie uitlichten: de lijnen op de kaart wisselen mee
+    c.gekozen = act.slice(5);
+    showCard(world, c.h);
+    return;
+  }
+  if (act === 'rij' && state.reis) {
+    const { opts, gekozen, dest } = state.reis;
+    const o = opts.find((x) => x.id === gekozen);
+    hideCard();
+    if (!o || !o.ride) return;
+    if (closeHandler) closeHandler();
+    else closeMap();
+    startMeerijden(world, o, dest);
+    return;
+  }
   hideCard();
   if (act === 'clear') clearGoal();
   else if (act === 'story') clearGoal();
@@ -1658,7 +1663,7 @@ function drawLegendIcon(ctx, kind) {
     ctx.fillStyle = kind === 'text-wijk' ? 'rgba(240, 237, 228, 0.6)' : '#f0ede4';
     ctx.fillText(kind === 'text-wijk' ? 'WIJK' : 'Abc', 12, 13);
   } else if (kind === 'buildings') {
-    ctx.fillStyle = BUILDING;
+    ctx.fillStyle = MAP_STYLE.building;
     ctx.fillRect(5, 6, 8, 7);
     ctx.fillRect(14, 9, 6, 10);
     ctx.fillRect(4, 15, 8, 5);
@@ -1765,7 +1770,6 @@ const MODE_NOTE = {
 function setMode(m) {
   if (!MODES.includes(m)) return;
   state.mode = m;
-  for (const b of state.overlay.querySelectorAll('.mapview-modes [data-mode]')) b.setAttribute('aria-checked', String(b.dataset.mode === m));
   if (state.modeNote) state.modeNote.textContent = MODE_NOTE[m];
   if (state.avoidBtn) state.avoidBtn.hidden = m !== 'auto';
   clearTiles();
@@ -1894,7 +1898,6 @@ export function initMapView(world) {
     '<label class="mapview-search m-inp"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg><input type="search" placeholder="Zoek een plek, missie of minigame" aria-label="Zoek een plek, missie of minigame" autocomplete="off" spellcheck="false">' +
     '<ul class="mapview-results" role="listbox" hidden></ul></label></div>' +
     '<div class="mv-hr">' +
-    `<div class="mapview-modes" role="radiogroup" aria-label="Reiswijze">${MODES.map((m) => `<button type="button" role="radio" data-act="mode" data-mode="${m}" aria-checked="false">${MODE_LABEL[m]}</button>`).join('')}</div>` +
     '<button type="button" class="m-bg mv-layers" data-act="layers" aria-expanded="false" aria-controls="mv-legend">Lagen <span class="mv-layers-n"></span></button></div></div>' +
     '<div class="mapview-body"><canvas class="mapview-canvas"></canvas>' +
     '<div class="mapview-zoom"><button type="button" class="m-bg" data-act="in" aria-label="Inzoomen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button><button type="button" class="m-bg" data-act="out" aria-label="Uitzoomen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg></button><button type="button" class="m-bg" data-act="centre" aria-label="Naar jezelf"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 3v4M12 17v4M3 12h4M17 12h4"/></svg></button></div>' +
@@ -1982,11 +1985,7 @@ export function initMapView(world) {
     const btn = e.target.closest('[data-act]');
     if (!btn) return;
     const act = btn.dataset.act;
-    if (act === 'mode') {
-      setMode(btn.dataset.mode);
-      // plan the goal for the chosen way of travel; your own way is the default
-      setRoutePrefs({ planMode: btn.dataset.mode === travelModeOf(world) ? null : ROUTE_MODE[btn.dataset.mode] });
-    } else if (act === 'avoid') {
+    if (act === 'avoid') {
       const on = !getRoutePrefs().avoidMotorways;
       setRoutePrefs({ avoidMotorways: on });
       btn.setAttribute('aria-pressed', String(on));
@@ -2069,7 +2068,7 @@ export function initMapView(world) {
     endDrag();
     if (!d.moved && state.open) {
       const [sx, sy] = canvasPos(e);
-      handleClick(world, sx, sy, e.shiftKey);
+      handleClick(world, sx, sy);
     }
   }, true);
   cv.addEventListener('contextmenu', (e) => {
@@ -2094,7 +2093,7 @@ export function initMapView(world) {
     // Enter on the map itself (a controller's A): click under the crosshair
     if (e.key === 'Enter' && !e.defaultPrevented && !(e.target && e.target.closest && e.target.closest('button, input, a, select, .mapview-card'))) {
       e.preventDefault();
-      handleClick(world, state.cw / 2, state.ch / 2, false);
+      handleClick(world, state.cw / 2, state.ch / 2);
       const b = state.card && state.cardEl.querySelector('button');
       if (b) b.focus({ preventScroll: true });
       else state.canvas.focus({ preventScroll: true });
@@ -2172,6 +2171,7 @@ export function updateMapView(dt, world) {
   updateFog(world);
   updateRouting(dt, world);
   if (!state.open) return;
+  if (syncMapPhase(world) !== state.phase) { state.phase = syncMapPhase(world); clearTiles(); }
   handleKeys(dt, world);
   render(world);
 }

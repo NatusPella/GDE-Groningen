@@ -60,7 +60,8 @@ body.hide-minimap #hud .hud-minimap-wrap { display: none; }
 #hud .hud-wanted { display: flex; justify-content: flex-end; gap: 5px; line-height: 0; }
 #hud .hud-wanted svg { width: 28px; height: 28px; fill: none; stroke: rgba(255, 255, 255, 0.3); stroke-width: 1.6; stroke-linejoin: round; }
 #hud .hud-wanted svg.on { fill: #e8c93a; stroke: #7a6610; stroke-width: 1; }
-#hud .hud-wanted.searching svg.on { animation: hud-star-blink 0.9s steps(2, jump-none) infinite; }
+#hud .hud-wanted.searching svg.on { stroke-dasharray: 3 2;
+   animation: hud-star-blink 0.9s steps(2, jump-none) infinite; }
 @keyframes hud-star-blink { 0% { opacity: 1; } 100% { opacity: 0.25; } }
 #hud .hud-search {
   display: flex; flex-direction: column; align-items: flex-end; gap: 5px; padding: 8px 12px 9px; border-radius: 8px;
@@ -223,11 +224,13 @@ body.pigeon-mode #hud .hud-mission.in-mission:not([hidden]) { display: flex !imp
 #hud .hud-bar-ghost { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: rgba(255, 255, 255, 0.4); transition: width var(--dur-bar, 300ms) var(--ease-out, ease-out); }
 #hud .hud-bar-fill.health { background: linear-gradient(90deg, #1e9e56, #3fc97a); }
 #hud .hud-bar-fill.armor { background: #c8d0c9; }
-#hud .hud-meter.low .hud-bar-fill.health { background: #d93f3f; }
+#hud .hud-meter.low .hud-bar-fill.health { background: repeating-linear-gradient(135deg, #d93f3f 0 5px, #8f2626 5px 8px); }
+#hud .hud-meter.crit .hud-bar { animation-duration: 1.6s; }
 #hud .hud-meter.st .hud-bar { height: 3px; }
 #hud .hud-bar-fill.stamina { background: #f0ede4; opacity: 0.7; width: 100%; }
 #hud .hud-meter.veh .veh-name { font-size: 14px; width: 54px; color: rgba(240, 237, 228, 0.7); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #hud .hud-meter.veh .hud-bar { width: 121px; }
+#hud .hud-meter.veh.no-label .veh-name { visibility: hidden; }
 #hud .hud-bar-fill.vehicle { background: linear-gradient(90deg, #d93f3f, #f07a5a); }
 #hud .hud-meter.veh:not(.hurt) .hud-bar-fill.vehicle { background: linear-gradient(90deg, #1e9e56, #3fc97a); }
 #hud .hud-meter.low .hud-bar { animation: hud-low 0.9s ease-in-out infinite alternate; }
@@ -240,9 +243,6 @@ body.pigeon-mode #hud .hud-mission.in-mission:not([hidden]) { display: flex !imp
 #hud .hud-saved svg { width: 13px; height: 13px; color: var(--gron-green-light); }
 #hud .hud-saved span { text-transform: lowercase; }
 #hud .hud-saved.visible { opacity: 1; transform: none; }
-
-/* the route's distance is in the objective and the GPS card now */
-#hud .hud-route { display: none; }
 
 /* --- zone H: speed, gear, revs; the key hints above ----------------------- */
 #hud .hud-speedo {
@@ -267,10 +267,8 @@ body.pigeon-mode #hud .hud-mission.in-mission:not([hidden]) { display: flex !imp
 #hud .rpm-zone { stroke: rgba(217, 63, 63, 0.55); }
 #hud .rpm-fill { stroke: #3fc97a; transition: stroke 0.2s; }
 #hud .hud-speedo.redline .rpm-fill { stroke: #ff6f61; }
-#hud .rpm-t, #hud .rpm-u { display: none; }
-#hud .rpm-t { font-size: 26px; fill: #f0ede4; font-family: 'Bebas Neue', 'Arial Narrow', sans-serif; }
-#hud .rpm-u { font-size: 18px; fill: rgba(240, 237, 228, 0.6); font-family: 'Bebas Neue', 'Arial Narrow', sans-serif; }
-#hud .hud-speedo.no-rpm .sp-rpm, #hud .hud-speedo.no-rpm .sp-gears { display: none; }
+#hud .hud-speedo.no-rpm .sp-rpm { display: none; }
+#hud .hud-speedo.no-gears .sp-gears { display: none; }
 @media (prefers-reduced-motion: reduce) { #hud .hud-speedo.visible { animation: none; } }
 
 /* --- the left column: zone A (messages) and E (radio, achievements) ----- */
