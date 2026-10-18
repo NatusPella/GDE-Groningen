@@ -121,9 +121,9 @@ Elke reis heeft een vertrek, een bestemming, een reden en een aankomst; dit is d
 | M11 | Zoutkamp | Lauwersoog, Noordpolderzijl en terug (boot, wad) | skûtsje, dan het zout | 13:00 | 23:30 | do 20 aug |
 | M12, één keten zonder terugvlucht | Lauwersoog | UMCG (35 km, lunch) | Dijkstra's lunch | 08:00 | 08:20 | vr 21 aug |
 | | UMCG | de Dollard (45 km, ballon, tas losknippen) | het koopboek | 08:35 | 09:15 | vr 21 aug |
-| | de Dollard | Delfzijl (helidek, 25 km) | afzetten | 09:20 | 09:40 | vr 21 aug |
-| M13 | Delfzijl | Eemshaven (30 km, auto) | container 4471 | 21:00 | 21:35 | vr 21 aug |
-| M14 | Delfzijl woonschip | Eemshaven (30 km, auto), dan de race naar Delfzijl (8 km dijk) | de deurwaarder om 08:00 | 05:15 | 06:25 | za 22 aug |
+| | de Dollard | Eemshaven (helidek, 40 km) | afzetten; M13 begint hier | 09:20 | 09:45 | vr 21 aug |
+| M13 | Eemshaven (de kade, geen reis) | container 4471, daarna slapen in Lammerts havenkantoor | container 4471 | 21:00 | 21:00 | vr 21 aug |
+| M14 | Eemshaven (havenkantoor, geen reis) | de race over de dijk naar de sluis van Delfzijl (8 km spel) | de deurwaarder om 08:00 | 06:30 | 07:00 | za 22 aug |
 | T3 trein | Delfzijl | Winschoten (35 km) | de kermis | 10:30 | 11:05 | za 22 aug |
 | M15 | Winschoten | Roelfiens strook (4 km), vliegen over de kermis (4 km) | het spandoek | 13:30 | 14:20 | za 22 aug |
 | M16 | de kermis | de dijk | tenten, botsauto's, zonsondergang | 18:00 | 21:00 | za 22 aug |
@@ -302,7 +302,7 @@ Afstanden zijn geschat uit algemene kennis (AANNAME) en moeten met de reisplanne
 | 5 | Zuidhorn-schuur 3, schuur-Aduard 12, Aduard-Grote Markt 8, Markt-toren-Oma-Markt 6 | 29 | 23 min | 20 min (de colonne is een missie) | Skip met scène |
 | **Totaal** | | **ca. 475** | **ca. 6 uur** | **ca. 68 min** | |
 
-**Luchtvaartuigen: waar ze staan (spawnregel).** Helikopters staan op echte helipads (in de repo: het UMCG-dak, Rotor Roelfs pad op Eelde en het dak van het eigen huis; andere helipads alleen als ze echt bestaan), kleine vliegtuigen alleen op echte vliegvelden of -stroken in de Ommeland (Eelde en een of twee andere, nog te controleren). In de stad staat geen vliegtuig, omdat daar geen vliegveld is. Allebei mogen overal in de provincie vliegen. M12 gebruikt Rotor Roelfs heli van het pad bij Eelde (Dijkstra komt hem naar Lauwersoog brengen; één keten zonder terugvlucht), M15 het enige vliegtuig, vanaf de strook in het Oldambt. Spawnpunten met bronnen: zie 08-IMPLEMENTATIE.md §3b.
+**Luchtvaartuigen: waar ze staan (spawnregel).** Helikopters staan op echte helipads (in de repo: het UMCG-dak, Rotor Roelfs pad op Eelde (niet gebruikt in dit verhaal, want Eelde ligt in Drenthe) en het dak van het eigen huis; andere helipads alleen als ze echt bestaan), kleine vliegtuigen alleen op echte vliegvelden of -stroken in de Ommeland (Eelde en een of twee andere, nog te controleren). In de stad staat geen vliegtuig, omdat daar geen vliegveld is. Allebei mogen overal in de provincie vliegen. M12 gebruikt Rotor Roelfs heli, die op het UMCG-dak staat (Dijkstra vliegt hem naar Lauwersoog om hen op te halen; één keten zonder terugvlucht, die eindigt in de Eemshaven waar M13 begint), M15 het enige vliegtuig, vanaf de strook in het Oldambt. Spawnpunten met bronnen: zie 08-IMPLEMENTATIE.md §3b.
 
 **De zee (besluit van de eigenaar).** De Waddenzee en de Noordzee staan op de kaart en in de wereld: een zichtbare zee met kust, kwelder en strand, ook als horizon vanaf de dijk en uit de heli. Ze hoeven niet bevaarbaar te zijn; vaarbaar zijn alleen het Reitdiep, de monding van het Lauwersmeer en de havens (M11, M17). Wie verder wil, krijgt een scène: de sluis, een zandbank of Klaas weigert ("Tot de sluis. Daarna is het open water en ben je voor eigen rekening").
 
