@@ -58,6 +58,9 @@ function hintsOnPad() {
   return src === 'pad' ? true : src === 'keys' ? false : active;
 }
 
+// Index of the pad that drives player 1 (-1: none); coop gives player 2 another.
+export function activePadIndex() { return padIndex; }
+
 export function padState() {
   return { active: hintsOnPad(), family, ctx };
 }
