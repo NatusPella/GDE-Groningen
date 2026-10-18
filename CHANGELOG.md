@@ -7,6 +7,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Nieuw
+- **Beweegbare bruggen met stoplicht:** bij elke brug die open kan staat nu aan beide waterkanten een bootstoplicht (rood tot de brug open ligt, dan groen), en je krijgt een korte melding als de brug open gaat en als hij openligt. Ook de wegmarkering gaat nu mee met het brugdek.
 - **Drie nieuwe zijmissies in de stad:** "Het Loket" (formulier, wachtrij en stempel), de "StudieStaat-balie" (rekenen aan een verzonnen studieloket) en "Borrel bij Vigilantia" (tafelspeech van een verzonnen studentenvereniging). Telkens drie vragen aan een balie; een fout antwoord betaalt alleen minder.
 - **Low-poly beeld op de laadschermen:** het startscherm en alle laadschermen tonen nu een rustige low-poly scène (stad, nacht, platteland of gracht met boot) met langzame wolken, zon en een draaiende molen, in plaats van een foto.
 - **Radio valt niet meer stil:** als de muziek hoort te spelen maar stil staat (vastgelopen nummer, een gemist einde, een pauze die nooit eindigt), probeert de radio het eerst opnieuw en kiest daarna zelf het volgende nummer; N hoeft niet meer.
