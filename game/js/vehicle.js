@@ -1,3 +1,4 @@
+import { nearestLine, project as projectOnLine, makeRunner, stepRunner, startAt } from './busroutes.js';
 import { closestPointOnSegment, normalizeAngle, clamp, lerp, pointInPolygon, inWaterPoly, inMapWater, WATER_Y, keepBoatOffShore, boatDryPoints } from './util.js';
 import { waterClearance, waterChannelPoints } from './waterindex.js';
 import { shallowWater } from './waterlevels.js';
@@ -1017,6 +1018,10 @@ export function manageScooterPopulation(world, { target = 10, spawnMin = 40, spa
 
 // A handful of regional buses on the bigger through-roads only - real bus
 // frequency is much lower than car/bike density.
+let busLines = [];
+// de voorbereide lijnen (busroutes.js prepareLines); leeg = bussen rijden vrij zoals voorheen
+export function setBusLines(lines) { busLines = lines || []; }
+
 export function manageBusPopulation(world, { target = 4, spawnMin = 90, spawnMax = 220, despawnDist = 300 } = {}) {
   const { map, player, vehicles } = world;
   for (let i = vehicles.length - 1; i >= 0; i--) {
@@ -1027,6 +1032,23 @@ export function manageBusPopulation(world, { target = 4, spawnMin = 90, spawnMax
 
   let count = 0;
   for (const v of vehicles) if (v.isBus && !v.wrecked && v.driver !== 'player') count++;
+
+  // echte lijnen (busroutes.js, zodra de lijndata geladen is): een bus begint op zijn lijn en rijdt hem
+  const line = busLines.length ? nearestLine(busLines, player.x, player.y, spawnMax) : null;
+  for (let tries = 0; line && count < target && tries < 4; tries++) {
+    const pr = projectOnLine(line, player.x, player.y);
+    const dir = Math.random() < 0.5 ? 1 : -1;
+    const at = startAt(line, Math.max(0, Math.min(line.length, pr.s + dir * (spawnMin + Math.random() * (spawnMax - spawnMin) * 0.6))), dir);
+    const rp = map.nearestRoadPoint(at.x, at.y, 25, true);
+    if (!rp || rp.road.cat === 'foot' || rp.road.width < 2.55 + 1.1) continue;
+    const v = spawnVehicleOnRoad(map, rp.road, false, Math.random, false, true, rp);
+    if (Math.abs(normalizeAngle(v.angle - at.angle)) > Math.PI / 2) continue;
+    const d = Math.hypot(v.x - player.x, v.y - player.y);
+    if (d < spawnMin || d > spawnMax || !spawnSpotFree(vehicles, v) || spawnWouldPop(world, v)) continue;
+    v.busRun = makeRunner(line, projectOnLine(line, v.x, v.y).s, dir);
+    vehicles.push(v);
+    count++;
+  }
 
   const candidates = map.roadsNear(player.x, player.y, spawnMax).filter((r) => r.cat === 'major' || r.cat === 'normal' || r.busOnly);
   let guard = 0;
@@ -1942,6 +1964,11 @@ export function updateTrafficAI(v, dt, map, world, rng = Math.random, opts = nul
   }
   if (!v.plan) v.plan = [];
   if (!opts) opts = v.aiOpts || null;
+  if (v.busRun && v.driver !== 'player') {
+    const out = stepRunner(v.busRun, v.x, v.y, dt);
+    if (out.atStop) v.waitTimer = Math.max(v.waitTimer || 0, out.hold);
+    opts = { goal: out.goal };
+  }
   const goal = (opts && opts.goal) || null;
   const chase = !!(opts && opts.chase);
   const small0 = v.isBike || v.isScooter;
