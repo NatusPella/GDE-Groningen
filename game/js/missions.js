@@ -15,6 +15,8 @@ import { KEI_ROUTE, KEI_CHECKPOINTS } from './keiroute.js';
 import { createRace, updateRace, raceStandings, disposeRace, updateRetiredRacers } from './racers.js';
 import { TOUR_BOAT, rondvaartWaypoints, rondvaartBerth, startRondvaart, updateRondvaart, stopRondvaart, rondvaartStatus, rondvaartTip, rondvaartOutro, playRondvaartBoarding, routeAt, ROUTE_LENGTH } from './rondvaartchase.js';
 import { startHeliRun, isHeliRunActive, abortHeliRun, getHeliSpotsForRender } from './helirun.js';
+import { createSearchlight } from './searchlight.js';
+import { sweepAngle, inBeam, stepExposure } from './searchlightlogic.js';
 import { helipadById } from './heliflight.js';
 import { spawnFxPuff, spawnFxSpark } from './fx3d.js';
 import { Pedestrian, isInsideBuilding, setPedPose } from './pedestrians.js';
@@ -1235,6 +1237,14 @@ function boatProgressText(rv) {
 function releaseMissionVehicle(world) {
   stopRondvaart(world, 'mission');
   dropPursuer(world);
+  disposeLight();
+  if (chain.storyBoat) {
+    const sb = chain.storyBoat;
+    chain.storyBoat = null;
+    sb.missionCar = false;
+    const i = world.vehicles.indexOf(sb);
+    if (i >= 0 && world.player.inVehicle !== sb) world.vehicles.splice(i, 1);
+  }
   disposeFjordTrain(world);
   disposeHeist();
   if (chain.skutsje) {
@@ -1510,6 +1520,16 @@ function boatPoseClear(map, boat, x, y, a) {
     if (Math.abs(ly) < 0.1 && lx > h && boatDryPoints(map, boat, px, py, a) > 2) return false;
   }
   return true;
+}
+
+// M11: Klaas' rubber boat (def.boatStart { x, y, angle }), the player's way over the water; gone once the mission is over
+function spawnStoryBoat(world, def) {
+  const b = def.boatStart;
+  const boat = new Vehicle(b.x, b.y, b.angle, { ...BOAT_KINDS[b.kind || 'rubberboot'] });
+  boat.isBoat = true;
+  boat.missionCar = true;
+  world.vehicles.push(boat);
+  chain.storyBoat = boat;
 }
 
 function spawnMissionBoat(def, map) {
@@ -1883,6 +1903,7 @@ function startMission(world, def) {
       chain.vehicle = spawnMissionCar(world, def);
       world.vehicles.push(chain.vehicle);
     }
+    if (def.boatStart) spawnStoryBoat(world, def);
     chain.stage = null;
     chain.stageIndex = -1;
     chain.stagePending = true;
@@ -2332,6 +2353,7 @@ function resolveTarget(world, spec, from) {
   }
   if (spec.shore) return { ...roadSpot(map, from.x, from.y), label: spec.label };
   if (spec.skutsje) return chain.skutsje ? { x: chain.skutsje.x, y: chain.skutsje.y, label: spec.label } : null;
+  if (spec.storyBoat) return chain.storyBoat ? { x: chain.storyBoat.x, y: chain.storyBoat.y, label: spec.label || 'De rubberboot van Klaas' } : null;
   if (spec.bank) return { ...bankNear(map, spec.bank[0], spec.bank[1]), label: spec.label };
   return null;
 }
@@ -2552,6 +2574,7 @@ function stageProgressBase(world, def) {
     return `${st.label} · ${left}${st.clock ? ` · ${st.clock} ${fmtTime((st.time || 180) - S.t)}` : ''}`;
   }
   if (st.kind === 'boatchase' && S.boat) return S.hold > 0 ? `${st.label} · aan boord ${Math.min(100, Math.round(S.hold / (st.boardTime || 2.5) * 100))}%` : `${st.label} · ${Math.round(dist(world.player.x, world.player.y, S.boat.v.x, S.boat.v.y))} m`;
+  if (st.light && chain.light) return `${st.label} · gezien ${Math.round(chain.light.exposure * 100)}%${Number.isFinite(chain.timeLeft) ? ` · het water komt over ${fmtTime(chain.timeLeft)}` : ''}`;
   if (st.kind === 'goto' && st.limit) return `${st.label} · ${fmtTime(st.limit - S.t)}`;
   if (st.kind === 'train' && fjordTrainState()) {
     const ft = fjordTrainState();
@@ -2623,6 +2646,7 @@ function enterStage(world, def, k) {
   if (st.stars) { world.wanted = Math.max(world.wanted, st.stars); world.wantedDecayTimer = 0; }
   if (st.calm) { world.wanted = 0; world.wantedDecayTimer = 0; }
   if (st.bonus) chain.timeLeft += st.bonus;
+  if (st.setTime) chain.timeLeft = st.setTime;
   const say = chain.hijacked && st.sayHijacked ? st.sayHijacked : st.say;
   if (say) world.addMessage(say, 4.5);
   if (st.radio && contactMod) contactMod.queueStoryContact({ via: 'radio', from: 'rikus', mood: 'night', ...st.radio });
@@ -2638,6 +2662,7 @@ function enterStage(world, def, k) {
 function nextStage(world, def) {
   const cur = def.stages[chain.stageIndex];
   dropPursuer(world);
+  if (chain.light && !(def.stages[chain.stageIndex + 1] && def.stages[chain.stageIndex + 1].light)) disposeLight();
   if (def.heist) heistLeaveStage(world, cur);
   if (cur && cur.pay) {
     const amt = Math.min(cur.pay, Math.max(0, Math.floor(world.money)));
@@ -2651,12 +2676,44 @@ function nextStage(world, def) {
 // --- H14: Jelle's skûtsje sails the Diepenring (rondvaartchase.js route) -------
 const SKUTSJE_MODEL = { ...BOAT_KINDS.skutsje, maxSpeed: 8 };
 
+// The route a boat chase follows: the Diepenring (rondvaartchase.js), or the stage's own `path` (world points,
+// M11 on the Reitdiep and the Lauwersmeer): { len, at(s) -> { x, y, a }, nearest(x, y) -> s }.
+const pathRoutes = new WeakMap();
+function chaseRoute(st) {
+  if (!st.path) return { len: ROUTE_LENGTH, at: routeAt, nearest: (x, y) => routeS(x, y).s };
+  let R = pathRoutes.get(st.path);
+  if (R) return R;
+  const pts = st.path, cum = [0];
+  for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
+  const len = cum[cum.length - 1];
+  const at = (s) => {
+    s = clamp(s, 0, len);
+    let i = 0;
+    while (i < pts.length - 2 && cum[i + 1] < s) i++;
+    const [ax, ay] = pts[i], [bx, by] = pts[i + 1];
+    const t = (s - cum[i]) / (cum[i + 1] - cum[i] || 1);
+    return { x: ax + (bx - ax) * t, y: ay + (by - ay) * t, a: Math.atan2(by - ay, bx - ax) };
+  };
+  const nearest = (x, y) => {
+    let best = 0, bd = Infinity;
+    for (let i = 0; i < pts.length - 1; i++) {
+      const cp = closestPointOnSegment(x, y, pts[i][0], pts[i][1], pts[i + 1][0], pts[i + 1][1]);
+      if (cp.dist2 < bd) { bd = cp.dist2; best = cum[i] + cp.t * (cum[i + 1] - cum[i]); }
+    }
+    return best;
+  };
+  R = { len, at, nearest };
+  pathRoutes.set(st.path, R);
+  return R;
+}
+
 function spawnSkutsje(world, st) {
   const p = world.player;
-  const r = routeS(p.x, p.y);
-  const dir = r.s + 600 < ROUTE_LENGTH ? 1 : -1;
-  const s0 = clamp(r.s + dir * (st.lead || 45), 0, ROUTE_LENGTH);
-  const q = routeAt(s0);
+  const R = chaseRoute(st);
+  const here = R.nearest(p.x, p.y);
+  const dir = here + 600 < R.len ? 1 : -1;
+  const s0 = clamp(here + dir * (st.lead || 45), 0, R.len);
+  const q = R.at(s0);
   const v = new Vehicle(q.x, q.y, q.a + (dir < 0 ? Math.PI : 0), { ...SKUTSJE_MODEL });
   v.isBoat = true;
   v.scripted = true;
@@ -2665,7 +2722,7 @@ function spawnSkutsje(world, st) {
   v.label = st.name || '';
   world.vehicles.push(v);
   chain.skutsje = v;
-  return { v, s: s0, dir, speed: 2 };
+  return { v, s: s0, dir, speed: 2, R };
 }
 
 function updateBoatChase(dt, world, def, st, S) {
@@ -2679,8 +2736,8 @@ function updateBoatChase(dt, world, def, st, S) {
   const want = d > 90 ? 3.2 : d > 35 ? 5.4 : 7;
   B.speed += clamp(want - B.speed, -2 * dt, 1.4 * dt);
   B.s += B.dir * B.speed * dt;
-  if (B.s <= 0 || B.s >= ROUTE_LENGTH) { B.s = clamp(B.s, 0, ROUTE_LENGTH); B.speed = 0; }
-  const q = routeAt(B.s);
+  if (B.s <= 0 || B.s >= B.R.len) { B.s = clamp(B.s, 0, B.R.len); B.speed = 0; }
+  const q = B.R.at(B.s);
   v.x = q.x; v.y = q.y;
   v.angle = q.a + (B.dir < 0 ? Math.PI : 0);
   v.speed = B.speed;
@@ -2695,6 +2752,49 @@ function updateBoatChase(dt, world, def, st, S) {
     if (S.hold >= (st.boardTime || 2.5)) { B.speed = 0; v.speed = 0; nextStage(world, def); return; }
   } else S.hold = Math.max(0, S.hold - dt * 0.5);
   if (d > (st.escape || 230) || S.t > (st.time || 180)) fail(world, def, st.lost || 'het skûtsje is ontsnapt');
+}
+
+// --- M11: the coast guard's searchlight over the marsh (stage `light`, searchlightlogic.js) ----------
+// The light stays up over consecutive stages that carry the same `light`; seen too long = the end of the sneaking.
+function updateLightStage(dt, world, def, st, S) {
+  if (!chain.light) chain.light = { ctl: createSearchlight(st.light), exposure: 0, t: 0, warned: false };
+  const Lt = chain.light;
+  Lt.t += dt;
+  if (Lt.ctl) Lt.ctl.update(Lt.t);
+  const p = world.player, ref = p.inVehicle || p;
+  const ang = sweepAngle(st.light, Lt.t);
+  const inside = inBeam(st.light, ang, ref.x, ref.y);
+  const coming = inside || inBeam({ ...st.light, half: (st.light.half || 0.17) * 3 }, ang, ref.x, ref.y);
+  Lt.exposure = stepExposure(Lt.exposure, dt, inside, !!p.crouching, st.light);
+  if (coming && !Lt.warned) { Lt.warned = true; world.addMessage(st.light.warn || 'Het licht! Bukken (Ctrl), of weg uit de bundel.', 2.8, { kind: 'gevaar', key: 'zoeklicht' }); }
+  else if (!coming && Lt.exposure < 0.1) Lt.warned = false;
+  if (Lt.exposure >= 1) {
+    fail(world, def, st.light.fail || 'in het licht van de kustwacht gezien');
+    return true;
+  }
+  return false;
+}
+
+function disposeLight() {
+  if (!chain.light) return;
+  if (chain.light.ctl) chain.light.ctl.dispose();
+  chain.light = null;
+}
+
+// M11: a hop over the water or the coast, Klaas' cutter: the pair stands at `spec` (a stage target), on foot
+function warpPlayer(world, spec) {
+  const p = world.player;
+  const t = resolveTarget(world, spec, p);
+  if (!t) return;
+  if (p.inVehicle) p.exitVehicle(world.map, world);
+  p.x = t.x; p.y = t.y; p.vx = 0; p.vy = 0; p.z = 0; p.vz = 0; p.gz = 0;
+  p.water = null; p.swimming = false; p.climb = null;
+  const c = world.companion;
+  if (c && c.state !== 'dead') {
+    if (c.inVehicle) { c.inVehicle.passenger = null; c.inVehicle = null; }
+    c.x = t.x + 1.6; c.y = t.y + 0.6; c.vx = 0; c.vy = 0; c.water = null; c.swimming = false;
+  }
+  if (spec.clock != null && typeof world.clock === 'number') world.clock = spec.clock;
 }
 
 // --- M10: a limo on your tail (goto stage `pursuer`) -------------------------------
@@ -3006,6 +3106,11 @@ function updateStages(dt, world, def) {
     }
     if (h) return;
   }
+  if (def.boatStart && chain.storyBoat && chain.stageIndex <= 3 && (chain.storyBoat.wrecked || chain.storyBoat.sinking || !world.vehicles.includes(chain.storyBoat))) {
+    fail(world, def, 'de rubberboot is gezonken. Klaas wil hem niet zo terug');
+    return;
+  }
+  if (st.light && updateLightStage(dt, world, def, st, S)) return;
   const v = chain.vehicle;
   const inCar = !!v && p.inVehicle === v;
   switch (st.kind) {
@@ -3150,8 +3255,10 @@ function updateStages(dt, world, def) {
       if (!S.started) {
         if (isCinematicActive()) break;
         S.started = true;
-        if (!playStageScene(world, st, S)) { if (st.big) world.addMessage(st.big, 4); nextStage(world, def); }
-      } else if (!isCinematicActive('mission-scene')) nextStage(world, def);
+        // the hour of the scene (M11: dusk, then night on the sandbank), set before the shot is made
+        if (st.clockTo != null && typeof world.clock === 'number') world.clock = st.clockTo;
+        if (!playStageScene(world, st, S)) { if (st.big) world.addMessage(st.big, 4); if (st.warp) warpPlayer(world, st.warp); nextStage(world, def); }
+      } else if (!isCinematicActive('mission-scene')) { if (st.warp) warpPlayer(world, st.warp); nextStage(world, def); }
       break;
     case 'pigeon':
       updatePigeonStage(dt, world, def, st, S);

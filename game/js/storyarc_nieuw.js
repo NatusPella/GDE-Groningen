@@ -132,8 +132,17 @@ export const STEPS = [
     // the sloot scene (M10.3) is a stage of the mission itself; the talk in the car after it (M10.4) is a banter exchange
     story: { intro: ['M10.1'], outro: null }, scenes: ['M10.1', 'M10.2', 'M10.3', 'M10.4'],
     lead: ['T', 'Een zwarte trekker met vlaggetjes rijdt het erf van de kerk op. Dat is Jelle.'] }),
-  A('T2', 'romp', 'De streekbus naar Zoutkamp', { type: 'bus' }, { scenes: ['T2'] }),
-  M('M11', 'romp', 'Geleend van de Friezen', 'skutsje', { reward: 1300, scenes: ['M11.1', 'M11.2', 'M11.3', 'M11.4', 'M11.5', 'M11.6', 'M11.7', 'M11.8'] }),
+  A('T2', 'romp', 'De streekbus naar Zoutkamp', { type: 'reis', to: 'Zoutkamp', at: [53.3377, 6.2986], r: 400 }, { built: true, scenes: ['T2'],
+    lead: ['A', 'Met de streekbus naar Zoutkamp. Dat is de laatste halte, zegt Klaas. Daarna is er alleen nog water.'] }),
+  M('M11', 'romp', 'Geleend van de Friezen', 'skutsje', { built: true, reward: 1300,
+    // the def of the old arc is replaced by the coast mission (missions_nieuw.js kustDef); the scenes M11.2-M11.7 are stages of it
+    story: {
+      npc: 'klaas', outroNpc: 'klaas', intro: ['M11.1'], outro: ['M11.8'],
+      replayLines: [['N', 'Weer het Reitdiep op? De rubberboot staat klaar.']],
+      fail: [['A', 'Het ging mis. Terug naar Klaas, nog een keer.'], ['T', 'Hij kijkt nog steeds de andere kant op.']],
+    },
+    scenes: ['M11.1', 'M11.2', 'M11.3', 'M11.4', 'M11.5', 'M11.6', 'M11.7', 'M11.8'],
+    lead: ['A', 'Klaas wacht in Zoutkamp met een snelle boot. Jelles skûtsje vaart weg, met een gouden bal in de kist.'] }),
 
   // --- Akte 3: Aan de Eems (Eemsdelta en Oldambt, vr 21 - zo 23 augustus) ----------------
   M('M12', 'staart', 'Het staat niet in het rooster', 'traumaduif', { reward: 1500, scenes: ['M12.1', 'M12.2', 'M12.3', 'M12.4', 'M12.5'] }),
@@ -190,4 +199,7 @@ export const CLUES = [
   { step: 'M09', kind: 'clue', title: 'Een eierkoek per week', text: 'Jelle sloot de Dorpsweg en huurde een boer die dwars staat: een eierkoek per week, levenslang. Geesje: haar kippen hebben geen contract. Gerda Terpstra woonde in Ljouwert en belt Oma elk jaar op haar verjaardag.' },
   { step: 'M10', kind: 'clue', title: 'De bal is echt', text: 'Jelle draagt de Gouden Eierbal in een gouden koffer: "mijn juristen willen dat ik hem bij me draag". Hij chanteert met de museumbeelden van zijn bewaker: verlaat Grunn en de Snackprijs, dan verdwijnen ze.' },
   { step: 'M10', kind: 'hart', title: 'Mem wil niks', text: 'Mem is eenennegentig, zeventig jaar tweede. Jelle: "Mem wil niks. Daarom doe ik het." Tessa: "Hij is niet dom. Hij wil dat we hem onderschatten."' },
+  { step: 'M11', kind: 'clue', title: 'Een oefenbal', text: 'In de kist op het skûtsje lag een chocoladebal met het kaartje "Foar mem". Jelle oefent hoe hij hem aan zijn moeder geeft. De echte is bij hem.' },
+  { step: 'M11', kind: 'clue', title: 'Lammerts haven', text: 'Klaas: de Eemshaven is Lammerts haven, die in 1953 met Oma danste. Jelle zegt dat de haven van hem is: plakje vijf. Dokter Dijkstra heeft een heli klaarstaan.' },
+  { step: 'M11', kind: 'hart', title: 'De lange blik', text: 'Op de zandplaat, onder de sterren, keken ze elkaar te lang aan. Toen trilde haar telefoon. "Niks. Iemand uit Friesland." Tammo keek weg.' },
 ];

@@ -129,6 +129,52 @@ export function buildNieuwDefs({ map, walk, drive, models = {} }) {
   return list;
 }
 
+// M11 Geleend van de Friezen, the coast mission (Zoutkamp, Lauwersmeer, Noordpolderzijl): replaces the old arc's def of the
+// same label (the Diepenring chase) in the new arc. World metres from the OSM extract:
+//   the route of the skûtsje is the water path of the Reitdiep and the Lauwersmeer from the harbour of Zoutkamp
+//   (computed over the extract's water polygons, 40 m clear of the banks), the marsh and the dike path are those of Noordpolderzijl.
+const SKUTSJE_PATH = [[-18134, -12881], [-18195, -12940], [-18637, -13235], [-18798, -13313], [-19419, -13546], [-19600, -13684], [-19761, -13742], [-20921, -14028], [-21418, -13962], [-21596, -13780], [-21853, -13576], [-21952, -13535], [-22051, -13514], [-22290, -13491], [-22371, -13570], [-22918, -14325], [-22999, -14404], [-25773, -16414], [-25813, -16454], [-26025, -19454], [-25832, -19977], [-25595, -20160], [-24920, -20387]];
+// the coast guard boat on the fairway to Noordpolderzijl and the beam over the marsh (angles: 0 = +x, y points south)
+const KUSTWACHT = { x: 706, y: -24046, from: 1.4, to: 2.65, speed: 0.32, range: 520, half: 0.17, rate: 1.5, crouchRate: 0.3, decay: 0.3, heading: Math.PI / 2,
+  warn: 'Het licht komt! Bukken (Ctrl), dan zien ze je niet.', fail: 'in het licht van de kustwacht gezien. Een zeehond loopt niet rechtop' };
+
+function kustDef() {
+  const marsh = (at, label, ticks, o = {}) => ({ kind: 'hold', target: { at, snap: 'walk', label }, mode: 'foot', radius: 4, time: 2.5, ticks, label: `Schep ${label.toLowerCase()} leeg`, light: KUSTWACHT, ...o });
+  return {
+    type: 'stages',
+    label: 'Geleend van de Friezen',
+    intro: ['Klaas leent jullie een snelle rubberboot. Jelles skûtsje vaart het Reitdiep af, met een gouden bal in de kist.', 'Haal het skûtsje in en spring aan boord. Daarna het zout van Oma: drie kuipen van de kwelder bij Noordpolderzijl, uit het licht van de kustwacht, terug voor het water komt.'],
+    outro: 'Het zout is van Oma. Plakje vier is gered.',
+    timeLimit: null,
+    timeUp: 'het water kwam terug. Jullie zitten vast op het wad',
+    reward: 1300,
+    costRow: ['Gered', 'Plakje vier: het zout van Oma, van de kwelder'],
+    // Zoutkamp, the quay of the harbour (service road, 53.33785 N 6.29714 E); the boat lies in the water 80 m off
+    start: { x: -18057.6, y: -12911.0, road: null },
+    boatStart: { x: -18134, y: -12881, angle: -2.3693, kind: 'rubberboot' },
+    say: 'Haal Jelles skûtsje in en spring aan boord. Daarna het zout: blijf uit het licht van de kustwacht en wees terug voor het water komt.',
+    stages: [
+      { kind: 'goto', target: { storyBoat: true }, mode: 'any', radius: 9, label: 'Stap in de rubberboot van Klaas', say: 'Klaas zit bovenin en kijkt de andere kant op. Instappen, Tammo stuurt.' },
+      {
+        kind: 'boatchase', label: 'Ga langszij bij het skûtsje', name: 'Skûtsje van Jelle', path: SKUTSJE_PATH, lead: 140, board: 9, boardTime: 2.5, escape: 420, time: 240,
+        say: 'Daar vaart hij, het Reitdiep af! Zwart skûtsje, rood zeil. Ga er vlak naast varen, dan spring je aan boord. Tot de sluis, zei Klaas.',
+        near: 'Langszij! Hou hem vast, Tammo springt zo...', lost: 'het skûtsje is weg, met zeil en al', talk: { ids: ['M11.2'], delay: 3 },
+      },
+      {
+        kind: 'scene', label: 'Aan boord', target: { skutsje: true }, deckCam: true, kicker: 'Het skûtsje', big: 'Chocola?!', script: { ids: ['M11.3'] },
+        props: [{ kind: 'ball', holder: 'A', from: 'Chocola' }],
+      },
+      { kind: 'goto', target: { at: [-21747, -13661], snap: null, label: 'De zandplaat' }, mode: 'boat', radius: 45, label: 'Vaar met Klaas naar de zandplaat bij laag water', say: 'Het zout van Oma ligt bij Noordpolderzijl. Eerst de zandplaat, daar wachten we op het getij.', talk: { ids: ['M11.4'], delay: 2 } },
+      { kind: 'scene', label: 'De zandplaat', kicker: 'De zandplaat', script: { ids: ['M11.5', 'M11.6'] }, clockTo: 22.8 },
+      { kind: 'scene', label: 'Naar Noordpolderzijl', big: 'Klaas brengt jullie langs de dijk naar Noordpolderzijl…', kicker: 'Noordpolderzijl', warp: { at: [585, -23701], snap: 'walk', clock: 23.4 }, clockTo: 23.4 },
+      marsh([600, -23875], 'Zoutkuip 1', ['Nog even scheppen…', 'Bijna vol.'], { setTime: 210, talk: { ids: ['M11.7'], to: 4, delay: 2 }, say: 'Drie zoutkuipen op de kwelder. Het water komt over een kleine vier minuten. Het licht van de kustwacht gaat heen en weer: bukken (Ctrl) als het komt.' }),
+      marsh([480, -23820], 'Zoutkuip 2', ['Nog even scheppen…', 'Bijna vol.']),
+      marsh([350, -23770], 'Zoutkuip 3', ['Nog even scheppen…', 'Bijna vol.'], { talk: { ids: ['M11.7'], from: 4, to: 5, delay: 1.5 } }),
+      { kind: 'goto', target: { at: [722, -23754], snap: 'walk', label: 'De steiger bij Noordpolderzijl' }, mode: 'foot', radius: 9, label: 'Terug naar de steiger, voor het water komt', light: KUSTWACHT, say: 'Drie kuipen zout. Rennen naar de steiger, Klaas wacht.', talk: { ids: ['M11.7'], from: 5, to: 8, delay: 1 } },
+    ],
+  };
+}
+
 // How the new arc stages the defs it shares with the old one: which script scene is said where,
 // the hints that named people who are not in this story, and what the story has dropped.
 // Stage fields: script { ids, from, to } = the lines of a stage scene; talk { ids, from, to, delay } =
@@ -175,6 +221,11 @@ export function applyNieuw(list) {
     vet.outro = 'Het vet is terug in Grunn. Plakje twee is gered.';
     vet.costRow = ['Gered', 'Plakje twee: het vet blijft in Grunn'];
     vet.vehicleFail = { gone: 'Femkes auto is foetsie, en de tankwagen rijdt door', wrecked: 'de auto is total loss. Femke wil hem niet zo terug', left: 'je liet de auto staan. Zonder auto geen tankwagen' };
+  }
+  const sk = by('Geleend van de Friezen');
+  if (sk) {
+    for (const k of Object.keys(sk)) delete sk[k];
+    Object.assign(sk, kustDef());
   }
   const fat = by('Fatbikes tellen niet als fiets');
   if (fat) {
