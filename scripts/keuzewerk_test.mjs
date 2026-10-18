@@ -1,4 +1,4 @@
-// keuzewerk.js: de drie keuzebanen (Het Loket, StudieStaat, Vigilantia).
+// keuzewerk.js: de keuzebanen (Loket, StudieStaat, Vigilantia, Kamerkoning, Wolkenhal, Helix, Niemeyer, Bernard).
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -7,7 +7,7 @@ import * as K from '../game/js/keuzewerk.js';
 let n = 0, bad = 0;
 const check = (name, ok, extra) => { n++; if (!ok) { bad++; console.log('FAIL', name, extra || ''); } };
 
-check('three jobs', K.KEUZE_IDS.join() === 'loket,studiestaat,vigilantia');
+check('eight jobs', K.KEUZE_IDS.join() === 'loket,studiestaat,vigilantia,kamerkoning,wolkenhal,helix,niemeyer,bernard');
 const texts = [];
 for (const id of K.KEUZE_IDS) {
   const j = K.KEUZE_JOBS[id];
@@ -42,7 +42,7 @@ const ex = JSON.parse(fs.readFileSync(path.join(here, '../game/mapextras.json'),
 const names = new Set([...map.buildings.map((b) => b.name), ...(ex.buildingPatches || []).map((p) => p.set && p.set.name)].filter(Boolean));
 for (const id of K.KEUZE_IDS) check(`${K.KEUZE_JOBS[id].building} exists on the city map`, names.has(K.KEUZE_JOBS[id].building));
 const src = fs.readFileSync(path.join(here, '../game/js/sidejobs.js'), 'utf8');
-check('jobs are in the side-job list', /SIDE_JOBS = \[[^\]]*loket[^\]]*studiestaat[^\]]*vigilantia/.test(src));
+check('jobs are in the side-job list', K.KEUZE_IDS.every((id) => src.split('SIDE_JOBS = [')[1].split(']')[0].split(/[ ,]+/).includes(id)));
 check('pay guess for each job', K.KEUZE_IDS.every((id) => src.includes(`${id}: [`)));
 
 console.log(`keuzewerk: ${n - bad}/${n} ok`);
