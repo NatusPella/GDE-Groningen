@@ -39,6 +39,13 @@ export const RAIL_CHUNK_MB = 0.5;
 export function railViewDistance(viewDist, cfg = RAIL_VIEW) {
   return Math.min(cfg.max, Math.max(cfg.min, viewDist * cfg.factor));
 }
+// whether the chunk centred on (cx, cy) is built and shown with the focus at (px, py) and
+// a rail reach of `view`: the square of the reach plus the half diagonal of a chunk
+// (railway3d.js syncChunks; pure so scripts/rail_lod_test.mjs can check it per distance)
+export function railChunkWanted(cx, cy, px, py, view) {
+  const reach = view + RAIL_CHUNK * 0.71;
+  return Math.abs(cx - px) < reach && Math.abs(cy - py) < reach;
+}
 // most chunks that can be resident at that reach (every cell of the square full)
 export function railChunkCount(view) {
   const n = Math.ceil((2 * (view + RAIL_CHUNK * 0.71)) / RAIL_CHUNK) + 1;
