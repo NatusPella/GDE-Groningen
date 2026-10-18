@@ -51,6 +51,7 @@ import './storychoice.js';
 import { storyLines, talkLines, radioContacts, appsAt, storyDataReady, readingTime, scene as storyScene } from './storytext.js';
 import { updateStoryTalk, stopTalk, playTalk } from './storytalk.js';
 import { makeReisGoals } from './storyreis.js';
+import { plakjesState } from './plakjes.js';
 
 // Rikus' Radio Nachtstreek studio (radiostudio.js, three.js from the CDN) for the
 // recaps and the epilogue; loaded lazily so Node checks can import this file.
@@ -1101,7 +1102,9 @@ export function getStoryJournal() {
   const part = step && (step.part || step.end) || 'kop';
   const done = new Set(STEPS.filter((s, k) => isDone(s, k)).map((s) => s.id));
   const found = CLUES.filter((c) => done.has(c.step)).map((c) => ({ ...c, isNew: rt.newClues.has(c.title) })).reverse();
-  return { why: step && step.finale ? 'Grunn is van jou. En de Fjord Frituur staat op de Vismarkt.' : WHY[part] || '', found, total: CLUES.length };
+  // the new story: Jelle's plakjes, and how each one ended (plakjes.js)
+  const plakjes = nieuwVerhaal() ? plakjesState(done, step && step.id) : [];
+  return { why: step && step.finale ? 'Grunn is van jou. En de Fjord Frituur staat op de Vismarkt.' : WHY[part] || '', found, total: CLUES.length, plakjes };
 }
 
 // The clues per part, for a later "Verhaal" menu: { kop: [...], romp, staart }, each

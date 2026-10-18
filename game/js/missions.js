@@ -1528,6 +1528,20 @@ function spawnStoryBoat(world, def) {
   const boat = new Vehicle(b.x, b.y, b.angle, { ...BOAT_KINDS[b.kind || 'rubberboot'] });
   boat.isBoat = true;
   boat.missionCar = true;
+  // the quay in the data is a guess of a few metres: the nearest pose with the whole hull on water and free water ahead
+  const map = world.map;
+  if (map && boatDryPoints(map, boat, boat.x, boat.y, boat.angle) > 0) {
+    let best = null;
+    for (let r = 0.5; r <= 40 && !best; r += 0.5) {
+      for (let k = 0; k < 24 && !best; k++) {
+        const x = b.x + Math.cos((k / 24) * Math.PI * 2) * r, y = b.y + Math.sin((k / 24) * Math.PI * 2) * r;
+        for (const da of [0, 0.35, -0.35, 0.7, -0.7, 1.1, -1.1]) {
+          if (boatPoseClear(map, boat, x, y, b.angle + da)) { best = { x, y, a: b.angle + da }; break; }
+        }
+      }
+    }
+    if (best) { boat.x = best.x; boat.y = best.y; boat.angle = best.a; }
+  }
   world.vehicles.push(boat);
   chain.storyBoat = boat;
 }
