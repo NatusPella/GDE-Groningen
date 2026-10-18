@@ -2,6 +2,7 @@
 // shell, keys and focus; this renders their content and handles their
 // clicks). Data comes from todo.js; the look is menu.css (m-*) and
 // pausemenu.css (ov-*, td-*).
+import { wasHelped } from './assistlive.js';
 import { getTodoItems, chooseTodo, mapIconUrl, placeName, GROUPS, STATUS_LABEL, buyFjordUpgrade } from './todo.js';
 import { getStoryView, getStorySteps, getStoryJournal, requestCredits } from './story.js';
 import { PARTS, CLUES, WHY } from './storyarc.js';
@@ -179,7 +180,7 @@ export function renderOverview(el, world, help) {
 const ACT_META = { shop: 'Kopen', require: 'Kopen', sideJob: 'Bijbaantje', night: 'Wachten', pigeon: 'Duif', train: 'Trein', hideout: 'Kies: trein, ijsje of zonsondergang', egg: 'Zoeken', padel: 'Padel', kermis: 'Kermis', flight: 'Vliegen', carbid: 'Carbid' };
 
 function stepRow(s) {
-  const meta = [ACT_META[s.goal && s.goal.type] || 'Verhaal', s.cost ? `€${s.cost}` : ''].filter(Boolean).join(' · ');
+  const meta = [ACT_META[s.goal && s.goal.type] || 'Verhaal', s.cost ? `€${s.cost}` : '', s.done && wasHelped(s.id) ? 'met hulp' : ''].filter(Boolean).join(' · ');
   const st = s.done ? 'klaar' : s.current ? 'nu' : 'later';
   const end = st === 'klaar' ? svg(ICON.check) : st === 'nu' ? '<span class="t g">Nu</span>' : '<span class="t">Later</span>';
   const inner = `<span class="nm"><span class="one">${esc(s.title)}</span><span class="mut one">${esc(meta)}</span></span>${end}`;

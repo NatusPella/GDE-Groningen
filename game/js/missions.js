@@ -1,4 +1,5 @@
 import { SMS_SAY } from './smsvoice.js';
+import { assistTime } from './assistlive.js';
 import { buildWorldMarker3D, setWorldMarkerKind, updateWorldMarker3D } from './worldmarker3d.js';
 import { dist, pointInPolygon, closestPointOnSegment, boatDryPoints, clamp, isInWater } from './util.js';
 import { waterPolyAt } from './waterlevels.js';
@@ -1887,7 +1888,7 @@ function startMission(world, def) {
   }
   chain.afoot = false;
   chain.phase = 'active';
-  chain.timeLeft = def.timeLimit ?? Infinity;
+  chain.timeLeft = assistTime(def.timeLimit) ?? Infinity;
   chain.wpIndex = 0;
   chain.stopIndex = 0;
   chain.stopT = 0;
@@ -2676,7 +2677,7 @@ function inWindow(def) {
 
 function stageProgressText(world, def) {
   const text = stageProgressBase(world, def);
-  return text && inWindow(def) ? `${text} · ${def.window.label} ${fmtTime(def.window.secs - chain.windowT)}` : text;
+  return text && inWindow(def) ? `${text} · ${def.window.label} ${fmtTime(assistTime(def.window.secs) - chain.windowT)}` : text;
 }
 
 function stageProgressBase(world, def) {
@@ -3280,12 +3281,13 @@ function updateStages(dt, world, def) {
   if (inWindow(def) && !isCinematicActive() && !(def.heist && heistSendingBack())) {
     chain.windowT += dt;
     const W = def.window;
+    const wSecs = assistTime(W.secs);
     // the first time it runs out the companion puts the cameras on repeat once more
-    if (chain.windowT > W.secs && W.extra && !chain.windowExtended) {
+    if (chain.windowT > wSecs && W.extra && !chain.windowExtended) {
       chain.windowExtended = true;
-      chain.windowT = W.secs - W.extra;
+      chain.windowT = wSecs - W.extra;
       world.addMessage(W.extend, 4.5);
-    } else if (chain.windowT > W.secs) { fail(world, def, W.late); return; }
+    } else if (chain.windowT > wSecs) { fail(world, def, W.late); return; }
   }
   if (def.eggs && chain.stageIndex >= def.eggs.from) {
     updateEggs(dt, world, def);
