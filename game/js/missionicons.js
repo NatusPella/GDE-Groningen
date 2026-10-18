@@ -49,6 +49,9 @@ export const MISSION_ICONS = {
 
 // M01 of the new story is Berend's bakkie again, with the stunts first
 MISSION_ICONS.bakkiestunt = MISSION_ICONS.berend;
+// act 2: M09 the sixty eggs (the egg of "Het bod"), M10 the quad against the tractor-limo (a car)
+MISSION_ICONS.eieren = MISSION_ICONS.bod;
+MISSION_ICONS.wierde = MISSION_ICONS.berend;
 
 // Icon spec for a mission index (missions.js), or null.
 export function missionIcon(i) {
