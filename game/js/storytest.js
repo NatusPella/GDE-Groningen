@@ -895,11 +895,11 @@ export async function runStoryTest(world) {
       // an old 0.4 save: missions 1-3 done (H1, H3, H5), no story data
       const money = world.money;
       if (NEW) {
-        // a save belongs to one arc: an old-arc save never loads into the new one, and the game goes on untouched
-        const stepBefore = JSON.stringify(S().current());
+        // the old arc is gone (#187): an old v1 save is migrated into the one arc (savemigrate.js) and keeps its money
         const loaded = applySave(world, { v: 1, money: 1234, missions: { index: 3, completed: [0, 1, 2], seen: [0, 1, 2] }, shops: null });
         await sleep(400);
-        check('an old-arc save is not loaded into the new arc', loaded === false && world.money === money && JSON.stringify(S().current()) === stepBefore, JSON.stringify({ loaded, money: world.money }));
+        check('an old v1 save is migrated into the new arc and keeps its money', loaded === true && world.money === 1234, JSON.stringify({ loaded, money: world.money }));
+        world.money = money;
         // the new arc's own save loads and keeps its arc
         saveGame(world, { toast: false });
         check('a new-arc save carries its arc', JSON.parse(localStorage.getItem(KEYS.save) || 'null')?.arc === 'nieuw', String(localStorage.getItem(KEYS.save)).slice(0, 80));
