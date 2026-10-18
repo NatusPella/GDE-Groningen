@@ -1334,7 +1334,7 @@ function followVaarTrip(v, dt, rng, map) {
   }
   const T = v._vaar;
   while (T.i < T.pts.length - 1 && Math.hypot(T.pts[T.i][0] - v.x, T.pts[T.i][1] - v.y) < VAAR_ARRIVE) T.i++;
-  // the next point lies in a ditch, pond or vaart (the net is wider than the barge can sail): drop the trip (#234)
+  // the next point lies in a ditch or vaart (the net is wider than the barge can sail): drop the trip (#234)
   const nw = waterAt(map, T.pts[T.i][0], T.pts[T.i][1]);
   if (nw && !bargeWaterAt(nw)) { v._vaar = null; v._vaarWait = VAAR_RETRY_S; return false; }
   if (T.i >= T.pts.length - 1 && Math.hypot(T.pts[T.i][0] - v.x, T.pts[T.i][1] - v.y) < VAAR_ARRIVE * 2) { v._vaar = null; v._vaarWait = VAAR_RETRY_S; return false; }
