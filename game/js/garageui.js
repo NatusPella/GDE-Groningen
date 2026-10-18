@@ -49,7 +49,7 @@ function previewSpec(e) {
   return { kind: e.spec.kind === 'scooter' ? 'scooter' : e.spec.kind, model: e.spec.model, color: e.color, nameIdx: e.spec.nameIdx || 0, flags: e.hero ? { isHeroCar: true } : e.spec.flags || null };
 }
 
-// the end of a row: where it is, its price, or the lock
+// the card's status line: where it is, its price, or the lock
 function endHtml(e) {
   if (e.locked) return `${LOCK}<span class="t">${esc(e.unlockShort || 'Op slot')}</span>`;
   if (!e.owned && e.spec && e.spec.unlock) return '<span class="t g">Vrijgespeeld</span>';
@@ -59,9 +59,11 @@ function endHtml(e) {
   return `<span class="t${e.status === 'driving' ? ' g' : ''}">${label}</span>`;
 }
 
+// a card of the grid: the vehicle's silhouette in its own paint, name, status
 function row(e) {
   return `<button type="button" class="m-li gar-card${e.locked ? ' off' : ''}${e.id === selected ? ' sel' : ''}" data-garage-select="${esc(e.id)}" data-group="${groupOf(e)}"${e.id === selected ? ' aria-current="true"' : ''}>` +
-    `<span class="nm"><span class="one">${esc(e.model)}</span><span class="mut one">${esc([e.make, e.kindLabel].filter(Boolean).join(' · '))}</span></span>${endHtml(e)}</button>`;
+    `<span class="gar-ph">${vehicleGlyph(e.kind, e.locked ? '#6d756d' : e.color)}</span>` +
+    `<span class="nm"><span class="one">${esc(e.model)}</span><span class="gar-st">${endHtml(e)}</span></span></button>`;
 }
 
 function viewerHtml(e, msg) {
