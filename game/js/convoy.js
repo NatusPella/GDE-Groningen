@@ -11,7 +11,8 @@ import { CONVOY, pushTrail, trailGoal, lagStep } from './convoyrules.js';
 export { CONVOY };
 
 // The vehicles of Oma's friends: name for the messages, kind and model for the spawn.
-export const COLONNE_MEMBERS = [
+// (a function: vehicle.js is part of an import cycle with the missions, so its models are not there yet when this module loads)
+export const colonneMembers = () => [
   { name: 'Geesje', kind: 'scooter', model: { ...MOPED_MODEL, color: '#d9739b' } },
   { name: 'Wubbo', kind: 'bus' },
   { name: 'Tinus', kind: 'car', model: { ...TRACTOR_MODEL, color: '#2f5fa8' } },
@@ -33,7 +34,7 @@ function spawnMember(world, spec, near, angle, back) {
   return v;
 }
 
-export function startConvoy(world, specs = COLONNE_MEMBERS) {
+export function startConvoy(world, specs = colonneMembers()) {
   const p = world.player;
   const state = { members: [], trail: [{ x: p.x, y: p.y }], t: 0, limo: null, cutT: 0, cuts: 0, said: false };
   specs.forEach((spec, i) => {
