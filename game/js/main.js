@@ -18,6 +18,7 @@ import { isPlayAheadOpen } from './todo.js';
 import { Player } from './player.js';
 import { World } from './world.js';
 import { initCompanion, updateCompanion } from './companion.js';
+import { tickRowingCoaches } from './roeicoach.js';
 import { updateTrafficAI, resolveVehicleBuildingCollision, resolveVehicleVehicleCollisions, manageTrafficPopulation, manageBikePopulation, manageBusPopulation, manageScooterPopulation, manageBoatPopulation, updateBoatAI, checkVehicleWater, spawnHeroCarNear, tickBurningVehicles, setGroundMap } from './vehicle.js';
 import { spawnPedestriansNear, updatePedestrians, CITY_CENTRE } from './pedestrians.js';
 import { updateCombat, updateBullets } from './combat.js';
@@ -506,6 +507,7 @@ async function boot() {
       manageBusPopulation(world);
       manageScooterPopulation(world, { target: scaledTarget(10) });
       manageBoatPopulation(world, { target: boatTarget() });
+      tickRowingCoaches(world);
       if (simLevel()) thinTraffic(world);
     }
     pedTimer -= dt;
