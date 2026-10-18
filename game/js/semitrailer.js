@@ -79,3 +79,22 @@ export function loadedHandling(tr, base) {
   const m = 1 + (tr.coupled ? tr.spec.mass * (0.35 + 0.65 * tr.load) : 0);
   return { maxSpeed: base.maxSpeed * (tr.coupled ? 0.92 : 1), accel: base.accel / m, brake: base.brake / Math.sqrt(m), turnRate: base.turnRate / Math.sqrt(m) };
 }
+
+// Koppelhulp voor het bord: hoe ver en hoe scheef staat de trekker nog van het hulpstuk?
+// `achter` is de afstand langs de koers van de trekker (positief: het hulpstuk ligt erachter),
+// `opzij` de zijwaartse afwijking (positief: links van de trekker), `hoek` het koersverschil in graden.
+export function koppelHulp(tractor, tr, kpBack = 1.6) {
+  const fw = fifthWheel(tractor, kpBack);
+  const dx = tr.kx - fw.x, dy = tr.ky - fw.y;
+  const c = Math.cos(tractor.angle), s = Math.sin(tractor.angle);
+  const achter = -(dx * c + dy * s), opzij = -dx * s + dy * c;
+  const hoek = Math.round(wrap(tractor.angle - tr.angle) * 180 / Math.PI);
+  const dist = Math.hypot(dx, dy);
+  const ok = canCouple(tractor, tr, kpBack);
+  let tip = 'Rustig achteruit';
+  if (ok) tip = 'Stop: hij klikt vast';
+  else if (achter < -COUPLE_R) tip = 'Je bent er voorbij, rij naar voren';
+  else if (Math.abs(hoek) > COUPLE_ANGLE * 57.3) tip = `Zet de wagen recht (${hoek > 0 ? 'oplegger staat links' : 'oplegger staat rechts'})`;
+  else if (Math.abs(opzij) > 0.8 && achter > 2) tip = opzij > 0 ? 'Stuur naar links' : 'Stuur naar rechts';
+  return { dist, achter, opzij, hoek, ok, tip };
+}

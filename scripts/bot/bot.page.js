@@ -133,11 +133,13 @@ const problems = B.validate();
 if (problems.length) B.log('schema', { problems });
 B.log('start', { part: PART, maxGameS: MAX_GAME });
 
+async function loop(stopFn) {
 while (true) {
   await sleep(100);
   const s = B.status();
   if (performance.now() - wall0 > MAX_WALL || s.t > MAX_GAME) break;
   if (s.story.end || (PART !== 'all' && s.story.part && s.story.part !== PART)) { result = 'KLAAR'; reason = s.story.end ? `einde van ${s.story.part}` : `stap ${s.story.id} hoort bij ${s.story.part}`; break; }
+  if (stopFn && stopFn(s)) { result = 'KLAAR'; reason = 'stap uitgespeeld'; break; }
   track(s);
   const stepKey = (s.story.id || '?') + (s.mission.active ? ':' + (s.mission.stage || 'm') : '');
   if (ticks++ % 100 === 0) B.log('status', { x: s.player.x, y: s.player.y, step: stepKey, dist: s.target ? s.target.distance : null, veh: s.player.vehicle ? s.player.vehicle.kind : 'te voet', wanted: s.wanted, money: s.player.money, msgs: s.hud.messages.slice(0, 2), sub: s.hud.subtitle && s.hud.subtitle.text });
@@ -171,6 +173,26 @@ while (true) {
     }
   }
 }
+
+}
+
+// --mode=missions --only=M03,M04: each step on its own, started the way the story dev panel does (a jump), so one
+// stuck mission does not hide the next ones
+if (CFG.sweep && CFG.sweep.length) {
+  for (const id of CFG.sweep) {
+    if (performance.now() - wall0 > MAX_WALL) break;
+    const ok = window.__story.jump(id);
+    B.log('setup', { what: 'jump', id, ok: !!ok });
+    if (!ok) continue;
+    follower = null; detector.reset(B.time()); mem.boardTries = 0; lastStep = null; lastPhase = '';
+    const t0 = B.time();
+    await sleep(1500);
+    await loop((s) => s.story.id !== id || B.time() - t0 > (CFG.perStepS || 600));
+    B.log('step', { event: 'end', id, outcome: B.status().story.id === id ? 'tijd op' : 'klaar' });
+    result = 'TIMEOUT';
+  }
+  result = 'KLAAR'; reason = CFG.sweep.length + ' stappen';
+} else await loop(null);
 
 B.releaseAll();
 shot(`einde-${result.toLowerCase()}`);

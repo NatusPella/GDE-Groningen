@@ -4,6 +4,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { GeoBuilder, vcMaterial } from './pixelart3d.js';
 import { makeProp, addProp, removeProp } from './breakables.js';
 import { placeTrafficLight } from './trafficlights.js';
+import { noteMoney } from './finance.js';
 
 const TARGET_COUNT = 12;
 const MIN_COUNT = 8;
@@ -98,6 +99,7 @@ export function updateFlitspaal(dt, world) {
 
     cam.lastFine = world.time;
     const fine = MIN_FINE + Math.floor(Math.random() * (MAX_FINE - MIN_FINE + 1));
+    noteMoney('Boetes');
     world.money = Math.max(0, world.money - fine);
     world.addMessage(
       `Geflitst! Boete: €${fine} (u reed ${Math.round(speedKmh)} km/u, toegestaan is ${Math.round(limitKmh)})`,

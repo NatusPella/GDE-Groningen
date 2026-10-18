@@ -313,3 +313,14 @@ async function run(name, route, { speed, radius, ahead, hz = 60, budgetBytes = 1
 
 console.log(`${n - fails}/${n} passed`);
 process.exit(fails ? 1 : 0);
+
+// --- pins are counted (overlapping holders: city pins, map view, placement windows)
+{
+  const { source, store } = mkStore({ budgetBytes: 1 });
+  const [k1, k2] = Object.keys(index0.tiles);
+  store.pin(k1); store.pin(k1);
+  store.unpin(k1);
+  ok(store.entries.get(k1).pinned, 'one holder let go: the tile is still pinned');
+  store.unpin(k1); store.unpin(k1);
+  ok(!store.entries.get(k1).pinned && store.entries.get(k1).pins === 0, 'all holders let go: free to evict, no negative count');
+}

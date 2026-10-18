@@ -139,7 +139,7 @@ export function buildMissionLayer(s) {
     title = title || 'Duivenmodus';
     const p = s.pigeon;
     (p.targets || []).filter(ok).forEach((t, i) => items.push(item(i === 0 ? 'next' : 'goal', t, { id: 'pt' + i, label: t.label || 'Voerplek', sub: i === 0 ? 'Volgend doel' : 'Voerplek', state: i === 0 ? 'next' : 'later', focus: i === 0 })));
-    (p.threats || []).filter(ok).forEach((t, i) => items.push(item('threat', t, { id: 'th' + i, label: t.label || 'Bedreiging', sub: t.kind === 'kat' ? 'Kat' : t.kind === 'auto' ? 'Auto' : 'Gevaar' })));
+    (p.threats || []).filter(ok).forEach((t, i) => items.push(item('threat', t, { id: 'th' + i, label: t.label || 'Bedreiging', sub: t.kind === 'kat' ? 'Kat' : t.kind === 'auto' ? 'Auto' : t.kind === 'meeuw' ? 'Meeuw' : 'Gevaar' })));
     (p.noFly || []).filter(ok).forEach((z, i) => areas.push({ id: 'nofly' + i, role: 'hazard', x: z.x, y: z.y, r: z.r || 60, color: 'danger', label: 'Vliegverbod' }));
     const t0 = items.find((i) => i.state === 'next');
     if (t0) lines.push(line('crow', 'route', [s.player, t0], LINE_STYLES.crow));

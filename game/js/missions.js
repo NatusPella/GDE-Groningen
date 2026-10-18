@@ -55,6 +55,7 @@ import { withValidity } from './validity.js';
 const MISSION_RADIO_VALID = { ttl: 600 };
 import { registerBusyProbe } from './busy.js';
 import { playerBusy } from './busy.js';
+import { noteMoney } from './finance.js';
 
 // radio fragments a stage puts on Nachtstreek (storycontact.js, loaded lazily: it imports the UI)
 let contactMod = null;
@@ -1339,6 +1340,7 @@ function succeed(world, def) {
   const adj = rewardAdjust(def, base);
   const reward = base + tip + adj.amount;
   const reason = def.type === 'boat' ? rondvaartOutro() : def.outro || def.label;
+  noteMoney('Missies');
   world.money += reward;
   world.stats.missionsDone++;
   world.addMessage(`${def.label} geklaard! ${replay ? 'Klusloon ' : ''}+€${base}${tip ? ` en €${tip} fooi` : ''}${adj.text}`, 4);
@@ -1375,7 +1377,7 @@ export function payMedalBonus(world, i, medal) {
   if (medal <= from) return 0;
   const bonus = medalBonus(d.reward, from, medal);
   chain.medalPaid[i] = medal;
-  if (bonus > 0) world.money += bonus;
+  if (bonus > 0) { noteMoney('Missies'); world.money += bonus; }
   return bonus;
 }
 
@@ -3567,21 +3569,25 @@ export function updateMissionMarker3D(group, time, phase) {
   updateWorldMarker3D(group, time);
 }
 
-const waypointDotGeometry = new THREE.SphereGeometry(1.1, 12, 10);
+const waypointRingGeometry = new THREE.RingGeometry(1.0, 1.35, 28).rotateX(-Math.PI / 2);
+const waypointColumnGeometry = new THREE.CylinderGeometry(0.05, 0.1, 9, 8, 1, true).translate(0, 4.5, 0);
 const waypointDotMaterial = new THREE.MeshBasicMaterial({
   color: MARKER_COLOR_ACTIVE,
   transparent: true,
-  opacity: 0.6,
+  opacity: 0.45,
   depthWrite: false,
   blending: THREE.AdditiveBlending,
+  side: THREE.DoubleSide,
 });
 
-// Cheap translucent preview dot for one entry of world.mission.remainingWaypoints
-// (checkpoint/boat missions only). Geometry and material are shared module-
-// scope singletons per-file convention here, since several of these can be
-// live at once - callers must NOT call .dispose() on an individual dot
-// mesh's material when tearing one down (every dot mesh shares the same
-// material instance); just remove the mesh from the scene.
+// Quiet preview of one entry of world.mission.remainingWaypoints (checkpoint/
+// boat missions only): a thin ring on the ground with a short soft column,
+// in place of the old balls (#115). Geometry and material are shared
+// module-scope singletons, since several of these can be live at once -
+// callers must NOT call .dispose() on an individual dot's material; just
+// remove the group from the scene.
 export function buildWaypointDotMesh3D() {
-  return new THREE.Mesh(waypointDotGeometry, waypointDotMaterial);
+  const g = new THREE.Group();
+  g.add(new THREE.Mesh(waypointRingGeometry, waypointDotMaterial), new THREE.Mesh(waypointColumnGeometry, waypointDotMaterial));
+  return g;
 }

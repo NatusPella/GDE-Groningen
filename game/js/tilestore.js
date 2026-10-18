@@ -139,8 +139,9 @@ export class TileStore {
   get residentKeys() { return [...this.entries].filter(([, e]) => e.state === 'ready').map(([k]) => k); }
   get loading() { return this.active + this.queue.length; }
 
-  pin(key) { const e = this._entry(key); if (e) { e.pinned = true; } }
-  unpin(key) { const e = this.entries.get(key); if (e) e.pinned = false; }
+  // (counted: the city's permanent pins, the map view and the placement windows overlap on the same tiles)
+  pin(key) { const e = this._entry(key); if (e) { e.pins = (e.pins || 0) + 1; e.pinned = true; } }
+  unpin(key) { const e = this.entries.get(key); if (e && e.pins > 0) { e.pins--; e.pinned = e.pins > 0; } }
 
   _entry(key) {
     let e = this.entries.get(key);

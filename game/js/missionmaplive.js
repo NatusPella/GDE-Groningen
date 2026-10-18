@@ -4,7 +4,7 @@
 // once. Thin on purpose; the rules are in missionmap.js (tested).
 import { buildMissionLayer, layerNotices } from './missionmap.js';
 import { wantedPhase } from './wantedstate.js';
-import { getPigeonFlight } from './pigeonmode.js';
+import { getPigeonFlight, getPigeonThreats } from './pigeonmode.js';
 import { getPigeonSpotsForRender } from './pigeonspots.js';
 import { getHeliRunMarks } from './helirun.js';
 import { getKartMapState } from './kartbaan.js';
@@ -38,8 +38,10 @@ function snapshot(world) {
   const fl = getPigeonFlight();
   if (fl) {
     const targets = getPigeonSpotsForRender().map((q) => ({ x: q.x, y: q.y, label: q.name || 'Voerplek', d: Math.hypot(q.x - p.x, q.y - p.y) })).sort((a, b) => a.d - b.d).slice(0, PIGEON_TARGETS);
-    s.pigeon = { targets, threats: [], noFly: [] };
+    s.pigeon = { targets, threats: getPigeonThreats(), noFly: [] };
   }
+  const sj = world.sideJob;
+  if (sj && sj.active && sj.bus) s.bus = sj.bus;
   const hm = getHeliRunMarks();
   if (hm) s.heli = { rings: hm.rings, pad: hm.pad, balloon: hm.balloon };
 

@@ -4,7 +4,7 @@
 // on the same buttons. The storage side is saveslots.js; the world side savegame.js.
 import * as S from './saveslots.js';
 import { MAX_SLOTS } from './storagekeys.js';
-import { saveGame, loadSlot, readSave, startNewSlot } from './savegame.js';
+import { saveGame, loadSlot, readSave, startNewSlot, bindSlot } from './savegame.js';
 
 const DESKTOP = typeof window !== 'undefined' && window.gdeDesktop && window.gdeDesktop.isDesktop ? window.gdeDesktop : null;
 
@@ -71,7 +71,6 @@ export function openSaveSlots(opts = {}) {
   rootEl.appendChild(file);
 
   const close = (afterClose) => {
-    cancelAnimationFrame(raf);
     window.removeEventListener('keydown', onKey, true);
     rootEl.remove();
     rootEl = null;
@@ -154,6 +153,7 @@ export function openSaveSlots(opts = {}) {
       const n = S.freeSlot();
       if (!n) { say('Alle plekken zijn in gebruik.'); return; }
       S.createSlot(null, '');
+      bindSlot();
       if (!saveGame(world, { toast: false })) { S.deleteSlot(null, n); say('Opslaan mislukt.'); return; }
       sel = n; message = 'Opgeslagen in een nieuw slot.'; render('pane');
       return;
@@ -173,12 +173,14 @@ export function openSaveSlots(opts = {}) {
       if (world && world.pigeonMode) { say('Je bent een duif. Stop de duif-modus om op te slaan.'); return; }
       if (!cur.active && cur.state !== 'leeg') { view = 'overwrite'; render('pane'); return; }
       S.setActive(null, cur.n);
+      bindSlot();
       message = saveGame(world, { toast: false }) ? 'Opgeslagen.' : 'Opslaan mislukt.';
       render('pane');
       return;
     }
     if (act === 'overwrite-ok' && cur) {
       S.setActive(null, cur.n);
+      bindSlot();
       view = 'detail';
       message = saveGame(world, { toast: false }) ? 'Overschreven.' : 'Opslaan mislukt.';
       render('pane');
@@ -269,32 +271,8 @@ export function openSaveSlots(opts = {}) {
   };
   window.addEventListener('keydown', onKey, true);
 
-  // gamepad: d-pad or left stick moves, A clicks, B goes back
-  let raf = 0;
-  let held = null;
-  const poll = () => {
-    raf = requestAnimationFrame(poll);
-    let pad = null;
-    try { pad = (navigator.getGamepads ? [...navigator.getGamepads()] : []).find((g) => g && g.connected); } catch (e) { /* none */ }
-    if (!pad) return;
-    const ax = pad.axes[0] || 0, ay = pad.axes[1] || 0;
-    const pressed = {
-      up: pad.buttons[12]?.pressed || ay < -0.6, down: pad.buttons[13]?.pressed || ay > 0.6,
-      left: pad.buttons[14]?.pressed || ax < -0.6, right: pad.buttons[15]?.pressed || ax > 0.6,
-      a: pad.buttons[0]?.pressed, b: pad.buttons[1]?.pressed,
-    };
-    // buttons already down when the screen opened (the A that opened it) do nothing
-    if (!held) held = { up: true, down: true, left: true, right: true, a: true, b: true };
-    for (const [name, on] of Object.entries(pressed)) {
-      if (on && !held[name]) {
-        if (name === 'a') { const c = document.activeElement; if (c && rootEl.contains(c) && c.tagName === 'BUTTON' && !c.disabled) c.click(); }
-        else if (name === 'b') { if (!confirmOrCancel()) close(); if (!rootEl) return; }
-        else move(name);
-      }
-      held[name] = !!on;
-    }
-  };
-  raf = requestAnimationFrame(poll);
+  // gamepad: gamepad.js (menu situation) sends arrows, Enter and Escape as keys;
+  // a poll of our own here moved and clicked twice (#151)
 
   render();
 }

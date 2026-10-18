@@ -38,6 +38,7 @@ import { updateCombat, updateBullets } from './combat.js';
 import { updatePolice } from './police.js';
 import { updateTrafficLaw } from './trafficlaw.js';
 import { updateOffences } from './offences.js';
+import { updateMotorPolice } from './motorpolice.js';
 import { initMissions, updateMissions } from './missions.js';
 import { initStory, updateStory, currentStep } from './story.js';
 import { initGoal, updateGoal } from './goal.js';
@@ -64,7 +65,9 @@ import { updateNarrative } from './narrative.js';
 import { initStoryContact, updateStoryContact } from './storycontact.js';
 import { initTheme } from './theme.js';
 import { initTrafficLights, updateTrafficLights, trafficSignalsNear, trafficLightPhaseFor } from './trafficlights.js';
-import { initRailway, updateRailway, setRailExtraWorld, getTrains } from './railway.js';
+import { initRailway, updateRailway, setRailExtraWorld, getTrains, getRoutes, routePoint } from './railway.js';
+import { updateStationLife } from './stationlife.js';
+import { createBoard as createStationBoard } from './minigamekit.js';
 import { applyCityRoutes, loadLandData } from './corridorrail.js';
 import { setFarProps } from './farprops.js';
 import { initProvince } from './provinceworld.js';
@@ -78,7 +81,7 @@ import { noteFrame, hideAdvice, classifyGpu, readGpu, dynamicScale, cpuLevel } f
 import { updateStreetSigns } from './streetsigns.js';
 import { initPauseMenu, isPauseMenuOpen, openPauseMenu, pauseMenuCover } from './pausemenu.js';
 import { initDayNight, updateDayNight } from './daynight.js';
-import { initCalendar, updateCalendar } from './calendarday.js';
+import { initCalendar, updateCalendar, today as calendarToday } from './calendarday.js';
 import { updateFx3D } from './fx3d.js';
 import { updateGore3D } from './gore3d.js';
 import { updateKnockFx3D } from './knockfx3d.js';
@@ -134,6 +137,7 @@ import { getSettings } from './settings.js';
 import { MODS } from './cheatmods.js';
 import { initCheats, updateCheats } from './cheats.js';
 import { updateRegioLeven } from './regiolevenrt.js';
+import { syncLedger, getLedger } from './finance.js';
 
 // breakables.js calls these every stream interval (it does not import them)
 addPropStreamer(streamTreeProps);
@@ -292,7 +296,7 @@ async function boot() {
   const layers = (tiles && tiles.index.layers) || {};
   const corLayer = (layers.provincie && layers.provincie.global ? layers.provincie : null) || layers.corridor;
   if (corLayer && corLayer.global) setWorldPlaces(corLayer.global.places);
-  setRegionData(corLayer && corLayer.global);
+  setRegionData(corLayer && corLayer.global, tiles ? (x, y) => { const [i, j] = tileIndexOf(x, y); return !!tiles.index.tiles[tileKey(i, j)]; } : null);
   const inCorridor = (x, y) => { const [i, j] = tileIndexOf(x, y); const t = tiles.index.tiles[tileKey(i, j)]; return !!t && !!(t.flags & 4); };
   if (corridor && tiles) { setExtraBuiltWorld(inCorridor); setRailExtraWorld(inCorridor); }
   if (tiles) initProvince(tiles);
@@ -560,6 +564,7 @@ async function boot() {
       console.warn('geld was geen getal meer, hersteld', world.money);
       world.money = Number.isFinite(world._goodMoney) ? world._goodMoney : 250;
     }
+    syncLedger(getLedger(), world.money, world.clock);
 
     trafficTimer -= dt;
     if (trafficTimer <= 0) {
@@ -639,9 +644,11 @@ async function boot() {
     if (!world.pigeonMode && !world.heliRun) updatePolice(dt, world);
     updateTrafficLaw(dt, world);
     updateOffences(dt, world, { signalsNear: trafficSignalsNear, phaseFor: trafficLightPhaseFor });
+    updateMotorPolice(dt, world);
     resolveVehicleVehicleCollisions(world.vehicles, world);
     tickBurningVehicles(world, dt);
     updateRailway(dt, world);
+    updateStationLife(dt, world, { routes: getRoutes(), point: routePoint, day: calendarToday(world), createBoard: createStationBoard, driving: getTrains().some((t) => t.state === 'player') });
     updateMovableBridges(dt, world);
     updateBridgeHits(dt, world);
     if (FLAGS.brugbotsing) {

@@ -14,6 +14,8 @@
 //    after the bridge (the border-bridge rule).
 //  - Air: the radio, then the autopilot turns the heli or plane back.
 
+import { worldToWgs } from './rdnew.js';
+
 export const WARN_M = 250;
 export const BRIDGE_M = 60;
 
@@ -71,8 +73,8 @@ export function edgeRule(x, y, edge, ctx = {}) {
     if (sea && sea.d > 0) {
       const kind = sea.line.kind || 'wad';
       const lim = sea.line.seaM !== undefined ? sea.line.seaM : edge.seaM || 3000;
-      if (sea.d > lim) return { action: 'back', edge: kind, text: EDGE_GAGS[kind].back, face: face(sea), at: { x: sea.x, y: sea.y }, d: sea.d, warnAt: lim - WARN_M };
-      if (sea.d > lim - WARN_M) return { action: 'warn', edge: kind, text: EDGE_GAGS[kind].warn, face: face(sea), at: { x: sea.x, y: sea.y }, d: sea.d, warnAt: lim - WARN_M };
+      if (sea.d > lim) return { action: 'back', edge: kind, text: (EDGE_GAGS[kind] || EDGE_GAGS.duitsland).back, face: face(sea), at: { x: sea.x, y: sea.y }, d: sea.d, warnAt: lim - WARN_M };
+      if (sea.d > lim - WARN_M) return { action: 'warn', edge: kind, text: (EDGE_GAGS[kind] || EDGE_GAGS.duitsland).warn, face: face(sea), at: { x: sea.x, y: sea.y }, d: sea.d, warnAt: lim - WARN_M };
     }
   }
   const b = outsideDist(x, y, edge.border);
@@ -81,8 +83,8 @@ export function edgeRule(x, y, edge, ctx = {}) {
   if (ctx.onDeck || (ctx.bridgeDist !== undefined && ctx.bridgeDist < BRIDGE_M)) return null;
   const kind = b.line.kind || 'duitsland';
   const buf = b.line.bufferM !== undefined ? b.line.bufferM : 300;
-  if (b.d > buf) return { action: 'back', edge: kind, text: EDGE_GAGS[kind].back, face: face(b), at: { x: b.x, y: b.y }, d: b.d, warnAt: buf - WARN_M };
-  if (b.d > buf - WARN_M) return { action: 'warn', edge: kind, text: EDGE_GAGS[kind].warn, face: face(b), at: { x: b.x, y: b.y }, d: b.d, warnAt: buf - WARN_M };
+  if (b.d > buf) return { action: 'back', edge: kind, text: (EDGE_GAGS[kind] || EDGE_GAGS.duitsland).back, face: face(b), at: { x: b.x, y: b.y }, d: b.d, warnAt: buf - WARN_M };
+  if (b.d > buf - WARN_M) return { action: 'warn', edge: kind, text: (EDGE_GAGS[kind] || EDGE_GAGS.duitsland).warn, face: face(b), at: { x: b.x, y: b.y }, d: b.d, warnAt: buf - WARN_M };
   return null;
 }
 
@@ -99,4 +101,57 @@ export function edgeFromOsm(els, project) {
     if (t.natural === 'coastline') coast.push({ id: el.id, kind: 'wad', out: 1, pts: g.map(([la, lo]) => project(la, lo)) });
   }
   return { coast, border, seaM: 3000, airM: 3000 };
+}
+
+// The coast chains of the OSM extract all come out as 'wad'; the ones along the
+// Eems and the Dollard (from Delfzijl east and south, lon >= 6.88 and lat <= 53.42)
+// are the Eems towards Germany: the Grenswacht boat, not the open sea. Returns a
+// copy of the edge layer; a chain that already has another kind keeps it.
+export const EEMS_LON = 6.88;
+export const EEMS_LAT = 53.42;
+export function coastKinds(edge) {
+  if (!edge || !edge.coast) return edge || null;
+  const coast = edge.coast.map((L) => {
+    if (L.kind && L.kind !== 'wad') return L;
+    let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+    for (const [x, y] of L.pts) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+    const [la, lo] = worldToWgs((x0 + x1) / 2, (y0 + y1) / 2);
+    return lo >= EEMS_LON && la <= EEMS_LAT ? { ...L, kind: 'eems' } : L;
+  });
+  return { ...edge, coast };
+}
+
+// The border lines come with one buffer (2500 m) but the extract has land data
+// only where the neighbours' strips were built: east of the Dollard and over the
+// Drentse and Friese border it often stops after a few hundred metres, and a
+// turn-back scene in front of a void is no scene. This cuts every border line into
+// pieces of about `pieceM` and gives each piece the buffer the data supports: the
+// reach of the tiles on the outside, less `marginM` so the props stand on land,
+// between `minM` and the line's own buffer. tileHas(x, y) -> bool (a data tile).
+export function borderByData(edge, tileHas, { pieceM = 1000, probeM = 100, marginM = 300, minM = 200 } = {}) {
+  if (!edge || !edge.border || !tileHas) return edge || null;
+  const border = [];
+  for (const L of edge.border) {
+    const cap = L.bufferM !== undefined ? L.bufferM : 300;
+    const out = L.out === -1 ? -1 : 1;
+    let piece = [L.pts[0]], len = 0;
+    const flush = () => {
+      if (piece.length < 2) return;
+      const a = piece[0], b = piece[piece.length - 1];
+      const dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy) || 1;
+      const nx = out * -dy / l, ny = out * dx / l; // to the outside
+      const at = (d) => [0, 0.25, 0.5, 0.75, 1].every((f) => tileHas(a[0] + dx * f + nx * d, a[1] + dy * f + ny * d));
+      let reach = 0;
+      while (reach < cap && at(reach + probeM)) reach += probeM;
+      border.push({ ...L, bufferM: Math.max(minM, Math.min(cap, reach - marginM)), pts: piece });
+    };
+    for (let i = 1; i < L.pts.length; i++) {
+      const p = L.pts[i];
+      len += Math.hypot(p[0] - L.pts[i - 1][0], p[1] - L.pts[i - 1][1]);
+      piece.push(p);
+      if (len >= pieceM) { flush(); piece = [p]; len = 0; }
+    }
+    flush();
+  }
+  return { ...edge, border };
 }

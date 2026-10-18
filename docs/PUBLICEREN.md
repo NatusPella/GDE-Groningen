@@ -105,3 +105,12 @@ met akkoord van de eigenaar.
 - **Steam:** `steam/` heeft SteamPipe-sjablonen en een kopieerscript
   (`steam/README.md`); gebruik voor `steamcmd` een apart account met alleen
   buildrechten.
+
+## Derde ronde (18 okt 2026, #37, #60, #62, #72, #83)
+
+Alleen bestanden en checklists; niets openbaar gemaakt, geüpload of gepost.
+- Automatische publicatiecheck: `scripts/publish_check.mjs` (+ test).
+- Checklist met beslissingen voor de eigenaar: [PUBLICATIECHECKLIST.md](PUBLICATIECHECKLIST.md).
+- Privacy en credits: [PRIVACY-EN-CREDITS.md](PRIVACY-EN-CREDITS.md); social preview en
+  websitetekst: [SOCIAL-EN-WEBSITE.md](SOCIAL-EN-WEBSITE.md); IARC-aanvulling voor coöp in
+  [IARC-ANTWOORDEN.md](IARC-ANTWOORDEN.md).

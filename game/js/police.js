@@ -915,7 +915,7 @@ export function updatePolice(dt, world) {
 
 // --- the Ommeland ------------------------------------------------------------
 // Past the city's streets units come in, block and give chase on the real
-// roads (countryroute.js, the graph the GPS drives): spawn points, roadblocks
+// roads (the road graph the GPS drives, routing.js): spawn points, roadblocks
 // and officers on foot at a country road; a unit out of sight follows the
 // roads to the player and only goes straight for them across the fields when
 // close and in sight, like in town.
