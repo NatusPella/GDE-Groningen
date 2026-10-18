@@ -46,6 +46,15 @@ const mem = () => { const m = new Map(); return { getItem: (k) => (m.has(k) ? m.
 }
 {
   const rec = createRecorder();
+  for (let t = 0; t < 3; t += 0.1) recordGhost(rec, t, t, 0, 0);
+  const lo = finishGhost(rec, 1200, { higher: true }), hi = finishGhost(rec, 2500, { higher: true });
+  check('a higher score is better', betterGhost(lo, hi) && !betterGhost(hi, lo));
+  const st = mem();
+  saveGhost(st, 'drift-oost', lo);
+  check('score ghosts keep the higher run', saveGhost(st, 'drift-oost', hi) && !saveGhost(st, 'drift-oost', lo) && loadGhost(st, 'drift-oost').total === 2500);
+}
+{
+  const rec = createRecorder();
   recordGhost(rec, 700, 1, 1, 0);
   check('absurdly long runs are not recorded', rec.s.length === 0);
 }
