@@ -1,4 +1,5 @@
 import { nearestLine, project as projectOnLine, makeRunner, stepRunner, startAt } from './busroutes.js';
+import { assistDamage } from './assistlive.js';
 import { closestPointOnSegment, normalizeAngle, clamp, lerp, pointInPolygon, inMapWater, WATER_Y, keepBoatOffShore, boatDryPoints } from './util.js';
 import { waterClearance, waterChannelPoints } from './waterindex.js';
 import { shallowWater, waterAt, airDraftOf, passesUnder } from './waterlevels.js';
@@ -2461,6 +2462,7 @@ function tangentialSpeed(a, b, nx, ny) {
 function applyImpactDamage(v, dmg, playerInvolved, world) {
   if (dmg <= 0 || v.wrecked) return;
   if (v.disabled) { v.burnLeft -= dmg * 0.06; return; }
+  if (v.driver === 'player') dmg = assistDamage(dmg);
   v.health = Math.max(0, v.health - dmg * CRASH_DAMAGE_SCALE);
   if (playerInvolved && v.driver === 'player' && !v.flat && !v.isBoat && !v.isHeli && !v.isBus && dmg >= FLAT_MIN_DAMAGE && v.health > 0 && Math.random() < Math.min(FLAT_MAX_CHANCE, dmg / 60)) v.flat = true;
   if (v.health <= 0) disableVehicle(v, playerInvolved, world);

@@ -33,6 +33,7 @@ import { getSideJobList } from './sidejobs.js';
 import { getGaragesForRender } from './garages.js';
 import { inHomeFlat, getHomeForRender, flatStage } from './home.js';
 import { isShopOpen } from './shopui.js';
+import { maybeOfferHelp, noteStepCleared } from './assistlive.js';
 import { playCinematic, isCinematicActive, sinceCinematic, isBannerUp } from './cinematics.js';
 import { playScript } from './cutscenehost.js';
 import { openingActs, END_CARD, flatScene } from './cutscenes.js';
@@ -278,6 +279,7 @@ function markDone(step, { skipped = false, quiet = false } = {}) {
   state.done.add(step.id);
   if (skipped) state.skipped.add(step.id);
   delete state.fails[step.id];
+  if (!skipped) noteStepCleared(step.id);
   rt.skipUntil = -1;
   if (step.unlocks) state.flags.add(step.unlocks);
   if (!quiet && step.kind === 'activity' && step.done) {
@@ -955,6 +957,8 @@ function onFailed(w, i) {
   if (!step || step.end || step.kind !== 'mission' || missionIdx(step) !== i) return;
   state.fails[step.id] = (state.fails[step.id] || 0) + 1;
   rt.skipUntil = w.time + SKIP_OFFER_S;
+  // hulp aanbieden na twee mislukkingen (#215): even na het mislukscherm
+  rt.helpOffer = { at: w.time + 4, id: step.id };
 }
 
 function onGated() {
@@ -1023,6 +1027,11 @@ export function updateStory(dt, w) {
   const step = rt.cur;
   rt.runT = step && !step.end && step.kind === 'mission' && activeMissionIndex() === missionIdx(step) ? (rt.runT || 0) + dt : 0;
   updateSkipUi();
+  if (rt.helpOffer && w.time > rt.helpOffer.at && !isCinematicActive() && !isBannerUp() && !w.paused) {
+    const o = rt.helpOffer;
+    rt.helpOffer = null;
+    maybeOfferHelp(w, o.id, state.fails[o.id] || 0);
+  }
   updateCharacter(w);
   updateStoryTalk(dt, w);
   updateStoryFun(dt, w, step, rt.base);

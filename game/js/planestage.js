@@ -10,6 +10,7 @@
 //              a banner flag hangs the banner behind the plane.
 //   landplane  done when the plane stands still on the strip
 // update returns null while it goes on, 'next' when the stage is done, or { fail: 'text' }.
+import { assistGate } from './assistlive.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene } from './scene3d.js';
 import { Vehicle } from './vehicle.js';
@@ -148,8 +149,9 @@ export function updatePlaneStage(dt, world, st, S) {
   placeBanner(v);
   if (st.kind === 'airgates') {
     const A = S.air;
-    const g = st.gates[A.i];
-    if (!g) return 'next';
+    const g0 = st.gates[A.i];
+    if (!g0) return 'next';
+    const g = assistGate(g0);
     const agl = v.z - ground(world.map, g.x, g.y);
     const d = Math.hypot(v.x - g.x, v.y - g.y);
     const r = judgeGate(g, A.state, d, agl);
