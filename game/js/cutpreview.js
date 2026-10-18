@@ -1,0 +1,188 @@
+// Cutscene preview (#209), the pure part: a catalogue of every staged scene,
+// its validation status, and the sampling the preview page (game/cutpreview.html,
+// cutpreviewui.js) draws and scrubs. No THREE, no DOM, no world: it runs in
+// node (scripts/cutpreview_test.mjs) and in the browser without the game.
+//
+//   const cat = buildCatalog({ script, npcSource });   // [{ id, group, title, status, issues, ... }]
+//   const frame = frameAt(entry, t);                    // actors, props, camera, shot at time t
+//   const stills = stillTimes(entry);                   // one time per shot (for the screenshot export)
+//
+// Clipping needs a world (env.solid) and is not checked here; the status says so.
+import { compileScene, validateScene } from './cutscript.js';
+import { missionScene, SPECS, MORE_SPECS } from './cutscenes_akte1.js';
+import './cutscenes_akte2.js';
+import './cutscenes_akte3.js';
+import { OPENING_ACTS, openingActs, END_CARD } from './cutscenes.js';
+import { STEPS } from './storyarc_nieuw.js';
+
+export const STATUS = { ok: 'ok', warn: 'waarschuwing', error: 'fout' };
+export const STATUS_LABEL = { ok: 'In orde', waarschuwing: 'Let op', fout: 'Fout' };
+export const NOT_CHECKED = 'Botsing met gebouwen is niet gecontroleerd: daar is de wereld voor nodig.';
+
+const SPEAKER_NAME = { T: 'Tammo', A: 'Anita' };
+const MAX_STEP = 0.45; // m between two frames of 0.1 s: more is a jump
+const NEAR = 45; // m the camera may stray from the anchor
+const ANCHOR = { x: 500, y: -300, facing: 1.1, z: 0 };
+
+// { berend: { name: 'Berend Bos' }, ... } from the text of missionstory.js (the real looks need THREE).
+export function npcNamesFromSource(src) {
+  const looks = {};
+  for (const m of String(src).matchAll(/^ {2}(\w+): \{.*?name: '([^']+)'/gm)) looks[m[1]] = { name: m[2], shirt: 0x808080, skin: 0xd0a080 };
+  return looks;
+}
+
+// The lines of script scenes the way missionstory.js times them without recordings:
+// reading time, 0.6 s lead, 0.1 s between. Returns { lines, total }.
+export function linesOf(script, ids, looks = {}) {
+  const out = [];
+  let t = 0.6;
+  for (const id of ids) {
+    const sc = script.scenes.find((s) => s.id === id);
+    if (!sc) continue;
+    for (const l of sc.lines) {
+      if (l.channel === 'app-stil') continue;
+      const dur = Math.max(2.2, Math.min(8, 1.3 + l.text.length * 0.058));
+      out.push({ speaker: SPEAKER_NAME[l.key] || (looks[l.key] && looks[l.key].name) || l.key, text: l.text, at: t, dur });
+      t += dur + 0.1;
+    }
+  }
+  return { lines: out, total: t + 0.3 };
+}
+
+// 'M08.intro' -> ['M08.1'] through the story steps; 'M01.3' (no suffix) is a script scene itself.
+export function sceneIdsFor(key, steps = STEPS) {
+  const m = /^(\w+)\.(intro|outro)$/.exec(key);
+  if (!m) return [key];
+  const step = steps.find((s) => s.id === m[1]);
+  return (step && step.story && step.story[m[2]]) || [];
+}
+
+// Pure checks on top of validateScene: timing and sampling. Returns { issues, warnings }.
+export function checkSampling(def, lines, duration) {
+  const issues = [], warnings = [];
+  let scene;
+  try { scene = compileScene(def, { lines, duration }); } catch (e) { return { issues: [String(e.message || e)], warnings, scene: null }; }
+  let finite = true, near = true, maxStep = 0, prev = null;
+  const shots = new Set();
+  for (let t = 0; t <= duration; t += 0.1) {
+    const s = scene.sample(t, ANCHOR);
+    const c = s.camera;
+    for (const v of [c.position.x, c.position.y, c.position.z, c.lookAt.x, c.lookAt.y, c.lookAt.z, c.fov]) if (!Number.isFinite(v)) finite = false;
+    if (Math.hypot(c.position.x - ANCHOR.x, c.position.y - ANCHOR.y) > NEAR) near = false;
+    for (const a of Object.values(s.actors)) for (const v of [a.x, a.y, a.a, a.gaze]) if (!Number.isFinite(v)) finite = false;
+    if (prev) for (const [id, a] of Object.entries(s.actors)) {
+      const p = prev.actors[id];
+      if (a.anim === 'ride' || (p && p.anim === 'ride')) continue;
+      maxStep = Math.max(maxStep, Math.hypot(a.x - p.x, a.y - p.y));
+    }
+    shots.add(c.shotIndex);
+    prev = s;
+  }
+  if (!finite) issues.push('timing: een positie of camerawaarde is geen getal');
+  if (!near) issues.push(`camera: verder dan ${NEAR} m van de plek`);
+  if (maxStep >= MAX_STEP) warnings.push(`timing: iemand springt ${maxStep.toFixed(2)} m in 0,1 s`);
+  if (shots.size < Math.min(4, Math.max(1, lines.length))) warnings.push(`camera: maar ${shots.size} verschillende shots`);
+  return { issues, warnings, scene };
+}
+
+function entryFor({ id, group, title, def, lines, duration, missing }) {
+  const issues = [], warnings = [];
+  if (missing) issues.push(...missing.map((m) => `ontbrekende acteur: ${m}`));
+  let scene = null;
+  if (def) {
+    for (const m of validateScene(def, { lines, duration })) issues.push(m);
+    if (!issues.length) {
+      const r = checkSampling(def, lines, duration);
+      issues.push(...r.issues);
+      warnings.push(...r.warnings);
+      scene = r.scene;
+    }
+  } else if (!missing) issues.push('scene is niet te bouwen');
+  const status = issues.length ? STATUS.error : warnings.length ? STATUS.warn : STATUS.ok;
+  return { id, group, title, status, issues, warnings, note: NOT_CHECKED, def, lines, duration, scene, shots: scene ? scene.shots || [] : [] };
+}
+
+// Names in a spec's cast without a look in the NPC table: the reason missionScene gives null.
+function missingCast(key, looks) {
+  const spec = SPECS[key] || MORE_SPECS[key];
+  if (!spec) return null;
+  const out = [];
+  for (const [id, c] of Object.entries(spec.cast || {})) if (!looks[c.key]) out.push(`${id} (${c.key})`);
+  return out.length ? out : null;
+}
+
+// opts: script (script.json), npcSource (text of missionstory.js) or looks.
+export function buildCatalog({ script, npcSource = '', looks = null }) {
+  const L = looks || npcNamesFromSource(npcSource);
+  const out = [];
+  // the opening: three acts on the C00 lines
+  const open = linesOf(script, ['C00.1', 'C00.2', 'C00.3'], L);
+  const acts = openingActs(open.lines);
+  OPENING_ACTS.forEach((def, i) => {
+    const a = acts.find((x) => x.def === def);
+    out.push(entryFor({ id: def.id, group: 'Opening', title: `Opening, deel ${i + 1}`, def, lines: a ? a.lines : [], duration: a ? a.duration : 10 }));
+  });
+  out.push(entryFor({ id: END_CARD.id, group: 'Opening', title: 'Eindkaart (Wordt vervolgd)', def: END_CARD, lines: [], duration: 6.5 }));
+  // the missions of the new story
+  const keys = [...new Set([...Object.keys(SPECS), ...Object.keys(MORE_SPECS)])].sort();
+  for (const key of keys) {
+    const ids = sceneIdsFor(key);
+    const missing = missingCast(key, L);
+    const { lines, total } = linesOf(script, ids, L);
+    if (!ids.length || !lines.length) {
+      out.push(entryFor({ id: key, group: 'Missies', title: key, def: null, lines: [], duration: 0 }));
+      out[out.length - 1].issues = ['geen scriptregels voor ' + (ids.join(', ') || key)];
+      continue;
+    }
+    const def = missing ? null : missionScene(key, lines, { looks: L });
+    out.push(entryFor({ id: key, group: 'Missies', title: key, def, lines, duration: total, missing }));
+  }
+  return out;
+}
+
+export function summary(cat) {
+  const n = { ok: 0, waarschuwing: 0, fout: 0 };
+  for (const e of cat) n[e.status]++;
+  return n;
+}
+
+// One frame to draw: actors and props (x, y in the anchor's world), the camera, the shot and the speaker.
+export function frameAt(entry, t) {
+  if (!entry || !entry.scene) return null;
+  const tt = Math.max(0, Math.min(entry.duration, t));
+  const s = entry.scene.sample(tt, ANCHOR);
+  const line = entry.lines.find((l) => tt >= l.at && tt < l.at + l.dur) || null;
+  return { t: tt, anchor: ANCHOR, actors: s.actors, props: s.props, camera: s.camera, shot: s.camera.shotIndex, speaker: line ? line.speaker : null, text: line ? line.text : '' };
+}
+
+// The start time of every shot (and the last frame of the scene as a closing still): the moments for the screenshot export.
+export function stillTimes(entry) {
+  if (!entry || !entry.scene) return [];
+  const times = [];
+  let lastShot = -1;
+  for (let t = 0; t <= entry.duration; t += 0.1) {
+    const s = entry.scene.sample(t, ANCHOR).camera.shotIndex;
+    if (s !== lastShot) { times.push(Math.round((t + 0.2) * 10) / 10); lastShot = s; }
+  }
+  return times.map((t) => Math.min(t, entry.duration));
+}
+
+// File name of a still: 'M01.intro-shot03-t12.4.png'
+export function stillName(id, shotIndex, t) {
+  return `${id}-shot${String(shotIndex).padStart(2, '0')}-t${t.toFixed(1)}.png`;
+}
+
+// The world rectangle that frames everything a scene has on stage over its whole length (for the top-down view).
+export function sceneBounds(entry, step = 0.5) {
+  if (!entry || !entry.scene) return null;
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  const add = (x, y) => { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); };
+  for (let t = 0; t <= entry.duration; t += step) {
+    const s = entry.scene.sample(t, ANCHOR);
+    for (const a of Object.values(s.actors)) add(a.x, a.y);
+    for (const p of Object.values(s.props)) add(p.x, p.y);
+    add(s.camera.position.x, s.camera.position.y);
+  }
+  const pad = 3;
+  return { x0: x0 - pad, y0: y0 - pad, x1: x1 + pad, y1: y1 + pad };
+}

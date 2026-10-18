@@ -8,6 +8,7 @@ import { blockPlan, farmDetail, farmWorld, pushOutOfPlan, FARM_TYPES } from './c
 import { roadGap } from './countryedge.js';
 import { baysIn } from './parkinglots.js';
 import { SpatialGrid } from './spatialgrid.js';
+import { hash3 as hash } from './rng.js';
 
 // Kerbside parking along residential streets: half a car length up on the
 // stoep, clear of the traffic lane. Slots are deterministic per road segment
@@ -48,11 +49,6 @@ function stateOf(world) {
     states.set(world, st);
   }
   return st;
-}
-
-function hash(a, b, c) {
-  const h = Math.sin(a * 127.1 + b * 311.7 + c * 74.7) * 43758.5453;
-  return h - Math.floor(h);
 }
 
 function parkable(r) {

@@ -1,4 +1,4 @@
-# Speeltest Maus en Alexander (15 okt 2026): besluiten en issues
+# Speeltest Maus en NatusPella (15 okt 2026): besluiten en issues
 
 De ruwe lijst (83 punten) is verwerkt en verwijderd; het werk staat als issues
 op het bord (zie [AGENTS.md](../AGENTS.md)). De volledige oude triage met

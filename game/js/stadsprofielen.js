@@ -13,7 +13,7 @@ export const TOWN_PROFILES = [
   {
     id: 'delfzijl', name: 'Delfzijl', at: [53.3313, 6.9186], reach: 1800, kind: 'haven',
     teaser: 'Haven, zeedijk en schoorstenen. Het Chemiepark bromt altijd een beetje mee.',
-    streets: ['Zeedijk', 'Handelskade', 'Molenberg', 'Marktstraat', 'Westerstraat'],
+    streets: ['Handelskade Oost', 'Molenberg', 'Marktstraat', 'Damsterdiep', 'Stationsweg'],
     sfeer: {
       ochtend: ['Een scheepshoorn in de verte. De haven is al uren wakker.', 'Het ruikt naar zout en motorolie. Dat is hier een goed teken.'],
       middag: ['Op de Zeedijk staan mensen naar de schepen te kijken alsof het televisie is.', 'Een vrachtwagen met een lading die niemand benoemt, rijdt langzaam voorbij.'],
@@ -29,7 +29,7 @@ export const TOWN_PROFILES = [
   {
     id: 'appingedam', name: 'Appingedam', at: [53.3226, 6.8588], reach: 1500, kind: 'gracht',
     teaser: 'Hangende keukens boven het Damsterdiep. Hier mag je gewoon even kijken in andermans achtertuin.',
-    streets: ['Wijkstraat', 'Dijkstraat', 'Damsterdiep', 'Boterdiep', 'Julianalaan'],
+    streets: ['Wijkstraat', 'Dijkstraat', 'Damsterdiep', 'Farmsumerweg', 'Burgemeester Klauckelaan'],
     sfeer: {
       ochtend: ['Boven het Damsterdiep klinkt een koffiezetapparaat. Dat is een hangende keuken die opstaat.', 'De brug gaat open voor één bootje. Zeven fietsers wachten gelaten.'],
       middag: ['Op de Wijkstraat is het druk, behalve bij de winkel die gesloten is voor de middag.', 'Een toerist maakt een foto van een keuken. De keuken maakt er een terug.'],
@@ -45,7 +45,7 @@ export const TOWN_PROFILES = [
   {
     id: 'veendam', name: 'Veendam', at: [53.1058, 6.8756], reach: 2000, kind: 'veen',
     teaser: 'Lange diepen, rechte wegen en schippers uit het veen. Alles ligt hier in een lijn.',
-    streets: ['Winschoterdiep', 'Wildervanklaan', 'Raadhuisstraat', 'Kerkstraat', 'Zuiderdiep'],
+    streets: ['Beneden Oosterdiep', 'Boven Oosterdiep', 'Boven Westerdiep', 'Kerkstraat', 'Julianalaan'],
     sfeer: {
       ochtend: ['Over het Winschoterdiep ligt een lage mist, het licht komt er recht doorheen.', 'Een trekker met een kar vol aardappelen tuft over de brug.'],
       middag: ['De winkelstraat is vol: de Veenkoloniën doen hier de boodschappen.', 'Iemand legt uit hoe het veen is afgegraven. Iedereen knikt, niemand luistert.'],
@@ -77,7 +77,7 @@ export const TOWN_PROFILES = [
   {
     id: 'hoogezand', name: 'Hoogezand-Sappemeer', at: [53.1612, 6.77], reach: 2400, kind: 'diep',
     teaser: 'Twee dorpen aan één diep. Wie zegt waar de ene ophoudt, mag het aan de bank vertellen.',
-    streets: ['Hoofdstraat', 'Winschoterdiep', 'Kerklaan', 'Stationsweg', 'Dorpsstraat'],
+    streets: ['Hoofdstraat', 'Kerkstraat', 'Noorderstraat', 'Winschoterdiep', 'Meint Veningastraat'],
     sfeer: {
       ochtend: ['Schippers groeten elkaar niet, ze knikken hooguit.', 'Een bus stopt, niemand stapt uit. De bus gaat toch maar weer.'],
       middag: ['Aan het Winschoterdiep staat een rij mensen te wachten op een brug die nog even dicht blijft.', 'Het winkelcentrum is vol. De parkeerplaats is een legende.'],
@@ -93,7 +93,7 @@ export const TOWN_PROFILES = [
   {
     id: 'leek', name: 'Leek', at: [53.1639, 6.3764], reach: 1600, kind: 'park',
     teaser: 'Het kasteelpark van Nienoord ligt om de hoek. Hier gaat alles een tikje rustiger.',
-    streets: ['Hoofdstraat', 'Stationsstraat', 'Nienoord', 'Kerkstraat', 'Marktstraat'],
+    streets: ['Hoofdstraat', 'Nienoord', 'Tolberterstraat', 'Midwolderweg', 'Oldebertweg'],
     sfeer: {
       ochtend: ['Het is stil in het park. Een koets staat te wachten alsof hij net is gekomen.', 'Een fietser zingt zacht en denkt dat niemand het hoort.'],
       middag: ['Op de Hoofdstraat is het rustig. Een hond ligt midden op het zebrapad en heeft gelijk.', 'Bij de bakker staat de rij tot buiten: er is net iets vers uit de oven.'],
@@ -109,7 +109,7 @@ export const TOWN_PROFILES = [
   {
     id: 'uithuizen', name: 'Uithuizen', at: [53.4097, 6.6753], reach: 1400, kind: 'borg',
     teaser: 'Een borg met een gracht, een dijk met uitzicht. Het Hogeland op zijn best.',
-    streets: ['Menkemaweg', 'Kerkstraat', 'Havenstraat', 'Dijkstraat', 'Westeinde'],
+    streets: ['Menkemaweg', 'Kerkplein', 'Hoofdstraat-West', 'Departementsstraat', 'Ripperdadrift'],
     sfeer: {
       ochtend: ['De wind staat recht van de zee. Je hoort de dijk bijna denken.', 'Een tractor rijdt de akker op. De ganzen vinden het goed.'],
       middag: ['Bij de borg lopen schoolklassen langs de gracht. De gids vertelt bijna alles goed.', 'Op de dijk staat een bankje met de mooiste achterkant van Nederland.'],
@@ -120,6 +120,54 @@ export const TOWN_PROFILES = [
       { kind: 'bakker', name: 'Bakker De Kleine Borg', line: 'Het brood is groot, het winkeltje is klein.' },
       { kind: 'markt', name: 'Boerderijwinkel Zoute Klei', line: 'Eieren, kaas en een mening over het weer.' },
       { kind: 'cafe', name: 'Dorpscafé De Zeedijk', line: 'Bij het raam zit de gids van gisteren, hij oefent.' },
+    ],
+  },
+  {
+    id: 'stadskanaal', name: 'Stadskanaal', at: [52.9885, 6.9505], reach: 2000, kind: 'kanaal',
+    teaser: 'Kilometers kanaal en bruggen die telkens net opengaan. In Westerwolde kom je altijd aan, maar nooit snel.',
+    streets: ['Hoofdstraat', 'Julianastraat', 'Maarsdreef', 'Buinerweg', 'Krommewijk'],
+    sfeer: {
+      ochtend: ['Op het kanaal ligt een dunne laag mist. Een platbodem glijdt erdoorheen zonder geluid.', 'De brugwachter zet zijn koffie neer en kijkt of er iets aankomt. Dat is er niet.'],
+      middag: ['Op de Hoofdstraat zijn de terrassen vol. Een fietsbel klinkt boven alles uit.', 'Een stuurman zwaait naar een auto. De auto zwaait terug, uit beleefdheid.'],
+      avond: ['Langs het kanaal gaan de lantaarns aan, één voor één, als dominostenen.', 'Een bootje met lampjes vaart langzaam voorbij. Er staat niemand aan boord.'],
+    },
+    props: [{ kind: 'brug', per: 2 }, { kind: 'bolder', per: 6 }, { kind: 'fietsenrek', per: 7 }, { kind: 'bank', per: 6 }],
+    shops: [
+      { kind: 'bakker', name: 'Bakkerij Lange Wijk', line: 'Het brood is net zo rechtdoor als het kanaal.' },
+      { kind: 'cadeau', name: 'Kanaalkado Hoge Brug', line: 'Voor wie de brug wil meenemen. Past niet in de tas.' },
+      { kind: 'cafe', name: 'Café De Bakboord', line: 'Hier hangt een stuurwiel dat nergens aan vastzit.' },
+    ],
+  },
+  {
+    id: 'zoutkamp', name: 'Zoutkamp', at: [53.3345, 6.2985], reach: 1200, kind: 'haven',
+    teaser: 'Kotters, garnalen en de dijk naar het Lauwersmeer. Het ruikt hier altijd naar zout, ook in de koffie.',
+    streets: ['Reitdiepskade', 'Dorpsstraat', 'Strandweg', 'Hunsingokanaal', 'Beatrixstraat'],
+    sfeer: {
+      ochtend: ['Op de kade worden garnalen gepeld. Er zingt iemand, verder is het stil.', 'Een kotter vaart uit. De meeuwen rekenen op een goed ontbijt.'],
+      middag: ['Op het terras is het druk, vooral met mensen die naar de kotters kijken.', 'Een kind probeert een garnaal te leiden naar het water. De garnaal heeft andere plannen.'],
+      avond: ['De haven kleurt oranje. De boten gaan zachtjes op en neer, als een slaaplied.', 'Aan de kade klinkt een mondharmonica. Hij is een beetje te laat voor de hoofdact.'],
+    },
+    props: [{ kind: 'visnet', per: 6 }, { kind: 'bolder', per: 12 }, { kind: 'kotter', per: 3 }, { kind: 'bank', per: 4 }],
+    shops: [
+      { kind: 'viskraam', name: 'Garnalenhuis De Pelder', line: 'Vers gepeld, vers gezegd.' },
+      { kind: 'bakker', name: 'Bakkerij Zoute Lucht', line: 'Een broodje met zeezout, voor wie niet genoeg kreeg.' },
+      { kind: 'cafe', name: 'Café De Reitdiepskade', line: 'Aan de bar zit de kapitein van de kotter die nooit aanmeert.' },
+    ],
+  },
+  {
+    id: 'winsum', name: 'Winsum', at: [53.3315, 6.517], reach: 1400, kind: 'wierde',
+    teaser: 'Een molen, een diep en een wierde met uitzicht. In Hunsingo ziet elk dorp er een tikje trots uit.',
+    streets: ['Wierdaweg', 'Winsumerdiep', 'Borgweg', 'Munsterweg', 'Provincialeweg'],
+    sfeer: {
+      ochtend: ['De molen draait rustig. Het diep ligt er glad bij, een eend bepaalt de koers.', 'Een boer rijdt op de trekker voorbij en zwaait. Zijn hond zit voorop.'],
+      middag: ['Op de wierde zit een groepje te picknicken. Het uitzicht is beter dan het eten.', 'De winkelstraat is rustig. De bakker staat in de deur en kijkt naar de lucht.'],
+      avond: ['De avondzon valt schuin over de klei. Alles wordt goudkleurig, ook de koeien.', 'Op het bankje bij het diep zit iemand die niets doet en dat uitstekend vindt.'],
+    },
+    props: [{ kind: 'molen', per: 0.5 }, { kind: 'bank', per: 6 }, { kind: 'schaap', per: 8 }, { kind: 'bloembak', per: 8 }],
+    shops: [
+      { kind: 'bakker', name: 'Bakkerij De Wierdekoek', line: 'Koek in de vorm van een heuvel. Daar kun je op wachten.' },
+      { kind: 'markt', name: 'Kleiboer Streekwinkel', line: 'Kaas, eieren en uitleg over de bodem.' },
+      { kind: 'cafe', name: 'Eetcafé Het Diepe Zuiden', line: 'Op het bord staat: soep van de dag. De dag is niet gespecificeerd.' },
     ],
   },
 ];

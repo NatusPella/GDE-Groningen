@@ -2749,6 +2749,12 @@ function playAudioEvents(world) {
       case 'coo': case 'flap': case 'bonk': case 'poop': case 'splat': case 'plop': case 'pala': case 'padelglas': case 'padelgaas': playCritterEvent(e.kind, x, y, clamp(e.strength ?? 0.5, 0, 1)); break;
       case 'splash': playSplash(x, y); break;
       case 'fx': playFx(e.name, x, y, e); break;
+      // one carillon-game bell (carillon.js): the tower's bell sample at the right pitch, no gap limit
+      case 'bell_note': {
+        const out = spatialOut(x, y, { ref: 8, rolloff: 0.7, range: 400, prio: 2 });
+        if (out) playBuf('bell_carillon', { out, gain: 0.5 * clamp(e.gain ?? 1, 0, 1.5), rate: clamp(e.rate ?? 1, 0.25, 4), prio: 2 });
+        break;
+      }
       case 'whistle': playWhistle(); break;
       case 'gore': case 'gore_splat': case 'ko': case 'poof': playGoreEvent(e.kind, x, y, clamp(e.strength ?? 0.5, 0, 1)); break;
       case 'animal_hit': {

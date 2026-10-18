@@ -10,7 +10,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { migrateSave, migrateSettings, savedStoryStep, savedArc, SAVE_VERSION, SETTINGS_VERSION } from '../game/js/savemigrate.js';
-import { STEP_BY_ID, RETIRED_STEPS, ARC_ID } from '../game/js/storyarc.js';
+import { STEP_BY_ID, RETIRED_STEPS, ARC_ID, STEPS } from '../game/js/storyarc.js';
 import { STAT_DEFAULTS, statsFromSave } from '../game/js/world.js';
 import { CHEAT_BY_ID } from '../game/js/cheatlist.js';
 import { legacyToWorld, legacyAngleToWorld } from '../game/js/rdnew.js';
@@ -62,17 +62,23 @@ for (const file of files) {
   ok(same(before, fx.save) && before !== d, `${tag}: the original is not modified`);
   ok(same(migrateSave(d).data, d) && migrateSave(d).steps.length === 0, `${tag}: migrating twice changes nothing`);
 
-  // a save belongs to one story arc: the saves of before 0.35 are the old one, and a save of the
-  // other arc is never loaded (savegame.js readSave); then only its migration is checked
-  const arc = exp.arc || 'oud';
-  ok(savedArc(d) === arc && d.arc === arc, `${tag}: belongs to the ${arc} arc`, d.arc);
-  if (arc !== ARC_ID) { ok(savedArc(d) !== ARC_ID, `${tag}: another arc than the one played (${ARC_ID}): not loaded`); continue; }
+  // there is one story (#187): a save of the first version ('oud', every save before 0.35) becomes a save of
+  // the story that is left: what the player owns stays, the story starts at its beginning, once a message at the load
+  const converted = (before.arc || 'oud') !== 'nieuw';
+  ok(savedArc(d) === 'nieuw' && d.arc === 'nieuw' && ARC_ID === 'nieuw', `${tag}: belongs to the one story`, d.arc);
+  if (converted) {
+    ok(d.oudGemigreerd === true, `${tag}: marked as migrated from the first version (the message at the load)`);
+    for (const k of ['story', 'missions', 'kalender', 'doel', 'ctx']) ok(!(k in d), `${tag}: ${k} of the first version dropped`);
+  } else {
+    ok(!('oudGemigreerd' in d), `${tag}: a save of the story that is left gets no migration message`);
+  }
 
-  // playable: the story continues at a step that exists
+  // playable: the story continues at a step that exists (a converted save at the beginning)
   const step = savedStoryStep(d);
   ok(step && (STEP_BY_ID.has(step.id) || step.end), `${tag}: continues at an existing step`, JSON.stringify(step && (step.id || step)));
-  if (exp.step) ok(step && step.id === exp.step, `${tag}: continues at ${exp.step}`, step && step.id);
-  if (d.story) {
+  if (converted) ok(step && step.id === STEPS[0].id, `${tag}: starts at the beginning of the story`, step && step.id);
+  if (exp.step && !converted) ok(step && step.id === exp.step, `${tag}: continues at ${exp.step}`, step && step.id);
+  if (d.story && !converted) {
     const unknown = [...d.story.done, ...d.story.skipped, ...d.story.voorschot].filter((id) => !STEP_BY_ID.has(id));
     ok(!unknown.length, `${tag}: no retired or unknown step ids left`, unknown.join(','));
     const kept = before.story.done.filter((id) => !RETIRED_STEPS.includes(id));
@@ -100,7 +106,7 @@ for (const file of files) {
   ok(!('copCarsWrecked' in d.stats), `${tag}: no copCarsWrecked left`);
   for (const k of Object.keys(d.stats)) ok(STATS.has(k) || k === 'spent', `${tag}: stat ${k} is one the game keeps`);
   ok(d.stats.missionsDone === old.missionsDone, `${tag}: missionsDone intact`);
-  ok(same(d.missions, before.missions), `${tag}: mission progress intact`);
+  if (!converted) ok(same(d.missions, before.missions), `${tag}: mission progress intact`);
 
   // garage, outfits, prestaties
   const sh = d.shops;
@@ -140,7 +146,7 @@ for (const file of files) {
   // positions: the same real place in the RD New frame (save v7)
   for (const k of ['pos', 'doel']) {
     const o = before[k];
-    if (!(k in before)) continue;
+    if (!(k in before) || (converted && k === 'doel')) continue;
     if (!o || !Number.isFinite(o.x)) { ok(same(d[k], o), `${tag}: ${k} without a place intact`); continue; }
     const { x, y, ...rest } = d[k], { x: ox, y: oy, ...orest } = o;
     // a save of v7 or later is in the RD New frame already: nothing moves
@@ -150,14 +156,22 @@ for (const file of files) {
   if (exp.pos) ok(Math.hypot(d.pos.x - exp.pos[0], d.pos.y - exp.pos[1]) < 0.06, `${tag}: pos is ${exp.pos}`, `${d.pos.x},${d.pos.y}`);
 }
 
-// the arc of a save: before 0.35 every save is the old one; a new-arc save keeps its arc
+// the arc of a save: a save of the first version becomes a save of the story that is left (migration 9)
 {
-  ok(savedArc({}) === 'oud' && savedArc({ arc: 'nieuw' }) === 'nieuw' && savedArc({ arc: 'anders' }) === 'oud' && savedArc(null) === 'oud', 'savedArc: oud unless the save says nieuw');
-  const a = migrateSave({ v: 8, money: 1, story: { v: 1, done: [] } });
-  ok(a && a.data.arc === 'oud' && a.steps.join() === '8->9', 'a v8 save without arc becomes the old arc');
-  const b = migrateSave({ v: 8, arc: 'nieuw', money: 1 });
-  ok(b && b.data.arc === 'nieuw', 'a save that says nieuw stays nieuw');
-  ok(SAVE_VERSION >= 9, 'save v9 added the arc');
+  ok(savedArc() === 'nieuw', 'savedArc: always the story that is left');
+  const a = migrateSave({ v: 8, money: 1, story: { v: 1, done: ['H1'] }, missions: { completed: [0] } });
+  ok(a && a.data.arc === 'nieuw' && a.steps.join() === '8->9,9->10', 'a v8 save without arc is the first version, and becomes the story that is left');
+  ok(a && a.data.money === 1 && !a.data.story && !a.data.missions && a.data.oudGemigreerd === true, 'its money stays, its story starts over');
+  const b = migrateSave({ v: 9, arc: 'oud', money: 5, shops: { vehicles: [] }, story: { v: 1, done: ['H1'] } });
+  ok(b && b.data.arc === 'nieuw' && b.steps.join() === '9->10' && b.data.shops && b.data.money === 5, 'a v9 save of the first version is converted by the last step only');
+  const c = migrateSave({ v: 9, arc: 'nieuw', money: 1, story: { v: 1, done: ['M00'] } });
+  ok(c && c.data.arc === 'nieuw' && c.data.story.done[0] === 'M00' && !('oudGemigreerd' in c.data), 'a save of the story that is left keeps its story');
+  ok(SAVE_VERSION >= 10, 'save v10 converted the first version');
+  ok(SETTINGS_VERSION >= 10, 'settings v10 dropped the Verhaal choice');
+  for (const [from, has] of [[{ v: 9, verhaal: 'oud' }, false], [{ v: 8, verhaal: 'nieuw', gore: false }, false], [{ v: 3 }, false]]) {
+    const m = migrateSettings(from);
+    ok(m && !('verhaal' in m.data) && !('nieuwverhaal' in m.data), `settings ${JSON.stringify(from)}: no Verhaal choice left`, m && JSON.stringify(m.data));
+  }
 }
 
 // every station id the radio list ever saved

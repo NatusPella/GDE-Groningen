@@ -22,8 +22,6 @@ export const SEARCH = typeof location !== 'undefined' ? location.search : '';
 // of reading location.search themselves. Boolean flags are on when the name is
 // in the URL; value flags hold the string (or null). FLAG_DOCS lists them all
 // (also in docs/ONTWIKKELEN.md). A switch is added or removed here only.
-// storyflag.js (?nieuwverhaal) is the exception: storagekeys.js needs it and
-// this module imports storagekeys.js, so it would be a cycle.
 const has = (k) => q.has(k);
 const val = (k) => (q.has(k) ? q.get(k) : null);
 export const FLAGS = Object.freeze({
@@ -58,9 +56,8 @@ export const FLAGS = Object.freeze({
   pixeldebug: has('pixeldebug'),
   coop: has('coop'),
   marker: val('marker'),
-  stadlaag: val('stadlaag'),
   hitch: has('hitch'),
-  simlagen: has('simlagen'),
+  simlagen: !has('zonderlagen'),
   zwartcheck: has('zwartcheck'),
   reizen: has('reizen'),
   testmenu: has('testmenu'),
@@ -91,7 +88,7 @@ export const FLAG_DOCS = Object.freeze({
   nobatch: 'Zet het samenvoegen van meshes uit (scene3d)',
   shaderdebug: 'Laat three.js shaderfouten controleren',
   noworker: 'Geometrie op de hoofdthread in plaats van in de worker',
-  simworker: 'Simulatie-worker (simhost.js, #58): nog proefstadium, doet niets aan het spel zelf',
+  simworker: 'Simulatie-worker (simhost.js, #58): kern met volgverkeer, lichten en overdracht klaar en getest, nog niet aan het spel gekoppeld',
   gfxadvies: 'Toon het grafische advies ook als de speler al koos',
   gpu: 'Doe alsof de GPU deze renderer-tekst heeft (test van het advies)',
   preset: 'Instellingen alleen voor deze run, bv. quality:laag,drawDistance:kort',
@@ -101,7 +98,7 @@ export const FLAG_DOCS = Object.freeze({
   stadlaag: 'Welke stadslagen uit de tegelbouw komen (lagen gescheiden door komma, of alle)',
   touch: 'Raakbediening aan (touch=1) of uit (touch=0), ook zonder touchscherm',
   hitch: 'Meet haperingen (hitchprobe)',
-  simlagen: 'Verkeer volgens simulatielagen per streek en afstand (simlagen.js)',
+  simlagen: 'Standaard aan; ?zonderlagen zet uit. Verkeer en voetgangers volgens simulatielagen per streek en afstand (simlagen.js)',
   zwartcheck: 'Controleer op zwarte beelden (blackframe)',
   testmenu: 'Testmenu op F10 met alle schakelaars en snelkoppelingen; eigen opslag (gde-dev:), raakt de echte save niet',
   sfxtest: 'Geluidstest: paneel met alle effecten, een afstandsschuif en een afspeelknop per effect; F8 verbergt het (#173)',

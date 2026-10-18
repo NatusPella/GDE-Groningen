@@ -7,7 +7,6 @@
 // Pure: no DOM, no game state (calendarday.js keeps today's date on the world,
 // saves it and drives the HUD). node scripts/calendar_test.mjs tests it.
 import { STEPS, PARTS } from './storyarc.js';
-import { nieuwVerhaal } from './storyflag.js';
 import { REGIO_EVENTS } from './regioleven.js';
 
 export const YEAR = 2026;
@@ -15,8 +14,8 @@ const AUG = 7;
 const START_DATE = 14;
 export const LAST_SUMMER_DAY = 40;
 export const ONTZET_DAY = 15;
-// the new arc's epilogue is two weeks later, vrijdag 11 september (docs/verhaal/nieuw)
-export const EPILOGUE_DAY = nieuwVerhaal() ? 29 : 19;
+// the epilogue is vrijdag 11 september (docs/verhaal/nieuw)
+export const EPILOGUE_DAY = 29;
 // from 1 september the sun stays where it was that day
 const SUN_HOLD_DAY = 19;
 
@@ -53,27 +52,17 @@ export function formatDay(n) {
 
 // The day each story step plays (August). The parts start on their date card
 // (PARTS.date: Kop 14, Romp 18, Staart 24 augustus) and end the day before
-// the next one; H18 is Gronings Ontzet. A step not listed here (a new one)
+// the next one. A step not listed here (a new one)
 // gets the day of the step before it.
-const STEP_DATES_OUD = {
-  // Kop, KEI-week: vrijdag 14 to maandag 17
-  'H1': 14, 'k-eikea': 14, 'H2': 15, 'H3': 15, 'H4': 15, 'k-fiets': 16, 'H5': 16, 'k-kraakspullen': 17, 'k-nacht': 17, 'H6': 17,
-  // Romp, Noorderzon: dinsdag 18 to zondag 23 (H7: the decor, the day before it opens; r-kermis: the opening night)
-  'r-trein': 18, 'H7': 19, 'H8': 19, 'r-tuning': 20, 'H9': 20, 'H10': 21, 'r-kermis': 21, 'H11': 22, 'H12': 22, 'r-avond': 23, 'H13': 23,
-  // Staart, kermis and Ontzet: maandag 24 to vrijdag 28
-  's-boot': 24, 'H14': 25, 's-proefvlucht': 25, 'H15': 26, 's-carbid': 26, 's-padel': 27, 'H16': 27, 'H17': 27, 'H18': 28,
-};
-
-// The new arc (storyarc_nieuw.js, docs/verhaal/nieuw 00-OVERZICHT "Kalender"): August dates;
+// The story (storyarc_nieuw.js, docs/verhaal/nieuw 00-OVERZICHT "Kalender"): August dates;
 // the epilogue E is on vrijdag 11 september (EPILOGUE_DAY).
-const STEP_DATES_NIEUW = {
+const STEP_DATES = {
   'M00': 14, 'M01': 14, 'M02': 15, 'M03': 15, 'M04': 16, 'M05': 16, 'M06': 17,
   'M07': 18, 'M08': 18, 'T1': 18, 'M09': 19, 'M10': 19, 'T2': 20, 'M11': 20,
   'M12': 21, 'M13': 21, 'M14': 22, 'T3': 22, 'M15': 22, 'M16': 22,
   'M17': 24, 'M18': 24, 'M19': 24, 'T4': 25, 'M20': 25, 'M21': 25,
   'M22': 26, 'M23': 27, 'M24': 27, 'M25': 27, 'M26': 28,
 };
-const STEP_DATES = nieuwVerhaal() ? STEP_DATES_NIEUW : STEP_DATES_OUD;
 
 // Deel 4 "Nazomer" (docs/verhaal/KALENDER.md, Deel 4): day numbers, not August
 // dates. The first night of a night mission is its day (the clock after midnight
@@ -209,14 +198,12 @@ const SPECIAL_NIEUW = {
 };
 // the regional summer events (regioleven.js), as month/date turned into day numbers
 const REGIO_SPECIALS = REGIO_EVENTS.map((e) => ({ id: e.id, name: e.name, from: day(e.month, e.date), to: day(e.toMonth || e.month, e.toDate || e.date), rank: e.rank, icon: e.icon, card: e.card }));
-export const SPECIAL_DAYS = nieuwVerhaal()
-  ? [
-    ...SPECIAL_BASE.map((s) => (SPECIAL_NIEUW[s.id] ? { ...s, ...SPECIAL_NIEUW[s.id] } : s)),
-    ...REGIO_SPECIALS,
-    { id: 'beleg', name: 'Beleg van Bourtange', from: day(8, 25), to: day(8, 25), rank: 9, icon: 'vlag',
-      card: ['Beleg van Bourtange', 'De vesting speelt het beleg na, met kartonnen kanonnen op de wallen. Om negen uur begint het.'] },
-  ]
-  : [...SPECIAL_BASE, ...REGIO_SPECIALS];
+export const SPECIAL_DAYS = [
+  ...SPECIAL_BASE.map((s) => (SPECIAL_NIEUW[s.id] ? { ...s, ...SPECIAL_NIEUW[s.id] } : s)),
+  ...REGIO_SPECIALS,
+  { id: 'beleg', name: 'Beleg van Bourtange', from: day(8, 25), to: day(8, 25), rank: 9, icon: 'vlag',
+    card: ['Beleg van Bourtange', 'De vesting speelt het beleg na, met kartonnen kanonnen op de wallen. Om negen uur begint het.'] },
+];
 const SPECIAL_BY_ID = new Map(SPECIAL_DAYS.map((s) => [s.id, s]));
 export const specialById = (id) => SPECIAL_BY_ID.get(id) || null;
 

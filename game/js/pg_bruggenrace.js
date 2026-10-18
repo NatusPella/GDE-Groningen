@@ -7,7 +7,7 @@ import { routeAt, ROUTE_LENGTH, rondvaartWaypoints, rondvaartBerth, prepareDiepe
 import { getChallengeRecord } from './achievements.js';
 import { clamp, isInWater } from './util.js';
 import { waterPolyAt } from './waterlevels.js';
-import { finish, jelle, setTarget } from './postgame.js';
+import { finish, jelle, setTarget } from './pghost.js';
 
 // Elf Bruggenrace: one lap of the Diepenring from the Spilsluizen, under its
 // eleven bridges (the rondvaart route and checkpoints, rondvaartchase.js), in

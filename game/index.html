@@ -9,7 +9,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Big+Shoulders+Display:wght@700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="js/menu.css">
 <link rel="stylesheet" href="js/startscreen.css">
-<link rel="stylesheet" href="js/loadscene.css">
 <script>try { document.documentElement.style.setProperty('--ui', String(Math.max(1, Math.min(innerHeight / 900, innerWidth / 1440)))); } catch (e) {}</script>
 <style>
   html, body { margin: 0; padding: 0; background: #0c140e; overflow: hidden; height: 100%; }
@@ -38,8 +37,8 @@
     font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.04em; transition: opacity 0.7s ease;
   }
   #loading.done { opacity: 0; pointer-events: none; }
-  #loading .bt-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; filter: blur(3px) saturate(1.1); animation: bt-drift 26s ease-in-out infinite alternate, bt-bgin 1.6s 0.2s ease forwards; }
-  #loading .bt-veil { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 42%, rgba(12,20,14,0.35) 0%, rgba(12,20,14,0.78) 55%, rgba(12,20,14,0.97) 100%); }
+  #loading .bt-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; animation: bt-drift 26s ease-in-out infinite alternate, bt-bgin 1.6s 0.2s ease forwards; }
+  #loading .bt-veil { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(12,20,14,0.55) 0%, rgba(12,20,14,0.3) 40%, rgba(12,20,14,0.5) 70%, rgba(12,20,14,0.9) 100%); }
   #loading .bt { position: absolute; left: 0; top: 0; width: calc(100vw / var(--ui, 1)); height: calc(100vh / var(--ui, 1)); zoom: var(--ui, 1); }
   #loading .bt-logo { position: absolute; left: 0; right: 0; top: 17%; display: flex; flex-direction: column; align-items: center; }
   #loading .gde-logo { font-size: 216px; }
@@ -63,10 +62,10 @@
   #loading .bt-desc b { font-weight: normal; font-size: 15px; letter-spacing: 0.1em; color: rgba(240,237,228,0.85); }
   #loading small, #loading .bt-right span { font: 12px/1.3 'Arial Narrow', Arial, sans-serif; letter-spacing: 0.02em; color: rgba(240,237,228,0.55); }
   #loading .bt-right { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; text-align: right; }
-  /* calm boot screen: age sign and content line, the map credit and the version; the two disclaimers rest */
-  #loading .bt-desc small, #loading .bt-right span:nth-child(2) { display: none; }
+  /* calm boot screen: only the age sign (no words) and the version; the content line, disclaimers and map credit rest (the credit lives on the map) */
+  #loading .bt-desc, #loading .bt-right span:not(.bt-ver) { display: none; }
   #loading .bt-right .bt-ver { font: 13px 'Bebas Neue', 'Arial Narrow', sans-serif; letter-spacing: 0.12em; color: rgba(240,237,228,0.45); }
-  @keyframes bt-drift { from { transform: scale(1.08) translateX(0); } to { transform: scale(1.16) translateX(-2.5%); } }
+  @keyframes bt-drift { from { transform: scale(1.02) translateX(0); } to { transform: scale(1.07) translateX(-1.5%); } }
   @keyframes bt-bgin { to { opacity: 1; } }
   @keyframes bt-logo-in { 0% { opacity: 0; transform: translateY(18px) scale(.97); filter: blur(6px); } 100% { opacity: 1; transform: none; filter: none; } }
   @keyframes bt-plate-in { 0% { opacity: 0; transform: translateY(-14px) rotate(-2deg); } 60% { opacity: 1; transform: translateY(3px) rotate(.4deg); } 100% { transform: none; } }
@@ -134,7 +133,7 @@
 <canvas id="game3d"></canvas>
 <div id="hud"></div>
 <div id="loading" role="progressbar" aria-label="GDE wordt geladen">
-  <div class="bt-bg" id="bt-scene"></div>
+  <img class="bt-bg" src="img/laad/rondvaart.jpg" alt="" decoding="async">
   <div class="bt-veil"></div>
   <div class="bt">
     <div class="bt-logo"><div class="gde-logo" aria-hidden="true"><span class="gde-mark">GDE</span><span class="gde-sign">Groningen</span><span class="gde-sub">Zomer vol misdaad</span></div></div>
@@ -146,9 +145,8 @@
     <div class="bt-foot">
       <div class="bt-age">
         <div class="bt-pegi" role="img" aria-label="Leeftijdsadvies 18 jaar">18</div>
-        <div class="bt-desc"><b>Geweld · Bloed · Grof taalgebruik · Gokken met spelgeld</b><small>Alles in deze game is verzonnen. Elke gelijkenis met echte Stadjers is toeval.</small></div>
       </div>
-      <div class="bt-right"><span>Kaartdata © OpenStreetMap-bijdragers (ODbL)</span><span>Niet verbonden met of goedgekeurd door een andere game-uitgever.</span><span class="bt-ver"></span></div>
+      <div class="bt-right"><span class="bt-ver"></span></div>
     </div>
   </div>
 </div>

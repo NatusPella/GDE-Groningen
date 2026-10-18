@@ -99,6 +99,13 @@ function finish(svc) {
   };
 }
 
+// Wat een dienst oplevert (euro's): per gehaalde halte een bedrag naar score,
+// plus een bonus voor de medaille. Een gestopte dienst betaalt niets.
+export function payFor(result, abandoned = false) {
+  if (!result || abandoned) return 0;
+  return Math.round(result.made * (6 + result.score / 8) + result.medal * 20);
+}
+
 // The service ends early (Backspace): what was done counts, the rest scores 0.
 export function abandonService(svc) {
   if (svc.finished) return;

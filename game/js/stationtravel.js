@@ -4,7 +4,7 @@ import { getTrains, routePoint, placeTrain, railZ, returnStolenTrains } from './
 import { isMissionActive, getActiveRace } from './missions.js';
 import { isCinematicActive, playCinematic, skipCinematic } from './cinematics.js';
 import { isShopOpen, openShopMenu, closeShopMenu } from './shopui.js';
-import { recordStat } from './achievements.js';
+import { recordStat, recordUnique, unlockAchievement } from './achievements.js';
 import { saveGame } from './savegame.js';
 import { manageTrafficPopulation, manageBikePopulation } from './vehicle.js';
 import { spawnPedestriansNear } from './pedestrians.js';
@@ -14,6 +14,7 @@ import { addStaticCollider } from './breakables.js';
 import { VILLAGES } from './ommelandlines.js';
 import { setStoryOutfit, storyOutfit } from './shops.js';
 import { playerBusy } from './busy.js';
+import { noteMoney } from './finance.js';
 
 // Fast travel by train between the on-map stations (map.stations): a ticket
 // machine at each, a small menu, a short skippable ride cinematic.
@@ -356,7 +357,7 @@ export function stationPrompt(w) {
   const s = nearestStation(w);
   if (!s) return null;
   const why = blockReason(w);
-  return { id: 'trein-' + s.short, x: s.x, y: s.y, h: 2.9, key: 'E', label: 'Reizen met de trein', sub: why || `Kaartautomaat ${s.short}`, ring: true, dim: !!why };
+  return { id: 'trein-' + s.short, x: s.x, y: s.y, h: 2.9, key: 'E', label: 'Met de trein', sub: why || `Kaartautomaat ${s.short}`, ring: true, dim: !!why };
 }
 
 export function stationSecondary(w) {
@@ -507,6 +508,7 @@ function setFocus(w, x, y) {
 }
 
 function startTrip(w, from, to, legs, info, board) {
+  noteMoney('Reizen');
   w.money -= info.price;
   const first = legs[0], last = legs[legs.length - 1];
   const dirA = Math.sign(first.to.s - first.from.s) || 1;
@@ -825,6 +827,8 @@ function arrive(w) {
   } catch (e) { console.warn(e); }
 
   recordStat(w, 'trainTrips');
+  recordUnique(w, 'trainStations', to.name);
+  if (VILLAGES[to.name]) unlockAchievement(w, 'trein_dorp');
   w.addMessage(`Aangekomen in ${to.name}. Reistijd ${info.minutes} minuten, €${info.price} armer.`, 4);
   saveGame(w, { toast: false });
 }

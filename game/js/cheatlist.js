@@ -64,6 +64,7 @@ export function storyCheatUnlocks(doneId, missionPassed) {
 export function cheatUnlocksFromSave(d) {
   const st = d && d.story && typeof d.story === 'object' && Array.isArray(d.story.done) ? d.story.done : [];
   const passed = d && d.missions && Array.isArray(d.missions.completed) ? d.missions.completed : [];
-  const done = new Set(st), ok = new Set(passed);
+  // an older save names the steps of the first version of the story: they stand for the steps of the story that is left
+  const done = new Set([...st, ...st.map((id) => STEP_ALIAS[id]).filter(Boolean)]), ok = new Set(passed);
   return storyCheatUnlocks((id) => done.has(id), (i) => ok.has(i));
 }

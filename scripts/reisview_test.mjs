@@ -18,5 +18,6 @@ ok(st.options.every((o, i) => V.pickFromKey(beat, o.key) === ['meerijden', 'zelf
 ok(V.hudLine(0) === '' && V.hudLine(1500) === '1,5 km · ± 1 min', 'hud line', V.hudLine(1500));
 ok(V.shouldPrompt(8000) && !V.shouldPrompt(2000), 'prompt only on a jump');
 ok(V.arrivalMessage(beat).kind === 'reis' && B.KINDS.reis.p === B.P1, 'reis is a P1 story kind');
+ok(V.cyclePick(beat, 'meerijden', 1) === 'zelf' && V.cyclePick(beat, 'meerijden', -1) !== 'meerijden', 'gamepad cycles the pick');
 console.log(`${n - fails}/${n} reisview`);
 process.exit(fails ? 1 : 0);

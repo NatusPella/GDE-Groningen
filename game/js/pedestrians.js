@@ -16,8 +16,13 @@ import { splatterPed, bleedPed, GIB_SPEED } from './gore3d.js';
 import { knockFx } from './knockfx3d.js';
 import { walkRoute, processPedPlanQueue, buildPedAvoidGrid, separatePeds, makeCompanion } from './pedroutes.js';
 import { reportCrime } from './crime.js';
+import { npcBudget, bystanderReaction } from './wantedlevels.js';
 import { hash2 } from './rng.js';
 import { dayState } from './daynight.js';
+import { FLAGS } from './devflags.js';
+import { voetgangerOpties, stapSlaOver } from './simlagen.js';
+import { wijkProfileAt } from './trafficfleet.js';
+import { hourOf } from './streetlifedata.js';
 import { buildingAt } from './tileplace.js';
 
 const WANDER_SPEED = 1.3;
@@ -873,7 +878,8 @@ function managePopulation(world) {
     if (p.nightlife) nightlife++;
     else walkers++;
   }
-  const desired = scaledTarget(!night ? POP_DAY : inCentre ? POP_NIGHT_CENTRE : POP_NIGHT_OUT);
+  // simlagen (issue #18): doel per streek en tijd van de dag uit simlagen.js
+  const desired = scaledTarget(FLAGS.simlagen ? voetgangerOpties(wijkProfileAt(world.map, player.x, player.y).key, hourOf(world)).target : !night ? POP_DAY : inCentre ? POP_NIGHT_CENTRE : POP_NIGHT_OUT);
   spawnBudget = Math.max(0, desired - walkers);
 
   if (walkers > desired + 3) {
@@ -1065,6 +1071,11 @@ export function updatePedestrians(dt, world) {
     prunePoseSources(new Set(peds));
   }
 
+  // civilians beside a racing police car step back and look (#52); the cap
+  // on lookers follows the stars and the frame time
+  const chaseCars = world.wanted > 0 ? world.vehicles.filter((v) => v.isPolice && !v.isBoat && !v.wrecked && Math.abs(v.speed) > 8) : [];
+  let lookers = 0;
+  const lookerCap = chaseCars.length ? npcBudget(world.wanted, dt * 1000) : 0;
   let filming = 0;
   const pv = player.inVehicle;
   const dodgeVehicle = pv && !pv.isBoat && pv.speed > -0.5 ? pv : null;
@@ -1076,6 +1087,11 @@ export function updatePedestrians(dt, world) {
     // far plain walkers think less often on a CPU-bound machine (simload.js)
     if (farAI < Infinity && ped.state === 'wander' && !ped.isCop && !ped.scene && !ped.ragdoll && !ped.missionCrowd && !ped.jobPed &&
       skipFar(ped, i, Math.abs(ped.x - player.x) + Math.abs(ped.y - player.y), frameDt)) continue;
+    // vereenvoudigde laag: gewone wandelaars op middenafstand denken om de paar frames
+    if (FLAGS.simlagen && ped.state === 'wander' && !ped.isCop && !ped.scene && !ped.ragdoll && !ped.missionCrowd && !ped.jobPed) {
+      const dd = Math.abs(ped.x - player.x) + Math.abs(ped.y - player.y);
+      if (dd > 70 && stapSlaOver('voetganger', dd * 0.75, i, Math.floor(world.time * 60))) { ped._simDt = (ped._simDt || 0) + frameDt; continue; }
+    }
     const dt = takeDt(ped, frameDt);
 
     if (ped.state === 'dead') {
@@ -1114,6 +1130,18 @@ export function updatePedestrians(dt, world) {
     else if (aiming && dPlayer < FLEE_TRIGGER_RADIUS && ped.state !== 'flee' && ped.state !== 'cower') {
       startFlee(ped, world, player.x, player.y, true);
       if (Math.random() < 0.3) say(ped, world, pick(SCREAMS), 2, 'shout', 0.8);
+    }
+
+    if (chaseCars.length && !ped.isCop && ped.state === 'wander' && lookers < lookerCap && !(ped._chaseLookAt > world.time)) {
+      ped._chaseLookAt = world.time + 1.5 + Math.random();
+      for (const cv of chaseCars) {
+        const dv = dist(ped.x, ped.y, cv.x, cv.y);
+        if (dv > 22) continue;
+        const react = bystanderReaction({ dist: dv, unitSpeed: Math.abs(cv.speed), onRoad: isOnRoad(map, ped.x, ped.y, 1), seated: !!ped.scene, roll: Math.random() });
+        if (react === 'flee') startFlee(ped, world, cv.x, cv.y);
+        else if (react === 'gawk') { setState(ped, 'gawk', world.time + 2 + Math.random() * 2); ped.fleeFrom = { x: cv.x, y: cv.y }; lookers++; }
+        if (react) break;
+      }
     }
 
     const t = world.time;

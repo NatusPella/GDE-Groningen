@@ -18,7 +18,11 @@ const towns = [
 // an east-west road through Oostdorp, two-way
 const rd = { pts: line(3000, 0, 7000, 0), type: 'secondary', cat: 'normal', width: 7 };
 const items = placeSignItems({ roads: [rd], towns });
-const boards = items.filter((i) => i.k === 'placesign');
+const boards = items.filter((i) => i.k === 'placesign' && !i.end);
+const ends = items.filter((i) => i.k === 'placesign' && i.end);
+ok(ends.length === 2 && ends.every((b) => b.text[0] === 'Oostdorp'), 'an end-of-built-up-area board for each way out', ends.length);
+const wEnd = ends.find((b) => b.x < 5000);
+ok(wEnd.y < 0 && Math.abs(Math.abs(wEnd.a) - Math.PI) < 1e-6, 'it stands on the right of the traffic leaving', `${wEnd.y} ${wEnd.a}`);
 ok(boards.length === 2, 'a board for each way into the village', boards.length);
 const R = ENTRY.village;
 ok(boards.every((b) => b.text[0] === 'Oostdorp'), 'the board names the place');
@@ -28,7 +32,7 @@ ok(west.y > 0 && east.y < 0, 'on the right of the traffic coming in (y south)', 
 ok(Math.abs(west.a) < 1e-6 && Math.abs(Math.abs(east.a) - Math.PI) < 1e-6, 'facing the oncoming traffic');
 // one-way: only the way it runs
 const one = placeSignItems({ roads: [{ ...rd, oneway: true }], towns }).filter((i) => i.k === 'placesign');
-ok(one.length === 1 && one[0].x < 5000, 'a one-way gets a board only for its own direction', one.length);
+ok(one.length === 2 && one.filter((b) => !b.end).length === 1 && one.find((b) => !b.end).x < 5000 && one.find((b) => b.end).x > 5000, 'a one-way gets a board only for its own direction', one.length);
 // no board on a motorway, a bridge or inside a bigger place
 ok(!placeSignItems({ roads: [{ ...rd, type: 'motorway', cat: 'major' }], towns }).some((i) => i.k === 'placesign'), 'none on a motorway');
 ok(!placeSignItems({ roads: [{ ...rd, bridge: true }], towns }).some((i) => i.k === 'placesign'), 'none on a bridge');
@@ -37,7 +41,7 @@ ok(!inside.some((i) => i.text[0] === 'Binnendorp') && inside.some((i) => i.text[
 // tiles: each board in exactly one tile, the same whatever the tile order
 const tileOf = (x0) => placeSignItems({ roads: [rd], towns, inTile: (x) => x >= x0 && x < x0 + 1000 });
 const all = [0, 1, 2, 3, 4, 5, 6].flatMap((i) => tileOf(i * 1000 + 2000).filter((q) => q.k === 'placesign'));
-ok(all.length === boards.length, 'no board lost or doubled across tiles', all.length);
+ok(all.length === boards.length + ends.length, 'no board lost or doubled across tiles', all.length);
 // a signpost at a T junction at (0, 0): roads west, east and south
 const T = [
   { pts: line(-3000, 0, 0, 0), type: 'secondary', cat: 'normal', width: 7 },
@@ -57,7 +61,7 @@ ok(armDestination(0, 0, 1, 0, towns) === 'Oostdorp' && armDestination(0, 0, 0, -
 ok(armDestination(0, 0, 0, 1, [{ n: 'Verweg', x: 0, y: 90000, kind: 'city' }]) === null, 'nothing beyond its reach');
 // through furnitureForTile
 const fur = furnitureForTile({ x0: 4000, y0: -500, size: 1000, roads: [rd], opts: { towns } });
-const fb = fur.items.filter((i) => i.k === 'placesign');
+const fb = fur.items.filter((i) => i.k === 'placesign' && !i.end);
 ok(fb.length === 1 && fb[0].x < 5000, 'furnitureForTile only adds them with the places', fb.length);
 ok(fur.colliders.some((c) => c.kind === 'paal'), 'the post is solid');
 ok(furnitureForTile({ x0: 4000, y0: -500, size: 1000, roads: [rd] }).items.every((i) => i.k !== 'placesign'), 'without places no boards');

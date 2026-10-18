@@ -3,7 +3,8 @@
 // input.js the way gamepad.js does (padAxis, padHold, mouse), so every
 // action works unchanged. Does nothing on a desktop; ?touch=1 forces it on
 // and ?touch=0 off. Menus and the phone stay plain taps.
-import { detectTouch, stickVector, knobOffset, lookDelta, stickKeys, touchPlan, touchContext, touchUiActive, STICK_RADIUS } from './touchlogic.js';
+import { detectTouch, touchMode, touchLayout, touchMore, stickVector, knobOffset, lookDelta, stickKeys, touchPlan, touchContext, stickless, touchUiActive, STICK_RADIUS } from './touchlogic.js';
+import { refreshGlyphs } from './glyphs.js';
 import { getSettings } from './settings.js';
 import { FLAGS } from './devflags.js';
 import { sendKey } from './input.js';
@@ -20,6 +21,12 @@ html.touch-play #touch-ui { display: block; }
 #touch-ui .t-btn { position: absolute; pointer-events: auto; touch-action: none; min-width: 64px; height: 64px; padding: 0 8px; box-sizing: border-box; border-radius: 32px; border: 2px solid rgba(240, 237, 228, 0.55);
   background: rgba(10, 19, 13, 0.5); color: #f0ede4; font: 17px 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; letter-spacing: 1px; display: flex; align-items: center; justify-content: center; }
 #touch-ui .t-btn.on { background: rgba(63, 201, 122, 0.75); color: #0c140e; }
+#touch-ui .t-more { right: max(10px, env(safe-area-inset-right)); top: calc(max(10px, env(safe-area-inset-top)) + 58px); min-width: 48px; height: 48px; font-size: 15px; }
+#touch-ui .t-panel { position: absolute; right: calc(max(10px, env(safe-area-inset-right)) + 56px); top: max(10px, env(safe-area-inset-top)); display: none; flex-wrap: wrap; gap: 8px; max-width: 60%; justify-content: flex-end; pointer-events: auto; }
+#touch-ui .t-panel.open { display: flex; }
+#touch-ui .t-panel .t-btn { position: static; }
+#touch-ui .t-turn { position: absolute; left: 50%; top: 12px; transform: translateX(-50%); padding: 8px 14px; border-radius: 18px; background: rgba(10, 19, 13, 0.8); color: #f0ede4; font: 15px Arial, sans-serif; display: none; pointer-events: none; text-align: center; max-width: 90%; }
+html.touch-portrait #touch-ui .t-turn { display: block; }
 #touch-ui .t-pause { top: max(10px, env(safe-area-inset-top)); right: max(10px, env(safe-area-inset-right)); min-width: 48px; height: 48px; border-radius: 24px; font-size: 20px; }
 
 html.touch-device, html.touch-device body { overscroll-behavior: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
@@ -38,11 +45,12 @@ const SPOTS_LEFT = [[24, 40], [24, 120], [96, 40]];
 export function initTouch(input, world, hooks = {}) {
   if (typeof window === 'undefined' || typeof document === 'undefined') return false;
   const mm = (s) => !!(window.matchMedia && window.matchMedia(s).matches);
-  const on = detectTouch({
+  const detected = detectTouch({
     maxTouchPoints: navigator.maxTouchPoints || 0,
     coarse: mm('(pointer: coarse)'), fine: mm('(any-pointer: fine)'), hover: mm('(hover: hover)'),
     forced: FLAGS.touch !== null ? FLAGS.touch !== '0' : null,
   });
+  const on = FLAGS.touch !== null ? detected : touchMode(getSettings().touchControls, detected);
   if (!on) return false;
 
   // lighter graphics on the first start (only while the settings are untouched)
@@ -65,6 +73,26 @@ export function initTouch(input, world, hooks = {}) {
   const ring = root.querySelector('.t-ring'), knob = root.querySelector('.t-knob');
   const btnHost = document.createElement('div');
   root.appendChild(btnHost);
+  const turn = document.createElement('div');
+  turn.className = 't-turn';
+  root.appendChild(turn);
+
+  // screen class and orientation: button scale, zone widths, the turn-device hint
+  function layout() {
+    const L = touchLayout({ width: window.innerWidth, height: window.innerHeight });
+    root.style.setProperty('--t-scale', String(L.scale));
+    btnHost.style.zoom = String(L.scale);
+    left.style.width = Math.round(L.leftShare * 100) + '%';
+    right.style.width = Math.round((1 - L.leftShare) * 100) + '%';
+    turn.textContent = L.hint;
+    const h = document.documentElement;
+    h.classList.toggle('touch-portrait', L.portrait);
+    h.classList.toggle('touch-tablet', L.cls === 'tablet');
+    h.dataset.touchClass = L.cls;
+  }
+  layout();
+  window.addEventListener('resize', layout);
+  window.addEventListener('orientationchange', layout);
 
   let ctx = 'foot';
   let shown = false;
@@ -127,6 +155,30 @@ export function initTouch(input, world, hooks = {}) {
       if (b.side === 'right') addButton(b, SPOTS_RIGHT[r++ % SPOTS_RIGHT.length], 'right');
       else addButton(b, SPOTS_LEFT[l++ % SPOTS_LEFT.length], 'left');
     }
+    const more = touchMore(ctx);
+    if (more.length) {
+      const panel = document.createElement('div');
+      panel.className = 't-panel';
+      const toggle = document.createElement('div');
+      toggle.className = 't-btn t-more';
+      toggle.textContent = 'Meer';
+      toggle.addEventListener('pointerdown', (e) => { e.preventDefault(); panel.classList.toggle('open'); });
+      for (const m of more) {
+        const el = document.createElement('div');
+        el.className = 't-btn';
+        el.textContent = m.label;
+        // a tap is a short press; the panel closes after it
+        el.addEventListener('pointerdown', (e) => {
+          e.preventDefault();
+          el.classList.add('on');
+          act(m, true);
+          setTimeout(() => { act(m, false); el.classList.remove('on'); panel.classList.remove('open'); }, 90);
+        });
+        panel.appendChild(el);
+      }
+      btnHost.appendChild(toggle);
+      btnHost.appendChild(panel);
+    }
     const pause = document.createElement('div');
     pause.className = 't-btn t-pause';
     pause.textContent = 'II';
@@ -159,7 +211,7 @@ export function initTouch(input, world, hooks = {}) {
     // steering keeps only the sideways part; gas and brake are buttons
     const steer = ctx === 'vehicle' || ctx === 'vehicleManual' || ctx === 'skutsje';
     input.padAxis = steer ? [v[0], 0] : v;
-    const next = stickKeys(steer ? [v[0], 0] : v, held);
+    const next = stickless(ctx) ? new Set() : stickKeys(steer ? [v[0], 0] : v, held);
     for (const k of held) if (!next.has(k)) hold(k, false);
     for (const k of next) if (!held.has(k)) hold(k, true);
     held = next;
@@ -202,10 +254,12 @@ export function initTouch(input, world, hooks = {}) {
       input.padLook = active;
       releaseAll();
       if (active) { ctx = nctx; build(); }
+      document.documentElement.dataset.touchCtx = ctx; refreshGlyphs();
     } else if (active && nctx !== ctx) {
       releaseAll();
       ctx = nctx;
       build();
+      document.documentElement.dataset.touchCtx = ctx; refreshGlyphs();
     }
   }, 200);
   window.addEventListener('blur', releaseAll);

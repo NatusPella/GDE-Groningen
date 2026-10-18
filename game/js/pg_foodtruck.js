@@ -3,7 +3,7 @@ import { recordStat, unlockAchievement } from './achievements.js';
 import { Vehicle, pushCircleOutOfVehicle } from './vehicle.js';
 import { isInWater } from './util.js';
 import { FJORD_BUBBLES, FJORD_DUO } from './pg_lines.js';
-import { finish, say, esc } from './postgame.js';
+import { finish, say, esc } from './pghost.js';
 import { FJORD_SHIFT_BONUS } from './economy.js';
 import { isToday } from './calendarday.js';
 

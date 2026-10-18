@@ -7,7 +7,7 @@ import { routeAt, prepareDiepenringRoute, diepenringProgress } from './rondvaart
 import { getChallengeRecord } from './achievements.js';
 import { isInWater, boatDryPoints, clamp } from './util.js';
 import { waterPolyAt } from './waterlevels.js';
-import { finish, jelle, setTarget } from './postgame.js';
+import { finish, jelle, setTarget } from './pghost.js';
 
 // Skûtsje-sprint: two skûtsjes, no motors, from the Oosterhaven along the
 // southern Diepenring to the Hoge der A. Speed comes from the wind

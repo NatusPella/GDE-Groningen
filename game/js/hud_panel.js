@@ -8,7 +8,7 @@ import { simLevel } from './simload.js';
 import { getGaragesForRender } from './garages.js';
 import { getHomeForRender, getHomeGarageForRender, getHomeMooringForRender, getHomeHelipadForRender } from './home.js';
 import { minimapShows } from './mapfilters.js';
-import { mapCategory, mapRimColor, mapPriority, miniIconScale, iconGapPx } from './mapicons.js';
+import { mapCategory, mapFillColor, FLAT_INK, haloRim, HALO_DARK, HALO_LIGHT, mapPriority, miniIconScale, iconGapPx } from './mapicons.js';
 import { facilitiesOf } from './facilities.js';
 import { getHorecaForRender } from './horeca.js';
 import { getShopsForRender, drawShopMapIcon, drawShopGlyph, SHOP_TYPES, storyTargetShop, drawStoryShopRing } from './shops.js';
@@ -121,7 +121,7 @@ export function initHud(world) {
   topRight.innerHTML =
     '<div class="hud-clock" role="timer" aria-label="Tijd in het spel"><span class="hud-special" hidden></span><span class="hud-date"></span><b class="hud-time"></b></div>' +
     '<div class="hud-wanted" role="img"></div>' +
-    '<div class="hud-search" hidden><span>Uit het zicht blijven</span><i role="img" aria-label="Zoekgebied"><i></i></i></div>' +
+    '<div class="hud-search" hidden><span>Uit zicht</span><i role="img" aria-label="Zoekgebied"><i></i></i></div>' +
     '<div class="hud-moneyrow"><span class="hud-money-delta"></span><span class="hud-money"></span></div>' +
     '<div class="hud-weapon"></div>';
   root.appendChild(topRight);
@@ -1311,7 +1311,14 @@ function pulseAt(t, speed = 5) {
 
 // Draws one map marker in CSS-pixel space centred on (x, y); shared by the
 // minimap, the full map and its legend so all three always match.
+// vorm per medespeler (coopplayers.js): n hoeken, star = ster, rot = vaste draaiing
+const PARTNER_VORMEN = {
+  driehoek: { n: 3 }, ruit: { n: 4, rot: 0 }, vierkant: { n: 4, rot: Math.PI / 4 }, cirkel: { n: 0 }, vijfhoek: { n: 5 }, ster: { n: 5, star: true },
+  plus: { plus: true }, kruis: { kruis: true }, maan: { n: 6 }, hart: { n: 6, star: true }, bliksem: { n: 7 }, druppel: { n: 8 }, blok: { n: 4, star: true },
+  golf: { n: 7, star: true }, schild: { n: 3, rot: Math.PI / 2 }, bloem: { n: 8, star: true },
+};
 export function drawMapIcon(ctx, kind, x, y, s = 1, opts = {}) {
+  if (!opts.raw && drawFlatMapIcon(ctx, kind, x, y, s, opts)) return;
   const t = opts.t ?? performance.now() / 1000;
   ctx.save();
   ctx.translate(x, y);
@@ -1328,6 +1335,23 @@ export function drawMapIcon(ctx, kind, x, y, s = 1, opts = {}) {
       ctx.fillStyle = C.greenLight;
       ctx.fill();
       outline(ctx, s, C.dark, 1.6);
+      break;
+    }
+    case 'partner': { // medespeler (samen spelen, #95): vorm en kleur van de speler, nooit alleen kleur
+      const f = PARTNER_VORMEN[opts.vorm] || PARTNER_VORMEN.cirkel;
+      ctx.rotate(f.rot ?? (f.n === 3 ? (opts.angle ?? -Math.PI / 2) : 0));
+      ctx.beginPath();
+      if (f.plus) { ctx.rect(-1.6 * s, -5.2 * s, 3.2 * s, 10.4 * s); ctx.rect(-5.2 * s, -1.6 * s, 10.4 * s, 3.2 * s); }
+      else if (f.kruis) { ctx.rotate(Math.PI / 4); ctx.rect(-1.6 * s, -5.2 * s, 3.2 * s, 10.4 * s); ctx.rect(-5.2 * s, -1.6 * s, 10.4 * s, 3.2 * s); }
+      else if (!f.n) ctx.arc(0, 0, 4.8 * s, 0, Math.PI * 2);
+      else for (let i = 0; i < (f.star ? f.n * 2 : f.n); i++) {
+        const a = -Math.PI / 2 + (i * Math.PI * 2) / (f.star ? f.n * 2 : f.n), r = (f.star && i % 2 ? 2.6 : 5.6) * s;
+        if (i) ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r); else ctx.moveTo(Math.cos(a) * r, Math.sin(a) * r);
+      }
+      ctx.closePath();
+      ctx.fillStyle = opts.kleur || C.greenLight;
+      ctx.fill();
+      outline(ctx, s, C.dark, 1.4);
       break;
     }
     case 'companion': {
@@ -1663,19 +1687,97 @@ export function drawMapIcon(ctx, kind, x, y, s = 1, opts = {}) {
   ctx.restore();
 }
 
+// One icon, one colour (#114): the glyph drawn above, rasterised once per kind and
+// size, becomes a flat silhouette in its category colour (mapicons.js FLAT_FILL)
+// with a dark outline; its light details turn into dark ink. Returns false when
+// this kind keeps its own look (or there is no canvas), so the caller draws it as before.
+const flatCache = new Map();
+let flatBroken = false; // no canvas readback here: the old disc and rings take over
+function flatSprite(kind, s, a, opts) {
+  const { t: _t, angle: _a, raw: _r, ...rest } = opts;
+  const key = kind + '|' + s + '|' + a + '|' + JSON.stringify(rest);
+  if (flatCache.has(key)) return flatCache.get(key);
+  let sprite = null;
+  try {
+    const half = Math.ceil(13 * s + 6);
+    const n = Math.ceil(half * 2 * a);
+    const src = document.createElement('canvas');
+    src.width = src.height = n;
+    const sc = src.getContext('2d', { willReadFrequently: true });
+    sc.scale(a, a);
+    drawMapIcon(sc, kind, half, half, s, { ...opts, t: 0, raw: true });
+    const img = sc.getImageData(0, 0, n, n);
+    const d = img.data;
+    const maskA = new Uint8ClampedArray(n * n), ink = new Uint8ClampedArray(n * n);
+    let area = 0, light = 0;
+    for (let i = 0; i < n * n; i++) {
+      if (d[i * 4 + 3] < 90) continue;
+      maskA[i] = 255; area++;
+      if (Math.min(d[i * 4], d[i * 4 + 1], d[i * 4 + 2]) > 185) { ink[i] = 255; light++; }
+    }
+    const keepInk = area > 0 && light / area < 0.5;
+    const plane = (arr, color) => {
+      const c = document.createElement('canvas');
+      c.width = c.height = n;
+      const x = c.getContext('2d');
+      const o = x.createImageData(n, n);
+      const rgb = [parseInt(color.slice(1, 3), 16), parseInt(color.slice(3, 5), 16), parseInt(color.slice(5, 7), 16)];
+      for (let i = 0; i < n * n; i++) if (arr[i]) { o.data[i * 4] = rgb[0]; o.data[i * 4 + 1] = rgb[1]; o.data[i * 4 + 2] = rgb[2]; o.data[i * 4 + 3] = 255; }
+      x.putImageData(o, 0, 0);
+      return c;
+    };
+    const fill = plane(maskA, mapFillColor(kind)), dark = plane(maskA, FLAT_INK), rim = plane(maskA, HALO_LIGHT);
+    const out = document.createElement('canvas');
+    out.width = out.height = n;
+    const oc = out.getContext('2d');
+    const r = Math.max(1.5, 0.42 * s) * a;
+    // a thin light line outside the dark outline keeps the icon apart from mid-tone ground
+    const r2 = r + Math.max(1, 0.2 * s) * a;
+    for (let i = 0; i < 16; i++) oc.drawImage(rim, Math.cos(i * Math.PI / 8) * r2, Math.sin(i * Math.PI / 8) * r2);
+    for (let i = 0; i < 16; i++) oc.drawImage(dark, Math.cos(i * Math.PI / 8) * r, Math.sin(i * Math.PI / 8) * r);
+    oc.drawImage(fill, 0, 0);
+    if (keepInk) oc.drawImage(plane(ink, FLAT_INK), 0, 0);
+    sprite = { canvas: out, size: n / a };
+  } catch (e) { sprite = null; flatBroken = true; }
+  flatCache.set(key, sprite);
+  return sprite;
+}
+function drawFlatMapIcon(ctx, kind, x, y, s, opts) {
+  if (flatBroken || typeof document === 'undefined' || !mapFillColor(kind) || !ctx.getTransform) return false;
+  const a = Math.round(ctx.getTransform().a * 100) / 100 || 1;
+  // sprites come in quarter steps of the scale (zooming is continuous); drawn at the exact size
+  const sq = Math.max(0.5, Math.round(s * 4) / 4);
+  if (flatCache.size > 300) flatCache.clear();
+  const sp = flatSprite(kind, sq, a, opts);
+  if (!sp) return false;
+  const w = sp.size * s / sq;
+  ctx.drawImage(sp.canvas, x - w / 2, y - w / 2, w, w);
+  return true;
+}
+
 // A dark disc with a cream rim under an icon, so it reads on sea, meadow and
 // the darker land outside the province alike. Goals, missions, police and the
 // player carry their own rings and get none.
 const NO_HALO = new Set(['player', 'goal', 'mission', 'police']);
 export function drawMapIconHalo(ctx, kind, x, y, s = 1) {
-  if (NO_HALO.has(mapCategory(kind))) return;
+  if (NO_HALO.has(mapCategory(kind)) || (mapFillColor(kind) && !flatBroken)) return;
   ctx.save();
   ctx.beginPath();
   ctx.arc(x, y, 6.6 * s, 0, Math.PI * 2);
   ctx.fillStyle = 'rgba(12, 20, 14, 0.78)';
   ctx.fill();
-  ctx.lineWidth = Math.max(1.6, 0.7 * s);
-  ctx.strokeStyle = mapRimColor(kind);
+  // outline, ring, category rim: 3:1 on any ground (mapicons.js, #114)
+  const w = Math.max(1.6, 0.7 * s);
+  ctx.lineWidth = w + 2;
+  ctx.strokeStyle = HALO_DARK;
+  ctx.stroke();
+  ctx.lineWidth = w;
+  ctx.strokeStyle = HALO_LIGHT;
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(x, y, 6.6 * s - w, 0, Math.PI * 2);
+  ctx.lineWidth = Math.max(1.2, w * 0.8);
+  ctx.strokeStyle = haloRim(kind);
   ctx.stroke();
   ctx.restore();
 }
@@ -2201,6 +2303,9 @@ function drawMinimap(dt, world) {
 
   const c = world.companion;
   if (c && c.state !== 'dead' && !c.inVehicle && minimapShows('companion')) icon('companion', c.x, c.y);
+  // medespelers (samen spelen, #95): buiten beeld blijven ze als gekleurde pijl aan de rand staan
+  const partnerEdges = [];
+  for (const p of world.coopPartners || []) if (p.zichtbaar && !icon('partner', p.x, p.y, { kleur: p.kleur, vorm: p.vorm, angle: p.heading + mapRotation })) partnerEdges.push({ a: edgeAngle(p.x, p.y), kleur: p.kleur });
 
   forEachPoliceUnit(world, (x, y, kind) => icon(kind, x, y));
   forEachCashTarget(world, (x, y) => icon('cash', x, y));
@@ -2213,6 +2318,7 @@ function drawMinimap(dt, world) {
   if (heroEdge != null) {
     drawEdgeArrow(ctx, cx + Math.cos(heroEdge) * edgeR, cy + Math.sin(heroEdge) * edgeR, heroEdge, C.greenLight, 0.9);
   }
+  for (const e of partnerEdges) if (e.a != null) drawEdgeArrow(ctx, cx + Math.cos(e.a) * edgeR, cy + Math.sin(e.a) * edgeR, e.a, e.kleur, 0.9);
   if (jobEdge != null) {
     const s = 1 + (wp ? 0 : pulseAt(t) * 0.2);
     drawEdgeArrow(ctx, cx + Math.cos(jobEdge) * edgeR, cy + Math.sin(jobEdge) * edgeR, jobEdge, ROUTE_COLORS.job || JOB_TARGET_COLOR, wp ? 0.8 : s, 'job');

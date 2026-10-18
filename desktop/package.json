@@ -30,6 +30,7 @@
     "files": [
       "main.js",
       "args.cjs",
+      "coopcore.cjs",
       "devtools.js",
       "preload.js",
       "trailervideo.js",

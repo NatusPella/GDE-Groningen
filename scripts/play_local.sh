@@ -4,7 +4,6 @@
 #   sh scripts/play_local.sh --echt     # use your normal profile (your real save)
 #   sh scripts/play_local.sh --vers     # wipe the throwaway profile first (start from a new game)
 # The throwaway profile lives in the system temp folder (GDE_TEST_PROFILE in desktop/main.js).
-# GDE_NIEUW_VERHAAL=1 (set below) switches the new story on; releases keep the old story until the owner agrees.
 # It stages the build (the first time this takes a few minutes: it packs the world tiles) and opens
 # the game in a window. It never uses port 9000 and never touches an installed app.
 set -eu
@@ -19,7 +18,7 @@ for a in "$@"; do
 done
 npm run stage
 if [ -n "$PROFILE" ]; then
-  GDE_NIEUW_VERHAAL=1 GDE_TEST_PROFILE="$PROFILE" ./node_modules/.bin/electron . --windowed
+  GDE_TEST_PROFILE="$PROFILE" ./node_modules/.bin/electron . --windowed
 else
-  GDE_NIEUW_VERHAAL=1 ./node_modules/.bin/electron . --windowed
+  ./node_modules/.bin/electron . --windowed
 fi

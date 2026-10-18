@@ -33,11 +33,10 @@ import { probeRingSolids, driveRingLap, probeRailLifts, driveWaterCrossings } fr
 import { requestRespawn } from './world.js';
 import { nearestFacility } from './facilities.js';
 import { roadNear, withTiles } from './tileplace.js';
-import { nieuwVerhaal } from './storyflag.js';
 import { refreshDayNight } from './daynight.js';
 
-// GDE_NIEUW_VERHAAL=1 (?nieuwverhaal): the new arc, act 1 (storyarc_nieuw.js); else the released arc
-const NEW = nieuwVerhaal();
+// the story (storyarc_nieuw.js); the old arc is gone (#187), so the checks of the old arc below never run
+const NEW = true;
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 

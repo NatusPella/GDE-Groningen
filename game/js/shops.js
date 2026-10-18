@@ -22,6 +22,7 @@ import { productKey } from './shopmodels3d.js';
 import { furnitureShopItems, furnitureShopNote } from './furniture.js';
 import { makeHeli, registerHelipad } from './heliflight.js';
 import { buildHelipadMesh, buildHeliMesh } from './heli3d.js';
+import { noteMoney } from './finance.js';
 
 export const SHOP_USE_RADIUS = 2.6;
 const OUTFIT_WANTED_COOLDOWN = 60;
@@ -724,6 +725,7 @@ export function tryShopInteract(world) {
 function pay(world, price) {
   if (!Number.isFinite(price) || price < 0) { console.warn('prijs zonder waarde', price); return false; }
   if (world.money < price) return false;
+  noteMoney('Winkels');
   world.money -= price;
   recordStat(world, 'purchases');
   recordStat(world, 'spent', price);
@@ -965,6 +967,7 @@ function pandSections(world, shop) {
       buy() {
         world.ammo[w.key] = 0;
         if (world.weapon === w.key) world.weapon = 'fists';
+        noteMoney('Verkoop');
         world.money += income;
         return `+€${income}. Nooit gezien, dat ding`;
       },
@@ -973,7 +976,7 @@ function pandSections(world, shop) {
   if (world.armor >= 10) {
     const income = Math.round(world.armor * 0.6);
     sell.push({ id: 's-armor', preview: productPreview('vest'), stats: [barStat('Pantser', world.armor, 0, 100)], label: 'Vest verkopen', desc: `Pantser ${Math.round(world.armor)}, bijna niet gebruikt`, price: 0, income,
-      buy() { world.armor = 0; world.money += income; return `+€${income} voor je vest`; } });
+      buy() { world.armor = 0; noteMoney('Verkoop'); world.money += income; return `+€${income} voor je vest`; } });
   }
   for (const v of world.vehicles) {
     if (!v.stolenByPlayer || v.playerOwned || v.isHeroCar || v.missionCar || v.wrecked || v.isBoat || v.driver) continue;
@@ -1756,7 +1759,7 @@ function claimUnlocks(world) {
   for (const [key, spec] of Object.entries(VEHICLE_STOCK)) {
     if (!spec.unlock || state.vehicles.some((o) => o.key === key) || !unlockMet(spec)) continue;
     state.vehicles.push({ key, spec, color: spec.color, upgrades: [], v: null, lost: false });
-    world.addMessage(`Vrijgespeeld: ${spec.label}! Staat thuis in je garage. Haal hem daar op, of laat hem afleveren via je telefoon (Esc, Garage)`, 6);
+    world.addMessage(`Vrijgespeeld: ${spec.label}! Staat in je garage.`, 6);
   }
 }
 
@@ -1775,7 +1778,7 @@ export function updateShops(dt, world) {
       o.v = null;
       o.lost = true;
       o.upgrades = [...(v.upgrades || o.upgrades || [])];
-      world.addMessage(`Je ${o.spec.label} is total loss. Henk van Garage Knalpot knapt het wrak op, of regel via je telefoon een nieuwe (eigen risico €${replacementFee(o)})`, 5);
+      world.addMessage(`${o.spec.label} is total loss. Nieuwe via je telefoon (eigen risico €${replacementFee(o)})`, 5);
       continue;
     }
     // the ambient population managers sweep far-away bikes and cars; an

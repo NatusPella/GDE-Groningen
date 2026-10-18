@@ -11,7 +11,7 @@ import { hudDate } from './hudcalendar.js';
 import { streamPending } from './scene3d.js';
 import { placeLabel } from './hud_panel.js';
 import { LANDMARK_LINES } from './placelines.js';
-import { sceneSvg, sceneFor } from './loadscene.js';
+import { pictureHtml, missionPicture } from './loadscene.js';
 import { JUMP_M as JM, loadKind, stepProgress, startProgress, litTiles, pickTips, buildLines, TILE_COUNT, LINE_S } from './loadlogic.js';
 
 const CITY_IMAGES = ['vismarkt', 'luchtfoto', 'rondvaart', 'duif'];
@@ -29,7 +29,8 @@ const hash = (s) => { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 
 
 // The picture for a place: the open road in the country, the fair at night,
 // the harbours by the water, otherwise one of the city views by name.
-export function pickImage(world, place) {
+export function pickImage(world, place, mission) {
+  if (mission) return missionPicture(mission);
   const night = !!(world.dayNight && (world.dayNight.night ?? 0) > 0.5);
   if (place.country) return night ? 'achtervolging' : 'ringrace';
   if (night) return 'kermis';
@@ -54,13 +55,10 @@ function ensureCss() {
   link.rel = 'stylesheet';
   link.href = new URL('./loadscreen.css', import.meta.url).href;
   document.head.appendChild(link);
-  const scene = document.createElement('link');
-  scene.rel = 'stylesheet';
-  scene.href = new URL('./loadscene.css', import.meta.url).href;
-  document.head.appendChild(scene);
 }
 
-// opts: { kind: 'save' | 'travel' | 'snel', x, y, name, instant, from }
+// opts: { kind: 'save' | 'travel' | 'snel', x, y, name, instant, from, mission }
+// mission (a key of MISSION_PICTURE) picks that mission's own picture.
 // snel is the small hop (fast travel nearby): only the place and the tiles.
 // Returns { done: Promise, el }. One at a time.
 export function startLoadScreen(world, opts = {}) {
@@ -73,7 +71,7 @@ export function startLoadScreen(world, opts = {}) {
   try { place = { ...place, ...placeLabel(world, x, y) }; } catch (e) { /* the label is a nicety */ }
   const view = (() => { try { return getStoryView(); } catch (e) { return null; } })();
   const date = hudDate(world);
-  const img = pickImage(world, place);
+  const img = pickImage(world, place, opts.mission);
   const line = place.line || LANDMARK_LINES[place.name] || '';
   // one short line at a time: where you are going or the story so far, then tips
   const firstSentence = (t) => (t.match(/^.*?[.!?](\s|$)/) || [t])[0].trim();
@@ -88,7 +86,7 @@ export function startLoadScreen(world, opts = {}) {
   el.setAttribute('role', 'progressbar');
   el.setAttribute('aria-label', 'Laden');
   el.innerHTML =
-    sceneSvg(sceneFor(img)) +
+    pictureHtml(img) +
     '<div class="ls-shade"></div><div class="ls-foot-shade"></div>' +
     '<div class="ls-stage">' +
       '<div class="ls-brand"><div class="gde-logo" aria-hidden="true"><span class="gde-mark">GDE</span><span class="gde-sign">Groningen</span><span class="gde-sub">Zomer vol misdaad</span></div></div>' +
@@ -165,6 +163,6 @@ export function watchJumps(world, { swallow = false, hold = false } = {}) {
   const moved = lastX == null ? 0 : Math.hypot(p.x - lastX, p.y - lastY);
   lastX = p.x; lastY = p.y;
   if (swallow || active || moved < JUMP_M) return;
-  startLoadScreen(world, { kind: loadKind(moved), x: p.x, y: p.y });
+  startLoadScreen(world, { kind: loadKind(moved), x: p.x, y: p.y, mission: world.loadMission });
 }
 export function resetJumpWatch() { lastX = null; }

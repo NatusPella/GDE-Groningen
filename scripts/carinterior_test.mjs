@@ -4,8 +4,11 @@ import { hasCarInterior, interiorLayout } from '../game/js/carinteriorlayout.js'
 const car = (name, extra = {}) => ({ model: { name, len: 4.2, wid: 1.8 }, ...extra });
 assert.ok(hasCarInterior(car('hatch')));
 assert.ok(hasCarInterior(car('sedan')));
-for (const n of ['truck', 'tractor', 'quad', 'cashvan']) assert.ok(!hasCarInterior(car(n)), n);
-for (const k of ['isBus', 'isBoat', 'isBike', 'isScooter', 'isHeli']) assert.ok(!hasCarInterior(car('hatch', { [k]: true })), k);
+for (const n of ['tractor', 'quad']) assert.ok(!hasCarInterior(car(n)), n);
+for (const n of ['truck', 'cashvan', 'foodtruck']) assert.ok(hasCarInterior(car(n)), n);
+assert.ok(hasCarInterior(car('hatch', { isBus: true })));
+assert.equal(interiorLayout({ x: 3, y: 1.2, z: -0.8 }, 11, 2.5).rear, null, 'no rear bench in a bus cab');
+for (const k of ['isBoat', 'isBike', 'isScooter', 'isHeli']) assert.ok(!hasCarInterior(car('hatch', { [k]: true })), k);
 assert.ok(!hasCarInterior(null));
 
 for (const [len, wid, seat] of [[4.2, 1.8, { x: -0.25, y: 0.38, z: -0.3 }], [3.4, 1.6, { x: -0.2, y: 0.3, z: -0.27 }], [5, 2, { x: 0.3, y: 0.66, z: -0.34 }]]) {
