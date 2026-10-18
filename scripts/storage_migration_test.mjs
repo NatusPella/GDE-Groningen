@@ -135,7 +135,7 @@ const SAVE = JSON.stringify({ v: 9, money: 1234, story: 'h7' });
   ok(!stray.length, 'every storage key is in storagekeys.js', stray.join(', '));
   ok(LEGACY_CACHE_KEYS.every((k) => !LEGACY_KEYS.some(([from]) => from === k)), 'caches are not also copied');
   const main = fs.readFileSync(path.join(dir, 'main.js'), 'utf8');
-  const firstImport = main.split('\n').find((l) => l.startsWith('import '));
+  const firstImport = main.split(/\r?\n/).find((l) => l.startsWith('import '));
   ok(firstImport === "import './storagekeys.js';", 'storagekeys.js is the first import of main.js', firstImport);
 }
 
