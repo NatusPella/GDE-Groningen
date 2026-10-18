@@ -4,6 +4,7 @@
 // builder and the quay walls.
 
 import { GRID_X0, GRID_Y0, TILE_M } from './gdt.js';
+import { SpatialGrid } from './spatialgrid.js';
 
 const ROW = 8;
 const CELL = 16;
@@ -239,7 +240,7 @@ const OB_CELL = 16;
 
 function obstacleGrid(map) {
   if (map._waterObstacles) return map._waterObstacles;
-  const g = map._waterObstacles = new Map();
+  const g = map._waterObstacles = new SpatialGrid(OB_CELL);
   for (const b of map.buildings || []) if (b.type === 'houseboat') addWaterObstacle(map, b.pts);
   return g;
 }
@@ -250,13 +251,7 @@ export function addWaterObstacle(map, ring) {
   let minx = Infinity, miny = Infinity, maxx = -Infinity, maxy = -Infinity;
   for (const [x, y] of ring) { minx = Math.min(minx, x); maxx = Math.max(maxx, x); miny = Math.min(miny, y); maxy = Math.max(maxy, y); }
   const ob = { ring, minx, miny, maxx, maxy };
-  for (let cx = Math.floor((minx - 4) / OB_CELL); cx <= Math.floor((maxx + 4) / OB_CELL); cx++) {
-    for (let cy = Math.floor((miny - 4) / OB_CELL); cy <= Math.floor((maxy + 4) / OB_CELL); cy++) {
-      const k = cx + ',' + cy;
-      if (!g.has(k)) g.set(k, []);
-      g.get(k).push(ob);
-    }
-  }
+  g.insert(ob, [minx - 4, miny - 4, maxx + 4, maxy + 4]);
 }
 
 function ringDist(ring, x, y) {
@@ -276,8 +271,8 @@ function ringDist(ring, x, y) {
 // Pushes a circle of radius r out of every moored obstacle (houseboat hull)
 // it overlaps, for walkers and swimmers. Returns [x, y] or null if untouched.
 export function pushOutOfWaterObstacles(map, x, y, r) {
-  const list = obstacleGrid(map).get(Math.floor(x / OB_CELL) + ',' + Math.floor(y / OB_CELL));
-  if (!list) return null;
+  const list = obstacleGrid(map).query(x, y, x, y);
+  if (!list.length) return null;
   let moved = false;
   for (const ob of list) {
     if (x < ob.minx - r || x > ob.maxx + r || y < ob.miny - r || y > ob.maxy + r) continue;
@@ -310,8 +305,8 @@ export function pushOutOfWaterObstacles(map, x, y, r) {
 }
 
 export function insideWaterObstacle(map, x, y) {
-  const list = obstacleGrid(map).get(Math.floor(x / OB_CELL) + ',' + Math.floor(y / OB_CELL));
-  if (!list) return false;
+  const list = obstacleGrid(map).query(x, y, x, y);
+  if (!list.length) return false;
   for (const ob of list) {
     if (x < ob.minx || x > ob.maxx || y < ob.miny || y > ob.maxy) continue;
     if (ringDist(ob.ring, x, y) < 0) return true;
@@ -326,7 +321,7 @@ export function waterClearance(map, x, y, maxR = 4) {
   const idx = getWaterIndex(map);
   let d = tileClearance(map, x, y, maxR, idx);
   if (d === null) return -1;
-  const list = obstacleGrid(map).get(Math.floor(x / OB_CELL) + ',' + Math.floor(y / OB_CELL));
+  const list = obstacleGrid(map).query(x, y, x, y);
   if (list) {
     for (const ob of list) {
       if (x < ob.minx - d || x > ob.maxx + d || y < ob.miny - d || y > ob.maxy + d) continue;
