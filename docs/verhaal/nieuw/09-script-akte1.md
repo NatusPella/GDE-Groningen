@@ -228,7 +228,7 @@ JELLE: Foar mem. [NIEUW]
 TAMMO: Wat zei hij? [NIEUW]
 TESSA: "Voor mem." Voor zijn moeder. [NIEUW]
 (regie: achter Jelle staat een kleine, oude dame met een hoed, een gouden speldje en een stempel.)
-BEWAARDER: Mevrouw Tuinstra. Ik bewaar de Gouden Eierbal, al sinds 1998. Wie de bal bewaart, zit de jury voor. Dat is artikel 4. [NIEUW]
+BEWAARDER: Mevrouw Tuinstra. Ik bewaar de Gouden Eierbal, de wisselprijs van de Snackprijs, al sinds 1998. Wie de bal bewaart, zit de jury voor. Dat is artikel 4. [NIEUW]
 LOKETBEDIENDE: Artikel 9: is de bewaarder verhinderd, dan zit het oudste jurylid voor. Dat is meneer Bos, jurylid sinds 1982. [NIEUW]
 BEWAARDER: Meneer Terpstra heeft de vijf juryleden en mij uitgenodigd voor een treinreis met volpension, vanaf maandag, tot na het Ontzet. Een bijzonder aardige man. [NIEUW]
 TESSA: En wie let dan op de bal? [NIEUW]
