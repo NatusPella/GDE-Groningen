@@ -422,7 +422,7 @@ function weatherEvents(world) {
   const t = now();
   if (flash > 0.9 && lastFlash < 0.5) {
     lastFlashAt = t;
-    thunder(rnd(250, 3200));
+    thunder(sc.userData.lightningDistance || rnd(250, 3200));
   }
   lastFlash = flash;
   const w = world.weather;
