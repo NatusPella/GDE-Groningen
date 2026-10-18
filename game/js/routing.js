@@ -10,6 +10,7 @@ import { roadZAt } from './elevation.js';
 import { isInWater, WATER_Y } from './util.js';
 import { getHelipads } from './heliflight.js';
 import { roadNetReady, roadGraphBuilt, roadGraphVersion, snapRoad, roadCosts, roadPath, roadPathToNode, roadPathFromNode, nodeXY, gatewayCandidates } from './roadgraph.js';
+import { playerBusy } from './busy.js';
 
 const STRAY_M = 25;
 // the further from the route you may stray before it is redone, per way of travel
@@ -404,7 +405,7 @@ function busyTarget(world) {
   const hr = world.heliRunTarget;
   if (world.heliRun) return hr ? { x: hr.x, y: hr.y, kind: 'mission', name: hr.name || 'Heli' } : null;
   // a minigame on the spot (padel, carbid, the kermis): no route to anything else meanwhile
-  if (world.padelGame || world.activityGame) return null;
+  if (playerBusy(world, ['padel', 'activityGame']).busy) return null;
   const job = world.sideJob;
   if (job && job.active) return job.marker ? { x: job.marker.x, y: job.marker.y, kind: 'job', name: job.label } : null;
   const m = world.mission;
@@ -799,7 +800,7 @@ export function updateRouting(dt, world) {
   const gt = busyTarget(world) === undefined && !world.challenge ? goalTarget(world) : null;
   updateSlot(world, slots.user, gt ? { x: gt.x, y: gt.y, kind: 'user', name: gt.name, z: gt.z } : null, userMode);
   updateSlot(world, slots.objective, objectiveTarget(world), mode);
-  const ct = world.pigeonMode || world.heliRun || world.padelGame || world.activityGame ? null : updateCare(world);
+  const ct = playerBusy(world, ['pigeon', 'heliRun', 'padel', 'activityGame']).busy ? null : updateCare(world);
   // no care route to where you're already standing
   updateSlot(world, slots.care, ct && Math.hypot(ct.x - p.x, ct.y - p.y) > REACH_M * 2 ? ct : null, mode);
   route = slots.user.route || slots.objective.route || slots.care.route;

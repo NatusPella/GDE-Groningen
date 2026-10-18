@@ -43,6 +43,7 @@ import { storyLines, talkLines, storyDataReady, readingTime } from './storytext.
 import { playTalk, stopTalk } from './storytalk.js';
 import { buildNieuwDefs, applyNieuw } from './missions_nieuw.js';
 import { registerBusyProbe } from './busy.js';
+import { playerBusy } from './busy.js';
 
 // radio fragments a stage puts on Nachtstreek (storycontact.js, loaded lazily: it imports the UI)
 let contactMod = null;
@@ -2088,7 +2089,7 @@ export function updateMissions(dt, world) {
       if (world.sideJob && world.sideJob.active) {
         chain.armed = false;
         world.addMessage('Eerst je bijbaantje afmaken of stoppen (Esc > Spel)', 3);
-      } else if (world.challenge || world.padelGame || world.activityGame) chain.armed = false; else if (!checkRequirement(world, def, true)) chain.armed = false;
+      } else if (playerBusy(world, ['challenge', 'padel', 'activityGame']).busy) chain.armed = false; else if (!checkRequirement(world, def, true)) chain.armed = false;
       else if (!checkRide(world, def)) chain.armed = false;
       else if (hooks.canStart(world, chain.index)) startMission(world, def);
     }

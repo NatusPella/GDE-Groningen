@@ -1137,7 +1137,7 @@ function currentObjective(world) {
   }
   // the player's own goal (goal.js): the story waits meanwhile
   const goal = world.goal;
-  if (goal && !world.padelGame && !world.activityGame && !world.heliRun && !world.challenge && !(m && m.phase === 'active')) {
+  if (goal && !playerBusy(world, ['padel', 'activityGame', 'heliRun', 'challenge']).busy && !(m && m.phase === 'active')) {
     const r = getActiveRoute();
     const d = r && r.kind === 'user' ? r.remaining : Math.hypot(goal.x - world.player.x, goal.y - world.player.y);
     const wait = storyWaiting(world);
@@ -1148,7 +1148,7 @@ function currentObjective(world) {
   }
   // between missions: the next story step, so it is always clear where to go
   const g = world.storyGuide;
-  if (g && g.name && !world.storyFreePlay && !world.padelGame && !world.activityGame && !world.heliRun && !(m && m.phase === 'active')) {
+  if (g && g.name && !world.storyFreePlay && !gameBusy(world) && !(m && m.phase === 'active')) {
     const atMarker = m && (m.phase === 'idle' || m.phase === 'cooldown') && Math.hypot(m.marker.x - g.x, m.marker.y - g.y) < 4;
     const near = Math.hypot(g.x - world.player.x, g.y - world.player.y) < 40;
     const inside = atMarker && !m.armed && m.distanceToMarker < (m.triggerRadius || 4);
@@ -1848,6 +1848,7 @@ export function declutter(items, cellM) {
 
 import { forEachCashTarget } from './cashvan.js';
 import { gameBusy } from './busy.js';
+import { playerBusy } from './busy.js';
 
 export function getHeroCar(world) {
   return world.vehicles.find((v) => v.isHeroCar && !v.wrecked) || null;

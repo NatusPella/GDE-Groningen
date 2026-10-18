@@ -3403,7 +3403,7 @@ function keepRight(pts, map) {
 }
 
 function updateRouteRibbon3D(dt, world) {
-  const wp = world.padelGame || world.activityGame || world.heliRun ? null : getUserWaypoint();
+  const wp = gameBusy(world) ? null : getUserWaypoint();
   if (wp) {
     if (!waypointBeacon) {
       waypointBeacon = buildWorldMarker3D('user');
