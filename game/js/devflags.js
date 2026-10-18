@@ -12,10 +12,6 @@ export const STORY_TEST = q.has('storytest');
 // pixels magenta and negative HDR values cyan, so a stray pixel can be
 // identified by colour. Off by default.
 export const PIXEL_DEBUG = q.has('pixeldebug');
-// ?pixeldebug (issue #35, the odd green pixel): the post chain paints NaN/Inf
-// pixels magenta and negative HDR values cyan, so a stray pixel can be
-// identified by colour. Off by default.
-export const PIXEL_DEBUG = q.has('pixeldebug');
 export const DEV = q.has('dev') || STORY_TEST;
 
 if (DEV && typeof Storage !== 'undefined' && typeof localStorage !== 'undefined') {
