@@ -8,6 +8,7 @@ import { resolveRailings } from './bridgerails.js';
 import { waterClearance } from './waterindex.js';
 import { passagesOf } from './collision.js';
 
+import { coopStep } from './coopglue.js';
 const SWIM_EDGE_CLEAR = 0.7;
 import { registerPoseSource, unregisterPoseSource, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 
@@ -711,6 +712,8 @@ function stepCompanion(dt, world) {
   }
   if (isKnockedDown(c, world)) { c.vx = 0; c.vy = 0; return; }
   if (world.companionHold && holdCompanion(c, world.companionHold, dt, world)) return;
+  // mini co-op (coop.js): a second human steers the companion on foot
+  if (world.coop && !p.inVehicle && !c.inVehicle && !c.water && coopStep(c, dt, world, moveWithCollisions)) return;
 
   if (c.water && !c.inVehicle) {
     const boat = p.inVehicle && p.inVehicle.isBoat && !p.inVehicle.passenger && !p.inVehicle.sinking ? p.inVehicle : null;
