@@ -26,6 +26,10 @@ const BOOM_OUT = 3;
 
 let bridges = [];
 let ready = false;
+// bridges closed to traffic by a ship's blow (bridgehitworld.js): they get
+// the same barriers and the same stop for the traffic AI, nothing else
+let extra = [];
+export function setDamagedBridgeBarriers(list) { extra = list; }
 
 export function getMovableBridges() { return bridges; }
 
@@ -226,7 +230,7 @@ export function boomsOf(b) {
 
 export function loweredBridgeBoomsNear(x, y, r = 30) {
   const out = [];
-  for (const b of bridges) {
+  for (const b of bridges.concat(extra)) {
     if (b.boom < 0.6 || Math.abs(b.x - x) > r + b.len / 2 + 10 || Math.abs(b.y - y) > r + b.len / 2 + 10) continue;
     for (const bm of boomsOf(b)) if (!(b.snapped && b.snapped[bm.i])) out.push(bm);
   }
@@ -238,7 +242,7 @@ export function loweredBridgeBoomsNear(x, y, r = 30) {
 // closed. `project` is vehicle.js projectOnPath.
 export function bridgeSpeedLimit(v, path, project) {
   let vmax = Infinity;
-  for (const b of bridges) {
+  for (const b of extra.length ? bridges.concat(extra) : bridges) {
     if (!b.warn) continue;
     const dx = b.x - v.x, dy = b.y - v.y;
     if (dx * dx + dy * dy > (70 + b.len) ** 2) continue;
