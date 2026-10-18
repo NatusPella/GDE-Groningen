@@ -1021,10 +1021,10 @@ function prinsenhof(B, ring, srcEdges) {
   B.box(x, eave + 12.4, z, 0.3, 0.3, 0.3, C.gold, G_METAL);
 }
 
-// --- Gasunie "Apenrots" -----------------------------------------------------------
+// --- Apenrots (the glass grid-operator HQ) ---------------------------------------
 
 // Stacked, shrinking brick masses with sloping tops that lean up to a tower
-// at the east end: the organic silhouette of the Gasuniegebouw.
+// at the east end: the organic silhouette of the Apenrots (a made-up name for the real grid-operator HQ).
 function gasunie(B, ring, srcEdges) {
   const F = minAreaFrame(ring);
   const east = F.P(F.u1, 0)[0] > F.P(F.u0, 0)[0] ? 1 : -1;
@@ -1121,7 +1121,7 @@ const BUILDERS = {
 const NAMED = {
   Stadhuis: (B, b, ring) => { if (b.type !== 'civic') return false; stadhuis(B, ring); },
   Prinsenhof: (B, b, ring, edges) => prinsenhof(B, ring, edges),
-  Gasuniegebouw: (B, b, ring, edges) => gasunie(B, ring, edges),
+  Apenrots: (B, b, ring, edges) => gasunie(B, ring, edges),
   'Rijkskantoor Kempkensberg': (B, b, ring) => duoCruiseschip(B, ring),
 };
 // Shared with the Grote Markt / Vismarkt models (marktgebouwen.js).
