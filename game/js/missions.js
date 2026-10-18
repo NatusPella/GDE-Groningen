@@ -16,6 +16,7 @@ import { createRace, updateRace, raceStandings, disposeRace, updateRetiredRacers
 import { TOUR_BOAT, rondvaartWaypoints, rondvaartBerth, startRondvaart, updateRondvaart, stopRondvaart, rondvaartStatus, rondvaartTip, rondvaartOutro, playRondvaartBoarding, routeAt, ROUTE_LENGTH } from './rondvaartchase.js';
 import { startHeliRun, isHeliRunActive, abortHeliRun, getHeliSpotsForRender } from './helirun.js';
 import { helipadById } from './heliflight.js';
+import { enterPlaneStage, updatePlaneStage, planeStageProgress, disposePlaneStage, releasePlaneStage } from './planestage.js';
 import { spawnFxPuff, spawnFxSpark } from './fx3d.js';
 import { Pedestrian, isInsideBuilding, setPedPose } from './pedestrians.js';
 import { knockDown, isKnockedDown } from './ragdoll.js';
@@ -1239,6 +1240,7 @@ function releaseMissionVehicle(world) {
   stopRondvaart(world, 'mission');
   disposeFjordTrain(world);
   disposeHeist();
+  releasePlaneStage(world);
   if (chain.skutsje) {
     const i = world.vehicles.indexOf(chain.skutsje);
     if (i >= 0 && chain.skutsje.driver !== 'player') world.vehicles.splice(i, 1);
@@ -1875,6 +1877,10 @@ function startMission(world, def) {
   } else if (def.type === 'fatbike') {
     startLane(world, def);
   } else if (def.type === 'stages') {
+    if (def.vehicle === 'car' && def.snapStart && !def.start.road) {
+      const rs = roadSpot(world.map, def.start.x, def.start.y, true);
+      if (rs && rs.road) def.start = { ...rs };
+    }
     if (def.vehicle === 'car' && def.start.road) {
       chain.vehicle = spawnMissionCar(world, def);
       world.vehicles.push(chain.vehicle);
@@ -2515,6 +2521,7 @@ function stageMarker(world, def) {
     const k = S.targets.findIndex((t, j) => t && !S.spotted.has(j));
     return k >= 0 ? S.targets[k] : def.start;
   }
+  if (st.kind === 'chase' && st.race && S.finish) return S.finish;
   return S.target || S.here;
 }
 
@@ -2539,10 +2546,12 @@ function stageProgressBase(world, def) {
   const n = `${list.indexOf(st) + 1}/${list.length}`;
   if (st.kind === 'pigeon' && S.flying) return `${st.label} · op de foto ${S.spotted.size}/${S.targets.length}`;
   if (st.kind === 'hold') return `${st.label} · ${Math.min(100, Math.round(S.hold / st.time * 100))}%`;
+  if (st.kind === 'airgates' && planeStageProgress(st, S)) return planeStageProgress(st, S);
   if (st.kind === 'escape') {
     if (S.target && !world.wanted) return `${st.label} · ${Math.round(dist(world.player.x, world.player.y, S.target.x, S.target.y))} m`;
     return `${S.target ? 'Schud de politie af' : st.label} · ${'★'.repeat(world.wanted)}`;
   }
+  if (st.kind === 'chase' && st.race && S.finish) return `${st.label} · nog ${Math.round(dist(world.player.x, world.player.y, S.finish.x, S.finish.y))} m`;
   if (st.kind === 'chase' && S.target && S.target.parkedRoad) return `${st.parkedLabel || st.label} · ${Math.round(dist(world.player.x, world.player.y, S.target.x, S.target.y))} m`;
   if (st.kind === 'chase' && S.target) {
     const left = `${st.meter || 'banden'} ${Math.max(0, Math.round(100 - (S.hp0 - S.target.health) / st.hits * 100))}%`;
@@ -2582,7 +2591,7 @@ function enterStage(world, def, k) {
   if (st.showFlag && !hasTowerFlag()) showMissionFlag(world, def, from);
   if (def.fjordTrain && k === 0) spawnFjordTrain(world);
   if (def.heist) {
-    if (k === 0 && startHeist(world)) {
+    if (k === 0 && startHeist(world, def.heist)) {
       placeHeistProps(world, resolveTarget(world, def.heist.fuse, from), resolveTarget(world, def.heist.vitrine, from));
       // the cameras and the guard outside stand from the start (the plan shows them)
       // along the walk from the mission's own start, wherever the player happened to trigger it
@@ -2612,6 +2621,9 @@ function enterStage(world, def, k) {
     S.target = fjordCrossing();
   }
   if (st.kind === 'scene' && st.dropFlag) dropFlag();
+  if (st.kind === 'chase' && st.race) S.finish = resolveTarget(world, st.finish, from);
+  disposePlaneStage(world);
+  if (st.kind === 'plane' || st.kind === 'airgates' || st.kind === 'landplane') enterPlaneStage(world, st, S);
   if (st.kind === 'boatchase') S.boat = spawnSkutsje(world, st);
   if (st.kind === 'boatchase' && S.boat) S.target = S.boat.v;
   if (st.kind === 'hold' && st.fireworks) { S.fwT = 1.5; S.fw = []; }
@@ -2703,9 +2715,28 @@ function updateHeliStage(dt, world, def, st, S) {
   }
   if (S.started || isCinematicActive()) return;
   if (p.inVehicle && !p.inVehicle.storyDemo) { hint(world, 'Uitstappen: Rotor Roelf wacht bij zijn heli.'); return; }
-  if (S.target && dist(p.x, p.y, S.target.x, S.target.y) > 30) { hint(world, 'Naar het helidek van Rotor Roelf, op Eelde.'); return; }
+  if (S.target && dist(p.x, p.y, S.target.x, S.target.y) > 30) { hint(world, st.hint || 'Naar het helidek van Rotor Roelf, op Eelde.'); return; }
   S.started = startHeliRun({ variant: st.variant, onFinish: (res) => { S.result = res; } });
   if (!S.started && S.t > 10) { world.addMessage('De heli wil niet opstijgen. Rotor Roelf vliegt zelf, en Dokter Dijkstra brengt de Eierbal.', 4); nextStage(world, def); }
+}
+
+// --- M14 (new story): a race to a spot against a rival on the road network. Whoever is first at `finish` wins; the
+// rival drives like the fleeing vehicle of a chase (it has no route data, it follows the roads). Without a rival
+// (no road to put it on) it is a drive to the finish.
+function updateChaseRace(world, def, st, S) {
+  const p = world.player;
+  const fin = S.finish;
+  if (!fin) { nextStage(world, def); return; }
+  const t = S.target && world.vehicles.includes(S.target) && !S.target.wrecked ? S.target : null;
+  if (t) {
+    S.rivalBest = Math.min(S.rivalBest ?? Infinity, dist(t.x, t.y, fin.x, fin.y));
+    if (S.rivalBest < (st.rivalRadius || 40)) { fail(world, def, st.lost || 'de ander was eerder bij de finish'); return; }
+  }
+  if (dist(p.x, p.y, fin.x, fin.y) < (st.radius || 16)) {
+    if (t) { t.chaseTarget = false; t.missionCar = false; t.aiOpts = { ...t.aiOpts, chase: false }; }
+    if (st.won) world.addMessage(st.won, 4);
+    nextStage(world, def);
+  }
 }
 
 // --- H18: Durk & Douwe's fireworks rain down on a hold stage --------------------
@@ -2939,7 +2970,7 @@ function updateStages(dt, world, def) {
   const inCar = !!v && p.inVehicle === v;
   switch (st.kind) {
     case 'board':
-      if (inCar) nextStage(world, def);
+      if (inCar || (def.snapStart && !chain.vehicle)) nextStage(world, def);
       break;
     case 'goto': {
       if (!S.target) { nextStage(world, def); break; }
@@ -3021,6 +3052,7 @@ function updateStages(dt, world, def) {
     }
     case 'chase': {
       const t = S.target;
+      if (st.race) { updateChaseRace(world, def, st, S); break; }
       if (S.swarm) { if (S.swarm === 'done') stopChaseVehicle(world, def, st); break; }
       if (!t || !world.vehicles.includes(t)) { fail(world, def, st.gone || 'de tankwagen is foetsie'); break; }
       if (t.wrecked || t.disabled) { fail(world, def, st.burned || 'de tankwagen staat in de fik. Zonde van al dat vet'); break; }
@@ -3061,6 +3093,14 @@ function updateStages(dt, world, def) {
       if (fv) adoptVehicle(world, fv, { hero: true });
       world.addMessage(r === 'taken' ? st.taken : st.caught, 4.5);
       nextStage(world, def);
+      break;
+    }
+    case 'plane':
+    case 'airgates':
+    case 'landplane': {
+      const r = updatePlaneStage(dt, world, st, S);
+      if (r === 'next') nextStage(world, def);
+      else if (r && r.fail) fail(world, def, r.fail);
       break;
     }
     case 'heli':

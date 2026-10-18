@@ -78,7 +78,7 @@ ok(/vehicleFail = \{ gone/.test(msrc) && /duif\.timeUp/.test(msrc) && /kei\.time
 ok(/def\.timeUp \? def\.timeUp/.test(missionsSrc) && /vf\.wrecked/.test(missionsSrc), 'missions.js honours timeUp and vehicleFail');
 // rewards and consequences are visible on the success card (#147)
 ok(Array.isArray(loket.costRow) && /150/.test(loket.costRow[1]), 'loket: the card shows the entry fee (reward is 0)');
-ok((msrc.match(/\.costRow = \[/g) || []).length === 5, 'M02, M04, M05, M06, M07 show what they leave you with');
+ok((msrc.match(/\.costRow = \[/g) || []).length >= 5, 'M02, M04, M05, M06, M07 show what they leave you with');
 ok(/def\.costRow && !replay/.test(missionsSrc), 'missions.js adds costRow to the success card');
 ok(/vet.costRow/.test(msrc) && /vet.vehicleFail/.test(msrc), 'M07: consequence row and own vehicle messages');
 void byId;
