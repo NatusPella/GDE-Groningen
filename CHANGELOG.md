@@ -7,6 +7,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Nieuw
+- **Padel en Pitch & putt op de echte plekken:** padelbanen staan nu waar ze echt zitten, in de stad en in het Ommeland, met de echte stand van de banen. Pitch & putt heeft zes holes op de echte golfbanen (onder meer Pitch & Putt Groningen bij het Hunzepark); loop naar de eerste tee en druk E. Alles staat ook als icoon op de kaart.
 - **Tammo in de mand:** bij de ballonvlucht in het verhaal staat Tammo nu op de vloer van de mand, kijkt naar de heli en schommelt mee met de ballon, in plaats van op heli-hoogte te hangen.
 - **Rustigere HUD:** de melding "x prestaties wachten" is weg uit beeld. Nieuwe prestaties zie je als stille stip bij Prestaties in het pauzemenu.
 - **Rustiger winkelscherm:** elk product heeft een eigen laagpoly-icoon, een korte eigenschap en een duidelijk label (Kan ik kopen, Heb ik al, Te duur, Op slot). Winkels met meerdere afdelingen krijgen tabs (pijltjes links/rechts, of de knoppen op het scherm). Als je te weinig geld hebt, zie je hoeveel je nog mist. Bediening met toetsen, muis, controller en aanraking; de hints onderin zijn witte toetsknoppen of controllerknoppen.

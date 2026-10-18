@@ -16,6 +16,8 @@ import { PADEL_PAIR, PADEL_TWINS } from './padellines.js';
 import { bubbleVoiceFor } from './linevoice.js';
 import { playLineVoice } from './audio.js';
 import { rand } from './rng.js';
+import { loadEchtePlekken, padelDefs } from './echteplekken.js';
+import { tilesIn, withTiles } from './tileplace.js';
 
 // Padel courts where OSM has them (game/mapextras.json "padel", built by
 // scripts/add_map_extras.py): a glass cage with blue turf, a net and lights
@@ -409,6 +411,19 @@ export function initPadel(w) {
     if (!s) return;
     for (const c of s.courts) c.mesh = buildCourt(c.f);
     sites.push(s);
+  });
+  // de echte padelplekken uit OSM (game/echteplekken.json, #174): in de stad en het Ommeland.
+  // Wat de oude lijst al dekt (binnen 250 m) blijft; de rest komt erbij, op de tegels van die plek.
+  loadEchtePlekken().then(async (data) => {
+    for (const d of padelDefs(data)) {
+      if (sites.some((s) => Math.hypot(s.x - d.x, s.y - d.y) < 250)) continue;
+      try {
+        const idx = defs.length + sites.length;
+        const place = () => { const s = placeSite(w.map, d, idx); if (s) { for (const c of s.courts) c.mesh = buildCourt(c.f); sites.push(s); } };
+        if (tilesIn(w.map, [[d.x, d.y]], 200)) place();
+        else await withTiles(w.map, [[d.x, d.y]], place, { radius: 200, token: 'padel' });
+      } catch (e) { console.warn('padel', d.name, e); }
+    }
   });
   // no grass through the court floor, no parked cars or clutter on it
   const prev = w.map.reservedAt;
