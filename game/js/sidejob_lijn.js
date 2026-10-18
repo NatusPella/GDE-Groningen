@@ -92,6 +92,8 @@ export default {
     return {
       marker: { x: p.x, y: p.y },
       progress: `${d.line.name} · ${r.onBoard} reizigers`,
+      // voor de kaart (missionmaplive.js): de route en de haltes in rijrichting
+      bus: { route: r.table.map((t) => stopPos(r, t)), stops: r.table.map((t, i) => ({ ...stopPos(r, t), name: t.name, next: i === r.next, done: i < r.next })) },
       goal: { label: `Naar ${row.name}`, desc: r.phase === 'dwell' ? 'Wacht op het vertrek' : 'Halteer netjes' },
     };
   },
