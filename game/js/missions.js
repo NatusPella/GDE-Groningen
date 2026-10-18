@@ -20,7 +20,7 @@ import { startHeliRun, isHeliRunActive, abortHeliRun, getHeliSpotsForRender } fr
 import { createSearchlight } from './searchlight.js';
 import { sweepAngle, inBeam, stepExposure } from './searchlightlogic.js';
 import { helipadById } from './heliflight.js';
-import { enterPlaneStage, updatePlaneStage, planeStageProgress, disposePlaneStage, releasePlaneStage } from './planestage.js';
+import { enterPlaneStage, updatePlaneStage, planeStageProgress, disposePlaneStage, releasePlaneStage, debugCompletePlaneStage } from './planestage.js';
 import { spawnFxPuff, spawnFxSpark } from './fx3d.js';
 import { Pedestrian, isInsideBuilding, setPedPose } from './pedestrians.js';
 import { knockDown, isKnockedDown } from './ragdoll.js';
@@ -3676,6 +3676,7 @@ export const missionDebug = {
       const cur = def.stages[chain.stageIndex];
       // a cutscene stage plays by itself (skippable); don't jump past it
       if (cur && (cur.kind === 'scene' || cur.kind === 'vault' || cur.kind === 'shot')) { syncPub(world); return true; }
+      if (cur && (cur.kind === 'plane' || cur.kind === 'airgates' || cur.kind === 'landplane') && debugCompletePlaneStage(world, cur, chain.stage)) { syncPub(world); return true; }
       if (cur && cur.kind === 'getaway') {
         heistSkipGetaway(world, false);
         if (heistBoat()) chain.vehicle = heistBoat();
