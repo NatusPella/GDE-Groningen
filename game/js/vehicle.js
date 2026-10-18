@@ -206,7 +206,8 @@ export class Vehicle {
     const m = this.model;
     const isPlayer = this.driver === 'player';
     const tune = isPlayer ? playerTune(this) : null;
-    const top = tune ? tune.top : m.maxSpeed;
+    // een lekke band (v.flat): trager en de auto trekt scheef
+    const top = (tune ? tune.top : m.maxSpeed) * (this.flat ? FLAT_TOP_FACTOR : 1);
     // wet road / puddle grip (0..1), set each frame for the player's vehicle
     const grip = isPlayer ? this.gripK ?? 1 : 1;
     const brakeMax = (tune ? tune.brake : m.brake) * (0.4 + 0.6 * grip);
@@ -258,7 +259,8 @@ export class Vehicle {
     const sailing = isPlayer && this.isBoat && this.sailTop != null;
     this.speed = clamp(this.speed, -top * REVERSE_FACTOR, sailing ? Math.max(top, absSpeed - SAIL_GLIDE_DECEL * dt) : top);
 
-    const target = clamp(steerInput, -1, 1);
+    const pull = isPlayer && this.flat ? FLAT_PULL * (this.id % 2 ? 1 : -1) * Math.min(1, absSpeed / 10) : 0;
+    const target = clamp(steerInput + pull, -1, 1);
     if (isPlayer) {
       const returning = Math.abs(target) < Math.abs(this.steer) || target * this.steer < 0;
       const rate = (returning ? PLAYER_STEER_RETURN : PLAYER_STEER_RATE) * (this.isBus ? 0.7 : 1) * dt;
@@ -2110,6 +2112,10 @@ const MAX_IMPACT_DAMAGE = 30;
 // Cars should survive a fair amount of reckless driving: every collision
 // (cars, walls, props) does this fraction of its raw damage.
 export const CRASH_DAMAGE_SCALE = 0.4;
+const FLAT_MIN_DAMAGE = 8; // een klap van minstens zoveel schade kan een band lek slaan
+const FLAT_MAX_CHANCE = 0.5;
+const FLAT_TOP_FACTOR = 0.7; // lekke band: topsnelheid
+const FLAT_PULL = 0.12; // lekke band: de auto trekt scheef (stuurbias)
 const WALL_DAMAGE_SPEED = 7;
 const MAX_WALL_DAMAGE = 20;
 const SCRAPE_SPEED = 3;
@@ -2191,6 +2197,7 @@ function applyImpactDamage(v, dmg, playerInvolved, world) {
   if (dmg <= 0 || v.wrecked) return;
   if (v.disabled) { v.burnLeft -= dmg * 0.06; return; }
   v.health = Math.max(0, v.health - dmg * CRASH_DAMAGE_SCALE);
+  if (playerInvolved && v.driver === 'player' && !v.flat && !v.isBoat && !v.isHeli && !v.isBus && dmg >= FLAT_MIN_DAMAGE && v.health > 0 && Math.random() < Math.min(FLAT_MAX_CHANCE, dmg / 60)) v.flat = true;
   if (v.health <= 0) disableVehicle(v, playerInvolved, world);
 }
 
@@ -2222,6 +2229,10 @@ export function disableVehicle(v, byPlayer, world = null) {
 
 export function tickBurningVehicles(world, dt) {
   for (const v of world.vehicles) {
+    if (v.flat && !v.flatWarned && v.driver === 'player') {
+      v.flatWarned = true;
+      world.addMessage(v.isBike || v.isScooter ? 'Lekke band! Naar de fietsenmaker of de garage' : 'Lekke band! Je auto trekt scheef. Naar de garage', 4);
+    } else if (!v.flat && v.flatWarned) v.flatWarned = false;
     if (!v.disabled || v.wrecked) continue;
     if (v.sinking) { v.disabled = false; continue; }
     if (v.driver === 'player' && !v.fireWarned) {
