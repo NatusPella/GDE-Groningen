@@ -44,6 +44,12 @@ const MISSION_SAVE_DELAY = 4;
 const TOAST_S = 2.2;
 
 let world = null;
+// The slot this tab is playing, fixed when a save is loaded or a game starts: a second tab that
+// switches the shared 'active' slot must not make this tab's autosave overwrite that slot.
+let boundSlot = 0;
+const saveTarget = () => boundSlot || activeSlot();
+// follows the shared active slot (after the saves screen or a new game chose it)
+export function bindSlot() { boundSlot = activeSlot(); }
 let dirtyIn = -1;
 let checkTimer = STATE_CHECK_S;
 let lastSig = null;
@@ -113,7 +119,7 @@ function backupOnce(raw, v) {
 // version writes its own.
 function keepNewerSave() {
   try {
-    const raw = localStorage.getItem(slotKey(activeSlot()));
+    const raw = localStorage.getItem(slotKey(saveTarget()));
     const d = JSON.parse(raw || 'null');
     if (d && Number.isInteger(d.v) && d.v > VERSION) backupOnce(raw, d.v);
   } catch (e) { /* ignore */ }
@@ -149,13 +155,14 @@ export function getSaveSummary() {
 
 export function clearSave() {
   keepNewerSave();
-  try { localStorage.removeItem(slotKey(activeSlot())); } catch (e) { /* ignore */ }
+  try { localStorage.removeItem(slotKey(saveTarget())); } catch (e) { /* ignore */ }
 }
 
 // "Nieuw spel": the old saves stay. A new slot is made and becomes the active one; with every
 // slot in use the active one is cleared, as before (its recovery copy stays).
 export function startNewSlot(name) {
   if (!createSlot(null, name)) clearSave();
+  bindSlot();
 }
 
 // Switches to another slot and loads it. false (and the old slot stays active) when the slot cannot be loaded.
@@ -225,7 +232,7 @@ export function saveGame(w = world, { toast = true } = {}) {
   if (w.coopRole === 'client') return false;
   keepNewerSave();
   try {
-    if (!writeSlotRaw(null, activeSlot(), JSON.stringify(serialize(w)))) throw new Error('write failed');
+    if (!writeSlotRaw(null, saveTarget(), JSON.stringify(serialize(w)))) throw new Error('write failed');
   } catch (e) {
     if (toast) w.addMessage('Opslaan mislukt', 2.5);
     return false;
@@ -369,6 +376,7 @@ export function applySave(w, d) {
     lastMissionsDone = w.stats.missionsDone;
     dirtyIn = -1;
     lastSig = null;
+    bindSlot();
     return true;
   } catch (e) {
     console.error('Save laden mislukt', e);
