@@ -7,6 +7,7 @@
 import { travelModeOf, offenceOf, marktFietsHint, MARKT } from './roadaccess.js';
 import { weekdayOf } from './calendar.js';
 import { playerBusy } from './busy.js';
+import { noteMoney } from './finance.js';
 
 // Two money fines when an agent is watching: the phone in your hand while
 // riding or driving, and cycling after dark without a light.
@@ -124,6 +125,7 @@ export function agentWatching(world, x, y, range = FINE_WATCH_M) {
 
 export function charge(world, amount, text) {
   const pay = Math.min(amount, Math.max(0, Math.floor(world.money || 0)));
+  noteMoney('Boetes');
   world.money = (world.money || 0) - pay;
   world.addMessage(`${text}: boete €${pay}`, 5, { kind: 'politie', key: 'roadfine' });
   return pay;
