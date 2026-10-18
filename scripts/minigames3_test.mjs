@@ -130,7 +130,8 @@ const check = (name, ok, info = '') => { n++; if (!ok) { bad++; console.log('FAI
   }
   const missing = [...used].filter((id) => !ach.includes(`id: '${id}'`));
   const reg = fs.readFileSync(path.join(here, '../game/js/activities.js'), 'utf8');
-  const list = (reg.match(/const LIST = [([^]]*)]/) || [, ''])[1];
+  const at = reg.indexOf('const LIST = [');
+  const list = reg.slice(at, reg.indexOf(']', at));
   check('the new games are in the activity list (the activityhub kind)', ['CARILLON_GAME', 'PANNENKOEK', 'HENGELEN', 'WANDELING', 'SNACKKETEN'].every((n) => list.includes(n)), list);
   const goal = fs.readFileSync(path.join(here, '../game/js/goal.js'), 'utf8');
   check('goal.js knows the exclusive minigames', ['carillon', 'pannenkoek', 'hengelen'].every((id) => goal.includes(id + ': (w) =>')));
