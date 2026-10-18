@@ -878,7 +878,8 @@ export class Player {
     v.bikeAssist = st.bikeAssist;
     v.clutchIn = st.shiftMode === 'clutch' && input.isDown('j');
     // motorbikes: Shift pops a wheelie on the throttle or a stoppie on the brake
-    v.trick = !!(v.model && v.model.motorbike) && input.isDown('shift');
+    // (a pedal bike: Ctrl lifts the front wheel, bewegingrules.js)
+    v.trick = v.model && v.model.motorbike ? input.isDown('shift') : !!v.isBike && input.isDown('control');
     const motoSpeed = v.model && v.model.motorbike ? Math.abs(v.speed) : 0;
     if (v.gb && st.shiftMode !== 'auto' && !held) {
       const dir = input.wasPressed('.') ? 1 : input.wasPressed(',') ? -1 : 0;
