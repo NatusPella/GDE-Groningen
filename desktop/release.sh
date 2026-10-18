@@ -65,12 +65,24 @@ fi
 
 echo "Building GDE Groningen $VERSION ..."
 rm -rf dist
-npm run dist:mac
+# a macOS dmg can only be built on a Mac: on Windows (Git Bash) this release is Windows-only
+# and the dmg is added later from a Mac (`gh release upload`)
+case "$(uname -s)" in MINGW*|MSYS*|CYGWIN*) MAC="" ;; *) MAC=1 ;; esac
+if [ -n "$MAC" ]; then
+  npm run dist:mac
+else
+  npm run stage
+fi
 npx electron-builder --win --x64
 DMG="dist/GDE-Groningen-$VERSION-mac.dmg"
 EXE="dist/GDE-Groningen-$VERSION-windows-portable.exe"
-[ -f "$DMG" ] && [ -f "$EXE" ] || { echo "Build output missing"; exit 1; }
-UPLOADS="$DMG $EXE"
+if [ -n "$MAC" ]; then
+  [ -f "$DMG" ] && [ -f "$EXE" ] || { echo "Build output missing"; exit 1; }
+  UPLOADS="$DMG $EXE"
+else
+  [ -f "$EXE" ] || { echo "Build output missing"; exit 1; }
+  UPLOADS="$EXE"
+fi
 
 if [ -n "$LINUX" ]; then
   # builds on macOS without Docker or Rosetta: the AppImage toolset 1.0.3
@@ -115,6 +127,17 @@ fi
 REPO_SLUG="$(gh repo view --json nameWithOwner -q .nameWithOwner 2>/dev/null)"
 OWNER_LOGIN="${REPO_SLUG%%/*}"
 MENTIONS="$(gh api "repos/$REPO_SLUG/collaborators" --jq '[.[] | "@" + .login] | join(" ")' 2>/dev/null || true)"
+if [ -n "$MAC" ]; then
+  MAC_NOTES="**macOS** (Apple Silicon en Intel): open \`GDE-Groningen-$VERSION-mac.dmg\` en sleep GDE Groningen naar Programma's.
+De eerste keer: open de app, klik **Gereed** bij de melding, ga naar **Systeeminstellingen > Privacy en beveiliging**
+en klik onderaan op **Open toch**. Daarna start hij gewoon.
+
+"
+else
+  MAC_NOTES="**macOS:** voor deze versie is er nog geen dmg; die volgt later.
+
+"
+fi
 NOTES="$(mktemp)"
 cat > "$NOTES" <<EOF
 ## GDE Groningen – Zomer vol misdaad $VERSION
@@ -131,11 +154,7 @@ $CHANGES
 **Windows:** download \`GDE-Groningen-$VERSION-windows-portable.exe\` en dubbelklik. Geen installatie nodig.
 Zegt Windows "Windows heeft uw pc beveiligd"? Klik op **Meer info** en dan **Toch uitvoeren**.
 
-**macOS** (Apple Silicon en Intel): open \`GDE-Groningen-$VERSION-mac.dmg\` en sleep GDE Groningen naar Programma's.
-De eerste keer: open de app, klik **Gereed** bij de melding, ga naar **Systeeminstellingen > Privacy en beveiliging**
-en klik onderaan op **Open toch**. Daarna start hij gewoon.
-
-${LINUX_NOTES}Speelde je al toen de game nog GTE VI heette? Je saves en instellingen blijven gewoon staan.
+${MAC_NOTES}${LINUX_NOTES}Speelde je al toen de game nog GTE VI heette? Je saves en instellingen blijven gewoon staan.
 Op de Mac kun je de oude app "GTE VI" daarna uit Programma's weggooien.
 
 EOF
