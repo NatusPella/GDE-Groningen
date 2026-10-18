@@ -870,7 +870,8 @@ let wantedKey = '';
 let wantedShown = 0;
 function updateWanted(world) {
   const pol = world.police;
-  const searching = !!(pol && pol.searching);
+  const phase = wantedPhase(world);
+  const searching = phase === 'zoeken';
   // the search box: how far you are out of the search area (and how long until a star drops)
   if (searching && world.wanted > 0 && pol.searchCenter) {
     const d = Math.hypot(world.player.x - pol.searchCenter.x, world.player.y - pol.searchCenter.y);

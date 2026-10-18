@@ -60,7 +60,8 @@ body.hide-minimap #hud .hud-minimap-wrap { display: none; }
 #hud .hud-wanted { display: flex; justify-content: flex-end; gap: 5px; line-height: 0; }
 #hud .hud-wanted svg { width: 28px; height: 28px; fill: none; stroke: rgba(255, 255, 255, 0.3); stroke-width: 1.6; stroke-linejoin: round; }
 #hud .hud-wanted svg.on { fill: #e8c93a; stroke: #7a6610; stroke-width: 1; }
-#hud .hud-wanted.searching svg.on { animation: hud-star-blink 0.9s steps(2, jump-none) infinite; }
+#hud .hud-wanted.searching svg.on { stroke-dasharray: 3 2;
+   animation: hud-star-blink 0.9s steps(2, jump-none) infinite; }
 @keyframes hud-star-blink { 0% { opacity: 1; } 100% { opacity: 0.25; } }
 #hud .hud-search {
   display: flex; flex-direction: column; align-items: flex-end; gap: 5px; padding: 8px 12px 9px; border-radius: 8px;
