@@ -14,6 +14,8 @@ import { KART_LINES, KART_RIVALS } from './minigamelines.js';
 import {
   buildTrack, createKart, stepKart, updateProgress, collideKarts, aiInput, rankKarts, positionMedal, bestLap, pointAt, locate, KART, LAPS, RUNOFF, TRACK_W,
 } from './kartrace.js';
+import { createRecorder, recordGhost, finishGhost, ghostAt, loadGhost, saveGhost } from './ghostreplay.js';
+import { KEYS } from './storagekeys.js';
 
 // Karten bij Kardinge: a kart track on the open ground north of the Kardinge
 // sports centre (the OSM data has only an indoor karting hall there, so the
@@ -236,7 +238,12 @@ function buildTrackScene() {
   const scene = getScene();
   scene.add(root, wubbe);
   for (const k of karts) { k.mesh.visible = false; scene.add(k.mesh); }
-  return { root, lamps, wubbe, karts, wubbePos: { x: wubbe.position.x, y: wubbe.position.z } };
+  // the ghost of your best race: your own kart, see-through
+  const ghost = { mesh: buildKartMesh(0xf2c230, 0) };
+  ghost.mesh.traverse((o) => { if (o.material) { o.material = o.material.clone(); o.material.transparent = true; o.material.opacity = 0.32; o.material.depthWrite = false; } });
+  ghost.mesh.visible = false;
+  scene.add(ghost.mesh);
+  return { root, lamps, wubbe, karts, ghost, wubbePos: { x: wubbe.position.x, y: wubbe.position.z } };
 }
 
 function updateLod(w) {
@@ -292,6 +299,11 @@ function interact(w) {
   return true;
 }
 
+// localStorage can be blocked (tests, private windows): then there is simply no ghost
+function ghostStore() {
+  try { return localStorage; } catch { return { getItem: () => null, setItem: () => {} }; }
+}
+
 function start(w, { force = false } = {}) {
   if (game) return false;
   if (!force && activityBlock(w)) return false;
@@ -313,7 +325,8 @@ function start(w, { force = false } = {}) {
   ensureBoard();
   board.show();
   runs++;
-  game = { t: 0, phase: 'grid', karts, raceT: 0, flash: null, cam: null, camA: karts[0].a, said: 0, lights: 0, result: null, finishAt: 0, hits: 0, outro: 0, lastLap: -1, boostFx: 0, exit: { ...STAND }, gapSay: 0 };
+  const ghostRun = loadGhost(ghostStore(), 'kart', KEYS.ghosts);
+  game = { ghostRun, rec: createRecorder(), t: 0, phase: 'grid', karts, raceT: 0, flash: null, cam: null, camA: karts[0].a, said: 0, lights: 0, result: null, finishAt: 0, hits: 0, outro: 0, lastLap: -1, boostFx: 0, exit: { ...STAND }, gapSay: 0 };
   syncKarts(w, 0);
   w.companionHold = { x: STAND.x + 2, y: STAND.y + 1, face: ROT };
   showCard(w, { kind: 'tip', kicker: 'Karten bij Kardinge', title: 'Drie ronden, drie rijders', body: '[W] gas, [S] rem, [A] [D] sturen. Houd [Spatie] (handrem) in een bocht voor een drift: een lange drift geeft een boost.', duration: 10, key: 'kart-help', voice: false });
@@ -388,6 +401,7 @@ function updateGame(w, dt) {
         if (lap && k.finished && k.player && g.phase === 'race') { g.phase = 'finish'; g.finishAt = g.raceT; }
       }
     }
+    if (g.phase === 'race' && !me.finished) recordGhost(g.rec, g.raceT, me.u, me.v, me.a);
     const hits = collideKarts(ks);
     if (hits) { g.hits += hits; if (hits && g.t - g.gapSay > 3) { g.gapSay = g.t; rivalSay(w, ks); } }
   }
@@ -436,6 +450,7 @@ function end(w, { quit = false } = {}) {
   clearBubbles(w, 'kartbaan');
   stopEngine();
   if (built) {
+    built.ghost.mesh.visible = false;
     built.karts.forEach((k) => {
       k.mesh.visible = false;
       if (k.rider) {
@@ -460,6 +475,7 @@ function end(w, { quit = false } = {}) {
     const rec = recordChallengeResult(w, 'kart-race', { value: total, medal, lower: true });
     newBest = !!(rec && rec.newBest);
   }
+  if (total != null && saveGhost(ghostStore(), 'kart', finishGhost(g.rec, total), KEYS.ghosts)) w.addMessage('Je beste race is bewaard: de spookkart rijdt hem de volgende keer mee', 4);
   if (lap != null) recordChallengeResult(w, 'kart-lap', { value: lap, medal: 0, lower: true });
   recordStat(w, 'kartRaces');
   if (me.finished) unlockAchievement(w, 'kart_klaar');
@@ -516,6 +532,14 @@ function syncKarts(w, dt) {
       if (k.bump > 0.1 && Math.random() < dt * 30) spawnFxSpark(q.x, 0.4, q.y, (Math.random() - 0.5) * 3, 1, (Math.random() - 0.5) * 3, 0.3);
     }
   });
+  // the ghost drives your best race alongside you until its recording ends
+  const gp = sp && g.ghostRun ? ghostAt(g.ghostRun, g.raceT) : null;
+  built.ghost.mesh.visible = !!gp;
+  if (gp) {
+    const gq = FR.toW(gp.x, gp.y);
+    built.ghost.mesh.position.set(gq.x, 0.03, gq.y);
+    built.ghost.mesh.rotation.set(0, -(ROT + gp.a), 0);
+  }
   // start lights
   built.lamps.forEach((l, i) => { l.material = g.phase === 'grid' ? (i < g.lights ? materials().lampRed : materials().lampOff) : g.t < GO_AT + 1.2 ? materials().lampGreen : materials().lampOff; });
   animatePersonWalk(built.wubbe, 0, dt);
