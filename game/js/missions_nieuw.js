@@ -5,6 +5,8 @@
 // file) does not see their hint texts, which are text only.
 
 // The def pieces: walk(x, y) / drive(x, y) are missions.js's road spots.
+import { buildAkte4Defs, applyAkte4 } from './missions_akte4.js';
+
 export function buildNieuwDefs({ map, walk, drive }) {
   const list = [];
   const lm = (map.meta.landmarks || []).find((l) => l.name === 'Goudkantoor') || { x: 86.5, y: 111.7 };
@@ -64,6 +66,8 @@ export function buildNieuwDefs({ map, walk, drive }) {
       say: 'Eerst de Grote Markt: vijftienhonderd stuntpunten, zonder krassen. Daarna het Boterdiep.',
     },
   );
+  // akte 4 (missions_akte4.js): bruggen, wiebelwerk, stoom, beleg, in the order of NEW_MISSION_IDS
+  list.push(...buildAkte4Defs());
   return list;
 }
 
@@ -73,6 +77,7 @@ export function buildNieuwDefs({ map, walk, drive }) {
 // subtitle talk while the stage runs (storytalk.js); radioScript = a radio fragment (storytext.js).
 export function applyNieuw(list) {
   const by = (label) => list.find((d) => d.label === label);
+  applyAkte4(list);
   const stageOf = (def, kind, n = 0) => def.stages.filter((q) => q.kind === kind)[n];
   const pin = by('Even pinnen');
   if (pin) {
