@@ -22,9 +22,12 @@ export function recordGhost(rec, t, x, y, a) {
   rec.last = t;
 }
 
-// the finished run: `total` is the result (seconds, lower is better)
-export function finishGhost(rec, total) {
-  return { v: 1, step: rec.step, total: r2(total), s: rec.s.slice() };
+// the finished run: `total` is the result. Seconds by default (lower is
+// better); { higher: true } for a score (the drift zones).
+export function finishGhost(rec, total, { higher = false } = {}) {
+  const g = { v: 1, step: rec.step, total: r2(total), s: rec.s.slice() };
+  if (higher) g.hi = 1;
+  return g;
 }
 
 export function validGhost(g) {
@@ -50,10 +53,12 @@ export function ghostAt(g, t) {
   };
 }
 
-// is the new run better than the saved one? (shorter time wins; no saved run: yes)
+// is the new run better than the saved one? (shorter time or higher score
+// wins; no saved run: yes)
 export function betterGhost(saved, fresh) {
   if (!validGhost(fresh)) return false;
-  return !validGhost(saved) || fresh.total < saved.total;
+  if (!validGhost(saved)) return true;
+  return fresh.hi ? fresh.total > saved.total : fresh.total < saved.total;
 }
 
 // --- storage: one key, one ghost per id ('kart', 'drift-<zone>') ---------------------------------
