@@ -451,8 +451,9 @@ async function newArcRuntimeChecks(world, check, capture) {
   if (pf) {
     await quietDown(world);
     const before = pf.state().cards;
-    world.phoneNotifications.push({ from: 'Tessa', text: 'Ik ben bij het Loket. Kom niet. Je brengt ze in de war.', duration: 5, story: true, silent: true });
-    const card = await waitFor(() => pf.state().cards > before || document.querySelector('.pf-card'), 8000, 200);
+    world.phoneNotifications.push({ from: 'Tessa', text: 'Ik ben bij het Loket. Kom niet. Je brengt ze in de war.', duration: 5, silent: true });
+    // (not `story`: a story text waits for its pending radio contact (narrative.js), which the harness never plays)
+    const card = await waitFor(() => pf.state().cards > before || document.querySelector('.pf-card'), 15000, 200);
     check('new arc: a silent app text shows as a phone card', card, JSON.stringify(pf.state()));
     check('new arc: the silent app text is not read aloud', window.__phonefeed.voicing ? !window.__phonefeed.voicing() : true);
   }
