@@ -7,6 +7,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getMovableBridges, boomsOf, boatSignal } from './movablebridges.js';
 import { mergeGeometries, tint } from './geomerge.js';
+import { waterAt } from './waterlevels.js';
 import { roadSurfaceGeometries, roadSurfaceMaterials, getMarkingMaterial } from './roadsurface.js';
 
 const VIEW = 180;
@@ -128,12 +129,44 @@ function surfaceMeshes(b, s0, L, dir, geo, mats) {
   ].filter(Boolean);
 }
 
-// The boat signal beside the span (#154), one on each side of the water: a post
-// with a red lamp over a green one. Red until the span lies open.
-function buildSignal(b, side) {
-  const root = new THREE.Group();
+// The boat signals at the span (#154): a post with a red lamp over a green one on
+// each bank, at opposite ends and opposite sides of the deck so a boat sees one
+// from either way along the water. Red until the span lies open. They stand on
+// the banks just beyond the span's ends (not in the water beside the deck).
+// With the map the spot dodges: it moves outward and along until it stands on no
+// other car road and, if it can, not in the water.
+export function signalSpot(b, end, map = null) {
+  const side = end ? -1 : 1;
   const nx = -b.uy * side, ny = b.ux * side;
-  root.position.set(b.x + nx * (b.half + 1.2), 0, b.y + ny * (b.half + 1.2));
+  const dir = end ? 1 : -1;
+  const ex = end ? b.bx : b.ax, ey = end ? b.by : b.ay;
+  let best = null, bestScore = Infinity;
+  for (const out of [0, 1.8, 3.6, 5.4]) {
+    for (const beyond of [1.5, 4.5, 7.5]) {
+      const x = ex + dir * b.ux * beyond + nx * (b.half + 1.2 + out), y = ey + dir * b.uy * beyond + ny * (b.half + 1.2 + out);
+      if (!map) return [x, y];
+      const score = (onCarRoad(map, x, y, b.r) ? 2 : 0) + (waterAt(map, x, y) ? 1 : 0) + out * 0.01 + beyond * 0.001;
+      if (score < bestScore) { bestScore = score; best = [x, y]; }
+    }
+  }
+  return best;
+}
+function onCarRoad(map, x, y, own) {
+  if (!map.roadsNear) return false;
+  for (const r of map.roadsNear(x, y, 6)) {
+    if (r === own || r.cat === 'foot' || r.cat === 'cycle') continue;
+    for (let i = 0; i < r.pts.length - 1; i++) {
+      const ax = r.pts[i][0], ay = r.pts[i][1], bx = r.pts[i + 1][0] - ax, by = r.pts[i + 1][1] - ay, l2 = bx * bx + by * by || 1;
+      const t = Math.max(0, Math.min(1, ((x - ax) * bx + (y - ay) * by) / l2));
+      if (Math.hypot(ax + bx * t - x, ay + by * t - y) < (r.width || 4) / 2 + 0.5) return true;
+    }
+  }
+  return false;
+}
+function buildSignal(b, end, map) {
+  const root = new THREE.Group();
+  const [sx, sy] = signalSpot(b, end, map);
+  root.position.set(sx, 0, sy);
   root.add(new THREE.Mesh(new THREE.BoxGeometry(0.16, 3.2, 0.16).translate(0, 1.6, 0), POST_MAT));
   const lamps = [];
   for (const y of [3.0, 2.6]) {
@@ -167,7 +200,7 @@ function buildBoom(bm) {
   return { root, lamps, pivot };
 }
 
-export function initMovableBridges3D(sceneRef) {
+export function initMovableBridges3D(sceneRef, map = null) {
   scene = sceneRef;
   if (!BOOM_MAT) { const t = stripeTexture(); BOOM_MAT = new THREE.MeshLambertMaterial(t ? { map: t } : { color: 0xd42020 }); }
   for (const v of views) scene.remove(v.group);
@@ -197,7 +230,7 @@ export function initMovableBridges3D(sceneRef) {
       leaves.push({ pivot, leaf, L, dir, base: pivot.rotation.y, ex, ey });
     }
     const booms = boomsOf(b).map((bm) => { const v = buildBoom(bm); group.add(v.root); return v; });
-    const signals = [1, -1].map((side) => { const s = buildSignal(b, side); group.add(s.root); return s; });
+    const signals = [0, 1].map((end) => { const s = buildSignal(b, end, map); group.add(s.root); return s; });
     scene.add(group);
     views.push({ b, group, leaves, booms, signals });
   }
