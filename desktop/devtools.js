@@ -31,7 +31,7 @@ const BENCH = findArg('--benchmark');
 
 // test runs (--stil / --smoke-test) get a throwaway profile, so they never
 // touch the player's saves, settings or achievements
-const isTestRun = !!(TRAILER || BENCH || hasFlag('--stil') || hasFlag('--smoke-test') || hasFlag('--story-test') || hasFlag('--validate-spots'));
+const isTestRun = !!(TRAILER || hasFlag('--autoplay') || BENCH || hasFlag('--stil') || hasFlag('--smoke-test') || hasFlag('--story-test') || hasFlag('--validate-spots'));
 
 // --story-test[=<dir>] runs the automated story test (screenshots per step and
 // report.json in <dir>); --validate-spots[=<dir>]: its spot check only
@@ -45,9 +45,9 @@ const smoke = argValue('--smoke-test');
 function queryParts() {
   const silent = hasFlag('--stil');
   const trailerShot = argValue('--trailer-shot'), trailerCut = argValue('--trailer-cut'), trailerFrames = argValue('--trailer-frames');
-  return [(silent || storyTest) && 'stil', hasFlag('--audio-graph') && 'audiograf', hasFlag('--hitch') && 'hitch', hasFlag('--zwartcheck') && 'zwartcheck', hasFlag('--dev') && 'dev', storyTest && 'storytest', spotsOnly && 'spotsonly',
+  return [(silent || storyTest) && 'stil', hasFlag('--audio-graph') && 'audiograf', hasFlag('--hitch') && 'hitch', hasFlag('--zwartcheck') && 'zwartcheck', hasFlag('--dev') && 'dev', findArg('--autoplay') && (argValue('--autoplay') ? `autoplay=${encodeURIComponent(argValue('--autoplay'))}` : 'autoplay'), storyTest && 'storytest', spotsOnly && 'spotsonly',
     // automated runs never get the first-launch attract intro
-    (smoke !== null || storyTest || hasFlag('--perf-test')) && !TRAILER && 'noattract',
+    (smoke !== null || storyTest || hasFlag('--perf-test') || findArg('--autoplay')) && !TRAILER && 'noattract',
     TRAILER && 'trailer', TRAILER && trailerShot && `shot=${encodeURIComponent(trailerShot)}`, (TRAILER || hasFlag('--trailer-preview')) && trailerCut && `cut=${encodeURIComponent(trailerCut)}`,
     TRAILER && (trailerFrames || video) && 'frames', video && 'video', video && 'stil', hasFlag('--attract') && 'attract', hasFlag('--trailer-preview') && 'preview',
     !TRAILER && BENCH && `benchmark=${argValue('--benchmark') || 1}`,
@@ -136,11 +136,19 @@ function attach(win, { gameDir }) {
         // --perf-script=<file>: after starting a game, run the file's body as an
         // async function in the page and log what it returns
         const scriptArg = argValue('--perf-script');
+        // --bot-events=<file>: where the Spelbot's events go (see above)
+        const botEvents = argValue('--bot-events');
         if (scriptArg !== null) {
           // console.log('[capture] name') from the script saves a screenshot
           // next to the smoke-test png: <smoke>-<name>.png
           win.webContents.on('console-message', async (e, legacyLevel, legacyMessage) => {
             const message = String(e.message !== undefined ? e.message : legacyMessage);
+            // Spelbot (#186): console.log('[bot-log] <json>') lines and the page's warnings and errors go to the run's events file
+            if (botEvents) {
+              const lvl = e.level !== undefined ? e.level : legacyLevel;
+              if (message.startsWith('[bot-log] ')) fsSync.appendFileSync(botEvents, message.slice(10) + '\n');
+              else if (lvl === 'warning' || lvl === 'error' || lvl === 2 || lvl === 3) fsSync.appendFileSync(botEvents, JSON.stringify({ type: 'console', level: lvl === 2 ? 'warning' : lvl === 3 ? 'error' : lvl, msg: message.slice(0, 600), wall: Date.now() }) + '\n');
+            }
             // console.log('[profile] 8000') from the script: a CPU profile of that many ms
             if (message.startsWith('[profile] ')) { runProfile(win, Number(message.slice(10)) || 6000).catch((err) => console.log('[profile]', err.message)); return; }
             if (!message.startsWith('[capture] ')) return;
