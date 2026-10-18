@@ -31,11 +31,11 @@ const SF = await import('../../game/js/streetfurniture.js');
 export const ZERO = [
   'postOnRail', 'wireOnRail', 'hedgeOnRail', 'postOnRoad', 'wireOnRoad', 'hedgeOnRoad',
   'postInWater', 'wireInWater', 'hedgeInWater', 'postInBuilding', 'wireInBuilding', 'hedgeInBuilding',
-  'cattleInWater', 'cattleOnRoad', 'cattleOnRail', 'osmOnRail', 'osmOnRoad', 'osmInWater', 'osmInBuilding', 'gateOnRail',
+  'cattleInWater', 'cattleOnRoad', 'cattleOnRail', 'cattleOnFarmland', 'osmOnRail', 'osmOnRoad', 'osmInWater', 'osmInBuilding', 'gateOnRail',
 ];
 export const RATE = [
   ['seamGaps', 'posts', 0.002], ['doublePosts', 'posts', 0.025], ['postOnDitch', 'posts', 0.001],
-  ['wireOnDitch', 'wires', 0.004], ['hedgeOnDitch', 'hedges', 0.001],
+  ['wireOnDitch', 'wires', 0.004], ['postOnFarmland', 'posts', 0.02], ['hedgeOnDitch', 'hedges', 0.001],
 ];
 export function overLimits(total) {
   const bad = [];
@@ -71,7 +71,7 @@ function loadTiles(out, index, keys) {
     fs.readSync(fds.get(f), buf, 0, t.len, t.off);
     const blob = G.decodeBlob(new Uint8Array(zlib.inflateRawSync(buf)));
     const rows = (ty) => ((blob.sections.find((s) => s.type === ty) || { rows: [] }).rows).filter((r) => r.pts && r.pts.length > 1).map((r) => ({ ...r, bounds: bounds(r.pts) }));
-    res.set(k, { buildings: rows(G.SECTION.BUILDINGS), roads: rows(G.SECTION.ROADS), water: rows(G.SECTION.WATER), rails: rows(G.SECTION.RAILS), furniture: rows(G.SECTION.FURNITURE) });
+    res.set(k, { buildings: rows(G.SECTION.BUILDINGS), roads: rows(G.SECTION.ROADS), water: rows(G.SECTION.WATER), rails: rows(G.SECTION.RAILS), furniture: rows(G.SECTION.FURNITURE), parcels: rows(G.SECTION.PARCELS) });
   }
   for (const fd of fds.values()) fs.closeSync(fd);
   return res;
@@ -89,6 +89,7 @@ function mapOf(tiles) {
     waterNear: near(water.filter((w) => w.nav !== undefined)), flatWaterNear: near(water.filter((w) => w.nav === undefined)),
     railNear: near(rails),
     furniture: all('furniture'),
+    parcels: all('parcels'),
     all: { water, rails, roads: all('roads'), buildings: all('buildings') },
   };
 }
@@ -103,6 +104,7 @@ const inPoly = (x, y, P) => { let c = false; for (let i = 0, j = P.length - 1; i
 // de vragen van de audit, over de rijen van de tegels (los van realBlockedAt: een eigen oordeel)
 function judge(map) {
   const { roads, rails, water, buildings } = map.all;
+  const np = near(map.parcels);
   const nr = near(roads), nl = near(rails), nw = near(water), nb = near(buildings);
   return {
     nearRail: (x, y, d) => nl(x, y, d).some((r) => { for (let i = 0; i < r.pts.length - 1; i++) if (segDist(x, y, r.pts[i][0], r.pts[i][1], r.pts[i + 1][0], r.pts[i + 1][1]) < d) return true; return false; }),
@@ -115,6 +117,8 @@ function judge(map) {
       return false;
     }),
     inWater: (x, y) => nw(x, y, 0.5).some((w) => inPoly(x, y, w.pts)),
+    // OSM landuse=farmland at a point (only in a world built with PARCELS, global.osmParcels)
+    onFarmland: (x, y) => np(x, y, 0.5).some((p) => p.use === 'akker' && inPoly(x, y, p.pts)),
     inBuilding: (x, y) => nb(x, y, 0.5).some((b) => inPoly(x, y, b.pts)),
   };
 }
@@ -173,6 +177,7 @@ export function auditWindow(out, index, key, { rails = [] } = {}) {
           if (pts.some(([x, y]) => J.onRoad(x, y))) add(N + 'OnRoad');
           if (pts.some(([x, y]) => J.inWater(x, y))) add(N + 'InWater');
           if (pts.some(([x, y]) => J.inBuilding(x, y))) add(N + 'InBuilding');
+          if (kind === 'post' && J.onFarmland(px, py)) add('postOnFarmland');
           if (pts.some(([x, y]) => CF.countrySurface(x, y) === 'sloot')) add(N + 'OnDitch');
         }
       }
@@ -184,6 +189,7 @@ export function auditWindow(out, index, key, { rails = [] } = {}) {
         if (J.inWater(a.x, a.y)) { add('cattleInWater'); if (process.env.AUDIT_DEBUG) console.error('inWater', a.kind, Math.round(a.x), Math.round(a.y), map.all.water.filter((w) => inPoly(a.x, a.y, w.pts)).map((w) => w.kind + '/' + w.nav + '/' + (w.flat ? 'flat' : ''))); }
         if (J.onRoad(a.x, a.y)) add('cattleOnRoad');
         if (J.onRail(a.x, a.y)) add('cattleOnRail');
+        if (J.onFarmland(a.x, a.y)) add('cattleOnFarmland');
       }
     }
   }
@@ -274,7 +280,7 @@ async function main() {
   const total = sumWindows(rows.map((r) => r.c));
   const perStreek = {};
   for (const r of rows) { const s = perStreek[r.streek] || (perStreek[r.streek] = []); s.push(r.c); }
-  const keys = ['posts', 'wires', 'hedges', 'cattle', 'postOnRail', 'wireOnRail', 'hedgeOnRail', 'postOnRoad', 'wireOnRoad', 'hedgeOnRoad', 'postInWater', 'wireInWater', 'hedgeInWater', 'postInBuilding', 'wireInBuilding', 'hedgeInBuilding', 'postOnDitch', 'wireOnDitch', 'hedgeOnDitch', 'doublePosts', 'seamGaps', 'gates', 'gateAtRail', 'gateOnRail', 'osmPieces', 'osmOnRail', 'osmOnRoad', 'osmInWater', 'osmInBuilding', 'cattleInWater', 'cattleOnRoad', 'cattleOnRail'];
+  const keys = ['posts', 'wires', 'hedges', 'cattle', 'postOnRail', 'wireOnRail', 'hedgeOnRail', 'postOnRoad', 'wireOnRoad', 'hedgeOnRoad', 'postInWater', 'wireInWater', 'hedgeInWater', 'postInBuilding', 'wireInBuilding', 'hedgeInBuilding', 'postOnDitch', 'wireOnDitch', 'hedgeOnDitch', 'doublePosts', 'seamGaps', 'postOnFarmland', 'cattleOnFarmland', 'gates', 'gateAtRail', 'gateOnRail', 'osmPieces', 'osmOnRail', 'osmOnRoad', 'osmInWater', 'osmInBuilding', 'cattleInWater', 'cattleOnRoad', 'cattleOnRail'];
   if (args.includes('--json')) { console.log(JSON.stringify({ total, perStreek: Object.fromEntries(Object.entries(perStreek).map(([s, l]) => [s, sumWindows(l)])) })); }
   else {
     console.log(`${all.length} vensters (${W.rail.length} met spoor, ${W.random.length} willekeurig), seed ${opt('seed', 7)}`);
