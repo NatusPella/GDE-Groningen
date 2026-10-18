@@ -64,4 +64,30 @@ t('voertuig: erbij springen binnen bereik, te ver, vol; eigen voertuig roepen; n
   assert.deepEqual(P.voertuigActie(me, { vehicle: null }, veh, 'mijn-auto'), { actie: 'roep', id: 'mijn-auto', tekst: 'Je voertuig komt naar je medespeler.' });
   assert.equal(P.voertuigActie(me, { vehicle: null }, veh).actie, 'geen');
 });
+t('N spelers: alle anderen met eigen naam, kleur en vorm uit de lijst; jezelf niet', () => {
+  const roster = [{ slot: 0, char: 'tammo' }, { slot: 1, char: 'anita' }, { slot: 2, char: 'bram' }, { slot: 3, char: 'lotte', verbinding: 'lag' }];
+  const players = roster.map((r) => ({ slot: r.slot, x: r.slot * 10, y: 0, alive: true }));
+  const p = P.partnersInfo(2, players, roster);
+  assert.deepEqual(p.map((x) => x.naam), ['Tammo', 'Tessa', 'Lotte']);
+  assert.equal(new Set(p.map((x) => x.kleur)).size, 3); assert.equal(new Set(p.map((x) => x.vorm)).size, 3);
+  assert.equal(p[2].tekst, 'verbinding haperd'); assert.equal(p[0].tekst, 'te voet');
+});
+t('N spelers: markers voor iedereen op kaart en minimap, buiten beeld op de rand met pijl', () => {
+  const roster = [{ slot: 0, char: 'tammo' }, { slot: 1, char: 'anita' }, { slot: 2, char: 'rik' }];
+  const players = [{ slot: 0, x: 10, y: 0 }, { slot: 1, x: 5000, y: 0 }, { slot: 2, x: 0, y: 20 }];
+  const m = P.projectMarkers(P.partnersInfo(9, players, roster), { cx: 0, cy: 0, scale: 1, rx: 100, ry: 100 });
+  assert.equal(m.length, 3);
+  assert.equal(m.find((x) => x.slot === 1).buiten, true); assert.equal(m.find((x) => x.slot === 0).buiten, false);
+  assert.deepEqual(m.map((x) => x.naam), ['Tammo', 'Tessa', 'Rik']);
+});
+t('N spelers: een speler zonder gegevens heeft geen marker', () => {
+  const m = P.projectMarkers(P.partnersInfo(0, [], [{ slot: 0, char: 'tammo' }, { slot: 1, char: 'anita' }]), { cx: 0, cy: 0, scale: 1, rx: 50, ry: 50 });
+  assert.deepEqual(m, []);
+});
+t('pings per afzender: elke speler heeft zijn eigen cooldown', () => {
+  const p = P.createPings();
+  for (const van of [1, 2, 3, 4]) assert.ok(P.addPing(p, { x: van, y: 0, van }, 0), `speler ${van}`);
+  assert.equal(P.addPing(p, { x: 9, y: 0, van: 2 }, 0.5), null);
+  assert.equal(p.lijst.length, P.PING_MAX);
+});
 console.log(`partnerhud_test: ${n}/${n} ok`);
