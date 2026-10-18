@@ -104,6 +104,7 @@ function nearestRow(hx, hy, kind) {
 }
 
 const LS = await imp('loadscreen');
+const WPL = await imp('worldplaces');
 const results = {};
 for (const S of window.__vi.spots) {
   if (ONLY.length && !ONLY.includes(S.name)) continue;
@@ -177,16 +178,67 @@ for (const S of window.__vi.spots) {
           await sleep(500);
         } catch (e) { info[kind] = 'fout: ' + e.message; }
       }
+    } else if (S.type === 'labelgrid') {
+      // #212: what the place label says over a grid round the district: 'Ommeland' where it is a city district?
+      await go(S.x, S.y, 0, 5000);
+      const cnt = {}; let n = 0;
+      for (let dx = -S.rx; dx <= S.rx; dx += S.step) for (let dy = -S.ry; dy <= S.ry; dy += S.step) {
+        const at = WPL.worldPlaceAt(S.x + dx, S.y + dy);
+        const k = at ? (at.place ? at.place.name : '?') + (at.district ? ' / ' + at.district.name : '') + (at.near ? ' (dichtbij)' : '') : 'geen';
+        cnt[k] = (cnt[k] || 0) + 1; n++;
+      }
+      info.points = n; info.labels = cnt;
+      await shot(S.name, { position: { x: S.x, y: S.y + 250, z: gh(S.x, S.y) + 320 }, lookAt: { x: S.x, y: S.y, z: gh(S.x, S.y) }, cut: true }, 4500);
+    } else if (S.type === 'marker') {
+      // #115: the first mission's marker by day, close (35 m), mid (120 m) and far (400 m)
+      const St = window.__story; const first = St && St.steps.find((x) => x.kind === 'mission');
+      if (!first) { info.error = 'geen missie'; results[S.name] = info; continue; }
+      St.jump(first.id);
+      await sleep(6000);
+      const g = window.__goal && window.__goal.target && window.__goal.target();
+      if (!g) { info.error = 'geen doel van de missie'; results[S.name] = info; continue; }
+      info.goal = [Math.round(g.x), Math.round(g.y)]; info.step = first.id;
+      for (const [n, d] of [['dichtbij', 35], ['midden', 120], ['ver', 400]]) {
+        await go(g.x - d, g.y, 0, 5000);
+        const z = gh(g.x, g.y);
+        await shot(S.name + '-' + n, { position: { x: g.x - d, y: g.y, z: z + 3 }, lookAt: { x: g.x, y: g.y, z: z + 3 }, cut: true }, 2500);
+      }
+    } else if (S.type === 'cutsound') {
+      // #117: which world sounds the cutscenes of the first missions queue (cutaudio.js plan ->
+      // world.audioEvents, drained by audio.js). The page spies on the queue; the run is muted
+      // (--stil), so this proves the plan fires, not how it sounds.
+      clearInterval(skipper);
+      const log = [];
+      let arr = w.audioEvents || [];
+      const wrap = (a) => { const p = a.push.bind(a); a.push = (...x) => { for (const e of x) log.push({ t: Math.round(performance.now() / 100) / 10, k: e.kind + (e.name ? ':' + e.name : '') }); return p(...x); }; return a; };
+      arr = wrap(arr);
+      Object.defineProperty(w, 'audioEvents', { configurable: true, get() { return arr; }, set(v) { arr = wrap(v); } });
+      const St = window.__story;
+      const missions = St.steps.filter((x) => x.kind === 'mission').slice(0, S.n || 4);
+      info.scenes = {};
+      for (const m of missions) {
+        const l0 = log.length;
+        St.jump(m.id);
+        let sawCine = false;
+        for (let i = 0; i < 30; i++) { await sleep(1000); if (cine.isCinematicActive()) { sawCine = true; if (i % 10 === 4) console.log('[capture] ' + S.name + '-' + m.id + '-' + i); } }
+        info.scenes[m.id] = { cinematic: sawCine, events: log.slice(l0).map((e) => e.k) };
+        if (cine.isCinematicActive()) cine.skipCinematic();
+      }
     } else if (S.type === 'raillod') {
-      // #158: the player at S; views of the line from 40 / 150 / 400 / 900 m
+      // #158: the player stays at the station; the cutscene camera stands ON the line at arc
+      // length d from it (S.pts, along the polyline), looking back along the track. The focus
+      // follows the lens (tilefocus.js), so the rails under it must be built at every d.
       await go(S.x, S.y, S.a);
       info.at = [Math.round(S.x), Math.round(S.y)];
-      for (const d of [40, 150, 400, 900]) {
-        await shot(S.name + '-d' + d, along(S.x + Math.cos(S.a) * d, S.y + Math.sin(S.a) * d, S.a + Math.PI, 0, 5, d + 20, 1), 2200);
+      info.camera = {};
+      for (const q of S.pts) {
+        if (q.end) { info.camera['d' + q.d] = 'lijn te kort'; continue; }
+        info.camera['d' + q.d] = [Math.round(q.x), Math.round(q.y)];
+        const c = Math.cos(q.a), s2 = Math.sin(q.a), g = gh(q.x, q.y);
+        // eye 5 m up, 12 m behind the point on the line, looking 200 m down the track away from the station
+        await shot(S.name + '-d' + q.d + '-warm', { position: { x: q.x - c * 12, y: q.y - s2 * 12, z: g + 5 }, lookAt: { x: q.x + c * 200, y: q.y + s2 * 200, z: g + 1 }, cut: true }, 3500);
+        await shot(S.name + '-d' + q.d, { position: { x: q.x - c * 12, y: q.y - s2 * 12, z: g + 5 }, lookAt: { x: q.x + c * 200, y: q.y + s2 * 200, z: g + 1 }, cut: true }, 2500);
       }
-      // and the same stretch with the player 600 m away from it, the camera still at the line
-      await go(S.x - Math.cos(S.a) * 600, S.y - Math.sin(S.a) * 600, S.a);
-      await shot(S.name + '-speler600', along(S.x, S.y, S.a, 15, 4, 150, 1), 4500);
     }
   } catch (e) { info.error = String(e && e.stack || e).slice(0, 300); }
   results[S.name] = info;
