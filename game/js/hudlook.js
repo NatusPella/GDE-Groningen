@@ -64,6 +64,23 @@ export function meterLook(level, palette) {
   return { color: p.ok, pattern: 'solid', pulse: false, glyph: '' };
 }
 
+// The HUD scale (uiscale.js applies it as CSS zoom): the window against the
+// 1440x900 layout, never below 1 (a 720p window keeps the full-size HUD), times
+// the player's "Grootte interface", between 0.8 and 4.
+export const BASE_W = 1440;
+export const BASE_H = 900;
+export function uiScaleFor(width, height, user = 1) {
+  const auto = Math.max(1, Math.min(height / BASE_H, width / BASE_W));
+  const u = Number(user) || 1;
+  return Math.round(Math.min(4, Math.max(0.8, auto * u)) * 1000) / 1000;
+}
+
+// The box the HUD lays out in, in HUD px: the window divided by the scale.
+export function hudViewport(width, height, user = 1) {
+  const s = uiScaleFor(width, height, user);
+  return { w: width / s, h: height / s, scale: s };
+}
+
 // --- screen: 720p to 4K --------------------------------------------------------
 
 // Sizes are HUD px in a 1440x900 layout scaled by uiscale.js (never below 1).

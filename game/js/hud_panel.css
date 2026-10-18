@@ -9,6 +9,8 @@
   --gron-green: #1e9e56;
   --gron-green-light: #3fc97a;
   --hud-edge: 46px;
+  /* smallest text, 13 device px whatever the zoom (hudlook.js READABLE_MIN) */
+  --hud-min: calc(13px / var(--ui, 1));
   --hud-top: 34px;
   --mm-size: 250px;
   --mm-bottom: 46px;
@@ -114,7 +116,7 @@ body.hide-minimap #hud .hud-minimap-wrap { display: none; }
 #hud .gps-dist b { font-weight: normal; font-size: 25px; line-height: 1; color: var(--gron-green-light); }
 #hud .gps-dist span { font-size: 13px; color: rgba(240, 237, 228, 0.6); }
 #hud .gps-timer { display: none; flex-direction: column; align-items: center; }
-#hud .gps-timer span { font-size: 12px; color: rgba(240, 237, 228, 0.6); }
+#hud .gps-timer span { font-size: max(12px, var(--hud-min)); color: rgba(240, 237, 228, 0.6); }
 #hud .gps-timer b { font-weight: normal; font-size: 30px; line-height: 1; color: #ff9a9a; font-variant-numeric: tabular-nums; }
 #hud .hud-gps.has-timer .gps-timer, #hud .hud-gps.has-timer .gps-tsep { display: flex; }
 #hud .hud-gps:not(.has-timer) .gps-tsep { display: none; }
@@ -211,7 +213,7 @@ body.pigeon-mode #hud .hud-mission.in-mission:not([hidden]) { display: flex !imp
 #hud .hud-name-row { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
 #hud .hud-character { font-size: 17px; line-height: 1; color: #f0ede4; }
 #hud .hud-status { display: flex; gap: 4px; margin-left: 4px; }
-#hud .hud-chip { display: inline-flex; align-items: center; gap: 4px; padding: 0 5px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: 11px; line-height: 15px; white-space: nowrap; background: rgba(0, 0, 0, 0.55); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 4px; }
+#hud .hud-chip { display: inline-flex; align-items: center; gap: 4px; padding: 0 5px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: max(11px, var(--hud-min)); line-height: 15px; white-space: nowrap; background: rgba(0, 0, 0, 0.55); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 4px; }
 #hud .hud-chip[hidden] { display: none; }
 #hud .hud-chip.drunk { color: #ffd36a; border-color: rgba(255, 211, 106, 0.5); }
 #hud .hud-chip.drunk svg { width: 13px; height: 13px; fill: rgba(255, 211, 106, 0.35); stroke: #ffd36a; stroke-width: 1.8; stroke-linejoin: round; }
@@ -238,7 +240,7 @@ body.pigeon-mode #hud .hud-mission.in-mission:not([hidden]) { display: flex !imp
 @media (prefers-reduced-motion: reduce) { #hud .hud-meter.low .hud-bar { animation: none; } }
 
 /* savegame.js's toast, moved into the location block by hud_panel.js */
-#hud .hud-saved { position: absolute; left: 16px; bottom: 70px; display: flex; align-items: center; gap: 5px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: 12px; color: #a3b2a6; opacity: 0; transform: translateX(-6px); transition: opacity var(--dur-slow, 320ms) var(--ease-out, ease-out), transform var(--dur-slow, 320ms) var(--ease-out, ease-out); }
+#hud .hud-saved { position: absolute; left: 16px; bottom: 70px; display: flex; align-items: center; gap: 5px; font-family: 'Arial Narrow', Arial, sans-serif; font-size: max(12px, var(--hud-min)); color: #a3b2a6; opacity: 0; transform: translateX(-6px); transition: opacity var(--dur-slow, 320ms) var(--ease-out, ease-out), transform var(--dur-slow, 320ms) var(--ease-out, ease-out); }
 #hud .hud-location .hud-saved { position: static; flex: none; }
 #hud .hud-saved svg { width: 13px; height: 13px; color: var(--gron-green-light); }
 #hud .hud-saved span { text-transform: lowercase; }
@@ -552,7 +554,7 @@ body:not(.cine-hide-hud) #cine .cine-skip { right: 50%; bottom: calc(14px * var(
   border: 0;
   border-radius: 5px;
   color: #0c140e;
-  font-size: 12px;
+  font-size: max(12px, var(--hud-min));
   font-weight: bold;
   text-shadow: none;
   box-shadow: 0 2px 0 #a9a69b, 0 0 0 1px rgba(0, 0, 0, 0.18);
