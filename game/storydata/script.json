@@ -2690,6 +2690,14 @@
      "tag": "NIEUW",
      "channel": "radio",
      "textOnly": true
+    },
+    {
+     "speaker": "Rikus",
+     "key": "rikus",
+     "text": "Een luisteraar meldt dat Oldenhuis Bakt in Veendam de eenenveertigste snackbar opent. Eenenveertig snackbars, van Lauwersoog tot Bourtange. Ik weet niet wie dat eet.",
+     "tag": "NIEUW",
+     "channel": "radio",
+     "textOnly": true
     }
    ]
   },
@@ -5640,6 +5648,14 @@
      "textOnly": true
     },
     {
+     "speaker": "Rikus",
+     "key": "rikus",
+     "text": "Het festival heeft een hoofdsponsor: Oldenhuis Bakt, de keten met de eenenveertig snackbars. Bij elke frikandel hoort een bonnetje voor een tweede. Ik zeg niks.",
+     "tag": "NIEUW",
+     "channel": "radio",
+     "textOnly": true
+    },
+    {
      "speaker": "Jelle Terpstra",
      "key": "jelle",
      "text": "Rikus. Ik ga naar de haven. De Eemshaven is van mij. Plakje vijf.",
@@ -6816,6 +6832,14 @@
      "speaker": "Rikus",
      "key": "rikus",
      "text": "Wind uit het noordwesten. Op de Eemsdijk zijn zeventien schapen gered van een deurwaarder. Ik weet niet hoe.",
+     "tag": "NIEUW",
+     "channel": "radio",
+     "textOnly": true
+    },
+    {
+     "speaker": "Rikus",
+     "key": "rikus",
+     "text": "Kiekdoar meldt dat Oldenhuis Bakt in Delfzijl een vestiging opent, naast de visboer. De visboer lacht niet.",
      "tag": "NIEUW",
      "channel": "radio",
      "textOnly": true
@@ -8196,7 +8220,7 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Wiebelwerk. Alles om middernacht bijgewerkt. Ook de camera's.",
+     "text": "We staan bij Wiebelwerk, in Veendam. Zij doen elke nacht om middernacht de update van het museum. Ook van de camera's.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -8553,7 +8577,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "De machinist is omgekocht. Hij zit al een uur op een bank en eet een eierbal. De trein staat stil. De laatste twee juryleden en de bewaarder zitten vier uur vast in Jelles salonrijtuig.",
+     "text": "We staan op het perron in Stadskanaal. De machinist is omgekocht. Hij zit al een uur op een bank en eet een eierbal. De trein staat stil. De laatste twee juryleden en de bewaarder zitten vier uur vast in Jelles salonrijtuig.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -9170,6 +9194,15 @@
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Dan komt de bal ook hierheen, want Jelle draagt hem altijd bij zich. Dit is onze kans, Tammo.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
     },
     {
      "speaker": "Durk",

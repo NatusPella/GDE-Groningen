@@ -792,6 +792,9 @@ Een luisteraar meldt een kruispunt in de binnenstad waar alles tegelijk groen wa
 RIKUS (V.O. radio)  
 Peiling: wie wint de Noordelijke Snackprijs? Een Fries: 58 procent. Een Stadjer: 31 procent. Weet ik niet: 11 procent.
 
+RIKUS (V.O. radio)  
+Een luisteraar meldt dat Oldenhuis Bakt in Veendam de eenenveertigste snackbar opent. Eenenveertig snackbars, van Lauwersoog tot Bourtange. Ik weet niet wie dat eet.
+
 EXT. PADDEPOEL, GRUNN - NACHT [M06]
 
 Maandag 17 augustus, bijna twaalf uur 's nachts. De flat, de lift, de bank.
@@ -1728,6 +1731,9 @@ INT. NACHTSTREEK, STUDIO - NACHT [R2]
 RIKUS (V.O. radio)  
 Het Plantsoenfestijn opent vandaag in het Noorderplantsoen. Elf dagen theater en muziek. Het is er druk.
 
+RIKUS (V.O. radio)  
+Het festival heeft een hoofdsponsor: Oldenhuis Bakt, de keten met de eenenveertig snackbars. Bij elke frikandel hoort een bonnetje voor een tweede. Ik zeg niks.
+
 JELLE (V.O. radio)  
 Rikus. Ik ga naar de haven. De Eemshaven is van mij. Plakje vijf.
 
@@ -2108,6 +2114,9 @@ INT. NACHTSTREEK, STUDIO - NACHT [R3]
 
 RIKUS (V.O. radio)  
 Wind uit het noordwesten. Op de Eemsdijk zijn zeventien schapen gered van een deurwaarder. Ik weet niet hoe.
+
+RIKUS (V.O. radio)  
+Kiekdoar meldt dat Oldenhuis Bakt in Delfzijl een vestiging opent, naast de visboer. De visboer lacht niet.
 
 INT. DELFZIJL NAAR WINSCHOTEN, EEMSDELTA - OCHTEND [T3] (REISBEAT)
 
@@ -2558,7 +2567,7 @@ Maandag 24 augustus, middag. Een kantoorpand bij een rotonde. Een bord: Wiebelwe
 Gameplay: een kantoor als speelveld; de juiste antwoorden kiezen, de serverkamer in en het logboek van 12 augustus bekijken.
 
 TAMMO  
-Wiebelwerk. Alles om middernacht bijgewerkt. Ook de camera's.
+We staan bij Wiebelwerk, in Veendam. Zij doen elke nacht om middernacht de update van het museum. Ook van de camera's.
 
 TESSA  
 Dat is toch geen misdaad?
@@ -2672,7 +2681,7 @@ Maandag 24 augustus, late middag. Een museumstoomtrein onder stoom, maar hij sta
 Gameplay: Tammo is machinist en rijdt de trein naar het volgende perron, terwijl Tessa door de wagons naar de juryleden loopt.
 
 TESSA  
-De machinist is omgekocht. Hij zit al een uur op een bank en eet een eierbal. De trein staat stil. De laatste twee juryleden en de bewaarder zitten vier uur vast in Jelles salonrijtuig.
+We staan op het perron in Stadskanaal. De machinist is omgekocht. Hij zit al een uur op een bank en eet een eierbal. De trein staat stil. De laatste twee juryleden en de bewaarder zitten vier uur vast in Jelles salonrijtuig.
 
 TAMMO  
 Wie rijdt hem dan?
@@ -2870,6 +2879,9 @@ En Jelle?
 
 BEREND  
 Jelle is geen bisschop. Hij komt met zijn limo.
+
+TESSA  
+Dan komt de bal ook hierheen, want Jelle draagt hem altijd bij zich. Dit is onze kans, Tammo.
 
 Tessa gaat naar de kruitkelder. Ze zegt dat ze iets moet halen.
 
