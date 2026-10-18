@@ -25,6 +25,7 @@ const FLAGS = {
   pigeon: (w) => !!w.pigeonMode,
   train: (w) => !!w.trainDriving,
   respawn: (w) => !!w.pendingRespawn,
+  missionPhase: (w) => !!(w.mission && w.mission.phase === 'active'),
   cinematic: () => !!(probes.cinematic && probes.cinematic()),
   mission: () => !!(probes.mission && probes.mission()),
   activity: () => !!(probes.activity && probes.activity()),
