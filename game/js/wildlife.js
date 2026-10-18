@@ -6,6 +6,7 @@ import { resolveWalker } from './collision.js';
 import { pushCircleOutOfVehicle, vehicleHitBody } from './vehicle.js';
 import { splatterAnimal, GIB_SPEED } from './gore3d.js';
 import { MODS } from './cheatmods.js';
+import { buildingAt } from './tileplace.js';
 
 // Ambient trailer-parody wildlife: seagulls over the Diepenring,
 // ducks and geese on the canals, pigeon flocks on the squares, the odd
@@ -42,11 +43,7 @@ const PIGEON_STAND_Y = 0.1;
 let maintainTimer = 0;
 
 function insideBuilding(map, x, y) {
-  for (const b of map.buildingsNear(x, y, 1)) {
-    const [minx, miny, maxx, maxy] = b.bounds;
-    if (x >= minx && x <= maxx && y >= miny && y <= maxy && pointInPolygon(x, y, b.pts)) return true;
-  }
-  return false;
+  return !!buildingAt(map, x, y);
 }
 
 function openGround(map, x, y) {

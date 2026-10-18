@@ -20,9 +20,12 @@ import { vaultDecision, vehicleHeight, roofSpot, onRoof, localToWorld, worldToLo
 
 import { inHomeFlat } from './home.js';
 import { flyHeli, heliExitBlock } from './heliflight.js';
+import { flyPlane } from './planeflight.js';
+import { planeExitBlock } from './planecontrol.js';
 import { MODS } from './cheatmods.js';
 import { reportCrime } from './crime.js';
 import { shift as shiftGear } from './gearbox.js';
+import { buildingAt } from './tileplace.js';
 export { resolveBuildingCollisions };
 
 const BIKE_SPRINT_S = 2.5;
@@ -741,7 +744,7 @@ export class Player {
   tryEnterExit(map, vehicles, world = null) {
     if (this.inVehicle) {
       if (this.inVehicle.sinking && this.inVehicle.sinking.phase === 'fall') return;
-      const why = heliExitBlock(this.inVehicle);
+      const why = heliExitBlock(this.inVehicle) || planeExitBlock(this.inVehicle);
       if (why) { if (world) world.addMessage(why, 2.5, { kind: 'tip' }); return; }
       this.exitVehicle(map, world);
       return;
@@ -827,6 +830,11 @@ export class Player {
 
   driveVehicle(dt, input, map, world = null) {
     const v = this.inVehicle;
+    if (v.isPlane && world) {
+      flyPlane(v, dt, world);
+      this.x = v.x; this.y = v.y; this.angle = v.angle;
+      return;
+    }
     if (v.isHeli && world) {
       flyHeli(v, dt, world);
       this.x = v.x; this.y = v.y; this.angle = v.angle;
@@ -978,12 +986,7 @@ export function findClimbSpot(map, x, y, angle, reach = CLIMB_REACH) {
 }
 
 function isInsideBuilding(map, x, y) {
-  for (const b of map.buildingsNear(x, y, 0.5)) {
-    const [minx, miny, maxx, maxy] = b.bounds;
-    if (x < minx || x > maxx || y < miny || y > maxy) continue;
-    if (pointInPolygon(x, y, b.pts)) return true;
-  }
-  return false;
+  return !!buildingAt(map, x, y);
 }
 
 // Sides as multipliers of the vehicle's (-sin, cos) normal, which is its

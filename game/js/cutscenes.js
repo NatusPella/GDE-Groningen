@@ -201,6 +201,11 @@ export function flatScene(variant, lines) {
       cues.push({ t, actor: me, anim: V.gestures[me][gi[me]++ % V.gestures[me].length] });
       cues.push({ t, actor: other, anim: i % 2 ? 'nod' : 'look' });
       cues.push({ t, actor: other, face: 'actor:' + me });
+    } else if (l.speaker && l.speaker !== 'Rikus') {
+      // a voice on the phone (Henk, Sjabbe, Bert, the Torenwachter): Tessa holds it, Tammo leans in to listen
+      cues.push({ t, actor: 'tessa', anim: 'phone' });
+      cues.push({ t, actor: 'tammo', face: 'actor:tessa' });
+      cues.push({ t: `${t}+0.5`, actor: 'tammo', anim: i % 2 ? 'look' : 'nod' });
     }
     // every fourth line someone crosses the room, and looks back at the other
     if (i % 4 === 3) {
@@ -216,7 +221,7 @@ export function flatScene(variant, lines) {
   lines.forEach((l, i) => {
     const t = `L${i}`;
     switch (i % 4) {
-      case 0: shots.push({ t, shot: 'cut', at: [-1.2, 0.2, 1.7], look: 'mid:tammo,tessa@1.2', fov: 50 }); break;
+      case 0: shots.push({ t, shot: 'cut', at: [-1.2, 0.2, 1.7], look: WHO_ACTOR[l.speaker] ? 'mid:tammo,tessa@1.2' : 'tessa@1.5', fov: WHO_ACTOR[l.speaker] ? 50 : 34 }); break;
       case 1: shots.push({ t, shot: 'dolly', from: [3.3, -0.4, 1.5], to: [2.6, -0.3, 1.5], look: 'speaker', fov: 32 }); break;
       case 2: shots.push({ t, shot: 'orbit', target: 'mid:tammo,tessa@1.2', radius: 4.2, start: 250, sweep: -40, h0: 1.5, h1: 1.9, look: 'speaker', fov: 40 }); break;
       default: shots.push({ t, shot: 'cut', at: [-1.4, 1.8, 1.45], look: 'speaker', fov: 30 });

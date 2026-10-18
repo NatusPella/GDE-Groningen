@@ -8,6 +8,7 @@
 // path, a side street) the railing is left open.
 import { closestPointOnSegment, pointInPolygon } from './util.js';
 import { propKey, isPropBroken } from './breakables.js';
+import { buildingAt } from './tileplace.js';
 
 const GRID = 24;
 const OPENING_PAD = 0.4;
@@ -21,11 +22,7 @@ export function railingOffset(r) {
 }
 
 function insideBuilding(map, x, y) {
-  for (const b of map.buildingsNear(x, y, 0.5)) {
-    const [minx, miny, maxx, maxy] = b.bounds;
-    if (x >= minx && x <= maxx && y >= miny && y <= maxy && pointInPolygon(x, y, b.pts)) return true;
-  }
-  return false;
+  return !!buildingAt(map, x, y);
 }
 
 // Is the railing of bridge `r` at (x, y) interrupted by another way crossing it?

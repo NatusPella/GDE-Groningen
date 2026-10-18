@@ -49,6 +49,8 @@ export const BASE_KEYS = {
   snackChain: 'gde-snackketen-v1',
   // hidden setting: play the new story arc (storyflag.js)
   nieuwVerhaal: 'gde-nieuwverhaal',
+  // the last benchmark run, for the comparison (benchstats.js), new in 0.37: no legacy name
+  benchmarkLast: 'gde-benchmark-last-v1',
 };
 
 export const KEYS = Object.fromEntries(Object.entries(BASE_KEYS).map(([k, v]) => [k, ARC_KEYS.includes(k) ? v + ARC_SUFFIX : v]));
