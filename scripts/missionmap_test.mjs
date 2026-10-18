@@ -2,7 +2,7 @@
 // the minimap's scale and selection, the notices. Run: node scripts/missionmap_test.mjs
 import { bridgesAhead } from '../game/js/boatahead.js';
 import { racingLine } from '../game/js/kartline.js';
-import { escapeSpot } from '../game/js/missionmap.js';
+import { escapeSpot, heliZones } from '../game/js/missionmap.js';
 import { buildMissionLayer, layerKindOf, missionMinimapScale, selectMiniItems, selectMapItems, layerNotices, compassOf, relativeBearing, distLabel, MINI_MAX_ITEMS, MINI_ZOOM, ROLES } from '../game/js/missionmap.js';
 import { mapCategory, mapPriority, mapRimColor, mapKindVisible } from '../game/js/mapicons.js';
 import { drawMissionLayerIcon, layerCaption } from '../game/js/missionmapdraw.js';
@@ -138,6 +138,14 @@ for (const k of ['mm-gevaar', 'mm-rival', 'mm-halte', 'mm-ring', 'mm-pad', 'mm-b
   const st = racingLine(long, 7);
   ok(Math.abs(st[10][1]) < 1e-6 && Math.abs(st[30][1] - 30) < 1e-6, 'a straight stays on the middle');
   ok(racingLine([[0, 0], [1, 1]], 7).length === 2 && racingLine(circle, 0).length === N, 'too few points or no width: unchanged');
+}
+// the pigeon layer's areas to avoid: helicopter pads
+{
+  const z = heliZones([{ x: 10, y: 20, r: 12 }, { x: 0, y: 0 }, { x: NaN, y: 1 }]);
+  ok(z.length === 2 && z[0].r === 72 && z[1].r === 60 && z[0].label === 'Helikopterplek', 'a pad is an area of 6x its radius, at least 60 m');
+  const l = buildMissionLayer({ player: { x: 0, y: 0, angle: 0, speed: 0 }, pigeon: { targets: [], threats: [], noFly: z } });
+  ok(l && l.areas.some((a) => a.label === 'Helikopterplek' && a.role === 'hazard'), 'the pigeon layer draws the pad areas');
+  ok(heliZones(null).length === 0, 'no pads, no areas');
 }
 // where to run to when the police search (escapeSpot): just outside the circle, on the player's side
 {

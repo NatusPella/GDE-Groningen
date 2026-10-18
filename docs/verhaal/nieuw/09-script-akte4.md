@@ -4,7 +4,7 @@
 
 ## [M17.1] Open, dicht: intro – Veenkoloniën, Veendam, Oosterdiep – sloep
 (regie: maandag 24 augustus, ochtend. Een brug, een kanaal, een fanfare in de verte. Naamkaart: WUBBO. Gameplay: met een sloep door elf bruggen varen, voor Jelles mosterdschip, op het ritme van de bruggen.)
-WUBBO: Open of dicht. Nooit allebei. Dat is mijn hele werkfilosofie. Ik ben Wubbo, brugwachter, en Oma Trijntje belde. [NIEUW]
+WUBBO: Open of dicht. Nooit allebei. Dat is mijn hele werkfilosofie. Trijntje zocht iemand die kan wachten, en ik ben brugwachter. [NIEUW]
 TESSA: Durk zei dat Jelle vandaag in Veendam de mosterd haalt. Zijn mosterdschip moet door elf van jouw bruggen, en de bal reist met hem mee. Die mosterd is plakje zeven. [NIEUW]
 TAMMO: Hoe weten we wanneer? [NIEUW]
 WUBBO: Elf bruggen. Ik open ze op het ritme van de fanfare. Mis je de maat, dan wacht je. [NIEUW]
@@ -52,16 +52,31 @@ ACCOUNTMANAGER: Welkom bij Wiebelwerk. Wij maken websites. Wat is uw behoefte? [
 TESSA: Een website voor een frietwagen. [NIEUW]
 ACCOUNTMANAGER: Prachtig. Dan beginnen we met een intake. [NIEUW]
 
-## [M18.2] Wie draaide de camera's uit?: de intake – Veenkoloniën, Veendam, Wiebelwerk – te voet
-ACCOUNTMANAGER: Wat is uw merkpersoonlijkheid? [NIEUW]
-TAMMO: Friet. [NIEUW]
-ACCOUNTMANAGER: Dat is een product, geen persoonlijkheid. [NIEUW]
-TESSA: Warm, droog en een beetje Gronings. [NIEUW]
-ACCOUNTMANAGER: Dat noteer ik. Wilt u een chatbot? [NIEUW]
-TAMMO: Nee. [NIEUW]
-ACCOUNTMANAGER: Iedereen wil een chatbot. [NIEUW]
-TAMMO: Ik niet. [NIEUW]
-ACCOUNTMANAGER: Dan doen wij hem toch. [NIEUW]
+## [M18.2] Wie draaide de camera's uit?: de intake gehaald – Veenkoloniën, Veendam, Wiebelwerk – te voet
+(regie: de speler beantwoordt de intake met drie antwoorden; dit is de afloop als alles klopt. De accountmanager knikt tevreden en tikt op een tablet.)
+ACCOUNTMANAGER: Warm, droog en een beetje Gronings. Sinds deze zomer, jong maar eerlijk. Ik zie het voor me. [NIEUW]
+ACCOUNTMANAGER: Ik maak een offerte. Dat duurt een uur. Ik haal koffie. [NIEUW]
+TESSA: Neem de tijd. [NIEUW]
+ACCOUNTMANAGER: De serverkamer is niet voor klanten. De koffieautomaat staat in de andere gang. [NIEUW]
+TAMMO: Dat ging makkelijk. [NIEUW]
+TESSA: Zeg dat niet hardop. [NIEUW]
+
+## [M18.6] Wie draaide de camera's uit?: de accountmanager twijfelt – Veenkoloniën, Veendam, Wiebelwerk – te voet
+(regie: afloop bij één fout antwoord. De accountmanager kijkt van zijn tablet naar hen en blijft staan.)
+ACCOUNTMANAGER: Interessant. Bijna alle antwoorden klopten. Eén niet. [NIEUW]
+TESSA: Wij zijn nieuw. [NIEUW]
+ACCOUNTMANAGER: Iedereen is nieuw bij een intake. Ik loop even mee naar de koffieautomaat. In de gang. [NIEUW]
+TAMMO: Die staat bij de serverdeur. [NIEUW]
+ACCOUNTMANAGER: Dan staat u er mooi bij. [NIEUW]
+
+## [M18.7] Wie draaide de camera's uit?: de beveiliging loopt mee – Veenkoloniën, Veendam, Wiebelwerk – te voet
+(regie: afloop bij twee foute antwoorden. De accountmanager pakt zijn telefoon. Achter hem komt een beveiliger in de deuropening staan, met zijn armen over elkaar.)
+ACCOUNTMANAGER: Twee antwoorden die geen klant geeft. Ik nodig u uit voor een rondleiding. Met de beveiliging. [NIEUW]
+TAMMO: Is dat gratis? [NIEUW]
+ACCOUNTMANAGER: Bij Wiebelwerk is alles gratis, behalve de website. [NIEUW]
+TESSA: Loop maar voor, wij volgen. [NIEUW]
+TAMMO: Waarom zei je dat? [NIEUW]
+TESSA: Zo houden we ze in beeld. [NIEUW]
 
 ## [M18.3] Wie draaide de camera's uit?: de servers – Veenkoloniën, Veendam, Wiebelwerk – te voet
 TAMMO: De update. Altijd 00:00, drie minuten. [NIEUW]
@@ -86,7 +101,7 @@ TESSA: Dan is het Jelle, en iemand van binnen. [NIEUW]
 APP MEM→TESSA (stil): Kom dinsdag naar Bourtange, voor het Beleg. Jelle komt ook. – M. [NIEUW]
 
 ## [M18.5] Wie draaide de camera's uit?: herhaling – Veenkoloniën, Veendam – te voet
-ACCOUNTMANAGER: Weer een intake? Wij zijn altijd open. [NIEUW]
+ACCOUNTMANAGER: Nog een intake? De koffie is nog warm. [NIEUW]
 
 ## [M19.1] Stoom: intro – Veenkoloniën, Veendam, het perron – trein
 (regie: maandag 24 augustus, late middag. Een museumstoomtrein onder stoom, maar hij staat stil. Op een bank bij het perron zit de machinist met een bordje eierballen. In het salonrijtuig zitten twee juryleden en mevrouw Tuinstra, de bewaarder, met een bordje eierballen. Gameplay: Tammo is machinist en rijdt de trein naar het volgende perron, terwijl Tessa door de wagons naar de juryleden loopt.)
@@ -124,7 +139,7 @@ TESSA: Je hebt hem in een station gezet. Dat is meer dan de machinist. [NIEUW]
 BEREND (telefoon): Goidag. Die man in dat blauwe colbert wilde mijn bakkie kopen, contant, uit een klomp. Dat vergeef ik hem niet. Hij komt dinsdag naar het Beleg van Bourtange, met zijn beleggers. Ik heb een bus nodig. Kom naar Ter Apel. [NIEUW]
 
 ## [M19.4] Stoom: herhaling – Veenkoloniën, Veendam – trein
-DURK: Weer een trein? Net fertelle, hè? [NIEUW]
+DURK: Douwe. De trein staat weer stil. Net fertelle, hè? [NIEUW]
 
 ## [T4.1] De bus naar Bourtange: instappen – Westerwolde, Ter Apel-bos – bus
 (regie: dinsdag 25 augustus, vroege avond. Een heideweg, een oude bus, veertig mensen in bisschopsmantels en met kartonnen kanonnen. Reisbeat: meerijden, zelf rijden of skippen.)
@@ -178,12 +193,14 @@ DURK: Tammo. Wij dagen je uit. Fierljep. [NIEUW]
 DOUWE: …fierljep. [NIEUW]
 TAMMO: Een ding voor Friezen. [NIEUW]
 DURK: Net fertelle, hè? [BEHOUDEN]
+BEREND: Fierljepen doen wij ook, jong. In Grijpskerk hebben ze er een vereniging voor. Dat is Grunn. [NIEUW]
 
 ## [M20.2] Het beleg van Bourtange: de gracht – Westerwolde, Bourtange, de gracht – fierljepstok
 DURK: Wij zijn alleen de bezigheid. [BEHOUDEN]
 TAMMO: Wat is de bezigheid? [NIEUW]
 DURK: Baas heeft een afspraak met mem in de kruitkelder. Wij houden jullie een uur bezig. [NIEUW]
 DOUWE: Durk. Dat was geheim. …Hè. [BEHOUDEN]
+DURK: Douwe. Dat was ook geheim. [NIEUW]
 TAMMO: Houd even vast. De sleutel zit erin. [NIEUW]
 (regie: Tammo geeft Douwe zijn jas, met de autosleutel erin.)
 DOUWE: …vast. [NIEUW]
@@ -244,7 +261,7 @@ OMA TRIJNTJE: Eén zin, jong. [NIEUW]
 TAMMO: Ik heb er geen. [NIEUW]
 
 ## [M20.6] Het beleg van Bourtange: herhaling – Westerwolde, Bourtange, de wallen – te voet
-BEREND: Weer een beleg? Wat mout, dat mout. [NIEUW]
+BEREND: Het Beleg verliest nooit van mij. Ik verlies er elk jaar van. Wat mout, dat mout. [NIEUW]
 
 ## [R4.1] Nachtstreek, dinsdagnacht – Stad – radio
 JELMER (radio): Rikus! De Escapade van Tammo is foetsie! De chat ziet overal rode auto's! [BEHOUDEN]
@@ -316,7 +333,7 @@ JELMER: Chat, iedereen heeft weer een rode auto gezien! [BEHOUDEN]
 RIKUS (radio): Een luisteraar meldt dat er gisteravond veel Berenden naar Bourtange reden. Het was een goed Beleg. [NIEUW]
 
 ## [B4] Autogesprekken akte 4 (pool; Tammo zwijgt, Tessa praat te veel; de ongemakkelijke dagen) – Veenkoloniën, Westerwolde – auto, bus, trein
-TAMMO: Dat is Veendam. Groter dan Grunn. [NIEUW]
+TAMMO: Dat is Veendam. Bijna net zo groot als Grunn. [NIEUW]
 TESSA: Het is een negende. [NIEUW]
 TAMMO: Ik ben hier nog nooit afgeslagen. [NIEUW]
 TESSA: Er is ook niks om af te slaan. [NIEUW]

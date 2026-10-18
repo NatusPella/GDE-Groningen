@@ -603,3 +603,99 @@ S['M21.6'] = { ...S['M21.3'], beats: [
   { on: 'Dat is een kras', actor: 'berend', anim: 'point' },
   { on: 'Henk. Tinus', actor: 'henk', anim: 'point' },
 ] };
+
+// --- M18 the intake in three outcomes (M18.2 passed, M18.6 one wrong answer, M18.7 two): the manager at his desk ---
+const MANAGER = (x) => ({ accountmanager: { key: 'accountmanager', at: [x, -0.4], face: 175, anim: 'idle', gest: ['talk', 'hips', 'shrug'] } });
+const mgrOpen = [{ actor: 'tessa', face: 'actor:accountmanager' }, { actor: 'tammo', face: 'actor:accountmanager' }];
+S['M18.2'] = {
+  cast: MANAGER(3.0), props: {}, open: mgrOpen,
+  beats: [
+    { on: 'Warm, droog', actor: 'accountmanager', anim: 'nod' },
+    { on: 'Ik maak een offerte', actor: 'accountmanager', walk: [[3.8, -0.6]], speed: 0.7 },
+    { on: 'Dat ging makkelijk', actor: 'tammo', anim: 'shrug' },
+    { on: 'Zeg dat niet hardop', actor: 'tessa', anim: 'look' },
+  ],
+  shots: [], wide: WIDE([-4.5, 4, 3], [-2.5, 2.8, 2.3], 'mid:accountmanager,tessa@1'),
+};
+S['M18.6'] = {
+  cast: MANAGER(2.6), props: {}, open: mgrOpen,
+  beats: [
+    { on: 'Interessant', actor: 'accountmanager', anim: 'point' },
+    { on: 'Wij zijn nieuw', actor: 'tessa', anim: 'shrug' },
+    { on: 'Iedereen is nieuw', actor: 'accountmanager', walk: [[2.0, -0.2]], speed: 0.8 },
+    { on: 'Die staat bij de serverdeur', actor: 'tammo', anim: 'point' },
+  ],
+  shots: [], wide: WIDE([-4.5, 4, 3], [-2.5, 2.8, 2.3], 'mid:accountmanager,tessa@1'),
+};
+S['M18.7'] = {
+  cast: MANAGER(2.4), props: {}, open: mgrOpen,
+  beats: [
+    { on: 'Twee antwoorden', actor: 'accountmanager', anim: 'point' },
+    { on: 'Is dat gratis', actor: 'tammo', anim: 'shrug' },
+    { on: 'Bij Wiebelwerk is alles gratis', actor: 'accountmanager', anim: 'hips' },
+    { on: 'Loop maar voor', actor: 'tessa', anim: 'point' },
+    { on: 'Zo houden we ze in beeld', actor: 'tessa', anim: 'look' },
+  ],
+  shots: [], wide: WIDE([-4.5, 4, 3], [-2.5, 2.8, 2.3], 'mid:accountmanager,tessa@1'),
+};
+
+// --- M23 who rides next to the Fjord Frituur (M23.6 Wubbo, M23.7 Tinus, M23.8 Geesje) and M26 the streets they close (M26.14-16) ---
+const FRIEND = (key, x, gest) => ({ [key]: { key, at: [x, 0.3], face: 180, anim: 'idle', gest } });
+const friendOpen = (key) => [{ actor: 'tessa', face: `actor:${key}` }, { actor: 'tammo', face: `actor:${key}` }];
+const friendWide = (key) => WIDE([-5, 4, 3.2], [-3, 3, 2.4], `mid:${key},tessa@1`);
+S['M23.6'] = {
+  cast: FRIEND('wubbo', 3.2, ['point', 'talk', 'hips']), props: {}, open: friendOpen('wubbo'),
+  beats: [
+    { on: 'Ik rijd naast jullie', actor: 'wubbo', anim: 'point' },
+    { on: 'En de bruggen', actor: 'tessa', anim: 'look' },
+    { on: 'Die draai ik zelf', actor: 'wubbo', anim: 'hips' },
+    { on: 'Die komt een minuut later', actor: 'wubbo', anim: 'talk' },
+  ],
+  shots: [], wide: friendWide('wubbo'),
+};
+S['M23.7'] = {
+  cast: FRIEND('tinus', 3.2, ['talk', 'point', 'hips']), props: {}, open: friendOpen('tinus'),
+  beats: [
+    { on: 'Ik rij naast jullie', actor: 'tinus', anim: 'talk' },
+    { on: 'Ook een limo', actor: 'tessa', anim: 'look' },
+    { on: 'Ook een limo. Aan de trekhaak', actor: 'tinus', anim: 'point' },
+    { on: 'En elke keer klopt het', actor: 'tessa', anim: 'nod' },
+  ],
+  shots: [], wide: friendWide('tinus'),
+};
+S['M23.8'] = {
+  cast: FRIEND('geesje', 3.0, ['talk', 'hips', 'point']), props: {}, open: friendOpen('geesje'),
+  beats: [
+    { on: 'Ik rij naast jullie', actor: 'geesje', anim: 'talk' },
+    { on: 'Een scooter tegen een limo', actor: 'tessa', anim: 'shrug' },
+    { on: 'Een limo past niet', actor: 'geesje', anim: 'point' },
+    { on: 'Dat zeg ik altijd', actor: 'geesje', anim: 'hips' },
+  ],
+  shots: [], wide: friendWide('geesje'),
+};
+const streets = (key, x, beats) => ({
+  cast: { [key]: { key, at: [x, 0.3], face: 180, anim: 'idle', bg: true, gest: ['talk', 'point', 'hips'] } },
+  props: {}, open: friendOpen(key), beats, shots: [], wide: friendWide(key),
+});
+S['M26.14'] = streets('wubbo', 5.0, [
+  { on: 'Herestraat dicht', actor: 'wubbo', anim: 'point' },
+  { on: 'Dank je, Wubbo', actor: 'tessa', anim: 'nod' },
+  { on: 'Hij herhaalt zichzelf', actor: 'tammo', anim: 'shrug' },
+  { on: 'Dat heet een werkfilosofie', actor: 'tessa', anim: 'laugh' },
+]);
+S['M26.15'] = streets('tinus', 5.0, [
+  { on: 'Zuiderdiep dicht', actor: 'tinus', anim: 'point' },
+  { on: 'Je trekker past er net in', actor: 'tessa', anim: 'look' },
+  { on: 'Ik trek hem weg', actor: 'tinus', anim: 'hips' },
+  { on: 'Dat is de trekker', actor: 'tessa', anim: 'laugh' },
+]);
+S['M26.16'] = streets('geesje', 5.0, [
+  { on: 'De steeg bij de notaris', actor: 'geesje', anim: 'point' },
+  { on: 'Je zit te breien', actor: 'tessa', anim: 'shrug' },
+  { on: 'Wie blijft staan', actor: 'geesje', anim: 'talk' },
+  { on: 'Dat is een goede regel', actor: 'tammo', anim: 'nod' },
+]);
+// everyone steps closer as the scene starts (the scene test wants something to move)
+for (const [id, key, x] of [['M18.7', 'accountmanager', 2.4], ['M23.6', 'wubbo', 3.2], ['M23.7', 'tinus', 3.2], ['M23.8', 'geesje', 3.0], ['M26.14', 'wubbo', 5.0], ['M26.15', 'tinus', 5.0], ['M26.16', 'geesje', 5.0]]) {
+  S[id].beats.unshift({ on: 0, dt: 0.3, actor: key, walk: [[x - 1.4, 0.2]], speed: 0.9 });
+}
