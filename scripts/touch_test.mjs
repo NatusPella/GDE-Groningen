@@ -89,5 +89,10 @@ eq('pinch apart doubles', pin.factor, 2);
 eq('pinch midpoint', pin.mid, { x: 100, y: 0 });
 eq('pinch zero distance is neutral', pinchStep([{ x: 5, y: 5 }, { x: 5, y: 5 }], [{ x: 0, y: 0 }, { x: 9, y: 0 }]).factor, 1);
 
+// env(safe-area-inset-*) in touch.js geeft op iOS pas iets met viewport-fit=cover
+import { readFileSync } from 'node:fs';
+const html = readFileSync(new URL('../game/index.html', import.meta.url), 'utf8');
+if (!/name="viewport"[^>]*viewport-fit=cover/.test(html)) { fail++; console.log('FAIL viewport-fit=cover ontbreekt in index.html'); }
+
 console.log(fail ? `${fail} FAILED` : 'all ok');
 process.exit(fail ? 1 : 0);

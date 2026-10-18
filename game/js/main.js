@@ -135,6 +135,7 @@ import { planeKind } from './planeflight.js';
 import { busBoardKind } from './busboard3d.js';
 import { loadBusLines } from './busroutes.js';
 import { setBusLines } from './vehicle.js';
+import { stapSlaOver } from './simlagen.js';
 import { scaledTarget, simLevel, nextSimFrame, farAIDist, skipFar, takeDt, keepVehicle } from './simload.js';
 import { getSettings } from './settings.js';
 import { MODS } from './cheatmods.js';
@@ -640,7 +641,7 @@ async function boot() {
     probe.mark('player');
 
     updateTrafficLights(dt, world);
-    nextSimFrame();
+    const frameNoSim = nextSimFrame();
     const farAI = farAIDist();
     for (let i = 0; i < world.vehicles.length; i++) {
       const v = world.vehicles[i];
@@ -648,6 +649,11 @@ async function boot() {
       if (v.driver === 'player' || v.isBoat || (v.isPolice && !v.disabled && !(v.hijacked && !v.driver))) continue;
       // far ordinary traffic thinks less often on a CPU-bound machine (simload.js)
       if (farAI < Infinity && !keepVehicle(v) && skipFar(v, i, Math.abs(v.x - player.x) + Math.abs(v.y - player.y), dt)) continue;
+      // simlagen (#18): gewoon verkeer op middenafstand denkt om de paar frames, met opgespaarde dt
+      if (FLAGS.simlagen && !v.parked && !keepVehicle(v)) {
+        const dd = Math.hypot(v.x - player.x, v.y - player.y);
+        if (dd > 150 && stapSlaOver('auto', dd, i, frameNoSim)) { v._simDt = (v._simDt || 0) + dt; continue; }
+      }
       const vdt = takeDt(v, dt);
       updateTrafficAI(v, vdt, map, world, Math.random);
       resolveVehicleBuildingCollision(v, map, vdt);
