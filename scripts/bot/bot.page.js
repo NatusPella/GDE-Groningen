@@ -129,6 +129,7 @@ function track(s) {
   lastCine = cine;
 }
 
+let heldSince = null;
 let result = 'TIMEOUT', reason = 'speltijd of echte tijd op';
 let ticks = 0;
 const problems = B.validate();
@@ -149,7 +150,18 @@ while (true) {
   if (s.hud.messages.some((m) => /uitstappen|te voet/i.test(m))) mem.onFootUntil = s.t + 60;
   s.mission.onFoot = s.t < (mem.onFootUntil || 0);
   const act = L.decide(s, mem);
-  if (act.type === 'wait' || act.type === 'skip' || act.type === 'choose' || act.type === 'closemenu') detector.hold(s.t);
+  if (act.type === 'wait' || act.type === 'skip' || act.type === 'choose' || act.type === 'closemenu') {
+    detector.hold(s.t);
+    // waiting is only free for a while: something that never lets go (a stuck talk, banner or loading flag) is a finding and gets the ladder
+    if (heldSince == null) heldSince = s.t;
+    if (s.t - heldSince > (CFG.waitS || 45)) {
+      heldSince = s.t;
+      const flags = Object.keys(s.blocking).filter((k) => s.blocking[k] && k !== 'dialog');
+      B.log('wacht-te-lang', { step: stepKey, act: act.type, why: act.why || '', blocking: flags });
+      await rescue(s, stepKey, { idleFor: CFG.waitS || 45 });
+      continue;
+    }
+  } else heldSince = null;
   if (act.type === 'closemenu') { await B.press('escape'); continue; }
   if (act.type === 'choose') { B.log('keuze', { dialog: s.blocking.dialog.text, key: act.key }); shot(`${stepKey}-keuze`); await B.choose(act.key); continue; }
   if (act.type === 'skip') { await holdSkip(); continue; }

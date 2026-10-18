@@ -31,6 +31,8 @@ ok(F.some((f) => f.kind === 'vast' && f.step === 'M02' && f.shot === 'M02-vast')
 ok(F.filter((f) => f.kind === 'cheat').length === 1 && F.find((f) => f.kind === 'cheat').detail.includes('teleport, objective'), 'één cheat-bevinding per stap');
 ok(F.filter((f) => f.kind === 'console').length === 1, 'twee fouten met andere getallen zijn één bevinding');
 ok(F.some((f) => f.kind === 'minigame-start' && f.step === 'mg-kartbaan'), 'minigame die niet start');
+const W = A.findings([{ t: 5, type: 'wacht-te-lang', step: 'M18', act: 'wait', why: 'gesprek', blocking: ['talk'] }]);
+ok(W.length === 1 && W[0].kind === 'wacht' && /talk/.test(W[0].title) && W[0].severity === 'bug', 'wacht-te-lang is een bevinding');
 ok(!F.some((f) => /duif/.test(f.title)), 'gestarte minigame is geen bevinding');
 ok(new Set(F.map((f) => f.fp)).size === F.length, 'afdrukken zijn uniek');
 const M = A.metrics(run(), { result: 'TIMEOUT', gameSeconds: 120 });

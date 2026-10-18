@@ -26,6 +26,7 @@ export function findings(events) {
     if (String(e.step).startsWith('mg-')) add('minigame-vast', 'bug', e.step, `Minigame ${String(e.step).slice(3)}: de bot komt niet verder`, `Geen verandering gedurende ${Math.round(e.idleFor || 0)} s`, shotFor(name));
     else add('vast', 'bug', sid, `Bot zit vast bij ${sid}`, `Op (${Math.round(e.x)}, ${Math.round(e.y)}), ${Math.round(e.idleFor || 0)} s zonder voortgang, afstand tot doel ${e.goalDist != null ? Math.round(e.goalDist) + ' m' : 'onbekend'}`, shotFor(name));
   }
+  for (const e of events.filter((x) => x.type === 'wacht-te-lang')) add('wacht', 'bug', String(e.step || '').split(':')[0], `Bot wacht te lang bij ${String(e.step || '').split(':')[0]}: ${(e.blocking || []).join(', ') || e.act}`, `Het spel laat niet los (${e.act}${e.why ? ', ' + e.why : ''}); vlaggen: ${(e.blocking || []).join(', ') || 'geen'}`);
   const cheatSteps = new Map();
   for (const c of S.cheats.filter((x) => x.rung !== 'nudge')) cheatSteps.set(String(c.step).split(':')[0], (cheatSteps.get(String(c.step).split(':')[0]) || []).concat(c.rung));
   for (const [step, rungs] of cheatSteps) add('cheat', 'bug', step, `${step} had een cheat nodig om door te gaan`, `Rungs: ${rungs.join(', ')}`);
@@ -70,8 +71,8 @@ export function compareRuns(prev, cur) {
 
 // --- issues zonder dubbelen -----------------------------------------------------------------
 export const FP_MARK = (fp) => `spelbot:${fp}`;
-const IMPACT = { console: 'impact-hoog', nan: 'impact-hoog', vast: 'impact-hoog', 'minigame-vast': 'impact-midden', 'minigame-start': 'impact-midden', cheat: 'impact-hoog', mislukt: 'impact-laag', schema: 'impact-laag', invoer: 'impact-midden' };
-const COST = { console: 'kosten-S', nan: 'kosten-M', vast: 'kosten-M', 'minigame-vast': 'kosten-M', 'minigame-start': 'kosten-S', cheat: 'kosten-M', mislukt: 'kosten-S', schema: 'kosten-S', invoer: 'kosten-S' };
+const IMPACT = { wacht: 'impact-hoog', console: 'impact-hoog', nan: 'impact-hoog', vast: 'impact-hoog', 'minigame-vast': 'impact-midden', 'minigame-start': 'impact-midden', cheat: 'impact-hoog', mislukt: 'impact-laag', schema: 'impact-laag', invoer: 'impact-midden' };
+const COST = { wacht: 'kosten-M', console: 'kosten-S', nan: 'kosten-M', vast: 'kosten-M', 'minigame-vast': 'kosten-M', 'minigame-start': 'kosten-S', cheat: 'kosten-M', mislukt: 'kosten-S', schema: 'kosten-S', invoer: 'kosten-S' };
 
 // existing: [{ number, title, body, state }] van gh; geeft per bevinding 'nieuw' of 'bestaat' (met nummer)
 export function planIssues(list, existing) {
