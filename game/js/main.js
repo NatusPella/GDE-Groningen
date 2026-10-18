@@ -18,7 +18,7 @@ import { isPlayAheadOpen } from './todo.js';
 import { Player } from './player.js';
 import { World } from './world.js';
 import { initCompanion, updateCompanion } from './companion.js';
-import { updateTrafficAI, resolveVehicleBuildingCollision, resolveVehicleVehicleCollisions, manageTrafficPopulation, manageBikePopulation, manageBusPopulation, manageScooterPopulation, manageBoatPopulation, updateBoatAI, checkVehicleWater, spawnHeroCarNear, tickBurningVehicles, setGroundMap } from './vehicle.js';
+import { updateTrafficAI, resolveVehicleBuildingCollision, resolveVehicleVehicleCollisions, manageTrafficPopulation, manageBikePopulation, manageBusPopulation, manageScooterPopulation, manageMotorPopulation, manageBoatPopulation, updateBoatAI, checkVehicleWater, spawnHeroCarNear, tickBurningVehicles, setGroundMap } from './vehicle.js';
 import { spawnPedestriansNear, updatePedestrians, CITY_CENTRE } from './pedestrians.js';
 import { updateCombat, updateBullets } from './combat.js';
 import { updatePolice } from './police.js';
@@ -36,6 +36,7 @@ import { initSnackMachines, updateSnackMachines, tryMachineInteract } from './sn
 import { updateStreetLife, tryStreetLifeInteract } from './streetlife.js';
 import { bikeBoost, hourOf } from './streetlifedata.js';
 import { wijkProfileAt } from './trafficfleet.js';
+import { motorTarget } from './motortraffic.js';
 import { updateParkingLots3D } from './parkinglots3d.js';
 import { isShopOpen } from './shopui.js';
 import { initMapView, updateMapView, isMapOpen } from './mapview.js';
@@ -124,6 +125,7 @@ function waitForStart(world) {
     manageBikePopulation(world, { spawnMin: 8 });
     manageBusPopulation(world, { spawnMin: 25 });
     manageScooterPopulation(world, { spawnMin: 8 });
+    manageMotorPopulation(world, { spawnMin: 8 });
     manageBoatPopulation(world, { spawnMin: 5 });
   };
   const tick = (dt) => {
@@ -294,6 +296,7 @@ async function boot() {
   manageBikePopulation(world);
   manageBusPopulation(world);
   manageScooterPopulation(world);
+  manageMotorPopulation(world);
   manageBoatPopulation(world, { target: boatTarget() });
   world.pedestrians = spawnPedestriansNear(map, player.x, player.y, PED_TARGET, Math.random);
   initMissions(world);
@@ -505,6 +508,7 @@ async function boot() {
       manageBikePopulation(world, { target: Math.round((scaledTarget(16) + (inCentre ? scaledTarget(8) : 0) + (rush ? scaledTarget(rush) : 0)) * MODS.bikes) });
       manageBusPopulation(world);
       manageScooterPopulation(world, { target: scaledTarget(10) });
+      manageMotorPopulation(world, { target: scaledTarget(motorTarget(wijkProfileAt(world.map, world.player.x, world.player.y).key, hourOf(world))) });
       manageBoatPopulation(world, { target: boatTarget() });
       if (simLevel()) thinTraffic(world);
     }
