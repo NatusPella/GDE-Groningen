@@ -9,6 +9,7 @@ import { pushAudioEvent } from './pedestrians.js';
 import { unlockAchievement, setStatMax, recordStat, recordChallengeResult } from './achievements.js';
 import { makeHeli, flyHeli, helipadById, HELI_MODEL } from './heliflight.js';
 import { findClearSpot } from './helispawn.js';
+import { ringCounter, landingGuide } from './heligrade.js';
 import { lineVoiceFor } from './linevoice.js';
 import { playLineVoice } from './audio.js';
 import { SPEAKERS, STEP_BY_ID } from './storyarc.js';
@@ -348,7 +349,7 @@ function updateHud(dt) {
     setVal('time', `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`, t < 20 ? 'low' : '');
   }
   setVal('speed', `${Math.round(Math.hypot(v.vx || 0, v.vy || 0) * 3.6)} km/u`);
-  setVal('rings', `${r.st.ringsHit}/${r.ringsTotal}`);
+  setVal('rings', ringCounter(r.st, r.ringsTotal).text);
   setVal('dist', b.phase === 'ground' ? 'nog aan de grond' : fmtDist(Math.hypot(b.x - v.x, b.y - v.y)));
   setVal('score', String(Math.max(0, Math.round(r.score))));
   hud.altMe.style.top = altY(v.z);
@@ -367,7 +368,8 @@ function updateHud(dt) {
     hud.arrow.style.transform = `rotate(${(rel * 180 / Math.PI + 90).toFixed(1)}deg)`;
     const d = Math.hypot(tgt.x - v.x, tgt.y - v.y);
     const dz = tgt.z - v.z;
-    const hint = tgt.kind === 'pad' ? (d < 20 && !v.onGround ? `<span class="down">▼ ${downKey()}: landen</span>` : '') :
+    const lg = tgt.kind === 'pad' ? landingGuide(v, { x: tgt.x, y: tgt.y, r: tgt.r, deck: tgt.z }) : null;
+    const hint = lg ? (d < 60 && !v.onGround ? `<span class="${lg.ok ? 'down' : 'up'}">${lg.text} · ${Math.round(lg.alt)} m · ${(Math.round(lg.vs * 10) / 10).toString().replace('.', ',')} m/s</span>` : '') :
       dz > 4 ? '<span class="up">▲ hoger</span>' : dz < -4 ? '<span class="down">▼ lager</span>' : 'hoogte goed';
     const html = `${r.legLabel}<small>${tgt.label ? tgt.label + ' · ' : ''}${fmtDist(d)}${hint ? ' · ' + hint : ''}</small>`;
     if (hud.cache.goal !== html) { hud.cache.goal = html; hud.goal.innerHTML = html; }
