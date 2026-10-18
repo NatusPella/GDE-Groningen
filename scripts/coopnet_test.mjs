@@ -156,8 +156,8 @@ t('pauze per speler: Tessa houdt het spel op; een extra speler niet, tenzij de o
   assert.deepEqual(s.holds.filter((h) => h[0] === 'host').map((h) => h[1]), [2, 1], 'Tessa houdt het spel altijd op');
   assert.equal(s.hw.coop.remote, false, 'Tessa valt terug op de volg-AI');
 });
-t('maximum: standaard 4, instelbaar tot 8; de vijfde moet wachten tot het maximum omhoog gaat', () => {
-  const s = sessie(4); s.step(3);
+t('maximum: instelbaar (hier 4); de vijfde moet wachten tot het maximum omhoog gaat', () => {
+  const s = sessie(4, { opts: { max: 4 } }); s.step(3);
   assert.equal(s.gs[3].gw.coopNet.session.status, 'geweigerd'); assert.equal(s.gs[3].gw.coopNet.session.rejected, 'vol');
   assert.equal(N.setMaxPlayers(s.hw, 8), 8);
   const hw = s.hw, link = createLink({ latency: 0.03, seed: 50 }); N.addGuest(hw, link.a);

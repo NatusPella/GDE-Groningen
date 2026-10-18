@@ -118,9 +118,9 @@ t('N spelers: de host ziet de lijst, kan iedereen apart verwijderen en het maxim
   const v = L.view(s);
   assert.match(v.lines[0], /Spelers \(4 van 4\): Tammo \(host\), Tessa, Bram, Lotte/);
   assert.deepEqual(v.buttons.filter((b) => b.act.startsWith('kick-')).map((b) => b.act), ['kick-1', 'kick-2', 'kick-3']);
-  assert.deepEqual(v.buttons.filter((b) => b.act.startsWith('max-')).map((b) => b.act), ['max-6', 'max-8']);
+  assert.deepEqual(v.buttons.filter((b) => b.act.startsWith('max-')).map((b) => b.act), ['max-8', 'max-12', 'max-16']);
   assert.equal(v.code, null, 'vol: de code hoeft niet meer getoond');
-  const s6 = L.reduce(s, { t: 'spelers', lijst: LIJST(4), max: 6 });
+  const s6 = L.reduce(s, { t: 'spelers', lijst: LIJST(4), max: 8 });
   assert.equal(L.view(s6).code, 'K3J9D-8F2MN', 'er is weer plek: de code blijft zichtbaar');
   assert.match(L.view(s6).lines.join(' '), /nog plek/);
 });
@@ -137,15 +137,24 @@ t('N spelers: een verbroken speler staat in de lijst; de pauze noemt de naam', (
 });
 t('N spelers: de gast ziet de lijst en kiest een figuur voor plek 2 en hoger; alleen figuren uit de lijst', () => {
   let s = run(APP, { t: 'kies', rol: 'gast' });
-  assert.equal(L.view(s).wensen.length, 6);
+  assert.equal(L.view(s).wensen.length, 14);
   assert.ok(!L.view(s).wensen.some((w) => w.id === 'tammo' || w.id === 'anita'), 'Tammo en Tessa zijn niet te kiezen');
   s = L.reduce(s, { t: 'wens', char: 'bram' }); assert.equal(s.wens, 'bram'); assert.equal(L.view(s).wensen.find((w) => w.id === 'bram').gekozen, true);
   assert.equal(L.reduce(s, { t: 'wens', char: 'tammo' }).wens, null);
   const v = L.reduce(L.reduce(s, { t: 'status', status: 'ok' }), { t: 'spelers', lijst: LIJST(3), max: 4 });
   assert.match(L.view(v).lines[0], /Spelers \(3 van 4\)/); assert.equal(L.view(v).buttons.length, 1);
 });
-t('het maximum blijft tussen 4 en 8', () => {
-  const s = L.reduce(L.createLobby(APP), { t: 'spelers', lijst: [], max: 99 }); assert.equal(s.max, 8);
+t('advies bij meer dan 4 spelers: prestaties, en voor de host uploadbandbreedte; niet bij 4 of minder', () => {
+  const lijst = (n) => Array.from({ length: n }, (_, i) => ({ slot: i, char: i ? 'rik' : 'tammo', naam: i ? 'Rik' : 'Tammo' }));
+  const host = (n) => L.view(L.reduce(run(APP, { t: 'kies', rol: 'host' }, { t: 'status', status: 'ok' }), { t: 'spelers', lijst: lijst(n), max: 16 })).lines.join(' ');
+  assert.doesNotMatch(host(4), /trager/);
+  assert.match(host(5), /Met 5 spelers kan het spel trager worden/); assert.match(host(5), /uploaden/);
+  const gast = L.view(L.reduce(run(APP, { t: 'kies', rol: 'gast' }, { t: 'status', status: 'ok' }), { t: 'spelers', lijst: lijst(9), max: 16 })).lines.join(' ');
+  assert.match(gast, /Met 9 spelers/); assert.doesNotMatch(gast, /uploaden/);
+});
+t('het maximum is standaard 8 en blijft tussen 4 en 16', () => {
+  assert.equal(L.createLobby(APP).max, 8);
+  const s = L.reduce(L.createLobby(APP), { t: 'spelers', lijst: [], max: 99 }); assert.equal(s.max, 16);
   assert.equal(L.reduce(L.createLobby(APP), { t: 'spelers', lijst: [], max: 2 }).max, 4);
 });
 console.log(`lobby_test: ${n}/${n} ok`);
