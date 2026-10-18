@@ -12,6 +12,10 @@
 //   waterways   a canal or river of unmapped width (a guess of 14 / 10 m) is
 //               narrowed, down to 3 m, where a footprint stands on the bank
 //               (issue #124: farms in the water)
+//   afloat      a footprint 20 % or more in the water (the compact boxes of the
+//               Ommeland sit a few metres off the bank, OSM's water areas run
+//               under quays) slides at most 12 m to dry land, as the houseboats
+//               slide onto water; further in it stays and the audit counts it
 //   clipped     footways and cycleways through a solid block end at its
 //               facade (passages.js clipWaysInBuildings)
 //
@@ -21,6 +25,7 @@ import { SpatialGrid } from '../../game/js/spatialgrid.js';
 import { clipWaysInBuildings } from '../../game/js/passages.js';
 import { polygonBounds } from '../../game/js/util.js';
 import { clearFootprints } from './building_clearance.mjs';
+import { waterIndex, wetFraction, WET_FRAC } from './placement_audit.mjs';
 
 const MIN_HW = 1.5; // a trimmed waterway stays 3 m wide
 const BANK = 0.6; // and keeps this far from a footprint
@@ -37,6 +42,49 @@ const inRing = (x, y, P) => {
   }
   return c;
 };
+
+const MAX_SLIDE = 12;
+
+// Footprints in the water slid the shortest way onto dry land (12 m at most, steps of 0.5 m
+// over 16 directions), clear of other footprints; none is dropped. Houseboats and landmarks stay.
+// -> the number moved
+export function slideOutOfWater(feats) {
+  const water = feats.filter((f) => f.kind === 'water').map((f) => f.row);
+  const blds = feats.filter((f) => f.kind === 'buildings').map((f) => f.row);
+  if (!water.length || !blds.length) return 0;
+  const wet = waterIndex(water);
+  const grid = new SpatialGrid(60);
+  const box = new Map();
+  const boundsOf = (b) => box.get(b) || box.set(b, polygonBounds(b.pts)).get(b);
+  for (const b of blds) grid.insert(b, boundsOf(b));
+  let moved = 0;
+  for (const b of blds) {
+    if (b.type === 'houseboat' || b.landmark || b.landmarkKind || b.landmarkPart || b.helipad || b.parts) continue;
+    if (wetFraction(b.pts, wet) < WET_FRAC) continue;
+    const q = boundsOf(b);
+    const others = grid.query(q[0] - MAX_SLIDE, q[1] - MAX_SLIDE, q[2] + MAX_SLIDE, q[3] + MAX_SLIDE).filter((o) => o !== b);
+    const clear = (ox, oy) => !others.some((o) => {
+      const ob = boundsOf(o);
+      if (ob[0] > q[2] + ox || ob[2] < q[0] + ox || ob[1] > q[3] + oy || ob[3] < q[1] + oy) return false;
+      return b.pts.some(([x, y]) => inRing(x + ox, y + oy, o.pts)) || o.pts.some(([x, y]) => inRing(x - ox, y - oy, b.pts));
+    });
+    let best = null;
+    for (let d = 0.5; d <= MAX_SLIDE && !best; d += 0.5) {
+      for (let a = 0; a < 16 && !best; a++) {
+        const ox = Math.cos((a * Math.PI) / 8) * d, oy = Math.sin((a * Math.PI) / 8) * d;
+        const P = b.pts.map(([x, y]) => [Math.round((x + ox) * 100) / 100, Math.round((y + oy) * 100) / 100]);
+        if (wetFraction(P, wet) < 0.03 && clear(ox, oy)) best = P;
+      }
+    }
+    if (!best) continue;
+    grid.remove(b, q);
+    b.pts = best;
+    box.delete(b);
+    grid.insert(b, boundsOf(b));
+    moved++;
+  }
+  return moved;
+}
 
 // Water features that came from a waterway line (f.line) without a mapped width
 // get their ribbon again with the half width cut to the nearest footprint
@@ -99,14 +147,15 @@ export function deriveFeatures(feats, { clear = true, clip = true } = {}) {
   const bFeats = of('buildings'), rFeats = of('roads');
   const buildings = bFeats.map((f) => f.row);
   const roads = rFeats.map((f) => f.row);
-  const stats = { buildings: buildings.length, moved: 0, merged: 0, canopies: 0, lifted: 0, clipped: 0, trimmed: 0 };
+  const stats = { buildings: buildings.length, moved: 0, merged: 0, canopies: 0, lifted: 0, clipped: 0, trimmed: 0, afloat: 0 };
+  // (before the clearance: the footprints settle on dry land first, then keep off the roads)
+  stats.trimmed = trimWaterways(feats);
+  stats.afloat = slideOutOfWater(feats);
   if (clear && buildings.length && roads.length) {
     const was = buildings.map((b) => b.pts);
     clearFootprints({ roads, buildings });
     stats.moved = buildings.reduce((n, b, i) => n + (b.pts !== was[i] ? 1 : 0), 0);
   }
-  // (after the clearance, before the merge: the footprints as they will stand)
-  stats.trimmed = trimWaterways(feats);
   const rowFeat = new Map(bFeats.map((f) => [f.row, f]));
   // (no height profiles yet: a bridge or tunnel carriageway does not run on the footprints under it)
   const ringRoads = roads.filter((r) => !r.bridge && !r.tunnel && !(r.layer > 0));

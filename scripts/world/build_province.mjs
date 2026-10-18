@@ -412,7 +412,7 @@ export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(s
     raster = new Raster(x0, y0, Math.ceil(((i1 - i0 + 1) * G.TILE_M) / FINE_M), Math.ceil(((j1 - j0 + 1) * G.TILE_M) / FINE_M), FINE_M);
   }
   const gid = { buildings: GID0, roads: GID0, water: GID0, green: GID0, trees: GID0, rails: GID0, canopies: GID0, furniture: GID0 };
-  const stats = { tiles: 0, buildings: 0, roads: 0, water: 0, rails: 0, green: 0, trees: 0, furniture: 0, junctions: 0, signals: 0, autoSignals: 0, hsrc: {}, packs: 0, sourceMB: 0, bag: bag3d ? bag3d.stats : null, derived: { moved: 0, merged: 0, canopies: 0, lifted: 0, clipped: 0, trimmed: 0 } };
+  const stats = { tiles: 0, buildings: 0, roads: 0, water: 0, rails: 0, green: 0, trees: 0, furniture: 0, junctions: 0, signals: 0, autoSignals: 0, hsrc: {}, packs: 0, sourceMB: 0, bag: bag3d ? bag3d.stats : null, derived: { moved: 0, merged: 0, canopies: 0, lifted: 0, clipped: 0, trimmed: 0, afloat: 0 } };
   const blobs = new Map();
   const empty = [], noPack = [];
   const railRows = [];
