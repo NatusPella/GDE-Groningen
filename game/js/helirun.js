@@ -8,6 +8,7 @@ import { isShopOpen } from './shopui.js';
 import { pushAudioEvent } from './pedestrians.js';
 import { unlockAchievement, setStatMax, recordStat, recordChallengeResult } from './achievements.js';
 import { makeHeli, flyHeli, helipadById, HELI_MODEL } from './heliflight.js';
+import { findClearSpot } from './helispawn.js';
 import { lineVoiceFor } from './linevoice.js';
 import { playLineVoice } from './audio.js';
 import { SPEAKERS, STEP_BY_ID } from './storyarc.js';
@@ -418,16 +419,24 @@ function blockReason(w) {
 }
 
 // The demo heli Rotor Roelf parked on the pad (storyfun.js), or a new one.
-function heliOn(w, pad) {
+// Where the run's heli may stand: the pad itself, or on open ground beside it when
+// another heli (the player's own) is in the way; null on a deck that is taken (#166).
+function clearSpotFor(w, pad) {
+  const demo = w.vehicles.find((q) => q.isHeli && q.storyDemo && !q.wrecked && !q.sinking && Math.hypot(q.x - pad.x, q.y - pad.y) < 20);
+  const blockers = w.vehicles.filter((q) => q !== demo && q.isHeli && !q.wrecked && !q.sinking).map((q) => ({ x: q.x, y: q.y, z: q.z }));
+  return findClearSpot(pad, blockers, { deck: pad.id === 'umcg' });
+}
+
+function heliOn(w, pad, spot = null) {
   let v = w.vehicles.find((q) => q.isHeli && q.storyDemo && !q.wrecked && !q.sinking && Math.hypot(q.x - pad.x, q.y - pad.y) < 20);
   if (!v) {
-    v = makeHeli(pad.x, pad.y, pad.deck, pad.angle, { ...HELI_MODEL, color: '#e8e6e0' });
+    v = makeHeli(spot ? spot.x : pad.x, spot ? spot.y : pad.y, pad.deck, pad.angle, { ...HELI_MODEL, color: '#e8e6e0' });
     v.missionCar = true;
     w.vehicles.push(v);
   }
-  v.x = pad.x; v.y = pad.y; v.z = pad.deck; v.angle = pad.angle;
+  v.x = spot ? spot.x : pad.x; v.y = spot ? spot.y : pad.y; v.z = pad.deck; v.angle = pad.angle;
   v.vx = 0; v.vy = 0; v.vz = 0; v.speed = 0; v.driftX = 0; v.driftY = 0; v.yawRate = 0;
-  v.onGround = true; v.groundZ = pad.deck; v.landKind = 'pad'; v.landPad = helipadById(pad.id);
+  v.onGround = true; v.groundZ = pad.deck; v.landKind = spot && spot.moved ? 'ground' : 'pad'; v.landPad = spot && spot.moved ? null : helipadById(pad.id);
   v.health = 100;
   v.disabled = false;
   v.heliRun = true;
@@ -451,8 +460,11 @@ export function startHeliRun(opts = {}) {
     // no Eelde pad: start on the UMCG deck with Dijkstra already aboard
     else st.leg = plan.legs.findIndex((l) => l.kind === 'rings');
   }
+  // no heli through the player's own heli: a free spot, or wait until it is moved (#166)
+  const spot = clearSpotFor(w, startPad);
+  if (!spot) { w.addMessage('Het helidek is bezet: zet je eigen heli eerst ergens anders neer', 4, { kind: 'tip', key: 'helirun-bezet' }); return false; }
   if (pl.inVehicle) pl.inVehicle.driver = null;
-  const v = heliOn(w, startPad);
+  const v = heliOn(w, startPad, spot);
   // the yellow trauma heli is in for a service meanwhile (it would sit on the deck)
   const sky = scriptHeli(w);
   if (sky) Object.assign(sky, { x: startPad.x, y: startPad.y, z: -400, rotor: 0 });
