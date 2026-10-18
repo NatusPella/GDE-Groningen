@@ -1,5 +1,5 @@
 // Dierenplan (game/js/dierenplan.js, #193): soorten per streek, dichtheidsbudget, vluchtgedrag, determinisme.
-import { SPECIES, SPECIES_IDS, STREEK_MIX, STREKEN_PLAN, TILE_BUDGET, TOTAL_BUDGET, DESPAWN_M, tileAnimals, capByBudget, wildlifeLimits, grazerPick, fleeFrom, calmed, soundOf } from '../game/js/dierenplan.js';
+import { SPECIES, SPECIES_IDS, STREEK_MIX, STREKEN_PLAN, TILE_BUDGET, TOTAL_BUDGET, DESPAWN_M, tileAnimals, capByBudget, wildlifeLimits, grazerPick, gansKans, fleeFrom, calmed, soundOf } from '../game/js/dierenplan.js';
 import { STREKEN } from '../game/js/regioleven.js';
 let n = 0, fails = 0;
 const ok = (c, name, info = '') => { n++; if (!c) { fails++; console.log(`FAIL ${name} ${info}`); } };
@@ -77,5 +77,6 @@ ok(soundOf('koe') === 'cow' && soundOf('schaap') === 'sheep' && soundOf('meeuw')
   ok(grazerPick('westerkwartier', 0.2) === 'cow' && grazerPick('hogeland', 0.9) === 'sheep', 'koe of schaap naar streek');
   ok(wildlifeLimits('onbekend', 'hoog', base).seagull >= 1, 'onbekende streek valt terug op stad');
 }
+ok(gansKans('oldambt') > gansKans('stad') && gansKans('stad') === 0 && gansKans('hogeland') <= 0.6, 'ganzen op het land naar streek');
 console.log(`dierenplan_test: ${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

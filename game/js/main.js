@@ -82,6 +82,7 @@ import { setFarProps } from './farprops.js';
 import { initProvince } from './provinceworld.js';
 import { loadRoadNet, setRoadNet } from './roadgraph.js';
 import { buildMovableBridges, updateMovableBridges, getMovableBridges } from './movablebridges.js';
+import { updateSluizen } from './sluizen.js';
 import { updateBridgeHits, resetBridgeDamage, startBridgeCrashDemo, stepBridgeCrashDemo } from './bridgehitworld.js';
 import { geoWorkerActive } from './geojobs.js';
 import { init3D, update3D, resize3D, getScene, getRenderer, setMenuCover, MENU_FRAME_S, refreshRenderScale, terrainReady, canvasFrameCount, prewarmStreamAt } from './scene3d.js';
@@ -205,6 +206,7 @@ function waitForStart(world) {
     tickBurningVehicles(world, dt);
     updateRailway(dt, world);
     updateMovableBridges(dt, world);
+    updateSluizen(dt, world);
     updatePedestrians(dt, world);
     updateWildlife(dt, world);
     // in play combat.js expires these; the title screen and trailer only add
@@ -309,6 +311,7 @@ async function boot() {
   const tiles = FLAGS.legacymap ? null : await loadTileWorld('world/', { onProgress: onMapProgress, extra });
   const corridor = !!tiles;
   if (tiles && FLAGS.terrain) tiles.world.terrainOn = true;
+  if (tiles && FLAGS.viaducten) tiles.world.streamProfiles = true;
   const layers = (tiles && tiles.index.layers) || {};
   const corLayer = (layers.provincie && layers.provincie.global ? layers.provincie : null) || layers.corridor;
   if (corLayer && corLayer.global) setWorldPlaces(corLayer.global.places);
@@ -692,6 +695,7 @@ async function boot() {
     updateZeilvaren(dt, world, calendarToday(world));
     updateStationLife(dt, world, { routes: getRoutes(), point: routePoint, day: calendarToday(world), createBoard: createStationBoard, driving: getTrains().some((t) => t.state === 'player') });
     updateMovableBridges(dt, world);
+    updateSluizen(dt, world);
     // a ship against a bridge deck: the crash sound of a car contact, by how hard the deck was hit (audio.js updateContactAudio)
     for (const h of updateBridgeHits(dt, world)) recordContact(h.boat, null, h.boat.x, h.boat.y, 0, 0, 4 + h.severity * 4, 0);
     if (FLAGS.brugbotsing) {
