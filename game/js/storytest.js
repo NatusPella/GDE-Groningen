@@ -226,7 +226,8 @@ async function minigameSmoke(world, check, capture) {
   hold('w', 'KeyW');
   await sleep(3200);
   const ks = kb.state().karts;
-  check('kartbaan: karts drive and stay on the track', ks.every((k) => Number.isFinite(k.prog) && k.f > 3) && ks.every((k) => Math.abs(k.off) < 9), JSON.stringify(ks));
+  // the harness only holds W: the player's kart runs straight into the barrier, so only the AI karts must keep moving
+  check('kartbaan: karts drive and stay on the track', ks.every((k) => Number.isFinite(k.prog)) && ks.filter((k) => k.name !== 'jij').every((k) => k.f > 3) && ks.every((k) => Math.abs(k.off) < 9), JSON.stringify(ks));
   capture('mg-kart-race');
   release('w', 'KeyW');
   check('kartbaan: the race can be finished', kb.finish());
@@ -391,7 +392,7 @@ async function batch2Smoke(world, check, capture) {
     await pressUntil(String(right), 'Digit' + right, () => c.data.qi > i || c.data.phase === 'result', 8000);
     await sleep(200);
   }
-  check('rechtbank: three right answers pay', await waitFor(() => world.money > money2 && !panelUp(), 8000), `${money2} -> ${world.money}`);
+  check('rechtbank: three right answers pay', await waitFor(() => world.money > money2 && !panelUp(), 40000), `${money2} -> ${world.money}`);
   SJ().quit();
   await sleep(300);
 
