@@ -1,7 +1,7 @@
 // Reisopties op de kaart (#97): de dunne laag tussen de wereld en de pure modules
 // ovopties.js / ovkaart.js. Bij het kiezen van een bestemming rekent reisOptiesVoor
 // de routes per vervoerswijze uit; tekenLijnen tekent de OV-lijnen op het canvas.
-import { planTrainTrip, planBoatRoute } from './routing.js';
+import { planTrainTrip, planBoatTrip } from './routing.js';
 import { getBusLines } from './vehicle.js';
 import { busTrip, reisOpties } from './ovopties.js';
 import { travelSeconds } from './reistijd.js';
@@ -25,7 +25,7 @@ export function reisOptiesVoor(world, target) {
     const guard = (f) => { try { return f(); } catch (e) { return null; } };
     routes.trein = guard(() => planTrainTrip(world.map, a, b, {}));
     routes.bus = guard(() => busTrip(getBusLines(), a, b));
-    routes.boot = guard(() => planBoatRoute(world.map, a, b, { height: 2.2 }));
+    routes.boot = guard(() => planBoatTrip(world.map, a, b, 'sloep'));
   }
   const opts = reisOpties(routes, { directM: direct * 1.25, money: world.money });
   cache.key = key;
