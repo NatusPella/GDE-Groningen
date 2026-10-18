@@ -379,7 +379,10 @@ function settingsHtml() {
     ${tab('a11y', `
       ${picker('colorBlind', 'Kleurenblind', [['uit', 'Uit'], ['deuteranopie', 'Deuteranopie'], ['protanopie', 'Protanopie'], ['tritanopie', 'Tritanopie']], 'Andere kleuren voor markers, routes, kaart en HUD')}
       ${slider('uiScale', 'Grootte interface', 0.8, 1.5, 0.05)}
-      ${toggle('reduceMotion', 'Beweging beperken', 'Staat ook aan als je systeem om minder beweging vraagt')}`, `${pane('Toegankelijkheid', 'Lekker lezen', '<p>Vormen en patronen helpen altijd, ook als je geen kleurenstand kiest. Menu’s, kaarten en tellers springen meteen naar hun nieuwe stand als je beweging beperkt.</p><p class="mut">Ondertitels stel je in onder Geluid & ondertitels.</p>')}`)}
+      ${picker('textSize', 'Tekstgrootte', [['normaal', 'Normaal'], ['groot', 'Groot'], ['extragroot', 'Extra groot']], 'Groter voor meldingen, toetshints en berichten')}
+      ${picker('subtitleContrast', 'Contrast ondertitels', [['normaal', 'Normaal'], ['hoog', 'Hoog']], 'Hoog: wit op bijna zwart, met zwaardere letters')}
+      ${toggle('reduceMotion', 'Beweging beperken', 'Staat ook aan als je systeem om minder beweging vraagt')}
+      ${toggle('reduceFlash', 'Flitsen beperken', 'Geen witte schermflitsen in filmpjes en intro')}`, `${pane('Toegankelijkheid', 'Lekker lezen', '<p>Vormen en patronen helpen altijd, ook als je geen kleurenstand kiest. Menu’s, kaarten en tellers springen meteen naar hun nieuwe stand als je beweging beperkt.</p><p class="mut">Ondertitels stel je in onder Geluid & ondertitels.</p>')}`)}
     ${tab('fouten', `<div class="m-list pm-slist pm-wide">
       <p class="pm-note">Gaat er iets mis, dan schrijft het spel dat hier op. Alleen op dit apparaat: er wordt niets verstuurd. Wil je helpen? Kopieer het rapport en stuur het zelf mee met je melding. Er staat niets persoonlijks in: de melding, waar in de code, de versie, je verhaalstap, een paar instellingen en het soort videokaart.</p>
       <div class="m-acts pm-errlog-actions">
