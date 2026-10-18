@@ -191,6 +191,21 @@ export function applyAkte5(list) {
         cast: [{ key: 'mem', pose: 'hips', at: [2.6, 0.4] }, { key: 'jelle', pose: 'hips', at: [3.4, -1.0] }],
       },
       {
+        kind: 'choice', kicker: 'De jury op de Vismarkt', label: 'Beantwoord de vraag van de jury over de eierbal', say: 'Berend proeft voor het laatst. Zeg wat jullie bal Gronings maakt: 1 tot en met 3.',
+        rounds: [
+          { who: 'Berend', text: 'Wat maakt deze eierbal Gronings? Eén zin, en nog niet zeuren.', options: [
+            { label: 'De korrel van het grove meel.', reply: 'Berend knikt langzaam. Hij schrijft niks op, dat is een goed teken.' },
+            { label: 'De fijne bloem, heel glad.', ok: false, reply: 'Berend: "Dat is Fries." Tessa schuift de bloem snel weg.' },
+            { label: 'Wij hebben een luik.', ok: false, reply: 'Berend: "Een luik is geen smaak." Henk, achterin, knikt toch.' },
+          ] },
+          { who: 'Berend', text: 'En waarom moet de standplaats naar jullie?', options: [
+            { label: 'Omdat Oma het zo maakt, en Mem er ook bij was.', reply: 'Mem kucht. Trijntje kijkt de andere kant op, tevreden.' },
+            { label: 'Omdat Jelle een notaris heeft.', ok: false, reply: 'Berend: "Daar stem ik niet op." Jelle slikt.' },
+            { label: 'Omdat de friet erbij komt.', reply: 'Berend: "Friet erbij. Dat noteer ik." Het is een beetje een gok.' },
+          ] },
+        ],
+      },
+      {
         kind: 'scene', label: 'De jury', target: stalls, kicker: 'Gronings Ontzet', title: 'Vier van de vijf', script: { ids: ['M26.6'] },
         cast: [{ key: 'berend', pose: 'hips', at: [3.0, 1.5] }, { key: 'mem', pose: 'hips', at: [2.2, -1.4] }, { key: 'trijntje', pose: 'arms', at: [1.6, -2.6] }, { key: 'jelle', pose: 'hips', at: [3.6, -0.6] }, { key: 'jurylid', pose: 'arms', at: [4.2, 1.0] }],
       },
