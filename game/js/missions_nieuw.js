@@ -6,6 +6,7 @@
 
 import { wgsToWorld } from './rdnew.js';
 import { ROOSTER } from './heliplan.js';
+import { makeStrip } from './planecontrol.js';
 
 // A spot in the province by latitude/longitude plus metres east/south (province roads are not in the city map: no road snapping).
 const spotAt = (lat, lon, dx = 0, dy = 0) => { const [x, y] = wgsToWorld(lat, lon); return { x: x + dx, y: y + dy, road: null }; };
@@ -13,6 +14,11 @@ const spotAt = (lat, lon, dx = 0, dy = 0) => { const [x, y] = wgsToWorld(lat, lo
 // M14: the finish at the sluis of Delfzijl and the start 8 km back along the line to the Eemshaven
 const DIJK_SLUIS = spotAt(53.3245, 6.9270);
 const DIJK_START = (() => { const e = spotAt(53.4395, 6.8350), L = Math.hypot(e.x - DIJK_SLUIS.x, e.y - DIJK_SLUIS.y), k = 8000 / L; return { x: DIJK_SLUIS.x + (e.x - DIJK_SLUIS.x) * k, y: DIJK_SLUIS.y + (e.y - DIJK_SLUIS.y) * k, road: null }; })();
+
+// M15: the grass strip of Roelfien near Oostwold (Oldambt), pointing at the kermis of Winschoten, and a spot relative to that kermis
+const kermisAt = (dx, dy) => { const p = spotAt(53.1444, 7.0356, dx, dy); return { x: p.x, y: p.y }; };
+const AIRSTRIP_SPEC = (() => { const a = spotAt(53.1990, 7.0150), k = spotAt(53.1444, 7.0356); return { x: a.x, y: a.y, heading: Math.atan2(k.y - a.y, k.x - a.x), length: 520 }; })();
+const AIRSTRIP = makeStrip(AIRSTRIP_SPEC);
 
 // The def pieces: walk(x, y) / drive(x, y) are missions.js's road spots.
 export function buildNieuwDefs({ map, walk, drive }) {
@@ -124,6 +130,36 @@ export function buildNieuwDefs({ map, walk, drive }) {
           won: 'Eerst bij de sluis! De deurwaarder staat met zijn map in de wind.',
           lost: 'Jelles deurwaarder was eerder bij de sluis. Het beslag is gelegd',
         },
+      ],
+    },
+    {
+      // M15 Laag over het graan: Roelfien's gewasspuiter (the plane of planeflight.js) on a strip in the Oldambt; low gates over the
+      // kermis of Winschoten with the banner behind it (planestage.js). The strip near Oostwold is a guess until it is checked in OSM
+      // (aeroway=aerodrome); no airfield is invented, the plane stands on a grass strip like Kist Kees at Eelde.
+      type: 'stages',
+      label: 'Laag over het graan',
+      intro: ["Roelfien wacht bij haar graanveld bij Winschoten. Jelle geeft de juryleden op de kermis een gratis proeverij, en daar koopt hij ze mee.", "Vlieg Roelfiens gewasspuiter laag over het graan, pik het spandoek op en sleep het over de kermis. Hou de molen rechts en trek pas op na de kermis."],
+      outro: 'Het spandoek hing boven de kermis. Twee juryleden stapten uit.',
+      timeLimit: null,
+      reward: 900,
+      onFoot: true,
+      start: { x: AIRSTRIP.point(24, 14).x, y: AIRSTRIP.point(24, 14).y, road: null },
+      stages: [
+        { kind: 'plane', strip: AIRSTRIP_SPEC, label: 'Stap in het vliegtuig van Roelfien', say: 'Roelfiens rode gewasspuiter staat op de strook. Instappen, Tessa stuurt.' },
+        {
+          kind: 'airgates', label: 'Laag over het graan, het spandoek over de kermis', banner: 'JELLE KOOPT DE JURY. LEVENSLANG EIERBALLEN',
+          say: 'Opstijgen en laag over het graan. Eerst het spandoek aan de paal oppikken, dan naar de kermis van Winschoten.',
+          high: 'te hoog: niemand ziet het spandoek', low: 'te laag: het spandoek en de wielen zitten in het graan', wide: 'de poort gemist: zo ziet de kermis het spandoek niet',
+          crashed: 'het vliegtuig is neergestort. Roelfien is niet blij', talk: { ids: ['M15.2'], delay: 6 },
+          gates: [
+            { ...AIRSTRIP.point(430), r: 30, lo: 3, hi: 24, banner: true, label: 'De paal met het spandoek', say: 'Spandoek opgepikt! Laag blijven, naar de kermis.' },
+            { ...kermisAt(-120, -420), r: 45, lo: 15, hi: 75, label: 'Over de molen, hou hem rechts' },
+            { ...kermisAt(-40, -60), r: 40, lo: 14, hi: 48, label: 'Over de kermis', say: 'Ze lezen het! Door de rij kramen.' },
+            { ...kermisAt(70, 70), r: 40, lo: 14, hi: 48, label: 'Door de rij kramen' },
+            { ...kermisAt(260, 260), r: 55, lo: 18, hi: 140, label: 'Trek op na de kermis', say: 'Voorbij de kermis. Nu terug naar de strook.' },
+          ],
+        },
+        { kind: 'landplane', label: 'Land op de strook bij Roelfien', say: 'Terug naar de strook. Gas eraf, neus iets omlaag, en rem met Shift als je staat.', crashed: 'het vliegtuig is neergestort. Roelfien is niet blij' },
       ],
     },
   );

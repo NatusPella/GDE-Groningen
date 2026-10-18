@@ -16,6 +16,7 @@ import { createRace, updateRace, raceStandings, disposeRace, updateRetiredRacers
 import { TOUR_BOAT, rondvaartWaypoints, rondvaartBerth, startRondvaart, updateRondvaart, stopRondvaart, rondvaartStatus, rondvaartTip, rondvaartOutro, playRondvaartBoarding, routeAt, ROUTE_LENGTH } from './rondvaartchase.js';
 import { startHeliRun, isHeliRunActive, abortHeliRun, getHeliSpotsForRender } from './helirun.js';
 import { helipadById } from './heliflight.js';
+import { enterPlaneStage, updatePlaneStage, planeStageProgress, disposePlaneStage, releasePlaneStage } from './planestage.js';
 import { spawnFxPuff, spawnFxSpark } from './fx3d.js';
 import { Pedestrian, isInsideBuilding, setPedPose } from './pedestrians.js';
 import { knockDown, isKnockedDown } from './ragdoll.js';
@@ -1236,6 +1237,7 @@ function releaseMissionVehicle(world) {
   stopRondvaart(world, 'mission');
   disposeFjordTrain(world);
   disposeHeist();
+  releasePlaneStage(world);
   if (chain.skutsje) {
     const i = world.vehicles.indexOf(chain.skutsje);
     if (i >= 0 && chain.skutsje.driver !== 'player') world.vehicles.splice(i, 1);
@@ -2538,6 +2540,7 @@ function stageProgressBase(world, def) {
   const n = `${list.indexOf(st) + 1}/${list.length}`;
   if (st.kind === 'pigeon' && S.flying) return `${st.label} · op de foto ${S.spotted.size}/${S.targets.length}`;
   if (st.kind === 'hold') return `${st.label} · ${Math.min(100, Math.round(S.hold / st.time * 100))}%`;
+  if (st.kind === 'airgates' && planeStageProgress(st, S)) return planeStageProgress(st, S);
   if (st.kind === 'escape') {
     if (S.target && !world.wanted) return `${st.label} · ${Math.round(dist(world.player.x, world.player.y, S.target.x, S.target.y))} m`;
     return `${S.target ? 'Schud de politie af' : st.label} · ${'★'.repeat(world.wanted)}`;
@@ -2613,6 +2616,8 @@ function enterStage(world, def, k) {
   }
   if (st.kind === 'scene' && st.dropFlag) dropFlag();
   if (st.kind === 'chase' && st.race) S.finish = resolveTarget(world, st.finish, from);
+  disposePlaneStage(world);
+  if (st.kind === 'plane' || st.kind === 'airgates' || st.kind === 'landplane') enterPlaneStage(world, st, S);
   if (st.kind === 'boatchase') S.boat = spawnSkutsje(world, st);
   if (st.kind === 'boatchase' && S.boat) S.target = S.boat.v;
   if (st.kind === 'hold' && st.fireworks) { S.fwT = 1.5; S.fw = []; }
@@ -3081,6 +3086,14 @@ function updateStages(dt, world, def) {
       if (fv) adoptVehicle(world, fv, { hero: true });
       world.addMessage(r === 'taken' ? st.taken : st.caught, 4.5);
       nextStage(world, def);
+      break;
+    }
+    case 'plane':
+    case 'airgates':
+    case 'landplane': {
+      const r = updatePlaneStage(dt, world, st, S);
+      if (r === 'next') nextStage(world, def);
+      else if (r && r.fail) fail(world, def, r.fail);
       break;
     }
     case 'heli':

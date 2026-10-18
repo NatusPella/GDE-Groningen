@@ -590,6 +590,14 @@ const STORY = [
     replay: [['N', 'Weer een rondje? Dat neem ik jullie niet kwalijk.']],
     fail: [['A', 'Jelle was eerder. Sikkom.'], ['T', 'Opnieuw, en nu zonder schapen.']],
   },
+  {
+    // 22: M15 Laag over het graan (new story; the lines are the script's, see entryFor)
+    npc: 'roelfien', outroPose: 'hips', ask: 0, textOnly: true,
+    intro: [['N', 'Ik ben Roelfien.']],
+    outro: [['N', 'Twee juryleden zijn weggelopen.']],
+    replay: [['N', 'Weer een spandoek? Het graan wacht.']],
+    fail: [['A', 'Te hoog, of te laag. Sikkom.'], ['T', 'Het graan zat in de wielen.']],
+  },
 ];
 
 // Tammo/Tessa lines for when a mission is played before the ones leading up
