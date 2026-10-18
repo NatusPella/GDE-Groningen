@@ -81,9 +81,6 @@ export const TOUR_STOPS = [
     ['A', 'In die gouden toren zit het depot. Daar staat de kunst die even niet aan de muur hangt.'],
     ['T', 'Net als mijn fiets in de schuur.'],
   ] },
-  { at: [73.05, 840.68], name: 'de Werkmanbrug', lines: [
-    ['T', 'Deze brug is vernoemd naar Hendrik Werkman, drukker en kunstenaar van De Ploeg. Hij werd in april 1945 door de bezetter gefusilleerd, een paar dagen voor Groningen werd bevrijd.'],
-  ] },
   { at: [-45.38, 955.36], name: 'het Hoofdstation', lines: [
     ['T', 'Links, achter de bomen: het Hoofdstation uit 1896. Van buiten een paleis, van binnen een van de mooiste stationshallen van het land.'],
     ['E', 'Is that the station or a palace?'],

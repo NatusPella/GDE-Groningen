@@ -36,18 +36,24 @@ const DT = 0.01;
 
 export const parFor = (len) => (len < 60 ? 2 : 3);
 
-export function ppHoles() {
-  return PP_HOLES.map((h, i) => {
-    const tee = geo(h.tee.lat, h.tee.lon), cup = geo(h.green.lat, h.green.lon);
+// Holes from tee and cup in the game frame: [{ tee: {x, y}, cup: {x, y}, slope: [dir, mag], bunkers }]
+// (echteplekken.js lays them out on a real course); the same record ppHoles() builds.
+export function holesFromWorld(raw) {
+  return raw.map((h, i) => {
+    const tee = { x: h.tee.x, y: h.tee.y }, cup = { x: h.cup.x, y: h.cup.y };
     const len = Math.hypot(cup.x - tee.x, cup.y - tee.y);
     const heading = Math.atan2(cup.y - tee.y, cup.x - tee.x);
     const c = Math.cos(heading), s = Math.sin(heading);
     return {
       n: i + 1, tee, cup, len, heading, par: parFor(len),
       slope: { dir: h.slope[0], mag: h.slope[1] },
-      bunkers: h.bunkers.map(([a, b, r]) => ({ x: cup.x + c * a - s * b, y: cup.y + s * a + c * b, r })),
+      bunkers: (h.bunkers || []).map(([a, b, r]) => ({ x: cup.x + c * a - s * b, y: cup.y + s * a + c * b, r })),
     };
   });
+}
+
+export function ppHoles() {
+  return holesFromWorld(PP_HOLES.map((h) => ({ tee: geo(h.tee.lat, h.tee.lon), cup: geo(h.green.lat, h.green.lon), slope: h.slope, bunkers: h.bunkers })));
 }
 
 // The way the green falls at a point, as an acceleration direction (m per m).

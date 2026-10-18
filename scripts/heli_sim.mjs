@@ -15,7 +15,7 @@ const data = JSON.parse(fs.readFileSync(new URL('citymap.json', root)));
 applyMapExtras(data, JSON.parse(fs.readFileSync(new URL('mapextras.json', root))));
 const map = new GameMap(data);
 const u = helipadInfo(map);
-const pads = { umcg: { x: u.x, y: u.y, deck: u.deck, r: u.r } };
+const pads = { umcg: { x: u.x, y: u.y, deck: u.deck, r: u.r }, lauwersoog: { id: 'lauwersoog', x: P.ROOSTER.lauwersoog.x, y: P.ROOSTER.lauwersoog.y, deck: 0, r: 6, angle: 0 } };
 H.registerHelipad({ id: 'umcg', x: u.x, y: u.y, r: u.r, z: u.deck, exit: false });
 
 let fails = 0;
@@ -33,14 +33,25 @@ function fly(variant, limit, { noAssist = false } = {}) {
     v.onGround = false;
     v.rotor = 1;
     st.leg = 1;
+  } else if (variant === 'rooster') {
+    // right after the first cruise cut: short of the UMCG, nose along the flight
+    const c = plan.legs[0].cut;
+    v = H.makeHeli(c.x, c.y, c.z, c.angle);
+    v.onGround = false;
+    v.rotor = 1;
+    st.leg = 1;
   } else v = H.makeHeli(u.x, u.y, u.deck, u.angle);
   v.driver = 'player';
   w.vehicles.push(v);
-  const b = { x: P.BALLOON_AT.x, y: P.BALLOON_AT.y, z: 0, ground: 0, phase: 'ground' };
+  const bAt = variant === 'rooster' ? P.ROOSTER.dollard : P.BALLOON_AT;
+  const b = { x: bAt.x, y: bAt.y, z: 0, ground: 0, phase: 'ground' };
   const log = [];
   let t = 0;
   while (t < limit && st.leg < plan.legs.length && !v.wrecked) {
     const leg = plan.legs[st.leg];
+    // the city map ends far short of the Dollard: the rooster run is proven up to the second cruise (the catch is the old catch)
+    if (variant === 'rooster' && leg.kind === 'cruise') { st.leg = plan.legs.length; log.push(`${t.toFixed(0)}s cruise to the Dollard (not flown on the city map)`); break; }
+    if (leg.kind === 'cruise' && leg.cut) { v.x = leg.cut.x; v.y = leg.cut.y; v.z = leg.cut.z; v.angle = leg.cut.angle; v.vx = Math.cos(v.angle) * 22; v.vy = Math.sin(v.angle) * 22; v.onGround = false; }
     if (leg.kind === 'pickup' || leg.kind === 'cruise') { P.nextLeg(st); log.push(`${t.toFixed(0)}s ${leg.kind}`); continue; }
     if ((leg.kind === 'rings' || leg.kind === 'catch') && b.phase === 'ground') P.launchBalloon(b);
     const mode = P.legMode(leg);
@@ -64,6 +75,7 @@ function fly(variant, limit, { noAssist = false } = {}) {
 
 fly('traumaduif', 420);
 fly('ballonjacht', 420);
+fly('rooster', 420);
 const f0 = fails;
 fly('traumaduif', 420, { noAssist: true });
 fails = f0;
