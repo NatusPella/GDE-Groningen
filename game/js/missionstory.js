@@ -17,6 +17,7 @@ import { storyLines, storyDataReady, readingTime, storyDirRecording } from './st
 import { openBank } from './voicebank.js';
 import { playScript } from './cutscenehost.js';
 import { missionScene } from './cutscenes_akte1.js';
+import './cutscenes_akte3.js';
 
 // Story cutscenes around the mission chain: who asks and why (start), the
 // payoff (success) and a short sting (fail). Tammo and Tessa's relationship
