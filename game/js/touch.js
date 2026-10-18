@@ -6,6 +6,7 @@
 import { detectTouch, stickVector, knobOffset, lookDelta, stickKeys, touchPlan, touchContext, touchUiActive, STICK_RADIUS } from './touchlogic.js';
 import { getSettings } from './settings.js';
 import { sendKey } from './input.js';
+import { applyMobileProfile } from './gfxprofile.js';
 
 const CSS = `
 #touch-ui { position: fixed; inset: 0; z-index: 20; pointer-events: none; display: none; touch-action: none; -webkit-user-select: none; user-select: none; }
@@ -35,6 +36,9 @@ export function initTouch(input, world, hooks = {}) {
     forced: q.has('touch') ? q.get('touch') !== '0' : null,
   });
   if (!on) return false;
+
+  // lighter graphics on the first start (only while the settings are untouched)
+  applyMobileProfile({ width: window.innerWidth, height: window.innerHeight, cores: navigator.hardwareConcurrency || 0, memory: navigator.deviceMemory || 0 });
 
   const style = document.createElement('style');
   style.textContent = CSS;
