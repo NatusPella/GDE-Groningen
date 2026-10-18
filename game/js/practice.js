@@ -23,10 +23,6 @@ let last = null;
 let shownAt = -Infinity;
 let t = 0;
 
-export function practiceDone() {
-  try { return localStorage.getItem(KEYS.oefenronde) === '1'; } catch (e) { return false; }
-}
-
 export function practiceActive() { return !!st && !st.done; }
 
 export function beginPractice() {

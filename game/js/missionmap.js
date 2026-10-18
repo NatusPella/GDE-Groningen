@@ -11,8 +11,6 @@
 import { etaSeconds, etaLabel } from './travelroute.js';
 import { KINDS, LEVEL } from './hudbus.js';
 
-export const LAYER_KINDS = ['duif', 'kart', 'race', 'achtervolging', 'boot', 'heli', 'trein', 'bus', 'algemeen'];
-
 // What each role of an item shows as, and how much it counts (a higher
 // number wins when the minimap has to drop things).
 export const ROLES = {
