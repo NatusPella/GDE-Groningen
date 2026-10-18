@@ -144,4 +144,85 @@ export const END_CARD = {
   ],
 };
 
+
+
+// --- evenings at home (the flat) ---------------------------------------------
+// story.js story-wait and storyeikea.js story-eikea used to be two people
+// standing in the flat while subtitles ran. The number of lines differs per
+// step, so the staging is generated from the lines: every line gets a gesture
+// for its speaker and a reaction for the other, now and then someone crosses the
+// room, and the camera changes shot with every line.
+
+const FLAT_VARIANTS = {
+  // assembling the furniture: boxes, a manual, a shelf going up
+  eikea: {
+    props: { doos1: { kind: 'doos', at: [2.4, -2.2, 0] }, doos2: { kind: 'doos', at: [2.9, -1.6, 0] }, handleiding: { kind: 'bord', at: [0.6, -1.9, 0], face: 200 }, matras: { kind: 'matras', at: [-1.8, 2.2, 0.25], face: 90, hidden: true } },
+    open: [{ actor: 'tessa', carry: 'handleiding' }, { actor: 'tammo', carry: 'doos1' }],
+    spots: { tammo: [[1.4, 1.2], [2.6, -0.4], [0.4, 2.0]], tessa: [[1.0, -1.1], [0.2, -2.2], [1.6, 0.2]] },
+    gestures: { tammo: ['carry', 'shrug', 'talk', 'hips'], tessa: ['point', 'talk', 'hips', 'look'] },
+    finale: [{ prop: 'matras', show: true }],
+  },
+  // waiting for midnight: pacing, the radio on low, a phone
+  wachten: {
+    props: { radio: { kind: 'radio', at: [-2.6, 2.4, 0.5], face: 330 }, koffer: { kind: 'koffer', at: [2.8, -2.6, 0], face: 40 } },
+    open: [{ actor: 'tessa', anim: 'phone' }, { prop: 'radio', bob: 0.01 }],
+    spots: { tammo: [[1.6, 1.4], [0.2, 2.6], [2.4, 0.4]], tessa: [[0.8, -1.4], [1.8, -2.4], [-0.6, -0.8]] },
+    gestures: { tammo: ['hips', 'talk', 'shrug', 'look'], tessa: ['phone', 'talk', 'lean', 'look'] },
+    finale: [],
+  },
+  // a quiet evening: the radio, a ball from the freezer, bedtime
+  avond: {
+    props: { radio: { kind: 'radio', at: [-2.4, 2.6, 0.5], face: 330 }, bal: { kind: 'bal', at: [1.4, -2.4, 0.9] } },
+    open: [{ actor: 'tessa', carry: 'bal' }, { prop: 'radio', bob: 0.01 }],
+    spots: { tammo: [[1.6, 1.2], [0.4, 2.2], [2.2, 0.2]], tessa: [[1.0, -1.2], [2.0, -2.2], [-0.4, -2.4]] },
+    gestures: { tammo: ['talk', 'shrug', 'look', 'hips'], tessa: ['talk', 'laugh', 'lean', 'point'] },
+    finale: [],
+  },
+};
+
+const WHO_ACTOR = { Tammo: 'tammo', Anita: 'tessa', Tessa: 'tessa' };
+
+export function flatScene(variant, lines) {
+  const V = FLAT_VARIANTS[variant] || FLAT_VARIANTS.wachten;
+  const n = lines.length;
+  const sp = V.spots;
+  const actors = {
+    tammo: { look: 'tammo', at: sp.tammo[0], face: 200, anim: V.gestures.tammo[3], speaker: 'Tammo', gaze: 'speaker' },
+    tessa: { look: 'anita', at: sp.tessa[0], face: 160, anim: 'look', speaker: ['Anita', 'Tessa'], gaze: 'speaker' },
+  };
+  const cues = [], shots = [];
+  for (const o of V.open) cues.push({ t: 0, ...o });
+  const at = { tammo: 0, tessa: 0 };
+  const gi = { tammo: 0, tessa: 0 };
+  lines.forEach((l, i) => {
+    const me = WHO_ACTOR[l.speaker], other = me === 'tessa' ? 'tammo' : 'tessa';
+    const t = `L${i}`;
+    if (me) {
+      cues.push({ t, actor: me, anim: V.gestures[me][gi[me]++ % V.gestures[me].length] });
+      cues.push({ t, actor: other, anim: i % 2 ? 'nod' : 'look' });
+      cues.push({ t, actor: other, face: 'actor:' + me });
+    }
+    // every fourth line someone crosses the room, and looks back at the other
+    if (i % 4 === 3) {
+      const who = i % 8 === 3 ? 'tessa' : 'tammo';
+      const next = ++at[who] % sp[who].length;
+      cues.push({ t: `${t}+0.4`, actor: who, walk: [sp[who][next]], speed: 1.3 });
+      cues.push({ t: `${t}+0.4`, actor: who === 'tessa' ? 'tammo' : 'tessa', face: 'actor:' + who });
+    }
+  });
+  if (n) for (const f of V.finale) cues.push({ t: `L${n - 1}`, ...f });
+  // establishing shot, then a different frame with every line
+  shots.push({ t: 0, shot: 'orbit', target: 'mid:tammo,tessa@1.2', radius: 5, start: 120, sweep: 50, h0: 2.2, h1: 1.8, look: 'mid:tammo,tessa@1.2', fov: 46 });
+  lines.forEach((l, i) => {
+    const t = `L${i}`;
+    switch (i % 4) {
+      case 0: shots.push({ t, shot: 'cut', at: [-1.2, 0.2, 1.7], look: 'mid:tammo,tessa@1.2', fov: 50 }); break;
+      case 1: shots.push({ t, shot: 'dolly', from: [3.3, -0.4, 1.5], to: [2.6, -0.3, 1.5], look: 'speaker', fov: 32 }); break;
+      case 2: shots.push({ t, shot: 'orbit', target: 'mid:tammo,tessa@1.2', radius: 4.2, start: 250, sweep: -40, h0: 1.5, h1: 1.9, look: 'speaker', fov: 40 }); break;
+      default: shots.push({ t, shot: 'cut', at: [-1.4, 1.8, 1.45], look: 'speaker', fov: 30 });
+    }
+  });
+  return { id: 'story-' + variant, actors, props: V.props, cues, shots };
+}
+
 export const CUTSCENES = { OPENING, END_CARD };

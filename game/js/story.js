@@ -33,7 +33,7 @@ import { inHomeFlat, getHomeForRender } from './home.js';
 import { isShopOpen } from './shopui.js';
 import { playCinematic, isCinematicActive, sinceCinematic, isBannerUp } from './cinematics.js';
 import { playScript } from './cutscenehost.js';
-import { OPENING, END_CARD } from './cutscenes.js';
+import { OPENING, END_CARD, flatScene } from './cutscenes.js';
 import { refreshDayNight } from './daynight.js';
 import { getTrainTripCount, getStationsForRender } from './stationtravel.js';
 import { getEierballen } from './achievementtracker.js';
@@ -421,13 +421,18 @@ function updateHomeWait(step) {
     at += dur + 0.25;
     return l;
   });
-  const ok = playCinematic({
+  const cine = {
     id: 'story-wait', priority: 2, duration: lines.length ? at + 0.4 : 3.6, pause: true, letterbox: true, skippable: true, hideHud: true,
     big: (scene && scene.big) || (night ? 'Wachten tot het donker is…' : ''),
     lines,
     onStart: () => { if (scene && scene.clock != null) setClock(scene.clock); },
     onEnd: done,
-  });
+  };
+  // staged in the flat (cutscenes.js flatScene), the plain scene as the fallback
+  const pl = world.player;
+  const ok = (lines.length > 2 && playScript(world, flatScene(scene && scene.clock != null ? 'avond' : 'wachten', lines), {
+    lines, duration: cine.duration, anchor: { x: pl.x, y: pl.y, facing: pl.angle || 0, z: pl.gz || 0 }, cine,
+  })) || playCinematic(cine);
   if (!ok) done();
 }
 
