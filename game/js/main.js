@@ -45,6 +45,7 @@ import { initStory, updateStory, currentStep } from './story.js';
 import { initGoal, updateGoal } from './goal.js';
 import { updateOnboarding } from './onboarding.js';
 import { updateContextHints } from './contexthints.js';
+import { updatePractice } from './practice.js';
 import { initMotion } from './motion.js';
 import { initHud, updateHud } from './hud_panel.js';
 import { initGarages, initCountryGarages, updateGarages, tryGarageInteract } from './garages.js';
@@ -527,6 +528,7 @@ async function boot() {
     updateNarrative();
     updateBanter(world.paused ? 0 : gameDt, world);
     updateStoryContact(world.paused ? 0 : dt, world);
+    updatePractice(world.paused ? 0 : dt, world);
     probe.mark('audio');
     updateStreetSigns(dt, world, getScene());
     const animDt = world.paused ? 0 : gameDt;
