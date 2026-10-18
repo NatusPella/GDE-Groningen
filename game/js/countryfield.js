@@ -198,6 +198,13 @@ export function maarY(j) {
 // Village of block (bx, by): { x, y, r } or null. Its disc reaches into the
 // block to the west, never across a horizontal block edge.
 const villageCache = new Map();
+// Is (x, y) land of the province (regions.js provinceLandAt)? The hash-grid countryside (ditches, fences, farms, villages, trees,
+// herds) exists only there: none over the Wadden Sea, the Eems and Dollard, the North Sea or beyond the border (#233).
+// Everywhere until a province layer sets the mask.
+let landFn = null;
+export function setLandMask(fn) { landFn = fn; villageCache.clear(); }
+export const landOk = (x, y) => (landFn ? landFn(x, y) : true);
+
 export function villageOf(bx, by) {
   const key = bx * 100003 + by;
   let v = villageCache.get(key);
@@ -206,7 +213,7 @@ export function villageOf(bx, by) {
   if (!provinceBlock(bx, by) && !provinceBlock(bx - 1, by) && chash(bx * 29 + 7, by * 31 + 3) < VILLAGE_P && edgeRoad(bx, by, 0) && !maarX(bx)) {
     const x = bx * BLOCK + VILLAGE_X, y = by * BLOCK + 250 + chash(bx + 71, by - 13) * 460;
     const r = 100 + chash(bx - 9, by + 17) * 30;
-    if (edgeDistance(x, y) >= r + 260) v = { x, y, r, bx, by };
+    if (edgeDistance(x, y) >= r + 260 && landOk(x, y) && landOk(x - r, y) && landOk(x + r, y) && landOk(x, y - r) && landOk(x, y + r)) v = { x, y, r, bx, by };
   }
   villageCache.set(key, v);
   return v;
