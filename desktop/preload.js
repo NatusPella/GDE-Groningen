@@ -3,6 +3,8 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 const listeners = new Set();
+const coopListeners = new Set();
+ipcRenderer.on('gde:coop-event', (e, kind, payload) => { for (const fn of coopListeners) fn(kind, payload); });
 ipcRenderer.on('gde:fullscreen', (e, on) => { for (const fn of listeners) fn(on); });
 
 contextBridge.exposeInMainWorld('gdeDesktop', {
@@ -14,6 +16,14 @@ contextBridge.exposeInMainWorld('gdeDesktop', {
   quit: () => ipcRenderer.send('gde:quit'),
   // Foutrapport (errorlog.js): a save dialog, then the text to that file; true when saved
   saveTextFile: (name, text) => ipcRenderer.invoke('gde:save-text', String(name), String(text)),
+  // Coöp online (#95): alleen deze vier aanroepen; TCP en UPnP draaien in het main-proces
+  coop: {
+    host: () => ipcRenderer.invoke('gde:coop-host'),
+    join: (code) => ipcRenderer.invoke('gde:coop-join', String(code)),
+    send: (bytes) => ipcRenderer.send('gde:coop-send', bytes),
+    stop: () => ipcRenderer.invoke('gde:coop-stop'),
+    onEvent: (fn) => { coopListeners.add(fn); return () => coopListeners.delete(fn); },
+  },
   // only answered in a --trailer-frames run (main.js)
   captureFrame: (n) => ipcRenderer.invoke('gde:capture-frame', n),
   // only in a --trailer-video run: the sound sheet the export mixes
