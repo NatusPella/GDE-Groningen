@@ -86,6 +86,7 @@ import { speakBubble } from './linevoice.js';
 import { applyDrunkCamera } from './drunk.js';
 import { GROUND_LAYER, SIDEWALK_EXTRA, PAVED_MATS, buildRoadGroup, setRoadNetwork, getRoadQualityVersion, roadFarColor, roadGeometryReady } from './roadsurface.js';
 import { lookBackActive, chaseFollowLerp } from './controls.js';
+import { gameBusy } from './busy.js';
 
 // A genuine WebGL 3D view of the exact same world state the 2D canvas game
 // draws - same x/y meters, same b.h building heights, same vehicle/pedestrian
@@ -2237,7 +2238,7 @@ export function update3D(dt, world) {
   // no mission beacon, route or waypoint in the title screen / pigeon mode / cutscenes
   const navVisible = document.body.classList.contains('game-started') && !world.pigeonMode && !world.cinematicHideNav;
   // a minigame on the spot (padel, carbid, the kermis) or a heli run: no mission beacon meanwhile
-  const gameBusy = !!(world.padelGame || world.activityGame || world.heliRun);
+  const gameBusy = gameBusy(world);
   // a running bijbaantje (sidejobs.js) has its own beacon; missions wait
   const jobBusy = !!(world.sideJob && world.sideJob.active);
   if (missionMarkerMesh) missionMarkerMesh.visible = navVisible && !jobBusy && !gameBusy;
