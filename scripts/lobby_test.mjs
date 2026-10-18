@@ -116,7 +116,7 @@ t('N spelers: de host ziet de lijst, kan iedereen apart verwijderen en het maxim
   s = L.reduce(s, { t: 'spelers', lijst: LIJST(4), max: 4 });
   assert.equal(s.step, 'verbonden');
   const v = L.view(s);
-  assert.match(v.lines[0], /Spelers \(4 van 4\): Tammo \(host\), Tessa, Bram, Lotte/);
+  assert.match(v.lines[0], /Spelers \(4 van 4\): Tammo \(gastheer\), Tessa, Bram, Lotte/);
   assert.deepEqual(v.buttons.filter((b) => b.act.startsWith('kick-')).map((b) => b.act), ['kick-1', 'kick-2', 'kick-3']);
   assert.deepEqual(v.buttons.filter((b) => b.act.startsWith('max-')).map((b) => b.act), ['max-8', 'max-12', 'max-16']);
   assert.equal(v.code, null, 'vol: de code hoeft niet meer getoond');
