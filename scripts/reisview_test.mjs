@@ -13,6 +13,8 @@ ok(st.options.length === 3 && st.options[0].key === '1' && st.options[0].cls ===
 ok(V.panelState(beat, 'zelf').options[1].cls === 'pick', 'pick moves');
 ok(V.panelState({ ...beat, lines: null }).options.length === 2, 'no skip without lines');
 ok(V.pickFromKey(beat, '3') === 'overslaan' && V.pickFromKey({ ...beat, lines: null }, '3') === null && V.pickFromKey(beat, '9') === null, 'keys');
+// every option's key (what a tap on its row sends, reispanel.js) picks that option
+ok(st.options.every((o, i) => V.pickFromKey(beat, o.key) === ['meerijden', 'zelf', 'overslaan'][i]), 'tap keys pick their option');
 ok(V.hudLine(0) === '' && V.hudLine(1500) === '1,5 km · ± 1 min', 'hud line', V.hudLine(1500));
 ok(V.shouldPrompt(8000) && !V.shouldPrompt(2000), 'prompt only on a jump');
 ok(V.arrivalMessage(beat).kind === 'reis' && B.KINDS.reis.p === B.P1, 'reis is a P1 story kind');

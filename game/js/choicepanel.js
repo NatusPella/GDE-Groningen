@@ -25,6 +25,7 @@ const CSS = `
 #hud .cw-panel .cw-help { display: flex; flex-wrap: wrap; align-items: center; gap: 3px; margin-top: 4px; font: 13px 'Arial Narrow', Arial, sans-serif; color: rgba(240,237,228,0.78); }
 #hud .cw-panel .hud-key { margin: 0 2px; vertical-align: middle; }
 @media (max-width: 480px) { #hud .cw-panel { top: 64px; } }
+html.touch-device #hud .cw-panel .cw-opt { min-height: 44px; box-sizing: border-box; }
 `;
 
 let cssDone = false;
@@ -61,7 +62,7 @@ export function createChoicePanel(accent = '#d9a441') {
       el.text.textContent = s.text || '';
       el.rule.hidden = !s.rule;
       el.rule.textContent = s.rule || '';
-      el.opts.innerHTML = (s.options || []).map((o) => `<div class="cw-opt ${o.cls || ''}">${keycap(o.key)}<span>${esc(o.label)}</span></div>`).join('');
+      el.opts.innerHTML = (s.options || []).map((o) => `<div class="cw-opt ${o.cls || ''}" data-key="${esc(o.key)}">${keycap(o.key)}<span>${esc(o.label)}</span></div>`).join('');
       if (s.meter) {
         el.meter.hidden = false;
         el.mark.style.left = `${Math.round(Math.max(0, Math.min(1, s.meter.v)) * 100)}%`;
