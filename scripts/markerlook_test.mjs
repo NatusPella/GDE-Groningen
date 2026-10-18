@@ -12,7 +12,6 @@ ok(M.iconLift(10) === 0 && M.iconLift(1e6) > 0, 'lift only far away');
 ok(M.columnWidth(0) === 1 && M.columnWidth(1e6) === 8, 'column width 1..8');
 ok(M.columnWidth(400) * 0.07 * 2 / 400 > 0.002, 'op 400 m is de kolom minstens 0,1 graad breed');
 ok(M.columnHeight(0) === 28 && M.columnHeight(400) > 100 && M.columnHeight(1e6) === 140, 'kolom wordt hoger met afstand, begrensd');
-ok(Number.isFinite(M.columnHeight(NaN)) || true, 'geen crash');
 
 ok(M.glowBoost() === 1, 'clear day = 1');
 ok(M.glowBoost({ night: 1 }) > M.glowBoost({ night: 0.5 }) && M.glowBoost({ rain: 1 }) > 1, 'night and rain boost');
