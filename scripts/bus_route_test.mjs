@@ -10,14 +10,12 @@
 import './node3d.mjs';
 import fs from 'node:fs';
 
-const { GameMap, applyMapExtras } = await import('../game/js/mapdata.js');
+import { loadCityWorld } from './lib/loadworld.mjs';
 const R = await import('../game/js/routing.js');
 const bus = await import('../game/js/sidejob_bus.js');
 const VERBOSE = process.argv.includes('--verbose');
 const root = new URL('../game/', import.meta.url);
-const data = JSON.parse(fs.readFileSync(new URL('citymap.json', root)));
-applyMapExtras(data, JSON.parse(fs.readFileSync(new URL('mapextras.json', root))));
-const map = new GameMap(data);
+const map = (await loadCityWorld()).map;
 
 const STOPS = process.env.BUS_STOPS ? JSON.parse(process.env.BUS_STOPS).map(([street, x, y, dx, dy]) => ({ name: street, street, at: [x, y], dir: [dx, dy], leg: 0 })) : bus.STOPS;
 const stops = bus.placeStops(map, STOPS);

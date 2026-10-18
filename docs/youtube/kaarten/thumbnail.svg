@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720">
+<defs><radialGradient id="bg" cx="50%" cy="45%" r="75%"><stop offset="0" stop-color="#17301f"/><stop offset="1" stop-color="#0c140e"/></radialGradient></defs>
+<rect width="1280" height="720" fill="url(#bg)"/>
+<path d="M0 560 L1280 540 L1280 720 L0 720Z" fill="#0f5c30"/>
+<path d="M0 640 L1280 625 L1280 720 L0 720Z" fill="#1e9e56"/>
+<rect x="30" y="30" width="1220" height="660" fill="none" stroke="#3fc97a" stroke-width="6"/>
+<text x="70" y="250" font-family="'Bebas Neue','Arial Narrow',Arial,sans-serif" font-size="210" textLength="1140" lengthAdjust="spacingAndGlyphs" fill="#f2f2f2">EÉN MAN.</text>
+<text x="70" y="430" font-family="'Bebas Neue','Arial Narrow',Arial,sans-serif" font-size="210" textLength="1140" lengthAdjust="spacingAndGlyphs" fill="#3fc97a">ACHT PLAKJES.</text>
+<text x="70" y="520" font-family="'Bebas Neue','Arial Narrow',Arial,sans-serif" font-size="70" letter-spacing="3" fill="#f0ede4">GDE Groningen – Zomer vol misdaad</text>
+<rect x="1010" y="570" width="220" height="80" fill="#d93f3f"/>
+<text x="1120" y="632" text-anchor="middle" font-family="'Bebas Neue','Arial Narrow',Arial,sans-serif" font-size="58" letter-spacing="3" fill="#f2f2f2">GRATIS</text>
+</svg>

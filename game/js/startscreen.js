@@ -13,7 +13,6 @@ import { MENU_FRAME_S, getRenderer } from './scene3d.js';
 import { isAdvisorSampling, startGfxAdvisor } from './gfxprofile.js';
 import { ABOUT_HTML } from './credits.js';
 import { startLoadScreen, setLoadTips } from './loadscreen.js';
-import { sceneSvg } from './loadscene.js';
 import { ARC_ID, arcForced } from './storyflag.js';
 import { arcName, otherArc, chooseArc, classicSaveExists } from './storychoice.js';
 
@@ -38,9 +37,6 @@ let tipTimer = 0;
 let fakeTimer = 0;
 let progress = 0;
 let shown = 0;
-
-// the boot screen's picture: the same low-poly canal scene as the load screens
-{ const bg = document.getElementById('bt-scene'); if (bg) bg.innerHTML = sceneSvg('water'); }
 
 function el(id) {
   return document.getElementById(id);
@@ -408,7 +404,6 @@ export function runStartScreen(world, { render, relocate, tick }) {
     // the new story is the default: a released save stays untouched under Klassiek, so point to it
     else if (!arcForced() && ARC_ID === 'nieuw' && classicSaveExists()) items.push({ act: 'story', label: 'Doorgaan met Klassiek', sub: 'Je oude save staat nog klaar. Het nieuwe verhaal is nog in aanbouw' });
     items.push({ act: 'new', label: 'Nieuw spel', sub: arcForced() ? (save ? 'Begin opnieuw in Grunn' : 'Moi! Stap in en rij') : 'Kies je verhaal: nieuw of klassiek' });
-    if (FLAGS.coop) items.push({ act: 'coop', label: 'Coöp', sub: 'Samen spelen: op één scherm of op hetzelfde netwerk' });
     items.push({ act: 'news', label: 'Wat is er nieuw', sub: 'Alle versies en wijzigingen' });
     items.push({ act: 'settings', label: 'Instellingen', sub: 'Geluid, beeld en camera' });
     items.push({ act: 'about', label: 'Over', sub: 'Credits, licenties en privacy' });
@@ -422,8 +417,7 @@ export function runStartScreen(world, { render, relocate, tick }) {
         return `<button type="button" role="menuitem" class="ss-item ss-hero" data-act="continue" data-i="${i}"><span class="ss-label">${it.label}</span><small>${heroSub}</small>` +
           (prog != null ? `<span class="ss-prog"><span class="m-bar"><i style="width:${prog}%"></i></span><span class="bebas">${prog}%</span></span>` : '') + '</button>';
       }
-      const extra = it.act === 'news' && VERSION && VERSION !== 'dev' ? `<span class="ss-ver2">${esc(String(VERSION).replace(/^v/, '').split('.').slice(0, 2).join('.'))}</span>` : '';
-      return `<button type="button" role="menuitem" class="ss-item" data-act="${it.act}" data-i="${i}"><span class="ss-label">${it.label}</span>${extra}<small>${it.sub}</small></button>`;
+      return `<button type="button" role="menuitem" class="ss-item" data-act="${it.act}" data-i="${i}"><span class="ss-label">${it.label}</span><small>${it.sub}</small></button>`;
     };
     menu.innerHTML = items.map(itemHtml).join('');
     // where the save picks up, right of the menu
@@ -542,8 +536,6 @@ export function runStartScreen(world, { render, relocate, tick }) {
         openNews();
       } else if (it.act === 'about') {
         openAbout();
-      } else if (it.act === 'coop') {
-        openCoop();
       } else if (it.act === 'settings') {
         openPauseMenu('settings', { prestart: true, onClose: () => focus(sel) });
       } else if (it.act === 'exit') {
@@ -563,25 +555,6 @@ export function runStartScreen(world, { render, relocate, tick }) {
     const openNews = () => {
       showPanel('Wat is er nieuw');
       loadChangelog().then((html) => { if (!news.hidden && newsTitle.textContent === 'Wat is er nieuw') newsBody.innerHTML = html; });
-    };
-    // Coöp-lobby (#95), alleen met ?coop: lobby.js (logica) en lobbyui.js (tekenen)
-    let lobby = null;
-    const openCoop = () => {
-      showPanel('Coöp');
-      import('./lobbyui.js').then(({ mountLobby }) => {
-        if (lobby) lobby.close();
-        lobby = mountLobby(newsBody, {
-          startLocal: () => { news.hidden = true; },
-          onTransport: (role, tr) => {
-            if (role !== 'host') { lobby.event({ t: 'fout', msg: 'Aansluiten als gast is nog niet af. Laat je medespeler de host zijn.' }); return; }
-            import('./coopnet.js').then((m) => {
-              const sess = m.startHost(world, tr, m.handshakeInfo({ tiles: '-', story: ARC_ID }));
-              sess.onstatus = (st) => lobby.event({ t: 'status', status: st });
-            });
-          },
-          disconnect: () => import('./coopnet.js').then((m) => m.stopCoopNet(world)),
-        });
-      });
     };
     const openAbout = () => {
       showPanel('Over GDE');

@@ -24,7 +24,6 @@
 #start-screen .ss-item.sel::before { content: ''; position: absolute; left: 0; top: 10px; bottom: 10px; width: 4px; border-radius: 2px; background: var(--g); }
 #start-screen .ss-item:focus { outline: none; }
 #start-screen .ss-item:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; }
-#start-screen .ss-ver2 { font-family: 'Arial Narrow', Arial, sans-serif; font-size: 18px; letter-spacing: 0; color: var(--mut); margin-left: 8px; }
 #start-screen .ss-item[data-act="exit"] { height: 48px; font-size: 28px; margin-top: 24px; }
 #start-screen .ss-item.ss-hero { flex-direction: column; align-items: flex-start; justify-content: center; gap: 8px; height: auto; padding: 16px 32px 24px; margin-bottom: 16px; color: var(--ink); }
 #start-screen .ss-item.ss-hero.sel { background: rgba(63, 201, 122, 0.12); }

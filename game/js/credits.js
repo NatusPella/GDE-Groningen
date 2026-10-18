@@ -8,12 +8,15 @@ export const DISCLAIMER = `${SERIES} is een fanparodie op GTA, niet gelieerd aan
 
 export const OSM_ATTRIBUTION = '© OpenStreetMap-bijdragers';
 // building heights and roof shapes (scripts/world/fetch_3dbag.py; CC BY 4.0)
+// terrain heights (scripts/world/fetch_ahn.py; CC0, credit is a courtesy)
+export const AHN_ATTRIBUTION = 'Actueel Hoogtebestand Nederland (AHN) via PDOK';
 export const BAG3D_ATTRIBUTION = '3DBAG door de 3D geoinformation onderzoeksgroep (TU Delft) en 3DGI';
 
 // [title, kicker] cards for the end credits (story.js)
 export const THIRD_PARTY_CARDS = [
   [OSM_ATTRIBUTION, 'kaartdata (ODbL) · openstreetmap.org/copyright'],
   ['3DBAG', 'gebouwhoogtes en daken (CC BY 4.0) · TU Delft en 3DGI · 3dbag.nl'],
+  ['AHN', 'terreinhoogte (CC0) · ahn.nl · pdok.nl'],
   ['Google Gemini', 'muziek en stemmen, gemaakt met AI'],
   ['three.js · Bebas Neue · Big Shoulders Display', 'MIT-licentie · SIL Open Font License'],
   ['Fanparodie', 'niet van Rockstar Games of Take-Two. Alles verzonnen'],
@@ -25,6 +28,7 @@ export const ABOUT_HTML = `
 <h4>Kaart</h4>
 <p>Straten, gebouwen, water en plekken: kaartdata ${OSM_ATTRIBUTION}, beschikbaar onder de Open Database License (ODbL). Zie openstreetmap.org/copyright.</p>
 <p>Gebouwhoogtes en dakvormen: ${BAG3D_ATTRIBUTION}, onder CC BY 4.0. Zie 3dbag.nl.</p>
+<p>Terreinhoogte (dijken, wierden, hellingen): ${AHN_ATTRIBUTION}, CC0. Zie ahn.nl en pdok.nl.</p>
 <h4>Muziek en stemmen</h4>
 <p>De muziek (G-Music, Nachtstreek, het titelnummer) en alle stemmen zijn gemaakt met Google Gemini (muziek en Gemini TTS via OpenRouter). De Martinitoren is gemodelleerd met Claude Design. Geluidseffecten worden in het spel zelf gesynthetiseerd.</p>
 <h4>Software en lettertypes</h4>
@@ -38,4 +42,5 @@ export const ABOUT_HTML = `
 <p>De code is vrije software onder de GPL-3.0 (of later). Stemmen, muziek, verhaal en dialogen vallen onder CC BY-NC-SA 4.0. De naam ${SERIES} en het logo zijn niet vrij te gebruiken. Zie LICENSE, LICENSE-CONTENT.md en NOTICE.md bij de broncode.</p>
 <h4>Privacy</h4>
 <p>Het spel bewaart je voortgang en instellingen alleen op dit apparaat (localStorage). Er gaat niets naar een server: geen account, geen tracking, geen statistieken. Fouten schrijft het spel op in een eigen logboek op dit apparaat (Instellingen › Foutrapport); dat verstuurt niets, je kunt het zelf kopiëren als je een fout wilt melden. Alleen de browserversie haalt bij het laden three.js en de lettertypes op bij jsDelivr en Google Fonts.</p>
+<p>Samen spelen (alleen als je het zelf aanzet) deelt je IP-adres met je medespeler. Met een kamercode gebruikt het spel daarbij openbare servers om elkaar te vinden: een openbare STUN-server en openbare signaleringsservers, waar alleen versleutelde berichten langsgaan. Met een IP-adres verbindt de ander rechtstreeks met jou en opent je router een poort; die sluit weer als je stopt. Je krijgt altijd eerst een melding en je kiest zelf. Er is geen account, geen telemetrie en niets van je voortgang gaat mee.</p>
 `;

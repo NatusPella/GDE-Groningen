@@ -3,6 +3,7 @@ import { HABBO_PALETTE, habboMaterial, vcMaterial, GeoBuilder, createBrickDetail
 import { getLandmarkModel } from './landmarkmodels.js';
 import { hasLandmarkModel, buildLandmarkGeometry, LANDMARK_MATERIALS, setLandmarkNight } from './landmarks3d.js';
 import { facadeLook } from './winkelkit.js';
+import { capBuilding } from './buildingcap.js';
 import { glassMaterial, setGlassNight, paneUV, PANE_HOME, PANE_GROUND, PANE_SHOP, PANE_OFFICE } from './interiorglass.js';
 import { pointInPolygon, segDist as segDistXY, WATER_Y } from './util.js';
 import { passagesOf, doorsOf } from './passages.js';
@@ -1347,6 +1348,7 @@ export function buildingLodStyle(b) {
 }
 
 export function buildBuildingMesh(b) {
+  capBuilding(b); // heights the footprint and kind can carry (buildingcap.js, issue #179)
   if (b.landmark && b.name) {
     const model = getLandmarkModel(b.name);
     if (model) {

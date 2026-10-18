@@ -16,7 +16,7 @@ export const SHOP_TYPE = {
   supermarket: 'supermarkt', convenience: 'supermarkt', greengrocer: 'supermarkt', deli: 'supermarkt',
   bakery: 'bakker', pastry: 'bakker', confectionery: 'bakker',
   butcher: 'slager', seafood: 'slager',
-  clothes: 'kleding', shoes: 'kleding', fashion: 'kleding', boutique: 'kleding', outdoor: 'kleding', jewelry: 'kleding',
+  clothes: 'kleding', shoes: 'kleding', fashion: 'kleding', boutique: 'kleding', jewelry: 'kleding',
   bicycle: 'fietsen',
   florist: 'bloemist', garden_centre: 'bloemist',
   hairdresser: 'kapper', beauty: 'kapper',
@@ -25,6 +25,14 @@ export const SHOP_TYPE = {
   gift: 'souvenir',
   newsagent: 'kiosk', kiosk: 'kiosk', tobacco: 'kiosk', lottery: 'kiosk',
 };
+
+// Het facilities.js-soort per type: waar het spel de zaak al onder kent (shops.js, horeca.js).
+export const FACILITY_KIND = {
+  supermarkt: 'supermarket', bakker: 'bakery', slager: 'butcher', snackbar: 'snack', kleding: 'clothes', fietsen: 'bicycle', bloemist: 'florist',
+  kapper: 'hairdresser', elektronica: 'electronics', tweedehands: 'second_hand', souvenir: 'gift', kiosk: 'tobacco', restaurant: 'horeca', cafe: 'horeca', kroeg: 'horeca',
+};
+// De oude soorten van facilities.json die shopplaces.json overneemt (zelfde echte plekken, nu met verzonnen naam en gebouw).
+export const REPLACED_KINDS = ['supermarket', 'convenience', 'clothes', 'shoes', 'hairdresser', 'beauty', 'bicycle', 'craft_bicycle', 'tobacco', 'newsagent', 'kiosk', 'second_hand', 'pawnbroker', 'variety_store', 'furniture', 'paint', 'bakery', 'butcher', 'horeca', 'snack', 'fastfood'];
 
 // Horeca: geen winkeltype in de kit, een eigen soort met een eigen naamlijst.
 export const HORECA_KINDS = ['restaurant', 'cafe', 'kroeg'];

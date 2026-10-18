@@ -101,6 +101,8 @@ function main() {
   if (!only) {
     const v = run(process.execPath, ['scripts/voice_coverage.mjs', '--quiet'], timeoutMs);
     note('voice_coverage.mjs --quiet', v, classify(v));
+    const ic = run(process.execPath, ['scripts/import_check.mjs'], timeoutMs);
+    note('import_check.mjs', ic, classify(ic));
   }
 
   for (const t of tests) {
