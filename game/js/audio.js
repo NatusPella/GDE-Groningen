@@ -13,6 +13,7 @@ import { updateSkySfx } from './sfx/sky.js';
 import { createScenarioDirector, loopPoints } from './scenariomusic.js';
 import { normalizeTrack, pickTrack, pushHistory, pickJingle, STATION_NAME } from './musicpick.js';
 import { SYNTH_TRACKS, synthRecords, renderTrack, toWav } from './synthmusic.js';
+import { createMusicWatch } from './musicwatch.js';
 import * as speech from './speech.js';
 import { drunkLevel } from './drunk.js';
 import { KEYS } from './storagekeys.js';
@@ -3276,6 +3277,7 @@ function applyOutputGains(tc) {
 // replaces a dead music element and notices a NaN in the mix.
 const WATCHDOG_S = 2;
 let watchdogAt = 0;
+const musicWatch = createMusicWatch();
 const watch = { runs: 0, fixes: 0, nan: 0, lastFix: null };
 let meterBuf = null;
 
@@ -3306,6 +3308,20 @@ function watchdog(world, force = false) {
   if (gmusicHeld && !scenarioNow && !radioHolds()) { gmusicHeld = false; gmusicRetryAt = 0; playGmusicCurrent(); fix('gmusic-held'); }
   const el = gmusicCurrentEl;
   if (el && el.error && gmusicPendingSince === null) { reviveGmusicEl(el); fix('gmusic-dead'); }
+  // silence while the radio should play: nudge, then the next record
+  const mw = musicWatch.step(now, {
+    active: gmusicStarted && radioOn && !gmusicHeld && !gmusicSuspended && gmusicPendingSince === null && !document.hidden && gmusicTracks.length > 0,
+    hasEl: !!gmusicCurrentEl, ended: !!(gmusicCurrentEl && gmusicCurrentEl.ended),
+    currentTime: gmusicCurrentEl ? gmusicCurrentEl.currentTime : 0, inBreak,
+  });
+  if (mw === 'resume') {
+    if (gmusicCurrentEl) gmusicCurrentEl.gmusicPlayInFlight = false;
+    gmusicRetryAt = 0; resumeCtx('musicwatch'); playGmusicCurrent(); fix('music-resume');
+  } else if (mw === 'advance') {
+    gmusicRetryAt = 0; resumeCtx('musicwatch'); advanceGmusicQueue(); fix('music-advance');
+  } else if (mw === 'endBreak') {
+    inBreak = false; breakId++; advanceGmusicQueue(); fix('music-break');
+  }
   if (meter) {
     if (!meterBuf) meterBuf = new Float32Array(meter.fftSize);
     meter.getFloatTimeDomainData(meterBuf);
