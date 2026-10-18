@@ -35,7 +35,7 @@ import { animateSkutsjeRig } from './models3d_vehicles.js';
 import { setMuseumCaseStolen } from './museum3d.js';
 import {
   startHeist, guardRoute, placeHeistProps, updateHeist, updateFuse, closeFuse, camerasOff, vitrineSpot, vitrineStand, disposeHeist, heistEnterStage, heistLeaveStage,
-  heistApproach, heistSpotAt, heistSendingBack, updatePlanStage, updateLock, updatePickpocket, updateLasers, updateCrack, updateGetaway, heistSkipGetaway, heistBoat, playEndingShot, heistRevealUpdate, REVEAL,
+  heistApproach, heistSpotAt, heistSendingBack, updatePlanStage, updateLock, updatePickpocket, updateLasers, updateCrack, updateGetaway, heistSkipGetaway, heistBoat, playEndingShot, heistRevealUpdate, openHeistDoor, REVEAL,
 } from './heist.js';
 import { spawnFjordTrain, fjordLoadPoint, fjordCrossing, loadFjord, loadFjordNow, updateFjordTrain, sendFjordTrainAway, catchFjordTrainNow, disposeFjordTrain, fjordTrainState } from './fjordtrain.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
@@ -50,10 +50,17 @@ import { startConvoy, spawnLimo, updateConvoy, convoyStatus, disposeConvoy } fro
 import { wgsToWorld } from './rdnew.js';
 import { enterChoice, updateChoice, closeChoice } from './stagechoice.js';
 import { enterRit, updateRit } from './stagerit.js';
+import { enterTiming, updateTiming, closeTiming, timingTag } from './stagetiming.js';
 import { withValidity } from './validity.js';
 // a radio fragment of a stage that never got played within ten minutes is moot (refs #171; not tied to the mission: the clue in it must not be lost)
 const MISSION_RADIO_VALID = { ttl: 600 };
 import { registerBusyProbe } from './busy.js';
+import {
+  isCheckpointStage, makeCheckpoint, applyCheckpointProgress, recordCheckpoint, createGrace, stepGrace,
+  createRetryOffer, retryOfferLive, RETRY_KEYS,
+} from './missioncheckpoint.js';
+import { placeParty } from './storytravel.js';
+import { respawnFade } from './respawn.js';
 import { playerBusy } from './busy.js';
 import { noteMoney } from './finance.js';
 
@@ -278,7 +285,7 @@ function buildDefs(world) {
           lines: [['A', '"Tige tank! – J."', { clue: true }], ['T', 'Hij bedankt ons.'], ['A', 'Hij. Bedankt. Ons.']],
         },
         {
-          kind: 'getaway', stars: 2, target: { heistSpot: 'boot' }, label: 'Alarm! Rennen, naar de boot', say: 'Alarm! Het kussen was een drukplaat. Rennen, ik haal de boot!',
+          kind: 'getaway', checkpoint: true, stars: 2, target: { heistSpot: 'boot' }, label: 'Alarm! Rennen, naar de boot', say: 'Alarm! Het kussen was een drukplaat. Rennen, ik haal de boot!',
           lines: [['T', 'Instappen! De motor draait al!'], ['A', 'Tammo, sinds wanneer kun jij varen?'], ['T', 'Sinds nu. Vol gas!']],
         },
         {
@@ -492,8 +499,8 @@ function buildDefs(world) {
       stages: [
         { kind: 'goto', target: { shop: 'super' }, mode: 'any', stop: 0.8, pay: 60, paid: 'Groninger mosterd, drie potten', label: 'Mosterd halen bij Nait Duur', say: 'Eerst mosterd. Echte Groninger, bij Nait Duur.' },
         { kind: 'goto', target: { at: [1036.85, 1530.47], snap: 'walk', label: 'Volkstuin' }, mode: 'any', stop: 0.8, pay: 90, paid: 'Twaalf eieren van de kippen van Bert', label: 'Verse eieren bij de volkstuin', say: 'Nu eieren. De kippen bij Berts duiventil leggen de beste van Grunn.' },
-        { kind: 'goto', target: { at: [696.4, 1254.24], snap: 'walk', label: 'Bakker Deeg & Deugd' }, mode: 'any', stop: 0.8, pay: 150, paid: 'Stoetbrood van gisteren, voor de korst', label: 'Stoetbrood bij Bakker Deeg & Deugd', say: 'Eieren achterin. Rustig rijden, niet remmen als een pion. Door naar de bakker.' },
-        { kind: 'goto', target: { landmark: 'Grote Markt', off: [20, -5], snap: 'walk' }, mode: 'any', stop: 0.8, label: 'Naar de kraam op de Grote Markt', say: 'Alles binnen. Naar de kraam op de Grote Markt, en heel voorzichtig.' },
+        { kind: 'goto', checkpoint: true, target: { at: [696.4, 1254.24], snap: 'walk', label: 'Bakker Deeg & Deugd' }, mode: 'any', stop: 0.8, pay: 150, paid: 'Stoetbrood van gisteren, voor de korst', label: 'Stoetbrood bij Bakker Deeg & Deugd', say: 'Eieren achterin. Rustig rijden, niet remmen als een pion. Door naar de bakker.' },
+        { kind: 'goto', checkpoint: true, target: { landmark: 'Grote Markt', off: [20, -5], snap: 'walk' }, mode: 'any', stop: 0.8, label: 'Naar de kraam op de Grote Markt', say: 'Alles binnen. Naar de kraam op de Grote Markt, en heel voorzichtig.' },
       ],
     },
     {
@@ -587,6 +594,11 @@ export function initMissions(world) {
     seen: new Set(),
     // highest medal whose bonus this playthrough has paid, per mission index
     medalPaid: {},
+    // #213: per mission index the last checkpoint stage of a failed or running attempt (not saved)
+    checkpoints: new Map(),
+    resume: null,
+    grace: null,
+    retry: null,
     run: null,
     race: null,
     vehicle: null,
@@ -604,7 +616,7 @@ export function initMissions(world) {
   setMuseumCaseStolen(() => isMissionCompleted(missionIndexById('museumkraak')));
   syncPub(world);
   world.onRespawn.push((w, { busted }) => {
-    failActiveMission(w, busted ? 'Missie mislukt: opgepakt' : 'Missie mislukt: je bent dood', busted ? 'Opgepakt door de politie' : 'Je bent dood');
+    failActiveMission(w, busted ? 'Missie mislukt: opgepakt' : 'Missie mislukt: knock-out', busted ? 'Opgepakt door de politie' : 'Je bent knock-out');
   });
 }
 
@@ -964,6 +976,11 @@ export function setMissionProgress(world, prog) {
   chain.run = null;
   chain.stage = null;
   chain.stagePending = false;
+  if (chain.retry && chain.retry.fade != null) respawnFade(0, 0);
+  chain.checkpoints.clear();
+  chain.resume = null;
+  chain.grace = null;
+  chain.retry = null;
   if (world.pigeonMode) stopPigeonMode(world);
   syncPub(world);
 }
@@ -1329,24 +1346,53 @@ function rewardAdjust(def, base) {
   return { amount: 0, text: '' };
 }
 
+// the jury's tier: the baking score, one level lower when both answers to the jury were wrong
+function juryTier() {
+  const order = ['top', 'goed', 'mager'];
+  let i = order.indexOf(chain.bakeTier || 'goed');
+  if (chain.tags && chain.tags.has('fout1') && chain.tags.has('fout2')) i = Math.min(2, i + 1);
+  return order[i];
+}
+
+// what a choice or the baking score added to the reward: { amount, text, rows }
+function consequenceAdjust(def) {
+  let amount = 0;
+  const rows = [];
+  if (def.bakeBonus && chain.bakeTier) {
+    const tier = juryTier();
+    amount += def.bakeBonus[tier] || 0;
+    if (def.bakeRows && def.bakeRows[tier]) rows.push(def.bakeRows[tier]);
+  }
+  for (const tag of chain.tags || []) {
+    amount += (def.tagAdjust && def.tagAdjust[tag]) || 0;
+    if (def.tagRows && def.tagRows[tag]) rows.push(def.tagRows[tag]);
+  }
+  return { amount, text: amount ? (amount > 0 ? ` en €${amount} bonus` : ` (€${-amount} ingehouden)`) : '', rows };
+}
+
 function succeed(world, def) {
   const i = chain.index;
+  chain.checkpoints.delete(i);
+  chain.retry = null;
   stopTalk();
   // a replay pays the klusloon; the first pass the full reward
   const replay = chain.completed.has(i);
   const base = replay ? klusloon(def.reward) : def.reward;
   closeChoice();
+  closeTiming();
   const tip = def.type === 'boat' ? rondvaartTip() : 0;
   const adj = rewardAdjust(def, base);
-  const reward = base + tip + adj.amount;
+  const cons = consequenceAdjust(def);
+  const reward = Math.max(0, base + tip + adj.amount + cons.amount);
   const reason = def.type === 'boat' ? rondvaartOutro() : def.outro || def.label;
   noteMoney('Missies');
   world.money += reward;
   world.stats.missionsDone++;
-  world.addMessage(`${def.label} geklaard! ${replay ? 'Klusloon ' : ''}+€${base}${tip ? ` en €${tip} fooi` : ''}${adj.text}`, 4);
+  world.addMessage(`${def.label} geklaard! ${replay ? 'Klusloon ' : ''}+€${base}${tip ? ` en €${tip} fooi` : ''}${adj.text}${cons.text}`, 4);
   const stats = runStats(world, def);
   // what the mission cost on the way (Het Loket: the entry fee), so the card is honest about a reward of 0
   if (def.costRow && !replay) stats.push(def.costRow);
+  if (!replay) stats.push(...consequenceAdjust(def).rows);
   // a flawless run earns the highest compliment there is (flavour.js has an NPC say it too)
   const r = chain.run;
   if (r && r.hurt < 0.5 && (!r.vehicleUsed || r.vehDamage < 3) && (!r.racePos || r.racePos === 1)) {
@@ -1412,6 +1458,7 @@ function endInFailure(world, text) {
   world.addMessage(text, 3.5);
   stopTalk();
   closeChoice();
+  closeTiming();
   clearStoryProps();
   // H6 failed: out of the black again (startMission puts it back on)
   if (chain.defs[chain.index] && chain.defs[chain.index].heist) setStoryOutfit(null);
@@ -1426,6 +1473,10 @@ function endInFailure(world, text) {
   chain.cooldownTimer = RETRY_COOLDOWN;
   chain.wpIndex = 0;
   chain.run = null;
+  chain.grace = null;
+  chain.resume = null;
+  // #214: a retry prompt (Enter) brings you straight back instead of a long drive to the start
+  chain.retry = chain.defs[chain.index] && chain.defs[chain.index].start ? createRetryOffer(chain.index, world.time) : null;
 }
 
 // A point `offset` metres along the road from p, towards whichever end has
@@ -1821,6 +1872,8 @@ function releaseCrowd() {
 
 function startMission(world, def) {
   removeLeftover(world);
+  chain.tags = new Set();
+  chain.bakeTier = null;
   // a start out in the province has no road data until the player is there (the tiles stream in): find the road now
   if (def.lazyStart && !def.start.road) {
     const spot = roadSpot(world.map, def.start.x, def.start.y, true);
@@ -1895,6 +1948,10 @@ function startMission(world, def) {
     chain.stage = null;
     chain.stageIndex = -1;
     chain.stagePending = true;
+    // #213: a retry picks up at the last checkpoint stage, not at stage 0
+    const cp = chain.checkpoints.get(chain.index);
+    chain.resume = cp && !chain.completed.has(chain.index) && isCheckpointStage(def, cp.stageIndex) ? cp : null;
+    if (!chain.resume) chain.checkpoints.delete(chain.index);
   } else if (def.race === 'ring') {
     // the full ringweg is ~17.5 km: tuned-up race cars keep a lap near six minutes
     chain.race = createRace(world, RING_ROUTE, RING_CHECKPOINTS, { topScale: 1.35, accelScale: 1.3, band: 320, jelle: true });
@@ -1979,9 +2036,21 @@ function vehicleProblem(world, def) {
   const vf = def.vehicleFail || {};
   if (!v || !world.vehicles.includes(v)) return vf.gone || (def.type === 'boat' ? 'de boot is foetsie' : 'de auto is foetsie');
   if (v.wrecked || v.disabled) return vf.wrecked || (def.type === 'boat' ? 'de boot ligt nu tussen de fietsen op de bodem' : 'de auto is total loss, Kiekdoar heeft al foto\'s');
-  if (p.inVehicle === v) { chain.boarded = true; return null; }
-  if (dist(p.x, p.y, v.x, v.y) > ABANDON_DIST) {
+  if (p.inVehicle === v) { chain.boarded = true; chain.grace = null; return null; }
+  const g = chain.grace || (chain.grace = createGrace());
+  const far = dist(p.x, p.y, v.x, v.y) > ABANDON_DIST;
+  // #214: leaving the vehicle behind is a warning with a clock, the way back is the marker; only a wreck or a gone vehicle fails at once
+  const dt = Math.max(0, Math.min(0.25, world.time - (chain.graceT ?? world.time)));
+  chain.graceT = world.time;
+  const r = stepGrace(g, dt, far ? 'away' : 'near');
+  if (r.state === 'grace') {
     const what = def.type === 'boat' ? 'de boot' : 'de auto';
+    hint(world, `Ga terug naar ${what}: nog ${Math.ceil(r.left)} s`);
+    return null;
+  }
+  if (r.state === 'fail') {
+    const what = def.type === 'boat' ? 'de boot' : 'de auto';
+    chain.grace = null;
     if (vf.left) return vf.left;
     return chain.boarded ? `je liet ${what} gewoon achter` : `je liet ${what} staan. Parkeren kost hier meer dan de auto`;
   }
@@ -2092,6 +2161,40 @@ function resolveSpotStarts(world) {
   }
 }
 
+// #214: after a failure, Enter (or E: pad and touch send it) fades out and puts you, your vehicle and your companion at the mission's start
+const RETRY_FADE_S = 0.45;
+function updateRetry(dt, world, def) {
+  const r = chain.retry;
+  if (!r) return;
+  if (r.fade != null) {
+    r.fade -= dt;
+    if (r.fade > 0) return;
+    chain.retry = null;
+    placeParty(world, def.start);
+    chain.armed = true;
+    chain.phase = 'idle';
+    chain.cooldownTimer = 0;
+    respawnFade(0, 500);
+    return;
+  }
+  if (r.missionIndex !== chain.index || !retryOfferLive(r, world.time)) { chain.retry = null; return; }
+  if (chain.phase !== 'idle') return;
+  const p = world.player;
+  if (dist(p.x, p.y, def.start.x, def.start.y) < (def.triggerRadius || TRIGGER_RADIUS) * 3 + 10) { chain.retry = null; return; }
+  if (isCinematicActive() || world.pendingRespawn || (world.sideJob && world.sideJob.active) || playerBusy(world, ['challenge', 'padel', 'activityGame']).busy) return;
+  if (!r.hintedAt || world.time - r.hintedAt > 10) {
+    r.hintedAt = world.time;
+    world.addMessage(`${def.label}: opnieuw beginnen? Druk op Enter (of E).`, 4, { key: 'missie-opnieuw' });
+  }
+  for (const k of RETRY_KEYS) {
+    if (!world.input.wasPressed(k)) continue;
+    world.input.consume(k);
+    r.fade = RETRY_FADE_S;
+    respawnFade(1, 350);
+    return;
+  }
+}
+
 export function updateMissions(dt, world) {
   if (!chain) return;
   resolveSpotStarts(world);
@@ -2102,6 +2205,8 @@ export function updateMissions(dt, world) {
   // a pigeon flight only runs the stages mission that started it
   if (world.pigeonMode && !(chain.phase === 'active' && def.type === 'stages')) return;
   updateRetiredRacers(dt, world);
+
+  updateRetry(dt, world, def);
 
   if (chain.phase === 'cooldown') {
     chain.cooldownTimer -= dt;
@@ -2267,6 +2372,7 @@ function raceCarProblem() {
 //           mission vehicle (board it next). Fails when it gets `escape` metres
 //           away, runs out of `time` or burns out.
 //   choice  (akte 4, stagechoice.js) a conversation puzzle: rounds of up to three answers (keys 1-3), wrong answers can fail
+//   timing  (akte 4, stagetiming.js) a few timing presses on a bar: the sluip past the cameras, the fierljep duel, the wagon jumps
 //   rit     (akte 4, stagerit.js) drive the stopped train to the next platform with gas and brake
 //   vault   Jelle's polsstok escape over the nearest canal (missionstory.js); fail: he misses
 //   boatchase  Jelle's skûtsje sails the Diepenring from `lead` metres ahead of you; stay
@@ -2666,6 +2772,7 @@ function enterStage(world, def, k) {
   if (st.kind === 'boatchase' && S.boat) S.target = S.boat.v;
   if (st.kind === 'hold' && st.fireworks) { S.fwT = 1.5; S.fw = []; }
   if (st.kind === 'choice') enterChoice(S);
+  if (st.kind === 'timing') enterTiming(S);
   if (st.kind === 'rit') enterRit(world, st, S);
   if (def.eggs && k === def.eggs.from) { chain.eggs = 100; chain.eggWarn = 100; chain.eggVeh = null; }
   chain.stage = S;
@@ -2683,6 +2790,40 @@ function enterStage(world, def, k) {
   }
   if (st.talk && storyDataReady()) playTalk(talkLines(st.talk.ids, st.talk), { id: `${def.id || def.label}:${k}`, delay: st.talk.delay || 1 });
   if (st.clock) { chain.clockRate = st.clock; world.addMessage('De klok loopt harder: Jelle heeft de rij gekocht.', 4, { kind: 'gevaar', key: 'loket-klok' }); }
+  saveCheckpoint(world, def, k);
+}
+
+// #213: remember this stage as the place a new attempt starts from (see missioncheckpoint.js for which stages count)
+function saveCheckpoint(world, def, k) {
+  if (!chain.checkpoints || chain.phase !== 'active' || !isCheckpointStage(def, k)) return;
+  const p = world.player, v = chain.vehicle;
+  const usable = v && world.vehicles.includes(v) && !v.wrecked && !v.disabled;
+  recordCheckpoint(chain.checkpoints, makeCheckpoint({
+    missionIndex: chain.index, stageIndex: k, timeLeft: chain.timeLeft, chain,
+    player: { x: p.x, y: p.y, angle: p.angle },
+    vehicle: usable ? { x: v.x, y: v.y, angle: v.angle, inside: p.inVehicle === v } : null,
+  }));
+}
+
+// A new attempt at a mission that failed after a checkpoint: back to that stage with the time, progress and vehicle of the moment.
+function resumeFromCheckpoint(world, def) {
+  const cp = chain.resume;
+  chain.resume = null;
+  if (!cp) return;
+  const p = world.player, v = chain.vehicle;
+  if (cp.player) placeParty(world, cp.player);
+  if (v && cp.vehicle && !(def.heist && !cp.vehicle.inside)) {
+    v.x = cp.vehicle.x; v.y = cp.vehicle.y; v.angle = cp.vehicle.angle; v.speed = 0; v.vx = 0; v.vy = 0;
+    if (cp.vehicle.inside && !p.inVehicle && typeof p.enterVehicle === 'function') p.enterVehicle(v, world);
+  }
+  if (def.heist || def.fjordTrain) enterStage(world, def, 0);
+  // a heist retried at the getaway: the doors you came through stand open
+  if (def.heist) for (const id of ['achterdeur', 'glasdeur']) openHeistDoor(id);
+  if (chain.phase !== 'active') return;
+  enterStage(world, def, cp.stageIndex);
+  applyCheckpointProgress(cp, chain);
+  chain.boarded = chain.boarded || !!(cp.vehicle && cp.vehicle.inside);
+  world.addMessage('Je begint opnieuw bij het laatste checkpoint.', 3.5);
 }
 
 function nextStage(world, def) {
@@ -3009,6 +3150,9 @@ function modeOk(p, mode) {
 
 function playStageScene(world, st, S) {
   // the new arc's stage scenes say the script's lines (storytext.js)
+  // a consequence picks the scene: the baking score (scriptTier) or an answer's tag (scriptIf)
+  if (st.scriptTier && st.script) st = { ...st, script: { ...st.script, ids: st.scriptTier[juryTier()] || st.script.ids } };
+  if (st.scriptIf && st.script) { const hit = st.scriptIf.find((q) => chain.tags && chain.tags.has(q.tag)); if (hit) st = { ...st, script: { ...st.script, ids: hit.ids } }; }
   if (st.script && storyDataReady()) st = { ...st, lines: storyLines(st.script.ids, st.script) };
   const c = S.target || { x: world.player.x, y: world.player.y };
   const name = (who) => (who === 'T' ? 'Tammo' : who === 'A' ? 'Anita' : storySpeakerName(who));
@@ -3125,7 +3269,8 @@ function updateStages(dt, world, def) {
   if (chain.stagePending) {
     if (isCinematicActive()) return;
     chain.stagePending = false;
-    enterStage(world, def, 0);
+    if (chain.resume) resumeFromCheckpoint(world, def);
+    else enterStage(world, def, 0);
     if (chain.phase !== 'active') return;
   }
   const st = def.stages[chain.stageIndex];
@@ -3340,10 +3485,23 @@ function updateStages(dt, world, def) {
       else if (r && r.fail) fail(world, def, r.fail);
       break;
     }
+    case 'timing': {
+      const r = updateTiming(dt, world, st, S);
+      if (r === 'done') {
+        const tag = timingTag(st, S);
+        if (tag) (chain.tags = chain.tags || new Set()).add(tag);
+        nextStage(world, def);
+      } else if (r && r.fail) fail(world, def, r.fail);
+      break;
+    }
     case 'choice': {
       const r = updateChoice(dt, world, st, S);
-      if (r === 'done') nextStage(world, def);
-      else if (r && r.fail) fail(world, def, r.fail);
+      if (r === 'done') {
+        // an answer can carry a tag: the mission pays and tells its consequence (def.tagAdjust, def.tagRows, st.scriptIf)
+        (chain.tags = chain.tags || new Set());
+        st.rounds.forEach((rd, k) => { const o = rd.options[S.picks[k]]; if (o && o.tag) chain.tags.add(o.tag); });
+        nextStage(world, def);
+      } else if (r && r.fail) fail(world, def, r.fail);
       break;
     }
     default:
@@ -3376,6 +3534,7 @@ function updateBakeStage(dt, world, def, st, S) {
   if (res === 'done') {
     hideBake();
     const bad = S.bake.wrongs + S.bake.redos * 3;
+    if (st.recipe === 'contest') chain.bakeTier = bad === 0 ? 'top' : bad < 3 ? 'goed' : 'mager';
     world.addMessage(st.recipe === 'contest' ? (bad === 0 ? 'Alle eierballen zijn goud, geen enkele mislukt. De jury gaat dit proeven.' : bad < 3 ? 'De eierballen zijn goud. Een paar mislukten, de jury merkt het niet.' : 'De eierballen zijn goud, na veel gedoe. De jury heeft het gezien.') : 'Alle eierballen zijn goud.', 3);
     return true;
   }

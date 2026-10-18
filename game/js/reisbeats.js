@@ -19,7 +19,8 @@ export const REISBEATS = {
   M14: { act: 3, from: 'Eemshaven', to: 'Bierum', length: 22000, ride: 'lift' },
   // by rail Delfzijl to Winschoten goes by way of Station Grunn: about 80 km
   T3: { act: 3, from: 'Delfzijl', to: 'Winschoten', length: 80000, ride: 'trein', scene: 'T3' },
-  M17: { act: 4, from: 'Dollarddijk', to: 'Veendam', length: 30000, ride: 'lift' },
+  // M16 ends at the Oldambtmeer, M17 starts at the Oosterdiep in Veendam (about 20 km)
+  M17: { act: 4, from: 'Winschoten', to: 'Veendam', length: 20000, ride: 'lift' },
   // Wildervank to Bourtange by way of Ter Apel (about 45 km): the beat sits on the step that ends at Bourtange
   T4: { act: 4, from: 'Wildervank', to: 'Bourtange', length: 45000, ride: 'bus', scene: 'T4.1' },
   M21: { act: 4, from: 'Bourtange', to: 'Zuidhorn', length: 65000, ride: 'lift' },

@@ -359,15 +359,15 @@ function settingsHtml() {
       ${toggle('invertY', 'Omhoog/omlaag omkeren', 'Geldt voor de muis en de stick')}
       ${toggle('autoAim', 'Automatisch richten', 'Rechtermuisknop zoekt zelf het beste doelwit')}
       <div class="m-gh"><span>Controller</span></div>
-      ${picker('padLayout', 'Knoppen tonen als', [['auto', 'Automatisch'], ['xbox', 'Xbox'], ['ps', 'PlayStation'], ['switch', 'Nintendo Switch'], ['deck', 'Steam Deck of Steam Controller']], 'Automatisch kiest wat er aangesloten is')}
+      ${picker('padLayout', 'Knoppen tonen als', [['auto', 'Automatisch'], ['xbox', 'Letterknoppen (A B X Y)'], ['ps', 'Vormknoppen'], ['switch', 'Wisselende letters'], ['deck', 'Handheld']], 'Automatisch kiest wat er aangesloten is')}
       ${slider('padLookSensitivity', 'Camera met de rechterstick', 0.3, 2.5, 0.05)}
       ${toggle('rumble', 'Trillen', 'Bij klappen, schoten en botsingen, als je controller dat kan')}
       <div class="m-li pm-row">${rowName('Knoppen indelen', 'Onder Besturing › Controller')}<button type="button" class="m-bg" data-goto-sub="controls:knoppen">Indelen</button></div>
-      <div class="m-li pm-row">${rowName('Controller testen', 'Welk pad wordt herkend en welke knop doet wat')}<button type="button" class="m-bg" data-pad-test>Testen</button></div>`, `${pane('Camera & controller', 'Meekijken', '<p>Xbox-, PlayStation-, Switch- en Steam Deck-controllers werken meteen. De hints in beeld wisselen vanzelf tussen toetsen en knoppen, naar wat je het laatst gebruikte.</p><p class="mut">De camera-afstand en beeldhoek gelden te voet en in elk voertuig.</p>')}`)}
+      <div class="m-li pm-row">${rowName('Controller testen', 'Welk pad wordt herkend en welke knop doet wat')}<button type="button" class="m-bg" data-pad-test>Testen</button></div>`, `${pane('Camera & controller', 'Meekijken', '<p>Alle gangbare controllers werken meteen. De hints in beeld wisselen vanzelf tussen toetsen en knoppen, naar wat je het laatst gebruikte.</p><p class="mut">De camera-afstand en beeldhoek gelden te voet en in elk voertuig.</p>')}`)}
     ${tab('display', `
       ${picker('hudMode', 'HUD', [['slim', 'Slim'], ['alles', 'Altijd alles'], ['minimaal', 'Minimaal']], 'Slim toont alleen wat nu telt')}
       ${toggle('showMinimap', 'Minimap')}
-      ${slider('minimapZoom', 'Zoom van de minimap', 0.6, 1.6, 0.05)}
+      ${slider('minimapZoom', 'Inzoomen op het kaartje', 0.6, 1.6, 0.05)}
       ${picker('minimapNorth', 'Minimap met noord boven', [['nooit', 'Nooit'], ['lucht', 'In de lucht'], ['altijd', 'Altijd']], 'Standaard draait de kaart mee')}
       ${toggle('showHints', 'Toetshints')}
       ${picker('hintSource', 'Hints tonen voor', [['auto', 'Automatisch'], ['keys', 'Toetsenbord'], ['pad', 'Controller']], 'Automatisch volgt wat je het laatst gebruikte')}

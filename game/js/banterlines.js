@@ -959,7 +959,7 @@ export const BANTER = [
     ['T', '"Nu echt de laatste fase", staat op het bord.', 'reading aloud, dry'],
     ['A', 'Dat bord is ouder dan jij.', 'laughing']] },
   { id: 'id-bloemetjesmarkt', trigger: 'idle', lines: [
-    ['A', 'Volgend voorjaar is het weer Bloemetjesmarkt. De hele binnenstad vol plantjes.', 'excited'],
+    ['A', 'Volgende zomer is het weer Bloemetjesmarkt. De hele binnenstad vol plantjes.', 'excited'],
     ['T', 'En vol touringcars uit Duitsland.', 'dry'],
     ['A', 'Die kopen alles. Zelfs die cactus waar jij bang voor bent.', 'teasing'],
     ['T', 'Die cactus keek raar.', 'defensive']] },

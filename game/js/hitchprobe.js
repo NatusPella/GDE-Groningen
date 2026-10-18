@@ -6,6 +6,7 @@
 // slow gap reports the previous frame's breakdown. Read window.__hitch.
 
 import { FLAGS } from './devflags.js';
+import { latencyStats } from './benchstats.js';
 
 const SLOW_MS = 40;
 const KEEP = 300;
@@ -21,6 +22,9 @@ let prev = null;
 let renderer = null;
 let mem0 = null;
 const gaps = [];
+// button-to-frame latency (#216 / G28): the real key press to the end of the frame that handled it
+const latencies = [];
+let inputAt = 0;
 const slow = [];
 const allPrograms = [];
 // ms per section summed over every frame (gl:* overlaps the section it ran in)
@@ -106,8 +110,17 @@ export const probe = {
       }
     });
   },
+  // called for a real key press (input.js)
+  input() {
+    if (enabled && !inputAt) inputAt = performance.now();
+  },
   end() {
     if (!enabled) return;
+    if (inputAt) {
+      latencies.push(performance.now() - inputAt);
+      if (latencies.length > 5000) latencies.splice(0, 2500);
+      inputAt = 0;
+    }
     const cpu = +(performance.now() - t0).toFixed(1);
     const at = +(performance.now() / 1000).toFixed(2);
     const inFrame = new Map();
@@ -175,6 +188,8 @@ function summary() {
   return {
     frames: g.length, p50: q(0.5), p95: q(0.95), p99: q(0.99), max: q(1),
     over50: over(50), over100: over(100), over200: over(200),
+    over33: over(33.4),
+    latency: latencyStats(latencies),
     slow: slow.slice(),
     sections: Object.fromEntries([...totals].sort((a, b) => b[1] - a[1]).map(([l, ms]) => [l, +(ms / Math.max(1, totalFrames)).toFixed(2)])),
     peaks: Object.fromEntries([...peaks].filter(([, v]) => v[0] >= 4).map(([l, v]) => [l, [+v[0].toFixed(1), v[1]]])),
@@ -185,6 +200,6 @@ function summary() {
 if (enabled) {
   globalThis.__hitch = {
     summary,
-    reset() { totals.clear(); peaks.clear(); totalFrames = 0; gaps.length = 0; slow.length = 0; allPrograms.length = 0; rafPrev = 0; prev = null; },
+    reset() { totals.clear(); peaks.clear(); totalFrames = 0; gaps.length = 0; latencies.length = 0; inputAt = 0; slow.length = 0; allPrograms.length = 0; rafPrev = 0; prev = null; },
   };
 }
