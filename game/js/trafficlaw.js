@@ -57,7 +57,7 @@ export function roadUnder(map, x, y, z = 0) {
 
 const STAR_TEXT = 'Een agent heeft je gezien. Politie! Je hebt een ster';
 
-function exempt(world, v) {
+export function exempt(world, v) {
   if (!world.player || world.health <= 0 || world.pendingRespawn || world.pigeonMode || world.heliRun || world.trainDriving || world.trainCam) return true;
   if (playerBusy(world, ['padel', 'activityGame', 'challenge']).busy || world.cameraOverride) return true;
   if (world.sideJob && world.sideJob.active) return true;
@@ -123,7 +123,7 @@ export function agentWatching(world, x, y, range = FINE_WATCH_M) {
   return false;
 }
 
-function charge(world, amount, text) {
+export function charge(world, amount, text) {
   const pay = Math.min(amount, Math.max(0, Math.floor(world.money || 0)));
   world.money = (world.money || 0) - pay;
   world.addMessage(`${text}: boete €${pay}`, 5, { kind: 'politie', key: 'roadfine' });
