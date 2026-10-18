@@ -101,6 +101,53 @@ frame then runs, in order:
 | Validation | `spotcheck.js` (every start/target point must be open ground you can walk away from), `ringcheck.js` (nothing solid or open water on the ring race lap and ring roads, a car crosses every water crossing of the major and numbered roads at 80 km/h in both directions and three lanes, a scripted car and the AI racers drive a full lap, every rail lift can be walked, driven and cycled up), `passagecheck.js` (every street, cycleway and footway stretch inside a footprint is an opening, a door, a facade graze or clipped, never through a solid wall or an invisible hole; `node scripts/passage_audit.mjs` lists them from the map data); `node scripts/seat_audit.mjs` seats a figure on every vehicle's driver and passenger seat (seating3d.js `vehicleSeat`) and checks the head is in the cab glass under the roof, the hands ahead of the hip and the feet inside the body; all run in the story test, desktop `--validate-spots[=dir]` runs only them; out in the Ommelanden spotcheck.js loads the tiles round a far spot first (`withTiles`) and also rejects spots inside what is solid there (farmsteads, villages, turbines and pylons), with the same countryplan.js `pushOutOfPlan` query collision.js uses and the map-edge mask built first (`ensureCountryEdge`); `node scripts/swim_audit.mjs` (not in the story test) poses the ambient swimmers (swimmers3d.js) in each swimwear over a full stroke and checks no hand goes over the head, a back floater lies at the waterline with its hands in the water and a bank sitter's feet reach the water |
 | 3D | `scene3d.js` (scene, streaming, camera), `staticbatch3d.js` (static batching of city buildings and roads per 48 m cell, see Graphics settings), `gfxprofile.js` (graphics presets, GPU check, adaptive quality), `roadsurface.js` + `roadstructures3d.js` (roads; viaducts, embankments, cuttings, tunnels), `cutmask3d.js`, `terrain3d.js`, `water3d.js`, `models3d_buildings.js`, `models3d_vehicles.js`, `models3d_people.js`, `treeprops.js`, `pixelart3d.js` (shared materials), `landmarkmodels.js` (GLB landmarks) |
 
+## Modules since 0.35
+
+Short notes on what was added after 0.35.0 (all in `game/js/` unless stated). "Pure" means no THREE, no DOM and no clock, so Node tests load it directly; the glue module is named where there is one.
+
+**Gates and registers**
+- `busy.js`: the one "is the player busy" gate. `playerBusy(w, reasons?)` returns `{ busy, why }` (why = mission, cinematic, activity, sideJob, ...); `registerBusyProbe(reason, fn)` lets areas such as missions and cinematics report in; `gameBusy(w)` is the shortcut for "a game owns the screen". Every start rule (narrative, muggings, roadrage, safety, trafficlaw, cheats, onboarding, ...) calls it instead of testing `world.padelGame`, `sideJob` etc. Test: `busy_test.mjs`. Add a new way of being busy as a reason (an entry in `FLAGS` of busy.js) here.
+- `activityhub.js`: one registry for activities, bijbanen, postgame challenges and uitjes. A kind is an adapter over its module; `main.js` calls the hub's init, interact and update once per phase. A new activity registers a kind; it adds no lines to `main.js`. Test: `activityhub_test.mjs`.
+- `devflags.js`: `FLAGS` and `FLAG_DOCS`, the register of URL switches (see `docs/ONTWIKKELEN.md`).
+- `storagekeys.js`: every storage key, with the `gte-` to `gde-` migration at boot (see "Saves and versions").
+
+**Attention, HUD, voice**
+- `hudbus.js`: the planner for everything that asks for the player's eyes (#104). Priority tables, `decideStart` (narrative.js) and `decideMoment` (attention.js), the HUD queue and `mayShow` (hudrules.js). Owners keep their own state; this module owns the tables. Test: `hudbus_test.mjs`.
+- `hudlook.js`: the HUD's visual language (#92): what a vehicle shows, meters with shape next to colour (colour-blind palette), edges from 720p to 4K, single owner of numbers shown twice. `hud_panel.js` applies the answers as classes. Test: `hud_test.mjs`.
+- `voicebank.js`: the one loader for voice manifests (`audio/voicelines/<map>/manifest.json`). One fetch and cache per map, keys `speaker|text`; `linevoice`, `sidejobvoice`, `smsvoice`, `banter`, `storytext` and the intro/mission story modules go through it. A missing fetch gives an empty bank, so scripts can import it. Playing a clip goes through `audio.js` `playVoice`/`playExclusive`.
+- `glyphs.js` and `padlogic.js`: key hints follow the controls; with a controller they switch to button symbols. `padlogic.js` is the pure part of `gamepad.js` (dead zone, which pad is player 1, direction navigation for menus). Test: `padlogic_test.mjs`.
+- `touchlogic.js` (pure) and `touch.js` (DOM): virtual stick, camera swipes, situation buttons for phones and tablets; `?touch=1|0` forces it.
+
+**Cutscenes**
+- `cutscript.js`: the direction language. A scene is data (`cutscenes.js`, referencing script lines by number); `compileScene(def, { lines, duration })` validates it and returns a deterministic sampler (actors, props, camera). `cutscenehost.js` `playScript(w, def, opts)` puts the sampled state on meshes, feeds the camera to `cinematics.js` and cleans up. `actoranim.js` is the animation layer (idle, walk, talk, gestures, sitting, bystanders): `animateActor(mesh, { anim, speed, gaze, t, dt })` poses the bones of `buildPersonMesh()`; cutscript imports it dynamically and falls back to a stub. Tests: `cutscript_test.mjs`, `actoranim_test.mjs`.
+
+**Police, traffic, simulation**
+- `wantedstate.js`: the wanted state as one word (`rustig`, `achtervolging`, `zoeken`) read by the HUD; `police.js` keeps the bookkeeping, `signalement` (your vehicle's description) shortens a search after a swap. Test: `wanted_flow_test.mjs`.
+- `spatialgrid.js`: the uniform bounding-box grid (`insert`, `remove`, `update`, `query`, `queryRadius`, `cellItems`) under facilities, elevation, waterindex, pedroutes, junctions, nightlights3d, parkedcars, breakables and railprofile (#111). New spatial lookups use it, not a new grid. Test: `spatialgrid_test.mjs`.
+- `simlagen.js` (pure, behind `?simlagen`): per region and distance, how many vehicles and pedestrians are really simulated; `vehicle.js` reads target counts from it. `simkernel.js`, `simhost.js` and `simworker.js` (behind `?simworker`, trial): the simulation worker (#58). One message in, at most one out; without module workers, under the story test or with `?noworker` the kernel runs on the main thread with the same numbers. The real traffic AI has not moved in yet.
+- `motortraffic.js`, `busroutes.js`/`busservice.js`, `semitrailer.js`, `machinist.js`, `arcadeplane.js`: pure rules for motorbikes in traffic, bus lines and the bus service score, trailer coupling, the train-driver minigame and the arcade aeroplane; glue lives in `vehicle.js`, `sidejob_vracht.js`, `traindrive.js`, `heliflight.js`.
+
+**Map, regions, water, placement**
+- `mapstyle.js`: one style table (palettes `map` and `mini`, road order, widths, zoom rule, night palette). The minimap, the full map (`countrymap.js`), `regions.js` and `scripts/world/province_map.mjs` import it. Test: `mapstyle_test.mjs`.
+- `regions.js` and `regiondata.js`: which region a point lies in (Groningen, Friesland, Drenthe, Duitsland, Waddenzee, Eems, Dollard, Noordzee), the sea polygon, borders and the name to show. `regiondata.js` is the coarse fallback. Test: `regions_test.mjs`.
+- `waterlevels.js`: `waterPolyAt` is the one polygon lookup; `waterAt`, `isInWater` and `inMapWater` use it. Do not add local water lookups.
+- `tileplace.js`: `nearestOnRoads` and the building queries over the streamed tiles; shops, uitjes, houses and sidejobs place themselves through it.
+- `marinas.js` (pure planner) with `scripts/world/marinas.mjs` (build) and `marinas.json`; inland vessels (`barge`) stay in front of bridges they cannot pass.
+- `stadsprofielen.js`, `regioleven.js`, `snackketen.js`: seven city profiles, summer events and encounters per region, and the Kroketkoning chain (storage key `gde-snackketen-v1`).
+- `?stadlaag` (see `docs/ARCHITECTUUR-STAD-NAAR-TEGELS.md`): the city from the shared tile build, per layer; default off. `scripts/lib/loadworld.mjs` loads either source for tests with `WORLD_SRC=json|tiles`.
+
+**Loading, story travel, co-op, weather, shared helpers**
+- `loadlogic.js` (pure) with `loadscreen.js`: which variant a load gets (`save`, `snel`, `travel`), twelve progress tiles from the streaming status, one-line tips, timing. Test: `loadlogic_test.mjs`.
+- `reisbeats.js`, `reiskeuze.js`, `reistijd.js` with `reispanel.js` (behind `?reizen`): per story step after a jump over 6.5 km, the travel class, the ETA per mode and the choice (ride along, drive yourself, skip) with its arrival effect. Tests: `reisbeats_test`, `reiskeuze_test`, `reistijd_test`, `reisview_test`.
+- `coop.js` (pure) with `coopglue.js` (behind `?coop`): player 2 controls the companion, on IJKL or a second pad; `companion.js` hands over its follow AI.
+- `weatherstate.js` (pure): weather per region as a seeded state machine (summer kinds only); `weather.js` draws the result.
+- `ghostreplay.js` (pure recorder, playback, best-run storage) and `ghostmesh.js` (the see-through car): the kart and drift-zone ghosts. Test: `ghost_test.mjs`.
+- `rng.js` (`hash2`, `mulberry32`, `rand`), `canvastex.js` (`canvasTex`) and the geometry helpers in `util`: shared helpers that replaced 14 and 8 local copies. Use them.
+
+**Desktop and tooling**
+- `desktop/devtools.js`: benchmark, smoke, perf and story-test harness, loaded only when the app is unpackaged or `GDE_DEV=1` (constitution 9). `desktop/args.cjs` is the single argument parser (`desktop_args_test.mjs`); `desktop/envcompat.js` maps the old `GTE_*` environment names to `GDE_*`.
+- `scripts/run_tests.mjs` runs the standard tests (`--quick`, `--only=`, `--list`); `.github/workflows/test.yml` runs it on Linux and Windows. `scripts/text_audit.mjs` checks all player-facing text against the constitution (allowlist in `text_audit_allow.json`).
+
 ## Spoken lines
 
 Every line shown as a speech bubble or subtitle has a recording, looked up
