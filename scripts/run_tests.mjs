@@ -25,7 +25,7 @@ const only = opt('only');
 // scripts/perf en audio_check.js zijn snippets voor de browser/CDP: geen node --check.
 export const EXCLUDED = new Set([
   'province_test.mjs', 'province_detail_test.mjs', 'network_drive_test.mjs',
-  'junction_sim_test.mjs', 'ring_probe.mjs', 'drive_audit.mjs', 'vaarnet_province_test.mjs',
+  'junction_sim_test.mjs', 'ring_probe.mjs', 'drive_audit.mjs', 'vaarnet_province_test.mjs', 'prop_conflict_audit_test.mjs',
 ]);
 // Niet in --quick: tests van meer dan ~5 s.
 export const SLOW = new Set([

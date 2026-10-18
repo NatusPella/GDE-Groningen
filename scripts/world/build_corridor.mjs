@@ -380,8 +380,8 @@ export function ommelandBox(i, j, root = ROOT) {
 }
 
 // canopies (derive_tiles.mjs: platform roofs, open roofs) only come with the province's derivation
-const PER_TILE = ['buildings', 'roads', 'water', 'green', 'trees', 'rails', 'canopies'];
-const SECTION_OF = { buildings: G.SECTION.BUILDINGS, roads: G.SECTION.ROADS, water: G.SECTION.WATER, green: G.SECTION.GREEN, trees: G.SECTION.TREES, rails: G.SECTION.RAILS, canopies: G.SECTION.CANOPIES };
+const PER_TILE = ['buildings', 'roads', 'water', 'green', 'trees', 'rails', 'canopies', 'parcels'];
+const SECTION_OF = { buildings: G.SECTION.BUILDINGS, roads: G.SECTION.ROADS, water: G.SECTION.WATER, green: G.SECTION.GREEN, trees: G.SECTION.TREES, rails: G.SECTION.RAILS, parcels: G.SECTION.PARCELS, canopies: G.SECTION.CANOPIES };
 
 // One tile out of the world builder's features that touch it: lines and
 // areas cut at the tile edge (a piece of a way per tile, sharing its end
@@ -405,7 +405,7 @@ export function tileBlob(i, j, list, gid, flags, builder, stats = null, extras =
       continue;
     }
     if (f.kind === 'buildings' || f.kind === 'trees' || f.kind === 'canopies') { rows[f.kind].push({ gid: gid[f.kind]++, ...f.row }); continue; }
-    if (f.kind === 'water' || f.kind === 'green') {
+    if (f.kind === 'water' || f.kind === 'green' || f.kind === 'parcels') {
       const P = clipPoly(f.row.pts, box);
       if (P && P.length >= 4) rows[f.kind].push({ gid: gid[f.kind]++, ...f.row, pts: P });
       continue;

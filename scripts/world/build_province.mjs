@@ -246,7 +246,7 @@ export function outsideCover(list, inside) {
   for (const f of list) {
     const r = f.row;
     if (f.kind === 'trees') { if (keep(r[0], r[1])) out.push(f); continue; }
-    if (f.kind === 'buildings' || f.kind === 'canopies' || f.kind === 'water' || f.kind === 'green') {
+    if (f.kind === 'buildings' || f.kind === 'canopies' || f.kind === 'water' || f.kind === 'green' || f.kind === 'parcels') {
       let a = Infinity, b = Infinity, c = -Infinity, d = -Infinity;
       for (const p of r.pts) { if (p[0] < a) a = p[0]; if (p[1] < b) b = p[1]; if (p[0] > c) c = p[0]; if (p[1] > d) d = p[1]; }
       if (keep((a + c) / 2, (b + d) / 2)) out.push(f);
@@ -417,7 +417,7 @@ export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(s
     const [x0, y0] = G.tileOrigin(i0, j0);
     raster = new Raster(x0, y0, Math.ceil(((i1 - i0 + 1) * G.TILE_M) / FINE_M), Math.ceil(((j1 - j0 + 1) * G.TILE_M) / FINE_M), FINE_M);
   }
-  const gid = { buildings: GID0, roads: GID0, water: GID0, green: GID0, trees: GID0, rails: GID0, canopies: GID0, furniture: GID0 };
+  const gid = { buildings: GID0, roads: GID0, water: GID0, green: GID0, trees: GID0, rails: GID0, canopies: GID0, furniture: GID0, parcels: GID0 };
   const stats = { tiles: 0, buildings: 0, roads: 0, water: 0, rails: 0, green: 0, trees: 0, furniture: 0, junctions: 0, signals: 0, autoSignals: 0, hsrc: {}, packs: 0, sourceMB: 0, bag: bag3d ? bag3d.stats : null, derived: { moved: 0, merged: 0, canopies: 0, lifted: 0, clipped: 0, trimmed: 0, afloat: 0, drowned: 0 } };
   const blobs = new Map();
   const empty = [], noPack = [];
@@ -570,6 +570,10 @@ export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(s
   const rail = { ...bakeCityRoutes({ stations: stationList, routes }, { province: true, root }), rails: railLines(railRows, cityCover ? cityCover.inside : () => false, cityCover ? cityCover.rails : []), ...far };
   const global = {
     builder: PROVINCE_BUILDER, source: prov.source, places,
+    // the tiles carry the real ditches (worldbuilder.js fromOsm waterway=ditch|drain|stream): the game turns its painted ones off (countryfield.js)
+    osmDitches: true,
+    // the tiles carry the land use of OSM landuse (PARCELS): the countryside's fences and herds follow it (countryedge.js landUseAt)
+    osmParcels: true,
     stations: [...stations.entries()].map(([key, s]) => ({ key, ...s })).sort((a, b) => (a.key < b.key ? -1 : 1)),
     routes, bus: bus.map(({ id, ref, name, from, to, pts, stops }) => ({ id, ref, name, from, to, pts, stops })),
     edge, outline: rings.map((R) => simplify(R, 60).map(([x, y]) => [Math.round(x), Math.round(y)])),

@@ -40,7 +40,7 @@ Alleen één Electron-instantie tegelijk en geen nieuwe agents tijdens een relea
 
 - Vóór elke merge: `node --check` op gewijzigde JS, `node scripts/voice_coverage.mjs --quiet`, en alle `scripts/*_test.mjs` met gewone `node` (macOS en Windows hebben geen `timeout`).
 - Vóór elke release: één Electron-verhaaltest (`--story-test=<dir>`). NaN-waarschuwingen in geometrie laten die falen.
-- Zware wereldchecks: `ring_probe`, `seat_audit`, `scripts/perf/geocheck.sh`, `drive_audit`, `junction_sim_test`, `network_drive_test`, spoor- en wateraudits.
+- Zware wereldchecks: `ring_probe`, `seat_audit`, `scripts/world/prop_conflict_audit.mjs --strict` (weilandranden en vee tegen spoor, weg, water en huis), `scripts/perf/geocheck.sh`, `drive_audit`, `junction_sim_test`, `network_drive_test`, spoor- en wateraudits.
 - Tests schrijven nooit naar echte opslag: blokkeer `localStorage` voor `gde-save-v1`, `gde-settings`, `gde-prestaties-v1`. Een synthetische `keydown` wordt altijd gevolgd door een `keyup`.
 - Gebruik voor het spel nooit het ingebouwde browservenster van de app; draai headless of Electron en sluit het weer.
 - Zeg eerlijk wat niet is getest. Alles wat een agent niet in beeld heeft gezien, staat als "nog niet bekeken" in het issue.

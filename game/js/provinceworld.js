@@ -15,8 +15,8 @@
 //    roads, buildings and water (countryedge.js setExtraBlocked), and stay
 //    away from a tile that has not streamed in yet.
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { BLOCK, COUNTRY_UNIFORMS, setProvinceBlocks } from './countryfield.js';
-import { setExtraBlocked } from './countryedge.js';
+import { BLOCK, COUNTRY_UNIFORMS, setProvinceBlocks, setProvinceDitches } from './countryfield.js';
+import { setExtraBlocked, setExtraUse } from './countryedge.js';
 import { tileIndexOf, tileKey } from './gdt.js';
 import { pointInPolygon } from './util.js';
 import { setProvinceMap } from './provincemap.js';
@@ -60,6 +60,13 @@ export function provinceBlocksOf(keys, isTile) {
     }
   }
   return { x0: i0, y0: j0, w, h, data, count: n };
+}
+
+// The land use the tiles give a point ('akker' | 'weide' | 'boomgaard'), or null: a tile that is not in, or no polygon.
+export function realUseAt(map, isTile, x, y) {
+  const [i, j] = tileIndexOf(x, y);
+  if (!isTile(tileKey(i, j)) || !map.resident || !map.resident.has(`${i},${j}`)) return null;
+  return map.landUseAt ? map.landUseAt(x, y) : null;
 }
 
 // Does something real of a streamed tile stand at (x, y), within m? A tile
@@ -169,6 +176,7 @@ export function initProvince(tiles) {
   const layer = tiles && tiles.index.layers && tiles.index.layers.provincie;
   S.layer = layer && layer.global ? layer.global : null;
   S.cover = S.layer && tiles.index ? tileCoverOf(tiles.index) : null;
+  setProvinceDitches(!!(S.layer && S.layer.osmDitches));
   if (!S.layer) { S.has = null; S.map = null; setProvinceBlocks(null); setProvinceMap(null); return { layer: S.layer, tiles: 0, blocks: 0 }; }
   // the full map's base layer (provincemap.js)
   setProvinceMap(S.layer.map || null);
@@ -192,6 +200,8 @@ export function initProvince(tiles) {
   const map = tiles.world;
   S.map = map;
   setExtraBlocked((x, y, m) => realBlockedAt(map, isTile, x, y, m));
+  // the land use of OSM landuse (a world built with it: global.osmParcels); the hash decides where it is silent
+  setExtraUse(S.layer.osmParcels ? (x, y) => realUseAt(map, isTile, x, y) : null);
   return { layer: S.layer, tiles: S.keys.length, blocks: S.blocks ? S.blocks.count : 0 };
 }
 
