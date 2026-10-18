@@ -6,6 +6,8 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+- Bijrijders: sommige auto's hebben een passagier naast de bestuurder; bij autodiefstal stappen zij uit en rennen weg. In een enkele geparkeerde auto wacht iemand, die bij diefstal uit de auto wordt gehaald.
+
 ## [0.36.0] - 2026-10-18
 
 ### Nieuw
