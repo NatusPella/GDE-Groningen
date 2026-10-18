@@ -57,6 +57,8 @@ function queryParts() {
     hasFlag('--gfx-advice') && 'gfxadvies',
     // --nobatch: city buildings drawn one by one (A/B of buildingbatch3d.js)
     hasFlag('--nobatch') && 'nobatch',
+    // --viaducten: the bridge and viaduct profiles of streamed tiles (#235)
+    hasFlag('--viaducten') && 'viaducten',
     argValue('--gfx-advice') && `gpu=${encodeURIComponent(argValue('--gfx-advice'))}`].filter(Boolean);
 }
 

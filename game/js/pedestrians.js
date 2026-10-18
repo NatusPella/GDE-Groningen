@@ -450,6 +450,7 @@ export function ejectPassengers(world, ev) {
     ped.hasBag = false;
     ped.health = 40;
     ped.noFade = true;
+    ped.passengerOf = v.id;
     ped.x += (e.who === 'rear' ? 0.5 : 0); // achterin stapt iets verder naar achteren uit
     world.pedestrians.push(ped);
     startFlee(ped, world, v.x, v.y);
@@ -691,6 +692,8 @@ function reactToEvent(ped, ev, world, d) {
     return;
   }
   if (ped.state === 'call' || ped.state === 'film') return;
+  if (ped.passengerOf && ev.kind === 'theft') return; // already running away (ejectPassengers)
+  if (ped._vic && !victimDone(ped._vic)) return; // the pulled-out driver follows his own script, not the crash he just caused
   const seated = !!ped.scene;
   const roll = Math.random();
   if (ev.kind === 'crash') {
