@@ -9,13 +9,14 @@ import { getSettings, setSetting, resetSettings, QUALITY_PRESETS } from './setti
 import { logoHtml } from './logo.js';
 import { PRESET_ORDER, presetLabel, describePreset, describeChanges, currentPreset, applyPreset, getBenchResult, dismissBenchBanner, GEAR_SVG } from './gfxprofile.js';
 import { mountMapView, setMapActive, setMapCloseHandler, setMapView, getDiscoveredRatio, setMapTeleport } from './mapview.js';
-import { renderCheatsPanel, cheatsClick, cheatsInput, resetCheatsPanel, cheatsFocus } from './cheatsui.js';
+import { renderCheatsPanel, cheatsClick, resetCheatsPanel, cheatsFocus } from './cheatsui.js';
 import { skipCurrent, getStoryJournal, markCluesSeen } from './story.js';
 import { saveGame, hasSave, loadLatestSave, clearSave, getSaveSummary } from './savegame.js';
 import { getClockText } from './hud_panel.js';
 import { storyDate } from './calendarday.js';
 import { isCinematicActive } from './cinematics.js';
 import { renderAchievementsPanel } from './achievementsui.js';
+import { unseenAchievementCount } from './achievements.js';
 import { renderGaragePanel, selectGarageVehicle, disposeGarageViewer } from './garageui.js';
 import { deliverOwnedVehicle, locateOwnedVehicle } from './ownedvehicles.js';
 import { isShopOpen, closeShopMenu } from './shopui.js';
@@ -322,7 +323,7 @@ function settingsHtml() {
       ${slider('brightness', 'Helderheid', 0.6, 1.6, 0.05)}
       ${disclosure('video', 'Meer opties', 'Licht en gloed, benchmark draaien', `
         ${picker('quality', 'Kwaliteit', qualities, 'Licht, gloed en kleuren')}
-        <div class="m-li pm-row">${rowName('Benchmark', 'Test hoe soepel Grunn draait op deze computer en welke stand past (±2 min)')}<button type="button" class="m-bg" data-action="bench">Benchmark draaien</button></div>
+        <div class="m-li pm-row">${rowName('Benchmark', 'Test hoe soepel Grunn draait op deze computer en welke stand past (±1 min)')}<button type="button" class="m-bg" data-action="bench">Benchmark draaien</button></div>
         <div class="pm-confirm" data-bench-confirm hidden>
           <p data-bench-text></p>
           <div class="m-acts"><button type="button" class="m-bp" data-action="bench-go">Starten</button><button type="button" class="m-bt" data-action="bench-cancel">Annuleren</button></div>
@@ -526,11 +527,6 @@ export function initPauseMenu(w) {
     if (e.target.dataset && 'radioSwitch' in e.target.dataset) { setRadio(e.target.checked, { announce: false }); syncControls(); return; }
     if (DESKTOP && e.target.dataset && e.target.dataset.desktop === 'fullscreen') {
       DESKTOP.setFullscreen(e.target.checked);
-      return;
-    }
-    if (e.target.dataset && e.target.dataset.cheat) {
-      cheatsInput(e.target);
-      renderCheats(`[data-cheat="${e.target.dataset.cheat}"]`);
       return;
     }
     const k = e.target.dataset && e.target.dataset.setting;
@@ -1044,7 +1040,7 @@ function runAction(a) {
     const box = root.querySelector('[data-bench-confirm]');
     box.hidden = a === 'bench-cancel';
     box.querySelector('[data-bench-text]').textContent = prestart
-      ? 'Benchmark starten? Duurt ongeveer twee minuten. Esc stopt.'
+      ? 'Benchmark starten? Duurt ongeveer een minuut. Esc stopt.'
       : 'Benchmark starten? Je spel wordt eerst opgeslagen. Esc stopt.';
     if (!box.hidden) box.querySelector('[data-action="bench-go"]').focus();
     else root.querySelector('[data-action="bench"]').focus();
@@ -1289,6 +1285,9 @@ function syncNavBadges() {
   if (pNav) pNav.toggleAttribute('data-new', unread);
   const setN = (id, text, label) => { const n = root.querySelector(`[data-n="${id}"]`); if (n) { n.textContent = text; if (label) n.setAttribute('aria-label', label); else n.removeAttribute('aria-label'); } };
   setN('telefoon', unread ? String(unreadN) : '', unread ? `${unreadN} ongelezen` : '');
+  // unseen achievements: a quiet dot on the rail, never a HUD notice (#168)
+  const aNav = root.querySelector('[data-goto="prestaties"]');
+  if (aNav) aNav.toggleAttribute('data-new', unseenAchievementCount() > 0);
   setN('todo', fresh ? 'nieuw' : '');
   setN('verhaal', fresh || met ? 'nieuw' : '');
   const pSub = root.querySelector('[data-of="telefoon"][data-subtab="berichten"]');

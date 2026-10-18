@@ -10,8 +10,9 @@ import fs from 'node:fs';
 import zlib from 'node:zlib';
 
 globalThis.requestAnimationFrame = (f) => setImmediate(f);
-const root = new URL('../game/world/', import.meta.url);
-if (!fs.existsSync(new URL('index-provincie.json', root))) { console.log('SKIP no game/world with the province layer'); process.exit(0); }
+const full = (d) => fs.existsSync(new URL('index.json', d)) && fs.existsSync(new URL('index-provincie.json', d));
+const root = full(new URL('../game/world/', import.meta.url)) ? new URL('../game/world/', import.meta.url) : new URL('../desktop/build/game/world/', import.meta.url);
+if (!full(root)) { console.log('SKIP no game/world with the province layer'); process.exit(0); }
 
 const G = await import('../game/js/gdt.js');
 const S = await import('../game/js/tilestore.js');

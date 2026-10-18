@@ -3,6 +3,7 @@ import './storagekeys.js';
 import { setErrorContext } from './errorlog.js';
 import { DEV, STORY_TEST, FLAGS } from './devflags.js';
 import { bindCoop } from './coopglue.js';
+import { tickCoopNet } from './coopnet.js';
 import { loadMap } from './mapdata.js';
 import { loadTileWorld } from './tileworld.js';
 import { tileFocus } from './tilefocus.js';
@@ -78,6 +79,7 @@ import { initWeather, updateWeather } from './weather.js';
 import { initWorldEvents, updateWorldEvents } from './worldevents.js';
 import { initMuggings, updateMuggings } from './muggings.js';
 import { initRoadRage, updateRoadRage } from './roadrage.js';
+import { updateClearZones } from './clearzonesweep.js';
 import { tryWeaponDropInteract, updateWeaponDrops3D } from './weapondrops.js';
 import { initFlitspaal, updateFlitspaal } from './flitspaal.js';
 import { initWildlife, updateWildlife } from './wildlife.js';
@@ -113,6 +115,9 @@ import { prepareHomeMap, initHome, updateHome, updateHomeExterior, tryHomeIntera
 import { updateDrunk } from './drunk.js';
 import { updateHelis } from './heliflight.js';
 import { planeKind } from './planeflight.js';
+import { busBoardKind } from './busboard3d.js';
+import { loadBusLines } from './busroutes.js';
+import { setBusLines } from './vehicle.js';
 import { scaledTarget, simLevel, nextSimFrame, farAIDist, skipFar, takeDt, keepVehicle } from './simload.js';
 import { getSettings } from './settings.js';
 import { MODS } from './cheatmods.js';
@@ -125,6 +130,7 @@ registerActivityKind({ id: 'activities', init: initActivities, slot: 'act', inte
 registerActivityKind({ id: 'postgame', initPhase: 'late', tickRank: 0, init: initPostgame, slot: 'pre', interact: tryPostgameInteract, tickPhase: 'late', tick: updatePostgame });
 registerActivityKind({ id: 'sidejobs', initPhase: 'late', tickRank: -1, init: initSideJobs, slot: 'job', interact: trySideJobInteract, tickPhase: 'late', tick: updateSideJobs });
 registerActivityKind(planeKind);
+registerActivityKind(busBoardKind);
 registerActivityKind({ id: 'ommeland', initPhase: 'early', init: initOmmelandFun, slot: 'uitje', interact: tryOmmelandInteract, tickPhase: 'late', tick: updateOmmelandFun });
 
 // More life on the water: small paddle and pedal craft make up most of the
@@ -266,6 +272,7 @@ async function boot() {
   const extra = [{ name: 'index-provincie.json' }, { name: 'index-corridor.json' }];
   const tiles = FLAGS.legacymap ? null : await loadTileWorld('world/', { onProgress: onMapProgress, extra });
   const corridor = !!tiles;
+  if (tiles && FLAGS.terrain) tiles.world.terrainOn = true;
   const layers = (tiles && tiles.index.layers) || {};
   const corLayer = (layers.provincie && layers.provincie.global ? layers.provincie : null) || layers.corridor;
   if (corLayer && corLayer.global) setWorldPlaces(corLayer.global.places);
@@ -276,6 +283,9 @@ async function boot() {
   // the tiles' car roads for the GPS and the police (roadgraph.js), read while the rest loads
   const roadsFile = layers.provincie && layers.provincie.global && layers.provincie.global.roadsFile;
   if (tiles && roadsFile) loadRoadNet('world/', roadsFile).then((r) => r && setRoadNet(r));
+  // the real bus lines for the buses' routes, boards and next stop (busroutes.js, #80, #160)
+  const busFile = layers.provincie && layers.provincie.global && layers.provincie.global.busFile;
+  if (tiles && busFile) loadBusLines('world/', busFile).then(setBusLines);
   // the city's train routes on over the layer's track, the countryside's rails, turbines and pylons (corridorrail.js)
   const landData = corLayer && corLayer.global ? loadLandData('world/', corLayer.global.landFile) : null;
   const facilities = loadFacilities('citymap.json');
@@ -394,6 +404,7 @@ async function boot() {
   initSafety(world);
   initCheats(world);
   if (DEV) import('./storydev.js').then((m) => m.initStoryDev(world)).catch((e) => console.error('storydev', e));
+  if (FLAGS.testmenu) import('./testmenu.js').then((m) => m.initTestMenu(world)).catch((e) => console.error('testmenu', e));
   if (DEV) import('./profileoverlay.js').then((m) => m.initProfileOverlay(world)).catch((e) => console.error('profileoverlay', e));
   if (STORY_TEST) import('./storytest.js').then((m) => m.runStoryTest(world)).catch((e) => console.error('storytest', e));
   markLoad('systems');
@@ -491,6 +502,7 @@ async function boot() {
       updatePhone(dt, world);
       updateSaveGame(dt, world);
     }
+    if (world.coopNet) tickCoopNet(world, dt); // coöp online (#95), alleen na een bewuste koppeling
     probe.mark('phone+save');
     updateSafety(dt, world);
     // a padel match owns the camera (cinematics.js resets cameraOverride each frame)
@@ -649,6 +661,7 @@ async function boot() {
     updateWorldEvents(dt, world);
     updateMuggings(dt, world);
     updateRoadRage(dt, world);
+    updateClearZones(dt, world);
     updateDayNight(dt, world);
     updateCalendar(dt, world);
     updateCheats(dt, world);

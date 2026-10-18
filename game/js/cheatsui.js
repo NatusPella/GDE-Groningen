@@ -9,6 +9,7 @@ import {
   spawnChoices, spawnVehicleHere,
 } from './cheats.js';
 import { isFolded } from './todoui.js';
+import { impact, summaryLine, pressToggle, onSelect } from './cheatsuilogic.js';
 
 const KIND = { car: 'Auto', bike: 'Fiets', scooter: 'E-step', boat: 'Boot', heli: 'Heli' };
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -19,6 +20,10 @@ let picker = false;
 let msg = '';
 let sel = null;
 let lastW = null;
+let st = { pending: null }; // cheat waiting for its confirming press (#161)
+const TROPHY = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H5v1a3 3 0 0 0 3 3M16 6h3v1a3 3 0 0 1-3 3M12 13v4M8.5 20h7"/></svg>';
+const TROPHY_OFF = TROPHY.replace('</svg>', '<path d="M4 4l16 16"/></svg>');
+const key = (k) => `<span class="hud-key">${k}</span>`;
 
 function hintOf(c) {
   if (c.hint) return c.hint;
@@ -51,7 +56,10 @@ function actionRow(c, w) {
 }
 
 function toggleRow(c) {
-  return `<label class="m-li" data-cheat-row="${c.id}"><span class="nm"><span class="one">${esc(c.name)}</span></span><input type="checkbox" class="m-sw" data-cheat="${c.id}"${isCheatOn(c.id) ? ' checked' : ''}></label>`;
+  const on = isCheatOn(c.id), hinder = impact(c) === 'hindert', ask = st.pending === c.id;
+  const icon = hinder ? `<span class="cheat-ic red" title="Zet prestaties uit">${TROPHY_OFF}</span>` : `<span class="cheat-ic g" title="Veilig voor prestaties">${TROPHY}</span>`;
+  const label = on ? 'Zet uit' : ask ? 'Zeker? Bevestig' : 'Zet aan';
+  return `<div class="m-li${on ? ' on' : ''}" data-cheat-row="${c.id}">${icon}<span class="nm"><span class="one">${esc(c.name)}</span></span><span class="t ${on ? 'g' : 'mut'}">${on ? 'Aan' : 'Uit'}</span><button type="button" class="m-bt" data-cheat-toggle="${c.id}">${label}</button></div>`;
 }
 
 function paneHtml(w) {
@@ -65,7 +73,8 @@ function paneHtml(w) {
   const open = isAvailable(c.id);
   return `<div class="pm-pane-top"><span class="m-eb">${c.kind === 'action' || c.kind === 'perk' ? 'Actie' : c.safe ? 'Cheat · uiterlijk' : 'Cheat'}</span><h2 class="m-h2 td-h2">${open ? esc(c.name) : '???'}</h2></div>` +
     `<p>${open ? esc(c.desc) : esc(hintOf(c))}</p>` +
-    (open ? `<p class="${c.safe || c.kind === 'action' ? 'g' : 'mut'}">${noteOf(c)}</p>` : '') +
+    (open ? `<p class="${impact(c) === 'veilig' ? 'g' : 'red'}">${impact(c) === 'veilig' ? 'Veilig voor prestaties. ' : 'Hindert prestaties. '}${noteOf(c)}</p>` : '') +
+    (open && st.pending === c.id ? `<p class="red">Weet je het zeker? Prestaties gaan uit zolang hij aan staat. Druk nog eens ${key('Enter')} (of A) om hem aan te zetten; een andere rij annuleert.</p>` : open && (!c.kind || c.kind === 'toggle') ? `<p class="mut">Bladeren verandert niets. Zet aan of uit met ${key('Enter')} (of A) op de knop.</p>` : '') +
     '<span class="m-grow"></span>' +
     (busy ? '<p class="mut">Je bent nu bezig (missie, filmpje of uitdaging): alleen de uiterlijk-cheats doen nu mee.</p>' : '') +
     `<p class="${blocked ? 'red' : 'mut'}">${intro}</p><p class="g st-msg" role="status">${esc(msg)}</p>`;
@@ -81,7 +90,9 @@ export function renderCheatsPanel(el, w) {
   const lit = toggles.filter((c) => isCheatOn(c.id)).length;
   const lockedOpen = isFolded('locked');
   if (sel && !CHEATS.some((c) => c.id === sel)) sel = null;
+  const sum = summaryLine(CHEATS, isCheatOn);
   el.innerHTML = '<div class="m-main"><div class="m-list pm-slist">' +
+    `<p class="cheat-sum ${sum.tone === 'red' ? 'red' : 'g'}" role="status">${esc(sum.text)}</p>` +
     '<div class="m-gh"><span>Acties</span></div>' + actions.filter((c) => isAvailable(c.id)).map((c) => actionRow(c, w)).join('') +
     `<div class="m-gh"><span>Cheats</span><span>${lit ? `${lit} aan` : ''}</span></div>` + open.map(toggleRow).join('') +
     (shut.length ? `<div class="m-rule"></div><button type="button" class="m-disc" data-fold="locked" aria-expanded="${lockedOpen}" aria-controls="pm-f-locked">${CHEV}<b>Nog ${shut.length} op slot</b><span class="mut one">Speel verder in het verhaal of haal prestaties</span></button>` +
@@ -96,14 +107,9 @@ export function cheatsFocus(panel, el) {
   const r = el && el.closest && el.closest('[data-cheat-row]');
   if (!r || !panel.contains(r) || r.dataset.cheatRow === sel) return;
   sel = r.dataset.cheatRow;
+  st = onSelect(st, sel);
   const pane = panel.querySelector('.cheat-pane');
   if (pane && lastW) pane.innerHTML = paneHtml(lastW);
-}
-
-// A switch flipped (click, Enter or A): one of a group turns the others off.
-export function cheatsInput(input) {
-  setCheat(input.dataset.cheat, input.checked);
-  msg = '';
 }
 
 // api: { teleport(), close(), rerender(focus) }. True when handled.
@@ -113,6 +119,16 @@ export function cheatsClick(e, w, api) {
     const a = act.dataset.cheatAct;
     if (a === 'teleport') { msg = ''; picker = false; api.teleport(); return true; }
     if (a === 'picker') { picker = !picker; msg = ''; api.rerender('[data-cheat-act="picker"]'); return true; }
+  }
+  const tg = e.target.closest('[data-cheat-toggle]');
+  if (tg) {
+    const c = CHEATS.find((x) => x.id === tg.dataset.cheatToggle);
+    const r = pressToggle(st, c, isCheatOn(c.id));
+    st = { pending: r.pending };
+    if (r.do === 'apply') setCheat(c.id, r.value);
+    msg = '';
+    api.rerender(`[data-cheat-toggle="${c.id}"]`);
+    return true;
   }
   const sp = e.target.closest('[data-cheat-spawn]');
   if (sp) {
@@ -129,4 +145,5 @@ export function resetCheatsPanel() {
   picker = false;
   msg = '';
   sel = null;
+  st = { pending: null };
 }

@@ -347,4 +347,3 @@ export const ZWEMBAD = standActivity({
     quit: () => { if (!game) return false; end(w, { quit: true }); return true; },
   }),
 });
-export const ZWEMBAD_MEDALS = MEDAL_AT;
