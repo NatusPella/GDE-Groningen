@@ -6,6 +6,8 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+- Het weer is nu per streek van de provincie verschillend: zon, bewolking, mist in de ochtend, motregen, buien en onweer. Altijd zomer.
+
 ## [0.35.0] - 2026-10-18
 
 ### Nieuw
