@@ -149,5 +149,3 @@ export const WANDELING = {
     return { name: 'Wandeling Winsum', sub: 'vijf stempelposten langs de dijk, gratis', dist: Math.hypot(START.x - w.player.x, START.y - w.player.y), x: START.x, y: START.y, play: 'wandeling', where: 'Winsum', hint: 'loop naar de eerste paal en druk E' };
   },
 };
-export const WANDEL_STAMPS = STAMPS;
-export const WANDEL_PACE_AT = PACE_MEDAL_AT;

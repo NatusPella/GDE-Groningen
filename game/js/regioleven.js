@@ -14,7 +14,6 @@ export const STREKEN = [
   { id: 'westerkwartier', name: 'Westerkwartier', at: [53.17, 6.4], reach: 11000 },
   { id: 'hogeland', name: 'Hogeland', at: [53.4, 6.65], reach: 11000 },
 ];
-export const STREEK_BY_ID = new Map(STREKEN.map((s) => [s.id, s]));
 
 export function streekAt(x, y) {
   let best = null, bestD = Infinity;
@@ -134,7 +133,6 @@ export const FINDS = [
   { id: 'v-hog-3', streek: 'hogeland', kind: 'verzamel', name: 'Dijkbord', at: [53.4205, 6.6902], r: 14, text: 'Een verweerd bordje met de tekst: Niet op de dijk. De schapen hebben er een mening over.' },
   { id: 'g-hog', streek: 'hogeland', kind: 'geheim', name: 'De stille wierde', at: [53.4256, 6.6602], r: 12, text: 'Op een kleine heuvel in de klei is alles stil. De wind draait weg, je hoort alleen jezelf denken.' },
 ];
-export const FIND_BY_ID = new Map(FINDS.map((f) => [f.id, f]));
 
 export function findsOf(streekId, kind = null) {
   return FINDS.filter((f) => f.streek === streekId && (!kind || f.kind === kind));

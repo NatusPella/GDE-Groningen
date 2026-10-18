@@ -222,11 +222,6 @@ let notice = { from: '', until: 0 };
 function noticeFrom(from) {
   notice = { from, until: performance.now() + NOTICE_HOLD_MS + 1500 };
 }
-export function recentNotice() {
-  if (call) return call.from;
-  if (cards.some((c) => !c.leaving)) return notice.from || null;
-  return notice.from && performance.now() < notice.until ? notice.from : null;
-}
 
 export function hangUp() {
   if (!call) return;
