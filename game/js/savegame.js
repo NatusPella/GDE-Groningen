@@ -88,12 +88,12 @@ export function estimateLostMoney(d) {
 // copy gives the recovery copy.
 export function readSave(n = activeSlot()) {
   try {
-    const r = readSlot(null, n);
-    if (!r.data) return null;
+    const m = readSlot(null, n);
+    if (!m.data) return null;
     // a save belongs to one story arc and never loads into the other (the new arc has its own key too)
-    if (savedArc(r.data) !== ARC_ID) return null;
-    if (r.from !== VERSION) backupOnce(r.raw, r.from);
-    return r.data;
+    if (savedArc(m.data) !== ARC_ID) return null;
+    if (m.from !== VERSION) backupOnce(m.raw, m.from);
+    return m.data;
   } catch (e) {
     return null;
   }
