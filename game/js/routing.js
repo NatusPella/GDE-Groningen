@@ -123,7 +123,7 @@ function buildGraph(map) {
       const a = rn[i], b = rn[i + 1];
       if (a === b) continue;
       const geo = Math.hypot(xs[b] - xs[a], ys[b] - ys[a]);
-      const len = throughBuilding(map, xs[a], ys[a], xs[b], ys[b]) ? geo * THROUGH_BUILDING_COST : geo;
+      const len = !road.bridge && throughBuilding(map, xs[a], ys[a], xs[b], ys[b]) ? geo * THROUGH_BUILDING_COST : geo;
       if (canWalk) {
         walk.push(a, b, len, b, a, len);
         walkRoad.push(ri, ri);

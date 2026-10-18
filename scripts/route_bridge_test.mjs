@@ -18,4 +18,16 @@ for (const kind of ['walk']) {
   const l = r ? len(r.pts) : Infinity;
   check(`${kind} over the Hereweg viaduct`, l < 200, `${l.toFixed(0)} m for 46 m as the crow flies`);
 }
+// Hoofdstation to the Remonstrantse Kerk: the Museumeiland bridge (it runs
+// under the museum building, which must not make it 8x as costly) is the way over
+// the water, not the Herebrug 300 m further east.
+const st = data.stations.find((x) => x.name === 'Groningen Hoofdstation');
+const kerk = data.buildings.find((x) => x.name === 'Remonstrantse Kerk').pts[0];
+const crow = Math.hypot(kerk[0] - st.x, kerk[1] - st.y);
+for (const kind of ['walk', 'bike']) {
+  const r = R.planLandRoute(map, kind, [st.x, st.y], kerk);
+  const l = r ? len(r.pts) : Infinity;
+  const via = r && r.roads.some((x) => x && x.name === 'Museumeiland');
+  check(`${kind} station to the Kerk over the Museumeiland bridge`, via && l < crow * 1.7, `${l.toFixed(0)} m (crow ${crow.toFixed(0)}), via bridge ${!!via}`);
+}
 process.exit(bad ? 1 : 0);
