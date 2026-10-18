@@ -45,6 +45,8 @@ export const BASE_KEYS = {
   snapshots: 'gde-snapshots',
   placeshots: 'gde-placeshots',
   ghosts: 'gde-ghosts-v1',
+  // the Kroketkoning snack-bar chain (snackrules.js), new in 0.36: no legacy name
+  snackChain: 'gde-snackketen-v1',
   // hidden setting: play the new story arc (storyflag.js)
   nieuwVerhaal: 'gde-nieuwverhaal',
 };
