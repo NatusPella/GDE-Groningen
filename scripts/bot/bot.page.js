@@ -22,7 +22,8 @@ const wall0 = performance.now();
 const detector = new L.StuckDetector({ windowS: CFG.stuckS || 30 });
 const wedge = new L.WedgeDetector();
 const mem = { boardTries: 0 };
-const ladder = {}, fails = {};
+const ladder = {}, fails = {}, scenes = {};
+let lastCine = false;
 let wedgeOut = false, wedgeDir = 1;
 let follower = null, followKey = '', planAt = -99, lastStep = null, lastPhase = '', shots = 0;
 const MAX_SHOTS = CFG.shots || 80;
@@ -116,10 +117,14 @@ function track(s) {
   }
   const ph = s.mission.active ? 'active' : 'idle';
   if (ph !== lastPhase && lastPhase) {
-    if (ph === 'active') B.log('mission', { event: 'start', id, label: s.mission.label });
-    else { fails[id] = (fails[id] || 0) + 1; B.log('mission', { event: 'fail', id, label: s.mission.label }); }
+    if (ph === 'active') { B.log('mission', { event: 'start', id, label: s.mission.label }); shot(`${id}-start`); }
+    else { fails[id] = (fails[id] || 0) + 1; B.log('mission', { event: 'fail', id, label: s.mission.label }); shot(`${id}-fail-${fails[id]}`); }
   } else if (ph === 'active' && !lastPhase) B.log('mission', { event: 'start', id, label: s.mission.label });
   lastPhase = ph;
+  // a scene change: the first moment of each cutscene (a few per step)
+  const cine = !!s.blocking.cinematic;
+  if (cine && !lastCine && (scenes[id] = (scenes[id] || 0) + 1) <= 3) setTimeout(() => shot(`${id}-scene${scenes[id]}`), 1200);
+  lastCine = cine;
 }
 
 let result = 'TIMEOUT', reason = 'speltijd of echte tijd op';
@@ -132,7 +137,7 @@ while (true) {
   await sleep(100);
   const s = B.status();
   if (performance.now() - wall0 > MAX_WALL || s.t > MAX_GAME) break;
-  if (s.story.end || (s.story.part && s.story.part !== PART)) { result = 'KLAAR'; reason = s.story.end ? `einde van ${s.story.part}` : `stap ${s.story.id} hoort bij ${s.story.part}`; break; }
+  if (s.story.end || (PART !== 'all' && s.story.part && s.story.part !== PART)) { result = 'KLAAR'; reason = s.story.end ? `einde van ${s.story.part}` : `stap ${s.story.id} hoort bij ${s.story.part}`; break; }
   track(s);
   const stepKey = (s.story.id || '?') + (s.mission.active ? ':' + (s.mission.stage || 'm') : '');
   if (ticks++ % 100 === 0) B.log('status', { x: s.player.x, y: s.player.y, step: stepKey, dist: s.target ? s.target.distance : null, veh: s.player.vehicle ? s.player.vehicle.kind : 'te voet', wanted: s.wanted, money: s.player.money, msgs: s.hud.messages.slice(0, 2), sub: s.hud.subtitle && s.hud.subtitle.text });

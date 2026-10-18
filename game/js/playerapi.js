@@ -17,6 +17,7 @@ import { talkState, talkActive } from './storytalk.js';
 import { isPauseMenuOpen } from './pausemenu.js';
 import { nieuwVerhaal } from './storyflag.js';
 import { isShopOpen } from './shopui.js';
+import { installAudioTap } from './botaudio.js';
 
 const r1 = (v) => Math.round(v * 10) / 10;
 const text = (el) => (el ? String(el.textContent || '').replace(/\s+/g, ' ').trim() : '');
@@ -180,6 +181,7 @@ export function initPlayerApi(world, input) {
     },
     world, player, input,
   };
+  if (FLAGS.audiograf) installAudioTap(emit);
   window.__bot = api;
   emit('ready', { arc: api.status().arc });
   return api;
