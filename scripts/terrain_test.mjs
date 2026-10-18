@@ -76,6 +76,18 @@ ok(zf && zr && zf.every((z, i) => Math.abs(z - zr[i]) < 0.02), 'over a raised te
   ok(Math.abs(under.z - (3.75 + 4)) < 0.05 && under.kind === "road", 'a road with z 4 on the terrain: terrain + 4', `${under.z} ${under.kind}`);
 }
 
+// the province build puts the raster in the tile (build_province.mjs --terrain)
+{
+  const { tileBlob } = await import('./world/build_corridor.mjs');
+  const [ox, oy] = G.tileOrigin(0, 0);
+  const ras = T.encodeTerrainRaster({ x0: ox, y0: oy, cell: 25, w: 40, h: 40, values: new Float32Array(1600).fill(3.5) });
+  const list = [{ kind: 'roads', row: { pts: [[ox + 10, oy + 10], [ox + 200, oy + 10]], cat: 'normal', type: 'residential', width: 6 } }];
+  const gid = { roads: 0, buildings: 0, water: 0, green: 0, trees: 0, canopies: 0, furniture: 0 };
+  const tb = tileBlob(0, 0, list, gid, 1, 1, null, { terrain: ras });
+  const sec = tb && G.decodeBlob(tb.bytes).sections.find((q) => q.type === G.SECTION.RASTER);
+  ok(sec && sec.raster.w === 40 && Math.abs(T.decodeTerrainRaster(sec.raster).z[7] - 3.5) < 0.01, 'tileBlob: the tile carries its terrain raster');
+}
+
 // fetched rasters (optional)
 const idx = new URL('../data/world/ahn/index.json', import.meta.url);
 if (fs.existsSync(idx)) {

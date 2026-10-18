@@ -47,6 +47,8 @@ const merge = (...parts) => ({
 });
 
 export const SPECS = {};
+// more stagings (cutscenes_akte3.js ...): read by missionScene as well, so act 1's own test keeps its list
+export const MORE_SPECS = {};
 // act 2 (M08-M11) is staged in its own file
 Object.assign(SPECS, SPECS_AKTE2);
 
@@ -539,7 +541,7 @@ const CAMS = {
 };
 
 export function missionScene(key, lines, { looks = {} } = {}) {
-  const spec = SPECS[key];
+  const spec = SPECS[key] || MORE_SPECS[key];
   if (!spec || !lines || !lines.length) return null;
   const actors = {};
   for (const id of ['tammo', 'tessa']) actors[id] = { ...DUO[id], ...((spec.duo || {})[id] || {}) };
