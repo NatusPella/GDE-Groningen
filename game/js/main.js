@@ -294,7 +294,7 @@ async function boot() {
   const layers = (tiles && tiles.index.layers) || {};
   const corLayer = (layers.provincie && layers.provincie.global ? layers.provincie : null) || layers.corridor;
   if (corLayer && corLayer.global) setWorldPlaces(corLayer.global.places);
-  setRegionData(corLayer && corLayer.global);
+  setRegionData(corLayer && corLayer.global, tiles ? (x, y) => { const [i, j] = tileIndexOf(x, y); return !!tiles.index.tiles[tileKey(i, j)]; } : null);
   const inCorridor = (x, y) => { const [i, j] = tileIndexOf(x, y); const t = tiles.index.tiles[tileKey(i, j)]; return !!t && !!(t.flags & 4); };
   if (corridor && tiles) { setExtraBuiltWorld(inCorridor); setRailExtraWorld(inCorridor); }
   if (tiles) initProvince(tiles);
