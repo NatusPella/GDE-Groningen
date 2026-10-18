@@ -44,3 +44,18 @@ assert.ok(offtracking(12, 9) > offtracking(40, 9));
 const h = loadedHandling({ coupled: true, load: 1, spec: { mass: 1.2 } }, { maxSpeed: 20, accel: 6, brake: 10, turnRate: 2 });
 assert.ok(h.accel < 6 && h.maxSpeed < 20);
 console.log('semitrailer_test ok');
+
+// koppelhulp
+{
+  const { koppelHulp } = await import('../game/js/semitrailer.js');
+  const t = { x: 0, y: 0, angle: 0 };
+  const f = fifthWheel(t);
+  const rechtAchter = koppelHulp(t, newTrailer('koel', f.x - 6, f.y, 0));
+  assert.ok(rechtAchter.achter > 5 && Math.abs(rechtAchter.opzij) < 1e-9 && !rechtAchter.ok, 'ligt erachter');
+  assert.strictEqual(koppelHulp(t, newTrailer('koel', f.x - 6, f.y + 3, 0)).opzij > 0, true, 'links');
+  assert.ok(/links/.test(koppelHulp(t, newTrailer('koel', f.x - 6, f.y + 3, 0)).tip), 'tip links');
+  assert.ok(koppelHulp(t, newTrailer('koel', f.x - 0.4, f.y, 0.1)).ok, 'koppelklaar');
+  assert.ok(/voorbij/.test(koppelHulp(t, newTrailer('koel', f.x + 4, f.y, 0)).tip), 'voorbij');
+  assert.ok(/recht/.test(koppelHulp(t, newTrailer('koel', f.x - 3, f.y, 1.0)).tip), 'scheef');
+}
+console.log('koppelhulp ok');
