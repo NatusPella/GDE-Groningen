@@ -526,33 +526,63 @@ S['M26.5'] = {
   wide: WIDE([-4.4, 3.8, 3], [-2.4, 2.8, 2.3], 'mid:mem,jelle@1'),
 };
 
-// M26.6 the jury at the Vismarkt: the vote, with a jury that reacts line by line
+// M26.6 the jury at the Vismarkt: Mem, Berend tastes (M26.6), the vote by baking score (M26.10 five, M26.11 four, M26.12 three), the result (M26.13)
+const JURY_CAST = () => ({
+  berend: { key: 'berend', at: [3.0, 1.5], face: 185, anim: 'idle', gest: ['point', 'hips', 'talk', 'shrug'] },
+  mem: { key: 'mem', at: [2.2, -1.4], face: 170, anim: 'idle', gest: ['hips', 'nod', 'talk'] },
+  trijntje: { key: 'trijntje', at: [1.6, -2.6], face: 160, anim: 'idle', gest: ['talk', 'shrug'] },
+  jelle: { key: 'jelle', at: [3.6, -0.6], face: 180, anim: 'idle', gest: ['hips', 'shake', 'shrug'] },
+  jurylid: { key: 'jurylid', at: [4.2, 1.0], face: 190, anim: 'idle', bg: true, gest: ['nod', 'talk'] },
+  jury2: { key: 'jurylid', at: [4.6, 2.4], face: 190, anim: 'idle', bg: true, gest: ['nod'] },
+  jury3: { key: 'jurylid', at: [4.4, -2.2], face: 170, anim: 'idle', bg: true, gest: ['nod'] },
+  kind: { key: 'kind', at: [7, -3], face: 170, anim: 'idle', bg: true, gest: ['cheer'] },
+  rikus: { key: 'rikus', at: [6, 4], face: 200, anim: 'idle', bg: true, gest: ['talk', 'point'] },
+});
+const JURY_WIDE = WIDE([-5.5, 4.5, 3.4], [-3.5, 3.2, 2.5], 'mid:berend,jelle@1');
+const juryOpen = [{ actor: 'tessa', face: 'actor:berend' }, { actor: 'tammo', face: 'actor:berend' }];
 S['M26.6'] = {
-  cast: {
-    berend: { key: 'berend', at: [3.0, 1.5], face: 185, anim: 'idle', gest: ['point', 'hips', 'talk', 'shrug'] },
-    mem: { key: 'mem', at: [2.2, -1.4], face: 170, anim: 'idle', gest: ['hips', 'nod', 'talk'] },
-    trijntje: { key: 'trijntje', at: [1.6, -2.6], face: 160, anim: 'idle', gest: ['talk', 'shrug'] },
-    jelle: { key: 'jelle', at: [3.6, -0.6], face: 180, anim: 'idle', gest: ['hips', 'shake', 'shrug'] },
-    jurylid: { key: 'jurylid', at: [4.2, 1.0], face: 190, anim: 'idle', bg: true, gest: ['nod', 'talk'] },
-    jury2: { key: 'jurylid', at: [4.6, 2.4], face: 190, anim: 'idle', bg: true, gest: ['nod'] },
-    jury3: { key: 'jurylid', at: [4.4, -2.2], face: 170, anim: 'idle', bg: true, gest: ['nod'] },
-    kind: { key: 'kind', at: [7, -3], face: 170, anim: 'idle', bg: true, gest: ['cheer'] },
-    rikus: { key: 'rikus', at: [6, 4], face: 200, anim: 'idle', bg: true, gest: ['talk', 'point'] },
-  },
-  props: {},
-  open: [{ actor: 'tessa', face: 'actor:berend' }, { actor: 'tammo', face: 'actor:berend' }],
+  cast: JURY_CAST(), props: {}, open: juryOpen,
   beats: [
-    { on: 0, actor: 'mem', anim: 'hips' },
+    { on: 0, actor: 'mem', walk: [[2.0, -0.4]], speed: 0.8 },
     { on: 'Goud. …Valt mie', actor: 'berend', anim: 'nod' },
     { on: 'Berend zegt niks meer', actor: 'rikus', anim: 'point' },
     { on: 'Eén verschil', actor: 'berend', anim: 'point' },
-    { on: 6, actor: 'jury2', anim: 'cheer' },
-    { on: 7, actor: 'jury3', anim: 'cheer' },
-    { on: 8, actor: 'jurylid', anim: 'cheer' },
-    { on: 9, actor: 'jurylid', anim: 'shake' },
-    { on: 'Fjord Frituur. Vier van de vijf', actor: 'tessa', anim: 'cheer' },
-    { on: 'Fjord Frituur. Vier van de vijf', actor: 'tammo', anim: 'cheer' },
-    { on: 'Fjord Frituur. Vier van de vijf', actor: 'kind', anim: 'cheer' },
+  ],
+  shots: [], wide: JURY_WIDE,
+};
+const vote = (extra) => ({
+  cast: JURY_CAST(), props: {}, open: juryOpen,
+  beats: [
+    { on: 0, actor: 'jelle', walk: [[2.6, -0.3]], speed: 0.8 },
+    { on: 0, actor: 'jurylid', anim: 'cheer' },
+    { on: 1, actor: 'jury2', anim: 'cheer' },
+    { on: 2, actor: 'jury3', anim: 'cheer' },
+    ...extra,
+  ],
+  shots: [], wide: JURY_WIDE,
+});
+S['M26.10'] = vote([
+  { on: 3, actor: 'jurylid', anim: 'cheer' },
+  { on: 'Fjord Frituur. Vijf van de vijf', actor: 'tessa', anim: 'cheer' },
+  { on: 'Fjord Frituur. Vijf van de vijf', actor: 'tammo', anim: 'cheer' },
+  { on: 'Fjord Frituur. Vijf van de vijf', actor: 'kind', anim: 'cheer' },
+  { on: 'Vijf van de vijf. Dat is geen jury', actor: 'jelle', anim: 'shake' },
+]);
+S['M26.11'] = vote([
+  { on: 3, actor: 'jurylid', anim: 'shake' },
+  { on: 'Fjord Frituur. Vier van de vijf', actor: 'tessa', anim: 'cheer' },
+  { on: 'Fjord Frituur. Vier van de vijf', actor: 'tammo', anim: 'cheer' },
+  { on: 'Fjord Frituur. Vier van de vijf', actor: 'kind', anim: 'cheer' },
+]);
+S['M26.12'] = vote([
+  { on: 3, actor: 'jurylid', anim: 'shake' },
+  { on: 'Fjord Frituur. Drie van de vijf', actor: 'tessa', anim: 'nod' },
+  { on: 'Fjord Frituur. Drie van de vijf', actor: 'tammo', anim: 'nod' },
+  { on: 'Drie tegen twee', actor: 'jelle', anim: 'shrug' },
+]);
+S['M26.13'] = {
+  cast: JURY_CAST(), props: {}, open: juryOpen,
+  beats: [
     { on: 'Gerda. Jouw eierbal', actor: 'trijntje', anim: 'point' },
     { on: 'Trijntje. Dat duurde', actor: 'mem', anim: 'laugh' },
     { on: 'Zie je?', actor: 'mem', walk: [[1.8, -2.0]], speed: 0.8 },
@@ -563,6 +593,13 @@ S['M26.6'] = {
     { on: 'De standplaatsen houd ik', actor: 'jelle', anim: 'hips' },
     { on: 'Dat is mijn zoon', actor: 'mem', anim: 'nod' },
   ],
-  shots: [],
-  wide: WIDE([-5.5, 4.5, 3.4], [-3.5, 3.2, 2.5], 'mid:berend,jelle@1'),
+  shots: [], wide: JURY_WIDE,
 };
+
+// M21.6 the wagon choice for the ball: the scratch scene (same set as M21.3)
+S['M21.6'] = { ...S['M21.3'], beats: [
+  { on: 'Eén kras op de auto', actor: 'berend', anim: 'shrug' },
+  { on: 'Dat is mijn schuld', actor: 'tessa', anim: 'shrug' },
+  { on: 'Dat is een kras', actor: 'berend', anim: 'point' },
+  { on: 'Henk. Tinus', actor: 'henk', anim: 'point' },
+] };

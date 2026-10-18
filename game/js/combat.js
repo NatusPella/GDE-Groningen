@@ -220,6 +220,7 @@ function meleeHit(world, angle, weapon, key) {
   }
   if (landed) weaponSound(world, { sub: 'hit', weapon: key, material: weapon.sound, on: landed, x: p.x + ca * weapon.range, y: p.y + sa * weapon.range });
   if (landed === 'flesh' || landed === 'car') {
+    world.lastMeleeHit = { time: world.time };   // main.js: korte timescale-dip (#216)
     const kick = world.camKick || (world.camKick = { pitch: 0, yaw: 0, fov: 0 });
     kick.yaw += (Math.random() - 0.5) * 0.02 * weapon.knock;
     kick.fov = Math.min(3, kick.fov + weapon.knock * 1.2);

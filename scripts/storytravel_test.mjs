@@ -29,7 +29,7 @@ const step = { id: 'T1' };
   ok(w.player.x === 17000 && w.companion.x > 16999, 'skip teleports both');
   ok(w.clock > 10.2, 'clock moved', w.clock);
   ok(flags.has('reis:T1'), 'flag set');
-  ok(w.msgs.some((m) => m.startsWith('Tessa: ')) && w.msgs.some((m) => m === 'Aangekomen in Winsum'), 'lines and arrival', JSON.stringify(w.msgs));
+  ok(w.msgs.some((m) => m.startsWith('Tessa: ')) && w.msgs.some((m) => m === 'Aangekomen in Warffum'), 'lines and arrival', JSON.stringify(w.msgs));
   // asked once only
   let asked = 0;
   S.tickStoryTravel({ on: true, step, flags, world: w, busy: false, script: lookup, ask: async () => { asked++; return 'zelf'; } });
@@ -71,7 +71,7 @@ const step = { id: 'T1' };
   S.tickStoryTravel({ on: true, step, flags, world: w, busy: false, script: lookup, ask: async () => 'meerijden',
     ride: async (o, d) => { got = { o, d }; w.player.x = d.x; return { aangekomen: true }; } });
   await tick(); await tick();
-  ok(got && got.o.id === 'trein' && got.d.x === 17000 && got.d.name === 'Winsum', 'ride scene gets option and goal', JSON.stringify(got));
+  ok(got && got.o.id === 'trein' && got.d.x === 17000 && got.d.name === 'Warffum', 'ride scene gets option and goal', JSON.stringify(got));
   ok(got && got.o.etaS > 60 && got.o.stops.length === 2, 'ride option has real eta and stops');
   ok(w.msgs.length === 0, 'scene does the arrival, no double message');
 }
