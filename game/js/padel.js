@@ -15,6 +15,7 @@ import { currentStep } from './story.js';
 import { PADEL_PAIR, PADEL_TWINS } from './padellines.js';
 import { bubbleVoiceFor } from './linevoice.js';
 import { playLineVoice } from './audio.js';
+import { rand } from './rng.js';
 
 // Padel courts where OSM has them (game/mapextras.json "padel", built by
 // scripts/add_map_extras.py): a glass cage with blue turf, a net and lights
@@ -68,7 +69,6 @@ let lastNight = -1;
 let hud = null;
 let mats = null;
 
-const rand = (a, b) => a + Math.random() * (b - a);
 
 // --- court geometry ------------------------------------------------------------
 
