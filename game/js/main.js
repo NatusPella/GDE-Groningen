@@ -466,7 +466,7 @@ async function boot() {
   // the title screen already sounds like the city (quieter, no music)
   setMenuAudio(true);
   initAudio(world);
-  setSfxLinks({ bridges: getMovableBridges, trains: getTrains });
+  setSfxLinks({ bridges: getMovableBridges, trains: getTrains, vehicles: () => world.vehicles });
   await waitForStart(world);
   await countryPlaced;
   document.body.classList.add('game-started');
