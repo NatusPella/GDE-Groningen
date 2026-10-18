@@ -56,6 +56,7 @@ import { wijkProfileAt } from './trafficfleet.js';
 import { motorTarget } from './motortraffic.js';
 import { updateParkingLots3D } from './parkinglots3d.js';
 import { updateMarinas3D } from './marinas3d.js';
+import { updateWaterplekken3D } from './waterplekken3d.js';
 import { loadVaarnet, vaarPrefetch } from './vaarload.js';
 import { isShopOpen } from './shopui.js';
 import { initMapView, updateMapView, isMapOpen } from './mapview.js';
@@ -684,6 +685,7 @@ async function boot() {
       updateShops(dt, world);
       updateParkingLots3D(world);
       updateMarinas3D(world);
+      updateWaterplekken3D(world);
       updateFlitspaal(dt, world);
       updateFlavour(dt, world);
     } else updateMissions(dt, world);
