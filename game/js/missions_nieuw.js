@@ -68,6 +68,7 @@ export function buildNieuwDefs({ map, walk, drive, models = {} }) {
       // M01 Nul krassen, vijftienhonderd punten: the stunt on the Grote Markt in Berend's bakkie, then the delivery (scratches count over both parts)
       type: 'deliver',
       label: 'Nul krassen, vijftienhonderd punten',
+      triggerRadius: 6,
       intro: ['Honderdvijftig euro voor de inschrijving van de Noordelijke Snackprijs, uiterlijk morgen. Een streamer betaalt honderdvijftig voor stunts, Berend Bos vijftig voor zijn bakkie.', 'Doel: haal vijftienhonderd stuntpunten op de Grote Markt, zonder mensen en zonder krassen. Breng het bakkie daarna heel naar het Boterdiep.'],
       outro: 'Honderdvijftig op de pas, vijftig van Berend. Nieuw doel: morgenochtend pinnen en inschrijven bij Het Loket.',
       timeLimit: 240,
