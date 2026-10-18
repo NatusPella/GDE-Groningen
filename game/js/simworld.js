@@ -13,7 +13,7 @@ export function buildSimRoads(map, kind = 'car', { minLen = 20 } = {}) {
     const r = roads[id];
     if (!r || !r.pts || r.pts.length < 2) continue;
     const isFoot = r.cat === 'foot';
-    if (kind === 'car' ? !CAR_CATS.has(r.cat) : !isFoot) continue;
+    if (kind === 'car' ? !CAR_CATS.has(r.cat) || r.z : !isFoot) continue; // bridges and tunnels (z) stay on the main thread
     let len = 0;
     for (let i = 1; i < r.pts.length; i++) len += Math.hypot(r.pts[i][0] - r.pts[i - 1][0], r.pts[i][1] - r.pts[i - 1][1]);
     if (len < minLen) continue;
@@ -33,8 +33,9 @@ export function projectOnRoad(pts, x, y) {
     const dx = bx - ax, dy = by - ay, l2 = dx * dx + dy * dy, l = Math.sqrt(l2);
     const t = l2 > 0 ? Math.max(0, Math.min(1, ((x - ax) * dx + (y - ay) * dy) / l2)) : 0;
     const d = Math.hypot(ax + dx * t - x, ay + dy * t - y);
-    if (!best || d < best.d) best = { d, s: cum + t * l };
+    if (!best || d < best.d) best = { d, s: cum + t * l, ang: Math.atan2(dy, dx), cx: ax + dx * t, cy: ay + dy * t };
     cum += l;
   }
+  if (best) best.len = cum;
   return best;
 }
