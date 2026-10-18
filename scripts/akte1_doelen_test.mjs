@@ -57,6 +57,16 @@ for (const s of STEPS.filter((q) => q.kind === 'mission' && q.built)) {
   ok(MISSION_IDS.includes(s.mission), `${s.id}: def id "${s.mission}" is in MISSION_IDS`);
   for (const sc of s.scenes || []) ok(scenes.has(sc), `${s.id}: scene ${sc} is in script.json`);
 }
+// M03 Het Loket (#147): the queue is a timed wait, and every step says its goal aloud
+const loket = byId('loket');
+ok(loket.stages.map((q) => q.kind).join() === 'goto,hold,scene,goto,goto,goto', 'loket: ticket, wait in the queue, Jelle, form, stamp, pay');
+for (const q of loket.stages) ok(!!q.label, `loket: stage ${q.kind} has a label`);
+const hold = loket.stages.find((q) => q.kind === 'hold');
+ok(hold.time > 0 && hold.ticks.length === 2, 'loket: the wait has a time and two ticks');
+ok(loket.timeLimit > hold.time * 3 + 60, 'loket: enough time left after the wait with the clock at x3');
+// M02: the garage and delivery steps name the goal (#93)
+const msrc = fs.readFileSync(new URL('js/missions_nieuw.js', root), 'utf8');
+ok(/Schud de politie af/.test(msrc) && /Breng de automaat naar Sjabbe/.test(msrc), 'pinautomaat: goal labels say what to do');
 void byId;
 console.log(`${n - fails}/${n} act-1 goal checks passed`);
 process.exit(fails ? 1 : 0);
