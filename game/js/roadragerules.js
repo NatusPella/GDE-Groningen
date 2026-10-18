@@ -1,7 +1,7 @@
 // Verkeersruzie (issue #44) en wapens oppakken (issue #52). Na een flinke
 // botsing of lang getoeter kan een boze bestuurder uitstappen: een duw en een
-// mopperbui, soms met iets in de hand (een klomp, een hockeystick, een bezem,
-// een waterpistool). Politie in de buurt komt erop af. Niemand bloedt, er
+// mopperbui, soms met iets in de hand (een klomp, een bezem,
+// een fietspomp, een waterpistool). Politie in de buurt komt erop af. Niemand bloedt, er
 // wordt niets getoond dat leed is, en de klappen zijn klein (nooit het laatste
 // stukje gezondheid). Wie hem neerslaat, ziet hem zijn spullen laten vallen:
 // oppakken met E. Pure regels (geen DOM, geen THREE); scripts/roadrage_test.mjs
@@ -44,23 +44,21 @@ export const RAGE = {
   pickupReach: 1.7,
 };
 
-// Wat ze kunnen vasthouden: alleen cartoon-spullen die al in het spel zitten.
+// Wat ze kunnen vasthouden: alleen huis-tuin-en-keuken-slapstick (een klomp, een bezem,
+// een fietspomp, een waterpistool). Geen knuppel of stok, ook geen vuurwapen: geen wapens
+// in NPC-handen (constitution 6, besluit van de coördinator).
 export const RAGE_WEAPONS = [
   { key: 'klomp', weight: 3 },
-  { key: 'hockeystick', weight: 3 },
   { key: 'bezem', weight: 3 },
   { key: 'fietspomp', weight: 2 },
-  { key: 'knuppel', weight: 1 },
   { key: 'waterpistool', weight: 2 },
 ];
 
 // Hoe een gevallen ding heet en wat het geeft bij het oppakken.
 export const DROP_INFO = {
   klomp: { name: 'klomp', melee: true },
-  hockeystick: { name: 'hockeystick', melee: true },
   bezem: { name: 'bezem', melee: true },
   fietspomp: { name: 'fietspomp', melee: true },
-  knuppel: { name: 'honkbalknuppel', melee: true },
   waterpistool: { name: 'waterpistool', melee: false, ammo: 30, cap: 600 },
 };
 
