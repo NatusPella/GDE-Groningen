@@ -2049,7 +2049,7 @@ export function update3D(dt, world) {
         mesh.rotation.z = (v.pitch || 0) + (body ? 0 : (v.susPitch || 0) * 0.6);
         mesh.rotation.x = (v.roll || 0) + (body ? 0 : (v.susRoll || 0) * 0.6);
         // a wheelie turns about the rear tyre, a stoppie about the front one
-        if (v.pitch && v.model.motorbike) mesh.position.y += v.model.len * 0.33 * Math.abs(Math.sin(v.pitch));
+        if (v.pitch && (v.model.motorbike || v.isBike)) mesh.position.y += v.model.len * 0.33 * Math.abs(Math.sin(v.pitch));
         if (body) {
           body.rotation.z = v.susPitch || 0;
           body.rotation.x = v.susRoll || 0;

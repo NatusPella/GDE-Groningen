@@ -32,6 +32,7 @@ import { pickMotor, motorRoadAllowed, motorTarget } from './motortraffic.js';
 import { FLAGS } from './devflags.js';
 import { verkeerOpties } from './simlagen.js';
 import { SMOKE_HEALTH } from './vehicledamage.js';
+import { createWheelie, stepWheelie } from './bewegingrules.js';
 export { MOTORBIKE_MODELS, GEARED_MOPED_MODEL, MOPED_LEGAL_SPEED } from './motomodels.js';
 
 // every traffic model, for warming their meshes before they first spawn
@@ -206,6 +207,15 @@ export class Vehicle {
     this.wheelie = this.pitch > 0.2;
   }
 
+  // Pedal bike (player only): Ctrl held while pedalling lifts the front wheel (bewegingrules.js, #207).
+  rideFiets(dt, throttle, top) {
+    const w = this.wheelieState || (this.wheelieState = createWheelie());
+    stepWheelie(w, { trick: !!this.trick && !this.disabled, throttle, speed: this.speed, top, dt });
+    this.pitch = w.pitch;
+    this.wheelie = w.up;
+    if (w.up) this.speed *= w.slow;
+  }
+
   // Player/AI driving physics shared by both control sources. brakeInput may
   // be a boolean or a 0..1 pedal amount; throttle against the direction of
   // travel brakes first and only then reverses.
@@ -330,6 +340,7 @@ export class Vehicle {
       }
     }
 
+    if (isPlayer && this.isBike && !m.motorbike) this.rideFiets(dt, throttle, top);
     if (isPlayer && m.motorbike) this.rideMotorbike(dt, throttle, gb, top, absSpeed, normalizeAngle(this.angle - oldAngle) / (dt || 1));
 
     this.x += Math.cos(this.angle) * this.speed * dt;
