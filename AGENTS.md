@@ -38,7 +38,7 @@ Alleen één Electron-instantie tegelijk en geen nieuwe agents tijdens een relea
 
 ## Testen
 
-- Vóór elke merge: `node --check` op gewijzigde JS, `node scripts/voice_coverage.mjs --quiet`, en alle `scripts/*_test.mjs` met gewone `node` (macOS heeft geen `timeout`).
+- Vóór elke merge: `node --check` op gewijzigde JS, `node scripts/voice_coverage.mjs --quiet`, en alle `scripts/*_test.mjs` met gewone `node` (macOS en Windows hebben geen `timeout`).
 - Vóór elke release: één Electron-verhaaltest (`--story-test=<dir>`). NaN-waarschuwingen in geometrie laten die falen.
 - Zware wereldchecks: `ring_probe`, `seat_audit`, `scripts/perf/geocheck.sh`, `drive_audit`, `junction_sim_test`, `network_drive_test`, spoor- en wateraudits.
 - Tests schrijven nooit naar echte opslag: blokkeer `localStorage` voor `gde-save-v1`, `gde-settings`, `gde-prestaties-v1`. Een synthetische `keydown` wordt altijd gevolgd door een `keyup`.
