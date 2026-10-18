@@ -18,6 +18,12 @@ const panelGeo = (w, h) => {
   if (!g) { g = markShared(new THREE.BoxGeometry(w, h, 0.035)); geoCache.set(key, g); }
   return g;
 };
+const boxGeo = (x, y, z) => {
+  const key = 'b' + [x, y, z].map((n) => n.toFixed(2)).join('x');
+  let g = geoCache.get(key);
+  if (!g) { g = markShared(new THREE.BoxGeometry(x, y, z)); geoCache.set(key, g); }
+  return g;
+};
 const panelMat = (hex, glas) => {
   const key = hex + (glas ? 'g' : '');
   let m = matCache.get(key);
@@ -52,21 +58,42 @@ function buildRig(mesh, v, defs) {
   const doors = {};
   const paint = paintOf(v);
   for (const d of defs) {
-    if (d.side === 0) continue; // achterdeuren van de ambulance: alleen beeld bij los
     const cx = d.x * len;
-    const glas = d.h > 1.05 || d.soort === 'schuif' && d.h > 1;
     const pivot = new THREE.Group();
-    const hingeX = d.soort === 'scharnier' ? cx + d.w / 2 : d.soort === 'achterscharnier' ? cx - d.w / 2 : cx;
-    pivot.position.set(hingeX, d.y0 + d.h / 2, d.side * (hw + 0.02));
-    const panel = new THREE.Mesh(panelGeo(d.w, d.h), panelMat(paint, glas));
-    panel.position.x = d.soort === 'scharnier' ? -d.w / 2 : d.soort === 'achterscharnier' ? d.w / 2 : 0;
+    let panel, hole, baseX, baseZ = 0;
+    if (d.soort === 'kap' || d.soort === 'klep') {
+      // horizontaal plaatwerk: scharnier achter (kap) of voor (kofferbak), klapt omhoog
+      const breed = v.model.wid * 0.78, kap = d.soort === 'kap';
+      baseX = kap ? cx - d.w / 2 : cx + d.w / 2;
+      pivot.position.set(baseX, d.y0, 0);
+      panel = new THREE.Mesh(boxGeo(d.w, 0.035, breed), panelMat(paint, false));
+      panel.position.set(kap ? d.w / 2 : -d.w / 2, 0.02, 0);
+      hole = new THREE.Mesh(boxGeo(d.w * 0.92, 0.02, breed * 0.92), HOLE_MAT);
+      hole.position.set(cx, d.y0 + 0.005, 0);
+      panel.userData.flat = true;
+    } else if (d.soort === 'achterdeur') {
+      // laadklep/achterdeur: scharnier links, zwaait naar achteren
+      baseX = cx - 0.02; baseZ = -d.w / 2;
+      pivot.position.set(baseX, d.y0 + d.h / 2, baseZ);
+      panel = new THREE.Mesh(boxGeo(0.035, d.h, d.w), panelMat(paint, false));
+      panel.position.set(0, 0, d.w / 2);
+      hole = new THREE.Mesh(boxGeo(0.02, d.h * 0.92, d.w * 0.92), HOLE_MAT);
+      hole.position.set(cx + 0.01, d.y0 + d.h / 2, 0);
+    } else {
+      const glas = d.h > 1.05;
+      baseX = d.soort === 'scharnier' ? cx + d.w / 2 : d.soort === 'achterscharnier' ? cx - d.w / 2 : cx;
+      baseZ = d.side * (hw + 0.02);
+      pivot.position.set(baseX, d.y0 + d.h / 2, baseZ);
+      panel = new THREE.Mesh(panelGeo(d.w, d.h), panelMat(paint, glas));
+      panel.position.x = d.soort === 'scharnier' ? -d.w / 2 : d.soort === 'achterscharnier' ? d.w / 2 : 0;
+      hole = new THREE.Mesh(panelGeo(d.w * 0.92, d.h * 0.92), HOLE_MAT);
+      hole.position.set(cx, d.y0 + d.h / 2, d.side * (hw + 0.006));
+    }
     pivot.add(panel);
-    const hole = new THREE.Mesh(panelGeo(d.w * 0.92, d.h * 0.92), HOLE_MAT);
-    hole.position.set(cx, d.y0 + d.h / 2, d.side * (hw + 0.006));
     hole.visible = false;
     pivot.visible = false;
     group.add(pivot, hole);
-    doors[d.id] = { def: d, pivot, panel, hole, baseX: hingeX, baseZ: d.side * (hw + 0.02) };
+    doors[d.id] = { def: d, pivot, panel, hole, baseX, baseZ, home: panel.position.clone() };
   }
   const body = mesh.userData.body || mesh;
   body.add(group);
@@ -85,6 +112,12 @@ function pose(rig, id, open, dmg) {
     e.pivot.position.x = e.baseX + (d.dir || 1) * a;
     e.pivot.position.z = e.baseZ + d.side * 0.07 * Math.min(1, a / 0.2);
     e.pivot.rotation.y = 0;
+  } else if (d.soort === 'kap') {
+    e.pivot.rotation.z = a;
+  } else if (d.soort === 'klep') {
+    e.pivot.rotation.z = -a;
+  } else if (d.soort === 'achterdeur') {
+    e.pivot.rotation.y = -a;
   } else {
     e.pivot.rotation.y = (d.soort === 'achterscharnier' ? -1 : 1) * d.side * a;
   }
@@ -129,7 +162,7 @@ export function tickLooseDoors(dt) {
       f.vy -= 9.8 * dt;
       o.position.x += f.vx * dt; o.position.z += f.vz * dt; o.position.y += f.vy * dt;
       o.rotation.z += f.spin * dt;
-      if (o.position.y <= f.floor + 0.02) { o.position.y = f.floor + 0.02; o.rotation.set(Math.PI / 2, o.rotation.y, 0); f.vx = f.vz = 0; }
+      if (o.position.y <= f.floor + 0.02) { o.position.y = f.floor + 0.02; if (o.userData.flat) o.rotation.set(0, o.rotation.y, 0); else o.rotation.set(Math.PI / 2, o.rotation.y, 0); f.vx = f.vz = 0; }
     }
   }
 }
@@ -153,7 +186,7 @@ export function syncVehicleDoors(mesh, v, dt, vraag = null) {
       for (const id of Object.keys(st.loose)) if (rig.doors[id] && !rig.doors[id].lost) laatLos(mesh, rig, id, v);
     }
     if (!Object.keys(st.loose).length && rig) for (const e of Object.values(rig.doors)) { e.lost = false; if (!e.panel.parent) e.pivot.add(e.panel); }
-    if (!Object.keys(st.loose).length && rig) for (const e of Object.values(rig.doors)) { e.panel.position.set(e.def.soort === 'scharnier' ? -e.def.w / 2 : e.def.soort === 'achterscharnier' ? e.def.w / 2 : 0, 0, 0); e.panel.quaternion.identity(); e.hole.visible = false; }
+    if (!Object.keys(st.loose).length && rig) for (const e of Object.values(rig.doors)) { e.panel.position.copy(e.home); e.panel.quaternion.identity(); e.hole.visible = false; }
   }
   if (vraag) {
     const d = deurVoorRol(defs, vraag.rol, st, vraag.side || 0);

@@ -46,6 +46,16 @@ syncVehicleDoors(sm, sedan, 1 / 60, null);
 check('deur ligt los in de scene', scene.children.length === before + 1);
 for (let i = 0; i < 60 * 30; i++) tickLooseDoors(1 / 60);
 check('losse deur wordt opgeruimd', scene.children.length === before);
+// motorkap: eerst scheef (op een kier), dan los
+sedan.dentLog = [[2, 0, 0.8]];
+syncVehicleDoors(sm, sedan, 1 / 60, null);
+check('kap staat scheef, nog vast', sedan.doors.dmg.kap === 'scheef' && sm.userData.doorRig.doors.kap.pivot.visible && !sedan.doors.loose.kap);
+const voor = scene.children.length;
+sedan.dentLog = [[2, 0, 1.1], [2, 0.2, 1.0]];
+syncVehicleDoors(sm, sedan, 1 / 60, null);
+check('kap ligt los in de scene', sedan.doors.loose.kap && scene.children.length === voor + 1);
+for (let i = 0; i < 60 * 30; i++) tickLooseDoors(1 / 60);
+check('losse kap opgeruimd', scene.children.length === voor);
 sedan.dentLog = [];
 syncVehicleDoors(sm, sedan, 1 / 60, null);
 check('reparatie: deur terug', !Object.keys(sedan.doors.loose).length);

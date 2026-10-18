@@ -25,6 +25,12 @@ const cab = (x, w, y0, h) => [
   { id: 'vl', side: -1, x, w, y0, h, soort: 'scharnier', seat: 'bestuurder' },
   { id: 'vr', side: 1, x, w, y0, h, soort: 'scharnier', seat: 'bijrijder' },
 ];
+// Beweegbare delen zonder passagier: motorkap (scharnier achter, opwippen), kofferbak (scharnier voor,
+// klapt open) en achterdeuren/laadklep van bestelbus en ambulance. zone sluit aan op
+// vehicledamage.js zoneOf (voor/achter); y0 is de bovenkant van het plaatwerk.
+const kap = (x, w, y0) => ({ id: 'kap', side: 0, x, w, y0, h: 0.04, soort: 'kap', zone: 'voor', seat: null, scheefAt: 0.7, losAt: 1.8 });
+const klep = (x, w, y0) => ({ id: 'klep', side: 0, x, w, y0, h: 0.04, soort: 'klep', zone: 'achter', seat: null, scheefAt: 0.6, losAt: 1.6 });
+const laadklep = (y0, h) => ({ id: 'klep', side: 0, x: -0.49, w: 1.5, y0, h, soort: 'achterdeur', zone: 'achter', seat: null, scheefAt: 0.7, losAt: 1.7 });
 const dubbel = (id, side, x) => [
   { id: id + 'a', side, x: x + 0.035, w: 0.55, y0: 0.35, h: 1.9, soort: 'schuif', seat: 'bijrijder', dir: 1 },
   { id: id + 'b', side, x: x - 0.035, w: 0.55, y0: 0.35, h: 1.9, soort: 'schuif', seat: 'bijrijder', dir: -1 },
@@ -32,22 +38,23 @@ const dubbel = (id, side, x) => [
 
 // Per modelnaam (zie vehicle.js MODELS en models3d_vehicles.js carType). null = geen logische deur.
 export const DEUR_DEFS = {
-  hatch: car2(0.1),
-  sedan: car4(),
-  taxi: car4(),
-  wagon: car4(0.14, -0.13),
-  suv: car4(0.15, -0.12),
-  sport: car2(0.06),
-  escort: car2(0.08),
-  police: car4(0.14, -0.13),
+  hatch: [...car2(0.1), kap(0.36, 0.9, 0.84), klep(-0.41, 0.5, 0.96)],
+  sedan: [...car4(), kap(0.33, 0.95, 0.84), klep(-0.4, 0.6, 0.98)],
+  taxi: [...car4(), kap(0.33, 0.95, 0.84), klep(-0.4, 0.6, 0.98)],
+  wagon: [...car4(0.14, -0.13), kap(0.34, 0.95, 0.85), laadklep(0.55, 0.85)],
+  suv: [...car4(0.15, -0.12), kap(0.33, 0.95, 1.02), laadklep(0.6, 0.95)],
+  sport: [...car2(0.06), kap(0.34, 0.9, 0.7), klep(-0.4, 0.5, 0.86)],
+  escort: [...car2(0.08), kap(0.34, 0.9, 0.82), klep(-0.4, 0.55, 0.94)],
+  police: [...car4(0.14, -0.13), kap(0.34, 0.95, 0.85), laadklep(0.55, 0.85)],
   van: [
     ...cab(0.2, 0.75, 0.4, 0.75),
+    laadklep(0.45, 1.5),
     { id: 'sl', side: 1, x: -0.08, w: 1.0, y0: 0.45, h: 1.3, soort: 'schuif', seat: 'achter', dir: -1 },
   ],
   cashvan: cab(0.2, 0.75, 0.4, 0.75),
   ambulance: [
     ...cab(0.2, 0.75, 0.4, 0.75),
-    { id: 'ac', side: 0, x: -0.48, w: 1.3, y0: 0.45, h: 1.4, soort: 'achterdeur', seat: null },
+    laadklep(0.45, 1.5),
   ],
   truck: cab(0.33, 0.8, 0.5, 1.2),
   foodtruck: cab(0.33, 0.8, 0.5, 1.2),
@@ -66,6 +73,8 @@ export const MAX_LOSSE_DEUREN = 6;     // zoveel losse deuren liggen er tegelijk
 export const DEUR_OPEN_TIJD = 0.22;    // s van dicht naar open (en terug)
 export const DEUR_HOUD_TIJD = 0.6;     // s dat een los gelaten deur blijft staan (AI/passagier)
 export const DEUR_SLAM_SNELHEID = 3;   // m/s: sneller dan dit slaat een open deur dicht
+export const MAX_LOSSE_DELEN = MAX_LOSSE_DEUREN;
+export const DEEL_PRIJS = { deur: 25, kap: 40, klep: 30 }; // garage: per los onderdeel
 export const SCHEEF_VANAF = 0.45;      // klapsterkte vanaf waar een deur scheef zit
 export const LOS_VANAF = 1.3;          // en vanaf waar hij losraakt
 
@@ -151,7 +160,8 @@ export function deurStand(def, open, dmg = null) {
   const o = clamp01(open || 0);
   const e = o * o * (3 - 2 * o);
   if (def.soort === 'schuif') return e * (def.w * 0.95);
-  if (def.soort === 'achterdeur') return e * 1.6;
+  if (def.soort === 'achterdeur') return Math.max(dmg === 'scheef' ? 0.3 : 0, e * 1.6);
+  if (def.soort === 'kap' || def.soort === 'klep') return Math.max(dmg === 'scheef' ? 0.22 : 0, e * 1.0); // scheef: staat op een kier
   const max = def.soort === 'achterscharnier' ? 1.25 : 1.05;
   const scheef = dmg === 'scheef' ? 0.14 : 0; // een scheve deur sluit niet meer helemaal
   return Math.max(scheef, e * max);
@@ -204,8 +214,14 @@ export function deurSchade(defs, dentLog, len, wid) {
   const out = {};
   if (!Array.isArray(dentLog)) return out;
   for (const d of defs) {
-    if (d.soort === 'achterdeur') continue;
     let s = 0;
+    if (d.side === 0) {
+      // kap en kofferbak: de klapsterkte in de zone (voor/achter)
+      s = zoneTotals(dentLog, len, wid)[d.zone];
+      if (s >= (d.losAt ?? LOS_VANAF)) out[d.id] = 'los';
+      else if (s >= (d.scheefAt ?? SCHEEF_VANAF)) out[d.id] = 'scheef';
+      continue;
+    }
     for (const e of dentLog) {
       if (!Array.isArray(e) || !Number.isFinite(e[0]) || !Number.isFinite(e[1])) continue;
       const zijde = Math.abs(e[1]) > wid * 0.25 ? Math.sign(e[1]) : 0;
@@ -218,6 +234,15 @@ export function deurSchade(defs, dentLog, len, wid) {
     else if (s >= SCHEEF_VANAF) out[d.id] = 'scheef';
   }
   return out;
+}
+
+// Prijs in de garage voor alle losse delen van dit voertuig.
+export function deelPrijs(v) {
+  const st = v && v.doors;
+  if (!st || !st.loose) return 0;
+  let p = 0;
+  for (const id of Object.keys(st.loose)) p += id === 'kap' ? DEEL_PRIJS.kap : id === 'klep' ? DEEL_PRIJS.klep : DEEL_PRIJS.deur;
+  return p;
 }
 
 // Werkt v.doors bij met de schade. Geeft de deuren die nu net losgingen ([id]) terug,

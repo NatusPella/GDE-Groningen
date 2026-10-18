@@ -4,13 +4,14 @@ import * as D from '../game/js/vehicledoors.js';
 
 let bad = 0;
 const check = (name, ok, info = '') => { if (!ok) { bad++; console.log('FAIL', name, info); } };
+const deuren = (v) => D.doorsFor(v).filter((d) => d.side !== 0);
 const car = (name, o = {}) => ({ model: { name, len: 4.3, wid: 1.8 }, dentLog: [], speed: 0, ...o });
 
 // definities
-check('sedan heeft vier deuren', D.doorsFor(car('sedan')).length === 4);
-check('hatch heeft twee deuren', D.doorsFor(car('hatch')).length === 2);
-check('taxi via vlag krijgt vier deuren', D.doorsFor(car('hatch', { isTaxi: true })).length === 4);
-check('politie vier deuren', D.doorsFor(car('police', { isPolice: true })).length === 4);
+check('sedan heeft vier deuren', deuren(car('sedan')).length === 4);
+check('hatch heeft twee deuren', deuren(car('hatch')).length === 2);
+check('taxi via vlag krijgt vier deuren', deuren(car('hatch', { isTaxi: true })).length === 4);
+check('politie vier deuren', deuren(car('police', { isPolice: true })).length === 4);
 check('bus dubbele deuren rechts', D.doorsFor(car('bus', { isBus: true })).filter((d) => d.side === 1).length >= 4);
 check('bestelbus heeft een schuifdeur', D.doorsFor(car('van')).some((d) => d.soort === 'schuif'));
 check('tractor cabine twee deuren', D.doorsFor(car('tractor')).length === 2);
@@ -85,7 +86,7 @@ let sch = D.deurSchade(sed, [klap(0.6, 0.9, 0.5)], L, W);
 check('klap op rechter voordeur: scheef', sch.vr === 'scheef' && !sch.vl, JSON.stringify(sch));
 sch = D.deurSchade(sed, [klap(0.6, 0.9, 0.8), klap(0.7, 0.9, 0.8)], L, W);
 check('zware klap: los', sch.vr === 'los', JSON.stringify(sch));
-check('neus raakt geen deur', Object.keys(D.deurSchade(sed, [klap(2.1, 0, 2)], L, W)).length === 0);
+check('neus raakt geen deur', Object.keys(D.deurSchade(sed, [klap(2.1, 0, 2)], L, W)).filter((k) => k !== 'kap').length === 0);
 check('rommel in logboek', Object.keys(D.deurSchade(sed, [null, [NaN, 1, 1], 'x', [1, 'a', 1]], L, W)).length === 0 && Object.keys(D.deurSchade(sed, null, L, W)).length === 0);
 
 const v = car('sedan', { dentLog: [klap(0.6, 0.9, 0.8), klap(0.7, 0.9, 0.8)] });
@@ -102,6 +103,25 @@ const vol = { n: D.MAX_LOSSE_DEUREN };
 const w2 = car('sedan', { dentLog: [klap(0.6, 0.9, 2)] });
 check('maximum losse deuren: scheef i.p.v. los', D.reconcileDoors(w2, sed, vol).length === 0 && w2.doors.dmg.vr === 'scheef' && vol.n === D.MAX_LOSSE_DEUREN);
 check('geen deuren, geen werk', D.reconcileDoors(car('bike'), [], wereld).length === 0);
+
+// motorkap, kofferbak, laadklep
+check('sedan heeft kap en kofferbak', sed.some((d) => d.id === 'kap') && sed.some((d) => d.id === 'klep'));
+check('wagon en bestelbus: achterklep als deur', ['wagon', 'van', 'ambulance'].every((n) => D.doorsFor(car(n, n === 'ambulance' ? { isAmbulance: true } : {})).some((d) => d.id === 'klep' && d.soort !== 'klep' || d.id === 'klep')));
+check('bus heeft geen kap', !bus.some((d) => d.id === 'kap'));
+check('kap: lichte klap niets', !D.deurSchade(sed, [klap(2, 0, 0.5)], L, W).kap);
+check('kap: opwippen vanaf 0,7', D.deurSchade(sed, [klap(2, 0, 0.8)], L, W).kap === 'scheef');
+check('kap: los vanaf 1,8', D.deurSchade(sed, [klap(2, 0, 1), klap(2, 0.2, 0.9)], L, W).kap === 'los');
+check('klep: achterklap, kap blijft', (() => { const r = D.deurSchade(sed, [klap(-2, 0, 1.7)], L, W); return r.klep === 'los' && !r.kap; })());
+check('kap staat op een kier bij scheef', D.deurStand(sed.find((d) => d.id === 'kap'), 0, 'scheef') > 0.1 && D.deurStand(sed.find((d) => d.id === 'kap'), 1) === 1);
+const vk = car('sedan', { dentLog: [klap(2, 0, 1), klap(2, 0.2, 0.9), klap(0.6, 0.9, 0.8), klap(0.7, 0.9, 0.8)] });
+const wk = { n: 0 };
+check('kap en deur tegelijk los', D.reconcileDoors(vk, sed, wk).sort().join() === 'kap,vr' && wk.n === 2);
+check('garageprijs per los deel', D.deelPrijs(vk) === D.DEEL_PRIJS.kap + D.DEEL_PRIJS.deur && D.deelPrijs({}) === 0);
+vk.dentLog = []; D.reconcileDoors(vk, sed, wk);
+check('reparatie: alles terug, prijs 0', D.deelPrijs(vk) === 0 && wk.n === 0);
+const wv = { n: D.MAX_LOSSE_DEUREN - 1 };
+const vm = car('sedan', { dentLog: [klap(2, 0, 3), klap(-2, 0, 3)] });
+check('limiet geldt ook voor kap en klep', D.reconcileDoors(vm, sed, wv).length === 1 && wv.n === D.MAX_LOSSE_DEUREN && Object.keys(vm.doors.dmg).length === 1);
 
 check('bus staat stil: deuren open', D.stilstandDeurOpen(car('bus', { isBus: true })) && !D.stilstandDeurOpen(car('bus', { isBus: true, speed: 5 })) && !D.stilstandDeurOpen(car('sedan')));
 
