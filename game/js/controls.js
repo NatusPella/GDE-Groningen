@@ -182,7 +182,7 @@ export function buttonSlots(binds) {
 // keys); triggers 'drive' make RT/LT the gas and the brake.
 const FOOT = {
   a: ' ', b: 'control', x: 'f', y: 'e', lb: '@wheel-', rb: '@wheel+', lt: '@aim', rt: '@fire',
-  ls: 'shift', rs: 'tab', up: null, down: 'k', left: 'o', right: 'r', view: 'm', start: 'escape', stick: 'move',
+  ls: 'shift', rs: 'tab', up: 'n', down: 'k', left: 'o', right: 'r', view: 'm', start: 'escape', stick: 'move',
 };
 export const PAD_MAPS = {
   foot: FOOT,
@@ -240,6 +240,8 @@ function find(map, v) {
 export const PAD_LAYOUTS = {
   xbox: { a: 'A', b: 'B', x: 'X', y: 'Y', lb: 'LB', rb: 'RB', lt: 'LT', rt: 'RT', view: 'View', start: 'Menu', ls: 'L3', rs: 'R3', lstick: 'L', rstick: 'R' },
   ps: { a: 'cross', b: 'circle', x: 'square', y: 'triangle', lb: 'L1', rb: 'R1', lt: 'L2', rt: 'R2', view: 'Create', start: 'Options', ls: 'L3', rs: 'R3', lstick: 'L', rstick: 'R' },
+  // Switch: dezelfde plekken, andere letters (de onderste knop is B)
+  switch: { a: 'B', b: 'A', x: 'Y', y: 'X', lb: 'L', rb: 'R', lt: 'ZL', rt: 'ZR', view: '−', start: '+', ls: 'L3', rs: 'R3', lstick: 'L', rstick: 'R' },
   deck: { a: 'A', b: 'B', x: 'X', y: 'Y', lb: 'L1', rb: 'R1', lt: 'L2', rt: 'R2', view: 'View', start: 'Menu', ls: 'L3', rs: 'R3', lstick: 'L', rstick: 'R' },
 };
 export const PAD_SLOT_NAMES = {
@@ -251,6 +253,7 @@ export const PAD_SLOT_NAMES = {
 export function padFamily(id) {
   const s = String(id || '').toLowerCase();
   if (/28de|steam deck|valve/.test(s)) return 'deck';
+  if (/057e|nintendo|switch|pro controller|joy-?con/.test(s)) return 'switch';
   if (/054c|dualsense|dualshock|playstation/.test(s) || (/wireless controller/.test(s) && !/xbox|045e/.test(s))) return 'ps';
   return 'xbox';
 }
@@ -294,4 +297,19 @@ export function lookBackActive({ inVehicle, override, noLookBack, qDown, middleD
 export const CHASE_FOLLOW_RATE = 6;
 export function chaseFollowLerp(dt, { cut = false, lookBack = false } = {}) {
   return cut || lookBack ? 1 : Math.min(1, dt * CHASE_FOLLOW_RATE);
+}
+
+// Het invoerlaag-overzicht als data (#151): per situatie welke knop welke
+// actie doet, en per toets in KEY_ACTIONS welke knop erbij hoort. Voor het
+// besturingsoverzicht en voor tests die gaten en dubbele knoppen zoeken.
+export function inputOverview() {
+  const out = {};
+  for (const [ctx, map] of Object.entries(PAD_MAPS)) {
+    const rows = [];
+    for (const s of PAD_BUTTONS) if (map[s]) rows.push({ slot: s, action: map[s], label: describe(map[s]) });
+    const byAction = {};
+    for (const r of rows) (byAction[r.action] = byAction[r.action] || []).push(r.slot);
+    out[ctx] = { stick: map.stick, rows, duplicates: Object.entries(byAction).filter(([, v]) => v.length > 1).map(([action, slots]) => ({ action, slots })) };
+  }
+  return out;
 }
