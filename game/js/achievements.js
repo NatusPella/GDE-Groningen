@@ -227,7 +227,7 @@ export const ACHIEVEMENTS = [
   { id: 'varen_5', cat: 'rijden', title: 'Zeebenen', desc: 'Vaar in totaal 5 km over het water', stat: 'sailed', goal: 5000, unit: 'm' },
   { id: 'varen_25', cat: 'rijden', title: 'Kapitein van de Diepenring', desc: 'Vaar in totaal 25 km over het water', stat: 'sailed', goal: 25000, unit: 'm' },
   { id: 'ster_5_lang', cat: 'politie', title: 'Op de vlucht', desc: 'Blijf tien minuten achter elkaar gezocht', stat: 'wantedStreak', goal: 600, unit: 's', hidden: true },
-  { id: 'reizen_25', cat: 'spoor', title: 'Vaste klant bij de NS', desc: 'Reis 25 keer met de trein', stat: 'trainTrips', goal: 25 },
+  { id: 'reizen_25', cat: 'spoor', title: 'Vaste klant op het spoor', desc: 'Reis 25 keer met de trein', stat: 'trainTrips', goal: 25 },
   { id: 'slapen_5', cat: 'sociaal', title: 'Goed uitgerust', desc: 'Slaap vijf keer in je eigen bed', stat: 'slept', goal: 5 },
   { id: 'hengel_5', cat: 'verkennen', title: 'Geduldige visser', desc: 'Hengel vijf rondes in Meerstad', stat: 'hengelSessions', goal: 5 },
   { id: 'skate_10', cat: 'verkennen', title: 'Skatepark-vaste', desc: 'Skate tien runs in het Stadspark', stat: 'skateRuns', goal: 10 },
