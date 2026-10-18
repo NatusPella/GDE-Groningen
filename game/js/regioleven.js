@@ -13,6 +13,9 @@ export const STREKEN = [
   { id: 'oldambt', name: 'Oldambt', at: [53.15, 7.05], reach: 9000 },
   { id: 'westerkwartier', name: 'Westerkwartier', at: [53.17, 6.4], reach: 11000 },
   { id: 'hogeland', name: 'Hogeland', at: [53.4, 6.65], reach: 11000 },
+  { id: 'westerwolde', name: 'Westerwolde', at: [52.96, 7.04], reach: 13000 },
+  { id: 'lauwerskust', name: 'Lauwerskust', at: [53.365, 6.32], reach: 10000 },
+  { id: 'hunsingo', name: 'Hunsingo', at: [53.31, 6.58], reach: 9000 },
 ];
 
 export function streekAt(x, y) {
@@ -43,6 +46,12 @@ export const REGIO_EVENTS = [
     card: ['Ringrijden in Leek', 'Ruiters in witte broeken steken een ring van een paal. Het is oud, het is serieus, en het gaat vaak mis.'] },
   { id: 'rv-dijkdag', name: 'Dijkdag in Uithuizen', month: 9, date: 6, rank: 4, icon: 'zon', streek: 'hogeland',
     card: ['Dijkdag in Uithuizen', 'Picknick op de dijk, schapen op de achtergrond. De wind staat gunstig voor vliegers.'] },
+  { id: 'rv-kanaaldag', name: 'Kanaaldag in Stadskanaal', month: 9, date: 4, rank: 5, icon: 'kraam', streek: 'westerwolde',
+    card: ['Kanaaldag in Stadskanaal', 'Platbodems langs de lange kanalen en een brug die voor de gelegenheid ook echt opengaat. Er is een kraam met kanaalkoek.'] },
+  { id: 'rv-garnalendag', name: 'Garnalendag in Zoutkamp', month: 9, date: 2, rank: 5, icon: 'vlag', streek: 'lauwerskust',
+    card: ['Garnalendag in Zoutkamp', 'Kotters in de haven, pellen op het dek en een prijs voor de snelste pelster. Het ruikt naar zout en zomer.'] },
+  { id: 'rv-wierdedag', name: 'Wierdedag in Winsum', month: 9, date: 9, rank: 4, icon: 'zon', streek: 'hunsingo',
+    card: ['Wierdedag in Winsum', 'Wandelen over de terpen, met een gids die alles weet over klei. De molen draait, de koffie staat klaar.'] },
 ];
 
 // --- chance encounters --------------------------------------------------------------------
@@ -76,6 +85,28 @@ export const ENCOUNTERS = [
     lines: ['Een boer leunt op een hek en kijkt naar zijn graan. Dat doet hij elke avond. Het graan vindt het prima.'], reward: 0 },
   { id: 'e-nacht', streek: null, hours: [22, 4], weight: 1, who: 'Een uil',
     lines: ['Ergens boven je hoofd roept een uil. Het klinkt als een vraag waar je het antwoord niet op weet.'], reward: 0 },
+  { id: 'e-kanaal', streek: 'westerwolde', hours: [6, 18], weight: 3, who: 'Een kanaalwachter',
+    lines: ['Een kanaalwachter zwaait je door over de brug. Dat doet hij voor iedereen, ook als er geen schip komt.'], reward: 0 },
+  { id: 'e-bourtange', streek: 'westerwolde', hours: [9, 19], weight: 2, who: 'Een wandelaar',
+    lines: ['Een wandelaar loopt voor de derde keer om dezelfde wal. Hij zegt dat hij de vesting uit het hoofd leert.'], reward: 0 },
+  { id: 'e-avond-wolde', streek: 'westerwolde', hours: [17, 23], weight: 2, who: 'Een fietser',
+    lines: ['Langs het kanaal fietst iemand met een lamp op zijn hoed. Het licht schuift mee over het water.'], reward: 5 },
+  { id: 'e-kotter', streek: 'lauwerskust', hours: [6, 18], weight: 3, who: 'Een visser',
+    lines: ['Een visser sjort aan een net en zegt zonder op te kijken: Garnalen, geen mensen. Je loopt maar weer door.'], reward: 0 },
+  { id: 'e-wadloper', streek: 'lauwerskust', hours: [8, 20], weight: 2, who: 'Een wadloper',
+    lines: ['Een wadloper met blote voeten vraagt hoe laat het eb is. Je weet het niet. Hij ook niet, maar hij gaat toch.'], reward: 0 },
+  { id: 'e-avond-kust', streek: 'lauwerskust', hours: [17, 23], weight: 2, who: 'Een vogelaar',
+    lines: ['Een vogelaar wijst naar de lucht en fluistert dat het een wulp is. Het is een meeuw. Hij is blij.'], reward: 0 },
+  { id: 'e-klei', streek: 'hunsingo', hours: [6, 18], weight: 3, who: 'Een boer',
+    lines: ['Een boer staat tot zijn enkels in de klei en groet je met een nikje. Zijn trekker staat er twee akkers verderop.'], reward: 5 },
+  { id: 'e-wierde', streek: 'hunsingo', hours: [9, 19], weight: 2, who: 'Een gids',
+    lines: ['Een gids legt uit dat deze heuvel gemaakt is door mensen. Een kind vraagt: Waarom? De gids denkt nog na.'], reward: 0 },
+  { id: 'e-avond-klei', streek: 'hunsingo', hours: [17, 23], weight: 2, who: 'Een molenaar',
+    lines: ['De molenaar bindt zijn wieken vast voor de nacht en wenst je een goede avond. De wieken wensen terug.'], reward: 0 },
+  { id: 'e-avond-west', streek: 'westerkwartier', hours: [17, 23], weight: 2, who: 'Een ruiter',
+    lines: ['Een ruiter stapt af en laat het paard grazen langs de berm. Het paard kijkt jou aan, kauwt en kijkt weer weg.'], reward: 0 },
+  { id: 'e-avond-hog', streek: 'hogeland', hours: [17, 23], weight: 2, who: 'Een boer',
+    lines: ['Een boer sluit het hek van de wei en roept dat de zon vanavond bijna weer terugkomt. Je gelooft hem op zijn woord.'], reward: 0 },
 ];
 
 export const ENCOUNTER_GAP = [150, 300]; // seconds between two rolls
@@ -113,18 +144,18 @@ export const SET_GEHEIM = 'streekgeheimen';
 
 export const FINDS = [
   { id: 'v-eems-1', streek: 'eemsdelta', kind: 'verzamel', name: 'Gouden schelp', at: [53.3318, 6.9215], r: 14, text: 'Een schelp op de Zeedijk, zo glad dat de zee hem wel moest bewaren.' },
-  { id: 'v-eems-2', streek: 'eemsdelta', kind: 'verzamel', name: 'Keukenlepel', at: [53.3226, 6.8592], r: 14, text: 'Een lepel die uit een hangende keuken is gevallen. Er hangt nog een briefje aan: Sorry.' },
+  { id: 'v-eems-2', streek: 'eemsdelta', kind: 'verzamel', name: 'Keukenlepel', at: [53.32236, 6.85938], r: 14, text: 'Een lepel die uit een hangende keuken is gevallen. Er hangt nog een briefje aan: Sorry.' },
   { id: 'v-eems-3', streek: 'eemsdelta', kind: 'verzamel', name: 'Scheepsbel', at: [53.3302, 6.9144], r: 14, text: 'Een kleine koperen bel bij de kade. Hij klingelt zacht als je hem optilt.' },
   { id: 'g-eems', streek: 'eemsdelta', kind: 'geheim', name: 'Het klokje onder de brug', at: [53.3232, 6.8571], r: 10, text: 'Onder de brug hangt een klokje voor wie echt zoekt. De brugwachter heeft het er zelf neergehangen.' },
   { id: 'v-veen-1', streek: 'veenkolonien', kind: 'verzamel', name: 'Veenaardappel', at: [53.1062, 6.8761], r: 14, text: 'Een aardappel zo zwart als turf. Hij blijkt een steen. Je houdt hem toch.' },
-  { id: 'v-veen-2', streek: 'veenkolonien', kind: 'verzamel', name: 'Schippersknoop', at: [53.1055, 6.8803], r: 14, text: 'Een touw met een knoop erin die niemand kan losmaken. Eigenlijk een kunstwerk.' },
+  { id: 'v-veen-2', streek: 'veenkolonien', kind: 'verzamel', name: 'Schippersknoop', at: [53.10535, 6.88048], r: 14, text: 'Een touw met een knoop erin die niemand kan losmaken. Eigenlijk een kunstwerk.' },
   { id: 'v-veen-3', streek: 'veenkolonien', kind: 'verzamel', name: 'Turfstekersmes', at: [53.1621, 6.7712], r: 14, text: 'Een oud mes in de berm langs het diep. De houten steel is helemaal glad.' },
   { id: 'g-veen', streek: 'veenkolonien', kind: 'geheim', name: 'De rechtste weg', at: [53.0961, 6.9102], r: 12, text: 'Op de lange rechte weg staat een bordje: Hier is het echt het rechtst. Dank voor uw geduld.' },
   { id: 'v-old-1', streek: 'oldambt', kind: 'verzamel', name: 'Gouden aar', at: [53.1447, 7.0362], r: 14, text: 'Een korenaar van messing, achtergelaten door een molenaar die het bij zich had.' },
   { id: 'v-old-2', streek: 'oldambt', kind: 'verzamel', name: 'Kermiskaartje', at: [53.1438, 7.0344], r: 14, text: 'Een oud ritkaartje voor de zweefmolen. Het is nog goed voor één rondje.' },
   { id: 'v-old-3', streek: 'oldambt', kind: 'verzamel', name: 'Windwijzer', at: [53.1502, 7.0451], r: 14, text: 'Een haantje dat altijd naar het westen wijst, ook als het waait uit het oosten.' },
-  { id: 'g-old', streek: 'oldambt', kind: 'geheim', name: 'Het graanspoor', at: [53.1395, 7.0611], r: 12, text: 'Tussen het graan loopt een smal pad dat nergens op staat. Aan het einde ligt een verzonken bankje met uitzicht.' },
-  { id: 'v-west-1', streek: 'westerkwartier', kind: 'verzamel', name: 'Koetslantaarn', at: [53.1641, 6.3769], r: 14, text: 'Een koperen lantaarn bij het park. De kaars is bijna op.' },
+  { id: 'g-old', streek: 'oldambt', kind: 'geheim', name: 'Het graanspoor', at: [53.13952, 7.06346], r: 12, text: 'Tussen het graan loopt een smal pad dat nergens op staat. Aan het einde ligt een verzonken bankje met uitzicht.' },
+  { id: 'v-west-1', streek: 'westerkwartier', kind: 'verzamel', name: 'Koetslantaarn', at: [53.16343, 6.37686], r: 14, text: 'Een koperen lantaarn bij het park. De kaars is bijna op.' },
   { id: 'v-west-2', streek: 'westerkwartier', kind: 'verzamel', name: 'Hoefijzer', at: [53.1655, 6.3801], r: 14, text: 'Een hoefijzer dat al jaren geluk beloofd. Het werkt, zeggen ze, op de tweede dinsdag.' },
   { id: 'v-west-3', streek: 'westerkwartier', kind: 'verzamel', name: 'Kasteelsleutel', at: [53.1672, 6.3694], r: 14, text: 'Een sleutel zo groot als je hand. Er past geen enkel slot in dat jij kent.' },
   { id: 'g-west', streek: 'westerkwartier', kind: 'geheim', name: 'De stalkamer', at: [53.1689, 6.3721], r: 10, text: 'Achter de stal zit een deurtje. Binnen hangen foto’s van paarden die nooit hebben gewonnen, en toch trots kijken.' },
@@ -132,6 +163,18 @@ export const FINDS = [
   { id: 'v-hog-2', streek: 'hogeland', kind: 'verzamel', name: 'Veren van een gans', at: [53.4155, 6.6821], r: 14, text: 'Een bosje grijze veren, vers losgelaten. De gans staat er nog bij en kijkt streng.' },
   { id: 'v-hog-3', streek: 'hogeland', kind: 'verzamel', name: 'Dijkbord', at: [53.4205, 6.6902], r: 14, text: 'Een verweerd bordje met de tekst: Niet op de dijk. De schapen hebben er een mening over.' },
   { id: 'g-hog', streek: 'hogeland', kind: 'geheim', name: 'De stille wierde', at: [53.4256, 6.6602], r: 12, text: 'Op een kleine heuvel in de klei is alles stil. De wind draait weg, je hoort alleen jezelf denken.' },
+  { id: 'v-wolde-1', streek: 'westerwolde', kind: 'verzamel', name: 'Kanaalklomp', at: [52.98891, 6.95003], r: 14, text: 'Een houten klomp, langs het kanaal aangespoeld. Er zit een briefje in: Voor wie hem vindt, de volgende brug is van jou.' },
+  { id: 'v-wolde-2', streek: 'westerwolde', kind: 'verzamel', name: 'Vestingkogel', at: [53.0075, 7.1905], r: 14, text: 'Een steenkogel uit de wal. Zo zwaar dat je begrijpt waarom niemand hem hier heeft gelaten.' },
+  { id: 'v-wolde-3', streek: 'westerwolde', kind: 'verzamel', name: 'Kloosterschelp', at: [52.8760, 7.0605], r: 14, text: 'Een schelp uit de kloostertuin, die niemand daar heeft gelegd. Hij is warm van de zon.' },
+  { id: 'g-wolde', streek: 'westerwolde', kind: 'geheim', name: 'De verborgen schans', at: [53.0068, 7.1880], r: 12, text: 'Achter de wal ligt een schans die op geen enkele kaart staat. Er hangt een bordje: Ook deze is af.' },
+  { id: 'v-kust-1', streek: 'lauwerskust', kind: 'verzamel', name: 'Garnalenzeef', at: [53.33296, 6.29855], r: 14, text: 'Een zeef met nog een paar garnalen erin. Ze zijn weg voor je het doorhebt.' },
+  { id: 'v-kust-2', streek: 'lauwerskust', kind: 'verzamel', name: 'Pierpaaltje', at: [53.40452, 6.20333], r: 14, text: 'Een afgebroken paaltje van de pier, glad van de zee. Er zit een meeuw op die niet wil verhuizen.' },
+  { id: 'v-kust-3', streek: 'lauwerskust', kind: 'verzamel', name: 'Wadlopersklomp', at: [53.40037, 6.45856], r: 14, text: 'Een slijtage-vaste schoen vol klei. Hij rook vroeger naar zee, nu naar thuis.' },
+  { id: 'g-kust', streek: 'lauwerskust', kind: 'geheim', name: 'Het stille vogelhut', at: [53.3800, 6.2300], r: 12, text: 'In een uithoek van het Lauwersmeer staat een hut met één stoel. Op de leuning zit een vogel die wacht tot je weggaat.' },
+  { id: 'v-hun-1', streek: 'hunsingo', kind: 'verzamel', name: 'Molensteen', at: [53.3315, 6.5170], r: 14, text: 'Een kleine molensteen, zo rond dat hij nog lijkt te draaien als je niet kijkt.' },
+  { id: 'v-hun-2', streek: 'hunsingo', kind: 'verzamel', name: 'Scheve baksteen', at: [53.29987, 6.60101], r: 14, text: 'Een baksteen die licht helt. Een passant zegt dat de toren het ook zo doet en dat het geen fout is.' },
+  { id: 'v-hun-3', streek: 'hunsingo', kind: 'verzamel', name: 'Kleischep', at: [53.2760, 6.6970], r: 14, text: 'Een oude schep met klei erop die nooit droog wordt. Er zit een initiaal in het hout gekerfd.' },
+  { id: 'g-hun', streek: 'hunsingo', kind: 'geheim', name: 'De wierdeput', at: [53.3180, 6.5400], r: 12, text: 'Op een wierde ligt een put met een deksel. Eronder hangt een emmer met een briefje: Even wachten, ik kom zo.' },
 ];
 
 export function findsOf(streekId, kind = null) {
