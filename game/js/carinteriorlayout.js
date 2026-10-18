@@ -28,7 +28,7 @@ export function interiorLayout(seat, len, wid) {
     ],
     console: { x: sx + 0.3, y: sy - 0.02, z: (sz + (sz + side * Math.min(hw * 0.68, 0.8))) / 2, w: 0.7, h: 0.2, d: 0.2 },
     rear: len > 3.6 && len <= 6.5 ? { x: sx - 1.0, y: sy, w: wid - 0.3 } : null,
-    mirror: { x: sx + 0.72, y: sy + 0.86, z: sz + side * 0.28 },
+    mirror: { x: sx + 0.72, y: sy + 0.8, z: sz + side * 0.28 },
     // dakbekleding vanaf de voorruit tot achter de laatste stoel, met een A-stijl per kant
     roof: roofLayout(sx, sy, sz, len, wid, hw),
     hw,
@@ -39,8 +39,8 @@ export function interiorLayout(seat, len, wid) {
 // (grotere cabines, zoals bestel- en vrachtwagen en bus, hebben meer ruimte).
 function roofLayout(sx, sy, sz, len, wid, hw) {
   const big = len > 6.5 || sy > 0.55;
-  const y = sy + 0.62 + (big ? 0.5 : 0.36);
-  const front = sx + 0.8;
+  const y = sy + 0.62 + (big ? 0.5 : 0.44);
+  const front = sx + 1.0;
   const back = sx - (len > 3.6 && len <= 6.5 ? 1.35 : 0.55);
   const dashTop = sy - 0.1 + 0.44;
   const zp = hw - 0.09;
@@ -61,11 +61,11 @@ export function doorTrims(defs, len, wid) {
     if (!d.seat || !d.side) continue;
     const w = d.w * 0.9;
     const x = d.x * len;
-    const h = Math.min(0.55, d.h * 0.6);
+    const h = Math.min(0.62, d.h);   // tot de onderkant van het raam
     out.push({
       id: d.id, side: d.side, x, z: d.side * (hw - 0.07), w, y: d.y0 + h / 2, h,
-      arm: { x: x + w * 0.1, y: d.y0 + h + 0.02, z: d.side * (hw - 0.12), w: w * 0.5 },
-      handle: { x: x - d.w * 0.3, y: d.y0 + h - 0.05, z: d.side * (hw - 0.1) },
+      arm: { x: x + w * 0.1, y: d.y0 + h * 0.8, z: d.side * (hw - 0.12), w: w * 0.5 },
+      handle: { x: x - d.w * 0.3, y: d.y0 + h * 0.85, z: d.side * (hw - 0.1) },
     });
   }
   return out;

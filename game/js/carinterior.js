@@ -11,7 +11,8 @@ import { doorsFor } from './vehicledoors.js';
 const DARK = 0x23262b, GREY = 0x3a3f46, SEAT = 0x4a4f58, TRIM = 0x6a707a;
 
 function box(g, w, h, d, x, y, z, color) {
-  const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), new THREE.MeshLambertMaterial({ color }));
+  // de cabine krijgt eigen omgevingslicht: onderkanten (dakhemel) kregen anders geen zon en zagen zwart
+  const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), new THREE.MeshLambertMaterial({ color, emissive: color, emissiveIntensity: 0.4 }));
   m.position.set(x, y, z);
   g.add(m);
   return m;
@@ -57,13 +58,13 @@ export function buildCarInterior(seat, len, wid, defs = []) {
   box(g, c.d, c.h, c.w, c.x, c.y, c.z, DARK);
   if (L.rear) box(g, 0.5, 0.14, L.rear.w, L.rear.x, L.rear.y - 0.07, 0, SEAT), box(g, 0.1, 0.55, L.rear.w, L.rear.x - 0.27, L.rear.y + 0.27, 0, SEAT);
   const m = L.mirror;
-  box(g, 0.03, 0.1, 0.34, m.x, m.y, m.z, DARK);
+  box(g, 0.03, 0.07, 0.2, m.x, m.y, m.z, DARK);
   // dakhemel en A-stijlen
   const R = L.roof;
   box(g, R.x1 - R.x0, 0.04, R.w, (R.x0 + R.x1) / 2, R.y, 0, GREY);
   for (const p of R.pillars) {
     const dx = p.x1 - p.x0, dy = p.y1 - p.y0, len = Math.hypot(dx, dy);
-    const m = box(g, len, 0.07, 0.07, (p.x0 + p.x1) / 2, (p.y0 + p.y1) / 2, p.z, DARK);
+    const m = box(g, len, 0.05, 0.05, (p.x0 + p.x1) / 2, (p.y0 + p.y1) / 2, p.z, DARK);
     m.rotation.z = Math.atan2(dy, dx);
   }
   // portierbekleding op de plek van de echte deuren; verdwijnt als de deur openstaat of los is
