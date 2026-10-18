@@ -13,6 +13,8 @@ import { getSideJobSpotsForRender } from './sidejobs.js';
 import { getGaragesForRender } from './garages.js';
 import { getStationsForRender } from './stationtravel.js';
 import { storyFlag } from './story.js';
+import { isVerplaatsbaar, schoonPlekken, plekVan, volgendePlek, opPlek, PLEKKEN } from './inrichting.js';
+import { getLedger, summary } from './finance.js';
 
 // EIKEA furniture for Tammo and Tessa's flat (home.js). Bought in the EIKEA
 // (shops.js eikeaSections), delivered "tussen 8 en 18 uur": the next time
@@ -81,7 +83,7 @@ let moment = null;
 const said = new Set();
 
 function blank() {
-  return { owned: new Set(), pending: new Set(), built: new Set(), day: 0, read: -1, stek: 0, tips: [], moment: false };
+  return { owned: new Set(), pending: new Set(), built: new Set(), plek: {}, day: 0, read: -1, stek: 0, tips: [], moment: false };
 }
 
 const has = (id) => state.owned.has(id) && (!BY_ID.get(id).flatpack || state.built.has(id));
@@ -98,7 +100,7 @@ export function furnitureOwned() {
 export const FURNITURE_TOTAL = TOTAL;
 
 export function getFurnitureSave() {
-  return { owned: [...state.owned], pending: [...state.pending], built: [...state.built], day: state.day, read: state.read, stek: state.stek, tips: [...state.tips], moment: state.moment };
+  return { owned: [...state.owned], pending: [...state.pending], built: [...state.built], day: state.day, read: state.read, stek: state.stek, tips: [...state.tips], moment: state.moment, plekken: { ...state.plek } };
 }
 
 export function applyFurnitureSave(d) {
@@ -113,6 +115,7 @@ export function applyFurnitureSave(d) {
   state.read = Number.isFinite(d.read) ? Math.floor(d.read) : -1;
   state.stek = Math.max(0, Math.min(STEK_MAX, n(d.stek)));
   state.moment = d.moment === true;
+  state.plek = schoonPlekken(d.plekken);
   state.tips = Array.isArray(d.tips) ? d.tips.filter((t) => typeof t === 'string').slice(0, TIPS_PER_DAY) : [];
 }
 
@@ -191,10 +194,17 @@ export function furnitureSkip() {
   return new Set(FURNITURE.filter((f) => f.replaces && state.owned.has(f.id)).map((f) => f.id));
 }
 
+// The piece as it stands now: lamp and plant can be moved (inrichting.js).
+function eff(f) {
+  const o = isVerplaatsbaar(f.id) && opPlek(f.id, plekVan(state.plek, f.id));
+  if (!o) return f;
+  return { ...f, at: { ...f.at, x: o.x, z: o.z }, solid: o.solid, use: f.use && { x: f.use.x + o.dx, z: f.use.z + o.dz } };
+}
+
 // Walkable-flat solids of the placed pieces [x0, z0, x1, z1].
 export function furnitureSolids() {
   const out = [];
-  for (const f of FURNITURE) if (f.solid && state.owned.has(f.id)) out.push(f.solid);
+  for (const f of FURNITURE) if (f.solid && state.owned.has(f.id)) out.push(eff(f).solid);
   return out;
 }
 
@@ -236,15 +246,17 @@ function pieceMesh(key, at) {
 function buildGroup(flat) {
   const g = new THREE.Group();
   g.name = 'eikea';
-  for (const f of FURNITURE) {
-    if (!state.owned.has(f.id)) continue;
+  for (const f0 of FURNITURE) {
+    if (!state.owned.has(f0.id)) continue;
+    const f = eff(f0);
     const packed = f.flatpack && !state.built.has(f.id);
     const mesh = packed ? pieceMesh('pakket', { x: f.use.x + 0.1, z: f.at.z, rot: Math.PI / 2 + 0.15, fit: 'w', size: 1.3 }) : pieceMesh(f.id, f.at);
     if (mesh) g.add(mesh);
     const twin = !packed && f.at2 && pieceMesh(f.id, f.at2);
     if (twin) g.add(twin);
   }
-  uses = FURNITURE.filter((f) => f.use && state.owned.has(f.id)).map((f) => {
+  uses = FURNITURE.filter((f) => f.use && state.owned.has(f.id)).map((f0) => {
+    const f = eff(f0);
     const [x, y] = flat.fl(f.use.x, f.use.z);
     return { k: 'f-' + f.id, x, y };
   });
@@ -348,7 +360,7 @@ export function furniturePrompt(k, w) {
     case 'f-tv': return tv ? ['Uitzetten', `Kiekdoar TV: ${tv.title}`] : ['Tv kijken', 'Kiekdoar TV: terugkijken en het journaal'];
     case 'f-prikbord': return ['Wandkaart', 'Kies waar je heen wilt, de GPS doet de rest'];
     case 'f-plant': return state.stek ? ['Stekjes verkopen', `${state.stek} ${state.stek > 1 ? 'dagen' : 'dag'} gegroeid: €${state.stek * STEK_PAY}`] : ['Stekkie', 'Nog geen stekjes. Morgen weer kijken'];
-    case 'f-bureau': return ['Pc aan', 'Ubbo zoekt de best betaalde klus'];
+    case 'f-bureau': return ['Pc aan', 'Klussen, kasboek en de flat inrichten'];
     default: return null;
   }
 }
@@ -367,7 +379,7 @@ export function useFurniture(w, k, api) {
     case 'f-tv': tv ? stopTv() : openShopMenu(w, tvMenu(w)); return true;
     case 'f-prikbord': openShopMenu(w, mapMenu(w)); return true;
     case 'f-plant': sellStekjes(w); return true;
-    case 'f-bureau': bestJob(w); return true;
+    case 'f-bureau': openShopMenu(w, pcMenu(w)); return true;
     default: return false;
   }
 }
@@ -620,6 +632,35 @@ function sellStekjes(w) {
   w.money += pay;
   w.addMessage(`+€${pay} voor stekjes via de buurtapp`, 3, { kind: 'geld' });
   sayOnce(w, 'plant', 'Stekkies verkocht aan de buren. Groene vingers, groen geld.');
+}
+
+// Ubbo's pc: the best job, the money book (finance.js) and moving the lamp and plant (inrichting.js).
+function pcMenu(w) {
+  const euro = (v) => '€' + Math.round(v).toLocaleString('nl-NL');
+  const move = FURNITURE.filter((f) => isVerplaatsbaar(f.id) && state.owned.has(f.id)).map((f) => {
+    const next = volgendePlek(state.plek, state.owned, f.id);
+    const nu = PLEKKEN[plekVan(state.plek, f.id)].label;
+    return {
+      id: 'plek-' + f.id, label: f.short, desc: next ? `Nu: ${nu}. Straks: ${PLEKKEN[next].label}` : `Nu: ${nu}. Geen andere plek vrij`, verb: 'Verplaatsen', price: 0, keepFocus: true,
+      preview: { kind: 'product', product: f.id }, disabled: next ? '' : 'Geen plek vrij',
+      buy() { state.plek[f.id] = next; refresh3D(); return `${f.short} staat nu: ${PLEKKEN[next].label}`; },
+    };
+  });
+  return {
+    name: 'Warkplak', type: 'eikea', color: '#1e9e56', tagline: 'Ubbo draait. Klus, kasboek of de boel verschuiven',
+    sections: () => {
+      const s = summary(getLedger());
+      return [
+        { title: 'Klus', items: [{ id: 'klus', label: 'Beste bijbaantje zoeken', desc: 'Ubbo zet de dichtstbijzijnde klus op de GPS', verb: 'Zoeken', price: 0, keepFocus: true, buy() { closeShopMenu(); bestJob(w); return 'Route staat'; } }] },
+        { title: 'Kasboek', note: 'Alles wat je verdient en uitgeeft', items: [
+          { id: 'kas-v', label: 'Vandaag', desc: `Binnen ${euro(s.todayIn)}, uit ${euro(s.todayOut)}`, plain: true, price: 0, buy: () => '' },
+          { id: 'kas-w', label: 'Deze week', desc: `Binnen ${euro(s.weekIn)}, uit ${euro(s.weekOut)}`, plain: true, price: 0, buy: () => '' },
+          { id: 'kas-t', label: 'Totaal', desc: `Verdiend ${euro(s.inTotal)}, uitgegeven ${euro(s.outTotal)}${s.topOut.length ? `. Meeste uitgaven: ${s.topOut.map(([k, v]) => `${k} ${euro(v)}`).join(', ')}` : ''}`, plain: true, price: 0, buy: () => '' },
+        ] },
+        ...(move.length ? [{ title: 'Flat inrichten', note: 'Lamp en plant kunnen in een andere hoek', items: move }] : []),
+      ];
+    },
+  };
 }
 
 function bestJob(w) {
