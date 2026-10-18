@@ -107,6 +107,26 @@ const bld = (pts, o = {}) => ({ pts, type: 'house', ...o });
   assert.ok(!PW.realBlockedAt(map, isTile, 497.5, 510, 2), '2.5 m off the bank is land');
 }
 
+// --- landing stages
+{
+  // a stage mapped as a building (14 x 2 m) from the bank into the lake, one of them across a quay road
+  const road = { pts: [[-20, 108], [60, 108]], cat: 'minor', width: 6 };
+  const rep = A.auditPlacement({
+    water: [lake], roads: [road],
+    buildings: [bld(rect(40, 96, 2, 14), { type: 'yes' }) /* y 96..110: over the road at 105..111 */, bld(rect(10, 90, 2, 14), { type: 'yes' }), bld(rect(10, 120, 2, 14), { type: 'yes' })],
+  });
+  assert.equal(rep.stagesOnRoad.length, 1, `one stage over the road (${JSON.stringify(rep.stagesOnRoad)})`);
+  assert.ok(A.problems(rep) >= 1);
+  // the jetty prop of a village (dorpsuitjes.js): 8 m out from its spot, over water at the far end, nothing under it
+  const DU = await import('../game/js/dorpsuitjes.js');
+  const lakeW = { pts: rect(100, 0, 100, 100), bounds: [100, 0, 200, 100] };
+  const mk = (roads = [], buildings = []) => ({ waterNear: () => [lakeW], flatWaterNear: () => [], roadsNear: () => roads, buildingsNear: () => buildings });
+  assert.ok(DU.stageClear(mk(), 95, 50, 0), 'from the bank, 8 m out over the lake');
+  assert.ok(!DU.stageClear(mk(), 60, 50, 0), 'standing on land too far from the water: the far end is dry');
+  assert.ok(!DU.stageClear(mk([{ pts: [[98, 0], [98, 100]], type: 'residential', cat: 'minor', width: 6 }]), 95, 50, 0), 'a road under the stage');
+  assert.ok(!DU.stageClear(mk([], [{ pts: rect(96, 45, 3, 10), bounds: [96, 45, 99, 55] }]), 95, 50, 0), 'a building under the stage');
+}
+
 // --- the city map
 {
   const f = new URL('../game/citymap.json', import.meta.url);

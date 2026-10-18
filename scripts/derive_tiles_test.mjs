@@ -62,10 +62,12 @@ const pond = { kind: 'water', row: { pts: rect(0, 300, 100, 100) } };
 const onBank = bld(rect(40, 296, 10, 8)); // 4 m inside the south shore (y 300)
 const farOut = bld(rect(40, 340, 10, 8), { name: 'Terp' });
 const floats = bld(rect(10, 310, 8, 4), { type: 'houseboat' });
-const sl = [pond, onBank, farOut, floats];
+const pier = bld(rect(20, 297, 12, 3), { type: 'yes' }); // a landing stage mapped as a building: long and narrow, floats on
+const sl = [pond, onBank, farOut, floats, pier];
 assert.equal(slideOutOfWater(sl), 1, 'one footprint slid');
 assert.ok(onBank.row.pts.every(([, y]) => y <= 300.01 || y >= 399.99 || Math.abs(y - 300) < 0.01 || y < 300.5), 'it stands on the bank');
 assert.ok(Math.max(...onBank.row.pts.map((p) => p[1])) <= 300.01 || Math.min(...onBank.row.pts.map((p) => p[1])) >= 399.99, 'wholly on dry land');
 assert.equal(farOut.row.pts[0][1], 340, 'one 40 m out stays where it is');
 assert.equal(floats.row.pts[0][1], 310, 'the houseboat floats on');
+assert.equal(pier.row.pts[0][1], 297, 'the landing stage stays');
 console.log('derive_tiles_test ok');
