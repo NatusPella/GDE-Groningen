@@ -20,6 +20,14 @@ html.touch-play #touch-ui { display: block; }
   background: rgba(10, 19, 13, 0.5); color: #f0ede4; font: 17px 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; letter-spacing: 1px; display: flex; align-items: center; justify-content: center; }
 #touch-ui .t-btn.on { background: rgba(63, 201, 122, 0.75); color: #0c140e; }
 #touch-ui .t-pause { top: max(10px, env(safe-area-inset-top)); right: max(10px, env(safe-area-inset-right)); min-width: 48px; height: 48px; border-radius: 24px; font-size: 20px; }
+
+html.touch-device, html.touch-device body { overscroll-behavior: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
+html.touch-device body { touch-action: manipulation; }
+html.touch-device button, html.touch-device [role="button"], html.touch-device select { min-height: 44px; }
+html.touch-device #touch-ui .t-btn { min-height: 0; }
+#touch-ui .t-left-btns, #touch-ui .t-right-btns { position: absolute; bottom: env(safe-area-inset-bottom); }
+#touch-ui .t-left-btns { left: env(safe-area-inset-left); width: 0; height: 0; }
+#touch-ui .t-right-btns { right: env(safe-area-inset-right); width: 0; height: 0; }
 `;
 
 // button spots from the bottom right corner, in px: [right, bottom]
@@ -39,6 +47,10 @@ export function initTouch(input, world, hooks = {}) {
 
   // lighter graphics on the first start (only while the settings are untouched)
   applyMobileProfile({ width: window.innerWidth, height: window.innerHeight, cores: navigator.hardwareConcurrency || 0, memory: navigator.deviceMemory || 0 });
+
+  // the notch and the home bar stay clear, and the page doesn't zoom or bounce
+  const vp = document.querySelector('meta[name="viewport"]');
+  if (vp && !/viewport-fit/.test(vp.content)) vp.content += ', viewport-fit=cover, maximum-scale=1, user-scalable=no';
 
   const style = document.createElement('style');
   style.textContent = CSS;
