@@ -4,8 +4,8 @@ import { getShopsForRender } from './shops.js';
 import { nearestRepairSite } from './garages.js';
 import { getGoal, setGoal, clearGoal, goalTarget, missionOnMap } from './goal.js';
 import { roadAllowed, oneWayFor } from './roadaccess.js';
-import { boatRoute, trainTrip, airRoute, etaSeconds, polyLength } from './travelroute.js';
-import { getSharedNet, planVaarRoute } from './vaarnet.js';
+import { boatRoute, boatTrip, trainTrip, airRoute, etaSeconds, polyLength } from './travelroute.js';
+import { getSharedNet, planVaarRoute, airOfKind } from './vaarnet.js';
 import { getWaterIndex, waterClearance } from './waterindex.js';
 import { roadZAt } from './elevation.js';
 import { isInWater, WATER_Y } from './util.js';
@@ -342,7 +342,7 @@ function astar(fromSnap, toSnap, walkMode, nodesOut = null) {
     for (let e = adj.start[n], end = adj.start[n + 1]; e < end; e++) {
       const m = adj.to[e];
       if (G.done[m] === stamp) continue;
-      relax(m, gn + adj.len[e], n);
+      relax(m, gn + adj.len[e] + (closureFn && !walkMode ? closureFn(G.x[m], G.y[m]) : 0), n);
     }
   }
   if (!nodesOut) stats.lastSettled = settled;
@@ -400,6 +400,16 @@ export function setRoutePrefs(o = {}) {
   if ('planMode' in o && o.planMode !== prefs.planMode) { prefs.planMode = o.planMode || null; invalidateRoutes(); }
 }
 export function getRoutePrefs() { return { ...prefs }; }
+// Afsluitingen van evenementen (#203): voor wie rijdt of fietst telt een punt in een
+// afgesloten gebied extra meters, zodat de route eromheen gaat. fn(x, y) -> extra meters (0 = vrij),
+// sig wisselt als de afsluitingen wisselen (dan wordt de route opnieuw gepland).
+let closureFn = null, closureSig = '';
+export function setRouteClosures(fn, sig = '') {
+  const same = sig === closureSig;
+  closureFn = typeof fn === 'function' ? fn : null;
+  closureSig = closureFn ? String(sig) : '';
+  if (!same) invalidateRoutes();
+}
 function invalidateRoutes() { for (const k of Object.keys(slots)) { slots[k].key = ''; slots[k].route = null; } }
 
 function busyTarget(world) {
@@ -648,6 +658,32 @@ function boatContext(map) {
 }
 
 export function planBoatRoute(map, a, b, opts = {}) { return boatRoute(boatContext(map), a, b, opts); }
+
+// A boat trip between two points for a boat kind (or the vehicle): over the waterway network (vaarnet.js: every navigable
+// water, bridges that open, locks, the boat's air draft) when it joins them, else the local grid search; both ends may lie
+// on a quay beside the water, the trip then runs from and to the nearest water (#184, the waypoint on water). null: no water.
+export function planBoatTrip(map, a, b, kind = 'sloep', opts = {}) {
+  const net = getSharedNet();
+  return boatTrip(boatContext(map), a, b, {
+    height: Math.max(1.2, airOfKind(kind) + 0.05),
+    net: net ? (sa, sb) => planVaarRoute(net, sa, sb, kind) : null,
+    ...opts,
+  });
+}
+
+// A goal on the water, for a way of travel that cannot go there (walking, riding, driving): the land beside the nearest
+// shore, a berth to walk to; null when the goal is not on water or no shore is near.
+export function berthFor(map, x, y, maxR = 400) {
+  if (!isInWater(map, x, y)) return null;
+  const idx = getWaterIndex(map), s = idx.nearestShore(x, y, maxR);
+  if (s.i < 0) return null;
+  const ex = idx.bx[s.i] - idx.ax[s.i], ey = idx.by[s.i] - idx.ay[s.i], l2 = ex * ex + ey * ey || 1e-9;
+  const t = Math.max(0, Math.min(1, ((x - idx.ax[s.i]) * ex + (y - idx.ay[s.i]) * ey) / l2));
+  const qx = idx.ax[s.i] + ex * t, qy = idx.ay[s.i] + ey * t;
+  // a step beyond the shore, away from the water
+  const dx = qx - x, dy = qy - y, k = Math.hypot(dx, dy) || 1;
+  return { x: qx + (dx / k) * 1.5, y: qy + (dy / k) * 1.5, shoreD: s.d };
+}
 export function planAirRoute(map, a, b, opts = {}) { return airRoute(airContext(map), a, b, opts); }
 export function planTrainTrip(map, a, b, opts = {}) {
   const ctx = railContext(map);
@@ -662,22 +698,12 @@ function computeRoute(world, target, mode, start = world.player) {
   const p = start;
   let pts = null, extra = null;
   if (mode === 'boat') {
-    // over the waterway network (vaarnet.js: all navigable water, bridges, locks) for the boat kind the player sails;
-    // the local grid search stays for a short hop or a spot the net does not reach
-    const net = getSharedNet(), pv = p.inVehicle;
-    const kind = pv && pv.isBoat ? pv : 'sloep';
-    const nr = net ? planVaarRoute(net, [p.x, p.y], [target.x, target.y], kind) : null;
-    if (nr && nr.length > 150) {
-      pts = nr.pts;
-      const first = pts[0], last = pts[pts.length - 1];
-      if (Math.hypot(first[0] - p.x, first[1] - p.y) > 2) pts = [[p.x, p.y]].concat(pts);
-      if (Math.hypot(last[0] - target.x, last[1] - target.y) > 2) pts.push([target.x, target.y]);
-      extra = { etaS: nr.etaS, net: true };
-    } else {
-      const r = planBoatRoute(map, [p.x, p.y], [target.x, target.y], { height: 2.2 });
-      pts = r ? r.pts : [[p.x, p.y]];
-      if (r) extra = { etaS: r.etaS, dock: r.dock };
-    }
+    // over the waterway network for the boat kind the player sails ('sloep' when walking and planning a boat trip),
+    // the local grid search where the net does not join the two
+    const pv = p.inVehicle;
+    const r = planBoatTrip(map, [p.x, p.y], [target.x, target.y], pv && pv.isBoat ? pv : 'sloep');
+    pts = r ? r.pts : [[p.x, p.y]];
+    if (r) extra = { etaS: r.etaS, dock: r.dock, net: !!r.net };
   } else if (mode === 'fly') {
     const plane = !!(world.player.inVehicle && world.player.inVehicle.isPlane);
     const r = planAirRoute(map, [p.x, p.y], [target.x, target.y], { plane });
@@ -696,8 +722,10 @@ function computeRoute(world, target, mode, start = world.player) {
       extra = { etaS: r.etaS, legs: r.legs.map((l) => ({ kind: l.kind, label: l.label, length: l.length })), uitstappen: r.uitstappen, changes: r.changes, stops: r.stops };
     } else pts = [[p.x, p.y]];
   } else {
-    pts = landRoute(world, target, mode, p);
-    extra = { compromise: landCompromise };
+    // a goal on the water: walk, ride or drive to the berth beside it (a quay, the shore), the boat takes over from there
+    const berth = mode === 'walk' || mode === 'bike' || mode === 'drive' ? berthFor(map, target.x, target.y) : null;
+    pts = landRoute(world, berth ? { ...target, x: berth.x, y: berth.y } : target, mode, p);
+    extra = { compromise: landCompromise, ...(berth ? { berth: { x: berth.x, y: berth.y } } : null) };
     if (pts.length > 1) {
       const first = pts[0];
       const dFirst = Math.hypot(first[0] - p.x, first[1] - p.y);
@@ -790,7 +818,7 @@ function updateSlot(world, slot, target, mode) {
   const p = world.player;
   // already there: no line left to follow (it stayed on the map, #118)
   if (Math.hypot(target.x - p.x, target.y - p.y) < REACH_M * 2) { slot.route = null; slot.key = ''; return; }
-  const key = `${target.kind}:${Math.round(target.x)}:${Math.round(target.y)}:${mode}:${prefs.avoidMotorways ? 1 : 0}`;
+  const key = `${target.kind}:${Math.round(target.x)}:${Math.round(target.y)}:${mode}:${prefs.avoidMotorways ? 1 : 0}:${closureSig}`;
   const now = performance.now() / 1000;
   if (key !== slot.key || !slot.route) {
     slot.key = key;

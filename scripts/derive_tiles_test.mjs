@@ -4,7 +4,7 @@
 // a footprint inside another of the same height steps up 0.4 m, a footway
 // through a solid block ends at its facade; and the result is deterministic.
 import assert from 'node:assert/strict';
-import { deriveFeatures, trimWaterways, slideOutOfWater } from './world/derive_tiles.mjs';
+import { deriveFeatures, trimWaterways, slideOutOfWater, cutDitches, ribbon, DITCH } from './world/derive_tiles.mjs';
 
 const rect = (x, y, w, h) => [[x, y], [x + w, y], [x + w, y + h], [x, y + h], [x, y]];
 const bld = (pts, o = {}) => ({ kind: 'buildings', row: { pts, h: 2, type: 'house', name: null, ...o } });
@@ -70,4 +70,60 @@ assert.ok(Math.max(...onBank.row.pts.map((p) => p[1])) <= 300.01 || Math.min(...
 assert.equal(farOut.row.pts[0][1], 340, 'one 40 m out stays where it is');
 assert.equal(floats.row.pts[0][1], 310, 'the houseboat floats on');
 assert.equal(pier.row.pts[0][1], 297, 'the landing stage stays');
+// the real ditches against the track, roads and other water (#124)
+{
+  const hw = 1.2;
+  const ditch = (pts) => ({ kind: 'water', row: { pts: ribbon(pts, hw), nav: 1, kind: 'sloot' }, line: { pts, hw, ditch: true, fixed: true } });
+  const rail = (pts) => ({ kind: 'rails', row: { pts } });
+  const road = (pts, extra = {}) => ({ kind: 'roads', row: { pts, width: 6, cat: 'normal', ...extra } });
+  const pieces = (feats) => feats.filter((f) => f.kind === 'water' && f.line);
+  const lengthOf = (f) => f.line.pts.reduce((n, p, i) => (i ? n + Math.hypot(p[0] - f.line.pts[i - 1][0], p[1] - f.line.pts[i - 1][1]) : 0), 0);
+
+  // a ditch of 100 m over the track: two pieces, a gap of twice RAIL_GAP
+  let F = [ditch([[0, 0], [100, 0]]), rail([[50, -20], [50, 20]])];
+  let st = cutDitches(F);
+  assert.equal(st.cut, 1, 'one crossing');
+  let P = pieces(F);
+  assert.equal(P.length, 2, 'two pieces');
+  assert.ok(Math.abs(P[0].line.pts.at(-1)[0] - (50 - DITCH.RAIL_GAP)) < 0.01 && Math.abs(P[1].line.pts[0][0] - (50 + DITCH.RAIL_GAP)) < 0.01, 'the track runs on dry ground');
+  assert.ok(P.every((f) => f.row.pts[0][0] === f.row.pts.at(-1)[0] && f.row.pts.length > 4), 'every piece is a closed ribbon');
+
+  // a road at ground level: its half width and a metre each side; a bridge or a footway does not cut
+  F = [ditch([[0, 0], [100, 0]]), road([[50, -20], [50, 20]])];
+  cutDitches(F);
+  P = pieces(F);
+  assert.equal(P.length, 2, 'a road cuts');
+  assert.ok(Math.abs(P[1].line.pts[0][0] - P[0].line.pts.at(-1)[0] - 2 * (3 + DITCH.ROAD_GAP)) < 0.01, 'the gap is the road width and a metre each side');
+  for (const extra of [{ bridge: true }, { tunnel: true }, { cat: 'foot' }]) {
+    F = [ditch([[0, 0], [100, 0]]), road([[50, -20], [50, 20]], extra)];
+    assert.equal(cutDitches(F).cut, 0, 'no cut for ' + JSON.stringify(extra));
+    assert.equal(pieces(F).length, 1);
+  }
+
+  // two crossings next to each other make one gap; a piece under MIN is dropped
+  F = [ditch([[0, 0], [100, 0]]), rail([[40, -20], [40, 20]]), rail([[44, -20], [44, 20]])];
+  st = cutDitches(F);
+  assert.equal(pieces(F).length, 2, 'rails 4 m apart: one gap');
+  F = [ditch([[0, 0], [14, 0]]), rail([[10, -20], [10, 20]])];
+  st = cutDitches(F);
+  assert.ok(pieces(F).every((f) => lengthOf(f) >= DITCH.MIN), 'no piece under MIN');
+  assert.ok(st.dropped >= 1, 'the short ones are dropped: ' + JSON.stringify(st));
+
+  // the end of a ditch 8 m short of a canal is carried on to its bank; 30 m short it stays; one inside it stays
+  const canal = { kind: 'water', row: { pts: [[0, 8], [100, 8], [100, 40], [0, 40], [0, 8]], nav: 3, kind: 'diep' } };
+  F = [ditch([[20, -30], [20, 0]]), canal];
+  st = cutDitches(F);
+  assert.equal(st.joined, 1, 'joined');
+  assert.ok(Math.abs(pieces(F)[0].line.pts.at(-1)[1] - 8) < 0.01, 'to the canal bank');
+  F = [ditch([[20, -60], [20, -22]]), canal];
+  assert.equal(cutDitches(F).joined, 0, 'too far to join');
+  F = [ditch([[20, 20], [20, 30]]), canal];
+  assert.equal(cutDitches(F).joined, 0, 'already in the water');
+
+  // without ditches nothing changes
+  F = [{ kind: 'water', row: { pts: ribbon([[0, 0], [100, 0]], 7), nav: 3 }, line: { pts: [[0, 0], [100, 0]], hw: 7 } }, rail([[50, -20], [50, 20]])];
+  assert.equal(cutDitches(F).cut, 0, 'a canal is not a ditch');
+  const full = deriveFeatures([ditch([[0, 0], [100, 0]]), rail([[50, -20], [50, 20]])], { clear: false, clip: false });
+  assert.equal(full.stats.ditchCut, 1, 'deriveFeatures cuts ditches');
+}
 console.log('derive_tiles_test ok');

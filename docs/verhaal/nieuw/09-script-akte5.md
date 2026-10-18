@@ -64,7 +64,7 @@ TESSA: Dat is een belofte, Tammo. [NIEUW]
 TAMMO: Dat is een belofte. [NIEUW]
 
 ## [M22.5] Een luik erin: herhaling – Westerkwartier, Tinus' schuur – Escapade
-HENK: Weer een luik? Dit is een karaktertrek. [NIEUW]
+HENK: Het luik zit er al. Een deuk meer kan geen kwaad. [NIEUW]
 
 ## [M23.1] De colonne: intro – Westerkwartier, Tinus' schuur, vertrek – Fjord Frituur
 (regie: donderdag 27 augustus, ochtend. Alle vrienden van Oma staan met hun voertuigen: een scooter, een bus, een trekker, een bakkie, een aanhanger met een sloep. Gameplay: één colonne naar de Grote Markt; de groep bij elkaar houden terwijl Jelles limo en zijn vergunningen proberen de colonne te splitsen.)
@@ -74,6 +74,7 @@ GEESJE: Ik rij op mijn scooter. Hij is sneller dan hij lijkt. [NIEUW]
 WUBBO: Ik heb de bus. De brug draait op tijd. De colonne liever ook. [NIEUW]
 KAPITEIN KLAAS: Ik heb mijn boot terug: de moeder van Jelle belde de beslaglegger. Hij ligt op een aanhanger en ik praat tegen hem. [NIEUW]
 BEREND: Ik rij achteraan, met vijftien kanonnen en een doos vuurwerk voor het Ontzet. Dan zie ik alles. [NIEUW]
+TESSA: Eén van jullie rijdt vlak naast ons en houdt Jelle bezig. Wie dat is, kiezen wij zo. [NIEUW]
 TESSA: Rijden. Niet praten. [NIEUW]
 
 ## [M23.2] De colonne: onderweg – Westerkwartier, Zuidhorn naar Aduard – Fjord Frituur
@@ -105,6 +106,30 @@ TAMMO: Van Jelles mem? [NIEUW]
 DURK: Van alle mems. [NIEUW]
 DURK: En hier is je jas. Met een strikje. [NIEUW]
 
+## [M23.6] De colonne: de bus rijdt naast jullie – Westerkwartier, Tinus' schuur, vertrek – bus
+(regie: afloop van de keuze voor Wubbo. De bus rijdt naast de Fjord Frituur. Wubbo hangt uit het raam.)
+WUBBO: Ik rijd naast jullie. Een bus is breed. Ik zet elke zijstraat dicht waar Jelle langs wil. [NIEUW]
+TESSA: En de bruggen? [NIEUW]
+WUBBO: Die draai ik zelf. Open of dicht, nooit allebei. [NIEUW]
+TAMMO: En Jelle? [NIEUW]
+WUBBO: Die komt een minuut later. Zijn vergunningen hebben een loket. Mijn brug niet. [NIEUW]
+
+## [M23.7] De colonne: de trekker rijdt naast jullie – Westerkwartier, Tinus' schuur, vertrek – trekker
+(regie: afloop van de keuze voor Tinus. De trekker ratelt naast de Fjord Frituur.)
+TINUS: Ik rij naast jullie, met de trekker. Hier kijk je niet ver: houtwallen. Maar ik trek alles weg wat Jelle neerzet. [NIEUW]
+TESSA: Ook een limo? [NIEUW]
+TINUS: Ook een limo. Aan de trekhaak, als het moet. [NIEUW]
+TAMMO: Hij zegt dit elke keer. [NIEUW]
+TESSA: En elke keer klopt het. [NIEUW]
+
+## [M23.8] De colonne: de scooter rijdt naast jullie – Westerkwartier, Tinus' schuur, vertrek – scooter
+(regie: afloop van de keuze voor Geesje. De scooter zoemt naast de Fjord Frituur, Geesje met een helm op haar bun.)
+GEESJE: Ik rij naast jullie, op mijn scooter. Ik ken elk steegje van hier tot de Grote Markt. [NIEUW]
+TESSA: Een scooter tegen een limo? [NIEUW]
+GEESJE: Een limo past niet in een steegje, famke. [NIEUW]
+TAMMO: Sneller dan hij lijkt. [NIEUW]
+GEESJE: Dat zeg ik altijd. [NIEUW]
+
 ## [M23.4] De colonne: outro – Stad, Grote Markt – Fjord Frituur
 (regie: de colonne rijdt de Grote Markt op. Het publiek klapt.)
 TESSA: We zijn er. Allemaal. [NIEUW]
@@ -115,7 +140,7 @@ RIKUS (radio): De colonne is aangekomen. Het is te groot om te beschrijven. [NIE
 JELLE (telefoon): Mevrouw. De colonne is een evenement zonder vergunning. Ik stuur een rekening. [NIEUW]
 
 ## [M23.5] De colonne: herhaling – Westerkwartier – Fjord Frituur
-TESSA: Weer een colonne? Rijden. Niet praten. [NIEUW]
+TESSA: De colonne wacht niet. Rijden. Niet praten. [NIEUW]
 
 ## [R5.0] Nachtstreek, donderdagavond – Stad – radio
 TORENWACHTER (radio): Rikus. Torenwachter. Er hangt iets aan mijn toren. [BEHOUDEN]
@@ -268,6 +293,29 @@ TESSA: Hij houdt de koffer weer boven water. [NIEUW]
 TAMMO: Hij is consistent. [NIEUW]
 TORENWACHTER (telefoon): Tammo. De klok staat op drie uur. Ze staan vast. Ik meld niet alleen. Ik klap. [NIEUW]
 
+## [M26.14] Ontzet, net als in 1672: de straten dicht, de bus – Stad, rond de Oude Boteringestraat – Fjord Frituur
+(regie: de colonne van donderdag komt terug. Wubbo zet de bus dwars; over de portofoon klinkt hij door de Fjord Frituur.)
+WUBBO (telefoon): Herestraat dicht. Bus dwars. De deuren heb ik open gelaten, voor de sfeer. [NIEUW]
+TESSA: Dank je, Wubbo. [NIEUW]
+WUBBO (telefoon): Open of dicht, Tessa. Nooit allebei. [NIEUW]
+TAMMO: Hij herhaalt zichzelf. [NIEUW]
+TESSA: Dat heet een werkfilosofie. [NIEUW]
+
+## [M26.15] Ontzet, net als in 1672: de straten dicht, de trekker – Stad, rond de Oude Boteringestraat – Fjord Frituur
+(regie: Tinus trekt zijn trekker dwars voor de Gedempte Zuiderdiep, midden tussen de terrassen.)
+TINUS (telefoon): Zuiderdiep dicht. Trekker dwars. Wie er langs wil, moet eerst met mij praten. [NIEUW]
+TESSA: Je trekker past er net in. [NIEUW]
+TINUS (telefoon): Ik trek hem weg. De limo, niet de trekker. [NIEUW]
+TAMMO: In de stad ziet hij er nog groter uit. [NIEUW]
+TESSA: Dat is de trekker. [NIEUW]
+
+## [M26.16] Ontzet, net als in 1672: de straten dicht, de scooter – Stad, rond de Oude Boteringestraat – Fjord Frituur
+(regie: Geesje zet de scooter dwars in de steeg naast de notaris.)
+GEESJE (telefoon): De steeg bij de notaris is dicht. Scooter dwars. Ik zit erop te breien. [NIEUW]
+TESSA: Je zit te breien? [NIEUW]
+GEESJE (telefoon): Wie blijft staan, mag breien. [NIEUW]
+TAMMO: Dat is een goede regel. [NIEUW]
+
 ## [M26.5] Ontzet, net als in 1672: Mem – Stad, Oude Boteringestraat – te voet
 (regie: Mem komt aangelopen, met haar schort nog aan. Jelle klautert nat de kant op.)
 MEM: Jelle. Geef hem aan mij. [NIEUW]
@@ -356,7 +404,7 @@ JELLE (telefoon): Dan wil ik een rekening. Voor het parkeren. [NIEUW]
 APP TAMMO→JELLE (stil): Wij tweeën vóór Grunn. Kon minder, hè? [BEHOUDEN]
 
 ## [M26.9] Ontzet, net als in 1672: herhaling – Stad, Grote Markt – te voet
-BEREND: Weer een Ontzet? Elk jaar hetzelfde. Ik verlies graag. [NIEUW]
+BEREND: Elk jaar hetzelfde Ontzet. Ik verlies graag. [NIEUW]
 
 ## [A5.2] Appjes zaterdag 29 augustus (stil, geen stem) – Stad – telefoon
 APP MEM→TESSA (stil): Tige tank, famke. – M. [NIEUW]
@@ -380,6 +428,7 @@ RIKUS (radio): Berend stuurde een brief: hij wil volgend jaar weer de bisschop z
 RIKUS (radio): Jelle gaf zes plakjes terug, uit eigen beweging. De standplaatsen en de molen hield hij. Hij zei dat hij het "gezellig" vond. [NIEUW]
 RIKUS (radio): Oldenhuis Bakt sluit alle eenenveertig snackbars. Het was een dekmantel van Us Mem Snacks. [NIEUW]
 RIKUS (radio): Mevrouw Tuinstra stapt in Wildervank uit de trein. Met volpension. [NIEUW]
+RIKUS (radio): De Krolbrug staat nu open. Niemand weet waarom. Dat is verdacht. [NIEUW]
 RIKUS (radio): De politie sloot de zaak van de twee Stadjers in het zwart. Op de band staat vooral de pas van Jelle. [NIEUW]
 RIKUS (radio): Het jurylid met het contract eet nog steeds gratis eierballen. In Ljouwert. [NIEUW]
 RIKUS (radio): En ik heb de tweede friet. Hij heeft betaald, zegt hij. Hij heeft niet betaald. [BEHOUDEN]
