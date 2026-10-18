@@ -15,6 +15,7 @@ const arg = (k, d) => { const a = process.argv.find((v) => v.startsWith(`--${k}=
 const OUT = path.resolve(arg('out', path.join(os.tmpdir(), 'gde-qa-visual')));
 const ONLY = arg('only', '');
 const SETTLE = Number(arg('settle', 8000));
+const AUDIO = process.argv.includes('--audio');
 
 const index = JSON.parse(fs.readFileSync(path.join(ROOT, 'game', 'world', 'index-provincie.json'), 'utf8')).global;
 const place = (name, kind) => {
@@ -96,6 +97,11 @@ const SPOTS = [
   { name: 'x-voertuigen', type: 'voertuigen', issue: 0, ...off(gm, 150, 100) },
   // #225: deuren, kap en kofferbak (auto, bus, bestelbus, tractor)
   { name: 'y-delen', type: 'voertuigdelen', issue: 225, ...place('Winsum') },
+  // #224, #117, #157: echte scenes (opening-missie, M02 shot 6, een achtervolging, een akte-4 scene)
+  { name: 'z-scenes', type: 'cutscenes', issue: 224, ...gm, ids: ['M01', 'M02', 'M21', 'M18'] },
+  // #224: M02 intro volledig (shot 6 na ruim 11 s zonder camerabeweging), elke 2 s een beeld; M09 en M23 (voertuigen/colonne), M18 (akte 4)
+  { name: 'z2-m02', type: 'cutscenes', issue: 224, ...gm, ids: ['M02'], direct: true, every: 4, max: 12, maxI: 120, at: { x: gm.x - 60, y: gm.y + 80 } },
+  { name: 'z3-scenes', type: 'cutscenes', issue: 117, ...gm, ids: ['M09', 'M23', 'M18'], direct: true, every: 10, max: 5, maxI: 100, at: { x: gm.x - 60, y: gm.y + 80 } },
   // #130: kruisingen, op- en afritten, samenkomende rijstroken
   { name: 'k130-stad', type: 'junction', issue: 130, ...gm, R: 400, n: 3 },
   { name: 'k130-haren', type: 'junction', issue: 130, ...place('Haren', 'town'), R: 500, n: 2 },
@@ -119,7 +125,8 @@ fs.writeFileSync(script, `window.__vi = ${JSON.stringify({ spots: SPOTS, settle:
 const electron = process.env.ELECTRON_EXE || path.join(ROOT, 'desktop', 'node_modules', 'electron', 'dist', process.platform === 'win32' ? 'electron.exe' : 'Electron');
 const env = { ...process.env, GDE_TEST_PROFILE: profile };
 delete env.ELECTRON_RUN_AS_NODE;
-const r = spawnSync(electron, ['.', '--windowed', '--stil', '--force-device-scale-factor=1', '--window-size=1600x900',
+const tap = path.join(HERE, 'audiotap.js');
+const r = spawnSync(electron, ['.', '--windowed', '--stil', ...(AUDIO ? ['--audio-graph', `--bench-eval=${tap}`] : []), '--force-device-scale-factor=1', '--window-size=1600x900',
   `--smoke-test=${path.join(OUT, 'shots.png')}`, `--perf-script=${script}`],
   { cwd: path.join(ROOT, 'desktop'), env, encoding: 'utf8', maxBuffer: 1 << 28, timeout: 60 * 60 * 1000, killSignal: 'SIGKILL' });
 if (r.error) console.error('Electron starten mislukt:', r.error.message);

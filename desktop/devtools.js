@@ -86,6 +86,18 @@ function attach(win, { gameDir }) {
   });
   const evalFile = argValue('--bench-eval');
   if (evalFile) win.webContents.on('dom-ready', () => win.webContents.executeJavaScript(fsSync.readFileSync(evalFile, 'utf8')).catch((e) => console.log('[bench-eval]', e.message)));
+  // --boot-capture=<dir>: the page's console.log('[bootcap] name') saves a screenshot to <dir>/boot-<name>.png
+  // (QA: the first loading screen, scripts/qa/boot_shots.mjs)
+  const bootCap = argValue('--boot-capture');
+  if (bootCap) {
+    fsSync.mkdirSync(bootCap, { recursive: true });
+    win.webContents.on('console-message', async (e, legacyLevel, legacyMessage) => {
+      const message = String(e.message !== undefined ? e.message : legacyMessage);
+      if (!message.startsWith('[bootcap] ')) return;
+      const img = await win.webContents.capturePage();
+      fsSync.writeFileSync(path.join(bootCap, `boot-${message.slice(10).trim()}.png`), img.toPNG());
+    });
+  }
   if (video) {
     const [W, H] = TRAILER_SIZE.split('x').map(Number);
     video.run = video.tv.setupTrailerVideo({ ipcMain, win, out: video.out, size: [W - (W % 2), H - (H % 2)], gameDir, ffmpeg: video.ffmpeg });
