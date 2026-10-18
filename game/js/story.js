@@ -49,7 +49,8 @@ import { registerNarrative, mayStart, narrativeBusy, narrativeState } from './na
 import { nieuwVerhaal } from './storyflag.js';
 import './storychoice.js';
 import { storyLines, talkLines, radioContacts, appsAt, storyDataReady, readingTime, scene as storyScene } from './storytext.js';
-import { updateStoryTalk, stopTalk } from './storytalk.js';
+import { updateStoryTalk, stopTalk, playTalk } from './storytalk.js';
+import { makeReisGoals } from './storyreis.js';
 
 // Rikus' Radio Nachtstreek studio (radiostudio.js, three.js from the CDN) for the
 // recaps and the epilogue; loaded lazily so Node checks can import this file.
@@ -936,7 +937,9 @@ function onGated() {
 export function initStory(w) {
   world = w;
   setMissionHooks({ waived: (key) => state.waived.has(key), skipped: (i) => STEPS.some((s) => s.kind === 'mission' && missionIdx(s) === i && state.skipped.has(s.id)), passed: onPassed, failed: onFailed, gated: onGated, canStart: swapDone });
-  Object.assign(GOALS, FUN_GOALS, EIKEA_GOALS);
+  // travel steps (storyreis.js): at the place the trip goes to, however you got there
+  const busyNow = () => isMissionActive() || isCinematicActive() || narrativeBusy() || !!w.pigeonMode || !!w.pendingRespawn;
+  Object.assign(GOALS, FUN_GOALS, EIKEA_GOALS, makeReisGoals({ getWorld: () => world, busy: busyNow, playLines: (id, from) => playTalk(talkLines(id, { from }), { id: 'reis:' + id, delay: 1.5 }) }));
   setMeetHook(meet);
   initStoryFun(w);
   initStoryEikea(w, () => (rt.cur && !rt.cur.end && rt.cur.goal && rt.cur.goal.type === 'eikea' ? rt.base : null));
