@@ -522,7 +522,6 @@ function playOmmelanden(w) {
   ];
   playCinematic({
     id: 'landmark', priority: 1, duration: 8, pause: true,
-    kicker: 'Bezienswaardigheid', title: OMMELANDEN,
     lines: [{ speaker: '', text: 'Koeien, sloten en een horizon. Verder niks. Heerlijk.' }],
     shot: pathShot(clearKeys(w, keys)),
   });
@@ -864,7 +863,7 @@ function playWijk(w, wijk) {
   if (!shot) return false;
   return playCinematic({
     id: 'wijk', priority: 1, duration: 11, pause: true, keepMotion: true,
-    kicker: 'Nieuwe wijk', title: wijk.name, lines: [{ speaker: '', text: wijkLine(wijk.name) }],
+    lines: [{ speaker: '', text: wijkLine(wijk.name) }],
     shot,
   });
 }
@@ -979,7 +978,6 @@ function playLandmark(w, lm) {
   const start = Math.atan2(p.y - lm.y, p.x - lm.x);
   playCinematic({
     id: 'landmark', priority: 1, duration: 3.8, pause: true,
-    kicker: 'Ontdekt', title: lm.name,
     shot: orbitShot(w, { fixed: lm, radius: Math.min(60, Math.max(28, h * 0.6)), height: h * 0.45 + 9, lookY: h * 0.42, sweep: 1.3, start }),
   });
 }
