@@ -750,7 +750,7 @@ const REQUIREMENTS = {
 // def.ride: what you have to arrive in for the mission to start (the start
 // marker waits, with a line from the companion, until you do).
 //   racecar  H9: a sports car, or any car tuned to 200 km/u (RACE_MIN_TOP)
-//   bike     H5: an ordinary bike (a fatbike is no bike, H12 says so)
+//   bike     H5: any bike, a fatbike included
 //   quay     H13: on the quay, not in a boat of your own: the tour boat waits
 
 export const RACE_MIN_TOP = 200 / 3.6;
@@ -761,7 +761,7 @@ const isCarRide = (v) => !!v && !v.isBoat && !v.isBike && !v.isScooter && !v.isH
 
 function rideOk(w, ride, v = w.player.inVehicle) {
   if (ride === 'racecar') return isCarRide(v) && !v.wrecked && isRaceCar(v.model.name, v.model.maxSpeed);
-  if (ride === 'bike') return !!v && v.isBike && !v.model.fat;
+  if (ride === 'bike') return !!v && v.isBike;
   if (ride === 'quay') return !v || !v.isBoat;
   return true;
 }
@@ -776,7 +776,6 @@ const WRONG_RIDE = {
     { when: () => true, say: 'Daarmee win je geen race. Haal je snelste auto, of laat hem opvoeren bij Knal & Kolder.' },
   ],
   bike: [
-    { when: (v) => v && v.isBike, say: 'Fatbikes tellen niet als fiets. Kom op een gewone fiets.' },
     { when: () => true, say: 'Het is een fietsrace. Kom op je eigen fiets.' },
   ],
   quay: [{ when: () => true, say: 'Eerst aanmeren en uitstappen. De rondvaartboot ligt al klaar aan de kade.' }],
@@ -2175,7 +2174,6 @@ export function updateMissions(dt, world) {
     if (k >= 0) {
       if (def.onFoot && p.inVehicle) hint(world, 'Uitstappen, jong. Het heet kroegentocht, niet kroegenrit.');
       else if (chain.race && chain.race.bikes && !(p.inVehicle && p.inVehicle.isBike)) hint(world, 'Op de fiets, hè. Het is een fietsrace.');
-      else if (chain.race && chain.race.bikes && p.inVehicle.model.fat) hint(world, 'Fatbikes tellen niet als fiets. Kom op een gewone fiets.');
       else reachCheckpoint(world, def, k);
     }
   } else if (def.type === 'fatbike') {
