@@ -266,6 +266,7 @@ async function boot() {
   const extra = [{ name: 'index-provincie.json' }, { name: 'index-corridor.json' }];
   const tiles = FLAGS.legacymap ? null : await loadTileWorld('world/', { onProgress: onMapProgress, extra });
   const corridor = !!tiles;
+  if (tiles && FLAGS.terrain) tiles.world.terrainOn = true;
   const layers = (tiles && tiles.index.layers) || {};
   const corLayer = (layers.provincie && layers.provincie.global ? layers.provincie : null) || layers.corridor;
   if (corLayer && corLayer.global) setWorldPlaces(corLayer.global.places);
