@@ -41,6 +41,7 @@ import { loket, studiestaat, vigilantia, kamerkoning, wolkenhal, helix, niemeyer
 import { SIDEJOB_PAY_MULT, SIDEJOB_LEVEL_BONUS, SIDEJOB_ACCIDENT_FINE } from './economy.js';
 import { furnitureJobBonus } from './furniture.js';
 import { playerBusy } from './busy.js';
+import { noteMoney } from './finance.js';
 
 export const SIDE_JOBS = [bezorger, taxi, bus, rondvaart, fietsdepot, verhuizing, rondvaarttour, boa, rechtbank, cabaret, vracht, loket, studiestaat, vigilantia, kamerkoning, wolkenhal, helix, niemeyer, bernard, lijn];
 const BY_ID = new Map(SIDE_JOBS.map((j) => [j.id, j]));
@@ -238,6 +239,7 @@ function completeRound(c, res = {}) {
   const pay = payFor(c, base);
   const tip = Math.max(0, Math.round(res.tip || 0));
   const total = pay + tip;
+  noteMoney('Bijbaantjes');
   world.money += total;
   c.earned += total;
   c.streak++;
@@ -392,6 +394,7 @@ function forgiveAccident(c, w) {
   c.streak = 0;
   c.flawless = false;
   const fine = Math.min(ACCIDENT_FINE * c.accidents, Math.max(0, w.money));
+  noteMoney('Boetes');
   w.money -= fine;
   w.wanted = 0;
   w.addMessage(`Aanrijding! De baas sust het met de politie, maar je reeks is weg${fine ? ` en het kost je €${fine}` : ''}.`, 4);
