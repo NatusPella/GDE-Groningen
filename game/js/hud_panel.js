@@ -1,3 +1,4 @@
+import { wantedPhase } from './wantedstate.js';
 import { pointInPolygon as pointInPoly } from './util.js';
 import { dualHtml } from './subtitles.js';
 import { simLevel } from './simload.js';
@@ -874,7 +875,7 @@ function updateWanted(world) {
   wantedShown = world.wanted;
   els.wanted.classList.toggle('searching', searching && world.wanted > 0);
   els.wanted.classList.toggle('chase', world.wanted > 0 && !searching);
-  els.wanted.setAttribute('aria-label', `Gezocht: ${world.wanted} van 5${searching ? ', politie zoekt je' : ''}`);
+  els.wanted.setAttribute('aria-label', `Gezocht: ${world.wanted} van 5, ${wantedPhase(world) === 'zoeken' ? 'politie zoekt je' : 'achtervolging'}`);
 }
 
 export function getClockText(world) {
