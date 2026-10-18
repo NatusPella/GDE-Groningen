@@ -275,3 +275,33 @@ export const FRESHMAN_LINES = [
   'We moeten de Martinitoren groeten. Elke keer.',
   'Quak. Sorry, dat is de opdracht.',
 ];
+
+// --- district profiles for the people on foot (batch 3) ---------------------------------
+// Clothes follow the wijk the walker is in: faded and sporty with students, calm
+// and tidy in the villa streets, hi-vis orange in the industrial parts.
+
+export const WIJK_CLOTHING = {
+  student: ['#6b7a8a', '#8a5a3c', '#c94b3a', '#3f5c8a', '#5a6a46', '#a8a29a', '#c9a227'],
+  chic: ['#e8e6e0', '#c9b79a', '#1f3a52', '#2b2f36', '#a8b8c8', '#d8c0b0'],
+  bakfiets: ['#4a6a46', '#c9a227', '#7a4a6a', '#3f5c8a', '#a85a3a', '#6b6b6b'],
+  industrie: ['#e0701a', '#2f3b4a', '#e0701a', '#54463c', '#6b6b6b'],
+  centrum: ['#2b2f36', '#c94b3a', '#e8e6e0', '#3f5c8a', '#c9a227', '#4a3a54'],
+};
+
+// A clothing colour for this district, or null to keep the default mix.
+export function wijkClothing(profileKey, rng = Math.random) {
+  const list = WIJK_CLOTHING[profileKey];
+  if (!list || rng() > 0.7) return null;
+  return list[Math.floor(rng() * list.length)];
+}
+
+// Share of walkers with a bag: students carry a rucksack, the industrial parts hardly any.
+export function wijkBagChance(profileKey) {
+  switch (profileKey) {
+    case 'student': return 0.55;
+    case 'centrum': return 0.4;
+    case 'chic': return 0.3;
+    case 'industrie': return 0.1;
+    default: return 0.3;
+  }
+}

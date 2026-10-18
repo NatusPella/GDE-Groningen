@@ -232,5 +232,17 @@ ok(D.ONTGROENING.club.startsWith('Dispuut') && D.LEADER_LINES.length >= 4 && D.F
   ok(g > 0 && g < 800, `initiation groups are occasional (${g})`);
 }
 
+// --- batch 3: district profiles on foot
+ok(D.wijkBagChance('student') > D.wijkBagChance('industrie'), 'students carry more bags than the industrial parts');
+{
+  const r = seeded(3);
+  let hi = 0, cols = 0;
+  for (let i = 0; i < 500; i++) { const c = D.wijkClothing('industrie', r); if (c) { cols++; if (c === '#e0701a') hi++; } }
+  ok(hi > cols * 0.3 && D.wijkClothing('standaard', r) === null, 'hi-vis orange in the industrial parts, default elsewhere');
+  const w = { player: { x: centre.x, y: centre.y }, map, pedestrians: [{ x: centre.x + 5, y: centre.y, clothing: '#000000', hasBag: true }, { x: centre.x, y: centre.y + 2, isCop: true, clothing: '#123456' }] };
+  S.dressWalkers(w, seeded(8));
+  ok(w.pedestrians[0]._wijkDressed && w.pedestrians[1].clothing === '#123456', 'walkers get dressed once, officers keep their uniform');
+}
+
 console.log(`${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

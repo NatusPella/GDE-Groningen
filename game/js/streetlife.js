@@ -13,6 +13,7 @@ import { wijkProfileAt } from './trafficfleet.js';
 import {
   NAMES, SELLER_LINES, SELLER_BUY, BEGGAR_ASK, BEGGAR_THANKS, BEGGAR_NO_COIN, BERNARD_LINES,
   GRENADE_REWARD, GRENADE_FOUND, GRENADE_REPORTED, CARRIED, SKATER_MAX, SKATER_PACE, SKATER_LINES, skaterChance,
+  wijkClothing, wijkBagChance,
   ONTGROENING, ONTGROENING_MAX, LEADER_LINES, FRESHMAN_LINES, ontgroeningChance, rollMagnet, moverWalkerChance, distToCentre, hourOf, finite,
 } from './streetlifedata.js';
 
@@ -255,6 +256,24 @@ function spawnOrientation(world, p, hour) {
   for (const ped of group) world.pedestrians.push(ped);
 }
 
+// Dresses ordinary walkers after the district they stand in (once each, a few
+// per call). Scene people, officers, companions and our own groups keep their look.
+const DRESS_PER_CALL = 4;
+export function dressWalkers(world, rng = Math.random) {
+  const p = world.player;
+  let n = 0;
+  for (const ped of world.pedestrians || []) {
+    if (ped._wijkDressed || ped.scene || ped.isCop || ped.leader || ped.ontgroening || ped.carry || ped.look) { ped._wijkDressed = true; continue; }
+    if (!finite(ped.x, ped.y) || dist(p.x, p.y, ped.x, ped.y) > 90) continue;
+    ped._wijkDressed = true;
+    const key = wijkProfileAt(world.map, ped.x, ped.y).key;
+    const c = wijkClothing(key, rng);
+    if (c) ped.clothing = c;
+    ped.hasBag = rng() < wijkBagChance(key);
+    if (++n >= DRESS_PER_CALL) break;
+  }
+}
+
 export function updateStreetLife(dt, world) {
   if (!dt || world.paused || !world.player) return;
   const p = world.player;
@@ -271,6 +290,7 @@ export function updateStreetLife(dt, world) {
       break;
     }
   }
+  dressWalkers(world);
   skateTimer -= dt;
   if (skateTimer <= 0) {
     skateTimer = 30 + Math.random() * 30;
