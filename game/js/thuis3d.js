@@ -2,6 +2,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { registerBuildingModel, modelKit, LANDMARK_MATERIALS } from './landmarks3d.js';
 import { GeoBuilder } from './pixelart3d.js';
 import { pointInPolygon, closestPointOnSegment } from './util.js';
+import { hash2 as hash } from './rng.js';
 import { nearestOnRoads } from './tileplace.js';
 
 // The real look of Tammo and Tessa's two homes, as models for the buildings
@@ -45,10 +46,6 @@ function kitReady() {
 }
 const STOREY = 3.1;
 
-const hash = (a, b) => {
-  const s = Math.sin(a * 127.1 + b * 311.7) * 43758.5453;
-  return s - Math.floor(s);
-};
 const tint = (hex, f) => {
   const r = Math.min(255, Math.round(((hex >> 16) & 255) * f)), g = Math.min(255, Math.round(((hex >> 8) & 255) * f)), b = Math.min(255, Math.round((hex & 255) * f));
   return (r << 16) | (g << 8) | b;

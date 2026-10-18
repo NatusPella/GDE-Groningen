@@ -1,5 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { GeoBuilder, composeMatrix } from './pixelart3d.js';
+import { hash2 as hash } from './rng.js';
 
 // Landmark kits (docs/PROVINCIE-PLAN.md 3b, LK1): a recognisable building
 // for a place from its OSM data. Data in (kind, name, outline, tags), plain
@@ -26,10 +27,6 @@ const G_BODY = 0, G_GLOW = 1, G_GLASS = 2;
 
 // --- small helpers ---------------------------------------------------------
 
-function hash(a, b) {
-  const h = Math.sin(a * 127.1 + b * 311.7) * 43758.5453;
-  return h - Math.floor(h);
-}
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 function year(t) {
   const m = /(\d{4})/.exec((t && t.start_date) || '');

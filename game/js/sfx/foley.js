@@ -3,6 +3,7 @@ import { getCombatEffect, isGunWeapon, isRangedWeapon } from '../combat.js';
 import { surfaceUnder } from '../vehicle.js';
 import { getPlace } from './ambience.js';
 import { stepNames, stepSurface, tickFoot, STEP_SURFACES, STEP_VARIANTS } from './steps.js';
+import { rand as rnd } from '../rng.js';
 
 // Footsteps, close-combat/weapon handling, vehicle detail sounds and police
 // radio. Everything is derived from world state each frame.
@@ -38,7 +39,6 @@ let lastRoofThump = 0;
 let lastSquealAt = 0;
 
 function now() { return K.ctx.currentTime; }
-function rnd(a, b) { return a + Math.random() * (b - a); }
 
 function later(delay, fn) {
   if (queue.length > 48) return;
