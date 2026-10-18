@@ -415,20 +415,20 @@ for (const { name, map } of maps) {
   L.resetTrafficLaw();
   let { w, msgs } = mk(trunk, null);
   run(w, 1);
-  ok(msgs.length === 1 && msgs[0][1] === 'politie' && /snelweg/i.test(msgs[0][0]), 'law: walking on the trunk road warns at once', msgs.map((m) => m[0]).join('|'));
+  ok(msgs.length === 0, 'law: walking on the trunk road gives no warning card (#125)', msgs.map((m) => m[0]).join('|'));
   ok(w.wanted === 0, 'law: and no star yet', w.wanted);
   run(w, L.GRACE_S);
-  ok(w.wanted === 1 && msgs.length === 2, 'law: after the grace period the police take an interest (one star)', `${w.wanted} ${msgs.length}`);
+  ok(w.wanted === 1 && msgs.length === 1, 'law: after the grace period the police take an interest (one star)', `${w.wanted} ${msgs.length}`);
   run(w, 60);
   ok(w.wanted === 1, 'law: staying on it gives no second star', w.wanted);
   L.resetTrafficLaw();
   ({ w, msgs } = mk(trunk, { isBike: true }));
   run(w, 1);
-  ok(msgs.length === 1 && /snelweg/i.test(msgs[0][0]), 'law: cycling on it warns too', msgs.length);
+  ok(msgs.length === 0, 'law: cycling on it gives no warning either', msgs.length);
   L.resetTrafficLaw();
   ({ w, msgs } = mk(cyc, { isBike: false }));
   run(w, 1);
-  ok(msgs.length === 1 && /fietspad/i.test(msgs[0][0]), 'law: a car on a cycle path warns', msgs.map((m) => m[0]).join('|'));
+  ok(msgs.length === 0, 'law: a car on a cycle path gives no warning', msgs.map((m) => m[0]).join('|'));
   L.resetTrafficLaw();
   ({ w, msgs } = mk(cyc, { isBike: true }));
   run(w, 30);
@@ -449,7 +449,7 @@ for (const { name, map } of maps) {
   ({ w, msgs } = mk(trunk, null, { mission: { phase: 'active' } }));
   run(w, 30);
   ok(msgs.length === 0 && w.wanted === 0, 'law: not during a mission');
-  // a short crossing (under the grace period) costs nothing but the warning
+  // a short crossing (under the grace period) costs nothing
   L.resetTrafficLaw();
   ({ w, msgs } = mk(trunk, null));
   run(w, 5);
