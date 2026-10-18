@@ -1363,13 +1363,17 @@ function entryFor(i) {
   const step = STEPS.find((q) => q.kind === 'mission' && q.story && MISSION_IDS.indexOf(q.mission) === i);
   if (!step) return s;
   const mk = (ids, npc) => storyLines(ids, { npc });
-  const intro = mk(step.story.intro, s.npc);
+  // story.npc / outroNpc: another NPC than the shared entry's (a def the old arc uses without one); story.replayLines /
+  // fail: lines of their own where the old arc's make no sense in this story
+  const npc = step.story.npc !== undefined ? step.story.npc : s.npc;
+  const outroNpc = step.story.outroNpc || s.outroNpcKey || npc;
+  const intro = mk(step.story.intro, npc);
   // outro: null = no outro scene (the mission's last stage scene tells it): the pass banner alone
-  const outro = step.story.outro ? mk(step.story.outro, s.outroNpcKey || s.npc) : [];
-  const replay = step.story.replay ? mk(step.story.replay, s.outroNpcKey || s.npc) : s.replay;
+  const outro = step.story.outro ? mk(step.story.outro, outroNpc) : [];
+  const replay = step.story.replayLines || (step.story.replay ? mk(step.story.replay, outroNpc) : s.replay);
   if (!intro.length && !outro.length && step.story.outro !== null) return s;
   const hasN = (l) => l.some((x) => x[0] === 'N');
-  const e = { ...s, intro: intro.length ? intro : s.intro, outro: outro.length ? outro : s.outro, replay, noOutro: step.story.outro === null };
+  const e = { ...s, npc, intro: intro.length ? intro : s.intro, outro: outro.length ? outro : s.outro, replay, fail: step.story.fail || s.fail, noOutro: step.story.outro === null };
   e.ask = Math.max(0, Math.min(s.ask || 0, e.intro.length - 1));
   if (s.introNpc !== false && !hasN(e.intro)) e.introNpc = false;
   e.outroNpc = hasN(e.outro);
