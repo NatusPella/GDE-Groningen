@@ -109,7 +109,7 @@ function attach(win, { gameDir }) {
     win.webContents.on('console-message', function (e, legacyLevel, legacyMessage) {
       const level = e.level !== undefined ? e.level : legacyLevel;
       const message = e.message !== undefined ? e.message : legacyMessage;
-      if (level === 'error' || level === 3 || /error|fail/i.test(String(message))) console.log('[renderer]', message);
+      if (level === 'error' || level === 3 || /error|fail/i.test(String(message))) console.log('[renderer]', message, e.sourceId ? `(${String(e.sourceId).split('/').slice(-2).join('/')}:${e.lineNumber})` : '');
     });
     win.webContents.on('did-fail-load', (e, code, desc, url) => console.log('[load failed]', code, desc, url));
     setTimeout(async () => {
