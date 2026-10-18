@@ -8,6 +8,7 @@ import { isMissionActive } from './missions.js';
 import { isActivityActive } from './activities.js';
 import { inHomeFlat } from './home.js';
 import { MUG, MUG_TEXT, mayMug, riskLevel, hazard, warnsOn, riskWhy, stolenAmount, caught, escaped, nightFactor } from './muggingrules.js';
+import { playerBusy } from './busy.js';
 
 // Berovingen (rules in muggingrules.js): in the wijken that are busy or empty
 // after dark a wallet can be snatched: you lose a share of your money, no
@@ -39,7 +40,7 @@ const hourOf = (w) => ((w.clock % 24) + 24) % 24;
 const levelNow = (w) => riskLevel(wijkOf(w), hourOf(w));
 
 function busy(w) {
-  return isCinematicActive() || isMissionActive() || !!(w.sideJob && w.sideJob.active) || isActivityActive() || !!w.challenge || !!w.race || !!w.padelGame
+  return playerBusy(w, ['cinematic', 'mission', 'sideJob', 'activity', 'challenge', 'race', 'padel']).busy
     || (typeof document !== 'undefined' && document.body.classList.contains('hud-call-on'));
 }
 

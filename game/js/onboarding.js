@@ -21,6 +21,7 @@ import { getSettings } from './settings.js';
 import { physicalKey, keyName, tokenKey } from './controls.js';
 import { hintUses, glyphHtml } from './prompts.js';
 import { KEYS } from './storagekeys.js';
+import { playerBusy } from './busy.js';
 
 const STORE_KEY = KEYS.onboarding;
 const FIRST_AFTER = 12;
@@ -38,7 +39,7 @@ const escHtml = (s) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;',
 const plainKeys = (t) => t.replace(KEY_TOKEN, (m, k) => keyName(physicalKey(getSettings().keyBinds || {}, tokenKey(k))));
 const htmlKeys = (t) => t.split(KEY_TOKEN).map((part, i) => (i % 2 ? glyphHtml(part) : escHtml(part))).join('');
 const missionOn = (w) => !!(w.mission && w.mission.phase === 'active');
-const busy = (w) => missionOn(w) || !!(w.sideJob && w.sideJob.active) || !!w.challenge || !!w.padelGame || !!w.activityGame || !!w.heliRun || !!w.pigeonMode;
+const busy = (w) => missionOn(w) || playerBusy(w, ['sideJob', 'challenge', 'padel', 'activityGame', 'heliRun', 'pigeon']).busy;
 
 // In order: the first lesson that applies plays.
 const LESSONS = [

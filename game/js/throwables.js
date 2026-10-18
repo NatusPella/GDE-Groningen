@@ -150,7 +150,7 @@ function explode(world, it, scale) {
   if (scale > 0.8) world.lastBlast = { x, y, z, time: world.time };
   const water = isInWater(map, x, y) && z < WATER_Y + 0.6;
   if (water) world.particles.push({ kind: 'splash', x, y, until: world.time + 1.1 });
-  audio(world, { sub: it.type === 'carbid' ? 'carbid' : 'burst', x, y, z, water });
+  audio(world, { sub: it.type === 'carbid' ? 'carbid' : 'firework', x, y, z, water });
   if (blasts.length < 8) blasts.push({ type: it.type, x, y, z, scale, hue: it.hue ?? 0, water });
 }
 

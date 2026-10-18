@@ -46,8 +46,6 @@ const HANGUP_TIME = 1.1;
 const CALL_WAIT_MAX = 90;
 const VOICE_DELAY = 0.45;
 const VOICE_TAIL = 1.2;
-// Esc opens the phone (pausemenu.js) on this card's thread
-const ESC_HINT = '<span class="pf-esc"><span class="hud-key">Esc</span>openvouwen</span>';
 const APP_ICON = {
   sikkom: '<path d="M12 3a6 6 0 0 0-6 6v4l-2 3v1h16v-1l-2-3V9a6 6 0 0 0-6-6zm-2 16a2 2 0 0 0 4 0z"/>',
   bericht: '<path d="M4 4h16a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H9l-5 4v-4H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z"/>',
@@ -155,7 +153,7 @@ function showNote(w, n) {
   el.innerHTML =
     `<div class="pf-head"><span class="pf-app">${icon(p.app)}</span><span class="pf-from">${esc(p.from)}</span><span class="pf-more" hidden></span><span class="pf-time">${esc(clockNow(w))}</span></div>` +
     (p.title ? `<div class="pf-title">${dualHtml(p.title)}</div>` : '') +
-    (p.body ? `<div class="pf-body">${dualHtml(p.body)}</div>` : '') + ESC_HINT;
+    (p.body ? `<div class="pf-body">${dualHtml(p.body)}</div>` : '');
   stack.appendChild(el);
   void el.offsetWidth;
   el.classList.add('on');
@@ -238,7 +236,7 @@ function callHtml(c) {
   const state = c.live ? '<span class="pf-live">LIVE</span>' : `<span class="pf-state">${c.phase === 'ring' ? 'Inkomend gesprek' : c.phase === 'end' ? 'Opgehangen' : '<i class="pf-dot"></i><b class="pf-clock">0:00</b>'}</span>`;
   return `<div class="pf-call-head"><span class="pf-avatar">${esc(initials(c.from))}</span>` +
     `<span class="pf-callwho"><small>${c.live ? 'Kiekdoar Live' : 'Telefoon'}</small><b>${esc(c.from)}</b></span>${state}</div>` +
-    '<div class="pf-line"><span class="pf-speaker"></span><span class="pf-say"></span><span class="pf-sub"></span></div>' + (c.live ? '' : ESC_HINT);
+    '<div class="pf-line"><span class="pf-speaker"></span><span class="pf-say"></span><span class="pf-sub"></span></div>';
 }
 
 function beginCall(w, c) {
