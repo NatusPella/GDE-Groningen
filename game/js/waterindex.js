@@ -179,12 +179,6 @@ export function waterIndexAt(map, x, y) {
   const t = tileWaterIndex(map, x, y);
   return t && t.inWater(x, y) ? t : getWaterIndex(map);
 }
-// is there water at (x, y), the city's or a province tile's
-export function waterWet(map, x, y) {
-  if (getWaterIndex(map).inWater(x, y)) return true;
-  const t = tileWaterIndex(map, x, y);
-  return !!t && t.inWater(x, y);
-}
 
 function polyWaterIndex(map, poly) {
   if (poly._wi) return poly._wi;
