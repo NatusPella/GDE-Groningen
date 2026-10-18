@@ -8,6 +8,7 @@ import { setWallBrokenTest } from './elevation.js';
 import { rand as rnd } from './rng.js';
 import { SpatialGrid } from './spatialgrid.js';
 import { touchesProp } from './flightrules.js';
+import { buildingAt } from './tileplace.js';
 
 // Breakable street props. Owning modules register colliders near the player
 // (addProp/removeProp); vehicles test against them each frame. Below a prop's
@@ -415,12 +416,7 @@ function removeBody(b) {
 }
 
 function insideBuilding(x, y) {
-  for (const bd of world.map.buildingsNear(x, y, 0.5)) {
-    const [a, b, c, d] = bd.bounds;
-    if (x < a || x > c || y < b || y > d) continue;
-    if (pointInPolygon(x, y, bd.pts)) return true;
-  }
-  return false;
+  return !!buildingAt(world.map, x, y);
 }
 
 function lowestCorner(b) {
