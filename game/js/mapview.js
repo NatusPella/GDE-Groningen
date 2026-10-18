@@ -29,7 +29,8 @@ import { drawRailsOnMap } from './railway.js';
 import { drawCountryBase, drawCountryDetail, villageLabels, syncMapPhase, MAP_STYLE } from './countrymap.js';
 import { drawProvinceBase, provinceMapOn, provinceMapBounds, onProvinceMapLoad } from './provincemap.js';
 import { ROAD_ORDER, ZOOM, EMPHASIS, roadWidthPx, baseFilter } from './mapstyle.js';
-import { drawSea, drawOutside, regionLabels, areaNameAt } from './regions.js';
+import { drawSea, drawOutside, regionLabels, regionEdgeLabels, areaNameAt } from './regions.js';
+import { borderPlaceLabels } from './borderplaces.js';
 import { worldPlaceLabels, worldPlacesReady } from './worldplaces.js';
 import { tileIndexOf, tileOrigin, TILE_M } from './gdt.js';
 import { ensureCountryEdge } from './countryplan.js';
@@ -853,6 +854,7 @@ function drawStaticOverlay(ctx) {
     const [rx0, ry0, rx1, ry1] = viewRect();
     ctx.textBaseline = 'middle';
     ctx.textAlign = 'center';
+    const named = new Set();
     for (const r of regionLabels(rx0, ry0, rx1, ry1, 0.1)) {
       if (r.id === 'groningen' && z > 1.6) continue;
       const [sx, sy] = toScreen(r.x, r.y);
@@ -864,6 +866,22 @@ function drawStaticOverlay(ctx) {
       ctx.fillStyle = r.land ? `rgba(240, 237, 228, ${a.toFixed(2)})` : `rgba(190, 225, 245, ${(a + 0.1).toFixed(2)})`;
       ctx.fillText(label, sx, sy);
       boxes.push([sx - w / 2, sy - size / 2, sx + w / 2, sy + size / 2]);
+      named.add(r.id);
+    }
+    // the regions beyond the border or the coast that are in view but have no name on screen yet (#237):
+    // the name sits outside the line, kept off the frame so nothing is clipped
+    const m = 110 / state.scale;
+    for (const r of regionEdgeLabels(rx0 + m, ry0 + m, rx1 - m, ry1 - m, 34 / state.scale)) {
+      if (named.has(r.id)) continue;
+      const [sx, sy] = toScreen(r.x, r.y);
+      ctx.font = `18px ${FONT}`;
+      const label = r.name.toUpperCase().split('').join(' ');
+      const w = ctx.measureText(label).width;
+      const box = [sx - w / 2, sy - 10, sx + w / 2, sy + 10];
+      if (collides(boxes, box)) continue;
+      boxes.push(box);
+      ctx.fillStyle = r.land ? 'rgba(240, 237, 228, 0.4)' : 'rgba(190, 225, 245, 0.5)';
+      ctx.fillText(label, sx, sy);
     }
   }
 
@@ -900,6 +918,23 @@ function drawStaticOverlay(ctx) {
         drawLabel(ctx, label, sx, sy, 'rgba(240, 237, 228, 0.8)', 'center');
         hover.push({ sx, sy, name: v.name, sub: 'Dorp in het Ommeland' });
       }
+    }
+  }
+
+  // the neighbour villages outside the province, dimmed and not clickable (#237)
+  if (provinceMapOn() && z < 6) {
+    const [nx0, ny0, nx1, ny1] = viewRect(0);
+    ctx.font = `${z < MID_ZOOM ? 12 : 14}px ${FONT}`;
+    ctx.textBaseline = 'middle';
+    for (const v of borderPlaceLabels(nx0, ny0, nx1, ny1, [], { zoom: z, max: 40, gap: 70 / state.scale })) {
+      const [sx, sy] = toScreen(v.x, v.y);
+      const label = v.name.toUpperCase();
+      const w = ctx.measureText(label).width;
+      if (sx - w / 2 < 4 || sx + w / 2 > state.cw - 4 || sy < 12 || sy > state.ch - 12) continue;
+      const box = [sx - w / 2 - 2, sy - 8, sx + w / 2 + 2, sy + 8];
+      if (collides(boxes, box)) continue;
+      boxes.push(box);
+      drawLabel(ctx, label, sx, sy, 'rgba(240, 237, 228, 0.45)', 'center');
     }
   }
 
