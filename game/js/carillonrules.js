@@ -9,6 +9,11 @@ import { medalFrom } from './minigamekit.js';
 export const BELL_KEYS = ['a', 's', 'd', 'f', 'j', 'k', 'l', ';'];
 export const BELL_NAMES = ['C', 'D', 'E', 'F', 'G', 'A', 'B', 'C’'];
 const SEMI = [0, 2, 4, 5, 7, 9, 11, 12];
+// The tower of the city map (landmark Martinitoren) and the open square 12.5 m north of its
+// centre, 3 m from the walls and 14 m from the nearest road (checked in carillon_test.mjs).
+export const TOWER = { x: 213.81, y: 9.9 };
+export const CARILLON_STAND = { x: TOWER.x, y: TOWER.y + 12.5 };
+
 export const BASE_HZ = 523.25;
 
 export const CARILLON = {

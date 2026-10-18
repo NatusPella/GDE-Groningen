@@ -1,6 +1,6 @@
 // node scripts/touch_test.mjs: touch detection, the virtual stick and the
 // buttons per situation (game/js/touchlogic.js).
-import { detectTouch, stickVector, knobOffset, lookDelta, stickKeys, touchPlan, labelFor, touchUiActive, touchContext } from '../game/js/touchlogic.js';
+import { detectTouch, stickVector, knobOffset, lookDelta, stickKeys, touchPlan, labelFor, touchUiActive, touchContext, stickless } from '../game/js/touchlogic.js';
 import { touchMode, touchLayout, touchMore, touchLabelForToken, TOUCH_CHOICES } from '../game/js/touchlogic.js';
 import { PAD_MAPS } from '../game/js/controls.js';
 
@@ -48,11 +48,17 @@ eq('ui on in play', touchUiActive({ started: true, menuOpen: false }), true);
 
 eq('ctx menu', touchContext({}, { menuOpen: true }), 'menu');
 eq('ctx foot', touchContext({ player: {} }), 'foot');
+eq('ctx pannenkoek', touchContext({ player: {}, activityGame: 'pannenkoek' }), 'pannenkoek');
+eq('ctx klokken', touchContext({ player: {}, activityGame: 'carillon' }), 'klokken');
 eq('ctx car', touchContext({ player: { inVehicle: {} } }), 'vehicle');
 eq('ctx heli', touchContext({ player: { inVehicle: { isHeli: true } } }), 'heli');
 eq('ctx manual', touchContext({ player: { inVehicle: { gb: {} } } }, { shiftMode: 'hand' }), 'vehicleManual');
 eq('ctx pigeon', touchContext({ pigeonMode: true }), 'pigeon');
 
+const pan = touchPlan('pannenkoek').map((b) => b.label).join(',');
+eq('pannenkoek touch buttons', pan, 'Stroop,Spek,Appel,Kaas,Stop,3,1,2');
+eq('stick off in pannenkoek', stickless('pannenkoek'), true);
+eq('stick on in minigame', stickless('minigame'), false);
 eq('mode auto follows device', [touchMode('auto', true), touchMode('auto', false)], [true, false]);
 eq('mode forced', [touchMode('aan', false), touchMode('uit', true)], [true, false]);
 eq('choices', TOUCH_CHOICES, ['auto', 'aan', 'uit']);
