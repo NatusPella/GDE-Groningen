@@ -11,7 +11,8 @@ import './node3d.mjs';
 const { GameMap, applyMapExtras } = await import('../game/js/mapdata.js');
 const M = await import('../game/js/missions.js');
 const { STEPS, NEW_MISSION_IDS } = await import('../game/js/storyarc_nieuw.js');
-const { MISSION_IDS } = await import('../game/js/storyarc.js');
+const { MISSION_IDS, stepDone, missionIndexOf } = await import('../game/js/storyarc.js');
+const { STEPS: ALL_STEPS } = await import('../game/js/storyarc.js');
 const P = await import('../game/js/heliplan.js');
 const { judgeGate } = await import('../game/js/planestage.js');
 const root = new URL('../game/', import.meta.url);
@@ -109,6 +110,23 @@ if (m16.built) {
   ok(tents.length === 3 && d.onFoot, 'M16: three tents on foot');
   ok(d.crowds.length >= 4, 'M16: a crowd');
   ok(/Winschoten/.test(d.intro.join(' ')), 'M16: the intro says Winschoten');
+}
+// Save fixtures: a save is the done step ids plus the passed mission indices (savegame.js, story.js applyStorySave).
+// Act 3 must read them the way the story order says: done is done, T3 is moot once M15 is passed, nothing earlier is undone.
+{
+  const idx = (id) => ALL_STEPS.findIndex((s) => s.id === id);
+  const fixture = (doneIds, passedMissions) => {
+    const done = new Set(doneIds), passed = new Set(passedMissions.map(missionIndexOf));
+    return (id) => stepDone(idx(id), (x) => done.has(x), (i) => passed.has(i));
+  };
+  const a = fixture(['M12', 'M13'], ['traumaduif', 'containers']);
+  ok(a('M12') && a('M13') && !a('M14') && !a('T3') && !a('M15') && !a('M16'), 'save after M13: M14 is next');
+  const b = fixture(['M12', 'M13', 'M14', 'M15'], ['traumaduif', 'containers', 'dijk', 'graan']);
+  ok(b('T3') && b('M15') && !b('M16'), 'save after M15: the train beat is moot, M16 is next');
+  const c = fixture([], ['traumaduif', 'containers', 'dijk', 'graan', 'kroegentocht']);
+  ok(c('M12') && c('M13') && c('M14') && c('M15') && c('M16') && c('T3'), 'passed missions alone mark act 3 done');
+  ok(['traumaduif', 'containers', 'dijk', 'graan', 'kroegentocht'].every((m) => missionIndexOf(m) >= 0), 'the mission ids of act 3 are in MISSION_IDS');
+  ok(missionIndexOf('traumaduif') === 14 && missionIndexOf('kroegentocht') === 5, 'indices of the shared ids did not move');
 }
 console.log(fails ? `${fails} of ${n} failed` : `${n}/${n} act-3 checks passed`);
 process.exit(fails ? 1 : 0);
