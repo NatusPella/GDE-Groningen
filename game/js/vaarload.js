@@ -6,13 +6,15 @@
 import { createVaarNet, patchRows, routeAhead, setSharedNet } from './vaarnet.js';
 import { setVaarNet } from './vehicle.js';
 import { tileIndexOf } from './gdt.js';
+import { buildSluizen } from './sluizen.js';
 
 let net = null;
 const get = (name) => fetch(new URL(name, location.href).href).then((r) => (r.ok ? r.json() : null)).catch(() => null);
 
 export async function loadVaarnet(map) {
   try {
-    const [fixes, file] = await Promise.all([get('vaarnet_fixes.json'), get('vaarnet.json')]);
+    const [fixes, file, sluizen] = await Promise.all([get('vaarnet_fixes.json'), get('vaarnet.json'), get('sluizen.json')]);
+    if (sluizen && Array.isArray(sluizen.sluizen)) buildSluizen(sluizen.sluizen);   // the locks work with their gates (sluizen.js, #236)
     if (fixes && map && map.addWaterPatches) map.addWaterPatches(patchRows(fixes));
     if (file && Array.isArray(file.nodes)) { net = createVaarNet(file); setVaarNet(net); setSharedNet(net); }
   } catch (e) { console.warn('waterway network not loaded', e && e.message); }

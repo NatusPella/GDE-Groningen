@@ -1,4 +1,6 @@
-# Changelog
+# Changel-- **Sluizen-audit:** `node scripts/world/sluizen.mjs [--raster] [--write] [--strict]` controleert voor elke sluis dat het water aan beide kanten doorloopt (ook in het vaarnetraster) en schrijft `game/sluizen.json`; `scripts/sluizen_test.mjs` test de deuren per fase, de seinen, schutten in beide richtingen, een wachtrij en geen deadlock.
+ **Sluizen werken (nog niet in beeld bekeken, #236):** elk van de 62 sluizen in de provincie heeft deuren die open en dicht gaan, seinlichten (rood, geel, groen) vóór de deur en een schutcyclus. Vaar je op een sluis aan, ligt je boot stil of toeter je, dan vraagt de boot de sluis; bij groen vaar je in, de deur sluit, het water gaat omhoog of omlaag (je boot gaat mee) en de andere deur gaat open. Boten van de computer doen mee en een deur sluit nooit op een boot. De kolk van de Robbengatsluis bij Lauwersoog en twee kolken van het Reitdiep waren geen vaarwater voor grotere boten of ontbraken in de kaart; dat is gerepareerd.
+og
 
 Alle noemenswaardige wijzigingen in GDE Groningen, per versie. Nieuwste bovenaan.
 Versies volgen SemVer: `0.x.y` tot de echte release (1.0.0); `x` voor
