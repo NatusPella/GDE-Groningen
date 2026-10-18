@@ -6,7 +6,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import {
   pick, rand, nearestOnStreet, kerbSide, spawnJobVehicle, pointAlongRoad, randomStreetPoint, streetNameAt,
 } from './sidejobkit.js';
-import { newTrailer, couple, uncouple, stepTrailer, fifthWheel, loadedHandling } from './semitrailer.js';
+import { newTrailer, couple, uncouple, stepTrailer, fifthWheel, loadedHandling, koppelHulp } from './semitrailer.js';
 
 const TRACTOR = { name: 'truck', len: 6.6, wid: 2.5, maxSpeed: 24, accel: 3.6, brake: 12, turnRate: 1.5, color: '#2f5c8a' };
 const KP_BACK = 1.6;
@@ -51,6 +51,11 @@ function poseTrailer(tr, v) {
   if (!tr.mesh) return;
   tr.mesh.position.set(tr.kx, v.gz || 0, tr.ky);
   tr.mesh.rotation.set(0, -tr.angle, 0);
+}
+
+// Geluid via de sfx-laag (fxbank): klik van het hulpstuk, piepen bij een inklapper.
+function fx(world, name, x, y, extra = {}) {
+  (world.audioEvents || (world.audioEvents = [])).push({ kind: 'fx', name, x, y, ...extra });
 }
 
 function clearTrailer(c) {
@@ -134,6 +139,7 @@ export default {
         tr.load = 1;
         Object.assign(v.model, loadedHandling(tr, d.base));
         d.phase = 'haul';
+        fx(world, 'bridge_clunk', tr.kx, tr.ky, { gain: 0.9, rate: 0.75 });
         c.msg(`Gekoppeld! Naar ${d.klant.naam}, ${d.dest.street}. Rustig in de bocht.`, 3.5);
       } else if (!d.hinted && Math.hypot(v.x - tr.kx, v.y - tr.ky) < 14) {
         d.hinted = true;
@@ -147,6 +153,7 @@ export default {
       d.jack = true;
       d.cargo = Math.max(0, d.cargo - 15);
       d.hadJack = true;
+      fx(world, 'rail_squeal', tr.kx, tr.ky, { gain: 0.8 });
       c.msg('Inklapper! Dat voel je in de lading (-15%)', 2.8);
     } else if (!tr.jackknifed) d.jack = false;
     if (p.inVehicle === v) {
@@ -154,6 +161,7 @@ export default {
         d.hitAt = world.time;
         d.cargo = Math.max(0, d.cargo - Math.round(rand(8, 16)));
         d.bumped = true;
+        fx(world, 'bridge_clunk', v.x, v.y, { gain: 1, rate: 0.6 });
         c.msg(`Boem! De lading schuift (${d.cargo}% heel)`, 2.6);
       }
       d.prevSpeed = v.speed;
@@ -172,7 +180,8 @@ export default {
     const d = c.data, tr = d.tr;
     if (!tr) return {};
     if (d.phase === 'hook') {
-      return { marker: { x: tr.kx, y: tr.ky }, progress: `Rit ${c.streak + 1} · koppelen`, goal: { label: `Koppel de ${tr.spec.name.toLowerCase()}`, desc: 'Achteruit, rechtdoor onder de oplegger' } };
+      const h = koppelHulp(v, tr, KP_BACK);
+      return { marker: { x: tr.kx, y: tr.ky }, progress: `Rit ${c.streak + 1} · koppelen · ${Math.round(h.dist)} m, ${h.tip}`, goal: { label: `Koppel de ${tr.spec.name.toLowerCase()}`, desc: 'Achteruit, rechtdoor onder de oplegger' } };
     }
     return { marker: { x: d.dest.x, y: d.dest.y }, progress: `Rit ${c.streak + 1} · lading ${d.cargo}% heel`, goal: { label: `Naar ${d.klant.naam}`, desc: `${d.dest.street} · ${d.klant.vracht}. Geen inklappers!` } };
   },

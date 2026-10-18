@@ -18,7 +18,7 @@ S['M17.intro'] = {
     { on: 'Durk zei dat Jelle', actor: 'tessa', anim: 'point' },
     { on: 'Hoe weten we wanneer', actor: 'tammo', anim: 'shrug' },
     { on: 'Elf bruggen', actor: 'wubbo', anim: 'point' },
-    { on: 'De brug draait op tijd', actor: 'wubbo', anim: 'hips' },
+    { on: 'Mijn brug is op tijd', actor: 'wubbo', anim: 'hips' },
     { on: 'Welke zaterdag', actor: 'tessa', anim: 'shrug' },
   ],
   shots: [],
@@ -31,7 +31,7 @@ S['M17.outro'] = {
   beats: [
     { on: 0, dt: 0.4, actor: 'wubbo', walk: [[2, 0.2]], speed: 0.8 },
     { on: 'Die brug draait niet', actor: 'wubbo', anim: 'shake' },
-    { on: 'Dat is plakje zeven', actor: 'tessa', anim: 'nod' },
+    { on: 'De mosterd is gered', actor: 'tessa', anim: 'nod' },
     { on: 'Er is een webbureau', actor: 'wubbo', anim: 'point' },
     { on: 'Om middernacht. Net als', actor: 'tammo', anim: 'point' },
     { on: 'Dat is toeval', actor: 'tessa', anim: 'shrug' },
@@ -49,7 +49,7 @@ S['M18.intro'] = {
   beats: [
     { on: 'Dat is toch geen misdaad', actor: 'tessa', anim: 'shrug' },
     { on: 'Wie de camera', actor: 'tammo', anim: 'point' },
-    { on: 'Dan kijken we in het logboek', actor: 'tessa', anim: 'nod' },
+    { on: 'Als daar staat', actor: 'tessa', anim: 'nod' },
     { on: 'Welkom bij Wiebelwerk', actor: 'accountmanager', walk: [[2.2, -0.2]], speed: 0.9 },
     { on: 'Welkom bij Wiebelwerk', dt: 0.3, actor: 'accountmanager', face: 'actor:tessa' },
     { on: 'Een website voor een frietwagen', actor: 'tessa', anim: 'talk' },
@@ -104,7 +104,7 @@ S['M19.outro'] = {
     { on: 'Ik niet. Ik heb een contract', actor: 'jurylid', face: 'actor:bewaarder' },
     { on: 'Ik stap niet uit', actor: 'bewaarder', anim: 'hips' },
     { on: 'Eén jurylid gered', actor: 'tessa', anim: 'shrug' },
-    { on: 'Eén van vijf', actor: 'tammo', anim: 'shake' },
+    { on: 'Drie van de vijf staan', actor: 'tammo', anim: 'shake' },
     { on: 'Ik heb een trein bestuurd', actor: 'tammo', anim: 'cheer' },
     { on: 'Je hebt hem in een station', actor: 'tessa', anim: 'nod' },
   ],
@@ -172,7 +172,7 @@ S['M22.intro'] = {
     { on: 0, dt: 0.4, actor: 'henk', walk: [[2.2, -1.0]], speed: 0.8 },
     { on: 'Tinus, trekkertrekker', actor: 'tinus', anim: 'wave' },
     { on: 'Henk, Garage Knalpot', actor: 'henk', anim: 'point' },
-    { on: 'De bal is weer weg', actor: 'tessa', anim: 'point' },
+    { on: 'Wij maken van de Escapade', actor: 'tessa', anim: 'point' },
     { on: 'De Escapade is van mij', actor: 'tammo', anim: 'hips' },
     { on: 'Hij is van ons, Tammo', actor: 'tessa', face: 'actor:tammo' },
     { on: 'Jullie praten niet', actor: 'henk', anim: 'shake' },
@@ -199,7 +199,7 @@ S['M23.intro'] = {
     { on: 'Dit is de colonne', actor: 'tessa', anim: 'point' },
     { on: 'Ik rij op mijn scooter', actor: 'geesje', anim: 'wave' },
     { on: 'Ik heb de bus', actor: 'wubbo', anim: 'point' },
-    { on: 'Ik ben mijn boot', actor: 'klaas', anim: 'talk' },
+    { on: 'Ik heb mijn boot terug', actor: 'klaas', anim: 'talk' },
     { on: 'Ik rij achteraan', actor: 'berend', anim: 'point' },
     { on: 'Rijden. Niet praten', actor: 'tessa', anim: 'point' },
   ],
@@ -216,7 +216,7 @@ S['M23.outro'] = {
   beats: [
     { on: 'We zijn er. Allemaal', actor: 'tessa', anim: 'cheer' },
     { on: 'De grootste stoet', actor: 'tammo', anim: 'cheer' },
-    { on: 'Dat zeg je altijd', actor: 'tessa', anim: 'shrug' },
+    { on: 'Dat gaat Rikus', actor: 'tessa', anim: 'shrug' },
     { on: 'De colonne is aangekomen', actor: 'rikus', anim: 'point' },
     { on: 'Mevrouw. De colonne', actor: 'jelle', walk: [[3.2, -0.4]], speed: 0.9 },
     { on: 'Mevrouw. De colonne', dt: 0.3, actor: 'jelle', face: 'actor:tessa' },
@@ -258,7 +258,7 @@ S['M25.intro'] = {
     { on: 'Oma… hoe zei opa', actor: 'tammo', anim: 'look' },
     { on: 'Niet. Hij zei', actor: 'trijntje', anim: 'talk' },
     { on: 'Ik zit hier ook, Trijntje', actor: 'mem', anim: 'hips' },
-    { on: 'Plakje acht', actor: 'tessa', anim: 'nod' },
+    { on: 'Dan moeten wij eerder', actor: 'tessa', anim: 'nod' },
     { on: 'Tessa. Sjabbe. Morgen', actor: 'tessa', anim: 'phone' },
   ],
   shots: [],
@@ -300,11 +300,11 @@ S['M26.intro'] = {
     { on: 'Grunn! Geef je over', actor: 'berend', anim: 'point' },
     { on: 'Nee!', actor: 'kind', anim: 'cheer' },
     { on: 'Vandaag is het Ontzet', actor: 'tessa', anim: 'point' },
-    { on: 'Tammo bakt', actor: 'tessa', anim: 'point' },
+    { on: 'Vandaag is het Ontzet', dt: 3, actor: 'tammo', face: 'actor:tessa' },
     { on: 'Ik bak nooit onder druk', actor: 'tammo', anim: 'shake' },
     { on: 'Je doet alles onder druk', actor: 'tessa', anim: 'shrug' },
   ],
-  shots: [{ on: 'Vandaag is het Ontzet', dt: 4, shot: 'follow', target: 'tessa', dist: 3.2, side: 0.8, h: 1.55, fov: 42 }],
+  shots: [{ on: 'Vandaag is het Ontzet', dt: 0.4, shot: 'dolly', from: [-2.2, 2.8, 1.8], to: [-0.6, 2.2, 1.6], look: 'mid:tammo,tessa@1.3', fov: 44 }],
   wide: WIDE([-5.5, 4.5, 3.4], [-3.5, 3.2, 2.5], 'mid:berend,tessa@1'),
 };
 S['M26.outro'] = {
@@ -325,3 +325,281 @@ S['M26.outro'] = {
   shots: [],
   wide: WIDE([-4.8, 3.4, 2.8], [-2.8, 2.6, 2.1], 'mid:tammo,tessa@1'),
 };
+
+// --- the scenes inside the missions (missions.js 'scene' stages with one script scene: the key is the scene id) ---
+const PASSER = (id, look, from, to, speed = 1.1, anim = 'idle') => ({
+  cast: { [id]: { key: look, at: from, face: Math.atan2(to[1] - from[1], to[0] - from[0]) * 180 / Math.PI, anim, bg: true } },
+  cues: [{ t: 0, actor: id, walk: [to], speed }],
+});
+
+// M20.2 the moat of Bourtange: the two henchmen are "the occupation", Tammo jumps
+S['M20.2'] = {
+  cast: {
+    durk: { key: 'durk', at: [3.2, 1.0], face: 190, anim: 'idle', gest: ['talk', 'point', 'hips'] },
+    douwe: { key: 'douwe', at: [3.2, -1.4], face: 170, anim: 'idle', gest: ['talk', 'shrug'] },
+  },
+  props: { bord: { kind: 'bord', at: [4.6, 3.0, 0], face: 200 } },
+  open: [{ actor: 'tessa', face: 'actor:durk' }, { actor: 'tammo', face: 'actor:durk' }],
+  beats: [
+    { on: 'Wij zijn alleen', actor: 'durk', anim: 'point' },
+    { on: 'Wat is de bezigheid', actor: 'tammo', anim: 'shrug' },
+    { on: 'Durk. Dat was geheim', actor: 'douwe', anim: 'hips' },
+    { on: 'Durk. Dat was geheim', dt: 0.5, actor: 'durk', anim: 'shrug' },
+    { on: 'Houd even vast', actor: 'tammo', walk: [[1.6, 2.4]], speed: 1.5 },
+    { on: 'Ik spring', actor: 'tammo', anim: 'lean' },
+    { on: 'Ik spring', dt: 1.5, actor: 'tessa', face: 'actor:tammo' },
+    { on: '…Plons', actor: 'douwe', anim: 'look' },
+    { on: '…Geen plons', actor: 'douwe', anim: 'shrug' },
+    { on: '…Geen plons', dt: 0.6, actor: 'tammo', anim: 'cheer' },
+  ],
+  shots: [],
+  wide: WIDE([-5, 4.2, 3.2], [-3, 3, 2.4], 'mid:durk,douwe@1'),
+};
+
+// M20.3 the powder cellar: Mem takes the ball from her son
+S['M20.3'] = {
+  cast: {
+    mem: { key: 'mem', at: [2.4, 0.6], face: 180, anim: 'idle', gest: ['talk', 'point', 'hips', 'nod'] },
+    trijntje: { key: 'trijntje', at: [2.6, -0.8], face: 180, anim: 'idle', gest: ['talk', 'point'] },
+    jelle: { key: 'jelle', at: [6.2, 0.2], face: 180, anim: 'idle', gest: ['hips', 'point', 'shrug', 'talk'], carry: 'koffer' },
+    berend: { key: 'berend', at: [3.6, 2.2], face: 190, anim: 'idle', gest: ['shrug', 'hips'] },
+  },
+  props: { koffer: { kind: 'koffer', at: [6.2, 0.2, 1] } },
+  open: [{ actor: 'tessa', face: 'actor:jelle' }, { actor: 'tammo', face: 'actor:jelle' }],
+  beats: [
+    { on: 0, dt: 0.3, actor: 'jelle', walk: [[3.8, 0.1]], speed: 1.1 },
+    { on: 'Doe open, jonge', actor: 'mem', anim: 'point' },
+    { on: 'Dank je. Nu is hij van mij', actor: 'jelle', drop: 'koffer' },
+    { on: 'Dank je. Nu is hij van mij', dt: 0.4, actor: 'mem', walk: [[3.0, 0.4]], speed: 1.0 },
+    { on: 'Er is geen overeenkomst', actor: 'mem', anim: 'shake' },
+    { on: 'Gerda belde mij', actor: 'trijntje', anim: 'point' },
+    { on: 'Nul krassen. Op de heenweg', actor: 'berend', anim: 'shrug' },
+    { on: 'Jij kende Mem', actor: 'tammo', anim: 'look' },
+    { on: 'Dat heb ik hem geleerd', actor: 'mem', anim: 'nod' },
+    { on: 'Omdat mijn zoon', actor: 'mem', anim: 'shrug' },
+    { on: 'Mem. Dit is geen einde', actor: 'jelle', anim: 'point' },
+    { on: 'Durk. Douwe. Haal', actor: 'jelle', walk: [[7.5, 1.5]], speed: 1.4 },
+  ],
+  shots: [],
+  wide: WIDE([-4.8, 4, 3.2], [-2.8, 2.9, 2.4], 'mid:mem,jelle@1'),
+};
+
+// M21.3 at the crossing: Berend counts, Henk walks up with his hatch
+S['M21.3'] = {
+  cast: {
+    berend: { key: 'berend', at: [3.2, 0.8], face: 185, anim: 'idle', gest: ['shrug', 'point', 'hips'] },
+    henk: { key: 'henk', at: [12, -6], face: 150, anim: 'idle', gest: ['talk', 'point'] },
+  },
+  props: {},
+  open: [{ actor: 'tessa', face: 'actor:berend' }, { actor: 'tammo', face: 'actor:berend' }, { t: 0, actor: 'henk', walk: [[3.8, -1.6]], speed: 1.4 }],
+  beats: [
+    { on: 'Nul krassen op de auto', actor: 'berend', anim: 'shrug' },
+    { on: 'Dat tel je niet', actor: 'tessa', anim: 'hips' },
+    { on: 'Ik tel alles', actor: 'berend', anim: 'point' },
+    { on: 'Henk. Tinus', actor: 'henk', anim: 'point' },
+  ],
+  shots: [],
+  wide: WIDE([-5, 4, 3.2], [-3, 3, 2.4], 'mid:berend,tessa@1'),
+};
+
+// M22.2 the hatch is in: Henk shows the Escapade with a hole, Sjabbe comes by with news about the watch
+S['M22.2'] = {
+  cast: {
+    henk: { key: 'henk', at: [2.8, 1.0], face: 185, anim: 'idle', gest: ['point', 'hips', 'talk', 'nod'] },
+    sjabbe: { key: 'sjabbe', at: [11, -5], face: 160, anim: 'idle', gest: ['talk', 'shrug'] },
+    tinus: { key: 'tinus', at: [5.6, -3.2], face: 190, anim: 'idle', bg: true, gest: ['look', 'nod', 'hips'] },
+  },
+  props: { escapade: { kind: 'auto', at: [4.4, 3.4, 0], face: 250 }, trekker: { kind: 'trekker', at: [8, -4.5, 0], face: 160 } },
+  open: [{ actor: 'tessa', face: 'prop:escapade' }, { actor: 'tammo', face: 'prop:escapade' }, { actor: 'henk', face: 'prop:escapade' }],
+  beats: [
+    { on: 'Het luik zit aan de zijkant', actor: 'henk', anim: 'point' },
+    { on: 'Dat is een Fjord Frituur', actor: 'tessa', anim: 'shrug' },
+    { on: 'Een Escapade met een gat', actor: 'tammo', anim: 'point' },
+    { on: 'Een karaktergat', actor: 'henk', anim: 'nod' },
+    { on: 'Het is klaar', actor: 'tessa', anim: 'hips' },
+    { on: 'Het is blauw', actor: 'tammo', anim: 'shake' },
+    { on: 'Het is de kleur van de naam', actor: 'tessa', anim: 'point' },
+    { on: 'Het luik is betaald', actor: 'henk', face: 'actor:sjabbe' },
+    { on: 'Het luik is betaald', dt: 0.3, actor: 'sjabbe', walk: [[3.4, -1.8]], speed: 1.5 },
+    { on: 'Tessa. Sjabbe', actor: 'sjabbe', anim: 'talk' },
+    { on: 'Het horloge van je opa', actor: 'tessa', face: 'actor:tammo' },
+    { on: 'Het horloge van je opa', dt: 0.6, actor: 'tammo', face: 'prop:escapade' },
+    { on: 'Een horloge. Dit is een thuis', actor: 'tammo', anim: 'shrug' },
+  ],
+  shots: [],
+  wide: WIDE([-5, 4.2, 3.2], [-3, 3, 2.4], 'mid:henk,escapade@1'),
+};
+
+// M22.4 the barn at night: the two of them apologise beside the car, Tinus walks across the yard
+S['M22.4'] = {
+  cast: { tinus: { key: 'tinus', at: [9, 4], face: 200, anim: 'idle', bg: true, gest: ['look', 'nod'] } },
+  props: { escapade: { kind: 'auto', at: [4.2, 0.2, 0], face: 90 }, trekker: { kind: 'trekker', at: [7.5, 3.2, 0], face: 150 } },
+  open: [{ actor: 'tessa', face: 'actor:tammo' }, { actor: 'tammo', face: 'actor:tessa' }, { t: 0, actor: 'tinus', walk: [[5.2, 2.4], [7, 1.2]], speed: 0.7 }],
+  beats: [
+    { on: 'We hebben een wagen', actor: 'tessa', walk: [[2.6, -0.9]], speed: 0.8 },
+    { on: 'We hebben een wagen', dt: 0.5, actor: 'tammo', walk: [[2.4, 0.5]], speed: 0.8 },
+    { on: 'Sorry. Dat ik nooit', actor: 'tammo', anim: 'shrug' },
+    { on: 'Je zei net iets', actor: 'tessa', anim: 'nod' },
+    { on: 'Jij zweeg omdat', actor: 'tammo', anim: 'talk' },
+    { on: 'Ik moet je iets vertellen', actor: 'tessa', anim: 'lean' },
+    { on: 'Zeven?', actor: 'tammo', anim: 'shake' },
+    { on: 'Jij? Fries?', actor: 'tammo', anim: 'laugh' },
+    { on: 'Een beetje.', actor: 'tessa', anim: 'shrug' },
+    { on: 'Dat verklaart waarom', actor: 'tammo', anim: 'point' },
+    { on: 'Dat deed ik één keer', actor: 'tessa', anim: 'shrug' },
+    { on: 'Twee keer', actor: 'tammo', anim: 'laugh' },
+    { on: 'Dat is een Fjord Frituur', actor: 'tessa', face: 'prop:escapade' },
+    { on: 'Dat is een Fjord Frituur', dt: 0.3, actor: 'tessa', anim: 'point' },
+    { on: 'Ik ging niet weg', actor: 'tessa', walk: [[2.2, -0.2]], speed: 0.6 },
+    { on: 'Ik zeg het op het Ontzet', actor: 'tammo', anim: 'nod' },
+    { on: 'Dat is een belofte, Tammo', actor: 'tessa', anim: 'nod' },
+  ],
+  shots: [],
+  wide: WIDE([-4.6, 3.6, 3], [-2.6, 2.8, 2.2], 'mid:tammo,tessa@1.2'),
+};
+
+// M23.3 Aduard: the henchmen change sides and hand over Tammo's jacket
+S['M23.3'] = {
+  cast: {
+    durk: { key: 'durk', at: [3.4, 1.4], face: 190, anim: 'idle', gest: ['point', 'talk', 'hips'] },
+    douwe: { key: 'douwe', at: [3.6, -1.4], face: 170, anim: 'idle', gest: ['nod', 'shrug'], carry: 'jas' },
+  },
+  props: { jas: { kind: 'doos', at: [3.6, -1.4, 1] } },
+  open: [{ actor: 'tessa', face: 'actor:durk' }, { actor: 'tammo', face: 'actor:durk' }],
+  beats: [
+    { on: 'Douwe. Hij is niet de baas', actor: 'durk', anim: 'point' },
+    { on: 'Wij zijn alleen', actor: 'durk', anim: 'talk' },
+    { on: 'En nu zijn wij de bezigheid van mem', actor: 'durk', anim: 'hips' },
+    { on: 'Van Jelles mem', actor: 'tammo', anim: 'shrug' },
+    { on: 'Van alle mems', actor: 'durk', anim: 'point' },
+    { on: 'En hier is je jas', actor: 'douwe', walk: [[1.2, 0.2]], speed: 1.1 },
+    { on: 'En hier is je jas', dt: 2.4, actor: 'douwe', drop: 'jas' },
+  ],
+  shots: [],
+  wide: WIDE([-4.8, 4, 3], [-2.8, 2.9, 2.3], 'mid:durk,douwe@1'),
+};
+
+// M25.3 Oma's kitchen: Jelle makes his offer, the answer is not money
+S['M25.3'] = {
+  cast: {
+    jelle: { key: 'jelle', at: [6, 2], face: 190, anim: 'idle', gest: ['nod', 'hips', 'point', 'shrug'] },
+    trijntje: { key: 'trijntje', at: [-2.2, 1.5], face: 10, anim: 'idle', bg: true, gest: ['nod', 'look'] },
+    mem: { key: 'mem', at: [-2.4, -1.2], face: 350, anim: 'idle', bg: true, gest: ['look', 'shrug'] },
+  },
+  props: {},
+  open: [{ actor: 'tessa', face: 'actor:jelle' }, { actor: 'tammo', face: 'actor:jelle' }, { actor: 'jelle', walk: [[3.2, 0.5]], speed: 1.2 }],
+  beats: [
+    { on: 'Ik ben een redelijk man', actor: 'jelle', anim: 'hips' },
+    { on: 'Van Grunn.', actor: 'tammo', anim: 'point' },
+    { on: 'Details. Geef me', actor: 'jelle', anim: 'point' },
+    { on: 'Het is jouw droom', actor: 'tammo', anim: 'shrug' },
+    { on: '…Het bod viel tegen', actor: 'tessa', anim: 'shake' },
+    { on: 'Tegen? Dit is meer', actor: 'jelle', anim: 'shrug' },
+    { on: 'Je biedt geld', actor: 'tessa', anim: 'point' },
+    { on: 'Dat iemand één keer', actor: 'tessa', face: 'actor:mem' },
+    { on: 'Dat iemand één keer', dt: 0.4, actor: 'mem', face: 'actor:jelle' },
+    { on: 'Dat iemand één keer', dt: 2.5, actor: 'trijntje', anim: 'nod' },
+    { on: '…We bakken op het Ontzet', actor: 'jelle', walk: [[7, 2.6]], speed: 1.3 },
+  ],
+  shots: [],
+  wide: WIDE([-4.6, 3.8, 3], [-2.6, 2.8, 2.3], 'mid:jelle,tessa@1'),
+};
+
+// M26.5 the Oude Boteringestraat: Mem takes over from the limo's back seat
+S['M26.5'] = {
+  cast: {
+    mem: { key: 'mem', at: [4.0, 1.8], face: 190, anim: 'idle', gest: ['point', 'hips', 'talk'] },
+    jelle: { key: 'jelle', at: [3.4, -1.0], face: 160, anim: 'idle', gest: ['shrug', 'hips', 'shake'] },
+    ...PASSER('toerist', 'toerist', [7, -6], [-3, -6.5], 1.0, 'phone').cast,
+  },
+  props: { limo: { kind: 'auto', at: [5.6, -3.4, 0], face: 80 } },
+  open: [{ actor: 'tessa', face: 'actor:jelle' }, { actor: 'tammo', face: 'actor:jelle' }, ...PASSER('toerist', 'toerist', [7, -6], [-3, -6.5], 1.0, 'phone').cues],
+  beats: [
+    { on: 0, dt: 0.3, actor: 'mem', walk: [[2.4, -0.2]], speed: 1.0 },
+    { on: 'Jelle. Geef hem aan mij', actor: 'mem', anim: 'point' },
+    { on: 'Mem. De notaris', actor: 'jelle', anim: 'shrug' },
+    { on: 'Dat is zijn probleem', actor: 'mem', anim: 'hips' },
+    { on: '…Ja, mem', actor: 'jelle', anim: 'shake' },
+    { on: 'Het is drie uur geweest', actor: 'tessa', anim: 'look' },
+  ],
+  shots: [],
+  wide: WIDE([-4.4, 3.8, 3], [-2.4, 2.8, 2.3], 'mid:mem,jelle@1'),
+};
+
+// M26.6 the jury at the Vismarkt: Mem, Berend tastes (M26.6), the vote by baking score (M26.10 five, M26.11 four, M26.12 three), the result (M26.13)
+const JURY_CAST = () => ({
+  berend: { key: 'berend', at: [3.0, 1.5], face: 185, anim: 'idle', gest: ['point', 'hips', 'talk', 'shrug'] },
+  mem: { key: 'mem', at: [2.2, -1.4], face: 170, anim: 'idle', gest: ['hips', 'nod', 'talk'] },
+  trijntje: { key: 'trijntje', at: [1.6, -2.6], face: 160, anim: 'idle', gest: ['talk', 'shrug'] },
+  jelle: { key: 'jelle', at: [3.6, -0.6], face: 180, anim: 'idle', gest: ['hips', 'shake', 'shrug'] },
+  jurylid: { key: 'jurylid', at: [4.2, 1.0], face: 190, anim: 'idle', bg: true, gest: ['nod', 'talk'] },
+  jury2: { key: 'jurylid', at: [4.6, 2.4], face: 190, anim: 'idle', bg: true, gest: ['nod'] },
+  jury3: { key: 'jurylid', at: [4.4, -2.2], face: 170, anim: 'idle', bg: true, gest: ['nod'] },
+  kind: { key: 'kind', at: [7, -3], face: 170, anim: 'idle', bg: true, gest: ['cheer'] },
+  rikus: { key: 'rikus', at: [6, 4], face: 200, anim: 'idle', bg: true, gest: ['talk', 'point'] },
+});
+const JURY_WIDE = WIDE([-5.5, 4.5, 3.4], [-3.5, 3.2, 2.5], 'mid:berend,jelle@1');
+const juryOpen = [{ actor: 'tessa', face: 'actor:berend' }, { actor: 'tammo', face: 'actor:berend' }];
+S['M26.6'] = {
+  cast: JURY_CAST(), props: {}, open: juryOpen,
+  beats: [
+    { on: 0, actor: 'mem', walk: [[2.0, -0.4]], speed: 0.8 },
+    { on: 'Goud. …Valt mie', actor: 'berend', anim: 'nod' },
+    { on: 'Berend zegt niks meer', actor: 'rikus', anim: 'point' },
+    { on: 'Eén verschil', actor: 'berend', anim: 'point' },
+  ],
+  shots: [], wide: JURY_WIDE,
+};
+const vote = (extra) => ({
+  cast: JURY_CAST(), props: {}, open: juryOpen,
+  beats: [
+    { on: 0, actor: 'jelle', walk: [[2.6, -0.3]], speed: 0.8 },
+    { on: 0, actor: 'jurylid', anim: 'cheer' },
+    { on: 1, actor: 'jury2', anim: 'cheer' },
+    { on: 2, actor: 'jury3', anim: 'cheer' },
+    ...extra,
+  ],
+  shots: [], wide: JURY_WIDE,
+});
+S['M26.10'] = vote([
+  { on: 3, actor: 'jurylid', anim: 'cheer' },
+  { on: 'Fjord Frituur. Vijf van de vijf', actor: 'tessa', anim: 'cheer' },
+  { on: 'Fjord Frituur. Vijf van de vijf', actor: 'tammo', anim: 'cheer' },
+  { on: 'Fjord Frituur. Vijf van de vijf', actor: 'kind', anim: 'cheer' },
+  { on: 'Vijf van de vijf. Dat is geen jury', actor: 'jelle', anim: 'shake' },
+]);
+S['M26.11'] = vote([
+  { on: 3, actor: 'jurylid', anim: 'shake' },
+  { on: 'Fjord Frituur. Vier van de vijf', actor: 'tessa', anim: 'cheer' },
+  { on: 'Fjord Frituur. Vier van de vijf', actor: 'tammo', anim: 'cheer' },
+  { on: 'Fjord Frituur. Vier van de vijf', actor: 'kind', anim: 'cheer' },
+]);
+S['M26.12'] = vote([
+  { on: 3, actor: 'jurylid', anim: 'shake' },
+  { on: 'Fjord Frituur. Drie van de vijf', actor: 'tessa', anim: 'nod' },
+  { on: 'Fjord Frituur. Drie van de vijf', actor: 'tammo', anim: 'nod' },
+  { on: 'Drie tegen twee', actor: 'jelle', anim: 'shrug' },
+]);
+S['M26.13'] = {
+  cast: JURY_CAST(), props: {}, open: juryOpen,
+  beats: [
+    { on: 'Gerda. Jouw eierbal', actor: 'trijntje', anim: 'point' },
+    { on: 'Trijntje. Dat duurde', actor: 'mem', anim: 'laugh' },
+    { on: 'Zie je?', actor: 'mem', walk: [[1.8, -2.0]], speed: 0.8 },
+    { on: 'Hij praat Gronings', actor: 'tammo', anim: 'point' },
+    { on: 'Dan is het ernstig', actor: 'tessa', anim: 'laugh' },
+    { on: 'De standplaats op de Vismarkt', actor: 'tessa', anim: 'cheer' },
+    { on: 'En na afloop', actor: 'berend', anim: 'point' },
+    { on: 'De standplaatsen houd ik', actor: 'jelle', anim: 'hips' },
+    { on: 'Dat is mijn zoon', actor: 'mem', anim: 'nod' },
+  ],
+  shots: [], wide: JURY_WIDE,
+};
+
+// M21.6 the wagon choice for the ball: the scratch scene (same set as M21.3)
+S['M21.6'] = { ...S['M21.3'], beats: [
+  { on: 'Eén kras op de auto', actor: 'berend', anim: 'shrug' },
+  { on: 'Dat is mijn schuld', actor: 'tessa', anim: 'shrug' },
+  { on: 'Dat is een kras', actor: 'berend', anim: 'point' },
+  { on: 'Henk. Tinus', actor: 'henk', anim: 'point' },
+] };

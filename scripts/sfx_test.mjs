@@ -64,6 +64,24 @@ for (let v = 0; v < 3; v++) {
 // and louder than the old explosion would have been quiet: the carbid is the loudest of the game
 ok(FX_INFO.carbid_boom_0.range >= FX_INFO.explosion_boom_0.range, 'carbid carries as far as an explosion');
 
+// the bike bell (#129): two clean "ting" strikes ~0.17 s apart, bright, short; not a rattle of five hits
+{
+  const r = renderData('bikebell', SR), d = r.chs[0], sr = r.sr;
+  const win = Math.floor(0.005 * sr), env = [];
+  for (let i = 0; i + win < d.length; i += win) { let e = 0; for (let k = 0; k < win; k++) e += d[i + k] * d[i + k]; env.push(Math.sqrt(e / win)); }
+  const top = Math.max(...env);
+  const onsets = [];
+  for (let i = 0; i < env.length; i++) if (env[i] > 0.4 * top && env[i] > 1.5 * (i ? env[i - 1] : 0) && (!onsets.length || (i - onsets[onsets.length - 1]) * 0.005 > 0.08)) onsets.push(i);
+  ok(onsets.length === 2, 'bikebell: exactly two strikes', String(onsets.length));
+  ok(onsets.length === 2 && Math.abs((onsets[1] - onsets[0]) * 0.005 - 0.17) < 0.03, 'bikebell: strikes about 0.17 s apart');
+  ok(d.length / sr <= 1.0, 'bikebell: short (at most a second)');
+  let zc = 0, i0 = Math.floor(0.002 * sr), i1 = Math.floor(0.12 * sr);
+  for (let i = i0 + 1; i < i1; i++) if ((d[i] >= 0) !== (d[i - 1] >= 0)) zc++;
+  const hz = zc / 2 / ((i1 - i0) / sr);
+  ok(hz > 2000 && hz < 6500, 'bikebell: bright, a bell pitch and no thud', hz.toFixed(0));
+  ok(rmsIn(d, sr, 0.7, 0.9) < 0.15 * rmsIn(d, sr, 0, 0.1), 'bikebell: the ring dies away');
+}
+
 // mixer plan
 for (const [cat, c] of Object.entries(CATEGORIES)) {
   ok(c.level > 0 && c.level <= 1, `mix ${cat}: level`);

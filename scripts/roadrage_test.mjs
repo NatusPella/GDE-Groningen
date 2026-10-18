@@ -22,7 +22,7 @@ check('rollWeapon: niets bij uit, soms bij normaal', R.rollWeapon(0, always) ===
 const keys = new Set();
 for (let i = 0; i < 400; i++) { const k = R.rollWeapon(1.8, Math.random); if (k) keys.add(k); }
 check('alleen cartoon-spullen uit de lijst', [...keys].every((k) => R.RAGE_WEAPONS.some((w) => w.key === k) && R.DROP_INFO[k]) && keys.size >= 4, [...keys].join());
-check('geen vuurwapens of explosieven in de lijst', R.RAGE_WEAPONS.every((w) => !['pistol', 'uzi', 'shotgun', 'jachtgeweer', 'carbidbus', 'vuurwerk'].includes(w.key)));
+check('geen vuurwapens, explosieven, knuppels of stokken in de lijst', R.RAGE_WEAPONS.every((w) => !['pistol', 'uzi', 'shotgun', 'jachtgeweer', 'carbidbus', 'vuurwerk', 'knuppel', 'hockeystick', 'polsstok'].includes(w.key)));
 
 // klappen
 check('klappen zijn klein', R.hitDamage(0, 1, 100) === R.RAGE.unarmedDamage && R.hitDamage(30, 1.8, 100) <= R.RAGE.armedDamageCap * 1.5 && R.hitDamage(95, 1, 100) <= R.RAGE.armedDamageCap * 1.5);

@@ -9,7 +9,8 @@ import { roadNetReady, snapRoad, roadPathNear, nodeXY } from './roadgraph.js';
 import { isKnockedDown } from './ragdoll.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { decayFactor, profileOf } from './signalement.js';
-import { levelOf } from './wantedlevels.js';
+import { levelOf, markSeen, stepUnseen } from './wantedlevels.js';
+import { createShards, dropSpikes } from './roadshards.js';
 import { makeBeamGeometry, makeBeamMaterial, requestSearchlight } from './nightlights3d.js';
 import { trySpawnMounts, tryDeployCrew, adoptThrownRider, holdUnit, updateCrews, ejectMountRider, maybeBolt, updateBolting } from './policemounts.js';
 
@@ -18,7 +19,6 @@ const SEE_RANGE_CAR = 55;
 const SEE_RANGE_FOOT = 32;
 const HELI_SEE_RADIUS = 14;
 const HELI_SPOT_SPEED = 7.5;
-const SEARCH_MIN_RADIUS = 25;
 
 const ROADBLOCK_WANTED = 3;
 const ROADBLOCK_WAKE_DIST = 14;
@@ -706,35 +706,11 @@ function updateSearch(dt, world, state, escalated) {
   }
   if (state.seen || escalated) {
     world.wantedProfile = profileOf(world);
-    pol.lastSeen = { x: p.x, y: p.y };
-    pol.unseenFor = 0;
-    pol.seenRecently = true;
-    pol.searching = false;
-    world.wantedDecayTimer = 0;
+    markSeen(pol, world, p.x, p.y);
     return;
   }
 
-  pol.unseenFor += dt;
-  const lvl = levelOf(world.wanted);
-  if (pol.unseenFor < lvl.loseAfter && !pol.searching) {
-    pol.seenRecently = true;
-    return;
-  }
-  pol.seenRecently = false;
-  if (!pol.searching) {
-    pol.searching = true;
-    pol.searchCenter = pol.lastSeen ? { ...pol.lastSeen } : { x: p.x, y: p.y };
-    pol.searchRadius = lvl.searchRadius;
-    world.wantedDecayTimer = 0;
-  }
-  pol.searchRadius = Math.max(SEARCH_MIN_RADIUS, pol.searchRadius - lvl.shrink * dt);
-  const outside = Math.hypot(p.x - pol.searchCenter.x, p.y - pol.searchCenter.y) > pol.searchRadius;
-  world.wantedDecayTimer += dt * (outside ? 2 : 1) * decayFactor(world.wantedProfile, world);
-  if (world.wantedDecayTimer >= lvl.cooldown) {
-    world.wanted = Math.max(0, world.wanted - 1);
-    world.wantedDecayTimer = 0;
-    if (world.wanted === 0) world.addMessage('Je bent de politie kwijt', 3);
-  }
+  if (stepUnseen(pol, world, dt, p.x, p.y, decayFactor(world.wantedProfile, world))) world.addMessage('Je bent de politie kwijt', 3);
 }
 
 // --- roadblocks (3+ stars) -------------------------------------------------
@@ -793,6 +769,8 @@ function tryRoadblock(world, state) {
   }
   if (cars.length < 2) return;
   world.vehicles.push(...cars);
+  // from 4 stars a spike strip lies on the road in front of the block (a flat tyre, nothing worse)
+  if (levelOf(world.wanted).spikes) dropSpikes(world.shards || (world.shards = createShards()), rp.x + fx * towardPlayer * 9, rp.y + fy * towardPlayer * 9, segA, world.time || 0);
   const cops = spawnCopPedestriansNear(world.map, rp.x, rp.y, 2, Math.random);
   cops.forEach((c, i) => {
     const side = i === 0 ? 1 : -1;
@@ -915,7 +893,7 @@ export function updatePolice(dt, world) {
 
 // --- the Ommeland ------------------------------------------------------------
 // Past the city's streets units come in, block and give chase on the real
-// roads (countryroute.js, the graph the GPS drives): spawn points, roadblocks
+// roads (the road graph the GPS drives, routing.js): spawn points, roadblocks
 // and officers on foot at a country road; a unit out of sight follows the
 // roads to the player and only goes straight for them across the fields when
 // close and in sight, like in town.

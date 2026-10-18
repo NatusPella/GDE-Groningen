@@ -1,6 +1,7 @@
 import { blurForGameKey } from './spacegate.js';
 import { keyTranslation } from './controls.js';
 import { onSettingsChange } from './settings.js';
+import { probe } from './hitchprobe.js';
 
 // With Shift held e.key is '!' etc., so digits are also tracked via e.code.
 function digitFromCode(code) {
@@ -136,6 +137,7 @@ export class Input {
   _translate(e) {
     if (e.__gde) return;
     // a real key hands the hints back to the keyboard (gamepad.js)
+    if (e.isTrusted && e.type === 'keydown') probe.input();
     if (e.isTrusted && e.type === 'keydown' && this.onRealKey) this.onRealKey();
     // a button still focused from a card or menu would take Space/Enter as a click
     if (e.type === 'keydown' && typeof document !== 'undefined' && blurForGameKey(e.key, document.activeElement, !!(this.canLock && this.canLock()))) document.activeElement.blur();

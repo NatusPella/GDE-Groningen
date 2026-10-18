@@ -126,6 +126,14 @@ export function decideMoment(kind, c) {
   return true;
 }
 
+// Tips: at most one per TIP_GAP seconds.
+export const decideTip = (now, lastTip) => now - lastTip >= RATION.TIP_GAP;
+// A phone message read aloud: a character's text always, the others once per VOICE_GAP.
+export function decideVoice(kind, now, voicedAt) {
+  const gap = VOICE_GAP[kind];
+  return !gap || now - (voicedAt[kind] ?? -Infinity) >= gap;
+}
+
 // --- the one question ----------------------------------------------------------
 
 // Which rule set answers for a channel.
@@ -133,14 +141,19 @@ export const CHANNELS = {
   moment: 'moment', // MOMENTS keys
   narrative: 'narrative', // scene, contact, call, text, say, banter, phone, award, card
   hud: 'hud', // card categories on the P scale
+  tip: 'tip', // tip cards
+  voice: 'voice', // phone messages read aloud
 };
 
 // mayShow('hud', { p, busy, dialogue, zone })  |  mayShow('narrative', { kind, view, urgent })
-// mayShow('moment', { kind, ...decideMoment context })
+// mayShow('moment', { kind, ...decideMoment context })  |  mayShow('tip', { now, last })
+// mayShow('voice', { kind, now, voicedAt })
 export function mayShow(channel, ctx) {
   if (channel === CHANNELS.hud) return mayShowP(ctx.p, ctx);
   if (channel === CHANNELS.narrative) return decideStart(ctx.kind, ctx.view, ctx);
   if (channel === CHANNELS.moment) return decideMoment(ctx.kind, ctx);
+  if (channel === CHANNELS.tip) return decideTip(ctx.now, ctx.last);
+  if (channel === CHANNELS.voice) return decideVoice(ctx.kind, ctx.now, ctx.voicedAt);
   return true;
 }
 

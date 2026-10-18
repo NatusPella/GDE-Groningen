@@ -49,6 +49,9 @@ import { updateSkyProps3D, buildBalloonWarmup } from './skyprops3d.js';
 import { pointInPolygon, polygonBounds, WATER_Y } from './util.js';
 import { preloadLandmarkModels, onLandmarkModelLoaded } from './landmarkmodels.js';
 import { onSettingsChange, getSettings, QUALITY_PRESETS } from './settings.js';
+import { stepFov } from './gamefeel.js';
+import { effectsFor } from './a11ylogic.js';
+import { reducedMotion } from './motion.js';
 import { dynamicScale, cpuLevel } from './gfxprofile.js';
 import { VIEW_DISTANCES, viewDistanceFor, detailDistanceFor, DETAIL_BASE } from './viewdist.js';
 import { buildingBatcher, roadBatcher, facadeBatcher } from './staticbatch3d.js';
@@ -74,6 +77,8 @@ import { initNightLights, setNightLightQuality, updateNightLights, isLightRigOn,
 import { createFarLOD } from './farlod.js';
 import { SECTION, TILE_M, tileOrigin } from './gdt.js';
 import { initRailway3D, updateRailway3D, prewarmRailAt } from './railway3d.js';
+import { updateStationCrowd3D } from './stationlife3d.js';
+import { railZ } from './railway.js';
 import { cameraFocus } from './tilefocus.js';
 import { initMovableBridges3D, updateMovableBridges3D, openBridgeRoads } from './movablebridges3d.js';
 import { getMovableBridges } from './movablebridges.js';
@@ -2013,6 +2018,7 @@ export function update3D(dt, world) {
   syncTrees(world, focus.x, focus.y);
   probe.mark('3d:trees');
   updateRailway3D(dt, world, focus, viewDist);
+  updateStationCrowd3D(scene, world, railZ);
   updateCountryside(dt, world, scene, cam, viewDist);
   updateOmmelandLandmarks(world, scene, focus);
   probe.mark('3d:rail+country');
@@ -3058,7 +3064,10 @@ function applyCameraOverride(dt, world, lx, ly, lz) {
   cam.lookAt(_camLook);
   if (t <= 0.5) applyDrunkCamera(cam);
   if (fovPunch) { cam.fov -= fovPunch; fovPunch = 0; }
-  const targetFov = valid && o.fov ? o.fov : baseFov * (1 - 0.72 * scopeBlend);
+  // snelheids-FOV (#216): groeit zacht mee met de snelheid, uit bij bewegingsreductie en in cutscenes
+  const pv = world && world.player && world.player.inVehicle;
+  speedFov = stepFov(speedFov, valid || !pv || pv.isBoat ? 0 : pv.speed || 0, dt, effectsFor({ reduceMotion: reducedMotion() }));
+  const targetFov = valid && o.fov ? o.fov : (baseFov + speedFov) * (1 - 0.72 * scopeBlend);
   if (cam.fov !== targetFov) {
     cam.fov = Math.abs(targetFov - cam.fov) < 0.05 || (valid && o.cut) || scopeBlend > 0 ? targetFov : cam.fov + (targetFov - cam.fov) * Math.min(1, dt * 3);
     cam.updateProjectionMatrix();
@@ -3069,6 +3078,7 @@ function applyCameraOverride(dt, world, lx, ly, lz) {
 // Gun recoil (world.camKick from combat.js): the view snaps up and a little
 // sideways, the FOV punches out, and both settle within ~0.3 s.
 let fovPunch = 0;
+let speedFov = 0;
 function applyRecoil(dt, world, cinematic) {
   const k = world.camKick;
   if (!k || (k.pitch < 1e-4 && Math.abs(k.yaw) < 1e-4 && k.fov < 0.01)) return;

@@ -28,11 +28,12 @@ import { initTouch } from './touch.js';
 import { initGlyphs } from './glyphs.js';
 import { initA11y } from './a11y.js';
 import { isPlayAheadOpen } from './todo.js';
+import { isHelpOfferOpen } from './assistlive.js';
 import { Player } from './player.js';
 import { World } from './world.js';
 import { initCompanion, updateCompanion } from './companion.js';
 import { tickRowingCoaches } from './roeicoach.js';
-import { updateTrafficAI, resolveVehicleBuildingCollision, resolveVehicleVehicleCollisions, manageTrafficPopulation, manageBikePopulation, manageBusPopulation, manageScooterPopulation, manageMotorPopulation, manageBoatPopulation, updateBoatAI, checkVehicleWater, spawnHeroCarNear, tickBurningVehicles, setGroundMap } from './vehicle.js';
+import { updateTrafficAI, resolveVehicleBuildingCollision, resolveVehicleVehicleCollisions, manageTrafficPopulation, manageBikePopulation, manageBusPopulation, manageScooterPopulation, manageMotorPopulation, manageBoatPopulation, updateBoatAI, recordContact, checkVehicleWater, spawnHeroCarNear, tickBurningVehicles, setGroundMap } from './vehicle.js';
 import { spawnPedestriansNear, updatePedestrians, CITY_CENTRE } from './pedestrians.js';
 import { updateCombat, updateBullets } from './combat.js';
 import { updatePolice } from './police.js';
@@ -56,6 +57,7 @@ import { wijkProfileAt } from './trafficfleet.js';
 import { motorTarget } from './motortraffic.js';
 import { updateParkingLots3D } from './parkinglots3d.js';
 import { updateMarinas3D } from './marinas3d.js';
+import { updateWaterplekken3D } from './waterplekken3d.js';
 import { loadVaarnet, vaarPrefetch } from './vaarload.js';
 import { isShopOpen } from './shopui.js';
 import { initMapView, updateMapView, isMapOpen } from './mapview.js';
@@ -65,7 +67,9 @@ import { updateNarrative } from './narrative.js';
 import { initStoryContact, updateStoryContact } from './storycontact.js';
 import { initTheme } from './theme.js';
 import { initTrafficLights, updateTrafficLights, trafficSignalsNear, trafficLightPhaseFor } from './trafficlights.js';
-import { initRailway, updateRailway, setRailExtraWorld, getTrains } from './railway.js';
+import { initRailway, updateRailway, setRailExtraWorld, getTrains, getRoutes, routePoint } from './railway.js';
+import { updateStationLife } from './stationlife.js';
+import { createBoard as createStationBoard } from './minigamekit.js';
 import { applyCityRoutes, loadLandData } from './corridorrail.js';
 import { setFarProps } from './farprops.js';
 import { initProvince } from './provinceworld.js';
@@ -79,7 +83,7 @@ import { noteFrame, hideAdvice, classifyGpu, readGpu, dynamicScale, cpuLevel } f
 import { updateStreetSigns } from './streetsigns.js';
 import { initPauseMenu, isPauseMenuOpen, openPauseMenu, pauseMenuCover } from './pausemenu.js';
 import { initDayNight, updateDayNight } from './daynight.js';
-import { initCalendar, updateCalendar } from './calendarday.js';
+import { initCalendar, updateCalendar, today as calendarToday } from './calendarday.js';
 import { updateFx3D } from './fx3d.js';
 import { updateGore3D } from './gore3d.js';
 import { updateKnockFx3D } from './knockfx3d.js';
@@ -92,6 +96,7 @@ import { initWorldEvents, updateWorldEvents } from './worldevents.js';
 import { initMuggings, updateMuggings } from './muggings.js';
 import { initRoadRage, updateRoadRage } from './roadrage.js';
 import { updateClearZones } from './clearzonesweep.js';
+import { updateSpikeStrips3D } from './spikestrips3d.js';
 import { tryWeaponDropInteract, updateWeaponDrops3D } from './weapondrops.js';
 import { initFlitspaal, updateFlitspaal } from './flitspaal.js';
 import { initWildlife, updateWildlife } from './wildlife.js';
@@ -133,6 +138,9 @@ import { setBusLines } from './vehicle.js';
 import { scaledTarget, simLevel, nextSimFrame, farAIDist, skipFar, takeDt, keepVehicle } from './simload.js';
 import { getSettings } from './settings.js';
 import { MODS } from './cheatmods.js';
+import { makeDip, triggerDip, dipScale } from './gamefeel.js';
+import { effectsFor } from './a11ylogic.js';
+import { reducedMotion } from './motion.js';
 import { initCheats, updateCheats } from './cheats.js';
 import { updateRegioLeven } from './regiolevenrt.js';
 import { syncLedger, getLedger } from './finance.js';
@@ -208,6 +216,7 @@ function waitForStart(world) {
     updateGore3D(fxDt, world, getScene());
     updateKnockFx3D(fxDt, world, getScene());
     updateWeaponDrops3D(fxDt, world, getScene());
+    updateSpikeStrips3D(fxDt, world, getScene());
     updateGunFx3D(fxDt, world, getScene());
     update3D(dt, world);
   };
@@ -294,7 +303,7 @@ async function boot() {
   const layers = (tiles && tiles.index.layers) || {};
   const corLayer = (layers.provincie && layers.provincie.global ? layers.provincie : null) || layers.corridor;
   if (corLayer && corLayer.global) setWorldPlaces(corLayer.global.places);
-  setRegionData(corLayer && corLayer.global);
+  setRegionData(corLayer && corLayer.global, tiles ? (x, y) => { const [i, j] = tileIndexOf(x, y); return !!tiles.index.tiles[tileKey(i, j)]; } : null);
   const inCorridor = (x, y) => { const [i, j] = tileIndexOf(x, y); const t = tiles.index.tiles[tileKey(i, j)]; return !!t && !!(t.flags & 4); };
   if (corridor && tiles) { setExtraBuiltWorld(inCorridor); setRailExtraWorld(inCorridor); }
   if (tiles) initProvince(tiles);
@@ -408,8 +417,8 @@ async function boot() {
   // browser swallows that Esc keypress), which opens the pause menu instead
   const menuOpen = () => isPauseMenuOpen() || isMapOpen() || isPhoneOpen() || isShopOpen() || !!world.devPanelOpen;
   input.canLock = () => document.body.classList.contains('game-started') && !menuOpen() && !world.uiPaused;
-  initGamepad(input, world, { menuOpen: () => menuOpen() || isPlayAheadOpen(), phoneOpen: isPhoneOpen, pauseOpen: isPauseMenuOpen, mapOpen: () => isMapOpen() });
-  initTouch(input, world, { menuOpen: () => menuOpen() || isPlayAheadOpen() });
+  initGamepad(input, world, { menuOpen: () => menuOpen() || isPlayAheadOpen() || isHelpOfferOpen(), phoneOpen: isPhoneOpen, pauseOpen: isPauseMenuOpen, mapOpen: () => isMapOpen() });
+  initTouch(input, world, { menuOpen: () => menuOpen() || isPlayAheadOpen() || isHelpOfferOpen() });
   document.addEventListener('pointerlockchange', () => {
     if (!document.pointerLockElement && document.body.classList.contains('game-started') && !menuOpen()) openPauseMenu();
   });
@@ -490,12 +499,20 @@ async function boot() {
     return `${st.quality}, schaal ${dynamicScale()}, cpu ${cpuLevel()}, ${c.width}x${c.height}@${r.getPixelRatio().toFixed(2)}${world.paused ? ', pauze' : ''}${world.cameraOverride ? ', camera-override' : ''}`;
   }
 
+  const feelDip = makeDip(), dipSeen = { imp: null, mh: null };
   function frameBody(dt) {
     updateMapView(dt, world);
     world.paused = isMapOpen() || isPauseMenuOpen() || isShopOpen() || !!world.uiPaused;
     if (document.pointerLockElement && (isMapOpen() || isPauseMenuOpen() || isPhoneOpen())) document.exitPointerLock();
     // world.timeScale: slow-motion for cinematic moments (1 = normal)
-    const gameDt = dt * Math.max(0, Math.min(1, world.timeScale ?? 1)) * MODS.slow;
+    // hit-stop (#216): 60-90 ms dip bij een zware klap of een melee-raak
+    const nowS = performance.now() / 1000;
+    const imp = world.lastImpact, mh = world.lastMeleeHit;
+    if ((imp && imp !== dipSeen.imp) || (mh && mh !== dipSeen.mh)) {
+      triggerDip(feelDip, nowS, { strength: imp && imp !== dipSeen.imp ? imp.strength : 0, melee: !!(mh && mh !== dipSeen.mh) }, effectsFor({ reduceMotion: reducedMotion() }));
+      dipSeen.imp = imp; dipSeen.mh = mh;
+    }
+    const gameDt = dt * Math.max(0, Math.min(1, world.timeScale ?? 1)) * MODS.slow * dipScale(feelDip, nowS);
     // dev mode time scale (storydev.js): whole extra gameplay steps per frame
     const reps = world.devTimeScale > 1 ? Math.min(8, Math.round(world.devTimeScale)) : 1;
     if (!world.paused) for (let r = 0; r < reps; r++) updateGameplay(gameDt);
@@ -517,6 +534,7 @@ async function boot() {
     updateGore3D(animDt, world, getScene());
     updateKnockFx3D(animDt, world, getScene());
     updateWeaponDrops3D(animDt, world, getScene());
+    updateSpikeStrips3D(animDt, world, getScene());
     updateGunFx3D(animDt, world, getScene());
     probe.mark('fx+gore');
     updateCityProps(animDt, world, getScene());
@@ -646,8 +664,10 @@ async function boot() {
     resolveVehicleVehicleCollisions(world.vehicles, world);
     tickBurningVehicles(world, dt);
     updateRailway(dt, world);
+    updateStationLife(dt, world, { routes: getRoutes(), point: routePoint, day: calendarToday(world), createBoard: createStationBoard, driving: getTrains().some((t) => t.state === 'player') });
     updateMovableBridges(dt, world);
-    updateBridgeHits(dt, world);
+    // a ship against a bridge deck: the crash sound of a car contact, by how hard the deck was hit (audio.js updateContactAudio)
+    for (const h of updateBridgeHits(dt, world)) recordContact(h.boat, null, h.boat.x, h.boat.y, 0, 0, 4 + h.severity * 4, 0);
     if (FLAGS.brugbotsing) {
       bridgeDemoT += dt;
       if (bridgeDemoT > 6 && !bridgeDemoDone) bridgeDemoDone = !!startBridgeCrashDemo(world);
@@ -684,6 +704,7 @@ async function boot() {
       updateShops(dt, world);
       updateParkingLots3D(world);
       updateMarinas3D(world);
+      updateWaterplekken3D(world);
       updateFlitspaal(dt, world);
       updateFlavour(dt, world);
     } else updateMissions(dt, world);

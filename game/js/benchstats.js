@@ -26,6 +26,9 @@ const mean = (a) => a.reduce((x, y) => x + y, 0) / a.length;
 
 // Statistics over frame times in ms: average fps, 95th percentile frame time,
 // and the fps of the slowest 1% of frames ("1%-low").
+// A frame over this (30 fps) is a visible hitch in the precision stretches (races, gates). #216 / G28.
+export const HITCH_FRAME_MS = 33.4;
+
 export function frameStats(ms) {
   const v = (ms || []).filter((x) => Number.isFinite(x) && x > 0);
   if (!v.length) return null;
@@ -33,7 +36,8 @@ export function frameStats(ms) {
   const p95 = sorted[Math.min(sorted.length - 1, Math.ceil(sorted.length * 0.95) - 1)];
   const n = Math.max(1, Math.floor(sorted.length * 0.01));
   const worst = mean(sorted.slice(sorted.length - n));
-  return { frames: v.length, avg: 1000 / mean(v), p95, low1: 1000 / worst };
+  const slow33 = v.filter((x) => x > HITCH_FRAME_MS).length;
+  return { frames: v.length, avg: 1000 / mean(v), p95, low1: 1000 / worst, slow33, slow33Share: slow33 / v.length };
 }
 
 // Per category: the frame times of all its shots together. `shots` is
@@ -50,6 +54,25 @@ export function categoryStats(shots) {
     if (st) out[c] = st;
   }
   return out;
+}
+
+// Frames over HITCH_FRAME_MS per shot of the route: [{ id, frames, slow33, share }], worst first.
+export function routeHitches(shots) {
+  const out = [];
+  for (const s of shots || []) {
+    if (!s || !s.ms || !s.ms.length) continue;
+    const slow33 = s.ms.filter((x) => x > HITCH_FRAME_MS).length;
+    out.push({ id: s.id || s.label || '?', frames: s.ms.length, slow33, share: slow33 / s.ms.length });
+  }
+  return out.sort((a, b) => b.share - a.share || b.slow33 - a.slow33);
+}
+
+// Button-to-frame latency samples in ms (hitchprobe.js): average, 95th percentile and the worst.
+export function latencyStats(samples) {
+  const v = (samples || []).filter((x) => Number.isFinite(x) && x >= 0);
+  if (!v.length) return null;
+  const sorted = v.slice().sort((a, b) => a - b);
+  return { n: v.length, avg: mean(v), p95: sorted[Math.min(sorted.length - 1, Math.ceil(sorted.length * 0.95) - 1)], max: sorted[sorted.length - 1] };
 }
 
 // The weakest category (lowest average fps), for "hier hapert het".
@@ -115,7 +138,7 @@ export function packRun({ stats, cats, preset, memory, at }) {
   const r = (x, d = 1) => +x.toFixed(d);
   return {
     v: 1, at: at || Date.now(), preset: preset || null,
-    avg: r(stats.avg), p95: r(stats.p95), low1: r(stats.low1),
+    avg: r(stats.avg), p95: r(stats.p95), low1: r(stats.low1), slow33: r(100 * (stats.slow33Share || 0), 2),
     cats: Object.fromEntries(Object.entries(cats || {}).map(([c, s]) => [c, r(s.avg)])),
     memory: memory > 0 ? Math.round(memory) : null,
   };

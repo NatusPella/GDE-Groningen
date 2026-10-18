@@ -21,10 +21,10 @@ const WRECKED_UP = [
   'KIEKDOAR: wéér total loss in Groningen, garages wrijven in hun handen',
 ];
 const COPKILL_UP = [
-  'KIEKDOAR: agent gewond geraakt tijdens dienst, korps in rep en roer',
+  'KIEKDOAR: agent flink geschrokken tijdens dienst, korps in rep en roer',
 ];
 const PEDKILL_UP = [
-  'KIEKDOAR: voetganger gewond, buurtapp ontploft van de reacties',
+  'KIEKDOAR: voetganger met de schrik vrijgekomen, buurtapp ontploft van de reacties',
 ];
 const KILL_UP = [
   'KIEKDOAR: opnieuw onrust in de straten, politie tast in het duister',

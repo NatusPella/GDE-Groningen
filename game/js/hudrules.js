@@ -31,7 +31,7 @@
 // Never: cutscenes, photo mode, the big map. "Minimaal": stars, objective,
 // subtitles and P0 only.
 
-import { P0, P1, P2, P3, CARD_P, cardPrio, cardZone, mayShowP } from './hudbus.js';
+import { P0, P1, P2, P3, CARD_P, cardPrio, cardZone, mayShow as busMayShow } from './hudbus.js';
 
 export { P0, P1, P2, P3, CARD_P, cardPrio, cardZone };
 
@@ -55,8 +55,8 @@ export const DEFER_MAX = 30;
 export const CEILING = 6;
 export const GPS_NEAR = 400;
 
-// May an item of priority p start now? The rule is in hudbus.js (mayShowP).
-export const mayShow = mayShowP;
+// May an item of priority p start now? The rule is in hudbus.js (mayShow('hud', ...)).
+export const mayShow = (p, ctx) => busMayShow('hud', { p, ...ctx });
 
 // A deferred item (P3 during a busy moment): waits while held, lapses after
 // DEFER_MAX seconds of waiting. tick() returns 'show', 'wait' or 'drop'.

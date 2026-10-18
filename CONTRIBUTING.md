@@ -97,3 +97,16 @@ we niet over.
 De naam GDE en het logo vallen niet onder de licenties van het project.
 
 We houden ons aan de [gedragscode](CODE_OF_CONDUCT.md).
+
+## Vóór je een bijdrage indient: wat niet mag
+
+- **Geen echte merken, bedrijven of personen** in speltekst of beeld; verzin ze
+  (register: [docs/MERKENREGISTER.md](docs/MERKENREGISTER.md)). Echte plaatsen en gebouwen mogen.
+- **Geen geheimen of persoonsgegevens** in commits: geen sleutels, `.env`, thuispaden
+  of e-mailadressen. Controleer met `node scripts/publish_check.mjs`.
+- **Geen auteursrechtelijk materiaal van derden** (muziek, beeld, lettertypen, modellen)
+  zonder vermelding van licentie in [NOTICE.md](NOTICE.md) en `licenses/`.
+- **Alleen Nederlands** in alles wat een speler ziet of hoort (`node scripts/text_audit.mjs`).
+- **Altijd zomer.** Geen winter, sneeuw of natuurijs.
+- Privacy en credits: [docs/PRIVACY-EN-CREDITS.md](docs/PRIVACY-EN-CREDITS.md). Op de
+  eigenaar na gebruik je in credits geen echte naam: kies een bijnaam.

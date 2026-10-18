@@ -305,6 +305,8 @@ const _roadZ = [], _roadD = [], _roadR = [], _capZ = [], _capD = [], _capX = [],
 // what the last groundHeightAt stood on: a ribbon (road or rail), an
 // embankment slope or the ground (surfaceAt keeps it as the asker's state)
 const _pick = { ribbon: null, kind: 'ground' };
+// the ribbon the last groundHeightAt / surfaceAt answered from (null: the ground)
+export const pickedRibbon = () => _pick.ribbon;
 
 // Nearest street-level road ribbon near the raised ones at (x, y): distance
 // to its centreline over its half width (Infinity when on none).

@@ -421,3 +421,15 @@ De eigenaar liet alle acht open besluiten aan Claude ("doe wat je het beste lijk
 6. **Verificatie:** licht (bestaande audits en ~12 schermafdrukken, geen prestatiemeting per stap; prestaties bij de releasebouw). Fase A mag de provincie meer GPU en geheugen kosten, zolang de stad er niet slechter uitziet of voelt.
 7. **Downloads:** 3D BAG voor de provincie is gedaan (0,9 GB gestreamd, 6,8 MB resultaat). AHN provinciebreed akkoord (per tegel gestreamd, alleen hoogtes bewaren, ruwe data direct wissen; schijf is krap). Eindgrootte richting 1 GB is toegestaan.
 8. **Oude stadspad (C3):** pas verwijderen in een release nadat poort B is gehaald en de eigenaar de stad akkoord heeft bevonden. De geschiedenis wordt niet herschreven.
+
+## Stand fase 3 (stadsprofiel, query-pariteit)
+
+`scripts/city_parity_test.mjs` (hulp: `scripts/lib/cityparity.mjs`) bouwt twee TileWorlds: A = de stad uit `citymap.json` (vast in het geheugen), B = de 17 kerntegels uit de OSM-bouw met `buildProvince({ profile })`, gestreamd zoals de provincie (gids >= 20.000.000, geen vaste set). Daarna dezelfde vragen aan allebei op een raster van 40 m: waterAt-soort/-peil, gebouw ja/nee, `nearestRoadPoint`, `groundHeightAt`.
+
+Eerste meting (raster 25 m): gebouw ja/nee 98,1 %, weg binnen 8 m 97,3 %, hoogte binnen 0,5 m 99,6 %, water: beide nat 1520, alleen stad 2, alleen OSM 70; soort gelijk 90,1 %, peil 100 %.
+
+Stadsprofiel water (`waterlevels.js annotateCityWater`, aangezet door `profile` in `build_province.mjs`): de stadskaart classificeert op kanaalbreedte uit het afstandsveld van het hele lichaam en kent één boezem; de provincie per veelhoek (een in stukken gemapt kanaal werd `diep`/`vijver`) en splitst bij sluizen. Het profiel kiest als boezem het lichaam met de meeste oppervlakte in de stadstegels (niet het grootste van het pak: dat is een meer), en laat sluiskamers `lock` houden zonder het lichaam te splitsen.
+
+Waarom de tellingen van `city_diff` (water +29 %, bomen +26 %) geen maat zijn: de stad bewaart een veelhoek heel in één tegel, de provincie knipt hem per tegel (meer, kleinere rijen, minder oppervlak per tegel); bomen: 72 % van de stadsbomen heeft binnen 3 m een OSM-boom, de rest is brondatum. Vergelijk daarom op vragen, niet op rijen.
+
+Nog niet gedaan: de runtime leest `citymap.json` nog (main.js, facilities.js, roadsurface.js-worker, railway.js, mapdata.js); `pack_tiles.mjs` bouwt de stadstegels in productie nog uit citymap.json; de vaste set van `tileworld.js fromTiles` eist dichte gids, dus de OSM-stad kan er pas in als de stad ook gestreamd wordt. Daarom kan #76 niets verwijderen.

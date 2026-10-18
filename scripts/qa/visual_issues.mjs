@@ -37,6 +37,36 @@ function rail(stationName) {
   }
   return best;
 }
+// punten op de lijn zelf: op booglengte d van het station, met de kijkrichting langs het spoor
+// (terug naar het station), zodat de camera echt op het spoor staat en niet op de rechte verlenging
+function railPoints(stationName, ds) {
+  const st = station(stationName);
+  let best = null;
+  for (const r of index.routes) for (let i = 0; i < r.pts.length - 1; i++) {
+    const d = Math.hypot((r.pts[i][0] + r.pts[i + 1][0]) / 2 - st.x, (r.pts[i][1] + r.pts[i + 1][1]) / 2 - st.y);
+    if (!best || d < best.d) best = { d, r, i };
+  }
+  const walk = (dir) => {
+    const out = [];
+    let acc = 0, i = best.i, t = 0;
+    for (const target of ds) {
+      let ran = false;
+      while (acc < target && i + dir >= 0 && i + dir < best.r.pts.length) {
+        const a = best.r.pts[i], b = best.r.pts[i + dir];
+        const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
+        if (acc + len >= target) { t = (target - acc) / len; ran = true; break; }
+        acc += len; i += dir; t = 0;
+      }
+      const a = best.r.pts[i], b = best.r.pts[Math.max(0, Math.min(best.r.pts.length - 1, i + dir))];
+      const x = a[0] + (b[0] - a[0]) * t, y = a[1] + (b[1] - a[1]) * t;
+      out.push({ d: target, x: Math.round(x * 10) / 10, y: Math.round(y * 10) / 10, a: Math.atan2(b[1] - a[1], b[0] - a[0]), end: !ran });
+    }
+    return out;
+  };
+  const fwd = walk(1), back = walk(-1);
+  const reach = (w) => w.filter((p) => !p.end).length;
+  return reach(fwd) >= reach(back) ? fwd : back;
+}
 const off = (p, dx, dy) => ({ x: p.x + dx, y: p.y + dy });
 const gm = place('Groningen', 'city');
 const water = (name, p, R) => ({ name, type: 'water', issue: 124, ...p, R });
@@ -49,6 +79,16 @@ const SPOTS = [
   water('w124-eemshaven', off(place('Eemshaven'), 0, -1500), 3000),
   water('w124-lauwersmeer', off(place('Zoutkamp'), -3000, -2500), 3500),
   water('w124-westerkwartier', place('Leek'), 2000),
+  // #189: wegdek-overgangen op de kartbaan Ulrum
+  { name: 'u189-kartbaan', type: 'kart', issue: 189, x: -15101, y: -15598 },
+  // #188: het laadscherm
+  { name: 'l188-laadscherm', type: 'loadscreen', issue: 188, ...gm },
+  // #212: het plaatslabel in en om Corpus den Hoorn
+  { name: 'o212-corpus', type: 'labelgrid', issue: 212, ...place('Corpus den Hoorn'), rx: 1400, ry: 1000, step: 100 },
+  // #115: missiemarkers
+  { name: 'm115-markers', type: 'marker', issue: 115, ...gm },
+  // #117: cutscene-geluid (welke geluiden de eerste missies in de rij zetten)
+  { name: 's117-cutscenes', type: 'cutsound', issue: 117, ...gm, n: 4 },
   // #130: kruisingen, op- en afritten, samenkomende rijstroken
   { name: 'k130-stad', type: 'junction', issue: 130, ...gm, R: 400, n: 3 },
   { name: 'k130-haren', type: 'junction', issue: 130, ...place('Haren', 'town'), R: 500, n: 2 },
@@ -60,7 +100,7 @@ const SPOTS = [
   { name: 'c157-sauwerd', type: 'cinefar', issue: 157, ...gm, cx: rail('Sauwerd').x, cy: rail('Sauwerd').y, a: rail('Sauwerd').a },
   { name: 'c157-station', type: 'cinefar', issue: 157, ...off(gm, -1500, -900), cx: rail('Groningen').x, cy: rail('Groningen').y, a: rail('Groningen').a },
   // #158: spoor op verschillende afstanden
-  ...['Sauwerd', 'Winsum', 'Eemshaven', 'Delfzijl'].map((n) => ({ name: 'r158-' + n.toLowerCase(), type: 'raillod', issue: 158, ...(({ x, y, a }) => ({ x, y, a }))(rail(n)) })),
+  ...['Sauwerd', 'Winsum', 'Eemshaven', 'Delfzijl'].map((n) => ({ name: 'r158-' + n.toLowerCase(), type: 'raillod', issue: 158, ...(({ x, y, a }) => ({ x, y, a }))(rail(n)), pts: railPoints(n, [40, 150, 400, 900, 1800]) })),
 ];
 for (const s of SPOTS) { s.x = Math.round(s.x * 10) / 10; s.y = Math.round(s.y * 10) / 10; if (s.cx !== undefined) { s.cx = Math.round(s.cx * 10) / 10; s.cy = Math.round(s.cy * 10) / 10; } }
 if (process.argv.includes('--list')) { console.log(JSON.stringify(SPOTS)); process.exit(0); }

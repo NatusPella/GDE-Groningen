@@ -112,3 +112,19 @@ iets bij komt (stemlijnen in `game/audio`) verandert dit antwoord naar "ja".
 3. Een eigen IARC-account is nodig via een afnemer (bijvoorbeeld Google Play
    Console). Dat vraagt een account en e-mailadres; dat doet de eigenaar zelf.
 4. Verstuur het certificaat nooit zonder de eigenaar; deze notitie vult niets in.
+
+## Aanvulling na samen spelen (#95, 18 okt 2026)
+
+De tabellen hierboven stammen van vóór de coöp-modus. Voor de vragen over
+online functies geldt nu (eigenaar vult aan bij het invullen):
+
+| Vraag (globaal) | Antwoord | Toelichting |
+|---|---|---|
+| Online interactie tussen gebruikers / chat | Beperkt: samen spelen met een kamercode, geen tekstchat, geen publieke lobby | Peer-to-peer (WebRTC) tussen spelers die de code delen |
+| Deelt gegevens met derden | Alleen na toestemming van de speler: IP-adres naar openbare STUN-servers; versleutelde signalering via openbare brokers | `game/js/net/netconfig.js`, `net/consent.js`, [PRIVACY-EN-CREDITS.md](PRIVACY-EN-CREDITS.md) |
+| Gebruikers kunnen content delen (UGC) | Nee | |
+| Internetverbinding nodig | Alleen voor samen spelen (en de webversie, zie het CDN-punt) | |
+
+Controleer in het echte formulier of "interactieve elementen" (users interact,
+shares info) aangevinkt moet worden; kies bij twijfel het ruimste antwoord. De
+overige stappen staan in [PUBLICATIECHECKLIST.md](PUBLICATIECHECKLIST.md).

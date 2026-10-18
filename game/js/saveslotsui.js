@@ -4,7 +4,7 @@
 // on the same buttons. The storage side is saveslots.js; the world side savegame.js.
 import * as S from './saveslots.js';
 import { MAX_SLOTS } from './storagekeys.js';
-import { saveGame, loadSlot, readSave, startNewSlot } from './savegame.js';
+import { saveGame, loadSlot, readSave, startNewSlot, bindSlot } from './savegame.js';
 
 const DESKTOP = typeof window !== 'undefined' && window.gdeDesktop && window.gdeDesktop.isDesktop ? window.gdeDesktop : null;
 
@@ -153,6 +153,7 @@ export function openSaveSlots(opts = {}) {
       const n = S.freeSlot();
       if (!n) { say('Alle plekken zijn in gebruik.'); return; }
       S.createSlot(null, '');
+      bindSlot();
       if (!saveGame(world, { toast: false })) { S.deleteSlot(null, n); say('Opslaan mislukt.'); return; }
       sel = n; message = 'Opgeslagen in een nieuw slot.'; render('pane');
       return;
@@ -172,12 +173,14 @@ export function openSaveSlots(opts = {}) {
       if (world && world.pigeonMode) { say('Je bent een duif. Stop de duif-modus om op te slaan.'); return; }
       if (!cur.active && cur.state !== 'leeg') { view = 'overwrite'; render('pane'); return; }
       S.setActive(null, cur.n);
+      bindSlot();
       message = saveGame(world, { toast: false }) ? 'Opgeslagen.' : 'Opslaan mislukt.';
       render('pane');
       return;
     }
     if (act === 'overwrite-ok' && cur) {
       S.setActive(null, cur.n);
+      bindSlot();
       view = 'detail';
       message = saveGame(world, { toast: false }) ? 'Overschreven.' : 'Opslaan mislukt.';
       render('pane');

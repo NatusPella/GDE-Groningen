@@ -12,13 +12,13 @@ const check = (name, ok, info = '') => { n++; if (!ok) { bad++; console.log('FAI
 
 // --- night and risk
 {
-  check('night factor: day 0, evening a bit, night full', M.nightFactor(14) === 0 && M.nightFactor(21) === 0.6 && M.nightFactor(23.5) === 1 && M.nightFactor(2) === 1 && M.nightFactor(5.5) === 0.5 && M.nightFactor(7) === 0);
+  check('night factor: day 0, evening a bit, night full', M.nightFactor(14) === 0 && M.nightFactor(19) < M.nightFactor(20) && M.nightFactor(20) < M.nightFactor(21) && M.nightFactor(23.5) === 1 && M.nightFactor(2) === 1 && M.nightFactor(7) === 0);
   check('night factor wraps and rejects junk', M.nightFactor(25) === 1 && M.nightFactor(-1) === 1 && M.nightFactor(NaN) === 0 && M.nightFactor(undefined) === 0);
   check('no risk by day', Object.keys(M.RISKY).every((w) => M.riskLevel(w, 13) === 0 && !M.warnsOn(w, 13)));
   check('risk at night in the risky wijken', Object.keys(M.RISKY).every((w) => M.riskLevel(w, 1) > 0 && M.warnsOn(w, 1)));
   check('busy nightlife wijken are riskier than empty business parks', M.riskLevel('Binnenstad', 1) > M.riskLevel('Peizerweg', 1) && M.riskLevel('Binnenstad', 1) === 1);
   check('no risk elsewhere', M.riskLevel('Selwerd', 1) === 0 && M.riskLevel('', 1) === 0 && M.riskLevel(undefined, 1) === 0 && M.riskLevel('Zuiderpark', 23) === 0);
-  check('warning on the map from the evening on, not for the tier-one parks at dusk', M.warnsOn('Stationsgebied', 21) && !M.warnsOn('Peizerweg', 21) && M.warnsOn('Peizerweg', 23));
+  check('warning on the map from the evening on, by the sun (the same night as the street lights), not by day', M.warnsOn('Stationsgebied', 21) && !M.warnsOn('Stationsgebied', 14) && !M.warnsOn('Peizerweg', 14) && M.warnsOn('Peizerweg', 23));
   check('every risky wijk has a reason in plain words', Object.keys(M.RISKY).every((w) => M.riskWhy(w).length > 8) && M.riskWhy('Selwerd') === '');
   check('the hazard grows with the risk and is a small per-second chance', M.hazard(1) > M.hazard(0.5) && M.hazard(0) === 0 && M.hazard(1) < 0.02 && M.hazard(-1) === 0);
   // expected time to the first mugging standing in the busiest wijk at night: a few minutes

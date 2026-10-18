@@ -76,7 +76,7 @@ export function strike(st, bell) {
 export function stepCarillon(st, presses, dt) {
   const ev = [];
   if (st.phase !== 'run') return ev;
-  st.t += dt;
+  st.t += Number.isFinite(dt) && dt > 0 ? dt : 0;
   for (const b of presses) { const e = strike(st, b); if (e) ev.push(e); }
   for (const n of st.notes) {
     if (n.state === 'wait' && st.t > n.t + CARILLON.late) { n.state = 'miss'; st.miss++; st.combo = 0; ev.push({ type: 'miss', bell: n.bell }); }

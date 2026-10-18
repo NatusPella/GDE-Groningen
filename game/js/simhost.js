@@ -70,6 +70,8 @@ export function createSimHost(opts = {}) {
     despawn(ids) { send({ type: MSG.DESPAWN, ids }); },
     // Asks for one step; skipped (and counted) while the previous one is still out.
     step(tick, dt) {
+      // een ongeldige stap zou in send() gooien na inFlight = true: dan wacht de host voorgoed op een snapshot
+      if (!Number.isFinite(dt) || !Number.isFinite(tick)) { stats.dropped++; return false; }
       if (inFlight) { stats.dropped++; return false; }
       stats.steps++;
       if (!kernel) inFlight = true;

@@ -106,7 +106,7 @@ export const ACHIEVEMENTS = [
   { id: 'padel_winst', cat: 'verkennen', title: 'Tegen het glas', desc: 'Win een potje padel' },
   { id: 'padel_goud', cat: 'verkennen', title: 'Padelkoning van Grunn', desc: 'Win een potje padel met 2-0' },
   { id: 'carbid_klaar', cat: 'verkennen', title: 'Knal in de polder', desc: 'Schiet carbid bij boer Roelf' },
-  { id: 'carbid_goud', cat: 'verkennen', title: 'Oudjoarsknaller', desc: 'Haal goud bij het carbid schieten', medal: true },
+  { id: 'carbid_goud', cat: 'verkennen', title: 'Carbidknaller', desc: 'Haal goud bij het carbid schieten', medal: true },
   { id: 'botsauto_klaar', cat: 'verkennen', title: 'Kermisklant', desc: "Rij een ritje in de botsauto's op de Grote Markt" },
   { id: 'botsauto_goud', cat: 'verkennen', title: 'Koning van de kermis', desc: "Haal goud in de botsauto's", medal: true },
   { id: 'discgolf_klaar', cat: 'verkennen', title: 'Disc in de mand', desc: 'Speel een ronde discgolf in het Stadspark' },
@@ -168,7 +168,7 @@ export const ACHIEVEMENTS = [
 
   { id: 'trein_stations', cat: 'spoor', title: 'Alle haltes af', desc: 'Stap uit op 5 verschillende stations of haltes', set: 'trainStations', goal: 5 },
   { id: 'trein_dorp', cat: 'spoor', title: 'Dorpsstation', desc: 'Reis met de trein naar een dorpshalte', hidden: true },
-  { id: 'treinen', cat: 'spoor', title: 'Treinspotter', desc: 'Zie alle soorten treinen: GTW, WINK en de Intercity', set: 'trains', goal: 3 },
+  { id: 'treinen', cat: 'spoor', title: 'Treinspotter', desc: 'Zie alle soorten treinen: stoptrein, sprinter en intercity', set: 'trains', goal: 3 },
   { id: 'trein_race', cat: 'spoor', title: 'Sneller dan de sprinter', desc: 'Rij een rijdende trein voorbij', hidden: true },
   { id: 'trein_1', cat: 'spoor', title: 'Instappen, deuren sluiten', desc: 'Reis met de trein naar een ander station', stat: 'trainTrips', goal: 1 },
   { id: 'forens', cat: 'spoor', title: 'Forens', desc: 'Reis 10 keer met de trein', stat: 'trainTrips', goal: 10 },
