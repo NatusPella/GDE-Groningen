@@ -13,6 +13,7 @@ const M = await import('../game/js/missions.js');
 const { STEPS, NEW_MISSION_IDS } = await import('../game/js/storyarc_nieuw.js');
 const { MISSION_IDS } = await import('../game/js/storyarc.js');
 const P = await import('../game/js/heliplan.js');
+const { judgeGate } = await import('../game/js/planestage.js');
 const root = new URL('../game/', import.meta.url);
 const data = JSON.parse(fs.readFileSync(new URL('citymap.json', root), 'utf8'));
 applyMapExtras(data, JSON.parse(fs.readFileSync(new URL('mapextras.json', root), 'utf8')));
@@ -82,6 +83,23 @@ if (m14.built) {
   ok(km > 7 && km < 9, 'M14: the start is about 8 km from the sluis', String(km));
   ok(d.snapStart && d.vehicle === 'car' && d.stages[0].kind === 'board', 'M14: a car is put on the road at the start');
   ok(race && race.lost && race.won && race.talk.ids[0] === 'M14.2', 'M14: lost and won lines, the race talk from the script');
+}
+// M15: the plane
+const m15 = act3.find((s) => s.id === 'M15');
+if (m15.built) {
+  const d = defs[MISSION_IDS.indexOf('graan')];
+  ok(d.stages.map((q) => q.kind).join() === 'plane,airgates,landplane', 'M15: board, gates, land');
+  const gates = d.stages[1].gates;
+  ok(gates.length === 5 && gates.every((g) => inProvince(g) && g.r > 20 && g.lo < g.hi), 'M15: five gates in the province');
+  ok(gates[0].banner && d.stages[1].banner.length > 10, 'M15: the first gate hangs the banner');
+  const strip = d.stages[0].strip;
+  ok(Math.hypot(gates[0].x - strip.x, gates[0].y - strip.y) < 600, 'M15: the banner pole stands at the end of the strip');
+  ok(d.stages[1].talk.ids[0] === 'M15.2', 'M15: the talk over the kermis from the script');
+  // judging a pass: right height passes at once; too high/low/wide is told once the plane is past
+  const g = { r: 40, lo: 14, hi: 48 };
+  ok(judgeGate(g, { closest: Infinity, agl: 0 }, 20, 30) === 'pass', 'M15: inside the ring and in the window passes');
+  const run = (agl, lat) => { const st = { closest: Infinity, agl: 0 }; let r = null; for (let x = -300; x < 300 && !r; x += 5) r = judgeGate(g, st, Math.hypot(x, lat), agl); return r; };
+  ok(run(90, 0) === 'high' && run(5, 0) === 'low' && run(30, 90) === 'wide' && run(30, 0) === 'pass', 'M15: high, low, wide and a pass');
 }
 // M16: the kermis of Winschoten
 const m16 = act3.find((s) => s.id === 'M16');

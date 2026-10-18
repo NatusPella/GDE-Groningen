@@ -18,7 +18,7 @@
 import { SPEAKERS as OUD_SPEAKERS, CHARACTERS as OUD_CHARACTERS } from './storyarc_oud.js';
 
 // ids appended to MISSION_IDS (indices live in saves: append only, never reorder)
-export const NEW_MISSION_IDS = ['loket', 'bakkiestunt', 'containers', 'dijk'];
+export const NEW_MISSION_IDS = ['loket', 'bakkiestunt', 'containers', 'dijk', 'graan'];
 
 // The new cast (storytext.js maps the script's speakers to these keys).
 export const SPEAKERS = {
@@ -136,12 +136,12 @@ export const STEPS = [
   M('M14', 'staart', 'De dijk', 'dijk', { built: true, reward: 1000,
     story: { intro: ['M14.1'], outro: ['M14.3'], replay: ['M14.4'] }, scenes: ['M14.1', 'M14.2', 'M14.3', 'M14.4'],
     lead: ['T', 'Zonsopgang op de kade. Om acht uur legt Jelles deurwaarder beslag in Delfzijl. Wij zijn eerder bij de sluis.'] }),
-  A('T3', 'staart', 'De trein naar Winschoten', { type: 'train' }, { scenes: ['T3'],
+  A('T3', 'staart', 'De trein naar Winschoten', { type: 'train' }, { built: true, scenes: ['T3'],
     lead: ['A', 'Van Delfzijl met de trein naar Winschoten. Daar is een kermis.'] }),
-  M('M15', 'staart', 'Laag over het graan', 'graan', { reward: 900,
+  M('M15', 'staart', 'Laag over het graan', 'graan', { built: true, reward: 900,
     story: { intro: ['M15.1'], outro: ['M15.3'], replay: ['M15.4'] }, scenes: ['M15.1', 'M15.2', 'M15.3', 'M15.4'],
     lead: ['A', 'Roelfien wacht bij haar graanveld bij Winschoten. Haar vliegtuig sleept al twintig jaar een spandoek voor de kermis.'] }),
-  M('M16', 'staart', 'Nog eentje dan', 'kroegentocht', { reward: 600,
+  M('M16', 'staart', 'Nog eentje dan', 'kroegentocht', { built: true, reward: 600,
     story: { intro: ['M16.1'], outro: ['M16.3', 'M16.4', 'M16.5', 'M16.6'], replay: ['M16.7'] }, scenes: ['M16.1', 'M16.2', 'M16.3', 'M16.4', 'M16.5', 'M16.6', 'M16.7'],
     lead: ['T', 'Geert heeft drie tenten op de kermis in Winschoten. Durk en Douwe zingen aan zijn bar.'] }),
 
