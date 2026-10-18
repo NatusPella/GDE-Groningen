@@ -141,5 +141,14 @@ check('bus staat stil: deuren open', D.stilstandDeurOpen(car('bus', { isBus: tru
   D.openDriverDoor(m); D.stepDoors(m.doors, dt * 30, { speed: 8 });
   check('een rijdende auto slaat de deur dicht', !(m.doors.open.vl > 0.5));
 }
+// busdeuren sluiten aan op de opening in het busmodel (hoogte 3,0 m, opening 0,42..2,6 m, 1,25 m breed)
+for (const [naam, len, aantal] of [['bus', 11.2, 4], ['midibus', 8.4, 2]]) {
+  const b = D.doorsFor({ model: { name: naam, len, wid: 2.5 }, isBus: true });
+  check(naam + ': deurdelen rechts', b.length === aantal && b.every((d) => d.side === 1));
+  check(naam + ': deur hoog genoeg voor een instapper', b.every((d) => d.h >= 2.0 && d.y0 + d.h <= 2.65 && d.y0 >= 0.3), JSON.stringify(b[0]));
+  const dubbelBreed = b[0].w + b[1].w;
+  check(naam + ': dubbele deur dekt de opening', dubbelBreed >= 1.1 && dubbelBreed <= 1.3, String(dubbelBreed));
+  check(naam + ': deuren binnen de romp', b.every((d) => Math.abs(d.x * len) + d.w / 2 < len / 2));
+}
 if (bad) { console.log(bad + ' mislukt'); process.exit(1); }
 console.log('vehicledoors_test: ok');

@@ -31,6 +31,7 @@ import { edgeFromOsm } from '../../game/js/worldedge.js';
 import { LINES, TOWNS, loadPlaces, corridorTiles, tileSources, packOf } from './corridor.mjs';
 import { bakeCityRoutes, railLines } from './cityroutes.mjs';
 import { collectFarNodes, finishFarProps } from './farprops.mjs';
+import { dropDuplicateBridges } from './bridgededupe.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 export const CORRIDOR_BUILDER = 1;
@@ -203,7 +204,8 @@ export function features(els, ctx) {
       out.push(f);
     }
   }
-  return out;
+  // a bridge OSM draws twice on one spot is one deck (#235)
+  return dropDuplicateBridges(out);
 }
 
 // urban weight (0..1) from the density of boxes round a point, 120 m cells
