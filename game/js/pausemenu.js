@@ -28,6 +28,7 @@ import { KEY_ACTIONS, KEY_GROUPS, PAD_REMAPPABLE, PAD_SLOT_NAMES, bindKey, bindB
 import { capturePadButton, isPadActive, onPadChange } from './gamepad.js';
 import { padGlyphInner } from './glyphs.js';
 import { getUiScale } from './uiscale.js';
+import { helpHtml } from './helpoverview.js';
 import { DEV, FLAGS } from './devflags.js';
 import { renderOverview, renderTodo, todoClick, todoFocus, todoEnter, todoSummary, selectTodo, foldNote } from './todoui.js';
 import { isPlayAheadOpen } from './todo.js';
@@ -203,7 +204,7 @@ const SUBTABS = {
   telefoon: [['contacten', 'Contacten'], ['berichten', 'Berichten']],
   verhaal: [['personages', 'Personages'], ['aanwijzingen', 'Aanwijzingen']],
   settings: [['video', 'Beeld'], ['sound', 'Geluid & ondertitels'], ['camera', 'Camera & controller'], ['display', 'Interface'], ['a11y', 'Toegankelijkheid'], ['fouten', 'Foutrapport']],
-  controls: [['toetsen', 'Toetsenbord en muis'], ['knoppen', 'Controller'], ['overzicht', 'Alle toetsen']],
+  controls: [['toetsen', 'Toetsenbord en muis'], ['knoppen', 'Controller'], ['overzicht', 'Alle toetsen'], ['hulp', 'Hulp']],
 };
 // old tab names (saved preferences, other modules)
 const SUB_ALIAS = { settings: { controller: 'camera' } };
@@ -477,6 +478,7 @@ export function initPauseMenu(w) {
                 <p class="m-note pm-cempty" hidden>Niks gevonden. Probeer een ander woord of een toets.</p>
               </div></div>
             </div>
+            <div data-of="controls" data-sub="hulp" class="pm-csub" hidden><div class="m-main"><div class="m-list pm-clist"><div class="pm-cgrid">${helpHtml((t) => glyphHtml(t), esc)}</div></div></div></div>
             <div data-of="controls" data-sub="toetsen" class="pm-binds pm-csub m-main" hidden></div>
             <div data-of="controls" data-sub="knoppen" class="pm-binds pm-csub m-main" hidden></div>
           </div></section>
