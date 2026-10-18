@@ -84,3 +84,27 @@ export function stepVictim(vic, dt, ctx = {}) {
 }
 
 export const victimDone = (vic) => !vic || vic.phase === 'done';
+
+// Uitstappen (#49): de bestuurder schuift van zijn stoel door de open deur naar
+// de plek naast de auto, in plaats van daar ineens te staan. Pure kant; de
+// stoelplek is een benadering van de bestuurdersstoel (zijde van de deur).
+export const STEP_OUT = { dur: 0.75, delay: 0.2, seatSide: 0.42, seatFwd: 0.06 };
+
+// v: { x, y, angle, halfWid, model.len }, spot: { x, y } waar hij belandt.
+export function stepOutPlan(v, spot) {
+  const f = [Math.cos(v.angle), Math.sin(v.angle)], n = [-Math.sin(v.angle), Math.cos(v.angle)];
+  const side = (spot.x - v.x) * n[0] + (spot.y - v.y) * n[1] >= 0 ? 1 : -1;
+  const len = (v.model && v.model.len) || 4.2, hw = v.halfWid || 0.9;
+  return {
+    fx: v.x + f[0] * len * STEP_OUT.seatFwd + n[0] * side * hw * STEP_OUT.seatSide,
+    fy: v.y + f[1] * len * STEP_OUT.seatFwd + n[1] * side * hw * STEP_OUT.seatSide,
+    tx: spot.x, ty: spot.y, t: 0, dur: STEP_OUT.dur, delay: STEP_OUT.delay,
+  };
+}
+
+// Positie na t seconden: even blijven zitten (de deur gaat open), dan met een zachte versnelling naar buiten.
+export function stepOutPos(plan, t) {
+  const u = Math.max(0, Math.min(1, (t - plan.delay) / plan.dur));
+  const k = u * u * (3 - 2 * u);
+  return { x: plan.fx + (plan.tx - plan.fx) * k, y: plan.fy + (plan.ty - plan.fy) * k, done: u >= 1 };
+}

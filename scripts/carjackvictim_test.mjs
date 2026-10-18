@@ -47,5 +47,22 @@ const o = C.stepVictim(C.createVictim(1), 0.1, {});
 check('boos zwaaien is een pose, geen letsel', o.pose === 'angry' && o.move === 'none');
 check('elke regel is Nederlands tekst, geen geweld', Object.values(C.VICTIM_LINES).flat().every((l) => typeof l === 'string' && l.length > 5 && !/dood|bloed|sla|moord/i.test(l)));
 check('regels komen één keer per fase', (() => { const v = C.createVictim(sBack); let c = 0; for (let i = 0; i < 15; i++) if (C.stepVictim(v, 0.1, { dCar: 9, carSpeed: 9 }).say) c++; return c === 1; })());
+// uitstappen: van de stoel door de deur naar de plek naast de auto
+{
+  for (const angle of [0, 1.1, 2.6, -2]) {
+    const v = { x: 50, y: -20, angle, halfWid: 0.9, model: { len: 4.3 } };
+    const n2 = [-Math.sin(angle), Math.cos(angle)];
+    const spot = { x: v.x + n2[0] * -1.6, y: v.y + n2[1] * -1.6 };
+    const plan = C.stepOutPlan(v, spot);
+    const inCar = (x, y) => { const dx = x - v.x, dy = y - v.y, f = dx * Math.cos(angle) + dy * Math.sin(angle), l = dx * n2[0] + dy * n2[1]; return Math.abs(f) < 2.2 && Math.abs(l) < 0.95; };
+    check(`hoek ${angle}: hij begint in de auto, aan de kant van de deur`, inCar(plan.fx, plan.fy) && (plan.fx - v.x) * n2[0] + (plan.fy - v.y) * n2[1] < 0);
+    const p0 = C.stepOutPos(plan, 0), pMid = C.stepOutPos(plan, 0.2 + C.STEP_OUT.dur / 2), pEnd = C.stepOutPos(plan, 5);
+    check(`hoek ${angle}: hij blijft even zitten tot de deur open is`, Math.hypot(p0.x - plan.fx, p0.y - plan.fy) < 1e-9 && !p0.done);
+    check(`hoek ${angle}: halverwege is hij onderweg, aan het eind op zijn plek`, Math.hypot(pMid.x - plan.fx, pMid.y - plan.fy) > 0.3 && !pMid.done && pEnd.done && Math.hypot(pEnd.x - spot.x, pEnd.y - spot.y) < 1e-9);
+    let last = -1, mono = true;
+    for (let t = 0; t <= 1.2; t += 0.02) { const d = Math.hypot(C.stepOutPos(plan, t).x - plan.fx, C.stepOutPos(plan, t).y - plan.fy); if (d < last - 1e-9) mono = false; last = d; }
+    check(`hoek ${angle}: hij beweegt alleen naar buiten`, mono);
+  }
+}
 console.log(bad ? `${bad}/${n} mislukt` : `${n}/${n} ok`);
 process.exit(bad ? 1 : 0);
