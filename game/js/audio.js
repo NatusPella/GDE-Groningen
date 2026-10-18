@@ -5,7 +5,9 @@ import { getSettings, onSettingsChange } from './settings.js';
 import { isThemeActive } from './theme.js';
 import { vehicleContacts } from './vehicle.js';
 import { gearboxReadout } from './gearbox.js';
-import { createBank, buildImpulse } from './sfx/dsp.js';
+import { createBank, buildImpulse, variantsOf, bufferNames } from './sfx/dsp.js';
+import { FX_INFO } from './sfx/fxbank.js';
+import { plan as mixPlan, speechDuckFactor } from './sfx/mixplan.js';
 import { initAmbience, updateAmbience, ambienceStats, getPlace } from './sfx/ambience.js';
 import { initFoley, updateFoley, propHit, foleyStats } from './sfx/foley.js';
 import { initUiSfx, uiWorldInit, updateUiSfx, uiDomEvent, isUiGestureTarget } from './sfx/ui.js';
@@ -717,11 +719,30 @@ function playExplosion(x, y) {
   const out = spatialOut(x, y, { ref: 10, rolloff: 0.7, prio: 2 });
   if (!out) return;
   duckAmbience(0.75, 1.6);
+  playFx('explosion_boom', x, y);
   playNoiseBurst({ duration: 1.1, freq: 1400, freqEnd: 70, q: 0.5, gain: 0.85, type: 'lowpass', out, prio: 2 });
   playTone({ freq: 90, freqEnd: 28, type: 'sine', duration: 0.9, gain: 0.55, out, prio: 2 });
   playNoiseBurst({ duration: 1.7, freq: 500, freqEnd: 60, q: 0.6, gain: 0.25, type: 'lowpass', delay: 0.2, out, prio: 2 });
   playBuf('glass', { out, gain: 0.2, rate: 0.8, delay: 0.03 });
   for (let i = 0; i < 5; i++) playBuf('prop_metal', { out, gain: 0.05, rate: 0.6 + Math.random() * 0.8, delay: 0.5 + Math.random() * 1.4 });
+}
+
+// One effect of sfx/fxbank.js at a place: mixer category level, a random
+// variant, the speed-of-sound delay and an air low pass from sfx/mixplan.js
+// (the panner does the distance gain). false while the sample still renders.
+function playFx(name, x, y, opts = {}) {
+  const info = FX_INFO[name] || FX_INFO[`${name}_0`];
+  if (!ctx || !bank || !info) return false;
+  const names = bufferNames().includes(name) ? [name] : variantsOf(name);
+  const buf = names[Math.floor(Math.random() * names.length)];
+  const d = distToListener(x, y);
+  if (d > info.range) return true;
+  const out = spatialOut(x, y, { ref: info.ref, rolloff: 0.6, range: info.range, prio: 2 });
+  if (!out) return true;
+  const p = mixPlan(info, d, Math.floor(Math.random() * 1e9));
+  const speaking = voiceBusy() ? speechDuckFactor(info.cat, 1) : 1;
+  const src = playBuf(buf, { out, gain: info.gain * p.gain * (opts.gain ?? 1) * speaking, rate: p.rate * (opts.rate ?? 1), delay: p.delay, lp: p.lp, prio: 2 });
+  return !!src;
 }
 
 // The odd weapons (combat.js / throwables.js): swings, what they hit, the
@@ -779,9 +800,18 @@ function playWeaponSfx(e, x, y) {
       break;
     }
     case 'carbid': {
+      // sampled boom (tik, crack, sub thump, reflections) first; the old
+      // synthesized version stays as the fallback while it still renders
+      duckAmbience(0.85, 2.4);
+      if (playFx('carbid_boom', x, y)) {
+        if (e.water) {
+          const wet = spatialOut(x, y, { ref: 14, rolloff: 0.6, prio: 2 });
+          if (wet) playBuf('step_wet_0', { out: wet, gain: 0.5, rate: 0.5, delay: 0.1 });
+        }
+        break;
+      }
       const out = spatialOut(x, y, { ref: 14, rolloff: 0.6, prio: 2 });
       if (!out) return;
-      duckAmbience(0.85, 2);
       playTone({ freq: 70, freqEnd: 22, type: 'sine', duration: 1.3, gain: 0.7, out, prio: 2 });
       playNoiseBurst({ duration: 1.4, freq: 1100, freqEnd: 50, q: 0.5, gain: 0.9, type: 'lowpass', out, prio: 2 });
       playBuf('gun_echo', { out, gain: 0.5, rate: 0.5, delay: 0.08, lp: 1400 });
@@ -2712,6 +2742,7 @@ function playAudioEvents(world) {
       case 'bullet_hit': playBulletHit(x, y, e.material, clamp(e.strength ?? 0.5, 0, 1)); break;
       case 'coo': case 'flap': case 'bonk': case 'poop': case 'splat': case 'plop': playCritterEvent(e.kind, x, y, clamp(e.strength ?? 0.5, 0, 1)); break;
       case 'splash': playSplash(x, y); break;
+      case 'fx': playFx(e.name, x, y, e); break;
       case 'whistle': playWhistle(); break;
       case 'gore': case 'gore_splat': case 'ko': case 'poof': playGoreEvent(e.kind, x, y, clamp(e.strength ?? 0.5, 0, 1)); break;
       case 'animal_hit': {
