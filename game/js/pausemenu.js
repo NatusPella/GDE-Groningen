@@ -491,7 +491,7 @@ export function initPauseMenu(w) {
                 <p class="m-note pm-cempty" hidden>Niks gevonden. Probeer een ander woord of een toets.</p>
               </div></div>
             </div>
-            <div data-of="controls" data-sub="hulp" class="pm-csub" hidden><div class="m-main"><div class="m-list pm-clist"><div class="pm-cgrid">${helpHtml((t) => glyphHtml(t), esc)}</div></div></div></div>
+            <div data-of="controls" data-sub="hulp" class="pm-csub" hidden><div class="m-main"><div class="m-list pm-clist"><div class="pm-cgrid"><section class="pm-cgroup pm-help" data-help="oefenronde"><h3>Oefenronde</h3><p class="pm-hline">Zeven korte stappen: lopen, rennen, de kaart, in- en uitstappen en het menu. Zonder missie en zonder gevolgen.</p><button type="button" class="m-bt" data-practice-start>Oefenen</button></section>${helpHtml((t) => glyphHtml(t), esc)}</div></div></div></div>
             <div data-of="controls" data-sub="toetsen" class="pm-binds pm-csub m-main" hidden></div>
             <div data-of="controls" data-sub="knoppen" class="pm-binds pm-csub m-main" hidden></div>
           </div></section>
@@ -508,6 +508,7 @@ export function initPauseMenu(w) {
   for (const type of ['mousedown', 'mouseup', 'wheel']) root.addEventListener(type, (e) => e.stopPropagation());
 
   root.addEventListener('click', (e) => {
+    if (e.target.closest('[data-practice-start]')) { setOpen(false); window.dispatchEvent(new CustomEvent('gde-oefenronde')); return; }
     const go = e.target.closest('[data-goto]');
     if (go) return enterSection(go.dataset.goto);
     const hint = e.target.closest('[data-hint]');

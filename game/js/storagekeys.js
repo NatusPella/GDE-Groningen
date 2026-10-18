@@ -49,6 +49,8 @@ export const BASE_KEYS = {
   snackChain: 'gde-snackketen-v1',
   // context hints for new vehicles and minigames, each shown once (contexthints.js, #201): new, no legacy name
   hintsGezien: 'gde-hints-gezien',
+  // the practice walk-through in Hulp is done (practice.js, #201): new, no legacy name
+  oefenronde: 'gde-oefenronde',
   // photo mode gallery (fotomodus.js, #199): metadata and small thumbnails only, local
   gallery: 'gde-galerij-v1',
   // which summer events the player has seen (evenementen.js, #203)
