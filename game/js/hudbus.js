@@ -143,3 +143,16 @@ export function mayShow(channel, ctx) {
   if (channel === CHANNELS.moment) return decideMoment(ctx.kind, ctx);
   return true;
 }
+
+// --- the message queue (hudcards.js) --------------------------------------------
+
+// One message at a time. cards: { key, rank (LEVEL), important, at }. A card
+// with the same key replaces the waiting one; the order is rank, important,
+// oldest first; over `max` the last ones fall off.
+export const compareCards = (a, b) => b.rank - a.rank || (b.important | 0) - (a.important | 0) || a.at - b.at;
+export function enqueueCard(queue, card, max = 5) {
+  const out = queue.filter((q) => q.key !== card.key);
+  out.push(card);
+  out.sort(compareCards);
+  return out.slice(0, max);
+}
