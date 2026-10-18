@@ -4,8 +4,10 @@ import { closestPointOnSegment, normalizeAngle, clamp, lerp, pointInPolygon, inM
 import { waterClearance, waterChannelPoints } from './waterindex.js';
 import { shallowWater, waterAt, airDraftOf, passesUnder } from './waterlevels.js';
 import { trafficSignalsNear, trafficLightPhaseMove } from './trafficlights.js';
-import { resolvePropCollisions } from './breakables.js';
+import { resolvePropCollisions, setSpeedCap } from './breakables.js';
 import { shardPuncture } from './roadshards.js';
+import { CRASH_DAMAGE_SCALE, vehicleContacts, recordContact, reportImpact } from './vehicleimpact.js';
+export { CRASH_DAMAGE_SCALE, vehicleContacts, recordContact, reportImpact } from './vehicleimpact.js';
 import { markWreckedByPlayer, syncPlayerWrecks, disableVehicle } from './vehiclewreck.js';
 export { markWreckedByPlayer, syncPlayerWrecks, disableVehicle } from './vehiclewreck.js';
 import { inPassage } from './collision.js';
@@ -543,6 +545,7 @@ export function speedCap(v) {
   const t = v.driver === 'player' ? playerTune(v) : null;
   return t ? t.top : v.model.maxSpeed;
 }
+setSpeedCap(speedCap);
 
 // Rolling resistance + engine braking off the throttle (m/s^2). The AI's
 // flat value is what its speed controller was tuned against.
@@ -2359,9 +2362,6 @@ const IMPACT_EVENT_SPEED = 1.5;
 const HARD_HIT_CLOSING_SPEED = 3; // m/s of closing speed before a hit counts as "hard" (sparks/damage)
 const IMPACT_DAMAGE_PER_MPS = 3.5;
 const MAX_IMPACT_DAMAGE = 30;
-// Cars should survive a fair amount of reckless driving: every collision
-// (cars, walls, props) does this fraction of its raw damage.
-export const CRASH_DAMAGE_SCALE = 0.4;
 const FLAT_MIN_DAMAGE = 8; // een klap van minstens zoveel schade kan een band lek slaan
 const FLAT_MAX_CHANCE = 0.5;
 const FLAT_TOP_FACTOR = 0.7; // lekke band: topsnelheid
@@ -2420,21 +2420,6 @@ function contactImpulse(a, b, cx, cy, nx, ny, friction) {
     b.yawVel = clamp(b.yawVel - (rbx * jy - rby * jx) * iib, -MAX_SPIN, MAX_SPIN);
   }
   return vn;
-}
-
-// Fixed ring of recent contacts for effects/audio; readers keep their own
-// cursor against `head` and skip what has been overwritten.
-const CONTACT_CAP = 64;
-export const vehicleContacts = {
-  head: 0,
-  cap: CONTACT_CAP,
-  list: Array.from({ length: CONTACT_CAP }, () => ({ a: null, b: null, x: 0, y: 0, nx: 0, ny: 0, impact: 0, slide: 0 })),
-};
-
-export function recordContact(a, b, x, y, nx, ny, impact, slide) {
-  const c = vehicleContacts.list[vehicleContacts.head % CONTACT_CAP];
-  vehicleContacts.head++;
-  c.a = a; c.b = b; c.x = x; c.y = y; c.nx = nx; c.ny = ny; c.impact = impact; c.slide = slide;
 }
 
 function tangentialSpeed(a, b, nx, ny) {
@@ -2519,15 +2504,6 @@ export function vehicleHitBody(v, x, y, keep, dmg, world) {
   const lost = before * (1 - keep);
   if (lost > IMPACT_EVENT_SPEED) reportImpact(world, x, y, lost, v.driver === 'player');
   if (dmg > 0) applyImpactDamage(v, dmg, false, world);
-}
-
-// Feedback hook: an 'impact' particle for effects, and world.lastImpact for
-// camera shake when the player is involved. strength is 0..1.
-export function reportImpact(world, x, y, closingSpeed, playerInvolved) {
-  if (!world) return;
-  const strength = clamp(closingSpeed / 14, 0, 1);
-  world.particles.push({ kind: 'impact', x, y, strength, until: world.time + 0.4 });
-  if (playerInvolved) world.lastImpact = { strength, time: world.time, x, y };
 }
 
 // Also the single place that flags v.hitThisFrame/hitX/hitY/hitImpactSpeed

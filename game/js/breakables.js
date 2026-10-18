@@ -1,6 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { disableVehicle } from './vehiclewreck.js';
-import { reportImpact, vehicleContacts, CRASH_DAMAGE_SCALE, speedCap } from './vehicle.js';
+import { reportImpact, vehicleContacts, CRASH_DAMAGE_SCALE } from './vehicleimpact.js';
 import { clamp, closestPointOnSegment, isInWater } from './util.js';
 import { setWallBrokenTest } from './elevation.js';
 import { rand as rnd } from './rng.js';
@@ -134,6 +134,11 @@ function carMass(v) {
 function carKg(v) {
   return carMass(v) * CAR_KG_PER_M2;
 }
+
+// vehicle.js hangs its speedCap here (it needs the whole tuning model, and importing it would
+// make a cycle); until then a car is capped by its model's top speed.
+let speedCap = (v) => v.model.maxSpeed;
+export function setSpeedCap(fn) { speedCap = fn; }
 
 function setCarVelocity(v, vx, vy) {
   const fx = Math.cos(v.angle), fy = Math.sin(v.angle);
