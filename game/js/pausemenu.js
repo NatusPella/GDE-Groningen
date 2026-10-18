@@ -16,6 +16,7 @@ import { getClockText } from './hud_panel.js';
 import { storyDate } from './calendarday.js';
 import { isCinematicActive } from './cinematics.js';
 import { renderAchievementsPanel } from './achievementsui.js';
+import { unseenAchievementCount } from './achievements.js';
 import { renderGaragePanel, selectGarageVehicle, disposeGarageViewer } from './garageui.js';
 import { deliverOwnedVehicle, locateOwnedVehicle } from './ownedvehicles.js';
 import { isShopOpen, closeShopMenu } from './shopui.js';
@@ -1289,6 +1290,9 @@ function syncNavBadges() {
   if (pNav) pNav.toggleAttribute('data-new', unread);
   const setN = (id, text, label) => { const n = root.querySelector(`[data-n="${id}"]`); if (n) { n.textContent = text; if (label) n.setAttribute('aria-label', label); else n.removeAttribute('aria-label'); } };
   setN('telefoon', unread ? String(unreadN) : '', unread ? `${unreadN} ongelezen` : '');
+  // unseen achievements: a quiet dot on the rail, never a HUD notice (#168)
+  const aNav = root.querySelector('[data-goto="prestaties"]');
+  if (aNav) aNav.toggleAttribute('data-new', unseenAchievementCount() > 0);
   setN('todo', fresh ? 'nieuw' : '');
   setN('verhaal', fresh || met ? 'nieuw' : '');
   const pSub = root.querySelector('[data-of="telefoon"][data-subtab="berichten"]');
