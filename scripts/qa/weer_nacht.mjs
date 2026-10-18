@@ -81,6 +81,13 @@ fs.rmSync(path.join(os.tmpdir(), profile), { recursive: true, force: true });
 release();
 let res = {};
 for (const l of stdout.split(/\r?\n/)) { const m = l.match(/^\[perf-script\] (.*)$/); if (m) try { res = JSON.parse(m[1]); } catch { /* geen JSON */ } }
+if (!res.plekken) {
+  res.plekken = {};
+  for (const l of stdout.split(/\r?\n/)) {
+    const m = l.match(/\[wn-result\] (.*)$/);
+    if (m) try { const r = JSON.parse(m[1]); res.plekken[r.naam] = r; } catch { /* kapotte regel */ }
+  }
+}
 fs.writeFileSync(path.join(OUT, 'result.json'), JSON.stringify(res, null, 1));
 const nan = stdout.split(/\r?\n/).filter((l) => /Computed radius is NaN/.test(l)).length;
 const shots = fs.readdirSync(OUT).filter((f) => /^shots-wn-.*\.png$/.test(f)).length;
