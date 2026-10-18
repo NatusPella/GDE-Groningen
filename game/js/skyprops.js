@@ -1,5 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { pointInPolygon, normalizeAngle } from './util.js';
+import { rand } from './rng.js';
 
 // Decorative sky traffic, no gameplay effect and no collision:
 //  - world.skyHeli: a trauma helicopter that now and then flies in from
@@ -33,7 +34,6 @@ const BALLOON_EVERY = [150, 330];
 const BALLOON_MAX = 3;
 const BALLOON_DESPAWN = 1150;
 
-const rand = (a, b) => a + Math.random() * (b - a);
 const randIn = (r) => rand(r[0], r[1]);
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
 const smoother = (t) => { t = clamp(t, 0, 1); return t * t * t * (t * (t * 6 - 15) + 10); };

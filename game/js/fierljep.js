@@ -2,9 +2,11 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { getScene } from './scene3d.js';
 import { buildPersonMesh, animatePersonWalk, swimPose, PERSON_RIG } from './models3d_people.js';
 import { pushAudioEvent } from './pedestrians.js';
-import { isInWater, clamp, WATER_Y } from './util.js';
+import { pointInPolygon as inPoly, isInWater, clamp, WATER_Y } from './util.js';
 import { playCinematic, isCinematicActive, skipCinematic } from './cinematics.js';
+import { bridgeWithin } from './vaultkit.js';
 import { getWaterIndex, waterWet, insideWaterObstacle } from './waterindex.js';
+import { rand } from './rng.js';
 
 // Fierljeppen: an NPC sprints to a canal, jumps onto a pole standing in the
 // water, climbs it while it tips over and drops onto the far bank - or the
@@ -33,6 +35,8 @@ import { getWaterIndex, waterWet, insideWaterObstacle } from './waterindex.js';
 //     the nearest straight-across canal crossing (5-22 m of water) around a
 //     point: from on the near bank, to on the opposite bank.
 //     why: optional {} that counts the reasons candidates were rejected.
+//     bridgeNear: metres; a crossing with a bridge that close is refused.
+//   bridgeWithin(map, x, y, r) -> bool.
 //   isVaulting(npc), updatePoleVaults(dt, world) (main.js, every frame).
 
 export const JELLE_LOOK = { shirt: 0x1d4f9c, skin: 0xe9c29c, hair: 0xe0bd62, variant: 'male', pants: 0xf2f0ea, shoes: 0x1c1c1e, hairStyle: 'short', seed: 1581 };
@@ -49,7 +53,6 @@ const SAY_FAIL = ['Wiet! Hielendal wiet!', 'Nee nee nee…', 'Dit heeft niemand 
 
 let world = null;
 const vaults = [];
-const rand = (a, b) => a + Math.random() * (b - a);
 const pick = (l) => l[Math.floor(Math.random() * l.length)];
 const smooth = (t) => { t = clamp(t, 0, 1); return t * t * (3 - 2 * t); };
 
@@ -573,7 +576,9 @@ const CROSS_SWEEP = 30 * Math.PI / 180;
 const CROSS_STEPS = 6;
 const FAR_PARALLEL = Math.cos(35 * Math.PI / 180);
 
-export function findVaultSpot(map, x, y, radius = 60, { minWidth = 5, maxWidth = 22, why = null } = {}) {
+// bridgeNear: refuse a crossing with a bridge within that many metres (a walk
+// round beats a vault); 0 keeps every crossing.
+export function findVaultSpot(map, x, y, radius = 60, { minWidth = 5, maxWidth = 22, why = null, bridgeNear = 0 } = {}) {
   const no = (k) => { if (why) why[k] = (why[k] || 0) + 1; };
   const wi = getWaterIndex(map);
   const wet = (px, py) => waterWet(map, px, py);
@@ -647,14 +652,6 @@ export function findVaultSpot(map, x, y, radius = 60, { minWidth = 5, maxWidth =
   return null;
 }
 
-function inPoly(px, py, poly) {
-  let inside = false;
-  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
-    const xi = poly[i][0], yi = poly[i][1], xj = poly[j][0], yj = poly[j][1];
-    if ((yi > py) !== (yj > py) && px < ((xj - xi) * (py - yi)) / (yj - yi) + xi) inside = !inside;
-  }
-  return inside;
-}
 
 export function debugVault(opts = {}) {
   const w = world || (window.__debug && window.__debug.world);
