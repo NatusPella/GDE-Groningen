@@ -102,3 +102,10 @@ export function remoteP2(r) {
   const [x, y] = norm(Number.isFinite(r.mx) ? r.mx : 0, Number.isFinite(r.my) ? r.my : 0);
   return { x, y, run: !!((r.buttons || 0) & 1), active: !!(x || y) };
 }
+
+// Schermrichting (x rechts, y omlaag) naar wereldrichting, gezien met een camera die yaw gedraaid is.
+// Zelfde berekening als coopglue.js coopStep; ook voor de figuren van extra spelers (coopnet.js).
+export function cameraRelative(inp, yaw = 0) {
+  const cs = Math.cos(yaw), sn = Math.sin(yaw);
+  return { ...inp, x: cs * -inp.y - sn * inp.x, y: sn * -inp.y + cs * inp.x };
+}
