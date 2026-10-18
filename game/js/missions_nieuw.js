@@ -17,6 +17,7 @@ export function buildNieuwDefs({ map, walk, drive }) {
       intro: ['Het Loket bij de Grote Markt: om twaalf uur sluit de inschrijving voor de Noordelijke Snackprijs, en het loket neemt alleen contant.', 'Trek een wachtnummer, haal formulier 7B en de stempel, en schrijf in. Voor twaalf uur.'],
       outro: 'Ingeschreven voor de Noordelijke Snackprijs. De Fjord Frituur doet mee.',
       timeLimit: 180,
+      timeUp: 'het Loket is dicht. Om twaalf uur sloot de inschrijving',
       reward: 0,
       onFoot: true,
       start: loketAt(8, 14),
@@ -49,6 +50,8 @@ export function buildNieuwDefs({ map, walk, drive }) {
       intro: ['Berend Bos wil zijn bakkie bij zijn zus aan het Boterdiep. Eerst een klus voor Jelmer op de Grote Markt: vijftienhonderd stuntpunten.', 'Stunt zonder krassen: parasols en kliko\'s mogen, mensen niet. Daarna het bakkie heel naar het Boterdiep.'],
       outro: 'Berend zei goud. En moi. Tegen Tessa.',
       timeLimit: 240,
+      timeUp: 'tijd op. Jelmers chat is al naar een kattenfilmpje en Berend wacht nog',
+      vehicleFail: { gone: 'Berends bakkie is foetsie', wrecked: 'Berends bakkie is total loss. Hij telde nul krassen, nu telt hij niks meer', left: 'je liet Berends bakkie staan. Hij telde nul krassen, geen parkeerbonnen' },
       reward: 200,
       scratchFine: 0.5,
       vehicleName: 'Berends bakkie',
@@ -84,8 +87,11 @@ export function applyNieuw(list) {
     duif.stages[0].label = 'Fotografeer 3 camera\'s, 2 bewakers en de stroomkast';
     duif.stages[0].targets.push({ landmark: 'Groninger Museum', off: [-29, -38], label: 'De stroomkast achter de fietsenstalling' });
     duif.timeLimit = 230;
+    duif.timeUp = 'tijd op. Bert fluit de duif terug naar de duiventil';
   }
   const kei = by('Wind tegen, beide kanten op');
+  if (kei) kei.timeUp = 'tijd op. De eerstejaars zitten al aan de bar';
+  if (pin) pin.vehicleFail = { gone: 'de auto met de automaat is foetsie, en de pas ook', wrecked: 'de auto met de automaat is total loss. Sjabbe kan alleen openen wat heel is', left: 'je liet de automaat staan. Zonder automaat geen pas' };
   if (kei) kei.say = 'Podium in de Kiezelrace, dan vertelt Sjoerd over het museum. Altijd tegenwind, op een eigen fiets.';
   if (kei) kei.moment = { at: 3, text: kei.moment.text, talk: { ids: ['M05.2'] } };
   const vet = by('Al het vet van Grunn');
