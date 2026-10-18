@@ -121,7 +121,7 @@ export function initHud(world) {
   topRight.innerHTML =
     '<div class="hud-clock" role="timer" aria-label="Tijd in het spel"><span class="hud-special" hidden></span><span class="hud-date"></span><b class="hud-time"></b></div>' +
     '<div class="hud-wanted" role="img"></div>' +
-    '<div class="hud-search" hidden><span>Uit het zicht blijven</span><i role="img" aria-label="Zoekgebied"><i></i></i></div>' +
+    '<div class="hud-search" hidden><span>Uit zicht</span><i role="img" aria-label="Zoekgebied"><i></i></i></div>' +
     '<div class="hud-moneyrow"><span class="hud-money-delta"></span><span class="hud-money"></span></div>' +
     '<div class="hud-weapon"></div>';
   root.appendChild(topRight);

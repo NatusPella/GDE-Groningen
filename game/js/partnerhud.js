@@ -75,11 +75,11 @@ export function voertuigActie(me, partner, vehicles, eigen = null) {
     const vrij = v && (v.stoelen == null || v.stoelen >= 2) && (v.driver == null || v.passenger == null);
     const afstand = v ? Math.hypot(v.x - me.x, v.y - me.y) : Infinity;
     if (vrij && afstand <= CALL_RANGE) return { actie: 'spring-erbij', id: partner.vehicle, stoel: v.passenger == null ? 'passenger' : 'driver' };
-    if (vrij) return { actie: 'te-ver', id: partner.vehicle, afstand: Math.round(afstand), tekst: 'Je medespeler zit in een voertuig, maar is te ver weg om erbij te springen.' };
-    return { actie: 'vol', id: partner.vehicle, tekst: 'Het voertuig van je medespeler zit vol.' };
+    if (vrij) return { actie: 'te-ver', id: partner.vehicle, afstand: Math.round(afstand), tekst: 'Te ver weg' };
+    return { actie: 'vol', id: partner.vehicle, tekst: 'Voertuig vol' };
   }
-  if (eigen) return { actie: 'roep', id: eigen, tekst: 'Je voertuig komt naar je medespeler.' };
-  return { actie: 'geen', tekst: 'Je hebt geen voertuig om te roepen.' };
+  if (eigen) return { actie: 'roep', id: eigen, tekst: 'Voertuig komt' };
+  return { actie: 'geen', tekst: 'Geen voertuig' };
 }
 
 // ----------------------------------------------------------- N spelers
