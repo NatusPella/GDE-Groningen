@@ -129,9 +129,6 @@ export function buildScriptRun(def, scene, anchor) {
 
 let current = null;
 
-export function scriptActive() {
-  return !!current;
-}
 
 export function playScript(w, def, { lines, duration, anchor, cine = {} } = {}) {
   if (current) return false;

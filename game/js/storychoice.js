@@ -11,7 +11,6 @@ import { BASE_KEYS, LEGACY_PREFIX } from './storagekeys.js';
 
 export const ARC_NAMES = { oud: 'Klassiek', nieuw: 'Nieuw (proefversie)' };
 export const arcName = (arc) => ARC_NAMES[arc] || ARC_NAMES.oud;
-export const ARC_NOTE = 'Nieuw verhaal is nog in aanbouw: alleen akte 1 speelbaar; je oude saves blijven onaangeraakt';
 
 // the arc a new game plays: the one this page was loaded with
 export const activeArc = () => ARC_ID;
@@ -20,8 +19,6 @@ export const activeArc = () => ARC_ID;
 export function classicSaveExists() {
   try { return typeof localStorage !== 'undefined' && (localStorage.getItem(BASE_KEYS.save) !== null || localStorage.getItem(LEGACY_PREFIX + BASE_KEYS.save.slice(4)) !== null); } catch (e) { return false; }
 }
-// the arc the setting asks for (differs from activeArc until the game has started again)
-export const chosenArc = () => (arcForced() ? ARC_ID : getSettings().verhaal === 'nieuw' ? 'nieuw' : 'oud');
 export const otherArc = () => (ARC_ID === 'nieuw' ? 'oud' : 'nieuw');
 
 export function chooseArc(arc) {
