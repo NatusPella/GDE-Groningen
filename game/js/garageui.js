@@ -110,7 +110,7 @@ function tabsHtml(list) {
   const sort = (SORTS.find(([id]) => id === view.sort) || SORTS[0])[1];
   const filt = (FILTERS.find(([id]) => id === view.filter) || FILTERS[0])[1];
   return '<nav class="m-tablist" role="tablist" aria-label="Soort voertuig">' +
-    garageTabCounts(list).map((t) => `<button type="button" role="tab" class="m-tab" data-garage-cat="${t.id}" aria-selected="${view.cat === t.id}">${esc(t.label)}<small>${t.owned}</small></button>`.join('') + '</nav><span class="m-grow"></span>' +
+    garageTabCounts(list).map((t) => `<button type="button" role="tab" class="m-tab" data-garage-cat="${t.id}" aria-selected="${view.cat === t.id}">${esc(t.label)}<small>${t.owned}</small></button>`).join('') + '</nav><span class="m-grow"></span>' +
     `<button type="button" class="m-bt" data-garage-filter>Toon: ${filt}</button>` +
     `<button type="button" class="m-bt" data-garage-sort>${sort}</button>`;
 }
