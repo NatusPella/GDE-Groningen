@@ -2101,7 +2101,7 @@ export function updateMissions(dt, world) {
   // the clock starts at the race's GO, not while the grid waits
   if ((!chain.race || chain.race.phase === 'race') && !isCinematicActive()) chain.timeLeft -= dt * (chain.clockRate || 1);
   if (chain.timeLeft <= 0) {
-    fail(world, def, def.type === 'boat' ? 'tijd op. De toeristen missen hun trein naar Zwolle' : def.type === 'stunt' ? 'tijd op. Chat is al naar een kattenfilmpje' : 'tijd op. Zelfs de bus was sneller');
+    fail(world, def, def.type === 'boat' ? 'tijd op. De toeristen missen hun trein naar Zwolle' : def.type === 'stunt' || chain.stuntPhase ?'tijd op. Chat is al naar een kattenfilmpje' : 'tijd op. Zelfs de bus was sneller');
     syncPub(world);
     return;
   }
