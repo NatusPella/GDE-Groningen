@@ -102,9 +102,7 @@ python3 scripts/devserver.py 8765 game
 Open daarna <http://localhost:8765>. In de browser haalt de game three.js
 op bij jsDelivr en de lettertypen bij Google Fonts.
 
-**Windows zonder terminal**: dubbelklik op `start.bat`. Die gebruikt een
-geïnstalleerde Python of downloadt eenmalig de officiële portable Python
-van python.org, en opent de game in je browser.
+**Windows zonder terminal**: dubbelklik op `start.bat`. Die start een kleine server van Windows zelf (PowerShell, geen Python of Node nodig) op de webbuild in `web-dist` en opent de game in je browser. Speler-zip: `node scripts/make_player_zip.mjs`.
 
 **De desktopapp vanaf de broncode** (nodig: [Node.js](https://nodejs.org/)):
 

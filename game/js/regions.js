@@ -8,6 +8,7 @@
 // setRegionData); without it a coarse fallback (regiondata.js) from the same data.
 import { worldToWgs, wgsToWorld } from './rdnew.js';
 import { FALLBACK } from './regiondata.js';
+import { MAP_PALETTE, seaStyle } from './mapstyle.js';
 import { worldPlaceAt } from './worldplaces.js';
 
 export const REGIONS = {
@@ -185,8 +186,7 @@ export function outsidePath(frame) {
 }
 
 const BORDER_COLOR = { friesland: '#e8b04a', drenthe: '#c9a0e0', duitsland: '#e86a5a' };
-const SEA_FILL = '#2d6a86';
-const SEA_EDGE = '#4a8fae';
+const { fill: SEA_FILL, edge: SEA_EDGE } = seaStyle(MAP_PALETTE);
 const TINT = 'rgba(4, 8, 12, 0.5)';
 
 // Under the map's vectors, world-transformed: the sea (the land colour

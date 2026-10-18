@@ -5,6 +5,7 @@ import {
 import { provinceMapBounds } from './provincemap.js';
 import { FARM_TYPES, blockPlanCached, blockPlan, villagePlan, ROAD_ROW, TREE_ROW_P } from './countryplan.js';
 import { farPropsIn } from './farprops.js';
+import { MAP_PALETTE, MINI_PALETTE, mapPhase, applyMapPhase, currentMapPhase } from './mapstyle.js';
 
 // The procedural countryside on the 2D maps (minimap and full map), drawn from
 // the same plan as the 3D world: meadows fading in past the city edge, the
@@ -14,22 +15,10 @@ import { farPropsIn } from './farprops.js';
 
 // One land colour for the city and the Ommelanden on each map, so the edge
 // of the real data never shows as a seam; the countryside only differs in
-// what is drawn on it (ditches, farms, villages).
-export const MAP_STYLE = {
-  meadow: '#243528', park: '#2f5c36', ditch: '#2d6a86', water: '#2d6a86', road: '#c7c7c2', major: '#f0ede4', minor: '#8f9095',
-  building: 'rgba(160, 156, 146, 0.62)', church: 'rgba(214, 205, 180, 0.8)', tree: '#1d3a23', village: '#2b4230',
-  allot: '#2f4f33', sports: '#2f5c36', business: '#333a36', rail: '#55524c', railTie: '#d8d4c8', turbine: '#e8eae8',
-  roadMin: 1.4, majorMin: 2.4,
-};
-// the minimap matches the city minimap (hud_panel.js): its road colours and
-// widths (real width, 3 m at least), cycleways in red, buildings in the same
-// varied palette
-export const MINI_STYLE = {
-  meadow: '#3e4c39', park: '#5a8445', ditch: '#3a86a8', water: '#3a86a8', road: '#a8ada2', major: '#f0ede4', minor: '#a8ada2', cycle: '#c9603f',
-  building: '#b98a6a', buildings: ['#b98a6a', '#9a8a7a', '#c9a876', '#8a96a0', '#a88a9a'], roadMetres: 3, church: '#8a8474', tree: '#34562c', village: '#4b5c41',
-  allot: '#55733f', sports: '#5a8445', business: '#8a96a0', rail: '#55524c', railTie: '#d8d4c8', turbine: '#f0f0ee',
-  roadMin: 3, majorMin: 3,
-};
+// what is drawn on it (ditches, farms, villages). The tables live in
+// mapstyle.js; the minimap's matches the city minimap (hud_panel.js).
+export const MAP_STYLE = MAP_PALETTE;
+export const MINI_STYLE = MINI_PALETTE;
 
 const C = ROAD_IN + ROAD_W / 2;
 
@@ -344,6 +333,13 @@ const MINI_IDLE_MS = 6;
 const miniTiles = new Map();
 const miniQueue = new Map();
 let miniIdle = 0;
+
+// Day or night colours for both maps from the game clock; the minimap's
+// tiles are rebuilt when it flips. Returns the phase ('dag' or 'nacht').
+export function syncMapPhase(world) {
+  if (applyMapPhase(mapPhase(world && world.dayNight ? world.dayNight.hour : undefined))) { miniTiles.clear(); miniQueue.clear(); }
+  return currentMapPhase();
+}
 
 function buildMiniTile(key, tx, ty, T, scale, pxPerM) {
   const pad = MINI_PAD_PX / scale;

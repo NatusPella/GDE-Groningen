@@ -9,6 +9,7 @@ import {
 } from './achievements.js';
 import { SIDE_JOBS } from './sidejobs.js';
 import { fillBars, countTo } from './motion.js';
+import { achPct as pctOf, achNear, achDone, achCategoryOrder, achCategoryPct, achWhen, ringDash } from './menumodels.js';
 
 const CHEV = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 6l6 6-6 6"/></svg>';
 const LOCK = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5.5" y="11" width="13" height="9" rx="1.5"/><path d="M8.5 11V8a3.5 3.5 0 0 1 7 0v3"/></svg>';
@@ -32,16 +33,8 @@ function fmtAmount(v, unit) {
   return nl(Math.floor(v));
 }
 
-const pctOf = (it) => (it.progress ? Math.max(0, Math.min(100, (it.progress.cur / it.progress.goal) * 100)) : 0);
 
-function whenText(at) {
-  const day = (t) => Math.floor((t - new Date(t).getTimezoneOffset() * 60000) / 86400000);
-  const d = day(Date.now()) - day(at);
-  if (d <= 0) return 'vandaag';
-  if (d === 1) return 'gisteren';
-  if (d < 7) return `${d} dagen geleden`;
-  return new Date(at).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' });
-}
+const whenText = (at) => achWhen(at, Date.now(), new Date(at).getTimezoneOffset(), (t) => new Date(t).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' }));
 
 function row(it, catLabel) {
   const title = it.hidden ? '???' : dualHtml(it.title);
@@ -56,6 +49,12 @@ function row(it, catLabel) {
 function disc(id, title, hintHtml, inner, open, attr) {
   return `<button type="button" class="m-disc" ${attr} aria-expanded="${open}">${CHEV}<b>${esc(title)}</b>${hintHtml}</button>` +
     `<div class="m-fold" ${open ? '' : 'hidden'}>${inner}</div>`;
+}
+
+// a progress ring with the figure in the middle
+function ring(pct, label, size = 96) {
+  const { circ, dash, pct: p } = ringDash(pct);
+  return `<span class="pa-ring" style="width:${size}px;height:${size}px"><svg viewBox="0 0 100 100" aria-hidden="true"><circle class="bg" cx="50" cy="50" r="40"/><circle class="fg" cx="50" cy="50" r="40" stroke-dasharray="${dash} ${circ}" transform="rotate(-90 50 50)"/></svg><span class="bebas">${label != null ? label : p + '%'}</span></span>`;
 }
 
 function medalsBlock() {
@@ -91,7 +90,7 @@ function detailHtml(it, catLabel) {
   let prog = '';
   if (!it.hidden && it.progress && !it.unlocked) {
     const { cur, goal, unit } = it.progress;
-    prog = `<div class="pa-prog"><span class="m-num">${fmtAmount(cur, unit)} <span class="mut">/ ${fmtAmount(goal, unit)}</span></span><span class="m-bar on"><i data-bar="d-${esc(it.id)}" data-w="${pctOf(it).toFixed(1)}"></i></span></div>`;
+    prog = `<div class="pa-prog">${ring(pctOf(it), null, 120)}<span class="m-num">${fmtAmount(cur, unit)} <span class="mut">/ ${fmtAmount(goal, unit)}</span></span><span class="m-bar on"><i data-bar="d-${esc(it.id)}" data-w="${pctOf(it).toFixed(1)}"></i></span></div>`;
   }
   return `<div class="pm-pane-top"><span class="m-eb">${esc(catLabel || 'Prestatie')}</span><h2 class="m-h2 td-h2">${title}</h2></div><p>${desc}</p>${prog}` +
     (it.unlocked ? `<p class="g">Behaald${it.at ? ` · ${whenText(it.at)}` : ''}</p>` : '') +
@@ -106,8 +105,8 @@ export function renderAchievementsPanel(el, { keepFresh = false } = {}) {
   const sum = getAchievementSummary();
   const st = getLifetimeStats();
   const all = view.flatMap((c) => c.items.map((a) => ({ ...a, catLabel: c.label })));
-  const near = all.filter((a) => !a.unlocked && !a.hidden && a.progress && a.progress.cur > 0).sort((a, b) => pctOf(b) - pctOf(a));
-  const done = all.filter((a) => a.unlocked).sort((a, b) => (b.at || 0) - (a.at || 0));
+  const near = achNear(all);
+  const done = achDone(all);
   if (sel && !all.some((a) => a.id === sel)) sel = null;
   const selItem = all.find((a) => a.id === sel);
   const tab = (id, label, n) => `<button type="button" role="tab" class="m-tab" data-achview="${id}" aria-selected="${tabView === id}">${label}${n != null ? `<small>${n}</small>` : ''}</button>`;
@@ -118,8 +117,8 @@ export function renderAchievementsPanel(el, { keepFresh = false } = {}) {
   else {
     list = view.map((c) => {
       const open = openCats.has(c.cat);
-      const pct = c.items.length ? Math.round((c.done / c.items.length) * 100) : 0;
-      const items = [...c.items].sort((a, b) => b.unlocked - a.unlocked || pctOf(b) - pctOf(a));
+      const pct = achCategoryPct(c);
+      const items = achCategoryOrder(c.items);
       const inner = items.map((a) => row(a, c.label)).join('');
       return disc(c.cat, c.label, `<span class="m-bar${open ? ' on' : ''}"><i data-bar="cat-${c.cat}" data-w="${pct}"></i></span><span class="bebas">${c.done}/${c.items.length}</span>`, inner, open, `data-achcat="${c.cat}"`);
     }).join('') + '<div class="m-rule"></div>' +
@@ -127,7 +126,7 @@ export function renderAchievementsPanel(el, { keepFresh = false } = {}) {
   }
   el.dataset.sub = `${all.some((a) => a.hidden) ? `${all.filter((a) => a.hidden).length} verborgen · ` : ''}blijven bewaard`;
   el.innerHTML = `<div class="m-tabs"><nav class="m-tablist" role="tablist" aria-label="Weergave">${tab('alles', 'Alles')}${tab('bijna', 'Bijna binnen', near.length)}${tab('behaald', 'Behaald', done.length)}</nav>` +
-    `<span class="m-grow"></span><span class="pa-total"><span class="m-num" data-pa-pct>${sum.done}</span><span class="mut">van ${sum.total} behaald</span></span></div>` +
+    `<span class="m-grow"></span><span class="pa-total">${ring(sum.total ? (sum.done / sum.total) * 100 : 0, null, 56)}<span class="m-num" data-pa-pct>${sum.done}</span><span class="mut">van ${sum.total} behaald</span></span></div>` +
     `<div class="m-main"><div class="m-list pa-list">${list}</div><aside class="m-pane pa-pane" aria-live="polite">${detailHtml(selItem, selItem && selItem.catLabel)}</aside></div>`;
   fillBars(el, bars);
   const pct = el.querySelector('[data-pa-pct]');
