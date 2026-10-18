@@ -6,7 +6,7 @@
 import './node3d.mjs';
 import fs from 'node:fs';
 
-const { GameMap, applyMapExtras } = await import('../game/js/mapdata.js');
+import { loadCityWorld } from './lib/loadworld.mjs';
 const RS = await import('../game/js/roadsurface.js');
 const RA = await import('../game/js/roadaccess.js');
 const MF = await import('../game/js/marktfiets.js');
@@ -19,9 +19,7 @@ let bad = 0, n = 0;
 const check = (name, ok, info = '') => { n++; if (!ok) { bad++; console.log('FAIL', name, info); } };
 
 const root = new URL('../game/', import.meta.url);
-const data = JSON.parse(fs.readFileSync(new URL('citymap.json', root)));
-applyMapExtras(data, JSON.parse(fs.readFileSync(new URL('mapextras.json', root))));
-const map = new GameMap(data);
+const map = (await loadCityWorld()).map;
 RS.setRoadNetwork(map);
 
 // --- which ways

@@ -6,13 +6,11 @@
 import './node3d.mjs';
 import fs from 'node:fs';
 
-const { GameMap, applyMapExtras } = await import('../game/js/mapdata.js');
+import { loadCityWorld } from './lib/loadworld.mjs';
 const { waterClearance, swimmerCanLeave } = await import('../game/js/waterindex.js');
 const { inMapWater } = await import('../game/js/util.js');
 const root = new URL('../game/', import.meta.url);
-const data = JSON.parse(fs.readFileSync(new URL('citymap.json', root)));
-applyMapExtras(data, JSON.parse(fs.readFileSync(new URL('mapextras.json', root))));
-const map = new GameMap(data);
+const map = (await loadCityWorld()).map;
 
 const EDGE = Number((/SWIM_EDGE_CLEAR = ([\d.]+)/.exec(fs.readFileSync(new URL('js/player.js', root), 'utf8')) || [])[1] || 1);
 const SPEED = 2.2, DT = 1 / 30;
