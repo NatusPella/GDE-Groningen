@@ -44,7 +44,7 @@ export function loadWays(dir) {
   return [...byId.values()];
 }
 
-const cross = (a, b, c, d) => {
+export const cross = (a, b, c, d) => {
   const rx = b[0] - a[0], ry = b[1] - a[1], sx = d[0] - c[0], sy = d[1] - c[1];
   const den = rx * sy - ry * sx;
   if (Math.abs(den) < 1e-9) return null;

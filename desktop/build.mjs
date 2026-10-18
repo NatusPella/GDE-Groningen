@@ -13,6 +13,7 @@ import { createRequire } from 'module';
 createRequire(import.meta.url)('./envcompat.js'); // GTE_* -> GDE_*
 // GDE_STAGE_SRC / GDE_STAGE_OUT stage another checkout (perf runs against main)
 const SRC = process.env.GDE_STAGE_SRC || path.join(HERE, '..', 'game');
+const VIADUCTS = process.env.GDE_VIADUCTS === '1'; // province tiles with height profiles for bridges and viaducts (#235)
 const OUT = process.env.GDE_STAGE_OUT || path.join(HERE, 'build', 'game');
 const CACHE = path.join(HERE, 'vendor-cache');
 const CDN = 'https://cdn.jsdelivr.net/npm/';
@@ -94,8 +95,9 @@ function packWorld() {
     ? fs.readdirSync(cacheDir).filter((d) => d === 'province' || d.startsWith('province-')).sort().map((d) => path.join(cacheDir, d)) : [];
   if (provDirs.length) {
     h.update(fs.readFileSync(province));
+    h.update(VIADUCTS ? 'viaducts' : 'flat');
     // what the province build runs besides (derive_tiles.mjs: the city's derivation; bag3d.mjs: 3D BAG)
-    for (const f of ['derive_tiles.mjs', 'junction_tiles.mjs', 'building_clearance.mjs', 'bag3d.mjs']) h.update(fs.readFileSync(path.join(root, 'scripts', 'world', f)));
+    for (const f of ['derive_tiles.mjs', 'junction_tiles.mjs', 'building_clearance.mjs', 'bag3d.mjs', 'province_profile.mjs', 'bridgededupe.mjs', 'bridge_audit.mjs', 'profile.mjs']) h.update(fs.readFileSync(path.join(root, 'scripts', 'world', f)));
     for (const f of ['builderhooks.js', 'greenery.js', 'streetfurniture.js', 'junctions.js']) h.update(fs.readFileSync(path.join(SRC, 'js', f)));
     const bagP = path.join(root, 'data', 'world', '3dbag_province.json.gz');
     if (fs.existsSync(bagP)) h.update(fs.readFileSync(bagP));
@@ -113,7 +115,7 @@ function packWorld() {
       if (c.status) { fs.rmSync(cache, { recursive: true, force: true }); throw new Error('building the corridor tiles failed'); }
     }
     if (provDirs.length) {
-      const c = spawnSync(process.execPath, [province, '--out', cache, '--city', path.join(cache, 'index.json')], { stdio: 'inherit', cwd: root });
+      const c = spawnSync(process.execPath, [province, '--out', cache, '--city', path.join(cache, 'index.json'), ...(VIADUCTS ? ['--viaducts'] : [])], { stdio: 'inherit', cwd: root });
       if (c.status) { fs.rmSync(cache, { recursive: true, force: true }); throw new Error('building the province tiles failed'); }
     }
     for (const d of fs.readdirSync(WCACHE)) if (path.join(WCACHE, d) !== cache) fs.rmSync(path.join(WCACHE, d), { recursive: true, force: true });
