@@ -507,7 +507,8 @@ export function fromOsm(el, ctx = {}) {
   }
   if (tags.waterway === 'canal' || tags.waterway === 'river') {
     const w = parseFloat(String(tags.width || '').replace(',', '.'));
-    out.push({ kind: 'waterways', row: { pts: P, hw: (Number.isFinite(w) && w > 0 ? w : tags.waterway === 'canal' ? 14 : 10) / 2, name: tags.name || null } });
+    // (fixed: the width is mapped; else it is a guess that derive_tiles.mjs trims round the footprints on the bank)
+    out.push({ kind: 'waterways', row: { pts: P, hw: (Number.isFinite(w) && w > 0 ? w : tags.waterway === 'canal' ? 14 : 10) / 2, name: tags.name || null, fixed: Number.isFinite(w) && w > 0 } });
     return out;
   }
   const gk = tags.leisure || tags.landuse;
