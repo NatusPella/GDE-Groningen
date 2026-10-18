@@ -147,10 +147,8 @@ export function kitFor(plek) {
         o.push(box(0, 0.4, sd * (br / 2 + 0.7), len, 1.5, 1.2, KLEUR.beton));
         for (let x = -len / 2 + 3; x <= len / 2 - 2; x += 9) o.push(cyl(x, 1.1, sd * (br / 2 + 0.2), 0.22, 0.5, KLEUR.zwart));
       }
-      for (const e of [-1, 1]) {
-        for (const sd of [-1, 1]) o.push(box(e * len / 2, 0.9, sd * br / 4, 0.4, 3.4, br / 2 + 0.2, KLEUR.donker, sd * e * 0.28));
-        o.push(box(e * len / 2, 3.2, 0, 1.2, 0.2, br + 3, KLEUR.staal));   // loopbrug over de deuren
-      }
+      // de deuren zelf draaien open en dicht (sluizen3d.js); hier alleen de loopbrug erover
+      for (const e of [-1, 1]) o.push(box(e * len / 2, 3.2, 0, 1.2, 0.2, br + 3, KLEUR.staal));
       o.push(box(-len / 2 - 3, 1.8, br / 2 + 4, 4.5, 3.4, 3.6, KLEUR.wit), box(-len / 2 - 3, 3.9, br / 2 + 4, 5.2, 0.8, 4.3, KLEUR.dak));   // sluiswachter
       break;
     }
