@@ -86,7 +86,7 @@ const SPOTS = [
   // #212: het plaatslabel in en om Corpus den Hoorn
   { name: 'o212-corpus', type: 'labelgrid', issue: 212, ...place('Corpus den Hoorn'), rx: 1400, ry: 1000, step: 100 },
   // #115: missiemarkers
-  { name: 'm115-markers', type: 'marker', issue: 115, ...gm },
+  { name: 'm115-markers', type: 'marker', issue: 115, x: gm.x + 120, y: gm.y + 380 },
   // #117: cutscene-geluid (welke geluiden de eerste missies in de rij zetten)
   { name: 's117-cutscenes', type: 'cutsound', issue: 117, ...gm, n: 4 },
   // #130: kruisingen, op- en afritten, samenkomende rijstroken
