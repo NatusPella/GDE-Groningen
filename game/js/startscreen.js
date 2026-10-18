@@ -1,9 +1,10 @@
 import { FLAGS } from './devflags.js';
 import { hasSave, readSave, applySave, clearSave, getSaveSummary } from './savegame.js';
-import { startHost, startClient, stopCoopNet, tickCoopNet, saveCoop, handshakeInfo } from './coopnet.js';
-import { readCoopSave, writeCoopSave, hasCoopSave, newCoopSave, coopFromSolo } from './coopsave.js';
+import { startHost, startClient, stopCoopNet, tickCoopNet, handshakeInfo } from './coopnet.js';
+import { readSession, writeSession, toSession } from './coopsave.js';
 import { setFixedCharacters } from './coopclient.js';
-import { getStorySave, applyStorySave } from './story.js';
+import { bindCoop } from './coopglue.js';
+import { openHold } from './coophold.js';
 import { VERSION } from './version.js';
 import { checkWhatsNew, markVersionSeen, compareVersions } from './whatsnew.js';
 import { pointInPolygon } from './util.js';
@@ -412,7 +413,6 @@ export function runStartScreen(world, { render, relocate, tick }) {
     // the new story is the default: a released save stays untouched under Klassiek, so point to it
     else if (!arcForced() && ARC_ID === 'nieuw' && classicSaveExists()) items.push({ act: 'story', label: 'Doorgaan met Klassiek', sub: 'Je oude save staat nog klaar. Het nieuwe verhaal is nog in aanbouw' });
     items.push({ act: 'new', label: 'Nieuw spel', sub: arcForced() ? (save ? 'Begin opnieuw in Grunn' : 'Moi! Stap in en rij') : 'Kies je verhaal: nieuw of klassiek' });
-    if (FLAGS.coop) items.push({ act: 'coop', label: 'Coöp', sub: 'Samen spelen: op één scherm of op hetzelfde netwerk' });
     items.push({ act: 'news', label: 'Wat is er nieuw', sub: 'Alle versies en wijzigingen' });
     items.push({ act: 'settings', label: 'Instellingen', sub: 'Geluid, beeld en camera' });
     items.push({ act: 'about', label: 'Over', sub: 'Credits, licenties en privacy' });
@@ -520,22 +520,27 @@ export function runStartScreen(world, { render, relocate, tick }) {
       fade.remove();
       resolve(mode);
     };
-    const startNew = () => {
+    const doNew = () => {
       startTheme();
       restoreWorld();
       clearSave();
+      finish('game');
+    };
+    // met ?coop kiest de speler per sessie Alleen of Samen (chooseMode, verderop)
+    const startNew = () => (FLAGS.coop ? chooseMode('nieuw', doNew) : doNew());
+    const doContinue = () => {
+      startTheme();
+      restoreWorld();
+      applySave(world, readSave());
+      // the load screen covers the menu until the city round the save has streamed in
+      startLoadScreen(world, { kind: 'save' });
       finish('game');
     };
     const activate = (i) => {
       const it = items[i];
       if (it.act !== 'news' && it.act !== 'about') news.hidden = true;
       if (it.act === 'continue') {
-        startTheme();
-        restoreWorld();
-        applySave(world, readSave());
-        // the load screen covers the menu until the city round the save has streamed in
-        startLoadScreen(world, { kind: 'save' });
-        finish('game');
+        if (FLAGS.coop) chooseMode('doorgaan', doContinue); else doContinue();
       } else if (it.act === 'new') {
         if (!arcForced()) { openChoice(); return; }
         if (save && !confirmNew) { setConfirm(true); return; }
@@ -546,8 +551,6 @@ export function runStartScreen(world, { render, relocate, tick }) {
         openNews();
       } else if (it.act === 'about') {
         openAbout();
-      } else if (it.act === 'coop') {
-        openCoop();
       } else if (it.act === 'settings') {
         openPauseMenu('settings', { prestart: true, onClose: () => focus(sel) });
       } else if (it.act === 'exit') {
@@ -568,47 +571,41 @@ export function runStartScreen(world, { render, relocate, tick }) {
       showPanel('Wat is er nieuw');
       loadChangelog().then((html) => { if (!news.hidden && newsTitle.textContent === 'Wat is er nieuw') newsBody.innerHTML = html; });
     };
-    // Coöp-lobby (#95), alleen met ?coop: lobby.js (logica) en lobbyui.js (tekenen)
+    // Alleen of Samen (#95), alleen met ?coop: lobby.js (logica) en lobbyui.js (tekenen).
+    // Eén save: de host (of een lokaal duo) speelt en bewaart zoals altijd; een gast bewaart het
+    // verhaal niet (savegame.js: world.coopRole) en start in een lege wereld die de host overneemt.
     let lobby = null, lobbyIv = null;
     const stopLobbyTick = () => { if (lobbyIv) { clearInterval(lobbyIv); lobbyIv = null; } };
     const coopStore = () => { try { return localStorage; } catch (e) { return null; } };
-    // Wereld klaarzetten voor een coöp-spel. De solosave blijft ongemoeid (geen clearSave);
-    // saveGame() schrijft in coöp naar de coöp-save (world.coopGame, savegame.js).
-    const coopPrepare = (role, src) => {
+    const remember = (modus, rol, code) => { const ls = coopStore(); if (ls) writeSession(ls, toSession(readSession(ls), { modus, rol, code })); };
+    const doGuest = () => { startTheme(); restoreWorld(); finish('game'); };
+    const enterGame = (rol, run) => {
       stopLobbyTick(); // vanaf nu tikt de hoofdlus de sessie (main.js)
-      startTheme();
-      restoreWorld();
-      const ls = coopStore();
-      let c = null;
-      if (role !== 'client') {
-        if (src === 'verder') c = readCoopSave(ls);
-        else if (src === 'solo') c = coopFromSolo(readSave(), Date.now());
-        if (!c) c = newCoopSave(ARC_ID, Date.now());
-        if (src !== 'verder') writeCoopSave(ls, c);
-        if (c.story) applyStorySave(c.story);
-        world.money = c.shared.money;
-      }
-      world.coopGame = true;
-      world.coopSaveHook = role === 'client' ? null : (w) => saveCoop(w, ls, getStorySave());
-      if (world.coop && role === 'local') setFixedCharacters(world, 'host');
-      finish('game');
+      if (rol === 'alleen') { world.coop = null; world.coopRole = null; remember('alleen', null); run(); return; }
+      if (!world.coop) bindCoop(world, world.input);
+      if (rol === 'gast') doGuest(); else run();
+      if (rol !== 'gast') setFixedCharacters(world, 'host'); // Tammo; na het laden van de save
+      if (rol === 'lokaal') remember('samen', 'lokaal');
     };
-    const openCoop = () => {
-      showPanel('Coöp');
+    const chooseMode = (actie, run) => {
+      showPanel(actie === 'nieuw' ? 'Nieuw spel' : 'Doorgaan');
       import('./lobbyui.js').then(({ mountLobby }) => {
         if (lobby) lobby.close();
         const ls = coopStore();
+        const sess = ls ? readSession(ls) : null;
         lobby = mountLobby(newsBody, {
-          hasCoopSave: !!ls && hasCoopSave(ls),
-          hasSoloSave: hasSave(),
-          startLocal: (src) => coopPrepare('local', src),
-          onSession: (role, tr, src) => {
+          actie,
+          laatsteCode: sess ? sess.laatsteCode : '',
+          start: (modus) => enterGame(modus, run),
+          onSession: (role, tr) => {
             const info = handshakeInfo({ tiles: '-', story: ARC_ID });
-            const sess = role === 'host' ? startHost(world, tr, info, 1, { storage: ls, getStory: getStorySave }) : startClient(world, tr, info);
+            const onHold = (r) => openHold(world, r);
+            const s2 = role === 'host' ? startHost(world, tr, info, 1, { onHold }) : startClient(world, tr, info, { onHold });
             stopLobbyTick(); lobbyIv = setInterval(() => tickCoopNet(world, 0.05), 50); // het startscherm tikt de sessie zelf
-            return sess;
+            return s2;
           },
-          enter: (role, src) => coopPrepare(role, src),
+          onCode: (code) => remember('samen', 'gast', code),
+          enter: (role) => { remember('samen', role === 'host' ? 'host' : 'gast', ''); enterGame(role === 'host' ? 'host' : 'gast', run); },
           disconnect: () => { stopLobbyTick(); stopCoopNet(world); },
         });
       });
