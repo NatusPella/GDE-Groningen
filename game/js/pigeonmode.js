@@ -1758,6 +1758,11 @@ export function getPigeonFlight() {
   return { x: P.x, y: P.y, z: P.z, ground: surfaceAt(P.x, P.y, false).h, mode: P.mode, score, intro: !!intro };
 }
 
+// Read-only: where the gull is (for the mission map), or null.
+export function getPigeonThreats() {
+  return active && gull ? [{ x: gull.x, y: gull.y, kind: 'meeuw', label: 'Meeuw' }] : [];
+}
+
 export { buildBird as buildPigeonBird, poseBird as posePigeonBird };
 
 // Starts the pigeon activity. With a spot ({ x, y }: where a pigeon sits near
