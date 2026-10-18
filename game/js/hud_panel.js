@@ -667,8 +667,9 @@ function updatePlace(dt, world) {
   if (!c || c.key === placeState.last) return;
   // a mission timer, a cutscene or a busy moment: the place is just taken in
   const timer = !!gpsState.timer;
-  if (timer || isCinematicActive() || world.pigeonMode || world.heliRun || !document.body.classList.contains('game-started')) { placeState.last = c.key; return; }
-  if (isBusy(world) || isDialogue()) {
+  if (timer || world.pigeonMode || world.heliRun || !document.body.classList.contains('game-started')) { placeState.last = c.key; return; }
+  // a flyover (wijk, landmark) names its place in this card once it ends
+  if (isCinematicActive() || isBusy(world) || isDialogue()) {
     if (!placeState.pending || placeState.pending.key !== c.key) { placeState.pending = c; placeState.pendingAt = now; }
     if (now - placeState.pendingAt > DEFER_MAX) { placeState.last = c.key; placeState.pending = null; }
     return;
