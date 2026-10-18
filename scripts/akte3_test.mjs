@@ -4,7 +4,6 @@
 // - the places are in the province (Eemsdelta, Oldambt, Lauwersoog), every stage target resolves, the heli variant exists
 // - the Winschoten kermis has three tents with a toast, the container sneak runs on the bare heist
 // The province tiles of the Eemsdelta are not in the repo: positions are checked as plausible, not against roads.
-process.env.GDE_NIEUW_VERHAAL = '1';
 import fs from 'node:fs';
 import './node3d.mjs';
 

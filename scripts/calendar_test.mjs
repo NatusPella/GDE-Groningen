@@ -10,7 +10,7 @@ import {
 } from '../game/js/calendar.js';
 import { STEPS, PARTS, ARC_ID } from '../game/js/storyarc.js';
 
-// the same checks run for both arcs: node scripts/calendar_test.mjs, and with GDE_NIEUW_VERHAAL=1
+// the story's checks: node scripts/calendar_test.mjs
 const NEW = ARC_ID === 'nieuw';
 // per arc: [step ids the story-specific checks look at]
 const S = NEW
@@ -63,7 +63,7 @@ const fin = storyBounds({ end: true, part: NEW ? 'ontzet' : 'staart', finale: tr
 ok(fin.min === EPILOGUE_DAY && fin.max === Infinity && clampDay(500, fin) === 500, 'after the finale: September on, open-ended');
 
 // migration
-const save = (done, completed) => ({ v: 6, story: { v: 1, done, skipped: [], voorschot: [], fails: {}, flags: [], cards: [] }, missions: { completed } });
+const save = (done, completed) => ({ v: 6, arc: 'nieuw', story: { v: 1, done, skipped: [], voorschot: [], fails: {}, flags: [], cards: [] }, missions: { completed } });
 const mNew = migrateSave(save([], []));
 ok(SAVE_VERSION >= 7 && mNew.data.kalender && mNew.data.kalender.dag === 1 && mNew.data.kalender.gezien.length === 0, 'an old new-game save starts on day 1');
 const upTo = (id) => STEPS.slice(0, STEPS.findIndex((s) => s.id === id)).map((s) => s.id);
@@ -73,13 +73,15 @@ const mEnd = migrateSave(save(STEPS.map((s) => s.id), []));
 // a save that has done every step is finished, built or not (nextStoryStep passes a step the save has done): September
 const endDay = EPILOGUE_DAY;
 ok(mEnd.data.kalender.dag === endDay && dayForSavedStep(savedStoryStep(mEnd.data)) === endDay, 'a finished save is in September', String(mEnd.data.kalender.dag));
-const keep = migrateSave({ v: 6, kalender: { v: 1, dag: 30, gezien: ['kei'] } });
+const keep = migrateSave({ v: 6, arc: 'nieuw', kalender: { v: 1, dag: 30, gezien: ['kei'] } });
 ok(keep.data.kalender.dag === 30, 'an existing kalender is kept');
 const dir = path.join(path.dirname(fileURLToPath(import.meta.url)), 'fixtures', 'saves');
 for (const f of fs.readdirSync(dir).filter((x) => x.endsWith('.json'))) {
   const fx = JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8'));
   if (!fx.save || (fx._expect && fx._expect.rejected)) continue;
   const m = migrateSave(fx.save);
+  // a save of the first version starts the story over (#187): no day to keep, the game starts on day 1
+  if (m && m.data.oudGemigreerd) { ok(!('kalender' in m.data), `${f}: a save of the first version starts on day 1`); continue; }
   ok(m && m.data.kalender && Number.isInteger(m.data.kalender.dag) && m.data.kalender.dag >= 1 && m.data.kalender.dag <= EPILOGUE_DAY, `${f}: gets a day from its story`, m && JSON.stringify(m.data.kalender));
 }
 
