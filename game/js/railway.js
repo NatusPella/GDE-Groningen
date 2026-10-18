@@ -5,7 +5,7 @@
 import { requestRespawn } from './world.js';
 import { DEAD_DURATION } from './pedestrians.js';
 import { knockDown } from './ragdoll.js';
-import { disableVehicle } from './vehicle.js';
+import { disableVehicle } from './vehiclewreck.js';
 import { splatterPed, bleedPed, GIB_SPEED } from './gore3d.js';
 import { railHeightFn } from './railprofile.js';
 
