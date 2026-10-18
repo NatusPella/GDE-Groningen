@@ -331,3 +331,6 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 #pause-menu .mapview-overlay.embedded .mv-goal:has([data-act="avoid"]:not([hidden])) { display: flex; }
 #pause-menu .mapview-overlay.embedded .mv-goal [data-act="avoid"][aria-pressed="true"] { color: var(--g); }
 #pause-menu .mapview-overlay.embedded .mv-goal [data-act="avoid"][hidden] { display: none; }
+
+/* Kaart (#132): rustiger; de legenda-, lagen- en routebalken naast de kaart zijn weg (doel wissen: Del of rechtsklik) */
+#pause-menu .mapview-overlay.embedded .mapview-legend, #pause-menu .mapview-overlay.embedded .mv-layers, #pause-menu .mapview-overlay.embedded .mv-goal { display: none !important; }
