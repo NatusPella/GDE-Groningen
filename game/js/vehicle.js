@@ -31,6 +31,7 @@ import { MOPED_LEGAL_SPEED } from './motomodels.js';
 import { pickMotor, motorRoadAllowed, motorTarget } from './motortraffic.js';
 import { FLAGS } from './devflags.js';
 import { verkeerOpties } from './simlagen.js';
+import { SMOKE_HEALTH } from './vehicledamage.js';
 export { MOTORBIKE_MODELS, GEARED_MOPED_MODEL, MOPED_LEGAL_SPEED } from './motomodels.js';
 
 // every traffic model, for warming their meshes before they first spawn
@@ -3076,7 +3077,14 @@ export const WRECK_FIRE_S = 25;
 
 export function vehicleNeedsFireEffect(v, time = 0) {
   if (v.wrecked) return !v.isBike && !v.isBoat && !v.sinking && v.wreckedAt !== undefined && time - v.wreckedAt < WRECK_FIRE_S;
-  return v.health <= VEHICLE_FIRE_HEALTH_THRESHOLD;
+  if (v.health <= VEHICLE_FIRE_HEALTH_THRESHOLD) return true;
+  return smokes(v);
+}
+
+// Damaged but not yet burning (vehicledamage.js, #205): only the smoke of the effect, no flames.
+const smokes = (v) => !v.isBike && !v.isScooter && !v.isBoat && !v.isHeli && !v.sinking && v.health <= SMOKE_HEALTH;
+export function vehicleSmokeOnly(v) {
+  return !v.wrecked && !v.disabled && v.health > VEHICLE_FIRE_HEALTH_THRESHOLD && smokes(v);
 }
 
 export function buildVehicleFireMesh3D() {
