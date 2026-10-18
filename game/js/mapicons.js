@@ -10,6 +10,10 @@ const CATS = {
   goal: { min: 0, pri: 900, keep: true },
   mission: { min: 0, pri: 800, keep: true },
   police: { min: 0, pri: 700, keep: true },
+  gevaar: { min: 0, pri: 650, keep: true },
+  rival: { min: 0, pri: 640, keep: true },
+  halte: { min: 0, pri: 620, keep: true },
+  subdoel: { min: 0, pri: 590 },
   home: { min: 0, pri: 600, keep: true },
   own: { min: 0.6, pri: 560 },
   station: { min: 0, pri: 520 },
@@ -30,6 +34,11 @@ const CATS = {
 export function mapCategory(kind) {
   if (kind === 'player') return 'player';
   if (kind === 'userWaypoint' || kind === 'sj-target' || kind === 'missionActive' || kind.startsWith('ma-')) return 'goal';
+  // mission layers (missionmap.js)
+  if (kind === 'mm-gevaar') return 'gevaar';
+  if (kind === 'mm-rival') return 'rival';
+  if (kind === 'mm-halte' || kind === 'mm-ring' || kind === 'mm-pad' || kind === 'mm-brug') return 'halte';
+  if (kind === 'mm-subdoel' || kind === 'mm-hulp') return 'subdoel';
   if (kind === 'waypoint' || kind === 'sj-dot') return 'mission';
   if (kind === 'missionIdle' || kind.startsWith('mi-')) return 'mission';
   if (kind === 'cash' || kind.startsWith('police')) return 'police';
@@ -84,7 +93,7 @@ export const iconGapPx = (scale) => Math.round(ICON_UNITS * scale * ICON_GAP_FAC
 // The rim colour of an icon's disc per category, so the kinds read apart at a glance
 const CAT_RIM = {
   zorg: '#ff5a5a', politiebureau: '#5a8bff', garage: '#ffb23f', station: '#9a7bff', job: '#4fd6c4',
-  shop: '#ff8ad0', fun: '#a6e04f', horeca: '#ff9a4f', own: '#f5e04f', ommeland: '#7fd0ff',
+  shop: '#ff8ad0', gevaar: '#ff5a5a', rival: '#ffb23f', halte: '#ffd84a', subdoel: '#4fd6c4', fun: '#a6e04f', horeca: '#ff9a4f', own: '#f5e04f', ommeland: '#7fd0ff',
 };
 export function mapRimColor(kind) {
   return CAT_RIM[mapCategory(kind)] || 'rgba(240, 237, 228, 0.92)';
