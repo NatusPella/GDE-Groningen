@@ -107,7 +107,7 @@ export function yieldToPaint() {
 
 // A run that no person sits at (the story test, the smoke test, recordings,
 // the benchmark) goes straight on to the menu.
-const AUTO = FLAGS.noattract || FLAGS.storytest || FLAGS.stil || FLAGS.trailer || FLAGS.benchmark || FLAGS.perf || FLAGS.spotsonly;
+const AUTO = FLAGS.noattract || FLAGS.storytest || FLAGS.stil || FLAGS.trailer || FLAGS.preview || FLAGS.benchmark || FLAGS.perf || FLAGS.spotsonly;
 
 // Fills the bar to 100%, says "Druk op een toets" and waits for the key. The
 // boot screen stays up until the menu is there (dismissLoading), so there is

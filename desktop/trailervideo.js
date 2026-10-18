@@ -82,11 +82,22 @@ function ffmpegArgs({ w, h, W, H, out, sheet, gameDir }) {
     mix.push(`[a${n}]`);
     n++;
   }
-  for (const s of sheet.sfx || []) {
-    if (s.kind !== 'knal') continue;
+  // the sounds are synthesised here (noise and sine tones), no samples
+  const SFX = {
     // the carbid bang: a short burst of low noise
-    args.push('-f', 'lavfi', '-t', '0.9', '-i', 'anoisesrc=c=brown:a=0.9:r=48000');
-    filters.push(`[${n}:a]lowpass=f=700,afade=t=out:st=0.02:d=0.85:curve=exp,aformat=sample_rates=48000:channel_layouts=stereo,volume=1.4,adelay=${ms(s.at)}:all=1[a${n}]`);
+    knal: { src: 'anoisesrc=c=brown:a=0.9:r=48000', t: 0.9, fx: 'lowpass=f=700,afade=t=out:st=0.02:d=0.85:curve=exp,volume=1.4' },
+    // one tick of the snare
+    tik: { src: 'anoisesrc=c=white:a=0.9:r=48000', t: 0.12, fx: 'highpass=f=2200,lowpass=f=9000,afade=t=out:st=0.005:d=0.11:curve=exp,volume=0.8' },
+    // a low hit under a title
+    stoot: { src: 'sine=f=52:r=48000', t: 0.9, fx: 'afade=t=in:d=0.004,afade=t=out:st=0.02:d=0.85:curve=exp,volume=1.8' },
+    // noise swelling up to a cut
+    riser: { src: 'anoisesrc=c=pink:a=0.9:r=48000', t: 1.6, fx: 'bandpass=f=1800:width_type=q:w=0.7,afade=t=in:st=0:d=1.5:curve=qua,afade=t=out:st=1.5:d=0.1,volume=0.9' },
+  };
+  for (const s of sheet.sfx || []) {
+    const k = SFX[s.kind];
+    if (!k) continue;
+    args.push('-f', 'lavfi', '-t', String(k.t), '-i', k.src);
+    filters.push(`[${n}:a]${k.fx},aformat=sample_rates=48000:channel_layouts=stereo,adelay=${ms(s.at)}:all=1[a${n}]`);
     mix.push(`[a${n}]`);
     n++;
   }

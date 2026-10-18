@@ -54,6 +54,36 @@ setWorldPlaces([
 }
 setWorldPlaces([]);
 
+// city wijken are areas, not points (issue #162): a spot in Corpus den Hoorn, at the
+// Hoornse Meer or in the Hoornse Park is never the open 'Ommeland', with the city's
+// own node in the list or (as in the corridor data) without it
+{
+  const CITY = { name: 'Groningen', kind: 'city', x: 213.8, y: 10.2, pop: 200000 };
+  const WIJKEN = [
+    { name: 'Corpus den Hoorn', kind: 'quarter', x: -522, y: 2489, of: 'Groningen' },
+    { name: 'Hoornse Meer', kind: 'suburb', x: -1500, y: 3000, of: 'Groningen' },
+    { name: 'Hoornse Park', kind: 'neighbourhood', x: -900, y: 2300, of: 'Groningen' },
+  ];
+  const FAR_VILLAGE = { name: 'Bedum', kind: 'village', x: 7000, y: -9000 }; // some other seat, so the list is not empty
+  for (const withCity of [true, false]) {
+    setWorldPlaces(withCity ? [CITY, ...WIJKEN] : [FAR_VILLAGE, ...WIJKEN]);
+    for (const w of WIJKEN) {
+      for (const [dx, dy] of [[0, 0], [150, 0], [0, -150], [-150, 100]]) {
+        const a = areaNameAt(w.x + dx, w.y + dy);
+        if (a.near || a.name === 'Ommeland') fail(`${w.name} (+${dx},${dy}), stad ${withCity}: ${JSON.stringify(a)}`);
+      }
+    }
+    // a spot in the middle of the Corpus den Hoorn quarter, 1.2 km from its node, still belongs to a wijk
+    const mid = areaNameAt(-522 + 1200, 2489);
+    if (mid.near || mid.name === 'Ommeland') fail(`1,2 km van Corpus den Hoorn, stad ${withCity}: ${JSON.stringify(mid)}`);
+    // far out in the fields the name stays Ommeland
+    const [fx, fy] = P(53.17, 6.75);
+    const far = areaNameAt(fx, fy);
+    if (far.name !== 'Ommeland' || !far.near) fail(`open land (stad ${withCity}): ${JSON.stringify(far)}`);
+  }
+}
+setWorldPlaces([]);
+
 // labels: only regions that are really under their anchor
 {
   const [x0, y0] = P(53.6, 5.9), [x1, y1] = P(52.8, 7.3);
