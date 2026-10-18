@@ -25,7 +25,7 @@ import { wgsToWorld, worldToWgs } from '../../game/js/rdnew.js';
 import { edgeFromOsm } from '../../game/js/worldedge.js';
 import { features, tileBlob, railRoute, busLines, writeLayer, ommelandBox, loadSources, boxOutlines, urbanField, clipLine } from './build_corridor.mjs';
 import { LINES, packOf } from './corridor.mjs';
-import { annotateProvinceWater } from '../../game/js/waterlevels.js';
+import { annotateProvinceWater, annotateCityWater } from '../../game/js/waterlevels.js';
 import { encodeRoadNet } from '../../game/js/roadgraph.js';
 import { Raster, paint, writePyramid, FINE_M } from './province_map.mjs';
 import { bakeCityRoutes, railLines } from './cityroutes.mjs';
@@ -368,7 +368,7 @@ function fillOldExtent({ root, fill, gid, stats, blobs, roadNet, roadSeen, railR
 
 // ------------------------------------------------------------- build
 
-export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(src), cityKeys = new Set(), buffer = BUFFER_M, onPack = null, map = true, cityCover = null, fillOld = false, bag = loadProvinceBag(), derive = true, junctions = true, terrain = null, only = null } = {}) {
+export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(src), cityKeys = new Set(), buffer = BUFFER_M, onPack = null, map = true, cityCover = null, fillOld = false, bag = loadProvinceBag(), derive = true, junctions = true, terrain = null, only = null, profile = null } = {}) {
   const prov = gunzipJson(path.join(src, 'province.json.gz'));
   // the neighbours' strips: their places, stations and built-up cells join the province's
   const dirs = [src, ...extra];
@@ -451,7 +451,9 @@ export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(s
       }
     }
     // a lock splits the water bodies (waterlevels.js annotateProvinceWater)
-    const wr = annotateProvinceWater(feats.filter((f) => f.kind === 'water').map((f) => { f.row.flat = true; return f.row; }), { base: waterBodies, village: ctx.village, locks: packLocks });
+    // the city profile (#90): a pack with tiles of the city's profile classifies its water as the city does
+    const annotate = profile && want.some((k) => profile.has(k)) ? annotateCityWater : annotateProvinceWater;
+    const wr = annotate(feats.filter((f) => f.kind === 'water').map((f) => { f.row.flat = true; return f.row; }), { base: waterBodies, village: ctx.village, locks: packLocks, focus: (x, y) => profile && profile.has(G.tileKey(...G.tileIndexOf(x, y))) });
     waterBodies += wr.bodies;
     for (const k of packLocks) if (!locks.has(k.id)) locks.set(k.id, { x: k.x, y: k.y, name: k.name, w: k.w });
     WB.applyDuals(feats.filter((f) => f.kind === 'roads').map((f) => f.row));

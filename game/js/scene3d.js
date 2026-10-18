@@ -7,7 +7,7 @@ import { buildBuildingMesh, setBuildingMap, setNightFactor } from './models3d_bu
 import { buildVehicleMesh, updateVehicleWheelSpin, setBusRearAngle, updatePoliceLamps, updateIndicatorLamps, syncPoliceMount, boatHullProfile, riderSeatFor, attachHelmet } from './models3d_vehicles.js';
 import {
   buildVehicleImpactSparkMesh3D, updateVehicleImpactSparkMesh3D,
-  vehicleNeedsFireEffect, buildVehicleFireMesh3D, updateVehicleFireMesh3D,
+  vehicleNeedsFireEffect, vehicleSmokeOnly, buildVehicleFireMesh3D, updateVehicleFireMesh3D,
   vehicleJustWrecked, buildVehicleExplosionMesh3D, updateVehicleExplosionMesh3D,
   sampleBusTrail, busTrailerPose, buildSplashMesh3D, updateSplashMesh3D, SPLASH_LIFETIME,
   spawnVehicleOnRoad, spawnBoatOnWater, spawnPoliceBoatOnWater, TRAFFIC_MODELS,
@@ -74,6 +74,8 @@ import { initNightLights, setNightLightQuality, updateNightLights, isLightRigOn,
 import { createFarLOD } from './farlod.js';
 import { SECTION, TILE_M, tileOrigin } from './gdt.js';
 import { initRailway3D, updateRailway3D, prewarmRailAt } from './railway3d.js';
+import { updateStationCrowd3D } from './stationlife3d.js';
+import { railZ } from './railway.js';
 import { cameraFocus } from './tilefocus.js';
 import { initMovableBridges3D, updateMovableBridges3D, openBridgeRoads } from './movablebridges3d.js';
 import { getMovableBridges } from './movablebridges.js';
@@ -2013,6 +2015,7 @@ export function update3D(dt, world) {
   syncTrees(world, focus.x, focus.y);
   probe.mark('3d:trees');
   updateRailway3D(dt, world, focus, viewDist);
+  updateStationCrowd3D(scene, world, railZ);
   updateCountryside(dt, world, scene, cam, viewDist);
   updateOmmelandLandmarks(world, scene, focus);
   probe.mark('3d:rail+country');
@@ -2049,7 +2052,7 @@ export function update3D(dt, world) {
         mesh.rotation.z = (v.pitch || 0) + (body ? 0 : (v.susPitch || 0) * 0.6);
         mesh.rotation.x = (v.roll || 0) + (body ? 0 : (v.susRoll || 0) * 0.6);
         // a wheelie turns about the rear tyre, a stoppie about the front one
-        if (v.pitch && v.model.motorbike) mesh.position.y += v.model.len * 0.33 * Math.abs(Math.sin(v.pitch));
+        if (v.pitch && (v.model.motorbike || v.isBike)) mesh.position.y += v.model.len * 0.33 * Math.abs(Math.sin(v.pitch));
         if (body) {
           body.rotation.z = v.susPitch || 0;
           body.rotation.x = v.susRoll || 0;
@@ -2110,7 +2113,10 @@ export function update3D(dt, world) {
       const bay = v.wrecked || v.isBus ? 0 : v.halfLen * 0.55;
       fire.position.set(v.x + Math.cos(v.angle) * bay, (v.wrecked ? 0.4 : 0.75) + (v.z || 0), v.y + Math.sin(v.angle) * bay);
       // a disabled car's fire grows until it blows
-      fire.scale.setScalar(v.wrecked ? 2.4 : v.disabled ? 1.5 + 1.3 * Math.max(0, Math.min(1, 1 - (v.burnLeft || 0) / 10)) : 1);
+      const smoky = vehicleSmokeOnly(v);
+      fire.userData.flame.visible = !smoky;
+      for (const tg of fire.userData.tongues) tg.visible = !smoky;
+      fire.scale.setScalar(smoky ? 0.8 : v.wrecked ? 2.4 : v.disabled ? 1.5 + 1.3 * Math.max(0, Math.min(1, 1 - (v.burnLeft || 0) / 10)) : 1);
       updateVehicleFireMesh3D(fire, animDt);
     }
   }

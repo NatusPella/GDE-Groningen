@@ -62,5 +62,21 @@ for (const [ctx, map] of Object.entries(C.PAD_MAPS)) for (const s of C.PAD_BUTTO
   const v = map[s];
   ok(v === null || typeof v === 'string', `${ctx}.${s} is a string or null`);
 }
+// padInfo per id-tekst (#151): soort, indeling en standaardmapping
+const I = C.padInfo;
+ok(I('Xbox Wireless Controller (STANDARD GAMEPAD Vendor: 045e Product: 0b13)', 'standard').family === 'xbox', 'info: Xbox');
+ok(I('Pro Controller (STANDARD GAMEPAD Vendor: 057e Product: 2009)', 'standard').name === 'Switch Pro Controller', 'info: Pro Controller');
+ok(I('Joy-Con (L) (Vendor: 057e Product: 2006)', '').name === 'Joy-Con' && I('Joy-Con (L) (Vendor: 057e Product: 2006)', '').note !== '', 'info: Joy-Con without standard mapping warns');
+ok(I('Steam Controller (Vendor: 28de Product: 1102)', '').name === 'Steam Controller' && !I('Steam Controller (Vendor: 28de Product: 1102)', '').standard, 'info: old Steam Controller, no standard mapping');
+ok(I('Steam Deck Controller (STANDARD GAMEPAD Vendor: 28de Product: 1205)', 'standard').name === 'Steam Deck', 'info: Deck');
+ok(I('Xbox 360 Controller (XInput STANDARD GAMEPAD)', 'standard').standard, 'info: Steam Input shows up as XInput');
+ok(I('', '').name === '' && I('', '').note !== '', 'info: no pad');
+// de Switch-indeling zet de onderste knop op B
+ok(C.PAD_LAYOUTS.switch.a === 'B' && C.PAD_LAYOUTS.switch.b === 'A' && C.PAD_LAYOUTS.switch.x === 'Y' && C.PAD_LAYOUTS.switch.y === 'X', 'switch layout swaps A/B and X/Y labels');
+// controllertest: knoplabels per indeling
+const T = await import('../game/js/padtest.js');
+ok(T.padTestLabel(0, 'xbox') === 'A' && T.padTestLabel(0, 'switch') === 'B' && T.padTestLabel(0, 'ps') === 'cross', 'padtest: bottom button label per layout');
+ok(T.padTestLabel(12, 'xbox') === 'D-pad omhoog' || T.padTestLabel(12, 'xbox') === 'Omhoog' || T.padTestLabel(12, 'xbox').length > 0, 'padtest: d-pad has a label');
+ok(T.padTestLabel(40, 'xbox') === 'Knop 40', 'padtest: unknown index');
 console.log(fails ? `${fails} FAILED` : 'padlogic_test: all ok');
 process.exit(fails ? 1 : 0);

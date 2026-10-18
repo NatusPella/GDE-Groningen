@@ -40,6 +40,13 @@ export function pickFromKey(beat, key) {
   return travelOptions(beat).options.some((o) => o.id === id) ? id : null;
 }
 
+// gamepad: d-pad up/down moves the pick through the options the beat has
+export function cyclePick(beat, pick, dir) {
+  const ids = travelOptions(beat).options.map((o) => o.id);
+  const i = Math.max(0, ids.indexOf(pick));
+  return ids[(i + (dir < 0 ? -1 : 1) + ids.length) % ids.length];
+}
+
 // the HUD line while driving: remaining distance and ETA
 export function hudLine(remaining, mode = 'auto') {
   if (!(remaining > 0)) return '';

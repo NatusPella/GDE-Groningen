@@ -1,5 +1,5 @@
 // Dierenplan (game/js/dierenplan.js, #193): soorten per streek, dichtheidsbudget, vluchtgedrag, determinisme.
-import { SPECIES, SPECIES_IDS, STREEK_MIX, STREKEN_PLAN, TILE_BUDGET, TOTAL_BUDGET, DESPAWN_M, tileAnimals, capByBudget, fleeFrom, calmed, soundOf } from '../game/js/dierenplan.js';
+import { SPECIES, SPECIES_IDS, STREEK_MIX, STREKEN_PLAN, TILE_BUDGET, TOTAL_BUDGET, DESPAWN_M, tileAnimals, capByBudget, wildlifeLimits, grazerPick, fleeFrom, calmed, soundOf } from '../game/js/dierenplan.js';
 import { STREKEN } from '../game/js/regioleven.js';
 let n = 0, fails = 0;
 const ok = (c, name, info = '') => { n++; if (!c) { fails++; console.log(`FAIL ${name} ${info}`); } };
@@ -65,5 +65,17 @@ for (const k of SPECIES_IDS) for (let d = 0; d < 30; d += 3) {
 ok(calmed(7, 1, 'koe') && calmed(1, 100, 'koe') && !calmed(1, 3, 'koe'), 'tot rust komen');
 // geluid
 ok(soundOf('koe') === 'cow' && soundOf('schaap') === 'sheep' && soundOf('meeuw') === 'seagull' && soundOf('zeehond') === null && soundOf('xyz') === null, 'geluid');
+// aansluiting op wildlife.js: limieten volgen streek en kwaliteit
+{
+  const base = { seagull: 7, grazer: 3, duck: 6, pigeon: 14, cat: 2, dog: 3 };
+  const wad = wildlifeLimits('wadden', 'hoog', base), wk = wildlifeLimits('westerkwartier', 'hoog', base), laag = wildlifeLimits('wadden', 'laag', base);
+  ok(wad.seagull > wk.seagull, 'meer meeuwen op de Waddenkust');
+  ok(wk.grazer > wad.grazer, 'meer grazers in het Westerkwartier');
+  ok(laag.seagull < wad.seagull, 'lage kwaliteit heeft minder dieren');
+  ok(wad.pigeon === 14 && wad.cat === 2 && wad.dog === 3, 'stadsdieren onaangeroerd');
+  for (const s of STREKEN_PLAN) for (const q of ['laag', 'middel', 'hoog']) { const l = wildlifeLimits(s, q, base); ok(l.seagull >= 1 && l.grazer >= 1 && l.duck >= 1, 'minstens een', s + q); }
+  ok(grazerPick('westerkwartier', 0.2) === 'cow' && grazerPick('hogeland', 0.9) === 'sheep', 'koe of schaap naar streek');
+  ok(wildlifeLimits('onbekend', 'hoog', base).seagull >= 1, 'onbekende streek valt terug op stad');
+}
 console.log(`dierenplan_test: ${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

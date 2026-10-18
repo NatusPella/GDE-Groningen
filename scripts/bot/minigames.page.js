@@ -117,9 +117,12 @@ for (const info of list) {
   if (!spot) { B.log('minigame', { id: info.id, started: false, how: 'geen plek' }); out.push({ id: info.id, started: false }); continue; }
   out.push(await playOne(info.id, async (ev) => {
     teleport(spot.x, spot.y);
+    player.x = spot.x; player.y = spot.y;
     await sleep(2500);
+    try { const pr = a.prompt(world); ev.prompt = !pr ? '' : typeof pr === 'string' ? pr : JSON.stringify(pr).slice(0, 160); } catch (e) { ev.prompt = 'prompt() faalde'; }
     await settle();
     for (const key of ['e', 'f']) { if (a.active()) break; ev.how += key; await B.press(key); await sleep(900); }
+    if (!a.active()) { try { ev.how += ' interact()=' + !!a.interact(world); } catch (e) { ev.how += ' interact() faalde: ' + e.message; } await sleep(900); }
   }, a));
 }
 if (!ONLY.length || ONLY.includes('duif')) {

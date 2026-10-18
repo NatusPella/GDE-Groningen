@@ -37,6 +37,14 @@ for (const [name, ok] of Object.entries(want)) {
   const it = data.items.find((i) => i.n === name);
   if (!it || !ok(K.landmarkParams(it))) fails.push(`icon ${name} not applied`);
 }
+// rules for the second round (issue #21): fort towers, bare towers, palaces, replica mills
+const rule = (item, ok, name) => { const p = K.landmarkParams({ x: 100, y: 200, ...item }); if (!p || !ok(p)) fails.push('rule: ' + name); else for (const lod of [0, 1, 2]) { const g = K.landmarkGeometry({ ...p }, lod); if (!(g.geometry.attributes.position.count > 0) || !(g.height > 4)) fails.push('rule: ' + name + ' geometry lod ' + lod); } };
+rule({ k: 'tower', n: '', t: { building: 'yes', man_made: 'tower', 'tower:type': 'defensive' } }, (p) => p.type === 'defensive', 'defensive tower');
+rule({ k: 'tower', n: '', t: { man_made: 'tower' } }, (p) => p.type === 'bell' && p.crown === 'flat', 'bare tower');
+rule({ k: 'castle', n: 'Prinsenhof', t: { historic: 'castle', castle_type: 'palace', start_date: '1577' } }, (p) => p.floors === 3 && p.stair, 'palace');
+rule({ k: 'castle', n: 'Huize Test', t: { historic: 'castle', castle_type: 'manor', start_date: '1900' } }, (p) => p.brick === 'white', 'plastered manor');
+rule({ k: 'mill', n: 'Nieuwe Molen', t: { man_made: 'windmill', start_date: '1977' } }, (p) => p.type === 'ground' && p.height < 13, 'replica mill');
+if (K.landmarkParams({ k: 'tower', n: 'Excalibur', x: 2363.5, y: -2416.4, t: { man_made: 'tower' } })) fails.push('Excalibur keeps its hand model');
 console.log(`${n} landmarks:`, Object.entries(tally).sort().map(([k, v]) => `${k} ${v}`).join(', '));
 if (fails.length) { console.log('FAIL\n' + fails.join('\n')); process.exit(1); }
 console.log('ok');
