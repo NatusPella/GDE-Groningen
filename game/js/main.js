@@ -79,6 +79,7 @@ import { initWeather, updateWeather } from './weather.js';
 import { initWorldEvents, updateWorldEvents } from './worldevents.js';
 import { initMuggings, updateMuggings } from './muggings.js';
 import { initRoadRage, updateRoadRage } from './roadrage.js';
+import { updateClearZones } from './clearzonesweep.js';
 import { tryWeaponDropInteract, updateWeaponDrops3D } from './weapondrops.js';
 import { initFlitspaal, updateFlitspaal } from './flitspaal.js';
 import { initWildlife, updateWildlife } from './wildlife.js';
@@ -659,6 +660,7 @@ async function boot() {
     updateWorldEvents(dt, world);
     updateMuggings(dt, world);
     updateRoadRage(dt, world);
+    updateClearZones(dt, world);
     updateDayNight(dt, world);
     updateCalendar(dt, world);
     updateCheats(dt, world);
