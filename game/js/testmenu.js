@@ -52,6 +52,7 @@ function build() {
       go(withFlag(SEARCH, b.dataset.flag, on, sel ? sel.value : null));
     } else if (b.dataset.clear) go(clearedSearch());
     else if (b.dataset.close) setOpen(false);
+    else if (b.dataset.open) window.open(b.dataset.open, '_blank');
     else if (b.dataset.sc) runShortcut(b.dataset.sc);
   });
 }
@@ -71,6 +72,7 @@ function render() {
     <div class="tm-sub">F10 sluit. Eigen opslag (gde-dev:): je echte save, instellingen en prestaties blijven onaangeroerd. Een schakelaar laadt de pagina opnieuw.</div>
     <div class="tm-note">${esc(note)}</div>
     <h3>Snelkoppelingen</h3>${groups}
+    <h3>Hulpmiddelen</h3><button data-open="cutpreview.html">Cutscene-preview (scènes bekijken, scrubben, valideren)</button>
     <h3>Schakelaars</h3>${flags}
     <div style="margin-top:10px"><button data-clear="1">Alle schakelaars uit</button><button data-close="1">Sluiten</button></div>`;
 }
