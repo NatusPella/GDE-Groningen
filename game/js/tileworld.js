@@ -45,7 +45,7 @@ function rowsOf(kind, section) {
 
 // The heights section (pack_tiles.mjs, roadprofile.js heightRows): a road's
 // vertical profile `z`, its network `pnet` (not `net`: that is the road
-// network realmap.js gives its roads), the structure per segment `st`
+// network the tile roads carry), the structure per segment `st`
 // (STRUCT) and the grade order per segment `ly`, joined to the road by gid.
 // Render meshes, colliders and the height query all read this one profile.
 function attachProfiles(tile, roadOf) {

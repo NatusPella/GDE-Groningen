@@ -32,7 +32,7 @@ What works where. "Git Bash" means a POSIX shell on Windows (Git Bash or WSL), n
 | `node scripts/*_test.mjs`, `voice_coverage.mjs` | yes | yes | yes |
 | `desktop/` `npm start`, `npm run stage` | yes | yes | yes |
 | `desktop/release.sh` (`npm run release`) | yes | Git Bash | yes (add `--linux` for the Linux build) |
-| `scripts/make_windows_zip.sh` | yes | Git Bash | yes |
+| `node scripts/make_player_zip.mjs` | yes | yes | yes |
 | `scripts/play_local.sh` | yes | Git Bash | yes |
 | `scripts/perf/*.sh`, `scripts/bughunt/run.sh` | yes | Git Bash | yes |
 | `scripts/steam_images.mjs` | yes | only with `CHROME=<path to chrome.exe>` | only with `CHROME=<path>` (the default path is macOS) |
