@@ -42,7 +42,7 @@ TAMMO: Elf hoog. Met een lift. Ik voel me rijk. [BEHOUDEN]
 TESSA: Je bent niet rijk, Tammo. Je bent huisgenoot. [BEHOUDEN]
 TESSA: Eerst geld. Inschrijven voor de Snackprijs kost honderdvijftig euro, contant, uiterlijk morgen om twaalf uur, bij Het Loket. [NIEUW]
 TAMMO: Honderdvijftig euro. Vandaag. [NIEUW]
-TESSA: Een streamer betaalt voor stunts, maar de Escapade heeft een lekke band. We lenen een bakkie. Rijden, niet praten. [NIEUW]
+TESSA: Een streamer betaalt honderdvijftig euro voor stunts. Alleen heeft de Escapade een lekke band, dus we lenen een bakkie. Rijden, niet praten. [NIEUW]
 
 ## [M01.1] Nul krassen, vijftienhonderd punten: intro – Stad, Martinikerkhof – Berends bakkie
 (regie: vrijdag 14 augustus, ochtend. Berend staat bij zijn bakkie, een nors mannetje met zijn arm in het gips en een kladblok. Aan het bakkie hangt een bord: CHAUFFEUR GEZOCHT, VIJFTIG EURO, BEREND BOS. De Escapade staat met een lekke band aan de kant. Gameplay: Berends bakkie door het centrum, nul krassen.)
@@ -59,54 +59,54 @@ TAMMO: En de bovenste? [NIEUW]
 TESSA: "Kon minder." Dat heeft Berend nog nooit gezegd. [NIEUW]
 TAMMO: Jij rijdt als een fietser met een deadline. [BEHOUDEN]
 TESSA: En jij als een fietser zonder fiets. Sleutels, Berend. [BEHOUDEN]
-TESSA: Vijftig euro van de honderdvijftig, Tammo. Nu de rest. [NIEUW]
+TESSA: Vijftig euro van Berend. Met de stunts erbij is dat genoeg, Tammo. [NIEUW]
 
 ## [M01.2] Nul krassen, vijftienhonderd punten: de klus – Stad, Martinikerkhof naar de Grote Markt – Berends bakkie
 (regie: Tessa's telefoon gaat. Een streamer van Kiekdoar filmt zichzelf, ergens op een terras.)
-JELMER (telefoon): Moi moi! Kiekdoar hier. Je reageerde op mijn oproep: stuntrijder met een bakkie. Ik wil vanavond content op de Grote Markt. [NIEUW]
-JELMER (telefoon): Haal vijftienhonderd stuntpunten, dan betaal ik honderdvijftig euro. [NIEUW]
+STREAMER (telefoon): Moi moi! Kiekdoar hier. Je reageerde op mijn oproep: stuntrijder met een bakkie. Ik wil vanavond content op de Grote Markt. [NIEUW]
+STREAMER (telefoon): Haal vijftienhonderd stuntpunten, dan betaal ik honderdvijftig euro. [NIEUW]
 TESSA: Honderdvijftig euro. Dat is precies de inschrijving voor het Loket. [NIEUW]
 TAMMO: Stunten in Berends bakkie. [NIEUW]
 TESSA: Zonder krassen. [NIEUW]
 TAMMO: Dat is geen stunt. Dat is een ramp met regels. [NIEUW]
-JELMER (telefoon): Niemand raken! Alleen spullen. Spullen zijn content. [BEHOUDEN]
+STREAMER (telefoon): Niemand raken! Alleen spullen. Spullen zijn content. [BEHOUDEN]
 TESSA: Eerst de Grote Markt, dan Berends zus. [NIEUW]
 
 ## [M01.3] Nul krassen, vijftienhonderd punten: de Grote Markt – Stad, Grote Markt – Berends bakkie
 (regie: avond. Een hijskraan, zoals altijd. Een terras vol mensen in de avondzon. De streamer staat met zijn telefoon op een statief.)
 TESSA: Dit is de Grote Markt. Parasols en kliko's mogen, mensen niet. Haal die vijftienhonderd punten. [NIEUW]
-JELMER: Moi moi chat! Zomeravond op de Grote Markt! En kijk: verse content! [BEHOUDEN]
+STREAMER: Moi moi chat! Zomeravond op de Grote Markt! En kijk: verse content! [BEHOUDEN]
 TAMMO: Ik ben geen content. Ik ben Tammo. [BEHOUDEN]
 TESSA: Spreek voor jezelf. Ik ben heel veel content. [BEHOUDEN]
 TAMMO: En die terrassen? [BEHOUDEN]
-JELMER: Die zijn het publiek! Niemand raken, wel laten schrikken! [BEHOUDEN]
+STREAMER: Die zijn het publiek! Niemand raken, wel laten schrikken! [BEHOUDEN]
 (regie: de torenwachter van de Martinitoren belt. Hij kijkt de hele dag over Stad en meldt wat hij ziet.)
 TORENWACHTER (telefoon): Tammo. Torenwachter. Er staan mensen op de Grote Markt. [BEHOUDEN]
 TAMMO: Het is de Grote Markt. [BEHOUDEN]
 TORENWACHTER (telefoon): Ik meld alleen. [BEHOUDEN]
 
 ## [M01.4] Nul krassen, vijftienhonderd punten: tijdens de stunts – Stad, Grote Markt – Berends bakkie
-JELMER: Chat, kijk die parasol! Die was van het terras. Nu is hij content! [NIEUW]
+STREAMER: Chat, kijk die parasol! Die was van het terras. Nu is hij content! [NIEUW]
 TESSA: Niemand raken, Tammo. Alleen de parasols. [NIEUW]
 TAMMO: Alleen spullen. [NIEUW]
 BEREND (telefoon): Goidag. Ik kijk mee op Kiekdoar. Ik hoor een parasol kraken. Dat is een kras. [NIEUW]
 TESSA: Het is een parasol, Berend. [NIEUW]
 BEREND (telefoon): Dat is een kras met een parasol. [NIEUW]
-JELMER: Chat vindt dat niet leuk! Een terrasstoel met een hoed erop! Min honderd! [NIEUW]
+STREAMER: Chat vindt dat niet leuk! Een terrasstoel met een hoed erop! Min honderd! [NIEUW]
 TESSA: Dat was een mens, Tammo. [NIEUW]
 TAMMO: Een hoed. Die ging zelf op pad. [NIEUW]
 
 ## [M01.5] Nul krassen, vijftienhonderd punten: de chat – Stad, Grote Markt – Berends bakkie
 (regie: parasols op hun kant, een kliko in de fontein, een terras dat applaudisseert, nat van de sproeiwagen.)
 TERRASGAST: Kon minder! [BEHOUDEN]
-JELMER: Tienduizend kijkers! En kijk: ene JelleWâld typt in de chat. [NIEUW]
-JELMER: "En dat famke yn it read: sa'n leaf gesicht." [BEHOUDEN]
+STREAMER: Tienduizend kijkers! En kijk: ene JelleWâld typt in de chat. [NIEUW]
+STREAMER: "En dat famke yn it read: sa'n leaf gesicht." [BEHOUDEN]
 TESSA: Dat is Fries. "Dat meisje in het rood: zo'n lief gezicht." [NIEUW]
 (regie: Tammo kijkt naar Tessa's rode jas, en dan naar de telefoon.)
 TAMMO: Wie is die man. [BEHOUDEN]
 TESSA: Is dat een vraag? [BEHOUDEN]
 TAMMO: Nee. [BEHOUDEN]
-JELMER: Honderdvijftig euro, overgemaakt op jouw pas. [NIEUW]
+STREAMER: Honderdvijftig euro, overgemaakt op jouw pas. [NIEUW]
 TESSA: Op mijn pas. Die pin ik morgenochtend, dan gaan we naar het Loket. [NIEUW]
 
 ## [M01.6] Nul krassen, vijftienhonderd punten: outro – Stad, Boterdiep – Berends bakkie
@@ -178,7 +178,7 @@ TESSA: Dat zeg je zelden. [NIEUW]
 (regie: Sjabbe wrikt de klep open en geeft Tessa haar pas. Naamkaart: SJABBE.)
 SJABBE: Netjes. De automaat is vierhonderd euro waard aan onderdelen. Die houd ik. Dit is voor jullie. [NIEUW]
 TESSA: Daar koop je nog geen halve frietwagen van. [BEHOUDEN]
-SJABBE: Dan moet je groter denken. Die twee reuzen werken voor een Fries in een blauw colbert. Jelle Terpstra. [NIEUW]
+SJABBE: Dan moet je groter denken. Die twee reuzen, Durk en Douwe, werken voor een Fries in een blauw colbert. Jelle Terpstra. [NIEUW]
 TESSA: Het colbert van Berend. De man uit de chat. [NIEUW]
 SJABBE: Hij betaalt alles contant, uit een klomp. Een klomp is snel leeg. Daarom halen ze pinautomaten uit de muur. [NIEUW]
 TAMMO: Wat wil hij? [NIEUW]
@@ -228,7 +228,7 @@ JELLE: Foar mem. [NIEUW]
 TAMMO: Wat zei hij? [NIEUW]
 TESSA: "Voor mem." Voor zijn moeder. [NIEUW]
 (regie: achter Jelle staat een kleine, oude dame met een hoed, een gouden speldje en een stempel.)
-BEWAARDER: Mevrouw Tuinstra. Ik bewaar de Gouden Eierbal, al sinds 1998. Wie de bal bewaart, zit de jury voor. Dat is artikel 4. [NIEUW]
+BEWAARDER: Mevrouw Tuinstra. Ik bewaar de Gouden Eierbal, de wisselprijs van de Snackprijs, al sinds 1998. Wie de bal bewaart, zit de jury voor. Dat is artikel 4. [NIEUW]
 LOKETBEDIENDE: Artikel 9: is de bewaarder verhinderd, dan zit het oudste jurylid voor. Dat is meneer Bos, jurylid sinds 1982. [NIEUW]
 BEWAARDER: Meneer Terpstra heeft de vijf juryleden en mij uitgenodigd voor een treinreis met volpension, vanaf maandag, tot na het Ontzet. Een bijzonder aardige man. [NIEUW]
 TESSA: En wie let dan op de bal? [NIEUW]
@@ -246,7 +246,7 @@ TESSA: Dat is een gemeente. [NIEUW]
 ## [M03.4] Het Loket: outro – Stad, Het Loket – te voet
 LOKETBEDIENDE: Gefeliciteerd. U bent ingeschreven voor de Noordelijke Snackprijs. [NIEUW]
 TESSA: Wij zijn ingeschreven. Op 28 augustus op de Grote Markt. [NIEUW]
-TESSA: Maar Jelle kocht de rij en alle standplaatsen. Plakje één is van hem. Dat krijgen we niet meer terug. [NIEUW]
+TESSA: Plakje één is van Jelle: alle standplaatsen. Dat krijgen we niet meer terug. [NIEUW]
 TESSA: Jelle vroeg waar het museum alarmen heeft. Hij wil de bal, want wie de bal bewaart, zit de jury voor. [NIEUW]
 TAMMO: Dan wint Jelle. [NIEUW]
 TESSA: Tenzij iemand hem eerder pakt. [NIEUW]
