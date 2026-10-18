@@ -1,3 +1,4 @@
+import { vehicleHooks } from './vehiclehooks.js';
 import { Vehicle, MODELS, TRACTOR_MODEL, QUAD_MODEL } from './vehicle.js';
 import { pointInPolygon, closestPointOnSegment, inMapWater } from './util.js';
 import { propsInRadius } from './breakables.js';
@@ -444,3 +445,6 @@ export function manageParkedCars(world) {
   }
   st.dirty = true;
 }
+
+vehicleHooks.manageParkedCars = manageParkedCars;
+vehicleHooks.tickParkedCars = tickParkedCars;
