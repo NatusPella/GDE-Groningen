@@ -14,7 +14,7 @@ export function closeHold(world) {
   world.uiPaused = false;
 }
 
-// role: 'host' | 'client' (zoals ClientSession/HostSession); session: world.coopNet.session
+// role: 'host' | 'client' (zoals HostSession/ClientSession); de sessie en de route staan in world.coopNet
 export async function openHold(world, role) {
   if (overlay || !world.coopNet) return;
   world.uiPaused = true;
@@ -28,12 +28,11 @@ export async function openHold(world, role) {
   overlay.appendChild(panel);
   document.body.appendChild(overlay);
   const { mountLobby } = await import('./lobbyui.js');
-  const mode = role === 'host' ? 'host' : 'gast';
   view = mountLobby(panel, {
     resumed: () => closeHold(world),
     disconnect: (a) => {
       if (a !== 'verbreek') return; // 'Alleen verder' (host) of 'Stoppen' (gast)
       stopCoopNet(world); closeHold(world);
     },
-  }, { start: 'verbroken', mode, session: world.coopNet.session });
+  }, { start: 'verbroken', rol: role === 'host' ? 'host' : 'gast', route: world.coopNet.route, session: world.coopNet.session });
 }

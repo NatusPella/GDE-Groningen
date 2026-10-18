@@ -31,6 +31,7 @@ class Base {
     this._attach(link);
   }
   _attach(link) { this.link = link; link.onmessage = (b) => this._raw(b); }
+  rebind(link) { this._attach(link); } // nieuw transport na wegvallen (hervatten met hetzelfde token)
   _emit(bytes) { return this.link.send(bytes); }
   _setStatus(s) { if (s !== this.status) { this.status = s; if (this.onstatus) this.onstatus(s); } }
   // geeft event-bodies door; ACK en ping zijn intern
