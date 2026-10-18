@@ -41,6 +41,9 @@ export const STREEK_MIX = {
   westerkwartier: { koe: 1.4, schaap: 0.6, gans: 0.8, reiger: 0.7, eend: 0.8, vis: 0.8 },
   oldambt: { koe: 0.6, gans: 1.4, schaap: 0.5, reiger: 0.4 },
   veenkolonien: { gans: 1, eend: 1.2, reiger: 0.9, vis: 1.2, koe: 0.3 },
+  westerwolde: { koe: 1.2, schaap: 0.8, reiger: 0.9, eend: 1, vis: 1, gans: 0.6 },
+  lauwerskust: { gans: 1.5, meeuw: 1.2, reiger: 1, eend: 0.8, zeehond: 0.4, vis: 0.8, schaap: 0.7 },
+  hunsingo: { schaap: 1.2, gans: 1.1, koe: 0.7, meeuw: 0.6, reiger: 0.5 },
 };
 export const STREKEN_PLAN = Object.keys(STREEK_MIX);
 
@@ -112,3 +115,28 @@ export function calmed(sinceFleeing, distToMover, kind) {
 
 // Geluid: de ambience.js-sleutel voor een soort of null. Zeehond en vis zijn stil tot er een sample voor is.
 export const soundOf = (kind) => (SPECIES[kind] ? SPECIES[kind].sound : null);
+
+// --- aansluiting op wildlife.js ------------------------------------------------------------
+// wildlife.js houdt per soort een limiet rond de speler aan. De streek en het kwaliteitsprofiel
+// schalen die limieten: meer meeuwen aan de kust, koeien in het Westerkwartier, minder op een
+// zwakke machine. De som blijft hierdoor onder het totaalbudget van het profiel.
+const LIMIET_KIND = { seagull: ['meeuw'], grazer: ['koe', 'schaap'], duck: ['eend', 'gans'] };
+export function wildlifeLimits(streek, quality, base) {
+  const mix = STREEK_MIX[streek] || STREEK_MIX.stad;
+  const q = (TOTAL_BUDGET[quality] || TOTAL_BUDGET.hoog) / TOTAL_BUDGET.hoog;
+  const out = { ...base };
+  for (const [kind, soorten] of Object.entries(LIMIET_KIND)) {
+    if (base[kind] == null) continue;
+    const f = Math.max(...soorten.map((s) => mix[s] || 0));
+    const streekF = Math.max(0.25, Math.min(1.6, f));
+    out[kind] = Math.max(1, Math.round(base[kind] * streekF * Math.max(0.4, q)));
+  }
+  return out;
+}
+
+// Koe of schaap voor een nieuwe weide, naar de streekmix. roll: 0..1.
+export function grazerPick(streek, roll) {
+  const mix = STREEK_MIX[streek] || STREEK_MIX.stad;
+  const k = (mix.koe || 0) + 0.0001, s = (mix.schaap || 0) + 0.0001;
+  return roll < k / (k + s) ? 'cow' : 'sheep';
+}
