@@ -14,7 +14,6 @@ import { MENU_FRAME_S, getRenderer } from './scene3d.js';
 import { isAdvisorSampling, startGfxAdvisor } from './gfxprofile.js';
 import { ABOUT_HTML } from './credits.js';
 import { startLoadScreen, setLoadTips } from './loadscreen.js';
-import { sceneSvg } from './loadscene.js';
 
 export const TIPS = [
   'Tip: in Grunn neemt een fietser altijd voorrang, of hij die nou heeft of niet.',
