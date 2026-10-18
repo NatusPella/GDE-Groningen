@@ -15,6 +15,8 @@ const shared = {
   uLodPlayer: { value: new THREE.Vector2() },
   uLodDetailR: { value: 140 },
   uLodInnerR: { value: 130 },
+  // a streamed tile's flat water is only drawn beyond this radius (see waterStreamMaterial)
+  uLodWaterR: { value: 3800 },
   uNightGlow: { value: 0 },
   uLitFrac: { value: 0 },
 };
@@ -77,6 +79,26 @@ function groundMaterial(offset, near = false) {
   return m;
 }
 
+// The flat water of a streamed tile (a province tile's row, lying on the ground) is the far picture of water that the
+// ground shader and the surface meshes draw themselves: the shader opens the ground over the water within its windows
+// (tilewatermask.js: 2 m texels round the player, 8 m texels out to ~4 km) and syncWater (scene3d.js) lays the animated
+// surface under it. A flat layer on the ground over that hides the real water: two water layers (#231). So it is
+// drawn only beyond what the windows cover (STREAM_WATER_R, a little under half the far mask's 8 km), where nothing else shows water.
+export const STREAM_WATER_R = 3800;
+export function waterStreamMaterial() {
+  const m = groundMaterial(0.3, true);
+  m.onBeforeCompile = (shader) => {
+    Object.assign(shader.uniforms, shared);
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <common>', '#include <common>\nvarying vec2 vFarXZ;')
+      .replace('#include <project_vertex>', '#include <project_vertex>\nvFarXZ = (modelMatrix * vec4(transformed, 1.0)).xz;');
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <common>', '#include <common>\nuniform vec2 uLodPlayer;\nuniform float uLodWaterR;\nvarying vec2 vFarXZ;')
+      .replace('void main() {', 'void main() {\nif (distance(vFarXZ, uLodPlayer) < uLodWaterR) discard;');
+  };
+  return m;
+}
+
 // Offsets stay below the detailed ground decals (green starts at 1).
 const MATS = {
   building: buildingMaterial(),
@@ -85,6 +107,7 @@ const MATS = {
   road: groundMaterial(0.7),
   greenNear: groundMaterial(0.2, true),
   water: groundMaterial(0.3, true),
+  waterStream: waterStreamMaterial(),
 };
 const WATER_FLAT = [44, 74, 78];
 
@@ -305,7 +328,7 @@ export function createFarLOD(scene, map, opts) {
     for (const [name, B] of [['building', J.bld], ['green', J.green], ['path', J.path], ['road', J.road], ['water', J.water]]) {
       const geo = B.build(name !== 'building');
       if (!geo) continue;
-      const mesh = new THREE.Mesh(geo, MATS[t.stream && name === 'green' ? 'greenNear' : name]);
+      const mesh = new THREE.Mesh(geo, MATS[t.stream && name === 'green' ? 'greenNear' : t.stream && name === 'water' ? 'waterStream' : name]);
       mesh.matrixAutoUpdate = false;
       mesh.userData.tris = geo.index.count / 3;
       root.add(mesh);
