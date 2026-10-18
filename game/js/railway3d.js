@@ -6,7 +6,7 @@ import { getTrains, getLevelCrossings, nearLevelCrossing, railZ, isOffMap, TRAIN
 import { WATER_Y } from './util.js';
 import { waterPolyAt } from './waterlevels.js';
 import { addStaticCollider } from './breakables.js';
-import { railViewDistance, RAIL_VIEW } from './viewdist.js';
+import { railViewDistance, railChunkWanted, RAIL_VIEW } from './viewdist.js';
 
 const CHUNK = 250;
 let VIEW = RAIL_VIEW.min; // the view distance for rails and trains (railViewDistance)
@@ -388,10 +388,9 @@ function buildChunk(c) {
 }
 
 function syncChunks(px, py) {
-  const reach = VIEW + CHUNK * 0.71;
   const todo = [];
   for (const c of chunks.values()) {
-    const want = Math.abs(c.x - px) < reach && Math.abs(c.y - py) < reach;
+    const want = railChunkWanted(c.x, c.y, px, py, VIEW);
     if (want && !c.group) todo.push(c);
     if (c.group) c.group.visible = want;
   }
