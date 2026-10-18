@@ -181,4 +181,22 @@ t('de host stopt: alle gasten gaan eruit, de host is weer alleen en het oude ged
   for (const g of s.gs) { for (let k = 0; k < 90; k++) { N.tickCoopNet(g.gw, 1 / 60); g.link.advance(1 / 60); } }
   assert.ok(s.gs.every((g) => g.gw.coopNet === null || g.gw.coopNet.session.status !== 'ok'));
 });
+t('de wereld van de host: voertuigen en doel komen bij de gasten aan, en de opdracht wordt gemeld (ook aan wie later komt)', () => {
+  const vehicles = [{ id: 11, x: 5, y: 5, angle: 1, isBus: true, model: { len: 11 } }, { id: 12, x: 900, y: 0, angle: 0, model: { len: 4 } }];
+  const s = sessie(1, { hostExtra: { vehicles, mission: { phase: 'active', label: 'Berend telt de krassen', type: 'delivery', index: 2, marker: { x: 50, y: 60 } } } });
+  s.step(2);
+  const gw = s.gs[0].gw;
+  assert.deepEqual(gw.coopHost.voertuigen.map((v) => v.soort), ['bus'], 'alleen wat dicht bij een speler is');
+  assert.equal(gw.coopHost.doelen.length, 1); assert.ok(Math.abs(gw.coopHost.doelen[0].x - 50) < 0.01);
+  assert.match(gw.messages.join(' '), /De host speelt: Berend telt de krassen\. Doe mee waar het kan/);
+  assert.equal(gw.coopHostMissie.label, 'Berend telt de krassen');
+  s.hw.mission = { phase: 'idle' }; s.step(1);
+  assert.equal(gw.coopHostMissie.actief, false);
+});
+t('een extra speler hoort dat hij in de open wereld meeloopt', () => {
+  const s = sessie(2, { hostExtra: { mission: { phase: 'active', label: 'Kluisklus', index: 1, marker: { x: 1, y: 1 } } } });
+  s.step(3);
+  assert.match(s.gs[0].gw.messages.join(' '), /Doe mee waar het kan/);
+  assert.match(s.gs[1].gw.messages.join(' '), /Jij loopt mee in de open wereld/);
+});
 console.log(`coopnet_test: ${n}/${n} ok`);
