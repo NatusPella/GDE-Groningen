@@ -24,11 +24,13 @@ ok(!setCheat('geld', true), 'the retired geld is gone');
 ok(isCheatOn('nachtstad') && !isCheatOn('zomeravond'), 'one of a group switches the others off');
 
 updateCheats(0.016, w);
-ok(MODS.grav < 1 && MODS.gronings && MODS.cars === 0 && w.clock === 0.5, 'switched on: gravity, gronings, no traffic, the clock');
+ok(MODS.cars > 0.99 && MODS.fading, 'the traffic starts to die out, it does not vanish at once');
+updateCheats(100, w);
+ok(MODS.grav < 1 && MODS.gronings && MODS.cars === 0 && !MODS.fading && w.clock === 0.5, 'switched on: gravity, gronings, no traffic, the clock');
 ok(achievementsBlocked(), 'a gameplay streek blocks prestaties');
 
 for (const id of free) setCheat(id, false);
-updateCheats(0.016, w);
+updateCheats(100, w);
 ok(MODS.grav === 1 && !MODS.gronings && MODS.cars === 1 && MODS.bikes === 1 && MODS.slow === 1 && MODS.grip === 1 && !MODS.turbo && !MODS.bounce && MODS.pigeons === 1, 'switched off: every modifier back to normal');
 ok(!achievementsBlocked(), 'nothing on: prestaties run again');
 
