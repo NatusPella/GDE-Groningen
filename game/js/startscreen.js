@@ -1,5 +1,9 @@
 import { FLAGS } from './devflags.js';
 import { hasSave, readSave, applySave, clearSave, getSaveSummary } from './savegame.js';
+import { startHost, startClient, stopCoopNet, tickCoopNet, saveCoop, handshakeInfo } from './coopnet.js';
+import { readCoopSave, writeCoopSave, hasCoopSave, newCoopSave, coopFromSolo } from './coopsave.js';
+import { setFixedCharacters } from './coopclient.js';
+import { getStorySave, applyStorySave } from './story.js';
 import { VERSION } from './version.js';
 import { checkWhatsNew, markVersionSeen, compareVersions } from './whatsnew.js';
 import { pointInPolygon } from './util.js';
@@ -565,21 +569,47 @@ export function runStartScreen(world, { render, relocate, tick }) {
       loadChangelog().then((html) => { if (!news.hidden && newsTitle.textContent === 'Wat is er nieuw') newsBody.innerHTML = html; });
     };
     // Coöp-lobby (#95), alleen met ?coop: lobby.js (logica) en lobbyui.js (tekenen)
-    let lobby = null;
+    let lobby = null, lobbyIv = null;
+    const stopLobbyTick = () => { if (lobbyIv) { clearInterval(lobbyIv); lobbyIv = null; } };
+    const coopStore = () => { try { return localStorage; } catch (e) { return null; } };
+    // Wereld klaarzetten voor een coöp-spel. De solosave blijft ongemoeid (geen clearSave);
+    // saveGame() schrijft in coöp naar de coöp-save (world.coopGame, savegame.js).
+    const coopPrepare = (role, src) => {
+      stopLobbyTick(); // vanaf nu tikt de hoofdlus de sessie (main.js)
+      startTheme();
+      restoreWorld();
+      const ls = coopStore();
+      let c = null;
+      if (role !== 'client') {
+        if (src === 'verder') c = readCoopSave(ls);
+        else if (src === 'solo') c = coopFromSolo(readSave(), Date.now());
+        if (!c) c = newCoopSave(ARC_ID, Date.now());
+        if (src !== 'verder') writeCoopSave(ls, c);
+        if (c.story) applyStorySave(c.story);
+        world.money = c.shared.money;
+      }
+      world.coopGame = true;
+      world.coopSaveHook = role === 'client' ? null : (w) => saveCoop(w, ls, getStorySave());
+      if (world.coop && role === 'local') setFixedCharacters(world, 'host');
+      finish('game');
+    };
     const openCoop = () => {
       showPanel('Coöp');
       import('./lobbyui.js').then(({ mountLobby }) => {
         if (lobby) lobby.close();
+        const ls = coopStore();
         lobby = mountLobby(newsBody, {
-          startLocal: () => { news.hidden = true; },
-          onTransport: (role, tr) => {
-            if (role !== 'host') { lobby.event({ t: 'fout', msg: 'Aansluiten als gast is nog niet af. Laat je medespeler de host zijn.' }); return; }
-            import('./coopnet.js').then((m) => {
-              const sess = m.startHost(world, tr, m.handshakeInfo({ tiles: '-', story: ARC_ID }));
-              sess.onstatus = (st) => lobby.event({ t: 'status', status: st });
-            });
+          hasCoopSave: !!ls && hasCoopSave(ls),
+          hasSoloSave: hasSave(),
+          startLocal: (src) => coopPrepare('local', src),
+          onSession: (role, tr, src) => {
+            const info = handshakeInfo({ tiles: '-', story: ARC_ID });
+            const sess = role === 'host' ? startHost(world, tr, info, 1, { storage: ls, getStory: getStorySave }) : startClient(world, tr, info);
+            stopLobbyTick(); lobbyIv = setInterval(() => tickCoopNet(world, 0.05), 50); // het startscherm tikt de sessie zelf
+            return sess;
           },
-          disconnect: () => import('./coopnet.js').then((m) => m.stopCoopNet(world)),
+          enter: (role, src) => coopPrepare(role, src),
+          disconnect: () => { stopLobbyTick(); stopCoopNet(world); },
         });
       });
     };

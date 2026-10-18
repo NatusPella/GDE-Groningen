@@ -188,6 +188,12 @@ function serialize(w) {
 
 export function saveGame(w = world, { toast = true } = {}) {
   if (!w) return false;
+  // coöp (#95): de solosave blijft ongemoeid; de host bewaart in de coöp-save, een gast bewaart niets
+  if (w.coopGame) {
+    const ok = typeof w.coopSaveHook === 'function' ? !!w.coopSaveHook(w) : false;
+    if (ok && toast) showToast();
+    return ok;
+  }
   keepNewerSave();
   try {
     localStorage.setItem(KEY, JSON.stringify(serialize(w)));

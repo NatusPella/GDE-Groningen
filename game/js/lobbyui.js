@@ -1,16 +1,17 @@
-// Coöp-lobby (#95), getekend in de menustijl (menu.css, de panelen van het
-// startscherm). De logica en teksten staan in lobby.js (getest); dit bestand
-// is alleen DOM en de aanroepen naar rtc.js. Alleen bereikbaar via ?coop.
+// Coöp-lobby (#95), getekend in de menustijl (de panelen van het startscherm).
+// De logica en teksten staan in lobby.js (getest); dit bestand is DOM en de
+// aanroepen naar de IPC-brug (net/ipctransport.js). Alleen bereikbaar via ?coop.
+// hooks: { startLocal(src), onSession(role, transport, src) -> session, enter(role, src), disconnect(), hasCoopSave, hasSoloSave }
 import { createLobby, reduce, view, MODES } from './lobby.js';
-import { hostStart, guestJoin, rtcSupported } from './net/rtc.js';
-import { formatForDisplay } from './net/signal.js';
+import { ipcTransport, onlineSupported } from './net/ipctransport.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
-// root: element om in te tekenen. hooks: { startLocal(), onTransport(role, transport), close() }
 export function mountLobby(root, hooks) {
-  let state = createLobby();
-  let host = null, guest = null;
+  const online = onlineSupported();
+  const api = online ? window.gdeDesktop.coop : null;
+  let state = createLobby({ online, hasCoopSave: !!hooks.hasCoopSave, hasSoloSave: !!hooks.hasSoloSave });
+  let tr = null;
 
   const set = (ev) => { state = reduce(state, ev); draw(); };
 
@@ -19,42 +20,61 @@ export function mountLobby(root, hooks) {
     root.innerHTML =
       `<h3 class="coop-title">${esc(v.title)}</h3>` +
       v.lines.map((l) => `<p>${esc(l)}</p>`).join('') +
-      (v.code ? `<pre class="coop-code" tabindex="0" aria-label="Jouw code">${esc(formatForDisplay(v.code))}</pre>` : '') +
-      (v.input ? `<textarea class="coop-input" rows="4" spellcheck="false" placeholder="${esc(v.input.placeholder)}"></textarea>` : '') +
+      (v.code ? `<pre class="coop-code" tabindex="0" aria-label="Jouw code">${esc(v.code)}</pre>` : '') +
+      (v.input ? `<input class="coop-input" type="text" spellcheck="false" autocomplete="off" placeholder="${esc(v.input.placeholder)}">` : '') +
       (v.error ? `<p class="coop-error" role="alert">${esc(v.error)}</p>` : '') +
       `<div class="coop-btns">${v.buttons.map((b) => `<button type="button" class="ss-item${b.primary ? ' ss-hero' : ''}" data-act="${b.act}"><span class="ss-label">${esc(b.label)}</span></button>`).join('')}</div>`;
+  }
+
+  function newTransport() {
+    if (tr) { tr.dispose(); }
+    tr = ipcTransport(api);
+    return tr;
+  }
+  let entered = false;
+  function watch(session, role, src) {
+    session.onstatus = (st) => {
+      set({ t: 'status', status: st, reason: session.rejected });
+      if (st === 'ok' && !entered && hooks.enter) { entered = true; hooks.enter(role, src); }
+    };
   }
 
   async function act(a) {
     const input = root.querySelector('.coop-input');
     try {
       if (a === 'kies-lokaal') set({ t: 'kies', mode: MODES.LOKAAL });
-      else if (a === 'start-lokaal') { if (hooks.startLocal) hooks.startLocal(); }
-      else if (a === 'kies-host') {
-        set({ t: 'kies', mode: MODES.HOST });
-        if (!rtcSupported()) return set({ t: 'fout', msg: 'Online spelen werkt hier niet.' });
-        host = await hostStart(); set({ t: 'code', code: host.code });
-      } else if (a === 'kies-gast') set({ t: 'kies', mode: MODES.GAST });
-      else if (a === 'koppel') {
-        const text = input ? input.value : '';
-        if (state.mode === MODES.HOST && host) {
-          const r = await host.acceptAnswer(text);
-          if (!r.ok) return set({ t: 'fout', msg: r.reason });
-          set({ t: 'verbinden' });
-          host.transport.onopen = () => hooks.onTransport('host', host.transport);
-        } else if (state.mode === MODES.GAST) {
-          const r = await guestJoin(text);
-          if (!r.ok) return set({ t: 'fout', msg: r.reason });
-          guest = r; set({ t: 'code', code: r.code });
-          r.opened.then((tr) => hooks.onTransport('gast', tr));
+      else if (a === 'kies-host') set({ t: 'kies', mode: MODES.HOST });
+      else if (a === 'kies-gast') set({ t: 'kies', mode: MODES.GAST });
+      else if (a.startsWith('bewaar-')) {
+        const src = a.slice(7);
+        set({ t: 'bewaar', src });
+        if (state.mode === MODES.HOST) {
+          const t = newTransport();
+          const r = await api.host();
+          if (!r.ok) return set({ t: 'fout', msg: r.text || 'De host kon niet starten.' });
+          watch(hooks.onSession('host', t, src), 'host', src);
+          set({ t: 'code', code: r.code, lanCode: r.lanCode, note: r.online ? '' : r.text });
         }
+      } else if (a === 'start-lokaal') hooks.startLocal(state.save);
+      else if (a === 'koppel') {
+        const t = newTransport();
+        set({ t: 'verbinden' });
+        const r = await api.join(input ? input.value : '');
+        if (!r.ok) { set({ t: 'terug' }); set({ t: 'kies', mode: MODES.GAST }); return set({ t: 'fout', msg: r.reason }); }
+        watch(hooks.onSession('client', t, null), 'client', null);
       } else if (a === 'kopieer') {
         if (state.code && navigator.clipboard) await navigator.clipboard.writeText(state.code);
       } else if (a === 'terug' || a === 'verbreek') {
-        if (host) { host.cancel(); host = null; } if (guest) { guest.cancel(); guest = null; }
+        if (api) await api.stop();
+        if (hooks.disconnect) hooks.disconnect();
         set({ t: a === 'terug' ? 'terug' : 'verbreek' });
-        if (a === 'verbreek' && hooks.disconnect) hooks.disconnect();
-      } else if (a === 'hervat') set({ t: 'hervat' });
+      } else if (a === 'hervat') {
+        set({ t: 'hervat' });
+        if (state.mode === MODES.HOST && api) {
+          const r = await api.host();
+          if (r.ok) set({ t: 'code', code: r.code, lanCode: r.lanCode, note: r.online ? '' : r.text });
+        }
+      }
     } catch (e) {
       set({ t: 'fout', msg: e && e.message ? e.message : 'Er ging iets mis.' });
     }
@@ -65,5 +85,5 @@ export function mountLobby(root, hooks) {
     if (b && root.contains(b)) act(b.dataset.act);
   });
   draw();
-  return { event: set, state: () => state, close() { if (host) host.cancel(); if (guest) guest.cancel(); root.innerHTML = ''; } };
+  return { event: set, state: () => state, close() { if (tr) tr.dispose(); root.innerHTML = ''; } };
 }
