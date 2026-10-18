@@ -124,6 +124,8 @@ export const ACHIEVEMENTS = [
   { id: 'klim_foutloos', cat: 'verkennen', title: 'Niet één keer gevallen', desc: 'Klim de toren zonder te vallen' },
   { id: 'ski_klaar', cat: 'verkennen', title: 'Achter de boot', desc: 'Skie een run bij het Grunopark' },
   { id: 'ski_goud', cat: 'verkennen', title: 'Koning van het meer', desc: 'Haal goud bij het waterskiën', medal: true },
+  { id: 'carillon_klaar', cat: 'verkennen', title: 'Klokkenspeler', desc: 'Speel een deuntje op de klokken van de Martinitoren' },
+  { id: 'carillon_goud', cat: 'verkennen', title: 'Stadsbeiaardier', desc: 'Haal goud op het klokkenspel', medal: true },
   { id: 'ski_sprong', cat: 'verkennen', title: 'Hoog en schoon', desc: 'Land een sprong met een draai en een grab', hidden: true },
   { id: 'geheimen_alle', cat: 'verkennen', title: 'Stadjer met geheimen', desc: 'Vind alle 8 geheimpjes van Grunn in één spel', save: 'geheimen', goal: 8, hidden: true },
   { id: 'zonsopgang', cat: 'verkennen', title: 'Vroege vogel', desc: 'Zie de zon opkomen boven Grunn' },
