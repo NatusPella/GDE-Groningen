@@ -1,5 +1,5 @@
 // Tile streaming focus (game/js/tilefocus.js): node scripts/tilefocus_test.mjs
-import { tileFocus, cameraFocus, LOOK_MAX, MAX_SPEED } from '../game/js/tilefocus.js';
+import { tileFocus, cameraFocus, LOOK_MAX, MAX_SPEED, FOCUS_CAP } from '../game/js/tilefocus.js';
 
 let n = 0, fails = 0;
 const ok = (c, name, info = '') => { n++; if (!c) { fails++; console.log(`FAIL ${name}${info ? ' (' + info + ')' : ''}`); } };
@@ -41,6 +41,16 @@ ok(cameraFocus({ position: { x: 1, y: 1 } }) === null && cameraFocus(null) === n
 ok(tileFocus({}, null, {}, 0.016) === null, 'nothing to follow');
 // the old bug: an override ({position, lookAt}, no x/y) must still give a focus
 ok(tileFocus({ x: 1, y: 1 }, o, {}, 0.016) !== null, 'override with no x/y still follows');
+
+// a shot can set its own reach (focusDist), capped
+const wide = { position: { x: 0, y: 0 }, lookAt: { x: 1000, y: 0 } };
+ok(cameraFocus(wide).x === LOOK_MAX, 'default reach is LOOK_MAX');
+ok(cameraFocus({ ...wide, focusDist: 200 }).x === 200, 'focusDist widens the reach');
+ok(cameraFocus({ ...wide, focusDist: 5000 }).x === FOCUS_CAP, 'focusDist is capped');
+ok(cameraFocus({ ...wide, focusDist: NaN }).x === LOOK_MAX, 'bad focusDist falls back');
+ok(cameraFocus({ position: { x: 0, y: 0 }, lookAt: { x: 30, y: 0 }, focusDist: 200 }).x === 30, 'near target stays put');
+ok(cameraFocus({ position: { x: 0, y: 0, z: 150 }, lookAt: { x: 1000, y: 0 } }).x === 150, 'aerial shot reaches further');
+ok(cameraFocus({ position: { x: 0, y: 0, z: 2 }, lookAt: { x: 1000, y: 0 } }).x === LOOK_MAX, 'street shot keeps LOOK_MAX');
 
 console.log(fails ? `${fails} of ${n} FAILED` : `ok: ${n} checks`);
 process.exit(fails ? 1 : 0);
