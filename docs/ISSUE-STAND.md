@@ -1,4 +1,4 @@
-| 237 |undefined| deels (wacht-beeld) | beeld || 228 |undefined| deels (wacht-beeld) | beeld || 226 |undefined| deels (wacht-beeld) | beeld || 230 |undefined| deels (wacht-beeld) | beeld || 224 |undefined| deels (wacht-beeld) | beeld || 231 |undefined| deels (wacht-beeld) | beeld || 232 |undefined| deels (wacht-beeld) | beeld || 233 |undefined| deels (wacht-beeld) | beeld || 236 |undefined| deels (wacht-beeld) | beeld |# Issue-stand
+# Issue-stand
 
 Stand van het bord op 2026-10-18 (#220, ronde 2): per open issue vergeleken met wat in main staat. Status: **gesloten** (aantoonbaar klaar, bewijs in de sluitcomment), **deels** (afvinklijst in het issue) of **open** (nog nauwelijks gebouwd). Blokkade: wat het volgende punt tegenhoudt: code, beeld (in beeld bevestigen of Electron), eigenaar (besluit of handmatig) of extern. `eigenaar`-issues zijn niet gesloten. Label `wacht-beeld`: gebouwd en getest, wacht op bevestiging in beeld. Werk dit bestand bij als een issue verandert; de afvinklijsten staan in de issues zelf.
 
@@ -129,18 +129,18 @@ Telling: 122 deels, 13 open, 3 gesloten.
 | 221 | Playtestronde met onbekende spelers voorbereiden (eerste uur, doelhelderheid) | deels | eigenaar | i7-ci-desktop |
 | 222 | Verhaaltest (Electron): M14 De dijk faalt direct, wereldeinden-crash, onbereikba | deels | code | k1-testronde, y1-testbugs |
 | 223 | Wegen: 27 wegen in het noordwesten niet in de routegraaf (road_route_test) en bo | deels | code | y1-testbugs |
-| 224 | Cutscene M02.intro: shot 6 duurt 11,8 s zonder camerabeweging (echte voice-duur) | deels | beeld | y1-testbugs |
+| 224 | Cutscene M02.intro: shot 6 duurt 11,8 s zonder camerabeweging (echte voice-duur) | deels (wacht-beeld) | beeld | y1-testbugs |
 | 225 | Voertuigdeuren en in-/uitstapanimaties voor personages | deels | code | v1-deuren-instappen / y11-voertuigen-ui |
-| 226 | Laadschermen tonen dubbele laadbalken | deels | beeld | onbekend (QA, laadschermen) |
+| 226 | Laadschermen tonen dubbele laadbalken | deels (wacht-beeld) | beeld | onbekend (QA, laadschermen) |
 | 227 | Android-build (APK) met touch-besturing | deels | eigenaar | p1-android |
-| 228 | Bord in Winsum toont gespiegelde tekst (Schouwerzijl, Groningen, Baflo) | deels | beeld | qa-provincie |
+| 228 | Bord in Winsum toont gespiegelde tekst (Schouwerzijl, Groningen, Baflo) | deels (wacht-beeld) | beeld | qa-provincie |
 | 229 | Spelbot: Pitch & putt-startpunt is NaN; audio gooit elke frame (AudioParam non-f | gesloten | - | y1-testbugs |
-| 230 | Spelbot: dev-cheat 'stap voltooien' voltooit M09/M10 niet (lazyStart, fase coold | deels | beeld | y1-testbugs |
-| 231 | Water: oude waterlaag ligt over nieuw water buiten de stad (Stad naar Waddenzee) | deels | beeld | w14-vaarroute |
-| 232 | Waypoint op water geeft geen vaarroute | deels | beeld | w14-vaarroute |
-| 233 | Waddenzee: je vaart tegen een landmassa die er niet is (niet op de kaart, niet i | deels | beeld | x1-wadland / w14-vaarroute |
+| 230 | Spelbot: dev-cheat 'stap voltooien' voltooit M09/M10 niet (lazyStart, fase coold | deels (wacht-beeld) | beeld | y1-testbugs |
+| 231 | Water: oude waterlaag ligt over nieuw water buiten de stad (Stad naar Waddenzee) | deels (wacht-beeld) | beeld | w14-vaarroute |
+| 232 | Waypoint op water geeft geen vaarroute | deels (wacht-beeld) | beeld | w14-vaarroute |
+| 233 | Waddenzee: je vaart tegen een landmassa die er niet is (niet op de kaart, niet i | deels (wacht-beeld) | beeld | x1-wadland / w14-vaarroute |
 | 234 | Binnenvaartschepen varen in de diepen en kleine sloten (daar horen ze niet) | deels | code | x2-binnenvaart |
 | 235 | Bruggen zijn enorm glitchy (vooral beweegbare bruggen en brugdekken) | deels | code | x3-bruggen |
-| 236 | Sluizen werken niet: je vaart er zo doorheen en bij Lauwersoog kon je er niet do | open | code | x4-sluizen |
-| 237 | Kaart en minimap: grenzen met Friesland, Drenthe en Duitsland tekenen en buurdor | deels | code | r2-review-ui |
+| 236 | Sluizen werken niet: je vaart er zo doorheen en bij Lauwersoog kon je er niet do | deels (wacht-beeld) | beeld | x4-sluizen |
+| 237 | Kaart en minimap: grenzen met Friesland, Drenthe en Duitsland tekenen en buurdor | deels (wacht-beeld) | beeld | r2-review-ui |
 | 238 | Muziek: lijst van gewenste tracks voor Gemini | open | eigenaar | eigenaar |
