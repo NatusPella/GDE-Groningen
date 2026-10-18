@@ -10,7 +10,6 @@ import { createSimKernel } from './simkernel.js';
 // available straight after step(); if the worker fails, its state is rebuilt
 // on the main thread from the messages sent so far.
 
-export const SIMWORKER_WANTED = !!FLAGS.simworker && !STORY_TEST && !FLAGS.noworker;
 
 // opts.workerFactory: () => Worker-like ({postMessage, terminate, onmessage, onerror}); default builds simworker.js.
 // opts.useWorker: false forces the main-thread fallback.

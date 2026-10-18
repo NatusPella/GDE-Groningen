@@ -51,7 +51,3 @@ export function showNameCard(key, { quiet = false, force = false } = {}) {
   return true;
 }
 
-export function hideNameCard() {
-  clearTimeout(hideT);
-  if (el) el.classList.remove('on');
-}

@@ -1,0 +1,199 @@
+// Act 5 "Ontzet" of the new story arc (docs/verhaal/nieuw/05-akte5.md, 09-script-akte5.md; #163): the new defs
+// 'luik' (M22) and 'colonne' (M23), and how the arc restages the defs it shares with the old one:
+// 'vlag' (M24), 'bod' (M25) and 'ontzet' (M26, the finale). Kept out of missions_nieuw.js so the four acts
+// built side by side do not share a block. Stage fields beyond missions.js's own:
+//   bake    { recipe: 'practice'|'contest', rounds }   the baking round (bakeround.js)
+//   convoy  { first, limoAfter }                       the column of Oma's friends follows you (convoy.js)
+//   mud                                                 a hold or goto where the car sinks in the mud (speed drops)
+//   keep    chase: the chased car stays where it is (the finale's limo is nobody's mission car)
+//   swarm.script { ids, from, to }                      the pigeons' lines from script.json
+// Places: Zuidhorn and Aduard are the real villages (game coordinates from their lat/lon, AANNAME ±60 m,
+// snapped to the road at run time); Tinus' schuur is a spot on the edge of Zuidhorn, not a real farm.
+
+const ZUIDHORN = [-10732.8, -3017.02];
+const SCHUUR = [ZUIDHORN[0] + 250, ZUIDHORN[1] - 150];
+const MODDER = [ZUIDHORN[0] + 430, ZUIDHORN[1] - 240];
+const ADUARD = [-6074, -2658];
+const MARKT = { landmark: 'Grote Markt', off: [20, -5], snap: 'walk' };
+// Oma Trijntje's kitchen at the Noorderhaven (the end of the old H12 lane)
+const KEUKEN = [-289.25, -106.7];
+// the notary in the Oude Boteringestraat (nummer negen): the first point of the old chase route
+const NOTARIS = [-61.63, -38.94];
+
+export function buildAkte5Defs({ map, walk, drive }) {
+  const schuur = walk(SCHUUR[0], SCHUUR[1]);
+  return [
+    {
+      // M22 Een luik erin: Henk builds the hatch, the mud proves the axle, Tinus' tractor pulls the car out, the evening in the barn
+      mid: 'luik',
+      type: 'stages',
+      label: 'Een luik erin',
+      intro: ['Tinus\' schuur bij Zuidhorn. Henk heeft een luik en een koekje. Eén.', 'Bouw een luik in de Escapade, bewijs in de modder dat de as het houdt en laat Tinus hem eruit trekken.'],
+      outro: 'De Escapade is de Fjord Frituur. Er is een wagen, nog geen bal.',
+      timeLimit: null,
+      reward: 300,
+      costRow: ['Gevolg', 'Het luik is betaald met het horloge van Tammo\'s opa'],
+      vehicle: 'car',
+      heroCar: true,
+      start: schuur,
+      vehicleFail: { gone: 'de Escapade is foetsie, en Henk had net het luik erin', wrecked: 'de Escapade is total loss. Dit is geen karaktertrek meer', left: 'je liet de Escapade in de modder staan. Tinus trekt alleen wat vastzit' },
+      say: 'Blijf bij de wagen: Henk bouwt het luik in.',
+      stages: [
+        {
+          kind: 'hold', target: { at: SCHUUR, snap: 'walk', label: 'Tinus\' schuur' }, radius: 16, time: 6, mode: 'any',
+          label: 'Laat Henk het luik inbouwen: blijf bij de wagen', say: 'Henk zaagt een gat in de zijkant. Blijf bij de wagen tot het luik erin zit.',
+          ticks: ['Henk zaagt een gat in de zijkant.', 'Het luik past. Het is blauw.'],
+        },
+        {
+          kind: 'scene', label: 'Het luik zit erin', target: { at: SCHUUR, snap: 'walk' }, kicker: 'Tinus\' schuur', script: { ids: ['M22.2'] },
+          cast: [{ key: 'henk', pose: 'hips', at: [2.8, 1.0] }, { key: 'tinus', pose: 'arms', at: [3.4, -1.6] }],
+        },
+        { kind: 'board', label: 'Stap in de Escapade', say: 'Instappen. Tinus wijst naar het weiland: de modder wacht.' },
+        {
+          kind: 'goto', target: { at: MODDER, snap: 'drive', label: 'De modder' }, mode: 'vehicle', radius: 24, stop: 0,
+          label: 'Rij de Escapade de modder in: laat zien dat de as het houdt', say: 'Rij hem de modder in. Als de as het houdt, houdt hij het ook op de Grote Markt.',
+          talk: { ids: ['M22.3'], from: 0, to: 4, delay: 1.5 }, mud: true,
+        },
+        {
+          kind: 'hold', target: { at: MODDER, snap: 'drive' }, radius: 40, time: 9, mode: 'vehicle', mud: true,
+          label: 'Zit vast: wacht tot Tinus hem eruit trekt', say: 'Vast. Tinus komt met de trekker: aan de trekhaak.',
+          talk: { ids: ['M22.3'], from: 4, delay: 1.5 },
+          ticks: ['Tinus haakt de trekker aan.', 'De trekker trekt. De Escapade komt los.'],
+        },
+        {
+          kind: 'scene', label: 'De schuur, \'s avonds', target: { at: SCHUUR, snap: 'walk' }, kicker: 'Tinus\' schuur', title: 'Een thuis met wielen',
+          script: { ids: ['M22.4'] }, cast: [],
+        },
+      ],
+    },
+    {
+      // M23 De colonne: Oma's friends follow you from Tinus' barn to the Grote Markt; Jelle's limo and his bridge permits try to split them
+      mid: 'colonne',
+      type: 'stages',
+      label: 'De colonne',
+      intro: ['Alle vrienden van Oma staan klaar bij Tinus\' schuur: een scooter, een bus, een trekker, een bakkie en een sloep op een aanhanger.', 'Rijd voorop naar de Grote Markt en houd de colonne bij elkaar. Jelle probeert ons te splitsen.'],
+      outro: 'De colonne staat op de Grote Markt. Allemaal.',
+      timeLimit: null,
+      reward: 500,
+      costRow: ['Gevolg', 'Jelle stuurt een rekening voor een evenement zonder vergunning'],
+      vehicle: 'car',
+      heroCar: true,
+      start: schuur,
+      vehicleFail: { gone: 'de Fjord Frituur is foetsie, en de colonne wacht op niemand', wrecked: 'de Fjord Frituur is total loss. De colonne rijdt zonder leider', left: 'je liet de Fjord Frituur achter. De colonne volgt een lege wagen' },
+      say: 'Rij voorop. De colonne volgt zolang je hem niet kwijtraakt.',
+      stages: [
+        { kind: 'board', label: 'Stap in de Fjord Frituur', say: 'Instappen. Tessa zei: wij voorop.' },
+        {
+          kind: 'convoy', first: true, carHint: 'Stap weer in de Fjord Frituur: de colonne volgt de wagen.', limoAfter: 30, target: { at: ADUARD, snap: 'drive', label: 'Aduard' }, radius: 45, mode: 'vehicle',
+          label: 'Rij voorop naar Aduard en houd de colonne bij elkaar', say: 'Rij voorop naar Aduard. Wie te ver achterblijft, valt weg: wacht op ze.',
+          talk: { ids: ['M23.2'], delay: 6 }, lost: 'de colonne is uiteengevallen',
+        },
+        {
+          kind: 'scene', label: 'Durk en Douwe lopen over', target: { at: ADUARD, snap: 'walk' }, kicker: 'Aduard', script: { ids: ['M23.3'] },
+          cast: [{ key: 'durk', pose: 'arms', at: [3.4, 1.4] }, { key: 'douwe', pose: 'arms', at: [3.4, -1.4] }],
+        },
+        {
+          kind: 'convoy', carHint: 'Stap weer in de Fjord Frituur: de colonne volgt de wagen.', target: { landmark: 'Grote Markt', off: [20, -5], snap: 'drive' }, radius: 30, mode: 'vehicle',
+          label: 'Rij met de colonne de Grote Markt op', say: 'Nog acht kilometer. De hele colonne, de Grote Markt op.', lost: 'de colonne is uiteengevallen',
+        },
+      ],
+    },
+  ];
+}
+
+// How act 5 stages the defs it shares with the old arc (called at the end of applyNieuw).
+export function applyAkte5(list) {
+  const by = (label) => list.find((d) => d.label === label);
+  const walkAt = (at) => ({ at, snap: 'walk' });
+
+  const vlag = by('Er hangt iets Fries aan d\'Olle Grieze');
+  if (vlag) {
+    // the intro scene is the story intro (M24.1): the flag is shown when the pigeon stage starts; the fall is the last scene (M24.3)
+    const pig = vlag.stages.find((q) => q.kind === 'pigeon');
+    const drop = vlag.stages.find((q) => q.dropFlag);
+    pig.label = 'Haal Jelles vlag van d\'Olle Grieze: pik de vijf touwen door';
+    pig.talk = { ids: ['M24.2'], delay: 14 };
+    drop.script = { ids: ['M24.3'] };
+    drop.lines = [];
+    vlag.stages = [pig, drop];
+    vlag.timeLimit = null;
+    vlag.intro = ['Er hangt een reuzenvlag aan de Martinitoren, precies boven de plek van de Fjord Frituur.', 'Fluit een duif bij de toren en pik de vijf touwen los.'];
+    vlag.outro = 'De vlag ligt op de keien. Heel Grunn klapte voor een duif.';
+    vlag.costRow = ['Gevolg', 'Tammo is Stads held. Jelle zag het vanuit de menigte'];
+  }
+
+  const bod = by('Het bod viel tegen');
+  if (bod) {
+    const keuken = { at: KEUKEN, snap: 'walk', label: 'Oma\'s keuken' };
+    delete bod.eggs;
+    bod.start = { ...bod.start, x: KEUKEN[0], y: KEUKEN[1], road: null };
+    bod.timeLimit = null;
+    bod.intro = ['Oma\'s keuken aan de Noorderhaven. Morgen is het Ontzet.', 'Bak een oefenronde eierballen met alle vijf ingrediënten, en wijs Jelles bod af.'];
+    bod.outro = 'Jelles bod is afgewezen. Morgen bakken we op het Ontzet.';
+    bod.costRow = ['Tip van Sjabbe', 'Morgen om drie uur schrijft Jelle zich in bij de notaris'];
+    bod.say = 'Bak in Oma\'s keuken: ei, zout, grof meel, vet en mosterd.';
+    bod.stages = [
+      {
+        kind: 'bake', recipe: 'practice', rounds: 2, farHint: 'Terug naar het fornuis. De eierballen wachten niet.', target: keuken, radius: 40, mode: 'foot',
+        label: 'Bak een oefenronde eierballen met alle vijf ingrediënten', say: 'Oma\'s volgorde: eerst het ei, dan het zout, dan het grove meel, het vet en de mosterd. Toetsen 1 tot en met 5.',
+        talk: { ids: ['M25.2'], delay: 4 },
+      },
+      {
+        kind: 'scene', label: 'Het bod', target: keuken, kicker: 'Oma\'s keuken', script: { ids: ['M25.3'] },
+        cast: [{ key: 'jelle', pose: 'hips', at: [3.0, 0.8] }, { key: 'trijntje', pose: 'arms', at: [-2.2, 1.5] }, { key: 'mem', pose: 'hips', at: [-2.4, -1.2] }],
+      },
+    ];
+  }
+
+  const ontzet = by('Ontzet, net als in 1672');
+  if (ontzet) {
+    const stalls = { landmark: 'Grote Markt', off: [20, -5], snap: 'walk' };
+    const fire = ontzet.stages.find((q) => q.kind === 'hold');
+    const chase = ontzet.stages.find((q) => q.kind === 'chase');
+    ontzet.intro = ['Gronings Ontzet, vrijdag 28 augustus. De beste eierbal wint de standplaats; de Gouden Eierbal gaat terug naar het museum.', 'Bak de Groningse eierbal, houd de kraam heel, stop Jelles laatste plakje bij de notaris en laat de jury kiezen.'];
+    ontzet.outro = 'De jury koos de Groningse eierbal: vier tegen één. De Fjord Frituur krijgt de standplaats.';
+    ontzet.costRow = ['Gewonnen', 'De standplaats op de Vismarkt, en Gerda Terpstra op het bordje'];
+    ontzet.heroCar = true;
+    ontzet.start = { ...ontzet.start };
+    fire.label = 'Houd de kraam heel tegen het vuurwerk van Durk en Douwe';
+    fire.talk = { ids: ['M26.3'], from: 5, delay: 2 };
+    chase.label = 'Zet de Fjord Frituur dwars voor Jelles limo in de Oude Boteringestraat';
+    chase.say = 'Kwart voor drie. De limo rijdt naar de notaris: zet de wagen dwars in de straat, voor drie uur.';
+    chase.vehicle = { name: 'limo', len: 5.6, wid: 2.0, maxSpeed: 28, accel: 6, brake: 14, turnRate: 2.1, color: '#1b1c1f' };
+    chase.name = 'Jelles limo';
+    chase.cruise = 9;
+    chase.lead = 30;
+    chase.time = 70;
+    chase.keep = true;
+    chase.route = [{ at: NOTARIS, r: 14 }];
+    chase.flee = NOTARIS;
+    chase.lost = 'Jelle is bij de notaris. Het is drie uur: plakje acht is van hem';
+    chase.gone = 'de limo is foetsie';
+    chase.burned = 'de limo staat in de fik. De koffer met de bal is zwart';
+    chase.stopped = 'De limo staat vast, neus tegen het luik.';
+    chase.swarm = { stall: stalls, near: 260, close: 45, closeFor: 20, script: { ids: ['M26.4'], from: 3, to: 7 } };
+    chase.talk = { ids: ['M26.4'], from: 0, to: 3, delay: 1 };
+    ontzet.stages = [
+      {
+        kind: 'bake', recipe: 'contest', rounds: 3, farHint: 'Terug naar de kraam. De eierballen wachten niet.', target: stalls, radius: 40, mode: 'foot',
+        label: 'Bak de Groningse eierbal: drie rondes volgens Oma\'s recept', say: 'Oma\'s volgorde: ei, zout, grof meel, vet. Toetsen 1 tot en met 4. Pas op voor de fijne bloem: die is Fries.',
+        talk: { ids: ['M26.3'], from: 0, to: 5, delay: 3 },
+      },
+      fire,
+      { kind: 'board', label: 'Stap in de Fjord Frituur', say: 'Kwart voor drie. Instappen: de limo rijdt naar de notaris.' },
+      chase,
+      {
+        kind: 'scene', label: 'Jelle in de gracht', target: walkAt(NOTARIS), kicker: 'Oude Boteringestraat', script: { ids: ['M26.4'], from: 7, to: 14 },
+        cast: [{ key: 'jelle', pose: 'hips', at: [3.0, 1.2] }, { key: 'durk', pose: 'arms', at: [-3.2, 1.4] }, { key: 'douwe', pose: 'arms', at: [-3.2, -1.4] }],
+      },
+      {
+        kind: 'scene', label: 'Mem', target: walkAt(NOTARIS), kicker: 'Oude Boteringestraat', script: { ids: ['M26.5'] },
+        cast: [{ key: 'mem', pose: 'hips', at: [2.6, 0.4] }, { key: 'jelle', pose: 'hips', at: [3.4, -1.0] }],
+      },
+      {
+        kind: 'scene', label: 'De jury', target: stalls, kicker: 'Gronings Ontzet', title: 'Vier van de vijf', script: { ids: ['M26.6'] },
+        cast: [{ key: 'berend', pose: 'hips', at: [3.0, 1.5] }, { key: 'mem', pose: 'hips', at: [2.2, -1.4] }, { key: 'trijntje', pose: 'arms', at: [1.6, -2.6] }, { key: 'jelle', pose: 'hips', at: [3.6, -0.6] }, { key: 'jurylid', pose: 'arms', at: [4.2, 1.0] }],
+      },
+    ];
+  }
+}

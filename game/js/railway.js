@@ -68,6 +68,8 @@ let bounds = null;
 let ready = false;
 
 export function getTrains() { return trains; }
+// the built routes (stagerit.js finds the line near a story platform)
+export function getRoutes() { return routes; }
 export function getLevelCrossings() { return crossings; }
 
 // Track height above ground at (x, y): the solved track profile

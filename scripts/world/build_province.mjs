@@ -7,6 +7,7 @@
 // memory stays that of one 8 x 8 km pack.
 //
 //   node scripts/world/build_province.mjs [--out game/world] [--city <index.json>] [--src data/cache/province] [--no-fill]
+//   --terrain puts the AHN rasters of data/world/ahn (fetch_ahn.py --province) in the tiles (RASTER section; #78)
 //   (--no-fill leaves out the old Ommeland area's corner past the strip, which fillOldExtent builds from data/ommeland_raw.json.gz)
 //
 // Out: v<pack>-<hash>.gdp packs and index-provincie.json (tiles; the global
@@ -363,7 +364,7 @@ function fillOldExtent({ root, fill, gid, stats, blobs, roadNet, roadSeen, railR
 
 // ------------------------------------------------------------- build
 
-export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(src), cityKeys = new Set(), buffer = BUFFER_M, onPack = null, map = true, cityCover = null, fillOld = false, bag = loadProvinceBag(), derive = true, junctions = true } = {}) {
+export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(src), cityKeys = new Set(), buffer = BUFFER_M, onPack = null, map = true, cityCover = null, fillOld = false, bag = loadProvinceBag(), derive = true, junctions = true, terrain = null, only = null } = {}) {
   const prov = gunzipJson(path.join(src, 'province.json.gz'));
   // the neighbours' strips: their places, stations and built-up cells join the province's
   const dirs = [src, ...extra];
@@ -394,6 +395,7 @@ export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(s
   for (const k of keys) {
     const t = tiles.get(k);
     if (t.fill) continue;
+    if (only && !only.has(k)) continue; // a shadow build of some tiles (city_diff.mjs)
     if (cityKeys.has(k)) {
       city.push(k);
       // a city tile the city's data leaves partly empty gets an overlay for the rest
@@ -505,7 +507,7 @@ export function buildProvince({ root = ROOT, src = SRC_DIR, extra = bufferDirs(s
         continue;
       }
       const flags = FLAG.LAND | FLAG.BUILT | FLAG.PROVINCE | (t.buffer ? FLAG.BUFFER : 0) | (ommelandBox(t.i, t.j, root) ? FLAG.OLD : 0);
-      const tb = tileBlob(t.i, t.j, idx.get(k) || [], gid, flags, PROVINCE_BUILDER, stats, junctions ? { junctions: nodesIn.get(k) || [] } : null);
+      const tb = tileBlob(t.i, t.j, idx.get(k) || [], gid, flags, PROVINCE_BUILDER, stats, junctions || (terrain && terrain.has(k)) ? { junctions: junctions ? nodesIn.get(k) || [] : null, terrain: terrain ? terrain.get(k) : null } : null);
       if (!tb) { empty.push(k); continue; }
       blobs.set(k, { ...tb, src: 'pbf' });
     }
@@ -608,7 +610,7 @@ async function main() {
   const cityKeys = await cityKeysOf(opt('--city') || path.join(out, 'index.json'));
   const t1 = performance.now();
   const cityCover = args.includes('--no-overlay') ? null : await cityCoverOf();
-  const built = buildProvince({ src, cityKeys, cityCover, fillOld: !args.includes('--no-fill'), onPack: args.includes('--verbose') ? (pk, s) => console.log(`  pack ${pk}: ${s.tiles} tiles so far`) : null });
+  const built = buildProvince({ src, cityKeys, cityCover, fillOld: !args.includes('--no-fill'), terrain: args.includes('--terrain') ? (await import('./terrain.mjs')).loadTerrainRasters() : null, onPack: args.includes('--verbose') ? (pk, s) => console.log(`  pack ${pk}: ${s.tiles} tiles so far`) : null });
   const t2 = performance.now();
   const { index, size } = writeProvince(out, built);
   const raw = Object.values(index.tiles).reduce((a, t) => a + t.raw, 0);

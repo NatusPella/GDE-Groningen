@@ -16,6 +16,7 @@ import { createRace, updateRace, raceStandings, disposeRace, updateRetiredRacers
 import { TOUR_BOAT, rondvaartWaypoints, rondvaartBerth, startRondvaart, updateRondvaart, stopRondvaart, rondvaartStatus, rondvaartTip, rondvaartOutro, playRondvaartBoarding, routeAt, ROUTE_LENGTH } from './rondvaartchase.js';
 import { startHeliRun, isHeliRunActive, abortHeliRun, getHeliSpotsForRender } from './helirun.js';
 import { helipadById } from './heliflight.js';
+import { enterPlaneStage, updatePlaneStage, planeStageProgress, disposePlaneStage, releasePlaneStage } from './planestage.js';
 import { spawnFxPuff, spawnFxSpark } from './fx3d.js';
 import { Pedestrian, isInsideBuilding, setPedPose } from './pedestrians.js';
 import { knockDown, isKnockedDown } from './ragdoll.js';
@@ -43,6 +44,11 @@ import { nieuwVerhaal } from './storyflag.js';
 import { storyLines, talkLines, storyDataReady, readingTime } from './storytext.js';
 import { playTalk, stopTalk } from './storytalk.js';
 import { buildNieuwDefs, applyNieuw } from './missions_nieuw.js';
+import { createBake, updateBake, showBake, hideBake, bakeProgress, RECIPE_PRACTICE, RECIPE_CONTEST } from './bakeround.js';
+import { startConvoy, spawnLimo, updateConvoy, convoyStatus, disposeConvoy } from './convoy.js';
+import { wgsToWorld } from './rdnew.js';
+import { enterChoice, updateChoice, closeChoice } from './stagechoice.js';
+import { enterRit, updateRit } from './stagerit.js';
 import { withValidity } from './validity.js';
 // a radio fragment of a stage that never got played within ten minutes is moot (refs #171; not tied to the mission: the clue in it must not be lost)
 const MISSION_RADIO_VALID = { ttl: 600 };
@@ -369,7 +375,7 @@ function buildDefs(world) {
           kind: 'chase', label: 'Kaap de tankwagen of schiet zijn banden plat', say: 'Naar de groothandel aan de Bornholmstraat. Daar laden Durk en Douwe de tankwagen vol.',
           vehicle: { name: 'truck', tank: true, livery: 'usmemvet', len: 8.5, wid: 2.5, maxSpeed: 24, accel: 4.5, brake: 14, turnRate: 1.5, color: '#e6c21a' },
           name: 'Tankwagen Us Mem Vet', from: [1905.18, 335.21], lead: 6, hits: 70, flee: [-2596.64, 646.07], cruise: 15.5, escape: 380, time: 180,
-          parked: 60, parkedLabel: 'Naar de groothandel aan de Bornholmstraat', go: 'Ze zien ons! Daar gaat hij. Erin springen, of de banden plat. Schieten mag, rammen mag.',
+          parked: 60, parkedLabel: 'Naar de groothandel aan de Bornholmstraat', go: 'Daar gaat hij! Erin springen, of de banden plat. Schieten mag, rammen mag.',
           stopped: 'Pang! Banden plat. Durk en Douwe springen eruit en fietsen weg, allebei op één fatbike.',
           hijack: 'Gekaapt! Durk en Douwe rollen eruit en fietsen weg, allebei op één fatbike. Het vet is van ons.',
         },
@@ -629,6 +635,8 @@ export function initMissions(world) {
   worldRef = world;
   const defs = buildDefs(world);
   defs.forEach((d, i) => { d.id = MISSION_IDS[i]; });
+  // a def that names its id (act 5) must sit at that id's index: the defs and NEW_MISSION_IDS are appended in the same order
+  defs.forEach((d, i) => { if (d.mid && d.mid !== MISSION_IDS[i]) console.warn(`missions: def '${d.mid}' staat op plek ${i} maar MISSION_IDS heeft '${MISSION_IDS[i]}'`); });
   chain = {
     defs,
     index: 0,
@@ -1236,9 +1244,13 @@ function boatProgressText(rv) {
 // The car/boat stays in the world after the mission, but as ordinary
 // traffic that the population managers may despawn.
 function releaseMissionVehicle(world) {
+  disposeConvoy(world, chain.convoy);
+  chain.convoy = null;
+  hideBake();
   stopRondvaart(world, 'mission');
   disposeFjordTrain(world);
   disposeHeist();
+  releasePlaneStage(world);
   if (chain.skutsje) {
     const i = world.vehicles.indexOf(chain.skutsje);
     if (i >= 0 && chain.skutsje.driver !== 'player') world.vehicles.splice(i, 1);
@@ -1375,6 +1387,7 @@ function succeed(world, def) {
   // a replay pays the klusloon; the first pass the full reward
   const replay = chain.completed.has(i);
   const base = replay ? klusloon(def.reward) : def.reward;
+  closeChoice();
   const tip = def.type === 'boat' ? rondvaartTip() : 0;
   const adj = rewardAdjust(def, base);
   const reward = base + tip + adj.amount;
@@ -1449,6 +1462,7 @@ function fail(world, def, reason) {
 function endInFailure(world, text) {
   world.addMessage(text, 3.5);
   stopTalk();
+  closeChoice();
   clearStoryProps();
   // H6 failed: out of the black again (startMission puts it back on)
   if (chain.defs[chain.index] && chain.defs[chain.index].heist) setStoryOutfit(null);
@@ -1515,7 +1529,7 @@ function boatPoseClear(map, boat, x, y, a) {
 
 function spawnMissionBoat(def, map) {
   const b = def.boatAt;
-  const boat = new Vehicle(b.x, b.y, b.angle, { ...TOUR_BOAT });
+  const boat = new Vehicle(b.x, b.y, b.angle, { ...(def.boatModel ? BOAT_KINDS[def.boatModel] : TOUR_BOAT) });
   boat.isBoat = true;
   boat.missionCar = true;
   // rondvaartBerth moors it alongside the quay; only if that spot touches the
@@ -1875,8 +1889,21 @@ function startMission(world, def) {
   } else if (def.type === 'fatbike') {
     startLane(world, def);
   } else if (def.type === 'stages') {
-    if (def.vehicle === 'car' && def.start.road) {
+    if (def.vehicle === 'car' && def.snapStart && !def.start.road) {
+      const rs = roadSpot(world.map, def.start.x, def.start.y, true);
+      if (rs && rs.road) def.start = { ...rs };
+    }
+    if (def.heroCar) {
+      // act 5: the Escapade (the Fjord Frituur) waits at the start of the mission
+      chain.vehicle = heroCarTo(world, def.start) || (def.start.road ? spawnMissionCar(world, def) : null);
+      if (chain.vehicle && !world.vehicles.includes(chain.vehicle)) world.vehicles.push(chain.vehicle);
+    } else if (def.vehicle === 'car' && def.start.road) {
       chain.vehicle = spawnMissionCar(world, def);
+      world.vehicles.push(chain.vehicle);
+    }
+    // akte 4 (Open, dicht): a boat at the start of a stages mission, `boatAt` { x, y, angle }, `boatModel` a BOAT_KINDS key
+    if (def.boatAt) {
+      chain.vehicle = spawnMissionBoat(def, world.map);
       world.vehicles.push(chain.vehicle);
     }
     chain.stage = null;
@@ -1919,6 +1946,19 @@ function companionOwnBike(world) {
   c.x = spot.x; c.y = spot.y; c.vx = 0; c.vy = 0;
   world.companionHold = { x: spot.x, y: spot.y, face: p.angle, pose: 'phone' };
   chain.soloHold = true;
+}
+
+// Act 5: the mission car is the Escapade itself. The one in the world is moved to the start, else Henk brings a new one.
+function heroCarTo(world, at) {
+  let car = world.vehicles.find((v) => v.isHeroCar && !v.wrecked && !v.sinking);
+  if (car && (car.driver === 'player' || dist(car.x, car.y, at.x, at.y) < 70)) { car.missionCar = true; return car; }
+  if (car && placeOwnedVehicleNear(world, car, at.x, at.y)) { car.missionCar = true; return car; }
+  car = spawnHeroCarNear(world.map, at.x, at.y);
+  if (!car) return null;
+  for (const v of world.vehicles) if (v.isHeroCar && v.wrecked) v.isHeroCar = false;
+  car.missionCar = true;
+  world.vehicles.push(car);
+  return car;
 }
 
 // H3 is a stunt evening in the Escapade: when it is not near, Henk parks it at the square.
@@ -2238,6 +2278,8 @@ function raceCarProblem() {
 //           damage it by `hits` (shots or rams) and it stops and becomes the
 //           mission vehicle (board it next). Fails when it gets `escape` metres
 //           away, runs out of `time` or burns out.
+//   choice  (akte 4, stagechoice.js) a conversation puzzle: rounds of up to three answers (keys 1-3), wrong answers can fail
+//   rit     (akte 4, stagerit.js) drive the stopped train to the next platform with gas and brake
 //   vault   Jelle's polsstok escape over the nearest canal (missionstory.js); fail: he misses
 //   boatchase  Jelle's skûtsje sails the Diepenring from `lead` metres ahead of you; stay
 //           alongside in a boat (`board` m) for `boardTime` s to jump aboard. Fails past
@@ -2284,6 +2326,8 @@ function resolveTarget(world, spec, from) {
   const snap = (x, y) => (spec.snap ? roadSpot(map, x, y, spec.snap === 'drive') : { x, y });
   if (Number.isFinite(spec.x) && Number.isFinite(spec.y)) return spec;
   if (spec.at) return { ...snap(spec.at[0], spec.at[1]), label: spec.label };
+  // a real place by latitude and longitude (the new arc's tile world, akte 4); snapped to a road when `snap` says so
+  if (spec.ll) { const [wx, wy] = wgsToWorld(spec.ll[0], spec.ll[1]); return { ...snap(wx, wy), label: spec.label }; }
   if (spec.shop) {
     const s = nearestShopOf({ player: from }, spec.shop);
     return s ? { x: s.x, y: s.y, name: s.name, label: spec.label || s.name } : null;
@@ -2366,6 +2410,9 @@ function bankNear(map, x, y) {
 
 // The fleeing vehicle of a chase stage: on the start road, `lead` metres on
 // from the mission start, pointing away from the player where the road allows.
+// seconds a parked chase target waits for the player to come close before it flees by itself
+export const CHASE_WAIT_MAX = 6;
+
 function spawnChaseVehicle(world, def, st) {
   const from = st.from ? roadSpot(world.map, st.from[0], st.from[1], true) : null;
   const base = from && from.road ? from : def.start;
@@ -2428,7 +2475,8 @@ function startSwarm(world, def, st, S, t) {
   S.swarm = 'playing';
   const stall = resolveTarget(world, st.swarm.stall, { x: t.x, y: t.y });
   const done = () => { t.speed = 0; S.swarm = 'done'; };
-  if (isCinematicActive() || !playPigeonSwarm(world, { limo: t, stall, lines: st.swarm.lines, onDone: done })) {
+  const sw = st.swarm.script && storyDataReady() ? storyLines(st.swarm.script.ids, st.swarm.script).map(([who, text]) => [who, text]) : st.swarm.lines;
+  if (isCinematicActive() || !playPigeonSwarm(world, { limo: t, stall, lines: sw, onDone: done })) {
     world.addMessage(st.half, 3.5);
     done();
   }
@@ -2439,6 +2487,13 @@ function startSwarm(world, def, st, S, t) {
 function stopChaseVehicle(world, def, st) {
   const v = chain.stage && chain.stage.target;
   if (!v) { nextStage(world, def); return; }
+  if (st.keep) {
+    // the finale's limo: it stays where it stopped, nobody's mission car
+    v.speed = 0; v.aiOpts = null; v.chaseTarget = false; v.missionCar = false;
+    if (st.stopped) world.addMessage(st.stopped, 4.5);
+    nextStage(world, def);
+    return;
+  }
   adoptVehicle(world, v, st);
   if (st.stopped) world.addMessage(st.stopped, 4.5);
   nextStage(world, def);
@@ -2512,6 +2567,7 @@ function stageMarker(world, def) {
     const k = S.targets.findIndex((t, j) => t && !S.spotted.has(j));
     return k >= 0 ? S.targets[k] : def.start;
   }
+  if (st.kind === 'chase' && st.race && S.finish) return S.finish;
   return S.target || S.here;
 }
 
@@ -2536,10 +2592,14 @@ function stageProgressBase(world, def) {
   const n = `${list.indexOf(st) + 1}/${list.length}`;
   if (st.kind === 'pigeon' && S.flying) return `${st.label} · op de foto ${S.spotted.size}/${S.targets.length}`;
   if (st.kind === 'hold') return `${st.label} · ${Math.min(100, Math.round(S.hold / st.time * 100))}%`;
+  if (st.kind === 'bake' && S.bake) return `${st.label} · eierbal ${bakeProgress(S.bake).round}/${S.bake.rounds}`;
+  if (st.kind === 'convoy' && chain.convoy) { const sc = convoyStatus(world, chain.convoy); return `${st.label} · ${sc.near}/${sc.total} bij elkaar`; }
+  if (st.kind === 'airgates' && planeStageProgress(st, S)) return planeStageProgress(st, S);
   if (st.kind === 'escape') {
     if (S.target && !world.wanted) return `${st.label} · ${Math.round(dist(world.player.x, world.player.y, S.target.x, S.target.y))} m`;
     return `${S.target ? 'Schud de politie af' : st.label} · ${'★'.repeat(world.wanted)}`;
   }
+  if (st.kind === 'chase' && st.race && S.finish) return `${st.label} · nog ${Math.round(dist(world.player.x, world.player.y, S.finish.x, S.finish.y))} m`;
   if (st.kind === 'chase' && S.target && S.target.parkedRoad) return `${st.parkedLabel || st.label} · ${Math.round(dist(world.player.x, world.player.y, S.target.x, S.target.y))} m`;
   if (st.kind === 'chase' && S.target) {
     const left = `${st.meter || 'banden'} ${Math.max(0, Math.round(100 - (S.hp0 - S.target.health) / st.hits * 100))}%`;
@@ -2579,7 +2639,7 @@ function enterStage(world, def, k) {
   if (st.showFlag && !hasTowerFlag()) showMissionFlag(world, def, from);
   if (def.fjordTrain && k === 0) spawnFjordTrain(world);
   if (def.heist) {
-    if (k === 0 && startHeist(world)) {
+    if (k === 0 && startHeist(world, def.heist)) {
       placeHeistProps(world, resolveTarget(world, def.heist.fuse, from), resolveTarget(world, def.heist.vitrine, from));
       // the cameras and the guard outside stand from the start (the plan shows them)
       // along the walk from the mission's own start, wherever the player happened to trigger it
@@ -2609,9 +2669,14 @@ function enterStage(world, def, k) {
     S.target = fjordCrossing();
   }
   if (st.kind === 'scene' && st.dropFlag) dropFlag();
+  if (st.kind === 'chase' && st.race) S.finish = resolveTarget(world, st.finish, from);
+  disposePlaneStage(world);
+  if (st.kind === 'plane' || st.kind === 'airgates' || st.kind === 'landplane') enterPlaneStage(world, st, S);
   if (st.kind === 'boatchase') S.boat = spawnSkutsje(world, st);
   if (st.kind === 'boatchase' && S.boat) S.target = S.boat.v;
   if (st.kind === 'hold' && st.fireworks) { S.fwT = 1.5; S.fw = []; }
+  if (st.kind === 'choice') enterChoice(S);
+  if (st.kind === 'rit') enterRit(world, st, S);
   if (def.eggs && k === def.eggs.from) { chain.eggs = 100; chain.eggWarn = 100; chain.eggVeh = null; }
   chain.stage = S;
   if (st.stars) { world.wanted = Math.max(world.wanted, st.stars); world.wantedDecayTimer = 0; }
@@ -2668,8 +2733,8 @@ function updateBoatChase(dt, world, def, st, S) {
   if (v.driver !== 'jelle') { fail(world, def, st.lost); return; }
   if (!world.vehicles.includes(v)) world.vehicles.push(v);
   const d = dist(p.x, p.y, v.x, v.y);
-  // rubber band: it waits a little when you fall behind, never lets you sit on it for free
-  const want = d > 90 ? 3.2 : d > 35 ? 5.4 : 7;
+  // a chase does not wait for the player: the skûtsje keeps its pace however far behind you are
+  const want = 7;
   B.speed += clamp(want - B.speed, -2 * dt, 1.4 * dt);
   B.s += B.dir * B.speed * dt;
   if (B.s <= 0 || B.s >= ROUTE_LENGTH) { B.s = clamp(B.s, 0, ROUTE_LENGTH); B.speed = 0; }
@@ -2700,9 +2765,28 @@ function updateHeliStage(dt, world, def, st, S) {
   }
   if (S.started || isCinematicActive()) return;
   if (p.inVehicle && !p.inVehicle.storyDemo) { hint(world, 'Uitstappen: Rotor Roelf wacht bij zijn heli.'); return; }
-  if (S.target && dist(p.x, p.y, S.target.x, S.target.y) > 30) { hint(world, 'Naar het helidek van Rotor Roelf, op Eelde.'); return; }
+  if (S.target && dist(p.x, p.y, S.target.x, S.target.y) > 30) { hint(world, st.hint || 'Naar het helidek van Rotor Roelf, op Eelde.'); return; }
   S.started = startHeliRun({ variant: st.variant, onFinish: (res) => { S.result = res; } });
   if (!S.started && S.t > 10) { world.addMessage('De heli wil niet opstijgen. Rotor Roelf vliegt zelf, en Dokter Dijkstra brengt de Eierbal.', 4); nextStage(world, def); }
+}
+
+// --- M14 (new story): a race to a spot against a rival on the road network. Whoever is first at `finish` wins; the
+// rival drives like the fleeing vehicle of a chase (it has no route data, it follows the roads). Without a rival
+// (no road to put it on) it is a drive to the finish.
+function updateChaseRace(world, def, st, S) {
+  const p = world.player;
+  const fin = S.finish;
+  if (!fin) { nextStage(world, def); return; }
+  const t = S.target && world.vehicles.includes(S.target) && !S.target.wrecked ? S.target : null;
+  if (t) {
+    S.rivalBest = Math.min(S.rivalBest ?? Infinity, dist(t.x, t.y, fin.x, fin.y));
+    if (S.rivalBest < (st.rivalRadius || 40)) { fail(world, def, st.lost || 'de ander was eerder bij de finish'); return; }
+  }
+  if (dist(p.x, p.y, fin.x, fin.y) < (st.radius || 16)) {
+    if (t) { t.chaseTarget = false; t.missionCar = false; t.aiOpts = { ...t.aiOpts, chase: false }; }
+    if (st.won) world.addMessage(st.won, 4);
+    nextStage(world, def);
+  }
 }
 
 // --- H18: Durk & Douwe's fireworks rain down on a hold stage --------------------
@@ -2936,11 +3020,12 @@ function updateStages(dt, world, def) {
   const inCar = !!v && p.inVehicle === v;
   switch (st.kind) {
     case 'board':
-      if (inCar) nextStage(world, def);
+      if (inCar || (def.snapStart && !chain.vehicle)) nextStage(world, def);
       break;
     case 'goto': {
       if (!S.target) { nextStage(world, def); break; }
       if (st.limit && S.t > st.limit) { fail(world, def, st.late || 'te laat'); break; }
+      if (st.mud && dist(p.x, p.y, S.target.x, S.target.y) < (st.radius || STAGE_RADIUS) * 2) sinkInMud(world, dt, 1.2);
       if (dist(p.x, p.y, S.target.x, S.target.y) >= (st.radius || STAGE_RADIUS)) { S.hold = 0; break; }
       if (!modeOk(p, st.mode)) { hint(world, MODE_HINT[st.mode] || ''); break; }
       if (st.stop && p.inVehicle && Math.abs(p.inVehicle.speed) > 2) { S.hold = 0; hint(world, 'Even stilstaan.'); break; }
@@ -2951,6 +3036,7 @@ function updateStages(dt, world, def) {
       if (!S.target) { nextStage(world, def); break; }
       if (st.fireworks) updateFireworks(dt, world, def, st, S);
       if (chain.phase !== 'active') break;
+      if (st.mud) sinkInMud(world, dt, 4);
       const near = dist(p.x, p.y, S.target.x, S.target.y) < (st.radius || HOLD_RADIUS);
       if (near && !modeOk(p, st.mode)) { hint(world, MODE_HINT[st.mode] || ''); break; }
       if (!near) { S.hold = Math.max(0, S.hold - dt * 0.5); break; }
@@ -2958,6 +3044,15 @@ function updateStages(dt, world, def) {
       const third = Math.floor(S.hold / st.time * 3);
       if (third > S.said && third < 3) { S.said = third; world.addMessage(st.ticks ? st.ticks[third - 1] : `Klik. Camera ${third} van 3 gaat op zwart.`, 2.4); }
       if (S.hold >= st.time) nextStage(world, def);
+      break;
+    }
+    case 'bake':
+      if (updateBakeStage(dt, world, def, st, S)) nextStage(world, def);
+      break;
+    case 'convoy': {
+      const r = updateConvoyStage(dt, world, def, st, S);
+      if (r === 'fail') fail(world, def, st.lost || 'de colonne is uiteengevallen');
+      else if (r === 'done') nextStage(world, def);
       break;
     }
     case 'fuse':
@@ -3018,13 +3113,15 @@ function updateStages(dt, world, def) {
     }
     case 'chase': {
       const t = S.target;
+      if (st.race) { updateChaseRace(world, def, st, S); break; }
       if (S.swarm) { if (S.swarm === 'done') stopChaseVehicle(world, def, st); break; }
       if (!t || !world.vehicles.includes(t)) { fail(world, def, st.gone || 'de tankwagen is foetsie'); break; }
       if (t.wrecked || t.disabled) { fail(world, def, st.burned || 'de tankwagen staat in de fik. Zonde van al dat vet'); break; }
       if (st.hijack && p.inVehicle === t) { hijackChase(world, def, st, t); break; }
       const d = dist(p.x, p.y, t.x, t.y);
       if (t.parkedRoad) {
-        if (d > st.parked && t.health >= S.hp0) break;
+        // it does not wait for you for ever: after CHASE_WAIT_MAX s it flees on its own (a chase never waits for the player)
+        if (d > st.parked && t.health >= S.hp0 && S.t < CHASE_WAIT_MAX) break;
         t.road = t.parkedRoad;
         t.aiOpts = t.parkedAi;
         t.parkedRoad = null;
@@ -3059,6 +3156,14 @@ function updateStages(dt, world, def) {
       nextStage(world, def);
       break;
     }
+    case 'plane':
+    case 'airgates':
+    case 'landplane': {
+      const r = updatePlaneStage(dt, world, st, S);
+      if (r === 'next') nextStage(world, def);
+      else if (r && r.fail) fail(world, def, r.fail);
+      break;
+    }
     case 'heli':
       updateHeliStage(dt, world, def, st, S);
       break;
@@ -3080,9 +3185,64 @@ function updateStages(dt, world, def) {
     case 'pigeon':
       updatePigeonStage(dt, world, def, st, S);
       break;
+    case 'rit': {
+      const r = updateRit(dt, world, st, S, hint);
+      if (r === 'done') nextStage(world, def);
+      else if (r && r.fail) fail(world, def, r.fail);
+      break;
+    }
+    case 'choice': {
+      const r = updateChoice(dt, world, st, S);
+      if (r === 'done') nextStage(world, def);
+      else if (r && r.fail) fail(world, def, r.fail);
+      break;
+    }
     default:
       nextStage(world, def);
   }
+}
+
+// Act 5 (M22): the meadow is mud. A car in it slows down; `k` is how hard per second.
+function sinkInMud(world, dt, k) {
+  const v = world.player.inVehicle;
+  if (!v || Math.abs(v.speed) < 0.05) return;
+  v.speed *= Math.max(0, 1 - k * dt);
+  v.driftX = (v.driftX || 0) * 0.9;
+  v.driftY = (v.driftY || 0) * 0.9;
+}
+
+// Act 5: the baking round (bakeround.js). The stage is on while you stand in the kitchen or at the stall.
+function updateBakeStage(dt, world, def, st, S) {
+  const p = world.player;
+  const title = st.recipe === 'practice' ? "Oma's keuken: de oefenronde" : 'Gronings Ontzet: bak de eierbal';
+  if (!S.bake) S.bake = createBake({ order: st.recipe === 'practice' ? RECIPE_PRACTICE : RECIPE_CONTEST, rounds: st.rounds || 1 });
+  if (!S.target) return true;
+  const near = dist(p.x, p.y, S.target.x, S.target.y) < (st.radius || HOLD_RADIUS);
+  if (!near) { hideBake(); S.shown = false; hint(world, st.farHint || ''); return false; }
+  if (!modeOk(p, st.mode)) { hideBake(); S.shown = false; hint(world, MODE_HINT[st.mode] || ''); return false; }
+  if (!S.shown) { S.shown = true; showBake(S.bake, title); }
+  const res = updateBake(S.bake, world.input, title);
+  if (res === 'round') world.addMessage(`Eierbal ${S.bake.round} van ${S.bake.rounds} is goud. Door!`, 2);
+  else if (res === 'wrong' || res === 'redo') world.addMessage(S.bake.last, 3);
+  if (res === 'done') { hideBake(); world.addMessage('Alle eierballen zijn goud.', 3); return true; }
+  return false;
+}
+
+// Act 5 (M23): the column. The first convoy stage brings the friends (and Jelle's limo after limoAfter seconds);
+// each stage ends when the leader is at the target and most of the column is with him. 'fail' when it falls apart.
+function updateConvoyStage(dt, world, def, st, S) {
+  if (!chain.convoy) chain.convoy = startConvoy(world);
+  const c = chain.convoy;
+  if (!S.limoDone && st.limoAfter && S.t > st.limoAfter) { S.limoDone = true; if (spawnLimo(world, c)) world.addMessage('Jelles limo komt op de colonne af.', 3.5); }
+  const r = updateConvoy(dt, world, c, (text) => world.addMessage(text, 2.5, { key: 'colonne-lag' }));
+  if (r && r.split) { world.addMessage(`${r.split} is te ver achter: de colonne valt uiteen.`, 3.5); return 'fail'; }
+  const v = chain.vehicle;
+  const p = world.player;
+  if (v && p.inVehicle !== v && dist(p.x, p.y, v.x, v.y) > 12) { hint(world, st.carHint || ''); return null; }
+  if (!S.target || dist(p.x, p.y, S.target.x, S.target.y) >= (st.radius || STAGE_RADIUS)) return null;
+  const sc = convoyStatus(world, c);
+  if (sc.total && sc.near < Math.ceil(sc.total * 0.7)) { hint(world, `Wacht op de colonne: ${sc.near} van ${sc.total} bij elkaar.`); return null; }
+  return 'done';
 }
 
 function updatePigeonStage(dt, world, def, st, S) {
@@ -3248,7 +3408,6 @@ export const missionDebug = {
 // cooldown (i.e. showing where to go to START the next mission).
 
 export const MARKER_COLOR_ACTIVE = 0x3fd0ff;
-export const MARKER_COLOR_IDLE = 0xffd23f;
 
 // The start (idle) and the objective (active) of a mission: the shared world
 // marker (worldmarker3d.js), a diamond for the start, an arrow for the goal.

@@ -1,0 +1,156 @@
+// Extra synthesized one-shots (issue #173), registered in the sample bank of
+// dsp.js: a real carbid boom, a bigger explosion, shop bell, bridge, rail and
+// ship sounds, a fairground strike. No samples and no recordings; every
+// variant is rendered from its own seed (the name), so variants differ and a
+// node test can render them offline (scripts/sfx_test.mjs).
+import { defSample, dspKit } from './dsp.js';
+
+const { addNoiseBurst: nb, addPartials, addTone, thump, click, bq } = dspKit;
+
+// Per effect: mixer category (mixplan.js), a Dutch label for ?sfxtest, how loud
+// it plays (gain), and how far it carries (ref / range in metres).
+export const FX_INFO = {
+  carbid_boom_0: { cat: 'explosie', label: 'Carbidknal (A)', gain: 1.0, ref: 22, range: 3000 },
+  carbid_boom_1: { cat: 'explosie', label: 'Carbidknal (B)', gain: 1.0, ref: 22, range: 3000 },
+  carbid_boom_2: { cat: 'explosie', label: 'Carbidknal (C)', gain: 1.0, ref: 22, range: 3000 },
+  carbid_fuse: { cat: 'wapen', label: 'Carbid: lont sist', gain: 0.35, ref: 3, range: 60 },
+  explosion_boom_0: { cat: 'explosie', label: 'Explosie (A)', gain: 1.0, ref: 16, range: 2500 },
+  explosion_boom_1: { cat: 'explosie', label: 'Explosie (B)', gain: 1.0, ref: 16, range: 2500 },
+  shop_bell: { cat: 'winkel', label: 'Winkelbel bij de deur', gain: 0.45, ref: 3, range: 40 },
+  bridge_clunk: { cat: 'brug', label: 'Brug: vergrendeling en kettingen', gain: 0.7, ref: 10, range: 200 },
+  train_pass: { cat: 'spoor', label: 'Trein dendert voorbij', gain: 0.8, ref: 25, range: 500 },
+  rail_squeal: { cat: 'spoor', label: 'Remmende trein piept', gain: 0.4, ref: 15, range: 300 },
+  ship_horn: { cat: 'water', label: 'Scheepshoorn', gain: 0.7, ref: 30, range: 1200 },
+  kermis_ding: { cat: 'kermis', label: 'Kermis: kop van Jut (klap en bel)', gain: 0.6, ref: 5, range: 120 },
+  splash_big: { cat: 'water', label: 'Grote plons', gain: 0.7, ref: 6, range: 120 },
+  door_wood_open: { cat: 'deur', label: 'Houten deur open', gain: 0.5, ref: 3, range: 40 },
+  door_wood_close: { cat: 'deur', label: 'Houten deur dicht', gain: 0.55, ref: 3, range: 40 },
+};
+
+function boomLayers(d, sr, R, { size = 1, tail = 3, echoes = 4 } = {}) {
+  const j = () => 0.9 + R() * 0.2;
+  // the sharp tik and crack at the front, then the body of the bang
+  nb(d, sr, 0, R, { type: 'hp', f: 5200 * j(), q: 0.7, tau: 0.0018, amp: 1.5 });
+  nb(d, sr, 0, R, { f: 2400 * j(), q: 1.1, tau: 0.012, amp: 1.3, attack: 0.0004 });
+  nb(d, sr, 0.001, R, { f: 1100 * j(), q: 0.8, tau: 0.045 * size, amp: 1.2 });
+  nb(d, sr, 0.001, R, { type: 'lp', f: 700 * j(), q: 0.7, tau: 0.16 * size, amp: 1.5 });
+  // sub thump plus a 110-130 Hz layer so small speakers still carry it
+  thump(d, sr, 0, 52 * j(), 0.34 * size, 1.9);
+  thump(d, sr, 0, 118 * j(), 0.12 * size, 1.1);
+  // rolling low tail
+  nb(d, sr, 0.04, R, { type: 'lp', f: 320 * j(), q: 0.7, tau: 0.8 * size, amp: 0.7, attack: 0.03, len: tail });
+  // reflections off facades and farmland: later, darker, quieter
+  let t = 0.16 + R() * 0.08, a = 0.5;
+  for (let k = 0; k < echoes; k++) {
+    nb(d, sr, t, R, { type: 'lp', f: 1500 - k * 220, q: 0.6, tau: 0.08 + k * 0.05, amp: a, attack: 0.004, len: 0.6 });
+    thump(d, sr, t, 70, 0.1, a * 0.7);
+    t += 0.14 + R() * 0.2 + k * 0.1;
+    a *= 0.6;
+  }
+}
+
+for (let v = 0; v < 3; v++) defSample(`carbid_boom_${v}`, 3.8, (c, sr, R) => boomLayers(c[0], sr, R, { size: 1.15, tail: 3.2, echoes: 5 }), { peak: 0.95 });
+for (let v = 0; v < 2; v++) {
+  defSample(`explosion_boom_${v}`, 3.4, (c, sr, R) => {
+    const d = c[0];
+    boomLayers(d, sr, R, { size: 1, tail: 2.8, echoes: 3 });
+    nb(d, sr, 0.03, R, { f: 900, q: 0.6, tau: 0.35, amp: 0.8, attack: 0.01 });
+    for (let k = 0; k < 8; k++) addPartials(d, sr, 0.25 + R() * 1.6, 500 + R() * 2200, [[1, 0.25, 0.04], [2.76, 0.12, 0.03]], 0.5, R);
+  }, { peak: 0.95 });
+}
+
+defSample('carbid_fuse', 1.9, (c, sr, R) => {
+  const d = c[0];
+  nb(d, sr, 0, R, { type: 'hp', f: 4800, q: 0.7, tau: 0.9, amp: 0.6, attack: 0.05, len: 1.8 });
+  nb(d, sr, 0, R, { f: 7000, q: 1.2, tau: 0.7, amp: 0.3, len: 1.8 });
+  for (let k = 0; k < 14; k++) click(d, sr, R, 0.05 + R() * 1.7, 3500 + R() * 3000, 0.2 + R() * 0.3);
+}, { peak: 0.7 });
+
+defSample('shop_bell', 1.3, (c, sr, R) => {
+  const d = c[0], f = 2350 + R() * 250;
+  for (const t of [0, 0.22]) {
+    addPartials(d, sr, t, f, [[1, 1, 0.35], [2.32, 0.55, 0.22], [4.1, 0.3, 0.12], [6.3, 0.15, 0.06]], t ? 0.7 : 1, R);
+    nb(d, sr, t, R, { f: 5200, q: 3, tau: 0.006, amp: 0.5 });
+  }
+}, { peak: 0.8 });
+
+defSample('bridge_clunk', 2.2, (c, sr, R) => {
+  const d = c[0];
+  thump(d, sr, 0, 70, 0.1, 1.4);
+  nb(d, sr, 0, R, { f: 900, q: 1.5, tau: 0.04, amp: 1 });
+  addPartials(d, sr, 0.005, 210 + R() * 40, [[1, 0.6, 0.35], [2.7, 0.35, 0.25], [5.1, 0.2, 0.12]], 0.7, R);
+  // chains running over the wheels
+  for (let k = 0; k < 16; k++) {
+    const t = 0.25 + k * 0.07 + R() * 0.03;
+    click(d, sr, R, t, 4200 + R() * 1200, 0.5 - k * 0.02);
+    nb(d, sr, t, R, { f: 5000, q: 6, tau: 0.01, amp: 0.4 });
+  }
+  thump(d, sr, 1.5, 62, 0.12, 0.9);
+}, { peak: 0.9 });
+
+defSample('train_pass', 5, (c, sr, R, len) => {
+  const d = c[0], lp = bq('lp', 420, 0.7, sr), mid = bq('bp', 1300, 0.7, sr);
+  for (let i = 0; i < d.length; i++) {
+    const t = i / sr, e = Math.exp(-(((t - 2.2) / 1.1) ** 2));
+    const n = R() * 2 - 1;
+    d[i] = lp.run(n) * e * 1.3 + mid.run(n) * e * e * 0.4;
+  }
+  // wheel sets over the joints, quickest at the heart of the pass
+  for (let t = 0.8; t < len - 0.5;) {
+    const e = Math.exp(-(((t - 2.2) / 1.2) ** 2));
+    thump(d, sr, t, 85, 0.05, 0.8 * e);
+    click(d, sr, R, t, 2600, 0.4 * e);
+    t += 0.42 - 0.2 * e;
+  }
+}, { rate: 22050, peak: 0.9 });
+
+defSample('rail_squeal', 1.6, (c, sr, R) => {
+  const d = c[0], f = 2300 + R() * 500;
+  addTone(d, sr, 0, 1.5, R, { f0: f, f1: f * 0.8, amp: 0.5, attack: 0.15, release: 0.5, vib: 0.012, vibRate: 11, shape: 'rich' });
+  addTone(d, sr, 0.05, 1.4, R, { f0: f * 1.51, f1: f * 1.2, amp: 0.3, attack: 0.2, release: 0.5, vib: 0.02, vibRate: 7 });
+  nb(d, sr, 0, R, { type: 'hp', f: 3500, q: 0.7, tau: 0.5, amp: 0.25, attack: 0.1, len: 1.5 });
+}, { rate: 22050, peak: 0.7 });
+
+defSample('ship_horn', 2.6, (c, sr, R) => {
+  const d = c[0], f = 92 + R() * 12;
+  addTone(d, sr, 0, 2.2, R, { f0: f, amp: 0.8, attack: 0.12, release: 0.5, shape: 'saw' });
+  addTone(d, sr, 0, 2.2, R, { f0: f * 1.5, amp: 0.4, attack: 0.14, release: 0.5, shape: 'rich', vib: 0.003, vibRate: 5 });
+  addTone(d, sr, 0, 2.2, R, { f0: f * 2.01, amp: 0.3, attack: 0.16, release: 0.5, shape: 'rich' });
+  nb(d, sr, 0, R, { type: 'lp', f: 500, q: 0.7, tau: 0.8, amp: 0.15, attack: 0.1, len: 2.2 });
+  // the low pass keeps it a ship, not a car: saw edges off
+  const lp = bq('lp', 900, 0.7, sr);
+  for (let i = 0; i < d.length; i++) d[i] = lp.run(d[i]);
+}, { rate: 22050, peak: 0.85 });
+
+defSample('kermis_ding', 1.8, (c, sr, R) => {
+  const d = c[0];
+  thump(d, sr, 0, 110, 0.05, 1.3);
+  nb(d, sr, 0, R, { f: 1400, q: 0.9, tau: 0.02, amp: 1 });
+  addPartials(d, sr, 0.28, 1760 + R() * 120, [[1, 1, 0.9], [2.01, 0.35, 0.5], [3.02, 0.2, 0.3], [5.4, 0.1, 0.15]], 0.8, R);
+}, { peak: 0.9 });
+
+defSample('splash_big', 1.6, (c, sr, R) => {
+  const d = c[0];
+  nb(d, sr, 0, R, { type: 'lp', f: 1200, q: 0.7, tau: 0.12, amp: 1.2 });
+  nb(d, sr, 0, R, { f: 2800, q: 0.7, tau: 0.07, amp: 0.9 });
+  thump(d, sr, 0.01, 75, 0.12, 1.1);
+  for (let k = 0; k < 24; k++) addTone(d, sr, 0.08 + R() * 1.1, 0.04, R, { f0: 500 + R() * 600, f1: 1400 + R() * 800, amp: 0.1 + R() * 0.15, attack: 0.003, release: 0.02 });
+  nb(d, sr, 0.15, R, { type: 'hp', f: 3000, q: 0.7, tau: 0.35, amp: 0.3, attack: 0.05, len: 1.2 });
+}, { peak: 0.9 });
+
+defSample('door_wood_open', 0.8, (c, sr, R) => {
+  const d = c[0];
+  click(d, sr, R, 0, 1800, 0.8);
+  thump(d, sr, 0.01, 130, 0.025, 0.5);
+  addTone(d, sr, 0.05, 0.5, R, { f0: 180 + R() * 40, f1: 340 + R() * 60, amp: 0.2, attack: 0.1, release: 0.2, shape: 'saw', vib: 0.04, vibRate: 27 });
+  nb(d, sr, 0.05, R, { f: 900, q: 1.5, tau: 0.2, amp: 0.2, attack: 0.1, len: 0.5 });
+}, { rate: 22050, peak: 0.8 });
+
+defSample('door_wood_close', 0.7, (c, sr, R) => {
+  const d = c[0];
+  addTone(d, sr, 0, 0.3, R, { f0: 300 + R() * 40, f1: 180, amp: 0.15, attack: 0.05, release: 0.15, shape: 'saw', vib: 0.04, vibRate: 25 });
+  thump(d, sr, 0.28, 95, 0.07, 1.2);
+  nb(d, sr, 0.28, R, { type: 'lp', f: 1000, q: 0.7, tau: 0.05, amp: 1 });
+  click(d, sr, R, 0.3, 2200, 0.6);
+  addPartials(d, sr, 0.28, 240, [[1, 0.3, 0.12], [2.3, 0.15, 0.08]], 0.6, R);
+}, { rate: 22050, peak: 0.85 });
