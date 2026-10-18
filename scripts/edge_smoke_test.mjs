@@ -11,7 +11,8 @@ import fs from 'node:fs';
 globalThis.requestAnimationFrame = (f) => setImmediate(f);
 const root = new URL('../game/world/', import.meta.url);
 const alt = new URL('../desktop/build/game/world/', import.meta.url);
-const dir = fs.existsSync(new URL('index-provincie.json', root)) ? root : fs.existsSync(new URL('index-provincie.json', alt)) ? alt : null;
+const full = (d) => fs.existsSync(new URL('index.json', d)) && fs.existsSync(new URL('index-provincie.json', d));
+const dir = full(root) ? root : full(alt) ? alt : null;
 if (!dir) { console.log('SKIP no game/world with the province layer'); process.exit(0); }
 
 await import('../game/js/mapdata.js');
@@ -22,6 +23,7 @@ const TW = await import('../game/js/tileworld.js');
 const WL = await import('../game/js/waterlevels.js');
 const WI = await import('../game/js/waterindex.js');
 const CH = await import('../game/js/cheats.js');
+const RT = await import('../game/js/routing.js');
 
 let n = 0, fails = 0;
 const ok = (c, m, info = '') => { n++; if (!c) { fails++; console.log(`FAIL ${m}${info ? ' (' + info + ')' : ''}`); } };
@@ -94,6 +96,11 @@ for (const [name, x, y] of spots) {
         map.isOnBridge(s.x, s.y);
         await load(s.x, s.y);
         RG.roadNetReady() && RG.snapRoad(s.x, s.y, 600);
+        // the route planners of pedestrians, the GPS and the police start on a streamed tile's road (#81)
+        RT.findWalkPath(map, s.x, s.y, s.x + 150, s.y + 90);
+        RT.findWalkPath(map, s.x + 150, s.y + 90, s.x, s.y);
+        RT.planLandRoute(map, 'drive', { x: s.x, y: s.y }, { x: s.x + 400, y: s.y - 250 });
+        RT.snapWaypoint(map, 'drive', s.x, s.y, 0);
       }
     }
   } catch (e) {
