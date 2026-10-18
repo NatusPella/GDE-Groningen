@@ -68,6 +68,7 @@ import { initStoryContact, updateStoryContact } from './storycontact.js';
 import { initTheme } from './theme.js';
 import { initTrafficLights, updateTrafficLights, trafficSignalsNear, trafficLightPhaseFor } from './trafficlights.js';
 import { initRailway, updateRailway, setRailExtraWorld, getTrains, getRoutes, routePoint } from './railway.js';
+import { updateZeilvaren } from './zeilvaren.js';
 import { updateEvenementen } from './evenementenlive.js';
 import { updateStationLife } from './stationlife.js';
 import { createBoard as createStationBoard } from './minigamekit.js';
@@ -669,6 +670,7 @@ async function boot() {
     tickBurningVehicles(world, dt);
     updateRailway(dt, world);
     updateEvenementen(dt, world, calendarToday(world));
+    updateZeilvaren(dt, world, calendarToday(world));
     updateStationLife(dt, world, { routes: getRoutes(), point: routePoint, day: calendarToday(world), createBoard: createStationBoard, driving: getTrains().some((t) => t.state === 'player') });
     updateMovableBridges(dt, world);
     // a ship against a bridge deck: the crash sound of a car contact, by how hard the deck was hit (audio.js updateContactAudio)

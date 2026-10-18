@@ -184,6 +184,8 @@ export const VEHICLE_STOCK = {
   rubberboot: { kind: 'boat', type: 'Rubberboot', shop: 'boot', label: 'Rubberboot Stuiterbal', desc: 'Stuitert over de golven van elke rondvaartboot', price: 700, nameIdx: 0, color: '#3c4044', model: { ...BOAT_KINDS.rubberboot } },
   sloep: { kind: 'boat', type: 'Sloep', shop: 'boot', label: 'Sloep Nait Soezen', desc: 'Rosé aan boord, pet op, rustig tuffen', price: 900, nameIdx: 0, color: '#e8e6e0', model: { ...BOAT_KINDS.sloep } },
   speedboot: { kind: 'boat', type: 'Speedboot', shop: 'boot', label: 'Speedboot Grachtengast', desc: 'Harder dan mag. De kade vindt je niet leuk', price: 1800, nameIdx: 1, color: '#c9a227', model: { name: 'boat', kind: 'sloep', len: 5.2, wid: 1.9, playerTop: 25, playerAccel: 7, maxSpeed: 7.5, accel: 2.8, brake: 2.8, turnRate: 1.7, color: '#c9a227', cabin: '#1c1c1c' } },
+  roeiboot: { kind: 'boat', type: 'Roeiboot', shop: 'boot', label: 'Roeiboot Krabbenlap', desc: 'Zelf roeien: houd het ritme, dan schiet hij vooruit', price: 260, nameIdx: 0, color: '#8a5a2c', model: { ...BOAT_KINDS.roeiboot } },
+  zeilboot: { kind: 'boat', type: 'Zeilboot', shop: 'boot', label: 'Zeilboot Lekker Windje', desc: 'Geen motor: zeil aanhalen met Q, vieren met Z en kruisen tegen de wind', price: 1400, nameIdx: 1, color: '#f2f0ea', model: { ...BOAT_KINDS.zeilboot } },
   rondvaartboot: { kind: 'boat', type: 'Rondvaartboot', shop: 'boot', label: 'Rondvaartboot Stadjer', desc: 'Glazen dak, veertig stoelen, nul passagiers', price: 3500, nameIdx: 1, color: '#1d3350', model: { ...BOAT_KINDS.rondvaart } },
   // --- the air ---
   wiekenwubbo: { kind: 'heli', type: 'Helikopter', shop: 'heli', label: 'Wieken Wubbo', desc: 'Tweezits helikopter. Landt op elk plat stuk: het weiland, een plat dak of je eigen helidek', price: 5500, nameIdx: 0, color: '#b8322a', flags: { isHeli: true }, model: { name: 'heli', len: 8.8, wid: 2.1, maxSpeed: 40, accel: 7, brake: 9, turnRate: 1.5 } },
@@ -239,14 +241,14 @@ export const BOAT_UPGRADES = [
 export const PADDLE_UPGRADES = [
   { id: 'peddels', label: 'Carbon peddels', desc: 'Licht als een veertje: +20% top, +25% trekkracht', price: 60, mult: { maxSpeed: 1.2, accel: 1.25 } },
 ];
-const PADDLED = new Set(['kano', 'kajak', 'waterfiets', 'sup']);
+const PADDLED = new Set(['kano', 'kajak', 'waterfiets', 'sup', 'skiff']);
 const isSailBoat = (v) => !!(v && v.isBoat && v.model && v.model.sail);
 function upgradeListFor(v) {
   if (v && v.isBoat) return isSailBoat(v) ? [] : PADDLED.has(v.model.kind) ? PADDLE_UPGRADES : BOAT_UPGRADES;
   return isTwoWheeler(v) ? (isMotorised(v.model) ? MOTO_UPGRADES : BIKE_UPGRADES) : CAR_UPGRADES;
 }
 export function upgradeListForStock(spec) {
-  if (spec.kind === 'boat') return spec.model && spec.model.sail ? [] : PADDLED.has(spec.model && spec.model.kind) ? PADDLE_UPGRADES : BOAT_UPGRADES;
+  if (spec.kind === 'boat') return spec.model && (spec.model.sail || spec.model.zeil) ? [] : PADDLED.has(spec.model && spec.model.kind) ? PADDLE_UPGRADES : BOAT_UPGRADES;
   return spec.kind === 'car' ? CAR_UPGRADES : isMotorised(spec.model) ? MOTO_UPGRADES : BIKE_UPGRADES;
 }
 
