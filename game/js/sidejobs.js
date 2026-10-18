@@ -35,10 +35,11 @@ import verhuizing from './sidejob_verhuizing.js';
 import boa from './sidejob_boa.js';
 import rechtbank from './sidejob_rechtbank.js';
 import cabaret from './sidejob_cabaret.js';
+import vracht from './sidejob_vracht.js';
 import { SIDEJOB_PAY_MULT, SIDEJOB_LEVEL_BONUS, SIDEJOB_ACCIDENT_FINE } from './economy.js';
 import { furnitureJobBonus } from './furniture.js';
 
-export const SIDE_JOBS = [bezorger, taxi, bus, rondvaart, fietsdepot, verhuizing, rondvaarttour, boa, rechtbank, cabaret];
+export const SIDE_JOBS = [bezorger, taxi, bus, rondvaart, fietsdepot, verhuizing, rondvaarttour, boa, rechtbank, cabaret, vracht];
 const BY_ID = new Map(SIDE_JOBS.map((j) => [j.id, j]));
 
 export const JOB_TARGET_COLOR = '#ff9a3c';
@@ -88,7 +89,7 @@ export function getSideJobList() {
 }
 
 // Rough pay per round for the phone's job app until the player has own figures.
-const PAY_GUESS = { bezorger: [27, 55], taxi: [25, 60], bus: [90, 140], rondvaart: [55, 105], rondvaarttour: [40, 80], fietsdepot: [45, 90], verhuizing: [80, 180], boa: [38, 60], rechtbank: [60, 105], cabaret: [25, 85] };
+const PAY_GUESS = { bezorger: [27, 55], taxi: [25, 60], bus: [90, 140], rondvaart: [55, 105], rondvaarttour: [40, 80], fietsdepot: [45, 90], verhuizing: [80, 180], boa: [38, 60], rechtbank: [60, 105], cabaret: [25, 85], vracht: [70, 130] };
 
 // Phone job app: every job with pay, distance and why it can't start now.
 export function getSideJobOffers(w) {
@@ -709,6 +710,12 @@ export function drawJobGlyph(g, glyph, r, bg) {
       g.beginPath(); g.moveTo(-0.46, 0.3); g.lineTo(-0.1, -0.2); g.lineTo(0.28, -0.2); g.lineTo(0.46, 0.3);
       g.moveTo(-0.46, 0.3); g.lineTo(0.04, 0.3); g.lineTo(0.28, -0.2); g.stroke();
       g.beginPath(); g.moveTo(0.1, -0.78); g.lineTo(0.62, -0.78); g.lineTo(0.62, -0.42); g.lineTo(0.1, -0.42); g.lineTo(-0.04, -0.6); g.closePath(); g.fill();
+      break;
+    case 'vracht':
+      g.rect(-0.9, -0.4, 1.1, 0.8);
+      g.rect(0.28, -0.1, 0.62, 0.5);
+      g.fill();
+      g.beginPath(); g.arc(-0.5, 0.5, 0.17, 0, Math.PI * 2); g.arc(0.55, 0.5, 0.17, 0, Math.PI * 2); g.fill();
       break;
     case 'verhuizing':
       g.moveTo(-0.66, -0.3); g.lineTo(0.66, -0.3); g.lineTo(0.66, 0.66); g.lineTo(-0.66, 0.66); g.closePath();

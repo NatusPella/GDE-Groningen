@@ -15,6 +15,9 @@ const CAR = {
   sport: { name: 'sport', len: 4.1, wid: 1.85, maxSpeed: 42, accel: 12, brake: 27, turnRate: 3.2 },
   suv: { name: 'suv', len: 4.7, wid: 1.95, maxSpeed: 33, accel: 8.5, brake: 22, turnRate: 2.4 },
   roestbak: { name: 'hatch', rusty: true, len: 3.7, wid: 1.65, maxSpeed: 24, accel: 6, brake: 18, turnRate: 2.8 },
+  // elektrisch: stil, snelle start, een rijke buurt-favoriet; tokkie: opgevoerd, luid, schreeuwkleuren
+  elektrisch: { name: 'hatch', electric: true, len: 4.0, wid: 1.75, maxSpeed: 34, accel: 11, brake: 23, turnRate: 3.0 },
+  tokkie: { name: 'hatch', tokkie: true, len: 3.8, wid: 1.72, maxSpeed: 40, accel: 11, brake: 23, turnRate: 3.2 },
   taxi: { name: 'taxi', len: 4.6, wid: 1.8, maxSpeed: 33, accel: 9, brake: 24, turnRate: 2.6 },
   delivery: { name: 'van', livery: 'pakket', len: 5.0, wid: 2.0, maxSpeed: 26, accel: 6.5, brake: 19, turnRate: 2.0 },
   cashvan: { name: 'cashvan', len: 5.2, wid: 2.0, maxSpeed: 28, accel: 6.8, brake: 19, turnRate: 2.0 },
@@ -27,18 +30,20 @@ export const MIDIBUS_MODEL = { name: 'midibus', len: 8.4, wid: 2.3, maxSpeed: 20
 
 const GREYS = ['#c7c9cc', '#23262a', '#e8e6e0', '#4a4d52', '#2f3a52', '#7a1f1f', '#2e4a34', '#8a8d91', '#1b1c1f', '#c7c9cc', '#e8e6e0'];
 const FADED = ['#8a6a4a', '#6b7a5a', '#9a9a8a', '#7a4a3a', '#5a6a7a', '#b0a080', '#c9c2a8', '#7a2f2a', '#3f5a7a'];
+const EV_COLORS = ['#e8e6e0', '#c7c9cc', '#2f6b8f', '#3d7a5a', '#23262a', '#e8e6e0'];
+const TOKKIE_COLORS = ['#e8c93a', '#1f6fd0', '#b01c1c', '#23262a', '#7a2fa0', '#e0701e'];
 const POSH = ['#1b1c1f', '#23262a', '#2f3a52', '#4a4d52', '#e8e6e0', '#3a2a2a', '#1b1c1f'];
 const VAN_COLORS = ['#e8e6e0', '#d9d9d9', '#c9541e', '#2f5a8f', '#e8e6e0', '#6b6e70'];
 
 // Weights per wijk profile (special fleets like ambulances and cash vans
 // also get a guaranteed presence in vehicle.js).
 const PROFILES = {
-  standaard: { car: { hatch: 3, sedan: 2, wagon: 1.6, van: 1, sport: 0.25, suv: 0.6, roestbak: 0.5, taxi: 0.2, delivery: 0.5, truck: 0.15 }, colors: GREYS, bakfiets: 0.06, oldBike: 0.2 },
-  student: { car: { roestbak: 4, hatch: 2.5, sedan: 0.6, wagon: 0.4, van: 0.5, taxi: 0.15, delivery: 0.4 }, colors: FADED, bakfiets: 0.03, oldBike: 0.65 },
-  chic: { car: { suv: 3, sedan: 3, wagon: 2, sport: 1.2, hatch: 0.7, delivery: 0.3 }, colors: POSH, bakfiets: 0.18, oldBike: 0.05 },
-  bakfiets: { car: { hatch: 2.5, wagon: 2.5, sedan: 1.2, suv: 0.4, van: 0.6, delivery: 0.6, roestbak: 0.3 }, colors: GREYS, bakfiets: 0.32, oldBike: 0.15 },
-  industrie: { car: { van: 3.5, truck: 2.2, delivery: 1.5, hatch: 1, sedan: 0.6, wagon: 0.4 }, colors: VAN_COLORS, bakfiets: 0, oldBike: 0.25 },
-  centrum: { car: { taxi: 0.9, delivery: 1.6, hatch: 1.8, van: 1, sedan: 1.2, wagon: 0.6, cashvan: 0.08, suv: 0.3 }, colors: GREYS, bakfiets: 0.15, oldBike: 0.5 },
+  standaard: { car: { hatch: 3, sedan: 2, wagon: 1.6, van: 1, sport: 0.25, suv: 0.6, roestbak: 0.5, taxi: 0.2, delivery: 0.5, truck: 0.15, elektrisch: 0.6, tokkie: 0.35 }, colors: GREYS, bakfiets: 0.06, oldBike: 0.2 },
+  student: { car: { roestbak: 4, hatch: 2.5, sedan: 0.6, wagon: 0.4, van: 0.5, taxi: 0.15, delivery: 0.4, elektrisch: 0.25, tokkie: 0.7 }, colors: FADED, bakfiets: 0.03, oldBike: 0.65 },
+  chic: { car: { suv: 3, sedan: 3, wagon: 2, sport: 1.2, hatch: 0.7, delivery: 0.3, elektrisch: 2, tokkie: 0.05 }, colors: POSH, bakfiets: 0.18, oldBike: 0.05 },
+  bakfiets: { car: { hatch: 2.5, wagon: 2.5, sedan: 1.2, suv: 0.4, van: 0.6, delivery: 0.6, roestbak: 0.3, elektrisch: 1.2, tokkie: 0.15 }, colors: GREYS, bakfiets: 0.32, oldBike: 0.15 },
+  industrie: { car: { van: 3.5, truck: 2.2, delivery: 1.5, hatch: 1, sedan: 0.6, wagon: 0.4, tokkie: 0.25, elektrisch: 0.2 }, colors: VAN_COLORS, bakfiets: 0, oldBike: 0.25 },
+  centrum: { car: { taxi: 0.9, delivery: 1.6, hatch: 1.8, van: 1, sedan: 1.2, wagon: 0.6, cashvan: 0.08, suv: 0.3, elektrisch: 1, tokkie: 0.2 }, colors: GREYS, bakfiets: 0.15, oldBike: 0.5 },
 };
 
 const WIJK_PROFILE = {
@@ -93,7 +98,9 @@ export function pickTrafficCar(map, x, y, rng = Math.random) {
 export function carModel(kind, rng = Math.random, colors = GREYS) {
   const base = CAR[kind] || CAR.hatch;
   let color = colors[Math.floor(rng() * colors.length)];
-  if (kind === 'taxi') color = rng() < 0.7 ? '#1b1c1f' : '#e8e6e0';
+  if (kind === 'elektrisch') color = EV_COLORS[Math.floor(rng() * EV_COLORS.length)];
+  else if (kind === 'tokkie') color = TOKKIE_COLORS[Math.floor(rng() * TOKKIE_COLORS.length)];
+  else if (kind === 'taxi') color = rng() < 0.7 ? '#1b1c1f' : '#e8e6e0';
   else if (kind === 'delivery') color = rng() < 0.5 ? '#e0701e' : '#e8c93a';
   else if (kind === 'cashvan') color = '#5b625d';
   else if (kind === 'newsvan') color = '#f2f0ea';

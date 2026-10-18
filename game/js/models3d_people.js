@@ -1,5 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { HABBO_PALETTE, SkinBuilder, loftGeometry, composeMatrix, vcMaterial, markShared, tubeGeometry } from './pixelart3d.js';
+import { hash2 } from './rng.js';
 
 // Low-poly humanoid for the on-foot player, every pedestrian, drivers and
 // bike/scooter riders: one SkinnedMesh (one draw call, one shared material)
@@ -8,10 +9,6 @@ import { HABBO_PALETTE, SkinBuilder, loftGeometry, composeMatrix, vcMaterial, ma
 // by callers); knees/elbows follow them automatically unless
 // animatePersonWalk or a pose sets them explicitly.
 
-function hash2(x, y) {
-  const h = Math.sin(x * 127.1 + y * 311.7) * 43758.5453;
-  return h - Math.floor(h);
-}
 
 const HIP_Y = 0.93;
 const KNEE_Y = 0.49;

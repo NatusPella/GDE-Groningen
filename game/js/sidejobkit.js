@@ -7,11 +7,13 @@ import { Vehicle, spawnVehicleOnRoad } from './vehicle.js';
 import { Pedestrian } from './pedestrians.js';
 import { closestPointOnSegment, isInWater, pointInPolygon, boatDryPoints } from './util.js';
 import { waterPolyAt } from './waterlevels.js';
+import { nearestOnRoads } from './tileplace.js';
 import { getVehicleMesh } from './models3d_vehicles.js';
 import { TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
+import { rand } from './rng.js';
 
 export const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
-export const rand = (a, b) => a + Math.random() * (b - a);
+export { rand } from './rng.js';
 export const euro = (n) => '€' + Math.round(n).toLocaleString('nl-NL');
 
 export function fmtClock(s) {
@@ -22,27 +24,12 @@ export function fmtClock(s) {
 // --- placement ----------------------------------------------------------------
 
 export function nearestOnStreet(map, name, x, y, radius = 160) {
-  let best = null;
-  for (const r of map.roadsNear(x, y, radius)) {
-    if (r.name !== name) continue;
-    for (let i = 0; i < r.pts.length - 1; i++) {
-      const cp = closestPointOnSegment(x, y, r.pts[i][0], r.pts[i][1], r.pts[i + 1][0], r.pts[i + 1][1]);
-      if (!best || cp.dist2 < best.d2) best = { d2: cp.dist2, x: cp.x, y: cp.y, road: r, dx: r.pts[i + 1][0] - r.pts[i][0], dy: r.pts[i + 1][1] - r.pts[i][1] };
-    }
-  }
-  return best;
+  return nearestOnRoads(map, x, y, radius, (r) => r.name === name);
 }
 
 export function streetNameAt(map, x, y) {
-  let best = null, bd = Infinity;
-  for (const r of map.roadsNear(x, y, 40)) {
-    if (!r.name || r.cat === 'foot') continue;
-    for (let i = 0; i < r.pts.length - 1; i++) {
-      const cp = closestPointOnSegment(x, y, r.pts[i][0], r.pts[i][1], r.pts[i + 1][0], r.pts[i + 1][1]);
-      if (cp.dist2 < bd) { bd = cp.dist2; best = r.name; }
-    }
-  }
-  return best;
+  const q = nearestOnRoads(map, x, y, 40, (r) => r.name && r.cat !== 'foot');
+  return q ? q.road.name : null;
 }
 
 // The named building of the city map (Gerechtsgebouw, Stadsschouwburg ...):

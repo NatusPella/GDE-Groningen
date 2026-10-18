@@ -31,7 +31,9 @@
 // Never: cutscenes, photo mode, the big map. "Minimaal": stars, objective,
 // subtitles and P0 only.
 
-export const P0 = 0, P1 = 1, P2 = 2, P3 = 3;
+import { P0, P1, P2, P3, CARD_P, cardPrio, cardZone, mayShowP } from './hudbus.js';
+
+export { P0, P1, P2, P3, CARD_P, cardPrio, cardZone };
 
 export const ZONES = {
   A: 'Berichten', B: 'Missiestatus', C: 'Status', D: 'Vrij',
@@ -40,11 +42,7 @@ export const ZONES = {
 
 export const HUD_MODES = ['slim', 'alles', 'minimaal'];
 
-// HUD card categories (hudcards.js) and phone items (phonefeed.js) on the P scale
-export const CARD_P = { politie: P0, gevaar: P0, missie: P1, bijbaan: P1, call: P1, story: P1, geld: P2, sms: P2, prestatie: P3, tip: P3 };
-export const cardPrio = (kind) => CARD_P[kind] ?? P3;
-// a category's zone: achievements share E with the radio, the rest is A
-export const cardZone = (kind) => (kind === 'prestatie' ? 'E' : 'A');
+// card categories on the P scale and their zones: the table is in hudbus.js
 
 export const STAR_AFTERGLOW = 6;
 export const MONEY_SHOW = 5;
@@ -57,14 +55,8 @@ export const DEFER_MAX = 30;
 export const CEILING = 6;
 export const GPS_NEAR = 400;
 
-// May an item of priority p start now? Busy moments and dialogue hold P3
-// (and P2 messages in zone A, which are not on the busy list).
-export function mayShow(p, { busy = false, dialogue = false, zone = '' } = {}) {
-  if (p <= P1) return true;
-  if (busy) return p === P2 && zone !== 'A' && zone !== 'E';
-  if (dialogue) return p === P2 && zone !== 'E';
-  return true;
-}
+// May an item of priority p start now? The rule is in hudbus.js (mayShowP).
+export const mayShow = mayShowP;
 
 // A deferred item (P3 during a busy moment): waits while held, lapses after
 // DEFER_MAX seconds of waiting. tick() returns 'show', 'wait' or 'drop'.

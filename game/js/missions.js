@@ -43,6 +43,8 @@ import { nieuwVerhaal } from './storyflag.js';
 import { storyLines, talkLines, storyDataReady, readingTime } from './storytext.js';
 import { playTalk, stopTalk } from './storytalk.js';
 import { buildNieuwDefs, applyNieuw } from './missions_nieuw.js';
+import { registerBusyProbe } from './busy.js';
+import { playerBusy } from './busy.js';
 
 // radio fragments a stage puts on Nachtstreek (storycontact.js, loaded lazily: it imports the UI)
 let contactMod = null;
@@ -751,7 +753,7 @@ const REQUIREMENTS = {
 // def.ride: what you have to arrive in for the mission to start (the start
 // marker waits, with a line from the companion, until you do).
 //   racecar  H9: a sports car, or any car tuned to 200 km/u (RACE_MIN_TOP)
-//   bike     H5: an ordinary bike (a fatbike is no bike, H12 says so)
+//   bike     H5: any bike, a fatbike included
 //   quay     H13: on the quay, not in a boat of your own: the tour boat waits
 
 export const RACE_MIN_TOP = 200 / 3.6;
@@ -762,7 +764,7 @@ const isCarRide = (v) => !!v && !v.isBoat && !v.isBike && !v.isScooter && !v.isH
 
 function rideOk(w, ride, v = w.player.inVehicle) {
   if (ride === 'racecar') return isCarRide(v) && !v.wrecked && isRaceCar(v.model.name, v.model.maxSpeed);
-  if (ride === 'bike') return !!v && v.isBike && !v.model.fat;
+  if (ride === 'bike') return !!v && v.isBike;
   if (ride === 'quay') return !v || !v.isBoat;
   return true;
 }
@@ -777,7 +779,6 @@ const WRONG_RIDE = {
     { when: () => true, say: 'Daarmee win je geen race. Haal je snelste auto, of laat hem opvoeren bij Knal & Kolder.' },
   ],
   bike: [
-    { when: (v) => v && v.isBike, say: 'Fatbikes tellen niet als fiets. Kom op een gewone fiets.' },
     { when: () => true, say: 'Het is een fietsrace. Kom op je eigen fiets.' },
   ],
   quay: [{ when: () => true, say: 'Eerst aanmeren en uitstappen. De rondvaartboot ligt al klaar aan de kade.' }],
@@ -961,6 +962,8 @@ export function getActiveRace() {
 export function isMissionActive() {
   return !!chain && chain.phase === 'active';
 }
+registerBusyProbe('mission', isMissionActive);
+registerBusyProbe('activeRace', () => !!getActiveRace());
 
 // Makes mission i the next one in the chain and the player's goal (goal.js).
 // Callers that offer story missions ahead of the story go through todo.js
@@ -1240,7 +1243,7 @@ function releaseMissionVehicle(world) {
     clearSkutsjeSail();
   }
   const chased = chain.stage && chain.stage.target;
-  if (chased && chased.chaseTarget) { chased.missionCar = false; chased.chaseTarget = false; chased.aiOpts = null; }
+  if (chased && chased.chaseTarget) { chased.missionCar = false; chased.chaseTarget = false; chased.chaseDodge = false; chased.aiOpts = null; }
   releaseLaneBikes(world);
   releaseCrowd(world);
   stopStunt(world);
@@ -2086,7 +2089,7 @@ export function updateMissions(dt, world) {
       if (world.sideJob && world.sideJob.active) {
         chain.armed = false;
         world.addMessage('Eerst je bijbaantje afmaken of stoppen (Esc > Spel)', 3);
-      } else if (world.challenge || world.padelGame || world.activityGame) chain.armed = false; else if (!checkRequirement(world, def, true)) chain.armed = false;
+      } else if (playerBusy(world, ['challenge', 'padel', 'activityGame']).busy) chain.armed = false; else if (!checkRequirement(world, def, true)) chain.armed = false;
       else if (!checkRide(world, def)) chain.armed = false;
       else if (hooks.canStart(world, chain.index)) startMission(world, def);
     }
@@ -2176,7 +2179,6 @@ export function updateMissions(dt, world) {
     if (k >= 0) {
       if (def.onFoot && p.inVehicle) hint(world, 'Uitstappen, jong. Het heet kroegentocht, niet kroegenrit.');
       else if (chain.race && chain.race.bikes && !(p.inVehicle && p.inVehicle.isBike)) hint(world, 'Op de fiets, hè. Het is een fietsrace.');
-      else if (chain.race && chain.race.bikes && p.inVehicle.model.fat) hint(world, 'Fatbikes tellen niet als fiets. Kom op een gewone fiets.');
       else reachCheckpoint(world, def, k);
     }
   } else if (def.type === 'fatbike') {
@@ -2380,6 +2382,9 @@ function spawnChaseVehicle(world, def, st) {
   }
   v.missionCar = true;
   v.chaseTarget = true;
+  // een vluchtende wagen remt niet voor de speler (dan kaap je hem te makkelijk door ervoor te gaan
+  // rijden): hij rijdt door en moet worden ingehaald of stukgeschoten. Alleen `block` laat hem staan.
+  v.chaseDodge = !st.block;
   v.label = st.name || '';
   const first = st.route && st.route[0];
   const goal = (st.toTrain && fjordLoadPoint()) || (first ? { x: first.at[0], y: first.at[1] } : { x: st.flee[0], y: st.flee[1] });

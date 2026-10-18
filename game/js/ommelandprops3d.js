@@ -520,6 +520,85 @@ const BUILD = {
   },
 };
 
+// --- the turn-back scenes at the edge of the world (edgescene.js, edgeguard.js) ---
+// Local +x points inside (the way back); boards face +x, so whoever drives
+// towards the edge reads them.
+function mistPlane(k, x, w, h, op) {
+  const mat = new THREE.MeshBasicMaterial({ color: 0xdfe5e8, transparent: true, opacity: op, depthWrite: false, side: THREE.DoubleSide, fog: true });
+  const geo = new THREE.PlaneGeometry(w, h);
+  const m = new THREE.Mesh(geo, mat);
+  m.position.set(x, h / 2, 0);
+  m.rotation.y = Math.PI / 2;
+  k.add(m);
+  k.own.push(mat, geo);
+  return m;
+}
+
+function hull(k, len, color) {
+  k.box(0, 0.45, 0, len, 0.9, len * 0.3, color);
+  k.box(len * 0.5, 0.45, 0, len * 0.25, 0.8, len * 0.22, color, 0, 0, 0);
+  k.box(-len * 0.1, 1.3, 0, len * 0.28, 0.9, len * 0.2, WHITE);
+  k.box(-len * 0.1, 1.85, 0, len * 0.3, 0.1, len * 0.22, DARK);
+}
+
+const EDGE_BUILD = {
+  rand_grenspost(k) {
+    // a little guard hut beside the road, blue-yellow roof, flag pole
+    k.box(0, 1.3, -5.5, 2.6, 2.6, 2.4, 0xe8e0c8);
+    k.box(0, 2.7, -5.5, 3.0, 0.2, 2.8, 0x1d4f9c);
+    k.box(1.31, 1.4, -5.5, 0.04, 0.9, 1.4, 0x3a4a5a);
+    k.post(0, -7.2, 6, WHITE, 0.06);
+    k.sign(1.5, -5.5, ['GRENSPOST', 'Even stoppen graag'], { w: 2.2, h: 0.8, y: 3.4, posts: false, style: { bg: '#1d4f9c', fg: '#f4f1e6', border: '#f4f1e6', big: 0.3, small: 0.2 } });
+    k.solid(0, -5.5, 1.8);
+  },
+  rand_slagboom(k, o) {
+    const half = (o.hw || 3) + 0.8;
+    k.box(0, 0.6, -half, 0.5, 1.2, 0.5, WHITE);
+    for (let i = 0; i < 8; i++) k.box(0, 1.15, -half + 0.25 + (i + 0.5) * ((2 * half - 0.5) / 8), 0.12, 0.2, (2 * half - 0.5) / 8, i % 2 ? WHITE : RED);
+    k.post(0, half, 1.2, GREY, 0.08);
+    k.solid(0, 0, half);
+  },
+  rand_bord(k) {
+    k.sign(0, 0, ['Verboden', 'verder te gaan'], { w: 1.8, h: 0.9, y: 1.7, style: { bg: '#c8202a', fg: '#f4f1e6', border: '#f4f1e6', big: 0.3, small: 0.22 } });
+    k.solid(0, 0, 0.5);
+  },
+  rand_grenswachtboot(k) {
+    hull(k, 9, 0x1d4f9c);
+    k.solid(0, 0, 3);
+  },
+  rand_kustwachtboot(k) {
+    hull(k, 8, ORANGE);
+    k.solid(0, 0, 3);
+  },
+  rand_boei(k) {
+    k.cyl(0, 0.5, 0, 0.45, 1.0, RED, 8, 0.3);
+    k.cyl(0, 1.2, 0, 0.12, 0.6, WHITE, 6);
+  },
+  rand_mistbank(k) {
+    mistPlane(k, 0, 90, 16, 0.5);
+    mistPlane(k, 6, 70, 10, 0.4);
+    mistPlane(k, -6, 110, 22, 0.45);
+  },
+  rand_wegversperring(k, o) {
+    barrier(k, 0, (o.hw || 3) + 0.6);
+    k.sign(-0.2, -(o.hw || 3) - 1.2, ['Hjir net, jong', 'Fryslân is dicht'], { w: 2.2, h: 1.0, y: 1.9, style: { bg: '#1d4f9c', fg: '#f4f1e6', border: '#f4f1e6', big: 0.28, small: 0.22 } });
+    k.solid(0, 0, (o.hw || 3) + 0.6);
+  },
+  rand_neef(k) {
+    k.person('fries', 0, 0, Math.PI);
+    k.solid(0, 0, 0.5);
+  },
+  rand_hunebed(k) {
+    // capstones on upright stones, a board "Drenthe is dicht"
+    for (const z of [-2.2, 0, 2.2]) for (const x of [-1.2, 1.2]) k.box(x, 0.8, z, 0.9, 1.6, 0.9, 0x8a8a84);
+    for (const z of [-1.1, 1.1]) k.box(0, 1.8, z, 4.2, 0.6, 2.2, 0x9a9a92);
+    k.sign(3.4, 0, ['Drenthe is dicht', 'probeer het morgen'], { w: 2.2, h: 0.9, y: 1.5, style: { big: 0.26, small: 0.2 } });
+    k.solid(0, -1.1, 1.8).solid(0, 1.1, 1.8);
+  },
+};
+export const EDGE_PROP_KINDS = Object.keys(EDGE_BUILD);
+Object.assign(BUILD, EDGE_BUILD);
+
 // kind: a WORLD_ENDS prop or a village/mission prop; def: its text entry.
 export function buildProp(kind, opts = {}, def = {}) {
   const k = new Kit();

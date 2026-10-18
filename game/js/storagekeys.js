@@ -44,6 +44,7 @@ export const BASE_KEYS = {
   errorLog: 'gde-foutlog',
   snapshots: 'gde-snapshots',
   placeshots: 'gde-placeshots',
+  ghosts: 'gde-ghosts-v1',
   // hidden setting: play the new story arc (storyflag.js)
   nieuwVerhaal: 'gde-nieuwverhaal',
 };

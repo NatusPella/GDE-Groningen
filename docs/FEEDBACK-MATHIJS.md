@@ -101,7 +101,7 @@ cijfers staan in [TESSA-CIJFERS.md](TESSA-CIJFERS.md); de bronnen zijn:
 | Aandeel vrouwen dat zich weleens onveilig voelt in het uitgaansleven of de openbare ruimte | CBS Veiligheidsmonitor (nieuwste jaar) |
 | Aandeel vrouwen dat in het afgelopen jaar op straat is lastiggevallen | CBS Veiligheidsmonitor, rapport over seksuele intimidatie |
 | Verschil tussen vrouwen en mannen, en tussen jongere en oudere vrouwen | zelfde monitor, uitsplitsing |
-| Aantal aangiften van seksuele intimidatie | Politie, jaarcijfers |
+| ~~Aantal aangiften van seksuele intimidatie~~ | Niet te verifiëren; weglaten (zie TESSA-CIJFERS.md) |
 
 De speltekst noemt één getal met bron en jaar, niet meer. Zonder geverifieerd
 cijfer zegt de regel alleen: "Veel vrouwen kennen dit gevoel; het CBS meet het

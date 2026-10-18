@@ -6,6 +6,7 @@ import { getVehicleMesh } from './models3d_vehicles.js';
 import { markShared } from './pixelart3d.js';
 import { spawnFxPuff } from './fx3d.js';
 import { inPassage } from './collision.js';
+import { rand } from './rng.js';
 
 // Carmageddon-style gore behind the "Bloed en ledematen" setting: people hit
 // hard enough burst into chunky body parts, blood sprays and splats on the
@@ -44,7 +45,6 @@ let splatSoundT = 0;
 const queue = [];
 const bleeders = [];
 
-function rand(a, b) { return a + Math.random() * (b - a); }
 
 export function goreOn() {
   return getSettings().gore !== false;
