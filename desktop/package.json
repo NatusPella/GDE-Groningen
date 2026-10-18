@@ -36,6 +36,7 @@
       "trailervideo.js",
       "userdata.js",
       "envcompat.js",
+      "resources/window-icon.png",
       "package.json"
     ],
     "extraResources": [
@@ -52,7 +53,7 @@
         }
       ],
       "category": "public.app-category.games",
-      "icon": "resources/icon.png",
+      "icon": "resources/icon.icns",
       "identity": null,
       "hardenedRuntime": false,
       "gatekeeperAssess": false
@@ -71,7 +72,7 @@
         }
       ],
       "signExecutable": false,
-      "icon": "resources/icon.png",
+      "icon": "resources/icon.ico",
       "legalTrademarks": "GDE Groningen"
     },
     "portable": {
