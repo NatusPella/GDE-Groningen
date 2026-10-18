@@ -1,12 +1,15 @@
 // Endless Groningen countryside past the edge of the real map data: one
 // deterministic field layout (parcels, ditches, polder roads, feathered
 // blend into the map edge) evaluated identically in JS (gameplay, props,
-// minimap) and GLSL (the ground shader). Pure module, no imports.
+// minimap) and GLSL (the ground shader). Pure module; its only import is the
+// water's tones (watertones.js), shared with the water mesh.
 //
 // Layout: the world is cut into BLOCK x BLOCK polder blocks bounded by wide
 // main ditches (tochten). Each block runs its narrow strip parcels either
 // along x or along y; parcels are PW wide and PL long, with the cross
 // ditches staggered per strip. Some block edges carry a straight polder road.
+
+import { WATER_TONES, glslTone } from './watertones.js';
 
 export const BLOCK = 960;
 export const PW = 40;
@@ -568,10 +571,10 @@ vec3 countryAlbedo(vec2 p, float cw, inout float sRough, inout float sDip) {
   if (tw > 0.35 && max(qR.x, qR.y) > 0.0 && length(p - uWaterNear.xy) < uWaterNear.z) discard;
   // the city water's shallow / deep tones (water3d.js), glossy so the sky
   // reflects in it; a slow drifting sheen where it is not weed
-  vec3 wc = mix(cLin(44.0, 74.0, 56.0), cLin(11.0, 36.0, 32.0), 0.35 + 0.4 * n2 + 0.25 * wQ);
+  vec3 wc = mix(${glslTone(WATER_TONES.shallow)}, ${glslTone(WATER_TONES.deep)}, 0.35 + 0.4 * n2 + 0.25 * wQ);
   float weed = smoothstep(0.62, 0.8, cNoise(p * 0.35 + 40.0) * 0.7 + n3 * 0.3) * (1.0 - wQ * 0.8);
-  wc = mix(wc, cLin(93.0, 127.0, 44.0) * 0.8, weed * 0.75);
-  float sheen = cNoise(p * 0.45 + vec2(uWaterNear.w * 0.21, -uWaterNear.w * 0.17)) * cNoise(p * 0.9 - uWaterNear.w * 0.13);
+  wc = mix(wc, ${glslTone(WATER_TONES.duckweed)} * 0.8, weed * 0.75);
+  float sheen = cNoise(p * 0.45 + vec2(uWaterNear.w * ${WATER_TONES.sheen[0].toFixed(2)}, uWaterNear.w * ${WATER_TONES.sheen[1].toFixed(2)})) * cNoise(p * 0.9 - uWaterNear.w * 0.13);
   wc *= 0.92 + 0.22 * sheen * (1.0 - weed) * detail;
   // darker towards the middle of a ditch: the water has depth
   float deepT = max(wD * (1.0 - smoothstep(0.0, hw * 0.72, dD)), wM * (1.0 - smoothstep(0.0, C_MAIN * 0.8, dM)));
