@@ -71,7 +71,6 @@ export function openSaveSlots(opts = {}) {
   rootEl.appendChild(file);
 
   const close = (afterClose) => {
-    cancelAnimationFrame(raf);
     window.removeEventListener('keydown', onKey, true);
     rootEl.remove();
     rootEl = null;
@@ -269,32 +268,8 @@ export function openSaveSlots(opts = {}) {
   };
   window.addEventListener('keydown', onKey, true);
 
-  // gamepad: d-pad or left stick moves, A clicks, B goes back
-  let raf = 0;
-  let held = null;
-  const poll = () => {
-    raf = requestAnimationFrame(poll);
-    let pad = null;
-    try { pad = (navigator.getGamepads ? [...navigator.getGamepads()] : []).find((g) => g && g.connected); } catch (e) { /* none */ }
-    if (!pad) return;
-    const ax = pad.axes[0] || 0, ay = pad.axes[1] || 0;
-    const pressed = {
-      up: pad.buttons[12]?.pressed || ay < -0.6, down: pad.buttons[13]?.pressed || ay > 0.6,
-      left: pad.buttons[14]?.pressed || ax < -0.6, right: pad.buttons[15]?.pressed || ax > 0.6,
-      a: pad.buttons[0]?.pressed, b: pad.buttons[1]?.pressed,
-    };
-    // buttons already down when the screen opened (the A that opened it) do nothing
-    if (!held) held = { up: true, down: true, left: true, right: true, a: true, b: true };
-    for (const [name, on] of Object.entries(pressed)) {
-      if (on && !held[name]) {
-        if (name === 'a') { const c = document.activeElement; if (c && rootEl.contains(c) && c.tagName === 'BUTTON' && !c.disabled) c.click(); }
-        else if (name === 'b') { if (!confirmOrCancel()) close(); if (!rootEl) return; }
-        else move(name);
-      }
-      held[name] = !!on;
-    }
-  };
-  raf = requestAnimationFrame(poll);
+  // gamepad: gamepad.js (menu situation) sends arrows, Enter and Escape as keys;
+  // a poll of our own here moved and clicked twice (#151)
 
   render();
 }
