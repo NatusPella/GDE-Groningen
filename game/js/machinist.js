@@ -2,11 +2,11 @@
 // starts the service from the halte, the board shows the speed, the board
 // limit, the braking distance and the timetable, Backspace ends it. The rules
 // are machinistrules.js, the physics railway.js (state 'player'), the boarding
-// and keys traindrive.js. Money-neutral: no pay, a score and a medal.
+// and keys traindrive.js. Pays per halte plus a medal bonus (payFor).
 import { createBoard, key } from './minigamekit.js';
 import { driveRange } from './railway.js';
 import {
-  startService, stepService, abandonService, boardView, doorsOpen, MEDAL_NAMES, STOPPED_V,
+  startService, stepService, abandonService, boardView, doorsOpen, MEDAL_NAMES, STOPPED_V, payFor,
 } from './machinistrules.js';
 
 const ACCENT = '#3a7bd5';
@@ -66,6 +66,11 @@ export function updateMachinist(dt, world, t) {
   const v = boardView(svc, { v: t.v, time: world.time });
   if (v.done) {
     const r = svc.result;
+    if (!svc.paid) {
+      svc.paid = true;
+      const pay = payFor(r, svc.abandoned);
+      if (pay > 0) { world.money += pay; world.addMessage(`Dienst betaald: €${pay}`, 3); }
+    }
     board.set({
       row: `<b>${MEDAL_NAMES[r.medal]}</b> &middot; ${r.score} punten`,
       cells: v.cells,
