@@ -32,7 +32,7 @@ What works where. "Git Bash" means a POSIX shell on Windows (Git Bash or WSL), n
 | `node scripts/*_test.mjs`, `voice_coverage.mjs` | yes | yes | yes |
 | `desktop/` `npm start`, `npm run stage` | yes | yes | yes |
 | `desktop/release.sh` (`npm run release`) | yes | Git Bash | yes (add `--linux` for the Linux build) |
-| `scripts/make_windows_zip.sh` | yes | Git Bash | yes |
+| `node scripts/make_player_zip.mjs` | yes | yes | yes |
 | `scripts/play_local.sh` | yes | Git Bash | yes |
 | `scripts/perf/*.sh`, `scripts/bughunt/run.sh` | yes | Git Bash | yes |
 | `scripts/steam_images.mjs` | yes | only with `CHROME=<path to chrome.exe>` | only with `CHROME=<path>` (the default path is macOS) |
@@ -200,7 +200,7 @@ generate 3D models.
 
 All URL switches live in one register, `FLAGS` in `game/js/devflags.js` (parsed once, with a description in `FLAG_DOCS`). A module imports `FLAGS.x` and never reads `location.search` itself.
 
-Debug hooks on `window` (`window.__x`, read by scripts/perf, the story test and the dev panel; not for players): `__activities`, `__bot`, `__audio`, `__banter`, `__blackCheck`, `__blackFrames`, `__calendar`, `__carbid`, `__cards`, `__carillon`, `__countrylife`, `__countryside`, `__debug`, `__discgolf`, `__drift`, `__farprops`, `__fierljep`, `__flavour`, `__furniture`, `__gdeRespawn`, `__gdeSky`, `__geheimen`, `__gfxAdvice`, `__gfxDyn`, `__goal`, `__heist`, `__heli`, `__heliRun`, `__hengelen`, `__hitch`, `__hitchOn`, `__home`, `__hoogvlieger`, `__kartbaan`, `__kermis`, `__klimtoren`, `__landmarkKits`, `__loadMarks`, `__muggings`, `__narrative`, `__noLandmarkKits`, `__noPrepare`, `__ommeland`, `__onboarding`, `__padel`, `__pannenkoek`, `__phonefeed`, `__pitchputt`, `__postgame`, `__profileOverlay`, `__radio`, `__roadrage`, `__scene3d`, `__simLoad`, `__skatepark`, `__snackketen`, `__speech`, `__story`, `__storyContact`, `__storyEikea`, `__storyFun`, `__storyTestReport`, `__storytalk`, `__storytext`, `__tileWindows`, `__trailer`, `__wandeling`, `__waterski`, `__worldevents`, `__zwembad`. Find the module with `grep -rn "window.__x" game/js`. `scripts/devflags_test.mjs` fails on a hook that is not in this list. They stay separate globals: the perf scripts, the story test and the dev panel read them by name.
+Debug hooks on `window` (`window.__x`, read by scripts/perf, the story test and the dev panel; not for players): `__activities`, `__bot`, `__audio`, `__banter`, `__blackCheck`, `__blackFrames`, `__calendar`, `__carbid`, `__cards`, `__carillon`, `__contextHints`, `__countrylife`, `__countryside`, `__debug`, `__discgolf`, `__drift`, `__farprops`, `__fierljep`, `__flavour`, `__furniture`, `__gdeRespawn`, `__gdeSky`, `__geheimen`, `__gfxAdvice`, `__gfxDyn`, `__goal`, `__heist`, `__heli`, `__heliRun`, `__hengelen`, `__hitch`, `__hitchOn`, `__home`, `__hoogvlieger`, `__kartbaan`, `__kermis`, `__klimtoren`, `__landmarkKits`, `__loadMarks`, `__muggings`, `__narrative`, `__noLandmarkKits`, `__noPrepare`, `__ommeland`, `__onboarding`, `__padel`, `__pannenkoek`, `__phonefeed`, `__pitchputt`, `__postgame`, `__profileOverlay`, `__radio`, `__roadrage`, `__scene3d`, `__simLoad`, `__skatepark`, `__snackketen`, `__speech`, `__story`, `__storyContact`, `__storyEikea`, `__storyFun`, `__storyTestReport`, `__storytalk`, `__storytext`, `__tileWindows`, `__trailer`, `__wandeling`, `__waterski`, `__worldevents`, `__zwembad`. Find the module with `grep -rn "window.__x" game/js`. `scripts/devflags_test.mjs` fails on a hook that is not in this list. They stay separate globals: the perf scripts, the story test and the dev panel read them by name.
 
 | Switch | What it does |
 | --- | --- |
@@ -225,7 +225,7 @@ Debug hooks on `window` (`window.__x`, read by scripts/perf, the story test and 
 | `?nobatch` | Zet het samenvoegen van meshes uit (scene3d) |
 | `?shaderdebug` | Laat three.js shaderfouten controleren |
 | `?noworker` | Geometrie op de hoofdthread in plaats van in de worker |
-| `?simworker` | Simulatie-worker (simhost.js, #58): proefstadium, doet niets aan het spel zelf |
+| `?simworker` | Standaard aan; `?zonderworker` zet de simulatie-worker uit (simhost.js, #58), zie "Simulatielagen en worker" |
 | `?gfxadvies` | Toon het grafische advies ook als de speler al koos |
 | `?gpu` | Doe alsof de GPU deze renderer-tekst heeft (test van het advies) |
 | `?preset` | Instellingen alleen voor deze run, bv. quality:laag,drawDistance:kort |
@@ -234,7 +234,7 @@ Debug hooks on `window` (`window.__x`, read by scripts/perf, the story test and 
 | `?marker` | `?marker=vorm`: de vaste 3D-vormen van de wereldmarker in plaats van het zachte glyph |
 | `?touch` | Raakbediening aan (touch=1) of uit (touch=0), ook zonder touchscherm |
 | `?hitch` | Meet haperingen (hitchprobe) |
-| `?simlagen` | Verkeer volgens simulatielagen per streek en afstand (simlagen.js) |
+| `?simlagen` | Standaard aan; `?zonderlagen` zet de simulatielagen uit (simlagen.js, #18) en valt terug op de vaste doelaantallen |
 | `?zwartcheck` | Controleer op zwarte beelden (blackframe) |
 | `?reizen` | Reisbeats in het nieuwe verhaal: keuze Meerijden, Zelf rijden of Overslaan bij een sprong (#97) |
 | `?preview` | Trailer-voorbeeld in echte tijd met geluid (cut=teaser of hoofd); houd Spatie ingedrukt om over te slaan |
@@ -245,7 +245,7 @@ Debug hooks on `window` (`window.__x`, read by scripts/perf, the story test and 
 Every switch above is **off by default**: nothing changes for a player unless the name is in the URL. Value switches (`?shot=3`, `?marker=vorm`, `?stadlaag=gebouwen,wegen`, `?touch=1`, `?preset=quality:laag`, `?gpu=<renderer>`, `?benchmark=<rounds>`) are null when absent. The ones to reach for most often:
 
 - Testing without touching your save: `?dev` (F9 panel) or `?storytest`; both use `gde-dev:` storage or memory.
-- Features still in trial, off by default so the game stays as it was: `?coop`, `?reizen`, `?simlagen`, `?simworker`, `?stadlaag`.
+- Features still in trial, off by default so the game stays as it was: `?coop`, `?reizen`, `?stadlaag`.
 - Diagnosis: `?pixeldebug` (NaN/Inf pixels magenta), `?hitch`, `?zwartcheck`, `?shaderdebug`, `?noworker`, `?nobatch`.
 - `?marker=vorm` brings back the old fixed 3D marker shapes. A new switch is added to `FLAGS` and `FLAG_DOCS` only, and to the table above; `devflags_test.mjs` fails otherwise.
 
@@ -572,3 +572,12 @@ Achter `?coop`; zonder die vlag verandert er niets. In het pauzemenu staat dan h
 **Tests** gebruiken nooit echte brokers, STUN of routers: `net_codec_test`, `net_protocol_test`, `net_hostmodel_test` (in-memory transport met verlies en jitter), `net_hub_test` (4 tot 8 spelers), `net_ipctransport_test`, `coopplayers_test`, `coopfigures_test`, `coopworld_test`, `net_sigcrypto_test`, `net_brokers_test` (nepbrokers voor tracker, MQTT en PeerJS), `net_rtcroom_test` (nep-RTCPeerConnection), `net_upnp_test` (nepper-router), `net_pairing_test`, `coopcore_test` (alleen 127.0.0.1), `coopnet_test`, `lobby_test`, `partnerhud_test`, `coopactivities_test`, `cooproles_test`, `coopstate_test`, `coopsave_test`, `coop_test`. Niet getest: een echte verbinding, echte STUN/brokers/UPnP, de schermen in beeld.
 
 **Uitbreiden.** Nieuwe scènes, minigames, voertuigen en coöp-activiteiten registreren hun regel met `registerCoop(soort, id, regel)` in `game/js/cooproles.js`; de netcode hoeft niet te veranderen. Het protocol heeft een versie en onderhandelde `caps` (`net/session.js`); onbekende gebeurtenissen worden genegeerd.
+
+## Simulatielagen en worker (#18, #58)
+
+Standaard aan. Uitzetten: `?zonderlagen` (doelaantallen en afstanden terug naar de oude vaste waarden) en `?zonderworker` (geen simulatie-worker).
+
+- **Lagen** (`simlagen.js`): vol (< 150 m auto, < 70 m voetganger) = echte entiteiten; vereenvoudigd = denkt om de 3 frames (alleen wandelaars); abstract en weg = niets. Het doel per streek en uur komt uit het model; de spawnring van auto's loopt tot 1,15x de vollaag, zodat het aantal ontmoetingen dicht bij het oude pad ligt.
+- **Worker-contract voor voetgangers** (`simambient.js`): wie als ambient agent naar `simkernel.js` mag (`isAmbientPed`) en waar op een voetpad hij staat. Zonder `Worker`, onder `?storytest` of met `?noworker` draait `simhost.js` dezelfde kern op de hoofdthread.
+- **Beperkingen:** de echte AI (`vehicle.js`, `pedestrians.js`: politie, misdaad, botsingen, missies) blijft op de hoofdthread; de worker is nog niet door `main.js` aangeroepen, dus het scheelt nog geen frametijd. `AbstractPool` is niet aangesloten. Spiegelmeshes en de overdracht Vehicle/Pedestrian <-> agent in het spel zijn niet gebouwd. Dichtheden zijn geschat en niet visueel beoordeeld.
+- **Controle:** `node scripts/simlagen_test.mjs`, `simworker_test.mjs`, `simambient_test.mjs` (deterministische headless populatiesimulatie, oud versus lagen). **Meten:** `node scripts/sim_meet.mjs [auto's] [voetgangers] [ticks]` (tijd per tick van de kern en heap; met `node --expose-gc` een zuiver geheugenverschil). De echte frametijd meet je met `?hitch` in het spel.

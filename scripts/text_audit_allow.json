@@ -160,19 +160,19 @@
       "rule": "winter",
       "term": "oliebollenkraam",
       "file": "evenementen.js",
-      "why": "bewuste grap: een winterkraam op de kermis in augustus"
+      "why": "grap: de kermis staat bewust in augustus; geen winterbeeld"
     },
     {
       "rule": "naam",
       "term": "Sjoerd Zoutkamp",
       "file": "nieuwsticker.js",
-      "why": "verzonnen naam"
+      "why": "verzonnen lezer (Kiekdoar Nieuws)"
     },
     {
       "rule": "naam",
       "term": "Piet Peilbuis",
       "file": "nieuwsticker.js",
-      "why": "verzonnen naam"
+      "why": "verzonnen lezer (Kiekdoar Nieuws)"
     }
   ]
 }

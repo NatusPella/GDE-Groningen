@@ -15,6 +15,7 @@ import { startCall } from './phonefeed.js';
 import { facilitiesOf, countryFacilities } from './facilities.js';
 import { nearestWorldPlace } from './worldplaces.js';
 import { noteMoney } from './finance.js';
+import { zoneTotals, losseOnderdelen, onderdelenPrijs, schadeTekst } from './vehicledamage.js';
 
 // Garages: every Garage Knalpot branch (from the OSM car repair shops) and
 // every Pomp & Poets gas station has a workshop with a roller door by the
@@ -218,7 +219,7 @@ function twoWheel(v) {
 function repairPrice(v) {
   const dmg = 100 - Math.max(0, Math.min(100, v.health ?? 100));
   const dents = v.damage ? Math.min(3, v.damage.total || 0) : 0;
-  return repairCost(dmg, dents, twoWheel(v)) + (v.flat ? (twoWheel(v) ? 3 : 15) : 0);
+  return repairCost(dmg, dents, twoWheel(v)) + (v.flat ? (twoWheel(v) ? 3 : 15) : 0) + onderdelenPrijs(losseOnderdelen(zoneTotals(v.dentLog, v.model.len, v.model.wid)));
 }
 
 // Health back to 100 and every dent, crack and hanging bumper gone:
@@ -300,7 +301,7 @@ function garageMenu(w, site) {
       const items = [{
         id: 'g-fix', label: twoWheel(v) ? 'Rechtzetten en plakken' : 'Deuken eruit, alles heel', price,
         preview: vehiclePreviewOf(v), stats: [{ label: 'Staat', v: (v.health ?? 100) / 100, to: 1, text: `${Math.round(v.health ?? 100)} → 100%` }],
-        desc: broken ? `Staat nu op ${Math.round(v.health ?? 100)}%${v.flat ? ', met een lekke band' : ''}. Henk maakt hem weer als nieuw` : 'Mankeert niks, zegt Henk',
+        desc: broken ? `Staat nu op ${Math.round(v.health ?? 100)}%${v.flat ? ', met een lekke band' : ''}. ${schadeTekst(v, v.model.len, v.model.wid)}. Henk maakt hem weer als nieuw` : 'Mankeert niks, zegt Henk',
         disabled: broken ? (w.money < price ? 'Te weinig geld' : '') : 'Mankeert niks',
         buy() {
           if (!pay(w, price)) return null;
@@ -352,9 +353,9 @@ function garageMenu(w, site) {
         buy() {
           if (!pay(w, HERO_REPLACE_FEE)) return null;
           const at = exitSpot(site);
-          for (const x of w.vehicles) if (x.isHeroCar && x.wrecked) x.isHeroCar = false;
           const car = spawnHeroCarNear(w.map, at.x, at.y);
           if (!car) { w.money += HERO_REPLACE_FEE; return 'Geen plek om hem neer te zetten, geld terug'; }
+          for (const x of w.vehicles) if (x.isHeroCar && x.wrecked) x.isHeroCar = false;
           w.vehicles.push(car);
           markDirty('reparatie');
           return 'Je Escapade staat weer te glimmen';

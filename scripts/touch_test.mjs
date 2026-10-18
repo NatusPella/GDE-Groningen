@@ -2,6 +2,7 @@
 // buttons per situation (game/js/touchlogic.js).
 import { detectTouch, stickVector, knobOffset, lookDelta, stickKeys, touchPlan, labelFor, touchUiActive, touchContext, stickless } from '../game/js/touchlogic.js';
 import { touchMode, touchLayout, touchMore, touchLabelForToken, TOUCH_CHOICES } from '../game/js/touchlogic.js';
+import { pinchStep } from '../game/js/touchlogic.js';
 import { PAD_MAPS } from '../game/js/controls.js';
 
 let fail = 0;
@@ -82,6 +83,11 @@ for (const ctx of Object.keys(PAD_MAPS)) {
 eq('foot more has map or radio', touchMore('foot').some((m) => ['Kaart', 'Radio', 'Doel'].includes(m.label)), true);
 eq('key hint becomes button label', touchLabelForToken('E', 'foot') !== '' || touchMore('foot').length > 0, true);
 eq('unknown token has no label', touchLabelForToken('F12', 'foot'), '');
+
+const pin = pinchStep([{ x: 0, y: 0 }, { x: 100, y: 0 }], [{ x: 0, y: 0 }, { x: 200, y: 0 }]);
+eq('pinch apart doubles', pin.factor, 2);
+eq('pinch midpoint', pin.mid, { x: 100, y: 0 });
+eq('pinch zero distance is neutral', pinchStep([{ x: 5, y: 5 }, { x: 5, y: 5 }], [{ x: 0, y: 0 }, { x: 9, y: 0 }]).factor, 1);
 
 console.log(fail ? `${fail} FAILED` : 'all ok');
 process.exit(fail ? 1 : 0);

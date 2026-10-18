@@ -154,3 +154,42 @@ defSample('door_wood_close', 0.7, (c, sr, R) => {
   click(d, sr, R, 0.3, 2200, 0.6);
   addPartials(d, sr, 0.28, 240, [[1, 0.3, 0.12], [2.3, 0.15, 0.08]], 0.6, R);
 }, { rate: 22050, peak: 0.85 });
+
+// Cutscene vehicles (issues #117, #173): a siren and an engine that pass by,
+// a tyre screech. Whole passes with their own swell, so a scene can fire one
+// when the prop starts to move.
+FX_INFO.siren_pass = { cat: 'voertuig', label: 'Sirene rijdt voorbij', gain: 0.6, ref: 25, range: 600 };
+FX_INFO.car_pass = { cat: 'voertuig', label: 'Auto rijdt voorbij', gain: 0.6, ref: 15, range: 300 };
+FX_INFO.tyre_screech = { cat: 'voertuig', label: 'Piepende banden', gain: 0.5, ref: 12, range: 200 };
+
+defSample('siren_pass', 6, (c, sr, R, len) => {
+  const d = c[0], lp = bq('lp', 2600, 0.7, sr);
+  // two-tone Dutch wail (high-low), louder at the middle of the pass
+  let ph = 0;
+  for (let i = 0; i < d.length; i++) {
+    const t = i / sr, e = Math.exp(-(((t - 3) / 1.7) ** 2));
+    const hi = Math.floor(t / 0.5) % 2 === 0;
+    const f = (hi ? 960 : 770) * (1 + 0.06 * Math.tanh((3 - t) / 1.5)); // the pitch drops while it passes
+    ph += 2 * Math.PI * f / sr;
+    d[i] = lp.run(Math.sign(Math.sin(ph)) * 0.5 + Math.sin(ph * 2) * 0.15) * e;
+  }
+}, { rate: 22050, peak: 0.8 });
+
+defSample('car_pass', 4, (c, sr, R) => {
+  const d = c[0], lp = bq('lp', 700, 0.7, sr), mid = bq('bp', 1800, 0.8, sr);
+  let ph = 0;
+  for (let i = 0; i < d.length; i++) {
+    const t = i / sr, e = Math.exp(-(((t - 1.8) / 0.9) ** 2));
+    const f = 70 * (1 + 0.25 * Math.tanh((1.8 - t) / 0.5)) * (1 + 0.1 * Math.sin(t * 9));
+    ph += 2 * Math.PI * f / sr;
+    const n = R() * 2 - 1;
+    d[i] = (Math.sin(ph) * 0.5 + Math.sin(ph * 2) * 0.3 + Math.sin(ph * 3) * 0.15 + lp.run(n) * 0.5 + mid.run(n) * 0.15) * e;
+  }
+}, { rate: 22050, peak: 0.8 });
+
+defSample('tyre_screech', 1.4, (c, sr, R) => {
+  const d = c[0], f = 1500 + R() * 400;
+  addTone(d, sr, 0, 1.2, R, { f0: f, f1: f * 0.85, amp: 0.4, attack: 0.05, release: 0.4, vib: 0.03, vibRate: 31, shape: 'rich' });
+  nb(d, sr, 0, R, { f: 2600, q: 2, tau: 0.5, amp: 0.7, attack: 0.04, len: 1.2 });
+  nb(d, sr, 0, R, { type: 'hp', f: 4000, q: 0.7, tau: 0.4, amp: 0.3, attack: 0.04, len: 1.2 });
+}, { rate: 22050, peak: 0.75 });
