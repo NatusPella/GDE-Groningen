@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Parses the five machine-readable scripts of the new story
 // (docs/verhaal/nieuw/09-script-akte1..5.md) into game/storydata/script.json,
-// the data the new arc ("nieuwverhaal", storyarc_nieuw.js) plays from.
+// the data the story (storyarc_nieuw.js) plays from.
 //   node scripts/build_story_data.mjs          writes game/storydata/script.json
 //   node scripts/build_story_data.mjs --check  fails when the committed file is stale
 // A line is `textOnly` when no recording exists for the exact text (speaker

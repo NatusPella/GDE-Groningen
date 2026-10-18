@@ -206,7 +206,7 @@ async function missionShot(c) {
     const w = window.__debug.world, p = w.player, S = window.__story;
     const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     const cine = await import('/js/cinematics.js');
-    S.jump(${JSON.stringify(process.env.STEAM_STEP || 'H3')});
+    S.jump(${JSON.stringify(process.env.STEAM_STEP || 'M03')});
     for (let i = 0; i < 40; i++) { if (cine.isCinematicActive()) cine.skipCinematic(); await sleep(150); }
     w.clock = 16.2;
     const g = w.storyGuide;
