@@ -44,6 +44,9 @@ import { nieuwVerhaal } from './storyflag.js';
 import { storyLines, talkLines, storyDataReady, readingTime } from './storytext.js';
 import { playTalk, stopTalk } from './storytalk.js';
 import { buildNieuwDefs, applyNieuw } from './missions_nieuw.js';
+import { wgsToWorld } from './rdnew.js';
+import { enterChoice, updateChoice, closeChoice } from './stagechoice.js';
+import { enterRit, updateRit } from './stagerit.js';
 import { withValidity } from './validity.js';
 // a radio fragment of a stage that never got played within ten minutes is moot (refs #171; not tied to the mission: the clue in it must not be lost)
 const MISSION_RADIO_VALID = { ttl: 600 };
@@ -1377,6 +1380,7 @@ function succeed(world, def) {
   // a replay pays the klusloon; the first pass the full reward
   const replay = chain.completed.has(i);
   const base = replay ? klusloon(def.reward) : def.reward;
+  closeChoice();
   const tip = def.type === 'boat' ? rondvaartTip() : 0;
   const adj = rewardAdjust(def, base);
   const reward = base + tip + adj.amount;
@@ -1451,6 +1455,7 @@ function fail(world, def, reason) {
 function endInFailure(world, text) {
   world.addMessage(text, 3.5);
   stopTalk();
+  closeChoice();
   clearStoryProps();
   // H6 failed: out of the black again (startMission puts it back on)
   if (chain.defs[chain.index] && chain.defs[chain.index].heist) setStoryOutfit(null);
@@ -1517,7 +1522,7 @@ function boatPoseClear(map, boat, x, y, a) {
 
 function spawnMissionBoat(def, map) {
   const b = def.boatAt;
-  const boat = new Vehicle(b.x, b.y, b.angle, { ...TOUR_BOAT });
+  const boat = new Vehicle(b.x, b.y, b.angle, { ...(def.boatModel ? BOAT_KINDS[def.boatModel] : TOUR_BOAT) });
   boat.isBoat = true;
   boat.missionCar = true;
   // rondvaartBerth moors it alongside the quay; only if that spot touches the
@@ -1885,6 +1890,11 @@ function startMission(world, def) {
       chain.vehicle = spawnMissionCar(world, def);
       world.vehicles.push(chain.vehicle);
     }
+    // akte 4 (Open, dicht): a boat at the start of a stages mission, `boatAt` { x, y, angle }, `boatModel` a BOAT_KINDS key
+    if (def.boatAt) {
+      chain.vehicle = spawnMissionBoat(def, world.map);
+      world.vehicles.push(chain.vehicle);
+    }
     chain.stage = null;
     chain.stageIndex = -1;
     chain.stagePending = true;
@@ -2244,6 +2254,8 @@ function raceCarProblem() {
 //           damage it by `hits` (shots or rams) and it stops and becomes the
 //           mission vehicle (board it next). Fails when it gets `escape` metres
 //           away, runs out of `time` or burns out.
+//   choice  (akte 4, stagechoice.js) a conversation puzzle: rounds of up to three answers (keys 1-3), wrong answers can fail
+//   rit     (akte 4, stagerit.js) drive the stopped train to the next platform with gas and brake
 //   vault   Jelle's polsstok escape over the nearest canal (missionstory.js); fail: he misses
 //   boatchase  Jelle's skûtsje sails the Diepenring from `lead` metres ahead of you; stay
 //           alongside in a boat (`board` m) for `boardTime` s to jump aboard. Fails past
@@ -2290,6 +2302,8 @@ function resolveTarget(world, spec, from) {
   const snap = (x, y) => (spec.snap ? roadSpot(map, x, y, spec.snap === 'drive') : { x, y });
   if (Number.isFinite(spec.x) && Number.isFinite(spec.y)) return spec;
   if (spec.at) return { ...snap(spec.at[0], spec.at[1]), label: spec.label };
+  // a real place by latitude and longitude (the new arc's tile world, akte 4); snapped to a road when `snap` says so
+  if (spec.ll) { const [wx, wy] = wgsToWorld(spec.ll[0], spec.ll[1]); return { ...snap(wx, wy), label: spec.label }; }
   if (spec.shop) {
     const s = nearestShopOf({ player: from }, spec.shop);
     return s ? { x: s.x, y: s.y, name: s.name, label: spec.label || s.name } : null;
@@ -2627,6 +2641,8 @@ function enterStage(world, def, k) {
   if (st.kind === 'boatchase') S.boat = spawnSkutsje(world, st);
   if (st.kind === 'boatchase' && S.boat) S.target = S.boat.v;
   if (st.kind === 'hold' && st.fireworks) { S.fwT = 1.5; S.fw = []; }
+  if (st.kind === 'choice') enterChoice(S);
+  if (st.kind === 'rit') enterRit(world, st, S);
   if (def.eggs && k === def.eggs.from) { chain.eggs = 100; chain.eggWarn = 100; chain.eggVeh = null; }
   chain.stage = S;
   if (st.stars) { world.wanted = Math.max(world.wanted, st.stars); world.wantedDecayTimer = 0; }
@@ -3124,6 +3140,18 @@ function updateStages(dt, world, def) {
     case 'pigeon':
       updatePigeonStage(dt, world, def, st, S);
       break;
+    case 'rit': {
+      const r = updateRit(dt, world, st, S, hint);
+      if (r === 'done') nextStage(world, def);
+      else if (r && r.fail) fail(world, def, r.fail);
+      break;
+    }
+    case 'choice': {
+      const r = updateChoice(dt, world, st, S);
+      if (r === 'done') nextStage(world, def);
+      else if (r && r.fail) fail(world, def, r.fail);
+      break;
+    }
     default:
       nextStage(world, def);
   }

@@ -8,12 +8,6 @@
     },
     {
       "rule": "naam",
-      "term": "Hendrik Werkman",
-      "file": "rondvaartlines.js",
-      "why": "brugnaam in de rondvaart; zie de lijst voor de eigenaar in #150 (ingesproken, historische persoon)"
-    },
-    {
-      "rule": "naam",
       "term": "Aaltje Wiebel",
       "why": "verzonnen personage/bootnaam (Wiebelwerk-universum)"
     },
@@ -117,12 +111,6 @@
       "file": "sidejob_taxi.js",
       "ctx": "Martinitoren please",
       "why": "toerist in de taxi praat Engels, met Nederlandse vertaling erachter"
-    },
-    {
-      "rule": "merk",
-      "term": "Wikipedia",
-      "ctx": "wandelende Wikipedia van Stad",
-      "why": "ECHT MERK, maar ingesproken (banter + script.json): alleen melden; vervangen vraagt herinspreken en dus akkoord van de eigenaar (#150)"
     }
   ]
 }
