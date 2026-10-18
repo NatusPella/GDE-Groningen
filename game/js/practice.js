@@ -12,6 +12,7 @@ import { isMapOpen } from './mapview.js';
 import { getSettings } from './settings.js';
 import { physicalKey, keyName, tokenKey } from './controls.js';
 import { glyphHtml } from './prompts.js';
+import { unlockAchievement } from './achievements.js';
 import { KEYS } from './storagekeys.js';
 import { startPractice, stepPractice, currentStep, DONE } from './practicekit.js';
 
@@ -39,7 +40,7 @@ function offered() {
 function maybeOffer(dt, w) {
   playT += dt;
   if (playT < OFFER_AFTER || w.paused || isPauseMenuOpen() || isCinematicActive() || offered()) return;
-  if (getSettings().onboardingTips === false || cardsBusy() || !mayStart('card')) return;
+  if ((w.wanted || 0) > 0 || getSettings().onboardingTips === false || cardsBusy() || !mayStart('card')) return;
   if (playerBusy(w).busy) return;
   showCard(w, { kind: 'tip', kicker: 'Oefenronde', title: 'Even oefenen?', body: 'Wil je de basis rustig oefenen, zonder gevolgen? Open het menu en kies Besturing, dan Hulp, dan Oefenen.', key: 'oefen-aanbod', important: false, voice: false, duration: 10 });
   try { localStorage.setItem(KEYS.oefenronde, '0'); } catch (e) { /* memory only */ }
@@ -82,6 +83,7 @@ export function updatePractice(dt, w) {
   st = r.st;
   if (st.done) {
     try { localStorage.setItem(KEYS.oefenronde, '1'); } catch (e) { /* memory only */ }
+    unlockAchievement(w, 'oefenronde_klaar');
     card(w, DONE, 'oefen-klaar');
     return;
   }
