@@ -59,6 +59,8 @@ export const BASE_KEYS = {
   nieuwVerhaal: 'gde-nieuwverhaal',
   // the last benchmark run, for the comparison (benchstats.js), new in 0.37: no legacy name
   benchmarkLast: 'gde-benchmark-last-v1',
+  // parts and tuning per vehicle (tuningplan.js), new in 0.38: no legacy name, not part of the save
+  tuning: 'gde-tuning-v1',
   // how often each HUD explanation has been shown (hudtext.js), new in 0.38: no legacy name
   hudSeen: 'gde-hud-gezien',
 };
