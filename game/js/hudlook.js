@@ -12,12 +12,13 @@
 //   - one number, one owner: a distance shows in the GPS card OR the objective
 //   - a vehicle shows only what it has: no gears on a bike, no revs on a boat
 
-export const VEHICLE_KINDS = ['car', 'scooter', 'bike', 'boat', 'heli', 'train'];
+export const VEHICLE_KINDS = ['car', 'motor', 'scooter', 'bike', 'boat', 'heli', 'train'];
 
 // speed: big number; gears/rpm: the arc and the gear row; damage: the
 // vehicle's health meter; name: the small vehicle name card on entering.
 export const VEHICLE_HUD = {
   car: { speed: true, gears: true, rpm: true, damage: true, name: true, unit: 'km/u' },
+  motor: { speed: true, gears: true, rpm: true, damage: true, name: true, unit: 'km/u' },
   scooter: { speed: true, gears: false, rpm: false, damage: true, name: true, unit: 'km/u' },
   bike: { speed: true, gears: false, rpm: false, damage: false, name: false, unit: 'km/u' },
   boat: { speed: true, gears: false, rpm: false, damage: true, name: true, unit: 'km/u' },
@@ -31,7 +32,7 @@ export function vehicleKind(v, { train = false } = {}) {
   if (v.isHeli) return 'heli';
   if (v.isBoat) return 'boat';
   if (v.isBike) return 'bike';
-  if (v.isScooter) return 'scooter';
+  if (v.isScooter) return v.model && (v.model.motorbike || v.model.geared) ? 'motor' : 'scooter';
   return 'car';
 }
 
