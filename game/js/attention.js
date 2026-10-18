@@ -8,27 +8,13 @@
 //
 import { narrativeBusy } from './narrative.js';
 
+import { LEVEL, CARD_PRIORITY as CARDS, MOMENTS, RATION, VOICE_GAP, decideMoment } from './hudbus.js';
+
 // Priority: story > wanted/danger > money/achievement > discovery/flavour > tips.
-export const PRIORITY = { story: 5, danger: 4, reward: 3, discovery: 2, tip: 1 };
-
-// HUD card categories (hudcards.js) on that scale
-export const CARD_PRIORITY = { missie: 5, bijbaan: 5, politie: 4, gevaar: 4, geld: 3, prestatie: 3, tip: 1 };
-
-// Cinematic moments: their level, their own cooldown and whether they may
-// interrupt while driving fast. Discovery scenes share one cooldown.
-const MOMENTS = {
-  wijk: { level: 'discovery', group: 'discovery', cooldown: 210, fast: false },
-  landmark: { level: 'discovery', group: 'discovery', cooldown: 210, fast: false },
-  ommelanden: { level: 'discovery', group: 'discovery', cooldown: 210, fast: false },
-  crash: { level: 'danger', group: 'crash', cooldown: 60, fast: true },
-  wanted5: { level: 'danger', group: 'wanted5', cooldown: 120, fast: true },
-};
-// no two interruptions of any kind closer together than this
-const GLOBAL_GAP = 40;
-// a lower level also waits this long after a higher one
-const AFTER_HIGHER = 20;
-const FAST = 50 / 3.6;
-const TIP_GAP = 20;
+// The tables (levels, card categories, moments, gaps) are in hudbus.js.
+export const PRIORITY = LEVEL;
+export const CARD_PRIORITY = CARDS;
+const { TIP_GAP } = RATION;
 
 let clock = () => (typeof performance !== 'undefined' ? performance.now() : Date.now()) / 1000;
 const last = { any: -Infinity, level: 0, groups: {}, tip: -Infinity };
@@ -42,19 +28,17 @@ function busy(w) {
 
 // May a cinematic moment of `kind` play now? Doesn't book it (noteMoment does).
 export function mayInterrupt(kind, w) {
-  const m = MOMENTS[kind];
-  if (!m) return true;
-  const now = clock();
-  if (busy(w)) return false;
-  if (typeof document !== 'undefined' && document.body && document.body.classList.contains('hud-call-on')) return false;
-  // a story call, the radio or car talk is on (narrative.js)
-  if (narrativeBusy()) return false;
+  if (!MOMENTS[kind]) return true;
   const v = w && w.player && w.player.inVehicle;
-  if (!m.fast && v && Math.abs(v.speed || 0) > FAST) return false;
-  if (now - (last.groups[m.group] ?? -Infinity) < m.cooldown) return false;
-  if (now - last.any < GLOBAL_GAP) return false;
-  if (PRIORITY[m.level] < last.level && now - last.any < GLOBAL_GAP + AFTER_HIGHER) return false;
-  return true;
+  return decideMoment(kind, {
+    now: clock(),
+    busy: busy(w),
+    callOn: typeof document !== 'undefined' && !!document.body && document.body.classList.contains('hud-call-on'),
+    // a story call, the radio or car talk is on (narrative.js)
+    narrativeBusy: narrativeBusy(),
+    speed: v ? v.speed : 0,
+    last,
+  });
 }
 
 export function noteMoment(kind) {
@@ -74,7 +58,6 @@ export function noteTip() { last.tip = clock(); }
 // Phone messages read aloud (phonefeed.js): a character's text always; the
 // Kiekdoar news feed and the app's own texts at most once per gap, the rest
 // only get the ping.
-const VOICE_GAP = { news: 45, system: 30 };
 const voicedAt = {};
 export function mayVoiceText(kind) {
   const gap = VOICE_GAP[kind];

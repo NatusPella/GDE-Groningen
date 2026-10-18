@@ -138,6 +138,23 @@ export function roadNear(map, x, y, R = 40, ok = null) {
   return best;
 }
 
+// Nearest point on the centre line of any road within R that passes ok(road):
+// { x, y, d2 (squared distance), road, i (segment), dx, dy (its direction) } or
+// null. The plain point question ("where is the road") for callers that need
+// no class, width or graph rules; roadNear is the one with road classes.
+export function nearestOnRoads(map, x, y, R = 60, ok = null) {
+  let best = null;
+  for (const road of map.roadsNear(x, y, R)) {
+    if (ok && !ok(road)) continue;
+    const P = road.pts;
+    for (let i = 0; i < P.length - 1; i++) {
+      const cp = closestPointOnSegment(x, y, P[i][0], P[i][1], P[i + 1][0], P[i + 1][1]);
+      if (!best || cp.dist2 < best.d2) best = { d2: cp.dist2, x: cp.x, y: cp.y, road, i, dx: P[i + 1][0] - P[i][0], dy: P[i + 1][1] - P[i][1] };
+    }
+  }
+  return best;
+}
+
 // The name of the road within ~15 m of (x, y), or ''.
 export function streetAt(map, x, y) {
   const q = roadNear(map, x, y, 15, (r) => !!(r.name || r.ref));

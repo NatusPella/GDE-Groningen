@@ -9,7 +9,7 @@ import './node3d.mjs';
 await import('../game/js/models3d_buildings.js');
 const L = await import('../game/js/landmarks3d.js');
 const NAMES = ['EIKEA', 'Martinikerk', 'Der Aa-kerk', 'Groninger Museum', 'Forum Groningen', 'Hoofdstation Groningen', 'Academiegebouw',
-  'Goudkantoor', 'Euroborg', 'Winkelcentrum Paddepoel', 'Stadhuis', 'Prinsenhof', 'Gasuniegebouw', 'Rijkskantoor Kempkensberg'];
+  'Goudkantoor', 'Euroborg', 'Winkelcentrum Paddepoel', 'Stadhuis', 'Prinsenhof', 'Apenrots', 'Rijkskantoor Kempkensberg'];
 let n = 0, fails = 0, built = 0;
 for (const name of NAMES) {
   for (const rot of [0, 0.6, 2.1]) {

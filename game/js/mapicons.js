@@ -59,10 +59,19 @@ export function mapKindVisible(kind, zoom) {
   return zoom >= CATS[mapCategory(kind)].min;
 }
 
-// icon scale for the full map: 1.5 zoomed out, up to 2.4 right on the street.
-// The base icon is about 10 units wide, so that is 15 to 24 px.
+// icon scale for the full map: 2.1 zoomed out, up to 3.2 right on the street.
+// The base icon is about 10 units wide, so that is 21 to 32 px.
 export function mapIconScale(zoom) {
-  return Math.max(1.5, Math.min(2.4, 1.5 + Math.log2(Math.max(1, zoom)) * 0.3));
+  return Math.max(2.1, Math.min(3.2, 2.1 + Math.log2(Math.max(1, zoom)) * 0.4));
+}
+
+// The rim colour of an icon's disc per category, so the kinds read apart at a glance
+const CAT_RIM = {
+  zorg: '#ff5a5a', politiebureau: '#5a8bff', garage: '#ffb23f', station: '#9a7bff', job: '#4fd6c4',
+  shop: '#ff8ad0', fun: '#a6e04f', horeca: '#ff9a4f', own: '#f5e04f', ommeland: '#7fd0ff',
+};
+export function mapRimColor(kind) {
+  return CAT_RIM[mapCategory(kind)] || 'rgba(240, 237, 228, 0.92)';
 }
 
 // Icons that have to be drawn, in any order: [{ kind, sx, sy }]. Returns the

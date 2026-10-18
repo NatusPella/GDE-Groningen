@@ -682,14 +682,15 @@ function crunch(chs, sr, R) {
 }
 for (let v = 0; v < 3; v++) def(`crunch_${v}`, 0.9, crunch);
 
-// Dutch thumb-bell: a spinning striker hits the dome a few times per push.
-def('bikebell', 1.1, (c, sr, R) => {
-  const d = c[0], f = 2950 + R() * 150;
+// Dutch thumb-bell: a short, bright double "ting-ting"; two clean strikes on the dome,
+// each a ringing fundamental with inharmonic metal overtones.
+def('bikebell', 0.9, (c, sr, R) => {
+  const d = c[0], f = 2900 + R() * 150;
   let t = 0;
-  for (let k = 0; k < 5; k++) {
-    addPartials(d, sr, t, f, [[1, 1, 0.35], [1.51, 0.45, 0.2], [2.48, 0.3, 0.12], [3.7, 0.15, 0.06]], k ? 0.55 + R() * 0.2 : 1, R);
-    addNoiseBurst(d, sr, t, R, { type: 'hp', f: 5000, q: 0.7, tau: 0.002, amp: 0.3 });
-    t += 0.028 + R() * 0.01;
+  for (let k = 0; k < 2; k++) {
+    addPartials(d, sr, t, f, [[1, 1, 0.22], [1.51, 0.4, 0.14], [2.48, 0.3, 0.09], [3.7, 0.15, 0.04]], k ? 0.85 : 1, R);
+    addNoiseBurst(d, sr, t, R, { type: 'hp', f: 5000, q: 0.7, tau: 0.002, amp: 0.25 });
+    t += 0.17;
   }
 });
 

@@ -521,7 +521,7 @@ de rand naar binnen, en tests controleren dat geen weg of waterweg het
 speelgebied uit leidt zonder terugkeer. Kaart: grens getekend, buffer gearceerd
 "buiten de provincie". Tegeldata: `edge`-laag in de globale laag, tegels in de
 buffer krijgen vlag `buffer`. Gebouwd: regels en haken in `worldedge.js`; de
-terugkeerscènes zijn open.
+terugkeerscènes als pure logica in `edgescene.js` (rekwisieten per rand, waarschuwing, scène, terugzetten met het gezicht naar binnen; `scripts/edgescene_test.mjs`). Open: de rekwisieten tekenen en `stepEdgeWatch` in de spelloop hangen.
 
 ### 2.25-2.27 Gemeten resultaten F0 en F1
 

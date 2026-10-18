@@ -5,7 +5,7 @@ import { playCinematic, roofAt, showBanner } from './cinematics.js';
 import { isInWater, WATER_Y } from './util.js';
 import { spawnFxPuff, spawnFxSpark } from './fx3d.js';
 import { makeBirds, updateBirds } from './intromontage.js';
-import { playStoryVoice, stopStoryVoice, setStoryScene, playClueSting, playGlassClink } from './audio.js';
+import { playStoryVoice, stopStoryVoice, setStoryScene, playClueSting, playGlassClink, playTextMumble } from './audio.js';
 import { buildVehicleMesh, updateVehicleWheelSpin } from './models3d_vehicles.js';
 import { JELLE_LOOK, DURK_LOOK, DOUWE_LOOK, RIKUS_LOOK, MEM_LOOK, ROTOR_LOOK, ROELF_LOOK, HILJE_LOOK } from './storycast.js';
 import { showLiveFrame } from './storycontact.js';
@@ -14,6 +14,7 @@ import { showNameCard } from './namecard.js';
 import { nieuwVerhaal } from './storyflag.js';
 import { STEPS, MISSION_IDS } from './storyarc.js';
 import { storyLines, storyDataReady, readingTime, storyDirRecording } from './storytext.js';
+import { openBank } from './voicebank.js';
 
 // Story cutscenes around the mission chain: who asks and why (start), the
 // payoff (success) and a short sting (fail). Tammo and Tessa's relationship
@@ -26,9 +27,8 @@ import('./fierljep.js').then((m) => { fjMod = m; }).catch(() => {});
 
 // Recorded dialogue, keyed "<speaker>|<text>" so an edited line simply goes
 // silent instead of playing the wrong recording.
-const VOICE_DIR = new URL('../audio/voicelines/story/', import.meta.url).href;
-let voices = {};
-fetch(VOICE_DIR + 'manifest.json').then((r) => (r.ok ? r.json() : {})).then((m) => { voices = m || {}; }).catch(() => {});
+const VOICE_DIR = openBank('story').dir;
+const voices = openBank('story').entries;
 const voiceFor = (speaker, text) => voices[speaker + '|' + text] || storyLineVoice(speaker, text) || (nieuwVerhaal() ? storyDirRecording(speaker, text) : null);
 
 const SKIN = HABBO_PALETTE;
@@ -1191,7 +1191,7 @@ function runScene(r, tl, { id, kicker = '', title = '', cardFor = 3, camera, pos
         r.voiced = cur;
         // Rikus is always on the radio: his voice in the broadcast band
         if (cur.voice) playStoryVoice(VOICE_DIR + cur.voice.src, { radio: cur.who === 'V' || cur.who === 'rikus' || cur.radio });
-        else stopStoryVoice();
+        else { stopStoryVoice(); if (nieuwVerhaal()) playTextMumble(cur.who, cur.text, cur.dur); }
         if (cur.clue) playClueSting();
         if (cur.card) showNameCard(cur.card);
       }

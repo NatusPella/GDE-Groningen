@@ -12,11 +12,13 @@
 // hedge (a section of s m, h high; greenery.mjs puts the mapped ones in),
 // lamp (by road class: v the lamp type, h its height), speedbump (across a
 // road of s m), fence and noise (a section of s m, noise h m high), bollard,
-// bench, bin, bikerack, shelter. src: 'osm' for mapped objects, 'rule' for
+// bench, bin, bikerack, shelter, placesign (a place name board, `text` the
+// name) and wegwijzer (a junction signpost, `text` its lines). src: 'osm' for mapped objects, 'rule' for
 // the builder's. An item belongs to the tile its position falls in, so
 // neighbouring tiles never repeat one; rules walk whole roads, so a guardrail
 // carries on across a tile edge without a seam.
 import { wgsToWorld } from './rdnew.js';
+import { placeSignItems } from './placesigns.js';
 
 const MAIN = new Set(['motorway', 'trunk']);
 const LINK = new Set(['motorway_link', 'trunk_link']);
@@ -242,7 +244,9 @@ function nearestRoad(roads, x, y, filter = () => true) {
 
 // --------------------------------------------------------------- the tile
 
-// opts: lamps (emit lamps; the game draws its own, nightlights3d.js),
+// opts: towns (province places [{ n, x, y, kind }]: place name boards and
+// junction signposts, placesigns.js),
+// lamps (emit lamps; the game draws its own, nightlights3d.js),
 // bollards (cycle path entrances), livingBumps (plateaus in woonerven)
 export function furnitureForTile({ x0, y0, size = 1000, roads = [], mapped = [], places = DESTINATIONS, opts = {} }) {
   const items = [];
@@ -396,6 +400,10 @@ export function furnitureForTile({ x0, y0, size = 1000, roads = [], mapped = [],
       }
     }
   }
+  // place name boards and junction signposts (only with the province's places)
+  if (opts.towns && opts.towns.length) {
+    for (const it of placeSignItems({ roads, towns: opts.towns, inTile, blocked: onOtherRoad })) add(it);
+  }
   items.sort((a, b) => (a.key < b.key ? -1 : a.key > b.key ? 1 : 0));
   // a narrow central reserve gets one rail, not one from each carriageway;
   // one item per key
@@ -434,6 +442,7 @@ export function furnitureColliders(items) {
         for (const s of [1, -1]) out.push({ kind: 'mast', x: it.x + nx * s * it.s / 2, y: it.y + ny * s * it.s / 2, r: 0.32, key: `${it.key}/${s}`, static: true, top: it.h + 2 });
         break;
       }
+      case 'placesign': case 'wegwijzer': out.push({ kind: 'paal', x: it.x, y: it.y, r: 0.1, key: it.key, static: true, top: 2.2 }); break;
       case 'bench': out.push({ kind: 'bench', x: it.x, y: it.y, r: 0.32, half: 0.7, angle: it.a, key: it.key }); break;
       case 'bin': out.push({ kind: 'bin', x: it.x, y: it.y, r: 0.3, key: it.key }); break;
       case 'bikerack': out.push({ kind: 'rail', x: it.x, y: it.y, r: 0.14, half: 1, angle: it.a, key: it.key }); break;
