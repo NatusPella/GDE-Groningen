@@ -7,7 +7,6 @@
 //   node scripts/machinist_test.mjs
 import './node3d.mjs';
 import fs from 'node:fs';
-import zlib from 'node:zlib';
 
 const noop = () => {};
 const ctx = document.createElement('canvas').getContext('2d');
@@ -24,11 +23,10 @@ const data = JSON.parse(fs.readFileSync(new URL('citymap.json', root)));
 applyMapExtras(data, JSON.parse(fs.readFileSync(new URL('mapextras.json', root))));
 const map = new GameMap(data);
 const F = await import('../game/js/countryfield.js');
-const { initReal } = await import('../game/js/countryreal.js');
 F.setCountryBounds(map.meta.bounds);
-const om = JSON.parse(fs.readFileSync(new URL('ommeland.json', root)));
-const bin = zlib.gunzipSync(fs.readFileSync(new URL('ommeland.bin', root)));
-initReal(map, { ...om, bin: bin.buffer.slice(bin.byteOffset, bin.byteOffset + bin.byteLength) });
+const { applyCityRoutes } = await import('../game/js/corridorrail.js');
+const { loadCityRouteSource } = await import('./world/cityroutes.mjs');
+applyCityRoutes(map, loadCityRouteSource());
 const RW = await import('../game/js/railway.js');
 
 let fails = 0;
@@ -62,13 +60,16 @@ if (!route) { fail('no route with five halten'); process.exit(1); }
 const inRoute = (r) => RW.getTrains().find((t) => t.route === r);
 const dt = 1 / 30;
 
+// the arc the train's middle can reach on the drivable track
+const reach = (t) => { const [lo, hi] = RW.driveRange(t.route); return [lo + t.halfLen, hi - t.halfLen]; };
+
 function driveService(label, pilot, maxS = 1800) {
   const t = inRoute(route);
   const first = route.stops.findIndex((s) => !s.offmap);
   Object.assign(t, { c: route.stops[first].s, state: 'dwell', target: first, v: 0, dir: 1, timer: 5 });
   RW.hijackTrain(t, 1);
   world.time = 0;
-  const svc = R.startService({ stops: route.stops, c: t.c, dir: 1, vmax: t.cfg.vmax * 1.45, time: 0, limit: 4 });
+  const svc = R.startService({ stops: route.stops, c: t.c, dir: 1, vmax: t.cfg.vmax * 1.45, time: 0, limit: 4, range: reach(t) });
   const log = [];
   let f = 0, over = 0;
   for (; f < maxS * 30 && !svc.finished; f++) {
@@ -80,6 +81,7 @@ function driveService(label, pilot, maxS = 1800) {
     t.ctl.emergency = !!ctl.emergency;
     RW.updateRailway(dt, world);
     if (t.v > svc.limit + 1) over++;
+    if (process.env.DBG && f % 600 === 0) console.log(f / 30 | 0, 'c', t.c.toFixed(0), 'v', t.v.toFixed(1), 'lim', svc.limit.toFixed(1), 'to', svc.toStop.toFixed(0), 'thr', t.ctl.throttle, 'br', t.ctl.brake, 'i', svc.i);
     for (const e of R.stepService(svc, dt, { c: t.c, v: t.v, time: world.time, emergency: t.ctl.emergency })) log.push(e.kind + ':' + (e.stop ? e.stop.name : ''));
   }
   for (const p of svc.plan) console.log('  ', p.name, 'due', p.due.toFixed(0), 'err', p.errM && p.errM.toFixed(1), 'late', p.lateS && p.lateS.toFixed(0), 'score', p.score);
@@ -121,6 +123,30 @@ function driveService(label, pilot, maxS = 1800) {
   if (!e.finished) fail('a service with no stop ahead is not over at once');
   const a = R.startService({ stops: route.stops, c: route.stops.find((s) => !s.offmap).s, dir: 1, vmax: 30, time: 0 });
   for (let i = 1; i < a.plan.length; i++) if (!(a.plan[i].due > a.plan[i - 1].due + R.DOORS_S)) fail('timetable does not leave time for the doors');
+}
+
+// --- 5. several stops on a synthetic straight track (the real drivable range holds one halte)
+{
+  const stops = [1000, 3200, 5600, 7400].map((x, i) => ({ name: 'H' + i, s: x }));
+  const svc = R.startService({ stops, c: 0, dir: 1, vmax: 30, time: 0, range: [0, 8000] });
+  let c = 0, v = 0, time = 0;
+  for (let f = 0; f < 30 * 1500 && !svc.finished; f++) {
+    time += dt;
+    const st = R.currentStop(svc);
+    const ctl = R.autopilot(svc, v, st.s - c);
+    const lim = svc.vmax;
+    if (R.doorsOpen(svc, time)) v = Math.max(0, v - 2.2 * dt);
+    else if (ctl.brake) v = Math.max(0, v - 2.2 * dt);
+    else if (ctl.throttle) v = Math.min(lim, v + 1.6 * dt);
+    else v = Math.max(0, v - 0.3 * dt);
+    c += v * dt;
+    R.stepService(svc, dt, { c, v, time, emergency: false });
+  }
+  if (process.env.DBG) console.log(svc.plan.map((p) => [p.name, p.errM, p.score, p.due]), c, time);
+  if (!svc.finished || svc.result.made !== 4) fail(`synthetic service made ${svc.result && svc.result.made}/4`);
+  else if (svc.result.score < 60) fail(`synthetic clean run scored ${svc.result.score}`);
+  const r = R.startService({ stops, c: 0, dir: 1, vmax: 30, time: 0, range: [0, 4000] });
+  if (r.plan.length !== 2) fail('range does not drop halten beyond the track');
 }
 
 console.log(fails ? `${fails} failure(s)` : 'machinist: ok');

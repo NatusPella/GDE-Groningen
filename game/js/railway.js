@@ -333,7 +333,7 @@ function isStolen(t) { return t.state === 'player' || t.state === 'parked' || t.
 
 // Arc range of the route the player may drive on: inside the map, never off
 // into the fog where the city is not streamed in.
-function driveRange(route) {
+export function driveRange(route) {
   if (route.driveRange) return route.driveRange;
   let lo = null, hi = 0;
   for (let at = 0; at <= route.len; at += 5) {

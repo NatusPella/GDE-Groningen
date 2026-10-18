@@ -35,11 +35,14 @@ export function runTime(d, vmax) {
 }
 
 // The halten ahead of the train (arc length c, direction dir, +1 or -1) as the
-// service's stops, nearest first. `stops` are railway.js route stops.
-export function upcomingStops(stops, c, dir) {
+// service's stops, nearest first. `stops` are railway.js route stops; `range`
+// ([lo, hi] arc the train's middle can reach) leaves out halten beyond the
+// drivable track, which would never be made.
+export function upcomingStops(stops, c, dir, range) {
   const list = [];
   stops.forEach((st, idx) => {
     if (st.offmap) return;
+    if (range && (st.s < range[0] || st.s > range[1])) return;
     if ((st.s - c) * dir > 5) list.push({ idx, name: st.name, s: st.s });
   });
   list.sort((a, b) => (a.s - b.s) * dir);
@@ -47,8 +50,8 @@ export function upcomingStops(stops, c, dir) {
 }
 
 // A service: the timetable from the moment the player takes the train.
-export function startService({ stops, c, dir, vmax, time, limit = 6 }) {
-  const ahead = upcomingStops(stops, c, dir).slice(0, limit);
+export function startService({ stops, c, dir, vmax, time, limit = 6, range }) {
+  const ahead = upcomingStops(stops, c, dir, range).slice(0, limit);
   let at = time, prev = c;
   const plan = ahead.map((st) => {
     at += runTime(Math.abs(st.s - prev), vmax) + (prev === c ? 0 : DOORS_S);
