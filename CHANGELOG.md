@@ -6,6 +6,9 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Nieuw
+- **Binnenvaartschepen:** op de brede vaarten varen nu spitsen en Kempenaars met een stuurhut, luiken en eigen namen. Ze trekken langzaam op en draaien ruim.
+
 ## [0.35.0] - 2026-10-18
 
 ### Nieuw
