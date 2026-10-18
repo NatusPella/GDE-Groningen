@@ -827,6 +827,7 @@ function arrive(w) {
   } catch (e) { console.warn(e); }
 
   recordStat(w, 'trainTrips');
+  if (rode && !(info.clockMinutes > 0)) recordStat(w, 'trainRidesWatched');
   recordUnique(w, 'trainStations', to.name);
   if (VILLAGES[to.name]) unlockAchievement(w, 'trein_dorp');
   w.addMessage(`Aangekomen in ${to.name}. Reistijd ${info.minutes} minuten, €${info.price} armer.`, 4);

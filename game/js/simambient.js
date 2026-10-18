@@ -12,10 +12,34 @@ export function isAmbientPed(p) {
   return !!p && p.state === 'wander' && !p.isCop && !p.scene && !p.ragdoll && !p.missionCrowd && !p.jobPed && !p.nightlife && !p.leader;
 }
 
-// Zoekt het dichtstbijzijnde pad in `roads` ([{ id, pts }] uit buildSimRoads(map, 'ped')).
+// Rasterindex over [{ id, pts }]: zonder dit kost elke zoekactie alle wegen (duizenden).
+// Elke weg staat in de cellen van zijn bbox, vergroot met MAX_ROAD_DIST.
+export function createRoadIndex(roads, cell = 64) {
+  const grid = new Map();
+  for (const r of roads) {
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    for (let i = 0; i + 1 < r.pts.length; i += 2) {
+      if (r.pts[i] < x0) x0 = r.pts[i];
+      if (r.pts[i] > x1) x1 = r.pts[i];
+      if (r.pts[i + 1] < y0) y0 = r.pts[i + 1];
+      if (r.pts[i + 1] > y1) y1 = r.pts[i + 1];
+    }
+    for (let cx = Math.floor((x0 - MAX_ROAD_DIST) / cell); cx <= Math.floor((x1 + MAX_ROAD_DIST) / cell); cx++) {
+      for (let cy = Math.floor((y0 - MAX_ROAD_DIST) / cell); cy <= Math.floor((y1 + MAX_ROAD_DIST) / cell); cy++) {
+        const k = cx * 100003 + cy;
+        const l = grid.get(k);
+        if (l) l.push(r); else grid.set(k, [r]);
+      }
+    }
+  }
+  return { roads, candidates: (x, y) => grid.get(Math.floor(x / cell) * 100003 + Math.floor(y / cell)) || [] };
+}
+
+// Zoekt het dichtstbijzijnde pad in `roads`: een array [{ id, pts }] uit
+// buildSimRoads(map, 'ped'), of een createRoadIndex(...).
 export function nearestRoad(roads, x, y, maxDist = MAX_ROAD_DIST) {
   let best = null;
-  for (const r of roads) {
+  for (const r of roads.candidates ? roads.candidates(x, y) : roads) {
     const h = projectOnRoad(r.pts, x, y);
     if (h && h.d <= maxDist && (!best || h.d < best.d)) best = { road: r.id, s: h.s, d: h.d };
   }

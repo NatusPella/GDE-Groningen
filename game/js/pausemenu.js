@@ -43,6 +43,7 @@ import { renderSpullen, spullenClick, spullenFocus } from './spullen.js';
 import { renderPhonePanel, phoneClick, phoneUnread, selectPhoneThread, PHONE_NAME } from './phone.js';
 import { getErrorLog, errorReport, clearErrorLog, onErrorLogChange } from './errorlog.js';
 import { KEYS } from './storagekeys.js';
+import { renderFotoPanel, fotoClick } from './fotomodusui.js';
 // Running inside the desktop app (desktop/preload.js): window mode + quit.
 const DESKTOP = typeof window !== 'undefined' && window.gdeDesktop && window.gdeDesktop.isDesktop ? window.gdeDesktop : null;
 
@@ -176,6 +177,7 @@ const ICONS = {
   todo: '<path d="M6 3v18M6 4h12l-2.5 4L18 12H6"/>',
   verhaal: '<path d="M4 5.5C6.5 4 9.5 4 12 6c2.5-2 5.5-2 8-.5V19c-2.5-1.5-5.5-1.5-8 .5-2.5-2-5.5-2-8-.5zM12 6v13.5"/>',
   garage: '<path d="M3 10l9-6 9 6v10H3z"/><path d="M7 20v-6h10v6M7 17h10"/>',
+  fotos: '<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>',
   prestaties: '<path d="M7 3h10v3a5 5 0 0 1-10 0zM7 5H4v1a3 3 0 0 0 3 3M17 5h3v1a3 3 0 0 1-3 3M12 11v5M8 20h8l-1-4H9z"/>',
   streken: '<rect x="4" y="4" width="16" height="16" rx="3.5"/><circle cx="9" cy="9" r="1.1"/><circle cx="15" cy="9" r="1.1"/><circle cx="12" cy="12" r="1.1"/><circle cx="9" cy="15" r="1.1"/><circle cx="15" cy="15" r="1.1"/>',
   settings: '<path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/>',
@@ -197,13 +199,14 @@ const SECTIONS = [
   ['spullen', 'Spullen', 'Alles wat je hebt'],
   ['garage', 'Garage', 'Jouw voertuigen'],
   ['prestaties', 'Prestaties', 'Blijven bewaard, ook bij een nieuw spel'],
+  ['fotos', "Foto's", 'Fotomodus en je galerij'],
   ...(FLAGS.coop ? [['samen', 'Samen spelen', 'Iemand uitnodigen of aansluiten']] : []),
   ['settings', 'Instellingen', 'Wijzigingen worden meteen bewaard'],
   ['controls', 'Besturing', 'Alle toetsen, per situatie'],
   ['streken', 'Cheats', 'Een beetje vals spelen'],
 ];
 // the rail's three groups: playing, collected, system
-const RAIL_GROUPS = [['overzicht', 'todo', 'map', 'telefoon'], ['verhaal', 'spullen', 'garage', 'prestaties', ...(FLAGS.coop ? ['samen'] : [])], ['settings', 'controls', 'streken']];
+const RAIL_GROUPS = [['overzicht', 'todo', 'map', 'telefoon'], ['verhaal', 'spullen', 'garage', 'prestaties', 'fotos', ...(FLAGS.coop ? ['samen'] : [])], ['settings', 'controls', 'streken']];
 const PRESTART_SECTIONS = ['settings', 'controls'];
 const SUBTABS = {
   todo: [['verhaal', 'Verhaal'], ['alles', 'Alles'], ['dichtbij', 'Dichtbij']],
@@ -226,6 +229,7 @@ const HINTS = {
   spullen: [[['↑', '↓'], 'kiezen'], [['Enter'], 'gebruiken'], [['Esc'], BACK, 'back']],
   garage: [[['↑', '↓'], 'kiezen'], [['Enter'], 'laten afleveren'], [['Q', 'E'], 'soort'], [['Esc'], BACK, 'back']],
   prestaties: [[['↑', '↓'], 'kiezen'], [['Enter'], 'openen'], [['Q', 'E'], 'weergave'], [['Esc'], BACK, 'back']],
+  fotos: [[['F8'], 'fotomodus'], [['Esc'], BACK, 'back']],
   streken: [[['↑', '↓'], 'kiezen'], [['Enter'], 'aan of uit'], [['Esc'], BACK, 'back']],
   settings: [[['↑', '↓'], 'kiezen'], [['←', '→'], 'wijzigen'], [['Q', 'E'], 'tabblad'], [['Esc'], BACK, 'back']],
   controls: [[['↑', '↓'], 'kiezen'], [['Enter'], 'toets wijzigen'], [['Q', 'E'], 'onderdeel'], [['Esc'], BACK, 'back']],
@@ -478,6 +482,7 @@ export function initPauseMenu(w) {
             <div class="m-main pm-vbody"><div data-of="verhaal" data-sub="personages" class="pm-vsub"></div><div data-of="verhaal" data-sub="aanwijzingen" class="pm-vsub" hidden></div></div>
           </div></section>
           <section data-panel="prestaties" class="pm-panel pm-col" hidden><div class="pm-inner pm-ach"></div></section>
+          <section data-panel="fotos" class="pm-panel pm-col" hidden><div class="pm-inner pm-fotos"></div></section>
           <section data-panel="streken" class="pm-panel pm-col" hidden><div class="pm-inner pm-streken"></div></section>
           <section data-panel="samen" class="pm-panel pm-col" hidden><div class="pm-inner pm-samen"></div></section>
           <section data-panel="settings" class="pm-panel pm-col pm-tabbed" hidden><div class="pm-inner pm-settings">${settingsHtml()}</div></section>
@@ -491,7 +496,7 @@ export function initPauseMenu(w) {
                 <p class="m-note pm-cempty" hidden>Niks gevonden. Probeer een ander woord of een toets.</p>
               </div></div>
             </div>
-            <div data-of="controls" data-sub="hulp" class="pm-csub" hidden><div class="m-main"><div class="m-list pm-clist"><div class="pm-cgrid">${helpHtml((t) => glyphHtml(t), esc)}</div></div></div></div>
+            <div data-of="controls" data-sub="hulp" class="pm-csub" hidden><div class="m-main"><div class="m-list pm-clist"><div class="pm-cgrid"><section class="pm-cgroup pm-help" data-help="oefenronde"><h3>Oefenronde</h3><p class="pm-hline">Zeven korte stappen: lopen, rennen, de kaart, in- en uitstappen en het menu. Zonder missie en zonder gevolgen.</p><button type="button" class="m-bt" data-practice-start>Oefenen</button></section>${helpHtml((t) => glyphHtml(t), esc)}</div></div></div></div>
             <div data-of="controls" data-sub="toetsen" class="pm-binds pm-csub m-main" hidden></div>
             <div data-of="controls" data-sub="knoppen" class="pm-binds pm-csub m-main" hidden></div>
           </div></section>
@@ -508,6 +513,7 @@ export function initPauseMenu(w) {
   for (const type of ['mousedown', 'mouseup', 'wheel']) root.addEventListener(type, (e) => e.stopPropagation());
 
   root.addEventListener('click', (e) => {
+    if (e.target.closest('[data-practice-start]')) { setOpen(false); window.dispatchEvent(new CustomEvent('gde-oefenronde')); return; }
     const go = e.target.closest('[data-goto]');
     if (go) return enterSection(go.dataset.goto);
     const hint = e.target.closest('[data-hint]');
@@ -540,6 +546,7 @@ export function initPauseMenu(w) {
     if (gf) return garageFind(gf.dataset.garageFind);
     const gs = e.target.closest('[data-garage-select]');
     if (gs) return selectGarageVehicle(garageEl(), gs.dataset.garageSelect);
+    if (tab === 'fotos' && fotoClick(e, world, root.querySelector('[data-panel="fotos"] .pm-inner'), { close: () => closePauseMenu() })) return;
     if (tab === 'verhaal' && verhaalClick(e, activePanel())) return;
     if (tab === 'streken' && cheatsClick(e, world, cheatsApi)) return;
     const action = e.target.closest('[data-action]');
@@ -1443,6 +1450,7 @@ function showTab(name, how) {
   if (name === 'garage') { renderGaragePanel(garageEl(), world); syncSheetSub(); }
   if (name === 'verhaal') { showSubtab('verhaal', pref.sub.verhaal || 'personages'); renderVerhaalPanel(); }
   if (name === 'streken') { if (prev !== 'streken') resetCheatsPanel(); renderCheats(); }
+  if (name === 'fotos') renderFotoPanel(root.querySelector('[data-panel="fotos"] .pm-inner'));
   if (name === 'samen') renderSamenPanel(root.querySelector('[data-panel="samen"] .pm-inner'), world);
   if (name === 'prestaties') { renderAchievementsPanel(root.querySelector('[data-panel="prestaties"] .pm-inner')); syncSheetSub(); }
   if (name === 'controls') { const q = root.querySelector('[data-controls-search]'); q.value = ''; filterControls(''); showSubtab('controls', pref.sub.controls || 'toetsen'); bindMsg = ''; renderBinds(); }

@@ -1,0 +1,13 @@
+{
+  "name": "GDE Groningen – Zomer vol misdaad",
+  "short_name": "GDE Groningen",
+  "lang": "nl",
+  "start_url": "./",
+  "display": "fullscreen",
+  "background_color": "#0c140e",
+  "theme_color": "#0c140e",
+  "icons": [
+    { "src": "img/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "img/icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

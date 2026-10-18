@@ -231,6 +231,8 @@ export const ACHIEVEMENTS = [
   { id: 'slapen_5', cat: 'sociaal', title: 'Goed uitgerust', desc: 'Slaap vijf keer in je eigen bed', stat: 'slept', goal: 5 },
   { id: 'hengel_5', cat: 'verkennen', title: 'Geduldige visser', desc: 'Hengel vijf rondes in Meerstad', stat: 'hengelSessions', goal: 5 },
   { id: 'skate_10', cat: 'verkennen', title: 'Skatepark-vaste', desc: 'Skate tien rondes in het Stadspark', stat: 'skateRuns', goal: 10 },
+  { id: 'drift_5000', cat: 'rijden', title: 'Rookwolk', desc: 'Haal 5000 punten in één driftronde', hidden: true },
+  { id: 'trein_meerijden_5', cat: 'spoor', title: 'Raampje open', desc: 'Kijk vijf treinritten helemaal uit zonder over te slaan', stat: 'trainRidesWatched', goal: 5 },
   { id: 'heli_10', cat: 'verkennen', title: 'Piloot van Grunn', desc: 'Maak tien helikoptervluchten', stat: 'heliRuns', goal: 10 },
 ];
 const BY_ID = new Map(ACHIEVEMENTS.map((a) => [a.id, a]));

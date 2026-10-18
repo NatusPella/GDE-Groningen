@@ -10,7 +10,7 @@ const deg = (d) => (d * Math.PI) / 180;
 // bootsoorten
 for (const [id, k] of Object.entries(Z.BOOT_SOORTEN)) {
   check(`${id}: velden aanwezig`, k.kind === id && k.len > 0 && k.wid > 0 && k.maxSpeed > 0 && k.accel > 0 && k.turnRate > 0 && ['zeil', 'riemen', 'motor'].includes(k.aandrijving));
-  check(`${id}: niet al in boattypes`, !BOAT_KINDS[id]);
+  check(`${id}: in boattypes alleen voor roei- en zeilboot (speedboot staat in de winkel)`, id === 'speedboot' ? !BOAT_KINDS[id] : !!BOAT_KINDS[id] && BOAT_KINDS[id].soort === id);
 }
 check('speedboot is het snelst, roeiboot het traagst', Z.BOOT_SOORTEN.speedboot.maxSpeed > Z.BOOT_SOORTEN.zeilboot.maxSpeed && Z.BOOT_SOORTEN.zeilboot.maxSpeed > Z.BOOT_SOORTEN.roeiboot.maxSpeed);
 

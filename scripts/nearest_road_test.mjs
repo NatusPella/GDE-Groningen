@@ -15,5 +15,10 @@ q = nearestOnRoads(map, 30, 4, 60, (r) => r.cat !== 'foot');
 ok(q && q.road.name === 'Aweg', 'the filter skips the path');
 ok(nearestOnRoads(map, 30, 400, 20) === null, 'nothing in reach: null');
 ok(nearestOnRoads(map, 30, 4, 40, (r) => r.name === 'Bweg').y === 10, 'filter by name');
+// the list scan under it, as the tile generator uses it: segment, t and the unit direction
+const { nearestOnRoadList } = await import('../game/js/util.js');
+const L = nearestOnRoadList(roads, 30, 4);
+ok(L && L.road.name === 'Pad' && L.i === 0 && Math.abs(L.t - 0.3) < 1e-9 && L.ux === 1 && L.uy === 0 && L.d === 2 && L.d2 === 4, 'list scan: road, segment, t, direction and distance');
+ok(nearestOnRoadList([], 0, 0) === null && nearestOnRoadList(roads, 30, 4, () => false) === null, 'list scan: nothing: null');
 console.log(`nearest_road: ${n} checks, ${fails} failed`);
 process.exit(fails ? 1 : 0);

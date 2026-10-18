@@ -32,4 +32,11 @@ t('kapotte of nieuwere data valt terug op leeg; vol opslag gooit niet', () => {
   ls.setItem(KEYS.coopSession, JSON.stringify({ v: 99, laatsteCode: 'K3J9D-8F2MN' })); assert.equal(S.readSession(ls).laatsteCode, '');
   assert.equal(S.writeSession({ setItem() { throw new Error('vol'); } }, S.newSession()), false);
 });
+t('eigen voortgang van een gast: verdiend geld erbij in zijn eigen save, de rest blijft', () => {
+  const d = { v: 9, money: 40, moneyBackup: 40, story: { done: ['H1'] } };
+  const r = S.applyGuestEarnings(d, 250.7);
+  assert.equal(r.money, 290); assert.equal(r.moneyBackup, 290); assert.deepEqual(r.story, d.story); assert.equal(d.money, 40, 'invoer niet aangepast');
+  assert.equal(S.applyGuestEarnings(d, 0), null); assert.equal(S.applyGuestEarnings(d, -5), null); assert.equal(S.applyGuestEarnings(null, 5), null);
+  assert.equal(S.applyGuestEarnings({ money: null }, 10).money, 10);
+});
 console.log(`coopsave_test: ${n}/${n} ok`);

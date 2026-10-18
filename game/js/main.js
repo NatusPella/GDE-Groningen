@@ -45,6 +45,7 @@ import { initStory, updateStory, currentStep } from './story.js';
 import { initGoal, updateGoal } from './goal.js';
 import { updateOnboarding } from './onboarding.js';
 import { updateContextHints } from './contexthints.js';
+import { updatePractice } from './practice.js';
 import { initMotion } from './motion.js';
 import { initHud, updateHud } from './hud_panel.js';
 import { initGarages, initCountryGarages, updateGarages, tryGarageInteract } from './garages.js';
@@ -68,6 +69,8 @@ import { initStoryContact, updateStoryContact } from './storycontact.js';
 import { initTheme } from './theme.js';
 import { initTrafficLights, updateTrafficLights, trafficSignalsNear, trafficLightPhaseFor } from './trafficlights.js';
 import { initRailway, updateRailway, setRailExtraWorld, getTrains, getRoutes, routePoint } from './railway.js';
+import { updateZeilvaren } from './zeilvaren.js';
+import { updateEvenementen } from './evenementenlive.js';
 import { updateStationLife } from './stationlife.js';
 import { createBoard as createStationBoard } from './minigamekit.js';
 import { applyCityRoutes, loadLandData } from './corridorrail.js';
@@ -81,6 +84,7 @@ import { init3D, update3D, resize3D, getScene, getRenderer, setMenuCover, MENU_F
 import { checkFrame } from './blackframe.js';
 import { noteFrame, hideAdvice, classifyGpu, readGpu, dynamicScale, cpuLevel } from './gfxprofile.js';
 import { updateStreetSigns } from './streetsigns.js';
+import { updatePhotoMode, wireFotoKey } from './fotomodusui.js';
 import { initPauseMenu, isPauseMenuOpen, openPauseMenu, pauseMenuCover } from './pausemenu.js';
 import { initDayNight, updateDayNight } from './daynight.js';
 import { initCalendar, updateCalendar, today as calendarToday } from './calendarday.js';
@@ -135,6 +139,7 @@ import { planeKind } from './planeflight.js';
 import { busBoardKind } from './busboard3d.js';
 import { loadBusLines } from './busroutes.js';
 import { setBusLines } from './vehicle.js';
+import { stapSlaOver } from './simlagen.js';
 import { scaledTarget, simLevel, nextSimFrame, farAIDist, skipFar, takeDt, keepVehicle } from './simload.js';
 import { getSettings } from './settings.js';
 import { MODS } from './cheatmods.js';
@@ -470,6 +475,7 @@ async function boot() {
   // a benchmark started from a game: its result waits in Instellingen > Beeld
   if (world.openSettingsOnStart) { openPauseMenu('settings', { sub: world.openSettingsOnStart }); world.openSettingsOnStart = null; }
 
+  wireFotoKey(world, () => !isMapOpen() && !isPauseMenuOpen() && !isShopOpen() && !isCinematicActive() && !world.pigeonMode);
   let last = performance.now();
   let menuDt = 0;
   let trafficTimer = 0;
@@ -527,6 +533,7 @@ async function boot() {
     updateNarrative();
     updateBanter(world.paused ? 0 : gameDt, world);
     updateStoryContact(world.paused ? 0 : dt, world);
+    updatePractice(world.paused ? 0 : dt, world);
     probe.mark('audio');
     updateStreetSigns(dt, world, getScene());
     const animDt = world.paused ? 0 : gameDt;
@@ -564,6 +571,7 @@ async function boot() {
       update3D(Math.min(0.1, menuDt), world);
       menuDt = 0;
     }
+    updatePhotoMode(dt, world);
     updateHud(dt, world);
     // a long jump (fast travel, teleport): the load screen while the city streams in
     watchJumps(world, { swallow: world.pigeonMode || !!world.pendingRespawn || isCinematicActive() || sinceCinematic() < 2 || !!world.cameraOverride, hold: world.paused && !world.uiPaused });
@@ -640,7 +648,7 @@ async function boot() {
     probe.mark('player');
 
     updateTrafficLights(dt, world);
-    nextSimFrame();
+    const frameNoSim = nextSimFrame();
     const farAI = farAIDist();
     for (let i = 0; i < world.vehicles.length; i++) {
       const v = world.vehicles[i];
@@ -648,6 +656,11 @@ async function boot() {
       if (v.driver === 'player' || v.isBoat || (v.isPolice && !v.disabled && !(v.hijacked && !v.driver))) continue;
       // far ordinary traffic thinks less often on a CPU-bound machine (simload.js)
       if (farAI < Infinity && !keepVehicle(v) && skipFar(v, i, Math.abs(v.x - player.x) + Math.abs(v.y - player.y), dt)) continue;
+      // simlagen (#18): gewoon verkeer op middenafstand denkt om de paar frames, met opgespaarde dt
+      if (FLAGS.simlagen && !v.parked && !keepVehicle(v)) {
+        const dd = Math.hypot(v.x - player.x, v.y - player.y);
+        if (dd > 150 && stapSlaOver('auto', dd, i, frameNoSim)) { v._simDt = (v._simDt || 0) + dt; continue; }
+      }
       const vdt = takeDt(v, dt);
       updateTrafficAI(v, vdt, map, world, Math.random);
       resolveVehicleBuildingCollision(v, map, vdt);
@@ -664,6 +677,8 @@ async function boot() {
     resolveVehicleVehicleCollisions(world.vehicles, world);
     tickBurningVehicles(world, dt);
     updateRailway(dt, world);
+    updateEvenementen(dt, world, calendarToday(world));
+    updateZeilvaren(dt, world, calendarToday(world));
     updateStationLife(dt, world, { routes: getRoutes(), point: routePoint, day: calendarToday(world), createBoard: createStationBoard, driving: getTrains().some((t) => t.state === 'player') });
     updateMovableBridges(dt, world);
     // a ship against a bridge deck: the crash sound of a car contact, by how hard the deck was hit (audio.js updateContactAudio)

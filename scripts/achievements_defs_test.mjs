@@ -15,7 +15,7 @@ for (const [, id, cat] of ids) {
   const n = iconName({ id, cat });
   ok(ICON_PATHS[n], `${id}: pictogram ${n}`);
 }
-for (const id of ['coop_uur', 'reuzenrad_1', 'varen_5', 'reizen_25', 'kart_5']) ok(ids.some((m) => m[1] === id), 'nieuw: ' + id);
+for (const id of ['coop_uur', 'reuzenrad_1', 'varen_5', 'reizen_25', 'kart_5', 'drift_5000', 'trein_meerijden_5']) ok(ids.some((m) => m[1] === id), 'nieuw: ' + id);
 ok(iconName({ id: 'x', cat: 'rijden', hidden: true }) === 'vraag', 'verborgen = vraagteken');
 ok(iconSvg({ id: 'coop_uur', cat: 'sociaal' }).includes('<path'), 'svg');
 for (const m of src.matchAll(/id: '(?:coop|reuzenrad|varen)[a-z0-9_]*'[^}]*desc: '([^']*)'/g)) ok(!/[A-Z]{3,}\b(?!-)/.test(m[1].replace(/NS|UMCG/g, '')), 'tekst: ' + m[1]);
