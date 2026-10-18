@@ -12,7 +12,7 @@ import { buildVehicleMesh } from './models3d_vehicles.js';
 import { flashScreen } from './postfx3d.js';
 import { chash } from './countryfield.js';
 import { WATER_Y } from './util.js';
-import { buildingAt, tilesIn, withTiles, waterGap } from './tileplace.js';
+import { buildingAt, tilesIn, withTiles, waterGap, roadNear } from './tileplace.js';
 import { findOpenSpot, openGround, waterNear, shoreFrom } from './ommelandplace.js';
 import { buildProp, disposeProp, animateProp, eierbalMesh, personMesh } from './ommelandprops3d.js';
 import { speak, duoSpeaker } from './ommelandtalk.js';
@@ -85,7 +85,22 @@ function shoreCandidate(map, st, depth, rMax) {
   return sh ? { w, sh } : null;
 }
 
-function shoreSpot(map, st, depth, rMax) {
+// The landing stage of the jetty prop (ommelandprops3d.js jetty) runs 8 m out from its spot, 2 m wide: no road,
+// quay path or building under it, and its far end over water (issue #124: stages stood in the road)
+export function stageClear(map, x, y, a) {
+  const c = Math.cos(a), s = Math.sin(a);
+  for (let d = 1; d <= 8.4; d += 0.7) {
+    for (const z of [-1, 0, 1]) {
+      const px = x + c * d - s * z, py = y + s * d + c * z;
+      if (buildingAt(map, px, py, 0.3)) return false;
+      const r = roadNear(map, px, py, 1);
+      if (r && r.d < 0.3) return false;
+    }
+  }
+  return waterGap(map, x + c * 7.4, y + s * 7.4, 6) > 0.5 && waterGap(map, x + c * 8, y + s * 8, 6) > 0.5;
+}
+
+function shoreSpot(map, st, depth, rMax, stage = false) {
   const c = shoreCandidate(map, st, depth, rMax);
   if (!c) return null;
   const { w, sh } = c;
@@ -93,10 +108,10 @@ function shoreSpot(map, st, depth, rMax) {
   const a = Math.atan2(-sh.uy, -sh.ux);
   for (const back of [0, 2, 4, 6, 9]) {
     const x = sh.x + sh.ux * back, y = sh.y + sh.uy * back;
-    if (openGround(map, x, y, { r: 1.5, road: 0.5 })) return { x, y, a, water: w };
+    if (openGround(map, x, y, { r: 1.5, road: 0.5 }) && (!stage || stageClear(map, x, y, a))) return { x, y, a, water: w };
   }
   // a road or a quay along the water: the nearest open ground within 16 m of it, looking at the water
-  const q = findOpenSpot(map, sh.x, sh.y, { rMin: 3, rMax: 36, step: 3, opts: { r: 1.5, road: 0.5 }, test: (px, py) => { const g = waterGap(map, px, py, 20); return g < -2 && g > -16; } });
+  const q = findOpenSpot(map, sh.x, sh.y, { rMin: 3, rMax: 36, step: 3, opts: { r: 1.5, road: 0.5 }, test: (px, py) => { const g = waterGap(map, px, py, 20); return g < -2 && g > -16 && (!stage || stageClear(map, px, py, Math.atan2(w.y - py, w.x - px))); } });
   return q ? { x: q.x, y: q.y, a: Math.atan2(w.y - q.y, w.x - q.x), water: w } : null;
 }
 
@@ -107,7 +122,7 @@ function spotFor(map, st, kind) {
   const facing = (q) => (q ? { x: q.x, y: q.y, a: Math.atan2(st.y - q.y, st.x - q.x) } : null);
   switch (kind) {
     case 'tennis': return face(around(45, 260, 5, ao - 0.5, 1.6, (x, y, a) => [[11, 6], [-11, 6], [11, -6], [-11, -6], [0, 7]].every(([u, v]) => openGround(map, x + u * cosA(a) - v * sinA(a), y + u * sinA(a) + v * cosA(a), { r: 1 }))));
-    case 'boot': return shoreSpot(map, st, ...SHORE.boot);
+    case 'boot': return shoreSpot(map, st, ...SHORE.boot, true);
     case 'strand': return shoreSpot(map, st, ...SHORE.strand);
     case 'molen': return facing(around(60, 280, 6.5, ao - 0.4));
     case 'toren': return face(around(45, 260, 5, ao - 0.4, 1.6, (x, y, a) => openGround(map, x + cosA(a) * 12, y + sinA(a) * 12, { r: 1.5 }) && openGround(map, x + cosA(a) * 22, y + sinA(a) * 22, { r: 1 })));

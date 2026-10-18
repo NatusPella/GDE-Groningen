@@ -101,6 +101,17 @@ function wayIndex(roads, rails) {
   };
 }
 
+// A jetty or pier mapped as a building: long and narrow (under 4 m wide, over 8 m long). It stands
+// in the water on purpose; it must not lie over a road.
+export function isLandingStage(P) {
+  let L = 0, A = 0;
+  for (let i = 0; i < P.length - 1; i++) {
+    L = Math.max(L, Math.hypot(P[i + 1][0] - P[i][0], P[i + 1][1] - P[i][1]));
+    A += P[i][0] * P[i + 1][1] - P[i + 1][0] * P[i][1];
+  }
+  return L > 8 && Math.abs(A / 2) / L < 4;
+}
+
 // the fraction of a footprint's samples that lie in water
 export function wetFraction(pts, wet) {
   const n = pts.length - (pts[0][0] === pts[pts.length - 1][0] && pts[0][1] === pts[pts.length - 1][1] ? 1 : 0);
@@ -144,10 +155,16 @@ export function lineOver(pts, wet, way) {
 export function auditPlacement(data) {
   const wet = waterIndex(data.water || []);
   const way = wayIndex(data.roads, data.rails);
-  const rep = { buildings: (data.buildings || []).length, buildingsInWater: [], mapped: { lines: 0, over: [] }, placed: { lines: 0, over: [] } };
+  const rep = { buildings: (data.buildings || []).length, buildingsInWater: [], stagesOnRoad: [], mapped: { lines: 0, over: [] }, placed: { lines: 0, over: [] } };
   for (const b of data.buildings || []) {
     if (!b.pts || b.pts.length < 4 || b.type === 'houseboat') continue;
     const bb = bounds(b.pts);
+    // a landing stage (long, narrow, partly in water) over a carriageway: a metre grid over its footprint
+    if (isLandingStage(b.pts) && wetFraction(b.pts, wet) >= 0.1) {
+      let onRoad = 0;
+      for (let x = bb[0]; x <= bb[2]; x++) for (let y = bb[1]; y <= bb[3]; y++) if (inRing(x, y, b.pts) && way(x, y) === 'road') onRoad++;
+      if (onRoad >= 3) rep.stagesOnRoad.push({ at: [Math.round((bb[0] + bb[2]) / 2), Math.round((bb[1] + bb[3]) / 2)], m2: onRoad, name: b.name || '' });
+    }
     const f = wetFraction(b.pts, wet);
     if (f >= WET_FRAC) rep.buildingsInWater.push({ at: [Math.round((bb[0] + bb[2]) / 2), Math.round((bb[1] + bb[3]) / 2)], frac: Math.round(f * 100) / 100, type: b.type || '', name: b.name || '' });
   }
@@ -166,12 +183,14 @@ export function auditPlacement(data) {
 
 export const problems = (rep, world = false) => {
   const max = world ? Math.floor(rep.buildings * THRESHOLDS.worldRatio) : THRESHOLDS.city;
-  return Math.max(0, rep.buildingsInWater.length - max) + Math.max(0, rep.placed.over.length - THRESHOLDS.placedOver);
+  return rep.stagesOnRoad.length + Math.max(0, rep.buildingsInWater.length - max) + Math.max(0, rep.placed.over.length - THRESHOLDS.placedOver);
 };
 
 export function printAudit(rep, limit = 8) {
   console.log(`buildings in water (>= ${Math.round(WET_FRAC * 100)} % of the footprint): ${rep.buildingsInWater.length} of ${rep.buildings}`);
   for (const q of rep.buildingsInWater.slice(0, limit)) console.log(`  ${q.type || 'building'}${q.name ? ' ' + q.name : ''} ${Math.round(q.frac * 100)} % at ${q.at}`);
+  console.log(`landing stages (long narrow buildings) over a carriageway: ${rep.stagesOnRoad.length}`);
+  for (const q of rep.stagesOnRoad.slice(0, limit)) console.log(`  ${q.name || 'stage'} ${q.m2} m2 on a road at ${q.at}`);
   for (const name of ['mapped', 'placed']) {
     const r = rep[name];
     console.log(`${name} fences and hedges over a way or water (>= ${LINE_MIN_M} m): ${r.over.length} of ${r.lines}${name === 'mapped' ? ' (as OSM draws them)' : ''}`);

@@ -25,7 +25,7 @@ import { SpatialGrid } from '../../game/js/spatialgrid.js';
 import { clipWaysInBuildings } from '../../game/js/passages.js';
 import { polygonBounds } from '../../game/js/util.js';
 import { clearFootprints } from './building_clearance.mjs';
-import { waterIndex, wetFraction, WET_FRAC } from './placement_audit.mjs';
+import { waterIndex, wetFraction, isLandingStage as landingStage, WET_FRAC } from './placement_audit.mjs';
 
 const MIN_HW = 1.5; // a trimmed waterway stays 3 m wide
 const BANK = 0.6; // and keeps this far from a footprint
@@ -45,6 +45,7 @@ const inRing = (x, y, P) => {
 
 const MAX_SLIDE = 12;
 
+
 // Footprints in the water slid the shortest way onto dry land (12 m at most, steps of 0.5 m
 // over 16 directions), clear of other footprints; none is dropped. Houseboats and landmarks stay.
 // -> the number moved
@@ -59,7 +60,7 @@ export function slideOutOfWater(feats) {
   for (const b of blds) grid.insert(b, boundsOf(b));
   let moved = 0;
   for (const b of blds) {
-    if (b.type === 'houseboat' || b.landmark || b.landmarkKind || b.landmarkPart || b.helipad || b.parts) continue;
+    if (b.type === 'houseboat' || b.landmark || b.landmarkKind || b.landmarkPart || b.helipad || b.parts || landingStage(b.pts)) continue;
     if (wetFraction(b.pts, wet) < WET_FRAC) continue;
     const q = boundsOf(b);
     const others = grid.query(q[0] - MAX_SLIDE, q[1] - MAX_SLIDE, q[2] + MAX_SLIDE, q[3] + MAX_SLIDE).filter((o) => o !== b);
