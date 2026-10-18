@@ -102,7 +102,7 @@ function garageTalk(w) {
     line = 'Je Escapade staat nog netjes waar je ’m liet. Zal ik ’m op je kaart zetten?';
     actions.push({ label: 'Op kaart zetten', primary: true, run: () => { setUserWaypoint(hero.x, hero.y, 'Jouw auto'); flashAndClose('Je auto staat op de kaart'); } });
   } else {
-    line = `Total loss? Wéér? Voor €${GARAGE_PRICE} zet ik een nieuwe bij je neer.`;
+    line = `Afgeschreven? Wéér? Voor €${GARAGE_PRICE} zet ik een nieuwe bij je neer.`;
     actions.push({
       label: `Bezorgen (€${GARAGE_PRICE})`, primary: true,
       run: () => {

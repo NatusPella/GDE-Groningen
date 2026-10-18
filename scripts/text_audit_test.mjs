@@ -1,7 +1,7 @@
 // Test for scripts/text_audit.mjs: the word lists catch what they should, ordinary Dutch passes,
 // the allowlist has no stale entries, and the game's own player text has no open findings.
 //   node scripts/text_audit_test.mjs
-import { checkText, isProse, jsStrings, jargonIn, audit, voicedLookup, ALLOW } from './text_audit.mjs';
+import { checkText, isProse, jsStrings, audit, voicedLookup, ALLOW } from './text_audit.mjs';
 
 let failed = 0;
 const ok = (cond, msg) => { if (!cond) { failed++; console.log('FAIL ' + msg); } };
@@ -45,7 +45,10 @@ ok(has('Oudjoarsknaller in november', 'winter'), 'winterlijst: oudjoar en novemb
 ok(has('Entschuldigung, wir haben das nicht gesehen', 'duits'), 'Duits');
 ok(has('Bonjour, merci pour tout', 'frans'), 'Frans');
 ok(!has('Wie is die man? Hier pas je op.', 'duits') && !has('Wie is die man? Hier pas je op.', 'frans'), 'Nederlandse woorden geen vals alarm');
-ok(jargonIn('Rond je run af met een combo').length === 2, 'jargonlijst');
+ok(has('Je save is weg', 'anglicisme') && has('Vraag de host om een code', 'anglicisme') && has('Rond je run af met een combo', 'anglicisme'), 'anglicisme: save, host, run, combo');
+ok(has('Bij het laatste checkpoint en total loss', 'anglicisme') && has('Mooie ghosts met tricks', 'anglicisme'), 'anglicisme: checkpoint, total loss, ghosts, tricks');
+ok(!has('Je spelstand is bewaard; de gastheer wacht, hatchback of sedan', 'anglicisme'), 'Nederlands en ingeburgerd: geen vals alarm');
+ok(!has('Hoster Hostel, de runderen en het slot', 'anglicisme') && !has('<button data-action="save">Opslaan</button> .pm-rail-acts [data-boost]', 'anglicisme'), 'woorddelen en markup geven geen vals alarm');
 
 // the allowlist: every entry has a reason, and still matches something
 const findings = audit({ voiced: await voicedLookup() });

@@ -568,7 +568,7 @@ function collide(w, cars) {
         g.hits++;
         { const q = toW(me.u, me.v); pushAudioEvent(w, { kind: 'fx', name: 'kermis_ding', x: q.x, y: q.y }); }
         g.best = Math.max(g.best, g.combo);
-        g.flash = { text: `${flank === 'flank' ? 'In de flank' : flank === 'kont' ? 'Van achteren' : 'Kop op kop'}! +${pts}${g.combo > 1 ? ` · combo ${g.combo}` : ''}`, t: 1.3 };
+        g.flash = { text: `${flank === 'flank' ? 'In de flank' : flank === 'kont' ? 'Van achteren' : 'Kop op kop'}! +${pts}${g.combo > 1 ? ` · reeks ${g.combo}` : ''}`, t: 1.3 };
         w.lastImpact = { strength: Math.min(0.5, 0.12 + into * 0.07), time: w.time, x: w.player.x, y: w.player.y };
         botSay(w, other, BOTS_BUMPED);
       }
@@ -664,7 +664,7 @@ function end(w, { quit = false } = {}) {
   if (medal >= 3) unlockAchievement(w, 'botsauto_goud');
   const prize = (PRIZE[medal] || 0) * (g.bonus ? 2 : 1);
   if (prize) w.money += prize;
-  const stats = [['Punten', String(g.score)], ['Botsingen', String(g.hits)], ['Langste combo', `${g.best}`]];
+  const stats = [['Punten', String(g.score)], ['Botsingen', String(g.hits)], ['Langste reeks', `${g.best}`]];
   if (medal) stats.push(['Medaille', MEDALS[medal]]);
   if (rec && rec.newBest) stats.push(['Record', 'Nieuw!']);
   showBanner({ kind: medal ? 'pass' : 'fail', title: medal ? 'KONING VAN DE BOTSAUTO\'S' : 'NOG EEN RONDJE?', reason: g.bonus && prize ? 'Kermisavond: dubbel prijzengeld' : '', reward: prize, stats });
@@ -789,7 +789,7 @@ function updateHud() {
   if (!g || !hud) return;
   const k = (t) => `<span class="hud-key">${t}</span>`;
   const left = g.phase === 'ride' ? Math.max(0, Math.ceil(g.phaseT)) : g.phase === 'intro' ? RIDE_S : 0;
-  const row = `<span>Tijd <b>${Math.floor(left / 60)}:${String(left % 60).padStart(2, '0')}</b></span><span>Punten <b>${g.score}</b></span><span>Combo <b>${g.phase === 'ride' && g.t - g.comboT < 2.2 ? g.combo : 0}</b></span>`;
+  const row = `<span>Tijd <b>${Math.floor(left / 60)}:${String(left % 60).padStart(2, '0')}</b></span><span>Punten <b>${g.score}</b></span><span>Reeks <b>${g.phase === 'ride' && g.t - g.comboT < 2.2 ? g.combo : 0}</b></span>`;
   const flash = g.flash ? g.flash.text : g.phase === 'intro' ? 'Wacht op de bel...' : g.phase === 'outro' ? 'Afstappen!' : '';
   const help = `${k('W')}${k('S')} gas / achteruit · ${k('A')}${k('D')} sturen · ${k('BACKSPACE')} uitstappen`;
   const key = [row, flash, help].join('|');

@@ -1056,7 +1056,7 @@ function drawDynamicMarkers(ctx, world) {
     const wps = m.phase === 'active' ? m.remainingWaypoints || [] : [];
     if (wps.length) {
       drawRoute(ctx, [m.marker, ...wps].map((w) => toScreen(w.x, w.y)), ICON);
-      for (const w of wps) icon(null, 'waypoint', w.x, w.y, 'Checkpoint');
+      for (const w of wps) icon(null, 'waypoint', w.x, w.y, 'Controlepunt');
     }
     icon(null, missionMapKind(m.index, m.phase === 'active'), m.marker.x, m.marker.y,
       m.label || 'Missie', {}, m.phase === 'active' ? 'Missiedoel' : 'Missie starten', m.phase === 'active' ? null : { todo: 'm:' + m.index });
@@ -1119,7 +1119,7 @@ function drawDynamicMarkers(ctx, world) {
   const ct = !job && world.challengeTarget;
   if (ct) {
     if (ct.path.length) drawRoute(ctx, [...ct.path, ct].map((w) => toScreen(w.x, w.y)), ICON);
-    icon(null, 'sj-target', ct.x, ct.y, 'Checkpoint', {}, 'Uitdaging');
+    icon(null, 'sj-target', ct.x, ct.y, 'Controlepunt', {}, 'Uitdaging');
   }
   for (const sj of getSideJobSpotsForRender()) icon(sj.job.layer || 'bijbaan', 'sj-' + sj.job.id, sj.x, sj.y, sj.job.name, {}, `${sj.job.kicker || 'Bijbaantje'}: ${sj.job.blurb.toLowerCase()}`, { goal: { kind: 'job', id: sj.job.id, name: sj.job.name, sub: 'Bijbaantje', x: sj.x, y: sj.y }, todo: 'job:' + sj.job.id });
   for (const st of getStationsForRender()) icon('trein', 'station', st.x, st.y, st.name, {}, VILLAGES[st.name] ? `Reizen met de trein · ${VILLAGES[st.name].teaser}` : 'Reizen met de trein');

@@ -166,7 +166,7 @@ export default {
       }
       d.prevSpeed = v.speed;
     } else d.prevSpeed = null;
-    if (d.cargo <= 0) { c.fail('de lading is total loss'); return; }
+    if (d.cargo <= 0) { c.fail('de lading is verloren'); return; }
     if (Math.hypot(v.x - d.dest.x, v.y - d.dest.y) < ARRIVE_R && Math.abs(v.speed) < ARRIVE_SPEED) {
       uncouple(tr);
       const whole = d.cargo >= 100 && !d.hadJack;

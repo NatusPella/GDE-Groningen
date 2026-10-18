@@ -124,7 +124,7 @@ export function buildMissionLayer(s) {
     items.push(item('goal', s.goal, { id: 'goal', label: s.goal.name || 'Doel', sub: 'Jouw doel', focus: true, drawn: true }));
   }
   const wps = m && m.phase === 'active' ? m.waypoints || [] : [];
-  wps.filter(ok).forEach((w, i) => items.push(item('checkpoint', w, { id: 'wp' + i, label: `Checkpoint ${(m.wpIndex || 0) + i + 2}`, state: i === 0 ? 'next' : 'later', focus: i < 2, drawn: true })));
+  wps.filter(ok).forEach((w, i) => items.push(item('checkpoint', w, { id: 'wp' + i, label: `Controlepunt ${(m.wpIndex || 0) + i + 2}`, state: i === 0 ? 'next' : 'later', focus: i < 2, drawn: true })));
   if (m && ok(m.marker) && m.phase === 'active' && wps.length) lines.push(line('mission-route', 'route', [m.marker, ...wps], LINE_STYLES.route));
   (s.subgoals || []).filter((g) => ok(g) && !g.done).forEach((g, i) => items.push(item('subgoal', g, { id: 'sub' + i, label: g.label || 'Extra', sub: 'Optioneel' })));
   (s.hazards || []).filter(ok).forEach((h, i) => {
@@ -148,7 +148,7 @@ export function buildMissionLayer(s) {
     title = title || 'Kartrace';
     lines.push(line('track', 'route', k.line, LINE_STYLES.track));
     if (k.ideal && k.ideal.length > 1) lines.push(line('ideal', 'route', k.ideal, LINE_STYLES.ideal));
-    (k.checkpoints || []).filter(ok).forEach((c, i) => items.push(item('checkpoint', c, { id: 'kc' + i, label: `Checkpoint ${i + 1}`, state: i === k.nextCheckpoint ? 'next' : 'later', focus: true })));
+    (k.checkpoints || []).filter(ok).forEach((c, i) => items.push(item('checkpoint', c, { id: 'kc' + i, label: `Controlepunt ${i + 1}`, state: i === k.nextCheckpoint ? 'next' : 'later', focus: true })));
     (k.karts || []).filter((r) => ok(r) && !r.player).forEach((r, i) => items.push(item('rival', r, { id: 'rv' + i, label: r.name || 'Tegenstander', sub: r.lap ? `Ronde ${r.lap}` : 'Tegenstander', focus: true })));
     (k.cuts || []).filter(ok).forEach((c, i) => items.push(item('hazard', c, { id: 'cut' + i, label: 'Afgesneden stuk', sub: 'Tijdstraf' })));
   } else if (kind === 'achtervolging') {

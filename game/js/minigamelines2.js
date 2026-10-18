@@ -31,6 +31,6 @@ export const SKI_LINES = {
   clean: ['Schoon geland. Zo hoort het.', 'Strak. Doe dat nog een keer.'],
   fall: ['Plons! Het meer is ook maar water.', 'Ski kwijt? Gelukkig drijft hij.'],
   gate: ['Netjes om de boei.'],
-  endGood: ['Mooie run. Het meer was blij.'],
+  endGood: ['Mooie ronde. Het meer was blij.'],
   endPoor: ['Nog een keer? De boot wacht.'],
 };

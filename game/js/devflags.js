@@ -68,7 +68,7 @@ export const FLAGS = Object.freeze({
 });
 
 export const FLAG_DOCS = Object.freeze({
-  dev: 'Verhaalpaneel op F9; eigen opslag (gde-dev:), raakt de echte save niet',
+  dev: 'Verhaalpaneel op F9; eigen opslag (gde-dev:), raakt je echte spelstand niet',
   storytest: 'Geautomatiseerde verhaaltest; opslag alleen in het geheugen',
   autoplay: 'Spelbot (#186): window.__bot (playerapi.js) levert de spelstatus en neemt acties aan; vaste seed (autoplay=seed), opslag alleen in het geheugen',
   stil: 'Geen audio en geen pauze bij verborgen tabblad (testsessies)',
@@ -93,7 +93,7 @@ export const FLAG_DOCS = Object.freeze({
   simworker: 'Standaard aan; ?zonderworker zet uit. Simulatie-worker (simhost.js, #58) voor ambient voetgangers; zonder Worker draait dezelfde kern op de hoofdthread. Voertuigen en de echte AI blijven op de hoofdthread',
   gfxadvies: 'Toon het grafische advies ook als de speler al koos',
   gpu: 'Doe alsof de GPU deze renderer-tekst heeft (test van het advies)',
-  preset: 'Instellingen alleen voor deze run, bv. quality:laag,drawDistance:kort',
+  preset: 'Instellingen alleen voor deze sessie, bv. quality:laag,drawDistance:kort',
   pixeldebug: 'Nabewerking verft NaN/Inf-pixels magenta en negatieve HDR-waarden cyaan (issue #35)',
   coop: 'Lokale co-op voor twee spelers: speler 2 stuurt de metgezel (coop.js, issue #95)',
   marker: 'marker=vorm: de vaste 3D-vormen van de wereldmarker in plaats van het zachte glyph',
@@ -102,7 +102,7 @@ export const FLAG_DOCS = Object.freeze({
   hitch: 'Meet haperingen (hitchprobe)',
   simlagen: 'Standaard aan; ?zonderlagen zet uit. Verkeer en voetgangers volgens simulatielagen per streek en afstand (simlagen.js)',
   zwartcheck: 'Controleer op zwarte beelden (blackframe)',
-  testmenu: 'Testmenu op F10 met alle schakelaars en snelkoppelingen; eigen opslag (gde-dev:), raakt de echte save niet',
+  testmenu: 'Testmenu op F10 met alle schakelaars en snelkoppelingen; eigen opslag (gde-dev:), raakt je echte spelstand niet',
   sfxtest: 'Geluidstest: paneel met alle effecten, een afstandsschuif en een afspeelknop per effect; F8 verbergt het (#173)',
   brugbotsing: 'Stuurt na een paar seconden een binnenvaartschip tegen de dichtstbijzijnde brug (#9)',
   reizen: 'Reisbeats in het nieuwe verhaal: keuze Meerijden, Zelf rijden of Overslaan bij een sprong (#97); staat standaard aan, uit met zonderreizen en in de testmodi',

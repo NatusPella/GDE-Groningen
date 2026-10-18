@@ -24,8 +24,8 @@ const NEWS_CLIPS = [
   ['wanted_up_1', 'Onrust in Grunn, politie massaal op pad.'],
   ['wanted_up_2', 'Gierende sirenes in het centrum, politie zit iemand op de hielen.'],
   ['kill_up', 'Opnieuw onrust in de straten, politie tast in het duister.'],
-  ['wrecked_up_1', 'Auto total loss in het centrum, buurtbewoners verbijsterd.'],
-  ['wrecked_up_2', 'Wéér total loss in Groningen, garages wrijven in hun handen.'],
+  ['wrecked_up_1', 'Auto afgeschreven in het centrum, buurtbewoners verbijsterd.'],
+  ['wrecked_up_2', 'Wéér een auto afgeschreven in Groningen, garages wrijven in hun handen.'],
 ];
 const STORM_CLIP = ['weather_storm_start', 'Code rood, storm raast over Grunn.'];
 // a break never holds the music longer than this

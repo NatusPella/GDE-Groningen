@@ -1500,7 +1500,7 @@ function buildShots(w) {
         const got = pts * s.combo;
         s.score += got;
         stuntPop(s, t, `+${got} ${label}`);
-        if (s.combo > 1) stuntPop(s, t, `combo x${s.combo}`, 'combo');
+        if (s.combo > 1) stuntPop(s, t, `reeks x${s.combo}`, 'combo');
       };
       for (const p of s.props) {
         if (p.hit < 0 && Math.hypot(p.x - s.car.x, p.y - s.car.y) < 2.6) { p.hit = t; add(p.pts, p.kind); }
@@ -1736,7 +1736,7 @@ function buildShots(w) {
   const gH2 = asMission(anita, 'Rol de pinautomaat naar het busje · niet te hard', { label: 'H2: De pinautomaat', dur: 2.0 });
   const gH4 = asMission(pigeon, 'Kiek het museum van boven · foto 2/3', { label: 'H4: Duif boven Stad' });
   const gH5 = ride({ label: 'H5: KEI-race', road: here, at: onRoad(here), d0: 30, v: 6.5, clock: 11.5, back: 4.2, up: 1.9,
-    pack: [[bikeModel(false), 0, 1.0], [bikeModel(false), 3.5, -0.4], [bikeModel(false), 6, 1.6], [bikeModel(false), 9, 0.2], [bikeModel(false), -3, 2.0]], obj: 'KEI-race · Positie 3/6 · Checkpoint 4/9' });
+    pack: [[bikeModel(false), 0, 1.0], [bikeModel(false), 3.5, -0.4], [bikeModel(false), 6, 1.6], [bikeModel(false), 9, 0.2], [bikeModel(false), -3, 2.0]], obj: 'KEI-race · Positie 3/6 · Controlepunt 4/9' });
   const gH7 = ride({ label: 'H7: Decor naar Noorderzon', road: chaseRoad, at: onRoad(chaseRoad), d0: 60, v: 9, clock: 15.5,
     pack: [[{ ...MODELS[9], color: '#2f6a8a' }, 0, 1.8]], obj: 'Breng het decor naar Noorderzon · niets laten vallen' });
   const gH12 = ride({ label: 'H12: Fatbikes', road: poele, at: onRoad(poele), d0: 5, v: 8, clock: 16.5,

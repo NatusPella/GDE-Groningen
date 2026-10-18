@@ -131,7 +131,7 @@ export function startClient(world, transport, info, opts = {}) {
   // eigen toestand bewaren: bij vertrek komt de gast hier weer terug
   const stash = { x: p.x, y: p.y, angle: p.angle, wanted: world.wanted | 0, character: p.character, coopChar: p.coopChar, companion: world.companion ? { x: world.companion.x, y: world.companion.y, character: world.companion.character } : null, prevLocal: world.coop.local !== false };
   world.coop.local = false;
-  session.onlost = () => { if (onHold) onHold('client', session.slot, 'De verbinding met de host is weg.'); };
+  session.onlost = () => { if (onHold) onHold('client', session.slot, 'De verbinding met de gastheer is weg.'); };
   session.onevent = (b) => handleEvent(world, b, 0);
   world.coopRole = 'client';
   world.coopNet = { role: 'client', session, stash, fade, joined: false, fixed: false, route };
@@ -225,7 +225,7 @@ export function handleEvent(world, body, van = 0) {
     }
     case 'weg': // de host heeft deze speler verwijderd
       if (!n || n.role !== 'client') return false;
-      if (world.addMessage) world.addMessage('Je bent uit het spel van de host gehaald.', 4);
+      if (world.addMessage) world.addMessage('Je bent uit het spel van de gastheer gehaald.', 4);
       stopCoopNet(world);
       return true;
     default: return false;
@@ -255,7 +255,7 @@ export function setMaxPlayers(world, max) {
 // Verlaten. Gast: terug naar de eigen plek en eigen toestand, saven mag weer. Host: alleen verder; alle gasten gaan eruit.
 export function stopCoopNet(world) {
   const n = world.coopNet; if (!n) return;
-  if (n.role === 'host') { try { n.hub.announce({ k: 'weg', reden: 'host gestopt' }); n.hub.closeAll(); } catch (e) { /* al weg */ } } else { try { n.session.leave(); } catch (e) { /* al weg */ } }
+  if (n.role === 'host') { try { n.hub.announce({ k: 'weg', reden: 'gastheer gestopt' }); n.hub.closeAll(); } catch (e) { /* al weg */ } } else { try { n.session.leave(); } catch (e) { /* al weg */ } }
   world.coopNet = null;
   if (n.role === 'client' && n.stash) {
     const s = n.stash, p = world.player;

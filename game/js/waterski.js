@@ -255,7 +255,7 @@ function end(w, { quit = false } = {}) {
   const stats = [['Score', score.toLocaleString('nl-NL')], ['Boeien', `${s.gateHits}/${s.gates.length}`], ['Sprongen', String(s.jumps)], ['Gevallen', String(s.falls)]];
   if (medal) stats.push(['Medaille', MEDALS[medal]]);
   if (rec && rec.newBest) stats.push(['Record', 'Nieuw!']);
-  showBanner({ kind: medal ? 'pass' : 'fail', title: medal >= 3 ? 'KONING VAN HET MEER' : medal ? 'MOOIE RUN' : 'NAT GEWORDEN', reason: medal ? `${score.toLocaleString('nl-NL')} punten achter de boot` : 'Leun uit voor de boeien en spring over de golven voor punten', reward: 0, stats });
+  showBanner({ kind: medal ? 'pass' : 'fail', title: medal >= 3 ? 'KONING VAN HET MEER' : medal ? 'MOOIE RONDE' : 'NAT GEWORDEN', reason: medal ? `${score.toLocaleString('nl-NL')} punten achter de boot` : 'Leun uit voor de boeien en spring over de golven voor punten', reward: 0, stats });
   say(w, medal >= 2 ? 'endGood' : 'endPoor', true, true);
 }
 
@@ -282,7 +282,7 @@ function updateHud() {
   const g = game;
   if (!g || !board) return;
   const s = g.s;
-  const row = `<span>Score <b>${Math.round(s.score).toLocaleString('nl-NL')}</b></span><span>Afstand <b>${Math.round(s.dist)}/${SKI.len} m</b></span><span>Boeien <b>${s.gateHits}/${s.gates.length}</b></span><span>Combo <b>x${s.mult}</b></span><span>Valpogingen <b>${Math.max(0, SKI.tries - s.falls)}</b></span>`;
+  const row = `<span>Score <b>${Math.round(s.score).toLocaleString('nl-NL')}</b></span><span>Afstand <b>${Math.round(s.dist)}/${SKI.len} m</b></span><span>Boeien <b>${s.gateHits}/${s.gates.length}</b></span><span>Reeks <b>x${s.mult}</b></span><span>Valpogingen <b>${Math.max(0, SKI.tries - s.falls)}</b></span>`;
   const flash = g.flash ? g.flash.text : g.phase === 'intro' ? 'Houd de lijn strak...' : '';
   const help = `${key('A')}${key('D')} uitleunen (in de lucht: draaien) · ${key('SPATIE')} sprong over de golf · ${key('E')} grab · ${key('BACKSPACE')} stoppen`;
   board.set({ row, flash, bad: !!(g.flash && g.flash.bad), help });

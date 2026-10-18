@@ -379,7 +379,7 @@ function nameOf(spec, v) {
 }
 
 function statusOf(world, v, lost, kind, key) {
-  if (lost) return { key: 'lost', label: 'Total loss' };
+  if (lost) return { key: 'lost', label: 'Afgeschreven' };
   if (world.player.inVehicle === v) return { key: 'driving', label: 'Je zit erin' };
   if (!v || !world.vehicles.includes(v) || v.homeStored) return { key: 'garage', label: homeWhereLabel(key) || (kind === 'heli' ? 'Thuis op het helidek' : kind === 'boat' ? 'Thuis aan jouw steiger' : 'Thuis in de garage') };
   const d = Math.hypot(v.x - world.player.x, v.y - world.player.y);
@@ -666,7 +666,7 @@ export function locateOwnedVehicle(world, id) {
   const e = getGarageList(world).find((x) => x.id === id);
   if (!e) return { ok: false, text: 'Dat voertuig heb je niet' };
   const short = e.hero ? 'Escapade' : e.model;
-  if (e.status === 'lost') return { ok: false, text: `Je ${short} is total loss. Laat een nieuwe afleveren` };
+  if (e.status === 'lost') return { ok: false, text: `Je ${short} is afgeschreven. Laat een nieuwe afleveren` };
   if (e.status === 'garage') {
     const kind = e.spec.kind;
     const hs = kind === 'heli' || kind === 'boat' ? homeSpot(world, kind) : null;

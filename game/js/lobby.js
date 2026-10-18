@@ -1,7 +1,7 @@
 // Samen spelen (#95): het uitnodigscherm als toestandsmachine, in de stijl van
 // Watch Dogs 2: je kunt op elk moment iemand uitnodigen (host) of aansluiten met
 // een code (gast), vanuit het pauzemenu. Er is geen keuze per save of bij het
-// starten; iedereen houdt zijn eigen voortgang. De host speelt Tammo, de gast Tessa.
+// starten; iedereen houdt zijn eigen voortgang. De gastheer speelt Tammo, de gast Tessa.
 // Pure logica (geen DOM): toestand en Nederlandse teksten; lobbyui.js tekent.
 //
 // Twee routes, naast elkaar:
@@ -69,7 +69,7 @@ export function reduce(s, ev) {
     case 'invoer': { // alleen gast
       const c = classifyInput(ev.text);
       if (!c.ok) return { ...n, error: c.reason };
-      if (c.route === ROUTES.DIRECT && !s.caps.direct) return { ...n, error: 'Een adres of koppelcode van de directe route werkt alleen in de desktop-app. Vraag de host om een kamercode.' };
+      if (c.route === ROUTES.DIRECT && !s.caps.direct) return { ...n, error: 'Een adres of koppelcode van de directe route werkt alleen in de desktop-app. Vraag de gastheer om een kamercode.' };
       if (c.route === ROUTES.KAMER && !s.caps.rtc) return { ...n, error: 'Een kamercode werkt hier niet.' };
       n.route = c.route; n.invoer = c; n.step = 'toestemming'; return n;
     }
@@ -116,7 +116,7 @@ export function view(s) {
   switch (s.step) {
     case 'start':
       return V({
-        lines: ['Speel samen met een vriend in de open wereld: opdrachten, minigames en het verhaal. Iedereen houdt zijn eigen voortgang. De host speelt Tammo, de gast Tessa.'],
+        lines: ['Speel samen met een vriend in de open wereld: opdrachten, minigames en het verhaal. Iedereen houdt zijn eigen voortgang. De gastheer speelt Tammo, de gast Tessa.'],
         buttons: [{ act: 'kies-host', label: 'Iemand uitnodigen', primary: true }, { act: 'kies-gast', label: 'Code of adres invoeren' }],
       });
     case 'methode': {
@@ -146,7 +146,7 @@ export function view(s) {
     }
     case 'gast-typt':
       return V({
-        title: 'Aansluiten', lines: ['Voer de kamercode of de koppelcode van de host in. Als eerste gast speel je Tessa. Kom je er later bij, dan speel je een eigen figuur: kies er hieronder een, of laat het aan de host. Je voortgang blijft van jou.'],
+        title: 'Aansluiten', lines: ['Voer de kamercode of de koppelcode van de gastheer in. Als eerste gast speel je Tessa. Kom je er later bij, dan speel je een eigen figuur: kies er hieronder een, of laat het aan de gastheer. Je voortgang blijft van jou.'],
         input: { placeholder: 'Kamercode of GDE2-…', value: s.caps.laatsteCode || '' },
         wensen: EXTRA_CHARS.map((c) => ({ act: 'wens-' + c.id, id: c.id, naam: c.naam, kleur: c.kleur, gekozen: s.wens === c.id })),
         buttons: [{ act: 'koppel', label: 'Verder', primary: true }, { act: 'terug', label: 'Terug' }],
@@ -158,7 +158,7 @@ export function view(s) {
       const host = s.rol === ROLES.HOST;
       const lijst = s.spelers || [];
       const ik = host ? 0 : s.partner && s.partner.slot;
-      const namen = lijst.map((p) => p.naam + (p.slot === 0 ? ' (host)' : '') + (p.verbinding === 'lost' ? ' · verbinding weg' : p.verbinding === 'lag' ? ' · haperend' : ''));
+      const namen = lijst.map((p) => p.naam + (p.slot === 0 ? ' (gastheer)' : '') + (p.verbinding === 'lost' ? ' · verbinding weg' : p.verbinding === 'lag' ? ' · haperend' : ''));
       const lines = [lijst.length ? `Spelers (${lijst.length} van ${s.max}): ${namen.join(', ')}.` : `Je speelt met ${PARTNER_NAME[s.rol] || 'je medespeler'}.`];
       if (lag) lines.push('De verbinding haperde even; we wachten op de ander.');
       const tip = advies(lijst.length, host ? 'host' : 'gast'); if (tip) lines.push(tip);
@@ -176,12 +176,12 @@ export function view(s) {
     }
     case 'verbroken': {
       const host = s.rol === ROLES.HOST;
-      const wie = host ? (s.holdNaam || 'De ander') : 'De host';
+      const wie = host ? (s.holdNaam || 'De ander') : 'De gastheer';
       return V({
         title: 'Verbinding weg',
         lines: [
           `${wie} is niet meer bereikbaar. Het spel staat stil tot jullie weer verbonden zijn.`,
-          host ? `Wil je niet wachten? Dan ${s.holdNaam ? 'verwijder je ' + s.holdNaam : 'speel je alleen verder'} en gaat het spel door.` : 'Voer de code van de host opnieuw in, of stop met samen spelen; je komt terug waar je was.',
+          host ? `Wil je niet wachten? Dan ${s.holdNaam ? 'verwijder je ' + s.holdNaam : 'speel je alleen verder'} en gaat het spel door.` : 'Voer de code van de gastheer opnieuw in, of stop met samen spelen; je komt terug waar je was.',
         ],
         buttons: [{ act: 'hervat', label: 'Opnieuw verbinden', primary: true }, { act: 'verbreek', label: host ? 'Niet wachten' : 'Stoppen' }],
       });

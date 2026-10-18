@@ -17,8 +17,8 @@ const WANTED_UP = [
   'KIEKDOAR: gierende sirenes in het centrum, politie zit iemand op de hielen',
 ];
 const WRECKED_UP = [
-  'KIEKDOAR: auto total loss in het centrum, buurtbewoners verbijsterd',
-  'KIEKDOAR: wéér total loss in Groningen, garages wrijven in hun handen',
+  'KIEKDOAR: auto afgeschreven in het centrum, buurtbewoners verbijsterd',
+  'KIEKDOAR: wéér een auto afgeschreven in Groningen, garages wrijven in hun handen',
 ];
 const COPKILL_UP = [
   'KIEKDOAR: agent flink geschrokken tijdens dienst, korps in rep en roer',

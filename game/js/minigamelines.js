@@ -33,13 +33,13 @@ export const PUTT_LINES = {
 
 export const SKATE_LINES = {
   who: 'Luuk',
-  start: ['Ollie met de spatie, flips met E en F, en draaien met A en D in de lucht.', 'De rail is vrij. Houd je balans met A en D.'],
+  start: ['Ollie met de spatie, flips met E en F, en draaien met A en D in de lucht.', 'De leuning is vrij. Houd je balans met A en D.'],
   big: ['Hoog! Dat is een mooie lucht.', 'Dat ging zo de wolken in.'],
-  combo: ['Combo! Houd hem vast.', 'Dat loopt als een trein.'],
+  combo: ['Reeks! Houd hem vast.', 'Dat loopt als een trein.'],
   bail: ['Au, dat deed pijn.', 'Valt erbij. Opstaan en door.'],
-  grind: ['Dat sist lekker op die rail.'],
-  endGood: ['Wat een run. Je komt hier vaker, hè.'],
-  endPoor: ['Het park loopt niet weg. Nog een run?'],
+  grind: ['Dat sist lekker op die leuning.'],
+  endGood: ['Wat een rit. Je komt hier vaker, hè.'],
+  endPoor: ['Het park loopt niet weg. Nog een ronde?'],
 };
 
 export const KART_LINES = {
@@ -52,7 +52,7 @@ export const KART_LINES = {
   podium: ['Podium! Dat kan er mee door.'],
   poor: ['Volgende keer beter. De bocht bleef gewoon staan.'],
   wall: ['De banden zijn zacht, maar wel van rubber.'],
-  boost: ['Boost! Kijk die vonken.'],
+  boost: ['Versnelling! Kijk die vonken.'],
 };
 
 export const KART_RIVALS = [

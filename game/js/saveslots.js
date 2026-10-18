@@ -282,12 +282,12 @@ export function stateText(state) {
 
 export function importErrorText(why) {
   switch (why) {
-    case 'groot': return 'Dit bestand is te groot voor een save.';
-    case 'nieuwer': return 'Deze save komt uit een nieuwere versie van het spel.';
-    case 'ander-verhaal': return 'Deze save hoort bij het andere verhaal.';
-    case 'vol': return `Alle ${MAX_SLOTS} plekken zijn in gebruik. Verwijder eerst een save.`;
+    case 'groot': return 'Dit bestand is te groot voor een spelstand.';
+    case 'nieuwer': return 'Deze spelstand komt uit een nieuwere versie van het spel.';
+    case 'ander-verhaal': return 'Deze spelstand hoort bij het andere verhaal.';
+    case 'vol': return `Alle ${MAX_SLOTS} plekken zijn in gebruik. Verwijder eerst een spelstand.`;
     case 'opslaan': return 'Opslaan mislukt: er is geen ruimte meer.';
-    case 'geen-save': return 'Dit bestand is geen GDE-save.';
+    case 'geen-save': return 'Dit bestand is geen GDE-spelstand.';
     default: return 'Dit bestand is kapot en kan niet gelezen worden.';
   }
 }

@@ -7,6 +7,7 @@
 //   node scripts/text_audit.mjs            findings that are not on the allowlist (exit 1 when any)
 //   node scripts/text_audit.mjs --all      also list the allowlisted ones, with the reason
 //   node scripts/text_audit.mjs --json     machine-readable findings
+// Regel `anglicisme`: Engelse leenwoorden (save, host, checkpoint, ...) zijn een fout; zie docs/WOORDENLIJST.md.
 // Lines that are already voiced are flagged `ingesproken`: report them, do not change them
 // (re-recording needs the owner's go-ahead). Intentional cases go in ALLOW below, with a reason.
 import fs from 'node:fs';
@@ -182,6 +183,19 @@ const WINTER = [
   /\boudjoar\w*/i, /\bnajaar\w*/i, /\bherfst\w*/i, /\bvoorjaar\w*/i, /\b(?:november|december|januari|februari)\b/i,
 ];
 
+// Engelse leenwoorden waar een goed Nederlands woord voor is (docs/WOORDENLIJST.md).
+// `w` is een woord of regex-bron; `nl` wat er voor in de plaats komt. Hatchback, sedan, app, camera,
+// HUD, minimap en cheats zijn ingeburgerd en staan hier bewust niet in.
+const ANGLICISMEN = [
+  ['save', 'spelstand (zelfstandig), opslaan (werkwoord)'], ['saves', 'spelstanden'], ['savegame', 'spelstand'], ['savegames', 'spelstanden'], ['save slot', 'opslagplek'], ['save-slot', 'opslagplek'],
+  ['host', 'gastheer'], ['checkpoint', 'controlepunt (race) of hervatpunt (opnieuw beginnen)'], ['checkpoints', 'controlepunten'],
+  ['ghost', 'spook of spookrijder'], ['ghosts', 'spookrijders'], ['chain', 'keten'], ['run', 'ronde, rit of poging'], ['runs', 'rondes'],
+  ['trick', 'kunstje of toer'], ['tricks', 'kunstjes of toeren'], ['boost', 'versnelling of stoot'], ['combo', 'reeks'], ['combo\'s', 'reeksen'],
+  ['livestream', 'uitzending'], ['deadline', 'uiterste tijd'], ['shopaholic', 'winkelverslaafde'], ['total loss', 'afgeschreven'], ['lobby', 'wachtkamer of kamer'], ['loadout', 'uitrusting'],
+];
+// markup en selectors zijn geen tekst: attributen als data-action="save" en [data-boost] of .pm-rail-acts niet meekijken
+const stripMarkup = (t) => t.replace(/\b(?:data-[\w-]+|class|id|for|name|type|role|href|src)="[^"]*"/g, ' ').replace(/\bdata-[\w-]+/g, ' ').replace(/\[[^\]]*\]/g, ' ').replace(/(?<![\p{L}\p{N}])[.#][a-z][\w-]*/gu, ' ');
+
 const FIXED = [
   { rule: 'de-grunn', re: /\bde Grunn\b(?!e|\w)/i, note: "'de Grunn' mag niet; het is 'Grunn'" },
 ];
@@ -199,6 +213,7 @@ const esc = (w) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const wordRe = (w, cs) => new RegExp(`(?<![\\p{L}\\p{N}])${esc(w)}(?![\\p{L}\\p{N}])`, cs ? 'u' : 'iu');
 const BRAND_RES = BRANDS.map((b) => ({ ...b, re: wordRe(b.w, b.cs) }));
 const PEOPLE_RES = PEOPLE.map((w) => ({ w, re: wordRe(w, true) }));
+const ANGLI_RES = ANGLICISMEN.map(([w, nl]) => ({ w, nl, re: wordRe(w, false) }));
 
 export function checkText(text) {
   const found = [];
@@ -207,6 +222,8 @@ export function checkText(text) {
   const nameRe = new RegExp(`(?<![\\p{L}])(${FIRST.join('|')}) ((?:van|de|den|der|ter|ten|te|het|'t)(?: (?:de|den|der|het|'t))? )?[A-Z][\\p{L}'-]{2,}`, 'gu');
   for (const m of text.matchAll(nameRe)) found.push({ rule: 'naam', term: m[0], note: 'vermoedelijke persoonsnaam' });
   for (const w of WINTER) { const m = w.exec(text); if (m) found.push({ rule: 'winter', term: m[0], note: 'winterwoord (altijd zomer)' }); }
+  const kaal = stripMarkup(text);
+  for (const a of ANGLI_RES) { const m = a.re.exec(kaal); if (m) found.push({ rule: 'anglicisme', term: m[0], note: `Engels leenwoord; zeg: ${a.nl}` }); }
   for (const f of FIXED) { const m = f.re.exec(text); if (m) found.push({ rule: f.rule, term: m[0], note: f.note }); }
   const words = text.toLowerCase().match(/[a-z']+/g) || [];
   if (words.length >= 3) {
@@ -227,13 +244,6 @@ export function checkText(text) {
   return found;
 }
 
-// Anglicismen en jargon: geen fout, wel een besluit van de eigenaar. Alleen met --jargon.
-export const JARGON = ['ghost', 'ghosts', 'chain', 'run', 'tricks', 'checkpoint', 'host', 'save', 'total loss', 'livestream', 'deadline', 'hatchback', 'sedan', 'shopaholic', 'combo', 'boost', 'minimap'];
-export function jargonIn(text) {
-  const out = [];
-  for (const w of JARGON) { const m = wordRe(w, false).exec(text); if (m) out.push(m[0]); }
-  return out;
-}
 
 export function audit({ voiced = null } = {}) {
   const findings = [];
@@ -279,11 +289,6 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   else {
     const show = args.includes('--all') ? findings : open;
     for (const f of show) console.log(`[${f.rule}] ${f.file}:${f.line}${f.ingesproken ? ' (ingesproken)' : ''}: ${f.term} | ${f.text.replace(/\s+/g, ' ').slice(0, 140)}${f.allowed ? `  -- toegestaan: ${f.allowed.why}` : ''}`);
-    if (args.includes('--jargon')) {
-      const seenJ = new Map();
-      for (const it of collectTexts()) if (isProse(it.text)) for (const j of jargonIn(it.text)) seenJ.set(j.toLowerCase(), (seenJ.get(j.toLowerCase()) || 0) + 1);
-      console.log('Jargon (besluit eigenaar):', [...seenJ].map(([k, v]) => `${k} x${v}`).join(', '));
-    }
     console.log(`${open.length} bevindingen (${findings.length - open.length} toegestaan)`);
   }
   process.exit(open.length ? 1 : 0);

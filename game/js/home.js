@@ -1092,7 +1092,7 @@ function heliEntry() {
 function roofBlock() {
   const o = heliEntry();
   if (!o) return 'Het dak is leeg. Een heli koop je bij Rotor Roelf op Eelde';
-  if (o.lost) return 'Je heli is total loss. Regel een nieuwe via je telefoon (Esc)';
+  if (o.lost) return 'Je heli is afgeschreven. Regel een nieuwe via je telefoon (Esc)';
   if (o.v && !o.v.homeStored) return 'Je heli staat niet op het dak. Laat hem afleveren via je telefoon (Esc, Garage)';
   return '';
 }

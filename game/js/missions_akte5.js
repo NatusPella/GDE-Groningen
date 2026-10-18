@@ -40,7 +40,7 @@ export function buildAkte5Defs({ map, walk, drive }) {
       vehicle: 'car',
       heroCar: true,
       start: schuur,
-      vehicleFail: { gone: 'de Escapade is foetsie, en Henk had net het luik erin', wrecked: 'de Escapade is total loss. Dit is geen karaktertrek meer', left: 'je liet de Escapade in de modder staan. Tinus trekt alleen wat vastzit' },
+      vehicleFail: { gone: 'de Escapade is foetsie, en Henk had net het luik erin', wrecked: 'de Escapade is afgeschreven. Dit is geen karaktertrek meer', left: 'je liet de Escapade in de modder staan. Tinus trekt alleen wat vastzit' },
       say: 'Blijf bij de wagen: Henk bouwt het luik in.',
       stages: [
         {
@@ -91,7 +91,7 @@ export function buildAkte5Defs({ map, walk, drive }) {
       vehicle: 'car',
       heroCar: true,
       start: schuur,
-      vehicleFail: { gone: 'de Fjord Frituur is foetsie, en de colonne wacht op niemand', wrecked: 'de Fjord Frituur is total loss. De colonne rijdt zonder leider', left: 'je liet de Fjord Frituur achter. De colonne volgt een lege wagen' },
+      vehicleFail: { gone: 'de Fjord Frituur is foetsie, en de colonne wacht op niemand', wrecked: 'de Fjord Frituur is afgeschreven. De colonne rijdt zonder leider', left: 'je liet de Fjord Frituur achter. De colonne volgt een lege wagen' },
       say: 'Rij voorop. De colonne volgt zolang je hem niet kwijtraakt.',
       stages: [
         { kind: 'board', label: 'Stap in de Fjord Frituur', say: 'Instappen. Tessa zei: wij voorop.' },

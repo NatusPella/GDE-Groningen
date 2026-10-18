@@ -175,7 +175,7 @@ function minigameItems(world) {
   const dz = DRIFT_ZONE.bestOverall();
   add({ key: 'mg:drift', playId: 'drift', icon: 'act-drift', title: 'Driftzones', meta: `${drift.length} rotondes · handrem en gas`,
     medal: dz.medal, record: dz.best != null ? `Record ${dz.best} punten` : 'Nog niet gedrift',
-    detail: { kicker: 'Minigame · rotondes in de stad', text: 'Rijd een driftzone in, trek aan de handrem in de bocht en blijf glijden met gas erop. Combo\'s en wisselbochten tellen mee; een klap kost je de punten.', rows: [['Zones', drift.map((d) => d.name).join(', ')]],
+    detail: { kicker: 'Minigame · rotondes in de stad', text: 'Rijd een driftzone in, trek aan de handrem in de bocht en blijf glijden met gas erop. Reeksen en wisselbochten tellen mee; een klap kost je de punten.', rows: [['Zones', drift.map((d) => d.name).join(', ')]],
       medals: DRIFT_MEDAL_AT.map((p, i) => [i + 1, `${p.toLocaleString('nl-NL')} punten`]) } }, drift);
   const mg = (layer, key, playId, title, meta, recId, fmt, kicker, text, medals) => {
     const list = acts.filter((a) => a.layer === layer);
@@ -189,9 +189,9 @@ function minigameItems(world) {
   mg('pitchputt', 'mg:pitchputt', 'pitchputt', 'Pitch & putt', 'op de echte golfbanen · zes holes · gratis', 'pitchputt', (v) => `Record ${rel(v)} t.o.v. par`, 'Minigame · golfbaan',
     'Zes korte holes: pitchen naar de green en putten. Lees de pijltjes op de green, de bal loopt naar beneden.', [[1, '7 boven par'], [2, '3 boven par'], [3, 'op par of beter']]);
   mg('skatepark', 'mg:skatepark', 'skatepark', 'Skatepark', 'Stadspark · 90 seconden · gratis', 'skatepark', (v) => `Record ${Math.round(v).toLocaleString('nl-NL')} punten`, 'Minigame · Stadspark',
-    'Ramps, een box en rails. Ollie, kickflip, heelflip, spins en grinds; elke nieuwe trick in de keten telt zwaarder, een val kost je de keten.', [[1, '1.200 punten'], [2, '3.200 punten'], [3, '6.500 punten']]);
+    'Hellingen, een kist en leuningen. Ollie, kickflip, heelflip, spins en grinds; elk nieuw kunstje in de keten telt zwaarder, een val kost je de keten.', [[1, '1.200 punten'], [2, '3.200 punten'], [3, '6.500 punten']]);
   mg('kartbaan', 'mg:kartbaan', 'kartbaan', 'Karten bij Kardinge', 'Kardinge · drie ronden · gratis', 'kart-race', (v) => `Record ${formatMissionTime(v)}`, 'Minigame · Kardinge',
-    'Drie ronden tegen drie rijders. Gas, rem en handrem: een lange drift geeft een boost. Eerste is goud, tweede zilver, derde brons.', [[1, 'derde'], [2, 'tweede'], [3, 'eerste']]);
+    'Drie ronden tegen drie rijders. Gas, rem en handrem: een lange drift geeft een versnelling. Eerste is goud, tweede zilver, derde brons.', [[1, 'derde'], [2, 'tweede'], [3, 'eerste']]);
   mg('zwembad', 'mg:zwembad', 'zwembad', 'Zwembad Het Natte Papier', 'Papiermolenlaan · 100 meter · gratis', 'zwembad', (v) => `Record ${formatMissionTime(v)}`, 'Minigame · Papiermolenlaan',
     'Vier banen van vijfentwintig meter. Duik vanaf het blok en zwem met A en D om en om in een rustig ritme; een keerpunt vlak voor de muur met Spatie is sneller.', [[1, 'binnen 1:40'], [2, 'binnen 1:16'], [3, 'binnen 1:04']]);
   mg('klimtoren', 'mg:klimtoren', 'klimtoren', 'Klimtoren Zernike', 'Zernike · twaalf meter · gratis', 'klimtoren', (v) => `Record ${formatMissionTime(v)}`, 'Minigame · Zernike',

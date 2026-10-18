@@ -216,7 +216,7 @@ function recText() {
 function prompt(w) {
   if (!nearStand(w)) return null;
   const why = activityBlock(w);
-  return { id: 'skatepark', x: STAND.x, y: STAND.y, h: 2.2, key: 'E', label: 'Skatepark', sub: why || recText() || 'Negentig seconden tricks · gratis', ring: true, dim: !!why };
+  return { id: 'skatepark', x: STAND.x, y: STAND.y, h: 2.2, key: 'E', label: 'Skatepark', sub: why || recText() || 'Negentig seconden kunstjes · gratis', ring: true, dim: !!why };
 }
 
 function secondary(w) {
@@ -250,7 +250,7 @@ function start(w, { force = false } = {}) {
   place(w, 0);
   const side = FR.toW(-PARK.hu - 2, PARK.hv + 1);
   w.companionHold = { x: side.x, y: side.y, face: ROT };
-  showCard(w, { kind: 'tip', kicker: 'Skatepark', title: 'Negentig seconden', body: '[W] duwen, [A] [D] sturen en draaien, [Spatie] ollie, [E] kickflip, [F] heelflip, [S] in de lucht een grab. Op een rail: houd je balans met [A] [D].', duration: 10, key: 'skatepark-help', voice: false });
+  showCard(w, { kind: 'tip', kicker: 'Skatepark', title: 'Negentig seconden', body: '[W] duwen, [A] [D] sturen en draaien, [Spatie] ollie, [E] kickflip, [F] heelflip, [S] in de lucht een grab. Op een leuning: houd je balans met [A] [D].', duration: 10, key: 'skatepark-help', voice: false });
   say(w, 'start', true);
   return true;
 }
@@ -379,7 +379,7 @@ function end(w, { quit = false } = {}) {
   const stats = [['Score', score.toLocaleString('nl-NL')], ['Beste keten', c.best.toLocaleString('nl-NL')], ['Gevallen', String(g.b.bails)], ['Grinds', String(g.b.grinds)]];
   if (medal) stats.push(['Medaille', MEDALS[medal]]);
   if (rec && rec.newBest) stats.push(['Record', 'Nieuw!']);
-  showBanner({ kind: medal ? 'pass' : 'fail', title: medal >= 3 ? 'KONING VAN HET SKATEPARK' : medal ? 'MOOIE RUN' : 'NOG EEN RUN?', reason: medal ? `Beste keten: ${c.best.toLocaleString('nl-NL')} punten` : 'Hou je keten vast: elke nieuwe trick telt zwaarder', reward: 0, stats });
+  showBanner({ kind: medal ? 'pass' : 'fail', title: medal >= 3 ? 'KONING VAN HET SKATEPARK' : medal ? 'MOOIE RONDE' : 'NOG EEN RONDE?', reason: medal ? `Beste keten: ${c.best.toLocaleString('nl-NL')} punten` : 'Hou je keten vast: elk nieuw kunstje telt zwaarder', reward: 0, stats });
   const bench = built && built.skater;
   if (built) built.skater.visible = true;
   say(w, medal >= 2 ? 'endGood' : 'endPoor', true, true);
@@ -425,7 +425,7 @@ function updateHud() {
 export const SKATEPARK = {
   id: 'skatepark',
   layer: 'skatepark',
-  legend: { kind: 'act-skatepark', label: 'Skatepark', note: 'skatepark in het Stadspark: ramps, rails en tricks' },
+  legend: { kind: 'act-skatepark', label: 'Skatepark', note: 'skatepark in het Stadspark: hellingen, leuningen en kunstjes' },
   init(w) {
     window.__skatepark = {
       spot: () => ({ ...STAND }),
@@ -456,11 +456,11 @@ export const SKATEPARK = {
   },
   camera,
   icon: drawIcon,
-  mapSub: () => recText() || 'Skatepark: ramps, rails en tricks',
+  mapSub: () => recText() || 'Skatepark: hellingen, leuningen en kunstjes',
   ubbo(w) {
     const d = Math.hypot(STAND.x - w.player.x, STAND.y - w.player.y);
     const rec = getChallengeRecord('skatepark');
-    return { name: 'Skatepark Stadspark', sub: rec && rec.medal ? `record: ${MEDALS[rec.medal].toLowerCase()}` : 'ramps, rails en tricks, gratis', dist: d, x: STAND.x, y: STAND.y, play: 'skatepark', where: 'het skatepark in het Stadspark', hint: 'loop naar de ingang en druk E' };
+    return { name: 'Skatepark Stadspark', sub: rec && rec.medal ? `record: ${MEDALS[rec.medal].toLowerCase()}` : 'hellingen, leuningen en kunstjes, gratis', dist: d, x: STAND.x, y: STAND.y, play: 'skatepark', where: 'het skatepark in het Stadspark', hint: 'loop naar de ingang en druk E' };
   },
   runs: () => runs,
 };

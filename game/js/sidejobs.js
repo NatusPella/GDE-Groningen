@@ -410,7 +410,7 @@ function checkVehicle(dt, c) {
   if (!need || !v) { c.awayFor = 0; return true; }
   const p = world.player;
   if (!world.vehicles.includes(v) || v.sunk) { endShift('fail', `${c.vehicleWord} is foetsie`); return false; }
-  if (v.wrecked || v.disabled) { endShift('fail', `${c.vehicleWord} is total loss`); return false; }
+  if (v.wrecked || v.disabled) { endShift('fail', `${c.vehicleWord} is afgeschreven`); return false; }
   if (p.inVehicle === v) { c.awayFor = 0; c.boarded = true; return true; }
   if (c.boarded) c.awayFor += dt;
   const d = dist(p.x, p.y, v.x, v.y);
