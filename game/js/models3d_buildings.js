@@ -7,6 +7,7 @@ import { pointInPolygon, segDist as segDistXY, WATER_Y } from './util.js';
 import { passagesOf, doorsOf } from './passages.js';
 import { applyPortalCut, buildPassageTunnels } from './portalcut3d.js';
 import { buildMuseumInterior } from './museum3d.js';
+import { buildInteriorOf } from './interieur3d.js';
 import { marktKind, buildMarktGroup } from './marktgebouwen.js';
 import { hash2 } from './rng.js';
 
@@ -186,7 +187,7 @@ for (const m of [...flatRoofMaterials, detailMaterial, glassMaterial, ...LANDMAR
 // The lined passages through `b` (portalcut3d.js), cached with its parts.
 function addPassages(group, b, parts, depth) {
   if (b.rooms) {
-    if (!parts.interior) parts.interior = buildMuseumInterior(b);
+    if (!parts.interior) parts.interior = b.interior ? buildInteriorOf(b) : buildMuseumInterior(b);
     group.add(parts.interior);
     return;
   }

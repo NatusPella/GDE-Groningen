@@ -188,6 +188,8 @@ function spawnPoliceVehicleAt(world, rp, opts = {}) {
   const v = spawnVehicleOnRoad(world.map, rp.road, !opts.motor, Math.random, false, false, { x: rp.x, y: rp.y }, !!opts.motor);
   if (!spawnSpotHidden(world, v.x, v.y, v.angle, v.halfLen || 2.2)) return null;
   if (solidAt(world.map, v.x, v.y)) return null;
+  const m = world.map;
+  if (m.homeGarageAt && m.homeGarageAt(v.x, v.y, 2)) return null; // not in the private garage
   // a country road point's stand-in road is no part of the street graph;
   // the unit faces the player's way, in its own lane
   if (rp.road.country) {

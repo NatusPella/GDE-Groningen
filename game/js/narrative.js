@@ -33,14 +33,9 @@
 // - Toasts also wait while any subtitle shows (a Rikus line, car talk), and
 //   phone and HUD cards that are already up step aside meanwhile (heldBack).
 
-const AFTER_SCENE = 2.5;
-const TOAST_AFTER_SCENE = 1.2;
-const GAP = 2;
-const BANTER_GAP = 8;
-const TOAST_GAP = 1.5;
+import { NARRATIVE, decideStart } from './hudbus.js';
 
-const TALK = ['contact', 'call', 'say', 'banter'];
-const TOASTS = ['text', 'phone', 'award', 'card'];
+const { TALK } = NARRATIVE;
 
 let clock = () => (typeof performance !== 'undefined' ? performance.now() : Date.now()) / 1000;
 const probes = {}; // kind -> { active, pending }
@@ -97,30 +92,14 @@ export function narrativeBusy() {
 export function mayStart(kind, { urgent = false } = {}) {
   updateNarrative();
   const now = sampledAt;
-  if (isOn('scene')) return false;
-  if (TALK.includes(kind)) {
-    if (since('scene', now) < AFTER_SCENE) return false;
-    if (TALK.some((k) => k !== kind && isOn(k))) return false;
-    if (sinceAny(TALK.filter((k) => k !== kind), now) < GAP) return false;
-    // a story text being read out finishes first
-    if ((kind === 'contact' || kind === 'call') && isOn('text')) return false;
-    if (kind === 'banter' || kind === 'say') {
-      if (probe('contact', 'pending') || probe('call', 'pending')) return false;
-    }
-    if (kind === 'banter') {
-      if (sinceAny(['scene', 'contact', 'call', 'text'], now) < BANTER_GAP) return false;
-      if (probe('text', 'pending') || isOn('text')) return false;
-    }
-    return true;
-  }
-  if (TOASTS.includes(kind)) {
-    if (since('scene', now) < TOAST_AFTER_SCENE) return false;
-    if (!urgent && (isOn('contact') || isOn('call') || subtitleOn())) return false;
-    if (kind === 'text' && probe('contact', 'pending')) return false;
-    if (!urgent && now - lastToast < TOAST_GAP) return false;
-    return true;
-  }
-  return true;
+  return decideStart(kind, {
+    isOn,
+    pending: (k) => probe(k, 'pending'),
+    since: (k) => since(k, now),
+    sinceAny: (ks) => sinceAny(ks, now),
+    subtitle: subtitleOn(),
+    toastAgo: now - lastToast,
+  }, { urgent });
 }
 
 // A story contact or call is ready and waits: car banter wraps up after its line.

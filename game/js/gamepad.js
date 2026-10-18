@@ -10,6 +10,7 @@
 import { PAD_BUTTONS, PAD_MAPS, buttonSlots, padFamily } from './controls.js';
 import { getSettings, onSettingsChange } from './settings.js';
 import { sendKey } from './input.js';
+import { playerBusy } from './busy.js';
 
 const DEAD = 0.2;
 const TRIGGER_ON = 0.35;
@@ -132,7 +133,7 @@ function context() {
   if (w.pigeonMode) return 'pigeon';
   if (w.trainDriving) return 'train';
   if (w.challenge && w.challenge.id === 'fjord') return 'foodtruck';
-  if (w.padelGame || w.activityGame) return 'minigame';
+  if (playerBusy(w, ['padel', 'activityGame']).busy) return 'minigame';
   const v = w.player && w.player.inVehicle;
   if (v) return v.isHeli ? 'heli' : w.noLookBack ? 'skutsje' : v.gb && getSettings().shiftMode !== 'auto' ? 'vehicleManual' : 'vehicle';
   return 'foot';

@@ -10,6 +10,7 @@ import { isMapOpen } from './mapview.js';
 import { isMissionActive, failActiveMission } from './missions.js';
 import { respawnPlayer } from './world.js';
 import { respawnFade } from './respawn.js';
+import { playerBusy } from './busy.js';
 
 const CINE_MAX_EXTRA_S = 20;
 const CINE_MAX_S = 150;
@@ -159,7 +160,7 @@ function watchCinematic(dt, w) {
     cineSeen = null;
     // a scene that ended with an error can leave the players hidden
     // (a padel match, the bumper cars, a heli run or a post-game challenge hide them on purpose and draw their own)
-    const owned = w.padelGame || w.activityGame || w.heliRun || w.challenge;
+    const owned = playerBusy(w, ['padel', 'activityGame', 'heliRun', 'challenge']).busy;
     cineT = !owned && (w.cinematicHidePlayers || w.cinematicHideNav || document.body.classList.contains('cine-hide-hud')) ? cineT + dt : 0;
     if (cineT > 3) { console.warn('[safety] scene leftovers cleared'); clearSceneLeftovers(w); cineT = 0; }
     return;

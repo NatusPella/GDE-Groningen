@@ -4,7 +4,7 @@ import { simLevel } from './simload.js';
 import { getGaragesForRender } from './garages.js';
 import { getHomeForRender, getHomeGarageForRender, getHomeMooringForRender, getHomeHelipadForRender } from './home.js';
 import { minimapShows } from './mapfilters.js';
-import { mapCategory } from './mapicons.js';
+import { mapCategory, mapRimColor } from './mapicons.js';
 import { facilitiesOf } from './facilities.js';
 import { getHorecaForRender } from './horeca.js';
 import { getShopsForRender, drawShopMapIcon, drawShopGlyph, SHOP_TYPES, storyTargetShop, drawStoryShopRing } from './shops.js';
@@ -1130,7 +1130,7 @@ function currentObjective(world) {
   }
   // the player's own goal (goal.js): the story waits meanwhile
   const goal = world.goal;
-  if (goal && !world.padelGame && !world.activityGame && !world.heliRun && !world.challenge && !(m && m.phase === 'active')) {
+  if (goal && !playerBusy(world, ['padel', 'activityGame', 'heliRun', 'challenge']).busy && !(m && m.phase === 'active')) {
     const r = getActiveRoute();
     const d = r && r.kind === 'user' ? r.remaining : Math.hypot(goal.x - world.player.x, goal.y - world.player.y);
     const wait = storyWaiting(world);
@@ -1141,7 +1141,7 @@ function currentObjective(world) {
   }
   // between missions: the next story step, so it is always clear where to go
   const g = world.storyGuide;
-  if (g && g.name && !world.storyFreePlay && !world.padelGame && !world.activityGame && !world.heliRun && !(m && m.phase === 'active')) {
+  if (g && g.name && !world.storyFreePlay && !gameBusy(world) && !(m && m.phase === 'active')) {
     const atMarker = m && (m.phase === 'idle' || m.phase === 'cooldown') && Math.hypot(m.marker.x - g.x, m.marker.y - g.y) < 4;
     const near = Math.hypot(g.x - world.player.x, g.y - world.player.y) < 40;
     const inside = atMarker && !m.armed && m.distanceToMarker < (m.triggerRadius || 4);
@@ -1674,8 +1674,8 @@ export function drawMapIconHalo(ctx, kind, x, y, s = 1) {
   ctx.arc(x, y, 6.6 * s, 0, Math.PI * 2);
   ctx.fillStyle = 'rgba(12, 20, 14, 0.78)';
   ctx.fill();
-  ctx.lineWidth = Math.max(1.2, 0.9 * s);
-  ctx.strokeStyle = 'rgba(240, 237, 228, 0.92)';
+  ctx.lineWidth = Math.max(1.6, 0.7 * s);
+  ctx.strokeStyle = mapRimColor(kind);
   ctx.stroke();
   ctx.restore();
 }
@@ -1840,6 +1840,8 @@ export function declutter(items, cellM) {
 }
 
 import { forEachCashTarget } from './cashvan.js';
+import { gameBusy } from './busy.js';
+import { playerBusy } from './busy.js';
 
 export function getHeroCar(world) {
   return world.vehicles.find((v) => v.isHeroCar && !v.wrecked) || null;
@@ -2112,7 +2114,7 @@ function drawMinimap(dt, world) {
   const heliMarks = getHeliRunMarks();
   if (heliMarks) drawHeliRunMarks(ctx, heliMarks, toScreen, inRange, mmScale, t);
   // a minigame on the spot (padel, carbid, the kermis) or a heli run: no other mission or story marks
-  const busyGame = !!(world.padelGame || world.activityGame || world.heliRun);
+  const busyGame = gameBusy(world);
   const placed = [];
   const icon = (kind, x, y, opts) => {
     if (!inRange(x, y)) return false;

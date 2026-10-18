@@ -7,11 +7,14 @@
 // magnet); this module dresses them, gives them lines and the E prompt.
 // Text only: no recordings, no voice. All names are invented.
 import { dist } from './util.js';
-import { spawnPedestriansNear } from './pedestrians.js';
+import { spawnPedestriansNear, Pedestrian, isInsideBuilding } from './pedestrians.js';
+import { makeCompanion } from './pedroutes.js';
 import { wijkProfileAt } from './trafficfleet.js';
 import {
   NAMES, SELLER_LINES, SELLER_BUY, BEGGAR_ASK, BEGGAR_THANKS, BEGGAR_NO_COIN, BERNARD_LINES,
-  GRENADE_REWARD, GRENADE_FOUND, GRENADE_REPORTED, CARRIED, rollMagnet, moverWalkerChance, distToCentre, hourOf, finite,
+  GRENADE_REWARD, GRENADE_FOUND, GRENADE_REPORTED, CARRIED, SKATER_MAX, SKATER_PACE, SKATER_LINES, skaterChance,
+  wijkClothing, wijkBagChance, COURIER_MAX, COURIER_LINES, footCourierChance,
+  ONTGROENING, ONTGROENING_MAX, LEADER_LINES, FRESHMAN_LINES, ontgroeningChance, rollMagnet, moverWalkerChance, distToCentre, hourOf, finite,
 } from './streetlifedata.js';
 
 export const KINDS = ['seller', 'beggar', 'bernard', 'magnet'];
@@ -27,6 +30,10 @@ const state = { grenade: false, coins: 0, papers: 0, junk: 0, reported: 0, berna
 let readyAt = 0;
 let moverTimer = 20;
 let lineAt = -Infinity;
+let skateTimer = 25;
+let groupTimer = 50;
+let courierTimer = 35;
+let groupLineAt = -Infinity;
 
 export function getStreetLifeState() {
   return { ...state };
@@ -36,6 +43,10 @@ export function resetStreetLife() {
   readyAt = 0;
   moverTimer = 20;
   lineAt = -Infinity;
+  skateTimer = 25;
+  groupTimer = 50;
+  courierTimer = 35;
+  groupLineAt = -Infinity;
 }
 
 // How each standing person looks (clothes, a hat, what they carry).
@@ -189,6 +200,105 @@ export function pickCarrier(map, x, y, hour, rng = Math.random) {
   return pick(CARRIED, rng);
 }
 
+// Skateboarders: a young walker on a board, quicker than the rest.
+export function pickSkater(map, x, y, hour, rng = Math.random) {
+  const prof = wijkProfileAt(map, x, y);
+  return rng() < skaterChance(prof.key, distToCentre(x, y), hour) * 6;
+}
+
+function isMoverCarry(ped) {
+  return ped.carry && ped.carry !== 'paper' && ped.carry !== 'skateboard' && ped.carry !== 'eend' && ped.carry !== 'bezorgtas';
+}
+
+function spawnSkater(world, p, hour) {
+  let skaters = 0;
+  for (const ped of world.pedestrians) if (ped.carry === 'skateboard' && ped.state !== 'dead') skaters++;
+  if (skaters >= SKATER_MAX || !pickSkater(world.map, p.x, p.y, hour)) return;
+  for (const ped of spawnPedestriansNear(world.map, p.x, p.y, 1, Math.random)) {
+    if (!finite(ped.x, ped.y)) continue;
+    ped.carry = 'skateboard';
+    ped.hasBag = false;
+    ped.paceMul = SKATER_PACE;
+    ped.clothing = pick(['#c94b3a', '#3f5c8a', '#1f4a2e', '#c9a227']);
+    ped.look = { top: 'hoodie', hat: 'cap', hatColor: 0x2a2a2a };
+    ped.speechText = pick(SKATER_LINES);
+    ped.speechUntil = world.time + 3;
+    world.pedestrians.push(ped);
+  }
+}
+
+export function pickOrientation(map, x, y, hour, rng = Math.random) {
+  const prof = wijkProfileAt(map, x, y);
+  return rng() < ontgroeningChance(prof.key, distToCentre(x, y), hour) * 6;
+}
+
+// A senior with a megaphone and two first-years walking beside them.
+function spawnOrientation(world, p, hour) {
+  for (const ped of world.pedestrians) if (ped.ontgroening && ped.state !== 'dead') return;
+  if (!pickOrientation(world.map, p.x, p.y, hour)) return;
+  const lead = spawnPedestriansNear(world.map, p.x, p.y, 1, Math.random)[0];
+  if (!lead || !finite(lead.x, lead.y)) return;
+  lead.ontgroening = 'leader';
+  lead.hasBag = false;
+  lead.clothing = ONTGROENING.leaderShirt;
+  lead.look = { top: 'jacket', hat: 'cap', hatColor: 0xc9382b };
+  const group = [lead];
+  for (const s of [1, -1]) {
+    const x = lead.x - Math.sin(lead.angle) * 0.85 * s, y = lead.y + Math.cos(lead.angle) * 0.85 * s;
+    if (isInsideBuilding(world.map, x, y)) continue;
+    const f = new Pedestrian(x, y, lead.angle);
+    makeCompanion(f, lead);
+    f.pairSide = s;
+    f.ontgroening = 'first-year';
+    f.hasBag = false;
+    f.clothing = ONTGROENING.shirt;
+    f.carry = 'eend';
+    group.push(f);
+  }
+  for (const ped of group) world.pedestrians.push(ped);
+}
+
+// Dresses ordinary walkers after the district they stand in (once each, a few
+// per call). Scene people, officers, companions and our own groups keep their look.
+const DRESS_PER_CALL = 4;
+export function dressWalkers(world, rng = Math.random) {
+  const p = world.player;
+  let n = 0;
+  for (const ped of world.pedestrians || []) {
+    if (ped._wijkDressed || ped.scene || ped.isCop || ped.leader || ped.ontgroening || ped.carry || ped.look) { ped._wijkDressed = true; continue; }
+    if (!finite(ped.x, ped.y) || dist(p.x, p.y, ped.x, ped.y) > 90) continue;
+    ped._wijkDressed = true;
+    const key = wijkProfileAt(world.map, ped.x, ped.y).key;
+    const c = wijkClothing(key, rng);
+    if (c) ped.clothing = c;
+    ped.hasBag = rng() < wijkBagChance(key);
+    if (++n >= DRESS_PER_CALL) break;
+  }
+}
+
+// A courier on foot with a big bag on the back, at lunch and dinner time.
+export function pickFootCourier(map, x, y, hour, rng = Math.random) {
+  const prof = wijkProfileAt(map, x, y);
+  return rng() < footCourierChance(prof.key, distToCentre(x, y), hour) * 6;
+}
+
+function spawnCourier(world, p, hour) {
+  let couriers = 0;
+  for (const ped of world.pedestrians) if (ped.carry === 'bezorgtas' && ped.state !== 'dead') couriers++;
+  if (couriers >= COURIER_MAX || !pickFootCourier(world.map, p.x, p.y, hour)) return;
+  for (const ped of spawnPedestriansNear(world.map, p.x, p.y, 1, Math.random)) {
+    if (!finite(ped.x, ped.y)) continue;
+    ped.carry = 'bezorgtas';
+    ped.hasBag = false;
+    ped.paceMul = 1.5;
+    ped.clothing = '#2fb5a8';
+    ped.look = { top: 'jacket', hat: 'cap', hatColor: 0x14403b };
+    ped.speechText = pick(COURIER_LINES);
+    ped.speechUntil = world.time + 3;
+    world.pedestrians.push(ped);
+  }
+}
+
 export function updateStreetLife(dt, world) {
   if (!dt || world.paused || !world.player) return;
   const p = world.player;
@@ -205,13 +315,40 @@ export function updateStreetLife(dt, world) {
       break;
     }
   }
+  dressWalkers(world);
+  skateTimer -= dt;
+  if (skateTimer <= 0) {
+    skateTimer = 30 + Math.random() * 30;
+    const h = hourOf(world);
+    if (!(world.dayNight && world.dayNight.night > 0.5)) spawnSkater(world, p, h);
+  }
+  courierTimer -= dt;
+  if (courierTimer <= 0) {
+    courierTimer = 25 + Math.random() * 25;
+    if (!(world.dayNight && world.dayNight.night > 0.5)) spawnCourier(world, p, hourOf(world));
+  }
+  groupTimer -= dt;
+  if (groupTimer <= 0) {
+    groupTimer = 60 + Math.random() * 40;
+    if (!(world.dayNight && world.dayNight.night > 0.5)) spawnOrientation(world, p, hourOf(world));
+  }
+  if (world.time - groupLineAt > 11) {
+    for (const ped of world.pedestrians) {
+      if (!ped.ontgroening || ped.state === 'dead' || ped.speechUntil > world.time) continue;
+      const d = dist(p.x, p.y, ped.x, ped.y);
+      if (d > 14 || d < 1) continue;
+      groupLineAt = world.time;
+      say(ped, world, pick(ped.ontgroening === 'leader' ? LEADER_LINES : FRESHMAN_LINES), 3.4);
+      break;
+    }
+  }
   moverTimer -= dt;
   if (moverTimer > 0) return;
   moverTimer = 40 + Math.random() * 30;
   const hour = hourOf(world);
   if (hour < 9 || hour >= 20 || world.dayNight && world.dayNight.night > 0.5) return;
   let carriers = 0;
-  for (const ped of world.pedestrians) if (ped.carry && ped.carry !== 'paper' && ped.state !== 'dead') carriers++;
+  for (const ped of world.pedestrians) if (isMoverCarry(ped) && ped.state !== 'dead') carriers++;
   if (carriers >= MAX_CARRIERS) return;
   const kind = pickCarrier(world.map, p.x, p.y, hour);
   if (!kind) return;
