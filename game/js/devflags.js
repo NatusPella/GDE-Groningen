@@ -5,12 +5,16 @@
 // keys, the story test keeps everything in memory. Imported by main.js right
 // after storagekeys.js, whose old-key migration must see the real storage.
 import { PREFIX, DEV_PREFIX } from './storagekeys.js';
+import { seededRandom } from './botlogic.js';
 
 const q = typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams();
 export const STORY_TEST = q.has('storytest');
+// ?autoplay[=seed] (Spelbot, #186): playerapi.js opens window.__bot; storage stays in memory, Math.random is seeded
+export const AUTOPLAY = q.has('autoplay');
+if (AUTOPLAY) Math.random = seededRandom(Number(q.get('autoplay')) || 1);
 // ?testmenu (testmenu.js) leans on the dev storage too: flipping switches and
 // jumping around must never reach the real save.
-export const DEV = q.has('dev') || q.has('testmenu') || STORY_TEST;
+export const DEV = q.has('dev') || q.has('testmenu') || STORY_TEST || AUTOPLAY;
 // The raw query, for testmenulogic.js (the only other reader; it takes it as a string).
 export const SEARCH = typeof location !== 'undefined' ? location.search : '';
 
@@ -25,6 +29,7 @@ const val = (k) => (q.has(k) ? q.get(k) : null);
 export const FLAGS = Object.freeze({
   dev: DEV,
   storytest: STORY_TEST,
+  autoplay: AUTOPLAY,
   stil: has('stil'),
   audiograf: has('audiograf'),
   noattract: has('noattract'),
@@ -66,6 +71,7 @@ export const FLAGS = Object.freeze({
 export const FLAG_DOCS = Object.freeze({
   dev: 'Verhaalpaneel op F9; eigen opslag (gde-dev:), raakt de echte save niet',
   storytest: 'Geautomatiseerde verhaaltest; opslag alleen in het geheugen',
+  autoplay: 'Spelbot (#186): window.__bot (playerapi.js) levert de spelstatus en neemt acties aan; vaste seed (autoplay=seed), opslag alleen in het geheugen',
   stil: 'Geen audio en geen pauze bij verborgen tabblad (testsessies)',
   audiograf: 'Met stil: de audiograaf draait wel, maar eindigt in een gedempte uitgang',
   noattract: 'Geen aantrekkingsfilmpje op het titelscherm; door naar het menu',
@@ -106,22 +112,23 @@ export const FLAG_DOCS = Object.freeze({
 
 if (DEV && typeof Storage !== 'undefined' && typeof localStorage !== 'undefined') {
   const mem = new Map();
+  const MEM = STORY_TEST || AUTOPLAY;
   const proto = Storage.prototype;
   const get = proto.getItem, set = proto.setItem, remove = proto.removeItem;
   const ours = (store, k) => store === localStorage && typeof k === 'string' && k.startsWith(PREFIX) && !k.startsWith(DEV_PREFIX);
   proto.getItem = function (k) {
     if (!ours(this, k)) return get.call(this, k);
-    if (STORY_TEST) return mem.has(k) ? mem.get(k) : null;
+    if (MEM) return mem.has(k) ? mem.get(k) : null;
     return get.call(this, DEV_PREFIX + k);
   };
   proto.setItem = function (k, v) {
     if (!ours(this, k)) return set.call(this, k, v);
-    if (STORY_TEST) { mem.set(k, String(v)); return undefined; }
+    if (MEM) { mem.set(k, String(v)); return undefined; }
     return set.call(this, DEV_PREFIX + k, v);
   };
   proto.removeItem = function (k) {
     if (!ours(this, k)) return remove.call(this, k);
-    if (STORY_TEST) { mem.delete(k); return undefined; }
+    if (MEM) { mem.delete(k); return undefined; }
     return remove.call(this, DEV_PREFIX + k);
   };
 }
