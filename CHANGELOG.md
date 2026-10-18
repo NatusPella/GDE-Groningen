@@ -7,6 +7,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Nieuw
+- **Weilandranden en vee houden zich aan wegen, water en spoor:** hekken, heggen en koeien staan niet meer op het spoor (ook ver van de stad), niet in water en niet op wegen; de draad loopt door over de tegelnaden zonder gat, hangt niet over sloten en gemapte hekken lopen niet door voetpaden, spoor en huizen. Een audit (`prop_conflict_audit`) telt dit per streek.
 - **Spijkermat van de politie:** vanaf vier sterren ligt er voor een wegblokkade een spijkermat dwars over de weg. Rijd je er overheen, dan krijg je meestal een lekke band (naar de garage). Verder niets.
 - **Akte 1 duidelijker, appjes op de goede stap (nog niet in beeld bekeken):** Gronings Ontzet wordt in de opening uitgelegd, de complimentenladder van Berend begint in de eerste missie, de hoedgrap en het slot van missie 1 zijn helderder, Jelle is in akte 1 één persoon, en 'stelen om te bewaken' heeft een reden. Mem-appjes en andere stille berichten komen op de stap waar ze over gaan, zonder dubbele bezorging. Akte 3 en 5 krijgen een terugblik, Jelle en de Zitmoi komen vrij in het verhaal, de reisbeats beginnen op de goede plek.
 - **Eén nacht, volgens de zon:** de straatverlichting, de nachtzender, de rustige straten, de beroving en de missies die 's nachts moeten, gebruiken nu allemaal dezelfde nacht: wanneer de zon laag genoeg staat. In de zomer begint de nacht later en is hij korter, en alles schakelt tegelijk.
