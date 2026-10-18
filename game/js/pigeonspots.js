@@ -6,6 +6,7 @@ import { isCinematicActive } from './cinematics.js';
 import { isShopOpen } from './shopui.js';
 import { startPigeonMode, isPigeonActive, addPigeonLoft, buildPigeonBird, posePigeonBird } from './pigeonmode.js';
 import { isInWater } from './util.js';
+import { playerBusy } from './busy.js';
 
 // Places in the city where Tammo, the duivenfluisteraar, can steer a pigeon:
 // a badge + a few pecking pigeons at each; E and he whistles one up (eyes
@@ -177,7 +178,7 @@ export function initPigeonSpots(w) {
 
 function blockReason(w) {
   if (w.wanted > 0) return 'Niet nu: eerst de politie kwijt';
-  if (isMissionActive() || getActiveRace()) return 'Niet nu: maak eerst je missie af';
+  if (playerBusy(w, ['mission', 'activeRace']).busy) return 'Niet nu: maak eerst je missie af';
   return null;
 }
 
