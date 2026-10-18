@@ -2740,7 +2740,7 @@ function playAudioEvents(world) {
       case 'engine_stall': playTone({ freq: 90, freqEnd: 35, type: 'sawtooth', duration: 0.35, gain: 0.12, filterFreq: 500, bus: uiBus }); break;
       case 'prop_hit': propHit(e, x, y); break;
       case 'bullet_hit': playBulletHit(x, y, e.material, clamp(e.strength ?? 0.5, 0, 1)); break;
-      case 'coo': case 'flap': case 'bonk': case 'poop': case 'splat': case 'plop': playCritterEvent(e.kind, x, y, clamp(e.strength ?? 0.5, 0, 1)); break;
+      case 'coo': case 'flap': case 'bonk': case 'poop': case 'splat': case 'plop': case 'pala': case 'padelglas': case 'padelgaas': playCritterEvent(e.kind, x, y, clamp(e.strength ?? 0.5, 0, 1)); break;
       case 'splash': playSplash(x, y); break;
       case 'fx': playFx(e.name, x, y, e); break;
       case 'whistle': playWhistle(); break;
@@ -2832,6 +2832,9 @@ function playCritterEvent(kind, x, y, k) {
   if (kind === 'coo') playBuf('pigeon', { out, gain: 0.12 + k * 0.12, rate: r });
   else if (kind === 'flap') playBuf('flutter', { out, gain: 0.08 + k * 0.14, rate: r * 1.1 });
   else if (kind === 'bonk') { playBuf('punch', { out, gain: 0.2 + k * 0.15, rate: 1.4 * r }); playTone({ freq: 700, freqEnd: 380, type: 'triangle', duration: 0.12, gain: 0.05, out }); }
+  else if (kind === 'pala') { playBuf('punch', { out, gain: 0.12 + k * 0.12, rate: 1.9 * r }); playTone({ freq: 520, freqEnd: 300, type: 'triangle', duration: 0.08, gain: 0.05, out }); }
+  else if (kind === 'padelglas') { playTone({ freq: 1500 * r, freqEnd: 900, type: 'triangle', duration: 0.1, gain: 0.05 + k * 0.08, out }); playNoiseBurst({ duration: 0.06, freq: 4200, freqEnd: 2600, q: 2, gain: 0.05 + k * 0.06, type: 'bandpass', out }); }
+  else if (kind === 'padelgaas') playNoiseBurst({ duration: 0.14, freq: 1800, freqEnd: 700, q: 0.8, gain: 0.05 + k * 0.07, type: 'bandpass', out });
   else if (kind === 'poop') playNoiseBurst({ duration: 0.09, freq: 500, freqEnd: 180, q: 1.2, gain: 0.12, type: 'bandpass', out });
   else if (kind === 'splat') playBuf('step_wet_' + Math.floor(Math.random() * 4), { out, gain: 0.25 + k * 0.1, rate: 0.75 * r });
   else if (kind === 'plop') playTone({ freq: 700, freqEnd: 240, type: 'sine', duration: 0.07, gain: 0.08 + k * 0.08, out });
