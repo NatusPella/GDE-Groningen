@@ -53,7 +53,6 @@ export const FLAGS = Object.freeze({
   pixeldebug: has('pixeldebug'),
   coop: has('coop'),
   marker: val('marker'),
-  stadlaag: val('stadlaag'),
   hitch: has('hitch'),
   simlagen: has('simlagen'),
   zwartcheck: has('zwartcheck'),
