@@ -3,6 +3,7 @@ import { getScene } from '../scene3d.js';
 import { edgeDistance, parcelAt, MAAR_WATER } from '../countryfield.js';
 import { urbanWeight } from '../provinceworld.js';
 import { trunksNear } from '../countrywalls.js';
+import { rand as rnd } from '../rng.js';
 
 // Place-aware ambience: looping beds crossfaded by where/when the listener
 // is, scheduled ambient events (birds, gulls, clinks, thunder), the
@@ -44,7 +45,6 @@ const animalNext = new WeakMap();
 const animalSpeed = new WeakMap();
 
 function now() { return K.ctx.currentTime; }
-function rnd(a, b) { return a + Math.random() * (b - a); }
 function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
 function later(delay, fn) {

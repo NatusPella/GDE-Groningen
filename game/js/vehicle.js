@@ -26,6 +26,7 @@ import { laneLayout } from './lanes.js';
 import { profileFor, createGearbox, stepGearbox } from './gearbox.js';
 import { slipAngle } from './drift.js';
 import { MOPED_LEGAL_SPEED } from './motomodels.js';
+import { pickMotor, motorRoadAllowed, motorTarget } from './motortraffic.js';
 export { MOTORBIKE_MODELS, GEARED_MOPED_MODEL, MOPED_LEGAL_SPEED } from './motomodels.js';
 
 // every traffic model, for warming their meshes before they first spawn
@@ -1003,12 +1004,12 @@ export function manageScooterPopulation(world, { target = 10, spawnMin = 40, spa
   const { map, player, vehicles } = world;
   for (let i = vehicles.length - 1; i >= 0; i--) {
     const v = vehicles[i];
-    if (!v.isScooter || v.driver === 'player') continue;
+    if (!v.isScooter || v.isMotor || v.driver === 'player') continue;
     if ((!v.wrecked && ((v.deadEndBounces || 0) > 2 || (v.stuckFor || 0) > 25 || ((v.waitFor || 0) > 45 && Math.hypot(v.x - player.x, v.y - player.y) > 70))) || Math.hypot(v.x - player.x, v.y - player.y) > despawnDist) vehicles.splice(i, 1);
   }
 
   let count = 0;
-  for (const v of vehicles) if (v.isScooter && !v.wrecked && v.driver !== 'player' && v.road) count++;
+  for (const v of vehicles) if (v.isScooter && !v.isMotor && !v.wrecked && v.driver !== 'player' && v.road) count++;
 
   const candidates = map.roadsNear(player.x, player.y, spawnMax)
     .filter((r) => r.cat === 'cycle' || r.cat === 'normal' || r.cat === 'minor');
@@ -1018,6 +1019,35 @@ export function manageScooterPopulation(world, { target = 10, spawnMin = 40, spa
     const v = spawnVehicleOnRoad(map, road, false, Math.random, false, false, null, true);
     const d = Math.hypot(v.x - player.x, v.y - player.y);
     if (d < spawnMin || d > spawnMax || !spawnSpotFree(vehicles, v) || inPrivateGarage(map, v.x, v.y, 2) || spawnWouldPop(world, v)) continue;
+    vehicles.push(v);
+    count++;
+  }
+}
+
+// Brommers and motorbikes in the everyday traffic (motortraffic.js): they ride
+// the normal roads only, never the fietspad, and a legal brommer stays at 45.
+export function manageMotorPopulation(world, { target = null, spawnMin = 50, spawnMax = 150, despawnDist = 230 } = {}) {
+  const { map, player, vehicles } = world;
+  for (let i = vehicles.length - 1; i >= 0; i--) {
+    const v = vehicles[i];
+    if (!v.isMotor || v.driver === 'player') continue;
+    if ((!v.wrecked && ((v.deadEndBounces || 0) > 2 || (v.stuckFor || 0) > 25 || ((v.waitFor || 0) > 45 && Math.hypot(v.x - player.x, v.y - player.y) > 70))) || Math.hypot(v.x - player.x, v.y - player.y) > despawnDist) vehicles.splice(i, 1);
+  }
+  const prof = wijkProfileAt(map, player.x, player.y).key;
+  const want = target ?? motorTarget(prof, hourOf(world));
+  let count = 0;
+  for (const v of vehicles) if (v.isMotor && !v.wrecked && v.driver !== 'player' && v.road) count++;
+  const candidates = map.roadsNear(player.x, player.y, spawnMax).filter((r) => (r.cat === 'normal' || r.cat === 'minor') && r.width >= 3 && !r.busOnly);
+  let guard = 0;
+  while (count < want && candidates.length && guard++ < want * 5) {
+    const road = candidates[Math.floor(Math.random() * candidates.length)];
+    const mid = road.pts[Math.floor(road.pts.length / 2)];
+    const pick = pickMotor(wijkProfileAt(map, mid[0], mid[1]).key);
+    const v = spawnVehicleOnRoad(map, road, false, Math.random, false, false, null, true, pick.model);
+    v.isMotor = true;
+    v.tunedMoped = pick.tuned;
+    const d = Math.hypot(v.x - player.x, v.y - player.y);
+    if (d < spawnMin || d > spawnMax || !spawnSpotFree(vehicles, v) || spawnWouldPop(world, v)) continue;
     vehicles.push(v);
     count++;
   }
@@ -1388,6 +1418,7 @@ function canUseRoad(v, r) {
   if (r.cat === 'foot') return false;
   const small = v.isBike || v.isScooter;
   if (r.cat === 'cycle' && !small) return false;
+  if (v.isMotor && !motorRoadAllowed(v.model, r)) return false; // brommers and motors keep off the fietspad
   if (r.busOnly && !busLaneUser(v)) return false;
   return small || r.width >= v.model.wid + 1.1;
 }
@@ -1736,6 +1767,7 @@ function followSpeedLimit(v, path, world, decel, chase) {
   const creeping = world.time < (v.creepUntil || 0);
   for (const o of world.vehicles) {
     if (o === v || o.isBoat || o.sinking || o.id === ignoring) continue;
+    if (chase && v.chaseDodge && o.driver === 'player') continue;
     const dx = o.x - v.x, dy = o.y - v.y;
     if (dx * dx + dy * dy > (PATH_LEN + 5) ** 2) continue;
     const rel = Math.cos(o.angle - v.angle);

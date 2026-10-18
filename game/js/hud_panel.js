@@ -1,3 +1,4 @@
+import { pointInPolygon as pointInPoly } from './util.js';
 import { dualHtml } from './subtitles.js';
 import { simLevel } from './simload.js';
 import { getGaragesForRender } from './garages.js';
@@ -549,14 +550,6 @@ function updateRouteChip(world) {
   els.routeChip.dataset.kind = kind;
 }
 
-function pointInPoly(px, py, pts) {
-  let inside = false;
-  for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
-    const xi = pts[i][0], yi = pts[i][1], xj = pts[j][0], yj = pts[j][1];
-    if (((yi > py) !== (yj > py)) && (px < (xj - xi) * (py - yi) / (yj - yi) + xi)) inside = !inside;
-  }
-  return inside;
-}
 
 function currentDistrict(world) {
   const { x, y } = world.player;
@@ -667,8 +660,9 @@ function updatePlace(dt, world) {
   if (!c || c.key === placeState.last) return;
   // a mission timer, a cutscene or a busy moment: the place is just taken in
   const timer = !!gpsState.timer;
-  if (timer || isCinematicActive() || world.pigeonMode || world.heliRun || !document.body.classList.contains('game-started')) { placeState.last = c.key; return; }
-  if (isBusy(world) || isDialogue()) {
+  if (timer || world.pigeonMode || world.heliRun || !document.body.classList.contains('game-started')) { placeState.last = c.key; return; }
+  // a flyover (wijk, landmark) names its place in this card once it ends
+  if (isCinematicActive() || isBusy(world) || isDialogue()) {
     if (!placeState.pending || placeState.pending.key !== c.key) { placeState.pending = c; placeState.pendingAt = now; }
     if (now - placeState.pendingAt > DEFER_MAX) { placeState.last = c.key; placeState.pending = null; }
     return;

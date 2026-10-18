@@ -115,3 +115,16 @@ export function computeLighting(hour, out = {}) {
   out.daylight = smoothstep(-6, 12, elev);
   return out;
 }
+
+// The one answer to "what time of day is it" for everything that reads
+// world.clock/world.dayNight: hour (0..24), night (0..1, from the sun),
+// isNight (night > 0.5, the street lights are on) and phase
+// ('dag' | 'schemering' | 'nacht'). Systems with their own hour windows
+// (muggingrules, musicpick, missions, streetlifedata) stay on those on purpose.
+export function dayState(world) {
+  const dn = world && world.dayNight;
+  const raw = dn && Number.isFinite(dn.hour) ? dn.hour : world && world.clock;
+  const hour = Number.isFinite(raw) ? ((raw % 24) + 24) % 24 : 12;
+  const night = dn && Number.isFinite(dn.night) ? dn.night : 0;
+  return { hour, night, isNight: night > 0.5, phase: night > 0.5 ? 'nacht' : night > 0 ? 'schemering' : 'dag' };
+}

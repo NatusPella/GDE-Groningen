@@ -15,19 +15,11 @@
 // rows: the tile's rows by kind plus rows.tile = { i, j, x0, y0, size }.
 import { registerHook } from './worldbuilder.js';
 import { speciesFor, speciesFromTags, heightFor, fillPolygon, hash2, findRows, TREE_FLAG } from './greenery.js';
+import { pointInPolygon as inPoly, segDist as segDistXY } from './util.js';
 
 export const FILL_GID0 = 20_000_000;
 
-function segDist(x, y, a, b) {
-  const dx = b[0] - a[0], dy = b[1] - a[1], L2 = dx * dx + dy * dy || 1e-9;
-  const t = Math.max(0, Math.min(1, ((x - a[0]) * dx + (y - a[1]) * dy) / L2));
-  return Math.hypot(a[0] + dx * t - x, a[1] + dy * t - y);
-}
-function inPoly(x, y, P) {
-  let c = false;
-  for (let i = 0, j = P.length - 1; i < P.length; j = i++) if ((P[i][1] > y) !== (P[j][1] > y) && x < ((P[j][0] - P[i][0]) * (y - P[i][1])) / (P[j][1] - P[i][1]) + P[i][0]) c = !c;
-  return c;
-}
+const segDist = (x, y, a, b) => segDistXY(x, y, a[0], a[1], b[0], b[1]);
 function polyDist(x, y, P) {
   let d = Infinity;
   for (let i = 0, j = P.length - 1; i < P.length; j = i++) d = Math.min(d, segDist(x, y, P[j], P[i]));

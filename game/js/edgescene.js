@@ -18,18 +18,20 @@
 export const SCENE_S = 4.5; // s from the first prop to the turn-back
 export const COOL_S = 12; // s after a turn-back without a new scene
 export const WARN_GAP_S = 20; // s between two warnings of the same edge
+export const AHEAD_M = 28; // m in front of the player (towards the outside) where the scene stands
 export const CLEAR_M = 120; // m the player is put back inside the warning band
 
-// What stands at the edge per kind. Props sit relative to the edge point:
-// `out` metres towards the outside, `along` metres sideways (left of the way back).
+// What stands at the edge per kind. Props sit relative to a point AHEAD_M
+// beyond the player: `out` metres further outside, `along` metres sideways
+// (left of the way back).
 // The first prop is the one the camera should look at.
 export const EDGE_SCENES = {
-  duitsland: { props: [{ kind: 'grenspost', out: 6, along: 0 }, { kind: 'slagboom', out: 4, along: 0 }, { kind: 'bord', out: 12, along: -4 }], lines: ['Een slagboom zakt. Het hokje van de Grenswacht staat op de weg.'] },
-  eems: { props: [{ kind: 'grenswachtboot', out: 25, along: 0 }, { kind: 'boei', out: 15, along: -12 }, { kind: 'boei', out: 15, along: 12 }], lines: ['De Grenswacht ligt dwars op de vaargeul.'] },
-  wad: { props: [{ kind: 'mistbank', out: 60, along: 0 }, { kind: 'kustwachtboot', out: 30, along: 18 }], lines: ['Een muur van mist rolt over het water. De stroming trekt aan je.'] },
-  friesland: { props: [{ kind: 'wegversperring', out: 8, along: 0 }, { kind: 'neef', out: 10, along: 3 }, { kind: 'neef', out: 10, along: -3 }], lines: ['Twee neven staan naast een hek met een schaap.'] },
-  drenthe: { props: [{ kind: 'hunebed', out: 8, along: 0 }, { kind: 'bord', out: 12, along: 5 }], lines: ['Een hunebed ligt dwars over de weg.'] },
-  lucht: { props: [{ kind: 'mistbank', out: 80, along: 0 }], lines: ['De radio kraakt. De autopiloot pakt de knuppel.'] },
+  duitsland: { props: [{ kind: 'rand_grenspost', out: 6, along: 0 }, { kind: 'rand_slagboom', out: 4, along: 0 }, { kind: 'rand_bord', out: 12, along: -4 }], lines: ['Een slagboom zakt. Het hokje van de Grenswacht staat op de weg.'] },
+  eems: { props: [{ kind: 'rand_grenswachtboot', out: 25, along: 0 }, { kind: 'rand_boei', out: 15, along: -12 }, { kind: 'rand_boei', out: 15, along: 12 }], lines: ['De Grenswacht ligt dwars op de vaargeul.'] },
+  wad: { props: [{ kind: 'rand_mistbank', out: 60, along: 0 }, { kind: 'rand_kustwachtboot', out: 30, along: 18 }], lines: ['Een muur van mist rolt over het water. De stroming trekt aan je.'] },
+  friesland: { props: [{ kind: 'rand_wegversperring', out: 8, along: 0 }, { kind: 'rand_neef', out: 10, along: 3 }, { kind: 'rand_neef', out: 10, along: -3 }], lines: ['Twee neven staan naast een hek met een schaap.'] },
+  drenthe: { props: [{ kind: 'rand_hunebed', out: 8, along: 0 }, { kind: 'rand_bord', out: 12, along: 5 }], lines: ['Een hunebed ligt dwars over de weg.'] },
+  lucht: { props: [{ kind: 'rand_mistbank', out: 80, along: 0 }], lines: ['De radio kraakt. De autopiloot pakt de knuppel.'] },
 };
 
 // The plan for a turn-back at (x, y): world positions of the props, the lines
@@ -39,7 +41,7 @@ export function scenePlan(rule, x, y) {
   const sc = EDGE_SCENES[rule.edge] || EDGE_SCENES.wad;
   const fx = Math.cos(rule.face), fy = Math.sin(rule.face); // towards inside
   const lx = -fy, ly = fx; // left of the way back
-  const ox = rule.at.x, oy = rule.at.y;
+  const ox = x - fx * AHEAD_M, oy = y - fy * AHEAD_M;
   const props = sc.props.map((p) => ({ kind: p.kind, x: ox - fx * p.out + lx * p.along, y: oy - fy * p.out + ly * p.along, angle: rule.face }));
   const back = Math.max(0, (rule.d || 0) - (rule.warnAt || 0)) + CLEAR_M;
   return {
