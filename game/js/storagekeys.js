@@ -18,7 +18,7 @@ export const LEGACY_DEV_PREFIX = 'gte-dev:';
 // The new story arc (storyflag.js) keeps its own progress: a different save, backup,
 // prestaties and "already seen" state, so playing it never touches a released save
 // and a save of one arc can never load into the other.
-const ARC_KEYS = ['save', 'saveBackup', 'achievements', 'pigeon', 'flavour', 'banter', 'introSeen', 'wijkenSeen', 'radioHistory'];
+const ARC_KEYS = ['coopSave', 'save', 'saveBackup', 'achievements', 'pigeon', 'flavour', 'banter', 'introSeen', 'wijkenSeen', 'radioHistory'];
 const ARC_SUFFIX = nieuwVerhaal() ? '-nieuw' : '';
 
 export const BASE_KEYS = {
@@ -47,6 +47,8 @@ export const BASE_KEYS = {
   ghosts: 'gde-ghosts-v1',
   // the Kroketkoning snack-bar chain (snackrules.js), new in 0.36: no legacy name
   snackChain: 'gde-snackketen-v1',
+  // co-op (#95): its own save, never the solo save; new in 0.4x, no legacy name
+  coopSave: 'gde-coop-v1',
   // hidden setting: play the new story arc (storyflag.js)
   nieuwVerhaal: 'gde-nieuwverhaal',
 };
