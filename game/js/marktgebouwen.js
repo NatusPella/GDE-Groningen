@@ -3,6 +3,7 @@ import { GeoBuilder } from './pixelart3d.js';
 import { LANDMARK_MATERIALS, LM, hasLandmarkModel } from './landmarks3d.js';
 import { glassMaterial, paneUV, PANE_HOME, PANE_SHOP } from './interiorglass.js';
 import { pointInPolygon } from './util.js';
+import { hash2 } from './rng.js';
 
 // The buildings round the Grote Markt and the Vismarkt (docs/markt-gebouwen.md).
 // Two kinds:
@@ -96,10 +97,6 @@ export function marktKind(b) {
 
 // --- small helpers -----------------------------------------------------------------
 
-function hash2(x, y) {
-  const h = Math.sin(x * 127.1 + y * 311.7) * 43758.5453;
-  return h - Math.floor(h);
-}
 function rngOf(seed) {
   let s = Math.floor(seed * 2147483646) + 1;
   return () => (s = (s * 16807) % 2147483647) / 2147483647;

@@ -9,9 +9,10 @@ import { closestPointOnSegment, isInWater, pointInPolygon, boatDryPoints } from 
 import { nearestOnRoads } from './tileplace.js';
 import { getVehicleMesh } from './models3d_vehicles.js';
 import { TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
+import { rand } from './rng.js';
 
 export const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
-export const rand = (a, b) => a + Math.random() * (b - a);
+export { rand } from './rng.js';
 export const euro = (n) => '€' + Math.round(n).toLocaleString('nl-NL');
 
 export function fmtClock(s) {

@@ -1,4 +1,5 @@
 import { createWaterIndex } from './waterindex.js';
+import { pointInPolygon as inPolygon } from './util.js';
 
 // Water bodies, levels, depths, boat classes and the one water query
 // (docs/PROVINCIE-PLAN.md 2.11, "Water"). Pure data and geometry: the build
@@ -72,13 +73,7 @@ export function polyPerimeter(P) {
   for (let i = 0, j = P.length - 1; i < P.length; j = i++) s += Math.hypot(P[i][0] - P[j][0], P[i][1] - P[j][1]);
   return s;
 }
-export function inPolygon(x, y, P) {
-  let c = false;
-  for (let i = 0, j = P.length - 1; i < P.length; j = i++) {
-    if ((P[i][1] > y) !== (P[j][1] > y) && x < ((P[j][0] - P[i][0]) * (y - P[i][1])) / (P[j][1] - P[i][1]) + P[i][0]) c = !c;
-  }
-  return c;
-}
+export { inPolygon };
 function boundsOf(P) {
   let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
   for (const p of P) { x0 = Math.min(x0, p[0]); y0 = Math.min(y0, p[1]); x1 = Math.max(x1, p[0]); y1 = Math.max(y1, p[1]); }
