@@ -2,7 +2,7 @@
 // scenes in game/js/cutscenes.js, on the real script lines of the opening:
 //   node scripts/cutscript_test.mjs
 import { readFileSync } from 'node:fs';
-import { compileScene, validateScene, resolveTime, ACTOR_ANIMS } from '../game/js/cutscript.js';
+import { compileScene, validateScene, resolveTime, fitCamera, fitAnchor, ACTOR_ANIMS } from '../game/js/cutscript.js';
 import { ANIMS } from '../game/js/actoranim.js';
 import { OPENING, END_CARD, flatScene } from '../game/js/cutscenes.js';
 
@@ -123,6 +123,58 @@ for (const variant of ['eikea', 'wachten', 'avond']) {
 
 // the animation layer speaks the names the language validates against
 ok(ACTOR_ANIMS.length === ANIMS.length && ACTOR_ANIMS.every((a) => ANIMS.includes(a)), 'ACTOR_ANIMS equals actoranim ANIMS');
+
+// no clipping (#149): a synthetic building 10 x 10 m, 8 m high, next to the anchor
+{
+  const solid = (x, y, z) => x > 1.5 && x < 11.5 && y > -5 && y < 5 && z < 8;
+  const env = { solid };
+  // a camera in the wall moves out, towards what it looks at
+  const c = fitCamera({ x: 6, y: 0, z: 1.6 }, { x: -2, y: 0, z: 1.4 }, env);
+  ok(!solid(c.x, c.y, c.z), 'a camera inside a building is moved to free space', JSON.stringify(c));
+  ok(fitCamera({ x: -3, y: 0, z: 1.6 }, { x: -2, y: 0, z: 1.4 }, env).x === -3, 'a free camera stays');
+  // the opening scene faces the building: the anchor turns away until nothing stands in the wall
+  const sc = compileScene(OPENING, { lines, duration });
+  const a0 = { x: 0, y: 0, facing: 0, z: 0 };
+  const count = (a) => { let bad = 0; for (let t = 0; t <= duration; t += 0.6) { const s2 = sc.sample(t, a); for (const o of Object.values(s2.actors)) if (solid(o.x, o.y, 0.9)) bad++; } return bad; };
+  const a1 = fitAnchor(sc, a0, env);
+  ok(count(a0) > 0, 'test setup: the unturned opening stands in the building', String(count(a0)));
+  ok(count(a1) < count(a0) && a1.facing !== a0.facing, 'fitAnchor turns the scene away from the building', count(a1) + ' vs ' + count(a0));
+  ok(fitAnchor(sc, a1, { solid: () => false }).facing === a1.facing, 'a clean anchor is left alone');
+  // every sampled camera is outside the building once the env is passed
+  let clipped = 0;
+  for (let t = 0; t <= duration; t += 0.2) { const c2 = sc.sample(t, a0, env).camera.position; if (solid(c2.x, c2.y, c2.z)) clipped++; }
+  ok(clipped === 0, 'sampled cameras never stand in the building', String(clipped));
+
+  // the flat upstairs: a 12 x 9 m box, people and camera stay inside it, the camera above the cutaway
+  const W = 12, D = 9, floor = 34, above = 2.4;
+  const clamp = (x, y, z, kind) => {
+    const m = kind === 'camera' ? 0.45 : 0.6;
+    return { x: Math.max(m, Math.min(W - m, x)), y: Math.max(m, Math.min(D - m, y)), z: kind === 'camera' ? Math.max(z, floor + above) : z };
+  };
+  const flatEnv = { clamp };
+  const flatAnchor = { x: 3.4, y: 2.8, facing: 0, z: floor };
+  for (const variant of ['eikea', 'wachten', 'avond']) {
+    const ls = [];
+    let at2 = 2.2;
+    for (let i = 0; i < 14; i++) { const dur = 2 + (i % 3); ls.push({ speaker: ['Anita', 'Tammo', 'Henk'][i % 3 === 2 && i % 2 ? 2 : i % 2], text: 'x', at: at2, dur }); at2 += dur + 0.25; }
+    const dur2 = at2 + 0.4;
+    const fs2 = compileScene(flatScene(variant, ls), { lines: ls, duration: dur2 });
+    let outside = 0, low = 0;
+    for (let t = 0; t <= dur2; t += 0.2) {
+      const s3 = fs2.sample(t, flatAnchor, flatEnv);
+      for (const o of Object.values(s3.actors)) if (o.x < 0.5 || o.x > W - 0.5 || o.y < 0.5 || o.y > D - 0.5) outside++;
+      const c3 = s3.camera.position;
+      if (c3.x < 0.4 || c3.x > W - 0.4 || c3.y < 0.4 || c3.y > D - 0.4) outside++;
+      if (c3.z < floor + above - 1e-9) low++;
+    }
+    ok(outside === 0, `flat ${variant}: people and camera stay inside the walls`, String(outside));
+    ok(low === 0, `flat ${variant}: the camera stays above the cutaway`, String(low));
+    // and without the env the old poses did leave the box (the bug of #149)
+    let leaked = 0;
+    for (let t = 0; t <= dur2; t += 0.2) { const c4 = fs2.sample(t, flatAnchor).camera.position; if (c4.x < 0.4 || c4.x > W - 0.4 || c4.y < 0.4 || c4.y > D - 0.4) leaked++; }
+    ok(leaked > 0, `flat ${variant}: test setup: without env the camera does leave the flat`, String(leaked));
+  }
+}
 
 console.log(fails ? `${fails} of ${n} checks FAILED` : `cutscript_test: ${n} checks ok`);
 process.exit(fails ? 1 : 0);

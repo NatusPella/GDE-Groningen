@@ -29,7 +29,7 @@ import { purchaseCount, storyBuyLabel } from './storyshop.js';
 import { getPigeonSpotsForRender } from './pigeonspots.js';
 import { getSideJobList } from './sidejobs.js';
 import { getGaragesForRender } from './garages.js';
-import { inHomeFlat, getHomeForRender } from './home.js';
+import { inHomeFlat, getHomeForRender, flatStage } from './home.js';
 import { isShopOpen } from './shopui.js';
 import { playCinematic, isCinematicActive, sinceCinematic, isBannerUp } from './cinematics.js';
 import { playScript } from './cutscenehost.js';
@@ -430,8 +430,9 @@ function updateHomeWait(step) {
   };
   // staged in the flat (cutscenes.js flatScene), the plain scene as the fallback
   const pl = world.player;
+  const stage = flatStage();
   const ok = (lines.length > 2 && playScript(world, flatScene(scene && scene.clock != null ? 'avond' : 'wachten', lines), {
-    lines, duration: cine.duration, anchor: { x: pl.x, y: pl.y, facing: pl.angle || 0, z: pl.gz || 0 }, cine,
+    lines, duration: cine.duration, anchor: stage ? stage.anchor : { x: pl.x, y: pl.y, facing: pl.angle || 0, z: pl.gz || 0 }, env: stage ? stage.env : null, cine,
   })) || playCinematic(cine);
   if (!ok) done();
 }

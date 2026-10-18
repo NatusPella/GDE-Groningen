@@ -16,6 +16,8 @@
 // pass with no deck over them). No scene here: movablebridges3d.js draws the
 // leaves, barriers and lights from the state exported below.
 
+import { airDraftOf, passesUnder, BRIDGE_DECK_T, BOEZEM_Y } from './waterlevels.js';
+
 export const BRIDGE_TIMING = { WARN_S: 4, BOOMS_S: 4, CLEAR_MAX_S: 12, MOVE_S: 9, HOLD_S: 14 };
 // how far in front of the bridge a skipper's horn counts, and a boat that
 // asked keeps it open
@@ -24,8 +26,67 @@ const WAIT_REACH = 35;
 // barriers stand this far beyond the span's ends
 const BOOM_OUT = 3;
 
+// Automatic opening (#154): a boat too tall for the closed bridge makes it open
+// by itself, timed so the leaf is up when the boat arrives. The trigger is the
+// boat's time to the deck against the time the bridge needs to open.
+export const AUTO = {
+  MARGIN_S: 3,        // extra seconds of lead on top of the opening time
+  REACH: 260,         // a boat further than this (m) from the deck is not looked at
+  LATERAL_PAD: 6,     // the boat is in the channel when within the span plus this
+  MIN_SPEED: 0.6,     // below this (m/s) a boat counts as lying still
+  STILL_REACH: 45,    // a boat lying still this close asks for it (like a horn)
+  PASS_PAD: 8,        // the boat has passed when this far beyond the deck's edge
+  MIN_OPEN_S: 5,      // an automatic opening stays open at least this long (a horn: HOLD_S)
+};
+// the clearance under a closed city bridge, as waterlevels.bridgeClearance gives it
+const STREET_CLEAR = 0 - BRIDGE_DECK_T - BOEZEM_Y;
+export function boatNeedsOpening(v) {
+  return !passesUnder(airDraftOf(v), STREET_CLEAR);
+}
+// Seconds a bridge needs from the request until the leaf is up
+export function openingLead() {
+  const T = BRIDGE_TIMING;
+  return T.WARN_S + T.BOOMS_S + T.MOVE_S;
+}
+// Where a boat is to bridge b: w along the water (across the span; + one side,
+// - the other, measured from the deck's edge so 0 is at the edge), s along the
+// span from its middle. vw: speed along the water towards the deck (> 0 =
+// approaching, < 0 = leaving).
+export function boatFrame(b, v) {
+  const dx = v.x - b.x, dy = v.y - b.y;
+  const nx = -b.uy, ny = b.ux;
+  const w = dx * nx + dy * ny, s = dx * b.ux + dy * b.uy;
+  const sp = v.speed || 0;
+  const vx = Math.cos(v.angle) * sp, vy = Math.sin(v.angle) * sp;
+  const vAlong = vx * nx + vy * ny;
+  const edge = Math.max(2, b.half);
+  return { w: Math.abs(w) - edge, side: Math.sign(w) || 1, s, vw: -Math.sign(w || 1) * vAlong };
+}
+// Is the boat done with the bridge: sailed through (beyond the deck on the far
+// side), or turned back (beyond the pad, heading away)? `from`: the side it came from.
+export function boatPassed(b, v, from) {
+  const f = boatFrame(b, v);
+  return f.w > AUTO.PASS_PAD && (f.side !== from || f.vw < 0);
+}
+// Should boat v make bridge b open now? Pure: the boat's time to the deck is
+// no more than the opening lead plus a margin, it is heading for the deck in
+// the channel, or it lies still close by.
+export function boatTriggers(b, v) {
+  const f = boatFrame(b, v);
+  if (Math.abs(f.s) > b.len / 2 + AUTO.LATERAL_PAD) return false;
+  if (f.w > AUTO.REACH) return false;
+  if (f.w <= 0) return true; // on the span's line already
+  if (Math.abs(v.speed || 0) < AUTO.MIN_SPEED) return f.w < AUTO.STILL_REACH;
+  if (f.vw <= 0) return false; // sailing away
+  return f.w / f.vw <= openingLead() + AUTO.MARGIN_S;
+}
+
 let bridges = [];
 let ready = false;
+// bridges closed to traffic by a ship's blow (bridgehitworld.js): they get
+// the same barriers and the same stop for the traffic AI, nothing else
+let extra = [];
+export function setDamagedBridgeBarriers(list) { extra = list; }
 
 export function getMovableBridges() { return bridges; }
 
@@ -46,7 +107,7 @@ export function buildMovableBridges(map) {
       half: (r.width || 4) / 2 + (wide ? 1.8 : 0.15),
       name: r.name || '',
       state: 'closed', t: 0, open: 0, boom: 0, flash: 0, warn: false, requests: 0, waitFor: null,
-      snapped: null, _booms: null,
+      snapped: null, _booms: null, boats: new Map(), manual: false,
     });
   }
   ready = true;
@@ -54,17 +115,22 @@ export function buildMovableBridges(map) {
 }
 
 export function resetMovableBridges() {
-  for (const b of bridges) { b.state = 'closed'; b.t = 0; b.open = 0; b.boom = 0; b.warn = false; b.waitFor = null; b.snapped = null; b.r._open = false; }
+  for (const b of bridges) { b.state = 'closed'; b.t = 0; b.open = 0; b.boom = 0; b.warn = false; b.waitFor = null; b.boats.clear(); b.manual = false; b.snapped = null; b._hinted = null; b.r._open = false; }
 }
 
 // Ask bridge `b` to open (a boat in front of it). `who`: the boat, kept as
 // the reason to hold it open while it is near.
-export function requestOpening(b, who = null, twins = true) {
+export function requestOpening(b, who = null, twins = true, auto = false) {
   // a bridge beside it over the same water (the cycle bridge next to the
   // road bridge) opens with it
-  if (twins) for (const o of bridges) if (o !== b && Math.hypot(o.x - b.x, o.y - b.y) < 30) requestOpening(o, who, false);
+  if (twins) for (const o of bridges) if (o !== b && Math.hypot(o.x - b.x, o.y - b.y) < 30) requestOpening(o, who, false, auto);
   b.requests++;
-  if (who) b.waitFor = who;
+  if (!auto) b.manual = true;
+  if (who) {
+    b.waitFor = who;
+    // the side the boat came from: it has passed when it is on the other one
+    if (!b.boats.has(who)) b.boats.set(who, who.x !== undefined ? boatFrame(b, who).side : 1);
+  }
   if (b.state === 'closed') { b.state = 'warn'; b.t = 0; }
   else if (b.state === 'closing' || b.state === 'up') {
     // it opens again from where it is
@@ -136,7 +202,10 @@ export function stepBridge(b, dt, world = null) {
       b.open = 1;
       const w = b.waitFor;
       const near = w && !w.wrecked && !w.sinking && Math.hypot(w.x - b.x, w.y - b.y) < WAIT_REACH;
-      if (b.t >= T.HOLD_S && !near) { b.state = 'closing'; b.t = 0; b.waitFor = null; }
+      // boats that asked and have not yet sailed through hold it open (several in a row)
+      for (const [boat, from] of b.boats) if (!boat || boat.wrecked || boat.sinking || (world && world.vehicles && !world.vehicles.includes(boat)) || boatPassed(b, boat, from)) b.boats.delete(boat);
+      const waiting = b.boats.size > 0 || (b.manual && near);
+      if (b.t >= (b.manual ? T.HOLD_S : AUTO.MIN_OPEN_S) && !waiting) { b.state = 'closing'; b.t = 0; b.waitFor = null; b.manual = false; }
       break;
     }
     case 'closing':
@@ -160,18 +229,50 @@ export function raceWindow() {
   return { boomsDown: T.WARN_S + T.BOOMS_S, deckGone: T.WARN_S + T.BOOMS_S, cycle: T.WARN_S + 2 * T.BOOMS_S + 2 * T.MOVE_S + T.HOLD_S };
 }
 
+// The light for boats at a bridge: green only while the span lies open, red
+// while it is closed or busy (warning, barriers, moving).
+export function boatSignal(b) { return b.state === 'open' ? 'green' : 'red'; }
+
+// The hint (#154) for someone near the bridge, at the moment its state turns to
+// `warn` (it is going to open) or `open` (it lies open). `onWater`: a boat or
+// swimmer, else road traffic. null for any other change.
+const HINT_REACH = 70;
+export function bridgeHint(state, onWater) {
+  if (state === 'warn') return onWater ? 'Brug gaat open, even wachten.' : 'Brug gaat open, wachten.';
+  if (state === 'open') return onWater ? 'Brug open, varen maar.' : 'Brug open.';
+  return null;
+}
+
+function hintNear(b, world) {
+  const p = world && world.player;
+  if (!p || !world.addMessage) return;
+  const v = p.inVehicle;
+  const x = v ? v.x : p.x, y = v ? v.y : p.y;
+  if (Math.abs(x - b.x) > HINT_REACH + b.len / 2 || Math.abs(y - b.y) > HINT_REACH + b.len / 2) return;
+  const text = bridgeHint(b.state, !!(v && v.isBoat));
+  if (text) world.addMessage(text, 3, { kind: 'tip' });
+}
+
 export function updateMovableBridges(dt, world) {
   if (!ready || dt <= 0) return;
   for (const b of bridges) {
-    // a boat that does not fit under the closed bridge asks for it
-    if (b.state === 'closed' && world) {
+    // a boat that does not fit under the closed bridge makes it open, timed to
+    // arrive as the leaf is up (a horn, hornAt, still works by hand)
+    if (world) {
       for (const v of world.vehicles || []) {
-        if (!v.isBoat || v.wrecked || !v.needsOpening) continue;
-        if (Math.hypot(v.x - b.x, v.y - b.y) > HORN_REACH) continue;
-        if (v.needsOpening(b)) { requestOpening(b, v); break; }
+        if (!v.isBoat || v.wrecked || v.sinking || (v.needsOpening ? !v.needsOpening(b) : !boatNeedsOpening(v))) continue;
+        if (!boatTriggers(b, v)) continue;
+        if (b.state === 'open' || b.state === 'opening' || b.state === 'warn' || b.state === 'booms' || b.state === 'clear') {
+          if (!b.boats.has(v)) b.boats.set(v, boatFrame(b, v).side);
+        } else requestOpening(b, v, true, true);
       }
     }
     stepBridge(b, dt, world);
+    // one hint per bridge per change (a request may have set `warn` before this step)
+    if (b._hinted !== b.state) {
+      b._hinted = b.state;
+      if (b.state === 'warn' || b.state === 'open') hintNear(b, world);
+    }
   }
 }
 
@@ -197,7 +298,7 @@ export function boomsOf(b) {
 
 export function loweredBridgeBoomsNear(x, y, r = 30) {
   const out = [];
-  for (const b of bridges) {
+  for (const b of bridges.concat(extra)) {
     if (b.boom < 0.6 || Math.abs(b.x - x) > r + b.len / 2 + 10 || Math.abs(b.y - y) > r + b.len / 2 + 10) continue;
     for (const bm of boomsOf(b)) if (!(b.snapped && b.snapped[bm.i])) out.push(bm);
   }
@@ -209,7 +310,7 @@ export function loweredBridgeBoomsNear(x, y, r = 30) {
 // closed. `project` is vehicle.js projectOnPath.
 export function bridgeSpeedLimit(v, path, project) {
   let vmax = Infinity;
-  for (const b of bridges) {
+  for (const b of extra.length ? bridges.concat(extra) : bridges) {
     if (!b.warn) continue;
     const dx = b.x - v.x, dy = b.y - v.y;
     if (dx * dx + dy * dy > (70 + b.len) ** 2) continue;
