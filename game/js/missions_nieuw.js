@@ -90,7 +90,9 @@ export function buildNieuwDefs({ map, walk, drive, models = {} }) {
       label: 'Het containerlabyrint',
       intro: ["De Eemshaven, vannacht. Lammert, de havenmeester, wacht aan de kade van de Noorderterminal.", "Container 4471 staat tussen drieduizend anderen. Sluip langs de bewakers en camera's, vind hem en verwissel de papieren voor het schip om zes uur vertrekt."],
       outro: 'De papieren zijn verwisseld. Het schip van Jelle vaart leeg weg.',
-      timeLimit: null,
+      timeLimit: 480,
+      timeUp: 'het schip van zes uur is vertrokken, met container 4471 vol. Lammert schudt zijn hoofd',
+      costRow: ['Gewonnen', 'Het schip van Jelle vaart leeg weg'],
       reward: 900,
       onFoot: true,
       heist: { bare: true },
@@ -121,6 +123,8 @@ export function buildNieuwDefs({ map, walk, drive, models = {} }) {
       snapStart: true,
       vehicleName: 'de auto van Lammert',
       handBack: { how: 'park', say: 'De auto blijft bij de sluis, Lammert regelt de rest. Wij gaan te voet verder.' },
+      vehicleFail: { gone: 'de auto van Lammert is foetsie, en de limo rijdt door', wrecked: 'de auto van Lammert is total loss. De dijk is lang als je loopt', left: 'je liet de auto staan. Lopend haal je de sluis niet voor acht uur' },
+      costRow: ['Gered', 'De voorraden van de vrienden van Oma blijven in Delfzijl'],
       start: DIJK_START,
       stages: [
         { kind: 'board', label: 'Stap in de auto naast de trekker-limo', say: 'Instappen. De trekker-limo van Jelle staat al te ronken.' },
@@ -246,6 +250,7 @@ export function applyNieuw(list) {
     kerm.intro = ['De kermis van Winschoten, zaterdagavond. Geert heeft drie tenten, en Durk en Douwe zingen aan zijn bar.', 'Te voet langs drie tenten, hè. Elke tent een drankje, en de dronken menigte duwt je zo omver.'];
     kerm.outro = 'Drie tenten gehaald. Durk en Douwe zijn moe genoeg voor de botsauto\'s.';
     kerm.timeLimit = 100;
+    kerm.timeUp = 'tijd op. De tenten sluiten, Durk en Douwe zingen door zonder jullie';
     kerm.checkpointBonus = 25;
     kerm.drunk = 0.25;
     kerm.crowds = [W(-30, 25), W(20, 10), W(60, 30), W(70, 10), W(25, -35)];
