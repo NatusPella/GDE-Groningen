@@ -12,8 +12,6 @@ import { BASE_KEYS, LEGACY_PREFIX } from './storagekeys.js';
 export const ARC_NAMES = { oud: 'Klassiek', nieuw: 'Nieuw (proefversie)' };
 export const arcName = (arc) => ARC_NAMES[arc] || ARC_NAMES.oud;
 
-// the arc a new game plays: the one this page was loaded with
-export const activeArc = () => ARC_ID;
 // a save of the released (Klassiek) story exists in this browser: it stays untouched but is only
 // visible after choosing Klassiek, so the title screen points to it
 export function classicSaveExists() {
