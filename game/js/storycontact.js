@@ -17,6 +17,7 @@
 // scripts/tts_lines*.{mjs,py}; voicelines_collect.mjs lists these lines.
 
 import { lineVoiceFor } from './linevoice.js';
+import { isStale } from './validity.js';
 import { playContactVoice as playBanterVoice, stopContactVoice as stopBanterVoice, pauseContactVoice as pauseBanterVoice, holdContactChannel, playPhoneRing, playClueSting, playRadioSting } from './audio.js';
 import { SPEAKERS } from './storyarc.js';
 import { showNameCard } from './namecard.js';
@@ -357,6 +358,8 @@ export function updateStoryContact(dt, w) {
   world = w;
   if (!root) initStoryContact(w);
   if (!cur) {
+    // refs #171: a contact that no longer applies is dropped and only logged in the history
+    while (queue.length && isStale(queue[0])) logHistory(queue.shift());
     if (!queue.length || !canPlay(w)) { quietT = 0; return; }
     if ((quietT += dt) < QUIET_S) return;
     quietT = 0;

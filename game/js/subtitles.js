@@ -389,12 +389,6 @@ export function dutchFor(text) {
   return out;
 }
 
-export function langOf(text) {
-  const s = String(text || '');
-  if (s in FY) return 'fy';
-  if (s in GRO) return 'gro';
-  return KEYS.some((k) => k.length >= 5 && s.includes(k) && k in FY) ? 'fy' : dutchFor(s) ? 'gro' : null;
-}
 
 const escHtml = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 

@@ -513,9 +513,6 @@ export function sideJobSecondary(w) {
   return out;
 }
 
-export function sideJobGoal() {
-  return ctx && pub.goal ? pub.goal : null;
-}
 
 // --- published state ------------------------------------------------------------
 

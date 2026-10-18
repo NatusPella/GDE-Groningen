@@ -249,4 +249,3 @@ export function buildProductMesh(key) {
   return g;
 }
 
-export const PRODUCT_KEYS = Object.keys(BUILD);

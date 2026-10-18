@@ -1,5 +1,5 @@
 import { onPaletteChange } from './a11y.js';
-import { MODES, MODE_LABEL, ROUTE_MODE, roadAllowed, travelModeOf } from './roadaccess.js';
+import { MODES, roadAllowed, travelModeOf } from './roadaccess.js';
 import { forEachCashTarget } from './cashvan.js';
 import { facilitiesOf } from './facilities.js';
 import { mapIconScale, mapKindVisible, placeIcons, iconGapPx } from './mapicons.js';
@@ -118,11 +118,6 @@ function injectStyles() {
       pointer-events: auto;
     }
     .mapview-title { font-size: 20px; white-space: nowrap; }
-    .mapview-modes { display: inline-flex; gap: 3px; padding: 3px; border-radius: 10px; background: rgba(0,0,0,0.3); border: 1px solid rgba(63,201,122,0.3); }
-    .mapview-modes button { font: 16px 'Bebas Neue', 'Arial Narrow', sans-serif; letter-spacing: 1px; padding: 5px 11px 3px; border: 0; border-radius: 7px; background: transparent; color: rgba(240,237,228,0.75); cursor: pointer; }
-    .mapview-modes button:hover { color: #fff; background: rgba(30,158,86,0.2); }
-    .mapview-modes button[aria-checked="true"] { background: linear-gradient(180deg, #3fc97a, #1e9e56); color: #0c140e; }
-    .mapview-modes button:focus-visible { outline: 2px solid #f0ede4; }
     .mv-modenote { color: #f0ede4 !important; font-size: 14px !important; padding: 6px 4px 8px; }
     .mapview-search { position: relative; flex: 1; max-width: 340px; min-width: 140px; }
     .mapview-search input {
@@ -1775,7 +1770,6 @@ const MODE_NOTE = {
 function setMode(m) {
   if (!MODES.includes(m)) return;
   state.mode = m;
-  for (const b of state.overlay.querySelectorAll('.mapview-modes [data-mode]')) b.setAttribute('aria-checked', String(b.dataset.mode === m));
   if (state.modeNote) state.modeNote.textContent = MODE_NOTE[m];
   if (state.avoidBtn) state.avoidBtn.hidden = m !== 'auto';
   clearTiles();
@@ -1904,7 +1898,6 @@ export function initMapView(world) {
     '<label class="mapview-search m-inp"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg><input type="search" placeholder="Zoek een plek, missie of minigame" aria-label="Zoek een plek, missie of minigame" autocomplete="off" spellcheck="false">' +
     '<ul class="mapview-results" role="listbox" hidden></ul></label></div>' +
     '<div class="mv-hr">' +
-    `<div class="mapview-modes" role="radiogroup" aria-label="Reiswijze">${MODES.map((m) => `<button type="button" role="radio" data-act="mode" data-mode="${m}" aria-checked="false">${MODE_LABEL[m]}</button>`).join('')}</div>` +
     '<button type="button" class="m-bg mv-layers" data-act="layers" aria-expanded="false" aria-controls="mv-legend">Lagen <span class="mv-layers-n"></span></button></div></div>' +
     '<div class="mapview-body"><canvas class="mapview-canvas"></canvas>' +
     '<div class="mapview-zoom"><button type="button" class="m-bg" data-act="in" aria-label="Inzoomen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button><button type="button" class="m-bg" data-act="out" aria-label="Uitzoomen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg></button><button type="button" class="m-bg" data-act="centre" aria-label="Naar jezelf"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 3v4M12 17v4M3 12h4M17 12h4"/></svg></button></div>' +
@@ -1992,11 +1985,7 @@ export function initMapView(world) {
     const btn = e.target.closest('[data-act]');
     if (!btn) return;
     const act = btn.dataset.act;
-    if (act === 'mode') {
-      setMode(btn.dataset.mode);
-      // plan the goal for the chosen way of travel; your own way is the default
-      setRoutePrefs({ planMode: btn.dataset.mode === travelModeOf(world) ? null : ROUTE_MODE[btn.dataset.mode] });
-    } else if (act === 'avoid') {
+    if (act === 'avoid') {
       const on = !getRoutePrefs().avoidMotorways;
       setRoutePrefs({ avoidMotorways: on });
       btn.setAttribute('aria-pressed', String(on));

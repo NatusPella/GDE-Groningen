@@ -745,7 +745,7 @@ def('poof', 0.45, (c, sr, R) => {
 export const BUFFER_NAMES = Object.keys(S);
 
 export function variantsOf(prefix) {
-  return BUFFER_NAMES.filter((n) => n.startsWith(prefix + '_'));
+  return Object.keys(S).filter((n) => n.startsWith(prefix + '_'));
 }
 
 export function renderData(name, ctxRate) {
@@ -833,3 +833,10 @@ export function buildImpulse(ctx, seconds, { decay = 2.5, early = [], damp = 0.2
   for (let c = 0; c < 2; c++) { const d = buf.getChannelData(c); for (let i = 0; i < n; i++) d[i] *= k; }
   return buf;
 }
+
+// Hooks for sfx/fxbank.js (extra one-shots in their own file): the same
+// building blocks and the sample registry. BUFFER_NAMES above is a snapshot;
+// bufferNames() sees later registrations too.
+export const dspKit = { addNoiseBurst, addPartials, addTone, addVoiced, addDecay, thump, click, bq, hash };
+export function defSample(name, dur, gen, o = {}) { def(name, dur, gen, o); }
+export function bufferNames() { return Object.keys(S); }

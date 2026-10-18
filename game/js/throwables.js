@@ -223,9 +223,6 @@ export function updateThrowables(dt, world) {
   }
 }
 
-export function throwablesStats() {
-  return { drops: drops.length, items: items.length, blasts: blasts.length, sparks: sparks.n };
-}
 
 // --- 3D -----------------------------------------------------------------------
 
