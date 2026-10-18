@@ -5,6 +5,7 @@
 // file) does not see their hint texts, which are text only.
 
 import { wgsToWorld } from './rdnew.js';
+import { ROOSTER } from './heliplan.js';
 
 // A spot in the province by latitude/longitude plus metres east/south (province roads are not in the city map: no road snapping).
 const spotAt = (lat, lon, dx = 0, dy = 0) => { const [x, y] = wgsToWorld(lat, lon); return { x: x + dx, y: y + dy, road: null }; };
@@ -119,6 +120,18 @@ export function applyNieuw(list) {
     vet.costRow = ['Gered', 'Plakje twee: het vet blijft in Grunn'];
     vet.vehicleFail = { gone: 'Femkes auto is foetsie, en de tankwagen rijdt door', wrecked: 'de auto is total loss. Femke wil hem niet zo terug', left: 'je liet de auto staan. Zonder auto geen tankwagen' };
   }
+  // M12 Het staat niet in het rooster: Dijkstra picks them up at Lauwersoog; the flight is the 'rooster' variant of helirun.js
+  const rooster = by('Het staat niet in het rooster');
+  if (rooster) {
+    const L = ROOSTER.lauwersoog;
+    rooster.intro = ['Dokter Dijkstra landt in Lauwersoog met Rotor Roelfs heli. De nachtdienst heeft honger, en Jelle vliegt met zijn koopboek boven de Dollard.', 'Eerst de lunch naar het UMCG, dan achter de ballon aan: houd de heli stil naast de mand, dan pakt Tammo de aktetas.'];
+    rooster.outro = 'Tammo knipte de aktetas los. Het koopboek van Jelle: acht plakjes.';
+    rooster.start = { x: L.x - 7, y: L.y + 5, road: null };
+    delete rooster.startSpot;
+    rooster.stages = [{ kind: 'heli', variant: 'rooster', target: { x: L.x, y: L.y, label: 'Helikopterplatform Lauwersoog' }, hint: 'Naar het helikopterplatform in Lauwersoog: Dokter Dijkstra wacht.',
+      label: 'Vlieg naar het UMCG, dan naar Jelles ballon boven de Dollard', say: 'Instappen bij Dijkstra. Spatie omhoog, W vooruit, A/D draaien. Hij vliegt de lange stukken, jij houdt de heli stil naast de mand.', lost: 'de ballon is ontsnapt over de Dollard' }];
+    rooster.costRow = ['Ontdekt', 'Plakje acht: notaris, 28 augustus'];
+  }
   // M16 Nog eentje dan: the kroegentocht moves to the kermis of Winschoten (Sat 22 Aug): three tents on foot
   const kerm = by('Nog eentje dan');
   if (kerm) {
@@ -126,7 +139,7 @@ export function applyNieuw(list) {
     const via = (dx, dy) => ({ ...W(dx, dy), via: true });
     const tent = (name, dx, dy, toast) => ({ ...W(dx, dy), name, toast });
     kerm.intro = ['De kermis van Winschoten, zaterdagavond. Geert heeft drie tenten, en Durk en Douwe zingen aan zijn bar.', 'Te voet langs drie tenten, hè. Elke tent een drankje, en de dronken menigte duwt je zo omver.'];
-    kerm.outro = 'Drie tenten gehaald. Durk en Douwe zijn moe genoeg voor de botsauto's.';
+    kerm.outro = 'Drie tenten gehaald. Durk en Douwe zijn moe genoeg voor de botsauto\'s.';
     kerm.timeLimit = 100;
     kerm.checkpointBonus = 25;
     kerm.drunk = 0.25;

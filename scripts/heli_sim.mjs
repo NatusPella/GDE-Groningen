@@ -49,6 +49,8 @@ function fly(variant, limit, { noAssist = false } = {}) {
   let t = 0;
   while (t < limit && st.leg < plan.legs.length && !v.wrecked) {
     const leg = plan.legs[st.leg];
+    // the city map ends far short of the Dollard: the rooster run is proven up to the second cruise (the catch is the old catch)
+    if (variant === 'rooster' && leg.kind === 'cruise') { st.leg = plan.legs.length; log.push(`${t.toFixed(0)}s cruise to the Dollard (not flown on the city map)`); break; }
     if (leg.kind === 'cruise' && leg.cut) { v.x = leg.cut.x; v.y = leg.cut.y; v.z = leg.cut.z; v.angle = leg.cut.angle; v.vx = Math.cos(v.angle) * 22; v.vy = Math.sin(v.angle) * 22; v.onGround = false; }
     if (leg.kind === 'pickup' || leg.kind === 'cruise') { P.nextLeg(st); log.push(`${t.toFixed(0)}s ${leg.kind}`); continue; }
     if ((leg.kind === 'rings' || leg.kind === 'catch') && b.phase === 'ground') P.launchBalloon(b);

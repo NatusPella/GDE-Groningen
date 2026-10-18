@@ -127,7 +127,7 @@ export const STEPS = [
   M('M11', 'romp', 'Geleend van de Friezen', 'skutsje', { reward: 1300, scenes: ['M11.1', 'M11.2', 'M11.3', 'M11.4', 'M11.5', 'M11.6', 'M11.7', 'M11.8'] }),
 
   // --- Akte 3: Aan de Eems (Eemsdelta en Oldambt, vr 21 - zo 23 augustus) ----------------
-  M('M12', 'staart', 'Het staat niet in het rooster', 'traumaduif', { reward: 1500,
+  M('M12', 'staart', 'Het staat niet in het rooster', 'traumaduif', { built: true, reward: 1500,
     story: { intro: ['M12.1'], outro: ['M12.4'], replay: ['M12.5'] }, scenes: ['M12.1', 'M12.2', 'M12.3', 'M12.4', 'M12.5'],
     lead: ['A', 'Dokter Dijkstra wacht in Lauwersoog met een heli. Hij heeft honger, en Jelle vliegt met zijn koopboek boven de Dollard.'] }),
   M('M13', 'staart', 'Het containerlabyrint', 'containers', { reward: 900,
