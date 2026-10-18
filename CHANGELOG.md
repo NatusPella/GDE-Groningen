@@ -6,6 +6,8 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+## [0.36.0] - 2026-10-18
+
 ### Nieuw
 - **Spijkermat van de politie:** vanaf vier sterren ligt er voor een wegblokkade een spijkermat dwars over de weg. Rijd je er overheen, dan krijg je meestal een lekke band (naar de garage). Verder niets.
 - **Akte 1 duidelijker, appjes op de goede stap (nog niet in beeld bekeken):** Gronings Ontzet wordt in de opening uitgelegd, de complimentenladder van Berend begint in de eerste missie, de hoedgrap en het slot van missie 1 zijn helderder, Jelle is in akte 1 één persoon, en 'stelen om te bewaken' heeft een reden. Mem-appjes en andere stille berichten komen op de stap waar ze over gaan, zonder dubbele bezorging. Akte 3 en 5 krijgen een terugblik, Jelle en de Zitmoi komen vrij in het verhaal, de reisbeats beginnen op de goede plek.
