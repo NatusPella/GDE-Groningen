@@ -22,6 +22,7 @@ contextBridge.exposeInMainWorld('gdeDesktop', {
     join: (code) => ipcRenderer.invoke('gde:coop-join', String(code)),
     send: (id, bytes) => ipcRenderer.send('gde:coop-send', id, bytes),
     close: (id) => ipcRenderer.send('gde:coop-close', id),
+    setMax: (n) => ipcRenderer.send('gde:coop-max', n),
     stop: () => ipcRenderer.invoke('gde:coop-stop'),
     onEvent: (fn) => { coopListeners.add(fn); return () => coopListeners.delete(fn); },
   },

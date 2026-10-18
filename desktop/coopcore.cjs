@@ -165,7 +165,8 @@ function createCoopCore(opts) {
     if (server) { try { server.close(); } catch (e) { /* weg */ } server = null; }
     if (mapping) { const mp = mapping; mapping = null; try { await mp.close(); } catch (e) { /* router weg */ } }
   }
-  return { host, join, send, close, stop, isConnected: () => socks.size > 0, count: () => socks.size };
+  const setMax = (n) => { max = Math.min(8, Math.max(2, n | 0 || 4)); return max; };
+  return { host, join, send, close, stop, setMax, isConnected: () => socks.size > 0, count: () => socks.size };
 }
 
 module.exports = { createCoopCore, isLanHost, lanIp };
