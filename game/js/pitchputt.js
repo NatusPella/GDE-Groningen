@@ -9,7 +9,7 @@ import { createBoard, key, bubble, clearBubbles, pick, stopPressed, easeCamera, 
 import { PUTT_LINES } from './minigamelines.js';
 import { loadEchtePlekken, golfVenues, nearestOf } from './echteplekken.js';
 import {
-  ppHoles, holesFromWorld, slopeAt, onGreen, inBunker, pitch, putt, straightPower, powerForCarry, finishHole, newCard, cardTotals, courseMedal, holeName, relText,
+  ppHoles, holesFromWorld, venueLayout, slopeAt, onGreen, inBunker, pitch, putt, straightPower, powerForCarry, finishHole, newCard, cardTotals, courseMedal, holeName, relText,
   GREEN_R, CUP_R, MAX_OVER_PAR, PITCH_MAX,
 } from './puttinglogic.js';
 
@@ -31,9 +31,8 @@ const DETAIL_M = 520;
 let HOLES, CENTER, FIRST, STAND;
 function layout(holes) {
   HOLES = holes;
-  CENTER = { x: HOLES.reduce((a, h) => a + h.tee.x + h.cup.x, 0) / (HOLES.length * 2), y: HOLES.reduce((a, h) => a + h.tee.y + h.cup.y, 0) / (HOLES.length * 2) };
+  ({ center: CENTER, stand: STAND } = venueLayout(holes));
   FIRST = HOLES[0];
-  STAND = { x: FIRST.tee.x - Math.cos(FIRST.heading) * 3 + Math.cos(FIRST.heading + Math.PI / 2) * 1.3, y: FIRST.tee.y - Math.sin(FIRST.heading) * 3 + Math.sin(FIRST.heading + Math.PI / 2) * 1.3 };
 }
 const CONCOURS = ppHoles();
 layout(CONCOURS);
@@ -43,7 +42,7 @@ let venue = venues[0];
 
 function setVenues(list) {
   if (game) return;
-  venues = list.map((v) => { layout(v.holes); return { ...v, holes: HOLES, stand: STAND, center: CENTER, x: STAND.x, y: STAND.y }; });
+  venues = list.map((v) => { v = { ...v, holes: holesFromWorld(v.holes) }; layout(v.holes); return { ...v, holes: HOLES, stand: STAND, center: CENTER, x: STAND.x, y: STAND.y }; });
   venue = null;
 }
 

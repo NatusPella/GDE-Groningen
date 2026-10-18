@@ -52,6 +52,15 @@ export function holesFromWorld(raw) {
   });
 }
 
+// Midden en afslagplek (stand) van een baan uit zijn holes (met heading, dus na holesFromWorld).
+export function venueLayout(holes) {
+  const n = holes.length * 2;
+  const center = { x: holes.reduce((a, h) => a + h.tee.x + h.cup.x, 0) / n, y: holes.reduce((a, h) => a + h.tee.y + h.cup.y, 0) / n };
+  const f = holes[0];
+  const stand = { x: f.tee.x - Math.cos(f.heading) * 3 + Math.cos(f.heading + Math.PI / 2) * 1.3, y: f.tee.y - Math.sin(f.heading) * 3 + Math.sin(f.heading + Math.PI / 2) * 1.3 };
+  return { center, stand };
+}
+
 export function ppHoles() {
   return holesFromWorld(PP_HOLES.map((h) => ({ tee: geo(h.tee.lat, h.tee.lon), cup: geo(h.green.lat, h.green.lon), slope: h.slope, bunkers: h.bunkers })));
 }
