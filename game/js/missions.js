@@ -1873,6 +1873,12 @@ function startMission(world, def) {
   if (def.lazyStart && !def.start.road) {
     const spot = roadSpot(world.map, def.start.x, def.start.y, true);
     if (spot.road) Object.assign(def.start, spot);
+    else {
+      // no road loaded here (yet): try again in a moment instead of starting without a vehicle
+      world.addMessage('De weg hier wordt nog geladen. Even wachten…', 3);
+      chain.phase = 'cooldown'; chain.cooldownTimer = RETRY_COOLDOWN; chain.armed = false;
+      return;
+    }
   }
   chain.afoot = false;
   chain.phase = 'active';
@@ -2823,7 +2829,12 @@ function spawnPursuer(world, st) {
   const back = P.behind || 45, a = ref.angle || 0;
   const spot = roadSpot(world.map, ref.x - Math.cos(a) * back, ref.y - Math.sin(a) * back, true);
   if (!spot.road) return null;
-  const v = spawnVehicleOnRoad(world.map, spot.road, false, () => 0.1, false, false, spot, false, { ...P.model });
+  let v = null;
+  for (const pick of [0.1, 0.9]) {
+    v = spawnVehicleOnRoad(world.map, spot.road, false, () => pick, false, false, spot, false, { ...P.model });
+    // facing the player where the road allows
+    if (spot.road.oneway || Math.cos(v.angle - Math.atan2(ref.y - v.y, ref.x - v.x)) > 0) break;
+  }
   v.missionCar = true;
   v.chaseDodge = true;
   v.label = P.name || '';
@@ -3123,7 +3134,7 @@ function updateStages(dt, world, def) {
     }
     if (h) return;
   }
-  if (def.boatStart && chain.storyBoat && chain.stageIndex <= 3 && (chain.storyBoat.wrecked || chain.storyBoat.sinking || !world.vehicles.includes(chain.storyBoat))) {
+  if (def.boatStart && chain.storyBoat && chain.stageIndex <= (def.boatUntil ?? 3) && (chain.storyBoat.wrecked || chain.storyBoat.sinking || !world.vehicles.includes(chain.storyBoat))) {
     fail(world, def, 'de rubberboot is gezonken. Klaas wil hem niet zo terug');
     return;
   }
