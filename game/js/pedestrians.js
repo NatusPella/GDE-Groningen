@@ -18,6 +18,10 @@ import { walkRoute, processPedPlanQueue, buildPedAvoidGrid, separatePeds, makeCo
 import { reportCrime } from './crime.js';
 import { hash2 } from './rng.js';
 import { dayState } from './daynight.js';
+import { FLAGS } from './devflags.js';
+import { voetgangerOpties, stapSlaOver } from './simlagen.js';
+import { wijkProfileAt } from './trafficfleet.js';
+import { hourOf } from './streetlifedata.js';
 import { buildingAt } from './tileplace.js';
 
 const WANDER_SPEED = 1.3;
@@ -873,7 +877,8 @@ function managePopulation(world) {
     if (p.nightlife) nightlife++;
     else walkers++;
   }
-  const desired = scaledTarget(!night ? POP_DAY : inCentre ? POP_NIGHT_CENTRE : POP_NIGHT_OUT);
+  // simlagen (issue #18): doel per streek en tijd van de dag uit simlagen.js
+  const desired = scaledTarget(FLAGS.simlagen ? voetgangerOpties(wijkProfileAt(world.map, player.x, player.y).key, hourOf(world)).target : !night ? POP_DAY : inCentre ? POP_NIGHT_CENTRE : POP_NIGHT_OUT);
   spawnBudget = Math.max(0, desired - walkers);
 
   if (walkers > desired + 3) {
@@ -1076,6 +1081,11 @@ export function updatePedestrians(dt, world) {
     // far plain walkers think less often on a CPU-bound machine (simload.js)
     if (farAI < Infinity && ped.state === 'wander' && !ped.isCop && !ped.scene && !ped.ragdoll && !ped.missionCrowd && !ped.jobPed &&
       skipFar(ped, i, Math.abs(ped.x - player.x) + Math.abs(ped.y - player.y), frameDt)) continue;
+    // vereenvoudigde laag: gewone wandelaars op middenafstand denken om de paar frames
+    if (FLAGS.simlagen && ped.state === 'wander' && !ped.isCop && !ped.scene && !ped.ragdoll && !ped.missionCrowd && !ped.jobPed) {
+      const dd = Math.abs(ped.x - player.x) + Math.abs(ped.y - player.y);
+      if (dd > 70 && stapSlaOver('voetganger', dd * 0.75, i, Math.floor(world.time * 60))) { ped._simDt = (ped._simDt || 0) + frameDt; continue; }
+    }
     const dt = takeDt(ped, frameDt);
 
     if (ped.state === 'dead') {
