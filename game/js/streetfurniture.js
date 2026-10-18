@@ -18,7 +18,7 @@
 // neighbouring tiles never repeat one; rules walk whole roads, so a guardrail
 // carries on across a tile edge without a seam.
 import { wgsToWorld } from './rdnew.js';
-import { pointInPolygon, polygonBounds } from './util.js';
+import { pointInPolygon, polygonBounds, nearestOnRoadList } from './util.js';
 import { hash2 as hash } from './rng.js';
 import { placeSignItems } from './placesigns.js';
 
@@ -226,18 +226,8 @@ function pieces(P, piece) {
 
 // nearest road to (x, y): { r, ux, uy, d }
 function nearestRoad(roads, x, y, filter = () => true) {
-  let best = null, bd = Infinity;
-  for (const r of roads) {
-    if (!filter(r)) continue;
-    const P = r.pts;
-    for (let i = 0; i < P.length - 1; i++) {
-      const dx = P[i + 1][0] - P[i][0], dy = P[i + 1][1] - P[i][1], L2 = dx * dx + dy * dy || 1e-9;
-      const t = Math.max(0, Math.min(1, ((x - P[i][0]) * dx + (y - P[i][1]) * dy) / L2));
-      const d = Math.hypot(P[i][0] + dx * t - x, P[i][1] + dy * t - y);
-      if (d < bd) { bd = d; const L = Math.sqrt(L2); best = { r, ux: dx / L, uy: dy / L, d, i, t }; }
-    }
-  }
-  return best;
+  const q = nearestOnRoadList(roads, x, y, filter);
+  return q && { r: q.road, ux: q.ux, uy: q.uy, d: q.d, i: q.i, t: q.t };
 }
 
 // --------------------------------------------------------------- the tile
