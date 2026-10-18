@@ -1,7 +1,11 @@
 // Minigames batch 3: the rules of the disc golf extensions, the fishing at the
 // Meerstad lake, the Winsum walk and the pancake boat (pure files, no browser).
 //   node scripts/minigames3_test.mjs
-import { makeRng } from '../game/js/minigamekit.js';
+import fs from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
+import { makeRng, geo } from '../game/js/minigamekit.js';
+import * as L3 from '../game/js/minigamelines3.js';
 import { courseHoles, parFor } from '../game/js/discgolfrules.js';
 import * as DG from '../game/js/discgolfext.js';
 import * as FI from '../game/js/hengelrules.js';
@@ -106,6 +110,31 @@ const check = (name, ok, info = '') => { n++; if (!ok) { bad++; console.log('FAI
   const imp = PK.createPan(makeRng(4));
   imp.guests.push({ topping: 'appel', patience: 0.01 });
   check('an impatient guest leaves and costs points', PK.stepPan(imp, 0.1).some((e) => e.type === 'leave') && imp.left_ === 1 && imp.points === PK.POINTS.leave);
+}
+
+// --- the lines, the achievements and the pancake boat's place -------------------------------------------
+
+{
+  const here = path.dirname(fileURLToPath(import.meta.url));
+  const all = Object.values(L3).flatMap((o) => Object.entries(o).filter(([k]) => k !== 'who').flatMap(([, v]) => v));
+  check('there are lines', all.length > 20);
+  const brands = /swapfiets|mcdonald|anwb|nam|hanze|nike|adidas|red bull|gasunie|kroket ?koning ?bv|febo|new york pizza/i;
+  check('no real brands in the lines', !all.some((l) => brands.test(l)));
+  check('lines are short bubbles', all.every((l) => l.length > 3 && l.length < 140));
+  check('the staff have invented names', Object.values(L3).every((o) => /^[A-Z]/.test(o.who)));
+  const ach = fs.readFileSync(path.join(here, '../game/js/achievements.js'), 'utf8');
+  const used = new Set();
+  for (const f of ['carillon', 'pannenkoek', 'hengelen', 'wandeling', 'snackketen', 'discgolf']) {
+    const src = fs.readFileSync(path.join(here, '../game/js/' + f + '.js'), 'utf8');
+    for (const m of src.matchAll(/unlockAchievement\(w, '([a-z_]+)'/g)) used.add(m[1]);
+  }
+  const missing = [...used].filter((id) => !ach.includes(`id: '${id}'`));
+  check('every achievement the new games unlock exists', used.size > 10 && !missing.length, missing.join());
+  const map = JSON.parse(fs.readFileSync(path.join(here, '../game/citymap.json'), 'utf8'));
+  const inPoly = (x, y, p) => { let r = false; for (let i = 0, j = p.length - 1; i < p.length; j = i++) { if ((p[i][1] > y) !== (p[j][1] > y) && x < ((p[j][0] - p[i][0]) * (y - p[i][1])) / (p[j][1] - p[i][1]) + p[i][0]) r = !r; } return r; };
+  const s = geo(53.2188, 6.582);
+  const bad2 = [[0, 0], [2, 0], [-2, 0], [0, 2], [0, -2]].some(([dx, dy]) => map.buildings.concat(map.water).some((b) => inPoly(s.x + dx, s.y + dy, b.pts)));
+  check('the pancake boat stand is on open ground of the city map', !bad2);
 }
 
 console.log(bad ? `${bad} of ${n} checks failed` : `minigames3_test: ${n} checks ok`);
