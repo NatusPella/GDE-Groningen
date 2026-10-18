@@ -18,7 +18,7 @@ import { updateCountryLife, lifeStats } from './countrylife.js';
 import { buildSign, disposeSign } from './countrysigns.js';
 import { EDGE, edgeBlocked, edgeSpanBlocked, roadGap } from './countryedge.js';
 import { ensureCountryEdge } from './countryplan.js';
-import { thinDitchOn, ditchRamp, provinceBlock } from './countryfield.js';
+import { thinDitchOn, ditchRamp, provinceBlock, countrySurface } from './countryfield.js';
 import { urbanWeight } from './provinceworld.js';
 import { setTileWalls, clearTileWalls, pushOutOfWalls, setTileTrunks, clearTileTrunks, pushOutOfTrunks } from './countrywalls.js';
 import { glowMaterial, poolGeometry } from './countryglow.js';
@@ -520,6 +520,13 @@ function lineRuns(t0, t1, step, ok, maxLen, emit) {
 const segOf = (A, B) => [(A[0] + B[0]) / 2, (A[1] + B[1]) / 2, Math.hypot(B[0] - A[0], B[1] - A[1]), -Math.atan2(B[1] - A[1], B[0] - A[0])];
 const angOf = (P, t) => { const A = P(t, 0), B = P(t + 1, 0); return -Math.atan2(B[1] - A[1], B[0] - A[0]); };
 
+// A wire span across a (painted) ditch: the posts stand either side of it, the strands would hang over the water
+function spanOnDitch(ax, ay, bx, by) {
+  const n = Math.max(1, Math.ceil(Math.hypot(bx - ax, by - ay) / 1.5));
+  for (let k = 1; k < n; k++) if (countrySurface(ax + ((bx - ax) * k) / n, ay + ((by - ay) * k) / n) === 'sloot') return true;
+  return false;
+}
+
 // barbed wire: weathered posts, three dull strands
 // postUntil: the posts stop here (default t1); the last wire span runs on to t1, the first post of the next tile, so a
 // tile seam has no hole in the fence (a post and 5-10 m of wire were missing on every 160 m, #124)
@@ -530,7 +537,7 @@ function fenceLine(tile, P, t0, t1, step, ok, postUntil = t1) {
     if (!ok(x, y, t)) { prev = null; return false; }
     const last = prev;
     prev = [x, y];
-    if (last && edgeSpanBlocked(last[0], last[1], x, y, 0.5)) return false;
+    if (last && (edgeSpanBlocked(last[0], last[1], x, y, 0.5) || spanOnDitch(last[0], last[1], x, y))) return false;
     if (t > postUntil) return true; // the neighbour tile's first post stands here
     const h = chash(Math.round(x * 5), Math.round(y * 5));
     return push(tile, 'post', x, y, h * 6.28, 1, 0.92 + h * 0.16, 1, 0xa89a86, 0.12);

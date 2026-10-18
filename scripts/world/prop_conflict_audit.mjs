@@ -24,17 +24,25 @@ const CF = await import('../../game/js/countryfield.js');
 const CS = await import('../../game/js/countryside.js');
 const SF = await import('../../game/js/streetfurniture.js');
 
-// Wat --strict toestaat: alleen dalen. Tellers per combinatie over de standaardvensters.
-// (gemeten op de tegels van 18 oktober; zie de uitkomst van het onderzoek en CHANGELOG)
-export const LIMITS = {
-  postOnRail: 0, wireOnRail: 0, hedgeOnRail: 0,
-  postOnRoad: 2, wireOnRoad: 2, hedgeOnRoad: 2,
-  postInWater: 0, wireInWater: 0, hedgeInWater: 0,
-  postInBuilding: 5, wireInBuilding: 5, hedgeInBuilding: 5,
-  hedgeOnDitch: 1400, postOnDitch: 100,
-  seamGaps: 400, doublePosts: 3000,
-  cattleInWater: 250, cattleOnRoad: 400, cattleOnRail: 100,
-};
+// Wat --strict toestaat: alleen dalen. ZERO: tellers die 0 moeten zijn (over spoor, weg, water, gebouw; vee in
+// water, op weg of spoor). RATE: [teller, van wat, hoogstens aandeel]: de gemeten waarde op de standaardvensters
+// (12 met spoor, 12 willekeurig, seed 7) met een kleine marge; wat de generator nog niet kan (dubbele palen,
+// draad net over een sloot, naadgaten van andere hekken) staat hier met het gemeten aandeel.
+export const ZERO = [
+  'postOnRail', 'wireOnRail', 'hedgeOnRail', 'postOnRoad', 'wireOnRoad', 'hedgeOnRoad',
+  'postInWater', 'wireInWater', 'hedgeInWater', 'postInBuilding', 'wireInBuilding', 'hedgeInBuilding',
+  'cattleInWater', 'cattleOnRoad', 'cattleOnRail', 'osmOnRail', 'osmOnRoad', 'osmInWater', 'osmInBuilding',
+];
+export const RATE = [
+  ['seamGaps', 'posts', 0.002], ['doublePosts', 'posts', 0.025], ['postOnDitch', 'posts', 0.001],
+  ['wireOnDitch', 'wires', 0.004], ['hedgeOnDitch', 'hedges', 0.001],
+];
+export function overLimits(total) {
+  const bad = [];
+  for (const k of ZERO) if ((total[k] || 0) > 0) bad.push(`${k}: ${total[k]} (moet 0 zijn)`);
+  for (const [k, of, max] of RATE) if ((total[k] || 0) > (total[of] || 0) * max) bad.push(`${k}: ${total[k]} van ${total[of]} (hoogstens ${max * 100}%)`);
+  return bad;
+}
 
 const ANCHORS = {
   Stad: [[201, 45], [2838, 5353]],
@@ -272,8 +280,8 @@ async function main() {
     for (const k of keys) console.log([k.padEnd(18), ...names.map((n) => String(sumWindows(perStreek[n])[k] || 0).padStart(14)), String(total[k] || 0).padStart(8)].join(' '));
   }
   if (args.includes('--strict')) {
-    const bad = Object.entries(LIMITS).filter(([k, v]) => (total[k] || 0) > v);
-    for (const [k, v] of bad) console.log(`TE VEEL ${k}: ${total[k]} > ${v}`);
+    const bad = overLimits(total);
+    for (const m of bad) console.log('TE VEEL ' + m);
     if (bad.length) process.exit(1);
   }
 }
