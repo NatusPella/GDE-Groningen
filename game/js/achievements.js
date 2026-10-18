@@ -74,6 +74,9 @@ export const ACHIEVEMENTS = [
   { id: 'bus', cat: 'rijden', title: 'Lijn 5 rijdt vandaag anders', desc: 'Jat een stadsbus' },
   { id: 'alle_typen', cat: 'rijden', title: 'Van fiets tot rondvaartboot', desc: 'Rij in elk soort voertuig: auto, bus, fiets, fatbike, scooter, boot en politieauto', set: 'vehicleTypes', goal: 7 },
   { id: 'politieauto', cat: 'rijden', title: 'Zwaailicht erop', desc: 'Kaap een politieauto', hidden: true },
+  { id: 'drift_1', cat: 'rijden', title: 'Eerste slip', desc: 'Rond een driftrun af op een rotonde', stat: 'driftRuns', goal: 1 },
+  { id: 'drift_10', cat: 'rijden', title: 'Rubber op de rotonde', desc: 'Rond 10 driftruns af', stat: 'driftRuns', goal: 10 },
+  { id: 'drift_goud', cat: 'rijden', title: 'Koning van de rotonde', desc: 'Haal goud in een driftzone', medal: true },
   { id: 'geflitst', cat: 'rijden', title: 'Smile!', desc: 'Word geflitst', hidden: true },
 
   { id: 'lopen_5', cat: 'tevoet', title: 'Wandelen op de Diepenring', desc: 'Loop in totaal 5 km', stat: 'walked', goal: 5000, unit: 'm' },
@@ -162,6 +165,8 @@ export const ACHIEVEMENTS = [
   { id: 'koe_goud', cat: 'nahetverhaal', title: 'Koeienfluisteraar', desc: 'Goud bij De Koe van Ome Jan', medal: true },
   { id: 'fjord_1000', cat: 'nahetverhaal', title: 'Frituurbaron', desc: 'Verdien €1000 met de Fjord Frituur', stat: 'fjordEarned', goal: 1000, unit: '€' },
 
+  { id: 'trein_stations', cat: 'spoor', title: 'Alle haltes af', desc: 'Stap uit op 5 verschillende stations of haltes', set: 'trainStations', goal: 5 },
+  { id: 'trein_dorp', cat: 'spoor', title: 'Dorpsstation', desc: 'Reis met de trein naar een dorpshalte', hidden: true },
   { id: 'treinen', cat: 'spoor', title: 'Treinspotter', desc: 'Zie alle soorten treinen: GTW, WINK en de Intercity', set: 'trains', goal: 3 },
   { id: 'trein_race', cat: 'spoor', title: 'Sneller dan de sprinter', desc: 'Rij een rijdende trein voorbij', hidden: true },
   { id: 'trein_1', cat: 'spoor', title: 'Instappen, deuren sluiten', desc: 'Reis met de trein naar een ander station', stat: 'trainTrips', goal: 1 },
