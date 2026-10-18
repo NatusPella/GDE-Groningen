@@ -19,11 +19,11 @@ export const REISBEATS = {
   M14: { act: 3, from: 'Eemshaven', to: 'Bierum', length: 22000, ride: 'lift' },
   // by rail Delfzijl to Winschoten goes by way of Station Grunn: about 80 km
   T3: { act: 3, from: 'Delfzijl', to: 'Winschoten', length: 80000, ride: 'trein', scene: 'T3' },
-  M19: { act: 4, from: 'Veendam', to: 'Stadskanaal', length: 20000, ride: 'lift' },
-  // Stadskanaal to Bourtange by way of Ter Apel (22 + 12 km): the beat sits on the step that ends at Bourtange
-  T4: { act: 4, from: 'Stadskanaal', to: 'Bourtange', length: 34000, ride: 'bus', scene: 'T4.1' },
+  M19: { act: 4, from: 'Veendam', to: 'Veendam', length: 800, ride: 'lift' },
+  // Wildervank to Bourtange by way of Ter Apel (about 45 km): the beat sits on the step that ends at Bourtange
+  T4: { act: 4, from: 'Wildervank', to: 'Bourtange', length: 45000, ride: 'bus', scene: 'T4.1' },
   M21: { act: 4, from: 'Bourtange', to: 'Zuidhorn', length: 65000, ride: 'lift' },
-  M23: { act: 5, from: 'Grote Markt', to: 'Zuidhorn', length: 25000, ride: 'lift', selfMode: 'auto' },
+  M23: { act: 5, from: "Tinus' schuur", to: 'Zuidhorn', length: 25000, ride: 'lift', selfMode: 'auto' },
 };
 
 // the beat in front of a step, as reiskeuze.js wants it (lines from the script:

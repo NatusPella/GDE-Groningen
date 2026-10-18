@@ -194,6 +194,7 @@ export const FY = {
   'Baas heeft een afspraak met mem in de kruitkelder. Wij houden jullie een uur bezig.': 'De baas heeft een afspraak met zijn moeder in de kruitkelder. Wij houden jullie een uur bezig.',
   'Mem. Hier is hij. Voor u. Ik heb hem genomen zoals het hoort: netjes, met een bedankje.': 'Moeder. Hier is hij. Voor u. Ik heb hem genomen zoals het hoort: netjes, met een bedankje.',
   'Mem. Dat is een inbreuk op onze overeenkomst.': 'Moeder. Dat is een inbreuk op onze overeenkomst.',
+  'Mem. De afspraak was: u houdt hem vast tot ik win. Dit is een inbreuk op onze overeenkomst.': 'Moeder. De afspraak was: u houdt hem vast tot ik win. Dit is een inbreuk op onze overeenkomst.',
   'Jij kende Mem.': 'Jij kende zijn moeder.',
   'Mem. Dit is geen einde. Dit is een geschil.': 'Moeder. Dit is geen einde. Dit is een geschil.',
   'Ik wist niet waar de bal lag. Ik wist wel dat Mem iets voor Jelle verborgen hield. Dat had ik tegen jou moeten zeggen.': 'Ik wist niet waar de bal lag. Ik wist wel dat zijn moeder iets voor Jelle verborgen hield. Dat had ik tegen jou moeten zeggen.',

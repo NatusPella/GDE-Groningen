@@ -8090,7 +8090,7 @@
    "id": "M17.1",
    "title": "Open, dicht: intro",
    "act": 4,
-   "region": "Veenkoloniën, Veendam, Winschoterdiep",
+   "region": "Veenkoloniën, Veendam, Oosterdiep",
    "vehicle": "sloep",
    "step": "M17",
    "kind": "intro",
@@ -8102,7 +8102,7 @@
     {
      "speaker": "Wubbo",
      "key": "wubbo",
-     "text": "Ik ben Wubbo, brugwachter. Open of dicht. Nooit allebei. Oma Trijntje belde.",
+     "text": "Open of dicht. Nooit allebei. Dat is mijn hele werkfilosofie. Ik ben Wubbo, brugwachter, en Oma Trijntje belde.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -8135,7 +8135,7 @@
     {
      "speaker": "Wubbo",
      "key": "wubbo",
-     "text": "De brug draait op tijd. Jullie boot liever ook.",
+     "text": "Mijn brug is op tijd. Laat je boot dat ook zijn.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -8163,7 +8163,7 @@
    "id": "M17.2",
    "title": "Open, dicht: de fanfare weg",
    "act": 4,
-   "region": "Veenkoloniën, Winschoterdiep",
+   "region": "Veenkoloniën, Oosterdiep",
    "vehicle": "sloep",
    "step": "M17",
    "kind": "key",
@@ -8311,7 +8311,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Dat is plakje zeven. Gered.",
+     "text": "De mosterd is gered. Voor Oma.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -8365,7 +8365,7 @@
     {
      "speaker": "Wubbo",
      "key": "wubbo",
-     "text": "Weer elf bruggen? Mijn bruggen zeggen dank.",
+     "text": "Weer elf bruggen? Open. Dicht. Ik heb het al geleerd.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -8413,7 +8413,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Dan kijken we in het logboek. Wie wanneer wat vroeg.",
+     "text": "Als daar staat dat Jelle de bal al had, zijn wij geen dieven maar getuigen. Dan kijken we in het logboek.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -8585,6 +8585,15 @@
      "voice": "Anita"
     },
     {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Een melding van bewaker twee, 16 augustus: duif op het dak, twee Stadjers kijken mee.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
      "speaker": "Tammo",
      "key": "T",
      "text": "De bewaker met het koekje. En twee reuzen.",
@@ -8733,7 +8742,7 @@
    "id": "M19.1",
    "title": "Stoom: intro",
    "act": 4,
-   "region": "Veenkoloniën, Stadskanaal, het perron",
+   "region": "Veenkoloniën, Veendam, het perron",
    "vehicle": "trein",
    "step": "M19",
    "kind": "intro",
@@ -8745,7 +8754,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "We staan op het perron in Stadskanaal. De machinist is omgekocht. Hij zit al een uur op een bank en eet een eierbal. De trein staat stil. De laatste twee juryleden en de bewaarder zitten vier uur vast in Jelles salonrijtuig.",
+     "text": "We staan op het perron in Veendam, bij de museumlijn. De machinist is omgekocht. Hij zit al een uur op een bank en eet een eierbal. De trein staat stil. De laatste twee juryleden en de bewaarder zitten vier uur vast in Jelles salonrijtuig.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -8816,7 +8825,7 @@
    "id": "M19.2",
    "title": "Stoom: onderweg",
    "act": 4,
-   "region": "Veenkoloniën, spoorlijn Stadskanaal-Veendam",
+   "region": "Veenkoloniën, museumlijn Veendam-Wildervank",
    "vehicle": "trein",
    "step": "M19",
    "kind": "key",
@@ -8922,7 +8931,7 @@
    "id": "M19.3",
    "title": "Stoom: outro",
    "act": 4,
-   "region": "Veenkoloniën, Veendam, het perron",
+   "region": "Veenkoloniën, Wildervank, het perron",
    "vehicle": "te voet",
    "step": "M19",
    "kind": "outro",
@@ -8947,7 +8956,7 @@
     {
      "speaker": "Mevrouw Tuinstra",
      "key": "bewaarder",
-     "text": "Ik stap niet uit. Ik ben verhinderd tot na het Ontzet, dat stond op de uitnodiging. Artikel 9 regelt mijn plaatsvervanger.",
+     "text": "Ik stap niet uit. Ik ben verhinderd tot na het Ontzet, dat stond op de uitnodiging. Artikel 9 regelt mijn plaatsvervanger: het oudste jurylid, meneer Bos. Sinds 1985.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -8964,7 +8973,7 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Eén van vijf.",
+     "text": "Drie van de vijf staan niet meer bij hem.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -8972,7 +8981,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Dat is nog geen meerderheid. Drie van de vijf beslist.",
+     "text": "Dat is een meerderheid, als we ze tot het Ontzet vasthouden. En schrijft Jelle zich om drie uur bij de notaris in als nieuwe bewaarder, dan is de hele wedstrijd nietig.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -8998,7 +9007,7 @@
     {
      "speaker": "Berend Bos",
      "key": "berend",
-     "text": "Goidag. Jelle komt dinsdag naar het Beleg van Bourtange, met zijn beleggers. Ik heb een bus nodig. Kom naar Ter Apel.",
+     "text": "Goidag. Die man in dat blauwe colbert wilde mijn bakkie kopen, contant, uit een klomp. Dat vergeef ik hem niet. Hij komt dinsdag naar het Beleg van Bourtange, met zijn beleggers. Ik heb een bus nodig. Kom naar Ter Apel.",
      "tag": "NIEUW",
      "channel": "telefoon",
      "textOnly": true
@@ -9009,7 +9018,7 @@
    "id": "M19.4",
    "title": "Stoom: herhaling",
    "act": 4,
-   "region": "Veenkoloniën, Stadskanaal",
+   "region": "Veenkoloniën, Veendam",
    "vehicle": "trein",
    "step": "M19",
    "kind": "replay",
@@ -9248,7 +9257,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "De Escapade staat op de parkeerplaats bij de poort. Henks zender zit er nog in.",
+     "text": "De Escapade staat op de parkeerplaats bij de poort. Henk bracht hem vanmiddag, en zijn zender zit er nog in.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -9464,7 +9473,7 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Houd even vast.",
+     "text": "Houd even vast. De sleutel zit erin.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -9544,7 +9553,7 @@
     {
      "speaker": "Jelle Terpstra",
      "key": "jelle",
-     "text": "Mem. Dat is een inbreuk op onze overeenkomst.",
+     "text": "Mem. De afspraak was: u houdt hem vast tot ik win. Dit is een inbreuk op onze overeenkomst.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -9829,7 +9838,7 @@
     {
      "speaker": "Berend Bos",
      "key": "berend",
-     "text": "Ik rijd jullie. En na de Snackprijs ga ik naar de politie. Over twaalf augustus.",
+     "text": "Ik rijd jullie. En na de Snackprijs ga ik naar de politie. Over wat er in dat museum is gebeurd.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -9837,10 +9846,19 @@
     {
      "speaker": "Mem Terpstra",
      "key": "mem",
-     "text": "Neem hem mee, famke. Jij zei het zelf: als bewaking.",
+     "text": "Neem hem mee, famke. Jij appte het zelf: als bewaking.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Hij zet de auto op een trein. Zonder wagen geen Fjord Frituur.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
     },
     {
      "speaker": "Tessa",
@@ -10134,9 +10152,27 @@
      "textOnly": true
     },
     {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Zonder wagen kunnen we niet bakken. Dan wint Jelle zonder wedstrijd.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Henks tweede sleutel zat onder de bumper. Die van Tammo zit nog in zijn jas.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
      "speaker": "Henk",
      "key": "henk",
-     "text": "Henk. Tinus' schuur is drie kilometer verderop. Ik heb een luik voor jullie. Eén koekje.",
+     "text": "Henk. Tinus' schuur is hier vlakbij. Ik heb morgen iets voor jullie. Eén koekje.",
      "tag": "NIEUW",
      "channel": "telefoon",
      "textOnly": true
@@ -10153,7 +10189,7 @@
    "kind": "outro",
    "gameplay": "zijn deel: de vrienden bij elkaar houden terwijl Jelles advocaten ze een voor een terugroepen.",
    "regie": [
-    "woensdag 26 augustus, vroege ochtend, bij Tinus' schuur in Zuidhorn. Tammo is 's nachts met Tinus' trekker uit Bourtange gekomen. Oma heeft alle vrienden met hun ingrediënten naar de schuur geroepen. Gameplay: zijn deel: de vrienden bij elkaar houden terwijl Jelles advocaten ze een voor een terugroepen."
+    "woensdag 26 augustus, vroege ochtend, bij Tinus' schuur in Zuidhorn. Tammo is 's nachts met Tinus en Berend uit Bourtange gekomen. Oma heeft alle vrienden met hun ingrediënten naar de schuur geroepen. Gameplay: zijn deel: de vrienden bij elkaar houden terwijl Jelles advocaten ze een voor een terugroepen."
    ],
    "lines": [
     {
@@ -10309,7 +10345,7 @@
     {
      "speaker": "Rikus",
      "key": "rikus",
-     "text": "Een luisteraar meldt veel Berenden onderweg naar Bourtange. Het wordt een goed Beleg.",
+     "text": "Een luisteraar meldt dat er gisteravond veel Berenden naar Bourtange reden. Het was een goed Beleg.",
      "tag": "NIEUW",
      "channel": "radio",
      "textOnly": true
@@ -10338,7 +10374,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Het is een derde.",
+     "text": "Het is een negende.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -10347,7 +10383,7 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Dat is een kanaal.",
+     "text": "Ik ben hier nog nooit afgeslagen.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -10355,7 +10391,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Dat noemen ze een diep.",
+     "text": "Er is ook niks om af te slaan.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -10364,7 +10400,7 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Een sloot met een brug.",
+     "text": "Dat bedoel ik.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -10372,7 +10408,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Een Veenkoloniaal diep.",
+     "text": "Ruik je dat? Dat is zetmeel.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -10381,7 +10417,7 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Dat is hetzelfde.",
+     "text": "Ik dacht dat het de buren waren.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -10510,7 +10546,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "De bal is weer weg, maar de Snackprijs kunnen we nog winnen, met een eerlijk recept. Daarvoor maken we van de Escapade de Fjord Frituur.",
+     "text": "Wij maken van de Escapade de Fjord Frituur. Daar hoort een luik bij.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -10632,7 +10668,7 @@
     {
      "speaker": "Henk",
      "key": "henk",
-     "text": "Het luik is betaald. Niet door jullie.",
+     "text": "Het luik is betaald. Sjabbe vertelt wel hoe.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -10640,7 +10676,7 @@
     {
      "speaker": "Sjabbe",
      "key": "sjabbe",
-     "text": "Tessa. Sjabbe. Tammo belde gisteren. Hij heeft het horloge van zijn opa bij mij gebracht, voor het luik. Ik heb niks gevraagd.",
+     "text": "Tessa. Sjabbe. Tammo belde vannacht, via Berend. Bert bracht het horloge van zijn opa bij mij, voor het luik. Ik heb niks gevraagd.",
      "tag": "NIEUW",
      "channel": "telefoon",
      "textOnly": true
@@ -10872,7 +10908,24 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Dat is gek.",
+     "text": "Dat verklaart waarom je moi zegt als je denkt dat ik niet luister.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "Dat deed ik één keer.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Twee keer.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -10975,7 +11028,7 @@
     {
      "speaker": "Mem Terpstra",
      "key": "mem",
-     "text": "Famke. Trijntje en ik hebben ze na gisteren nog eens gebeld. Ze zeiden nee tegen Jelles advocaten. Ze komen.",
+     "text": "Famke. Trijntje en ik hebben ze na gisteren nog eens gebeld. Tammo deed het niet slecht. Ze zeiden nee tegen Jelles advocaten. Ze komen.",
      "tag": "NIEUW",
      "channel": "telefoon",
      "textOnly": true
@@ -11008,7 +11061,7 @@
     {
      "speaker": "Kapitein Klaas",
      "key": "klaas",
-     "text": "Ik ben mijn boot op een aanhanger. Ik praat tegen hem.",
+     "text": "Ik heb mijn boot terug: de moeder van Jelle belde de beslaglegger. Hij ligt op een aanhanger en ik praat tegen hem.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -11045,7 +11098,7 @@
     {
      "speaker": "Lammert",
      "key": "lammert",
-     "text": "Ik zie jullie vanaf de dijk. Dit is de mooiste optocht van de provincie.",
+     "text": "Ik zit achterin bij Wubbo in de bus. Dit is de mooiste optocht van de provincie.",
      "tag": "NIEUW",
      "channel": "telefoon",
      "textOnly": true
@@ -11080,7 +11133,7 @@
      "key": "wubbo",
      "text": "Brug open. Ga maar.",
      "tag": "NIEUW",
-     "channel": "stem",
+     "channel": "telefoon",
      "textOnly": true
     },
     {
@@ -11306,19 +11359,11 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Dat zeg je altijd.",
+     "text": "Dat gaat Rikus niet meer zeggen. Hij heeft alle woorden al gebruikt.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
      "voice": "Anita"
-    },
-    {
-     "speaker": "Tammo",
-     "key": "T",
-     "text": "Dit keer is het waar.",
-     "tag": "NIEUW",
-     "channel": "stem",
-     "textOnly": true
     },
     {
      "speaker": "Rikus",
@@ -11758,7 +11803,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Plakje acht. De bewaarder.",
+     "text": "Dan moeten wij eerder bij de notaris zijn dan hij.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -12100,6 +12145,14 @@
      "channel": "radio",
      "textOnly": false,
      "rec": "lines"
+    },
+    {
+     "speaker": "Rikus",
+     "key": "rikus",
+     "text": "De peiling staat al twee weken open: zeggen die twee Stadjers ooit wat ze voelen? Drie procent zegt ja.",
+     "tag": "NIEUW",
+     "channel": "radio",
+     "textOnly": true
     }
    ]
   },
@@ -12226,7 +12279,7 @@
     {
      "speaker": "Berend Bos",
      "key": "berend",
-     "text": "Eén. Wie de bal nam, kan niet voorzitten. Jelle is geschorst als voorzitter.",
+     "text": "Eén: wie partij is, zit niet voor. Dat is Jelle.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -12234,7 +12287,7 @@
     {
      "speaker": "Berend Bos",
      "key": "berend",
-     "text": "Twee. Mevrouw Tuinstra zit nog in de museumtrein, met volpension. Artikel negen: dan zit het oudste jurylid voor. Dat ben ik.",
+     "text": "Twee: mevrouw Tuinstra zit nog in de trein, met volpension. Artikel negen: dan zit het oudste jurylid voor. Dat ben ik. Ik heb nog nooit iets gewonnen en nu moet ik oordelen.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -12242,7 +12295,7 @@
     {
      "speaker": "Berend Bos",
      "key": "berend",
-     "text": "Drie. Vijf juryleden. Drie van de vijf beslist. Mijn mening is niet het hele oordeel.",
+     "text": "Drie: vijf juryleden, drie van de vijf beslist. Mijn mening is niet het hele oordeel.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -12352,7 +12405,7 @@
     "de duiven plakken voor de voorruit. De chauffeur remt. Wubbo's bus en Tinus' trekker sluiten de straat achter de limo af.",
     "Durk en Douwe steken per ongeluk Berends vuurwerk aan. Rook, knallen, een regen van papieren sterren.",
     "Tessa zet de Fjord Frituur dwars voor de limo. De limo komt tot stilstand met zijn neus tegen het luik.",
-    "hij stapt achteruit uit de limo, struikelt over een duif en valt in de gracht naast de weg. De gouden koffer houdt hij boven water."
+    "hij stapt achteruit uit de limo, struikelt over een duif en valt in het water langs de weg. De gouden koffer houdt hij boven water."
    ],
    "lines": [
     {
@@ -12458,11 +12511,19 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Hij houdt de koffer boven water.",
+     "text": "Hij houdt de koffer weer boven water.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
      "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Hij is consistent.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
     },
     {
      "speaker": "Torenwachter",
@@ -13111,7 +13172,31 @@
     {
      "speaker": "Rikus",
      "key": "rikus",
-     "text": "Jelle gaf drie plakjes terug, uit eigen beweging. De standplaatsen en de molen hield hij. Hij zei dat hij het \"gezellig\" vond.",
+     "text": "Jelle gaf zes plakjes terug, uit eigen beweging. De standplaatsen en de molen hield hij. Hij zei dat hij het \"gezellig\" vond.",
+     "tag": "NIEUW",
+     "channel": "radio",
+     "textOnly": true
+    },
+    {
+     "speaker": "Rikus",
+     "key": "rikus",
+     "text": "Oldenhuis Bakt sluit alle eenenveertig snackbars. Het was een dekmantel van Us Mem Snacks.",
+     "tag": "NIEUW",
+     "channel": "radio",
+     "textOnly": true
+    },
+    {
+     "speaker": "Rikus",
+     "key": "rikus",
+     "text": "Mevrouw Tuinstra stapt in Wildervank uit de trein. Met volpension.",
+     "tag": "NIEUW",
+     "channel": "radio",
+     "textOnly": true
+    },
+    {
+     "speaker": "Rikus",
+     "key": "rikus",
+     "text": "De politie sloot de zaak van de twee Stadjers in het zwart. Op de band staat vooral de pas van Jelle.",
      "tag": "NIEUW",
      "channel": "radio",
      "textOnly": true
