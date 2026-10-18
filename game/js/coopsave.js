@@ -33,3 +33,14 @@ export function readSession(storage) {
 }
 export function writeSession(storage, s) { try { storage.setItem(KEYS.coopSession, JSON.stringify(s)); return true; } catch (e) { return false; } }
 export function clearSession(storage) { try { storage.removeItem(KEYS.coopSession); return true; } catch (e) { return false; } }
+
+// Eigen voortgang van een gast: het verhaal van de host bewaart hij niet, maar wat hij in
+// de wereld van de host verdiende (coöp-beloningen) komt in zijn eigen save, in de
+// actieve slot (saveslots.js). Pure functie: geeft een nieuwe save terug, of null als er
+// niets te doen is. Het geld blijft een geheel getal en nooit negatief.
+export function applyGuestEarnings(data, earned) {
+  const e = Math.floor(Number(earned));
+  if (!isObj(data) || !Number.isFinite(e) || e <= 0) return null;
+  const base = Number.isFinite(data.money) && data.money >= 0 ? Math.floor(data.money) : 0;
+  return { ...data, money: base + e, moneyBackup: base + e };
+}
