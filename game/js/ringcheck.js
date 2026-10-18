@@ -8,6 +8,7 @@
 // collision, and the race's own AI rivals (racers.js), both must finish.
 import { RING_ROUTE, RING_CHECKPOINTS } from './ringroute.js';
 import { pointInPolygon, closestPointOnSegment } from './util.js';
+import { waterPolyAt } from './waterlevels.js';
 import { inPassage } from './passages.js';
 import { elevWallContact } from './elevation.js';
 import { findProps, makeProp, resolvePropCollisions } from './breakables.js';
@@ -282,11 +283,7 @@ export function waterCrossings(map) {
       const L = Math.hypot(P[i + 1][0] - P[i][0], P[i + 1][1] - P[i][1]);
       for (let t = 0; t < L; t += 2, s += 2) {
         const k = t / L, x = P[i][0] + (P[i + 1][0] - P[i][0]) * k, y = P[i][1] + (P[i + 1][1] - P[i][1]) * k;
-        let wet = false;
-        for (const w of map.waterNear(x, y, 0.5)) {
-          const [minx, miny, maxx, maxy] = w.bounds;
-          if (x >= minx && x <= maxx && y >= miny && y <= maxy && pointInPolygon(x, y, w.pts)) { wet = true; break; }
-        }
+        const wet = !!waterPolyAt(map, x, y);
         if (wet) { if (!run) out.push(run = { road: r, x, y, s0: s, s1: s }); run.s1 = s; }
         else run = null;
       }

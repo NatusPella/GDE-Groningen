@@ -4,6 +4,8 @@
 // state, so the spawn rules can be tested in node (scripts/streetlife_test.mjs).
 // Every name is invented: no real brands, chains or people.
 
+import { isNightAtHour } from './sunrules.js';
+
 export const NAMES = {
   paper: 'De Reep',
   newsVan: 'Noord-Nieuws',
@@ -59,7 +61,7 @@ export function hourOf(world) {
 export const isDinnerTime = (h) => h >= 17 && h < 21.5;
 export const isLunchTime = (h) => h >= 11.5 && h < 13.5;
 export const isRush = (h) => (h >= 7.5 && h < 9.2) || (h >= 16.3 && h < 18.3);
-export const isNight = (h) => h >= 22.5 || h < 6;
+export const isNight = (h) => isNightAtHour(h);
 
 // --- bikes ----------------------------------------------------------------------
 
