@@ -331,6 +331,9 @@ from the end of the radio intro. Used three ways:
   printed per second of video, e.g.
   `cd desktop && npm run stage && npx electron . --trailer-video`
   (with `--trailer-cut=kort` for the short cut).
+- **Teaser en hoofdtrailer opnemen** (#63): `node scripts/record_trailer.mjs` toont de
+  commando's, `--run` neemt `teaser` en `hoofd` op in 1080p en 4K in een scratchmap
+  buiten de repo (`--cut=`, `--res=`, `--out=`). Zie `docs/youtube/trailers.md`.
 
 ## Desktop builds and releases
 
