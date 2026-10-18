@@ -8763,7 +8763,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Zeg dat niet hardop.",
+     "text": "Wacht tot we binnen zijn.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -8819,7 +8819,7 @@
     {
      "speaker": "Accountmanager",
      "key": "accountmanager",
-     "text": "Dan staat u er mooi bij.",
+     "text": "Dan is dat uw route.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -8865,24 +8865,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Loop maar voor, wij volgen.",
-     "tag": "NIEUW",
-     "channel": "stem",
-     "textOnly": true,
-     "voice": "Anita"
-    },
-    {
-     "speaker": "Tammo",
-     "key": "T",
-     "text": "Waarom zei je dat?",
-     "tag": "NIEUW",
-     "channel": "stem",
-     "textOnly": true
-    },
-    {
-     "speaker": "Tessa",
-     "key": "A",
-     "text": "Zo houden we ze in beeld.",
+     "text": "Loop maar voor. Wij volgen.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -11459,7 +11442,7 @@
     {
      "speaker": "Mem Terpstra",
      "key": "mem",
-     "text": "Famke. Trijntje en ik hebben ze na gisteren nog eens gebeld. Tammo deed het niet slecht. Ze zeiden nee tegen Jelles advocaten. Ze komen.",
+     "text": "Famke. Trijntje en ik hebben ze gebeld. Ze zeiden nee tegen Jelles advocaten. Ze komen.",
      "tag": "NIEUW",
      "channel": "telefoon",
      "textOnly": true
@@ -11867,7 +11850,7 @@
    "step": "M23",
    "kind": "key",
    "regie": [
-    "afloop van de keuze voor Geesje. De scooter zoemt naast de Fjord Frituur, Geesje met een helm op haar bun."
+    "afloop van de keuze voor Geesje. De scooter zoemt naast de Fjord Frituur, Geesje met een helm over haar knot."
    ],
    "lines": [
     {
@@ -11890,7 +11873,7 @@
     {
      "speaker": "Geesje",
      "key": "geesje",
-     "text": "Een limo past niet in een steegje, famke.",
+     "text": "Een limo past niet in een steegje, jong.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -11906,7 +11889,7 @@
     {
      "speaker": "Geesje",
      "key": "geesje",
-     "text": "Dat zeg ik altijd.",
+     "text": "Zegt de kerk ook.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -13154,27 +13137,27 @@
     {
      "speaker": "Wubbo",
      "key": "wubbo",
-     "text": "Open of dicht, Tessa. Nooit allebei.",
+     "text": "Open of dicht, Tessa. Vandaag allebei.",
      "tag": "NIEUW",
      "channel": "telefoon",
      "textOnly": true
     },
     {
-     "speaker": "Tammo",
-     "key": "T",
-     "text": "Hij herhaalt zichzelf.",
-     "tag": "NIEUW",
-     "channel": "stem",
-     "textOnly": true
-    },
-    {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Dat heet een werkfilosofie.",
+     "text": "Dat mag niet.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
      "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Het is een bus.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
     }
    ]
   },
@@ -13222,15 +13205,6 @@
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
-    },
-    {
-     "speaker": "Tessa",
-     "key": "A",
-     "text": "Dat is de trekker.",
-     "tag": "NIEUW",
-     "channel": "stem",
-     "textOnly": true,
-     "voice": "Anita"
     }
    ]
   },
@@ -13274,7 +13248,7 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Dat is een goede regel.",
+     "text": "Klopt.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
