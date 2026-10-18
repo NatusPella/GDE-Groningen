@@ -578,7 +578,7 @@ function updateHud(dt) {
   setText('score', hud.score, String(score));
   setText('best', hud.best, `Beste ${Math.max(store.best, score)}`);
   setText('total', hud.total, `totaal ${store.total + score}`);
-  setText('combo', hud.combo, combo > 1 && elapsed < comboUntil ? `Combo x${Math.min(5, combo)}` : '');
+  setText('combo', hud.combo, combo > 1 && elapsed < comboUntil ? `Reeks x${Math.min(5, combo)}` : '');
   hud.boost.hidden = P.boostT <= 0;
   if (P.boostT > 0) hud.boostFill.style.transform = `scaleX(${(P.boostT / BOOST_S).toFixed(3)})`;
   setText('tag', hud.tag, P.carry ? (P.carry.kind === 'kroket' ? 'Kroket in je snavel' : 'Patat in je snavel') : P.boostT > 0 ? 'Frietkracht!' : '');

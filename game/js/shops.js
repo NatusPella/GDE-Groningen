@@ -1275,8 +1275,8 @@ function vehicleSections(world, type, shop) {
         const here = o.v && world.vehicles.includes(o.v) && dist(o.v.x, o.v.y, spot.x, spot.y) < 40;
         const fee = o.lost ? replacementFee(o) : REDELIVERY_FEE;
         return {
-          id: 'mine-' + i, label: o.spec.label, desc: here ? 'Staat al voor de deur' : o.lost ? 'Total loss: eigen risico, dan staat er een nieuwe voor de deur' : boat ? 'Laat hem naar deze steiger varen' : heli ? 'Laat hem hier op het platform zetten' : 'Laat hem hier voor de deur zetten',
-          price: fee, tag: o.lost ? 'Total loss' : 'Van jou', swatch: [o.color],
+          id: 'mine-' + i, label: o.spec.label, desc: here ? 'Staat al voor de deur' : o.lost ? 'Afgeschreven: eigen risico, dan staat er een nieuwe voor de deur' : boat ? 'Laat hem naar deze steiger varen' : heli ? 'Laat hem hier op het platform zetten' : 'Laat hem hier voor de deur zetten',
+          price: fee, tag: o.lost ? 'Afgeschreven' : 'Van jou', swatch: [o.color],
           preview: { kind: o.spec.kind, model: o.spec.model, color: o.color, nameIdx: o.spec.nameIdx, flags: o.spec.flags || null }, stats: vehicleStats(o.spec.model, o.spec.kind),
           disabled: here ? 'Staat al hier' : o.v && o.v.driver === 'player' ? 'Je zit erop' : broke(world, fee),
           buy() {
@@ -1778,7 +1778,7 @@ export function updateShops(dt, world) {
       o.v = null;
       o.lost = true;
       o.upgrades = [...(v.upgrades || o.upgrades || [])];
-      world.addMessage(`${o.spec.label} is total loss. Nieuwe via je telefoon (eigen risico €${replacementFee(o)})`, 5);
+      world.addMessage(`${o.spec.label} is afgeschreven. Nieuwe via je telefoon (eigen risico €${replacementFee(o)})`, 5);
       continue;
     }
     // the ambient population managers sweep far-away bikes and cars; an

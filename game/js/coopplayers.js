@@ -51,7 +51,7 @@ export const clampMax = (n) => Math.min(ABS_MAX, Math.max(MIN_MAX, Number.isInte
 export function advies(aantal, rol = 'host') {
   if (aantal <= ADVIES_VANAF) return '';
   const basis = `Met ${aantal} spelers kan het spel trager worden, vooral op wat oudere computers.`;
-  return rol === 'host' ? `${basis} Als host stuur je alles naar iedereen; een trage internetverbinding (uploaden) kan het spel laten haperen.` : basis;
+  return rol === 'host' ? `${basis} Als gastheer stuur je alles naar iedereen; een trage internetverbinding (uploaden) kan het spel laten haperen.` : basis;
 }
 
 export function createRoster(max = DEFAULT_MAX) {

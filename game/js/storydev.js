@@ -40,7 +40,7 @@ function build() {
     <div class="sd-row"><button data-a="teleport">Naar volgend doel</button><button data-a="skip">Stap overslaan</button><button data-a="money">+€500</button></div>
     <div class="sd-row"><button data-t="1">Tijd ×1</button><button data-t="2">×2</button><button data-t="4">×4</button><button data-a="invuln">Onkwetsbaar</button></div>
     <div class="sd-row"><button data-a="timeline">Geld-tijdlijn</button><button data-a="night">Nacht</button><button data-a="day">Dag</button></div>
-    <div class="sd-row"><button data-a="heli">Heli-run</button><button data-a="vault">Fierljep</button><button data-a="vaultfail">Fierljep (mis)</button></div>
+    <div class="sd-row"><button data-a="heli">Heli-ronde</button><button data-a="vault">Fierljep</button><button data-a="vaultfail">Fierljep (mis)</button></div>
     <pre hidden></pre></div>`;
   document.body.appendChild(root);
   for (const t of ['mousedown', 'mouseup', 'click', 'wheel', 'keydown']) root.addEventListener(t, (e) => e.stopPropagation());

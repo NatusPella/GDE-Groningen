@@ -2,7 +2,7 @@
 // start that says what scores and the target, then a score panel under the
 // top-right block with a progress bar to the target, the combo with its
 // window running out, a "nog X punten" line near the end, and a popup per
-// action ("+120 parasol", "combo x2", "-250 iemand geraakt"). Lives in #hud,
+// action ("+120 parasol", "reeks x2", "-250 iemand geraakt"). Lives in #hud,
 // so it fades with the rest of the HUD during cutscenes.
 
 const CSS = `
@@ -96,7 +96,7 @@ export function showStuntHud(target, rules, { hitCost, comboMax, comboS }) {
     `<p>Jelmer streamt. Doel: rij met de Escapade over de Grote Markt, gooi dingen omver en haal ${target} punten voor de tijd op is. Niemand raken.</p>` +
     '<ul>' + rules.map(([l, p]) => `<li><span>${l}</span><span>+${p}</span></li>`).join('') +
     `<li class="bad"><span>Iemand raken</span><span>-${hitCost}</span></li></ul>` +
-    `<div class="sb-foot">Snel achter elkaar scoren is combo: tot x${comboMax}, binnen ${comboS} seconden na je vorige punten.</div>`;
+    `<div class="sb-foot">Snel achter elkaar scoren is een reeks: tot x${comboMax}, binnen ${comboS} seconden na je vorige punten.</div>`;
   e.panel.hidden = false;
 }
 
@@ -129,7 +129,7 @@ export function updateStuntHud(dt, s, paused) {
     e.bar.setAttribute('aria-valuenow', String(pct));
   }
   const on = s.combo > 1 && s.comboLeft > 0;
-  const ct = on ? `combo x${s.combo}` : 'combo x1';
+  const ct = on ? `reeks x${s.combo}` : 'reeks x1';
   if (e.combo.textContent !== ct) { e.combo.textContent = ct; e.combo.dataset.on = on ? '1' : '0'; }
   e.cw.style.width = on ? `${Math.round(s.comboLeft * 100)}%` : '0';
   const left = Math.max(0, s.target - s.score);
@@ -143,7 +143,7 @@ export function updateStuntHud(dt, s, paused) {
   e.left.dataset.done = left ? '0' : '1';
 }
 
-// One popup: kind 'pts' ("+120 parasol"), 'combo' ("combo x3") or 'bad' ("-250 ...").
+// One popup: kind 'pts' ("+120 parasol"), 'combo' ("reeks x3") or 'bad' ("-250 ...").
 export function stuntPopup(text, kind = 'pts') {
   if (!state || !els) return;
   popup(text, kind);

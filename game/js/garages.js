@@ -368,7 +368,7 @@ function garageMenu(w, site) {
       wrecks.push({
         id: 'g-w-' + o.key, label: `Wrak van je ${o.spec.label} opknappen`, price: fee, swatch: [o.color],
         preview: { kind: o.spec.kind, model: o.spec.model, color: o.color, nameIdx: o.spec.nameIdx, flags: o.spec.flags || null },
-        desc: 'Total loss? Niet bij Henk. Staat daarna hier voor de deur',
+        desc: 'Afgeschreven? Niet bij Henk. Staat daarna hier voor de deur',
         disabled: w.money < fee ? 'Te weinig geld' : '',
         buy() {
           if (!pay(w, fee)) return null;

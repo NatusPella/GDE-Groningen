@@ -90,5 +90,5 @@ export function leesMissieBericht(b) {
 // Tekst voor de gast: wat de host nu speelt, en of de gast kan meedoen.
 export function missieTekst(m, rol = 'wereld') {
   if (!m || !m.actief) return '';
-  return rol === 'wereld' ? `De host speelt: ${m.label}. Jij loopt mee in de open wereld.` : `De host speelt: ${m.label}. Doe mee waar het kan.`;
+  return rol === 'wereld' ? `De gastheer speelt: ${m.label}. Jij loopt mee in de open wereld.` : `De gastheer speelt: ${m.label}. Doe mee waar het kan.`;
 }

@@ -1174,7 +1174,7 @@ function progressText(world, def, pub) {
     if (vehicleToBoard(world, def)) return `Stap in ${def.vehicleName || 'de auto'}`;
     if (chain.stuntPhase) {
       const s = stuntStatus();
-      return s ? `Stunt op de Grote Markt · punten ${s.score}/${s.target}${s.combo > 1 ? ` · combo x${s.combo}` : ''} · niemand raken${pub.vehicleDamage != null ? ` · schade ${pub.vehicleDamage}%` : ''}` : 'Rij naar de Grote Markt';
+      return s ? `Stunt op de Grote Markt · punten ${s.score}/${s.target}${s.combo > 1 ? ` · reeks x${s.combo}` : ''} · niemand raken${pub.vehicleDamage != null ? ` · schade ${pub.vehicleDamage}%` : ''}` : 'Rij naar de Grote Markt';
     }
     const stop = nextStop(def);
     const to = def.destName || 'de bestemming';
@@ -1189,7 +1189,7 @@ function progressText(world, def, pub) {
     const s = stuntStatus();
     if (!s) return null;
     if (!world.player.inVehicle) return `Stap in de Escapade · punten ${s.score}/${s.target}`;
-    return `Punten ${s.score}/${s.target}${s.combo > 1 ? ` · combo x${s.combo}` : ''} · niemand raken`;
+    return `Punten ${s.score}/${s.target}${s.combo > 1 ? ` · reeks x${s.combo}` : ''} · niemand raken`;
   }
   return null;
 }
@@ -2038,7 +2038,7 @@ function vehicleProblem(world, def) {
   const p = world.player;
   const vf = def.vehicleFail || {};
   if (!v || !world.vehicles.includes(v)) return vf.gone || (def.type === 'boat' ? 'de boot is foetsie' : 'de auto is foetsie');
-  if (v.wrecked || v.disabled) return vf.wrecked || (def.type === 'boat' ? 'de boot ligt nu tussen de fietsen op de bodem' : 'de auto is total loss, Kiekdoar heeft al foto\'s');
+  if (v.wrecked || v.disabled) return vf.wrecked || (def.type === 'boat' ? 'de boot ligt nu tussen de fietsen op de bodem' : 'de auto is afgeschreven, Kiekdoar heeft al foto\'s');
   if (p.inVehicle === v) { chain.boarded = true; chain.grace = null; return null; }
   const g = chain.grace || (chain.grace = createGrace());
   const far = dist(p.x, p.y, v.x, v.y) > ABANDON_DIST;
@@ -2358,7 +2358,7 @@ export function updateMissions(dt, world) {
 function raceCarProblem() {
   const car = chain.race && chain.race.playerCar;
   if (!car || !car.wrecked) return null;
-  return chain.race.bikes ? 'je fiets ligt in de prak' : 'je racewagen is total loss. Harm huilt, de pionnen juichen';
+  return chain.race.bikes ? 'je fiets ligt in de prak' : 'je racewagen is afgeschreven. Harm huilt, de pionnen juichen';
 }
 
 // --- stages: story missions built from small objectives ------------------------
@@ -2826,7 +2826,7 @@ function resumeFromCheckpoint(world, def) {
   enterStage(world, def, cp.stageIndex);
   applyCheckpointProgress(cp, chain);
   chain.boarded = chain.boarded || !!(cp.vehicle && cp.vehicle.inside);
-  world.addMessage('Je begint opnieuw bij het laatste checkpoint.', 3.5);
+  world.addMessage('Je begint opnieuw bij het laatste hervatpunt.', 3.5);
 }
 
 function nextStage(world, def) {

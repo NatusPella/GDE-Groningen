@@ -96,7 +96,7 @@ export function buildAkte2Defs({ models = {} } = {}) {
       vehicle: 'car',
       vehicleName: 'de quad van Geesjes neef',
       vehicleModel: models.quad || null,
-      vehicleFail: { gone: 'de quad is foetsie, en de limo rijdt door', wrecked: 'de quad is total loss. Geesjes neef wil hem niet zo terug', left: 'je liet de quad staan. Zonder quad geen wierdepaden' },
+      vehicleFail: { gone: 'de quad is foetsie, en de limo rijdt door', wrecked: 'de quad is afgeschreven. Geesjes neef wil hem niet zo terug', left: 'je liet de quad staan. Zonder quad geen wierdepaden' },
       lazyStart: true,
       // Usquert, a service road behind the church (53.40328 N 6.60891 E)
       start: far(2585.0, -20500.1),

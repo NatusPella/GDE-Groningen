@@ -193,6 +193,12 @@
       "rule": "duits",
       "ctx": "Wer ist dieser Mann?",
       "why": "Duitse toerist op de rondvaartboot, ondertiteld; eigenaar kan dit schrappen"
+    },
+    {
+      "rule": "anglicisme",
+      "term": "deadline",
+      "ctx": "als een fietser met een deadline",
+      "why": "ingesproken regel (stem opgenomen); wijzigen kan pas met akkoord van de eigenaar en een nieuwe opname. Wordt: uiterste tijd"
     }
   ]
 }

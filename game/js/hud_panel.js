@@ -178,7 +178,7 @@ export function initHud(world) {
     '<div class="hr-row" data-k="time"><span>TIJD</span><b></b></div>' +
     '<div class="hr-row" data-k="left"><span>RESTEREND</span><b></b></div>' +
     '<div class="hr-row" data-k="lap"><span>RONDE</span><b></b></div>' +
-    '<div class="hr-row" data-k="cp"><span>CHECKPOINT</span><b></b></div>' +
+    '<div class="hr-row" data-k="cp"><span>CONTROLEPUNT</span><b></b></div>' +
     '<div class="hr-row" data-k="best"><span>RECORD</span><b></b></div>';
   root.appendChild(race);
 
@@ -1193,7 +1193,7 @@ function missionProgressText(m) {
   if (m.progressText) return m.progressText;
   if (m.raceHud) return '';
   if ((m.type === 'checkpoint' || m.type === 'boat') && m.wpTotal) {
-    const cp = `Checkpoint ${Math.min(m.wpTotal, (m.wpIndex || 0) + 1)}/${m.wpTotal}`;
+    const cp = `Controlepunt ${Math.min(m.wpTotal, (m.wpIndex || 0) + 1)}/${m.wpTotal}`;
     return m.racePos ? `Positie ${m.racePos}/${m.raceTotal} · ${cp}` : cp;
   }
   if (m.type === 'fatbike' && m.fatbikeMaxHits != null) return `Geschept: ${m.fatbikeHits || 0}/${m.fatbikeMaxHits}`;

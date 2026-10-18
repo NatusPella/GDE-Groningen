@@ -358,7 +358,7 @@ function start(w, { force = false } = {}) {
   game = { ghostRun, rec: createRecorder(), t: 0, phase: 'grid', karts, raceT: 0, flash: null, cam: null, camA: karts[0].a, said: 0, lights: 0, result: null, finishAt: 0, hits: 0, outro: 0, lastLap: -1, boostFx: 0, exit: { ...STAND }, gapSay: 0 };
   syncKarts(w, 0);
   w.companionHold = { x: STAND.x + 2, y: STAND.y + 1, face: ROT };
-  showCard(w, { kind: 'tip', kicker: 'Karten in Ulrum', title: 'Drie ronden, drie rijders', body: '[W] gas, [S] rem, [A] [D] sturen. Houd [Spatie] (handrem) in een bocht voor een drift: een lange drift geeft een boost.', duration: 10, key: 'kart-help', voice: false });
+  showCard(w, { kind: 'tip', kicker: 'Karten in Ulrum', title: 'Drie ronden, drie rijders', body: '[W] gas, [S] rem, [A] [D] sturen. Houd [Spatie] (handrem) in een bocht voor een drift: een lange drift geeft een versnelling.', duration: 10, key: 'kart-help', voice: false });
   say(w, 'start', true);
   return true;
 }
@@ -513,7 +513,7 @@ function end(w, { quit = false } = {}) {
   const stats = [['Positie', me.finished ? `${pos} van 4` : 'niet gefinisht'], ['Racetijd', total != null ? fmtTime(total) : '-'], ['Beste ronde', lap != null ? fmtTime(lap) : '-'], ['Drifts', String(me.drifts)]];
   if (medal) stats.push(['Medaille', MEDALS[medal]]);
   if (newBest) stats.push(['Record', 'Nieuw!']);
-  showBanner({ kind: medal ? 'pass' : 'fail', title: pos === 1 && me.finished ? 'EERSTE OP DE KARTBAAN' : medal ? 'OP HET PODIUM' : 'NOG EEN RONDJE?', reason: medal ? '' : 'Drift de lange bochten voor een boost en rij schoon: de banden zijn zacht, maar de muur hard', reward: 0, stats });
+  showBanner({ kind: medal ? 'pass' : 'fail', title: pos === 1 && me.finished ? 'EERSTE OP DE KARTBAAN' : medal ? 'OP HET PODIUM' : 'NOG EEN RONDJE?', reason: medal ? '' : 'Drift de lange bochten voor een versnelling en rij schoon: de banden zijn zacht, maar de muur hard', reward: 0, stats });
   say(w, pos === 1 ? 'win' : medal ? 'podium' : 'poor', true, true);
 }
 

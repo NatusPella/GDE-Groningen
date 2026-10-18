@@ -54,7 +54,7 @@ function endHtml(e) {
   if (e.locked) return `${LOCK}<span class="t">${esc(e.unlockShort || 'Op slot')}</span>`;
   if (!e.owned && e.spec && e.spec.unlock) return '<span class="t g">Vrijgespeeld</span>';
   if (!e.owned) return `<span class="v">${euro(priceOf(e))}</span>`;
-  if (e.status === 'lost') return '<span class="t" style="color:var(--redtx)">Total loss</span>';
+  if (e.status === 'lost') return '<span class="t" style="color:var(--redtx)">Afgeschreven</span>';
   const label = e.status === 'garage' ? 'Thuis' : e.status === 'driving' ? 'Je zit erin' : 'Van jou';
   return `<span class="t${e.status === 'driving' ? ' g' : ''}">${label}</span>`;
 }

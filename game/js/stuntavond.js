@@ -96,7 +96,7 @@ function addPoints(w, pts, label, say = null) {
   R.score += got;
   R.events++;
   stuntPopup(`+${got} ${label}`);
-  if (R.combo > was && R.combo > 1) stuntPopup(`combo x${R.combo}`, 'combo');
+  if (R.combo > was && R.combo > 1) stuntPopup(`reeks x${R.combo}`, 'combo');
   if (say) w.addMessage(say, 2.2, { kind: 'missie', key: 'stunt' });
   else if (R.combo >= 3 && R.combo !== R.saidCombo) { R.saidCombo = R.combo; w.addMessage(`${SAY_COMBO[R.combo % SAY_COMBO.length]} x${R.combo}`, 1.4, { kind: 'missie', key: 'stunt' }); }
 }

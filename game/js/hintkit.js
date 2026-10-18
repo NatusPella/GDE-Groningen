@@ -43,7 +43,7 @@ export const HINTS = [
   // minigames: world.activityGame is the id of the running one (activities.js)
   { id: 'm-discgolf', kind: 'minigame', match: 'discgolf', title: 'Discgolf', body: 'Gooi de schijf in de mand met zo min mogelijk worpen. Je loopt de ronde door het Stadspark; de uitleg staat tijdens het spelen in beeld.' },
   { id: 'm-pitchputt', kind: 'minigame', match: 'pitchputt', title: 'Pitch & putt', body: 'Zes korte holes: eerst pitchen, op de green putten. Zo min mogelijk slagen. De uitleg staat tijdens het spelen in beeld.' },
-  { id: 'm-skatepark', kind: 'minigame', match: 'skatepark', title: 'Skatepark', body: 'Ramps, rails en tricks. Ken je de toetsen niet, kijk dan naar de uitleg in beeld.' },
+  { id: 'm-skatepark', kind: 'minigame', match: 'skatepark', title: 'Skatepark', body: 'Hellingen, leuningen en kunstjes. Ken je de toetsen niet, kijk dan naar de uitleg in beeld.' },
   { id: 'm-kartbaan', kind: 'minigame', match: 'kartbaan', title: 'Kartbaan', body: 'Drie ronden tegen drie rijders. Een schone bocht is sneller dan een harde.' },
   { id: 'm-zwembad', kind: 'minigame', match: 'zwembad', title: 'Zwembad', body: 'Baantjes zwemmen in het zwembad. De uitleg staat tijdens het zwemmen in beeld.' },
   { id: 'm-klimtoren', kind: 'minigame', match: 'klimtoren', title: 'Klimtoren', body: 'Twaalf meter klimmen, tegen de klok. Een val kost tijd, dus klim rustig en gelijkmatig.' },

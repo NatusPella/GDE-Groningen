@@ -72,7 +72,7 @@ export function buildNieuwDefs({ map, walk, drive, models = {} }) {
       outro: 'Berend zei goud. En moi. Tegen Tessa.',
       timeLimit: 240,
       timeUp: 'tijd op. Jelmers chat is al naar een kattenfilmpje en Berend wacht nog',
-      vehicleFail: { gone: 'Berends bakkie is foetsie', wrecked: 'Berends bakkie is total loss. Hij telde nul krassen, nu telt hij niks meer', left: 'je liet Berends bakkie staan. Hij telde nul krassen, geen parkeerbonnen' },
+      vehicleFail: { gone: 'Berends bakkie is foetsie', wrecked: 'Berends bakkie is afgeschreven. Hij telde nul krassen, nu telt hij niks meer', left: 'je liet Berends bakkie staan. Hij telde nul krassen, geen parkeerbonnen' },
       reward: 200,
       scratchFine: 0.5,
       vehicleName: 'Berends bakkie',
@@ -123,7 +123,7 @@ export function buildNieuwDefs({ map, walk, drive, models = {} }) {
       snapStart: true,
       vehicleName: 'de auto van Lammert',
       handBack: { how: 'park', say: 'De auto blijft bij de sluis, Lammert regelt de rest. Wij gaan te voet verder.' },
-      vehicleFail: { gone: 'de auto van Lammert is foetsie, en de limo rijdt door', wrecked: 'de auto van Lammert is total loss. De dijk is lang als je loopt', left: 'je liet de auto staan. Lopend haal je de sluis niet voor acht uur' },
+      vehicleFail: { gone: 'de auto van Lammert is foetsie, en de limo rijdt door', wrecked: 'de auto van Lammert is afgeschreven. De dijk is lang als je loopt', left: 'je liet de auto staan. Lopend haal je de sluis niet voor acht uur' },
       costRow: ['Gered', 'De voorraden van de vrienden van Oma blijven in Delfzijl'],
       start: DIJK_START,
       stages: [
@@ -212,7 +212,7 @@ export function applyNieuw(list) {
   const kraak = by('Het museum stond er al zo');
   if (kraak) kraak.costRow = ['Gevolg', 'De politie zoekt twee mensen in het zwart'];
   if (kei) kei.timeUp = 'tijd op. De eerstejaars zitten al aan de bar';
-  if (pin) pin.vehicleFail = { gone: 'de auto met de automaat is foetsie, en de pas ook', wrecked: 'de auto met de automaat is total loss. Sjabbe kan alleen openen wat heel is', left: 'je liet de automaat staan. Zonder automaat geen pas' };
+  if (pin) pin.vehicleFail = { gone: 'de auto met de automaat is foetsie, en de pas ook', wrecked: 'de auto met de automaat is afgeschreven. Sjabbe kan alleen openen wat heel is', left: 'je liet de automaat staan. Zonder automaat geen pas' };
   if (kei) kei.say = 'Podium in de Kiezelrace, dan vertelt Sjoerd over het museum. Altijd tegenwind, op een eigen fiets.';
   if (kei) kei.moment = { at: 3, text: kei.moment.text, talk: { ids: ['M05.2'] } };
   const vet = by('Al het vet van Grunn');
@@ -226,7 +226,7 @@ export function applyNieuw(list) {
     to.talk = { ids: ['M07.2'], delay: 3 };
     vet.outro = 'Het vet is terug in Grunn. Plakje twee is gered.';
     vet.costRow = ['Gered', 'Plakje twee: het vet blijft in Grunn'];
-    vet.vehicleFail = { gone: 'Femkes auto is foetsie, en de tankwagen rijdt door', wrecked: 'de auto is total loss. Femke wil hem niet zo terug', left: 'je liet de auto staan. Zonder auto geen tankwagen' };
+    vet.vehicleFail = { gone: 'Femkes auto is foetsie, en de tankwagen rijdt door', wrecked: 'de auto is afgeschreven. Femke wil hem niet zo terug', left: 'je liet de auto staan. Zonder auto geen tankwagen' };
   }
   applyAkte5(list);
   // M12 Het staat niet in het rooster: Dijkstra picks them up at Lauwersoog; the flight is the 'rooster' variant of helirun.js
