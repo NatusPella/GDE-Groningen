@@ -25,6 +25,66 @@ const merge = (...parts) => ({
 
 export const SPECS_AKTE2 = {};
 
+// --- M07 Al het vet van Grunn -----------------------------------------------------------------
+{
+  // behind the wall: the tanker between two guard cars, a queue of the town with empty pans on the street
+  SPECS_AKTE2['M07.intro'] = {
+    duo: { tammo: { at: [0, 0.8], face: 0, anim: 'idle' }, tessa: { at: [0.2, -0.7], face: 10, anim: 'idle' } },
+    cast: {
+      pan1: { key: 'snackbar', at: [-3.2, 6.5], face: 270, anim: 'idle', bg: true, gest: ['shrug', 'idle'] },
+      pan2: { key: 'harm', at: [-4.2, 7.6], face: 270, anim: 'idle', bg: true, gest: ['idle', 'point'] },
+      pan3: { key: 'student', at: [-2.0, 8.4], face: 260, anim: 'idle', bg: true, gest: ['shake', 'idle'] },
+    },
+    props: {
+      tank: { kind: 'bestelbus', at: [16, 0.5, 0], face: 0 },
+      wacht1: { kind: 'auto', at: [14, 4.2, 0], face: 20 },
+      wacht2: { kind: 'auto', at: [18.5, -3.2, 0], face: -20 },
+      pannen: { kind: 'doos', at: [-3.4, 7.0, 0], face: 0 },
+    },
+    open: [{ actor: 'tessa', face: 'prop:tank' }, { actor: 'tammo', face: 'prop:tank' }, { actor: 'pan1', walk: [[-3.2, 4.5]], speed: 0.3 }],
+    beats: [
+      { on: 'Jelle koopt het vet', actor: 'tessa', anim: 'point' },
+      { on: 'Jelle koopt het vet', dt: 0.4, actor: 'pan2', anim: 'shrug' },
+      { on: 'Plakje twee.', actor: 'tammo', face: 'actor:tessa' },
+      { on: 'Plakje één kregen', actor: 'tessa', face: 'actor:tammo' },
+      { on: 'Plakje één kregen', dt: 0.3, actor: 'tessa', anim: 'shrug' },
+      { on: 'Plakje één kregen', dt: 1.8, actor: 'pan3', anim: 'shake' },
+      // the plan: peek round the wall, then creep towards the tyres
+      { on: 'Banden stuk', actor: 'tessa', anim: 'point' },
+      { on: 'Banden stuk', dt: 0.3, actor: 'tessa', face: 'prop:wacht1' },
+      { on: 'En de Krolbrug?', actor: 'tammo', anim: 'hips' },
+      { on: 'Zie je. Daar kun je', actor: 'tessa', anim: 'laugh' },
+      { on: 'Zie je. Daar kun je', dt: 0.6, actor: 'tessa', walk: [[3.2, -1.4]], speed: 1.8 },
+      { on: 'Zie je. Daar kun je', dt: 0.6, actor: 'tammo', walk: [[2.8, 0.9]], speed: 1.8 },
+    ],
+    shots: [{ on: 'En de Krolbrug?', dt: 0.1, shot: 'cut', at: [-1.2, 1.6, 1.6], look: 'mid:tessa,tammo@1.3', fov: 42 }],
+    wide: { from: [-5.5, 3.6, 3.4], to: [-2.8, 2.6, 2.6], look: 'mid:tank,wacht1@1.2', fov: 52, until: 2 },
+  };
+
+  // the Oosterpoort: the snack-bar owners cheer round the tanker, Tessa hides her buzzing phone, Tammo sees it
+  SPECS_AKTE2['M07.outro'] = {
+    duo: { tammo: { at: [0, 0.8], face: 0, anim: 'idle' }, tessa: { at: [0.2, -0.7], face: 10, anim: 'phone' } },
+    cast: {
+      snackbar: { key: 'snackbar', at: [3.4, 0.3], face: 185, anim: 'cheer', gest: ['cheer', 'talk', 'cheer'] },
+      bar2: { key: 'harm', at: [4.2, 2.4], face: 200, anim: 'cheer', bg: true, gest: ['cheer', 'wave'] },
+      bar3: { key: 'toerist', at: [4.6, -2.0], face: 160, anim: 'cheer', bg: true, gest: ['cheer', 'laugh'] },
+    },
+    props: { tank: { kind: 'bestelbus', at: [9, 0.4, 0], face: 180 }, pannen: { kind: 'doos', at: [3.0, 1.4, 0], face: 0 } },
+    open: [{ actor: 'tessa', face: 'actor:snackbar' }, { actor: 'tammo', face: 'actor:snackbar' }, { actor: 'bar2', walk: [[2.6, 1.6]], speed: 1.4 }, { actor: 'bar3', walk: [[2.8, -1.4]], speed: 1.4 }],
+    beats: [
+      { on: 'Vet! Valt mie nait of', actor: 'snackbar', anim: 'cheer' },
+      { on: 'Trede drie', actor: 'tessa', face: 'actor:tammo' },
+      { on: 'Trede drie', dt: 0.3, actor: 'tessa', anim: 'point' },
+      { on: 'Dit is het eerste', actor: 'tammo', anim: 'shrug' },
+      { on: 'Dit is het eerste', dt: 1.5, actor: 'bar2', anim: 'laugh' },
+      { on: 'Dit is het eerste', dt: 3.0, actor: 'tessa', anim: 'phone' },
+      { on: 'Dit is het eerste', dt: 3.5, actor: 'tammo', face: 'actor:tessa' },
+    ],
+    shots: [{ on: 'Trede drie', dt: 0.1, shot: 'cut', at: [-1.6, -1.2, 1.5], look: 'mid:tessa,snackbar@1.3', fov: 42 }],
+    wide: { from: [-4.4, 4.0, 3.2], to: [-2.2, 3.0, 2.5], look: 'mid:snackbar,tessa@1.3', fov: 50, until: 2 },
+  };
+}
+
 // --- M08 Fatbikes tellen niet als fiets -------------------------------------------------------
 {
   // fatbikes on the pavement from both sides, two on one (Durk and Douwe)

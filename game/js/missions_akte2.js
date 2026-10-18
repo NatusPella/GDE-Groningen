@@ -41,7 +41,7 @@ function kustDef() {
         kind: 'scene', label: 'Aan boord', target: { skutsje: true }, deckCam: true, kicker: 'Het skûtsje', big: 'Chocola?!', script: { ids: ['M11.3'] },
         props: [{ kind: 'ball', holder: 'A', from: 'Chocola' }],
       },
-      { kind: 'goto', target: { at: [-21747, -13661], snap: null, label: 'De zandplaat' }, mode: 'boat', radius: 45, label: 'Vaar met Klaas naar de zandplaat bij laag water', say: 'Het zout van Oma ligt bij Noordpolderzijl. Eerst de zandplaat, daar wachten we op het getij.', talk: { ids: ['M11.4'], delay: 2 } },
+      { kind: 'goto', target: { at: [-21747, -13661], snap: null, label: 'De zandplaat' }, mode: 'boat', radius: 45, label: 'Vaar met Klaas naar de zandplaat; de wind duwt het water weg', say: 'Het zout van Oma ligt bij Noordpolderzijl. Eerst de zandplaat: de wind duwt het water weg, daar wachten we.', talk: { ids: ['M11.4'], delay: 2 } },
       { kind: 'scene', label: 'De zandplaat', kicker: 'De zandplaat', script: { ids: ['M11.5', 'M11.6'] }, clockTo: 22.8 },
       { kind: 'scene', label: 'Naar Noordpolderzijl', big: 'Klaas brengt jullie langs de dijk naar Noordpolderzijl…', kicker: 'Noordpolderzijl', warp: { at: [585, -23701], snap: 'walk', clock: 23.4 }, clockTo: 23.4 },
       marsh([600, -23875], 'Zoutkuip 1', ['Nog even scheppen…', 'Bijna vol.'], { setTime: 210, talk: { ids: ['M11.7'], to: 4, delay: 2 }, say: 'Drie zoutkuipen op de kwelder. Het water komt over een kleine vier minuten. Het licht van de kustwacht gaat heen en weer: bukken (Ctrl) als het komt.' }),
