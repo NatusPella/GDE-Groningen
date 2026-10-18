@@ -1,3 +1,4 @@
+import { FLAGS } from './devflags.js';
 import { setDualText } from './subtitles.js';
 import { markerColors } from './a11y.js';
 import { speakerHtml } from './speakers.js';
@@ -55,7 +56,7 @@ import { simLevel } from './simload.js';
 import { beginWheels, addVehicleWheels, endWheels } from './wheelinstances3d.js';
 
 // ?nobatch: every building drawn on its own (A/B checks of the batching)
-const NO_BATCH = typeof location !== 'undefined' && /[?&]nobatch\b/.test(location.search);
+const NO_BATCH = FLAGS.nobatch;
 const NO_WHEEL_INSTANCES = NO_BATCH;
 const wheelFrustum = new THREE.Frustum(), wheelProj = new THREE.Matrix4();
 import { getUiScale } from './uiscale.js';
@@ -802,7 +803,7 @@ export function init3D(map) {
   pinShaderPrograms(renderer);
   // Fetching shader info logs after a link is a sync point that costs tens of
   // ms per program on a busy GPU; ?shaderdebug brings the error checks back.
-  renderer.debug.checkShaderErrors = /[?&]shaderdebug\b/.test(location.search);
+  renderer.debug.checkShaderErrors = FLAGS.shaderdebug;
   probe.setRenderer(renderer);
 
   scene = new THREE.Scene();

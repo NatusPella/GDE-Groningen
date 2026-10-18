@@ -1,4 +1,4 @@
-import { STORY_TEST } from './devflags.js';
+import { STORY_TEST, FLAGS } from './devflags.js';
 import { KERNELS } from './geokernels.js';
 
 // Geometry jobs (geokernels.js) in a module worker, so streaming the city
@@ -9,8 +9,7 @@ import { KERNELS } from './geokernels.js';
 // main thread (done is called before runGeo returns), and if the worker
 // fails, its open jobs are redone that way.
 
-const query = typeof location !== 'undefined' ? location.search : '';
-const WANT = typeof Worker !== 'undefined' && !STORY_TEST && !/[?&]noworker\b/.test(query);
+const WANT = typeof Worker !== 'undefined' && !STORY_TEST && !FLAGS.noworker;
 
 let worker = null;
 let failed = !WANT;

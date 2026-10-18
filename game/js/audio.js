@@ -1,4 +1,5 @@
 import { clamp } from './util.js';
+import { FLAGS } from './devflags.js';
 import { getCamera } from './scene3d.js';
 import { getSettings, onSettingsChange } from './settings.js';
 import { isThemeActive } from './theme.js';
@@ -1885,9 +1886,8 @@ function unlockAudio() {
 // without touching the player's saved mute setting.
 // ?stil&audiograf: the full graph runs (G-Music, voices, ducks, watchdog) but
 // ends in a muted sink, so tests can check the gain/duck state machine.
-const URL_FLAGS = typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams();
-const GRAPH_TEST = URL_FLAGS.has('audiograf');
-const SILENT_MODE = URL_FLAGS.has('stil') && !GRAPH_TEST;
+const GRAPH_TEST = FLAGS.audiograf;
+const SILENT_MODE = FLAGS.stil && !GRAPH_TEST;
 let outNode = null;
 function output() {
   if (!outNode) {

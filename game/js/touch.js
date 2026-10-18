@@ -5,6 +5,7 @@
 // and ?touch=0 off. Menus and the phone stay plain taps.
 import { detectTouch, stickVector, knobOffset, lookDelta, stickKeys, touchPlan, touchContext, touchUiActive, STICK_RADIUS } from './touchlogic.js';
 import { getSettings } from './settings.js';
+import { FLAGS } from './devflags.js';
 import { sendKey } from './input.js';
 import { applyMobileProfile } from './gfxprofile.js';
 
@@ -36,12 +37,11 @@ const SPOTS_LEFT = [[24, 40], [24, 120], [96, 40]];
 
 export function initTouch(input, world, hooks = {}) {
   if (typeof window === 'undefined' || typeof document === 'undefined') return false;
-  const q = new URLSearchParams(location.search);
   const mm = (s) => !!(window.matchMedia && window.matchMedia(s).matches);
   const on = detectTouch({
     maxTouchPoints: navigator.maxTouchPoints || 0,
     coarse: mm('(pointer: coarse)'), fine: mm('(any-pointer: fine)'), hover: mm('(hover: hover)'),
-    forced: q.has('touch') ? q.get('touch') !== '0' : null,
+    forced: FLAGS.touch !== null ? FLAGS.touch !== '0' : null,
   });
   if (!on) return false;
 
