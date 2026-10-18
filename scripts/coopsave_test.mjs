@@ -1,4 +1,4 @@
-// Coöp fase 3 (#95): coöp-save (game/js/coopsave.js) naast de solosave.
+// Coöp (#95): sessiekeuze naast de ene save (game/js/coopsave.js): geen verhaalsave van coöp.
 import assert from 'node:assert/strict';
 import * as S from '../game/js/coopsave.js';
 import { BASE_KEYS, KEYS } from '../game/js/storagekeys.js';
@@ -7,42 +7,41 @@ let n = 0;
 const t = (name, f) => { f(); n++; };
 class Mem { constructor() { this.m = new Map(); } getItem(k) { return this.m.has(k) ? this.m.get(k) : null; } setItem(k, v) { this.m.set(k, String(v)); } removeItem(k) { this.m.delete(k); } }
 
-t('eigen sleutel, niet de solosave', () => {
-  assert.equal(BASE_KEYS.coopSave, 'gde-coop-v1');
-  assert.notEqual(KEYS.coopSave, KEYS.save);
+t('eigen sleutel voor de sessie; er is geen aparte coöp-verhaalsave', () => {
+  assert.equal(BASE_KEYS.coopSession, 'gde-coop-sessie');
+  assert.equal(BASE_KEYS.coopSave, undefined);
+  assert.notEqual(KEYS.coopSession, KEYS.save);
 });
-t('coöp vanaf solo: kopie, solosave blijft ongewijzigd', () => {
-  const solo = { v: 9, money: 1234.9, arc: 'oud', story: { done: ['H1', 'H2'], step: 'H3' } };
-  const frozen = JSON.stringify(solo);
-  const c = S.coopFromSolo(solo, 5);
-  assert.equal(c.origin, 'solo'); assert.equal(c.shared.money, 1234); assert.deepEqual(c.story, solo.story);
-  c.story.done.push('H3');
-  assert.equal(JSON.stringify(solo), frozen);
+t('standaard Alleen, zonder rol of code', () => {
+  assert.deepEqual(S.readSession(new Mem()), { v: 1, modus: 'alleen', rol: null, laatsteCode: '' });
 });
-t('schrijven en lezen via opslag; solosleutel onaangeroerd', () => {
+t('Samen als gast onthoudt de laatste code; host en lokaal bewaren geen code', () => {
+  const g = S.toSession(null, { modus: 'samen', rol: 'gast', code: 'GDE2-84.12.34.56:41000-ABCDEFGH-1A2B' });
+  assert.equal(g.laatsteCode, 'GDE2-84.12.34.56:41000-ABCDEFGH-1A2B');
+  const h = S.toSession(g, { modus: 'samen', rol: 'host', code: 'GDE2-84.12.34.56:41000-ABCDEFGH-1A2B' });
+  assert.equal(h.laatsteCode, '');
+  assert.equal(S.toSession(g, { modus: 'alleen', rol: 'gast' }).rol, null);
+});
+t('rommel wordt niet bewaard', () => {
+  const g = S.toSession(null, { modus: 'samen', rol: 'gast', code: '<script>alert(1)</script>' });
+  assert.equal(g.laatsteCode, '');
+  assert.equal(S.toSession(null, { modus: 'samen', rol: 'baas' }).rol, null);
+});
+t('schrijven, lezen, wissen; solosleutel onaangeroerd', () => {
   const ls = new Mem(); ls.setItem(KEYS.save, 'SOLO');
-  const save = S.toCoopSave(null, { story: { done: [] }, shared: { money: 50, wanted: 9 }, mission: { id: 'H3', stage: 2.7 } }, 7);
-  assert.equal(save.shared.wanted, 5); assert.deepEqual(save.mission, { id: 'H3', stage: 2 });
-  assert.equal(S.writeCoopSave(ls, save), true);
-  assert.equal(ls.getItem(KEYS.save), 'SOLO');
-  const back = S.readCoopSave(ls);
-  assert.equal(back.v, 1); assert.equal(back.shared.money, 50);
-  assert.equal(S.clearCoopSave(ls), true); assert.equal(S.hasCoopSave(ls), false);
+  assert.equal(S.writeSession(ls, S.toSession(null, { modus: 'samen', rol: 'host' })), true);
+  assert.equal(S.readSession(ls).rol, 'host');
+  S.clearSession(ls); assert.equal(S.readSession(ls).modus, 'alleen');
   assert.equal(ls.getItem(KEYS.save), 'SOLO');
 });
-t('kapotte, nieuwere of lege data geeft null', () => {
-  assert.equal(S.parseCoopSave('{kapot'), null);
-  assert.equal(S.parseCoopSave(JSON.stringify({ v: 99 })), null);
-  assert.equal(S.parseCoopSave('{}').v, 1, 'zonder versie telt als v1');
-  const ls = new Mem(); assert.equal(S.readCoopSave(ls), null);
+t('kapotte of nieuwere data valt terug op Alleen; vol opslag gooit niet', () => {
+  const ls = new Mem(); ls.setItem(KEYS.coopSession, '{kapot'); assert.equal(S.readSession(ls).modus, 'alleen');
+  ls.setItem(KEYS.coopSession, JSON.stringify({ v: 99, modus: 'samen' })); assert.equal(S.readSession(ls).modus, 'alleen');
+  assert.equal(S.writeSession({ setItem() { throw new Error('vol'); } }, S.newSession()), false);
 });
-t('opslag vol: schrijven mislukt zonder te gooien', () => {
-  const ls = { getItem: () => null, setItem() { throw new Error('vol'); }, removeItem() {} };
-  assert.equal(S.writeCoopSave(ls, S.newCoopSave()), false);
-});
-t('geen netwerkgegevens in de save, alleen host schrijft', () => {
-  const txt = JSON.stringify(S.toCoopSave(null, { story: null, shared: { money: 1, wanted: 0 } }));
-  assert.ok(!/candidate|ip|sdp/i.test(txt.replace(/"players"/g, '')));
-  assert.equal(S.mayWrite('host'), true); assert.equal(S.mayWrite('guest'), false);
+t('alleen de gast bewaart het verhaal niet', () => {
+  assert.equal(S.mayWriteStory('samen', 'gast'), false);
+  assert.equal(S.mayWriteStory('samen', 'host'), true);
+  assert.equal(S.mayWriteStory('alleen', null), true);
 });
 console.log(`coopsave_test: ${n}/${n} ok`);

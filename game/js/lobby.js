@@ -1,36 +1,36 @@
 // Coöp (#95): lobby als toestandsmachine. Pure logica (geen DOM): de toestand
 // en de Nederlandse teksten; lobbyui.js tekent het in de menustijl.
+// Eén save, één verhaalvoortgang: bij Nieuw spel en bij Doorgaan kies je per
+// sessie Alleen of Samen (op één scherm, of online als host of gast).
 // Online: de host opent via UPnP een poort op de eigen router en deelt één
 // korte code met adres en poort; de gast typt die in. Geen server van een
-// derde, geen account. Online werkt alleen in de desktop-app; de webversie
-// houdt "Op één scherm". De host speelt Tammo, de gast Tessa.
+// derde, geen account. Online werkt alleen in de desktop-app. De host speelt
+// Tammo en bewaart het spel; de gast speelt Tessa.
 
 import { REASON_TEXT } from './net/protocol.js';
 
-export const MODES = { LOKAAL: 'lokaal', HOST: 'host', GAST: 'gast' };
-export const SAVES = { NIEUW: 'nieuw', VERDER: 'verder', SOLO: 'solo' };
+export const MODES = { ALLEEN: 'alleen', LOKAAL: 'lokaal', HOST: 'host', GAST: 'gast' };
 
-// caps: { online (desktop-app), hasCoopSave, hasSoloSave }
+// caps: { online (desktop-app), actie: 'nieuw' | 'doorgaan', laatsteCode, start?: 'verbroken', mode? }
 export function createLobby(caps = {}) {
-  return { step: 'start', mode: null, save: null, code: '', lanCode: '', note: '', error: '', reason: null, status: null,
-    caps: { online: !!caps.online, hasCoopSave: !!caps.hasCoopSave, hasSoloSave: !!caps.hasSoloSave } };
+  return {
+    step: caps.start || 'modus', mode: caps.mode || null, actie: caps.actie === 'nieuw' ? 'nieuw' : 'doorgaan',
+    code: '', lanCode: '', note: '', error: '', reason: null, status: null,
+    caps: { online: !!caps.online, laatsteCode: caps.laatsteCode || '' },
+  };
 }
-const fresh = (s) => createLobby(s.caps);
+const fresh = (s) => createLobby({ ...s.caps, actie: s.actie });
 
 // Gebeurtenissen:
-//  kies{mode}  bewaar{src}  code{code, lanCode?, note?}  fout{msg}  verbinden
+//  kies{mode}  code{code, lanCode?, note?}  fout{msg}  verbinden
 //  status{status, reason}  terug  verbreek  hervat
 export function reduce(s, ev) {
   const n = { ...s, error: '' };
   switch (ev.t) {
     case 'kies':
-      if (ev.mode !== MODES.LOKAAL && !s.caps.online) return { ...n, error: 'Online spelen kan alleen in de desktop-app.' };
+      if ((ev.mode === MODES.HOST || ev.mode === MODES.GAST) && !s.caps.online) return { ...n, error: 'Online spelen kan alleen in de desktop-app.' };
       n.mode = ev.mode; n.code = ''; n.lanCode = ''; n.note = '';
-      n.step = ev.mode === MODES.GAST ? 'gast-typt' : 'save-kiezen';
-      return n;
-    case 'bewaar': // kiest met welke voortgang gestart wordt (host en lokaal)
-      if (s.step !== 'save-kiezen') return s;
-      n.save = ev.src; n.step = s.mode === MODES.LOKAAL ? 'lokaal' : 'host-maakt-code';
+      n.step = ev.mode === MODES.ALLEEN ? 'alleen' : ev.mode === MODES.LOKAAL ? 'lokaal' : ev.mode === MODES.HOST ? 'host-maakt-code' : 'gast-typt';
       return n;
     case 'code': // de host heeft een code (met of zonder router)
       n.code = ev.code; n.lanCode = ev.lanCode || ''; n.note = ev.note || ''; n.step = 'host-wacht';
@@ -47,7 +47,7 @@ export function reduce(s, ev) {
     }
     case 'hervat': // de host wacht weer op dezelfde gast; de gast voert de code opnieuw in
       if (s.step !== 'verbroken') return s;
-      n.step = s.mode === MODES.HOST ? 'host-wacht' : 'gast-typt'; return n;
+      n.step = s.mode === MODES.HOST ? 'host-maakt-code' : 'gast-typt'; return n;
     case 'verbreek': return fresh(s);
     case 'terug': return s.step === 'verbonden' ? s : fresh(s);
     default: return s;
@@ -56,28 +56,28 @@ export function reduce(s, ev) {
 
 // Wat de UI toont. buttons: [{ act, label, primary? }]; input: een tekstvak voor een code.
 export function view(s) {
-  const V = (o) => ({ title: 'Coöp', lines: [], buttons: [], input: null, code: null, error: s.error, ...o });
+  const V = (o) => ({ title: 'Samen spelen', lines: [], buttons: [], input: null, code: null, error: s.error, ...o });
+  const wat = s.actie === 'nieuw' ? 'Nieuw spel' : 'Doorgaan';
   switch (s.step) {
-    case 'start': {
-      const buttons = [{ act: 'kies-lokaal', label: 'Op één scherm', primary: true }];
-      if (s.caps.online) buttons.push({ act: 'kies-host', label: 'Online: ik ben de host' }, { act: 'kies-gast', label: 'Online: ik sluit aan' });
+    case 'modus': {
+      const buttons = [{ act: 'kies-alleen', label: 'Alleen', primary: true }, { act: 'kies-lokaal', label: 'Samen op één scherm' }];
+      if (s.caps.online) buttons.push({ act: 'kies-host', label: 'Samen online: ik ben de host' }, { act: 'kies-gast', label: 'Samen online: ik sluit aan' });
+      buttons.push({ act: 'terug', label: 'Terug' });
       return V({
-        lines: ['Speel samen: de host is Tammo, de gast is Tessa.',
-          s.caps.online ? 'Online loopt rechtstreeks tussen jullie twee, zonder server van een ander. De host deelt een korte code.' : 'Online spelen kan alleen in de desktop-app.'],
+        title: wat,
+        lines: [
+          s.actie === 'nieuw' ? 'Hoe wil je dit spel spelen?' : 'Hoe wil je deze keer spelen? Je voortgang is één en dezelfde, alleen of samen.',
+          s.caps.online ? 'Online loopt rechtstreeks tussen jullie twee, zonder server van een ander. De host speelt Tammo en bewaart het spel, de gast speelt Tessa.' : 'Online spelen kan alleen in de desktop-app.',
+        ],
         buttons,
       });
     }
-    case 'save-kiezen': {
-      const buttons = [{ act: 'bewaar-nieuw', label: 'Nieuw coöp-spel', primary: !s.caps.hasCoopSave }];
-      if (s.caps.hasCoopSave) buttons.unshift({ act: 'bewaar-verder', label: 'Verder met mijn coöp-spel', primary: true });
-      if (s.caps.hasSoloSave) buttons.push({ act: 'bewaar-solo', label: 'Coöp vanaf mijn verhaal' });
-      buttons.push({ act: 'terug', label: 'Terug' });
-      return V({ title: 'Welk spel?', lines: ['Je solo-spel blijft ongemoeid; coöp heeft zijn eigen opslag.'], buttons });
-    }
+    case 'alleen':
+      return V({ title: wat, lines: ['Je speelt alleen; Tessa loopt als metgezel mee.'], buttons: [{ act: 'start-alleen', label: 'Spelen', primary: true }, { act: 'terug', label: 'Terug' }] });
     case 'lokaal':
       return V({
-        title: 'Op één scherm',
-        lines: ['Tammo speelt met WASD of de pijltjes. Tessa speelt met IJKL en U om te rennen, of met een tweede gamepad.'],
+        title: 'Samen op één scherm',
+        lines: ['Tammo speelt met WASD of de pijltjes. Tessa speelt met IJKL en U om te rennen, of met een tweede gamepad. Wat jullie samen halen, telt voor je spel.'],
         buttons: [{ act: 'start-lokaal', label: 'Spelen', primary: true }, { act: 'terug', label: 'Terug' }],
       });
     case 'host-maakt-code':
@@ -90,7 +90,8 @@ export function view(s) {
     }
     case 'gast-typt':
       return V({
-        title: 'Online: aansluiten', lines: ['Voer de code van de host in.'], input: { placeholder: 'GDE2-…' },
+        title: 'Online: aansluiten', lines: ['Voer de code van de host in. Jij speelt Tessa; de host bewaart het spel.'],
+        input: { placeholder: 'GDE2-…', value: s.caps.laatsteCode || '' },
         buttons: [{ act: 'koppel', label: 'Verbinden', primary: true }, { act: 'terug', label: 'Terug' }],
       });
     case 'verbinden':
@@ -101,12 +102,17 @@ export function view(s) {
         lines: [s.status === 'lag' ? 'De verbinding haperde even. We wachten op de ander.' : 'Jullie spelen samen.'],
         buttons: [{ act: 'verbreek', label: 'Verbinding verbreken' }],
       });
-    case 'verbroken':
+    case 'verbroken': {
+      const host = s.mode === MODES.HOST;
       return V({
         title: 'Verbinding weg',
-        lines: ['De ander is niet meer bereikbaar. Het spel gaat door; een metgezel neemt de plek over.', 'Wil je weer verbinden? Dan ga je verder waar je was.'],
-        buttons: [{ act: 'hervat', label: 'Opnieuw verbinden', primary: true }, { act: 'verbreek', label: 'Alleen verder' }],
+        lines: [
+          'De ander is niet meer bereikbaar. Het spel staat stil tot jullie weer verbonden zijn.',
+          host ? 'Wil je niet wachten? Dan speel je alleen verder en loopt Tessa als metgezel mee.' : 'Voer de code van de host opnieuw in, of stop met samen spelen.',
+        ],
+        buttons: [{ act: 'hervat', label: 'Opnieuw verbinden', primary: true }, { act: 'verbreek', label: host ? 'Alleen verder' : 'Stoppen' }],
       });
+    }
     case 'geweigerd':
       return V({ title: 'Koppelen mislukt', lines: [REASON_TEXT[s.reason] || 'Koppelen is niet gelukt.'], buttons: [{ act: 'terug', label: 'Terug', primary: true }] });
     default:
@@ -124,9 +130,9 @@ export function statusBadge(status, rttSec = 0) {
 }
 
 // Gedrag bij lag: < 0,6 s normaal; 0,6-5 s de ander blijft staan en een badge verschijnt;
-// > 5 s verbroken, de NPC-metgezel neemt over en het spel pauzeert niet.
+// > 5 s verbroken: het spel pauzeert en wacht (scherm 'Verbinding weg').
 export function lagPolicy(quietSec) {
-  if (quietSec < 0.6) return { freezeRemote: false, badge: false, takeover: false };
-  if (quietSec < 5) return { freezeRemote: true, badge: true, takeover: false };
-  return { freezeRemote: true, badge: true, takeover: true };
+  if (quietSec < 0.6) return { freezeRemote: false, badge: false, hold: false };
+  if (quietSec < 5) return { freezeRemote: true, badge: true, hold: false };
+  return { freezeRemote: true, badge: true, hold: true };
 }

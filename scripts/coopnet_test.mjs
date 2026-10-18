@@ -6,11 +6,9 @@ import { createLink } from '../game/js/net/memtransport.js';
 import * as N from '../game/js/coopnet.js';
 import * as C from '../game/js/coopclient.js';
 import { remoteP2 } from '../game/js/coop.js';
-import { readCoopSave } from '../game/js/coopsave.js';
 
 let n = 0;
 const t = (name, f) => { f(); n++; };
-class Mem { constructor() { this.m = new Map(); } getItem(k) { return this.m.has(k) ? this.m.get(k) : null; } setItem(k, v) { this.m.set(k, String(v)); } removeItem(k) { this.m.delete(k); } }
 
 const INFO = N.handshakeInfo({ tiles: 'abc', story: 'oud' });
 const mkWorld = (extra = {}) => ({ player: { x: 0, y: 0, angle: 0, character: 'anita', vx: 3, vy: 3 }, companion: { x: 1, y: 1, angle: 0, character: 'tammo' }, coop: {}, money: 0, wanted: 0, camYaw: 0.5, input: { axis: () => [1, 0], isDown: () => false }, ...extra });
@@ -34,8 +32,7 @@ t('invoer van de gast draagt de camerahoek; host rekent daarmee', () => {
 t('end-to-end: gast stuurt invoer, host ontvangt; host-toestand verschijnt op de gast', () => {
   const link = createLink({ latency: 0.03, seed: 2 });
   const hw = mkWorld({ money: 250, wanted: 2 }), gw = mkWorld();
-  const store = new Mem();
-  N.startHost(hw, link.a, INFO, 5, { storage: store, getStory: () => ({ done: ['H1'] }) });
+  N.startHost(hw, link.a, INFO, 5);
   N.startClient(gw, link.b, INFO);
   assert.equal(gw.player.character, 'anita');
   for (let i = 0; i < 180; i++) {
@@ -50,25 +47,23 @@ t('end-to-end: gast stuurt invoer, host ontvangt; host-toestand verschijnt op de
   assert.ok(Math.abs(gw.player.x - 20) < 0.5, `Tessa op de gast: ${gw.player.x}`);
   assert.equal(gw.money, 250); assert.equal(gw.wanted, 2);
 });
-t('host bewaart de coöp-save zonder netwerkgegevens', () => {
+t('rollen: de gast bewaart het verhaal niet (coopRole), de host wel', () => {
   const link = createLink({ latency: 0.01 });
-  const hw = mkWorld({ money: 77 }), gw = mkWorld(), store = new Mem();
-  N.startHost(hw, link.a, INFO, 1, { storage: store, getStory: () => ({ done: ['H1', 'H2'] }) });
-  N.startClient(gw, link.b, INFO);
-  for (let i = 0; i < 60 * (N.AUTOSAVE_EVERY + 2); i++) { N.tickCoopNet(hw, 1 / 60); N.tickCoopNet(gw, 1 / 60); link.advance(1 / 60); }
-  const s = readCoopSave(store);
-  assert.equal(s.shared.money, 77); assert.deepEqual(s.story, { done: ['H1', 'H2'] });
-  assert.ok(!/token|key|ip/i.test(JSON.stringify(s).replace(/"players"/g, '')));
-});
-t('verbinding weg: de metgezel is weer van de volg-AI', () => {
-  const link = createLink({ latency: 0.02 });
   const hw = mkWorld(), gw = mkWorld();
   N.startHost(hw, link.a, INFO); N.startClient(gw, link.b, INFO);
+  assert.equal(hw.coopRole, 'host'); assert.equal(gw.coopRole, 'client');
+  N.stopCoopNet(hw); assert.equal(hw.coopRole, null);
+});
+t('verbinding weg: beide kanten krijgen het wacht-scherm (onHold); de host valt terug op de volg-AI', () => {
+  const link = createLink({ latency: 0.02 });
+  const hw = mkWorld(), gw = mkWorld(); const holds = [];
+  N.startHost(hw, link.a, INFO, 1, { onHold: (r) => holds.push(r) }); N.startClient(gw, link.b, INFO, { onHold: (r) => holds.push(r) });
   for (let i = 0; i < 120; i++) { N.tickCoopNet(hw, 1 / 60); N.tickCoopNet(gw, 1 / 60); link.advance(1 / 60); }
   assert.equal(hw.coop.remote, true);
   link.cut();
-  for (let i = 0; i < 60 * 7; i++) { N.tickCoopNet(hw, 1 / 60); link.advance(1 / 60); }
+  for (let i = 0; i < 60 * 7; i++) { N.tickCoopNet(hw, 1 / 60); N.tickCoopNet(gw, 1 / 60); link.advance(1 / 60); }
   assert.equal(hw.coop.remote, false);
+  assert.deepEqual(holds.sort(), ['client', 'host']);
   N.stopCoopNet(hw); assert.equal(hw.coopNet, null);
 });
 console.log(`coopnet_test: ${n}/${n} ok`);

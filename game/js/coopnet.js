@@ -1,5 +1,5 @@
 // Coöp online (#95): koppelt de netwerksessie (net/session.js) aan de wereld.
-// De host simuleert en bewaart (coöp-save); de gast stuurt invoer en toont de
+// De host simuleert en bewaart (de ene save); de gast stuurt invoer en toont de
 // toestand van de host. Vaste personages: host = Tammo, gast = Tessa.
 // Alleen actief na startHost()/startClient(), dus alleen na een bewuste
 // menukeuze. NIET in een echt spel gezien; het verhaal en de missies van de
@@ -8,10 +8,8 @@
 import { HostSession, ClientSession } from './net/session.js';
 import { VERSION } from './version.js';
 import { setFixedCharacters, applyHostState, makeClientInput } from './coopclient.js';
-import { toCoopSave, readCoopSave, writeCoopSave } from './coopsave.js';
 
 export const CAPS = ['scene']; // wat dit spel kent; uitbreidbaar (net/session.js negotiate)
-export const AUTOSAVE_EVERY = 30; // seconden
 
 // De tegelhash komt van de aanroeper (manifest van de wereld); story = verhaalboog.
 export function handshakeInfo({ tiles, story }) {
@@ -39,19 +37,22 @@ export function hostSim(world) {
   };
 }
 
-export function startHost(world, transport, info, seed = 1, { storage = null, getStory = null } = {}) {
+export function startHost(world, transport, info, seed = 1, { onHold = null } = {}) {
   const session = new HostSession(transport, { info, seed, sim: hostSim(world), caps: CAPS });
-  // verbinding weg: de volg-AI van de metgezel neemt het weer over (companion.js)
-  session.onlost = () => { if (world.coop) { world.coop.remote = false; world.coop.remoteInput = null; } };
-  session.onrelease = session.onlost;
+  // verbinding weg: het spel pauzeert en wacht (onHold toont het scherm met 'Opnieuw verbinden' en 'Alleen verder')
+  session.onlost = () => { if (world.coop) { world.coop.remote = false; world.coop.remoteInput = null; } if (onHold) onHold('host'); };
+  session.onrelease = () => { if (world.coop) { world.coop.remote = false; world.coop.remoteInput = null; } };
   if (world.coop) setFixedCharacters(world, 'host');
-  world.coopNet = { role: 'host', session, saveAcc: 0, storage, getStory };
+  world.coopRole = 'host';
+  world.coopNet = { role: 'host', session };
   return session;
 }
 
-export function startClient(world, transport, info) {
+export function startClient(world, transport, info, { onHold = null } = {}) {
   const session = new ClientSession(transport, { info, caps: CAPS });
+  session.onlost = () => { if (onHold) onHold('client'); };
   if (world.coop) setFixedCharacters(world, 'client');
+  world.coopRole = 'client';
   world.coopNet = { role: 'client', session };
   return session;
 }
@@ -70,17 +71,6 @@ export function tickCoopNet(world, dt) {
     return;
   }
   n.session.tick(dt);
-  if (n.storage && n.session.status === 'ok') { // de host bewaart de gedeelde voortgang
-    n.saveAcc += dt;
-    if (n.saveAcc >= AUTOSAVE_EVERY) { n.saveAcc = 0; saveCoop(world, n.storage, n.getStory ? n.getStory() : undefined); }
-  }
-}
-
-// Coöp-save schrijven (alleen host of lokaal). story = getStorySave() van de aanroeper.
-export function saveCoop(world, storage, story) {
-  const prev = readCoopSave(storage);
-  const save = toCoopSave(prev, { story, shared: { money: world.money || 0, wanted: world.wanted | 0 } }, Date.now());
-  return writeCoopSave(storage, save);
 }
 
 export function stopCoopNet(world) {
@@ -88,4 +78,5 @@ export function stopCoopNet(world) {
   try { n.session.leave(); } catch (e) { /* al weg */ }
   if (world.coop) { world.coop.remote = false; world.coop.remoteInput = null; }
   world.coopNet = null;
+  if (n.role !== 'client') world.coopRole = null; // een gast bewaart het verhaal niet, ook niet na stoppen
 }
