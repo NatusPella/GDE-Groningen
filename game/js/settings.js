@@ -6,6 +6,7 @@ import { FLAGS } from './devflags.js';
 import { RAGE_CHOICES } from './roadragerules.js';
 import { SUBTITLE_CONTRASTS, TEXT_SIZES } from './a11ylogic.js';
 import { cleanHelpSetting } from './assist.js';
+import { deckDefaults, isSteamDeck } from './deck.js';
 
 // Player settings, persisted per browser. Modules read getSettings() and
 // subscribe with onSettingsChange() to apply changes live.
@@ -18,7 +19,7 @@ export const QUALITY_PRESETS = {
   hoog: { pixelRatio: 2, shadows: true, shadowMapSize: 2048 },
 };
 
-const DEFAULTS = {
+const BASE_DEFAULTS = {
   masterVolume: 1,
   musicVolume: 1,
   sfxVolume: 0.75,
@@ -88,6 +89,8 @@ const DEFAULTS = {
   // settings files load unchanged
   attractSeen: false,
 };
+// on the Steam Deck the first start has bigger text and controller hints (deck.js); the player's own choices win
+const DEFAULTS = { ...BASE_DEFAULTS, ...deckDefaults(isSteamDeck()) };
 // the Besturing screen has its own "Standaard herstellen" for the bindings
 const KEEP_ON_RESET = new Set(['attractSeen', 'keyBinds', 'padBinds']);
 export const SHIFT_CHOICES = ['auto', 'manual', 'clutch'];
