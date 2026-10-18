@@ -21,6 +21,7 @@ import { sideJobPrompt, sideJobSecondary } from './sidejobs.js';
 import { stationPrompt, stationSecondary } from './stationtravel.js';
 import { machinePrompt } from './snackautomaat.js';
 import { streetLifePrompt } from './streetlife.js';
+import { weaponDropPrompt } from './weapondrops.js';
 import { trainPrompt } from './traindrive.js';
 import { heliSpotPrompt, heliSpotSecondary } from './helirun.js';
 import { padelPrompt, padelSecondary } from './padel.js';
@@ -338,6 +339,8 @@ function findPrimary(world) {
   if (pg) return pg;
   const muur = machinePrompt(world);
   if (muur) return muur;
+  const drop = weaponDropPrompt(world);
+  if (drop) return drop;
   const straat = streetLifePrompt(world);
   if (straat) return straat;
   const shop = shopPrimaryPrompt(world);

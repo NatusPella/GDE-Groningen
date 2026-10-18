@@ -683,7 +683,7 @@ const crewCtx = {
 // Parked, abandoned and bailed-out cars are empty. Must be a real boolean:
 // an undefined .visible does not hide an Object3D.
 function hasAiDriver(v) {
-  if (v.wrecked || v.parked || v.driver === 'player' || v.castDriver) return false;
+  if (v.wrecked || v.parked || v.driver === 'player' || v.castDriver || v.driverOut) return false;
   if (v.driver) return true;
   if (v.isPolice) return !v.hijacked && !v.disabled && !v._roadblock;
   return !!(v.road || v.racer || v.countryDrive);
@@ -1869,6 +1869,9 @@ function syncPedestrianMeshes(world, player, animDt) {
       ud.animAcc = 0;
     } else animatePersonWalk(mesh, p.speed || 0, animDt);
     if (p.carry && !p.pose) carryPose(mesh, p.carry);
+    // a road-rager (roadrage.js) holds what he brought and swings it
+    if ((p.heldWeapon || null) !== (ud.pedHeld || null)) { ud.pedHeld = p.heldWeapon || null; setHeldWeapon(mesh, ud.pedHeld); }
+    if (p.heldWeapon || p.attackFx) applyAttackPose(mesh, p.attackFx, world.time, null);
     if (p.greetUntil > world.time) {
       const left = p.greetUntil - world.time;
       waveOverlay(mesh, world.time + (p._lookSeed || 0), Math.min(1, left / 0.3, (2.4 - left) / 0.3));
