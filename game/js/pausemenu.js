@@ -16,6 +16,7 @@ import { getClockText } from './hud_panel.js';
 import { storyDate } from './calendarday.js';
 import { isCinematicActive } from './cinematics.js';
 import { renderAchievementsPanel } from './achievementsui.js';
+import { unseenAchievementCount } from './achievements.js';
 import { renderGaragePanel, selectGarageVehicle, disposeGarageViewer } from './garageui.js';
 import { deliverOwnedVehicle, locateOwnedVehicle } from './ownedvehicles.js';
 import { isShopOpen, closeShopMenu } from './shopui.js';
