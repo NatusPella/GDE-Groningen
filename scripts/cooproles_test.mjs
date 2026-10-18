@@ -3,12 +3,19 @@ import assert from 'node:assert/strict';
 import * as R from '../game/js/cooproles.js';
 import * as S from '../game/js/coopstate.js';
 import { STEPS } from '../game/js/storyarc.js';
+import { STEPS as OUD } from '../game/js/storyarc_oud.js';
+import { STEPS as NIEUW } from '../game/js/storyarc_nieuw.js';
 
 let n = 0;
 const t = (name, f) => { f(); n++; };
 
 t('alle verhaalstappen hebben een geldige coöp-regel', () => {
   assert.deepEqual(R.auditSteps(STEPS), []);
+});
+t('beide verhaalbogen (alle akten) hebben voor elke stap een geldige coöp-regel; nieuwe akten gaan zonder aanpassing mee', () => {
+  assert.deepEqual(R.auditSteps(OUD), []);
+  assert.deepEqual(R.auditSteps(NIEUW), []);
+  assert.ok(NIEUW.length > 0);
 });
 t('H16 is solo: Tessa speelt, Tammo kijkt; wisselcutscene geeft geen bestuurswissel', () => {
   const h16 = STEPS.find((s) => s.id === 'H16');
