@@ -294,7 +294,7 @@ async function faseElectron(prev, staat) {
     : !heeftWereld() ? 'game/world ontbreekt (cd desktop && npm run stage)'
       : (!flag('force') && !LOCKS && elektronDraait() > 0) ? 'er draait al een Electron-instantie (de eigenaar speelt?); niets is gestart. Gebruik --force om toch te draaien'
         : null;
-  const STAPPEN = ['smoke', 'verhaaltest', 'geocheck', 'bot-missies', 'bot-minigames', 'qa-provincie-1', 'qa-provincie-2', 'qa-features', 'qa-visueel', 'ui-shots', 'coop'];
+  const STAPPEN = ['smoke', 'wereldpoort', 'verhaaltest', 'geocheck', 'bot-missies', 'bot-minigames', 'qa-provincie-1', 'qa-provincie-2', 'qa-features', 'qa-visueel', 'ui-shots', 'coop'];
   if (reden) { for (const s of STAPPEN.filter(wilDit)) items.push(skip('electron', 'electron:' + s, s, reden)); return { items, sigs: {} }; }
 
   const prevSigs = (staat.fases && staat.fases.electron && staat.fases.electron.sigs) || {};
@@ -324,6 +324,16 @@ async function faseElectron(prev, staat) {
       R.maakItem('electron', 'frametijd:smoke', 'frametijd smoke', fr.status, 0, fr.detail, { warn: fr.warn, stats: R.parseFrameStats(r.out) }),
       ...beeldItems('smoke', d, prevSigs, sigs),
     ];
+  });
+
+  // poort zwarte wereld / consolefouten per frame: het spel draait 120 frames; een lege of niet getekende wereld,
+  // NaN-meshes of een fout in meerdere frames laat de fase falen (scripts/perf/wereldpoort.js)
+  await stap('wereldpoort', async () => {
+    const d = stapDir('wereldpoort'), ms = 8 * 60e3;
+    const r = await runCmd(exe, [...basis, '--smoke-test=' + path.join(d, 'wereldpoort.png'), '--perf-script=' + path.join(ROOT, 'scripts', 'perf', 'wereldpoort.js')], { ms, env: env('wereldpoort'), cwd: desktop });
+    fs.writeFileSync(path.join(d, 'run.log'), r.out);
+    const b = r.timedOut ? { status: 'TIMEOUT', detail: 'tijdslimiet overschreden' } : R.beoordeelWereldpoort(R.parseWereldpoort(r.out));
+    return [R.maakItem('electron', 'electron:wereldpoort', 'poort zwarte wereld en fouten per frame', b.status, r.secs, b.detail), consoleItem('wereldpoort', r.out, 0), ...beeldItems('wereldpoort', d, prevSigs, sigs)];
   });
 
   await stap('verhaaltest', async () => {

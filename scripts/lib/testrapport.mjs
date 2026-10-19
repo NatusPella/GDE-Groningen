@@ -125,6 +125,31 @@ export function beoordeelFrames(stats, prevStats, { minFps = 3, traagFactor = 1.
   return { status: 'PASS', detail: tekst + (warn ? ` (vorige run ${prevStats.fps} fps)` : ''), warn };
 }
 
+// Poort zwarte wereld / consolefouten per frame: de JSON van scripts/perf/wereldpoort.js ('[perf-script] {...}').
+export function parseWereldpoort(text) {
+  for (const l of String(text || '').split(/\r?\n/)) {
+    const m = /^\[perf-script\]\s*(\{.*\})\s*$/.exec(l.trim());
+    if (!m) continue;
+    try { const o = JSON.parse(m[1]); if (o && typeof o.meshes === 'number') return o; } catch { /* volgende regel */ }
+  }
+  return null;
+}
+
+// -> { status, detail }: FAIL bij geen spel, geen scène, een bijna lege of niet getekende wereld, NaN-meshes of een
+// fout in meer dan een paar frames (een fout per frame is een gebroken build, geen vondst).
+export function beoordeelWereldpoort(rep, { minMeshes = 300, maxFramesMetFout = 3 } = {}) {
+  if (!rep) return { status: 'FAIL', detail: 'geen uitslag van het poortscript in de uitvoer' };
+  const f = [];
+  if (!rep.gestart) f.push('het spel startte niet');
+  if (!rep.scene) f.push('geen scène');
+  if (rep.meshes < minMeshes) f.push(`bijna lege wereld (${rep.meshes} zichtbare meshes, minimaal ${minMeshes})`);
+  if (rep.tris === 0 || rep.calls === 0) f.push(`er wordt niets getekend (${rep.tris} driehoeken, ${rep.calls} drawcalls)`);
+  if (rep.nan > 0) f.push(`NaN-geometrie in ${rep.nan} meshes`);
+  if (rep.framesMetFout > maxFramesMetFout) f.push(`fouten in ${rep.framesMetFout} van ${rep.frames} frames (${rep.foutenTotaal} in totaal): ${(rep.voorbeeld || []).join(' | ').slice(0, 300)}`);
+  if (f.length) return { status: 'FAIL', detail: f.join('; ') };
+  return { status: 'PASS', detail: `${rep.meshes} meshes, ${rep.tris} driehoeken, ${rep.calls} drawcalls, fouten in ${rep.framesMetFout} van ${rep.frames} frames` };
+}
+
 // ---------------------------------------------------------------- beelden
 
 // Combineert de analyse van één beeld met de vorige handtekening. -> { status, detail, warn, diff }
