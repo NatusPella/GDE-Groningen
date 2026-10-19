@@ -15,7 +15,7 @@ import { playCastScene } from './missionstory.js';
 import { playCinematic, isCinematicActive } from './cinematics.js';
 import { playScript } from './cutscenehost.js';
 import { flatScene } from './cutscenes.js';
-import { isMissionActive } from './missions.js';
+import { isMissionActive } from './missionquery.js';
 import { inHomeFlat, getHomeForRender, flatStage } from './home.js';
 import { grantFurniture } from './furniture.js';
 import { lineVoiceFor } from './linevoice.js';

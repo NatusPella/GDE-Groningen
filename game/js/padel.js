@@ -3,7 +3,7 @@ import { canvasTex as sharedCanvasTex } from './canvastex.js';
 import { getScene } from './scene3d.js';
 import { buildPersonMesh, animatePersonWalk, TAMMO_APPEARANCE, ANITA_APPEARANCE, PERSON_RIG } from './models3d_people.js';
 import { DURK_LOOK, DOUWE_LOOK } from './storycast.js';
-import { isMissionActive, getActiveRace } from './missions.js';
+import { isMissionActive, getActiveRace } from './missionquery.js';
 import { isCinematicActive, showBanner } from './cinematics.js';
 import { isShopOpen } from './shopui.js';
 import { pushAudioEvent } from './pedgeom.js';

@@ -18,7 +18,7 @@ import { SMS_SAY } from './smsvoice.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene } from './scene3d.js';
 import { buildWorldMarker3D, updateWorldMarker3D } from './worldmarker3d.js';
-import { isMissionActive, getActiveRace } from './missions.js';
+import { isMissionActive, getActiveRace } from './missionquery.js';
 import { isCinematicActive, playMissionIntro, showBanner } from './cinematics.js';
 import { isShopOpen } from './shopui.js';
 import { recordStat, setStatMax, recordUnique, unlockAchievement } from './achievements.js';

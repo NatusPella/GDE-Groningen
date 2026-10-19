@@ -11,7 +11,7 @@ import { paintSpeaker } from './speakers.js';
 import { REACTIONS, SPEAKERS } from './banterlines.js';
 import { STEPS, missionIndexOf } from './storyarc.js';
 import { currentStep, getStorySave } from './story.js';
-import { isMissionActive, isMissionCompleted } from './missions.js';
+import { isMissionActive, isMissionCompleted } from './missionquery.js';
 import { getSideJobList } from './sidejobs.js';
 import { isCinematicActive } from './cinematics.js';
 import { registerNarrative, mayStart, storyWaiting } from './narrative.js';
