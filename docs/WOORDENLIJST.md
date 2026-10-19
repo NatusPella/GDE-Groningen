@@ -8,6 +8,7 @@ Code-identifiers, bestandsnamen en opslagsleutels (`gde-save-v1`, `saveslots.js`
 | Niet | Wel | Opmerking |
 | --- | --- | --- |
 | save, saves | **savegame**, **savegames** | zelfstandig naamwoord; "savegame" is het gekozen woord (eigenaar), geen anglicisme |
+| (scherm en menu-item) | **Opgeslagen spellen** | knoppen: **Spel opslaan**, **Spel laden**, **Spel verwijderen**, **Spel exporteren**, **Spel importeren**; slotkaartjes heten "Savegame 1", "Savegame 2"; losse verwijzingen in lopende tekst mogen "savegame" zeggen |
 | save (werkwoord), "save je spel" | **opslaan**, **bewaren** | "Opslaan" voor de knop, "bewaren" voor een naam of kopie |
 | save slot, slot (voor een savegame) | **opslagplek** | "slot" als deursluiting is gewoon Nederlands en blijft |
 | backup | **herstelkopie** | |

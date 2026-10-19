@@ -439,8 +439,8 @@ export function initPauseMenu(w) {
           <span class="pm-rail-gap"></span>
           <button type="button" class="ra pm-back" data-action="resume">Terug</button>
           <div class="pm-rail-acts pm-ingame">
-            <button type="button" class="m-bt" data-action="save">Opslaan</button>
-            <button type="button" class="m-bt" data-action="saves" title="Savegames kiezen, laden, hernoemen, exporteren en verwijderen">Savegames</button>
+            <button type="button" class="m-bt" data-action="save">Spel opslaan</button>
+            <button type="button" class="m-bt" data-action="saves" title="Opgeslagen spellen kiezen, laden, hernoemen, exporteren en verwijderen">Opgeslagen spellen</button>
             <button type="button" class="m-bt" data-action="menu" title="Opslaan en terug naar het titelscherm">Hoofdmenu</button>
             ${DESKTOP ? '<button type="button" class="m-bt" data-action="exit" title="Opslaan en het spel sluiten">Afsluiten</button>' : ''}
           </div>
@@ -450,7 +450,7 @@ export function initPauseMenu(w) {
             <button type="button" class="m-bt danger" data-action="restart">Opnieuw beginnen</button>
             <div class="pm-confirm" hidden>
               <p>Opnieuw beginnen? Alles sinds je laatste savegame gaat verloren. Je andere savegames blijven staan.</p>
-              <button type="button" class="m-bg" data-action="load">Laatste savegame laden</button>
+              <button type="button" class="m-bg" data-action="load">Laatste spel laden</button>
               <button type="button" class="m-bg danger" data-action="new">Nieuw spel (nieuw slot)</button>
               <button type="button" class="m-bt" data-action="cancel">Annuleren</button>
             </div>
