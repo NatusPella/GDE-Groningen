@@ -15,9 +15,21 @@ export function jumpPrep(state = {}) {
 
 // Waar de speler komt: de startplek van de missie (def.start), anders de gids van de stap. dist: afstand tot die plek;
 // 0 = erop (de missie start dan zelf), anders op een willekeurige hoek op dist meter. rand: () => 0..1.
-export function jumpSpot(def, guide, { dist = 12, rand = Math.random } = {}) {
+// vrij(x, y): is de plek begaanbaar (niet in een gebouw of in het water, #261)? Zo niet, dan zoekt de sprong op andere
+// hoeken en afstanden een vrije plek; is die er niet, dan blijft het de eerste.
+export function jumpSpot(def, guide, { dist = 12, rand = Math.random, vrij = null } = {}) {
   const base = def && def.start && fin(def.start.x) && fin(def.start.y) ? def.start : guide && fin(guide.x) && fin(guide.y) ? guide : null;
   if (!base) return null;
   const a = rand() * Math.PI * 2;
-  return { x: base.x + Math.cos(a) * dist, y: base.y + Math.sin(a) * dist, source: def && base === def.start ? 'missie' : 'gids' };
+  const source = def && base === def.start ? 'missie' : 'gids';
+  const first = { x: base.x + Math.cos(a) * dist, y: base.y + Math.sin(a) * dist, source };
+  if (!vrij || vrij(first.x, first.y)) return first;
+  for (const d of [dist, dist * 1.7, dist * 2.6, dist * 0.5, dist * 4]) {
+    for (let k = 1; k <= 12; k++) {
+      const b = a + (k / 12) * Math.PI * 2;
+      const x = base.x + Math.cos(b) * d, y = base.y + Math.sin(b) * d;
+      if (vrij(x, y)) return { x, y, source };
+    }
+  }
+  return first;
 }
