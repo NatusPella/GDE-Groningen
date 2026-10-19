@@ -5,10 +5,10 @@
 // tileBudget houdt de onderdelen per cel binnen een budget, en auditLand telt per type en
 // per streek wat er herkenbaar wordt. De wereldbouwer is scripts/world/streekplekken.mjs
 // (-> game/streekplekken.json), de tekenlaag game/js/streekplekken3d.js (InstancedMesh per vorm).
-import { lineInfo, decimate, langsLijn, partsToWorld, CEL, celVan } from './waterplekken.js';
+import { lineInfo, decimate, langsLijn, partsToWorld as partsNaarWereld, CEL, celVan } from './waterplekken.js';
 import { streekAt, STREKEN } from './regioleven.js';
 
-export { lineInfo, decimate, partsToWorld, CEL, celVan };
+export { lineInfo, decimate, CEL, celVan };
 
 // type -> { prio (lager = eerst behouden), cap (onderdelen per plek), min (kleinste kit dat telt) }
 export const LAND_TYPES = {
@@ -135,6 +135,9 @@ export function kitFor(plek) {
   }
   return o.slice(0, cap);
 }
+
+// Kit in wereldcoordinaten (de eigen kitFor, niet die van de waterplekken).
+export const partsToWorld = (plek, parts = kitFor(plek)) => partsNaarWereld(plek, parts);
 
 // Houdt de plekken per cel binnen het budget; de belangrijkste (prio, benoemde) blijven.
 // -> { kept, dropped: {type: n}, perCel: Map(cel -> onderdelen) }
