@@ -6,6 +6,11 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Verbeterd
+- **Alle kaarticons opnieuw ontworpen (#180, #92; in Electron bekeken op minimap en grote kaart in stad, dorp en Ommeland, dag en nacht, niet door de eigenaar):** elke plek is een badge met een eigen vorm per soort naast de kleur (zorg een rode cirkel, politie een blauw schild, garage een zeshoek, station een paarse afgeronde balk, bijbaan een ruit, winkel een roze vierkant, activiteit een groene cirkel), een groter symbool in crème of donker, een lichtere rand, een zachte schaduw en een dunne lichte lijn voor contrast op elke ondergrond. Jij bent een groene pijl met gloed en lichte rand. Zeldzame soorten komen zacht in beeld bij het inzoomen. Een plek kan aanwezig, ontdekt of vergrendeld zijn (nog nergens aangesloten). `scripts/ui/kaarticons_scenes.js` maakt het iconenblad en de kaartbeelden.
+- **Shift+klik op de kaart verplaatst je weer (#180, nog niet in beeld bekeken):** op de grote kaart en de provinciekaart zet shift+klik je op begaanbare grond bij die plek, met je voertuig mee en met dezelfde bewakers als de cheat Overal en nergens (niet tijdens een missie of filmpje, niet met de politie achter je aan, niet op het water). Uit te zetten onder Instellingen › Interface; een regel staat in Hulp.
+
+
 ### Opgelost
 - **Der Aa-kerk van binnen stond verkeerd om (nog niet in beeld bekeken, #22):** de torenhal lag aan de oostkant, terwijl de toren in de kaartdata aan de westkant staat. Torenhal en koor, de portalen en de kansel zijn gespiegeld; `interieurs_test` controleert nu dat de torenhal bij de echte toren ligt (1045 checks).
 
