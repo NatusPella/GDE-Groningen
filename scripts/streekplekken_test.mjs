@@ -52,6 +52,7 @@ const parkKit = kitFor({ id: 11, t: 'park', l: 60, w: 40 });
 ok(parkKit.every((q) => Math.abs(q.x) <= 30 && Math.abs(q.z) <= 20), 'bomen blijven binnen het park');
 
 // wereldcoordinaten: draaien met de plek
+ok(partsToWorld({ id: 3, t: 'schoorsteen', x: 5, y: 6, a: 0, h: 40 }).length > 3, 'partsToWorld zonder parts gebruikt de landkits');
 const wp = partsToWorld({ x: 1000, y: 2000, a: Math.PI / 2 }, [{ s: 'box', x: 10, y: 0, z: 0, w: 1, h: 1, d: 1, c: 0 }])[0];
 ok(Math.abs(wp.x - 1000) < 1e-6 && Math.abs(wp.z - 2010) < 1e-6, 'partsToWorld draait mee');
 
