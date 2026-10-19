@@ -96,3 +96,7 @@ html.reduce-motion #start-screen, html.reduce-motion #start-screen * { animation
   #start-screen .ss-news-body { padding: 10px 24px 16px; font-size: 16px; }
   #start-screen .ss-news-body h3 { font-size: 26px; margin-top: 16px; }
 }
+
+/* Rustig hoofdmenu (#34, #92): alleen GDE Groningen en één korte regel; de slogan en de uitleg van GDE
+   (Grootste Diefstal Ever) zijn weg uit het titelscherm, de versie en het credit staan in het voetregeltje. */
+#start-screen .ss-tag, #start-screen .gde-logo .gde-meaning { display: none; }
