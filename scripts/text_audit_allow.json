@@ -199,6 +199,12 @@
       "term": "deadline",
       "ctx": "als een fietser met een deadline",
       "why": "ingesproken regel (stem opgenomen); wijzigen kan pas met akkoord van de eigenaar en een nieuwe opname. Wordt: uiterste tijd"
+    },
+    {
+      "rule": "naam",
+      "term": "Trijntje het Rikus",
+      "file": "gronings_spoken.json",
+      "why": "Gronings 'het' = heeft; geen persoonsnaam (Oma Trijntje en Rikus zijn verzonnen), alleen de gesproken versie"
     }
   ]
 }

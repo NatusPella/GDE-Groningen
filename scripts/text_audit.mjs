@@ -134,6 +134,25 @@ export function collectTexts() {
     };
     visit(JSON.parse(sl.join('\n')));
   }
+  // desktop shell: menu and dialog texts (not the dev harness)
+  for (const name of ['main.js', 'preload.js', 'coopcore.cjs']) {
+    const f = path.join(REPO, 'desktop', name);
+    if (!fs.existsSync(f)) continue;
+    const code = fs.readFileSync(f, 'utf8');
+    const lines = code.split(/\r?\n/);
+    for (const s of jsStrings(code)) if (!DEV_LINE.test(lines[s.line - 1] || '')) push(rel(f), s.line, s.text, 'js');
+  }
+  // spoken (Gronings) versions: the same brand/people/winter rules apply to what is said
+  const gs = path.join(REPO, 'scripts', 'gronings_spoken.json');
+  if (fs.existsSync(gs)) {
+    const spoken = JSON.parse(fs.readFileSync(gs, 'utf8'));
+    // what the shown line already triggers is judged there (and allowlisted there); only new findings count here
+    for (const [shown, v] of Object.entries(spoken)) {
+      if (typeof v !== 'string' || v === shown) continue;
+      const known = new Set(checkText(shown).map((f) => f.rule));
+      if (checkText(v).some((f) => !known.has(f.rule))) push('scripts/gronings_spoken.json', 0, v, 'gesproken');
+    }
+  }
   // player-visible changelog lines
   const cl = path.join(REPO, 'CHANGELOG.md');
   if (fs.existsSync(cl)) {
