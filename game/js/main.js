@@ -24,6 +24,8 @@ import { ensureCountryEdge } from './countryplan.js';
 import { warmCountryMaps } from './countrymap.js';
 import { Input } from './input.js';
 import { initGamepad } from './gamepad.js';
+import { initPadKeyboard } from './padkeyboard.js';
+import { skipFrame } from './framecap.js';
 import { initTouch } from './touch.js';
 import { initGlyphs } from './glyphs.js';
 import { initA11y } from './a11y.js';
@@ -281,12 +283,14 @@ const PED_DESPAWN_DIST = 150;
 const input = new Input();
 
 function maintainPedestrians(world) {
+  // in a cutscene the street life fills round the camera's view, not round the hidden player (#157)
+  const f = world.cameraOverride && world.streamFocus ? world.streamFocus : world.player;
   world.pedestrians = world.pedestrians.filter(
-    (p) => p.state === 'dead' || dist(p.x, p.y, world.player.x, world.player.y) < PED_DESPAWN_DIST
+    (p) => p.state === 'dead' || dist(p.x, p.y, f.x, f.y) < PED_DESPAWN_DIST
   );
   if (world.pedestrians.length < PED_TARGET) {
     world.pedestrians.push(...spawnPedestriansNear(
-      world.map, world.player.x, world.player.y, PED_TARGET - world.pedestrians.length, Math.random
+      world.map, f.x, f.y, PED_TARGET - world.pedestrians.length, Math.random
     ));
   }
 }
@@ -431,6 +435,7 @@ async function boot() {
   // browser swallows that Esc keypress), which opens the pause menu instead
   const menuOpen = () => isPauseMenuOpen() || isMapOpen() || isPhoneOpen() || isShopOpen() || !!world.devPanelOpen;
   input.canLock = () => document.body.classList.contains('game-started') && !menuOpen() && !world.uiPaused;
+  initPadKeyboard();
   initGamepad(input, world, { menuOpen: () => menuOpen() || isPlayAheadOpen() || isHelpOfferOpen(), phoneOpen: isPhoneOpen, pauseOpen: isPauseMenuOpen, mapOpen: () => isMapOpen() });
   initTouch(input, world, { menuOpen: () => menuOpen() || isPlayAheadOpen() || isHelpOfferOpen() });
   document.addEventListener('pointerlockchange', () => {
@@ -492,6 +497,7 @@ async function boot() {
   const tileFollow = {};
   let pedTimer = 0;
   function frame(now) {
+    if (getSettings().zuinig && skipFrame(now - last)) { requestAnimationFrame(frame); return; }
     const frameMs = now - last;
     const dt = Math.min(0.05, frameMs / 1000);
     last = now;
