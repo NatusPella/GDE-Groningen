@@ -122,5 +122,20 @@ import { readFileSync } from 'node:fs';
 const html = readFileSync(new URL('../game/index.html', import.meta.url), 'utf8');
 if (!/name="viewport"[^>]*viewport-fit=cover/.test(html)) { fail++; console.log('FAIL viewport-fit=cover ontbreekt in index.html'); }
 
+// touch steering (sideways stick) + the gas button (W) must both count: axis() used to return the stick alone
+{
+  const tgt = { addEventListener() {}, removeEventListener() {} };
+  globalThis.window = tgt; globalThis.document = { addEventListener() {} };
+  const { Input } = await import('../game/js/input.js');
+  const inp = new Input(tgt);
+  inp.padHold('w', true);
+  inp.padAxis = [0.7, 0];
+  eq('stuur + gas: de stick stuurt, W geeft gas', inp.axis(), [0.7, -1]);
+  inp.padHold('w', false);
+  eq('stuur zonder gas', inp.axis(), [0.7, 0]);
+  inp.padAxis = [0, 0.5];
+  eq('stick omlaag wint op zijn eigen as', inp.axis(), [0, 0.5]);
+}
+
 console.log(fail ? `${fail} FAILED` : 'all ok');
 process.exit(fail ? 1 : 0);

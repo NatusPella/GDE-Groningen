@@ -46,13 +46,12 @@ export async function connect({ serial = null, port = 9223 } = {}) {
     adb, ev, send,
     async down(id, x, y) { fingers.set(id, { id, x, y }); await touch('touchStart'); },
     async move(id, x, y) { fingers.set(id, { id, x, y }); await touch('touchMove'); },
-    // CDP kan één vinger niet loslaten: touchEnd laat ze allemaal los. De andere vingers
-    // worden daarom opnieuw neergezet (nieuwe pointerdown op hun plek; een stick krijgt een nieuwe oorsprong).
+    // touchEnd met een lijst laat precies die vingers los (getest: de andere blijven staan)
     async up(id) {
-      if (!fingers.has(id)) return;
+      const f = fingers.get(id);
+      if (!f) return;
       fingers.delete(id);
-      await send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }).catch(() => {});
-      if (fingers.size) await touch('touchStart');
+      await send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [{ x: f.x, y: f.y, id }] }).catch(() => {});
     },
     async tap(x, y) { await api.down(90, x, y); await sleep(70); await api.up(90); },
     // viewport-punt van een element: de HUD-schaal is CSS zoom en dan liegen getBoundingClientRect en quads;
