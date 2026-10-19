@@ -12,7 +12,7 @@ import { KEYS, MAX_SLOTS, slotKey, slotRecoveryKey, slotThumbKey } from './stora
 import { migrateSave, savedArc, SAVE_VERSION } from './savemigrate.js';
 import { ARC_ID } from './storyarc.js';
 
-export const NAME_MAX = 24;
+export const NAME_MAX = 28;
 export const FILE_KIND = 'GDE-save';
 // a save of this size or more is not ours (a real one is some tens of kB)
 export const MAX_IMPORT_CHARS = 2_000_000;
