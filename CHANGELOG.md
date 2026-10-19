@@ -6,6 +6,10 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Nieuw
+- **Android-testversie met touch (nog niet op een echt toestel getest, #227, #96):** een debug-APK bouwt met `cd android && npm run build` en draait op een Android-emulator, met aanraking gespeeld: nieuw spel, de opening overslaan, camera, lopen, instappen en rijden, het pauzemenu en opslaan en laden na een herstart van de app. Tijdens een cutscene staat er één knop **Overslaan** (vasthouden); overslaan met aanraking werkte eerder helemaal niet. De toetsenhints liggen niet meer onder de rechter duim, het pauzemenu scrolt op een telefoon (Opslaan stond buiten beeld) en de app bewaart je spelstand zodra hij naar de achtergrond gaat. De stuntmissie M01 is met touch gestart en bereden maar niet uitgespeeld; geluid is niet beluisterd; zie `docs/ANDROID.md` sectie 9.
+
+
 ## [0.37.1] - 2026-10-19
 
 ### Nieuw
