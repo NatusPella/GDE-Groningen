@@ -12,7 +12,7 @@ import zlib from 'node:zlib';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { wgsToWorld } from '../../game/js/rdnew.js';
-import { classifyLand, lineInfo, decimate, tileBudget, auditLand, checkDrempels, streekId, kitFor, LAND_TYPES, STREEK_IDS } from '../../game/js/streekplekken.js';
+import { puntInVlak, classifyLand, lineInfo, decimate, tileBudget, auditLand, checkDrempels, streekId, kitFor, LAND_TYPES, STREEK_IDS } from '../../game/js/streekplekken.js';
 
 const r1 = (v) => Math.round(v * 10) / 10;
 const MIN_LEN = { perron: 20 };
@@ -47,6 +47,29 @@ export function collectLand(els, acc = { map: new Map(), ruw: {} }) {
     acc.map.set(key, p);
   }
   return acc;
+}
+
+// Monumenten in een gebouw en parken in water vallen af (pass 2 over de elementen): geeft het aantal weggehaald.
+const WATERTAG = (t) => t.natural === 'water' || t.waterway === 'riverbank' || t.landuse === 'basin' || t.landuse === 'reservoir';
+export function filterVlakken(els, lijst) {
+  const grid = new Map();
+  for (const p of lijst) if (p.t === 'monument' || p.t === 'park') { const k = Math.floor(p.x / 200) + ',' + Math.floor(p.y / 200); (grid.get(k) || grid.set(k, []).get(k)).push(p); }
+  let n = 0;
+  for (const el of els) {
+    const t = el.tags;
+    if (!t || el.type !== 'way' || !el.g || el.g.length < 4) continue;
+    const isB = !!t.building, isW = WATERTAG(t);
+    if (!isB && !isW) continue;
+    let pts = null, x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9;
+    for (const q of (pts = el.g.map((g) => wgsToWorld(g[0], g[1])))) { if (q[0] < x0) x0 = q[0]; if (q[0] > x1) x1 = q[0]; if (q[1] < y0) y0 = q[1]; if (q[1] > y1) y1 = q[1]; }
+    for (let i = Math.floor(x0 / 200); i <= Math.floor(x1 / 200); i++) for (let j = Math.floor(y0 / 200); j <= Math.floor(y1 / 200); j++) {
+      for (const p of grid.get(i + ',' + j) || []) {
+        if (p.weg || p.x < x0 || p.x > x1 || p.y < y0 || p.y > y1) continue;
+        if (((isB && p.t === 'monument') || (isW && p.t === 'park')) && puntInVlak(p.x, p.y, pts)) { p.weg = true; n++; }
+      }
+    }
+  }
+  return n;
 }
 
 export function dedupeLand(list) {
@@ -98,6 +121,11 @@ function main() {
   if (!files.length) { console.log('geen provinciecache in', dir); process.exit(1); }
   const acc = { map: new Map(), ruw: {} };
   for (const f of files) collectLand(JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(dir, f)))).elements || [], acc);
+  const eerst = [...acc.map.values()].filter((q) => q.t === 'monument' || q.t === 'park');
+  let weg = 0;
+  for (const f of files) weg += filterVlakken(JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(dir, f)))).elements || [], eerst);
+  for (const [k, q] of acc.map) if (q.weg) acc.map.delete(k);
+  console.log(`weggehaald: ${weg} monumenten in een gebouw of parken in water`);
   const res = finishLand(acc);
   const audit = auditLand(res.alle, res.ruw, res.budget);
   console.log(`landplekken: ${Object.values(res.ruw).reduce((a, b) => a + b, 0)} gevonden, ${res.alle.length} na samenvoegen, ${res.plekken.length} binnen het celbudget`);

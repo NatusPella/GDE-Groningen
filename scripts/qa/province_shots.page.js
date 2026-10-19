@@ -96,7 +96,7 @@ for (const S of window.__qaSpots) {
   if (S.tx !== undefined) {
     const chk = { water: !!WL.waterAt(map, S.tx, S.ty), building: !!TP.buildingAt(map, S.tx, S.ty, 0), gz: map.groundHeightAt ? Math.round((map.groundHeightAt(S.tx, S.ty, 0) || 0) * 10) / 10 : null };
     if (S.inst) { let n = 0; sc.scene.traverse((o) => { if (o.name !== 'streekplekken') return; o.traverse((m) => { if (!m.isInstancedMesh) return; const a = m.instanceMatrix.array; for (let i = 0; i < m.count; i++) if (Math.hypot(a[i * 16 + 12] - S.tx, a[i * 16 + 14] - S.ty) < 6) n++; }); }); chk.inst = n; }
-    chk.flags = [chk.water && 'in water', chk.building && 'in gebouw', Math.abs(chk.gz || 0) > 1.2 && 'zweeft of zakt', S.inst && !chk.inst && 'onzichtbaar'].filter(Boolean);
+    chk.flags = [chk.water && 'in water', chk.building && !S.kit && 'in gebouw', Math.abs(chk.gz || 0) > 1.2 && 'zweeft of zakt', S.inst && !chk.inst && 'onzichtbaar'].filter(Boolean);
     info.check = chk;
   }
   results.spots[S.name] = info;
