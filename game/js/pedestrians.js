@@ -27,6 +27,8 @@ import { getSimBridge } from './simbridge.js';
 import { wijkProfileAt } from './trafficfleet.js';
 import { hourOf } from './streetlifedata.js';
 import { buildingAt } from './tileplace.js';
+import { groupSpot, crowdPedCap } from './evenementenlive.js';
+import { centreOf } from './evenementen.js';
 
 const WANDER_SPEED = 1.3;
 const FLEE_SPEED = 3.6;
@@ -905,6 +907,32 @@ function spawnNightGroup(world) {
   return 0;
 }
 
+// Bij een lopend evenement (#203, world.eventsNow uit evenementenlive.js) komen er
+// groepjes voetgangers bij, tot de menigtedichtheid van dat evenement.
+function spawnEventGroup(world, inEvent) {
+  const { map, player } = world;
+  for (const ev of world.eventsNow || []) {
+    const c = centreOf(ev), dp = dist(c.x, c.y, player.x, player.y);
+    if (dp > 260) continue;
+    if (inEvent >= crowdPedCap(ev)) continue;
+    for (let attempt = 0; attempt < 10; attempt++) {
+      const s = groupSpot(ev);
+      if (dist(s.x, s.y, player.x, player.y) < 30) continue;
+      if (isInsideBuilding(map, s.x, s.y) || isInWater(map, s.x, s.y) || isOnRoad(map, s.x, s.y, 0.5)) continue;
+      if (!isSpawnHidden(world, s.x, s.y)) continue;
+      for (let k = 0; k < s.n; k++) {
+        const ang = (k / s.n) * Math.PI * 2;
+        const ped = new Pedestrian(s.x + Math.cos(ang) * 0.8, s.y + Math.sin(ang) * 0.8, ang + Math.PI);
+        ped.anchor = { x: s.x, y: s.y, r: 2.5 };
+        ped.eventCrowd = true;
+        world.pedestrians.push(ped);
+      }
+      return s.n;
+    }
+  }
+  return 0;
+}
+
 function managePopulation(world) {
   const { player } = world;
   const night = dayState(world).isNight;
@@ -937,6 +965,11 @@ function managePopulation(world) {
   }
 
   if (hot && nightlife < NIGHTLIFE_EXTRA) spawnNightGroup(world);
+  if (world.eventsNow && world.eventsNow.length) {
+    let inEvent = 0;
+    for (const p of world.pedestrians) if (p.eventCrowd && p.state !== 'dead') inEvent++;
+    spawnEventGroup(world, inEvent);
+  }
   if (!night && nightlife > 0) {
     for (const p of world.pedestrians) {
       if (p.nightlife && dist(p.x, p.y, player.x, player.y) > 60) { p.nightlife = false; p.anchor = null; }
