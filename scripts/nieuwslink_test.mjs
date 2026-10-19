@@ -33,4 +33,8 @@ ok(!nieuwsFeiten(L, w, env).some((x) => x.soort === 'evenement'), 'zelfde evenem
 const code = fs.readFileSync(new URL('../game/js/regiolevenrt.js', import.meta.url), 'utf8');
 ok(/tikNieuws\(/.test(code) && /showCard\(w, \{ kind: 'tip', kicker: n\.bron/.test(code), 'regiolevenrt toont de ticker als tip-kaart');
 ok(/setNieuwsBronnen/.test(fs.readFileSync(new URL('../game/js/main.js', import.meta.url), 'utf8')), 'main.js geeft de bruggen mee');
+{ const K = createNieuwsLink(3), wk = { eventsNow: [] };
+  nieuwsFeiten(K, wk, {}); wk.eventsNow = [{ id: 'k', kind: 'kermis', naam: 'Zomerkermis Leek', plaats: 'Leek' }];
+  const f = nieuwsFeiten(K, wk, {});
+  ok(f.length === 1 && f[0].soort === 'kermis' && f[0].plaats === 'Leek', 'kermis wordt kermis-nieuws met plaats'); }
 console.log(`${n - fails}/${n} ok`); process.exit(fails ? 1 : 0);
