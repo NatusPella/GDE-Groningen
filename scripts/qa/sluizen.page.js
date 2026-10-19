@@ -100,7 +100,7 @@ for (const q of want) {
     // een lichte stuurhulp: de boot blijft op de as (de proef gaat over de sluis, niet over het sturen)
     const assist = setInterval(() => {
       const f = SL.frameOf(k, b.x, b.y);
-      if (Math.abs(f.u) < k.half + 80) { const d = Math.atan2(Math.sin(aim - b.angle), Math.cos(aim - b.angle)); b.angle += d * 0.2; }
+      if (Math.abs(f.u) < k.half + 80) { const want = aim - dir * Math.max(-0.7, Math.min(0.7, f.lat * 0.06)); const d = Math.atan2(Math.sin(want - b.angle), Math.cos(want - b.angle)); b.angle += d * 0.2; }
     }, 50);
     const sideOfBoat = () => (SL.frameOf(k, b.x, b.y).u < 0 ? 0 : 1);
     for (let t = 0; t < MAXT; t += 0.5) {
