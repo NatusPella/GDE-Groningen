@@ -28,12 +28,12 @@ for (const S of cfg.plekken) {
     if (!img) { missing++; findings.push({ plek: S.naam, tijd: c.tijd, weer: c.weer, vlaggen: ['screenshot ontbreekt'] }); continue; }
     const m = L.measure(img);
     const luchtImg = load(`${name}-lucht`);
-    if (luchtImg) { const lm = L.measure(luchtImg); Object.assign(m, { banding: lm.banding, stars: lm.stars, skyBright: lm.skyBright, zenith: lm.zenith, horizon: lm.horizon, luchtMean: Math.round(lm.mean) }); }
+    if (luchtImg) { const lm = L.measure(luchtImg); Object.assign(m, { banding: lm.banding, stars: lm.stars, starFlux: lm.starFlux, skyBright: lm.skyBright, zenith: lm.zenith, horizon: lm.horizon, luchtMean: Math.round(lm.mean) }); }
     const refImg = c.weer === 'helder' ? null : load(L.shotName(S.naam, { tijd: c.tijd, weer: 'helder' }));
     const ref = refImg ? L.measure(refImg) : null;
     const vlaggen = L.judge(c, m, ref, S.soort);
     if (c.weer === 'helder' && (c.tijd === 'middag' || c.tijd === 'nacht')) {
-      const means = [img, load(`${name}-b`), load(`${name}-c`)].filter(Boolean).map((i) => L.exposure(i).mean);
+      const means = [img, load(`${name}-b`)].filter(Boolean).map((i) => L.exposure(i).mean);
       m.flikker = Math.round(L.flicker(means) * 10) / 10;
       if (m.flikker > 6) vlaggen.push(`flikker: helderheid springt ${m.flikker} tussen opeenvolgende beelden`);
     }
