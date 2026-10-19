@@ -41,6 +41,8 @@ html.touch-device #hud .hud-speedo, html.touch-device #hud .hud-heli { right: au
 html.touch-device #hud .hud-vehname, html.touch-device #hud .hud-race { right: calc(var(--hud-edge) + 120px / var(--ui, 1)); }
 /* the key-hint rows (Kaart, Radio, ...) lay under the right thumb: the buttons carry those labels; keyboard hints mean nothing, a map has a close button */
 html.touch-device #hud .hud-ctx { display: none; }
+/* the stunt evening's score card lay under the gas and horn buttons: it moves left of the button block */
+html.touch-device #hud .stunt-hud { right: calc(var(--hud-edge) + 260px / var(--ui, 1)); }
 html.touch-device .mv-close { display: inline-flex !important; }
 html.touch-device .m-hint, html.touch-device #start-screen .ss-foot { display: none; }
 html.touch-device #hud .hud-fcol { left: var(--hud-edge); bottom: calc(var(--mm-bottom) + var(--mm-size) + 6px); }

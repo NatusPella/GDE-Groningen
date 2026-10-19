@@ -196,7 +196,7 @@ const full = async () => JSON.parse(await ev(`(() => { const w = __debug.world, 
   const cand = (w.vehicles || []).filter((q) => q !== v && !q.wrecked && !q.isBoat && !q.isHeli && !q.isBike).map((q) => ({ x: q.x, y: q.y, d: Math.hypot(q.x - p.x, q.y - p.y), mc: !!q.missionCar })).sort((a, b) => (b.mc - a.mc) || (a.d - b.d));
   const near = cand[0] || null; // de missie-auto (Berends bakkie) gaat voor
   const dlg = document.querySelector('#hud .cw-panel:not([hidden]) .cw-opt');
-  return JSON.stringify({ x: p.x, y: p.y, cam: w.camYaw ?? p.angle, t: w.time, money: w.money, hp: p.health, veh: v ? { x: v.x, y: v.y, angle: v.angle, speed: v.speed || 0, mc: !!v.missionCar, bike: !!v.isBike } : null,
+  return JSON.stringify({ x: p.x, y: p.y, cam: w.camYaw ?? p.angle, t: w.time, money: w.money, hp: p.health, veh: v ? { x: v.x, y: v.y, angle: v.angle, speed: v.speed || 0, mc: !!v.missionCar, bike: !!v.isBike, slip: Math.hypot(v.driftX || 0, v.driftY || 0) } : null,
     target: mk, near, cine: !!(c && c.classList.contains('active')), dlg: !!dlg, text: (document.querySelector('#hud .hud-mission') || {}).textContent || '', ctx: document.documentElement.dataset.touchCtx,
     step: window.__story.current(), phase: m.phase, paused: !!w.paused }); })()`));
 // Hulp van het spel (Instellingen > Hulp): ruimere tijd, veel minder schade, ruime poorten; zonder herladen, via dezelfde module als het spel
@@ -227,7 +227,7 @@ while (Date.now() < playUntil) {
   try { f = await full(); } catch (e) { await sleep(2000); continue; }
   const key = `${f.step && f.step.id}|${f.phase}|${f.text}|${f.ctx}`;
   if (key !== last) { last = key; console.log(`  [${Math.round(f.t)}s] ${key} @${Math.round(f.x)},${Math.round(f.y)} -> ${f.target ? Math.round(f.target.x) + ',' + Math.round(f.target.y) : '-'}`); await screenshot(`4-${String(++ticks).padStart(2, '0')}`); }
-  if (Date.now() - (globalThis.__lastDbg || 0) > 8000) { globalThis.__lastDbg = Date.now(); const q = f.veh || f; console.log(`    . ${Math.round(f.t)}s @${Math.round(q.x)},${Math.round(q.y)} v=${f.veh ? f.veh.speed.toFixed(1) : '-'} dist=${f.target ? Math.round(Math.hypot(f.target.x - q.x, f.target.y - q.y)) : '-'} ${f.veh ? (f.veh.mc ? 'bakkie' : 'andere') : 'te voet'}`); }
+  if (Date.now() - (globalThis.__lastDbg || 0) > 3000) { globalThis.__lastDbg = Date.now(); const q = f.veh || f; console.log(`    . ${Math.round(f.t)}s @${Math.round(q.x)},${Math.round(q.y)} v=${f.veh ? f.veh.speed.toFixed(1) : '-'} slip=${f.veh ? f.veh.slip.toFixed(1) : '-'} dist=${f.target ? Math.round(Math.hypot(f.target.x - q.x, f.target.y - q.y)) : '-'} ${f.veh ? (f.veh.mc ? 'bakkie' : 'andere') : 'te voet'}`); }
   if (f.step && f.step.id !== 'M01') break;
   if (f.cine) { await stick(0, 0); await releasePedals(); await button(/overslaan/i, 2300); await sleep(1200); continue; }
   if (f.dlg) { await stick(0, 0); await d.tapEl('#hud .cw-panel:not([hidden]) .cw-opt'); await sleep(1500); continue; }
@@ -249,6 +249,7 @@ while (Date.now() < playUntil) {
     // de stunt: in de zone naar het midden rijden met af en toe Handrem (driften geeft punten); rondjes draaien deed de auto tegen muren lopen
     const inZone = /^stunt/i.test(f.text) && dist < 45;
     if (inZone) {
+      await pedal(/^rem$/i, false); // uit een klem-manoeuvre kan Rem nog vasthangen
       // rondjes met af en toe Handrem: driften en rakelings langs rekwisieten geven punten
       driftTick++;
       await stick(Math.floor(driftTick / 12) % 2 ? -0.8 : 0.8, 0);
