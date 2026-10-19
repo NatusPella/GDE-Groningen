@@ -22,6 +22,8 @@ public class MainActivity extends BridgeActivity {
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         hideSystemBars();
+        // WebAudio en muziek mogen starten zonder dat een aanraking het WebView-media-beleid vraagt (de tik op het startscherm blijft de echte unlock)
+        getBridge().getWebView().getSettings().setMediaPlaybackRequiresUserGesture(false);
         // Het renderproces sneuvelt op een toestel met weinig geheugen (OOM) of door een driverfout; zonder
         // dit sluit Android de hele app. Nu start de activiteit opnieuw (de speler komt op het startscherm,
         // 'Doorgaan' laadt de laatste spelstand) en staat de reden in logcat (tag GDE).

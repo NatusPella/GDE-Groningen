@@ -287,6 +287,61 @@ const migrated = (await saveKey()).startsWith('gde-');
 log(migrated, 'oude sleutel gte-save-v1 migreert naar ' + key);
 log(await continueGame(), 'Doorgaan werkt na migratie');
 
+
+// --- 6. systeem: terugknop, rotatie, naar de achtergrond en terug, app gedood, geluid, fps en profiel ---
+const keyevent = (k) => adb('shell', 'input', 'keyevent', k);
+const savedAt = async () => { const raw = await saveRaw(); try { return JSON.parse(raw).savedAt || 0; } catch (e) { return 0; } };
+if (!(await ev(`document.body.classList.contains('game-started')`))) await continueGame(); // na de migratie staat het spel al aan
+await waitFor(`document.body.classList.contains('game-started')`, 90000, 'spel draait voor de systeemstappen');
+await sleep(3000);
+if (await ev(`!!document.getElementById('cine')?.classList.contains('active')`)) { await button(/overslaan/i, 2300); await sleep(1500); }
+// 6a. terugknop = pauzemenu, nog een keer = weer terug in het spel
+keyevent('KEYCODE_BACK');
+log(await waitFor(`!!document.querySelector('#pause-menu.visible')`, 20000, 'terugknop opent pauzemenu'), 'terugknop opent het pauzemenu');
+keyevent('KEYCODE_BACK');
+log(await waitFor(`!document.querySelector('#pause-menu.visible')`, 20000, 'terugknop sluit pauzemenu'), 'tweede terugknop sluit het pauzemenu');
+// 6b. rotatie: het toestel mag alleen liggend (sensorLandscape); 180 graden draaien blijft liggend en bruikbaar
+adb('shell', 'settings', 'put', 'system', 'accelerometer_rotation', '0');
+for (const rot of ['3', '1']) {
+  adb('shell', 'settings', 'put', 'system', 'user_rotation', rot);
+  await sleep(4000);
+  const dims = await ev('innerWidth + "x" + innerHeight');
+  const [w, h] = dims.split('x').map(Number);
+  log(w > h && await ev(`!!document.getElementById('touch-ui') && document.documentElement.dataset.touchClass === 'phone'`), 'rotatie ' + (rot === '3' ? '270' : '90') + ' graden blijft liggend met touch-UI', dims);
+  await screenshot('8-rotatie-' + rot);
+}
+// 6c. naar de achtergrond: de stand wordt bewaard; terug: pauzemenu
+const t0 = await savedAt();
+keyevent('KEYCODE_HOME');
+await sleep(4000);
+adb('shell', 'am', 'start', '-n', `${PKG}/.MainActivity`);
+await sleep(4000);
+const t1 = await savedAt();
+log(t1 > t0, 'stand bewaard bij naar de achtergrond gaan', `${t0} -> ${t1}`);
+log(await waitFor(`!!document.querySelector('#pause-menu.visible')`, 20000, 'pauzemenu na terugkeer'), 'terug uit de achtergrond staat het spel in het pauzemenu');
+// 6d. geluid
+const au = JSON.parse(await ev('JSON.stringify(__audio.state())'));
+log(au.ctx === 'running', 'AudioContext draait (geen blokkade door autoplay)', 'ctx ' + au.ctx + ', tijd ' + au.time);
+log(!!au.gmusic && au.gmusic.started && !au.gmusic.error, 'muziek gestart', JSON.stringify({ current: au.gmusic.current, paused: au.gmusic.paused, tracks: au.gmusic.tracks }));
+// 6e. profiel en fps (pauzemenu eerst dicht)
+keyevent('KEYCODE_BACK');
+await waitFor(`!document.querySelector('#pause-menu.visible')`, 20000, 'menu dicht');
+const gfx = JSON.parse(await ev(`(() => { const s = JSON.parse(localStorage.getItem('gde-settings') || '{}'); return JSON.stringify({ q: s.quality, res: s.resolution, dd: s.drawDistance, sh: s.shadows, auto: s.autoResolution, advies: localStorage.getItem('gde-gfx-advice'), cores: navigator.hardwareConcurrency, mem: navigator.deviceMemory }); })()`));
+log(gfx.q === 'laag' && gfx.sh === false, 'lage-end profiel automatisch gekozen', JSON.stringify(gfx));
+const fps = await ev(`new Promise((res) => { let n = 0; const t0 = performance.now(); const f = () => { n++; if (performance.now() - t0 < 10000) requestAnimationFrame(f); else res(+(n / ((performance.now() - t0) / 1000)).toFixed(1)); }; requestAnimationFrame(f); })`);
+log(true, 'fps op de emulator (10 s, te voet; zegt niets over een telefoon)', String(fps));
+// 6f. app gedood op de achtergrond, opnieuw starten, Doorgaan
+const t2 = await savedAt();
+d.close();
+keyevent('KEYCODE_HOME'); await sleep(3000);
+adb('shell', 'am', 'kill', PKG); await sleep(2000);
+const alive = (() => { try { return adb('shell', 'pidof', PKG); } catch (e) { return ''; } })();
+log(!alive, 'app in de achtergrond door Android gedood (am kill)');
+adb('shell', 'am', 'start', '-n', `${PKG}/.MainActivity`); await sleep(8000);
+d = null; for (let i = 0; i < 60 && !d; i++) { try { d = await connect(); } catch (e) { await sleep(3000); } }
+log(await continueGame(), 'Doorgaan na een gedode app laadt de stand');
+log((await savedAt()) >= t2, 'stand na het doden niet ouder dan voor het doden');
+
 await d.ev('1'); // houdt de verbinding warm
 fs.writeFileSync(path.join(DIR, 'verslag.txt'), report.join('\n') + '\n');
 d.close();
