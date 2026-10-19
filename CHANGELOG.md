@@ -8,14 +8,42 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
-- Bijrijders: sommige auto's hebben een passagier naast de bestuurder; bij autodiefstal stappen zij uit en rennen weg. In een enkele geparkeerde auto wacht iemand, die bij diefstal uit de auto wordt gehaald.
+## [0.37.0] - 2026-10-19
+
 ### Nieuw
+- **Het begin van het verhaal is herbouwd (nog niet gespeeld, wel door onafhankelijke lezers gecontroleerd):** opening en missies 1 t/m 6 hebben nu één doel per missie, een reden vóór de actie, minder personages tegelijk en kortere dialogen. Missies eindigen met het volgende doel.
+- **Opnieuw proberen kost niet meer de hele missie (nog niet in beeld bekeken):** na falen begin je bij het laatste checkpoint, met een Opnieuw-knop die je met voertuig en metgezel bij de start zet. Uit je voertuig stappen is niet meteen mislukt: je krijgt een paar seconden om terug te gaan.
+- **Hulp en toegankelijkheid (nog niet in beeld bekeken):** een Hulp-tab met meer tijd, minder schade en ruimere vliegpoorten, een aanbod na twee mislukkingen, een oefenronde, bewegingsreductie voor camerabeving en flitsen en nieuwe prestaties (Rookwolk, Raampje open).
+- **Voertuigdeuren, motorkap en kofferbak (nog niet in beeld bekeken door een mens):** deuren gaan open bij in- en uitstappen, bussen hebben dubbele deuren, en bij schade raken deuren, kap en kofferbak beschadigd en gaan ze los, met rook en vuur bij zware schade. In de garage kun je ze laten repareren.
+- **Autointerieur, lekke band en schade (nog niet in beeld bekeken door een mens):** dakhemel, stijlen en portierbekleding, een kleiner wiel bij een lekke band, deuken per zone, gebarsten glas en een zichtbaar wrak.
+- **Zwemmen en klimmen uit het water, en je flat inrichten:** de speler zwemt en klimt uit het water, en in de flat zijn kast en bureau te verplaatsen naar vaste wandplekken.
+- **Zeilregatta, evenementen en bijbanen (nog niet in beeld bekeken door een mens):** een regatta met tonnen, rondes en medailles met een windwijzer in beeld (Q en Z voor het zeil), zomerevenementen met kaartmarkers waarvoor de routeplanner afsluitingen mijdt, en de veerdienst, strandpost, kermisdraai en brugdienst als bijbaan.
+- **Fotomodus met touchbesturing en een compacte indeling voor een telefoon liggend (nog niet op een echt toestel getest):** slepen kijkt, knijpen zoomt; de linkerknoppen staan naast de minimap en het pauzemenu is compacter.
+- **Meer herkenbare plekken (nog niet in beeld bekeken door een mens):** perrons met lantaarns, bankjes en overkappingen, fabrieksschoorstenen, zendmasten met platform en schotel, monumenten met plein en paaltjes en parken met heggen, vijver en lantaarns.
+- **Varen (nog niet in beeld bekeken door een mens):** een waypoint op water geeft nu een vaarroute via het vaarnet, binnenvaartschepen varen alleen op hoofdvaarwegen en havens, en het water ligt niet meer dubbel over elkaar.
+- **Kaart:** het slotenlabyrint over zee en buiten de grens is weg. Op minimap en kaart staan de grenzen met Friesland, Drenthe en Duitsland, met de landnamen. De procedurele weide wordt alleen nog op provincieland getekend.
+- **Sloten en weilandranden uit echte data (nog niet in beeld bekeken door een mens):** echte sloten, greppels en beken uit OSM staan in de tegels, onderbroken waar ze een weg of spoor kruisen; waar het spoor een hek knipt staat aan beide kanten een hekpoort; er staan geen hekken of vee meer op akkerland.
+- **Geluid (nog niet gehoord):** sluisgeluiden, een geluid voor het einde van een minigame en harder gemaakte zwakke effecten (deur, motor, fietsbel, overweg, treinhoorn, vuurpijl, camera, alarm, melding). Alle samples worden bij de start voorgerenderd, zodat het eerste effect niet meer stil is.
+- **De muziek die door ons zelf was gemaakt is weg:** de gesynthetiseerde nummers, het kermisorgel en het zendersignaal van Nachtstreek zijn verwijderd; de muziek van Gemini en alle geluidseffecten blijven staan.
+- **Prestaties:** de provinciekaart vreet geen kwart van de hoofdthread meer (de minimap ververst maximaal elke 33 ms), de gebouw- en wegbatchers mogen 3 ms per frame samenvoegen (de ring ging ongeveer 20 % sneller) en wegen bij snel reizen laden eerst wat voor je ligt. Te voet in de stad haalt een sterke pc nu ongeveer 47 tot 49 fps; dat is nog niet genoeg.
+- Bijrijders: sommige auto's hebben een passagier naast de bestuurder; bij autodiefstal stappen zij uit en rennen weg. In een enkele geparkeerde auto wacht iemand, die bij diefstal uit de auto wordt gehaald.
 - **Waddenzee, Eems en Dollard zijn open water voor boten (nog niet in beeld bekeken):** je botste op open zee tegen een onzichtbare wal, omdat de kaart daar alleen een kustlijn heeft en geen water. Binnen de zeegrens vaar je nu overal vrij; de kust blijft een oever.
 - **Keuzes met gevolg in akte 4 en 5 (nog niet in beeld bekeken):** in M23 kies je wie naast de Fjord Frituur rijdt (Wubbo's bus, Tinus' trekker of Geesjes scooter); dat bepaalt hoe lang Jelles limo wegblijft en keert terug in de finale, met meer tijd bij de limo en een bredere timing voor zijn straat. De intake bij Wiebelwerk (M18) heeft drie vragen: elk fout antwoord maakt de accountmanager argwanender, tot de camerahal sneller wordt en de beveiliging meeloopt. In de finale sluit de colonne van M23 eerst de straten af, daarna volgt de jacht op de limo.
 - **Verhaalteksten gevarieerd (nog niet in beeld bekeken):** replay-regels en binnenkomsten per persoon in plaats van één formule, de Krolbrug-grap krijgt een slot in de epiloog, geen gasregel meer bij Loppersum, fietsknooppunten, het Leugenbankje en Appingedam in de autogesprekken.
-### Intern
 - **Stijlgids en gelijkenistest voor het verhaal:** `docs/verhaal/STIJLGIDS.md` (stemmen, verboden zinsbouw, feitenblad) en `scripts/story_similarity_test.mjs`, die identieke en bijna-identieke regels en de verboden zinsbouw vlagt.
 - **Perrons, schoorstenen, zendmasten, monumenten en parken uit de kaartdata:** bij stations liggen perrons met lantaarns, bankjes en overkappingen, fabrieksschoorstenen en zendmasten steken boven het land uit, wegkruisen en monumenten staan op hun plek en parken hebben bomen, een zandpad en banken. Per cel is er een vast budget.
+
+### Opgelost
+- **De spelklok stond stil na twee mislukkingen:** het hulpaanbod bleef open staan en pauzeerde de wereld; bots en spelers kunnen er nu altijd doorheen.
+- **Laadschermen toonden twee laadbalken (#226):** er is nu één balk per fase.
+- **Overlays over elkaar, een kapot teken in de HUD bij discgolf en wandelen, de wandel-HUD onder de duif en een lege Hulp-tab:** gerepareerd; lange waarden op de resultaatkaart wrappen netjes.
+- **Auto's zonken op 19 brugovergangen en op open zee voer je tegen een onzichtbare wal (nog niet in beeld bekeken door een mens):** de waterstukken die over wegen lagen zijn weg en de Waddenzee, Eems en Dollard zijn open water voor boten.
+- **Plekken in water of op onbereikbare grond:** de kroegentocht, bruggen, Wiebelwerk, het beleg van Bourtange, de Museumbus en vier evenementen staan een paar meter naar vrije grond, en een groot los wegenstuk in het noordwesten hangt nu aan het net.
+
+### Intern
+- **Eén commando voor alle tests:** `node scripts/test_all.mjs` met een rapport, een spelbot die de hele game speelt (de verhaaltest van missie 1 t/m 26 slaagt), een prestatieopname per route, beeldrondes met automatische controle en een coöp-testbank waarin twee echte instances via de lobby verbinden. De speelklok in coöp is nog niet gedeeld.
+- **Android:** het spel start op een emulator en je kunt een nieuw spel starten; echt spelen met touch na de openingsscène is nog niet getest. Er is geen APK om te installeren.
+- **Minder importcycli en opruiming:** de grootste cyclusgroep ging van 169 naar ongeveer 139 modules; een stijlgids met een test voor het verhaal.
 
 ## [0.36.0] - 2026-10-18
 
