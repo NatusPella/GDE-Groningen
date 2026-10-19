@@ -828,6 +828,7 @@ function shoreGroup(map, { parts, seats, hulls }, apronMaterial) {
     if (kind === 'extras' || kind === 'glass') {
       mesh.castShadow = kind === 'extras';
       mesh.visible = showExtras;
+      mesh.userData.noBatch = true; // toggled one by one (showExtras), so never merged
       extrasMeshes.add(mesh);
     }
     group.add(mesh);
