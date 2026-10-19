@@ -26,7 +26,7 @@ import { statsFromSave } from './world.js';
 import { getRadioSave, applyRadioSave } from './radio.js';
 import { KEYS, slotKey } from './storagekeys.js';
 import { applyGuestEarnings } from './coopsave.js';
-import { getRenderer } from './scene3d.js';
+import { getRenderer, afterNextFrame } from './scene3d.js';
 import { readSlot, writeSlotRaw, writeThumb, activeSlot, setActive, createSlot, deleteSlot, nameOf, pickActive } from './saveslots.js';
 import { STEPS, PARTS, stepDone, stepAvailable, nextStoryStep, ARC_ID } from './storyarc.js';
 
@@ -138,15 +138,20 @@ export function storySummary(d) {
     const passed = new Set(d.missions && Array.isArray(d.missions.completed) ? d.missions.completed : []);
     const isDone = (id) => done.has(id), isPassed = (i) => passed.has(i);
     const nx = nextStoryStep(isDone, isPassed);
-    const part = nx.next ? nx.next.part : nx.end;
+    // nextStoryStep gives the step itself, or { end, next } (next: null at the end)
+    const step = nx.part ? nx : nx.next || null;
+    const part = step ? step.part : nx.end;
     if (!PARTS[part]) return null;
     const inPart = STEPS.map((s, k) => [s, k]).filter(([s]) => s.part === part && stepAvailable(s));
     const n = inPart.filter(([, k]) => stepDone(k, isDone, isPassed)).length;
-    return { part: PARTS[part].title, date: PARTS[part].date || '', next: nx.next ? nx.next.title : '', done: n, total: inPart.length, ended: !nx.next };
+    return { part: PARTS[part].title, date: PARTS[part].date || '', next: step ? step.title : '', done: n, total: inPart.length, ended: !step };
   } catch (e) {
     return null;
   }
 }
+
+// The play time of this session's game in seconds (the dashboard of the pause menu)
+export const getPlaySeconds = () => Math.round(playSeconds);
 
 export function getSaveSummary() {
   const d = readSave();
@@ -246,10 +251,15 @@ export function saveGame(w = world, { toast = true } = {}) {
 // The small screenshot for the savegame card, taken from the last drawn frame. A manual save always
 // takes one, the autosave at most once in 45 s; a failure only means a card without picture.
 let thumbAt = 0;
+let thumbListener = null;
+// the savegame screen wants to know when a picture arrives (fn(slot) or null)
+export function onThumbKept(fn) { thumbListener = fn; }
 function keepThumb(n, force) {
   const now = Date.now();
   if (!force && now - thumbAt < 45000) return;
-  try {
+  thumbAt = now;
+  // the canvas holds a frame only right after it was drawn: take the picture then
+  afterNextFrame(() => {
     const r = getRenderer();
     const src = r && r.domElement;
     if (!src || !src.width || !src.height) return;
@@ -261,13 +271,13 @@ function keepThumb(n, force) {
     let cw = sw, ch = sw / want;
     if (ch > sh) { ch = sh; cw = sh * want; }
     g.drawImage(src, (sw - cw) / 2, (sh - ch) / 2, cw, ch, 0, 0, c.width, c.height);
-    // a blank buffer (no frame kept) gives a flat picture: not worth keeping
+    // a blank buffer gives a flat picture: not worth keeping
     const px = g.getImageData(0, 0, c.width, c.height).data;
     let sum = 0, sum2 = 0, cnt = 0;
     for (let i = 0; i < px.length; i += 160) { const v = px[i] + px[i + 1] + px[i + 2]; sum += v; sum2 += v * v; cnt++; }
     if (!cnt || sum2 / cnt - (sum / cnt) ** 2 < 40) return;
-    if (writeThumb(null, n, c.toDataURL('image/jpeg', 0.6))) thumbAt = now;
-  } catch (e) { /* no picture */ }
+    if (writeThumb(null, n, c.toDataURL('image/jpeg', 0.6)) && thumbListener) thumbListener(n);
+  });
 }
 
 // Een gast: de verdiende beloningen erbij in de actieve slot, de rest van die save blijft zoals hij was.
@@ -427,7 +437,7 @@ export function applySave(w, d) {
 export function loadLatestSave(w = world) {
   const d = readSave();
   if (!d || !applySave(w, d)) return false;
-  w.addMessage('Laatste spelstand geladen', 3);
+  w.addMessage('Laatste savegame geladen', 3);
   return true;
 }
 

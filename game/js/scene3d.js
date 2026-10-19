@@ -984,6 +984,11 @@ export function setMenuCover(level) {
 }
 
 // Read-only access for systems that need the view pose (e.g. the 3D audio listener).
+// Runs fn right after the next frame was drawn, in the same task, when the canvas still holds it
+// (a copy of the canvas taken later is blank): the savegame screenshot (savegame.js).
+let afterFrameQ = [];
+export function afterNextFrame(fn) { afterFrameQ.push(fn); }
+
 export function getCamera() {
   return cam;
 }
@@ -2706,6 +2711,7 @@ export function update3D(dt, world) {
   if (menuCover) menuShadowDone = true;
   if (sizeDirty) applyRenderSize();
   postfx.render();
+  if (afterFrameQ.length) { const q = afterFrameQ; afterFrameQ = []; for (const f of q) { try { f(); } catch (e) { /* no picture */ } } }
   canvasFrames++;
   renderer.shadowMap.autoUpdate = true;
   probe.mark('3d:render');
