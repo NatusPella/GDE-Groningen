@@ -19,14 +19,16 @@ const MODELS = {
   bestelbus: { kind: 'car', model: { name: 'van', len: 5.4, wid: 2.1, maxSpeed: 24, accel: 6, brake: 18, turnRate: 1.9, color: '#d8a31c' } },
   camerabus: { kind: 'car', model: { name: 'van', len: 5.6, wid: 2.1, maxSpeed: 26, accel: 6.5, brake: 18, turnRate: 1.9, color: '#e8e6e0' } },
 };
-const KLEUR = { museumbus: '#b9552b', suikerbieten: '#7a8a3a', herstelploeg: '#d8a31c', oogtv: '#3b8ad0', telefoonrave: '#b04ad0', vandermeden: '#8fb8a8' };
-const BAAS = { museumbus: 'Conservator Wielema', suikerbieten: 'Opzichter Bietenbult', herstelploeg: 'Voorman Stutter', oogtv: 'Verslaggever Wendt', telefoonrave: 'Organisator Kiepkap', vandermeden: 'Portier Stilman' };
+const KLEUR = { museumbus: '#b9552b', suikerbieten: '#7a8a3a', herstelploeg: '#d8a31c', oogtv: '#3b8ad0', telefoonrave: '#b04ad0', vandermeden: '#8fb8a8', schouwburg: '#c0392b', bernardrit: '#9a7a4a' };
+const BAAS = { museumbus: 'Conservator Wielema', suikerbieten: 'Opzichter Bietenbult', herstelploeg: 'Voorman Stutter', oogtv: 'Verslaggever Wendt', telefoonrave: 'Organisator Kiepkap', vandermeden: 'Portier Stilman', schouwburg: 'Portier Kleppe', bernardrit: 'Bernhard' };
 const DOEL_NAAM = {
   museumbus: ['Dorpsfeest Oost', 'Tentoonstelling Zuid'],
   suikerbieten: ['de bietenhoop', 'de suikerfabriek'],
   herstelploeg: ['het eerste dorpshuis', 'het tweede dorpshuis', 'het derde dorpshuis'],
   oogtv: ['live-plek 1', 'live-plek 2', 'live-plek 3'],
   vandermeden: ['de hoofdpoort', 'de tuinpoort'],
+  schouwburg: ['de eerste hoek', 'de tweede hoek', 'de derde hoek'],
+  bernardrit: ['het eerste bankje', 'het tweede bankje'],
 };
 
 function plek(map, regel) {
@@ -122,7 +124,10 @@ function maakRit(regel) {
       const extra = id === 'museumbus' ? ` · glans ${Math.round(s.shine)}%`
         : id === 'suikerbieten' ? (s.phase === 'laden' ? ` · laden ${Math.round(s.fill * 100)}%` : ` · lading ${Math.round(s.load)}%`)
           : id === 'herstelploeg' ? ` · vertrouwen ${Math.round(s.trust)}%`
-            : ` · beeld ${Math.round(Math.min(1, s.focus / 3) * 100)}%`;
+            : id === 'vandermeden' ? ` · rust ${Math.round(s.rust)}%`
+              : id === 'schouwburg' ? ` · klachten ${s.klacht}/3`
+                : id === 'bernardrit' ? ` · verhalen ${Math.round(s.verhalen)}%`
+                  : ` · beeld ${Math.round(Math.min(1, s.focus / 3) * 100)}%`;
       return {
         marker: { x: doel.x, y: doel.y },
         progress: `${regel.bedrijf} · ${Math.min(i + 1, d.doelen.length)}/${d.doelen.length}${extra}`,
@@ -222,5 +227,7 @@ export const suikerbieten = maakRit(STAD_MISSIES[1]);
 export const herstelploeg = maakRit(STAD_MISSIES[2]);
 export const oogtv = maakRit(STAD_MISSIES[3]);
 export const vandermeden = maakRit(STAD_MISSIES[5]);
+export const schouwburg = maakRit(STAD_MISSIES[6]);
+export const bernardrit = maakRit(STAD_MISSIES[7]);
 export const telefoonrave = maakRave();
-export const STAD_JOBS = [museumbus, suikerbieten, herstelploeg, oogtv, telefoonrave, vandermeden];
+export const STAD_JOBS = [museumbus, suikerbieten, herstelploeg, oogtv, telefoonrave, vandermeden, schouwburg, bernardrit];
