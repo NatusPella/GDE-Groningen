@@ -7,6 +7,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Nieuw
+- **Voertuigregister (nog niet in beeld bekeken):** alle voertuigmodellen staan nu in één register (`vehicleregister.js`) met hoe ze te koop zijn, te upgraden, te spawnen en in cutscenes mogen. Nieuw: de Ommelander Trekker is te koop bij Ome Harm, zeilboten hebben upgrades (diep roer, zeillier) en het verkeer verandert met de tijd van de dag: 's nachts meer taxi's en opgevoerde auto's, overdag meer bestelbussen en vrachtwagens, 's avonds meer bezorgbussen. Jelles limo, de bakkie en de aanhanger in de colonne en de sloep van Wiebe gebruiken nu de gewone modellen.
 - **Tv verplaatsen in de flat (nog niet in beeld bekeken, #206):** de Kiekkast kan via de pc (Flat inrichten) naar drie plekken aan de noordmuur van de woonkamer; het zitpunt en de plek vanwaar je kijkt gaan mee. Bank en bedden blijven op hun plek.
 - **Wolken aan de hemel (nog niet in beeld bekeken, #194, #195):** bij helder weer hangen een paar losse wolkjes, bij bewolkt weer vult de lucht zich, bij onweer wordt de laag grijs en trekt sneller. 's Nachts zijn de wolken donker en doorzichtig, zodat sterren en maan zichtbaar blijven.
 - **Fotomodus (nog niet in beeld bekeken, #199):** kantelen met Q en E en scherptediepte met Z en X (zachte randen, scherp in het midden); beide staan ook op de opgeslagen foto.
