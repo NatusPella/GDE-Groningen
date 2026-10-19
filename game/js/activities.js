@@ -34,9 +34,14 @@ import { SNACKKETEN } from './snackketen.js';
 import { EVENEMENTEN } from './evenementenact.js';
 import { REGATTA_GAME } from './regatta.js';
 import { isShopOpen } from './shopui.js';
-import { isCinematicActive } from './cinematics.js';
+import { isCinematicActive, showBanner } from './cinematics.js';
+import { getScene } from './scene3d.js';
+import { showCard } from './hudcards.js';
+import { gameUi } from './minigamekit.js';
 import { registerBusyProbe, registerQuitHook } from './busy.js';
 export { activityBlock, iconDisc } from './activitykit.js';
+
+Object.assign(gameUi, { getScene, showBanner, showCard });
 
 const LIST = [CARBID, KERMIS, HOOGVLIEGER, GEHEIMEN, DRIFT_ZONE, DISCGOLF, PITCHPUTT, SKATEPARK, KARTBAAN, ZWEMBAD, KLIMTOREN, WATERSKI, CARILLON_GAME, PANNENKOEK, HENGELEN, WANDELING, SNACKKETEN, EVENEMENTEN, REGATTA_GAME];
 
