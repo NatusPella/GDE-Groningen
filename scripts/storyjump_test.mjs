@@ -26,10 +26,18 @@ ok(J.jumpSpot({ start: { x: NaN, y: 0 } }, { x: 1, y: 1 }).source === 'gids', 'N
 ok(J.jumpSpot(null, null) === null && J.jumpSpot({}, {}) === null, 'geen plek: null');
 for (let i = 0; i < 20; i++) { const s = J.jumpSpot(def, null, { dist: 12, rand: Math.random }); ok(Math.abs(Math.hypot(s.x - 1000, s.y + 500) - 12) < 1e-6, 'afstand klopt op elke hoek'); }
 
+// #261: een plek in een gebouw of in het water wordt overgeslagen
+const s4 = J.jumpSpot(def, null, { dist: 12, rand: mid, vrij: (x) => x < 1005 });
+ok(s4 && s4.x < 1005 && Math.hypot(s4.x - 1000, s4.y + 500) > 1, 'bezette plek: een vrije plek in de buurt');
+const s5 = J.jumpSpot(def, null, { dist: 12, rand: mid, vrij: () => false });
+ok(s5.x === 1012 && s5.y === -500, 'niets vrij: de eerste plek blijft');
+const s6 = J.jumpSpot(def, null, { dist: 12, rand: mid, vrij: () => true });
+ok(s6.x === 1012, 'vrije eerste plek blijft de eerste');
+
 // de bron: devJumpTo gebruikt de plan-functies en sluit duif, heli en voertuig af
 const story = readFileSync(path.join(root, 'game/js/story.js'), 'utf8');
 const fn = story.slice(story.indexOf('export function devJumpTo'), story.indexOf('export function devCompleteStep'));
-for (const part of ['jumpPrep(', 'jumpSpot(', 'failActiveMission(', 'stopPigeonMode(', 'abortHeliRun(', 'exitVehicle(', 'opts.start']) ok(fn.includes(part), 'devJumpTo gebruikt ' + part);
+for (const part of ['jumpPrep(', 'jumpSpot(', 'buildingAt(', 'waterAt(', 'failActiveMission(', 'stopPigeonMode(', 'abortHeliRun(', 'exitVehicle(', 'opts.start']) ok(fn.includes(part), 'devJumpTo gebruikt ' + part);
 ok(fn.indexOf('failActiveMission(') < fn.indexOf('if (isMissionActive()) return false'), 'de missie wordt afgebroken vóór de controle');
 
 console.log(`${n - fails}/${n} ok`);
