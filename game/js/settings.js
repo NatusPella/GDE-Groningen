@@ -31,6 +31,8 @@ const BASE_DEFAULTS = {
   fov: 64,
   cameraDistance: 1,
   showMinimap: true,
+  // shift+klik op de kaart verplaatst je naar die plek (kaartteleport.js)
+  mapShiftTeleport: true,
   showHints: true,
   // which glyphs every hint shows: 'auto' (what you used last), 'keys' or 'pad'
   hintSource: 'auto',

@@ -3,7 +3,7 @@ import { pinchStep } from './touchlogic.js';
 import { MODES, roadAllowed, travelModeOf } from './roadaccess.js';
 import { forEachCashTarget } from './cashvan.js';
 import { facilitiesOf } from './facilities.js';
-import { mapIconScale, mapKindVisible, placeIcons, iconGapPx } from './mapicons.js';
+import { mapIconScale, mapKindVisible, placeIcons, iconGapPx, mapIconAlpha } from './mapicons.js';
 import { drawMapIcon, drawMapIconHalo, drawRoute, drawRoadRoute, forEachPoliceUnit, declutter, ROUTE_COLORS, routeLabel, drawSearchArea, getPoliceSearch, missionMapKind } from './hud_panel.js';
 import { getGaragesForRender } from './garages.js';
 import { getHomeForRender, getHomeGarageForRender, getHomeMooringForRender, getHomeHelipadForRender } from './home.js';
@@ -35,6 +35,7 @@ import { worldPlaceLabels, worldPlacesReady } from './worldplaces.js';
 import { tileIndexOf, tileOrigin, TILE_M } from './gdt.js';
 import { ensureCountryEdge } from './countryplan.js';
 import { getSettings, onSettingsChange } from './settings.js';
+import { wantsTeleport, plekNaam } from './kaartteleport.js';
 import { DEV } from './devflags.js';
 import { getGoal, setGoal, clearGoal, missionOnMap } from './goal.js';
 import { getMissionLayer } from './missionmaplive.js';
@@ -1208,7 +1209,7 @@ function drawDynamicMarkers(ctx, world) {
   for (const p of world.coopPartners || []) if (p.zichtbaar) icon(null, 'partner', p.x, p.y, p.naam, { angle: p.heading, kleur: p.kleur, vorm: p.vorm }, p.tekst);
   for (const q of placeIcons(queue, iconGapPx(sc))) {
     drawMapIconHalo(ctx, q.kind, q.sx, q.sy, sc);
-    drawMapIcon(ctx, q.kind, q.sx, q.sy, sc, { t, ...q.opts });
+    drawMapIcon(ctx, q.kind, q.sx, q.sy, sc, { t, alpha: mapIconAlpha(q.kind, z), ...q.opts });
     if (q.name) hover.push({ sx: q.sx, sy: q.sy, name: q.name, sub: q.sub, x: q.x, y: q.y, kind: q.kind, ...q.pick });
   }
   state.dynHover = hover;
@@ -1510,19 +1511,20 @@ function updateTooltip(sx, sy) {
 // kaart; het magische snelreizen is geen reisoptie meer (#97): reizen kan zelf
 // rijden of meerijden.
 function teleportTo(world, target) {
-  if (!world.cheatActions || !state.teleport) return;
+  if (!world.cheatActions) return;
   if (!world.cheatActions.teleport(target.x, target.y, target.name)) return;
-  setMapTeleport(false);
+  if (state.teleport) setMapTeleport(false);
   if (closeHandler) closeHandler();
   else closeMap();
 }
 
-function handleClick(world, sx, sy) {
+function handleClick(world, sx, sy, shift = false) {
   const h = nearestHover(sx, sy);
   const [wx, wy] = toWorld(sx, sy);
-  if (state.teleport) {
+  // de cheat Overal en nergens, of shift+klik (instelling mapShiftTeleport, kaartteleport.js)
+  if (wantsTeleport({ shift, enabled: getSettings().mapShiftTeleport, teleportMode: state.teleport })) {
     if (h && h.teleport) teleportTo(world, h.teleport);
-    else teleportTo(world, { x: wx, y: wy, name: streetAt(wx, wy, 60) || wijkAt(wx, wy) || 'deze plek' });
+    else teleportTo(world, { x: wx, y: wy, name: plekNaam(streetAt(wx, wy, 60), wijkAt(wx, wy)) });
     return;
   }
   if (state.card) { hideCard(); if (!h) return; }
@@ -2128,7 +2130,7 @@ export function initMapView(world) {
     endDrag();
     if (!d.moved && state.open) {
       const [sx, sy] = canvasPos(e);
-      handleClick(world, sx, sy);
+      handleClick(world, sx, sy, e.shiftKey);
     }
   }, true);
   // a touchscreen sends no mouse events while dragging: one finger pans,

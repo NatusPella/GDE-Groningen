@@ -166,10 +166,43 @@ export function haloOutline(ground) {
 // glyphs; the pairs below are checked by mapicons_test (fill/ink 3:1, and on
 // every ground at least one of the two reaches 3:1).
 export const FLAT_FILL = {
-  zorg: '#ff5a5a', politiebureau: '#5a8bff', garage: '#ffb23f', station: '#9a7bff', job: '#4fd6c4',
-  shop: '#ff8ad0', fun: '#a6e04f', horeca: '#ff9a4f', ommeland: '#7fd0ff',
-  flitspaal: '#ffe14a', tip: '#e8b060', other: '#f5f0e6',
+  zorg: '#ef4444', politiebureau: '#3b82f6', garage: '#f59e0b', station: '#8b5cf6', job: '#14b8a6',
+  shop: '#ec4899', fun: '#3fae49', horeca: '#f97316', ommeland: '#38bdf8',
+  flitspaal: '#facc15', tip: '#d6a05a', other: '#f5f0e6',
 };
+// The badge: one shape per category next to its colour (so colour is never the only cue),
+// a light glyph on a saturated fill, a darker rim, a soft shadow (hud_panel.js flatSprite).
+export const BADGE_SHAPE = {
+  zorg: 'circle', politiebureau: 'shield', garage: 'hex', station: 'squircle', job: 'diamond',
+  shop: 'tile', fun: 'circle', horeca: 'circle', ommeland: 'circle', flitspaal: 'tile', tip: 'circle', other: 'circle',
+};
+export const BADGE_UNITS = 11; // the badge's width in base units (the glyph is about 10)
+export const GLYPH_LIGHT = '#fff8ea';
+export function badgeShape(kind) { return BADGE_SHAPE[mapCategory(kind)] || 'circle'; }
+// the glyph colour on a fill: cream where it reaches 3:1 (blue, red, purple), else dark ink (yellow, lime)
+export function badgeGlyphColor(fill) {
+  return hexContrast(GLYPH_LIGHT, fill) >= GRAPHIC_CONTRAST ? GLYPH_LIGHT : HALO_DARK;
+}
+// '#rrggbb' mixed towards white (k > 0) or black (k < 0), k in -1..1
+export function shadeHex(hex, k) {
+  const t = k < 0 ? 0 : 255, a = Math.abs(k);
+  const c = (i) => Math.round(parseInt(hex.slice(1 + i * 2, 3 + i * 2), 16) * (1 - a) + t * a);
+  return '#' + [c(0), c(1), c(2)].map((v) => v.toString(16).padStart(2, '0')).join('');
+}
+// states of a place: 'aanwezig' (default), 'ontdekt' (seen before, not here now: softer),
+// 'vergrendeld' (not open yet: grey, dimmed)
+export const ICON_STATES = ['aanwezig', 'ontdekt', 'vergrendeld'];
+export function stateLook(state) {
+  if (state === 'vergrendeld') return { gray: true, alpha: 0.62 };
+  if (state === 'ontdekt') return { gray: false, alpha: 0.82 };
+  return { gray: false, alpha: 1 };
+}
+// low-priority categories fade in just after the zoom they appear at, so the map does not pop
+export function mapIconAlpha(kind, zoom) {
+  const min = CATS[mapCategory(kind)].min;
+  if (!(min > 0.5)) return 1;
+  return Math.max(0.8, Math.min(1, 0.8 + (zoom - min) / (min * 0.5) * 0.2));
+}
 export const FLAT_INK = HALO_DARK;
 // the colour of the category, or null when this kind keeps its own look (you, goals, missions,
 // police, mission-layer marks, your own vehicles and home)
