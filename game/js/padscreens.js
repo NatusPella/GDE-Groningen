@@ -63,6 +63,15 @@ export const PAD_SCREEN_EDGES = [
   { from: 'voet', to: 'frituur', ctx: 'foot', key: 'e' },
   { from: 'frituur', to: 'voet', ctx: 'foodtruck', key: 'backspace' },
   { from: 'frituur', to: 'pauze', ctx: 'foodtruck', key: 'escape' },
+  // reuzenrad: Y (E) stapt uit, de rechterstick kijkt rond (voetsituatie)
+  { from: 'voet', to: 'reuzenrad', ctx: 'foot', key: 'e' },
+  { from: 'reuzenrad', to: 'voet', ctx: 'foot', key: 'e' },
+  { from: 'reuzenrad', to: 'pauze', ctx: 'foot', key: 'escape' },
+  // tekstvelden (naam, coöpcode, zoeken): A opent het schermtoetsenbord (padkeyboard.js), B sluit het
+  { from: 'saveslots', to: 'toetsenbord', ctx: 'menu', key: 'enter' },
+  { from: 'kaart', to: 'toetsenbord', ctx: 'menu', key: 'enter' },
+  { from: 'pauze', to: 'toetsenbord', ctx: 'menu', key: 'enter' },
+  { from: 'toetsenbord', to: 'pauze', ctx: 'menu', key: 'escape' },
 ];
 
 // Kan deze situatie de toets met alleen de controller maken? Eerst knoppen,

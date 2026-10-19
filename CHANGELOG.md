@@ -7,6 +7,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Nieuw
+- **Schermtoetsenbord voor de controller (#151, niet met een echte controller of in beeld getest):** druk met de onderste knop op een tekstveld (spelnaam, coöpcode, zoeken) en er opent een toetsenbord dat je met het D-pad bedient: onderste knop typt, linker knop wist, bovenste knop spatie, LB/RB verplaatst de cursor, rechter knop sluit. De schermgraaf voor de controller kent nu ook het reuzenrad en het toetsenbord.
 - **Spijkermat van de politie:** vanaf vier sterren ligt er voor een wegblokkade een spijkermat dwars over de weg. Rijd je er overheen, dan krijg je meestal een lekke band (naar de garage). Verder niets.
 - **Akte 1 duidelijker, appjes op de goede stap (nog niet in beeld bekeken):** Gronings Ontzet wordt in de opening uitgelegd, de complimentenladder van Berend begint in de eerste missie, de hoedgrap en het slot van missie 1 zijn helderder, Jelle is in akte 1 één persoon, en 'stelen om te bewaken' heeft een reden. Mem-appjes en andere stille berichten komen op de stap waar ze over gaan, zonder dubbele bezorging. Akte 3 en 5 krijgen een terugblik, Jelle en de Zitmoi komen vrij in het verhaal, de reisbeats beginnen op de goede plek.
 - **Eén nacht, volgens de zon:** de straatverlichting, de nachtzender, de rustige straten, de beroving en de missies die 's nachts moeten, gebruiken nu allemaal dezelfde nacht: wanneer de zon laag genoeg staat. In de zomer begint de nacht later en is hij korter, en alles schakelt tegelijk.
