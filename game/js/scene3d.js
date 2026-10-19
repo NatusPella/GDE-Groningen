@@ -2705,11 +2705,26 @@ export function update3D(dt, world) {
   renderer.shadowMap.autoUpdate = !(menuCover && menuShadowDone) && !shadowPassSkipped(cpuLevel(), shadowFrame++, focusSpeed);
   if (menuCover) menuShadowDone = true;
   if (sizeDirty) applyRenderSize();
+  skipHiddenMatrixWalk();
   postfx.render();
   canvasFrames++;
   renderer.shadowMap.autoUpdate = true;
   probe.mark('3d:render');
   probe.identify(scene);
+}
+
+// three walks the matrices of hidden objects too: the pooled vehicles and
+// people and far wildlife at the top of the scene (~1100 of ~5000 nodes with
+// matrixAutoUpdate) cost ~0.6 us each every frame. A hidden group sits out of
+// that walk and is back in it the frame it shows again (the owners set
+// visible before this runs, just ahead of the render).
+function skipHiddenMatrixWalk() {
+  const kids = scene.children;
+  for (let i = 0; i < kids.length; i++) {
+    const c = kids[i];
+    if (c.isLight || c.isCamera) continue;
+    c.matrixWorldAutoUpdate = c.visible;
+  }
 }
 
 // Every lit material has two program variants: with the night-light rig and
