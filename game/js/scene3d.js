@@ -2737,6 +2737,10 @@ function skipHiddenMatrixWalk() {
 // ever switches over. Nothing here blocks on the driver.
 const PREWARM_LAYER = 31;
 const PREWARM_SLICE = 120;
+// once two passes over the scene have found nothing new for this rig variant only a few top-level groups are scanned per frame:
+// the full-speed pass walked every node of the scene every ~3 frames (~0.9 ms per frame)
+const PREWARM_SLICE_QUIET = 12;
+let prewarmFound = 0, prewarmQuiet = 0, prewarmLastVariant = null;
 const PREWARM_WAIT_MS = 20000;
 const PREWARM_POLL_MS = 250;
 const prewarmed = { true: new Set(), false: new Set() };
@@ -2824,6 +2828,7 @@ function queuePrewarm(o, variant) {
     if (!done.has(key)) {
       done.add(key);
       prewarmQueue.push({ proxy: makePrewarmProxy(o, m), variant });
+      prewarmFound++;
     }
     // no depth programs while the preset has shadows off ('laag'): compiling
     // them only competes with the ones that will be drawn
@@ -2833,6 +2838,7 @@ function queuePrewarm(o, variant) {
       if (done.has(dkey)) continue;
       done.add(dkey);
       prewarmQueue.push({ proxy: makePrewarmProxy(o, dm), variant });
+      prewarmFound++;
     }
   }
 }
@@ -2927,9 +2933,10 @@ function drawPrewarmBatch() {
 
 function prewarmLightVariants() {
   const variant = !isLightRigOn();
+  if (variant !== prewarmLastVariant) { prewarmLastVariant = variant; prewarmQuiet = 0; }
   const kids = scene.children;
-  for (let i = 0, n = Math.min(PREWARM_SLICE, kids.length); i < n; i++) {
-    if (prewarmCursor >= kids.length) prewarmCursor = 0;
+  for (let i = 0, n = Math.min(prewarmQuiet >= 2 ? PREWARM_SLICE_QUIET : PREWARM_SLICE, kids.length); i < n; i++) {
+    if (prewarmCursor >= kids.length) { prewarmCursor = 0; prewarmQuiet = prewarmFound ? 0 : prewarmQuiet + 1; prewarmFound = 0; }
     const o = kids[prewarmCursor++];
     if (o !== prewarmRoot) scanForPrewarm(o, variant);
   }
