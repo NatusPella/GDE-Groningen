@@ -13,6 +13,13 @@ ok(!fitsProfile(prof, w(null)), 'on foot: no match');
 car.color = '#ffffff';
 ok(!fitsProfile(prof, w(car)), 'repainted: no match');
 ok(fitsProfile(null, w(car)), 'no description: fits');
+{ const flash = { color: '#7a1f1f', model: { name: 'sedan' }, tuning: { opvallend: 0.5 } };
+  const pf = profileOf(w(flash));
+  ok(Math.abs(decayFactor(pf, w(flash)) - 0.8) < 1e-9, 'flashy tuning: slower cooldown');
+  flash.tuning.opvallend = 3;
+  ok(Math.abs(decayFactor(pf, w(flash)) - 0.6) < 1e-9, 'flashy tuning is capped at 40% slower');
+  flash.tuning.opvallend = 0;
+  ok(decayFactor(pf, w(flash)) === 1, 'no flash: normal'); }
 const foot = profileOf(w(null));
 ok(fitsProfile(foot, w(null)) && !fitsProfile(foot, w(car)), 'on foot stays on foot');
 ok(hintFor(prof, w(other), false) === MISMATCH_HINT, 'another car: one hint');

@@ -56,6 +56,8 @@ ok(/recordChallengeResult[^]*?kind: medal >= 2/.test(src['achievements.js']), 'm
 
 // 4. spots that must make a noise (regression list: the thing, where, what)
 const MUST = [
+  ['spraakdemping motor', 'audio.js', /speechDuckFactor\('voertuig', speechLevel\)/],
+  ['spraakdemping omgeving', 'audio.js', /speechDuckFactor\('omgeving', speechLevel\)/],
   ['vuurwerk (worp)', 'throwables.js', /firework/],
   ['vuurwerk (show)', 'worldevents.js', /firework/],
   ['carbid', 'carbid.js', /carbid/],

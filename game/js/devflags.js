@@ -70,7 +70,7 @@ export const FLAGS = Object.freeze({
 });
 
 export const FLAG_DOCS = Object.freeze({
-  dev: 'Verhaalpaneel op F9; eigen opslag (gde-dev:), raakt je echte spelstand niet',
+  dev: 'Verhaalpaneel op F9; eigen opslag (gde-dev:), raakt je echte savegame niet',
   storytest: 'Geautomatiseerde verhaaltest; opslag alleen in het geheugen',
   autoplay: 'Spelbot (#186): window.__bot (playerapi.js) levert de spelstatus en neemt acties aan; vaste seed (autoplay=seed), opslag alleen in het geheugen',
   stil: 'Geen audio en geen pauze bij verborgen tabblad (testsessies)',
@@ -106,7 +106,7 @@ export const FLAG_DOCS = Object.freeze({
   simauto: "Ook gewone auto's ver van de speler door de simulatieworker laten rijden (simbridge.js, #58); alleen met de worker aan; nog niet standaard tot de meting winst laat zien",
   simlagen: 'Standaard aan; ?zonderlagen zet uit. Verkeer en voetgangers volgens simulatielagen per streek en afstand (simlagen.js)',
   zwartcheck: 'Controleer op zwarte beelden (blackframe)',
-  testmenu: 'Testmenu op F10 met alle schakelaars en snelkoppelingen; eigen opslag (gde-dev:), raakt je echte spelstand niet',
+  testmenu: 'Testmenu op F10 met alle schakelaars en snelkoppelingen; eigen opslag (gde-dev:), raakt je echte savegame niet',
   sfxtest: 'Geluidstest: paneel met alle effecten, een afstandsschuif en een afspeelknop per effect; F8 verbergt het (#173)',
   brugbotsing: 'Stuurt na een paar seconden een binnenvaartschip tegen de dichtstbijzijnde brug (#9)',
   reizen: 'Reisbeats in het nieuwe verhaal: keuze Meerijden, Zelf rijden of Overslaan bij een sprong (#97); staat standaard aan, uit met zonderreizen en in de testmodi',

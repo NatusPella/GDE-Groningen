@@ -4,7 +4,8 @@
 // a place on the right of the incoming traffic, none inside a bigger place,
 // one-ways only the way they run, a signpost at a three-way junction pointing
 // to places by bearing, the same items in whichever tile, nothing on a motorway.
-import { placeSignItems, armDestination, ENTRY } from '../game/js/placesigns.js';
+import { placeSignItems, armDestination, ENTRY, entryOf } from '../game/js/placesigns.js';
+import { builtUp } from '../game/js/worldplaces.js';
 import { furnitureForTile } from '../game/js/streetfurniture.js';
 
 let n = 0, fails = 0;
@@ -67,5 +68,12 @@ ok(fur.colliders.some((c) => c.kind === 'paal'), 'the post is solid');
 ok(furnitureForTile({ x0: 4000, y0: -500, size: 1000, roads: [rd] }).items.every((i) => i.k !== 'placesign'), 'without places no boards');
 const again = furnitureForTile({ x0: 4000, y0: -500, size: 1000, roads: [rd], opts: { towns } });
 ok(again.items.map((i) => i.key).join() === fur.items.map((i) => i.key).join(), 'deterministic');
+// a place with a measured built-up radius moves its boards to that circle
+{
+  const big = placeSignItems({ roads: [rd], towns: [{ n: 'Oostdorp', x: 5000, y: 0, kind: 'village', r: 1200 }] }).filter((i) => i.k === 'placesign' && !i.end);
+  ok(big.length === 2 && big.every((b) => Math.abs(Math.abs(b.x - 5000) - 1200) < 60), 'a measured radius sets the board distance', big.map((b) => b.x).join());
+  ok(entryOf({ kind: 'village', r: 99999 }) === ENTRY.village && entryOf({ kind: 'town' }) === ENTRY.town, 'a silly radius falls back to the kind');
+}
+ok(builtUp({ kind: 'village', pop: 500 }).r > 250 && builtUp({ kind: 'village', pop: 500 }).r < 400 && builtUp({ kind: 'town', pop: 1e6 }).r === 3200 && builtUp({ kind: 'village' }).r === undefined, 'built-up radius from the population');
 console.log(`${n - fails}/${n} place sign checks passed`);
 process.exit(fails ? 1 : 0);
