@@ -96,7 +96,7 @@ ok(missionScene('X99.intro', [{ speaker: 'Tammo', text: 'x', at: 1, dur: 2 }], {
   const i1 = lines.findIndex((l) => l.text.startsWith('Douwe. Hij is los'));
   const early = scene.sample(0.5, a), late = scene.sample(lines[i1].at + 2.5, a);
   ok(late.props.trekker.x - early.props.trekker.x > 3, 'M02: the tractor drives away');
-  ok(late.props.aanhanger.x < late.props.trekker.x - 5, 'M02: the trailer stays behind');
+  ok(Math.abs(late.props.automaat.x - early.props.automaat.x) < 0.5, 'M02: the machine stays behind');
   ok(scene.sample(0.5, a).actors.durk.visible === false, 'M02: Durk sits in the cab');
   const end = scene.sample(total - 0.2, a);
   ok(end.actors.tammo.visible === false && end.actors.tessa.visible === false, 'M02: they get into the car');

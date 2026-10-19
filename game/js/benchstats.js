@@ -10,6 +10,7 @@ export const BENCH_ROUTE = [
   ['vismarkt', 4.0, 'stad'],
   ['escapade', 3.6, 'stad'],
   ['ommeland', 4.0, 'provincie'],
+  ['spoor', 3.6, 'spoor'],
   ['aerial', 4.0, 'provincie'],
   ['boat', 4.0, 'water'],
   ['gH14', 3.6, 'water'],
@@ -18,7 +19,7 @@ export const BENCH_ROUTE = [
   ['anita', 3.0, 'cutscene'],
   ['vitrine', 4.0, 'cutscene'],
 ];
-export const BENCH_CATEGORIES = { stad: 'Stad', provincie: 'Provincie', water: 'Water', drukte: 'Drukke scène', cutscene: 'Cutscene' };
+export const BENCH_CATEGORIES = { stad: 'Stad', provincie: 'Provincie', water: 'Water', spoor: 'Spoor', drukte: 'Drukke scène', cutscene: 'Cutscene' };
 export const benchRouteSeconds = () => BENCH_ROUTE.reduce((a, [, d]) => a + d, 0);
 export const benchCategoryOf = (id) => { const e = BENCH_ROUTE.find(([i]) => i === id); return e ? e[2] : null; };
 

@@ -2,7 +2,8 @@
 // scenes in game/js/cutscenes.js, on the real script lines of the opening:
 //   node scripts/cutscript_test.mjs
 import { readFileSync } from 'node:fs';
-import { compileScene, validateScene, resolveTime, fitCamera, fitAnchor, ACTOR_ANIMS, shotPoints } from '../game/js/cutscript.js';
+import { compileScene, validateScene, resolveTime, fitCamera, fitAnchor, ACTOR_ANIMS, PROP_KINDS, shotPoints } from '../game/js/cutscript.js';
+import { PROP_SOURCES, DECOR_KINDS, PLACEHOLDER_KINDS, VEHICLE_MODEL_NAMES, ANIMAL_KINDS, propKindIssue } from '../game/js/cutscenemodels.js';
 import { ANIMS } from '../game/js/actoranim.js';
 import { openingActs, END_CARD, flatScene } from '../game/js/cutscenes.js';
 
@@ -217,6 +218,19 @@ for (const x of compiled) {
   ok(pts.every((q) => Number.isFinite(q.x) && Number.isFinite(q.y) && Math.hypot(q.x - an.x, q.y - an.y) < 80), x.def.id + ': shotPoints near the set');
 }
 ok(shotPoints({ sample() { throw new Error('x'); } }, anchor, 10).length === 0, 'shotPoints survives a failing sample');
+
+// cutscene props come from the world's registers (#136): no placeholder vehicles or animals
+{
+  const vsrc = readFileSync(new URL('../game/js/vehicle.js', import.meta.url), 'utf8') + readFileSync(new URL('../game/js/trafficfleet.js', import.meta.url), 'utf8');
+  const wsrc = readFileSync(new URL('../game/js/wildlife.js', import.meta.url), 'utf8');
+  for (const n of VEHICLE_MODEL_NAMES) ok(new RegExp(`name: '${n}'`).test(vsrc), 'vehicle model in the world register: ' + n);
+  for (const a of ANIMAL_KINDS) ok(new RegExp(`case '${a}':`).test(wsrc), 'animal built by the world: ' + a);
+  for (const k of PROP_KINDS) ok(PROP_SOURCES[k] || DECOR_KINDS.includes(k) || PLACEHOLDER_KINDS.includes(k), 'prop kind classified: ' + k);
+  for (const [k, src] of Object.entries(PROP_SOURCES)) ok((src.vehicle && VEHICLE_MODEL_NAMES.includes(src.vehicle) || src.vehicle === 'van') || (src.animal && ANIMAL_KINDS.includes(src.animal)), 'register entry is real: ' + k);
+  ok(propKindIssue('aanhanger') && !propKindIssue('auto') && !propKindIssue('kat') && propKindIssue('ufo'), 'propKindIssue');
+  const bad = validateScene({ id: 'x', actors: {}, props: { t: { kind: 'aanhanger', at: [0, 0] } }, shots: [], duration: 5 });
+  ok(bad.some((m) => /placeholder/.test(m)), 'a placeholder prop fails validation', bad.join('|'));
+}
 
 console.log(fails ? `${fails} of ${n} checks FAILED` : `cutscript_test: ${n} checks ok`);
 process.exit(fails ? 1 : 0);

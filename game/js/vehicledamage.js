@@ -54,13 +54,22 @@ export const SMOKE_HEALTH = 55; // vanaf hier rookt de motorkap
 export const FIRE_HEALTH = 30; // en hieronder staat hij in brand (vehicle.js VEHICLE_FIRE_HEALTH_THRESHOLD)
 export const DENT_FROM = 0.4; // vanaf deze totale klapsterkte telt hij als gedeukt
 
+// Een scheve of losse motorkap laat de motor eerder roken: vanaf deze klapsterkte vóór en deze gezondheid.
+export const KAP_ROOK_VANAF = 0.7; // gelijk aan scheefAt van de kap in vehicledoors.js
+export const KAP_ROOK_HEALTH = 78;
+export function kapRookt(v, len, wid) {
+  if (!v || v.wrecked) return false;
+  const h = Number.isFinite(v.health) ? v.health : 100;
+  return h <= KAP_ROOK_HEALTH && zoneTotals(v.dentLog, len, wid).voor >= KAP_ROOK_VANAF;
+}
+
 // v: { health, wrecked, disabled, dentLog }
 export function schadeFase(v, len, wid) {
   if (!v) return 'heel';
   if (v.wrecked) return 'wrak';
   const h = Number.isFinite(v.health) ? v.health : 100;
   if (v.disabled || h <= FIRE_HEALTH) return 'brand';
-  if (h <= SMOKE_HEALTH) return 'rook';
+  if (h <= SMOKE_HEALTH || kapRookt(v, len, wid)) return 'rook';
   const t = zoneTotals(v.dentLog, len, wid);
   return h < 90 || t.voor + t.achter + t.zijkant >= DENT_FROM ? 'gedeukt' : 'heel';
 }

@@ -60,5 +60,21 @@ const sw = mkMesh(), idle = mkMesh();
 for (let t = 0; t < 1; t += 1 / 30) { animateActor(sw, { anim: 'zwem', dt: 1 / 30, t }); animateActor(idle, { anim: 'idle', dt: 1 / 30, t }); }
 check('zwemmen ziet er anders uit dan staan', JSON.stringify(sw.userData.armL.rotation) !== JSON.stringify(idle.userData.armL.rotation));
 
+// stoppie: Ctrl + remmen, achterwiel omhoog, niet voor altijd en niet te langzaam
+{
+  const n = createWheelie();
+  run(n, 0.8, { trick: true, throttle: 0, brake: 1, speed: 5, top: 7 });
+  check('stoppie: nuk omlaag', n.nose && n.pitch < -0.2, n.pitch);
+  check('stoppie is geen wheelie', !n.up);
+  run(n, 3, { trick: true, throttle: 0, brake: 1, speed: 5, top: 7 });
+  check('stoppie zakt vanzelf terug', !n.nose && Math.abs(n.pitch) < 0.05, n.pitch);
+  const l = createWheelie();
+  run(l, 1, { trick: true, throttle: 0, brake: 1, speed: 2, top: 7 });
+  check('te langzaam voor een stoppie', !l.nose && l.pitch === 0);
+  const z = createWheelie();
+  run(z, 1, { trick: false, throttle: 0, brake: 1, speed: 5, top: 7 });
+  check('zonder Ctrl geen stoppie', !z.nose && z.pitch === 0);
+}
+
 console.log(bad ? `${bad} mislukt` : 'bewegingrules_test: alles goed');
 process.exit(bad ? 1 : 0);
