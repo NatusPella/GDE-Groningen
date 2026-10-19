@@ -6,6 +6,8 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+- Vuurwerk klinkt nu als een echte bom: harde tik, dreun en knetterend glitter (gerenderd, drie varianten); de overwegbel is een staalslag met nagalm. Offline gecontroleerd op spectrum, niveau en duur; nog niet gehoord.
+- Fietsen en scooters hebben kleine knipperlichtjes aan de stuuruiteinden (scooters ook achter) in plaats van grote blokken. Nog niet in beeld bekeken.
 - Als iemand praat, worden motorgeluid en omgeving nu zachtjes gedempt (eerder alleen de nieuwe effecten). Nog niet gehoord.
 - Het nieuws meldt een kermis in jouw buurt nu als eigen kop met de plaats. Nog niet in het spel gezien.
 - Veertien opgevangen gesprekken van drie regels erbij, voor elke streek twee. Nog niet in het spel gezien.
