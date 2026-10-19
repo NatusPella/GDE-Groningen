@@ -4,7 +4,8 @@ import { openSaveSlots, isSaveSlotsOpen } from './saveslotsui.js';
 import { VERSION } from './version.js';
 import { checkWhatsNew, markVersionSeen, compareVersions } from './whatsnew.js';
 import { pointInPolygon } from './util.js';
-import { openPauseMenu, isPauseMenuOpen } from './pausemenu.js';
+import { openPauseMenu } from './pausemenu.js';
+import { isPauseMenuOpen } from './pausestate.js';
 import { getAchievementSummary } from './achievements.js';
 import { pendingTrailer } from './trailerstate.js';
 // trailer.js (2500 lines) is only loaded when a trailer or benchmark really runs
@@ -402,7 +403,7 @@ export function runStartScreen(world, { render, relocate, tick }) {
     const items = [];
     if (save) items.push({ act: 'continue', label: 'Doorgaan', sub: summaryText(save) });
     items.push({ act: 'new', label: 'Nieuw spel', sub: save ? 'Begin opnieuw in Grunn' : 'Moi! Stap in en rij' });
-    items.push({ act: 'saves', label: 'Spelstanden', sub: 'Kies, hernoem, exporteer of verwijder je spelstanden' });
+    items.push({ act: 'saves', label: 'Savegames', sub: 'Kies, hernoem, exporteer of verwijder je savegames' });
     items.push({ act: 'news', label: 'Wat is er nieuw', sub: 'Alle versies en wijzigingen' });
     items.push({ act: 'settings', label: 'Instellingen', sub: 'Geluid, beeld en camera' });
     items.push({ act: 'about', label: 'Over', sub: 'Credits, licenties en privacy' });
@@ -490,7 +491,7 @@ export function runStartScreen(world, { render, relocate, tick }) {
       const b = buttons[items.findIndex((it) => it.act === 'new')];
       b.classList.toggle('confirm', on);
       b.querySelector('.ss-label').textContent = on ? 'Zeker weten?' : 'Nieuw spel';
-      b.querySelector('small').textContent = on ? 'Enter nog een keer: je spelstand wordt gewist' : items.find((it) => it.act === 'new').sub;
+      b.querySelector('small').textContent = on ? 'Enter nog een keer: je savegame wordt gewist' : items.find((it) => it.act === 'new').sub;
     };
     const restoreWorld = () => {
       world.menuCam = false;

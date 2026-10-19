@@ -25,6 +25,8 @@ export const EDGE_GAGS = {
   eems: { warn: 'Een boot van de Grenswacht komt naast je varen. "Tot hier, maat."', back: 'De Grenswacht loodst je vriendelijk terug naar het Nederlandse water.' },
   duitsland: { warn: 'Een bord: "Grenswacht. Even stoppen graag."', back: 'De Grenswacht stuurt je terug. "Kom maar terug als je Platt spreekt."' },
   friesland: { warn: 'In de verte: een Friese wegversperring.', back: 'Twee neven van Durk en Douwe sturen je terug. "Hjir net, jong."' },
+  schier: { warn: 'De veerboot naar het eiland toetert: u vaart door het vaarwater.', back: 'De veerboot neemt je in het kielzog mee terug. "Eerst een kaartje kopen, schipper."' },
+  rottum: { warn: 'Een bord in het water: "Rottum is verboden natuur. Alleen kijken."', back: 'De plaat is van de zeehonden. Een natuurwachter wuift je vriendelijk terug.' },
   drenthe: { warn: 'Er ligt een hunebed op de weg.', back: 'Drenthe is dicht. Probeer het morgen nog eens.' },
   lucht: { warn: 'Radio: u verlaat het luchtruim van de provincie.', back: 'De autopiloot draait je zachtjes terug.' },
 };
@@ -109,6 +111,11 @@ export function edgeFromOsm(els, project) {
 // copy of the edge layer; a chain that already has another kind keeps it.
 export const EEMS_LON = 6.88;
 export const EEMS_LAT = 53.42;
+// Rottumeroog and Rottumerplaat are forbidden nature; at Schiermonnikoog the
+// ferry sails. [lat0, lat1, lon0, lon1] around the centre of a coast chain.
+export const ROTTUM_BOX = [53.49, 53.62, 6.40, 6.70];
+export const SCHIER_BOX = [53.44, 53.52, 6.05, 6.34];
+const inBox = (la, lo, b) => la >= b[0] && la <= b[1] && lo >= b[2] && lo <= b[3];
 export function coastKinds(edge) {
   if (!edge || !edge.coast) return edge || null;
   const coast = edge.coast.map((L) => {
@@ -116,7 +123,10 @@ export function coastKinds(edge) {
     let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
     for (const [x, y] of L.pts) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
     const [la, lo] = worldToWgs((x0 + x1) / 2, (y0 + y1) / 2);
-    return lo >= EEMS_LON && la <= EEMS_LAT ? { ...L, kind: 'eems' } : L;
+    if (lo >= EEMS_LON && la <= EEMS_LAT) return { ...L, kind: 'eems' };
+    if (inBox(la, lo, ROTTUM_BOX)) return { ...L, kind: 'rottum' };
+    if (inBox(la, lo, SCHIER_BOX)) return { ...L, kind: 'schier' };
+    return L;
   });
   return { ...edge, coast };
 }

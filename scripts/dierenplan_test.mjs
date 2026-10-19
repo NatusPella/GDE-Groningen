@@ -64,7 +64,7 @@ for (const k of SPECIES_IDS) for (let d = 0; d < 30; d += 3) {
 }
 ok(calmed(7, 1, 'koe') && calmed(1, 100, 'koe') && !calmed(1, 3, 'koe'), 'tot rust komen');
 // geluid
-ok(soundOf('koe') === 'cow' && soundOf('schaap') === 'sheep' && soundOf('meeuw') === 'seagull' && soundOf('zeehond') === null && soundOf('xyz') === null, 'geluid');
+ok(soundOf('koe') === 'cow' && soundOf('schaap') === 'sheep' && soundOf('meeuw') === 'seagull' && soundOf('zeehond') === 'seal' && soundOf('reiger') === 'heron' && soundOf('vis') === 'fish' && soundOf('xyz') === null, 'geluid');
 // aansluiting op wildlife.js: limieten volgen streek en kwaliteit
 {
   const base = { seagull: 7, grazer: 3, duck: 6, pigeon: 14, cat: 2, dog: 3 };

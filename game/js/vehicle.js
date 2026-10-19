@@ -30,6 +30,8 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { MODS } from './cheatmods.js';
 import { laneLayout } from './lanes.js';
 import { profileFor, createGearbox, stepGearbox } from './gearbox.js';
+import { loadTuning, tuningEffects } from './tuningplan.js';
+import { KEYS } from './storagekeys.js';
 import { slipAngle } from './drift.js';
 import { MOPED_LEGAL_SPEED } from './motomodels.js';
 import { pickMotor, motorRoadAllowed, motorTarget } from './motortraffic.js';
@@ -933,6 +935,11 @@ export function spawnHeroCarNear(map, x, y, rng = Math.random) {
   const v = spawnVehicleOnRoad(map, point.road, false, rng, false, false, point);
   v.model = HERO_CAR_MODEL;
   v.isHeroCar = true;
+  // de onderdelen van de Escapade uit de garage (#196)
+  try {
+    const all = loadTuning(typeof localStorage !== 'undefined' ? localStorage : null, KEYS.tuning);
+    if (all.hero) v.tuning = tuningEffects(all.hero);
+  } catch (e) { /* zonder opslag geen onderdelen */ }
   // parked at the kerb, waiting for the player - not driving off as traffic
   const kerb = Math.max(0, (point.road.width || 6) / 2 - HERO_CAR_MODEL.wid / 2 - 0.3);
   v.x += -Math.sin(v.angle) * kerb;
@@ -958,8 +965,32 @@ function pruneWrecks(world) {
   for (const v of wrecks.slice(0, wrecks.length - MAX_WRECKS)) vehicles.splice(vehicles.indexOf(v), 1);
 }
 
+// A vehicle in the list twice, or two identical ones stacked on one spot (a mission
+// started twice spawns its van twice; a crash then shoves them apart as "three vans",
+// #211): the later copy goes. The player's own vehicle and anything with another
+// model, label or heading is left alone. Returns how many were removed.
+export function dedupeVehicles(vehicles) {
+  let removed = 0;
+  for (let i = vehicles.length - 1; i >= 0; i--) {
+    const v = vehicles[i];
+    if (vehicles.indexOf(v) < i) { vehicles.splice(i, 1); removed++; continue; }
+    if (v.driver === 'player' || v.wrecked || v.isBoat) continue;
+    for (let j = 0; j < i; j++) {
+      const o = vehicles[j];
+      if (o.driver === 'player' || o.wrecked || o.isBoat) continue;
+      if (Math.abs(o.x - v.x) > 0.6 || Math.abs(o.y - v.y) > 0.6 || (o.model && v.model && o.model.name !== v.model.name) || o.label !== v.label) continue;
+      if (Math.abs(Math.atan2(Math.sin(o.angle - v.angle), Math.cos(o.angle - v.angle))) > 0.3) continue;
+      vehicles.splice(i, 1); removed++;
+      break;
+    }
+  }
+  return removed;
+}
+
 export function manageTrafficPopulation(world, opts = {}) {
-  const { map, player, vehicles } = world;
+  const { map, vehicles } = world;
+  const player = world.cameraOverride && world.streamFocus ? world.streamFocus : world.player; // in a cutscene the traffic fills round the camera's view (#157)
+  dedupeVehicles(vehicles);
   // ?simlagen (issue #18): doelaantal en afstanden per streek uit simlagen.js
   const lagen = FLAGS.simlagen ? verkeerOpties(wijkProfileAt(map, player.x, player.y).key, hourOf(world)) : null;
   const { target = lagen ? lagen.target : 30, spawnMin = lagen ? lagen.spawnMin : 70, spawnMax = lagen ? lagen.spawnMax : 170, despawnDist = lagen ? lagen.despawnDist : 260 } = opts;
@@ -1008,7 +1039,8 @@ export function manageTrafficPopulation(world, opts = {}) {
 // single most Groningen-defining detail of the streetscape, so they get
 // their own population target, favoring dedicated cycleways when present.
 export function manageBikePopulation(world, { target = 16, spawnMin = 40, spawnMax = 140, despawnDist = 220 } = {}) {
-  const { map, player, vehicles } = world;
+  const { map, vehicles } = world;
+  const player = world.cameraOverride && world.streamFocus ? world.streamFocus : world.player; // in a cutscene the traffic fills round the camera's view (#157)
   for (let i = vehicles.length - 1; i >= 0; i--) {
     const v = vehicles[i];
     if (!v.isBike || v.driver === 'player') continue;

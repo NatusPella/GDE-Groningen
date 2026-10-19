@@ -2,7 +2,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { GeoBuilder, vcMaterial, composeMatrix, tubeGeometry, HABBO_PALETTE } from './pixelart3d.js';
 import { Pedestrian, setPedPose, isInsideBuilding, isOnRoad, CITY_CENTRE, releaseFromScene, isSpawnHidden } from './pedestrians.js';
 import { spawnVehicleOnRoad } from './vehicle.js';
-import { isInWater, dist, SeededRng } from './util.js';
+import { isInWater, dist, SeededRng, nearestOnRoadList } from './util.js';
 import { makeProp, addProp, removeProp, isPropBroken, propKey, updateBreakables } from './breakables.js';
 import { initClutter, generateClutter, whiteUV } from './streetclutter.js';
 import { breakableWallsIn } from './elevation.js';
@@ -518,14 +518,8 @@ function ropeGeometry() {
 function nearestRoadAngle(map, x, y) {
   const rp = map.nearestRoadPoint(x, y, 120, true);
   if (!rp) return 0;
-  const pts = rp.road.pts;
-  let best = Infinity, a = 0;
-  for (let i = 0; i < pts.length - 1; i++) {
-    const mx = (pts[i][0] + pts[i + 1][0]) / 2, my = (pts[i][1] + pts[i + 1][1]) / 2;
-    const d = Math.hypot(mx - rp.x, my - rp.y);
-    if (d < best) { best = d; a = Math.atan2(pts[i + 1][1] - pts[i][1], pts[i + 1][0] - pts[i][0]); }
-  }
-  return a;
+  const q = nearestOnRoadList([rp.road], x, y);
+  return q ? Math.atan2(q.dy, q.dx) : 0;
 }
 
 function findTerraceSpot(map, h, clear) {
