@@ -2076,6 +2076,7 @@ function ensureCtx() {
   if (ctx.state === 'suspended') ctx.resume().catch(() => {});
   window.addEventListener('pointerdown', unlockAudio, true);
   window.addEventListener('keydown', unlockAudio, true);
+  window.addEventListener('touchend', unlockAudio, true);
   document.addEventListener('visibilitychange', onVisibilityChange);
   for (const ev of ['focus', 'pageshow']) window.addEventListener(ev, () => resumeCtx(ev));
   document.addEventListener('fullscreenchange', () => resumeCtx('fullscreen'));

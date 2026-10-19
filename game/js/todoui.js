@@ -6,7 +6,8 @@ import { wasHelped } from './assistlive.js';
 import { getTodoItems, chooseTodo, mapIconUrl, placeName, GROUPS, STATUS_LABEL, buyFjordUpgrade } from './todo.js';
 import { getStoryView, getStorySteps, getStoryJournal, requestCredits } from './story.js';
 import { PARTS, CLUES, WHY } from './storyarc.js';
-import { getAchievementView, MEDALS } from './achievements.js';
+import { getAchievementView, getAchievementSummary, getSaveSet, EIERBAL_TOTAL, MEDALS } from './achievements.js';
+import { SECRETS_TOTAL } from './geheimen.js';
 import { getGoal, clearGoal, storyWaiting } from './goal.js';
 import { formatDistance } from './routing.js';
 import { dualHtml } from './subtitles.js';
@@ -18,7 +19,7 @@ import { calIcon } from './calendar.js';
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const PART_IDS = Object.keys(PARTS);
 
-const ui = { kind: 'alles', near: false, sel: null, open: null, more: new Set(), folds: new Set(['clues']) };
+const ui = { kind: 'alles', near: false, sel: null, open: null, more: new Set(), folds: new Set(['clues', 'quick']) };
 const bars = new Map();
 const nums = new Map();
 
@@ -40,6 +41,9 @@ const ICON = {
   flag: '<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>',
   pin: '<path d="M12 21s-6.5-6-6.5-11a6.5 6.5 0 0 1 13 0c0 5-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.3"/>',
   chev: '<path d="M9.5 6l6 6-6 6"/>',
+  clock: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',
+  coin: '<circle cx="12" cy="12" r="8.5"/><path d="M14.5 9.2c-.5-.8-1.4-1.2-2.5-1.2-1.4 0-2.4.7-2.4 1.8 0 2.5 5 1.2 5 3.8 0 1.1-1 1.9-2.6 1.9-1.2 0-2.1-.5-2.6-1.3M12 6.5V8M12 16v1.5"/>',
+  cup: '<path d="M7 3h10v3a5 5 0 0 1-10 0zM7 5H4v1a3 3 0 0 0 3 3M17 5h3v1a3 3 0 0 1-3 3M12 11v5M8 20h8l-1-4H9z"/>',
 };
 const svg = (d) => `<svg viewBox="0 0 24 24" aria-hidden="true">${d}</svg>`;
 
@@ -135,6 +139,7 @@ function heroHtml(world) {
     `<div class="m-acts ov-acts"><button type="button" class="m-bp" data-action="resume">Doorgaan <span class="m-kc dark">Esc</span></button>` +
     `${it && !goal ? `<button type="button" class="m-bg" data-todo-goal="${esc(it.key)}">Zet als doel</button>` : ''}` +
     `${it && goal ? `<button type="button" class="m-bg" data-todo-goal="${esc(it.key)}">Terug naar het verhaal</button>` : ''}` +
+    `<button type="button" class="m-bg" data-goto="map">${svg(ICON.pin)}Kaart</button>` +
     `<button type="button" class="m-bg" data-todo-view="verhaal">Alle missies</button>` +
     `${sv.canSkip ? `<button type="button" class="m-bt" data-story-skip>${esc(sv.skipLabel)}</button>` : ''}</div>${goalLine(world)}</article>`;
 }
@@ -155,14 +160,32 @@ function disc(id, title, hint, inner) {
     `<div class="m-fold" id="pm-f-${id}" data-fold-body="${id}"${open ? '' : ' hidden'}>${inner}</div>`;
 }
 
+// The state of the game in four tiles: a quick look, no text to read (#34, #92)
+function tilesHtml(world, extra) {
+  const ms = items.filter((it) => it.group === 'missies');
+  const mDone = ms.filter((it) => it.status === 'klaar').length;
+  const ach = getAchievementSummary();
+  const found = getSaveSet('eierballen').size + getSaveSet('geheimen').size, all = EIERBAL_TOTAL + SECRETS_TOTAL;
+  const min = Math.floor((extra.play || 0) / 60);
+  const play = min < 1 ? 'net begonnen' : min < 60 ? `${min} min` : `${Math.floor(min / 60)} u ${String(min % 60).padStart(2, '0')}`;
+  const tile = (ic, label, val, pct, goto) => `<button type="button" class="ov-tile" ${goto ? `data-goto="${goto}"` : 'tabindex="-1"'} aria-label="${esc(label)}: ${esc(val)}">${svg(ic)}<span class="ov-tv">${esc(val)}</span><span class="ov-tl mut">${esc(label)}</span>${pct == null ? '' : `<span class="m-bar"><i style="width:${pct}%"></i></span>`}</button>`;
+  return '<div class="ov-tiles">' +
+    tile(ICON.coin, 'Geld', `€${Math.floor(world.money || 0).toLocaleString('nl-NL')}`, null, 'spullen') +
+    tile(ICON.clock, 'Speeltijd', play, null, '') +
+    tile(ICON.flag, 'Missies klaar', `${mDone}/${ms.length}`, ms.length ? Math.round((mDone / ms.length) * 100) : 0, 'todo') +
+    tile(ICON.cup, 'Prestaties', `${ach.done}/${ach.total}`, ach.pct, 'prestaties') +
+    tile(ICON.pin, 'Gevonden', `${found}/${all}`, all ? Math.round((found / all) * 100) : 0, 'todo') + '</div>';
+}
+
 // help: [[action, icon svg, label]] for the contextual buttons (pausemenu.js decides which)
-export function renderOverview(el, world, help) {
+// extra: { play: seconds played, quick: html of the quick settings }
+export function renderOverview(el, world, help, extra = {}) {
   refresh(world);
   const near = items.filter((it) => it.dist != null && it.goal && it.goal !== 'story' && !['later', 'slot', 'nu'].includes(it.status))
     .sort((a, b) => a.dist - b.dist).slice(0, 3);
   const ach = nearlyThere();
   const helpHtml = `<div class="ov-help">${help.map(([a, ic, label]) => `<button type="button" class="m-bg" data-action="${a}">${ic}<span>${esc(label)}</span></button>`).join('')}</div>`;
-  el.innerHTML = heroHtml(world) +
+  el.innerHTML = heroHtml(world) + tilesHtml(world, extra) +
     '<div class="ov-cols"><section aria-label="Dichtbij" class="ov-col"><div class="m-gh"><span>Dichtbij</span></div>' +
     (near.length ? `<div class="ov-rows">${near.map((it) => row(it)).join('')}</div>` : '<p class="m-note">Niks in de buurt. Kijk bij Te doen.</p>') +
     '</section><section aria-label="Bijna binnen" class="ov-col"><div class="m-gh"><span>Bijna binnen</span></div>' +
@@ -171,7 +194,7 @@ export function renderOverview(el, world, help) {
       `<span class="m-bar"><i data-bar="ach-${esc(a.id)}" data-w="${Math.round((a.progress.cur / a.progress.goal) * 100)}"></i></span></span></button>`).join('')}</div>`
       : '<p class="m-note">Speel wat rond, dan komen ze vanzelf.</p>') +
     '</section></div><div class="ov-folds"><div class="m-rule"></div>' +
-    disc('help', 'Vastgelopen?', 'Naar huis, missie afbreken of jezelf vrijzetten', helpHtml) + agendaHtml(world) + '</div>';
+    (extra.quick ? disc('quick', 'Snel instellen', 'Geluid en beweging', extra.quick) : '') + disc('help', 'Vastgelopen?', 'Naar huis, missie afbreken of jezelf vrijzetten', helpHtml) + agendaHtml(world) + '</div>';
   animateChanges(el);
 }
 
