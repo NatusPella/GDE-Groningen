@@ -63,7 +63,7 @@ const seed = Number(arg('seed', 1)) || 1;
 const replayFile = arg('replay');
 const profile = `gde-test-spelbot-${process.pid}`;
 const script = path.join(OUT, '_page.js');
-const cfg = { part: arg('part', 'kop'), maxGameS: Number(arg('max-game', 3600)), maxWallS: Number(arg('max-wall', 1800)), stuckS: Number(arg('stuck', 30)), only: arg('only', ''), playS: Number(arg('play', 40)), mode: arg('mode', 'story'), sweep: arg('mode') === 'missions' ? arg('only', '').split(',').filter(Boolean) : [], perStepS: Number(arg('per-step', 600)), shots: Number(arg('shots', 80)), invulnerable: flag('invuln') };
+const cfg = { part: arg('part', 'kop'), maxGameS: Number(arg('max-game', 3600)), maxWallS: Number(arg('max-wall', 1800)), stuckS: Number(arg('stuck', 30)), only: arg('only', ''), playS: Number(arg('play', 40)), perS: Number(arg('per', 60)), mode: arg('mode', 'story'), sweep: arg('mode') === 'missions' ? arg('only', '').split(',').filter(Boolean) : [], perStepS: Number(arg('per-step', 600)), shots: Number(arg('shots', 80)), invulnerable: flag('invuln') };
 let pre = `window.__botCfg = ${JSON.stringify(cfg)};\n`;
 if (replayFile) {
   const rl = L.RunLog.parse(fs.readFileSync(path.resolve(replayFile), 'utf8'));
