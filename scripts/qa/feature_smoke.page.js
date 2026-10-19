@@ -341,10 +341,11 @@ const CHECKS = [
     await go(rd.x, rd.y, rd.a, SETTLE);
     const all = VH.TRAFFIC_MODELS();
     const out = {};
-    for (const name of ['sedan', 'hatch', 'van', 'truck']) {
-      const model = all.find((m) => m.name === name);
+    for (const name of ['sedan', 'taxi', 'van', 'bus', 'sport']) {
+      const model = all.find((m) => m.name === (name === 'taxi' ? 'sedan' : name));
       if (!model) { out[name] = 'model niet gevonden'; continue; }
       const v = new VH.Vehicle(rd.x, rd.y, rd.a, { ...model });
+      if (name === 'taxi') v.isTaxi = true;
       w.vehicles.push(v);
       await sleep(600);
       teleport(v.x, v.y);
