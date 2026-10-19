@@ -4,7 +4,7 @@ import { openSaveSlots, isSaveSlotsOpen } from './saveslotsui.js';
 import { VERSION } from './version.js';
 import { checkWhatsNew, markVersionSeen, compareVersions } from './whatsnew.js';
 import { pointInPolygon } from './util.js';
-import { openPauseMenu, isPauseMenuOpen } from './pausemenu.js';
+import { openPauseMenu, isPauseMenuOpen, menuIcon } from './pausemenu.js';
 import { getAchievementSummary } from './achievements.js';
 import { pendingTrailer } from './trailerstate.js';
 // trailer.js (2500 lines) is only loaded when a trailer or benchmark really runs
@@ -393,10 +393,10 @@ export function runStartScreen(world, { render, relocate, tick, ready }) {
     const itemHtml = (it, i) => {
       if (it.act === 'continue') {
         const prog = st && st.total ? Math.round((st.done / st.total) * 100) : null;
-        return `<button type="button" role="menuitem" class="ss-item ss-hero" data-act="continue" data-i="${i}"><span class="ss-label">${it.label}</span><small>${heroSub}</small>` +
+        return `<button type="button" role="menuitem" class="ss-item ss-hero" data-act="continue" data-i="${i}"><span class="ss-label">${menuIcon('resume', 'ss-ic big')}${it.label}</span><small>${heroSub}</small>` +
           (prog != null ? `<span class="ss-prog"><span class="m-bar"><i style="width:${prog}%"></i></span><span class="bebas">${prog}%</span></span>` : '') + '</button>';
       }
-      return `<button type="button" role="menuitem" class="ss-item" data-act="${it.act}" data-i="${i}"><span class="ss-label">${it.label}</span><small>${it.sub}</small></button>`;
+      return `<button type="button" role="menuitem" class="ss-item" data-act="${it.act}" data-i="${i}">${menuIcon(it.act === 'saves' ? 'load' : it.act === 'continue' ? 'resume' : it.act)}<span class="ss-label">${it.label}</span><small>${it.sub}</small></button>`;
     };
     menu.innerHTML = items.map(itemHtml).join('');
     // where the save picks up, right of the menu
