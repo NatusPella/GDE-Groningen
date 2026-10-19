@@ -83,15 +83,18 @@ async function frameStats(ms) {
   const t = []; let last = performance.now(); const t0 = last;
   await new Promise((res) => { const f = () => { const n = performance.now(); t.push(n - last); last = n; if (n - t0 < ms) requestAnimationFrame(f); else res(); }; requestAnimationFrame(f); });
   t.shift();
+  if (t.length < 3) return { fps: 0, p50: null, p95: null, max: null, hapert: null, opmerking: `te weinig frames (${t.length}) in ${ms} ms` };
   t.sort((a, b) => a - b);
   const avg = t.reduce((a, b) => a + b, 0) / t.length;
   const r = sc && sc.renderer ? sc.renderer.info.render : null;
-  return { fps: +(1000 / avg).toFixed(1), p50: +t[Math.floor(t.length * 0.5)].toFixed(1), p95: +t[Math.floor(t.length * 0.95)].toFixed(1), max: +t[t.length - 1].toFixed(1), hapert: t.filter((v) => v > 50).length, calls: r ? r.calls : null, tris: r ? r.triangles : null };
+  return { fps: +(1000 / avg).toFixed(1), p50: +t[Math.floor(t.length * 0.5)].toFixed(1), p95: +t[Math.floor(t.length * 0.95)].toFixed(1), max: +t[t.length - 1].toFixed(1), hapert: t.filter((v) => v > 50).length};
 }
 
 const results = { dpr: devicePixelRatio, css: [innerWidth, innerHeight], plekken: {} };
-const COMBO = (tijd, weer) => CFG.matrix.find((c) => c.tijd === tijd && c.weer === weer);
+let lastHour = null;
+const COMBO = (tijd, weer) => (CFG.combos || CFG.matrix).find((c) => c.tijd === tijd && c.weer === weer);
 for (const S of CFG.plekken) {
+  try {
   setNow(COMBO('middag', 'helder'));
   let s = { x: S.x, y: S.y, a: S.a || 0, street: '' };
   teleport(S.x, S.y);
@@ -109,24 +112,45 @@ for (const S of CFG.plekken) {
     // regen maakt de weg pas na een paar seconden nat: de natheid direct zetten
     w.weather.wet = c.rain > 0 ? Math.min(1, c.rain + 0.35) : 0;
     w.weather.intensity = c.rain;
-    await sleep(c.rain > 0 || c.mist > 0 ? 1800 : 1100);
+    // bij een nieuw tijdstip de belichting even laten bijtrekken
+    const hourChanged = lastHour !== c.hour;
+    lastHour = c.hour;
+    await sleep(hourChanged ? 3500 : c.rain > 0 || c.mist > 0 ? 1800 : 1100);
     const name = `wn-${S.naam}-${c.tijd}-${c.weer}`;
     console.log('[capture] ' + name);
     info.shots.push(name);
     await sleep(350);
     // flikkercontrole: twee extra beelden kort na elkaar bij vaste instellingen
     if (c.weer === 'helder' && (c.tijd === 'middag' || c.tijd === 'nacht')) for (const suf of ['b', 'c']) { console.log('[capture] ' + name + '-' + suf); await sleep(450); }
+    // de lucht: de camera een stuk omhoog (sterren, maan, banding, kleurverloop); de HUD gaat dan weg
+    {
+      const gz = (map.groundHeightAt ? map.groundHeightAt(s.x, s.y, 0) : 0) || 0, cx = Math.cos(s.a), cy = Math.sin(s.a);
+      const pose = { position: { x: s.x - cx * 6, y: s.y - cy * 6, z: gz + 2.2 }, lookAt: { x: s.x + cx * 90, y: s.y + cy * 90, z: gz + 2.2 + 55 }, cut: true };
+      if (cine.isCinematicActive()) cine.skipCinematic();
+      ownShot = true;
+      cine.playCinematic({ id: 'qa-lucht', duration: 60, priority: 9, letterbox: false, shot: () => pose });
+      await sleep(900);
+      console.log('[capture] ' + name + '-lucht');
+      await sleep(450);
+      cine.skipCinematic();
+      ownShot = false;
+      await sleep(250);
+    }
   }
+  await sleep(2500);
   for (const pf of CFG.perf) {
     const c = COMBO(pf.tijd, pf.weer);
     if (!c) continue;
     setNow(c);
     w.weather.wet = c.rain > 0 ? Math.min(1, c.rain + 0.35) : 0;
     w.weather.intensity = c.rain;
-    await sleep(1500);
+    await sleep(3000);
     info.perf[`${pf.tijd}-${pf.weer}`] = await frameStats(CFG.perfMs || 4000);
   }
-  console.log('[wn-plek] ' + S.naam + ' ' + JSON.stringify({ at: info.at, perf: info.perf }));
+  info.elev = Object.fromEntries([...new Set((CFG.combos || CFG.matrix).map((c) => c.tijd))].map((t) => [t, +DN.sunElevationDeg((CFG.combos || CFG.matrix).find((c) => c.tijd === t).hour).toFixed(1)]));
+  // console.error: alleen fouten komen in de uitvoer van de desktop-app; zo overleeft het resultaat een latere crash
+  console.error('[wn-result] ' + JSON.stringify({ naam: S.naam, at: info.at, street: info.street, elev: info.elev, perf: info.perf }));
+  } catch (e) { console.error('[wn-result] ' + JSON.stringify({ naam: S.naam, fout: String(e && e.message || e) })); }
 }
 done = true;
 hold = null; now = null;
