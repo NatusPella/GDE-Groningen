@@ -3460,5 +3460,8 @@ const warmList = ['glass', 'crunch_0', 'crunch_1', 'crunch_2', 'bikebell', 'ric_
 // The first play of a sample that is not rendered yet is silent (playBuf gets null while the worker
 // renders it): every effect of fxbank.js is warmed at start, so shop bell, bridge, train and the rest
 // are there the first time they are needed (issue #173; found with scripts/qa/sfx_levels.mjs).
-for (const n of Object.keys(FX_INFO)) warmList.unshift(n);
+// and every other sample of the bank after them (~32 MB, rendered one at a time in the worker): none stays
+// silent the first time (a sound found only through a QA run, scripts/qa/sfx_levels.mjs)
+for (const n of bufferNames()) if (!warmList.includes(n)) warmList.unshift(n);
+for (const n of Object.keys(FX_INFO)) warmList.push(n);
 
