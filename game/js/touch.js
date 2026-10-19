@@ -242,6 +242,8 @@ export function initTouch(input, world, hooks = {}) {
   };
   left.addEventListener('pointerup', stickEnd);
   left.addEventListener('pointercancel', stickEnd);
+  // a stick whose release never arrived (capture lost) would block every later touch on this side
+  left.addEventListener('lostpointercapture', stickEnd);
 
   right.addEventListener('pointerdown', (e) => {
     if (look) return;
@@ -259,6 +261,7 @@ export function initTouch(input, world, hooks = {}) {
   const lookEnd = (e) => { if (look && look.id === e.pointerId) look = null; };
   right.addEventListener('pointerup', lookEnd);
   right.addEventListener('pointercancel', lookEnd);
+  right.addEventListener('lostpointercapture', lookEnd);
 
   // a cutscene (cinematics.js) owns the screen: the buttons give way to one Overslaan
   const cineActive = () => { const c = document.getElementById('cine'); return !!c && c.classList.contains('active'); };

@@ -23,8 +23,8 @@ const log = (ok, what, extra = '') => { const l = `${ok ? 'ok  ' : 'FOUT'} ${wha
 const adb = adbTool();
 
 const HERVAT = flag('--hervat') || flag('--alleen-opslaan') || flag('--m01'); // verder met het draaiende spel (geen install, geen nieuw spel)
-if (!flag('--no-install') && !HERVAT) {
-  adb('install', '-r', path.join(OUT, 'gde-groningen-debug.apk'));
+if (!HERVAT) {
+  if (!flag('--no-install')) adb('install', '-r', path.join(OUT, 'gde-groningen-debug.apk'));
   adb('shell', 'pm', 'clear', PKG);
 }
 if (!HERVAT) { adb('shell', 'am', 'start', '-n', `${PKG}/.MainActivity`); await sleep(8000); }
@@ -62,7 +62,6 @@ const state = async () => JSON.parse(await ev(`(() => { const w = window.__debug
 
 // --- aanrakingen ---
 const btnId = (re) => ev(`(() => { const e = [...document.querySelectorAll('#touch-ui .t-btn, #touch-ui .t-panel .t-btn')].find((e) => ${re}.test(e.textContent)); if (!e) return false; e.id = 'tb-' + ${JSON.stringify(re.source.replace(/\W/g, ''))}; return e.id; })()`);
-// d.up laat alle vingers los en zet de rest opnieuw neer: de stick krijgt dan zijn oorsprong op de laatste plek
 let origin = { x: 150, y: 215 }, lastPos = { ...origin }, stickDown = false;
 const pedals = new Map(); // label -> vinger-id
 async function button(re, holdMs = 120) {
@@ -71,19 +70,21 @@ async function button(re, holdMs = 120) {
   const c = await d.center('#' + id);
   if (!c) return false;
   await d.down(7, c.x, c.y); await sleep(holdMs); await d.up(7);
-  if (stickDown) origin = { ...lastPos };
   return true;
 }
-// houdt een knop ingedrukt (gas, rem) tot hij losgelaten wordt
+// houdt een knop ingedrukt (gas, rem) tot hij losgelaten wordt. touch.js bouwt de knoppen opnieuw en laat alles los
+// als de situatie wisselt (te voet -> voertuig): daarom steeds in de pagina controleren of de knop echt 'on' is.
 async function pedal(re, on) {
   const key = String(re);
-  if (on && !pedals.has(key)) {
+  const pressed = async () => ev(`[...document.querySelectorAll('#touch-ui .t-btn.on')].some((e) => ${re}.test(e.textContent))`);
+  if (on) {
+    if (pedals.has(key) && await pressed()) return true;
+    if (pedals.has(key)) { await d.up(pedals.get(key)); pedals.delete(key); }
     const id = await btnId(re); const c = id && await d.center('#' + id);
     if (!c) return false;
     pedals.set(key, 20 + pedals.size); await d.down(pedals.get(key), c.x, c.y);
-  } else if (!on && pedals.has(key)) {
+  } else if (pedals.has(key)) {
     const fid = pedals.get(key); pedals.delete(key); await d.up(fid);
-    if (stickDown) origin = { ...lastPos };
   }
   return true;
 }
@@ -91,6 +92,10 @@ const releasePedals = async () => { for (const k of [...pedals.keys()]) await pe
 async function stick(x, y) {
   const R = 50;
   if (!x && !y) { if (stickDown) { await d.up(1); stickDown = false; origin = { x: 150, y: 215 }; } return; }
+  // de stick is ook weg als touch.js alles losliet (situatiewissel): ring niet meer zichtbaar
+  if (stickDown && !(await ev(`document.querySelector('#touch-ui .t-ring').style.display === 'block'`))) { await d.up(1); stickDown = false; }
+  // een verloren pointerup laat touch.js denken dat de stick nog loopt (nieuwe aanrakingen worden dan genegeerd): blur laat alles los
+  if (!stickDown && await ev(`document.querySelector('#touch-ui .t-ring').style.display === 'block'`)) await ev(`window.dispatchEvent(new Event('blur'))`);
   if (!stickDown) { origin = { x: 150, y: 215 }; await d.down(1, origin.x, origin.y); stickDown = true; }
   lastPos = { x: origin.x + x * R, y: origin.y + y * R };
   await d.move(1, lastPos.x, lastPos.y);
