@@ -281,12 +281,14 @@ const PED_DESPAWN_DIST = 150;
 const input = new Input();
 
 function maintainPedestrians(world) {
+  // in a cutscene the street life fills round the camera's view, not round the hidden player (#157)
+  const f = world.cameraOverride && world.streamFocus ? world.streamFocus : world.player;
   world.pedestrians = world.pedestrians.filter(
-    (p) => p.state === 'dead' || dist(p.x, p.y, world.player.x, world.player.y) < PED_DESPAWN_DIST
+    (p) => p.state === 'dead' || dist(p.x, p.y, f.x, f.y) < PED_DESPAWN_DIST
   );
   if (world.pedestrians.length < PED_TARGET) {
     world.pedestrians.push(...spawnPedestriansNear(
-      world.map, world.player.x, world.player.y, PED_TARGET - world.pedestrians.length, Math.random
+      world.map, f.x, f.y, PED_TARGET - world.pedestrians.length, Math.random
     ));
   }
 }

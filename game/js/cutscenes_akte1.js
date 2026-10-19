@@ -182,6 +182,7 @@ Object.assign(SPECS, SPECS_AKTE2);
     shots: [
       { on: 'Douwe. Hij is los', shot: 'follow', target: 'durk', dist: 3.6, side: 1.2, h: 1.9, fov: 42 },
       { on: 'In die pas', dt: 0.1, shot: 'dolly', from: [-2.2, -2.2, 1.6], to: [-0.6, -1.0, 1.55], look: 'automaat@1', fov: 38 },
+      { on: 'Sjabbe van', dt: 0.1, shot: 'dolly', from: [-3.4, 4.6, 2.2], to: [-1.2, 3.4, 1.9], look: 'mid:tessa,tammo@1', fov: 44 },
     ],
     wide: { from: [-6, 6, 3.4], to: [-3, 4.4, 2.6], look: 'mid:tessa,aanhanger@1', fov: 50, until: 1 },
   };
