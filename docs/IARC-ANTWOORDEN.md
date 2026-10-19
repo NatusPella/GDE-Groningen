@@ -115,7 +115,7 @@ iets bij komt (stemlijnen in `game/audio`) verandert dit antwoord naar "ja".
 
 ## Aanvulling na samen spelen (#95, 18 okt 2026)
 
-De tabellen hierboven stammen van vóór de coöp-modus. Voor de vragen over
+De tabellen hierboven stammen van vóór de modus samen spelen. Voor de vragen over
 online functies geldt nu (eigenaar vult aan bij het invullen):
 
 | Vraag (globaal) | Antwoord | Toelichting |
