@@ -8,6 +8,7 @@ import { refreshGlyphs } from './glyphs.js';
 import { getSettings } from './settings.js';
 import { FLAGS } from './devflags.js';
 import { sendKey } from './input.js';
+import { getDevice, noteDevice } from './inputdevice.js';
 import { applyMobileProfile } from './gfxprofile.js';
 
 const CSS = `
@@ -251,6 +252,7 @@ export function initTouch(input, world, hooks = {}) {
     if (active !== shown) {
       shown = active;
       document.documentElement.classList.toggle('touch-play', active);
+      if (active && getDevice() === 'kb') noteDevice('touch');
       input.padLook = active;
       releaseAll();
       if (active) { ctx = nctx; build(); }
