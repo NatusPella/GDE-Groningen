@@ -166,6 +166,23 @@ ok(JSON.stringify(deckDefaults(false)) === '{}' && deckDefaults(true).hintSource
 ok(Object.keys(DECK_DEFAULTS).every((k) => ['textSize', 'hintSource', 'padLayout', 'touchControls'].includes(k)), 'the Deck only changes four settings');
 ok(isDeckShape(1280, 800) && !isDeckShape(1280, 720) && !isDeckShape(1920, 1200), '16:10 and small');
 ok(uiScaleFor(1280, 800) === 1 && hudEdge(1280, 800, 1) >= 24 && hudEdge(1280, 800, 1) * 1 >= 800 * 0.035, 'the HUD on 1280x800: scale 1, title-safe edge');
+// small text on the 7-inch screen: nothing under 12 px except the keycaps (hidden with controller hints) and the dev tool
+{
+  const small = [];
+  const walk = (dir) => {
+    for (const e of fs.readdirSync(path.join(ROOT, dir), { withFileTypes: true })) {
+      const rel = dir + '/' + e.name;
+      if (e.isDirectory()) { if (!/^game\/(audio|models|img|storydata)$/.test(rel)) walk(rel); continue; }
+      if (!/\.(js|css|html)$/.test(e.name)) continue;
+      read(rel).split('\n').forEach((line, i) => {
+        for (const m of line.matchAll(/font-size:\s*([0-9.]+)px/g)) if (+m[1] < 12 && !/\.hud-key/.test(line) && !/storydev\.js$/.test(rel)) small.push(rel + ':' + (i + 1) + ' ' + m[1] + 'px');
+      });
+    }
+  };
+  walk('game');
+  ok(small.length === 0, 'no text under 12 px for the Deck (keycaps and the dev tool excepted)', small);
+  ok(/--hud-min:\s*calc\(13px/.test(read('game/js/hud_panel.css')), 'the HUD floor stays 13 device pixels');
+}
 const prel = read('desktop/preload.js');
 ok(/isSteamDeck:\s*process\.env\.SteamDeck === '1'/.test(prel), 'preload passes SteamDeck=1 on');
 const settingsSrc = read('game/js/settings.js');
