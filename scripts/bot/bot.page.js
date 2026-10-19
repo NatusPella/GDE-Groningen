@@ -156,7 +156,7 @@ while (true) {
   if (s.hud.messages.some((m) => /uitstappen|te voet/i.test(m))) mem.onFootUntil = s.t + 60;
   s.mission.onFoot = s.t < (mem.onFootUntil || 0);
   // the baking stage (M25, M26): the bot knows Oma's order and presses the ingredients, as a player who learnt the recipe would
-  if (s.mission.active && s.mission.stage === 'bake' && s.target && s.target.distance < 42 && !s.blocking.cinematic && !s.blocking.dialog) {
+  if (s.mission.active && s.mission.stage === 'bake' && document.getElementById('bakeround') && !s.blocking.cinematic && !s.blocking.dialog) {
     const bst = MS.activeStage();
     if (bst && bst.kind === 'bake') {
       const order = bst.recipe === 'practice' ? BK.RECIPE_PRACTICE : BK.RECIPE_CONTEST;
