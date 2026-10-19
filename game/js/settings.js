@@ -68,6 +68,8 @@ const BASE_DEFAULTS = {
   ruzie: 'normaal',
   // driving (gearbox.js, drift.js): 'auto' | 'manual' | 'clutch'; the arcade helps are on by default
   shiftMode: 'auto',
+  // game feel (gamefeel.js, #216): the speed FOV and the short hit-stop; also off with reduceMotion
+  speedFeel: true,
   driftAssist: true,
   bikeAssist: true,
   // controls (controls.js): rebound keyboard keys and controller buttons,
