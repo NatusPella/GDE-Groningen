@@ -12,6 +12,8 @@ const cine = await imp('cinematics');
 const PM = await imp('pausemenu');
 const DN = await imp('daynight');
 const WP = await imp('worldplaces');
+const WL = await imp('waterlevels');
+const TP = await imp('tileplace');
 const SETTLE = window.__qaSettle || 9000;
 const ONLY = (window.__qaOnly || '').split(',').filter(Boolean);
 let ownShot = false;
@@ -90,6 +92,13 @@ for (const S of window.__qaSpots) {
   const gz = map.groundHeightAt ? map.groundHeightAt(s.x, s.y, 0) : null;
   const place = WP.nearestWorldPlace ? WP.nearestWorldPlace(s.x, s.y) : null;
   const info = { at: [Math.round(s.x), Math.round(s.y)], street: s.street, snapDist: s.d, ground: gz, place: place && place.name, ...nanCount() };
+  // automatic checks on a target (S.tx, S.ty): in water, in a building, floating or sunk, and (S.inst) no streekplekken instance within 6 m
+  if (S.tx !== undefined) {
+    const chk = { water: !!WL.waterAt(map, S.tx, S.ty), building: !!TP.buildingAt(map, S.tx, S.ty, 0), gz: map.groundHeightAt ? Math.round((map.groundHeightAt(S.tx, S.ty, 0) || 0) * 10) / 10 : null };
+    if (S.inst) { let n = 0; sc.scene.traverse((o) => { if (o.name !== 'streekplekken') return; o.traverse((m) => { if (!m.isInstancedMesh) return; const a = m.instanceMatrix.array; for (let i = 0; i < m.count; i++) if (Math.hypot(a[i * 16 + 12] - S.tx, a[i * 16 + 14] - S.ty) < 6) n++; }); }); chk.inst = n; }
+    chk.flags = [chk.water && 'in water', chk.building && 'in gebouw', Math.abs(chk.gz || 0) > 1.2 && 'zweeft of zakt', S.inst && !chk.inst && 'onzichtbaar'].filter(Boolean);
+    info.check = chk;
+  }
   results.spots[S.name] = info;
   console.log('[qa-spot] ' + S.name + ' ' + JSON.stringify(info));
   console.log('[capture] ' + S.name);
