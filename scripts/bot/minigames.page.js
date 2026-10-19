@@ -70,7 +70,8 @@ async function playOne(id, startFn, a) {
   const errors0 = window.__botErrors || 0;
   const ev = { id, started: false, playedS: 0, moneyDelta: 0, stuck: false, quit: '', how: '' };
   await startFn(ev);
-  const activeNow = () => (a ? a.active() : !!(world.pigeonMode || world.heliRun || window.__botMg));
+  // wandeling neemt de speler nooit over (active() is altijd false): haar eigen staat telt als gestart
+  const activeNow = () => (a ? a.active() || (id === 'wandeling' && !!(window.__wandeling && window.__wandeling.state())) : !!(world.pigeonMode || world.heliRun || window.__botMg));
   for (let i = 0; i < 20 && !activeNow(); i++) await sleep(250);
   ev.started = activeNow();
   shot(`mg-${id}-start`);
@@ -80,7 +81,9 @@ async function playOne(id, startFn, a) {
     let sig = signature(a || { spots: () => [] }), k = 0, shotAt = false, changes = 0;
     const play0 = B.time(), wallPlay0 = performance.now();
     // ook een wandkloklimiet: staat de speltijd stil (pauze, een scherm dat de wereld bevriest), dan hangt een lus op speltijd eeuwig (#255)
-    while (activeNow() && B.time() - play0 < PLAY_S && performance.now() - wallPlay0 < PLAY_S * 4000) {
+    // staat de speltijd stil (de duif), dan telt de echte tijd mee: na 5 s echt zonder speltijd is de echte tijd de klok
+    const played = () => { const g = B.time() - play0, w = (performance.now() - wallPlay0) / 1000; return g < 0.2 && w > 5 ? w : g; };
+    while (activeNow() && played() < PLAY_S && performance.now() - wallPlay0 < PLAY_S * 4000) {
       const s = B.status();
       if (s.blocking.cinematic || s.blocking.banner) { B.down(' '); await sleep(1300); B.up(' '); continue; }
       const [keys, ms] = plan[k++ % plan.length];
@@ -92,9 +95,9 @@ async function playOne(id, startFn, a) {
       const st = det.update(B.time(), { x: player.x, y: player.y, goalDist: -changes, key: id });
       sig = now;
       if (st.stuck) { ev.stuck = true; B.log('stuck', { step: `mg-${id}`, x: player.x, y: player.y, idleFor: st.idleFor, goalDist: null }); shot(`mg-${id}-vast`); break; }
-      if (!shotAt && B.time() - play0 > PLAY_S / 2) { shotAt = true; shot(`mg-${id}-midden`); }
+      if (!shotAt && played() > PLAY_S / 2) { shotAt = true; shot(`mg-${id}-midden`); }
     }
-    ev.playedS = Math.round((B.time() - play0) * 10) / 10;
+    ev.playedS = Math.round(played() * 10) / 10;
     if (performance.now() - wallPlay0 >= PLAY_S * 4000) { ev.stuck = true; ev.how += ' speltijd stond stil'; B.log('stuck', { step: `mg-${id}`, x: player.x, y: player.y, idleFor: PLAY_S * 4, goalDist: null }); }
   }
   B.releaseAll();
@@ -104,11 +107,19 @@ async function playOne(id, startFn, a) {
   else ev.quit = ev.started ? 'backspace' : '';
   ev.moneyDelta = world.money - money0;
   ev.errors = (window.__botErrors || 0) - errors0;
+  if (!ev.started && BY_DESIGN[id]) ev.reden = BY_DESIGN[id];
   B.log('minigame', ev);
   await sleep(800);
   return ev;
 }
 
+// minigames die niet te starten zijn zoals een speler het doet, met de reden (geen bot- of spelbug): bestaat in de uitslag als `reden`
+const BY_DESIGN = {
+  drift: 'begint pas als je met een voertuig de driftzone in rijdt (interact() is bewust false)',
+  evenementen: 'alleen op evenementdagen en -uren',
+  regatta: 'alleen op wedstrijddagen',
+  snackketen: 'de interactie koopt een snackbar; er valt niets te spelen',
+};
 window.addEventListener('error', () => { window.__botErrors = (window.__botErrors || 0) + 1; });
 window.addEventListener('unhandledrejection', () => { window.__botErrors = (window.__botErrors || 0) + 1; });
 
