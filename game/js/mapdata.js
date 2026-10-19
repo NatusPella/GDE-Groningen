@@ -1,5 +1,5 @@
 import { polygonBounds, closestPointOnSegment, pointInPolygon, isInWater } from './util.js';
-import { waterPolyAt } from './waterlevels.js';
+import { waterPolyAt, waterPolyIn } from './waterlevels.js';
 import { inPassage, clipWaysInBuildings } from './passages.js';
 import { attachMuseumPlan } from './museumplan.js';
 import { attachInteriorPlans } from './interieurplan.js';
@@ -22,12 +22,18 @@ export function markDryRoad(map, r) {
   // roads with a height profile pass over/under the water for real
   if (r.bridge || r.z || !DRY_CATS.has(r.cat)) return false;
   const pts = r.pts;
+  if (!map.waterNear) return false;
+  // the water near the whole road, got once: most roads have none, the rest test only these
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const p of pts) { if (p[0] < x0) x0 = p[0]; if (p[0] > x1) x1 = p[0]; if (p[1] < y0) y0 = p[1]; if (p[1] > y1) y1 = p[1]; }
+  const polys = map.waterGrid.query(x0 - 0.5, y0 - 0.5, x1 + 0.5, y1 + 0.5);
+  if (!polys.length) return false;
   for (let i = 0; i < pts.length - 1; i++) {
     const [ax, ay] = pts[i], [bx, by] = pts[i + 1];
     const steps = Math.max(1, Math.ceil(Math.hypot(bx - ax, by - ay) / 2));
     for (let k = 0; k <= steps; k++) {
       const x = ax + ((bx - ax) * k) / steps, y = ay + ((by - ay) * k) / steps;
-      if (waterPolyAt(map, x, y)) { r.bridge = true; r.dryCrossing = true; return true; }
+      if (waterPolyIn(polys, x, y)) { r.bridge = true; r.dryCrossing = true; return true; }
     }
   }
   return false;

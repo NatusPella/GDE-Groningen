@@ -25,6 +25,8 @@ cases.push(['silo', item('silo', 'Graansilo Zuid', 100, 400, 20, 12), { kit: 'in
 cases.push(['silo', item('silo', '', 300, 400, 14, 10, { man_made: 'silo', height: '32' }), { kit: 'industry', type: 'silo' }]);
 cases.push(['factory', item('factory', 'Suikerfabriek', 500, 400, 70, 30), { kit: 'industry', type: 'factory', chimney: true }]);
 cases.push(['factory', item('factory', '', 700, 400, 30, 18, { building: 'industrial' }), { kit: 'industry', type: 'factory' }]);
+cases.push(['pakhuis', item('pakhuis', 'Pakhuis Zuiderhaven', 1300, 400, 40, 14), { kit: 'industry', type: 'pakhuis' }]);
+cases.push(['pakhuis', item('pakhuis', '', 1500, 400, 30, 12, { building: 'warehouse' }), { kit: 'industry', type: 'pakhuis' }]);
 cases.push(['flat', item('flat', '', 100, 600, 60, 14, { 'building:levels': '10' }), { kit: 'flat', levels: 10 }]);
 cases.push(['flat', item('flat', '', 300, 600, 40, 12), { kit: 'flat' }]);
 cases.push(['townhall', item('townhall', 'Stadhuis van Test', 500, 600, 30, 14, { amenity: 'townhall' }), { kit: 'hall', type: 'townhall' }]);
@@ -70,5 +72,12 @@ check(top(cases.find((c) => c[1].n === 'Suikerfabriek')[1]) > 25, 'the sugar fac
 // more levels, a taller flat
 check(top(cases.find((c) => c[0] === 'flat')[1]) > 28, 'ten levels is over 28 m');
 
+// a harbour warehouse out of a tile building row: only named ones, only the right size
+{
+  const row = (name, len, wid, type = 'warehouse') => ({ type, name, hm: 8, pts: [[0, 0], [len, 0], [len, wid], [0, wid]] });
+  check(K.kitItemFromBuilding(row('Pakhuis Noordhaven', 40, 14)) && K.kitItemFromBuilding(row('Pakhuis Noordhaven', 40, 14)).k === 'pakhuis', 'a named warehouse becomes a pakhuis');
+  check(!K.kitItemFromBuilding(row('', 40, 14)), 'an unnamed warehouse stays a plain building');
+  check(!K.kitItemFromBuilding(row('Pakhuis X', 8, 8)), 'a shed is too small');
+}
 console.log(fails.length ? 'FAIL\n' + fails.join('\n') : `ok (${cases.length} synthetic items)`);
 process.exit(fails.length ? 1 : 0);

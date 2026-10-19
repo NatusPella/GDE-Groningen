@@ -2388,7 +2388,12 @@ export function storyReplayLines(i) {
 // Returns a handle { done: Promise<{ result, x, y }>, dispose() } or null when there is no crossing near (the stage goes on without).
 export function playDuelJump(w, { at, fail = false } = {}) {
   if (!fjMod || !w || !at) return null;
-  const spot = fjMod.findVaultSpot(w.map, at.x, at.y, 95, { maxWidth: 26, bridgeNear: BRIDGE_NEAR });
+  // the water index only knows the city's canals; the moat of Bourtange is countryside water, so fall back to a plain ray search (a bridge nearby does not matter: it is a duel, nobody walks round)
+  let spot = fjMod.findVaultSpot(w.map, at.x, at.y, 95, { maxWidth: 26, bridgeNear: BRIDGE_NEAR });
+  if (!spot) {
+    const c = waterCrossing(w, at.x, at.y, 120, 26);
+    if (c && Math.hypot(c.b.x - c.a.x, c.b.y - c.a.y) >= 5) spot = { from: c.a, to: c.b };
+  }
   if (!spot) return null;
   const look = w.player.character === 'anita' ? ANITA_APPEARANCE : TAMMO_APPEARANCE;
   const dx = spot.to.x - spot.from.x, dy = spot.to.y - spot.from.y, D = Math.hypot(dx, dy) || 1;

@@ -107,6 +107,7 @@ export function initCinematics(w) {
     '<div class="cine-bar top"></div><div class="cine-bar bottom"></div>' +
     '<div class="cine-card"><div class="cine-kicker"></div><div class="cine-title"></div></div>' +
     '<div class="cine-big"></div>' +
+    '<div class="cine-name"></div>' +
     '<div class="cine-sub"><span class="cine-speaker"></span><span class="cine-line"></span></div>' +
     '<div class="cine-skip"><svg class="cine-skip-ring" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle class="fill" cx="12" cy="12" r="10"/></svg>' +
     '<span>Houd</span><span class="hud-key">SPATIE</span><span>ingedrukt om over te slaan</span></div>' +
@@ -119,6 +120,7 @@ export function initCinematics(w) {
     kicker: root.querySelector('.cine-kicker'),
     title: root.querySelector('.cine-title'),
     big: root.querySelector('.cine-big'),
+    name: root.querySelector('.cine-name'),
     speaker: root.querySelector('.cine-speaker'),
     line: root.querySelector('.cine-line'),
     banner: root.querySelector('.cine-banner'),
@@ -180,6 +182,14 @@ export function cinematicPausesGameplay() {
 
 export function getCinemaCamMode() {
   return camMode;
+}
+
+// A name card at the lower left while a character is introduced (a scene's fx 'naam', #159).
+// setNameCard('TESSA') shows it, setNameCard(null) fades it out.
+export function setNameCard(text) {
+  if (!els || !els.name) return;
+  if (text) els.name.textContent = text;
+  els.name.classList.toggle('visible', !!text);
 }
 
 // spec.prewarm: [{ x, y }] map points the scene will show, built ahead

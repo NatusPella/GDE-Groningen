@@ -67,7 +67,7 @@ const CONTROL_GROUPS = [
     [['.', ','], 'Handmatig schakelen: hoger, lager (Instellingen › Schakelen)'],
     [['J'], 'Handmatig met koppeling: koppeling indrukken bij het schakelen'],
     [['SHIFT'], 'Op de fiets: even flink doortrappen; op een motor: wheelie met gas, stoppie met remmen'],
-    [['CTRL'], 'Op de fiets: wheelie (vasthouden en trappen)'],
+    [['CTRL'], 'Op de fiets: wheelie (vasthouden en trappen) of stoppie (vasthouden en remmen)'],
     [['E', 'F'], 'Uitstappen'],
     [['Q', 'WHEEL'], 'Achterom kijken (vasthouden; middelste muisknop)'],
     [['H'], 'Toeteren'],
@@ -201,13 +201,13 @@ const SECTIONS = [
   ['garage', 'Garage', 'Jouw voertuigen'],
   ['prestaties', 'Prestaties', 'Blijven bewaard, ook bij een nieuw spel'],
   ['fotos', "Foto's", 'Fotomodus en je galerij'],
-  ...(FLAGS.coop ? [['samen', 'Samen spelen', 'Iemand uitnodigen of aansluiten']] : []),
+  ['samen', 'Samen spelen', 'Iemand uitnodigen of aansluiten'],
   ['settings', 'Instellingen', 'Wijzigingen worden meteen bewaard'],
   ['controls', 'Besturing', 'Alle toetsen, per situatie'],
   ['streken', 'Cheats', 'Een beetje vals spelen'],
 ];
 // the rail's three groups: playing, collected, system
-const RAIL_GROUPS = [['overzicht', 'todo', 'map', 'telefoon'], ['verhaal', 'spullen', 'garage', 'prestaties', 'fotos', ...(FLAGS.coop ? ['samen'] : [])], ['settings', 'controls', 'streken']];
+const RAIL_GROUPS = [['overzicht', 'todo', 'map', 'telefoon'], ['verhaal', 'spullen', 'garage', 'prestaties', 'fotos', 'samen'], ['settings', 'controls', 'streken']];
 const PRESTART_SECTIONS = ['settings', 'controls'];
 const SUBTABS = {
   todo: [['verhaal', 'Verhaal'], ['alles', 'Alles'], ['dichtbij', 'Dichtbij']],
