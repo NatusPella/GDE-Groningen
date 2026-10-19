@@ -4,7 +4,8 @@ import { openSaveSlots, isSaveSlotsOpen } from './saveslotsui.js';
 import { VERSION } from './version.js';
 import { checkWhatsNew, markVersionSeen, compareVersions } from './whatsnew.js';
 import { pointInPolygon } from './util.js';
-import { openPauseMenu, isPauseMenuOpen } from './pausemenu.js';
+import { openPauseMenu } from './pausemenu.js';
+import { isPauseMenuOpen } from './pausestate.js';
 import { getAchievementSummary } from './achievements.js';
 import { pendingTrailer } from './trailerstate.js';
 // trailer.js (2500 lines) is only loaded when a trailer or benchmark really runs
