@@ -153,5 +153,21 @@ const run = (L, w, env) => L.step(w, env).map((e) => ({ ...e }));
   ok(createLinkups().step(world(), { ...env, vehicles: undefined }).length === 0, 'parts: no vehicle source, no crash');
 }
 
+// locks: the gate groans when it starts to move, the water runs while levelling; one event per change
+{
+  const lock = { x: 5, y: 5, state: 'ready' };
+  const env = { bridges: () => [], trains: () => [], locks: () => [lock], listener: () => ({ x: 0, y: 0 }) };
+  const L = createLinkups(), w = world();
+  run(L, w, env);
+  lock.state = 'closing'; let r = run(L, w, env);
+  ok(r.length === 1 && r[0].name === 'sluis_poort', 'lock: gate closing groans');
+  ok(run(L, w, env).length === 0, 'lock: silent while the gate moves');
+  lock.state = 'levelling'; r = run(L, w, env);
+  ok(r.length === 1 && r[0].name === 'sluis_stroom', 'lock: water runs while levelling');
+  lock.state = 'opening'; r = run(L, w, env);
+  ok(r.length === 1 && r[0].name === 'sluis_poort', 'lock: other gate opening groans');
+  lock.state = 'ready'; ok(run(L, w, env).length === 0, 'lock: ready is silent');
+}
+
 console.log(`${n - fails}/${n} ok`);
 process.exit(fails ? 1 : 0);

@@ -82,7 +82,7 @@ import { setFarProps } from './farprops.js';
 import { initProvince } from './provinceworld.js';
 import { loadRoadNet, setRoadNet } from './roadgraph.js';
 import { buildMovableBridges, updateMovableBridges, getMovableBridges } from './movablebridges.js';
-import { updateSluizen } from './sluizen.js';
+import { updateSluizen, getSluizen } from './sluizen.js';
 import { updateBridgeHits, resetBridgeDamage, startBridgeCrashDemo, stepBridgeCrashDemo } from './bridgehitworld.js';
 import { geoWorkerActive } from './geojobs.js';
 import { init3D, update3D, resize3D, getScene, getRenderer, setMenuCover, MENU_FRAME_S, refreshRenderScale, terrainReady, canvasFrameCount, prewarmStreamAt } from './scene3d.js';
@@ -475,7 +475,7 @@ async function boot() {
   setMenuAudio(true);
   initAudio(world);
   setNieuwsBronnen({ bridges: getMovableBridges });
-  setSfxLinks({ bridges: getMovableBridges, trains: getTrains, vehicles: () => world.vehicles });
+  setSfxLinks({ bridges: getMovableBridges, trains: getTrains, vehicles: () => world.vehicles, locks: getSluizen });
   await waitForStart(world);
   await countryPlaced;
   document.body.classList.add('game-started');

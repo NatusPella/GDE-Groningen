@@ -122,6 +122,23 @@ export const LINK_RULES = [
     },
   },
   {
+    id: 'sluis',
+    fx: 'sluis_poort',
+    also: ['sluis_stroom'],
+    source: 'sluizen.js: lock.state naar closing/opening (poort beweegt, klinkt aan het eind) en naar levelling (water stroomt)',
+    init: () => new WeakMap(),
+    step(seen, world, env, out) {
+      if (!env.locks) return;
+      for (const k of env.locks()) {
+        const was = seen.get(k);
+        seen.set(k, k.state);
+        if (was === undefined || was === k.state) continue;
+        if (k.state === 'closing' || k.state === 'opening') out.push(ev('sluis_poort', k.x, k.y));
+        else if (k.state === 'levelling') out.push(ev('sluis_stroom', k.x, k.y));
+      }
+    },
+  },
+  {
     id: 'plons-groot',
     fx: 'splash_big',
     source: 'player.js: swimming wordt true (de speler valt in het water)',
