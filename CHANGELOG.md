@@ -50,6 +50,8 @@ nieuwe functies, `y` voor alleen bugfixes.
 - Het nieuws meldt een kermis in jouw buurt nu als eigen kop met de plaats. Nog niet in het spel gezien.
 - Veertien opgevangen gesprekken van drie regels erbij, voor elke streek twee. Nog niet in het spel gezien.
 - **Fierljep-duel in Bourtange (M20, nog niet in beeld bekeken, #218):** na de drie timingrondes maak je zelf de polsstoksprong over de gracht, met de zijcamera: een landing als je het duel won, een plons als je verloor.
+- **Snelheids-FOV nu zichtbaar (#216):** het beeld werd pas wijder vanaf 70 m/s, terwijl auto's maximaal 33 m/s halen; nu loopt het van 12 tot 36 m/s (tot 8 graden). In het spel gemeten met de bot (+2,7 graden binnen een seconde); het afstellen van het gevoel zelf is niet gespeeld. Nieuwe instelling **Snelheidsgevoel** (Spel) zet dit en de korte botsvertraging uit; Beweging beperken zet het ook uit.
+- **Duidelijker doel op de kaart (#93):** de kaartregels van M08, M16 en M24 noemen nu het doel van de missie.
 - **Hulp bij schade (nog niet in beeld bekeken, #215):** de optie "minder schade" werkt nu ook bij kogels, klappen en valschade, niet alleen bij voertuigen.
 
 ### Opgelost
