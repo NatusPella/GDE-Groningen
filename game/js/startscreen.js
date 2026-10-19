@@ -382,7 +382,7 @@ export function runStartScreen(world, { render, relocate, tick, ready }) {
     const items = [];
     if (save) items.push({ act: 'continue', label: 'Doorgaan', sub: summaryText(save) });
     items.push({ act: 'new', label: 'Nieuw spel', sub: save ? 'Begin opnieuw in Grunn' : 'Moi! Stap in en rij' });
-    items.push({ act: 'saves', label: 'Savegames', sub: 'Kies, hernoem, exporteer of verwijder je savegames' });
+    items.push({ act: 'saves', label: 'Opgeslagen spellen', sub: 'Kies, hernoem, exporteer of verwijder je spellen' });
     items.push({ act: 'news', label: 'Wat is er nieuw', sub: 'Alle versies en wijzigingen' });
     items.push({ act: 'settings', label: 'Instellingen', sub: 'Geluid, beeld en camera' });
     items.push({ act: 'about', label: 'Over', sub: 'Credits, licenties en privacy' });
