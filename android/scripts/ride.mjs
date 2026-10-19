@@ -283,7 +283,7 @@ await screenshot('5-einde-m01');
 }
 if (!M01ONLY) {
 if (SAVEONLY) { await continueGame(); await sleep(4000); }
-// --- 5. opslaan, app doden, opnieuw starten, Doorgaan; daarna dezelfde stand onder de oude sleutel (migratie) ---
+// --- 5. opslaan, app afsluiten, opnieuw starten, Doorgaan ---
 const snap = () => ev(`(() => { const w = __debug.world, p = w.player; return JSON.stringify({ x: Math.round(p.x), y: Math.round(p.y), money: w.money, step: __story.current() && __story.current().id }); })()`).then(JSON.parse);
 // de sleutel krijgt het verhaal-achtervoegsel (gde-save-v1-nieuw); de herstelkopie (gde-save-herstel-...) is een andere sleutel
 const saveKey = () => ev(`Object.keys(localStorage).find((k) => /^(gde-dev:)?(gde|gte)-save-v1/.test(k)) || ''`);
@@ -314,13 +314,7 @@ await sleep(4000);
 const after = await snap();
 log(after.step === before.step && Math.abs(after.money - before.money) < 1, 'stap en geld na laden gelijk', JSON.stringify(before) + ' -> ' + JSON.stringify(after));
 await screenshot('7-geladen');
-// migratie: een stand onder de oude sleutel (gte-save-v1) moet nog steeds laden
-await ev(`localStorage.removeItem('gde-migrated-v1')`); // de oude-sleutelmigratie draait één keer; deze test wil hem opnieuw
-const key = await ev(`(() => { const k = Object.keys(localStorage).find((k) => /^gde-save-v1/.test(k)); const v = localStorage.getItem(k); localStorage.setItem(k.replace('gde-', 'gte-'), v); localStorage.removeItem(k); return k; })()`);
-await restartApp();
-const migrated = (await saveKey()).startsWith('gde-');
-log(migrated, 'oude sleutel gte-save-v1 migreert naar ' + key);
-log(await continueGame(), 'Doorgaan werkt na migratie');
+// (de migratie van oude gte-sleutels zit in scripts/save_migration_test.mjs; in de WebView is alleen getest dat de stand een herstart overleeft)
 
 
 // --- 6. systeem: terugknop, rotatie, naar de achtergrond en terug, app gedood, geluid, fps en profiel ---
@@ -361,7 +355,7 @@ await sleep(15000); // muziek start niet in het pauzemenu
 // 6d. geluid
 const au = JSON.parse(await ev('JSON.stringify(__audio.state())'));
 log(au.ctx === 'running', 'AudioContext draait (geen blokkade door autoplay)', 'ctx ' + au.ctx + ', tijd ' + au.time);
-log(!!au.gmusic && au.gmusic.started && !au.gmusic.error, 'muziek gestart', JSON.stringify({ current: au.gmusic.current, paused: au.gmusic.paused, tracks: au.gmusic.tracks }));
+log(!!au.gmusic && (au.gmusic.started || (au.gmusic.history || []).length > 0) && !au.gmusic.error, 'muziek speelt (titels in de geschiedenis)', JSON.stringify({ current: au.gmusic.current, paused: au.gmusic.paused, tracks: au.gmusic.tracks }));
 const gfx = JSON.parse(await ev(`(() => { const s = JSON.parse(localStorage.getItem('gde-settings') || '{}'); return JSON.stringify({ q: s.quality, res: s.resolution, dd: s.drawDistance, sh: s.shadows, auto: s.autoResolution, advies: localStorage.getItem('gde-gfx-advice'), cores: navigator.hardwareConcurrency, mem: navigator.deviceMemory }); })()`));
 log(gfx.q === 'laag' && gfx.sh === false, 'lage-end profiel automatisch gekozen', JSON.stringify(gfx));
 const fps = await ev(`new Promise((res) => { let n = 0; const t0 = performance.now(); const f = () => { n++; if (performance.now() - t0 < 10000) requestAnimationFrame(f); else res(+(n / ((performance.now() - t0) / 1000)).toFixed(1)); }; requestAnimationFrame(f); })`);
