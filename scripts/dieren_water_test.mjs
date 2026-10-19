@@ -6,7 +6,7 @@ let n = 0, bad = 0;
 const check = (name, c, extra = '') => { n++; if (!c) { bad++; console.log('FAIL', name, extra); } };
 
 const poly = { pts: [[-50, -50], [50, -50], [50, 50], [-50, 50]] };
-const world = (px, py, inV = null) => ({ time: 10, clock: 12, player: { x: px, y: py, vx: 0, vy: 0, inVehicle: inV }, vehicles: [], map: new Proxy({ meta: { horeca: [] }, _bridgeRails: new Map() }, { get: (t, k) => (k in t ? t[k] : () => []) }), wildlife: [], pedestrians: [], weather: null });
+const world = (px, py, inV = null) => ({ time: 10, clock: 12, player: { x: px, y: py, vx: 0, vy: 0, inVehicle: inV }, vehicles: [], map: new Proxy({ meta: { horeca: [] }, _bridgeRails: new Map() }, { get: (t, k) => (k in t ? t[k] : () => []) }), wildlife: [], pedestrians: [], weather: null, addMessage: () => {} });
 
 for (const kind of ['reiger', 'zeehond', 'vis']) {
   const a = { kind, x: 0, y: 0, angle: 0, speed: 0.3, z: 0, bobSeed: 1, state: kind === 'reiger' ? 'stand' : kind === 'zeehond' ? 'rust' : 'zwem', poly };

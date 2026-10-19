@@ -7,6 +7,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Nieuw
+- **Dierenregister, dierenboek en dierenhoek (nog niet in beeld bekeken):** elk dier (koe, schaap, paard, gans, eend, zwaan, meeuw, reiger, vis, zeehond, duif, kat, hond) heeft Ã©Ã©n definitie met model, streek, biotoop en tijd van de dag. Een dier dat je van dichtbij ziet, komt in je dierenboek (prestatie Dierenvriend). In de dierenhoek van de Avondwinkel adopteer je huisdieren en vee, en verzorg, train of rust je ze uit; zeehond, reiger, zwaan en meeuw zijn niet te koop. De duif en de kat in de cutscenes hebben nu dezelfde modellen als in de wereld. Het bezit staat los van je save (gde-dieren-v1); de dieren lopen nog niet zichtbaar bij je thuis rond. (Refs #193)
 - **Roeicoach zoekt ruimer (nog niet in beeld bekeken):** als er geen rustige weg binnen 22 m langs de acht ligt, zoekt de coach tot 45 m. (Refs #28)
 - **Interceptors bij de politie (nog niet in beeld bekeken):** vanaf drie sterren is elke derde patrouillewagen een interceptor met een sterkere motor (12% sneller). (Refs #204)
 - **Eigenaar loopt terug naar zijn auto (nog niet in beeld bekeken):** laat je een gestolen auto achter, dan loopt de eigenaar die weer terugpakken als hij binnen 45 m staat en er niemand in zit. Staat de auto buiten beeld, dan rijdt hij weg. Een klap van een boze bestuurder klinkt nu ook. (Refs #49, #44)
