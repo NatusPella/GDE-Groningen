@@ -10,8 +10,11 @@
 
 export const WHEELIE = { minSpeed: 2.5, topShare: 0.75, pitch: 0.5, holdMax: 2.6, rise: 3.2, fall: 4.5, drag: 0.35 };
 
+// De stoppie op de gewone fiets: Ctrl vasthouden en remmen; het achterwiel komt een beetje omhoog.
+export const STOPPIE = { minSpeed: 3.5, pitch: -0.32, holdMax: 2.2 };
+
 export function createWheelie() {
-  return { pitch: 0, held: 0, up: false, dist: 0, best: 0, lost: false };
+  return { nose: false, nosed: 0, pitch: 0, held: 0, up: false, dist: 0, best: 0, lost: false };
 }
 
 // Eén stap. i: { trick, throttle, speed, top, dt }. Geeft de bijgewerkte staat terug (dezelfde
@@ -23,6 +26,12 @@ export function stepWheelie(s, i) {
   const ok = !!i.trick && i.throttle > 0 && speed >= WHEELIE.minSpeed && speed <= top * WHEELIE.topShare;
   if (!i.trick) s.lost = false;
   let want = 0;
+  const nose = !!i.trick && (i.brake || 0) > 0.5 && speed >= STOPPIE.minSpeed && !s.lost && !ok;
+  s.nose = nose;
+  if (nose) {
+    s.nosed += dt;
+    if (s.nosed > STOPPIE.holdMax) { s.lost = true; s.nosed = 0; s.nose = false; } else want = STOPPIE.pitch;
+  } else s.nosed = 0;
   if (ok && !s.lost) {
     s.held += dt;
     if (s.held > WHEELIE.holdMax) { s.lost = true; s.held = 0; } else want = WHEELIE.pitch;

@@ -1,4 +1,4 @@
-import { nearestLine, project as projectOnLine, makeRunner, stepRunner, startAt } from './busroutes.js';
+import { linesNear, project as projectOnLine, makeRunner, stepRunner, startAt } from './busroutes.js';
 import { assistDamage } from './assistlive.js';
 import { closestPointOnSegment, normalizeAngle, clamp, lerp, pointInPolygon, inMapWater, WATER_Y, keepBoatOffShore, boatDryPoints } from './util.js';
 import { waterClearance, waterChannelPoints } from './waterindex.js';
@@ -37,7 +37,7 @@ import { MOPED_LEGAL_SPEED } from './motomodels.js';
 import { pickMotor, motorRoadAllowed, motorTarget } from './motortraffic.js';
 import { FLAGS } from './devflags.js';
 import { verkeerOpties } from './simlagen.js';
-import { SMOKE_HEALTH } from './vehicledamage.js';
+import { SMOKE_HEALTH, kapRookt } from './vehicledamage.js';
 import { createWheelie, stepWheelie } from './bewegingrules.js';
 export { MOTORBIKE_MODELS, GEARED_MOPED_MODEL, MOPED_LEGAL_SPEED } from './motomodels.js';
 
@@ -66,6 +66,7 @@ const MODELS = [
 // a tractor (slow, pulls hard off the line) and a quad (nimble off-road)
 export const TRACTOR_MODEL = { name: 'tractor', len: 4.3, wid: 2.3, maxSpeed: 11, accel: 6.5, brake: 11, turnRate: 1.9, color: '#3f7d3a', offroad: 0.9 };
 export const QUAD_MODEL = { name: 'quad', len: 2.1, wid: 1.2, maxSpeed: 17, accel: 9, brake: 14, turnRate: 3.2, color: '#b8322a', offroad: 1 };
+export const POLICE_MODEL = { name: 'police', len: 4.3, wid: 1.8, maxSpeed: 55, accel: 11, brake: 20, turnRate: 2.8, color: '#1c1c1c' };
 export const HERO_CAR_MODEL = { name: 'escort', len: 4.0, wid: 1.65, maxSpeed: 50, accel: 8, brake: 25, turnRate: 3.4, color: '#a11f1f' };
 
 const BIKE_MODELS = [
@@ -216,9 +217,9 @@ export class Vehicle {
   }
 
   // Pedal bike (player only): Ctrl held while pedalling lifts the front wheel (bewegingrules.js, #207).
-  rideFiets(dt, throttle, top) {
+  rideFiets(dt, throttle, top, brake = 0) {
     const w = this.wheelieState || (this.wheelieState = createWheelie());
-    stepWheelie(w, { trick: !!this.trick && !this.disabled, throttle, speed: this.speed, top, dt });
+    stepWheelie(w, { trick: !!this.trick && !this.disabled, throttle, brake, speed: this.speed, top, dt });
     this.pitch = w.pitch;
     this.wheelie = w.up;
     if (w.up) this.speed *= w.slow;
@@ -348,7 +349,7 @@ export class Vehicle {
       }
     }
 
-    if (isPlayer && this.isBike && !m.motorbike) this.rideFiets(dt, throttle, top);
+    if (isPlayer && this.isBike && !m.motorbike) this.rideFiets(dt, throttle, top, brake);
     if (isPlayer && m.motorbike) this.rideMotorbike(dt, throttle, gb, top, absSpeed, normalizeAngle(this.angle - oldAngle) / (dt || 1));
 
     this.x += Math.cos(this.angle) * this.speed * dt;
@@ -831,7 +832,7 @@ export function spawnVehicleOnRoad(map, road, isPolice = false, rng = Math.rando
   const dir = road.oneway ? 1 : (rng() < 0.5 ? 1 : -1);
   if (dir < 0) angle = normalizeAngle(angle + Math.PI);
   const model = forcedModel || (isPolice
-    ? { name: 'police', len: 4.3, wid: 1.8, maxSpeed: 55, accel: 11, brake: 20, turnRate: 2.8, color: '#1c1c1c' }
+    ? POLICE_MODEL
     : isBike
     ? pickBikeModel(rng)
     : isScooter
@@ -1020,7 +1021,7 @@ export function manageTrafficPopulation(world, opts = {}) {
   while (count < target && candidates.length && guard++ < target * 4) {
     const road = candidates[Math.floor(Math.random() * candidates.length)];
     const mid = road.pts[Math.floor(road.pts.length / 2)];
-    let pick = pickTrafficCar(map, mid[0], mid[1]);
+    let pick = pickTrafficCar(map, mid[0], mid[1], Math.random, { hour: hourOf(world) });
     for (const k of ['ambulance', 'taxi', 'cashvan', 'newsvan']) {
       if (have[k] < want[k] && Math.random() < (k === 'cashvan' ? 0.08 : k === 'newsvan' ? 0.1 : 0.25)) { pick = { kind: k, model: carModel(k) }; break; }
     }
@@ -1140,8 +1141,10 @@ export function manageBusPopulation(world, { target = 4, spawnMin = 90, spawnMax
   for (const v of vehicles) if (v.isBus && !v.wrecked && v.driver !== 'player') count++;
 
   // echte lijnen (busroutes.js, zodra de lijndata geladen is): een bus begint op zijn lijn en rijdt hem
-  const line = busLines.length ? nearestLine(busLines, player.x, player.y, spawnMax) : null;
+  const near = busLines.length ? linesNear(busLines, player.x, player.y, spawnMax) : [];
+  const line = near[0] || null;
   for (let tries = 0; line && count < target && tries < 4; tries++) {
+    const line = near[Math.floor(Math.random() * near.length)];
     const pr = projectOnLine(line, player.x, player.y);
     const dir = Math.random() < 0.5 ? 1 : -1;
     const at = startAt(line, Math.max(0, Math.min(line.length, pr.s + dir * (spawnMin + Math.random() * (spawnMax - spawnMin) * 0.6))), dir);
@@ -1155,6 +1158,8 @@ export function manageBusPopulation(world, { target = 4, spawnMin = 90, spawnMax
     vehicles.push(v);
     count++;
   }
+  // with a real line in reach the buses are the line's, not random ones on the main roads (#80)
+  if (line) return;
 
   const candidates = map.roadsNear(player.x, player.y, spawnMax).filter((r) => r.cat === 'major' || r.cat === 'normal' || r.busOnly);
   let guard = 0;
@@ -3072,7 +3077,7 @@ export function vehicleNeedsFireEffect(v, time = 0) {
 }
 
 // Damaged but not yet burning (vehicledamage.js, #205): only the smoke of the effect, no flames.
-const smokes = (v) => !v.isBike && !v.isScooter && !v.isBoat && !v.isHeli && !v.sinking && v.health <= SMOKE_HEALTH;
+const smokes = (v) => !v.isBike && !v.isScooter && !v.isBoat && !v.isHeli && !v.sinking && (v.health <= SMOKE_HEALTH || kapRookt(v, v.model.len, v.model.wid));
 export function vehicleSmokeOnly(v) {
   return !v.wrecked && !v.disabled && v.health > VEHICLE_FIRE_HEALTH_THRESHOLD && smokes(v);
 }
