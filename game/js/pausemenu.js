@@ -67,7 +67,7 @@ const CONTROL_GROUPS = [
     [['.', ','], 'Handmatig schakelen: hoger, lager (Instellingen › Schakelen)'],
     [['J'], 'Handmatig met koppeling: koppeling indrukken bij het schakelen'],
     [['SHIFT'], 'Op de fiets: even flink doortrappen; op een motor: wheelie met gas, stoppie met remmen'],
-    [['CTRL'], 'Op de fiets: wheelie (vasthouden en trappen)'],
+    [['CTRL'], 'Op de fiets: wheelie (vasthouden en trappen) of stoppie (vasthouden en remmen)'],
     [['E', 'F'], 'Uitstappen'],
     [['Q', 'WHEEL'], 'Achterom kijken (vasthouden; middelste muisknop)'],
     [['H'], 'Toeteren'],
