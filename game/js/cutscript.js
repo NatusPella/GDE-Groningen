@@ -364,7 +364,18 @@ export function compileScene(def, opts = {}) {
     }
     const P = world(anchor, pos.f, pos.s), L = world(anchor, look.f, look.s);
     const z0 = anchor.z || 0;
-    const cam = fitCamera({ x: P.x, y: P.y, z: z0 + pos.h }, { x: L.x, y: L.y, z: z0 + look.h }, env);
+    let cam = fitCamera({ x: P.x, y: P.y, z: z0 + pos.h }, { x: L.x, y: L.y, z: z0 + look.h }, env);
+    // fitCamera may have pulled the camera in from a wall, next to a person: push out again unless that lands in a wall
+    if (!def.set && cam.z - z0 < 2.4) for (const id of Object.keys(track)) {
+      if (last([{ t: 0, v: true }, ...track[id].vis], t).v === false) continue;
+      const q = actorPos(id, t), W = world(anchor, q.f, q.s);
+      const dx = cam.x - W.x, dy = cam.y - W.y, d = Math.hypot(dx, dy);
+      if (d >= CAM_CLEAR || d < 0.05) continue;
+      const nx = W.x + dx / d * CAM_CLEAR, ny = W.y + dy / d * CAM_CLEAR;
+      if (env && env.solid && env.solid(nx, ny, cam.z)) continue;
+      if (env && env.clamp) { const c2 = env.clamp(nx, ny, cam.z, 'camera'); if (c2 && (Math.abs(c2.x - nx) > 1e-6 || Math.abs(c2.y - ny) > 1e-6)) continue; }
+      cam = { ...cam, x: nx, y: ny };
+    }
     return {
       position: cam, lookAt: { x: L.x, y: L.y, z: z0 + look.h },
       fov: sh.fov ?? 46, cut: u === 0 || (t - sh.t) < 1 / 30, shotIndex: i,
