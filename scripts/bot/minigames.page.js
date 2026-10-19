@@ -15,9 +15,12 @@ const world = B.world, player = B.player;
 const ONLY = (CFG.only || '').split(',').filter(Boolean);
 const PLAY_S = CFG.playS || 40;
 const STUCK_S = CFG.stuckS || 15;
+const WALL0 = performance.now(), MAX_WALL = (CFG.maxWallS || 1800) * 1000;
+const overWall = () => performance.now() - WALL0 > MAX_WALL - 60000;
 let shots = 0;
 const shot = (n) => { if (shots < (CFG.shots || 60)) { shots++; B.shot(n); } };
 world.devInvuln = true;
+if (CFG.speed > 1) B.speed(CFG.speed);
 
 // first get the game going: skip cutscenes and the pause menu until the player has control
 async function settle() {
@@ -67,7 +70,8 @@ async function playOne(id, startFn, a) {
   const errors0 = window.__botErrors || 0;
   const ev = { id, started: false, playedS: 0, moneyDelta: 0, stuck: false, quit: '', how: '' };
   await startFn(ev);
-  const activeNow = () => (a ? a.active() : !!(world.pigeonMode || world.heliRun || window.__botMg));
+  // wandeling neemt de speler nooit over (active() is altijd false): haar eigen staat telt als gestart
+  const activeNow = () => (a ? a.active() || (id === 'wandeling' && !!(window.__wandeling && window.__wandeling.state())) : !!(world.pigeonMode || world.heliRun || window.__botMg));
   for (let i = 0; i < 20 && !activeNow(); i++) await sleep(250);
   ev.started = activeNow();
   shot(`mg-${id}-start`);
@@ -75,8 +79,11 @@ async function playOne(id, startFn, a) {
     const plan = PLAN[id] || DEFAULT_PLAN;
     const det = new L.StuckDetector({ windowS: STUCK_S, minGain: 0.1, minMove: 0.5 });
     let sig = signature(a || { spots: () => [] }), k = 0, shotAt = false, changes = 0;
-    const play0 = B.time();
-    while (activeNow() && B.time() - play0 < PLAY_S) {
+    const play0 = B.time(), wallPlay0 = performance.now();
+    // ook een wandkloklimiet: staat de speltijd stil (pauze, een scherm dat de wereld bevriest), dan hangt een lus op speltijd eeuwig (#255)
+    // staat de speltijd stil (de duif), dan telt de echte tijd mee: na 5 s echt zonder speltijd is de echte tijd de klok
+    const played = () => { const g = B.time() - play0, w = (performance.now() - wallPlay0) / 1000; return g < 0.2 && w > 5 ? w : g; };
+    while (activeNow() && played() < PLAY_S && performance.now() - wallPlay0 < PLAY_S * 4000) {
       const s = B.status();
       if (s.blocking.cinematic || s.blocking.banner) { B.down(' '); await sleep(1300); B.up(' '); continue; }
       const [keys, ms] = plan[k++ % plan.length];
@@ -88,9 +95,10 @@ async function playOne(id, startFn, a) {
       const st = det.update(B.time(), { x: player.x, y: player.y, goalDist: -changes, key: id });
       sig = now;
       if (st.stuck) { ev.stuck = true; B.log('stuck', { step: `mg-${id}`, x: player.x, y: player.y, idleFor: st.idleFor, goalDist: null }); shot(`mg-${id}-vast`); break; }
-      if (!shotAt && B.time() - play0 > PLAY_S / 2) { shotAt = true; shot(`mg-${id}-midden`); }
+      if (!shotAt && played() > PLAY_S / 2) { shotAt = true; shot(`mg-${id}-midden`); }
     }
-    ev.playedS = Math.round((B.time() - play0) * 10) / 10;
+    ev.playedS = Math.round(played() * 10) / 10;
+    if (performance.now() - wallPlay0 >= PLAY_S * 4000) { ev.stuck = true; ev.how += ' speltijd stond stil'; B.log('stuck', { step: `mg-${id}`, x: player.x, y: player.y, idleFor: PLAY_S * 4, goalDist: null }); }
   }
   B.releaseAll();
   // leave the way a player does
@@ -99,11 +107,19 @@ async function playOne(id, startFn, a) {
   else ev.quit = ev.started ? 'backspace' : '';
   ev.moneyDelta = world.money - money0;
   ev.errors = (window.__botErrors || 0) - errors0;
+  if (!ev.started && BY_DESIGN[id]) ev.reden = BY_DESIGN[id];
   B.log('minigame', ev);
   await sleep(800);
   return ev;
 }
 
+// minigames die niet te starten zijn zoals een speler het doet, met de reden (geen bot- of spelbug): bestaat in de uitslag als `reden`
+const BY_DESIGN = {
+  drift: 'begint pas als je met een voertuig de driftzone in rijdt (interact() is bewust false)',
+  evenementen: 'alleen op evenementdagen en -uren',
+  regatta: 'alleen op wedstrijddagen',
+  snackketen: 'de interactie koopt een snackbar; er valt niets te spelen',
+};
 window.addEventListener('error', () => { window.__botErrors = (window.__botErrors || 0) + 1; });
 window.addEventListener('unhandledrejection', () => { window.__botErrors = (window.__botErrors || 0) + 1; });
 
@@ -111,14 +127,17 @@ await settle();
 const out = [];
 const list = (window.__activities ? window.__activities.list() : []).filter((x) => !ONLY.length || ONLY.includes(x.id));
 B.log('start', { mode: 'minigames', activities: list.map((x) => x.id) });
+let truncated = false;
 for (const info of list) {
+  // de echte-tijdbegroting van de run: stoppen met wat er is, zodat het rapport compleet blijft (#255)
+  if (overWall()) { truncated = true; B.log('minigame', { id: info.id, started: false, how: 'niet aan toe gekomen (echte tijd op)' }); continue; }
   const a = window.__activities.get(info.id);
   // a.spots(true) geeft ook de plekken die nog niet getoond worden (hoogvlieger, pitchputt, snackketen); #242
   let spot = a.spots()[0];
   if (!spot) { try { spot = a.spots(true)[0]; } catch (e) { /* geen parameter */ } }
   if (!spot && info.id === 'geheimen' && window.__geheimen && window.__geheimen.spots) { try { spot = window.__geheimen.spots()[0]; } catch (e) { /* geen */ } }
   if (!spot) { B.log('minigame', { id: info.id, started: false, how: 'geen plek' }); out.push({ id: info.id, started: false }); continue; }
-  out.push(await playOne(info.id, async (ev) => {
+  try { out.push(await playOne(info.id, async (ev) => {
     teleport(spot.x, spot.y);
     player.x = spot.x; player.y = spot.y;
     await sleep(2500);
@@ -133,16 +152,21 @@ for (const info of list) {
       for (let w = 0; w < 8 && !a.prompt(world); w++) await sleep(250);
       ev.how += step === ' ' ? '_' : step; await B.press(step); await sleep(1400);
     }
-  }, a));
+  }, a)); } catch (e) {
+    // één minigame die faalt mag de rest niet meenemen
+    B.releaseAll(); B.log('minigame', { id: info.id, started: false, how: 'bot-fout: ' + String(e && e.message || e).slice(0, 160) }); out.push({ id: info.id, started: false });
+    try { if (a.active()) a.quit(world); } catch (e2) { /* weg */ }
+  }
 }
-if (!ONLY.length || ONLY.includes('duif')) {
+if (!overWall() && (!ONLY.length || ONLY.includes('duif'))) {
   const PM = await imp('pigeonmode');
   out.push(await playOne('duif', async (ev) => { ev.how = 'startPigeonMode'; try { PM.startPigeonMode(world); } catch (e) { ev.how += ' faalde: ' + e.message; } }, null));
 }
-if (!ONLY.length || ONLY.includes('heli')) {
+if (!overWall() && (!ONLY.length || ONLY.includes('heli'))) {
   const HR = await imp('helirun');
   out.push(await playOne('heli', async (ev) => { ev.how = 'startHeliRun'; try { HR.startHeliRun({}); window.__botMg = true; } catch (e) { ev.how += ' faalde: ' + e.message; } }, null));
   window.__botMg = false;
 }
-B.log('einde', { result: 'KLAAR', reason: `${out.length} minigames`, minigames: out.length });
-return JSON.stringify({ result: 'KLAAR', reason: `${out.length} minigames`, gameSeconds: B.time(), minigames: out.map((o) => [o.id, o.started, o.stuck]) });
+const resultaat = truncated ? 'TIMEOUT' : 'KLAAR';
+B.log('einde', { result: resultaat, reason: `${out.length} minigames`, minigames: out.length });
+return JSON.stringify({ result: resultaat, reason: `${out.length} minigames`, gameSeconds: B.time(), minigames: out.map((o) => [o.id, o.started, o.stuck]) });

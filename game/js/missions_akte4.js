@@ -187,7 +187,7 @@ export function buildAkte4Defs() {
         },
         { kind: 'goto', target: ll('bourtangeGracht', { label: 'De gracht' }), mode: 'foot', radius: 12, label: 'Naar de gracht: Durk en Douwe dagen je uit', say: 'Durk en Douwe houden je bezig. Naar de gracht.' },
         {
-          kind: 'timing', kicker: 'Fierljep-duel in Bourtange', help: 'druk op het goede moment', goodAt: 2, tagGood: 'duel-won', tagLow: 'duel-lost',
+          kind: 'timing', vaultJump: true, kicker: 'Fierljep-duel in Bourtange', help: 'druk op het goede moment', goodAt: 2, tagGood: 'duel-won', tagLow: 'duel-lost',
           label: 'Fierljep-duel: spring verder dan Durk en Douwe', say: 'Durk en Douwe springen mee. Aanloop, polsstok, klimmen: druk als de streep in het groen is.',
           rounds: [
             { text: '1. De aanloop: vol gas naar de gracht.', speed: 0.8, zone: [0.36, 0.64], ok: 'Een strakke aanloop. Durk kijkt jaloers.', bad: 'Je struikelt over een kartonnen kanon.' },

@@ -15,7 +15,7 @@ import { WATER_Y } from './util.js';
 
 const CHECK_S = 0.25; // the edge lines are walked four times a second
 const BRIDGE_PROBE = [[0, 0], [40, 0], [-40, 0], [0, 40], [0, -40]];
-const SEA_PROPS = new Set(['rand_grenswachtboot', 'rand_kustwachtboot', 'rand_boei', 'rand_mistbank']);
+const SEA_PROPS = new Set(['rand_grenswachtboot', 'rand_kustwachtboot', 'rand_boei', 'rand_mistbank', 'rand_veerboot', 'rand_natuurbord']);
 
 const watch = createEdgeWatch();
 let acc = 0;
