@@ -8,7 +8,7 @@ let fails = 0, n = 0;
 const ok = (c, m) => { n++; if (!c) { fails++; console.log('FAIL', m); } };
 const act = read('activities.js');
 const ids = (act.match(/const LIST = \[([^\]]+)\]/) || [, ''])[1].split(',').map((s) => s.trim()).filter(Boolean);
-ok(ids.length === 18, 'activiteitenlijst: ' + ids.length);
+ok(ids.length === 19, 'activiteitenlijst (evenementen en regatta erbij): ' + ids.length);
 // hoogvlieger: een echte plek, niet []
 ok(!/spots: \(\) => \[\],/.test(read('reuzenrad.js')), 'hoogvlieger heeft een startplek');
 // snackketen: spots(true) geeft elke snackbar
