@@ -225,7 +225,8 @@ export function issueConcepten(report, known = {}) {
     if (!p || !p.gedraaid) continue;
     const nieuw = new Set(p.diff ? p.diff.nieuweFouten : p.items.filter((i) => isFout(i.status)).map((i) => i.id));
     for (const i of p.items) {
-      if (!isFout(i.status) || !nieuw.has(i.id)) continue;
+      // een timeout is meestal belasting van de machine, geen bevinding: geen issue-concept
+      if (i.status !== 'FAIL' || !nieuw.has(i.id)) continue;
       const fp = fingerprint(i);
       if (known[fp]) continue;
       const kort = normalizeFoutregel(i.detail) || i.status;
