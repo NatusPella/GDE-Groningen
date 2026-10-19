@@ -439,7 +439,7 @@ export function initPauseMenu(w) {
           <button type="button" class="ra pm-back" data-action="resume">Terug</button>
           <div class="pm-rail-acts pm-ingame">
             <button type="button" class="m-bt" data-action="save">Opslaan</button>
-            <button type="button" class="m-bt" data-action="saves" title="Spelstanden kiezen, laden, hernoemen, exporteren en verwijderen">Spelstanden</button>
+            <button type="button" class="m-bt" data-action="saves" title="Savegames kiezen, laden, hernoemen, exporteren en verwijderen">Savegames</button>
             <button type="button" class="m-bt" data-action="menu" title="Opslaan en terug naar het titelscherm">Hoofdmenu</button>
             ${DESKTOP ? '<button type="button" class="m-bt" data-action="exit" title="Opslaan en het spel sluiten">Afsluiten</button>' : ''}
           </div>
@@ -448,8 +448,8 @@ export function initPauseMenu(w) {
             <p class="pm-status" role="status"></p>
             <button type="button" class="m-bt danger" data-action="restart">Opnieuw beginnen</button>
             <div class="pm-confirm" hidden>
-              <p>Opnieuw beginnen? Alles sinds je laatste spelstand gaat verloren. Je andere spelstanden blijven staan.</p>
-              <button type="button" class="m-bg" data-action="load">Laatste spelstand laden</button>
+              <p>Opnieuw beginnen? Alles sinds je laatste savegame gaat verloren. Je andere savegames blijven staan.</p>
+              <button type="button" class="m-bg" data-action="load">Laatste savegame laden</button>
               <button type="button" class="m-bg danger" data-action="new">Nieuw spel (nieuw slot)</button>
               <button type="button" class="m-bt" data-action="cancel">Annuleren</button>
             </div>
@@ -1034,9 +1034,9 @@ function runAction(a) {
   else if (a === 'save') status(saveGame(world) ? `Opgeslagen om ${new Date().toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })}` : 'Opslaan mislukt');
   else if (a === 'load') {
     if (loadLatestSave(world)) setOpen(false);
-    else status('Geen spelstand gevonden');
+    else status('Geen savegame gevonden');
   } else if (a === 'saves') {
-    if (world && world.pigeonMode) { status('Je bent een duif. Stop de duif-modus om spelstanden te gebruiken.'); return; }
+    if (world && world.pigeonMode) { status('Je bent een duif. Stop de duif-modus om savegames te gebruiken.'); return; }
     openSaveSlots({ mode: 'game', world, onLoad: () => setOpen(false), onClose: () => { syncSaveButtons(); const b = root.querySelector('.pm-rail-acts [data-action="saves"]'); if (b) b.focus(); } });
   } else if (a === 'restart') {
     confirmEl.hidden = false;
@@ -1348,7 +1348,7 @@ function renderVerhaalPanel() {
 }
 
 function syncSaveButtons() {
-  if (world && world.pigeonMode) { status('Je bent een duif. Stop de duif-modus om op te slaan; je poepscore gaat mee in je spelstand.'); return; }
+  if (world && world.pigeonMode) { status('Je bent een duif. Stop de duif-modus om op te slaan; je poepscore gaat mee in je savegame.'); return; }
   const saved = hasSave();
   for (const b of root.querySelectorAll('[data-action="load"]')) b.disabled = !saved;
   const s = getSaveSummary();

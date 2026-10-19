@@ -30,7 +30,7 @@ export function cleanName(s, fallback = '') {
   return t || fallback;
 }
 
-export const defaultName = (n) => `Spel ${n}`;
+export const defaultName = (n) => `Savegame ${n}`;
 
 // 3725 -> '1 u 02 min', 540 -> '9 min', 0 -> 'net begonnen'
 export function formatPlaytime(sec) {
@@ -282,12 +282,12 @@ export function stateText(state) {
 
 export function importErrorText(why) {
   switch (why) {
-    case 'groot': return 'Dit bestand is te groot voor een spelstand.';
-    case 'nieuwer': return 'Deze spelstand komt uit een nieuwere versie van het spel.';
-    case 'ander-verhaal': return 'Deze spelstand hoort bij het andere verhaal.';
-    case 'vol': return `Alle ${MAX_SLOTS} plekken zijn in gebruik. Verwijder eerst een spelstand.`;
+    case 'groot': return 'Dit bestand is te groot voor een savegame.';
+    case 'nieuwer': return 'Deze savegame komt uit een nieuwere versie van het spel.';
+    case 'ander-verhaal': return 'Deze savegame hoort bij het andere verhaal.';
+    case 'vol': return `Alle ${MAX_SLOTS} plekken zijn in gebruik. Verwijder eerst een savegame.`;
     case 'opslaan': return 'Opslaan mislukt: er is geen ruimte meer.';
-    case 'geen-save': return 'Dit bestand is geen GDE-spelstand.';
+    case 'geen-save': return 'Dit bestand is geen GDE-savegame.';
     default: return 'Dit bestand is kapot en kan niet gelezen worden.';
   }
 }
