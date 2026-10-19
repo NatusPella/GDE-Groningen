@@ -7,6 +7,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Nieuw
+- **Eigenaar loopt terug naar zijn auto (nog niet in beeld bekeken):** laat je een gestolen auto achter, dan loopt de eigenaar die weer terugpakken als hij binnen 45 m staat en er niemand in zit. Staat de auto buiten beeld, dan rijdt hij weg. Een klap van een boze bestuurder klinkt nu ook. (Refs #49, #44)
 - **Reigers, zeehonden en vissen (nog niet in beeld bekeken):** aan het water staat soms een reiger (vliegt weg als je dichtbij komt), in de kustwateren liggen zeehonden (duiken weg) en in grachten en sloten zwemmen vissen onder het oppervlak (schieten weg). Koeien en schapen stappen opzij voor jou en voor voertuigen. Reiger, zeehond en vis hebben een eigen geluid. Aantallen volgen de streek en de kwaliteit. (Refs #193)
 - **Bijbanen buiten de stad starten altijd (nog niet in beeld bekeken):** als er bij het hart van de streek nog geen weg is geladen (strandwacht, balenrit, melkrit, bergingsdienst), zoekt de baan eerst ruimer en valt dan terug op de dichtstbijzijnde weg in de stad, zodat het voertuig er altijd staat. (Refs #192)
 - **Tuning werkt door (nog niet in beeld bekeken):** een heldere koplamp laat 's nachts verder en feller schijnen, een zachte stoel dempt de camera-schok bij een botsing, de onderdelen van de Escapade komen terug als ze verschijnt, en opvallende onderdelen (knalpijp) laten de politie je tot 40% langer zoeken. (Refs #196)
