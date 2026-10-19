@@ -543,7 +543,7 @@ async function boot() {
     const nowS = performance.now() / 1000;
     const imp = world.lastImpact, mh = world.lastMeleeHit;
     if ((imp && imp !== dipSeen.imp) || (mh && mh !== dipSeen.mh)) {
-      triggerDip(feelDip, nowS, { strength: imp && imp !== dipSeen.imp ? imp.strength : 0, melee: !!(mh && mh !== dipSeen.mh) }, effectsFor({ reduceMotion: reducedMotion() }));
+      triggerDip(feelDip, nowS, { strength: imp && imp !== dipSeen.imp ? imp.strength : 0, melee: !!(mh && mh !== dipSeen.mh) }, effectsFor({ reduceMotion: reducedMotion() || getSettings().speedFeel === false }));
       dipSeen.imp = imp; dipSeen.mh = mh;
     }
     const gameDt = dt * Math.max(0, Math.min(1, world.timeScale ?? 1)) * MODS.slow * dipScale(feelDip, nowS);

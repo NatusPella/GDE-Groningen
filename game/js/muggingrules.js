@@ -48,7 +48,6 @@ export const MUG = {
 // 0..1: how dark it is, by the sun of today's date (sunrules.js): quiet streets from dusk, deepest at night.
 export const nightFactor = (hour) => nightAtHour(hour);
 
-export const isNight = (hour) => nightFactor(hour) > 0;
 
 // 0..1 for a wijk name at an hour.
 export function riskLevel(wijk, hour) {
