@@ -5,7 +5,7 @@ import { onLandmarkModelLoaded } from './landmarkmodels.js';
 import { getSettings } from './settings.js';
 import { pushAudioEvent } from './pedestrians.js';
 import { unlockAchievement } from './achievements.js';
-import { saveGame } from './savegame.js';
+import { saveGame } from './savehook.js';
 import { pointInPolygon, isInWater, clamp, angleLerp, normalizeAngle, WATER_Y } from './util.js';
 import { KEYS } from './storagekeys.js';
 import { quitRunningActivities } from './busy.js';

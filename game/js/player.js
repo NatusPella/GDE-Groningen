@@ -14,7 +14,7 @@ import { getSettings } from './settings.js';
 import { makeJumpAssist, jumpStep } from './gamefeel.js';
 import { ALGAE } from './eventrules.js';
 import { knockDown, isKnockedDown } from './ragdoll.js';
-import { resolveBuildingCollisions, resolveWalker } from './collision.js';
+import { resolveBuildingCollisions, resolveWalker, findExitSpot, EXIT_LEFT_FIRST, EXIT_RIGHT_FIRST } from './collision.js';
 import { resolveWalkerProps, propAhead } from './breakables.js';
 import { railingAhead } from './bridgerails.js';
 import { drunkMove, drunkSteer } from './drunk.js';
@@ -995,25 +995,5 @@ function isInsideBuilding(map, x, y) {
   return !!buildingAt(map, x, y);
 }
 
-// Sides as multipliers of the vehicle's (-sin, cos) normal, which is its
-// right-hand side (three.z = world.y). Drivers get out on the left (NL),
-// passengers on the right.
-export const EXIT_LEFT_FIRST = [-1, 1];
-export const EXIT_RIGHT_FIRST = [1, -1];
-
-export function findExitSpot(v, radius, map, sides = EXIT_LEFT_FIRST) {
-  const nx = -Math.sin(v.angle), ny = Math.cos(v.angle);
-  const off = v.halfWid + 0.7;
-  for (const s of sides) {
-    const ex = v.x + nx * off * s, ey = v.y + ny * off * s;
-    if (isInsideBuilding(map, ex, ey) || isInWater(map, ex, ey)) continue;
-    return resolveBuildingCollisions(ex, ey, radius, map);
-  }
-  // an alley narrower than the car: out the front or the back instead
-  const hl = (v.halfLen || v.halfWid * 2) + 0.7, fx = Math.cos(v.angle), fy = Math.sin(v.angle);
-  for (const s of [1, -1]) {
-    const ex = v.x + fx * hl * s, ey = v.y + fy * hl * s;
-    if (!isInsideBuilding(map, ex, ey) && !isInWater(map, ex, ey)) return resolveBuildingCollisions(ex, ey, radius, map);
-  }
-  return map.escapeBuilding(v.x + nx * off * sides[0], v.y + ny * off * sides[0]);
-}
+// findExitSpot and the exit sides live in collision.js (pedestrians.js uses them without importing the player, #108)
+export { findExitSpot, EXIT_LEFT_FIRST, EXIT_RIGHT_FIRST };

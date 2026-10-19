@@ -1,3 +1,4 @@
+import { setMapOpenState } from './pausestate.js';
 import { onPaletteChange } from './a11y.js';
 import { pinchStep } from './touchlogic.js';
 import { MODES, roadAllowed, travelModeOf } from './roadaccess.js';
@@ -1838,6 +1839,7 @@ function openMap(world) {
   ensureCountryEdge(world.map);
   setMode(travelModeOf(world));
   state.open = true;
+  setMapOpenState(true);
   state.overlay.classList.add('open');
   sizeCanvas();
   ensureLevel0();
@@ -1865,6 +1867,7 @@ function closeMap() {
   setMapTeleport(false);
   hideCard();
   state.open = false;
+  setMapOpenState(false);
   setRoutePrefs({ planMode: null });
   state.overlay.classList.remove('open');
   state.tooltip.style.display = 'none';
@@ -2224,9 +2227,7 @@ export function initMapView(world) {
   }
 }
 
-export function isMapOpen() {
-  return !!(state && state.open);
-}
+export { isMapOpen } from './pausestate.js';
 
 let closeHandler = null;
 

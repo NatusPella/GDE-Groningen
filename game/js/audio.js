@@ -1,6 +1,5 @@
 import { clamp } from './util.js';
 import { FLAGS } from './devflags.js';
-import { getCamera } from './scene3d.js';
 import { getSettings, onSettingsChange } from './settings.js';
 import { isThemeActive } from './theme.js';
 import { vehicleContacts } from './vehicle.js';
@@ -19,6 +18,10 @@ import { createMusicWatch } from './musicwatch.js';
 import * as speech from './speech.js';
 import { drunkLevel } from './drunk.js';
 import { KEYS } from './storagekeys.js';
+
+// the camera comes from main.js (setAudioCamera): audio.js does not import scene3d.js (#108)
+let getCamera = () => null;
+export function setAudioCamera(fn) { getCamera = fn; }
 
 if (typeof window !== 'undefined') window.__speech = speech;
 
