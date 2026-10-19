@@ -9,6 +9,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [0.37.1] - 2026-10-19
 
 ### Nieuw
+- **Cutscenes tonen echte voertuigen en dieren (deels in beeld bekeken):** auto's, bestelbus, bakkie, trekker, politieauto, fietsen, duif en kat komen nu uit dezelfde modellen als in de wereld in plaats van blokjes. De aanhanger (bestaat niet in het spel) is uit Even pinnen gehaald en de validatie weigert zo'n placeholder voortaan. (Refs #136)
 - **Naamkaarten in de opening, spoor in de benchmark (nog niet in beeld bekeken):** Tessa en Tammo krijgen een naamkaart linksonder zodra ze in de keuken in beeld komen. De benchmarkroute heeft een nieuw shot langs het spoor met een eigen categorie in de resultaten. (Refs #159)
 - **Verkeer en voetgangers rond de cutscene-camera (nog niet in beeld bekeken):** tijdens een cutscene vullen auto's, fietsers en voetgangers zich rond waar de camera kijkt, niet rond de verborgen speler. (Refs #157)
 - **Sluizen-audit:** `node scripts/world/sluizen.mjs [--raster] [--write] [--strict]` controleert voor elke sluis dat het water aan beide kanten doorloopt (ook in het vaarnetraster) en schrijft `game/sluizen.json`; `scripts/sluizen_test.mjs` test de deuren per fase, de seinen, schutten in beide richtingen, een wachtrij en geen deadlock.
