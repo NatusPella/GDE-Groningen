@@ -74,7 +74,7 @@ function startJob(B, c, list, withDetail) {
       }
     }
   }
-  B.job = { c, list, withDetail, pieces, i: 0, buckets: new Map() };
+  B.job = { c, list, withDetail, pieces, i: 0, buckets: new Map(), bake: !!B.bake };
 }
 
 const _v = new THREE.Vector3();
@@ -84,7 +84,7 @@ let remap = new Int32Array(1024);
 // Materials that differ only in colour share one batch material: the colour
 // is baked into a vertex colour (linear, the same numbers the shader would
 // multiply), so a cell draws one mesh per kind of material instead of one per
-// colour. A cell of 48 m held about six wall colours: ~6 draw calls (and as
+// colour (only for the buildings and their facade details: the road materials draw their paving through their own shader and lose it). A cell of 48 m held about six wall colours: ~6 draw calls (and as
 // many in the shadow pass) became ~2 (docs/PERF-METING-2026-10-19.md).
 function bakeSig(m) {
   if (m.userData.bakeSig !== undefined) return m.userData.bakeSig;
@@ -117,7 +117,7 @@ function bakedMaterial(rep, sig) {
 
 function addPiece(job, pc) {
   const { g, mat, part } = pc;
-  const sig = !g.attributes.color ? bakeSig(mat) : null;
+  const sig = job.bake && !g.attributes.color ? bakeSig(mat) : null;
   const key = sig ? `bake|${sig}|${part.castShadow ? 1 : 0}|${attrSig(g)}` : `${mat.uuid}|${part.castShadow ? 1 : 0}|${attrSig(g)}`;
   let bk = job.buckets.get(key);
   if (!bk) {
@@ -266,7 +266,7 @@ function finishJob(B) {
 // margin), how many newcomers redo a merged cell (default 3), and the
 // item's distance (default: from its bounds' centre).
 export function createStaticBatcher(opts) {
-  const B = { name: opts.name, cells: new Map(), job: null, frame: 0, root: null, stats: { cells: 0, merged: 0, builds: 0, dropped: 0 } };
+  const B = { name: opts.name, bake: !!opts.bake, cells: new Map(), job: null, frame: 0, root: null, stats: { cells: 0, merged: 0, builds: 0, dropped: 0 } };
   const cell = opts.cell || CELL, minMembers = opts.minMembers || MIN_MEMBERS;
   const memberOk = (m, ctx, dist) => ctx.meshes.get(m.b) === m.mesh && !(ctx.hidden && ctx.hidden.has(m.b)) && m.mesh.parent && verOf(m.parts) === m.ver && opts.valid(m.b, m.mesh, ctx, dist);
 
@@ -379,6 +379,7 @@ export function mergeAtOnce(list, withDetail = true) {
 // buildings: never past their detail radius (the far LOD draws them there)
 export const buildingBatcher = createStaticBatcher({
   name: 'building-batch',
+  bake: true,
   eligible: (b, mesh) => !b.landmark && mesh.position.y === 0,
   valid: (b, mesh, ctx, dist) => dist(b) <= ctx.detailR - 1,
 });
@@ -388,6 +389,7 @@ export const buildingBatcher = createStaticBatcher({
 // detailR is the facade detail radius here
 export const facadeBatcher = createStaticBatcher({
   name: 'facade-batch',
+  bake: true,
   part: (mesh) => mesh.userData.facadeDetail,
   eligible: (b, mesh) => !b.landmark && mesh.position.y === 0 && !!mesh.userData.facadeDetail,
   valid: (b, mesh, ctx, dist) => dist(b) <= ctx.detailR - 1,

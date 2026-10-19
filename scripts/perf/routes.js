@@ -378,6 +378,22 @@ results.routes.cost = await safe('cost', async () => {
   mover = null;
   return { baseMs: +baseMs.toFixed(2), baseCalls: info0.calls, noShadowMs: +noShadow.toFixed(2), sizes, rows: rows.slice(0, 12) };
 });
+// six fixed viewpoints in the city (only with PERF_ONLY=spots): one screenshot each, for before/after pixel comparisons
+results.routes.spots = await safe('spots', async () => {
+  if (!ONLY.includes('spots')) return null;
+  fixWorld();
+  const names = [];
+  for (let i = 0; i < FOOT.length; i++) {
+    teleport(FOOT[i][0], FOOT[i][1]);
+    w.camYaw = i * 1.1; p.angle = w.camYaw;
+    await sleep(9000);
+    fixWorld();
+    console.log('[capture] spot' + i);
+    names.push('spot' + i);
+    await sleep(600);
+  }
+  return { names };
+});
 results.routes.pause = await run('pause', async () => { teleport(...P(100, 77)); await sleep(4000); wantMenu = true; PM.openPauseMenu('game'); return {}; }, () => {}, async () => { wantMenu = false; PM.closePauseMenu(); });
 results.routes.sheet = await run('sheet', async () => { teleport(...P(100, 77)); await sleep(4000); wantMenu = true; PM.openPauseMenu('settings'); return {}; }, () => {}, async () => { wantMenu = false; PM.closePauseMenu(); });
 
