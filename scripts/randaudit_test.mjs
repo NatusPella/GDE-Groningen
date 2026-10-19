@@ -76,5 +76,14 @@ ok(boat.coast[0].seaM === 1000, 'other fields of a line survive');
   ok(R.regionEdgeLayer() === null, 'and clears it again');
 }
 
+// Rottum (forbidden nature) and Schiermonnikoog (the ferry) get their own sea scenes
+{
+  const mk = (la, lo) => { const [x, y] = wgsToWorld(la, lo); return { kind: 'wad', out: 1, pts: [[x, y], [x + 400, y]] }; };
+  const e = coastKinds({ coast: [mk(53.55, 6.55), mk(53.49, 6.18), mk(53.45, 6.60)], border: [] });
+  ok(e.coast[0].kind === 'rottum' && e.coast[1].kind === 'schier' && e.coast[2].kind === 'wad', 'Rottum and Schiermonnikoog coast chains get their kind');
+  const a = auditEdge(e, { propKinds: ['rand_natuurbord', 'rand_boei', 'rand_mistbank', 'rand_veerboot', 'rand_grenswachtboot', 'rand_kustwachtboot', 'rand_grenspost', 'rand_slagboom', 'rand_bord', 'rand_wegversperring', 'rand_neef', 'rand_hunebed'], tileHas: () => true });
+  ok(!a.issues.some((s) => s.includes('rottum') || s.includes('schier')), 'both kinds have a text and a scene: ' + a.issues.join('; '));
+}
+
 console.log(bad ? `${bad} of ${n} failed` : 'all passed');
 process.exit(bad ? 1 : 0);

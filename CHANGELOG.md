@@ -9,6 +9,8 @@ nieuwe functies, `y` voor alleen bugfixes.
 ### Nieuw
 - **Samen spelen: gedeelde speelklok en desync-controle (#95):** de tijd van de dag van een gast volgt die van de host, en de host controleert om de paar seconden of de gast hetzelfde ziet (verhaalstap, opdracht, wanted, spelers); bij een afwijking vraagt de gast zijn toestand opnieuw. Alleen met pure tests en in-memory getest, nog niet getest met twee echte computers of met een telefoon.
 - **Spelbot (#186, #255):** `--speed=N` speelt tot 8 spelstappen per beeld; de minigame-ronde stopt zelf op de echte-tijdbegroting en bij een vastgelopen speltijd, en bewaart bij een onderbreking de uitvoer (`run.log`, `result.json` met de lijst minigames).
+- **Rottum en Schiermonnikoog als randen (nog niet in beeld bekeken, #6):** de kustketens rond Rottumeroog en Rottumerplaat sturen je terug met een bord "verboden natuur" en zeehonden op de plaat; rond Schiermonnikoog vaart de veerboot dwars voor je langs. Alleen getest op de logica (`randaudit_test`), niet in het spel.
+- **Streek Alleen trekkers (nog niet in beeld bekeken, #61):** geen fietsen of brommers meer, de auto's die overblijven zijn grote, groene en rode bakbeesten. Sterft net als de andere verkeerstreken in 45 s uit.
 
 ## [0.37.1] - 2026-10-19
 
