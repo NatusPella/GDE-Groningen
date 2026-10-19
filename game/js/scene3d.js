@@ -30,7 +30,8 @@ import { getHorecaForRender, horecaBadges3D, horecaPads3D, updateHorecaPads3D } 
 import { buildWildlifeMesh3D, wildlifeShadowSize, animateWildlifeMesh3D } from './wildlife.js';
 import { buildMissionMarker3D, updateMissionMarker3D, buildWaypointDotMesh3D } from './missions.js';
 import { syncTrafficLights3D, setTrafficLightGlow } from './trafficlights.js';
-import { getCombatEffect, isRangedWeapon } from './combat.js';
+import { isRangedWeapon } from './weapons.js';
+import { getCombatEffect } from './combateffect.js';
 import { scopeEye } from './scopeaim.js';
 import { alignPlayerFlash } from './gunfx3d.js';
 import { sharedWaterMaterial, updateWaterMaterial, buildWaterGeometry, waterSwellAt, waterSwellAmp, auditWaterMeshes } from './water3d.js';

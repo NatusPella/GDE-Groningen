@@ -4,18 +4,19 @@ import { setDualText } from './subtitles.js';
 import { paintSpeaker } from './speakers.js';
 import { noteSpoken } from './characters.js';
 import { getSettings } from './settings.js';
-import { isPauseMenuOpen } from './pausestate.js';
-import { isMapOpen } from './mapview.js';
+import { isPauseMenuOpen, isMapOpen } from './pausestate.js';
 import { respawnPlayer } from './world.js';
 import { V, W, clamp01, easeInOut, easeOut, pathShot, roofAt, clearKeys, wijkStreetShot } from './camerapath.js';
-import { startRespawnScene, respawnFade } from './respawn.js';
 import { playStoryVoice, setStoryScene, setStoryProbe } from './audio.js';
 import { isIntroPlaying } from './trailerstate.js';
 import { logoHtml, GAME_NAME, SUBTITLE } from './logo.js';
 import { mayInterrupt, noteMoment } from './attention.js';
 import { registerNarrative } from './narrative.js';
 import { lineVoiceFor } from './linevoice.js';
-import { getFollowPose, prewarmStreamAt } from './scene3d.js';
+// What cinematics.js asks of respawn.js and scene3d.js comes in through setCinematicLinks
+// (respawn.js and main.js call it), so it imports neither (#108).
+const links = { startRespawnScene: () => false, respawnFade: () => {}, getFollowPose: () => null, prewarmStreamAt: () => {} };
+export function setCinematicLinks(l) { Object.assign(links, l); }
 import { KEYS } from './storagekeys.js';
 import { registerBusyProbe } from './busy.js';
 import { interiorEyePose } from './carinterior.js';
@@ -185,7 +186,7 @@ export function getCinemaCamMode() {
 // spec.prewarm: [{ x, y }] map points the scene will show, built ahead
 // (scene3d.js prewarmStreamAt) so its first frames are not the far LOD.
 function prewarmPoints(points) {
-  for (const p of points || []) if (p) prewarmStreamAt(p.x, p.y);
+  for (const p of points || []) if (p) links.prewarmStreamAt(p.x, p.y);
 }
 
 // The tile world's side of the same list: the tiles round every point are
@@ -578,7 +579,7 @@ function flyInShot(w, first) {
   // camera hanging in the air. Built on the second frame, once the follow
   // camera has caught up with a player the scene just put back.
   return (u) => {
-    const f = getFollowPose();
+    const f = links.getFollowPose();
     if (!path && f && u > 0) {
       const land = { pos: V(f.position.x, f.position.y, f.position.z), look: V(f.lookAt.x, f.lookAt.y, f.lookAt.z) };
       const above = { pos: V(land.pos.x, land.pos.y, land.pos.z + 10), look: land.look };
@@ -951,14 +952,14 @@ function playDeath(w, pending) {
     id: 'death', priority: 5, duration: DUR, letterbox: true, timeScale: 0.25, skippable: true,
     tint: opts.busted ? 'bust' : 'death', big: opts.busted ? 'OPGEPAKT' : 'DOOD',
     shot: (u, t) => {
-      if (t > DUR - 0.45) respawnFade(Math.min(1, (t - (DUR - 0.45)) / 0.4));
+      if (t > DUR - 0.45) links.respawnFade(Math.min(1, (t - (DUR - 0.45)) / 0.4));
       return shot(u);
     },
     onEnd: () => {
-      if (w.pendingRespawn !== pending) { respawnFade(0, 300); return; }
+      if (w.pendingRespawn !== pending) { links.respawnFade(0, 300); return; }
       // the trip to the hospital / police station; it respawns the player itself
-      if (startRespawnScene(w, pending, opts)) return;
-      respawnFade(0, 400);
+      if (links.startRespawnScene(w, pending, opts)) return;
+      links.respawnFade(0, 400);
       w.pendingRespawn = null;
       respawnFromScene(w, opts);
     },
