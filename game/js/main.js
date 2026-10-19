@@ -184,7 +184,7 @@ const boatTarget = () => scaledTarget(getSettings().quality === 'laag' ? 5 : 7);
 // every system that used to have a 2D-only draw path now also has a 3D one.
 initLoading();
 
-function waitForStart(world) {
+function waitForStart(world, ready) {
   const relocate = (x, y) => {
     world.player.x = x;
     world.player.y = y;
@@ -237,7 +237,7 @@ function waitForStart(world) {
     updateGunFx3D(fxDt, world, getScene());
     update3D(dt, world);
   };
-  return runStartScreen(world, { render, relocate, tick });
+  return runStartScreen(world, { render, relocate, tick, ready });
 }
 
 let bridgeDemoT = 0, bridgeDemoDone = false; // ?brugbotsing
@@ -486,7 +486,7 @@ async function boot() {
   setAudioCamera(getCamera);
   setCinematicLinks({ getFollowPose, prewarmStreamAt });
   setSfxLinks({ bridges: getMovableBridges, trains: getTrains, vehicles: () => world.vehicles, locks: getSluizen });
-  await waitForStart(world);
+  await waitForStart(world, countryPlaced);
   await countryPlaced;
   document.body.classList.add('game-started');
   hideAdvice();
@@ -543,7 +543,7 @@ async function boot() {
     const nowS = performance.now() / 1000;
     const imp = world.lastImpact, mh = world.lastMeleeHit;
     if ((imp && imp !== dipSeen.imp) || (mh && mh !== dipSeen.mh)) {
-      triggerDip(feelDip, nowS, { strength: imp && imp !== dipSeen.imp ? imp.strength : 0, melee: !!(mh && mh !== dipSeen.mh) }, effectsFor({ reduceMotion: reducedMotion() }));
+      triggerDip(feelDip, nowS, { strength: imp && imp !== dipSeen.imp ? imp.strength : 0, melee: !!(mh && mh !== dipSeen.mh) }, effectsFor({ reduceMotion: reducedMotion() || getSettings().speedFeel === false }));
       dipSeen.imp = imp; dipSeen.mh = mh;
     }
     const gameDt = dt * Math.max(0, Math.min(1, world.timeScale ?? 1)) * MODS.slow * dipScale(feelDip, nowS);
