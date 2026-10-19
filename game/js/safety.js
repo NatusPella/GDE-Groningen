@@ -3,9 +3,8 @@
 // would otherwise leave the player stuck until a reload.
 import { isInWater } from './util.js';
 import { cinematicState, skipCinematic, skipAllCinematics, isCinematicActive } from './cinematics.js';
-import { isPhoneOpen } from './phone.js';
 import { isShopOpen, closeShopMenu } from './shopui.js';
-import { isPauseMenuOpen, isMapOpen } from './pausestate.js';
+import { isPhoneOpen, isPauseMenuOpen, isMapOpen } from './pausestate.js';
 import { isMissionActive, failActiveMission } from './missions.js';
 import { respawnPlayer } from './world.js';
 import { respawnFade } from './respawn.js';

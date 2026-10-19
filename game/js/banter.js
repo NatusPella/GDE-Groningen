@@ -15,7 +15,7 @@ import { isMissionActive, isMissionCompleted } from './missions.js';
 import { getSideJobList } from './sidejobs.js';
 import { isCinematicActive } from './cinematics.js';
 import { registerNarrative, mayStart, storyWaiting } from './narrative.js';
-import { isPhoneOpen } from './phone.js';
+import { isPhoneOpen } from './pausestate.js';
 import { playBanterVoice, stopBanterVoice, pauseBanterVoice, voiceBusy } from './audio.js';
 import { hold as holdChannel, release as releaseChannel } from './speech.js';
 import { KEYS } from './storagekeys.js';

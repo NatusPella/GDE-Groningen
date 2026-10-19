@@ -7,7 +7,7 @@
 // Instellingen, Besturing.
 import { getSettings, setSetting, resetSettings, QUALITY_PRESETS } from './settings.js';
 import { logoHtml } from './logo.js';
-import { setPauseMenuOpen } from './pausestate.js';
+import { setPauseMenuOpen, setPauseMenuTabState } from './pausestate.js';
 import { PRESET_ORDER, presetLabel, describePreset, describeChanges, currentPreset, applyPreset, getBenchResult, dismissBenchBanner, GEAR_SVG } from './gfxprofile.js';
 import { mountMapView, setMapActive, setMapCloseHandler, setMapView, getDiscoveredRatio, setMapTeleport } from './mapview.js';
 import { renderSamenPanel } from './samenpanel.js';
@@ -15,7 +15,7 @@ import { renderCheatsPanel, cheatsClick, resetCheatsPanel, cheatsFocus } from '.
 import { skipCurrent, getStoryJournal, markCluesSeen } from './story.js';
 import { saveGame, hasSave, loadLatestSave, startNewSlot, getSaveSummary, getPlaySeconds } from './savegame.js';
 import { openSaveSlots, isSaveSlotsOpen } from './saveslotsui.js';
-import { getClockText } from './hud_panel.js';
+import { getClockText } from './clocktext.js';
 import { VERSION } from './version.js';
 import { versionLabel } from './menumodels.js';
 import { storyDate } from './calendarday.js';
@@ -1427,6 +1427,7 @@ function showTab(name, how) {
   if (how) origin = how;
   const prev = tab;
   tab = name;
+  setPauseMenuTabState(name);
   root.dataset.activeTab = name;
   for (const b of root.querySelectorAll('.pm-game [data-goto]')) {
     b.setAttribute('aria-current', String(b.dataset.goto === name));
@@ -1503,6 +1504,7 @@ function setOpen(value, name = HOME, how = 'direct') {
   if (input) input.reset();
   if (open) {
     tab = null;
+    setPauseMenuTabState(null);
     refreshInfo();
     syncRail();
     showTab(name, how);

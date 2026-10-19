@@ -14,8 +14,7 @@ import { promptSub, explains, explainId, markSeen, parseSeen } from './hudtext.j
 const downKey = () => keyWord(getSettings().keyBinds, 'control');
 import { isPadActive, padState } from './gamepad.js';
 import { getUiScale } from './uiscale.js';
-import { isPhoneOpen } from './phone.js';
-import { isPauseMenuOpen } from './pausestate.js';
+import { isPhoneOpen, isPauseMenuOpen } from './pausestate.js';
 import { lineOfSight } from './pedgeom.js';
 import { pigeonSpotPrompt, pigeonSpotSecondary } from './pigeonspots.js';
 import { sideJobPrompt, sideJobSecondary } from './sidejobs.js';

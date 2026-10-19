@@ -39,6 +39,8 @@ import { ommelandArea } from './ommelandplace.js';
 import { ommelandMapSpots, drawOmmelandMapIcon } from './ommelandmap.js';
 import { VILLAGES } from './ommelandlines.js';
 import { getActiveRoute, getRouteAhead, getRoutes, getUserWaypoint, formatDistance } from './routing.js';
+import { getClockText } from './clocktext.js';
+export { getClockText };
 import { storyWaiting, missionOnMap } from './goal.js';
 import { setGhostBar, ring, pop } from './motion.js';
 import { renderSnapshot, PORTRAIT_ANGLE } from './vehiclepreview.js';
@@ -879,12 +881,6 @@ function updateWanted(world) {
   els.wanted.setAttribute('aria-label', `Gezocht: ${world.wanted} van 5, ${wantedPhase(world) === 'zoeken' ? 'politie zoekt je' : 'achtervolging'}`);
 }
 
-export function getClockText(world) {
-  const h = world && world.dayNight ? world.dayNight.hour : undefined;
-  if (typeof h !== 'number' || !Number.isFinite(h)) return '';
-  const total = Math.floor((((h % 24) + 24) % 24) * 60);
-  return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
-}
 
 let clockShown = null;
 let dateT = 0;
