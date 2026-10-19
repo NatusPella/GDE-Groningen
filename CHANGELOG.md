@@ -23,6 +23,14 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **Fierljep-duel in Bourtange (M20, nog niet in beeld bekeken, #218):** na de drie timingrondes maak je zelf de polsstoksprong over de gracht, met de zijcamera: een landing als je het duel won, een plons als je verloor.
 - **Hulp bij schade (nog niet in beeld bekeken, #215):** de optie "minder schade" werkt nu ook bij kogels, klappen en valschade, niet alleen bij voertuigen.
 
+### Opgelost
+- **De hele 3D-wereld was zwart (#256, #257):** de wolkenlaag gooide elk frame een fout in `updateSunAndSky` (ontbrekende `world` en `L`), waardoor alleen de HUD in beeld stond. Opnieuw gezien: de wereld rendert weer (beeld van Delfzijl in de sweep).
+- **Regenstrepen vlak bij de camera (#258):** streepjes die dichter dan vier meter bij de lens komen worden korter en dunner en verdwijnen op een meter; eerder werden het witte palen door het beeld. In beeld gezien bij drie regenplekken van de sweep, nog niet door een mens bekeken.
+- **Sprong naar een verhaalstap (#261, #262):** de dev-sprong kiest een plek buiten gebouwen en water. Bij Zoutkamp (M16) staat de speler nu op de kade (in beeld gezien); bij M11 staat de camera nog tegen een muur (niet opgelost).
+
+### Intern
+- **Visuele sweep (`scripts/qa/sweep.mjs`):** willekeurige plekken, tijden, weersoorten en verhaalstappen met een vaste seed, minstens 150 beelden per ronde, automatische checks (zwart, leeg, NaN, textures, HUD buiten beeld of overlappend, speler in water of gebouw) en contactbladen (`scripts/qa/montage.mjs`). Zie docs/TESTEN.md. Alle beelden zijn alleen door een agent bekeken.
+
 ## [0.37.1] - 2026-10-19
 
 ### Nieuw
