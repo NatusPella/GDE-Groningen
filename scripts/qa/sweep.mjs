@@ -179,4 +179,11 @@ fs.writeFileSync(path.join(OUT, 'bevindingen.json'), JSON.stringify({ seed: SEED
 
 const md = [`# Sweep seed ${SEED}`, '', `Beelden: ${beelden.length}; plekken/stappen gelogd: ${stops.filter((s) => s.scene).length}; vlaggen: ${vlaggen.length}.`, '**Geen van deze beelden is door een mens bekeken**; de vlaggen zijn automatisch. Beeldverdicten tellen alleen zwart, leeg en ongeldig.', '', '## Vlaggen', ...vlaggen.map((v) => `- ${v.naam}: ${v.vlag}`), '', '## Logboek', ...stops.filter((s) => s.scene).map((s) => `- ${s.name} (${s.cat}) klok ${s.clock}, ${s.weather}${s.plaats || s.place ? ', bij ' + (s.place || s.plaats) : ''}${s.step ? ', stap ' + s.step : ''}${s.at ? ', op ' + s.at.join(',') : ''}`), '', '## Cutscenes', ...csInfo.map((l) => `- ${l}`)];
 fs.writeFileSync(path.join(OUT, 'logboek.md'), md.join('\n') + '\n');
+// poort: een zwarte wereld of een fout per frame is geen vondst maar een gebroken build; de run faalt dan (exitcode 1)
+const poort = vlaggen.filter((v) => /^(logregels|bijna lege wereld|script-fout|NaN-geometrie|beeld (zwart|leeg|ongeldig))/.test(v.vlag));
+if (poort.length) {
+  fs.appendFileSync(path.join(OUT, 'logboek.md'), ['', '## POORT GEFAALD', ...poort.map((v) => `- ${v.naam}: ${v.vlag}`), ''].join('\n'));
+  console.log(`POORT GEFAALD: ${poort.length} vlaggen (zwart beeld, lege wereld, consolefout of script-fout), zie logboek.md`);
+}
 console.log(`beelden: ${beelden.length}, vlaggen: ${vlaggen.length}; uitvoer: ${OUT}`);
+process.exitCode = poort.length ? 1 : 0;
