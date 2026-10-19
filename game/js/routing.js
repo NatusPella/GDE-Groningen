@@ -12,6 +12,7 @@ import { isInWater, WATER_Y } from './util.js';
 import { getHelipads } from './heliflight.js';
 import { roadNetReady, roadGraphBuilt, roadGraphVersion, snapRoad, roadCosts, roadPath, roadPathToNode, roadPathFromNode, nodeXY, gatewayCandidates } from './roadgraph.js';
 import { playerBusy } from './busy.js';
+import { setWalkPathFinder } from './pedroutes.js';
 
 const STRAY_M = 25;
 // the further from the route you may stray before it is redone, per way of travel
@@ -911,3 +912,5 @@ export function formatDistance(m) {
   if (m < 1000) return `${Math.max(0, Math.round(m / 10) * 10)} m`;
   return `${(m / 1000).toLocaleString('nl-NL', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} km`;
 }
+
+setWalkPathFinder(findWalkPath);

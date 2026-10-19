@@ -1,11 +1,15 @@
 import { dist, isInWater, closestPointOnSegment, pointInPolygon } from './util.js';
-import { findWalkPath } from './routing.js';
 import { trafficSignalsNear, pedestriansMayCross, getTrafficLights } from './trafficlights.js';
 import { isInsideBuilding, isOnRoad, setPedPose, lineOfSight } from './pedgeom.js';
 import { findProps, isPropBroken } from './breakables.js';
 import { SpatialGrid } from './spatialgrid.js';
 import { markZebraUser, zebraSpeedLimit } from './trafficyield.js';
 export { zebraSpeedLimit };
+
+// routing.js (which needs shops, goal and more) registers its walking router here at load,
+// so this module stays a leaf for that import cycle (#108); without it a walk finds no path.
+let findWalkPath = () => null;
+export function setWalkPathFinder(fn) { findWalkPath = fn; }
 
 // Long, purposeful walks: every civilian picks a destination a few hundred
 // metres away, walks there over the walk network on one side of the street,
