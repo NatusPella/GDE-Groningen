@@ -27,10 +27,11 @@ Code-identifiers, bestandsnamen en opslagsleutels (`gde-save-v1`, `saveslots.js`
 | deadline | **uiterste tijd** | |
 | shopaholic | **winkelverslaafde** | |
 | total loss | **afgeschreven** | "de auto is afgeschreven" |
+| hole(s) (discgolf, pitch & putt) | **baan**, **banen** | "Baan 3/9"; de mand blijft de mand |
 
 ## Ingeburgerd, dus toegestaan
 
-Niet forceren: app, film, camera, hatchback, sedan, HUD, minimap, cheat(s), score, update, skatepark, minigame, streamer.
+Niet forceren: par, birdie, eagle, bogey, ace (vaktermen van discgolf), app, film, camera, hatchback, sedan, HUD, minimap, cheat(s), score, update, skatepark, minigame, streamer.
 Wordt er later een goed alternatief gekozen, voeg het dan hier toe en zet het woord in `ANGLICISMEN`.
 
 ## Uitzonderingen
