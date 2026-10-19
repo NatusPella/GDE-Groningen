@@ -265,14 +265,18 @@ function finishJob(B) {
 // an item must be within to be merged (default: the detail radius less a
 // margin), how many newcomers redo a merged cell (default 3), and the
 // item's distance (default: from its bounds' centre).
-function createStaticBatcher(opts) {
-  const B = { name: opts.name, bake: !!opts.bake, cells: new Map(), job: null, frame: 0, root: null, stats: { cells: 0, merged: 0, builds: 0, dropped: 0 } };
+export function createStaticBatcher(opts) {
+  const B = { name: opts.name, bake: !!opts.bake, cells: new Map(), job: null, frame: 0, root: null, stats: { cells: 0, merged: 0, builds: 0, dropped: 0, ms: 0, frames: 0 } };
   const cell = opts.cell || CELL, minMembers = opts.minMembers || MIN_MEMBERS;
   const memberOk = (m, ctx, dist) => ctx.meshes.get(m.b) === m.mesh && !(ctx.hidden && ctx.hidden.has(m.b)) && m.mesh.parent && verOf(m.parts) === m.ver && opts.valid(m.b, m.mesh, ctx, dist);
 
   // ctx: { scene, meshes (Map item -> group), hidden (Set or null), px, py,
   // detailR, drawDist, withDetail, budgetMs }
   function update(ctx) {
+    const t0 = performance.now();
+    try { step(ctx); } finally { B.stats.ms += performance.now() - t0; B.stats.frames++; }
+  }
+  function step(ctx) {
     if (!B.root) {
       B.root = new THREE.Group();
       B.root.name = B.name + 'es';

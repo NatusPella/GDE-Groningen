@@ -1,4 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { PARKS, parkBankSpots } from './parkplekken.js';
 import { GeoBuilder, vcMaterial, composeMatrix, tubeGeometry, HABBO_PALETTE } from './pixelart3d.js';
 import { Pedestrian, CITY_CENTRE, releaseFromScene, isSpawnHidden } from './pedestrians.js';
 import { setPedPose, isInsideBuilding, isOnRoad } from './pedgeom.js';
@@ -341,6 +342,17 @@ function generateCell(map, cx, cy) {
         n++;
         inRow++;
       }
+    }
+  }
+
+  for (const pk of PARKS) {
+    if (pk.x < cx0 || pk.x >= cx0 + CELL || pk.y < cy0 || pk.y >= cy0 + CELL) continue;
+    for (const sp of parkBankSpots(pk)) {
+      if (!isFree(map, sp.x, sp.y, 0.9) || !clear(sp.x, sp.y, 1)) continue;
+      take(sp.x, sp.y, 1);
+      items.push(propItem(protos.bench, 'bench', sp.x, sp.y, sp.angle, sp.angle + Math.PI / 2));
+      const bx = sp.x + Math.cos(sp.angle + Math.PI / 2) * 1.5, by = sp.y + Math.sin(sp.angle + Math.PI / 2) * 1.5;
+      if (sp.bin && isFree(map, bx, by, 0.35) && clear(bx, by, 0.4)) { take(bx, by, 0.4); items.push(propItem(protos.bin, 'bin', bx, by, sp.angle)); }
     }
   }
 

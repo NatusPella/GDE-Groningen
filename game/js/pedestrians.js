@@ -27,7 +27,7 @@ import { hash2 } from './rng.js';
 import { seatedOf, clearSeated, reactSeated, exitOrder } from './occupants.js';
 import { dayState } from './daynight.js';
 import { FLAGS } from './devflags.js';
-import { voetgangerOpties, stapSlaOver } from './simlagen.js';
+import { voetgangerOpties, stapSlaOver, AbstractPool } from './simlagen.js';
 import { getSimBridge } from './simbridge.js';
 import { wijkProfileAt } from './trafficfleet.js';
 import { hourOf } from './streetlifedata.js';
@@ -915,6 +915,9 @@ function spawnEventGroup(world, inEvent) {
   return 0;
 }
 
+// Voetgangers die uit beeld verdwijnen blijven als getal per cel bestaan (simlagen
+// AbstractPool, #18) en komen eerst terug als de speler weer dichterbij komt.
+export const verlatenPool = new AbstractPool(100);
 function managePopulation(world) {
   const { player } = world;
   for (let i = world.pedestrians.length - 1; i >= 0; i--) if (world.pedestrians[i]._vanish) world.pedestrians.splice(i, 1);
@@ -938,12 +941,20 @@ function managePopulation(world) {
       const p = world.pedestrians[i];
       if (p.isCop || p.scene || p.nightlife || p.leader || p.state !== 'wander') continue;
       if (dist(p.x, p.y, player.x, player.y) < 55 || !isSpawnHidden(world, p.x, p.y)) continue;
+      if (FLAGS.simlagen) verlatenPool.afleggen(p.x, p.y);
       world.pedestrians.splice(i, 1);
       excess--;
     }
   } else if (walkers < desired - 4) {
     const n = Math.min(12, desired - walkers);
-    const add = addCompanions(world.map, spawnPedsRaw(world.map, player.x, player.y, n, Math.random, 30), n);
+    let rest = n;
+    const terug = [];
+    if (FLAGS.simlagen) {
+      // de teruggekeerden worden weer echt op de plek van hun cel
+      for (const c of verlatenPool.opnemen(player.x, player.y, 300, Math.min(6, n))) { terug.push(...spawnPedsRaw(world.map, c.x, c.y, 1, Math.random, 30)); rest--; }
+      verlatenPool.opruimen(player.x, player.y, 900);
+    }
+    const add = addCompanions(world.map, [...terug, ...spawnPedsRaw(world.map, player.x, player.y, rest, Math.random, 30)], n);
     world.pedestrians.push(...add);
   }
 

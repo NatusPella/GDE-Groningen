@@ -403,6 +403,7 @@ export function runStartScreen(world, { render, relocate, tick }) {
     const items = [];
     if (save) items.push({ act: 'continue', label: 'Doorgaan', sub: summaryText(save) });
     items.push({ act: 'new', label: 'Nieuw spel', sub: save ? 'Begin opnieuw in Grunn' : 'Moi! Stap in en rij' });
+    items.push({ act: 'samen', label: 'Samen spelen', sub: 'Met een vriend of vriendin, tot 4 spelers' });
     items.push({ act: 'saves', label: 'Savegames', sub: 'Kies, hernoem, exporteer of verwijder je savegames' });
     items.push({ act: 'news', label: 'Wat is er nieuw', sub: 'Alle versies en wijzigingen' });
     items.push({ act: 'settings', label: 'Instellingen', sub: 'Geluid, beeld en camera' });
@@ -529,6 +530,10 @@ export function runStartScreen(world, { render, relocate, tick }) {
       if (it.act !== 'news' && it.act !== 'about') news.hidden = true;
       if (it.act === 'continue') {
         continueGame();
+      } else if (it.act === 'samen') {
+        // het spel start zoals altijd (Doorgaan, of een nieuw spel zonder savegame); daarna staat de lobby klaar (main.js)
+        world.openSamenOnStart = true;
+        if (save) continueGame(); else startNew();
       } else if (it.act === 'saves') {
         openSaveSlots({ mode: 'start', onLoad: continueGame, onNew: () => startNew(), onClose: () => {
           // Doorgaan shows the save as it was when the menu opened: rebuild the menu when saves changed

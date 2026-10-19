@@ -25,6 +25,9 @@ export const WANDPLEKKEN = {
   b1: { label: "Zuidmuur van Tessa's kamer", x: 10.3, z: 8.62, rot: Math.PI, solid: [9.65, 8.3, 10.95, 8.95], use: { x: 10.3, z: 7.8 } },
   b2: { label: 'Zuidmuur, naast het bed', x: 9.0, z: 8.62, rot: Math.PI, solid: [8.35, 8.3, 9.65, 8.95], use: { x: 9.0, z: 7.8 } },
   b3: { label: 'Woonkamer, noordmuur', x: 1.85, z: 0.55, rot: 0, solid: [1.2, 0.2, 2.5, 0.85], use: { x: 1.85, z: 1.5 } },
+  t1: { label: 'Woonkamer, noordmuur in het midden', x: 3.7, z: 1.0, rot: 0, solid: [2.8, 0.2, 4.6, 1.35], use: { x: 5.25, z: 1.35 } },
+  t2: { label: 'Woonkamer, noordmuur bij de keuken', x: 6.0, z: 1.0, rot: 0, solid: [5.1, 0.2, 6.9, 1.35], use: { x: 7.5, z: 1.35 } },
+  t3: { label: 'Woonkamer, noordmuur bij de gang', x: 1.95, z: 1.0, rot: 0, solid: [1.05, 0.2, 2.85, 1.35], use: { x: 3.45, z: 1.35 } },
   b4: { label: 'Kamer van Tammo, noordmuur', x: 5.3, z: 5.55, rot: 0, solid: [4.65, 5.25, 5.95, 5.9], use: { x: 5.3, z: 6.5 } },
 };
 
@@ -34,6 +37,7 @@ export const VERPLAATSBAAR = {
   lamp: { opties: ['h1', 'h2', 'h3', 'h4', 'h5'], standaard: 'h1', half: 0.22 },
   plant: { opties: ['h4', 'h1', 'h2', 'h3', 'h5'], standaard: 'h4', half: 0.32 },
   kast: { opties: ['k1', 'k2', 'k3'], standaard: 'k1', wand: true },
+  tv: { opties: ['t1', 't2', 't3'], standaard: 't1', wand: true },
   bureau: { opties: ['b1', 'b2', 'b3', 'b4'], standaard: 'b1', wand: true },
 };
 

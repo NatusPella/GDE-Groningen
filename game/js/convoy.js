@@ -16,8 +16,8 @@ const colonneMembers = () => [
   { name: 'Geesje', kind: 'scooter', model: { ...MOPED_MODEL, color: '#d9739b' } },
   { name: 'Wubbo', kind: 'bus' },
   { name: 'Tinus', kind: 'car', model: { ...TRACTOR_MODEL, color: '#2f5fa8' } },
-  { name: 'Kapitein Klaas', kind: 'car', model: { name: 'aanhanger', len: 7.2, wid: 2.0, maxSpeed: 17, accel: 4.5, brake: 10, turnRate: 1.6, color: '#7a5a3a' } },
-  { name: 'Berend', kind: 'car', model: { name: 'bakkie', len: 4.8, wid: 1.9, maxSpeed: 26, accel: 6, brake: 14, turnRate: 2.4, color: '#c9b18a' } },
+  { name: 'Kapitein Klaas', kind: 'car', model: { name: 'truck', len: 7.2, wid: 2.0, maxSpeed: 17, accel: 4.5, brake: 10, turnRate: 1.6, color: '#7a5a3a' } },
+  { name: 'Berend', kind: 'car', model: { name: 'wagon', len: 4.8, wid: 1.9, maxSpeed: 26, accel: 6, brake: 14, turnRate: 2.4, color: '#c9b18a' } },
   { name: 'Durk en Douwe', kind: 'bike' },
 ];
 

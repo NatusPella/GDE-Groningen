@@ -3,7 +3,8 @@
 // komen als data binnen (railway.getRoutes(): { name, stops: [{ name, s }] }),
 // de vervoerder is verzonnen ("Noorderspoor"). De tijd is de spelklok in uren
 // (0..24) plus het dagnummer; een trein rijdt volgens het rooster, ook als
-// niemand kijkt, dus bord, perron en bomen zijn altijd in overeenstemming.
+// niemand kijkt. Het vertrekbord in het spel volgt echter de treinen die echt rijden
+// (bordUitTreinen); het rooster is de terugval en de basis voor de overwegen.
 // Vertraging is klein en deterministisch per dag, lijn en rit (geen echte
 // storingen of gewonden). Tests: scripts/dienstregeling_test.mjs.
 
@@ -120,6 +121,49 @@ export function vertrekBord(routes, stationNaam, nu, dag = 1, { aantal = 6, teru
   }
   rijen.sort((a, b) => a.tijd - b.tijd || a.lijn.localeCompare(b.lijn));
   return rijen.filter((r) => r.tijd >= nu - terug).slice(0, aantal);
+}
+
+// Het bord uit de treinen die echt rijden (railway.getTrains()), zodat bord, omroep en zichtbare
+// trein overeenkomen. treinen: [{ route, c, dir, v, state ('dwell' | 'run'), target, timer, vmax }].
+// De verwachte aankomst telt afstand over de stops (met keren aan de uiteinden) bij een gemiddelde
+// snelheid van 0,8 vmax plus het oponthoud per halte; `schaal` zet echte seconden om in spelklok-
+// seconden (86400 / DAY_LENGTH_S). Per trein de eerste `bezoeken` keer dat hij op dit station staat.
+// Rijen als vertrekBord: { lijn, richting, dir, k, spoor, plan, tijd, vertraging: 0, reden: '', aankomst }.
+export const OPONTHOUD = { halte: 25, eind: 35, buiten: 100 };
+export function bordUitTreinen(treinen, stationNaam, nu, { aantal = 6, bezoeken = 2, schaal = 60 } = {}) {
+  const rijen = [];
+  for (const t of treinen) {
+    if (t.state !== 'dwell' && t.state !== 'run') continue;
+    const stops = t.route.stops;
+    const j = stops.findIndex((st) => st.name === stationNaam);
+    if (j < 0 || stops[j].offmap) continue;
+    const vgem = Math.max(1, (t.vmax || 22) * 0.8);
+    const last = stops.length - 1;
+    let dir = t.dir, idx = t.target, tijd = 0, visit = 0;
+    // op weg naar t.target, of wachtend op t.target
+    if (t.state === 'run') tijd = Math.abs(stops[idx].s - t.c) / vgem;
+    for (let guard = 0; guard < 4 * stops.length + 4 && visit < bezoeken; guard++) {
+      const eerste = guard === 0;
+      const aan = tijd;
+      const wacht = eerste && t.state === 'dwell' ? Math.max(0, t.timer || 0) : (stops[idx].offmap ? OPONTHOUD.buiten : idx === 0 || idx === last ? OPONTHOUD.eind : OPONTHOUD.halte);
+      const weg = (eerste && t.state === 'dwell' ? 0 : aan) + wacht;
+      if (idx === 0) dir = 1; else if (idx === last) dir = -1;
+      if (idx === j) {
+        const bestemming = stops[dir > 0 ? last : 0].name;
+        rijen.push({
+          lijn: t.route.name, richting: bestemming, dir, k: visit, spoor: spoor(stationNaam, t.route, dir),
+          plan: nu + weg * schaal, tijd: nu + weg * schaal, vertraging: 0, reden: '', aankomst: nu + (eerste && t.state === 'dwell' ? 0 : aan) * schaal, echt: true,
+        });
+        visit++;
+      }
+      const next = idx + dir;
+      if (next < 0 || next > last) break;
+      tijd = weg + Math.abs(stops[next].s - stops[idx].s) / vgem;
+      idx = next;
+    }
+  }
+  rijen.sort((a, b) => a.tijd - b.tijd || a.lijn.localeCompare(b.lijn));
+  return rijen.slice(0, aantal);
 }
 
 export function tijdLabel(s) {

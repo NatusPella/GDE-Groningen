@@ -24,6 +24,10 @@ export const FX_INFO = {
   kermis_ding: { cat: 'kermis', label: 'Kermis: kop van Jut (klap en bel)', gain: 0.6, ref: 5, range: 120 },
   splash_big: { cat: 'water', label: 'Grote plons', gain: 0.7, ref: 6, range: 120 },
   door_wood_open: { cat: 'deur', label: 'Houten deur open', gain: 0.5, ref: 3, range: 40 },
+  firework_burst_0: { cat: 'explosie', label: 'Vuurwerkbom (A)', gain: 0.85, ref: 40, range: 3200 },
+  firework_burst_1: { cat: 'explosie', label: 'Vuurwerkbom (B)', gain: 0.85, ref: 40, range: 3200 },
+  firework_burst_2: { cat: 'explosie', label: 'Vuurwerkbom (C)', gain: 0.85, ref: 40, range: 3200 },
+  crossing_bell: { cat: 'spoor', label: 'Overwegbel (een slag)', gain: 0.6, ref: 6, range: 130 },
   door_wood_close: { cat: 'deur', label: 'Houten deur dicht', gain: 0.55, ref: 3, range: 40 },
 };
 
@@ -257,3 +261,26 @@ defSample('sluis_stroom', 6, (c, sr, R, len) => {
     d[i] = (lp.run(n) * 0.9 * w + hp.run(n) * 0.18 * w * w) * e;
   }
 }, { rate: 22050, peak: 0.7 });
+
+// Fireworks (#131): a shell opening is a hard crack, a low thump you feel, a
+// short bloom of noise and then glitter crackling down for two seconds. Every
+// variant scatters its own pops.
+for (let v = 0; v < 3; v++) defSample(`firework_burst_${v}`, 2.8, (c, sr, R) => {
+  const d = c[0], j = () => 0.9 + R() * 0.2;
+  nb(d, sr, 0, R, { type: 'hp', f: 4800 * j(), q: 0.7, tau: 0.004, amp: 1.5 });
+  nb(d, sr, 0, R, { f: 2000 * j(), q: 0.9, tau: 0.03, amp: 1.1, attack: 0.0005 });
+  nb(d, sr, 0.002, R, { type: 'lp', f: 900 * j(), q: 0.7, tau: 0.22, amp: 1.0 });
+  thump(d, sr, 0, 78 * j(), 0.3, 1.5);
+  const n = 34 + Math.floor(R() * 14);
+  for (let k = 0; k < n; k++) {
+    const u = Math.pow(R(), 1.6);
+    nb(d, sr, 0.14 + u * 2.1, R, { f: 3200 + R() * 4200, q: 2.5, tau: 0.003 + R() * 0.006, amp: (0.55 - 0.35 * u) * (0.4 + R() * 0.6), attack: 0.0003 });
+  }
+}, { peak: 0.9 });
+
+// Level-crossing bell: a hard steel strike, bright and short, ringing out on its own.
+defSample('crossing_bell', 0.9, (c, sr, R) => {
+  const d = c[0], f = 1450 + R() * 100;
+  addPartials(d, sr, 0, f, [[1, 1, 0.16], [1.006, 0.7, 0.2], [2.76, 0.45, 0.09], [5.4, 0.2, 0.04]], 1, R);
+  nb(d, sr, 0, R, { type: 'hp', f: 4200, q: 1.5, tau: 0.004, amp: 0.5 });
+}, { peak: 0.85 });

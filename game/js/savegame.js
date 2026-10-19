@@ -18,7 +18,7 @@ import { stopVillageMini } from './dorpsuitjes.js';
 import { quitActivity } from './activities.js';
 import { getGoalSave, applyGoalSave } from './goal.js';
 import { getCalendarSave, applyCalendarSave } from './calendarday.js';
-import { migrateSave, SAVE_VERSION, savedArc } from './savemigrate.js';
+import { migrateSave, SAVE_VERSION, savedArc, plausiblePos } from './savemigrate.js';
 import { getCheatSave, applyCheatSave } from './cheats.js';
 import { closeShopMenu } from './shopui.js';
 import { quitTrainDrive } from './traindrive.js';
@@ -384,7 +384,7 @@ export function applySave(w, d) {
       w.player.character = d.character;
       if (w.companion) w.companion.character = d.character === 'tammo' ? 'anita' : 'tammo';
     }
-    if (d.pos && Number.isFinite(d.pos.x) && Number.isFinite(d.pos.y)) placeAt(w, d.pos.x, d.pos.y);
+    if (plausiblePos(d.pos)) placeAt(w, d.pos.x, d.pos.y);
     w.wanted = 0;
     w.wantedDecayTimer = 0;
     w.pendingRespawn = null;
