@@ -180,7 +180,7 @@ const boatTarget = () => scaledTarget(getSettings().quality === 'laag' ? 5 : 7);
 // every system that used to have a 2D-only draw path now also has a 3D one.
 initLoading();
 
-function waitForStart(world) {
+function waitForStart(world, ready) {
   const relocate = (x, y) => {
     world.player.x = x;
     world.player.y = y;
@@ -233,7 +233,7 @@ function waitForStart(world) {
     updateGunFx3D(fxDt, world, getScene());
     update3D(dt, world);
   };
-  return runStartScreen(world, { render, relocate, tick });
+  return runStartScreen(world, { render, relocate, tick, ready });
 }
 
 let bridgeDemoT = 0, bridgeDemoDone = false; // ?brugbotsing
@@ -476,7 +476,7 @@ async function boot() {
   initAudio(world);
   setNieuwsBronnen({ bridges: getMovableBridges });
   setSfxLinks({ bridges: getMovableBridges, trains: getTrains, vehicles: () => world.vehicles, locks: getSluizen });
-  await waitForStart(world);
+  await waitForStart(world, countryPlaced);
   await countryPlaced;
   document.body.classList.add('game-started');
   hideAdvice();
