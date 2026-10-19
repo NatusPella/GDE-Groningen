@@ -737,6 +737,13 @@
       "steamApiNaam": ""
     },
     {
+      "id": "dierenboek",
+      "titel": "Dierenvriend",
+      "omschrijving": "Zie alle dertien dieren van de provincie en schrijf ze op in je dierenboek",
+      "verborgen": false,
+      "steamApiNaam": ""
+    },
+    {
       "id": "streek_geheimen",
       "titel": "Kenner van de streek",
       "omschrijving": "Vind het geheim van elke streek in de provincie",
