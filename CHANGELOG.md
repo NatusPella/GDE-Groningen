@@ -6,6 +6,9 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Opgelost
+- **Der Aa-kerk van binnen stond verkeerd om (nog niet in beeld bekeken, #22):** de torenhal lag aan de oostkant, terwijl de toren in de kaartdata aan de westkant staat. Torenhal en koor, de portalen en de kansel zijn gespiegeld; `interieurs_test` controleert nu dat de torenhal bij de echte toren ligt (1045 checks).
+
 ### Nieuw
 - **Parkaankleding (nog niet in beeld bekeken, #23):** het Noorderplantsoen (14 banken) en de Prinsentuin (5) krijgen banken met het gezicht naar het midden en hier en daar een prullenbak (`parkplekken.js`, test groen; `streetlife_test` 92/92).
 - **Voetgangers die wegtrekken blijven bestaan (nog niet in beeld bekeken, #18):** wie uit beeld wordt weggehaald, blijft als getal per cel in de abstracte laag (`AbstractPool`); komt je terug in de buurt, dan verschijnen die mensen weer in hun eigen cel. Niet getest in het spel, alleen `simlagen_test` en een syntaxcheck.
