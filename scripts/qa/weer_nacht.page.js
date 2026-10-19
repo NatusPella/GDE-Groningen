@@ -7,7 +7,13 @@
 const CFG = window.__wnCfg;
 // het spel kan op een drukke machine langer over het opstarten doen dan de driver wacht
 for (let i = 0; i < 900 && !(window.__debug && window.__debug.world && window.__debug.world.map && window.__scene3d); i++) await new Promise((res) => setTimeout(res, 100));
-const D = window.__debug; const w = D.world; const p = w.player; const map = w.map;
+// ook echt gestart (niet het titelscherm): zo niet, Enter erbij; en een eventuele pauze opheffen
+for (let i = 0; i < 300 && !document.body.classList.contains('game-started'); i++) {
+  if (i % 30 === 5) for (const t of [window, document]) { t.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', bubbles: true })); t.dispatchEvent(new KeyboardEvent('keyup', { key: 'Enter', code: 'Enter', bubbles: true })); }
+  await new Promise((res) => setTimeout(res, 100));
+}
+const D = window.__debug; const w = D.world;
+for (let i = 0; i < 25 && w.paused; i++) { for (const t of [window, document]) { t.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', code: 'Space', bubbles: true })); t.dispatchEvent(new KeyboardEvent('keyup', { key: ' ', code: 'Space', bubbles: true })); } await new Promise((res) => setTimeout(res, 700)); } const p = w.player; const map = w.map;
 const sc = window.__scene3d;
 const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
 const imp = (f) => import('/js/' + f + '.js');
