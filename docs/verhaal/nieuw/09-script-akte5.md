@@ -68,7 +68,7 @@ HENK: Het luik zit er al. Een deuk meer kan geen kwaad. [NIEUW]
 
 ## [M23.1] De colonne: intro – Westerkwartier, Tinus' schuur, vertrek – Fjord Frituur
 (regie: donderdag 27 augustus, ochtend. Alle vrienden van Oma staan met hun voertuigen: een scooter, een bus, een trekker, een bakkie, een aanhanger met een sloep. Gameplay: één colonne naar de Grote Markt; de groep bij elkaar houden terwijl Jelles limo en zijn vergunningen proberen de colonne te splitsen.)
-MEM (telefoon): Famke. Trijntje en ik hebben ze na gisteren nog eens gebeld. Tammo deed het niet slecht. Ze zeiden nee tegen Jelles advocaten. Ze komen. [NIEUW]
+MEM (telefoon): Famke. Trijntje en ik hebben ze gebeld. Ze zeiden nee tegen Jelles advocaten. Ze komen. [NIEUW]
 TESSA: Dit is de colonne, naar de Grote Markt. Wij voorop, de rest erachter, en niemand valt weg. [NIEUW]
 GEESJE: Ik rij op mijn scooter. Hij is sneller dan hij lijkt. [NIEUW]
 WUBBO: Ik heb de bus. De brug draait op tijd. De colonne liever ook. [NIEUW]
@@ -123,12 +123,12 @@ TAMMO: Hij zegt dit elke keer. [NIEUW]
 TESSA: En elke keer klopt het. [NIEUW]
 
 ## [M23.8] De colonne: de scooter rijdt naast jullie – Westerkwartier, Tinus' schuur, vertrek – scooter
-(regie: afloop van de keuze voor Geesje. De scooter zoemt naast de Fjord Frituur, Geesje met een helm op haar bun.)
+(regie: afloop van de keuze voor Geesje. De scooter zoemt naast de Fjord Frituur, Geesje met een helm over haar knot.)
 GEESJE: Ik rij naast jullie, op mijn scooter. Ik ken elk steegje van hier tot de Grote Markt. [NIEUW]
 TESSA: Een scooter tegen een limo? [NIEUW]
-GEESJE: Een limo past niet in een steegje, famke. [NIEUW]
+GEESJE: Een limo past niet in een steegje, jong. [NIEUW]
 TAMMO: Sneller dan hij lijkt. [NIEUW]
-GEESJE: Dat zeg ik altijd. [NIEUW]
+GEESJE: Zegt de kerk ook. [NIEUW]
 
 ## [M23.4] De colonne: outro – Stad, Grote Markt – Fjord Frituur
 (regie: de colonne rijdt de Grote Markt op. Het publiek klapt.)
@@ -297,9 +297,9 @@ TORENWACHTER (telefoon): Tammo. De klok staat op drie uur. Ze staan vast. Ik mel
 (regie: de colonne van donderdag komt terug. Wubbo zet de bus dwars; over de portofoon klinkt hij door de Fjord Frituur.)
 WUBBO (telefoon): Herestraat dicht. Bus dwars. De deuren heb ik open gelaten, voor de sfeer. [NIEUW]
 TESSA: Dank je, Wubbo. [NIEUW]
-WUBBO (telefoon): Open of dicht, Tessa. Nooit allebei. [NIEUW]
-TAMMO: Hij herhaalt zichzelf. [NIEUW]
-TESSA: Dat heet een werkfilosofie. [NIEUW]
+WUBBO (telefoon): Open of dicht, Tessa. Vandaag allebei. [NIEUW]
+TESSA: Dat mag niet. [NIEUW]
+TAMMO: Het is een bus. [NIEUW]
 
 ## [M26.15] Ontzet, net als in 1672: de straten dicht, de trekker – Stad, rond de Oude Boteringestraat – Fjord Frituur
 (regie: Tinus trekt zijn trekker dwars voor de Gedempte Zuiderdiep, midden tussen de terrassen.)
@@ -307,14 +307,13 @@ TINUS (telefoon): Zuiderdiep dicht. Trekker dwars. Wie er langs wil, moet eerst 
 TESSA: Je trekker past er net in. [NIEUW]
 TINUS (telefoon): Ik trek hem weg. De limo, niet de trekker. [NIEUW]
 TAMMO: In de stad ziet hij er nog groter uit. [NIEUW]
-TESSA: Dat is de trekker. [NIEUW]
 
 ## [M26.16] Ontzet, net als in 1672: de straten dicht, de scooter – Stad, rond de Oude Boteringestraat – Fjord Frituur
 (regie: Geesje zet de scooter dwars in de steeg naast de notaris.)
 GEESJE (telefoon): De steeg bij de notaris is dicht. Scooter dwars. Ik zit erop te breien. [NIEUW]
 TESSA: Je zit te breien? [NIEUW]
 GEESJE (telefoon): Wie blijft staan, mag breien. [NIEUW]
-TAMMO: Dat is een goede regel. [NIEUW]
+TAMMO: Klopt. [NIEUW]
 
 ## [M26.5] Ontzet, net als in 1672: Mem – Stad, Oude Boteringestraat – te voet
 (regie: Mem komt aangelopen, met haar schort nog aan. Jelle klautert nat de kant op.)

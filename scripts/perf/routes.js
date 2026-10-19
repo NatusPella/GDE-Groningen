@@ -100,6 +100,7 @@ requestAnimationFrame(tick);
 const DN = await imp('daynight');
 // the same light and weather on every run: 14:00, clear (a route can ask for another hour or rain)
 let LOOK = { clock: 14, rain: false };
+let EJECTS = 0;
 const fixWorld = () => {
   w.clock = LOOK.clock;
   w.weather = LOOK.rain ? { active: true, timer: 1e9, kind: 'regenbui', peak: 0.6, intensity: 0.6, wet: 1, overcast: 0.6, mist: 0, windAngle: 0.9, elapsed: 30, duration: Infinity }
@@ -118,7 +119,7 @@ async function run(name, setup, move, teardown, opts = {}) {
   await sleep(6000);
   t0 = performance.now();
   fixWorld();
-  calls = 0; tris = 0; renders = 0;
+  calls = 0; tris = 0; renders = 0; EJECTS = 0;
   const f0 = frameCount();
   H.start();
   if (window.__hitch) window.__hitch.reset();
@@ -130,7 +131,7 @@ async function run(name, setup, move, teardown, opts = {}) {
   const out = { ...res, callsPerFrame: Math.round(calls / frames), trisPerFrame: Math.round(tris / frames), rendersPerFrame: +(renders / frames).toFixed(2),
     programs: r.info.programs.length, textures: r.info.memory.textures, geometries: r.info.memory.geometries,
     heapMB: performance.memory ? Math.round(performance.memory.usedJSHeapSize / 1e6) : null, at: [Math.round((p.inVehicle || p).x), Math.round((p.inVehicle || p).y)],
-    vehicles: w.vehicles.length, peds: w.pedestrians.length, simLevel: window.__simLoad ? window.__simLoad.level() : null, dyn: window.__gfxDyn || null,
+    ejects: EJECTS, vehicles: w.vehicles.length, peds: w.pedestrians.length, simLevel: window.__simLoad ? window.__simLoad.level() : null, dyn: window.__gfxDyn || null,
     batches: sc.batches ? sc.batches() : null, geo: GJ ? { ...GJ.geoStats } : null,
     shots: globalThis.__shotLog || null, pr: r.getPixelRatio(), canvas: [r.domElement.width, r.domElement.height] };
   if (window.__hitch) {
@@ -212,6 +213,8 @@ results.routes.village = ONLY.includes('village') ? await run('village', async (
 const WPL = await imp('worldplaces');
 const PLACES = WPL.worldPlaceLabels(-1e7, -1e7, 1e7, 1e7);
 const placeAt = (n) => { const q = PLACES.find((x) => x.name === n); if (!q) throw new Error('no place ' + n); return [q.x, q.y]; };
+const keepIn = (v) => { if (!p.inVehicle) { EJECTS++; v.sinking = false; v.wrecked = false; p.enterVehicle(v, w); } };
+const leave = (v) => { if (p.inVehicle) p.exitVehicle(map, w); const i = w.vehicles.indexOf(v); if (i >= 0) w.vehicles.splice(i, 1); };
 const safe = async (name, fn) => { try { return await fn(); } catch (e) { console.log('[perf-route-error]', name, String((e && e.stack) || e)); mover = null; return { error: String((e && e.message) || e) }; } };
 // a car on a polyline at a fixed speed: the same shape as the ring route
 const carRoute = (name, pts, speed, opts = {}) => safe(name, () => run(name, async () => {
@@ -227,9 +230,11 @@ const carRoute = (name, pts, speed, opts = {}) => safe(name, () => run(name, asy
 }, (c, t) => {
   const q = at(pts, (Math.max(0, t) * speed) % c.len);
   const v = c.v;
-  v.x = q.x; v.y = q.y; v.angle = q.ang; v.speed = t > 0 ? speed : 0; v.vx = Math.cos(q.ang) * v.speed; v.vy = Math.sin(q.ang) * v.speed;
+  keepIn(v);
+  const rp = map.nearestRoadPoint(q.x, q.y, 150, true, true);
+  v.x = rp ? rp.x : q.x; v.y = rp ? rp.y : q.y; v.angle = q.ang; v.speed = t > 0 ? speed : 0; v.vx = Math.cos(q.ang) * v.speed; v.vy = Math.sin(q.ang) * v.speed;
   w.camYaw = q.ang;
-}, async (c) => { p.exitVehicle(map, w); w.vehicles.splice(w.vehicles.indexOf(c.v), 1); }, opts));
+}, async (c) => leave(c.v), opts));
 const A7 = ['Groningen', 'Hoogezand', 'Zuidbroek', 'Scheemda', 'Winschoten', 'Bad Nieuweschans'].map(placeAt);
 results.routes.a7 = await carRoute('a7', A7, 33, { dur: 60000 });
 const LAND = ['Loppersum', 'Appingedam', 'Delfzijl'].map(placeAt);
@@ -248,11 +253,12 @@ results.routes.spoor = await safe('spoor', () => run('spoor', async () => {
 }, (c, t) => {
   const q = at(RAIL, (Math.max(0, t) * 39) % c.len);
   const v = c.v;
+  keepIn(v);
   v.x = q.x; v.y = q.y; v.z = 14; v.angle = q.ang; v.onGround = false; v.airborne = true; v.rotor = 1;
   const sp = t > 0 ? 39 : 0;
   v.vx = Math.cos(q.ang) * sp; v.vy = Math.sin(q.ang) * sp; v.vz = 0; v.speed = sp;
   w.camYaw = q.ang;
-}, async (c) => { c.v.z = c.v.groundZ || 0; c.v.vx = c.v.vy = 0; c.v.onGround = true; c.v.airborne = false; await sleep(300); p.exitVehicle(map, w); w.vehicles.splice(w.vehicles.indexOf(c.v), 1); }, { dur: 45000 }));
+}, async (c) => { c.v.z = c.v.groundZ || 0; c.v.vx = c.v.vy = 0; c.v.onGround = true; c.v.airborne = false; await sleep(300); leave(c.v); }, { dur: 45000 }));
 // by boat: from Zoutkamp out over the water (the first clear water point on a ray)
 results.routes.varen = await safe('varen', () => run('varen', async () => {
   const SK = await imp('sidejobkit');
@@ -272,9 +278,10 @@ results.routes.varen = await safe('varen', () => run('varen', async () => {
   return { v: boat, a: boat.angle, x0: boat.x, y0: boat.y };
 }, (c, t) => {
   const v = c.v, s = Math.max(0, t) * 7;
+  keepIn(v);
   v.x = c.x0 + Math.cos(c.a) * s; v.y = c.y0 + Math.sin(c.a) * s; v.angle = c.a; v.speed = t > 0 ? 7 : 0; v.vx = Math.cos(c.a) * v.speed; v.vy = Math.sin(c.a) * v.speed;
   w.camYaw = c.a;
-}, async (c) => { p.exitVehicle(map, w); w.vehicles.splice(w.vehicles.indexOf(c.v), 1); }, { dur: 40000 }));
+}, async (c) => leave(c.v), { dur: 40000 }));
 // the busy city on foot (the foot route's path at rush hour), at night, and in the rain
 const walkFoot = (c, t) => { const q = at(FOOT, Math.max(0, t) * 6); p.x = q.x; p.y = q.y; p.angle = q.ang; w.camYaw = q.ang; };
 results.routes.druk = await safe('druk', () => run('druk', async () => { teleport(FOOT[0][0], FOOT[0][1]); return {}; }, walkFoot, null, { clock: 17.5 }));

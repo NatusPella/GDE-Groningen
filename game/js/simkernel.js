@@ -12,6 +12,7 @@ export const ACCEL = 2.5; // m/s2
 export const BRAKE = 4; // m/s2, comfortable braking
 export const MIN_GAP = 5; // m between bumper and tail, standing
 const SIGNAL_LOOK = 60; // m
+const END_STOP = 0.5; // m before the end of the road where a stopping agent (spawn `stop`) halts
 
 // Red/green as a pure function of the kernel clock.
 export function signalGreen(sig, t) {
@@ -41,8 +42,9 @@ export function createSimKernel() {
   function place(a) {
     const r = roads.get(a.road);
     if (!r || r.len <= 0) return;
-    const s = ((a.s % r.len) + r.len) % r.len; // loops around
-    a.s = s;
+    a.s = ((a.s % r.len) + r.len) % r.len; // loops around
+    // dir -1: the agent travels from the end of the polyline to its start; s counts along its way
+    const s = a.dir < 0 ? r.len - a.s : a.s;
     let i = 1;
     while (i < r.cum.length - 1 && r.cum[i] < s) i++;
     const t = (s - r.cum[i - 1]) / Math.max(1e-6, r.cum[i] - r.cum[i - 1]);
@@ -50,6 +52,7 @@ export function createSimKernel() {
     a.x = x0 + (x1 - x0) * t;
     a.y = y0 + (y1 - y0) * t;
     a.angle = Math.atan2(y1 - y0, x1 - x0);
+    if (a.dir < 0) a.angle = Math.atan2(Math.sin(a.angle + Math.PI), Math.cos(a.angle + Math.PI));
   }
 
   // Room ahead of a car: the car in front or a red stop line, whichever is nearer.
@@ -57,13 +60,14 @@ export function createSimKernel() {
     const byRoad = new Map();
     for (const a of agents.values()) {
       if (a.kind === 'ped') { a.s += a.speed * dt; continue; }
-      if (!byRoad.has(a.road)) byRoad.set(a.road, []);
-      byRoad.get(a.road).push(a);
+      const key = a.road * 2 + (a.dir < 0 ? 1 : 0); // each driving direction is its own queue
+      if (!byRoad.has(key)) byRoad.set(key, []);
+      byRoad.get(key).push(a);
     }
     for (const [rid, list] of byRoad) {
-      const len = roads.get(rid).len;
+      const len = roads.get(Math.floor(rid / 2)).len;
       list.sort((p, q) => p.s - q.s || p.id - q.id);
-      const sig = signals.get(rid) || [];
+      const sig = (rid % 2 ? [] : signals.get(rid / 2)) || []; // stop lines are for the forward direction
       for (let i = 0; i < list.length; i++) {
         const a = list[i];
         let gap = Infinity;
@@ -82,6 +86,8 @@ export function createSimKernel() {
         const want = Math.min(a.speed, safeSpeed(gap));
         a.v = want >= a.v ? Math.min(want, a.v + ACCEL * dt) : Math.max(want, a.v - 2 * BRAKE * dt);
         a.s += a.v * dt;
+        // a car that ends at the road end waits there for the main thread to take it over (simbridge.js)
+        if (a.stop && a.s > len - END_STOP) { a.s = len - END_STOP; a.v = 0; }
       }
     }
     for (const a of agents.values()) { place(a); }
@@ -101,7 +107,7 @@ export function createSimKernel() {
         return { type: MSG.READY };
       case MSG.SPAWN:
         for (const a of msg.agents) {
-          const o = { id: a.id, road: a.road, s: a.s || 0, speed: a.speed || 0, v: a.speed || 0, kind: a.kind === 'ped' ? 'ped' : 'car', x: 0, y: 0, angle: 0 };
+          const o = { id: a.id, road: a.road, s: a.s || 0, speed: a.speed || 0, v: a.speed || 0, kind: a.kind === 'ped' ? 'ped' : 'car', dir: a.dir < 0 ? -1 : 1, stop: !!a.stop, x: 0, y: 0, angle: 0 };
           if (!roads.has(o.road)) continue;
           place(o);
           agents.set(o.id, o);

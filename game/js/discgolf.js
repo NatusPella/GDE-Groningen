@@ -38,9 +38,9 @@ const COURSE = [...BASE];
 // the closest-to-the-basket contest is thrown at the hole nearest 70 m
 const CTP_HOLE = BASE.reduce((a, h) => (Math.abs(h.len - 70) < Math.abs(a.len - 70) ? h : a), BASE[0]);
 const MODES = [
-  { id: 'negen', name: 'Negen holes', rec: 'discgolf', note: 'de ronde van het Stadspark' },
+  { id: 'negen', name: 'Negen banen', rec: 'discgolf', note: 'de ronde van het Stadspark' },
   { id: 'achterkant', name: 'De achterkant', rec: 'discgolf-achterkant', note: 'dezelfde manden, de andere kant op' },
-  { id: 'achttien', name: 'Achttien holes', rec: 'discgolf-achttien', note: 'heen en terug, de volle ronde' },
+  { id: 'achttien', name: 'Achttien banen', rec: 'discgolf-achttien', note: 'heen en terug, de volle ronde' },
   { id: 'dichtbij', name: 'Dichtbij', rec: 'discgolf-dichtbij', note: 'drie worpen op één mand' },
 ];
 function setCourse(list) {
@@ -125,7 +125,7 @@ function holeSign(h, i, M) {
   const tex = textTex(256, 128, (c, w, hh) => {
     c.fillStyle = '#f2ede0'; c.fillRect(0, 0, w, hh);
     c.fillStyle = '#' + HOLE_COLORS[i % HOLE_COLORS.length].toString(16).padStart(6, '0'); c.fillRect(0, 0, w, 34);
-    c.fillStyle = '#fff'; c.font = 'bold 26px Arial'; c.textAlign = 'center'; c.fillText(`HOLE ${h.n}`, w / 2, 27);
+    c.fillStyle = '#fff'; c.font = 'bold 26px Arial'; c.textAlign = 'center'; c.fillText(`BAAN ${h.n}`, w / 2, 27);
     c.fillStyle = TEXT_FILL; c.font = 'bold 40px Arial'; c.fillText(`PAR ${h.par}`, w / 2, 80);
     c.font = '24px Arial'; c.fillText(`${Math.round(h.len)} m`, w / 2, 112);
   });
@@ -300,7 +300,7 @@ function start(w, { force = false } = {}) {
   };
   beginHole(w);
   game.phase = 'mode';
-  showCard(w, { kind: 'tip', kicker: 'Discgolf', title: 'Het Stadspark, kies je ronde', body: 'Kies eerst een ronde met [A] [D] en [Spatie]: negen holes, de achterkant, achttien holes of drie worpen op één mand. Daarna: [A] [D] richten, [W] [S] hoek, [E] release, [F] disc, houd [Spatie] om te laden en laat los om te gooien.', duration: 9, key: 'discgolf-help', voice: false });
+  showCard(w, { kind: 'tip', kicker: 'Discgolf', title: 'Het Stadspark, kies je ronde', body: 'Kies eerst een ronde met [A] [D] en [Spatie]: negen banen, de achterkant, achttien banen of drie worpen op één mand. Daarna: [A] [D] richten, [W] [S] hoek, [E] release, [F] disc, houd [Spatie] om te laden en laat los om te gooien.', duration: 9, key: 'discgolf-help', voice: false });
   say(w, 'start', true);
   return true;
 }
@@ -535,7 +535,7 @@ function end(w, { quit = false } = {}) {
   if (g.card.aces) stats.push(['Aces', String(g.card.aces)]);
   if (medal) stats.push(['Medaille', MEDALS[medal]]);
   if (rec && rec.newBest) stats.push(['Record', 'Nieuw!']);
-  showBanner({ kind: medal ? 'pass' : 'fail', title: medal >= 3 ? 'ONDER PAR IN HET STADSPARK' : medal ? 'NETTE RONDE' : 'DE EENDEN HEBBEN GEWONNEN', reason: medal ? `${relText(t.rel)} t.o.v. par over ${COURSE.length === 9 ? 'negen' : COURSE.length} holes` : 'Probeer het nog eens: kijk naar de wind en de vlag', reward: 0, stats });
+  showBanner({ kind: medal ? 'pass' : 'fail', title: medal >= 3 ? 'ONDER PAR IN HET STADSPARK' : medal ? 'NETTE RONDE' : 'DE EENDEN HEBBEN GEWONNEN', reason: medal ? `${relText(t.rel)} t.o.v. par over ${COURSE.length === 9 ? 'negen' : COURSE.length} banen` : 'Probeer het nog eens: kijk naar de wind en de vlag', reward: 0, stats });
   say(w, medal >= 2 ? 'endGood' : 'endPoor', true, true);
   setCourse(BASE);
 }
@@ -655,7 +655,7 @@ function updateHud() {
     board.set({ row: `<span>Worp <b>${Math.min(CTP.throws, g.ctp.dists.length + 1)}/${CTP.throws}</b></span><span>Mand <b>${Math.round(dist)} m</b></span><span>${windText(g.wind)} ${windArrow(g)}</span><span>${ds}</span>`, meter: g.phase === 'aim' ? { v: g.charge, color: '#f08a2e' } : null, flash: g.flash ? g.flash.text : info, bad: !!(g.flash && g.flash.bad), help: g.phase === 'aim' ? `${key('A')}${key('D')} richten · ${key('W')}${key('S')} hoek · ${key('E')} release · ${key('F')} disc · houd ${key('SPATIE')} en laat los · ${key('BACKSPACE')} stoppen` : key('BACKSPACE') + ' stoppen' });
     return;
   }
-  const row = `<span>Hole <b>${h.n}</b>/${COURSE.length}</span><span>Par <b>${h.par}</b></span><span>Worp <b>${g.phase === 'aim' ? g.strokes + 1 : g.strokes}</b></span><span>Mand <b>${Math.round(dist)} m</b></span><span>${windText(g.wind)} ${windArrow(g)}</span>`;
+  const row = `<span>Baan <b>${h.n}</b>/${COURSE.length}</span><span>Par <b>${h.par}</b></span><span>Worp <b>${g.phase === 'aim' ? g.strokes + 1 : g.strokes}</b></span><span>Mand <b>${Math.round(dist)} m</b></span><span>${windText(g.wind)} ${windArrow(g)}</span>`;
   const cells = g.card.holes.map((c, i) => ({ t: c.done ? String(c.strokes) : i === g.hole ? `${g.strokes || '·'}` : String(c.n), cls: `${i === g.hole ? 'on' : ''} ${c.done ? (c.strokes <= c.par ? 'good' : 'bad') : ''}` }));
   const disc = DISCS[g.disc];
   const rel = RELEASES.find((r) => r.id === g.release);
@@ -672,7 +672,7 @@ function updateHud() {
 export const DISCGOLF = {
   id: 'discgolf',
   layer: 'discgolf',
-  legend: { kind: 'act-discgolf', label: 'Discgolf', note: 'negen holes in het Stadspark: gooi de disc in de mand' },
+  legend: { kind: 'act-discgolf', label: 'Discgolf', note: 'negen banen in het Stadspark: gooi de disc in de mand' },
   init(w) {
     window.__discgolf = {
       spot: () => ({ ...STAND }),
@@ -706,11 +706,11 @@ export const DISCGOLF = {
   },
   camera,
   icon: drawIcon,
-  mapSub: () => recText() || 'Discgolf: negen holes in het Stadspark',
+  mapSub: () => recText() || 'Discgolf: negen banen in het Stadspark',
   ubbo(w) {
     const d = Math.hypot(STAND.x - w.player.x, STAND.y - w.player.y);
     const rec = getChallengeRecord('discgolf');
-    return { name: 'Discgolf Stadspark', sub: rec && rec.medal ? `record: ${MEDALS[rec.medal].toLowerCase()}` : 'negen holes, gratis', dist: d, x: STAND.x, y: STAND.y, play: 'discgolf', where: 'de eerste tee in het Stadspark', hint: 'loop naar de tee en druk E' };
+    return { name: 'Discgolf Stadspark', sub: rec && rec.medal ? `record: ${MEDALS[rec.medal].toLowerCase()}` : 'negen banen, gratis', dist: d, x: STAND.x, y: STAND.y, play: 'discgolf', where: 'de eerste tee in het Stadspark', hint: 'loop naar de tee en druk E' };
   },
   runs: () => runs,
 };

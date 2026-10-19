@@ -180,10 +180,6 @@ export function ensureActiveSlot() {
   return pickActive(null);
 }
 
-export function removeSlot(n) {
-  return deleteSlot(null, n);
-}
-
 function serialize(w) {
   const p = w.player;
   const ammo = {};

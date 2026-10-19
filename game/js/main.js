@@ -143,8 +143,10 @@ import { updateHelis } from './heliflight.js';
 import { planeKind } from './planeflight.js';
 import { busBoardKind } from './busboard3d.js';
 import { loadBusLines } from './busroutes.js';
-import { setBusLines } from './vehicle.js';
+import { setBusLines, attachToNearestRoad } from './vehicle.js';
 import { stapSlaOver } from './simlagen.js';
+import { getSimBridge, setSimCarAttach } from './simbridge.js';
+setSimCarAttach(attachToNearestRoad);
 import { scaledTarget, simLevel, nextSimFrame, farAIDist, skipFar, takeDt, keepVehicle } from './simload.js';
 import { getSettings } from './settings.js';
 import { MODS } from './cheatmods.js';
@@ -658,10 +660,14 @@ async function boot() {
     updateTrafficLights(dt, world);
     const frameNoSim = nextSimFrame();
     const farAI = farAIDist();
+    // ?simauto (#58): ver weg rijdende gewone auto's worden door de simulatieworker gestuurd (simbridge.js)
+    const simCars = FLAGS.simworker && FLAGS.simauto && map.roads ? getSimBridge(map) : null;
+    if (simCars) simCars.updateCars(dt, player, world.vehicles);
     for (let i = 0; i < world.vehicles.length; i++) {
       const v = world.vehicles[i];
       // police.js drives its own units; an abandoned or burning one just rolls out here
       if (v.driver === 'player' || v.isBoat || (v.isPolice && !v.disabled && !(v.hijacked && !v.driver))) continue;
+      if (simCars && simCars.driveCar(v)) continue;
       // far ordinary traffic thinks less often on a CPU-bound machine (simload.js)
       if (farAI < Infinity && !keepVehicle(v) && skipFar(v, i, Math.abs(v.x - player.x) + Math.abs(v.y - player.y), dt)) continue;
       // simlagen (#18): gewoon verkeer op middenafstand denkt om de paar frames, met opgespaarde dt

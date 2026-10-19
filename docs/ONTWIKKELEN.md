@@ -235,6 +235,7 @@ Debug hooks on `window` (`window.__x`, read by scripts/perf, the story test and 
 | `?nobatch` | Zet het samenvoegen van meshes uit (scene3d) |
 | `?shaderdebug` | Laat three.js shaderfouten controleren |
 | `?noworker` | Geometrie op de hoofdthread in plaats van in de worker |
+| `?simauto` | Ook gewone auto's ver van de speler door de simulatie-worker laten rijden (simbridge.js, #58); nog niet standaard, wacht op meting |
 | `?simworker` | Standaard aan; `?zonderworker` zet de simulatie-worker uit (simhost.js, #58), zie "Simulatielagen en worker" |
 | `?gfxadvies` | Toon het grafische advies ook als de speler al koos |
 | `?gpu` | Doe alsof de GPU deze renderer-tekst heeft (test van het advies) |

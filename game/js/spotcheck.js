@@ -163,7 +163,19 @@ export async function validateSpots(world) {
   const bad = [];
   for (const s of spots) {
     const why = await onTiles(world.map, s, 90, () => spotProblem(world.map, s));
-    if (why) bad.push({ ...s, x: Math.round(s.x * 10) / 10, y: Math.round(s.y * 10) / 10, why });
+    if (why) {
+      // the nearest spot that passes, so a fix is one edit away (rings of 8 probes, 10 m apart, out to 200 m)
+      const fix = await onTiles(world.map, s, 220, () => {
+        for (let r = 10; r <= 200; r += 10) {
+          for (let k = 0; k < 8; k++) {
+            const a = k * Math.PI / 4, q = { ...s, x: s.x + Math.cos(a) * r, y: s.y + Math.sin(a) * r };
+            if (!spotProblem(world.map, q)) return { x: Math.round(q.x * 10) / 10, y: Math.round(q.y * 10) / 10, d: r };
+          }
+        }
+        return null;
+      });
+      bad.push({ ...s, x: Math.round(s.x * 10) / 10, y: Math.round(s.y * 10) / 10, why, ...(fix ? { fix } : {}) });
+    }
   }
   return { total: spots.length, bad };
 }

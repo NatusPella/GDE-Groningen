@@ -6,6 +6,7 @@ import { requestRespawn } from './world.js';
 import { DEAD_DURATION } from './pedestrians.js';
 import { knockDown } from './ragdoll.js';
 import { disableVehicle } from './vehiclewreck.js';
+import { vehicleHooks } from './vehiclehooks.js';
 import { splatterPed, bleedPed, GIB_SPEED } from './gore3d.js';
 import { railHeightFn } from './railprofile.js';
 
@@ -838,3 +839,7 @@ export function drawTrainsOnMap(ctx) {
 }
 
 export { HALF_WIDTH as TRAIN_HALF_WIDTH, nearLevelCrossing };
+
+vehicleHooks.crossingSpeedLimit = crossingSpeedLimit;
+vehicleHooks.loweredBoomsNear = loweredBoomsNear;
+vehicleHooks.snapBoom = snapBoom;
