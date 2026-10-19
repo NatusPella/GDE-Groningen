@@ -38,6 +38,10 @@ html.touch-device #touch-ui .t-btn { min-height: 0; }
 html.touch-device #hud .hud-top-right { right: calc(var(--hud-edge) + 128px / var(--ui, 1)); }
 html.touch-device #hud .hud-speedo, html.touch-device #hud .hud-heli { right: auto; left: 50%; transform: translateX(-50%); }
 html.touch-device #hud .hud-vehname, html.touch-device #hud .hud-race { right: calc(var(--hud-edge) + 120px / var(--ui, 1)); }
+/* the key-hint rows (Kaart, Radio, ...) lay under the right thumb: the buttons carry those labels; keyboard hints mean nothing, a map has a close button */
+html.touch-device #hud .hud-ctx { display: none; }
+html.touch-device .mv-close { display: inline-flex !important; }
+html.touch-device .m-hint, html.touch-device #start-screen .ss-foot { display: none; }
 html.touch-device #hud .hud-fcol { left: var(--hud-edge); bottom: calc(var(--mm-bottom) + var(--mm-size) + 6px); }
 /* small HUD texts stay at 11 px on screen after the phone's HUD scale (0.62-0.8) */
 html.touch-device #hud :is(small, .hud-key, .ach-kicker, .ach-desc, .ach-pct, .pf-time, .pf-more, .nl-sub, .hud-mission-progress) { font-size: max(12px, calc(11px / var(--ui, 1))); }
