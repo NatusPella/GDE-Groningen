@@ -66,6 +66,7 @@ const MODELS = [
 // a tractor (slow, pulls hard off the line) and a quad (nimble off-road)
 export const TRACTOR_MODEL = { name: 'tractor', len: 4.3, wid: 2.3, maxSpeed: 11, accel: 6.5, brake: 11, turnRate: 1.9, color: '#3f7d3a', offroad: 0.9 };
 export const QUAD_MODEL = { name: 'quad', len: 2.1, wid: 1.2, maxSpeed: 17, accel: 9, brake: 14, turnRate: 3.2, color: '#b8322a', offroad: 1 };
+export const POLICE_MODEL = { name: 'police', len: 4.3, wid: 1.8, maxSpeed: 55, accel: 11, brake: 20, turnRate: 2.8, color: '#1c1c1c' };
 export const HERO_CAR_MODEL = { name: 'escort', len: 4.0, wid: 1.65, maxSpeed: 50, accel: 8, brake: 25, turnRate: 3.4, color: '#a11f1f' };
 
 const BIKE_MODELS = [
@@ -831,7 +832,7 @@ export function spawnVehicleOnRoad(map, road, isPolice = false, rng = Math.rando
   const dir = road.oneway ? 1 : (rng() < 0.5 ? 1 : -1);
   if (dir < 0) angle = normalizeAngle(angle + Math.PI);
   const model = forcedModel || (isPolice
-    ? { name: 'police', len: 4.3, wid: 1.8, maxSpeed: 55, accel: 11, brake: 20, turnRate: 2.8, color: '#1c1c1c' }
+    ? POLICE_MODEL
     : isBike
     ? pickBikeModel(rng)
     : isScooter
