@@ -1328,6 +1328,32 @@ function buildShots(w) {
     },
   };
 
+  // The benchmark's rail stretch (#159): the train nearest the city, from beside the track; falls back to the tower when a build has no trains.
+  const spoorTrain = (() => {
+    let best = null, bd = Infinity;
+    for (const tr of getTrains()) {
+      const c = tr.cars && tr.cars[tr.cars.length >> 1];
+      if (!c) continue;
+      const d = Math.hypot(c.x - tower.x, c.y - tower.y);
+      if (d < bd) { bd = d; best = tr; }
+    }
+    return best;
+  })();
+  const spoorMid = () => {
+    const c = spoorTrain && spoorTrain.cars[spoorTrain.cars.length >> 1];
+    return c ? { x: c.x, y: c.y } : { x: tower.x + 60, y: tower.y };
+  };
+  const spoor = {
+    label: 'Langs het spoor', cuts: ['bench'], dur: 3.6, clock: 15.2, weather: 'helder', focus: spoorMid(),
+    cam(u) {
+      const m = spoorMid(), tr = spoorTrain;
+      // along the train (first to last car), the lens a few metres beside it, panning with it
+      const a = tr && tr.cars.length > 1 ? Math.atan2(tr.cars[tr.cars.length - 1].y - tr.cars[0].y, tr.cars[tr.cars.length - 1].x - tr.cars[0].x) : 0;
+      const side = a + Math.PI / 2, gzm = gz(m.x, m.y);
+      return { position: P(m.x + Math.cos(side) * 22 + Math.cos(a) * lerp(-14, 6, u), m.y + Math.sin(side) * 22 + Math.sin(a) * lerp(-14, 6, u), gzm + lerp(3.2, 2.4, u)), lookAt: P(m.x, m.y, gzm + 2), fov: 46, shake: 0.03 };
+    },
+  };
+
   // The last shot of the short cut: its final pose is the title screen's
   // first, and continuation() keeps the camera moving there without a cut.
   const AER = { a0: 0.55, w: -0.045, R0: 150, vr: 16, z0: 95, vz: 7.5 };
@@ -1747,7 +1773,7 @@ function buildShots(w) {
   const gH18 = asMission(jelle, 'Achter de trekker-limo aan · hij mag niet weg', { label: 'H18: De trekker-limo', slow: undefined });
   const gTwins = { ...twins, freezeAt: undefined, name: undefined, cuts: [], label: 'Botsauto’s' };
 
-  const all = { radio, sunrise, vismarkt, plantsoen, anita, tammo, escapade, jelle, twins, pigeon, vitrine, chase, race, bijna, tanker, storm, boat, trauma, kermis, night, ommeland, aerial, logo, berend, steamLogo, gpCity, hudDrive, hudChase, hudHeli, hudStunt, hudJob, hudPhone, timelapse, gH1, gH2, gH4, gH5, gH7, gH12, gH14, gH18, gTwins };
+  const all = { radio, sunrise, vismarkt, plantsoen, anita, tammo, escapade, jelle, twins, pigeon, vitrine, chase, race, bijna, tanker, storm, boat, trauma, kermis, night, ommeland, spoor, aerial, logo, berend, steamLogo, gpCity, hudDrive, hudChase, hudHeli, hudStunt, hudJob, hudPhone, timelapse, gH1, gH2, gH4, gH5, gH7, gH12, gH14, gH18, gTwins };
   for (const [id, shot] of Object.entries(all)) shot.id = id;
   return Object.values(all);
 }

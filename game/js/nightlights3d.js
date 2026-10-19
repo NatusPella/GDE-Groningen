@@ -6,6 +6,7 @@ import { policeFlash } from './models3d_vehicles.js';
 import { lampRule } from './streetfurniture.js';
 import { hash2 as hash } from './rng.js';
 import { SpatialGrid } from './spatialgrid.js';
+import { koplampenFactor } from './weerlook.js';
 
 // Night lighting: instanced street lamps along road edges with additive
 // light-pool decals, a small pool of real PointLights handed to the lamps
@@ -587,7 +588,8 @@ export function updateNightLights(world, vehicleMeshes, px, py, night, wet, dt =
     updateLampColors(night, wet);
   }
   updateRealLampLights(px, py);
-  updateVehicleLights(world, vehicleMeshes, px, py, smoothstep(0.04, 0.3, night));
+  const wr = world.weather;
+  updateVehicleLights(world, vehicleMeshes, px, py, koplampenFactor(night, wr && wr.active ? wr.intensity || 0 : 0, wr ? wr.mist || 0 : 0));
   updatePoliceLights(world, vehicleMeshes, px, py, night);
   updateSearchlight();
   updateLightRig();
