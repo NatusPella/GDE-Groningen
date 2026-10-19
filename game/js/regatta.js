@@ -1,10 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import { getScene } from './scene3d.js';
-import { showBanner } from './cinematics.js';
 import { recordChallengeResult, getChallengeRecord, recordStat, MEDALS } from './achievements.js';
-import { showCard } from './hudcards.js';
 import { iconDisc, activityBlock } from './activitykit.js';
-import { createBoard, key, fmtTime, stopPressed, windText } from './minigamekit.js';
+import { createBoard, key, fmtTime, stopPressed, windText, gameUi } from './minigamekit.js';
 import { waterAt } from './waterlevels.js';
 import { WATER_Y } from './util.js';
 import { createRegatta, stepRegatta, regattaMedaille, regattaVoortgang, REGATTA, windHoek } from './zeilrules.js';
@@ -55,14 +52,14 @@ function buildMeshes(tonnen) {
     g.add(m);
     return m;
   });
-  const scene = getScene();
+  const scene = gameUi.getScene();
   if (scene) scene.add(g);
   return { g, list };
 }
 
 function removeMeshes() {
   if (!meshes) return;
-  const scene = getScene();
+  const scene = gameUi.getScene();
   if (scene) scene.remove(meshes.g);
   meshes.g.traverse((o) => { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose(); });
   meshes = null;
@@ -82,7 +79,7 @@ function finish(w, { quit = false } = {}) {
   const stats = [['Tijd', fmtTime(rr.tijd)], ['Richttijd', fmtTime(rr.richttijd)], ['Tonnen', String(rr.gerond)]];
   if (medal) stats.push(['Medaille', MEDALS[medal]]);
   if (rec && rec.newBest) stats.push(['Record', 'Nieuw!']);
-  showBanner({ kind: medal ? 'pass' : 'fail', title: medal === 3 ? 'WINNAAR VAN DE REGATTA' : medal ? 'MOOI GEVAREN' : 'UITGEVAREN', reason: medal ? 'Twee rondes langs alle tonnen' : 'Je was niet snel genoeg voor een medaille: let op de wind', reward: 0, stats });
+  gameUi.showBanner({ kind: medal ? 'pass' : 'fail', title: medal === 3 ? 'WINNAAR VAN DE REGATTA' : medal ? 'MOOI GEVAREN' : 'UITGEVAREN', reason: medal ? 'Twee rondes langs alle tonnen' : 'Je was niet snel genoeg voor een medaille: let op de wind', reward: 0, stats });
 }
 
 function start(w) {
@@ -95,7 +92,7 @@ function start(w) {
   board.show();
   meshes = buildMeshes(baan.tonnen);
   run = { reg: createRegatta(baan.tonnen, { richttijd: richtTijd(baan.tonnen) }), baan, haven: near.m.name, flash: null, flashT: 0 };
-  showCard(w, { kind: 'tip', kicker: 'Zeilregatta', title: 'Twee rondes langs de tonnen', body: 'Ronde de vier tonnen in volgorde, twee keer. Vaar niet recht tegen de wind in: kruis. [Q] haalt het zeil aan, [Z] viert het. [Backspace] stopt.', duration: 11, key: 'regatta-help', voice: false });
+  gameUi.showCard(w, { kind: 'tip', kicker: 'Zeilregatta', title: 'Twee rondes langs de tonnen', body: 'Ronde de vier tonnen in volgorde, twee keer. Vaar niet recht tegen de wind in: kruis. [Q] haalt het zeil aan, [Z] viert het. [Backspace] stopt.', duration: 11, key: 'regatta-help', voice: false });
   return true;
 }
 
