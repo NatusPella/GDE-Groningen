@@ -12,7 +12,7 @@ import path from 'path';
 import { execFileSync } from 'child_process';
 import { OUT, toolEnv } from './common.mjs';
 import { connect, adbTool, sleep, PKG } from './driver.mjs';
-import { footStick, carControls, normAngle, headingTo } from '../../game/js/botlogic.js';
+import { footStick, carControls, normAngle, headingTo, PathFollower, WedgeDetector } from '../../game/js/botlogic.js';
 
 const args = process.argv.slice(2);
 const flag = (n) => args.includes(n);
@@ -148,12 +148,30 @@ const full = async () => JSON.parse(await ev(`(() => { const w = __debug.world, 
   const cand = (w.vehicles || []).filter((q) => q !== v && !q.wrecked && !q.isBoat && !q.isHeli && !q.isBike).map((q) => ({ x: q.x, y: q.y, d: Math.hypot(q.x - p.x, q.y - p.y), mc: !!q.missionCar })).sort((a, b) => (b.mc - a.mc) || (a.d - b.d));
   const near = cand[0] || null; // de missie-auto (Berends bakkie) gaat voor
   const dlg = document.querySelector('#hud .cw-panel:not([hidden]) .cw-opt');
-  return JSON.stringify({ x: p.x, y: p.y, cam: w.camYaw, t: w.time, money: w.money, hp: p.health, veh: v ? { x: v.x, y: v.y, angle: v.angle, speed: v.speed || 0 } : null,
+  return JSON.stringify({ x: p.x, y: p.y, cam: w.camYaw, t: w.time, money: w.money, hp: p.health, veh: v ? { x: v.x, y: v.y, angle: v.angle, speed: v.speed || 0, mc: !!v.missionCar, bike: !!v.isBike } : null,
     target: mk, near, cine: !!(c && c.classList.contains('active')), dlg: !!dlg, text: (document.querySelector('#hud .hud-mission') || {}).textContent || '', ctx: document.documentElement.dataset.touchCtx,
     step: window.__story.current(), phase: m.phase, paused: !!w.paused }); })()`));
+// 1,8 km lopen duurt op een trage emulator te lang: de dev-sprong naar de markering (--lopen: toch lopen)
+if (!flag('--lopen')) { await stick(0, 0); log(await ev('window.__story.teleport()'), 'dev-sprong naar Berend (de 1,8 km lopen is niet gespeeld)'); await sleep(3000); }
 let last = '', ticks = 0, carTicks = 0, footTicks = 0, boarded = false;
 const playUntil = Date.now() + (Number(args[args.indexOf('--min') + 1]) || 12) * 60000;
 let driftTick = 0, awayUntil = 0;
+// route over wegen of paden (routing.js van het spel, zoals de spelbot): een vaste lijn voor de PathFollower
+let follower = null, followKey = '', followAt = 0;
+const wedge = new WedgeDetector();
+async function aimPoint(f, mode, tgt) {
+  const me = f.veh || f;
+  const key = mode + Math.round(tgt.x / 5) + ',' + Math.round(tgt.y / 5);
+  if (!follower || key !== followKey || Date.now() - followAt > 15000) {
+    followKey = key; followAt = Date.now();
+    const pts = await ev(`import('/js/routing.js').then((R) => { const r = R.planLandRoute(__debug.world.map, '${mode}', [${me.x}, ${me.y}], [${tgt.x}, ${tgt.y}]); return r && r.pts && r.pts.length ? r.pts : null; }).catch(() => null)`);
+    const line = pts || [[me.x, me.y]];
+    line.push([tgt.x, tgt.y]);
+    follower = new PathFollower(line, { reach: mode === 'drive' ? 7 : 2.5 });
+  }
+  const direct = Math.hypot(tgt.x - me.x, tgt.y - me.y);
+  return direct < 25 ? tgt : follower.next({ x: me.x, y: me.y }) || tgt;
+}
 while (Date.now() < playUntil) {
   let f;
   try { f = await full(); } catch (e) { await sleep(2000); continue; }
@@ -167,6 +185,8 @@ while (Date.now() < playUntil) {
   if (awayUntil && Date.now() > awayUntil + 60000) awayUntil = 0;
   if (f.target && awayUntil && Date.now() < awayUntil) f.target = { x: f.target.x + 30, y: f.target.y + 30 };
   const dist = f.target ? Math.hypot(f.target.x - (f.veh || f).x, f.target.y - (f.veh || f).y) : 0;
+  // in een andere auto of een fiets dan de missie vraagt: eerst uitstappen (Gebruik)
+  if (f.veh && /stap in/i.test(f.text) && !f.veh.mc) { await stick(0, 0); await releasePedals(); await button(/gebruik/i, 150); await sleep(2500); continue; }
   if (f.veh) {
     boarded = true; carTicks++;
     if (!f.target) { await stick(0, 0); await releasePedals(); await sleep(1500); continue; }
@@ -177,7 +197,9 @@ while (Date.now() < playUntil) {
       await sleep(300);
       continue;
     }
-    const c = carControls({ x: f.veh.x, y: f.veh.y, angle: f.veh.angle, speed: f.veh.speed }, f.target, { stopAt: false, top: 12 });
+    const aim = await aimPoint(f, 'drive', f.target);
+    const c = carControls({ x: f.veh.x, y: f.veh.y, angle: f.veh.angle, speed: f.veh.speed }, aim, { stopAt: false, top: 12 });
+    if (!c.reverse && wedge.update(f.t, f.veh.speed, c.throttle)) { wedge.reset(); await stick(-0.9, 0); await pedal(/^gas$/i, false); await pedal(/^rem$/i, true); await sleep(1800); await pedal(/^rem$/i, false); continue; }
     await stick(c.steer, 0);
     await pedal(/^gas$/i, c.throttle > 0);
     await pedal(/^rem$/i, c.throttle < 0);

@@ -1,7 +1,7 @@
 # Android-testversie (#227)
 
 Lokaal bouwbare **debug-APK** van het spel. Alleen voor testen: niets uploaden, geen Play Console, geen eigen sleutels (constitution 8).
-Stand: de APK bouwt (208 MB) en start op een emulator (Pixel 6, Android 15, x86_64) tot en met het startscherm; het spel is nog **niet op een echt toestel of met aanraking gespeeld**. Android wordt later verder opgepakt.
+Stand 19 oktober (#227, #96): de APK (162 MB) bouwt met één commando, start op een emulator (Pixel 6, Android 15, x86_64) en wordt daar met **echte aanrakingen** gespeeld (zie sectie 9). Het spel is **nog niet op een echt toestel getest**.
 
 ## 1. Aanpak: Capacitor-WebView rond de webversie
 
@@ -100,3 +100,25 @@ Gemeten op de emulator (Pixel 6, Android 15, x86_64, 4 GB, WHPX, `-gpu host` en 
 - Meten: `node android/scripts/cdp.mjs "<js>"` (WebView-console) en `node android/scripts/cdpprofile.mjs [ms]` (CPU-profiel).
 - Een kleine wereld-subset (`?mobiel=klein`) is niet nodig gebleken: de APK met de hele wereld laadt en speelt; de grootte (208 MB) is voor een testversie geen probleem.
 - Nog te doen: touch-spelen na de openingsscène (stick, camera, instappen), saves na herstart, WebAudio, terugknop = pauzemenu in het spel, notch-marges op de HUD (de ondertitel overlapt "Houd SPRING ingedrukt" op een telefoon), fps op een echt toestel.
+
+## 9. Touch-besturing en de scripted rit (stand 19 oktober)
+
+**Bouwen in één keer** (na eenmalig SDK, JDK 21 en `npm install` in `android/`, sectie 5): `cd android && npm run build -- --rebuild` (webbuild met de wereldcache ca. 1,5 min, Gradle ca. 1 min; een verse wereldbouw 15 min). Resultaat: `android/out/gde-groningen-debug.apk`. Alleen debug-signing met de Gradle-keystore van de machine; er staat geen sleutel of geheim in de repo.
+
+**Touch na de opening** (alles in `game/js/touch.js` en `touchlogic.js`, getest met `scripts/touch_test.mjs`):
+- Linker duim: zwevende stick (lopen, sturen), rechter helft: camera slepen, knoppen per situatie (te voet, voertuig, handmatige versnelling, boot, helikopter, duif, trein, minigames, carillon, pannenkoekenschip, Fjord Frituur) met de Nederlandse labels van de gamepad-indeling; "Meer" bevat de overige acties, "II" is de pauzeknop.
+- Tijdens een **cutscene** verdwijnen de spelknoppen; er is één knop **Overslaan** die je ingedrukt houdt (zoals Spatie). Dit was kapot: cinematics.js telt echte toetsgebeurtenissen en de touchlaag stuurde alleen `padHold`, zodat overslaan met aanraking nooit werkte.
+- De toetsenhints (`hud-ctx`: Kaart, Radio, ...) zijn op touch verborgen, want ze lagen onder de rechter duim; de labels staan op de knoppen.
+- **Terugknop** = pauzemenu (Escape via `android-bridge.js`), de app pauzeert als hij naar de achtergrond gaat en **bewaart dan de spelstand** (`savegame.js`, `visibilitychange`): Android kan een app in de achtergrond zonder waarschuwing beëindigen.
+- **Renderproces weg** (te weinig geheugen of een driverfout): `MainActivity` start de activiteit opnieuw in plaats van de hele app te laten sluiten en schrijft de reden in logcat (tag `GDE`).
+- Kwaliteit: `gfxprofile.js` kiest op een telefoon (korte zijde < 600 px) het profiel `telefoon`: laag, geen schaduwen, korte afstand, resolutie 0,6 met automatische bijsturing.
+
+**Scripted rit** (`android/scripts/ride.mjs`, bouwstenen in `driver.mjs`): installeert de APK, wist de data, start het spel en bestuurt het met touch-events via de WebView-DevTools (`Input.dispatchTouchEvent`, meerdere vingers) en leest de status uit `window.__debug`. Stappen: startscherm, Nieuw spel, opening met Overslaan, camera zwiepen, lopen met de stick, dev-sprong naar Berend (1,8 km lopen duurt op de emulator te lang; `--lopen` doet het toch), instappen in de missieauto, rijden met stick en Gas/Rem (route via `routing.js`, zoals de spelbot), pauzemenu en Opslaan, de app afsluiten en opnieuw starten, Doorgaan, en dezelfde stand onder de oude sleutel `gte-save-v1` (migratie). Schermafdrukken en verslag komen in `android/out/ride/` (`adb screencap`; `Page.captureScreenshot` toont het WebGL-canvas zwart). `--hervat` gaat verder met het draaiende spel, `--min N` begrenst het spelen.
+
+Lessen en beperkingen van de emulator:
+- De emulator heeft minstens 3 GB nodig (`-memory 3072`, `-gpu host`, `-no-window`); met 2 GB sneuvelt het renderproces (WebView ca. 1,3 GB bij het startscherm) en met de software-GPU (`swiftshader_indirect`) hangt het. Ga na elke start ca. 50 s wachten op het laden.
+- `Input.dispatchTouchEvent` kan één vinger niet loslaten (`touchEnd` laat alles los); `driver.mjs` zet de overige vingers opnieuw neer, waardoor de stick bij elke knoptik een nieuwe oorsprong krijgt. Een echt toestel heeft dit niet.
+- M01 ("Nul krassen") is een stuntmissie die vlekkeloos rijden vraagt (schade faalt de missie); het rijscript raakt obstakels en haalt het niet. Het rijden zelf, instappen, Handrem en de cutscenes zijn wel doorlopen. De stunt zelf is dus **niet met touch uitgespeeld**.
+- De spelfps op de emulator zegt niets over een telefoon.
+
+Nog open voor een echt toestel: fps en geheugen per profiel, geluid beluisteren (de emulator draait met `-no-audio`), gamepad via Bluetooth, tablets, notch-marges op elke uitsparing, lange sessies.
