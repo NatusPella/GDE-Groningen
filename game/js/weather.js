@@ -238,7 +238,7 @@ function smoothstep(e0, e1, x) {
   return t * t * (3 - 2 * t);
 }
 
-export function puddleAt(x, y, wet) {
+function puddleAt(x, y, wet) {
   if (wet < 0.02) return 0;
   const p = wNoise(x * 0.21, y * 0.21) * 0.7 + wNoise(x * 0.83, y * 0.83) * 0.3;
   return smoothstep(0.74 - 0.12 * wet, 0.8 - 0.12 * wet, p) * wet;

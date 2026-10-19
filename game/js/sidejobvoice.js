@@ -14,7 +14,7 @@ export function jobVoiceFor(speaker, text) {
 
 // Per job: greet (a shift after the first), done (a finished round), fail,
 // level (promotion). Speakers are the job's boss.
-export const JOB_LINES = {
+const JOB_LINES = {
   bezorger: {
     greet: [{ t: 'Daar ben je weer! Thermobox erop, trappen maar.', tag: 'cheerful, fast' }],
     done: [
@@ -72,7 +72,7 @@ export const JOB_LINES = {
 };
 
 // Tammo and Tessa on the job, whichever the player is.
-export const DUO_JOB_LINES = {
+const DUO_JOB_LINES = {
   Tammo: {
     start: [{ t: 'Werken. Voor geld. Wat een concept.', tag: 'dry, deadpan' }],
     end: [{ t: 'Genoeg gewerkt voor een week.', tag: 'tired, deadpan' }],

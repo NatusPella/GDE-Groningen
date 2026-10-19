@@ -6,7 +6,7 @@ import { DURK_LOOK, DOUWE_LOOK } from './storycast.js';
 import { isMissionActive, getActiveRace } from './missions.js';
 import { isCinematicActive, showBanner } from './cinematics.js';
 import { isShopOpen } from './shopui.js';
-import { pushAudioEvent } from './pedestrians.js';
+import { pushAudioEvent } from './pedgeom.js';
 import { unlockAchievement, recordChallengeResult, getChallengeRecord, recordStat, setStatMax, MEDALS } from './achievements.js';
 import { showCard } from './hudcards.js';
 import { banterAfter } from './banter.js';

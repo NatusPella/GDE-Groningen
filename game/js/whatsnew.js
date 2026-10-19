@@ -20,7 +20,7 @@ export function compareVersions(a, b) {
 
 // What to show on start: null (nothing), or { since } where since is the
 // version last seen (null: unknown, an install from before this existed).
-export function newsOnStart({ stored, current, returning }) {
+function newsOnStart({ stored, current, returning }) {
   if (!current || current === 'dev') return null;
   if (stored) return stored === current ? null : { since: stored };
   return returning ? { since: null } : null;

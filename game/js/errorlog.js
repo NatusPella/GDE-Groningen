@@ -37,7 +37,7 @@ function persist() {
 }
 
 // Paths and URLs keep only the part inside the game; user folders are blanked.
-export function scrub(text) {
+function scrub(text) {
   return String(text ?? '')
     .replace(/(?:file|https?|app):\/\/[^\s)'"]*?\/(?=(?:js|audio|models)\/)/g, '')
     .replace(/(?:file|https?|app):\/\/[^\s)'"]*/g, (u) => u.replace(/[?#].*$/, '').replace(/^.*\/([^/]+)$/, '$1'))

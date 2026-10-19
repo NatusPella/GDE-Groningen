@@ -15,7 +15,7 @@ const SELECTORS = {
 // wat we kunnen verbergen
 const HIDE = { naamkaart: '#name-card', duelbalk: '#hud .mg-board', prestatie: '#hud .ach-toast', locatie: '#hud .hud-place' };
 
-export function activeOverlays(doc = typeof document !== 'undefined' ? document : null) {
+function activeOverlays(doc = typeof document !== 'undefined' ? document : null) {
   if (!doc) return [];
   return Object.keys(SELECTORS).filter((k) => !!doc.querySelector(SELECTORS[k]));
 }
@@ -28,7 +28,7 @@ export function isOverlayHeld(name) {
 }
 
 let started = false;
-export function startOverlayHold() {
+function startOverlayHold() {
   if (started || typeof document === 'undefined') return;
   started = true;
   const style = document.createElement('style');

@@ -136,7 +136,7 @@ export function pointAlongRoad(road, p, offset) {
 
 // --- job vehicles -------------------------------------------------------------
 
-export function riderShirt(world) {
+function riderShirt(world) {
   const a = world.player.character === 'anita' ? ANITA_APPEARANCE : TAMMO_APPEARANCE;
   return '#' + a.shirt.toString(16).padStart(6, '0');
 }

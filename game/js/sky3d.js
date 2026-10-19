@@ -4,9 +4,9 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 // dome's lowest band blends into scene.fog's colour (fogColor uniform), so
 // fogged buildings melt into the horizon; weather.js greys the uniforms.
 
-export const SKY_ZENITH = 0x3f7fc8;
+const SKY_ZENITH = 0x3f7fc8;
 export const SKY_HORIZON = 0xc9d8df;
-export const SKY_SUN = 0xffd49a;
+const SKY_SUN = 0xffd49a;
 
 const VERTEX = `
 varying vec3 vDir;

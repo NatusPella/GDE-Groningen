@@ -81,15 +81,15 @@ export function mapIconScale(zoom) {
 // minimap is small and read at a glance: its icons are bigger in proportion.
 export const ICON_UNITS = 10;
 export const MIN_ICON_PX = 21; // full map and minimap, at any zoom
-export const MINI_ICON_FRAC = 0.095; // minimap icon / minimap size
-export const MINI_YOU_FACTOR = 1.15; // goals and routes a little bigger than places
+const MINI_ICON_FRAC = 0.095; // minimap icon / minimap size
+const MINI_YOU_FACTOR = 1.15; // goals and routes a little bigger than places
 export function miniIconScale(mapPx, you = false) {
   const px = Math.max(MIN_ICON_PX, (mapPx || 0) * MINI_ICON_FRAC) * (you ? MINI_YOU_FACTOR : 1);
   return Math.round(px / ICON_UNITS * 100) / 100;
 }
 // Two icons never closer than this (centre to centre, px) for a scale: a
 // little more than one icon width, so rims never touch.
-export const ICON_GAP_FACTOR = 1.45;
+const ICON_GAP_FACTOR = 1.45;
 export const iconGapPx = (scale) => Math.round(ICON_UNITS * scale * ICON_GAP_FACTOR);
 
 // The rim colour of an icon's disc per category, so the kinds read apart at a glance
@@ -141,7 +141,7 @@ export const HALO_LIGHT = '#f0ede4';
 export const GRAPHIC_CONTRAST = 3;
 const chan = (v) => { const c = v / 255; return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; };
 // relative luminance of '#rrggbb'
-export function hexLuminance(hex) {
+function hexLuminance(hex) {
   return 0.2126 * chan(parseInt(hex.slice(1, 3), 16)) + 0.7152 * chan(parseInt(hex.slice(3, 5), 16)) + 0.0722 * chan(parseInt(hex.slice(5, 7), 16));
 }
 export function hexContrast(a, b) {

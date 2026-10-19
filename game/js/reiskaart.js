@@ -8,7 +8,7 @@ import { travelSeconds } from './reistijd.js';
 import { lijnLagen } from './ovkaart.js';
 
 // Onder deze afstand is meerijden geen keuze: gewoon lopen of rijden.
-export const MIN_OV_M = 1500;
+const MIN_OV_M = 1500;
 
 const cache = { key: '', opts: null };
 

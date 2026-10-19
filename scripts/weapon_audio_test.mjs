@@ -14,7 +14,8 @@ let fails = 0;
 const check = (name, ok, info = '') => { console.log(`${ok ? 'ok ' : 'XX '} ${name}${info ? ` (${info})` : ''}`); if (!ok) fails++; };
 
 const combat = src('combat.js'), audio = src('audio.js'), throwables = src('throwables.js'), missions = src('missions.js');
-const block = combat.slice(combat.indexOf('export const WEAPONS = {'), combat.indexOf('};', combat.indexOf('export const WEAPONS = {')));
+const wsrc = src('weapons.js');
+const block = wsrc.slice(wsrc.indexOf('export const WEAPONS = {'), wsrc.indexOf('};', wsrc.indexOf('export const WEAPONS = {')));
 const weapons = [...block.matchAll(/^\s{2}(\w+): \{ kind: '(\w+)'(.*)$/gm)].map((m) => ({ key: m[1], kind: m[2], rest: m[3] }));
 check('WEAPONS parsed', weapons.length >= 14, weapons.map((w) => w.key).join(' '));
 
