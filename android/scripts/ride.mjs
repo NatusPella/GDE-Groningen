@@ -62,8 +62,11 @@ const state = async () => JSON.parse(await ev(`(() => { const w = window.__debug
 
 // --- aanrakingen ---
 const btnId = (re) => ev(`(() => { const e = [...document.querySelectorAll('#touch-ui .t-btn, #touch-ui .t-panel .t-btn')].find((e) => ${re}.test(e.textContent)); if (!e) return false; e.id = 'tb-' + ${JSON.stringify(re.source.replace(/\W/g, ''))}; return e.id; })()`);
+let stickAt = 0;
+let UI = { on: [], ring: false }; // knoppen die 'on' zijn en de stickring, uit het laatste full()
 let origin = { x: 150, y: 215 }, lastPos = { ...origin }, stickDown = false;
 const pedals = new Map(); // label -> vinger-id
+const pressAt = new Map();
 async function button(re, holdMs = 120) {
   const id = await btnId(re);
   if (!id) return false;
@@ -76,13 +79,14 @@ async function button(re, holdMs = 120) {
 // als de situatie wisselt (te voet -> voertuig): daarom steeds in de pagina controleren of de knop echt 'on' is.
 async function pedal(re, on) {
   const key = String(re);
-  const pressed = async () => ev(`[...document.querySelectorAll('#touch-ui .t-btn.on')].some((e) => ${re}.test(e.textContent))`);
+  // UI komt uit het laatste full(); vlak na het indrukken is hij nog verouderd
+  const pressed = () => Date.now() - (pressAt.get(key) || 0) < 1500 || UI.on.some((l) => re.test(l));
   if (on) {
-    if (pedals.has(key) && await pressed()) return true;
+    if (pedals.has(key) && pressed()) return true;
     if (pedals.has(key)) { await d.up(pedals.get(key)); pedals.delete(key); }
     const id = await btnId(re); const c = id && await d.center('#' + id);
     if (!c) return false;
-    pedals.set(key, 20 + pedals.size); await d.down(pedals.get(key), c.x, c.y);
+    pedals.set(key, 20 + pedals.size); pressAt.set(key, Date.now()); await d.down(pedals.get(key), c.x, c.y);
   } else if (pedals.has(key)) {
     const fid = pedals.get(key); pedals.delete(key); await d.up(fid);
   }
@@ -93,10 +97,10 @@ async function stick(x, y) {
   const R = 50;
   if (!x && !y) { if (stickDown) { await d.up(1); stickDown = false; origin = { x: 150, y: 215 }; } return; }
   // de stick is ook weg als touch.js alles losliet (situatiewissel): ring niet meer zichtbaar
-  if (stickDown && !(await ev(`document.querySelector('#touch-ui .t-ring').style.display === 'block'`))) { await d.up(1); stickDown = false; }
+  if (stickDown && !UI.ring && Date.now() - stickAt > 1500) { await d.up(1); stickDown = false; }
   // een verloren pointerup laat touch.js denken dat de stick nog loopt (nieuwe aanrakingen worden dan genegeerd): blur laat alles los
-  if (!stickDown && await ev(`document.querySelector('#touch-ui .t-ring').style.display === 'block'`)) await ev(`window.dispatchEvent(new Event('blur'))`);
-  if (!stickDown) { origin = { x: 150, y: 215 }; await d.down(1, origin.x, origin.y); stickDown = true; }
+  if (!stickDown && UI.ring) await ev(`window.dispatchEvent(new Event('blur'))`);
+  if (!stickDown) { origin = { x: 150, y: 215 }; await d.down(1, origin.x, origin.y); stickDown = true; stickAt = Date.now(); }
   lastPos = { x: origin.x + x * R, y: origin.y + y * R };
   await d.move(1, lastPos.x, lastPos.y);
 }
@@ -196,14 +200,16 @@ if (M01ONLY) {
   if (flag('--jump')) { await ev(`window.__story.jump('M01', {})`); await sleep(4000); } }
 if (!SAVEONLY) {
 // --- 4. M01 spelen: naar de bakkie, instappen, rijden naar de markeringen, alles met aanrakingen ---
-const full = async () => JSON.parse(await ev(`(() => { const w = __debug.world, p = w.player, v = p.inVehicle, m = w.mission || {}, c = document.getElementById('cine');
+const full = async () => { const f = JSON.parse(await ev(`(async () => { const w = __debug.world, p = w.player, v = p.inVehicle, m = w.mission || {}, c = document.getElementById('cine');
   const mk = m.phase === 'active' && m.marker ? { x: m.marker.x, y: m.marker.y } : w.storyGuide ? { x: w.storyGuide.x, y: w.storyGuide.y } : null;
   const cand = (w.vehicles || []).filter((q) => q !== v && !q.wrecked && !q.isBoat && !q.isHeli && !q.isBike).map((q) => ({ x: q.x, y: q.y, d: Math.hypot(q.x - p.x, q.y - p.y), mc: !!q.missionCar })).sort((a, b) => (b.mc - a.mc) || (a.d - b.d));
   const near = cand[0] || null; // de missie-auto (Berends bakkie) gaat voor
   const dlg = document.querySelector('#hud .cw-panel:not([hidden]) .cw-opt');
   return JSON.stringify({ x: p.x, y: p.y, cam: w.camYaw ?? p.angle, t: w.time, money: w.money, hp: p.health, veh: v ? { x: v.x, y: v.y, angle: v.angle, speed: v.speed || 0, mc: !!v.missionCar, bike: !!v.isBike, slip: Math.hypot(v.driftX || 0, v.driftY || 0) } : null,
     target: mk, near, cine: !!(c && c.classList.contains('active')), dlg: !!dlg, text: (document.querySelector('#hud .hud-mission') || {}).textContent || '', ctx: document.documentElement.dataset.touchCtx,
-    step: window.__story.current(), phase: m.phase, paused: !!w.paused }); })()`));
+    step: window.__story.current(), phase: m.phase, paused: !!w.paused,
+    ui: { on: [...document.querySelectorAll('#touch-ui .t-btn.on')].map((e) => e.textContent), ring: document.querySelector('#touch-ui .t-ring').style.display === 'block' },
+    prop: v && mk && /^Stunt/.test((document.querySelector('#hud .hud-mission') || {}).textContent || '') && Math.hypot(mk.x - v.x, mk.y - v.y) < 60 ? await import('/js/breakables.js').then((mb) => { const q = mb.propsInRadius(v.x, v.y, 70).filter((o) => typeof o.onBreak === 'function' && !mb.isPropBroken(o.key) && o.cell).sort((a, b) => Math.hypot(a.x - v.x, a.y - v.y) - Math.hypot(b.x - v.x, b.y - v.y)); return q[0] ? { x: q[0].x, y: q[0].y, kind: q[0].kind, n: q.length } : null; }).catch(() => null) : null }); })()`)); UI = f.ui; return f; };
 // Hulp van het spel (Instellingen > Hulp): ruimere tijd, veel minder schade, ruime poorten; zonder herladen, via dezelfde module als het spel
 if (flag('--hulp')) { await ev(`import('/js/settings.js').then((m) => { m.setSetting('helpTime', 'ruim'); m.setSetting('helpDamage', 'veel minder'); m.setSetting('helpGates', 'ruim'); return true; })`); log(true, 'Hulp-instellingen: veel minder schade, ruime tijd'); }
 // 1,8 km lopen duurt op een trage emulator te lang: de dev-sprong naar de markering (--lopen: toch lopen)
@@ -254,15 +260,28 @@ while (Date.now() < playUntil) {
     // de stunt: in de zone naar het midden rijden met af en toe Handrem (driften geeft punten); rondjes draaien deed de auto tegen muren lopen
     const inZone = /^stunt/i.test(f.text) && dist < 45;
     if (inZone) {
-      await pedal(/^rem$/i, false); // uit een klem-manoeuvre kan Rem nog vasthangen
-      // rondjes met af en toe Handrem: driften en rakelings langs rekwisieten geven punten
+      // rekwisieten van de stuntavond omver rijden (parasols, kliko's, borden, stoelen, tafels): dat geeft de punten, vlak achter elkaar met reeksbonus
+      const prop = f.prop;
+      if (prop) {
+        const c = carControls({ x: f.veh.x, y: f.veh.y, angle: f.veh.angle, speed: f.veh.speed }, prop, { stopAt: false, top: 11 });
+        await stick(c.steer, 0);
+        await pedal(/^handrem$/i, false);
+        await pedal(/^gas$/i, c.throttle > 0);
+        await pedal(/^rem$/i, c.throttle < 0);
+        if (Date.now() - (globalThis.__lastProp || 0) > 4000) { globalThis.__lastProp = Date.now(); console.log(`    > rekwisiet ${prop.kind} @${Math.round(prop.x)},${Math.round(prop.y)} (nog ${prop.n})`); }
+        await sleep(150);
+        continue;
+      }
+      // geen rekwisieten meer: driften (gas, Handrem vast, vol sturen)
+      await pedal(/^rem$/i, false);
       driftTick++;
-      await stick(Math.floor(driftTick / 12) % 2 ? -0.8 : 0.8, 0);
-      await pedal(/^gas$/i, f.veh.speed < 11);
-      if (driftTick % 5 === 0 && f.veh.speed > 5) await button(/handrem/i, 700);
-      await sleep(250);
+      await stick(Math.floor(driftTick / 14) % 2 ? -0.9 : 0.9, 0);
+      await pedal(/^gas$/i, true);
+      await pedal(/^handrem$/i, f.veh.speed > 7);
+      await sleep(200);
       continue;
     }
+    await pedal(/^handrem$/i, false);
     const aim = await aimPoint(f, 'drive', f.target);
     const c = carControls({ x: f.veh.x, y: f.veh.y, angle: f.veh.angle, speed: f.veh.speed }, aim, { stopAt: false, top: inZone ? 14 : 24 });
     if (!c.reverse && wedge.update(f.t, f.veh.speed, c.throttle)) { wedge.reset(); await stick(-0.9, 0); await pedal(/^gas$/i, false); await pedal(/^rem$/i, true); await sleep(1800); await pedal(/^rem$/i, false); continue; }

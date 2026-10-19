@@ -26,7 +26,7 @@ Installeren op een toestel (USB-foutopsporing): `adb install -r android/out/gde-
 
 ## Touch (game/js/touch.js, touchlogic.js)
 
-Linker duim: zwevende stick; rechter helft: camera; knoppen per situatie (te voet, voertuig, boot, helikopter, duif, trein, minigames, carillon, pannenkoeken, Fjord Frituur) met de Nederlandse labels van de gamepad-indeling; "Meer" bevat de overige acties, "II" is de pauzeknop. Tijdens een **cutscene** staat er één knop **Overslaan** (vasthouden); eerder werkte overslaan met aanraking niet. De toetsenhints (`hud-ctx`) zijn op touch verborgen. Het geluid ontgrendelt ook op `pointerup`/`touchend` (Chrome telt een aanraking pas bij het loslaten als gebruikersgebaar).
+Linker duim: zwevende stick; rechter helft: camera; knoppen per situatie (te voet, voertuig, boot, helikopter, duif, trein, minigames, carillon, pannenkoeken, Fjord Frituur) met de Nederlandse labels van de gamepad-indeling; "Meer" bevat de overige acties, "II" is de pauzeknop. Tijdens een **cutscene** staat er één knop **Overslaan** (vasthouden); eerder werkte overslaan met aanraking niet. Sturen en gas tegelijk werkte ook niet: `Input.axis()` gaf alleen de stick terug zodra die niet nul was, dus een auto stond stil zodra je stuurde (nu per as; getest in `touch_test.mjs`). De toetsenhints (`hud-ctx`) zijn op touch verborgen. Het geluid ontgrendelt ook op `pointerup`/`touchend` (Chrome telt een aanraking pas bij het loslaten als gebruikersgebaar).
 
 ## Opslag, geluid, kwaliteit
 
@@ -48,8 +48,8 @@ Gemeten op de emulator (zegt niets over een telefoon): 47-60 fps met profiel `te
 
 - Geen echt toestel; geen fps, geheugen of warmte op een telefoon; geen Bluetooth-gamepad; geen tablet.
 - Het geluid is niet beluisterd (`-no-audio`); wel draait de AudioContext (`running`) en wisselt de muziek van titel.
-- **M01** (stuntmissie, "nul krassen") is met touch gestart: instappen, rijden met stick en Gas/Rem, Handrem, de stuntzone bereikt en eenmaal 240 punten gescoord, maar **niet uitgespeeld**: het rijscript raakt vast in smalle straten (dev-teleport naar de markering als redmiddel) en haalt de 1500 punten niet. De 1,8 km naar Berend is met de dev-sprong overbrugd.
+- **M01** (stuntmissie, "nul krassen") is met touch gestart: instappen, rijden met stick en Gas/Rem, Handrem, de stuntzone en rekwisieten raken (tot 140 punten), maar **niet uitgespeeld**. Het rijscript is te traag en te onhandig voor de volle Grote Markt (voetgangers raken kost 250 punten) en de emulator draait bij weinig vrij werkgeheugen op de host nauwelijks door (spelklok 59 s na minuten). De 1,8 km naar Berend is met de dev-sprong overbrugd, en bij vastlopen met de dev-teleport naar de markering.
 - Het pauzemenu van een telefoon is hoger dan het scherm (Opslaan staat onderaan de rail); scrollen met een veeg werkte op de emulator niet, programmatisch scrollen wel.
-- `Input.dispatchTouchEvent` kan één vinger niet loslaten; `driver.mjs` zet de andere vingers opnieuw neer (de stick krijgt een nieuwe oorsprong). Een echt toestel heeft dit niet.
+- `Input.dispatchTouchEvent` met `touchEnd` en een puntenlijst laat precies die vingers los (`driver.mjs`). Raakt een pointerup verloren, dan negeert touch.js nieuwe aanrakingen aan die kant; `lostpointercapture` beëindigt nu stick en camera, en het script gebruikt `blur` als noodknop.
 - Het terugkeren uit de achtergrond (pauzemenu) is handmatig bevestigd; in `ride.mjs` is die stap soms flaky door time-outs van de DevTools.
 - Opruimen als Android definitief niet doorgaat: `C:Users<jij>android-sdk`, `~.android`, `~.gradle`, `android/node_modules`, `web-dist/`.
