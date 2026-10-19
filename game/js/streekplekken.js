@@ -23,7 +23,7 @@ export const LAND_TYPES = {
 export const LAND_BUDGET = { onderdelen: 700, perType: { perron: 6, schoorsteen: 4, mast: 3, monument: 8, park: 4 } };
 
 const KLEUR = {
-  beton: 0xb9b4a8, donker: 0x4a5560, hout: 0x8c6b45, steen: 0x8a8580, baksteen: 0xa5523a, rood: 0xb8362c, wit: 0xeeece4,
+  beton: 0xb9b4a8, donker: 0x4a5560, hout: 0x8c6b45, steen: 0xa8a39c, baksteen: 0xa5523a, rood: 0xb8362c, wit: 0xeeece4,
   geel: 0xd8b13a, staal: 0x6a7480, zwart: 0x24272b, blad: 0x4f7a3c, blad2: 0x6b8f43, stam: 0x6a4a2e, gras: 0x7da356, blauw: 0x2f5f8a,
 };
 
@@ -89,7 +89,7 @@ export function kitFor(plek) {
     case 'schoorsteen': {
       const h = Math.min(120, Math.max(14, plek.h || 40)), r0 = Math.max(0.9, h * 0.04);
       const n = Math.max(3, Math.min(8, Math.round(h / 8)));
-      const kl = plek.sub === 'baksteen' ? KLEUR.baksteen : KLEUR.steen;
+      const kl = plek.sub === 'baksteen' ? KLEUR.baksteen : KLEUR.beton;
       o.push(cyl(0, 0, 0, r0 * 1.5, 1.2, KLEUR.steen));
       for (let i = 0; i < n; i++) o.push(cyl(0, 1.2 + i * ((h - 1.2) / n), 0, r0 * (1.2 - 0.4 * i / n), (h - 1.2) / n, kl));
       o.push(cyl(0, h, 0, r0 * 0.9, 0.5, KLEUR.zwart));
