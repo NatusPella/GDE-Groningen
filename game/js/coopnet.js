@@ -19,6 +19,8 @@ import { holdBeleid, leesLijstEvent, lijst } from './coopplayers.js';
 import { cameraRelative, stepSlot2, sharedCamera } from './coop.js';
 import { verzamelEntiteiten, leesEntiteiten, missieBericht, leesMissieBericht, missieTekst } from './coopworld.js';
 import { verhaalRol } from './coopplayers.js';
+import { KLOK_EVERY, klokEvent, leesKlokEvent, KlokVolger } from './net/speelklok.js';
+import { HASH_EVERY, viewOf, hashEvent, leesHashEvent, DesyncMonitor } from './net/desync.js';
 
 export const CAPS = ['scene', 'spelers']; // wat dit spel kent; uitbreidbaar (net/session.js negotiate)
 export const REMOVE_DELAY = 0.5; // s tussen "je bent verwijderd" en het verbreken
@@ -74,6 +76,16 @@ function endCoop(world) {
 }
 const now = (world) => (Number.isFinite(world.time) ? world.time : Date.now() / 1000);
 
+// De gedeelde toestand zoals de host hem ziet en zoals een gast hem uit de snapshots opbouwt (net/desync.js)
+export function hostView(world, info, roster) {
+  const m = world.mission;
+  return viewOf({ story: info.story, tiles: info.tiles, stage: (m && m.index) | 0, state: m && m.phase === 'active' ? 'run' : 'none', wanted: world.wanted | 0, slots: [0, 1, ...roster.spelers.filter((s) => s.slot >= 2).map((s) => s.slot)] });
+}
+export function guestView(sample, info) {
+  const mi = sample.mission || {};
+  return viewOf({ story: info.story, tiles: info.tiles, stage: mi.stage, state: mi.state, wanted: sample.shared ? sample.shared.wanted : 0, slots: sample.players.map((p) => p.slot) });
+}
+
 // ---------------------------------------------------------------- host
 // opts: { seed, max (4 tot 8), onHold(rol, slot, reden), fade, route, onChange(roster) }
 export function startHost(world, info, opts = {}) {
@@ -109,7 +121,7 @@ export function startHost(world, info, opts = {}) {
   setFixedCharacters(world, 0);
   world.coopRole = 'host';
   world.coopRoster = lijst(hub.roster);
-  world.coopNet = { role: 'host', hub, fade, route, removing: {} };
+  world.coopNet = { role: 'host', hub, fade, route, removing: {}, info, tKlok: 0, tHash: 0, hashN: 0 };
   return hub;
 }
 
@@ -133,8 +145,10 @@ export function startClient(world, transport, info, opts = {}) {
   world.coop.local = false;
   session.onlost = () => { if (onHold) onHold('client', session.slot, 'De verbinding met de gastheer is weg.'); };
   session.onevent = (b) => handleEvent(world, b, 0);
+  // de host is de baas: bij een desync (net/desync.js) zet de gast zijn wanted weer gelijk aan dat van de host
+  session.onresync = (st) => { if (st && Number.isFinite(st.wanted)) world.wanted = st.wanted | 0; };
   world.coopRole = 'client';
-  world.coopNet = { role: 'client', session, stash, fade, joined: false, fixed: false, route };
+  world.coopNet = { role: 'client', session, stash, fade, joined: false, fixed: false, route, info, klok: new KlokVolger(), desync: new DesyncMonitor(), lokaal: 0 };
   return session;
 }
 
@@ -162,6 +176,9 @@ export function tickCoopNet(world, dt) {
     const m = makeClientInput(inp && inp.axis ? inp.axis() : [0, 0], !!(inp && inp.isDown && inp.isDown('shift')), world.camYaw);
     s.setInput(m.mx, m.my, m.buttons, m.yaw);
     s.tick(dt);
+    n.lokaal += dt;
+    // de gedeelde speelklok: de tijd van de dag volgt de host (net/speelklok.js)
+    if (n.klok.last && Number.isFinite(world.clock)) world.clock = n.klok.step(world.clock, dt, n.lokaal);
     if (s.joined && !n.fixed) { // eerst weten we welke plek en figuur we hebben
       n.fixed = true; setFixedCharacters(world, s.slot, s.welcome && s.welcome.char);
       if (s.welcome && Array.isArray(s.welcome.lijst)) world.coopRoster = s.welcome.lijst;
@@ -180,6 +197,9 @@ export function tickCoopNet(world, dt) {
   for (const [slot, t] of Object.entries(n.removing)) { n.removing[slot] = t - dt; if (n.removing[slot] <= 0) { delete n.removing[slot]; n.hub.release(+slot); } }
   n.hub.tick(dt);
   stepFigures(world, dt);
+  n.tKlok += dt; n.tHash += dt;
+  if (n.tKlok >= KLOK_EVERY) { n.tKlok = 0; n.hub.announce(klokEvent(world)); }
+  if (n.tHash >= HASH_EVERY) { n.tHash = 0; n.hub.announce(hashEvent(++n.hashN, hostView(world, n.info, n.hub.roster))); }
   const mb = missieBericht(n.missie || null, world.mission); // wat de host speelt, voor de gasten
   if (mb.event) { n.hub.announce(mb.event); } n.missie = mb.huidig;
   const c = world.companion;
@@ -223,6 +243,22 @@ export function handleEvent(world, body, van = 0) {
       world.money = (world.money || 0) + betaald;
       world.coopVerdiend = (world.coopVerdiend || 0) + betaald; // savegame.js zet dit in de eigen save van de gast
       if (world.addMessage) world.addMessage(`Beloning: €${betaald.toLocaleString('nl-NL')}`, 4);
+      return true;
+    }
+    case 'klok': { // de tijd van de dag van de host
+      if (!n || n.role !== 'client') return false;
+      const k = leesKlokEvent(body); return !!k && n.klok.observe(k, n.lokaal);
+    }
+    case 'hash': { // de host controleert of de gast hetzelfde ziet; bij drie afwijkingen achter elkaar vraagt de gast zijn toestand opnieuw
+      if (!n || n.role !== 'client') return false;
+      const h = leesHashEvent(body); const sample = n.session && n.session.world();
+      if (!h || !sample) return false;
+      const r = n.desync.check(h, guestView(sample, n.info));
+      if (!r.ok) {
+        world.coopDesync = { n: n.desync.total, velden: r.velden };
+        if (r.alarm && typeof console !== 'undefined') console.warn('[coop] desync met de host: ' + r.velden.join(', '));
+      }
+      if (r.alarm) n.session.requestResync();
       return true;
     }
     case 'weg': // de host heeft deze speler verwijderd

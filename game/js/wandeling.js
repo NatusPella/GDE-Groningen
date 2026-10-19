@@ -5,6 +5,7 @@ import { iconDisc, activityBlock } from './activitykit.js';
 import { isShopOpen } from './shopui.js';
 import { createBoard, key, bubble, clearBubbles, pick, fmtTime } from './minigamekit.js';
 import { WANDEL_LINES } from './minigamelines3.js';
+import { registerQuitHook } from './busy.js';
 import { STAMPS, routePoints, routeLength, createWalk, stepWalk, averagePace, walkMedal, nextTarget, PACE_MEDAL_AT } from './wandelrules.js';
 
 // Wandeling Winsum (the Pieterpad at Winsum): an activity that does NOT take
@@ -99,6 +100,10 @@ const recText = () => {
   const r = getChallengeRecord('wandeling');
   return r && r.best != null ? `Record: ${fmtTime(r.best)}${r.medal ? ' · ' + MEDALS[r.medal].toLowerCase() : ''}` : null;
 };
+
+// de wandeling meldt zich als niet-actief (hij neemt de speler niet over), dus quitActivity slaat hem over:
+// een eigen quit-hook laat de duif (en andere modi) een lopende wandeling toch netjes stoppen (#241)
+registerQuitHook((w) => { if (run) finish(w, { quit: true }); });
 
 export const WANDELING = {
   id: 'wandeling',

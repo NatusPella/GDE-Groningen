@@ -10,6 +10,7 @@ import { STREKEN } from './regioleven.js';
 import { wgsToWorld } from './rdnew.js';
 import { spawnJobVehicle, randomStreetPoint, vehicleSpeed } from './sidejobkit.js';
 import { TRACTOR_MODEL } from './vehicle.js';
+import { ankerMetWeg, STAD } from './bijbaananker.js';
 
 const MODELS = {
   fiets: { kind: 'bike' },
@@ -22,7 +23,6 @@ const MODELS = {
 };
 
 // Waar de baan begint: het hart van de streek, of de binnenstad.
-const STAD = { x: 213.81, y: 9.9 };
 const regioPunt = (regio) => {
   const s = STREKEN.find((r) => r.id === regio);
   if (!s) return STAD;
@@ -45,9 +45,7 @@ function maak(id, glyph, kleur, baas) {
     sikkom: (c) => `${regel.naam} (${regel.bedrijf}): ${c.streak} ritten zonder klachten`,
 
     anchor(map) {
-      const p = regioPunt(regel.regio);
-      const rp = map.nearestRoadPoint(p.x, p.y, 400, voertuig().kind !== 'bike');
-      return rp ? { x: rp.x, y: rp.y } : p;
+      return ankerMetWeg(map, regioPunt(regel.regio), voertuig().kind !== 'bike');
     },
 
     start(c) {

@@ -3,7 +3,7 @@ import { requestRespawn } from './world.js';
 import { disableVehicle, surfaceUnder } from './vehicle.js';
 import { knockDown } from './ragdoll.js';
 import { bloodSpray, bleedPed } from './gore3d.js';
-import { DEAD_DURATION } from './pedestrians.js';
+import { DEAD_DURATION } from './pedconst.js';
 import { propOnBulletPath, shootProp } from './breakables.js';
 import { reportCrime } from './crime.js';
 import { gunShotFx, gunImpactFx } from './gunfx3d.js';
@@ -11,6 +11,7 @@ import { updateAim, aimFireAngle, aimedTargetDistance } from './aimassist.js';
 import { scopeShot } from './scopeaim.js';
 import { propsInRadius } from './breakables.js';
 import { getSettings } from './settings.js';
+import { assistDamage } from './assistlive.js';
 import { squirtWater, throwExplosive, updateThrowables } from './throwables.js';
 
 // kind: melee (a swing that lands at the end of its wind-up), gun (bullets),
@@ -514,6 +515,7 @@ function hitPlayer(world, b) {
 }
 
 export function damagePlayer(world, damage) {
+  damage = assistDamage(damage); // Hulp (#215): minder schade bij kogels, klappen en wegpiraten
   if (world.armor > 0) {
     const absorbed = Math.min(world.armor, damage);
     world.armor -= absorbed;

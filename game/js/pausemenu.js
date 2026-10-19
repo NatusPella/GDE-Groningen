@@ -7,6 +7,7 @@
 // Instellingen, Besturing.
 import { getSettings, setSetting, resetSettings, QUALITY_PRESETS } from './settings.js';
 import { logoHtml } from './logo.js';
+import { setPauseMenuOpen } from './pausestate.js';
 import { PRESET_ORDER, presetLabel, describePreset, describeChanges, currentPreset, applyPreset, getBenchResult, dismissBenchBanner, GEAR_SVG } from './gfxprofile.js';
 import { mountMapView, setMapActive, setMapCloseHandler, setMapView, getDiscoveredRatio, setMapTeleport } from './mapview.js';
 import { renderSamenPanel } from './samenpanel.js';
@@ -66,7 +67,7 @@ const CONTROL_GROUPS = [
     [['.', ','], 'Handmatig schakelen: hoger, lager (Instellingen › Schakelen)'],
     [['J'], 'Handmatig met koppeling: koppeling indrukken bij het schakelen'],
     [['SHIFT'], 'Op de fiets: even flink doortrappen; op een motor: wheelie met gas, stoppie met remmen'],
-    [['CTRL'], 'Op de fiets: wheelie (vasthouden en trappen)'],
+    [['CTRL'], 'Op de fiets: wheelie (vasthouden en trappen) of stoppie (vasthouden en remmen)'],
     [['E', 'F'], 'Uitstappen'],
     [['Q', 'WHEEL'], 'Achterom kijken (vasthouden; middelste muisknop)'],
     [['H'], 'Toeteren'],
@@ -200,13 +201,13 @@ const SECTIONS = [
   ['garage', 'Garage', 'Jouw voertuigen'],
   ['prestaties', 'Prestaties', 'Blijven bewaard, ook bij een nieuw spel'],
   ['fotos', "Foto's", 'Fotomodus en je galerij'],
-  ...(FLAGS.coop ? [['samen', 'Samen spelen', 'Iemand uitnodigen of aansluiten']] : []),
+  ['samen', 'Samen spelen', 'Iemand uitnodigen of aansluiten'],
   ['settings', 'Instellingen', 'Wijzigingen worden meteen bewaard'],
   ['controls', 'Besturing', 'Alle toetsen, per situatie'],
   ['streken', 'Cheats', 'Een beetje vals spelen'],
 ];
 // the rail's three groups: playing, collected, system
-const RAIL_GROUPS = [['overzicht', 'todo', 'map', 'telefoon'], ['verhaal', 'spullen', 'garage', 'prestaties', 'fotos', ...(FLAGS.coop ? ['samen'] : [])], ['settings', 'controls', 'streken']];
+const RAIL_GROUPS = [['overzicht', 'todo', 'map', 'telefoon'], ['verhaal', 'spullen', 'garage', 'prestaties', 'fotos', 'samen'], ['settings', 'controls', 'streken']];
 const PRESTART_SECTIONS = ['settings', 'controls'];
 const SUBTABS = {
   todo: [['verhaal', 'Verhaal'], ['alles', 'Alles'], ['dichtbij', 'Dichtbij']],
@@ -268,9 +269,7 @@ function savePref() {
   try { localStorage.setItem(PREF_KEY, JSON.stringify(pref)); } catch (e) { /* private mode: keep it in memory */ }
 }
 
-export function isPauseMenuOpen() {
-  return open;
-}
+export { isPauseMenuOpen } from './pausestate.js';
 
 // How much of the city the menu hides: 0 closed, 2 most of it (the rail
 // plus a section).
@@ -330,6 +329,7 @@ function settingsHtml() {
       ${picker('preset', 'Voorinstelling', presets, '', 'data-preset-pick')}
       ${picker('resolution', 'Resolutie', [['1', '100%'], ['0.85', '85%'], ['0.75', '75%'], ['0.6', '60%']])}
       ${toggle('autoResolution', 'Automatische resolutie', 'bij haperen')}
+      ${toggle('zuinig', 'Zuinige modus', '30 beelden per seconde, spaart batterij en warmte')}
       ${toggle('shadows', 'Schaduwen')}
       ${picker('drawDistance', 'Zichtafstand', [['kort', 'Kort'], ['normaal', 'Normaal'], ['ver', 'Ver'], ['heelver', 'Heel ver']])}
       ${DESKTOP ? '<label class="m-li pm-row"><span class="nm">Volledig scherm<span class="mut">F11 of Alt+Enter</span></span><input type="checkbox" class="m-sw" data-desktop="fullscreen"></label>' : ''}
@@ -353,7 +353,8 @@ function settingsHtml() {
       <label class="m-li pm-row">${rowName('Radio G-Music', 'Ook met N, te voet en in elk voertuig')}<input type="checkbox" class="m-sw" data-radio-switch></label>
       ${disclosure('subs', 'Ondertitels', 'Filmpjes, gesprekken, telefoon, radio en naamkaarten', `
         ${picker('subtitleSize', 'Grootte', [['klein', 'Klein'], ['normaal', 'Normaal'], ['groot', 'Groot'], ['extragroot', 'Extra groot']])}
-        ${toggle('subtitleBox', 'Donker vlak erachter', 'Een donker vlak maakt ze makkelijker te lezen')}`, true)}`, `
+        ${toggle('subtitleBox', 'Donker vlak erachter', 'Een donker vlak maakt ze makkelijker te lezen')}
+        ${toggle('soundCaptions', 'Geluiden beschrijven', 'Een korte tekst als [sirene] of [claxon] bij belangrijke geluiden')}`, true)}`, `
       <aside class="m-pane"><div class="pm-pane-top"><span class="m-eb">Zo ziet het eruit</span></div>
         <div class="pm-subprev" data-sub-preview><span class="pm-subtxt"><b>Tammo:</b> Rustig an, rustig an.</span></div>
         <p class="mut">Muziek is de radio (G-Music, 's nachts Nachtstreek) en de titelsong, stemmen zijn Tammo, Tessa, de politie, de mensen op straat en de praatjes op de radio. Kleurenblind, interfacegrootte en beweging beperken vind je onder Toegankelijkheid.</p></aside>`)}
@@ -439,7 +440,7 @@ export function initPauseMenu(w) {
           <button type="button" class="ra pm-back" data-action="resume">Terug</button>
           <div class="pm-rail-acts pm-ingame">
             <button type="button" class="m-bt" data-action="save">Opslaan</button>
-            <button type="button" class="m-bt" data-action="saves" title="Spelstanden kiezen, laden, hernoemen, exporteren en verwijderen">Spelstanden</button>
+            <button type="button" class="m-bt" data-action="saves" title="Savegames kiezen, laden, hernoemen, exporteren en verwijderen">Savegames</button>
             <button type="button" class="m-bt" data-action="menu" title="Opslaan en terug naar het titelscherm">Hoofdmenu</button>
             ${DESKTOP ? '<button type="button" class="m-bt" data-action="exit" title="Opslaan en het spel sluiten">Afsluiten</button>' : ''}
           </div>
@@ -448,8 +449,8 @@ export function initPauseMenu(w) {
             <p class="pm-status" role="status"></p>
             <button type="button" class="m-bt danger" data-action="restart">Opnieuw beginnen</button>
             <div class="pm-confirm" hidden>
-              <p>Opnieuw beginnen? Alles sinds je laatste spelstand gaat verloren. Je andere spelstanden blijven staan.</p>
-              <button type="button" class="m-bg" data-action="load">Laatste spelstand laden</button>
+              <p>Opnieuw beginnen? Alles sinds je laatste savegame gaat verloren. Je andere savegames blijven staan.</p>
+              <button type="button" class="m-bg" data-action="load">Laatste savegame laden</button>
               <button type="button" class="m-bg danger" data-action="new">Nieuw spel (nieuw slot)</button>
               <button type="button" class="m-bt" data-action="cancel">Annuleren</button>
             </div>
@@ -1034,9 +1035,9 @@ function runAction(a) {
   else if (a === 'save') status(saveGame(world) ? `Opgeslagen om ${new Date().toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })}` : 'Opslaan mislukt');
   else if (a === 'load') {
     if (loadLatestSave(world)) setOpen(false);
-    else status('Geen spelstand gevonden');
+    else status('Geen savegame gevonden');
   } else if (a === 'saves') {
-    if (world && world.pigeonMode) { status('Je bent een duif. Stop de duif-modus om spelstanden te gebruiken.'); return; }
+    if (world && world.pigeonMode) { status('Je bent een duif. Stop de duif-modus om savegames te gebruiken.'); return; }
     openSaveSlots({ mode: 'game', world, onLoad: () => setOpen(false), onClose: () => { syncSaveButtons(); const b = root.querySelector('.pm-rail-acts [data-action="saves"]'); if (b) b.focus(); } });
   } else if (a === 'restart') {
     confirmEl.hidden = false;
@@ -1348,7 +1349,7 @@ function renderVerhaalPanel() {
 }
 
 function syncSaveButtons() {
-  if (world && world.pigeonMode) { status('Je bent een duif. Stop de duif-modus om op te slaan; je poepscore gaat mee in je spelstand.'); return; }
+  if (world && world.pigeonMode) { status('Je bent een duif. Stop de duif-modus om op te slaan; je poepscore gaat mee in je savegame.'); return; }
   const saved = hasSave();
   for (const b of root.querySelectorAll('[data-action="load"]')) b.disabled = !saved;
   const s = getSaveSummary();
@@ -1483,6 +1484,7 @@ function setOpen(value, name = HOME, how = 'direct') {
     return;
   }
   open = value;
+  setPauseMenuOpen(value);
   if (open && isShopOpen()) closeShopMenu();
   // audio.js muffles the world and the radio behind the unfolded phone
   if (world) world.menuMuffle = open && !prestart;

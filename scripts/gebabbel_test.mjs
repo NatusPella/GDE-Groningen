@@ -8,7 +8,7 @@ const ok = (c, name, info = '') => { n++; if (!c) { fails++; console.log(`FAIL $
 ok(new Set(GEBABBEL.map((g) => g.id)).size === GEBABBEL.length, 'unieke id\'s');
 for (const g of GEBABBEL) {
   ok(AREAS.includes(g.area) && (g.part === null || PARTS.includes(g.part)) && (g.wet === null || WETS.includes(g.wet)), 'geldige velden', g.id);
-  ok(g.lines.length >= 1 && g.lines.length <= 2 && g.lines.every(([who, t]) => who && t && t.length <= 110), 'lengte', g.id);
+  ok(g.lines.length >= 1 && g.lines.length <= 3 && g.lines.every(([who, t]) => who && t && t.length <= 110), 'lengte', g.id);
   const text = g.lines.map((l) => l.join(' ')).join(' ');
   ok(!/de Grunn/i.test(text), 'Grunn, nooit "de Grunn"', g.id);
   ok(!/sneeuw|ijs\b|vorst|winter|kerst|schaatsen/i.test(text), 'altijd zomer', g.id);

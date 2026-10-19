@@ -1,4 +1,4 @@
-import { nearestLine, project as projectOnLine, makeRunner, stepRunner, startAt } from './busroutes.js';
+import { linesNear, project as projectOnLine, makeRunner, stepRunner, startAt } from './busroutes.js';
 import { assistDamage } from './assistlive.js';
 import { closestPointOnSegment, normalizeAngle, clamp, lerp, pointInPolygon, inMapWater, WATER_Y, keepBoatOffShore, boatDryPoints } from './util.js';
 import { waterClearance, waterChannelPoints } from './waterindex.js';
@@ -30,12 +30,14 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { MODS } from './cheatmods.js';
 import { laneLayout } from './lanes.js';
 import { profileFor, createGearbox, stepGearbox } from './gearbox.js';
+import { loadTuning, tuningEffects } from './tuningplan.js';
+import { KEYS } from './storagekeys.js';
 import { slipAngle } from './drift.js';
 import { MOPED_LEGAL_SPEED } from './motomodels.js';
 import { pickMotor, motorRoadAllowed, motorTarget } from './motortraffic.js';
 import { FLAGS } from './devflags.js';
 import { verkeerOpties } from './simlagen.js';
-import { SMOKE_HEALTH } from './vehicledamage.js';
+import { SMOKE_HEALTH, kapRookt } from './vehicledamage.js';
 import { createWheelie, stepWheelie } from './bewegingrules.js';
 export { MOTORBIKE_MODELS, GEARED_MOPED_MODEL, MOPED_LEGAL_SPEED } from './motomodels.js';
 
@@ -64,6 +66,7 @@ const MODELS = [
 // a tractor (slow, pulls hard off the line) and a quad (nimble off-road)
 export const TRACTOR_MODEL = { name: 'tractor', len: 4.3, wid: 2.3, maxSpeed: 11, accel: 6.5, brake: 11, turnRate: 1.9, color: '#3f7d3a', offroad: 0.9 };
 export const QUAD_MODEL = { name: 'quad', len: 2.1, wid: 1.2, maxSpeed: 17, accel: 9, brake: 14, turnRate: 3.2, color: '#b8322a', offroad: 1 };
+export const POLICE_MODEL = { name: 'police', len: 4.3, wid: 1.8, maxSpeed: 55, accel: 11, brake: 20, turnRate: 2.8, color: '#1c1c1c' };
 export const HERO_CAR_MODEL = { name: 'escort', len: 4.0, wid: 1.65, maxSpeed: 50, accel: 8, brake: 25, turnRate: 3.4, color: '#a11f1f' };
 
 const BIKE_MODELS = [
@@ -214,9 +217,9 @@ export class Vehicle {
   }
 
   // Pedal bike (player only): Ctrl held while pedalling lifts the front wheel (bewegingrules.js, #207).
-  rideFiets(dt, throttle, top) {
+  rideFiets(dt, throttle, top, brake = 0) {
     const w = this.wheelieState || (this.wheelieState = createWheelie());
-    stepWheelie(w, { trick: !!this.trick && !this.disabled, throttle, speed: this.speed, top, dt });
+    stepWheelie(w, { trick: !!this.trick && !this.disabled, throttle, brake, speed: this.speed, top, dt });
     this.pitch = w.pitch;
     this.wheelie = w.up;
     if (w.up) this.speed *= w.slow;
@@ -346,7 +349,7 @@ export class Vehicle {
       }
     }
 
-    if (isPlayer && this.isBike && !m.motorbike) this.rideFiets(dt, throttle, top);
+    if (isPlayer && this.isBike && !m.motorbike) this.rideFiets(dt, throttle, top, brake);
     if (isPlayer && m.motorbike) this.rideMotorbike(dt, throttle, gb, top, absSpeed, normalizeAngle(this.angle - oldAngle) / (dt || 1));
 
     this.x += Math.cos(this.angle) * this.speed * dt;
@@ -829,7 +832,7 @@ export function spawnVehicleOnRoad(map, road, isPolice = false, rng = Math.rando
   const dir = road.oneway ? 1 : (rng() < 0.5 ? 1 : -1);
   if (dir < 0) angle = normalizeAngle(angle + Math.PI);
   const model = forcedModel || (isPolice
-    ? { name: 'police', len: 4.3, wid: 1.8, maxSpeed: 55, accel: 11, brake: 20, turnRate: 2.8, color: '#1c1c1c' }
+    ? POLICE_MODEL
     : isBike
     ? pickBikeModel(rng)
     : isScooter
@@ -933,6 +936,11 @@ export function spawnHeroCarNear(map, x, y, rng = Math.random) {
   const v = spawnVehicleOnRoad(map, point.road, false, rng, false, false, point);
   v.model = HERO_CAR_MODEL;
   v.isHeroCar = true;
+  // de onderdelen van de Escapade uit de garage (#196)
+  try {
+    const all = loadTuning(typeof localStorage !== 'undefined' ? localStorage : null, KEYS.tuning);
+    if (all.hero) v.tuning = tuningEffects(all.hero);
+  } catch (e) { /* zonder opslag geen onderdelen */ }
   // parked at the kerb, waiting for the player - not driving off as traffic
   const kerb = Math.max(0, (point.road.width || 6) / 2 - HERO_CAR_MODEL.wid / 2 - 0.3);
   v.x += -Math.sin(v.angle) * kerb;
@@ -958,8 +966,32 @@ function pruneWrecks(world) {
   for (const v of wrecks.slice(0, wrecks.length - MAX_WRECKS)) vehicles.splice(vehicles.indexOf(v), 1);
 }
 
+// A vehicle in the list twice, or two identical ones stacked on one spot (a mission
+// started twice spawns its van twice; a crash then shoves them apart as "three vans",
+// #211): the later copy goes. The player's own vehicle and anything with another
+// model, label or heading is left alone. Returns how many were removed.
+export function dedupeVehicles(vehicles) {
+  let removed = 0;
+  for (let i = vehicles.length - 1; i >= 0; i--) {
+    const v = vehicles[i];
+    if (vehicles.indexOf(v) < i) { vehicles.splice(i, 1); removed++; continue; }
+    if (v.driver === 'player' || v.wrecked || v.isBoat) continue;
+    for (let j = 0; j < i; j++) {
+      const o = vehicles[j];
+      if (o.driver === 'player' || o.wrecked || o.isBoat) continue;
+      if (Math.abs(o.x - v.x) > 0.6 || Math.abs(o.y - v.y) > 0.6 || (o.model && v.model && o.model.name !== v.model.name) || o.label !== v.label) continue;
+      if (Math.abs(Math.atan2(Math.sin(o.angle - v.angle), Math.cos(o.angle - v.angle))) > 0.3) continue;
+      vehicles.splice(i, 1); removed++;
+      break;
+    }
+  }
+  return removed;
+}
+
 export function manageTrafficPopulation(world, opts = {}) {
-  const { map, player, vehicles } = world;
+  const { map, vehicles } = world;
+  const player = world.cameraOverride && world.streamFocus ? world.streamFocus : world.player; // in a cutscene the traffic fills round the camera's view (#157)
+  dedupeVehicles(vehicles);
   // ?simlagen (issue #18): doelaantal en afstanden per streek uit simlagen.js
   const lagen = FLAGS.simlagen ? verkeerOpties(wijkProfileAt(map, player.x, player.y).key, hourOf(world)) : null;
   const { target = lagen ? lagen.target : 30, spawnMin = lagen ? lagen.spawnMin : 70, spawnMax = lagen ? lagen.spawnMax : 170, despawnDist = lagen ? lagen.despawnDist : 260 } = opts;
@@ -989,7 +1021,7 @@ export function manageTrafficPopulation(world, opts = {}) {
   while (count < target && candidates.length && guard++ < target * 4) {
     const road = candidates[Math.floor(Math.random() * candidates.length)];
     const mid = road.pts[Math.floor(road.pts.length / 2)];
-    let pick = pickTrafficCar(map, mid[0], mid[1]);
+    let pick = pickTrafficCar(map, mid[0], mid[1], Math.random, { hour: hourOf(world) });
     for (const k of ['ambulance', 'taxi', 'cashvan', 'newsvan']) {
       if (have[k] < want[k] && Math.random() < (k === 'cashvan' ? 0.08 : k === 'newsvan' ? 0.1 : 0.25)) { pick = { kind: k, model: carModel(k) }; break; }
     }
@@ -1008,7 +1040,8 @@ export function manageTrafficPopulation(world, opts = {}) {
 // single most Groningen-defining detail of the streetscape, so they get
 // their own population target, favoring dedicated cycleways when present.
 export function manageBikePopulation(world, { target = 16, spawnMin = 40, spawnMax = 140, despawnDist = 220 } = {}) {
-  const { map, player, vehicles } = world;
+  const { map, vehicles } = world;
+  const player = world.cameraOverride && world.streamFocus ? world.streamFocus : world.player; // in a cutscene the traffic fills round the camera's view (#157)
   for (let i = vehicles.length - 1; i >= 0; i--) {
     const v = vehicles[i];
     if (!v.isBike || v.driver === 'player') continue;
@@ -1108,8 +1141,10 @@ export function manageBusPopulation(world, { target = 4, spawnMin = 90, spawnMax
   for (const v of vehicles) if (v.isBus && !v.wrecked && v.driver !== 'player') count++;
 
   // echte lijnen (busroutes.js, zodra de lijndata geladen is): een bus begint op zijn lijn en rijdt hem
-  const line = busLines.length ? nearestLine(busLines, player.x, player.y, spawnMax) : null;
+  const near = busLines.length ? linesNear(busLines, player.x, player.y, spawnMax) : [];
+  const line = near[0] || null;
   for (let tries = 0; line && count < target && tries < 4; tries++) {
+    const line = near[Math.floor(Math.random() * near.length)];
     const pr = projectOnLine(line, player.x, player.y);
     const dir = Math.random() < 0.5 ? 1 : -1;
     const at = startAt(line, Math.max(0, Math.min(line.length, pr.s + dir * (spawnMin + Math.random() * (spawnMax - spawnMin) * 0.6))), dir);
@@ -1123,6 +1158,8 @@ export function manageBusPopulation(world, { target = 4, spawnMin = 90, spawnMax
     vehicles.push(v);
     count++;
   }
+  // with a real line in reach the buses are the line's, not random ones on the main roads (#80)
+  if (line) return;
 
   const candidates = map.roadsNear(player.x, player.y, spawnMax).filter((r) => r.cat === 'major' || r.cat === 'normal' || r.busOnly);
   let guard = 0;
@@ -3040,7 +3077,7 @@ export function vehicleNeedsFireEffect(v, time = 0) {
 }
 
 // Damaged but not yet burning (vehicledamage.js, #205): only the smoke of the effect, no flames.
-const smokes = (v) => !v.isBike && !v.isScooter && !v.isBoat && !v.isHeli && !v.sinking && v.health <= SMOKE_HEALTH;
+const smokes = (v) => !v.isBike && !v.isScooter && !v.isBoat && !v.isHeli && !v.sinking && (v.health <= SMOKE_HEALTH || kapRookt(v, v.model.len, v.model.wid));
 export function vehicleSmokeOnly(v) {
   return !v.wrecked && !v.disabled && v.health > VEHICLE_FIRE_HEALTH_THRESHOLD && smokes(v);
 }

@@ -3,7 +3,7 @@
 // and what happens to anything standing on the track. Rendering lives in
 // railway3d.js, which only reads the state exported here.
 import { requestRespawn } from './world.js';
-import { DEAD_DURATION } from './pedestrians.js';
+import { DEAD_DURATION } from './pedconst.js';
 import { knockDown } from './ragdoll.js';
 import { disableVehicle } from './vehiclewreck.js';
 import { vehicleHooks } from './vehiclehooks.js';

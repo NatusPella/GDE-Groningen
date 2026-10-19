@@ -13,13 +13,15 @@ const run = (v) => { const mesh = new THREE.Group(); updateIndicatorLamps(mesh, 
 const size = (l) => { l.geometry.computeBoundingBox(); const b = l.geometry.boundingBox; return [b.max.x - b.min.x, b.max.y - b.min.y, b.max.z - b.min.z]; };
 
 const bike = run({ isBike: true, indicator: 'left', model: { len: 1.8, wid: 0.6 } });
-ok(bike.userData.indLamps.length === 0 && bike.children.length === 0, 'a bicycle gets no signal lamps');
+ok(bike.userData.indLamps.length === 2 && bike.userData.indLamps.every((l) => size(l)[0] <= 0.05 && Math.abs(Math.abs(l.position.z) - 0.3) < 0.05), 'a bicycle gets two tiny lamps on the handlebar ends');
+{ const l = bike.userData.indLamps; updateIndicatorLamps(bike, { isBike: true, indicator: 'left', model: {} }, 0); ok(l.filter((x) => x.visible).length === 1 && l.find((x) => x.visible).userData.side < 0, 'bicycle: only the signalling side blinks'); }
 const bikeOff = run({ isBike: true, indicator: null, model: { len: 1.8, wid: 0.6 } });
 ok(!bikeOff.userData.indLamps, 'no signal, nothing built');
 
 const scooter = run({ isScooter: true, indicator: 'right', model: { len: 1.7, wid: 0.7 } });
 ok(scooter.userData.indLamps.length === 4, 'a scooter has four lamps');
-ok(scooter.userData.indLamps.every((l) => size(l)[0] <= 0.1 && Math.abs(l.position.z) <= 0.2), 'scooter lamps are small and near the middle');
+ok(scooter.userData.indLamps.every((l) => size(l)[0] <= 0.1 && Math.abs(l.position.z) <= 0.31), 'scooter lamps are small and inside the bar width');
+ok(scooter.userData.indLamps.filter((l) => l.position.x > 0).length === 2, 'scooter: two lamps at the bars, two at the tail');
 
 const moto = run({ indicator: 'left', model: { len: 2.1, wid: 0.8, motorbike: true } });
 ok(moto.userData.indLamps.length === 4 && size(moto.userData.indLamps[0])[0] <= 0.1, 'a motorbike has small lamps');

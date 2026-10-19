@@ -28,11 +28,22 @@ const script = await (await fetch('/storydata/script.json')).json();
 const src = await (await fetch('/js/missionstory.js')).text();
 const cat = prev.buildCatalog({ script, npcSource: src });
 // the real NPC looks (names only in the catalogue's table): the real table comes from missionstory when exported
+// CS.sample = { seed, n }: n scènes met een vaste seed gekozen (de sweep, scripts/qa/sweep.mjs)
+let sampled = null;
+if (CS.sample) {
+  const pool = cat.filter((e) => e.scene && e.def).map((e) => e.id);
+  let a = (CS.sample.seed >>> 0) || 1;
+  const rnd = () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
+  sampled = new Set(pool.slice(0, CS.sample.n));
+  console.log('[cs-sample] ' + [...sampled].join(','));
+}
 let T = 0;
 const results = {};
 const root = sc3.getScene();
 for (const e of cat) {
   if (!e.scene || !e.def) continue;
+  if (sampled && !sampled.has(e.id)) continue;
   if (CS.only && CS.only.length && !CS.only.some((o) => e.id === o || e.id.startsWith(o))) continue;
   const anchor0 = { x: spot.x, y: spot.y, facing: spot.a, z: p.gz || 0 };
   const env = { solid: (x, y, z) => cam.roofAt(map, x, y) > z - 0.2 };
@@ -59,7 +70,17 @@ for (const e of cat) {
   cine.skipCinematic && cine.skipCinematic();
   run.dispose();
   w.cinematicHidePlayers = false; w.cinematicHideNav = false;
-  results[e.id] = { shots: times.length, anker: { x: +at.x.toFixed(1), y: +at.y.toFixed(1), facing: +at.facing.toFixed(2) } };
+  // camera in a wall or under a roof (the collision check of #209): sampled every 0.25 s on the fitted anchor
+  const inside = [];
+  for (let t = 0; t <= e.duration; t += 0.25) {
+    try {
+      const c = e.scene.sample(t, at).camera;
+      const gz = map.groundHeightAt ? map.groundHeightAt(c.position.x, c.position.y, 0) || 0 : 0;
+      if (cam.roofAt(map, c.position.x, c.position.y) > c.position.z - 0.2 || c.position.z < gz + 0.2) inside.push(+t.toFixed(2));
+    } catch (err) { /* sampling failed: no verdict */ }
+  }
+  if (inside.length) console.log('[cs-clip] ' + e.id + ' camera in gebouw/grond op t=' + inside.slice(0, 12).join(','));
+  results[e.id] = { shots: times.length, clip: inside.length ? inside.slice(0, 40) : undefined, anker: { x: +at.x.toFixed(1), y: +at.y.toFixed(1), facing: +at.facing.toFixed(2) } };
   console.log('[cs-scene] ' + e.id + ' ' + JSON.stringify(results[e.id]));
   await sleep(300);
 }

@@ -2,8 +2,13 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { getScene } from './scene3d.js';
 import { buildPersonMesh, seatPose, seatedY, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { buildKitchen } from './introkitchen3d.js';
-import { playCinematic } from './cinematics.js';
-import { compileScene, fitAnchor, resolveTime } from './cutscript.js';
+import { playCinematic, setNameCard } from './cinematics.js';
+import { buildVehicleMesh } from './models3d_vehicles.js';
+import { buildWildlifeMesh3D } from './wildlife.js';
+import { HERO_CAR_MODEL, TRACTOR_MODEL, POLICE_MODEL, TRAFFIC_MODELS } from './vehicle.js';
+import { carModel } from './trafficfleet.js';
+import { propSource } from './cutscenemodels.js';
+import { compileScene, fitAnchor, resolveTime, shotPoints } from './cutscript.js';
 import { roofAt } from './camerapath.js';
 import { animateActor } from './actoranim.js';
 import { audioPlan } from './cutaudio.js';
@@ -19,7 +24,7 @@ import { audioPlan } from './cutaudio.js';
 //   lines:  [{ speaker, text, at, dur, voice? }], untouched: they stay the story's own
 //   def.set 'keuken': Tessa's kitchen (introkitchen3d.js) is built at the anchor (anchor.z = floor height) and the camera is kept inside it;
 //   def.fx: host effects on the set: buzz { dur } (the phone), door { open: 0-1, dur }, cups { actor, on, hands }, tablecups { on },
-//   sfx { kind } (a world sound), pulse { dur } (the radio)
+//   sfx { kind } (a world sound), pulse { dur } (the radio), naam { text, dur } (a name card, any set)
 
 const MATS = {};
 const mat = (c, o = {}) => (MATS[c + JSON.stringify(o)] ||= new THREE.MeshStandardMaterial({ color: c, roughness: 0.8, ...o }));
@@ -45,67 +50,36 @@ const box = (w, h, d, c, y = h / 2, x = 0, z = 0) => {
   return m;
 };
 
-// Props are small low-poly groups; their origin is on the ground, +x is "forward".
+// Vehicles and animals are the world's own (cutscenemodels.js lists which); only loose objects are built here.
+// Props have their origin on the ground, +x is "forward".
+let propVehicleN = 0;
+function vehicleModel(src) {
+  const base = src.vehicle === 'escort' ? HERO_CAR_MODEL
+    : src.vehicle === 'tractor' ? TRACTOR_MODEL
+      : src.vehicle === 'police' ? POLICE_MODEL
+        : src.vehicle === 'bike' ? { ...TRAFFIC_MODELS().find((m) => m.name === 'bike' && !m.fat), rider: null }
+          : carModel(src.vehicle, () => 0);
+  return src.color ? { ...base, color: src.color } : { ...base };
+}
+function worldProp(src) {
+  if (src.animal) {
+    const g = buildWildlifeMesh3D({ kind: src.animal, variant: 0, bobSeed: 0 });
+    g.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.userData.shared = true; } }); // geometries are the world's cache: never disposed here
+    return g;
+  }
+  const g = buildVehicleMesh({ id: 'cut-prop-' + (propVehicleN++ % 64), model: vehicleModel(src), isBike: src.vehicle === 'bike', health: 100 });
+  g.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.userData.shared = true; } }); // geometries are the world's cache: never disposed here
+  return g;
+}
 const PROP_MAKERS = {
   matras: () => { const g = new THREE.Group(); g.add(box(1.9, 0.2, 1.0, 0x6b8fb8, 0.1), box(1.9, 0.02, 0.05, 0xe8e3d6, 0.21)); return g; },
-  auto: () => {
-    // the Escapade: red, one flat tyre (front left sags)
-    const g = new THREE.Group(), body = new THREE.Group();
-    body.add(box(3.9, 0.7, 1.7, 0xb02a24, 0.65), box(2.0, 0.6, 1.6, 0xb02a24, 1.25, -0.2), box(1.8, 0.4, 1.62, 0x9fc3d6, 1.28, -0.2));
-    for (const x of [-1.2, 1.2]) for (const z of [-0.8, 0.8]) { const w = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.2, 12), mat(0x1a1a1a)); w.rotation.x = Math.PI / 2; w.position.set(x, 0.3, z); body.add(w); }
-    body.rotation.z = 0.025;
-    body.rotation.x = 0.02;
-    g.add(body);
-    return g;
-  },
   doos: () => { const g = new THREE.Group(); g.add(box(0.5, 0.38, 0.4, 0xb98d56), box(0.52, 0.04, 0.12, 0xe8d3a8, 0.38)); return g; },
   koffer: () => { const g = new THREE.Group(); g.add(box(0.55, 0.38, 0.2, 0x3b4a6b), box(0.2, 0.04, 0.05, 0x222222, 0.4)); return g; },
   tas: () => { const g = new THREE.Group(); g.add(box(0.4, 0.3, 0.2, 0x9e3027)); return g; },
   bal: () => { const g = new THREE.Mesh(new THREE.SphereGeometry(0.15, 10, 8), mat(0xf2d34f)); g.position.y = 0.15; return g; },
   bord: () => { const g = new THREE.Group(); g.add(box(0.05, 1.2, 0.05, 0x666666), box(0.7, 0.45, 0.04, 0xf2f0ea, 1.3)); return g; },
   radio: () => { const g = new THREE.Group(); g.add(box(0.4, 0.22, 0.14, 0x6b4a2e), box(0.12, 0.12, 0.02, 0xd8c88a, 0.12, 0.08, 0.08)); return g; },
-  fiets: () => {
-    const g = new THREE.Group();
-    for (const x of [-0.55, 0.55]) { const w = new THREE.Mesh(new THREE.TorusGeometry(0.34, 0.03, 6, 14), mat(0x222222)); w.position.set(x, 0.36, 0); g.add(w); }
-    g.add(box(1.1, 0.05, 0.05, 0x2e6a9e, 0.62), box(0.05, 0.4, 0.05, 0x2e6a9e, 0.82, 0.5), box(0.2, 0.05, 0.05, 0x111111, 1.03, 0.5));
-    return g;
-  },
-  bestelbus: () => {
-    const g = new THREE.Group();
-    g.add(box(4.2, 1.6, 1.9, 0xf2f0ea, 1.2), box(1.1, 1.0, 1.9, 0xf2f0ea, 0.9, 2.4), box(0.9, 0.5, 1.85, 0x9fc3d6, 1.5, 2.55));
-    for (const x of [-1.4, 1.5]) for (const z of [-0.95, 0.95]) { const w = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.38, 0.25, 12), mat(0x1a1a1a)); w.rotation.x = Math.PI / 2; w.position.set(x, 0.38, z); g.add(w); }
-    return g;
-  },
-  // act 1 (cutscenes_akte1.js)
-  bakkie: () => {
-    // Berend's pickup: olive green, a low bed behind the cab
-    const g = new THREE.Group();
-    g.add(box(4.4, 0.7, 1.85, 0x5a6b3a, 0.65), box(1.5, 0.75, 1.75, 0x5a6b3a, 1.3, 1.1), box(1.3, 0.4, 1.78, 0x9fc3d6, 1.35, 1.15), box(2.2, 0.3, 0.06, 0x4a5a2e, 1.15, -1.0, 0.9), box(2.2, 0.3, 0.06, 0x4a5a2e, 1.15, -1.0, -0.9));
-    for (const x of [-1.4, 1.5]) for (const z of [-0.95, 0.95]) { const w = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.38, 0.25, 12), mat(0x1a1a1a)); w.rotation.x = Math.PI / 2; w.position.set(x, 0.38, z); g.add(w); }
-    return g;
-  },
   automaat: () => { const g = new THREE.Group(); g.add(box(0.8, 1.5, 0.6, 0x7a808a, 0.75), box(0.5, 0.3, 0.02, 0xaee0d8, 1.15, 0.0, 0.31), box(0.4, 0.04, 0.02, 0x15181c, 0.8, 0.0, 0.31)); return g; },
-  aanhanger: () => {
-    const g = new THREE.Group();
-    g.add(box(3.0, 0.15, 1.7, 0x3c3f45, 0.6), box(1.6, 0.08, 0.1, 0x2a2c30, 0.55, 2.2));
-    for (const z of [-0.95, 0.95]) { const w = new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.34, 0.18, 12), mat(0x1a1a1a)); w.rotation.x = Math.PI / 2; w.position.set(-0.3, 0.34, z); g.add(w); }
-    return g;
-  },
-  trekker: () => {
-    const g = new THREE.Group();
-    g.add(box(2.4, 0.9, 1.2, 0x1c1c1f, 0.95, 0.5), box(1.1, 1.0, 1.2, 0x26262b, 1.85, -0.35), box(0.7, 0.5, 1.22, 0x9fc3d6, 1.95, -0.35), box(0.08, 0.7, 0.08, 0x555555, 1.9, 1.3));
-    for (const z of [-0.85, 0.85]) {
-      const big = new THREE.Mesh(new THREE.CylinderGeometry(0.75, 0.75, 0.4, 14), mat(0x111111)); big.rotation.x = Math.PI / 2; big.position.set(-0.9, 0.75, z); g.add(big);
-      const small = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.42, 0.3, 12), mat(0x111111)); small.rotation.x = Math.PI / 2; small.position.set(1.15, 0.42, z); g.add(small);
-    }
-    return g;
-  },
-  politie: () => {
-    const g = new THREE.Group();
-    g.add(box(4.2, 0.65, 1.75, 0xf2f0ea, 0.65), box(2.0, 0.55, 1.65, 0xf2f0ea, 1.2, -0.2), box(1.8, 0.4, 1.67, 0x9fc3d6, 1.23, -0.2), box(4.22, 0.14, 1.77, 0x1f4a9e, 0.55), box(0.3, 0.12, 1.0, 0x2c5fd8, 1.55, -0.2, -0.28), box(0.3, 0.12, 1.0, 0xd83a3a, 1.55, -0.2, 0.28));
-    for (const x of [-1.2, 1.2]) for (const z of [-0.8, 0.8]) { const w = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.2, 12), mat(0x1a1a1a)); w.rotation.x = Math.PI / 2; w.position.set(x, 0.3, z); g.add(w); }
-    return g;
-  },
   duiventil: () => {
     // a loft on legs: planks, a pitched roof, small doorways
     const g = new THREE.Group();
@@ -115,27 +89,6 @@ const PROP_MAKERS = {
   },
   zuil: () => { const g = new THREE.Group(); g.add(box(0.4, 1.25, 0.4, 0xb23a3a, 0.62), box(0.3, 0.2, 0.02, 0xe8d98a, 1.2, 0.0, 0.21), box(0.1, 0.06, 0.02, 0xf2f0ea, 0.9, 0.0, 0.21)); return g; },
   klembord: () => { const g = new THREE.Group(); g.add(box(0.3, 0.02, 0.4, 0x8a6a46, 0.01), box(0.26, 0.012, 0.34, 0xf2f0ea, 0.026)); return g; },
-  kat: () => {
-    // a ginger cat, +x forward; the tail swings (buildScriptRun frame)
-    const g = new THREE.Group();
-    g.add(box(0.36, 0.15, 0.16, 0xc9803a, 0.15), box(0.14, 0.13, 0.14, 0xc9803a, 0.22, 0.22), box(0.04, 0.06, 0.03, 0xa8672c, 0.32, 0.22, 0.04), box(0.04, 0.06, 0.03, 0xa8672c, 0.32, 0.22, -0.04));
-    for (const x of [-0.13, 0.13]) for (const z of [-0.05, 0.05]) g.add(box(0.04, 0.1, 0.04, 0xb06f30, 0.05, x, z));
-    const tail = new THREE.Group();
-    tail.position.set(-0.18, 0.2, 0);
-    tail.add(box(0.3, 0.04, 0.04, 0xc9803a, 0.05, -0.15, 0));
-    g.add(tail);
-    g.userData.tail = tail;
-    return g;
-  },
-  duif: () => {
-    const g = new THREE.Group();
-    const body = box(0.3, 0.12, 0.14, 0x7c8088, 0);
-    const wing = new THREE.Mesh(new THREE.PlaneGeometry(0.14, 0.34), new THREE.MeshStandardMaterial({ color: 0xa3a6ab, side: THREE.DoubleSide }));
-    wing.rotation.x = Math.PI / 2;
-    g.add(body, wing);
-    g.userData.wing = wing;
-    return g;
-  },
 };
 
 function disposeTree(o) {
@@ -154,8 +107,8 @@ export function buildScriptRun(def, scene, anchor, env = null, w = null) {
     actors[id] = m;
   }
   for (const [id, p] of Object.entries(def.props || {})) {
-    const make = PROP_MAKERS[p.kind];
-    const m = make();
+    const src = propSource(p.kind);
+    const m = src ? worldProp(src) : PROP_MAKERS[p.kind]();
     group.add(m);
     props[id] = m;
   }
@@ -220,8 +173,8 @@ export function buildScriptRun(def, scene, anchor, env = null, w = null) {
         m.visible = st.visible;
         m.position.set(st.x, st.h, st.y);
         m.rotation.y = -st.a;
-        if (m.userData.wing) m.userData.wing.rotation.x = Math.PI / 2 + Math.sin(t * 22) * 0.9;
-        if (m.userData.tail) m.userData.tail.rotation.y = Math.sin(t * 3.2) * 0.55;
+        // a pigeon's wings (the world's mesh) beat while it moves
+        if (m.userData.wings && st.h > 0.5) for (const w of m.userData.wings) w.rotation.x = -(w.userData.sign || 1) * (0.5 + Math.sin(t * 22) * 0.7);
       }
       return s.camera;
     },
@@ -286,8 +239,14 @@ export function playScript(w, def, { lines, duration, anchor, cine = {}, env: en
   const env = envIn || (indoors ? kitchenEnv({ x: a.x, y: a.y, z: a.z || 0 }) : { solid: (x, y, z) => roofAt(w.map, x, y) > z - 0.2 });
   const at = indoors ? { ...a, facing: 0 } : fitAnchor(scene, a, env);
   let run = null, lastT = 0;
+  // name cards (fx 'naam' { text, dur }): a character is introduced at the lower left (#159)
+  const cards = (def.fx || []).filter((f) => f.fx === 'naam').map((f) => ({ text: f.text, t0: resolveTime(f.t, lines, duration) ?? 0, dur: f.dur ?? 2.4 }));
+  let cardNow = null;
+  // the tiles round the camera's path are built ahead and held, so no shot cuts to the far LOD or a hole (#157, #20)
+  const prewarm = cine.prewarm || shotPoints(scene, at, duration);
   const ok = playCinematic({
     priority: 4, pause: true, letterbox: true, skippable: true, hideHud: true,
+    prewarm,
     ...cine, id: cine.id || def.id, duration, lines,
     onStart() {
       if (cine.onStart) cine.onStart();
@@ -307,11 +266,16 @@ export function playScript(w, def, { lines, duration, anchor, cine = {}, env: en
       const dt = Math.min(0.1, Math.max(0, t - lastT));
       lastT = t;
       if (cine.frame) cine.frame(t, dt);
+      if (cards.length) {
+        const cur = cards.find((k) => t >= k.t0 && t < k.t0 + k.dur) || null;
+        if (cur !== cardNow) { cardNow = cur; setNameCard(cur ? cur.text : null); }
+      }
       return run.frame(t, dt);
     },
     onEnd(skipped, replaced) {
       if (run) { run.dispose(); run = null; }
       current = null;
+      if (cardNow) setNameCard(null);
       w.cinematicHidePlayers = false;
       w.cinematicHideNav = false;
       if (cine.onEnd) cine.onEnd(skipped, replaced);
