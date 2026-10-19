@@ -77,3 +77,22 @@
 html.reduce-motion #start-screen, html.reduce-motion #start-screen * { animation: none !important; transition: none !important; }
 
 #start-screen:has(.ss-news:not([hidden])) .ss-credit { visibility: hidden; }
+
+/* a phone held sideways (360-460 px tall, #227): logo on the left, the menu beside it */
+@media (max-height: 460px) {
+  #start-screen .ss-logo { left: 28px; top: 12px; gap: 6px; } #start-screen .gde-logo { font-size: 78px; }
+  #start-screen .ss-tag { font-size: 14px; max-width: 300px; }
+  #start-screen .ss-menu { left: 340px; top: 14px; width: min(440px, calc(100% - 360px)); max-height: calc(100% - 28px); overflow-y: auto; scrollbar-width: none; }
+  #start-screen .ss-item { height: 40px; padding: 0 20px; font-size: 26px; }
+  #start-screen .ss-item[data-act="exit"] { height: 36px; font-size: 22px; margin-top: 6px; }
+  #start-screen .ss-item.ss-hero { padding: 8px 20px 10px; margin-bottom: 6px; gap: 4px; }
+  #start-screen .ss-hero .ss-label { font-size: 36px; } #start-screen .ss-hero small { font-size: 14px; }
+  #start-screen .ss-prog .m-bar { width: 200px; }
+  #start-screen .ss-save { display: none; }
+  #start-screen .ss-credit { left: 28px; bottom: 8px; height: 22px; font-size: 13px; }
+  #start-screen .ss-news { top: 8px; bottom: 8px; left: 16px; right: 16px; width: auto; }
+  #start-screen .ss-news-head { padding: 12px 24px 0; } #start-screen .ss-news-head h2 { font-size: 36px; }
+  #start-screen .ss-news-close { height: 44px; padding: 0 14px; font-size: 20px; }
+  #start-screen .ss-news-body { padding: 10px 24px 16px; font-size: 16px; }
+  #start-screen .ss-news-body h3 { font-size: 26px; margin-top: 16px; }
+}
