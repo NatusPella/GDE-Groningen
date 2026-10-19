@@ -5,6 +5,7 @@
 import { assistFactors, helpActive, scaleTime, scaleDamage, widenGate, shouldOffer, offerText, markHelped, cleanHelped, HELP_PRESETS } from './assist.js';
 import { getSettings, setSetting } from './settings.js';
 import { KEYS } from './storagekeys.js';
+import { AUTOPLAY, STORY_TEST } from './devflags.js';
 
 let data = null;
 function load() {
@@ -37,7 +38,10 @@ export function wasHelped(stepId) { return !!load().helped[stepId]; }
 
 // --- het aanbod ----------------------------------------------------------------
 
+// the offer never waits for ever: after this long without an answer it counts as 'nee' (a bot, a player who walked away)
+export const OFFER_TIMEOUT_MS = 45000;
 let dlg = null;
+let offerTimer = 0;
 export function isHelpOfferOpen() { return !!(dlg && !dlg.el.hidden); }
 
 function buildDialog() {
@@ -71,6 +75,7 @@ function buildDialog() {
 
 function closeOffer(choice) {
   const d = dlg;
+  clearTimeout(offerTimer);
   d.el.hidden = true;
   if (d.world) {
     d.world.uiPaused = false;
@@ -82,7 +87,7 @@ function closeOffer(choice) {
 
 // Na een mislukking van `stepId` (fails = het totaal tot nu toe). Eenmalig per stap.
 export function maybeOfferHelp(world, stepId, fails) {
-  if (!world || !stepId) return false;
+  if (!world || !stepId || AUTOPLAY || STORY_TEST) return false;
   load();
   if (!shouldOffer({ fails, offered: !!data.offered[stepId], settings: getSettings() })) return false;
   data.offered[stepId] = true;
@@ -95,5 +100,7 @@ export function maybeOfferHelp(world, stepId, fails) {
   if (document.pointerLockElement) document.exitPointerLock();
   dlg.el.hidden = false;
   dlg.el.querySelector('[data-gh="licht"]').focus({ preventScroll: true });
+  clearTimeout(offerTimer);
+  offerTimer = setTimeout(() => { if (isHelpOfferOpen()) closeOffer('nee'); }, OFFER_TIMEOUT_MS);
   return true;
 }
