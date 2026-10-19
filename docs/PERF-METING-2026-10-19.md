@@ -207,3 +207,36 @@ Wat is onderzocht en wat het opleverde. Alles met `routes.js` (nieuwe routes `ce
 - **Schaduwen: niet bewezen.** Een directe meting (30 renders met en zonder schaduwen) gaf 16,1 ms tegen 9,3 ms, maar na het opnieuw aanmaken van de schaduwkaart ook op 4096 nog 10,6 ms (en 2048 en 1024 evenzo): de eerste meting was een opwarm-effect. Schaduwen kosten dus ongeveer 1 ms in dit pad (9,3 tegen 10,6), niet 6 ms. Het schaduwgebied is al smal (32 tot 40 m) en slaat al passes over bij `cpuLevel` 1+.
 - **De machine was later rustiger:** dezelfde `foot`-route op hoog gaf 28,5 ms (35 fps) in de A/B-runs van de nacht, tegen 42,8 ms (23 fps) in de eerste volledige runs. De getallen in de tabellen hierboven zijn dus pessimistisch door concurrentie; de verhoudingen blijven. Een lege machine meten blijft nodig.
 - **Wat niet gelukt is:** een winst in draw calls per tegel op de voetroute. De drie grote eigenaren (building-batch 63 tot 87, terrein 43, losse gebouwen 36 tot 39) zijn gebatcht of tegelgebonden; verder samenvoegen is een groter werk (#246).
+
+## Vervolg 2: minder draw calls (stad te voet)
+
+**Nieuwe basislijn op een rustige machine** (later in de nacht, 6 tot 8 Electron-processen minder): te voet in de stad op hoog is 21 ms per frame (47 fps), de ring 20 ms (49 fps), stilstaand 22 ms. Dat is CPU-gebonden: hoofdthread 19 tot 21 ms per frame, GPU-bovengrens 10 ms, en uitzetten van vsync (`--disable-frame-rate-limit --disable-gpu-vsync`) verandert de gemiddelde frametijd niet (20,9 tegen 21,0 ms). De eerdere 23 fps (concurrentie) was dus te pessimistisch; 60 fps vraagt ongeveer 4 ms minder CPU per frame. Van die 20 ms is `3d:render` 11 ms voor ongeveer 780 draw calls (14 µs per call) en de rest 9 ms (HUD 2, gebouwen streamen en batchen 3 tot 4, verkeer 1,6, politie en botsingen 0,9, audio 0,8, systemen, voetgangers en speler elk ongeveer 0,6).
+
+**Draw calls per scene-deel** (hoog, 1 frame gemiddeld, `PERF_DIAG=1`, twee plekken):
+
+| scene-deel | lopend (705) | stilstaand (793) | stilstaand, andere run (986) |
+|---|---:|---:|---:|
+| gebouwen (batch, los, detail, gevel, landmark) | 169 | 229 | 282 |
+| overig (blob-schaduwen onder personen en vogels ~30, stadsmeubilair, bordjes, lampen, shaders) | 140 | 191 | 223 |
+| wegen | 97 | 65 | 78 |
+| water (oppervlak en oevers) | 49 | 58 | 129 |
+| schaduwpass gebouwen | 72 | 34 | 39 |
+| grond (terreinmeshes) | 43 | 43 | 49 |
+| verre LOD | 40 | 39 | 46 |
+| voertuigen | 33 | 22 | 68 |
+| personen (skinned) | 28 | 55 | 30 |
+| instanced props, bomen, platteland, overige schaduwen | 34 | 29 | 40 |
+
+(Het aantal voertuigen verschilt per run; de som kan enkele calls afwijken van het totaal omdat de diag de top 80 telt.)
+
+**Gedaan: kleur bakken in gebouwbatches** (`staticbatch3d.js`). Materialen die alleen in kleur verschillen delen nu één batchmateriaal; de kleur gaat als vertexkleur in de geometrie (lineair, dezelfde getallen die de shader vermenigvuldigt). Alleen voor gebouwen en gevels. Meshes in de gebouwbatches: 318 naar 137 in de scene, materialen 23 naar 8. Draw calls gebouwen: 282 naar 230 (stilstaand), totaal ongeveer 4 procent. Gemeten (3 paren, hoog, afwisselend, vsync uit): foot 21,0 / 20,9 / 21,0 ms voor tegen 19,9 / 21,5 / 20,7 na; draw calls 739 / 755 / 742 tegen 718 / 701 / 730. De winst is dus ongeveer 0,2 ms of minder en valt in de ruis; ik houd hem omdat hij minder driehoeken per call en minder schaduwcalls geeft, niet omdat hij bewezen sneller is. Beeld: zes vaste plekken voor en na vergeleken; het verschil na is gelijk aan het verschil tussen twee runs van het oude spel (ruis door verkeer en personen: 10 tot 28 procent van de pixels, gemiddeld 1 tot 5 van 255).
+
+**Mislukt (en teruggedraaid):** dezelfde kleur-bakstap voor de wegbatches. De wegmaterialen tekenen hun bestrating via hun eigen shader en de gebakken kopie verloor de straatstenen (het trottoir werd effen grijs). Dat zag ik pas in de schermafdruk; een pixelvergelijking op ruis had het ook gemist (51 procent verschil tegen 52 procent ruis op één plek). Les: voor deze scène moet de beeldvergelijking tegen een ruisbasislijn (twee runs van het oude) worden gedaan en per plek worden bekeken.
+
+**Wat de volgende 4 ms zou kunnen opleveren** (niet gedaan, schattingen):
+- Losse gebouwmeshes (landmarks 15, `building Buffer<1k` ongeveer 37, `building:detail` ongeveer 24) alsnog batchen of instancen: 40 tot 60 calls, ongeveer 0,6 ms.
+- Water (49 tot 129 calls): de oppervlak- en oevermeshes per cel samenvoegen; de batcher sluit transparante materialen en meshes zonder normalen uit, dus dit vraagt een eigen pad: ongeveer 0,5 tot 1 ms.
+- Blob-schaduwen onder personen en vogels (ongeveer 30 transparante calls) als één InstancedMesh: ongeveer 0,4 ms.
+- De scene-walk (`updateMatrixWorld` 2,8 ms, 4800 nodes): dieren en verre actoren vastzetten: ongeveer 1 ms.
+- Gebouwen bouwen tijdens het lopen (`3d:buildings` 3,7 ms gemiddeld, vooral `makeBuildingMesh`): sneller of in de worker: tot 2 ms.
+Samen komt dat op de 4 ms, maar elk onderdeel is een eigen stap met eigen risico op beeldverschil; dat is werk voor een volgende ronde met voor/na-metingen en een ruisbasislijn voor de beeldvergelijking.
