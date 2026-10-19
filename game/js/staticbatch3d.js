@@ -81,13 +81,49 @@ const _v = new THREE.Vector3();
 const _n = new THREE.Matrix3();
 let remap = new Int32Array(1024);
 
+// Materials that differ only in colour share one batch material: the colour
+// is baked into a vertex colour (linear, the same numbers the shader would
+// multiply), so a cell draws one mesh per kind of material instead of one per
+// colour. A cell of 48 m held about six wall colours: ~6 draw calls (and as
+// many in the shadow pass) became ~2 (docs/PERF-METING-2026-10-19.md).
+function bakeSig(m) {
+  if (m.userData.bakeSig !== undefined) return m.userData.bakeSig;
+  let s = null;
+  if (m.isMeshStandardMaterial && !m.isMeshPhysicalMaterial && !m.vertexColors && !m.transparent && m.color && !m.lightMap && !m.aoMap && !m.normalMap
+    && !m.bumpMap && !m.envMap && !m.emissiveMap && !m.roughnessMap && !m.metalnessMap && !m.alphaMap && !m.userData.noBake) {
+    s = [m.map ? m.map.uuid : '', m.roughness, m.metalness, m.emissive.getHex(), m.emissiveIntensity, m.flatShading ? 1 : 0, m.side, m.shadowSide ?? '', m.opacity, m.alphaTest,
+      m.polygonOffset ? `${m.polygonOffsetFactor},${m.polygonOffsetUnits}` : '', m.depthWrite ? 1 : 0, m.depthTest ? 1 : 0, m.envMapIntensity, m.fog ? 1 : 0, m.toneMapped ? 1 : 0,
+      m.customProgramCacheKey ? m.customProgramCacheKey() : '', m.onBeforeCompile ? m.onBeforeCompile.toString().length : ''].join('|');
+  }
+  m.userData.bakeSig = s;
+  return s;
+}
+const bakedMats = new Map();
+function bakedMaterial(rep, sig) {
+  let b = bakedMats.get(sig);
+  if (!b) {
+    b = rep.clone();
+    b.color.setRGB(1, 1, 1);
+    b.vertexColors = true;
+    b.userData.shared = true;
+    b.userData.bakeSig = null;
+    b.onBeforeCompile = rep.onBeforeCompile;
+    const ck = rep.customProgramCacheKey;
+    b.customProgramCacheKey = () => (ck ? ck.call(rep) : '') + '|bakedcolor';
+    bakedMats.set(sig, b);
+  }
+  return b;
+}
+
 function addPiece(job, pc) {
   const { g, mat, part } = pc;
-  const key = `${mat.uuid}|${part.castShadow ? 1 : 0}|${attrSig(g)}`;
+  const sig = !g.attributes.color ? bakeSig(mat) : null;
+  const key = sig ? `bake|${sig}|${part.castShadow ? 1 : 0}|${attrSig(g)}` : `${mat.uuid}|${part.castShadow ? 1 : 0}|${attrSig(g)}`;
   let bk = job.buckets.get(key);
   if (!bk) {
     const names = Object.keys(g.attributes);
-    job.buckets.set(key, bk = { mat, cast: part.castShadow, names, norm: names.map((k) => g.attributes[k].normalized), chunks: [], verts: 0, idx: 0 });
+    if (sig) names.push('color');
+    job.buckets.set(key, bk = { mat: sig ? bakedMaterial(mat, sig) : mat, cast: part.castShadow, names, norm: names.map((k) => (k === 'color' && sig ? false : g.attributes[k].normalized)), chunks: [], verts: 0, idx: 0, bake: !!sig });
   }
   const nV = g.attributes.position.count;
   const end = Math.min(pc.start + pc.count, g.index ? g.index.count : nV);
@@ -114,6 +150,12 @@ function addPiece(job, pc) {
   if (!ident) _n.getNormalMatrix(M);
   const data = {};
   for (const name of bk.names) {
+    if (bk.bake && name === 'color') {
+      const col = new Float32Array(verts.length * 3);
+      for (let j = 0; j < verts.length; j++) { col[j * 3] = mat.color.r; col[j * 3 + 1] = mat.color.g; col[j * 3 + 2] = mat.color.b; }
+      data[name] = col;
+      continue;
+    }
     const a = g.attributes[name];
     const n = a.itemSize;
     const out = new a.array.constructor(verts.length * n);

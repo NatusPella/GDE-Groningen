@@ -338,8 +338,16 @@ results.routes.census = await safe('census', async () => {
   const count = (o, acc) => { acc.n++; if (o.isMesh) acc.m++; if (o.matrixAutoUpdate) acc.a++; if (o.visible) acc.v++; for (const c of o.children) count(c, acc); };
   for (const c of sc.scene.children) { const acc = { n: 0, m: 0, a: 0, v: 0 }; count(c, acc); const kid = c.children[0]; rows.push([(kid ? ' kid=' + (kid.name || kid.type) + '/' + Object.keys(kid.userData || {}).slice(0, 3).join('/') + '/' + Object.keys(c.userData || {}).slice(0, 3).join('/') + ' @' + Math.round(c.position.x) + ',' + Math.round(c.position.z) : '') + ' ' + (c.name || c.type + ''), acc.n, acc.m, acc.a, acc.v, c.children.length]); total += acc.n; auto += acc.a; meshes += acc.m; visible += acc.v; }
   rows.sort((a, b) => b[1] - a[1]);
+  const sigOf = (m) => [m.type, m.vertexColors ? 'vc' : '', m.map ? 'map' + (m.map.image && m.map.image.width) : '', m.roughness, m.metalness, m.emissive && m.emissive.getHex(), m.emissiveIntensity, m.flatShading ? 'flat' : '', m.side, m.transparent ? 'tr' : '', m.alphaTest, m.polygonOffset ? 'po' : '', m.envMapIntensity, m.onBeforeCompile ? 'obc' : ''].join('/');
+  const mats = {};
+  for (const grp of sc.scene.children) {
+    if (!/batches/.test(grp.name)) continue;
+    const e = (mats[grp.name] = { meshes: 0, tris: 0, bySig: {}, colors: new Set(), uuids: new Set() });
+    grp.traverse((o) => { if (!o.isMesh) return; e.meshes++; const m = o.material; e.uuids.add(m.uuid); e.tris += (o.geometry.index ? o.geometry.index.count : o.geometry.attributes.position.count) / 3; e.colors.add(m.color && m.color.getHexString()); const s = sigOf(m); e.bySig[s] = (e.bySig[s] || 0) + 1; });
+  }
+  const matsOut = Object.fromEntries(Object.entries(mats).map(([k, e]) => [k, { meshes: e.meshes, tris: Math.round(e.tris), materials: e.uuids.size, colors: e.colors.size, signatures: Object.entries(e.bySig).sort((a, b) => b[1] - a[1]).slice(0, 12) }]));
   const t0 = performance.now(); for (let i = 0; i < 20; i++) sc.scene.updateMatrixWorld(true); const walk = (performance.now() - t0) / 20;
-  return { total, auto, meshes, visible, top: rows.slice(0, 30), updateMatrixWorldMs: +walk.toFixed(2) };
+  return { total, auto, meshes, visible, top: rows.slice(0, 30), updateMatrixWorldMs: +walk.toFixed(2), batches: matsOut };
 });
 // what each top-level scene child costs the renderer (only with PERF_ONLY=cost): CPU time of 30 direct renders with that child hidden, against all visible
 results.routes.cost = await safe('cost', async () => {
