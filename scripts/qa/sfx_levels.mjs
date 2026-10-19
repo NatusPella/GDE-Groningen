@@ -17,7 +17,7 @@ fs.writeFileSync(script, `window.__sl = ${JSON.stringify({ settle: Number(arg('s
 const electron = process.env.ELECTRON_EXE || path.join(ROOT, 'desktop', 'node_modules', 'electron', 'dist', 'electron.exe');
 const env = { ...process.env, GDE_TEST_PROFILE: profile };
 delete env.ELECTRON_RUN_AS_NODE;
-const r = spawnSync(electron, ['.', '--windowed', '--stil', '--audio-graph', `--bench-eval=${path.join(HERE, 'audiotap_fast.js')}`, '--force-device-scale-factor=1', '--window-size=1280x720',
+const r = spawnSync(electron, ['.', '--windowed', '--stil', '--audio-graph', `--bench-eval=${path.join(HERE, 'audiotap.js')}`, '--force-device-scale-factor=1', '--window-size=1280x720',
   `--smoke-test=${path.join(OUT, 'shots.png')}`, `--perf-script=${script}`],
   { cwd: path.join(ROOT, 'desktop'), env, encoding: 'utf8', maxBuffer: 1 << 28, timeout: 40 * 60 * 1000, killSignal: 'SIGKILL' });
 fs.writeFileSync(path.join(OUT, 'run.log'), `${r.stdout || ''}\n${r.stderr || ''}`);
