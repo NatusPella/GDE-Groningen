@@ -1,7 +1,7 @@
 // Screenshot per shot van de geregisseerde scènes in de echte wereld (#136, #209).
 // Electron (wegwerpprofiel, één instantie, sluit af) loopt cutscene_shots.page.js een korte
 // scripted check per functie af en bewaart per check screenshots en consolefouten.
-//   node scripts/qa/cutscene_shots.mjs [--out=<map>] [--only=kaart,wanted] [--settle=<ms>]
+//   node scripts/qa/cutscene_shots.mjs [--out=<map>] [--only=M01,M02] [--settle=<ms>] [--page=cutpreview_check.page.js]
 // Vereist `cd desktop && npm run stage`. ELECTRON_EXE=<pad> als desktop/node_modules/electron/dist ontbreekt.
 // Uitvoer: <out>/shots-<check>[-<n>].png, features.json (per check: issues, notities, meldingen), run.log.
 import fs from 'node:fs';
@@ -20,7 +20,7 @@ const SETTLE = Number(arg('settle', 8000));
 fs.mkdirSync(OUT, { recursive: true });
 const profile = `gde-test-cs-${process.pid}`;
 const script = path.join(OUT, '_page.js');
-fs.writeFileSync(script, `window.__cs = ${JSON.stringify({ only: ONLY.split(",").filter(Boolean), settle: SETTLE })};\n` + fs.readFileSync(path.join(HERE, 'cutscene_shots.page.js'), 'utf8'));
+fs.writeFileSync(script, `window.__cs = ${JSON.stringify({ only: ONLY.split(",").filter(Boolean), settle: SETTLE })};\n` + fs.readFileSync(path.join(HERE, arg('page', 'cutscene_shots.page.js')), 'utf8'));
 const electron = process.env.ELECTRON_EXE || path.join(ROOT, 'desktop', 'node_modules', 'electron', 'dist', process.platform === 'win32' ? 'electron.exe' : 'Electron');
 const env = { ...process.env, GDE_TEST_PROFILE: profile };
 delete env.ELECTRON_RUN_AS_NODE;
