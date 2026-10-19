@@ -284,19 +284,30 @@ results.routes.varen = await safe('varen', () => run('varen', async () => {
 }, async (c) => leave(c.v), { dur: 40000 }));
 // the busy city on foot (the foot route's path at rush hour), at night, and in the rain
 const walkFoot = (c, t) => { const q = at(FOOT, Math.max(0, t) * 6); p.x = q.x; p.y = q.y; p.angle = q.ang; w.camYaw = q.ang; };
+// standing still in the centre (the batchers have time to merge everything)
+results.routes.staan = await safe('staan', () => run('staan', async () => { teleport(FOOT[0][0], FOOT[0][1]); return {}; }, () => {}, null, { dur: 25000 }));
 results.routes.druk = await safe('druk', () => run('druk', async () => { teleport(FOOT[0][0], FOOT[0][1]); return {}; }, walkFoot, null, { clock: 17.5 }));
 results.routes.nacht = await safe('nacht', () => run('nacht', async () => { teleport(FOOT[0][0], FOOT[0][1]); return {}; }, walkFoot, null, { clock: 23 }));
 results.routes.regen = await safe('regen', () => run('regen', async () => { teleport(FOOT[0][0], FOOT[0][1]); return {}; }, walkFoot, null, { rain: true }));
 // the ring again for three minutes (only with PERF_ONLY=lek): heap, geometries and textures every 15 s; a leak shows as a climb
 results.routes.lek = await safe('lek', async () => {
   if (!ONLY.includes('lek')) return null;
-  const samples = [];
+  // textures that were uploaded while the route runs and not disposed since: grouped by size, format and name
+  const alive = new Set();
+  const probeTex = (() => { let t = null; sc.scene.traverse((o) => { if (!t && o.material && o.material.map) t = o.material.map; }); return t; })();
+  const ED = probeTex && Object.getPrototypeOf(Object.getPrototypeOf(probeTex));
+  const origAdd = ED && ED.addEventListener;
+  if (origAdd) ED.addEventListener = function (type, fn, ...rest) { if (type === 'dispose' && this.isTexture && !this.__k1) { this.__k1 = 1; alive.add(this); origAdd.call(this, 'dispose', () => alive.delete(this)); } return origAdd.call(this, type, fn, ...rest); };
   const t0 = performance.now();
+  const samples = [];
   const iv = setInterval(() => samples.push([Math.round((performance.now() - t0) / 1000), performance.memory ? Math.round(performance.memory.usedJSHeapSize / 1e6) : null, r.info.memory.geometries, r.info.memory.textures, w.vehicles.length, w.pedestrians.length]), 15000);
   const o = await run('lek', async () => { teleport(RING[0][0], RING[0][1]); const pt = map.nearestRoadPoint(p.x, p.y, 60, true, true); const v = VEH.spawnVehicleOnRoad(map, pt.road, false, Math.random, false, false, pt); v.road = null; v.speed = 0; v.perfTemp = true; w.vehicles.push(v); p.enterVehicle(v, w); return { v }; },
     (c, t) => { const q = at(RING, (Math.max(0, t) * 22) % RING_LEN); const v = c.v; v.x = q.x; v.y = q.y; v.angle = q.ang; v.speed = t > 0 ? 22 : 0; v.vx = Math.cos(q.ang) * v.speed; v.vy = Math.sin(q.ang) * v.speed; w.camYaw = q.ang; },
     async (c) => { clearInterval(iv); p.exitVehicle(map, w); w.vehicles.splice(w.vehicles.indexOf(c.v), 1); }, { dur: 180000 });
-  return { ...o, samples };
+  if (origAdd) ED.addEventListener = origAdd;
+  const groups = new Map();
+  for (const t of alive) { const im = t.image || {}; const k = (t.name || '') + ' ' + (im.width || (t.source && t.source.data && t.source.data.width) || '?') + 'x' + (im.height || '?') + ' f' + t.format + ' t' + t.type + (t.isCanvasTexture ? ' canvas' : '') + (t.isDataTexture ? ' data' : '') + (t.isCompressedTexture ? ' compressed' : '') + (t.generateMipmaps ? ' mips' : ''); groups.set(k, (groups.get(k) || 0) + 1); }
+  return { ...o, samples, aliveTextures: alive.size, aliveGroups: [...groups.entries()].sort((a, b) => b[1] - a[1]).slice(0, 25) };
 });
 // input to image: a synthetic W keydown to the first frame whose state moved (a software estimate: add one frame of display, no photodiode)
 results.routes.latentie = await safe('latentie', async () => {
@@ -321,10 +332,39 @@ results.routes.census = await safe('census', async () => {
   const rows = [];
   let total = 0, auto = 0, meshes = 0, inst = 0, visible = 0;
   const count = (o, acc) => { acc.n++; if (o.isMesh) acc.m++; if (o.matrixAutoUpdate) acc.a++; if (o.visible) acc.v++; for (const c of o.children) count(c, acc); };
-  for (const c of sc.scene.children) { const acc = { n: 0, m: 0, a: 0, v: 0 }; count(c, acc); rows.push([c.name || c.type + (c.userData && Object.keys(c.userData).slice(0, 2).join('/') ? ':' + Object.keys(c.userData).slice(0, 2).join('/') : ''), acc.n, acc.m, acc.a, acc.v, c.children.length]); total += acc.n; auto += acc.a; meshes += acc.m; visible += acc.v; }
+  for (const c of sc.scene.children) { const acc = { n: 0, m: 0, a: 0, v: 0 }; count(c, acc); const kid = c.children[0]; rows.push([(kid ? ' kid=' + (kid.name || kid.type) + '/' + Object.keys(kid.userData || {}).slice(0, 3).join('/') + '/' + Object.keys(c.userData || {}).slice(0, 3).join('/') + ' @' + Math.round(c.position.x) + ',' + Math.round(c.position.z) : '') + ' ' + (c.name || c.type + ''), acc.n, acc.m, acc.a, acc.v, c.children.length]); total += acc.n; auto += acc.a; meshes += acc.m; visible += acc.v; }
   rows.sort((a, b) => b[1] - a[1]);
   const t0 = performance.now(); for (let i = 0; i < 20; i++) sc.scene.updateMatrixWorld(true); const walk = (performance.now() - t0) / 20;
   return { total, auto, meshes, visible, top: rows.slice(0, 30), updateMatrixWorldMs: +walk.toFixed(2) };
+});
+// what each top-level scene child costs the renderer (only with PERF_ONLY=cost): CPU time of 30 direct renders with that child hidden, against all visible
+results.routes.cost = await safe('cost', async () => {
+  if (!ONLY.includes('cost')) return null;
+  fixWorld(); teleport(FOOT[0][0], FOOT[0][1]); await sleep(8000);
+  mover = (now) => walkFoot(null, (now - tStart) / 1000);
+  const tStart = performance.now();
+  const gl = r.getContext();
+  const measure = () => { const t0 = performance.now(); for (let i = 0; i < 30; i++) r.render(sc.scene, sc.cam); gl.finish(); const t1 = performance.now(); return (t1 - t0) / 30; };
+  await sleep(500);
+  const base = []; for (let i = 0; i < 3; i++) base.push(measure());
+  const baseMs = base.sort((a, b) => a - b)[1];
+  const info0 = { calls: r.info.render.calls, tris: r.info.render.triangles };
+  const kids = sc.scene.children.map((c, i) => ({ c, i, n: (() => { let n = 0; c.traverse(() => n++); return n; })() })).sort((a, b) => b.n - a.n).slice(0, 36);
+  const rows = [];
+  for (const k of kids) {
+    const was = k.c.visible; k.c.visible = false;
+    const ms = measure(); const calls = r.info.render.calls;
+    k.c.visible = was;
+    rows.push([(k.c.name || k.c.type) + ' #' + k.i + ' n=' + k.n, +(baseMs - ms).toFixed(2), info0.calls - calls]);
+  }
+  rows.sort((a, b) => b[1] - a[1]);
+  const sm = r.shadowMap.enabled; r.shadowMap.enabled = false; measure(); const noShadow = measure(); r.shadowMap.enabled = sm;
+  // the sun's shadow map at other sizes
+  const sunL = []; sc.scene.traverse((o) => { if (o.isDirectionalLight && o.castShadow) sunL.push(o); });
+  const sizes = {};
+  if (sunL[0]) { const L = sunL[0], s0 = L.shadow.mapSize.x; sizes.start = s0; for (const sz of [2048, 1024, s0]) { L.shadow.mapSize.set(sz, sz); if (L.shadow.map) { L.shadow.map.dispose(); L.shadow.map = null; } measure(); measure(); const a = measure(), b = measure(); sizes[sz] = +Math.min(a, b).toFixed(2); } }
+  mover = null;
+  return { baseMs: +baseMs.toFixed(2), baseCalls: info0.calls, noShadowMs: +noShadow.toFixed(2), sizes, rows: rows.slice(0, 12) };
 });
 results.routes.pause = await run('pause', async () => { teleport(...P(100, 77)); await sleep(4000); wantMenu = true; PM.openPauseMenu('game'); return {}; }, () => {}, async () => { wantMenu = false; PM.closePauseMenu(); });
 results.routes.sheet = await run('sheet', async () => { teleport(...P(100, 77)); await sleep(4000); wantMenu = true; PM.openPauseMenu('settings'); return {}; }, () => {}, async () => { wantMenu = false; PM.closePauseMenu(); });
