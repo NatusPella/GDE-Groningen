@@ -27,4 +27,4 @@ node scripts/coop/testbank.mjs --stage=<map> [--gasten=1|2] [--duration=20]
 
 ## Niet getest
 
-Echte WebRTC-verbindingen, echte NAT/UPnP, openbare brokers en STUN, twee echte computers, een telefoon met aanraakbediening. `--gasten=2` is nog niet met Electron gedraaid.
+Echte WebRTC-verbindingen, echte NAT/UPnP, openbare brokers en STUN, twee echte computers, een telefoon met aanraakbediening. `--menu --gasten=2` (host plus twee gasten, drie Electron-instanties, derde speler op plek 2) is op 2026-10-19 geslaagd.
