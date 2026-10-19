@@ -1,4 +1,4 @@
-import { dist } from './util.js';
+import { dist, isInWater } from './util.js';
 import { countryFacilities, countryDoor } from './facilities.js';
 import { recordUnique } from './achievements.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
@@ -21,8 +21,8 @@ export function initHoreca(world) {
   const map = world.map;
   for (const h of map.meta.horeca || []) {
     [h.x, h.y] = map.escapeBuilding(h.x, h.y, 1.2);
-    // pushed into a closed-off courtyard: the nearest street instead
-    if (!map.canWalkOut(h.x, h.y, 30)) {
+    // pushed into a closed-off courtyard, or out onto the canal side (Café De Lallende Koe stond in het water): the nearest street instead
+    if (isInWater(map, h.x, h.y) || !map.canWalkOut(h.x, h.y, 30)) {
       const o = map.findOpenSpawn(h.x, h.y, 80);
       if (o) { h.x = o.x; h.y = o.y; }
     }
