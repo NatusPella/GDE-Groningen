@@ -61,6 +61,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **Nieuwe verhaaldelen:** reisbeats in het nieuwe verhaal (meerijden, zelf rijden of overslaan bij een lange sprong, met aankomsttijd; nog achter een schakelaar) en een lokale co-op voor twee spelers (nog achter een schakelaar). De thuisavonden en de huisopening zijn opnieuw geregisseerd, met acteurs die lopen, gebaren en kijken.
 
 ### Opgelost
+- **Minimap en kaart in het Ommeland (nog niet in beeld bekeken):** het platteland wordt nu ook getekend op kaarttegels ver buiten de proefstrook en zonder provinciebestanden, in plaats van een leeg vlak (#244).
 - **Verhaal, akte 1:** M12 begint op het UMCG-dak en eindigt in de Eemshaven, M13 slaapt in het havenkantoor, de Mem-aftelling klopt met de kalender; het Loket krijgt een wachtbeat en doelen worden hardop gezegd. Een vluchtende tankwagen met vet remt niet meer voor je: inhalen of stukschieten. Een geheime deur zit op de gevel van de Martinitoren. Zonder stem krijgen regels in een scène een zacht gemurmel.
 - **Routes en wandelen:** bruggen tellen niet meer als dwars door een gebouw, zodat de route van het station naar de Kerk de goede brug neemt; voetgangers mogen tweerichtingsviaducten oversteken (Hereweg); de route verdwijnt als het doel binnen bereik is.
 - **Wereld:** huizen, hekken en heggen staan niet meer in water, op wegen of in huizen; steigers van dorpen blijven van wegen en gebouwen af; naast elkaar liggende rijbanen van een dubbele weg nemen elkaars breedte over; geen verkeer of politie in de privégarage van Tammo en Tessa.
