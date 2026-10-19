@@ -9,7 +9,7 @@ import { roadNetReady, snapRoad, roadPathNear, nodeXY } from './roadgraph.js';
 import { isKnockedDown } from './ragdoll.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { decayFactor, profileOf, hintFor } from './signalement.js';
-import { levelOf, markSeen, stepUnseen } from './wantedlevels.js';
+import { levelOf, markSeen, stepUnseen, isInterceptorSlot, INTERCEPTOR } from './wantedlevels.js';
 import { createShards, dropSpikes } from './roadshards.js';
 import { makeBeamGeometry, makeBeamMaterial, requestSearchlight } from './nightlights3d.js';
 import { trySpawnMounts, tryDeployCrew, adoptThrownRider, holdUnit, updateCrews, ejectMountRider, maybeBolt, updateBolting } from './policemounts.js';
@@ -222,6 +222,7 @@ function trySpawnPolice(world, state) {
   if (!rp) return;
   const v = spawnPoliceVehicleAt(world, rp);
   if (!v) return;
+  v._interceptor = isInterceptorSlot(world.wanted, alive);
   tunePoliceCar(v, world);
   world.vehicles.push(v);
   state.nextSpawnAt = world.time + SPAWN_STAGGER;
@@ -242,8 +243,8 @@ function tunePoliceCar(v, world, d = 0, sees = true) {
   const base = POLICE_TOP_SPEED[w];
   const pv = world.player.inVehicle;
   const want = clamp((pv ? Math.abs(pv.speed) : 0) * RUBBER_BAND_MATCH, base * RUBBER_BAND_MIN, base * RUBBER_BAND_MAX);
-  v.model.maxSpeed = base + (want - base) * k;
-  v.model.accel = POLICE_ACCEL[w] * (1 + RUBBER_BAND_ACCEL * k);
+  v.model.maxSpeed = (base + (want - base) * k) * (v._interceptor ? INTERCEPTOR.boost : 1);
+  v.model.accel = POLICE_ACCEL[w] * (1 + RUBBER_BAND_ACCEL * k) * (v._interceptor ? INTERCEPTOR.boost : 1);
 }
 
 function despawnFarPolice(world, state) {
