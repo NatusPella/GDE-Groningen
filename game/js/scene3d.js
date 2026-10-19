@@ -50,7 +50,8 @@ import { buildRailDecks } from './roadstructures3d.js';
 import { snapShadowCenter, shadowPassSkipped } from './shadowsnap.js';
 import { buildPoliceHeliMesh3D, updatePoliceHeliMesh3D } from './police.js';
 import { updateSkyProps3D, buildBalloonWarmup } from './skyprops3d.js';
-import { pointInPolygon, polygonBounds, WATER_Y } from './util.js';
+import { pointInPolygon, polygonBounds, WATER_Y, isInWater } from './util.js';
+import { buildingAt } from './tileplace.js';
 import { preloadLandmarkModels, onLandmarkModelLoaded } from './landmarkmodels.js';
 import { onSettingsChange, getSettings, QUALITY_PRESETS } from './settings.js';
 import { stepFov } from './gamefeel.js';
@@ -2061,7 +2062,8 @@ export function update3D(dt, world) {
   probe.mark('3d:trees');
   updateRailway3D(dt, world, focus, viewDist);
   updateStationCrowd3D(scene, world, railZ);
-  updateEvenementen3D(scene, world, calendarTodayEv(world), (x, y) => (world.map.spawnZ ? world.map.spawnZ(x, y) : 0));
+  updateEvenementen3D(scene, world, calendarTodayEv(world), (x, y) => (world.map.spawnZ ? world.map.spawnZ(x, y) : 0),
+    (x, y, m) => !buildingAt(world.map, x, y, m) && !isInWater(world.map, x, y));
   updateCountryside(dt, world, scene, cam, viewDist);
   updateOmmelandLandmarks(world, scene, focus);
   probe.mark('3d:rail+country');
