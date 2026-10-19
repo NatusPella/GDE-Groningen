@@ -488,7 +488,8 @@ async function boot() {
   input.tryLock();
   setMenuAudio(false);
   // a benchmark started from a game: its result waits in Instellingen > Beeld
-  if (world.openSettingsOnStart) { openPauseMenu('settings', { sub: world.openSettingsOnStart }); world.openSettingsOnStart = null; }
+  if (world.openSamenOnStart) { openPauseMenu('samen'); world.openSamenOnStart = null; } // Samen spelen vanuit het hoofdmenu (#95)
+  else if (world.openSettingsOnStart) { openPauseMenu('settings', { sub: world.openSettingsOnStart }); world.openSettingsOnStart = null; }
 
   wireFotoKey(world, () => !isMapOpen() && !isPauseMenuOpen() && !isShopOpen() && !isCinematicActive() && !world.pigeonMode);
   let last = performance.now();
