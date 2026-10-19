@@ -148,7 +148,7 @@ export const SPECS_AKTE2 = {};
       { on: 'Niet tegen haar', actor: 'tessa', face: 'actor:tammo' },
       { on: 'Niet tegen haar', dt: 0.4, actor: 'tessa', anim: 'look' },
     ],
-    shots: [{ on: '1953. Dat ik won', dt: 0.2, shot: 'cut', at: [1.2, 0.6, 1.6], look: 'foto@1.2', fov: 40 }],
+    shots: [{ on: '1953. Dat ik won', dt: 0.2, shot: 'cut', at: [0.4, 1.1, 1.7], look: 'mid:trijntje,foto@1.2', fov: 46 }],
     wide: { from: [-3.2, 3.8, 3], to: [-1.6, 2.8, 2.3], look: 'mid:trijntje,tessa@1.2', fov: 52, until: 1 },
   };
 }
@@ -255,7 +255,7 @@ export const SPECS_AKTE2 = {};
       { on: 'Als hij de koffer', dt: 0.3, actor: 'tessa', walk: [[-2.4, -1.4]], speed: 2.8 },
       { on: 'Als hij de koffer', dt: 0.3, actor: 'tammo', walk: [[-2.2, 0.8]], speed: 2.8 },
     ],
-    shots: [],
+    shots: [{ on: 'Je hebt hem dus echt', shot: 'cut', at: [-2.0, -1.6, 1.6], look: 'tammo@1.3', fov: 36 }],
     wide: { from: [-5.6, 4.8, 3.2], to: [-3.0, 3.4, 2.6], look: 'mid:limo,tessa@1.4', fov: 50, until: 1 },
   };
 }
