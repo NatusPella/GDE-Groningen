@@ -278,7 +278,8 @@ export class GameMap {
   // The ribbon (layer) at (x, y) nearest height z: what something put down
   // there stands on (null at street level)
   ribbonAt(x, y, z) {
-    return ribbonAt(this.elev, x, y, z);
+    // (with ?terrain the layers are relative to the terrain, #78)
+    return ribbonAt(this.elev, x, y, this.terrainOn ? z - this.terrainAt(x, y) : z);
   }
 
   // Height of road r at (x, y); 0 for flat roads.
@@ -302,7 +303,9 @@ export class GameMap {
   }
 
   ceilingAt(x, y, z) {
-    return ceilingAt(this.elev, x, y, z);
+    if (!this.terrainOn) return ceilingAt(this.elev, x, y, z);
+    const t = this.terrainAt(x, y), c = ceilingAt(this.elev, x, y, z - t);
+    return c + t;
   }
 
   // Inside a covered (tunnel) section: the canal above an aqueduct is not
