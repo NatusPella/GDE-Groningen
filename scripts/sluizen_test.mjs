@@ -254,5 +254,19 @@ for (const [side, label] of [[0, 'zijde 0 naar zijde 1'], [1, 'zijde 1 naar zijd
   ok(pass > 20 && mech > 10, 'de routeplanner en het mechaniek rekenen allebei met een cyclus van tientallen seconden', `${pass} s / ${mech && mech.toFixed(0)} s`);
 }
 
+// ---------------------------------------------------------------- een lange rand over ander water is geen oever (Lauwersoog)
+{
+  const WI = await import('../game/js/waterindex.js');
+  // een kolk (120 x 10) en een lang waterstuk (200 x 100) dat de kolk dwars doorkruist: de lange rand
+  // van het stuk loopt dwars door de kolk, maar ligt daar in water
+  const kolk = { pts: [[-60, -5], [60, -5], [60, 5], [-60, 5]] };
+  const breed = { pts: [[0, -50], [10, -50], [10, 50], [0, 50]] };
+  const idx = WI.createWaterIndex([kolk, breed]);
+  const q = idx.nearestShore(5, 0, 8);
+  ok(q.i < 0 || q.d > 4, 'in het midden van de kolk loopt geen oever van een overlappend waterstuk', q.d);
+  const q2 = idx.nearestShore(5, 4, 8);
+  ok(q2.i >= 0 && q2.d < 1.5, 'de echte kolkwand telt wel als oever', q2.d);
+}
+
 console.log(`sluizen_test ${fails ? 'FAIL' : 'ok'} (${n} controles)`);
 process.exit(fails ? 1 : 0);

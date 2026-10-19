@@ -17,9 +17,16 @@ export function onTileCut(ax, ay, bx, by) {
   return Math.abs(ay - by) < 0.02 && onGrid(ay, GRID_Y0);
 }
 
+// An edge longer than this is cut into pieces: whether an edge is shore is judged at its
+// middle, so a long edge (a 175 m patch rectangle, #236) that runs across other water for
+// part of its length would count as shore along all of it, a wall across a lock chamber.
+const MAX_EDGE = 20;
 export function createWaterIndex(polys) {
   let n = 0;
-  for (const p of polys) n += p.pts.length;
+  for (const p of polys) for (let i = 0; i < p.pts.length; i++) {
+    const a = p.pts[i], b = p.pts[(i + 1) % p.pts.length];
+    n += Math.max(1, Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1]) / MAX_EDGE));
+  }
   const ax = new Float64Array(n), ay = new Float64Array(n), bx = new Float64Array(n), by = new Float64Array(n);
   const poly = new Int32Array(n);
   const shore = new Uint8Array(n);
@@ -28,7 +35,12 @@ export function createWaterIndex(polys) {
     const pts = p.pts;
     for (let i = 0; i < pts.length; i++) {
       const a = pts[i], b = pts[(i + 1) % pts.length];
-      ax[e] = a[0]; ay[e] = a[1]; bx[e] = b[0]; by[e] = b[1]; poly[e] = pi; e++;
+      const k = Math.max(1, Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1]) / MAX_EDGE));
+      for (let j = 0; j < k; j++) {
+        ax[e] = a[0] + (b[0] - a[0]) * j / k; ay[e] = a[1] + (b[1] - a[1]) * j / k;
+        bx[e] = a[0] + (b[0] - a[0]) * (j + 1) / k; by[e] = a[1] + (b[1] - a[1]) * (j + 1) / k;
+        poly[e] = pi; e++;
+      }
     }
   });
 

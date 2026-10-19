@@ -31,6 +31,7 @@ const BT = await imp('boattypes');
 const WL = await imp('waterlevels');
 const UT = await imp('util');
 const SL = await imp('sluizen');
+const S3 = await imp('sluizen3d');
 
 const skipper = setInterval(() => { if (!window.__slShot && cine.isCinematicActive()) cine.skipCinematic(); }, 100);
 w.devInvuln = true;
@@ -94,13 +95,19 @@ for (const q of want) {
     holdPos = null;
     p.enterVehicle(b, w);
     await sleep(600);
+    {
+      const v3 = S3._sluizenViewsForTest().get(k);
+      results[q.id + '-3d'] = v3 ? { zichtbaar: v3.group.visible, pos: [Math.round(v3.group.position.x), +v3.group.position.y.toFixed(2), Math.round(v3.group.position.z)], kinderen: v3.group.children.length } : 'geen view';
+      const gx = k.x + c * k.half * (q.side ? 1 : -1), gy = k.y + s * k.half * (q.side ? 1 : -1);
+      await shot(q.id + '-0b-deur', { position: { x: gx - c * 14 + -s * 16, y: gy - s * 14 + c * 16, z: 9 }, lookAt: { x: gx, y: gy, z: 1.5 }, cut: true });
+    }
     const t0 = performance.now();
     key('keydown', 'w', 'KeyW');
     let blockedFrames = 0, exited = false, minLift = 0, maxLift = 0, phases = [];
     // een lichte stuurhulp: de boot blijft op de as (de proef gaat over de sluis, niet over het sturen)
     const assist = setInterval(() => {
       const f = SL.frameOf(k, b.x, b.y);
-      if (Math.abs(f.u) < k.half + 80) { const d = Math.atan2(Math.sin(aim - b.angle), Math.cos(aim - b.angle)); b.angle += d * 0.2; }
+      if (Math.abs(f.u) < k.half + 80) { const want = aim - dir * Math.max(-0.7, Math.min(0.7, f.lat * 0.06)); const d = Math.atan2(Math.sin(want - b.angle), Math.cos(want - b.angle)); b.angle += d * 0.2; }
     }, 50);
     const sideOfBoat = () => (SL.frameOf(k, b.x, b.y).u < 0 ? 0 : 1);
     for (let t = 0; t < MAXT; t += 0.5) {
@@ -123,8 +130,14 @@ for (const q of want) {
         for (let du = 10; du >= -12; du -= 2) { const row = []; for (let lt = -6; lt <= 6; lt += 2) { const px = k.x + c * (f.u + du) - s * lt, py = k.y + s * (f.u + du) + c * lt; row.push(+WI.waterClearance(map, px, py, 6).toFixed(1)); } g.push([du, ...row]); }
         const rel = (px, py) => { const q = SL.frameOf(k, px, py); return [Math.round(q.u * 10) / 10, Math.round(q.lat * 10) / 10]; };
         const obs = map._waterObstacles ? map._waterObstacles.query(b.x - 12, b.y - 12, b.x + 12, b.y + 12) : [];
-        const idx = WI.getWaterIndex(map), shore = [];
+        const idx = WI.waterIndexAt(map, b.x, b.y), shore = [];
         idx.edgesIn(b.x - 10, b.y - 10, b.x + 10, b.y + 10, (i) => { if (idx.shore[i]) shore.push([rel(idx.ax[i], idx.ay[i]), rel(idx.bx[i], idx.by[i])]); });
+        const cover = [];
+        for (const uu of [8, 4, 2, 0, -2, -4, -8]) for (const lt of [-3, 0, 3]) { const px = k.x + c * uu - s * lt, py = k.y + s * uu + c * lt; cover.push([uu, lt, map.waterNear(px, py, 1).filter((w) => WL.pointInStaticPolygon(px, py, w.pts)).map((w) => (w.fix ? 'FIX' : '') + w.kind + (w.lock ? 'L' : '') + ':' + (w.name || '') + '#' + w.pts.length).join(' | ') || 'LEEG']); }
+        results.dekking = cover;
+        const stI = WI.getWaterIndex(map), tiI = WI.waterIndexAt(map, b.x, b.y), nearest = [];
+        for (const [uu, lt] of [[2, 0], [0, 0], [-2, 0], [-4, -2]]) { const px = k.x + c * uu - s * lt, py = k.y + s * uu + c * lt; const row = { uu, lt, cl: +WI.waterClearance(map, px, py, 6).toFixed(2) }; for (const [nm, idx, other] of [['static', stI, tiI], ['tegel', tiI, stI]]) { const q = idx.nearestShore(px, py, 6); if (q.i < 0) { row[nm] = null; continue; } const ex = idx.bx[q.i] - idx.ax[q.i], ey = idx.by[q.i] - idx.ay[q.i], l2 = ex * ex + ey * ey || 1e-9; const t = Math.max(0, Math.min(1, ((px - idx.ax[q.i]) * ex + (py - idx.ay[q.i]) * ey) / l2)); const qx = idx.ax[q.i] + ex * t, qy = idx.ay[q.i] + ey * t, dx = qx - px, dy = qy - py, kk = Math.hypot(dx, dy) || 1; const bx2 = qx + dx / kk * 0.7, by2 = qy + dy / kk * 0.7; row[nm] = { d: +q.d.toFixed(2), a: rel(idx.ax[q.i], idx.ay[q.i]), b: rel(idx.bx[q.i], idx.by[q.i]), voorbij: rel(bx2, by2), anderWater: other === idx ? null : other.inWater(bx2, by2) }; } nearest.push(row); }
+        results.dichtstbij = nearest; results.zelfde = stI === tiI;
         results.diagExtra = { obstakels: obs.map((o) => o.ring.map((q) => rel(q[0], q[1]))), kust: shore.slice(0, 30) };
         results.diag = { u: Math.round(f.u), lat: f.lat, kolom: 'lat -6..6 stap 2', rijen: g };
       }
