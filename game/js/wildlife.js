@@ -10,6 +10,8 @@ import { buildingAt } from './tileplace.js';
 import { streekAt } from './regioleven.js';
 import { wildlifeLimits, grazerPick, gansKans, fleeFrom, STREEK_MIX } from './dierenplan.js';
 import { getSettings } from './settings.js';
+import { dierVanKind, ONTDEK_M, SET_DIEREN } from './dierenregister.js';
+import { recordUnique } from './achievements.js';
 
 // Ambient trailer-parody wildlife: seagulls over the Diepenring,
 // ducks and geese on the canals, pigeon flocks on the squares, the odd
@@ -636,9 +638,26 @@ function updateDog(a, dt, world) {
   if (a.speed < 0.1 && a.sniff <= 0) a.angle = angleLerp(a.angle, o.angle, Math.min(1, dt * 2));
 }
 
+// Dierenboek (#193): een dier dat je van dichtbij ziet, schrijf je op (eenmalig per soort, met een kort bericht).
+let ontdekT = 0;
+export function ontdekDieren(world, dt, extra = null) {
+  ontdekT -= dt;
+  if (ontdekT > 0) return;
+  ontdekT = 0.5;
+  const p = world.player;
+  for (const list of [world.wildlife, extra]) {
+    for (const a of list || []) {
+      if (!a || a.dead || typeof a.x !== 'number' || Math.abs(a.x - p.x) > ONTDEK_M || Math.abs(a.y - p.y) > ONTDEK_M) continue;
+      const d = dierVanKind(a.kind, a.variant);
+      if (d && recordUnique(world, SET_DIEREN, d.id)) world.addMessage(`Dierenboek: ${d.naam}`, 3);
+    }
+  }
+}
+
 export function updateWildlife(dt, world) {
   if (!world.wildlife) world.wildlife = [];
   const list = world.wildlife;
+  ontdekDieren(world, dt, world.countryAudible);
   setPeopleWeather(world.weather ? world.weather.intensity : 0);
   maintainTimer -= dt;
   if (maintainTimer <= 0) {

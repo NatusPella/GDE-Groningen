@@ -65,6 +65,8 @@ export const BASE_KEYS = {
   benchmarkLast: 'gde-benchmark-last-v1',
   // parts and tuning per vehicle (tuningplan.js), new in 0.38: no legacy name, not part of the save
   tuning: 'gde-tuning-v1',
+  // the animals you keep and what you did for them (dierenbezit.js, #193): new, no legacy name, not part of the save
+  dieren: 'gde-dieren-v1',
   // how often each HUD explanation has been shown (hudtext.js), new in 0.38: no legacy name
   hudSeen: 'gde-hud-gezien',
   // which steps were cleared with help on, and for which steps the help offer was shown (assistlive.js, #215): new, no legacy name
