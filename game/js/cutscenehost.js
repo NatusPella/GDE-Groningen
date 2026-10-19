@@ -3,7 +3,7 @@ import { getScene } from './scene3d.js';
 import { buildPersonMesh, seatPose, seatedY, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { buildKitchen } from './introkitchen3d.js';
 import { playCinematic } from './cinematics.js';
-import { compileScene, fitAnchor, resolveTime } from './cutscript.js';
+import { compileScene, fitAnchor, resolveTime, shotPoints } from './cutscript.js';
 import { roofAt } from './camerapath.js';
 import { animateActor } from './actoranim.js';
 import { audioPlan } from './cutaudio.js';
@@ -286,8 +286,11 @@ export function playScript(w, def, { lines, duration, anchor, cine = {}, env: en
   const env = envIn || (indoors ? kitchenEnv({ x: a.x, y: a.y, z: a.z || 0 }) : { solid: (x, y, z) => roofAt(w.map, x, y) > z - 0.2 });
   const at = indoors ? { ...a, facing: 0 } : fitAnchor(scene, a, env);
   let run = null, lastT = 0;
+  // the tiles round the camera's path are built ahead and held, so no shot cuts to the far LOD or a hole (#157, #20)
+  const prewarm = cine.prewarm || shotPoints(scene, at, duration);
   const ok = playCinematic({
     priority: 4, pause: true, letterbox: true, skippable: true, hideHud: true,
+    prewarm,
     ...cine, id: cine.id || def.id, duration, lines,
     onStart() {
       if (cine.onStart) cine.onStart();

@@ -105,6 +105,6 @@ await t('slechte code en onbereikbare host geven een Nederlandse melding', async
   assert.match((await g.join('rommel')).reason, /geen koppelcode/);
   const { host } = mkHost(); const h = await host.host(); await host.stop();
   const r = await g.join(h.code);
-  assert.equal(r.ok, false); assert.match(r.reason, /Geen verbinding met de host/);
+  assert.equal(r.ok, false); assert.match(r.reason, /Geen verbinding met de gastheer/);
 });
 console.log(`coopcore_test: ${n}/${n} ok`);
