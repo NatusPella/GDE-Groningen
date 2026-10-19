@@ -30,6 +30,8 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 import { MODS } from './cheatmods.js';
 import { laneLayout } from './lanes.js';
 import { profileFor, createGearbox, stepGearbox } from './gearbox.js';
+import { loadTuning, tuningEffects } from './tuningplan.js';
+import { KEYS } from './storagekeys.js';
 import { slipAngle } from './drift.js';
 import { MOPED_LEGAL_SPEED } from './motomodels.js';
 import { pickMotor, motorRoadAllowed, motorTarget } from './motortraffic.js';
@@ -933,6 +935,11 @@ export function spawnHeroCarNear(map, x, y, rng = Math.random) {
   const v = spawnVehicleOnRoad(map, point.road, false, rng, false, false, point);
   v.model = HERO_CAR_MODEL;
   v.isHeroCar = true;
+  // de onderdelen van de Escapade uit de garage (#196)
+  try {
+    const all = loadTuning(typeof localStorage !== 'undefined' ? localStorage : null, KEYS.tuning);
+    if (all.hero) v.tuning = tuningEffects(all.hero);
+  } catch (e) { /* zonder opslag geen onderdelen */ }
   // parked at the kerb, waiting for the player - not driving off as traffic
   const kerb = Math.max(0, (point.road.width || 6) / 2 - HERO_CAR_MODEL.wid / 2 - 0.3);
   v.x += -Math.sin(v.angle) * kerb;

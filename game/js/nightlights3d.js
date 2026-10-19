@@ -566,8 +566,11 @@ function updateVehicleLights(world, vehicleMeshes, px, py, lightsOn) {
     const ca = Math.cos(v.angle) * Math.cos(pitch), sa = Math.sin(v.angle) * Math.cos(pitch), sp = Math.sin(pitch);
     const front = v.model.len * 0.5;
     s.position.set(v.x + ca * front, z + sp * front + 0.75, v.y + sa * front);
-    s.target.position.set(v.x + ca * (front + 14), z + sp * (front + 14), v.y + sa * (front + 14));
-    s.intensity = SPOT_I * lightsOn * (v.isBike || v.isScooter ? 0.4 : 1);
+    // tuning (#196): een heldere koplamp (v.tuning.zicht) schijnt feller en verder
+    const zicht = v.tuning && v.tuning.zicht > 0 ? v.tuning.zicht : 1;
+    s.target.position.set(v.x + ca * (front + 14 * zicht), z + sp * (front + 14 * zicht), v.y + sa * (front + 14 * zicht));
+    s.distance = 34 * zicht;
+    s.intensity = SPOT_I * lightsOn * (v.isBike || v.isScooter ? 0.4 : 1) * zicht;
   });
 }
 

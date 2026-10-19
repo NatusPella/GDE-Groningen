@@ -237,6 +237,7 @@ export function updateRoadRage(dt, w) {
             if (dmg > 0) damagePlayer(w, 1);
           } else if (dmg > 0) {
             damagePlayer(w, dmg);
+            (w.audioEvents || (w.audioEvents = [])).push({ kind: 'bonk', x: p.x, y: p.y, strength: 0.5 });   // een klap: het bestaande bonk-geluid
             const dx = (p.x - ped.x) / (d || 1), dy = (p.y - ped.y) / (d || 1);
             p.hitReact = { t: w.time, dx, dy, k: 0.8 };
             p.x += dx * 0.35; p.y += dy * 0.35;
