@@ -75,3 +75,5 @@
 }
 @media (prefers-reduced-motion: reduce) { #start-screen, #start-screen * { animation: none !important; transition: none !important; } }
 html.reduce-motion #start-screen, html.reduce-motion #start-screen * { animation: none !important; transition: none !important; }
+
+#start-screen:has(.ss-news:not([hidden])) .ss-credit { visibility: hidden; }
