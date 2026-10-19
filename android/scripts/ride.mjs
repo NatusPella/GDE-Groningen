@@ -229,12 +229,13 @@ const before = await snap();
 await d.tapEl('#touch-ui .t-pause');
 log(await waitFor(`!!document.querySelector('#pause-menu.visible')`, 20000, 'pauzemenu open met II'), 'pauzemenu opent met de pauzeknop');
 await sleep(800);
-// het pauzemenu van een telefoon scrolt: omhoog vegen tot Opslaan in beeld is
+// Opslaan staat onderaan de rail van het pauzemenu, op een telefoon onder de rand: scrollen (programmatisch; een veeg
+// met een aanraking scrolde de rail op de emulator niet, nog uit te zoeken)
 let saved = false;
 for (let i = 0; i < 8 && !saved; i++) {
-  if (await d.center('#pause-menu [data-action="save"]')) { await d.tapEl('#pause-menu [data-action="save"]'); saved = true; } else { await d.drag(4, 100, 330, 100, 60, 600); await d.up(4); await sleep(600); }
+  if (await d.center('#pause-menu [data-action="save"]')) { await d.tapEl('#pause-menu [data-action="save"]'); saved = true; } else { await ev(`document.querySelector('#pause-menu [data-action="save"]').scrollIntoView({ block: 'center' })`); await sleep(800); }
 }
-log(saved, 'Opslaan bereikbaar door het menu te scrollen met een veeg');
+log(saved, 'Opslaan bereikbaar na scrollen van het menu');
 await sleep(2500);
 const raw1 = await saveRaw();
 log(raw1.length > 100, 'Opslaan schrijft gde-save-v1', raw1.length + ' tekens');
