@@ -3,7 +3,7 @@
 // overeen met heliflight.js (LAND_VZ 4,5 m/s zakken, LAND_H 7 m/s horizontaal).
 // Tests: scripts/heligrade_test.mjs.
 
-export const LAND = { vz: 4.5, hs: 7, hoverVz: 2.5, slow: 3 };
+const LAND = { vz: 4.5, hs: 7, hoverVz: 2.5, slow: 3 };
 
 // st: de runstaat (ring, ringsHit, ringsMissed), total: aantal ringen.
 export function ringCounter(st, total) {

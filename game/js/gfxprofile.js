@@ -48,7 +48,7 @@ export function currentPreset(st = getSettings()) {
 
 // The out-of-the-box graphics: Hoog with 'ver' instead of 'heelver'. Shown
 // as Eigen; the first-run advice treats it like Hoog.
-export const GFX_DEFAULT = { ...GFX_PRESETS.hoog, drawDistance: 'ver' };
+const GFX_DEFAULT = { ...GFX_PRESETS.hoog, drawDistance: 'ver' };
 export const isDefaultGfx = (st = getSettings()) => Object.entries(GFX_DEFAULT).every(([k, v]) => st[k] === v);
 
 // --- phones and tablets --------------------------------------------------

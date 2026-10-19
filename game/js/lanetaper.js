@@ -5,7 +5,7 @@
 // Pure: roads in, offsets out (road_seams_test.mjs, lanetaper_test.mjs).
 import { laneLayout } from './lanes.js';
 
-export const TAPER_LEN = 35;   // m, shortened to 40% of the way when that is shorter
+const TAPER_LEN = 35;   // m, shortened to 40% of the way when that is shorter
 const TOUCH = 0.3;             // m: an end this close to the node counts as touching
 const CAR = new Set(['major', 'normal', 'minor']);
 const level = (r) => r.layer ?? (r.tunnel ? -1 : r.bridge ? 1 : 0);

@@ -11,7 +11,7 @@ export const LIT_CURVES = {
   horeca: [[0, 0.7], [2, 0.5], [4, 0.1], [11, 0.2], [16, 0.6], [19, 0.95], [24, 0.7]],
 };
 
-export function curveAt(curve, h) {
+function curveAt(curve, h) {
   const t = ((h % 24) + 24) % 24;
   for (let i = 1; i < curve.length; i++) {
     if (t <= curve[i][0]) {
@@ -43,7 +43,7 @@ export function twilight(elevDeg) {
 }
 
 // Maanfase over de verzonnen kalenderdagen: 0 nieuw, 0.5 vol. Synodische maand.
-export const SYNODIC_DAYS = 29.53;
+const SYNODIC_DAYS = 29.53;
 export function moonPhase(day, offset = 0.31) {
   const f = ((day / SYNODIC_DAYS + offset) % 1 + 1) % 1;
   return f;

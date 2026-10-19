@@ -15,7 +15,7 @@ let frameNo = 0;
 let forced = null;
 
 export const simLevel = () => (forced !== null ? forced : cpuLevel());
-export const popScale = () => POP[simLevel()];
+const popScale = () => POP[simLevel()];
 export const scaledTarget = (n) => Math.max(1, Math.round(n * popScale()));
 export const farAIDist = () => FAR_AI[simLevel()];
 export const nextSimFrame = () => ++frameNo;
