@@ -205,7 +205,7 @@ function bodyOf(e) {
   return m ? m[1] : String(e.text || '');
 }
 
-export function phoneThreads(w = world) {
+function phoneThreads(w = world) {
   const by = new Map();
   for (const e of (w && w.phoneHistory) || []) {
     const from = senderOf(e);

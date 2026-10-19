@@ -8,7 +8,7 @@ import { travelModeOf, oneWayFor } from './roadaccess.js';
 import { exempt, charge, agentWatching, roadUnder } from './trafficlaw.js';
 
 export const OFFENCE_FINE = { roodLicht: 50, tegenVerkeer: 60, teHard: 45 };
-export const OFFENCE_TEXT = {
+const OFFENCE_TEXT = {
   roodLicht: 'Door rood gereden',
   tegenVerkeer: 'Tegen het verkeer in gereden',
   teHard: 'Te hard gereden',
@@ -60,7 +60,7 @@ export function resetOffences() { st.cool = {}; st.wrong = 0; st.fast = 0; st.px
 
 // Fine an offence if an agent sees it and the pause for that kind is over.
 // Returns the amount paid (0: not seen, paused or no money).
-export function reportOffence(world, kind, x, y) {
+function reportOffence(world, kind, x, y) {
   const now = world.time || 0;
   if (now < (st.cool[kind] || 0)) return 0;
   if (!agentWatching(world, x, y, WATCH_M)) return 0;

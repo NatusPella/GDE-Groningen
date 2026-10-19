@@ -25,7 +25,7 @@ const KLANTEN = [
 const THANKS = ['Mooi gedaan, die oplegger staat er weer als een huis.', 'Niks gedeukt? Dan krijg je een bakkie van het huis.', 'Zo kennen we je: netjes, en niet te snel.'];
 const BUMPY = ['Even de lading nakijken... Ach, het zal wel.', 'Een paar pallets staan scheef, maar goed.'];
 
-export function buildTrailerMesh(spec) {
+function buildTrailerMesh(spec) {
   const g = new THREE.Group();
   const h = spec.len / 2 - 1.2;
   const body = new THREE.Mesh(new THREE.BoxGeometry(spec.len, 2.7, spec.wid), new THREE.MeshLambertMaterial({ color: spec.color }));

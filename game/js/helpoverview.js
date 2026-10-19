@@ -8,6 +8,7 @@ export const HELP_TOPICS = [
   { id: 'doel', title: 'Waar moet ik heen?', lines: [
     'Bovenin staat je doel. Volg de gele route op de minimap tot in de gele marker.',
     'Open de kaart met {M}, kies een plek of missie en de route gaat erheen. Het verhaal wacht zolang.',
+    'Shift + klik op de kaart zet je meteen op die plek (uit te zetten bij {ESC} Instellingen › Interface).',
   ] },
   { id: 'todo', title: 'Wat kan ik nog meer?', lines: [
     '{ESC} › Te doen laat alles zien wat openstaat: missies, bijbaantjes en plekken. Kies iets en de route gaat erheen.',

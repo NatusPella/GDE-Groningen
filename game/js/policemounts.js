@@ -1,6 +1,7 @@
 import { clamp, dist, closestPointOnSegment, isInWater } from './util.js';
 import { spawnVehicleOnRoad, distToVehicleBody } from './vehicle.js';
-import { makeCopPedestrian, isInsideBuilding, isSpawnHidden, CITY_CENTRE } from './pedestrians.js';
+import { makeCopPedestrian, isSpawnHidden, CITY_CENTRE } from './pedestrians.js';
+import { isInsideBuilding } from './pedgeom.js';
 import { buildHorseMesh } from './countryside.js';
 import { setHorseMeshBuilder } from './models3d_vehicles.js';
 
@@ -40,7 +41,7 @@ const CREW_COOLDOWN = 4;
 const REMOUNT_RANGE = 30;
 const COMMANDEER_RANGE = 12;
 
-export function isMounted(v) {
+function isMounted(v) {
   return !!(v._mount || v._motor);
 }
 
@@ -224,7 +225,7 @@ function tickPatrol(v, dt, world) {
 }
 
 // Leaving patrol mode: the chase drives at full speed on its own route.
-export function endPatrol(v) {
+function endPatrol(v) {
   if (!v._patrol) return;
   v._patrol = null;
   v.aiOpts = null;

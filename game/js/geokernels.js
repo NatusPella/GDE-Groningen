@@ -61,7 +61,7 @@ function cityMerge({ geos, lists }) {
 
 // A BufferGeometry as plain data and back (attributes, index, groups,
 // bounding sphere); the arrays move as transferables.
-export function plainGeometry(g, transfer) {
+function plainGeometry(g, transfer) {
   if (!g) return null;
   const attrs = {};
   for (const k in g.attributes) {

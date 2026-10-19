@@ -211,7 +211,7 @@ export const SUPPORTER_CHANTS = [
   'Al regent het, al waait het, wij blijven hier staan!',
 ];
 export const OOSTERPARK_PLAQUE = ['Hier stond het Oosterpark', '1933 – 2005', 'Het veld is weg, het zingen niet.'];
-export const OOSTERPARK_LABEL = 'Oud stadion (Oosterpark)';
+const OOSTERPARK_LABEL = 'Oud stadion (Oosterpark)';
 
 // Map helpers (mapview.js): a landmark's nickname, and the extra places.
 export function nicknameOf(landmark) {

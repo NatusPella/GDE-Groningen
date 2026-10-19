@@ -1,4 +1,5 @@
-import { Pedestrian, isInsideBuilding, isSpawnHidden } from './pedestrians.js';
+import { Pedestrian, isSpawnHidden } from './pedestrians.js';
+import { isInsideBuilding } from './pedgeom.js';
 import { walkPed } from './sidejobkit.js';
 import { wijkProfileAt } from './trafficfleet.js';
 import { isInWater } from './util.js';

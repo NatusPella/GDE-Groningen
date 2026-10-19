@@ -4,7 +4,7 @@
 // verliezen. Het logica-deel is puur (Node-test: scripts/bakeround_test.mjs); het paneel is een kleine
 // DOM-kaart die alleen in de browser bestaat.
 
-export const INGREDIENTS = [
+const INGREDIENTS = [
   { key: '1', id: 'ei', label: 'Gekookt ei' },
   { key: '2', id: 'zout', label: 'Zout' },
   { key: '3', id: 'meel', label: 'Grof meel' },

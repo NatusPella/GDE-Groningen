@@ -12,7 +12,7 @@ export { CONVOY };
 
 // The vehicles of Oma's friends: name for the messages, kind and model for the spawn.
 // (a function: vehicle.js is part of an import cycle with the missions, so its models are not there yet when this module loads)
-export const colonneMembers = () => [
+const colonneMembers = () => [
   { name: 'Geesje', kind: 'scooter', model: { ...MOPED_MODEL, color: '#d9739b' } },
   { name: 'Wubbo', kind: 'bus' },
   { name: 'Tinus', kind: 'car', model: { ...TRACTOR_MODEL, color: '#2f5fa8' } },

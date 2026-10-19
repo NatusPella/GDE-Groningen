@@ -15,7 +15,7 @@ const stockOf = (id) => (id && id.startsWith('v-') ? VEHICLE_STOCK[id.slice(2)] 
 
 // A story requirement (missions.js REQUIREMENTS) as something to buy;
 // `prefer` is listed first (what the step's cost and voorschot are sized for).
-export const REQ_BUY = {
+const REQ_BUY = {
   weapon: { shops: ['wapens', 'pand'], what: 'een wapen', prefer: 'w-pistol', ok: (id) => id === 'b-pistol' || (id.startsWith('w-') && GUNS.has(id.slice(2))) },
   bike: { shops: ['fietsen'], what: 'een fiets', prefer: 'v-omafiets', ok: (id) => { const sp = stockOf(id); return !!sp && sp.kind === 'bike' && !sp.unlock; } },
   racecar: { shops: ['tuning', 'auto'], what: 'een snelle auto', act: 'voer de Escapade op of koop een sportwagen', prefer: 'u-motor', ok: (id) => id === 'u-motor' || id === 'u-turbo' || (() => { const sp = stockOf(id); return !!sp && sp.kind === 'car' && (sp.model.name === 'sport' || sp.model.maxSpeed >= 200 / 3.6); })() },
@@ -54,7 +54,7 @@ function fromStep(step, extra) {
 // { shops, what, ok(id), strict, why, lead, title, cost, auto?, pay? }
 // strict: a requirement (the step waits for it); auto: a mission stage that
 // pays by itself at its marker (H17's shopping).
-export function storyNeed(world) {
+function storyNeed(world) {
   const stage = activeStage();
   if (stage && stage.pay && stage.target && stage.target.shop) {
     return { shops: [].concat(stage.target.shop), what: stage.paid || stage.label, title: stage.label, ok: () => false, auto: true, pay: stage.pay, why: '', lead: stage.say || '' };

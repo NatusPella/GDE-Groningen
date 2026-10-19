@@ -7,7 +7,8 @@
 // magnet); this module dresses them, gives them lines and the E prompt.
 // Text only: no recordings, no voice. All names are invented.
 import { dist } from './util.js';
-import { spawnPedestriansNear, Pedestrian, isInsideBuilding } from './pedestrians.js';
+import { spawnPedestriansNear, Pedestrian } from './pedestrians.js';
+import { isInsideBuilding } from './pedgeom.js';
 import { makeCompanion } from './pedroutes.js';
 import { wijkProfileAt } from './trafficfleet.js';
 import {

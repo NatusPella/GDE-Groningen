@@ -5,7 +5,7 @@ import { isMissionActive, getActiveRace } from './missions.js';
 import { isCinematicActive, playCinematic, skipCinematic } from './cinematics.js';
 import { isShopOpen, openShopMenu, closeShopMenu } from './shopui.js';
 import { recordStat, recordUnique, unlockAchievement } from './achievements.js';
-import { saveGame } from './savegame.js';
+import { saveGame } from './savehook.js';
 import { manageTrafficPopulation, manageBikePopulation } from './vehicle.js';
 import { spawnPedestriansNear } from './pedestrians.js';
 import { isInWater } from './util.js';

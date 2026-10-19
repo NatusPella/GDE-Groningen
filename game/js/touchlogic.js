@@ -14,7 +14,7 @@ export function detectTouch({ maxTouchPoints = 0, coarse = false, fine = false, 
   return maxTouchPoints > 0 && !fine;
 }
 
-export const STICK_DEAD = 0.15;
+const STICK_DEAD = 0.15;
 export const STICK_RADIUS = 56;
 
 // Where the thumb is compared with where the stick was planted: a vector
@@ -74,7 +74,7 @@ export function labelFor(ctx, action) {
 // sprint and brake extras.
 const RIGHT = ['a', 'b', 'x', 'y', 'rt'];
 const LEFT = ['lt', 'ls', 'lb'];
-export const TOUCH_SLOTS = [...RIGHT, ...LEFT, 'rb'];
+const TOUCH_SLOTS = [...RIGHT, ...LEFT, 'rb'];
 
 // [{ slot, action, label, side }] for a situation; slots without a Dutch
 // label (or no action) are left out so the screen stays quiet.

@@ -7,7 +7,7 @@
 const ROOT = new URL('../audio/voicelines/', import.meta.url).href;
 const banks = new Map();
 
-export const voiceKey = (speaker, text) => speaker + '|' + text;
+const voiceKey = (speaker, text) => speaker + '|' + text;
 
 // dir: mapnaam onder audio/voicelines ('lines', 'jobs', 'story', ...).
 export function openBank(dir) {

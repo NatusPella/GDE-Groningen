@@ -19,7 +19,7 @@ export function snapShadowCenter(c, right, up, dir, texel) {
 // mover (the player's car) would then trail its shadow by a frame on every
 // skipped frame and the shadow visibly hops, so skipping is only allowed
 // while the focus is nearly still.
-export const SHADOW_SKIP_MAX_SPEED = 2.5; // m/s
+const SHADOW_SKIP_MAX_SPEED = 2.5; // m/s
 export function shadowPassSkipped(cpuLvl, frameCounter, focusSpeed) {
   return cpuLvl > 0 && focusSpeed < SHADOW_SKIP_MAX_SPEED && (frameCounter & 1) === 1;
 }
