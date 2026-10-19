@@ -4,16 +4,17 @@ import { closestPointOnSegment, normalizeAngle, clamp, lerp, pointInPolygon, inM
 import { waterClearance, waterChannelPoints } from './waterindex.js';
 import { shallowWater, waterAt, airDraftOf, passesUnder, bargeWater, bargeWaterAt, meanWidth, BARGE_MIN_CLEAR } from './waterlevels.js';
 import { trafficSignalsNear, trafficLightPhaseMove } from './trafficlights.js';
-import { resolvePropCollisions } from './breakables.js';
+import { resolvePropCollisions, setSpeedCap } from './breakables.js';
 import { shardPuncture } from './roadshards.js';
+import { CRASH_DAMAGE_SCALE, vehicleContacts, recordContact, reportImpact } from './vehicleimpact.js';
+export { CRASH_DAMAGE_SCALE, vehicleContacts, recordContact, reportImpact } from './vehicleimpact.js';
 import { markWreckedByPlayer, syncPlayerWrecks, disableVehicle } from './vehiclewreck.js';
 export { markWreckedByPlayer, syncPlayerWrecks, disableVehicle } from './vehiclewreck.js';
 import { inPassage } from './collision.js';
 import { elevWallContact } from './elevation.js';
-import { crossingSpeedLimit, loweredBoomsNear, snapBoom } from './railway.js';
 import { bridgeSpeedLimit, loweredBridgeBoomsNear } from './movablebridges.js';
+import { zebraSpeedLimit, sirenYield } from './trafficyield.js';
 import { lockGateStop } from './sluizen.js';
-import { zebraSpeedLimit } from './pedroutes.js';
 import { countrySurface, countryRect, rectOutside, countryWeight, edgeDistance } from './countryfield.js';
 import { countryWater } from './countryedge.js';
 import { pushOutOfPlan, onFarmPaving, planExtraSolids } from './countryplan.js';
@@ -22,8 +23,7 @@ import { countryRailsNear, pushOutOfRails } from './countryrails.js';
 import { roadPriority, junctionArm } from './junctions.js';
 import { pickTrafficCar, carModel, applyFleetFlags, pickBikeVariant, wijkProfileAt, MIDIBUS_MODEL } from './trafficfleet.js';
 import { pickWaterLife, newsVanWanted, distToCentre, hourOf } from './streetlifedata.js';
-import { sirenYield } from './emergency.js';
-import { manageParkedCars, tickParkedCars } from './parkedcars.js';
+import { vehicleHooks } from './vehiclehooks.js';
 import { pickBoatModel, BOAT_KINDS } from './boattypes.js';
 import { pickTrip } from './vaarnet.js';
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
@@ -553,6 +553,7 @@ export function speedCap(v) {
   const t = v.driver === 'player' ? playerTune(v) : null;
   return t ? t.top : v.model.maxSpeed;
 }
+setSpeedCap(speedCap);
 
 // Rolling resistance + engine braking off the throttle (m/s^2). The AI's
 // flat value is what its speed controller was tuned against.
@@ -963,7 +964,7 @@ export function manageTrafficPopulation(world, opts = {}) {
   const lagen = FLAGS.simlagen ? verkeerOpties(wijkProfileAt(map, player.x, player.y).key, hourOf(world)) : null;
   const { target = lagen ? lagen.target : 30, spawnMin = lagen ? lagen.spawnMin : 70, spawnMax = lagen ? lagen.spawnMax : 170, despawnDist = lagen ? lagen.despawnDist : 260 } = opts;
   pruneWrecks(world);
-  manageParkedCars(world);
+  vehicleHooks.manageParkedCars(world);
   for (let i = vehicles.length - 1; i >= 0; i--) {
     const v = vehicles[i];
     if (v.road && !v.homeStored && v.driver !== 'player' && !v.missionCar && !v.isBoat && inPrivateGarage(map, v.x, v.y)) { vehicles.splice(i, 1); continue; }
@@ -2240,7 +2241,7 @@ export function updateTrafficAI(v, dt, map, world, rng = Math.random, opts = nul
 
   let vTarget = Math.min(cruise, curveSpeedLimit(v, path, aLat, decel));
   const follow = followSpeedLimit(v, path, world, decel, chase);
-  const lightV = chase ? Infinity : Math.min(trafficLightLimit(v, path, world), crossingSpeedLimit(v, path, projectOnPath), bridgeSpeedLimit(v, path, projectOnPath),
+  const lightV = chase ? Infinity : Math.min(trafficLightLimit(v, path, world), vehicleHooks.crossingSpeedLimit(v, path, projectOnPath), bridgeSpeedLimit(v, path, projectOnPath),
     small ? Infinity : zebraSpeedLimit(v, path, projectOnPath, world.time));
   vTarget = Math.min(vTarget, follow.vmax, lightV);
   const walkerV = chase ? Infinity : walkerAheadLimit(v, path, world, decel);
@@ -2364,9 +2365,6 @@ const IMPACT_EVENT_SPEED = 1.5;
 const HARD_HIT_CLOSING_SPEED = 3; // m/s of closing speed before a hit counts as "hard" (sparks/damage)
 const IMPACT_DAMAGE_PER_MPS = 3.5;
 const MAX_IMPACT_DAMAGE = 30;
-// Cars should survive a fair amount of reckless driving: every collision
-// (cars, walls, props) does this fraction of its raw damage.
-export const CRASH_DAMAGE_SCALE = 0.4;
 const FLAT_MIN_DAMAGE = 8; // een klap van minstens zoveel schade kan een band lek slaan
 const FLAT_MAX_CHANCE = 0.5;
 const FLAT_TOP_FACTOR = 0.7; // lekke band: topsnelheid
@@ -2425,21 +2423,6 @@ function contactImpulse(a, b, cx, cy, nx, ny, friction) {
     b.yawVel = clamp(b.yawVel - (rbx * jy - rby * jx) * iib, -MAX_SPIN, MAX_SPIN);
   }
   return vn;
-}
-
-// Fixed ring of recent contacts for effects/audio; readers keep their own
-// cursor against `head` and skip what has been overwritten.
-const CONTACT_CAP = 64;
-export const vehicleContacts = {
-  head: 0,
-  cap: CONTACT_CAP,
-  list: Array.from({ length: CONTACT_CAP }, () => ({ a: null, b: null, x: 0, y: 0, nx: 0, ny: 0, impact: 0, slide: 0 })),
-};
-
-export function recordContact(a, b, x, y, nx, ny, impact, slide) {
-  const c = vehicleContacts.list[vehicleContacts.head % CONTACT_CAP];
-  vehicleContacts.head++;
-  c.a = a; c.b = b; c.x = x; c.y = y; c.nx = nx; c.ny = ny; c.impact = impact; c.slide = slide;
 }
 
 function tangentialSpeed(a, b, nx, ny) {
@@ -2526,20 +2509,11 @@ export function vehicleHitBody(v, x, y, keep, dmg, world) {
   if (dmg > 0) applyImpactDamage(v, dmg, false, world);
 }
 
-// Feedback hook: an 'impact' particle for effects, and world.lastImpact for
-// camera shake when the player is involved. strength is 0..1.
-export function reportImpact(world, x, y, closingSpeed, playerInvolved) {
-  if (!world) return;
-  const strength = clamp(closingSpeed / 14, 0, 1);
-  world.particles.push({ kind: 'impact', x, y, strength, until: world.time + 0.4 });
-  if (playerInvolved) world.lastImpact = { strength, time: world.time, x, y };
-}
-
 // Also the single place that flags v.hitThisFrame/hitX/hitY/hitImpactSpeed
 // for the 3D spark effect (reset per call, read by scene3d's render pass),
 // including hits queued by resolveVehicleBuildingCollision earlier this frame.
 export function resolveVehicleVehicleCollisions(vehicles, world = null) {
-  if (world) tickParkedCars(world);
+  if (world) vehicleHooks.tickParkedCars(world);
   for (const v of vehicles) {
     v.hitThisFrame = false;
     const p = v.pendingImpact;
@@ -2934,7 +2908,7 @@ export function resolveVehicleBuildingCollision(v, map, dt) {
 const BOOM_SNAP_SPEED = 11;
 export function resolveBoomCollisions(v, world) {
   if (v.isBoat || v.sinking || v.wrecked) return;
-  const booms = loweredBoomsNear(v.x, v.y, v.halfLen + 8).concat(loweredBridgeBoomsNear(v.x, v.y, v.halfLen + 8));
+  const booms = vehicleHooks.loweredBoomsNear(v.x, v.y, v.halfLen + 8).concat(loweredBridgeBoomsNear(v.x, v.y, v.halfLen + 8));
   if (!booms.length) return;
   for (const b of booms) {
     const cap = vehicleCapsule(v);
@@ -2952,7 +2926,7 @@ export function resolveBoomCollisions(v, world) {
     const [vx, vy] = velocityOf(v);
     const closing = vx * nx + vy * ny;
     if (closing > BOOM_SNAP_SPEED) {
-      snapBoom(b);
+      vehicleHooks.snapBoom(b);
       v.speed *= 0.85;
       applyImpactDamage(v, 6, v.driver === 'player', world);
       reportImpact(world, q.p2x, q.p2y, closing, v.driver === 'player');

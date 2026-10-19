@@ -6,9 +6,6 @@
 
 import { radialDeadzone } from './padlogic.js';
 
-export const SLOT_P1 = 0;
-export const SLOT_P2 = 1;
-
 // Speler 2 op het toetsenbord: IJKL lopen, U rennen. Speler 1 houdt WASD/pijlen.
 export const P2_KEYS = { up: 'i', down: 'k', left: 'j', right: 'l', run: 'u' };
 export const P2_WALK = 3.0;
