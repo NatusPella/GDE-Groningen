@@ -10,6 +10,8 @@ ipcRenderer.on('gde:fullscreen', (e, on) => { for (const fn of listeners) fn(on)
 contextBridge.exposeInMainWorld('gdeDesktop', {
   isDesktop: true,
   platform: process.platform,
+  // Steam sets SteamDeck=1 for a game on the Deck (game/js/deck.js: the first-start defaults)
+  isSteamDeck: process.env.SteamDeck === '1',
   isFullscreen: () => ipcRenderer.sendSync('gde:is-fullscreen'),
   setFullscreen: (on) => ipcRenderer.send('gde:set-fullscreen', !!on),
   onFullscreenChange: (fn) => { listeners.add(fn); return () => listeners.delete(fn); },
