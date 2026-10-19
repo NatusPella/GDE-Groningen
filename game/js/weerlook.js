@@ -97,6 +97,12 @@ export function koplampenAan(nacht, rain, mist) {
   return nacht > 0.3 || rain > 0.35 || mist > 0.4;
 }
 
+// Hoe fel de koplampen branden (0..1): de nacht-ramp, maar ook overdag bij
+// regen of mist (smooth, zodat ze niet aanspringen als een schakelaar).
+export function koplampenFactor(nacht, rain, mist) {
+  return Math.max(smooth(0.04, 0.3, nacht), smooth(0.2, 0.5, rain) * 0.8, smooth(0.25, 0.55, mist) * 0.9);
+}
+
 // Sterren zichtbaar: nacht en geen dikke bewolking of mist.
 export function sterrenZicht(nacht, overcast, mist) {
   return clamp01(smooth(0.5, 0.95, nacht) * (1 - clamp01(overcast * 1.1 + mist * 0.5)));
