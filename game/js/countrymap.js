@@ -118,11 +118,14 @@ export function drawCountryBase(ctx, x0, y0, x1, y1, st) {
 
 // Everything on the meadows. pxPerM: screen pixels per metre (detail level).
 export function drawCountryDetail(ctx, x0, y0, x1, y1, pxPerM, st) {
-  // never loop over more than the countryside anyone can reach
-  const rr = countryRect(), LIM = 7000;
-  const E = provinceMapBounds() || [Infinity, Infinity, -Infinity, -Infinity];
-  x0 = Math.max(x0, Math.min(E[0], rr.cx - rr.hx - LIM)); y0 = Math.max(y0, Math.min(E[1], rr.cy - rr.hy - LIM));
-  x1 = Math.min(x1, Math.max(E[2], rr.cx + rr.hx + LIM)); y1 = Math.min(y1, Math.max(E[3], rr.cy + rr.hy + LIM));
+  // map tiles are small, so they are drawn wherever they lie (#244: the Ommeland beyond the
+  // test strip stayed empty); only a window wider than 40 km is held to the reachable countryside
+  if (Math.max(x1 - x0, y1 - y0) > 40000) {
+    const rr = countryRect(), LIM = 7000;
+    const E = provinceMapBounds() || [Infinity, Infinity, -Infinity, -Infinity];
+    x0 = Math.max(x0, Math.min(E[0], rr.cx - rr.hx - LIM)); y0 = Math.max(y0, Math.min(E[1], rr.cy - rr.hy - LIM));
+    x1 = Math.min(x1, Math.max(E[2], rr.cx + rr.hx + LIM)); y1 = Math.min(y1, Math.max(E[3], rr.cy + rr.hy + LIM));
+  }
   if (x0 >= x1 || y0 >= y1) return;
   // nothing to draw when the whole window lies deep inside the real data
   let outside = false;

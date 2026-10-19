@@ -75,6 +75,16 @@ export function crowdSpots(ev, n = MAX_CROWD) {
     return { dx: Math.cos(a) * d, dy: Math.sin(a) * d, angle: r() * Math.PI * 2, hue: r() };
   });
 }
+// Een plek voor een groepje voetgangers bij een lopend evenement (spawnlaag, pedestrians.js):
+// binnen de menigtestraal, groepsgrootte 2-4. rand() geeft [0,1).
+export function groupSpot(ev, rand = Math.random) {
+  const k = KINDS[ev.kind], c = centreOf(ev);
+  const a = rand() * Math.PI * 2, d = Math.sqrt(rand()) * k.closure * 0.7;
+  return { x: c.x + Math.cos(a) * d, y: c.y + Math.sin(a) * d, n: 2 + Math.floor(rand() * 3) };
+}
+// Hoeveel evenementsvoetgangers rond de speler mogen staan: de menigtedichtheid van het evenement.
+export const crowdPedCap = (ev) => Math.round(KINDS[ev.kind].crowd * 24);
+
 export const crowdCount = (ev) => Math.round(KINDS[ev.kind].crowd * MAX_CROWD);
 
 let timer = 0;

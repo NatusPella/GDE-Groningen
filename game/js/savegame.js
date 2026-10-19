@@ -26,7 +26,8 @@ import { statsFromSave } from './world.js';
 import { getRadioSave, applyRadioSave } from './radio.js';
 import { KEYS, slotKey } from './storagekeys.js';
 import { applyGuestEarnings } from './coopsave.js';
-import { readSlot, writeSlotRaw, activeSlot, setActive, createSlot, deleteSlot, nameOf, pickActive } from './saveslots.js';
+import { getRenderer } from './scene3d.js';
+import { readSlot, writeSlotRaw, writeThumb, activeSlot, setActive, createSlot, deleteSlot, nameOf, pickActive } from './saveslots.js';
 import { registerSaveGame } from './savehook.js';
 import { STEPS, PARTS, stepDone, stepAvailable, nextStoryStep, ARC_ID } from './storyarc.js';
 
@@ -132,7 +133,7 @@ export function hasSave() {
 }
 
 // Where the story of a save stands: the part, the step to play and how far the part is.
-function storySummary(d) {
+export function storySummary(d) {
   try {
     const done = new Set(d.story && Array.isArray(d.story.done) ? d.story.done : []);
     const passed = new Set(d.missions && Array.isArray(d.missions.completed) ? d.missions.completed : []);
@@ -238,8 +239,36 @@ export function saveGame(w = world, { toast = true } = {}) {
   }
   dirtyIn = -1;
   lastSig = stateSignature(w);
+  keepThumb(saveTarget(), toast);
   if (toast) showToast();
   return true;
+}
+
+// The small screenshot for the savegame card, taken from the last drawn frame. A manual save always
+// takes one, the autosave at most once in 45 s; a failure only means a card without picture.
+let thumbAt = 0;
+function keepThumb(n, force) {
+  const now = Date.now();
+  if (!force && now - thumbAt < 45000) return;
+  try {
+    const r = getRenderer();
+    const src = r && r.domElement;
+    if (!src || !src.width || !src.height) return;
+    const c = document.createElement('canvas');
+    c.width = 224; c.height = 126;
+    const g = c.getContext('2d');
+    // cover-crop to 16:9
+    const sw = src.width, sh = src.height, want = 16 / 9;
+    let cw = sw, ch = sw / want;
+    if (ch > sh) { ch = sh; cw = sh * want; }
+    g.drawImage(src, (sw - cw) / 2, (sh - ch) / 2, cw, ch, 0, 0, c.width, c.height);
+    // a blank buffer (no frame kept) gives a flat picture: not worth keeping
+    const px = g.getImageData(0, 0, c.width, c.height).data;
+    let sum = 0, sum2 = 0, cnt = 0;
+    for (let i = 0; i < px.length; i += 160) { const v = px[i] + px[i + 1] + px[i + 2]; sum += v; sum2 += v * v; cnt++; }
+    if (!cnt || sum2 / cnt - (sum / cnt) ** 2 < 40) return;
+    if (writeThumb(null, n, c.toDataURL('image/jpeg', 0.6))) thumbAt = now;
+  } catch (e) { /* no picture */ }
 }
 
 // Een gast: de verdiende beloningen erbij in de actieve slot, de rest van die save blijft zoals hij was.
@@ -399,7 +428,7 @@ export function applySave(w, d) {
 export function loadLatestSave(w = world) {
   const d = readSave();
   if (!d || !applySave(w, d)) return false;
-  w.addMessage('Laatste spelstand geladen', 3);
+  w.addMessage('Laatste savegame geladen', 3);
   return true;
 }
 

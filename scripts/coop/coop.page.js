@@ -65,7 +65,7 @@ try {
     const x = W();
     const b = (o) => (o ? { x: Math.round(o.x * 10) / 10, y: Math.round(o.y * 10) / 10, char: o.character || '' } : null);
     log('sample', {
-      n: n++, paused: !!x.paused, clock: x.time, money: x.money, wanted: x.wanted | 0, role: x.coopRole || null,
+      n: n++, paused: !!x.paused, clock: x.time, uur: x.clock, slot: x.coopNet && x.coopNet.session ? x.coopNet.session.slot : 0, desync: x.coopDesync ? x.coopDesync.velden : null, money: x.money, wanted: x.wanted | 0, role: x.coopRole || null,
       me: b(x.player), companion: b(x.companion), partner: x.coopPartner ? { slot: x.coopPartner.slot, x: x.coopPartner.x, y: x.coopPartner.y } : null,
       roster: x.coopRoster ? x.coopRoster.map((s) => [s.slot, s.char, s.verbinding]) : null, figuren: Object.keys(x.coopFigures || {}).length,
     });

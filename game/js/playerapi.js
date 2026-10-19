@@ -167,6 +167,8 @@ export function initPlayerApi(world, input) {
     version: STATUS_VERSION, status, validate: () => validateStatus(status()),
     press, down, up, stick, releaseAll, wait: sleep, waitGame, shot, replay, log: emit,
     time: T,
+    // game speed 1..8 (whole extra gameplay steps per frame, main.js devTimeScale); returns the speed in force. A replay stays valid: the steps keep the same dt
+    speed: (n = 1) => { const v = Math.max(1, Math.min(8, Math.round(Number(n) || 1))); world.devTimeScale = v; emit('speed', { x: v }); return v; },
     // the dialog keys: the first option, or a given key
     choose: (key) => { const d = dialog(); const k = key || (d && d.options[0] && d.options[0].key); return k ? press(String(k)) : Promise.resolve(); },
     // the cheats a stuck bot may use (testmenu / story dev API); the caller logs "had een cheat nodig"

@@ -12,6 +12,7 @@ import { requestRespawn } from './world.js';
 import { roadGrip } from './weather.js';
 import { getSettings } from './settings.js';
 import { makeJumpAssist, jumpStep } from './gamefeel.js';
+import { assistDamage } from './assistlive.js';
 import { ALGAE } from './eventrules.js';
 import { knockDown, isKnockedDown } from './ragdoll.js';
 import { resolveBuildingCollisions, resolveWalker, findExitSpot, EXIT_LEFT_FIRST, EXIT_RIGHT_FIRST } from './collision.js';
@@ -445,7 +446,7 @@ export class Player {
   }
 
   hurtByFall(world, speed) {
-    const dmg = Math.min(100, (speed - FALL_HURT_SPEED) * 9);
+    const dmg = assistDamage(Math.min(100, (speed - FALL_HURT_SPEED) * 9));
     if (world.armor > 0) {
       const a = Math.min(world.armor, dmg * 0.5);
       world.armor -= a;

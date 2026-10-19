@@ -16,6 +16,11 @@ export const VICTIM = {
   agentNear: 30,       // m: een agent in zicht, dan wijst hij direct
   pointTime: 1.2,
   awayTime: 4,
+  returnReach: 45,     // m: een achtergelaten auto binnen dit bereik haalt hij terug
+  returnMax: 25,       // s: langer zoekt hij er niet naar
+  returnTouch: 1.6,    // m: zo dichtbij stapt hij in
+  returnSpeed: 2.6,    // m/s: gewoon lopen
+  gotBackTime: 0.8,    // s instappen
 };
 
 export const VICTIM_LINES = {
@@ -25,6 +30,7 @@ export const VICTIM_LINES = {
   call: ['112? Mijn auto is zojuist gestolen!', 'Politie? Iemand rijdt weg met mijn auto!'],
   point: ['Agent! Die daar! Mijn auto!'],
   away: ['Wat een dag...', 'En ik moest nog naar de bakker.'],
+  back: ['Daar staat hij! Mijn auto!', 'Eindelijk, mijn auto.'],
 };
 
 const hash = (a, b = 0) => hash2(a, b);
@@ -41,8 +47,8 @@ export function createVictim(seed = 1, { isBike = false, reportable = true } = {
   };
 }
 
-// ctx: { dCar, carSpeed, copNear, carDist } - afstand tot de gestolen auto, zijn snelheid, agent in zicht
-// Geeft { phase, move: 'none'|'chase'|'away', pose: null|'angry'|'call', face: 'car'|'cop'|'spot', say, report }
+// ctx: { dCar, carSpeed, copNear, carFree } - afstand tot de gestolen auto, zijn snelheid, agent in zicht, auto achtergelaten (niemand erin)
+// Geeft { phase, move: 'none'|'chase'|'away'|'return', pose: null|'angry'|'call', face: 'car'|'cop'|'spot', say, report }
 export function stepVictim(vic, dt, ctx = {}) {
   vic.t += dt;
   const dCar = ctx.dCar ?? 99, carSpeed = Math.abs(ctx.carSpeed ?? 0);
@@ -76,7 +82,15 @@ export function stepVictim(vic, dt, ctx = {}) {
   }
   if (vic.phase === 'away') {
     out.move = 'away'; out.face = 'spot'; speak('away');
-    if (vic.t >= VICTIM.awayTime) go('done');
+    // wie zijn auto terug wil en hem ziet staan zonder bestuurder, loopt terug (#49)
+    if (vic.t >= VICTIM.awayTime) go(vic.wantsBack && ctx.carFree && dCar < VICTIM.returnReach ? 'return' : 'done');
+  } else if (vic.phase === 'return') {
+    out.move = 'return'; out.face = 'car'; speak('back');
+    if (!ctx.carFree || vic.t >= VICTIM.returnMax) go('done');
+    else if (dCar <= VICTIM.returnTouch) { out.move = 'none'; go('regained'); }
+  } else if (vic.phase === 'regained') {
+    out.move = 'none'; out.face = 'car';
+    if (vic.t >= VICTIM.gotBackTime) { out.reclaim = true; go('done'); }
   }
   out.phase = vic.phase;
   if (vic.phase === 'done') out.move = 'none';

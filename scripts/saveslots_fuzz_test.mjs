@@ -125,12 +125,12 @@ for (const t of evil) {
   const ls = new Mem();
   S.writeSlot(ls, 1, save(1)); const two = S.createSlot(ls, 'Twee'); S.writeSlot(ls, two, save(2));
   ok(two === 2 && S.activeSlot(ls) === 2 && S.nameOf(ls, 2) === 'Twee', 'create');
-  S.renameSlot(ls, 2, '   '); ok(S.nameOf(ls, 2) === 'Spel 2', 'blank rename resets');
+  S.renameSlot(ls, 2, '   '); ok(S.nameOf(ls, 2) === 'Savegame 2', 'blank rename resets');
   S.renameSlot(ls, 2, 'Een Twee'); S.deleteSlot(ls, 2);
-  ok(S.listSlots(ls).length === 1 && S.activeSlot(ls) === 1 && S.nameOf(ls, 2) === 'Spel 2', 'delete forgets name, moves active');
+  ok(S.listSlots(ls).length === 1 && S.activeSlot(ls) === 1 && S.nameOf(ls, 2) === 'Savegame 2', 'delete forgets name, moves active');
   ok(ls.getItem(slotKey(2)) === null && ls.getItem(slotRecoveryKey(2)) === null, 'delete removes the recovery copy');
   const im = S.importAsNewSlot(ls, JSON.stringify(save(9)));
-  ok(im.ok && im.n === 2 && S.nameOf(ls, 2) === 'Spel 2', 'import into a freed number gets no old name');
+  ok(im.ok && im.n === 2 && S.nameOf(ls, 2) === 'Savegame 2', 'import into a freed number gets no old name');
   for (let i = 0; i < 20; i++) S.createSlot(ls, 'x' + i);
   ok(S.listSlots(ls).length <= 8, 'never more than MAX_SLOTS');
 }
