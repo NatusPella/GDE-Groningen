@@ -421,7 +421,15 @@ export function initSaveGame(w) {
     toastEl.innerHTML = DISK_SVG + '<span>Opgeslagen</span>';
     hud.appendChild(toastEl);
   }
+  // a phone kills a backgrounded app without warning: save when the page goes to the background (#227)
+  if (!hiddenSaveBound && typeof document !== 'undefined') {
+    hiddenSaveBound = true;
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden && world && document.body.classList.contains('game-started')) saveGame(world, { toast: false });
+    });
+  }
 }
+let hiddenSaveBound = false;
 
 export function updateSaveGame(dt, w) {
   world = w;
