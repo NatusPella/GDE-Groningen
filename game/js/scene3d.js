@@ -79,6 +79,7 @@ import { noteGfxEvent, watchContext } from './blackframe.js';
 import { spawnExplosionFx, setFxCamera } from './fx3d.js';
 import { litFraction, moonPhase, STAR_SHARE } from './nightrules.js';
 import { qualityLook } from './weatherlook.js';
+import { buildCloudLayer, updateCloudLayer } from './cloud3d.js';
 import { initNightLights, setNightLightQuality, updateNightLights, isLightRigOn, setLightRigVisible } from './nightlights3d.js';
 import { createFarLOD } from './farlod.js';
 import { SECTION, TILE_M, tileOrigin } from './gdt.js';
@@ -290,6 +291,7 @@ function buildKissHeartMesh() {
 let sun = null;
 let hemi = null;
 let skyDome = null;
+let cloudLayer = null;
 let starShare = 1;
 let skyUniforms = null;
 let envUpdater = null;
@@ -866,6 +868,8 @@ export function init3D(map) {
   skyDome = buildSkyDome(skyUniforms);
   setStarShare(skyDome, starShare);
   scene.add(skyDome);
+  cloudLayer = buildCloudLayer();
+  scene.add(cloudLayer);
   envUpdater = createEnvironmentUpdater(renderer, sunDir);
   scene.environment = envUpdater.update(skyUniforms.uZenith.value, skyUniforms.uHorizon.value, new THREE.Color(0x6e6250), sunDir, skyUniforms.uSunColor.value, 0.45);
   // one water material for the canals and the tiles' water
@@ -3264,6 +3268,7 @@ function updateSunAndSky(player, dt) {
   sun.target.position.copy(_shadowCenter);
   sun.position.copy(_shadowCenter).addScaledVector(sunDir, SUN_DIST);
   skyDome.position.copy(cam.position);
+  updateCloudLayer(cloudLayer, cam.position, cam.far, world.weather, L.daylight, L.night, dt);
 }
 
 function buildWildlifeActor(a) {
