@@ -13,7 +13,7 @@ import { mountMapView, setMapActive, setMapCloseHandler, setMapView, getDiscover
 import { renderSamenPanel } from './samenpanel.js';
 import { renderCheatsPanel, cheatsClick, resetCheatsPanel, cheatsFocus } from './cheatsui.js';
 import { skipCurrent, getStoryJournal, markCluesSeen } from './story.js';
-import { saveGame, hasSave, loadLatestSave, startNewSlot, getSaveSummary } from './savegame.js';
+import { saveGame, hasSave, loadLatestSave, startNewSlot, getSaveSummary, getPlaySeconds } from './savegame.js';
 import { openSaveSlots, isSaveSlotsOpen } from './saveslotsui.js';
 import { getClockText } from './hud_panel.js';
 import { VERSION } from './version.js';
@@ -185,7 +185,14 @@ const ICONS = {
   controls: '<rect x="2.5" y="6" width="19" height="12" rx="2"/><path d="M6 10h1M9.5 10h1M13 10h1M16.5 10h1M7 14h10"/>',
   spullen: '<path d="M7 8V6a5 5 0 0 1 10 0v2"/><rect x="4" y="8" width="16" height="13" rx="3"/><path d="M4 13h16M10 13v2h4v-2"/>',
   telefoon: '<rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/>',
+  // the main menu's items (startscreen.js), in the same line style
+  new: '<path d="M12 4v16M4 12h16"/>',
+  news: '<path d="M5 4h11l3 3v13H5z"/><path d="M8 10h8M8 14h8M8 17h5"/>',
+  about: '<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5h0"/>',
+  samen: '<circle cx="9" cy="8.5" r="3"/><circle cx="17" cy="9.5" r="2.4"/><path d="M3 20c0-3.6 2.6-5.8 6-5.8s6 2.2 6 5.8M16 14.5c2.6.1 5 1.7 5 5"/>',
 };
+// An icon of the pause menu's set for the main menu's items, or '' for an unknown name.
+export const menuIcon = (id, cls = 'ss-ic') => (ICONS[id] ? icon(id, cls) : '');
 const icon = (id, cls = 'pm-ic') => `<svg class="${cls}" viewBox="0 0 24 24" aria-hidden="true">${ICONS[id] || ''}</svg>`;
 const qBtn = (action, ic, label, cls = 'pm-secondary', extra = '') =>
   `<button type="button" class="${cls}" data-action="${action}"${extra}>${icon(ic)}<span>${label}</span></button>`;
@@ -1268,7 +1275,8 @@ function helpButtons() {
 
 function renderOverviewPanel() {
   const el = root.querySelector('[data-panel="overzicht"] .pm-inner');
-  try { renderOverview(el, world, helpButtons()); } catch (err) { console.error('overzicht', err); }
+  const quick = `<div class="ov-quick">${slider('masterVolume', 'Hoofdvolume')}${slider('musicVolume', 'Muziek')}${slider('sfxVolume', 'Effecten')}${toggle('reduceMotion', 'Beweging beperken', 'Minder bewegende beelden en schermschudden')}</div>`;
+  try { renderOverview(el, world, helpButtons(), { play: getPlaySeconds(), quick }); syncControls(); } catch (err) { console.error('overzicht', err); }
   const r = getDiscoveredRatio();
   const s = getSaveSummary();
   const ago = s ? Math.round((Date.now() - s.savedAt) / 60000) : -1;

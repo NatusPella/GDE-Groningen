@@ -39,6 +39,7 @@ body:has(#pause-menu.prestart.visible) #start-screen .ss-foot { visibility: hidd
 #pause-menu.prestart .pm-back { display: flex; }
 #pause-menu .pm-rail-acts { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; padding-left: 24px; }
 #pause-menu .pm-rail-acts .m-bt { justify-content: flex-start; }
+#pause-menu .pm-rail-acts [data-action="saves"] { grid-column: 1 / -1; order: -1; }
 #pause-menu .pm-rail-foot { display: flex; flex-direction: column; padding: 16px 0 0 24px; }
 #pause-menu .pm-rail-foot .m-bt { align-self: flex-start; }
 #pause-menu .pm-ver { margin: 0; padding: 12px 0 0 24px; font-size: 16px; letter-spacing: 1px; color: var(--mut); }
@@ -147,6 +148,16 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 #pause-menu .ov-goal { display: flex; align-items: center; gap: 8px; font-size: 20px; min-width: 0; }
 #pause-menu .ov-goal svg { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 #pause-menu .ov-goal .m-bt { margin-left: 12px; height: 32px; }
+/* the state of the game in tiles, the quick settings */
+#pause-menu .ov-tiles { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px; margin-top: 40px; flex: none; }
+#pause-menu .ov-tile { display: flex; flex-direction: column; gap: 4px; padding: 16px 20px 18px; border-radius: 12px; background: rgba(240, 237, 228, 0.05); box-shadow: inset 0 0 0 1px var(--line); text-align: left; transition: background 0.2s; min-width: 0; }
+#pause-menu button.ov-tile:not([tabindex="-1"]):hover { background: rgba(240, 237, 228, 0.1); }
+#pause-menu .ov-tile[tabindex="-1"] { cursor: default; }
+#pause-menu .ov-tile svg { width: 24px; height: 24px; fill: none; stroke: var(--g); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+#pause-menu .ov-tv { font-family: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; font-size: 44px; line-height: 1; letter-spacing: 0.03em; white-space: nowrap; }
+#pause-menu .ov-tl { font-size: 17px; }
+#pause-menu .ov-tile .m-bar { margin-top: 6px; }
+#pause-menu .ov-quick { display: grid; grid-template-columns: 1fr 1fr; gap: 0 32px; padding: 0 24px 8px; }
 #pause-menu .ov-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; margin-top: 48px; flex: none; }
 #pause-menu .ov-col { display: flex; flex-direction: column; margin-left: -24px; min-width: 0; }
 #pause-menu .ov-col .m-gh { padding-top: 0; }
@@ -374,6 +385,11 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
   #pause-menu .ov-cols { margin-top: 10px; }
   #pause-menu .td-list { width: min(560px, 90%); }
   #pause-menu .td-fv { font-size: 18px; }
+}
+
+@media (max-width: 1100px) {
+  #pause-menu .ov-tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  #pause-menu .ov-quick { grid-template-columns: 1fr; }
 }
 
 /* smalle, staande schermen (telefoon, #96): het rail wordt een balk bovenaan
