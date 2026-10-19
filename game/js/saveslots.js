@@ -30,7 +30,7 @@ export function cleanName(s, fallback = '') {
   return t || fallback;
 }
 
-export const defaultName = (n) => `Savegame ${n}`;
+export const defaultName = (n) => `Opgeslagen spel ${n}`;
 
 // 3725 -> '1 u 02 min', 540 -> '9 min', 0 -> 'net begonnen'
 export function formatPlaytime(sec) {
