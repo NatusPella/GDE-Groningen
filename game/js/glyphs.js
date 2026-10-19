@@ -10,6 +10,7 @@ import { PAD_LAYOUTS, PAD_MAPS, padSlotFor, physicalKey, tokenKey, keyName } fro
 import { getSettings, onSettingsChange } from './settings.js';
 import { onPadChange, padState } from './gamepad.js';
 import { touchLabelForToken } from './touchlogic.js';
+import { getDevice, onDeviceChange } from './inputdevice.js';
 
 const SEL = '[data-gk], kbd, .hud-key';
 const orig = new WeakMap();
@@ -68,7 +69,7 @@ function render(el) {
   let html = base;
   let hide = false;
   let slot = '';
-  if (token && document.documentElement.classList.contains('touch-play') && !pad.active) {
+  if (token && document.documentElement.classList.contains('touch-play') && !pad.active && getDevice() !== 'kb') {
     // touch: say which on-screen button does it (no label: no button, hide)
     const label = touchLabelForToken(token, document.documentElement.dataset.touchCtx || 'foot');
     if (label) { html = label; slot = ''; } else hide = true;
@@ -130,5 +131,6 @@ export function initGlyphs() {
   });
   mo.observe(document.body, { childList: true, subtree: true, characterData: true });
   onPadChange(() => refreshGlyphs());
+  onDeviceChange(() => refreshGlyphs());
   onSettingsChange((s, key) => { if (key === 'keyBinds') refreshGlyphs(); });
 }

@@ -113,6 +113,16 @@ export function nearestLine(lines, x, y, maxD = 400) {
   return best;
 }
 
+// Alle lijnen binnen maxD van een punt (dichtstbij eerst): meer dan één lijn per plek.
+export function linesNear(lines, x, y, maxD = 400) {
+  const out = [];
+  for (const l of lines || []) {
+    const d = project(l, x, y).d;
+    if (d < maxD) out.push({ l, d });
+  }
+  return out.sort((a, b) => a.d - b.d).map((q) => q.l);
+}
+
 // Een rit over een lijn. dir +1 vooruit, -1 terug; op een niet-ronde lijn keert
 // hij aan het eind om, op een ronde lijn loopt s door.
 export function makeRunner(line, s = 0, dir = 1) {
