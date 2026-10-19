@@ -387,6 +387,7 @@ function settingsHtml() {
         ${picker('drunkFx', 'Dronken effecten', [['aan', 'Aan'], ['mild', 'Mild'], ['uit', 'Uit']])}
         ${picker('ruzie', 'Verkeersruzie', [['uit', 'Uit'], ['weinig', 'Weinig'], ['normaal', 'Normaal'], ['veel', 'Veel']], 'Hoe vaak een boze bestuurder uitstapt na een botsing of getoeter. Zonder bloed; sommigen hebben iets in de hand')}
         ${picker('shiftMode', 'Schakelen', [['auto', 'Automaat'], ['manual', 'Handmatig'], ['clutch', 'Handmatig + koppeling']], 'Automaat is de standaard; handmatig schakel je met . en , (of de bumpers), met koppeling houd je ook J ingedrukt')}
+        ${toggle('speedFeel', 'Snelheidsgevoel', 'Beeld wordt wijder bij hoge snelheid en een zware klap vertraagt even; uit is rustiger')}
         ${toggle('driftAssist', 'Driften met hulp', 'Helpt tegensturen en houdt een slip beheersbaar; uit is realistischer')}
         ${toggle('bikeAssist', 'Motor met hulp', 'Houdt een motor of brommer rechtop in bochten; uit is realistischer')}
         ${toggle('gore', 'Bloed en ledematen', 'Uit: mensen vallen gewoon om, zonder bloed of rondvliegende ledematen')}`)}`, `${pane('Interface', 'Wat je ziet', '<p>Slim toont alleen wat nu telt; Altijd alles houdt alles in beeld; Minimaal laat alleen sterren, doel en ondertitels over.</p>')}`)}
