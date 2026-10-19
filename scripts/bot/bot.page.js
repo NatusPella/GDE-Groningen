@@ -11,6 +11,9 @@ const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
 const imp = (f) => import('/js/' + f + '.js');
 const L = await imp('botlogic');
 const R = await imp('routing');
+const MS = await imp('missions');
+const BK = await imp('bakeround');
+const BAKE_KEYS = { ei: '1', zout: '2', meel: '3', vet: '4', mosterd: '5' };
 for (let i = 0; i < 600 && !window.__bot; i++) await sleep(100);
 const B = window.__bot;
 if (!B) return JSON.stringify({ result: 'FOUT', reason: 'window.__bot ontbreekt (?autoplay niet aan?)' });
@@ -152,6 +155,28 @@ while (true) {
   // a mission that asks for it ('Uitstappen, jong. Fatbikes ontwijk je te voet.'): out of the vehicle
   if (s.hud.messages.some((m) => /uitstappen|te voet/i.test(m))) mem.onFootUntil = s.t + 60;
   s.mission.onFoot = s.t < (mem.onFootUntil || 0);
+  // the baking stage (M25, M26): the bot knows Oma's order and presses the ingredients, as a player who learnt the recipe would
+  if (s.mission.active && s.mission.stage === 'bake' && s.target && s.target.distance < 42 && !s.blocking.cinematic && !s.blocking.dialog) {
+    const bst = MS.activeStage();
+    if (bst && bst.kind === 'bake') {
+      const order = bst.recipe === 'practice' ? BK.RECIPE_PRACTICE : BK.RECIPE_CONTEST;
+      B.stick(0, 0);
+      await sleep(900);
+      B.log('bak', { recipe: bst.recipe, rounds: bst.rounds || 1 });
+      for (let r = 0; r < (bst.rounds || 1); r++) for (const id of order) { await B.press(BAKE_KEYS[id], 60); await sleep(350); }
+      await sleep(1200);
+      detector.hold(s.t);
+      continue;
+    }
+  }
+  // a timing stage (M18, M20, M21, M26): press about once per round, a player who just times it by feel; a miss only costs the story's bonus
+  if (s.mission.active && s.mission.stage === 'timing' && !s.blocking.cinematic && !s.blocking.dialog) {
+    B.stick(0, 0);
+    await sleep(900 + Math.floor(Math.random() * 600));
+    await B.press(' ');
+    detector.hold(s.t);
+    continue;
+  }
   const act = L.decide(s, mem);
   if (act.type === 'wait' || act.type === 'skip' || act.type === 'choose' || act.type === 'closemenu') {
     detector.hold(s.t);
