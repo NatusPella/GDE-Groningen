@@ -25,6 +25,7 @@ import { warmCountryMaps } from './countrymap.js';
 import { Input } from './input.js';
 import { initGamepad } from './gamepad.js';
 import { initPadKeyboard } from './padkeyboard.js';
+import { initInputDevice } from './inputdevice.js';
 import { skipFrame } from './framecap.js';
 import { initTouch } from './touch.js';
 import { initGlyphs } from './glyphs.js';
@@ -93,7 +94,7 @@ import { noteFrame, hideAdvice, classifyGpu, readGpu, dynamicScale, cpuLevel } f
 import { updateStreetSigns } from './streetsigns.js';
 import { updatePhotoMode, wireFotoKey } from './fotomodusui.js';
 import { initPauseMenu, isPauseMenuOpen, openPauseMenu, pauseMenuCover } from './pausemenu.js';
-import { initDayNight, updateDayNight } from './daynight.js';
+import { initDayNight, updateDayNight, DAY_LENGTH_S } from './daynight.js';
 import { initCalendar, updateCalendar, today as calendarToday } from './calendarday.js';
 import { updateFx3D } from './fx3d.js';
 import { updateGore3D } from './gore3d.js';
@@ -435,6 +436,7 @@ async function boot() {
   // browser swallows that Esc keypress), which opens the pause menu instead
   const menuOpen = () => isPauseMenuOpen() || isMapOpen() || isPhoneOpen() || isShopOpen() || !!world.devPanelOpen;
   input.canLock = () => document.body.classList.contains('game-started') && !menuOpen() && !world.uiPaused;
+  initInputDevice();
   initPadKeyboard();
   initGamepad(input, world, { menuOpen: () => menuOpen() || isPlayAheadOpen() || isHelpOfferOpen(), phoneOpen: isPhoneOpen, pauseOpen: isPauseMenuOpen, mapOpen: () => isMapOpen() });
   initTouch(input, world, { menuOpen: () => menuOpen() || isPlayAheadOpen() || isHelpOfferOpen() });
@@ -706,7 +708,7 @@ async function boot() {
       setRouteClosures(routeSigDone ? (x, y) => routePenalty(x, y, n, hour) : null, routeSigDone || '');
     }
     updateZeilvaren(dt, world, calendarToday(world));
-    updateStationLife(dt, world, { routes: getRoutes(), point: routePoint, day: calendarToday(world), createBoard: createStationBoard, driving: getTrains().some((t) => t.state === 'player') });
+    updateStationLife(dt, world, { routes: getRoutes(), point: routePoint, day: calendarToday(world), createBoard: createStationBoard, trains: getTrains(), schaal: 86400 / DAY_LENGTH_S, driving: getTrains().some((t) => t.state === 'player') });
     updateMovableBridges(dt, world);
     updateSluizen(dt, world);
     // a ship against a bridge deck: the crash sound of a car contact, by how hard the deck was hit (audio.js updateContactAudio)

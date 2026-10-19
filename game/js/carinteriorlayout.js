@@ -71,3 +71,67 @@ export function doorTrims(defs, len, wid) {
   }
   return out;
 }
+
+// --- interieur per voertuigklasse (#51) ---------------------------------------------------
+// Welke inrichting een voertuig krijgt. Pure keuze, voor scripts/carinterior_test.mjs.
+export function interiorKlasse(v) {
+  if (!v || !v.model) return 'auto';
+  const n = v.model.name;
+  if (v.isBus || n === 'bus' || n === 'midibus') return 'bus';
+  if (v.isAmbulance) return 'ambulance';
+  if (v.isPolice) return 'politie';
+  if (n === 'taxi' || v.isTaxi) return 'taxi';
+  if (n === 'sport') return 'sport';
+  if (n === 'truck' || n === 'foodtruck') return 'vrachtwagen';
+  if (n === 'van' || n === 'cashvan') return 'bestel';
+  return 'auto';
+}
+
+// Stuur, stoelkleur en extra onderdelen per klasse, in dezelfde voertuigcoördinaten als interiorLayout.
+// extras: { b: [breedte langs x, hoogte, breedte dwars z], at: [x, y, z], color }. Alles anoniem, geen merken.
+export function klasseStijl(klasse, L, seat) {
+  const sx = seat.x, sy = seat.y, sz = seat.z;
+  const side = sz < 0 ? 1 : -1;
+  const passZ = sz + side * Math.min(L.hw * 0.68, 0.8);
+  const base = { wheel: {}, seatColor: null, seatTilt: 0.2, rear: undefined, extras: [] };
+  switch (klasse) {
+    case 'sport':
+      return { ...base, wheel: { r: 0.15, tilt: 0.6 }, seatColor: 0x5a2a2a, seatTilt: 0.5, rear: null, extras: [
+        { b: [0.55, 0.12, 0.2], at: [sx + 0.28, sy + 0.08, (sz + passZ) / 2], color: 0x1b1d20 },       // hoge middentunnel
+        { b: [0.04, 0.04, 0.5], at: [sx - 0.62, sy + 0.48, 0], color: 0x2a2d32 },                       // rolbeugel dwars
+      ] };
+    case 'taxi':
+      return { ...base, extras: [
+        { b: [0.12, 0.1, 0.16], at: [sx + 0.62, sy + 0.34, sz + side * 0.34], color: 0x20262c },       // taxameter op het dashboard
+        { b: [0.02, 0.05, 0.12], at: [sx + 0.555, sy + 0.34, sz + side * 0.34], color: 0xd9a21c },
+      ] };
+    case 'politie':
+      return { ...base, extras: [
+        { b: [0.22, 0.04, 0.3], at: [sx + 0.3, sy + 0.18, (sz + passZ) / 2], color: 0x1a1d20 },        // laptophouder
+        { b: [0.1, 0.12, 0.14], at: [sx + 0.62, sy + 0.34, sz + side * 0.34], color: 0x2a2f3a },       // portofoon
+        { b: [0.03, 0.62, L.hw * 1.6], at: [sx - 0.5, sy + 0.45, 0], color: 0x3a3f46 },                 // tussenschot voor de achterbank
+      ] };
+    case 'ambulance':
+      return { ...base, rear: null, extras: [
+        { b: [0.06, 0.9, L.hw * 1.7], at: [sx - 0.5, sy + 0.5, 0], color: 0x9aa3ad },                  // wand naar de laadruimte
+        { b: [0.14, 0.1, 0.2], at: [sx + 0.6, sy + 0.34, sz + side * 0.34], color: 0xc22b2b },        // sirenebediening
+      ] };
+    case 'bestel':
+      return { ...base, seatTilt: 0.12, rear: null, extras: [
+        { b: [0.04, 0.9, L.hw * 1.7], at: [sx - 0.52, sy + 0.55, 0], color: 0x3a3f46 },                // wand voor de laadruimte
+        { b: [0.3, 0.05, 0.4], at: [sx + 0.45, sy + 0.14, passZ], color: 0x6a707a },                   // klembord-plank
+      ] };
+    case 'vrachtwagen':
+      return { ...base, wheel: { r: 0.25, tilt: 0.15 }, seatTilt: 0.1, rear: null, extras: [
+        { b: [0.9, 0.3, L.hw * 1.7], at: [sx - 0.78, sy + 0.1, 0], color: 0x3c4148 },                  // slaapbank achter de stoelen
+        { b: [0.16, 0.06, 0.22], at: [sx + 0.55, sy + 0.42, sz + side * 0.3], color: 0x20262c },      // boordcomputer
+      ] };
+    case 'bus':
+      return { ...base, wheel: { r: 0.28, tilt: 0.08 }, seatTilt: 0.1, rear: null, extras: [
+        { b: [0.3, 0.2, 0.3], at: [sx + 0.55, sy + 0.2, sz + side * 0.62], color: 0x2a2f3a },          // kaartjesautomaat
+        { b: [0.03, 0.9, 0.04], at: [sx + 0.2, sy + 0.7, sz + side * 0.45], color: 0x6a707a },         // paal naast de bestuurder
+      ] };
+    default:
+      return base;
+  }
+}

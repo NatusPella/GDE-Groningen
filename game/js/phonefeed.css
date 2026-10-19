@@ -146,3 +146,6 @@
   background: #050806;
   box-shadow: 0 0 0 1.5px #1f2622;
 }
+
+/* de duif-HUD staat linksboven: de telefoonkaarten schuiven eronder (#239) */
+body.pigeon-mode #hud .phonefeed { top: 150px; }

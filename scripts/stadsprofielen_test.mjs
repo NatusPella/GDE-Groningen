@@ -19,6 +19,7 @@ for (const t of TOWN_PROFILES) {
   ok(DAYPARTS.every((d) => Array.isArray(t.sfeer[d]) && t.sfeer[d].length >= 2), `${t.id}: two sfeer lines per daypart`);
   ok(t.props.length >= 3 && t.props.every((p) => p.kind && p.per > 0), `${t.id}: props`);
   ok(t.shops.length >= 3 && new Set(t.shops.map((s) => s.name)).size === t.shops.length, `${t.id}: shops with distinct names`);
+  ok(['garage', 'schuilplaats', 'bijbaan', 'racebord'].every((k) => t.shops.some((x) => x.kind === k)), `${t.id}: garage, schuilplaats, bijbaan en racebord`);
   const text = [t.teaser, ...t.shops.flatMap((s) => [s.name, s.line]), ...DAYPARTS.flatMap((d) => t.sfeer[d])].join(' ');
   ok(!BANNED.test(text), `${t.id}: no winter, no "de Grunn"`);
   ok(!/\b(Albert Heijn|Jumbo|Hema|Action|Kruidvat|Coca|McDonald|Rabobank|ING)\b/i.test(text), `${t.id}: no real brands`);

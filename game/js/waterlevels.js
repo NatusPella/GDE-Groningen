@@ -160,7 +160,11 @@ export function pointInStaticPolygon(px, py, poly) {
 // isInWater, inMapWater and the waterPoly of a boat.
 export function waterPolyAt(map, x, y) {
   if (!map.waterNear) return null;
-  for (const w of map.waterNear(x, y, 0.5)) {
+  return waterPolyIn(map.waterNear(x, y, 0.5), x, y);
+}
+// the same test over a list got once (a road's whole run: mapdata.js markDryRoad)
+export function waterPolyIn(polys, x, y) {
+  for (const w of polys) {
     const b = w.bounds || (w.bounds = boundsOf(w.pts));
     if (x < b[0] || x > b[2] || y < b[1] || y > b[3]) continue;
     if (pointInStaticPolygon(x, y, w.pts)) return w;

@@ -10,7 +10,7 @@ const W = 11, D = 9, HALL = 3.4, MID = 5.2, SPLIT = 7.2;
 const flat = {
   w: W, d: D,
   walls: [[0, 0, 0, D], [W, 0, W, D], [0, D, W, D], [0, MID, 1.0, MID], [2.4, MID, HALL, MID], [HALL, MID, HALL, 6.2], [HALL, 7.4, HALL, D], [HALL, MID, 9.0, MID], [10.2, MID, W, MID], [SPLIT, MID, SPLIT, D], [0, 0, W, 0]],
-  solids: [[2.4, 3.35, 5.0, 4.55], [3.0, 2.1, 4.4, 2.9], [2.8, 0.2, 4.6, 1.35], [0.2, 0.2, 0.9, 0.9], [7.1, 0.2, 10.9, 0.9], [10.1, 1.2, 10.9, 2.0], [7.6, 2.9, 8.8, 3.9], [6.1, 6.9, 7.1, 8.95], [7.3, 6.9, 8.3, 8.95], [3.85, 8.25, 5.55, 8.95], [10.3, 5.35, 10.95, 7.05]],
+  solids: [[2.4, 3.35, 5.0, 4.55], [3.0, 2.1, 4.4, 2.9], [0.2, 0.2, 0.9, 0.9], [7.1, 0.2, 10.9, 0.9], [10.1, 1.2, 10.9, 2.0], [7.6, 2.9, 8.8, 3.9], [6.1, 6.9, 7.1, 8.95], [7.3, 6.9, 8.3, 8.95], [3.85, 8.25, 5.55, 8.95], [10.3, 5.35, 10.95, 7.05]],
 };
 
 for (const p of Object.keys(PLEKKEN)) check('plek geldig ' + p, plekGeldig(p, flat));
@@ -21,7 +21,7 @@ for (const [id, v] of Object.entries(VERPLAATSBAAR)) {
   check(id + ': standaard heeft nul verschuiving', opPlek(id, v.standaard).dx === 0 && opPlek(id, v.standaard).dz === 0);
 }
 check('standaard is gelijk aan furniture.js', PLEKKEN.h1.x === 0.6 && PLEKKEN.h1.z === 4.7 && PLEKKEN.h4.x === 10.5 && PLEKKEN.h4.z === 4.7);
-check('lamp, plant, kast en bureau verplaatsbaar', ['lamp', 'plant', 'kast', 'bureau'].every(isVerplaatsbaar) && !isVerplaatsbaar('bank') && !isVerplaatsbaar('tv') && !isVerplaatsbaar('toString'));
+check('lamp, plant, kast, bureau en tv verplaatsbaar', ['lamp', 'plant', 'kast', 'bureau', 'tv'].every(isVerplaatsbaar) && !isVerplaatsbaar('bank') && !isVerplaatsbaar('toString'));
 
 // schoon opslaan
 check('rommel wordt leeg', Object.keys(schoonPlekken(null)).length === 0 && Object.keys(schoonPlekken('x')).length === 0);
@@ -72,6 +72,14 @@ check('wandplek geeft rot, solid en use', ow && ow.rot === 0 && ow.solid.length 
 check('opslag houdt wandplekken', schoonPlekken({ kast: 'k2', bureau: 'b3' }).kast === 'k2' && !schoonPlekken({ kast: 'b1' }).kast);
 // het gebruikspunt van elke wandplek ligt vrij van vaste blokjes
 for (const [k, p] of Object.entries(WANDPLEKKEN)) check('gebruikspunt vrij ' + k, !flat.solids.some(([a, b, c, d]) => p.use.x > a && p.use.x < c && p.use.z > b && p.use.z < d));
+
+// tv (Kiekkast): standaardplek komt overeen met furniture.js en de drie plekken zijn geldig en kijken naar de bank
+check('tv standaard = furniture.js', WANDPLEKKEN.t1.x === 3.7 && WANDPLEKKEN.t1.z === 1.0 && WANDPLEKKEN.t1.solid.join() === '2.8,0.2,4.6,1.35' && WANDPLEKKEN.t1.use.x === 5.25);
+check('tv: drie plekken, allemaal met rot 0 (kijkt de kamer in)', VERPLAATSBAAR.tv.opties.length === 3 && VERPLAATSBAAR.tv.opties.every((k) => WANDPLEKKEN[k].rot === 0));
+const eigenTv = new Set(['tv', 'bureau', 'kast']);
+check('tv en bureau botsen op de noordmuur', plekBezet({ bureau: 'b3' }, eigenTv, 'tv', 't3') && !plekBezet({ bureau: 'b1' }, eigenTv, 'tv', 't3'));
+check('tv slaat een bezette plek over', volgendePlek({ tv: 't1', bureau: 'b3' }, eigenTv, 'tv') === 't2');
+check('opslag houdt tv-plek', schoonPlekken({ tv: 't2' }).tv === 't2' && !schoonPlekken({ tv: 'k1' }).tv);
 
 console.log(bad ? `${bad} mislukt` : 'inrichting_test: alles goed');
 process.exit(bad ? 1 : 0);
