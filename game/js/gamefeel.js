@@ -9,7 +9,8 @@ const clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
 
 // --- snelheids-FOV ---------------------------------------------------------------
 export const FOV_MAX_BONUS = 8;       // graden
-const FOV_FROM = 15, FOV_TO = 70; // m/s
+// de auto's halen 24-33 m/s (arcade): de toeslag moet daar al zichtbaar zijn, vliegtuigen zitten er ver boven
+const FOV_FROM = 12, FOV_TO = 36; // m/s
 const FOV_RATE = 2.2;           // per seconde naar het doel toe
 
 export function fovTarget(speed, fx = { cameraSway: 1 }) {
