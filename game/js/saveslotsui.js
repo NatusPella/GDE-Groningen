@@ -141,7 +141,7 @@ export function openSaveSlots(opts = {}) {
     }
     if (view === 'delete') {
       return `${head}<div class="ssl-confirm"><p>Deze savegame verwijderen? Ook de herstelkopie gaat weg. Dit kan niet ongedaan worden gemaakt.</p>` +
-        '<div class="m-acts"><button type="button" class="m-bt" data-grp="pane" data-do="back">Nee, bewaren</button><button type="button" class="m-bg danger" data-grp="pane" data-do="delete-ok">Ja, verwijderen</button></div></div>';
+        '<div class="m-acts"><button type="button" class="m-bt" data-grp="pane" data-do="back">Nee, bewaren</button><button type="button" class="m-bg danger" data-grp="pane" data-do="delete-ok">Ja, spel verwijderen</button></div></div>';
     }
     if (view === 'overwrite') {
       return `${head}<div class="ssl-confirm"><p>Je huidige spel komt over deze savegame heen. Weet je het zeker?</p>` +
@@ -149,12 +149,12 @@ export function openSaveSlots(opts = {}) {
     }
     const loadable = !!sm;
     const full = S.freeSlot(null) === 0;
-    const acts = [`<button type="button" class="m-bp" data-grp="pane" data-do="load"${loadable ? '' : ' disabled'}>Laden</button>`];
-    if (mode === 'game') acts.push('<button type="button" class="m-bg" data-grp="pane" data-do="save-here">Hier opslaan</button>');
-    acts.push(`<button type="button" class="m-bg" data-grp="pane" data-do="copy"${loadable && !full ? '' : ' disabled'} title="${full ? 'Alle plekken zijn in gebruik' : 'Maakt een kopie op een lege plek'}">Kopiëren</button>`);
+    const acts = [`<button type="button" class="m-bp" data-grp="pane" data-do="load"${loadable ? '' : ' disabled'}>Spel laden</button>`];
+    if (mode === 'game') acts.push('<button type="button" class="m-bg" data-grp="pane" data-do="save-here">Spel opslaan</button>');
+    acts.push(`<button type="button" class="m-bg" data-grp="pane" data-do="copy"${loadable && !full ? '' : ' disabled'} title="${full ? 'Alle plekken zijn in gebruik' : 'Maakt een kopie op een lege plek'}">Spel kopiëren</button>`);
     acts.push('<button type="button" class="m-bg" data-grp="pane" data-do="rename">Hernoemen</button>');
-    acts.push(`<button type="button" class="m-bg" data-grp="pane" data-do="export"${loadable ? '' : ' disabled'}>Exporteren</button>`);
-    acts.push('<button type="button" class="m-bg danger" data-grp="pane" data-do="delete">Verwijderen</button>');
+    acts.push(`<button type="button" class="m-bg" data-grp="pane" data-do="export"${loadable ? '' : ' disabled'}>Spel exporteren</button>`);
+    acts.push('<button type="button" class="m-bg danger" data-grp="pane" data-do="delete">Spel verwijderen</button>');
     const goal = sm && sm.goal ? `<span class="ssl-goal mut">${svg(IC.flag)}Doel: ${esc(sm.goal)}</span>` : '';
     const who = sm ? `<span class="ssl-goal mut">${svg(IC.tammo)}${esc(sm.character)} · ${sm.missionsDone} ${sm.missionsDone === 1 ? 'missie' : 'missies'} klaar</span>` : '';
     return `<div class="ssl-dhead">${head}<span class="ssl-dmeta">${who}${goal}</span></div>${warn}<div class="m-acts ssl-acts">${acts.join('')}</div>`;
@@ -175,12 +175,12 @@ export function openSaveSlots(opts = {}) {
     const stage = document.createElement('div');
     stage.className = 'gm-stage';
     stage.innerHTML = `<section class="m-panel ssl-panel">
-      <header class="m-head"><div><span class="m-eb">${mode === 'start' ? 'Hoofdmenu' : 'Pauze'}</span><h1 class="m-h1" id="ssl-title">Savegames</h1></div><div class="m-hr"><span class="mut">${slots.length} van ${MAX_SLOTS} plekken in gebruik</span></div></header>
-      <div class="ssl-scroll"><div class="ssl-grid" role="list" aria-label="Savegames">${tiles.join('')}</div></div>
+      <header class="m-head"><div><span class="m-eb">${mode === 'start' ? 'Hoofdmenu' : 'Pauze'}</span><h1 class="m-h1" id="ssl-title">Opgeslagen spellen</h1></div><div class="m-hr"><span class="mut">${slots.length} van ${MAX_SLOTS} plekken in gebruik</span></div></header>
+      <div class="ssl-scroll"><div class="ssl-grid" role="list" aria-label="Opgeslagen spellen">${tiles.join('')}</div></div>
       <aside class="ssl-detail" aria-label="Details" aria-live="polite">${detailHtml(cur)}</aside>
       <p class="ssl-msg" role="status">${esc(message)}</p>
       <footer class="ssl-foot"><span class="mut ssl-keys">Pijltjes kiezen · Enter bevestigt · Esc sluit · Controller: richtingen, A, B. Je spel slaat vanzelf op in de savegame met het label Autosave.</span>
-        <span class="ssl-footbtns"><button type="button" class="m-bg" data-grp="foot" data-do="import"${full ? ' disabled' : ''} title="${full ? 'Alle plekken zijn in gebruik' : 'Een savegame uit een bestand, op een lege plek'}">Importeren</button><button type="button" class="m-bt" data-grp="foot" data-do="close">Terug</button></span></footer>
+        <span class="ssl-footbtns"><button type="button" class="m-bg" data-grp="foot" data-do="import"${full ? ' disabled' : ''} title="${full ? 'Alle plekken zijn in gebruik' : 'Een spel uit een bestand, op een lege plek'}">Spel importeren</button><button type="button" class="m-bt" data-grp="foot" data-do="close">Terug</button></span></footer>
     </section>`;
     rootEl.insertBefore(stage, file);
     if (view === 'rename') { const inp = stage.querySelector('[data-input]'); inp.focus(); inp.select(); return; }
@@ -274,7 +274,7 @@ export function openSaveSlots(opts = {}) {
     rd.onerror = () => { say(S.importErrorText('kapot')); };
     rd.onload = () => {
       const r = S.importAsNewSlot(null, String(rd.result || ''));
-      if (r.ok) { sel = r.n; view = 'detail'; message = `Geïmporteerd als "${r.name}". Kies Laden om te spelen.`; } else message = S.importErrorText(r.why);
+      if (r.ok) { sel = r.n; view = 'detail'; message = `Geïmporteerd als "${r.name}". Kies Spel laden om te spelen.`; } else message = S.importErrorText(r.why);
       if (rootEl) render('pane');
     };
     rd.readAsText(f);

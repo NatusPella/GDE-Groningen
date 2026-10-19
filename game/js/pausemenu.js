@@ -439,7 +439,7 @@ export function initPauseMenu(w) {
           <button type="button" class="ra pm-back" data-action="resume">Terug</button>
           <div class="pm-rail-acts pm-ingame">
             <button type="button" class="m-bt" data-action="save">Opslaan</button>
-            <button type="button" class="m-bt" data-action="saves" title="Savegames kiezen, laden, hernoemen, exporteren en verwijderen">Savegames</button>
+            <button type="button" class="m-bt" data-action="saves" title="Opgeslagen spellen kiezen, laden, hernoemen, exporteren en verwijderen">Opgeslagen spellen</button>
             <button type="button" class="m-bt" data-action="menu" title="Opslaan en terug naar het titelscherm">Hoofdmenu</button>
             ${DESKTOP ? '<button type="button" class="m-bt" data-action="exit" title="Opslaan en het spel sluiten">Afsluiten</button>' : ''}
           </div>
