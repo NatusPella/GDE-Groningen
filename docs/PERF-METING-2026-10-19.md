@@ -261,3 +261,44 @@ Waar de tijd zit (CPU-profiel foot, 17 s, `categories.mjs`): `renderer.render` 4
 Verder onderzocht, niet gedaan: roadInit in de worker is alleen 2,4 s op een vrije thread (`scripts/perf/roadinit_meet.mjs`); de 9 tot 14 s in het spel is wachten op andere jobs en een drukke machine. Water en losse gebouwdelen batchen vraagt eigen paden (transparant, geen normalen); #58 (auto's naar de worker) is niet verder gebracht.
 
 Hulpmiddelen: `PERF_ONLY=census` meldt nu ook welke groepen niet bewegen en `walkSoftMs`; nieuwe routes `progs` en `renders`; `scripts/perf/markdry_meet.mjs`; de batchers houden hun eigen tijd bij (`batches().*.ms`).
+
+## Vervolg 5: deterministische tellingen (s3, draw calls, geen fps)
+
+Frametijd is op een drukke machine te ruisig, dus nu tellen op vaste camerastanden: `PERF_DIAG=1 PERF_ONLY=det node scripts/perf/run.mjs <naam> <preset>` (route `det`): vier standen (stad-markt, stad-straat, a7-tussen, dorp-winsum), 8 s wachten tot de batchers 3 s niets meer bouwen, dan 60 frames: GL-draw-aanroepen (hoofdscene en schaduwpas), driehoeken, programmawissels, CPU-tijd van de scene-render en de aanroepen per eigenaar. Beperking: de aanroepen van voertuigen en personen en de toestand van de batchers verschillen van run tot run (stad-straat 775 tegen 804 bij twee runs van dezelfde code), dus alleen de eigenaar-tellingen van het gewijzigde onderdeel zijn exact; het totaal (`staticDraws`, zonder actoren) heeft ruis van ongeveer 5 procent.
+
+Gedaan:
+- **Wolken** (`cloud3d.js`): alle blobs in één `InstancedMesh`: 15 transparante draw calls minder in elke stand (alle blobs hebben dezelfde kleur en doorzichtigheid, dus de menvolgorde verandert niets).
+- **Oevers** (`staticbatch3d.js` `shoreBatcher`, `scene3d.js`): de oever- en kademeshes van alle waterpolygonen binnen de zichtafstand per materiaal en per cel van 600 m samengevoegd (het wateroppervlak is transparant en blijft los; `extras` en `glass` blijven los omdat `showExtras` ze aanzet). Eigenaar `water`: stad-markt 41 en 40 naar 20 en 19, stad-straat 175 en 181 naar 61 en 59, a7 68 en 44 naar 30 en 30, dorp-winsum 166 en 144 naar 96 en 96 (twee runs elk, hoog). Driehoeken per frame +2 procent (de samengevoegde mesh wordt minder fijn geculld).
+- Totaal zonder actoren (`staticDraws`, twee runs elk, basis tegen nu): stad-markt 499/508 tegen 480/472, stad-straat 775/804 tegen 687/660, a7 248/282 tegen 262/258, dorp-winsum 566/468 tegen 407/407. Dat is 4 tot 15 procent in de stad, niet de gevraagde 40.
+
+Onderzocht, niet gehaald:
+- Wegen: in de stad blijven ~40 losse wegen over omdat hun cel (96 m) minder dan twee wegen binnen de `inner`-afstand heeft; celgrootte 160 gaf 85 naar 70 calls, binnen de ruis, niet bewaard. Gebouwen: `MIN_MEMBERS` 3 naar 2 gaf geen verschil (de losse gebouwdelen liggen aan de rand tussen `inner` en de detailstraal van de far-LOD).
+- Actoren zijn het grootste deel van de rest: in stad-straat ~300 van ~1050 aanroepen (voertuigen met 6 tot 12 meshes per auto, personen met een skinned mesh plus een blob-vlak). Auto-onderdelen samenvoegen raakt `models3d_vehicles.js` (deuren, kap), blobs als één InstancedMesh gaf eerder een zichtbaar ander beeld (zie Vervolg 3).
+- Schaduwpas ~100 calls in stand met schaduw (facade-batch 23, building-batch 20); kleiner maken verandert schaduwen van gevelsieraad.
+
+Beeld: `scripts/perf/pngdiff.mjs` en route `vspots` (zeven plekken plus vier aan het water): twee runs van de oude code verschillen al 8 tot 64 procent van de pixels (verkeer, mensen, meldingskaarten, water, schaduw), dus een pixelvergelijking zegt weinig; de opnamen bij het water liggen te hoog achter de speler om de oever te laten zien. Geometrisch is de oever-merge identiek (zelfde vertices en materiaal, `receiveShadow` was overal waar), maar dat is niet in beeld bekeken.
+
+## Vervolg 6: voertuigen en personen erbij, lijst per eigenaar (s3)
+
+Extra stappen (exacte tellingen per eigenaar uit de route `det`, hoog, twee runs van de oude code 7ea959ee tegen twee van nu):
+- **Sierdoppen** op de wielen via de wielinstancing (`wheelinstances3d.js`): de cilinders op de wielen waren vier losse aanroepen per auto. Eigenaar `Cylinder`: markt 20 naar 0, straat 18 naar 0, a7 15 naar 3, winsum 8 naar 0.
+- **Blobschaduwen** als één `InstancedMesh` (`scene3d.js` `fillBlobPool`, gevuld in `onBeforeRender` van de pool, als de matrices af zijn; zelfde geometrie, materiaal, polygon offset en renderOrder; zwart met gelijke alpha, dus de volgorde onderling doet er niet toe): markt 24 en 28 naar 2, straat 27 en 52 naar 0, winsum 33 en 36 naar 0. Beeldcontrole op een bevroren frame (`PERF_ONLY=blobab`, pool tegen losse blobs tegen pool): het verschil pool-los (4,9 en 4,6 procent) is kleiner dan pool-pool (7,4 en 5,6 procent), dus niet te onderscheiden van de ruis die zelfs een gepauzeerde wereld nog geeft.
+- Samen met wolken (-16) en oevers (water -60 tot -100): markt ~-60 van ~630, straat ~-150 tot -190 van 1000 tot 1190, winsum ~-95 van ~600, a7 ~-30 van ~300: **10 tot 16 procent minder aanroepen**. De totaalcijfers (`draws`) lopen ruim 10 procent uiteen tussen runs van dezelfde code (hoeveel voertuigen en personen in beeld, hoe vaak de schaduwpas draait: 36 tegen 72), dus alleen de eigenaar-tellingen zijn te vertrouwen.
+
+Waar de rest zit, per post (FN2, aanroepen per frame) en waarom die niet verder omlaag gaat zonder grote ingreep:
+
+| post | markt | straat | a7 | winsum | waarom niet verder |
+|---|---:|---:|---:|---:|---|
+| losse gebouwen | 102 | 152 | 38 | 26 | de ring tussen `inner` (175 m) en de detailstraal (190 m) en randcellen met minder dan 3 gebouwen; `MIN_MEMBERS` 2 en een kleinere marge gaven geen meetbare winst; landmarks hebben transparante glasdelen |
+| gebouwen gebatcht | 69 | 102 | 8 | 26 | al samengevoegd per cel en materiaal (18 tot 20 materialen blijven over) |
+| voertuigen | 71 | 60 | 7 | 53 | per auto 4 meshes met 3 materiaalgroepen (body, deuren, kap, klep); samenvoegen raakt `models3d_vehicles.js` (deuren, schade) |
+| overig | 62 | 147 | 72 | 40 | de kermis in stad-straat (~70 losse dozen en bollen), vogels, lantaarnhalo's |
+| wegen los | 49 | 38 | 28 | 48 | celgrootte 160 gaf 85 naar 70, binnen de ruis |
+| terrein | 44 | 44 | 0 | 0 | één groep per zichtbare tegel, niet samen te voegen zonder de tegelculling te verliezen |
+| verre LOD | 43 | 58 | 23 | 23 | één aanroep per tegel en laag; tegel 640 in plaats van 320 gaf -13 aanroepen maar +15 tot 20 procent driehoeken en grotere bouwstappen; teruggedraaid |
+| props en landschap | 41 | 35 | 79 | 100 | al per tegel gebatcht; de rest zijn bomen, hekken en draden per soort |
+| schaduwpas | 29 | 75 | 38 | 29 | gevelsieraad en detail werpen schaduw; wegnemen verandert het beeld |
+| water en oevers | 19 | 64 | 29 | 95 | wateroppervlakken zijn transparant en blijven per polygoon los |
+| voetgangers | 15 | 29 | 3 | 10 | skinned meshes, één aanroep per persoon |
+
+Conclusie: met alleen beeldgelijke stappen is het gevraagde -40 procent niet haalbaar; de laatste grote posten (losse gebouwen aan de batchrand, voertuigdelen, schaduwpas) vragen een eigen pad per post met eigen beeldrisico. Dit is wat ik kon aantonen; niet bekeken door een mens.

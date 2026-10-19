@@ -224,9 +224,12 @@ export function handleEvent(world, body, van = 0) {
     case 'missie': { // wat de host speelt; de gast ziet het als melding, extra spelers lopen mee in de open wereld
       if (!n || n.role !== 'client') return false;
       const m = leesMissieBericht(body); if (!m) return false;
-      world.coopHostMissie = m;
       const slot = n.session ? n.session.slot : 1;
-      const tekst = missieTekst(m, verhaalRol(slot) === 'wereld' ? 'wereld' : 'hoofdrol');
+      const vorige = world.coopHostMissie;
+      world.coopHostMissie = m;
+      const nieuweOpdracht = !vorige || !vorige.actief || vorige.index !== m.index || vorige.label !== m.label;
+      // een nieuwe opdracht: wat de gastheer speelt; daarna alleen nog de volgende stap
+      const tekst = nieuweOpdracht ? missieTekst(m, verhaalRol(slot) === 'wereld' ? 'wereld' : 'hoofdrol') : (m.actief && m.stap ? `Gastheer, volgende stap: ${m.stap}` : '');
       if (tekst && world.addMessage) world.addMessage(tekst, 6);
       return true;
     }

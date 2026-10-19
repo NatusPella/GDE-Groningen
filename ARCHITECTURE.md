@@ -539,7 +539,7 @@ HUD zoom at 1920x1080), `--hud-edge` is the 46 px margin.
   the markers. `scene3d.js` calls `updateWaymarkers3D` from the ribbon update.
 - Boot screen (`#loading`, startscreen.js): dark green from the first paint
   (inline `--ui` script, Electron `backgroundColor`), the logo builds up,
-  Gronings status lines rotate, "Druk op een toets" when ready (runs with
+  Gronings status lines rotate, no key to press: the menu waits for the menu gate (menuready.js) (runs with
   `?noattract|storytest|stil|trailer|benchmark|perf` skip the key), the menu
   slides in under it and the boot screen fades out over it
   (`dismissLoading`). The first tiles round the save are prewarmed meanwhile.

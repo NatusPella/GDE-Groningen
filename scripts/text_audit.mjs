@@ -204,7 +204,7 @@ const WINTER = [
 
 // Engelse leenwoorden waar een goed Nederlands woord voor is (docs/WOORDENLIJST.md).
 // `w` is een woord of regex-bron; `nl` wat er voor in de plaats komt. Hatchback, sedan, app, camera,
-// HUD, minimap en cheats zijn ingeburgerd en staan hier bewust niet in.
+// HUD, minimap, cheats en savegame (de eigenaar koos dat woord voor de opgeslagen spelstand) zijn ingeburgerd en staan hier bewust niet in.
 const ANGLICISMEN = [
   ['save', 'savegame (zelfstandig), opslaan (werkwoord)'], ['saves', 'savegames'], ['save slot', 'opslagplek'], ['save-slot', 'opslagplek'],
   ['host', 'gastheer'], ['co-op', 'samen spelen'], ['coöp', 'samen spelen'], ['multiplayer', 'samen spelen'], ['checkpoint', 'controlepunt (race) of hervatpunt (opnieuw beginnen)'], ['checkpoints', 'controlepunten'],

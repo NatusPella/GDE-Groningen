@@ -248,4 +248,15 @@ t('touch-client: een gast met een aanraakstick (analoge as, stick via padAxis) s
   s.gs[0].gw.input = touch(0, 0, false); s.step(1);
   assert.equal(s.hw.coop.remoteInput.mx, 0); assert.equal(s.hw.coop.remoteInput.my, 0);
 });
+t('missiestappen: de gast ziet de opdracht en daarna elke volgende stap van de gastheer', () => {
+  const s = sessie(2, { hostExtra: { mission: { phase: 'active', label: 'Het Loket', type: 'stages', index: 3, progressText: 'Stap in de auto', marker: { x: 5, y: 5 } } } });
+  s.step(2);
+  for (const g of s.gs) {
+    assert.match(g.gw.messages.join(' '), /De gastheer speelt: Het Loket/);
+    assert.equal(g.gw.coopHostMissie.stap, 'Stap in de auto');
+  }
+  s.hw.mission.progressText = 'Rij naar het loket'; s.step(2);
+  for (const g of s.gs) assert.match(g.gw.messages.join(' '), /Gastheer, volgende stap: Rij naar het loket/);
+  assert.equal(s.gs[1].gw.messages.filter((m) => /De gastheer speelt/.test(m)).length, 1, 'de opdracht zelf wordt maar één keer gemeld');
+});
 console.log(`coopnet_test: ${n}/${n} ok`);

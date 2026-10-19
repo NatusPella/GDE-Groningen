@@ -61,7 +61,7 @@ import { effectsFor, shakeAmount } from './a11ylogic.js';
 import { reducedMotion } from './motion.js';
 import { dynamicScale, cpuLevel } from './gfxprofile.js';
 import { VIEW_DISTANCES, viewDistanceFor, detailDistanceFor, DETAIL_BASE } from './viewdist.js';
-import { buildingBatcher, roadBatcher, facadeBatcher } from './staticbatch3d.js';
+import { buildingBatcher, roadBatcher, facadeBatcher, shoreBatcher } from './staticbatch3d.js';
 import { simLevel } from './simload.js';
 import { beginWheels, addVehicleWheels, endWheels } from './wheelinstances3d.js';
 
@@ -636,6 +636,51 @@ function buildBlobShadowTexture() {
   return new THREE.CanvasTexture(c);
 }
 
+// The blobs are drawn as one InstancedMesh (same geometry, material, polygon offset and render order as before: they are black with
+// the same alpha, so their order among themselves does not show): every blob made here goes off the render layer and its world matrix
+// becomes an instance, filled just before the pool is drawn (the matrices are final by then). A blob that is hidden, whose actor is
+// out of the scene or beyond the pool's room is drawn on its own as before.
+const BLOB_HIDDEN_LAYER = 30;
+const BLOB_POOL_CAP = 768;
+const blobShadows = new Set();
+let blobPool = null;
+let blobPoolOn = true; // false: every blob draws on its own again (A/B checks of the pooling, window.__scene3d.setBlobPool)
+function initBlobPool() {
+  const m = new THREE.InstancedMesh(BLOB_SHADOW_GEO, BLOB_SHADOW_MAT, BLOB_POOL_CAP);
+  m.frustumCulled = false;
+  m.renderOrder = 1;
+  m.matrixAutoUpdate = false;
+  m.count = 0;
+  m.name = 'blob-instances';
+  m.userData.shared = true;
+  m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+  m.onBeforeRender = fillBlobPool;
+  scene.add(m);
+  blobPool = m;
+}
+function fillBlobPool() {
+  if (!blobPoolOn) { blobPool.count = 0; for (const sh of blobShadows) sh.layers.set(0); return; }
+  const arr = blobPool.instanceMatrix.array;
+  let n = 0;
+  for (const sh of blobShadows) {
+    let vis = true, a = sh;
+    for (; a && a !== scene; a = a.parent) if (!a.visible) { vis = false; break; }
+    if (a !== scene && vis) {
+      // not in the scene: forget it after a long absence (a pooled actor comes back well before)
+      if ((sh.userData.away = (sh.userData.away || 0) + 1) > 900) blobShadows.delete(sh);
+      sh.layers.set(0);
+      continue;
+    }
+    sh.userData.away = 0;
+    if (!vis || n >= BLOB_POOL_CAP) { sh.layers.set(vis ? 0 : BLOB_HIDDEN_LAYER); continue; }
+    sh.layers.set(BLOB_HIDDEN_LAYER);
+    sh.matrixWorld.toArray(arr, n * 16);
+    n++;
+  }
+  blobPool.count = n;
+  blobPool.instanceMatrix.needsUpdate = true;
+}
+
 function addBlobShadow(parent, sx, sz, x = 0) {
   const shadow = new THREE.Mesh(BLOB_SHADOW_GEO, BLOB_SHADOW_MAT);
   shadow.position.set(x, 0.02, 0);
@@ -643,6 +688,7 @@ function addBlobShadow(parent, sx, sz, x = 0) {
   shadow.renderOrder = 1;
   parent.add(shadow);
   parent.userData.shadow = shadow;
+  blobShadows.add(shadow);
   return shadow;
 }
 
@@ -973,7 +1019,7 @@ export function init3D(map) {
   onSettingsChange(applyViewSettings);
   resize3D();
   window.addEventListener('resize', resize3D);
-  window.__scene3d = { scene, cam, renderer, postfx, farLod, batches: () => ({ buildings: buildingBatcher.info(), facades: facadeBatcher.info(), roads: roadBatcher.info() }) };
+  window.__scene3d = { scene, cam, renderer, postfx, farLod, setBlobPool: (on) => { blobPoolOn = !!on; }, dists: () => ({ DRAW_DIST, buildingDetailR, facadeDetailDist, roadDetailR, viewDist }), batches: () => ({ buildings: buildingBatcher.info(), facades: facadeBatcher.info(), roads: roadBatcher.info(), shores: shoreBatcher.info() }) };
 }
 
 // increments each time the scene is drawn to the canvas (blackframe.js)
@@ -990,6 +1036,11 @@ export function setMenuCover(level) {
 }
 
 // Read-only access for systems that need the view pose (e.g. the 3D audio listener).
+// Runs fn right after the next frame was drawn, in the same task, when the canvas still holds it
+// (a copy of the canvas taken later is blank): the savegame screenshot (savegame.js).
+let afterFrameQ = [];
+export function afterNextFrame(fn) { afterFrameQ.push(fn); }
+
 export function getCamera() {
   return cam;
 }
@@ -1190,6 +1241,29 @@ function buildPolyGeometry(pts) {
 let waterMaterial = null;
 // Water polygons in the scene that do not wear the shared material (#181): {total, shared, stray}
 export function auditWater() { return auditWaterMeshes(scene, waterMaterial); }
+// the shore meshes of the water in the scene, for the shore batcher (item { mesh, bounds } -> mesh)
+const shoreItems = new Map();
+const shoreOfPoly = new Map();
+function registerShoreItems(poly, shore) {
+  if (shoreOfPoly.has(poly)) return;
+  const items = [];
+  for (const m of shore.children) {
+    if (m.userData.noBatch || !m.geometry.attributes.position) continue;
+    if (!m.geometry.boundingBox) m.geometry.computeBoundingBox();
+    const bb = m.geometry.boundingBox;
+    const it = { mesh: m, bounds: [bb.min.x, bb.min.z, bb.max.x, bb.max.z] };
+    // the item's holder stays visible while its mesh is merged (the batcher hides the mesh itself)
+    shoreItems.set(it, { mesh: m, parent: shore, visible: true, userData: {} });
+    items.push(it);
+  }
+  shoreOfPoly.set(poly, items);
+}
+function dropShoreItems(poly) {
+  const items = shoreOfPoly.get(poly);
+  if (!items) return;
+  for (const it of items) shoreItems.delete(it);
+  shoreOfPoly.delete(poly);
+}
 function buildWaterMesh(poly, y, map) {
   if (!poly._geoWater) poly._geoWater = buildWaterGeometry(poly, getWaterIndex(map, poly), null);
   const group = new THREE.Group();
@@ -1201,6 +1275,9 @@ function buildWaterMesh(poly, y, map) {
   requestShore(poly, map, { waterY: y, apronMaterial: terrainMesh.material }, (shore) => {
     if (!shore) return;
     group.add(shore);
+    group.userData.shore = shore;
+    // the polygon is in the scene by now (its shore came later); from the cache, syncWater registers it
+    if (waterMeshes.get(poly) === group) registerShoreItems(poly, shore);
     if (!sync) freezeStatic(shore);
   });
   sync = false;
@@ -1639,12 +1716,14 @@ function syncWater(items, cache, y, map, px, py) {
       if (!mesh.name) mesh.name = 'water';
       scene.add(mesh);
       cache.set(poly, mesh);
+      if (cache === waterMeshes && mesh.userData.shore) registerShoreItems(poly, mesh.userData.shore);
     }
   }
   for (const [poly, mesh] of cache) {
     if (seen.has(poly)) continue;
     scene.remove(mesh);
     cache.delete(poly);
+    if (cache === waterMeshes) dropShoreItems(poly);
     coolDown(coldWater, poly, WATER_CACHE_MAX, freeWaterGeometry);
   }
 }
@@ -2037,6 +2116,7 @@ export function update3D(dt, world) {
   const focus = updateStreamFocus(world);
 
   noteStreamJump(focus.x, focus.y);
+  if (!blobPool) initBlobPool();
   stepPrewarm(world);
   syncBuildings(world, focus.x, focus.y);
   if (!NO_BATCH) {
@@ -2056,6 +2136,7 @@ export function update3D(dt, world) {
   const waterNight = world.dayNight ? world.dayNight.night : 0;
   updateWaterMaterial(waterMaterial, world.time, world.weather ? world.weather.intensity : 0, waterNight);
   updateShore(waterNight, cam);
+  if (!NO_BATCH) shoreBatcher.update({ scene, meshes: shoreItems, hidden: null, px: focus.x, py: focus.y, detailR: Math.max(DRAW_DIST, viewDist), drawDist: Math.max(DRAW_DIST, viewDist), withDetail: true, budgetMs: 2 });
   probe.mark('3d:water');
   syncRoads(world, focus.x, focus.y);
   // movable bridges (movablebridges3d.js): the static road of a span that is
@@ -2717,6 +2798,7 @@ export function update3D(dt, world) {
   if (sizeDirty) applyRenderSize();
   skipHiddenMatrixWalk();
   postfx.render();
+  if (afterFrameQ.length) { const q = afterFrameQ; afterFrameQ = []; for (const f of q) { try { f(); } catch (e) { /* no picture */ } } }
   canvasFrames++;
   renderer.shadowMap.autoUpdate = true;
   probe.mark('3d:render');
@@ -3162,7 +3244,7 @@ function applyCameraOverride(dt, world, lx, ly, lz) {
   if (fovPunch) { cam.fov -= fovPunch; fovPunch = 0; }
   // snelheids-FOV (#216): groeit zacht mee met de snelheid, uit bij bewegingsreductie en in cutscenes
   const pv = world && world.player && world.player.inVehicle;
-  speedFov = stepFov(speedFov, valid || !pv || pv.isBoat ? 0 : pv.speed || 0, dt, effectsFor({ reduceMotion: reducedMotion() }));
+  speedFov = stepFov(speedFov, valid || !pv || pv.isBoat ? 0 : pv.speed || 0, dt, effectsFor({ reduceMotion: reducedMotion() || getSettings().speedFeel === false }));
   const targetFov = valid && o.fov ? o.fov : (baseFov + speedFov) * (1 - 0.72 * scopeBlend);
   if (cam.fov !== targetFov) {
     cam.fov = Math.abs(targetFov - cam.fov) < 0.05 || (valid && o.cut) || scopeBlend > 0 ? targetFov : cam.fov + (targetFov - cam.fov) * Math.min(1, dt * 3);

@@ -22,14 +22,13 @@ html.touch-play #touch-ui { display: block; }
 #touch-ui .t-btn { position: absolute; pointer-events: auto; touch-action: none; min-width: 64px; height: 64px; padding: 0 8px; box-sizing: border-box; border-radius: 32px; border: 2px solid rgba(240, 237, 228, 0.55);
   background: rgba(10, 19, 13, 0.5); color: #f0ede4; font: 17px 'Bebas Neue', 'Arial Narrow', Arial, sans-serif; letter-spacing: 1px; display: flex; align-items: center; justify-content: center; }
 #touch-ui .t-btn.on { background: rgba(63, 201, 122, 0.75); color: #0c140e; }
-/* pause and Meer share the top row (the Gas button sits right under it); 60 px x the lowest button scale (0.75) stays above 44 px */
-#touch-ui .t-more { right: calc(max(10px, env(safe-area-inset-right)) + 64px); top: max(10px, env(safe-area-inset-top)); min-width: 60px; height: 60px; font-size: 15px; }
-#touch-ui .t-panel { position: absolute; right: max(10px, env(safe-area-inset-right)); top: calc(max(10px, env(safe-area-inset-top)) + 64px); display: none; flex-wrap: wrap; gap: 8px; max-width: 60%; justify-content: flex-end; pointer-events: auto; }
+#touch-ui .t-more { right: max(10px, env(safe-area-inset-right)); top: calc(max(10px, env(safe-area-inset-top)) + 58px); min-width: 48px; height: 48px; font-size: 15px; }
+#touch-ui .t-panel { position: absolute; right: calc(max(10px, env(safe-area-inset-right)) + 56px); top: max(10px, env(safe-area-inset-top)); display: none; flex-wrap: wrap; gap: 8px; max-width: 60%; justify-content: flex-end; pointer-events: auto; }
 #touch-ui .t-panel.open { display: flex; }
 #touch-ui .t-panel .t-btn { position: static; }
 #touch-ui .t-turn { position: absolute; left: 50%; top: 12px; transform: translateX(-50%); padding: 8px 14px; border-radius: 18px; background: rgba(10, 19, 13, 0.8); color: #f0ede4; font: 15px Arial, sans-serif; display: none; pointer-events: none; text-align: center; max-width: 90%; }
 html.touch-portrait #touch-ui .t-turn { display: block; }
-#touch-ui .t-pause { top: max(10px, env(safe-area-inset-top)); right: max(10px, env(safe-area-inset-right)); min-width: 60px; height: 60px; border-radius: 30px; font-size: 20px; }
+#touch-ui .t-pause { top: max(10px, env(safe-area-inset-top)); right: max(10px, env(safe-area-inset-right)); min-width: 48px; height: 48px; border-radius: 24px; font-size: 20px; }
 
 html.touch-device, html.touch-device body { overscroll-behavior: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
 html.touch-device body { touch-action: manipulation; }
@@ -78,7 +77,7 @@ export function initTouch(input, world, hooks = {}) {
   style.textContent = CSS;
   document.head.appendChild(style);
   document.documentElement.classList.add('touch-device');
-  window.dispatchEvent(new Event('touchmode'));
+  window.dispatchEvent(new Event('touchmode')); // uiscale.js: a phone gets a smaller HUD
 
   const root = document.createElement('div');
   root.id = 'touch-ui';
@@ -97,9 +96,6 @@ export function initTouch(input, world, hooks = {}) {
     const L = touchLayout({ width: window.innerWidth, height: window.innerHeight });
     root.style.setProperty('--t-scale', String(L.scale));
     btnHost.style.zoom = String(L.scale);
-    const off = leftOffset({ width: window.innerWidth, height: window.innerHeight });
-    root.style.setProperty('--t-lright', off.right + 'px');
-    root.style.setProperty('--t-lup', off.up + 'px');
     left.style.width = Math.round(L.leftShare * 100) + '%';
     right.style.width = Math.round((1 - L.leftShare) * 100) + '%';
     turn.textContent = L.hint;
@@ -146,9 +142,8 @@ export function initTouch(input, world, hooks = {}) {
     const el = document.createElement('div');
     el.className = 't-btn';
     el.textContent = b.label;
-    // the left buttons keep clear of the minimap (leftOffset, set in layout())
-    el.style[side] = side === 'left' ? `calc(${spot[0]}px + var(--t-lright, 0px))` : spot[0] + 'px';
-    el.style.bottom = side === 'left' ? `calc(${spot[1]}px + var(--t-lup, 0px))` : spot[1] + 'px';
+    el.style[side] = spot[0] + 'px';
+    el.style.bottom = spot[1] + 'px';
     el.addEventListener('pointerdown', (e) => {
       e.preventDefault();
       el.setPointerCapture && el.setPointerCapture(e.pointerId);

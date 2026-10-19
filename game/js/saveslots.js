@@ -243,7 +243,7 @@ export function copySlot(ls, n) {
   const to = freeSlot(ls);
   if (!to) return { ok: false, why: 'vol' };
   if (!writeSlot(ls, to, r.data)) return { ok: false, why: 'opslaan' };
-  const name = cleanName(`${nameOf(ls, n).slice(0, NAME_MAX - 9)} (kopie)`);
+  const name = cleanName(`${nameOf(ls, n).slice(0, NAME_MAX - 8)} (kopie)`);
   const idx = readIndex(ls);
   idx.names[to] = name;
   writeIndex(ls, idx);
