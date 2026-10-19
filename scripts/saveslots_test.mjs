@@ -1,6 +1,6 @@
 // Save slots (#208), the pure side:  node scripts/saveslots_test.mjs
 // Never touches real storage: everything runs on an in-memory storage.
-import { slotKey, slotRecoveryKey, KEYS, MAX_SLOTS } from '../game/js/storagekeys.js';
+import { slotKey, slotRecoveryKey, slotThumbKey, KEYS, MAX_SLOTS } from '../game/js/storagekeys.js';
 import { SAVE_VERSION } from '../game/js/savemigrate.js';
 import { ARC_ID } from '../game/js/storyarc.js';
 import * as S from '../game/js/saveslots.js';
@@ -31,7 +31,7 @@ ok(slotKey(2).startsWith('gde-'), 'slot keys are gde-*');
 // names and text
 ok(S.cleanName('  Mijn   <b>save</b>\n') === 'Mijn b save /b', 'cleanName strips markup and whitespace', S.cleanName('  Mijn   <b>save</b>\n'));
 ok(S.cleanName('x'.repeat(100)).length === S.NAME_MAX, 'name length capped');
-ok(S.cleanName('', 'Spel 3') === 'Spel 3', 'fallback name');
+ok(S.cleanName('', 'Savegame 3') === 'Savegame 3', 'fallback name');
 ok(S.formatPlaytime(0) === 'net begonnen' && S.formatPlaytime(540) === '9 min' && S.formatPlaytime(3725) === '1 u 02 min' && S.formatPlaytime(NaN) === 'net begonnen', 'formatPlaytime');
 ok(S.exportFileName('Mijn Grunn-save!', new Date('2026-08-01T10:00:00Z')) === 'gde-save-mijn-grunn-save-2026-08-01.json', 'export file name');
 
@@ -41,7 +41,7 @@ ok(S.exportFileName('Mijn Grunn-save!', new Date('2026-08-01T10:00:00Z')) === 'g
   const text = JSON.stringify(save(500));
   ls.setItem(KEYS.save, text);
   const l = S.listSlots(ls);
-  ok(l.length === 1 && l[0].n === 1 && l[0].active && l[0].name === 'Spel 1' && l[0].state === 'ok', 'old save appears as slot 1');
+  ok(l.length === 1 && l[0].n === 1 && l[0].active && l[0].name === 'Savegame 1' && l[0].state === 'ok', 'old save appears as slot 1');
   ok(l[0].summary.money === 500 && l[0].summary.playSeconds === 3725 && l[0].summary.missionsDone === 2, 'summary');
   ok(ls.getItem(KEYS.save) === text, 'listing does not change the save');
   ok(S.activeSlot(ls) === 1, 'active is 1 without a list');
@@ -116,13 +116,13 @@ ok(S.exportFileName('Mijn Grunn-save!', new Date('2026-08-01T10:00:00Z')) === 'g
   S.renameSlot(ls, 1, 'Eerste');
   ok(S.nameOf(ls, 1) === 'Eerste', 'rename');
   S.renameSlot(ls, 1, '');
-  ok(S.nameOf(ls, 1) === 'Spel 1', 'empty rename gives the default name');
+  ok(S.nameOf(ls, 1) === 'Savegame 1', 'empty rename gives the default name');
   S.setActive(ls, 1);
   ok(S.activeSlot(ls) === 1, 'setActive');
   ok(S.deleteSlot(ls, 1) && ls.getItem(slotKey(1)) === null && ls.getItem(slotRecoveryKey(1)) === null, 'delete removes save and recovery copy');
   ok(S.activeSlot(ls) === 2 && S.listSlots(ls).length === 1, 'active moves to a slot that is left');
   ls.setItem(KEYS.saveSlots, '{"active":99,"names":{"x":"a","2":5}}');
-  ok(S.activeSlot(ls) === 1 && S.nameOf(ls, 2) === 'Spel 2', 'garbage list is tolerated');
+  ok(S.activeSlot(ls) === 1 && S.nameOf(ls, 2) === 'Savegame 2', 'garbage list is tolerated');
   ls.setItem(KEYS.saveSlots, 'nonsense');
   ok(S.activeSlot(ls) === 1, 'unparsable list is tolerated');
 }
@@ -169,6 +169,32 @@ ok(S.exportFileName('Mijn Grunn-save!', new Date('2026-08-01T10:00:00Z')) === 'g
   ok(hostile.ok && !/[<>]/.test(hostile.name), 'imported name is cleaned');
   ok(S.exportSlot(new Mem(), 3).ok === false, 'export of an empty slot');
   ok(S.importErrorText('kapot') && S.importErrorText('vol') && S.stateText('kapot') && S.stateText('ok') === '', 'texts');
+}
+// thumbnails, copies, time words
+{
+  const ls = new Mem();
+  S.writeSlot(ls, 1, save(5, { doel: { name: 'Martinitoren' }, story: { done: ['a', 'b', 'c'] } }));
+  const sm = S.listSlots(ls)[0].summary;
+  ok(sm.goal === 'Martinitoren' && sm.storyDone === 3, 'summary has goal and story steps');
+  const jpg = 'data:image/jpeg;base64,' + 'A'.repeat(200);
+  ok(!S.writeThumb(ls, 1, 'javascript:alert(1)') && !S.writeThumb(ls, 1, 'data:image/svg+xml;base64,AAAA') && S.readThumb(ls, 1) === '', 'only small image data urls are kept');
+  ok(S.writeThumb(ls, 1, jpg) && S.readThumb(ls, 1) === jpg, 'thumbnail round trip');
+  ok(!S.writeThumb(ls, 1, 'data:image/jpeg;base64,' + 'A'.repeat(50000)), 'thumbnail too big');
+  ls.setItem(slotThumbKey(1), '<script>');
+  ok(S.readThumb(ls, 1) === '', 'junk in the thumbnail key is ignored');
+  S.writeThumb(ls, 1, jpg);
+  const cp = S.copySlot(ls, 1);
+  ok(cp.ok && cp.n === 2 && S.nameOf(ls, 2) === 'Savegame 1 (kopie)' && S.readThumb(ls, 2) === jpg, 'copy: new slot, name, thumbnail');
+  ok(S.readSlot(ls, 2).data.money === 5 && S.readSlot(ls, 1).data.money === 5, 'copy keeps the original');
+  ok(!S.copySlot(ls, 5).ok, 'copy of an empty slot');
+  const c3 = S.createSlot(ls, 'x', 6);
+  ok(c3 === 6 && S.createSlot(ls, 'y', 1) === 3, 'createSlot takes the wanted free place, else the first free');
+  S.deleteSlot(ls, 2);
+  ok(S.readThumb(ls, 2) === '' && S.listSlots(ls).length === 1, 'delete removes the thumbnail');
+  const full = new Mem(); for (let i = 1; i <= MAX_SLOTS; i++) S.writeSlot(full, i, save(i));
+  ok(S.copySlot(full, 1).why === 'vol', 'copy with no free place');
+  const now = Date.UTC(2026, 6, 10, 12);
+  ok(S.agoText(now - 5000, now) === 'zojuist' && S.agoText(now - 12 * 60000, now) === '12 min geleden' && S.agoText(now - 3 * 3600000, now) === '3 u geleden' && S.agoText(now - 30 * 3600000, now) === 'gisteren' && S.agoText(now - 5 * 86400000, now) === '5 dagen geleden' && S.agoText(now - 40 * 86400000, now) === '' && S.agoText(0, now) === '', 'agoText');
 }
 // blocked storage never throws
 {
