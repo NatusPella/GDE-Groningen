@@ -2031,7 +2031,7 @@ export function update3D(dt, world) {
   syncBuildings(world, focus.x, focus.y);
   if (!NO_BATCH) {
     buildingBatcher.update({ scene, meshes: buildingMeshes, hidden: hiddenBuildings, px: focus.x, py: focus.y, detailR: buildingDetailR, drawDist: DRAW_DIST,
-      withDetail: facadeDetailDist >= DRAW_DIST, budgetMs: performance.now() < streamBoostUntil ? 1 : 2 });
+      withDetail: facadeDetailDist >= DRAW_DIST, budgetMs: performance.now() < streamBoostUntil ? 1 : 3 });
     if (facadeDetailDist < DRAW_DIST) {
       facadeBatcher.update({ scene, meshes: buildingMeshes, hidden: hiddenBuildings, px: focus.x, py: focus.y, detailR: Math.min(facadeDetailDist, buildingDetailR), drawDist: DRAW_DIST,
         withDetail: true, budgetMs: 1 });
@@ -2052,7 +2052,7 @@ export function update3D(dt, world) {
   // not lying closed is hidden and left out of the road batches
   if (getMovableBridges().length && !bridgeViews) { initMovableBridges3D(scene, world.map); bridgeViews = true; }
   openBridgeRoads(openSpans);
-  if (!NO_BATCH) roadBatcher.update({ scene, meshes: roadMeshes, hidden: openSpans.size ? openSpans : null, px: focus.x, py: focus.y, detailR: DRAW_DIST, drawDist: DRAW_DIST, withDetail: true, budgetMs: 1 });
+  if (!NO_BATCH) roadBatcher.update({ scene, meshes: roadMeshes, hidden: openSpans.size ? openSpans : null, px: focus.x, py: focus.y, detailR: DRAW_DIST, drawDist: DRAW_DIST, withDetail: true, budgetMs: 3 });
   for (const b of getMovableBridges()) { const m = roadMeshes.get(b.r); if (m) m.visible = !openSpans.has(b.r); }
   updateMovableBridges3D(focus.x, focus.y, waterNight);
   updateSluizen3D(scene, focus.x, focus.y, waterNight);
