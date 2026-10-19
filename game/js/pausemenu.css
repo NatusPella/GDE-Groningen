@@ -39,6 +39,7 @@ body:has(#pause-menu.prestart.visible) #start-screen .ss-foot { visibility: hidd
 #pause-menu.prestart .pm-back { display: flex; }
 #pause-menu .pm-rail-acts { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; padding-left: 24px; }
 #pause-menu .pm-rail-acts .m-bt { justify-content: flex-start; }
+#pause-menu .pm-rail-acts [data-action="saves"] { grid-column: 1 / -1; order: -1; }
 #pause-menu .pm-rail-foot { display: flex; flex-direction: column; padding: 16px 0 0 24px; }
 #pause-menu .pm-rail-foot .m-bt { align-self: flex-start; }
 #pause-menu .pm-ver { margin: 0; padding: 12px 0 0 24px; font-size: 16px; letter-spacing: 1px; color: var(--mut); }
