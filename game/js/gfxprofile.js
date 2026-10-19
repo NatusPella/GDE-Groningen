@@ -57,6 +57,8 @@ export const isDefaultGfx = (st = getSettings()) => Object.entries(GFX_DEFAULT).
 // tuned for a small screen with a shared GPU and a battery.
 export const MOBILE_PROFILES = {
   telefoon: { quality: 'laag', shadows: false, drawDistance: 'kort', resolution: 0.6, autoResolution: true },
+  // a phone with little memory or few cores (deviceMemory <= 3 or <= 4 cores): the same, a smaller render
+  telefoonZwak: { quality: 'laag', shadows: false, drawDistance: 'kort', resolution: 0.5, autoResolution: true },
   tablet: { quality: 'laag', shadows: false, drawDistance: 'normaal', resolution: 0.75, autoResolution: true },
   tabletKrachtig: { quality: 'middel', shadows: true, drawDistance: 'normaal', resolution: 0.8, autoResolution: true },
 };
@@ -66,7 +68,7 @@ export const MOBILE_PROFILES = {
 // plenty of memory and cores.
 export function mobileProfileFor({ width = 0, height = 0, cores = 0, memory = 0 } = {}) {
   const short = Math.min(width, height) || Math.max(width, height);
-  if (short && short < 600) return 'telefoon';
+  if (short && short < 600) return (memory > 0 && memory <= 3) || (cores > 0 && cores <= 4) ? 'telefoonZwak' : 'telefoon';
   if (cores >= 8 && memory >= 6) return 'tabletKrachtig';
   return 'tablet';
 }
