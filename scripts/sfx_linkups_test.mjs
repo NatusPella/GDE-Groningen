@@ -31,6 +31,8 @@ const OTHER = new Set(['carbid_boom_0', 'carbid_boom_1', 'carbid_boom_2', 'carbi
 const PENDING = new Set();
 // played by audio.js for door_open/door_close events that carry wood: true (geheimen.js, the Martinitoren door)
 OTHER.add('door_wood_open'); OTHER.add('door_wood_close');
+// played by audio.js for the weapon 'firework' sub-event and the crossing_bell event
+for (const n of ['firework_burst_0', 'firework_burst_1', 'firework_burst_2', 'crossing_bell']) OTHER.add(n);
 for (const name of Object.keys(FX_INFO)) ok(linked.has(name) || OTHER.has(name) || PENDING.has(name), `${name}: has a source`);
 // no double playback: an effect is pushed by one place only
 for (const s of SELF_PUSHED) ok(!LINK_RULES.some((r) => r.fx === s.fx), `${s.fx}: not both linked and self-pushed`);

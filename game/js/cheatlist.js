@@ -27,6 +27,7 @@ export const CHEATS = [
   { id: 'oranjekoorts', name: 'Oranjekoorts', group: 'verkeer', safe: true, desc: 'Elke auto is oranje, alsof er elke dag een wedstrijd is.' },
   { id: 'regenboogverkeer', name: 'Regenboogverkeer', group: 'verkeer', safe: true, desc: 'Elke auto een eigen kleur. De fabriek had een goede week.' },
   { id: 'minimobielen', name: 'Minimobielen', group: 'verkeer', safe: true, desc: 'Alle auto\'s zijn koekjesdoosjes op wielen. Er past precies één boodschappentas in.' },
+  { id: 'alleentrekkers', name: 'Alleen trekkers', group: 'verkeer', safe: true, desc: 'Geen fietsen en brommers meer: alleen grote, groene en rode bakbeesten die er de tijd voor nemen.' },
   { id: 'reuzenwagens', name: 'Reuzenwagens', group: 'verkeer', safe: true, desc: 'Auto\'s zo groot als een tractor, en daardoor minder. Parkeren is een probleem.' },
   { id: 'slowmo', name: 'Slow-mo bij botsingen', step: 'H3', desc: 'Elke klapper in vertraging, zodat je rustig kunt zien hoe het misging.' },
   { id: 'duivenstorm', name: 'Duivenstorm', step: 'H4', safe: true, desc: 'Duiven. Overal. Ze hebben iets gehoord over een eierbal.' },

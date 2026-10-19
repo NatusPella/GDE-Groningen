@@ -380,7 +380,10 @@ S['M20.3'] = {
     { on: 'Mem. Dit is geen einde', actor: 'jelle', anim: 'point' },
     { on: 'Durk. Douwe. Haal', actor: 'jelle', walk: [[7.5, 1.5]], speed: 1.4 },
   ],
-  shots: [],
+  shots: [
+    { on: 'Nul krassen. Op de heenweg', dt: 0.1, shot: 'dolly', from: [-2.6, 3.4, 1.7], to: [-0.8, 2.4, 1.6], look: 'mid:berend,mem@1', fov: 44 },
+    { on: 'Omdat mijn zoon', dt: 0.1, shot: 'dolly', from: [-2.2, -2.6, 1.6], to: [-0.8, -1.4, 1.5], look: 'mid:mem,jelle@1', fov: 40 },
+  ],
   wide: WIDE([-4.8, 4, 3.2], [-2.8, 2.9, 2.4], 'mid:mem,jelle@1'),
 };
 

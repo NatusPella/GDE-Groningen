@@ -12,10 +12,11 @@ import {
   sampleBusTrail, busTrailerPose, buildSplashMesh3D, updateSplashMesh3D, SPLASH_LIFETIME,
   spawnVehicleOnRoad, spawnBoatOnWater, spawnPoliceBoatOnWater, TRAFFIC_MODELS,
 } from './vehicle.js';
-import { DEAD_DURATION } from './pedestrians.js';
+import { DEAD_DURATION } from './pedconst.js';
 import { attachCarry, carryPose } from './streetlife3d.js';
 import { buildPersonMesh, animatePersonWalk, applyAttackPose, applyHitReaction, setHeldWeapon, seatPose, seatedY, waveOverlay, carryOverlay, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { syncDoorsNear, vraagVoorAnim } from './vehicledoors3d.js';
+import { syncHaltefiguren } from './haltefiguren3d.js';
 import { seatedOf } from './occupants.js';
 import { vehicleSeat, placeSeated, makeSeatTracker, trackSeat, drawTransition, syncBoatCrew } from './seating3d.js';
 import { updateCarInterior } from './carinterior.js';
@@ -79,6 +80,7 @@ import { noteGfxEvent, watchContext } from './blackframe.js';
 import { spawnExplosionFx, setFxCamera } from './fx3d.js';
 import { litFraction, moonPhase, STAR_SHARE } from './nightrules.js';
 import { qualityLook } from './weatherlook.js';
+import { buildCloudLayer, updateCloudLayer } from './cloud3d.js';
 import { initNightLights, setNightLightQuality, updateNightLights, isLightRigOn, setLightRigVisible } from './nightlights3d.js';
 import { createFarLOD } from './farlod.js';
 import { SECTION, TILE_M, tileOrigin } from './gdt.js';
@@ -290,6 +292,7 @@ function buildKissHeartMesh() {
 let sun = null;
 let hemi = null;
 let skyDome = null;
+let cloudLayer = null;
 let starShare = 1;
 let skyUniforms = null;
 let envUpdater = null;
@@ -866,6 +869,8 @@ export function init3D(map) {
   skyDome = buildSkyDome(skyUniforms);
   setStarShare(skyDome, starShare);
   scene.add(skyDome);
+  cloudLayer = buildCloudLayer();
+  scene.add(cloudLayer);
   envUpdater = createEnvironmentUpdater(renderer, sunDir);
   scene.environment = envUpdater.update(skyUniforms.uZenith.value, skyUniforms.uHorizon.value, new THREE.Color(0x6e6250), sunDir, skyUniforms.uSunColor.value, 0.45);
   // one water material for the canals and the tiles' water
@@ -2490,6 +2495,7 @@ export function update3D(dt, world) {
   // instant snap on teleport (respawn/mission warp) instead of a long lerp
   // that would otherwise glide the camera straight through geometry
   syncDoorsNear(world, vehicleMeshes, player.x, player.y, animDt, doorAsk);
+  syncHaltefiguren(world, scene, (shirt, skin) => enableShadows(buildPersonActor(shirt, skin, {}), false), animDt);
   probe.mark('3d:players');
   // a stolen train (traindrive.js) is followed like a very long vehicle
   const camVeh = player.inVehicle || world.trainCam || null;
@@ -2653,7 +2659,10 @@ export function update3D(dt, world) {
   const imp = world.lastImpact;
   const shakeAge = imp ? world.time - imp.time : Infinity;
   if (shakeAge >= 0 && shakeAge < CAM_SHAKE_TIME) {
-    const amp = shakeAmount(Math.min(1, imp.strength) * CAM_SHAKE_MAX * Math.exp(-shakeAge * 7), { reduceMotion: reducedMotion() });
+    // tuning (#196): een zachte stoel (v.tuning.comfort) dempt de schok
+    const tv = player.inVehicle && player.inVehicle.tuning;
+    const comfort = tv && tv.comfort > 0 ? tv.comfort : 1;
+    const amp = shakeAmount(Math.min(1, imp.strength) * CAM_SHAKE_MAX * Math.exp(-shakeAge * 7), { reduceMotion: reducedMotion() }) / comfort;
     const t = world.time * 47;
     cam.position.x += Math.sin(t) * amp;
     cam.position.y += Math.sin(t * 1.31 + 1.7) * amp * 0.6;
@@ -2683,7 +2692,7 @@ export function update3D(dt, world) {
   applyCameraOverride(dt, world, lookX, lookY, lookZ);
 
   probe.mark('3d:camera');
-  updateSunAndSky(focus, dt);
+  updateSunAndSky(focus, dt, world);
   limitActorShadows(pedMeshes, focus.x, focus.y);
   limitActorShadows(vehicleMeshes, focus.x, focus.y);
   limitActorShadows(wildlifeMeshes, focus.x, focus.y);
@@ -2705,11 +2714,26 @@ export function update3D(dt, world) {
   renderer.shadowMap.autoUpdate = !(menuCover && menuShadowDone) && !shadowPassSkipped(cpuLevel(), shadowFrame++, focusSpeed);
   if (menuCover) menuShadowDone = true;
   if (sizeDirty) applyRenderSize();
+  skipHiddenMatrixWalk();
   postfx.render();
   canvasFrames++;
   renderer.shadowMap.autoUpdate = true;
   probe.mark('3d:render');
   probe.identify(scene);
+}
+
+// three walks the matrices of hidden objects too: the pooled vehicles and
+// people and far wildlife at the top of the scene (~1100 of ~5000 nodes with
+// matrixAutoUpdate) cost ~0.6 us each every frame. A hidden group sits out of
+// that walk and is back in it the frame it shows again (the owners set
+// visible before this runs, just ahead of the render).
+function skipHiddenMatrixWalk() {
+  const kids = scene.children;
+  for (let i = 0; i < kids.length; i++) {
+    const c = kids[i];
+    if (c.isLight || c.isCamera) continue;
+    c.matrixWorldAutoUpdate = c.visible;
+  }
 }
 
 // Every lit material has two program variants: with the night-light rig and
@@ -2722,6 +2746,10 @@ export function update3D(dt, world) {
 // ever switches over. Nothing here blocks on the driver.
 const PREWARM_LAYER = 31;
 const PREWARM_SLICE = 120;
+// once two passes over the scene have found nothing new for this rig variant only a few top-level groups are scanned per frame:
+// the full-speed pass walked every node of the scene every ~3 frames (~0.9 ms per frame)
+const PREWARM_SLICE_QUIET = 12;
+let prewarmFound = 0, prewarmQuiet = 0, prewarmLastVariant = null;
 const PREWARM_WAIT_MS = 20000;
 const PREWARM_POLL_MS = 250;
 const prewarmed = { true: new Set(), false: new Set() };
@@ -2809,6 +2837,7 @@ function queuePrewarm(o, variant) {
     if (!done.has(key)) {
       done.add(key);
       prewarmQueue.push({ proxy: makePrewarmProxy(o, m), variant });
+      prewarmFound++;
     }
     // no depth programs while the preset has shadows off ('laag'): compiling
     // them only competes with the ones that will be drawn
@@ -2818,6 +2847,7 @@ function queuePrewarm(o, variant) {
       if (done.has(dkey)) continue;
       done.add(dkey);
       prewarmQueue.push({ proxy: makePrewarmProxy(o, dm), variant });
+      prewarmFound++;
     }
   }
 }
@@ -2912,9 +2942,10 @@ function drawPrewarmBatch() {
 
 function prewarmLightVariants() {
   const variant = !isLightRigOn();
+  if (variant !== prewarmLastVariant) { prewarmLastVariant = variant; prewarmQuiet = 0; }
   const kids = scene.children;
-  for (let i = 0, n = Math.min(PREWARM_SLICE, kids.length); i < n; i++) {
-    if (prewarmCursor >= kids.length) prewarmCursor = 0;
+  for (let i = 0, n = Math.min(prewarmQuiet >= 2 ? PREWARM_SLICE_QUIET : PREWARM_SLICE, kids.length); i < n; i++) {
+    if (prewarmCursor >= kids.length) { prewarmCursor = 0; prewarmQuiet = prewarmFound ? 0 : prewarmQuiet + 1; prewarmFound = 0; }
     const o = kids[prewarmCursor++];
     if (o !== prewarmRoot) scanForPrewarm(o, variant);
   }
@@ -3169,12 +3200,14 @@ const lightBase = {
 const MOON_COLOR = new THREE.Color(0xdfe6f5);
 const BED_COLOR = new THREE.Color(0x1e2a2c);
 let wetness = 0;
+let lastLight = null; // the clock's lighting of the last frame, read by the cloud layer
 let envTimer = 0;
 const _envGround = new THREE.Color();
 const _envSun = new THREE.Color();
 
 function applyTimeOfDay(dt, world) {
   const L = computeLighting(typeof world.clock === 'number' ? world.clock : 12, lightState);
+  lastLight = L;
   // a cutscene's own grade on top of the clock's (intromontage.js: the dawn shot)
   if (world.lightMood) world.lightMood(L);
   const storm = world.weather ? Math.min(1, Math.max(0, world.weather.intensity)) : 0;
@@ -3244,7 +3277,7 @@ function updateEnvironment(dt) {
 
 // Shadow frustum centred a little ahead of the camera, snapped to whole
 // shadow-map texels in light space so edges don't crawl as the player moves.
-function updateSunAndSky(player, dt) {
+function updateSunAndSky(player, dt, world) {
   // how fast the focus moves: a fast one must not skip shadow passes
   if (focusPrevX !== null && dt > 0) {
     focusSpeed = Math.hypot(player.x - focusPrevX, player.y - focusPrevY) / dt;
@@ -3264,6 +3297,7 @@ function updateSunAndSky(player, dt) {
   sun.target.position.copy(_shadowCenter);
   sun.position.copy(_shadowCenter).addScaledVector(sunDir, SUN_DIST);
   skyDome.position.copy(cam.position);
+  if (lastLight) updateCloudLayer(cloudLayer, cam.position, cam.far, world.weather, lastLight.daylight, lastLight.night, dt);
 }
 
 function buildWildlifeActor(a) {

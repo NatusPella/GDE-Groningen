@@ -22,8 +22,13 @@ export function fitsProfile(profile, world) {
 }
 
 // Multiplier on the search's decay timer while out of sight.
+// A loud, flashy tuned vehicle (v.tuning.opvallend, #196) stays in the
+// police's mind: the same description cools down up to 40% slower.
 export function decayFactor(profile, world) {
-  return fitsProfile(profile, world) ? 1 : MISMATCH_DECAY;
+  if (!fitsProfile(profile, world)) return MISMATCH_DECAY;
+  const v = world && world.player && world.player.inVehicle;
+  const flash = v && v.tuning && v.tuning.opvallend > 0 ? Math.min(1, v.tuning.opvallend) : 0;
+  return 1 - 0.4 * flash;
 }
 
 // The one-off hint while you hide in something that no longer fits the

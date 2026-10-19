@@ -348,7 +348,28 @@ results.routes.census = await safe('census', async () => {
   }
   const matsOut = Object.fromEntries(Object.entries(mats).map(([k, e]) => [k, { meshes: e.meshes, tris: Math.round(e.tris), materials: e.uuids.size, colors: e.colors.size, signatures: Object.entries(e.bySig).sort((a, b) => b[1] - a[1]).slice(0, 12) }]));
   const t0 = performance.now(); for (let i = 0; i < 20; i++) sc.scene.updateMatrixWorld(true); const walk = (performance.now() - t0) / 20;
-  return { total, auto, meshes, visible, top: rows.slice(0, 30), updateMatrixWorldMs: +walk.toFixed(2), batches: matsOut };
+  const t1 = performance.now(); for (let i = 0; i < 40; i++) sc.scene.updateMatrixWorld(false); const walkSoft = (performance.now() - t1) / 40;
+  // which top-level groups never move: local transforms of every node, before and after 4 s of walking
+  const snap = () => { const m = new Map(); const rec = (o) => { m.set(o, [o.position.x, o.position.y, o.position.z, o.quaternion.x, o.quaternion.y, o.quaternion.z, o.quaternion.w, o.scale.x, o.scale.y, o.scale.z, o.visible ? 1 : 0].join(',')); for (const c of o.children) rec(c); }; for (const c of sc.scene.children) rec(c); return m; };
+  const tW = performance.now();
+  mover = (now) => walkFoot(null, (now - tW) / 1000);
+  const s0 = snap(); await sleep(4000); const s1 = snap();
+  mover = null;
+  const stat = [];
+  for (const c of sc.scene.children) {
+    let n = 0, moved = 0, auto = 0;
+    const rec = (o) => { n++; if (o.matrixAutoUpdate) auto++; if (s0.has(o) && s0.get(o) !== s1.get(o)) moved++; for (const k of o.children) rec(k); };
+    rec(c);
+    stat.push({ name: c.name || c.type, kids: c.children.length, n, auto, moved, keys: Object.keys(c.userData || {}).slice(0, 4).join('/'), first: c.children[0] ? (c.children[0].name || c.children[0].type) : '' });
+  }
+  const desc = (o, d = 0) => { const parts = [o.name || o.type, Object.keys(o.userData || {}).slice(0, 3).join('/')]; return d < 3 && o.children[0] ? parts.join(':') + ' > ' + desc(o.children[0], d + 1) : parts.join(':'); };
+  const big = sc.scene.children.map((c, i) => ({ c, q: stat[i] })).filter((x) => x.q.auto >= 40 && x.q.moved === 0).sort((a, b) => b.q.auto - a.q.auto).slice(0, 25).map((x) => [x.q.auto, x.q.kids, +x.c.position.x.toFixed(0), +x.c.position.z.toFixed(0), desc(x.c), x.c.matrixWorldAutoUpdate]);
+  const leafInfo = (c) => { let first = null, uk = new Set(), nm = new Set(); c.traverse((o) => { for (const k of Object.keys(o.userData || {})) uk.add(k); if (o.name) nm.add(o.name); if (o.isMesh && !first) first = o; }); const e = first ? first.matrixWorld.elements : [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]; const wp = { x: e[12], z: e[14] }; return { v: first ? first.geometry.attributes.position.count : 0, mat: first ? first.material.type + (first.material.name ? ':' + first.material.name : '') : '', uk: [...uk].slice(0, 8).join('/'), nm: [...nm].slice(0, 8).join('/'), d: Math.round(Math.hypot(wp.x - p.x, wp.z - p.y)), vis: c.visible }; };
+  const mid = sc.scene.children.map((c, i) => ({ c, q: stat[i] })).filter((x) => x.q.auto >= 25 && x.q.auto < 169 && x.q.moved === 0).map((x) => [x.q.auto, x.q.kids, JSON.stringify(leafInfo(x.c))]);
+  const frozen = stat.filter((q) => q.moved === 0 && q.auto > 0);
+  const sumBy = {};
+  for (const q of frozen) { const k = q.name + '|' + q.keys + '|' + q.first; const e = sumBy[k] || (sumBy[k] = { groups: 0, auto: 0 }); e.groups++; e.auto += q.auto; }
+  return { total, auto, meshes, visible, top: rows.slice(0, 30), updateMatrixWorldMs: +walk.toFixed(2), walkSoftMs: +walkSoft.toFixed(2), batches: matsOut, frozenAuto: frozen.reduce((a, q) => a + q.auto, 0), movingAuto: stat.filter((q) => q.moved > 0).reduce((a, q) => a + q.auto, 0), frozenBy: sumBy, mid, big, moving: stat.filter((q) => q.moved > 0 && q.auto > 20).map((q) => [q.name, q.keys, q.first, q.n, q.auto, q.moved]) };
 });
 // what each top-level scene child costs the renderer (only with PERF_ONLY=cost): CPU time of 30 direct renders with that child hidden, against all visible
 results.routes.cost = await safe('cost', async () => {
@@ -394,6 +415,28 @@ results.routes.spots = await safe('spots', async () => {
     await sleep(600);
   }
   return { names };
+});
+// shader programs compiled while walking (only with PERF_ONLY=progs): when a program is first used the renderer blocks on its link
+results.routes.progs = await safe('progs', async () => {
+  if (!ONLY.includes('progs')) return null;
+  fixWorld(); teleport(FOOT[0][0], FOOT[0][1]); await sleep(6000);
+  const tStart = performance.now();
+  mover = (now) => walkFoot(null, (now - tStart) / 1000);
+  const events = []; let n0 = r.info.programs.length, last = performance.now(), maxGap = 0;
+  const gl = r.getContext();
+  const ext = gl.getExtension('KHR_parallel_shader_compile');
+  await new Promise((res) => {
+    const f = () => {
+      const now = performance.now(), gap = now - last; last = now;
+      const n = r.info.programs.length;
+      if (n !== n0 || gap > 120) events.push({ t: Math.round(now - tStart), gap: Math.round(gap), newProgs: n - n0, names: n !== n0 ? r.info.programs.slice(n0).map((q) => q.name + ':' + String(q.cacheKey).length).join(',') : '' });
+      n0 = n;
+      if (now - tStart > 25000) res(); else requestAnimationFrame(f);
+    };
+    requestAnimationFrame(f);
+  });
+  mover = null;
+  return { parallelCompile: !!ext, programs: r.info.programs.length, events: events.slice(0, 60), stalls: events.filter((e) => e.gap > 120).length, stallMs: events.filter((e) => e.gap > 120).reduce((a, e) => a + e.gap, 0) };
 });
 results.routes.pause = await run('pause', async () => { teleport(...P(100, 77)); await sleep(4000); wantMenu = true; PM.openPauseMenu('game'); return {}; }, () => {}, async () => { wantMenu = false; PM.closePauseMenu(); });
 results.routes.sheet = await run('sheet', async () => { teleport(...P(100, 77)); await sleep(4000); wantMenu = true; PM.openPauseMenu('settings'); return {}; }, () => {}, async () => { wantMenu = false; PM.closePauseMenu(); });

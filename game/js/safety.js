@@ -5,7 +5,7 @@ import { isInWater } from './util.js';
 import { cinematicState, skipCinematic, skipAllCinematics, isCinematicActive } from './cinematics.js';
 import { isPhoneOpen } from './phone.js';
 import { isShopOpen, closeShopMenu } from './shopui.js';
-import { isPauseMenuOpen } from './pausemenu.js';
+import { isPauseMenuOpen } from './pausestate.js';
 import { isMapOpen } from './mapview.js';
 import { isMissionActive, failActiveMission } from './missions.js';
 import { respawnPlayer } from './world.js';

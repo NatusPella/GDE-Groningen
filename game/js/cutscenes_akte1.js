@@ -139,8 +139,7 @@ Object.assign(SPECS, SPECS_AKTE2);
     },
     props: {
       trekker: { kind: 'trekker', at: [8.4, 3.4, 0], face: 0 },
-      aanhanger: { kind: 'aanhanger', at: [4.4, 3.4, 0], face: 0 },
-      automaat: { kind: 'automaat', at: [4.2, 3.4, 0.75], face: 270 },
+      automaat: { kind: 'automaat', at: [5.2, 3.4, 0], face: 270 },
       paal: { kind: 'bord', at: [5.9, 2.2, 0], face: 0 },
       escapade: { kind: 'auto', at: [-3.2, -4.4, 0], face: 80 },
       politie: { kind: 'politie', at: [-60, -6, 0], face: 0 },
@@ -148,22 +147,20 @@ Object.assign(SPECS, SPECS_AKTE2);
     },
     open: [
       { actor: 'durk', hide: true }, { actor: 'douwe', hide: true },
-      // the tractor pulls away, the trailer hooks behind the post and snaps loose
+      // the tractor pulls away, the machine stays behind at the post
       { t: 'L1+0.2', prop: 'trekker', path: [[8.4, 3.4], [90, 3.4]], speed: 3.2 },
       { t: 'L1+0.2', actor: 'durk', walk: [[90, 3.4]], speed: 3.2 },
       { t: 'L1+0.2', actor: 'douwe', walk: [[90, 3.4]], speed: 3.2 },
-      { t: 'L1+0.2', prop: 'aanhanger', path: [[4.4, 3.4], [5.6, 3.4]], speed: 1.6 },
-      { t: 'L1+0.2', prop: 'automaat', path: [[4.2, 3.4, 0.75], [5.4, 3.4, 0.75]], speed: 1.6 },
       ...life.cues,
     ],
     beats: [
       { on: 0, dt: 0.1, actor: 'tessa', walk: [[2.4, 1.6]], speed: 2.4 },
-      { on: 'Douwe. Hij is los', actor: 'tessa', face: 'prop:aanhanger' },
+      { on: 'Douwe. Hij is los', actor: 'tessa', face: 'prop:automaat' },
       { on: 'Moi. Wat is er', dt: -0.6, actor: 'tammo', walk: [[0.2, 1.0]], speed: 3 },
       { on: 'Moi. Wat is er', actor: 'tessa', face: 'actor:tammo' },
       { on: 'Mijn pas zit', actor: 'tessa', anim: 'point' },
       { on: 'Mijn pas zit', dt: 0.4, actor: 'tessa', face: 'prop:automaat' },
-      { on: 'Twee reuzen met', actor: 'tessa', face: 'prop:aanhanger' },
+      { on: 'Twee reuzen met', actor: 'tessa', face: 'prop:automaat' },
       { on: 'In die pas', actor: 'tessa', face: 'actor:tammo' },
       { on: 'In die pas', dt: 0.2, actor: 'tessa', anim: 'hips' },
       { on: 'Dus we pinnen', actor: 'tammo', face: 'prop:automaat' },
@@ -182,8 +179,9 @@ Object.assign(SPECS, SPECS_AKTE2);
     shots: [
       { on: 'Douwe. Hij is los', shot: 'follow', target: 'durk', dist: 3.6, side: 1.2, h: 1.9, fov: 42 },
       { on: 'In die pas', dt: 0.1, shot: 'dolly', from: [-2.2, -2.2, 1.6], to: [-0.6, -1.0, 1.55], look: 'automaat@1', fov: 38 },
+      { on: 'Sjabbe van', dt: 0.1, shot: 'dolly', from: [-3.4, 4.6, 2.2], to: [-1.2, 3.4, 1.9], look: 'mid:tessa,tammo@1', fov: 44 },
     ],
-    wide: { from: [-6, 6, 3.4], to: [-3, 4.4, 2.6], look: 'mid:tessa,aanhanger@1', fov: 50, until: 1 },
+    wide: { from: [-6, 6, 3.4], to: [-3, 4.4, 2.6], look: 'mid:tessa,automaat@1', fov: 50, until: 1 },
   };
 
   SPECS['M02.outro'] = {
