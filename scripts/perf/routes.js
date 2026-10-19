@@ -454,6 +454,56 @@ results.routes.renders = await safe('renders', async () => {
   r.render = prev;
   return { frames, by: [...by].sort((a, b) => b[1] - a[1]).slice(0, 12) };
 });
+// deterministic counts on fixed camera spots (only with PERF_ONLY=det): GL draw calls (main scene and shadow pass), triangles, program switches,
+// geometries and programs, and the CPU time of the scene render call; medians over 60 frames after the batchers have settled
+results.routes.det = await safe('det', async () => {
+  if (!ONLY.includes('det')) return null;
+  const gl = r.getContext();
+  const cnt = { draw: 0, use: 0 };
+  for (const n of ['drawElements', 'drawArrays', 'drawElementsInstanced', 'drawArraysInstanced']) { const o = gl[n].bind(gl); gl[n] = (...a) => { cnt.draw++; return o(...a); }; }
+  { const o = gl.useProgram.bind(gl); gl.useProgram = (q) => { cnt.use++; return o(q); }; }
+  let inShadow2 = false, sh = 0, rec = null;
+  const smR = r.shadowMap.render.bind(r.shadowMap);
+  r.shadowMap.render = (...a) => { const d0 = cnt.draw; inShadow2 = true; try { smR(...a); } finally { inShadow2 = false; sh += cnt.draw - d0; } };
+  const prevR = r.render;
+  r.render = function (s2, c2) {
+    if (s2 !== sc.scene || !rec) return prevR.call(r, s2, c2);
+    sh = 0; const d0 = cnt.draw, u0 = cnt.use, t0 = performance.now();
+    const out = prevR.call(r, s2, c2);
+    const ms = performance.now() - t0;
+    rec.push({ draws: cnt.draw - d0, shadow: sh, tris: r.info.render.triangles, uses: cnt.use - u0, ms });
+    return out;
+  };
+  const med = (a, k) => { const v = a.map((x) => x[k]).sort((x, y) => x - y); return +v[v.length >> 1].toFixed(2); };
+  const spots = [['stad-markt', FOOT[0][0], FOOT[0][1], 0.3], ['stad-straat', FOOT[3][0], FOOT[3][1], 1.9], ['a7-tussen', (A7[1][0] + A7[2][0]) / 2, (A7[1][1] + A7[2][1]) / 2, 0.5], ['dorp-winsum', ...placeAt('Winsum'), 2.2]];
+  const out = {};
+  for (const [name, x, y, yaw] of spots) {
+    teleport(x, y); w.camYaw = yaw; p.angle = yaw;
+    await sleep(8000); fixWorld();
+    // settled: no batch built for 3 s (at most 40 s)
+    { const builds = () => { const b = sc.batches(); return Object.values(b).reduce((a, x) => a + x.builds + x.dropped, 0); }; let last = builds(), still = 0; for (let i = 0; i < 80 && still < 6; i++) { await sleep(500); const n = builds(); still = n === last ? still + 1 : 0; last = n; } }
+    rec = []; diag.clear(); if (window.__perfDiag) H.recording = true;
+    await new Promise((res) => { const f = () => { if (rec.length >= 60) res(); else requestAnimationFrame(f); }; requestAnimationFrame(f); });
+    const rr = rec; rec = null; H.recording = false;
+    const ownersAll = [...diag].sort((a, b) => b[1] - a[1]).map(([k, v]) => [k, +(v / rr.length).toFixed(1)]); const owners = ownersAll;
+    const staticDraws = Math.round(ownersAll.filter(([k]) => !k.startsWith('u:') && !k.startsWith('[sh] u:') || k.includes('isTerrain')).reduce((a, [, v]) => a + v, 0));
+    out[name] = { staticDraws, batches: sc.batches(), actors: [w.vehicles.length, w.pedestrians.length], draws: med(rr, 'draws'), shadow: med(rr, 'shadow'), tris: med(rr, 'tris'), uses: med(rr, 'uses'), renderMs: med(rr, 'ms'), geometries: r.info.memory.geometries, programs: r.info.programs.length, owners: owners.slice(0, 60) };
+  }
+  r.render = prevR;
+  return out;
+});
+// top-level loose meshes of the scene by kind (only with PERF_ONLY=topmesh)
+results.routes.topmesh = await safe('topmesh', async () => {
+  if (!ONLY.includes('topmesh')) return null;
+  fixWorld(); teleport(FOOT[3][0], FOOT[3][1]); await sleep(15000);
+  const by = {};
+  for (const c of sc.scene.children) {
+    if (!c.isMesh && !c.isPoints && !c.isSprite && !c.isLine) continue;
+    const k = c.type + '/' + (c.geometry ? c.geometry.type : '') + '/' + (c.material && c.material.type) + '/' + Object.keys(c.userData || {}).slice(0, 3).join(',') + '/' + (c.name || '') + (c.material && c.material.transparent ? '/transp' : '');
+    const e = by[k] || (by[k] = { n: 0, vis: 0, verts: 0 }); e.n++; if (c.visible) e.vis++; e.verts = c.geometry && c.geometry.attributes.position ? c.geometry.attributes.position.count : 0;
+  }
+  return Object.entries(by).sort((x, y) => y[1].vis - x[1].vis).slice(0, 25);
+});
 results.routes.pause = await run('pause', async () => { teleport(...P(100, 77)); await sleep(4000); wantMenu = true; PM.openPauseMenu('game'); return {}; }, () => {}, async () => { wantMenu = false; PM.closePauseMenu(); });
 results.routes.sheet = await run('sheet', async () => { teleport(...P(100, 77)); await sleep(4000); wantMenu = true; PM.openPauseMenu('settings'); return {}; }, () => {}, async () => { wantMenu = false; PM.closePauseMenu(); });
 
