@@ -113,14 +113,14 @@ function packWorld() {
     fs.rmSync(cache, { recursive: true, force: true });
     const t = Date.now();
     const r = spawnSync(process.execPath, [packer, '--game', SRC, '--out', cache], { stdio: 'inherit', cwd: root });
-    if (r.status) { fs.rmSync(cache, { recursive: true, force: true }); throw new Error('packing the map tiles failed'); }
+    if (r.status !== 0) { fs.rmSync(cache, { recursive: true, force: true }); throw new Error('packing the map tiles failed'); }
     if (corInputs.length) {
       const c = spawnSync(process.execPath, [corridor, '--out', cache, '--city', path.join(cache, 'index.json')], { stdio: 'inherit', cwd: root });
-      if (c.status) { fs.rmSync(cache, { recursive: true, force: true }); throw new Error('building the corridor tiles failed'); }
+      if (c.status !== 0) { fs.rmSync(cache, { recursive: true, force: true }); throw new Error('building the corridor tiles failed'); }
     }
     if (provDirs.length) {
       const c = spawnSync(process.execPath, [province, '--out', cache, '--city', path.join(cache, 'index.json'), ...(VIADUCTS ? ['--viaducts'] : [])], { stdio: 'inherit', cwd: root });
-      if (c.status) { fs.rmSync(cache, { recursive: true, force: true }); throw new Error('building the province tiles failed'); }
+      if (c.status !== 0) { fs.rmSync(cache, { recursive: true, force: true }); throw new Error('building the province tiles failed'); }
     }
     for (const d of fs.readdirSync(WCACHE)) if (path.join(WCACHE, d) !== cache) fs.rmSync(path.join(WCACHE, d), { recursive: true, force: true });
     console.log(`packed the map tiles in ${((Date.now() - t) / 1000).toFixed(0)} s`);
