@@ -50,7 +50,7 @@ t('onbekende soorten van een nieuwere host worden genegeerd', () => {
 t('opdracht-bericht: alleen bij verandering; begin en einde; gast controleert wat binnenkomt', () => {
   let huidig = null;
   const pub = { phase: 'active', label: 'Berend telt de krassen', type: 'delivery', index: 3 };
-  let r = W.missieBericht(huidig, pub); assert.deepEqual(r.event, { k: 'missie', actief: true, label: 'Berend telt de krassen', type: 'delivery', index: 3 }); huidig = r.huidig;
+  let r = W.missieBericht(huidig, pub); assert.deepEqual(r.event, { k: 'missie', actief: true, label: 'Berend telt de krassen', type: 'delivery', index: 3, stap: '' }); huidig = r.huidig;
   assert.equal(W.missieBericht(huidig, pub).event, null, 'geen herhaling');
   r = W.missieBericht(huidig, { phase: 'idle' }); assert.deepEqual(r.event, { k: 'missie', actief: false }); assert.equal(r.huidig, null);
   assert.equal(W.missieBericht(null, { phase: 'idle' }).event, null);
