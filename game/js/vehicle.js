@@ -2560,6 +2560,8 @@ export function resolveVehicleVehicleCollisions(vehicles, world = null) {
       // wrecks are solid, heavy obstacles; two wrecks never interact
       // a boat and a car only ever share x/y with a bridge deck between them
       if (b.sinking || (a.wrecked && b.wrecked) || !a.isBoat !== !b.isBoat) continue;
+      // two far cars the simulation worker drives keep their own gaps (simbridge.js)
+      if (a._wid && b._wid) continue;
       // a helicopter in the air passes over everything
       if ((a.isHeli && !a.onGround) || (b.isHeli && !b.onGround)) continue;
       // one on the viaduct, the other on the street below (or in the cutting)

@@ -59,6 +59,7 @@ export const FLAGS = Object.freeze({
   marker: val('marker'),
   hitch: has('hitch'),
   simlagen: !has('zonderlagen'),
+  simauto: has('simauto'),
   zwartcheck: has('zwartcheck'),
   // on by default (#219); off in the automated tests, which cannot answer the prompt, and with ?zonderreizen
   reizen: has('reizen') || !(has('zonderreizen') || STORY_TEST || AUTOPLAY),
@@ -102,6 +103,7 @@ export const FLAG_DOCS = Object.freeze({
   stadlaag: 'Welke stadslagen uit de tegelbouw komen (lagen gescheiden door komma, of alle)',
   touch: 'Raakbediening aan (touch=1) of uit (touch=0), ook zonder touchscherm',
   hitch: 'Meet haperingen (hitchprobe)',
+  simauto: "Ook gewone auto's ver van de speler door de simulatieworker laten rijden (simbridge.js, #58); alleen met de worker aan; nog niet standaard tot de meting winst laat zien",
   simlagen: 'Standaard aan; ?zonderlagen zet uit. Verkeer en voetgangers volgens simulatielagen per streek en afstand (simlagen.js)',
   zwartcheck: 'Controleer op zwarte beelden (blackframe)',
   testmenu: 'Testmenu op F10 met alle schakelaars en snelkoppelingen; eigen opslag (gde-dev:), raakt je echte spelstand niet',
