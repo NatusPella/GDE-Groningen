@@ -113,5 +113,9 @@ const friends = fj.stages.find((q) => q.kind === 'choice' && /vrienden/.test(q.k
 for (const combo of [['1', '1', '1', '1'], ['2', '2', '2', '2'], ['3', '3', '3', '3'], ['1', '2', '3', '1']]) ok(run(friends, combo).r === 'done', `friends: ${combo.join('')} always ends the mission, never a fail`);
 ok(friends.rounds.length === 4 && friends.rounds.every((r) => r.options.every((o) => o.ok !== false || o.reply)), 'friends: four friends, every answer has a reply');
 
+// the M20 duel ends in the real pole vault (missionstory.playDuelJump, missions.js timing stage)
+ok(mine.some((d) => d.stages.some((q) => q.kind === 'timing' && q.vaultJump)), 'M20: the duel timing stage has vaultJump');
+const ms = fs.readFileSync(new URL('js/missionstory.js', root), 'utf8');
+ok(/export function playDuelJump/.test(ms) && /playDuelJump/.test(src), 'playDuelJump exists and missions.js uses it');
 console.log(`${n - fails}/${n} akte 4 checks passed`);
 process.exit(fails ? 1 : 0);

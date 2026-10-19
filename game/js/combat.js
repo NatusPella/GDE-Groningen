@@ -14,6 +14,7 @@ import { updateAim, aimFireAngle, aimedTargetDistance } from './aimassist.js';
 import { scopeShot } from './scopeaim.js';
 import { propsInRadius } from './breakables.js';
 import { getSettings } from './settings.js';
+import { assistDamage } from './assistlive.js';
 import { squirtWater, throwExplosive, updateThrowables } from './throwables.js';
 
 export { WEAPONS, WEAPON_KEYS, isMeleeWeapon, isRangedWeapon, isGunWeapon };
@@ -487,6 +488,7 @@ function hitPlayer(world, b) {
 }
 
 export function damagePlayer(world, damage) {
+  damage = assistDamage(damage); // Hulp (#215): minder schade bij kogels, klappen en wegpiraten
   if (world.armor > 0) {
     const absorbed = Math.min(world.armor, damage);
     world.armor -= absorbed;

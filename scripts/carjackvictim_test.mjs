@@ -64,5 +64,33 @@ check('regels komen één keer per fase', (() => { const v = C.createVictim(sBac
     check(`hoek ${angle}: hij beweegt alleen naar buiten`, mono);
   }
 }
+// terugkomen bij een achtergelaten auto
+{
+  const run = (ctx, wants = true) => {
+    const v = C.createVictim(1); v.wantsBack = wants;
+    let reclaim = false, ret = false, phase = '';
+    for (let i = 0; i < 700; i++) {
+      const c = typeof ctx === 'function' ? ctx(i) : ctx;
+      const o = C.stepVictim(v, 0.1, c);
+      if (o.move === 'return') ret = true;
+      if (o.reclaim) reclaim = true;
+      phase = o.phase;
+      if (phase === 'done') break;
+    }
+    return { reclaim, ret, phase };
+  };
+  const vrij = { dCar: 20, carSpeed: 0, carFree: true };
+  const r1 = run(vrij);
+  check('achtergelaten auto dichtbij: hij loopt terug (en geeft op als hij er niet komt)', r1.ret && !r1.reclaim && r1.phase === 'done', JSON.stringify(r1));
+  const r2 = run({ dCar: 20, carSpeed: 0, carFree: false });
+  check('auto nog in gebruik: hij blijft weg', !r2.ret && !r2.reclaim);
+  const r3 = run({ dCar: 80, carSpeed: 0, carFree: true });
+  check('auto te ver weg: hij laat het zitten', !r3.ret);
+  const r4 = run(vrij, false);
+  check('wie niet terug wil, komt ook niet terug', !r4.ret && !r4.reclaim);
+  const r5 = run((i) => ({ dCar: Math.max(1.2, 30 - i * 0.2), carSpeed: 0, carFree: true }));
+  check('bij de auto aangekomen stapt hij in', r5.reclaim);
+  check('terugkomregels zijn tekst', C.VICTIM_LINES.back.every((l) => typeof l === 'string' && l.length > 5));
+}
 console.log(bad ? `${bad}/${n} mislukt` : `${n}/${n} ok`);
 process.exit(bad ? 1 : 0);
