@@ -63,6 +63,32 @@ async function findBridge(name, x, y, want) {
   return null;
 }
 
+// --only=nat: de water-oversteken van de verhaaltest (ringcheck.driveWaterCrossings) in de echte wereld
+if ((CFG.only || '') === 'nat') {
+  const RC = await imp('ringcheck');
+  const wet = await RC.driveWaterCrossings(world);
+  const by = {};
+  for (const f of wet.fails) { const k = `${f.route}@${f.at}`; (by[k] = by[k] || []).push(f); }
+  const list = Object.entries(by).map(([k, l]) => `${k} x${l.length} ${l[0].what} z${l[0].z} op ${l[0].x},${l[0].y}`);
+  B.log('nat', { drives: wet.drives, fails: wet.fails.length, list });
+  return JSON.stringify({ result: 'KLAAR', reason: `${wet.drives} oversteken, ${wet.fails.length} mislukt`, list });
+}
+// --only=probe: wat de wereld op een paar plekken zegt (bruggen, water, wegen)
+if ((CFG.only || '') === 'probe') {
+  const WL = await imp('waterlevels');
+  const res = [];
+  for (const [x, y] of [[-455, 752], [-536, 696], [1896, -732], [2146, -768], [1008, -3457], [-1544, 758]]) {
+    const m = world.map;
+    const roads = m.roadsNear(x, y, 12).map((r) => ({ n: r.name || '', t: r.type, c: r.cat, br: !!r.bridge, tn: !!r.tunnel, mv: r.movable || '', open: !!r._open, z: !!r.z, osm: r.osm, w: r.width, dry: !!r.dry, pts: r.pts.length }));
+    const wp = WL.waterPolyAt(m, x, y);
+    const MD = await imp('mapdata');
+    const cand = m.roadsNear(x, y, 12).filter((r) => !r.bridge && (r.cat === 'major' || r.cat === 'normal'));
+    const dry = cand.map((r) => ({ osm: r.osm, dryFlag: !!r.dryCrossing, nowMarks: MD.markDryRoad(m, JSON.parse(JSON.stringify({ ...r, bounds: undefined, _deck: undefined })) ) }));
+    res.push({ wk: wp && Object.keys(wp).join(','), wpts: wp && wp.pts.length, wb: wp && wp.bounds, dry, x, y, onBridge: m.isOnBridge(x, y), water: !!wp, waterKind: wp && wp.kind, flat: !!(wp && wp.flat), roads });
+  }
+  B.log('probe', { res });
+  return JSON.stringify({ result: 'KLAAR', reason: 'probe', res });
+}
 const out = [];
 const ONLY = (CFG.only || '').split(',').filter(Boolean);
 for (const [name, x0, y0, kind, want] of TARGETS) {
