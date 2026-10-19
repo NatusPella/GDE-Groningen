@@ -7,6 +7,8 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Nieuw
+- **Elke profielstad heeft nu een garage, schuilplaats, bijbaanbord en racebord (nog niet in beeld bekeken, #67):** in Delfzijl, Appingedam, Veendam, Winschoten, Hoogezand-Sappemeer, Leek, Uithuizen, Stadskanaal, Zoutkamp en Winsum staan in het centrum borden met verzonnen namen die iets zeggen als je erlangs loopt. Het zijn borden met een tekst; de bijbaan en race zelf zijn er nog niet.
+- **Koplampen bij regen en mist (nog niet in beeld bekeken, #19):** auto's zetten overdag hun lampen aan bij regen of dichte mist, met een zachte overgang (`weerlook.koplampenFactor`, test groen).
 - **Samen spelen: gedeelde speelklok en desync-controle (#95):** de tijd van de dag van een gast volgt die van de host, en de host controleert om de paar seconden of de gast hetzelfde ziet (verhaalstap, opdracht, wanted, spelers); bij een afwijking vraagt de gast zijn toestand opnieuw. Alleen met pure tests en in-memory getest, nog niet getest met twee echte computers of met een telefoon.
 - **Spelbot (#186, #255):** `--speed=N` speelt tot 8 spelstappen per beeld; de minigame-ronde stopt zelf op de echte-tijdbegroting en bij een vastgelopen speltijd, en bewaart bij een onderbreking de uitvoer (`run.log`, `result.json` met de lijst minigames).
 - **Rottum en Schiermonnikoog als randen (nog niet in beeld bekeken, #6):** de kustketens rond Rottumeroog en Rottumerplaat sturen je terug met een bord "verboden natuur" en zeehonden op de plaat; rond Schiermonnikoog vaart de veerboot dwars voor je langs. Alleen getest op de logica (`randaudit_test`), niet in het spel.
