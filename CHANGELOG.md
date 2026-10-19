@@ -61,6 +61,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 - **Nieuwe verhaaldelen:** reisbeats in het nieuwe verhaal (meerijden, zelf rijden of overslaan bij een lange sprong, met aankomsttijd; nog achter een schakelaar) en een lokale co-op voor twee spelers (nog achter een schakelaar). De thuisavonden en de huisopening zijn opnieuw geregisseerd, met acteurs die lopen, gebaren en kijken.
 
 ### Opgelost
+- **Bussen rijden hun lijn (nog niet in beeld bekeken):** als er een echte buslijn in de buurt is, zijn de bussen om je heen die van die lijnen (meerdere lijnen per plek) en niet meer willekeurige bussen op de hoofdwegen (#80).
 - **Plaatsnaamborden op de grens van het bebouwde gebied (nog niet in beeld bekeken):** de afstand van het bord tot het dorpscentrum volgt nu uit het aantal inwoners (een geschatte straal) in plaats van één vaste afstand per soort. Echte bebouwde-komgrenzen blijven een schatting (#73).
 - **Dubbele voertuigen (nog niet in beeld bekeken):** een voertuig dat tweemaal in de lijst staat of twee identieke voertuigen op één plek (bijvoorbeeld een busje van een missie dat dubbel gespawnd is) worden samengevoegd, zodat een botsing er geen drie busjes van maakt. De oorzaak van de melding is niet gereproduceerd (#211).
 - **Rijstrookstrepen bij wisselend aantal stroken (nog niet in beeld bekeken):** waar een weg meer rijstroken heeft dan de weg waarmee hij doorloopt, buigt de overtollige strook over 35 m naar de streep van de andere weg in plaats van abrupt te stoppen (#130).
