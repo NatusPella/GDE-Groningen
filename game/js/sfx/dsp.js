@@ -802,6 +802,7 @@ export function createBank(ctx, { sync = false } = {}) {
     warm(names) { for (const n of names) request(n); },
     pending() { return pending.size; },
     size() { return cache.size; },
+    has(name) { return cache.has(name); },
     close() { if (worker) worker.terminate(); worker = null; },
   };
 }

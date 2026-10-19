@@ -14,6 +14,8 @@ const skipper = setInterval(() => { if (cine.isCinematicActive()) cine.skipCinem
 await sleep(Number(window.__sl.settle || 15000));
 const tap = () => window.__qaAudio;
 const win = (t0, t1) => tap().rms.filter((r) => r.t >= t0 && r.t <= t1);
+const AU = await import('/js/audio.js');
+console.log('[sl-stats] ' + JSON.stringify(AU.sfxStats()));
 const results = [];
 const only = window.__sl.only;
 for (const e of L.FX_LIST) {
@@ -36,5 +38,6 @@ for (const e of L.FX_LIST) {
   results.push({ id: e.id, group: e.group, label: e.label, peak, rms, bRms: Math.round(bRms * 1e4) / 1e4, bPeak, n: m.length, started });
   console.log('[sl] ' + JSON.stringify(results[results.length - 1]));
 }
+const stats = AU.sfxStats();
 clearInterval(skipper);
-return JSON.stringify({ results });
+return JSON.stringify({ results, stats });
