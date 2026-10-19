@@ -7,6 +7,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Nieuw
+- **Voetgangers die wegtrekken blijven bestaan (nog niet in beeld bekeken, #18):** wie uit beeld wordt weggehaald, blijft als getal per cel in de abstracte laag (`AbstractPool`); komt je terug in de buurt, dan verschijnen die mensen weer in hun eigen cel. Niet getest in het spel, alleen `simlagen_test` en een syntaxcheck.
 - **Elke profielstad heeft nu een garage, schuilplaats, bijbaanbord en racebord (nog niet in beeld bekeken, #67):** in Delfzijl, Appingedam, Veendam, Winschoten, Hoogezand-Sappemeer, Leek, Uithuizen, Stadskanaal, Zoutkamp en Winsum staan in het centrum borden met verzonnen namen die iets zeggen als je erlangs loopt. Het zijn borden met een tekst; de bijbaan en race zelf zijn er nog niet.
 - **Koplampen bij regen en mist (nog niet in beeld bekeken, #19):** auto's zetten overdag hun lampen aan bij regen of dichte mist, met een zachte overgang (`weerlook.koplampenFactor`, test groen).
 - **Samen spelen: gedeelde speelklok en desync-controle (#95):** de tijd van de dag van een gast volgt die van de host, en de host controleert om de paar seconden of de gast hetzelfde ziet (verhaalstap, opdracht, wanted, spelers); bij een afwijking vraagt de gast zijn toestand opnieuw. Alleen met pure tests en in-memory getest, nog niet getest met twee echte computers of met een telefoon.
