@@ -33,7 +33,7 @@ for (const S of cfg.plekken) {
     const ref = refImg ? L.measure(refImg) : null;
     const vlaggen = L.judge(c, m, ref, S.soort);
     if (c.weer === 'helder' && (c.tijd === 'middag' || c.tijd === 'nacht')) {
-      const means = [img, load(`${name}-b`), load(`${name}-c`)].filter(Boolean).map((i) => L.exposure(i).mean);
+      const means = [img, load(`${name}-b`)].filter(Boolean).map((i) => L.exposure(i).mean);
       m.flikker = Math.round(L.flicker(means) * 10) / 10;
       if (m.flikker > 6) vlaggen.push(`flikker: helderheid springt ${m.flikker} tussen opeenvolgende beelden`);
     }
