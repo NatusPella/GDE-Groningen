@@ -64,7 +64,9 @@ async function findBridge(name, x, y, want) {
 }
 
 const out = [];
+const ONLY = (CFG.only || '').split(',').filter(Boolean);
 for (const [name, x0, y0, kind, want] of TARGETS) {
+  if (ONLY.length && !ONLY.some((o) => name.includes(o))) continue;
   const rep = { name, kind, found: false };
   out.push(rep);
   try {
@@ -81,19 +83,23 @@ for (const [name, x0, y0, kind, want] of TARGETS) {
     const ux1 = b[0] - P[P.length - 2][0], uy1 = b[1] - P[P.length - 2][1], l1 = Math.hypot(ux1, uy1) || 1;
     const way = [[a[0] - ux0 / l0 * 35, a[1] - uy0 / l0 * 35], a, b, [b[0] + ux1 / l1 * 35, b[1] + uy1 / l1 * 35]];
     teleport(way[0][0], way[0][1]);
-    await sleep(1200);
+    for (let k = 0; k < 80 && B.status().blocking.loading; k++) await sleep(250);
+    await sleep(2500);
     const ang = Math.atan2(uy0, ux0);
     const v = V.spawnVehicleOnRoad(world.map, road, false, Math.random, false, false, { x: a[0], y: a[1] });
-    v.x = way[0][0]; v.y = way[0][1]; v.angle = ang; v.speed = 0; v.z = 0; v.driver = 'player';
+    v.x = way[0][0]; v.y = way[0][1]; v.angle = ang; v.speed = 0; v.z = 0; v.road = null;
     if (!world.vehicles.includes(v)) world.vehicles.push(v);
     player.enterVehicle(v, world);
+    rep.entered = player.inVehicle === v;
     const tag = `brug-${out.length}-${name.replace(/[^\w]+/g, '_')}`;
     shot(`${tag}-voor`);
     const follower = new L.PathFollower(way, { reach: 5 });
     const wedge = new L.WedgeDetector();
     const t0 = B.time();
     let last = null, maxJump = 0, minGap = 0, sunk = false, samples = 0, shotMid = false, done = false, maxZseen = 0;
-    while (B.time() - t0 < 90) {
+    let dbg = false;
+    while (B.time() - t0 < (CFG.perS || 60)) {
+      if (!dbg && B.time() - t0 > 4) { dbg = true; B.log('dbg', { blocking: B.status().blocking, speed: v.speed, thr: v.throttle, steer: v.steer, axis: B.input.padAxis, inV: player.inVehicle === v, wrecked: v.wrecked, paused: world.paused, driver: v.driver, x: v.x, y: v.y }); }
       const me = { x: v.x, y: v.y };
       const aim = follower.next(me);
       if (!aim) { done = true; break; }
