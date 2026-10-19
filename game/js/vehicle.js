@@ -216,9 +216,9 @@ export class Vehicle {
   }
 
   // Pedal bike (player only): Ctrl held while pedalling lifts the front wheel (bewegingrules.js, #207).
-  rideFiets(dt, throttle, top) {
+  rideFiets(dt, throttle, top, brake = 0) {
     const w = this.wheelieState || (this.wheelieState = createWheelie());
-    stepWheelie(w, { trick: !!this.trick && !this.disabled, throttle, speed: this.speed, top, dt });
+    stepWheelie(w, { trick: !!this.trick && !this.disabled, throttle, brake, speed: this.speed, top, dt });
     this.pitch = w.pitch;
     this.wheelie = w.up;
     if (w.up) this.speed *= w.slow;
@@ -348,7 +348,7 @@ export class Vehicle {
       }
     }
 
-    if (isPlayer && this.isBike && !m.motorbike) this.rideFiets(dt, throttle, top);
+    if (isPlayer && this.isBike && !m.motorbike) this.rideFiets(dt, throttle, top, brake);
     if (isPlayer && m.motorbike) this.rideMotorbike(dt, throttle, gb, top, absSpeed, normalizeAngle(this.angle - oldAngle) / (dt || 1));
 
     this.x += Math.cos(this.angle) * this.speed * dt;
