@@ -632,14 +632,73 @@ function buildBlobShadowTexture() {
   return new THREE.CanvasTexture(c);
 }
 
+// Every blob is one quad of ONE dynamic mesh (blobBatch): the per-actor
+// meshes stay in the scene as the place and the visibility flag the rest of
+// the code already sets, but sit on layer 1, which the camera does not draw.
+// Before, each person, bird and car drew its own blob (30 transparent draw
+// calls in the centre).
+const BLOB_MAX = 384;
+const blobShadows = new Set();
+let blobBatch = null;
+const _blobV = new THREE.Vector3();
+
 function addBlobShadow(parent, sx, sz, x = 0) {
   const shadow = new THREE.Mesh(BLOB_SHADOW_GEO, BLOB_SHADOW_MAT);
   shadow.position.set(x, 0.02, 0);
   shadow.scale.set(sx, 1, sz);
   shadow.renderOrder = 1;
+  shadow.layers.set(1);
   parent.add(shadow);
   parent.userData.shadow = shadow;
+  blobShadows.add(shadow);
   return shadow;
+}
+
+function updateBlobBatch() {
+  if (!blobBatch) {
+    const pos = new Float32Array(BLOB_MAX * 12), uv = new Float32Array(BLOB_MAX * 8), idx = new Uint16Array(BLOB_MAX * 6);
+    const tu = BLOB_SHADOW_GEO.attributes.uv.array;
+    for (let i = 0; i < BLOB_MAX; i++) {
+      uv.set(tu, i * 8);
+      for (let k = 0; k < 6; k++) idx[i * 6 + k] = BLOB_SHADOW_GEO.index.array[k] + i * 4;
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3).setUsage(THREE.DynamicDrawUsage));
+    geo.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+    geo.setIndex(new THREE.BufferAttribute(idx, 1));
+    const mesh = new THREE.Mesh(geo, BLOB_SHADOW_MAT);
+    mesh.frustumCulled = false;
+    mesh.renderOrder = 1;
+    mesh.matrixAutoUpdate = false;
+    mesh.name = 'blobshadows';
+    scene.add(mesh);
+    blobBatch = mesh;
+  }
+  const pos = blobBatch.geometry.attributes.position.array;
+  const tp = BLOB_SHADOW_GEO.attributes.position.array;
+  let n = 0;
+  for (const s of blobShadows) {
+    // alive and drawn: every ancestor visible, up to the scene
+    let o = s, shown = true;
+    while (o.parent) { if (!o.visible) shown = false; o = o.parent; }
+    if (o !== scene) {
+      // not in the scene (yet, or any more): forgotten after a while
+      s.userData.blobMiss = (s.userData.blobMiss || 0) + 1;
+      if (s.userData.blobMiss > 600) blobShadows.delete(s);
+      continue;
+    }
+    s.userData.blobMiss = 0;
+    if (!shown || !s.visible || n >= BLOB_MAX) continue;
+    s.updateWorldMatrix(true, false);
+    for (let k = 0; k < 4; k++) {
+      _blobV.set(tp[k * 3], tp[k * 3 + 1], tp[k * 3 + 2]).applyMatrix4(s.matrixWorld);
+      pos[(n * 4 + k) * 3] = _blobV.x; pos[(n * 4 + k) * 3 + 1] = _blobV.y; pos[(n * 4 + k) * 3 + 2] = _blobV.z;
+    }
+    n++;
+  }
+  blobBatch.geometry.setDrawRange(0, n * 6);
+  blobBatch.geometry.attributes.position.needsUpdate = true;
+  blobBatch.visible = n > 0;
 }
 
 function buildVehicleActor(v) {
@@ -2705,6 +2764,7 @@ export function update3D(dt, world) {
   renderer.shadowMap.autoUpdate = !(menuCover && menuShadowDone) && !shadowPassSkipped(cpuLevel(), shadowFrame++, focusSpeed);
   if (menuCover) menuShadowDone = true;
   if (sizeDirty) applyRenderSize();
+  updateBlobBatch();
   postfx.render();
   canvasFrames++;
   renderer.shadowMap.autoUpdate = true;
