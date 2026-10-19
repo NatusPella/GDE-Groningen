@@ -230,3 +230,30 @@ defSample('bus_door_hiss', 1.3, (c, sr, R) => {
   nb(d, sr, 0, R, { f: 6200, q: 1.5, tau: 0.25, amp: 0.4, attack: 0.04, len: 1.0 });
   thump(d, sr, 0.9, 90, 0.05, 0.5);
 }, { rate: 22050, peak: 0.6 });
+
+// Locks (issues #173, x4-sluizen): the gates groan open and shut, the chamber
+// fills or empties with rushing water. Linked in sfx/linkups.js (rule 'sluis')
+// from the state of sluizen.js.
+FX_INFO.sluis_poort = { cat: 'brug', label: 'Sluis: poort kreunt en klinkt', gain: 0.7, ref: 12, range: 220 };
+FX_INFO.sluis_stroom = { cat: 'water', label: 'Sluis: water stroomt', gain: 0.6, ref: 12, range: 200 };
+
+defSample('sluis_poort', 3.2, (c, sr, R) => {
+  const d = c[0], f = 62 + R() * 8;
+  // heavy gate: a low groan that wanders, creaking joints, then the clunk of the stop
+  addTone(d, sr, 0, 2.6, R, { f0: f, f1: f * 1.35, amp: 0.7, attack: 0.3, release: 0.6, shape: 'saw', vib: 0.05, vibRate: 7 });
+  addTone(d, sr, 0.2, 2.2, R, { f0: f * 2.7, f1: f * 2.1, amp: 0.25, attack: 0.4, release: 0.6, shape: 'rich', vib: 0.08, vibRate: 11 });
+  for (let k = 0; k < 9; k++) addTone(d, sr, 0.3 + R() * 2.1, 0.12, R, { f0: 380 + R() * 500, f1: 260 + R() * 300, amp: 0.15, attack: 0.01, release: 0.08, shape: 'saw', vib: 0.1, vibRate: 30 });
+  thump(d, sr, 2.7, 58, 0.12, 1.2);
+  nb(d, sr, 2.7, R, { f: 900, q: 1.2, tau: 0.04, amp: 0.8 });
+  const lp = bq('lp', 700, 0.7, sr);
+  for (let i = 0; i < d.length; i++) d[i] = lp.run(d[i]) * 1.4;
+}, { rate: 22050, peak: 0.85 });
+
+defSample('sluis_stroom', 6, (c, sr, R, len) => {
+  const d = c[0], lp = bq('lp', 900, 0.7, sr), hp = bq('hp', 3000, 0.7, sr);
+  for (let i = 0; i < d.length; i++) {
+    const t = i / sr, e = Math.min(1, t / 0.8) * Math.min(1, (len - t) / 1.2);
+    const n = R() * 2 - 1, w = 1 + 0.35 * Math.sin(t * 2.3) + 0.2 * Math.sin(t * 5.1);
+    d[i] = (lp.run(n) * 0.9 * w + hp.run(n) * 0.18 * w * w) * e;
+  }
+}, { rate: 22050, peak: 0.7 });
