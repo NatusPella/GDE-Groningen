@@ -163,7 +163,7 @@ while (true) {
       B.stick(0, 0);
       await sleep(900);
       B.log('bak', { recipe: bst.recipe, rounds: bst.rounds || 1 });
-      for (let r = 0; r < (bst.rounds || 1); r++) for (const id of order) { await B.press(BAKE_KEYS[id], 60); await sleep(350); }
+      for (let r = 0; r < (bst.rounds || 1); r++) for (const id of order) { await B.press(BAKE_KEYS[id], 110); await sleep(350); }
       await sleep(1200);
       detector.hold(s.t);
       continue;
