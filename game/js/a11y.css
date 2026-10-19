@@ -120,3 +120,15 @@ html.reduce-flash :is(#intro-montage .im-flash, #trailer .tr-flash, #hud .hud-fl
 #pause-menu .pm-csub[data-sub="hulp"]:not([hidden]) { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 #pause-menu .pm-csub[data-sub="hulp"] > .m-main { flex: 1; min-height: 0; padding-top: 32px; }
 #pause-menu .pm-hline { margin: 4px 0; line-height: 1.5; }
+
+/* schermtoetsenbord voor de controller (padkeyboard.js, #151) */
+#padkeyboard { position: fixed; inset: auto 0 0 0; z-index: 99998; display: flex; justify-content: center; padding: 12px; pointer-events: none; }
+#padkeyboard .pk-box { pointer-events: auto; width: min(760px, 96vw); padding: 12px; border-radius: 14px; background: #17201a; border: 1px solid #3a4a3e; color: #f0ede4; font: 16px system-ui, sans-serif; box-shadow: 0 8px 32px rgba(0, 0, 0, .5); }
+#padkeyboard .pk-val { min-height: 1.6em; margin-bottom: 8px; padding: 6px 10px; border-radius: 8px; background: #0e1510; font-size: 20px; word-break: break-all; }
+#padkeyboard .pk-row { display: flex; gap: 6px; margin-bottom: 6px; justify-content: center; }
+#padkeyboard button { flex: 1 1 0; min-width: 0; min-height: 44px; padding: 0 4px; border-radius: 8px; border: 1px solid #3a4a3e; background: #223026; color: inherit; font: inherit; cursor: pointer; }
+#padkeyboard button.act { flex: 1.6 1 0; }
+#padkeyboard button.space { flex: 4 1 0; }
+#padkeyboard button.on { outline: 3px solid #f2c230; background: #34503c; }
+#padkeyboard button.shift-on { background: #f2c230; color: #17201a; }
+#padkeyboard .pk-help { margin: 6px 0 0; font-size: 12px; opacity: .7; text-align: center; }
