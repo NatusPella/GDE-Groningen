@@ -101,7 +101,7 @@ De builds staan bij de [Releases](../../releases) van deze repo, per versie:
   en start `gde-groningen`. Op de Steam Deck: download in de
   bureaubladmodus en voeg hem toe met **Aan Steam toevoegen**.
 
-### Savegames en privacy
+### Opgeslagen spellen en privacy
 
 Het spel slaat vanzelf op (en met **Opslaan** in het menu), op je eigen
 apparaat. Vanaf versie 1.0 blijft een savegame werken in elke latere versie:

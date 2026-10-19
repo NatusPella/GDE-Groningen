@@ -112,14 +112,14 @@ export function openSaveSlots(opts = {}) {
         '<div class="m-acts"><button type="button" class="m-bg danger" data-grp="pane" data-do="overwrite-ok">Ja, overschrijven</button><button type="button" class="m-bt" data-grp="pane" data-do="back">Annuleren</button></div></div>';
     }
     const acts = [];
-    if (mode === 'start') acts.push(`<button type="button" class="m-bp" data-grp="pane" data-do="load"${loadable ? '' : ' disabled'}>Laden</button>`);
+    if (mode === 'start') acts.push(`<button type="button" class="m-bp" data-grp="pane" data-do="load"${loadable ? '' : ' disabled'}>Spel laden</button>`);
     else {
-      acts.push(`<button type="button" class="m-bp" data-grp="pane" data-do="load"${loadable ? '' : ' disabled'}>Laden</button>`);
-      acts.push('<button type="button" class="m-bg" data-grp="pane" data-do="save-here">Hier opslaan</button>');
+      acts.push(`<button type="button" class="m-bp" data-grp="pane" data-do="load"${loadable ? '' : ' disabled'}>Spel laden</button>`);
+      acts.push('<button type="button" class="m-bg" data-grp="pane" data-do="save-here">Spel opslaan</button>');
     }
     acts.push('<button type="button" class="m-bg" data-grp="pane" data-do="rename">Hernoemen</button>');
-    acts.push(`<button type="button" class="m-bg" data-grp="pane" data-do="export"${loadable ? '' : ' disabled'}>Exporteren</button>`);
-    acts.push('<button type="button" class="m-bg danger" data-grp="pane" data-do="delete">Verwijderen</button>');
+    acts.push(`<button type="button" class="m-bg" data-grp="pane" data-do="export"${loadable ? '' : ' disabled'}>Spel exporteren</button>`);
+    acts.push('<button type="button" class="m-bg danger" data-grp="pane" data-do="delete">Spel verwijderen</button>');
     return `<h2 class="m-h2 ssl-h">${esc(cur.name)}</h2>${lines.join('')}<div class="m-acts ssl-acts">${acts.join('')}</div>`;
   };
 
@@ -128,15 +128,15 @@ export function openSaveSlots(opts = {}) {
     if (!slots.some((s) => s.n === sel)) sel = slots.length ? (slots.find((s) => s.active) || slots[0]).n : 0;
     const cur = slots.find((s) => s.n === sel) || null;
     const full = slots.length >= MAX_SLOTS;
-    const newLabel = mode === 'start' ? 'Nieuw spel' : 'Nieuwe savegame van nu';
+    const newLabel = mode === 'start' ? 'Nieuw spel' : 'Spel opslaan als nieuwe savegame';
     rootEl.querySelector('.gm-stage')?.remove();
     const stage = document.createElement('div');
     stage.className = 'gm-stage';
     stage.innerHTML = `<section class="m-panel ssl-panel">
-      <header class="m-head"><div><span class="m-eb">${mode === 'start' ? 'Hoofdmenu' : 'Pauze'}</span><h1 class="m-h1" id="ssl-title">Savegames</h1></div><div class="m-hr"><span class="mut">${slots.length} van ${MAX_SLOTS} plekken in gebruik</span></div></header>
+      <header class="m-head"><div><span class="m-eb">${mode === 'start' ? 'Hoofdmenu' : 'Pauze'}</span><h1 class="m-h1" id="ssl-title">Opgeslagen spellen</h1></div><div class="m-hr"><span class="mut">${slots.length} van ${MAX_SLOTS} plekken in gebruik</span></div></header>
       <div class="m-main"><div class="m-list ssl-list" role="list">${slots.map(slotRow).join('')}
         <button type="button" class="m-li ssl-row" data-grp="list" data-do="new"${full ? ' disabled' : ''}><span class="nm"><span>${newLabel}</span><span class="mut">${mode === 'start' ? 'Begint op een nieuwe opslagplek, je andere savegames blijven staan' : 'Bewaart wat je nu speelt op een nieuwe opslagplek'}</span></span></button>
-        <button type="button" class="m-li ssl-row" data-grp="list" data-do="import"${full ? ' disabled' : ''}><span class="nm"><span>Importeren</span><span class="mut">Een savegame uit een bestand, op een nieuwe opslagplek</span></span></button>
+        <button type="button" class="m-li ssl-row" data-grp="list" data-do="import"${full ? ' disabled' : ''}><span class="nm"><span>Spel importeren</span><span class="mut">Een savegame uit een bestand, op een nieuwe opslagplek</span></span></button>
       </div><aside class="m-pane ssl-pane" aria-label="Details" aria-live="polite">${detailHtml(cur, slots)}<p class="ssl-msg" role="status">${esc(message)}</p></aside></div>
       <footer class="ssl-foot"><span class="mut">Pijltjes kiezen, Enter bevestigt, Esc sluit · Op de controller: richtingen, A, B</span><button type="button" class="m-bt" data-grp="list" data-do="close">Terug</button></footer>
     </section>`;
