@@ -130,6 +130,8 @@ for (const S of CFG.plekken) {
     await sleep(350);
     // flikkercontrole: twee extra beelden kort na elkaar bij vaste instellingen
     if (c.weer === 'helder' && (c.tijd === 'middag' || c.tijd === 'nacht')) for (const suf of ['b', 'c']) { console.log('[capture] ' + name + '-' + suf); await sleep(450); }
+    // een opname loopt achter op de pagina: wacht voordat de camera voor de lucht verspringt
+    if (c.weer === 'helder' && (c.tijd === 'middag' || c.tijd === 'nacht')) await sleep(1500);
     // de lucht: de camera een stuk omhoog (sterren, maan, banding, kleurverloop); de HUD gaat dan weg
     {
       const gz = (map.groundHeightAt ? map.groundHeightAt(s.x, s.y, 0) : 0) || 0, cx = Math.cos(s.a), cy = Math.sin(s.a);
