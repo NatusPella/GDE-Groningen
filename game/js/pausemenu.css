@@ -357,3 +357,21 @@ html.sub-box #pause-menu .pm-subtxt { background: rgba(0, 0, 0, 0.72); text-shad
 .pa-ico svg { width: 100%; height: 100%; }
 .pa-ico.big { width: 34px; height: 34px; margin-right: 12px; }
 .m-li.off .pa-ico { opacity: 0.4; }
+
+/* smalle, staande schermen (telefoon, #96): het rail wordt een balk bovenaan
+   die zijwaarts schuift, het blad vult de rest. Nog niet op een toestel gezien. */
+@media (max-width: 760px) and (orientation: portrait) {
+  #pause-menu .pm-rail { left: 8px; right: 8px; top: 8px; bottom: auto; width: auto; --ra-h: 44px; }
+  #pause-menu .pm-inner.pm-game { flex-direction: row; align-items: center; height: auto; overflow-x: auto; overflow-y: hidden; gap: 4px; }
+  #pause-menu .pm-q-head, #pause-menu .pm-rail-sp, #pause-menu .pm-rail-gap, #pause-menu .pm-ver { display: none; }
+  #pause-menu .ra { width: auto; flex: none; padding: 0 12px; font-size: 20px; gap: 8px; }
+  #pause-menu .ra[aria-current="true"]::before { left: 8px; right: 8px; top: auto; bottom: 2px; width: auto; height: 3px; }
+  #pause-menu .pm-rail-acts, #pause-menu .pm-rail-foot { display: flex; flex-direction: row; flex: none; padding: 0; gap: 4px; }
+  #pause-menu .pm-sheet { left: 8px; right: 8px; top: 64px; bottom: 8px; }
+  #pause-menu .pm-ov { padding: 12px; }
+  #pause-menu .m-main, #pause-menu .pm-settab:not([hidden]) { flex-direction: column; padding: 8px 8px 16px; gap: 12px; overflow-y: auto; }
+  #pause-menu .pm-slist, #pause-menu .m-list { width: auto; max-width: 100%; }
+  #pause-menu .pm-row input[type="range"] { width: 160px; }
+  #pause-menu .m-li { min-height: 48px; }
+  #pause-menu .pm-sheet-sub { font-size: 16px; }
+}
