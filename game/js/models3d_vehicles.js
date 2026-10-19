@@ -1623,6 +1623,7 @@ export function policeFlash(time, id = 0) {
 // blinks and then only shown or hidden (hazards: all four, a signal: one side).
 const IND_GEO = markShared(new THREE.BoxGeometry(0.2, 0.11, 0.16));
 const IND_GEO_SMALL = markShared(new THREE.BoxGeometry(0.07, 0.05, 0.06));
+const IND_GEO_TINY = markShared(new THREE.BoxGeometry(0.045, 0.04, 0.045));
 const IND_MAT = markShared(new THREE.MeshBasicMaterial({ color: 0xff9a1a }));
 const IND_PERIOD = 0.62;
 export function updateIndicatorLamps(mesh, v, time) {
@@ -1630,15 +1631,19 @@ export function updateIndicatorLamps(mesh, v, time) {
   if (!lamps) {
     if (!v.indicator) return;
     const m = v.model || {};
-    // a bicycle has no indicators; hand signals are not drawn
-    if (v.isBike && !m.motorbike) { mesh.userData.indLamps = []; return; }
     const len = m.len || 4, wid = m.wid || 1.7;
+    const two = !!(v.isBike && !m.motorbike);
     const bike = !!(m.motorbike || v.isBike || v.isScooter);
-    const hz = bike ? 0.16 : wid / 2 - 0.16, y = bike ? 0.85 : m.van ? 0.95 : 0.66;
     lamps = [];
-    for (const side of [-1, 1]) for (const end of [1, -1]) {
-      const l = new THREE.Mesh(bike ? IND_GEO_SMALL : IND_GEO, IND_MAT);
-      l.position.set(end * (len / 2 + 0.01), y, side * hz);
+    // a bicycle gets two tiny lamps on the handlebar ends (like the stuurlampjes on a modern fiets),
+    // a scooter or motorbike small lamps on the bars and at the tail, a car blocks at the corners
+    const spots = [];
+    if (two) for (const side of [-1, 1]) spots.push([0.22, 1.02, side * 0.3, side]);
+    else if (bike) for (const side of [-1, 1]) { spots.push([len * 0.3, 0.95, side * 0.3, side]); spots.push([-len / 2 + 0.1, 0.7, side * 0.12, side]); }
+    else for (const side of [-1, 1]) for (const end of [1, -1]) spots.push([end * (len / 2 + 0.01), m.van ? 0.95 : 0.66, side * (wid / 2 - 0.16), side]);
+    for (const [x, y, z, side] of spots) {
+      const l = new THREE.Mesh(two ? IND_GEO_TINY : bike ? IND_GEO_SMALL : IND_GEO, IND_MAT);
+      l.position.set(x, y, z);
       l.visible = false;
       l.userData.side = side;
       mesh.add(l);
