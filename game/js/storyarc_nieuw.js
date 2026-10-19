@@ -224,7 +224,7 @@ export const STEPS = [
     lead: ['T', 'De tankwagen van Us Mem Vet rijdt over de Europaweg. Tijd voor banden.'] }),
   M('M08', 'romp', 'Fatbikes tellen niet als fiets', 'fatbike', { built: true, reward: 500, unlocks: 'zitmoi',
     story: { intro: ['M08.1'], outro: ['M08.3'], replay: ['M08.5'] }, scenes: ['M08.1', 'M08.2', 'M08.3', 'M08.4', 'M08.5'],
-    lead: ['T', 'Oma Trijntje belde: kom naar de Noorderhaven. Ze heeft iets over die bal.'] }),
+    lead: ['T', 'Oma Trijntje belde: kom naar de Noorderhaven. Loop te voet heelhuids door de fatbikes aan de haven, dan vertelt ze wat ze over die bal weet.'] }),
   // travel steps: the goal is the place (storyreis.js); the lines of the trip itself are the travel beat's (reisbeats.js)
   A('T1', 'romp', 'De trein naar Warffum', { type: 'reis', to: 'Warffum', at: [53.3903, 6.5667], r: 400, scene: 'T1', from: 4 }, { built: true, scenes: ['T1'],
     lead: ['A', 'Met de trein naar Warffum. Daar begint het Hogeland, en Geesje woont in de pastorie.'] }),
@@ -264,7 +264,7 @@ export const STEPS = [
     lead: ['A', 'Roelfien wacht bij haar graanveld bij Midwolda. Haar vliegtuig sleept al twintig jaar een spandoek voor de kermis.'] }),
   M('M16', 'staart', 'Nog eentje dan', 'kroegentocht', { built: true, reward: 600,
     story: { intro: ['M16.1'], outro: ['M16.3', 'M16.4', 'M16.5', 'M16.6'], replay: ['M16.7'] }, scenes: ['M16.1', 'M16.2', 'M16.3', 'M16.4', 'M16.5', 'M16.6', 'M16.7'],
-    lead: ['T', 'Geert heeft drie tenten op de kermis in Winschoten. Durk en Douwe zingen aan zijn bar.'] }),
+    lead: ['T', 'Durk en Douwe weten waar Jelle morgen heen gaat. Volg ze langs de kroegen van Geert op de kermis in Winschoten tot ze moe zijn.'] }),
 
   // --- Akte 4: Zuidwaarts (Veenkoloniën en Westerwolde, zo 23 - wo 26 augustus) ----------
   M('M17', 'zuid', 'Open, dicht', 'bruggen', { built: true, reward: 700,
@@ -295,7 +295,7 @@ export const STEPS = [
     lead: ['A', "Mem en Oma hebben de vrienden gebeld. We rijden samen naar de Grote Markt, vanaf Tinus' schuur."] }),
   M('M24', 'ontzet', "Er hangt iets Fries aan d'Olle Grieze", 'vlag', { built: true, reward: 600,
     story: { intro: ['M24.1'], outro: null, replay: ['M24.4'] }, scenes: ['M24.1', 'M24.2', 'M24.3', 'M24.4'],
-    lead: ['T', 'Bert zit op de Grote Markt. Er hangt een vlag boven de plek van de Fjord Frituur.'] }),
+    lead: ['T', 'Bert zit op de Grote Markt. Jelles Friese vlag hangt boven de plek van de Fjord Frituur: laat zijn duif de vijf touwen doorpikken.'] }),
   M('M25', 'ontzet', 'Het bod viel tegen', 'bod', { built: true, reward: 600,
     story: { intro: ['M25.1'], outro: ['M25.4'], replay: ['M25.5'] }, scenes: ['M25.1', 'M25.2', 'M25.3', 'M25.4', 'M25.5'],
     lead: ['A', "Oma's keuken aan de Noorderhaven. Een oefenronde met alle ingrediënten, voor morgen."] }),
