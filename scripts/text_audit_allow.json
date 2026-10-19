@@ -2,6 +2,12 @@
   "note": "Bewust toegestane gevallen voor scripts/text_audit.mjs. Elke regel heeft een reden (why). term = het gevonden woord (hoofdletterongevoelig), file/ctx maken het smaller.",
   "allow": [
     {
+      "rule": "anglicisme",
+      "term": "holes",
+      "file": "minigamelines",
+      "why": "al ingesproken regels van de golfmaatjes: veranderen niet zonder akkoord van de eigenaar en een nieuwe opname (docs/WOORDENLIJST.md, Uitzonderingen)"
+    },
+    {
       "rule": "naam",
       "term": "Gerrit Krolbrug",
       "why": "echte brug in Groningen (echte plaatsen en gebouwen mogen); geen persoon"
@@ -199,6 +205,12 @@
       "term": "deadline",
       "ctx": "als een fietser met een deadline",
       "why": "ingesproken regel (stem opgenomen); wijzigen kan pas met akkoord van de eigenaar en een nieuwe opname. Wordt: uiterste tijd"
+    },
+    {
+      "rule": "naam",
+      "term": "Trijntje het Rikus",
+      "file": "gronings_spoken.json",
+      "why": "Gronings 'het' = heeft; geen persoonsnaam (Oma Trijntje en Rikus zijn verzonnen), alleen de gesproken versie"
     }
   ]
 }

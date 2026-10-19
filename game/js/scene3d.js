@@ -12,10 +12,11 @@ import {
   sampleBusTrail, busTrailerPose, buildSplashMesh3D, updateSplashMesh3D, SPLASH_LIFETIME,
   spawnVehicleOnRoad, spawnBoatOnWater, spawnPoliceBoatOnWater, TRAFFIC_MODELS,
 } from './vehicle.js';
-import { DEAD_DURATION } from './pedestrians.js';
+import { DEAD_DURATION } from './pedconst.js';
 import { attachCarry, carryPose } from './streetlife3d.js';
 import { buildPersonMesh, animatePersonWalk, applyAttackPose, applyHitReaction, setHeldWeapon, seatPose, seatedY, waveOverlay, carryOverlay, TAMMO_APPEARANCE, ANITA_APPEARANCE } from './models3d_people.js';
 import { syncDoorsNear, vraagVoorAnim } from './vehicledoors3d.js';
+import { syncHaltefiguren } from './haltefiguren3d.js';
 import { seatedOf } from './occupants.js';
 import { vehicleSeat, placeSeated, makeSeatTracker, trackSeat, drawTransition, syncBoatCrew } from './seating3d.js';
 import { updateCarInterior } from './carinterior.js';
@@ -30,7 +31,8 @@ import { getHorecaForRender, horecaBadges3D, horecaPads3D, updateHorecaPads3D } 
 import { buildWildlifeMesh3D, wildlifeShadowSize, animateWildlifeMesh3D } from './wildlife.js';
 import { buildMissionMarker3D, updateMissionMarker3D, buildWaypointDotMesh3D } from './missions.js';
 import { syncTrafficLights3D, setTrafficLightGlow } from './trafficlights.js';
-import { getCombatEffect, isRangedWeapon } from './combat.js';
+import { isRangedWeapon } from './weapons.js';
+import { getCombatEffect } from './combateffect.js';
 import { scopeEye } from './scopeaim.js';
 import { alignPlayerFlash } from './gunfx3d.js';
 import { sharedWaterMaterial, updateWaterMaterial, buildWaterGeometry, waterSwellAt, waterSwellAmp, auditWaterMeshes } from './water3d.js';
@@ -50,7 +52,8 @@ import { buildRailDecks } from './roadstructures3d.js';
 import { snapShadowCenter, shadowPassSkipped } from './shadowsnap.js';
 import { buildPoliceHeliMesh3D, updatePoliceHeliMesh3D } from './police.js';
 import { updateSkyProps3D, buildBalloonWarmup } from './skyprops3d.js';
-import { pointInPolygon, polygonBounds, WATER_Y } from './util.js';
+import { pointInPolygon, polygonBounds, WATER_Y, isInWater } from './util.js';
+import { buildingAt } from './tileplace.js';
 import { preloadLandmarkModels, onLandmarkModelLoaded } from './landmarkmodels.js';
 import { onSettingsChange, getSettings, QUALITY_PRESETS } from './settings.js';
 import { stepFov } from './gamefeel.js';
@@ -58,7 +61,7 @@ import { effectsFor, shakeAmount } from './a11ylogic.js';
 import { reducedMotion } from './motion.js';
 import { dynamicScale, cpuLevel } from './gfxprofile.js';
 import { VIEW_DISTANCES, viewDistanceFor, detailDistanceFor, DETAIL_BASE } from './viewdist.js';
-import { buildingBatcher, roadBatcher, facadeBatcher } from './staticbatch3d.js';
+import { buildingBatcher, roadBatcher, facadeBatcher, shoreBatcher } from './staticbatch3d.js';
 import { simLevel } from './simload.js';
 import { beginWheels, addVehicleWheels, endWheels } from './wheelinstances3d.js';
 
@@ -78,6 +81,7 @@ import { noteGfxEvent, watchContext } from './blackframe.js';
 import { spawnExplosionFx, setFxCamera } from './fx3d.js';
 import { litFraction, moonPhase, STAR_SHARE } from './nightrules.js';
 import { qualityLook } from './weatherlook.js';
+import { buildCloudLayer, updateCloudLayer } from './cloud3d.js';
 import { initNightLights, setNightLightQuality, updateNightLights, isLightRigOn, setLightRigVisible } from './nightlights3d.js';
 import { createFarLOD } from './farlod.js';
 import { SECTION, TILE_M, tileOrigin } from './gdt.js';
@@ -89,6 +93,8 @@ import { railZ } from './railway.js';
 import { cameraFocus } from './tilefocus.js';
 import { initMovableBridges3D, updateMovableBridges3D, openBridgeRoads } from './movablebridges3d.js';
 import { getMovableBridges } from './movablebridges.js';
+import { sluisLiftAt } from './sluizen.js';
+import { updateSluizen3D } from './sluizen3d.js';
 import { initStreetFurniture3D, updateStreetFurniture3D } from './streetfurniture3d.js';
 import { treeDims, treeColor, SPECIES, TREE_FLAG } from './greenery.js';
 import { buildCanopies, streamCanopies } from './canopies3d.js';
@@ -287,6 +293,7 @@ function buildKissHeartMesh() {
 let sun = null;
 let hemi = null;
 let skyDome = null;
+let cloudLayer = null;
 let starShare = 1;
 let skyUniforms = null;
 let envUpdater = null;
@@ -629,6 +636,51 @@ function buildBlobShadowTexture() {
   return new THREE.CanvasTexture(c);
 }
 
+// The blobs are drawn as one InstancedMesh (same geometry, material, polygon offset and render order as before: they are black with
+// the same alpha, so their order among themselves does not show): every blob made here goes off the render layer and its world matrix
+// becomes an instance, filled just before the pool is drawn (the matrices are final by then). A blob that is hidden, whose actor is
+// out of the scene or beyond the pool's room is drawn on its own as before.
+const BLOB_HIDDEN_LAYER = 30;
+const BLOB_POOL_CAP = 768;
+const blobShadows = new Set();
+let blobPool = null;
+let blobPoolOn = true; // false: every blob draws on its own again (A/B checks of the pooling, window.__scene3d.setBlobPool)
+function initBlobPool() {
+  const m = new THREE.InstancedMesh(BLOB_SHADOW_GEO, BLOB_SHADOW_MAT, BLOB_POOL_CAP);
+  m.frustumCulled = false;
+  m.renderOrder = 1;
+  m.matrixAutoUpdate = false;
+  m.count = 0;
+  m.name = 'blob-instances';
+  m.userData.shared = true;
+  m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+  m.onBeforeRender = fillBlobPool;
+  scene.add(m);
+  blobPool = m;
+}
+function fillBlobPool() {
+  if (!blobPoolOn) { blobPool.count = 0; for (const sh of blobShadows) sh.layers.set(0); return; }
+  const arr = blobPool.instanceMatrix.array;
+  let n = 0;
+  for (const sh of blobShadows) {
+    let vis = true, a = sh;
+    for (; a && a !== scene; a = a.parent) if (!a.visible) { vis = false; break; }
+    if (a !== scene && vis) {
+      // not in the scene: forget it after a long absence (a pooled actor comes back well before)
+      if ((sh.userData.away = (sh.userData.away || 0) + 1) > 900) blobShadows.delete(sh);
+      sh.layers.set(0);
+      continue;
+    }
+    sh.userData.away = 0;
+    if (!vis || n >= BLOB_POOL_CAP) { sh.layers.set(vis ? 0 : BLOB_HIDDEN_LAYER); continue; }
+    sh.layers.set(BLOB_HIDDEN_LAYER);
+    sh.matrixWorld.toArray(arr, n * 16);
+    n++;
+  }
+  blobPool.count = n;
+  blobPool.instanceMatrix.needsUpdate = true;
+}
+
 function addBlobShadow(parent, sx, sz, x = 0) {
   const shadow = new THREE.Mesh(BLOB_SHADOW_GEO, BLOB_SHADOW_MAT);
   shadow.position.set(x, 0.02, 0);
@@ -636,6 +688,7 @@ function addBlobShadow(parent, sx, sz, x = 0) {
   shadow.renderOrder = 1;
   parent.add(shadow);
   parent.userData.shadow = shadow;
+  blobShadows.add(shadow);
   return shadow;
 }
 
@@ -863,6 +916,8 @@ export function init3D(map) {
   skyDome = buildSkyDome(skyUniforms);
   setStarShare(skyDome, starShare);
   scene.add(skyDome);
+  cloudLayer = buildCloudLayer();
+  scene.add(cloudLayer);
   envUpdater = createEnvironmentUpdater(renderer, sunDir);
   scene.environment = envUpdater.update(skyUniforms.uZenith.value, skyUniforms.uHorizon.value, new THREE.Color(0x6e6250), sunDir, skyUniforms.uSunColor.value, 0.45);
   // one water material for the canals and the tiles' water
@@ -964,7 +1019,7 @@ export function init3D(map) {
   onSettingsChange(applyViewSettings);
   resize3D();
   window.addEventListener('resize', resize3D);
-  window.__scene3d = { scene, cam, renderer, postfx, farLod, batches: () => ({ buildings: buildingBatcher.info(), facades: facadeBatcher.info(), roads: roadBatcher.info() }) };
+  window.__scene3d = { scene, cam, renderer, postfx, farLod, setBlobPool: (on) => { blobPoolOn = !!on; }, dists: () => ({ DRAW_DIST, buildingDetailR, facadeDetailDist, roadDetailR, viewDist }), batches: () => ({ buildings: buildingBatcher.info(), facades: facadeBatcher.info(), roads: roadBatcher.info(), shores: shoreBatcher.info() }) };
 }
 
 // increments each time the scene is drawn to the canvas (blackframe.js)
@@ -981,6 +1036,11 @@ export function setMenuCover(level) {
 }
 
 // Read-only access for systems that need the view pose (e.g. the 3D audio listener).
+// Runs fn right after the next frame was drawn, in the same task, when the canvas still holds it
+// (a copy of the canvas taken later is blank): the savegame screenshot (savegame.js).
+let afterFrameQ = [];
+export function afterNextFrame(fn) { afterFrameQ.push(fn); }
+
 export function getCamera() {
   return cam;
 }
@@ -1181,6 +1241,29 @@ function buildPolyGeometry(pts) {
 let waterMaterial = null;
 // Water polygons in the scene that do not wear the shared material (#181): {total, shared, stray}
 export function auditWater() { return auditWaterMeshes(scene, waterMaterial); }
+// the shore meshes of the water in the scene, for the shore batcher (item { mesh, bounds } -> mesh)
+const shoreItems = new Map();
+const shoreOfPoly = new Map();
+function registerShoreItems(poly, shore) {
+  if (shoreOfPoly.has(poly)) return;
+  const items = [];
+  for (const m of shore.children) {
+    if (m.userData.noBatch || !m.geometry.attributes.position) continue;
+    if (!m.geometry.boundingBox) m.geometry.computeBoundingBox();
+    const bb = m.geometry.boundingBox;
+    const it = { mesh: m, bounds: [bb.min.x, bb.min.z, bb.max.x, bb.max.z] };
+    // the item's holder stays visible while its mesh is merged (the batcher hides the mesh itself)
+    shoreItems.set(it, { mesh: m, parent: shore, visible: true, userData: {} });
+    items.push(it);
+  }
+  shoreOfPoly.set(poly, items);
+}
+function dropShoreItems(poly) {
+  const items = shoreOfPoly.get(poly);
+  if (!items) return;
+  for (const it of items) shoreItems.delete(it);
+  shoreOfPoly.delete(poly);
+}
 function buildWaterMesh(poly, y, map) {
   if (!poly._geoWater) poly._geoWater = buildWaterGeometry(poly, getWaterIndex(map, poly), null);
   const group = new THREE.Group();
@@ -1192,6 +1275,9 @@ function buildWaterMesh(poly, y, map) {
   requestShore(poly, map, { waterY: y, apronMaterial: terrainMesh.material }, (shore) => {
     if (!shore) return;
     group.add(shore);
+    group.userData.shore = shore;
+    // the polygon is in the scene by now (its shore came later); from the cache, syncWater registers it
+    if (waterMeshes.get(poly) === group) registerShoreItems(poly, shore);
     if (!sync) freezeStatic(shore);
   });
   sync = false;
@@ -1461,7 +1547,7 @@ let facadeDetailDist = Infinity, facadeDetailCulled = false, facadeQualityDist =
 // gfxprofile.js cpuLevel (a busy machine): fewer facade details
 const CPU_FACADE_DIST = [Infinity, 100, 70];
 let shadowFrame = 0;
-let focusSpeed = 0, focusPrevX = null, focusPrevY = 0;
+let focusSpeed = 0, focusPrevX = null, focusPrevY = 0, focusDirX = 1, focusDirY = 0;
 let roadDetailR = DRAW_DIST;
 let buildingsStaged = false;
 function noteStreamJump(px, py) {
@@ -1630,12 +1716,14 @@ function syncWater(items, cache, y, map, px, py) {
       if (!mesh.name) mesh.name = 'water';
       scene.add(mesh);
       cache.set(poly, mesh);
+      if (cache === waterMeshes && mesh.userData.shore) registerShoreItems(poly, mesh.userData.shore);
     }
   }
   for (const [poly, mesh] of cache) {
     if (seen.has(poly)) continue;
     scene.remove(mesh);
     cache.delete(poly);
+    if (cache === waterMeshes) dropShoreItems(poly);
     coolDown(coldWater, poly, WATER_CACHE_MAX, freeWaterGeometry);
   }
 }
@@ -1658,14 +1746,18 @@ function syncRoads(world, px, py) {
   for (const r of view) {
     if (roadMeshes.has(r)) continue;
     const [x0, y0, x1, y1] = r.bounds || [px, py, px, py];
-    missing.push([Math.hypot(Math.max(x0 - px, 0, px - x1), Math.max(y0 - py, 0, py - y1)), r]);
+    const d = Math.hypot(Math.max(x0 - px, 0, px - x1), Math.max(y0 - py, 0, py - y1));
+    // at speed what lies ahead goes first (#247): up to 8 s of travel off the distance of a road in the heading
+    let key = d;
+    if (focusSpeed > 4 && d > 1) key -= Math.min(focusSpeed * 8, 400) * Math.max(0, ((x0 + x1) / 2 - px) * focusDirX + ((y0 + y1) / 2 - py) * focusDirY) / Math.hypot((x0 + x1) / 2 - px, (y0 + y1) / 2 - py || 1);
+    missing.push([key, r, d]);
   }
   roadDetailR = DRAW_DIST;
   if (missing.length) {
     missing.sort((a, b) => a[0] - b[0]);
     const deadline = performance.now() + (performance.now() < streamBoostUntil ? ROAD_BUILD_MS * 2 : ROAD_BUILD_MS);
     let built = 0, waiting = false;
-    for (const [d, r] of missing) {
+    for (const [, r, d] of missing) {
       // surfaces still coming from the geometry worker: the far LOD covers
       // from the nearest of them on (requested now, nearest first)
       if (!roadGeometryReady(r)) { if (!waiting) roadDetailR = Math.max(24, d); waiting = true; continue; }
@@ -2024,11 +2116,12 @@ export function update3D(dt, world) {
   const focus = updateStreamFocus(world);
 
   noteStreamJump(focus.x, focus.y);
+  if (!blobPool) initBlobPool();
   stepPrewarm(world);
   syncBuildings(world, focus.x, focus.y);
   if (!NO_BATCH) {
     buildingBatcher.update({ scene, meshes: buildingMeshes, hidden: hiddenBuildings, px: focus.x, py: focus.y, detailR: buildingDetailR, drawDist: DRAW_DIST,
-      withDetail: facadeDetailDist >= DRAW_DIST, budgetMs: performance.now() < streamBoostUntil ? 1 : 2 });
+      withDetail: facadeDetailDist >= DRAW_DIST, budgetMs: performance.now() < streamBoostUntil ? 1 : 3 });
     if (facadeDetailDist < DRAW_DIST) {
       facadeBatcher.update({ scene, meshes: buildingMeshes, hidden: hiddenBuildings, px: focus.x, py: focus.y, detailR: Math.min(facadeDetailDist, buildingDetailR), drawDist: DRAW_DIST,
         withDetail: true, budgetMs: 1 });
@@ -2043,22 +2136,25 @@ export function update3D(dt, world) {
   const waterNight = world.dayNight ? world.dayNight.night : 0;
   updateWaterMaterial(waterMaterial, world.time, world.weather ? world.weather.intensity : 0, waterNight);
   updateShore(waterNight, cam);
+  if (!NO_BATCH) shoreBatcher.update({ scene, meshes: shoreItems, hidden: null, px: focus.x, py: focus.y, detailR: Math.max(DRAW_DIST, viewDist), drawDist: Math.max(DRAW_DIST, viewDist), withDetail: true, budgetMs: 2 });
   probe.mark('3d:water');
   syncRoads(world, focus.x, focus.y);
   // movable bridges (movablebridges3d.js): the static road of a span that is
   // not lying closed is hidden and left out of the road batches
   if (getMovableBridges().length && !bridgeViews) { initMovableBridges3D(scene, world.map); bridgeViews = true; }
   openBridgeRoads(openSpans);
-  if (!NO_BATCH) roadBatcher.update({ scene, meshes: roadMeshes, hidden: openSpans.size ? openSpans : null, px: focus.x, py: focus.y, detailR: DRAW_DIST, drawDist: DRAW_DIST, withDetail: true, budgetMs: 1 });
+  if (!NO_BATCH) roadBatcher.update({ scene, meshes: roadMeshes, hidden: openSpans.size ? openSpans : null, px: focus.x, py: focus.y, detailR: DRAW_DIST, drawDist: DRAW_DIST, withDetail: true, budgetMs: 3 });
   for (const b of getMovableBridges()) { const m = roadMeshes.get(b.r); if (m) m.visible = !openSpans.has(b.r); }
   updateMovableBridges3D(focus.x, focus.y, waterNight);
+  updateSluizen3D(scene, focus.x, focus.y, waterNight);
   updateStreetFurniture3D(focus.x, focus.y);
   probe.mark('3d:roads');
   syncTrees(world, focus.x, focus.y);
   probe.mark('3d:trees');
   updateRailway3D(dt, world, focus, viewDist);
   updateStationCrowd3D(scene, world, railZ);
-  updateEvenementen3D(scene, world, calendarTodayEv(world), (x, y) => (world.map.spawnZ ? world.map.spawnZ(x, y) : 0));
+  updateEvenementen3D(scene, world, calendarTodayEv(world), (x, y) => (world.map.spawnZ ? world.map.spawnZ(x, y) : 0),
+    (x, y, m) => !buildingAt(world.map, x, y, m) && !isInWater(world.map, x, y));
   updateCountryside(dt, world, scene, cam, viewDist);
   updateOmmelandLandmarks(world, scene, focus);
   probe.mark('3d:rail+country');
@@ -2086,7 +2182,7 @@ export function update3D(dt, world) {
       mesh = null;
     }
     if (mesh) {
-      mesh.position.set(v.x, v.isBoat ? WATER_Y : v.z || 0, v.y);
+      mesh.position.set(v.x, v.isBoat ? WATER_Y + sluisLiftAt(v.x, v.y) : v.z || 0, v.y);
       mesh.rotation.y = -v.angle;
       if (!v.sinking && !v.isBoat) {
         // terrain pitch/roll on the whole car, spring motion on the body only
@@ -2481,6 +2577,7 @@ export function update3D(dt, world) {
   // instant snap on teleport (respawn/mission warp) instead of a long lerp
   // that would otherwise glide the camera straight through geometry
   syncDoorsNear(world, vehicleMeshes, player.x, player.y, animDt, doorAsk);
+  syncHaltefiguren(world, scene, (shirt, skin) => enableShadows(buildPersonActor(shirt, skin, {}), false), animDt);
   probe.mark('3d:players');
   // a stolen train (traindrive.js) is followed like a very long vehicle
   const camVeh = player.inVehicle || world.trainCam || null;
@@ -2644,7 +2741,10 @@ export function update3D(dt, world) {
   const imp = world.lastImpact;
   const shakeAge = imp ? world.time - imp.time : Infinity;
   if (shakeAge >= 0 && shakeAge < CAM_SHAKE_TIME) {
-    const amp = shakeAmount(Math.min(1, imp.strength) * CAM_SHAKE_MAX * Math.exp(-shakeAge * 7), { reduceMotion: reducedMotion() });
+    // tuning (#196): een zachte stoel (v.tuning.comfort) dempt de schok
+    const tv = player.inVehicle && player.inVehicle.tuning;
+    const comfort = tv && tv.comfort > 0 ? tv.comfort : 1;
+    const amp = shakeAmount(Math.min(1, imp.strength) * CAM_SHAKE_MAX * Math.exp(-shakeAge * 7), { reduceMotion: reducedMotion() }) / comfort;
     const t = world.time * 47;
     cam.position.x += Math.sin(t) * amp;
     cam.position.y += Math.sin(t * 1.31 + 1.7) * amp * 0.6;
@@ -2674,7 +2774,7 @@ export function update3D(dt, world) {
   applyCameraOverride(dt, world, lookX, lookY, lookZ);
 
   probe.mark('3d:camera');
-  updateSunAndSky(focus, dt);
+  updateSunAndSky(focus, dt, world);
   limitActorShadows(pedMeshes, focus.x, focus.y);
   limitActorShadows(vehicleMeshes, focus.x, focus.y);
   limitActorShadows(wildlifeMeshes, focus.x, focus.y);
@@ -2696,11 +2796,27 @@ export function update3D(dt, world) {
   renderer.shadowMap.autoUpdate = !(menuCover && menuShadowDone) && !shadowPassSkipped(cpuLevel(), shadowFrame++, focusSpeed);
   if (menuCover) menuShadowDone = true;
   if (sizeDirty) applyRenderSize();
+  skipHiddenMatrixWalk();
   postfx.render();
+  if (afterFrameQ.length) { const q = afterFrameQ; afterFrameQ = []; for (const f of q) { try { f(); } catch (e) { /* no picture */ } } }
   canvasFrames++;
   renderer.shadowMap.autoUpdate = true;
   probe.mark('3d:render');
   probe.identify(scene);
+}
+
+// three walks the matrices of hidden objects too: the pooled vehicles and
+// people and far wildlife at the top of the scene (~1100 of ~5000 nodes with
+// matrixAutoUpdate) cost ~0.6 us each every frame. A hidden group sits out of
+// that walk and is back in it the frame it shows again (the owners set
+// visible before this runs, just ahead of the render).
+function skipHiddenMatrixWalk() {
+  const kids = scene.children;
+  for (let i = 0; i < kids.length; i++) {
+    const c = kids[i];
+    if (c.isLight || c.isCamera) continue;
+    c.matrixWorldAutoUpdate = c.visible;
+  }
 }
 
 // Every lit material has two program variants: with the night-light rig and
@@ -2713,6 +2829,10 @@ export function update3D(dt, world) {
 // ever switches over. Nothing here blocks on the driver.
 const PREWARM_LAYER = 31;
 const PREWARM_SLICE = 120;
+// once two passes over the scene have found nothing new for this rig variant only a few top-level groups are scanned per frame:
+// the full-speed pass walked every node of the scene every ~3 frames (~0.9 ms per frame)
+const PREWARM_SLICE_QUIET = 12;
+let prewarmFound = 0, prewarmQuiet = 0, prewarmLastVariant = null;
 const PREWARM_WAIT_MS = 20000;
 const PREWARM_POLL_MS = 250;
 const prewarmed = { true: new Set(), false: new Set() };
@@ -2800,6 +2920,7 @@ function queuePrewarm(o, variant) {
     if (!done.has(key)) {
       done.add(key);
       prewarmQueue.push({ proxy: makePrewarmProxy(o, m), variant });
+      prewarmFound++;
     }
     // no depth programs while the preset has shadows off ('laag'): compiling
     // them only competes with the ones that will be drawn
@@ -2809,6 +2930,7 @@ function queuePrewarm(o, variant) {
       if (done.has(dkey)) continue;
       done.add(dkey);
       prewarmQueue.push({ proxy: makePrewarmProxy(o, dm), variant });
+      prewarmFound++;
     }
   }
 }
@@ -2903,9 +3025,10 @@ function drawPrewarmBatch() {
 
 function prewarmLightVariants() {
   const variant = !isLightRigOn();
+  if (variant !== prewarmLastVariant) { prewarmLastVariant = variant; prewarmQuiet = 0; }
   const kids = scene.children;
-  for (let i = 0, n = Math.min(PREWARM_SLICE, kids.length); i < n; i++) {
-    if (prewarmCursor >= kids.length) prewarmCursor = 0;
+  for (let i = 0, n = Math.min(prewarmQuiet >= 2 ? PREWARM_SLICE_QUIET : PREWARM_SLICE, kids.length); i < n; i++) {
+    if (prewarmCursor >= kids.length) { prewarmCursor = 0; prewarmQuiet = prewarmFound ? 0 : prewarmQuiet + 1; prewarmFound = 0; }
     const o = kids[prewarmCursor++];
     if (o !== prewarmRoot) scanForPrewarm(o, variant);
   }
@@ -3121,7 +3244,7 @@ function applyCameraOverride(dt, world, lx, ly, lz) {
   if (fovPunch) { cam.fov -= fovPunch; fovPunch = 0; }
   // snelheids-FOV (#216): groeit zacht mee met de snelheid, uit bij bewegingsreductie en in cutscenes
   const pv = world && world.player && world.player.inVehicle;
-  speedFov = stepFov(speedFov, valid || !pv || pv.isBoat ? 0 : pv.speed || 0, dt, effectsFor({ reduceMotion: reducedMotion() }));
+  speedFov = stepFov(speedFov, valid || !pv || pv.isBoat ? 0 : pv.speed || 0, dt, effectsFor({ reduceMotion: reducedMotion() || getSettings().speedFeel === false }));
   const targetFov = valid && o.fov ? o.fov : (baseFov + speedFov) * (1 - 0.72 * scopeBlend);
   if (cam.fov !== targetFov) {
     cam.fov = Math.abs(targetFov - cam.fov) < 0.05 || (valid && o.cut) || scopeBlend > 0 ? targetFov : cam.fov + (targetFov - cam.fov) * Math.min(1, dt * 3);
@@ -3160,15 +3283,19 @@ const lightBase = {
 const MOON_COLOR = new THREE.Color(0xdfe6f5);
 const BED_COLOR = new THREE.Color(0x1e2a2c);
 let wetness = 0;
+let lastLight = null; // the clock's lighting of the last frame, read by the cloud layer
 let envTimer = 0;
 const _envGround = new THREE.Color();
 const _envSun = new THREE.Color();
 
 function applyTimeOfDay(dt, world) {
   const L = computeLighting(typeof world.clock === 'number' ? world.clock : 12, lightState);
+  lastLight = L;
   // a cutscene's own grade on top of the clock's (intromontage.js: the dawn shot)
   if (world.lightMood) world.lightMood(L);
   const storm = world.weather ? Math.min(1, Math.max(0, world.weather.intensity)) : 0;
+  // stars and moon vanish behind cloud and mist too, not only in rain (weer/nacht-controle: a starry sky above 'bewolkt' and 'mist')
+  const cover = world.weather ? Math.min(1, Math.max(storm, (world.weather.overcast || 0) * 1.5, world.weather.mist || 0)) : 0;
 
   sunDir.copy(L.lightDir);
   sun.color.copy(L.sun);
@@ -3189,7 +3316,7 @@ function applyTimeOfDay(dt, world) {
   }
   u.uMoonDir.value.copy(L.moonDir);
   u.uMoonPhase.value = moonPhase(world.calendar ? world.calendar.day : 1);
-  u.uMoonStrength.value = Math.min(1, L.night * 1.4) * (1 - storm * 0.85);
+  u.uMoonStrength.value = Math.min(1, L.night * 1.4) * (1 - cover * 0.85);
   u.uGlowColor.value.copy(L.glow);
   u.uGlowDir.value.copy(L.sunDir);
   lightBase.glow = L.glowI;
@@ -3199,7 +3326,7 @@ function applyTimeOfDay(dt, world) {
   lightBase.daylight = L.daylight;
 
   renderer.toneMappingExposure = L.exp;
-  setStarOpacity(skyDome, L.night * (1 - storm));
+  setStarOpacity(skyDome, L.night * (1 - cover));
   setNightFactor(1.5 * L.night, litFraction('wonen', L.hour), litFraction('winkel', L.hour), litFraction('kantoor', L.hour));
   farLod.setNight(1.5 * L.night, litFraction('wonen', L.hour));
   setCountryNight(1.5 * L.night, litFraction('wonen', L.hour));
@@ -3233,9 +3360,12 @@ function updateEnvironment(dt) {
 
 // Shadow frustum centred a little ahead of the camera, snapped to whole
 // shadow-map texels in light space so edges don't crawl as the player moves.
-function updateSunAndSky(player, dt) {
+function updateSunAndSky(player, dt, world) {
   // how fast the focus moves: a fast one must not skip shadow passes
-  if (focusPrevX !== null && dt > 0) focusSpeed = Math.hypot(player.x - focusPrevX, player.y - focusPrevY) / dt;
+  if (focusPrevX !== null && dt > 0) {
+    focusSpeed = Math.hypot(player.x - focusPrevX, player.y - focusPrevY) / dt;
+    if (focusSpeed > 4) { focusDirX = (player.x - focusPrevX) / (focusSpeed * dt); focusDirY = (player.y - focusPrevY) / (focusSpeed * dt); }
+  }
   focusPrevX = player.x; focusPrevY = player.y;
   _lightRight.crossVectors(_yAxis, sunDir);
   if (_lightRight.lengthSq() < 1e-8) _lightRight.set(1, 0, 0);
@@ -3250,6 +3380,7 @@ function updateSunAndSky(player, dt) {
   sun.target.position.copy(_shadowCenter);
   sun.position.copy(_shadowCenter).addScaledVector(sunDir, SUN_DIST);
   skyDome.position.copy(cam.position);
+  if (lastLight) updateCloudLayer(cloudLayer, cam.position, cam.far, world.weather, lastLight.daylight, lastLight.night, dt);
 }
 
 function buildWildlifeActor(a) {

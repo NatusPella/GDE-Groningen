@@ -329,6 +329,65 @@ for (const S of window.__vi.spots) {
         holds.splice(holds.indexOf(hold), 1);
         w.vehicles.splice(w.vehicles.indexOf(v), 1);
       }
+    } else if (S.type === 'zwemmen') {
+      // #207: de speler zwemt (schoolslag) en staat op de kant, vanaf 4 m gezien
+      await go(S.x, S.y, 0, SETTLE * 0.6);
+      const f = findWater(S.x, S.y, S.R || 1200);
+      if (!f) { info.error = 'geen water'; results[S.name] = info; continue; }
+      const od = openDir(f.x, f.y);
+      await go(f.x, f.y, od.a, 4000);
+      const p = w.player;
+      info.at = [Math.round(f.x), Math.round(f.y)]; info.swimming = !!p.swimming; info.water = p.water;
+      const lv = f.wa.level;
+      const side = (d, up) => ({ position: { x: p.x + Math.cos(od.a + 1.57) * d, y: p.y + Math.sin(od.a + 1.57) * d, z: lv + up }, lookAt: { x: p.x, y: p.y, z: lv + 0.2 }, cut: true });
+      await shot(S.name + '-stil', side(4, 1.6), 1500);
+      info.swimmingNa = !!p.swimming;
+    } else if (S.type === 'schadefases') {
+      // #205: een auto in vijf schadefasen (heel, gedeukt, rook, brand, wrak), dentLog per zone
+      await go(S.x, S.y, 0, 6000);
+      const road = snapRoad(S.x, S.y, 200, null);
+      const bx = road ? road.x : S.x, by = road ? road.y : S.y, ba = road ? road.a : 0;
+      const model = VHC.TRAFFIC_MODELS().find((m) => m.name === 'wagon');
+      const g = gh(bx, by);
+      const cam = Math.max(7, model.len * 1.4), ca = ba + 0.7;
+      const pose = { position: { x: bx + Math.cos(ca) * cam, y: by + Math.sin(ca) * cam, z: g + 2.4 }, lookAt: { x: bx, y: by, z: g + 1.1 }, cut: true };
+      const L = model.len * 0.4, Wd = model.wid * 0.4;
+      const fases = [['heel', [], 100], ['voor', [[L, 0, 2.2]], 80], ['zijkant', [[L, 0, 2.2], [0, Wd, 2.2], [-L * 0.3, Wd, 1.8]], 50], ['rook', [[L, 0, 2.6], [0, -Wd, 2.2], [-L, 0, 1.6]], 45], ['brand', [[L, 0, 2.6], [-L, 0, 2.2], [0, Wd, 2.2], [0, -Wd, 2.2]], 20]];
+      for (const [n, log, hp] of fases) {
+        // a fresh car per phase: the mesh replays the dent log when it is built
+        const v = new VHC.Vehicle(bx, by, ba, { ...model });
+        v.dentLog = log.map((d) => [...d]); v.health = hp;
+        w.vehicles.push(v);
+        const hold = { v, x: bx, y: by, a: ba, open: [] };
+        holds.push(hold);
+        await sleep(600);
+        await shot(S.name + '-' + n, pose, 2000);
+        holds.splice(holds.indexOf(hold), 1);
+        w.vehicles.splice(w.vehicles.indexOf(v), 1);
+      }
+    } else if (S.type === 'flat') {
+      // #206: de flat met alle EIKEA-meubels, van boven en op ooghoogte
+      const HOME = await imp('home'); const FUR = await imp('furniture');
+      const lob = HOME.getHome().lobby;
+      await go(lob.use[0], lob.use[1], lob.spawnAngle, 6000);
+      hold = null;
+      FUR.grantFurniture(FUR.FURNITURE.map((f) => f.id));
+      if (S.plekken) { const sv = FUR.getFurnitureSave(); sv.plekken = S.plekken; sv.built = ['kast']; FUR.applyFurnitureSave(sv); info.plekken = FUR.getFurnitureSave().plekken; }
+      info.prompt = (HOME.homePrompt(w) || {}).id || null;
+      for (let k = 0; k < 4 && !HOME.inHomeFlat(); k++) {
+        for (const t of [window, document]) t.dispatchEvent(new KeyboardEvent('keydown', { key: 'e', code: 'KeyE', bubbles: true }));
+        await sleep(150);
+        for (const t of [window, document]) t.dispatchEvent(new KeyboardEvent('keyup', { key: 'e', code: 'KeyE', bubbles: true }));
+        await sleep(3000);
+      }
+      info.inFlat = HOME.inHomeFlat();
+      const f = HOME.getHome().flat;
+      const zf = (w.player.gz || 0) + (w.player.z || 0);
+      const at = (lx, lz) => f.fl(lx, lz);
+      const c = at(5.5, 4.5), a = at(5.5, 9.5), b = at(0.2, 2.5);
+      await shot(S.name + '-boven', { position: { x: c[0], y: c[1], z: zf + 13 }, lookAt: { x: c[0] + 0.01, y: c[1], z: zf }, cut: true }, 2500);
+      await shot(S.name + '-schuin', { position: { x: a[0], y: a[1], z: zf + 5.5 }, lookAt: { x: c[0], y: c[1], z: zf + 0.5 }, cut: true }, 1800);
+      info.player = [Math.round(w.player.x), Math.round(w.player.y)];
     } else if (S.type === 'cutscenes') {
       // #224, #117, #157: real story scenes, played through the game: the step is jumped to, the player is teleported to the
       // mission start and E is pressed there; while a cinematic runs, a screenshot every 3 s (up to 5) and the world sounds

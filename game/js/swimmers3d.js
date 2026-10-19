@@ -28,7 +28,7 @@ const swimmers = [];
 const bridgesDone = new Map();
 let scanT = 0;
 
-export function niceSwimWeather(world) {
+function niceSwimWeather(world) {
   const dn = world.dayNight, w = world.weather;
   if (!dn || dn.night > 0.03 || dn.sunElevation < 20) return false;
   if (dn.hour < 10 || dn.hour > 19.5) return false;

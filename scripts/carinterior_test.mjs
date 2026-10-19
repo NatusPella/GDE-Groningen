@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { hasCarInterior, interiorLayout, doorTrims } from '../game/js/carinteriorlayout.js';
+import { hasCarInterior, interiorLayout, doorTrims, interiorKlasse, klasseStijl } from '../game/js/carinteriorlayout.js';
 import { DEUR_DEFS } from '../game/js/vehicledoors.js';
 
 const car = (name, extra = {}) => ({ model: { name, len: 4.2, wid: 1.8 }, ...extra });
@@ -40,4 +40,36 @@ assert.equal(doorTrims(DEUR_DEFS.sedan, 4.3, 1.8).length, 4, 'sedan: vier portie
 assert.equal(doorTrims(DEUR_DEFS.hatch, 3.8, 1.7).length, 2, 'hatch: twee portieren');
 assert.equal(doorTrims(DEUR_DEFS.bus, 11.2, 2.55).length, 0, 'bus: schuifdeuren krijgen geen portierbekleding');
 assert.equal(doorTrims(null, 4, 1.8).length, 0);
+for (const [len, wid, seat] of [[4.3, 1.8, { x: -0.25, y: 0.38, z: -0.3 }], [11, 2.5, { x: 4.5, y: 1.2, z: -1.0 }]]) {
+  const L = interiorLayout(seat, len, wid);
+  assert.ok(L.mirror.y < L.roof.y && L.mirror.y > L.eye.y, 'spiegel hangt tussen oog en dak');
+}
+// interieur per voertuigklasse (#51)
+{
+  const k = (name, extra = {}) => interiorKlasse(car(name, extra));
+  assert.equal(k('hatch'), 'auto');
+  assert.equal(k('sport'), 'sport');
+  assert.equal(k('taxi'), 'taxi');
+  assert.equal(k('sedan', { isTaxi: true }), 'taxi');
+  assert.equal(k('van'), 'bestel');
+  assert.equal(k('cashvan'), 'bestel');
+  assert.equal(k('truck'), 'vrachtwagen');
+  assert.equal(k('sedan', { isPolice: true }), 'politie');
+  assert.equal(k('van', { isAmbulance: true }), 'ambulance');
+  assert.equal(k('bus', { isBus: true }), 'bus');
+  assert.equal(interiorKlasse(null), 'auto');
+  const seat = { x: -0.25, y: 0.38, z: -0.3 };
+  const klassen = ['auto', 'sport', 'taxi', 'politie', 'ambulance', 'bestel', 'vrachtwagen', 'bus'];
+  const stijlen = klassen.map((n) => JSON.stringify(klasseStijl(n, interiorLayout(seat, 4.3, 1.8), seat)));
+  assert.equal(new Set(stijlen).size, klassen.length, 'elke klasse ziet er anders uit');
+  for (const n of klassen) {
+    const L = interiorLayout(seat, 4.3, 1.8);
+    const K = klasseStijl(n, L, seat);
+    for (const e of K.extras) {
+      assert.ok(e.at[1] > 0 && e.at[1] < L.roof.y, n + ': onderdeel onder het dak');
+      assert.ok(Math.abs(e.at[2]) <= 1.8 / 2 && e.b.every((x) => x > 0), n + ': onderdeel binnen de carrosserie');
+    }
+  }
+  assert.ok(klasseStijl('bus', interiorLayout(seat, 4.3, 1.8), seat).wheel.r > klasseStijl('sport', interiorLayout(seat, 4.3, 1.8), seat).wheel.r, 'busstuur groter dan sportstuur');
+}
 console.log('carinterior_test ok');

@@ -13,7 +13,7 @@ export const FX_INFO = {
   carbid_boom_0: { cat: 'explosie', label: 'Carbidknal (A)', gain: 1.0, ref: 22, range: 3000 },
   carbid_boom_1: { cat: 'explosie', label: 'Carbidknal (B)', gain: 1.0, ref: 22, range: 3000 },
   carbid_boom_2: { cat: 'explosie', label: 'Carbidknal (C)', gain: 1.0, ref: 22, range: 3000 },
-  carbid_fuse: { cat: 'wapen', label: 'Carbid: lont sist', gain: 0.35, ref: 3, range: 60 },
+  carbid_fuse: { cat: 'wapen', label: 'Carbid: lont sist', gain: 0.6, ref: 3, range: 60 },
   explosion_boom_0: { cat: 'explosie', label: 'Explosie (A)', gain: 1.0, ref: 16, range: 2500 },
   explosion_boom_1: { cat: 'explosie', label: 'Explosie (B)', gain: 1.0, ref: 16, range: 2500 },
   shop_bell: { cat: 'winkel', label: 'Winkelbel bij de deur', gain: 0.45, ref: 3, range: 40 },
@@ -24,6 +24,10 @@ export const FX_INFO = {
   kermis_ding: { cat: 'kermis', label: 'Kermis: kop van Jut (klap en bel)', gain: 0.6, ref: 5, range: 120 },
   splash_big: { cat: 'water', label: 'Grote plons', gain: 0.7, ref: 6, range: 120 },
   door_wood_open: { cat: 'deur', label: 'Houten deur open', gain: 0.5, ref: 3, range: 40 },
+  firework_burst_0: { cat: 'explosie', label: 'Vuurwerkbom (A)', gain: 0.85, ref: 40, range: 3200 },
+  firework_burst_1: { cat: 'explosie', label: 'Vuurwerkbom (B)', gain: 0.85, ref: 40, range: 3200 },
+  firework_burst_2: { cat: 'explosie', label: 'Vuurwerkbom (C)', gain: 0.85, ref: 40, range: 3200 },
+  crossing_bell: { cat: 'spoor', label: 'Overwegbel (een slag)', gain: 0.6, ref: 6, range: 130 },
   door_wood_close: { cat: 'deur', label: 'Houten deur dicht', gain: 0.55, ref: 3, range: 40 },
 };
 
@@ -199,7 +203,7 @@ defSample('tyre_screech', 1.4, (c, sr, R) => {
 // in sfx/linkups.js from the door state of vehicledoors.js.
 FX_INFO.part_rip = { cat: 'voertuig', label: 'Deur of kap scheurt los', gain: 0.8, ref: 10, range: 250 };
 FX_INFO.hood_thump = { cat: 'voertuig', label: 'Kap of kofferbak slaat dicht', gain: 0.55, ref: 4, range: 60 };
-FX_INFO.bus_door_hiss = { cat: 'voertuig', label: 'Busdeur sist open of dicht', gain: 0.4, ref: 6, range: 80 };
+FX_INFO.bus_door_hiss = { cat: 'voertuig', label: 'Busdeur sist open of dicht', gain: 0.7, ref: 6, range: 80 };
 
 defSample('part_rip', 1.8, (c, sr, R) => {
   const d = c[0];
@@ -230,3 +234,53 @@ defSample('bus_door_hiss', 1.3, (c, sr, R) => {
   nb(d, sr, 0, R, { f: 6200, q: 1.5, tau: 0.25, amp: 0.4, attack: 0.04, len: 1.0 });
   thump(d, sr, 0.9, 90, 0.05, 0.5);
 }, { rate: 22050, peak: 0.6 });
+
+// Locks (issues #173, x4-sluizen): the gates groan open and shut, the chamber
+// fills or empties with rushing water. Linked in sfx/linkups.js (rule 'sluis')
+// from the state of sluizen.js.
+FX_INFO.sluis_poort = { cat: 'brug', label: 'Sluis: poort kreunt en klinkt', gain: 0.7, ref: 12, range: 220 };
+FX_INFO.sluis_stroom = { cat: 'water', label: 'Sluis: water stroomt', gain: 0.6, ref: 12, range: 200 };
+
+defSample('sluis_poort', 3.2, (c, sr, R) => {
+  const d = c[0], f = 62 + R() * 8;
+  // heavy gate: a low groan that wanders, creaking joints, then the clunk of the stop
+  addTone(d, sr, 0, 2.6, R, { f0: f, f1: f * 1.35, amp: 0.7, attack: 0.3, release: 0.6, shape: 'saw', vib: 0.05, vibRate: 7 });
+  addTone(d, sr, 0.2, 2.2, R, { f0: f * 2.7, f1: f * 2.1, amp: 0.25, attack: 0.4, release: 0.6, shape: 'rich', vib: 0.08, vibRate: 11 });
+  for (let k = 0; k < 9; k++) addTone(d, sr, 0.3 + R() * 2.1, 0.12, R, { f0: 380 + R() * 500, f1: 260 + R() * 300, amp: 0.15, attack: 0.01, release: 0.08, shape: 'saw', vib: 0.1, vibRate: 30 });
+  thump(d, sr, 2.7, 58, 0.12, 1.2);
+  nb(d, sr, 2.7, R, { f: 900, q: 1.2, tau: 0.04, amp: 0.8 });
+  const lp = bq('lp', 700, 0.7, sr);
+  for (let i = 0; i < d.length; i++) d[i] = lp.run(d[i]) * 1.4;
+}, { rate: 22050, peak: 0.85 });
+
+defSample('sluis_stroom', 6, (c, sr, R, len) => {
+  const d = c[0], lp = bq('lp', 900, 0.7, sr), hp = bq('hp', 3000, 0.7, sr);
+  for (let i = 0; i < d.length; i++) {
+    const t = i / sr, e = Math.min(1, t / 0.8) * Math.min(1, (len - t) / 1.2);
+    const n = R() * 2 - 1, w = 1 + 0.35 * Math.sin(t * 2.3) + 0.2 * Math.sin(t * 5.1);
+    d[i] = (lp.run(n) * 0.9 * w + hp.run(n) * 0.18 * w * w) * e;
+  }
+}, { rate: 22050, peak: 0.7 });
+
+// Fireworks (#131): a shell opening is a hard crack, a low thump you feel, a
+// short bloom of noise and then glitter crackling down for two seconds. Every
+// variant scatters its own pops.
+for (let v = 0; v < 3; v++) defSample(`firework_burst_${v}`, 2.8, (c, sr, R) => {
+  const d = c[0], j = () => 0.9 + R() * 0.2;
+  nb(d, sr, 0, R, { type: 'hp', f: 4800 * j(), q: 0.7, tau: 0.004, amp: 1.5 });
+  nb(d, sr, 0, R, { f: 2000 * j(), q: 0.9, tau: 0.03, amp: 1.1, attack: 0.0005 });
+  nb(d, sr, 0.002, R, { type: 'lp', f: 900 * j(), q: 0.7, tau: 0.22, amp: 1.0 });
+  thump(d, sr, 0, 78 * j(), 0.3, 1.5);
+  const n = 34 + Math.floor(R() * 14);
+  for (let k = 0; k < n; k++) {
+    const u = Math.pow(R(), 1.6);
+    nb(d, sr, 0.14 + u * 2.1, R, { f: 3200 + R() * 4200, q: 2.5, tau: 0.003 + R() * 0.006, amp: (0.55 - 0.35 * u) * (0.4 + R() * 0.6), attack: 0.0003 });
+  }
+}, { peak: 0.9 });
+
+// Level-crossing bell: a hard steel strike, bright and short, ringing out on its own.
+defSample('crossing_bell', 0.9, (c, sr, R) => {
+  const d = c[0], f = 1450 + R() * 100;
+  addPartials(d, sr, 0, f, [[1, 1, 0.16], [1.006, 0.7, 0.2], [2.76, 0.45, 0.09], [5.4, 0.2, 0.04]], 1, R);
+  nb(d, sr, 0, R, { type: 'hp', f: 4200, q: 1.5, tau: 0.004, amp: 0.5 });
+}, { peak: 0.85 });

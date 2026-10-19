@@ -333,11 +333,110 @@ const CHECKS = [
     for (let i = 1; i < gears.length; i++) if (gears[i] !== gears[i - 1]) { changes++; if (i > 1 && gears[i] === gears[i - 2]) flicker++; }
     return { model: car.model && (car.model.name || car.model.kind), versnellingen: [...new Set(gears)], wisselingen: changes, terugenweer: flicker, topsnelheid: Math.max(...speeds), radio };
   } },
+  // #51, #225, #41: een eigen auto vlak voor de lens (op een weg bij de Grote Markt), vastgehouden
+  { id: 'interieur', issues: [51], run: async () => {
+    const CI = await imp('carinterior');
+    const rd = nearestRoadHeading(GM.x, GM.y, 250);
+    if (!rd) return { fout: 'geen weg bij de Grote Markt' };
+    await go(rd.x, rd.y, rd.a, SETTLE);
+    const all = VH.TRAFFIC_MODELS();
+    const out = {};
+    for (const name of ['sedan', 'taxi', 'van', 'bus', 'sport']) {
+      const model = all.find((m) => m.name === (name === 'taxi' ? 'sedan' : name));
+      if (!model) { out[name] = 'model niet gevonden'; continue; }
+      const v = new VH.Vehicle(rd.x, rd.y, rd.a, { ...model });
+      if (name === 'taxi') v.isTaxi = true;
+      w.vehicles.push(v);
+      await sleep(600);
+      teleport(v.x, v.y);
+      p.enterVehicle(v, w);
+      hold = null; driving = true;
+      v.speed = 0;
+      await sleep(3500);
+      const e = CI.interiorEyePose(v);
+      if (!e) { out[name] = 'geen interieur'; p.exitVehicle(map, w); driving = false; continue; }
+      const L = [e.fx, e.fy], R = [e.fy, -e.fx];
+      const pose = (dx, dy, dz) => ({ position: { x: e.x, y: e.y, z: e.z }, lookAt: { x: e.x + dx, y: e.y + dy, z: e.z + dz }, fov: 74, cut: true, interior: true });
+      await shotAt('interieur-' + name + '-voor', pose(L[0] * 30, L[1] * 30, -0.4), 1500);
+      await shotAt('interieur-' + name + '-deur', pose(R[0] * 5 + L[0] * 1.2, R[1] * 5 + L[1] * 1.2, -2), 1500);
+      await shotAt('interieur-' + name + '-dak', pose(L[0] * 4, L[1] * 4, 3), 1500);
+      // buiten, deur open (bus-achtige stand niet nodig): de bestuurdersdeur via de deurlaag
+      p.exitVehicle(map, w);
+      driving = false;
+      out[name] = { len: v.model.len, eye: [+e.x.toFixed(1), +e.y.toFixed(1), +e.z.toFixed(2)], deuren: JSON.stringify(v.doors && v.doors.open), hoek: +v.angle.toFixed(2) };
+      w.vehicles.splice(w.vehicles.indexOf(v), 1);
+    }
+    return out;
+  } },
+  { id: 'lekkeband', issues: [41], run: async () => {
+    const FL = await imp('flatlook');
+    const rd = nearestRoadHeading(GM.x, GM.y, 250);
+    if (!rd) return { fout: 'geen weg bij de Grote Markt' };
+    await go(rd.x, rd.y, rd.a, SETTLE);
+    const out = {};
+    for (const name of ['sedan', 'suv']) {
+      const model = VH.TRAFFIC_MODELS().find((m) => m.name === name);
+      if (!model) { out[name] = 'model niet gevonden'; continue; }
+      const v = new VH.Vehicle(rd.x, rd.y, rd.a, { ...model });
+      w.vehicles.push(v);
+      const hold2 = { v, x: rd.x, y: rd.y, a: rd.a };
+      const keep = setInterval(() => { v.x = rd.x; v.y = rd.y; v.angle = rd.a; v.speed = 0; }, 30);
+      await sleep(800);
+      const g = gh(rd.x, rd.y), c = Math.cos(rd.a), sn = Math.sin(rd.a);
+      const side = FL.flatSide(v.id);
+      const nx = -sn * side, ny = c * side; // naar de kant van de lekke band
+      const cam = (k) => ({ position: { x: rd.x + c * v.model.len * 0.45 + nx * 3.2 * k, y: rd.y + sn * v.model.len * 0.45 + ny * 3.2 * k, z: g + 0.8 }, lookAt: { x: rd.x + c * v.model.len * 0.3, y: rd.y + sn * v.model.len * 0.3, z: g + 0.35 }, fov: 50, cut: true });
+      await shotAt('lekkeband-' + name + '-heel', cam(1), 1500);
+      v.flat = true;
+      await sleep(600);
+      await shotAt('lekkeband-' + name + '-lek', cam(1), 1500);
+      await shotAt('lekkeband-' + name + '-andere-kant', cam(-1), 1500);
+      clearInterval(keep);
+      out[name] = { kant: side };
+      w.vehicles.splice(w.vehicles.indexOf(v), 1);
+    }
+    return out;
+  } },
+  { id: 'hud', issues: [33], run: async () => {
+    const rd = nearestRoadHeading(GM.x, GM.y, 250);
+    await go(rd.x, rd.y, rd.a, SETTLE);
+    await snap('hud-voet', 500);
+    const model = VH.TRAFFIC_MODELS().find((m) => m.name === 'sedan');
+    const v = new VH.Vehicle(rd.x, rd.y, rd.a, { ...model });
+    w.vehicles.push(v);
+    await sleep(500);
+    teleport(v.x, v.y);
+    p.enterVehicle(v, w);
+    hold = null; driving = true;
+    key('keydown', 'w', 'KeyW');
+    await sleep(2500);
+    await snap('hud-auto', 300);
+    key('keyup', 'w', 'KeyW');
+    p.exitVehicle(map, w);
+    driving = false;
+    w.vehicles.splice(w.vehicles.indexOf(v), 1);
+    return { venster: [innerWidth, innerHeight], schaal: getComputedStyle(document.getElementById('hud') || document.body).zoom };
+  } },
+  { id: 'titel', issues: [34], run: async () => {
+    const SS = await imp('startscreen');
+    SS.runStartScreen(w, { render() {}, relocate() {}, tick() {} });
+    await sleep(1500);
+    await snap('titel');
+    const btn = document.querySelector('.ss-item[data-act="saves"]');
+    if (btn) { btn.click(); await sleep(1200); await snap('titel-spelstanden'); }
+    return { knoppen: [...document.querySelectorAll('.ss-item')].map((b) => b.dataset.act) };
+  } },
 ];
 
+// een controle in het spel begint niet achter het titelscherm (dat soms nog openstaat): Enter erop
+const leaveStart = async () => {
+  const ss = document.getElementById('start-screen');
+  for (let i = 0; i < 4 && ss && ss.classList.contains('visible'); i++) { await tap('Enter', 'Enter', 120); await sleep(5000); }
+};
 const results = {};
 for (const C of CHECKS) {
   if (ONLY.length && !ONLY.includes(C.id)) continue;
+  if (C.id !== 'titel') await leaveStart();
   const i0 = issues.length;
   let out;
   try { out = await C.run(); } catch (e) { out = { fout: String(e && e.stack || e).slice(0, 400) }; }

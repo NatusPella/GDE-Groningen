@@ -102,9 +102,9 @@ assert.ok(!R.samenvatting({ ...rapport, toon: ['licht'] }).join(' ').includes('n
 
 // issue-concepten: alleen nieuwe fouten, niet als er al een issue is
 const concepten = R.issueConcepten(rapport);
-assert.deepEqual(concepten.map((c) => c.fp).sort(), [R.fingerprint(items[1]), R.fingerprint(items[3])].sort());
+assert.deepEqual(concepten.map((c) => c.fp), [R.fingerprint(items[1])]); // de timeout krijgt geen concept
 assert.match(concepten[0].body, /testall-afdruk: [0-9a-f]{8}/);
-assert.equal(R.issueConcepten(rapport, { [R.fingerprint(items[1])]: 7, [R.fingerprint(items[3])]: 8 }).length, 0);
+assert.equal(R.issueConcepten(rapport, { [R.fingerprint(items[1])]: 7 }).length, 0);
 const zonderNieuw = { ...rapport, fases: { licht: { ...rapport.fases.licht, diff: R.diffRuns(items, items) } } };
 assert.equal(R.issueConcepten(zonderNieuw).length, 0);
 

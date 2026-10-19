@@ -15,8 +15,8 @@ export const CATEGORIES = {
   in: ['Missies', 'Bijbaantjes', 'Verkoop', 'Gevonden', 'Overig inkomsten'],
   out: ['Winkels', 'Garage', 'Boetes', 'Reizen', 'Eten en drinken', 'Overige uitgaven'],
 };
-export const OTHER_IN = 'Overig inkomsten';
-export const OTHER_OUT = 'Overige uitgaven';
+const OTHER_IN = 'Overig inkomsten';
+const OTHER_OUT = 'Overige uitgaven';
 
 let pending = null;
 // De volgende boeking (dit beeld) hoort bij deze categorie.

@@ -7,12 +7,14 @@ Code-identifiers, bestandsnamen en opslagsleutels (`gde-save-v1`, `saveslots.js`
 
 | Niet | Wel | Opmerking |
 | --- | --- | --- |
-| save, saves, savegame | **spelstand**, **spelstanden** | zelfstandig naamwoord |
+| save, saves | **savegame**, **savegames** | zelfstandig naamwoord; "savegame" is het gekozen woord (eigenaar), geen anglicisme |
+| (scherm en menu-item) | **Opgeslagen spellen** | knoppen: **Spel opslaan**, **Spel laden**, **Spel verwijderen**, **Spel exporteren**, **Spel importeren**; slotkaartjes heten "Opgeslagen spel 1", "Opgeslagen spel 2"; losse verwijzingen in lopende tekst mogen "savegame" zeggen |
 | save (werkwoord), "save je spel" | **opslaan**, **bewaren** | "Opslaan" voor de knop, "bewaren" voor een naam of kopie |
-| save slot, slot (voor een spelstand) | **opslagplek** | "slot" als deursluiting is gewoon Nederlands en blijft |
+| save slot, slot (voor een savegame) | **opslagplek** | "slot" als deursluiting is gewoon Nederlands en blijft |
 | backup | **herstelkopie** | |
-| load, loaden | **laden** | "Laatste spelstand laden" |
-| host | **gastheer** | de speler die de kamer opent in coöp; de ander is de gast |
+| load, loaden | **laden** | "Laatste savegame laden" |
+| host | **gastheer** | de speler die de kamer opent bij samen spelen; de ander is de gast |
+| co-op, coöp, multiplayer | **samen spelen** | de naam van de modus in beeld; "gastheer" en "gast" voor host en guest. Interne namen, bestanden en issue-titels blijven `coop` |
 | lobby | **kamer** (of wachtkamer) | alleen waar het in beeld staat |
 | checkpoint (race, route) | **controlepunt** | "Controlepunt 4/9" |
 | checkpoint (opnieuw beginnen na mislukken) | **hervatpunt** | "Je begint opnieuw bij het laatste hervatpunt." |
@@ -27,10 +29,11 @@ Code-identifiers, bestandsnamen en opslagsleutels (`gde-save-v1`, `saveslots.js`
 | deadline | **uiterste tijd** | |
 | shopaholic | **winkelverslaafde** | |
 | total loss | **afgeschreven** | "de auto is afgeschreven" |
+| hole(s) (discgolf, pitch & putt) | **baan**, **banen** | "Baan 3/9"; de mand blijft de mand |
 
 ## Ingeburgerd, dus toegestaan
 
-Niet forceren: app, film, camera, hatchback, sedan, HUD, minimap, cheat(s), score, update, skatepark, minigame, streamer.
+Niet forceren: par, birdie, eagle, bogey, ace (vaktermen van discgolf), app, film, camera, hatchback, sedan, HUD, minimap, cheat(s), score, update, skatepark, minigame, streamer.
 Wordt er later een goed alternatief gekozen, voeg het dan hier toe en zet het woord in `ANGLICISMEN`.
 
 ## Uitzonderingen

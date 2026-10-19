@@ -173,7 +173,7 @@ export const HOOGVLIEGER = {
       quit: () => { if (!ride) return false; end(w, { quit: true }); return true; },
     };
   },
-  spots: () => [],
+  spots: () => [{ id: 'hoogvlieger', name: NAME, x: LOAD.x, y: LOAD.y }],
   prompt,
   secondary,
   interact,

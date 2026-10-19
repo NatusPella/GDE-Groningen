@@ -42,3 +42,11 @@ export function playerBusy(w, reasons = BUSY_ALL) {
 }
 
 export const gameBusy = (w) => playerBusy(w, BUSY_GAME).busy;
+
+// Een modus die de speler overneemt (de duif) beëindigt eerst wat er loopt: een minigame of wandeling
+// houdt anders zijn HUD en timer aan onder de nieuwe modus (#241). activities.js meldt zijn quit hier aan.
+const quitHooks = [];
+export function registerQuitHook(fn) { if (typeof fn === 'function' && !quitHooks.includes(fn)) quitHooks.push(fn); }
+export function quitRunningActivities(w) {
+  for (const fn of quitHooks) { try { fn(w); } catch (e) { console.error('quit hook', e); } }
+}

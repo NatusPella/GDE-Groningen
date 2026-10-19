@@ -10,7 +10,7 @@ import { placeOwnedVehicleNear } from './ownedvehicles.js';
 import { findWalkPath } from './routing.js';
 import { setGoal } from './goal.js';
 import { playMissionIntro, playMissionFailed, isCinematicActive, playCinematic, skipCinematic } from './cinematics.js';
-import { playStoryIntro, playStoryOutro, playStoryFail, playVaultScene, playCastScene, playEyeContact, playPigeonSwarm, playToast, storySpeakerName } from './missionstory.js';
+import { playStoryIntro, playStoryOutro, playStoryFail, playVaultScene, playDuelJump, playCastScene, playEyeContact, playPigeonSwarm, playToast, storySpeakerName } from './missionstory.js';
 import { showTowerFlag, cutFlagRope, dropFlag, updateStoryProps, clearStoryProps, clearSkutsjeSail, hasTowerFlag, flagFocus, flagKnotsFocus } from './storyprops3d.js';
 import { RING_ROUTE, RING_CHECKPOINTS } from './ringroute.js';
 import { KEI_ROUTE, KEI_CHECKPOINTS } from './keiroute.js';
@@ -20,9 +20,10 @@ import { startHeliRun, isHeliRunActive, abortHeliRun, getHeliSpotsForRender } fr
 import { createSearchlight } from './searchlight.js';
 import { sweepAngle, inBeam, stepExposure } from './searchlightlogic.js';
 import { helipadById } from './heliflight.js';
-import { enterPlaneStage, updatePlaneStage, planeStageProgress, disposePlaneStage, releasePlaneStage } from './planestage.js';
+import { enterPlaneStage, updatePlaneStage, planeStageProgress, disposePlaneStage, releasePlaneStage, debugCompletePlaneStage } from './planestage.js';
 import { spawnFxPuff, spawnFxSpark } from './fx3d.js';
-import { Pedestrian, isInsideBuilding, setPedPose } from './pedestrians.js';
+import { Pedestrian } from './pedestrians.js';
+import { isInsideBuilding, setPedPose } from './pedgeom.js';
 import { knockDown, isKnockedDown } from './ragdoll.js';
 import { getShopsForRender, getOwnedEntries, SHOP_TYPES, repaintVehicle, storyShopState, setStoryOutfit, ownedCarTops } from './shops.js';
 import { getGaragesForRender, garageInside } from './garages.js';
@@ -144,8 +145,9 @@ function buildDefs(world) {
     {
       type: 'checkpoint',
       label: 'Wind tegen, beide kanten op',
-      intro: ['KEI-week: eerstejaars op fietsen met polsbandjes denken dat ze Grunn al kennen.', 'Eén rondje door de binnenstad, op de fiets, tegen vier eerstejaars. Alleen het podium telt, en niet stoppen voor gratis tasjes.'],
-      outro: 'De eerstejaars bellen hun ouders. Die snappen het ook niet.',
+      triggerRadius: 6,
+      intro: ['Sjoerd, van de Kiezelweek, praat alleen met wie op het podium komt. Zijn neef werkt \'s nachts in het museum.', 'Doel: één rondje door de binnenstad, op de fiets, tegen vier eerstejaars. Alleen het podium telt, en niet stoppen voor gratis tasjes.'],
+      outro: 'Podium! Sjoerd vertelt het: om twaalf uur gaan de camera\'s drie minuten uit. Nieuw doel: vannacht om twaalf uur de bal pakken.',
       race: 'kei',
       requires: 'bike',
       ride: 'bike',
@@ -206,8 +208,10 @@ function buildDefs(world) {
     {
       type: 'stages',
       label: 'Even pinnen',
-      intro: ['Twee reuzen trokken een pinautomaat uit de muur in de Herestraat, met Tessa\'s pas erin. De aanhanger bleef achter.', 'Eerst de pliesie kwijt, dan een nieuwe kleur, dan de automaat naar Pand & Poen. Sjabbe wrikt hem open.'],
-      outro: 'Sjabbe gaf Tessa haar pas terug. En hij vertelde over het museum.',
+      // a marker next to a parked car or a rack is hard to reach to 4 m (#243)
+      triggerRadius: 6,
+      intro: ['Twee reuzen trokken de pinautomaat uit de muur in de Herestraat, met Tessa\'s pas erin. Zonder pas geen contant geld voor het Loket.', 'Doel: breng de automaat naar Sjabbe van Pand & Poen. Eerst de pliesie kwijt, dan een nieuwe kleur.'],
+      outro: 'Sjabbe gaf Tessa haar pas terug. De reuzen werken voor Jelle Terpstra, en hij vroeg naar het museum. Nieuw doel: naar Het Loket.',
       timeLimit: null,
       reward: 400,
       vehicle: 'car',
@@ -215,14 +219,14 @@ function buildDefs(world) {
       stages: [
         { kind: 'board', label: 'Stap in de auto: de pinautomaat ligt achterin', say: 'Instappen: de automaat ligt achterin, met mijn pas erin. Hij piept een beetje.' },
         { kind: 'garage', stars: 2, target: { garage: true }, label: 'Naar Spuit & Klaar (automaat zit achterin)', say: 'Alarm! Twee sterren. Rij een garage in: Spuit & Klaar spuit hem om en de pliesie is je kwijt.' },
-        { kind: 'goto', target: { shop: 'pand' }, mode: 'vehicle', stop: 1.2, label: 'Naar Pand & Poen: lever de automaat achterin af', say: 'Nieuwe kleur, nieuw leven. Door naar Pand & Poen, Sjabbe wacht achterom.' },
+        { kind: 'goto', target: { shop: 'pand' }, mode: 'vehicle', radius: 14, stop: 1.2, label: 'Naar Pand & Poen: lever de automaat achterin af', say: 'Nieuwe kleur, nieuw leven. Door naar Pand & Poen, Sjabbe wacht achterom.' },
       ],
     },
     {
       type: 'stages',
       label: 'Kieken van boven',
-      intro: ['Bij het Stationsplein leent duivenmelker Bert je een duif.', 'Vlieg naar het Groninger Museum en zweef boven drie camera\'s en twee bewakers: dan staan ze op de foto.'],
-      outro: 'Drie camera\'s, twee bewakers en een zwarte trekker-limo bij de achteringang.',
+      intro: ['Voor ze de bal pakken, willen Tessa en Tammo weten hoe het museum bewaakt wordt. Bert, vriend van Tammo\'s opa, leent je een duif.', 'Doel: vlieg naar het Groninger Museum en fotografeer de camera\'s, de bewakers en de stroomkast.'],
+      outro: 'Drie camera\'s, twee bewakers en een zwarte trekker-limo. Bewaker twee is omgekocht. Nieuw doel: de Kiezelrace winnen, want Sjoerds neef kent de camera\'s.',
       timeLimit: 200,
       reward: 350,
       start: walk(-44.33, 896.96),
@@ -244,8 +248,8 @@ function buildDefs(world) {
     {
       type: 'stages',
       label: 'Het museum stond er al zo',
-      intro: ['Nacht. Via het Verbindingskanaal naar de achterkant van het Groninger Museum.', 'Eerst de stroomkast, dan de vitrine. En daarna wegwezen, het liefst over het water.'],
-      outro: 'De vitrine was leeg. Iemand was ze voor.',
+      intro: ['Middernacht. Via het Verbindingskanaal naar de achterkant van het Groninger Museum. De camera\'s gaan drie minuten uit.', 'Doel: eerst de stroomkast, dan de vitrine met de Gouden Eierbal. En daarna wegwezen, het liefst over het water.'],
+      outro: 'De vitrine was leeg: Jelle was jullie voor, en de camera\'s hebben jullie gefilmd. Nieuw doel: Jelle stoppen.',
       timeLimit: null,
       reward: 400,
       requires: ['heist', 'night'],
@@ -274,7 +278,7 @@ function buildDefs(world) {
           ],
         },
         {
-          kind: 'goto', watch: { guards: 1, cameras: 2 }, target: { landmark: 'Groninger Museum', off: [-29, -38], snap: 'walk' }, mode: 'foot', radius: 3.5,
+          kind: 'goto', watch: { guards: 1, cameras: 2 }, target: { landmark: 'Groninger Museum', off: [-29, -38], snap: 'walk' }, mode: 'foot', radius: 5,
           label: 'Sluip naar de stroomkast', say: 'Eerst de stroomkast. Twee camera\'s en een bewaker: blijf uit de lichtbundels. Bukken helpt.',
         },
         { kind: 'fuse', target: { landmark: 'Groninger Museum', off: [-29, -38], snap: 'walk' }, label: 'Camera\'s op herhaling', say: 'De stroomkast. Druk op Spatie als de naald in het groen staat. Drie zekeringen, dan hebben we drie minuten.' },
@@ -3508,11 +3512,18 @@ function updateStages(dt, world, def) {
       break;
     }
     case 'timing': {
+      // after the presses a stage with vaultJump shows the real pole vault (landing when won, splash when not) before it goes on
+      if (S.duelJump) {
+        S.duelT = (S.duelT || 0) + dt;
+        if (S.duelJump.over || S.duelT > 25) { S.duelJump.dispose(); S.duelJump = null; nextStage(world, def); }
+        break;
+      }
       const r = updateTiming(dt, world, st, S);
       if (r === 'done') {
         const tag = timingTag(st, S);
         if (tag) (chain.tags = chain.tags || new Set()).add(tag);
-        nextStage(world, def);
+        const jump = st.vaultJump ? playDuelJump(world, { at: S.target || { x: p.x, y: p.y }, fail: S.hits < (st.goodAt ?? st.rounds.length) }) : null;
+        if (jump) { S.duelJump = jump; S.duelT = 0; jump.done.then(() => { jump.over = true; }); } else nextStage(world, def);
       } else if (r && r.fail) fail(world, def, r.fail);
       break;
     }
@@ -3676,6 +3687,7 @@ export const missionDebug = {
       const cur = def.stages[chain.stageIndex];
       // a cutscene stage plays by itself (skippable); don't jump past it
       if (cur && (cur.kind === 'scene' || cur.kind === 'vault' || cur.kind === 'shot')) { syncPub(world); return true; }
+      if (cur && (cur.kind === 'plane' || cur.kind === 'airgates' || cur.kind === 'landplane') && debugCompletePlaneStage(world, cur, chain.stage)) { syncPub(world); return true; }
       if (cur && cur.kind === 'getaway') {
         heistSkipGetaway(world, false);
         if (heistBoat()) chain.vehicle = heistBoat();

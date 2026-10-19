@@ -13,6 +13,7 @@ import { createRequire } from 'module';
 createRequire(import.meta.url)('./envcompat.js'); // GTE_* -> GDE_*
 // GDE_STAGE_SRC / GDE_STAGE_OUT stage another checkout (perf runs against main)
 const SRC = process.env.GDE_STAGE_SRC || path.join(HERE, '..', 'game');
+const VIADUCTS = process.env.GDE_VIADUCTS === '1'; // province tiles with height profiles for bridges and viaducts (#235)
 const OUT = process.env.GDE_STAGE_OUT || path.join(HERE, 'build', 'game');
 const CACHE = path.join(HERE, 'vendor-cache');
 const CDN = 'https://cdn.jsdelivr.net/npm/';
@@ -55,13 +56,26 @@ function resolveSpec(spec, base) {
   return null;
 }
 
+// GDE_PREBUILT_WORLD=<dir>: take the staged map tiles of an earlier build as they are (a CI runner has no
+// data/cache for the province, .github/workflows/mac-release.yml)
 function packWorld() {
+  if (process.env.GDE_PREBUILT_WORLD) {
+    const dir = path.resolve(process.env.GDE_PREBUILT_WORLD);
+    if (!fs.existsSync(path.join(dir, 'index.json'))) throw new Error('GDE_PREBUILT_WORLD has no index.json: ' + dir);
+    fs.cpSync(dir, path.join(OUT, 'world'), { recursive: true });
+    console.log('map tiles: ' + fs.readdirSync(path.join(OUT, 'world')).length + ' files (prebuilt)');
+    return;
+  }
   const root = path.join(SRC, '..');
   const packer = path.join(root, 'scripts', 'world', 'pack_tiles.mjs');
   if (!fs.existsSync(packer) || !fs.existsSync(path.join(SRC, 'js', 'gdt.js'))) { console.log('no tile packer in this checkout: JSON map only'); return; }
   const h = crypto.createHash('sha1');
   for (const f of ['citymap.json', 'mapextras.json', 'js/gdt.js', 'js/mapdata.js', 'js/elevation.js', 'js/passages.js', 'js/museumplan.js', 'js/util.js', 'js/worldbuilder.js', 'js/derive.js', 'js/spatialgrid.js']) h.update(fs.readFileSync(path.join(SRC, f)));
   h.update(fs.readFileSync(packer));
+  // STAD_LAAG (#90): de stadslagen uit de OSM-bouw maken een andere wereld
+  h.update(String(process.env.STAD_LAAG || ''));
+  const stadLaag = path.join(root, 'scripts', 'world', 'stad_laag.mjs');
+  if (fs.existsSync(stadLaag)) h.update(fs.readFileSync(stadLaag));
   // what else goes into the rows when the checkout has it: the height chain,
   // the profiles, junctions and routes, the building attributes, the 3D BAG
   // extract and fetched AHN rasters
@@ -85,8 +99,9 @@ function packWorld() {
     ? fs.readdirSync(cacheDir).filter((d) => d === 'province' || d.startsWith('province-')).sort().map((d) => path.join(cacheDir, d)) : [];
   if (provDirs.length) {
     h.update(fs.readFileSync(province));
+    h.update(VIADUCTS ? 'viaducts' : 'flat');
     // what the province build runs besides (derive_tiles.mjs: the city's derivation; bag3d.mjs: 3D BAG)
-    for (const f of ['derive_tiles.mjs', 'junction_tiles.mjs', 'building_clearance.mjs', 'bag3d.mjs']) h.update(fs.readFileSync(path.join(root, 'scripts', 'world', f)));
+    for (const f of ['derive_tiles.mjs', 'junction_tiles.mjs', 'building_clearance.mjs', 'bag3d.mjs', 'province_profile.mjs', 'bridgededupe.mjs', 'bridge_audit.mjs', 'profile.mjs']) h.update(fs.readFileSync(path.join(root, 'scripts', 'world', f)));
     for (const f of ['builderhooks.js', 'greenery.js', 'streetfurniture.js', 'junctions.js']) h.update(fs.readFileSync(path.join(SRC, 'js', f)));
     const bagP = path.join(root, 'data', 'world', '3dbag_province.json.gz');
     if (fs.existsSync(bagP)) h.update(fs.readFileSync(bagP));
@@ -98,14 +113,14 @@ function packWorld() {
     fs.rmSync(cache, { recursive: true, force: true });
     const t = Date.now();
     const r = spawnSync(process.execPath, [packer, '--game', SRC, '--out', cache], { stdio: 'inherit', cwd: root });
-    if (r.status) { fs.rmSync(cache, { recursive: true, force: true }); throw new Error('packing the map tiles failed'); }
+    if (r.status !== 0) { fs.rmSync(cache, { recursive: true, force: true }); throw new Error('packing the map tiles failed'); }
     if (corInputs.length) {
       const c = spawnSync(process.execPath, [corridor, '--out', cache, '--city', path.join(cache, 'index.json')], { stdio: 'inherit', cwd: root });
-      if (c.status) { fs.rmSync(cache, { recursive: true, force: true }); throw new Error('building the corridor tiles failed'); }
+      if (c.status !== 0) { fs.rmSync(cache, { recursive: true, force: true }); throw new Error('building the corridor tiles failed'); }
     }
     if (provDirs.length) {
-      const c = spawnSync(process.execPath, [province, '--out', cache, '--city', path.join(cache, 'index.json')], { stdio: 'inherit', cwd: root });
-      if (c.status) { fs.rmSync(cache, { recursive: true, force: true }); throw new Error('building the province tiles failed'); }
+      const c = spawnSync(process.execPath, [province, '--out', cache, '--city', path.join(cache, 'index.json'), ...(VIADUCTS ? ['--viaducts'] : [])], { stdio: 'inherit', cwd: root });
+      if (c.status !== 0) { fs.rmSync(cache, { recursive: true, force: true }); throw new Error('building the province tiles failed'); }
     }
     for (const d of fs.readdirSync(WCACHE)) if (path.join(WCACHE, d) !== cache) fs.rmSync(path.join(WCACHE, d), { recursive: true, force: true });
     console.log(`packed the map tiles in ${((Date.now() - t) / 1000).toFixed(0)} s`);

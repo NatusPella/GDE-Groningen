@@ -33,6 +33,8 @@ const BOATS = {
   dinghy: [['Bijbootje', 'Woonbootje'], ['Roeiboot', 'Kleine Jan']],
   skutsje: [['Skûtsje', 'Us Heit'], ['Skûtsje', 'Snackkening']],
 };
+const ZEILBOTEN = [['Zeilboot', 'Lekker Lijwaarts'], ['Zeilboot', 'Hoog aan de Wind']];
+const ROEIBOTEN = [['Roeiboot', 'Krabbenlap'], ['Roeiboot', 'Natte Rug']];
 // elektrisch en opgevoerd (de tokkie-auto), twee soorten uit het verkeer
 const EV_NAMES = [['Wadden', 'Stroomer'], ['Hunze', 'Zoemer'], ['Reitdiep', 'Voltje']];
 const TOKKIE_NAMES = [['Dollard', 'Dreunbak'], ['Eemshaven', 'Knalpot'], ['Hunze', 'Bonkerd']];
@@ -52,6 +54,9 @@ export function vehicleDisplayName(v) {
   if (v._mount === 'horse') return { make: 'Politiepaard', model: pick(HORSES, v.id) };
   if (v.isPolice) return { make: 'Politie', model: 'Achtervolger' };
   const name = v.model && v.model.name;
+  // zeil- en roeiboot (#197) hebben een eigen naam, ook al delen ze de bijboot-romp
+  if (v.isBoat && v.model.zeil) { const [make, model] = pick(ZEILBOTEN, v.id); return { make, model }; }
+  if (v.isBoat && v.model.kind === 'skiff' && v.model.soort === 'roeiboot') { const [make, model] = pick(ROEIBOTEN, v.id); return { make, model }; }
   if (v.isBoat && BOATS[v.model.kind]) {
     const [make, model] = pick(BOATS[v.model.kind], v.id);
     return { make, model };

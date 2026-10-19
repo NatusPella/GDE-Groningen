@@ -97,6 +97,11 @@ const SPOTS = [
   { name: 'x-voertuigen', type: 'voertuigen', issue: 0, ...off(gm, 150, 100) },
   // #225: deuren, kap en kofferbak (auto, bus, bestelbus, tractor)
   { name: 'y-delen', type: 'voertuigdelen', issue: 225, ...place('Winsum') },
+  // #207: zwemmen; #205: schadefases
+  { name: 'y5-zwemmen', type: 'zwemmen', issue: 207, ...place('Zuidhorn'), R: 1500 },
+  { name: 'y5-flat', type: 'flat', issue: 206, ...place('Winsum') },
+  { name: 'y5-flat2', type: 'flat', issue: 206, ...place('Winsum'), plekken: { kast: 'k3', bureau: 'b3', lamp: 'h5', plant: 'h2' } },
+  { name: 'y5-schade', type: 'schadefases', issue: 205, ...place('Winsum') },
   // #224, #117, #157: echte scenes (opening-missie, M02 shot 6, een achtervolging, een akte-4 scene)
   { name: 'z-scenes', type: 'cutscenes', issue: 224, ...gm, ids: ['M01', 'M02', 'M21', 'M18'] },
   // #224: M02 intro volledig (shot 6 na ruim 11 s zonder camerabeweging), elke 2 s een beeld; M09 en M23 (voertuigen/colonne), M18 (akte 4)

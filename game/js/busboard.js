@@ -9,7 +9,7 @@ import { project, pointAt } from './busroutes.js';
 
 export const OPERATOR = 'Hunzedal Vervoer';
 export const BOARD_COLS = 16;      // tekens op het bord
-export const NEAR = 150;           // m: "straks" voor de volgende halte
+const NEAR = 150;           // m: "straks" voor de volgende halte
 
 // lijnkleuren (bordrand en HUD), stabiel per lijnnummer
 export const LINE_COLORS = ['#e4572e', '#2e86c1', '#2e8b6a', '#c9a227', '#8e5ea2', '#d35487', '#3d9db3', '#7a8f2e', '#c46a2c', '#4b5fbf'];

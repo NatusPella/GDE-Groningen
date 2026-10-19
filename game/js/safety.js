@@ -5,8 +5,7 @@ import { isInWater } from './util.js';
 import { cinematicState, skipCinematic, skipAllCinematics, isCinematicActive } from './cinematics.js';
 import { isPhoneOpen } from './phone.js';
 import { isShopOpen, closeShopMenu } from './shopui.js';
-import { isPauseMenuOpen } from './pausemenu.js';
-import { isMapOpen } from './mapview.js';
+import { isPauseMenuOpen, isMapOpen } from './pausestate.js';
 import { isMissionActive, failActiveMission } from './missions.js';
 import { respawnPlayer } from './world.js';
 import { respawnFade } from './respawn.js';
@@ -31,7 +30,7 @@ export function initSafety(w) {
   w.safetyActions = { unstuck: () => unstuck(w), abortMission: () => abortMission(w), missionActive: () => isMissionActive() };
 }
 
-export function abortMission(w = world) {
+function abortMission(w = world) {
   if (!isMissionActive()) return false;
   return failActiveMission(w, 'Missie afgebroken', 'Afgebroken');
 }
@@ -122,7 +121,7 @@ function clearSceneLeftovers(w) {
   document.body.classList.remove('cine-hide-hud', 'intro-montage');
 }
 
-export function unstuck(w = world) {
+function unstuck(w = world) {
   if (!w || w.pendingRespawn) return false;
   if (w.pigeonMode && w.pigeonActions) w.pigeonActions.stop();
   clearTransient(w);

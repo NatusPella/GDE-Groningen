@@ -7,12 +7,13 @@
 // Instellingen, Besturing.
 import { getSettings, setSetting, resetSettings, QUALITY_PRESETS } from './settings.js';
 import { logoHtml } from './logo.js';
+import { setPauseMenuOpen } from './pausestate.js';
 import { PRESET_ORDER, presetLabel, describePreset, describeChanges, currentPreset, applyPreset, getBenchResult, dismissBenchBanner, GEAR_SVG } from './gfxprofile.js';
 import { mountMapView, setMapActive, setMapCloseHandler, setMapView, getDiscoveredRatio, setMapTeleport } from './mapview.js';
 import { renderSamenPanel } from './samenpanel.js';
 import { renderCheatsPanel, cheatsClick, resetCheatsPanel, cheatsFocus } from './cheatsui.js';
 import { skipCurrent, getStoryJournal, markCluesSeen } from './story.js';
-import { saveGame, hasSave, loadLatestSave, startNewSlot, getSaveSummary } from './savegame.js';
+import { saveGame, hasSave, loadLatestSave, startNewSlot, getSaveSummary, getPlaySeconds } from './savegame.js';
 import { openSaveSlots, isSaveSlotsOpen } from './saveslotsui.js';
 import { getClockText } from './hud_panel.js';
 import { VERSION } from './version.js';
@@ -66,7 +67,7 @@ const CONTROL_GROUPS = [
     [['.', ','], 'Handmatig schakelen: hoger, lager (Instellingen › Schakelen)'],
     [['J'], 'Handmatig met koppeling: koppeling indrukken bij het schakelen'],
     [['SHIFT'], 'Op de fiets: even flink doortrappen; op een motor: wheelie met gas, stoppie met remmen'],
-    [['CTRL'], 'Op de fiets: wheelie (vasthouden en trappen)'],
+    [['CTRL'], 'Op de fiets: wheelie (vasthouden en trappen) of stoppie (vasthouden en remmen)'],
     [['E', 'F'], 'Uitstappen'],
     [['Q', 'WHEEL'], 'Achterom kijken (vasthouden; middelste muisknop)'],
     [['H'], 'Toeteren'],
@@ -145,7 +146,7 @@ function filterControls(q) {
   const panel = root.querySelector('[data-panel="controls"]');
   const words = q.toLowerCase().trim().split(/\s+/).filter(Boolean);
   let any = false;
-  for (const g of panel.querySelectorAll('.pm-cgroup')) {
+  for (const g of panel.querySelectorAll('.pm-cgroup:not(.pm-help)')) {
     let n = 0;
     for (const r of g.querySelectorAll('.pm-crow')) {
       const hit = words.every((w) => r.dataset.search.includes(w));
@@ -184,7 +185,14 @@ const ICONS = {
   controls: '<rect x="2.5" y="6" width="19" height="12" rx="2"/><path d="M6 10h1M9.5 10h1M13 10h1M16.5 10h1M7 14h10"/>',
   spullen: '<path d="M7 8V6a5 5 0 0 1 10 0v2"/><rect x="4" y="8" width="16" height="13" rx="3"/><path d="M4 13h16M10 13v2h4v-2"/>',
   telefoon: '<rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/>',
+  // the main menu's items (startscreen.js), in the same line style
+  new: '<path d="M12 4v16M4 12h16"/>',
+  news: '<path d="M5 4h11l3 3v13H5z"/><path d="M8 10h8M8 14h8M8 17h5"/>',
+  about: '<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5h0"/>',
+  samen: '<circle cx="9" cy="8.5" r="3"/><circle cx="17" cy="9.5" r="2.4"/><path d="M3 20c0-3.6 2.6-5.8 6-5.8s6 2.2 6 5.8M16 14.5c2.6.1 5 1.7 5 5"/>',
 };
+// An icon of the pause menu's set for the main menu's items, or '' for an unknown name.
+export const menuIcon = (id, cls = 'ss-ic') => (ICONS[id] ? icon(id, cls) : '');
 const icon = (id, cls = 'pm-ic') => `<svg class="${cls}" viewBox="0 0 24 24" aria-hidden="true">${ICONS[id] || ''}</svg>`;
 const qBtn = (action, ic, label, cls = 'pm-secondary', extra = '') =>
   `<button type="button" class="${cls}" data-action="${action}"${extra}>${icon(ic)}<span>${label}</span></button>`;
@@ -200,13 +208,13 @@ const SECTIONS = [
   ['garage', 'Garage', 'Jouw voertuigen'],
   ['prestaties', 'Prestaties', 'Blijven bewaard, ook bij een nieuw spel'],
   ['fotos', "Foto's", 'Fotomodus en je galerij'],
-  ...(FLAGS.coop ? [['samen', 'Samen spelen', 'Iemand uitnodigen of aansluiten']] : []),
+  ['samen', 'Samen spelen', 'Iemand uitnodigen of aansluiten'],
   ['settings', 'Instellingen', 'Wijzigingen worden meteen bewaard'],
   ['controls', 'Besturing', 'Alle toetsen, per situatie'],
   ['streken', 'Cheats', 'Een beetje vals spelen'],
 ];
 // the rail's three groups: playing, collected, system
-const RAIL_GROUPS = [['overzicht', 'todo', 'map', 'telefoon'], ['verhaal', 'spullen', 'garage', 'prestaties', 'fotos', ...(FLAGS.coop ? ['samen'] : [])], ['settings', 'controls', 'streken']];
+const RAIL_GROUPS = [['overzicht', 'todo', 'map', 'telefoon'], ['verhaal', 'spullen', 'garage', 'prestaties', 'fotos', 'samen'], ['settings', 'controls', 'streken']];
 const PRESTART_SECTIONS = ['settings', 'controls'];
 const SUBTABS = {
   todo: [['verhaal', 'Verhaal'], ['alles', 'Alles'], ['dichtbij', 'Dichtbij']],
@@ -268,9 +276,7 @@ function savePref() {
   try { localStorage.setItem(PREF_KEY, JSON.stringify(pref)); } catch (e) { /* private mode: keep it in memory */ }
 }
 
-export function isPauseMenuOpen() {
-  return open;
-}
+export { isPauseMenuOpen } from './pausestate.js';
 
 // How much of the city the menu hides: 0 closed, 2 most of it (the rail
 // plus a section).
@@ -330,6 +336,7 @@ function settingsHtml() {
       ${picker('preset', 'Voorinstelling', presets, '', 'data-preset-pick')}
       ${picker('resolution', 'Resolutie', [['1', '100%'], ['0.85', '85%'], ['0.75', '75%'], ['0.6', '60%']])}
       ${toggle('autoResolution', 'Automatische resolutie', 'bij haperen')}
+      ${toggle('zuinig', 'Zuinige modus', '30 beelden per seconde, spaart batterij en warmte')}
       ${toggle('shadows', 'Schaduwen')}
       ${picker('drawDistance', 'Zichtafstand', [['kort', 'Kort'], ['normaal', 'Normaal'], ['ver', 'Ver'], ['heelver', 'Heel ver']])}
       ${DESKTOP ? '<label class="m-li pm-row"><span class="nm">Volledig scherm<span class="mut">F11 of Alt+Enter</span></span><input type="checkbox" class="m-sw" data-desktop="fullscreen"></label>' : ''}
@@ -353,7 +360,8 @@ function settingsHtml() {
       <label class="m-li pm-row">${rowName('Radio G-Music', 'Ook met N, te voet en in elk voertuig')}<input type="checkbox" class="m-sw" data-radio-switch></label>
       ${disclosure('subs', 'Ondertitels', 'Filmpjes, gesprekken, telefoon, radio en naamkaarten', `
         ${picker('subtitleSize', 'Grootte', [['klein', 'Klein'], ['normaal', 'Normaal'], ['groot', 'Groot'], ['extragroot', 'Extra groot']])}
-        ${toggle('subtitleBox', 'Donker vlak erachter', 'Een donker vlak maakt ze makkelijker te lezen')}`, true)}`, `
+        ${toggle('subtitleBox', 'Donker vlak erachter', 'Een donker vlak maakt ze makkelijker te lezen')}
+        ${toggle('soundCaptions', 'Geluiden beschrijven', 'Een korte tekst als [sirene] of [claxon] bij belangrijke geluiden')}`, true)}`, `
       <aside class="m-pane"><div class="pm-pane-top"><span class="m-eb">Zo ziet het eruit</span></div>
         <div class="pm-subprev" data-sub-preview><span class="pm-subtxt"><b>Tammo:</b> Rustig an, rustig an.</span></div>
         <p class="mut">Muziek is de radio (G-Music, 's nachts Nachtstreek) en de titelsong, stemmen zijn Tammo, Tessa, de politie, de mensen op straat en de praatjes op de radio. Kleurenblind, interfacegrootte en beweging beperken vind je onder Toegankelijkheid.</p></aside>`)}
@@ -372,6 +380,7 @@ function settingsHtml() {
     ${tab('display', `
       ${picker('hudMode', 'HUD', [['slim', 'Slim'], ['alles', 'Altijd alles'], ['minimaal', 'Minimaal']], 'Slim toont alleen wat nu telt')}
       ${toggle('showMinimap', 'Minimap')}
+      ${toggle('mapShiftTeleport', 'Shift+klik op de kaart verplaatst je', 'Niet tijdens een missie of met de politie achter je aan')}
       ${slider('minimapZoom', 'Inzoomen op het kaartje', 0.6, 1.6, 0.05)}
       ${picker('minimapNorth', 'Minimap met noord boven', [['nooit', 'Nooit'], ['lucht', 'In de lucht'], ['altijd', 'Altijd']], 'Standaard draait de kaart mee')}
       ${toggle('showHints', 'Toetshints')}
@@ -385,6 +394,7 @@ function settingsHtml() {
         ${picker('drunkFx', 'Dronken effecten', [['aan', 'Aan'], ['mild', 'Mild'], ['uit', 'Uit']])}
         ${picker('ruzie', 'Verkeersruzie', [['uit', 'Uit'], ['weinig', 'Weinig'], ['normaal', 'Normaal'], ['veel', 'Veel']], 'Hoe vaak een boze bestuurder uitstapt na een botsing of getoeter. Zonder bloed; sommigen hebben iets in de hand')}
         ${picker('shiftMode', 'Schakelen', [['auto', 'Automaat'], ['manual', 'Handmatig'], ['clutch', 'Handmatig + koppeling']], 'Automaat is de standaard; handmatig schakel je met . en , (of de bumpers), met koppeling houd je ook J ingedrukt')}
+        ${toggle('speedFeel', 'Snelheidsgevoel', 'Beeld wordt wijder bij hoge snelheid en een zware klap vertraagt even; uit is rustiger')}
         ${toggle('driftAssist', 'Driften met hulp', 'Helpt tegensturen en houdt een slip beheersbaar; uit is realistischer')}
         ${toggle('bikeAssist', 'Motor met hulp', 'Houdt een motor of brommer rechtop in bochten; uit is realistischer')}
         ${toggle('gore', 'Bloed en ledematen', 'Uit: mensen vallen gewoon om, zonder bloed of rondvliegende ledematen')}`)}`, `${pane('Interface', 'Wat je ziet', '<p>Slim toont alleen wat nu telt; Altijd alles houdt alles in beeld; Minimaal laat alleen sterren, doel en ondertitels over.</p>')}`)}
@@ -438,8 +448,8 @@ export function initPauseMenu(w) {
           <span class="pm-rail-gap"></span>
           <button type="button" class="ra pm-back" data-action="resume">Terug</button>
           <div class="pm-rail-acts pm-ingame">
-            <button type="button" class="m-bt" data-action="save">Opslaan</button>
-            <button type="button" class="m-bt" data-action="saves" title="Spelstanden kiezen, laden, hernoemen, exporteren en verwijderen">Spelstanden</button>
+            <button type="button" class="m-bt" data-action="save">Spel opslaan</button>
+            <button type="button" class="m-bt" data-action="saves" title="Opgeslagen spellen kiezen, laden, hernoemen, exporteren en verwijderen">Opgeslagen spellen</button>
             <button type="button" class="m-bt" data-action="menu" title="Opslaan en terug naar het titelscherm">Hoofdmenu</button>
             ${DESKTOP ? '<button type="button" class="m-bt" data-action="exit" title="Opslaan en het spel sluiten">Afsluiten</button>' : ''}
           </div>
@@ -448,8 +458,8 @@ export function initPauseMenu(w) {
             <p class="pm-status" role="status"></p>
             <button type="button" class="m-bt danger" data-action="restart">Opnieuw beginnen</button>
             <div class="pm-confirm" hidden>
-              <p>Opnieuw beginnen? Alles sinds je laatste spelstand gaat verloren. Je andere spelstanden blijven staan.</p>
-              <button type="button" class="m-bg" data-action="load">Laatste spelstand laden</button>
+              <p>Opnieuw beginnen? Alles sinds je laatste savegame gaat verloren. Je andere savegames blijven staan.</p>
+              <button type="button" class="m-bg" data-action="load">Laatste spel laden</button>
               <button type="button" class="m-bg danger" data-action="new">Nieuw spel (nieuw slot)</button>
               <button type="button" class="m-bt" data-action="cancel">Annuleren</button>
             </div>
@@ -1034,9 +1044,9 @@ function runAction(a) {
   else if (a === 'save') status(saveGame(world) ? `Opgeslagen om ${new Date().toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })}` : 'Opslaan mislukt');
   else if (a === 'load') {
     if (loadLatestSave(world)) setOpen(false);
-    else status('Geen spelstand gevonden');
+    else status('Geen savegame gevonden');
   } else if (a === 'saves') {
-    if (world && world.pigeonMode) { status('Je bent een duif. Stop de duif-modus om spelstanden te gebruiken.'); return; }
+    if (world && world.pigeonMode) { status('Je bent een duif. Stop de duif-modus om savegames te gebruiken.'); return; }
     openSaveSlots({ mode: 'game', world, onLoad: () => setOpen(false), onClose: () => { syncSaveButtons(); const b = root.querySelector('.pm-rail-acts [data-action="saves"]'); if (b) b.focus(); } });
   } else if (a === 'restart') {
     confirmEl.hidden = false;
@@ -1266,7 +1276,8 @@ function helpButtons() {
 
 function renderOverviewPanel() {
   const el = root.querySelector('[data-panel="overzicht"] .pm-inner');
-  try { renderOverview(el, world, helpButtons()); } catch (err) { console.error('overzicht', err); }
+  const quick = `<div class="ov-quick">${slider('masterVolume', 'Hoofdvolume')}${slider('musicVolume', 'Muziek')}${slider('sfxVolume', 'Effecten')}${toggle('reduceMotion', 'Beweging beperken', 'Minder bewegende beelden en schermschudden')}</div>`;
+  try { renderOverview(el, world, helpButtons(), { play: getPlaySeconds(), quick }); syncControls(); } catch (err) { console.error('overzicht', err); }
   const r = getDiscoveredRatio();
   const s = getSaveSummary();
   const ago = s ? Math.round((Date.now() - s.savedAt) / 60000) : -1;
@@ -1348,7 +1359,7 @@ function renderVerhaalPanel() {
 }
 
 function syncSaveButtons() {
-  if (world && world.pigeonMode) { status('Je bent een duif. Stop de duif-modus om op te slaan; je poepscore gaat mee in je spelstand.'); return; }
+  if (world && world.pigeonMode) { status('Je bent een duif. Stop de duif-modus om op te slaan; je poepscore gaat mee in je savegame.'); return; }
   const saved = hasSave();
   for (const b of root.querySelectorAll('[data-action="load"]')) b.disabled = !saved;
   const s = getSaveSummary();
@@ -1483,6 +1494,7 @@ function setOpen(value, name = HOME, how = 'direct') {
     return;
   }
   open = value;
+  setPauseMenuOpen(value);
   if (open && isShopOpen()) closeShopMenu();
   // audio.js muffles the world and the radio behind the unfolded phone
   if (world) world.menuMuffle = open && !prestart;

@@ -4,7 +4,7 @@
 // scripts/motorpolice_test.mjs checks it.
 import { MOPED_LEGAL_SPEED } from './motomodels.js';
 
-export const NOTICE_M = 35;
+const NOTICE_M = 35;
 export const NOTICE_COOLDOWN_S = 40;
 const TEXTS = [
   'Agent ziet een opgevoerde brommer voorbijscheuren',

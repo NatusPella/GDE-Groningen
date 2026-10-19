@@ -1,9 +1,11 @@
 import { dist, isInWater, closestPointOnSegment, pointInPolygon } from './util.js';
 import { findWalkPath } from './routing.js';
 import { trafficSignalsNear, pedestriansMayCross, getTrafficLights } from './trafficlights.js';
-import { isInsideBuilding, isOnRoad, setPedPose, lineOfSight } from './pedestrians.js';
+import { isInsideBuilding, isOnRoad, setPedPose, lineOfSight } from './pedgeom.js';
 import { findProps, isPropBroken } from './breakables.js';
 import { SpatialGrid } from './spatialgrid.js';
+import { markZebraUser, zebraSpeedLimit } from './trafficyield.js';
+export { zebraSpeedLimit };
 
 // Long, purposeful walks: every civilian picks a destination a few hundred
 // metres away, walks there over the walk network on one side of the street,
@@ -26,7 +28,7 @@ const AVOID_R = 1.2;
 const AVOID_CELL = 3;
 const PAIR_SPACING = 0.85;
 
-export const pedNavStats = {
+const pedNavStats = {
   planned: 0, failed: 0, totalLen: 0, planMsMax: 0, planMsTotal: 0,
   arrivals: 0, entered: 0, crossWaits: 0, replans: 0, stuckSkips: 0, queue: 0,
   crossings: 0, atSite: 0, detours: 0, detourExtra: 0, zebraCross: 0, benchSits: 0,
@@ -384,33 +386,6 @@ function canCross(world, cr, impatient = false) {
   return true;
 }
 
-// Walkers waiting at or walking over a zebra; AI traffic stops for them.
-const zebraUsers = new Map();
-
-function markZebra(ped, cr, t) {
-  zebraUsers.set(ped, { t, reach: (cr.road.width || 6) * 0.75 + 2.2 });
-}
-
-// Traffic AI hook (vehicle.js): speed that stops the vehicle before a zebra
-// with a walker on or at it. `project` is vehicle.js's projectOnPath.
-export function zebraSpeedLimit(v, path, project, now) {
-  if (!zebraUsers.size) return Infinity;
-  let vmax = Infinity;
-  const decel = v.model.brake * 0.45;
-  for (const [ped, z] of zebraUsers) {
-    if (now - z.t > 0.6 || ped.state === 'dead') { zebraUsers.delete(ped); continue; }
-    const dx = ped.x - v.x, dy = ped.y - v.y;
-    if (dx * dx + dy * dy > 45 * 45) continue;
-    const pr = project(path, ped.x, ped.y);
-    if (!pr || pr.lat > z.reach) continue;
-    const stopS = pr.s - v.halfLen - 2.5;
-    // too close to stop comfortably: carry on, the walker waits for the gap
-    if (stopS < -0.5 || v.speed * v.speed > 2 * decel * 1.6 * (stopS + 1)) continue;
-    vmax = Math.min(vmax, Math.sqrt(2 * decel * Math.max(0, stopS)));
-  }
-  return vmax;
-}
-
 // --- local avoidance ---------------------------------------------------------
 
 const grid = new SpatialGrid(AVOID_CELL);
@@ -743,7 +718,7 @@ export function walkRoute(ped, world, dt, dPlayer) {
   }
   const cr = r.cross;
   const zebra = cr && cr.site && cr.site.kind === 'zebra';
-  if (zebra && (!cr.ok || cr.onZebra)) markZebra(ped, cr, t);
+  if (zebra && (!cr.ok || cr.onZebra)) markZebraUser(ped, cr, t);
   if (cr && !cr.ok) {
     const dEntry = dist(ped.x, ped.y, cr.x, cr.y);
     if (dEntry < 1.2) {

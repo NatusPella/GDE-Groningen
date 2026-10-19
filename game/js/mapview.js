@@ -1,9 +1,10 @@
+import { setMapOpenState } from './pausestate.js';
 import { onPaletteChange } from './a11y.js';
 import { pinchStep } from './touchlogic.js';
 import { MODES, roadAllowed, travelModeOf } from './roadaccess.js';
 import { forEachCashTarget } from './cashvan.js';
 import { facilitiesOf } from './facilities.js';
-import { mapIconScale, mapKindVisible, placeIcons, iconGapPx } from './mapicons.js';
+import { mapIconScale, mapKindVisible, placeIcons, iconGapPx, mapIconAlpha } from './mapicons.js';
 import { drawMapIcon, drawMapIconHalo, drawRoute, drawRoadRoute, forEachPoliceUnit, declutter, ROUTE_COLORS, routeLabel, drawSearchArea, getPoliceSearch, missionMapKind } from './hud_panel.js';
 import { getGaragesForRender } from './garages.js';
 import { getHomeForRender, getHomeGarageForRender, getHomeMooringForRender, getHomeHelipadForRender } from './home.js';
@@ -29,11 +30,13 @@ import { drawRailsOnMap } from './railway.js';
 import { drawCountryBase, drawCountryDetail, villageLabels, syncMapPhase, MAP_STYLE } from './countrymap.js';
 import { drawProvinceBase, provinceMapOn, provinceMapBounds, onProvinceMapLoad } from './provincemap.js';
 import { ROAD_ORDER, ZOOM, EMPHASIS, roadWidthPx, baseFilter } from './mapstyle.js';
-import { drawSea, drawOutside, regionLabels, areaNameAt } from './regions.js';
+import { drawSea, drawOutside, regionLabels, regionEdgeLabels, areaNameAt } from './regions.js';
+import { borderPlaceLabels } from './borderplaces.js';
 import { worldPlaceLabels, worldPlacesReady } from './worldplaces.js';
 import { tileIndexOf, tileOrigin, TILE_M } from './gdt.js';
 import { ensureCountryEdge } from './countryplan.js';
 import { getSettings, onSettingsChange } from './settings.js';
+import { wantsTeleport, plekNaam } from './kaartteleport.js';
 import { DEV } from './devflags.js';
 import { getGoal, setGoal, clearGoal, missionOnMap } from './goal.js';
 import { getMissionLayer } from './missionmaplive.js';
@@ -853,6 +856,7 @@ function drawStaticOverlay(ctx) {
     const [rx0, ry0, rx1, ry1] = viewRect();
     ctx.textBaseline = 'middle';
     ctx.textAlign = 'center';
+    const named = new Set();
     for (const r of regionLabels(rx0, ry0, rx1, ry1, 0.1)) {
       if (r.id === 'groningen' && z > 1.6) continue;
       const [sx, sy] = toScreen(r.x, r.y);
@@ -864,6 +868,22 @@ function drawStaticOverlay(ctx) {
       ctx.fillStyle = r.land ? `rgba(240, 237, 228, ${a.toFixed(2)})` : `rgba(190, 225, 245, ${(a + 0.1).toFixed(2)})`;
       ctx.fillText(label, sx, sy);
       boxes.push([sx - w / 2, sy - size / 2, sx + w / 2, sy + size / 2]);
+      named.add(r.id);
+    }
+    // the regions beyond the border or the coast that are in view but have no name on screen yet (#237):
+    // the name sits outside the line, kept off the frame so nothing is clipped
+    const m = 110 / state.scale;
+    for (const r of regionEdgeLabels(rx0 + m, ry0 + m, rx1 - m, ry1 - m, 34 / state.scale)) {
+      if (named.has(r.id)) continue;
+      const [sx, sy] = toScreen(r.x, r.y);
+      ctx.font = `18px ${FONT}`;
+      const label = r.name.toUpperCase().split('').join(' ');
+      const w = ctx.measureText(label).width;
+      const box = [sx - w / 2, sy - 10, sx + w / 2, sy + 10];
+      if (collides(boxes, box)) continue;
+      boxes.push(box);
+      ctx.fillStyle = r.land ? 'rgba(240, 237, 228, 0.4)' : 'rgba(190, 225, 245, 0.5)';
+      ctx.fillText(label, sx, sy);
     }
   }
 
@@ -900,6 +920,23 @@ function drawStaticOverlay(ctx) {
         drawLabel(ctx, label, sx, sy, 'rgba(240, 237, 228, 0.8)', 'center');
         hover.push({ sx, sy, name: v.name, sub: 'Dorp in het Ommeland' });
       }
+    }
+  }
+
+  // the neighbour villages outside the province, dimmed and not clickable (#237)
+  if (provinceMapOn() && z < 6) {
+    const [nx0, ny0, nx1, ny1] = viewRect(0);
+    ctx.font = `${z < MID_ZOOM ? 12 : 14}px ${FONT}`;
+    ctx.textBaseline = 'middle';
+    for (const v of borderPlaceLabels(nx0, ny0, nx1, ny1, [], { zoom: z, max: 40, gap: 70 / state.scale })) {
+      const [sx, sy] = toScreen(v.x, v.y);
+      const label = v.name.toUpperCase();
+      const w = ctx.measureText(label).width;
+      if (sx - w / 2 < 4 || sx + w / 2 > state.cw - 4 || sy < 12 || sy > state.ch - 12) continue;
+      const box = [sx - w / 2 - 2, sy - 8, sx + w / 2 + 2, sy + 8];
+      if (collides(boxes, box)) continue;
+      boxes.push(box);
+      drawLabel(ctx, label, sx, sy, 'rgba(240, 237, 228, 0.45)', 'center');
     }
   }
 
@@ -1173,7 +1210,7 @@ function drawDynamicMarkers(ctx, world) {
   for (const p of world.coopPartners || []) if (p.zichtbaar) icon(null, 'partner', p.x, p.y, p.naam, { angle: p.heading, kleur: p.kleur, vorm: p.vorm }, p.tekst);
   for (const q of placeIcons(queue, iconGapPx(sc))) {
     drawMapIconHalo(ctx, q.kind, q.sx, q.sy, sc);
-    drawMapIcon(ctx, q.kind, q.sx, q.sy, sc, { t, ...q.opts });
+    drawMapIcon(ctx, q.kind, q.sx, q.sy, sc, { t, alpha: mapIconAlpha(q.kind, z), ...q.opts });
     if (q.name) hover.push({ sx: q.sx, sy: q.sy, name: q.name, sub: q.sub, x: q.x, y: q.y, kind: q.kind, ...q.pick });
   }
   state.dynHover = hover;
@@ -1475,19 +1512,20 @@ function updateTooltip(sx, sy) {
 // kaart; het magische snelreizen is geen reisoptie meer (#97): reizen kan zelf
 // rijden of meerijden.
 function teleportTo(world, target) {
-  if (!world.cheatActions || !state.teleport) return;
+  if (!world.cheatActions) return;
   if (!world.cheatActions.teleport(target.x, target.y, target.name)) return;
-  setMapTeleport(false);
+  if (state.teleport) setMapTeleport(false);
   if (closeHandler) closeHandler();
   else closeMap();
 }
 
-function handleClick(world, sx, sy) {
+function handleClick(world, sx, sy, shift = false) {
   const h = nearestHover(sx, sy);
   const [wx, wy] = toWorld(sx, sy);
-  if (state.teleport) {
+  // de cheat Overal en nergens, of shift+klik (instelling mapShiftTeleport, kaartteleport.js)
+  if (wantsTeleport({ shift, enabled: getSettings().mapShiftTeleport, teleportMode: state.teleport })) {
     if (h && h.teleport) teleportTo(world, h.teleport);
-    else teleportTo(world, { x: wx, y: wy, name: streetAt(wx, wy, 60) || wijkAt(wx, wy) || 'deze plek' });
+    else teleportTo(world, { x: wx, y: wy, name: plekNaam(streetAt(wx, wy, 60), wijkAt(wx, wy)) });
     return;
   }
   if (state.card) { hideCard(); if (!h) return; }
@@ -1803,6 +1841,7 @@ function openMap(world) {
   ensureCountryEdge(world.map);
   setMode(travelModeOf(world));
   state.open = true;
+  setMapOpenState(true);
   state.overlay.classList.add('open');
   sizeCanvas();
   ensureLevel0();
@@ -1830,6 +1869,7 @@ function closeMap() {
   setMapTeleport(false);
   hideCard();
   state.open = false;
+  setMapOpenState(false);
   setRoutePrefs({ planMode: null });
   state.overlay.classList.remove('open');
   state.tooltip.style.display = 'none';
@@ -1921,7 +1961,8 @@ export function initMapView(world) {
     '<label class="mapview-search m-inp"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg><input type="search" placeholder="Zoek een plek, missie of minigame" aria-label="Zoek een plek, missie of minigame" autocomplete="off" spellcheck="false">' +
     '<ul class="mapview-results" role="listbox" hidden></ul></label></div>' +
     '<div class="mv-hr">' +
-    '<button type="button" class="m-bg mv-layers" data-act="layers" aria-expanded="false" aria-controls="mv-legend">Lagen <span class="mv-layers-n"></span></button></div></div>' +
+    '<button type="button" class="m-bg mv-layers" data-act="layers" aria-expanded="false" aria-controls="mv-legend">Lagen <span class="mv-layers-n"></span></button>' +
+    '<button type="button" class="m-bg mv-close" data-act="close" style="display:none">Sluiten</button></div></div>' +
     '<div class="mapview-body"><canvas class="mapview-canvas"></canvas>' +
     '<div class="mapview-zoom"><button type="button" class="m-bg" data-act="in" aria-label="Inzoomen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button><button type="button" class="m-bg" data-act="out" aria-label="Uitzoomen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg></button><button type="button" class="m-bg" data-act="centre" aria-label="Naar jezelf"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 3v4M12 17v4M3 12h4M17 12h4"/></svg></button></div>' +
     '<div class="mv-goal"><span class="m-eb">Je route</span><span class="mapview-route"></span><button type="button" class="m-bt" data-act="clear" hidden>Doel wissen</button><button type="button" class="m-bt" data-act="avoid" aria-pressed="false" hidden>Snelwegen vermijden</button></div>' +
@@ -2014,6 +2055,7 @@ export function initMapView(world) {
       btn.setAttribute('aria-pressed', String(on));
     } else if (act === 'centre') centreOn(world.player.x, world.player.y, 3);
     else if (act === 'layers') toggleLegend();
+    else if (act === 'close') { if (closeHandler) closeHandler(); else closeMap(); } // no Esc on a touchscreen
     else if (act === 'clear') clearUserWaypoint();
     else if (act === 'care-off') dismissCareRoute();
     else if ((act === 'pg-next' || act === 'pg-off' || act === 'pg-on') && world.postgameActions) {
@@ -2091,7 +2133,7 @@ export function initMapView(world) {
     endDrag();
     if (!d.moved && state.open) {
       const [sx, sy] = canvasPos(e);
-      handleClick(world, sx, sy);
+      handleClick(world, sx, sy, e.shiftKey);
     }
   }, true);
   // a touchscreen sends no mouse events while dragging: one finger pans,
@@ -2187,9 +2229,7 @@ export function initMapView(world) {
   }
 }
 
-export function isMapOpen() {
-  return !!(state && state.open);
-}
+export { isMapOpen } from './pausestate.js';
 
 let closeHandler = null;
 

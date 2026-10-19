@@ -8,7 +8,7 @@
 //
 // A scene def (all coordinates are LOCAL to the anchor: f = forward, s = left, h = up in m):
 //   id, actors: { <id>: { look, at: [f, s], face: deg | 'actor:<id>', anim, speaker, gaze, sit: seat height in m } }
-//   set: 'keuken' (the kitchen set of the opening, built by the host), fx: [{ t, fx: 'buzz' | 'door' | 'cups' | 'tablecups' | 'sfx' | 'pulse', ... }] (host effects, see cutscenehost.js)
+//   set: 'keuken' (the kitchen set of the opening, built by the host), fx: [{ t, fx: 'buzz' | 'door' | 'cups' | 'tablecups' | 'sfx' | 'pulse' | 'naam', ... }] (host effects, see cutscenehost.js)
 //   props:  { <id>: { kind, at: [f, s, h], face: deg, hidden } }
 //   cues:   [{ t, actor | prop, ...verb }]   verbs, see VERBS
 //   shots:  [{ t, shot: 'cut' | 'dolly' | 'orbit' | 'follow', ... }]
@@ -20,6 +20,7 @@
 // below must equal its ANIMS (scripts/cutscript_test.mjs checks that).
 
 export const ACTOR_ANIMS = ['idle', 'walk', 'run', 'talk', 'wave', 'point', 'shrug', 'nod', 'shake', 'laugh', 'carry', 'lean', 'hips', 'phone', 'cheer', 'look', 'ride', 'zwem', 'klim', 'sprong'];
+import { propKindIssue } from './cutscenemodels.js';
 export const PROP_KINDS = ['doos', 'tas', 'bestelbus', 'fiets', 'duif', 'radio', 'bord', 'koffer', 'bal', 'auto', 'matras', 'bakkie', 'automaat', 'aanhanger', 'trekker', 'politie', 'duiventil', 'zuil', 'klembord', 'kat'];
 export const VERBS = ['walk', 'anim', 'face', 'gaze', 'carry', 'drop', 'move', 'path', 'spin', 'bob', 'show', 'hide', 'sit'];
 export const SHOTS = ['cut', 'dolly', 'orbit', 'follow'];
@@ -69,6 +70,7 @@ export function validateScene(def, opts = {}) {
   }
   for (const [id, p] of Object.entries(props)) {
     if (!PROP_KINDS.includes(p.kind)) err(`prop ${id}: onbekende soort ${p.kind}`);
+    else { const bad = propKindIssue(p.kind); if (bad) err(`prop ${id}: ${bad}`); }
     if (!isVec(p.at, 2)) err(`prop ${id}: at moet [f, s, h?] zijn`);
   }
   const timeOf = (spec, what) => {
@@ -303,6 +305,7 @@ export function compileScene(def, opts = {}) {
     return { x: anchor.x + f * c - s * n, y: anchor.y + f * n + s * c };
   };
 
+  const CAM_CLEAR = 1.5, PROP_CLEAR = 0.7;
   function cameraAt(t, anchor, env) {
     let i = 0;
     while (i + 1 < shots.length && shots[i + 1].t <= t + 1e-9) i++;
@@ -344,9 +347,37 @@ export function compileScene(def, opts = {}) {
       const a = shakeFilter(sh.shake);
       pos = { f: pos.f + Math.sin(t * 1.3) * a, s: pos.s + Math.sin(t * 1.9 + 2) * a, h: pos.h + Math.sin(t * 1.7 + 1) * a * 0.6 };
     }
+    // a camera never stands inside a person: pushed out to CAM_CLEAR, away from them (continuous in t)
+    if (pos.h < 2.4 && !def.set) for (const id of Object.keys(track)) {
+      if (last([{ t: 0, v: true }, ...track[id].vis], t).v === false) continue;
+      const p = actorPos(id, t);
+      let dx = pos.f - p.f, ds = pos.s - p.s, d = Math.hypot(dx, ds);
+      if (d >= CAM_CLEAR) continue;
+      if (d < 0.05) { dx = pos.f - look.f; ds = pos.s - look.s; d = Math.hypot(dx, ds) || 1; }
+      pos = { f: p.f + dx / d * CAM_CLEAR, s: p.s + ds / d * CAM_CLEAR, h: pos.h };
+    }
+    if (!def.set) for (const id of Object.keys(ptrack)) {
+      const q = propState(id, t);
+      if (!q.visible || pos.h > q.h + 1.4 || pos.h < q.h - 0.3) continue;
+      let dx = pos.f - q.f, ds = pos.s - q.s, d = Math.hypot(dx, ds);
+      if (d >= PROP_CLEAR) continue;
+      if (d < 0.05) { dx = pos.f - look.f; ds = pos.s - look.s; d = Math.hypot(dx, ds) || 1; }
+      pos = { f: q.f + dx / d * PROP_CLEAR, s: q.s + ds / d * PROP_CLEAR, h: pos.h };
+    }
     const P = world(anchor, pos.f, pos.s), L = world(anchor, look.f, look.s);
     const z0 = anchor.z || 0;
-    const cam = fitCamera({ x: P.x, y: P.y, z: z0 + pos.h }, { x: L.x, y: L.y, z: z0 + look.h }, env);
+    let cam = fitCamera({ x: P.x, y: P.y, z: z0 + pos.h }, { x: L.x, y: L.y, z: z0 + look.h }, env);
+    // fitCamera may have pulled the camera in from a wall, next to a person: push out again unless that lands in a wall
+    if (!def.set && cam.z - z0 < 2.4) for (const id of Object.keys(track)) {
+      if (last([{ t: 0, v: true }, ...track[id].vis], t).v === false) continue;
+      const q = actorPos(id, t), W = world(anchor, q.f, q.s);
+      const dx = cam.x - W.x, dy = cam.y - W.y, d = Math.hypot(dx, dy);
+      if (d >= CAM_CLEAR || d < 0.05) continue;
+      const nx = W.x + dx / d * CAM_CLEAR, ny = W.y + dy / d * CAM_CLEAR;
+      if (env && env.solid && env.solid(nx, ny, cam.z)) continue;
+      if (env && env.clamp) { const c2 = env.clamp(nx, ny, cam.z, 'camera'); if (c2 && (Math.abs(c2.x - nx) > 1e-6 || Math.abs(c2.y - ny) > 1e-6)) continue; }
+      cam = { ...cam, x: nx, y: ny };
+    }
     return {
       position: cam, lookAt: { x: L.x, y: L.y, z: z0 + look.h },
       fov: sh.fov ?? 46, cut: u === 0 || (t - sh.t) < 1 / 30, shotIndex: i,
@@ -500,4 +531,22 @@ function along3(pts, u) {
     acc += seg;
   }
   return { ...q, h };
+}
+
+// Map points the camera looks at (and stands at) along a compiled scene, a few per shot,
+// for playCinematic's prewarm / registerShots (#157, #20).
+export function shotPoints(scene, anchor, duration, step = 2) {
+  const out = [], seen = new Set();
+  const add = (v) => {
+    if (!v || !Number.isFinite(v.x) || !Number.isFinite(v.y)) return;
+    const k = Math.round(v.x / 25) + ',' + Math.round(v.y / 25);
+    if (!seen.has(k)) { seen.add(k); out.push({ x: v.x, y: v.y }); }
+  };
+  try {
+    for (let t = 0; t <= duration + 1e-6; t += step) {
+      const c = scene.sample(Math.min(t, duration), anchor).camera;
+      add(c.lookAt); add(c.position);
+    }
+  } catch (e) { /* a sample failure only means less prewarm */ }
+  return out.slice(0, 24);
 }

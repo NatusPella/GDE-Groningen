@@ -13,7 +13,7 @@ import { getSideJobSpotsForRender } from './sidejobs.js';
 import { getGaragesForRender } from './garages.js';
 import { getStationsForRender } from './stationtravel.js';
 import { storyFlag } from './story.js';
-import { isVerplaatsbaar, schoonPlekken, plekVan, volgendePlek, opPlek, PLEKKEN } from './inrichting.js';
+import { isVerplaatsbaar, schoonPlekken, plekVan, volgendePlek, opPlek, plekInfo } from './inrichting.js';
 import { getLedger, summary } from './finance.js';
 
 // EIKEA furniture for Tammo and Tessa's flat (home.js). Bought in the EIKEA
@@ -38,7 +38,7 @@ const SCREW_FROM = 231;
 const SCREWS = 8;
 const TV_RANGE = 5.5;
 
-export const FURNITURE = [
+const FURNITURE = [
   { id: 'kast', short: 'Buukenkaas', label: 'Boekenkast "Buukenkaas"', price: 49, desc: 'Plat verpakt, 238 schroefjes, 1 te weinig',
     perk: 'Elke dag 3 eierbal-tips op de kaart', stat: ['Eierbal-tips', '3 per dag'], flatpack: true,
     at: { x: 0.36, z: 2.6, rot: Math.PI / 2, fit: 'h', size: 1.9 }, solid: [0.1, 1.95, 0.66, 3.25], use: { x: 1.15, z: 2.6 } },
@@ -53,7 +53,7 @@ export const FURNITURE = [
     at: { x: 6.6, z: 7.95, rot: Math.PI, fit: 'w', size: 0.95, d: 2.0 }, at2: { x: 7.8, z: 7.95, rot: Math.PI, fit: 'w', size: 0.95, d: 2.0 } },
   { id: 'tv', short: 'Kiekkast', label: 'Tv "Kiekkast"', price: 229, desc: 'Groot scherm, Kiekdoar TV zit er standaard op',
     perk: 'Terugkijken en het Kiekdoar Journaal', stat: ['Kiekdoar TV', 'Gespeelde verhaalscènes terugkijken'], replaces: true,
-    at: { x: 3.7, z: 1.0, rot: 0, fit: 'w', size: 1.7 }, use: { x: 5.25, z: 1.35 } },
+    at: { x: 3.7, z: 1.0, rot: 0, fit: 'w', size: 1.7 }, solid: [2.8, 0.2, 4.6, 1.35], use: { x: 5.25, z: 1.35 } },
   { id: 'prikbord', short: 'Woar Bin\'k', label: 'Wandkaart "Woar Bin\'k"', price: 19, desc: 'Heel Grunn aan de muur, punaises erbij',
     perk: 'Kies een bestemming: GPS staat klaar', stat: ['Routeplanner', 'Winkels, klussen, stations'],
     at: { x: 0.1, y: 0.5, z: 6.7, rot: Math.PI / 2, fit: 'w', size: 1.1 }, use: { x: 0.95, z: 6.7 } },
@@ -194,10 +194,11 @@ export function furnitureSkip() {
   return new Set(FURNITURE.filter((f) => f.replaces && state.owned.has(f.id)).map((f) => f.id));
 }
 
-// The piece as it stands now: lamp and plant can be moved (inrichting.js).
+// The piece as it stands now: lamp, plant, bookcase and desk can be moved (inrichting.js).
 function eff(f) {
   const o = isVerplaatsbaar(f.id) && opPlek(f.id, plekVan(state.plek, f.id));
   if (!o) return f;
+  if (o.use) return { ...f, at: { ...f.at, x: o.x, z: o.z, rot: o.rot }, solid: o.solid, use: o.use };
   return { ...f, at: { ...f.at, x: o.x, z: o.z }, solid: o.solid, use: f.use && { x: f.use.x + o.dx, z: f.use.z + o.dz } };
 }
 
@@ -205,6 +206,8 @@ function eff(f) {
 export function furnitureSolids() {
   const out = [];
   for (const f of FURNITURE) if (f.solid && state.owned.has(f.id)) out.push(eff(f).solid);
+  // de losse tv van de flat staat op zijn standaardplek tot de Kiekkast er is
+  if (!state.owned.has('tv')) out.push(BY_ID.get('tv').solid);
   return out;
 }
 
@@ -342,7 +345,8 @@ export function updateFurniture(dt, w) {
 export function furnitureFocus(w) {
   if (seat) return { k: 'f-bank', s: { x: w.player.x, y: w.player.y } };
   if (tv && parent) {
-    const [x, y] = parent.flat.fl(BY_ID.get('tv').use.x, BY_ID.get('tv').use.z);
+    const tvEff = eff(BY_ID.get('tv'));
+    const [x, y] = parent.flat.fl(tvEff.use.x, tvEff.use.z);
     return { k: 'f-tv', s: { x, y } };
   }
   return null;
@@ -557,7 +561,8 @@ function stopTv() {
 
 function updateTv(dt, w) {
   if (!tv) return;
-  const [x, y] = parent.flat.fl(BY_ID.get('tv').at.x, BY_ID.get('tv').at.z + 2.4);
+  const tvAt = eff(BY_ID.get('tv')).at;
+  const [x, y] = parent.flat.fl(tvAt.x, tvAt.z + 2.4);
   if (Math.hypot(w.player.x - x, w.player.y - y) > TV_RANGE) { stopTv(); return; }
   tv.t += dt;
   if (tv.t < tv.next) return;
@@ -634,16 +639,16 @@ function sellStekjes(w) {
   sayOnce(w, 'plant', 'Stekkies verkocht aan de buren. Groene vingers, groen geld.');
 }
 
-// Ubbo's pc: the best job, the money book (finance.js) and moving the lamp and plant (inrichting.js).
+// Ubbo's pc: the best job, the money book (finance.js) and moving the furniture (inrichting.js).
 function pcMenu(w) {
   const euro = (v) => '€' + Math.round(v).toLocaleString('nl-NL');
   const move = FURNITURE.filter((f) => isVerplaatsbaar(f.id) && state.owned.has(f.id)).map((f) => {
     const next = volgendePlek(state.plek, state.owned, f.id);
-    const nu = PLEKKEN[plekVan(state.plek, f.id)].label;
+    const nu = plekInfo(plekVan(state.plek, f.id)).label;
     return {
-      id: 'plek-' + f.id, label: f.short, desc: next ? `Nu: ${nu}. Straks: ${PLEKKEN[next].label}` : `Nu: ${nu}. Geen andere plek vrij`, verb: 'Verplaatsen', price: 0, keepFocus: true,
+      id: 'plek-' + f.id, label: f.short, desc: next ? `Nu: ${nu}. Straks: ${plekInfo(next).label}` : `Nu: ${nu}. Geen andere plek vrij`, verb: 'Verplaatsen', price: 0, keepFocus: true,
       preview: { kind: 'product', product: f.id }, disabled: next ? '' : 'Geen plek vrij',
-      buy() { state.plek[f.id] = next; refresh3D(); return `${f.short} staat nu: ${PLEKKEN[next].label}`; },
+      buy() { state.plek[f.id] = next; refresh3D(); return `${f.short} staat nu: ${plekInfo(next).label}`; },
     };
   });
   return {
@@ -657,7 +662,7 @@ function pcMenu(w) {
           { id: 'kas-w', label: 'Deze week', desc: `Binnen ${euro(s.weekIn)}, uit ${euro(s.weekOut)}`, plain: true, price: 0, buy: () => '' },
           { id: 'kas-t', label: 'Totaal', desc: `Verdiend ${euro(s.inTotal)}, uitgegeven ${euro(s.outTotal)}${s.topOut.length ? `. Meeste uitgaven: ${s.topOut.map(([k, v]) => `${k} ${euro(v)}`).join(', ')}` : ''}`, plain: true, price: 0, buy: () => '' },
         ] },
-        ...(move.length ? [{ title: 'Flat inrichten', note: 'Lamp en plant kunnen in een andere hoek', items: move }] : []),
+        ...(move.length ? [{ title: 'Flat inrichten', note: 'Lamp, plant, kast, bureau en tv kunnen op een andere plek', items: move }] : []),
       ];
     },
   };

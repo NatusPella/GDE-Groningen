@@ -24,7 +24,12 @@ export function levelOf(stars) {
 }
 
 // A layered chase: every layer joins at its star level and stays.
-const LAYERS = [['foot', 1], ['patrol', 1], ['boat', 2], ['roadblock', 3], ['motor', 4], ['mount', 4], ['heli', 4]];
+const LAYERS = [['foot', 1], ['patrol', 1], ['boat', 2], ['roadblock', 3], ['interceptor', 3], ['motor', 4], ['mount', 4], ['heli', 4]];
+
+// Interceptors (#204): from three stars every third patrol car is a faster one (the same
+// car, a stronger engine). slot: how many patrol cars are already out when this one spawns.
+export const INTERCEPTOR = { from: 3, every: 3, boost: 1.12 };
+export const isInterceptorSlot = (stars, slot) => stars >= INTERCEPTOR.from && slot % INTERCEPTOR.every === INTERCEPTOR.every - 1;
 
 export function chaseLayers(stars) {
   return LAYERS.filter(([, from]) => stars >= from).map(([kind]) => kind);

@@ -12,7 +12,8 @@ import { getMissionList, getNextMission } from './missions.js';
 import { playMission, isPlayAheadOpen } from './todo.js';
 import { isHelpOfferOpen } from './assistlive.js';
 import { checkPhoneWhileMoving } from './trafficlaw.js';
-import { openPauseMenu, closePauseMenu, isPauseMenuOpen, pauseMenuTab } from './pausemenu.js';
+import { openPauseMenu, closePauseMenu, pauseMenuTab } from './pausemenu.js';
+import { isPauseMenuOpen } from './pausestate.js';
 import { setUserWaypoint } from './routing.js';
 import { storyFlag } from './story.js';
 import { getHeroCar } from './hud_panel.js';
@@ -204,7 +205,7 @@ function bodyOf(e) {
   return m ? m[1] : String(e.text || '');
 }
 
-export function phoneThreads(w = world) {
+function phoneThreads(w = world) {
   const by = new Map();
   for (const e of (w && w.phoneHistory) || []) {
     const from = senderOf(e);

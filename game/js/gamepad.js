@@ -12,6 +12,7 @@ import { getSettings, onSettingsChange } from './settings.js';
 import { sendKey } from './input.js';
 import { playerBusy } from './busy.js';
 import { radialDeadzone, pickPad, spatialNext, DEAD } from './padlogic.js';
+import { noteDevice, onDeviceChange } from './inputdevice.js';
 
 const TRIGGER_ON = 0.35;
 const TRIGGER_OFF = 0.2;
@@ -82,6 +83,7 @@ function setActive(on, id) {
   const fam = on ? layoutFor(id) : family;
   if (on === active && fam === family) return;
   active = on;
+  if (on) noteDevice('pad');
   family = fam;
   if (input) input.padLook = on;
   const html = document.documentElement;
@@ -103,7 +105,7 @@ export function capturePadButton(cb) {
 }
 
 // Short vibration if the controller has a motor and the player wants it.
-export function rumble(strong = 0.5, weak = 0.5, ms = 150) {
+function rumble(strong = 0.5, weak = 0.5, ms = 150) {
   if (!active || !getSettings().rumble) return;
   const now = performance.now();
   if (now < rumbleUntil - ms * 0.5) return;
@@ -405,13 +407,9 @@ export function initGamepad(inp, w, h = {}) {
     if (key === 'hintSource') { family = layoutFor(currentPad() && currentPad().id); document.documentElement.dataset.pad = family; emit(); }
     if (key === 'padLayout' && active) { family = layoutFor(currentPad() && currentPad().id); document.documentElement.dataset.pad = family; emit(); }
   });
-  // a real key, click or mouse sweep hands the hints back to the keyboard
-  const toKeys = (e) => { if (active && e.isTrusted && !e.__gde) setActive(false); };
-  inp.onRealKey = () => { if (active) setActive(false); };
-  window.addEventListener('keydown', toKeys, true);
-  window.addEventListener('mousedown', toKeys, true);
-  window.addEventListener('wheel', toKeys, { capture: true, passive: true });
-  window.addEventListener('mousemove', (e) => { if (active && e.isTrusted && Math.abs(e.movementX) + Math.abs(e.movementY) > 6) setActive(false); }, true);
+  // real keys, clicks, mouse sweeps and touches are noticed by inputdevice.js; they hand the hints back
+  onDeviceChange((d) => { if (d !== 'pad' && active) setActive(false); });
+  inp.onRealKey = () => noteDevice('kb');
   window.addEventListener('gamepaddisconnected', () => { if (!currentPad()) setActive(false); });
   document.documentElement.dataset.padCtx = ctx;
   requestAnimationFrame(poll);

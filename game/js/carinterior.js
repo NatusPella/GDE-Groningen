@@ -1,6 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { vehicleSeat } from './seating3d.js';
-import { hasCarInterior, interiorLayout, doorTrims } from './carinteriorlayout.js';
+import { hasCarInterior, interiorLayout, doorTrims, interiorKlasse, klasseStijl } from './carinteriorlayout.js';
 import { doorsFor } from './vehicledoors.js';
 
 // Low-poly car interior for the "Binnenin" camera (V): dashboard, steering
@@ -11,21 +11,26 @@ import { doorsFor } from './vehicledoors.js';
 const DARK = 0x23262b, GREY = 0x3a3f46, SEAT = 0x4a4f58, TRIM = 0x6a707a;
 
 function box(g, w, h, d, x, y, z, color) {
-  const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), new THREE.MeshLambertMaterial({ color }));
+  // de cabine krijgt eigen omgevingslicht: onderkanten (dakhemel) kregen anders geen zon en zagen zwart
+  const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), new THREE.MeshLambertMaterial({ color, emissive: color, emissiveIntensity: 0.4 }));
   m.position.set(x, y, z);
   g.add(m);
   return m;
 }
 
-function seatAt(g, x, y, z, tilt) {
-  box(g, 0.5, 0.14, 0.5, x, y - 0.07, z, SEAT);
-  const back = box(g, 0.1, 0.55, 0.48, x - 0.27, y + 0.27, z, SEAT);
+function seatAt(g, x, y, z, tilt, color = null) {
+  const c = color || SEAT;
+  box(g, 0.5, 0.14, 0.5, x, y - 0.07, z, c);
+  const back = box(g, 0.1, 0.55, 0.48, x - 0.27, y + 0.27, z, c);
   back.rotation.z = tilt;
   box(g, 0.08, 0.16, 0.26, x - 0.3, y + 0.62, z, GREY);
 }
 
-export function buildCarInterior(seat, len, wid, defs = []) {
+export function buildCarInterior(seat, len, wid, defs = [], klasse = 'auto') {
   const L = interiorLayout(seat, len, wid);
+  const K = klasseStijl(klasse, L, seat);
+  if (K.rear !== undefined) L.rear = K.rear;
+  Object.assign(L.wheel, K.wheel);
   const g = new THREE.Group();
   g.name = 'interior';
   const d = L.dash;
@@ -52,18 +57,19 @@ export function buildCarInterior(seat, len, wid, defs = []) {
   mount.add(turn);
   g.add(mount);
   box(g, 0.05, 0.3, 0.05, w.x + 0.06, w.y - 0.2, w.z, DARK); // column
-  for (const s of L.seats) seatAt(g, s.x, seat.y, s.z, 0.2);
+  for (const s of L.seats) seatAt(g, s.x, seat.y, s.z, K.seatTilt, K.seatColor);
+  for (const e of K.extras) box(g, e.b[0], e.b[1], e.b[2], e.at[0], e.at[1], e.at[2], e.color);
   const c = L.console;
   box(g, c.d, c.h, c.w, c.x, c.y, c.z, DARK);
   if (L.rear) box(g, 0.5, 0.14, L.rear.w, L.rear.x, L.rear.y - 0.07, 0, SEAT), box(g, 0.1, 0.55, L.rear.w, L.rear.x - 0.27, L.rear.y + 0.27, 0, SEAT);
   const m = L.mirror;
-  box(g, 0.03, 0.1, 0.34, m.x, m.y, m.z, DARK);
+  box(g, 0.03, 0.07, 0.2, m.x, m.y, m.z, DARK);
   // dakhemel en A-stijlen
   const R = L.roof;
   box(g, R.x1 - R.x0, 0.04, R.w, (R.x0 + R.x1) / 2, R.y, 0, GREY);
   for (const p of R.pillars) {
     const dx = p.x1 - p.x0, dy = p.y1 - p.y0, len = Math.hypot(dx, dy);
-    const m = box(g, len, 0.07, 0.07, (p.x0 + p.x1) / 2, (p.y0 + p.y1) / 2, p.z, DARK);
+    const m = box(g, len, 0.05, 0.05, (p.x0 + p.x1) / 2, (p.y0 + p.y1) / 2, p.z, DARK);
     m.rotation.z = Math.atan2(dy, dx);
   }
   // portierbekleding op de plek van de echte deuren; verdwijnt als de deur openstaat of los is
@@ -85,7 +91,7 @@ export function updateCarInterior(mesh, v, show) {
   if (!mesh || !hasCarInterior(v)) return false;
   let g = mesh.userData.interior;
   if (!g && show) {
-    g = buildCarInterior(vehicleSeat(v, true), v.model.len, v.model.wid, doorsFor(v));
+    g = buildCarInterior(vehicleSeat(v, true), v.model.len, v.model.wid, doorsFor(v), interiorKlasse(v));
     mesh.userData.interior = g;
     mesh.add(g);
   }

@@ -1,6 +1,6 @@
 // Zichtbare voertuigschade (#205): zones, losse onderdelen, fases (game/js/vehicledamage.js).
 //   node scripts/vehicledamage_test.mjs
-import { zoneOf, zoneTotals, losseOnderdelen, nieuwLos, onderdelenPrijs, schadeFase, faseEffect, schadeTekst, ONDERDELEN, SMOKE_HEALTH, FIRE_HEALTH } from '../game/js/vehicledamage.js';
+import { zoneOf, zoneTotals, losseOnderdelen, nieuwLos, onderdelenPrijs, schadeFase, faseEffect, schadeTekst, kapRookt, ONDERDELEN, SMOKE_HEALTH, FIRE_HEALTH } from '../game/js/vehicledamage.js';
 
 let bad = 0;
 const check = (name, ok, info = '') => { if (!ok) { bad++; console.log('FAIL', name, info); } };
@@ -36,8 +36,15 @@ check('effecten', faseEffect('heel').rook === 0 && faseEffect('rook').vlam === 0
 check('na reparatie (leeg logboek, 100) weer heel', schadeFase(mk({ health: 100, dentLog: [] }), L, W) === 'heel' && losseOnderdelen(zoneTotals([], L, W)).length === 0);
 
 const tekst = schadeTekst(mk({ health: 70, dentLog: [[2, 0, 1.2], [0, 0.9, 1]] }), L, W);
-check('schadetekst', tekst === 'Gedeukt (deuken voor en zijkant). Los: grille en spiegels', tekst);
+check('schadetekst', tekst === 'Rookt (deuken voor en zijkant). Los: grille en spiegels', tekst);
 check('schadetekst heel', schadeTekst(mk({}), L, W) === 'Heel');
+
+// scheve kap: rook al bij matige schade
+const kapV = (health, voor) => ({ health, dentLog: voor ? [[1.8, 0, voor]] : [] });
+check('kap scheef + matige schade rookt', kapRookt(kapV(70, 0.9), L, W) && schadeFase(kapV(70, 0.9), L, W) === 'rook');
+check('zonder kapschade geen rook bij 70', !kapRookt(kapV(70, 0), L, W) && schadeFase(kapV(70, 0), L, W) === 'gedeukt');
+check('kap scheef maar bijna heel: geen rook', !kapRookt(kapV(95, 0.9), L, W));
+check('wrak rookt niet via de kap', !kapRookt({ health: 10, wrecked: true, dentLog: [[1.8, 0, 2]] }, L, W));
 
 console.log(bad ? `${bad} mislukt` : 'vehicledamage_test: alles goed');
 process.exit(bad ? 1 : 0);

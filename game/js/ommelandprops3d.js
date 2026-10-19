@@ -570,6 +570,17 @@ const EDGE_BUILD = {
     hull(k, 8, ORANGE);
     k.solid(0, 0, 3);
   },
+  rand_veerboot(k) {
+    hull(k, 14, 0xf4f1e6);
+    k.box(0, 2.2, 0, 3.2, 1.6, 5, 0xf4f1e6);
+    k.box(0, 3.1, 0, 3.4, 0.2, 5.2, 0x1d4f9c);
+    k.sign(0, 0, ['Veerdienst', 'naar het eiland'], { w: 3, h: 0.8, y: 1.8, posts: false, style: { bg: '#1d4f9c', fg: '#f4f1e6', border: '#f4f1e6', big: 0.28, small: 0.2 } });
+    k.solid(0, 0, 4);
+  },
+  rand_natuurbord(k) {
+    k.sign(0, 0, ['Rottum', 'verboden natuur'], { w: 2, h: 0.9, y: 1.7, style: { bg: '#2f6b3a', fg: '#f4f1e6', border: '#f4f1e6', big: 0.3, small: 0.22 } });
+    k.solid(0, 0, 0.5);
+  },
   rand_boei(k) {
     k.cyl(0, 0.5, 0, 0.45, 1.0, RED, 8, 0.3);
     k.cyl(0, 1.2, 0, 0.12, 0.6, WHITE, 6);

@@ -14,7 +14,7 @@ import { playerBusy } from './busy.js';
 // playing as her, E hands over to Tammo when he's around, and he whistles.
 
 // What Tessa says at a pigeon spot (a bubble in her own voice, "~f|" lines)
-export const ANITA_NO_PIGEON = [
+const ANITA_NO_PIGEON = [
   'Duiven luisteren naar Tammo. Naar mij luistert alleen Tammo.',
   'Tammo! Fluiten! …Hij hoort me niet. De duiven ook niet.',
   'Ik ben geen duivenkoning. Ik ben de baas van de duivenkoning.',

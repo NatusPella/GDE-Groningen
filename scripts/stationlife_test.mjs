@@ -40,5 +40,11 @@ const sp = S.reizigerPlekken(beta, 14), sp2 = S.reizigerPlekken(beta, 5);
 check('plekken vast per station', sp.slice(0, 5).every((p, i) => p.x === sp2[i].x && p.y === sp2[i].y));
 check('op het perron: rechts van het spoor, binnen de lengte', sp.every((p) => p.y < -S.PERRON_AF + 0.01 && Math.abs(p.x - beta.x) <= S.PERRON_LANG));
 check('andere stations andere plekken', S.reizigerPlekken(st[0], 1)[0].x !== sp[0].x);
+{
+  const tr = [{ route: A, c: 12000, dir: 1, v: 0, state: 'dwell', target: 1, timer: 30, vmax: 20 }];
+  const v = S.stationView(beta, 8.0, 3, tr, 1);
+  check('met treinen volgt het bord de echte trein', v.bord.length >= 1 && v.bord[0].echt && v.bord[0].tijd === v.nu + 30);
+  check('zonder treinen op deze lijnen terug op het rooster', !S.stationView(beta, 8.0, 3, [{ route: { name: 'X', stops: [] }, state: 'run', c: 0, dir: 1, target: 0 }], 1).bord.some((r) => r.echt));
+}
 console.log(bad ? `${bad} van ${n} mislukt` : `stationlife_test: ${n} controles ok`);
 process.exit(bad ? 1 : 0);

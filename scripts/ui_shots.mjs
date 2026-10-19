@@ -1,7 +1,7 @@
 // Headless screenshots of the HUD and the menus at 720p, 1080p and 4K (#92,
 // #34, #33). One Electron at a time, a throwaway profile that is removed again,
 // and the process is closed when the run ends or times out.
-//   node scripts/ui_shots.mjs [--out=<map>] [--sizes=1280x720,1920x1080,3840x2160] [--only=voet,auto,garage] [--scenes=<eigen scenebestand>] [--emulate=0.45]
+//   node scripts/ui_shots.mjs [--out=<map>] [--sizes=1280x720,1920x1080,3840x2160] [--only=voet,auto,garage] [--scenes=<eigen scenebestand>] [--emulate=0.45] [--flags=touch=1]
 // Needs `cd desktop && npm install && npm run stage` once. GDE_ELECTRON=<pad>
 // points at another electron binary (a worktree has no node_modules of its own).
 import { spawn, spawnSync } from 'node:child_process';
@@ -18,6 +18,8 @@ const only = arg('only', '');
 // --emulate=0.45: the page lays out at the full size (a real 3840x2160 viewport on a smaller
 // screen, devtools.js --emulate-view) in a window of 0.45 of the size (it must fit the screen); the picture is that much smaller
 const emulate = Number(arg('emulate', '0')) || 0;
+// --flags=touch=1,...: extra ?-switches of devflags.js (touch controls on a desktop window, #96 #227)
+const flags = arg('flags', '');
 const scenes = path.resolve(arg('scenes', path.join(root, 'scripts', 'ui', 'shots_scenes.js')));
 const bin = process.env.GDE_ELECTRON || path.join(root, 'desktop', 'node_modules', '.bin', process.platform === 'win32' ? 'electron.cmd' : 'electron');
 if (!fs.existsSync(bin)) { console.error('Geen electron gevonden op', bin, '(zie de kop van dit bestand)'); process.exit(2); }
@@ -52,7 +54,7 @@ for (const size of sizes) {
   fs.writeFileSync(script, `window.__shotsOnly = ${JSON.stringify(only)};\n` + fs.readFileSync(scenes, 'utf8'));
   // devtools adds -<scene> to the name for every capture
   const png = path.join(out, size + '.png');
-  const args = ['.', '--windowed', '--stil', '--force-device-scale-factor=1', '--window-size=' + (emulate ? size.split('x').map((n) => Math.round(Number(n) * emulate)).join('x') : size), ...(emulate ? ['--emulate-view=' + size + '@' + emulate] : []), '--smoke-test=' + png, '--perf-script=' + script];
+  const args = ['.', '--windowed', '--stil', '--force-device-scale-factor=1', '--window-size=' + (emulate ? size.split('x').map((n) => Math.round(Number(n) * emulate)).join('x') : size), ...(emulate ? ['--emulate-view=' + size + '@' + emulate] : []), ...(flags ? ['--url-flags=' + flags] : []), '--smoke-test=' + png, '--perf-script=' + script];
   console.log('==', size);
   const child = spawn(bin, args, { cwd: path.join(root, 'desktop'), env: { ...process.env, GDE_TEST_PROFILE: profile }, shell: process.platform === 'win32' });
   let log = '';

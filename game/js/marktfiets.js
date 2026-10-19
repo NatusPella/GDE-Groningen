@@ -1,7 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { getScene } from './scene3d.js';
 import { isInWater } from './util.js';
-import { isInsideBuilding } from './pedestrians.js';
+import { isInsideBuilding } from './pedgeom.js';
 import { MARKT, isMarktFietsRoad } from './roadaccess.js';
 
 // "Fietsroute, stapvoets" signs at the entrances of the bike route over the
