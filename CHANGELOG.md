@@ -6,6 +6,10 @@ nieuwe functies, `y` voor alleen bugfixes.
 
 ## [Unreleased]
 
+### Nieuw
+- **Rottum en Schiermonnikoog als randen (nog niet in beeld bekeken, #6):** de kustketens rond Rottumeroog en Rottumerplaat sturen je terug met een bord "verboden natuur" en zeehonden op de plaat; rond Schiermonnikoog vaart de veerboot dwars voor je langs. Alleen getest op de logica (`randaudit_test`), niet in het spel.
+- **Streek Alleen trekkers (nog niet in beeld bekeken, #61):** geen fietsen of brommers meer, de auto's die overblijven zijn grote, groene en rode bakbeesten. Sterft net als de andere verkeerstreken in 45 s uit.
+
 ## [0.37.1] - 2026-10-19
 
 ### Nieuw
