@@ -28,7 +28,7 @@ for (const S of cfg.plekken) {
     if (!img) { missing++; findings.push({ plek: S.naam, tijd: c.tijd, weer: c.weer, vlaggen: ['screenshot ontbreekt'] }); continue; }
     const m = L.measure(img);
     const luchtImg = load(`${name}-lucht`);
-    if (luchtImg) { const lm = L.measure(luchtImg); Object.assign(m, { banding: lm.banding, stars: lm.stars, skyBright: lm.skyBright, zenith: lm.zenith, horizon: lm.horizon, luchtMean: Math.round(lm.mean) }); }
+    if (luchtImg) { const lm = L.measure(luchtImg); Object.assign(m, { banding: lm.banding, stars: lm.stars, starFlux: lm.starFlux, skyBright: lm.skyBright, zenith: lm.zenith, horizon: lm.horizon, luchtMean: Math.round(lm.mean) }); }
     const refImg = c.weer === 'helder' ? null : load(L.shotName(S.naam, { tijd: c.tijd, weer: 'helder' }));
     const ref = refImg ? L.measure(refImg) : null;
     const vlaggen = L.judge(c, m, ref, S.soort);
