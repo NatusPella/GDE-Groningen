@@ -2690,7 +2690,7 @@ export function update3D(dt, world) {
   applyCameraOverride(dt, world, lookX, lookY, lookZ);
 
   probe.mark('3d:camera');
-  updateSunAndSky(focus, dt);
+  updateSunAndSky(focus, dt, world);
   limitActorShadows(pedMeshes, focus.x, focus.y);
   limitActorShadows(vehicleMeshes, focus.x, focus.y);
   limitActorShadows(wildlifeMeshes, focus.x, focus.y);
@@ -3251,7 +3251,7 @@ function updateEnvironment(dt) {
 
 // Shadow frustum centred a little ahead of the camera, snapped to whole
 // shadow-map texels in light space so edges don't crawl as the player moves.
-function updateSunAndSky(player, dt) {
+function updateSunAndSky(player, dt, world) {
   // how fast the focus moves: a fast one must not skip shadow passes
   if (focusPrevX !== null && dt > 0) {
     focusSpeed = Math.hypot(player.x - focusPrevX, player.y - focusPrevY) / dt;
