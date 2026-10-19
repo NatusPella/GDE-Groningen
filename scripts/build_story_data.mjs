@@ -49,7 +49,7 @@ export const SPEAKER_TABLE = {
   ROELFIEN: sp('roelfien', 'Roelfien'),
   WUBBO: sp('wubbo', 'Wubbo'),
   TINUS: sp('tinus', 'Tinus'),
-  BEWAARDER: sp('bewaarder', 'Mevrouw Tuinstra'),
+  BEWAARDER: sp('bewaarder', 'Mevrouw Hoving'),
   LOKETBEDIENDE: sp('loketbediende', 'Loketbediende'),
   ACCOUNTMANAGER: sp('accountmanager', 'Accountmanager'),
   JURYLID: sp('jurylid', 'Jurylid'),

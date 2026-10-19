@@ -131,7 +131,7 @@ export function buildAkte4Defs() {
           ],
         },
         {
-          kind: 'hold', target: ll('wiebelwerkServers', { label: 'De serverkamer' }), mode: 'foot', radius: 6, time: 8, ticks: ['Update, altijd 00:00, drie minuten. Behalve 12 augustus: elf minuten, aangevraagd door Us Mem Snacks.', 'Zijdeur 00:03, pas van bewaker twee, gast: D en D, tilwerk. De pas van mevrouw Tuinstra is die dag geblokkeerd.'],
+          kind: 'hold', target: ll('wiebelwerkServers', { label: 'De serverkamer' }), mode: 'foot', radius: 6, time: 8, ticks: ['Update, altijd 00:00, drie minuten. Behalve 12 augustus: elf minuten, aangevraagd door Us Mem Snacks.', 'Zijdeur 00:03, pas van bewaker twee, gast: D en D, tilwerk. De pas van mevrouw Hoving is die dag geblokkeerd.'],
           label: 'Lees het logboek van 12 augustus', say: 'Het logboek van 12 augustus. Blijf bij de server staan tot alles gelezen is.',
           talk: { ids: ['M18.3'], delay: 1 },
         },

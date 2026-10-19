@@ -83,7 +83,7 @@ TAMMO: Jelle. [NIEUW]
 TESSA: En kijk: zijdeur, 00:03, pas van bewaker twee. Gast: D en D, tilwerk. [NIEUW]
 TESSA: Een melding van bewaker twee, 16 augustus: duif op het dak, twee Stadjers kijken mee. [NIEUW]
 TAMMO: De bewaker met het koekje. En twee reuzen. [NIEUW]
-TAMMO: Tuinstra's pas. Geblokkeerd op twaalf augustus. [NIEUW]
+TAMMO: Hoving's pas. Geblokkeerd op twaalf augustus. [NIEUW]
 TESSA: Zodat zij niets merkte. Twaalf augustus. Vijf dagen vóór onze kraak. Hij had hem toen al. [NIEUW]
 TAMMO: Dus wij kraakten een leeg museum. [NIEUW]
 TESSA: Ik print dit. Dit is een bewijs. [NIEUW]
@@ -102,7 +102,7 @@ APP MEM→TESSA (stil): Kom dinsdag naar Bourtange, voor het Beleg. Jelle komt o
 ACCOUNTMANAGER: Nog een intake? De koffie is nog warm. [NIEUW]
 
 ## [M19.1] Stoom: intro – Veenkoloniën, Veendam, het perron – trein
-(regie: maandag 24 augustus, late middag. Een museumstoomtrein onder stoom, maar hij staat stil. Op een bank bij het perron zit de machinist met een bordje eierballen. In het salonrijtuig zitten twee juryleden en mevrouw Tuinstra, de bewaarder, met een bordje eierballen. Gameplay: Tammo is machinist en rijdt de trein naar het volgende perron, terwijl Tessa door de wagons naar de juryleden loopt.)
+(regie: maandag 24 augustus, late middag. Een museumstoomtrein onder stoom, maar hij staat stil. Op een bank bij het perron zit de machinist met een bordje eierballen. In het salonrijtuig zitten twee juryleden en mevrouw Hoving, de bewaarder, met een bordje eierballen. Gameplay: Tammo is machinist en rijdt de trein naar het volgende perron, terwijl Tessa door de wagons naar de juryleden loopt.)
 TESSA: We staan op het perron in Veendam, bij de museumlijn. De machinist is omgekocht. Hij zit al een uur op een bank en eet een eierbal. De trein staat stil. De laatste twee juryleden en de bewaarder zitten vier uur vast in Jelles salonrijtuig. [NIEUW]
 TAMMO: Wie rijdt hem dan? [NIEUW]
 TESSA: Jij. [NIEUW]
