@@ -133,6 +133,7 @@ async function run(name, setup, move, teardown, opts = {}) {
     heapMB: performance.memory ? Math.round(performance.memory.usedJSHeapSize / 1e6) : null, at: [Math.round((p.inVehicle || p).x), Math.round((p.inVehicle || p).y)],
     ejects: EJECTS, vehicles: w.vehicles.length, peds: w.pedestrians.length, simLevel: window.__simLoad ? window.__simLoad.level() : null, dyn: window.__gfxDyn || null,
     batches: sc.batches ? sc.batches() : null, geo: GJ ? { ...GJ.geoStats } : null,
+    tiles: map && map.store ? { ...map.store.stats, queue: map.store.queue.length, active: map.store.active, resident: map.store.residentKeys.length, frameQueue: map.tileQueue ? { ...map.tileQueue.stats, size: map.tileQueue.size } : null } : null,
     shots: globalThis.__shotLog || null, pr: r.getPixelRatio(), canvas: [r.domElement.width, r.domElement.height] };
   if (window.__hitch) {
     const hs = window.__hitch.summary();
