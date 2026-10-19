@@ -11,6 +11,8 @@ node scripts/publish_check.mjs --history      # FAIL = oplossen, WARN = eigenaar
 node scripts/publish_check.mjs --json         # voor een bord- of issue-comment
 node scripts/publish_check_test.mjs           # test van de check zelf
 node scripts/text_audit.mjs                   # speltekst: merken, personen, winter, Engels
+node scripts/secrets_scan.mjs                 # sleutelpatronen over werkboom en ALLE commits (±1 min)
+node scripts/merkenregister_check.mjs         # merkenregister klopt met de code
 ```
 
 De check scant getrackte bestanden op sleutels, e-mailadressen, thuispaden,
@@ -18,7 +20,9 @@ private-only bestandsnamen (nooit `.env` openen), groottes (WARN vanaf 10 MB, FA
 vanaf 50 MB), verplichte licentie- en beleidsbestanden en workflows die zouden
 publiceren. Optioneel: zet namen die nooit in de repo mogen staan in
 `.publish-names.local` (één per regel; staat in `.gitignore`). Dit is een
-patroonscan en vervangt `gitleaks detect` niet.
+patroonscan en vervangt `gitleaks detect` niet. `secrets_scan.mjs` leest elk
+unieke bestand uit de hele geschiedenis één keer (zonder `.env` of sleutelbestanden te
+openen) en meldt bestand, patroonnaam en blob, nooit de waarde.
 
 ## 2. Beslissingen en handelingen van de eigenaar
 
