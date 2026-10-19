@@ -342,7 +342,7 @@ function* genTileSteps(tx, ty) {
       };
       for (let b = Math.ceil(bMin / 3.5) * 3.5; b < bMax; b += 3.5) {
         const [x, y] = W(a + side * 1.6, b);
-        if (!fadeKeep(x, y) || !okSpot(x, y, 1.4)) { flush(); continue; }
+        if (!fadeKeep(x, y) || !okSpot(x, y, 1.4) || landUseAt(x, y) === 'akker') { flush(); continue; }
         push(tile, 'post', x, y, R() * 6.28, 1, 0.9 + R() * 0.2, 1, 0xffffff, 0.12);
         if (!run) run = { x0: x, y0: y, x1: x, y1: y, n: 1 };
         else { run.x1 = x; run.y1 = y; run.n++; }
@@ -678,7 +678,7 @@ function genFieldEdges(tile, bx, by, rot, aMin, bMin, W) {
     const rh = chash(bx * 17 + s * 5 + 3, by * 23 + 11);
     const off = ROAD_IN + ROAD_W + 3.4, base = s === 0 ? y0 : x0;
     const P = (t, o = 0) => (s === 0 ? [x0 + off + o, y0 + t] : [x0 + t, y0 + off + o]);
-    const ok = (x, y) => fadeKeep(x, y) && okSpot(x, y, 1.4) && !farmAt(x, y, 5);
+    const ok = (x, y) => fadeKeep(x, y) && okSpot(x, y, 1.4) && !farmAt(x, y, 5) && landUseAt(x, y) !== 'akker';
     if (rh < 0.6) {
       const gateAt = (k) => chash(k + s * 7919, (s === 0 ? bx : by) * 31 + 3) < 0.45;
       const gap = (u) => { const k = Math.floor(u / 48); return gateAt(k) && Math.abs(u - (k + 0.5) * 48) < 2.4; };
@@ -716,7 +716,7 @@ function genParcel(tile, bx, by, rot, col, row, a0, a1, b0, b1, W, lineAng) {
   if (herdsOk) {
     // (every HERD_STEP m: the herd grazes over the whole strip; a 5 x 5 grid let a pond, a ditch or the track through, #210)
     const nx = Math.max(2, Math.ceil((rect[2] - rect[0]) / HERD_STEP)), ny = Math.max(2, Math.ceil((rect[3] - rect[1]) / HERD_STEP));
-    for (let i = 0; i <= nx && herdsOk; i++) for (let j = 0; j <= ny; j++) if (edgeBlocked(rect[0] + ((rect[2] - rect[0]) * i) / nx, rect[1] + ((rect[3] - rect[1]) * j) / ny, 3)) { herdsOk = false; break; }
+    for (let i = 0; i <= nx && herdsOk; i++) for (let j = 0; j <= ny; j++) { const hx = rect[0] + ((rect[2] - rect[0]) * i) / nx, hy = rect[1] + ((rect[3] - rect[1]) * j) / ny; if (edgeBlocked(hx, hy, 3) || landUseAt(hx, hy) === 'akker') { herdsOk = false; break; } }
   }
 
   // gate at one end of the strip, with short fence wings (a fenced
@@ -772,7 +772,7 @@ function genParcel(tile, bx, by, rot, col, row, a0, a1, b0, b1, W, lineAng) {
     for (let i = 0; i < n; i++) {
       const x = Math.min(rect[2], Math.max(rect[0], hc[0] + (R() - 0.5) * spread * 2));
       const y = Math.min(rect[3], Math.max(rect[1], hc[1] + (R() - 0.5) * spread * 2));
-      if (farmAt(x, y, 1)) continue;
+      if (farmAt(x, y, 1) || edgeBlocked(x, y, 1)) continue; // a narrow ditch slips between the grid points above
       const a = newAnimal(kind, kind === 'horse' ? (variant + (R() < 0.3 ? 1 : 0)) % HORSE_COATS.length : variant, x, y, rect, R);
       a.hx = hc[0]; a.hy = hc[1]; a.spread = spread;
       if (R() < young) a.size = kind === 'sheep' ? 0.6 : kind === 'horse' ? 0.62 : 0.66;

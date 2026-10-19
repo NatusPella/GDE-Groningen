@@ -8,6 +8,7 @@ import { unlockAchievement } from './achievements.js';
 import { saveGame } from './savegame.js';
 import { pointInPolygon, isInWater, clamp, angleLerp, normalizeAngle, WATER_Y } from './util.js';
 import { KEYS } from './storagekeys.js';
+import { quitRunningActivities } from './busy.js';
 
 const LEVEL_H = 3.1;
 const G = 9.8;
@@ -1775,6 +1776,7 @@ export function startPigeonMode(w, spot = null) {
   const pl = w.player;
   if (pl.inVehicle) return false;
   if (outro) { outro = null; }
+  quitRunningActivities(w); // een lopende wandeling of minigame stopt met zijn HUD (#241)
   active = true;
   w.pigeonMode = true;
   w.pigeonIntro = !!spot;

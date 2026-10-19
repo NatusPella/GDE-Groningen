@@ -14,7 +14,7 @@ import { HENGEL, FISH, MEDAL_AT, createHengel, stepHengel, hengelMedal } from '.
 // `window.__hengelen` debug. The spot is approximate and not yet checked against
 // the Meerstad tiles.
 const ACCENT = '#4aa8d8';
-const ORIGIN = geo(53.2287, 6.6573);
+const ORIGIN = geo(53.22924, 6.65732); // the first dry ground out from the lake polygon (spotcheck, #222)
 const STAND = { x: ORIGIN.x, y: ORIGIN.y };
 
 let game = null;

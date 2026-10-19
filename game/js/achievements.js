@@ -12,6 +12,7 @@ import { dualHtml } from './subtitles.js';
 import { mayStart, noteToast } from './narrative.js';
 import { KEYS } from './storagekeys.js';
 import { iconSvg } from './achievementicons.js';
+import { isOverlayHeld } from './overlayhold.js';
 
 const KEY = KEYS.achievements;
 const WRITE_DELAY_MS = 2500;
@@ -111,8 +112,8 @@ export const ACHIEVEMENTS = [
   { id: 'botsauto_goud', cat: 'verkennen', title: 'Koning van de kermis', desc: "Haal goud in de botsauto's", medal: true },
   { id: 'discgolf_klaar', cat: 'verkennen', title: 'Disc in de mand', desc: 'Speel een ronde discgolf in het Stadspark' },
   { id: 'discgolf_goud', cat: 'verkennen', title: 'Onder par in het park', desc: 'Haal goud bij discgolf', medal: true },
-  { id: 'discgolf_ace', cat: 'verkennen', title: 'Ace in het Stadspark', desc: 'Gooi een hole in één bij discgolf', hidden: true },
-  { id: 'putt_klaar', cat: 'verkennen', title: 'Korte gras', desc: 'Speel zes holes pitch & putt' },
+  { id: 'discgolf_ace', cat: 'verkennen', title: 'Ace in het Stadspark', desc: 'Gooi de disc in één worp in de mand bij discgolf', hidden: true },
+  { id: 'putt_klaar', cat: 'verkennen', title: 'Korte gras', desc: 'Speel zes banen pitch & putt' },
   { id: 'putt_goud', cat: 'verkennen', title: 'Groene vingers', desc: 'Haal goud bij pitch & putt', medal: true },
   { id: 'skate_klaar', cat: 'verkennen', title: 'Vier wielen en een plank', desc: 'Skate een ronde in het Stadspark' },
   { id: 'skate_goud', cat: 'verkennen', title: 'Koning van het skatepark', desc: 'Haal goud in het skatepark', medal: true },
@@ -140,7 +141,7 @@ export const ACHIEVEMENTS = [
   { id: 'wandel_klaar', cat: 'tevoet', title: 'Pieterpadganger', desc: 'Loop alle stempelposten bij Winsum af' },
   { id: 'wandel_goud', cat: 'tevoet', title: 'Snelste wandelaar', desc: 'Haal goud op de wandeling bij Winsum', medal: true },
   { id: 'discgolf_achterkant', cat: 'verkennen', title: 'Andersom', desc: 'Speel de achterkant van de discgolfbaan' },
-  { id: 'discgolf_achttien', cat: 'verkennen', title: 'Heen en terug', desc: 'Speel alle achttien holes discgolf' },
+  { id: 'discgolf_achttien', cat: 'verkennen', title: 'Heen en terug', desc: 'Speel alle achttien banen discgolf' },
   { id: 'discgolf_dichtbij_goud', cat: 'verkennen', title: 'Recht op de mand', desc: 'Haal goud bij discgolf dichtbij', medal: true },
   { id: 'ski_sprong', cat: 'verkennen', title: 'Hoog en schoon', desc: 'Land een sprong met een draai en een grab', hidden: true },
   { id: 'geheimen_alle', cat: 'verkennen', title: 'Stadjer met geheimen', desc: 'Vind alle 8 geheimpjes van Grunn in één spel', save: 'geheimen', goal: 8, hidden: true },
@@ -611,6 +612,8 @@ function toastBlocked() {
   if (!b.classList.contains('game-started') || b.classList.contains('cine-hide-hud')) return true;
   // narrative.js: held during cutscenes and story calls, a beat apart from other toasts
   if (!mayStart('award')) return true;
+  // de resultaatkaart, een keuzepaneel of een duelbalk gaat voor (#239): de prestatie staat in de wachtrij
+  if (isOverlayHeld('prestatie')) return true;
   const pm = document.getElementById('pause-menu');
   return !!(pm && pm.classList.contains('visible'));
 }

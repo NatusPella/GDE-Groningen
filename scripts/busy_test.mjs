@@ -1,7 +1,7 @@
 // The one "player is busy" gate (game/js/busy.js): reasons, probes, groups,
 // and that every old per-module flag list still maps to the same answer.
 //   node scripts/busy_test.mjs
-import { playerBusy, gameBusy, registerBusyProbe, BUSY_ALL, BUSY_GAME } from '../game/js/busy.js';
+import { playerBusy, gameBusy, registerBusyProbe, registerQuitHook, quitRunningActivities, BUSY_ALL, BUSY_GAME } from '../game/js/busy.js';
 
 let bad = 0;
 const check = (name, ok, info = '') => { if (!ok) { bad++; console.log('FAIL', name, info); } };
@@ -39,4 +39,18 @@ check('game group', BUSY_GAME.join() === 'padel,activityGame,heliRun');
 check('gameBusy', gameBusy({ padelGame: {} }) && gameBusy({ activityGame: 'kermis' }) && gameBusy({ heliRun: {} }) && !gameBusy({ challenge: {}, sideJob: { active: true } }));
 
 console.log(bad ? bad + ' failed' : 'busy_test ok');
-process.exit(bad ? 1 : 0);
+process.exit(bad ? 1 : 0);// de duif beëindigt een lopende activiteit (#241)
+{
+  const gezien = [];
+  registerQuitHook((x) => gezien.push(['a', x.tag]));
+  registerQuitHook(() => { throw new Error('kapot'); });
+  registerQuitHook((x) => gezien.push(['b', x.tag]));
+  const origErr = console.error; console.error = () => {};
+  quitRunningActivities({ tag: 'w' });
+  console.error = origErr;
+  check('quit-hooks draaien allemaal, ook na een fout', gezien.length === 2 && gezien[0][0] === 'a' && gezien[1][0] === 'b', JSON.stringify(gezien));
+  const f = () => {}; registerQuitHook(f); registerQuitHook(f); registerQuitHook(null);
+  gezien.length = 0; quitRunningActivities({ tag: 'x' });
+  check('dezelfde hook telt een keer', gezien.length === 2);
+}
+

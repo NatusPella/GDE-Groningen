@@ -113,7 +113,10 @@ const list = (window.__activities ? window.__activities.list() : []).filter((x) 
 B.log('start', { mode: 'minigames', activities: list.map((x) => x.id) });
 for (const info of list) {
   const a = window.__activities.get(info.id);
-  const spot = a.spots()[0];
+  // a.spots(true) geeft ook de plekken die nog niet getoond worden (hoogvlieger, pitchputt, snackketen); #242
+  let spot = a.spots()[0];
+  if (!spot) { try { spot = a.spots(true)[0]; } catch (e) { /* geen parameter */ } }
+  if (!spot && info.id === 'geheimen' && window.__geheimen && window.__geheimen.spots) { try { spot = window.__geheimen.spots()[0]; } catch (e) { /* geen */ } }
   if (!spot) { B.log('minigame', { id: info.id, started: false, how: 'geen plek' }); out.push({ id: info.id, started: false }); continue; }
   out.push(await playOne(info.id, async (ev) => {
     teleport(spot.x, spot.y);

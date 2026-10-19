@@ -91,7 +91,7 @@ export function waterwayClass(poly) {
   const named = !!poly.name && (MAIN_WATERWAYS.test(poly.name) || SHIPPING_NAMES.test(poly.name));
   if (w < BARGE_MIN_WIDTH && !(named && nav >= 4)) return 'klein';
   if (nav >= 4) return 'hoofd';
-  return poly.name && /haven|dok/i.test(poly.name) ? 'haven' : 'klein';
+  return poly.name && /haven|dok\b/i.test(poly.name) ? 'haven' : 'klein';
 }
 export const bargeWater = (poly) => { const c = waterwayClass(poly); return c === 'hoofd' || c === 'haven'; };
 // the same by what waterAt returns (no width there): a ditch or vaart is never barge water. A pond

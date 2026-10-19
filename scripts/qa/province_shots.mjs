@@ -114,8 +114,12 @@ if (process.argv.includes('--list')) { console.log(JSON.stringify(RONDE === 2 ? 
 fs.mkdirSync(OUT, { recursive: true });
 const profile = `gde-test-qa-${process.pid}`;
 const script = path.join(OUT, '_page.js');
-fs.writeFileSync(script, RONDE === 2 ? `window.__qa2 = ${JSON.stringify({ spots: SPOTS2, settle: SETTLE, drive: DRIVE, only: ONLY })};
-` + fs.readFileSync(path.join(HERE, 'province_shots2.page.js'), 'utf8') : `window.__qaSpots = ${JSON.stringify(SPOTS)}; window.__qaSettle = ${SETTLE}; window.__qaOnly = ${JSON.stringify(ONLY)};\n` + fs.readFileSync(path.join(HERE, 'province_shots.page.js'), 'utf8'));
+const WACHT = 'for (let i = 0; i < 240 && !(window.__debug && window.__debug.world); i++) await new Promise((r) => setTimeout(r, 500));\n'
+  + `const kEnter = () => { for (const t of [window, document]) { t.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', bubbles: true })); t.dispatchEvent(new KeyboardEvent('keyup', { key: 'Enter', code: 'Enter', bubbles: true })); } };
+for (let i = 0; i < 40; i++) { const s = document.querySelector('#start-screen'); if (!s || s.offsetParent === null || getComputedStyle(s).display === 'none' || getComputedStyle(s).opacity === '0') break; kEnter(); await new Promise((r) => setTimeout(r, 3000)); }
+await new Promise((r) => setTimeout(r, 4000));\n`;
+fs.writeFileSync(script, WACHT + (RONDE === 2 ? `window.__qa2 = ${JSON.stringify({ spots: SPOTS2, settle: SETTLE, drive: DRIVE, only: ONLY })};
+` + fs.readFileSync(path.join(HERE, 'province_shots2.page.js'), 'utf8') : `window.__qaSpots = ${JSON.stringify(SPOTS)}; window.__qaSettle = ${SETTLE}; window.__qaOnly = ${JSON.stringify(ONLY)};\n` + fs.readFileSync(path.join(HERE, 'province_shots.page.js'), 'utf8')));
 const electron = process.env.ELECTRON_EXE || path.join(ROOT, 'desktop', 'node_modules', 'electron', 'dist', process.platform === 'win32' ? 'electron.exe' : 'Electron');
 const env = { ...process.env, GDE_TEST_PROFILE: profile };
 delete env.ELECTRON_RUN_AS_NODE;

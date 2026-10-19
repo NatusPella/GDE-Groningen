@@ -7,42 +7,13 @@
 import { spawnVehicleOnRoad } from './vehicle.js';
 import { carModel, applyFleetFlags } from './trafficfleet.js';
 import { nearestFacility } from './facilities.js';
+import { activeSirens, sirenYield } from './trafficyield.js';
+export { activeSirens, sirenYield };
 
-const YIELD_REACH = 55;
 const HOSPITAL_NEAR = 300;
 const CALL_CHANCE_PER_S = 1 / 45;
 const CALL_TIMEOUT = 120;
 const ARRIVE_M = 25;
-
-let cache = { t: -1, list: [] };
-
-export function activeSirens(world) {
-  if (cache.t !== world.time) {
-    cache.t = world.time;
-    cache.list = world.vehicles.filter((v) => v.sirenOn && !v.wrecked && !v.sinking && !v.isBoat);
-  }
-  return cache.list;
-}
-
-// 'stop' | 'aside' | null for AI vehicle v.
-export function sirenYield(v, world) {
-  const list = activeSirens(world);
-  if (!list.length) return null;
-  const fx = Math.cos(v.angle), fy = Math.sin(v.angle);
-  for (const e of list) {
-    // a siren standing still (at the scene) is simply passed
-    if (e === v || Math.abs(e.speed) < 1.5) continue;
-    const dx = e.x - v.x, dy = e.y - v.y;
-    if (dx * dx + dy * dy > YIELD_REACH * YIELD_REACH) continue;
-    if (Math.abs((e.z || 0) - (v.z || 0)) > 3) continue;
-    const fwd = dx * fx + dy * fy, lat = Math.abs(dy * fx - dx * fy);
-    const rel = Math.cos(e.angle - v.angle);
-    if (fwd < 0 && rel > 0.5 && lat < 8) return fwd > -20 ? 'stop' : 'aside';
-    if (fwd > 0 && rel < -0.5 && lat < 8 && fwd < 35) return 'aside';
-    if (fwd > 0 && fwd < 25 && Math.abs(rel) < 0.5 && lat < 22 && Math.abs(e.speed) > 3) return 'stop';
-  }
-  return null;
-}
 
 function canSiren(v) {
   return !!v && !v.wrecked && (v.isPolice || v.isAmbulance) && !v.isBike && !v.isScooter;

@@ -208,7 +208,7 @@ function recText() {
 function prompt(w) {
   if (!nearStand(w)) return null;
   const why = activityBlock(w);
-  return { id: 'pitchputt', x: STAND.x, y: STAND.y, h: 2.2, key: 'E', label: 'Pitch & putt', sub: why || recText() || `Zes holes · ${venue.plaats} · gratis`, ring: true, dim: !!why };
+  return { id: 'pitchputt', x: STAND.x, y: STAND.y, h: 2.2, key: 'E', label: 'Pitch & putt', sub: why || recText() || `Zes banen · ${venue.plaats} · gratis`, ring: true, dim: !!why };
 }
 
 function secondary(w) {
@@ -238,7 +238,7 @@ function start(w, { force = false } = {}) {
   runs++;
   game = { t: 0, hole: 0, strokes: 0, phase: 'aim', phaseT: 0, card: newCard(HOLES), lie: null, yaw: 0, charge: 0, charging: false, anim: null, flash: null, cam: null, said: 0, bunker: false, rng: Math.random };
   beginHole(w);
-  showCard(w, { kind: 'tip', kicker: 'Pitch & putt', title: 'Zes korte holes', body: '[A] [D] richten (Shift: fijn), houd [Spatie] en laat los. Het witte streepje op de meter is de kracht voor een rechte slag naar de vlag. Lees de pijltjes op de green.', duration: 10, key: 'pitchputt-help', voice: false });
+  showCard(w, { kind: 'tip', kicker: 'Pitch & putt', title: 'Zes korte banen', body: '[A] [D] richten (Shift: fijn), houd [Spatie] en laat los. Het witte streepje op de meter is de kracht voor een rechte slag naar de vlag. Lees de pijltjes op de green.', duration: 10, key: 'pitchputt-help', voice: false });
   say(w, 'start', true);
   return true;
 }
@@ -421,7 +421,7 @@ function end(w, { quit = false } = {}) {
   if (g.card.aces) stats.push(['Hole-in-one', String(g.card.aces)]);
   if (medal) stats.push(['Medaille', MEDALS[medal]]);
   if (rec && rec.newBest) stats.push(['Record', 'Nieuw!']);
-  showBanner({ kind: medal ? 'pass' : 'fail', title: medal >= 3 ? 'ONDER PAR OP DE CONCOURSLAAN' : medal ? 'NETTE RONDE' : 'DE GREEN WON', reason: medal ? `${relText(t.rel)} t.o.v. par over zes holes` : 'Probeer het nog eens: lees de pijltjes op de green', reward: 0, stats });
+  showBanner({ kind: medal ? 'pass' : 'fail', title: medal >= 3 ? 'ONDER PAR OP DE CONCOURSLAAN' : medal ? 'NETTE RONDE' : 'DE GREEN WON', reason: medal ? `${relText(t.rel)} t.o.v. par over zes banen` : 'Probeer het nog eens: lees de pijltjes op de green', reward: 0, stats });
   say(w, medal >= 2 ? 'endGood' : 'endPoor', true, true);
 }
 
@@ -514,7 +514,7 @@ function updateHud() {
   const dist = Math.hypot(h.cup.x - g.lie.x, h.cup.y - g.lie.y);
   const putting = mode(g) === 'putt';
   const t = cardTotals(g.card);
-  const row = `<span>Hole <b>${h.n}</b>/${HOLES.length}</span><span>Par <b>${h.par}</b></span><span>Slag <b>${g.phase === 'aim' ? g.strokes + 1 : g.strokes}</b></span><span>Vlag <b>${dist < 10 ? dist.toFixed(1).replace('.', ',') : Math.round(dist)} m</b></span><span>${putting ? 'Putter' : g.bunker ? 'Wedge (zand)' : 'Wedge'}</span>`;
+  const row = `<span>Baan <b>${h.n}</b>/${HOLES.length}</span><span>Par <b>${h.par}</b></span><span>Slag <b>${g.phase === 'aim' ? g.strokes + 1 : g.strokes}</b></span><span>Vlag <b>${dist < 10 ? dist.toFixed(1).replace('.', ',') : Math.round(dist)} m</b></span><span>${putting ? 'Putter' : g.bunker ? 'Wedge (zand)' : 'Wedge'}</span>`;
   const cells = g.card.holes.map((c, i) => ({ t: c.done ? String(c.strokes) : i === g.hole ? `${g.strokes || '·'}` : String(c.n), cls: `${i === g.hole ? 'on' : ''} ${c.done ? (c.strokes <= c.par ? 'good' : 'bad') : ''}` }));
   const mark = putting ? straightPower(dist) : powerForCarry(dist);
   const flash = g.flash ? g.flash.text : g.phase === 'aim' ? (putting ? slopeText(g) : g.bunker ? 'Uit het zand: meer spreiding' : 'Mik op de vlag') : '';
@@ -529,7 +529,7 @@ function updateHud() {
 export const PITCHPUTT = {
   id: 'pitchputt',
   layer: 'pitchputt',
-  legend: { kind: 'act-pitchputt', label: 'Pitch & putt', note: 'zes korte holes op de echte golfbanen: pitchen en putten' },
+  legend: { kind: 'act-pitchputt', label: 'Pitch & putt', note: 'zes korte banen op de echte golfbanen: pitchen en putten' },
   init(w) {
     // the real courses (scripts/world/echteplekken.py): used as soon as the data is in
     loadEchtePlekken().then((data) => { const v = golfVenues(data); if (v.length) setVenues(v); });
@@ -564,12 +564,12 @@ export const PITCHPUTT = {
   },
   camera,
   icon: drawIcon,
-  mapSub: () => recText() || 'Pitch & putt: zes korte holes',
+  mapSub: () => recText() || 'Pitch & putt: zes korte banen',
   ubbo(w) {
     focus(w);
     const d = Math.hypot(STAND.x - w.player.x, STAND.y - w.player.y);
     const rec = getChallengeRecord('pitchputt');
-    return { name: 'Pitch & putt', sub: rec && rec.medal ? `record: ${MEDALS[rec.medal].toLowerCase()}` : 'zes holes, gratis', dist: d, x: STAND.x, y: STAND.y, play: 'pitchputt', where: `de eerste tee bij ${venue.plaats}`, hint: 'loop naar de tee en druk E' };
+    return { name: 'Pitch & putt', sub: rec && rec.medal ? `record: ${MEDALS[rec.medal].toLowerCase()}` : 'zes banen, gratis', dist: d, x: STAND.x, y: STAND.y, play: 'pitchputt', where: `de eerste tee bij ${venue.plaats}`, hint: 'loop naar de tee en druk E' };
   },
   runs: () => runs,
 };
