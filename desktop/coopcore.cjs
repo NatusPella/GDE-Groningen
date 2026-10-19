@@ -147,7 +147,7 @@ function createCoopCore(opts) {
         s.write(Buffer.from(m.pairing.frame(m.pairing.encodeKeyFrame(key))));
         emit('conn', { id: 0 }); emit('state', { id: 0, state: 'open' }); resolve({ ok: true });
       });
-      const fail = () => { if (!settled) { settled = true; s.destroy(); resolve({ ok: false, reason: 'Geen verbinding met de host. Controleer de code en of de host het spel open heeft.' }); } };
+      const fail = () => { if (!settled) { settled = true; s.destroy(); resolve({ ok: false, reason: 'Geen verbinding met de gastheer. Controleer de code en of de gastheer het spel open heeft.' }); } };
       s.once('timeout', fail); s.once('error', fail);
     });
   }
