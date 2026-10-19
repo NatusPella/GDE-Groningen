@@ -240,3 +240,9 @@ Wat is onderzocht en wat het opleverde. Alles met `routes.js` (nieuwe routes `ce
 - De scene-walk (`updateMatrixWorld` 2,8 ms, 4800 nodes): dieren en verre actoren vastzetten: ongeveer 1 ms.
 - Gebouwen bouwen tijdens het lopen (`3d:buildings` 3,7 ms gemiddeld, vooral `makeBuildingMesh`): sneller of in de worker: tot 2 ms.
 Samen komt dat op de 4 ms, maar elk onderdeel is een eigen stap met eigen risico op beeldverschil; dat is werk voor een volgende ronde met voor/na-metingen en een ruisbasislijn voor de beeldvergelijking.
+
+## Vervolg 3: blob-schaduwen in één mesh (teruggedraaid)
+
+Alle blob-schaduwen (onder personen, vogels en voertuigen) als quads van één dynamische mesh getekend, de losse blobs op laag 1 gezet. Draw calls: 714/734/721 naar 694/716/699 lopend, 717/761/751 naar 686/672/708 stilstaand (ongeveer 20 tot 90 minder). Frametijd (3 afwisselende paren, hoog, vsync uit): foot 27,0/24,2/24,1 ms voor tegen 26,3/24,5/24,4 na, stilstaan 22,9/22,0/22,5 tegen 22,9/24,2/22,1: geen meetbaar verschil (20 calls is ongeveer 0,3 ms). In de screenshot op één plek (spot 2) tekende de blob onder de speler nu wel zichtbaar op de gele markering waar hij eerder niet zichtbaar was: een beeldverandering zonder meetbare winst. Teruggedraaid (`6c1ff3c4`).
+
+**Conclusie van de draw-call-ronde:** met de rustige machine is de frametijd 20 tot 22 ms en elke losse stap (bakken, blob-batch, budgetten) levert minder dan 0,5 ms op, onder de run-tot-run-ruis van ongeveer 1 ms. De resterende 4 ms voor 60 fps zit verspreid over tientallen posten (render 11 ms voor 700 calls, HUD 2, gebouwen 3 tot 4, verkeer en simulatie 5). Een volgende winst vraagt een structurele stap: de simulatie naar de worker (#58, bezig bij x2), een minder dure render per call (instancing/GPU-gedreven tekenen) of lagere kwaliteit op de zwakkere profielen. Meer losse micro-optimalisaties zijn met deze meetnauwkeurigheid niet aan te tonen.
