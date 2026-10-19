@@ -211,6 +211,7 @@ export function touchLayout({ width = 800, height = 400 } = {}) {
 // have no button of their own; they sit behind one "Meer" button.
 const MORE_SLOTS = ['up', 'down', 'left', 'right', 'view'];
 export function touchMore(ctx) {
+  if (ctx === 'cutscene') return [];
   const map = PAD_MAPS[ctx] || PAD_MAPS.foot;
   const direct = new Set(touchPlan(ctx).map((b) => b.action));
   const out = [];

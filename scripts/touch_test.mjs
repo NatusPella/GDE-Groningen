@@ -49,6 +49,7 @@ eq('ui on in play', touchUiActive({ started: true, menuOpen: false }), true);
 
 eq('ctx cutscene', touchContext({ player: { inVehicle: {} } }, { cine: true }), 'cutscene');
 eq('cutscene: een knop Overslaan op Spatie', touchPlan('cutscene').map((b) => b.action + b.label), [' Overslaan']);
+eq('cutscene: geen Meer-knop', touchMore('cutscene'), []);
 eq('ctx menu', touchContext({}, { menuOpen: true }), 'menu');
 eq('ctx foot', touchContext({ player: {} }), 'foot');
 eq('ctx pannenkoek', touchContext({ player: {}, activityGame: 'pannenkoek' }), 'pannenkoek');
