@@ -32,6 +32,9 @@ const RAIN_WIND_SPEED = 6;
 const RAIN_STREAK_TIME = 0.045;
 const RAIN_STREAK_WIDTH = 0.035;
 const RAIN_OPACITY = 0.6;
+// streaks near the lens shrink to nothing: a 0.9 m streak at 1 m from the camera is a white pole across the picture (#258)
+const RAIN_NEAR = 4;
+const RAIN_NEAR_MIN = 1;
 let rainMesh = null;
 let rainDrops = null;
 
@@ -97,6 +100,8 @@ function updateRain(dt, world, px, py, cam) {
   const hx = rx * RAIN_STREAK_WIDTH * 0.5, hz = rz * RAIN_STREAK_WIDTH * 0.5;
   const R = RAIN_VOLUME_RADIUS;
   const drops = rainDrops;
+  const mx = rainMesh.position.x, my = rainMesh.position.y, mz = rainMesh.position.z;
+  const cx = cam ? cam.position.x : 0, cy = cam ? cam.position.y : 0, cz = cam ? cam.position.z : 0;
   const out = rainMesh.geometry.attributes.position.array;
   for (let i = 0; i < count; i++) {
     const ix = i * 3;
@@ -110,10 +115,16 @@ function updateRain(dt, world, px, py, cam) {
     if (z > R) z -= R * 2; else if (z < -R) z += R * 2;
     drops[ix] = x; drops[ix + 1] = y; drops[ix + 2] = z;
     const o = i * 12;
-    out[o] = x - hx; out[o + 1] = y; out[o + 2] = z - hz;
-    out[o + 3] = x + hx; out[o + 4] = y; out[o + 5] = z + hz;
-    out[o + 6] = x - hx + sx; out[o + 7] = y + sy; out[o + 8] = z - hz + sz;
-    out[o + 9] = x + hx + sx; out[o + 10] = y + sy; out[o + 11] = z + hz + sz;
+    let f = 1;
+    if (cam) {
+      const d = Math.hypot(mx + x - cx, my + y - cy, mz + z - cz);
+      if (d < RAIN_NEAR) f = d <= RAIN_NEAR_MIN ? 0 : (d - RAIN_NEAR_MIN) / (RAIN_NEAR - RAIN_NEAR_MIN);
+    }
+    const fx = hx * f, fz = hz * f, fsx = sx * f, fsy = sy * f, fsz = sz * f;
+    out[o] = x - fx; out[o + 1] = y; out[o + 2] = z - fz;
+    out[o + 3] = x + fx; out[o + 4] = y; out[o + 5] = z + fz;
+    out[o + 6] = x - fx + fsx; out[o + 7] = y + fsy; out[o + 8] = z - fz + fsz;
+    out[o + 9] = x + fx + fsx; out[o + 10] = y + fsy; out[o + 11] = z + fz + fsz;
   }
   rainMesh.geometry.setDrawRange(0, count * 6);
   rainMesh.geometry.attributes.position.needsUpdate = true;
