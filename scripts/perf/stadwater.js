@@ -1,4 +1,4 @@
-// Het stadswater uit de OSM-tegelbouw (STAD_LAAG=water, #90) in beeld: de speler staat op vaste waterplekken
+// Stadslagen uit de OSM-tegelbouw (STAD_LAAG, #90), standaard het water; window.__stadSpots = [[naam, x, y]] en __stadPitch via een voorloopregel kiezen andere plekken in beeld: de speler staat op vaste waterplekken
 // met een camera van boven; per plek een schermafdruk ('[capture] <naam>') en wat de wereld zegt over water en grond.
 // Draaien (na `npm run stage` met STAD_LAAG=water, in desktop/):
 //   GDE_TEST_PROFILE=gde-test-stadwater ./node_modules/.bin/electron . --windowed --stil --window-size=1600x900 --smoke-test=<png> --perf-script=<dit bestand> --bench-eval=scripts/perf/hook.js
@@ -24,12 +24,12 @@ if (document.pointerLockElement) document.exitPointerLock();
 let hold = null;
 const tick = () => {
   if (PM.isPauseMenuOpen()) PM.closePauseMenu();
-  D.input.mouse.y = innerHeight * 0.1;
+  D.input.mouse.y = innerHeight * (window.__stadPitch ?? 0.1);
   if (hold) { p.x = hold.x; p.y = hold.y; p.vx = p.vy = 0; p.angle = hold.a; w.camYaw = hold.a; w.clock = 14; }
   if (!done) requestAnimationFrame(tick);
 };
 requestAnimationFrame(tick);
-const SPOTS = [
+const SPOTS = window.__stadSpots || [
   ['kardingerplas', 2480, -2024], ['springervijver', -1600, 2236], ['vijver-centrum', -670, -14],
   ['kanaal-oost', 3380, -914], ['diepenring', 1880, -854], ['sloot-zuid', 1340, -2054],
 ];
