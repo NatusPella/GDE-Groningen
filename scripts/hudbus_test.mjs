@@ -68,5 +68,43 @@ ok(B.mayShow('voice', { kind: 'character', now: 5, voicedAt: { character: 4 } })
 ok(B.mayShow('voice', { kind: 'news', now: 50, voicedAt: {} }) && !B.mayShow('voice', { kind: 'news', now: 60, voicedAt: { news: 50 } }) && B.mayShow('voice', { kind: 'news', now: 50 + B.VOICE_GAP.news, voicedAt: { news: 50 } }), 'news: once per gap');
 ok(B.mayShow('onbekend', {}) === true, 'an unknown channel never blocks');
 
+// overlays: a full-screen card holds the small ones (same answers as overlayrules.js)
+ok(!B.mayShow('overlay', { name: 'naamkaart', active: ['resultaat'] }) && B.mayShow('overlay', { name: 'naamkaart', active: [] }), 'overlay: a result card holds the name card');
+ok(B.mayShow('overlay', { name: 'resultaat', active: ['naamkaart', 'duelbalk'] }), 'overlay: the result card always begins');
+ok(!B.mayShow('overlay', { name: 'prestatie', active: ['duelbalk'] }) && B.mayShow('overlay', { name: 'prestatie', active: ['naamkaart'] }), 'overlay: a duel bar holds an achievement, equal rank does not');
+for (const [a, list] of Object.entries(B.OVERLAY_HOLDS)) for (const b of list) ok(B.OVERLAY_RANK[a] > B.OVERLAY_RANK[b], `overlay: ${a} outranks ${b}`);
+
+// spoken lines: one at a time, the higher class cuts the lower
+const sp = (cls, o = {}) => B.mayShow('speech', { cls, ...o });
+ok(sp('react') && sp('story', { clip: { prio: B.SPEECH_PRIO.call, own: false }, hold: { prio: 7 } }), 'speech: free channel; a story line always');
+ok(!sp('ambient', { clip: { prio: B.SPEECH_PRIO.react, own: false } }) && sp('ambient', { clip: { prio: 1, own: true } }), 'speech: a clip blocks the lower, not your own');
+ok(sp('job', { clip: { prio: B.SPEECH_PRIO.radio } }) && sp('job', { clip: { prio: B.SPEECH_PRIO.react } }) && sp('react', { clip: { prio: B.SPEECH_PRIO.radio } }), 'speech: a bijbaan line cuts the radio and a reaction; any voice cuts the radio');
+ok(!sp('react', { clip: { prio: B.SPEECH_PRIO.react } }) && !sp('react', { clip: { prio: B.SPEECH_PRIO.ambient } }) && !sp('banter', { clip: { prio: B.SPEECH_PRIO.call } }), 'speech: an equal or lower class never cuts, nothing cuts a call clip');
+ok(!sp('banter', { hold: { prio: B.SPEECH_PRIO.call } }) && sp('call', { hold: { prio: B.SPEECH_PRIO.banter } }), 'speech: a call cuts the banter hold, banter does not cut a call');
+ok(!sp('react', { silentFor: 0.2 }) && sp('react', { silentFor: B.SPEECH_GAP.react }) && sp('call', { silentFor: 0 }), 'speech: a gap per class');
+ok(sp('onbekend', { silentFor: 1 }) && !sp('onbekend', { silentFor: 0.5 }), 'speech: an unknown class counts as ambient');
+
+// surfaces: the table, and the one question per surface
+const S = B.SURFACES;
+ok(Object.keys(S).length >= 20, 'surfaces are listed');
+ok(B.surfaceP('kaart') === B.P0 && B.surfaceZone('kaart') === 'A' && B.surfaceP('bel') === B.P1 && B.surfaceP('bericht') === B.P1 && B.surfaceZone('prestatie') === 'E', 'surface P and zone come from the card kinds or their own');
+ok(B.surfaceP('menu') === null && B.surfaceZone('menu') === null, 'a surface without P or zone says so');
+const quiet = { isOn: () => false, pending: () => false, since: () => 100, sinceAny: () => 100, subtitle: false, toastAgo: 100 };
+const onCall = { ...quiet, isOn: (k) => k === 'call' };
+ok(B.mayShowSurface('prestatie', { narrative: { view: quiet }, overlay: { active: [] } }), 'surface: an achievement shows when quiet');
+ok(!B.mayShowSurface('prestatie', { narrative: { view: onCall }, overlay: { active: [] } }), 'surface: an achievement waits for a call');
+ok(!B.mayShowSurface('prestatie', { narrative: { view: quiet }, overlay: { active: ['duelbalk'] } }), 'surface: an achievement waits for the duel bar');
+ok(!B.mayShowSurface('naamkaart', { overlay: { active: ['keuze'] } }) && B.mayShowSurface('naamkaart', { overlay: { active: ['prestatie'] } }), 'surface: the name card waits for the choice panel');
+ok(!B.mayShowSurface('plaatsnaam', { overlay: { active: ['resultaat'] } }), 'surface: the place name waits for the result card');
+ok(B.mayShowSurface('bord', { overlay: { active: ['naamkaart'] } }), 'surface: the minigame board is not held by small cards');
+ok(B.mayShowSurface('banner', { overlay: { active: ['keuze'] } }), 'surface: the result banner always begins');
+ok(B.mayShowSurface('kaart', { narrative: { view: quiet } }) && !B.mayShowSurface('kaart', { narrative: { view: onCall } }) && B.mayShowSurface('kaart', { narrative: { view: onCall, urgent: true } }), 'surface: cards wait for a call unless urgent');
+ok(!B.mayShowSurface('kaart', { tip: { now: 110, last: 100 } }) && B.mayShowSurface('kaart', { tip: { now: 120, last: 100 } }), 'surface: the card surface asks the tip ration');
+ok(!B.mayShowSurface('autopraat', { speech: { hold: { prio: B.SPEECH_PRIO.call } } }) && B.mayShowSurface('autopraat', { speech: { silentFor: 10 } }), 'surface: car talk waits for a call hold');
+const far = { any: -Infinity, level: 0, groups: {} };
+const mctx = { moment: { now: 1000, busy: false, callOn: false, narrativeBusy: false, speed: 0, last: far } };
+ok(B.mayShowSurface('moment', mctx, 'wijk') && !B.mayShowSurface('moment', { moment: { ...mctx.moment, speed: 20 } }, 'wijk') && B.mayShowSurface('moment', { moment: { ...mctx.moment, speed: 20 } }, 'crash'), 'surface: moments are asked one kind at a time');
+ok(B.mayShowSurface('menu') && B.mayShowSurface('onbekend') && B.mayShowSurface('effect', { hud: { busy: true } }), 'surface: no gate, no wait');
+
 console.log(`${n - bad}/${n} hudbus rules ok`);
 process.exit(bad ? 1 : 0);
