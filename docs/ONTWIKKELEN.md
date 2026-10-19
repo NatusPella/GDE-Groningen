@@ -89,7 +89,7 @@ Newer helpers and tests worth knowing:
 | `scripts/mapstyle_test.mjs`, `regions_test.mjs`, `loadlogic_test.mjs` | Map style table, regions and load-screen logic |
 | `scripts/simlagen_test.mjs`, `simworker_test.mjs` | Simulation layers and the simulation worker kernel |
 | `scripts/padlogic_test.mjs`, `touch_test.mjs` | Controller and touch logic without hardware |
-| `scripts/akte1_doelen_test.mjs`, `reisbeats_test.mjs`, `reiskeuze_test.mjs`, `reistijd_test.mjs` | Every act-1 mission goal exists on the map; travel beats |
+| `scripts/akte1_doelen_test.mjs`, `reisbeats_test.mjs`, `reisaudit_test.mjs` (elke sprong >6,5 km tussen opeenvolgende stappen heeft een reisbeat), `reiskeuze_test.mjs`, `reistijd_test.mjs` | Every act-1 mission goal exists on the map; travel beats |
 | `scripts/placement_audit_test.mjs`, `road_seams_test.mjs`, `clearance_audit.mjs` | Placement of footprints, road seams and viaduct clearance |
 | `scripts/desktop_args_test.mjs` | The desktop argument parser (`desktop/args.cjs`) |
 
@@ -215,7 +215,7 @@ Debug hooks on `window` (`window.__x`, read by scripts/perf, the story test and 
 | --- | --- |
 | `?dev` | Verhaalpaneel op F9; eigen opslag (gde-dev:), raakt de echte save niet |
 | `?storytest` | Geautomatiseerde verhaaltest; opslag alleen in het geheugen |
-| `?autoplay` | Spelbot (#186): window.__bot (playerapi.js) levert de spelstatus en neemt acties aan; vaste seed (autoplay=seed), opslag alleen in het geheugen |
+| `?autoplay` | Spelbot (#186; `window.__bot.speed(1..8)` of `run.mjs --speed=N` versnelt de speltijd): window.__bot (playerapi.js) levert de spelstatus en neemt acties aan; vaste seed (autoplay=seed), opslag alleen in het geheugen |
 | `?stil` | Geen audio en geen pauze bij verborgen tabblad (testsessies) |
 | `?audiograf` | Met stil: de audiograaf draait wel, maar eindigt in een gedempte uitgang |
 | `?noattract` | Geen aantrekkingsfilmpje op het titelscherm; door naar het menu |

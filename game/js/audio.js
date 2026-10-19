@@ -19,6 +19,7 @@ import { createMusicWatch } from './musicwatch.js';
 import * as speech from './speech.js';
 import { drunkLevel } from './drunk.js';
 import { KEYS } from './storagekeys.js';
+import { noteSound } from './soundcaptions.js';
 
 if (typeof window !== 'undefined') window.__speech = speech;
 
@@ -129,6 +130,8 @@ function voiceOk(prio = 1) { return activeVoices < VOICE_CAPS[prio]; }
 
 const AMB_LEVEL = 0.9;
 const duckState = { amount: 0, until: 0, level: 0 };
+// hoe sterk een uitgesproken regel nu de motor en de omgeving dempt (0..1), zacht in en uit (#173)
+let speechLevel = 0;
 
 function duckAmbience(amount, hold) {
   if (!ctx) return;
@@ -144,7 +147,9 @@ function updateDucking(dt) {
   if (t > duckState.until) duckState.amount = 0;
   const target = duckState.amount;
   duckState.level += (target - duckState.level) * Math.min(1, dt * (target > duckState.level ? 12 : 1.5));
-  ambBus.gain.value = AMB_LEVEL * (1 - duckState.level);
+  const talking = voiceBusy() ? 1 : 0;
+  speechLevel += (talking - speechLevel) * Math.min(1, dt * (talking ? 6 : 1.5));
+  ambBus.gain.value = AMB_LEVEL * (1 - duckState.level) * speechDuckFactor('omgeving', speechLevel);
 }
 
 // Street canyon vs open square: two generated impulse responses, wet levels
@@ -719,6 +724,7 @@ function playRicochet(x, y) {
 }
 
 function playExplosion(x, y) {
+  noteSound('explosion', { dist: Math.hypot(x - listenerPos.x, y - listenerPos.z) });
   const out = spatialOut(x, y, { ref: 10, rolloff: 0.7, prio: 2 });
   if (!out) return;
   duckAmbience(0.75, 1.6);
@@ -859,6 +865,8 @@ function playWeaponSfx(e, x, y) {
       break;
     }
     case 'firework': {
+      // rendered shell (crack, thump, glitter) first; the synthesized one below is the fallback
+      if (playFx('firework_burst', x, y)) break;
       // a shell opening: a sharp crack, a soft low thump, then the glitter crackling down
       const out = spatialOut(x, y, e.far ? { ref: 120, rolloff: 0.5, range: 3200, h: Number.isFinite(e.z) ? e.z : undefined, prio: 2 } : { ref: 12, rolloff: 0.7, range: 300, h: Number.isFinite(e.z) ? e.z : undefined, prio: 2 });
       if (!out) return;
@@ -924,6 +932,7 @@ function playBell(x, y) {
 
 // Level-crossing bell: one hard metallic strike per event (railway.js repeats it).
 function playCrossingBell(x, y) {
+  if (playFx('crossing_bell', x, y)) return;
   const out = spatialOut(x, y, { ref: 6, rolloff: 1.1, range: 130, h: 2.5 });
   if (!out) return;
   playTone({ freq: 1480, type: 'triangle', duration: 0.28, gain: 0.32, out });
@@ -2451,7 +2460,7 @@ function updateEngine(dt, world) {
   engineState.gain += (targetGain - engineState.gain) * k;
   engineState.freq += (targetFreq - engineState.freq) * k;
 
-  engineBus.gain.value = engineState.gain * 0.65;
+  engineBus.gain.value = engineState.gain * 0.65 * speechDuckFactor('voertuig', speechLevel);
   engine.osc1.frequency.value = engineState.freq;
   engine.osc2.frequency.value = engineState.freq * 2 + 4;
   engine.filter.frequency.value = cutoff;
@@ -2709,6 +2718,7 @@ function playAudioEvents(world) {
   for (let i = 0; i < n; i++) {
     const e = q[i];
     const x = e.x ?? world.player.x, y = e.y ?? world.player.y;
+    noteSound(e.kind, { sub: e.kind === 'weapon' ? e.sub : e.kind === 'fx' ? e.name : '', dist: Math.hypot(x - world.player.x, y - world.player.y) });
     switch (e.kind) {
       case 'bell': playBell(x, y); break;
       case 'crossing_bell': playCrossingBell(x, y); break;
@@ -2905,6 +2915,7 @@ function updateSiren(dt, world) {
   const targetGain = chaseActive ? 0.18 + intensity * 0.22 : units.length ? 0.22 : 0;
   sirenState.gain += (targetGain - sirenState.gain) * Math.min(1, dt * 2.2);
   sirenBus.gain.value = sirenState.gain;
+  if (units.length && !sirenState.captioned) { sirenState.captioned = true; noteSound('siren'); } else if (!units.length) sirenState.captioned = false;
 
   assignVoices(sirenVoices, nearestSorted(units, MAX_DISTANCE, SIREN_VOICES));
 

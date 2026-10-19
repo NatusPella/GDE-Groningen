@@ -80,6 +80,9 @@ export const KEYS = Object.fromEntries(Object.entries(BASE_KEYS).map(([k, v]) =>
 // good write of the same slot. Both follow the story arc, like KEYS.save.
 export const MAX_SLOTS = 8;
 export const slotKey = (n) => (n === 1 ? KEYS.save : `gde-save-slot-${n}${ARC_SUFFIX}`);
+// The small screenshot on a savegame card: its own key, never part of the save itself,
+// so a full storage or a lost thumbnail can not touch a savegame.
+export const slotThumbKey = (n) => `gde-save-thumb-${n}-nieuw`;
 export const slotRecoveryKey = (n) => (n === 1 ? `gde-save-herstel${ARC_SUFFIX}` : `gde-save-slot-${n}-herstel${ARC_SUFFIX}`);
 
 export const SESSION_KEYS = {

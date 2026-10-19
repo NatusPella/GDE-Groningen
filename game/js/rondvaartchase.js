@@ -253,7 +253,7 @@ const CALM_CAP = 60; // calm water settles nerves, but only the guide's stories 
 const MEGAPHONE_R = 22;
 const MEGAPHONE_RATE = 0.15;
 
-const WIEBE_MODEL = { name: 'sloep', len: 4.6, wid: 1.8, maxSpeed: 9.6, accel: 2.8, brake: 4.2, turnRate: 1.35, color: '#2e6b3f', cabin: '#e9e4d4' };
+const WIEBE_MODEL = { name: 'boat', kind: 'sloep', len: 4.6, wid: 1.8, maxSpeed: 9.6, accel: 2.8, brake: 4.2, turnRate: 1.35, color: '#2e6b3f', cabin: '#e9e4d4' };
 const WIEBE_GRIP = 6; // m/s^2 lateral, like a player boat, so he corners no better than you
 const WIEBE_SPAWN_BACK = 125;
 const WIEBE_SPAWN_MIN_DIST = 95;

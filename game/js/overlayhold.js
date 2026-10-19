@@ -6,12 +6,14 @@ import { heldOverlays } from './overlayrules.js';
 // hoe elke overlay in de DOM te herkennen is (zichtbaar = aanwezig)
 const SELECTORS = {
   resultaat: '#cine .cine-banner:not([hidden])',
+  keuze: '#hud .cw-panel:not([hidden])',
   duelbalk: '#hud .mg-board:not([hidden])',
   naamkaart: '#name-card.on',
   prestatie: '#hud .ach-toast.on',
+  locatie: '#hud .hud-place.on',
 };
 // wat we kunnen verbergen
-const HIDE = { naamkaart: '#name-card', duelbalk: '#hud .mg-board', prestatie: '#hud .ach-toast' };
+const HIDE = { naamkaart: '#name-card', duelbalk: '#hud .mg-board', prestatie: '#hud .ach-toast', locatie: '#hud .hud-place' };
 
 export function activeOverlays(doc = typeof document !== 'undefined' ? document : null) {
   if (!doc) return [];

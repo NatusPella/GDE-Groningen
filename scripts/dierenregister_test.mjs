@@ -147,8 +147,13 @@ const cutDieren = [...props].filter((k) => DIERWOORDEN.includes(k));
 check('cutscenes bevatten dieren', cutDieren.length >= 2, cutDieren.join());
 for (const k of cutDieren) check(`cutscene-dier ${k} staat in het register`, R.DIEREN.some((d) => d.cutscene === k), k);
 const host = read('game/js/cutscenehost.js');
-for (const w of DIERWOORDEN) check(`cutscenehost heeft geen eigen kistjesversie van ${w}`, !new RegExp(`^\\s*${w}:\\s*\\(\\)\\s*=>`, 'm').test(host));
-check('cutscenehost bouwt dieren uit het register', /for \(const d of DIEREN\)/.test(host) && /Wildlife\[d\.model\.fn\]/.test(host));
+for (const w of DIERWOORDEN) check(`cutscenehost heeft geen eigen kistjesversie van ${w}`, !new RegExp(`^\s*${w}:\s*\(\)\s*=>`, 'm').test(host));
+const CM = await import('../game/js/cutscenemodels.js');
+for (const d of R.DIEREN.filter((x) => x.cutscene)) {
+  const src = CM.propSource(d.cutscene);
+  check(`cutscene-dier ${d.id} komt uit het register (cutscenemodels)`, !!src && src.animal === d.kind && src.dier === d.id);
+  check(`cutscene-dier ${d.id} is een bekende dierensoort`, CM.ANIMAL_KINDS.includes(d.kind));
+}
 for (const d of R.DIEREN.filter((x) => x.cutscene)) check(`cutscene-dier ${d.id} heeft een wildlife-model`, d.model.module === 'wildlife');
 
 console.log(`dierenregister_test: ${n - bad}/${n} ok`);

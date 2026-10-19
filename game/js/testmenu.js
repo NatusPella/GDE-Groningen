@@ -69,7 +69,7 @@ function render() {
   }).join('');
   const groups = shortcutGroups().map((g) => `<h3>${esc(g.name)}</h3>` + g.items.map((s) => `<button data-sc="${s.id}">${esc(s.label)}</button>`).join('')).join('');
   root.querySelector('.tm-box').innerHTML = `<h2>Testmenu</h2>
-    <div class="tm-sub">F10 sluit. Eigen opslag (gde-dev:): je echte spelstand, instellingen en prestaties blijven onaangeroerd. Een schakelaar laadt de pagina opnieuw.</div>
+    <div class="tm-sub">F10 sluit. Eigen opslag (gde-dev:): je echte savegame, instellingen en prestaties blijven onaangeroerd. Een schakelaar laadt de pagina opnieuw.</div>
     <div class="tm-note">${esc(note)}</div>
     <h3>Snelkoppelingen</h3>${groups}
     <h3>Hulpmiddelen</h3><button data-open="cutpreview.html">Cutscene-preview (scènes bekijken, scrubben, valideren)</button>

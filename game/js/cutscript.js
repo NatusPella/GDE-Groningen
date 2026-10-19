@@ -8,7 +8,7 @@
 //
 // A scene def (all coordinates are LOCAL to the anchor: f = forward, s = left, h = up in m):
 //   id, actors: { <id>: { look, at: [f, s], face: deg | 'actor:<id>', anim, speaker, gaze, sit: seat height in m } }
-//   set: 'keuken' (the kitchen set of the opening, built by the host), fx: [{ t, fx: 'buzz' | 'door' | 'cups' | 'tablecups' | 'sfx' | 'pulse', ... }] (host effects, see cutscenehost.js)
+//   set: 'keuken' (the kitchen set of the opening, built by the host), fx: [{ t, fx: 'buzz' | 'door' | 'cups' | 'tablecups' | 'sfx' | 'pulse' | 'naam', ... }] (host effects, see cutscenehost.js)
 //   props:  { <id>: { kind, at: [f, s, h], face: deg, hidden } }
 //   cues:   [{ t, actor | prop, ...verb }]   verbs, see VERBS
 //   shots:  [{ t, shot: 'cut' | 'dolly' | 'orbit' | 'follow', ... }]
@@ -20,6 +20,7 @@
 // below must equal its ANIMS (scripts/cutscript_test.mjs checks that).
 
 export const ACTOR_ANIMS = ['idle', 'walk', 'run', 'talk', 'wave', 'point', 'shrug', 'nod', 'shake', 'laugh', 'carry', 'lean', 'hips', 'phone', 'cheer', 'look', 'ride', 'zwem', 'klim', 'sprong'];
+import { propKindIssue } from './cutscenemodels.js';
 export const PROP_KINDS = ['doos', 'tas', 'bestelbus', 'fiets', 'duif', 'radio', 'bord', 'koffer', 'bal', 'auto', 'matras', 'bakkie', 'automaat', 'aanhanger', 'trekker', 'politie', 'duiventil', 'zuil', 'klembord', 'kat'];
 export const VERBS = ['walk', 'anim', 'face', 'gaze', 'carry', 'drop', 'move', 'path', 'spin', 'bob', 'show', 'hide', 'sit'];
 export const SHOTS = ['cut', 'dolly', 'orbit', 'follow'];
@@ -69,6 +70,7 @@ export function validateScene(def, opts = {}) {
   }
   for (const [id, p] of Object.entries(props)) {
     if (!PROP_KINDS.includes(p.kind)) err(`prop ${id}: onbekende soort ${p.kind}`);
+    else { const bad = propKindIssue(p.kind); if (bad) err(`prop ${id}: ${bad}`); }
     if (!isVec(p.at, 2)) err(`prop ${id}: at moet [f, s, h?] zijn`);
   }
   const timeOf = (spec, what) => {
@@ -529,4 +531,22 @@ function along3(pts, u) {
     acc += seg;
   }
   return { ...q, h };
+}
+
+// Map points the camera looks at (and stands at) along a compiled scene, a few per shot,
+// for playCinematic's prewarm / registerShots (#157, #20).
+export function shotPoints(scene, anchor, duration, step = 2) {
+  const out = [], seen = new Set();
+  const add = (v) => {
+    if (!v || !Number.isFinite(v.x) || !Number.isFinite(v.y)) return;
+    const k = Math.round(v.x / 25) + ',' + Math.round(v.y / 25);
+    if (!seen.has(k)) { seen.add(k); out.push({ x: v.x, y: v.y }); }
+  };
+  try {
+    for (let t = 0; t <= duration + 1e-6; t += step) {
+      const c = scene.sample(Math.min(t, duration), anchor).camera;
+      add(c.lookAt); add(c.position);
+    }
+  } catch (e) { /* a sample failure only means less prewarm */ }
+  return out.slice(0, 24);
 }
