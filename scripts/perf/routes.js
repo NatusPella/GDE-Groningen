@@ -416,6 +416,28 @@ results.routes.spots = await safe('spots', async () => {
   }
   return { names };
 });
+// shader programs compiled while walking (only with PERF_ONLY=progs): when a program is first used the renderer blocks on its link
+results.routes.progs = await safe('progs', async () => {
+  if (!ONLY.includes('progs')) return null;
+  fixWorld(); teleport(FOOT[0][0], FOOT[0][1]); await sleep(6000);
+  const tStart = performance.now();
+  mover = (now) => walkFoot(null, (now - tStart) / 1000);
+  const events = []; let n0 = r.info.programs.length, last = performance.now(), maxGap = 0;
+  const gl = r.getContext();
+  const ext = gl.getExtension('KHR_parallel_shader_compile');
+  await new Promise((res) => {
+    const f = () => {
+      const now = performance.now(), gap = now - last; last = now;
+      const n = r.info.programs.length;
+      if (n !== n0 || gap > 120) events.push({ t: Math.round(now - tStart), gap: Math.round(gap), newProgs: n - n0, names: n !== n0 ? r.info.programs.slice(n0).map((q) => q.name + ':' + String(q.cacheKey).length).join(',') : '' });
+      n0 = n;
+      if (now - tStart > 25000) res(); else requestAnimationFrame(f);
+    };
+    requestAnimationFrame(f);
+  });
+  mover = null;
+  return { parallelCompile: !!ext, programs: r.info.programs.length, events: events.slice(0, 60), stalls: events.filter((e) => e.gap > 120).length, stallMs: events.filter((e) => e.gap > 120).reduce((a, e) => a + e.gap, 0) };
+});
 results.routes.pause = await run('pause', async () => { teleport(...P(100, 77)); await sleep(4000); wantMenu = true; PM.openPauseMenu('game'); return {}; }, () => {}, async () => { wantMenu = false; PM.closePauseMenu(); });
 results.routes.sheet = await run('sheet', async () => { teleport(...P(100, 77)); await sleep(4000); wantMenu = true; PM.openPauseMenu('settings'); return {}; }, () => {}, async () => { wantMenu = false; PM.closePauseMenu(); });
 
