@@ -2,7 +2,8 @@ import { clamp, closestPointOnSegment, pointInPolygon, isInWater } from './util.
 import { spawnVehicleOnRoad, updateTrafficAI, resolveVehicleBuildingCollision, spawnPoliceBoatOnWater, attachToNearestRoad, maxCurvature } from './vehicle.js';
 import { requestRespawn } from './world.js';
 import { bustFine } from './economy.js';
-import { spawnCopPedestriansNear, makeCopPedestrian, isInsideBuilding, isSpawnHidden } from './pedestrians.js';
+import { spawnCopPedestriansNear, makeCopPedestrian, isSpawnHidden } from './pedestrians.js';
+import { isInsideBuilding } from './pedgeom.js';
 import { edgeDistance, ROAD_W } from './countryfield.js';
 import { pushOutOfPlan } from './countryplan.js';
 import { roadNetReady, snapRoad, roadPathNear, nodeXY } from './roadgraph.js';

@@ -1,3 +1,5 @@
+import { isInsideBuilding, isOnRoad, lineOfSight, setPedPose, pushAudioEvent } from './pedgeom.js';
+export { isInsideBuilding, isOnRoad, lineOfSight, setPedPose, pushAudioEvent };
 import { DEAD_DURATION } from './pedconst.js';
 export { DEAD_DURATION };
 import { scaledTarget, farAIDist, skipFar, takeDt } from './simload.js';
@@ -122,12 +124,6 @@ export class Pedestrian {
   }
 }
 
-export function setPedPose(ped, pose) {
-  if (ped.pose === pose) return;
-  ped.pose = pose;
-  if (pose) registerPoseSource(ped._lookSeed, ped);
-  else unregisterPoseSource(ped._lookSeed);
-}
 
 let spawnBudget = 45;
 let spawnWorld = null;
@@ -267,39 +263,9 @@ export function makeCopPedestrian(x, y, angle, lookSeed = null) {
   return cop;
 }
 
-export function isInsideBuilding(map, x, y) {
-  return !!buildingAt(map, x, y);
-}
 
-export function isOnRoad(map, x, y, margin = 0, cats = null) {
-  for (const r of map.roadsNear(x, y, 2 + margin)) {
-    if (cats ? !cats.includes(r.cat) : r.cat === 'foot') continue;
-    const pts = r.pts;
-    const halfW = (r.width || 5) / 2 + margin;
-    const [minx, miny, maxx, maxy] = r.bounds;
-    if (x < minx - halfW || x > maxx + halfW || y < miny - halfW || y > maxy + halfW) continue;
-    for (let i = 0; i < pts.length - 1; i++) {
-      const cp = closestPointOnSegment(x, y, pts[i][0], pts[i][1], pts[i + 1][0], pts[i + 1][1]);
-      if (cp.dist2 < halfW * halfW) return true;
-    }
-  }
-  return false;
-}
 
-export function lineOfSight(map, ax, ay, bx, by) {
-  const d = Math.hypot(bx - ax, by - ay);
-  const steps = Math.ceil(d / 3);
-  for (let k = 1; k < steps; k++) {
-    const x = ax + (bx - ax) * k / steps, y = ay + (by - ay) * k / steps;
-    if (isInsideBuilding(map, x, y)) return false;
-  }
-  return true;
-}
 
-export function pushAudioEvent(world, ev) {
-  if (!world.audioEvents) world.audioEvents = [];
-  if (world.audioEvents.length < 64) world.audioEvents.push(ev);
-}
 
 let lastShoutAt = -Infinity;
 function say(ped, world, text, duration = 2.6, audio = 'shout', strength = 0.7) {
