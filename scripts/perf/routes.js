@@ -35,6 +35,8 @@ w.devInvuln = true;
 const gpu = H.enableGpu(r.getContext());
 // a lost pointer lock opens the pause menu; the open-menu routes open it themselves
 D.input.canLock = () => false;
+// the start screen (menu, since the menus of r5) stays up over a started game: hide it so the screenshots show the game
+const startScreen = document.getElementById('start-screen'); if (startScreen) startScreen.style.display = 'none';
 if (document.pointerLockElement) document.exitPointerLock();
 let wantMenu = false;
 
@@ -560,7 +562,7 @@ results.routes.bldloose = await safe('bldloose', async () => {
     const k = reasons.join('+') + ' ' + vis[0].geometry.type;
     const e = cats[k] || (cats[k] = { groups: 0, meshes: 0 }); e.groups++; e.meshes += vis.length;
   }
-  return { total, cats: Object.entries(cats).sort((x, y) => y[1].meshes - x[1].meshes), batches: sc.batches().buildings };
+  return { dists: sc.dists(), total, cats: Object.entries(cats).sort((x, y) => y[1].meshes - x[1].meshes), batches: sc.batches().buildings };
 });
 // fixed viewpoints incl. water and a village (only with PERF_ONLY=vspots): one screenshot each, for before/after pixel comparisons (scripts/perf/pngdiff.mjs)
 results.routes.vspots = await safe('vspots', async () => {
@@ -586,6 +588,50 @@ results.routes.vspots = await safe('vspots', async () => {
     names.push(name);
     await sleep(700);
   }
+  return { names };
+});
+// draw calls of the vehicles and people in view (only with PERF_ONLY=actors)
+results.routes.actors = await safe('actors', async () => {
+  if (!ONLY.includes('actors')) return null;
+  fixWorld(); teleport(FOOT[3][0], FOOT[3][1]); w.camYaw = 1.9; p.angle = 1.9; await sleep(25000);
+  const out = { vehicles: [], peds: { n: 0, meshes: 0, draws: 0 }, blobs: 0 };
+  const draws = (o) => { const g = o.geometry; if (Array.isArray(o.material)) return g.groups.filter((q) => q.count > 0).length || o.material.length; return 1; };
+  for (const g of sc.scene.children) {
+    if (!g.visible) continue;
+    const ud = g.userData || {};
+    if (ud.body && ud.loose && ud.vehicleId !== undefined) {
+      const kinds = {}; let d = 0, meshes = 0;
+      g.traverse((o) => { if (!o.isMesh || !o.visible || !o.layers.test(sc.cam.layers)) return; let a = o, anc = 'root'; while (a && a !== g) { if (a.name) { anc = a.name; break; } a = a.parent; } const k = (o.isSkinnedMesh ? 'skinned ' : o.isInstancedMesh ? 'inst ' : '') + o.geometry.type.replace('Geometry', '') + '/' + (Array.isArray(o.material) ? 'multi' + o.material.length : o.material.type.replace('Material', '')) + (o.material.transparent ? '/T' : '') + '/' + (o.castShadow ? 'cast' : 'nocast') + ' ' + (o.userData.blob ? 'blob' : ''); kinds[k] = (kinds[k] || 0) + 1; d += draws(o); meshes++; });
+      out.vehicles.push({ name: g.name || '', model: ud.kind || ud.model || '', meshes, draws: d, dist: Math.round(Math.hypot(g.position.x - p.x, g.position.z - p.y)), kinds });
+    } else if (ud.pelvis || (ud.bones && ud.head && ud.legL)) {
+      out.peds.n++; g.traverse((o) => { if (o.isMesh && o.visible && o.layers.test(sc.cam.layers)) { out.peds.meshes++; out.peds.draws += draws(o); } });
+    }
+  }
+  out.vehicles.sort((x, y) => y.draws - x.draws);
+  out.summary = { vehicles: out.vehicles.length, vehDraws: out.vehicles.reduce((q, v) => q + v.draws, 0) };
+  out.vehicles = out.vehicles.slice(0, 6);
+  return out;
+});
+// page state (only with PERF_ONLY=state): which menus are up
+results.routes.state = await safe('state', async () => {
+  if (!ONLY.includes('state')) return null;
+  await sleep(8000);
+  const vis = [...document.querySelectorAll('body *')].filter((e) => e.id && /menu|start|title|pause|overlay/i.test(e.id) && e.offsetWidth > 100 && getComputedStyle(e).display !== 'none' && getComputedStyle(e).visibility !== 'hidden').map((e) => e.id + ':' + e.className).slice(0, 12);
+  return { body: document.body.className, vis, paused: w.paused, pm: PM.isPauseMenuOpen() };
+});
+// the blob pool against loose blobs on a frozen frame (only with PERF_ONLY=blobab): the two screenshots must be equal
+results.routes.blobab = await safe('blobab', async () => {
+  if (!ONLY.includes('blobab')) return null;
+  fixWorld();
+  const names = [];
+  for (const [name, x, y, yaw] of [['markt', FOOT[0][0], FOOT[0][1], 0.3], ['straat2', FOOT[3][0], FOOT[3][1], 4.2]]) {
+    teleport(x, y); w.camYaw = yaw; p.angle = yaw;
+    await sleep(15000); fixWorld();
+    w.paused = true; await sleep(1500);
+    for (const on of [true, false, true]) { sc.setBlobPool(on); await sleep(700); console.log('[capture] ' + name + (on ? '-pool' : '-loose') + (names.length % 3 === 2 ? '2' : '')); names.push(name + on); await sleep(500); }
+    w.paused = false;
+  }
+  sc.setBlobPool(true);
   return { names };
 });
 results.routes.pause = await run('pause', async () => { teleport(...P(100, 77)); await sleep(4000); wantMenu = true; PM.openPauseMenu('game'); return {}; }, () => {}, async () => { wantMenu = false; PM.closePauseMenu(); });
