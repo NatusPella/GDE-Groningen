@@ -60,6 +60,7 @@ function audit(name) {
     if (b.x < 0 || b.y < 0 || b.x + b.w > W || b.y + b.h > H) issues.push('knop ' + b.t + ' valt buiten het scherm');
     if (Math.min(b.w, b.h) < 44) issues.push('knop ' + b.t + ' kleiner dan 44px (' + b.w + 'x' + b.h + ')');
     // thumb reach: distance to the nearest bottom corner
+    if (b.t === 'II' || b.t === 'Meer') continue; // top corner, not a thumb action
     const reach = Math.hypot(Math.min(b.x + b.w / 2, W - (b.x + b.w / 2)), H - (b.y + b.h / 2));
     if (reach > 0.75 * Math.min(W, H) + 120) issues.push('knop ' + b.t + ' ver van de duim (' + Math.round(reach) + 'px)');
   }
@@ -67,7 +68,7 @@ function audit(name) {
   // HUD: the outermost visible positioned blocks, their place, what lies under a touch button, tiny text
   const hudBad = [], small = new Map(), blocks = [];
   const hud = document.getElementById('hud');
-  const nameOf = (e) => ((e.id ? '#' + e.id : '') + (e.className && typeof e.className === 'string' ? '.' + e.className.trim().split(/s+/).join('.') : '')) || e.tagName;
+  const nameOf = (e) => ((e.id ? '#' + e.id : '') + (e.className && typeof e.className === 'string' ? '.' + e.className.trim().split(' ').filter(Boolean).join('.') : '')) || e.tagName;
   if (hud) {
     const inBlock = new Set();
     for (const e of hud.querySelectorAll('*')) {
