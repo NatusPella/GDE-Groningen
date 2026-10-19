@@ -135,10 +135,18 @@ for (const S of SW.plan) {
   try {
     if (S.kind === 'wereld') {
       let s = { x: S.x, y: S.y, a: S.a || 0, street: '' };
-      fixWorld(); teleport(S.x, S.y); hold = s;
+      w.wanted = 0;
+      if (S.cat === 'waddenzee') {
+        // a point of open water within 3 km, so the shot shows the sea and not the dyke
+        outer: for (let rr = 400; rr <= 3000; rr += 400) for (let k = 0; k < 16; k++) {
+          const q = (k / 16) * Math.PI * 2, wx = S.x + Math.cos(q) * rr, wy = S.y + Math.sin(q) * rr;
+          if (WL.waterAt(map, wx, wy)) { s = { x: wx, y: wy, a: s.a, street: '' }; break outer; }
+        }
+      }
+      fixWorld(); teleport(s.x, s.y); hold = s;
       await sleep(SETTLE * 0.6);
       if (S.snap !== false) {
-        const sn = snapRoad(S.x, S.y, S.snapR || 400, S.road);
+        const sn = snapRoad(S.x, S.y, S.snapR || 400, S.road) || (S.road ? snapRoad(S.x, S.y, 600) : null);
         if (sn) s = { x: sn.x, y: sn.y, a: S.a !== undefined ? S.a : sn.a, street: sn.street, d: Math.round(sn.d) };
       }
       teleport(s.x, s.y); hold = s; fixWorld();

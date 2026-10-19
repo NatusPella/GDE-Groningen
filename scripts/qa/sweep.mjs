@@ -1,7 +1,7 @@
 // Visuele kwaliteitssweep (#sweep): screenshots op willekeurige plekken, tijden, weersoorten en
 // verhaalstappen, met een vaste seed en een logboek, plus automatische beoordeling van elk beeld.
 //   node scripts/qa/sweep.mjs [--seed=1] [--out=<map>] [--part=wereld,verhaal,cut,alles]
-//        [--wereld=45] [--verhaal=26] [--cut=14] [--settle=6000] [--slot] [--plan]
+//        [--wereld=45] [--verhaal=26] [--cut=14] [--settle=6000] [--only=<stops>] [--slot] [--plan]
 // --plan schrijft alleen plan.json (geen Electron). Eén Electron-instantie per deel, wegwerpprofiel,
 // nooit echte opslag. --slot neemt een Electron-slot volgens C:/Users/abuis/gde-locks/README.txt.
 // ELECTRON_EXE=<pad> als desktop/node_modules/electron/dist ontbreekt; GAME_WORLD=<map> als de
@@ -78,6 +78,13 @@ function buildPlan() {
   return { seed: SEED, wereld, verhaal, cut: { seed: SEED, n: N_CUT } };
 }
 const plan = buildPlan();
+// --only=w15-kust,v03-M26 (met cut): alleen die stops van het plan, met dezelfde seed (een controle na een fix)
+const ONLY = arg('only', '').split(',').filter(Boolean);
+if (ONLY.length) {
+  plan.wereld = plan.wereld.filter((s) => ONLY.some((o) => s.name === o || s.name.startsWith(o + '-')));
+  plan.verhaal = plan.verhaal.filter((s) => ONLY.some((o) => s.name === o || s.name.startsWith(o + '-')));
+  if (!ONLY.includes('cut')) plan.cut.n = 0;
+}
 fs.mkdirSync(OUT, { recursive: true });
 fs.writeFileSync(path.join(OUT, 'plan.json'), JSON.stringify(plan, null, 1));
 if (flag('plan')) { console.log(`plan: ${plan.wereld.length} wereldplekken, ${plan.verhaal.length} verhaalstappen, ${plan.cut.n} cutscenes -> ${path.join(OUT, 'plan.json')}`); process.exit(0); }
@@ -123,6 +130,7 @@ const stops = [];
 const csInfo = [];
 for (const deel of PARTS) {
   let log = '';
+  if ((deel === 'wereld' && !plan.wereld.length) || (deel === 'verhaal' && !plan.verhaal.length) || (deel === 'cut' && !plan.cut.n)) continue;
   if (deel === 'wereld') log = await runPart(deel, `window.__sw = ${JSON.stringify({ plan: plan.wereld, settle: SETTLE })};\n`, 'sweep.page.js');
   else if (deel === 'verhaal') log = await runPart(deel, `window.__sw = ${JSON.stringify({ plan: plan.verhaal, settle: SETTLE })};\n`, 'sweep.page.js', { GDE_NIEUW_VERHAAL: '1' });
   else if (deel === 'cut') log = await runPart(deel, `window.__cs = ${JSON.stringify({ sample: plan.cut, settle: SETTLE })};\n`, 'cutscene_shots.page.js');
