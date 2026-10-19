@@ -778,6 +778,20 @@ function copInSight(world, ped) {
 }
 
 // the stolen car is known: the police get its description (signalement.js)
+// De bestuurder die zijn achtergelaten auto terugvindt (#49): hij stapt in. Ver van de speler rijdt hij weg
+// (de auto verdwijnt uit de wereld), dichtbij blijft de auto gewoon staan en loopt hij weer rond.
+function reclaimCar(world, ped, car) {
+  if (!car || car.playerOwned || car.isHeroCar || car.missionCar) return;
+  const far = dist(car.x, car.y, world.player.x, world.player.y) > 40;
+  if (far) {
+    const i = world.vehicles.indexOf(car);
+    if (i >= 0) world.vehicles.splice(i, 1);
+    ped._vanish = true;   // managePopulation haalt hem weg: hij zit in de auto
+    ped.x = car.x; ped.y = car.y;
+  }
+  say(ped, world, 'Ja, gewoon weer van mij.', 2.4, null);
+}
+
 function reportCarTheft(world, ped, car) {
   if (world.wanted > 0 || world.player.inVehicle !== car) return;
   world.wanted = 1;
@@ -935,6 +949,7 @@ function spawnEventGroup(world, inEvent) {
 
 function managePopulation(world) {
   const { player } = world;
+  for (let i = world.pedestrians.length - 1; i >= 0; i--) if (world.pedestrians[i]._vanish) world.pedestrians.splice(i, 1);
   const night = dayState(world).isNight;
   const inCentre = dist(player.x, player.y, CITY_CENTRE.x, CITY_CENTRE.y) < CITY_CENTRE.r;
   const hot = night && hotspotNear(player.x, player.y);
@@ -1260,14 +1275,17 @@ export function updatePedestrians(dt, world) {
         const o = stepVictim(ped._vic, dt, {
           dCar: car ? dist(ped.x, ped.y, car.x, car.y) : 99, carSpeed: car ? car.speed : 0,
           copNear: copInSight(world, ped),
+          carFree: !!car && !car.wrecked && !car.sinking && car.driver == null && world.player.inVehicle !== car && Math.abs(car.speed) < 0.5,
         });
         setPedPose(ped, o.pose);
         if (o.say) say(ped, world, o.say, 2.6, null);
         if (o.report) reportCarTheft(world, ped, car);
         if (o.move === 'chase' && car) { faceToward(ped, car.x, car.y); ped.speed = VICTIM.chaseSpeed; moving = true; }
+        else if (o.move === 'return' && car) { faceToward(ped, car.x, car.y); ped.speed = VICTIM.returnSpeed; moving = true; }
         else if (o.move === 'away') { const a = Math.atan2(ped.y - (car ? car.y : player.y), ped.x - (car ? car.x : player.x)); ped.angle = steerClear(map, ped, a); ped.speed = WANDER_SPEED * 1.4; moving = true; }
         else if (o.face === 'cop') { const c = copInSight(world, ped); if (c) faceToward(ped, c.x, c.y); }
         else if (car) faceToward(ped, car.x, car.y);
+        if (o.reclaim && car) reclaimCar(world, ped, car);
         if (victimDone(ped._vic)) { ped._vic = null; ped._vicCar = null; setState(ped, 'wander'); }
         break;
       }
