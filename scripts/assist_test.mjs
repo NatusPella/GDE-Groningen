@@ -42,5 +42,11 @@ ok(Object.keys(A.cleanHelped(null)).length === 0 && Object.keys(A.cleanHelped('x
 for (const [name, p] of Object.entries(A.HELP_PRESETS)) for (const k of ['helpTime', 'helpDamage', 'helpGates']) ok(A.cleanHelpSetting(k, p[k]) === p[k], `preset ${name}.${k}`);
 ok(!A.helpActive(A.HELP_PRESETS.uit) && A.helpActive(A.HELP_PRESETS.licht), 'preset uit/licht');
 
+// de schadehaak zit ook op kogels/klappen (combat.damagePlayer) en op valschade (player.hurtByFall)
+import fs from 'node:fs';
+const src = (f) => fs.readFileSync(new URL(`../game/js/${f}`, import.meta.url), 'utf8');
+ok(/damage = assistDamage(damage)/.test(src('combat.js')), 'damagePlayer past de hulp toe');
+ok(/assistDamage(Math.min(100/.test(src('player.js')), 'hurtByFall past de hulp toe');
+
 if (fails) { console.log(`${fails} mislukt`); process.exit(1); }
 console.log('assist_test: ok');
