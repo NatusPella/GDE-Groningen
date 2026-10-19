@@ -12,6 +12,7 @@ const B = window.__bot;
 if (!B) return JSON.stringify({ result: 'FOUT', reason: 'window.__bot ontbreekt' });
 const world = B.world, player = B.player;
 const V = await imp('vehicle');
+const RC = await imp('ringcheck');
 const MB = await imp('movablebridges');
 world.devInvuln = true;
 let shots = 0;
@@ -57,7 +58,7 @@ async function findBridge(name, x, y, want) {
     teleport(x, y);
     let c = bridgesAround(x, y, 60);
     if (want) c = c.filter((q) => q.name === want);
-    if (c.length) { c.sort((a, b) => lenOf(b) - lenOf(a)); return c[0]; }
+    if (c.length) { const car = c.filter((q) => q.cat === 'major' || q.cat === 'normal' || q.cat === 'minor'); const pool = car.length ? car : c; pool.sort((a, b) => lenOf(b) - lenOf(a)); return pool[0]; }
     await sleep(500);
   }
   return null;
@@ -104,14 +105,27 @@ for (const [name, x0, y0, kind, want] of TARGETS) {
     if (!road) { rep.reason = 'brug niet gevonden (tegel niet geladen?)'; B.log('brug', rep); continue; }
     rep.found = true;
     rep.osm = road.osm; rep.profile = !!road.z; rep.maxZ = road.z ? Math.max(...road.z) : 0; rep.len = Math.round(lenOf(road));
+    // de scripted rit van de netwerktest (ringcheck.driveAcross): over de weg zelf en 40 m de aansluitende wegen op,
+    // met sprongcontrole; dat is de maatstaf voor "sprong" en "zinkt", de rit hieronder is voor het beeld
+    try {
+      const len = lenOf(road);
+      const full = RC.crossingPath(world.map, { road, s0: 0, s1: len }, 40);
+      if (full.length > 12) {
+        const speed = Math.max(6, Math.min(road.speed || 11, 14));
+        const r1 = await RC.driveAcross(world, full, speed, { jump: true, maxT: 60 });
+        const r2 = await RC.driveAcross(world, full.slice().reverse(), speed, { jump: true, maxT: 60 });
+        rep.scripted = { mee: r1 ? `${r1.what} z${r1.z} op ${r1.x},${r1.y}` : 'ok', tegen: r2 ? `${r2.what} z${r2.z} op ${r2.x},${r2.y}` : 'ok' };
+      } else rep.scripted = { pad: 'te kort' };
+    } catch (e) { rep.scripted = { fout: String(e && e.message || e) }; }
     const P = road.pts, a = P[0], b = P[P.length - 1];
     const ux0 = P[1][0] - a[0], uy0 = P[1][1] - a[1], l0 = Math.hypot(ux0, uy0) || 1;
     const ux1 = b[0] - P[P.length - 2][0], uy1 = b[1] - P[P.length - 2][1], l1 = Math.hypot(ux1, uy1) || 1;
-    const way = [[a[0] - ux0 / l0 * 35, a[1] - uy0 / l0 * 35], a, b, [b[0] + ux1 / l1 * 35, b[1] + uy1 / l1 * 35]];
+    let way = [[a[0] - ux0 / l0 * 35, a[1] - uy0 / l0 * 35], a, b, [b[0] + ux1 / l1 * 35, b[1] + uy1 / l1 * 35]];
+    try { const fp = RC.crossingPath(world.map, { road, s0: 0, s1: lenOf(road) }, 35); if (fp.length > 12) way = fp.filter((_, i) => i % 6 === 0 || i === fp.length - 1).map((q) => [q[0], q[1]]); } catch (e) { /* rechte lijn */ }
     teleport(way[0][0], way[0][1]);
     for (let k = 0; k < 80 && B.status().blocking.loading; k++) await sleep(250);
     await sleep(2500);
-    const ang = Math.atan2(uy0, ux0);
+    const ang = Math.atan2(way[1][1] - way[0][1], way[1][0] - way[0][0]);
     const v = V.spawnVehicleOnRoad(world.map, road, false, Math.random, false, false, { x: a[0], y: a[1] });
     v.x = way[0][0]; v.y = way[0][1]; v.angle = ang; v.speed = 0; v.z = 0; v.road = null;
     if (!world.vehicles.includes(v)) world.vehicles.push(v);
@@ -135,7 +149,7 @@ for (const [name, x0, y0, kind, want] of TARGETS) {
       const st = { z: v.z || 0, ribbon: null, kind: 'ground' };
       const g = world.map.surfaceAt ? world.map.surfaceAt(v.x, v.y, st).z : 0;
       const z = v.z || 0;
-      if (last !== null && Math.abs(v.speed) > 1) maxJump = Math.max(maxJump, Math.abs(z - last));
+      if (last !== null && Math.abs(v.speed) > 1) { const j = Math.abs(z - last); if (j > 0.5) B.log('sprong', { name, t: +B.time().toFixed(2), x: +v.x.toFixed(1), y: +v.y.toFixed(1), z0: +last.toFixed(2), z1: +z.toFixed(2), g: +g.toFixed(2), speed: +v.speed.toFixed(1), air: !!v.airborne, ribbon: !!(v.surf && v.surf.ribbon), kind: v.surf && v.surf.kind }); maxJump = Math.max(maxJump, j); }
       last = z; samples++; maxZseen = Math.max(maxZseen, z);
       minGap = Math.min(minGap, z - g);
       if (v.sinking || v.inWater) sunk = true;
