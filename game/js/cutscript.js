@@ -530,3 +530,21 @@ function along3(pts, u) {
   }
   return { ...q, h };
 }
+
+// Map points the camera looks at (and stands at) along a compiled scene, a few per shot,
+// for playCinematic's prewarm / registerShots (#157, #20).
+export function shotPoints(scene, anchor, duration, step = 2) {
+  const out = [], seen = new Set();
+  const add = (v) => {
+    if (!v || !Number.isFinite(v.x) || !Number.isFinite(v.y)) return;
+    const k = Math.round(v.x / 25) + ',' + Math.round(v.y / 25);
+    if (!seen.has(k)) { seen.add(k); out.push({ x: v.x, y: v.y }); }
+  };
+  try {
+    for (let t = 0; t <= duration + 1e-6; t += step) {
+      const c = scene.sample(Math.min(t, duration), anchor).camera;
+      add(c.lookAt); add(c.position);
+    }
+  } catch (e) { /* a sample failure only means less prewarm */ }
+  return out.slice(0, 24);
+}
