@@ -183,7 +183,7 @@ export function openSaveSlots(opts = {}) {
       <div class="ssl-scroll"><div class="ssl-grid" role="list" aria-label="Opgeslagen spellen">${tiles.join('')}</div></div>
       <aside class="ssl-detail" aria-label="Details" aria-live="polite">${detailHtml(cur)}</aside>
       <p class="ssl-msg" role="status">${esc(message)}</p>
-      <footer class="ssl-foot"><span class="mut ssl-keys">Pijltjes kiezen · Enter bevestigt · Esc sluit · Controller: richtingen, A, B. Je spel slaat vanzelf op in de savegame met het label Autosave.</span>
+      <footer class="ssl-foot"><span class="mut ssl-keys">Pijltjes kiezen · Enter bevestigt · Esc sluit · Controller: richtingen, A, B. Je spel slaat vanzelf op in het opgeslagen spel met het label Autosave.</span>
         <span class="ssl-footbtns"><button type="button" class="m-bg" data-grp="foot" data-do="import"${full ? ' disabled' : ''} title="${full ? 'Alle plekken zijn in gebruik' : 'Een spel uit een bestand, op een lege plek'}">Spel importeren</button><button type="button" class="m-bt" data-grp="foot" data-do="close">Terug</button></span></footer>
     </section>`;
     rootEl.insertBefore(stage, file);
