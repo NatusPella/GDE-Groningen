@@ -62,6 +62,7 @@ function start(name, cfg, seed) {
     res({ code, ...r });
   }));
   kids.push(child);
+  try { os.setPriority(child.pid, os.constants.priority.PRIORITY_BELOW_NORMAL); } catch (e) { /* geen rechten: gewone prioriteit */ }
   return { events, done, child, dir };
 }
 const readEvents = (f) => fs.readFileSync(f, 'utf8').split(/\r?\n/).filter(Boolean).map((l) => { try { return JSON.parse(l); } catch (e) { return null; } }).filter(Boolean);

@@ -95,13 +95,13 @@ export function mountLobby(root, hooks, opts = {}) {
     sess.onstatus = (st) => {
       set({ t: 'status', status: st, reason: sess.rejected, partner: { slot: sess.slot } });
       if (st === 'ok') {
-        if (sess.welcome && Array.isArray(sess.welcome.lijst)) set({ t: 'spelers', lijst: sess.welcome.lijst, max: sess.welcome.max });
+        if (!sess.lijstGezien && sess.welcome && Array.isArray(sess.welcome.lijst)) set({ t: 'spelers', lijst: sess.welcome.lijst, max: sess.welcome.max });
         if (!joinedOnce) { joinedOnce = true; if (hooks.joined) hooks.joined(ROLES.GAST); }
         if (opts.start && hooks.resumed) hooks.resumed();
       }
     };
     const prev = sess.onevent;
-    sess.onevent = (b) => { if (b && b.k === 'spelers' && Array.isArray(b.lijst)) set({ t: 'spelers', lijst: b.lijst.map((x) => ({ ...x, naam: nameOf(x.char) })), max: b.max }); if (prev) prev(b); };
+    sess.onevent = (b) => { if (b && b.k === 'spelers' && Array.isArray(b.lijst)) sess.lijstGezien = true; if (b && b.k === 'spelers' && Array.isArray(b.lijst)) set({ t: 'spelers', lijst: b.lijst.map((x) => ({ ...x, naam: nameOf(x.char) })), max: b.max }); if (prev) prev(b); };
   }
 
   async function guestStart() {
