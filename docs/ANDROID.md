@@ -91,3 +91,12 @@ Volgende stappen:
 5. Icoon van a1-appicoon: `node scripts/icons.mjs <icoon>`.
 
 Getest: APK bouwt, installeert en start op de emulator; rooktest geslaagd (Range-fix, WebGL2, Opus, liggend, geen service worker). `run_tests --quick` en `import_check` blijven groen op mijn wijzigingen (2 bestaande fouten, zie hierboven). Niet getest: zie sectie 6.
+
+## 8. Stand 19 oktober: het spel draait op de emulator
+
+Gemeten op de emulator (Pixel 6, Android 15, x86_64, 4 GB, WHPX, `-gpu host` en `swiftshader_indirect`), APK 208 MB met de hele wereld erin:
+- Het spel start, het startscherm werkt met tikken, "Nieuw spel" start de openingsscène met de touchknoppen erbij. Screenshots: zie de notitiemap van de coördinator (`android-emulator`).
+- **Wat het echte spelen verhinderde:** (1) het startscherm paste niet in 412 px hoogte (menu onder in beeld, credit eroverheen), dus tikken raakte de verkeerde regel; dat is nu een compacte indeling onder 460 px (`startscreen.css`); (2) een witte strook naast de uitsparing (thema, gerepareerd); (3) de emulator is langzaam: ca. 1,5 fps in het menu met het telefoonprofiel (resolutie 60%, korte afstand), ook met de RTX-GPU van de host (`(program)` 3,3 s van 8,8 s in een CPU-profiel, tegels laden en GC erbij; JS zelf is snel: 3e7 iteraties in 82 ms). CDP-evaluaties en `adb` hangen daardoor soms; de emulator verdween ook één keer tijdens een lange sessie. Dit zegt niets over een echt toestel; fps op een telefoon is nog niet gemeten.
+- Meten: `node android/scripts/cdp.mjs "<js>"` (WebView-console) en `node android/scripts/cdpprofile.mjs [ms]` (CPU-profiel).
+- Een kleine wereld-subset (`?mobiel=klein`) is niet nodig gebleken: de APK met de hele wereld laadt en speelt; de grootte (208 MB) is voor een testversie geen probleem.
+- Nog te doen: touch-spelen na de openingsscène (stick, camera, instappen), saves na herstart, WebAudio, terugknop = pauzemenu in het spel, notch-marges op de HUD (de ondertitel overlapt "Houd SPRING ingedrukt" op een telefoon), fps op een echt toestel.
