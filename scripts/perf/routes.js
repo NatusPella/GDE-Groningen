@@ -504,6 +504,37 @@ results.routes.topmesh = await safe('topmesh', async () => {
   }
   return Object.entries(by).sort((x, y) => y[1].vis - x[1].vis).slice(0, 25);
 });
+// why roads stay loose (only with PERF_ONLY=roadloose)
+results.routes.roadloose = await safe('roadloose', async () => {
+  if (!ONLY.includes('roadloose')) return null;
+  fixWorld(); teleport(FOOT[3][0], FOOT[3][1]); await sleep(20000);
+  const rows = []; let total = 0, loose = 0;
+  for (const g of sc.scene.children) {
+    if (g.name !== 'road') continue;
+    total++;
+    const vis = []; g.traverse((o) => { if (o.isMesh && o.visible) vis.push(o); });
+    if (!vis.length) continue;
+    loose++;
+    const b = new Float32Array(4); let minx = Infinity, miny = Infinity, maxx = -Infinity, maxy = -Infinity;
+    for (const o of vis) { o.geometry.computeBoundingBox(); const bb = o.geometry.boundingBox; minx = Math.min(minx, bb.min.x); maxx = Math.max(maxx, bb.max.x); miny = Math.min(miny, bb.min.z); maxy = Math.max(maxy, bb.max.z); }
+    const d = Math.hypot(Math.max(minx - p.x, 0, p.x - maxx), Math.max(miny - p.y, 0, p.y - maxy));
+    rows.push([Math.round(d), Math.floor((minx + maxx) / 2 / 96) + ',' + Math.floor((miny + maxy) / 2 / 96), vis.map((o) => (o.material.type || '') + ':' + (o.material.transparent ? 'T' : '') + (o.userData.noBatch ? 'N' : '') + (o.geometry.attributes.normal ? '' : 'nonormal') + o.geometry.attributes.position.count).join(' ')]);
+  }
+  const cells = {}; for (const r of rows) cells[r[1]] = (cells[r[1]] || 0) + 1;
+  return { total, loose, drawDist: window.__scene3d ? null : null, rows: rows.sort((x, y) => x[0] - y[0]).slice(0, 40), singles: Object.values(cells).filter((n) => n === 1).length, cells: Object.keys(cells).length, batches: sc.batches().roads };
+});
+// what hangs in the water groups (only with PERF_ONLY=waterprobe)
+results.routes.waterprobe = await safe('waterprobe', async () => {
+  if (!ONLY.includes('waterprobe')) return null;
+  fixWorld(); teleport(FOOT[3][0], FOOT[3][1]); await sleep(20000);
+  const by = {}; let groups = 0;
+  for (const g of sc.scene.children) {
+    if (g.name !== 'water') continue;
+    groups++;
+    g.traverse((o) => { if (!o.isMesh) return; const k = (o.material.type || '') + (o.material.transparent ? '/T' : '') + (o.userData.noBatch ? '/N' : '') + (o.visible ? '' : '/hidden') + (o.castShadow ? '/cast' : '') + '/' + Object.keys(o.geometry.attributes).join(','); const e = by[k] || (by[k] = { n: 0, verts: 0, parentKeys: new Set() }); e.n++; e.verts += o.geometry.attributes.position.count; e.parentKeys.add(Object.keys(o.parent.userData || {}).join(',') + ':' + (o.parent.children.length)); });
+  }
+  return { groups, by: Object.entries(by).map(([k, e]) => [k, e.n, e.verts, [...e.parentKeys].slice(0, 4).join(' ')]), batches: sc.batches().shores };
+});
 results.routes.pause = await run('pause', async () => { teleport(...P(100, 77)); await sleep(4000); wantMenu = true; PM.openPauseMenu('game'); return {}; }, () => {}, async () => { wantMenu = false; PM.closePauseMenu(); });
 results.routes.sheet = await run('sheet', async () => { teleport(...P(100, 77)); await sleep(4000); wantMenu = true; PM.openPauseMenu('settings'); return {}; }, () => {}, async () => { wantMenu = false; PM.closePauseMenu(); });
 

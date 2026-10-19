@@ -61,7 +61,7 @@ import { effectsFor, shakeAmount } from './a11ylogic.js';
 import { reducedMotion } from './motion.js';
 import { dynamicScale, cpuLevel } from './gfxprofile.js';
 import { VIEW_DISTANCES, viewDistanceFor, detailDistanceFor, DETAIL_BASE } from './viewdist.js';
-import { buildingBatcher, roadBatcher, facadeBatcher } from './staticbatch3d.js';
+import { buildingBatcher, roadBatcher, facadeBatcher, shoreBatcher } from './staticbatch3d.js';
 import { simLevel } from './simload.js';
 import { beginWheels, addVehicleWheels, endWheels } from './wheelinstances3d.js';
 
@@ -973,7 +973,7 @@ export function init3D(map) {
   onSettingsChange(applyViewSettings);
   resize3D();
   window.addEventListener('resize', resize3D);
-  window.__scene3d = { scene, cam, renderer, postfx, farLod, batches: () => ({ buildings: buildingBatcher.info(), facades: facadeBatcher.info(), roads: roadBatcher.info() }) };
+  window.__scene3d = { scene, cam, renderer, postfx, farLod, batches: () => ({ buildings: buildingBatcher.info(), facades: facadeBatcher.info(), roads: roadBatcher.info(), shores: shoreBatcher.info() }) };
 }
 
 // increments each time the scene is drawn to the canvas (blackframe.js)
@@ -1190,6 +1190,29 @@ function buildPolyGeometry(pts) {
 let waterMaterial = null;
 // Water polygons in the scene that do not wear the shared material (#181): {total, shared, stray}
 export function auditWater() { return auditWaterMeshes(scene, waterMaterial); }
+// the shore meshes of the water in the scene, for the shore batcher (item { mesh, bounds } -> mesh)
+const shoreItems = new Map();
+const shoreOfPoly = new Map();
+function registerShoreItems(poly, shore) {
+  if (shoreOfPoly.has(poly)) return;
+  const items = [];
+  for (const m of shore.children) {
+    if (m.userData.noBatch || !m.geometry.attributes.position) continue;
+    if (!m.geometry.boundingBox) m.geometry.computeBoundingBox();
+    const bb = m.geometry.boundingBox;
+    const it = { mesh: m, bounds: [bb.min.x, bb.min.z, bb.max.x, bb.max.z] };
+    // the item's holder stays visible while its mesh is merged (the batcher hides the mesh itself)
+    shoreItems.set(it, { mesh: m, parent: shore, visible: true, userData: {} });
+    items.push(it);
+  }
+  shoreOfPoly.set(poly, items);
+}
+function dropShoreItems(poly) {
+  const items = shoreOfPoly.get(poly);
+  if (!items) return;
+  for (const it of items) shoreItems.delete(it);
+  shoreOfPoly.delete(poly);
+}
 function buildWaterMesh(poly, y, map) {
   if (!poly._geoWater) poly._geoWater = buildWaterGeometry(poly, getWaterIndex(map, poly), null);
   const group = new THREE.Group();
@@ -1201,6 +1224,9 @@ function buildWaterMesh(poly, y, map) {
   requestShore(poly, map, { waterY: y, apronMaterial: terrainMesh.material }, (shore) => {
     if (!shore) return;
     group.add(shore);
+    group.userData.shore = shore;
+    // the polygon is in the scene by now (its shore came later); from the cache, syncWater registers it
+    if (waterMeshes.get(poly) === group) registerShoreItems(poly, shore);
     if (!sync) freezeStatic(shore);
   });
   sync = false;
@@ -1639,12 +1665,14 @@ function syncWater(items, cache, y, map, px, py) {
       if (!mesh.name) mesh.name = 'water';
       scene.add(mesh);
       cache.set(poly, mesh);
+      if (cache === waterMeshes && mesh.userData.shore) registerShoreItems(poly, mesh.userData.shore);
     }
   }
   for (const [poly, mesh] of cache) {
     if (seen.has(poly)) continue;
     scene.remove(mesh);
     cache.delete(poly);
+    if (cache === waterMeshes) dropShoreItems(poly);
     coolDown(coldWater, poly, WATER_CACHE_MAX, freeWaterGeometry);
   }
 }
@@ -2056,6 +2084,7 @@ export function update3D(dt, world) {
   const waterNight = world.dayNight ? world.dayNight.night : 0;
   updateWaterMaterial(waterMaterial, world.time, world.weather ? world.weather.intensity : 0, waterNight);
   updateShore(waterNight, cam);
+  if (!NO_BATCH) shoreBatcher.update({ scene, meshes: shoreItems, hidden: null, px: focus.x, py: focus.y, detailR: Math.max(DRAW_DIST, viewDist), drawDist: Math.max(DRAW_DIST, viewDist), withDetail: true, budgetMs: 2 });
   probe.mark('3d:water');
   syncRoads(world, focus.x, focus.y);
   // movable bridges (movablebridges3d.js): the static road of a span that is
