@@ -161,6 +161,25 @@ respawn heten "Huisartsenpost <wijk>" (`add_police_stations.py`) en garages
    claimen we geen rechten die er misschien niet zijn. Een juridische check
    is gedaan (#38; `docs/PUBLICEREN.md`).
 
+### 4.3 Muziekproduct vastleggen (invullen door de eigenaar, #62)
+
+Welk Google-product de 17 muziekbestanden heeft gemaakt, staat nergens in de
+repo en kan een agent niet nagaan (het is geen eigenschap van de mp3's).
+Vul dit in en haal dan de zin "Nog open voor de eigenaar" in §2 weg:
+
+| Vraag | Antwoord (eigenaar) |
+|---|---|
+| Product | Gemini-app (Lyria-muziek) / Gemini API / anders: _… _ |
+| Account | gratis / betaald abonnement (AI Plus, Pro, Ultra): _… _ |
+| Periode | van _… _ tot _… _ |
+| Prompts bewaard? | ja (waar): _… _ / nee |
+| SynthID-watermerk | wordt door Google toegevoegd en moet blijven (niet strippen) |
+
+Bij een gratis account of de gratis API-laag mag Google de prompts gebruiken
+(zie hierboven); dat is voor een gratis, niet-commercieel spel geen probleem,
+maar moet in de AI-disclosure van Steam (§8.3) kloppen. Bij verkoop of
+advertenties opnieuw nagaan.
+
 ## 5. Privacy
 
 Gecontroleerd in `game/js` en `desktop/`:
