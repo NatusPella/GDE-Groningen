@@ -1547,13 +1547,22 @@ function roadWorkerReady() {
 export function workerMapReady() {
   return RW.state === 2 && geoWorkerActive();
 }
+// The jobs of one frame's "nearest first" are not all sent at once (#247): 86 open jobs in the worker's queue meant a
+// road near the player waited behind every road requested before it. At most ROAD_GEO_OPEN are out; each frame asks
+// again in the order of the day, so the queue holds what is nearest and ahead now.
+export const ROAD_GEO_OPEN = 8;
+let roadGeoOpen = 0;
+export const roadGeoRoom = () => roadGeoOpen < ROAD_GEO_OPEN;
 export function roadGeometryReady(r) {
   if (r._geoRoad && r._geoMarkQ === qualityVersion) return true;
   if (r._geoMain || !roadWorkerReady()) return true;
   if (r._geoPending === qualityVersion) return false;
+  if (roadGeoOpen >= ROAD_GEO_OPEN) return false;
   const q = r._geoPending = qualityVersion;
+  roadGeoOpen++;
   const struct = (r.z ? r._geoStruct : r._geoOverDeck) === undefined;
   runGeo('roadGeo', { key: roadKey(r), detail, struct }, (res) => {
+    roadGeoOpen--;
     if (r._geoPending === q) r._geoPending = null;
     if (!res) { r._geoMain = true; return; }
     // the civil works are kept for good; a mismatch builds them here
