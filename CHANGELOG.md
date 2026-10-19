@@ -7,6 +7,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Nieuw
+- **Geluiden beschrijven (#200, nog niet in beeld bekeken):** onder Instellingen › Geluid › Ondertitels staat 'Geluiden beschrijven' (standaard uit). Aan: bij belangrijke geluiden staat kort wat het is, bijvoorbeeld [sirene], [claxon], [explosie] of [alarm, in de verte]. Zelfde geluid niet vaker dan eens per ruim twee seconden, hooguit drie tegelijk.
 - **Zuinige modus en notch (#96, niet op een echt toestel getest):** Instellingen › Beeld heeft 'Zuinige modus': 30 beelden per seconde in plaats van het maximum, voor minder batterijgebruik en warmte. De HUD-hoeken (speler, tijd en geld, minimap) blijven buiten de uitsparing van een telefoonscherm.
 - **Schermtoetsenbord voor de controller (#151, niet met een echte controller of in beeld getest):** druk met de onderste knop op een tekstveld (spelnaam, coöpcode, zoeken) en er opent een toetsenbord dat je met het D-pad bedient: onderste knop typt, linker knop wist, bovenste knop spatie, LB/RB verplaatst de cursor, rechter knop sluit. De schermgraaf voor de controller kent nu ook het reuzenrad en het toetsenbord.
 - **Spijkermat van de politie:** vanaf vier sterren ligt er voor een wegblokkade een spijkermat dwars over de weg. Rijd je er overheen, dan krijg je meestal een lekke band (naar de garage). Verder niets.

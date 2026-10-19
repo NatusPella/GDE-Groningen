@@ -132,3 +132,7 @@ html.reduce-flash :is(#intro-montage .im-flash, #trailer .tr-flash, #hud .hud-fl
 #padkeyboard button.on { outline: 3px solid #f2c230; background: #34503c; }
 #padkeyboard button.shift-on { background: #f2c230; color: #17201a; }
 #padkeyboard .pk-help { margin: 6px 0 0; font-size: 12px; opacity: .7; text-align: center; }
+
+/* geluidsondertitels (soundcaptions.js, #200) */
+#sound-captions { position: fixed; left: 50%; bottom: 22%; transform: translateX(-50%); z-index: 60; pointer-events: none; display: flex; flex-direction: column; align-items: center; gap: 4px; font: 600 calc(18px * var(--sub-scale, 1)) system-ui, sans-serif; color: #f0ede4; text-shadow: 0 1px 3px #000, 0 0 2px #000; }
+#sound-captions div { padding: 2px 12px; border-radius: 6px; background: rgba(12, 20, 14, 0.7); font-style: italic; }
