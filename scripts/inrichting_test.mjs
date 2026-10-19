@@ -1,6 +1,6 @@
 // De flat inrichten (#206): plekken voor lamp en plant (game/js/inrichting.js).
 //   node scripts/inrichting_test.mjs
-import { PLEKKEN, VERPLAATSBAAR, schoonPlekken, plekVan, plekBezet, volgendePlek, opPlek, plekGeldig, isVerplaatsbaar } from '../game/js/inrichting.js';
+import { PLEKKEN, WANDPLEKKEN, plekInfo, VERPLAATSBAAR, schoonPlekken, plekVan, plekBezet, volgendePlek, opPlek, plekGeldig, isVerplaatsbaar } from '../game/js/inrichting.js';
 
 let bad = 0;
 const check = (name, ok, info = '') => { if (!ok) { bad++; console.log('FAIL', name, info); } };
@@ -17,11 +17,11 @@ for (const p of Object.keys(PLEKKEN)) check('plek geldig ' + p, plekGeldig(p, fl
 check('plek op de bank is ongeldig', !(PLEKKEN.zzz) && !plekGeldig('zzz', flat));
 for (const [id, v] of Object.entries(VERPLAATSBAAR)) {
   check(id + ': standaard in opties', v.opties.includes(v.standaard));
-  check(id + ': opties bestaan', v.opties.every((o) => PLEKKEN[o]));
+  check(id + ': opties bestaan', v.opties.every((o) => plekInfo(o)));
   check(id + ': standaard heeft nul verschuiving', opPlek(id, v.standaard).dx === 0 && opPlek(id, v.standaard).dz === 0);
 }
 check('standaard is gelijk aan furniture.js', PLEKKEN.h1.x === 0.6 && PLEKKEN.h1.z === 4.7 && PLEKKEN.h4.x === 10.5 && PLEKKEN.h4.z === 4.7);
-check('alleen lamp en plant', isVerplaatsbaar('lamp') && isVerplaatsbaar('plant') && !isVerplaatsbaar('bank') && !isVerplaatsbaar('toString'));
+check('lamp, plant, kast en bureau verplaatsbaar', ['lamp', 'plant', 'kast', 'bureau'].every(isVerplaatsbaar) && !isVerplaatsbaar('bank') && !isVerplaatsbaar('tv') && !isVerplaatsbaar('toString'));
 
 // schoon opslaan
 check('rommel wordt leeg', Object.keys(schoonPlekken(null)).length === 0 && Object.keys(schoonPlekken('x')).length === 0);
@@ -53,6 +53,25 @@ const o = opPlek('plant', 'h5');
 check('verschuiving klopt', Math.abs(o.dx - (4.0 - 10.5)) < 1e-9 && Math.abs(o.dz - (5.8 - 4.7)) < 1e-9);
 check('blokje om het meubel', o.solid[0] < o.x && o.solid[2] > o.x && o.solid[1] < o.z && o.solid[3] > o.z);
 check('onbekende plek geeft null', opPlek('lamp', 'zzz') === null && opPlek('bank', 'h1') === null);
+
+// wandplekken (kast en bureau)
+for (const k of Object.keys(WANDPLEKKEN)) check('wandplek geldig ' + k, plekGeldig(k, flat), JSON.stringify(WANDPLEKKEN[k].solid));
+check('kast standaard = furniture.js', WANDPLEKKEN.k1.x === 0.36 && WANDPLEKKEN.k1.z === 2.6 && WANDPLEKKEN.k1.solid.join() === '0.1,1.95,0.66,3.25' && WANDPLEKKEN.k1.use.x === 1.15);
+check('bureau standaard = furniture.js', WANDPLEKKEN.b1.x === 10.3 && WANDPLEKKEN.b1.z === 8.62 && WANDPLEKKEN.b1.solid.join() === '9.65,8.3,10.95,8.95' && WANDPLEKKEN.b1.use.z === 7.8);
+// geen wandplek raakt een muur doorheen of een gebruikspunt van een ander meubel
+const eigenWand = new Set(['kast', 'bureau', 'lamp', 'plant']);
+check('kast en bureau botsen op dezelfde wand', plekBezet({ kast: 'k3' }, eigenWand, 'bureau', 'b4') && !plekBezet({ kast: 'k1' }, eigenWand, 'bureau', 'b4'));
+check('kast naast lamp op h1 mag', !plekBezet({ lamp: 'h1' }, eigenWand, 'kast', 'k2'));
+let plw = { kast: 'k1', bureau: 'b1' };
+let nk = volgendePlek(plw, eigenWand, 'kast');
+check('kast gaat naar k2', nk === 'k2', nk);
+plw.kast = 'k3';
+check('bureau slaat b4 over als de kast op k3 staat', volgendePlek({ ...plw, bureau: 'b3' }, eigenWand, 'bureau') === 'b1', String(volgendePlek({ ...plw, bureau: 'b3' }, eigenWand, 'bureau')));
+const ow = opPlek('kast', 'k3');
+check('wandplek geeft rot, solid en use', ow && ow.rot === 0 && ow.solid.length === 4 && ow.use && opPlek('kast', 'h1') === null);
+check('opslag houdt wandplekken', schoonPlekken({ kast: 'k2', bureau: 'b3' }).kast === 'k2' && !schoonPlekken({ kast: 'b1' }).kast);
+// het gebruikspunt van elke wandplek ligt vrij van vaste blokjes
+for (const [k, p] of Object.entries(WANDPLEKKEN)) check('gebruikspunt vrij ' + k, !flat.solids.some(([a, b, c, d]) => p.use.x > a && p.use.x < c && p.use.z > b && p.use.z < d));
 
 console.log(bad ? `${bad} mislukt` : 'inrichting_test: alles goed');
 process.exit(bad ? 1 : 0);
