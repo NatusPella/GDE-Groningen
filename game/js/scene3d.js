@@ -2653,7 +2653,10 @@ export function update3D(dt, world) {
   const imp = world.lastImpact;
   const shakeAge = imp ? world.time - imp.time : Infinity;
   if (shakeAge >= 0 && shakeAge < CAM_SHAKE_TIME) {
-    const amp = shakeAmount(Math.min(1, imp.strength) * CAM_SHAKE_MAX * Math.exp(-shakeAge * 7), { reduceMotion: reducedMotion() });
+    // tuning (#196): een zachte stoel (v.tuning.comfort) dempt de schok
+    const tv = player.inVehicle && player.inVehicle.tuning;
+    const comfort = tv && tv.comfort > 0 ? tv.comfort : 1;
+    const amp = shakeAmount(Math.min(1, imp.strength) * CAM_SHAKE_MAX * Math.exp(-shakeAge * 7), { reduceMotion: reducedMotion() }) / comfort;
     const t = world.time * 47;
     cam.position.x += Math.sin(t) * amp;
     cam.position.y += Math.sin(t * 1.31 + 1.7) * amp * 0.6;

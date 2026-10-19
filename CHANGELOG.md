@@ -7,6 +7,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 ## [Unreleased]
 
 ### Nieuw
+- **Tuning werkt door (nog niet in beeld bekeken):** een heldere koplamp laat 's nachts verder en feller schijnen, een zachte stoel dempt de camera-schok bij een botsing, de onderdelen van de Escapade komen terug als ze verschijnt, en opvallende onderdelen (knalpijp) laten de politie je tot 40% langer zoeken. (Refs #196)
 - **Zeilregatta met tegenstanders, omslaan en roeiritme (nog niet in beeld bekeken):** in de zeilregatta varen drie verzonnen zeilers mee (Wiebe, Marrit, Tjeerd) en je ziet je plaats in het bord en in de uitslag. Een zeilboot slaat om bij storm met een strak zeil dwars op de wind: even drijven, nat maar verder niets. De roeiboot vaart op ritme: tik W ongeveer elke seconde voor een hogere topsnelheid. (Refs #197)
 - **Evenementen trekken voetgangers (nog niet in beeld bekeken):** bij een lopende kermis, markt, optocht of concert komen er groepjes voetgangers bij tot de drukte van dat evenement, buiten beeld gespawnd. (Refs #203)
 
