@@ -40,4 +40,8 @@ assert.equal(doorTrims(DEUR_DEFS.sedan, 4.3, 1.8).length, 4, 'sedan: vier portie
 assert.equal(doorTrims(DEUR_DEFS.hatch, 3.8, 1.7).length, 2, 'hatch: twee portieren');
 assert.equal(doorTrims(DEUR_DEFS.bus, 11.2, 2.55).length, 0, 'bus: schuifdeuren krijgen geen portierbekleding');
 assert.equal(doorTrims(null, 4, 1.8).length, 0);
+for (const [len, wid, seat] of [[4.3, 1.8, { x: -0.25, y: 0.38, z: -0.3 }], [11, 2.5, { x: 4.5, y: 1.2, z: -1.0 }]]) {
+  const L = interiorLayout(seat, len, wid);
+  assert.ok(L.mirror.y < L.roof.y && L.mirror.y > L.eye.y, 'spiegel hangt tussen oog en dak');
+}
 console.log('carinterior_test ok');
