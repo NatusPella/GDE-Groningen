@@ -1,7 +1,7 @@
 // De Spelbot-driver (#186): start één Electron-instantie met wegwerpprofiel, laat
 // bot.page.js de game spelen en bouwt uit de gebeurtenissen het rapport.
 //   node scripts/bot/run.mjs [--out=<map>] [--part=kop|all] [--seed=1] [--stuck=30]
-//        [--max-game=3600] [--max-wall=1800] [--shots=80] [--invuln] [--audio] [--force]
+//        [--max-game=3600] [--max-wall=1800] [--shots=80] [--invuln] [--audio] [--force] [--slot]
 //   node scripts/bot/run.mjs --mode=minigames [--only=kartbaan,duif] [--play=40]   (fase 3: elke minigame kort spelen)
 //   node scripts/bot/run.mjs --mode=missions --only=M03,M04 [--per-step=600]   (elke stap los, via een sprong)
 //   node scripts/bot/run.mjs --report=<map>           (rapport opnieuw uit events.jsonl)
@@ -53,11 +53,23 @@ if (arg('report')) {
 }
 
 // één Electron-instantie tegelijk (AGENTS.md)
-if (!flag('force') && process.platform === 'win32') {
+if (!flag('force') && !flag('slot') && process.platform === 'win32') {
   const t = spawnSync('tasklist', ['/FI', 'IMAGENAME eq electron.exe', '/FO', 'CSV', '/NH'], { encoding: 'utf8' });
   if (/electron\.exe/i.test(t.stdout || '')) { console.error('Er draait al een Electron-instantie; de bot wacht niet. Sluit hem of gebruik --force.'); process.exit(3); }
 }
 
+// --slot: een Electron-slot nemen volgens C:/Users/abuis/gde-locks/README.txt (mkdir electron-1..3) en altijd vrijgeven
+let slot = null;
+const release = () => { if (slot) { try { fs.rmdirSync(slot); } catch { /* al weg */ } slot = null; } };
+process.on('exit', release);
+if (flag('slot')) {
+  const LOCKS = 'C:/Users/abuis/gde-locks';
+  for (let tries = 0; tries < 240 && !slot; tries++) {
+    for (const n of [1, 2, 3]) { try { fs.mkdirSync(path.join(LOCKS, `electron-${n}`)); slot = path.join(LOCKS, `electron-${n}`); console.log(`slot electron-${n}`); break; } catch { /* bezet */ } }
+    if (!slot) await new Promise((r) => setTimeout(r, 60000));
+  }
+  if (!slot) { console.error('geen Electron-slot gekregen'); process.exit(4); }
+}
 fs.mkdirSync(OUT, { recursive: true });
 const seed = Number(arg('seed', 1)) || 1;
 const replayFile = arg('replay');
@@ -83,6 +95,7 @@ const r = spawnSync(electron, ['.', '--windowed', '--stil', '--force-device-scal
 if (r.error) console.error('Electron starten mislukt (niet geïnstalleerd? zet ELECTRON_EXE):', r.error.message);
 fs.writeFileSync(path.join(OUT, 'run.log'), `${r.stdout || ''}\n${r.stderr || ''}`);
 fs.rmSync(path.join(os.tmpdir(), profile), { recursive: true, force: true });
+release();
 
 let res = { result: r.status === 0 ? 'ONBEKEND' : 'ELECTRON-FOUT', reason: `exit ${r.status}${r.signal ? ' ' + r.signal : ''}` };
 for (const l of (r.stdout || '').split(/\r?\n/)) { const m = l.match(/^\[perf-script\] (.*)$/); if (m) try { res = JSON.parse(m[1]); } catch { /* geen JSON */ } }
