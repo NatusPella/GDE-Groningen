@@ -106,7 +106,7 @@ export function buildAkte4Defs() {
         },
         {
           // how wary the manager got: one wrong answer and he walks along, two and the guard does
-          kind: 'scene', label: 'De accountmanager twijfelt', target: ll('wiebelwerk', { label: 'Wiebelwerk' }), kicker: 'Wiebelwerk', script: { ids: ['M18.2'] },
+          kind: 'scene', label: 'De accountmanager reageert', target: ll('wiebelwerk', { label: 'Wiebelwerk' }), kicker: 'Wiebelwerk', script: { ids: ['M18.2'] },
           scriptIf: [{ tag: 'argwaan2', ids: ['M18.7'] }, { tag: 'argwaan1', ids: ['M18.6'] }],
           cast: [{ key: 'accountmanager', pose: 'hips', at: [3.0, -0.4] }],
         },

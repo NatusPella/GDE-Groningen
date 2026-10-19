@@ -613,7 +613,7 @@ S['M18.2'] = {
     { on: 'Warm, droog', actor: 'accountmanager', anim: 'nod' },
     { on: 'Ik maak een offerte', actor: 'accountmanager', walk: [[3.8, -0.6]], speed: 0.7 },
     { on: 'Dat ging makkelijk', actor: 'tammo', anim: 'shrug' },
-    { on: 'Zeg dat niet hardop', actor: 'tessa', anim: 'look' },
+    { on: 'Wacht tot we binnen zijn', actor: 'tessa', anim: 'look' },
   ],
   shots: [], wide: WIDE([-4.5, 4, 3], [-2.5, 2.8, 2.3], 'mid:accountmanager,tessa@1'),
 };
@@ -634,7 +634,6 @@ S['M18.7'] = {
     { on: 'Is dat gratis', actor: 'tammo', anim: 'shrug' },
     { on: 'Bij Wiebelwerk is alles gratis', actor: 'accountmanager', anim: 'hips' },
     { on: 'Loop maar voor', actor: 'tessa', anim: 'point' },
-    { on: 'Zo houden we ze in beeld', actor: 'tessa', anim: 'look' },
   ],
   shots: [], wide: WIDE([-4.5, 4, 3], [-2.5, 2.8, 2.3], 'mid:accountmanager,tessa@1'),
 };
@@ -669,7 +668,7 @@ S['M23.8'] = {
     { on: 'Ik rij naast jullie', actor: 'geesje', anim: 'talk' },
     { on: 'Een scooter tegen een limo', actor: 'tessa', anim: 'shrug' },
     { on: 'Een limo past niet', actor: 'geesje', anim: 'point' },
-    { on: 'Dat zeg ik altijd', actor: 'geesje', anim: 'hips' },
+    { on: 'Zegt de kerk ook', actor: 'geesje', anim: 'hips' },
   ],
   shots: [], wide: friendWide('geesje'),
 };
@@ -680,20 +679,20 @@ const streets = (key, x, beats) => ({
 S['M26.14'] = streets('wubbo', 5.0, [
   { on: 'Herestraat dicht', actor: 'wubbo', anim: 'point' },
   { on: 'Dank je, Wubbo', actor: 'tessa', anim: 'nod' },
-  { on: 'Hij herhaalt zichzelf', actor: 'tammo', anim: 'shrug' },
-  { on: 'Dat heet een werkfilosofie', actor: 'tessa', anim: 'laugh' },
+  { on: 'Dat mag niet', actor: 'tessa', anim: 'shake' },
+  { on: 'Het is een bus', actor: 'tammo', anim: 'shrug' },
 ]);
 S['M26.15'] = streets('tinus', 5.0, [
   { on: 'Zuiderdiep dicht', actor: 'tinus', anim: 'point' },
   { on: 'Je trekker past er net in', actor: 'tessa', anim: 'look' },
   { on: 'Ik trek hem weg', actor: 'tinus', anim: 'hips' },
-  { on: 'Dat is de trekker', actor: 'tessa', anim: 'laugh' },
+  { on: 'In de stad ziet hij', actor: 'tammo', anim: 'shrug' },
 ]);
 S['M26.16'] = streets('geesje', 5.0, [
   { on: 'De steeg bij de notaris', actor: 'geesje', anim: 'point' },
   { on: 'Je zit te breien', actor: 'tessa', anim: 'shrug' },
   { on: 'Wie blijft staan', actor: 'geesje', anim: 'talk' },
-  { on: 'Dat is een goede regel', actor: 'tammo', anim: 'nod' },
+  { on: 'Klopt', actor: 'tammo', anim: 'nod' },
 ]);
 // everyone steps closer as the scene starts (the scene test wants something to move)
 for (const [id, key, x] of [['M18.7', 'accountmanager', 2.4], ['M23.6', 'wubbo', 3.2], ['M23.7', 'tinus', 3.2], ['M23.8', 'geesje', 3.0], ['M26.14', 'wubbo', 5.0], ['M26.15', 'tinus', 5.0], ['M26.16', 'geesje', 5.0]]) {
