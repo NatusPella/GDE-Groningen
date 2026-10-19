@@ -241,7 +241,7 @@ function waitForStart(world) {
 let bridgeDemoT = 0, bridgeDemoDone = false; // ?brugbotsing
 let errorShown = false;
 function showFrameError(err) {
-  console.error(err);
+  console.error(err && err.stack ? err.stack : err);
   if (errorShown) return;
   errorShown = true;
   const el = document.createElement('div');
