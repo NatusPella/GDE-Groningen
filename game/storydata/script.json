@@ -106,8 +106,8 @@
    "voice": "Tinus"
   },
   "bewaarder": {
-   "name": "Mevrouw Tuinstra",
-   "voice": "Mevrouw Tuinstra"
+   "name": "Mevrouw Hoving",
+   "voice": "Mevrouw Hoving"
   },
   "loketbediende": {
    "name": "Loketbediende",
@@ -298,7 +298,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "…Dat is het liefste wat iemand ooit over mijn plannen heeft gezegd.",
+     "text": "…Dat komt op de zijkant van de wagen.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -341,7 +341,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Dat is de dag dat Stad in 1672 de bisschop buiten hield. Dat spelen jullie elk jaar na. Ik ken het uit de boeken.",
+     "text": "Dat is de dag dat Grunn in 1672 de bisschop buiten hield. Dat spelen jullie elk jaar na. Ik ken het uit de boeken.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -509,7 +509,7 @@
     {
      "speaker": "Berend Bos",
      "key": "berend",
-     "text": "Mijn arm zit in het gips. Mijn bakkie moet naar mijn zus, aan het Boterdiep. Vijftig euro voor wie hem brengt.",
+     "text": "Mijn arm zit in het gips. Mijn bakkie, mijn pick-up, moet naar mijn zus, aan het Boterdiep. Vijftig euro voor wie hem brengt.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -561,7 +561,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Berend geeft complimenten op een ladder, Tammo. \"Goidag\" is trede één.",
+     "text": "Berend geeft complimenten op een ladder, Tammo. Dat weet heel Grunn. \"Goidag\" is trede één.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -578,7 +578,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "\"Kon minder.\" Dat heeft Berend nog nooit gezegd.",
+     "text": "\"Kon minder.\" Dat zegt hij nooit. Daar is nog niemand gekomen.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -931,7 +931,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Dat is Fries. \"Dat meisje in het rood: zo'n lief gezicht.\"",
+     "text": "Dat is Fries. Ik vertaal het niet.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -1393,16 +1393,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Twee reuzen met een trekker hebben hem uit de muur getrokken.",
-     "tag": "NIEUW",
-     "channel": "stem",
-     "textOnly": true,
-     "voice": "Anita"
-    },
-    {
-     "speaker": "Tessa",
-     "key": "A",
-     "text": "In die pas zit mijn geld. Zonder pas geen contant, en het Loket neemt alleen contant.",
+     "text": "Ze trokken hem met een kabel uit de muur. Ik was nog niet klaar met mijn pincode.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -1420,7 +1411,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Sjabbe van Pand & Poen koopt wat niemand wil en opent wat niemand kan. Wij brengen hem de automaat.",
+     "text": "Sjabbe van Pand & Poen koopt wat niemand wil en opent wat niemand kan. Wij brengen de automaat naar Sjabbe.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -1682,7 +1673,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "We staan bij Het Loket. Om twaalf uur sluit de inschrijving, en alleen contant.",
+     "text": "Twaalf uur, contant. Hoe moeilijk kan een stempel zijn?",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -1766,7 +1757,7 @@
     {
      "speaker": "Sjabbe",
      "key": "sjabbe",
-     "text": "Tessa. Sjabbe. Loket C heeft een zijdeur bij de kopieermachine.",
+     "text": "Loket C heeft een zijdeur bij de kopieermachine.",
      "tag": "NIEUW",
      "channel": "telefoon",
      "textOnly": true
@@ -1807,7 +1798,7 @@
     {
      "speaker": "Jelle Terpstra",
      "key": "jelle",
-     "text": "Ik heb de rij gekocht. Vanaf nu is uw nummer 4140. Dat staat in de overeenkomst.",
+     "text": "Ik heb de rij gekocht. U staat nu helemaal achteraan, nummer 4140. Dat staat in de overeenkomst.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -1823,7 +1814,7 @@
     {
      "speaker": "Jelle Terpstra",
      "key": "jelle",
-     "text": "Tevens koop ik alle vrije standplaatsen van Grunn. Contant, uit een klomp, definitief.",
+     "text": "Verder koop ik alle vrije standplaatsen van Grunn. Contant, uit een klomp, definitief.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -1888,9 +1879,9 @@
      "voice": "Anita"
     },
     {
-     "speaker": "Mevrouw Tuinstra",
+     "speaker": "Mevrouw Hoving",
      "key": "bewaarder",
-     "text": "Mevrouw Tuinstra. Ik bewaar de Gouden Eierbal, de wisselprijs van de Snackprijs, al sinds 1998. Wie de bal bewaart, zit de jury voor. Dat is artikel 4.",
+     "text": "Mevrouw Hoving. Ik bewaar de Gouden Eierbal, de wisselprijs van de Snackprijs, al sinds 1998. Wie de bal bewaart, zit de jury voor en tekent de uitslag.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -1898,15 +1889,15 @@
     {
      "speaker": "Loketbediende",
      "key": "loketbediende",
-     "text": "Artikel 9: is de bewaarder verhinderd, dan zit het oudste jurylid voor. Dat is meneer Bos, jurylid sinds 1982.",
+     "text": "Is de bewaarder verhinderd, dan zit het oudste jurylid voor. Dat is meneer Bos, jurylid sinds 1982.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
     },
     {
-     "speaker": "Mevrouw Tuinstra",
+     "speaker": "Mevrouw Hoving",
      "key": "bewaarder",
-     "text": "Meneer Terpstra heeft de vijf juryleden en mij uitgenodigd voor een treinreis met volpension, vanaf maandag, tot na het Ontzet. Een bijzonder aardige man.",
+     "text": "Meneer Terpstra heeft de vier andere juryleden en mij uitgenodigd voor een treinreis met volpension, vanaf maandag, tot na het Ontzet. Meneer Bos bedankte: hij heeft een bakkie. Een bijzonder aardige man, meneer Terpstra.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -1921,7 +1912,7 @@
      "voice": "Anita"
     },
     {
-     "speaker": "Mevrouw Tuinstra",
+     "speaker": "Mevrouw Hoving",
      "key": "bewaarder",
      "text": "Het museum. De koepel hangt sinds woensdag onder een doek, wegens restauratie.",
      "tag": "NIEUW",
@@ -2030,7 +2021,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Plakje één is van Jelle: alle standplaatsen. Dat krijgen we niet meer terug.",
+     "text": "Hij kocht alle standplaatsen van Grunn, terwijl wij in de rij stonden voor een stempel.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -2039,7 +2030,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Jelle vroeg waar het museum alarmen heeft. Hij wil de bal, want wie de bal bewaart, zit de jury voor.",
+     "text": "Hij vroeg Sjabbe waar het museum alarmen heeft. Hij wil de bal, want wie de bal bewaart, zit de jury voor.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -2056,7 +2047,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Tenzij iemand hem eerder pakt.",
+     "text": "Tenzij iemand de bal eerder pakt.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -2070,6 +2061,23 @@
      "channel": "stem",
      "textOnly": false,
      "rec": "banter",
+     "voice": "Anita"
+    },
+    {
+     "speaker": "Tammo",
+     "key": "T",
+     "text": "Waarom bellen we het museum niet?",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true
+    },
+    {
+     "speaker": "Tessa",
+     "key": "A",
+     "text": "En dan zeggen? Dat Jelle naar alarmen vroeg? Er hangt een doek om de koepel en dat noemen ze restauratie.",
+     "tag": "NIEUW",
+     "channel": "stem",
+     "textOnly": true,
      "voice": "Anita"
     },
     {
@@ -2323,7 +2331,7 @@
     {
      "speaker": "Sjabbe",
      "key": "sjabbe",
-     "text": "Tessa. Sjabbe. Bewakers zijn goedkoper dan camera's. Kijk wie er iets krijgt.",
+     "text": "Bewakers zijn goedkoper dan camera's. Kijk wie er iets krijgt.",
      "tag": "NIEUW",
      "channel": "telefoon",
      "textOnly": true
@@ -2365,7 +2373,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Hij geeft bewaker twee een eierbal. Voor het koekje.",
+     "text": "Hij geeft bewaker twee een eierbal. Dat is zijn koekje.",
      "tag": "NIEUW",
      "channel": "telefoon",
      "textOnly": true,
@@ -2906,13 +2914,13 @@
    "step": "M06",
    "kind": "key",
    "regie": [
-    "maandag 17 augustus, bijna twaalf uur 's nachts. De flat, de lift, de bank."
+    "zondag 16 augustus, bijna twaalf uur 's nachts. De flat, de lift, de bank."
    ],
    "lines": [
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Om twaalf uur gaan de camera's drie minuten uit. Tot die tijd wachten we.",
+     "text": "Nog een kwartier.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -3140,7 +3148,7 @@
     {
      "speaker": "Sjabbe",
      "key": "sjabbe",
-     "text": "Tessa. Sjabbe. De zekering zit links. Het slot is een standaardslot. Ik heb er twintig verkocht.",
+     "text": "De zekering zit links. Het slot is een standaardslot. Ik heb er twintig verkocht.",
      "tag": "NIEUW",
      "channel": "telefoon",
      "textOnly": true
@@ -3533,7 +3541,7 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Daar gaat Tessa, de wandelende encyclopedie van Stad.",
+     "text": "Daar gaat Tessa, de wandelende encyclopedie van Grunn.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -3541,7 +3549,7 @@
     {
      "speaker": "Tessa",
      "key": "A",
-     "text": "Ik ben Nederlandse, Tammo. Ik ken Stad uit de boeken.",
+     "text": "Ik ben Nederlandse, Tammo. Ik ken Grunn uit de boeken.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true,
@@ -8947,7 +8955,7 @@
     {
      "speaker": "Tammo",
      "key": "T",
-     "text": "Tuinstra's pas. Geblokkeerd op twaalf augustus.",
+     "text": "Hoving's pas. Geblokkeerd op twaalf augustus.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -9091,7 +9099,7 @@
    "kind": "intro",
    "gameplay": "Tammo is machinist en rijdt de trein naar het volgende perron, terwijl Tessa door de wagons naar de juryleden loopt.",
    "regie": [
-    "maandag 24 augustus, late middag. Een museumstoomtrein onder stoom, maar hij staat stil. Op een bank bij het perron zit de machinist met een bordje eierballen. In het salonrijtuig zitten twee juryleden en mevrouw Tuinstra, de bewaarder, met een bordje eierballen. Gameplay: Tammo is machinist en rijdt de trein naar het volgende perron, terwijl Tessa door de wagons naar de juryleden loopt."
+    "maandag 24 augustus, late middag. Een museumstoomtrein onder stoom, maar hij staat stil. Op een bank bij het perron zit de machinist met een bordje eierballen. In het salonrijtuig zitten twee juryleden en mevrouw Hoving, de bewaarder, met een bordje eierballen. Gameplay: Tammo is machinist en rijdt de trein naar het volgende perron, terwijl Tessa door de wagons naar de juryleden loopt."
    ],
    "lines": [
     {
@@ -9297,7 +9305,7 @@
      "textOnly": true
     },
     {
-     "speaker": "Mevrouw Tuinstra",
+     "speaker": "Mevrouw Hoving",
      "key": "bewaarder",
      "text": "Ik stap niet uit. Ik ben verhinderd tot na het Ontzet, dat stond op de uitnodiging. Artikel 9 regelt mijn plaatsvervanger: het oudste jurylid, meneer Bos. Sinds 1985.",
      "tag": "NIEUW",
@@ -12867,7 +12875,7 @@
     {
      "speaker": "Berend Bos",
      "key": "berend",
-     "text": "Twee: mevrouw Tuinstra zit nog in de trein, met volpension. Artikel negen: dan zit het oudste jurylid voor. Dat ben ik. Ik heb nog nooit iets gewonnen en nu moet ik oordelen.",
+     "text": "Twee: mevrouw Hoving zit nog in de trein, met volpension. Artikel negen: dan zit het oudste jurylid voor. Dat ben ik. Ik heb nog nooit iets gewonnen en nu moet ik oordelen.",
      "tag": "NIEUW",
      "channel": "stem",
      "textOnly": true
@@ -14086,7 +14094,7 @@
     {
      "speaker": "Rikus",
      "key": "rikus",
-     "text": "Mevrouw Tuinstra stapt in Wildervank uit de trein. Met volpension.",
+     "text": "Mevrouw Hoving stapt in Wildervank uit de trein. Met volpension.",
      "tag": "NIEUW",
      "channel": "radio",
      "textOnly": true

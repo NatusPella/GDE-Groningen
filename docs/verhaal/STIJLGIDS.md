@@ -100,7 +100,7 @@ Dit zijn de feiten die elke scène moet delen. Wijkt een regel af, dan gaat het 
 | Lammert | havenmeester in de Eemshaven. **Zijn vader** danste in 1953 met Trijntje, niet hij. |
 | Kalender | vrijdag 14 augustus (begin) tot vrijdag 28 augustus (Gronings Ontzet, Snackprijs). Epiloog vrijdag 11 september. |
 | Jelle en de bal | Jelle had de Gouden Eierbal al op 12 augustus (logboek M18). Tammo en Tessa kraken op 17 augustus een leeg museum. |
-| De jury | vijf juryleden. Drie van de vijf beslist. Het oudste jurylid (Berend) zit voor als Tuinstra er niet is. |
+| De jury | vijf juryleden. Drie van de vijf beslist. Het oudste jurylid (Berend) zit voor als Hoving er niet is. |
 | Plaatsen | Veendam ligt aan het Oosterdiep. De Dollard is een inham. Het Lauwersmeer heeft geen getij; de wind duwt het water. De Eemshaven heeft geen containerterminal. |
 
 ## 6. Voor je klaar bent
