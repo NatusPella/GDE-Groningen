@@ -294,7 +294,7 @@ async function faseElectron(prev, staat) {
     : !heeftWereld() ? 'game/world ontbreekt (cd desktop && npm run stage)'
       : (!flag('force') && !LOCKS && elektronDraait() > 0) ? 'er draait al een Electron-instantie (de eigenaar speelt?); niets is gestart. Gebruik --force om toch te draaien'
         : null;
-  const STAPPEN = ['smoke', 'verhaaltest', 'geocheck', 'bot-missies', 'bot-minigames', 'qa-provincie-1', 'qa-provincie-2', 'qa-features', 'qa-visueel', 'ui-shots'];
+  const STAPPEN = ['smoke', 'verhaaltest', 'geocheck', 'bot-missies', 'bot-minigames', 'qa-provincie-1', 'qa-provincie-2', 'qa-features', 'qa-visueel', 'ui-shots', 'coop'];
   if (reden) { for (const s of STAPPEN.filter(wilDit)) items.push(skip('electron', 'electron:' + s, s, reden)); return { items, sigs: {} }; }
 
   const prevSigs = (staat.fases && staat.fases.electron && staat.fases.electron.sigs) || {};
@@ -305,10 +305,10 @@ async function faseElectron(prev, staat) {
   const desktop = path.join(ROOT, 'desktop');
   const basis = ['.', '--windowed', '--stil', '--force-device-scale-factor=1', '--window-size=1280x720'];
 
-  const stap = async (naam, fn) => {
+  const stap = async (naam, fn, { eigenSlots = false } = {}) => {
     if (!wilDit(naam)) return;
     let slot = null;
-    try { slot = await neemSlot(); items.push(...(await fn())); } catch (e) { items.push(R.maakItem('electron', 'electron:' + naam, naam, 'FAIL', 0, 'stap crashte: ' + (e && e.stack || e))); } finally { geefSlot(slot); }
+    try { slot = eigenSlots ? null : await neemSlot(); items.push(...(await fn())); } catch (e) { items.push(R.maakItem('electron', 'electron:' + naam, naam, 'FAIL', 0, 'stap crashte: ' + (e && e.stack || e))); } finally { geefSlot(slot); }
     for (const it of items.filter((i) => i.fase === 'electron' && i.id.startsWith('electron:' + naam))) log(`${it.status.padEnd(7)} ${it.id} ${it.secs}s`);
   };
 
@@ -383,6 +383,16 @@ async function faseElectron(prev, staat) {
   await qa('qa-features', 'scripts/qa/feature_smoke.mjs');
   await qa('qa-visueel', 'scripts/qa/visual_issues.mjs');
   await qa('ui-shots', 'scripts/ui_shots.mjs');
+  // coöp-testbank (y2): host en gast als twee Electrons op de loopback; neemt zelf de sloten
+  if (fs.existsSync(path.join(ROOT, 'scripts', 'coop', 'testbank.mjs'))) {
+    await stap('coop', async () => {
+      const d = stapDir('coop'), ms = 20 * 60e3;
+      const r = await runCmd(process.execPath, ['scripts/coop/testbank.mjs', '--stage=' + path.join(desktop, 'build', 'game'), '--duration=20', '--out=' + d], { ms, env: env('coop') });
+      fs.writeFileSync(path.join(d, 'sweep.log'), r.out);
+      const st = r.timedOut ? 'TIMEOUT' : r.code === 0 ? 'PASS' : 'FAIL';
+      return [R.maakItem('electron', 'electron:coop', 'coöp-testbank (host en gast)', st, r.secs, st === 'PASS' ? '' : `code ${r.code}: ${split(tail(r.out, 4)).join(' | ')}`), consoleItem('coop', r.out, 0)];
+    }, { eigenSlots: true });
+  }
 
   for (const p of profielen) fs.rmSync(path.join(os.tmpdir(), p), { recursive: true, force: true });
   return { items, sigs };
