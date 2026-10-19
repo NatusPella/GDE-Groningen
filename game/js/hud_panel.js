@@ -58,6 +58,7 @@ import { townProfile } from './stadsprofielen.js';
 import { getSettings } from './settings.js';
 import { heldBack } from './narrative.js';
 import { isPauseMenuOpen } from './pausestate.js';
+import { isOverlayHeld } from './overlayhold.js';
 // portraits share the HUD's green (DESIGN_SYSTEM: no blue accents); speaker
 // colours stay in subtitles
 const HUD_ACCENT = '#3fc97a';
@@ -660,7 +661,7 @@ function updatePlace(dt, world) {
   const timer = !!gpsState.timer;
   if (timer || world.pigeonMode || world.heliRun || !document.body.classList.contains('game-started')) { placeState.last = c.key; return; }
   // a flyover (wijk, landmark) names its place in this card once it ends
-  if (isCinematicActive() || isBusy(world) || isDialogue()) {
+  if (isCinematicActive() || isBusy(world) || isDialogue() || isOverlayHeld('locatie')) {
     if (!placeState.pending || placeState.pending.key !== c.key) { placeState.pending = c; placeState.pendingAt = now; }
     if (now - placeState.pendingAt > DEFER_MAX) { placeState.last = c.key; placeState.pending = null; }
     return;

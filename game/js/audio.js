@@ -19,6 +19,7 @@ import { createMusicWatch } from './musicwatch.js';
 import * as speech from './speech.js';
 import { drunkLevel } from './drunk.js';
 import { KEYS } from './storagekeys.js';
+import { noteSound } from './soundcaptions.js';
 
 if (typeof window !== 'undefined') window.__speech = speech;
 
@@ -723,6 +724,7 @@ function playRicochet(x, y) {
 }
 
 function playExplosion(x, y) {
+  noteSound('explosion', { dist: Math.hypot(x - listenerPos.x, y - listenerPos.z) });
   const out = spatialOut(x, y, { ref: 10, rolloff: 0.7, prio: 2 });
   if (!out) return;
   duckAmbience(0.75, 1.6);
@@ -2713,6 +2715,7 @@ function playAudioEvents(world) {
   for (let i = 0; i < n; i++) {
     const e = q[i];
     const x = e.x ?? world.player.x, y = e.y ?? world.player.y;
+    noteSound(e.kind, { sub: e.kind === 'weapon' ? e.sub : e.kind === 'fx' ? e.name : '', dist: Math.hypot(x - world.player.x, y - world.player.y) });
     switch (e.kind) {
       case 'bell': playBell(x, y); break;
       case 'crossing_bell': playCrossingBell(x, y); break;
@@ -2909,6 +2912,7 @@ function updateSiren(dt, world) {
   const targetGain = chaseActive ? 0.18 + intensity * 0.22 : units.length ? 0.22 : 0;
   sirenState.gain += (targetGain - sirenState.gain) * Math.min(1, dt * 2.2);
   sirenBus.gain.value = sirenState.gain;
+  if (units.length && !sirenState.captioned) { sirenState.captioned = true; noteSound('siren'); } else if (!units.length) sirenState.captioned = false;
 
   assignVoices(sirenVoices, nearestSorted(units, MAX_DISTANCE, SIREN_VOICES));
 

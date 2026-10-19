@@ -427,7 +427,7 @@ export function applySave(w, d) {
 export function loadLatestSave(w = world) {
   const d = readSave();
   if (!d || !applySave(w, d)) return false;
-  w.addMessage('Laatste spelstand geladen', 3);
+  w.addMessage('Laatste savegame geladen', 3);
   return true;
 }
 

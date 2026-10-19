@@ -56,6 +56,8 @@ const BASE_DEFAULTS = {
   // frames are slow (gfxprofile.js)
   resolution: 1,
   autoResolution: true,
+  // zuinige modus (framecap.js): 30 beelden per seconde, voor batterij en warmte
+  zuinig: false,
   mouseSensitivity: 1,
   invertY: false,
   autoAim: true,
@@ -75,6 +77,8 @@ const BASE_DEFAULTS = {
   rumble: true,
   subtitleSize: 'normaal',
   subtitleBox: false,
+  // [sirene], [claxon]...: korte tekst bij belangrijke geluiden (soundcaptions.js)
+  soundCaptions: false,
   // ondertitels op wit-op-zwart met een zwaardere letter ('normaal' | 'hoog'), kaart- en meldingstekst ('normaal' | 'groot' | 'extragroot') en geen schermflitsen (a11y.js)
   subtitleContrast: 'normaal',
   textSize: 'normaal',
