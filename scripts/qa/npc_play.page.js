@@ -131,7 +131,7 @@ const CHECKS = [
       for (let i = 0; i < 8; i++) {
         for (let k = 0; k < 25; k++) { await sleep(100); if (p.inVehicle && n >= 3 && Math.abs(p.inVehicle.speed) < 8) p.inVehicle.speed = 9; if (w.paused) { await tap(' ', 'Space', 40); } }
         const pol = w.police || {};
-        samples.push({ gt: +(w.time || 0).toFixed(1), heli: w.vehicles.filter((v) => v.isHeli && v.isPolice).length || w.vehicles.filter((v) => v.isHeli).length, spijker: ((w.shards && w.shards.fields) || []).filter((f) => f.kind === 'spijkers').length, t: (i + 1) * 2.5, wanted: w.wanted, politie: w.vehicles.filter((v) => v.isPolice && !v.wrecked).length, voet: w.pedestrians.filter((q) => q.isCop).length, blok: w.vehicles.filter((v) => v._roadblock).length, zoekt: !!pol.searching, straal: pol.searchRadius && Math.round(pol.searchRadius), gezien: !!pol.seenRecently, snelheid: p.inVehicle ? +(p.inVehicle.speed || 0).toFixed(1) : null, hp: Math.round(p.health), auto: p.inVehicle ? Math.round(p.inVehicle.health) : null, berichten: (w.messages || []).slice(-2).map((m) => m.text || m) });
+        samples.push({ gt: +(w.time || 0).toFixed(1), heli: w.policeHeli ? { z: Math.round(w.policeHeli.z), spot: !!w.policeHeli.spotOn } : null, spijker: ((w.shards && w.shards.fields) || []).filter((f) => f.kind === 'spijkers').length, t: (i + 1) * 2.5, wanted: w.wanted, politie: w.vehicles.filter((v) => v.isPolice && !v.wrecked).length, voet: w.pedestrians.filter((q) => q.isCop).length, blok: w.vehicles.filter((v) => v._roadblock).length, zoekt: !!pol.searching, straal: pol.searchRadius && Math.round(pol.searchRadius), gezien: !!pol.seenRecently, snelheid: p.inVehicle ? +(p.inVehicle.speed || 0).toFixed(1) : null, hp: Math.round(p.health), auto: p.inVehicle ? Math.round(p.inVehicle.health) : null, berichten: (w.messages || []).slice(-2).map((m) => m.text || m) });
         if (i === 3) await snap('wanted-' + n, 100);
       }
       out['ster' + n] = samples;
@@ -142,17 +142,21 @@ const CHECKS = [
     return out;
   } },
   { id: 'ruzie', issues: [44], run: async () => {
-    await go(START.x, START.y, 0);
+    const base = nearCars(1e6).sort((a, b) => Math.hypot(a.x - START.x, a.y - START.y) - Math.hypot(b.x - START.x, b.y - START.y))[0];
+    if (base) await go(base.x + 12, base.y + 12, 0, 3000);
     await sleep(3000);
     const RR = window.__roadrage;
     if (!RR) return { fout: 'window.__roadrage ontbreekt' };
     const before = RR.state();
     const started = RR.start(null);
+    const near = w.vehicles.filter((v) => Math.hypot(v.x - p.x, v.y - p.y) < 60).length;
     await sleep(500);
     const log = [RR.state()];
+    const fine = [];
+    for (let i = 0; i < 30; i++) { await sleep(150); const r = w.pedestrians.find((e) => e.rager || e.stepOut); const st = RR.state(); fine.push([st.phase, r ? [r.state, Math.round(r.health), !!r.ragdoll, !!r.stepOut] : null, w.wanted, w.paused]); }
     for (let i = 0; i < 6; i++) { await sleep(1500); log.push(RR.state()); if (i === 2) await snap('ruzie', 100); }
     RR.abort();
-    return { before, started, log };
+    return { fine, before, started, nabijeAutos: near, log, peds: w.pedestrians.filter((e) => e.rager).map((e) => ({ state: e.state, hp: Math.round(e.health), wapen: e.rageWeapon || e.weapon })) };
   } },
   { id: 'wapenopname', issues: [52], run: async () => {
     await go(START.x, START.y, 0);
