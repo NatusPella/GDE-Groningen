@@ -25,6 +25,7 @@ import { warmCountryMaps } from './countrymap.js';
 import { Input } from './input.js';
 import { initGamepad } from './gamepad.js';
 import { initPadKeyboard } from './padkeyboard.js';
+import { skipFrame } from './framecap.js';
 import { initTouch } from './touch.js';
 import { initGlyphs } from './glyphs.js';
 import { initA11y } from './a11y.js';
@@ -484,6 +485,7 @@ async function boot() {
   const tileFollow = {};
   let pedTimer = 0;
   function frame(now) {
+    if (getSettings().zuinig && skipFrame(now - last)) { requestAnimationFrame(frame); return; }
     const frameMs = now - last;
     const dt = Math.min(0.05, frameMs / 1000);
     last = now;

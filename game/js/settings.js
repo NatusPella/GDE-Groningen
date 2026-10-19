@@ -55,6 +55,8 @@ const DEFAULTS = {
   // frames are slow (gfxprofile.js)
   resolution: 1,
   autoResolution: true,
+  // zuinige modus (framecap.js): 30 beelden per seconde, voor batterij en warmte
+  zuinig: false,
   mouseSensitivity: 1,
   invertY: false,
   autoAim: true,
