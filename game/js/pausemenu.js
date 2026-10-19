@@ -373,6 +373,7 @@ function settingsHtml() {
     ${tab('display', `
       ${picker('hudMode', 'HUD', [['slim', 'Slim'], ['alles', 'Altijd alles'], ['minimaal', 'Minimaal']], 'Slim toont alleen wat nu telt')}
       ${toggle('showMinimap', 'Minimap')}
+      ${toggle('mapShiftTeleport', 'Shift+klik op de kaart verplaatst je', 'Niet tijdens een missie of met de politie achter je aan')}
       ${slider('minimapZoom', 'Inzoomen op het kaartje', 0.6, 1.6, 0.05)}
       ${picker('minimapNorth', 'Minimap met noord boven', [['nooit', 'Nooit'], ['lucht', 'In de lucht'], ['altijd', 'Altijd']], 'Standaard draait de kaart mee')}
       ${toggle('showHints', 'Toetshints')}

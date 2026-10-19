@@ -35,6 +35,7 @@ import { worldPlaceLabels, worldPlacesReady } from './worldplaces.js';
 import { tileIndexOf, tileOrigin, TILE_M } from './gdt.js';
 import { ensureCountryEdge } from './countryplan.js';
 import { getSettings, onSettingsChange } from './settings.js';
+import { wantsTeleport, plekNaam } from './kaartteleport.js';
 import { DEV } from './devflags.js';
 import { getGoal, setGoal, clearGoal, missionOnMap } from './goal.js';
 import { getMissionLayer } from './missionmaplive.js';
@@ -1510,19 +1511,20 @@ function updateTooltip(sx, sy) {
 // kaart; het magische snelreizen is geen reisoptie meer (#97): reizen kan zelf
 // rijden of meerijden.
 function teleportTo(world, target) {
-  if (!world.cheatActions || !state.teleport) return;
+  if (!world.cheatActions) return;
   if (!world.cheatActions.teleport(target.x, target.y, target.name)) return;
-  setMapTeleport(false);
+  if (state.teleport) setMapTeleport(false);
   if (closeHandler) closeHandler();
   else closeMap();
 }
 
-function handleClick(world, sx, sy) {
+function handleClick(world, sx, sy, shift = false) {
   const h = nearestHover(sx, sy);
   const [wx, wy] = toWorld(sx, sy);
-  if (state.teleport) {
+  // de cheat Overal en nergens, of shift+klik (instelling mapShiftTeleport, kaartteleport.js)
+  if (wantsTeleport({ shift, enabled: getSettings().mapShiftTeleport, teleportMode: state.teleport })) {
     if (h && h.teleport) teleportTo(world, h.teleport);
-    else teleportTo(world, { x: wx, y: wy, name: streetAt(wx, wy, 60) || wijkAt(wx, wy) || 'deze plek' });
+    else teleportTo(world, { x: wx, y: wy, name: plekNaam(streetAt(wx, wy, 60), wijkAt(wx, wy)) });
     return;
   }
   if (state.card) { hideCard(); if (!h) return; }
@@ -2128,7 +2130,7 @@ export function initMapView(world) {
     endDrag();
     if (!d.moved && state.open) {
       const [sx, sy] = canvasPos(e);
-      handleClick(world, sx, sy);
+      handleClick(world, sx, sy, e.shiftKey);
     }
   }, true);
   // a touchscreen sends no mouse events while dragging: one finger pans,
