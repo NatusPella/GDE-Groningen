@@ -178,7 +178,14 @@ if (want('bus')) {
   if (near) { const mid = near.l.pts[Math.floor(near.l.pts.length / 2)]; teleport(mid[0], mid[1]); info.push('lijn ' + near.l.ref + ' ' + near.l.from + '-' + near.l.to); }
   const holdP = setInterval(() => { if (near) { const mid = near.l.pts[Math.floor(near.l.pts.length / 2)]; p.x = mid[0]; p.y = mid[1]; p.vx = p.vy = 0; } }, 50);
   for (let i = 0; i < 40 && document.querySelector('.ls.on:not(.out)'); i++) await sleep(500);
-  for (let t = 0; t < 90 && !bus; t++) { await sleep(1000); bus = w.vehicles.find((v) => v.isBus && v.busRun && Math.hypot(v.x - p.x, v.y - p.y) < 200); }
+  for (let t = 0; t < 40 && !bus; t++) { await sleep(1000); bus = w.vehicles.find((v) => v.isBus && v.busRun && Math.hypot(v.x - p.x, v.y - p.y) < 200); }
+  if (!bus) {
+    // geen bus op zijn lijn gespawnd: een gewone bus krijgt de lijn mee (alleen voor dit beeld)
+    if (wins) { teleport(wins.x, wins.y); for (let i = 0; i < 40 && document.querySelector('.ls.on:not(.out)'); i++) await sleep(500); }
+    for (let t = 0; t < 30 && !bus; t++) { await sleep(1000); bus = w.vehicles.find((v) => v.isBus && Math.hypot(v.x - p.x, v.y - p.y) < 250); }
+    const BR = await imp('busroutes');
+    if (bus && near) { bus.busRun = BR.makeRunner(near.l, BR.project(near.l, bus.x, bus.y).s, 1); info.push('busRun geforceerd'); await sleep(1500); }
+  }
   clearInterval(holdP);
   info.push('busRun ' + JSON.stringify(bus && bus.busRun ? { line: bus.busRun.line && (bus.busRun.line.ref || bus.busRun.line.name), dir: bus.busRun.dir } : null));
   info.push('bus ' + (bus ? 'gevonden ' + Math.round(bus.x) + ',' + Math.round(bus.y) : 'geen'));

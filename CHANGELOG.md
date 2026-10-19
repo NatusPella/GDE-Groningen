@@ -9,6 +9,7 @@ nieuwe functies, `y` voor alleen bugfixes.
 ### Verbeterd
 - **Overlays wachten op elkaar (#239, gezien in Electron op 1080p en 720p):** de plaatsnaam wacht nu ook onder de resultaatkaart, een keuzepaneel en een duelbalk; de personagenaam staat hoger en niet meer over de minimap of de straatnaam; een prestatie wacht in de rij tot de resultaatkaart weg is.
 - **Duif en wandeling (#241, gezien):** een lopende wandeling stopt netjes zodra je de duif start (de wandeling meldde zich als 'niet actief', waardoor hij werd overgeslagen). De telefoonkaarten schuiven onder de duif-HUD in plaats van eroverheen.
+- **Aanwijzingen (#92, #34):** de nog niet gevonden aanwijzingen staan als één regel ('12 nog te ontdekken') in plaats van twaalf keer '???'. In Electron bekeken: Aanwijzingen, Personages, Besturing met Controller, de Mislukt-kaart en de Dood- en Opgepakt-kaarten; de garage, prestaties en winkels (#170, drie typen) zagen er rustig uit. Nog niet gezien: touch, een echte controller en 4K.
 - **Reisprompt:** Esc en B op de controller sluiten het paneel met de standaardkeuze (#92; nog niet met een echte controller geprobeerd).
 - **Nagekeken, niets aangepast:** de resultaatkaart met lange waarden (#250), het richtingbord bij Winsum met een effen achterkant (#228) en het ene laadbalkje op het eerste laadscherm in Electron (#226) zijn in beeld bekeken en kloppen. De winkelinterieurs (#156) tonen nog steeds overal boekenkasten.
 
