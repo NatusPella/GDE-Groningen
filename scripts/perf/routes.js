@@ -294,6 +294,8 @@ results.routes.lek = await safe('lek', async () => {
   if (!ONLY.includes('lek')) return null;
   // textures that were uploaded while the route runs and not disposed since: grouped by size, format and name
   const alive = new Set();
+  const origCtx = HTMLCanvasElement.prototype.getContext;
+  HTMLCanvasElement.prototype.getContext = function (...a) { if (!this.__stk) this.__stk = (new Error().stack || '').split('\n').slice(2, 5).map((l) => l.trim().replace('at ', '').replace('app://game/js/', '')).join(' < '); return origCtx.apply(this, a); };
   const probeTex = (() => { let t = null; sc.scene.traverse((o) => { if (!t && o.material && o.material.map) t = o.material.map; }); return t; })();
   const ED = probeTex && Object.getPrototypeOf(Object.getPrototypeOf(probeTex));
   const origAdd = ED && ED.addEventListener;
@@ -305,8 +307,9 @@ results.routes.lek = await safe('lek', async () => {
     (c, t) => { const q = at(RING, (Math.max(0, t) * 22) % RING_LEN); const v = c.v; v.x = q.x; v.y = q.y; v.angle = q.ang; v.speed = t > 0 ? 22 : 0; v.vx = Math.cos(q.ang) * v.speed; v.vy = Math.sin(q.ang) * v.speed; w.camYaw = q.ang; },
     async (c) => { clearInterval(iv); p.exitVehicle(map, w); w.vehicles.splice(w.vehicles.indexOf(c.v), 1); }, { dur: 180000 });
   if (origAdd) ED.addEventListener = origAdd;
+  HTMLCanvasElement.prototype.getContext = origCtx;
   const groups = new Map();
-  for (const t of alive) { const im = t.image || {}; const k = (t.name || '') + ' ' + (im.width || (t.source && t.source.data && t.source.data.width) || '?') + 'x' + (im.height || '?') + ' f' + t.format + ' t' + t.type + (t.isCanvasTexture ? ' canvas' : '') + (t.isDataTexture ? ' data' : '') + (t.isCompressedTexture ? ' compressed' : '') + (t.generateMipmaps ? ' mips' : ''); groups.set(k, (groups.get(k) || 0) + 1); }
+  for (const t of alive) { const im = t.image || {}; const k = ((t.image && t.image.__stk) || '') + ' | ' + (t.name || '') + ' ' + (im.width || (t.source && t.source.data && t.source.data.width) || '?') + 'x' + (im.height || '?') + ' f' + t.format + ' t' + t.type + (t.isCanvasTexture ? ' canvas' : '') + (t.isDataTexture ? ' data' : '') + (t.isCompressedTexture ? ' compressed' : '') + (t.generateMipmaps ? ' mips' : ''); groups.set(k, (groups.get(k) || 0) + 1); }
   return { ...o, samples, aliveTextures: alive.size, aliveGroups: [...groups.entries()].sort((a, b) => b[1] - a[1]).slice(0, 25) };
 });
 // input to image: a synthetic W keydown to the first frame whose state moved (a software estimate: add one frame of display, no photodiode)
