@@ -237,4 +237,15 @@ t('desync: dezelfde toestand geeft geen alarm; een afwijkend wanted leidt na dri
   assert.ok(resync >= 1, 'hersync gevraagd');
   assert.equal(gw.wanted, 4, 'na de hersync heeft de gast het wanted van de host');
 });
+t('touch-client: een gast met een aanraakstick (analoge as, stick via padAxis) stuurt Tessa zacht of vol, en rent met de sprinttoets', () => {
+  const touch = (ax, ay, sprint) => ({ axis: () => [ax, ay], isDown: (k) => !!sprint && k === 'shift' });
+  const s = sessie(1, { gastExtra: [{ input: touch(0.4, 0, false) }] });
+  s.step(2);
+  const r = s.hw.coop.remoteInput;
+  assert.ok(r && Math.abs(r.mx - 0.4) < 0.02 && r.my === 0 && !(r.buttons & 1), 'halve stick komt als halve stick aan: ' + JSON.stringify(r));
+  s.gs[0].gw.input = touch(1, 0, true); s.step(1);
+  assert.ok(s.hw.coop.remoteInput.mx > 0.98 && (s.hw.coop.remoteInput.buttons & 1) === 1, 'volle stick met sprint');
+  s.gs[0].gw.input = touch(0, 0, false); s.step(1);
+  assert.equal(s.hw.coop.remoteInput.mx, 0); assert.equal(s.hw.coop.remoteInput.my, 0);
+});
 console.log(`coopnet_test: ${n}/${n} ok`);
