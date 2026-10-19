@@ -31,6 +31,7 @@ const BT = await imp('boattypes');
 const WL = await imp('waterlevels');
 const UT = await imp('util');
 const SL = await imp('sluizen');
+const S3 = await imp('sluizen3d');
 
 const skipper = setInterval(() => { if (!window.__slShot && cine.isCinematicActive()) cine.skipCinematic(); }, 100);
 w.devInvuln = true;
@@ -94,6 +95,12 @@ for (const q of want) {
     holdPos = null;
     p.enterVehicle(b, w);
     await sleep(600);
+    {
+      const v3 = S3._sluizenViewsForTest().get(k);
+      results[q.id + '-3d'] = v3 ? { zichtbaar: v3.group.visible, pos: [Math.round(v3.group.position.x), +v3.group.position.y.toFixed(2), Math.round(v3.group.position.z)], kinderen: v3.group.children.length } : 'geen view';
+      const gx = k.x + c * k.half * (q.side ? 1 : -1), gy = k.y + s * k.half * (q.side ? 1 : -1);
+      await shot(q.id + '-0b-deur', { position: { x: gx - c * 14 + -s * 16, y: gy - s * 14 + c * 16, z: 9 }, lookAt: { x: gx, y: gy, z: 1.5 }, cut: true });
+    }
     const t0 = performance.now();
     key('keydown', 'w', 'KeyW');
     let blockedFrames = 0, exited = false, minLift = 0, maxLift = 0, phases = [];
