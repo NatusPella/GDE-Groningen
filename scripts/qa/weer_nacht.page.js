@@ -5,6 +5,8 @@
 // frametijd-metingen (p50, p95, aantal haperingen) met de effecten aan. Tijd en weer worden elk frame vastgezet
 // (world.clock en het geforceerde pad van weather.js: timer >= 1e8), zodat de kloktijd niet doorloopt.
 const CFG = window.__wnCfg;
+// het spel kan op een drukke machine langer over het opstarten doen dan de driver wacht
+for (let i = 0; i < 900 && !(window.__debug && window.__debug.world && window.__debug.world.map && window.__scene3d); i++) await new Promise((res) => setTimeout(res, 100));
 const D = window.__debug; const w = D.world; const p = w.player; const map = w.map;
 const sc = window.__scene3d;
 const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
