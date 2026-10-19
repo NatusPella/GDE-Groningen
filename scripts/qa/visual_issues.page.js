@@ -372,6 +372,7 @@ for (const S of window.__vi.spots) {
       await go(lob.use[0], lob.use[1], lob.spawnAngle, 6000);
       hold = null;
       FUR.grantFurniture(FUR.FURNITURE.map((f) => f.id));
+      if (S.plekken) { const sv = FUR.getFurnitureSave(); sv.plekken = S.plekken; sv.built = ['kast']; FUR.applyFurnitureSave(sv); info.plekken = FUR.getFurnitureSave().plekken; }
       info.prompt = (HOME.homePrompt(w) || {}).id || null;
       for (let k = 0; k < 4 && !HOME.inHomeFlat(); k++) {
         for (const t of [window, document]) t.dispatchEvent(new KeyboardEvent('keydown', { key: 'e', code: 'KeyE', bubbles: true }));
