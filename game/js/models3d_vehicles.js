@@ -402,6 +402,7 @@ function assembleCar(type, L, W, paint, { police = false, ambulance = false, wre
   group.userData.wheels = wheels;
   group.userData.frontWheels = wheels.slice(0, 2);
   group.userData.wheelRadius = wheelR;
+  group.userData.loose.sierdoppen = hubcaps(wheels, wheelR);
   if (police || ambulance) {
     // the ambulance's lamps sit on the cab roof, just ahead of its roof box
     const barY = P.roof + (ambulance ? 0.07 : 0.14);
@@ -416,6 +417,19 @@ function assembleCar(type, L, W, paint, { police = false, ambulance = false, wre
     group.userData.policeLamps = lamps;
   }
   return group;
+}
+
+// Sierdoppen: een lichte schijf op elk wiel, samen één 'onderdeel' dat los kan raken (#205).
+const CAP_MAT = new THREE.MeshBasicMaterial({ color: 0xc4c8cc });
+function hubcaps(wheels, r) {
+  const geo = cached(`hubcap|${r}`, () => new THREE.CylinderGeometry(r * 0.5, r * 0.5, 0.03, 10, 1).rotateX(Math.PI / 2));
+  const caps = wheels.map((w) => {
+    const c = new THREE.Mesh(geo, CAP_MAT);
+    c.position.z = Math.sign(w.position.z || 1) * (WHEEL_W / 2 + 0.02);
+    w.add(c);
+    return c;
+  });
+  return { set visible(on) { for (const c of caps) c.visible = on; }, get visible() { return caps.length ? caps[0].visible : true; } };
 }
 
 function looseCarParts(type, L, W, paint, P, mats, group) {
@@ -434,6 +448,9 @@ function looseCarParts(type, L, W, paint, P, mats, group) {
       B.box(mx, P.belt + 0.1, s * (hw + 0.08), 0.1, 0.09, 0.14, paint);
       B.box(mx + 0.02, P.belt + 0.05, s * (hw + 0.02), 0.05, 0.04, 0.06, TRIM);
     }
+  });
+  make('uitlaat', (B) => {
+    for (const s of P.van ? [0.45] : [0.5, -0.5]) B.box(-hl - 0.08, 0.3, s * hw * 0.5, 0.22, 0.07, 0.09, 0x2a2a2c);
   });
   return parts;
 }

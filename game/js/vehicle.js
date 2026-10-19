@@ -37,7 +37,7 @@ import { MOPED_LEGAL_SPEED } from './motomodels.js';
 import { pickMotor, motorRoadAllowed, motorTarget } from './motortraffic.js';
 import { FLAGS } from './devflags.js';
 import { verkeerOpties } from './simlagen.js';
-import { SMOKE_HEALTH } from './vehicledamage.js';
+import { SMOKE_HEALTH, kapRookt } from './vehicledamage.js';
 import { createWheelie, stepWheelie } from './bewegingrules.js';
 export { MOTORBIKE_MODELS, GEARED_MOPED_MODEL, MOPED_LEGAL_SPEED } from './motomodels.js';
 
@@ -217,9 +217,9 @@ export class Vehicle {
   }
 
   // Pedal bike (player only): Ctrl held while pedalling lifts the front wheel (bewegingrules.js, #207).
-  rideFiets(dt, throttle, top) {
+  rideFiets(dt, throttle, top, brake = 0) {
     const w = this.wheelieState || (this.wheelieState = createWheelie());
-    stepWheelie(w, { trick: !!this.trick && !this.disabled, throttle, speed: this.speed, top, dt });
+    stepWheelie(w, { trick: !!this.trick && !this.disabled, throttle, brake, speed: this.speed, top, dt });
     this.pitch = w.pitch;
     this.wheelie = w.up;
     if (w.up) this.speed *= w.slow;
@@ -349,7 +349,7 @@ export class Vehicle {
       }
     }
 
-    if (isPlayer && this.isBike && !m.motorbike) this.rideFiets(dt, throttle, top);
+    if (isPlayer && this.isBike && !m.motorbike) this.rideFiets(dt, throttle, top, brake);
     if (isPlayer && m.motorbike) this.rideMotorbike(dt, throttle, gb, top, absSpeed, normalizeAngle(this.angle - oldAngle) / (dt || 1));
 
     this.x += Math.cos(this.angle) * this.speed * dt;
@@ -1021,7 +1021,7 @@ export function manageTrafficPopulation(world, opts = {}) {
   while (count < target && candidates.length && guard++ < target * 4) {
     const road = candidates[Math.floor(Math.random() * candidates.length)];
     const mid = road.pts[Math.floor(road.pts.length / 2)];
-    let pick = pickTrafficCar(map, mid[0], mid[1]);
+    let pick = pickTrafficCar(map, mid[0], mid[1], Math.random, { hour: hourOf(world) });
     for (const k of ['ambulance', 'taxi', 'cashvan', 'newsvan']) {
       if (have[k] < want[k] && Math.random() < (k === 'cashvan' ? 0.08 : k === 'newsvan' ? 0.1 : 0.25)) { pick = { kind: k, model: carModel(k) }; break; }
     }
@@ -3077,7 +3077,7 @@ export function vehicleNeedsFireEffect(v, time = 0) {
 }
 
 // Damaged but not yet burning (vehicledamage.js, #205): only the smoke of the effect, no flames.
-const smokes = (v) => !v.isBike && !v.isScooter && !v.isBoat && !v.isHeli && !v.sinking && v.health <= SMOKE_HEALTH;
+const smokes = (v) => !v.isBike && !v.isScooter && !v.isBoat && !v.isHeli && !v.sinking && (v.health <= SMOKE_HEALTH || kapRookt(v, v.model.len, v.model.wid));
 export function vehicleSmokeOnly(v) {
   return !v.wrecked && !v.disabled && v.health > VEHICLE_FIRE_HEALTH_THRESHOLD && smokes(v);
 }

@@ -138,6 +138,7 @@ export const VEHICLE_STOCK = {
   koopman: { kind: 'car', type: 'Stationwagen', shop: 'auto', label: 'Reitdiep Koopman', desc: 'Stationwagen voor de hele familie', price: 1150, nameIdx: 0, color: '#2e4a34', model: CAR_M('wagon', 4.5, 1.8, 47, 9, 15, 2.5) },
   klusbus: { kind: 'car', type: 'Bestelbus', shop: 'auto', label: 'Oldambt Klusbus', desc: 'Bestelbus: ramt alles opzij', price: 1300, nameIdx: 0, color: '#d9d9d9', model: CAR_M('van', 5.0, 2.0, 38, 7, 13, 2.0) },
   wervelwind: { kind: 'car', type: 'Sportwagen', shop: 'auto', label: 'Wadden Wervelwind', desc: 'Sportwagen. Rap as de wind over de dijk', price: 2400, nameIdx: 0, color: '#c9a227', model: CAR_M('sport', 4.1, 1.85, 64, 14, 24, 3.2) },
+  trekker: { kind: 'car', type: 'Trekker', shop: 'auto', label: 'Ommelander Trekker "Stuurse Henk"', desc: 'Langzaam, onverwoestbaar en nooit te laat bij de oogst', price: 1500, nameIdx: 0, color: '#3f7d3a', model: CAR_M('tractor', 4.3, 2.3, 11, 6.5, 11, 1.9, { offroad: 0.9 }) },
   // --- two-wheelers ---
   transportfiets: { kind: 'bike', type: 'Fiets', shop: 'fietsen', label: 'Transportfiets', desc: 'Rek voorop voor een krat bier of een tweede student', price: 95, nameIdx: 1, color: '#23324a', model: { name: 'bike', len: 1.9, wid: 0.55, maxSpeed: 5.8, accel: 2.9, brake: 5.6, turnRate: 4.3 } },
   barrel: { kind: 'bike', type: 'Fiets', shop: 'fietsen', label: 'Studentenbarrel', desc: 'Geen remmen, geen bel, wel een verhaal', price: 35, nameIdx: 0, color: '#6b2a24', model: { name: 'bike', old: true, len: 1.75, wid: 0.5, maxSpeed: 5.4, accel: 2.8, brake: 4.2, turnRate: 4.4 } },
@@ -238,18 +239,23 @@ export const BOAT_UPGRADES = [
   { id: 'roer', label: 'Groot roer', desc: 'Scherper om de bocht, ook in de smalle grachten', price: 180, mult: { turnRate: 1.2 } },
   { id: 'keerkoppeling', label: 'Snelle keerkoppeling', desc: 'Volle kracht achteruit: veel eerder stil', price: 140, mult: { brake: 1.4 } },
 ];
+// Zeilboten hebben geen motor: de top komt uit de wind, maar sturen en optrekken zijn te verbeteren.
+export const SAIL_UPGRADES = [
+  { id: 'roer', label: 'Diep roer', desc: 'Scherper door de wind en de smalle grachten', price: 180, mult: { turnRate: 1.2 } },
+  { id: 'lier', label: 'Zeillier "Snelle Jan"', desc: 'Zeil sneller aangehaald: eerder op snelheid', price: 240, mult: { accel: 1.3 } },
+];
 export const PADDLE_UPGRADES = [
   { id: 'peddels', label: 'Carbon peddels', desc: 'Licht als een veertje: +20% top, +25% trekkracht', price: 60, mult: { maxSpeed: 1.2, accel: 1.25 } },
 ];
 const PADDLED = new Set(['kano', 'kajak', 'waterfiets', 'sup', 'skiff']);
 const isSailBoat = (v) => !!(v && v.isBoat && v.model && v.model.sail);
 function upgradeListFor(v) {
-  if (v && v.isBoat) return isSailBoat(v) ? [] : PADDLED.has(v.model.kind) ? PADDLE_UPGRADES : BOAT_UPGRADES;
+  if (v && v.isBoat) return isSailBoat(v) ? SAIL_UPGRADES : PADDLED.has(v.model.kind) ? PADDLE_UPGRADES : BOAT_UPGRADES;
   return isTwoWheeler(v) ? (isMotorised(v.model) ? MOTO_UPGRADES : BIKE_UPGRADES) : CAR_UPGRADES;
 }
 export function upgradeListForStock(spec) {
-  if (spec.kind === 'boat') return spec.model && (spec.model.sail || spec.model.zeil) ? [] : PADDLED.has(spec.model && spec.model.kind) ? PADDLE_UPGRADES : BOAT_UPGRADES;
-  return spec.kind === 'car' ? CAR_UPGRADES : isMotorised(spec.model) ? MOTO_UPGRADES : BIKE_UPGRADES;
+  if (spec.kind === 'boat') return spec.model && (spec.model.sail || spec.model.zeil) ? SAIL_UPGRADES : PADDLED.has(spec.model && spec.model.kind) ? PADDLE_UPGRADES : BOAT_UPGRADES;
+  return spec.kind === 'car' || spec.kind === 'heli' ? CAR_UPGRADES : isMotorised(spec.model) ? MOTO_UPGRADES : BIKE_UPGRADES;
 }
 
 // Motorbikes and the geared moped. On the moped the exhaust lifts it past the legal 45 km/h: the police notice.
@@ -648,7 +654,7 @@ const isCar = (v) => paintableVehicle(v) && !v.isBike && !v.isScooter;
 function workshopFor(world) {
   const v = world.player.inVehicle;
   if (!v || Math.abs(v.speed) > 2) return null;
-  const type = isTwoWheeler(v) ? 'fietsenmaker' : isCar(v) ? 'tuning' : v.isBoat && !v.wrecked && !isSailBoat(v) ? 'boot' : null;
+  const type = isTwoWheeler(v) ? 'fietsenmaker' : isCar(v) ? 'tuning' : v.isBoat && !v.wrecked ? 'boot' : null;
   if (!type) return null;
   for (const s of shops) {
     if (s.type !== type) continue;

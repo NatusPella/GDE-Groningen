@@ -1761,6 +1761,10 @@ types go in `GOALS` in story.js), set `PARTS.<part>.open = true`, then run
 `--story-test` (it plays every open step, checks who plays each one and
 ends at the last open part's card).
 
+## Vehicles (`vehicleregister.js`)
+
+A new vehicle is a full game object or it does not ship. `game/js/vehicleregister.js` is the one register of vehicle models (the `model.name` of `vehicle.js`); a model is complete when it (1) is in the register, (2) can be bought or collected (`VEHICLE_STOCK` in `shops.js`: shop, garage, unlock or find), (3) can be upgraded (`upgradeListForStock`, tuning, paint), (4) spawns at random (traffic weight per neighbourhood in `trafficfleet.js` with a time-of-day factor `hourFactor`, or its own manager such as buses, boats or the countryside), and (5) appears in cutscenes only as a model from the register. A model that truly cannot meet a point (public transport, a rented attraction) carries an `uitzondering` with the reason. `scripts/vehicleregister_test.mjs` checks all of this against the code and fails on a model literal (`name`, `len`, `wid`) that is not in the register, so adding a vehicle starts with a register entry.
+
 ## Car banter
 
 `banter.js` plays the exchanges in `banterlines.js` while Tammo and Tessa
