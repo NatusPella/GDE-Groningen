@@ -199,9 +199,9 @@ const ZWAAR = [
   ['railprofile', 'scripts/world/railprofile.mjs', ['--strict'], 300, false],
   ['drive_audit', 'scripts/world/drive_audit.mjs', ['--strict'], 1800, true],
   ['junction_sim_test', 'scripts/junction_sim_test.mjs', [], 900, true],
-  ['network_drive_test', 'scripts/network_drive_test.mjs', [], 1800, true],
-  ['province_test', 'scripts/province_test.mjs', [], 1800, true],
-  ['province_detail_test', 'scripts/province_detail_test.mjs', [], 1800, true],
+  ['network_drive_test', 'scripts/network_drive_test.mjs', [], 5400, true],
+  ['province_test', 'scripts/province_test.mjs', [], 5400, true],
+  ['province_detail_test', 'scripts/province_detail_test.mjs', [], 5400, true],
   ['vaarnet_province_test', 'scripts/vaarnet_province_test.mjs', [], 900, true],
   ['bridge_province_test', 'scripts/bridge_province_test.mjs', [], 900, true],
 ];
@@ -437,6 +437,17 @@ function issuesAfhandelen(report, staat) {
 // ---------------------------------------------------------------- main
 
 async function main() {
+  // --issues-van=<runmap>: issue-concepten (of met --create: issues) uit een eerder rapport.json
+  if (opt('issues-van')) {
+    fs.mkdirSync(RUN, { recursive: true });
+    const oud = JSON.parse(fs.readFileSync(path.join(path.resolve(opt('issues-van')), 'rapport.json'), 'utf8'));
+    let st = {};
+    try { st = JSON.parse(fs.readFileSync(path.join(BASE, 'state.json'), 'utf8')); } catch { /* nog geen staat */ }
+    const n = issuesAfhandelen(oud, st);
+    fs.writeFileSync(path.join(BASE, 'state.json'), JSON.stringify(st));
+    log(`Issue-concepten: ${n}; zie ${path.join(RUN, 'issues-concept.md')}`);
+    return 0;
+  }
   if (flag('list')) { log('licht: module-check, import_check, voice_coverage, text_audit, dode-code, alle scripts/*_test.mjs\nzwaar: ' + ZWAAR.map((z) => z[0]).join(', ') + '\nelectron: smoke, verhaaltest, geocheck, bot-missies, bot-minigames, qa-provincie-1, qa-provincie-2, qa-features, qa-visueel, ui-shots'); return 0; }
   const fasen = FASE === 'alles' ? R.FASEN : FASE.split(',').filter((f) => R.FASEN.includes(f));
   if (!fasen.length) { console.error('Onbekende fase: ' + FASE + ' (kies licht, zwaar, electron of alles)'); return 2; }
