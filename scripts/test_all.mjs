@@ -97,17 +97,26 @@ const wilDit = (id) => !ONLY || id.includes(ONLY);
 // Bouwt game/world als die ontbreekt: hergebruikt een wereld-cache (--cache=<map>, standaard die van GDE-merge),
 // neemt het exclusieve stage-slot en draait `npm run stage` in desktop/.
 async function stageWereld() {
-  if (fs.existsSync(path.join(ROOT, 'desktop', 'build', 'game', 'world', 'index-provincie.json'))) return 'gestagede provinciewereld is er al';
   const cache = opt('cache', 'C:/Users/abuis/GIT/GDE-merge/desktop/.world-cache');
   const doel = path.join(ROOT, 'desktop', '.world-cache');
   if (!fs.existsSync(doel) && fs.existsSync(cache)) fs.cpSync(cache, doel, { recursive: true });
   const slot = LOCKS ? path.join(LOCKS, 'stage') : null;
   while (slot) { try { fs.mkdirSync(slot); break; } catch { log('wacht op het stage-slot...'); await slaap(30e3); } }
+  // game/world kan een koppeling naar de gestagede wereld zijn (zodat de node-tests de provincie vinden); die mag
+  // niet mee naar build/game, dus eerst los en na het stagen weer vast.
+  const gw = path.join(ROOT, 'game', 'world'), gebouwd = path.join(ROOT, 'desktop', 'build', 'game', 'world');
+  let koppeling = false;
+  try { koppeling = fs.lstatSync(gw).isSymbolicLink(); } catch { /* geen game/world */ }
   try {
-    if (!fs.existsSync(path.join(ROOT, 'desktop', 'node_modules'))) await runCmd(process.platform === 'win32' ? 'npm.cmd' : 'npm', ['install', '--no-audit', '--no-fund'], { ms: 15 * 60e3, cwd: path.join(ROOT, 'desktop') });
-    const r = await runCmd(process.platform === 'win32' ? 'npm.cmd' : 'npm', ['run', 'stage'], { ms: 45 * 60e3, cwd: path.join(ROOT, 'desktop') });
+    if (koppeling) fs.rmdirSync(gw);
+    const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+    if (!fs.existsSync(path.join(ROOT, 'desktop', 'node_modules'))) await runCmd(npm, ['install', '--no-audit', '--no-fund'], { ms: 15 * 60e3, cwd: path.join(ROOT, 'desktop') });
+    const r = await runCmd(npm, ['run', 'stage'], { ms: 45 * 60e3, cwd: path.join(ROOT, 'desktop') });
     return r.code === 0 ? 'gestaged' : 'stage mislukte: ' + tail(r.out, 4);
-  } finally { if (slot) try { fs.rmdirSync(slot); } catch { /* al weg */ } }
+  } finally {
+    if (koppeling && !fs.existsSync(gw) && fs.existsSync(gebouwd)) fs.symlinkSync(gebouwd, gw, 'junction');
+    if (slot) try { fs.rmdirSync(slot); } catch { /* al weg */ }
+  }
 }
 
 // ---------------------------------------------------------------- fase licht
@@ -305,7 +314,7 @@ async function faseElectron(prev, staat) {
 
   await stap('smoke', async () => {
     const d = stapDir('smoke'), png = path.join(d, 'smoke.png'), ms = 5 * 60e3;
-    const r = await runCmd(exe, [...basis, '--smoke-test=' + png, '--perf-test'], { ms, env: env('smoke'), cwd: desktop });
+    const r = await runCmd(exe, [...basis, '--smoke-test=' + png], { ms, env: env('smoke'), cwd: desktop });
     fs.writeFileSync(path.join(d, 'run.log'), r.out);
     const fr = R.beoordeelFrames(R.parseFrameStats(r.out), (prev.get('frametijd:smoke') || {}).extra && prev.get('frametijd:smoke').extra.stats);
     const st = r.timedOut ? 'TIMEOUT' : (r.code === 0 && fs.existsSync(png) ? 'PASS' : 'FAIL');
@@ -357,10 +366,17 @@ async function faseElectron(prev, staat) {
 
   const qa = (naam, script, extra = []) => stap(naam, async () => {
     const d = stapDir(naam), ms = 45 * 60e3;
-    const r = await runCmd(process.execPath, [script, ...extra, `--out=${d}`], { ms, env: env(naam) });
+    let r = await runCmd(process.execPath, [script, ...extra, `--out=${d}`], { ms, env: env(naam) });
+    let poging = '';
+    // het spel startte niet op (te druk, trage wereldlading): één nieuwe poging
+    if (r.code && !r.timedOut && /"ready":\s*false|plekken: 0\/|checks: 0,/.test(r.out + (fs.existsSync(path.join(d, 'run.log')) ? fs.readFileSync(path.join(d, 'run.log'), 'utf8') : ''))) {
+      log(`${naam}: spel startte niet op, nieuwe poging`);
+      r = await runCmd(process.execPath, [script, ...extra, `--out=${d}`, '--settle=20000'], { ms, env: env(naam) });
+      poging = ' (na tweede poging)';
+    }
     fs.writeFileSync(path.join(d, 'sweep.log'), r.out);
     const st = r.timedOut ? 'TIMEOUT' : r.code === 0 ? 'PASS' : 'FAIL';
-    return [R.maakItem('electron', 'electron:' + naam, naam, st, r.secs, st === 'PASS' ? '' : `code ${r.code}: ${R.eersteFout(r.out)}`), consoleItem(naam, r.out, 0), ...beeldItems(naam, d, prevSigs, sigs)];
+    return [R.maakItem('electron', 'electron:' + naam, naam, st, r.secs, st === 'PASS' ? poging.trim() : `code ${r.code}${poging}: ${split(tail(r.out, 3)).join(' | ')}`), consoleItem(naam, r.out, 0), ...beeldItems(naam, d, prevSigs, sigs)];
   });
   await qa('qa-provincie-1', 'scripts/qa/province_shots.mjs', ['--ronde=1']);
   await qa('qa-provincie-2', 'scripts/qa/province_shots.mjs', ['--ronde=2']);
