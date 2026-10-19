@@ -22,7 +22,7 @@ const report = [];
 const log = (ok, what, extra = '') => { const l = `${ok ? 'ok  ' : 'FOUT'} ${what}${extra ? ' - ' + extra : ''}`; console.log(l); report.push(l); };
 const adb = adbTool();
 
-const HERVAT = flag('--hervat'); // verder met het draaiende spel (geen install, geen nieuw spel)
+const HERVAT = flag('--hervat') || flag('--alleen-opslaan'); // verder met het draaiende spel (geen install, geen nieuw spel)
 if (!flag('--no-install') && !HERVAT) {
   adb('install', '-r', path.join(OUT, 'gde-groningen-debug.apk'));
   adb('shell', 'pm', 'clear', PKG);
@@ -92,12 +92,16 @@ const adbBin = path.join(toolEnv().sdk, 'platform-tools', process.platform === '
 // echte schermafdruk (ook de 3D-wereld; Page.captureScreenshot toont het WebGL-canvas zwart)
 const screenshot = async (name) => fs.writeFileSync(path.join(DIR, name + '.png'), execFileSync(adbBin, ['exec-out', 'screencap', '-p'], { maxBuffer: 1 << 27 }));
 
+// alleen tikken als het 'Tik om te beginnen'-scherm er nog is (anders raakt de tik een menuregel)
+async function tikOmTeBeginnen() {
+  if (await ev(`/Tik om te beginnen/.test(document.body.innerText) && !document.querySelector('.ss-item')`)) { await d.tap(60, 300); await sleep(1500); }
+}
 let s;
 if (!HERVAT) {
 // --- 1. start en nieuw spel ---
 // eerst 'Tik om te beginnen' (start ook het geluid), dan het menu
 if (!(await waitFor(`/Tik om te beginnen/.test(document.body.innerText) || !!document.querySelector('.ss-item')`, 240000, 'laadscherm klaar'))) process.exit(1);
-if (!(await ev(`!!document.querySelector('.ss-item')`))) { await d.tap(433, 206); await sleep(1500); }
+await tikOmTeBeginnen();
 if (!(await waitFor(`!!document.querySelector('.ss-item')`, 60000, 'startmenu'))) process.exit(1);
 log(true, 'startscherm met touch-UI');
 if (await ev(`!!document.querySelector('.ss-news:not([hidden])')`)) { await d.tapEl('.ss-news-close'); await sleep(1200); }
@@ -142,6 +146,8 @@ await screenshot('3-lopen');
 
 }
 
+const SAVEONLY = flag('--alleen-opslaan'); // alleen sectie 5, vanaf het startmenu met een bestaande stand
+if (!SAVEONLY) {
 // --- 4. M01 spelen: naar de bakkie, instappen, rijden naar de markeringen, alles met aanrakingen ---
 const full = async () => JSON.parse(await ev(`(() => { const w = __debug.world, p = w.player, v = p.inVehicle, m = w.mission || {}, c = document.getElementById('cine');
   const mk = m.phase === 'active' && m.marker ? { x: m.marker.x, y: m.marker.y } : w.storyGuide ? { x: w.storyGuide.x, y: w.storyGuide.y } : null;
@@ -220,9 +226,13 @@ log(!!fin.step && fin.step.id !== 'M01', 'M01 afgerond met touch', fin.step && f
 await screenshot('5-einde-m01');
 
 
+}
+if (SAVEONLY) { await continueGame(); await sleep(4000); }
 // --- 5. opslaan, app doden, opnieuw starten, Doorgaan; daarna dezelfde stand onder de oude sleutel (migratie) ---
 const snap = () => ev(`(() => { const w = __debug.world, p = w.player; return JSON.stringify({ x: Math.round(p.x), y: Math.round(p.y), money: w.money, step: __story.current() && __story.current().id }); })()`).then(JSON.parse);
-const saveRaw = () => ev(`localStorage.getItem('gde-save-v1') || localStorage.getItem('gde-dev:gde-save-v1') || ''`);
+// de sleutel krijgt het verhaal-achtervoegsel (gde-save-v1-nieuw); de herstelkopie (gde-save-herstel-...) is een andere sleutel
+const saveKey = () => ev(`Object.keys(localStorage).find((k) => /^(gde-dev:)?(gde|gte)-save-v1/.test(k)) || ''`);
+const saveRaw = async () => { const k = await saveKey(); return k ? ev(`localStorage.getItem(${JSON.stringify(k)})`) : ''; };
 await stick(0, 0); await releasePedals();
 if (await ev(`!!document.getElementById('cine')?.classList.contains('active')`)) { await button(/overslaan/i, 2300); await sleep(1500); }
 const before = await snap();
@@ -249,26 +259,31 @@ async function restartApp() {
   d = null;
   for (let i = 0; i < 60 && !d; i++) { try { d = await connect(); } catch (e) { await sleep(3000); } }
   await waitFor(`/Tik om te beginnen/.test(document.body.innerText) || !!document.querySelector('.ss-item')`, 240000, 'laadscherm klaar na herstart');
-  if (!(await ev(`!!document.querySelector('.ss-item')`))) { await d.tap(433, 206); await sleep(1500); }
+  await tikOmTeBeginnen();
   await waitFor(`!!document.querySelector('.ss-item')`, 60000, 'startmenu na herstart');
   if (await ev(`!!document.querySelector('.ss-news:not([hidden])')`)) { await d.tapEl('.ss-news-close'); await sleep(1200); }
 }
 async function continueGame() {
+  await waitFor(`/Tik om te beginnen/.test(document.body.innerText) || !!document.querySelector('.ss-item')`, 240000, 'laadscherm klaar');
+  await tikOmTeBeginnen();
+  if (await ev(`!!document.querySelector('.ss-news:not([hidden])')`)) { await d.tapEl('.ss-news-close'); await sleep(1200); }
+  await waitFor(`!!document.querySelector('.ss-item[data-act="continue"]')`, 30000, 'Doorgaan in het menu');
+  for (let i = 0; i < 10 && !(await d.center('.ss-item[data-act="continue"]')); i++) await sleep(1500);
   await d.tapEl('.ss-item[data-act="continue"]');
   return waitFor(`document.body.classList.contains('game-started')`, 90000, 'Doorgaan start het spel');
 }
 await restartApp();
 const kept = await saveRaw();
-log(kept.length === raw1.length, 'spelstand overleeft het afsluiten van de app', kept.length + ' tekens');
+log(kept.length > 100 && kept === raw1, 'spelstand overleeft het afsluiten van de app', kept.length + ' tekens');
 log(await continueGame(), 'Doorgaan laadt de spelstand');
 await sleep(4000);
 const after = await snap();
 log(after.step === before.step && Math.abs(after.money - before.money) < 1, 'stap en geld na laden gelijk', JSON.stringify(before) + ' -> ' + JSON.stringify(after));
 await screenshot('7-geladen');
 // migratie: een stand onder de oude sleutel (gte-save-v1) moet nog steeds laden
-const key = await ev(`(() => { const k = localStorage.getItem('gde-save-v1') ? 'gde-save-v1' : 'gde-dev:gde-save-v1'; const v = localStorage.getItem(k); localStorage.setItem(k.replace('gde-', 'gte-'), v); localStorage.removeItem(k); return k; })()`);
+const key = await ev(`(() => { const k = Object.keys(localStorage).find((k) => /^gde-save-v1/.test(k)); const v = localStorage.getItem(k); localStorage.setItem(k.replace('gde-', 'gte-'), v); localStorage.removeItem(k); return k; })()`);
 await restartApp();
-const migrated = await ev(`!!(localStorage.getItem('gde-save-v1') || localStorage.getItem('gde-dev:gde-save-v1'))`);
+const migrated = (await saveKey()).startsWith('gde-');
 log(migrated, 'oude sleutel gte-save-v1 migreert naar ' + key);
 log(await continueGame(), 'Doorgaan werkt na migratie');
 
