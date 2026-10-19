@@ -7,6 +7,8 @@
 //   decor:   een los voorwerp (geen voertuig, geen dier): mag een eenvoudig blokvormig prop zijn
 // Een soort die hier niet staat, of in PLACEHOLDER_KINDS, valt door de validatie.
 
+import { DIEREN } from './dierenregister.js';
+
 export const PROP_SOURCES = {
   auto: { vehicle: 'escort' },                      // de Escapade (HERO_CAR_MODEL)
   bestelbus: { vehicle: 'van', color: '#e8e6e0' },
@@ -14,8 +16,8 @@ export const PROP_SOURCES = {
   trekker: { vehicle: 'tractor' },
   politie: { vehicle: 'police' },
   fiets: { vehicle: 'bike' },
-  duif: { animal: 'pigeon' },
-  kat: { animal: 'cat' },
+  // dieren komen uit het dierenregister (#193): elk dier met een cutscene-soort
+  ...Object.fromEntries(DIEREN.filter((d) => d.cutscene).map((d) => [d.cutscene, { animal: d.kind, dier: d.id }])),
 };
 
 export const DECOR_KINDS = ['doos', 'tas', 'radio', 'bord', 'koffer', 'bal', 'matras', 'automaat', 'duiventil', 'zuil', 'klembord'];
@@ -24,7 +26,7 @@ export const DECOR_KINDS = ['doos', 'tas', 'radio', 'bord', 'koffer', 'bal', 'ma
 export const PLACEHOLDER_KINDS = ['aanhanger'];
 
 export const VEHICLE_MODEL_NAMES = ['escort', 'van', 'tractor', 'police', 'bike'];
-export const ANIMAL_KINDS = ['pigeon', 'cat'];
+export const ANIMAL_KINDS = DIEREN.filter((d) => d.cutscene).map((d) => d.kind);
 
 export const propSource = (kind) => PROP_SOURCES[kind] || null;
 export const isDecor = (kind) => DECOR_KINDS.includes(kind);

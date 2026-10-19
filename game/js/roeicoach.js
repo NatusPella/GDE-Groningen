@@ -6,9 +6,22 @@
 import { spawnVehicleOnRoad } from './vehicle.js';
 
 export const COACH_REACH = 22;    // m: een weg verder van de boot dan dit telt niet als oever
+export const COACH_REACH_FAR = 45; // m: tweede poging, voor een oever met een fietspad iets verder weg
 export const COACH_LEAD = 18;     // m vóór de boot
 export const COACH_DROP = 60;     // m: verder dan dit achter, de coach is hem kwijt
 export const COACH_NEAR = 160;    // m van de speler: alleen dan is er een coach
+
+// Is dit een weg voor een coach? Een rustig weggetje, geen drukke weg.
+export const coachRoadOk = (rp) => !!rp && !!rp.road && rp.road.cat !== 'major' && !(rp.road.width > 9);
+
+// De weg langs de oever: eerst dichtbij, daarna ruimer. find(afstand) geeft een wegpunt of null.
+export function coachRoadFor(find) {
+  for (const r of [COACH_REACH, COACH_REACH_FAR]) {
+    const rp = find(r);
+    if (coachRoadOk(rp)) return rp;
+  }
+  return null;
+}
 
 // doel voor de coach: LEAD m vóór de boot in zijn vaarrichting
 export function coachGoal(boat, lead = COACH_LEAD) {
@@ -40,8 +53,8 @@ export function tickRowingCoaches(world) {
   for (const b of vehicles) {
     if (!b.isBoat || !b.model || b.model.kind !== 'acht' || b.hasCoach || b.driver === 'player' || b.wrecked) continue;
     if (Math.hypot(b.x - player.x, b.y - player.y) > COACH_NEAR) continue;
-    const rp = map.nearestRoadPoint(b.x, b.y, COACH_REACH, true);
-    if (!rp || rp.road.cat === 'major' || rp.road.width > 9) continue;   // een fietser op een drukke weg: nee
+    const rp = coachRoadFor((r) => map.nearestRoadPoint(b.x, b.y, r, true));
+    if (!rp) continue;   // geen rustige weg langs het water: geen coach
     const c = spawnVehicleOnRoad(map, rp.road, false, Math.random, true, false, rp);
     c.coachOf = b;
     c.aiOpts = { goal: coachGoal(b) };
