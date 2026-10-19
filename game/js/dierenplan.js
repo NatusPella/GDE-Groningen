@@ -19,10 +19,10 @@ export const SPECIES = {
   schaap: { habitat: 'dijk', density: 5, group: [3, 8], flee: 9, speed: 3.2, move: 'lopen', sound: 'sheep' },
   gans: { habitat: 'weide', density: 4, group: [3, 9], flee: 14, speed: 9, move: 'vliegen', sound: 'duck' },
   meeuw: { habitat: 'kust', density: 4, group: [2, 6], flee: 10, speed: 8, move: 'vliegen', sound: 'seagull' },
-  reiger: { habitat: 'water', density: 1, group: [1, 1], flee: 16, speed: 7, move: 'vliegen', sound: null },
+  reiger: { habitat: 'water', density: 1, group: [1, 1], flee: 16, speed: 7, move: 'vliegen', sound: 'heron' },
   eend: { habitat: 'water', density: 3, group: [2, 5], flee: 6, speed: 4, move: 'zwemmen', sound: 'duck' },
-  vis: { habitat: 'water', density: 6, group: [4, 10], flee: 5, speed: 3, move: 'duiken', sound: null },
-  zeehond: { habitat: 'wad', density: 2, group: [2, 6], flee: 18, speed: 3.5, move: 'duiken', sound: null },
+  vis: { habitat: 'water', density: 6, group: [4, 10], flee: 5, speed: 3, move: 'duiken', sound: 'fish' },
+  zeehond: { habitat: 'wad', density: 2, group: [2, 6], flee: 18, speed: 3.5, move: 'duiken', sound: 'seal' },
 };
 export const SPECIES_IDS = Object.keys(SPECIES);
 
@@ -113,7 +113,7 @@ export function calmed(sinceFleeing, distToMover, kind) {
   return !sp || sinceFleeing > CALM_AFTER || distToMover > sp.flee * 2.5;
 }
 
-// Geluid: de ambience.js-sleutel voor een soort of null. Zeehond en vis zijn stil tot er een sample voor is.
+// Geluid: de ambience.js-sleutel voor een soort of null. Reiger, zeehond en vis hebben een eigen synth-klank in sfx/dsp.js.
 export const soundOf = (kind) => (SPECIES[kind] ? SPECIES[kind].sound : null);
 
 // --- aansluiting op wildlife.js ------------------------------------------------------------
