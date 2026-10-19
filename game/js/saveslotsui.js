@@ -113,7 +113,7 @@ export function openSaveSlots(opts = {}) {
     const thumb = S.readThumb(null, s.n);
     const bad = s.state === 'kapot' || s.state === 'nieuwer' || s.state === 'ander-verhaal';
     const chips = [];
-    if (s.active) chips.push('<span class="ssl-chip on" title="Het spel slaat vanzelf op in deze savegame">Autosave</span>');
+    if (s.active) chips.push('<span class="ssl-chip on" title="Het spel slaat vanzelf op in dit opgeslagen spel">Autosave</span>');
     if (s.state === 'hersteld') chips.push('<span class="ssl-chip warn">Hersteld</span>');
     if (bad) chips.push('<span class="ssl-chip warn">Kan niet laden</span>');
     const pic = thumb ? `<img src="${thumb}" alt="" draggable="false">` : `<span class="ssl-nopic">${svg(IC.tammo, 'ssl-nopic-ic')}</span>`;
@@ -133,22 +133,22 @@ export function openSaveSlots(opts = {}) {
     `<span class="ssl-body"><span class="ssl-nm">Lege plek</span><span class="ssl-part mut">${mode === 'start' ? 'Begin een nieuw spel' : 'Bewaar je spel hier'}</span></span></button>`;
 
   const detailHtml = (cur) => {
-    if (!cur) return '<p class="mut ssl-hint">Nog geen savegames. Begin een nieuw spel of importeer een savegame uit een bestand.</p>';
+    if (!cur) return '<p class="mut ssl-hint">Nog geen opgeslagen spellen. Begin een nieuw spel of importeer een opgeslagen spel uit een bestand.</p>';
     const sm = cur.summary;
     const head = `<h2 class="m-h2 ssl-h">${esc(cur.name)}</h2>`;
     const warn = cur.state !== 'ok'
-      ? `<p class="ssl-warn" role="alert">${esc(S.stateText(cur.state))}.${cur.state === 'hersteld' ? ' Je savegame was beschadigd; de vorige opslag is teruggezet. Sla opnieuw op om het te bevestigen.' : cur.state === 'kapot' ? ' Verwijder deze savegame, of importeer een eerder gemaakt bestand op een nieuwe plek.' : ''}</p>` : '';
+      ? `<p class="ssl-warn" role="alert">${esc(S.stateText(cur.state))}.${cur.state === 'hersteld' ? ' Je opgeslagen spel was beschadigd; de vorige opslag is teruggezet. Sla opnieuw op om het te bevestigen.' : cur.state === 'kapot' ? ' Verwijder dit opgeslagen spel, of importeer een eerder gemaakt bestand op een nieuwe plek.' : ''}</p>` : '';
     if (view === 'rename') {
       return `${head}<label class="ssl-lbl">Nieuwe naam<input class="ssl-input" data-grp="pane" data-input maxlength="${S.NAME_MAX}" value="${esc(cur.name)}" autocomplete="off"></label>` +
         '<div class="m-acts ssl-presets" aria-label="Snelle namen (ook met de controller)">' + NAME_PRESETS.map((nm) => '<button type="button" class="m-bg" data-grp="pane" data-do="preset" data-name="' + esc(nm) + '">' + esc(nm) + '</button>').join('') + '</div>' +
         '<div class="m-acts"><button type="button" class="m-bp" data-grp="pane" data-do="rename-ok">Bewaren</button><button type="button" class="m-bt" data-grp="pane" data-do="back">Annuleren</button></div>';
     }
     if (view === 'delete') {
-      return `${head}<div class="ssl-confirm"><p>Deze savegame verwijderen? Ook de herstelkopie gaat weg. Dit kan niet ongedaan worden gemaakt.</p>` +
+      return `${head}<div class="ssl-confirm"><p>Dit opgeslagen spel verwijderen? Ook de herstelkopie gaat weg. Dit kan niet ongedaan worden gemaakt.</p>` +
         '<div class="m-acts"><button type="button" class="m-bt" data-grp="pane" data-do="back">Nee, bewaren</button><button type="button" class="m-bg danger" data-grp="pane" data-do="delete-ok">Ja, spel verwijderen</button></div></div>';
     }
     if (view === 'overwrite') {
-      return `${head}<div class="ssl-confirm"><p>Je huidige spel komt over deze savegame heen. Weet je het zeker?</p>` +
+      return `${head}<div class="ssl-confirm"><p>Je huidige spel komt over dit opgeslagen spel heen. Weet je het zeker?</p>` +
         '<div class="m-acts"><button type="button" class="m-bt" data-grp="pane" data-do="back">Nee</button><button type="button" class="m-bg danger" data-grp="pane" data-do="overwrite-ok">Ja, overschrijven</button></div></div>';
     }
     const loadable = !!sm;
@@ -219,18 +219,18 @@ export function openSaveSlots(opts = {}) {
     if (act === 'import') { file.value = ''; file.click(); return; }
     if (act === 'load' && cur) {
       if (mode === 'start') {
-        if (!readSave(cur.n)) { say('Deze savegame kan niet geladen worden.'); return; }
+        if (!readSave(cur.n)) { say('Dit opgeslagen spel kan niet geladen worden.'); return; }
         S.setActive(null, cur.n);
         close(() => { if (opts.onLoad) opts.onLoad(cur.n); });
       } else if (loadSlot(world, cur.n)) {
         close(() => { if (opts.onLoad) opts.onLoad(cur.n); });
-      } else say('Deze savegame kan niet geladen worden.');
+      } else say('Dit opgeslagen spel kan niet geladen worden.');
       return;
     }
     if (act === 'copy' && cur) {
       const r = S.copySlot(null, cur.n);
       if (!r.ok) { say(r.why === 'vol' ? S.importErrorText('vol') : 'Kopiëren mislukt.'); return; }
-      sel = r.n; view = 'detail'; message = `Gekopieerd als "${r.name}". Je eerste savegame is niet veranderd.`; render('pane');
+      sel = r.n; view = 'detail'; message = `Gekopieerd als "${r.name}". Het origineel is niet veranderd.`; render('pane');
       return;
     }
     if (act === 'save-here' && cur) {
@@ -258,14 +258,14 @@ export function openSaveSlots(opts = {}) {
     }
     if (act === 'export' && cur) {
       const ex = S.exportSlot(null, cur.n);
-      if (!ex.ok) { say('Deze savegame kan niet geëxporteerd worden.'); return; }
+      if (!ex.ok) { say('Dit opgeslagen spel kan niet geëxporteerd worden.'); return; }
       try { download(ex.filename, ex.text); say(`Bestand gemaakt: ${ex.filename}`); } catch (e) { say('Exporteren mislukt.'); }
       return;
     }
     if (act === 'delete' && cur) { view = 'delete'; render('pane'); return; }
     if (act === 'delete-ok' && cur) {
       view = 'detail';
-      message = S.deleteSlot(null, cur.n) ? 'Savegame verwijderd.' : 'Verwijderen mislukt.';
+      message = S.deleteSlot(null, cur.n) ? 'Opgeslagen spel verwijderd.' : 'Verwijderen mislukt.';
       render();
     }
   };
