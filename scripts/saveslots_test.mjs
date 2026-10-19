@@ -31,7 +31,7 @@ ok(slotKey(2).startsWith('gde-'), 'slot keys are gde-*');
 // names and text
 ok(S.cleanName('  Mijn   <b>save</b>\n') === 'Mijn b save /b', 'cleanName strips markup and whitespace', S.cleanName('  Mijn   <b>save</b>\n'));
 ok(S.cleanName('x'.repeat(100)).length === S.NAME_MAX, 'name length capped');
-ok(S.cleanName('', 'Savegame 3') === 'Savegame 3', 'fallback name');
+ok(S.cleanName('', 'Opgeslagen spel 3') === 'Opgeslagen spel 3', 'fallback name');
 ok(S.formatPlaytime(0) === 'net begonnen' && S.formatPlaytime(540) === '9 min' && S.formatPlaytime(3725) === '1 u 02 min' && S.formatPlaytime(NaN) === 'net begonnen', 'formatPlaytime');
 ok(S.exportFileName('Mijn Grunn-save!', new Date('2026-08-01T10:00:00Z')) === 'gde-save-mijn-grunn-save-2026-08-01.json', 'export file name');
 
@@ -41,7 +41,7 @@ ok(S.exportFileName('Mijn Grunn-save!', new Date('2026-08-01T10:00:00Z')) === 'g
   const text = JSON.stringify(save(500));
   ls.setItem(KEYS.save, text);
   const l = S.listSlots(ls);
-  ok(l.length === 1 && l[0].n === 1 && l[0].active && l[0].name === 'Savegame 1' && l[0].state === 'ok', 'old save appears as slot 1');
+  ok(l.length === 1 && l[0].n === 1 && l[0].active && l[0].name === 'Opgeslagen spel 1' && l[0].state === 'ok', 'old save appears as slot 1');
   ok(l[0].summary.money === 500 && l[0].summary.playSeconds === 3725 && l[0].summary.missionsDone === 2, 'summary');
   ok(ls.getItem(KEYS.save) === text, 'listing does not change the save');
   ok(S.activeSlot(ls) === 1, 'active is 1 without a list');
@@ -116,13 +116,13 @@ ok(S.exportFileName('Mijn Grunn-save!', new Date('2026-08-01T10:00:00Z')) === 'g
   S.renameSlot(ls, 1, 'Eerste');
   ok(S.nameOf(ls, 1) === 'Eerste', 'rename');
   S.renameSlot(ls, 1, '');
-  ok(S.nameOf(ls, 1) === 'Savegame 1', 'empty rename gives the default name');
+  ok(S.nameOf(ls, 1) === 'Opgeslagen spel 1', 'empty rename gives the default name');
   S.setActive(ls, 1);
   ok(S.activeSlot(ls) === 1, 'setActive');
   ok(S.deleteSlot(ls, 1) && ls.getItem(slotKey(1)) === null && ls.getItem(slotRecoveryKey(1)) === null, 'delete removes save and recovery copy');
   ok(S.activeSlot(ls) === 2 && S.listSlots(ls).length === 1, 'active moves to a slot that is left');
   ls.setItem(KEYS.saveSlots, '{"active":99,"names":{"x":"a","2":5}}');
-  ok(S.activeSlot(ls) === 1 && S.nameOf(ls, 2) === 'Savegame 2', 'garbage list is tolerated');
+  ok(S.activeSlot(ls) === 1 && S.nameOf(ls, 2) === 'Opgeslagen spel 2', 'garbage list is tolerated');
   ls.setItem(KEYS.saveSlots, 'nonsense');
   ok(S.activeSlot(ls) === 1, 'unparsable list is tolerated');
 }
@@ -184,7 +184,7 @@ ok(S.exportFileName('Mijn Grunn-save!', new Date('2026-08-01T10:00:00Z')) === 'g
   ok(S.readThumb(ls, 1) === '', 'junk in the thumbnail key is ignored');
   S.writeThumb(ls, 1, jpg);
   const cp = S.copySlot(ls, 1);
-  ok(cp.ok && cp.n === 2 && S.nameOf(ls, 2) === 'Savegame 1 (kopie)' && S.readThumb(ls, 2) === jpg, 'copy: new slot, name, thumbnail');
+  ok(cp.ok && cp.n === 2 && S.nameOf(ls, 2) === 'Opgeslagen spel 1 (kopie)' && S.readThumb(ls, 2) === jpg, 'copy: new slot, name, thumbnail');
   ok(S.readSlot(ls, 2).data.money === 5 && S.readSlot(ls, 1).data.money === 5, 'copy keeps the original');
   ok(!S.copySlot(ls, 5).ok, 'copy of an empty slot');
   const c3 = S.createSlot(ls, 'x', 6);

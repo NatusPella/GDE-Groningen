@@ -12,7 +12,7 @@ import { KEYS, MAX_SLOTS, slotKey, slotRecoveryKey, slotThumbKey } from './stora
 import { migrateSave, savedArc, SAVE_VERSION } from './savemigrate.js';
 import { ARC_ID } from './storyarc.js';
 
-export const NAME_MAX = 24;
+export const NAME_MAX = 28;
 export const FILE_KIND = 'GDE-save';
 // a save of this size or more is not ours (a real one is some tens of kB)
 export const MAX_IMPORT_CHARS = 2_000_000;
@@ -30,7 +30,7 @@ export function cleanName(s, fallback = '') {
   return t || fallback;
 }
 
-export const defaultName = (n) => `Savegame ${n}`;
+export const defaultName = (n) => `Opgeslagen spel ${n}`;
 
 // 3725 -> '1 u 02 min', 540 -> '9 min', 0 -> 'net begonnen'
 export function formatPlaytime(sec) {
@@ -243,7 +243,7 @@ export function copySlot(ls, n) {
   const to = freeSlot(ls);
   if (!to) return { ok: false, why: 'vol' };
   if (!writeSlot(ls, to, r.data)) return { ok: false, why: 'opslaan' };
-  const name = cleanName(`${nameOf(ls, n).slice(0, NAME_MAX - 9)} (kopie)`);
+  const name = cleanName(`${nameOf(ls, n).slice(0, NAME_MAX - 8)} (kopie)`);
   const idx = readIndex(ls);
   idx.names[to] = name;
   writeIndex(ls, idx);
