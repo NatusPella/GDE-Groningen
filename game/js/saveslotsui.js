@@ -4,6 +4,9 @@
 // on the same buttons. The storage side is saveslots.js; the world side savegame.js.
 import * as S from './saveslots.js';
 import { MAX_SLOTS } from './storagekeys.js';
+
+// snelle namen: hernoemen kan zo ook met alleen een controller (geen schermtoetsenbord)
+const NAME_PRESETS = ['Hoofdspel', 'Proefrit', 'Voor de missie', 'Veilig', 'Zomerrit', 'Reservekopie'];
 import { saveGame, loadSlot, readSave, startNewSlot, bindSlot } from './savegame.js';
 
 const DESKTOP = typeof window !== 'undefined' && window.gdeDesktop && window.gdeDesktop.isDesktop ? window.gdeDesktop : null;
@@ -97,6 +100,7 @@ export function openSaveSlots(opts = {}) {
     const loadable = !!sm;
     if (view === 'rename') {
       return `<h2 class="m-h2 ssl-h">${esc(cur.name)}</h2><label class="ssl-lbl">Nieuwe naam<input class="ssl-input" data-grp="pane" data-input maxlength="${S.NAME_MAX}" value="${esc(cur.name)}" autocomplete="off"></label>` +
+        '<div class="m-acts ssl-presets" aria-label="Snelle namen (ook met de controller)">' + NAME_PRESETS.map((nm) => '<button type="button" class="m-bg" data-grp="pane" data-do="preset" data-name="' + esc(nm) + '">' + esc(nm) + '</button>').join('') + '</div>' +
         '<div class="m-acts"><button type="button" class="m-bp" data-grp="pane" data-do="rename-ok">Bewaren</button><button type="button" class="m-bt" data-grp="pane" data-do="back">Annuleren</button></div>';
     }
     if (view === 'delete') {
@@ -224,6 +228,7 @@ export function openSaveSlots(opts = {}) {
     const b = e.target.closest && e.target.closest('button');
     if (!b || b.disabled || !rootEl.contains(b)) return;
     if (b.dataset.slot) { sel = Number(b.dataset.slot); view = 'detail'; message = ''; render(); return; }
+    if (b.dataset.do === 'preset') { const inp = rootEl.querySelector('[data-input]'); if (inp) { inp.value = b.dataset.name || ''; doAction('rename-ok'); } return; }
     if (b.dataset.do) doAction(b.dataset.do);
   });
 
