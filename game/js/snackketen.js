@@ -120,7 +120,8 @@ export const SNACKKETEN = {
       income: () => totalIncomePerMin(chain),
     };
   },
-  spots: () => spots.filter((s) => chain.outlets[s.id]).map((s) => ({ id: s.id, name: `${CHAIN_NAME} vestiging`, x: s.x, y: s.y })),
+  // op de kaart alleen je eigen vestigingen; de spotcheck (all) en de bot krijgen elke snackbar
+  spots: (all = false) => spots.filter((s) => all || chain.outlets[s.id]).map((s) => ({ id: s.id, name: `${CHAIN_NAME} vestiging`, x: s.x, y: s.y })),
   prompt(w) {
     if (isShopOpen() || w.player.inVehicle || w.player.swimming) return null;
     const s = nearest(w);
