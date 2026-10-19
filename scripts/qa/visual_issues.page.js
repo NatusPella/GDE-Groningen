@@ -365,6 +365,28 @@ for (const S of window.__vi.spots) {
         holds.splice(holds.indexOf(hold), 1);
         w.vehicles.splice(w.vehicles.indexOf(v), 1);
       }
+    } else if (S.type === 'flat') {
+      // #206: de flat met alle EIKEA-meubels, van boven en op ooghoogte
+      const HOME = await imp('home'); const FUR = await imp('furniture');
+      const lob = HOME.getHome().lobby;
+      await go(lob.use[0], lob.use[1], lob.spawnAngle, 6000);
+      hold = null;
+      FUR.grantFurniture(FUR.FURNITURE.map((f) => f.id));
+      info.prompt = (HOME.homePrompt(w) || {}).id || null;
+      for (let k = 0; k < 4 && !HOME.inHomeFlat(); k++) {
+        for (const t of [window, document]) t.dispatchEvent(new KeyboardEvent('keydown', { key: 'e', code: 'KeyE', bubbles: true }));
+        await sleep(150);
+        for (const t of [window, document]) t.dispatchEvent(new KeyboardEvent('keyup', { key: 'e', code: 'KeyE', bubbles: true }));
+        await sleep(3000);
+      }
+      info.inFlat = HOME.inHomeFlat();
+      const f = HOME.getHome().flat;
+      const zf = (w.player.gz || 0) + (w.player.z || 0);
+      const at = (lx, lz) => f.fl(lx, lz);
+      const c = at(5.5, 4.5), a = at(5.5, 9.5), b = at(0.2, 2.5);
+      await shot(S.name + '-boven', { position: { x: c[0], y: c[1], z: zf + 13 }, lookAt: { x: c[0] + 0.01, y: c[1], z: zf }, cut: true }, 2500);
+      await shot(S.name + '-schuin', { position: { x: a[0], y: a[1], z: zf + 5.5 }, lookAt: { x: c[0], y: c[1], z: zf + 0.5 }, cut: true }, 1800);
+      info.player = [Math.round(w.player.x), Math.round(w.player.y)];
     } else if (S.type === 'cutscenes') {
       // #224, #117, #157: real story scenes, played through the game: the step is jumped to, the player is teleported to the
       // mission start and E is pressed there; while a cinematic runs, a screenshot every 3 s (up to 5) and the world sounds

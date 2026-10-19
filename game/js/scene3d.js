@@ -3174,6 +3174,8 @@ function applyTimeOfDay(dt, world) {
   // a cutscene's own grade on top of the clock's (intromontage.js: the dawn shot)
   if (world.lightMood) world.lightMood(L);
   const storm = world.weather ? Math.min(1, Math.max(0, world.weather.intensity)) : 0;
+  // stars and moon vanish behind cloud and mist too, not only in rain (weer/nacht-controle: a starry sky above 'bewolkt' and 'mist')
+  const cover = world.weather ? Math.min(1, Math.max(storm, (world.weather.overcast || 0) * 1.5, world.weather.mist || 0)) : 0;
 
   sunDir.copy(L.lightDir);
   sun.color.copy(L.sun);
@@ -3194,7 +3196,7 @@ function applyTimeOfDay(dt, world) {
   }
   u.uMoonDir.value.copy(L.moonDir);
   u.uMoonPhase.value = moonPhase(world.calendar ? world.calendar.day : 1);
-  u.uMoonStrength.value = Math.min(1, L.night * 1.4) * (1 - storm * 0.85);
+  u.uMoonStrength.value = Math.min(1, L.night * 1.4) * (1 - cover * 0.85);
   u.uGlowColor.value.copy(L.glow);
   u.uGlowDir.value.copy(L.sunDir);
   lightBase.glow = L.glowI;
@@ -3204,7 +3206,7 @@ function applyTimeOfDay(dt, world) {
   lightBase.daylight = L.daylight;
 
   renderer.toneMappingExposure = L.exp;
-  setStarOpacity(skyDome, L.night * (1 - storm));
+  setStarOpacity(skyDome, L.night * (1 - cover));
   setNightFactor(1.5 * L.night, litFraction('wonen', L.hour), litFraction('winkel', L.hour), litFraction('kantoor', L.hour));
   farLod.setNight(1.5 * L.night, litFraction('wonen', L.hour));
   setCountryNight(1.5 * L.night, litFraction('wonen', L.hour));

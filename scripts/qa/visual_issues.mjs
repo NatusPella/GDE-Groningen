@@ -99,6 +99,7 @@ const SPOTS = [
   { name: 'y-delen', type: 'voertuigdelen', issue: 225, ...place('Winsum') },
   // #207: zwemmen; #205: schadefases
   { name: 'y5-zwemmen', type: 'zwemmen', issue: 207, ...place('Zuidhorn'), R: 1500 },
+  { name: 'y5-flat', type: 'flat', issue: 206, ...place('Winsum') },
   { name: 'y5-schade', type: 'schadefases', issue: 205, ...place('Winsum') },
   // #224, #117, #157: echte scenes (opening-missie, M02 shot 6, een achtervolging, een akte-4 scene)
   { name: 'z-scenes', type: 'cutscenes', issue: 224, ...gm, ids: ['M01', 'M02', 'M21', 'M18'] },
