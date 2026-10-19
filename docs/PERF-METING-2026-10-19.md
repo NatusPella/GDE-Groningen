@@ -187,3 +187,23 @@ PERF_ONLY=lek node scripts/perf/run.mjs lek "--preset=quality:hoog,shadows:true,
 ```
 
 `PERF_LOCKS=<map>` neemt een Electron-slot (mkdir-protocol) tijdens de run; `PERF_LOCK_POLL=5000` wacht korter tussen pogingen; `PERF_ONLY`, `PERF_DUR`, `PERF_DIAG=1` en `PERF_PROFILE=<routes>` (met `GDE_PROFILE_OUT=<map>`) werken zoals in `run.sh`. Uitvoer: `$PERF_OUT/<naam>.json` en `.log`.
+
+## Vervolg: optimaliseren (zelfde dag)
+
+Wat is onderzocht en wat het opleverde. Alles met `routes.js` (nieuwe routes `census`, `cost`, `staan`, en een texture-telling in `lek`).
+
+- **Geen textureleak (#248 bijgewerkt).** In de `lek`-run zijn de 84 nieuw geüploade textures die na 90 tot 180 s nog leven: 36 tot 41 skeletdata-textures van 8x8 (de botten van de zichtbare skinned voetgangers), 18 x 256x128 en 18 x 128x64 canvas-textures van de Discgolf-baan (`discgolf.js` `holeSign`, `basketMesh`: de baan wordt één keer gebouwd zodra je binnen `DETAIL_M` komt en nooit afgebroken), en enkele borden van museum, zwembad, skatepark en straatnaamborden (die laatste worden wel vrijgegeven). De groei van 135 naar 204 textures is dus de eenmalige bouw van activiteitslocaties langs de ring, geen onbegrensde groei. Goedkope winst die overblijft: de 36 Discgolf-textures delen in één atlas.
+- **Het pauzemenu rendert al op lagere frequentie** (`main.js` `MENU_FRAME_S`, 30 of 20 fps achter een menu). Het knelpunt "pauze rendert door" in #248 is daarmee grotendeels al opgelost; wat overblijft is de 9 ms per gerenderde frame.
+- **Scene-walk.** Census op de voetroute: 6600 tot 7000 nodes in de scene, 4800 daarvan met `matrixAutoUpdate`; `scene.updateMatrixWorld(true)` kost 2,7 tot 2,8 ms per aanroep (laag), ruim 7% van het frame. Het CPU-profiel geeft `updateMatrixWorld` 7,3% self, `projectObject` 4%, `intersectsObject` 2,5%. De grootste groepen zijn de wildlife-dieren (6 groepen van 169 nodes) en de personen en voertuigen (dynamisch). Een groot deel vastzetten kan, maar levert hooguit 1 tot 1,5 ms; niet gedaan.
+- **Stilstaan versus lopen.** Stilstaand in het centrum (hoog): 793 draw calls, 23 ms per frame; lopend: 705 calls, 28 ms. Alleen de losse wegmeshes (57 per frame onderweg) verdwijnen bij stilstaan: de batchers komen er stilstaand wel aan toe, onderweg niet.
+- **Batcher-budget (gedaan).** `scene3d.js`: de gebouwbatcher mocht 2 ms per frame samenvoegen en de wegbatcher 1 ms; nu allebei 3 ms. Gemeten met afwisselend voor/na (3 paren, hoog, foot en ring):
+
+  | route | voor (3 runs) | na (3 runs) |
+  |---|---|---|
+  | ring gem. ms | 26,8 / 31,8 / 29,7 | 23,6 / 26,5 / 23,9 |
+  | foot gem. ms | 37,7 / 32,1 / 61,8 | 31,3 / 63,8 / 37,0 |
+
+  Ring wordt in alle drie de paren sneller (mediaan 29,7 naar 23,9 ms), foot is binnen de ruis (twee uitschieters van 62 en 64 ms, één in elke groep). Niet bewezen voor de p99; de A/B draaide op de gestagede build van de nacht en is niet opnieuw gedaan op de nieuwste main.
+- **Schaduwen: niet bewezen.** Een directe meting (30 renders met en zonder schaduwen) gaf 16,1 ms tegen 9,3 ms, maar na het opnieuw aanmaken van de schaduwkaart ook op 4096 nog 10,6 ms (en 2048 en 1024 evenzo): de eerste meting was een opwarm-effect. Schaduwen kosten dus ongeveer 1 ms in dit pad (9,3 tegen 10,6), niet 6 ms. Het schaduwgebied is al smal (32 tot 40 m) en slaat al passes over bij `cpuLevel` 1+.
+- **De machine was later rustiger:** dezelfde `foot`-route op hoog gaf 28,5 ms (35 fps) in de A/B-runs van de nacht, tegen 42,8 ms (23 fps) in de eerste volledige runs. De getallen in de tabellen hierboven zijn dus pessimistisch door concurrentie; de verhoudingen blijven. Een lege machine meten blijft nodig.
+- **Wat niet gelukt is:** een winst in draw calls per tegel op de voetroute. De drie grote eigenaren (building-batch 63 tot 87, terrein 43, losse gebouwen 36 tot 39) zijn gebatcht of tegelgebonden; verder samenvoegen is een groter werk (#246).
