@@ -402,7 +402,7 @@ export function runStartScreen(world, { render, relocate, tick }) {
     const items = [];
     if (save) items.push({ act: 'continue', label: 'Doorgaan', sub: summaryText(save) });
     items.push({ act: 'new', label: 'Nieuw spel', sub: save ? 'Begin opnieuw in Grunn' : 'Moi! Stap in en rij' });
-    items.push({ act: 'saves', label: 'Spelstanden', sub: 'Kies, hernoem, exporteer of verwijder je spelstanden' });
+    items.push({ act: 'saves', label: 'Savegames', sub: 'Kies, hernoem, exporteer of verwijder je savegames' });
     items.push({ act: 'news', label: 'Wat is er nieuw', sub: 'Alle versies en wijzigingen' });
     items.push({ act: 'settings', label: 'Instellingen', sub: 'Geluid, beeld en camera' });
     items.push({ act: 'about', label: 'Over', sub: 'Credits, licenties en privacy' });
@@ -490,7 +490,7 @@ export function runStartScreen(world, { render, relocate, tick }) {
       const b = buttons[items.findIndex((it) => it.act === 'new')];
       b.classList.toggle('confirm', on);
       b.querySelector('.ss-label').textContent = on ? 'Zeker weten?' : 'Nieuw spel';
-      b.querySelector('small').textContent = on ? 'Enter nog een keer: je spelstand wordt gewist' : items.find((it) => it.act === 'new').sub;
+      b.querySelector('small').textContent = on ? 'Enter nog een keer: je savegame wordt gewist' : items.find((it) => it.act === 'new').sub;
     };
     const restoreWorld = () => {
       world.menuCam = false;
