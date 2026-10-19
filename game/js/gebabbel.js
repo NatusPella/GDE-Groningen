@@ -7,7 +7,7 @@
 //   area  stad | hogeland | eemsdelta | wadden | westerkwartier | oldambt | veenkolonien
 //   part  ochtend | middag | avond | nacht, of null voor elk moment
 //   wet   droog | regen | mist | onweer, of null voor elk weer
-// Eén of twee regels per gesprek; ondertitelen kan met de sprekerslabels.
+// Eén tot drie regels per gesprek; ondertitelen kan met de sprekerslabels.
 
 export const AREAS = ['stad', 'hogeland', 'eemsdelta', 'wadden', 'westerkwartier', 'oldambt', 'veenkolonien'];
 export const PARTS = ['ochtend', 'middag', 'avond', 'nacht'];
@@ -97,6 +97,21 @@ export const GEBABBEL = [
   G('v-r1', 'veenkolonien', null, 'regen', ['Boer', 'Het veld drinkt, wij kijken toe.']),
   G('v-w1', 'veenkolonien', null, 'mist', ['Schipper', 'Mist op het diep. Ik vaar op het gevoel.'], ['Maat', 'Dat is ook je enige.']),
   G('v-w2', 'veenkolonien', null, 'onweer', ['Boer', 'Dit komt van ver. Dat zie je aan de lucht.']),
+  // --- langere gesprekken (#190): drie regels, een kleine wending ---
+  G('s-x1', 'stad', 'middag', null, ['Toerist', 'Waar is de Vismarkt?'], ['Student', 'Daar, maar de vis is al weg.'], ['Toerist', 'Wat staat er dan?']),
+  G('s-x2', 'stad', 'avond', 'droog', ['Fietser', 'Mijn slot is kapot.'], ['Maat', 'Dan zet je hem tegen de brug.'], ['Fietser', 'Dat deed ik gisteren. Hij is nu van de brug.']),
+  G('h-x1', 'hogeland', 'middag', null, ['Boer', 'Zie je die wolk?'], ['Buurman', 'Die komt hier nooit.'], ['Boer', 'Nee, hij blijft gewoon staan.']),
+  G('h-x2', 'hogeland', 'ochtend', null, ['Wandelaar', 'Is dit het pad naar de kerk?'], ['Schaapherder', 'Alles is het pad naar de kerk, als je lang genoeg loopt.'], ['Wandelaar', 'Dat is niet erg geruststellend.']),
+  G('e-x1', 'eemsdelta', 'middag', null, ['Havenarbeider', 'Dat schip is groter dan gisteren.'], ['Kraamhouder', 'Dat is hetzelfde schip.'], ['Havenarbeider', 'Dan is de haven kleiner.']),
+  G('e-x2', 'eemsdelta', 'avond', null, ['Visser', 'Wat voor weer wordt het?'], ['Maat', 'Nat.'], ['Visser', 'Dat zei je gisteren ook.']),
+  G('w-x1', 'wadden', 'middag', null, ['Wadloper', 'Is het al eb?'], ['Gids', 'Nog niet.'], ['Wadloper', 'Waarom staat mijn schoen dan al vol?']),
+  G('w-x2', 'wadden', 'avond', 'droog', ['Toerist', 'Wanneer vaart de laatste boot?'], ['Schipper', 'Als hij vol is.'], ['Toerist', 'En als hij niet vol raakt?']),
+  G('k-x1', 'westerkwartier', 'middag', null, ['Fruitteler', 'Deze appels zijn mooi dit jaar.'], ['Klant', 'Ze zijn nog groen.'], ['Fruitteler', 'Dat is hun kleur, dat noemen we mooi.']),
+  G('k-x2', 'westerkwartier', 'avond', null, ['Fietser', 'Waar gaat dit fietspad heen?'], ['Boer', 'Naar de volgende bocht.'], ['Fietser', 'En daarna?']),
+  G('o-x1', 'oldambt', 'middag', null, ['Boer', 'Kijk, de graanvelden golven.'], ['Fietser', 'Ik dacht dat dat de wind was.'], ['Boer', 'Wind en graan hebben afspraken.']),
+  G('o-x2', 'oldambt', 'ochtend', null, ['Bakker', 'Eén brood of twee?'], ['Klant', 'Eén.'], ['Bakker', 'Je komt toch terug, neem er twee.']),
+  G('v-x1', 'veenkolonien', 'middag', null, ['Kanaalbewoner', 'Dat is de Hoofdvaart.'], ['Toerist', 'Waar is dan de rest van de vaart?'], ['Kanaalbewoner', 'Die is hier, je kijkt er al uren naar.']),
+  G('v-x2', 'veenkolonien', 'avond', null, ['Aardappelboer', 'De oogst is goed.'], ['Buurman', 'Hoe goed?'], ['Aardappelboer', 'Zo goed dat ik moe ben van het vertellen.']),
 ];
 
 // --- daypart, weather and area -------------------------------------------------------------
