@@ -28,7 +28,7 @@ const AVOID_R = 1.2;
 const AVOID_CELL = 3;
 const PAIR_SPACING = 0.85;
 
-export const pedNavStats = {
+const pedNavStats = {
   planned: 0, failed: 0, totalLen: 0, planMsMax: 0, planMsTotal: 0,
   arrivals: 0, entered: 0, crossWaits: 0, replans: 0, stuckSkips: 0, queue: 0,
   crossings: 0, atSite: 0, detours: 0, detourExtra: 0, zebraCross: 0, benchSits: 0,

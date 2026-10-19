@@ -144,7 +144,7 @@ function disposeTree(o) {
   });
 }
 
-export function buildScriptRun(def, scene, anchor, env = null, w = null) {
+function buildScriptRun(def, scene, anchor, env = null, w = null) {
   const group = new THREE.Group();
   group.name = 'cutscript-' + def.id;
   const actors = {}, props = {};

@@ -22,7 +22,7 @@ let game = null;
 let board = null;
 
 // A bell: the tower's own bell sample (sfx layer) at the pitch of this bell.
-export function playBell(w, bell, vel = 1) {
+function playBell(w, bell, vel = 1) {
   pushAudioEvent(w, { kind: 'bell_note', x: w.player.x, y: w.player.y, rate: bellHz(bell) / BELL_REF_HZ, gain: vel });
 }
 

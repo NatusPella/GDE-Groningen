@@ -4,8 +4,8 @@
 // flap the music: it starts after CHASE_START_S of continuous pursuit and
 // stops CHASE_STOP_S after the police lost you.
 
-export const CHASE_START_S = 2;
-export const CHASE_STOP_S = 6;
+const CHASE_START_S = 2;
+const CHASE_STOP_S = 6;
 
 export function createScenarioDirector() {
   let chaseOn = false;

@@ -74,7 +74,7 @@ const JELLE_CHALLENGES = ['bruggen', 'fierljep', 'skutsje'];
 // amount (moneyBackup) when there is one, else an estimate from what the
 // progress paid out minus what was spent in shops and garages. Owned
 // vehicles are not subtracted; at least MIN_RESTORE.
-export function estimateLostMoney(d) {
+function estimateLostMoney(d) {
   if (Number.isFinite(d.moneyBackup) && d.moneyBackup >= 0) return Math.floor(d.moneyBackup);
   let earned = START_MONEY;
   const defs = getMissionDefs() || [];
@@ -94,7 +94,7 @@ export function estimateLostMoney(d) {
 }
 
 // shown once when a save of the first version of the story is opened (#187)
-export const OUD_GEMIGREERD_TEKST = 'Het oude verhaal is vervangen door het nieuwe. Je geld, spullen, voertuigen, prestaties en instellingen zijn bewaard; het verhaal begint opnieuw bij het begin.';
+const OUD_GEMIGREERD_TEKST = 'Het oude verhaal is vervangen door het nieuwe. Je geld, spullen, voertuigen, prestaties en instellingen zijn bewaard; het verhaal begint opnieuw bij het begin.';
 
 // The save of a slot (the active one by default), migrated; null when it is empty, broken,
 // from a newer game or (readSlot). A broken slot with a recovery
@@ -133,7 +133,7 @@ export function hasSave() {
 }
 
 // Where the story of a save stands: the part, the step to play and how far the part is.
-export function storySummary(d) {
+function storySummary(d) {
   try {
     const done = new Set(d.story && Array.isArray(d.story.done) ? d.story.done : []);
     const passed = new Set(d.missions && Array.isArray(d.missions.completed) ? d.missions.completed : []);
@@ -156,7 +156,7 @@ export function getSaveSummary() {
   return { slot: activeSlot(), name: nameOf(null, activeSlot()), playSeconds: Math.max(0, num(d.speeltijd, 0)), arc: savedArc(d), money: num(d.money, 0), missionsDone: done, savedAt: num(d.savedAt, 0), character: d.character === 'anita' ? 'Tessa' : 'Tammo', story: storySummary(d), goal: d.doel && typeof d.doel.name === 'string' ? d.doel.name : '' };
 }
 
-export function clearSave() {
+function clearSave() {
   keepNewerSave();
   try { localStorage.removeItem(slotKey(saveTarget())); } catch (e) { /* ignore */ }
 }

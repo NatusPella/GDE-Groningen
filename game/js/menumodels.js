@@ -3,13 +3,13 @@
 // row stays selected after a filter change, and the orderings of the Prestaties tabs. garageui.js
 // and achievementsui.js only draw what these return; scripts/menumodels_test.mjs covers them.
 
-export const GARAGE_CATS = [
+const GARAGE_CATS = [
   ['all', 'Alles'], ['autos', "Auto's"], ['bussen', 'Bussen'], ['fietsen', 'Fietsen'],
   ['scooters', 'Scooters'], ['boten', 'Boten'], ['luchtvaart', 'Lucht'], ['speciaal', 'Speciaal'],
 ];
 export const GARAGE_FILTERS = [['all', 'alles'], ['owned', 'van jou'], ['sale', 'te koop'], ['locked', 'op slot']];
 export const GARAGE_SORTS = [['naam', 'Op naam'], ['prijs', 'Op prijs'], ['snelheid', 'Op snelheid']];
-export const GARAGE_GROUPS = ['owned', 'sale', 'locked'];
+const GARAGE_GROUPS = ['owned', 'sale', 'locked'];
 const BIG_TYPES = new Set(['Bestelbus', 'Vrachtwagen', 'Midibus', 'Stadsbus', 'Tankwagen', 'Geldwagen']);
 
 // Story/achievement unlocks are "Speciaal", whatever they drive like.

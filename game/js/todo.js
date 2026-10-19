@@ -418,7 +418,7 @@ function closeDialog(go) {
   if (go && fn) fn();
 }
 
-export function confirmPlayAhead(world, ahead, onGo) {
+function confirmPlayAhead(world, ahead, onGo) {
   if (!dlg) dlg = buildDialog();
   const el = dlg.el;
   el.querySelector('#ga-title').textContent = `${ahead.code} nu al spelen?`;

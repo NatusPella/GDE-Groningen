@@ -22,7 +22,7 @@ const solids = [];
 // The villages' uitjes and eierballen and the sites of De Koe are picked on the
 // tiles round them: in the background after the start, one place at a time,
 // each with its tiles loaded for that moment (tileplace.js withTiles).
-export async function prepareOmmeland(w = world) {
+async function prepareOmmeland(w = world) {
   if (!w || !w.map.store) return;
   await prepareKoeSites(w.map);
   await prepareCountryStations(w.map);

@@ -35,7 +35,7 @@ import { zwemStand, klimStand, sprongStand } from './bewegingrules.js';
 
 const TAU = Math.PI * 2;
 export const HIP_Y = 0.93;
-export const CHEST_Y = 1.07;
+const CHEST_Y = 1.07;
 export const SEAT_CONTACT = HIP_Y - 0.09;
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -88,7 +88,7 @@ export function pointAt(pts, d) {
 
 // ---- gebaren bij praten ----------------------------------------------------------
 
-export const GESTURES = ['open', 'beide', 'wijs', 'hakken', 'knik', 'schouder'];
+const GESTURES = ['open', 'beide', 'wijs', 'hakken', 'knik', 'schouder'];
 
 // Verdeelt gebaren over de regeltijd: bij elke komma/punt/vraagteken/uitroep en
 // anders ongeveer elke 1,3 s een gebaar, nooit vlak na elkaar. Deterministisch.
@@ -257,7 +257,7 @@ const TURN_RATE = 3.2;        // rad/s lichaamsdraai
 
 function emptyEnv() { return { w: 0, t: 0, dur: 0, kind: null, s: 1 }; }
 
-export function createActor(id, opts = {}) {
+function createActor(id, opts = {}) {
   const seed = opts.seed !== undefined ? opts.seed : hashStr(String(id));
   const rng = makeRng(seed);
   const a = {
@@ -292,16 +292,16 @@ function gazePoint(a) {
   return Number.isFinite(g.x) && Number.isFinite(g.z) ? g : null;
 }
 
-export function look(a, target) { a.gaze = target || null; }
+function look(a, target) { a.gaze = target || null; }
 
-export function speak(a, { duur, tekst = '' }) {
+function speak(a, { duur, tekst = '' }) {
   const dur = finite(duur, 0);
   if (!(dur > 0)) { a.talk = null; return; }
   a.talk = { t: 0, dur, beats: planGestures(tekst, dur, a.seed), sideFlip: a.rng() < 0.5 ? -1 : 1 };
   a.gestureBeat = -1;
 }
 
-export function walkPath(a, pts, speed = 1.4) {
+function walkPath(a, pts, speed = 1.4) {
   const path = (pts || []).filter((p) => p && Number.isFinite(p.x) && Number.isFinite(p.z));
   if (a.mode === 'zitten' || a.sit > 0.05) standUp(a);
   if (path.length < 1) return false;
@@ -311,7 +311,7 @@ export function walkPath(a, pts, speed = 1.4) {
   return true;
 }
 
-export function sitDown(a, seat = {}) {
+function sitDown(a, seat = {}) {
   a.walk = null;
   a.seat = {
     x: finite(seat.x, a.x), z: finite(seat.z, a.z), heading: finite(seat.heading, a.heading),
@@ -322,24 +322,24 @@ export function sitDown(a, seat = {}) {
   a.events.push('gaat-zitten');
 }
 
-export function standUp(a) {
+function standUp(a) {
   if (a.mode !== 'zitten') return;
   a.sitTarget = 0;
   a.mode = 'staan';
 }
 
-export function react(a, kind) {
+function react(a, kind) {
   const r = REACTIONS[kind];
   if (!r) return false;
   a.react = { w: 0, t: 0, dur: r.dur, kind, s: a.rng() < 0.5 ? -1 : 1 };
   return true;
 }
 
-export function cancel(a) { a.talk = null; a.walk = null; a.gaze = null; if (a.mode === 'lopen') a.mode = 'staan'; a.react = emptyEnv(); }
+function cancel(a) { a.talk = null; a.walk = null; a.gaze = null; if (a.mode === 'lopen') a.mode = 'staan'; a.react = emptyEnv(); }
 
 // ---- routines voor omstanders -----------------------------------------------------------
 // Elke routine is een functie (a, dt, ctx) die opdrachten geeft. ctx.opts = opties uit de cue.
-export const ROUTINES = {
+const ROUTINES = {
   // staat te wachten: kijkt af en toe op het horloge of rond
   wachten(a, dt, c) {
     c.t = (c.t || 0) - dt;
@@ -390,7 +390,7 @@ export const ROUTINES = {
 
 // ---- update -------------------------------------------------------------------------------
 
-export function updateActor(a, dt) {
+function updateActor(a, dt) {
   const step = clamp(finite(dt, 0), 0, 0.1);
   a.time += step;
   const p = neutralPose();

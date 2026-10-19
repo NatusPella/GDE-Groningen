@@ -25,7 +25,7 @@ function seatAt(g, x, y, z, tilt) {
   box(g, 0.08, 0.16, 0.26, x - 0.3, y + 0.62, z, GREY);
 }
 
-export function buildCarInterior(seat, len, wid, defs = []) {
+function buildCarInterior(seat, len, wid, defs = []) {
   const L = interiorLayout(seat, len, wid);
   const g = new THREE.Group();
   g.name = 'interior';

@@ -54,7 +54,7 @@ export function readingTime(text) {
 }
 
 // { src, dur } of the recording of a line (src absolute), or null for a text-only line.
-export function lineVoice(l) {
+function lineVoice(l) {
   if (!l || l.textOnly || !l.rec) return null;
   const v = manifests[l.rec] && manifests[l.rec][(l.voice || l.speaker) + '|' + l.text];
   return v ? { src: DIRS[l.rec] + v.src, dur: v.dur } : null;

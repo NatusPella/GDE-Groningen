@@ -26,7 +26,7 @@ export const SPECIES = {
 };
 export const SPECIES_IDS = Object.keys(SPECIES);
 
-export const TILE_M = 128;
+const TILE_M = 128;
 // Het dichtheidsbudget: hoeveel dieren één tegel er hoogstens heeft, en hoeveel in totaal rond de speler.
 export const TILE_BUDGET = 14;
 export const TOTAL_BUDGET = { laag: 24, middel: 48, hoog: 80 };
@@ -107,7 +107,7 @@ export function fleeFrom(kind, ax, ay, mover) {
 }
 
 // Een dier komt weer tot rust: wanneer het ver genoeg weg is, of na hold seconden.
-export const CALM_AFTER = 6;
+const CALM_AFTER = 6;
 export function calmed(sinceFleeing, distToMover, kind) {
   const sp = SPECIES[kind];
   return !sp || sinceFleeing > CALM_AFTER || distToMover > sp.flee * 2.5;

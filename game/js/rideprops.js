@@ -7,7 +7,7 @@ import { makeTwoWheeler } from './vehicle.js';
 // breakables respawn once you are long gone).
 
 const KINDS = ['bike', 'scooter'];
-export const PROP_REACH = 1.6;
+const PROP_REACH = 1.6;
 
 export function findRideableProp(x, y, reach = PROP_REACH) {
   let best = null, bestD = reach;

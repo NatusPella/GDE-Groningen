@@ -11,7 +11,7 @@ export const PREFIX = 'gde-';
 // ?dev runs keep their own copy of every key under this prefix (devflags.js)
 export const DEV_PREFIX = 'gde-dev:';
 export const LEGACY_PREFIX = 'gte-';
-export const LEGACY_DEV_PREFIX = 'gte-dev:';
+const LEGACY_DEV_PREFIX = 'gte-dev:';
 
 // The story keeps its progress under keys with a '-nieuw' suffix: the keys of the first version of
 // the story ('gde-save-v1', ...) stay as they were and are never deleted; oudmigratie.js copies
@@ -114,7 +114,7 @@ export const LEGACY_KEYS = [
 // render caches: rebuilt on demand, so they are not copied (no double storage use)
 export const LEGACY_CACHE_KEYS = ['gte-snapshots', 'gte6.placeshots'];
 
-export const LEGACY_SESSION_KEYS = [['gte-benchmark-pending', SESSION_KEYS.benchmarkPending]];
+const LEGACY_SESSION_KEYS = [['gte-benchmark-pending', SESSION_KEYS.benchmarkPending]];
 
 export const MIGRATED_KEY = 'gde-migrated-v1';
 

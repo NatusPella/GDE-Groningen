@@ -223,7 +223,7 @@ function noticeFrom(from) {
   notice = { from, until: performance.now() + NOTICE_HOLD_MS + 1500 };
 }
 
-export function hangUp() {
+function hangUp() {
   if (!call) return;
   finishCall(true);
 }

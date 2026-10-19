@@ -2,7 +2,7 @@
 // real time, whatever the game's time scale (slow motion, a hitching frame
 // rate) does. A pause gap counts at most PAUSE_GAP_S, so a menu freezes it.
 export const ROOM_MAX_S = 9;
-export const ROOM_MIN_S = 1;
+const ROOM_MIN_S = 1;
 const PAUSE_GAP_S = 0.5;
 
 export function advanceRoomClock(room, nowMs, gameDt = 0) {

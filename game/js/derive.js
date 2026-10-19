@@ -9,7 +9,7 @@ import { polygonBounds, pointInPolygon, pointInStaticPolygon } from './util.js';
 // OSM sometimes has the same footprint twice (e.g. Forum Groningen). Two
 // identical extrusions z-fight over their whole roof, so keep one - the
 // landmark-tagged copy if there is one.
-export function dedupeBuildings(list) {
+function dedupeBuildings(list) {
   const byKey = new Map();
   const out = [];
   for (const b of list) {
@@ -84,14 +84,14 @@ export function liftNestedRoofs(list, grid) {
   for (const b of new Set(steps)) b.lift = (b.lift || 0) + 0.4;
 }
 
-export function buildingsOverRails(buildings, rails) {
+function buildingsOverRails(buildings, rails) {
   return buildingsCrossedBy(buildings, rails.map((r) => r.pts || r), 4);
 }
 
 // Low footprints a bridge deck runs through at the waterside are bridge
 // machinery / abutments mapped as buildings; extruded they become a solid
 // wall straight across the carriageway, so they are dropped.
-export function bridgeStructures(buildings, roads, water) {
+function bridgeStructures(buildings, roads, water) {
   const crossed = buildingsCrossedBy(buildings, roads.filter((r) => r.bridge).map((r) => r.pts), 1);
   const out = new Set();
   const wet = (x, y) => water.some((w) => {
@@ -107,7 +107,7 @@ export function bridgeStructures(buildings, roads, water) {
 
 // Houseboats OSM draws (partly) over the bank: slid the shortest way out onto
 // open water, clear of other footprints; one that cannot float is dropped.
-export function mooredHouseboats(buildings, water) {
+function mooredHouseboats(buildings, water) {
   const boats = buildings.filter((b) => b.type === 'houseboat');
   if (!boats.length) return new Set();
   const dropped = new Set();
@@ -175,12 +175,12 @@ export function mooredHouseboats(buildings, water) {
   return dropped;
 }
 
-export const RING_TYPES = new Set(['motorway', 'motorway_link', 'trunk', 'trunk_link']);
+const RING_TYPES = new Set(['motorway', 'motorway_link', 'trunk', 'trunk_link']);
 export const isRingRoad = (r) => RING_TYPES.has(r.type) || (!!r.z && r.cat === 'major');
 
 // Footprints on a ring carriageway that the road would run into: at street
 // level or sunken below it, or a deck too low to clear the roof.
-export function buildingsOnRing(buildings, roads) {
+function buildingsOnRing(buildings, roads) {
   const lines = [], zs = [];
   for (const r of roads) {
     if (!isRingRoad(r)) continue;
@@ -207,7 +207,7 @@ export function buildingsOnRing(buildings, roads) {
   return out;
 }
 
-export function buildingsCrossedBy(buildings, lines, step, zs = null) {
+function buildingsCrossedBy(buildings, lines, step, zs = null) {
   // with zs (a height per line vertex): a Map building -> lowest height hit
   const out = zs ? new Map() : new Set();
   if (!lines.length) return out;

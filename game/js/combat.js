@@ -32,7 +32,7 @@ let lockedPed = null; // the soft-locked target, reachable a step further than t
 
 
 // Number key n: the owned weapons of slot n; pressing it again cycles them.
-export function selectWeaponSlot(world, slot) {
+function selectWeaponSlot(world, slot) {
   const own = WEAPON_KEYS.filter((k) => WEAPONS[k].slot === slot && hasWeapon(world, k));
   if (!own.length) return false;
   world.weapon = own[(own.indexOf(world.weapon) + 1) % own.length];

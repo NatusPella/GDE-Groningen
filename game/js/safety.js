@@ -30,7 +30,7 @@ export function initSafety(w) {
   w.safetyActions = { unstuck: () => unstuck(w), abortMission: () => abortMission(w), missionActive: () => isMissionActive() };
 }
 
-export function abortMission(w = world) {
+function abortMission(w = world) {
   if (!isMissionActive()) return false;
   return failActiveMission(w, 'Missie afgebroken', 'Afgebroken');
 }
@@ -121,7 +121,7 @@ function clearSceneLeftovers(w) {
   document.body.classList.remove('cine-hide-hud', 'intro-montage');
 }
 
-export function unstuck(w = world) {
+function unstuck(w = world) {
   if (!w || w.pendingRespawn) return false;
   if (w.pigeonMode && w.pigeonActions) w.pigeonActions.stop();
   clearTransient(w);
