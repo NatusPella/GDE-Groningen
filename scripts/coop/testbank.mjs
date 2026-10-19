@@ -2,7 +2,7 @@
 //   node scripts/coop/testbank.mjs --stage=<gestagede game-map> [--route=direct] [--gasten=1|2] [--duration=20] [--out=<map>]
 // --gasten=2: host + twee gasten (drie Electron-instanties, dus alle sloten); controleert ook de derde speler (plek 2).
 // Start een host en een gast (eigen wegwerpprofielen), laat de gast de code van de host intypen via het
-// pauzemenu en vergelijkt wat beide kanten zien. Gebruikt de electron-sloten van C:/Users/abuis/gde-locks
+// pauzemenu en vergelijkt wat beide kanten zien. Gebruikt de electron-sloten van de slotenmap (GDE_LOCKS, standaard ~/gde-locks)
 // (max. 3 tegelijk; een slot is een map). GDE_COOP_TEST=1: geen UPnP, localIp 127.0.0.1 (desktop/main.js).
 // Zonder externe diensten: de route 'direct' is TCP op de loopback; de kamercode (WebRTC + brokers) heeft een
 // lokale mock nodig en is hier nog niet bedraad.
@@ -23,7 +23,7 @@ const DURATION = Number(arg('duration', 20));
 const MENU = process.argv.includes('--menu'); // alles via de ingang 'Samen spelen' in het hoofdmenu
 const GASTEN = Math.max(1, Math.min(2, Number(arg('gasten', 1)) || 1));
 const OUT = path.resolve(arg('out', path.join(os.tmpdir(), 'gde-coop', new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19))));
-const LOCKS = process.env.GDE_LOCKS || 'C:/Users/abuis/gde-locks';
+const LOCKS = process.env.GDE_LOCKS || path.join(os.homedir(), 'gde-locks');
 const ELECTRON = process.env.ELECTRON_EXE || path.join(ROOT, 'desktop', 'node_modules', 'electron', 'dist', process.platform === 'win32' ? 'electron.exe' : 'Electron');
 fs.mkdirSync(OUT, { recursive: true });
 

@@ -1,7 +1,7 @@
 // Test voor scripts/publish_check.mjs: de patronen vangen wat ze moeten vangen, gewone tekst blijft schoon,
 // private-only bestanden worden op naam herkend. Testwaarden worden samengesteld, zodat dit bestand zelf schoon blijft.
 //   node scripts/publish_check_test.mjs
-import { scanText, scanFileNames, scanSizes, scanRequired, scanWorkflow, scanAuthors, emailsIn } from './publish_check.mjs';
+import { isManualOnly, scanText, scanFileNames, scanSizes, scanRequired, scanWorkflow, scanAuthors, emailsIn } from './publish_check.mjs';
 
 let failed = 0;
 const ok = (c, m) => { if (!c) { failed++; console.log('FAIL ' + m); } };
@@ -46,6 +46,13 @@ ok(scanRequired(['licenses/a.txt'], '.env\n.claude/\ngame/world/\r\n').every((x)
 
 ok(scanWorkflow('w.yml', 'uses: actions/deploy-pages@v4').length === 1, 'workflow met Pages-deploy');
 ok(scanWorkflow('w.yml', 'permissions:\n  contents: read\n# deploy-pages').length === 0, 'alleen-lezen workflow en commentaar');
+
+const manualWf = 'name: x\non:\n  workflow_dispatch:\n    inputs:\n      tag:\n        type: string\npermissions:\n  contents: write\n';
+ok(isManualOnly(manualWf), 'workflow_dispatch alleen is handmatig');
+ok(!isManualOnly('on:\n  push:\n  workflow_dispatch:\n'), 'push erbij is niet handmatig');
+ok(!isManualOnly('on:\n  pull_request:\n'), 'pull_request is niet handmatig');
+ok(scanWorkflow('w.yml', manualWf).length === 1 && scanWorkflow('w.yml', manualWf)[0].level === 'WARN', 'handmatige workflow met schrijfrechten is WARN');
+ok(scanWorkflow('w.yml', 'on:\n  push:\npermissions:\n  contents: write\n')[0].level === 'FAIL', 'automatische workflow met schrijfrechten is FAIL');
 
 ok(scanAuthors(['NatusPella\t1+n@users.noreply.github.com']).length === 0, 'noreply-auteur');
 ok(scanAuthors(['G'+String.fromCharCode(9)+'noreply@github.com']).length === 0, 'GitHub-committer');

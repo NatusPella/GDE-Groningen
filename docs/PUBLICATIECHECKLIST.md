@@ -54,7 +54,7 @@ openen) en meldt bestand, patroonnaam en blob, nooit de waarde.
 - [ ] Private vulnerability reporting aan (SECURITY.md verwijst ernaar)
 - [ ] Secret scanning en push protection aan; Dependabot alerts en security updates aan (`.github/dependabot.yml` bestaat al: wekelijkse npm-check voor `/desktop`)
 - [ ] Branch protection op `main`
-- [ ] Actions: goedkeuring voor workflows van forks aan; `GITHUB_TOKEN` standaard alleen-lezen (`test.yml` heeft `contents: read`)
+- [ ] Actions: goedkeuring voor workflows van forks aan; `GITHUB_TOKEN` standaard alleen-lezen (`test.yml` heeft `contents: read`). `mac-release.yml` heeft `contents: write` en uploadt de dmg naar een release, maar start alleen met de hand (`workflow_dispatch`); `publish_check` meldt dat als WARN. Laten staan of weghalen is een eigenaarsbesluit
 - [ ] Social preview uploaden (zie voorstel), About en website-veld invullen
 - [ ] Discussions/Wiki bewust aan of uit laten
 - [ ] Pages **niet** aanzetten zonder aparte beslissing over de webversie (#57)
