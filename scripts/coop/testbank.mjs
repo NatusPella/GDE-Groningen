@@ -20,6 +20,7 @@ const STAGE = path.resolve(arg('stage', process.env.GDE_GAME_DIR || ''));
 if (!STAGE || !fs.existsSync(path.join(STAGE, 'index.html'))) { console.error('--stage=<gestagede game-map> ontbreekt (scripts/coop/restage.mjs)'); process.exit(2); }
 const ROUTE = arg('route', 'direct');
 const DURATION = Number(arg('duration', 20));
+const MENU = process.argv.includes('--menu'); // alles via de ingang 'Samen spelen' in het hoofdmenu
 const GASTEN = Math.max(1, Math.min(2, Number(arg('gasten', 1)) || 1));
 const OUT = path.resolve(arg('out', path.join(os.tmpdir(), 'gde-coop', new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19))));
 const LOCKS = process.env.GDE_LOCKS || 'C:/Users/abuis/gde-locks';
@@ -43,7 +44,7 @@ function start(name, cfg, seed) {
   const dir = path.join(OUT, name); fs.mkdirSync(dir, { recursive: true });
   const events = path.join(dir, 'events.jsonl'); fs.writeFileSync(events, '');
   const script = path.join(dir, '_page.js');
-  fs.writeFileSync(script, `window.__coopCfg = ${JSON.stringify({ ...cfg, name, route: ROUTE, durationS: DURATION })};\n` + fs.readFileSync(path.join(HERE, 'coop.page.js'), 'utf8'));
+  fs.writeFileSync(script, `window.__coopCfg = ${JSON.stringify({ ...cfg, name, route: ROUTE, durationS: DURATION, viaMenu: MENU })};\n` + fs.readFileSync(path.join(HERE, 'coop.page.js'), 'utf8'));
   const profile = `gde-test-coop-${process.pid}-${name}`;
   const env = { ...process.env, GDE_TEST_PROFILE: profile, GDE_GAME_DIR: STAGE, GDE_COOP_TEST: '1' };
   delete env.ELECTRON_RUN_AS_NODE;
@@ -103,6 +104,7 @@ check(res[0].result === 'KLAAR', `host: ${res[0].result} ${res[0].reason || ''}`
 check(res[1].result === 'KLAAR', `gast: ${res[1].result} ${res[1].reason || ''}`);
 const cons = of(H, 'toestemming')[0];
 check(cons && /IP-adres/.test(cons.tekst) && cons.knoppen.includes('akkoord'), 'host: toestemmingsscherm met uitleg over het IP-adres');
+if (MENU) check(of(H, 'hoofdmenu').length && /samen/.test(of(H, 'hoofdmenu')[0].items) && of(G, 'hoofdmenu').length, 'het hoofdmenu heeft de ingang Samen spelen');
 check(of(H, 'verbonden').length && of(G, 'verbonden').length, 'beide kanten bereiken "Je speelt samen"');
 const hs = of(H, 'sample'), gs = of(G, 'sample');
 check(hs.length >= DURATION / 2 && gs.length >= DURATION / 2, `genoeg samples (${hs.length}/${gs.length})`);

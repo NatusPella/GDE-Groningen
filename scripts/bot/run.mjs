@@ -119,11 +119,11 @@ console.log(`${res.result}: ${res.reason || ''}`);
     const planned = (evs.find((e) => e.type === 'start' && e.mode === 'minigames') || {}).activities || [];
     const done = new Set(mgs.map((m) => m.id));
     const rest = planned.filter((i) => !done.has(i));
-    console.log(`minigames klaar: ${mgs.length}/${planned.length}; gestart ${mgs.filter((m) => m.started).length}; niet gestart: ${mgs.filter((m) => !m.started).map((m) => m.id).join(', ') || '-'}${rest.length ? `; niet aan toe gekomen: ${rest.join(', ')}` : ''}`);
+    console.log(`minigames klaar: ${mgs.length}/${planned.length}; gestart ${mgs.filter((m) => m.started).length}; niet gestart zonder reden: ${mgs.filter((m) => !m.started && !m.reden).map((m) => m.id).join(', ') || '-'}; ontwerp: ${mgs.filter((m) => !m.started && m.reden).map((m) => m.id).join(', ') || '-'}${rest.length ? `; niet aan toe gekomen: ${rest.join(', ')}` : ''}`);
   }
   const last = evs.filter((e) => e.type !== 'console').slice(-1)[0];
   if (res.result !== 'KLAAR' && res.result !== 'REPLAY' && last) console.log(`laatste gebeurtenis: ${JSON.stringify(last).slice(0, 300)}`);
-  fs.writeFileSync(path.join(OUT, 'result.json'), JSON.stringify({ ...res, minigames: mgs.map((m) => [m.id, m.started, m.stuck, m.how]) }, null, 1));
+  fs.writeFileSync(path.join(OUT, 'result.json'), JSON.stringify({ ...res, minigames: mgs.map((m) => [m.id, m.started, m.stuck, m.how, m.reden || '']) }, null, 1));
 }
 console.log(`uitvoer: ${OUT}`);
 process.exit(res.result === 'KLAAR' || res.result === 'REPLAY' ? 0 : 1);
