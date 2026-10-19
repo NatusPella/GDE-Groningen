@@ -143,7 +143,7 @@ export async function loadSourcesLaag(game = path.join(ROOT, 'game'), lagen = pa
   return { map: new GameMap(data), lagen };
 }
 export function parseLagen(raw) {
-  const ok = ['water'];
+  const ok = ['water', 'green', 'trees'];
   return String(raw || '').split(/[,\s]+/).map((w) => w.trim().toLowerCase()).filter((w) => ok.includes(w));
 }
 
