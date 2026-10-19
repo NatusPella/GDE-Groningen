@@ -314,6 +314,18 @@ results.routes.latentie = await safe('latentie', async () => {
   return { n: lat.length, p50: s[Math.floor(s.length / 2)] ?? null, max: s[s.length - 1] ?? null, note: 'keydown to first frame whose player position changed, ms; add one frame of display' };
 });
 
+// scene census (only with PERF_ONLY=census): objects in the scene by top-level child, to see what the per-frame matrix and culling walk costs
+results.routes.census = await safe('census', async () => {
+  if (!ONLY.includes('census')) return null;
+  fixWorld(); teleport(FOOT[0][0], FOOT[0][1]); await sleep(8000);
+  const rows = [];
+  let total = 0, auto = 0, meshes = 0, inst = 0, visible = 0;
+  const count = (o, acc) => { acc.n++; if (o.isMesh) acc.m++; if (o.matrixAutoUpdate) acc.a++; if (o.visible) acc.v++; for (const c of o.children) count(c, acc); };
+  for (const c of sc.scene.children) { const acc = { n: 0, m: 0, a: 0, v: 0 }; count(c, acc); rows.push([c.name || c.type + (c.userData && Object.keys(c.userData).slice(0, 2).join('/') ? ':' + Object.keys(c.userData).slice(0, 2).join('/') : ''), acc.n, acc.m, acc.a, acc.v, c.children.length]); total += acc.n; auto += acc.a; meshes += acc.m; visible += acc.v; }
+  rows.sort((a, b) => b[1] - a[1]);
+  const t0 = performance.now(); for (let i = 0; i < 20; i++) sc.scene.updateMatrixWorld(true); const walk = (performance.now() - t0) / 20;
+  return { total, auto, meshes, visible, top: rows.slice(0, 30), updateMatrixWorldMs: +walk.toFixed(2) };
+});
 results.routes.pause = await run('pause', async () => { teleport(...P(100, 77)); await sleep(4000); wantMenu = true; PM.openPauseMenu('game'); return {}; }, () => {}, async () => { wantMenu = false; PM.closePauseMenu(); });
 results.routes.sheet = await run('sheet', async () => { teleport(...P(100, 77)); await sleep(4000); wantMenu = true; PM.openPauseMenu('settings'); return {}; }, () => {}, async () => { wantMenu = false; PM.closePauseMenu(); });
 
