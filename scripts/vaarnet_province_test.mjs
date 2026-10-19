@@ -36,7 +36,7 @@ ok(rep0.ditches > 1000, 'the ditches and ponds of class 1 are counted as deliber
 
 // the route: tour boat, class 3
 const rep = W.audit(built, { classes: [3, 4], log: () => {} });
-const c3 = rep.classes[3], c4 = rep.classes[4];
+const c3 = rep.classes[3];
 for (const lab of ['Lauwersmeer', 'zee waddenzee', 'zee eems', 'zee dollard']) {
   const r = c3.labels[lab];
   ok(!!r && r.blocked === 0, `a tour boat sails from the inner city to ${lab}`, r ? `${r.blocked} blocked` : 'none');
@@ -44,7 +44,9 @@ for (const lab of ['Lauwersmeer', 'zee waddenzee', 'zee eems', 'zee dollard']) {
 }
 ok(c3.labels['zee waddenzee'].near.length > 1 && /Lauwersoog|Rug/.test(c3.labels['zee waddenzee'].near + 'Rug'), 'the Wadden access is named');
 ok(c3.labels['zee eems'].near === 'Farmsum' || c3.labels['zee eems'].near === 'Delfzijl', 'the Eems access is Delfzijl', c3.labels['zee eems'].near);
-// the barge: it reaches every sea, but the low fixed bridges stop it, each one named by place
+// the barge: it reaches every sea (on the raster with the gaps patched, as the game has it: since #234
+// a barge only sails the main waterways and harbours, and those pieces join through the patches), but the low fixed bridges stop it, each one named by place
+const c4 = W.audit(W.buildRaster({ fixesOn: true }), { classes: [4], log: () => {} }).classes[4];
 for (const lab of ['Lauwersmeer', 'zee waddenzee', 'zee eems', 'zee dollard']) {
   const r = c4.labels[lab];
   ok(!!r, `a barge route (with its obstacles) exists to ${lab}`);
